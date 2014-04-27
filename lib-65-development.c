@@ -1,0 +1,284 @@
+#include "newrpl.h"
+#include "libraries.h"
+#include "hal.h"
+
+#include <stdio.h>
+
+
+
+extern void trig_sincos(mpd_t *ptr);
+extern void trig_atan2(mpd_t *x,mpd_t *y);
+
+
+
+
+
+
+
+// LIB 65 PROVIDES COMMANDS THAT ARE ONLY TEMPORARY AND USED FOR DEBUG/DEVELOPMENT
+
+// MAIN LIBRARY NUMBER, CHANGE THIS FOR EACH LIBRARY
+#define LIBRARY_NUMBER  65
+#define LIB_ENUM lib65_enum
+#define LIB_NAMES lib65_names
+#define LIB_HANDLER lib65_handler
+#define LIB_NUMBEROFCMDS LIB65_NUMBEROFCMDS
+
+// LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
+#define CMD_LIST \
+    CMD(TRANSCENTABLE), \
+    CMD(WRITETABLE), \
+    CMD(SINCOS), \
+    CMD(ATAN2)
+
+// ADD MORE OPCODES HERE
+
+
+// EXTRA LIST FOR COMMANDS WITH SYMBOLS THAT ARE DISALLOWED IN AN ENUM
+// THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
+/*#define CMD_EXTRANAME \
+    "VOID",
+
+#define CMD_EXTRAENUM \
+    VOID
+*/
+
+// INTERNAL DECLARATIONS
+
+
+// CREATE AN ENUM WITH THE OPCODE NAMES FOR THE DISPATCHER
+#define CMD(a) a
+enum LIB_ENUM { CMD_LIST /*, CMD_EXTRAENUM */, LIB_NUMBEROFCMDS };
+#undef CMD
+
+// AND A LIST OF STRINGS WITH THE NAMES FOR THE COMPILER
+#define CMD(a) #a
+char *LIB_NAMES[]= { CMD_LIST /*, CMD_EXTRANAME*/ };
+#undef CMD
+
+
+void LIB_HANDLER()
+{
+    if(ISPROLOG(CurOpcode)) {
+        // THIS LIBRARY DOES NOT DEFINE ANY OBJECTS
+        Exceptions=EX_BADOPCODE;
+        ExceptionPointer=IPtr;
+        return;
+    }
+
+    switch(OPCODE(CurOpcode))
+    {
+
+    case TRANSCENTABLE:
+        // TERMPORARY USE ONLY, CONVERT A REAL AS A 'C' STRING OF 32-BIT WORDS
+        // FORMAT IS: EXPONENT, NUM.WORDS, MANTISA0 , ... ALL MANTISSA WORDS.
+    {
+        mpd_t dec;
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        rplReadReal(rplPeekData(1),&dec);
+
+        // FOR THE TABLES, WE'LL ROUND TO THE NEAREST INTEGER, DISCARDING THE LAST 9 DIGITS (1 WORD)
+        int exponent=dec.digits+dec.exp;
+        dec.exp=2016-dec.digits;
+        mpd_context_t newctx;
+        memcpy(&newctx,&Context,sizeof(mpd_context_t));
+
+        newctx.round=MPD_ROUND_HALF_UP;
+        mpd_round_to_intx(&RReg[0],&dec,&newctx);
+        RReg[0].exp=-2016+exponent;
+
+
+        if(Exceptions) return;
+        BINT strsize = (RReg[0].len + 3)*12/4;   // THERE'S 9 DIGITS PER WORD, PLUS A COMMA AND A SPACE = 11 DIGITS + 1 EXTRA JUST IN CASE = 12 BYTES = 3 WORDS
+        WORDPTR string=rplAllocTempOb(strsize);
+        if(!string) return;
+        BYTEPTR strptr=(BYTEPTR) &(string[1]);
+        BINT charswritten=sprintf(strptr,"%d, /* %d WORDS */ ",RReg[0].exp,RReg[0].len);
+        strptr+=charswritten;
+        int count;
+        for(count=0;count<RReg[0].len;++count)
+        {
+            charswritten=sprintf(strptr,"%d, ",RReg[0].data[count]);
+            strptr+=charswritten;
+        }
+
+        charswritten=sprintf(strptr,"\n",dec.data[count]);
+        strptr+=charswritten;
+
+        // DETERMINE TOTAL NUMBER OF BYTES WRITTEN
+        charswritten=strptr-(BYTEPTR) &(string[1]);
+
+        WORDPTR strend=(WORDPTR)  ((((WORD)strptr)+3)&~3);
+
+        string[0]=MKPROLOG(DOSTRING | ((4-(charswritten&3))&3), strend-string-1);
+
+        // TRUNCATE OBJECT AT END OF TEMPOB
+        rplTruncateLastObject(strend);
+
+        rplOverwriteData(1,string);
+        return;
+
+    }
+    case WRITETABLE:
+    {
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        WORDPTR string=rplPeekData(1);
+
+        if(!ISSTRING(*string)) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        // APPEND THE STRING TO A FILE NAMED OUTPUT.TXT
+        FILE *han=fopen("output.txt","a");
+        if(!han) return;
+        BINT nwords;
+        BYTEPTR charptr;
+        // NOW PRINT THE STRING OBJECT
+        nwords=OBJSIZE(*string);
+        charptr=(BYTEPTR) (string+1);
+        for(;nwords>1;--nwords,charptr+=4)
+        {
+            fprintf(han,"%c%c%c%c",charptr[0],charptr[1],charptr[2],charptr[3]);
+        }
+        // LAST WORD MAY CONTAIN LESS THAN 4 CHARACTERS
+        nwords=4-(LIBNUM(*string)&3);
+        for(;nwords>0;--nwords,charptr++)
+        {
+            fprintf(han,"%c",*charptr);
+        }
+
+        fclose(han);
+
+        rplDropData(1);
+        return;
+        }
+    case SINCOS:
+        // TERMPORARY USE ONLY, GET BOTH SIN AND COS
+    {
+        mpd_t dec;
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        rplReadReal(rplPeekData(1),&dec);
+        if(Exceptions) return;
+
+        trig_sincos(&dec);
+        rplRRegToRealPush(5);       // ANGLE RESIDUAL
+        RReg[0].exp+=Context.prec;
+        mpd_round_to_intx(&RReg[6],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[6].exp-=Context.prec;
+        mpd_reduce(&RReg[0],&RReg[6],&Context);
+        rplRRegToRealPush(0);       // COS
+        RReg[1].exp+=Context.prec;
+        mpd_round_to_intx(&RReg[7],&RReg[1],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[7].exp-=Context.prec;
+        mpd_reduce(&RReg[1],&RReg[7],&Context);
+        rplRRegToRealPush(1);       // SIN
+
+
+        return;
+
+    }
+    case ATAN2:
+        // TERMPORARY USE ONLY, GET BOTH SIN AND COS
+    {
+        mpd_t y,x;
+        if(rplDepthData()<2) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        rplReadReal(rplPeekData(1),&y);
+        rplReadReal(rplPeekData(2),&x);
+
+        if(Exceptions) return;
+
+        trig_atan2(&x,&y);
+        RReg[0].exp+=Context.prec;
+        mpd_round_to_intx(&RReg[6],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[6].exp-=Context.prec;
+        mpd_reduce(&RReg[0],&RReg[6],&Context);
+        rplRRegToRealPush(0);       // RESULTING ANGLE
+
+        return;
+
+    }
+
+
+    // ADD MORE OPCODES HERE
+
+   // STANDARIZED OPCODES:
+    // --------------------
+    // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
+
+
+    case OPCODE_COMPILE:
+        // COMPILE RECEIVES:
+        // TokenStart = token string
+        // TokenLen = token length
+        // BlankStart = token blanks afterwards
+        // BlanksLen = blanks length
+        // CurrentConstruct = Opcode of current construct/WORD of current composite
+
+        // COMPILE RETURNS:
+        // RetNum =  enum CompileErrors
+
+
+        // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
+        // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
+        libCompileCmds(LIBRARY_NUMBER,LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+
+     return;
+
+    case OPCODE_DECOMPILE:
+        // DECOMPILE RECEIVES:
+        // DecompileObject = Ptr to WORD of object to decompile
+        // DecompStringEnd = Ptr to the end of decompile string
+
+        //DECOMPILE RETURNS
+        // RetNum =  enum DecompileErrors
+
+        // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
+        // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
+        libDecompileCmds(LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        return;
+    case OPCODE_VALIDATE:
+        // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY
+        // THIS LIBRARY. EVERY COMPOSITE HAS TO EVALUATE IF THE OBJECT BEING COMPILED IS ALLOWED INSIDE THIS
+        // COMPOSITE OR NOT. FOR EXAMPLE, A REAL MATRIX SHOULD ONLY ALLOW REAL NUMBERS INSIDE, ANY OTHER
+        // OPCODES SHOULD BE REJECTED AND AN ERROR THROWN.
+        // TokenStart = token string
+        // TokenLen = token length
+        // ArgNum2 = Opcode/WORD of object
+
+        // VALIDATE RETURNS:
+        // RetNum =  enum CompileErrors
+
+
+
+        return;
+    }
+    // BY DEFAULT, ISSUE A BAD OPCODE ERROR
+    Exceptions|=EX_BADOPCODE;
+    ExceptionPointer=IPtr;
+    return;
+
+}
+
+
+
+
+
