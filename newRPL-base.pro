@@ -49,7 +49,11 @@ SOURCES += main.cpp \
     atan_1_comp.c \
     atan_2_comp.c \
     atan_5_comp.c \
-    transcendentals.c
+    transcendentals.c \
+    lib-66-transcendentals.c \
+    atanh_1_comp.c \
+    atanh_2_comp.c \
+    atanh_5_comp.c
 
 HEADERS += \
     runstream.h \

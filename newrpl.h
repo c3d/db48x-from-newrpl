@@ -104,7 +104,7 @@ extern void growTempBlocks(WORD newtotalsize);
 
 // COMPILER FUNCTIONS IN COMPILER.C
 
-extern WORDPTR rplCompile(BYTEPTR string);
+extern WORDPTR rplCompile(BYTEPTR string, BINT addwrapper);
 extern void rplCompileAppend(WORD word);
 
 // DECOMPILER FUNCTIONS

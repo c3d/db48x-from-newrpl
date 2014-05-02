@@ -17,6 +17,7 @@ extern void lib26_handler();
 
 extern void lib64_handler();
 extern void lib65_handler();
+extern void lib66_handler();
 
 
 
@@ -138,7 +139,7 @@ LIBHANDLER ROMLibs[]={
     dummy_libhandler,
     lib64_handler,
     lib65_handler,
-    dummy_libhandler,
+    lib66_handler,
     dummy_libhandler,
     dummy_libhandler,
     dummy_libhandler,

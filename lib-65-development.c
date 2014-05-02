@@ -28,8 +28,7 @@ extern void trig_atan2(mpd_t *x,mpd_t *y);
 #define CMD_LIST \
     CMD(TRANSCENTABLE), \
     CMD(WRITETABLE), \
-    CMD(SINCOS), \
-    CMD(ATAN2)
+    CMD(CEXP)
 
 // ADD MORE OPCODES HERE
 
@@ -163,59 +162,34 @@ void LIB_HANDLER()
         rplDropData(1);
         return;
         }
-    case SINCOS:
-        // TERMPORARY USE ONLY, GET BOTH SIN AND COS
+    case CEXP:
     {
-        mpd_t dec;
+        mpd_t x;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&dec);
+        rplReadReal(rplPeekData(1),&x);
+
         if(Exceptions) return;
 
-        trig_sincos(&dec);
-        rplRRegToRealPush(5);       // ANGLE RESIDUAL
+        hyp_exp(&x);
+        if(Exceptions) return;
+
+/*
         RReg[0].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[6],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[6].exp-=Context.prec;
-        mpd_reduce(&RReg[0],&RReg[6],&Context);
-        rplRRegToRealPush(0);       // COS
-        RReg[1].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[7],&RReg[1],&Context);  // ROUND TO THE REQUESTED PRECISION
+        mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
         RReg[7].exp-=Context.prec;
-        mpd_reduce(&RReg[1],&RReg[7],&Context);
-        rplRRegToRealPush(1);       // SIN
-
-
+        mpd_reduce(&RReg[0],&RReg[7],&Context);
+*/
+        rplDropData(1);
+        rplRRegToRealPush(0);
         return;
 
     }
-    case ATAN2:
-        // TERMPORARY USE ONLY, GET BOTH SIN AND COS
-    {
-        mpd_t y,x;
-        if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
-            return;
-        }
-        rplReadReal(rplPeekData(1),&y);
-        rplReadReal(rplPeekData(2),&x);
 
-        if(Exceptions) return;
 
-        trig_atan2(&x,&y);
-        RReg[0].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[6],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[6].exp-=Context.prec;
-        mpd_reduce(&RReg[0],&RReg[6],&Context);
-        rplRRegToRealPush(0);       // RESULTING ANGLE
-
-        return;
-
-    }
 
 
     // ADD MORE OPCODES HERE

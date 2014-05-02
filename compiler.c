@@ -18,10 +18,15 @@ void rplCompileAppend(WORD word)
 }
 
 // COMPILE A STRING AND RETURN A POINTER TO THE FIRST COMMAND/OBJECT
-WORDPTR rplCompile(BYTEPTR string)
+// IF addwrapper IS NON-ZERO, IT WILL WRAP THE CODE WITH :: ... ; EXITRPL
+// (USED BY THE COMMAND LINE FOR IMMEDIATE COMMANDS)
+
+WORDPTR rplCompile(BYTEPTR string, BINT addwrapper)
 {
     // COMPILATION USES TEMPOB
     CompileEnd=TempObEnd;
+    static const char const wrapperstart[]="::";
+    static const char const wrapperend[]="; EXITRPL";
 
     // START COMPILATION LOOP
     BINT force_libnum;
@@ -34,7 +39,12 @@ WORDPTR rplCompile(BYTEPTR string)
     ValidateHandler=NULL;
 
     force_libnum=-1;
-    NextTokenStart=(WORDPTR)string;
+
+    if(addwrapper) { NextTokenStart=(WORDPTR)wrapperstart; addwrapper=1; }
+    else NextTokenStart=(WORDPTR)string;
+
+    do {
+
 
     // FIND THE START OF NEXT TOKEN
     while( (*((BYTEPTR)NextTokenStart)==' ') || (*((BYTEPTR)NextTokenStart)=='\t') || (*((BYTEPTR)NextTokenStart)=='\n') || (*((BYTEPTR)NextTokenStart)=='\r')) NextTokenStart=(WORDPTR)(((BYTEPTR)NextTokenStart)+1);
@@ -146,6 +156,13 @@ WORDPTR rplCompile(BYTEPTR string)
 
 
     } while( (*((BYTEPTR )NextTokenStart)) && !Exceptions );
+
+ if(addwrapper==-1) { NextTokenStart=(WORDPTR) wrapperend; addwrapper=0; }  // JUST FINISHED THE STRING, NOW ADD THE END OF THE WRAPPER
+ if(addwrapper==1) { NextTokenStart=(WORDPTR) string; addwrapper=-1; } // JUST FINISHED THE START OF THE WRAPPER, NOW COMPILE THE ACTUAL STRING
+
+
+
+ } while( (*((BYTEPTR )NextTokenStart)) && !Exceptions);
 
 // END OF STRING OBJECT WAS REACHED
     if(ValidateTop!=RSTop) {

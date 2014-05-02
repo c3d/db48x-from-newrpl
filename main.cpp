@@ -9,33 +9,33 @@ BYTEPTR testprogram=(BYTEPTR)"<< 1 'A' LAMSTO A 'A' LAMSTO >> " // UNIT TEST: AL
                              "<< 1 'A' LAMSTO 1 A FOR i A i + 'A' LAMSTO NEXT A 'A' LAMSTO 'i' LAMSTO i >> " // UNIT TEST: LAMS ACROSS FOR LOOPS ARE OK AS GETLAM/PUTLAM, LOOP VARS DISSAPPEAR AFTER NEXT/STEP
                              "<< 1 'A' LAMSTO << 1 'B' LAMSTO A B C >> A B C >> " // UNIT TEST: LAMS AFTER SECONDARIES ARE CLEANED UP PROPERLY
                              "<< 1 'A' LAMSTO :: 1 'B' LAMSTO A B C ; A B C >> " // UNIT TEST: LAMS ACROSS DOCOL ARE COMPILED AS GETLAM/PUTLAM, BUT NEW ENVIRONMENTS NEED TO BE CREATED/CLEANED UP AS NEEDED
-                            "EXITRPL";
+                            ;
 */
 /*
 BYTEPTR testprogram=(BYTEPTR)"<< 1 'A' LAMSTO DO A A 1 + 'A' LAMSTO UNTIL A 10 == END \"END!\" >> EVAL " // UNIT TEST: DO/UNTIL TEST WITH LAMS
-                            "EXITRPL";
+                            ;
 */
 /*
 BYTEPTR testprogram=(BYTEPTR)//"<< 1 'A' LAMSTO WHILE A 10 <= REPEAT A A 1 + 'A' LAMSTO END \"END!\" >> " // UNIT TEST: WHILE/REPEAT TEST WITH LAMS
                              "<< 1 'A' LAMSTO WHILE A 'B' LAMSTO A 10 <= REPEAT B A A 1 + 'A' LAMSTO END B \"END!\" >> EVAL " // UNIT TEST: WHILE/REPEAT TEST WITH LAMS
-                            "EXITRPL";
+                            ;
 */
 /*
-BYTEPTR testprogram=(BYTEPTR) "<< 1 'A' STO 'DIR1' CRDIR DIR1 10 'B' STO 'DIR1' RCL 'DIR2' STO DIR2 1000 'C' STO HOME 'DIR1' RCL 'NEWDIR' STO >> EVAL EXITRPL";
+BYTEPTR testprogram=(BYTEPTR) "<< 1 'A' STO 'DIR1' CRDIR DIR1 10 'B' STO 'DIR1' RCL 'DIR2' STO DIR2 1000 'C' STO HOME 'DIR1' RCL 'NEWDIR' STO >> EVAL";
 */
 /*
-BYTEPTR testprogram=(BYTEPTR) ":: DISPDEBUG 10 2 3 + SWAP DUP + SWAP DROP DISPDEBUG GARBAGE DISPDEBUG 1 SWAP FOR i i i * NEXT DISPDEBUG GARBAGE DISPDEBUG 1 10 FOR i DROP NEXT GARBAGE DISPDEBUG ; EXITRPL";
+BYTEPTR testprogram=(BYTEPTR) "DISPDEBUG 10 2 3 + SWAP DUP + SWAP DROP DISPDEBUG GARBAGE DISPDEBUG 1 SWAP FOR i i i * NEXT DISPDEBUG GARBAGE DISPDEBUG 1 10 FOR i DROP NEXT GARBAGE DISPDEBUG";
 */
 /*
-BYTEPTR testprogram=(BYTEPTR) ":: 1 DISPDEBUG 1 100000 FOR i i 1 - DUP * + GARBAGE NEXT DISPDEBUG GARBAGE DISPDEBUG ; EXITRPL";
+BYTEPTR testprogram=(BYTEPTR) "1 DISPDEBUG 1 100000 FOR i i 1 - DUP * + GARBAGE NEXT DISPDEBUG GARBAGE DISPDEBUG";
 */
 /*
- BYTEPTR testprogram=(BYTEPTR) ":: { 1 2 3 4 5 6 7 8 9 } 'A' LAMSTO 'A' 3 16 PUT 'A' 3 GET A ; EXITRPL";
+ BYTEPTR testprogram=(BYTEPTR) "{ 1 2 3 4 5 6 7 8 9 } 'A' LAMSTO 'A' 3 16 PUT 'A' 3 GET A";
 */
 
 /*
 // N-QUEENS WITH ALL CONSTANT NUMBERS AS REALS
-BYTEPTR testprogram=(BYTEPTR) " :: << 8. 0. 0. 0. { } -> R S X Y A "
+BYTEPTR testprogram=(BYTEPTR) "<< 8. 0. 0. 0. { } -> R S X Y A "
                 "  << "
                " 1. R START 0. NEXT R ->LIST 'A' STO "
                " DO "
@@ -60,12 +60,12 @@ BYTEPTR testprogram=(BYTEPTR) " :: << 8. 0. 0. 0. { } -> R S X Y A "
             " >> "
           " >> "
           " 'PRO' STO "
-          "     1 10 START PRO DROP DROP NEXT ; "
-          " EXITRPL " ;
+          "     1 10 START PRO DROP DROP NEXT"
+          ;
 */
 /*
 // N-QUEENS WITH ALL CONSTANTS AS INTEGERS (SINT)
-BYTEPTR testprogram=(BYTEPTR) " :: << 8 0 0 0 { } -> R S X Y A "
+BYTEPTR testprogram=(BYTEPTR) "<< 8 0 0 0 { } -> R S X Y A "
                 "  << "
                " 1 R START 0 NEXT R ->LIST 'A' STO "
                " DO "
@@ -90,12 +90,12 @@ BYTEPTR testprogram=(BYTEPTR) " :: << 8 0 0 0 { } -> R S X Y A "
             " >> "
           " >> "
           " 'PRO' STO "
-          "     1 1000 START PRO DROP DROP NEXT ; "
-          " EXITRPL " ;
+          "     1 1000 START PRO DROP DROP NEXT "
+           ;
 */
 
 /*
-BYTEPTR testprogram=(BYTEPTR) ":: 1.0 'val' LAMSTO 1 1000000 FOR J 150. 1. DUP ROT FOR I I * NEXT 'val' LAMSTO NEXT val ; EXITRPL";
+BYTEPTR testprogram=(BYTEPTR) "1.0 'val' LAMSTO 1 1000000 FOR J 150. 1. DUP ROT FOR I I * NEXT 'val' LAMSTO NEXT val";
 */
 
 
@@ -105,7 +105,7 @@ BYTEPTR testprogram=(BYTEPTR) ":: 1.0 'val' LAMSTO 1 1000000 FOR J 150. 1. DUP R
 // GENERATE THE TRANSCENDENTALS TABLE ATAN(X) FOR X=1*10^-N
 // USES 2016 DIGITS PRECISION (2025 TEMPORARY TO GUARANTEE ROUNDING)
 /*
-BYTEPTR testprogram=(BYTEPTR) ":: 2025 SETPREC "
+BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
                                 " << 0.0 'RESULT' LAMSTO 1 'SIGN' LAMSTO "
                                 "DUP UNROT NEG 10 SWAP ^ * 3000 ROT / IP 2 * 0  FOR k DUP 2 k * 1 + DUP UNROT ^ SWAP / SIGN * "
                                 "RESULT + 'RESULT' LAMSTO SIGN NEG 'SIGN' LAMSTO -1 STEP DROP RESULT >>"
@@ -123,13 +123,13 @@ BYTEPTR testprogram=(BYTEPTR) ":: 2025 SETPREC "
                                 " 'QUARTERPI' STO "
                                 " QUARTERPI "
                               " TRANSCENTABLE WRITETABLE 1 1008 FOR I 1 I ATAN TRANSCENTABLE WRITETABLE NEXT "
-                                "; EXITRPL";
+                                ;
 */
 
 // GENERATE THE TRANSCENDENTALS TABLE ATAN(X) FOR X=2*10^-N
 // USES 2016 DIGITS PRECISION w/2025 INTERNAL PRECISION
 /*
-BYTEPTR testprogram=(BYTEPTR) ":: 2025 SETPREC "
+BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
                                 " << 0.0 'RESULT' LAMSTO 1 'SIGN' LAMSTO "
                                 "DUP UNROT NEG 10 SWAP ^ * 3000 ROT / IP 2 * 0  FOR k DUP 2 k * 1 + DUP UNROT ^ SWAP / SIGN * "
                                 "RESULT + 'RESULT' LAMSTO SIGN NEG 'SIGN' LAMSTO -1 STEP DROP RESULT >>"
@@ -137,13 +137,13 @@ BYTEPTR testprogram=(BYTEPTR) ":: 2025 SETPREC "
                                 "1 1008 FOR I 2 I ATAN TRANSCENTABLE WRITETABLE NEXT "
 
 
-                                "; EXITRPL";
+                                ;
 */
 
 // GENERATE THE TRANSCENDENTALS TABLE ATAN(X) FOR X=5*10^-N
 // USES 2016 DIGITS PRECISION w/2025 INTERNAL
 /*
-BYTEPTR testprogram=(BYTEPTR) ":: 2025 SETPREC "
+BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
                                 " << 0.0 'RESULT' LAMSTO 1 'SIGN' LAMSTO "
                                 "DUP UNROT NEG 10 SWAP ^ * 3000 ROT / IP 2 * 0  FOR k DUP 2 k * 1 + DUP UNROT ^ SWAP / SIGN * "
                                 "RESULT + 'RESULT' LAMSTO SIGN NEG 'SIGN' LAMSTO -1 STEP DROP RESULT >>"
@@ -151,25 +151,25 @@ BYTEPTR testprogram=(BYTEPTR) ":: 2025 SETPREC "
                                 "1 1008 FOR I 5 I ATAN TRANSCENTABLE WRITETABLE NEXT "
 
 
-                                "; EXITRPL";
+                                ;
 */
 // GENERATE THE CONSTANT K = PRODUCT(COS(ALPHAi))=1/SQRT (PRODUCT( 1+k^2*10^-2n)) with k=5,2,2,1... AND n=0,... n DIGITS
 // USES 2016 DIGITS PRECISION
 /*
-BYTEPTR testprogram=(BYTEPTR) ":: 2025 SETPREC "
+BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
                                 "2.0 "
                                 "1 1008 FOR I 10 2 I * NEG ^ 1 * 1 + * NEXT "
                                 "1 1008 FOR I 10 2 I * NEG ^ 4 * 1 + DUP * * NEXT "
                                 "1 1008 FOR I 10 2 I * NEG ^ 25 * 1 + * NEXT "
                                 " 0.5 ^ INV DUP TRANSCENTABLE DUP WRITETABLE "
-                                "; EXITRPL";
+                                ;
 
 */
 
 // GENERATE THE TRANSCENDENTALS TABLE WITH CONSTANTS 2*PI, PI, PI/2, PI/4 AT MAX. SYSTEM PRECISION
 // USES 2016 DIGITS PRECISION (2025 TEMPORARY TO GUARANTEE ROUNDING)
 /*
-BYTEPTR testprogram=(BYTEPTR) ":: 2025 SETPREC "
+BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
                                 " << 1 'SIGN' LAMSTO 0.0 1200 0 FOR k "
                                 " -32  4 k * 1 + / "
                                 "      4 k * 3 + INV - "
@@ -185,16 +185,49 @@ BYTEPTR testprogram=(BYTEPTR) ":: 2025 SETPREC "
                                 " TRANSCENTABLE WRITETABLE "
                                 " 2 / TRANSCENTABLE WRITETABLE "
                                 " 4 / TRANSCENTABLE WRITETABLE "
-                                "; EXITRPL";
+                                ;
 
 */
 
 
-BYTEPTR testprogram=(BYTEPTR) ":: 2016 SETPREC "
-                                " 1.0 1.0 ATAN2 "
-                                " 1.0 0.5 ATAN2 "
-                                " ; EXITRPL";
+// HYPERBOLIC TRANSCENDENTAL TABLES FOR ATANH(1*10^-x)
+/*
+BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+                                " << 'K' LAMSTO 10 K NEG ^ 'X' LAMSTO 0.0 1 2025 K / IP 2 + FOR I X I ^ I / + 2 STEP >> 'MYATANH' STO "
+                                "1 1008 FOR I I MYATANH TRANSCENTABLE WRITETABLE NEXT "
+                                ;
+*/
+// HYPERBOLIC TRANSCENDENTAL TABLES FOR ATANH(2*10^-x)
+/*
+ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+                                " << 'K' LAMSTO 10 K NEG ^ 2 * 'X' LAMSTO 0.0 4000 K 3 / - K / 2 / IP 2 * 1 + 1 FOR I X I ^ I / + -2 STEP >> 'MYATANH' STO "
+                                "1 1008 FOR I I MYATANH TRANSCENTABLE WRITETABLE NEXT "
+                                ;                              
+*/
+// HYPERBOLIC TRANSCENDENTAL TABLES FOR ATANH(5*10^-x)
+/*
+BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+                                " << 'K' LAMSTO 10 K NEG ^ 5 * 'X' LAMSTO 0.0 8000 K - K / 2 / IP 2 * 1 + 1 FOR I X I ^ I / + -2 STEP >> 'MYATANH' STO "
+                                "1 1008 FOR I I MYATANH TRANSCENTABLE WRITETABLE NEXT "
+                                ;
+*/
 
+ // GENERATE THE CONSTANT K = PRODUCT(1/sqrt(1-alphai^2))=1/SQRT (PRODUCT( 1-k^2*10^-2n)) with k=5,2,2,1... AND n=1,... n DIGITS
+ // USES 2016 DIGITS PRECISION
+/*
+ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+                                 "1.0 "
+                                 "1 1008 FOR I 10 2 I * NEG ^ 1 * 1 - * NEXT "
+                                 "1 1008 FOR I 10 2 I * NEG ^ 4 * 1 - DUP * * NEXT "
+                                 "1 1008 FOR I 10 2 I * NEG ^ 25 * 1 - * NEXT "
+                                 " 0.5 ^ INV DUP TRANSCENTABLE DUP WRITETABLE "
+                                 ;
+
+*/
+
+BYTEPTR testprogram=(BYTEPTR) "2016 SETPREC "
+                              " 1.0 CEXP "
+                               ;
 
 
 
@@ -394,7 +427,7 @@ int main()
 {
     rplInit();
 
-    WORDPTR ptr=rplCompile(testprogram);
+    WORDPTR ptr=rplCompile(testprogram,1);
 
     if(!ptr) {
         printf("COMPILE ERROR\n");
