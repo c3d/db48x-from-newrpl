@@ -224,10 +224,51 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
                                  ;
 
 */
-
+/*
 BYTEPTR testprogram=(BYTEPTR) "2016 SETPREC "
                               " 1.0 CEXP "
+                            " 0.5 CEXP "
+                            " 0.2 CEXP "
+                            " 0.1 CEXP "
+                            " 0.0 CEXP "
+                            " -0.3 CEXP "
+                            " -0.6 CEXP "
+                            " -0.9 CEXP "
                                ;
+*/
+
+// GENERATE THE CONSTANT LN(10)
+/*
+BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+                                " << DUP 1 - SWAP / 'X' LAMSTO -1 'SIGN' LAMSTO 0.0 50000 1 FOR I X I ^ I / + -1 STEP >> 'MYLN' STO "
+                                " 10 MYLN DUP TRANSCENTABLE WRITETABLE "
+                                ;
+*/
+/*
+BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+                                " << 1 CEXP DUP DUP * * / 'Z' LAMSTO -0.7 'X' LAMSTO DO X CEXP DUP Z - SWAP / X SWAP - X SWAP DUP 'X' STO UNTIL - ABS 1E-2016 < END X >> 'MYLN' STO "
+                                " 10 MYLN 3 + 2 / DUP TRANSCENTABLE WRITETABLE "
+                                ;
+*/
+
+/*
+BYTEPTR testprogram=(BYTEPTR) "2007 SETPREC "
+                              " 1E-500 SINCOSH "
+                              " 1E-500 EXP DUP INV - 2 / "
+                               ;
+*/
+
+// GENERATE THE CONSTANT K = PRODUCT(1/sqrt(1-alphai^2))=1/SQRT (PRODUCT( 1-k^2*10^-2n)) with k=5,2,2,1... AND n=1,... n DIGITS
+// USES 4032 DIGITS PRECISION
+
+BYTEPTR testprogram=(BYTEPTR) "4041 SETPREC "
+                                "1.0 "
+                                "1 2016 FOR I 10 2 I * NEG ^ 1 * 1 - * NEXT "
+                                "1 2016 FOR I 10 2 I * NEG ^ 4 * 1 - DUP * * NEXT "
+                                "1 2016 FOR I 10 2 I * NEG ^ 25 * 1 - * NEXT "
+                                " 0.5 ^ INV DUP TRANSCENTABLE DUP WRITETABLE "
+                                ;
+
 
 
 
@@ -419,7 +460,56 @@ void DumpDStack()
 }
 
 
+void DumpErrors()
+{
+    struct error_message {
+        unsigned int num;
+        char *string;
+    }
+    error_table[]={
+    { 0x00000001,"Bad opcode"},
+    { 0x00000002,"BreakPoint"},
+    { 0x00000004,"Out of memory"},
+    { 0x00000008,"Pointer out of range"}, // WILL CHANGE IN THE FUTURE
+    { 0x00000010,"Divide by zero"}, // WILL CHANGE IN THE FUTURE
+    { 0x00000020,"Overflow"}, // WILL CHANGE IN THE FUTURE
+    { 0x00000040,"Empty stack"},
+    { 0x00000080,"Empty return rtack"},
+    { 0x00000100,"Syntax error"},
+    { 0x00000200,"Undefined"},
+    { 0x00000400,"Bad argument count"},
+    { 0x00000800,"Bad argument type"},
+    { 0x00001000,"Bad argument value"},
+    { 0x00002000,"Undefined variable"},
+    { 0x00004000,"Directory not empty"},
+    { 0x00008000,"Undefined error??"},
+    // THESE ARE MPDECIMAL ERRORS
+    { 0x00010000,"Clamped exponent"},
+    { 0x00020000,"Conversion syntax"},
+    { 0x00040000,"Division by zero"},
+    { 0x00080000,"Division impossible"},
+    { 0x00100000,"Division undefined"},
+    { 0x00200000,"FPU Error"},
+    { 0x00400000,"Inexact"},
+    { 0x00800000,"Invalid context"},
+    { 0x01000000,"Invalid operation"},
+    { 0x02000000,"Internal out of memory"},
+    { 0x04000000,"Not implemented"},
+    { 0x08000000,"Overflow"},
+    { 0x10000000,"Rounded"},
+    { 0x20000000,"Subnormal"},
+    { 0x40000000,"Underflow"},
+    { 0x80000000,"Undefined error??"},
+    };
+    int errbit;
+    if(!Exceptions) return;
+    printf("Error status:\n");
+    for(errbit=0;errbit<32;++errbit)
+    {
+    if(error_table[errbit].num&Exceptions) printf("- %s\n",error_table[errbit].string);
+    }
 
+}
 
 
 
@@ -431,6 +521,7 @@ int main()
 
     if(!ptr) {
         printf("COMPILE ERROR\n");
+        DumpErrors();
         return 0;
     }
 
@@ -450,8 +541,9 @@ int main()
 
     if(Exceptions) {
         printf("Runtime Error: %08X at %08X\n",Exceptions,ExceptionPointer-TempOb);
+        DumpErrors();
         Exceptions=0;
-//        DumpDStack();
+        DumpDStack();
         DumpLAMs();
         DumpDirs();
 
@@ -459,6 +551,7 @@ int main()
     }
     DumpDStack();
     DumpDirs();
+
 
     printf("Elapsed time: %.6lf seconds\n",((double)(start-end))/(double)CLOCKS_PER_SEC);
 

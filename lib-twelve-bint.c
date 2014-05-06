@@ -153,6 +153,7 @@ void rplReadNumberAsReal(WORDPTR number,mpd_t*dec)
         // PROVIDE STORAGE
         dec->alloc=RReg[0].alloc;
         dec->data=RReg[0].data;
+        dec->flags=MPD_STATIC|MPD_STATIC_DATA;
         mpd_set_i64(dec,rplReadBINT(number),&Context);
     }
     else {

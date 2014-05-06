@@ -316,90 +316,78 @@ void LIB_HANDLER()
 
     }
     case SINH:
-        // IMPLEMENTED USING THE DEFINITION: sinh(x)= (exp(x)*exp(x)-1)/(2*exp(x))
     {
-        mpd_t x;
+        mpd_t dec;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&x);
-
+        rplReadReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
-        mpd_exp(&RReg[0],&x,&Context);
-        mpd_mul(&RReg[1],&RReg[0],&RReg[0],&Context);   // EXP(X)^2 = EXP(2X)
-        mpd_add(&RReg[2],&RReg[0],&RReg[0],&Context);   // 2*EXP(X)
-        rplOneToRReg(0);
-        mpd_sub(&RReg[3],&RReg[1],&RReg[0],&Context);
-        mpd_div(&RReg[0],&RReg[3],&RReg[2],&Context);
-
-        if(Exceptions) return;
+        hyp_sinhcosh(&dec);
+        RReg[2].exp+=Context.prec;
+        mpd_round_to_intx(&RReg[7],&RReg[2],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[7].exp-=Context.prec;
+        mpd_reduce(&RReg[0],&RReg[7],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(0);
+        rplRRegToRealPush(0);       // SINH
         return;
 
     }
 
     case COSH:
-
-        // IMPLEMENTED USING THE DEFINITION: cosh(x)= (exp(x)*exp(x)+1)/(2*exp(x))
     {
-        mpd_t x;
+        mpd_t dec;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&x);
-
+        rplReadReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
-        mpd_exp(&RReg[0],&x,&Context);
-        mpd_mul(&RReg[1],&RReg[0],&RReg[0],&Context);   // EXP(X)^2 = EXP(2X)
-        mpd_add(&RReg[2],&RReg[0],&RReg[0],&Context);   // 2*EXP(X)
-        rplOneToRReg(0);
-        mpd_add(&RReg[3],&RReg[1],&RReg[0],&Context);
-        mpd_div(&RReg[0],&RReg[3],&RReg[2],&Context);
-
-        if(Exceptions) return;
+        hyp_sinhcosh(&dec);
+        RReg[1].exp+=Context.prec;
+        mpd_round_to_intx(&RReg[7],&RReg[1],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[7].exp-=Context.prec;
+        mpd_reduce(&RReg[0],&RReg[7],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(0);
+        rplRRegToRealPush(0);       // COSH
         return;
 
     }
 
     case TANH:
 
-        // IMPLEMENTED USING THE DEFINITION: tanh(x)= (exp(x)*exp(x)-1)/(exp(x)*exp(x)+1)
     {
-        mpd_t x;
+        mpd_t dec;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&x);
-
+        rplReadReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
-        mpd_exp(&RReg[0],&x,&Context);
-        mpd_mul(&RReg[1],&RReg[0],&RReg[0],&Context);   // EXP(X)^2 = EXP(2X)
-        rplOneToRReg(0);
-        mpd_sub(&RReg[2],&RReg[1],&RReg[0],&Context);
-        mpd_add(&RReg[3],&RReg[1],&RReg[0],&Context);
-        mpd_div(&RReg[0],&RReg[2],&RReg[3],&Context);
+        hyp_sinhcosh(&dec);
 
-        if(Exceptions) return;
+        // TANH=SINH/COSH
+        mpd_div(&RReg[0],&RReg[2],&RReg[1],&Context);
+        RReg[0].exp+=Context.prec;
+        mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[7].exp-=Context.prec;
+        mpd_reduce(&RReg[0],&RReg[7],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(0);
+        rplRRegToRealPush(0);       // TANH
         return;
 
     }
+
 
     case ASINH:
     case ACOSH:

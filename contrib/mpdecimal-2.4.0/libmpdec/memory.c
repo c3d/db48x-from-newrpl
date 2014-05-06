@@ -30,11 +30,11 @@
 /* Heavily modified to use static memory pool for newRPL */
 
 /* Create 8 registers that can be reused */
-#define MPD_MAX_INTERNAL_REGISTERS  24
+#define MPD_MAX_INTERNAL_REGISTERS  8
 
 /* With static memory storage for all registers to have the max. number of digits */
 #define MPD_MAX_INTERNAL_DIGITS     2016
-#define MPD_MAX_REGISTER_ALLOC      1024  // THIS IS ((MPD_MAX_INTERNAL_DIGITS/MPD_RDIGITS)+SLACK)= 224+ SOME SLACK = 256
+#define MPD_MAX_REGISTER_ALLOC      256  // THIS IS ((MPD_MAX_INTERNAL_DIGITS/MPD_RDIGITS)+SLACK)= 224+ SOME SLACK = 256
 
 
 

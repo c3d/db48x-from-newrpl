@@ -28,7 +28,8 @@ extern void trig_atan2(mpd_t *x,mpd_t *y);
 #define CMD_LIST \
     CMD(TRANSCENTABLE), \
     CMD(WRITETABLE), \
-    CMD(CEXP)
+    CMD(CEXP), \
+    CMD(SINCOSH)
 
 // ADD MORE OPCODES HERE
 
@@ -82,13 +83,13 @@ void LIB_HANDLER()
 
         // FOR THE TABLES, WE'LL ROUND TO THE NEAREST INTEGER, DISCARDING THE LAST 9 DIGITS (1 WORD)
         int exponent=dec.digits+dec.exp;
-        dec.exp=2016-dec.digits;
+        dec.exp=Context.prec-dec.digits;
         mpd_context_t newctx;
         memcpy(&newctx,&Context,sizeof(mpd_context_t));
 
         newctx.round=MPD_ROUND_HALF_UP;
         mpd_round_to_intx(&RReg[0],&dec,&newctx);
-        RReg[0].exp=-2016+exponent;
+        RReg[0].exp=-Context.prec+exponent;
 
 
         if(Exceptions) return;
@@ -170,7 +171,7 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&x);
+        rplReadNumberAsReal(rplPeekData(1),&x);
 
         if(Exceptions) return;
 
@@ -185,6 +186,33 @@ void LIB_HANDLER()
 */
         rplDropData(1);
         rplRRegToRealPush(0);
+        return;
+
+    }
+    case SINCOSH:
+    {
+        mpd_t x;
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        rplReadNumberAsReal(rplPeekData(1),&x);
+
+        if(Exceptions) return;
+
+        hyp_sinhcosh(&x);
+        if(Exceptions) return;
+
+/*
+        RReg[0].exp+=Context.prec;
+        mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[7].exp-=Context.prec;
+        mpd_reduce(&RReg[0],&RReg[7],&Context);
+*/
+        rplDropData(1);
+        rplRRegToRealPush(2);
+        rplRRegToRealPush(1);
         return;
 
     }
