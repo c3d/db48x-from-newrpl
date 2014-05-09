@@ -74,7 +74,7 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&dec);
+        rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
         trig_sincos(&dec);
@@ -96,7 +96,7 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&dec);
+        rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
         trig_sincos(&dec);
@@ -118,7 +118,7 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&dec);
+        rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
         trig_sincos(&dec);
@@ -148,7 +148,7 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&y);
+        rplReadNumberAsReal(rplPeekData(1),&y);
 
         if(Exceptions) return;
         // WARNING: TRANSCENDENTAL FUNCTIONS OVERWRITE ALL RREGS. INITIAL ARGUMENTS ARE PASSED ON RREG 0, 1 AND 2, SO USING 7 IS SAFE.
@@ -186,7 +186,7 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&y);
+        rplReadNumberAsReal(rplPeekData(1),&y);
 
         if(Exceptions) return;
         // WARNING: TRANSCENDENTAL FUNCTIONS OVERWRITE ALL RREGS. INITIAL ARGUMENTS ARE PASSED ON RREG 0, 1 AND 2, SO USING 7 IS SAFE.
@@ -228,7 +228,7 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&y);
+        rplReadNumberAsReal(rplPeekData(1),&y);
 
         if(Exceptions) return;
         // WARNING: TRANSCENDENTAL FUNCTIONS OVERWRITE ALL RREGS. INITIAL ARGUMENTS ARE PASSED ON RREG 0, 1 AND 2, SO USING 7 IS SAFE.
@@ -256,8 +256,8 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&y);
-        rplReadReal(rplPeekData(2),&x);
+        rplReadNumberAsReal(rplPeekData(1),&y);
+        rplReadNumberAsReal(rplPeekData(2),&x);
 
         if(Exceptions) return;
 
@@ -282,7 +282,7 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&x);
+        rplReadNumberAsReal(rplPeekData(1),&x);
 
         if(Exceptions) return;
 
@@ -303,7 +303,7 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&x);
+        rplReadNumberAsReal(rplPeekData(1),&x);
 
         if(Exceptions) return;
 
@@ -323,7 +323,7 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&dec);
+        rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
         hyp_sinhcosh(&dec);
@@ -348,7 +348,7 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&dec);
+        rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
         hyp_sinhcosh(&dec);
@@ -372,7 +372,7 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadReal(rplPeekData(1),&dec);
+        rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
         hyp_sinhcosh(&dec);

@@ -280,8 +280,8 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 */
 
 BYTEPTR testprogram=(BYTEPTR) "2007 SETPREC "
-                              " 9.2345678E3 SINH "
-                              " 9.2345678E3 COSH "
+                              " -9.2345678E3 CEXP "
+                              " -9.2345678E3 SINH -9.2345678E3 COSH + "
                                ;
 
 

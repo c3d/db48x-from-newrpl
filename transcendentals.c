@@ -77,7 +77,7 @@ static const uint32_t const Constant_One[]={ 1 };
 
 #define Constant_K1 &(cordic_K_dict[222*256+7])
 
-#define Constant_Kh1 &(cordic_K_dict[221*256+49])
+#define Constant_Kh1 &(cordic_Kh_dict[221*256+49])
 
 void const_2PI(mpd_t *real)
 {
@@ -832,10 +832,11 @@ x0->flags&=~MPD_NEG;
 // ALWAYS: NEED TO WORK ON PRECISION MULTIPLE OF 9
 Context.prec+=MPD_RDIGITS;
 // GET ANGLE MODULO LN(10)
-mpd_t ln10,ln10_2;
+mpd_t ln10,ln10_2,Kh;
 
 const_ln10(&ln10);
 const_ln10_2(&ln10_2);
+const_Kh1(&Kh);
 
 mpd_divmod(&RReg[1],&RReg[0],x0,&ln10,&Context);
 
@@ -869,9 +870,10 @@ if(mpd_cmp(&RReg[0],&ln10_2,&Context)==1) {
 
 // z=x0
 // THE REDUCED ANGLE IS ALREADY IN RReg[0]
-RReg[0].flags|=isneg;
+RReg[0].flags^=isneg;
 
 // x=y=Kh1;
+/*
 RReg[1].len=REAL_PRECISION_MAX/MPD_RDIGITS;
 RReg[1].digits=REAL_PRECISION_MAX;
 memcpy(RReg[1].data,Constant_Kh1,REAL_PRECISION_MAX/MPD_RDIGITS*sizeof(uint32_t));
@@ -883,17 +885,26 @@ RReg[2].digits=REAL_PRECISION_MAX;
 memcpy(RReg[2].data,Constant_Kh1,REAL_PRECISION_MAX/MPD_RDIGITS*sizeof(uint32_t));
 RReg[2].exp=-(REAL_PRECISION_MAX-1);
 RReg[2].flags&=MPD_DATAFLAGS;
+*/
+
+RReg[1].len=RReg[2].len=1;
+RReg[1].digits=RReg[2].digits=1;
+RReg[1].data[0]=RReg[2].data[0]=1;
+RReg[1].exp=RReg[2].exp=0;
+RReg[1].flags&=MPD_DATAFLAGS;
+RReg[2].flags&=MPD_DATAFLAGS;
+
 
 CORDIC_Hyp_Rotational((Context.prec>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+9:Context.prec,1);
 
-Context.prec-=MPD_RDIGITS;
 
 // HERE RReg[0] CONTAINS THE ANGLE WITH 9 DIGITS MORE THAN THE CURRENT PRECISION (NONE OF THEM WILL BE ACCURATE), ROUNDING IS REQUIRED
 // THE ANGLE IS IN THE RANGE -PI, +PI
 // THE LAST DIGIT MIGHT BE OFF BY +/-1 WHEN USING THE MAXIMUM SYSTEM PRECISION
-mpd_copy(&RReg[0],&RReg[6],&Context);
+mpd_mul(&RReg[0],&RReg[6],&Kh,&Context);
 if(isneg) RReg[0].exp-=quotient;
 else RReg[0].exp+=quotient;  // THIS CAN EXCEED THE MAXIMUM EXPONENT IN NEWRPL, IT WILL JUST DELAY THE ERROR UNTIL ROUNDING OCCURS
+Context.prec-=MPD_RDIGITS;
 
 }
 
@@ -973,7 +984,7 @@ if(mpd_cmp(&RReg[0],&ln10_2,&Context)==1) {
 
 // z=x0
 // THE REDUCED ANGLE IS ALREADY IN RReg[0]
-RReg[0].flags|=isneg;
+RReg[0].flags^=isneg;
 
 
 // RReg[6]=0.5;
