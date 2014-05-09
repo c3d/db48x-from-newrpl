@@ -251,25 +251,38 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
                                 ;
 */
 
+
+// GENERATE THE CONSTANT Khyp = PRODUCT(1/sqrt(1-alphai^2))=1/SQRT (PRODUCT( 1-k^2*10^-2n)) with k=5,2,2,1... AND n=1,... n DIGITS
+// USES 2016 DIGITS PRECISION
 /*
-BYTEPTR testprogram=(BYTEPTR) "2007 SETPREC "
-                              " 1E-500 SINCOSH "
-                              " 1E-500 EXP DUP INV - 2 / "
+BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
+
+        " 1.0 "
+        " 1008 1 FOR I 10 2 I * ^ 1 SWAP / 1 - * "
+                     " 10 2 I * ^ 4 SWAP / 1 - DUP * * "
+                     " 10 2 I * ^ 25 SWAP / 1 - * "
+        " DUP 0.5 ^ INV TRANSCENTABLE WRITETABLE -1 STEP "
                                ;
 */
 
-// GENERATE THE CONSTANT K = PRODUCT(1/sqrt(1-alphai^2))=1/SQRT (PRODUCT( 1-k^2*10^-2n)) with k=5,2,2,1... AND n=1,... n DIGITS
-// USES 4032 DIGITS PRECISION
+// GENERATE THE CONSTANT K = PRODUCT(1/sqrt(1+alphai^2))=1/SQRT (PRODUCT( 1+k^2*10^-2n)) with k=5,2,2,1... AND n=1,... n DIGITS
+// USES 2016 DIGITS PRECISION
+/*
+BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 
-BYTEPTR testprogram=(BYTEPTR) "4041 SETPREC "
-                                "1.0 "
-                                "1 2016 FOR I 10 2 I * NEG ^ 1 * 1 - * NEXT "
-                                "1 2016 FOR I 10 2 I * NEG ^ 4 * 1 - DUP * * NEXT "
-                                "1 2016 FOR I 10 2 I * NEG ^ 25 * 1 - * NEXT "
-                                " 0.5 ^ INV DUP TRANSCENTABLE DUP WRITETABLE "
-                                ;
+        " 1.0 "
+        " 1008 1 FOR I 10 2 I * ^ 1 SWAP / 1 + * "
+                     " 10 2 I * ^ 4 SWAP / 1 + DUP * * "
+                     " 10 2 I * ^ 25 SWAP / 1 + * "
+        " DUP 0.5 ^ INV TRANSCENTABLE WRITETABLE -1 STEP "
+        " 2 * 0.5 ^ INV TRANSCENTABLE WRITETABLE "
+;
+*/
 
-
+BYTEPTR testprogram=(BYTEPTR) "2007 SETPREC "
+                              " 9.2345678E3 SINH "
+                              " 9.2345678E3 COSH "
+                               ;
 
 
 void PrintObj(WORDPTR obj)

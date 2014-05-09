@@ -198,7 +198,16 @@ void LIB_HANDLER()
             return;
 
         case OVR_POW:
-            mpd_pow(&RReg[0],&Darg1,&Darg2,&Context);
+            RReg[1].data[0]=5;
+            RReg[1].exp=-1;
+            RReg[1].len=1;
+            RReg[1].digits=1;
+            RReg[1].flags&=MPD_DATAFLAGS;
+
+            if(mpd_cmp(&Darg2,&RReg[1],&Context)==0)
+                // THIS IS A SQUARE ROOT
+                mpd_sqrt(&RReg[0],&Darg1,&Context);
+            else mpd_pow(&RReg[0],&Darg1,&Darg2,&Context);
             rplRRegToRealPush(0);
             return;
 

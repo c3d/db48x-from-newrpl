@@ -327,10 +327,12 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         hyp_sinhcosh(&dec);
-        RReg[2].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[7],&RReg[2],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[7].exp-=Context.prec;
-        mpd_reduce(&RReg[0],&RReg[7],&Context);
+
+        BINT exponent=RReg[7].exp;
+        RReg[7].exp=Context.prec-RReg[7].digits;
+        mpd_round_to_intx(&RReg[2],&RReg[7],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[2].exp=exponent+(RReg[7].digits-RReg[2].digits);
+        mpd_reduce(&RReg[0],&RReg[2],&Context);
 
         rplDropData(1);
         rplRRegToRealPush(0);       // SINH
@@ -350,10 +352,10 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         hyp_sinhcosh(&dec);
-        RReg[1].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[7],&RReg[1],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[7].exp-=Context.prec;
-        mpd_reduce(&RReg[0],&RReg[7],&Context);
+        RReg[6].exp+=Context.prec;
+        mpd_round_to_intx(&RReg[1],&RReg[6],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[1].exp-=Context.prec;
+        mpd_reduce(&RReg[0],&RReg[1],&Context);
 
         rplDropData(1);
         rplRRegToRealPush(0);       // COSH
@@ -376,7 +378,7 @@ void LIB_HANDLER()
         hyp_sinhcosh(&dec);
 
         // TANH=SINH/COSH
-        mpd_div(&RReg[0],&RReg[2],&RReg[1],&Context);
+        mpd_div(&RReg[0],&RReg[7],&RReg[6],&Context);
         RReg[0].exp+=Context.prec;
         mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
         RReg[7].exp-=Context.prec;

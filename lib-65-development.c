@@ -83,13 +83,13 @@ void LIB_HANDLER()
 
         // FOR THE TABLES, WE'LL ROUND TO THE NEAREST INTEGER, DISCARDING THE LAST 9 DIGITS (1 WORD)
         int exponent=dec.digits+dec.exp;
-        dec.exp=Context.prec-dec.digits;
+        dec.exp=Context.prec-9-dec.digits;
         mpd_context_t newctx;
         memcpy(&newctx,&Context,sizeof(mpd_context_t));
 
         newctx.round=MPD_ROUND_HALF_UP;
         mpd_round_to_intx(&RReg[0],&dec,&newctx);
-        RReg[0].exp=-Context.prec+exponent;
+        RReg[0].exp=-Context.prec+9+exponent;
 
 
         if(Exceptions) return;
