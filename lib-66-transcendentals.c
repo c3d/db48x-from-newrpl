@@ -297,22 +297,27 @@ void LIB_HANDLER()
 
     case EXP:
     {
-        mpd_t x;
+        mpd_t dec;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadNumberAsReal(rplPeekData(1),&x);
-
+        rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
-        mpd_exp(&RReg[0],&x,&Context);
-        if(Exceptions) return;
+        hyp_exp(&dec);
+
+        BINT exponent=RReg[0].exp;
+        RReg[0].exp=Context.prec-RReg[0].digits;
+        mpd_round_to_intx(&RReg[2],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[2].exp=exponent-RReg[0].exp;
+        mpd_reduce(&RReg[1],&RReg[2],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(0);
+        rplRRegToRealPush(1);       // EXP
         return;
+
 
     }
     case SINH:
@@ -328,11 +333,11 @@ void LIB_HANDLER()
 
         hyp_sinhcosh(&dec);
 
-        BINT exponent=RReg[7].exp;
-        RReg[7].exp=Context.prec-RReg[7].digits;
-        mpd_round_to_intx(&RReg[2],&RReg[7],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[2].exp=exponent+(RReg[7].digits-RReg[2].digits);
-        mpd_reduce(&RReg[0],&RReg[2],&Context);
+        BINT exponent=RReg[2].exp;
+        RReg[2].exp=Context.prec-RReg[2].digits;
+        mpd_round_to_intx(&RReg[7],&RReg[2],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[7].exp=exponent-RReg[2].exp;
+        mpd_reduce(&RReg[0],&RReg[7],&Context);
 
         rplDropData(1);
         rplRRegToRealPush(0);       // SINH
@@ -352,10 +357,12 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         hyp_sinhcosh(&dec);
-        RReg[6].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[1],&RReg[6],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[1].exp-=Context.prec;
-        mpd_reduce(&RReg[0],&RReg[1],&Context);
+
+        BINT exponent=RReg[1].exp;
+        RReg[1].exp=Context.prec-RReg[1].digits;
+        mpd_round_to_intx(&RReg[2],&RReg[1],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[2].exp=exponent-RReg[1].exp;
+        mpd_reduce(&RReg[0],&RReg[2],&Context);
 
         rplDropData(1);
         rplRRegToRealPush(0);       // COSH

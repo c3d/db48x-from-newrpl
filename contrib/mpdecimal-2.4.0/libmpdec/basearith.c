@@ -48,6 +48,7 @@
  *    n > 0 and m >= n
  * The calling function has to handle a possible final carry.
  */
+
 mpd_uint_t
 _mpd_baseadd(mpd_uint_t *w, const mpd_uint_t *u, const mpd_uint_t *v,
              mpd_size_t m, mpd_size_t n)
@@ -77,6 +78,7 @@ _mpd_baseadd(mpd_uint_t *w, const mpd_uint_t *u, const mpd_uint_t *v,
 
     return carry;
 }
+
 
 /*
  * Add the contents of u to w. Carries are propagated further. The caller
