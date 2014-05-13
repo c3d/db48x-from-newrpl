@@ -1292,6 +1292,107 @@ znext=&RReg[5];
 xnext=&RReg[6];
 ynext=&RReg[7];
 
+// VECTORING MODE REQUIRES THE FIRST STEP REPEATED N TIMES
+// PASSED AS A NEGATIVE EXPONENT START
+// WARNING: DO NOT USE STARTEXP<1 FOR SQUARE ROOT, BECAUSE IT CHANGES THE Kh CONSTANT
+exponent=1;
+while(startexp<1) {
+    // ITERATION W/5
+
+    // RReg[3]= (5*10^-exponent)*y
+    mpd_qadd(&RReg[3],y,y,&Context,&status);
+    mpd_qadd(&RReg[4],&RReg[3],&RReg[3],&Context,&status);
+    mpd_qadd(&RReg[3],&RReg[4],y,&Context,&status);
+    RReg[3].exp-=exponent;
+
+    if(!(y->flags&MPD_NEG)) RReg[3].flags^=MPD_NEG;
+
+    mpd_qadd(xnext,&RReg[3],x,&Context,&status);  // x(i+1)=x(i)+S(i)*y(i)
+
+    mpd_qadd(&RReg[3],x,x,&Context,&status);
+    mpd_qadd(&RReg[4],&RReg[3],&RReg[3],&Context,&status);
+    mpd_qadd(&RReg[3],&RReg[4],x,&Context,&status);
+
+    RReg[3].exp-=exponent;
+    if(!(y->flags&MPD_NEG)) RReg[3].flags^=MPD_NEG;
+
+    mpd_qadd(ynext,&RReg[3],y,&Context,&status);  // y(i+1)=y(i)+S(i)*x(i)
+
+    atanh_5_table(exponent,&RReg[4]);     // GET Alpha(i)
+    if(!(y->flags&MPD_NEG)) RReg[4].flags|=MPD_NEG;
+
+    mpd_qsub(znext,z,&RReg[4],&Context,&status);  // z(i+1)=z(i)-Alpha(i)
+
+    // FIRST ITERATION WITH 2
+
+    // RReg[3]= (2*10^-exponent)*y
+    mpd_qadd(&RReg[3],ynext,ynext,&Context,&status);
+    RReg[3].exp-=exponent;
+
+    if(!(ynext->flags&MPD_NEG)) RReg[3].flags^=MPD_NEG;
+    mpd_qadd(x,&RReg[3],xnext,&Context,&status);  // x(i+1)=x(i)+S(i)*y(i)
+
+    mpd_qadd(&RReg[3],xnext,xnext,&Context,&status);
+    RReg[3].exp-=exponent;
+    if(!(ynext->flags&MPD_NEG)) RReg[3].flags^=MPD_NEG;
+
+    mpd_qadd(y,&RReg[3],ynext,&Context,&status);  // y(i+1)=y(i)+S(i)*x(i)
+
+    atanh_2_table(exponent,&RReg[4]);     // GET Alpha(i)
+    if(!(ynext->flags&MPD_NEG)) RReg[4].flags|=MPD_NEG;
+
+    mpd_qsub(z,znext,&RReg[4],&Context,&status);  // z(i+1)=z(i)-Alpha(i)
+
+    // SECOND ITERATION WITH 2
+
+    mpd_qadd(&RReg[3],y,y,&Context,&status);
+    RReg[3].exp-=exponent;
+
+
+    if(!(y->flags&MPD_NEG)) RReg[3].flags^=MPD_NEG;
+
+    mpd_qadd(xnext,&RReg[3],x,&Context,&status);  // x(i+1)=x(i)+S(i)*y(i)
+
+    mpd_qadd(&RReg[3],x,x,&Context,&status);
+    RReg[3].exp-=exponent;
+    if(!(y->flags&MPD_NEG)) RReg[3].flags^=MPD_NEG;
+
+    mpd_qadd(ynext,&RReg[3],y,&Context,&status);  // y(i+1)=y(i)+S(i)*x(i)
+
+    RReg[4].flags&=~MPD_NEG;
+    if(!(y->flags&MPD_NEG)) RReg[4].flags|=MPD_NEG;
+
+    mpd_qsub(znext,z,&RReg[4],&Context,&status);  // z(i+1)=z(i)-Alpha(i)
+
+    // ITERATION WITH 1
+    ynext->exp-=exponent;
+
+    if(ynext->flags&MPD_NEG) {
+         mpd_qadd(x,ynext,xnext,&Context,&status);  // x(i+1)=x(i)+S(i)*y(i)
+    }
+    else {
+        mpd_qsub(x,xnext,ynext,&Context,&status);  // x(i+1)=x(i)+S(i)*y(i)
+    }
+    ynext->exp+=exponent;
+    xnext->exp-=exponent;
+    if(ynext->flags&MPD_NEG) {
+        mpd_qadd(y,ynext,xnext,&Context,&status);  // x(i+1)=x(i)+S(i)*y(i)
+    }
+    else {
+        mpd_qsub(y,ynext,xnext,&Context,&status);  // x(i+1)=x(i)+S(i)*y(i)
+    }
+    xnext->exp+=exponent;
+
+    atanh_1_table(exponent,&RReg[4]);     // GET Alpha(i)
+    if(!(ynext->flags&MPD_NEG)) RReg[4].flags|=MPD_NEG;
+
+    mpd_qsub(z,znext,&RReg[4],&Context,&status);  // z(i+1)=z(i)-Alpha(i)
+
+
+++startexp;
+}
+
+
 
 for(exponent=startexp;exponent<startexp+digits;++exponent)
 {
@@ -1407,19 +1508,20 @@ void hyp_atanh(mpd_t *x0)
 {
 // THE ONLY REQUIREMENT IS THAT y0 <= x0
 int negx=x0->flags&MPD_NEG;
-int compare=0;
+int startexp;
+mpd_t one;
 
 x0->flags^=negx;
 // ALWAYS: NEED TO WORK ON PRECISION MULTIPLE OF 9
 Context.prec+=MPD_RDIGITS;
 
- // USE CORDIC TO COMPUTE
-    // z = 0
-    RReg[0].len=1;
-    RReg[0].data[0]=0;
-    RReg[0].exp=0;
-    RReg[0].flags&=MPD_DATAFLAGS;
-    RReg[0].digits=1;
+const_One(&one);
+
+// CRITERIA FOR REPETITION OF INITIAL STEP
+// REQUIRED IN ORDER TO INCREASE THE RANGE OF CONVERGENCE
+mpd_sub(&RReg[3],&one,x0,&Context);
+
+startexp=(RReg[3].exp+RReg[3].digits)*2;
 
     mpd_copy(&RReg[2],x0,&Context);
 
@@ -1429,7 +1531,16 @@ Context.prec+=MPD_RDIGITS;
     RReg[1].flags&=MPD_DATAFLAGS;
     RReg[1].digits=1;
 
-    CORDIC_Hyp_Vectoring_unrolled((Context.prec>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+9:Context.prec,1);
+ // USE CORDIC TO COMPUTE
+    // z = 0
+    RReg[0].len=1;
+    RReg[0].data[0]=0;
+    RReg[0].exp=0;
+    RReg[0].flags&=MPD_DATAFLAGS;
+    RReg[0].digits=1;
+
+
+    CORDIC_Hyp_Vectoring_unrolled((Context.prec>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+9:Context.prec,startexp);
 
 
 if(negx) RReg[0].flags|=MPD_NEG;

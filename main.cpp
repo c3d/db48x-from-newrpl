@@ -280,7 +280,7 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 */
 
 BYTEPTR testprogram=(BYTEPTR) "2016 SETPREC "
-                              " 0.1 CATANH "
+                              " 1 1e-1007 - CATANH "
                                ;
 
 
