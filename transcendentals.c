@@ -1515,13 +1515,20 @@ x0->flags^=negx;
 // ALWAYS: NEED TO WORK ON PRECISION MULTIPLE OF 9
 Context.prec+=MPD_RDIGITS;
 
+startexp=-x0->exp-x0->digits;
+
+if(startexp<1) {
+
 const_One(&one);
+
 
 // CRITERIA FOR REPETITION OF INITIAL STEP
 // REQUIRED IN ORDER TO INCREASE THE RANGE OF CONVERGENCE
 mpd_sub(&RReg[3],&one,x0,&Context);
 
 startexp=(RReg[3].exp+RReg[3].digits)*2;
+
+}
 
     mpd_copy(&RReg[2],x0,&Context);
 

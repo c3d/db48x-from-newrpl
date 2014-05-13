@@ -401,7 +401,6 @@ void LIB_HANDLER()
     case ASINH:
     case ACOSH:
     case ATANH:
-        // IMPLEMENTED USING THE DEFINITION: atanh(x)= 1/2*ln( (1+x)/(1-x) )
     {
         mpd_t x;
         if(rplDepthData()<1) {
@@ -414,9 +413,19 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         rplOneToRReg(0);
-        mpd_sub(&RReg[2],&RReg[0],&x,&Context); // 1-X
+        BINT signx=mpd_sign(&x);
+        mpd_set_positive(&x);
+        BINT ismorethan1=mpd_cmp(&x,&RReg[0],&Context);
+        mpd_set_sign(&x,signx);
 
-        if(mpd_iszero(&RReg[2])) {
+        if(ismorethan1==1) {    // x > 1.0
+            // TODO: CHANGE THIS ERROR INTO COMPLEX RESULTS!
+            Exceptions|=EX_BADARGVALUE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(ismorethan1==0)
+        {
             // TODO: IMPLEMENT INFINITY FLAGS TO THROW EXCEPTION ON INFINITY
             mpd_set_infinity(&RReg[0]);
             if(mpd_isnegative(&x)) mpd_set_negative(&RReg[0]);
@@ -426,23 +435,16 @@ void LIB_HANDLER()
             return;
         }
 
-        mpd_add(&RReg[1],&x,&RReg[0],&Context); // X+1
-        mpd_div(&RReg[0],&RReg[1],&RReg[2],&Context);
+        hyp_atanh(&x);
 
-        if(mpd_isnegative(&RReg[0])) {
-            // TODO: ADD COMPLEX RESULTS HERE
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
-            return;
-        }
-
-        mpd_ln(&RReg[1],&RReg[0],&Context);
-        rplBINTToRReg(0,5);     // RREG = 5
-        RReg[0].exp--;          // MAKE IT 0.5
-        mpd_mul(&RReg[2],&RReg[0],&RReg[1],&Context);
+        BINT exponent=RReg[0].exp;
+        RReg[0].exp=Context.prec-RReg[0].digits;
+        mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[7].exp=exponent-RReg[0].exp;
+        mpd_reduce(&RReg[0],&RReg[7],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(2);
+        rplRRegToRealPush(0);
         return;
 
     }
