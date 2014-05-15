@@ -286,11 +286,33 @@ void LIB_HANDLER()
 
         if(Exceptions) return;
 
-        mpd_ln(&RReg[0],&x,&Context);
-        if(Exceptions) return;
+        if(mpd_iszero(&x)) {
+            // RETURN -INFINITY AND SET OVERFLOW
+            // TODO: IMPLEMENT FLAGS TO AVOID THROWING AN ERROR
+            mpd_set_infinity(&RReg[0]);
+            Exceptions|=EX_MATHOVERFLOW;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        if(mpd_isnegative(&x)) {
+            // TODO: RETURN COMPLEX VALUE!
+            // FOR NOW JUST THROW AN EXCEPTION
+            Exceptions|=EX_BADARGVALUE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        hyp_ln(&x);
+
+        BINT exponent=RReg[0].exp;
+        RReg[0].exp=Context.prec-RReg[0].digits;
+        mpd_round_to_intx(&RReg[2],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[2].exp=exponent-RReg[0].exp;
+        mpd_reduce(&RReg[1],&RReg[2],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(0);
+        rplRRegToRealPush(1);
         return;
 
     }

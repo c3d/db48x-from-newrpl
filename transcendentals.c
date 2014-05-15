@@ -1132,8 +1132,6 @@ RReg[2].flags&=MPD_DATAFLAGS;
 CORDIC_Hyp_Rotational_exp((Context.prec>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+9:Context.prec,1);
 
 // HERE RReg[0] CONTAINS THE ANGLE WITH 9 DIGITS MORE THAN THE CURRENT PRECISION (NONE OF THEM WILL BE ACCURATE), ROUNDING IS REQUIRED
-// THE ANGLE IS IN THE RANGE -PI, +PI
-// THE LAST DIGIT MIGHT BE OFF BY +/-1 WHEN USING THE MAXIMUM SYSTEM PRECISION
 mpd_mul(&RReg[0],&RReg[6],&Kh,&Context);
 if(isneg) RReg[0].exp-=quotient;
 else RReg[0].exp+=quotient;  // THIS CAN EXCEED THE MAXIMUM EXPONENT IN NEWRPL, IT WILL JUST DELAY THE ERROR UNTIL ROUNDING OCCURS
@@ -1551,6 +1549,53 @@ startexp=(RReg[3].exp+RReg[3].digits)*2;
 
 
 if(negx) RReg[0].flags|=MPD_NEG;
+
+Context.prec-=MPD_RDIGITS;
+
+// HERE RReg[0] CONTAINS THE ANGLE WITH 9 DIGITS MORE THAN THE CURRENT PRECISION (NONE OF THEM WILL BE ACCURATE), ROUNDING IS REQUIRED
+// THE ANGLE IS IN THE RANGE -PI, +PI
+// THE LAST DIGIT MIGHT BE OFF BY +/-1 WHEN USING THE MAXIMUM SYSTEM PRECISION
+
+}
+
+
+// CALCULATES LN(x0), AND RETURNS IT IN RREG[0]
+// ARGUMENT MUST BE POSITIVE, NO ARGUMENT CHECKS HERE
+
+void hyp_ln(mpd_t *x0)
+{
+    int adjustexp;
+    int startexp=1;
+mpd_t ln10,one;
+
+Context.prec+=MPD_RDIGITS;
+
+const_ln10(&ln10);
+const_One(&one);
+
+mpd_copy(&RReg[3],x0,&Context);
+adjustexp=x0->exp+(x0->digits-1);
+RReg[3].exp=-(RReg[3].digits-1);    // TAKE ONLY THE MANTISSA, LEFT JUSTIFIED
+
+// y0=A-1
+mpd_sub(&RReg[2],&RReg[3],&one,&Context);
+// x0=A+1
+mpd_add(&RReg[1],&RReg[3],&one,&Context);
+
+// z = 0
+RReg[0].len=1;
+RReg[0].data[0]=0;
+RReg[0].exp=0;
+RReg[0].flags&=MPD_DATAFLAGS;
+RReg[0].digits=1;
+
+
+CORDIC_Hyp_Vectoring_unrolled((Context.prec>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+9:Context.prec,startexp);
+
+// ADD BACK THE EXPONENT AS LN(A)=EXP*LN(10)+LN(A')
+mpd_mul_i32(&RReg[4],&ln10,adjustexp,&Context);
+mpd_add(&RReg[3],&RReg[0],&RReg[0],&Context);
+mpd_add(&RReg[0],&RReg[3],&RReg[4],&Context);
 
 Context.prec-=MPD_RDIGITS;
 

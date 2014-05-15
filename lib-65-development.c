@@ -28,7 +28,7 @@ extern void trig_atan2(mpd_t *x,mpd_t *y);
 #define CMD_LIST \
     CMD(TRANSCENTABLE), \
     CMD(WRITETABLE), \
-    CMD(CEXP), \
+    CMD(CLN), \
     CMD(SINCOSH),\
     CMD(CATANH)
 
@@ -164,7 +164,7 @@ void LIB_HANDLER()
         rplDropData(1);
         return;
         }
-    case CEXP:
+    case CLN:
     {
         mpd_t x;
         if(rplDepthData()<1) {
@@ -176,7 +176,7 @@ void LIB_HANDLER()
 
         if(Exceptions) return;
 
-        hyp_exp(&x);
+        hyp_ln(&x);
         if(Exceptions) return;
 
 /*
