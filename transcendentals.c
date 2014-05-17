@@ -1604,3 +1604,71 @@ Context.prec-=MPD_RDIGITS;
 // THE LAST DIGIT MIGHT BE OFF BY +/-1 WHEN USING THE MAXIMUM SYSTEM PRECISION
 
 }
+
+// USE A CORDIC LOOP TO COMPUTE THE SQUARE ROOT
+// SAME AS LN, BUT WE USE THE RESULT FROM x
+
+void hyp_sqrt(mpd_t *x0)
+{
+    int adjustexp;
+    int startexp=1;
+
+    mpd_t Kh1,one;
+    Context.prec+=MPD_RDIGITS;
+
+    const_One(&one);
+/*
+    startexp=-x0->exp-x0->digits;
+
+    if(startexp<1) {
+
+    // CRITERIA FOR REPETITION OF INITIAL STEP
+    // REQUIRED IN ORDER TO INCREASE THE RANGE OF CONVERGENCE
+    mpd_sub(&RReg[3],&one,x0,&Context);
+
+    startexp=(RReg[3].exp+RReg[3].digits)*2;
+
+    }
+*/
+
+mpd_copy(&RReg[3],x0,&Context);
+adjustexp=x0->exp+(x0->digits-1);
+RReg[3].exp=-(RReg[3].digits-1);    // TAKE ONLY THE MANTISSA, LEFT JUSTIFIED
+
+if(adjustexp&1) {
+    // MAKE IT AN EVEN EXPONENT, SO IT'S EASY TO DIVIDE BY 2
+    --RReg[3].exp;
+    adjustexp+=1;
+}
+
+// y0=A-1
+mpd_sub(&RReg[2],&RReg[3],&one,&Context);
+// x0=A+1
+mpd_add(&RReg[1],&RReg[3],&one,&Context);
+
+
+// z = 0
+RReg[0].len=1;
+RReg[0].data[0]=0;
+RReg[0].exp=0;
+RReg[0].flags&=MPD_DATAFLAGS;
+RReg[0].digits=1;
+
+
+CORDIC_Hyp_Vectoring_unrolled((Context.prec>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+9:Context.prec,startexp);
+
+const_Kh1(&Kh1);
+
+// ADD BACK THE EXPONENT AS sqrt(A)= 2*sqrt(xin^2-yin^2) * Kh1 * 10^(exponent/2)
+mpd_mul_i32(&RReg[3],&RReg[1],5,&Context);
+RReg[3].exp--;
+mpd_mul(&RReg[0],&RReg[3],&Kh1,&Context);
+RReg[0].exp+=adjustexp/2;
+
+Context.prec-=MPD_RDIGITS;
+
+// HERE RReg[0] CONTAINS THE ANGLE WITH 9 DIGITS MORE THAN THE CURRENT PRECISION (NONE OF THEM WILL BE ACCURATE), ROUNDING IS REQUIRED
+// THE ANGLE IS IN THE RANGE -PI, +PI
+// THE LAST DIGIT MIGHT BE OFF BY +/-1 WHEN USING THE MAXIMUM SYSTEM PRECISION
+
+}

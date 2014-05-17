@@ -30,7 +30,8 @@ extern void trig_atan2(mpd_t *x,mpd_t *y);
     CMD(WRITETABLE), \
     CMD(CLN), \
     CMD(SINCOSH),\
-    CMD(CATANH)
+    CMD(CATANH),\
+    CMD(CSQRT)
 
 // ADD MORE OPCODES HERE
 
@@ -247,6 +248,32 @@ void LIB_HANDLER()
 
     }
 
+    case CSQRT:
+    {
+        mpd_t x;
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        rplReadNumberAsReal(rplPeekData(1),&x);
+
+        if(Exceptions) return;
+
+        hyp_sqrt(&x);
+        if(Exceptions) return;
+
+/*
+        RReg[0].exp+=Context.prec;
+        mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[7].exp-=Context.prec;
+        mpd_reduce(&RReg[0],&RReg[7],&Context);
+*/
+        rplDropData(1);
+        rplRRegToRealPush(0);
+        return;
+
+    }
 
 
     // ADD MORE OPCODES HERE

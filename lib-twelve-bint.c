@@ -145,14 +145,14 @@ BINT64 rplReadNumberAsBINT(WORDPTR number)
 // CAREFUL!
 // dec SHOULD BE UNINITIALIZED (WITH NO STORAGE ALLOCATED)
 // DO **NOT** USE WITH RREG REGISTERS OR DATA CORRUPTION MIGHT OCCUR!!
-// USES RREG[0] AS TEMPORARY DATA STORAGE FOR dec
+// USES RREG[8] AS TEMPORARY DATA STORAGE FOR dec
 void rplReadNumberAsReal(WORDPTR number,mpd_t*dec)
 {
     if(ISREAL(*number)) rplReadReal(number,dec);
     else if(ISBINT(*number))  {
         // PROVIDE STORAGE
-        dec->alloc=RReg[0].alloc;
-        dec->data=RReg[0].data;
+        dec->alloc=RReg[8].alloc;
+        dec->data=RReg[8].data;
         dec->flags=MPD_STATIC|MPD_STATIC_DATA;
         mpd_set_i64(dec,rplReadBINT(number),&Context);
     }

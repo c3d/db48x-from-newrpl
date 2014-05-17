@@ -279,8 +279,8 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 ;
 */
 
-BYTEPTR testprogram=(BYTEPTR) "2007 SETPREC "
-                              " 1.2345678e-2000 LN EXP "
+BYTEPTR testprogram=(BYTEPTR) "2016 SETPREC "
+                              " -1000 ASINH "
                                ;
 
 
