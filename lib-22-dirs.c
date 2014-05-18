@@ -104,7 +104,7 @@ void LIB_HANDLER()
         }
         else {
             // LAM WAS NOT FOUND, TRY A GLOBAL
-            val=rplFindGlobal(rplPeekData(1),1);
+            val=rplFindGlobal(rplPeekData(1),0);
 
             // HANDLE SPECIAL CASE OF STORING DIRECTORY OBJECTS
             WORDPTR obj=rplPeekData(2);

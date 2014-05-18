@@ -1672,3 +1672,53 @@ Context.prec-=MPD_RDIGITS;
 // THE LAST DIGIT MIGHT BE OFF BY +/-1 WHEN USING THE MAXIMUM SYSTEM PRECISION
 
 }
+
+
+void hyp_asinh(mpd_t *x)
+{
+    mpd_t one;
+    const_One(&one);
+
+    Context.prec+=MPD_RDIGITS;
+
+    mpd_mul(&RReg[1],x,x,&Context);   // 1 = x^2
+    mpd_add(&RReg[7],&RReg[1],&one,&Context);   // 2 = x^2+1
+
+    Context.prec-=MPD_RDIGITS;
+
+    hyp_sqrt(&RReg[7]); // 7 = cosh = sqrt(sinh^2+1)
+
+    Context.prec+=MPD_RDIGITS;
+
+    mpd_add(&RReg[2],&RReg[0],&one,&Context);   // 2 = cosh + 1
+
+    mpd_div(&RReg[7],x,&RReg[2],&Context); // 7 = sinh / (cosh + 1)
+
+    Context.prec-=MPD_RDIGITS;
+
+    hyp_atanh(&RReg[7]);
+
+    mpd_add(&RReg[1],&RReg[0],&RReg[0],&Context);
+
+}
+
+void hyp_acosh(mpd_t *x)
+{
+    mpd_t one;
+    const_One(&one);
+
+    Context.prec+=MPD_RDIGITS;
+
+    mpd_sub(&RReg[1],x,&one,&Context);   // 1 = x-1
+    mpd_add(&RReg[2],x,&one,&Context);   // 2 = x+1
+    mpd_div(&RReg[7],&RReg[1],&RReg[2],&Context);
+
+    Context.prec-=MPD_RDIGITS;
+
+    hyp_sqrt(&RReg[7]);
+
+    hyp_atanh(&RReg[0]);
+
+    mpd_add(&RReg[1],&RReg[0],&RReg[0],&Context);
+
+}

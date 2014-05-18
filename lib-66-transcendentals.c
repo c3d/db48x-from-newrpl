@@ -433,22 +433,7 @@ void LIB_HANDLER()
 
         if(Exceptions) return;
 
-        rplOneToRReg(0);
-
-        mpd_mul(&RReg[1],&x,&x,&Context);   // 1 = x^2
-        mpd_add(&RReg[7],&RReg[1],&RReg[0],&Context);   // 2 = x^2+1
-
-        hyp_sqrt(&RReg[7]); // 7 = cosh = sqrt(sinh^2+1)
-
-        rplOneToRReg(1);
-
-        mpd_add(&RReg[2],&RReg[0],&RReg[1],&Context);   // 2 = cosh + 1
-
-        mpd_div(&RReg[7],&x,&RReg[2],&Context); // 7 = sinh / (cosh + 1)
-
-        hyp_atanh(&RReg[7]);
-
-        mpd_add(&RReg[1],&RReg[0],&RReg[0],&Context);
+        hyp_asinh(&x);
 
         BINT exponent=RReg[1].exp;
         RReg[1].exp=Context.prec-RReg[1].digits;
@@ -487,15 +472,7 @@ void LIB_HANDLER()
            return;
         }
 
-        mpd_sub(&RReg[1],&x,&RReg[0],&Context);   // 1 = x-1
-        mpd_add(&RReg[2],&x,&RReg[0],&Context);   // 2 = x+1
-        mpd_div(&RReg[7],&RReg[1],&RReg[2],&Context);
-
-        hyp_sqrt(&RReg[7]);
-
-        hyp_atanh(&RReg[0]);
-
-        mpd_add(&RReg[1],&RReg[0],&RReg[0],&Context);
+        hyp_acosh(&x);
 
         BINT exponent=RReg[1].exp;
         RReg[1].exp=Context.prec-RReg[1].digits;

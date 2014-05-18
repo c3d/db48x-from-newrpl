@@ -98,11 +98,38 @@ void LIB_HANDLER()
         // PROVIDE BEHAVIOR OF EXECUTING THE OBJECT HERE
         // NORMAL BEHAVIOR  ON A IDENT IS TO PUSH THE OBJECT ON THE STACK:
         rplPushData(IPtr);
+
         if(LIBNUM(CurOpcode)==LIBRARY_NUMBER+1) {
             // UNQUOTED LAM, NEED TO ALSO DO EVAL
-            CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
-            // SINCE THE HANDLER IS IN THIS SAME FUNCTION, DON'T RETURN
-            // AND LET THE NEW OPCODE PLAY ITSELF OUT
+            {
+                WORDPTR val=rplGetLAM(rplPeekData(1));
+                if(!val) {
+                    val=rplGetGlobal(rplPeekData(1));
+                    if(!val) {
+                        // INEXISTENT IDENT EVALS TO ITSELF, SO RETURN DIRECTLY
+                        return;
+                    }
+                }
+                rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
+                LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
+                if(han) {
+                    BINT SavedOpcode=CurOpcode;
+                    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                    // EXECUTE THE OTHER LIBRARY DIRECTLY
+                    (*han)();
+                    // RESTORE THE PREVIOUS ONE ONLY IF THE HANDLER DID NOT CHANGE IT
+                    if(CurOpcode==MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL)) CurOpcode=SavedOpcode;
+                }
+                else {
+                    // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
+                    // THIS CAN ONLY HAPPEN IF TRYING TO EXECUTE WITH A CUSTOM OBJECT
+                    // WHOSE LIBRARY WAS UNINSTALLED AFTER BEING COMPILED (IT'S AN INVALID OBJECT)
+                    Exceptions=EX_BADARGTYPE;
+                    ExceptionPointer=IPtr;
+                }
+
+            return;
+            }
         }
         else return;
     }
@@ -293,7 +320,6 @@ void LIB_HANDLER()
         if(han) {
             // EXECUTE THE OTHER LIBRARY DIRECTLY
             (*han)();
-//            CurOpcode=*IPtr;    // NEED TO RESTORE SINCE IT COULD'VE BEEN MODIFIED DURING EVAL
         }
         else {
             // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
@@ -301,6 +327,7 @@ void LIB_HANDLER()
             // WHOSE LIBRARY WAS UNINSTALLED AFTER BEING COMPILED (IT'S AN INVALID OBJECT)
             Exceptions=EX_BADARGTYPE;
             ExceptionPointer=IPtr;
+            CurOpcode=*IPtr;
         }
 
 

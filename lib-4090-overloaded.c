@@ -66,27 +66,26 @@ int LIB_OPCODES[]=
 
 void rplCallOvrOperator(WORD op)
 {
-
-    CurOpcode=MKOPCODE(LIBRARY_NUMBER,op);
-
-
-    int nargs=OVR_GETNARGS(CurOpcode);
+    int nargs=OVR_GETNARGS(op);
     int libnum=0;
+    if(nargs>rplDepthData()) {
+        Exceptions=EX_BADARGCOUNT;
+        ExceptionPointer=IPtr;
+        return;
+    }
     while(nargs) {
         // CHECK EACH ARGUMENT, BUT STORE IN A GC-SAFE POINTER
         ScratchPointer1=rplPeekData(nargs);
-        if(!ScratchPointer1) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
-            return;
-        }
         if(LIBNUM(*ScratchPointer1)>(WORD)libnum) libnum=LIBNUM(*ScratchPointer1);
         --nargs;
     }
     LIBHANDLER han=rplGetLibHandler(libnum);
     if(han) {
         // EXECUTE THE OTHER LIBRARY DIRECTLY
+        BINT SavedOpcode=CurOpcode;
+        CurOpcode=MKOPCODE(LIBRARY_NUMBER,op);
         (*han)();
+        if(CurOpcode==MKOPCODE(LIBRARY_NUMBER,op)) CurOpcode=SavedOpcode;
     }
     else {
         // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
@@ -142,33 +141,8 @@ void LIB_HANDLER()
         return;
     }
 
-    int nargs=OVR_GETNARGS(CurOpcode);
-    int libnum=0;
-    if(rplDepthData()<nargs) {
-        Exceptions=EX_BADARGCOUNT;
-        ExceptionPointer=IPtr;
-        return;
-    }
-    while(nargs) {
-        // CHECK EACH ARGUMENT, BUT STORE IN A GC-SAFE POINTER
-        ScratchPointer1=rplPeekData(nargs);
-        if(LIBNUM(*ScratchPointer1)>(WORD)libnum) libnum=LIBNUM(*ScratchPointer1);
-        --nargs;
-    }
-    LIBHANDLER han=rplGetLibHandler(libnum);
-    if(han) {
-        // EXECUTE THE OTHER LIBRARY DIRECTLY
-        (*han)();
-    }
-    else {
-        // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
-        // THIS CAN ONLY HAPPEN IF TRYING TO EXECUTE WITH A CUSTOM OBJECT
-        // WHOSE LIBRARY WAS UNINSTALLED AFTER BEING COMPILED (IT'S AN INVALID OBJECT)
-        Exceptions=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
-    }
-    return;
 
+    rplCallOvrOperator(OPCODE(CurOpcode));
 
 }
 

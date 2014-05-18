@@ -279,8 +279,8 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 ;
 */
 
-BYTEPTR testprogram=(BYTEPTR) "2016 SETPREC "
-                              " -1000 ASINH "
+BYTEPTR testprogram=(BYTEPTR) "100 SETPREC "
+                              " 1000 ACOSH "
                                ;
 
 
@@ -441,6 +441,13 @@ void DumpDStack()
     BINT nwords;
     WORDPTR string;
     BYTEPTR charptr;
+    BINT nlevels=5;
+
+    while(nlevels>rplDepthData() && nlevels>0 ) {
+        printf("%d:\n",nlevels);
+        --nlevels;
+    }
+
     while(count<(DSTop-DStk)) {
         printf("%d:\t",DSTop-DStk-count);
         string=rplDecompile((WORDPTR)DStk[count]);
@@ -524,25 +531,47 @@ void DumpErrors()
 }
 
 
+void Refresh()
+{
+    DumpDStack();
+    printf("~~> ");
+}
+
 
 int main()
 {
+    char buffer[65535];
+
     rplInit();
 
-    WORDPTR ptr=rplCompile(testprogram,1);
+    Context.prec=36;
+
+    Refresh();
+
+    do {
+
+    fgets(buffer,65535,stdin);
+    if(buffer[0]=='\n' && buffer[1]==0) {
+        printf("Do you want to exit? Y/n: ");
+        fgets(buffer,65535,stdin);
+        if(buffer[0]=='y' || buffer[0]=='Y') return 0;
+        Refresh();
+        continue;
+    }
+
+    WORDPTR ptr=rplCompile((BYTEPTR)buffer,1);
 
     if(!ptr) {
         printf("COMPILE ERROR\n");
         DumpErrors();
-        return 0;
+        Exceptions=0;
+        Refresh();
+        continue;
     }
-
 
     PrintSeco(ptr);
 
     clock_t start,end;
-
-    Context.prec=2016;
 
     start=clock();
     rplSetEntryPoint(ptr);
@@ -555,38 +584,22 @@ int main()
         printf("Runtime Error: %08X at %08X\n",Exceptions,ExceptionPointer-TempOb);
         DumpErrors();
         Exceptions=0;
-        DumpDStack();
         DumpLAMs();
         DumpDirs();
+        Refresh();
 
-        return 0;
+        continue;
     }
-    DumpDStack();
-    DumpDirs();
-
 
     printf("Elapsed time: %.6lf seconds\n",((double)(start-end))/(double)CLOCKS_PER_SEC);
 
-    /*
-    start=clock();
-    double counter,result=1.0;
-    double results[1024];
-    int j;
-
-    for(j=0;j<1000000;++j)
-    {
-    result=1.0;
-    for(counter=1.0;counter<=150.0;counter+=1.0)
-    {
-        result*=counter;
+    Exceptions=0;
+    Refresh();
     }
-    results[j&1023]=result;
-    }
-    end=clock();
+    while(1);
 
-    printf("Results[%d]=%.6lf\n",j-100,results[(j-100)&1023]);
-    printf("Elapsed time: %.6lf seconds\n",((double)(start-end))/(double)CLOCKS_PER_SEC);
-    */
+
+    return 0;
 
 }
 
