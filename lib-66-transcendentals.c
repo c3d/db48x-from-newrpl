@@ -224,7 +224,7 @@ void LIB_HANDLER()
         // CALCULATE ATAN FROM ATAN2(Y,1)
     {
         mpd_t y;
-        if(rplDepthData()<2) {
+        if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
             return;

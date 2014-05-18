@@ -569,8 +569,6 @@ int main()
         continue;
     }
 
-    PrintSeco(ptr);
-
     clock_t start,end;
 
     start=clock();

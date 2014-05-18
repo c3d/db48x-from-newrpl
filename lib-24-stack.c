@@ -122,12 +122,23 @@ void LIB_HANDLER()
     }
     case PICK:
 
-        // TODO
+        if(rplDepthData()<1) {
+         Exceptions|=EX_BADARGCOUNT;
+         ExceptionPointer=IPtr;
+         return;
+        }
+
+        BINT64 level=rplReadNumberAsBINT(rplPeekData(1));
+
+        if( (level<1) || (rplDepthData()<1+level)) {
+         Exceptions|=EX_BADARGVALUE;
+         ExceptionPointer=IPtr;
+         return;
+        }
+
+        rplOverwriteData(1,rplPeekData(1+level));
 
         return;
-
-
-
 
     // STANDARIZED OPCODES:
     // --------------------
