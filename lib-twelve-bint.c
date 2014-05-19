@@ -164,8 +164,15 @@ void rplReadNumberAsReal(WORDPTR number,mpd_t*dec)
 }
 
 
-
-
+// COUNT THE NUMBER OF BITS IN A POSITIVE INTEGER
+static int log2(BINT64 number,int bits)
+{
+    static log2_table[15]={0,1,2,2,3,3,3,3,4,4,4,4,4,4,4,4};
+    if(bits<=4) return log2_table[number];
+    bits>>=1;
+    if(number>>bits) return log2(number>>bits,bits)+bits;
+    return log2(number,bits);
+}
 
 
 
@@ -233,6 +240,7 @@ void LIB_HANDLER()
         switch(OPCODE(CurOpcode))
         {
         case OVR_ADD:
+        {
             // ADD TWO NUMBERS FROM THE STACK
             if(op1type||op2type) {
                 if(op1type) {
@@ -248,11 +256,32 @@ void LIB_HANDLER()
                 rplRRegToRealPush(0);
                 return;
             }
-            op1+=op2;
-            rplNewBINTPush(op1,LIBNUM(*arg1));
-            return;
 
+            BINT64 maxop2;
+            BINT64 minop2;
+
+            if(op1>0) {
+                maxop2=MAX_BINT-op1;
+                minop2=MIN_BINT;
+            }
+            else {
+                maxop2=MAX_BINT;
+                minop2=MIN_BINT-op1;
+            }
+
+            if( (op2>maxop2)||(op2<minop2)) {
+                // CONVERT BOTH TO REALS
+                rplBINTToRReg(1,op1);
+                rplBINTToRReg(2,op2);
+                mpd_add(&RReg[0],&RReg[1],&RReg[2],&Context);
+                rplRRegToRealPush(0);
+                return;
+            }
+            rplNewBINTPush(op1+op2,LIBNUM(*arg1));
+            return;
+        }
         case OVR_SUB:
+        {
             if(op1type||op2type) {
                 if(op1type) {
                     rplBINTToRReg(1,-op2);
@@ -267,10 +296,30 @@ void LIB_HANDLER()
                 rplRRegToRealPush(0);
                 return;
             }
-            op1-=op2;
-            rplNewBINTPush(op1,LIBNUM(*arg1));
-            return;
 
+            BINT64 maxop2;
+            BINT64 minop2;
+
+            if(op1>0) {
+                maxop2=MAX_BINT-op1;
+                minop2=MIN_BINT;
+            }
+            else {
+                maxop2=MAX_BINT;
+                minop2=MIN_BINT-op1;
+            }
+
+            if( (-op2>maxop2)||(-op2<minop2)) {
+                // CONVERT BOTH TO REALS
+                rplBINTToRReg(1,op1);
+                rplBINTToRReg(2,op2);
+                mpd_sub(&RReg[0],&RReg[1],&RReg[2],&Context);
+                rplRRegToRealPush(0);
+                return;
+            }
+            rplNewBINTPush(op1-op2,LIBNUM(*arg1));
+            return;
+        }
         case OVR_MUL:
             if(op1type||op2type) {
                 if(op1type) {
@@ -286,9 +335,30 @@ void LIB_HANDLER()
                 rplRRegToRealPush(0);
                 return;
             }
-            // TODO: DETECT OVERFLOW, AND CONVERT TO INTEGERS IF SO
-            op1*=op2;
-            rplNewBINTPush(op1,LIBNUM(*arg1));
+            // DETECT OVERFLOW, AND CONVERT TO REALS IF SO
+
+            // O1*O2 > 2^63 --> LOG2(O1)+LOG2(O2) > LOG2(2^63)
+            // LOG2(O1)+LOG2(O2) > 63 MEANS OVERFLOW
+            BINT sign1=(op1<0)^(op2<0);
+
+            if(op1<0) op1=-op1;
+            if(op2<0) op2=-op2;
+            if(op2>op1) { BINT64 tmp=op2; op2=op1; op1=tmp; }
+
+            if(!(op2>>32)) {
+                if(log2(op1,64)+log2(op2,32)<63) {
+                    op1*=op2;
+                    if(sign1) rplNewBINTPush(-op1,LIBNUM(*arg1));
+                    else rplNewBINTPush(op1,LIBNUM(*arg1));
+                    return;
+                }
+            }
+
+            rplBINTToRReg(1,op1);
+            rplBINTToRReg(2,op2);
+            mpd_mul(&RReg[0],&RReg[1],&RReg[2],&Context);
+            if(Exceptions) return;
+            rplRRegToRealPush(0);
             return;
 
         case OVR_DIV:
@@ -328,7 +398,6 @@ void LIB_HANDLER()
                 }
 
                 if(op2type) {
-                    // TODO: TRY TO RESPECT THE NUMBER TYPE OF THE FIRST ARGUMENT
                     rplBINTToRReg(1,op1);
                     mpd_pow(&RReg[0],&RReg[1],&rop2,&Context);
                 }
@@ -627,6 +696,7 @@ void LIB_HANDLER()
 
 
     BINT64 result;
+    UBINT64 uresult;
     BYTEPTR strptr;
     int base,libbase,digit,count,neg,argnum1;
     char basechr;
@@ -732,23 +802,24 @@ void LIB_HANDLER()
 
             if(result<0) {
                 rplDecompAppendChar('-');
-                result=-result;
-            }
+                uresult=-result;
+            } else uresult=result;
+
 
 
             if(base==2) {
                 // THIS IS A BASE-10 NUMBER
                 digit=0;
                 basechr='0';
-                while(result<powersof10[digit]) ++digit;  // SKIP ALL LEADING ZEROS
+                while(uresult<powersof10[digit]) ++digit;  // SKIP ALL LEADING ZEROS
                 // NOW DECOMPILE THE NUMBER
                 while(digit<18) {
-                while(result>=powersof10[digit]) { ++basechr; result-=powersof10[digit]; }
+                while(uresult>=powersof10[digit]) { ++basechr; uresult-=powersof10[digit]; }
                 rplDecompAppendChar(basechr);
                 ++digit;
                 basechr='0';
                 }
-                basechr+=result;
+                basechr+=uresult;
                 rplDecompAppendChar(basechr);
             }
             else {
@@ -756,18 +827,19 @@ void LIB_HANDLER()
             // base HAS THE NUMBER OF BITS PER DIGIT
             rplDecompAppendChar('#');
 
-            digit=64-base;
+            if(base>=3) digit=60;
+            else digit=62;
 
             neg=(1<<base)-1;    // CREATE A MASK TO ISOLATE THE DIGIT
 
             // SKIP ALL LEADING ZEROS
             while(digit>0) {
-                if( (result>>digit)&neg ) break;
+                if( (uresult>>digit)&neg ) break;
                 digit-=base;
             }
             // NOW DECOMPILE THE NUMBER
             while(digit>=0) {
-                rplDecompAppendChar(alldigits[(result>>digit)&neg]);
+                rplDecompAppendChar(alldigits[(uresult>>digit)&neg]);
                 digit-=base;
             }
 

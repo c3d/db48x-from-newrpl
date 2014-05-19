@@ -19,6 +19,7 @@ typedef WORD *WORDPTR;
 typedef BYTE   *BYTEPTR;
 typedef int BINT;
 typedef long long BINT64;
+typedef unsigned long long UBINT64;
 typedef int OFFSET;
 
 

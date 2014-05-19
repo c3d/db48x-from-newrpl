@@ -82,3 +82,7 @@ HEADERS += \
     contrib/mpdecimal-2.4.0/libmpdec/mpdecimal.h
 
 INCLUDEPATH += contrib/mpdecimal-2.4.0/libmpdec
+
+OTHER_FILES += \
+    LICENSE.txt \
+    README.txt
