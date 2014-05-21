@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
+
 #include "newrpl.h"
 #include "libraries.h"
 #include "hal.h"
@@ -12,7 +19,7 @@ void libCompileCmds(int libnum,char *libnames[],int libopcodes[],int numcmds)
     for(idx=0;idx<numcmds;++idx)
     {
         len=strlen((char *)libnames[idx]);
-        if((len==ArgNum1) && (!strncmp((char *)TokenStart,(char *)libnames[idx],len)))
+        if((len==(BINT)TokenLen) && (!strncmp((char *)TokenStart,(char *)libnames[idx],len)))
        {
             if(libopcodes) rplCompileAppend((WORD) MKOPCODE(libnum,libopcodes[idx]));
            else rplCompileAppend((WORD) MKOPCODE(libnum,idx));

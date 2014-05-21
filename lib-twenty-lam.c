@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
+
 #include "newrpl.h"
 #include "libraries.h"
 #include "hal.h"
@@ -21,8 +28,8 @@
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
-    CMD(LAMSTO), \
-    CMD(LAMRCL), \
+    CMD(LSTO), \
+    CMD(LRCL), \
     CMD(ABND), \
     CMD(NULLLAM)
 
@@ -200,7 +207,7 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
-    case LAMSTO:
+    case LSTO:
     {
         // STORE CONTENT INSIDE A LAM VARIABLE, CREATE A NEW VARIABLE IF NEEDED
         if(rplDepthData()<2) {
@@ -238,7 +245,7 @@ void LIB_HANDLER()
             }
     }
     return;
-    case LAMRCL:
+    case LRCL:
     {
         // STORE CONTENT INSIDE A LAM VARIABLE, CREATE A NEW VARIABLE IF NEEDED
         if(rplDepthData()<1) {
@@ -355,9 +362,9 @@ void LIB_HANDLER()
         // RetNum =  enum CompileErrors
 
 
-        // LAMSTO NEEDS SPECIAL CONSIDERATION TO CREATE LAMS AT COMPILE TIME
+        // LSTO NEEDS SPECIAL CONSIDERATION TO CREATE LAMS AT COMPILE TIME
 
-        if((TokenLen==6) && (!strncmp((char *)TokenStart,"LAMSTO",4)))
+        if((TokenLen==6) && (!strncmp((char *)TokenStart,"LSTO",4)))
         {
 
             // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
@@ -391,7 +398,7 @@ void LIB_HANDLER()
                 if(LAMptr<LAMTopSaved) {
                     // THIS IS NOT A VALID LAM, LEAVE AS IDENT
 
-                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LAMSTO));
+                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
 
                     // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
 
@@ -417,7 +424,7 @@ void LIB_HANDLER()
                         prolog=**(env+1);   // GET THE PROLOG OF THE SECONDARY
                         if(ISPROLOG(prolog) && LIBNUM(prolog)==SECO) {
                         // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
-                        rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LAMSTO));
+                        rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
 
                         RetNum=OK_CONTINUE;
                         return;
@@ -447,7 +454,7 @@ void LIB_HANDLER()
                             // FOUND INNERMOST SECONDARY
                             if(*scanenv>*(nLAMBase+1)) {
                                 // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
-                            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LAMSTO));
+                            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
 
                             RetNum=OK_CONTINUE;
                             return;
@@ -470,7 +477,7 @@ void LIB_HANDLER()
             }
 
 
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LAMSTO));
+            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
             RetNum=OK_CONTINUE;
             return;
         }

@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
+
 // LIBRARY ONE DEFINES THE BASIC TYPES BINT AND SINT
 
 #include "newrpl.h"
@@ -97,25 +104,36 @@ void rplRRegToRealPush(int num)
 {
 
     REAL_HEADER real;
+    BINT correction;
 
     WORDPTR newreal=rplAllocTempOb(RReg[num].len+1);
     if(!newreal) {
         Exceptions|=EX_OUTOFMEM;
         return;
     }
+
+    // REMOVE ALL TRAILING ZEROES
+    correction=0;
+    while(correction<RReg[num].len-1)
+    {
+        if(RReg[num].data[correction]!=0) break;
+        ++correction;
+    }
+
+
     // WRITE THE PROLOG
-    *newreal=MKPROLOG(LIBRARY_NUMBER,1+RReg[num].len);
+    *newreal=MKPROLOG(LIBRARY_NUMBER,1+RReg[num].len-correction);
     // PACK THE INFORMATION
     real.flags=RReg[num].flags&0xf;
-    real.len=RReg[num].len;
+    real.len=RReg[num].len-correction;
     real.digits=RReg[num].digits-((RReg[num].len-1)*9);
-    real.exp=RReg[num].exp;
+    real.exp=RReg[num].exp+correction*9;
     // STORE THE PACKED EXPONENT WORD
     newreal[1]=real.word;
 
     BINT count;
-    for(count=0;count<RReg[num].len;++count) {
-        newreal[count+2]=(RReg[num].data[count]);      // STORE ALL THE MANTISSA WORDS
+    for(count=0;count<RReg[num].len-correction;++count) {
+        newreal[count+2]=(RReg[num].data[count+correction]);      // STORE ALL THE MANTISSA WORDS
     }
 
     rplPushData(newreal);

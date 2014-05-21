@@ -58,8 +58,6 @@ SOURCES += main.cpp \
     cordic_Kh_comp.c
 
 HEADERS += \
-    runstream.h \
-    opcodes.h \
     libraries.h \
     newrpl.h \
     hal.h \

@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
+
 // LIBRARY ZERO HAS SPECIAL RUNSTREAM OPERATORS
 
 #include "newrpl.h"
@@ -17,9 +24,7 @@
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
     CMD(EXITRPL), \
-    CMD(BREAKPOINT), \
-    CMD(EVALSECO), \
-    CMD(DISPDEBUG)
+    CMD(BREAKPOINT)
 
 // ADD MORE OPCODES HERE
 
@@ -67,24 +72,6 @@ void LIB_HANDLER()
         Exceptions|=EX_BKPOINT;
         ExceptionPointer=IPtr;
         return;
-    case EVALSECO:
-        // IF THE NEXT OBJECT IN THE SECONDARY
-        // IS A SECONDARY, IT EVALUATES IT INSTEAD OF PUSHING IT ON THE STACK
-        ++IPtr;
-        CurOpcode=*IPtr;
-        if(ISPROLOG(CurOpcode)&& (LIBNUM(CurOpcode)==SECO)) {
-            CurOpcode=MKPROLOG(SECO,0); // MAKE IT SKIP INSIDE THE SECONDARY
-            rplPushRet(IPtr);
-            return;
-        }
-        // HAVE NO EFFECT ON ANY OTHER OBJECTS
-        --IPtr;
-        CurOpcode=*IPtr;
-        return;
-    case DISPDEBUG:
-        rplShowRuntimeState();
-        return;
-
     case SEMI:
         // POP THE RETURN ADDRESS
         IPtr=rplPopRet();   // GET THE CALLER ADDRESS

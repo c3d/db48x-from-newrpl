@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
+
 #ifndef NEWRPL_H
 #define NEWRPL_H
 
@@ -18,6 +25,7 @@ typedef unsigned char BYTE;
 typedef WORD *WORDPTR;
 typedef BYTE   *BYTEPTR;
 typedef int BINT;
+typedef unsigned int UBINT;
 typedef long long BINT64;
 typedef unsigned long long UBINT64;
 typedef int OFFSET;
@@ -76,6 +84,18 @@ extern "C" {
 
 #include "sysvars.h"
 
+// INTERNAL TRANSCENDENTAL FUNCTIONS
+void hyp_exp(mpd_t *);
+void hyp_ln(mpd_t *);
+void hyp_sqrt(mpd_t *);
+void hyp_sinhcosh(mpd_t *);
+void hyp_atanh(mpd_t *);
+void hyp_asinh(mpd_t *);
+void hyp_acosh(mpd_t *);
+
+void trig_sincos(mpd_t *);
+void trig_atan2(mpd_t *,mpd_t *);
+
 
 // ERROR MANAGEMENT FUNCTIONS
 extern void MPDTrapHandler(mpd_context_t *ctx);
@@ -89,9 +109,9 @@ extern void rplInit(void);
 extern void rplSetEntryPoint(WORDPTR ip);
 extern void rplRun(void);
 extern LIBHANDLER rplGetLibHandler(BINT libnum);
-extern inline WORDPTR rplSkipOb(WORDPTR ip);
-extern inline void rplSkipNext();
-extern inline WORD rplObjSize(WORDPTR ip);
+extern WORDPTR rplSkipOb(WORDPTR ip);
+extern void rplSkipNext();
+extern WORD rplObjSize(WORDPTR ip);
 
 
 
@@ -121,9 +141,9 @@ extern void rplDecompAppendString2(BYTEPTR str,BINT len);
 
 extern void rplPushData(WORDPTR p);
 extern WORDPTR rplPopData();
-extern inline WORDPTR rplPeekData(int level);
-extern inline void rplOverwriteData(int level,WORDPTR ptr);
-extern inline BINT rplDepthData();
+extern WORDPTR rplPeekData(int level);
+extern void rplOverwriteData(int level,WORDPTR ptr);
+extern BINT rplDepthData();
 extern void rplDropData(int n);
 extern void growDStk(WORD newsize);
 
@@ -132,7 +152,7 @@ extern void growDStk(WORD newsize);
 extern void rplPushRet(WORDPTR p);
 extern WORDPTR rplPopRet();
 extern void growRStk(WORD newsize);
-extern inline WORDPTR rplPeekRet(int level);
+extern WORDPTR rplPeekRet(int level);
 
 // GARBAGE COLLECTION
 extern void rplGCollect();

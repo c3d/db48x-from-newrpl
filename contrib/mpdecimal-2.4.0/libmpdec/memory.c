@@ -59,6 +59,27 @@ static mpd_uint_t MPD_RegistersUsed=0,MPD_RegistersSlaved=0;
 #define mpd_getregnum(ptr) ( ((ptr)-MPD_StorageDigits)/MPD_MAX_REGISTER_ALLOC)
 #define mpd_getregister( ptr ) (& (MPD_Registers[mpd_getregnum(ptr)]))
 
+void mpd_custom_free(void *ptr)
+{
+
+    mpd_uint_t reg=0;
+    mpd_uint_t count;
+
+    /* Fail if this pointer was not allocated by us */
+    if(((mpd_uint_t *)ptr<MPD_StorageDigits) || ((mpd_uint_t *)ptr>MPD_StorageDigits+(MPD_MAX_INTERNAL_REGISTERS-1)*MPD_MAX_REGISTER_ALLOC)) return;
+
+    reg=((mpd_uint_t)((mpd_uint_t *)ptr-MPD_StorageDigits))/MPD_MAX_REGISTER_ALLOC;
+
+    /* Free any slaved blocks */
+    count=1;
+    while(MPD_RegistersSlaved&(1<<(reg+count))) {
+        MPD_RegistersSlaved&=~(1<<(reg+count));
+        MPD_RegistersUsed&=~(1<<(reg+count));
+        ++count;
+    }
+
+    MPD_RegistersUsed&=~(1<<reg);
+}
 
 /* Use memory directly from the digit storage stack */
 void *mpd_custom_malloc(size_t size)
@@ -157,27 +178,6 @@ MPD_RegistersSlaved|=mask;
 return ptr;
 }
 
-void mpd_custom_free(void *ptr)
-{
-
-    mpd_uint_t reg=0;
-    mpd_uint_t count;
-
-    /* Fail if this pointer was not allocated by us */
-    if(((mpd_uint_t *)ptr<MPD_StorageDigits) || ((mpd_uint_t *)ptr>MPD_StorageDigits+(MPD_MAX_INTERNAL_REGISTERS-1)*MPD_MAX_REGISTER_ALLOC)) return;
-
-    reg=((mpd_uint_t)((mpd_uint_t *)ptr-MPD_StorageDigits))/MPD_MAX_REGISTER_ALLOC;
-
-    /* Free any slaved blocks */
-    count=1;
-    while(MPD_RegistersSlaved&(1<<(reg+count))) {
-        MPD_RegistersSlaved&=~(1<<(reg+count));
-        MPD_RegistersUsed&=~(1<<(reg+count));
-        ++count;
-    }
-
-    MPD_RegistersUsed&=~(1<<reg);
-}
 
 
 

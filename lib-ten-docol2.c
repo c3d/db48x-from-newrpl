@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
+
 // LIBRARY ONE HAS RUNSTREAM OPERATORS FOR USERRPL
 // AND DEFINES THE << >> CODE OBJECT
 
@@ -187,12 +194,12 @@ void LIB_HANDLER()
         // FIND OUT THE DIRECTION OF THE LOOP
 
         // MAKE 2DUP
-        ScratchPointer3=DSTop;
+        ScratchPointer3=(WORDPTR)DSTop;
         rplPushData(rplPeekData(2));
         rplPushData(rplPeekData(2));
         rplCallOvrOperator(OVR_GT);
 
-        if(Exceptions) { DSTop=ScratchPointer3; return; }
+        if(Exceptions) { DSTop=(WORDPTR *)ScratchPointer3; return; }
 
         ScratchPointer3=IPtr;       // THIS IS POINTING AT THE FOR STATEMENT
         BINT depth=1;               // TRACK NESTED FOR LOOPS
@@ -232,12 +239,12 @@ void LIB_HANDLER()
             return;
         }
         // MAKE 2DUP
-        ScratchPointer3=DSTop;
+        ScratchPointer3=(WORDPTR)DSTop;
         rplPushData(rplPeekData(2));
         rplPushData(rplPeekData(2));
         rplCallOvrOperator(OVR_GT);
 
-        if(Exceptions) { DSTop=ScratchPointer3; return; }
+        if(Exceptions) { DSTop=(WORDPTR *)ScratchPointer3; return; }
 
         ScratchPointer3=IPtr;       // THIS IS POINTING AT THE FOR STATEMENT
         BINT depth=1;               // TRACK NESTED FOR LOOPS

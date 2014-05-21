@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
+
 #ifndef LIBRARIES_H
 #define LIBRARIES_H
 
@@ -33,7 +40,7 @@ extern BINT ROMLibs2Num[];
 
 
 
-#define MKOPCODE(lib,op) ((((lib)&0xFFF)<<20)|((op)&0x7FFFF))
+#define MKOPCODE(lib,op) (WORD)((((lib)&0xFFF)<<20)|((op)&0x7FFFF))
 #define MKPROLOG(lib,size) ((((lib)&0xFFF)<<20)|((size)&0x3FFFF)|0x80000)
 #define OPCODE(p) ( (p)&0x7FFFF)
 #define OBJSIZE(p) ((p)&0x3FFFF)

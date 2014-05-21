@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
+
 #include "newrpl.h"
 #include "hal.h"
 
@@ -91,7 +98,7 @@ void growTempBlocks(WORD newtotalsize)
     newtempblocks=hal_growmem(TempBlocks,newtotalsize);
 
     if(!newtempblocks) {
-        if(!gc_done) { rplGCollect(); ++gc_done; newtotalsize=TempBlocksEnd+slack; }
+        if(!gc_done) { rplGCollect(); ++gc_done; newtotalsize=(WORD)((TempBlocksEnd+slack)-TempBlocks); }
         else {
         Exceptions|=EX_OUTOFMEM;
         ExceptionPointer=IPtr;

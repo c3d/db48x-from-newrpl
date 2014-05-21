@@ -5778,7 +5778,7 @@ _mpd_qmul(mpd_t *result, const mpd_t *a, const mpd_t *b,
 
     if (small->len <= 256) {
         /* Modified for newRPL - use result's static memory if enough */
-        if((result->alloc>=rsize)&&(big!=result)&&(small!=result)) {
+        if(((mpd_size_t)result->alloc>=rsize)&&(big!=result)&&(small!=result)) {
             memset(result->data,0,rsize*sizeof(mpd_uint_t));
             rdata=result->data;
             final_rsize=result->alloc;
@@ -5819,7 +5819,7 @@ _mpd_qmul(mpd_t *result, const mpd_t *a, const mpd_t *b,
     else {
         /* modified for NewRPL - keep static storage static */
         if(result->data!=rdata) {
-            if(result->alloc>=final_rsize) {
+            if((mpd_size_t)result->alloc>=final_rsize) {
                 memcpy(result->data,rdata,final_rsize*sizeof(mpd_uint_t));
                 mpd_free(rdata);
             } else {

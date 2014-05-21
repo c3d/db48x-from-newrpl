@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
+
 #include "newrpl.h"
 #include "libraries.h"
 #include "hal.h"
@@ -99,16 +106,16 @@ void LIB_HANDLER()
         WORDPTR string=rplAllocTempOb(strsize);
         if(!string) return;
         BYTEPTR strptr=(BYTEPTR) &(string[1]);
-        BINT charswritten=sprintf(strptr,"%d, /* %d WORDS */ ",RReg[0].exp,RReg[0].len);
+        BINT charswritten=sprintf((char *)strptr,"%d, /* %d WORDS */ ",RReg[0].exp,RReg[0].len);
         strptr+=charswritten;
         int count;
         for(count=0;count<RReg[0].len;++count)
         {
-            charswritten=sprintf(strptr,"%d, ",RReg[0].data[count]);
+            charswritten=sprintf((char *)strptr,"%d, ",RReg[0].data[count]);
             strptr+=charswritten;
         }
 
-        charswritten=sprintf(strptr,"\n",dec.data[count]);
+        charswritten=sprintf((char *)strptr,"\n");
         strptr+=charswritten;
 
         // DETERMINE TOTAL NUMBER OF BYTES WRITTEN

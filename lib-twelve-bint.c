@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
+
 // LIBRARY ONE DEFINES THE BASIC TYPES BINT AND SINT
 
 #include "newrpl.h"
@@ -26,10 +33,10 @@
 
 #define MIN_SINT    -131072
 #define MAX_SINT    +131071
-#define MIN_BINT    -9223372036854775808LL
 #define MAX_BINT    +9223372036854775807LL
+#define MIN_BINT    (-9223372036854775807LL-1LL)
 
-BINT64 powersof10[20]={
+UBINT64 powersof10[20]={
     1000000000000000000LL,
     100000000000000000LL,
     10000000000000000LL,
@@ -165,13 +172,13 @@ void rplReadNumberAsReal(WORDPTR number,mpd_t*dec)
 
 
 // COUNT THE NUMBER OF BITS IN A POSITIVE INTEGER
-static int log2(BINT64 number,int bits)
+static int rpl_log2(BINT64 number,int bits)
 {
-    static log2_table[15]={0,1,2,2,3,3,3,3,4,4,4,4,4,4,4,4};
+    static const unsigned char const log2_table[16]={0,1,2,2,3,3,3,3,4,4,4,4,4,4,4,4};
     if(bits<=4) return log2_table[number];
     bits>>=1;
-    if(number>>bits) return log2(number>>bits,bits)+bits;
-    return log2(number,bits);
+    if(number>>bits) return rpl_log2(number>>bits,bits)+bits;
+    return rpl_log2(number,bits);
 }
 
 
@@ -346,7 +353,7 @@ void LIB_HANDLER()
             if(op2>op1) { BINT64 tmp=op2; op2=op1; op1=tmp; }
 
             if(!(op2>>32)) {
-                if(log2(op1,64)+log2(op2,32)<63) {
+                if(rpl_log2(op1,64)+rpl_log2(op2,32)<63) {
                     op1*=op2;
                     if(sign1) rplNewBINTPush(-op1,LIBNUM(*arg1));
                     else rplNewBINTPush(op1,LIBNUM(*arg1));
@@ -382,7 +389,7 @@ void LIB_HANDLER()
             rplBINTToRReg(2,op2);
             mpd_div(&RReg[0],&RReg[1],&RReg[2],&Context);
             if(Exceptions) return;
-            int status=0;
+            uint32_t status=0;
             BINT64 result=mpd_qget_i64(&RReg[0],&status);
             if(status) rplRRegToRealPush(0);
             else rplNewBINTPush(result,LIBNUM(*arg1));
@@ -410,7 +417,7 @@ void LIB_HANDLER()
             rplBINTToRReg(1,op1);
             rplBINTToRReg(2,op2);
             mpd_pow(&RReg[0],&RReg[1],&RReg[2],&Context);
-            int status=0;
+            uint32_t status=0;
             BINT64 result=mpd_qget_i64(&RReg[0],&status);
             if(status) rplRRegToRealPush(0);
             else rplNewBINTPush(result,LIBNUM(*arg1));

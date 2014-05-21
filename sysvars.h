@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
+
 #ifndef SYSVARS_H
 #define SYSVARS_H
 
@@ -67,7 +74,7 @@ extern BINT DirSize;
 
 // ARGUMENTS TO PASS TO LIBRARY HANDLERS
 // DURING COMPILATION
-extern BINT ArgNum1,ArgNum2,ArgNum3,RetNum;
+extern UBINT ArgNum1,ArgNum2,ArgNum3,RetNum;
 
 // SOME CONVENIENCE NAMES FOR USE IN LIBRARIES
 #define TokenLen ArgNum1

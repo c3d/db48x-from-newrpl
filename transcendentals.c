@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
+
 #include "newrpl.h"
 
 /* Transcendental functions with variable precision implementing a decimal variant of the CORDIC
@@ -82,7 +89,7 @@ static const uint32_t const Constant_One[]={ 1 };
 void const_2PI(mpd_t *real)
 {
     real->alloc=224;
-    real->data=Constant_2PI;
+    real->data=(mpd_uint_t *)Constant_2PI;
     real->digits=2016;
     real->exp=-2015;
     real->flags=MPD_STATIC|MPD_CONST_DATA;
@@ -91,7 +98,7 @@ void const_2PI(mpd_t *real)
 void const_PI(mpd_t *real)
 {
     real->alloc=224;
-    real->data=Constant_PI;
+    real->data=(mpd_uint_t *)Constant_PI;
     real->digits=2016;
     real->exp=-2015;
     real->flags=MPD_STATIC|MPD_CONST_DATA;
@@ -100,7 +107,7 @@ void const_PI(mpd_t *real)
 void const_PI_2(mpd_t *real)
 {
     real->alloc=224;
-    real->data=Constant_PI_2;
+    real->data=(mpd_uint_t *)Constant_PI_2;
     real->digits=2016;
     real->exp=-2015;
     real->flags=MPD_STATIC|MPD_CONST_DATA;
@@ -109,7 +116,7 @@ void const_PI_2(mpd_t *real)
 void const_PI_4(mpd_t *real)
 {
     real->alloc=224;
-    real->data=Constant_PI_4;
+    real->data=(mpd_uint_t *)Constant_PI_4;
     real->digits=2016;
     real->exp=-2016;
     real->flags=MPD_STATIC|MPD_CONST_DATA;
@@ -119,7 +126,7 @@ void const_PI_4(mpd_t *real)
 void const_ln10(mpd_t *real)
 {
     real->alloc=224;
-    real->data=Constant_ln10;
+    real->data=(mpd_uint_t *)Constant_ln10;
     real->digits=2016;
     real->exp=-2015;
     real->flags=MPD_STATIC|MPD_CONST_DATA;
@@ -129,7 +136,7 @@ void const_ln10(mpd_t *real)
 void const_ln10_2(mpd_t *real)
 {
     real->alloc=224;
-    real->data=Constant_ln10_2;
+    real->data=(mpd_uint_t *)Constant_ln10_2;
     real->digits=2016;
     real->exp=-2015;
     real->flags=MPD_STATIC|MPD_CONST_DATA;
@@ -139,7 +146,7 @@ void const_ln10_2(mpd_t *real)
 void const_K1(mpd_t *real)
 {
     real->alloc=224;
-    real->data=Constant_K1;
+    real->data=(mpd_uint_t *)Constant_K1;
     real->digits=2016;
     real->exp=-2016;
     real->flags=MPD_STATIC|MPD_CONST_DATA;
@@ -149,7 +156,7 @@ void const_K1(mpd_t *real)
 void const_Kh1(mpd_t *real)
 {
     real->alloc=224;
-    real->data=Constant_Kh1;
+    real->data=(mpd_uint_t *)Constant_Kh1;
     real->digits=2016;
     real->exp=-2015;
     real->flags=MPD_STATIC|MPD_CONST_DATA;
@@ -159,7 +166,7 @@ void const_Kh1(mpd_t *real)
 void const_One(mpd_t *real)
 {
     real->alloc=1;
-    real->data=Constant_One;
+    real->data=(mpd_uint_t *)Constant_One;
     real->digits=1;
     real->exp=0;
     real->flags=MPD_STATIC|MPD_CONST_DATA;
@@ -749,79 +756,6 @@ static void atanh_5_table(int exponent,mpd_t *real)
 // RETURNS RESULTS IN RREG[5], RREG[6], RREG[7]
 
 void (*functions[4])(int,mpd_t *)={atanh_5_table,atanh_2_table,atanh_2_table,atanh_1_table};
-static void CORDIC_Hyp_Rotational(int digits,int startexp)
-{
-int sequence[4]={5,2,2,1};
-int startidx=0;
-int exponent;
-uint32_t status;
-mpd_t *x,*y,*z,*tmp;
-mpd_t *xnext,*ynext,*znext;
-
-// USE RReg[0]=z; RReg[1]=x; RReg[2]=y;
-// THE INITIAL VALUES MUST'VE BEEN SET
-
-// RReg[3]=S; INITIALIZED TO 1*10^0
-RReg[3].len=1;
-RReg[3].digits=1;
-RReg[3].flags&=MPD_DATAFLAGS;
-
-z=&RReg[0];
-x=&RReg[1];
-y=&RReg[2];
-znext=&RReg[5];
-xnext=&RReg[6];
-ynext=&RReg[7];
-
-digits=(digits+1)>>1;
-
-for(exponent=startexp;exponent<startexp+digits;++exponent)
-{
-    do {
-    RReg[3].exp=-exponent;
-    RReg[3].data[0]=sequence[startidx];
-    if(!(z->flags&MPD_NEG)) RReg[3].flags&=~MPD_NEG;
-    else RReg[3].flags|=MPD_NEG;
-    mpd_qfma(xnext,&RReg[3],y,x,&Context,&status);  // x(i+1)=x(i)+S(i)*y(i)
-
-    //RReg[3].flags^=MPD_NEG;
-    mpd_qfma(ynext,&RReg[3],x,y,&Context,&status);  // y(i+1)=y(i)+S(i)*x(i)
-    //mpd_qadd(ynext,&RReg[4],&RReg[3],&Context,&status);
-
-    functions[startidx](exponent,&RReg[4]);     // GET Alpha(i)
-    RReg[4].flags|=z->flags&MPD_NEG;
-
-    mpd_qsub(znext,z,&RReg[4],&Context,&status);  // z(i+1)=z(i)-Alpha(i)
-
-    // WE FINISHED ONE STEP
-    // SWAP THE POINTERS TO AVOID COPYING THE NUMBERS
-    tmp=znext;
-    znext=z;
-    z=tmp;
-
-    tmp=xnext;
-    xnext=x;
-    x=tmp;
-
-    tmp=ynext;
-    ynext=y;
-    y=tmp;
-
-    ++startidx;
-    startidx&=3;
-    } while(startidx);
-}
-// THE FINAL RESULTS ARE ALWAYS IN RREG[0], RREG[1] AND RREG[2]
-
-// FINAL ROTATION SHOULD NOT AFFECT THE Kh CONSTANT
-mpd_qfma(xnext,z,y,x,&Context,&status);  // x(i+1)=x(i)+S(i)*y(i)
-mpd_qfma(ynext,z,x,y,&Context,&status);  // y(i+1)=y(i)+S(i)*x(i)
-
-// THE FINAL RESULTS ARE ALWAYS IN RREG[6] AND RREG[7]
-
-// RESULTS HAVE TYPICALLY 9 DIGITS MORE THAN REQUIRED, NONE OF THEM ARE ACCURATE
-// SO ROUNDING/FINALIZING IS NEEDED
-}
 
 static void CORDIC_Hyp_Rotational_unrolled(int digits,int startexp)
 {
@@ -959,8 +893,8 @@ static void CORDIC_Hyp_Rotational_exp(int digits,int startexp)
 {
 int exponent;
 uint32_t status;
-mpd_t *x,*y,*z;
-mpd_t *xnext,*ynext,*znext;
+mpd_t *x,*z;
+mpd_t *xnext,*znext;
 
 // USE RReg[0]=z; RReg[1]=x;
 // THE INITIAL VALUES MUST'VE BEEN SET
@@ -1156,7 +1090,7 @@ x0->flags&=~MPD_NEG;
 // ALWAYS: NEED TO WORK ON PRECISION MULTIPLE OF 9
 Context.prec+=MPD_RDIGITS;
 // GET ANGLE MODULO LN(10)
-mpd_t ln10,ln10_2,Kh1;
+mpd_t ln10,ln10_2;
 BINT64 quotient;
 
 
