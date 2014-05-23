@@ -367,7 +367,7 @@ static void CORDIC_Rotational(int digits,int startindex)
 {
 int sequence[4]={5,2,2,1};
 void (*functions[4])(int,mpd_t *)={atan_5_table,atan_2_table,atan_2_table,atan_1_table};
-int startidx=3;
+int startidx=(startindex)? 0:3;
 int exponent;
 uint32_t status;
 mpd_t *x,*y,*z,*tmp;
@@ -388,6 +388,8 @@ znext=&RReg[5];
 xnext=&RReg[6];
 ynext=&RReg[7];
 
+//digits=(digits+3)>>1;
+
 for(exponent=startindex;exponent<startindex+digits;++exponent)
 {
     do {
@@ -398,7 +400,8 @@ for(exponent=startindex;exponent<startindex+digits;++exponent)
     mpd_qfma(xnext,&RReg[3],y,x,&Context,&status);  // x(i+1)=x(i)-S(i)*y(i)
 
     RReg[3].flags^=MPD_NEG;
-    mpd_qfma(ynext,&RReg[3],x,y,&Context,&status);  // y(i+1)=y(i)+S(i)*x(i)
+    mpd_add(&RReg[4],y,&RReg[3],&Context);
+    mpd_qfma(ynext,&RReg[3],x,&RReg[4],&Context,&status);  // y(i+1)=y(i)+S(i)*(x(i)+1)
 
     functions[startidx](exponent,&RReg[4]);     // GET Alpha(i)
     RReg[4].flags|=z->flags&MPD_NEG;
@@ -424,10 +427,20 @@ for(exponent=startindex;exponent<startindex+digits;++exponent)
     } while(startidx);
 }
 
+
 // THE FINAL RESULTS ARE ALWAYS IN RREG[5], RREG[6] AND RREG[7]
 
 // RESULTS HAVE TYPICALLY 9 DIGITS MORE THAN REQUIRED, ABOUT 6 OF THEM ARE ACCURATE
 // SO ROUNDING/FINALIZING IS NEEDED
+// FINAL ROTATION SHOULD NOT AFFECT THE Kh CONSTANT
+//mpd_add(&RReg[4],y,z,&Context);
+//mpd_qfma(ynext,z,x,&RReg[4],&Context,&status);  // y(i+1)=y(i)+S(i)*(x(i)+1)
+//z->flags^=MPD_NEG;
+//mpd_qfma(xnext,z,y,x,&Context,&status);  // x(i+1)=x(i)-S(i)*y(i)
+
+// THE FINAL RESULTS ARE ALWAYS IN RREG[1]=(cos(x)-1) AND RREG[2]-sin(x)
+
+
 }
 
 
@@ -435,7 +448,7 @@ for(exponent=startindex;exponent<startindex+digits;++exponent)
 
 void trig_sincos(mpd_t *angle)
 {
-    int negsin,negcos,swap;
+    int negsin,negcos,swap,startexp;
     mpd_t pi,pi2,pi4;
 
     const_PI(&pi);
@@ -446,12 +459,13 @@ void trig_sincos(mpd_t *angle)
     // ALWAYS: NEED TO WORK ON PRECISION MULTIPLE OF 9
     Context.prec+=MPD_RDIGITS;
 
+
     // GET ANGLE MODULO PI
     mpd_divmod(&RReg[1],&RReg[0],angle,&pi,&Context);
 
     // HERE RReg[0] HAS THE REMAINDER THAT WE NEED TO WORK WITH
 
-    // IF THE RESULT OF TEH DIVISION IS ODD, THEN WE ARE IN THE OTHER HALF OF THE CIRCLE
+    // IF THE RESULT OF THE DIVISION IS ODD, THEN WE ARE IN THE OTHER HALF OF THE CIRCLE
     if(RReg[1].data[0]&1) { negcos=negsin=1; }
 
     if(RReg[0].flags&MPD_NEG) { negsin^=1; RReg[0].flags&=~MPD_NEG; }
@@ -469,6 +483,20 @@ void trig_sincos(mpd_t *angle)
     }
 
 
+    // LOAD CONSTANT 0.1
+    RReg[7].data[0]=1;
+    RReg[7].digits=1;
+    RReg[7].exp=-1;
+    RReg[7].flags&=MPD_DATAFLAGS;
+    RReg[7].len=1;
+
+    if(mpd_cmp(&RReg[0],&RReg[7],&Context)==-1) {
+        // WE ARE DEALING WITH SMALL ANGLES
+        startexp=-RReg[0].exp-RReg[0].digits+1;
+
+        if(startexp<=2) startexp=0; else startexp-=2;
+    }
+    else startexp=0;
     // USE RReg[0]=z; RReg[1]=x; RReg[2]=y;
 
     // y=0;
@@ -478,33 +506,38 @@ void trig_sincos(mpd_t *angle)
     RReg[2].flags&=MPD_DATAFLAGS;
     RReg[2].digits=1;
 
-    // x=K;
-    RReg[1].len=REAL_PRECISION_MAX/MPD_RDIGITS;
-    RReg[1].digits=REAL_PRECISION_MAX;
-    memcpy(RReg[1].data,Constant_K1,REAL_PRECISION_MAX/MPD_RDIGITS*sizeof(uint32_t));
-    RReg[1].exp=-REAL_PRECISION_MAX;
+    // x=0;
+    RReg[1].len=1;
+    RReg[1].digits=1;
+    RReg[1].data[0]=0;
+    RReg[1].exp=0;
     RReg[1].flags&=MPD_DATAFLAGS;
 
 
-    CORDIC_Rotational((Context.prec>REAL_PRECISION_MAX)? REAL_PRECISION_MAX:Context.prec,0);
+    CORDIC_Rotational((Context.prec>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+9:Context.prec,startexp);
+
+    // HERE WE HAVE
+    // USE RReg[5]=angle_error; RReg[1]=cos(z)-1 RReg[2]=sin(z);
+    const_K_table(startexp,&RReg[4]);
+
+    // PUT THE cos(z) IN RReg[6]
+    if(swap) {
+        mpd_mul(&RReg[6],&RReg[2],&RReg[4],&Context);
+        mpd_mul(&RReg[5],&RReg[1],&RReg[4],&Context);
+        mpd_add(&RReg[7],&RReg[5],&RReg[4],&Context);
+    }
+    else {
+        mpd_mul(&RReg[7],&RReg[2],&RReg[4],&Context);
+        mpd_mul(&RReg[5],&RReg[1],&RReg[4],&Context);
+        mpd_add(&RReg[6],&RReg[5],&RReg[4],&Context);
+    }
+
+
+    if(negcos) RReg[6].flags|=MPD_NEG;
+    if(negsin) RReg[7].flags|=MPD_NEG;
 
     // RESTORE PREVIOUS PRECISION
     Context.prec-=MPD_RDIGITS;
-
-    // HERE WE HAVE
-    // USE RReg[5]=angle_error; RReg[6]=cos(z) RReg[7]=sin(z);
-
-    // PUT THE cos(z) IN RReg[0]
-    if(swap) {
-        mpd_copy(&RReg[0],&RReg[7],&Context);
-        mpd_copy(&RReg[1],&RReg[6],&Context);
-    }
-    else {
-        mpd_copy(&RReg[1],&RReg[7],&Context);
-        mpd_copy(&RReg[0],&RReg[6],&Context);
-    }
-    if(negcos) RReg[0].flags|=MPD_NEG;
-    if(negsin) RReg[1].flags|=MPD_NEG;
 
 }
 

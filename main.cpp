@@ -285,10 +285,6 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 ;
 */
 
-BYTEPTR testprogram=(BYTEPTR) "100 SETPREC "
-                              " 1000 ACOSH "
-                               ;
-
 
 void PrintObj(WORDPTR obj)
 {
@@ -552,7 +548,9 @@ int main()
 
     Context.prec=36;
 
+
     Refresh();
+
 
     do {
 

@@ -38,7 +38,9 @@ extern void trig_atan2(mpd_t *x,mpd_t *y);
     CMD(CLN), \
     CMD(SINCOSH),\
     CMD(CATANH),\
-    CMD(CSQRT)
+    CMD(CSQRT), \
+    CMD(MPDPOW)
+
 
 // ADD MORE OPCODES HERE
 
@@ -90,15 +92,17 @@ void LIB_HANDLER()
         }
         rplReadReal(rplPeekData(1),&dec);
 
+#define TABLES_OUTPUT_PRECISION 2016
+
         // FOR THE TABLES, WE'LL ROUND TO THE NEAREST INTEGER, DISCARDING THE LAST 9 DIGITS (1 WORD)
         int exponent=dec.digits+dec.exp;
-        dec.exp=Context.prec-9-dec.digits;
+        dec.exp=TABLES_OUTPUT_PRECISION-dec.digits;
         mpd_context_t newctx;
         memcpy(&newctx,&Context,sizeof(mpd_context_t));
 
         newctx.round=MPD_ROUND_HALF_UP;
         mpd_round_to_intx(&RReg[0],&dec,&newctx);
-        RReg[0].exp=-Context.prec+9+exponent;
+        RReg[0].exp=-TABLES_OUTPUT_PRECISION+exponent;
 
 
         if(Exceptions) return;

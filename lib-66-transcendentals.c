@@ -85,10 +85,14 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         trig_sincos(&dec);
-        RReg[1].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[7],&RReg[1],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[7].exp-=Context.prec;
-        mpd_reduce(&RReg[1],&RReg[7],&Context);
+
+
+
+        BINT exponent=RReg[7].exp;
+        RReg[7].exp=Context.prec-RReg[7].digits;
+        mpd_round_to_intx(&RReg[2],&RReg[7],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[2].exp=exponent-RReg[7].exp;
+        mpd_reduce(&RReg[1],&RReg[2],&Context);
 
         rplDropData(1);
         rplRRegToRealPush(1);       // SIN
@@ -107,10 +111,13 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         trig_sincos(&dec);
-        RReg[0].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[7].exp-=Context.prec;
-        mpd_reduce(&RReg[0],&RReg[7],&Context);
+
+
+        BINT exponent=RReg[6].exp;
+        RReg[6].exp=Context.prec-RReg[6].digits;
+        mpd_round_to_intx(&RReg[2],&RReg[6],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[2].exp=exponent-RReg[6].exp;
+        mpd_reduce(&RReg[0],&RReg[2],&Context);
 
         rplDropData(1);
         rplRRegToRealPush(0);       // COS
@@ -129,17 +136,15 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         trig_sincos(&dec);
-        RReg[0].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[6],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[6].exp-=Context.prec;
-        RReg[0].exp-=Context.prec;
+
         if(mpd_iszero(&RReg[6])) {
             mpd_set_infinity(&RReg[2]);
-            if(mpd_isnegative(&RReg[1]))  mpd_set_negative(&RReg[2]);
+            if(mpd_isnegative(&RReg[7]))  mpd_set_negative(&RReg[2]);
         }
         else {
-            mpd_div(&RReg[2],&RReg[1],&RReg[0],&Context);
+            mpd_div(&RReg[2],&RReg[7],&RReg[6],&Context);
         }
+
         rplDropData(1);
         rplRRegToRealPush(2);       // SIN/COS
 
@@ -147,7 +152,7 @@ void LIB_HANDLER()
 
     }
     case ASIN:
-        // CALCULATE ASIN FROM ASIN(Y) = 2* ATAN2(1+SQRT(1-Y^2),Y)
+        // CALCULATE ASIN FROM ASIN(Y) = 2* ATAN2(Y,1+SQRT(1-Y^2))
     {
         mpd_t y;
         if(rplDepthData()<1) {
@@ -171,21 +176,17 @@ void LIB_HANDLER()
         mpd_sqrt(&RReg[6],&RReg[5],&Context);
         mpd_add(&RReg[5],&RReg[6],&RReg[7],&Context);
 
-        trig_atan2(&RReg[5],&y);
+        trig_atan2(&y,&RReg[5]);
         mpd_add(&RReg[7],&RReg[0],&RReg[0],&Context);
-        RReg[7].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[6],&RReg[7],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[6].exp-=Context.prec;
-        mpd_reduce(&RReg[0],&RReg[6],&Context);
         rplDropData(1);
-        rplRRegToRealPush(0);       // RESULTING ANGLE
+        rplRRegToRealPush(7);       // RESULTING ANGLE
 
         return;
 
     }
 
     case ACOS:
-        // CALCULATE ASIN FROM ACOS(X) = 2* ATAN2(SQRT(1-X^2),1+X)
+        // CALCULATE ASIN FROM ACOS(X) = 2* ATAN2(1+X,SQRT(1-X^2))
     {
         mpd_t y;
         if(rplDepthData()<1) {
@@ -211,14 +212,10 @@ void LIB_HANDLER()
         mpd_sub(&RReg[5],&RReg[7],&RReg[6],&Context);
         mpd_sqrt(&RReg[6],&RReg[5],&Context);
 
-        trig_atan2(&RReg[6],&RReg[4]);
+        trig_atan2(&RReg[4],&RReg[6]);
         mpd_add(&RReg[7],&RReg[0],&RReg[0],&Context);
-        RReg[7].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[6],&RReg[7],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[6].exp-=Context.prec;
-        mpd_reduce(&RReg[0],&RReg[6],&Context);
         rplDropData(1);
-        rplRRegToRealPush(0);       // RESULTING ANGLE
+        rplRRegToRealPush(7);       // RESULTING ANGLE
 
         return;
 
@@ -242,12 +239,15 @@ void LIB_HANDLER()
         rplOneToRReg(7);
 
 
-        trig_atan2(&RReg[7],&y);
-        RReg[0].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[6],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[6].exp-=Context.prec;
-        mpd_reduce(&RReg[0],&RReg[6],&Context);
-        \
+        trig_atan2(&y,&RReg[7]);
+
+
+        BINT exponent=RReg[0].exp;
+        RReg[0].exp=Context.prec-RReg[0].digits;
+        mpd_round_to_intx(&RReg[2],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[2].exp=exponent-RReg[0].exp;
+        mpd_reduce(&RReg[0],&RReg[2],&Context);
+
         rplDropData(1);
         rplRRegToRealPush(0);       // RESULTING ANGLE
 
@@ -263,16 +263,18 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-        rplReadNumberAsReal(rplPeekData(1),&y);
-        rplReadNumberAsReal(rplPeekData(2),&x);
+        rplReadNumberAsReal(rplPeekData(2),&y);
+        rplReadNumberAsReal(rplPeekData(1),&x);
 
         if(Exceptions) return;
 
-        trig_atan2(&x,&y);
-        RReg[0].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[6],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[6].exp-=Context.prec;
-        mpd_reduce(&RReg[0],&RReg[6],&Context);
+        trig_atan2(&y,&x);
+
+        BINT exponent=RReg[0].exp;
+        RReg[0].exp=Context.prec-RReg[0].digits;
+        mpd_round_to_intx(&RReg[2],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
+        RReg[2].exp=exponent-RReg[0].exp;
+        mpd_reduce(&RReg[0],&RReg[2],&Context);
 
         rplDropData(2);
         rplRRegToRealPush(0);       // RESULTING ANGLE
