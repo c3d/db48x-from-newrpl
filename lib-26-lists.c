@@ -146,7 +146,7 @@ void LIB_HANDLER()
         WORDPTR list=rplPeekData(3);
         WORDPTR *var=0;
         if(ISIDENT(*list)) {
-            var=rplFindLAM(list);
+            var=rplFindLAM(list,1);
             if(!var) {
                 var=rplFindGlobal(list,1);
                 if(!var) {
@@ -193,6 +193,72 @@ void LIB_HANDLER()
     }
         return;
     case PUTI:
+    {
+        // CHECK ARGUMENTS
+        if(rplDepthData()<3) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        // HERE TEH STACK HAS: LIST POSITION NEWOBJECT
+        WORDPTR list=rplPeekData(3);
+        WORDPTR *var=0;
+        if(ISIDENT(*list)) {
+            var=rplFindLAM(list,1);
+            if(!var) {
+                var=rplFindGlobal(list,1);
+                if(!var) {
+                    Exceptions|=EX_BADARGTYPE;
+                    ExceptionPointer=IPtr;
+                    return;
+                }
+
+            }
+            list=*(var+1);
+        }
+        if(!ISLIST(*list)) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(2))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+
+        BINT nitems=rplExplodeList(list);
+
+        // HERE THE STACK IS: LIST POSITION NEWOBJECT OBJ1 OBJ2 ... OBJN N
+
+        BINT position=rplReadNumberAsBINT(rplPeekData(nitems+3));
+        if(Exceptions) return;
+
+        if(position<1 || position>nitems) {
+            Exceptions|=EX_BADARGVALUE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        rplOverwriteData(nitems+2-position,rplPeekData(nitems+2));
+
+        rplCreateList();
+
+        // HERE THE STACK IS: LIST POSITION NEWOBJECT NEWLIST
+
+        rplOverwriteData(4,rplPeekData(1));
+        rplDropData(3);
+
+        if(var) {
+            *(var+1)=rplPeekData(1);
+        }
+
+        rplNewBINTPush(position+1,DECBINT);
+
+    }
+
         return;
 
     case GET:
@@ -206,7 +272,7 @@ void LIB_HANDLER()
         WORDPTR list=rplPeekData(2);
         WORDPTR *var=0;
         if(ISIDENT(*list)) {
-            var=rplFindLAM(list);
+            var=rplFindLAM(list,1);
             if(!var) {
                 var=rplFindGlobal(list,1);
                 if(!var) {
@@ -234,20 +300,139 @@ void LIB_HANDLER()
         BINT position=rplReadNumberAsBINT(rplPeekData(nitems+2));
         if(Exceptions) return;
         if(position<1 || position>nitems) {
+            rplDropData(nitems+1);
             Exceptions|=EX_BADARGVALUE;
             ExceptionPointer=IPtr;
             return;
         }
         rplOverwriteData(nitems+3,rplPeekData(nitems+2-position));
         rplDropData(nitems+2);
+
     }
         return;
 
 
 
     case GETI:
+    {
+        // CHECK ARGUMENTS
+        if(rplDepthData()<2) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        WORDPTR list=rplPeekData(2);
+        WORDPTR *var=0;
+        if(ISIDENT(*list)) {
+            var=rplFindLAM(list,1);
+            if(!var) {
+                var=rplFindGlobal(list,1);
+                if(!var) {
+                    Exceptions|=EX_BADARGTYPE;
+                    ExceptionPointer=IPtr;
+                    return;
+                }
+
+            }
+            list=*(var+1);
+        }
+        if(!ISLIST(*list)) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(1))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        BINT nitems=rplExplodeList(list);
+        BINT position=rplReadNumberAsBINT(rplPeekData(nitems+2));
+        if(Exceptions) return;
+        if(position<1 || position>nitems) {
+            rplDropData(nitems+1);
+            Exceptions|=EX_BADARGVALUE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        // HERE THE STACK IS: LIST POSITION OBJ1 ... OBJN N
+
+        rplOverwriteData(nitems+1,rplPeekData(nitems+2-position));
+        rplDropData(nitems);
+
+        rplNewBINTPush(position+1,DECBINT);
+        rplOverwriteData(2,rplPopData());
+    }
+        return;
+
+
     case HEAD:
+    {
+        // CHECK ARGUMENTS
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        WORDPTR list=rplPeekData(1);
+
+        if(!ISLIST(*list)) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        BINT nitems=rplExplodeList(list);
+        if(Exceptions) return;
+        if(nitems>0) {
+        rplOverwriteData(nitems+2,rplPeekData(nitems+1));
+        rplDropData(nitems+1);
+        }
+        else {
+            rplDropData(1);
+            Exceptions|=EX_INVALID_DIM;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+
+        return;
+    }
+
     case TAIL:
+    {
+        // CHECK ARGUMENTS
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        WORDPTR list=rplPeekData(1);
+
+        if(!ISLIST(*list)) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        BINT nitems=rplExplodeList(list);
+        if(Exceptions) return;
+
+        rplDropData(1);
+        rplNewBINTPush(nitems-1,DECBINT);
+
+        rplCreateList();
+        if(Exceptions) return;
+        // HERE THE STACK HAS: LIST OBJ1 NEWLIST
+        rplOverwriteData(3,rplPeekData(1));
+        rplDropData(2);
+
+        return;
+    }
+
         return;
     case ENDLIST:
         return;

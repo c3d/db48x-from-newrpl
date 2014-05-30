@@ -171,7 +171,7 @@ void LIB_HANDLER()
 
         // CHECK IF IT'S A LAM, COMPILE TO A GETLAM OPCODE IF IT IS
 
-        WORDPTR *LAMptr=rplFindLAMbyName(tok,len);
+        WORDPTR *LAMptr=rplFindLAMbyName(tok,len,1);
 
 
         if(LAMptr<LAMTopSaved) {

@@ -224,15 +224,17 @@ void LIB_HANDLER()
         }
 
 
+        // FIND LOCAL VARIABLE IN THE CURRENT SCOPE ONLY
+        WORDPTR *val=rplFindLAM(rplPeekData(1),0);
+        BINT neednewenv=rplNeedNewLAMEnv();
 
-        WORDPTR *val=rplFindLAM(rplPeekData(1));
-        if(val) {
+        if(val && !neednewenv) {
             val[1]=rplPeekData(2);
             rplDropData(2);
         }
         else {
             // LAM WAS NOT FOUND, CREATE A NEW ONE
-            if(rplNeedNewLAMEnv()) {
+            if(neednewenv) {
                 // A NEW LAM ENVIRONMENT NEEDS TO BE CREATED
                 nLAMBase=LAMTop;
                 rplCreateLAM(lam_baseseco_bint,rplPeekRet(1));
@@ -247,7 +249,7 @@ void LIB_HANDLER()
     return;
     case LRCL:
     {
-        // STORE CONTENT INSIDE A LAM VARIABLE, CREATE A NEW VARIABLE IF NEEDED
+        // RCL CONTENT FROM INSIDE A LAM VARIABLE
         if(rplDepthData()<1) {
             Exceptions=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -364,7 +366,7 @@ void LIB_HANDLER()
 
         // LSTO NEEDS SPECIAL CONSIDERATION TO CREATE LAMS AT COMPILE TIME
 
-        if((TokenLen==6) && (!strncmp((char *)TokenStart,"LSTO",4)))
+        if((TokenLen==4) && (!strncmp((char *)TokenStart,"LSTO",4)))
         {
 
             // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
@@ -392,7 +394,7 @@ void LIB_HANDLER()
 
                 // CHECK IF IT'S AN EXISTING LAM, COMPILE TO A PUTLAM OPCODE IF POSSIBLE
 
-                WORDPTR *LAMptr=rplFindLAM(prevobject);
+                WORDPTR *LAMptr=rplFindLAM(prevobject,1);
 
 
                 if(LAMptr<LAMTopSaved) {
@@ -455,6 +457,12 @@ void LIB_HANDLER()
                             if(*scanenv>*(nLAMBase+1)) {
                                 // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
                             rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
+                            if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
+                             nLAMBase=LAMTop;
+                             rplCreateLAM(lam_baseseco_bint,*(ValidateTop-1));
+                            }
+                            rplCreateLAM(prevobject,prevobject);
+
 
                             RetNum=OK_CONTINUE;
                             return;

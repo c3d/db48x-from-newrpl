@@ -110,10 +110,11 @@ return 1;
 // FINDS A LAM, AND RETURNS THE ADDRESS OF THE KEY/VALUE PAIR WITHIN THE LAM ENVIRONMENT
 // DOES NOT STOP FOR CURRENT SECONDARY
 
-WORDPTR *rplFindLAMbyName(BYTEPTR name,BINT len)
+WORDPTR *rplFindLAMbyName(BYTEPTR name, BINT len, BINT scanparents)
 {
-    WORDPTR *ltop=LAMTop;
-while(ltop>LAMs) {
+    WORDPTR *ltop=LAMTop,*stop=scanparents? LAMs: (nLAMBase? nLAMBase:LAMs);
+
+while(ltop>stop) {
     ltop-=2;
     if(rplCompareIDENTByName(*ltop,name,len)) return ltop;
 }
@@ -122,10 +123,10 @@ return 0;
 
 
 
-WORDPTR *rplFindLAM(WORDPTR nameobj)
+WORDPTR *rplFindLAM(WORDPTR nameobj,BINT scanparents)
 {
-    WORDPTR *ltop=LAMTop;
-while(ltop>LAMs) {
+    WORDPTR *ltop=LAMTop,*stop=scanparents? LAMs: (nLAMBase? nLAMBase:LAMs);
+while(ltop>stop) {
     ltop-=2;
     if(rplCompareIDENT(nameobj,*ltop)) return ltop;
 }

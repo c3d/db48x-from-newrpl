@@ -135,15 +135,16 @@ void rplCreateNewDir(WORDPTR name,WORDPTR *parentdir)
     // LINK TO PARENT DIR HANDLE
     dirptr[3]=parentdir[1];
 
-    WORDPTR *var=rplFindGlobal(name,0);
+    WORDPTR *var=rplFindGlobalInDir(name,parentdir,0);
     if(var) {
-        *(var+1)=(WORDPTR)dirptr;
+        // THAT NAME IS BEING USED, OVERWRITE
+        *(var+1)=(WORDPTR)dirptr[1];
     }
     else {
         // CREATE THE GLOBAL VARIABLE TO LINK THE DIRECTORY
         rplCreateGlobalInDir(name,dirptr[1],parentdir);
     }
-}
+  }
 
 // LOW LEVEL VERSION CREATES AN UNLINKED DIRECTORY, WITH NO PARENT
 
@@ -204,9 +205,9 @@ WORDPTR *rplFindGlobalbyName(BYTEPTR name,BINT len,BINT scanparents)
 return 0;
 }
 
-WORDPTR *rplFindGlobal(WORDPTR nameobj,BINT scanparents)
+WORDPTR *rplFindGlobalInDir(WORDPTR nameobj,WORDPTR *parent,BINT scanparents)
 {
-    WORDPTR *direntry=CurrentDir;
+    WORDPTR *direntry=parent;
     WORDPTR parentdir;
 
     do {
@@ -220,6 +221,11 @@ WORDPTR *rplFindGlobal(WORDPTR nameobj,BINT scanparents)
     direntry=rplFindDirbyHandle(parentdir);
     } while(scanparents && direntry);
 return 0;
+}
+
+WORDPTR *rplFindGlobal(WORDPTR nameobj,BINT scanparents)
+{
+    return rplFindGlobalInDir(nameobj,CurrentDir,scanparents);
 }
 
 

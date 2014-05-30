@@ -95,6 +95,8 @@ void hyp_acosh(mpd_t *);
 
 void trig_sincos(mpd_t *);
 void trig_atan2(mpd_t *,mpd_t *);
+void trig_asin(mpd_t *);
+void trig_acos(mpd_t *);
 
 
 // ERROR MANAGEMENT FUNCTIONS
@@ -168,8 +170,8 @@ extern BINT rplCompareIDENTByName(WORDPTR id1,BYTEPTR name,BINT len);
 extern WORDPTR rplGetLAM(WORDPTR nameobj);
 extern inline WORDPTR *rplGetLAMn(BINT idx);
 extern void rplCleanupLAMs(WORDPTR currentseco);
-extern WORDPTR *rplFindLAM(WORDPTR nameobj);
-extern WORDPTR *rplFindLAMbyName(BYTEPTR name,BINT len);
+extern WORDPTR *rplFindLAM(WORDPTR nameobj, BINT scanparents);
+extern WORDPTR *rplFindLAMbyName(BYTEPTR name,BINT len,BINT scanparents);
 extern WORDPTR *rplGetNextLAMEnv(WORDPTR *startpoint);
 extern BINT rplNeedNewLAMEnv();
 extern BINT rplNeedNewLAMEnvCompiler();
@@ -185,6 +187,7 @@ extern WORDPTR *rplFindDirbyHandle(WORDPTR handle);
 extern void rplCreateNewDir(WORDPTR name,WORDPTR *parentdir);
 extern WORDPTR *rplGetParentDir(WORDPTR *directory);
 extern WORDPTR *rplFindGlobalbyName(BYTEPTR name,BINT len,BINT scanparents);
+extern WORDPTR *rplFindGlobalInDir(WORDPTR nameobj,WORDPTR *parentdir,BINT scanparents);
 extern WORDPTR *rplFindGlobal(WORDPTR nameobj,BINT scanparents);
 extern void rplPurgeGlobal(WORDPTR nameobj);
 extern WORDPTR rplGetGlobal(WORDPTR nameobj);
@@ -234,6 +237,7 @@ extern void rplReadNumberAsReal(WORDPTR number,mpd_t*dec);
 #define EX_BADARGVALUE   4096
 #define EX_VARUNDEF      8192
 #define EX_NONEMPTYDIR  16384
+#define EX_INVALID_DIM  32768
 // ADD MORE HERE...
 
 

@@ -101,7 +101,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *val=rplFindLAM(rplPeekData(1));
+        WORDPTR *val=rplFindLAM(rplPeekData(1),0);
 
 
 
@@ -203,7 +203,7 @@ void LIB_HANDLER()
 
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-        WORDPTR *var=rplFindLAM(rplPeekData(1));
+        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
         if(!var) var=rplFindGlobal(rplPeekData(1),1);
         if(var) {
             rplOverwriteData(1,*(var+1));
@@ -246,7 +246,7 @@ void LIB_HANDLER()
 
     // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-    WORDPTR *var=rplFindLAM(rplPeekData(1));
+    WORDPTR *var=rplFindLAM(rplPeekData(1),1);
     if(!var) var=rplFindGlobal(rplPeekData(1),1);
     if(var) {
         rplOverwriteData(1,*(var+1));

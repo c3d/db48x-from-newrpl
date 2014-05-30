@@ -62,3 +62,5 @@ mpd_context_t Context;
 mpd_t RReg[REAL_REGISTERS];
 // TEMPORARY SCRATCH MEMORY FOR DIGITS
 mpd_uint_t RDigits[REAL_SCRATCHMEM];
+
+
