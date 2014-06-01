@@ -107,7 +107,7 @@ void LIB_HANDLER()
         rplPushData(IPtr);
 
         if(LIBNUM(CurOpcode)==LIBRARY_NUMBER+1) {
-            // UNQUOTED LAM, NEED TO ALSO DO EVAL
+            // UNQUOTED LAM, NEED TO ALSO DO XEQ ON ITS CONTENTS
             {
                 WORDPTR val=rplGetLAM(rplPeekData(1));
                 if(!val) {
@@ -121,11 +121,11 @@ void LIB_HANDLER()
                 LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
                 if(han) {
                     BINT SavedOpcode=CurOpcode;
-                    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
                     // EXECUTE THE OTHER LIBRARY DIRECTLY
                     (*han)();
                     // RESTORE THE PREVIOUS ONE ONLY IF THE HANDLER DID NOT CHANGE IT
-                    if(CurOpcode==MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL)) CurOpcode=SavedOpcode;
+                    if(CurOpcode==MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ)) CurOpcode=SavedOpcode;
                 }
                 else {
                     // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
@@ -313,7 +313,7 @@ void LIB_HANDLER()
     // ADD MORE OPCODES HERE
 
     case OVR_EVAL:
-    // RCL WHATEVER IS STORED IN THE LAM AND THEN EVAL
+    // RCL WHATEVER IS STORED IN THE LAM AND THEN XEQ ITS CONTENTS
     // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
     {
         WORDPTR val=rplGetLAM(rplPeekData(1));
@@ -325,6 +325,7 @@ void LIB_HANDLER()
             }
         }
         rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
+        CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
         LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
         if(han) {
             // EXECUTE THE OTHER LIBRARY DIRECTLY
@@ -342,6 +343,10 @@ void LIB_HANDLER()
 
     }
         return;
+
+    case OVR_XEQ:
+        // JUST KEEP THE IDENT ON THE STACK, UNEVALUATED
+       return;
 
 
 

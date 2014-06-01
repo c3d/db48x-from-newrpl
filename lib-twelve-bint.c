@@ -61,6 +61,16 @@ UBINT64 powersof10[20]={
 
 char alldigits[]="0123456789ABCDEF";
 
+WORDPTR rplNewSINT(int num,int base)
+{
+    WORDPTR obj;
+    obj=rplAllocTempOb(0);
+    if(!obj) return NULL;
+    *obj=MKOPCODE(base,num&0x3ffff);
+    return obj;
+}
+
+
 void rplNewSINTPush(int num,int base)
 {
     WORDPTR obj;
@@ -70,6 +80,29 @@ void rplNewSINTPush(int num,int base)
     rplPushData(obj);
 
 }
+
+WORDPTR rplNewBINT(BINT64 num,int base)
+{
+    WORDPTR obj;
+
+    if((num>=MIN_SINT)&&(num<=MAX_SINT)) {
+        obj=rplAllocTempOb(0);
+        if(!obj) return NULL;
+        *obj=MKOPCODE(base,num&0x3ffff);
+    }
+    else {
+        obj=rplAllocTempOb(2);
+        if(!obj) return NULL;
+
+        obj[0]=(MKPROLOG(base,2));
+        obj[1]=((WORD)(num&0xffffffff));      // CAREFUL: THIS IS FOR LITTLE ENDIAN SYSTEMS ONLY!
+        obj[2]=((WORD)( (num>>32)&0xffffffff));
+    }
+
+    return obj;
+}
+
+
 
 void rplNewBINTPush(BINT64 num,int base)
 {
@@ -668,6 +701,7 @@ void LIB_HANDLER()
             rplNewBINTPush(op1,LIBNUM(*arg1));
             return;
         case OVR_EVAL:
+        case OVR_XEQ:
             // NOTHING TO DO, JUST KEEP THE ARGUMENT IN THE STACK
             rplPushData(arg1);
             return;

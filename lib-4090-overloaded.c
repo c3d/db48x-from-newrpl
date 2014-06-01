@@ -28,6 +28,7 @@
     OP(INV), \
     OP(NEG), \
     OP(EVAL), \
+    OP(XEQ), \
     OP(ABS), \
     OP(ISTRUE), \
     OP(NOT), \
@@ -40,6 +41,7 @@
     OP(SAME), \
     OP(AND), \
     OP(OR), \
+    OP(XOR), \
     OP(ADD), \
     OP(SUB), \
     OP(MUL), \

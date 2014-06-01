@@ -38,12 +38,14 @@
 #define CMD_EXTRANAME \
     "}", \
     "->LIST", \
-    "OBJ->"
+    "LIST->", \
+    "DOLIST"
 
 #define CMD_EXTRAENUM \
     ENDLIST, \
     TOLIST, \
-    INNERCOMP
+    INNERCOMP, \
+    CMDDOLIST
 
 //
 
@@ -59,6 +61,12 @@ enum LIB_ENUM { CMD_LIST , CMD_EXTRAENUM , LIB_NUMBEROFCMDS };
 #define CMD(a) #a
 char *LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME };
 #undef CMD
+
+
+extern WORD abnd_prog[];
+extern WORD lam_baseseco_bint[];
+extern WORD nulllam_ident[];
+
 
 
 // EXPAND A COMPOSITE IN THE STACK AND STORES THE NUMBER OF ELEMENTS AT THE END
@@ -77,6 +85,32 @@ BINT rplExplodeList(WORDPTR composite)
     rplNewBINTPush(count,DECBINT);
     return count;
 }
+
+BINT rplListLength(WORDPTR composite)
+{
+    BINT count=0;
+    WORDPTR ptr=composite+1;
+    WORDPTR end=composite+OBJSIZE(*composite);  // POINT TO THE END MARKER
+    while(ptr<end) {
+        ptr=rplSkipOb(ptr);
+        ++count;
+    }
+    return count;
+}
+
+WORDPTR rplGetListElement(WORDPTR composite, BINT pos)
+{
+    BINT count=1;
+    WORDPTR ptr=composite+1;
+    WORDPTR end=composite+OBJSIZE(*composite);  // POINT TO THE END MARKER
+    while(ptr<end && count<pos) {
+        ptr=rplSkipOb(ptr);
+        ++count;
+    }
+    if(ptr==end) return NULL;
+    return ptr;
+}
+
 
 // CREATE A NEW LIST. STACK LEVEL 1 = NUMBER OF ELEMENTS, LEVELS 2.. N+1 = OBJECTS
 // USES 1 SCRATCH POINTER
@@ -467,6 +501,150 @@ void LIB_HANDLER()
 
         return;
 
+
+    case CMDDOLIST:
+    {
+        BINT initdepth=rplDepthData();
+        if(initdepth<2) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(2))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        // GET THE NUMBER OF LISTS
+
+        BINT64 nlists=rplReadNumberAsBINT(rplPeekData(2));
+
+        if(initdepth<2+nlists) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        WORDPTR program=rplPeekData(1);
+        if(ISIDENT(*program)) {
+            WORDPTR *var=rplFindLAM(program,1);
+            if(!var) {
+                var=rplFindGlobal(program,1);
+                if(!var) {
+                    Exceptions|=EX_UNDEFINED;
+                    ExceptionPointer=IPtr;
+                    return;
+                }
+            }
+            // HERE var HAS THE VARIABLE, GET THE CONTENTS
+            program=*(var+1);
+        }
+
+        if(!ISPROGRAM(*program)) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+       }
+
+        // HERE WE HAVE program = PROGRAM TO EXECUTE, nlists = NUMBER OF LISTS
+
+        // CHECK THAT ALL LISTS ARE ACTUALLY LISTS
+
+        BINT f,k,l,length=-1;
+        for(f=3;f<3+nlists;++f) {
+            if(!ISLIST(rplPeekData(f))) {
+                Exceptions|=EX_BADARGTYPE;
+                ExceptionPointer=IPtr;
+                return;
+            }
+            // MAKE SURE ALL LISTS ARE EQUAL LENGTH
+            l=rplListLength(rplPeekData(f));
+            if(length<0) length=l;
+            else if(l!=length) {
+                Exceptions|=EX_INVALID_DIM;
+                ExceptionPointer=IPtr;
+                return;
+            }
+        }
+
+
+
+        // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
+        nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THE NEW ENVIRONMENT
+        rplCreateLAM(lam_baseseco_bint,IPtr);  // PUT MARKER IN LAM STACK, SET DOLIST AS THE OWNER
+        // NOW CREATE A LOCAL VARIABLE FOR THE INDEX
+
+        rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 0 = ROUTINE TO EXECUTE ON EVERY STEP
+
+        if(Exceptions) { rplCleanupLAMs(0); return; }
+
+        for(f=0;f<nlists;++f) {
+        rplCreateLAM(nulllam_ident,rplPeekData(3+f));     // LAM n = LISTS IN REVERSE ORDER
+        if(Exceptions) { rplCleanupLAMs(0); return; }
+        }
+
+        // HERE GETLAM1 = PROGRAM, GETLAM 2 .. 2+N = LISTS IN REVERSE ORDER
+        // nlists = NUMBER OF LISTS, length = NUMBER OF ARGUMENTS TO PROCESS
+
+
+        for(f=0;f<length;++f) {
+            for(k=nlists;k>0;--k)
+            {
+                rplPushData(rplGetListElement(*rplGetLAMn(k),f));
+                if(Exceptions) { rplCleanupLAMs(0); return; }
+            }
+
+            // NOW CALL THE PROGRAM
+
+            rplPushData(*rplGetLAMn(0));
+            rplCallOvrOperator(OVR_EVAL);
+            if(Exceptions) { rplCleanupLAMs(0); return; }
+        }
+
+
+        // REMOVE THE LAM ENVIRONENT
+        rplCleanupLAMs(0);
+
+
+        // FORM A LIST WITH ALL THE NEW ELEMENTS
+        BINT newdepth=rplDepthData();
+
+        if(newdepth<=initdepth) {
+            // SOMETHING WENT WRONG, THE PROGRAM REMOVED ELEMENTS FROM THE STACK OR LEFT NOTHING
+            Exceptions|=EX_EMPTYSTACK;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+
+
+        rplNewBINTPush(newdepth-initdepth,DECBINT);
+        if(Exceptions) return;
+
+        rplCreateList();
+        if(Exceptions) return;
+
+        // HERE THE STACK HAS: LIST1... LISTN N PROGRAM NEWLIST
+        rplOverwriteData(nlists+3,rplPeekData(1));
+        rplDropData(nlists+2);
+
+        return;
+    }
+
+
+    case OVR_EVAL:
+        // TODO: PERFORM EVAL ON EACH OBJECT INSIDE THE LIST
+        // SAME AS {...} 1 << EVAL >> DOLIST
+        return;
+    case OVR_XEQ:
+        // JUST PUSH ON THE STACK
+        rplPushData(IPtr);
+        return;
+
+
+        break;
 
     // ADD MORE OPCODES HERE
 

@@ -86,6 +86,7 @@ extern void libDecompileCmds(char *libnames[], int libopcodes[], int numcmds);
 #define ISBINT(prolog) ( ((OPCODE(prolog)<0x400000) || ISPROLOG(prolog)) && ((LIBNUM(prolog)>=BINBINT) && (LIBNUM(prolog)<=HEXBINT)))
 #define ISLIST(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIST))
 #define ISREAL(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOREAL)))
+#define ISPROGRAM(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCOL) || (LIBNUM(prolog)==SECO)))
 
 #define ISNUMBER(prolog) (ISBINT(prolog)||ISREAL(prolog))
 #define ISSTRING(prolog) ((LIBNUM(prolog)&~3)==DOSTRING)
@@ -126,12 +127,14 @@ extern void libDecompileCmds(char *libnames[], int libopcodes[], int numcmds);
 #define OVR_NEG      OVR_OPERATORS+OVR_UNARY+2
 #define OVRT_EVAL             "EVAL"
 #define OVR_EVAL      OVR_OPERATORS+OVR_UNARY+3
+#define OVRT_XEQ             "XEQ"
+#define OVR_XEQ      OVR_OPERATORS+OVR_UNARY+4
 #define OVRT_ABS              "ABS"
-#define OVR_ABS       OVR_OPERATORS+OVR_UNARY+4
+#define OVR_ABS       OVR_OPERATORS+OVR_UNARY+5
 #define OVRT_ISTRUE           "ISTRUE"
-#define OVR_ISTRUE     OVR_OPERATORS+OVR_UNARY+5
+#define OVR_ISTRUE     OVR_OPERATORS+OVR_UNARY+6
 #define OVRT_NOT              "NOT"
-#define OVR_NOT        OVR_OPERATORS+OVR_UNARY+6
+#define OVR_NOT        OVR_OPERATORS+OVR_UNARY+7
 
 
 
@@ -155,6 +158,8 @@ extern void libDecompileCmds(char *libnames[], int libopcodes[], int numcmds);
 #define OVR_AND    OVR_OPERATORS+OVR_BINARY+8
 #define OVRT_OR        "OR"
 #define OVR_OR    OVR_OPERATORS+OVR_BINARY+9
+#define OVRT_XOR        "XOR"
+#define OVR_XOR    OVR_OPERATORS+OVR_BINARY+10
 
 
 // BASIC OPERATORS

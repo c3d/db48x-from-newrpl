@@ -103,6 +103,8 @@ void LIB_HANDLER()
     return;
 
     case OVR_EVAL:
+    case OVR_XEQ:
+        // JUST LEAVE THE OBJECT ON THE STACK WHERE IT IS.
         return;
 
     case OVR_SAME:

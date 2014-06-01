@@ -78,8 +78,10 @@ void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
         // PROVIDE BEHAVIOR OF EXECUTING THE OBJECT HERE
-
-        rplPushData(IPtr);
+        // THIS SHOULD NEVER HAPPEN, AS DIRECTORY OBJECTS ARE SPECIAL HANDLES
+        // THEY ARE NEVER USED IN THE MIDDLE OF THE CODE
+        Exceptions=EX_BADOPCODE;
+        ExceptionPointer=IPtr;
         return;
     }
 
@@ -343,12 +345,16 @@ void LIB_HANDLER()
     // ADD MORE OPCODES HERE
 
     case OVR_EVAL:
+    case OVR_XEQ:
     // EVALUATING THE OBJECT HAS TO CHANGE THE CURRENT DIRECTORY INTO THIS ONE
     {
         WORDPTR *dir=rplFindDirbyHandle(rplPeekData(1));
 
-        if(!dir) return; //  LEAVE THE OBJECT UNEVALUATED. IT'S AN ORPHAN DIRECTORY OBJECT???
-
+        if(!dir) {
+            Exceptions|=EX_UNDEFINED;
+            ExceptionPointer=IPtr;
+            return; //  LEAVE THE OBJECT UNEVALUATED. IT'S AN ORPHAN DIRECTORY OBJECT???
+        }
         CurrentDir=dir;
         rplDropData(1);
         return;

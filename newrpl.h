@@ -201,6 +201,8 @@ extern void rplCallOvrOperator(WORD op);
 extern void rplCopyObject(WORDPTR dest, WORDPTR src);
 
 // BINT FUNCTIONS
+extern WORDPTR rplNewSINT(int num,int base);
+extern WORDPTR rplNewBINT(BINT64 num,int base);
 extern void rplNewSINTPush(int num,int base);
 extern void rplNewBINTPush(BINT64 num,int base);
 extern BINT64 rplReadBINT(WORDPTR ptr);
@@ -218,6 +220,13 @@ extern void rplRRegToRealPush(int num);
 extern void rplNumberToRReg(int num,WORDPTR number);
 extern BINT64 rplReadNumberAsBINT(WORDPTR number);
 extern void rplReadNumberAsReal(WORDPTR number,mpd_t*dec);
+
+// LIST FUNCTIONS
+extern BINT rplListLength(WORDPTR composite);
+extern void rplCreateList();
+extern BINT rplExplodeList(WORDPTR composite);
+
+
 
 
 // DEFINED EXCEPTIONS
