@@ -576,16 +576,38 @@ void LIB_HANDLER()
         rplCreateLAM(lam_baseseco_bint,IPtr);  // PUT MARKER IN LAM STACK, SET DOLIST AS THE OWNER
         // NOW CREATE A LOCAL VARIABLE FOR THE INDEX
 
-        rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 0 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+
+        WORDPTR newb=rplNewBINT(nlists,DECBINT);
+        if(!newb) {
+            Exceptions|=EX_OUTOFMEM;
+            ExceptionPointer=IPtr;
+            rplCleanupLAMs(0);
+            return;
+        }
+
+        rplCreateLAM(nulllam_ident,newb);     // LAM 2 = BINT WITH NUMBER OF LISTS
+
+        if(Exceptions) { rplCleanupLAMs(0); return; }
+
+        newb=rplNewBINT(length,DECBINT);
+        if(!newb) {
+            Exceptions|=EX_OUTOFMEM;
+            ExceptionPointer=IPtr;
+            rplCleanupLAMs(0);
+            return;
+        }
+
+        rplCreateLAM(nulllam_ident,newb);     // LAM 3 = BINT WITH NUMBER OF ITEMS PER LIST
 
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
         for(f=0;f<nlists;++f) {
-        rplCreateLAM(nulllam_ident,rplPeekData(3+f));     // LAM n = LISTS IN REVERSE ORDER
+        rplCreateLAM(nulllam_ident,rplPeekData(2+nlists-f));     // LAM n+3 = LISTS IN REVERSE ORDER
         if(Exceptions) { rplCleanupLAMs(0); return; }
         }
 
-        // HERE GETLAM1 = PROGRAM, GETLAM 2 .. 2+N = LISTS IN REVERSE ORDER
+        // HERE GETLAM1 = PROGRAM, GETLAM 2 = NLISTS, GETLAM3 = LENGTH, GETLAM4 .. 3+N = LISTS IN REVERSE ORDER
         // nlists = NUMBER OF LISTS, length = NUMBER OF ARGUMENTS TO PROCESS
 
 

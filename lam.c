@@ -245,7 +245,8 @@ BINT rplNeedNewLAMEnv()
 
 
     if(nLAMBase>=LAMs && nLAMBase<LAMTop) {
-        if(ISPROLOG(**(nLAMBase+1)) && ((LIBNUM(*(nLAMBase+1))==SECO)||(LIBNUM(*(nLAMBase+1))==DOCOL))) {
+        if((ISPROLOG(**(nLAMBase+1)) && ((LIBNUM(*(nLAMBase+1))==SECO)||(LIBNUM(*(nLAMBase+1))==DOCOL)))
+        || (**(nLAMBase+1)==MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL))) {
             // THIS ENVIRONMENT BELONGS TO A SECONDARY
             if(*(nLAMBase+1)==seco) {
                 // FOUND AN ENVIRONMENT THAT BELONGS TO THE CURRENT SECONDARY, SO NO NEED FOR ONE

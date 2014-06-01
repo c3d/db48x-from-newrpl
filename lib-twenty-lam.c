@@ -46,9 +46,10 @@
 
 // THESE ARE SPECIAL OPCODES FOR THE COMPILER ONLY
 // THE LOWER 16 BITS ARE THE NUMBER OF LAMS TO CREATE, OR THE INDEX OF LAM NUMBER TO STO/RCL
-#define NEWNLOCALS 0x40000   // SPECIAL OPCODE TO CREATE NEW LOCAL VARIABLES
-#define GETLAMN    0x20000   // SPECIAL OPCODE TO RCL THE CONTENT OF A LAM
-#define PUTLAMN    0x10000   // SPECIAL OPCODE TO STO THE CONTENT OF A LAM
+#define NEWNLOCALS     0x40000   // SPECIAL OPCODE TO CREATE NEW LOCAL VARIABLES
+#define GETLAMNEVAL    0x30000   // SPECIAL OPCODE TO RCL THE CONTENT OF A LAM AND EVAL (XEQ ITS CONTENT)
+#define GETLAMN        0x20000   // SPECIAL OPCODE TO RCL THE CONTENT OF A LAM
+#define PUTLAMN        0x10000   // SPECIAL OPCODE TO STO THE CONTENT OF A LAM
 
 // INTERNAL DECLARATIONS
 
@@ -163,7 +164,10 @@ void LIB_HANDLER()
         case 2: // GETLAMn
             rplPushData(*rplGetLAMn(num));
             return;
-
+        case 3: // GETLAMnEVAL
+            rplPushData(*rplGetLAMn(num));
+            //rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ));
+            return;
         case 4: // NEWNLOCALS
             // THIS ONE HAS TO CREATE 'N' LOCALS TAKING THE NAMES AND OBJECTS FROM THE STACK
             // AND ALSO HAS TO 'EVAL' THE NEXT OBJECT IN THE RUNSTREAM
@@ -496,6 +500,112 @@ void LIB_HANDLER()
         }
 
 
+        if((TokenLen==4) && (!strncmp((char *)TokenStart,"LRCL",4)))
+        {
+
+            // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
+
+            // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
+            WORDPTR object,prevobject;
+            if(ValidateTop<=RSTop) {
+                // THERE'S NO ENVIRONMENT
+                object=TempObEnd;   // START OF COMPILATION
+            } else {
+                object=*(ValidateTop-1);    // GET LATEST CONSTRUCT
+                ++object;                   // AND SKIP THE PROLOG / ENTRY WORD
+            }
+
+            if(object<CompileEnd) {
+            do {
+                prevobject=object;
+                object=rplSkipOb(object);
+            } while(object<CompileEnd);
+
+            // HERE PREVOBJECT CONTAINS THE LAST OBJECT THAT WAS COMPILED
+
+            if(ISIDENT(*prevobject)) {
+                // WE HAVE A HARD-CODED IDENT, CHECK IF IT EXISTS ALREADY
+
+                // CHECK IF IT'S AN EXISTING LAM, COMPILE TO A GETLAM OPCODE IF POSSIBLE
+
+                WORDPTR *LAMptr=rplFindLAM(prevobject,1);
+
+
+                if(LAMptr<LAMTopSaved) {
+                    // THIS IS NOT A VALID LAM, LEAVE AS IDENT
+
+                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LRCL));
+                    RetNum=OK_CONTINUE;
+                    return;
+                }
+
+                if(LAMptr<nLAMBase) {
+                    // THIS IS A LAM FROM AN UPPER CONSTRUCT
+                    // WE CAN USE GETLAM ONLY INSIDE LOOPS, NEVER ACROSS SECONDARIES
+
+                    WORDPTR *env=nLAMBase;
+                    WORD prolog;
+                    do {
+                        if(LAMptr>env) break;
+                        prolog=**(env+1);   // GET THE PROLOG OF THE SECONDARY
+                        if(ISPROLOG(prolog) && LIBNUM(prolog)==SECO) {
+                        // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
+                        rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LRCL));
+
+                        RetNum=OK_CONTINUE;
+                        return;
+                        }
+                        env=rplGetNextLAMEnv(env);
+                    } while(env);
+
+
+
+                }
+
+
+                // SPECIAL CASE: WHEN A SECO DOESN'T HAVE ANY LOCALS YET
+                // BUT LAMS FROM THE PREVIOUS SECO SHOULDN'T BE COMPILED TO GETLAMS
+
+                // SCAN ALL CURRENT CONSTRUCTS TO FIND THE INNERMOST SECONDARY
+                // THEN VERIFY IF THAT SECONDARY IS THE CURRENT LAM ENVIRONMENT
+
+                // THIS IS TO FORCE ALL LAMS IN A SECO TO BE COMPILED AS IDENTS
+                // INSTEAD OF GETLAMS
+
+                // LAMS ACROSS DOCOL'S ARE OK AND ALWAYS COMPILED AS GETLAMS
+                WORDPTR *scanenv=ValidateTop-1;
+
+                while(scanenv>=RSTop) {
+                    if( (LIBNUM(**scanenv)==SECO)&& (ISPROLOG(**scanenv))) {
+                            // FOUND INNERMOST SECONDARY
+                            if(*scanenv>*(nLAMBase+1)) {
+                                // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
+                            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LRCL));
+                            RetNum=OK_CONTINUE;
+                            return;
+                            }
+                            break;
+
+                    }
+                    --scanenv;
+                }
+
+                // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS GETLAM
+                CompileEnd=prevobject;
+                BINT Offset=((BINT)(LAMptr-nLAMBase))>>1;
+                rplCompileAppend(MKOPCODE(DOIDENT,GETLAMN+(Offset&0xffff)));
+                RetNum=OK_CONTINUE;
+                return;
+            }
+
+
+            }
+
+
+            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
+            RetNum=OK_CONTINUE;
+            return;
+        }
 
 
             // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
@@ -579,6 +689,33 @@ void LIB_HANDLER()
         }
             RetNum=OK_CONTINUE;
             return;
+        case GETLAMNEVAL:
+        {
+            rplDecompAppendString((BYTEPTR)"GETLAM");
+            BINT result=OPCODE(*DecompileObject)&0xffff;
+            if(result&0x8000) result|=0xFFFF0000;
+            if(result<0) {
+                rplDecompAppendChar('u');
+                result=-result;
+            }
+
+            BINT digit=0;
+            char basechr='0';
+            while(result<powersof10[digit]) ++digit;  // SKIP ALL LEADING ZEROS
+            // NOW DECOMPILE THE NUMBER
+            while(digit<18) {
+            while(result>=powersof10[digit]) { ++basechr; result-=powersof10[digit]; }
+            rplDecompAppendChar(basechr);
+            ++digit;
+            basechr='0';
+            }
+            basechr+=result;
+            rplDecompAppendChar(basechr);
+        }
+            rplDecompAppendString((BYTEPTR)"EVAL");
+            RetNum=OK_CONTINUE;
+            return;
+
         case PUTLAMN:
         {
             rplDecompAppendString((BYTEPTR)"PUTLAM");
