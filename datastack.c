@@ -59,7 +59,7 @@ if(Exceptions) return;
 // POP THE TOP OF THE STACK
 WORDPTR rplPopData()
 {
-    if(DSTop<=DStk) {
+    if(DSTop<=DStkProtect) {
         Exceptions|=EX_EMPTYSTACK;
         ExceptionPointer=IPtr;
         return 0;
@@ -70,7 +70,7 @@ WORDPTR rplPopData()
 // DROP N LEVELS IN THE STACK
 void rplDropData(int n)
 {
-    if(DSTop-DStk<n) {
+    if(DSTop-DStkProtect<n) {
         Exceptions|=EX_EMPTYSTACK;
         ExceptionPointer=IPtr;
         return;
@@ -87,3 +87,19 @@ inline BINT rplDepthData() { return (BINT)(DSTop-DStk); }
 inline WORDPTR rplPeekData(int level)  {  return *(DSTop-level); }
 // OVERWRITE LEVEL 'N' WITH A DIFFERENT POINTER
 inline void rplOverwriteData(int level,WORDPTR ptr)  {  *(DSTop-level)=ptr; }
+
+// PROTECT THE CURRENT DATA STACK FROM DROP AT THE CURRENT LEVEL
+WORDPTR *rplProtectData()
+{
+    WORDPTR *ret=DStkProtect;
+    DStkProtect=DSTop;
+    return ret;
+}
+
+// REMOVE STACK PROTECTION
+WORDPTR *rplUnprotectData()
+{
+    WORDPTR *ret=DStkProtect;
+    DStkProtect=DStk;
+    return ret;
+}

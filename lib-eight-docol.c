@@ -24,7 +24,8 @@
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
     CMD(EXITRPL), \
-    CMD(BREAKPOINT)
+    CMD(BREAKPOINT), \
+    CMD(XEQSECO)
 
 // ADD MORE OPCODES HERE
 
@@ -72,6 +73,21 @@ void LIB_HANDLER()
         Exceptions|=EX_BKPOINT;
         ExceptionPointer=IPtr;
         return;
+    case XEQSECO:
+        // IF THE NEXT OBJECT IN THE SECONDARY
+        // IS A SECONDARY, IT EVALUATES IT INSTEAD OF PUSHING IT ON THE STACK
+        ++IPtr;
+        CurOpcode=*IPtr;
+        if(ISPROLOG(CurOpcode)&& (LIBNUM(CurOpcode)==SECO)) {
+            CurOpcode=MKPROLOG(SECO,0); // MAKE IT SKIP INSIDE THE SECONDARY
+            rplPushRet(IPtr);
+            return;
+        }
+        // HAVE NO EFFECT ON ANY OTHER OBJECTS
+        --IPtr;
+        CurOpcode=*IPtr;
+        return;
+
     case SEMI:
         // POP THE RETURN ADDRESS
         IPtr=rplPopRet();   // GET THE CALLER ADDRESS

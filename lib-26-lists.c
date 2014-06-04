@@ -39,27 +39,33 @@
     "}", \
     "->LIST", \
     "LIST->", \
-    "DOLIST"
+    "DOLIST", \
+    "", \
+    "", \
+    ""
 
 #define CMD_EXTRAENUM \
     ENDLIST, \
     TOLIST, \
     INNERCOMP, \
-    CMDDOLIST
+    CMDDOLIST, \
+    DOLISTPRE, \
+    DOLISTPOST, \
+    DOLISTERR
 
-//
+
 
 // INTERNAL DECLARATIONS
 
 
 // CREATE AN ENUM WITH THE OPCODE NAMES FOR THE DISPATCHER
 #define CMD(a) a
-enum LIB_ENUM { CMD_LIST , CMD_EXTRAENUM , LIB_NUMBEROFCMDS };
+enum LIB_ENUM { CMD_EXTRAENUM , CMD_LIST ,  LIB_NUMBEROFCMDS };
 #undef CMD
 
 // AND A LIST OF STRINGS WITH THE NAMES FOR THE COMPILER
 #define CMD(a) #a
-char *LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME };
+char *LIB_NAMES[]= { CMD_EXTRANAME , CMD_LIST  };
 #undef CMD
 
 
@@ -67,88 +73,15 @@ extern WORD abnd_prog[];
 extern WORD lam_baseseco_bint[];
 extern WORD nulllam_ident[];
 
+const WORD const dolist_seco[]={
+ MKPROLOG(DOCOL,5),
+    MKOPCODE(LIBRARY_NUMBER,DOLISTPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
+    MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER,DOLISTPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER,DOLISTERR),     // ERROR HANDLER
+    CMD_SEMI
+};
 
-
-// EXPAND A COMPOSITE IN THE STACK AND STORES THE NUMBER OF ELEMENTS AT THE END
-// USES 2 SCRATCH POINTERS
-
-BINT rplExplodeList(WORDPTR composite)
-{
-    BINT count=0;
-    ScratchPointer1=composite+1;
-    ScratchPointer2=composite+OBJSIZE(*composite);  // POINT TO THE END MARKER
-    while(ScratchPointer1<ScratchPointer2) {
-        rplPushData(ScratchPointer1);
-        ScratchPointer1=rplSkipOb(ScratchPointer1);
-        ++count;
-    }
-    rplNewBINTPush(count,DECBINT);
-    return count;
-}
-
-BINT rplListLength(WORDPTR composite)
-{
-    BINT count=0;
-    WORDPTR ptr=composite+1;
-    WORDPTR end=composite+OBJSIZE(*composite);  // POINT TO THE END MARKER
-    while(ptr<end) {
-        ptr=rplSkipOb(ptr);
-        ++count;
-    }
-    return count;
-}
-
-WORDPTR rplGetListElement(WORDPTR composite, BINT pos)
-{
-    BINT count=1;
-    WORDPTR ptr=composite+1;
-    WORDPTR end=composite+OBJSIZE(*composite);  // POINT TO THE END MARKER
-    while(ptr<end && count<pos) {
-        ptr=rplSkipOb(ptr);
-        ++count;
-    }
-    if(ptr==end) return NULL;
-    return ptr;
-}
-
-
-// CREATE A NEW LIST. STACK LEVEL 1 = NUMBER OF ELEMENTS, LEVELS 2.. N+1 = OBJECTS
-// USES 1 SCRATCH POINTER
-void rplCreateList()
-{
-    // NO ARGUMENT CHECKING
-    BINT64 num=rplReadNumberAsBINT(rplPeekData(1));
-    if(rplDepthData()<num+1) {
-        Exceptions|=EX_BADARGCOUNT;
-        ExceptionPointer=IPtr;
-        return;
-    }
-    BINT size=1;    // 1 WORD FOR THE END MARKER
-    BINT count;
-    for(count=0;count<num;++count) {
-        size+=rplObjSize(rplPeekData(2+count));
-    }
-
-    // ALLOCATE MEMORY
-    WORDPTR list=rplAllocTempOb(size);
-    if(!list) {
-        Exceptions|=EX_OUTOFMEM;
-        ExceptionPointer=IPtr;
-        return;
-    }
-
-    // CONSTRUCT THE OBJECT
-    WORDPTR objptr=list+1;
-    *list=MKPROLOG(LIBRARY_NUMBER,size);
-    for(count=num;count>0;--count) {
-        rplCopyObject(objptr,rplPeekData(count+1));
-        objptr+=rplObjSize(objptr);
-    }
-    *objptr=MKOPCODE(LIBRARY_NUMBER,ENDLIST);
-
-    rplDropData(num);
-    rplOverwriteData(1,list);
-}
 
 
 
@@ -505,7 +438,7 @@ void LIB_HANDLER()
     case CMDDOLIST:
     {
         BINT initdepth=rplDepthData();
-        if(initdepth<2) {
+        if(initdepth<3) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
             return;
@@ -552,9 +485,9 @@ void LIB_HANDLER()
 
         // CHECK THAT ALL LISTS ARE ACTUALLY LISTS
 
-        BINT f,k,l,length=-1;
+        BINT f,l,length=-1;
         for(f=3;f<3+nlists;++f) {
-            if(!ISLIST(rplPeekData(f))) {
+            if(!ISLIST(*rplPeekData(f))) {
                 Exceptions|=EX_BADARGTYPE;
                 ExceptionPointer=IPtr;
                 return;
@@ -569,7 +502,11 @@ void LIB_HANDLER()
             }
         }
 
-
+        if(length<1) {
+            Exceptions|=EX_INVALID_DIM;
+            ExceptionPointer=IPtr;
+            return;
+        }
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THE NEW ENVIRONMENT
@@ -602,58 +539,142 @@ void LIB_HANDLER()
 
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        for(f=0;f<nlists;++f) {
-        rplCreateLAM(nulllam_ident,rplPeekData(2+nlists-f));     // LAM n+3 = LISTS IN REVERSE ORDER
-        if(Exceptions) { rplCleanupLAMs(0); return; }
-        }
-
-        // HERE GETLAM1 = PROGRAM, GETLAM 2 = NLISTS, GETLAM3 = LENGTH, GETLAM4 .. 3+N = LISTS IN REVERSE ORDER
-        // nlists = NUMBER OF LISTS, length = NUMBER OF ARGUMENTS TO PROCESS
-
-
-        for(f=0;f<length;++f) {
-            for(k=nlists;k>0;--k)
-            {
-                rplPushData(rplGetListElement(*rplGetLAMn(k),f));
-                if(Exceptions) { rplCleanupLAMs(0); return; }
-            }
-
-            // NOW CALL THE PROGRAM
-
-            rplPushData(*rplGetLAMn(0));
-            rplCallOvrOperator(OVR_EVAL);
-            if(Exceptions) { rplCleanupLAMs(0); return; }
-        }
-
-
-        // REMOVE THE LAM ENVIRONENT
-        rplCleanupLAMs(0);
-
-
-        // FORM A LIST WITH ALL THE NEW ELEMENTS
-        BINT newdepth=rplDepthData();
-
-        if(newdepth<=initdepth) {
-            // SOMETHING WENT WRONG, THE PROGRAM REMOVED ELEMENTS FROM THE STACK OR LEFT NOTHING
-            Exceptions|=EX_EMPTYSTACK;
+        newb=rplNewBINT(1,DECBINT);
+        if(!newb) {
+            Exceptions|=EX_OUTOFMEM;
             ExceptionPointer=IPtr;
+            rplCleanupLAMs(0);
             return;
         }
 
+        rplCreateLAM(nulllam_ident,newb);     // LAM 4 = 1, BINT WITH CURRENT INDEX IN TEH LOOP
 
 
-        rplNewBINTPush(newdepth-initdepth,DECBINT);
-        if(Exceptions) return;
+        for(f=0;f<nlists;++f) {
+        rplCreateLAM(nulllam_ident,rplPeekData(2+nlists-f));     // LAM n+4 = LISTS IN REVERSE ORDER
+        if(Exceptions) { rplCleanupLAMs(0); return; }
+        }
+
+        // HERE GETLAM1 = PROGRAM, GETLAM 2 = NLISTS, GETLAM3 = LENGTH, GETLAM4 = INDEX, GETLAM 5 .. 4+N = LISTS IN REVERSE ORDER
+        // nlists = NUMBER OF LISTS, length = NUMBER OF ARGUMENTS TO PROCESS
+
+
+        // THIS NEEDS TO BE DONE IN 3 STEPS:
+        // DOLIST WILL PREPARE THE LAMS FOR OPEN EXECUTION
+        // DOLIST.PROCESS WILL PUSH THE LIST ELEMENTS AND EVAL THE PROGRAM
+        // DOLIST.POSTPROCESS WILL CHECK IF ALL ELEMENTS WERE PROCESSED WITHOUT ERRORS, PACK THE LIST AND END
+        //                    OR IT WILL EXECUTE DOLIST.PROCESS ONCE MORE
+
+        // THE INITIAL CODE FOR DOLIST MUST TRANSFER FLOW CONTROL TO A
+        // SECONDARY THAT CONTAINS :: DOLIST.PROCESS EVAL DOLIST.POSTPROCESS ;
+        // DOLIST.POSTPROCESS WILL CHANGE IP AGAIN TO BEGINNING OF THE SECO
+        // IN ORDER TO KEEP THE LOOP RUNNING
+
+        rplPushRet(IPtr);
+        IPtr=(WORDPTR) dolist_seco;
+        CurOpcode=MKOPCODE(LIBRARY_NUMBER,CMDDOLIST);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+
+        rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
+
+        return;
+    }
+
+    case DOLISTPRE:
+    {
+        // HERE GETLAM1 = PROGRAM, GETLAM 2 = NLISTS, GETLAM3 = LENGTH, GETLAM4 = INDEX, GETLAM 5 .. 4+N = LISTS IN REVERSE ORDER
+        // nlists = NUMBER OF LISTS, length = NUMBER OF ARGUMENTS TO PROCESS
+
+
+        BINT64 nlists=rplReadBINT(*rplGetLAMn(2));
+        BINT64 idx=rplReadBINT(*rplGetLAMn(4));
+        BINT k;
+            for(k=nlists;k>0;--k)
+            {
+                rplPushData(rplGetListElement(*rplGetLAMn(k+4),idx));
+                if(Exceptions) { rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOLIST); return; }
+            }
+
+            rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE DOLISTERR WORD
+
+            // NOW RECALL THE PROGRAM TO THE STACK
+
+            rplPushData(*rplGetLAMn(1));
+
+            // AND EXECUTION WILL CONTINUE AT EVAL
+
+            return;
+    }
+
+    case DOLISTPOST:
+    {
+
+        rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
+
+        BINT64 length=rplReadBINT(*rplGetLAMn(3));
+        BINT64 nlists=rplReadBINT(*rplGetLAMn(2));
+        BINT64 idx=rplReadBINT(*rplGetLAMn(4));
+
+        if(idx<length) {
+            // NEED TO DO ONE MORE LOOP
+            ++idx;
+            WORDPTR newbint=rplNewBINT(idx,DECBINT);
+            if(Exceptions) {
+                DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
+                rplCleanupLAMs(0);
+                IPtr=rplPopRet();
+                CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOLIST);
+                return;
+                }
+            rplPutLAMn(4,newbint);  // STORE NEW INDEX
+
+            IPtr=(WORDPTR) dolist_seco;   // CONTINUE THE LOOP
+            // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
+            return;
+        }
+
+        // ALL ELEMENTS WERE PROCESSED
+        // FORM A LIST WITH ALL THE NEW ELEMENTS
+
+        WORDPTR *prevDStk = rplUnprotectData();
+
+        BINT newdepth=(BINT)(DSTop-prevDStk);
+
+        rplNewBINTPush(newdepth,DECBINT);
+        if(Exceptions) {
+            DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+            rplCleanupLAMs(0);
+            IPtr=rplPopRet();
+            CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOLIST);
+            return;
+        }
 
         rplCreateList();
-        if(Exceptions) return;
-
+        if(Exceptions) {
+            DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+            rplCleanupLAMs(0);
+            IPtr=rplPopRet();
+            CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOLIST);
+            return;
+        }
         // HERE THE STACK HAS: LIST1... LISTN N PROGRAM NEWLIST
         rplOverwriteData(nlists+3,rplPeekData(1));
         rplDropData(nlists+2);
 
+        rplCleanupLAMs(0);
+        IPtr=rplPopRet();
+        CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOLIST);
         return;
     }
+
+    case DOLISTERR:
+        // JUST CLEANUP AND EXIT
+        rplUnprotectData();
+        rplCleanupLAMs(0);
+        IPtr=rplPopRet();
+        Exceptions=TrappedExceptions;
+        ExceptionPointer=IPtr;
+        CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOLIST);
+        return;
 
 
     case OVR_EVAL:
@@ -661,8 +682,7 @@ void LIB_HANDLER()
         // SAME AS {...} 1 << EVAL >> DOLIST
         return;
     case OVR_XEQ:
-        // JUST PUSH ON THE STACK
-        rplPushData(IPtr);
+        // JUST LEAVE THE LIST ON THE STACK
         return;
 
 

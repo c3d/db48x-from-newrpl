@@ -148,6 +148,9 @@ extern void rplOverwriteData(int level,WORDPTR ptr);
 extern BINT rplDepthData();
 extern void rplDropData(int n);
 extern void growDStk(WORD newsize);
+extern WORDPTR *rplProtectData();
+extern WORDPTR *rplUnprotectData();
+
 
 // RETURN STACK FUNCTIONS IN RETURNSTACK.C
 
@@ -169,6 +172,7 @@ extern BINT rplCompareIDENT(WORDPTR id1,WORDPTR id2);
 extern BINT rplCompareIDENTByName(WORDPTR id1,BYTEPTR name,BINT len);
 extern WORDPTR rplGetLAM(WORDPTR nameobj);
 extern inline WORDPTR *rplGetLAMn(BINT idx);
+extern inline void rplPutLAMn(BINT idx,WORDPTR object);
 extern void rplCleanupLAMs(WORDPTR currentseco);
 extern WORDPTR *rplFindLAM(WORDPTR nameobj, BINT scanparents);
 extern WORDPTR *rplFindLAMbyName(BYTEPTR name,BINT len,BINT scanparents);
@@ -225,6 +229,7 @@ extern void rplReadNumberAsReal(WORDPTR number,mpd_t*dec);
 extern BINT rplListLength(WORDPTR composite);
 extern void rplCreateList();
 extern BINT rplExplodeList(WORDPTR composite);
+extern WORDPTR rplGetListElement(WORDPTR composite, BINT pos);
 
 
 

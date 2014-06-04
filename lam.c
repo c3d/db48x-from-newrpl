@@ -153,13 +153,11 @@ inline WORDPTR *rplGetLAMn(BINT idx)
 }
 
 
-// CREATE A NEW LAM ENVIRONMENT, SETTING THE OWNER
-
-void rplCreateNewLAMEnvironment(WORDPTR owner)
+// FAST PUTLAM, NO ERROR CHECKS!
+inline void rplPutLAMn(BINT idx,WORDPTR object)
 {
-
+    nLAMBase[2*idx+1]=object;
 }
-
 
 
 // REMOVE ALL LAMS CREATED BY THE GIVEN SECONDARY AND BELOW

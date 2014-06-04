@@ -124,7 +124,7 @@ void LIB_HANDLER()
 
        if((TokenLen==2) && (!strncmp((char *)TokenStart,"->",2)))
        {
-           rplCompileAppend(CMD_EVALSECO);   // EVAL THE NEXT SECO IN THE RUNSTREAM
+           rplCompileAppend(CMD_XEQSECO);   // EVAL THE NEXT SECO IN THE RUNSTREAM
            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,NEWLOCALENV));  // PUT A MARKER
            RetNum=OK_STARTCONSTRUCT;
            return;

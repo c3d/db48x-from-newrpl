@@ -503,7 +503,7 @@ void DumpErrors()
     { 0x00001000,"Bad argument value"},
     { 0x00002000,"Undefined variable"},
     { 0x00004000,"Directory not empty"},
-    { 0x00008000,"Undefined error??"},
+    { 0x00008000,"Invalid Dimension"},
     // THESE ARE MPDECIMAL ERRORS
     { 0x00010000,"Clamped exponent"},
     { 0x00020000,"Conversion syntax"},

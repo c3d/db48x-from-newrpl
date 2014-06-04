@@ -153,6 +153,7 @@ void rplInit(void)
 
     RSTop=RStk; // TOP OF THE RETURN STACK
     DSTop=DStk; // TOP OF THE DATA STACK
+    DStkProtect=DStk;   // UNPROTECTED STACK
     TempObEnd=TempOb;     // END OF USED TEMPOB
     LAMTop=LAMs;
     nLAMBase=LAMTop;

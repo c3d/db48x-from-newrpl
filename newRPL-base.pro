@@ -55,7 +55,8 @@ SOURCES += main.cpp \
     atanh_2_comp.c \
     atanh_5_comp.c \
     cordic_K_comp.c \
-    cordic_Kh_comp.c
+    cordic_Kh_comp.c \
+    lists.c
 
 HEADERS += \
     libraries.h \
