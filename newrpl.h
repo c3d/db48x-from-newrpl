@@ -20,15 +20,14 @@
 
 typedef void (*LIBHANDLER)(void);
 
-typedef unsigned int WORD;
-typedef unsigned char BYTE;
+typedef uint32_t WORD;
+typedef uint8_t BYTE;
 typedef WORD *WORDPTR;
 typedef BYTE   *BYTEPTR;
-typedef int BINT;
-typedef unsigned int UBINT;
-typedef long long BINT64;
-typedef unsigned long long UBINT64;
-typedef int OFFSET;
+typedef int32_t BINT;
+typedef uint32_t UBINT;
+typedef int64_t BINT64;
+typedef uint64_t UBINT64;
 
 
 #ifdef __cplusplus
