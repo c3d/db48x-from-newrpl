@@ -155,8 +155,8 @@ typedef uint32_t mpd_uint_t;  /* unsigned mod type */
 typedef uint64_t mpd_uuint_t; /* double width unsigned mod type */
 #endif
 
-#define MPD_SIZE_MAX SIZE_MAX
-typedef size_t mpd_size_t; /* unsigned size type */
+#define MPD_SIZE_MAX UINT32_MAX
+typedef uint32_t mpd_size_t; /* unsigned size type */
 
 /* type for dec->len, dec->exp, ctx->prec */
 #define MPD_SSIZE_MAX INT32_MAX
