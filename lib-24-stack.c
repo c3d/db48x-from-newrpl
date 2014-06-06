@@ -75,7 +75,9 @@ void LIB_HANDLER()
         rplGCollect();
         return;
     case CLEAR:
-        DSTop=DStk;
+        // ONLY CLEAR UP TO THE STACK PROTECTED AREA
+        // DON'T THROW AN ERROR
+        DSTop=DStkProtect;
         return;
     case DROP:
         rplDropData(1);
