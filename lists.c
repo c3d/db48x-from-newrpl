@@ -33,6 +33,55 @@ BINT rplListLength(WORDPTR composite)
     return count;
 }
 
+
+
+// RETURN THE LENGTH OF A "FLAT" LIST, AS IF LISTS INSIDE THE LIST WERE EXPLODED
+BINT rplListLengthFlat(WORDPTR composite)
+{
+    BINT count=0,depth=0;
+    WORDPTR ptr=composite+1;
+    WORDPTR end=composite+OBJSIZE(*composite);  // POINT TO THE END MARKER
+    while(ptr<end) {
+        if(ISLIST(*ptr)) {
+            ++depth;
+            ++ptr;
+        } else {
+        ptr=rplSkipOb(ptr);
+        if(*ptr==MKOPCODE(DOLIST,ENDLIST)) {
+            ++ptr;
+            --depth;
+        }
+        ++count;
+        }
+    }
+    return count;
+
+}
+
+
+// GET AN ELEMENT FROM A "FLAT" VIEW OF THE LIST
+
+WORDPTR rplGetListElementFlat(WORDPTR composite, BINT pos)
+{
+    BINT count=1;
+    WORDPTR ptr=composite+1;
+    WORDPTR end=composite+OBJSIZE(*composite);  // POINT TO THE END MARKER
+    while(ptr<end && count<=pos) {
+        if(ISLIST(*ptr)) {
+            ++ptr;
+        } else {
+        if(count==pos) break;
+        ptr=rplSkipOb(ptr);
+        if(*ptr==MKOPCODE(DOLIST,ENDLIST)) {
+            ++ptr;
+        }
+        ++count;
+        }
+    }
+    if(ptr==end) return NULL;
+    return ptr;
+}
+
 WORDPTR rplGetListElement(WORDPTR composite, BINT pos)
 {
     BINT count=1;
@@ -45,6 +94,37 @@ WORDPTR rplGetListElement(WORDPTR composite, BINT pos)
     if(ptr==end) return NULL;
     return ptr;
 }
+
+// RETURNS FALSE (0) IF THE ELEMENT IS NOT AT THE END OF A SUBLIST IN A "FLAT" LIST
+// OTHERWISE RETURNS THE POSITION OF THE FIRST ELEMENT IN THE LIST THAT CONTAINS THE OBJECT
+
+BINT rplIsLastElementFlat(WORDPTR composite, BINT pos)
+{
+    BINT count=1,depth=0,startpos=1;
+    WORDPTR ptr=composite+1;
+    WORDPTR end=composite+OBJSIZE(*composite);  // POINT TO THE END MARKER
+    while(ptr<end && count<pos) {
+        if(ISLIST(*ptr)) {
+            ++depth;
+            ++ptr;
+            startpos=pos;
+        } else {
+        ptr=rplSkipOb(ptr);
+        if(*ptr==MKOPCODE(DOLIST,ENDLIST)) {
+            --depth;
+            ++ptr;
+        }
+        ++count;
+        }
+    }
+
+    if(ptr<end) {
+    ptr=rplSkipOb(ptr);
+    if(*ptr==MKOPCODE(DOLIST,ENDLIST)) return startpos;
+    }
+    return 0;
+}
+
 
 
 // CREATE A NEW LIST. STACK LEVEL 1 = NUMBER OF ELEMENTS, LEVELS 2.. N+1 = OBJECTS

@@ -226,9 +226,13 @@ extern void rplReadNumberAsReal(WORDPTR number,mpd_t*dec);
 
 // LIST FUNCTIONS
 extern BINT rplListLength(WORDPTR composite);
+extern BINT rplListLengthFlat(WORDPTR composite);
 extern void rplCreateList();
 extern BINT rplExplodeList(WORDPTR composite);
 extern WORDPTR rplGetListElement(WORDPTR composite, BINT pos);
+extern WORDPTR rplGetListElementFlat(WORDPTR composite, BINT pos);
+extern BINT rplIsLastElementFlat(WORDPTR composite, BINT pos);
+
 
 
 
