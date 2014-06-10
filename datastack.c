@@ -89,10 +89,18 @@ inline WORDPTR rplPeekData(int level)  {  return *(DSTop-level); }
 inline void rplOverwriteData(int level,WORDPTR ptr)  {  *(DSTop-level)=ptr; }
 
 // PROTECT THE CURRENT DATA STACK FROM DROP AT THE CURRENT LEVEL
+
+
+extern WORD unprotect_seco[];
+
+
 WORDPTR *rplProtectData()
 {
     WORDPTR *ret=DStkProtect;
     DStkProtect=DSTop;
+    // ADD PROTECTION IN THE STACK FOR RECURSIVE USE
+    rplPushRet(ret);
+    rplPushRet(unprotect_seco);
     return ret;
 }
 
@@ -100,6 +108,10 @@ WORDPTR *rplProtectData()
 WORDPTR *rplUnprotectData()
 {
     WORDPTR *ret=DStkProtect;
-    DStkProtect=DStk;
+    if(rplPeekRet(1)==unprotect_seco) {
+        // REMOVE THE PROTECTION FROM THE RETURN STACK
+        rplPopRet();
+        DStkProtect=rplPopRet();
+    } else DStkProtect=DStk;
     return ret;
 }

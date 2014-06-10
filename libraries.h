@@ -121,6 +121,9 @@ extern void libDecompileCmds(char *libnames[], int libopcodes[], int numcmds);
 #define OVR_UNARY      0x1000
 #define OVR_BINARY     0x2000
 
+#define ISUNARYOP(prolog) ( (OPCODE(prolog)>=OVR_OPERATORS) && (((prolog)&0xf000)==OVR_UNARY))
+#define ISBINARYOP(prolog) ( (OPCODE(prolog)>=OVR_OPERATORS) && (((prolog)&0xf000)==OVR_BINARY))
+
 // UNARY OPERATORS
 #define OVRT_INV              "INV"
 #define OVR_INV      OVR_OPERATORS+OVR_UNARY+1
