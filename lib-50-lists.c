@@ -15,11 +15,11 @@
 // LIB0 PROVIDES EXIT FROM RPL, BREAKPOINTS AND RUNSTREAM MANIPULATION OPCODES
 
 // MAIN LIBRARY NUMBER, CHANGE THIS FOR EACH LIBRARY
-#define LIBRARY_NUMBER  26
-#define LIB_ENUM lib26_enum
-#define LIB_NAMES lib26_names
-#define LIB_HANDLER lib26_handler
-#define LIB_NUMBEROFCMDS LIB26_NUMBEROFCMDS
+#define LIBRARY_NUMBER  50
+#define LIB_ENUM lib50_enum
+#define LIB_NAMES lib50_names
+#define LIB_HANDLER lib50_handler
+#define LIB_NUMBEROFCMDS LIB50_NUMBEROFCMDS
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
@@ -66,6 +66,9 @@
     "PRODLIST", \
     "", \
     "", \
+    "", \
+    "", \
+    "", \
     ""
 
 
@@ -100,7 +103,10 @@
     PRODLIST, \
     OPLISTPRE, \
     OPLISTPOST, \
-    OPLISTERR
+    OPLISTERR, \
+    DELTAPRE, \
+    DELTAPOST, \
+    DELTAERR
 
 
 
@@ -198,6 +204,14 @@ const WORD const oplist_seco[]={
     CMD_SEMI
 };
 
+const WORD const deltalist_seco[]={
+    MKPROLOG(DOCOL,5),
+    MKOPCODE(LIBRARY_NUMBER,DELTAPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
+    MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER,DELTAPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER,DELTAERR),     // ERROR HANDLER
+    CMD_SEMI
+};
 
 
 void LIB_HANDLER()
@@ -1961,6 +1975,166 @@ void LIB_HANDLER()
         // END OF OPLIST
         // *****************************************************************
 
+        // **********************************************************
+        // THE COMMANDS THAT FOLLOW ALL WORK TOGETHER TO IMPLEMENT DELTALIST
+
+    case DELTALIST:
+    {
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        if(!ISLIST(*rplPeekData(1))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        BINT length=rplListLength(rplPeekData(1));
+
+        if(length<2) {
+            Exceptions|=EX_INVALID_DIM;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+
+        WORDPTR program=rplAllocTempOb(2);
+        if(!program) {
+            Exceptions|=EX_OUTOFMEM;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        program[0]=MKPROLOG(DOCOL,2);
+        program[1]=MKOPCODE(LIB_OVERLOADABLE,OVR_SUB);
+        program[2]=CMD_SEMI;
+
+        // HERE WE HAVE program = PROGRAM TO EXECUTE
+
+        // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
+        nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THE NEW ENVIRONMENT
+        rplCreateLAM(lam_baseseco_bint,IPtr);  // PUT MARKER IN LAM STACK, SET DOSUBS AS THE OWNER
+
+        rplCreateLAM(nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        if(Exceptions) { rplCleanupLAMs(0); return; }
+
+        rplCreateLAM(nulllam_ident,rplPeekData(1)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        if(Exceptions) { rplCleanupLAMs(0); return; }
+
+        rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 3 = LIST
+        if(Exceptions) { rplCleanupLAMs(0); return; }
+
+        // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
+
+        rplPushRet(IPtr);
+        IPtr=(WORDPTR) deltalist_seco;
+        CurOpcode=MKOPCODE(LIBRARY_NUMBER,DELTALIST);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+
+        rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD USER PROGRAM
+
+        // PUSH THE FIRST ELEMENT
+        rplPushData(rplGetListElement(rplPeekData(1),1));
+
+
+        return;
+    }
+
+    case DELTAPRE:
+    {
+        // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
+
+
+        WORDPTR nextobj;
+        // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
+        WORDPTR endmarker=rplSkipOb(*rplGetLAMn(3))-1;
+
+        nextobj=rplSkipOb(*rplGetLAMn(2));
+
+         if(nextobj==endmarker) {
+            // CLOSE THE MAIN LIST AND RETURN
+
+            // REMOVE THE PREVIOUS ARGUMENT
+            rplPopData();
+
+            WORDPTR *prevDStk = rplUnprotectData();
+
+            BINT newdepth=(BINT)(DSTop-prevDStk);
+
+            rplNewBINTPush(newdepth,DECBINT);
+            if(Exceptions) {
+                DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+                rplCleanupLAMs(0);
+                IPtr=rplPopRet();
+                CurOpcode=MKOPCODE(LIBRARY_NUMBER,DELTALIST);
+                return;
+            }
+
+            rplCreateList();
+            if(Exceptions) {
+                DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+                rplCleanupLAMs(0);
+                IPtr=rplPopRet();
+                CurOpcode=MKOPCODE(LIBRARY_NUMBER,DELTALIST);
+                return;
+            }
+
+            rplOverwriteData(2,rplPeekData(1));
+            rplDropData(1);
+
+            rplCleanupLAMs(0);
+            IPtr=rplPopRet();
+            CurOpcode=MKOPCODE(LIBRARY_NUMBER,DELTALIST);
+            return;
+        }
+
+
+        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE MAPERR WORD
+
+        rplPutLAMn(2,nextobj);
+
+        // PUSH THE NEXT OBJECT IN THE STACK
+        rplPushData(rplPeekData(1));
+        rplOverwriteData(2,nextobj);
+
+        // NOW RECALL THE PROGRAM TO THE STACK
+
+
+        rplPushData(*rplGetLAMn(1));
+
+        if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP); return; }
+
+        // AND EXECUTION WILL CONTINUE AT EVAL
+
+        return;
+    }
+
+    case DELTAPOST:
+    {
+        // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
+
+        rplRemoveExceptionHandler();    // THERE WAS NO ERROR IN THE USER PROGRAM
+
+        rplPushData(*rplGetLAMn(2));    // PUSH LAST OBJECT AGAIN THE STACK FOR NEXT OPERATION
+        IPtr=(WORDPTR) deltalist_seco;   // CONTINUE THE LOOP
+        // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
+        return;
+    }
+    case DELTAERR:
+        // JUST CLEANUP AND EXIT
+        DSTop=rplUnprotectData();
+        rplCleanupLAMs(0);
+        IPtr=rplPopRet();
+        Exceptions=TrappedExceptions;
+        ExceptionPointer=IPtr;
+        CurOpcode=MKOPCODE(LIBRARY_NUMBER,DELTALIST);
+        return;
+
+
+        // END OF DELTALIST
+        // *****************************************************************
 
 
     case OVR_XEQ:

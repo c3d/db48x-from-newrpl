@@ -25,7 +25,6 @@ SOURCES += main.cpp \
     directory.c \
     gc.c \
     lib-24-stack.c \
-    lib-26-lists.c \
     contrib/mpdecimal-2.4.0/libmpdec/basearith.c \
     contrib/mpdecimal-2.4.0/libmpdec/constants.c \
     contrib/mpdecimal-2.4.0/libmpdec/context.c \
@@ -56,7 +55,8 @@ SOURCES += main.cpp \
     atanh_5_comp.c \
     cordic_K_comp.c \
     cordic_Kh_comp.c \
-    lists.c
+    lists.c \
+    lib-50-lists.c
 
 HEADERS += \
     libraries.h \

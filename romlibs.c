@@ -19,7 +19,9 @@ extern void lib16_handler();
 extern void lib20_handler();
 extern void lib22_handler();
 extern void lib24_handler();
-extern void lib26_handler();
+
+
+extern void lib50_handler();
 
 
 extern void lib64_handler();
@@ -100,8 +102,8 @@ LIBHANDLER ROMLibs[]={
 
     dummy_libhandler,
 
-    // LISTS
-    lib26_handler,
+    dummy_libhandler,
+
 
     dummy_libhandler,
     dummy_libhandler,
@@ -129,7 +131,8 @@ LIBHANDLER ROMLibs[]={
     dummy_libhandler,
     dummy_libhandler,
 
-    dummy_libhandler,   // THIS IS LIB50
+    // LISTS
+    lib50_handler,     // THIS IS LIB 50
     dummy_libhandler,
     dummy_libhandler,
     dummy_libhandler,

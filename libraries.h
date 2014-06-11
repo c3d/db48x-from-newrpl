@@ -81,7 +81,7 @@ extern void libDecompileCmds(char *libnames[], int libopcodes[], int numcmds);
 #define DOIDENT     20      // THIS IS FOR QUOTED IDENTS, BEING PUSHED IN THE STACK
 #define DOIDENTEVAL  21     // LIBRARY THAT EVALUATES THE IDENT IMMEDIATELY (UNQUOTED IDENTS, LAMS ARE PUSHED IN TEH STACK)
 #define DODIR       22      // DIRECTORY OBJECTS
-#define DOLIST      26
+#define DOLIST      50
 
 #define ISIDENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOIDENT)||(LIBNUM(prolog)==DOIDENTEVAL)) )
 #define ISBINT(prolog) ( ((OPCODE(prolog)<0x400000) || ISPROLOG(prolog)) && ((LIBNUM(prolog)>=BINBINT) && (LIBNUM(prolog)<=HEXBINT)))
