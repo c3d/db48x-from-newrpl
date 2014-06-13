@@ -60,6 +60,50 @@ while(start!=end) {
 
 }
 
+
+/*
+void CheckPTR(WORDPTR *start,WORDPTR *end)
+{
+WORDPTR *blockptr;
+int cnt=0;
+
+printf("TempOb=%08X, TempObEnd=%08X\n",(WORD)TempOb,(WORD)TempObEnd);
+printf("TempObSize=%08X\n",(WORD)TempObSize);
+
+
+while(start!=end) {
+
+    if( (*start>=TempOb) && (*start<TempObEnd) ) {
+        // ONLY SEARCH POINTERS THAT POINT TO TEMPOB
+    }
+    else {
+        printf("Bad ptr [%d]: %08X\n",cnt,(WORD)*start);
+    }
+
+    ++cnt;
+    ++start;
+}
+
+}
+
+void CheckTempBlocks()
+{
+    WORDPTR *ptr=TempBlocks;
+    WORDPTR prevptr=NULL;
+    int count=0;
+
+    while(ptr<=TempBlocksEnd)
+    {
+        if( (*ptr<TempOb)||(*ptr>TempObEnd)) printf("Bad Block %d: %08X\n",count,(WORD)*ptr);
+        if(*ptr<prevptr) printf("Block out of order %d: %08X (prev=%08X)\n",count,(WORD)*ptr,(WORD)prevptr);
+        prevptr=*ptr;
+        ++ptr;
+        ++count;
+    }
+    printf("Total %d blocks\n",count);
+}
+*/
+
 void Patch(WORDPTR *start,WORDPTR *end,WORDPTR startfrom,WORDPTR endfrom,BINT offset)
 {
 while(start!=end) {
@@ -84,18 +128,18 @@ void rplGCollect()
     // MARK THE END OF USED TEMPOB, INCLUDING A PHANTOM BLOCK AFTER TempObEnd
     // WHICH IS USED DURING COMPILATION/DECOMPILATION
     // THIS BLOCK NEEDS TO BE PRESERVED AS A USED BLOCK!
-    EndOfUsedMem=(CompileEnd>TempObEnd)? CompileEnd:TempObEnd;
-    EndOfUsedMem=(DecompStringEnd>EndOfUsedMem)? DecompStringEnd:EndOfUsedMem;
+    EndOfUsedMem=TempObEnd;
+    if( (CompileEnd>EndOfUsedMem)&& (CompileEnd<=TempObSize) ) { EndOfUsedMem=CompileEnd; CompileBlock|=1; }
+    if( (DecompStringEnd>EndOfUsedMem) && (DecompStringEnd<=TempObSize)) { EndOfUsedMem=(WORDPTR)((((WORD)DecompStringEnd)+3)&~3); CompileBlock|=2; }
 
-    if(EndOfUsedMem>TempObEnd) {
+    if(CompileBlock) {
         // ADD THE BLOCK TO THE LIST USING THE SLACK SPACE TO AVOID TRIGGERING ANY ALLOCATION
         // MARK THE BLOCK AS USED AT THE SAME TIME
         *TempBlocksEnd++=(WORDPTR)((WORD)TempObEnd|1);
         TempObEnd=EndOfUsedMem;
-        CompileBlock=1;
     }
 
-    *TempBlocksEnd=TempObEnd;   // STORE THE END OF LAST BLOCK FOR CONVENIENCE (MARKED AS UNUSED)
+    *TempBlocksEnd=EndOfUsedMem;   // STORE THE END OF LAST BLOCK FOR CONVENIENCE (MARKED AS UNUSED)
 
     // MARK
 
@@ -109,6 +153,8 @@ void rplGCollect()
 
     Mark(GC_PTRUpdate,GC_PTRUpdate+MAX_GC_PTRUPDATE);       // SYSTEM POINTERS
 
+//    CheckPTR(GC_PTRUpdate,GC_PTRUpdate+MAX_GC_PTRUPDATE);       // SYSTEM POINTERS
+//    CheckTempBlocks();
     // SWEEP RUN
 
     WORDPTR StartBlock,EndBlock;
@@ -136,9 +182,16 @@ void rplGCollect()
 
             // REMOVE PHANTOM BLOCK USING DURING COMPILE/DECOMPILE
             if(CompileBlock) {
-                CompileEnd=DecompStringEnd=EndBlock;
+                // ALL POINTERS SHOULD'VE BEEN UPDATED AUTOMATICALLY
+                // EXCEPT THE ONES POINTING EXACTLY AT THE END OF USED MEMORY
+                if(CompileBlock&2) {
+                    // THE BYTE POINTER IS UPDATED UNLESS IT'S EXACTLY WORD-ALIGNED
+                    if(DecompStringEnd>EndBlock) DecompStringEnd=EndBlock;
+                }
+                else if(CompileBlock&1) CompileEnd=EndBlock;
                 EndBlock=*(--CleanIdx);
             }
+
 
 
             // THIS HOLE IS AT THE END OF TEMPOB!
@@ -147,8 +200,8 @@ void rplGCollect()
             // TRUNCATE TEMPBLOCKS
             TempBlocksEnd=CleanIdx;
 
-
-
+//            CheckPTR(GC_PTRUpdate,GC_PTRUpdate+MAX_GC_PTRUPDATE);       // SYSTEM POINTERS
+//            CheckTempBlocks();
 
 
             // RELEASE PAGES AT END OF TEMPOB AND TEMPBLOCKS

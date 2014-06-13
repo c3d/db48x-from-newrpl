@@ -25,7 +25,7 @@ extern WORDPTR GC_PTRUpdate[MAX_GC_PTRUPDATE];
 #define ArgPtr2             GC_PTRUpdate[6]     // NAME FOR USE BY LIBRARIES
 #define BlankStart          GC_PTRUpdate[6]     // NAME AS USED BY THE COMPILER
 #define DecompStringEnd     GC_PTRUpdate[6]     // NAME AS USED BY THE DECOMPILER
-#define EndOfObject         GC_PTRUpdate[7]     // BANE AS USED BY THE DECOMPILER
+#define EndOfObject         GC_PTRUpdate[7]     // NAME AS USED BY THE DECOMPILER
 #define NextTokenStart      GC_PTRUpdate[7]     // NAME AS USED BY THE COMPILER
 #define RetPtr              GC_PTRUpdate[8]
 #define ErrorHandler        GC_PTRUpdate[9]

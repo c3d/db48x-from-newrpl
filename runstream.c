@@ -241,7 +241,7 @@ void rplInit(void)
 }
 
 // FOR DEBUG ONLY: SHOW STATUS OF THE EXECUTION ENVIRONMENT
-void rplShowRuntimeState()
+void rplShowRuntimeState(void)
 {
     printf("Used memory:\n-------------\n");
 

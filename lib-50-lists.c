@@ -2198,7 +2198,7 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
 
         if(ISPROLOG(*DecompileObject)) {
-            rplDecompAppendString((BYTEPTR)" { ");
+            rplDecompAppendString((BYTEPTR)"{");
             RetNum=OK_STARTCONSTRUCT;
             return;
         }

@@ -9,6 +9,10 @@
 #include "libraries.h"
 #include <stdio.h>
 #include <time.h>
+
+extern "C" void rplShowRuntimeState(void);
+
+
 /*
 BYTEPTR testprogram=(BYTEPTR)"<< 1 'A' LAMSTO A 'A' LAMSTO >> " // UNIT TEST: ALREADY DEFINED LAMS COMPILED AS GETLAM/PUTLAM
                              "<< 1 'A' LAMSTO << A 'A' LAMSTO >> A 'A' LAMSTO >> " // UNIT TEST: LAMS ACROSS SECONDARY BOUNDARIES ARE SEARCHED BY NAME, NOT GETLAM/PUTLAM
@@ -594,7 +598,7 @@ int main()
     }
 
     printf("Elapsed time: %.6lf seconds\n",((double)(start-end))/(double)CLOCKS_PER_SEC);
-
+    rplShowRuntimeState();
     Exceptions=0;
     Refresh();
     }

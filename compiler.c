@@ -201,7 +201,7 @@ void rplDecompAppendChar(BYTE c)
     DecompStringEnd=(WORDPTR)(((BYTEPTR)DecompStringEnd)+1);
 
     if(!(((BINT)DecompStringEnd)&3)) {
-        if( (WORDPTR)((((WORD)DecompStringEnd)+3)&~3)+TEMPOBSLACK>=TempObSize) {
+        if( ((WORDPTR)((((WORD)DecompStringEnd)+3)&~3))+TEMPOBSLACK>=TempObSize) {
             // ENLARGE TEMPOB AS NEEDED
             growTempOb((((((BYTEPTR)DecompStringEnd)+3-(BYTEPTR)TempOb))>>2)+TEMPOBSLACK);
         }
@@ -213,14 +213,13 @@ void rplDecompAppendString(BYTEPTR str)
 {
     BINT len=strlen((char *)str);
 
-    if(!(((BINT)DecompStringEnd)&3)) {
-        if( (WORDPTR)((((WORD)DecompStringEnd)+len+3)&~3)+TEMPOBSLACK>=TempObSize) {
+        if( ((WORDPTR)((((WORD)DecompStringEnd)+len+3)&~3))+TEMPOBSLACK>=TempObSize) {
             // ENLARGE TEMPOB AS NEEDED
             growTempOb((((((BYTEPTR)DecompStringEnd)+len+3-(BYTEPTR)TempOb))>>2)+TEMPOBSLACK);
             // IF THERE'S NOT ENOUGH MEMORY, RETURN IMMEDIATELY
             if(Exceptions&EX_OUTOFMEM) return;
         }
-    }
+
 
 
 
@@ -236,15 +235,13 @@ void rplDecompAppendString(BYTEPTR str)
 
 void rplDecompAppendString2(BYTEPTR str,BINT len)
 {
-    if(!(((BINT)DecompStringEnd)&3)) {
-        if( (WORDPTR)((((WORD)DecompStringEnd)+len+3)&~3)+TEMPOBSLACK>=TempObSize) {
+        if( ((WORDPTR)((((WORD)DecompStringEnd)+len+3)&~3))+TEMPOBSLACK>=TempObSize) {
             // ENLARGE TEMPOB AS NEEDED
             growTempOb((((((BYTEPTR)DecompStringEnd)+len+3-(BYTEPTR)TempOb))>>2)+TEMPOBSLACK);
             // IF THERE'S NOT ENOUGH MEMORY, RETURN IMMEDIATELY
             if(Exceptions&EX_OUTOFMEM) return;
 
         }
-    }
 
 
 
@@ -314,6 +311,7 @@ WORDPTR rplDecompile(WORDPTR object)
 
     // LOOP UNTIL END OF DECOMPILATION ADDRESS IS REACHED
     if(DecompileObject<EndOfObject) rplDecompAppendChar(' ');
+    if(Exceptions) break;
     }
 
     // DONE, HERE WE HAVE THE STRING FINISHED

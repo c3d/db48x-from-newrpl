@@ -11,7 +11,7 @@
 // CHANGE THE TARGET HERE!!
 #define TARGET_PC_SIMULATOR
 
-#define MAX_RAM 2048*1024
+#define MAX_RAM 8*1024
 
 // PULL IN ALL TYPE DEFINITIONS
 #include "newrpl.h"
