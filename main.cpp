@@ -567,7 +567,7 @@ int main()
         continue;
     }
 
-    WORDPTR ptr=rplCompile((BYTEPTR)buffer,1);
+    WORDPTR ptr=rplCompile((BYTEPTR)buffer,strlen(buffer),1);
 
     if(!ptr) {
         printf("COMPILE ERROR\n");

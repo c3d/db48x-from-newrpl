@@ -61,6 +61,27 @@ char *LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME  };
 #undef CMD
 
 
+
+
+// GET THE LENGTH OF A STRING FROM ITS PROLOG
+#define STRLEN(prolog) ((OBJSIZE(prolog)<<2)-(LIBNUM(prolog)&3))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
@@ -85,14 +106,45 @@ void LIB_HANDLER()
 
     case TOSTR:
         // VERY IMPORTANT: DECOMPILE FUNCTION
+    {
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
 
+     WORDPTR string=rplDecompile(rplPeekData(1));
+     if(!string) { ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
+     rplOverwriteData(1,string);
+    }
         return;
 
     case FROMSTR:
         // COMPILER FUNCTION, FOR STR-> AND ->OBJ COMMANDS
+    {
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        WORDPTR string=rplPeekData(1);
+        if(!ISSTRING(*string)) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        BINT length=STRLEN(*string);
+        WORDPTR newobj=rplCompile(string+1,length,1);
 
+        if(!newobj) { ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
 
-    return;
+        rplDropData(1);
+        rplPushRet(IPtr);   // PUSH RETURN ADDRESS
+
+        IPtr=newobj;
+        CurOpcode=0;        // TRANSFER CONTROL TO THE NEW SECONDARY
+        return;
+    }
 
 
     // ADD MORE OPCODES HERE

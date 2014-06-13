@@ -28,12 +28,10 @@ void rplCompileAppend(WORD word)
 // IF addwrapper IS NON-ZERO, IT WILL WRAP THE CODE WITH :: ... ; EXITRPL
 // (USED BY THE COMMAND LINE FOR IMMEDIATE COMMANDS)
 
-WORDPTR rplCompile(BYTEPTR string, BINT addwrapper)
+WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 {
     // COMPILATION USES TEMPOB
     CompileEnd=TempObEnd;
-    static const char const wrapperstart[]="::";
-    static const char const wrapperend[]="; EXITRPL";
 
     // START COMPILATION LOOP
     BINT force_libnum;
@@ -47,23 +45,28 @@ WORDPTR rplCompile(BYTEPTR string, BINT addwrapper)
 
     force_libnum=-1;
 
-    if(addwrapper) { NextTokenStart=(WORDPTR)wrapperstart; addwrapper=1; }
-    else NextTokenStart=(WORDPTR)string;
+    if(addwrapper) {
+        rplCompileAppend(MKPROLOG(DOCOL,0));
+        if(RStkSize<=(ValidateTop-RStk)) growRStk(ValidateTop-RStk+RSTKSLACK);
+        if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
+        *ValidateTop++=CompileEnd-1; // POINTER TO THE WORD OF THE COMPOSITE, NEEDED TO STORE THE SIZE
+    }
 
-    do {
+    NextTokenStart=(WORDPTR)string;
+    CompileStringEnd=(WORDPTR)(string+length);
 
 
     // FIND THE START OF NEXT TOKEN
-    while( (*((BYTEPTR)NextTokenStart)==' ') || (*((BYTEPTR)NextTokenStart)=='\t') || (*((BYTEPTR)NextTokenStart)=='\n') || (*((BYTEPTR)NextTokenStart)=='\r')) NextTokenStart=(WORDPTR)(((BYTEPTR)NextTokenStart)+1);
+    while( (NextTokenStart<CompileStringEnd) && ((*((BYTEPTR)NextTokenStart)==' ') || (*((BYTEPTR)NextTokenStart)=='\t') || (*((BYTEPTR)NextTokenStart)=='\n') || (*((BYTEPTR)NextTokenStart)=='\r'))) NextTokenStart=(WORDPTR)(((BYTEPTR)NextTokenStart)+1);
 
 
 
     do {
         TokenStart=NextTokenStart;
         BlankStart=TokenStart;
-        while( (*((char *)BlankStart)) && (*((char *)BlankStart)!=' ') && (*((char *)BlankStart)!='\t') && (*((char *)BlankStart)!='\n') && (*((char *)BlankStart)!='\r')) BlankStart=(WORDPTR)(((char *)BlankStart)+1);
+        while( (BlankStart<CompileStringEnd) && (*((char *)BlankStart)!=' ') && (*((char *)BlankStart)!='\t') && (*((char *)BlankStart)!='\n') && (*((char *)BlankStart)!='\r')) BlankStart=(WORDPTR)(((char *)BlankStart)+1);
         NextTokenStart=BlankStart;
-        while( (*((char *)NextTokenStart)==' ') || (*((char *)NextTokenStart)=='\t') || (*((char *)NextTokenStart)=='\n') || (*((char *)NextTokenStart)=='\r')) NextTokenStart=(WORDPTR)(((char *)NextTokenStart)+1);;
+        while( (NextTokenStart<CompileStringEnd) && ((*((char *)NextTokenStart)==' ') || (*((char *)NextTokenStart)=='\t') || (*((char *)NextTokenStart)=='\n') || (*((char *)NextTokenStart)=='\r'))) NextTokenStart=(WORDPTR)(((char *)NextTokenStart)+1);;
 
         TokenLen=(BINT)((BYTEPTR)BlankStart-(BYTEPTR)TokenStart);
         BlankLen=(BINT)((BYTEPTR)NextTokenStart-(BYTEPTR)BlankStart);
@@ -162,14 +165,22 @@ WORDPTR rplCompile(BYTEPTR string, BINT addwrapper)
         // TODO: VALIDATE THE OPCODE WITH THE CURRENT VALIDATION LIBRARY
 
 
-    } while( (*((BYTEPTR )NextTokenStart)) && !Exceptions );
+    } while( (NextTokenStart<CompileStringEnd) && !Exceptions );
 
- if(addwrapper==-1) { NextTokenStart=(WORDPTR) wrapperend; addwrapper=0; }  // JUST FINISHED THE STRING, NOW ADD THE END OF THE WRAPPER
- if(addwrapper==1) { NextTokenStart=(WORDPTR) string; addwrapper=-1; } // JUST FINISHED THE START OF THE WRAPPER, NOW COMPILE THE ACTUAL STRING
+ if(addwrapper) {
+     // JUST FINISHED THE STRING, NOW ADD THE END OF THE WRAPPER
+     rplCompileAppend(CMD_SEMI);
+     --ValidateTop;
+     if(ValidateTop<RSTop) {
+         Exceptions|=EX_SYNTAXERROR;
+         ExceptionPointer=IPtr;
+         LAMTop=LAMTopSaved;
+         return 0;
+     }
+     if(ISPROLOG((BINT)**ValidateTop)) **ValidateTop|= (((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1;    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
+     rplCompileAppend(CMD_EXITRPL);
+ }
 
-
-
- } while( (*((BYTEPTR )NextTokenStart)) && !Exceptions);
 
 // END OF STRING OBJECT WAS REACHED
     if(ValidateTop!=RSTop) {

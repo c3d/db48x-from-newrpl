@@ -27,7 +27,7 @@ extern WORDPTR GC_PTRUpdate[MAX_GC_PTRUPDATE];
 #define DecompStringEnd     GC_PTRUpdate[6]     // NAME AS USED BY THE DECOMPILER
 #define EndOfObject         GC_PTRUpdate[7]     // NAME AS USED BY THE DECOMPILER
 #define NextTokenStart      GC_PTRUpdate[7]     // NAME AS USED BY THE COMPILER
-#define RetPtr              GC_PTRUpdate[8]
+#define CompileStringEnd    GC_PTRUpdate[8]
 #define ErrorHandler        GC_PTRUpdate[9]
 #define ScratchPointer1     GC_PTRUpdate[10]
 #define ScratchPointer2     GC_PTRUpdate[11]
