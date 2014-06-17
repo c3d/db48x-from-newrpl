@@ -373,7 +373,7 @@ void rplStoreSettings(WORDPTR nameobject,WORDPTR object)
 
 void rplStoreSettingsbyName(BYTEPTR name,BINT namelen,WORDPTR object)
 {
-    WORDPTR *setting=rplFindGlobalbyNameInDir(name,nalemen,rplFindDirbyHandle(SettingsDir),0);
+    WORDPTR *setting=rplFindGlobalbyNameInDir(name,namelen,rplFindDirbyHandle(SettingsDir),0);
     if(setting) {
         setting[1]=object;
     }
@@ -389,7 +389,7 @@ WORDPTR rplGetSettings(WORDPTR nameobject)
 
 WORDPTR rplGetSettingsbyName(BYTEPTR name,BINT namelen)
 {
-    WORDPTR *setting=rplFindGlobalbyNameInDir(name,nalemen,rplFindDirbyHandle(SettingsDir),0);
+    WORDPTR *setting=rplFindGlobalbyNameInDir(name,namelen,rplFindDirbyHandle(SettingsDir),0);
     if(setting) return setting[1];
     return 0;
 }

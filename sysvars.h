@@ -30,14 +30,14 @@ extern WORDPTR GC_PTRUpdate[MAX_GC_PTRUPDATE];
 #define CompileStringEnd    GC_PTRUpdate[8]
 #define ErrorHandler        GC_PTRUpdate[9]
 #define SettingsDir         GC_PTRUpdate[10]
-#define ScratchPointer1     GC_PTRUpdate[11]
-#define ScratchPointer2     GC_PTRUpdate[12]
-#define ScratchPointer3     GC_PTRUpdate[13]
-#define ScratchPointer4     GC_PTRUpdate[14]
-#define ScratchPointer5     GC_PTRUpdate[15]
+#define SystemFlags         GC_PTRUpdate[11]
+#define ScratchPointer1     GC_PTRUpdate[12]
+#define ScratchPointer2     GC_PTRUpdate[13]
+#define ScratchPointer3     GC_PTRUpdate[14]
+#define ScratchPointer4     GC_PTRUpdate[15]
 
 
-// THE POINTERS [11] TO [15] ARE AVAILABLE FOR LIBRARIES TO USE
+// THE POINTERS [12] TO [15] ARE AVAILABLE FOR LIBRARIES TO USE
 
 
 // MEMORY REGIONS. EACH MEMORY REGION CAN GROW INDEPENDENTLY

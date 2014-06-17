@@ -21,6 +21,7 @@
 #define CMD_EXITRPL         0x00800000
 #define CMD_XEQSECO         0x00800002
 #define CMD_SEMI            0x00800003
+#define CMD_ENDLIST         0x03200000
 
 #define OPCODE_COMPILE      0x7FFFF
 #define OPCODE_COMPILECONT  0x7FFFE
