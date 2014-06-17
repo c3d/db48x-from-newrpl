@@ -28,7 +28,8 @@
     CMD(GET), \
     CMD(GETI), \
     CMD(HEAD), \
-    CMD(TAIL)
+    CMD(TAIL), \
+    CMD(ADD)
 
 // ADD MORE OPCODES HERE
 
@@ -2136,7 +2137,50 @@ void LIB_HANDLER()
         // END OF DELTALIST
         // *****************************************************************
 
+    case ADD:
+        // CONCATENATE LISTS
+     {
+        if(rplDepthData()<2) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        BINT size1,size2;
+        WORDPTR obj1=rplPeekData(2),obj2=rplPeekData(1);
+        if(ISPROLOG(*obj1)) size1=OBJSIZE(*obj1)+1;
+        else size1=1;
+        if(ISLIST(*obj1)) size1-=2; // DO NOT COUNT THE PROLOG AND ENDLIST MARKER IF THE LIST
 
+        if(ISPROLOG(*obj2)) size2=OBJSIZE(*obj2)+1;
+        else size2=1;
+        if(ISLIST(*obj2)) size2-=2; // DO NOT COUNT THE PROLOG AND ENDLIST MARKER IF THE LIST
+
+        WORDPTR newlist=rplAllocTempOb(size1+size2+1);
+        if(!newlist) {
+            Exceptions|=EX_OUTOFMEM;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        *newlist=MKPROLOG(LIBRARY_NUMBER,size1+size2+1);
+
+        // DO NOT REUSE obj1, COULD'VE BEEN MOVED BY GC
+        if(ISLIST(*rplPeekData(2))) memmove(newlist+1,rplPeekData(2)+1,size1<<2);
+        else memmove(newlist+1,rplPeekData(2),size1<<2);
+
+        if(ISLIST(*rplPeekData(1))) memmove(newlist+1+size1,rplPeekData(1)+1,size2<<2);
+        else memmove(newlist+1+size1,rplPeekData(1),size2<<2);
+
+        // CLOSE THE NEW LIST WITH ENDLIST
+
+        newlist[size1+size2+1]=MKOPCODE(LIBRARY_NUMBER,ENDLIST);
+
+        // PUSH IT ON THE STACK
+        rplOverwriteData(2,newlist);
+        rplDropData(1);
+
+        return;
+
+    }
     case OVR_XEQ:
         // JUST LEAVE THE LIST ON THE STACK
         return;

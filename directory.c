@@ -205,6 +205,25 @@ WORDPTR *rplFindGlobalbyName(BYTEPTR name,BINT len,BINT scanparents)
 return 0;
 }
 
+WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name,BINT len,WORDPTR *parent,BINT scanparents)
+{
+    WORDPTR *direntry=parent+4;
+    WORDPTR parentdir;
+
+    do {
+    parentdir=*(direntry-3);
+    while(direntry<DirsTop) {
+        if(*direntry==dir_end_bint) break;
+        if(rplCompareIDENTByName(*direntry,name,len)) return direntry;
+        direntry+=2;
+    }
+    direntry=rplFindDirbyHandle(parentdir);
+    } while(scanparents && direntry);
+return 0;
+}
+
+
+
 WORDPTR *rplFindGlobalInDir(WORDPTR nameobj,WORDPTR *parent,BINT scanparents)
 {
     WORDPTR *direntry=parent;
@@ -318,16 +337,6 @@ WORDPTR rplGetDirName(WORDPTR *dir)
 
 
 
-// CREATE A LIST WITH THE FULL PATH TO THE GIVEN DIRECTORY
-// dir IS A POINTER TO THE DIRECTORY, NOT A HANDLE!
-
-WORDPTR *rplGetPath(WORDPTR *dir)
-{
-    // TODO: NEED TO HAVE LISTS IMPLEMENTED TO RETURN A LIST!!
-    return NULL;
-}
-
-
 // CREATE A COMPLETELY NEW COPY OF THE DIRECTORY
 // AND ALL ITS SUBDIRECTORIES
 WORDPTR *rplDeepCopyDir(WORDPTR *sourcedir)
@@ -354,4 +363,33 @@ WORDPTR *rplDeepCopyDir(WORDPTR *sourcedir)
 
     return targetdir;
 
+}
+
+
+void rplStoreSettings(WORDPTR nameobject,WORDPTR object)
+{
+    rplCreateGlobalInDir(nameobject,object,rplFindDirbyHandle(SettingsDir));
+}
+
+void rplStoreSettingsbyName(BYTEPTR name,BINT namelen,WORDPTR object)
+{
+    WORDPTR *setting=rplFindGlobalbyNameInDir(name,nalemen,rplFindDirbyHandle(SettingsDir),0);
+    if(setting) {
+        setting[1]=object;
+    }
+}
+
+// GET THE SETTINGS AND RETURN A POINTER TO THE OBJECT, OR NULL IF IT DOESN'T EXIST
+WORDPTR rplGetSettings(WORDPTR nameobject)
+{
+    WORDPTR *setting=rplFindGlobalInDir(nameobject,rplFindDirbyHandle(SettingsDir),0);
+    if(setting) return setting[1];
+    return 0;
+}
+
+WORDPTR rplGetSettingsbyName(BYTEPTR name,BINT namelen)
+{
+    WORDPTR *setting=rplFindGlobalbyNameInDir(name,nalemen,rplFindDirbyHandle(SettingsDir),0);
+    if(setting) return setting[1];
+    return 0;
 }

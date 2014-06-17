@@ -142,6 +142,146 @@ void LIB_HANDLER()
         else return;
     }
 
+
+    // PROCESS OVERLOADED OPERATORS FIRST
+    if(LIBNUM(CurOpcode)==LIB_OVERLOADABLE) {
+
+        if(ISUNARYOP(CurOpcode))
+        {
+        // APPLY UNARY OPERATOR DIRECTLY TO THE CONTENTS OF THE VARIABLE
+        // TODO: ADD SYMBOLIC OPERATION MODE
+
+            switch(OPCODE(CurOpcode))
+            {
+            case OVR_EVAL:
+            // RCL WHATEVER IS STORED IN THE LAM AND THEN XEQ ITS CONTENTS
+            // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
+            {
+                WORDPTR val=rplGetLAM(rplPeekData(1));
+                if(!val) {
+                    val=rplGetGlobal(rplPeekData(1));
+                    if(!val) {
+                        // INEXISTENT IDENT EVALS TO ITSELF, SO RETURN DIRECTLY
+                        return;
+                    }
+                }
+                rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
+                CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
+                LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
+                if(han) {
+                    // EXECUTE THE OTHER LIBRARY DIRECTLY
+                    (*han)();
+                }
+                else {
+                    // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
+                    // THIS CAN ONLY HAPPEN IF TRYING TO EXECUTE WITH A CUSTOM OBJECT
+                    // WHOSE LIBRARY WAS UNINSTALLED AFTER BEING COMPILED (IT'S AN INVALID OBJECT)
+                    Exceptions=EX_BADARGTYPE;
+                    ExceptionPointer=IPtr;
+                    CurOpcode=*IPtr;
+                }
+
+
+            }
+                return;
+
+            case OVR_XEQ:
+                // JUST KEEP THE IDENT ON THE STACK, UNEVALUATED
+               return;
+
+            default:
+                // PASS AL OTHER OPERATORS DIRECTLY TO THE CONTENTS
+            {
+            WORDPTR val=rplGetLAM(rplPeekData(1));
+            if(!val) {
+                val=rplGetGlobal(rplPeekData(1));
+                if(!val) {
+                    // TODO: INEXISTENT IDENT SHOULD BE OPERATED ON AS A SYMBOLIC
+                    Exceptions=EX_VARUNDEF;
+                    ExceptionPointer=IPtr;
+                    return;
+                }
+            }
+
+            // CHECK FOR CIRCULAR REFERENCE
+            if(ISIDENT(*val)) {
+                // TODO: IDENTS NEED TO BE OPERATED ON AS A SYMBOLIC OBJECT
+                Exceptions=EX_BADOPCODE;
+                ExceptionPointer=IPtr;
+                return;
+            }
+            // FOR ALL OTHER OBJECT TYPES, JUST APPLY THE OPERATOR
+            rplOverwriteData(1,val);
+
+            rplCallOvrOperator(CurOpcode);
+            return;
+            }
+
+        }
+
+
+    }   // END OF UNARY OPERATORS
+
+    if(ISBINARYOP(CurOpcode)) {
+
+        // APPLY BINARY OPERATORS DIRECTLY TO THE CONTENTS OF THE VARIABLE
+        // TODO: ADD SYMBOLIC OPERATION MODE
+
+                if(ISIDENT(*rplPeekData(1))) {
+                WORDPTR val=rplGetLAM(rplPeekData(1));
+                if(!val) {
+                    val=rplGetGlobal(rplPeekData(1));
+                    if(!val) {
+                        // INEXISTENT IDENT EVALS TO ITSELF, SO LEAVE ON STACK
+                    }
+                }
+                if(!val) {
+                 // TODO: APPLY THE OPERATOR AS A SYMBOLIC OBJECT
+                    Exceptions=EX_VARUNDEF;
+                    ExceptionPointer=IPtr;
+                    return;
+                }
+
+                // HERE val HAS THE CONTENTS OF THE NAMED VARIABLE
+
+                rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
+                }
+
+                if(ISIDENT(*rplPeekData(2))) {
+                WORDPTR val=rplGetLAM(rplPeekData(2));
+                if(!val) {
+                    val=rplGetGlobal(rplPeekData(2));
+                    if(!val) {
+                        // INEXISTENT IDENT EVALS TO ITSELF, SO LEAVE ON STACK
+                    }
+                }
+                if(!val) {
+                 // TODO: APPLY THE OPERATOR AS A SYMBOLIC OBJECT
+                    Exceptions=EX_VARUNDEF;
+                    ExceptionPointer=IPtr;
+                    return;
+                }
+
+                // HERE val HAS THE CONTENTS OF THE NAMED VARIABLE
+
+                rplOverwriteData(2,val);    // REPLACE THE SECOND LEVEL WITH THE VALUE
+                }
+
+
+                // PASS AL OTHER OPERATORS DIRECTLY TO THE CONTENTS
+
+            rplCallOvrOperator(CurOpcode);
+            return;
+
+
+        }
+
+
+    }
+
+
+
+    // SPECIAL OPCODES
     if(OPCODE(CurOpcode)&0x70000) {
         // IT'S ONE OF THE COMPACT OPCODES
         BINT op=OPCODE(CurOpcode)>>16;
@@ -316,41 +456,6 @@ void LIB_HANDLER()
 
     // ADD MORE OPCODES HERE
 
-    case OVR_EVAL:
-    // RCL WHATEVER IS STORED IN THE LAM AND THEN XEQ ITS CONTENTS
-    // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
-    {
-        WORDPTR val=rplGetLAM(rplPeekData(1));
-        if(!val) {
-            val=rplGetGlobal(rplPeekData(1));
-            if(!val) {
-                // INEXISTENT IDENT EVALS TO ITSELF, SO RETURN DIRECTLY
-                return;
-            }
-        }
-        rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
-        CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
-        LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
-        if(han) {
-            // EXECUTE THE OTHER LIBRARY DIRECTLY
-            (*han)();
-        }
-        else {
-            // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
-            // THIS CAN ONLY HAPPEN IF TRYING TO EXECUTE WITH A CUSTOM OBJECT
-            // WHOSE LIBRARY WAS UNINSTALLED AFTER BEING COMPILED (IT'S AN INVALID OBJECT)
-            Exceptions=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
-            CurOpcode=*IPtr;
-        }
-
-
-    }
-        return;
-
-    case OVR_XEQ:
-        // JUST KEEP THE IDENT ON THE STACK, UNEVALUATED
-       return;
 
 
 

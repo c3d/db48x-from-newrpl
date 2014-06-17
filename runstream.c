@@ -196,6 +196,8 @@ void rplInit(void)
 
     // INITIALIZE THE HOME DIRECTORY
     rplMakeNewDir();
+    // INITIALIZE THE SETTINGS DIRECTORY
+    SettingsDir=rplMakeNewDir();
 
     // INITIALIZE THE FLOATING POINT CONTEXT
     mpd_init(&Context,18);

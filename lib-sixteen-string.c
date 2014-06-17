@@ -151,7 +151,48 @@ void LIB_HANDLER()
 
     case OVR_ADD:
         // APPEND TWO STRINGS
+    {
+        if(rplDepthData()<2) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        ScratchPointer1=rplPeekData(2);
+        ScratchPointer2=rplPeekData(1);
 
+        if(!ISSTRING(*ScratchPointer1)) {
+        WORDPTR string=rplDecompile(ScratchPointer1);
+        if(!string) { ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
+        ScratchPointer1=string;
+        }
+
+        if(!ISSTRING(*ScratchPointer2)) {
+        WORDPTR string=rplDecompile(ScratchPointer2);
+        if(!string) { ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
+        ScratchPointer2=string;
+        }
+
+        BINT len1=STRLEN(*ScratchPointer1);
+        BINT len2=STRLEN(*ScratchPointer2);
+
+        WORDPTR newobject=rplAllocTempOb((len1+len2+3)>>2);
+        if(!newobject) {
+           Exceptions|=EX_OUTOFMEM;
+           ExceptionPointer=IPtr;
+           return;
+        }
+        // COPY BOTH STRINGS
+        memmove(newobject+1,ScratchPointer1+1,len1);
+        memmove( ((BYTEPTR)newobject)+len1+4,ScratchPointer2+1,len2);
+
+        BINT padding=(4-((len1+len2)&3))&3;
+
+        *newobject=MKPROLOG(DOSTRING+padding,(len1+len2+3)>>2);
+
+        rplOverwriteData(2,newobject);
+        rplDropData(1);
+
+    }
     return;
 
     case OVR_EVAL:
@@ -161,6 +202,9 @@ void LIB_HANDLER()
 
     case OVR_SAME:
     case OVR_EQ:
+
+
+
         return;
 
 
@@ -198,10 +242,15 @@ void LIB_HANDLER()
             ++ptr;  // SKIP THE QUOTE
             do {
             while(count<4) {
-                if(count==0) temp.word=0;
-                temp.bytes[count]=*ptr;
-                ++count;
-                ++ptr;
+                if(ptr==(BYTEPTR)NextTokenStart) {
+                 // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
+
+                    // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
+                    if(count) rplCompileAppend(temp.word);
+                    *ScratchPointer4=MKPROLOG(DOSTRING+((4-count)&3),(WORD)(CompileEnd-ScratchPointer4)-1);
+                    RetNum=OK_NEEDMORE;
+                    return;
+                }
                 if(*ptr=='\"') {
                     // END OF STRING!
                     ++ptr;
@@ -211,22 +260,17 @@ void LIB_HANDLER()
                         return;
                     }
                     // WE HAVE REACHED THE END OF THE STRING
-
+                    if(count) {
                     rplCompileAppend(temp.word);
-                    *ScratchPointer4=MKPROLOG(DOSTRING+4-count,(WORD)(CompileEnd-ScratchPointer4)-1);
+                    }
+                    *ScratchPointer4=MKPROLOG(DOSTRING+((4-count)&3),(WORD)(CompileEnd-ScratchPointer4)-1);
                     RetNum=OK_CONTINUE;
                     return;
                 }
-                if(ptr==(BYTEPTR)NextTokenStart) {
-                 // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
-
-                    // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
-                    rplCompileAppend(temp.word);
-                    *ScratchPointer4=MKPROLOG(DOSTRING+4-count,(WORD)(CompileEnd-ScratchPointer4));
-                    RetNum=OK_NEEDMORE;
-                    return;
-                }
-
+                if(count==0) temp.word=0;
+                temp.bytes[count]=*ptr;
+                ++count;
+                ++ptr;
                 }
                 //  WE HAVE A COMPLETE WORD HERE
                 ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
@@ -270,10 +314,16 @@ void LIB_HANDLER()
         BYTEPTR ptr=(BYTEPTR) TokenStart;
         do {
         while(count<4) {
-            if(count==0) temp.word=0;
-            temp.bytes[count]=*ptr;
-            ++count;
-            ++ptr;
+            if(ptr==(BYTEPTR)NextTokenStart) {
+             // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
+
+                // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
+                if(count) rplCompileAppend(temp.word);
+                *ScratchPointer4=MKPROLOG(DOSTRING+((4-count)&3),(WORD)(CompileEnd-ScratchPointer4)-1);
+                RetNum=OK_NEEDMORE;
+                return;
+            }
+
             if(*ptr=='\"') {
                 // END OF STRING!
                 ++ptr;
@@ -283,21 +333,16 @@ void LIB_HANDLER()
                     return;
                 }
                 // WE HAVE REACHED THE END OF THE STRING
-
-                rplCompileAppend(temp.word);
-                *ScratchPointer4=MKPROLOG(DOSTRING+4-count,(WORD)(CompileEnd-ScratchPointer4)-1);
+                if(count) rplCompileAppend(temp.word);
+                *ScratchPointer4=MKPROLOG(DOSTRING+((4-count)&3),(WORD)(CompileEnd-ScratchPointer4)-1);
                 RetNum=OK_CONTINUE;
                 return;
             }
-            if(ptr==(BYTEPTR)NextTokenStart) {
-             // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
+            if(count==0) temp.word=0;
+            temp.bytes[count]=*ptr;
+            ++count;
+            ++ptr;
 
-                // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
-                rplCompileAppend(temp.word);
-                *ScratchPointer4=MKPROLOG(DOSTRING+4-count,(WORD)(CompileEnd-ScratchPointer4));
-                RetNum=OK_NEEDMORE;
-                return;
-            }
 
             }
             //  WE HAVE A COMPLETE WORD HERE

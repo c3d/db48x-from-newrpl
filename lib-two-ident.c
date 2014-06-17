@@ -236,7 +236,14 @@ void LIB_HANDLER()
         }
 
         // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS GETLAM
+        // BUT ONLY IF WE ARE NOT INSIDE A COMPOSITE (LIST, ARRAY, ETC)
+        if( (CurrentConstruct==MKPROLOG(DOLIST,0)) // ADD HERE ARRAYS LATER
+                ) {
+            rplCompileIDENT(DOIDENTEVAL,tok,len);
 
+            RetNum=OK_CONTINUE;
+            return;
+        }
         BINT Offset=((BINT)(LAMptr-nLAMBase))>>1;
         rplCompileAppend(MKOPCODE(DOIDENT,GETLAMNEVAL+(Offset&0xffff)));
 

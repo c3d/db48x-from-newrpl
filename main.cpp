@@ -290,6 +290,115 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 */
 
 
+BYTEPTR testprogram=(BYTEPTR) "<< \"\" SWAP "
+        "WHILE DUP 0 > REPEAT "
+           "CASE "
+              "DUP 1000 >= THEN 1000 \"M\"  END "
+              "DUP  900 >= THEN  900 \"CM\" END "
+              "DUP  500 >= THEN  500 \"D\"  END "
+              "DUP  400 >= THEN  400 \"CD\" END "
+              "DUP  100 >= THEN  100 \"C\"  END "
+              "DUP   90 >= THEN   90 \"XC\" END "
+              "DUP   50 >= THEN   50 \"L\"  END "
+              "DUP   40 >= THEN   40 \"XL\" END "
+              "DUP   10 >= THEN   10 \"X\"  END "
+              "DUP    9 >= THEN    9 \"IX\" END "
+              "DUP    5 >= THEN    5 \"V\"  END "
+              "DUP    4 >= THEN    4 \"IV\" END "
+              "DUP    1 >= THEN    1 \"I\"  END "
+          "END "
+          "ROT ROT - "
+          "ROT ROT + "
+          "SWAP "
+        "END DROP "
+        ">> 'ROMAN' STO "
+        "<< "
+          "<< ROT ROT - ROT ROT + SWAP >> -> A "
+          "<< \"\" SWAP "
+            "WHILE DUP 1000 >= REPEAT 1000 \"M\" A EVAL END "
+            "WHILE DUP 900 >= REPEAT 900 \"CM\" A EVAL END "
+            "WHILE DUP 500 >= REPEAT 500 \"D\" A EVAL END "
+            "WHILE DUP 400 >= REPEAT 400 \"CD\" A EVAL END "
+            "WHILE DUP 100 >= REPEAT 100 \"C\" A EVAL END "
+            "WHILE DUP 90 >= REPEAT 90 \"XC\" A EVAL END "
+            "WHILE DUP 50 >= REPEAT 50 \"L\" A EVAL END "
+            "WHILE DUP 40 >= REPEAT 40 \"XL\" A EVAL END "
+            "WHILE DUP 10 >= REPEAT 10 \"X\" A EVAL END "
+            "WHILE DUP 9 >= REPEAT 9 \"IX\" A EVAL END "
+            "WHILE DUP 5 >= REPEAT 5 \"V\" A EVAL END "
+            "WHILE DUP 4 >= REPEAT 4 \"IV\" A EVAL END "
+            "WHILE DUP 1 >= REPEAT 1 \"I\" A EVAL END "
+            "DROP "
+          ">> "
+        ">> 'DBROMAN' STO "
+
+        "<< "
+          "\"\" SWAP "
+          "<< -> k r "
+            "<< "
+              "WHILE k 2 PICK 2 PICK >= "
+              "REPEAT - SWAP r + SWAP "
+              "END DROP "
+            ">> "
+          ">> -> A "
+          "<< "
+            "1000 \"M\" A EVAL "
+            "900 \"CM\" A EVAL "
+            "500 \"D\" A EVAL "
+            "400 \"CD\" A EVAL "
+            "100 \"C\" A EVAL "
+            "90 \"XC\" A EVAL "
+            "50 \"L\" A EVAL "
+            "40 \"XL\" A EVAL "
+            "10 \"X\" A EVAL "
+            "9 \"IX\" A EVAL "
+            "5 \"V\" A EVAL "
+            "4 \"IV\" A EVAL "
+            "1 \"I\" A EVAL "
+          ">> "
+          "DROP "
+        ">> 'TK1ROMAN' STO "
+
+        "<< -> n "
+          "<< "
+            "{ "
+              "{ \"\"      n } "
+              "{ \"M\"  1000 } "
+              "{ \"CM\"  900 } "
+              "{ \"D\"   500 } "
+              "{ \"CD\"  400 } "
+              "{ \"C\"   100 } "
+              "{ \"XC\"   90 } "
+              "{ \"L\"    50 } "
+              "{ \"XL\"   40 } "
+              "{ \"X\"    10 } "
+              "{ \"IX\"    9 } "
+              "{ \"V\"     5 } "
+              "{ \"IV\"    4 } "
+              "{ \"I\"     1 } "
+            "} "
+            "<< "
+              "ADD LIST-> DROP "
+              "-> r k "
+              "<< "
+                "WHILE DUP k >= "
+                "REPEAT "
+                  "k - SWAP "
+                  "r + SWAP "
+                "END "
+                "2 ->LIST "
+              ">> "
+            ">> "
+            "STREAM HEAD "
+          ">> "
+        ">> 'TK2ROMAN' STO "
+
+
+
+
+        ;
+
+
 void PrintObj(WORDPTR obj)
 {
     WORDPTR string;
@@ -554,6 +663,14 @@ int main()
 
 
     Refresh();
+
+    if(testprogram) {
+
+        WORDPTR ptr=rplCompile(testprogram,strlen((char *)testprogram),1);
+        if(ptr)   { rplSetEntryPoint(ptr); rplRun(); }
+
+
+    }
 
 
     do {

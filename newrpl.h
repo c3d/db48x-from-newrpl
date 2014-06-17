@@ -190,6 +190,7 @@ extern WORDPTR *rplFindDirbyHandle(WORDPTR handle);
 extern void rplCreateNewDir(WORDPTR name,WORDPTR *parentdir);
 extern WORDPTR *rplGetParentDir(WORDPTR *directory);
 extern WORDPTR *rplFindGlobalbyName(BYTEPTR name,BINT len,BINT scanparents);
+extern WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name,BINT len,WORDPTR *parent,BINT scanparents);
 extern WORDPTR *rplFindGlobalInDir(WORDPTR nameobj,WORDPTR *parentdir,BINT scanparents);
 extern WORDPTR *rplFindGlobal(WORDPTR nameobj,BINT scanparents);
 extern void rplPurgeGlobal(WORDPTR nameobj);
@@ -198,6 +199,13 @@ extern WORDPTR *rplMakeNewDir();
 extern WORDPTR rplGetDirName(WORDPTR *dir);
 extern WORDPTR *rplGetDirfromGlobal(WORDPTR *var);
 extern WORDPTR *rplDeepCopyDir(WORDPTR *sourcedir);
+extern void rplStoreSettings(WORDPTR nameobject,WORDPTR object);
+extern void rplStoreSettingsbyName(BYTEPTR name,BINT namelen,WORDPTR object);
+extern WORDPTR rplGetSettings(WORDPTR nameobject);
+extern WORDPTR rplGetSettingsbyName(BYTEPTR name,BINT namelen);
+
+
+
 
 // GENERIC OBJECT FUNCTIONS
 extern void rplCallOvrOperator(WORD op);
