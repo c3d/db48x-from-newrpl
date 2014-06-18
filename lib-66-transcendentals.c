@@ -631,15 +631,15 @@ void LIB_HANDLER()
         // THIS LIBRARY. EVERY COMPOSITE HAS TO EVALUATE IF THE OBJECT BEING COMPILED IS ALLOWED INSIDE THIS
         // COMPOSITE OR NOT. FOR EXAMPLE, A REAL MATRIX SHOULD ONLY ALLOW REAL NUMBERS INSIDE, ANY OTHER
         // OPCODES SHOULD BE REJECTED AND AN ERROR THROWN.
-        // TokenStart = token string
-        // TokenLen = token length
-        // ArgNum2 = Opcode/WORD of object
+        // Library receives:
+        // CurrentConstruct = SET TO THE CURRENT ACTIVE CONSTRUCT TYPE
+        // LastCompiledObject = POINTER TO THE LAST OBJECT THAT WAS COMPILED, THAT NEEDS TO BE VERIFIED
 
         // VALIDATE RETURNS:
-        // RetNum =  enum CompileErrors
+        // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
 
 
-
+        RetNum=OK_CONTINUE;
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR

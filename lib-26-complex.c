@@ -5,145 +5,58 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-// LIBRARY ONE DEFINES THE BASIC TYPES BINT AND SINT
-
 #include "newrpl.h"
 #include "libraries.h"
 #include "hal.h"
-// THERE'S ONLY ONE EXTERNAL FUNCTION: THE LIBRARY HANDLER
-// ALL OTHER FUNCTIONS ARE LOCAL
 
 // MAIN LIBRARY NUMBER, CHANGE THIS FOR EACH LIBRARY
-#define LIBRARY_NUMBER  11
-#define LIB_ENUM lib11_enum
-#define LIB_NAMES lib11_names
-#define LIB_HANDLER lib11_handler
-#define LIB_NUMBEROFCMDS LIB11_NUMBEROFCMDS
-
-typedef union {
-    WORD word;
-    struct {
-    signed exp:16;
-    unsigned len:8,digits:4,flags:4;
-    };
-} REAL_HEADER;
-
-mpd_context_t CompileContext = {
-    .prec=REAL_PRECISION_MAX,
-    .emax=REAL_EXPONENT_MAX,
-    .emin=REAL_EXPONENT_MIN,
-    .traps=0,
-    .status=0,
-    .newtrap=0,
-    .round=MPD_ROUND_HALF_EVEN,
-    .clamp=MPD_CLAMP_DEFAULT,
-    .allcr=0
-
-};
+#define LIBRARY_NUMBER  26
+#define LIB_ENUM lib26_enum
+#define LIB_NAMES lib26_names
+#define LIB_HANDLER lib26_handler
+#define LIB_NUMBEROFCMDS LIB26_NUMBEROFCMDS
 
 
-// SET THE REGISTER TO THE NUMBER 0NE
-void rplOneToRReg(int num)
-{
-    RReg[num].digits=1;
-    RReg[num].exp=0;
-    RReg[num].flags=MPD_STATIC | MPD_STATIC_DATA;
-    RReg[num].len=1;
-    RReg[num].data[0]=1;
-}
 
-// SET THE REGISTER TO ZERO
-void rplZeroToRReg(int num)
-{
-    RReg[num].digits=1;
-    RReg[num].exp=0;
-    RReg[num].flags=MPD_STATIC | MPD_STATIC_DATA;
-    RReg[num].len=1;
-    RReg[num].data[0]=0;
-}
+// LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
+#define CMD_LIST \
+    CMD(RE), \
+    CMD(IM)
 
-void rplBINTToRReg(int num,BINT64 value)
-{
-    // CLEAR ALL FLAGS
-    RReg[num].flags=MPD_STATIC|MPD_STATIC_DATA;
-    mpd_set_i64(&RReg[num],value,&Context);
-}
+// ADD MORE OPCODES HERE
 
 
-// EXTRACT A CALCULATOR REAL INTO AN EXISTING mpd_t STRUCTURE
-// DATA IS **NOT** COPIED
-// DO **NOT** USE THIS FUNCTION WITH RREG REGISTERS
-void rplReadReal(WORDPTR real,mpd_t *dec)
-{
-REAL_HEADER *head=(REAL_HEADER *)(real+1);
-dec->flags=MPD_STATIC | MPD_STATIC_DATA;
-dec->alloc=OBJSIZE(*real)-1;
-dec->data=(uint32_t *) (real+2);
-dec->len=head->len;
-dec->exp=head->exp;
-dec->flags|=head->flags;
-dec->digits=head->digits+(head->len-1)*9;
-}
+// EXTRA LIST FOR COMMANDS WITH SYMBOLS THAT ARE DISALLOWED IN AN ENUM
+// THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
+/*
+#define CMD_EXTRANAME \
+    ""
+#define CMD_EXTRAENUM \
+    NOP
+*/
+//
 
-// EXTRACT A CALCULATOR REAL INTO A RREG REGISTER
-void rplCopyRealToRReg(int num,WORDPTR real)
-{
-    REAL_HEADER *head=(REAL_HEADER *)(real+1);
-    RReg[num].flags=MPD_STATIC | MPD_STATIC_DATA;
-    RReg[num].len=head->len;
-    RReg[num].exp=head->exp;
-    RReg[num].flags|=head->flags;
-    RReg[num].digits=head->digits+(head->len-1)*9;
-    memcpy(RReg[num].data,real+2,sizeof(mpd_ssize_t)*RReg[num].len);
-}
+// INTERNAL DECLARATIONS
 
 
-// CREATE A NEW CALCULATOR REAL AND PUSH IT ON THE STACK
-// SET THE VALUE TO THE GIVEN RREG
-void rplRRegToRealPush(int num)
-{
+// CREATE AN ENUM WITH THE OPCODE NAMES FOR THE DISPATCHER
+#define CMD(a) a
+enum LIB_ENUM { CMD_LIST /*, CMD_EXTRAENUM*/ , LIB_NUMBEROFCMDS };
+#undef CMD
 
-    REAL_HEADER real;
-    BINT correction;
-
-    WORDPTR newreal=rplAllocTempOb(RReg[num].len+1);
-    if(!newreal) {
-        Exceptions|=EX_OUTOFMEM;
-        return;
-    }
-
-    // REMOVE ALL TRAILING ZEROES
-    correction=0;
-    while(correction<RReg[num].len-1)
-    {
-        if(RReg[num].data[correction]!=0) break;
-        ++correction;
-    }
+// AND A LIST OF STRINGS WITH THE NAMES FOR THE COMPILER
+#define CMD(a) #a
+char *LIB_NAMES[]= { CMD_LIST /*, CMD_EXTRANAME */ };
+#undef CMD
 
 
-    // WRITE THE PROLOG
-    *newreal=MKPROLOG(LIBRARY_NUMBER,1+RReg[num].len-correction);
-    // PACK THE INFORMATION
-    real.flags=RReg[num].flags&0xf;
-    real.len=RReg[num].len-correction;
-    real.digits=RReg[num].digits-((RReg[num].len-1)*9);
-    real.exp=RReg[num].exp+correction*9;
-    // STORE THE PACKED EXPONENT WORD
-    newreal[1]=real.word;
 
-    BINT count;
-    for(count=0;count<RReg[num].len-correction;++count) {
-        newreal[count+2]=(RReg[num].data[count+correction]);      // STORE ALL THE MANTISSA WORDS
-    }
-
-    rplPushData(newreal);
-}
 
 
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
-        // NORMAL BEHAVIOR FOR A REAL IS TO PUSH THE OBJECT ON THE STACK:
+        // NORMAL BEHAVIOR FOR A COMPLEX IS TO PUSH THE OBJECT ON THE STACK:
         rplPushData(IPtr);
         return;
     }
@@ -152,7 +65,7 @@ void LIB_HANDLER()
     {
         // THESE ARE OVERLOADABLE COMMANDS DISPATCHED FROM THE
         // OVERLOADABLE OPERATORS LIBRARY.
-
+/*
         // PROVIDE BEHAVIOR FOR OVERLOADABLE OPERATORS HERE
 #define arg1 ScratchPointer1
 #define arg2 ScratchPointer2
@@ -307,6 +220,8 @@ void LIB_HANDLER()
         return;
 #undef arg1
 #undef arg2
+
+*/
     }   // END OF OVERLOADABLE OPERATORS
 
 
@@ -328,62 +243,113 @@ void LIB_HANDLER()
         // RetNum =  enum CompileErrors
 
 
+        // COMPILE COMPLEX OBJECTS IN THE FORM ( X , Y ) BUT ALSO ACCEPT (X,Y) (NO SPACES)
 
-        // COMPILE A NUMBER TO A REAL
-    {
-        BINT status=0;
-        mpd_qset_string2(&RReg[0],(const char *)TokenStart,(const char *)BlankStart,&CompileContext,(uint32_t *)&status);
+        if(*((char * )TokenStart)=='(')
+        {
 
-        if(status& (MPD_Conversion_syntax | MPD_Invalid_context | MPD_Invalid_operation | MPD_Malloc_error | MPD_Overflow | MPD_Underflow )) {
-            // THERE WAS SOME ERROR DURING THE CONVERSION, PROBABLY A SYNTAX ERROR
-            RetNum=ERR_NOTMINE;
+            rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER,0));
+            if(TokenLen>1) {
+                NextTokenStart=((char *)TokenStart)+1;
+                RetNum=OK_STARTCONSTRUCT;
+            }
+            else RetNum=OK_STARTCONSTRUCT;
+            return;
+        }
+        // CHECK IF THE TOKEN IS THE CLOSING BRACKET
+
+        if(((char * )TokenStart)[TokenLen-1]==')')
+        {
+            if(TokenLen>1) {
+                BlankStart=NextTokenStart=((char * )TokenStart)+TokenLen-1;
+                RetNum=ERR_NOTMINE_SPLITTOKEN;
+                return;
+            }
+
+
+            if(CurrentConstruct!=MKPROLOG(LIBRARY_NUMBER,2)) {
+                RetNum=ERR_SYNTAX;
+                return;
+            }
+            RetNum=OK_ENDCONSTRUCT;
             return;
         }
 
-            // WRITE THE PROLOG
-            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER,1+RReg[0].len));
-            // PACK THE INFORMATION
-            REAL_HEADER real;
-            real.flags=RReg[0].flags&0xf;
-            real.len=RReg[0].len;
-            real.digits=RReg[0].digits-((RReg[0].len-1)*9);
-            real.exp=RReg[0].exp;
+        // CHECK IF THE CURRENT CONSTRUCT IS A COMPLEX NUMBER AND IT CONTAINS A COMMA
 
-            rplCompileAppend(real.word);      // CAREFUL: THIS IS FOR LITTLE ENDIAN SYSTEMS ONLY!
-            BINT count;
-            for(count=0;count<RReg[0].len;++count) {
-                rplCompileAppend(RReg[0].data[count]);      // STORE ALL THE MANTISSA WORDS
+        if( (LIBNUM(CurrentConstruct)==LIBRARY_NUMBER) && ISPROLOG(CurrentConstruct))
+            {
+            BINT count=TokenLen;
+            BYTEPTR ptr=(BYTEPTR)TokenStart;
+            while(count && (((char)*ptr)!=',')) { ++ptr; --count; }
+            if(count) {
+                if(ptr==TokenStart) {
+                    // STARTS WITH COMMA
+                    if(TokenLen>1)  NextTokenStart=((char *)TokenStart)+1;
+                    // WE DID NOT PRODUCE ANY OUTPUT, SO DON'T VALIDATE
+                    RetNum=OK_CONTINUE_NOVALIDATE;
+                    return;
+                }
+                // FOUND A COMMA IN THE MIDDLE, SPLIT THE TOKEN
+                BlankStart=NextTokenStart=(WORDPTR)ptr;
+                RetNum=ERR_NOTMINE_SPLITTOKEN;
+                return;
             }
-            RetNum=OK_CONTINUE;
-     return;
-    }
+
+            // THERE IS NO COMMA IN THIS TOKEN
+
+            RetNum=ERR_NOTMINE;
+            return;
+
+
+        }
+
+
+
+        // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
+        // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
+        libCompileCmds(LIBRARY_NUMBER,LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+
+        return;
+
     case OPCODE_DECOMPILE:
         // DECOMPILE RECEIVES:
         // DecompileObject = Ptr to WORD of object to decompile
-        // DecompStringEnd = Byte Ptr to end of current string. Write here with rplDecompAppendString(); rplDecompAppendChar();
-    {
-        mpd_t realnum;
-
-        rplReadReal(DecompileObject,&realnum);
-
-
-        // CONVERT TO STRING
-        // THIS NEEDS TO BE CHANGED, SINCE IT RELIES ON MALLOC
-        // NEED A FUNCTION THAT CALLS rplDecompAppendChar DIRECTLY
-
-        BYTEPTR string;
-        BINT len=(BINT)mpd_to_sci_size((char **)&string,&realnum,1);
-        if(string) {
-        rplDecompAppendString2(string,len);
-        mpd_free(string);
-        RetNum=OK_CONTINUE;
-        }
-        else RetNum=ERR_INVALID;
+        // DecompStringEnd = Ptr to the end of decompile string
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
-    }
+
+        if(ISPROLOG(*DecompileObject)) {
+            rplDecompAppendString((BYTEPTR)"(");
+
+            // POINT TO THE REAL PART
+            DecompileObject++;
+
+            LIBHANDLER libhan=rplGetLibHandler(LIBNUM(*DecompileObject));
+            if(libhan) (*libhan)();
+
+            rplDecompAppendString((BYTEPTR)",");
+
+            // POINT TO THE IMAGINARY PART
+            DecompileObject=rplSkipOb(DecompileObject);
+
+            libhan=rplGetLibHandler(LIBNUM(*DecompileObject));
+            if(libhan) (*libhan)();
+
+            rplDecompAppendString((BYTEPTR)")");
+
+            RetNum=OK_CONTINUE;
+
+            return;
+        }
+
+
+        // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
+        // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
+        libDecompileCmds(LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
         return;
+
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY
         // THIS LIBRARY. EVERY COMPOSITE HAS TO EVALUATE IF THE OBJECT BEING COMPILED IS ALLOWED INSIDE THIS
@@ -395,10 +361,11 @@ void LIB_HANDLER()
 
         // VALIDATE RETURNS:
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
+        if(ISNUMBER(*LastCompiledObject)) RetNum=OK_INCARGCOUNT;
+        else RetNum=ERR_INVALID;
 
-
-        RetNum=OK_CONTINUE;
         return;
+
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
     Exceptions|=EX_BADOPCODE;
@@ -406,6 +373,7 @@ void LIB_HANDLER()
     return;
 
 }
+
 
 
 

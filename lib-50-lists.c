@@ -2206,16 +2206,28 @@ void LIB_HANDLER()
 
         // CHECK IF THE TOKEN IS THE OPEN BRACKET
 
-        if((TokenLen==1) && (!strncmp((char * )TokenStart,"{",1)))
+        if(*((char * )TokenStart)=='{')
         {
+
             rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER,0));
-            RetNum=OK_STARTCONSTRUCT;
+            if(TokenLen>1) {
+                NextTokenStart=((char *)TokenStart)+1;
+                RetNum=OK_STARTCONSTRUCT;
+            }
+            else RetNum=OK_STARTCONSTRUCT;
             return;
         }
         // CHECK IF THE TOKEN IS THE CLOSING BRACKET
 
-        if(((TokenLen==1) && (!strncmp((char *)TokenStart,"}",1))))
+        if(((char * )TokenStart)[TokenLen-1]=='}')
         {
+            if(TokenLen>1) {
+                BlankStart=NextTokenStart=((char * )TokenStart)+TokenLen-1;
+                RetNum=ERR_NOTMINE_SPLITTOKEN;
+                return;
+            }
+
+
             if(CurrentConstruct!=MKPROLOG(LIBRARY_NUMBER,0)) {
                 RetNum=ERR_SYNTAX;
                 return;
@@ -2229,8 +2241,6 @@ void LIB_HANDLER()
         // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
         libCompileCmds(LIBRARY_NUMBER,LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
 
-        // SINCE THIS IS THE LAST LIBRARY TO BE EVALUATED, DO ONE LAST PASS TO COMPILE IT AS AN IDENT
-        // EITHER LAM OR IN USEROB
         return;
 
     case OPCODE_DECOMPILE:
@@ -2257,15 +2267,15 @@ void LIB_HANDLER()
         // THIS LIBRARY. EVERY COMPOSITE HAS TO EVALUATE IF THE OBJECT BEING COMPILED IS ALLOWED INSIDE THIS
         // COMPOSITE OR NOT. FOR EXAMPLE, A REAL MATRIX SHOULD ONLY ALLOW REAL NUMBERS INSIDE, ANY OTHER
         // OPCODES SHOULD BE REJECTED AND AN ERROR THROWN.
-        // TokenStart = token string
-        // TokenLen = token length
-        // ArgNum2 = Opcode/WORD of object
+        // Library receives:
+        // CurrentConstruct = SET TO THE CURRENT ACTIVE CONSTRUCT TYPE
+        // LastCompiledObject = POINTER TO THE LAST OBJECT THAT WAS COMPILED, THAT NEEDS TO BE VERIFIED
 
         // VALIDATE RETURNS:
-        // RetNum =  enum CompileErrors
+        // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
 
 
-
+        RetNum=OK_CONTINUE;
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR

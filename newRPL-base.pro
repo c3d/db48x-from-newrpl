@@ -56,7 +56,8 @@ SOURCES += main.cpp \
     cordic_K_comp.c \
     cordic_Kh_comp.c \
     lists.c \
-    lib-50-lists.c
+    lib-50-lists.c \
+    lib-26-complex.c
 
 HEADERS += \
     libraries.h \

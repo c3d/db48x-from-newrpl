@@ -19,6 +19,7 @@ extern void lib16_handler();
 extern void lib20_handler();
 extern void lib22_handler();
 extern void lib24_handler();
+extern void lib26_handler();
 
 
 extern void lib50_handler();
@@ -102,7 +103,8 @@ LIBHANDLER ROMLibs[]={
 
     dummy_libhandler,
 
-    dummy_libhandler,
+    // COMPLEX NUMBERS
+    lib26_handler,
 
 
     dummy_libhandler,

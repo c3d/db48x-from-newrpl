@@ -663,7 +663,7 @@ int main()
 
 
     Refresh();
-
+/*
     if(testprogram) {
 
         WORDPTR ptr=rplCompile(testprogram,strlen((char *)testprogram),1);
@@ -671,7 +671,7 @@ int main()
 
 
     }
-
+*/
 
     do {
 

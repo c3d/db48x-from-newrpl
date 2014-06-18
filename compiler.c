@@ -34,7 +34,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
     CompileEnd=TempObEnd;
 
     // START COMPILATION LOOP
-    BINT force_libnum;
+    BINT force_libnum,splittoken,validate;
     LIBHANDLER handler,ValidateHandler;
     BINT libcnt,libnum;
 
@@ -44,6 +44,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
     ValidateHandler=NULL;
 
     force_libnum=-1;
+    splittoken=0;
 
     if(addwrapper) {
         rplCompileAppend(MKPROLOG(DOCOL,0));
@@ -62,16 +63,19 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
 
     do {
+        if(!splittoken) {
         TokenStart=NextTokenStart;
         BlankStart=TokenStart;
         while( (BlankStart<CompileStringEnd) && (*((char *)BlankStart)!=' ') && (*((char *)BlankStart)!='\t') && (*((char *)BlankStart)!='\n') && (*((char *)BlankStart)!='\r')) BlankStart=(WORDPTR)(((char *)BlankStart)+1);
         NextTokenStart=BlankStart;
         while( (NextTokenStart<CompileStringEnd) && ((*((char *)NextTokenStart)==' ') || (*((char *)NextTokenStart)=='\t') || (*((char *)NextTokenStart)=='\n') || (*((char *)NextTokenStart)=='\r'))) NextTokenStart=(WORDPTR)(((char *)NextTokenStart)+1);;
+        } else splittoken=0;
 
         TokenLen=(BINT)((BYTEPTR)BlankStart-(BYTEPTR)TokenStart);
         BlankLen=(BINT)((BYTEPTR)NextTokenStart-(BYTEPTR)BlankStart);
         CurrentConstruct=(BINT)((ValidateTop>RSTop)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
-
+        ValidateHandler=rplGetLibHandler(LIBNUM(CurrentConstruct));
+        LastCompiledObject=CompileEnd;
         if(force_libnum<0) {
             // SCAN THROUGH ALL THE LIBRARIES, FROM HIGH TO LOW, TO SEE WHICH ONE WANTS THE TOKEN
             libcnt=MAXLOWLIBS+NumHiLibs-1;
@@ -98,20 +102,32 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                 case OK_CONTINUE:
                     libcnt=EXIT_LOOP;
                     force_libnum=-1;
+                    validate=1;
                     break;
+                case OK_CONTINUE_NOVALIDATE:
+                    libcnt=EXIT_LOOP;
+                    force_libnum=-1;
+                    break;
+
                 case OK_STARTCONSTRUCT:
                     if(RStkSize<=(ValidateTop-RStk)) growRStk(ValidateTop-RStk+RSTKSLACK);
                     if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
                     *ValidateTop++=CompileEnd-1; // POINTER TO THE WORD OF THE COMPOSITE, NEEDED TO STORE THE SIZE
                     libcnt=EXIT_LOOP;
                     force_libnum=-1;
-
+                    validate=1;
                     break;
                 case OK_CHANGECONSTRUCT:
                     *(ValidateTop-1)=CompileEnd-1; // POINTER TO THE WORD OF THE COMPOSITE, NEEDED TO STORE THE SIZE
                     libcnt=EXIT_LOOP;
                     force_libnum=-1;
                     break;
+                case OK_INCARGCOUNT:
+                    *(ValidateTop-1)=*(ValidateTop-1)+1; // POINTER TO THE WORD OF THE COMPOSITE, TEMPORARILY STORE THE NUMBER OF ARGUMENTS AS THE SIZE
+                    libcnt=EXIT_LOOP;
+                    force_libnum=-1;
+                    break;
+
                 case OK_ENDCONSTRUCT:
                     --ValidateTop;
                     if(ValidateTop<RSTop) {
@@ -120,7 +136,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         LAMTop=LAMTopSaved;
                         return 0;
                     }
-                    if(ISPROLOG((BINT)**ValidateTop)) **ValidateTop|= (((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1;    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
+                    if(ISPROLOG((BINT)**ValidateTop)) **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | ((((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1);    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
                     libcnt=EXIT_LOOP;
                     force_libnum=-1;
                     break;
@@ -135,16 +151,32 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     *ValidateTop++=CompileEnd-1; // POINTER TO THE WORD OF THE COMPOSITE, NEEDED TO STORE THE SIZE
                     force_libnum=libnum;
                     libcnt=EXIT_LOOP;
+                    validate=1;
                     break;
-
-                case OK_STARTVALIDATE:
-                    if(!ValidateHandler) ValidateHandler=handler;
+                case OK_SPLITTOKEN:
+                    splittoken=1;
                     libcnt=EXIT_LOOP;
                     force_libnum=-1;
+                    validate=1;
+                    break;
+                case OK_STARTCONSTRUCT_SPLITTOKEN:
+                    if(RStkSize<=(ValidateTop-RStk)) growRStk(ValidateTop-RStk+RSTKSLACK);
+                    if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
+                    *ValidateTop++=CompileEnd-1; // POINTER TO THE WORD OF THE COMPOSITE, NEEDED TO STORE THE SIZE
+                    splittoken=1;
+                    libcnt=EXIT_LOOP;
+                    force_libnum=-1;
+                    validate=1;
                     break;
 
                 case ERR_NOTMINE:
                     break;
+                case ERR_NOTMINE_SPLITTOKEN:
+                    splittoken=1;
+                    libcnt=EXIT_LOOP;
+                    force_libnum=-1;
+                    break;
+
                 case ERR_INVALID:
                 case ERR_SYNTAX:
                     Exceptions|=EX_SYNTAXERROR;
@@ -162,8 +194,30 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                 }
 
         // HERE WE HAVE A COMPILED OPCODE
-        // TODO: VALIDATE THE OPCODE WITH THE CURRENT VALIDATION LIBRARY
 
+    // SUBMIT THE LAST COMPILED OBJECT FOR VALIDATION WITH THE CURRENT CONSTRUCT
+    if(validate) {
+        if(ValidateHandler) {
+            // CALL THE LIBRARY TO SEE IF IT'S OK TO HAVE THIS OBJECT
+            CurOpcode=MKOPCODE(LIBNUM(CurrentConstruct),OPCODE_VALIDATE);
+            (*ValidateHandler)();
+
+            switch(RetNum)
+            {
+            case OK_INCARGCOUNT:
+                **(ValidateTop-1)=**(ValidateTop-1)+1; // POINTER TO THE WORD OF THE COMPOSITE, TEMPORARILY STORE THE NUMBER OF ARGUMENTS AS THE SIZE
+                break;
+
+                case ERR_INVALID:
+                Exceptions|=EX_SYNTAXERROR;
+                ExceptionPointer=IPtr;
+                LAMTop=LAMTopSaved;
+                return 0;
+            }
+
+        }
+        validate=0;
+    }
 
     } while( (NextTokenStart<CompileStringEnd) && !Exceptions );
 
