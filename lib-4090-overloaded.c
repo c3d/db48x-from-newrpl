@@ -42,6 +42,7 @@
     OP(AND), \
     OP(OR), \
     OP(XOR), \
+    OP(CMP), \
     OP(ADD), \
     OP(SUB), \
     OP(MUL), \
@@ -77,15 +78,16 @@ void rplCallOvrOperator(WORD op)
 {
     int nargs=OVR_GETNARGS(op);
     int libnum=0;
+    WORDPTR ptr;
     if(nargs>rplDepthData()) {
         Exceptions=EX_BADARGCOUNT;
         ExceptionPointer=IPtr;
         return;
     }
     while(nargs) {
-        // CHECK EACH ARGUMENT, BUT STORE IN A GC-SAFE POINTER
-        ScratchPointer1=rplPeekData(nargs);
-        if(LIBNUM(*ScratchPointer1)>(WORD)libnum) libnum=LIBNUM(*ScratchPointer1);
+        // CHECK EACH ARGUMENT
+        ptr=rplPeekData(nargs);
+        if(LIBNUM(*ptr)>(WORD)libnum) libnum=LIBNUM(*ptr);
         --nargs;
     }
     LIBHANDLER han=rplGetLibHandler(libnum);

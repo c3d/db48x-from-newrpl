@@ -87,15 +87,18 @@ extern void libDecompileCmds(char *libnames[], int libopcodes[], int numcmds);
 #define DOIDENT     20      // THIS IS FOR QUOTED IDENTS, BEING PUSHED IN THE STACK
 #define DOIDENTEVAL  21     // LIBRARY THAT EVALUATES THE IDENT IMMEDIATELY (UNQUOTED IDENTS, LAMS ARE PUSHED IN TEH STACK)
 #define DODIR       22      // DIRECTORY OBJECTS
+#define DOCMPLX     26
 #define DOLIST      50
 
 #define ISIDENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOIDENT)||(LIBNUM(prolog)==DOIDENTEVAL)) )
 #define ISBINT(prolog) ( ((OPCODE(prolog)<0x400000) || ISPROLOG(prolog)) && ((LIBNUM(prolog)>=BINBINT) && (LIBNUM(prolog)<=HEXBINT)))
 #define ISLIST(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIST))
 #define ISREAL(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOREAL)))
+#define ISCOMPLEX(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCMPLX)))
 #define ISPROGRAM(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCOL) || (LIBNUM(prolog)==SECO)))
 
 #define ISNUMBER(prolog) (ISBINT(prolog)||ISREAL(prolog))
+#define ISNUMBERCPLX(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISCOMPLEX(prolog))
 #define ISSTRING(prolog) ((LIBNUM(prolog)&~3)==DOSTRING)
 
 // THIS IS TO CHECK IF AN OBJECT IS "FALSE", WHICH CAN BE THE BINT0 OR THE REAL0
@@ -170,6 +173,8 @@ extern void libDecompileCmds(char *libnames[], int libopcodes[], int numcmds);
 #define OVR_OR    OVR_OPERATORS+OVR_BINARY+9
 #define OVRT_XOR        "XOR"
 #define OVR_XOR    OVR_OPERATORS+OVR_BINARY+10
+#define OVRT_CMP        "CMP"
+#define OVR_CMP    OVR_OPERATORS+OVR_BINARY+11
 
 
 // BASIC OPERATORS

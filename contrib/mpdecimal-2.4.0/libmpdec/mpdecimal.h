@@ -281,7 +281,7 @@ typedef struct mpd_context_t {
 
 
 #define MPD_MINALLOC_MIN 2
-#define MPD_MINALLOC_MAX 64
+#define MPD_MINALLOC_MAX 2
 extern mpd_ssize_t MPD_MINALLOC;
 extern void (* mpd_traphandler)(mpd_context_t *);
 void mpd_dflt_traphandler(mpd_context_t *);

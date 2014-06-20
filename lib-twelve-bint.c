@@ -185,16 +185,20 @@ BINT64 rplReadNumberAsBINT(WORDPTR number)
 // CAREFUL!
 // dec SHOULD BE UNINITIALIZED (WITH NO STORAGE ALLOCATED)
 // DO **NOT** USE WITH RREG REGISTERS OR DATA CORRUPTION MIGHT OCCUR!!
-// USES RREG[8] AS TEMPORARY DATA STORAGE FOR dec
+// TEMPORARY DATA STORAGE FOR UP TO 4 NUMBERS
+// IF CALLED MORE THAN 4 TIMES IT MIGHT OVERWRITE THE PREVIOUS
+
 void rplReadNumberAsReal(WORDPTR number,mpd_t*dec)
 {
     if(ISREAL(*number)) rplReadReal(number,dec);
     else if(ISBINT(*number))  {
         // PROVIDE STORAGE
-        dec->alloc=RReg[8].alloc;
-        dec->data=RReg[8].data;
+        dec->alloc=BINT_REGISTER_STORAGE;
+        dec->data=RDigits+BINT2RealIdx*BINT_REGISTER_STORAGE;
         dec->flags=MPD_STATIC|MPD_STATIC_DATA;
         mpd_set_i64(dec,rplReadBINT(number),&Context);
+        ++BINT2RealIdx;
+        if(BINT2RealIdx>=BINT_REGISTER_STORAGE) BINT2RealIdx=0;
     }
     else {
         Exceptions|=EX_BADARGTYPE;
@@ -687,6 +691,32 @@ void LIB_HANDLER()
             if(op1||op2) rplNewSINTPush(1,DECBINT);
             else rplNewSINTPush(0,DECBINT);
             return;
+
+        case OVR_CMP:
+        {
+        if(op1type||op2type) {
+            if(op1type) {
+                rplBINTToRReg(0,op2);
+                int res=mpd_cmp(&rop1,&RReg[0],&Context);
+                rplNewSINTPush(res,DECBINT);
+            }
+            if(op2type) {
+                rplBINTToRReg(0,op1);
+                int res=mpd_cmp(&RReg[0],&rop2,&Context);
+                rplNewSINTPush(res,DECBINT);
+                }
+            return;
+            }
+
+            if(op1>op2) rplNewSINTPush(1,DECBINT);
+            else if(op1<op2) rplNewSINTPush(-1,DECBINT);
+                else rplNewSINTPush(0,DECBINT);
+            return;
+        }
+
+
+
+
 
 
         case OVR_INV:

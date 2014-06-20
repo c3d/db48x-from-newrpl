@@ -101,5 +101,6 @@ extern mpd_t RReg[REAL_REGISTERS];
 // TEMPORARY SCRATCH MEMORY FOR DIGITS
 extern mpd_uint_t RDigits[REAL_SCRATCHMEM];
 
+extern BINT BINT2RealIdx;
 
 #endif // SYSVARS_H

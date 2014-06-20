@@ -228,13 +228,15 @@ void rplInit(void)
     for(count=0;count<REAL_REGISTERS;++count)
     {
         RReg[count].alloc=REAL_REGISTER_STORAGE;  // NUMBER OF ALLOCATED WORDS
-        RReg[count].data=RDigits+count*(REAL_PRECISION_MAX*2/9);
+        RReg[count].data=RDigits+EXTRA_STORAGE+count*REAL_REGISTER_STORAGE;
         RReg[count].flags=MPD_STATIC|MPD_STATIC_DATA;
         RReg[count].digits=0;
         RReg[count].exp=0;
         RReg[count].len=1;
         RReg[count].digits=0;
     }
+    // INITIALIZE TEMP STORAGE FOR INTEGER TO REAL CONVERSION
+    BINT2RealIdx=0;
 
     // SET ERROR TRAP HANDLER
     mpd_traphandler=&MPDTrapHandler;

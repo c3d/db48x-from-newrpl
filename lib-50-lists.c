@@ -29,7 +29,8 @@
     CMD(GETI), \
     CMD(HEAD), \
     CMD(TAIL), \
-    CMD(ADD)
+    CMD(ADD), \
+    CMD(SORT)
 
 // ADD MORE OPCODES HERE
 
@@ -213,6 +214,33 @@ const WORD const deltalist_seco[]={
     MKOPCODE(LIBRARY_NUMBER,DELTAERR),     // ERROR HANDLER
     CMD_SEMI
 };
+
+
+// COMPARE TWO ITEMS WITHIN A LIST, BY CALLING THE OPERATOR CMP
+// OPERATOR CMP MUST RETURN -1, 0 OR 1 IF B>A, B==A, OR A>B RESPECTIVELY
+
+BINT rplListItemCompare(WORDPTR a,WORDPTR b)
+{
+
+    rplPushData(a);
+    rplPushData(b);
+    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_CMP));
+    if(Exceptions) return 0;
+    BINT r=rplReadBINT(rplPopData());
+    if(r==0) return (BINT)(a-b);
+    return r;
+
+}
+
+
+
+
+
+
+
+
+
+
 
 
 void LIB_HANDLER()
@@ -648,6 +676,70 @@ void LIB_HANDLER()
     }
 
         return;
+
+    case SORT:
+    {
+        // CHECK ARGUMENTS
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        WORDPTR list=rplPeekData(1);
+
+        if(!ISLIST(*list)) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        BINT nitems=rplListLength(list);
+
+        if(nitems<2) return;
+
+        rplDropData(1);
+
+        rplExplodeList(list);
+        if(Exceptions) return;
+
+
+        // PERFORM BINARY INSERTION SORT
+
+        WORDPTR *ptr,*ptr2,*endlimit,*startlimit,save;
+        WORDPTR *left,*right;
+
+        startlimit=DSTop-nitems;    // POINT TO SECOND ELEMENT IN THE LIST
+        endlimit=DSTop-1;           // POINT AFTER THE LAST ELEMENT
+
+        for(ptr=startlimit;ptr<endlimit;++ptr)
+        {
+            save=*ptr;
+
+            left=startlimit-1;
+            right=ptr-1;
+            if(rplListItemCompare(*right,save)>0) {
+               if(rplListItemCompare(save,*left)>0) {
+            while(right-left>1) {
+                if(rplListItemCompare(*(left+(right-left)/2),save)>0) {
+                    right=left+(right-left)/2;
+                }
+                else {
+                    left=left+(right-left)/2;
+                }
+            }
+               } else right=left;
+            // INSERT THE POINTER RIGHT BEFORE right
+            for(ptr2=ptr;ptr2>right; ptr2-=1 ) *ptr2=*(ptr2-1);
+            //memmove(right+1,right,(ptr-right)*sizeof(WORDPTR));
+            *right=save;
+            }
+        }
+
+        rplCreateList();
+        return;
+    }
+
+
     case ENDLIST:
         return;
     case TOLIST:

@@ -139,6 +139,45 @@ void rplRRegToRealPush(int num)
     rplPushData(newreal);
 }
 
+// STORE A REAL IN dest, AND RETURN A POINTER RIGHT AFTER THE OBJECT
+// DOES NOT ALLOCATE MEMORY FROM THE SYSTEM
+// USED INTERNALLY FOR COMPOSITE OBJECTS
+
+WORDPTR rplRRegToRealInPlace(int num,WORDPTR dest)
+{
+
+    REAL_HEADER real;
+    BINT correction;
+
+    // REMOVE ALL TRAILING ZEROES
+    correction=0;
+    while(correction<RReg[num].len-1)
+    {
+        if(RReg[num].data[correction]!=0) break;
+        ++correction;
+    }
+
+
+    // WRITE THE PROLOG
+    *dest=MKPROLOG(LIBRARY_NUMBER,1+RReg[num].len-correction);
+    // PACK THE INFORMATION
+    real.flags=RReg[num].flags&0xf;
+    real.len=RReg[num].len-correction;
+    real.digits=RReg[num].digits-((RReg[num].len-1)*9);
+    real.exp=RReg[num].exp+correction*9;
+    // STORE THE PACKED EXPONENT WORD
+    dest[1]=real.word;
+
+    BINT count;
+    for(count=0;count<RReg[num].len-correction;++count) {
+        dest[count+2]=(RReg[num].data[count+correction]);      // STORE ALL THE MANTISSA WORDS
+    }
+
+    return dest+count+2;
+
+}
+
+
 
 void LIB_HANDLER()
 {
@@ -267,6 +306,10 @@ void LIB_HANDLER()
             if(mpd_iszero(&Darg1)&&mpd_iszero(&Darg2)) rplNewSINTPush(0,DECBINT);
             else rplNewSINTPush(1,DECBINT);
             return;
+        case OVR_CMP:
+            rplNewSINTPush(mpd_cmp(&Darg1,&Darg2,&Context),DECBINT);
+            return;
+
 
 
 
