@@ -30,7 +30,8 @@
     CMD(HEAD), \
     CMD(TAIL), \
     CMD(ADD), \
-    CMD(SORT)
+    CMD(SORT), \
+    CMD(REVLIST)
 
 // ADD MORE OPCODES HERE
 
@@ -739,6 +740,50 @@ void LIB_HANDLER()
         return;
     }
 
+    case REVLIST:
+     {
+        // CHECK ARGUMENTS
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        WORDPTR list=rplPeekData(1);
+
+        if(!ISLIST(*list)) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        BINT nitems=rplListLength(list);
+
+        if(nitems<2) return;
+
+        rplDropData(1);
+
+        rplExplodeList(list);
+        if(Exceptions) return;
+
+
+        // REVERSE ALL ELEMENTS IN THE LIST
+
+        WORDPTR *endlimit,*startlimit,save;
+
+        startlimit=DSTop-nitems-1;    // POINT TO FIRST ELEMENT IN THE LIST
+        endlimit=DSTop-2;           // POINT TO THE LAST ELEMENT
+
+        while(endlimit>startlimit) {
+            save=*endlimit;
+            *endlimit=*startlimit;
+            *startlimit=save;
+            ++startlimit;
+            --endlimit;
+        }
+
+        rplCreateList();
+        return;
+    }
 
     case ENDLIST:
         return;

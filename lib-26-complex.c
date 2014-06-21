@@ -228,10 +228,10 @@ void LIB_HANDLER()
 
         case OVR_DIV:
 
-            // (a+b*i)/(c+d*i) = (a+b*i)*(c-d*i)/((c+d*i)*(c-d*i)) = (a*c-b*d)/(c^2+d^2) + (b*c-a*d)/(c^2+d^2)*i
+            // (a+b*i)/(c+d*i) = (a+b*i)*(c-d*i)/((c+d*i)*(c-d*i)) = (a*c+b*d)/(c^2+d^2) + (b*c-a*d)/(c^2+d^2)*i
             mpd_mul(&RReg[0],&Rarg1,&Rarg2,&Context);
             mpd_mul(&RReg[1],&Iarg1,&Iarg2,&Context);
-            mpd_sub(&RReg[2],&RReg[0],&RReg[1],&Context);
+            mpd_add(&RReg[2],&RReg[0],&RReg[1],&Context);
             mpd_mul(&RReg[0],&Iarg1,&Rarg2,&Context);
             mpd_mul(&RReg[1],&Rarg1,&Iarg2,&Context);
             mpd_sub(&RReg[3],&RReg[0],&RReg[1],&Context);
@@ -247,21 +247,68 @@ void LIB_HANDLER()
             return;
 
         case OVR_POW:
+        {
+            mpd_mul(&RReg[0],&Rarg1,&Rarg1,&Context);
+            mpd_mul(&RReg[1],&Iarg1,&Iarg1,&Context);
+            mpd_add(&RReg[2],&RReg[0],&RReg[1],&Context);
 
-            // TODO: THIS IS NOT SO TRIVIAL
+            hyp_sqrt(&RReg[2]);
+
+            // RReg[8] = r
+            mpd_copy(&RReg[8],&RReg[0],&Context);
+
+            trig_atan2(&Iarg1,&Rarg1);
+
+            // RReg[9]=Theta
+            mpd_copy(&RReg[9],&RReg[0],&Context);
+
+            // HERE WE HAVE 'Z' IN POLAR COORDINATES
+
+            if(mpd_iszero(&Iarg2)) {
+                // REAL POWER OF A COMPLEX NUMEBR
+                //Z^n= e^(ln(Z^n)) = e^(n*ln(Z)) = e^(n*[ln(r)+i*Theta)
+                //Z^n= e^(n*ln(r))*e^(i*Theta*n) = r^n * e(i*Theta*n)
+                //Z^n= r^n * cos(Theta*n) + i* r^n * sin(Theta*n)
+
+                hyp_ln(&RReg[8]);
+
+                // RReg[8]=n*ln(r);
+                mpd_mul(&RReg[2],&RReg[0],&Rarg2,&Context);
+
+                hyp_exp(&RReg[2]);
+
+                // RReg[8]=r^n
+                mpd_copy(&RReg[8],&RReg[0],&Context);
+
+
+                mpd_mul(&RReg[2],&Rarg2,&RReg[9],&Context);
+
+                trig_sincos(&RReg[2]);
+
+                // RESULT IS RReg[6]=cos(Theta*n) AND RReg[7]=sin(Theta*n)
+
+                // RReg[0]=r^n*cos(Theta*n)
+                mpd_mul(&RReg[0],&RReg[6],&RReg[8],&Context);
+                mpd_mul(&RReg[1],&RReg[7],&RReg[8],&Context);
+
+
+                rplRRegToComplexPush(0,1);
+                return;
+            }
+
+            // TODO: COMPLEX NUMBER TO COMPLEX POWER
 
             return;
-/*
+        }
         case OVR_EQ:
-
-            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplNewSINTPush(0,DECBINT);
+         if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplNewSINTPush(0,DECBINT);
             else rplNewSINTPush(1,DECBINT);
             return;
-
         case OVR_NOTEQ:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
-            return;
+            if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplNewSINTPush(1,DECBINT);
+               else rplNewSINTPush(0,DECBINT);
+               return;
+/*
         case OVR_LT:
             if(mpd_cmp(&Darg1,&Darg2,&Context)==-1) rplNewSINTPush(1,DECBINT);
             else rplNewSINTPush(0,DECBINT);
@@ -278,42 +325,68 @@ void LIB_HANDLER()
             if(mpd_cmp(&Darg1,&Darg2,&Context)!=-1) rplNewSINTPush(1,DECBINT);
             else rplNewSINTPush(0,DECBINT);
             return;
+*/
         case OVR_SAME:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplNewSINTPush(0,DECBINT);
-            else rplNewSINTPush(1,DECBINT);
-            return;
+            if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplNewSINTPush(0,DECBINT);
+               else rplNewSINTPush(1,DECBINT);
+               return;
         case OVR_AND:
-            if(mpd_iszero(&Darg1)||mpd_iszero(&Darg2)) rplNewSINTPush(0,DECBINT);
+            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))||(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplNewSINTPush(0,DECBINT);
             else rplNewSINTPush(1,DECBINT);
             return;
         case OVR_OR:
-            if(mpd_iszero(&Darg1)&&mpd_iszero(&Darg2)) rplNewSINTPush(0,DECBINT);
+            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplNewSINTPush(0,DECBINT);
             else rplNewSINTPush(1,DECBINT);
             return;
-
-
-
+        case OVR_XOR:
+            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplNewSINTPush(0,DECBINT);
+            else {
+                if( !(mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&!(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplNewSINTPush(0,DECBINT);
+                else rplNewSINTPush(1,DECBINT);
+            }
+            return;
 
         case OVR_INV:
-            rplOneToRReg(1);
-            mpd_div(&RReg[0],&RReg[1],&Darg1,&Context);
-            rplRRegToRealPush(0);
-            return;
+                // 1/(a+b*i) = (a/(a^2+b^2) - b/(a^2/b^2) i
+                if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1)) ) {
+                    Exceptions|=EX_MATHDIVZERO;
+                    ExceptionPointer=IPtr;
+                    return;
+                }
+
+                mpd_mul(&RReg[2],&Rarg1,&Rarg1,&Context);
+                mpd_mul(&RReg[3],&Iarg1,&Iarg1,&Context);
+                mpd_add(&RReg[4],&RReg[2],&RReg[3],&Context);
+                mpd_div(&RReg[0],&Rarg1,&RReg[4],&Context);
+                mpd_div(&RReg[1],&Iarg1,&RReg[4],&Context);
+                RReg[1].flags^=MPD_NEG;
+                rplRRegToComplexPush(0,1);
+
+                return;
+
         case OVR_NEG:
-            mpd_qminus(&RReg[0],&Darg1,&Context,(uint32_t *)&status);
-            rplRRegToRealPush(0);
+            mpd_qminus(&RReg[0],&Rarg1,&Context,(uint32_t *)&status);
+            mpd_qminus(&RReg[1],&Iarg1,&Context,(uint32_t *)&status);
+            rplRRegToComplexPush(0,1);
             return;
         case OVR_ABS:
-            mpd_abs(&RReg[0],&Darg1,&Context);
-            rplRRegToRealPush(0);
-            return;
+                mpd_mul(&RReg[2],&Rarg1,&Rarg1,&Context);
+                mpd_mul(&RReg[3],&Iarg1,&Iarg1,&Context);
+                mpd_add(&RReg[0],&RReg[2],&RReg[3],&Context);
+
+                hyp_sqrt(&RReg[0]);
+
+                rplRRegToRealPush(0);
+                return;
         case OVR_NOT:
-            if(mpd_iszero(&Darg1)) rplOneToRReg(0);
+            if(mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1)) rplOneToRReg(0);
             else rplZeroToRReg(0);
-            rplRRegToRealPush(0);
+            rplRRegToComplexPush(0,0);
             return;
 
-*/
+
+
+
         case OVR_EVAL:
         case OVR_XEQ:
             // NOTHING TO DO, JUST KEEP THE ARGUMENT IN THE STACK

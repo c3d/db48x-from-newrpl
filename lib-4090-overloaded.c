@@ -20,7 +20,7 @@
 #define LIB_HANDLER lib4090_handler
 #define LIB_NAMES lib4090_names
 #define LIB_OPCODES lib4090_opcodes
-#define LIB_NUMCMDS 22
+#define LIB_NUMCMDS 23
 
 
 // GET LIST OF OVELOADABLE OPERATORS AS DEFINED IN <libraries.h>

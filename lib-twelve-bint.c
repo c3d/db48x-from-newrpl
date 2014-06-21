@@ -198,7 +198,7 @@ void rplReadNumberAsReal(WORDPTR number,mpd_t*dec)
         dec->flags=MPD_STATIC|MPD_STATIC_DATA;
         mpd_set_i64(dec,rplReadBINT(number),&Context);
         ++BINT2RealIdx;
-        if(BINT2RealIdx>=BINT_REGISTER_STORAGE) BINT2RealIdx=0;
+        if(BINT2RealIdx>=BINT2REAL) BINT2RealIdx=0;
     }
     else {
         Exceptions|=EX_BADARGTYPE;
