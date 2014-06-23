@@ -21,19 +21,22 @@
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
     CMD(RE), \
-    CMD(IM)
+    CMD(IM), \
+    CMD(ARG), \
+    CMD(CONJ)
 
 // ADD MORE OPCODES HERE
 
 
 // EXTRA LIST FOR COMMANDS WITH SYMBOLS THAT ARE DISALLOWED IN AN ENUM
 // THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
-/*
 #define CMD_EXTRANAME \
-    ""
+    "C->R", \
+    "R->C"
 #define CMD_EXTRAENUM \
-    NOP
-*/
+    CPLX2REAL, \
+    REAL2CPLX
+
 //
 
 // INTERNAL DECLARATIONS
@@ -41,12 +44,12 @@
 
 // CREATE AN ENUM WITH THE OPCODE NAMES FOR THE DISPATCHER
 #define CMD(a) a
-enum LIB_ENUM { CMD_LIST /*, CMD_EXTRAENUM*/ , LIB_NUMBEROFCMDS };
+enum LIB_ENUM { CMD_LIST , CMD_EXTRAENUM , LIB_NUMBEROFCMDS };
 #undef CMD
 
 // AND A LIST OF STRINGS WITH THE NAMES FOR THE COMPILER
 #define CMD(a) #a
-char *LIB_NAMES[]= { CMD_LIST /*, CMD_EXTRANAME */ };
+char *LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME  };
 #undef CMD
 
 // USED TO DEFINE A REAL CONSTANT ZERO
@@ -371,22 +374,14 @@ void LIB_HANDLER()
                else rplNewSINTPush(0,DECBINT);
                return;
 /*
+        // COMPARISONS ARE NOT DEFINED FOR COMPLEX NUMBERS
         case OVR_LT:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)==-1) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
-            return;
         case OVR_GT:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)==1) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
-            return;
         case OVR_LTE:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)!=1) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
-            return;
         case OVR_GTE:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)!=-1) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
-            return;
+
+
+
 */
         case OVR_SAME:
             if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplNewSINTPush(0,DECBINT);
@@ -488,6 +483,157 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
+
+    case RE:
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(!ISNUMBERCPLX(*rplPeekData(1))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(ISCOMPLEX(*rplPeekData(1))) {
+            WORDPTR real=rplPeekData(1)+1;
+            rplOverwriteData(1,real);
+        }
+        // IF IT IS A REAL NUMBER, THEN LEAVE THE REAL ON THE STACK
+        return;
+
+    case IM:
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(!ISNUMBERCPLX(*rplPeekData(1))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(ISCOMPLEX(*rplPeekData(1))) {
+            WORDPTR imag=rplSkipOb(rplPeekData(1)+1);
+            rplOverwriteData(1,imag);
+        } else {
+            // NON-COMPLEX NUMBERS HAVE IMAGINARY PART = 0
+            rplDropData(1);
+            rplNewSINTPush(0,DECBINT);
+        }
+        return;
+    case ARG:
+    {
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(!ISNUMBERCPLX(*rplPeekData(1))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+            mpd_t real,imag;
+
+            rplReadCNumberAsReal(rplPeekData(1),&real);
+            rplReadCNumberAsImag(rplPeekData(1),&imag);
+
+            trig_atan2(&imag,&real);
+
+            BINT exponent=Context.prec-RReg[0].digits-RReg[0].exp;
+            RReg[0].exp+=exponent;
+            mpd_round_to_intx(&RReg[2],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
+            RReg[2].exp-=exponent;
+            mpd_reduce(&RReg[0],&RReg[2],&Context);
+
+            rplDropData(1);
+            rplRRegToRealPush(0);
+
+        return;
+    }
+    case CONJ:
+    {
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(!ISNUMBERCPLX(*rplPeekData(1))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+            mpd_t real,imag;
+
+            rplReadCNumberAsReal(rplPeekData(1),&real);
+            rplReadCNumberAsImag(rplPeekData(1),&imag);
+            mpd_copy(&RReg[0],&real,&Context);
+            mpd_copy_negate(&RReg[1],&imag,&Context);
+
+            rplDropData(1);
+            rplRRegToComplexPush(0,1);
+
+        return;
+    }
+
+
+
+    case CPLX2REAL:
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(!ISCOMPLEX(*rplPeekData(1))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        ScratchPointer1=rplPeekData(1);
+        rplPushData(ScratchPointer1+1);
+        rplPushData(rplSkipOb(ScratchPointer1+1));
+    return;
+
+    case REAL2CPLX:
+    {
+        if(rplDepthData()<2) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(!ISNUMBER(*rplPeekData(1)) || !ISNUMBER(*rplPeekData(2))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        // CONSTRUCT THE COMPLEX NUMBER
+        BINT sizer=rplObjSize(rplPeekData(2));
+        BINT sizei=rplObjSize(rplPeekData(1));
+        WORDPTR newcplx=rplAllocTempOb(sizer+sizei);
+        if(!newcplx) {
+            Exceptions|=EX_OUTOFMEM;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        *newcplx=MKPROLOG(LIBRARY_NUMBER,sizer+sizei);
+        rplCopyObject(newcplx+1,rplPeekData(2));
+        rplCopyObject(newcplx+1+sizer,rplPeekData(1));
+
+        rplDropData(2);
+        rplPushData(newcplx);
+
+    return;
+    }
+
+
+
+
+
+
+
     // STANDARIZED OPCODES:
     // --------------------
     // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
