@@ -216,11 +216,13 @@ void LIB_HANDLER()
 
         case OVR_MUL:
 
+            Context.prec+=MPD_RDIGITS;
             mpd_mul(&RReg[0],&Rarg1,&Rarg2,&Context);
             mpd_mul(&RReg[1],&Iarg1,&Iarg2,&Context);
             mpd_sub(&RReg[2],&RReg[0],&RReg[1],&Context);
             mpd_mul(&RReg[0],&Rarg1,&Iarg2,&Context);
             mpd_mul(&RReg[1],&Iarg1,&Rarg2,&Context);
+            Context.prec-=MPD_RDIGITS;
             mpd_add(&RReg[3],&RReg[0],&RReg[1],&Context);
 
             rplRRegToComplexPush(2,3);
@@ -229,6 +231,7 @@ void LIB_HANDLER()
         case OVR_DIV:
 
             // (a+b*i)/(c+d*i) = (a+b*i)*(c-d*i)/((c+d*i)*(c-d*i)) = (a*c+b*d)/(c^2+d^2) + (b*c-a*d)/(c^2+d^2)*i
+            Context.prec+=MPD_RDIGITS;
             mpd_mul(&RReg[0],&Rarg1,&Rarg2,&Context);
             mpd_mul(&RReg[1],&Iarg1,&Iarg2,&Context);
             mpd_add(&RReg[2],&RReg[0],&RReg[1],&Context);
@@ -239,6 +242,8 @@ void LIB_HANDLER()
             mpd_mul(&RReg[1],&Iarg2,&Iarg2,&Context);
             mpd_add(&RReg[4],&RReg[0],&RReg[1],&Context);
 
+            Context.prec-=MPD_RDIGITS;
+
             mpd_div(&RReg[0],&RReg[2],&RReg[4],&Context);
             mpd_div(&RReg[1],&RReg[3],&RReg[4],&Context);
 
@@ -248,9 +253,14 @@ void LIB_HANDLER()
 
         case OVR_POW:
         {
+            Context.prec+=MPD_RDIGITS;
+
             mpd_mul(&RReg[0],&Rarg1,&Rarg1,&Context);
             mpd_mul(&RReg[1],&Iarg1,&Iarg1,&Context);
             mpd_add(&RReg[2],&RReg[0],&RReg[1],&Context);
+
+            Context.prec-=MPD_RDIGITS;
+
 
             hyp_sqrt(&RReg[2]);
 
@@ -270,18 +280,42 @@ void LIB_HANDLER()
                 //Z^n= e^(n*ln(r))*e^(i*Theta*n) = r^n * e(i*Theta*n)
                 //Z^n= r^n * cos(Theta*n) + i* r^n * sin(Theta*n)
 
+                if(mpd_iszero(&Rarg2)) {
+                    // Z^0 = 1, UNLESS Z=0
+
+                    if(mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1)) {
+                        Exceptions|=EX_UNDEFINED;
+                        ExceptionPointer=IPtr;
+                        return;
+                    }
+
+                    rplNewSINTPush(1,DECBINT);
+                    return;
+
+                }
+
                 hyp_ln(&RReg[8]);
+
+                Context.prec+=MPD_RDIGITS;
 
                 // RReg[8]=n*ln(r);
                 mpd_mul(&RReg[2],&RReg[0],&Rarg2,&Context);
 
+                Context.prec-=MPD_RDIGITS;
+
+
                 hyp_exp(&RReg[2]);
+
 
                 // RReg[8]=r^n
                 mpd_copy(&RReg[8],&RReg[0],&Context);
 
+                Context.prec+=MPD_RDIGITS;
 
                 mpd_mul(&RReg[2],&Rarg2,&RReg[9],&Context);
+
+                Context.prec-=MPD_RDIGITS;
+
 
                 trig_sincos(&RReg[2]);
 
@@ -297,6 +331,34 @@ void LIB_HANDLER()
             }
 
             // TODO: COMPLEX NUMBER TO COMPLEX POWER
+
+            // Z^w = e^ ( [a*ln(r) - b*Theta] ) * (cos[[b*ln(r)+a*Theta]+ i * sin[b*ln(r)+a*Theta] )
+            // SO FAR WE HAVE RREG[8]=r, RREG[9]=Theta
+
+            hyp_ln(&RReg[8]);
+
+            // RREG[0]=ln(r)
+            Context.prec+=MPD_RDIGITS;
+
+            mpd_mul(&RReg[1],&RReg[0],&Rarg2,&Context); // RReg[1]=a*ln(r)
+            mpd_mul(&RReg[2],&RReg[0],&Iarg2,&Context); // RReg[2]=b*ln(r)
+            mpd_mul(&RReg[3],&RReg[9],&Rarg2,&Context); // RReg[3]=a*Theta
+            mpd_mul(&RReg[4],&RReg[9],&Iarg2,&Context); // RReg[3]=b*Theta
+            mpd_sub(&RReg[8],&RReg[1],&RReg[4],&Context);   // RReg[8]=a*ln(r)-b*Theta
+            mpd_add(&RReg[9],&RReg[2],&RReg[3],&Context);   // RReg[9]=b*ln(r)+a*Theta
+
+            Context.prec-=MPD_RDIGITS;
+
+            hyp_exp(&RReg[8]);
+
+            mpd_copy(&RReg[8],&RReg[0],&Context);
+
+            trig_sincos(&RReg[9]);
+
+            mpd_mul(&RReg[0],&RReg[6],&RReg[8],&Context);
+            mpd_mul(&RReg[1],&RReg[7],&RReg[8],&Context);
+
+            rplRRegToComplexPush(0,1);
 
             return;
         }
@@ -354,9 +416,13 @@ void LIB_HANDLER()
                     return;
                 }
 
+                Context.prec+=MPD_RDIGITS;
+
                 mpd_mul(&RReg[2],&Rarg1,&Rarg1,&Context);
                 mpd_mul(&RReg[3],&Iarg1,&Iarg1,&Context);
                 mpd_add(&RReg[4],&RReg[2],&RReg[3],&Context);
+                Context.prec-=MPD_RDIGITS;
+
                 mpd_div(&RReg[0],&Rarg1,&RReg[4],&Context);
                 mpd_div(&RReg[1],&Iarg1,&RReg[4],&Context);
                 RReg[1].flags^=MPD_NEG;
@@ -370,11 +436,21 @@ void LIB_HANDLER()
             rplRRegToComplexPush(0,1);
             return;
         case OVR_ABS:
+                Context.prec+=MPD_RDIGITS;
                 mpd_mul(&RReg[2],&Rarg1,&Rarg1,&Context);
                 mpd_mul(&RReg[3],&Iarg1,&Iarg1,&Context);
                 mpd_add(&RReg[0],&RReg[2],&RReg[3],&Context);
 
+                Context.prec-=MPD_RDIGITS;
+
                 hyp_sqrt(&RReg[0]);
+
+                BINT exponent=Context.prec-RReg[0].digits-RReg[0].exp;
+                RReg[0].exp+=exponent;
+                mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
+                RReg[7].exp-=exponent;
+                mpd_reduce(&RReg[0],&RReg[7],&Context);
+
 
                 rplRRegToRealPush(0);
                 return;
