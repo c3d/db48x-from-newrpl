@@ -121,7 +121,7 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
-       // TODO: COMPILE IDENTS QUOTED AND UNQUOTED, AND IF CurrentConstruct== NEWLOCALENV THEN ADD QUOTES
+       // COMPILE IDENTS QUOTED AND UNQUOTED, AND IF CurrentConstruct== NEWLOCALENV THEN ADD QUOTES
         {
         BYTEPTR tok=(BYTEPTR )TokenStart;
         BINT len=TokenLen;

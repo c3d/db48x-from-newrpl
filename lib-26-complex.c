@@ -37,7 +37,7 @@
     CPLX2REAL, \
     REAL2CPLX
 
-//
+
 
 // INTERNAL DECLARATIONS
 
@@ -333,7 +333,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            // TODO: COMPLEX NUMBER TO COMPLEX POWER
+            // COMPLEX NUMBER TO COMPLEX POWER
 
             // Z^w = e^ ( [a*ln(r) - b*Theta] ) * (cos[[b*ln(r)+a*Theta]+ i * sin[b*ln(r)+a*Theta] )
             // SO FAR WE HAVE RREG[8]=r, RREG[9]=Theta

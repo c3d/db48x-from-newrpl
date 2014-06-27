@@ -27,6 +27,7 @@
 #define OPCODE_COMPILECONT  0x7FFFE
 #define OPCODE_DECOMPILE    0x7FFFD
 #define OPCODE_VALIDATE     0x7FFFC
+#define OPCODE_PROBETOKEN   0x7FFFB
 
 
 
@@ -50,6 +51,34 @@ extern BINT ROMLibs2Num[];
 #define ISPROLOG(p) ((((WORD)(p))>>19)&1)
 
 
+#define TI_LENGTH(tokeninfo) ((tokeninfo)&0x3fff)
+#define TI_TYPE(tokeninfo) (((tokeninfo)&0xfc000)>>14)
+#define TI_NARGS(tokeninfo) (((tokeninfo)&0xf00000)>>20)
+#define TI_PRECEDENCE(tokeninfo) (((tokeninfo)&0x3f000000)>>24)
+
+#define MKTOKENINFO(length,type,nargs,precedence) ( ((length)&0xffff) | (((type)&0xf)<<16) | (((nargs)&0xf)<<20) | (((precedence)&0x3f)<<24))
+
+enum TokenInfo_Type {
+    TITYPE_UNKNOWN=0,
+    TITYPE_INTEGER,
+    TITYPE_REAL,
+    TITYPE_NUMBER=3,
+    TITYPE_COMPLEX,
+    TITYPE_CNUMBER=7,
+    TITYPE_IDENT,
+    TITYPE_REALIDENT,
+    TITYPE_COMPLEXIDENT,
+    TITYPE_CONSTANTIDENT,
+    TITYPE_OPERATORS=16,
+    TITYPE_PREFIXOP,
+    TITYPE_POSTFIXOP,
+    TITYPE_BINARYOP_LEFT,
+    TITYPE_BINARYOP_RIGHT,
+    TITYPE_FUNCTION,
+    TITYPE_OPENBRACKET,
+    TITYPE_CLOSEBRACKET,
+    TITYPE_NOTALLOWED
+};
 
 
 enum CompileErrors {
@@ -64,11 +93,15 @@ enum CompileErrors {
     OK_STARTVALIDATE,
     OK_SPLITTOKEN,
     OK_STARTCONSTRUCT_SPLITTOKEN,
+    OK_STARTCONSTRUCT_INFIX,
+    OK_ENDCONSTRUCT_INFIX,
     ERR_NOTMINE,
     ERR_NOTMINE_SPLITTOKEN,
     ERR_SYNTAX,
-    ERR_INVALID
+    ERR_INVALID,
     // ADD MORE HERE...
+
+    OK_TOKENINFO=0x40000000
 };
 
 extern void libCompileCmds(int libnum, char *libnames[], int libopcodes[], int numcmds);
@@ -88,6 +121,7 @@ extern void libDecompileCmds(char *libnames[], int libopcodes[], int numcmds);
 #define DOIDENTEVAL  21     // LIBRARY THAT EVALUATES THE IDENT IMMEDIATELY (UNQUOTED IDENTS, LAMS ARE PUSHED IN TEH STACK)
 #define DODIR       22      // DIRECTORY OBJECTS
 #define DOCMPLX     26
+#define DOSYMB      30      // SYMBOLIC OBJECT
 #define DOLIST      50
 
 #define ISIDENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOIDENT)||(LIBNUM(prolog)==DOIDENTEVAL)) )

@@ -24,6 +24,66 @@ void rplCompileAppend(WORD word)
 
 }
 
+
+// REVERSE-SKIP AN OBJECT, FROM A POINTER TO AFTER THE OBJECT TO SKIP
+// NO ARGUMENT CHECKS, DO NOT CALL UNLESS THERE'S A VALID OBJECT AR LI
+WORDPTR rplReverseSkipOb(WORDPTR list_start,WORDPTR after_object)
+{
+    WORDPTR next;
+    while( (next=rplSkipOb(list_start))<after_object) list_start=next;
+    if(next>after_object) return NULL;
+    return list_start;
+}
+
+
+// APPLIES THE SYMBOLIC OPERATOR TO THE OUTPUT QUEUE
+// ONLY CALLED BY THE COMPILER
+// ON ENTRY: CompileEnd = top of the output stream (pointing after the last object)
+//           *(ValidateTop-1) = START OF THE SYMBOLIC OBJECT
+BINT rplInfixApply(WORD opcode,WORD tokeninfo)
+{
+    // FORMAT OF SYMBOLIC OBJECT:
+    // DOSYMB PROLOG
+    // OPCODE
+    // TOKENINFO
+    // ARG1 OBJECT (ARGUMENT LIST)
+    // ARG2 OBJECT
+    // ...
+    // ARGn OBJECT
+    // END OF SYMBOLIC OBJECT
+
+    BINT nargs;
+    WORDPTR ptr=CompileEnd,symbstart=*(ValidateTop-1);
+
+    //FIND THE START OF THE 'N' ARGUMENTS
+    for(nargs=TI_NARGS(tokeninfo);(nargs>0) && (ptr>symbstart);--nargs)
+    {
+        ptr=rplSkipOb(ptr);
+    }
+
+    if(nargs) return 0; // TOO FEW ARGUMENTS!
+
+    CompileEnd+=3;
+    // ADJUST MEMORY AS NEEDED
+    if( CompileEnd>=TempObSize) {
+        // ENLARGE TEMPOB AS NEEDED
+        growTempOb( ((WORD)(CompileEnd-TempOb))+TEMPOBSLACK);
+        if(Exceptions) return 0;    // NOT ENOUGH MEMORY
+    }
+
+    // MOVE THE ENTIRE LIST TO MAKE ROOM FOR THE HEADER
+    memmove(ptr+3,ptr,(CompileEnd-ptr-3)*sizeof(WORD));
+
+    ptr[0]=MKPROLOG(DOSYMB,CompileEnd-ptr-1);
+    ptr[1]=opcode;
+    ptr[2]=tokeninfo;
+
+    return 1;
+}
+
+
+
+
 // COMPILE A STRING AND RETURN A POINTER TO THE FIRST COMMAND/OBJECT
 // IF addwrapper IS NON-ZERO, IT WILL WRAP THE CODE WITH :: ... ; EXITRPL
 // (USED BY THE COMMAND LINE FOR IMMEDIATE COMMANDS)
@@ -34,9 +94,11 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
     CompileEnd=TempObEnd;
 
     // START COMPILATION LOOP
-    BINT force_libnum,splittoken,validate;
+    BINT force_libnum,splittoken,validate,infixmode;
+    BINT probe_libnum,probe_tokeninfo;
     LIBHANDLER handler,ValidateHandler;
     BINT libcnt,libnum;
+    WORDPTR InfixOpTop;
 
     LAMTopSaved=LAMTop;     // SAVE LAM ENVIRONMENT
 
@@ -45,6 +107,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
     force_libnum=-1;
     splittoken=0;
+    infixmode=0;
 
     if(addwrapper) {
         rplCompileAppend(MKPROLOG(DOCOL,0));
@@ -92,11 +155,31 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                 if(!handler) continue;
 
+                if(infixmode==1) {
+                 CurOpcode=MKOPCODE(libnum,OPCODE_PROBETOKEN);
+                }
+                else {
                 if(force_libnum!=-1) CurOpcode=MKOPCODE(libnum,OPCODE_COMPILECONT);
                     else CurOpcode=MKOPCODE(libnum,OPCODE_COMPILE);
+                }
 
                 (*handler)();
 
+                if(RetNum>=OK_TOKENINFO) {
+                    // PROCESS THE INFORMATION ABOUT THE TOKEN
+                    if(TI_TYPE(RetNum)==TITYPE_NOTALLOWED) {
+                        // THIS TOKEN IS NOT ALLOWED IN SYMBOLICS
+                        Exceptions|=EX_SYNTAXERROR;
+                        ExceptionPointer=IPtr;
+                        LAMTop=LAMTopSaved;
+                        return 0;
+                    }
+                    if(TI_LENGTH(RetNum)>TI_LENGTH(probe_tokeninfo)) {
+                        probe_libnum=libnum;
+                        probe_tokeninfo=RetNum;
+                    }
+                }
+                else
                 switch(RetNum)
                 {
                 case OK_CONTINUE:
@@ -168,6 +251,32 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     force_libnum=-1;
                     validate=1;
                     break;
+                case OK_STARTCONSTRUCT_INFIX:
+                    if(RStkSize<=(ValidateTop-RStk)) growRStk(ValidateTop-RStk+RSTKSLACK);
+                    if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
+                    *ValidateTop++=CompileEnd-1; // POINTER TO THE WORD OF THE COMPOSITE, NEEDED TO STORE THE SIZE
+                    infixmode=1;
+                    InfixOpTop=ValidateTop;
+                    probe_libnum=-1;
+                    probe_tokeninfo=0;
+                    libcnt=EXIT_LOOP;
+                    force_libnum=-1;
+                    validate=1;
+                    break;
+                case OK_ENDCONSTRUCT_INFIX:
+                    --ValidateTop;
+                    if(ValidateTop<RSTop) {
+                        Exceptions|=EX_SYNTAXERROR;
+                        ExceptionPointer=IPtr;
+                        LAMTop=LAMTopSaved;
+                        return 0;
+                    }
+                    if(ISPROLOG((BINT)**ValidateTop)) **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | ((((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1);    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
+                    infixmode=0;
+                    libcnt=EXIT_LOOP;
+                    force_libnum=-1;
+                    break;
+
 
                 case ERR_NOTMINE:
                     break;
@@ -188,8 +297,126 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
             }
 
            if(libcnt>EXIT_LOOP) {
+               if(infixmode) {
+                // FINISHED PROBING FOR TOKENS
+                if(probe_libnum<0) {
                     Exceptions|=EX_UNDEFINED;
                     ExceptionPointer=IPtr;
+                }
+                else {
+                // GOT THE NEXT TOKEN IN THE STREAM
+                    // COMPILE THE TOKEN
+
+                    handler=rplGetLibHandler(probe_libnum);
+                    CurOpcode=MKOPCODE(probe_libnum,OPCODE_COMPILE);
+
+                    NextTokenStart=BlankStart=((BYTEPTR)TokenStart)+TI_LENGTH(probe_tokeninfo);
+                    TokenLen=(BINT)((BYTEPTR)BlankStart-(BYTEPTR)TokenStart);
+                    BlankLen=(BINT)((BYTEPTR)NextTokenStart-(BYTEPTR)BlankStart);
+                    CurrentConstruct=(BINT)((ValidateTop>RSTop)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
+                    LastCompiledObject=CompileEnd;
+
+                    (*handler)();
+
+                    if(RetNum!=OK_CONTINUE) {
+                        // THE LIBRARY ACCEPTED THE TOKEN DURING PROBE, SO WHAT COULD POSSIBLY GO WRONG?
+                        Exceptions|=EX_SYNTAXERROR;
+                        ExceptionPointer=IPtr;
+                        LAMTop=LAMTopSaved;
+                        return 0;
+                    }
+
+                    // HERE LastCompiledObject HAS THE NEW OBJECT/COMMAND
+
+                    // IF IT'S AN ATOMIC OBJECT, JUST LEAVE IT THERE IN THE OUTPUT STREAM
+
+                    // IF IT'S AN OPERATOR
+                    if(TI_TYPE(probe_tokeninfo)>TITYPE_OPERATORS) {
+
+                        // ALL OPERATORS AND COMMANDS ARE SINGLE-WORD, ONLY OBJECTS TAKE MORE SPACE
+                        WORD Opcode=*LastCompiledObject;
+                        // REMOVE THE OPERATOR FROM THE OUTPUT STREAM
+                        CompileEnd=LastCompiledObject;
+
+                        if(TI_TYPE(probe_tokeninfo)==TITYPE_OPENBRACKET) {
+                            // PUSH THE NEW OPERATOR
+                            if(RStkSize<=(InfixOpTop-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
+                            if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
+                            InfixOpTop[0]=Opcode;
+                            InfixOpTop[1]=probe_tokeninfo;
+                            InfixOpTop+=2;
+                        }
+                        else {
+
+                        if(TI_TYPE(probe_tokeninfo)==TITYPE_CLOSEBRACKET) {
+                         // POP ALL OPERATORS OFF THE STACK UNTIL THE OPENING BRACKET IS FOUND
+
+                            while(InfixOpTop>ValidateTop){
+                                if((TI_TYPE(*(InfixOpTop-1))==TITYPE_OPENBRACKET) && (LIBNUM(*(InfixOpTop-2))==probe_libnum)) break;
+                                // POP OPERATORS OFF THE STACK AND APPLY TO OBJECTS
+                                InfixOpTop-=2;
+                                rplInfixApply(InfixOpTop[0],InfixOpTop[1]);
+                                }
+
+
+                            if(InfixOpTop<=ValidateTop) {
+                                // OPENING BRACKET NOT FOUND, SYNTAX ERROR
+                                    Exceptions|=EX_SYNTAXERROR;
+                                    ExceptionPointer=IPtr;
+                                    LAMTop=LAMTopSaved;
+                                    return 0;
+                            }
+
+                            // REMOVE THE OPENING BRACKET AND APPLY THE CLOSING ONE
+                            InfixOpTop-=2;
+                            rplInfixApply(Opcode,probe_tokeninfo);
+
+                            // CHECK IF THE TOP OF STACK IS A FUNCTION
+                            if(InfixOpTop>ValidateTop) {
+                                if(TI_TYPE(*(InfixOpTop-1))==TITYPE_FUNCTION) {
+                                    // POP FUNCTION OFF THE STACK AND APPLY
+                                    InfixOpTop-=2;
+                                    rplInfixApply(InfixOpTop[0],InfixOpTop[1]);
+                                }
+                            }
+                        }
+                        else {
+
+                        // IN INFIX MODE, USE RStk AS THE OPERATOR STACK, STARTING AT ValidateTop
+                        while(InfixOpTop>ValidateTop){
+                            if(TI_PRECEDENCE(*(InfixOpTop-1))<TI_PRECEDENCE(probe_tokeninfo)) {
+                            // POP OPERATORS OFF THE STACK AND APPLY TO OBJECTS
+                            InfixOpTop-=2;
+                            rplInfixApply(InfixOpTop[0],InfixOpTop[1]);
+                            } else {
+                                if( (TI_TYPE(probe_tokeninfo)==TITYPE_BINARYOP_LEFT)&&(TI_PRECEDENCE(*(InfixOpTop-1))<=TI_PRECEDENCE(probe_tokeninfo)))
+                                {
+                                    InfixOpTop-=2;
+                                    rplInfixApply(InfixOpTop[0],InfixOpTop[1]);
+                                }
+                                else break;
+                            }
+                        }
+                        // PUSH THE NEW OPERATOR
+                        if(RStkSize<=(InfixOpTop-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
+                        if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
+                        InfixOpTop[0]=Opcode;
+                        InfixOpTop[1]=probe_tokeninfo;
+                        InfixOpTop+=2;
+                        }
+                        }
+
+                    }
+
+
+                }
+
+
+               }
+               else {
+                    Exceptions|=EX_UNDEFINED;
+                    ExceptionPointer=IPtr;
+               }
 
                 }
 

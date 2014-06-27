@@ -122,13 +122,14 @@ while(start!=end) {
 void rplGCollect()
 {
     // FIRST, INITIALIZE THE COLLECTOR
-    WORDPTR EndOfUsedMem;
+    WORDPTR EndOfUsedMem,EndOfRStk;
     int CompileBlock=0;
 
     // MARK THE END OF USED TEMPOB, INCLUDING A PHANTOM BLOCK AFTER TempObEnd
     // WHICH IS USED DURING COMPILATION/DECOMPILATION
     // THIS BLOCK NEEDS TO BE PRESERVED AS A USED BLOCK!
     EndOfUsedMem=TempObEnd;
+    EndOfRStk=RSTop;
     if( (CompileEnd>EndOfUsedMem)&& (CompileEnd<=TempObSize) ) { EndOfUsedMem=CompileEnd; CompileBlock|=1; }
     if( (DecompStringEnd>EndOfUsedMem) && (DecompStringEnd<=TempObSize)) { EndOfUsedMem=(WORDPTR)((((WORD)DecompStringEnd)+3)&~3); CompileBlock|=2; }
 
@@ -137,6 +138,7 @@ void rplGCollect()
         // MARK THE BLOCK AS USED AT THE SAME TIME
         *TempBlocksEnd++=(WORDPTR)((WORD)TempObEnd|1);
         TempObEnd=EndOfUsedMem;
+        if(ValidateTop>RSTop) EndOfRStk=ValidateTop;
     }
 
     *TempBlocksEnd=EndOfUsedMem;   // STORE THE END OF LAST BLOCK FOR CONVENIENCE (MARKED AS UNUSED)
@@ -239,7 +241,7 @@ void rplGCollect()
 
     Patch(DStk,DSTop,StartBlock,*CheckIdx,Offset);      // DATA STACK
 
-    Patch(RStk,RSTop,StartBlock,*CheckIdx,Offset);      // RETURN STACK
+    Patch(RStk,EndOfRStk,StartBlock,*CheckIdx,Offset);      // RETURN STACK
 
     Patch(LAMs,LAMTop,StartBlock,*CheckIdx,Offset);       // LOCAL VARIABLES
 
