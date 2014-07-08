@@ -58,7 +58,7 @@ BINT rplInfixApply(WORD opcode,WORD tokeninfo)
     //FIND THE START OF THE 'N' ARGUMENTS
     for(nargs=TI_NARGS(tokeninfo);(nargs>0) && (ptr>symbstart);--nargs)
     {
-        ptr=rplSkipOb(ptr);
+        ptr=rplReverseSkipOb(symbstart,ptr);
     }
 
     if(nargs) return 0; // TOO FEW ARGUMENTS!
@@ -144,6 +144,11 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
             libcnt=MAXLOWLIBS+NumHiLibs-1;
         }
         else libcnt=0;  // EXECUTE THE LOOP ONLY ONCE
+
+        if(infixmode) {
+         probe_libnum=-1;
+         probe_tokeninfo=0;
+        }
 
                 while(libcnt>=0) {
                 if(libcnt>=MAXLOWLIBS) { libnum=HiLibNumbers[libcnt-MAXLOWLIBS]; handler=HiLibRegistry[libcnt-MAXLOWLIBS]; }
@@ -264,6 +269,15 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     validate=1;
                     break;
                 case OK_ENDCONSTRUCT_INFIX:
+
+                if(infixmode) {
+                    // FLUSH OUT ANY OPERATORS IN THE STACK
+                    while(InfixOpTop>ValidateTop){
+                        InfixOpTop-=2;
+                        rplInfixApply(InfixOpTop[0],InfixOpTop[1]);
+                    }
+                    infixmode=0;
+                 }
                     --ValidateTop;
                     if(ValidateTop<RSTop) {
                         Exceptions|=EX_SYNTAXERROR;
@@ -272,7 +286,6 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         return 0;
                     }
                     if(ISPROLOG((BINT)**ValidateTop)) **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | ((((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1);    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
-                    infixmode=0;
                     libcnt=EXIT_LOOP;
                     force_libnum=-1;
                     break;

@@ -56,7 +56,7 @@ extern BINT ROMLibs2Num[];
 #define TI_NARGS(tokeninfo) (((tokeninfo)&0xf00000)>>20)
 #define TI_PRECEDENCE(tokeninfo) (((tokeninfo)&0x3f000000)>>24)
 
-#define MKTOKENINFO(length,type,nargs,precedence) (((length)&0xffff)|(((type)&0xf)<<16)|(((nargs)&0xf)<<20)|(((precedence)&0x3f)<<24))
+#define MKTOKENINFO(length,type,nargs,precedence) (((length)&0x3fff)|(((type)&0x3f)<<14)|(((nargs)&0xf)<<20)|(((precedence)&0x3f)<<24))
 
 enum TokenInfo_Type {
     TITYPE_UNKNOWN=0,
