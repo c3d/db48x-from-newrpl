@@ -12,7 +12,7 @@
 // STANDARD COMPILER FOR COMMAND TOKENS
 // COMMON TO ALL LIBRARIES THAT DEFINE ONLY COMMANDS
 // STARTING TO COUNT FROM COMMAND NUMBER 0
-void libCompileCmds(int libnum,char *libnames[],int libopcodes[],int numcmds)
+void libCompileCmds(BINT libnum,char *libnames[],WORD libopcodes[],int numcmds)
 {
     int idx;
     int len;
@@ -33,7 +33,7 @@ void libCompileCmds(int libnum,char *libnames[],int libopcodes[],int numcmds)
 // STANDARD DECOMPILER FOR COMMAND TOKENS
 // COMMON TO ALL LIBRARIES THAT DEFINE ONLY COMMANDS
 
-void libDecompileCmds(char *libnames[],int libopcodes[],int numcmds)
+void libDecompileCmds(char *libnames[],WORD libopcodes[],int numcmds)
 {
 int opc=OPCODE(*DecompileObject),idx;
 
@@ -52,3 +52,25 @@ rplDecompAppendString((BYTEPTR)libnames[idx]);
 RetNum=OK_CONTINUE;
 }
 
+
+
+// STANDARD PROBETOKEN FOR COMMANDS
+// COMMON TO ALL LIBRARIES THAT DEFINE ONLY COMMANDS
+// STARTING TO COUNT FROM COMMAND NUMBER 0
+void libProbeCmds(BINT libnum,char *libnames[],BINT tokeninfo[],int numcmds)
+{
+    int idx;
+    int len;
+    for(idx=0;idx<numcmds;++idx)
+    {
+        len=strlen((char *)libnames[idx]);
+        if((len<=(BINT)TokenLen) && (!strncmp((char *)TokenStart,(char *)libnames[idx],len)))
+       {
+            if(tokeninfo) {
+                RetNum=OK_TOKENINFO | tokeninfo[idx];
+            } else RetNum=OK_TOKENINFO | MKTOKENINFO(len,TITYPE_NOTALLOWED,0,0);
+           return;
+       }
+    }
+    RetNum=ERR_NOTMINE;
+}

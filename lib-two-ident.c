@@ -70,7 +70,7 @@ void rplCompileIDENT(BINT libnum,BYTEPTR tok,BINT len)
 }
 
 // THESE ARE THE ONLY CHARACTERS THAT ARE FORBIDDEN IN AN IDENTIFIER
-const char const forbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'";
+const char const forbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@";
 
 
 BINT rplIsValidIdent(BYTEPTR tok,BINT len)
@@ -288,6 +288,13 @@ void LIB_HANDLER()
         return;
     }
 
+    // UNHANDLED OPCODE...
+
+    // IF IT'S A COMPILER OPCODE, RETURN ERR_NOTMINE
+    if(OPCODE(CurOpcode)>=MIN_RESERVED_OPCODE) {
+        RetNum=ERR_NOTMINE;
+        return;
+    }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
     Exceptions|=EX_BADOPCODE;
     ExceptionPointer=IPtr;

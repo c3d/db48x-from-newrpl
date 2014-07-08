@@ -56,7 +56,7 @@ extern BINT ROMLibs2Num[];
 #define TI_NARGS(tokeninfo) (((tokeninfo)&0xf00000)>>20)
 #define TI_PRECEDENCE(tokeninfo) (((tokeninfo)&0x3f000000)>>24)
 
-#define MKTOKENINFO(length,type,nargs,precedence) ( ((length)&0xffff) | (((type)&0xf)<<16) | (((nargs)&0xf)<<20) | (((precedence)&0x3f)<<24))
+#define MKTOKENINFO(length,type,nargs,precedence) (((length)&0xffff)|(((type)&0xf)<<16)|(((nargs)&0xf)<<20)|(((precedence)&0x3f)<<24))
 
 enum TokenInfo_Type {
     TITYPE_UNKNOWN=0,
@@ -104,8 +104,9 @@ enum CompileErrors {
     OK_TOKENINFO=0x40000000
 };
 
-extern void libCompileCmds(int libnum, char *libnames[], int libopcodes[], int numcmds);
-extern void libDecompileCmds(char *libnames[], int libopcodes[], int numcmds);
+extern void libCompileCmds(BINT libnum, char *libnames[], WORD libopcodes[], int numcmds);
+extern void libDecompileCmds(           char *libnames[], WORD libopcodes[], int numcmds);
+extern void libProbeCmds(BINT libnum, char *libnames[], BINT tokeninfo[], int numcmds);
 
 
 // SOME BASIC OBJECT TYPES HERE NEEDED FOR COMPILER

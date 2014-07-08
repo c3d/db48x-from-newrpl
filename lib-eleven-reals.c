@@ -443,10 +443,18 @@ void LIB_HANDLER()
         RetNum=OK_CONTINUE;
         return;
     }
+    // UNHANDLED OPCODE...
+
+    // IF IT'S A COMPILER OPCODE, RETURN ERR_NOTMINE
+    if(OPCODE(CurOpcode)>=MIN_RESERVED_OPCODE) {
+        RetNum=ERR_NOTMINE;
+        return;
+    }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
     Exceptions|=EX_BADOPCODE;
     ExceptionPointer=IPtr;
     return;
+
 
 }
 

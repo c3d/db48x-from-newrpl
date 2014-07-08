@@ -772,6 +772,7 @@ void LIB_HANDLER()
     int base,libbase,digit,count,neg,argnum1;
     char basechr;
 
+    if(OPCODE(CurOpcode)>=MIN_RESERVED_OPCODE) {
     switch(OPCODE(CurOpcode))
     {
     // STANDARIZED OPCODES:
@@ -943,12 +944,131 @@ void LIB_HANDLER()
         RetNum=OK_CONTINUE;
         return;
 
+    case OPCODE_PROBETOKEN:
+        // COMPILE RECEIVES:
+        // TokenStart = token string
+        // TokenLen = token length
+        // ArgPtr2 = token blanks afterwards
+        // ArgNum2 = blanks length
+
+        // COMPILE RETURNS:
+        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...), or ERR_NOTMINE IF NO TOKEN IS FOUND
+
+    {
+
+        // COMPILE A NUMBER TO A SINT OR A BINT, DEPENDING ON THE ACTUAL NUMERIC VALUE
+        result=0;
+        strptr=(BYTEPTR )TokenStart;
+        base=10;
+        libbase=DECBINT;
+        neg=0;
+        argnum1=TokenLen;    // LOCAL COPY
+
+        // SIGN IS HANDLED AS UNARY OPERATOR IN SYMBOLICS
+        /*
+        if(*strptr=='-') { neg=1; ++strptr; --argnum1; }
+        else if(*strptr=='+') { neg=0; ++strptr; --argnum1; }
+        */
+
+        if(*strptr=='#') {
+            ++strptr;
+            --argnum1;
+            // THIS IS A NUMBER WITH A BASE, FIND THE BASE CHARACTER
+            base=0;
+            neg=1;  // REUSED VARIABLE TO INDICATE THAT THE NUMBER SPECIFIED THE BASE EXPLICITLY
+
+            for(count=0;count<argnum1;++count) {
+                digit=strptr[count];
+                if((digit>='0')&&(digit<='9')) digit-=48;
+                else if((digit>='a')&&(digit<='f')) digit-=87;
+                else if((digit>='A')&&(digit<='F')) digit-=55;
+                else digit+=100;
+
+                if((digit<0) || (digit>=16)) {
+                    // THIS IS AN INVALID NUMERIC CHARACTER, MARK THE END OF TOKEN
+                    basechr=strptr[count];
+                    argnum1=count;
+                    if( (basechr=='d') || (basechr=='D')) { base=10; }
+                    else if( (basechr=='h') || (basechr=='H')) { base=16; }
+                    else if( (basechr=='o') || (basechr=='O')) { base=8; }
+                    else if( (basechr=='b') || (basechr=='B')) { base=2; }
+                    else {
+                        basechr=strptr[count-1];
+                        if( (basechr=='d') || (basechr=='D')) { base=10; }
+                        else if( (basechr=='h') || (basechr=='H')) { base=16; }
+                        else if( (basechr=='o') || (basechr=='O')) { base=8; }
+                        else if( (basechr=='b') || (basechr=='B')) { base=2; }
+                        else {
+                            // SYNTAX ERROR OR NOT A VALID NUMBER
+                            RetNum=ERR_NOTMINE;
+                            return;
+                        }
+                        argnum1=count-1;
+                    }
+                    break;
+                }
+
+            }
+
+            if(base==0) {
+                // SYNTAX ERROR, NUMBER DOES NOT HAVE A PROPER BASE SPECIFICATION
+                RetNum=ERR_NOTMINE;
+                return;
+            }
+        }
+
+        // NOW WITH A PROPER BASE SELECTED, VERIFY THAT ALL DIGITS ARE NUMERIC
+
+            for(count=0;count<argnum1;++count) {
+                digit=strptr[count];
+                if((digit>='0')&&(digit<='9')) digit-=48;
+                else if((digit>='a')&&(digit<='f')) digit-=87;
+                else if((digit>='A')&&(digit<='F')) digit-=55;
+                else digit+=100;
+
+                if((digit>=0) && (digit<base))
+                {
+                    if( ((result>>32)*base)>>31 ) {
+                        // OVERFLOW, CANNOT BE AN INTEGER
+                        RetNum=ERR_NOTMINE;
+                        return;
+                    }
+                    result=result*base+digit;
+                }
+                else {
+                 // AN INVALID DIGIT
+                    if(count==0) {
+                    RetNum=ERR_NOTMINE;
+                    return;
+                    } else {
+                        if(neg) {
+                            // IF THE BASE WAS SPECICIED EXPLICITLY, THERE CANNOT BE ILLEGAL DIGITS
+                            RetNum=ERR_NOTMINE;
+                            return;
+                        }
+                        // REPORT AS MANY VALID DIGITS AS POSSIBLE
+                        RetNum=OK_TOKENINFO | MKTOKENINFO((strptr+count)-(BYTEPTR)TokenStart,TITYPE_INTEGER,0,27);
+                        return;
+                    }
+                }
+            }
+            // ALL DIGITS WERE CORRECT
+            RetNum=OK_TOKENINFO | MKTOKENINFO((strptr+argnum1)-(BYTEPTR)TokenStart,TITYPE_INTEGER,0,27);
+            return;
+    }
 
     default:
+
+        RetNum=ERR_NOTMINE;
+        return;
+
+
+    }
+    }
+    else {
         // ALL OTHER OPCODES ARE SINT NUMBERS, JUST PUSH THEM ON THE STACK
         rplPushData(IPtr);
         return;
-
     }
 // DON'T ISSUE A BAD_OPCODE ERROR SINCE ALL OPCODES ARE VALID SINT NUMBERS
 }

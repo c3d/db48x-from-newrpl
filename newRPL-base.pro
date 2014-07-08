@@ -58,7 +58,8 @@ SOURCES += main.cpp \
     lists.c \
     lib-50-lists.c \
     lib-26-complex.c \
-    symbolic.c
+    symbolic.c \
+    lib-28-symbolic.c
 
 HEADERS += \
     libraries.h \

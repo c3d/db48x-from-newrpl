@@ -10,168 +10,69 @@
 #include "hal.h"
 
 
-// THIS LIBRARY PROVIDES COMPILATION OF STACK RELATED COMMANDS AND OTHER BASIC COMMANDS
+// THIS LIBRARY PROVIDES COMPILATION OF DIRECTORY PSEUDO-OBJECTS AND RELATED COMMANDS
 
 
 // THERE'S ONLY ONE EXTERNAL FUNCTION: THE LIBRARY HANDLER
 // ALL OTHER FUNCTIONS ARE LOCAL
 
 // MAIN LIBRARY NUMBER, CHANGE THIS FOR EACH LIBRARY
-#define LIBRARY_NUMBER  24
-#define LIB_ENUM lib24enum
-#define LIB_NAMES lib24_names
-#define LIB_HANDLER lib24_handler
-#define LIB_NUMBEROFCMDS LIB24_NUMBEROFCMDS
+#define LIBRARY_NUMBER  28
+#define LIB_ENUM lib28enum
+#define LIB_NAMES lib28_names
+#define LIB_HANDLER lib28_handler
+#define LIB_NUMBEROFCMDS LIB28_NUMBEROFCMDS
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
-    CMD(GARBAGE), \
-    CMD(CLEAR), \
-    CMD(DROP), \
-    CMD(DUP), \
-    CMD(SWAP), \
-    CMD(ROT), \
-    CMD(UNROT), \
-    CMD(PICK)
+    CMD(SYMBOLIC)
 
 // ADD MORE OPCODES HERE
 
 
 // EXTRA LIST FOR COMMANDS WITH SYMBOLS THAT ARE DISALLOWED IN AN ENUM
 // THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
-
+/*
 #define CMD_EXTRANAME \
-    ""
+    "->"
 #define CMD_EXTRAENUM \
-    UNPROTECTSTACK
-
-
+    NEWLOCALENV
+*/
 
 // INTERNAL DECLARATIONS
 
 // CREATE AN ENUM WITH THE OPCODE NAMES FOR THE DISPATCHER
 #define CMD(a) a
-enum LIB_ENUM { CMD_LIST , CMD_EXTRAENUM , LIB_NUMBEROFCMDS };
+enum LIB_ENUM { CMD_LIST /*, CMD_EXTRAENUM*/ , LIB_NUMBEROFCMDS };
 #undef CMD
 
 // AND A LIST OF STRINGS WITH THE NAMES FOR THE COMPILER
 #define CMD(a) #a
-char *LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME  };
+char *LIB_NAMES[]= { CMD_LIST /*, CMD_EXTRANAME*/  };
 #undef CMD
-
-
-const WORD const unprotect_seco[]={
-    MKPROLOG(DOCOL,2),
-    MKOPCODE(LIBRARY_NUMBER,UNPROTECTSTACK),
-    CMD_SEMI
-};
-
-
 
 
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
-        // THIS LIBRARY DOES NOT DEFINE ANY OBJECTS
-        Exceptions=EX_BADOPCODE;
-        ExceptionPointer=IPtr;
+        // PROVIDE BEHAVIOR OF EXECUTING THE OBJECT HERE
+        rplPushData(IPtr);
         return;
     }
 
     switch(OPCODE(CurOpcode))
     {
-    case GARBAGE:
-        rplGCollect();
-        return;
-    case CLEAR:
-        // ONLY CLEAR UP TO THE STACK PROTECTED AREA
-        // DON'T THROW AN ERROR
-        DSTop=DStkProtect;
-        return;
-    case DROP:
-        rplDropData(1);
-        return;
-    case DUP:
-        if(rplDepthData()<1) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
-         return;
-        }
-        rplPushData(rplPeekData(1));
-        return;
-    case SWAP:
-    {
-        if(rplDepthData()<2) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
-         return;
-        }
-        WORDPTR obj=rplPeekData(1);
-        rplOverwriteData(1,rplPeekData(2));
-        rplOverwriteData(2,obj);
-        return;
-    }
-    case ROT:
-    {
-        if(rplDepthData()<3) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
-         return;
-        }
-        WORDPTR obj1=rplPeekData(1);
-        rplOverwriteData(1,rplPeekData(3));
-        rplOverwriteData(3,rplPeekData(2));
-        rplOverwriteData(2,obj1);
-        return;
-    }
-    case UNROT:
-    {
 
-        if(rplDepthData()<3) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
-         return;
-        }
-        WORDPTR obj1=rplPeekData(1);
-        rplOverwriteData(1,rplPeekData(2));
-        rplOverwriteData(2,rplPeekData(3));
-        rplOverwriteData(3,obj1);
-        return;
-    }
-    case PICK:
+    // ADD MORE OPCODES HERE
 
-        if(rplDepthData()<1) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
-         return;
-        }
-
-        BINT64 level=rplReadNumberAsBINT(rplPeekData(1));
-
-        if( (level<1) || (rplDepthData()<1+level)) {
-         Exceptions|=EX_BADARGVALUE;
-         ExceptionPointer=IPtr;
-         return;
-        }
-
-        rplOverwriteData(1,rplPeekData(1+level));
-
+    case OVR_EVAL:
+    case OVR_XEQ:
         return;
 
+    // STANDARIZED OPCODES:
+    // --------------------
+    // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
 
-    case UNPROTECTSTACK:
-    {
-        // THIS INTERNAL OPCODE PROVIDES SAFETY GUARD AGAINST DATA STACK PROTECTION
-        // IF A PROGRAM FORGETS TO UNPROTECT THE STACK, IT WILL BE UNPROTECTED
-        // AUTOMATICALLY ON EXIT
-        WORDPTR *oldstack=rplPopRet();
-        DStkProtect=oldstack;
-        return;
-    }
-
-        // STANDARIZED OPCODES:
-        // --------------------
-        // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
 
     case OPCODE_COMPILE:
         // COMPILE RECEIVES:
@@ -184,6 +85,22 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
+    {
+        BYTEPTR tok=(BYTEPTR )TokenStart;
+
+
+        if(*tok=='`') {
+            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER,0));
+
+            if(TokenLen>1) {
+                NextTokenStart=((char *)TokenStart)+1;
+            }
+            RetNum=OK_STARTCONSTRUCT_INFIX;
+            return;
+        }
+
+
+    }
 
             // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
             // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
@@ -198,6 +115,15 @@ void LIB_HANDLER()
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
+
+        if(ISPROLOG(*DecompileObject)) {
+            rplDecompAppendString2((BYTEPTR)"Symbolic",8);
+            RetNum=OK_CONTINUE;
+            return;
+        }
+
+
+
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
@@ -218,6 +144,37 @@ void LIB_HANDLER()
 
         RetNum=OK_CONTINUE;
         return;
+
+    case OPCODE_PROBETOKEN:
+        // PROBETOKEN FINDS A VALID WORD AT THE BEGINNING OF THE GIVEN TOKEN AND RETURNS
+        // INFORMATION ABOUT IT. THIS OPCODE IS MANDATORY
+
+        // COMPILE RECEIVES:
+        // TokenStart = token string
+        // TokenLen = token length
+        // BlankStart = token blanks afterwards
+        // BlanksLen = blanks length
+        // CurrentConstruct = Opcode of current construct/WORD of current composite
+
+        // COMPILE RETURNS:
+        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
+        {
+
+        if(*((char *)TokenStart)=='`') {
+            // FOUND END OF SYMBOLIC OBJECT
+
+            if(TokenLen>1) RetNum=ERR_SYNTAX;
+            else RetNum= OK_ENDCONSTRUCT_INFIX;
+            return;
+        }
+
+        RetNum = ERR_NOTMINE;
+        return;
+
+
+        }
+
     }
     // UNHANDLED OPCODE...
 
