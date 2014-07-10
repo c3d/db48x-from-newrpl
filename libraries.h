@@ -122,7 +122,7 @@ extern void libProbeCmds(BINT libnum, char *libnames[], BINT tokeninfo[], int nu
 #define DOIDENTEVAL  21     // LIBRARY THAT EVALUATES THE IDENT IMMEDIATELY (UNQUOTED IDENTS, LAMS ARE PUSHED IN TEH STACK)
 #define DODIR       22      // DIRECTORY OBJECTS
 #define DOCMPLX     26
-#define DOSYMB      30      // SYMBOLIC OBJECT
+#define DOSYMB      28      // SYMBOLIC OBJECT
 #define DOLIST      50
 
 #define ISIDENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOIDENT)||(LIBNUM(prolog)==DOIDENTEVAL)) )

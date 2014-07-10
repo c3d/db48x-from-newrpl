@@ -45,25 +45,25 @@ BINT rplInfixApply(WORD opcode,WORD tokeninfo)
     // FORMAT OF SYMBOLIC OBJECT:
     // DOSYMB PROLOG
     // OPCODE
-    // TOKENINFO
     // ARG1 OBJECT (ARGUMENT LIST)
     // ARG2 OBJECT
     // ...
     // ARGn OBJECT
     // END OF SYMBOLIC OBJECT
 
+
     BINT nargs;
-    WORDPTR ptr=CompileEnd,symbstart=*(ValidateTop-1);
+    WORDPTR ptr=CompileEnd,symbstart=*(ValidateTop-1)+1;
 
     //FIND THE START OF THE 'N' ARGUMENTS
-    for(nargs=TI_NARGS(tokeninfo);(nargs>0) && (ptr>symbstart);--nargs)
+    for(nargs=TI_NARGS(tokeninfo);(nargs>0) && ptr ;--nargs)
     {
         ptr=rplReverseSkipOb(symbstart,ptr);
     }
 
-    if(nargs) return 0; // TOO FEW ARGUMENTS!
+    if(nargs || (!ptr)) return 0; // TOO FEW ARGUMENTS!
 
-    CompileEnd+=3;
+    CompileEnd+=2;
     // ADJUST MEMORY AS NEEDED
     if( CompileEnd>=TempObSize) {
         // ENLARGE TEMPOB AS NEEDED
@@ -72,11 +72,10 @@ BINT rplInfixApply(WORD opcode,WORD tokeninfo)
     }
 
     // MOVE THE ENTIRE LIST TO MAKE ROOM FOR THE HEADER
-    memmove(ptr+3,ptr,(CompileEnd-ptr-3)*sizeof(WORD));
+    memmove(ptr+2,ptr,(CompileEnd-ptr-2)*sizeof(WORD));
 
     ptr[0]=MKPROLOG(DOSYMB,CompileEnd-ptr-1);
     ptr[1]=opcode;
-    ptr[2]=tokeninfo;
 
     return 1;
 }
@@ -274,7 +273,13 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     // FLUSH OUT ANY OPERATORS IN THE STACK
                     while(InfixOpTop>ValidateTop){
                         InfixOpTop-=2;
-                        rplInfixApply(InfixOpTop[0],InfixOpTop[1]);
+                        if(!rplInfixApply(InfixOpTop[0],InfixOpTop[1]))
+                        {
+                            Exceptions|=EX_SYNTAXERROR;
+                            ExceptionPointer=IPtr;
+                            LAMTop=LAMTopSaved;
+                            return 0;
+                        }
                     }
                     infixmode=0;
                  }
@@ -368,7 +373,12 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                                 if((TI_TYPE(*(InfixOpTop-1))==TITYPE_OPENBRACKET) && (LIBNUM(*(InfixOpTop-2))==probe_libnum)) break;
                                 // POP OPERATORS OFF THE STACK AND APPLY TO OBJECTS
                                 InfixOpTop-=2;
-                                rplInfixApply(InfixOpTop[0],InfixOpTop[1]);
+                                if(!rplInfixApply(InfixOpTop[0],InfixOpTop[1]))
+                                {
+                                    Exceptions|=EX_SYNTAXERROR;
+                                    ExceptionPointer=IPtr;
+                                    LAMTop=LAMTopSaved;
+                                    return 0;
                                 }
 
 
@@ -382,15 +392,31 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                             // REMOVE THE OPENING BRACKET AND APPLY THE CLOSING ONE
                             InfixOpTop-=2;
-                            rplInfixApply(Opcode,probe_tokeninfo);
+                            if(!rplInfixApply(Opcode,probe_tokeninfo))
+                            {
+                                Exceptions|=EX_SYNTAXERROR;
+                                ExceptionPointer=IPtr;
+                                LAMTop=LAMTopSaved;
+                                return 0;
+                            }
+
 
                             // CHECK IF THE TOP OF STACK IS A FUNCTION
                             if(InfixOpTop>ValidateTop) {
                                 if(TI_TYPE(*(InfixOpTop-1))==TITYPE_FUNCTION) {
                                     // POP FUNCTION OFF THE STACK AND APPLY
                                     InfixOpTop-=2;
-                                    rplInfixApply(InfixOpTop[0],InfixOpTop[1]);
+
+                                    if(!rplInfixApply(InfixOpTop[0],InfixOpTop[1]))
+                                    {
+                                        Exceptions|=EX_SYNTAXERROR;
+                                        ExceptionPointer=IPtr;
+                                        LAMTop=LAMTopSaved;
+                                        return 0;
+                                    }
+
                                 }
+                            }
                             }
                         }
                         else {
@@ -400,12 +426,28 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             if(TI_PRECEDENCE(*(InfixOpTop-1))<TI_PRECEDENCE(probe_tokeninfo)) {
                             // POP OPERATORS OFF THE STACK AND APPLY TO OBJECTS
                             InfixOpTop-=2;
-                            rplInfixApply(InfixOpTop[0],InfixOpTop[1]);
+
+                            if(!rplInfixApply(InfixOpTop[0],InfixOpTop[1]))
+                            {
+                                Exceptions|=EX_SYNTAXERROR;
+                                ExceptionPointer=IPtr;
+                                LAMTop=LAMTopSaved;
+                                return 0;
+                            }
+
                             } else {
                                 if( (TI_TYPE(probe_tokeninfo)==TITYPE_BINARYOP_LEFT)&&(TI_PRECEDENCE(*(InfixOpTop-1))<=TI_PRECEDENCE(probe_tokeninfo)))
                                 {
                                     InfixOpTop-=2;
-                                    rplInfixApply(InfixOpTop[0],InfixOpTop[1]);
+
+                                    if(!rplInfixApply(InfixOpTop[0],InfixOpTop[1]))
+                                    {
+                                        Exceptions|=EX_SYNTAXERROR;
+                                        ExceptionPointer=IPtr;
+                                        LAMTop=LAMTopSaved;
+                                        return 0;
+                                    }
+
                                 }
                                 else break;
                             }
