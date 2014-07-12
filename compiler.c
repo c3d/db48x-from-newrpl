@@ -125,12 +125,12 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
 
     do {
-        if(!splittoken) {
+         if(!splittoken) {
         TokenStart=NextTokenStart;
         BlankStart=TokenStart;
         while( (BlankStart<CompileStringEnd) && (*((char *)BlankStart)!=' ') && (*((char *)BlankStart)!='\t') && (*((char *)BlankStart)!='\n') && (*((char *)BlankStart)!='\r')) BlankStart=(WORDPTR)(((char *)BlankStart)+1);
         NextTokenStart=BlankStart;
-        while( (NextTokenStart<CompileStringEnd) && ((*((char *)NextTokenStart)==' ') || (*((char *)NextTokenStart)=='\t') || (*((char *)NextTokenStart)=='\n') || (*((char *)NextTokenStart)=='\r'))) NextTokenStart=(WORDPTR)(((char *)NextTokenStart)+1);;
+        while( (NextTokenStart<CompileStringEnd) && ((*((char *)NextTokenStart)==' ') || (*((char *)NextTokenStart)=='\t') || (*((char *)NextTokenStart)=='\n') || (*((char *)NextTokenStart)=='\r'))) NextTokenStart=(WORDPTR)(((char *)NextTokenStart)+1);
         } else splittoken=0;
 
         TokenLen=(BINT)((BYTEPTR)BlankStart-(BYTEPTR)TokenStart);
@@ -329,6 +329,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     CurOpcode=MKOPCODE(probe_libnum,OPCODE_COMPILE);
 
                     NextTokenStart=BlankStart=((BYTEPTR)TokenStart)+TI_LENGTH(probe_tokeninfo);
+                    while( (NextTokenStart<CompileStringEnd) && ((*((char *)NextTokenStart)==' ') || (*((char *)NextTokenStart)=='\t') || (*((char *)NextTokenStart)=='\n') || (*((char *)NextTokenStart)=='\r'))) NextTokenStart=(WORDPTR)(((char *)NextTokenStart)+1);
                     TokenLen=(BINT)((BYTEPTR)BlankStart-(BYTEPTR)TokenStart);
                     BlankLen=(BINT)((BYTEPTR)NextTokenStart-(BYTEPTR)BlankStart);
                     CurrentConstruct=(BINT)((ValidateTop>RSTop)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
@@ -813,6 +814,7 @@ end_of_expression:
 
         }
         case INFIX_BINARYRIGHT:
+        case INFIX_PREFIXARG:
         {
             // WE KNOW THIS IS THE LAST ARGUMENT
                 // POP EXPRESSION FROM THE STACK
@@ -824,8 +826,34 @@ end_of_expression:
         }
         break;
         case INFIX_POSTFIXARG:
-        case INFIX_PREFIXARG:
-        case INFIX_POSTFIXOP:
+        {
+            LIBHANDLER handler;
+            // ADD THE OPERATOR AFTER THE OPERAND
+            BINT libnum=LIBNUM(*(InfixOpTop-2));
+            SavedDecompObject=DecompileObject;
+            DecompileObject=InfixOpTop-2;
+            CurOpcode=MKOPCODE(libnum,OPCODE_DECOMPILE);
+            handler=rplGetLibHandler(libnum);
+            RetNum=-1;
+
+            if(handler) (*handler)();
+
+            DecompileObject=SavedDecompObject;
+            // IGNORE THE RESULT OF DECOMPILATION
+            if(RetNum!=OK_CONTINUE) {
+                rplDecompAppendString((BYTEPTR)"##INVALID##");
+            }
+
+            // POP EXPRESSION FROM THE STACK
+            InfixOpTop-=4;
+            // RESTORE PREVIOUS EXPRESSION STATE
+            infixmode=InfixOpTop[1];
+            DecompileObject=rplSkipOb(*InfixOpTop);
+            goto end_of_expression;
+
+        }
+        break;
+
         case INFIX_FUNCARGUMENT:
         {
             // CHECK IF THIS IS THE LAST ARGUMENT
