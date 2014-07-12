@@ -780,7 +780,49 @@ end_of_expression:
             break;
         }
         case INFIX_BINARYLEFT:
+        {
+            LIBHANDLER handler;
+            // ADD THE OPERATOR AFTER THE LEFT OPERAND
+            BINT libnum=LIBNUM(*(InfixOpTop-2));
+            SavedDecompObject=DecompileObject;
+            DecompileObject=InfixOpTop-2;
+            CurOpcode=MKOPCODE(libnum,OPCODE_DECOMPILE);
+            handler=rplGetLibHandler(libnum);
+            RetNum=-1;
+
+            if(handler) (*handler)();
+
+            DecompileObject=SavedDecompObject;
+            // IGNORE THE RESULT OF DECOMPILATION
+            if(RetNum!=OK_CONTINUE) {
+                rplDecompAppendString((BYTEPTR)"##INVALID##");
+            }
+
+            // NOW CHECK IF THE RIGHT ARGUMENT IS INDEED THE LAST ONE
+            WORDPTR afternext=rplSkipOb(DecompileObject);
+            WORDPTR EndofExpression = rplSkipOb(*(InfixOpTop-4));
+
+
+            if(afternext==EndofExpression) {
+                // THE NEXT ELEMENT IS THE LAST (IT SHOULD ALWAYS BE IF THE BINARY OPERATOR HAS ONLY 2 ARGUMENTS
+                // BUT WE CAN PACK MORE TERMS ON THE SAME '+' OR '*' THIS WAY
+                infixmode=INFIX_BINARYRIGHT;
+            }
+            // IF IT'S NOT, THEN KEEP IT AS THE LEFT OPERATOR FOR THE NEXT ARGUMENT
+            break;
+
+        }
         case INFIX_BINARYRIGHT:
+        {
+            // WE KNOW THIS IS THE LAST ARGUMENT
+                // POP EXPRESSION FROM THE STACK
+                InfixOpTop-=4;
+                // RESTORE PREVIOUS EXPRESSION STATE
+                infixmode=InfixOpTop[1];
+                DecompileObject=rplSkipOb(*InfixOpTop);
+                goto end_of_expression;
+        }
+        break;
         case INFIX_POSTFIXARG:
         case INFIX_PREFIXARG:
         case INFIX_POSTFIXOP:

@@ -74,3 +74,24 @@ void libProbeCmds(BINT libnum,char *libnames[],BINT tokeninfo[],int numcmds)
     }
     RetNum=ERR_NOTMINE;
 }
+
+void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT tokeninfo[],int numcmds)
+    {
+        int idx;
+        int len;
+        opcode=OPCODE(opcode);
+        for(idx=0;idx<numcmds;++idx)
+        {
+            if(libopcodes[idx]==opcode)
+           {
+                if(tokeninfo) {
+                    RetNum=OK_TOKENINFO | tokeninfo[idx];
+                } else {
+                    len=strlen(libnames[idx]);
+                    RetNum=OK_TOKENINFO | MKTOKENINFO(len,TITYPE_NOTALLOWED,0,0);
+                }
+               return;
+           }
+        }
+        RetNum=ERR_NOTMINE;
+    }

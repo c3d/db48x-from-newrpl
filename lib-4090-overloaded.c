@@ -164,6 +164,10 @@ void LIB_HANDLER()
     case OPCODE_PROBETOKEN:
         libProbeCmds(LIBRARY_NUMBER,LIB_NAMES,LIB_TOKENINFO,LIB_NUMCMDS);
         return;
+    case OPCODE_GETINFO:
+        libGetInfo(*DecompileObject,LIB_NAMES,LIB_OPCODES,LIB_TOKENINFO,LIB_NUMCMDS);
+        return;
+
     }
 
     RetNum=ERR_NOTMINE;

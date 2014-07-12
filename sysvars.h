@@ -32,6 +32,7 @@ extern WORDPTR GC_PTRUpdate[MAX_GC_PTRUPDATE];
 #define SettingsDir         GC_PTRUpdate[10]
 #define SystemFlags         GC_PTRUpdate[11]
 #define LastCompiledObject  GC_PTRUpdate[12]
+#define SavedDecompObject   GC_PTRUpdate[12]
 #define ScratchPointer1     GC_PTRUpdate[13]
 #define ScratchPointer2     GC_PTRUpdate[14]
 #define ScratchPointer3     GC_PTRUpdate[15]
