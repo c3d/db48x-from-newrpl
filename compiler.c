@@ -74,7 +74,7 @@ BINT rplInfixApply(WORD opcode,WORD tokeninfo)
     // MOVE THE ENTIRE LIST TO MAKE ROOM FOR THE HEADER
     memmove(ptr+2,ptr,(CompileEnd-ptr-2)*sizeof(WORD));
 
-    ptr[0]=MKPROLOG(DOSYMB,CompileEnd-ptr-1);
+    ptr[0]=MKPROLOG(DOSYMBOP,CompileEnd-ptr-1);
     ptr[1]=opcode;
 
     return 1;
@@ -540,6 +540,32 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
 }
 
+enum {
+    INFIX_OFF=0,
+    INFIX_STARTSYMBOLIC,
+    INFIX_STARTEXPRESSION,
+    INFIX_FUNCNAME,
+    INFIX_FUNCARGUMENT,
+    INFIX_PREFIXOP,
+    INFIX_PREFIXARG,
+    INFIX_POSTFIXOP,
+    INFIX_POSTFIXARG,
+    INFIX_BINARYLEFT,
+    INFIX_BINARYOP,
+    INFIX_BINARYRIGHT,
+    INFIX_ATOMIC
+};
+
+
+
+
+
+
+
+
+
+
+
 
 void rplDecompAppendChar(BYTE c)
 {
@@ -611,6 +637,8 @@ void rplDecompAppendString2(BYTEPTR str,BINT len)
 WORDPTR rplDecompile(WORDPTR object)
 {
     LIBHANDLER han;
+    BINT infixmode=0;
+    WORDPTR InfixOpTop=RSTop;
 
     // START DECOMPILE LOOP
     DecompileObject=object;
@@ -629,7 +657,6 @@ WORDPTR rplDecompile(WORDPTR object)
 
 
     DecompStringEnd=CompileEnd;
-    CurOpcode=MKOPCODE(0,OPCODE_DECOMPILE);
     while(DecompileObject<EndOfObject)
     {
     // GET FIRST WORD
@@ -637,6 +664,7 @@ WORDPTR rplDecompile(WORDPTR object)
     // CALL LIBRARY HANDLER TO DECOMPILE
     han=rplGetLibHandler(LIBNUM(*DecompileObject));
 
+    CurOpcode=MKOPCODE(0,OPCODE_DECOMPILE);
 
     if(!han) {
         RetNum=ERR_INVALID;
@@ -650,15 +678,171 @@ WORDPTR rplDecompile(WORDPTR object)
     case OK_STARTCONSTRUCT:
         ++DecompileObject;
         break;
+    case OK_STARTCONSTRUCT_INFIX:
+        // PUSH THE SYMBOLIC ON A STACK AND SAVE THE COMPILER STATE
+        if(RStkSize<=(InfixOpTop-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
+        if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
+        InfixOpTop[1]=infixmode;
+        InfixOpTop[0]=DecompileObject;
+        InfixOpTop+=2;
+        ++DecompileObject;
+        if(infixmode) {
+            // SAVE PREVIOUS MODE AND START A SUBEXPRESSION
+            infixmode=INFIX_STARTEXPRESSION;
+        } else infixmode=INFIX_STARTSYMBOLIC;
+        break;
     default:
         rplDecompAppendString((BYTEPTR)"INVALID_COMMAND");
         ++DecompileObject;
     break;
     }
 
+end_of_expression:
+
     // LOOP UNTIL END OF DECOMPILATION ADDRESS IS REACHED
+    if(infixmode) {
+        // IN INFIX MODE, OBJECTS ARE LISTS, BUT FIRST ELEMENT
+        // MIGHT BE AN OPERATOR, AND ARGUMENTS MIGHT NEED TO BE PROCESSED
+        // IN DIFFERENT ORDER
+
+        switch(infixmode)
+        {
+        case INFIX_STARTSYMBOLIC:
+            rplDecompAppendChar('`');
+            if(Exceptions) break;
+        case INFIX_STARTEXPRESSION:
+        {
+
+            // EVALUATE THE TYPE OF SYMBOLIC OPERATOR
+            // GET INFORMATION ABOUT THE TOKEN
+                LIBHANDLER handler=rplGetLibHandler(LIBNUM(*DecompileObject));
+                RetNum=0;
+                if(handler) {
+
+                 CurOpcode=MKOPCODE(LIBNUM(*DecompileObject),OPCODE_GETINFO);
+                (*handler)();
+                }
+
+                if(RetNum<OK_TOKENINFO) RetNum=MKTOKENINFO(0,TITYPE_FUNCTION,0,20); //    TREAT LIKE A NORMAL FUNCTION, THAT WILL BE CALLED [INVALID] LATER
+
+                if(TI_TYPE(RetNum)>=TITYPE_OPERATORS) {
+                // PUSH THE OPERATOR ON THE STACK
+                if(RStkSize<=(InfixOpTop-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
+                if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
+                InfixOpTop[0]=*DecompileObject;
+                InfixOpTop[1]=RetNum;
+                InfixOpTop+=2;
+
+
+                switch(TI_TYPE(RetNum))
+                {
+                case TITYPE_BINARYOP_LEFT:
+                case TITYPE_BINARYOP_RIGHT:
+                    ++DecompileObject;
+                    infixmode=INFIX_BINARYLEFT;
+                break;
+                case TITYPE_POSTFIXOP:
+                    ++DecompileObject;
+                    infixmode=INFIX_POSTFIXARG;
+                    break;
+                case TITYPE_PREFIXOP:
+                    // DECOMPILE THE OPERATOR NOW!
+                    CurOpcode=MKOPCODE(LIBNUM(*DecompileObject),OPCODE_DECOMPILE);
+                    (*handler)();
+                    // IGNORE THE RESULT OF DECOMPILATION
+                    if(RetNum!=OK_CONTINUE) {
+                        Exceptions|=EX_BADOPCODE;
+                        ExceptionPointer=IPtr;
+                        LAMTop=LAMTopSaved;     // RESTORE ENVIRONMENTS
+                        return 0;
+                    }
+                    ++DecompileObject;
+                    infixmode=INFIX_PREFIXARG;
+                    break;
+
+                case TITYPE_FUNCTION:
+                default:
+                    // DECOMPILE THE OPERATOR NOW, THEN ADD PARENTHESIS FOR THE LIST
+                    CurOpcode=MKOPCODE(LIBNUM(*DecompileObject),OPCODE_DECOMPILE);
+                    RetNum=-1;
+                    if(handler) (*handler)();
+                    // IGNORE THE RESULT OF DECOMPILATION
+                    if(RetNum!=OK_CONTINUE) {
+                        rplDecompAppendString((BYTEPTR)"##INVALID##");
+                    }
+                    rplDecompAppendChar('(');
+                    ++DecompileObject;
+                    infixmode=INFIX_FUNCARGUMENT;
+                    break;
+                }
+                } else infixmode=INFIX_ATOMIC;
+
+            break;
+        }
+        case INFIX_BINARYLEFT:
+        case INFIX_BINARYRIGHT:
+        case INFIX_POSTFIXARG:
+        case INFIX_PREFIXARG:
+        case INFIX_POSTFIXOP:
+        case INFIX_FUNCARGUMENT:
+        {
+            // CHECK IF THIS IS THE LAST ARGUMENT
+            WORDPTR EndofExpression = rplSkipOb(*(InfixOpTop-4));
+
+            if(DecompileObject==EndofExpression) {
+                rplDecompAppendChar(')');
+                // END OF THIS EXPRESSION
+                // POP EXPRESSION FROM THE STACK
+                InfixOpTop-=4;
+                // RESTORE PREVIOUS EXPRESSION STATE
+                infixmode=InfixOpTop[1];
+                DecompileObject=rplSkipOb(*InfixOpTop);
+                goto end_of_expression;
+            }
+            else {
+                // IF NOT, KEEP PROCESSING ARGUMENTS
+                rplDecompAppendChar(',');   // TODO: CHANGE THIS TO ; WHEN USING ',' AS DECIMAL POINT!
+            }
+
+
+
+
+        break;
+        }
+        case INFIX_ATOMIC:
+        {
+            // CHECK IF THIS IS THE LAST ARGUMENT
+            WORDPTR EndofExpression = rplSkipOb(*(InfixOpTop-2));
+
+            if(DecompileObject==EndofExpression) {
+                // END OF THIS EXPRESSION
+                // POP EXPRESSION FROM THE STACK
+                InfixOpTop-=2;
+                // RESTORE PREVIOUS EXPRESSION STATE
+                infixmode=InfixOpTop[1];
+                DecompileObject=rplSkipOb(*InfixOpTop);
+                if(!infixmode) rplDecompAppendChar('`');
+                goto end_of_expression;
+            }
+            else {
+                // IF NOT, KEEP PROCESSING A LIST OF EXPRESSIONS (???)
+                rplDecompAppendChar(',');   // TODO: CHANGE THIS TO ; WHEN USING ',' AS DECIMAL POINT!
+            }
+            break;
+        }
+
+        default:
+        break;
+
+
+
+        }
+
+    }
+    else {
     if(DecompileObject<EndOfObject) rplDecompAppendChar(' ');
     if(Exceptions) break;
+    }
     }
 
     // DONE, HERE WE HAVE THE STRING FINISHED

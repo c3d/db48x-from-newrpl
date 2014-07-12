@@ -1056,6 +1056,9 @@ void LIB_HANDLER()
             RetNum=OK_TOKENINFO | MKTOKENINFO((strptr+argnum1)-(BYTEPTR)TokenStart,TITYPE_INTEGER,0,27);
             return;
     }
+    case OPCODE_GETINFO:
+        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_INTEGER,0,27);
+        return;
 
     default:
 

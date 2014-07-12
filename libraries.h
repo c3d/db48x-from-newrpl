@@ -28,6 +28,7 @@
 #define OPCODE_DECOMPILE    0x7FFFD
 #define OPCODE_VALIDATE     0x7FFFC
 #define OPCODE_PROBETOKEN   0x7FFFB
+#define OPCODE_GETINFO      0x7FFFA
 
 
 
@@ -69,6 +70,7 @@ enum TokenInfo_Type {
     TITYPE_REALIDENT,
     TITYPE_COMPLEXIDENT,
     TITYPE_CONSTANTIDENT,
+    TITYPE_EXPRESSION,
     TITYPE_OPERATORS=16,
     TITYPE_PREFIXOP,
     TITYPE_POSTFIXOP,
@@ -123,6 +125,7 @@ extern void libProbeCmds(BINT libnum, char *libnames[], BINT tokeninfo[], int nu
 #define DODIR       22      // DIRECTORY OBJECTS
 #define DOCMPLX     26
 #define DOSYMB      28      // SYMBOLIC OBJECT
+#define DOSYMBOP    29      // SYMBOLIC EXPRESSION SUB-OBJECT
 #define DOLIST      50
 
 #define ISIDENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOIDENT)||(LIBNUM(prolog)==DOIDENTEVAL)) )
