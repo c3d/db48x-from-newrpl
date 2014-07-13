@@ -335,7 +335,8 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     CurrentConstruct=(BINT)((ValidateTop>RSTop)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
                     LastCompiledObject=CompileEnd;
 
-                    (*handler)();
+                    RetNum=-1;
+                    if(handler) (*handler)();
 
                     if(RetNum!=OK_CONTINUE) {
                         // THE LIBRARY ACCEPTED THE TOKEN DURING PROBE, SO WHAT COULD POSSIBLY GO WRONG?
@@ -381,6 +382,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                                     LAMTop=LAMTopSaved;
                                     return 0;
                                 }
+                            }
 
 
                             if(InfixOpTop<=ValidateTop) {
@@ -393,6 +395,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                             // REMOVE THE OPENING BRACKET AND APPLY THE CLOSING ONE
                             InfixOpTop-=2;
+                            /*
                             if(!rplInfixApply(Opcode,probe_tokeninfo))
                             {
                                 Exceptions|=EX_SYNTAXERROR;
@@ -400,6 +403,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                                 LAMTop=LAMTopSaved;
                                 return 0;
                             }
+                            */
 
 
                             // CHECK IF THE TOP OF STACK IS A FUNCTION
@@ -418,7 +422,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                                 }
                             }
-                            }
+
                         }
                         else {
 
@@ -734,6 +738,20 @@ end_of_expression:
                 InfixOpTop[1]=RetNum;
                 InfixOpTop+=2;
 
+                // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
+                if( (InfixOpTop-6)>=RSTop) {
+                    // THERE'S AN OPERATOR IN THE STACK
+                    if(ISPROLOG(*(InfixOpTop-6))) {
+                        // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
+                        // NO NEED FOR PARENTHESIS
+                    }
+                    else {
+                        if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(RetNum)) {
+                            rplDecompAppendChar('(');
+                        }
+                    }
+                }
+
 
                 switch(TI_TYPE(RetNum))
                 {
@@ -818,6 +836,19 @@ end_of_expression:
         {
             // WE KNOW THIS IS THE LAST ARGUMENT
                 // POP EXPRESSION FROM THE STACK
+            // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
+            if( (InfixOpTop-6)>=RSTop) {
+                // THERE'S AN OPERATOR IN THE STACK
+                if(ISPROLOG(*(InfixOpTop-6))) {
+                    // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
+                    // NO NEED FOR PARENTHESIS
+                }
+                else {
+                    if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(*(InfixOpTop-1))) {
+                        rplDecompAppendChar(')');
+                    }
+                }
+            }
                 InfixOpTop-=4;
                 // RESTORE PREVIOUS EXPRESSION STATE
                 infixmode=InfixOpTop[1];
@@ -844,6 +875,19 @@ end_of_expression:
                 rplDecompAppendString((BYTEPTR)"##INVALID##");
             }
 
+            // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
+            if( (InfixOpTop-6)>=RSTop) {
+                // THERE'S AN OPERATOR IN THE STACK
+                if(ISPROLOG(*(InfixOpTop-6))) {
+                    // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
+                    // NO NEED FOR PARENTHESIS
+                }
+                else {
+                    if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(*(InfixOpTop-1))) {
+                        rplDecompAppendChar(')');
+                    }
+                }
+            }
             // POP EXPRESSION FROM THE STACK
             InfixOpTop-=4;
             // RESTORE PREVIOUS EXPRESSION STATE

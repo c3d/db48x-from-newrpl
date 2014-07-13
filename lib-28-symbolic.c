@@ -32,23 +32,25 @@
 
 // EXTRA LIST FOR COMMANDS WITH SYMBOLS THAT ARE DISALLOWED IN AN ENUM
 // THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
-/*
 #define CMD_EXTRANAME \
-    "->"
+    "(", \
+    ")", \
+    ","
 #define CMD_EXTRAENUM \
-    NEWLOCALENV
-*/
+    OPENBRACKET, \
+    CLOSEBRACKET, \
+    COMMA
 
 // INTERNAL DECLARATIONS
 
 // CREATE AN ENUM WITH THE OPCODE NAMES FOR THE DISPATCHER
 #define CMD(a) a
-enum LIB_ENUM { CMD_LIST /*, CMD_EXTRAENUM*/ , LIB_NUMBEROFCMDS };
+enum LIB_ENUM { CMD_LIST , CMD_EXTRAENUM , LIB_NUMBEROFCMDS };
 #undef CMD
 
 // AND A LIST OF STRINGS WITH THE NAMES FOR THE COMPILER
 #define CMD(a) #a
-char *LIB_NAMES[]= { CMD_LIST /*, CMD_EXTRANAME*/  };
+char *LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME  };
 #undef CMD
 
 
@@ -97,6 +99,33 @@ void LIB_HANDLER()
             }
             RetNum=OK_STARTCONSTRUCT_INFIX;
             return;
+        }
+
+        if(*tok=='(') {
+            if((TokenLen==1) && (CurrentConstruct==MKPROLOG(DOSYMB,0))) {
+                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,OPENBRACKET));
+                RetNum=OK_CONTINUE;
+            }
+            else RetNum=ERR_NOTMINE;
+        return;
+        }
+
+
+        if(*tok==')') {
+            if((TokenLen==1) && (CurrentConstruct==MKPROLOG(DOSYMB,0))) {
+                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,CLOSEBRACKET));
+                RetNum=OK_CONTINUE;
+            }
+            else RetNum=ERR_NOTMINE;
+        return;
+        }
+        if(*tok==',') {
+            if((TokenLen==1) && (CurrentConstruct==MKPROLOG(DOSYMB,0))) {
+                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,COMMA));
+                RetNum=OK_CONTINUE;
+            }
+            else RetNum=ERR_NOTMINE;
+        return;
         }
 
 
@@ -162,6 +191,21 @@ void LIB_HANDLER()
 
             if(TokenLen>1) RetNum=ERR_SYNTAX;
             else RetNum= OK_ENDCONSTRUCT_INFIX;
+            return;
+        }
+
+        if(*((char *)TokenStart)=='(') {
+            RetNum= OK_TOKENINFO | MKTOKENINFO(1,TITYPE_OPENBRACKET,0,31);
+            return;
+        }
+
+        if(*((char *)TokenStart)==')') {
+            RetNum= OK_TOKENINFO | MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31);
+            return;
+        }
+
+        if(*((char *)TokenStart)==',') {
+            RetNum= OK_TOKENINFO | MKTOKENINFO(1,TITYPE_COMMA,0,31);
             return;
         }
 
