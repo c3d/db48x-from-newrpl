@@ -707,7 +707,7 @@ WORDPTR rplDecompile(WORDPTR object)
         if(RStkSize<=(InfixOpTop-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
         if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
         InfixOpTop[1]=infixmode;
-        InfixOpTop[0]=DecompileObject;
+        InfixOpTop[0]=DecompileObject-EndOfObject;
         InfixOpTop+=2;
         ++DecompileObject;
         if(infixmode) {
@@ -839,7 +839,7 @@ end_of_expression:
 
             // NOW CHECK IF THE RIGHT ARGUMENT IS INDEED THE LAST ONE
             WORDPTR afternext=rplSkipOb(DecompileObject);
-            WORDPTR EndofExpression = rplSkipOb(*(InfixOpTop-4));
+            WORDPTR EndofExpression = rplSkipOb(*(InfixOpTop-4)+EndOfObject);
 
 
             if(afternext==EndofExpression) {
@@ -873,7 +873,7 @@ end_of_expression:
                 InfixOpTop-=4;
                 // RESTORE PREVIOUS EXPRESSION STATE
                 infixmode=InfixOpTop[1];
-                DecompileObject=rplSkipOb(*InfixOpTop);
+                DecompileObject=rplSkipOb(*InfixOpTop+EndOfObject);
                 goto end_of_expression;
         }
         break;
@@ -914,7 +914,7 @@ end_of_expression:
             InfixOpTop-=4;
             // RESTORE PREVIOUS EXPRESSION STATE
             infixmode=InfixOpTop[1];
-            DecompileObject=rplSkipOb(*InfixOpTop);
+            DecompileObject=rplSkipOb(*InfixOpTop+EndOfObject);
             goto end_of_expression;
 
         }
@@ -923,7 +923,7 @@ end_of_expression:
         case INFIX_FUNCARGUMENT:
         {
             // CHECK IF THIS IS THE LAST ARGUMENT
-            WORDPTR EndofExpression = rplSkipOb(*(InfixOpTop-4));
+            WORDPTR EndofExpression = rplSkipOb(*(InfixOpTop-4)+EndOfObject);
 
             if(DecompileObject==EndofExpression) {
                 rplDecompAppendChar(')');
@@ -932,7 +932,7 @@ end_of_expression:
                 InfixOpTop-=4;
                 // RESTORE PREVIOUS EXPRESSION STATE
                 infixmode=InfixOpTop[1];
-                DecompileObject=rplSkipOb(*InfixOpTop);
+                DecompileObject=rplSkipOb(*InfixOpTop+EndOfObject);
                 goto end_of_expression;
             }
             else {
@@ -948,7 +948,7 @@ end_of_expression:
         case INFIX_ATOMIC:
         {
             // CHECK IF THIS IS THE LAST ARGUMENT
-            WORDPTR EndofExpression = rplSkipOb(*(InfixOpTop-2));
+            WORDPTR EndofExpression = rplSkipOb(*(InfixOpTop-2)+EndOfObject);
 
             if(DecompileObject==EndofExpression) {
                 // END OF THIS EXPRESSION
@@ -956,7 +956,7 @@ end_of_expression:
                 InfixOpTop-=2;
                 // RESTORE PREVIOUS EXPRESSION STATE
                 infixmode=InfixOpTop[1];
-                DecompileObject=rplSkipOb(*InfixOpTop);
+                DecompileObject=rplSkipOb(*InfixOpTop+EndOfObject);
                 if(!infixmode) rplDecompAppendChar('`');
                 goto end_of_expression;
             }
