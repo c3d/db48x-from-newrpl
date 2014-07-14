@@ -273,6 +273,13 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     // FLUSH OUT ANY OPERATORS IN THE STACK
                     while(InfixOpTop>ValidateTop){
                         InfixOpTop-=2;
+                        if(TI_TYPE(InfixOpTop[1])==TITYPE_OPENBRACKET) {
+                            // MISSING BRACKET SOMEWHERE!
+                            Exceptions|=EX_SYNTAXERROR;
+                            ExceptionPointer=IPtr;
+                            LAMTop=LAMTopSaved;
+                            return 0;
+                        }
                         if(!rplInfixApply(InfixOpTop[0],InfixOpTop[1]))
                         {
                             Exceptions|=EX_SYNTAXERROR;
@@ -362,17 +369,17 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             // PUSH THE NEW OPERATOR
                             if(RStkSize<=(InfixOpTop-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
                             if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
-                            InfixOpTop[0]=Opcode;
+                            InfixOpTop[0]=CompileEnd-TempObEnd;        // SAVE POSITION TO START COUNTING ARGUMENTS
                             InfixOpTop[1]=probe_tokeninfo;
                             InfixOpTop+=2;
                         }
                         else {
 
-                        if(TI_TYPE(probe_tokeninfo)==TITYPE_CLOSEBRACKET) {
+                        if((TI_TYPE(probe_tokeninfo)==TITYPE_CLOSEBRACKET)||(TI_TYPE(probe_tokeninfo)==TITYPE_COMMA)) {
                          // POP ALL OPERATORS OFF THE STACK UNTIL THE OPENING BRACKET IS FOUND
 
                             while(InfixOpTop>ValidateTop){
-                                if((TI_TYPE(*(InfixOpTop-1))==TITYPE_OPENBRACKET) && (LIBNUM(*(InfixOpTop-2))==probe_libnum)) break;
+                                if((TI_TYPE(*(InfixOpTop-1))==TITYPE_OPENBRACKET)) break;
                                 // POP OPERATORS OFF THE STACK AND APPLY TO OBJECTS
                                 InfixOpTop-=2;
                                 if(!rplInfixApply(InfixOpTop[0],InfixOpTop[1]))
@@ -393,22 +400,28 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                                     return 0;
                             }
 
-                            // REMOVE THE OPENING BRACKET AND APPLY THE CLOSING ONE
+                            if(TI_TYPE(probe_tokeninfo)==TITYPE_CLOSEBRACKET) {
+                            // COUNT THE NUMBER OF ARGUMENTS WE HAVE
+                            // REMOVE THE OPENING BRACKET
                             InfixOpTop-=2;
-                            /*
-                            if(!rplInfixApply(Opcode,probe_tokeninfo))
-                            {
-                                Exceptions|=EX_SYNTAXERROR;
-                                ExceptionPointer=IPtr;
-                                LAMTop=LAMTopSaved;
-                                return 0;
-                            }
-                            */
+
+                            BINT nargs=0;
+                            WORDPTR list=TempObEnd+InfixOpTop[0];
+                            WORDPTR ptr=CompileEnd;
+
+                            while((ptr=rplReverseSkipOb(list,ptr))!=NULL) ++nargs;
+
 
 
                             // CHECK IF THE TOP OF STACK IS A FUNCTION
                             if(InfixOpTop>ValidateTop) {
                                 if(TI_TYPE(*(InfixOpTop-1))==TITYPE_FUNCTION) {
+                                    if(nargs!=TI_NARGS(*(InfixOpTop-1))) {
+                                        Exceptions|=EX_BADARGCOUNT;
+                                        ExceptionPointer=IPtr;
+                                        LAMTop=LAMTopSaved;
+                                        return 0;
+                                    }
                                     // POP FUNCTION OFF THE STACK AND APPLY
                                     InfixOpTop-=2;
 
@@ -422,6 +435,12 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                                 }
                             }
+                            } else {
+                                // THE PARAMETER IS A COMMA
+                                // DO NOTHING FOR NOW
+                            }
+
+
 
                         }
                         else {
@@ -747,7 +766,8 @@ end_of_expression:
                     }
                     else {
                         if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(RetNum)) {
-                            rplDecompAppendChar('(');
+                            if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS!
+                                rplDecompAppendChar('(');
                         }
                     }
                 }
@@ -845,6 +865,7 @@ end_of_expression:
                 }
                 else {
                     if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(*(InfixOpTop-1))) {
+                        if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS
                         rplDecompAppendChar(')');
                     }
                 }
@@ -884,6 +905,7 @@ end_of_expression:
                 }
                 else {
                     if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(*(InfixOpTop-1))) {
+                        if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS
                         rplDecompAppendChar(')');
                     }
                 }
