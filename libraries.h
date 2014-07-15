@@ -127,7 +127,6 @@ extern void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT token
 #define DODIR       22      // DIRECTORY OBJECTS
 #define DOCMPLX     26
 #define DOSYMB      28      // SYMBOLIC OBJECT
-#define DOSYMBOP    29      // SYMBOLIC EXPRESSION SUB-OBJECT
 #define DOLIST      50
 
 #define ISIDENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOIDENT)||(LIBNUM(prolog)==DOIDENTEVAL)) )

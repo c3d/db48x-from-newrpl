@@ -40,7 +40,7 @@ WORDPTR rplReverseSkipOb(WORDPTR list_start,WORDPTR after_object)
 // ONLY CALLED BY THE COMPILER
 // ON ENTRY: CompileEnd = top of the output stream (pointing after the last object)
 //           *(ValidateTop-1) = START OF THE SYMBOLIC OBJECT
-BINT rplInfixApply(WORD opcode,WORD tokeninfo)
+static BINT rplInfixApply(WORD opcode,WORD tokeninfo)
 {
     // FORMAT OF SYMBOLIC OBJECT:
     // DOSYMB PROLOG
@@ -74,7 +74,7 @@ BINT rplInfixApply(WORD opcode,WORD tokeninfo)
     // MOVE THE ENTIRE LIST TO MAKE ROOM FOR THE HEADER
     memmove(ptr+2,ptr,(CompileEnd-ptr-2)*sizeof(WORD));
 
-    ptr[0]=MKPROLOG(DOSYMBOP,CompileEnd-ptr-1);
+    ptr[0]=MKPROLOG(DOSYMB,CompileEnd-ptr-1);
     ptr[1]=opcode;
 
     return 1;
@@ -288,6 +288,16 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             return 0;
                         }
                     }
+                    // ALL PENDING OPERATORS WERE APPLIED, NOW CHECK THAT THERE IS ONE AND ONLY ONE RESULT
+
+                    if(rplSkipOb(*(ValidateTop-1)+1)!=CompileEnd) {
+                        Exceptions|=EX_SYNTAXERROR;
+                        ExceptionPointer=IPtr;
+                        LAMTop=LAMTopSaved;
+                        return 0;
+                    }
+
+
                     infixmode=0;
                  }
                     --ValidateTop;
@@ -732,7 +742,7 @@ end_of_expression:
         switch(infixmode)
         {
         case INFIX_STARTSYMBOLIC:
-            rplDecompAppendChar('`');
+            rplDecompAppendChar('\'');
             if(Exceptions) break;
         case INFIX_STARTEXPRESSION:
         {
@@ -957,7 +967,7 @@ end_of_expression:
                 // RESTORE PREVIOUS EXPRESSION STATE
                 infixmode=InfixOpTop[1];
                 DecompileObject=rplSkipOb(*InfixOpTop+EndOfObject);
-                if(!infixmode) rplDecompAppendChar('`');
+                if(!infixmode) rplDecompAppendChar('\'');
                 goto end_of_expression;
             }
             else {

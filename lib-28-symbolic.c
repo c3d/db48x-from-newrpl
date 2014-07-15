@@ -91,15 +91,6 @@ void LIB_HANDLER()
         BYTEPTR tok=(BYTEPTR )TokenStart;
 
 
-        if(*tok=='`') {
-            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER,0));
-
-            if(TokenLen>1) {
-                NextTokenStart=((char *)TokenStart)+1;
-            }
-            RetNum=OK_STARTCONSTRUCT_INFIX;
-            return;
-        }
 
         if(*tok=='(') {
             if((TokenLen==1) && (CurrentConstruct==MKPROLOG(DOSYMB,0))) {
@@ -186,7 +177,7 @@ void LIB_HANDLER()
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
         {
 
-        if(*((char *)TokenStart)=='`') {
+        if(*((char *)TokenStart)=='\'') {
             // FOUND END OF SYMBOLIC OBJECT
 
             if(TokenLen>1) RetNum=ERR_SYNTAX;
@@ -214,6 +205,15 @@ void LIB_HANDLER()
 
 
         }
+
+    case OPCODE_GETINFO:
+        if(ISPROLOG(*DecompileObject)) {
+            RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_EXPRESSION,0,0);
+        }
+        else RetNum=ERR_NOTMINE;
+        return;
+
+
 
     }
     // UNHANDLED OPCODE...

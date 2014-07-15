@@ -129,17 +129,29 @@ void LIB_HANDLER()
         if(*tok=='\'') {
                 // QUOTED IDENT OR ALGEBRAIC OBJECT
                 if(tok[TokenLen-1]!='\'') {
-                // NO CLOSING QUOTE!
-                RetNum=ERR_NOTMINE;
-                return;
+                    // NOT A SIMPLE IDENT, THEN IT'S A SYMBOLIC EXPRESSION
+                    rplCompileAppend(MKPROLOG(DOSYMB,0));
+
+                    if(TokenLen>1) {
+                        NextTokenStart=((char *)TokenStart)+1;
+                    }
+                    RetNum=OK_STARTCONSTRUCT_INFIX;
+                    return;
                 }
 
                 ++tok;
                 len-=2;
 
                 if(!rplIsValidIdent(tok,len)) {
-                 RetNum=ERR_NOTMINE;
-                 return;
+
+                        // NOT A SIMPLE IDENT, THEN IT'S A SYMBOLIC EXPRESSION
+                        rplCompileAppend(MKPROLOG(DOSYMB,0));
+
+                        if(TokenLen>1) {
+                            NextTokenStart=((char *)TokenStart)+1;
+                        }
+                        RetNum=OK_STARTCONSTRUCT_INFIX;
+                        return;
                 }
 
 
@@ -164,6 +176,14 @@ void LIB_HANDLER()
             // IDENTS
 
             rplCompileIDENT(DOIDENT,tok,len);
+
+            RetNum=OK_CONTINUE;
+            return;
+        }
+        if(CurrentConstruct==MKPROLOG(DOSYMB,0)) {
+            // INSIDE SYMBOLICS, ALL IDENTS ARE UNQUOTED
+
+            rplCompileIDENT(DOIDENTEVAL,tok,len);
 
             RetNum=OK_CONTINUE;
             return;
@@ -286,6 +306,25 @@ void LIB_HANDLER()
 
         RetNum=OK_CONTINUE;
         return;
+    case OPCODE_PROBETOKEN:
+    {
+        BINT len,maxlen;
+
+        for(maxlen=0,len=1;len<TokenLen;++len) {
+            if(rplIsValidIdent(TokenStart,len)) maxlen=len;
+            else break;
+        }
+        if(maxlen>0) RetNum=OK_TOKENINFO | MKTOKENINFO(maxlen,TITYPE_IDENT,0,1);
+        else RetNum=ERR_NOTMINE;
+        return;
+    }
+
+    case OPCODE_GETINFO:
+    {
+        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_IDENT,0,1);
+        return;
+    }
+
     }
 
     // UNHANDLED OPCODE...
