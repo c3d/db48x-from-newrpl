@@ -62,14 +62,140 @@ void LIB_HANDLER()
         return;
     }
 
+    if((OPCODE(CurOpcode)>=MIN_OVERLOAD_OPCODE)&&(OPCODE(CurOpcode)<MIN_RESERVED_OPCODE)) {
+        // OVERLOADED OPERATORS
     switch(OPCODE(CurOpcode))
     {
+        case OVR_INV:
+        case OVR_NEG:
+        case OVR_NOT:
+    {
+     // UNARY OPERATION ON A SYMBOLIC
 
-    // ADD MORE OPCODES HERE
+     WORDPTR object=rplPeekData(1);
+         if(rplSymbMainOperator(object)==CurOpcode) {
+             // THIS SYMBOLIC ALREADY HAS THE OPERATOR, REMOVE IT!
+             rplOverwriteData(1,rplSymbUnwrap(object)+2);
+             return;
+         }
 
-    case OVR_EVAL:
-    case OVR_XEQ:
+     object=rplSymbUnwrap(object);
+     if(!object) {
+         Exceptions|=EX_BADARGVALUE;
+         ExceptionPointer=IPtr;
+         return;
+     }
+     BINT size=rplObjSize(object);
+     // NEED TO WRAP AND ADD THE OPERATOR
+     size+=2;
+
+    WORDPTR newobject=rplAllocTempOb(size-1);
+    if(!newobject) return;
+
+    newobject[0]=MKPROLOG(DOSYMB,size-1);
+    newobject[1]=MKOPCODE(LIB_OVERLOADABLE,OPCODE(CurOpcode));
+    object=rplSymbUnwrap(rplPeekData(1));  // READ AGAIN, GC MIGHT'VE MOVED THE OBJECT
+
+    WORDPTR endptr=rplSkipOb(object);
+    WORDPTR ptr=newobject+2;
+    while(object!=endptr) *ptr++=*object++;
+
+    rplOverwriteData(1,newobject);
+    return;
+
+    }
+        case OVR_EVAL:
+        case OVR_XEQ:
+        break;
+        case OVR_ABS:
+        case OVR_ISTRUE:
+
+    {
+     // UNARY OPERATION ON A SYMBOLIC
+
+     WORDPTR object=rplPeekData(1);
+         if(rplSymbMainOperator(object)==CurOpcode) {
+             // THIS SYMBOLIC ALREADY HAS THE OPERATOR, NO NEED TO ADD IT
+             return;
+         }
+
+     object=rplSymbUnwrap(object);
+     if(!object) {
+         Exceptions|=EX_BADARGVALUE;
+         ExceptionPointer=IPtr;
+         return;
+     }
+     BINT size=rplObjSize(object);
+     // NEED TO WRAP AND ADD THE OPERATOR
+     size+=2;
+
+    WORDPTR newobject=rplAllocTempOb(size-1);
+    if(!newobject) return;
+
+    newobject[0]=MKPROLOG(DOSYMB,size-1);
+    newobject[1]=MKOPCODE(LIB_OVERLOADABLE,OPCODE(CurOpcode));
+    object=rplSymbUnwrap(rplPeekData(1));  // READ AGAIN, GC MIGHT'VE MOVED THE OBJECT
+
+    WORDPTR endptr=rplSkipOb(object);
+    WORDPTR ptr=newobject+2;
+    while(object!=endptr) *ptr++=*object++;
+
+    rplOverwriteData(1,newobject);
+    return;
+
+    }
+        case OVR_EQ:
+        case OVR_NOTEQ:
+        case OVR_LT:
+        case OVR_GT:
+        case OVR_LTE:
+        case OVR_GTE:
+        case OVR_SAME:
+        case OVR_AND:
+        case OVR_OR:
+        case OVR_XOR:
+        case OVR_CMP:
+        case OVR_ADD:
+        case OVR_SUB:
+        case OVR_MUL:
+        case OVR_DIV:
+        case OVR_POW:
+        {
+        // BINARY OPERATORS
+
+        // FIRST, CHECK THAT ARGUMENTS ARE ACCEPTABLE FOR SYMBOLIC OPERATION
+        WORDPTR arg1=rplPeekData(2);
+        WORDPTR arg2=rplPeekData(1);
+        if( (!rplIsAllowedInSymb(arg1)) || (!rplIsAllowedInSymb(arg2)))
+        {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        BINT size1=rplObjSize(arg1),size2=rplObjSize(arg2);
+
+        WORDPTR newobject=rplAllocTempOb(size1+size2+1);
+        if(!newobject) return;
+
+        newobject[0]=MKPROLOG(LIBRARY_NUMBER,size1+size2+1);
+        newobject[1]=CurOpcode;
+        rplCopyObject(newobject+2,rplPeekData(2));
+        rplCopyObject(newobject+2+size1,rplPeekData(1));
+
+        rplDropData(1);
+        rplOverwriteData(1,newobject);
+
         return;
+        }
+        break;
+        }
+
+
+    }
+
+    switch(OPCODE(CurOpcode))
+    {
 
     // STANDARIZED OPCODES:
     // --------------------
@@ -118,6 +244,8 @@ void LIB_HANDLER()
             else RetNum=ERR_NOTMINE;
         return;
         }
+
+
 
 
     }

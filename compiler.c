@@ -308,6 +308,16 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         return 0;
                     }
                     if(ISPROLOG((BINT)**ValidateTop)) **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | ((((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1);    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
+
+                    // FUTURE OPTIMIZATION:
+                    // THE COMPILER GENERATES A DOSYMB WRAPPER FOR ALL ITEMS
+                    // THAT COULD BE REMOVED. DURING COMPILE IT IS REQUIRED IN ORDER TO HAVE
+                    // A CURRENT CONSTRUCT POINTING TO A SYMBOLIC, SO THAT LIBRARIES CAN DETERMINE
+                    // THAT A COMMAND IS BEING COMPILED WITHIN A SYMBOLIC.
+                    // BUT REMOVING IT IMPLIES MOVING THE ENTIRE OBJECT 1 WORD DOWN IN MEMORY
+                    // SO IT'S NOT DONE FOR SPEED REASONS
+
+
                     libcnt=EXIT_LOOP;
                     force_libnum=-1;
                     break;
@@ -884,6 +894,8 @@ end_of_expression:
                 // RESTORE PREVIOUS EXPRESSION STATE
                 infixmode=InfixOpTop[1];
                 DecompileObject=rplSkipOb(*InfixOpTop+EndOfObject);
+                if(!infixmode) rplDecompAppendChar('\'');
+
                 goto end_of_expression;
         }
         break;
@@ -925,6 +937,8 @@ end_of_expression:
             // RESTORE PREVIOUS EXPRESSION STATE
             infixmode=InfixOpTop[1];
             DecompileObject=rplSkipOb(*InfixOpTop+EndOfObject);
+            if(!infixmode) rplDecompAppendChar('\'');
+
             goto end_of_expression;
 
         }
@@ -943,6 +957,8 @@ end_of_expression:
                 // RESTORE PREVIOUS EXPRESSION STATE
                 infixmode=InfixOpTop[1];
                 DecompileObject=rplSkipOb(*InfixOpTop+EndOfObject);
+                if(!infixmode) rplDecompAppendChar('\'');
+
                 goto end_of_expression;
             }
             else {

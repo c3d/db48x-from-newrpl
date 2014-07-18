@@ -442,6 +442,12 @@ void LIB_HANDLER()
 
         RetNum=OK_CONTINUE;
         return;
+
+    case OPCODE_GETINFO:
+        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_REAL,0,1);
+        return;
+
+
     }
     // UNHANDLED OPCODE...
 

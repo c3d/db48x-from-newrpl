@@ -249,6 +249,10 @@ extern WORDPTR rplGetListElement(WORDPTR composite, BINT pos);
 extern WORDPTR rplGetListElementFlat(WORDPTR composite, BINT pos);
 extern BINT rplIsLastElementFlat(WORDPTR composite, BINT pos);
 
+// SYMBOLIC FUNCTIONS
+extern WORDPTR rplSymbUnwrap(WORDPTR symbolic);
+extern WORD rplSymbMainOperator(WORDPTR symbolic);
+extern BINT rplIsAllowedInSymb(WORDPTR object);
 
 
 

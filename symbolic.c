@@ -64,3 +64,50 @@
 1 = NUMERIC TYPES
 
 */
+
+// RETURN THE OPCODE OF THE MAIN OPERATOR OF THE SYMBOLIC,
+// OR ZERO IF AN ATOMIC OBJECT
+// ABLE TO DIG THROUGH MULTIPLE LAYERS OF DOSYMB WRAPPING
+
+WORD rplSymbMainOperator(WORDPTR symbolic)
+{
+    WORDPTR endptr=rplSkipOb(symbolic);
+    while( (ISSYMBOLIC(*(symbolic+1))) && ((symbolic+1)<endptr)) ++symbolic;
+    if(symbolic+1>=endptr) return 0;
+    if(!ISPROLOG(*(symbolic+1))) return *(symbolic+1);
+    return 0;
+}
+
+// PEEL OFF USELESS LAYERS OF DOSYMB WRAPPING
+
+WORDPTR rplSymbUnwrap(WORDPTR symbolic)
+{
+    WORDPTR endptr=rplSkipOb(symbolic);
+    while( (ISSYMBOLIC(*(symbolic+1))) && ((symbolic+1)<endptr)) ++symbolic;
+    if(symbolic+1>=endptr) return 0;
+    return symbolic;
+}
+
+
+// RETURN 1 IF THE OBJECT IS ALLOWED WITHIN A SYMBOLIC, OTHERWISE 0
+
+BINT rplIsAllowedInSymb(WORDPTR object)
+{
+    // CALL THE GETINFO OPCODE TO SEE IF IT'S ALLOWED
+    LIBHANDLER handler=rplGetLibHandler(LIBNUM(*object));
+    WORD savedopcode=CurOpcode;
+    // ARGUMENTS TO PASS TO THE HANDLER
+    DecompileObject=object;
+    RetNum=-1;
+    CurOpcode=MKOPCODE(LIBNUM(*object),OPCODE_GETINFO);
+    if(handler) (*handler)();
+
+    // RESTORE ORIGINAL OPCODE
+    CurOpcode=savedopcode;
+
+    if(RetNum>OK_TOKENINFO) {
+        if(TI_TYPE(RetNum)==TITYPE_NOTALLOWED) return 0;
+        return 1;
+    }
+    return 0;
+}

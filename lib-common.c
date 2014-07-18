@@ -74,7 +74,9 @@ void libProbeCmds(BINT libnum,char *libnames[],BINT tokeninfo[],int numcmds)
     }
     RetNum=ERR_NOTMINE;
 }
-
+// STANDARD GETINFO FOR COMMANDS
+// COMMON TO ALL LIBRARIES THAT DEFINE ONLY COMMANDS
+// STARTING TO COUNT FROM COMMAND NUMBER 0
 void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT tokeninfo[],int numcmds)
     {
         int idx;

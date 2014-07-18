@@ -1057,7 +1057,7 @@ void LIB_HANDLER()
             return;
     }
     case OPCODE_GETINFO:
-        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_INTEGER,0,27);
+        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_INTEGER,0,1);
         return;
 
     default:

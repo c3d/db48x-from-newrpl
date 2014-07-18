@@ -140,6 +140,9 @@ extern void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT token
 #define ISNUMBERCPLX(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISCOMPLEX(prolog))
 #define ISSTRING(prolog) ((LIBNUM(prolog)&~3)==DOSTRING)
 
+#define ISSYMBOLIC(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOSYMB))
+
+
 // THIS IS TO CHECK IF AN OBJECT IS "FALSE", WHICH CAN BE THE BINT0 OR THE REAL0
 #define IS_FALSE(p)  ( (OPCODE(p)==0) && (((LIBNUM(p)+2)&~3)==BINBINT))
 
