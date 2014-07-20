@@ -253,6 +253,7 @@ extern BINT rplIsLastElementFlat(WORDPTR composite, BINT pos);
 extern WORDPTR rplSymbUnwrap(WORDPTR symbolic);
 extern WORD rplSymbMainOperator(WORDPTR symbolic);
 extern BINT rplIsAllowedInSymb(WORDPTR object);
+extern void rplSymbApplyOperator(WORD Opcode,BINT nargs);
 
 
 

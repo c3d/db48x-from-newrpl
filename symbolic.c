@@ -79,7 +79,8 @@ WORD rplSymbMainOperator(WORDPTR symbolic)
 }
 
 // PEEL OFF USELESS LAYERS OF DOSYMB WRAPPING
-
+// DO NOT CALL FOR ANY OBJECTS OTHER THAN A SYMBOLIC
+// NO ARGUMENT CHECKS
 WORDPTR rplSymbUnwrap(WORDPTR symbolic)
 {
     WORDPTR endptr=rplSkipOb(symbolic);
@@ -110,4 +111,60 @@ BINT rplIsAllowedInSymb(WORDPTR object)
         return 1;
     }
     return 0;
+}
+
+// TAKE 'nargs' ITEMS FROM THE STACK AND APPLY THE OPERATOR OPCODE
+// LEAVE THE NEW SYMBOLIC OBJECT IN THE STACK
+// NO ARGUMENT CHECKS!
+void rplSymbApplyOperator(WORD Opcode,BINT nargs)
+{
+    BINT f;
+    WORDPTR obj,ptr;
+    BINT size=0;
+    for(f=1;f<=nargs;++f) {
+        obj=rplPeekData(f);
+        if(ISSYMBOLIC(*obj)) obj=rplSymbUnwrap(obj);
+        size+=rplObjSize(obj);
+    }
+    size+=1;
+
+    WORDPTR newobject=rplAllocTempOb(size);
+    if(!newobject) return;
+
+    newobject[0]=MKPROLOG(DOSYMB,size);
+    newobject[1]=Opcode;
+    ptr=newobject+2;
+    for(f=nargs;f>0;--f) {
+        obj=rplPeekData(f);
+        if(ISSYMBOLIC(*obj)) obj=rplSymbUnwrap(obj);
+        else {
+            // CHECK IF IT'S ALLOWED IN SYMBOLICS
+            LIBHANDLER han=rplGetLibHandler(LIBNUM(*obj));
+            WORD savedopc=CurOpcode;
+            CurOpcode=MKOPCODE(LIBNUM(*obj),OPCODE_GETINFO);
+            RetNum=-1;
+            if(han) (*han)();
+            CurOpcode=savedopc;
+            if(RetNum>OK_TOKENINFO) {
+                if(TI_TYPE(RetNum)==TITYPE_NOTALLOWED) {
+                    Exceptions|=EX_BADARGTYPE;
+                    ExceptionPointer=IPtr;
+                    return;
+                }
+            }
+            else {
+                Exceptions|=EX_BADARGTYPE;
+                ExceptionPointer=IPtr;
+                return;
+            }
+
+        }
+        rplCopyObject(ptr,obj);
+        // REPLACE QUOTED IDENT WITH UNQUOTED ONES FOR SYMBOLIC OBJECTS
+        if(LIBNUM(*ptr)==DOIDENT) *ptr=MKPROLOG(DOIDENTEVAL,OBJSIZE(*ptr));
+
+        ptr=rplSkipOb(ptr);
+    }
+    rplDropData(nargs-1);
+    rplOverwriteData(1,newobject);
 }

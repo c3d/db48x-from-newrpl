@@ -35,11 +35,18 @@
 #define CMD_EXTRANAME \
     "(", \
     ")", \
-    ","
+    ",", \
+    "", \
+    "", \
+    ""
+
 #define CMD_EXTRAENUM \
     OPENBRACKET, \
     CLOSEBRACKET, \
-    COMMA
+    COMMA, \
+    EVALPRE, \
+    EVALPOST, \
+    EVALERR
 
 // INTERNAL DECLARATIONS
 
@@ -52,6 +59,32 @@ enum LIB_ENUM { CMD_LIST , CMD_EXTRAENUM , LIB_NUMBEROFCMDS };
 #define CMD(a) #a
 char *LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME  };
 #undef CMD
+
+extern WORD abnd_prog[];
+extern WORD lam_baseseco_bint[];
+extern WORD nulllam_ident[];
+
+
+const WORD const symbeval_seco[]={
+    MKPROLOG(DOCOL,5),
+    MKOPCODE(LIBRARY_NUMBER,EVALPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
+    MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER,EVALPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER,EVALERR),     // ERROR HANDLER
+    CMD_SEMI
+};
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 void LIB_HANDLER()
@@ -105,8 +138,66 @@ void LIB_HANDLER()
 
     }
         case OVR_EVAL:
+        // EVAL NEEDS TO SCAN THE SYMBOLIC, EVAL EACH ARGUMENT SEPARATELY AND APPLY THE OPCODE.
+    {
+        WORDPTR object=rplPeekData(1);
+        if(!ISSYMBOLIC(*object)) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        // HERE WE HAVE program = PROGRAM TO EXECUTE
+
+        // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
+        nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THE NEW ENVIRONMENT
+        rplCreateLAM(lam_baseseco_bint,IPtr);  // PUT MARKER IN LAM STACK, SET EVAL AS THE OWNER
+
+        object=rplSymbUnwrap(object);
+        WORDPTR endobject=rplSkipOb(object);
+        WORD Opcode=rplSymbMainOperator(object);
+
+        rplCreateLAM(nulllam_ident,Opcode);     // LAM 1 = OPCODE
+        if(Exceptions) { rplCleanupLAMs(0); return; }
+
+        object++;
+        if(Opcode) object++;
+
+        rplCreateLAM(nulllam_ident,endobject);     // LAM 2 = END OF CURRENT OBJECT
+        if(Exceptions) { rplCleanupLAMs(0); return; }
+
+        rplCreateLAM(nulllam_ident,object);     // LAM 3 = NEXT OBJECT TO PROCESS
+        if(Exceptions) { rplCleanupLAMs(0); return; }
+
+        // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
+
+        // THIS NEEDS TO BE DONE IN 3 STEPS:
+        // EVAL WILL PREPARE THE LAMS FOR OPEN EXECUTION
+        // EVALPRE WILL PUSH THE NEXT OBJECT IN THE STACK AND EVAL IT
+        // EVALPOST WILL CHECK IF THE ARGUMENT WAS PROCESSED WITHOUT ERRORS,
+        // AND CLOSE THE LOOP TO PROCESS MORE ARGUMENTS
+
+        // THE INITIAL CODE FOR EVAL MUST TRANSFER FLOW CONTROL TO A
+        // SECONDARY THAT CONTAINS :: EVALPRE EVAL EVALPOST ;
+        // MAPPOST WILL CHANGE IP AGAIN TO BEGINNING OF THE SECO
+        // IN ORDER TO KEEP THE LOOP RUNNING
+
+        rplPushRet(IPtr);
+        IPtr=(WORDPTR) symbeval_seco;
+        CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+
+        rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
+
+        return;
+    }
+
+
+
+
+
         case OVR_XEQ:
-        break;
+        // JUST LEAVE IT ON THE STACK
+        return;
         case OVR_ABS:
         case OVR_ISTRUE:
 
@@ -173,19 +264,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT size1=rplObjSize(arg1),size2=rplObjSize(arg2);
-
-        WORDPTR newobject=rplAllocTempOb(size1+size2+1);
-        if(!newobject) return;
-
-        newobject[0]=MKPROLOG(LIBRARY_NUMBER,size1+size2+1);
-        newobject[1]=CurOpcode;
-        rplCopyObject(newobject+2,rplPeekData(2));
-        rplCopyObject(newobject+2+size1,rplPeekData(1));
-
-        rplDropData(1);
-        rplOverwriteData(1,newobject);
-
+        rplSymbApplyOperator(CurOpcode,2);
         return;
         }
         break;
@@ -196,6 +275,81 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
+
+
+    case EVALPRE:
+    {
+        // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
+
+
+        WORDPTR nextobj=*rplGetLAMn(3);
+        WORDPTR endoflist=*rplGetLAMn(2);
+
+        if(nextobj==endoflist) {
+            // THE LAST ARGUMENT WAS ALREADY PROCESSED, IF THERE IS AN OPERATOR WE NEED TO APPLY IT
+
+            WORD Opcode=*rplGetLAMn(1);
+
+            WORDPTR *prevDStk = rplUnprotectData();
+            BINT newdepth=(BINT)(DSTop-prevDStk);
+
+
+            if(Opcode) {
+                rplSymbApplyOperator(Opcode,newdepth);
+                if(Exceptions) {
+                    DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+                    rplCleanupLAMs(0);
+                    IPtr=rplPopRet();
+                    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                    return;
+                }
+            }
+            // HERE WE ARE SUPPOSED TO HAVE ONLY ONE ARGUMENT ON THE STACK AND THE ORIGINAL OBJECT
+            rplOverwriteData(2,rplPeekData(1));
+            rplDropData(1);
+            // CLEANUP AND RETURN
+            rplCleanupLAMs(0);
+            IPtr=rplPopRet();
+            CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+            return;
+
+        }
+
+        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE EVALERR WORD
+
+
+        // PUSH THE NEXT OBJECT IN THE STACK
+        rplPushData(nextobj);
+
+        // AND EXECUTION WILL CONTINUE AT EVAL
+
+        return;
+    }
+
+    case EVALPOST:
+    {
+        // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
+
+        rplRemoveExceptionHandler();    // THERE WAS NO ERROR DURING EVALUATION
+
+        rplPutLAMn(3,rplSkipOb(*rplGetLAMn(3)));    // MOVE TO THE NEXT OBJECT IN THE LIST
+
+
+        IPtr=(WORDPTR) symbeval_seco;   // CONTINUE THE LOOP
+        // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
+        return;
+    }
+    case EVALERR:
+        // JUST CLEANUP AND EXIT
+        DSTop=rplUnprotectData();
+        rplCleanupLAMs(0);
+        IPtr=rplPopRet();
+        Exceptions=TrappedExceptions;
+        ExceptionPointer=IPtr;
+        CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+        return;
+
+
 
     // STANDARIZED OPCODES:
     // --------------------
