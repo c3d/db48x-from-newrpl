@@ -191,6 +191,13 @@ extern void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT token
 #define OVRT_NOT              "NOT"
 #define OVR_NOT        OVR_OPERATORS+OVR_UNARY+7
 
+//UNARY PLUS IN SYMBOLICS
+#define OVRT_UPLUS              "+"
+#define OVR_UPLUS        OVR_OPERATORS+OVR_UNARY+8
+// OPCODE FOR UNARY MINUS IN SYMBOLICS ONLY
+#define OVRT_UMINUS           "-"
+#define OVR_UMINUS     OVR_OPERATORS+OVR_UNARY+9
+
 
 
 

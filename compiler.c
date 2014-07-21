@@ -94,7 +94,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
     // START COMPILATION LOOP
     BINT force_libnum,splittoken,validate,infixmode;
-    BINT probe_libnum,probe_tokeninfo;
+    BINT probe_libnum,probe_tokeninfo,previous_tokeninfo;
     LIBHANDLER handler,ValidateHandler;
     BINT libcnt,libnum;
     WORDPTR InfixOpTop;
@@ -107,6 +107,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
     force_libnum=-1;
     splittoken=0;
     infixmode=0;
+    previous_tokeninfo=0;
 
     if(addwrapper) {
         rplCompileAppend(MKPROLOG(DOCOL,0));
@@ -385,6 +386,47 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         // REMOVE THE OPERATOR FROM THE OUTPUT STREAM
                         CompileEnd=LastCompiledObject;
 
+                        // SPECIAL CALSE THAT CAN ONLY BE HANDLED BY THE COMPILER:
+                        // AMBIGUITY BETWEEN UNARY MINUS AND SUBSTRACTION
+                        if(Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_SUB))
+                        {
+                            switch(TI_TYPE(previous_tokeninfo))
+                            {
+                            case 0:
+                            case TITYPE_BINARYOP_LEFT:
+                            case TITYPE_BINARYOP_RIGHT:
+                            case TITYPE_OPENBRACKET:
+                            case TITYPE_PREFIXOP:
+                            // IT'S A UNARY MINUS
+                                Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS);
+                                probe_tokeninfo=MKTOKENINFO(1,TITYPE_PREFIXOP,1,4);
+                                break;
+                            default:
+                                break;
+                            }
+
+                        }
+
+                        // AMBIGUITY BETWEEN UNARY PLUS AND ADDITION
+                        if(Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD))
+                        {
+                            switch(TI_TYPE(previous_tokeninfo))
+                            {
+                            case 0:
+                            case TITYPE_BINARYOP_LEFT:
+                            case TITYPE_BINARYOP_RIGHT:
+                            case TITYPE_OPENBRACKET:
+                            case TITYPE_PREFIXOP:
+                            // IT'S A UNARY PLUS
+                                Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_UPLUS);
+                                probe_tokeninfo=MKTOKENINFO(1,TITYPE_PREFIXOP,1,4);
+                                break;
+                            default:
+                                break;
+                            }
+
+                        }
+
                         if(TI_TYPE(probe_tokeninfo)==TITYPE_OPENBRACKET) {
                             // PUSH THE NEW OPERATOR
                             if(RStkSize<=(InfixOpTop-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
@@ -507,7 +549,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                     }
 
-
+                    previous_tokeninfo=probe_tokeninfo;
                 }
 
 
