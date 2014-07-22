@@ -197,8 +197,8 @@ void LIB_HANDLER()
                 val=rplGetGlobal(rplPeekData(1));
                 if(!val) {
                     // TODO: INEXISTENT IDENT SHOULD BE OPERATED ON AS A SYMBOLIC
-                    Exceptions=EX_VARUNDEF;
-                    ExceptionPointer=IPtr;
+                    LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                    (*symblib)();
                     return;
                 }
             }
@@ -237,13 +237,12 @@ void LIB_HANDLER()
                 }
                 if(!val) {
                  // TODO: APPLY THE OPERATOR AS A SYMBOLIC OBJECT
-                    Exceptions=EX_VARUNDEF;
-                    ExceptionPointer=IPtr;
-                    return;
+                 //   Exceptions=EX_VARUNDEF;
+                 //   ExceptionPointer=IPtr;
+                 //   return;
                 }
-
+                else
                 // HERE val HAS THE CONTENTS OF THE NAMED VARIABLE
-
                 rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
                 }
 
@@ -257,11 +256,11 @@ void LIB_HANDLER()
                 }
                 if(!val) {
                  // TODO: APPLY THE OPERATOR AS A SYMBOLIC OBJECT
-                    Exceptions=EX_VARUNDEF;
-                    ExceptionPointer=IPtr;
-                    return;
+                    //Exceptions=EX_VARUNDEF;
+                    //ExceptionPointer=IPtr;
+                    //return;
                 }
-
+                else
                 // HERE val HAS THE CONTENTS OF THE NAMED VARIABLE
 
                 rplOverwriteData(2,val);    // REPLACE THE SECOND LEVEL WITH THE VALUE
@@ -269,6 +268,18 @@ void LIB_HANDLER()
 
 
                 // PASS AL OTHER OPERATORS DIRECTLY TO THE CONTENTS
+            BINT libnum1=LIBNUM(*rplPeekData(1)),libnum2=LIBNUM(*rplPeekData(2));
+            if(libnum2>libnum1) {
+                BINT tmp=libnum2;
+                libnum2=libnum1;
+                libnum1=tmp;
+            }
+
+            if((libnum1==LIBRARY_NUMBER)||(libnum1==LIBRARY_NUMBER+1)) {
+                LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                (*symblib)();
+                return;
+            }
 
             rplCallOvrOperator(CurOpcode);
             return;

@@ -295,7 +295,13 @@ void LIB_HANDLER()
 
 
             if(Opcode) {
-                rplSymbApplyOperator(Opcode,newdepth);
+                //rplSymbApplyOperator(Opcode,newdepth);
+                // APPLY THE OPERATOR BY CALLING THE OPERATOR ITSELF
+
+                CurOpcode=Opcode;
+                LIBHANDLER han=rplGetLibHandler(LIBNUM(Opcode));
+                do {
+                if(han) (*han)();
                 if(Exceptions) {
                     DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
                     rplCleanupLAMs(0);
@@ -303,6 +309,7 @@ void LIB_HANDLER()
                     CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
                     return;
                 }
+                } while((DSTop-prevDStk>1)&&((Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD))||(Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL))));  // CALL IN A LOOP TO PROCESS MULTIPLE ARGUMENTS FOR PLUS AND MUL
             }
             // HERE WE ARE SUPPOSED TO HAVE ONLY ONE ARGUMENT ON THE STACK AND THE ORIGINAL OBJECT
             rplOverwriteData(2,rplPeekData(1));
