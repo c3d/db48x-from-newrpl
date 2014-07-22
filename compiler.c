@@ -827,6 +827,16 @@ end_of_expression:
                         // NO NEED FOR PARENTHESIS
                     }
                     else {
+                        // HANDLE SPECIAL CASE: ADD PARENTHESIS TO SEPARATE OPERATORS
+                            if(TI_TYPE(RetNum)==TITYPE_PREFIXOP) {
+                                if( (*(InfixOpTop-3)==INFIX_BINARYRIGHT) ||
+                                        (*(InfixOpTop-3)==INFIX_POSTFIXARG) ||
+                                        (*(InfixOpTop-3)==INFIX_PREFIXARG))
+                                        rplDecompAppendChar('(');
+
+                            }
+
+
                         if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(RetNum)) {
                             if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS!
                                 rplDecompAppendChar('(');
@@ -926,6 +936,15 @@ end_of_expression:
                     // NO NEED FOR PARENTHESIS
                 }
                 else {
+                    // HANDLE SPECIAL CASE: ADD PARENTHESIS TO SEPARATE OPERATORS
+                    if(infixmode==INFIX_PREFIXARG) {
+                            if( (*(InfixOpTop-3)==INFIX_BINARYRIGHT) ||
+                                    (*(InfixOpTop-3)==INFIX_POSTFIXARG) ||
+                                    (*(InfixOpTop-3)==INFIX_PREFIXARG))
+                                    rplDecompAppendChar(')');
+                    }
+
+
                     if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(*(InfixOpTop-1))) {
                         if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS
                         rplDecompAppendChar(')');
