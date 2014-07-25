@@ -78,7 +78,7 @@ const WORD const symbeval_seco[]={
 
 
 
-
+#define SYMBITEMCOMPARE(item1,item2) ((BINT)LIBNUM(*(item2))-(BINT)LIBNUM(*(item1)))
 
 
 
@@ -99,8 +99,9 @@ void LIB_HANDLER()
         // OVERLOADED OPERATORS
     switch(OPCODE(CurOpcode))
     {
-        case OVR_INV:
         case OVR_NEG:
+        CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS);
+        case OVR_INV:
         case OVR_NOT:
     {
      // UNARY OPERATION ON A SYMBOLIC
@@ -132,6 +133,10 @@ void LIB_HANDLER()
     WORDPTR endptr=rplSkipOb(object);
     WORDPTR ptr=newobject+2;
     while(object!=endptr) *ptr++=*object++;
+
+    // REMOVE QUOTES ON ANY IDENTS
+    ptr=newobject+2;
+    if(ISIDENT(*ptr)) *ptr=MKPROLOG(DOIDENTEVAL,OBJSIZE(*ptr));
 
     rplOverwriteData(1,newobject);
     return;
@@ -205,6 +210,7 @@ void LIB_HANDLER()
      // UNARY OPERATION ON A SYMBOLIC
 
      WORDPTR object=rplPeekData(1);
+
          if(rplSymbMainOperator(object)==CurOpcode) {
              // THIS SYMBOLIC ALREADY HAS THE OPERATOR, NO NEED TO ADD IT
              return;
@@ -235,6 +241,130 @@ void LIB_HANDLER()
     return;
 
     }
+
+    case OVR_ADD:
+        // ADDITION IS A SPECIAL CASE, NEEDS TO KEEP ARGUMENTS FLAT
+    {
+        // FIRST, CHECK THAT ARGUMENTS ARE ACCEPTABLE FOR SYMBOLIC OPERATION
+        if( (!rplIsAllowedInSymb(rplPeekData(2))) || (!rplIsAllowedInSymb(rplPeekData(1))))
+        {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        BINT initdepth=rplDepthData();
+        BINT argtype=0;
+        WORDPTR arg1=rplPeekData(2);
+
+        if(ISSYMBOLIC(*arg1) && rplSymbMainOperator(arg1)==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+            // EXPLODE ALL ARGUMENTS ON THE STACK
+            ScratchPointer1=rplSymbUnwrap(arg1);
+            ScratchPointer2=rplSkipOb(ScratchPointer1);
+            while(ScratchPointer1!=ScratchPointer2) {
+            if(ISSYMBOLIC(*ScratchPointer1) && rplSymbMainOperator(ScratchPointer1)==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+                ScratchPointer1=rplSymbUnwrap(ScratchPointer1);
+                ScratchPointer1++;  // POINT TO THE OPCODE, SO THE NEXT OBJECT WILL BE THE FIRST ARGUMENT
+            }
+            else {
+                // ALSO CHECK FOR NEGATIVE NUMBERS, CONVERT TO POSITIVE WITH UMINUS OPERATOR
+                rplPushData(ScratchPointer1);
+            }
+            ScratchPointer1=rplSkipOb(ScratchPointer1);
+            }
+            argtype|=1;
+        } else { if(ISSYMBOLIC(*arg1)||ISIDENT(*arg1)) argtype|=4; rplPushData(arg1); }
+
+        WORDPTR arg2=rplPeekData(rplDepthData()-initdepth+1);
+
+        // EXPLODE THE SECOND ARGUMENT EXACTLY THE SAME
+        if(ISSYMBOLIC(*arg2) && rplSymbMainOperator(arg2)==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+            // EXPLODE ALL ARGUMENTS ON THE STACK
+            ScratchPointer1=rplSymbUnwrap(arg2);
+            ScratchPointer2=rplSkipOb(ScratchPointer1);
+            while(ScratchPointer1!=ScratchPointer2) {
+            if(ISSYMBOLIC(*ScratchPointer1) && rplSymbMainOperator(ScratchPointer1)==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+                ScratchPointer1=rplSymbUnwrap(ScratchPointer1);
+                ScratchPointer1++;  // POINT TO THE OPCODE, SO THE NEXT OBJECT WILL BE THE FIRST ARGUMENT
+            }
+            else {
+                // ALSO CHECK FOR NEGATIVE NUMBERS, CONVERT TO POSITIVE WITH UMINUS OPERATOR
+                rplPushData(ScratchPointer1);
+            }
+            ScratchPointer1=rplSkipOb(ScratchPointer1);
+            }
+            argtype|=2;
+        } else { if(ISSYMBOLIC(*arg2)||ISIDENT(*arg2)) argtype|=8; rplPushData(arg2); }
+
+
+        if( (argtype==0) || (argtype&3)) {
+            // ONE OR MORE ARGUMENTS WERE EXPLODED IN THE STACK
+            // OR BOTH ARGUMENTS ARE NON-SYMBOLIC
+
+        // SORT ARGUMENTS BY LIBRARY NUMBER
+            WORDPTR *ptr,*ptr2,*endlimit,*startlimit,save;
+            WORDPTR *left,*right;
+
+            startlimit=DSTop-(rplDepthData()-initdepth)+1;    // POINT TO SECOND ELEMENT IN THE LIST
+            endlimit=DSTop;           // POINT AFTER THE LAST ELEMENT
+
+            for(ptr=startlimit;ptr<endlimit;++ptr)
+            {
+                save=*ptr;
+
+                left=startlimit-1;
+                right=ptr-1;
+                if(SYMBITEMCOMPARE(*right,save)>0) {
+                   if(SYMBITEMCOMPARE(save,*left)>0) {
+                while(right-left>1) {
+                    if(SYMBITEMCOMPARE(*(left+(right-left)/2),save)>0) {
+                        right=left+(right-left)/2;
+                    }
+                    else {
+                        left=left+(right-left)/2;
+                    }
+                }
+                   } else right=left;
+                // INSERT THE POINTER RIGHT BEFORE right
+                for(ptr2=ptr;ptr2>right; ptr2-=1 ) *ptr2=*(ptr2-1);
+                //memmove(right+1,right,(ptr-right)*sizeof(WORDPTR));
+                *right=save;
+                }
+            }
+
+
+
+
+
+
+        // TODO: REPLACE THIS WITH A NON-RECURSIVE SOLUTION
+        while(rplDepthData()-initdepth>1) {
+            rplCallOvrOperator(CurOpcode);
+            if(ISSYMBOLIC(*rplPeekData(1))) {
+                if(rplDepthData()-initdepth>1) rplSymbApplyOperator(CurOpcode,rplDepthData()-initdepth);
+                rplOverwriteData(3,rplPeekData(1));
+                rplDropData(2);
+                return;
+
+            }
+        }
+
+        rplOverwriteData(3,rplPeekData(1));
+        rplDropData(2);
+        return;
+        }
+
+        // OTHERWISE DO THE SYMBOLIC OPERATION
+
+        rplSymbApplyOperator(CurOpcode,2);
+
+        rplOverwriteData(3,rplPeekData(1));
+        rplDropData(2);
+        return;
+
+    }
+
+        break;
         case OVR_EQ:
         case OVR_NOTEQ:
         case OVR_LT:
@@ -246,7 +376,6 @@ void LIB_HANDLER()
         case OVR_OR:
         case OVR_XOR:
         case OVR_CMP:
-        case OVR_ADD:
         case OVR_SUB:
         case OVR_MUL:
         case OVR_DIV:
