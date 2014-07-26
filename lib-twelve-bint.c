@@ -59,7 +59,20 @@ UBINT64 powersof10[20]={
     0LL
 };
 
-char alldigits[]="0123456789ABCDEF";
+
+// INTERNAL SINT OBJECTS
+const WORD const zero_bint[]=
+{
+    (WORD)MAKESINT(0)
+};
+
+const WORD const one_bint[]=
+{
+    (WORD)MAKESINT(1)
+};
+
+
+const char const alldigits[]="0123456789ABCDEF";
 
 WORDPTR rplNewSINT(int num,int base)
 {

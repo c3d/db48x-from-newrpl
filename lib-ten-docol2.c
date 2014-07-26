@@ -16,15 +16,6 @@
 
 
 
-extern WORD abnd_prog[];
-extern WORD lam_baseseco_bint[];
-extern WORD nulllam_ident[];
-
-WORD decbint_one[]={
-    MAKESINT(1)
-};
-
-
 // MAIN LIBRARY NUMBER, CHANGE THIS FOR EACH LIBRARY
 #define LIBRARY_NUMBER  10
 #define LIB_ENUM lib10enum
@@ -282,7 +273,7 @@ void LIB_HANDLER()
         // INCREMENT THE COUNTER
 
         rplPushData(*rplGetLAMn(4));     // COUNTER;
-        rplPushData(decbint_one);       // PUSH THE NUMBER ONE
+        rplPushData(one_bint);       // PUSH THE NUMBER ONE
 
         // CALL THE OVERLOADED OPERATOR '+'
 

@@ -48,17 +48,6 @@ char *LIB_NAMES[]= {  CMD_EXTRANAME  };
 
 #define NEWNLOCALS 0x40000   // SPECIAL OPCODE TO CREATE NEW LOCAL VARIABLES
 
-// INTERNAL RPL PROGRAM THAT CALLS ABND
-extern WORD abnd_prog[];
-// INTERNAL SINT OBJECTS
-extern WORD lam_baseseco_bint[];
-// INTERNAL SINT OBJECTS
-extern WORD lam_errhandler_bint[];
-
-
-
-
-
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {

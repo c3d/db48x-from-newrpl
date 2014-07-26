@@ -67,7 +67,7 @@ char *LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME  };
 
 
 // INTERNAL RPL PROGRAM THAT CALLS ABND
-WORD abnd_prog[]=
+const WORD const abnd_prog[]=
 {
     (WORD)MKOPCODE(LIBRARY_NUMBER,ABND),  // JUST A WORD THAT WILL BE SKIPPED BY THE COMPILER
     (WORD)MKOPCODE(LIBRARY_NUMBER,ABND)   // THIS IS THE WORD THAT WILL BE EXECUTED
@@ -75,19 +75,19 @@ WORD abnd_prog[]=
 };
 
 // INTERNAL SINT OBJECTS
-WORD lam_baseseco_bint[]=
+const WORD const lam_baseseco_bint[]=
 {
     (WORD)LAM_BASESECO
 };
 
 // INTERNAL SINT OBJECTS
-WORD lam_errhandler_bint[]=
+const WORD const lam_errhandler_bint[]=
 {
     (WORD)LAM_ERRHANDLER
 };
 
 // INTERNAL NULLLAM IDENT OBJECTS
-WORD nulllam_ident[]=
+const WORD const nulllam_ident[]=
 {
     (WORD)MKOPCODE(LIBRARY_NUMBER,NULLLAM)
 };

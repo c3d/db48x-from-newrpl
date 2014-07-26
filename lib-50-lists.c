@@ -127,10 +127,6 @@ char *LIB_NAMES[]= { CMD_EXTRANAME , CMD_LIST  };
 #undef CMD
 
 
-extern WORD abnd_prog[];
-extern WORD lam_baseseco_bint[];
-extern WORD nulllam_ident[];
-
 const WORD const dolist_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,DOLISTPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL

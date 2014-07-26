@@ -13,15 +13,10 @@
 
 
 
-// GENERIC DEFINITIONS ABOUT A LIBRARY
+// GENERIC DEFINITIONS
 
 // SPECIAL RESERVED OPCODES
 // ALL LIBRARIES MUST HANDLE THESE
-
-#define CMD_EXITRPL         0x00800000
-#define CMD_XEQSECO         0x00800002
-#define CMD_SEMI            0x00800003
-#define CMD_ENDLIST         0x03200000
 
 #define OPCODE_COMPILE      0x7FFFF
 #define OPCODE_COMPILECONT  0x7FFFE
@@ -42,7 +37,7 @@ extern LIBHANDLER ROMLibs2[];
 extern BINT ROMLibs2Num[];
 
 
-
+// USEFUL MACROS
 
 #define MKOPCODE(lib,op) (WORD)((((lib)&0xFFF)<<20)|((op)&0x7FFFF))
 #define MKPROLOG(lib,size) ((((lib)&0xFFF)<<20)|((size)&0x3FFFF)|0x80000)
@@ -129,6 +124,8 @@ extern void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT token
 #define DOSYMB      28      // SYMBOLIC OBJECT
 #define DOLIST      50
 
+// USEFUL MACROS FOR TYPE IDENTIFICATION
+
 #define ISIDENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOIDENT)||(LIBNUM(prolog)==DOIDENTEVAL)) )
 #define ISBINT(prolog) ( ((OPCODE(prolog)<0x400000) || ISPROLOG(prolog)) && ((LIBNUM(prolog)>=BINBINT) && (LIBNUM(prolog)<=HEXBINT)))
 #define ISLIST(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIST))
@@ -157,7 +154,14 @@ extern void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT token
 #define DIR_END_MARKER    MAKESINT(0x20001)
 #define DIR_PARENT_MARKER MAKESINT(0x20002)
 
+// COMMANDS THAT NEED TO BE ACCESSED FROM MULTIPLE LIBRARIES
 
+#define CMD_EXITRPL         0x00800000
+#define CMD_XEQSECO         0x00800002
+#define CMD_SEMI            0x00800003
+#define CMD_ENDLIST         0x03200000
+
+#define CMD_RULESEPARATOR   MKOPCODE(DOSYMB,1)
 
 // DEFINE OVERLOADABLE OPERATORS
 #define LIB_OVERLOADABLE    4090
@@ -241,7 +245,14 @@ extern void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT token
 // ADD MORE OPERATORS HERE
 
 
+// SOME EXTERNAL DATA DEFINED BY LIBRARIES, THAT IS REUSED IN OTHER LIBRARIES
 
+extern const WORD abnd_prog[];
+extern const WORD lam_baseseco_bint[];
+extern const WORD lam_errhandler_bint[];
+extern const WORD nulllam_ident[];
+extern const WORD zero_bint[];
+extern const WORD one_bint[];
 
 
 #endif // LIBRARIES_H

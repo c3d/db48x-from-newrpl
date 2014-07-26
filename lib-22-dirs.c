@@ -66,13 +66,6 @@ enum LIB_ENUM { CMD_LIST /*, CMD_EXTRAENUM*/ , LIB_NUMBEROFCMDS };
 char *LIB_NAMES[]= { CMD_LIST /*, CMD_EXTRANAME*/  };
 #undef CMD
 
-// USE SOME GLOBALS
-
-extern WORD decbint_one[];
-
-
-
-
 
 void LIB_HANDLER()
 {
@@ -209,7 +202,7 @@ void LIB_HANDLER()
         if(!var) var=rplFindGlobal(rplPeekData(1),1);
         if(var) {
             rplOverwriteData(1,*(var+1));
-            rplPushData(decbint_one);       // PUSH THE NUMBER ONE
+            rplPushData(one_bint);       // PUSH THE NUMBER ONE
 
             // CALL THE OVERLOADED OPERATOR '+'
 
@@ -252,7 +245,7 @@ void LIB_HANDLER()
     if(!var) var=rplFindGlobal(rplPeekData(1),1);
     if(var) {
         rplOverwriteData(1,*(var+1));
-        rplPushData(decbint_one);       // PUSH THE NUMBER ONE
+        rplPushData(one_bint);       // PUSH THE NUMBER ONE
 
         // CALL THE OVERLOADED OPERATOR '+'
 

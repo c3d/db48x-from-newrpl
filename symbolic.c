@@ -1,8 +1,6 @@
 #include "newrpl.h"
 #include "libraries.h"
 
-
-
 // GLOBAL SUPPORT FUNCTIONS FOR SYMBOLICS
 
 
@@ -39,7 +37,7 @@
 31= BRACKETS/PARENTHESIS
 
 16 = OVR_EVAL, OVR_XEQ
-
+14 = RULESEPARATOR, EQUATIONEQUAL
 12= OVR_OR
 11= OVR_XOR
 10= OVR_AND
@@ -183,3 +181,154 @@ void rplSymbApplyOperator(WORD Opcode,BINT nargs)
 // ALL NUMERICAL FACTORS IN THE DENOMINATOR ARE MULTIPLIED TOGETHER
 // SYMBOLIC FRACTIONS ARE REDUCED
 
+// APPLY AN OPERATOR WITH ARGUMENTS RECENTLY EVAL'ED, AND EVAL THE RESULT AS WELL
+// SIMILAR TO APPLYING THE OPERATOR BUT IT ALSO DOES MINOR SIMPLIFICATION
+
+#define SYMBITEMCOMPARE(item1,item2) ((BINT)LIBNUM(*(item2))-(BINT)LIBNUM(*(item1)))
+
+
+
+// CHANGE THE SYMBOLIC TO CANONICAL FORM.
+// CANONICAL FORM APPLIES THE FOLLOWING RULES:
+// SUBTRACTION AND DIVISION ARE FOLDED INTO ADDITION AND MULTIPLICATION WITH NEG() AND INV()
+// SUCCESSIVE ADDITION AND MULTIPLICATION LISTS ARE FLATTENED
+// NEGATIVE NUMBERS ARE REPLACED WITH UNARY MINUS AND POSITIVE ONES.
+// NEG() OPERATOR IS REPLACED WITH UMINUS
+// ALL NUMERICAL TERMS ARE ADDED TOGETHER
+// ALL NUMERICAL FACTORS IN THE NUMERATOR ARE MULTIPLIED TOGETHER
+// ALL NUMERICAL FACTORS IN THE DENOMINATOR ARE MULTIPLIED TOGETHER
+// SYMBOLIC FRACTIONS ARE REDUCED
+
+
+void rplSymbAutoSimplify()
+{
+
+
+
+}
+
+void rplSymbEVALApplyOperator(WORD Opcode,BINT nargs)
+{
+    if(LIBNUM(Opcode)==LIB_OVERLOADABLE) {
+        // TREAT SOME OPERATORS IN A SPECIAL WAY
+        // TO APPLY SIMPLIFICATIONS
+
+    switch(OPCODE(Opcode))
+    {
+    case OVR_ADD:
+    {
+        // SORT ARGUMENTS BY LIBRARY NUMBER
+        WORDPTR *ptr,*ptr2,*endlimit,*startlimit,save;
+        WORDPTR *left,*right;
+
+        startlimit=DSTop-nargs+1;    // POINT TO SECOND ELEMENT IN THE LIST
+        endlimit=DSTop;           // POINT AFTER THE LAST ELEMENT
+
+        for(ptr=startlimit;ptr<endlimit;++ptr)
+        {
+            save=*ptr;
+
+            left=startlimit-1;
+            right=ptr-1;
+            if(SYMBITEMCOMPARE(*right,save)>0) {
+               if(SYMBITEMCOMPARE(save,*left)>0) {
+            while(right-left>1) {
+                if(SYMBITEMCOMPARE(*(left+(right-left)/2),save)>0) {
+                    right=left+(right-left)/2;
+                }
+                else {
+                    left=left+(right-left)/2;
+                }
+            }
+               } else right=left;
+            // INSERT THE POINTER RIGHT BEFORE right
+            for(ptr2=ptr;ptr2>right; ptr2-=1 ) *ptr2=*(ptr2-1);
+            //memmove(right+1,right,(ptr-right)*sizeof(WORDPTR));
+            *right=save;
+            }
+        }
+
+        // TODO: PREPROCESS EACH ARGUMENT
+        // NEGATIVE NUMBERS BECOME (UMINUS POSITIVE NUMBER)
+
+
+        // APPLY
+        BINT k;
+        for(k=1;k<nargs;++k) {
+            rplCallOvrOperator(Opcode);
+        }
+
+    }
+        return;
+    }
+    }
+    else rplSymbApplyOperator(Opcode,nargs);
+}
+
+
+// SYMBOLIC EXPRESSION IN LEVEL 2
+// RULE IN LEVEL 1
+// CREATES A NEW LOCAL ENVIRONMENT, WITH THE FOLLOWING VARIABLES:
+// GETLAM1 IS AN UNNAMED VARIABLE THAT WILL CONTAIN 1 IF THERE WAS A MATCH, 0 OTHERWISE
+// GETLAM2 IS UNNAMED, AND WILL CONTAIN A POINTER INSIDE THE ORIGINAL SYMBOLIC WHERE THE LAST MATCH WAS FOUND, TO BE USED BY MATCHNEXT
+// * ANY IDENTS THAT DON'T START WITH A . ARE CREATED AND SET EQUAL TO THE RIGHT SIDE OF THE RULE OPERATOR
+// * ANY IDENTS THAT START WITH A PERIOD MATCH ANY EXPRESSION AS FOLLOWS:
+// .X MATCHES ANY EXPRESSION AND DEFINES .X = 'FOUND EXPRESSION'
+// .X.N MATCHES ANY NUMERIC EXPRESSION AND DEFINES .X = 'FOUND EXPRESSION' (THE .N IS REMOVED)
+// .X.I MATCHES ANY INTEGER .X = NUMBER
+// .X.R MATCHES ANY NUMBER (REAL OR INTEGER, BUT WON'T MATCH FRACTIONS) .X = NUMBER.
+
+
+void rplSymbRuleMatch()
+{
+    // MATCH A RULE IN THE CURRENT SYMBOLIC, DOES NOT MATCH RECURSIVELY INSIDE THE SYMBOLIC
+
+    WORDPTR ruleleft,ruleright,ruleptr,objptr;
+
+    ruleleft=rplSymbUnwrap(rplPeekData(1));
+    if(!ruleleft) {
+        Exceptions|=EX_BADARGTYPE;
+        ExceptionPointer=IPtr;
+        return;
+    }
+    if(!ISSYMBOLIC(*ruleleft)) {
+        Exceptions|=EX_BADARGTYPE;
+        ExceptionPointer=IPtr;
+        return;
+    }
+    ++ruleleft;
+    if(*ruleleft!=CMD_RULESEPARATOR) {
+        Exceptions|=EX_BADARGTYPE;
+        ExceptionPointer=IPtr;
+        return;
+    }
+    ++ruleleft;
+    ruleright=rplSkipOb(ruleleft);
+
+    objptr=rplSymbUnwrap(rplPeekData(2));
+
+    if(!objptr) {
+        Exceptions|=EX_BADARGTYPE;
+        ExceptionPointer=IPtr;
+        return;
+    }
+
+
+    // START THE MATCHING PROCESS
+    // CREATE A NEW ENVIRONMENT FOR LOCAL VARS
+
+    // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
+    nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THE NEW ENVIRONMENT
+    rplCreateLAM(lam_baseseco_bint,IPtr);  // PUT MARKER IN LAM STACK, OWNED BY THE LAST USER COMMAND
+
+    rplCreateLAM(nulllam_ident,zero_bint);
+
+
+    if( (!ISSYMBOLIC(*objptr)) && (!ISIDENT(*objptr))) {
+
+
+        return;
+    }
+
+
+}

@@ -25,7 +25,7 @@
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
-    CMD(SYMBOLIC)
+    CMD(AUTOSIMPLIFY)
 
 // ADD MORE OPCODES HERE
 
@@ -33,6 +33,7 @@
 // EXTRA LIST FOR COMMANDS WITH SYMBOLS THAT ARE DISALLOWED IN AN ENUM
 // THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
 #define CMD_EXTRANAME \
+    "->", \
     "(", \
     ")", \
     ",", \
@@ -41,6 +42,7 @@
     ""
 
 #define CMD_EXTRAENUM \
+    RULESEPARATOR, \
     OPENBRACKET, \
     CLOSEBRACKET, \
     COMMA, \
@@ -60,17 +62,13 @@ enum LIB_ENUM { CMD_LIST , CMD_EXTRAENUM , LIB_NUMBEROFCMDS };
 char *LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME  };
 #undef CMD
 
-extern WORD abnd_prog[];
-extern WORD lam_baseseco_bint[];
-extern WORD nulllam_ident[];
-
-
 const WORD const symbeval_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,EVALPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
     MKOPCODE(LIBRARY_NUMBER,EVALPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
     MKOPCODE(LIBRARY_NUMBER,EVALERR),     // ERROR HANDLER
+    MKOPCODE(LIBRARY_NUMBER,AUTOSIMPLIFY),   // SIMPLIFY BEFORE RETURN
     CMD_SEMI
 };
 
@@ -78,7 +76,6 @@ const WORD const symbeval_seco[]={
 
 
 
-#define SYMBITEMCOMPARE(item1,item2) ((BINT)LIBNUM(*(item2))-(BINT)LIBNUM(*(item1)))
 
 
 
@@ -296,7 +293,7 @@ void LIB_HANDLER()
             argtype|=2;
         } else { if(ISSYMBOLIC(*arg2)||ISIDENT(*arg2)) argtype|=8; rplPushData(arg2); }
 
-
+/*
         if( (argtype==0) || (argtype&3)) {
             // ONE OR MORE ARGUMENTS WERE EXPLODED IN THE STACK
             // OR BOTH ARGUMENTS ARE NON-SYMBOLIC
@@ -353,10 +350,11 @@ void LIB_HANDLER()
         rplDropData(2);
         return;
         }
-
+*/
         // OTHERWISE DO THE SYMBOLIC OPERATION
 
-        rplSymbApplyOperator(CurOpcode,2);
+        //rplSymbApplyOperator(CurOpcode,2);
+        rplSymbApplyOperator(CurOpcode,rplDepthData()-initdepth);
 
         rplOverwriteData(3,rplPeekData(1));
         rplDropData(2);
@@ -424,28 +422,17 @@ void LIB_HANDLER()
 
 
             if(Opcode) {
-                //rplSymbApplyOperator(Opcode,newdepth);
-                // APPLY THE OPERATOR BY CALLING THE OPERATOR ITSELF
-
-                CurOpcode=Opcode;
-                LIBHANDLER han=rplGetLibHandler(LIBNUM(Opcode));
-                do {
-                if(han) (*han)();
-                if(Exceptions) {
-                    DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
-                    rplCleanupLAMs(0);
-                    IPtr=rplPopRet();
-                    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
-                    return;
-                }
-                } while((DSTop-prevDStk>1)&&((Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD))||(Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL))));  // CALL IN A LOOP TO PROCESS MULTIPLE ARGUMENTS FOR PLUS AND MUL
+                rplSymbApplyOperator(Opcode,newdepth);
             }
             // HERE WE ARE SUPPOSED TO HAVE ONLY ONE ARGUMENT ON THE STACK AND THE ORIGINAL OBJECT
             rplOverwriteData(2,rplPeekData(1));
             rplDropData(1);
             // CLEANUP AND RETURN
             rplCleanupLAMs(0);
-            IPtr=rplPopRet();
+            // DONE WITH CLASSIC EVAL, NOW DO AUTOSIMPLIFY IF USER SETTING REQUIRES IT
+            // TODO: IMPLEMENT USER SETTING, LEAVE ENABLED FOR NOW
+            if(1) IPtr=symbeval_seco+4; // THIS WILL MAKE THE NEXT EXECUTED OPCODE TO BE AUTOSIMPLIFY
+            else IPtr=rplPopRet();
             CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
             return;
 
@@ -485,7 +472,21 @@ void LIB_HANDLER()
         CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
         return;
 
+    case AUTOSIMPLIFY:
+    {
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
 
+        if(!ISSYMBOLIC(*rplPeekData(1))) return;    // LEAVE IT ON THE STACK, NOT A SYMBOLIC
+
+        rplSymbAutoSimplify();
+
+        return;
+
+    }
 
     // STANDARIZED OPCODES:
     // --------------------
@@ -535,6 +536,14 @@ void LIB_HANDLER()
         return;
         }
 
+        if(TokenLen==2 && (*tok=='-') && (*(tok+1)=='>')) {
+            if(CurrentConstruct==MKPROLOG(DOSYMB,0)) {
+                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,RULESEPARATOR));
+                RetNum=OK_CONTINUE;
+            }
+            else RetNum=ERR_NOTMINE;
+        return;
+        }
 
 
 
@@ -618,6 +627,11 @@ void LIB_HANDLER()
             return;
         }
 
+        if( (TokenLen>1) && (*((char *)TokenStart)=='-') && (*(((char *)TokenStart)+1)=='>')) {
+            RetNum= OK_TOKENINFO | MKTOKENINFO(2,TITYPE_BINARYOP_LEFT,2,14);
+            return;
+        }
+
         RetNum = ERR_NOTMINE;
         return;
 
@@ -627,8 +641,13 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         if(ISPROLOG(*DecompileObject)) {
             RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_EXPRESSION,0,0);
+            return;
         }
-        else RetNum=ERR_NOTMINE;
+        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,RULESEPARATOR)) {
+                RetNum= OK_TOKENINFO | MKTOKENINFO(2,TITYPE_BINARYOP_LEFT,2,14);
+                return;
+        }
+        RetNum=ERR_NOTMINE;
         return;
 
 
