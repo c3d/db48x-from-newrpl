@@ -91,8 +91,7 @@ void LIB_HANDLER()
            BINT lamcount=0;
 
            // INITIALIZE AN ENVIRONMENT FOR COMPILE TIME
-           nLAMBase=LAMTop;
-           rplCreateLAM(lam_baseseco_bint,ScratchPointer1);
+           rplCreateLAMEnvironment(ScratchPointer1);
            ++ScratchPointer1;  // SKIP THE START OF CONSTRUCT WORD
            while(ScratchPointer1<CompileEnd) {
                rplCreateLAM(ScratchPointer1,ScratchPointer1);   // CREATE ALL THE LAMS FOR FUTURE COMPILATION

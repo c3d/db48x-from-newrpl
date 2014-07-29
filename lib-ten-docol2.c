@@ -204,8 +204,7 @@ void LIB_HANDLER()
         }
 
         // CREATE A NEW LAM ENVIRONMENT FOR THIS FOR CONSTRUCT
-        nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THIS SECONDARY'S LAMS
-        rplCreateLAM(lam_baseseco_bint,ScratchPointer3);  // PUT MARKER IN LAM STACK, POINTING TO THE NEXT OR STEP STATEMENT
+        rplCreateLAMEnvironment(ScratchPointer3);
         rplPushRet(ScratchPointer3);                    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
         rplPushRet(abnd_prog);                          // PUT ABND IN THE STACK TO DO THE CLEANUP
         rplCreateLAM(nulllam_ident,rplPeekData(3));
@@ -249,8 +248,7 @@ void LIB_HANDLER()
         }
 
         // CREATE A NEW LAM ENVIRONMENT FOR THIS FOR CONSTRUCT
-        nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THIS SECONDARY'S LAMS
-        rplCreateLAM(lam_baseseco_bint,ScratchPointer3);  // PUT MARKER IN LAM STACK, POINTING TO THE NEXT OR STEP STATEMENT
+        rplCreateLAMEnvironment(ScratchPointer3);
         rplPushRet(ScratchPointer3);                    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
         rplPushRet(abnd_prog);                          // PUT ABND IN THE STACK TO DO THE CLEANUP
         rplCreateLAM(nulllam_ident,rplPeekData(3));
@@ -371,8 +369,7 @@ void LIB_HANDLER()
         rplPushRet(ScratchPointer3);                    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
 
         // ALWAYS CREATE A TEMPORARY VARIABLE ENVIRONMENT WHEN ENTERING A WHILE LOOP
-        nLAMBase=LAMTop;
-        rplCreateLAM(lam_baseseco_bint,ScratchPointer3);
+        rplCreateLAMEnvironment(ScratchPointer3);
         rplPushRet(abnd_prog);
 
 
@@ -418,8 +415,7 @@ void LIB_HANDLER()
 
         rplPushRet(ScratchPointer3);                    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
         // ALWAYS CREATE A TEMPORARY VARIABLE ENVIRONMENT WHEN ENTERING A WHILE LOOP
-        nLAMBase=LAMTop;
-        rplCreateLAM(lam_baseseco_bint,ScratchPointer3);
+        rplCreateLAMEnvironment(ScratchPointer3);
         rplPushRet(abnd_prog);
 
         rplPushRet(IPtr);                             // PUT THE LOOP CLAUSE IN THE STACK TO DO THE LOOP
@@ -731,8 +727,7 @@ void LIB_HANDLER()
        {
            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,DO));
 
-           nLAMBase=LAMTop;
-           rplCreateLAM(lam_baseseco_bint,CompileEnd-1);
+           rplCreateLAMEnvironment(CompileEnd-1);
 
            RetNum=OK_STARTCONSTRUCT;
            return;
@@ -754,8 +749,7 @@ void LIB_HANDLER()
                if((TokenLen==5) && (!strncmp((char *)TokenStart,"WHILE",5)))
                {
                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,WHILE));
-                   nLAMBase=LAMTop;
-                   rplCreateLAM(lam_baseseco_bint,CompileEnd-1);
+                   rplCreateLAMEnvironment(CompileEnd-1);
                    RetNum=OK_STARTCONSTRUCT;
                    return;
                }
@@ -811,8 +805,7 @@ void LIB_HANDLER()
         // CAREFUL, COMPILEIDENT USES ScratchPointer1!!!
         rplCompileIDENT(DOIDENT,(BYTEPTR)TokenStart,TokenLen);
 
-        nLAMBase=LAMTop;
-        rplCreateLAM(lam_baseseco_bint,ScratchPointer2-1);  // PUT MARKER IN LAM STACK
+        rplCreateLAMEnvironment(ScratchPointer2-1);
         rplCreateLAM(nulllam_ident,ScratchPointer2);        // NULLLAM FOR THE COMPILER
         rplCreateLAM(nulllam_ident,ScratchPointer2);        // NULLLAM FOR THE COMPILER
         rplCreateLAM(nulllam_ident,ScratchPointer2);        // NULLLAM FOR THE COMPILER

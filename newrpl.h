@@ -172,11 +172,16 @@ extern void rplGCollect();
 
 // LAM FUNCTIONS
 extern void growLAMs(WORD newtotalsize);
-extern void rplCreateLAM(WORDPTR nameobj,WORDPTR value);
+extern void rplCreateLAMEnvironment(WORDPTR owner);
+extern BINT rplCreateLAM(WORDPTR nameobj,WORDPTR value);
 extern BINT rplCompareIDENT(WORDPTR id1,WORDPTR id2);
 extern BINT rplCompareIDENTByName(WORDPTR id1,BYTEPTR name,BINT len);
+extern BINT rplCompareObjects(WORDPTR id1,WORDPTR id2);
 extern WORDPTR rplGetLAM(WORDPTR nameobj);
 extern inline WORDPTR *rplGetLAMn(BINT idx);
+extern inline WORDPTR *rplGetLAMnName(BINT idx);
+extern inline WORDPTR *rplGetLAMnEnv(WORDPTR LAMEnv,BINT idx);
+extern inline WORDPTR *rplGetLAMnNameEnv(WORDPTR LAMEnv,BINT idx);
 extern inline void rplPutLAMn(BINT idx,WORDPTR object);
 extern void rplCleanupLAMs(WORDPTR currentseco);
 extern WORDPTR *rplFindLAM(WORDPTR nameobj, BINT scanparents);
@@ -186,6 +191,7 @@ extern BINT rplNeedNewLAMEnv();
 extern BINT rplNeedNewLAMEnvCompiler();
 extern void rplCompileIDENT(BINT libnum,BYTEPTR tok,BINT len);
 extern BINT rplIsValidIdent(BYTEPTR tok,BINT len);
+extern BINT rplLAMCount(WORDPTR LAMEnvironment);
 
 
 // GLOBAL VARIABLES AND DIRECTORY FUNCTIONS
@@ -254,6 +260,7 @@ extern WORDPTR rplSymbUnwrap(WORDPTR symbolic);
 extern WORD rplSymbMainOperator(WORDPTR symbolic);
 extern BINT rplIsAllowedInSymb(WORDPTR object);
 extern void rplSymbApplyOperator(WORD Opcode,BINT nargs);
+extern void rplSymbRuleMatch();
 
 
 

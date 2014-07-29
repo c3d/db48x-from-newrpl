@@ -25,7 +25,8 @@
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
-    CMD(AUTOSIMPLIFY)
+    CMD(AUTOSIMPLIFY), \
+    CMD(RULEMATCH)
 
 // ADD MORE OPCODES HERE
 
@@ -54,12 +55,12 @@
 
 // CREATE AN ENUM WITH THE OPCODE NAMES FOR THE DISPATCHER
 #define CMD(a) a
-enum LIB_ENUM { CMD_LIST , CMD_EXTRAENUM , LIB_NUMBEROFCMDS };
+enum LIB_ENUM { CMD_EXTRAENUM , CMD_LIST ,  LIB_NUMBEROFCMDS };
 #undef CMD
 
 // AND A LIST OF STRINGS WITH THE NAMES FOR THE COMPILER
 #define CMD(a) #a
-char *LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME  };
+char *LIB_NAMES[]= { CMD_EXTRANAME, CMD_LIST   };
 #undef CMD
 
 const WORD const symbeval_seco[]={
@@ -75,7 +76,10 @@ const WORD const symbeval_seco[]={
 
 
 
-
+const WORD const emptylist_list[]={
+    MKPROLOG(DOLIST,1),
+    CMD_ENDLIST
+};
 
 
 
@@ -152,8 +156,7 @@ void LIB_HANDLER()
         // HERE WE HAVE program = PROGRAM TO EXECUTE
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
-        nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THE NEW ENVIRONMENT
-        rplCreateLAM(lam_baseseco_bint,IPtr);  // PUT MARKER IN LAM STACK, SET EVAL AS THE OWNER
+        rplCreateLAMEnvironment(IPtr);
 
         object=rplSymbUnwrap(object);
         WORDPTR endobject=rplSkipOb(object);
@@ -487,6 +490,52 @@ void LIB_HANDLER()
         return;
 
     }
+    case RULEMATCH:
+    {
+        if(rplDepthData()<2) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
+
+        rplSymbRuleMatch();
+        if(Exceptions) return;
+
+        // HERE WE HAVE A NEW LOCAL ENVIRONMENT
+        // PUSH THE RESULT OF THE MATCH IN THE STACK AS A LIST OF RULES
+
+        BINT numlams=rplLAMCount(0);
+        BINT f;
+
+        if(numlams>=3) {
+
+        for(f=3;f<=numlams;++f) {
+            // CREATE A RULE FOR ALL LAMS
+            rplPushData(*rplGetLAMnName(f));    // PUT THE NAME ON THE STACK
+            rplPushData(*rplGetLAMn(f));        // PUT THE MATCHED EXPRESSION
+            rplSymbApplyOperator(CMD_RULESEPARATOR,2);  // CREATE A RULE
+            if(Exceptions) {
+                rplCleanupLAMs(0);
+                return;
+            }
+        }
+        rplNewBINTPush(numlams-2,DECBINT);
+        rplCreateList();
+        if(Exceptions) {
+            rplCleanupLAMs(0);
+            return;
+        }
+
+        } else { rplPushData(emptylist_list); }
+
+        rplPushData(*rplGetLAMn(1));    // NULLAM1 HAS THE RESULT OF THE MATCH (0=NO MATCH, 1 = MATCH FOUND)
+
+        rplCleanupLAMs(0);
+        return;
+
+     }
+
 
     // STANDARIZED OPCODES:
     // --------------------

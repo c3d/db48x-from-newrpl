@@ -41,15 +41,24 @@ void growLAMs(WORD newtotalsize)
 
 
 // LAM STACK IS INCREASE AFTER FOR STORE, DECREASE BEFORE FOR READ
-
-void rplCreateLAM(WORDPTR nameobj,WORDPTR value)
+// RETURN THE LAM NUMBER IN THE CURRENT ENVIRONMENT (FOR USE WITH FAST GETLAMn FUNCTIONS)
+BINT rplCreateLAM(WORDPTR nameobj,WORDPTR value)
 {
     *LAMTop++=nameobj;
     *LAMTop++=value;
 
     if(LAMSize<=LAMTop-LAMs+LAMSLACK) growLAMs((WORD)(LAMTop-LAMs+LAMSLACK+1024));
-    if(Exceptions) return;
+    if(Exceptions) return 0;
+    return (LAMTop-2-nLAMBase)>>1;
 
+}
+
+
+// CREATE A NEW TOP LAM ENVIRONMENT, SET THE OWNER TO THE GIVEN OBJECT
+void rplCreateLAMEnvironment(WORDPTR owner)
+{
+    nLAMBase=LAMTop;
+    rplCreateLAM(lam_baseseco_bint,owner);
 }
 
 
@@ -106,6 +115,21 @@ if( ((LIBNUM(*id1)==DOIDENT) || (LIBNUM(*id1)==DOIDENT+1))
 return 1;
 }
 
+// COMPARE OBJECTS FOR EQUALITY IN THEIR DEFINITION
+BINT rplCompareObjects(WORDPTR id1,WORDPTR id2)
+{
+BINT nwords;
+
+nwords=rplObjSize(id1);
+
+while(nwords) {
+     if(*id1!=*id2) return 0;
+     ++id1;
+     ++id2;
+     --nwords;
+ }
+return 1;
+}
 
 // FINDS A LAM, AND RETURNS THE ADDRESS OF THE KEY/VALUE PAIR WITHIN THE LAM ENVIRONMENT
 // DOES NOT STOP FOR CURRENT SECONDARY
@@ -146,10 +170,31 @@ return 0;
 }
 
 // VERY FAST GETLAM, NO ERROR CHECKS!
-// ONLY USED BY THE COMPILER, REALLY
+// ONLY USED BY SYSTEM LIBRARIES
 inline WORDPTR *rplGetLAMn(BINT idx)
 {
     return nLAMBase+2*idx+1;
+}
+
+// RETURN A POINTER TO THE THE NAME OF THE LAM, INSTEAD OF ITS CONTENTS
+inline WORDPTR *rplGetLAMnName(BINT idx)
+{
+    return nLAMBase+2*idx;
+}
+
+// VERY FAST GETLAM, NO ERROR CHECKS!
+// ONLY USED BY SYSTEM LIBRARIES
+// GET THE CONTENT OF A LAM IN A GIVEN ENVIRONMENT
+inline WORDPTR *rplGetLAMnEnv(WORDPTR LAMEnv,BINT idx)
+{
+    return LAMEnv+2*idx+1;
+}
+
+// RETURN THE NAME OF THE LAM, INSTEAD OF ITS CONTENTS
+// IN THE GIVEN ENVIRONMENT
+inline WORDPTR *rplGetLAMnNameEnv(WORDPTR LAMEnv,BINT idx)
+{
+    return LAMEnv+2*idx;
 }
 
 
@@ -157,6 +202,19 @@ inline WORDPTR *rplGetLAMn(BINT idx)
 inline void rplPutLAMn(BINT idx,WORDPTR object)
 {
     nLAMBase[2*idx+1]=object;
+}
+
+// COUNT HOW MANY LAMS IN THE GIVEN ENVIRONMENT
+// LAMS ARE NUMBERED FROM 1 TO THE RETURNED NUMBER (INCLUSIVE)
+// IF GIVEN ENVIRONMENT IS NULL, RETURN COUNT ON THE TOP ENVIRONMENT
+BINT rplLAMCount(WORDPTR LAMEnvironment)
+{
+    // FIND THE END OF THE GIVEN ENVIRONMENT
+    if(!LAMEnvironment) LAMEnvironment=nLAMBase;
+    WORDPTR endofenv=LAMEnvironment;
+    endofenv+=2;
+    while(endofenv<LAMTop) { if(*endofenv==lam_baseseco_bint) break; endofenv+=2; }
+    return ((BINT)(endofenv-LAMEnvironment-2))>>1;
 }
 
 

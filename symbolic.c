@@ -273,10 +273,14 @@ void rplSymbEVALApplyOperator(WORD Opcode,BINT nargs)
 // GETLAM2 IS UNNAMED, AND WILL CONTAIN A POINTER INSIDE THE ORIGINAL SYMBOLIC WHERE THE LAST MATCH WAS FOUND, TO BE USED BY MATCHNEXT
 // * ANY IDENTS THAT DON'T START WITH A . ARE CREATED AND SET EQUAL TO THE RIGHT SIDE OF THE RULE OPERATOR
 // * ANY IDENTS THAT START WITH A PERIOD MATCH ANY EXPRESSION AS FOLLOWS:
-// .X MATCHES ANY EXPRESSION AND DEFINES .X = 'FOUND EXPRESSION'
-// .X.N MATCHES ANY NUMERIC EXPRESSION AND DEFINES .X = 'FOUND EXPRESSION' (THE .N IS REMOVED)
-// .X.I MATCHES ANY INTEGER .X = NUMBER
-// .X.R MATCHES ANY NUMBER (REAL OR INTEGER, BUT WON'T MATCH FRACTIONS) .X = NUMBER.
+// .X MATCHES ANY EXPRESSION (LARGEST MATCH POSSIBLE) AND DEFINES .X = 'FOUND EXPRESSION'
+// .X.s MATCHES ANY EXPRESSION (SMALLEST MATCH POSSIBLE)
+// .X.S SAME AS DEFAULT (LARGEST MATCH) (AN ALIAS FOR CONSISTENCY)
+// .X.n MATCHES ANY NUMERIC EXPRESSION (SMALLEST MATCH) AND DEFINES .X.n = 'FOUND EXPRESSION'
+// .X.N MATCHES ANY NUMERIC EXPRESSION (LARGEST MATCH) AND DEFINES .X.N = 'FOUND EXPRESSION'
+// .X.I MATCHES ANY INTEGER .X.I = NUMBER
+// .X.R MATCHES ANY NUMBER (REAL OR INTEGER, BUT WON'T MATCH FRACTIONS) .X.R = NUMBER.
+
 
 
 void rplSymbRuleMatch()
@@ -318,17 +322,162 @@ void rplSymbRuleMatch()
     // CREATE A NEW ENVIRONMENT FOR LOCAL VARS
 
     // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
-    nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THE NEW ENVIRONMENT
-    rplCreateLAM(lam_baseseco_bint,IPtr);  // PUT MARKER IN LAM STACK, OWNED BY THE LAST USER COMMAND
+    rplCreateLAMEnvironment(IPtr);
 
-    rplCreateLAM(nulllam_ident,zero_bint);
+    rplCreateLAM(nulllam_ident,zero_bint);  // GETLAM1 = MATCH OR NOT?
+    rplCreateLAM(nulllam_ident,zero_bint);  // GETLAM2 = LAST OBJECT SCANNED
 
+    // ... FROM HERE ON, THERE ARE NAMED LAM'S WITH THE PATTERNS
 
     if( (!ISSYMBOLIC(*objptr)) && (!ISIDENT(*objptr))) {
-
-
+        // NOT A SYMBOLIC OBJECT, NOTHING TO MATCH
+        // RETURN WITH A "DID NOT MATCH" IN GETLAM1
         return;
     }
 
+    WORDPTR endofrule=rplSkipOb(ruleleft);
+    WORDPTR endofobj=rplSkipOb(objptr);
 
+    while( (ruleleft<endofrule) && (objptr<endofobj)) {
+
+        if(ISSYMBOLIC(*ruleleft)) ruleleft=rplSymbUnwrap(ruleleft);
+        if(ISSYMBOLIC(*objptr)) objptr=rplSymbUnwrap(objptr);
+
+        if(ISNUMBER(*ruleleft)) {
+            if(!ISNUMBER(*objptr)) break;   // MATCH FAILED
+
+            mpd_t num1,num2;
+
+            rplReadNumberAsReal(ruleleft,&num1);
+            rplReadNumberAsReal(objptr,&num2);
+
+            if(mpd_cmp(&num1,&num2,&Context)) break; // MATCH FAILED
+
+
+        }
+        else
+        if(!ISPROLOG(*ruleleft)) {
+            // IT'S AN OPCODE OF AN OPERATOR, OR AN INTEGER NUMBER. MUST MATCH EXACTLY
+            if(*ruleleft!=*objptr) break;   // MATCH FAILED
+            ++ruleleft;
+            ++objptr;
+            continue;
+        }
+
+        else
+        if(ISSYMBOLIC(*ruleleft)) {
+            if(!ISSYMBOLIC(*objptr)) break; // MATCH FAILED
+            // INCREASE THE POINTERS TO SCAN INSIDE THE SYMBOLIC
+            ++ruleleft;
+            ++objptr;
+            continue;
+        }
+        else
+        if(ISIDENT(*ruleleft)) {
+            // CHECK IF IT'S A PLACEHOLDER
+            BINT len=OBJSIZE(*ruleleft)<<2;
+            BINT shortlen;
+            BYTE type=0;
+            BYTEPTR varname=(BYTEPTR)(ruleleft+1);
+            if(*((char *)varname)=='.') {
+                // THIS IS A SPECIAL PLACEHOLDER
+                BYTEPTR name2=varname+len-1;
+                while(*name2==0) --name2;
+                while(*name2!='.') --name2;
+                if(name2==varname) {
+                    // THERE WAS NO SUFFIX
+                    type=0;
+                } else {
+                    if(name2+1<varname+len) type=*(name2+1);
+                    else type=0;
+                }
+
+                // HERE WE HAVE: type HOLDS THE TYPE CHARACTER
+
+                // IF THIS NAME ALREADY EXISTS, WE NEED TO MATCH ITS CONTENTS
+                // IF IT DOESN'T, WE NEED TO FIND A PROPER MATCH
+
+                if(rplFindLAM(ruleleft,0)) {
+                    // NAME ALREADY EXISTS, THE OBJECT MUST MATCH
+
+                    // TODO: DO THE MATCH!
+
+                } else {
+                    ScratchPointer1=endofrule;
+                    ScratchPointer2=endofobj;
+                    ScratchPointer3=ruleleft;
+                    ScratchPointer4=objptr;
+                BINT newlam=rplCreateLAM(ruleleft,zero_bint);       // CREATE A PLACEHOLDER FOR THE LAM
+                    endofrule=ScratchPointer1;
+                    endofobj=ScratchPointer2;
+                    ruleleft=ScratchPointer3;
+                    objptr=ScratchPointer4;
+                if(Exceptions) {
+                 rplCleanupLAMs(0);
+                 return;
+                }
+                // TODO: DO THE MATCH AND ASSIGN IT!
+                BINT matchresult=0;
+                switch(type)
+                {
+                case 'N':
+                case 'n':
+                   // ONLY MATCH A NUMERIC EXPRESSION
+                   // AN EXPRESSION WHERE ALL ARGUMENTS ARE NOT IDENTS
+                   // TODO:
+                   // if(rplSymbIsNumeric(objptr)) matchresult=1;
+                break;
+                case 'I':
+                    // ONLY MATCH AN INTEGER NUMBER
+                    if(ISBINT(*objptr)) matchresult=1;
+                break;
+                case 'R':
+                    if(ISNUMBER(*objptr)) matchresult=1;
+                    break;
+                case 0:
+                default:
+                    // MATCH ANY EXPRESSION
+                    matchresult=1;
+                    break;
+                }
+
+                if(matchresult) {
+                    rplPutLAMn(newlam,objptr);
+                }
+                else break;
+
+                }
+
+
+            }   // END OF SPECIAL IDENTS
+          else {
+                // NORMAL IDENTS
+                if(!rplCompareIDENT(ruleleft,objptr)) break;    // MATCH FAILED
+            }
+
+        }
+
+
+        // ADD MORE SPECIAL CASES HERE
+
+        // ALL OTHER OBJECTS **MUST** BE IDENTICAL, REGARDLESS OF TYPE
+       else
+       if(!rplCompareObjects(ruleleft,objptr)) break;    // MATCH FAILED
+
+
+        // AFTER A MATCH, PROCESS THE NEXT OBJECT
+        ruleleft=rplSkipOb(ruleleft);
+        objptr=rplSkipOb(objptr);
+
+
+    }
+
+    if((ruleleft!=endofrule)||(objptr!=endofobj)) return;   // RETURN WITH "NO MATCH" RESULT
+
+    rplPutLAMn(1,one_bint);    // RETURN NULLLAM1 = 1
+    rplPutLAMn(2,endofobj);    // NEXT OBJECT TO BE SCANNED
+
+    return;
 }
+
+

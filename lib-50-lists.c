@@ -280,8 +280,7 @@ void LIB_HANDLER()
         // HERE WE HAVE program = PROGRAM TO EXECUTE
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
-        nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THE NEW ENVIRONMENT
-        rplCreateLAM(lam_baseseco_bint,IPtr);  // PUT MARKER IN LAM STACK, SET THIS OPCODE AS THE OWNER
+        rplCreateLAMEnvironment(IPtr);
 
         rplCreateLAM(nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) { rplCleanupLAMs(0); return; }
@@ -338,8 +337,7 @@ void LIB_HANDLER()
         // HERE WE HAVE program = PROGRAM TO EXECUTE
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
-        nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THE NEW ENVIRONMENT
-        rplCreateLAM(lam_baseseco_bint,IPtr);  // PUT MARKER IN LAM STACK, SET THIS OPCODE AS THE OWNER
+        rplCreateLAMEnvironment(IPtr);
 
         rplCreateLAM(nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) { rplCleanupLAMs(0); return; }
@@ -891,8 +889,7 @@ void LIB_HANDLER()
         }
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
-        nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THE NEW ENVIRONMENT
-        rplCreateLAM(lam_baseseco_bint,IPtr);  // PUT MARKER IN LAM STACK, SET DOLIST AS THE OWNER
+        rplCreateLAMEnvironment(IPtr);
         // NOW CREATE A LOCAL VARIABLE FOR THE INDEX
 
         rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
@@ -1128,8 +1125,7 @@ void LIB_HANDLER()
         maxpos=1+length-nvalues;
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
-        nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THE NEW ENVIRONMENT
-        rplCreateLAM(lam_baseseco_bint,IPtr);  // PUT MARKER IN LAM STACK, SET DOSUBS AS THE OWNER
+        rplCreateLAMEnvironment(IPtr);
 
         rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
 
@@ -1338,8 +1334,7 @@ void LIB_HANDLER()
         // HERE WE HAVE program = PROGRAM TO EXECUTE
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
-        nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THE NEW ENVIRONMENT
-        rplCreateLAM(lam_baseseco_bint,IPtr);  // PUT MARKER IN LAM STACK, SET DOSUBS AS THE OWNER
+        rplCreateLAMEnvironment(IPtr);
 
         rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) { rplCleanupLAMs(0); return; }
@@ -1564,8 +1559,7 @@ void LIB_HANDLER()
         // HERE WE HAVE program = PROGRAM TO EXECUTE
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
-        nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THE NEW ENVIRONMENT
-        rplCreateLAM(lam_baseseco_bint,IPtr);  // PUT MARKER IN LAM STACK, SET DOSUBS AS THE OWNER
+        rplCreateLAMEnvironment(IPtr);
 
         rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) { rplCleanupLAMs(0); return; }
@@ -2013,8 +2007,7 @@ void LIB_HANDLER()
         // HERE WE HAVE program = PROGRAM TO EXECUTE
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
-        nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THE NEW ENVIRONMENT
-        rplCreateLAM(lam_baseseco_bint,IPtr);  // PUT MARKER IN LAM STACK, SET DOSUBS AS THE OWNER
+        rplCreateLAMEnvironment(IPtr);
 
         rplCreateLAM(nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) { rplCleanupLAMs(0); return; }
@@ -2149,8 +2142,7 @@ void LIB_HANDLER()
         // HERE WE HAVE program = PROGRAM TO EXECUTE
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
-        nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THE NEW ENVIRONMENT
-        rplCreateLAM(lam_baseseco_bint,IPtr);  // PUT MARKER IN LAM STACK, SET DOSUBS AS THE OWNER
+        rplCreateLAMEnvironment(IPtr);
 
         rplCreateLAM(nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) { rplCleanupLAMs(0); return; }

@@ -161,7 +161,7 @@ extern void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT token
 #define CMD_SEMI            0x00800003
 #define CMD_ENDLIST         0x03200000
 
-#define CMD_RULESEPARATOR   MKOPCODE(DOSYMB,1)
+#define CMD_RULESEPARATOR   MKOPCODE(DOSYMB,0)
 
 // DEFINE OVERLOADABLE OPERATORS
 #define LIB_OVERLOADABLE    4090

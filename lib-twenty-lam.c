@@ -342,8 +342,7 @@ void LIB_HANDLER()
             }
 
             // CREATE A NEW LAM ENVIRONMENT FOR THIS SECONDARY
-            nLAMBase=LAMTop;    // POINT THE GETLAM BASE TO THIS SECONDARY'S LAMS
-            rplCreateLAM(lam_baseseco_bint,rplPeekRet(1));  // PUT MARKER IN LAM STACK
+            rplCreateLAMEnvironment(rplPeekRet(1));
             rplPushRet(abnd_prog);                          // PUT ABND IN THE STACK TO DO THE CLEANUP
             BINT offset=num;
             // NOW CREATE ALL LOCAL VARIABLES
@@ -391,8 +390,7 @@ void LIB_HANDLER()
             // LAM WAS NOT FOUND, CREATE A NEW ONE
             if(neednewenv) {
                 // A NEW LAM ENVIRONMENT NEEDS TO BE CREATED
-                nLAMBase=LAMTop;
-                rplCreateLAM(lam_baseseco_bint,rplPeekRet(1));
+                rplCreateLAMEnvironment(rplPeekRet(1));
                 // AND PUSH THE AUTOMATIC CLEANUP ROUTINE
                 rplPushRet(abnd_prog);
             }
@@ -532,8 +530,7 @@ void LIB_HANDLER()
                     // DO WE NEED A NEW ENVIRONMENT?
 
                     if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
-                     nLAMBase=LAMTop;
-                     rplCreateLAM(lam_baseseco_bint,*(ValidateTop-1));
+                        rplCreateLAMEnvironment(*(ValidateTop-1));
                     }
                     rplCreateLAM(prevobject,prevobject);
                     RetNum=OK_CONTINUE;
@@ -583,8 +580,7 @@ void LIB_HANDLER()
                                 // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
                             rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
                             if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
-                             nLAMBase=LAMTop;
-                             rplCreateLAM(lam_baseseco_bint,*(ValidateTop-1));
+                                rplCreateLAMEnvironment(*(ValidateTop-1));
                             }
                             rplCreateLAM(prevobject,prevobject);
 
