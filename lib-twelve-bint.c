@@ -71,6 +71,11 @@ const WORD const one_bint[]=
     (WORD)MAKESINT(1)
 };
 
+const WORD const two_bint[]=
+{
+    (WORD)MAKESINT(2)
+};
+
 
 const char const alldigits[]="0123456789ABCDEF";
 
@@ -113,6 +118,25 @@ WORDPTR rplNewBINT(BINT64 num,int base)
     }
 
     return obj;
+}
+
+
+// WRITE AN INTEGER TO THE GIVEN DESTINATION. RETURN A POINTER AFTER THE LAST WRITTEN WORD
+WORDPTR rplWriteBINT(BINT64 num,int base,WORDPTR dest)
+{
+    WORDPTR obj;
+
+    if((num>=MIN_SINT)&&(num<=MAX_SINT)) {
+        *dest=MKOPCODE(base,num&0x3ffff);
+        return ++dest;
+    }
+    else {
+        dest[0]=(MKPROLOG(base,2));
+        dest[1]=((WORD)(num&0xffffffff));      // CAREFUL: THIS IS FOR LITTLE ENDIAN SYSTEMS ONLY!
+        dest[2]=((WORD)( (num>>32)&0xffffffff));
+        return dest+3;
+    }
+
 }
 
 

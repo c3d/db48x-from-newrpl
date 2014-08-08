@@ -637,6 +637,7 @@ enum {
     INFIX_POSTFIXOP,
     INFIX_POSTFIXARG,
     INFIX_BINARYLEFT,
+    INFIX_BINARYMID,
     INFIX_BINARYOP,
     INFIX_BINARYRIGHT,
     INFIX_ATOMIC
@@ -830,6 +831,7 @@ end_of_expression:
                         // HANDLE SPECIAL CASE: ADD PARENTHESIS TO SEPARATE OPERATORS
                             if(TI_TYPE(RetNum)==TITYPE_PREFIXOP) {
                                 if( (*(InfixOpTop-3)==INFIX_BINARYRIGHT) ||
+                                        (*(InfixOpTop-3)==INFIX_BINARYMID) ||
                                         (*(InfixOpTop-3)==INFIX_POSTFIXARG) ||
                                         (*(InfixOpTop-3)==INFIX_PREFIXARG))
                                         rplDecompAppendChar('(');
@@ -919,10 +921,69 @@ end_of_expression:
                 // BUT WE CAN PACK MORE TERMS ON THE SAME '+' OR '*' THIS WAY
                 infixmode=INFIX_BINARYRIGHT;
             }
-            // IF IT'S NOT, THEN KEEP IT AS THE LEFT OPERATOR FOR THE NEXT ARGUMENT
+            else infixmode=INFIX_BINARYMID; // IF IT'S NOT, THEN KEEP IT AS THE MID OPERATOR FOR THE NEXT ARGUMENT
             break;
 
         }
+        case INFIX_BINARYMID:
+        {
+            LIBHANDLER handler;
+            // ADD THE OPERATOR AFTER THE LEFT OPERAND
+            BINT libnum=LIBNUM(*(InfixOpTop-2));
+            SavedDecompObject=DecompileObject;
+            DecompileObject=InfixOpTop-2;
+            CurOpcode=MKOPCODE(libnum,OPCODE_DECOMPILE);
+            handler=rplGetLibHandler(libnum);
+            RetNum=-1;
+
+            if(handler) (*handler)();
+
+            DecompileObject=SavedDecompObject;
+            // IGNORE THE RESULT OF DECOMPILATION
+            if(RetNum!=OK_CONTINUE) {
+                rplDecompAppendString((BYTEPTR)"##INVALID##");
+            }
+
+            if( (InfixOpTop-6)>=RSTop) {
+                // THERE'S AN OPERATOR IN THE STACK
+                if(ISPROLOG(*(InfixOpTop-6))) {
+                    // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
+                    // NO NEED FOR PARENTHESIS
+                }
+                else {
+                    // HANDLE SPECIAL CASE: ADD PARENTHESIS TO SEPARATE OPERATORS
+                    if(infixmode==INFIX_PREFIXARG) {
+                            if( (*(InfixOpTop-3)==INFIX_BINARYRIGHT) ||
+                                    (*(InfixOpTop-3)==INFIX_BINARYMID) ||
+                                    (*(InfixOpTop-3)==INFIX_POSTFIXARG) ||
+                                    (*(InfixOpTop-3)==INFIX_PREFIXARG))
+                                    rplDecompAppendChar(')');
+                    }
+
+
+                    if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(*(InfixOpTop-1))) {
+                        if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS
+                        rplDecompAppendChar(')');
+                    }
+                }
+            }
+
+
+            // NOW CHECK IF THE RIGHT ARGUMENT IS INDEED THE LAST ONE
+            WORDPTR afternext=rplSkipOb(DecompileObject);
+            WORDPTR EndofExpression = rplSkipOb(*(InfixOpTop-4)+EndOfObject);
+
+
+            if(afternext==EndofExpression) {
+                // THE NEXT ELEMENT IS THE LAST (IT SHOULD ALWAYS BE IF THE BINARY OPERATOR HAS ONLY 2 ARGUMENTS
+                // BUT WE CAN PACK MORE TERMS ON THE SAME '+' OR '*' THIS WAY
+                infixmode=INFIX_BINARYRIGHT;
+            }
+            else infixmode=INFIX_BINARYMID; // IF IT'S NOT, THEN KEEP IT AS THE MID OPERATOR FOR THE NEXT ARGUMENT
+            break;
+
+        }
+
         case INFIX_BINARYRIGHT:
         case INFIX_PREFIXARG:
         {
@@ -939,6 +1000,7 @@ end_of_expression:
                     // HANDLE SPECIAL CASE: ADD PARENTHESIS TO SEPARATE OPERATORS
                     if(infixmode==INFIX_PREFIXARG) {
                             if( (*(InfixOpTop-3)==INFIX_BINARYRIGHT) ||
+                                    (*(InfixOpTop-3)==INFIX_BINARYMID) ||
                                     (*(InfixOpTop-3)==INFIX_POSTFIXARG) ||
                                     (*(InfixOpTop-3)==INFIX_PREFIXARG))
                                     rplDecompAppendChar(')');

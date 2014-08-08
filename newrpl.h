@@ -229,6 +229,7 @@ extern WORDPTR rplNewBINT(BINT64 num,int base);
 extern void rplNewSINTPush(int num,int base);
 extern void rplNewBINTPush(BINT64 num,int base);
 extern BINT64 rplReadBINT(WORDPTR ptr);
+extern WORDPTR rplWriteBINT(BINT64 num,int base,WORDPTR dest);
 
 
 // REAL FUNCTIONS

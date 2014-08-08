@@ -266,6 +266,81 @@ void rplSymbEVALApplyOperator(WORD Opcode,BINT nargs)
 }
 
 
+
+
+// DETERMINES WHETHER TWO SYMBOLIC OBJECTS ARE IDENTICAL OR NOT
+// NO ARGUMENT CHECKS, NEVER THROWS EXCEPTIONS, DOES NOT ALTER THE STACK, DOES NOT ALLOCATE MEMORY
+
+BINT rplSymbObjectMatch(WORDPTR baseobject,WORDPTR objptr)
+{
+
+    // START THE MATCHING PROCESS
+
+
+    WORDPTR endofbase=rplSkipOb(baseobject);
+    WORDPTR endofobj=rplSkipOb(objptr);
+
+    while( (baseobject<endofbase) && (objptr<endofobj)) {
+
+        if(ISSYMBOLIC(*baseobject)) baseobject=rplSymbUnwrap(baseobject);
+        if(ISSYMBOLIC(*objptr)) objptr=rplSymbUnwrap(objptr);
+
+        if(ISNUMBER(*baseobject)) {
+            if(!ISNUMBER(*objptr)) return 0;   // MATCH FAILED
+
+            mpd_t num1,num2;
+
+            rplReadNumberAsReal(baseobject,&num1);
+            rplReadNumberAsReal(objptr,&num2);
+
+            if(mpd_cmp(&num1,&num2,&Context)) return 0; // MATCH FAILED
+        }
+        else
+        if(!ISPROLOG(*baseobject)) {
+            // IT'S AN OPCODE OF AN OPERATOR, OR AN INTEGER NUMBER. MUST MATCH EXACTLY
+            if(*baseobject!=*objptr) return 0;   // MATCH FAILED
+            ++baseobject;
+            ++objptr;
+            continue;
+        }
+
+        else
+        if(ISSYMBOLIC(*baseobject)) {
+            if(!ISSYMBOLIC(*objptr)) return 0; // MATCH FAILED
+            // INCREASE THE POINTERS TO SCAN INSIDE THE SYMBOLIC
+            ++baseobject;
+            ++objptr;
+            continue;
+        }
+
+        // ADD MORE SPECIAL CASES HERE
+
+        // ALL OTHER OBJECTS **MUST** BE IDENTICAL, REGARDLESS OF TYPE
+       else
+       if(!rplCompareObjects(baseobject,objptr)) return 0;    // MATCH FAILED
+
+
+        // AFTER A MATCH, PROCESS THE NEXT OBJECT
+        baseobject=rplSkipOb(baseobject);
+        objptr=rplSkipOb(objptr);
+
+    }
+
+    if((baseobject!=endofbase)||(objptr!=endofobj)) return 0;   // RETURN WITH "NO MATCH" RESULT
+
+    return 1;
+}
+
+
+
+
+
+
+
+
+
+
+
 // SYMBOLIC EXPRESSION IN LEVEL 2
 // RULE IN LEVEL 1
 // CREATES A NEW LOCAL ENVIRONMENT, WITH THE FOLLOWING VARIABLES:
@@ -343,33 +418,18 @@ void rplSymbRuleMatch()
         if(ISSYMBOLIC(*ruleleft)) ruleleft=rplSymbUnwrap(ruleleft);
         if(ISSYMBOLIC(*objptr)) objptr=rplSymbUnwrap(objptr);
 
-        if(ISNUMBER(*ruleleft)) {
-            if(!ISNUMBER(*objptr)) break;   // MATCH FAILED
-
-            mpd_t num1,num2;
-
-            rplReadNumberAsReal(ruleleft,&num1);
-            rplReadNumberAsReal(objptr,&num2);
-
-            if(mpd_cmp(&num1,&num2,&Context)) break; // MATCH FAILED
-
-
-        }
-        else
-        if(!ISPROLOG(*ruleleft)) {
-            // IT'S AN OPCODE OF AN OPERATOR, OR AN INTEGER NUMBER. MUST MATCH EXACTLY
-            if(*ruleleft!=*objptr) break;   // MATCH FAILED
-            ++ruleleft;
-            ++objptr;
-            continue;
-        }
-
-        else
         if(ISSYMBOLIC(*ruleleft)) {
             if(!ISSYMBOLIC(*objptr)) break; // MATCH FAILED
             // INCREASE THE POINTERS TO SCAN INSIDE THE SYMBOLIC
             ++ruleleft;
             ++objptr;
+            if(*ruleleft==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+                // DO COMMUTATIVE/ASSOCIATIVE MATCHING
+                //if(!rplSymbAdditionMatch(ruleleft-1,objptr-1)) break;
+
+
+            }
+
             continue;
         }
         else
@@ -397,10 +457,12 @@ void rplSymbRuleMatch()
                 // IF THIS NAME ALREADY EXISTS, WE NEED TO MATCH ITS CONTENTS
                 // IF IT DOESN'T, WE NEED TO FIND A PROPER MATCH
 
-                if(rplFindLAM(ruleleft,0)) {
+                WORDPTR lamptr=rplFindLAM(ruleleft,0);
+                if(lamptr) {
                     // NAME ALREADY EXISTS, THE OBJECT MUST MATCH
 
-                    // TODO: DO THE MATCH!
+                    if(!rplSymbObjectMatch(*(lamptr+1),objptr)) break; //  MATCH FAILED
+                    // MATCH SUCCEEDED!
 
                 } else {
                     ScratchPointer1=endofrule;
@@ -462,7 +524,7 @@ void rplSymbRuleMatch()
 
         // ALL OTHER OBJECTS **MUST** BE IDENTICAL, REGARDLESS OF TYPE
        else
-       if(!rplCompareObjects(ruleleft,objptr)) break;    // MATCH FAILED
+       if(!rplSymbObjectMatch(ruleleft,objptr)) break;    // MATCH FAILED
 
 
         // AFTER A MATCH, PROCESS THE NEXT OBJECT
@@ -480,4 +542,622 @@ void rplSymbRuleMatch()
     return;
 }
 
+// COUNT HOW MANY ARGUMENTS THERE ARE FOR THE MAIN SYMBOLIC OPERATOR
+// RETURNS ZERO FOR ATOMIC OBJECTS, OR THE NUMBER OF ARGUMENTS FOR AN OPERATOR OR FUNCTION
+// IT FLATTENS ADDITION AND MULTIPLICATION
 
+BINT rplSymbCountArguments(WORDPTR object)
+{
+    object=rplSymbUnwrap(object);
+    if(!object) return 0;
+
+    if(!ISSYMBOLIC(*object)) return 0;
+
+    WORDPTR endofobj=rplSkipOb(object);
+    WORD Opcode=*(object+1);
+    if(ISPROLOG(Opcode)) return 0;
+    if(ISBINT(Opcode)) return 0;
+
+    // HERE WE ARE SURE THAT OPCODE IS AN OPERATOR
+    object+=2;
+    BINT count=0;
+
+    while(object!=endofobj) {
+        if(ISSYMBOLIC(*object)) object=rplSymbUnwrap(object);
+        if(ISSYMBOLIC(*object)) {
+        if(*(object+1)==Opcode) {
+            // SAME OPERATION
+            if( (Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) || (Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL))) { object+=2; continue; }
+        }
+
+        }
+        ++count;
+        object=rplSkipOb(object);
+    }
+
+    return count;
+
+}
+
+
+// SCAN AN OBJECT, RETURN 1 IF IT'S NUMERIC, 0 OTHERWISE
+
+BINT rplSymbIsNumeric(WORDPTR object)
+{
+
+    WORDPTR endofobj=rplSkipOb(object);
+
+    while(object!=endofobj) {
+        if(ISSYMBOLIC(*object)) object=rplSymbUnwrap(object);
+        if(ISSYMBOLIC(*object)) { ++object; continue; }
+        if(ISIDENT(*object)) return 0;
+        object=rplSkipOb(object);
+    }
+
+    return 1;
+}
+
+
+// SCAN AN OBJECT, RETURN 1 IF IT CONTAINS A SPECIAL RULE IDENT, 0 OTHERWISE
+BINT rplSymbHasSpecialIdent(WORDPTR object)
+{
+    WORDPTR endofobj=rplSkipOb(object);
+
+    while(object!=endofobj) {
+        if(ISSYMBOLIC(*object)) object=rplSymbUnwrap(object);
+        if(ISSYMBOLIC(*object)) { ++object; continue; }
+        if(ISIDENT(*object)) {
+            // CHECK IF IT'S A SPECIAL IDENT (ALL SPECIAL IDENTS BEGIN WITH A DOT)
+            if(*((char *)(object+1))=='.') return 1;
+        }
+        object=rplSkipOb(object);
+    }
+
+    return 0;
+
+}
+
+// REPLACE AN OBJECT WITHIN A SYMBOLIC
+// IT CREATES A NEW OBJECT, SO IT MIGHT TRIGGER GC
+// USES ScratchPointers 1 THRU 3 DURING GC
+// RETURNS A POINTER TO THE NEW OBJECT
+// LOW LEVEL FUNCTION - NO ARGUMENT CHECKS!!!
+
+WORDPTR rplSymbReplace(WORDPTR mainobj,WORDPTR arg,WORDPTR newarg)
+{
+
+    ScratchPointer1=mainobj;
+    ScratchPointer2=arg;
+    ScratchPointer3=newarg;
+    WORDPTR newobj=rplAllocTempOb(rplObjSize(mainobj)-rplObjSize(arg)+rplObjSize(newarg)-1),ptr,end;
+    if(Exceptions) return NULL;
+    ptr=newobj;
+    mainobj=ScratchPointer1;
+    arg=ScratchPointer2;
+    newarg=ScratchPointer3;
+    while(mainobj!=arg) *ptr++=*mainobj++;
+    end=rplSkipOb(newarg);
+    while(newarg!=end) *ptr++=*newarg++;
+    mainobj=rplSkipOb(arg);
+    end=rplSkipOb(ScratchPointer1);
+    while(mainobj!=end) *ptr++=*mainobj++;
+    return newobj;
+}
+
+
+// EXPLODE A SYMBOLIC IN THE STACK IN REVERSE (LEVEL 1 CONTAINS THE FIRST OBJECT, LEVEL 2 THE SECOND, ETC.)
+// INCLUDING OPERATORS
+// USES ScratchPointer1 FOR GC PROTECTION
+// RETURN THE NUMBER OF OBJECTS THAT ARE ON THE STACK
+
+BINT rplSymbExplode(WORDPTR object)
+{
+    BINT count=0,countops=0,nargs;
+
+    WORDPTR ptr,end,localend,numbers;
+
+    ptr=object;
+    end=rplSkipOb(object);
+
+    while(ptr!=end) {
+        if(ISSYMBOLIC(*ptr)) { ++ptr; continue; }
+        if(! (ISPROLOG(*ptr) || ISBINT(*ptr))) ++countops;
+        ++count;
+        ptr=rplSkipOb(ptr);
+    }
+
+    // HERE count+countops IS THE NUMBER OF POINTERS WE NEED TO PUSH ON THE STACK
+    ScratchPointer1=object;
+    rplExpandStack(count+countops);  // EXPAND THE DATA STACK NOW, SO WE CAN MANUALLY PUSH IN BULK
+    if(Exceptions) return 0;
+    numbers=rplAllocTempOb(countops);
+    if(!numbers) return 0;
+    object=ScratchPointer1;
+    ptr=DSTop+count+countops-1;
+    end=rplSkipOb(object);
+    countops=0;
+
+    while(object!=end) {
+        if(ISSYMBOLIC(*object)) {
+            nargs=0;
+            WORDPTR tmp=object+1,tmpend=rplSkipOb(object);
+            while(tmp!=tmpend) {
+                ++nargs;
+                tmp=rplSkipOb(tmp);
+            }
+            // HERE nargs HAS THE NUMBER OF ARGUMENTS + 1 FOR THE OPCODE
+            ++object;
+            continue;
+        }
+        *ptr=object;
+        if(! (ISPROLOG(*object) || ISBINT(*object))) { numbers[countops]=MAKESINT(nargs); --ptr; *ptr=&numbers[countops]; ++countops; }
+        --ptr;
+        object=rplSkipOb(object);
+    }
+
+    DSTop+=count+countops;
+
+    return count+countops;
+
+}
+
+// REASSEMBLE A SYMBOLIC THAT WAS EXPLODED IN THE STACK
+// DOES NOT CHECK FOR VALIDITY OF THE SYMBOLIC!
+
+WORDPTR rplSymbImplode(BINT numobjects)
+{
+
+    WORDPTR *stkptr=DSTop-1;
+
+    BINT size=0,narg;
+
+    BINT f;
+
+    for(f=0;f<numobjects;++f)
+    {
+        size+=rplObjSize(*stkptr);
+        --stkptr;
+    }
+
+    // HERE size HAS THE TOTAL SIZE WE NEED TO ALLOCATE
+
+    WORDPTR newobject=rplAllocTempOb(size),newptr,object;
+
+    if(!newobject) return NULL;
+
+    stkptr=DSTop-1;
+    newptr=newobject;
+    for(f=0;f<numobjects;++f)
+    {
+        object=*stkptr;
+        if(!(ISPROLOG(*object)||ISBINT(*object))) {
+            // WE HAVE AN OPCODE, START A SYMBOLIC RIGHT HERE
+            *newptr++=MKPROLOG(DOSYMB,0);
+            *newptr++=*object;    // STORE THE OPCODE
+            --stkptr;
+            ++f;
+        }
+        else {
+            // COPY THE OBJECT
+            WORDPTR endobj=rplSkipOb(object);
+            while(object!=endobj) *newptr++=*object++;
+        }
+
+        --stkptr;
+
+    }
+
+    // HERE WE HAVE THE NEW OBJECT, BUT ALL SYMBOLIC SIZES ARE SET TO ZERO
+    // NEED TO FIX THE SIZES ACCORDING TO THE NUMBER OF ARGUMENTS
+    // newptr IS POINTING AT THE END OF THE NEW OBJECT
+
+    for(;f>0;--f) {
+        ++stkptr;
+        object=*stkptr;
+        if(!(ISPROLOG(*object)||ISBINT(*object))) {
+            // FOUND AN OPERATOR, GET THE NUMBER OF ITEMS
+            narg=OPCODE(**(stkptr-1));
+
+            // PATCH THE LAST SYMBOLIC WITH ZERO FOR SIZE IN THE OBJECT
+            WORDPTR scan=newobject,lastone=0;
+            while(scan<newptr) {
+                if(*scan==MKPROLOG(DOSYMB,0)) {
+                    lastone=scan;
+                    ++scan;
+                    continue;
+                }
+                scan=rplSkipOb(scan);
+            }
+            // HERE lastone HAS THE LAST SYMBOLIC FOUND
+            scan=lastone+1;
+            while(narg) { scan=rplSkipOb(scan); --narg; }
+
+            // AND PATCH THE SIZE
+            *lastone=MKPROLOG(DOSYMB,scan-lastone-1);
+
+        }
+
+    }
+
+    return newobject;
+
+}
+
+// SKIP ONE SYMBOLIC OBJECT IN ITS EXPLODED FORM IN THE STACK
+// THE ARGUMENT IS A POINTER TO THE STACK, NOT THE OBJECT
+// RETURS THE POINTER TO THE STACK ELEMENT THAT HAS THE NEXT OBEJCT
+
+WORDPTR rplSymbSkipInStack(WORDPTR *stkptr)
+{
+    if(ISPROLOG(**stkptr)) return --stkptr;
+    if(ISBINT(**stkptr)) return --stkptr;
+
+    // IT'S AN OPERATOR
+    --stkptr;
+
+    BINT nargs=OPCODE(**stkptr)-1;    // EXTRACT THE SINT
+    --stkptr;
+    while(nargs) {
+        if(ISPROLOG(**stkptr)) { --stkptr; --nargs; continue; }
+        if(ISBINT(**stkptr)) { --stkptr; --nargs; continue; }
+        --stkptr;
+        nargs+=OPCODE(**stkptr)-1;
+        --stkptr;
+        --nargs;
+    }
+
+    return stkptr;
+}
+
+
+
+
+// CONVERT A SYMBOLIC INTO CANONICAL FORM:
+// A) NEGATIVE NUMBERS REPLACED WITH NEG(n)
+// B) ALL SUBTRACTIONS REPLACED WITH ADDITION OF NEGATED ITEMS
+// c) ALL NEG(A+B+...) = NEG(A)+NEG(B)+NEG(...)
+// D) FLATTEN ALL ADDITION TREES
+
+// E) ALL NEGATIVE POWERS REPLACED WITH a^-n = INV(a^n)
+// F) ALL DIVISIONS REPLACED WITH MULTIPLICATION BY INV()
+// G) ALL INV(A*B*...) = INV(A)*INV(B)*INV(...)
+// G) FLATTEN ALL MULTIPLICATION TREES
+
+const WORD const uminus_opcode[]={
+    MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)
+};
+const WORD const add_opcode[]={
+    MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)
+};
+
+WORDPTR rplSymbCanonicalForm(WORDPTR object)
+{
+    BINT numitems=rplSymbExplode(object);
+    BINT f;
+    WORDPTR *stkptr,sobj,*endofstk;
+
+    stkptr=DSTop-1;
+    endofstk=stkptr-numitems;
+
+    //*******************************************
+    // SCAN THE SYMBOLIC FOR ITEM A)
+    // A) NEGATIVE NUMBERS REPLACED WITH NEG(n)
+
+
+    while(stkptr!=endofstk) {
+        sobj=*stkptr;
+
+        if(ISBINT(*sobj)) {
+            // THE OBJECT IS AN INTEGER NUMBER
+            BINT64 num=rplReadBINT(sobj);
+            if(num<0) {
+                num=-num;
+                rplNewBINTPush(num,DECBINT);
+                if(Exceptions) return NULL;
+                WORDPTR newobj=rplPeekData(1);
+
+                WORDPTR *ptr=DSTop-2;
+
+                // MAKE A HOLE IN THE STACK TO ADD NEGATION
+                while(ptr!=stkptr) {
+                    *(ptr+2)=*ptr;
+                    --ptr;
+                }
+                DSTop++;    // MOVE ONLY ONE SPOT, DROPPING THE NEW OBJECT IN THE SAME OPERATION
+                stkptr[0]=newobj;
+                stkptr[1]=two_bint;
+                stkptr[2]=uminus_opcode;
+            }
+            }
+
+        if(ISREAL(*sobj)) {
+            // THE OBJECT IS A REAL NUMBER
+            mpd_t dec;
+            rplCopyRealToRReg(0,sobj);
+            if(mpd_isnegative(&RReg[0])) {
+                RReg[0].flags^=MPD_NEG; // MAKE IT POSITIVE
+                rplRRegToRealPush(0);
+                if(Exceptions) return NULL;
+                WORDPTR newobj=rplPeekData(1);
+
+                WORDPTR *ptr=DSTop-2;
+
+                // MAKE A HOLE IN THE STACK TO ADD NEGATION
+                while(ptr!=stkptr) {
+                    *(ptr+2)=*ptr;
+                    --ptr;
+                }
+                DSTop++;    // MOVE ONLY ONE SPOT, DROPPING THE NEW OBJECT IN THE SAME OPERATION
+                stkptr[0]=newobj;
+                stkptr[1]=two_bint;
+                stkptr[2]=uminus_opcode;
+            }
+            }
+
+        --stkptr;
+        }
+
+
+    //*******************************************
+    // SCAN THE SYMBOLIC FOR ITEM B)
+    // B) ALL SUBTRACTIONS REPLACED WITH ADDITION OF NEGATED ITEMS
+
+    stkptr=DSTop-1;
+
+    while(stkptr!=endofstk) {
+        sobj=*stkptr;
+
+        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_SUB)) {
+
+                WORDPTR *secondarg=rplSymbSkipInStack(stkptr-2);
+
+                WORDPTR *ptr=DSTop-1;
+
+                // MAKE A HOLE IN THE STACK TO ADD NEGATION
+                while(ptr!=secondarg) {
+                    *(ptr+2)=*ptr;
+                    --ptr;
+                }
+                DSTop+=2;   // 2 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
+                stkptr+=2;
+                secondarg[1]=two_bint;
+                secondarg[2]=uminus_opcode;
+                *stkptr=add_opcode;
+                stkptr--;
+                rplExpandStack(2);  // NOW GROW THE STACK
+            }
+
+
+
+        --stkptr;
+        }
+
+
+
+
+    //*******************************************
+    // SCAN THE SYMBOLIC FOR ITEM C)
+    // C) ALL NEG(A+B+...) = NEG(A)+NEG(B)+NEG(...)
+
+    stkptr=DSTop-1;
+    while(stkptr!=endofstk) {
+        sobj=*stkptr;
+
+        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+            WORDPTR *nextarg=stkptr-2;
+
+            if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+                // A SUM NEGATED? DISTRIBUTE THE OPERATOR OVER THE ARGUMENTS
+
+                BINT nargs=OPCODE(**(nextarg-1))-1;
+
+                BINT c;
+                nextarg-=2;
+                for(c=0;c<nargs;++c) {
+
+                    if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                        // NEG/NEG = REMOVE THE NEGATION
+                    WORDPTR *ptr=nextarg-1;
+                    // AND REMOVE THE GAP
+                    while(ptr!=DSTop-2) {
+                    *ptr=*(ptr+2);
+                    ++ptr;
+                    }
+                    DSTop-=2;
+                    stkptr-=2;
+                    nextarg-=2;
+                    }
+                    else {
+                        // NEGATE THIS TERM
+                        WORDPTR *ptr=DSTop-1;
+                        // AND REMOVE THE GAP
+                        while(ptr!=nextarg) {
+                        *(ptr+2)=*ptr;
+                        --ptr;
+                        }
+
+                        DSTop+=2;
+                        stkptr+=2;
+                        nextarg[1]=two_bint;
+                        nextarg[2]=uminus_opcode;
+                        nextarg+=2;
+                    }
+
+                    nextarg=rplSymbSkipInStack(nextarg);
+
+                }
+                // REMOVE THE ORIGINAL NEGATION
+                WORDPTR *ptr=stkptr-1;
+                // AND REMOVE THE GAP
+                while(ptr!=DSTop-2) {
+                *ptr=*(ptr+2);
+                ++ptr;
+                }
+                DSTop-=2;
+                stkptr-=2;
+
+                }
+                else stkptr--;
+         }
+
+
+
+        --stkptr;
+        }
+
+
+
+
+
+
+    //*******************************************
+    // SCAN THE SYMBOLIC FOR ITEM D)
+    // D) FLATTEN ALL ADDITION TREES
+
+    stkptr=DSTop-1;
+    while(stkptr!=endofstk) {
+        sobj=*stkptr;
+
+        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+                BINT nargs=OPCODE(**(stkptr-1))-1;
+
+                BINT c,orignargs=nargs;
+                WORDPTR *nextarg=stkptr-2;
+
+                for(c=0;c<nargs;++c) {
+
+                    if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+                        // FLATTEN BY REMOVING THE ADDITION
+                    WORDPTR *ptr=nextarg-1;
+                    nargs+=OPCODE(**(nextarg-1))-2;   // ADD THE ARGUMENTS TO THE BASE LOOP
+                    // AND REMOVE THE GAP
+                    while(ptr!=DSTop-2) {
+                    *ptr=*(ptr+2);
+                    ++ptr;
+                    }
+                    DSTop-=2;
+                    stkptr-=2;
+                    --c;
+                    nextarg-=2;
+                    }
+                    else nextarg=rplSymbSkipInStack(nextarg);
+
+                }
+
+                // HERE stkptr IS POINTING TO THE ORIGINAL SUM COMMAND
+                // STORE THE NEW TOTAL NUMBER OF ARGUMENTS
+                if(orignargs!=nargs) {
+                WORDPTR newnumber=rplNewSINT(nargs+1,DECBINT);
+                if(!newnumber) return NULL;
+                *(stkptr-1)=newnumber;
+                }
+
+                stkptr--;
+         }
+
+
+
+        --stkptr;
+        }
+
+
+
+
+
+
+    WORDPTR finalsymb=rplSymbImplode(DSTop-1-endofstk);
+
+    DSTop=endofstk+1;
+    if(Exceptions) return;
+
+    rplPushData(finalsymb);
+
+}
+
+
+
+// ATTEMPTS TO MATCH A RULE THAT IS A SERIES OF TERMS (OR FACTORS)
+// THERE CAN BE 3 RESULTS:
+// 0 = NO MATCH
+// 1 = EXACT MATCH
+// 2 = PARTIAL MATCH, THERE ARE TERMS THAT MATCH, AND SOME OTHER TERMS LEFT OVER.
+//     THE RESULT IS COMPOSED OF A MATCHING AND A NON-MATCHING SET OF TERMS.
+
+// THIS FUNCTION ASSUMES Opcode IS ASSOCIATIVE AND COMMUTATIVE.
+
+BINT rplSymbCommutativeMatch(WORD Opcode,WORDPTR rulelist,WORDPTR objlist)
+{
+        // Opcode = MAIN OPCODE IN rulelist AND objlist (CAN BE OVR_ADD OR OVR_MUL)
+        // rulelist = SYMBOLIC OBJECT { Opcode arg1 arg2 ... argN } TO MATCH FROM
+        // objlist = OBJECT TO MATCH, IF IT'S NOT THE SAME OPERATION, IT'S CONSIDERED AS A SINGLE TERM { Opcode objlist }
+
+    // EXPLODE objlist ON THE STACK
+
+    // MATCH FIRST TERM IN rulelist WITH ANY TERM IN objlist, SORT objlist BRINGING THE TERM TO THE START OF THE LIST
+    // MATCH NEXT TERM IN rulelist WITH ANY OF THE REMAINDER TERMS IN objlist, SORTING AS NEEDED
+    // IF THE TERM IN rulelist IS A SPECIAL IDENT, MATCH AS MANY TERMS IN objlist AS REQUESTED AND DEFINE THE VARIABLE
+    // AT THE END OF rulelist, IF THERE ARE ANY UNMATCHED TERMS THERE IS A PARTIAL MATCH
+
+}
+
+
+// RECURSIVE SYMBOLIC MATCH AND APPLY
+
+// MATCH ONE TO ANY: TAKE ONE RULE AND MATCH IT WITH ALL TERMS IN A LIST, RECURSE AS NEEDED AND APPLY
+// ALL VARIABLE STORAGE IS WITHIN A LOCAL ENVIRONMENT
+// LAMS:
+// 1 = RULE TO MATCH
+// 2 = LIST OF OBJECTS,
+// 3 = PTR TO CURRENT RULE OBJECT
+// 4 = PTR TO CURRENT OBJECT
+// 5 = MATCH STATUS,
+// 6 = NUMBER OF OBJECTS IN CURRENT OBJECT
+// 5 ... N = NAMED LAMS WITH ALL SPECIAL IDENTS IN THE RULE, WITH THEIR ASSIGNED VALUES SO FAR
+// N+1 ... M = LIST OF OBJECTS IN CURRENT OBJECT, FOR SORTING
+
+// LOGIC:
+// CREATE A NEW ENVIRONMENT
+// INITIALIZE ALL VARIABLES
+// EXPLODE THE OBJECT
+// CURRENT RULE OBJECT = START OF RULE
+// TAKE CURRENT OBJECT AND MATCH CURRENT RULE...
+//              IF RULE IS ATOMIC {
+//                      IF RULE IS SPECIAL IDENT AND IS ALREADY DEFINED, TAKE VALUE OF IDENT + OBJECT AND GOTO LOGIC:
+//                      IF RULE IS A SPECIAL IDENT NOT PREVIOUSLY DEFINED, DEFINE IT
+//                      IF OBJECT IS ATOMIC, CHECK MATCH OR NOT
+//                      IF OBJECT IS A SYMBOLIC AND OPCODE MATCHES RULE OPCODE, TAKE CURRENT RULE + CURRENT OBJECT AND GOTO LOGIC: (TO START WITH THE CURRENT OBJECT EXPLODED)
+//              }
+//              IF RULE IS SYMBOLIC OPERATION {
+//                      EXPLODE THE RULE, AND DO A LOOP TAKING ONE RULE OBJECT TO MATCH WITH EACH OBJECT
+
+void rplSymbRuleApply(WORDPTR expression,WORDPTR rule)
+{
+    // CREATE A SEPARATE LOCAL ENVIRONMENT
+    rplCreateLAMEnvironment(expression);
+
+    rplCreateLAM(nulllam_ident,zero_bint);      // LAM1 = MATCH RESULT IS THE FIRST LAM
+
+    if(Exceptions) return;
+
+    if(ISSYMBOLIC(expression)) expression=rplSymbUnwrap(expression);
+    if(ISSYMBOLIC(rule)) rule=rplSymbUnwrap(rule);
+
+    if(!rule || !expression) return;
+    BINT rulesize=rplObjSize(rule),expsize=rplObjSize(expression);
+
+    rplCreateLAM(nulllam_ident,expression);     // LAM2 = ORIGINAL EXPRESSION
+    rplCreateLAM(nulllam_ident,rule);           // LAM3 = ORIGINAL RULE
+    rplCreateLAM(nulllam_ident,expression);     // LAM4 = CURRENT EXPRESSION POINTER
+    rplCreateLAM(nulllam_ident,rule);           // LAM5 = CURRENT RULE POINTER
+
+    while(rplGetLAMn(5)-rplGetLAMn(2)<rulesize) {
+//        if()
+
+
+
+    }
+
+    if(Exceptions) return;
+
+
+}

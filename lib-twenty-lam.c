@@ -228,7 +228,10 @@ void LIB_HANDLER()
         // TODO: ADD SYMBOLIC OPERATION MODE
 
                 if(ISIDENT(*rplPeekData(1))) {
-                WORDPTR val=rplGetLAM(rplPeekData(1));
+
+                    if(LIBNUM(rplPeekData(1)==DOIDENTEVAL)) {
+
+                   WORDPTR val=rplGetLAM(rplPeekData(1));
                 if(!val) {
                     val=rplGetGlobal(rplPeekData(1));
                     if(!val) {
@@ -237,16 +240,23 @@ void LIB_HANDLER()
                 }
                 if(!val) {
                  // TODO: APPLY THE OPERATOR AS A SYMBOLIC OBJECT
-                 //   Exceptions=EX_VARUNDEF;
-                 //   ExceptionPointer=IPtr;
-                 //   return;
+                    rplSymbApplyOperator(CurOpcode,2);
+                    return;
                 }
                 else
                 // HERE val HAS THE CONTENTS OF THE NAMED VARIABLE
                 rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
                 }
+                    else {
+                        // QUOTED IDENTS ARE TREATED AS SYMBOLIC OBJECTS
+                        rplSymbApplyOperator(CurOpcode,2);
+                        return;
+                    }
+                }
 
                 if(ISIDENT(*rplPeekData(2))) {
+
+                    if(LIBNUM(rplPeekData(2)==DOIDENTEVAL)) {
                 WORDPTR val=rplGetLAM(rplPeekData(2));
                 if(!val) {
                     val=rplGetGlobal(rplPeekData(2));
@@ -256,18 +266,24 @@ void LIB_HANDLER()
                 }
                 if(!val) {
                  // TODO: APPLY THE OPERATOR AS A SYMBOLIC OBJECT
-                    //Exceptions=EX_VARUNDEF;
-                    //ExceptionPointer=IPtr;
-                    //return;
+                    rplSymbApplyOperator(CurOpcode,2);
+                    return;
                 }
                 else
                 // HERE val HAS THE CONTENTS OF THE NAMED VARIABLE
 
                 rplOverwriteData(2,val);    // REPLACE THE SECOND LEVEL WITH THE VALUE
                 }
+                else {
+
+                        rplSymbApplyOperator(CurOpcode,2);
+                        return;
+
+                    }
+                }
 
 
-                // PASS AL OTHER OPERATORS DIRECTLY TO THE CONTENTS
+                // PASS ALL OTHER OPERATORS DIRECTLY TO THE CONTENTS
             BINT libnum1=LIBNUM(*rplPeekData(1)),libnum2=LIBNUM(*rplPeekData(2));
             if(libnum2>libnum1) {
                 BINT tmp=libnum2;

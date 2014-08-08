@@ -253,6 +253,7 @@ extern const WORD lam_errhandler_bint[];
 extern const WORD nulllam_ident[];
 extern const WORD zero_bint[];
 extern const WORD one_bint[];
+extern const WORD two_bint[];
 
 
 #endif // LIBRARIES_H

@@ -26,7 +26,8 @@
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
     CMD(AUTOSIMPLIFY), \
-    CMD(RULEMATCH)
+    CMD(RULEMATCH), \
+    CMD(TEST)
 
 // ADD MORE OPCODES HERE
 
@@ -535,6 +536,23 @@ void LIB_HANDLER()
         return;
 
      }
+
+    case TEST:
+    // THIS IS FOR DEBUG ONLY
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        if(!ISSYMBOLIC(*rplPeekData(1))) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        rplSymbCanonicalForm(rplPeekData(1));
+        return;
 
 
     // STANDARIZED OPCODES:
