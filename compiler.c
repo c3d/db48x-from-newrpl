@@ -896,9 +896,35 @@ end_of_expression:
         {
             LIBHANDLER handler;
             // ADD THE OPERATOR AFTER THE LEFT OPERAND
-            BINT libnum=LIBNUM(*(InfixOpTop-2));
+            WORD Operator=*(InfixOpTop-2);
+
             SavedDecompObject=DecompileObject;
-            DecompileObject=InfixOpTop-2;
+
+
+            // HANDLE 2 SPECIAL CASES: A+(-B) --> A-B
+            // AND A*INV(B) --> A/B
+
+            if(Operator==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+                if(rplSymbMainOperator(DecompileObject)==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS))
+                          { Operator=MKOPCODE(LIB_OVERLOADABLE,OVR_SUB);
+                            // MAKE NEXT OBJECT SKIP THE UMINUS OPERATOR
+                            SavedDecompObject=rplSymbUnwrap(DecompileObject)+2;
+                            }
+            }
+
+            if(Operator==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+                if(rplSymbMainOperator(DecompileObject)==MKOPCODE(LIB_OVERLOADABLE,OVR_INV))
+                         {  Operator=MKOPCODE(LIB_OVERLOADABLE,OVR_DIV);
+                            // MAKE NEXT OBJECT SKIP THE INV OPERATOR
+                            SavedDecompObject=rplSymbUnwrap(DecompileObject)+2;
+                }
+
+            }
+
+
+
+            BINT libnum=LIBNUM(Operator);
+            DecompileObject=&Operator;
             CurOpcode=MKOPCODE(libnum,OPCODE_DECOMPILE);
             handler=rplGetLibHandler(libnum);
             RetNum=-1;
@@ -928,10 +954,35 @@ end_of_expression:
         case INFIX_BINARYMID:
         {
             LIBHANDLER handler;
-            // ADD THE OPERATOR AFTER THE LEFT OPERAND
-            BINT libnum=LIBNUM(*(InfixOpTop-2));
+            WORD Operator=*(InfixOpTop-2);
+
             SavedDecompObject=DecompileObject;
-            DecompileObject=InfixOpTop-2;
+
+
+            // HANDLE 2 SPECIAL CASES: A+(-B) --> A-B
+            // AND A*INV(B) --> A/B
+
+            if(Operator==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+                if(rplSymbMainOperator(DecompileObject)==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS))
+                          { Operator=MKOPCODE(LIB_OVERLOADABLE,OVR_SUB);
+                            // MAKE NEXT OBJECT SKIP THE UMINUS OPERATOR
+                            SavedDecompObject=rplSymbUnwrap(DecompileObject)+2;
+                            }
+            }
+
+            if(Operator==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+                if(rplSymbMainOperator(DecompileObject)==MKOPCODE(LIB_OVERLOADABLE,OVR_INV))
+                         {  Operator=MKOPCODE(LIB_OVERLOADABLE,OVR_DIV);
+                            // MAKE NEXT OBJECT SKIP THE INV OPERATOR
+                            SavedDecompObject=rplSymbUnwrap(DecompileObject)+2;
+                }
+
+            }
+
+
+
+            BINT libnum=LIBNUM(Operator);
+            DecompileObject=&Operator;
             CurOpcode=MKOPCODE(libnum,OPCODE_DECOMPILE);
             handler=rplGetLibHandler(libnum);
             RetNum=-1;
