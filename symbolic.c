@@ -34,23 +34,25 @@
 /* Operators precedence should be:
 
 
-31= BRACKETS/PARENTHESIS
+31= BRACKETS/PARENTHESIS/COMMA
 
 16 = OVR_EVAL, OVR_XEQ
 14 = RULESEPARATOR, EQUATIONEQUAL
-12= OVR_OR
-11= OVR_XOR
-10= OVR_AND
-9= OVR_EQ, OVR_NOTEQ, OVR_SAME
-8= OVR_LT OVR_GT OVR_LTE OVR_GTE
+13= OVR_OR
+12= OVR_XOR
+11= OVR_AND
+10= OVR_EQ, OVR_NOTEQ
+9= OVR_LT OVR_GT OVR_LTE OVR_GTE
 
-6= OVR_ADD, OVR_SUB
+8= OVR_ADD
+7= OVR_SUB
 
-5= OVR_MUL,OVR_DIV,OVR_INV
+6= OVR_MUL
+5= OVR_DIV,OVR_INV
 
-4= OVR_NEG, OVR_ISTRUE, OVR_NOT
+4= OVR_NEG, OVR_UMINUS, OVR_UPLUS
 
-3= OVR_ABS,OVR_POW
+3= OVR_POW
 
 
 2 = ALL OTHER FUNCTIONS AND COMMANDS
@@ -787,7 +789,7 @@ WORDPTR rplSymbImplode(BINT numobjects)
 // THE ARGUMENT IS A POINTER TO THE STACK, NOT THE OBJECT
 // RETURS THE POINTER TO THE STACK ELEMENT THAT HAS THE NEXT OBEJCT
 
-WORDPTR rplSymbSkipInStack(WORDPTR *stkptr)
+WORDPTR *rplSymbSkipInStack(WORDPTR *stkptr)
 {
     if(ISPROLOG(**stkptr)) return --stkptr;
     if(ISBINT(**stkptr)) return --stkptr;
@@ -821,7 +823,7 @@ WORDPTR rplSymbSkipInStack(WORDPTR *stkptr)
 // E) ALL NEGATIVE POWERS REPLACED WITH a^-n = INV(a^n)
 // F) ALL DIVISIONS REPLACED WITH MULTIPLICATION BY INV()
 // G) ALL INV(A*B*...) = INV(A)*INV(B)*INV(...)
-// G) FLATTEN ALL MULTIPLICATION TREES
+// H) FLATTEN ALL MULTIPLICATION TREES
 
 const WORD const uminus_opcode[]={
     MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)
@@ -829,6 +831,13 @@ const WORD const uminus_opcode[]={
 const WORD const add_opcode[]={
     MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)
 };
+const WORD const inverse_opcode[]={
+    MKOPCODE(LIB_OVERLOADABLE,OVR_INV)
+};
+const WORD const mul_opcode[]={
+    MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)
+};
+
 
 WORDPTR rplSymbCanonicalForm(WORDPTR object)
 {
@@ -1060,6 +1069,195 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
         --stkptr;
         }
 
+
+    //*******************************************
+    // SCAN THE SYMBOLIC FOR ITEM E)
+    // E) ALL NEGATIVE POWERS REPLACED WITH a^-n = INV(a^n)
+
+    stkptr=DSTop-1;
+
+    while(stkptr!=endofstk) {
+        sobj=*stkptr;
+
+        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_POW)) {
+
+            WORDPTR *arg1=stkptr-2;
+            WORDPTR *arg2=rplSymbSkipInStack(arg1);
+
+            if(**arg2==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                // NEGATIVE POWER DETECTED WE JUST NEED TO REPLACE THE UMINUS
+                // WITH AN INV()
+
+                // MOVE EVERYTHING TWO LEVELS UP
+                WORDPTR *ptr=arg2-1;
+                while(ptr!=stkptr+1) {
+                    *ptr=*(ptr+2);
+                    ++ptr;
+                }
+
+                *stkptr=inverse_opcode;
+                --stkptr;
+                *stkptr=two_bint;
+            }
+            }
+
+        --stkptr;
+        }
+
+    //*******************************************
+    // SCAN THE SYMBOLIC FOR ITEM F)
+    // F) ALL DIVISIONS REPLACED WITH MULTIPLICATION BY INV()
+
+    stkptr=DSTop-1;
+
+    while(stkptr!=endofstk) {
+        sobj=*stkptr;
+
+        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_DIV)) {
+
+                WORDPTR *secondarg=rplSymbSkipInStack(stkptr-2);
+
+                WORDPTR *ptr=DSTop-1;
+
+                // MAKE A HOLE IN THE STACK TO ADD INVERSE
+                while(ptr!=secondarg) {
+                    *(ptr+2)=*ptr;
+                    --ptr;
+                }
+                DSTop+=2;   // 2 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
+                stkptr+=2;
+                secondarg[1]=two_bint;
+                secondarg[2]=inverse_opcode;
+                *stkptr=mul_opcode;
+                stkptr--;
+                rplExpandStack(2);  // NOW GROW THE STACK
+            }
+
+
+
+        --stkptr;
+        }
+
+
+    //*******************************************
+    // SCAN THE SYMBOLIC FOR ITEM G)
+    // G) ALL INV(A*B*...) = INV(A)*INV(B)*INV(...)
+
+    stkptr=DSTop-1;
+    while(stkptr!=endofstk) {
+        sobj=*stkptr;
+
+        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) {
+            WORDPTR *nextarg=stkptr-2;
+
+            if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+
+                BINT nargs=OPCODE(**(nextarg-1))-1;
+
+                BINT c;
+                nextarg-=2;
+                for(c=0;c<nargs;++c) {
+
+                    if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) {
+                        // INV/INV = REMOVE THE OPERATOR
+                    WORDPTR *ptr=nextarg-1;
+                    // AND REMOVE THE GAP
+                    while(ptr!=DSTop-2) {
+                    *ptr=*(ptr+2);
+                    ++ptr;
+                    }
+                    DSTop-=2;
+                    stkptr-=2;
+                    nextarg-=2;
+                    }
+                    else {
+                        // INVERT THIS TERM
+                        WORDPTR *ptr=DSTop-1;
+                        // AND REMOVE THE GAP
+                        while(ptr!=nextarg) {
+                        *(ptr+2)=*ptr;
+                        --ptr;
+                        }
+
+                        DSTop+=2;
+                        stkptr+=2;
+                        nextarg[1]=two_bint;
+                        nextarg[2]=inverse_opcode;
+                        nextarg+=2;
+                    }
+
+                    nextarg=rplSymbSkipInStack(nextarg);
+
+                }
+                // REMOVE THE ORIGINAL INVERSION
+                WORDPTR *ptr=stkptr-1;
+                // AND REMOVE THE GAP
+                while(ptr!=DSTop-2) {
+                *ptr=*(ptr+2);
+                ++ptr;
+                }
+                DSTop-=2;
+                stkptr-=2;
+
+                }
+                else stkptr--;
+         }
+
+
+
+        --stkptr;
+        }
+
+
+    //*******************************************
+    // SCAN THE SYMBOLIC FOR ITEM H)
+    // H) FLATTEN ALL MULTIPLICATION TREES
+
+    stkptr=DSTop-1;
+    while(stkptr!=endofstk) {
+        sobj=*stkptr;
+
+        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+                BINT nargs=OPCODE(**(stkptr-1))-1;
+
+                BINT c,orignargs=nargs;
+                WORDPTR *nextarg=stkptr-2;
+
+                for(c=0;c<nargs;++c) {
+
+                    if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+                        // FLATTEN BY REMOVING THE ADDITION
+                    WORDPTR *ptr=nextarg-1;
+                    nargs+=OPCODE(**(nextarg-1))-2;   // ADD THE ARGUMENTS TO THE BASE LOOP
+                    // AND REMOVE THE GAP
+                    while(ptr!=DSTop-2) {
+                    *ptr=*(ptr+2);
+                    ++ptr;
+                    }
+                    DSTop-=2;
+                    stkptr-=2;
+                    --c;
+                    nextarg-=2;
+                    }
+                    else nextarg=rplSymbSkipInStack(nextarg);
+
+                }
+
+                // HERE stkptr IS POINTING TO THE ORIGINAL MUL COMMAND
+                // STORE THE NEW TOTAL NUMBER OF ARGUMENTS
+                if(orignargs!=nargs) {
+                WORDPTR newnumber=rplNewSINT(nargs+1,DECBINT);
+                if(!newnumber) return NULL;
+                *(stkptr-1)=newnumber;
+                }
+
+                stkptr--;
+         }
+
+
+
+        --stkptr;
+        }
 
 
 
