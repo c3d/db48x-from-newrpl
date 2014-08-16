@@ -1260,7 +1260,12 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
         }
 
 
+    //*******************************************
+    // SCAN THE SYMBOLIC FOR ITEM I)
+    // I) SORT ALL MULTIPLICATIONS WITH INV(...) LAST, NON-INVERSE FACTORS FIRST
+    // ALSO, IF ALL FACTORS ARE INV(...), THEN ADD A BINT 1 AS FIRST ELEMENT (1/X)
 
+    // TODO...
 
 
     WORDPTR finalsymb=rplSymbImplode(DSTop-1-endofstk);

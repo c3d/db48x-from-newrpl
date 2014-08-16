@@ -68,3 +68,7 @@ inline WORDPTR rplPeekRet(int level)
     return (RSTop-level<RStk)? 0: *(RSTop-level);
 }
 
+void rplClearRStk()
+{
+    RSTop=RStk; // CLEAR RETURN STACK, TYPICAL AFTER UNTRAPPED ERRORS
+}

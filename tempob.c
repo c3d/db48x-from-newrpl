@@ -86,6 +86,32 @@ void growTempOb(WORD newtotalsize)
         TempObSize=TempOb+newtotalsize;
 }
 
+// SHRINK THE TEMPORARY OBJECT MEMORY
+// SAME AS GROW BUT DOESN'T GARBAGE COLLECT AND RETRY
+
+void shrinkTempOb(WORD newtotalsize)
+{
+    WORDPTR *newtempob;
+    WORD slack=newtotalsize-(WORD)(TempObEnd-TempOb);
+    BINT gc_done=0;
+
+    newtotalsize=(newtotalsize+1023)&~1023;
+
+    newtempob=hal_growmem((WORDPTR *)TempOb,newtotalsize);
+
+    if(!newtempob) {
+        Exceptions|=EX_OUTOFMEM;
+        ExceptionPointer=IPtr;
+        return;
+        }
+
+     TempOb=(WORDPTR) newtempob;
+     TempObSize=TempOb+newtotalsize;
+}
+
+
+
+
 void growTempBlocks(WORD newtotalsize)
 {
     WORDPTR *newtempblocks;
@@ -108,6 +134,27 @@ void growTempBlocks(WORD newtotalsize)
 
     } while(!newtempblocks);
 
+        TempBlocksEnd=TempBlocksEnd-TempBlocks+newtempblocks;
+        TempBlocks=newtempblocks;
+        TempBlocksSize=newtotalsize;
+        // NOTHING TO FIX
+}
+
+void shrinkTempBlocks(WORD newtotalsize)
+{
+    WORDPTR *newtempblocks;
+    WORD slack=newtotalsize-(WORD)(TempBlocksEnd-TempBlocks);
+    BINT gc_done=0;
+
+    newtotalsize=(newtotalsize+1023)&~1023;
+
+    newtempblocks=hal_growmem(TempBlocks,newtotalsize);
+
+    if(!newtempblocks) {
+        Exceptions|=EX_OUTOFMEM;
+        ExceptionPointer=IPtr;
+        return;
+        }
         TempBlocksEnd=TempBlocksEnd-TempBlocks+newtempblocks;
         TempBlocks=newtempblocks;
         TempBlocksSize=newtotalsize;

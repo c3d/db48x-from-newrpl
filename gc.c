@@ -130,7 +130,7 @@ void rplGCollect()
     // THIS BLOCK NEEDS TO BE PRESERVED AS A USED BLOCK!
     EndOfUsedMem=TempObEnd;
     EndOfRStk=RSTop;
-    if( (CompileEnd>EndOfUsedMem)&& (CompileEnd<=TempObSize) ) { EndOfUsedMem=CompileEnd; CompileBlock|=1; }
+    if( (CompileEnd>EndOfUsedMem)&& (CompileEnd<=TempObSize) ) { EndOfUsedMem=CompileEnd; CompileBlock|=1; if(DecompStringEnd==CompileEnd) CompileBlock|=2; }
     if( (DecompStringEnd>EndOfUsedMem) && (DecompStringEnd<=TempObSize)) { EndOfUsedMem=(WORDPTR)((((WORD)DecompStringEnd)+3)&~3); CompileBlock|=2; }
 
     if(CompileBlock) {
@@ -187,10 +187,9 @@ void rplGCollect()
                 // ALL POINTERS SHOULD'VE BEEN UPDATED AUTOMATICALLY
                 // EXCEPT THE ONES POINTING EXACTLY AT THE END OF USED MEMORY
                 if(CompileBlock&2) {
-                    // THE BYTE POINTER IS UPDATED UNLESS IT'S EXACTLY WORD-ALIGNED
                     if(DecompStringEnd>EndBlock) DecompStringEnd=EndBlock;
                 }
-                else if(CompileBlock&1) CompileEnd=EndBlock;
+                if(CompileBlock&1) CompileEnd=EndBlock;
                 EndBlock=*(--CleanIdx);
             }
 
@@ -207,8 +206,8 @@ void rplGCollect()
 
 
             // RELEASE PAGES AT END OF TEMPOB AND TEMPBLOCKS
-            growTempOb(TempObEnd-TempOb+TEMPOBSLACK);
-            growTempBlocks(TempBlocksEnd-TempBlocks+TEMPBLOCKSLACK);
+            shrinkTempOb(TempObEnd-TempOb+TEMPOBSLACK);
+            shrinkTempBlocks(TempBlocksEnd-TempBlocks+TEMPBLOCKSLACK);
             return;
         }
 

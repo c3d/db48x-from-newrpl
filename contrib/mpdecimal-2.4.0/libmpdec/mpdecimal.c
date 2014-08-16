@@ -3311,8 +3311,10 @@ _mpd_qaddsub(mpd_t *result, const mpd_t *a, const mpd_t *b, uint8_t sign_b,
     }
 
     newsize = big->len;
+    if(result->alloc<newsize) {
     if (!mpd_qresize(result, newsize, status)) {
         goto finish;
+    }
     }
 
     if (mpd_sign(a) == sign_b) {
@@ -4423,6 +4425,7 @@ mpd_qfma(mpd_t *result, const mpd_t *a, const mpd_t *b, const mpd_t *c,
     uint32_t workstatus = 0;
     mpd_t *cc = NULL;
 
+
     if (result == c) {
         if ((cc = mpd_qncopy(c)) == NULL) {
             mpd_seterror(result, MPD_Malloc_error, status);
@@ -4431,9 +4434,26 @@ mpd_qfma(mpd_t *result, const mpd_t *a, const mpd_t *b, const mpd_t *c,
         c = cc;
     }
 
+    if(a->len+b->len+c->len>result->alloc) {
+
+        MPD_NEW_STATIC(res2,0,0,0,0);
+
+        _mpd_qmul(&res2, a, b, ctx, &workstatus);
+        if (!(workstatus&MPD_Invalid_operation)) {
+            mpd_qadd(&res2, &res2, c, ctx, &workstatus);
+        }
+
+        mpd_copy(result,&res2,ctx);
+
+        mpd_del(&res2);
+
+
+    }
+    else {
     _mpd_qmul(result, a, b, ctx, &workstatus);
     if (!(workstatus&MPD_Invalid_operation)) {
         mpd_qadd(result, result, c, ctx, &workstatus);
+    }
     }
 
     if (cc) mpd_del(cc);
@@ -5783,7 +5803,8 @@ _mpd_qmul(mpd_t *result, const mpd_t *a, const mpd_t *b,
             rdata=result->data;
             final_rsize=result->alloc;
         }
-        else { rdata = mpd_calloc(rsize, sizeof *rdata); final_rsize=rsize; }
+        else {
+            rdata = mpd_calloc(rsize, sizeof *rdata); final_rsize=rsize; }
         if (rdata != NULL) {
             if (small->len == 1) {
                 _mpd_shortmul(rdata, big->data, big->len, small->data[0]);

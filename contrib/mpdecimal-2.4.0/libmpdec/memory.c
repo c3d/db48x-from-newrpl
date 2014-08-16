@@ -54,7 +54,7 @@ mpd_ssize_t MPD_MINALLOC = MPD_MINALLOC_MIN;
 /* Statically allocated pool of registers */
 static mpd_t MPD_Registers[MPD_MAX_INTERNAL_REGISTERS];
 static mpd_uint_t MPD_StorageDigits[MPD_MAX_INTERNAL_REGISTERS*MPD_MAX_REGISTER_ALLOC];
-static mpd_uint_t MPD_RegistersUsed=0,MPD_RegistersSlaved=0;
+mpd_uint_t MPD_RegistersUsed=0,MPD_RegistersSlaved=0;
 
 #define mpd_getregnum(ptr) ( ((ptr)-MPD_StorageDigits)/MPD_MAX_REGISTER_ALLOC)
 #define mpd_getregister( ptr ) (& (MPD_Registers[mpd_getregnum(ptr)]))

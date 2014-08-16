@@ -691,6 +691,7 @@ int main()
         DumpErrors();
         Exceptions=0;
         Refresh();
+        Exceptions=0;   // CLEAR EXCEPTIONS THAT MIGHT HAVE BEEN GENERATED DURING DECOMPILE TO SHOW THE STACK
         continue;
     }
 
@@ -710,7 +711,7 @@ int main()
         DumpLAMs();
         DumpDirs();
         Refresh();
-
+        Exceptions=0;
         continue;
     }
 
@@ -718,6 +719,7 @@ int main()
     rplShowRuntimeState();
     Exceptions=0;
     Refresh();
+    Exceptions=0;   // CLEAR EXCEPTIONS THAT MIGHT HAVE BEEN GENERATED DURING DECOMPILE TO SHOW THE STACK
     }
     while(1);
 

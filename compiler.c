@@ -835,9 +835,8 @@ end_of_expression:
                                         (*(InfixOpTop-3)==INFIX_POSTFIXARG) ||
                                         (*(InfixOpTop-3)==INFIX_PREFIXARG))
                                         rplDecompAppendChar('(');
-
                             }
-
+                            else
 
                         if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(RetNum)) {
                             if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS!
@@ -1010,7 +1009,7 @@ end_of_expression:
                                     (*(InfixOpTop-3)==INFIX_PREFIXARG))
                                     rplDecompAppendChar(')');
                     }
-
+                    else
 
                     if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(*(InfixOpTop-1))) {
                         if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS
@@ -1056,7 +1055,7 @@ end_of_expression:
                                     (*(InfixOpTop-3)==INFIX_PREFIXARG))
                                     rplDecompAppendChar(')');
                     }
-
+                    else
 
                     if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(*(InfixOpTop-1))) {
                         if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS

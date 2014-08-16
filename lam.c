@@ -387,3 +387,9 @@ BINT rplNeedNewLAMEnvCompiler()
 
 
 }
+
+
+void rplClearLAMs()
+{
+    LAMTop=nLAMBase=LAMs;
+}

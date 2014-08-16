@@ -59,7 +59,13 @@ void rplRun(void)
             // ERROR WAS TRAPPED BY A HANDLER
             rplCatchException();
         }
-        else return;      // END EXECUTION IMMEDIATELY IF AN UNHANDLED EXCEPTION IS THROWN
+        else {
+            // THERE IS NO ERROR HANDLER --> UNTRAPPED ERROR
+                rplClearRStk(); // CLEAR THE RETURN STACK
+                rplClearLAMs(); // CLEAR ALL LOCAL VARIABLES
+
+            return;      // END EXECUTION IMMEDIATELY IF AN UNHANDLED EXCEPTION IS THROWN
+        }
     }
 
     ++RPLTicks;
@@ -261,17 +267,15 @@ void rplInit(void)
 }
 
 // FOR DEBUG ONLY: SHOW STATUS OF THE EXECUTION ENVIRONMENT
+extern mpd_uint_t MPD_RegistersUsed;
 void rplShowRuntimeState(void)
 {
     printf("Used memory:\n-------------\n");
-
     printf("TempOb=%d words (%d allocated)\n",(WORD)(TempObEnd-TempOb),(WORD)(TempObSize-TempOb));
     printf("TempBlocks=%d words (%d allocated)\n",(WORD)(TempBlocksEnd-TempBlocks),TempBlocksSize);
     printf("Data Stack=%d words (%d allocated)\n",(WORD)(DSTop-DStk),DStkSize);
     printf("Return Stack=%d words (%d allocated)\n",(WORD)(RSTop-RStk),RStkSize);
     printf("Local vars=%d words (%d allocated)\n",(WORD)(LAMTop-LAMs),LAMSize);
     printf("Directories=%d words (%d allocated)\n",(WORD)(DirsTop-Directories),DirSize);
-
-
-
+    if(MPD_RegistersUsed) printf("************* MPD Memory leak!!!\n");
 }

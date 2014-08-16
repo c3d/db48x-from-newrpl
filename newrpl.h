@@ -163,6 +163,7 @@ extern void rplPushRet(WORDPTR p);
 extern WORDPTR rplPopRet();
 extern void growRStk(WORD newsize);
 extern WORDPTR rplPeekRet(int level);
+extern void rplClearRStk();
 
 // GARBAGE COLLECTION
 extern void rplGCollect();
@@ -184,6 +185,7 @@ extern inline WORDPTR *rplGetLAMnEnv(WORDPTR LAMEnv,BINT idx);
 extern inline WORDPTR *rplGetLAMnNameEnv(WORDPTR LAMEnv,BINT idx);
 extern inline void rplPutLAMn(BINT idx,WORDPTR object);
 extern void rplCleanupLAMs(WORDPTR currentseco);
+extern void rplClearLAMs();
 extern WORDPTR *rplFindLAM(WORDPTR nameobj, BINT scanparents);
 extern WORDPTR *rplFindLAMbyName(BYTEPTR name,BINT len,BINT scanparents);
 extern WORDPTR *rplGetNextLAMEnv(WORDPTR *startpoint);
