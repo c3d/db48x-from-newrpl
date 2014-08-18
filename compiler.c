@@ -994,6 +994,8 @@ end_of_expression:
                 rplDecompAppendString((BYTEPTR)"##INVALID##");
             }
 
+            // NEVER CLOSE PARENTHESIS IN THE MIDDLE ARGUMENT
+            /*
             if( (InfixOpTop-6)>=RSTop) {
                 // THERE'S AN OPERATOR IN THE STACK
                 if(ISPROLOG(*(InfixOpTop-6))) {
@@ -1017,7 +1019,7 @@ end_of_expression:
                     }
                 }
             }
-
+            */
 
             // NOW CHECK IF THE RIGHT ARGUMENT IS INDEED THE LAST ONE
             WORDPTR afternext=rplSkipOb(DecompileObject);

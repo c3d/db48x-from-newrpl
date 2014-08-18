@@ -862,7 +862,7 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
             if(num<0) {
                 num=-num;
                 rplNewBINTPush(num,DECBINT);
-                if(Exceptions) return NULL;
+                if(Exceptions) { DSTop=endofstk+1; return NULL; }
                 WORDPTR newobj=rplPeekData(1);
 
                 WORDPTR *ptr=DSTop-2;
@@ -886,7 +886,7 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
             if(mpd_isnegative(&RReg[0])) {
                 RReg[0].flags^=MPD_NEG; // MAKE IT POSITIVE
                 rplRRegToRealPush(0);
-                if(Exceptions) return NULL;
+                if(Exceptions) { DSTop=endofstk+1; return NULL; }
                 WORDPTR newobj=rplPeekData(1);
 
                 WORDPTR *ptr=DSTop-2;
@@ -934,6 +934,7 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
                 *stkptr=add_opcode;
                 stkptr--;
                 rplExpandStack(2);  // NOW GROW THE STACK
+                if(Exceptions) { DSTop=endofstk+1; return NULL; }
             }
 
 
@@ -1057,7 +1058,7 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
                 // STORE THE NEW TOTAL NUMBER OF ARGUMENTS
                 if(orignargs!=nargs) {
                 WORDPTR newnumber=rplNewSINT(nargs+1,DECBINT);
-                if(!newnumber) return NULL;
+                if(!newnumber) { DSTop=endofstk+1; return NULL; }
                 *(stkptr-1)=newnumber;
                 }
 
@@ -1131,6 +1132,7 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
                 *stkptr=mul_opcode;
                 stkptr--;
                 rplExpandStack(2);  // NOW GROW THE STACK
+                if(Exceptions) { DSTop=endofstk+1; return NULL; }
             }
 
 
@@ -1184,6 +1186,8 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
                         nextarg[1]=two_bint;
                         nextarg[2]=inverse_opcode;
                         nextarg+=2;
+                        rplExpandStack(2);
+                        if(Exceptions){ DSTop=endofstk+1; return NULL; }
                     }
 
                     nextarg=rplSymbSkipInStack(nextarg);
@@ -1247,7 +1251,7 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
                 // STORE THE NEW TOTAL NUMBER OF ARGUMENTS
                 if(orignargs!=nargs) {
                 WORDPTR newnumber=rplNewSINT(nargs+1,DECBINT);
-                if(!newnumber) return NULL;
+                if(!newnumber) { DSTop=endofstk+1; return NULL; }
                 *(stkptr-1)=newnumber;
                 }
 
@@ -1268,12 +1272,81 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
     // TODO...
 
 
+    stkptr=DSTop-1;
+    while(stkptr!=endofstk) {
+        sobj=*stkptr;
+
+        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+                BINT nargs=OPCODE(**(stkptr-1))-1;
+
+                BINT c,orignargs=nargs;
+                WORDPTR *nextarg=stkptr-2;
+                WORDPTR *firstarg=nextarg;
+                WORDPTR *firstinv=NULL;
+
+                for(c=0;c<nargs;++c) {
+
+                    if(**nextarg!=MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) {
+                            if(firstinv) {
+                                // MOVE nextarg BEFORE firstinv
+                                BINT nterms=nextarg-rplSymbSkipInStack(nextarg);
+                                // HERE THE LAYOUT IS: DSTop ... firstinv... otherobj ... nextarg ... otherobj... end
+                                //                               ^________________________|
+                                // GROW STACK BY nterms
+                                rplExpandStack(nterms);
+                                if(Exceptions) { DSTop=endofstk+1; return NULL; }
+                                // MOVE nextarg TO THE END OF STACK
+                                WORDPTR *ptr=DSTop;
+                                BINT f;
+                                for(f=0;f<nterms;++f) ptr[f]=nextarg[-(nterms-1)+f];
+                                // MOVE firstinv BACK
+                                ptr=nextarg+1;
+                                while(ptr<=firstinv) { ptr[-nterms]=*ptr; ++ptr; }
+                                // MOVE nextarg BACK IN PLACE OF firstinv
+                                ptr=DSTop+nterms-1;
+                                for(f=0;f<nterms;++f,--ptr) firstinv[-f]=*ptr;
+                                firstinv-=nterms;   // KEEP FIRST INV POINTING TO THE SAME PLACE
+                                nextarg-=nterms;
+                            }
+                            else nextarg=rplSymbSkipInStack(nextarg);
+
+                    } else {
+                        if(!firstinv) firstinv=nextarg;
+                        nextarg=rplSymbSkipInStack(nextarg);
+                    }
+
+                }
+
+                if(firstarg==firstinv) {
+                    // ALL FACTORS ARE INVERTED
+
+                    // TODO: ADD A BINT 1 TO CREATE 1/X
+
+                }
+
+                stkptr--;
+         }
+
+
+
+        --stkptr;
+        }
+
+
+
+
+    if(Exceptions) {
+        DSTop=endofstk+1;
+        return NULL;
+    }
+
     WORDPTR finalsymb=rplSymbImplode(DSTop-1-endofstk);
 
     DSTop=endofstk+1;
-    if(Exceptions) return;
+    if(Exceptions) return NULL;
 
     rplPushData(finalsymb);
+    return rplPeekData(1);
 
 }
 
