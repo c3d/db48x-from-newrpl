@@ -254,6 +254,7 @@ extern const WORD nulllam_ident[];
 extern const WORD zero_bint[];
 extern const WORD one_bint[];
 extern const WORD two_bint[];
+extern const WORD three_bint[];
 
 
 #endif // LIBRARIES_H

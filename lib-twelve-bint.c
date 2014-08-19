@@ -76,6 +76,10 @@ const WORD const two_bint[]=
     (WORD)MAKESINT(2)
 };
 
+const WORD const three_bint[]=
+{
+    (WORD)MAKESINT(3)
+};
 
 const char const alldigits[]="0123456789ABCDEF";
 

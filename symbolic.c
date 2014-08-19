@@ -1269,7 +1269,6 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
     // I) SORT ALL MULTIPLICATIONS WITH INV(...) LAST, NON-INVERSE FACTORS FIRST
     // ALSO, IF ALL FACTORS ARE INV(...), THEN ADD A BINT 1 AS FIRST ELEMENT (1/X)
 
-    // TODO...
 
 
     stkptr=DSTop-1;
@@ -1320,8 +1319,25 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
                 if(firstarg==firstinv) {
                     // ALL FACTORS ARE INVERTED
 
-                    // TODO: ADD A BINT 1 TO CREATE 1/X
+                    // ADD A BINT 1 TO CREATE 1/X
+                    WORDPTR *ptr=DSTop-1;
 
+                    // MAKE A HOLE IN THE STACK TO ADD BINT ONE
+                    while(ptr!=firstarg) {
+                        *(ptr+1)=*ptr;
+                        --ptr;
+                    }
+                    DSTop++;   // 2 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
+                    stkptr++;
+                    firstarg[1]=one_bint;
+                    // INCREASE THE COUNT OF OBJECTS
+                    BINT64 numargs=OPCODE(*firstarg[2]);
+                    ++numargs;
+                    WORDPTR nnum=rplNewSINT(numargs,DECBINT);
+                    if(Exceptions) { DSTop=endofstk+1; return NULL; }
+                    firstarg[2]=nnum;
+                    rplExpandStack(1);  // NOW GROW THE STACK
+                    if(Exceptions) { DSTop=endofstk+1; return NULL; }
                 }
 
                 stkptr--;
@@ -1331,6 +1347,71 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
 
         --stkptr;
         }
+
+
+    //*******************************************
+    // SCAN THE SYMBOLIC FOR ITEM J)
+    // J) ANY EXPRESSION STARTING WITH INV() NEEDS TO BE REPLACED WITH 1*INV(), EXCEPT MUL ARGUMENTS
+
+    stkptr=DSTop-1;
+
+    if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) {
+    // NEED TO ADD 1*INV() AT THE BEGINNING OF THE EXPRESSION
+
+        DSTop+=3;   // 3 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
+        stkptr+=3;
+        stkptr[0]=mul_opcode;
+        stkptr[-1]=three_bint;
+        stkptr[-2]=one_bint;
+        rplExpandStack(3);  // NOW GROW THE STACK
+        if(Exceptions) { DSTop=endofstk+1; return NULL; }
+
+    }
+
+    // AND NOW CHECK THE REST OF IT
+
+    while(stkptr!=endofstk) {
+        sobj=*stkptr;
+
+        if(ISPROLOG(*sobj)||ISBINT(*sobj)) { --stkptr;  continue; }
+
+        if(*sobj!=MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+                // EXCEPT MULTIPLICATIONS, CHECK IF ANY OTHER EXPRESSION STARTS WITH INV()
+
+                BINT nargs=OPCODE(**(stkptr-1))-1;
+
+                WORDPTR *argptr=stkptr-2;
+
+                while(nargs) {
+                if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) {
+                // IN ANY OTHER CASE, NEED TO ADD 1*INV()
+
+                    WORDPTR *ptr=DSTop-1;
+
+                    // MAKE A HOLE IN THE STACK TO ADD BINT ONE
+                    while(ptr!=argptr) {
+                        *(ptr+3)=*ptr;
+                        --ptr;
+                    }
+                    DSTop+=3;   // 3 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
+                    stkptr+=3;
+                    argptr+=3;
+                    argptr[0]=mul_opcode;
+                    argptr[-1]=three_bint;
+                    argptr[-2]=one_bint;
+                    rplExpandStack(3);  // NOW GROW THE STACK
+                    if(Exceptions) { DSTop=endofstk+1; return NULL; }
+
+                }
+                argptr=rplSymbSkipInStack(argptr);
+                --nargs;
+                }
+        }
+        --stkptr;
+        }
+
+
+
 
 
 
