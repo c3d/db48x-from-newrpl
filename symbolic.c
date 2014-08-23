@@ -2,7 +2,8 @@
 #include "libraries.h"
 
 // GLOBAL SUPPORT FUNCTIONS FOR SYMBOLICS
-
+#define num_max(a,b) ((a)>(b)? (a):(b))
+#define num_min(a,b) ((a)<(b)? (a):(b))
 
 /*
  * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
@@ -1431,6 +1432,152 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
 }
 
 
+// RECEIVES A NUMERATOR AND A DENOMINATOR NUMBERS IN THE STACK
+// SIMPLIFIES BY DIVIDING BY THEIR GCD
+// RETURNS 1 IF THERE WERE CHANGES, 0 IF NO SIMPLIFICATION WAS POSSIBLE
+
+BINT rplFractionSimplify()
+{
+
+    if( (!ISNUMBER(*rplPeekData(1))) || (!ISNUMBER(*rplPeekData(2))) ) return 0;    // DON'T TRY TO SIMPLIFY IF NOT A NUMBER
+
+    if( ISREAL(*rplPeekData(2)) || ISREAL(*rplPeekData(1)) ) {
+        // TREAT ALL NUMBERS AS REALS
+
+        BINT numneg,denneg;
+
+        rplNumberToRReg(0,rplPeekData(2));  // REGISTER 0 = NUMERATOR
+        rplNumberToRReg(1,rplPeekData(1));  // REGISTER 1 = DENOMINATOR
+
+        // MAKE THEM BOTH POSITIVE
+        numneg=RReg[0].flags&MPD_NEG;
+        denneg=RReg[1].flags&MPD_NEG;
+        RReg[0].flags^=numneg;
+        RReg[1].flags^=denneg;
+
+        // IF IT HAS FRACTIONAL PART, MAKE IT INTEGER BY MULTIPLYING BOTH NUM AND DEN BY 10^N
+        if(RReg[0].exp<0) { RReg[1].exp+=-RReg[0].exp; RReg[0].exp=0;  }
+        if(RReg[1].exp<0) { RReg[0].exp+=-RReg[1].exp; RReg[1].exp=0;  }
+
+        // SWITCH TO MAX CONTEXT
+        mpd_ssize_t previousprec=Context.prec;
+        Context.prec=REAL_PRECISION_MAX;
+
+
+        // FIND GCD
+        mpd_t *big,*small,*tmpbig,*tmpsmall,*swap;
+        if(mpd_cmp(&RReg[0],&RReg[1],&Context)>0) { big=&RReg[0]; small=&RReg[1]; }
+            else { big=&RReg[1]; small=&RReg[0]; }
+        tmpbig=&RReg[2];
+        tmpsmall=&RReg[3];
+
+        mpd_copy(tmpbig,big,&Context);
+        mpd_copy(tmpsmall,small,&Context);
+
+        while(!mpd_iszero(tmpsmall)) {
+
+            while(mpd_cmp(tmpbig,tmpsmall,&Context)>=0) {
+                mpd_sub(tmpbig,tmpbig,tmpsmall,&Context);
+            }
+
+            swap=tmpbig;
+            tmpbig=tmpsmall;
+            tmpsmall=swap;
+
+        }
+
+        // HERE tmpbig = GCD(NUM,DEN)
+        rplOneToRReg(4);
+        if(mpd_cmp(tmpbig,&RReg[4],&Context)<=0) {
+            // THERE'S NO COMMON DIVISOR, RETURN UNMODIFIED
+            // THIS IS <=0 SO IT CATCHES 0/0
+            return 0;
+        }
+
+        // SIMPLIFY
+        mpd_div(&RReg[5],&RReg[1],tmpbig,&Context);
+        mpd_div(&RReg[6],&RReg[1],tmpbig,&Context);
+
+        // RESTORE THE SIGNS
+        RReg[5].flags|=numneg;
+        RReg[6].flags|=denneg;
+
+
+        // NOW TRY TO CONVERT THE REALS TO INTEGERS IF POSSIBLE
+        uint32_t status=0;
+        BINT64 num;
+        num=mpd_qget_i64(&RReg[5],&status);
+        if(!status) rplNewBINTPush(num,DECBINT);
+        else rplRRegToRealPush(5);
+        if(Exceptions) return 0;
+        status=0;
+        num=mpd_qget_i64(&RReg[6],&status);
+        if(!status) rplNewBINTPush(num,DECBINT);
+        else rplRRegToRealPush(5);
+        if(Exceptions) { rplDropData(1); return 0; }
+
+        rplOverwriteData(3,rplPeekData(1));
+        rplOverwriteData(4,rplPeekData(2));
+        rplDropData(2);
+        return 1;
+
+    }
+
+    // BOTH NUMBERS ARE BINTS
+
+    BINT64 bnum,bden;
+    BINT64 tmpbig,tmpsmall,swap;
+    BINT numneg,denneg;
+
+    bnum=rplReadBINT(rplPeekData(2));
+    bden=rplReadBINT(rplPeekData(1));
+
+    // GET THE SIGNS
+    if(bnum<0) { numneg=1; bnum=-bnum; } else numneg=0;
+    if(denneg<0) { denneg=1; bden=-bden; } else denneg=0;
+
+    // CALCULATE THE GCD
+    tmpbig=num_max(bnum,bden);
+    tmpsmall=num_min(bnum,bden);
+
+    while(tmpsmall>0) {
+
+        while(tmpbig>=tmpsmall) tmpbig-=tmpsmall;
+
+        swap=tmpbig;
+        tmpbig=tmpsmall;
+        tmpsmall=swap;
+
+    }
+
+    // HERE tmpbig HAS THE GCD
+
+    if(tmpbig<=1) return 0;     // NO COMMON DIVISOR, SO RETURN WITH NO CHANGES
+
+    // SIMPLIFY
+    bnum/=tmpbig;
+    bden/=tmpbig;
+
+    // RESTORE THE SIGNS
+    if(numneg) bnum=-bnum;
+    if(denneg) bden=-bden;
+
+    rplNewBINTPush(bnum,DECBINT);
+    if(Exceptions) return 0;
+    rplNewBINTPush(bden,DECBINT);
+    if(Exceptions) { rplDropData(1); return 0; }
+
+    rplOverwriteData(3,rplPeekData(1));
+    rplOverwriteData(4,rplPeekData(2));
+    rplDropData(2);
+    return 1;
+
+
+}
+
+
+
+
 // TAKES A SYMBOLIC OBJECT AND PERFORMS NUMERIC SIMPLIFICATION:
 // A) IN ALL OPS, EXCEPT MUL AND ADD, IF ALL ARGUMENTS ARE NUMERIC, THEN PERFORM THE OPERATION AND REPLACE BY THEIR RESULT
 // B) IN ADD, ALL NUMERIC VALUES ARE ADDED TOGETHER AND REPLACED BY THEIR RESULT
@@ -1637,7 +1784,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             // FIND THE GCD OF THE NUMERATOR AND DENOMINATOR
 
             // DIVIDE BOTH BY THE GCD
-            simplified=0;
+            simplified=rplFractionSimplify();
 
             }
 
