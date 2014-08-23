@@ -768,6 +768,7 @@ void LIB_HANDLER()
             rplRRegToRealPush(2);
             return;
         case OVR_NEG:
+        case OVR_UMINUS:
             op1=-op1;
             rplNewBINTPush(op1,LIBNUM(*arg1));
             return;

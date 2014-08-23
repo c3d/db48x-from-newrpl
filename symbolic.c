@@ -1426,10 +1426,413 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
     DSTop=endofstk+1;
     if(Exceptions) return NULL;
 
-    rplPushData(finalsymb);
-    return rplPeekData(1);
+    return finalsymb;
 
 }
+
+
+// TAKES A SYMBOLIC OBJECT AND PERFORMS NUMERIC SIMPLIFICATION:
+// A) IN ALL OPS, EXCEPT MUL AND ADD, IF ALL ARGUMENTS ARE NUMERIC, THEN PERFORM THE OPERATION AND REPLACE BY THEIR RESULT
+// B) IN ADD, ALL NUMERIC VALUES ARE ADDED TOGETHER AND REPLACED BY THEIR RESULT
+// C.1) IN MUL, ALL NUMERATOR NUMERIC VALUES ARE MULTIPLIED TOGETHER AND REPLACED BY THEIR RESULT
+// C.2) IN MUL, ALL DENOMINATOR NUMERIC VALUES ARE MULTIPLIED TOGETHER AND REPLACED BY THEIR RESULT
+// D) IN ADD, IF TWO TERMS ARE NUMERIC EXPRESSIONS, PERFORM A FRACTION ADDITION (N1/D1+N2/D2=(N1*D2+N2*D1)/(D1*D2)
+// E) IN MUL, ALL NUMERATOR AND DENOMINATOR NUMERICS ARE DIVIDED BY THEIR GCD (FRACTION SIMPLIFICATION)
+
+
+WORDPTR rplSymbNumericReduce(WORDPTR object)
+{
+    BINT numitems=rplSymbExplode(object);
+    BINT f,changed,origprec;
+    WORDPTR *stkptr,sobj,*endofstk;
+
+    origprec=Context.prec;
+
+    endofstk=DSTop-1-numitems;
+
+// ...
+
+    // ITEM A)
+    changed=1;
+
+    while(changed) {
+
+        stkptr=DSTop-1;
+        changed=0;
+
+    while(stkptr!=endofstk) {
+        sobj=*stkptr;
+
+        if(ISPROLOG(*sobj)||ISBINT(*sobj)) { --stkptr;  continue; }
+
+        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+            // SCAN ALL NUMERIC FACTORS IN THE NUMERATOR AND MULTIPLY TOGETHER
+
+
+            WORDPTR *number;
+            BINT nargs=OPCODE(**(stkptr-1))-1,redargs=0;
+            WORDPTR *argptr=stkptr-2,savedstop;
+            BINT simplified=0;
+
+            savedstop=DSTop;
+
+            for(f=0;f<nargs;++f) {
+                if(!ISNUMBER(**argptr)) {
+                    // CHECK IF IT'S A NEGATIVE NUMBER
+                    if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                        if(ISNUMBER(**(argptr-2))) {
+                            rplPushData(*(argptr-2));
+                            // NEGATE THE NUMBER
+                            Context.prec=REAL_PRECISION_MAX;
+                            Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
+
+                            rplCallOvrOperator(OVR_NEG);
+                            if(Exceptions) { DSTop=endofstk+1; return NULL; }
+
+                            Context.prec=origprec;
+                            Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
+
+                            // REMOVE THE ARGUMENT FROM THE LIST
+
+                            WORDPTR *ptr,*endofobj=rplSymbSkipInStack(argptr);   // POINT TO THE NEXT OBJECT
+                            ptr=endofobj+1;
+                            ++argptr;
+                            stkptr-=(argptr-ptr);
+                            // NOW CLOSE THE GAP
+                            while(argptr!=DSTop) { *ptr=*argptr; ++argptr; ++ptr; }
+                            DSTop=ptr;
+                            argptr=endofobj;
+
+                            // ARGUMENT WAS COMPLETELY REMOVED, NOW REDUCE THE ARGUMENT COUNT
+
+                            ++redargs;
+                            continue;
+                            }
+                    }
+                }
+                else {
+                    // THIS IS A NUMBER
+                    rplPushData(*(argptr));
+
+                    // REMOVE THE ARGUMENT FROM THE LIST
+
+                    WORDPTR *ptr,*endofobj=rplSymbSkipInStack(argptr);   // POINT TO THE NEXT OBJECT
+                    ptr=endofobj+1;
+                    ++argptr;
+                    stkptr-=(argptr-ptr);
+                    // NOW CLOSE THE GAP
+                    while(argptr!=DSTop) { *ptr=*argptr; ++argptr; ++ptr; }
+                    DSTop=ptr;
+                    argptr=endofobj;
+
+                    // ARGUMENT WAS COMPLETELY REMOVED, NOW REDUCE THE ARGUMENT COUNT
+
+                    ++redargs;
+                    continue;
+
+                }
+
+
+                argptr=rplSymbSkipInStack(argptr);
+            }
+
+            // HERE WE HAVE redargs VALUES IN THE STACK THAT NEED TO BE MULTIPLIED TOGETHER
+            if(redargs>0) {
+            Context.prec=REAL_PRECISION_MAX;
+            Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
+            for(f=1;f<redargs;++f) {
+                rplCallOvrOperator(OVR_MUL);
+                if(Exceptions) { DSTop=endofstk+1; return NULL; }
+            }
+
+            Context.prec=origprec;
+            Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
+            }
+            else rplPushData(one_bint);     //  IF NO NUMERATOR, THEN MAKE IT = 1
+
+            // HERE WE HAVE A NUMERATOR RESULT IN THE STACK! KEEP IT THERE FOR NOW
+
+            // SCAN ALL NUMERIC FACTORS IN THE DENOMINATOR AND MULTIPLY TOGETHER
+            BINT reddenom=0;
+            argptr=stkptr-2;
+
+            for(f=0;f<nargs-redargs;++f) {
+                if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) {
+
+                if(!ISNUMBER(**(argptr-2))) {
+                    // CHECK IF IT'S A NEGATIVE NUMBER
+                    if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                        if(ISNUMBER(**(argptr-4))) {
+                            rplPushData(*(argptr-4));
+                            // NEGATE THE NUMBER
+                            Context.prec=REAL_PRECISION_MAX;
+                            Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
+
+                            rplCallOvrOperator(OVR_NEG);
+                            if(Exceptions) { DSTop=endofstk+1; return NULL; }
+
+                            Context.prec=origprec;
+                            Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
+
+                            // REMOVE THE ARGUMENT FROM THE LIST
+
+                            WORDPTR *ptr,*endofobj=rplSymbSkipInStack(argptr);   // POINT TO THE NEXT OBJECT
+                            ptr=endofobj+1;
+                            ++argptr;
+                            stkptr-=(argptr-ptr);
+                            // NOW CLOSE THE GAP
+                            while(argptr!=DSTop) { *ptr=*argptr; ++argptr; ++ptr; }
+                            DSTop=ptr;
+                            argptr=endofobj;
+
+                            // ARGUMENT WAS COMPLETELY REMOVED, NOW REDUCE THE ARGUMENT COUNT
+
+                            ++reddenom;
+                            continue;
+                            }
+                    }
+                }
+                else {
+                    // THIS IS A NUMBER
+                    rplPushData(*(argptr-2));
+
+                    // REMOVE THE ARGUMENT FROM THE LIST
+
+                    WORDPTR *ptr,*endofobj=rplSymbSkipInStack(argptr);   // POINT TO THE NEXT OBJECT
+                    ptr=endofobj+1;
+                    ++argptr;
+                    stkptr-=(argptr-ptr);
+                    // NOW CLOSE THE GAP
+                    while(argptr!=DSTop) { *ptr=*argptr; ++argptr; ++ptr; }
+                    DSTop=ptr;
+                    argptr=endofobj;
+
+                    // ARGUMENT WAS COMPLETELY REMOVED, NOW REDUCE THE ARGUMENT COUNT
+
+                    ++reddenom;
+                    continue;
+
+                }
+                }
+
+
+                argptr=rplSymbSkipInStack(argptr);
+            }
+
+            // HERE WE HAVE reddenom VALUES IN THE STACK THAT NEED TO BE MULTIPLIED TOGETHER
+            if(reddenom>0) {
+
+            Context.prec=REAL_PRECISION_MAX;
+            Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
+            for(f=1;f<reddenom;++f) {
+                rplCallOvrOperator(OVR_MUL);
+                if(Exceptions) { DSTop=endofstk+1; return NULL; }
+            }
+
+            Context.prec=origprec;
+            Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
+
+            // DONE, WE HAVE NUMERATOR AND DENOMINATOR IN THE STACK
+
+            // FIND THE GCD OF THE NUMERATOR AND DENOMINATOR
+
+            // DIVIDE BOTH BY THE GCD
+            simplified=0;
+
+            }
+
+            // PUT BOTH NUMBERS BACK IN PLACE
+
+            {
+
+                if(redargs>0) {
+                    // IF THERE WERE ANY FACTORS IN THE NUMERATOR, ADD THE RESULT
+                WORDPTR *ptr=DSTop-1;
+
+
+                // MAKE ROOM
+                while(ptr!=stkptr-2) { ptr[1]=*ptr; --ptr; }
+
+                ++stkptr;
+                ++DSTop;
+
+                *(stkptr-2)=rplPeekData(1+((reddenom>0)? 1:0)); // STORE THE NUMERATOR
+
+                }
+
+                if(reddenom>0) {
+                    // IF THERE WERE ANY FACTORS IN THE DENOMINATOR, ADD THE RESULT
+                WORDPTR *endofobj=stkptr-2;
+                for(f=0;f<nargs-redargs-reddenom+1;++f)
+                    endofobj=rplSymbSkipInStack(endofobj);
+                WORDPTR *ptr=stkptr-2;
+                // FIND THE FIRST FACTOR IN THE DENOMINATOR
+                while(ptr!=endofobj) {
+                    if(**ptr==MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) break;
+                    ptr=rplSymbSkipInStack(ptr);
+                }
+
+                // MAKE ROOM
+                endofobj=ptr;
+                ptr=DSTop-1;
+                while(ptr!=endofobj) { ptr[3]=*ptr; --ptr; }
+
+                stkptr+=3;
+                DSTop+=3;
+                ptr[1]=rplPeekData(1);  // STORE THE DENOMINATOR
+                ptr[2]=two_bint;
+                ptr[3]=inverse_opcode;
+
+                --DSTop;
+
+                }
+
+                DSTop--;
+                if(redargs+reddenom) {
+                    // UPDATE THE ARGUMENT COUNT
+                    BINT newcount=nargs-redargs-reddenom;
+                    if(redargs) ++newcount;
+                    if(reddenom) ++newcount;
+
+                    if(newcount<2)
+                    {
+                        // SINGLE ARGUMENT, SO REMOVE THE MULTIPLICATION
+                        WORDPTR *ptr=stkptr-1;
+                        while(ptr!=DSTop) { *ptr=*(ptr+2); ++ptr; }
+                        DSTop-=2;
+                        stkptr-=2;
+
+                    }
+                    else {
+                        WORDPTR newnumber=rplNewSINT(newcount+1,DECBINT);
+                        if(!newnumber) { DSTop=endofstk+1; return NULL; }
+                        *(stkptr-1)=newnumber;
+                    }
+
+                    if(redargs>1 || reddenom>1 || simplified) changed=1;
+                }
+                --stkptr;
+                continue;
+            }
+
+
+        }
+
+
+
+        if( (*sobj!=MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) && (*sobj!=MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) && (*sobj!=MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) && (*sobj!=MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS))) {
+                // EXCEPT ADDITION AND MULTIPLICATIONS, CHECK IF ALL ARGUMENTS ARE NUMERIC AND APPLY THE OPERATOR
+
+                BINT nargs=OPCODE(**(stkptr-1))-1;
+                WORDPTR *argptr=stkptr-2,savedstop;
+                BINT notanumber=0;
+                for(f=0;f<nargs;++f) {
+                    if(!ISNUMBER(**argptr)) {
+                        // CHECK IF IT'S A NEGATIVE NUMBER
+                        if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                            if(!ISNUMBER(**(argptr-2))) {
+                                notanumber=1;
+                                break; }
+                        }
+                        else {
+                        notanumber=1;
+                        break; }
+                    }
+                    argptr=rplSymbSkipInStack(argptr);
+                }
+
+                if(notanumber) { --stkptr; continue; }
+
+                savedstop=DSTop;
+
+                // HERE ALL ARGUMENTS ARE SIMPLE NUMBERS, APPLY THE OPERATOR
+                argptr=stkptr-2;
+                for(f=0;f<nargs;++f) {
+                    if(ISNUMBER(**argptr)) rplPushData(*argptr);
+                    else {
+                        // CHECK IF IT'S A NEGATIVE NUMBER
+                        if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                            // WE KNOW FROM PREVIOUS LOOP THAT A NUMBER FOLLOWS
+                            rplPushData(*(argptr-2));
+
+                            // NEGATE THE NUMBER
+                            Context.prec=REAL_PRECISION_MAX;
+                            Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
+
+                            rplCallOvrOperator(OVR_NEG);
+                            if(Exceptions) { DSTop=endofstk+1; return NULL; }
+
+                            Context.prec=origprec;
+                            Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
+
+                        }
+                   }
+
+                }
+
+                // CALL THE MAIN OPERATOR
+                Context.prec=REAL_PRECISION_MAX;
+                Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
+
+                rplCallOvrOperator(**stkptr);
+
+                Context.prec=origprec;
+                Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
+
+                if(!( (Exceptions>>16)&MPD_Inexact)) {
+
+                    // THERE WERE EXCEPTIONS AND IS NOT BECAUSE OF INEXACT --> RETURN
+                    if(Exceptions) { DSTop=endofstk+1; return NULL; }
+
+                    // REPLACE A SINGLE ARGUMENT
+
+                    // TODO: IF THE RESULT IS SYMBOLIC, NEED TO EXPAND BEFORE INSERTING, SO ADDITIONAL SIMPLIFICATION CAN BE DONE INSIDE
+
+                    WORDPTR *ptr,*endofobj=rplSymbSkipInStack(stkptr);   // POINT TO THE NEXT OBJECT
+                    ptr=endofobj+1;
+                    *ptr=rplPeekData(1);
+                    --DSTop;
+                    ++ptr;
+                    ++stkptr;
+                    // NOW CLOSE THE GAP
+                    while(stkptr!=DSTop) { *ptr=*stkptr; ++stkptr; ++ptr; }
+                    DSTop=ptr;
+                    stkptr=endofobj;
+                    changed=1;
+                    continue;
+
+                }
+                else {
+                    // THE EXCEPTION WAS INEXACT
+                    Exceptions&=0xffff; // MASK OUT ALL MATH EXCEPTIONS
+                    DSTop=savedstop;    // CLEANUP THE STACK
+                }
+
+
+
+        }
+        --stkptr;
+        }
+
+    }
+
+// ...
+
+    if(Exceptions) {
+        DSTop=endofstk+1;
+        return NULL;
+    }
+
+    WORDPTR finalsymb=rplSymbImplode(DSTop-1-endofstk);
+
+    DSTop=endofstk+1;
+    if(Exceptions) return NULL;
+
+    return finalsymb;
+
+}
+
+
 
 
 

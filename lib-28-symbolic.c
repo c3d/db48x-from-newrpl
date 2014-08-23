@@ -538,6 +538,7 @@ void LIB_HANDLER()
      }
 
     case TEST:
+    {
     // THIS IS FOR DEBUG ONLY
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
@@ -551,9 +552,14 @@ void LIB_HANDLER()
             return;
         }
 
-        rplSymbCanonicalForm(rplPeekData(1));
-        return;
+        WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(1));
+        if(newobj) rplOverwriteData(1,newobj);
 
+        newobj=rplSymbNumericReduce(rplPeekData(1));
+
+        if(newobj) rplPushData(newobj);
+        return;
+    }
 
     // STANDARIZED OPCODES:
     // --------------------
