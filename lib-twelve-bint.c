@@ -1089,13 +1089,13 @@ void LIB_HANDLER()
                             return;
                         }
                         // REPORT AS MANY VALID DIGITS AS POSSIBLE
-                        RetNum=OK_TOKENINFO | MKTOKENINFO((strptr+count)-(BYTEPTR)TokenStart,TITYPE_INTEGER,0,27);
+                        RetNum=OK_TOKENINFO | MKTOKENINFO((strptr+count)-(BYTEPTR)TokenStart,TITYPE_INTEGER,0,1);
                         return;
                     }
                 }
             }
             // ALL DIGITS WERE CORRECT
-            RetNum=OK_TOKENINFO | MKTOKENINFO((strptr+argnum1)-(BYTEPTR)TokenStart,TITYPE_INTEGER,0,27);
+            RetNum=OK_TOKENINFO | MKTOKENINFO((strptr+argnum1)-(BYTEPTR)TokenStart,TITYPE_INTEGER,0,1);
             return;
     }
     case OPCODE_GETINFO:

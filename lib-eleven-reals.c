@@ -443,6 +443,60 @@ void LIB_HANDLER()
         RetNum=OK_CONTINUE;
         return;
 
+
+    case OPCODE_PROBETOKEN:
+        // COMPILE RECEIVES:
+        // TokenStart = token string
+        // TokenLen = token length
+        // ArgPtr2 = token blanks afterwards
+        // ArgNum2 = blanks length
+
+        // COMPILE RETURNS:
+        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...), or ERR_NOTMINE IF NO TOKEN IS FOUND
+    {
+        enum {
+            MODE_IP=0,
+            MODE_FP,
+            MODE_EXPSIGN,
+            MODE_EXP
+        };
+        BINT mode=MODE_IP;
+        BYTE num;
+        int f,exitfor=0;
+        BYTEPTR ptr=(BYTEPTR *)TokenStart;
+
+        for(f=0;f<TokenLen;++f,++ptr) {
+            num=*ptr;
+            switch(mode)
+            {
+            case MODE_IP:
+                if(num=='.') { mode=MODE_FP; break; }
+                if(num=='e' || num=='E') { mode=MODE_EXPSIGN; break; }
+                if(num<'0' || num>'9') { exitfor=1; break; }
+                break;
+            case MODE_FP:
+                if(num=='e' || num=='E') { mode=MODE_EXPSIGN; break; }
+                if(num<'0' || num>'9') { exitfor=1; break; }
+                break;
+            case MODE_EXPSIGN:
+                if(num=='+' || num=='-') { mode=MODE_EXP; break; }
+                if(num<'0' || num>'9') { exitfor=1; break; }
+                mode=MODE_EXP;
+                break;
+            case MODE_EXP:
+                if(num<'0' || num>'9') { exitfor=1; break; }
+                break;
+            }
+            if(exitfor) break;
+        }
+
+        if(f==0) RetNum=ERR_NOTMINE;
+
+        else RetNum=OK_TOKENINFO | MKTOKENINFO(f,TITYPE_REAL,0,1);
+
+        return;
+    }
+
     case OPCODE_GETINFO:
         RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_REAL,0,1);
         return;

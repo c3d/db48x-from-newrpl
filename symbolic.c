@@ -1465,37 +1465,37 @@ BINT rplFractionSimplify()
 
 
         // FIND GCD
-        mpd_t *big,*small,*tmpbig,*tmpsmall,*swap;
+        mpd_t *big,*small,*tmpbig,*tmpsmall,*swap,*remainder;
         if(mpd_cmp(&RReg[0],&RReg[1],&Context)>0) { big=&RReg[0]; small=&RReg[1]; }
             else { big=&RReg[1]; small=&RReg[0]; }
         tmpbig=&RReg[2];
         tmpsmall=&RReg[3];
+        remainder=&RReg[4];
 
         mpd_copy(tmpbig,big,&Context);
         mpd_copy(tmpsmall,small,&Context);
 
         while(!mpd_iszero(tmpsmall)) {
 
-            while(mpd_cmp(tmpbig,tmpsmall,&Context)>=0) {
-                mpd_sub(tmpbig,tmpbig,tmpsmall,&Context);
-            }
+            mpd_rem(remainder,tmpbig,tmpsmall,&Context);
 
             swap=tmpbig;
             tmpbig=tmpsmall;
-            tmpsmall=swap;
+            tmpsmall=remainder;
+            remainder=swap;
 
         }
 
         // HERE tmpbig = GCD(NUM,DEN)
-        rplOneToRReg(4);
-        if(mpd_cmp(tmpbig,&RReg[4],&Context)<=0) {
+        rplOneToRReg(5);
+        if(mpd_cmp(tmpbig,&RReg[5],&Context)<=0) {
             // THERE'S NO COMMON DIVISOR, RETURN UNMODIFIED
             // THIS IS <=0 SO IT CATCHES 0/0
             return 0;
         }
 
         // SIMPLIFY
-        mpd_div(&RReg[5],&RReg[1],tmpbig,&Context);
+        mpd_div(&RReg[5],&RReg[0],tmpbig,&Context);
         mpd_div(&RReg[6],&RReg[1],tmpbig,&Context);
 
         // RESTORE THE SIGNS
@@ -1513,7 +1513,7 @@ BINT rplFractionSimplify()
         status=0;
         num=mpd_qget_i64(&RReg[6],&status);
         if(!status) rplNewBINTPush(num,DECBINT);
-        else rplRRegToRealPush(5);
+        else rplRRegToRealPush(6);
         if(Exceptions) { rplDropData(1); return 0; }
 
         rplOverwriteData(3,rplPeekData(1));
