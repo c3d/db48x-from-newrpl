@@ -1597,9 +1597,8 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
     endofstk=DSTop-1-numitems;
 
-// ...
+// SCAN THE SYMBOLIC
 
-    // ITEM A)
     changed=1;
 
     while(changed) {
@@ -1619,7 +1618,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             WORDPTR *number;
             BINT nargs=OPCODE(**(stkptr-1))-1,redargs=0;
             WORDPTR *argptr=stkptr-2,savedstop;
-            BINT simplified=0;
+            BINT simplified=0,den_is_one=0;
 
             savedstop=DSTop;
 
@@ -1793,7 +1792,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             {
 
                 if(redargs>0) {
-                    // IF THERE WERE ANY FACTORS IN THE NUMERATOR, ADD THE RESULT
+                    // IF THERE WERE ANY FACTORS IN THE NUMERATOR, REPLACE WITH THE NEW RESULT
                 WORDPTR *ptr=DSTop-1;
 
 
@@ -1809,29 +1808,48 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                 if(reddenom>0) {
                     // IF THERE WERE ANY FACTORS IN THE DENOMINATOR, ADD THE RESULT
-                WORDPTR *endofobj=stkptr-2;
-                for(f=0;f<nargs-redargs-reddenom+1;++f)
-                    endofobj=rplSymbSkipInStack(endofobj);
-                WORDPTR *ptr=stkptr-2;
-                // FIND THE FIRST FACTOR IN THE DENOMINATOR
-                while(ptr!=endofobj) {
-                    if(**ptr==MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) break;
-                    ptr=rplSymbSkipInStack(ptr);
-                }
 
-                // MAKE ROOM
-                endofobj=ptr;
-                ptr=DSTop-1;
-                while(ptr!=endofobj) { ptr[3]=*ptr; --ptr; }
+                    // IF DENOMINATOR IS ONE, THEN DON'T INCLUDE IT IN THE OBJECT
 
-                stkptr+=3;
-                DSTop+=3;
-                ptr[1]=rplPeekData(1);  // STORE THE DENOMINATOR
-                ptr[2]=two_bint;
-                ptr[3]=inverse_opcode;
+                    if(ISBINT(*rplPeekData(1))) {
+                        BINT64 denom=rplReadBINT(rplPeekData(1));
+                        if(denom==1) den_is_one=1;
+                    } else {
+                        if(ISREAL(*rplPeekData(1))) {
+                            mpd_t number;
+                            rplReadReal(rplPeekData(1),&number);
+                            rplOneToRReg(0);
+                            if(mpd_cmp(&number,&RReg[0],&Context)==0) den_is_one=1;
+                        }
+                    }
 
-                --DSTop;
 
+                    if(!den_is_one) {
+                        // ONLY INSERT IN THE OBJECT IF THE DENOMINATOR IS NOT ONE
+
+                        WORDPTR *endofobj=stkptr-2;
+                        for(f=0;f<nargs-redargs-reddenom+1;++f)
+                            endofobj=rplSymbSkipInStack(endofobj);
+                        WORDPTR *ptr=stkptr-2;
+                        // FIND THE FIRST FACTOR IN THE DENOMINATOR
+                        while(ptr!=endofobj) {
+                            if(**ptr==MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) break;
+                            ptr=rplSymbSkipInStack(ptr);
+                        }
+
+                        // MAKE ROOM
+                        endofobj=ptr;
+                        ptr=DSTop-1;
+                        while(ptr!=endofobj) { ptr[3]=*ptr; --ptr; }
+
+                        stkptr+=3;
+                        DSTop+=3;
+                        ptr[1]=rplPeekData(1);  // STORE THE DENOMINATOR
+                        ptr[2]=two_bint;
+                        ptr[3]=inverse_opcode;
+
+                        --DSTop;
+                    }
                 }
 
                 DSTop--;
@@ -1839,7 +1857,10 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                     // UPDATE THE ARGUMENT COUNT
                     BINT newcount=nargs-redargs-reddenom;
                     if(redargs) ++newcount;
-                    if(reddenom) ++newcount;
+                    if(reddenom) {
+                        ++newcount;
+                        if(den_is_one) --newcount;
+                    }
 
                     if(newcount<2)
                     {
@@ -1863,7 +1884,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             }
 
 
-        }
+        }   // END OF MULTIPLICATION
 
 
 
