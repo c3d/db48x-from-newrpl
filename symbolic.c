@@ -1579,12 +1579,12 @@ BINT rplFractionSimplify()
 
 
 // TAKES A SYMBOLIC OBJECT AND PERFORMS NUMERIC SIMPLIFICATION:
-// A) IN ALL OPS, EXCEPT MUL AND ADD, IF ALL ARGUMENTS ARE NUMERIC, THEN PERFORM THE OPERATION AND REPLACE BY THEIR RESULT
+// DONE! A) IN ALL OPS, EXCEPT MUL AND ADD, IF ALL ARGUMENTS ARE NUMERIC, THEN PERFORM THE OPERATION AND REPLACE BY THEIR RESULT
 // B) IN ADD, ALL NUMERIC VALUES ARE ADDED TOGETHER AND REPLACED BY THEIR RESULT
-// C.1) IN MUL, ALL NUMERATOR NUMERIC VALUES ARE MULTIPLIED TOGETHER AND REPLACED BY THEIR RESULT
-// C.2) IN MUL, ALL DENOMINATOR NUMERIC VALUES ARE MULTIPLIED TOGETHER AND REPLACED BY THEIR RESULT
+// DONE! C.1) IN MUL, ALL NUMERATOR NUMERIC VALUES ARE MULTIPLIED TOGETHER AND REPLACED BY THEIR RESULT
+// DONE! C.2) IN MUL, ALL DENOMINATOR NUMERIC VALUES ARE MULTIPLIED TOGETHER AND REPLACED BY THEIR RESULT
 // D) IN ADD, IF TWO TERMS ARE NUMERIC EXPRESSIONS, PERFORM A FRACTION ADDITION (N1/D1+N2/D2=(N1*D2+N2*D1)/(D1*D2)
-// E) IN MUL, ALL NUMERATOR AND DENOMINATOR NUMERICS ARE DIVIDED BY THEIR GCD (FRACTION SIMPLIFICATION)
+// DONE! E) IN MUL, ALL NUMERATOR AND DENOMINATOR NUMERICS ARE DIVIDED BY THEIR GCD (FRACTION SIMPLIFICATION)
 
 
 WORDPTR rplSymbNumericReduce(WORDPTR object)
@@ -1617,7 +1617,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
             WORDPTR *number;
             BINT nargs=OPCODE(**(stkptr-1))-1,redargs=0;
-            WORDPTR *argptr=stkptr-2,savedstop;
+            WORDPTR *argptr=stkptr-2,*savedstop;
             BINT simplified=0,den_is_one=0;
 
             savedstop=DSTop;
@@ -1828,7 +1828,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         // ONLY INSERT IN THE OBJECT IF THE DENOMINATOR IS NOT ONE
 
                         WORDPTR *endofobj=stkptr-2;
-                        for(f=0;f<nargs-redargs-reddenom+1;++f)
+                        for(f=0;f<nargs-redargs-reddenom+((redargs>0)? 1:0);++f)
                             endofobj=rplSymbSkipInStack(endofobj);
                         WORDPTR *ptr=stkptr-2;
                         // FIND THE FIRST FACTOR IN THE DENOMINATOR
@@ -1892,7 +1892,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 // EXCEPT ADDITION AND MULTIPLICATIONS, CHECK IF ALL ARGUMENTS ARE NUMERIC AND APPLY THE OPERATOR
 
                 BINT nargs=OPCODE(**(stkptr-1))-1;
-                WORDPTR *argptr=stkptr-2,savedstop;
+                WORDPTR *argptr=stkptr-2,*savedstop;
                 BINT notanumber=0;
                 for(f=0;f<nargs;++f) {
                     if(!ISNUMBER(**argptr)) {
@@ -1935,6 +1935,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                         }
                    }
+                    argptr=rplSymbSkipInStack(argptr);
 
                 }
 
