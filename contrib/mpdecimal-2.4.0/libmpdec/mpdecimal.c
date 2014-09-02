@@ -489,9 +489,9 @@ mpd_qresize(mpd_t *result, mpd_ssize_t nwords, uint32_t *status)
 {
     assert(!mpd_isconst_data(result)); /* illegal operation for a const */
     assert(!mpd_isshared_data(result)); /* illegal operation for a shared */
-    assert(MPD_MINALLOC <= result->alloc);
+    //assert(MPD_MINALLOC <= result->alloc);
 
-    nwords = (nwords <= MPD_MINALLOC) ? MPD_MINALLOC : nwords;
+    //nwords = (nwords <= MPD_MINALLOC) ? MPD_MINALLOC : nwords;
     if (nwords == result->alloc) {
         return 1;
     }
@@ -512,9 +512,9 @@ mpd_qresize_zero(mpd_t *result, mpd_ssize_t nwords, uint32_t *status)
 {
     assert(!mpd_isconst_data(result)); /* illegal operation for a const */
     assert(!mpd_isshared_data(result)); /* illegal operation for a shared */
-    assert(MPD_MINALLOC <= result->alloc);
+    //assert(MPD_MINALLOC <= result->alloc);
 
-    nwords = (nwords <= MPD_MINALLOC) ? MPD_MINALLOC : nwords;
+    //nwords = (nwords <= MPD_MINALLOC) ? MPD_MINALLOC : nwords;
     if (nwords != result->alloc) {
         if (mpd_isstatic_data(result)) {
             if (nwords > result->alloc) {

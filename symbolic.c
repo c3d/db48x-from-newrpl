@@ -1575,7 +1575,254 @@ BINT rplFractionSimplify()
 
 }
 
+// CHECK IF ARGUMENT IN THE STACK IS A NUMERIC FRACTION
+// RETURNS TRUE/FALSE
 
+BINT rplSymbIsFractionInStack(WORDPTR *stkptr)
+{
+
+if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+// COULD BE A NEGATIVE FRACTION -(1/2)
+stkptr-=2;
+}
+
+
+
+//NOT A FRACTION UNLESS THERE'S A MULTIPLICATION
+if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+    stkptr--;
+BINT nargs=OBJSIZE(**stkptr)-1;
+// NOT A FRACTION IF MORE THAN 2 ARGUMENTS
+if(nargs!=2) return 0;
+--stkptr;
+
+WORDPTR *argptr=stkptr;
+
+// CHECK THE NUMERATOR
+
+if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+    if(!ISNUMBER(**(argptr-2))) return 0;
+}
+if(!ISNUMBER(**argptr)) return 0;
+
+
+argptr=rplSymbSkipInStack(argptr);
+
+// CHECK THE DENOMINATOR
+if(**argptr!=MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) return 0;
+argptr-=2;
+if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+    if(!ISNUMBER(**(argptr-2))) return 0;
+}
+if(!ISNUMBER(**argptr)) return 0;
+
+
+}
+else {
+// SINGLE NUMBERS ARE ALSO CONSIDERED FRACTIONS N/1
+  if(!ISNUMBER(**stkptr)) return 0;
+
+}
+
+return 1;
+}
+
+// EXTRACT AND PUSH PUSH NUMERATOR AND DENOMINATOR ON THE STACK
+// DEAL WITH NEGATIVE NUMBERS
+// DOES NOT CHECK FOR ARGUMENTS! CALLER TO USE rplSymbIsFractionInStack() TO VERIFY
+
+void rplSymbFractionExtractNumDen(WORDPTR *stkptr)
+{
+    BINT negnum=0,negden=0;
+    WORDPTR *savedstop=DSTop;
+
+if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+// COULD BE A NEGATIVE FRACTION -(1/2)
+    negnum=1;
+    negden=1;
+    stkptr-=2;
+}
+
+if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+
+    stkptr-=2;
+
+    WORDPTR *argptr=stkptr;
+
+    // CHECK THE NUMERATOR
+
+    if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+       negnum^=1;
+       rplPushData(*(argptr-2));
+    }
+    else rplPushData(*argptr);
+
+    // NUMERATOR IS IN THE STACK
+    if(negnum) {
+        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+        if(Exceptions) { DSTop=savedstop; return; }
+    }
+
+
+    argptr=rplSymbSkipInStack(argptr);
+
+    // CHECK THE DENOMINATOR
+    argptr-=2;  // SKIP THE INVERSE OPERATOR
+    if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+       negden^=1;
+       rplPushData(*(argptr-2));
+    }
+    else rplPushData(*argptr);
+
+    // DENOMINATOR IS IN THE STACK
+    if(negden) {
+        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+        if(Exceptions) { DSTop=savedstop; return; }
+    }
+
+}
+else {
+// SINGLE NUMBERS ARE ALSO CONSIDERED FRACTIONS N/1
+    if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+       negnum^=1;
+       rplPushData(*(stkptr-2));
+    }
+    else rplPushData(*stkptr);
+
+    // NUMERATOR IS IN THE STACK
+    if(negnum) {
+        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+        if(Exceptions) { DSTop=savedstop; return; }
+    }
+
+    // DENOMINATOR IS ONE
+    rplPushData(one_bint);
+
+}
+
+return;
+}
+
+// TAKE A NUMERIC FRACTION STORED IN THE STACK AS:
+// 4:      NUM1
+// 3:      DEN1
+// 2:      NUM2
+// 1:      DEN2
+
+// REPLACE WITH:
+// 2:    NUM1*DEN2+NUM2*DEN1
+// 1:    DEN1*DEN2
+
+// DOES NOT APPLY ANY SIMPLIFICATION
+// MAKES RESULTING NUM AND DEN POSITIVE, AND RETURNS THE SIGN OF THE RESULTING FRACTION 0=POSITIVE, 1=NEGATIVE
+
+BINT rplSymbFractionAdd()
+{
+    BINT sign=0;
+    rplPushData(rplPeekData(4));    // NUM1
+    rplPushData(rplPeekData(2));    // DEN2
+    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+    if(Exceptions) return 0;
+    rplPushData(rplPeekData(3));    // NUM2
+    rplPushData(rplPeekData(5));    // DEN1
+    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+    if(Exceptions) return 0;
+    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD));
+    if(Exceptions) return 0;
+
+    rplPushData(rplPeekData(4));     // DEN1
+    rplPushData(rplPeekData(3));    // DEN2
+    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+    if(Exceptions) return 0;
+
+    // TODO: IF NUM OR DEN ARE NEGATIVE, CHANGE THE SIGN AND SET sign APPROPRIATELY
+
+    // CHECK SIGN OF THE NUMERATOR
+    rplPushData(rplPeekData(2));
+    rplPushData(zero_bint);
+    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_LT));
+
+    // RESULT OF COMPARISON OPERATORS IS ALWAYS A SINT OR A SYMBOLIC
+    WORDPTR numsign=rplPeekData(1);
+    rplDropData(1);
+    if(ISBINT(*numsign)) {
+        if(*numsign!=MAKESINT(0)) {
+        rplPushData(rplPeekData(2));
+        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+        rplOverwriteData(3,rplPeekData(1));
+        rplDropData(1);
+        sign^=1;
+        }
+    }
+
+    // CHECK SIGN OF THE DENOMINATOR JUST IN CASE
+    rplPushData(rplPeekData(1));
+    rplPushData(zero_bint);
+    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_LT));
+
+    // RESULT OF COMPARISON OPERATORS IS ALWAYS A SINT OR A SYMBOLIC
+    WORDPTR densign=rplPeekData(1);
+    rplDropData(1);
+    if(ISBINT(*densign)) {
+        if(*densign!=MAKESINT(0)) {
+        rplPushData(rplPeekData(1));
+        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+        rplOverwriteData(1,rplPeekData(1));
+        rplDropData(1);
+        sign^=1;
+        }
+    }
+
+    rplOverwriteData(6,rplPeekData(2));
+    rplOverwriteData(5,rplPeekData(1));
+    rplDropData(4);
+
+    return sign;
+
+}
+
+
+
+
+// REMOVE A SYMBOLIC OBJECT THAT IS EXPANDED IN THE STACK
+// RETURNS THE SIZE OF THE OBJECT IN WORDS, CALLER HAS TO UPDATE
+// ANY POINTERS INTO THE STACK THAT ARE > obj
+
+BINT rplSymbRemoveInStack(WORDPTR *obj)
+{
+    WORDPTR *end=rplSymbSkipInStack(obj);
+    BINT offset=obj-end;
+    ++end;
+    ++obj;
+
+    while(obj!=DSTop) { *end=*obj; ++end; ++obj; }
+    return offset;
+}
+
+// MAKE ROOM IN STACK TO INSERT nwords IMMEDIATELY BEFORE here
+// RETURNS nwords
+BINT rplSymbInsertInStack(WORDPTR *here, BINT nwords)
+{
+    rplExpandStack(nwords);
+    if(Exceptions) return 0;
+
+    WORDPTR *ptr=DSTop-1;
+
+    while(ptr!=here) { ptr[nwords]=*ptr; --ptr; }
+
+    return nwords;
+}
+
+// REMOVE nwords IMMEDIATELY AFTER here
+// RETURNS nwords
+BINT rplSymbDeleteInStack(WORDPTR *here, BINT nwords)
+{
+    here++;
+
+    while(here!=DSTop) { here[-nwords]=*here; ++here; }
+
+    return nwords;
+}
 
 
 // TAKES A SYMBOLIC OBJECT AND PERFORMS NUMERIC SIMPLIFICATION:
@@ -1885,6 +2132,134 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
 
         }   // END OF MULTIPLICATION
+
+
+        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+            // SCAN ALL NUMERIC FACTORS AND ADD TOGETHER (INCLUDING FRACTIONS)
+
+            BINT nargs=OPCODE(**(stkptr-1))-1;
+            WORDPTR *argptr=stkptr-2;
+
+            WORDPTR *firstnum=NULL,*secondnum=NULL;
+
+            for(f=0;f<nargs;++f)
+            {
+                if(rplSymbIsFractionInStack(argptr)) {
+                    if(!firstnum) { firstnum=argptr; }
+                    else {
+                    secondnum=argptr;
+                    break;
+                    }
+                }
+                argptr=rplSymbSkipInStack(argptr);
+
+            }
+
+            if( (firstnum==NULL) || (secondnum==NULL) ) { --stkptr; continue; }
+
+            // HERE WE HAVE 2 FRACTIONS OR NUMBERS READY TO ADD
+
+            rplSymbFractionExtractNumDen(firstnum);
+            rplSymbFractionExtractNumDen(secondnum);
+
+            // NOW COMPUTE THE RESULT
+
+            BINT isnegative=rplSymbFractionAdd();
+
+            // AND REPLACE IT IN THE ORIGINAL
+
+            // REMOVE ORIGINAL ARGUMENTS
+            BINT offset;
+            offset=rplSymbRemoveInStack(firstnum);
+            DSTop-=offset;
+            stkptr-=offset;
+            firstnum-=offset;
+            offset=rplSymbRemoveInStack(secondnum);
+            DSTop-=offset;
+            stkptr-=offset;
+            firstnum-=offset;
+
+            // AND INSERT THE NEW ONE
+
+            BINT den_is_one=0;
+
+            // CHECK IF DENOMINATOR IS ONE
+            if(ISBINT(*rplPeekData(1))) {
+                BINT64 denom=rplReadBINT(rplPeekData(1));
+                if(denom==1) den_is_one=1;
+            } else {
+                if(ISREAL(*rplPeekData(1))) {
+                    mpd_t number;
+                    rplReadReal(rplPeekData(1),&number);
+                    rplOneToRReg(0);
+                    if(mpd_cmp(&number,&RReg[0],&Context)==0) den_is_one=1;
+                }
+            }
+
+
+
+            offset=rplSymbInsertInStack(firstnum,1+((den_is_one)? 0:5)+(isnegative? 2:0));
+            stkptr+=offset;
+            DSTop+=offset;
+            firstnum+=offset;
+
+            // HERE FIRSTNUM POINTS TO THE START OF THE HOLE WE JUST OPENED
+            if(isnegative) {
+                if(den_is_one)
+                {
+                    firstnum[0]=uminus_opcode;
+                    firstnum[-1]=two_bint;
+                    firstnum[-2]=rplPeekData(2);
+                }
+                else {
+                    firstnum[0]=uminus_opcode;
+                    firstnum[-1]=two_bint;
+                    firstnum[-2]=mul_opcode;
+                    firstnum[-3]=three_bint;
+                    firstnum[-4]=rplPeekData(2);
+                    firstnum[-5]=inverse_opcode;
+                    firstnum[-6]=two_bint;
+                    firstnum[-7]=rplPeekData(1);
+                }
+
+            }
+            else {
+            if(den_is_one)
+            {
+                *firstnum=rplPeekData(2);
+            }
+            else {
+                firstnum[0]=mul_opcode;
+                firstnum[-1]=three_bint;
+                firstnum[-2]=rplPeekData(2);
+                firstnum[-3]=inverse_opcode;
+                firstnum[-4]=two_bint;
+                firstnum[-5]=rplPeekData(1);
+            }
+            }
+
+            DSTop-=2;
+
+            // UPDATE THE ARGUMENT COUNT
+
+
+            if(nargs-1<2) {
+                // REMOVE THE ADDITION IF THERE'S ONLY ONE ARGUMENT
+                offset=rplSymbDeleteInStack(stkptr,2);
+                DSTop-=offset;
+                stkptr-=offset;
+            }
+            else {
+                WORDPTR newobj=rplNewSINT(nargs,DECBINT);
+                if(!newobj) return 0;
+                *(stkptr-1)=newobj;
+                --stkptr;
+            }
+
+
+            changed=1;
+            continue;
+        }
 
 
 
