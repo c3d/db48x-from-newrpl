@@ -824,6 +824,7 @@ WORDPTR *rplSymbSkipInStack(WORDPTR *stkptr)
 // E) ALL NEGATIVE POWERS REPLACED WITH a^-n = INV(a^n)
 // F) ALL DIVISIONS REPLACED WITH MULTIPLICATION BY INV()
 // G) ALL INV(A*B*...) = INV(A)*INV(B)*INV(...)
+// G.2) ALL NEG(A*B*...) = NEG(A)*B*...
 // H) FLATTEN ALL MULTIPLICATION TREES
 
 const WORD const uminus_opcode[]={
@@ -1207,6 +1208,36 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
                 }
                 else stkptr--;
          }
+
+
+
+        --stkptr;
+        }
+
+    //*******************************************
+    // SCAN THE SYMBOLIC FOR ITEM G.2)
+    // G.2) ALL NEG(A*B*...) = NEG(A)*B*...
+
+    stkptr=DSTop-1;
+    while(stkptr!=endofstk) {
+        sobj=*stkptr;
+
+        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+            WORDPTR *nextarg=stkptr-2;
+
+            if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+
+                WORDPTR tmp;
+
+                // SWAP THE MUL WITH THE NEG
+                tmp=*stkptr;
+                *stkptr=*nextarg;
+                *nextarg=tmp;
+                tmp=*(stkptr-1);
+                *(stkptr-1)=*(nextarg-1);
+                *(nextarg-1)=tmp;
+         }
+        }
 
 
 
@@ -1603,7 +1634,7 @@ WORDPTR *argptr=stkptr;
 if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
     if(!ISNUMBER(**(argptr-2))) return 0;
 }
-if(!ISNUMBER(**argptr)) return 0;
+else if(!ISNUMBER(**argptr)) return 0;
 
 
 argptr=rplSymbSkipInStack(argptr);
@@ -1614,7 +1645,7 @@ argptr-=2;
 if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
     if(!ISNUMBER(**(argptr-2))) return 0;
 }
-if(!ISNUMBER(**argptr)) return 0;
+else if(!ISNUMBER(**argptr)) return 0;
 
 
 }
@@ -1639,7 +1670,6 @@ void rplSymbFractionExtractNumDen(WORDPTR *stkptr)
 if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
 // COULD BE A NEGATIVE FRACTION -(1/2)
     negnum=1;
-    negden=1;
     stkptr-=2;
 }
 
@@ -1765,10 +1795,7 @@ BINT rplSymbFractionAdd()
     rplDropData(1);
     if(ISBINT(*densign)) {
         if(*densign!=MAKESINT(0)) {
-        rplPushData(rplPeekData(1));
         rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
-        rplOverwriteData(1,rplPeekData(1));
-        rplDropData(1);
         sign^=1;
         }
     }
@@ -1813,7 +1840,7 @@ BINT rplSymbInsertInStack(WORDPTR *here, BINT nwords)
     return nwords;
 }
 
-// REMOVE nwords IMMEDIATELY AFTER here
+// REMOVE nwords IMMEDIATELY AFTER here (INCLUDED)
 // RETURNS nwords
 BINT rplSymbDeleteInStack(WORDPTR *here, BINT nwords)
 {
@@ -1865,7 +1892,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             WORDPTR *number;
             BINT nargs=OPCODE(**(stkptr-1))-1,redargs=0;
             WORDPTR *argptr=stkptr-2,*savedstop;
-            BINT simplified=0,den_is_one=0;
+            BINT simplified=0,den_is_one=0,neg=0;
 
             savedstop=DSTop;
 
@@ -1901,6 +1928,16 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                             ++redargs;
                             continue;
                             }
+                        else {
+                            // IT'S A NEGATIVE EXPRESSION, EXTRACT THE NEGATIVE SIGN AS A NUMERIC QUANTITY
+                            neg^=1;
+                            // REMOVE THE NEGATION
+                            rplSymbDeleteInStack(argptr,2);
+                            argptr-=2;
+                            stkptr-=2;
+                            DSTop-=2;
+
+                        }
                     }
                 }
                 else {
@@ -1938,6 +1975,12 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 if(Exceptions) { DSTop=endofstk+1; return NULL; }
             }
 
+            if(neg) {
+                rplCallOvrOperator(OVR_NEG);
+                if(Exceptions) { DSTop=endofstk+1; return NULL; }
+            }
+
+
             Context.prec=origprec;
             Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
             }
@@ -1954,7 +1997,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                 if(!ISNUMBER(**(argptr-2))) {
                     // CHECK IF IT'S A NEGATIVE NUMBER
-                    if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                    if(**(argptr-2)==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
                         if(ISNUMBER(**(argptr-4))) {
                             rplPushData(*(argptr-4));
                             // NEGATE THE NUMBER
