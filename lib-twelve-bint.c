@@ -338,7 +338,7 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
                     mpd_add(&RReg[0],&RReg[1],&rop2,&Context);
                 }
-                rplRRegToRealPush(0);
+                rplNewRealFromRRegPush(0);
                 return;
             }
 
@@ -359,7 +359,7 @@ void LIB_HANDLER()
                 rplBINTToRReg(1,op1);
                 rplBINTToRReg(2,op2);
                 mpd_add(&RReg[0],&RReg[1],&RReg[2],&Context);
-                rplRRegToRealPush(0);
+                rplNewRealFromRRegPush(0);
                 return;
             }
             rplNewBINTPush(op1+op2,LIBNUM(*arg1));
@@ -378,7 +378,7 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
                     mpd_sub(&RReg[0],&RReg[1],&rop2,&Context);
                 }
-                rplRRegToRealPush(0);
+                rplNewRealFromRRegPush(0);
                 return;
             }
 
@@ -399,7 +399,7 @@ void LIB_HANDLER()
                 rplBINTToRReg(1,op1);
                 rplBINTToRReg(2,op2);
                 mpd_sub(&RReg[0],&RReg[1],&RReg[2],&Context);
-                rplRRegToRealPush(0);
+                rplNewRealFromRRegPush(0);
                 return;
             }
             rplNewBINTPush(op1-op2,LIBNUM(*arg1));
@@ -417,7 +417,7 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
                     mpd_mul(&RReg[0],&RReg[1],&rop2,&Context);
                 }
-                rplRRegToRealPush(0);
+                rplNewRealFromRRegPush(0);
                 return;
             }
             // DETECT OVERFLOW, AND CONVERT TO REALS IF SO
@@ -443,7 +443,7 @@ void LIB_HANDLER()
             rplBINTToRReg(2,op2);
             mpd_mul(&RReg[0],&RReg[1],&RReg[2],&Context);
             if(Exceptions) return;
-            rplRRegToRealPush(0);
+            rplNewRealFromRRegPush(0);
             return;
 
         case OVR_DIV:
@@ -459,7 +459,7 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
                     mpd_div(&RReg[0],&RReg[1],&rop2,&Context);
                 }
-                rplRRegToRealPush(0);
+                rplNewRealFromRRegPush(0);
                 return;
             }
             // TODO: BINT/BINT = REAL IN APPROX. MODE??
@@ -469,7 +469,7 @@ void LIB_HANDLER()
             if(Exceptions) return;
             uint32_t status=0;
             BINT64 result=mpd_qget_i64(&RReg[0],&status);
-            if(status) rplRRegToRealPush(0);
+            if(status) rplNewRealFromRRegPush(0);
             else rplNewBINTPush(result,LIBNUM(*arg1));
             return;
             }
@@ -486,7 +486,7 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
                     mpd_pow(&RReg[0],&RReg[1],&rop2,&Context);
                 }
-                rplRRegToRealPush(0);
+                rplNewRealFromRRegPush(0);
                 return;
             }
 
@@ -497,7 +497,7 @@ void LIB_HANDLER()
             mpd_pow(&RReg[0],&RReg[1],&RReg[2],&Context);
             uint32_t status=0;
             BINT64 result=mpd_qget_i64(&RReg[0],&status);
-            if(status) rplRRegToRealPush(0);
+            if(status) rplNewRealFromRRegPush(0);
             else rplNewBINTPush(result,LIBNUM(*arg1));
             return;
             }
@@ -765,7 +765,7 @@ void LIB_HANDLER()
             rplOneToRReg(0);
             rplBINTToRReg(1,op1);
             mpd_div(&RReg[2],&RReg[0],&RReg[1],&Context);
-            rplRRegToRealPush(2);
+            rplNewRealFromRRegPush(2);
             return;
         case OVR_NEG:
         case OVR_UMINUS:

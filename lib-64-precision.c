@@ -94,7 +94,7 @@ void LIB_HANDLER()
         mpd_floor(&RReg[1],&rnum,&Context);
         if(Exceptions) return;
         rplDropData(1);
-        rplRRegToRealPush(1);
+        rplNewRealFromRRegPush(1);
         return;
         }
 
@@ -113,7 +113,7 @@ void LIB_HANDLER()
         mpd_ceil(&RReg[1],&rnum,&Context);
         if(Exceptions) return;
         rplDropData(1);
-        rplRRegToRealPush(1);
+        rplNewRealFromRRegPush(1);
         return;
         }
 
@@ -132,7 +132,7 @@ void LIB_HANDLER()
     mpd_trunc(&RReg[1],&rnum,&Context);
     if(Exceptions) return;
     rplDropData(1);
-    rplRRegToRealPush(1);
+    rplNewRealFromRRegPush(1);
     return;
     }
 
@@ -157,7 +157,7 @@ void LIB_HANDLER()
     mpd_sub(&RReg[2],&rnum,&RReg[1],&Context);
     if(Exceptions) return;
     rplDropData(1);
-    rplRRegToRealPush(2);
+    rplNewRealFromRRegPush(2);
     return;
     }
 

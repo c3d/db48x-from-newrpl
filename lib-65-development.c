@@ -198,7 +198,7 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[0],&RReg[7],&Context);
 */
         rplDropData(1);
-        rplRRegToRealPush(0);
+        rplNewRealFromRRegPush(0);
         return;
 
     }
@@ -224,8 +224,8 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[0],&RReg[7],&Context);
 */
         rplDropData(1);
-        rplRRegToRealPush(2);
-        rplRRegToRealPush(1);
+        rplNewRealFromRRegPush(2);
+        rplNewRealFromRRegPush(1);
         return;
 
     }
@@ -252,9 +252,9 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[0],&RReg[7],&Context);
 */
         rplDropData(1);
-        rplRRegToRealPush(2);
-        rplRRegToRealPush(1);
-        rplRRegToRealPush(0);
+        rplNewRealFromRRegPush(2);
+        rplNewRealFromRRegPush(1);
+        rplNewRealFromRRegPush(0);
         return;
 
     }
@@ -281,7 +281,7 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[0],&RReg[7],&Context);
 */
         rplDropData(1);
-        rplRRegToRealPush(0);
+        rplNewRealFromRRegPush(0);
         return;
 
     }

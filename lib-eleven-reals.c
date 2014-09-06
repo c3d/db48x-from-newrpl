@@ -100,43 +100,61 @@ void rplCopyRealToRReg(int num,WORDPTR real)
 
 // CREATE A NEW CALCULATOR REAL AND PUSH IT ON THE STACK
 // SET THE VALUE TO THE GIVEN RREG
-void rplRRegToRealPush(int num)
+void rplNewRealFromRRegPush(int num)
+{
+    WORDPTR newreal=rplNewRealFromRReg(num);
+    if(newreal) rplPushData(newreal);
+}
+
+void rplNewRealPush(mpd_t *num)
+{
+    WORDPTR newreal=rplNewReal(num);
+    if(newreal) rplPushData(newreal);
+}
+
+
+// ALLOCATE MEMORY AND STORE A REAL ON IT
+WORDPTR rplNewReal(mpd_t *num)
 {
 
     REAL_HEADER real;
     BINT correction;
 
-    WORDPTR newreal=rplAllocTempOb(RReg[num].len+1);
+    WORDPTR newreal=rplAllocTempOb(num->len+1);
     if(!newreal) {
         Exceptions|=EX_OUTOFMEM;
-        return;
+        return 0;
     }
 
     // REMOVE ALL TRAILING ZEROES
     correction=0;
-    while(correction<RReg[num].len-1)
+    while(correction<num->len-1)
     {
-        if(RReg[num].data[correction]!=0) break;
+        if(num->data[correction]!=0) break;
         ++correction;
     }
 
 
     // WRITE THE PROLOG
-    *newreal=MKPROLOG(LIBRARY_NUMBER,1+RReg[num].len-correction);
+    *newreal=MKPROLOG(LIBRARY_NUMBER,1+num->len-correction);
     // PACK THE INFORMATION
-    real.flags=RReg[num].flags&0xf;
-    real.len=RReg[num].len-correction;
-    real.digits=RReg[num].digits-((RReg[num].len-1)*9);
-    real.exp=RReg[num].exp+correction*9;
+    real.flags=num->flags&0xf;
+    real.len=num->len-correction;
+    real.digits=num->digits-((num->len-1)*9);
+    real.exp=num->exp+correction*9;
     // STORE THE PACKED EXPONENT WORD
     newreal[1]=real.word;
 
     BINT count;
-    for(count=0;count<RReg[num].len-correction;++count) {
-        newreal[count+2]=(RReg[num].data[count+correction]);      // STORE ALL THE MANTISSA WORDS
+    for(count=0;count<num->len-correction;++count) {
+        newreal[count+2]=(num->data[count+correction]);      // STORE ALL THE MANTISSA WORDS
     }
 
-    rplPushData(newreal);
+    return newreal;
+}
+WORDPTR rplNewRealFromRReg(int num)
+{
+return rplNewReal(&RReg[num]);
 }
 
 // STORE A REAL IN dest, AND RETURN A POINTER RIGHT AFTER THE OBJECT
@@ -236,22 +254,22 @@ void LIB_HANDLER()
         case OVR_ADD:
             // ADD TWO BINTS FROM THE STACK
             mpd_add(&RReg[0],&Darg1,&Darg2,&Context);
-            rplRRegToRealPush(0);
+            rplNewRealFromRRegPush(0);
             return;
 
         case OVR_SUB:
             mpd_sub(&RReg[0],&Darg1,&Darg2,&Context);
-            rplRRegToRealPush(0);
+            rplNewRealFromRRegPush(0);
             return;
 
         case OVR_MUL:
             mpd_mul(&RReg[0],&Darg1,&Darg2,&Context);
-            rplRRegToRealPush(0);
+            rplNewRealFromRRegPush(0);
             return;
 
         case OVR_DIV:
             mpd_div(&RReg[0],&Darg1,&Darg2,&Context);
-            rplRRegToRealPush(0);
+            rplNewRealFromRRegPush(0);
             return;
 
         case OVR_POW:
@@ -265,7 +283,7 @@ void LIB_HANDLER()
                 // THIS IS A SQUARE ROOT
                 mpd_sqrt(&RReg[0],&Darg1,&Context);
             else mpd_pow(&RReg[0],&Darg1,&Darg2,&Context);
-            rplRRegToRealPush(0);
+            rplNewRealFromRRegPush(0);
             return;
 
         case OVR_EQ:
@@ -317,11 +335,11 @@ void LIB_HANDLER()
         case OVR_INV:
             rplOneToRReg(1);
             mpd_div(&RReg[0],&RReg[1],&Darg1,&Context);
-            rplRRegToRealPush(0);
+            rplNewRealFromRRegPush(0);
             return;
         case OVR_NEG:
             mpd_qminus(&RReg[0],&Darg1,&Context,(uint32_t *)&status);
-            rplRRegToRealPush(0);
+            rplNewRealFromRRegPush(0);
             return;
         case OVR_EVAL:
         case OVR_XEQ:
@@ -330,12 +348,12 @@ void LIB_HANDLER()
             return;
         case OVR_ABS:
             mpd_abs(&RReg[0],&Darg1,&Context);
-            rplRRegToRealPush(0);
+            rplNewRealFromRRegPush(0);
             return;
         case OVR_NOT:
             if(mpd_iszero(&Darg1)) rplOneToRReg(0);
             else rplZeroToRReg(0);
-            rplRRegToRealPush(0);
+            rplNewRealFromRRegPush(0);
             return;
 
 

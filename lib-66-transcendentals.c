@@ -95,7 +95,7 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[1],&RReg[2],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(1);       // SIN
+        rplNewRealFromRRegPush(1);       // SIN
         return;
 
     }
@@ -120,7 +120,7 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[0],&RReg[2],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(0);       // COS
+        rplNewRealFromRRegPush(0);       // COS
         return;
 
     }
@@ -146,7 +146,7 @@ void LIB_HANDLER()
         }
 
         rplDropData(1);
-        rplRRegToRealPush(2);       // SIN/COS
+        rplNewRealFromRRegPush(2);       // SIN/COS
 
         return;
 
@@ -184,7 +184,7 @@ void LIB_HANDLER()
 
 
         rplDropData(1);
-        rplRRegToRealPush(0);       // RESULTING ANGLE
+        rplNewRealFromRRegPush(0);       // RESULTING ANGLE
 
         return;
 
@@ -223,7 +223,7 @@ void LIB_HANDLER()
 
 
         rplDropData(1);
-        rplRRegToRealPush(0);       // RESULTING ANGLE
+        rplNewRealFromRRegPush(0);       // RESULTING ANGLE
 
         return;
 
@@ -257,7 +257,7 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[0],&RReg[2],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(0);       // RESULTING ANGLE
+        rplNewRealFromRRegPush(0);       // RESULTING ANGLE
 
         return;
 
@@ -285,7 +285,7 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[0],&RReg[2],&Context);
 
         rplDropData(2);
-        rplRRegToRealPush(0);       // RESULTING ANGLE
+        rplNewRealFromRRegPush(0);       // RESULTING ANGLE
 
         return;
 
@@ -329,7 +329,7 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[1],&RReg[2],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(1);
+        rplNewRealFromRRegPush(1);
         return;
 
     }
@@ -354,7 +354,7 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[1],&RReg[2],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(1);       // EXP
+        rplNewRealFromRRegPush(1);       // EXP
         return;
 
 
@@ -379,7 +379,7 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[0],&RReg[7],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(0);       // SINH
+        rplNewRealFromRRegPush(0);       // SINH
         return;
 
     }
@@ -404,7 +404,7 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[0],&RReg[2],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(0);       // COSH
+        rplNewRealFromRRegPush(0);       // COSH
         return;
 
     }
@@ -431,7 +431,7 @@ void LIB_HANDLER()
 //        mpd_reduce(&RReg[0],&RReg[7],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(0);       // TANH
+        rplNewRealFromRRegPush(0);       // TANH
         return;
 
     }
@@ -458,7 +458,7 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[0],&RReg[7],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(0);
+        rplNewRealFromRRegPush(0);
         return;
 
     }
@@ -497,7 +497,7 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[0],&RReg[7],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(0);
+        rplNewRealFromRRegPush(0);
         return;
 
     }
@@ -533,7 +533,7 @@ void LIB_HANDLER()
             if(mpd_isnegative(&x)) mpd_set_negative(&RReg[0]);
 
             rplDropData(1);
-            rplRRegToRealPush(0);
+            rplNewRealFromRRegPush(0);
             return;
         }
 
@@ -546,7 +546,7 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[0],&RReg[7],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(0);
+        rplNewRealFromRRegPush(0);
         return;
 
     }
@@ -583,7 +583,7 @@ void LIB_HANDLER()
         mpd_reduce(&RReg[0],&RReg[7],&Context);
 
         rplDropData(1);
-        rplRRegToRealPush(0);
+        rplNewRealFromRRegPush(0);
         return;
 
     }

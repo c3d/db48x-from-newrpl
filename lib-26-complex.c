@@ -99,7 +99,7 @@ void rplRRegToComplexPush(BINT real,BINT imag)
 {
     if(mpd_iszero(&RReg[imag])) {
         // IT'S A REAL NUMBER, THERE'S NO IMAGINARY PART
-        rplRRegToRealPush(real);
+        rplNewRealFromRRegPush(real);
         return;
     }
     BINT size=4+RReg[real].len+RReg[imag].len;
@@ -447,7 +447,7 @@ void LIB_HANDLER()
                 mpd_reduce(&RReg[0],&RReg[7],&Context);
 
 
-                rplRRegToRealPush(0);
+                rplNewRealFromRRegPush(0);
                 return;
         case OVR_NOT:
             if(mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1)) rplOneToRReg(0);
@@ -548,7 +548,7 @@ void LIB_HANDLER()
             mpd_reduce(&RReg[0],&RReg[2],&Context);
 
             rplDropData(1);
-            rplRRegToRealPush(0);
+            rplNewRealFromRRegPush(0);
 
         return;
     }

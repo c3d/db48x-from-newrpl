@@ -240,7 +240,11 @@ extern void rplZeroToRReg(int num);
 extern void rplBINTToRReg(int num,BINT64 value);
 extern void rplReadReal(WORDPTR real,mpd_t *dec);
 extern void rplCopyRealToRReg(int num,WORDPTR real);
-extern void rplRRegToRealPush(int num);
+extern WORDPTR rplNewReal(mpd_t *num);
+extern WORDPTR rplNewRealFromRReg(int num);
+extern void rplNewRealPush(mpd_t *num);
+extern void rplNewRealFromRRegPush(int num);
+
 extern WORDPTR rplRRegToRealInPlace(int num,WORDPTR dest);
 
 

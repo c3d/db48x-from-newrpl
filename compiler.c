@@ -837,10 +837,20 @@ end_of_expression:
                                         rplDecompAppendChar('(');
                             }
                             else
+                        {
+
+                        if(TI_PRECEDENCE(*(InfixOpTop-5))==TI_PRECEDENCE(RetNum)) {
+                            // ALWAYS ADD PARENTHESIS, EXCEPT FOR MUL AND ADD
+                          if( (*DecompileObject!=MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) && (*DecompileObject!=MKOPCODE(LIB_OVERLOADABLE,OVR_ADD))) {
+                              rplDecompAppendChar('(');
+
+                          }
+                        }
 
                         if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(RetNum)) {
                             if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS!
                                 rplDecompAppendChar('(');
+                        }
                         }
                     }
                 }
@@ -896,19 +906,33 @@ end_of_expression:
             LIBHANDLER handler;
             // ADD THE OPERATOR AFTER THE LEFT OPERAND
             WORD Operator=*(InfixOpTop-2);
+            BINT no_output=0;
 
             SavedDecompObject=DecompileObject;
 
 
-            // HANDLE 2 SPECIAL CASES: A+(-B) --> A-B
-            // AND A*INV(B) --> A/B
+            // HANDLE SPECIAL CASES: A+(-B) --> A-B
+            //                       A*INV(B) --> A/B
+            //                       A+(-B)/2 --> A-B/2
+            //                       A-(-B)/2 --> A-(-B)/2
 
             if(Operator==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
-                if(rplSymbMainOperator(DecompileObject)==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS))
+                WORD newop=rplSymbMainOperator(DecompileObject);
+                if(newop==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS))
                           { Operator=MKOPCODE(LIB_OVERLOADABLE,OVR_SUB);
                             // MAKE NEXT OBJECT SKIP THE UMINUS OPERATOR
                             SavedDecompObject=rplSymbUnwrap(DecompileObject)+2;
                             }
+                if( (newop==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) || (newop==MKOPCODE(LIB_OVERLOADABLE,OVR_DIV)))
+                {
+                    // IF THE FIRST ARGUMENT IN THE MUL OR DIV EXPRESSION IS NEGATIVE, THEN ADD PARENTHESIS
+                    newop=rplSymbMainOperator(rplSymbUnwrap(DecompileObject)+2);
+                    if(newop==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                        // WE DON'T NEED TO PUT THE '+' SIGN, SINCE A MINUS WILL FOLLOW
+                        no_output=1;
+                    }
+                }
+
             }
 
             if(Operator==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
@@ -921,7 +945,7 @@ end_of_expression:
             }
 
 
-
+            if(no_output==0) {
             BINT libnum=LIBNUM(Operator);
             DecompileObject=&Operator;
             CurOpcode=MKOPCODE(libnum,OPCODE_DECOMPILE);
@@ -934,6 +958,7 @@ end_of_expression:
             // IGNORE THE RESULT OF DECOMPILATION
             if(RetNum!=OK_CONTINUE) {
                 rplDecompAppendString((BYTEPTR)"##INVALID##");
+            }
             }
 
             // NOW CHECK IF THE RIGHT ARGUMENT IS INDEED THE LAST ONE
@@ -954,19 +979,28 @@ end_of_expression:
         {
             LIBHANDLER handler;
             WORD Operator=*(InfixOpTop-2);
+            BINT no_output=0;
 
             SavedDecompObject=DecompileObject;
 
 
-            // HANDLE 2 SPECIAL CASES: A+(-B) --> A-B
-            // AND A*INV(B) --> A/B
-
             if(Operator==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
-                if(rplSymbMainOperator(DecompileObject)==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS))
+                WORD newop=rplSymbMainOperator(DecompileObject);
+                if(newop==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS))
                           { Operator=MKOPCODE(LIB_OVERLOADABLE,OVR_SUB);
                             // MAKE NEXT OBJECT SKIP THE UMINUS OPERATOR
                             SavedDecompObject=rplSymbUnwrap(DecompileObject)+2;
                             }
+                if( (newop==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) || (newop==MKOPCODE(LIB_OVERLOADABLE,OVR_DIV)))
+                {
+                    // IF THE FIRST ARGUMENT IN THE MUL OR DIV EXPRESSION IS NEGATIVE, THEN ADD PARENTHESIS
+                    newop=rplSymbMainOperator(rplSymbUnwrap(DecompileObject)+2);
+                    if(newop==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                        // WE DON'T NEED TO PUT THE '+' SIGN, SINCE A MINUS WILL FOLLOW
+                        no_output=1;
+                    }
+                }
+
             }
 
             if(Operator==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
@@ -980,6 +1014,8 @@ end_of_expression:
 
 
 
+            if(no_output==0) {
+
             BINT libnum=LIBNUM(Operator);
             DecompileObject=&Operator;
             CurOpcode=MKOPCODE(libnum,OPCODE_DECOMPILE);
@@ -992,6 +1028,7 @@ end_of_expression:
             // IGNORE THE RESULT OF DECOMPILATION
             if(RetNum!=OK_CONTINUE) {
                 rplDecompAppendString((BYTEPTR)"##INVALID##");
+            }
             }
 
             // NEVER CLOSE PARENTHESIS IN THE MIDDLE ARGUMENT
@@ -1058,10 +1095,18 @@ end_of_expression:
                                     rplDecompAppendChar(')');
                     }
                     else
+                    {
+                        if(TI_PRECEDENCE(*(InfixOpTop-5))==TI_PRECEDENCE(*(InfixOpTop-1))) {
+                            // ALWAYS ADD PARENTHESIS, EXCEPT FOR MUL AND ADD
+                          if( (*(InfixOpTop-2)!=MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) && (*(InfixOpTop-2)!=MKOPCODE(LIB_OVERLOADABLE,OVR_ADD))) {
+                              rplDecompAppendChar(')');
 
+                          }
+                        }
                     if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(*(InfixOpTop-1))) {
                         if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS
                         rplDecompAppendChar(')');
+                    }
                     }
                 }
             }
@@ -1101,6 +1146,14 @@ end_of_expression:
                     // NO NEED FOR PARENTHESIS
                 }
                 else {
+                    if(TI_PRECEDENCE(*(InfixOpTop-5))==TI_PRECEDENCE(*(InfixOpTop-1))) {
+                        // ALWAYS ADD PARENTHESIS, EXCEPT FOR MUL AND ADD
+                      if( (*(InfixOpTop-2)!=MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) && (*(InfixOpTop-2)!=MKOPCODE(LIB_OVERLOADABLE,OVR_ADD))) {
+                          rplDecompAppendChar(')');
+
+                      }
+                    }
+
                     if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(*(InfixOpTop-1))) {
                         if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS
                         rplDecompAppendChar(')');

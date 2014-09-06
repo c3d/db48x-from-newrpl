@@ -191,25 +191,6 @@ void rplSymbApplyOperator(WORD Opcode,BINT nargs)
 
 
 
-// CHANGE THE SYMBOLIC TO CANONICAL FORM.
-// CANONICAL FORM APPLIES THE FOLLOWING RULES:
-// SUBTRACTION AND DIVISION ARE FOLDED INTO ADDITION AND MULTIPLICATION WITH NEG() AND INV()
-// SUCCESSIVE ADDITION AND MULTIPLICATION LISTS ARE FLATTENED
-// NEGATIVE NUMBERS ARE REPLACED WITH UNARY MINUS AND POSITIVE ONES.
-// NEG() OPERATOR IS REPLACED WITH UMINUS
-// ALL NUMERICAL TERMS ARE ADDED TOGETHER
-// ALL NUMERICAL FACTORS IN THE NUMERATOR ARE MULTIPLIED TOGETHER
-// ALL NUMERICAL FACTORS IN THE DENOMINATOR ARE MULTIPLIED TOGETHER
-// SYMBOLIC FRACTIONS ARE REDUCED
-
-
-void rplSymbAutoSimplify()
-{
-
-
-
-}
-
 void rplSymbEVALApplyOperator(WORD Opcode,BINT nargs)
 {
     if(LIBNUM(Opcode)==LIB_OVERLOADABLE) {
@@ -887,7 +868,7 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
             rplCopyRealToRReg(0,sobj);
             if(mpd_isnegative(&RReg[0])) {
                 RReg[0].flags^=MPD_NEG; // MAKE IT POSITIVE
-                rplRRegToRealPush(0);
+                rplNewRealFromRRegPush(0);
                 if(Exceptions) { DSTop=endofstk+1; return NULL; }
                 WORDPTR newobj=rplPeekData(1);
 
@@ -1529,9 +1510,8 @@ BINT rplFractionSimplify()
         mpd_div(&RReg[5],&RReg[0],tmpbig,&Context);
         mpd_div(&RReg[6],&RReg[1],tmpbig,&Context);
 
-        // RESTORE THE SIGNS
-        RReg[5].flags|=numneg;
-        RReg[6].flags|=denneg;
+        // APPLY THE SIGN TO THE NUMERATOR ONLY
+        RReg[5].flags|=numneg^denneg;
 
 
         // NOW TRY TO CONVERT THE REALS TO INTEGERS IF POSSIBLE
@@ -1539,12 +1519,12 @@ BINT rplFractionSimplify()
         BINT64 num;
         num=mpd_qget_i64(&RReg[5],&status);
         if(!status) rplNewBINTPush(num,DECBINT);
-        else rplRRegToRealPush(5);
+        else rplNewRealFromRRegPush(5);
         if(Exceptions) return 0;
         status=0;
         num=mpd_qget_i64(&RReg[6],&status);
         if(!status) rplNewBINTPush(num,DECBINT);
-        else rplRRegToRealPush(6);
+        else rplNewRealFromRRegPush(6);
         if(Exceptions) { rplDropData(1); return 0; }
 
         rplOverwriteData(3,rplPeekData(1));
@@ -1565,7 +1545,7 @@ BINT rplFractionSimplify()
 
     // GET THE SIGNS
     if(bnum<0) { numneg=1; bnum=-bnum; } else numneg=0;
-    if(denneg<0) { denneg=1; bden=-bden; } else denneg=0;
+    if(bden<0) { denneg=1; bden=-bden; } else denneg=0;
 
     // CALCULATE THE GCD
     tmpbig=num_max(bnum,bden);
@@ -1583,15 +1563,18 @@ BINT rplFractionSimplify()
 
     // HERE tmpbig HAS THE GCD
 
-    if(tmpbig<=1) return 0;     // NO COMMON DIVISOR, SO RETURN WITH NO CHANGES
-
+    if(tmpbig<=1) {
+        // CHECK IF WE NEED TO CORRECT SIGNS
+        if(!denneg) return 0;     // NO COMMON DIVISOR, SO RETURN WITH NO CHANGES
+    }
+    else {
     // SIMPLIFY
     bnum/=tmpbig;
     bden/=tmpbig;
+    }
 
-    // RESTORE THE SIGNS
-    if(numneg) bnum=-bnum;
-    if(denneg) bden=-bden;
+    // APPLY THE SIGN TO THE NUMERATOR ONLY
+    if(numneg^denneg) bnum=-bnum;
 
     rplNewBINTPush(bnum,DECBINT);
     if(Exceptions) return 0;
@@ -1975,10 +1958,6 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 if(Exceptions) { DSTop=endofstk+1; return NULL; }
             }
 
-            if(neg) {
-                rplCallOvrOperator(OVR_NEG);
-                if(Exceptions) { DSTop=endofstk+1; return NULL; }
-            }
 
 
             Context.prec=origprec;
@@ -2026,6 +2005,15 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                             ++reddenom;
                             continue;
                             }
+                        else {
+                            // IT'S A NEGATIVE EXPRESSION, EXTRACT THE SIGN
+                            neg^=1;
+                            // REMOVE THE NEGATION
+                            rplSymbDeleteInStack(argptr-2,2);
+                            argptr-=2;
+                            stkptr-=2;
+                            DSTop-=2;
+                        }
                     }
                 }
                 else {
@@ -2082,6 +2070,36 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             {
 
                 if(redargs>0) {
+
+                    BINT n=1+((reddenom>0)? 1:0);
+                    // IF NUMERATOR IS NEGATIVE, STORE AS POSITIVE AND SET neg
+                    if(ISBINT(*rplPeekData(n))) {
+                        BINT64 nnum=rplReadBINT(rplPeekData(n));
+                        // MARK TO ADD THE SIGN LATER
+                        if(nnum<0) {
+                            neg^=1;
+                        // KEEP THE NUMERATOR POSITIVE
+                        WORDPTR newnum=rplNewBINT(-nnum,DECBINT);
+                        if(!newnum) { DSTop=endofstk+1; return NULL; }
+                        rplOverwriteData(n,newnum);
+                        }
+
+                    } else {
+                        if(ISREAL(*rplPeekData(n))) {
+                            mpd_t number;
+                            rplReadReal(rplPeekData(n),&number);
+                            if(mpd_isnegative(&number)) {
+                                number.flags^=MPD_NEG;
+                                neg^=1;
+                                number.flags^=MPD_NEG;
+                                WORDPTR newnum=rplNewReal(&number);
+                                if(!newnum) { DSTop=endofstk+1; return NULL; }
+                                rplOverwriteData(n,newnum);
+                            }
+                        }
+                    }
+
+
                     // IF THERE WERE ANY FACTORS IN THE NUMERATOR, REPLACE WITH THE NEW RESULT
                 WORDPTR *ptr=DSTop-1;
 
@@ -2143,6 +2161,16 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 }
 
                 DSTop--;
+
+                if(neg) {
+                    // HERE stkptr IS POINTING TO THE MULTIPLICATION
+                    rplSymbInsertInStack(stkptr-2,2);
+                    *stkptr=uminus_opcode;
+                    *(stkptr-1)=two_bint;
+                    stkptr+=2;
+                    DSTop+=2;
+                }
+
                 if(redargs+reddenom) {
                     // UPDATE THE ARGUMENT COUNT
                     BINT newcount=nargs-redargs-reddenom;
@@ -2151,6 +2179,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         ++newcount;
                         if(den_is_one) --newcount;
                     }
+
 
                     if(newcount<2)
                     {
@@ -2166,6 +2195,8 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         if(!newnumber) { DSTop=endofstk+1; return NULL; }
                         *(stkptr-1)=newnumber;
                     }
+
+
 
                     if(redargs>1 || reddenom>1 || simplified) changed=1;
                 }
@@ -2507,4 +2538,26 @@ void rplSymbRuleApply(WORDPTR expression,WORDPTR rule)
     if(Exceptions) return;
 
 
+}
+
+
+// TAKES A SYMBOLIC FROM THE STACK AND:
+// CHANGE THE SYMBOLIC TO CANONICAL FORM.
+// ALL NUMERICAL TERMS ARE ADDED TOGETHER
+// ALL NUMERICAL FACTORS IN THE NUMERATOR ARE MULTIPLIED TOGETHER
+// ALL NUMERICAL FACTORS IN THE DENOMINATOR ARE MULTIPLIED TOGETHER
+// SYMBOLIC FRACTIONS ARE REDUCED
+
+
+void rplSymbAutoSimplify()
+{
+
+    WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(1));
+    if(newobj) rplOverwriteData(1,newobj);
+    else return;
+
+    newobj=rplSymbNumericReduce(rplPeekData(1));
+
+    if(newobj) rplOverwriteData(1,newobj);
+    return;
 }
