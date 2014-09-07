@@ -2156,8 +2156,9 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         ptr[2]=two_bint;
                         ptr[3]=inverse_opcode;
 
-                        --DSTop;
                     }
+                    --DSTop;
+
                 }
 
                 DSTop--;
