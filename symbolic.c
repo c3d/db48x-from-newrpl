@@ -800,12 +800,14 @@ WORDPTR *rplSymbSkipInStack(WORDPTR *stkptr)
 // A) NEGATIVE NUMBERS REPLACED WITH NEG(n)
 // B) ALL SUBTRACTIONS REPLACED WITH ADDITION OF NEGATED ITEMS
 // c) ALL NEG(A+B+...) = NEG(A)+NEG(B)+NEG(...)
+// C.2) ALL NEG(NEG(...)) REPLACED WITH (...)
 // D) FLATTEN ALL ADDITION TREES
 
 // E) ALL NEGATIVE POWERS REPLACED WITH a^-n = INV(a^n)
 // F) ALL DIVISIONS REPLACED WITH MULTIPLICATION BY INV()
 // G) ALL INV(A*B*...) = INV(A)*INV(B)*INV(...)
 // G.2) ALL NEG(A*B*...) = NEG(A)*B*...
+// G.3) ALL INV(INV(...) = ...
 // H) FLATTEN ALL MULTIPLICATION TREES
 
 const WORD const uminus_opcode[]={
@@ -999,6 +1001,35 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
         }
 
 
+    //*******************************************
+    // SCAN THE SYMBOLIC FOR ITEM C.2)
+    // C) ALL NEG(NEG(...)) = (...)
+
+    stkptr=DSTop-1;
+    while(stkptr!=endofstk) {
+        sobj=*stkptr;
+
+        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+            WORDPTR *nextarg=stkptr-2;
+
+            if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                        // NEG/NEG = REMOVE THE NEGATION
+                    WORDPTR *ptr=nextarg-1;
+                    // AND REMOVE THE GAP
+                    while(ptr!=DSTop-4) {
+                    *ptr=*(ptr+4);
+                    ++ptr;
+                    }
+                    DSTop-=4;
+                    stkptr-=4;
+             }
+                else stkptr--;
+         }
+
+
+
+        --stkptr;
+        }
 
 
 
