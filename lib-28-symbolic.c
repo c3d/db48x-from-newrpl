@@ -189,6 +189,12 @@ void LIB_HANDLER()
         // IN ORDER TO KEEP THE LOOP RUNNING
 
         rplPushRet(IPtr);
+        if((rplPeekRet(1)<symbeval_seco)||(rplPeekRet(1)>symbeval_seco+4))
+        {
+            // THIS EVAL IS NOT INSIDE A RECURSIVE LOOP
+            // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER EVAL
+            *rplPushRet(symbeval_seco+4);
+        }
         IPtr=(WORDPTR) symbeval_seco;
         CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
@@ -433,10 +439,7 @@ void LIB_HANDLER()
             rplDropData(1);
             // CLEANUP AND RETURN
             rplCleanupLAMs(0);
-            // DONE WITH CLASSIC EVAL, NOW DO AUTOSIMPLIFY IF USER SETTING REQUIRES IT
-            // TODO: IMPLEMENT USER SETTING, LEAVE ENABLED FOR NOW
-            if(1) IPtr=symbeval_seco+4; // THIS WILL MAKE THE NEXT EXECUTED OPCODE TO BE AUTOSIMPLIFY
-            else IPtr=rplPopRet();
+            IPtr=rplPopRet();
             CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
             return;
 

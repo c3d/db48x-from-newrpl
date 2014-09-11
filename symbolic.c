@@ -1001,35 +1001,6 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
         }
 
 
-    //*******************************************
-    // SCAN THE SYMBOLIC FOR ITEM C.2)
-    // C) ALL NEG(NEG(...)) = (...)
-
-    stkptr=DSTop-1;
-    while(stkptr!=endofstk) {
-        sobj=*stkptr;
-
-        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
-            WORDPTR *nextarg=stkptr-2;
-
-            if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
-                        // NEG/NEG = REMOVE THE NEGATION
-                    WORDPTR *ptr=nextarg-1;
-                    // AND REMOVE THE GAP
-                    while(ptr!=DSTop-4) {
-                    *ptr=*(ptr+4);
-                    ++ptr;
-                    }
-                    DSTop-=4;
-                    stkptr-=4;
-             }
-                else stkptr--;
-         }
-
-
-
-        --stkptr;
-        }
 
 
 
@@ -1256,6 +1227,35 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
         --stkptr;
         }
 
+    //*******************************************
+    // SCAN THE SYMBOLIC FOR ITEM G.3)
+    // G.3) ALL NEG(NEG(...)) = (...)
+
+    stkptr=DSTop-1;
+    while(stkptr!=endofstk) {
+        sobj=*stkptr;
+
+        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+            WORDPTR *nextarg=stkptr-2;
+
+            if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                        // NEG/NEG = REMOVE THE NEGATION
+                    WORDPTR *ptr=nextarg-1;
+                    // AND REMOVE THE GAP
+                    while(ptr!=DSTop-4) {
+                    *ptr=*(ptr+4);
+                    ++ptr;
+                    }
+                    DSTop-=4;
+                    stkptr-=4;
+             }
+                else stkptr--;
+         }
+
+
+
+        --stkptr;
+        }
 
     //*******************************************
     // SCAN THE SYMBOLIC FOR ITEM H)

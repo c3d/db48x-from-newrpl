@@ -338,6 +338,7 @@ void LIB_HANDLER()
             rplNewRealFromRRegPush(0);
             return;
         case OVR_NEG:
+        case OVR_UMINUS:
             mpd_qminus(&RReg[0],&Darg1,&Context,(uint32_t *)&status);
             rplNewRealFromRRegPush(0);
             return;
