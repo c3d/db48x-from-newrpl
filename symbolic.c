@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
+
+
 #include "newrpl.h"
 #include "libraries.h"
 
@@ -5,12 +13,6 @@
 #define num_max(a,b) ((a)>(b)? (a):(b))
 #define num_min(a,b) ((a)<(b)? (a):(b))
 
-/*
- * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
- * All rights reserved.
- * This file is released under the 3-clause BSD license.
- * See the file LICENSE.txt that shipped with this distribution.
- */
 
 
 
@@ -565,7 +567,7 @@ BINT rplSymbCountArguments(WORDPTR object)
 
 
 // SCAN AN OBJECT, RETURN 1 IF IT'S NUMERIC, 0 OTHERWISE
-
+/*
 BINT rplSymbIsNumeric(WORDPTR object)
 {
 
@@ -580,8 +582,8 @@ BINT rplSymbIsNumeric(WORDPTR object)
 
     return 1;
 }
-
-
+*/
+/*
 // SCAN AN OBJECT, RETURN 1 IF IT CONTAINS A SPECIAL RULE IDENT, 0 OTHERWISE
 BINT rplSymbHasSpecialIdent(WORDPTR object)
 {
@@ -600,7 +602,7 @@ BINT rplSymbHasSpecialIdent(WORDPTR object)
     return 0;
 
 }
-
+*/
 // REPLACE AN OBJECT WITHIN A SYMBOLIC
 // IT CREATES A NEW OBJECT, SO IT MIGHT TRIGGER GC
 // USES ScratchPointers 1 THRU 3 DURING GC
@@ -688,17 +690,20 @@ BINT rplSymbExplode(WORDPTR object)
 // REASSEMBLE A SYMBOLIC THAT WAS EXPLODED IN THE STACK
 // DOES NOT CHECK FOR VALIDITY OF THE SYMBOLIC!
 
-WORDPTR rplSymbImplode(BINT numobjects)
+WORDPTR rplSymbImplode()
 {
 
     WORDPTR *stkptr=DSTop-1;
-
+    BINT numobjects=1,addcount=0;
     BINT size=0,narg;
 
     BINT f;
 
     for(f=0;f<numobjects;++f)
     {
+        if(addcount) { numobjects+=OBJSIZE(**stkptr)-1; addcount=0; }
+        if((!ISBINT(**stkptr)) && (!ISPROLOG(**stkptr))) { addcount=1; ++numobjects; }
+
         size+=rplObjSize(*stkptr);
         --stkptr;
     }
@@ -1465,7 +1470,7 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
         return NULL;
     }
 
-    WORDPTR finalsymb=rplSymbImplode(DSTop-1-endofstk);
+    WORDPTR finalsymb=rplSymbImplode();
 
     DSTop=endofstk+1;
     if(Exceptions) return NULL;
@@ -1865,6 +1870,27 @@ BINT rplSymbDeleteInStack(WORDPTR *here, BINT nwords)
     return nwords;
 }
 
+// REPLACE ONE SYMBOLIC OBJECT WITH ANOTHER IN THE STACK
+BINT rplSymbReplaceInStack(WORDPTR *here, WORDPTR *newobj)
+{
+    BINT sizeold=here-rplSymbSkipInStack(here);
+    BINT sizenew=newobj-rplSymbSkipInStack(newobj);
+    BINT offset=sizenew-sizeold;
+
+    if(offset>0) rplSymbInsertInStack(here,offset);
+    if(offset<0) rplSymbDeleteInStack(here,offset);
+    if(Exceptions) return 0;
+
+    // NOW WE HAVE THE PROPER ROOM
+
+    if(newobj>here) newobj+=offset;
+    here+=offset;
+
+    while(sizenew) { *here=*newobj; --here; --newobj; --sizenew; }
+
+    return offset;
+
+}
 
 // TAKES A SYMBOLIC OBJECT AND PERFORMS NUMERIC SIMPLIFICATION:
 // DONE! A) IN ALL OPS, EXCEPT MUL AND ADD, IF ALL ARGUMENTS ARE NUMERIC, THEN PERFORM THE OPERATION AND REPLACE BY THEIR RESULT
@@ -2424,7 +2450,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 Context.prec=REAL_PRECISION_MAX;
                 Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
 
-                rplCallOvrOperator(**stkptr);
+                rplCallOperator(**stkptr);
 
                 Context.prec=origprec;
                 Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
@@ -2473,7 +2499,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
         return NULL;
     }
 
-    WORDPTR finalsymb=rplSymbImplode(DSTop-1-endofstk);
+    WORDPTR finalsymb=rplSymbImplode();
 
     DSTop=endofstk+1;
     if(Exceptions) return NULL;
@@ -2511,67 +2537,6 @@ BINT rplSymbCommutativeMatch(WORD Opcode,WORDPTR rulelist,WORDPTR objlist)
 }
 
 
-// RECURSIVE SYMBOLIC MATCH AND APPLY
-
-// MATCH ONE TO ANY: TAKE ONE RULE AND MATCH IT WITH ALL TERMS IN A LIST, RECURSE AS NEEDED AND APPLY
-// ALL VARIABLE STORAGE IS WITHIN A LOCAL ENVIRONMENT
-// LAMS:
-// 1 = RULE TO MATCH
-// 2 = LIST OF OBJECTS,
-// 3 = PTR TO CURRENT RULE OBJECT
-// 4 = PTR TO CURRENT OBJECT
-// 5 = MATCH STATUS,
-// 6 = NUMBER OF OBJECTS IN CURRENT OBJECT
-// 5 ... N = NAMED LAMS WITH ALL SPECIAL IDENTS IN THE RULE, WITH THEIR ASSIGNED VALUES SO FAR
-// N+1 ... M = LIST OF OBJECTS IN CURRENT OBJECT, FOR SORTING
-
-// LOGIC:
-// CREATE A NEW ENVIRONMENT
-// INITIALIZE ALL VARIABLES
-// EXPLODE THE OBJECT
-// CURRENT RULE OBJECT = START OF RULE
-// TAKE CURRENT OBJECT AND MATCH CURRENT RULE...
-//              IF RULE IS ATOMIC {
-//                      IF RULE IS SPECIAL IDENT AND IS ALREADY DEFINED, TAKE VALUE OF IDENT + OBJECT AND GOTO LOGIC:
-//                      IF RULE IS A SPECIAL IDENT NOT PREVIOUSLY DEFINED, DEFINE IT
-//                      IF OBJECT IS ATOMIC, CHECK MATCH OR NOT
-//                      IF OBJECT IS A SYMBOLIC AND OPCODE MATCHES RULE OPCODE, TAKE CURRENT RULE + CURRENT OBJECT AND GOTO LOGIC: (TO START WITH THE CURRENT OBJECT EXPLODED)
-//              }
-//              IF RULE IS SYMBOLIC OPERATION {
-//                      EXPLODE THE RULE, AND DO A LOOP TAKING ONE RULE OBJECT TO MATCH WITH EACH OBJECT
-
-void rplSymbRuleApply(WORDPTR expression,WORDPTR rule)
-{
-    // CREATE A SEPARATE LOCAL ENVIRONMENT
-    rplCreateLAMEnvironment(expression);
-
-    rplCreateLAM(nulllam_ident,zero_bint);      // LAM1 = MATCH RESULT IS THE FIRST LAM
-
-    if(Exceptions) return;
-
-    if(ISSYMBOLIC(expression)) expression=rplSymbUnwrap(expression);
-    if(ISSYMBOLIC(rule)) rule=rplSymbUnwrap(rule);
-
-    if(!rule || !expression) return;
-    BINT rulesize=rplObjSize(rule),expsize=rplObjSize(expression);
-
-    rplCreateLAM(nulllam_ident,expression);     // LAM2 = ORIGINAL EXPRESSION
-    rplCreateLAM(nulllam_ident,rule);           // LAM3 = ORIGINAL RULE
-    rplCreateLAM(nulllam_ident,expression);     // LAM4 = CURRENT EXPRESSION POINTER
-    rplCreateLAM(nulllam_ident,rule);           // LAM5 = CURRENT RULE POINTER
-
-    while(rplGetLAMn(5)-rplGetLAMn(2)<rulesize) {
-//        if()
-
-
-
-    }
-
-    if(Exceptions) return;
-
-
-}
-
 
 // TAKES A SYMBOLIC FROM THE STACK AND:
 // CHANGE THE SYMBOLIC TO CANONICAL FORM.
@@ -2592,4 +2557,291 @@ void rplSymbAutoSimplify()
 
     if(newobj) rplOverwriteData(1,newobj);
     return;
+}
+
+
+// RETURN TRUE/FALSE IF THE SYMBOLIC EXPLODED IN THE STACK HAS ANY IDENTS
+
+BINT rplSymbHasIdent(WORDPTR *stkptr)
+{
+WORDPTR *endobj=rplSymbSkipInStack(stkptr);
+WORDPTR *ptr=stkptr;
+
+while(ptr!=endobj) {
+    // TODO: RECOGNIZE SPECIAL IDENTS LIKE SYMBOLIC CONSTANTS, OR ASSUMED IDENTS
+    if(ISIDENT(**ptr)) return 1;
+    --ptr;
+}
+return 0;
+}
+
+// RETURN TRUE/FALSE IF THE SYMBOLIC EXPLODED IN THE STACK HAS ANY SPECIAL IDENTS
+
+BINT rplSymbHasSpecialIdent(WORDPTR *stkptr)
+{
+WORDPTR *endobj=rplSymbSkipInStack(stkptr);
+WORDPTR *ptr=stkptr;
+
+while(ptr!=endobj) {
+    if(ISIDENT(**ptr)) {
+        BYTEPTR *string=(BYTEPTR *)(*ptr+1);
+        if(*string=='.') return 1;
+    }
+    --ptr;
+}
+return 0;
+}
+
+
+// RETURN TRUE/FALSE IF ptr IS A SPECIAL IDENT
+
+BINT rplSymbIsSpecialIdent(WORDPTR ptr)
+{
+
+    if(ISIDENT(*ptr)) {
+        BYTEPTR *string=(BYTEPTR *)(ptr+1);
+        if(*string=='.') return 1;
+    }
+return 0;
+}
+
+
+
+
+// REPLACE THE VARIABLE varname WITH THE OBJECT object IN AN EXPRESSION EXPLODED IN THE STACK
+// RETURN A PTR TO THE MODIFIED expr IN THE STACK (MOVED DURING THE VAR REPLACEMENT)
+
+WORDPTR *rplSymbReplaceVariable(WORDPTR *expr,WORDPTR varname,WORDPTR object)
+{
+    WORDPTR *endobj=rplSymbSkipInStack(expr);
+    WORDPTR *value;
+    WORDPTR *ptr=expr;
+
+    // NO ARGUMENT CHECKS - CALLER TO VERIFY THAT object IS ALLOWED IN SYMBOLICS
+
+
+    // TEMPORARILY SAVE OBJECTS TO PROTECT FROM GC
+    ScratchPointer2=varname;
+    ScratchPointer3=object;
+    // EXPLODE THE OBJECT IN THE STACK
+    rplSymbExplode(object);
+    if(Exceptions) return expr;
+    value=DSTop-1;  // START OF OBJECT IN THE STACK
+    BINT nptrs=value-rplSymbSkipInStack(value);
+
+
+    while(ptr!=endobj) {
+        if(ISIDENT(**ptr)) {
+            if(rplCompareIDENT(*ptr,ScratchPointer2)) {
+                // FOUND THE VARIABLE, REPLACE WITH THE EXPRESSION
+
+                // MAKE A HOLE IMMEDIATELY BEFORE THE VAR NAME
+                BINT offset=rplSymbInsertInStack(ptr,nptrs);
+                DSTop+=offset;
+                expr+=offset;
+                value+=offset;
+                if(Exceptions) { DSTop-=nptrs; return expr; }
+                BINT f;
+                // COPY object INTO POSITION
+                for(f=0;f<nptrs;++f) { *ptr=*(value-nptrs+1+f); ++ptr; }
+
+                ptr+=nptrs;
+                continue;
+            }
+        }
+        --ptr;
+    }
+
+    // DONE, NOW CLEANUP THE STACK
+    DSTop-=nptrs;
+
+    return expr;
+
+}
+
+
+// SYMBOLIC EXPRESSION IN LEVEL 2
+// RULE IN LEVEL 1
+// CREATES A NEW LOCAL ENVIRONMENT, WITH THE FOLLOWING VARIABLES:
+// GETLAM1 IS AN UNNAMED VARIABLE THAT WILL CONTAIN 1 IF THERE WAS A MATCH, 0 OTHERWISE
+// GETLAM2 IS UNNAMED, AND WILL CONTAIN A POINTER INSIDE THE ORIGINAL SYMBOLIC WHERE THE LAST MATCH WAS FOUND, TO BE USED BY MATCHNEXT
+// * ANY IDENTS THAT DON'T START WITH A . ARE CREATED AND SET EQUAL TO THE RIGHT SIDE OF THE RULE OPERATOR
+// * ANY IDENTS THAT START WITH A PERIOD MATCH ANY EXPRESSION AS FOLLOWS:
+// .X MATCHES ANY EXPRESSION (LARGEST MATCH POSSIBLE) AND DEFINES .X = 'FOUND EXPRESSION'
+// .X.s MATCHES ANY EXPRESSION (SMALLEST MATCH POSSIBLE)
+// .X.S SAME AS DEFAULT (LARGEST MATCH) (AN ALIAS FOR CONSISTENCY)
+// .X.n MATCHES ANY NUMERIC EXPRESSION (SMALLEST MATCH) AND DEFINES .X.n = 'FOUND EXPRESSION'
+// .X.N MATCHES ANY NUMERIC EXPRESSION (LARGEST MATCH) AND DEFINES .X.N = 'FOUND EXPRESSION'
+// .X.I MATCHES ANY INTEGER .X.I = NUMBER
+// .X.R MATCHES ANY NUMBER (REAL OR INTEGER, BUT WON'T MATCH FRACTIONS) .X.R = NUMBER.
+// .X.F MATCHES ANY NUMBER OR ANY FRACTION OF THE FORM NUMBER/NUMBER
+
+
+void rplSymbRuleApply()
+{
+    WORDPTR *rule,*ruleleft,*expr,*endofrule,*endofrun,*endofexpr,*runptr,*ruleptr,*exprptr;
+    WORDPTR *saveddstop=DSTop;
+    WORDPTR *savedlamtop=LAMTop;
+    BINT match;
+    rplSymbExplode(rplPeekData(2));
+    if(Exceptions) { DSTop=saveddstop; LAMTop=savedlamtop; return; }
+    expr=DSTop-1;
+    rplSymbExplode(*(saveddstop-1));
+    if(Exceptions) { DSTop=saveddstop; LAMTop=savedlamtop; return; }
+    rule=DSTop-1;
+    ruleleft=rule-2;
+
+    endofrun=rplSymbSkipInStack(expr);
+    endofrule=rplSymbSkipInStack(ruleleft);
+
+    // HERE WE HAVE BOTH SYMBOLICS EXPLODED, BEGIN COMPARISON
+
+    runptr=expr;
+
+    while(runptr>endofrun) {
+
+        // TRY EVERY OBJECT AT runptr AS IF IT WAS A NEW SYMBOLIC TO TRY AND APPLY THE RULE
+
+        ruleptr=ruleleft;
+        exprptr=runptr;
+        endofexpr=rplSymbSkipInStack(exprptr);
+        match=1;
+        while(ruleptr!=endofrule) {
+            if(exprptr==endofexpr) { match=0; break; }
+            if(ISNUMBER(**ruleptr)) {
+                // COMPARE NUMBERS
+                if(!ISNUMBER(**exprptr)) { match=0; break; }
+                if(ISBINT(**ruleptr) && ISBINT(**exprptr)) {
+                    // COMPARE INTEGERS
+                    BINT64 num1,num2;
+                    num1=rplReadBINT(*ruleptr);
+                    num2=rplReadBINT(*exprptr);
+                    if(num1!=num2) { match=0; break; }
+                }
+                else {
+                    // COMPARE REALS
+                    mpd_t num1,num2;
+                    rplReadNumberAsReal(*ruleptr,&num1);
+                    rplReadNumberAsReal(*exprptr,&num2);
+
+                    if(mpd_cmp(&num1,&num2,&Context)!=0) { match=0; break; }
+
+                }
+
+
+
+            } else {
+                if(ISIDENT(**ruleptr)) {
+                    // CHECK FOR SPECIAL IDENT
+                    if(rplSymbIsSpecialIdent(*ruleptr)) {
+                        // DO SPECIAL MATCH
+
+
+                    }
+                    else {
+                        // COMPARE IDENTS
+                        if(!ISIDENT(**exprptr)) { match=0; break; }
+                        if(!rplCompareIDENT(*ruleptr,*exprptr)) { match=0; break; }
+                    }
+                }
+
+              else {
+                 if(ISPROLOG(**ruleptr)) {
+                     // IS SOME OBJECT, OTHER THAN AN IDENT OR A NUMBER (NUMBER W/UNITS?)
+
+                     // CALL GENERIC COMPARISON
+                     rplPushData(*ruleptr);
+                     rplPushData(*exprptr);
+                     if(Exceptions) { DSTop=saveddstop; LAMTop=savedlamtop; return; }
+                     rplCallOvrOperator(OVR_CMP);
+                     if(Exceptions) { DSTop=saveddstop; LAMTop=savedlamtop; return; }
+                     BINT64 result=rplReadBINT(rplPopData());
+                     if(result!=0) { match=0; break; }
+
+                 }
+                 else {
+                     // IT'S AN OPERATOR
+                     if(**ruleptr!=**exprptr) { match=0; break; }
+
+                     if(**ruleptr==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+                         // THE NUMBER OF ARGUMENTS MIGHT DIFFER IF THERE'S
+                         // A SPECIAL IDENT INSIDE
+                         --ruleptr;
+                         --exprptr;
+
+
+
+                     } else {
+                         if(**ruleptr==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+                             // THE NUMBER OF ARGUMENTS MIGHT DIFFER IF THERE'S
+                             // A SPECIAL IDENT INSIDE
+                             --ruleptr;
+                             --exprptr;
+
+
+                         }
+                         else {
+                             // SAME OPERATOR, CHECK ARGUMENT COUNT
+                             --ruleptr;
+                             --exprptr;
+
+                             if(**ruleptr!=**exprptr) { match=0; break; }
+                         }
+                     }
+
+                 }
+
+                }
+            }
+
+
+
+
+
+            --ruleptr;
+            --exprptr;
+        }
+
+        if(match) {
+            // THERE WAS A MATCH
+
+            // REPLACE THE EXPRESSION AT runptr WITH THE RIGHT SIDE OF THE RULE
+
+            // TODO: REPLACE ALL SPECIAL IDENTS WITH THEIR VALUES FROM THE MATCH
+
+            // ...AFTER REPLACING...
+
+            BINT offset=rplSymbReplaceInStack(runptr,endofrule);
+            if(Exceptions) { DSTop=saveddstop; LAMTop=savedlamtop; return; }
+
+            // UPDATE ALL POINTERS
+            DSTop+=offset;
+            ruleleft+=offset;
+            runptr+=offset;
+            rule+=offset;
+            expr+=offset;
+
+            // NOW SKIP THIS OBJECT TO AVOID APPLYING THE RULE RECURSIVELY
+            runptr=rplSymbSkipInStack(runptr);
+            continue;
+
+        }
+
+        // SKIP TO NEXT OBJECT
+        if(ISBINT(**runptr) || ISPROLOG(**runptr)) runptr--;
+        else runptr-=2;  // IF IT'S NOT AN OBJECT OR A SINT, THEN IT'S SOME OPERATION, POINT TO THE FIRST ARGUMENT
+
+    }
+
+}
+
+
+// RETURN TRUE/FALSE IF THE GIVEN SYMBOLIC IS A RULE
+
+BINT rplSymbIsRule(WORDPTR ptr)
+{
+WORDPTR obj;
+if(!ISSYMBOLIC(*ptr)) return 0;
+if(rplSymbMainOperator(ptr)==CMD_RULESEPARATOR) return 1;
+return 0;
 }

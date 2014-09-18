@@ -61,22 +61,32 @@ void libProbeCmds(BINT libnum,char *libnames[],BINT tokeninfo[],int numcmds)
 {
     int idx;
     int len;
+    int maxidx=-1,maxlen=0;
+
+    // SCAN THROUGH ALL COMMANDS AND FIND LONGEST MATCH
     for(idx=0;idx<numcmds;++idx)
     {
         len=strlen((char *)libnames[idx]);
         if((len<=(BINT)TokenLen) && (!strncmp((char *)TokenStart,(char *)libnames[idx],len)))
        {
-            if(tokeninfo) {
-                RetNum=OK_TOKENINFO | tokeninfo[idx];
-            } else RetNum=OK_TOKENINFO | MKTOKENINFO(len,TITYPE_NOTALLOWED,0,0);
-           return;
+            // WE HAVE A MATCH, STORE THE INDEX BEFORE WE MAKE ANY DECISIONS
+            if(len>maxlen) { maxidx=idx; maxlen=len; }
        }
     }
-    RetNum=ERR_NOTMINE;
+
+    if(maxlen!=0) {
+    if(tokeninfo) {
+        RetNum=OK_TOKENINFO | tokeninfo[maxidx];
+    } else RetNum=OK_TOKENINFO | MKTOKENINFO(len,TITYPE_NOTALLOWED,0,0);
+    }
+    else RetNum=ERR_NOTMINE;
 }
+
+
 // STANDARD GETINFO FOR COMMANDS
 // COMMON TO ALL LIBRARIES THAT DEFINE ONLY COMMANDS
 // STARTING TO COUNT FROM COMMAND NUMBER 0
+// THIS VERSION TAKES A VECTOR WITH OPCODE NUMBERS
 void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT tokeninfo[],int numcmds)
     {
         int idx;
@@ -94,6 +104,28 @@ void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT tokeninfo[],
                 }
                return;
            }
+        }
+        RetNum=ERR_NOTMINE;
+    }
+
+// STANDARD GETINFO FOR COMMANDS
+// COMMON TO ALL LIBRARIES THAT DEFINE ONLY COMMANDS
+// THIS VERSION ASSUMES THE INDEX IS THE OPCODE NUMBER
+void libGetInfo2(WORD opcode,char *libnames[],BINT tokeninfo[],int numcmds)
+    {
+        int idx;
+        int len;
+        idx=OPCODE(opcode);
+        if(idx<numcmds)
+        {
+                if(tokeninfo) {
+                    RetNum=OK_TOKENINFO | tokeninfo[idx];
+                } else {
+                    len=strlen(libnames[idx]);
+                    RetNum=OK_TOKENINFO | MKTOKENINFO(len,TITYPE_NOTALLOWED,0,0);
+                }
+               return;
+
         }
         RetNum=ERR_NOTMINE;
     }

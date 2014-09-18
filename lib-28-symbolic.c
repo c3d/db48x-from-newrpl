@@ -27,6 +27,7 @@
 #define CMD_LIST \
     CMD(AUTOSIMPLIFY), \
     CMD(RULEMATCH), \
+    CMD(RULEAPPLY), \
     CMD(TEST)
 
 // ADD MORE OPCODES HERE
@@ -193,7 +194,7 @@ void LIB_HANDLER()
         {
             // THIS EVAL IS NOT INSIDE A RECURSIVE LOOP
             // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER EVAL
-            *rplPushRet(symbeval_seco+4);
+            rplPushRet(symbeval_seco+4);
         }
         IPtr=(WORDPTR) symbeval_seco;
         CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
@@ -540,6 +541,44 @@ void LIB_HANDLER()
 
      }
 
+    case RULEAPPLY:
+    {
+        if(rplDepthData()<2) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        if(!ISSYMBOLIC(*rplPeekData(2))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(!ISSYMBOLIC(*rplPeekData(1))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        if(!rplSymbIsRule(rplPeekData(1))) {
+            Exceptions|=EX_BADARGVALUE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+
+        rplSymbRuleApply();
+        if(Exceptions) return;
+
+        // HERE WE HAVE A NEW LOCAL ENVIRONMENT WITH THE
+        // PUSH THE RESULT OF THE MATCH IN THE STACK AS A LIST OF RULES
+
+        rplCleanupLAMs(0);
+        return;
+
+     }
+
+
     case TEST:
     {
     // THIS IS FOR DEBUG ONLY
@@ -550,7 +589,7 @@ void LIB_HANDLER()
         }
 
         if(!ISSYMBOLIC(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGCOUNT;
+            Exceptions|=EX_BADARGTYPE;
             ExceptionPointer=IPtr;
             return;
         }

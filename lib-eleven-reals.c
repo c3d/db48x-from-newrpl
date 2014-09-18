@@ -288,41 +288,41 @@ void LIB_HANDLER()
 
         case OVR_EQ:
 
-            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplNewSINTPush(0,DECBINT);
-            else rplNewSINTPush(1,DECBINT);
+            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplPushData(zero_bint);
+            else rplPushData(one_bint);
             return;
 
         case OVR_NOTEQ:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
+            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplPushData(one_bint);
+            else rplPushData(zero_bint);
             return;
         case OVR_LT:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)==-1) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
+            if(mpd_cmp(&Darg1,&Darg2,&Context)==-1) rplPushData(one_bint);
+            else rplPushData(zero_bint);
             return;
         case OVR_GT:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)==1) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
+            if(mpd_cmp(&Darg1,&Darg2,&Context)==1) rplPushData(one_bint);
+            else rplPushData(zero_bint);
             return;
         case OVR_LTE:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)!=1) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
+            if(mpd_cmp(&Darg1,&Darg2,&Context)!=1) rplPushData(one_bint);
+            else rplPushData(zero_bint);
             return;
         case OVR_GTE:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)!=-1) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
+            if(mpd_cmp(&Darg1,&Darg2,&Context)!=-1) rplPushData(one_bint);
+            else rplPushData(zero_bint);
             return;
         case OVR_SAME:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplNewSINTPush(0,DECBINT);
-            else rplNewSINTPush(1,DECBINT);
+            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplPushData(zero_bint);
+            else rplPushData(one_bint);
             return;
         case OVR_AND:
-            if(mpd_iszero(&Darg1)||mpd_iszero(&Darg2)) rplNewSINTPush(0,DECBINT);
-            else rplNewSINTPush(1,DECBINT);
+            if(mpd_iszero(&Darg1)||mpd_iszero(&Darg2)) rplPushData(zero_bint);
+            else rplPushData(one_bint);
             return;
         case OVR_OR:
-            if(mpd_iszero(&Darg1)&&mpd_iszero(&Darg2)) rplNewSINTPush(0,DECBINT);
-            else rplNewSINTPush(1,DECBINT);
+            if(mpd_iszero(&Darg1)&&mpd_iszero(&Darg2)) rplPushData(zero_bint);
+            else rplPushData(one_bint);
             return;
         case OVR_CMP:
             rplNewSINTPush(mpd_cmp(&Darg1,&Darg2,&Context),DECBINT);

@@ -77,6 +77,32 @@ BINT LIB_TOKENINFO[]=
 };
 #undef OP
 
+// EXECUTE AN OPERATOR, NOT NECESSARILY AN OVERLOADED ONE
+// NO ARGUMENT CHECK! (TO BE DONE BY OPERATOR BEING CALLED)
+
+void rplCallOperator(WORD op)
+{
+    int libnum=LIBNUM(op);
+    if(libnum!=LIBRARY_NUMBER) {
+    LIBHANDLER han=rplGetLibHandler(libnum);
+    if(han) {
+        // EXECUTE THE OTHER LIBRARY DIRECTLY
+        BINT SavedOpcode=CurOpcode;
+        CurOpcode=op;
+        (*han)();
+        if(CurOpcode==op) CurOpcode=SavedOpcode;
+    }
+    else {
+        Exceptions=EX_BADOPCODE;
+        ExceptionPointer=IPtr;
+    }
+    return;
+    }
+    rplCallOvrOperator(op);
+}
+
+
+
 // PERFORM AN INTERNAL CALL TO AN OVERLOADED OPERATOR
 // op IS ONE OF THE OVR_XXX OPERATOR CONSTANTS
 

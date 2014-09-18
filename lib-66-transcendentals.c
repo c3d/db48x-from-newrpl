@@ -19,22 +19,22 @@
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
-    CMD(SIN), \
-    CMD(COS), \
-    CMD(TAN), \
-    CMD(ASIN), \
-    CMD(ACOS), \
-    CMD(ATAN), \
-    CMD(ATAN2), \
-    CMD(LN), \
-    CMD(EXP), \
-    CMD(SINH), \
-    CMD(COSH), \
-    CMD(TANH), \
-    CMD(ASINH), \
-    CMD(ACOSH), \
-    CMD(ATANH), \
-    CMD(SQRT)
+    CMD(SIN,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
+    CMD(COS,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
+    CMD(TAN,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
+    CMD(ASIN,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(ACOS,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(ATAN,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(ATAN2,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
+    CMD(LN,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
+    CMD(EXP,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
+    CMD(SINH,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(COSH,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(TANH,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(ASINH,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
+    CMD(ACOSH,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
+    CMD(ATANH,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
+    CMD(SQRT,MKTOKENINFO(4,TITYPE_FUNCTION,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -52,14 +52,20 @@
 
 
 // CREATE AN ENUM WITH THE OPCODE NAMES FOR THE DISPATCHER
-#define CMD(a) a
+#define CMD(a,b) a
 enum LIB_ENUM { CMD_LIST /*, CMD_EXTRAENUM */, LIB_NUMBEROFCMDS };
 #undef CMD
 
 // AND A LIST OF STRINGS WITH THE NAMES FOR THE COMPILER
-#define CMD(a) #a
+#define CMD(a,b) #a
 char *LIB_NAMES[]= { CMD_LIST /*, CMD_EXTRANAME*/ };
 #undef CMD
+
+#define CMD(a,b) b
+BINT LIB_TOKENINFO[]=
+{
+        CMD_LIST
+};
 
 
 void LIB_HANDLER()
@@ -81,6 +87,15 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
+
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
@@ -107,6 +122,14 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
+
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
@@ -132,6 +155,13 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
@@ -159,6 +189,13 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
         rplReadNumberAsReal(rplPeekData(1),&y);
 
         if(Exceptions) return;
@@ -198,6 +235,13 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
         rplReadNumberAsReal(rplPeekData(1),&y);
 
         if(Exceptions) return;
@@ -240,6 +284,13 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
         rplReadNumberAsReal(rplPeekData(1),&y);
 
         if(Exceptions) return;
@@ -271,6 +322,13 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,2);
+            return;
+        }
+
         rplReadNumberAsReal(rplPeekData(2),&y);
         rplReadNumberAsReal(rplPeekData(1),&x);
 
@@ -299,6 +357,13 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
         rplReadNumberAsReal(rplPeekData(1),&x);
 
         if(Exceptions) return;
@@ -342,6 +407,14 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
@@ -367,6 +440,13 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
@@ -392,6 +472,13 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
@@ -418,6 +505,13 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
@@ -445,6 +539,13 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
         rplReadNumberAsReal(rplPeekData(1),&x);
 
         if(Exceptions) return;
@@ -475,6 +576,13 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
         rplReadNumberAsReal(rplPeekData(1),&x);
 
         if(Exceptions) return;
@@ -510,6 +618,13 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
         rplReadNumberAsReal(rplPeekData(1),&x);
 
         if(Exceptions) return;
@@ -563,6 +678,13 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
         rplReadNumberAsReal(rplPeekData(1),&x);
 
         if(Exceptions) return;
@@ -641,6 +763,33 @@ void LIB_HANDLER()
 
         RetNum=OK_CONTINUE;
         return;
+
+
+    case OPCODE_PROBETOKEN:
+        // PROBETOKEN FINDS A VALID WORD AT THE BEGINNING OF THE GIVEN TOKEN AND RETURNS
+        // INFORMATION ABOUT IT. THIS OPCODE IS MANDATORY
+
+        // COMPILE RECEIVES:
+        // TokenStart = token string
+        // TokenLen = token length
+        // BlankStart = token blanks afterwards
+        // BlanksLen = blanks length
+        // CurrentConstruct = Opcode of current construct/WORD of current composite
+
+        // COMPILE RETURNS:
+        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
+        {
+        libProbeCmds(LIBRARY_NUMBER,LIB_NAMES,LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+
+        return;
+        }
+
+
+    case OPCODE_GETINFO:
+        libGetInfo2(*DecompileObject,LIB_NAMES,LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+        return;
+
     }
     // UNHANDLED OPCODE...
 
