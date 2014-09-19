@@ -690,10 +690,10 @@ BINT rplSymbExplode(WORDPTR object)
 // REASSEMBLE A SYMBOLIC THAT WAS EXPLODED IN THE STACK
 // DOES NOT CHECK FOR VALIDITY OF THE SYMBOLIC!
 
-WORDPTR rplSymbImplode()
+WORDPTR rplSymbImplode(WORDPTR exprstart)
 {
 
-    WORDPTR *stkptr=DSTop-1;
+    WORDPTR *stkptr=exprstart;
     BINT numobjects=1,addcount=0;
     BINT size=0,narg;
 
@@ -714,7 +714,7 @@ WORDPTR rplSymbImplode()
 
     if(!newobject) return NULL;
 
-    stkptr=DSTop-1;
+    stkptr=exprstart;
     newptr=newobject;
     for(f=0;f<numobjects;++f)
     {
@@ -1470,7 +1470,7 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
         return NULL;
     }
 
-    WORDPTR finalsymb=rplSymbImplode();
+    WORDPTR finalsymb=rplSymbImplode(DSTop-1);
 
     DSTop=endofstk+1;
     if(Exceptions) return NULL;
@@ -2499,7 +2499,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
         return NULL;
     }
 
-    WORDPTR finalsymb=rplSymbImplode();
+    WORDPTR finalsymb=rplSymbImplode(DSTop-1);
 
     DSTop=endofstk+1;
     if(Exceptions) return NULL;
@@ -2682,7 +2682,7 @@ void rplSymbRuleApply()
     WORDPTR *rule,*ruleleft,*expr,*endofrule,*endofrun,*endofexpr,*runptr,*ruleptr,*exprptr;
     WORDPTR *saveddstop=DSTop;
     WORDPTR *savedlamtop=LAMTop;
-    BINT match;
+    BINT match,anymatch;
     rplSymbExplode(rplPeekData(2));
     if(Exceptions) { DSTop=saveddstop; LAMTop=savedlamtop; return; }
     expr=DSTop-1;
@@ -2697,6 +2697,7 @@ void rplSymbRuleApply()
     // HERE WE HAVE BOTH SYMBOLICS EXPLODED, BEGIN COMPARISON
 
     runptr=expr;
+    anymatch=0;
 
     while(runptr>endofrun) {
 
@@ -2820,9 +2821,11 @@ void rplSymbRuleApply()
             runptr+=offset;
             rule+=offset;
             expr+=offset;
+            endofrule+=offset;
 
             // NOW SKIP THIS OBJECT TO AVOID APPLYING THE RULE RECURSIVELY
             runptr=rplSymbSkipInStack(runptr);
+            ++anymatch;
             continue;
 
         }
@@ -2833,6 +2836,18 @@ void rplSymbRuleApply()
 
     }
 
+    // REASSEMBLE THE NEW EXPRESSION
+
+    if(anymatch) {
+        WORDPTR newexpr=rplSymbImplode(expr);
+        if(Exceptions) { DSTop=saveddstop; LAMTop=savedlamtop; return; }
+        DSTop=saveddstop-1;
+        rplOverwriteData(1,newexpr);
+    }
+    else {
+        DSTop=saveddstop-1;
+    }
+    LAMTop=savedlamtop;
 }
 
 
