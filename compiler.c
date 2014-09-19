@@ -835,6 +835,14 @@ end_of_expression:
                                         (*(InfixOpTop-3)==INFIX_POSTFIXARG) ||
                                         (*(InfixOpTop-3)==INFIX_PREFIXARG))
                                         rplDecompAppendChar('(');
+                                else
+                                if(*(InfixOpTop-6)==MKOPCODE(LIB_OVERLOADABLE,OVR_POW)) {
+                                    // ALWAYS PARENTHESIZE THE ARGUMENTS OF POWER
+                                    if(TI_TYPE(*(InfixOpTop-1))!=TITYPE_FUNCTION)
+                                        rplDecompAppendChar('(');
+
+                                }
+
                             }
                             else
                         {
@@ -846,7 +854,7 @@ end_of_expression:
 
                           }
                         }
-
+                        else
                         if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(RetNum)) {
                             if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS!
                                 rplDecompAppendChar('(');
@@ -1093,6 +1101,14 @@ end_of_expression:
                                     (*(InfixOpTop-3)==INFIX_POSTFIXARG) ||
                                     (*(InfixOpTop-3)==INFIX_PREFIXARG))
                                     rplDecompAppendChar(')');
+                            else
+                            if(*(InfixOpTop-6)==MKOPCODE(LIB_OVERLOADABLE,OVR_POW)) {
+                                // ALWAYS PARENTHESIZE THE ARGUMENTS OF POWER
+                                if(TI_TYPE(*(InfixOpTop-1))!=TITYPE_FUNCTION)
+                                    rplDecompAppendChar(')');
+
+                            }
+
                     }
                     else
                     {
