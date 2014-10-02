@@ -92,8 +92,6 @@ void growTempOb(WORD newtotalsize)
 void shrinkTempOb(WORD newtotalsize)
 {
     WORDPTR *newtempob;
-    WORD slack=newtotalsize-(WORD)(TempObEnd-TempOb);
-    BINT gc_done=0;
 
     newtotalsize=(newtotalsize+1023)&~1023;
 
@@ -143,8 +141,6 @@ void growTempBlocks(WORD newtotalsize)
 void shrinkTempBlocks(WORD newtotalsize)
 {
     WORDPTR *newtempblocks;
-    WORD slack=newtotalsize-(WORD)(TempBlocksEnd-TempBlocks);
-    BINT gc_done=0;
 
     newtotalsize=(newtotalsize+1023)&~1023;
 

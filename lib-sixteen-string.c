@@ -134,7 +134,7 @@ void LIB_HANDLER()
             return;
         }
         BINT length=STRLEN(*string);
-        WORDPTR newobj=rplCompile(string+1,length,1);
+        WORDPTR newobj=rplCompile((BYTEPTR)(string+1),length,1);
 
         if(!newobj) { ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
 

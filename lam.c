@@ -58,7 +58,7 @@ BINT rplCreateLAM(WORDPTR nameobj,WORDPTR value)
 void rplCreateLAMEnvironment(WORDPTR owner)
 {
     nLAMBase=LAMTop;
-    rplCreateLAM(lam_baseseco_bint,owner);
+    rplCreateLAM((WORDPTR)lam_baseseco_bint,owner);
 }
 
 
@@ -187,14 +187,14 @@ inline WORDPTR *rplGetLAMnName(BINT idx)
 // GET THE CONTENT OF A LAM IN A GIVEN ENVIRONMENT
 inline WORDPTR *rplGetLAMnEnv(WORDPTR LAMEnv,BINT idx)
 {
-    return LAMEnv+2*idx+1;
+    return (WORDPTR *)(LAMEnv+2*idx+1);
 }
 
 // RETURN THE NAME OF THE LAM, INSTEAD OF ITS CONTENTS
 // IN THE GIVEN ENVIRONMENT
 inline WORDPTR *rplGetLAMnNameEnv(WORDPTR LAMEnv,BINT idx)
 {
-    return LAMEnv+2*idx;
+    return (WORDPTR *)(LAMEnv+2*idx);
 }
 
 
@@ -207,11 +207,11 @@ inline void rplPutLAMn(BINT idx,WORDPTR object)
 // COUNT HOW MANY LAMS IN THE GIVEN ENVIRONMENT
 // LAMS ARE NUMBERED FROM 1 TO THE RETURNED NUMBER (INCLUSIVE)
 // IF GIVEN ENVIRONMENT IS NULL, RETURN COUNT ON THE TOP ENVIRONMENT
-BINT rplLAMCount(WORDPTR LAMEnvironment)
+BINT rplLAMCount(WORDPTR *LAMEnvironment)
 {
     // FIND THE END OF THE GIVEN ENVIRONMENT
     if(!LAMEnvironment) LAMEnvironment=nLAMBase;
-    WORDPTR endofenv=LAMEnvironment;
+    WORDPTR *endofenv=LAMEnvironment;
     endofenv+=2;
     while(endofenv<LAMTop) { if(*endofenv==lam_baseseco_bint) break; endofenv+=2; }
     return ((BINT)(endofenv-LAMEnvironment-2))>>1;

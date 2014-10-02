@@ -127,8 +127,10 @@ extern WORD rplObjSize(WORDPTR ip);
 extern WORDPTR rplAllocTempOb(WORD size);
 extern void rplTruncateLastObject(WORDPTR newend);
 extern void growTempOb(WORD newtotalsize);
+extern void shrinkTempOb(WORD newtotalsize);
 extern void rplAddTempBlock(WORDPTR block);
 extern void growTempBlocks(WORD newtotalsize);
+extern void shrinkTempBlocks(WORD newtotalsize);
 
 
 // COMPILER FUNCTIONS IN COMPILER.C
@@ -193,7 +195,7 @@ extern BINT rplNeedNewLAMEnv();
 extern BINT rplNeedNewLAMEnvCompiler();
 extern void rplCompileIDENT(BINT libnum,BYTEPTR tok,BINT len);
 extern BINT rplIsValidIdent(BYTEPTR tok,BINT len);
-extern BINT rplLAMCount(WORDPTR LAMEnvironment);
+extern BINT rplLAMCount(WORDPTR *LAMEnvironment);
 
 
 // GLOBAL VARIABLES AND DIRECTORY FUNCTIONS

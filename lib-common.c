@@ -35,7 +35,8 @@ void libCompileCmds(BINT libnum,char *libnames[],WORD libopcodes[],int numcmds)
 
 void libDecompileCmds(char *libnames[],WORD libopcodes[],int numcmds)
 {
-int opc=OPCODE(*DecompileObject),idx;
+WORD opc=OPCODE(*DecompileObject);
+int idx;
 
 if(libopcodes) {
     for(idx=0;idx<numcmds;++idx)
@@ -57,7 +58,7 @@ RetNum=OK_CONTINUE;
 // STANDARD PROBETOKEN FOR COMMANDS
 // COMMON TO ALL LIBRARIES THAT DEFINE ONLY COMMANDS
 // STARTING TO COUNT FROM COMMAND NUMBER 0
-void libProbeCmds(BINT libnum,char *libnames[],BINT tokeninfo[],int numcmds)
+void libProbeCmds(char *libnames[],BINT tokeninfo[],int numcmds)
 {
     int idx;
     int len;

@@ -122,7 +122,7 @@ while(start!=end) {
 void rplGCollect()
 {
     // FIRST, INITIALIZE THE COLLECTOR
-    WORDPTR EndOfUsedMem,EndOfRStk;
+    WORDPTR EndOfUsedMem,*EndOfRStk;
     int CompileBlock=0;
 
     // MARK THE END OF USED TEMPOB, INCLUDING A PHANTOM BLOCK AFTER TempObEnd

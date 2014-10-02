@@ -104,7 +104,7 @@ enum CompileErrors {
 
 extern void libCompileCmds(BINT libnum, char *libnames[], WORD libopcodes[], int numcmds);
 extern void libDecompileCmds(           char *libnames[], WORD libopcodes[], int numcmds);
-extern void libProbeCmds(BINT libnum, char *libnames[], BINT tokeninfo[], int numcmds);
+extern void libProbeCmds(char *libnames[], BINT tokeninfo[], int numcmds);
 extern void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT tokeninfo[],int numcmds);
 
 

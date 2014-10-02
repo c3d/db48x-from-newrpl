@@ -128,7 +128,6 @@ WORDPTR rplNewBINT(BINT64 num,int base)
 // WRITE AN INTEGER TO THE GIVEN DESTINATION. RETURN A POINTER AFTER THE LAST WRITTEN WORD
 WORDPTR rplWriteBINT(BINT64 num,int base,WORDPTR dest)
 {
-    WORDPTR obj;
 
     if((num>=MIN_SINT)&&(num<=MAX_SINT)) {
         *dest=MKOPCODE(base,num&0x3ffff);

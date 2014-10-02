@@ -203,7 +203,7 @@ void rplInit(void)
     // INITIALIZE THE HOME DIRECTORY
     rplMakeNewDir();
     // INITIALIZE THE SETTINGS DIRECTORY
-    SettingsDir=rplMakeNewDir();
+    SettingsDir=(WORDPTR)rplMakeNewDir();
 
     // CREATE AN EMPTY LIST OF SYSTEM FLAGS
     SystemFlags=rplAllocTempOb(7);  // FOR NOW: 128 SYSTEM FLAGS IN 2 BINTS WITH 64 BITS EACH

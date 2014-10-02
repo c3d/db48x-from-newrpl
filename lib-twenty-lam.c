@@ -229,7 +229,7 @@ void LIB_HANDLER()
 
                 if(ISIDENT(*rplPeekData(1))) {
 
-                    if(LIBNUM(rplPeekData(1)==DOIDENTEVAL)) {
+                    if(LIBNUM(rplPeekData(1))==DOIDENTEVAL) {
 
                    WORDPTR val=rplGetLAM(rplPeekData(1));
                 if(!val) {
@@ -256,7 +256,7 @@ void LIB_HANDLER()
 
                 if(ISIDENT(*rplPeekData(2))) {
 
-                    if(LIBNUM(rplPeekData(2)==DOIDENTEVAL)) {
+                    if(LIBNUM(rplPeekData(2))==DOIDENTEVAL) {
                 WORDPTR val=rplGetLAM(rplPeekData(2));
                 if(!val) {
                     val=rplGetGlobal(rplPeekData(2));
@@ -359,7 +359,7 @@ void LIB_HANDLER()
 
             // CREATE A NEW LAM ENVIRONMENT FOR THIS SECONDARY
             rplCreateLAMEnvironment(rplPeekRet(1));
-            rplPushRet(abnd_prog);                          // PUT ABND IN THE STACK TO DO THE CLEANUP
+            rplPushRet((WORDPTR)abnd_prog);                          // PUT ABND IN THE STACK TO DO THE CLEANUP
             BINT offset=num;
             // NOW CREATE ALL LOCAL VARIABLES
             while(num) {
@@ -408,7 +408,7 @@ void LIB_HANDLER()
                 // A NEW LAM ENVIRONMENT NEEDS TO BE CREATED
                 rplCreateLAMEnvironment(rplPeekRet(1));
                 // AND PUSH THE AUTOMATIC CLEANUP ROUTINE
-                rplPushRet(abnd_prog);
+                rplPushRet((WORDPTR)abnd_prog);
             }
                 // CREATE THE NEW VARIABLE WITHIN THE CURRENT ENVIRONMENT
                 rplCreateLAM(rplPeekData(1),rplPeekData(2));

@@ -133,7 +133,7 @@ void LIB_HANDLER()
                     rplCompileAppend(MKPROLOG(DOSYMB,0));
 
                     if(TokenLen>1) {
-                        NextTokenStart=((char *)TokenStart)+1;
+                        NextTokenStart=(WORDPTR)(((char *)TokenStart)+1);
                     }
                     RetNum=OK_STARTCONSTRUCT_INFIX;
                     return;
@@ -148,7 +148,7 @@ void LIB_HANDLER()
                         rplCompileAppend(MKPROLOG(DOSYMB,0));
 
                         if(TokenLen>1) {
-                            NextTokenStart=((char *)TokenStart)+1;
+                            NextTokenStart=(WORDPTR)(((char *)TokenStart)+1);
                         }
                         RetNum=OK_STARTCONSTRUCT_INFIX;
                         return;
@@ -310,8 +310,8 @@ void LIB_HANDLER()
     {
         BINT len,maxlen;
 
-        for(maxlen=0,len=1;len<TokenLen;++len) {
-            if(rplIsValidIdent(TokenStart,len)) maxlen=len;
+        for(maxlen=0,len=1;len<(BINT)TokenLen;++len) {
+            if(rplIsValidIdent((BYTEPTR)TokenStart,len)) maxlen=len;
             else break;
         }
         if(maxlen>0) RetNum=OK_TOKENINFO | MKTOKENINFO(maxlen,TITYPE_IDENT,0,1);

@@ -261,7 +261,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
                     *ValidateTop++=CompileEnd-1; // POINTER TO THE WORD OF THE COMPOSITE, NEEDED TO STORE THE SIZE
                     infixmode=1;
-                    InfixOpTop=ValidateTop;
+                    InfixOpTop=(WORDPTR)ValidateTop;
                     probe_libnum=-1;
                     probe_tokeninfo=0;
                     libcnt=EXIT_LOOP;
@@ -272,7 +272,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                 if(infixmode) {
                     // FLUSH OUT ANY OPERATORS IN THE STACK
-                    while(InfixOpTop>ValidateTop){
+                    while(InfixOpTop>(WORDPTR)ValidateTop){
                         InfixOpTop-=2;
                         if(TI_TYPE(InfixOpTop[1])==TITYPE_OPENBRACKET) {
                             // MISSING BRACKET SOMEWHERE!
@@ -356,7 +356,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     handler=rplGetLibHandler(probe_libnum);
                     CurOpcode=MKOPCODE(probe_libnum,OPCODE_COMPILE);
 
-                    NextTokenStart=BlankStart=((BYTEPTR)TokenStart)+TI_LENGTH(probe_tokeninfo);
+                    NextTokenStart=BlankStart=(WORDPTR)(((BYTEPTR)TokenStart)+TI_LENGTH(probe_tokeninfo));
                     while( (NextTokenStart<CompileStringEnd) && ((*((char *)NextTokenStart)==' ') || (*((char *)NextTokenStart)=='\t') || (*((char *)NextTokenStart)=='\n') || (*((char *)NextTokenStart)=='\r'))) NextTokenStart=(WORDPTR)(((char *)NextTokenStart)+1);
                     TokenLen=(BINT)((BYTEPTR)BlankStart-(BYTEPTR)TokenStart);
                     BlankLen=(BINT)((BYTEPTR)NextTokenStart-(BYTEPTR)BlankStart);
@@ -440,7 +440,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         if((TI_TYPE(probe_tokeninfo)==TITYPE_CLOSEBRACKET)||(TI_TYPE(probe_tokeninfo)==TITYPE_COMMA)) {
                          // POP ALL OPERATORS OFF THE STACK UNTIL THE OPENING BRACKET IS FOUND
 
-                            while(InfixOpTop>ValidateTop){
+                            while(InfixOpTop>(WORDPTR)ValidateTop){
                                 if((TI_TYPE(*(InfixOpTop-1))==TITYPE_OPENBRACKET)) break;
                                 // POP OPERATORS OFF THE STACK AND APPLY TO OBJECTS
                                 InfixOpTop-=2;
@@ -454,7 +454,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             }
 
 
-                            if(InfixOpTop<=ValidateTop) {
+                            if(InfixOpTop<=(WORDPTR)ValidateTop) {
                                 // OPENING BRACKET NOT FOUND, SYNTAX ERROR
                                     Exceptions|=EX_SYNTAXERROR;
                                     ExceptionPointer=IPtr;
@@ -476,9 +476,9 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
 
                             // CHECK IF THE TOP OF STACK IS A FUNCTION
-                            if(InfixOpTop>ValidateTop) {
+                            if(InfixOpTop>(WORDPTR)ValidateTop) {
                                 if(TI_TYPE(*(InfixOpTop-1))==TITYPE_FUNCTION) {
-                                    if(nargs!=TI_NARGS(*(InfixOpTop-1))) {
+                                    if(nargs!=(BINT)TI_NARGS(*(InfixOpTop-1))) {
                                         Exceptions|=EX_BADARGCOUNT;
                                         ExceptionPointer=IPtr;
                                         LAMTop=LAMTopSaved;
@@ -508,8 +508,8 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         else {
 
                         // IN INFIX MODE, USE RStk AS THE OPERATOR STACK, STARTING AT ValidateTop
-                        while(InfixOpTop>ValidateTop){
-                            if(TI_PRECEDENCE(*(InfixOpTop-1))<TI_PRECEDENCE(probe_tokeninfo)) {
+                        while(InfixOpTop>(WORDPTR)ValidateTop){
+                            if((BINT)TI_PRECEDENCE(*(InfixOpTop-1))<TI_PRECEDENCE(probe_tokeninfo)) {
                             // POP OPERATORS OFF THE STACK AND APPLY TO OBJECTS
                             InfixOpTop-=2;
 
@@ -522,7 +522,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             }
 
                             } else {
-                                if( (TI_TYPE(probe_tokeninfo)==TITYPE_BINARYOP_LEFT)&&(TI_PRECEDENCE(*(InfixOpTop-1))<=TI_PRECEDENCE(probe_tokeninfo)))
+                                if( (TI_TYPE(probe_tokeninfo)==TITYPE_BINARYOP_LEFT)&&((BINT)TI_PRECEDENCE(*(InfixOpTop-1))<=TI_PRECEDENCE(probe_tokeninfo)))
                                 {
                                     InfixOpTop-=2;
 
@@ -725,7 +725,7 @@ WORDPTR rplDecompile(WORDPTR object)
 {
     LIBHANDLER han;
     BINT infixmode=0;
-    WORDPTR InfixOpTop=RSTop;
+    WORDPTR InfixOpTop=(WORDPTR)RSTop;
 
     // START DECOMPILE LOOP
     DecompileObject=object;
@@ -821,7 +821,7 @@ end_of_expression:
                 InfixOpTop+=2;
 
                 // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
-                if( (InfixOpTop-6)>=RSTop) {
+                if( (InfixOpTop-6)>=(WORDPTR)RSTop) {
                     // THERE'S AN OPERATOR IN THE STACK
                     if(ISPROLOG(*(InfixOpTop-6))) {
                         // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
@@ -1087,7 +1087,7 @@ end_of_expression:
             // WE KNOW THIS IS THE LAST ARGUMENT
                 // POP EXPRESSION FROM THE STACK
             // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
-            if( (InfixOpTop-6)>=RSTop) {
+            if( (InfixOpTop-6)>=(WORDPTR)RSTop) {
                 // THERE'S AN OPERATOR IN THE STACK
                 if(ISPROLOG(*(InfixOpTop-6))) {
                     // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
@@ -1155,7 +1155,7 @@ end_of_expression:
             }
 
             // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
-            if( (InfixOpTop-6)>=RSTop) {
+            if( (InfixOpTop-6)>=(WORDPTR)RSTop) {
                 // THERE'S AN OPERATOR IN THE STACK
                 if(ISPROLOG(*(InfixOpTop-6))) {
                     // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS

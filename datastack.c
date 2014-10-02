@@ -108,7 +108,7 @@ WORDPTR *rplProtectData()
     WORDPTR *ret=DStkProtect;
     DStkProtect=DSTop;
     // ADD PROTECTION IN THE STACK FOR RECURSIVE USE
-    rplPushRet(ret);
+    rplPushRet((WORDPTR)ret);
     rplPushRet(unprotect_seco);
     return ret;
 }
@@ -120,7 +120,7 @@ WORDPTR *rplUnprotectData()
     if(rplPeekRet(1)==unprotect_seco) {
         // REMOVE THE PROTECTION FROM THE RETURN STACK
         rplPopRet();
-        DStkProtect=rplPopRet();
+        DStkProtect=(WORDPTR *)rplPopRet();
     } else DStkProtect=DStk;
     return ret;
 }

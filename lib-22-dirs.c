@@ -202,7 +202,7 @@ void LIB_HANDLER()
         if(!var) var=rplFindGlobal(rplPeekData(1),1);
         if(var) {
             rplOverwriteData(1,*(var+1));
-            rplPushData(one_bint);       // PUSH THE NUMBER ONE
+            rplPushData((WORDPTR)one_bint);       // PUSH THE NUMBER ONE
 
             // CALL THE OVERLOADED OPERATOR '+'
 
@@ -245,7 +245,7 @@ void LIB_HANDLER()
     if(!var) var=rplFindGlobal(rplPeekData(1),1);
     if(var) {
         rplOverwriteData(1,*(var+1));
-        rplPushData(one_bint);       // PUSH THE NUMBER ONE
+        rplPushData((WORDPTR)one_bint);       // PUSH THE NUMBER ONE
 
         // CALL THE OVERLOADED OPERATOR '+'
 

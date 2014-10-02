@@ -206,10 +206,10 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR THIS FOR CONSTRUCT
         rplCreateLAMEnvironment(ScratchPointer3);
         rplPushRet(ScratchPointer3);                    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
-        rplPushRet(abnd_prog);                          // PUT ABND IN THE STACK TO DO THE CLEANUP
-        rplCreateLAM(nulllam_ident,rplPeekData(3));
-        rplCreateLAM(nulllam_ident,rplPeekData(2));
-        rplCreateLAM(nulllam_ident,rplPeekData(1));
+        rplPushRet((WORDPTR)abnd_prog);                          // PUT ABND IN THE STACK TO DO THE CLEANUP
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(3));
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2));
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));
         rplCreateLAM(IPtr+1,rplPeekData(3));            // LAM COUNTER INITIALIZED WITH THE STARTING VALUE
 
         // CLEAN THE STACK
@@ -250,11 +250,11 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR THIS FOR CONSTRUCT
         rplCreateLAMEnvironment(ScratchPointer3);
         rplPushRet(ScratchPointer3);                    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
-        rplPushRet(abnd_prog);                          // PUT ABND IN THE STACK TO DO THE CLEANUP
-        rplCreateLAM(nulllam_ident,rplPeekData(3));
-        rplCreateLAM(nulllam_ident,rplPeekData(2));
-        rplCreateLAM(nulllam_ident,rplPeekData(1));
-        rplCreateLAM(nulllam_ident,rplPeekData(3));            // LAM COUNTER INITIALIZED WITH THE STARTING VALUE
+        rplPushRet((WORDPTR)abnd_prog);                          // PUT ABND IN THE STACK TO DO THE CLEANUP
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(3));
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2));
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(3));            // LAM COUNTER INITIALIZED WITH THE STARTING VALUE
         // CLEAN THE STACK
         rplDropData(3);
 
@@ -271,7 +271,7 @@ void LIB_HANDLER()
         // INCREMENT THE COUNTER
 
         rplPushData(*rplGetLAMn(4));     // COUNTER;
-        rplPushData(one_bint);       // PUSH THE NUMBER ONE
+        rplPushData((WORDPTR)one_bint);       // PUSH THE NUMBER ONE
 
         // CALL THE OVERLOADED OPERATOR '+'
 
@@ -370,7 +370,7 @@ void LIB_HANDLER()
 
         // ALWAYS CREATE A TEMPORARY VARIABLE ENVIRONMENT WHEN ENTERING A WHILE LOOP
         rplCreateLAMEnvironment(ScratchPointer3);
-        rplPushRet(abnd_prog);
+        rplPushRet((WORDPTR)abnd_prog);
 
 
 
@@ -416,7 +416,7 @@ void LIB_HANDLER()
         rplPushRet(ScratchPointer3);                    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
         // ALWAYS CREATE A TEMPORARY VARIABLE ENVIRONMENT WHEN ENTERING A WHILE LOOP
         rplCreateLAMEnvironment(ScratchPointer3);
-        rplPushRet(abnd_prog);
+        rplPushRet((WORDPTR)abnd_prog);
 
         rplPushRet(IPtr);                             // PUT THE LOOP CLAUSE IN THE STACK TO DO THE LOOP
 
@@ -806,9 +806,9 @@ void LIB_HANDLER()
         rplCompileIDENT(DOIDENT,(BYTEPTR)TokenStart,TokenLen);
 
         rplCreateLAMEnvironment(ScratchPointer2-1);
-        rplCreateLAM(nulllam_ident,ScratchPointer2);        // NULLLAM FOR THE COMPILER
-        rplCreateLAM(nulllam_ident,ScratchPointer2);        // NULLLAM FOR THE COMPILER
-        rplCreateLAM(nulllam_ident,ScratchPointer2);        // NULLLAM FOR THE COMPILER
+        rplCreateLAM((WORDPTR)nulllam_ident,ScratchPointer2);        // NULLLAM FOR THE COMPILER
+        rplCreateLAM((WORDPTR)nulllam_ident,ScratchPointer2);        // NULLLAM FOR THE COMPILER
+        rplCreateLAM((WORDPTR)nulllam_ident,ScratchPointer2);        // NULLLAM FOR THE COMPILER
         rplCreateLAM(ScratchPointer2,ScratchPointer2);      // LAM COUNTER INITIALIZED WITH THE STARTING VALUE
 
 

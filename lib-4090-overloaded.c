@@ -194,7 +194,7 @@ void LIB_HANDLER()
         RetNum=OK_CONTINUE;
         return;
     case OPCODE_PROBETOKEN:
-        libProbeCmds(LIBRARY_NUMBER,LIB_NAMES,LIB_TOKENINFO,LIB_NUMCMDS);
+        libProbeCmds(LIB_NAMES,LIB_TOKENINFO,LIB_NUMCMDS);
         return;
     case OPCODE_GETINFO:
         // MANUALLY RETURN INFO FOR UNARY PLUS AND MINUS
