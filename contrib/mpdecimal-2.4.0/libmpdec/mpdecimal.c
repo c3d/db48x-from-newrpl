@@ -4177,7 +4177,7 @@ _mpd_get_exp_iterations(const mpd_t *r, mpd_ssize_t p)
      *    2) exp-iter-approx-upper-bound: The term below is less than
      *       or equal to 3/2 * p <= 3/2 * 2**52.
      */
-    n = (mpd_ssize_t)ceil((1.43503*(double)p - 1.182) / (double)log10pbyr);
+    n = (mpd_ssize_t)((1.43503*(double)p - 1.182) / (double)log10pbyr)+1;
     return n >= 3 ? n : 3;
 }
 
@@ -7879,7 +7879,7 @@ malloc_error:
 /******************************************************************************/
 /*                              Base conversions                              */
 /******************************************************************************/
-
+#ifndef SLIM_MPD
 /* Space needed to represent an integer mpd_t in base 'base'. */
 size_t
 mpd_sizeinbase(const mpd_t *a, uint32_t base)
@@ -7926,6 +7926,7 @@ _mpd_importsize(size_t srclen, uint32_t base)
     x = (double)srclen * (log10(base)/MPD_RDIGITS);
     return (x >= MPD_MAXIMPORT) ? MPD_SSIZE_MAX : (mpd_ssize_t)x + 1;
 }
+
 
 static uint8_t
 mpd_resize_u16(uint16_t **w, size_t current, size_t nmemb)
@@ -8452,5 +8453,5 @@ mpd_qimport_u32(mpd_t *result,
     mpd_qfinalize(result, ctx, status);
 }
 
-
+#endif
 

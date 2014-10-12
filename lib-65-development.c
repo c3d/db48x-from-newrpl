@@ -79,7 +79,7 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
-
+/*
     case TRANSCENTABLE:
         // TERMPORARY USE ONLY, CONVERT A REAL AS A 'C' STRING OF 32-BIT WORDS
         // FORMAT IS: EXPONENT, NUM.WORDS, MANTISA0 , ... ALL MANTISSA WORDS.
@@ -110,7 +110,9 @@ void LIB_HANDLER()
         WORDPTR string=rplAllocTempOb(strsize);
         if(!string) return;
         BYTEPTR strptr=(BYTEPTR) &(string[1]);
-        BINT charswritten=sprintf((char *)strptr,"%d, /* %d WORDS */ ",RReg[0].exp,RReg[0].len);
+*/
+//        BINT charswritten=sprintf((char *)strptr,"%d, /* %d WORDS */ ",RReg[0].exp,RReg[0].len);
+/*
         strptr+=charswritten;
         int count;
         for(count=0;count<RReg[0].len;++count)
@@ -176,6 +178,7 @@ void LIB_HANDLER()
         rplDropData(1);
         return;
         }
+        */
     case CLN:
     {
         mpd_t x;

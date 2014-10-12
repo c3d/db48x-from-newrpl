@@ -81,6 +81,12 @@ _mpd_strneq(const char *s, const char *l, const char *u, size_t n)
  * occurs without trailing [edigits], the condition is caught
  * later by strtoexp().
  */
+
+#define internal_isdigit(c) ( ((c)>='0') && ((c)<='9'))
+
+
+
+
 static const char *
 scan_dpoint_exp2(const char *s, const char *send, const char **dpoint, const char **exp,
                 const char **end)
@@ -104,13 +110,13 @@ scan_dpoint_exp2(const char *s, const char *send, const char **dpoint, const cha
                 s++;
             break;
         default:
-            if (!isdigit((uchar)*s))
+            if (!internal_isdigit((uchar)*s))
                 return NULL;
             if (coeff == NULL && *exp == NULL) {
                 if (*s == '0') {
-                    if (!isdigit((uchar)*(s+1)))
+                    if (!internal_isdigit((uchar)*(s+1)))
                         if (!(*(s+1) == '.' &&
-                              isdigit((uchar)*(s+2))))
+                              internal_isdigit((uchar)*(s+2))))
                             coeff = s;
                 }
                 else {
@@ -140,7 +146,7 @@ scan_payload(const char *s, const char **end)
         s++;
     coeff = s;
 
-    while (isdigit((uchar)*s))
+    while ( (*s>='0') && (*s<='9'))
         s++;
     *end = s;
 

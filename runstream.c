@@ -267,6 +267,7 @@ void rplInit(void)
 }
 
 // FOR DEBUG ONLY: SHOW STATUS OF THE EXECUTION ENVIRONMENT
+#ifndef NDEBUG
 extern mpd_uint_t MPD_RegistersUsed;
 void rplShowRuntimeState(void)
 {
@@ -279,3 +280,4 @@ void rplShowRuntimeState(void)
     printf("Directories=%d words (%d allocated)\n",(WORD)(DirsTop-Directories),DirSize);
     if(MPD_RegistersUsed) printf("************* MPD Memory leak!!!\n");
 }
+#endif

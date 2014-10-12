@@ -35,7 +35,7 @@ export OBJS= $(SRCS:.c=.o)
 # Common flags
 export ARM_ELF_CFLAGS= -mtune=arm920t -mcpu=arm920t \
 	-mlittle-endian -fomit-frame-pointer -msoft-float -Wall \
-	-Os -pipe -mthumb-interwork -I$(INCLUDE_PATH1) -I$(INCLUDE_PATH2)
+	-Os -pipe -D NDEBUG -D SLIM_MPD -mthumb-interwork -I$(INCLUDE_PATH1) -I$(INCLUDE_PATH2)
 
 export ARM_ELF_ASFLAGS= -EL -k -mcpu=arm920t -mno-fpu -mthumb-interwork
 
@@ -49,8 +49,7 @@ libnewrpl.a : $(OBJS)
 	$(AR) -r libnewrpl.a $(OBJS)
 
 clean:
-	-@rm -f *.o *.a
-	@for I in ${DIR_LIST}; do cd $$I && $(MAKE) $@ && cd ..; done;
+	-@rm -f $(OBJS) *.a
 
 	
 install: all

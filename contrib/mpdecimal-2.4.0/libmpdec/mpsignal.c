@@ -31,6 +31,7 @@
 
 /* Signaling wrappers for the quiet functions in mpdecimal.c. */
 
+#ifndef SLIM_MPD
 
 char *
 mpd_format(const mpd_t *dec, const char *fmt, mpd_context_t *ctx)
@@ -41,6 +42,7 @@ mpd_format(const mpd_t *dec, const char *fmt, mpd_context_t *ctx)
 	mpd_addstatus_raise(ctx, status);
 	return ret;
 }
+
 
 void
 mpd_import_u16(mpd_t *result, const uint16_t *srcdata, size_t srclen,
@@ -82,6 +84,8 @@ mpd_export_u32(uint32_t **rdata, size_t rlen, uint32_t base, const mpd_t *src,
 	return n;
 }
 
+#endif
+
 void
 mpd_finalize(mpd_t *result, mpd_context_t *ctx)
 {
@@ -112,6 +116,9 @@ mpd_check_nans(mpd_t *result, const mpd_t *a, const mpd_t *b, mpd_context_t *ctx
 	return 0;
 }
 
+#ifndef SLIM_MPD
+
+
 void
 mpd_set_string(mpd_t *result, const char *s, mpd_context_t *ctx)
 {
@@ -119,6 +126,8 @@ mpd_set_string(mpd_t *result, const char *s, mpd_context_t *ctx)
 	mpd_qset_string(result, s, ctx, &status);
 	mpd_addstatus_raise(ctx, status);
 }
+
+#endif
 
 void
 mpd_maxcoeff(mpd_t *result, mpd_context_t *ctx)

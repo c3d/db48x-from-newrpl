@@ -48,18 +48,21 @@ void (* mpd_traphandler)(mpd_context_t *) = mpd_dflt_traphandler;
 void
 mpd_setminalloc(mpd_ssize_t n)
 {
-    static int minalloc_is_set = 0;
 
-    if (minalloc_is_set) {
-        mpd_err_warn("mpd_setminalloc: ignoring request to set "
-                     "MPD_MINALLOC a second time\n");
-        return;
-    }
-    if (n < MPD_MINALLOC_MIN || n > MPD_MINALLOC_MAX) {
-        mpd_err_fatal("illegal value for MPD_MINALLOC"); /* GCOV_NOT_REACHED */
-    }
+
+//   static int minalloc_is_set = 0;
+
+//    if (minalloc_is_set) {
+//        mpd_err_warn("mpd_setminalloc: ignoring request to set "
+//                     "MPD_MINALLOC a second time\n");
+//        return;
+//    }
+//    if (n < MPD_MINALLOC_MIN || n > MPD_MINALLOC_MAX) {
+//        mpd_err_fatal("illegal value for MPD_MINALLOC"); /* GCOV_NOT_REACHED */
+//    }
+
     MPD_MINALLOC = n;
-    minalloc_is_set = 1;
+//    minalloc_is_set = 1;
 }
 
 void

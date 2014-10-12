@@ -750,7 +750,7 @@ void mpd_copy_flags(mpd_t *result, const mpd_t *a);
 /******************************************************************************/
 /*                              Error Macros                                  */
 /******************************************************************************/
-
+#ifndef NDEBUG
 #define mpd_err_fatal(...) \
     do {fprintf(stderr, "%s:%d: error: ", __FILE__, __LINE__); \
         fprintf(stderr, __VA_ARGS__);  fputc('\n', stderr);    \
@@ -760,7 +760,13 @@ void mpd_copy_flags(mpd_t *result, const mpd_t *a);
     do {fprintf(stderr, "%s:%d: warning: ", __FILE__, __LINE__); \
         fprintf(stderr, __VA_ARGS__); fputc('\n', stderr);       \
     } while (0)
+#else
+#define mpd_err_fatal(...)
 
+#define mpd_err_warn(...)
+
+
+#endif
 
 /******************************************************************************/
 /*                            Memory handling                                 */

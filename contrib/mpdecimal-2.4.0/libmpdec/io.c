@@ -41,6 +41,7 @@
 #include "typearith.h"
 #include "io.h"
 
+#ifndef SLIM_MPD
 
 /* This file contains functions for decimal <-> string conversions, including
    PEP-3101 formatting for numeric types. */
@@ -1573,3 +1574,4 @@ mpd_print(const mpd_t *dec)
 }
 
 
+#endif
