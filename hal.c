@@ -13,7 +13,7 @@
 
 
 // NEWSIZE IS IN 32-BIT WORDS!
-WORDPTR *hal_growmem(WORDPTR *base, BINT newsize)
+WORDPTR *halGrowMemory(WORDPTR *base, BINT newsize)
 {
     if(!base) return  malloc(MAX_RAM);
     else {
@@ -28,15 +28,4 @@ WORDPTR *hal_growmem(WORDPTR *base, BINT newsize)
 #endif
 
 
-#ifdef TARGET_50G
-
-// NEWSIZE IS IN 32-BIT WORDS!
-WORDPTR *hal_growmem(WORDPTR *base,BINT newsize)
-{
-// TODO: ALLOCATE RAM PAGES TO THIS REGION
-
-}
-
-
-
-#endif
+// FOR OTHER TARGETS, THIS FUNCTION WILL BE SUPPLIED BY THE FIRMWARE

@@ -49,7 +49,7 @@ libnewrpl.a : $(OBJS)
 	$(AR) -r libnewrpl.a $(OBJS)
 
 clean:
-	-@rm -f $(OBJS) *.a
+	@rm -f $(OBJS) *.a
 
 	
 install: all

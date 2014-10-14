@@ -41,7 +41,20 @@
 #include "typearith.h"
 #include "io.h"
 
-#ifndef SLIM_MPD
+#ifdef SLIM_MPD
+// DO THIS TO PREVENT PULLING ALL LOCALIZATION DEPENDENCIES
+#undef isdigit
+#define internal_isdigit(c) ( ((c)>='0') && ((c)<='9'))
+#define isdigit(a) internal_isdigit(a)
+
+#undef isupper
+#define isupper(c) (((c)>='A') && ((c)<='Z'))
+#define tolower(c) ( (isupper(c))? ((c)+32):(c))
+
+#endif
+
+
+
 
 /* This file contains functions for decimal <-> string conversions, including
    PEP-3101 formatting for numeric types. */
@@ -861,6 +874,7 @@ mpd_parse_fmt_str(mpd_spec_t *spec, const char *fmt, int caps)
         spec->type = *cp++;
     }
     else if (*cp == 'N' || *cp == 'n') {
+#ifndef SLIM_MPD
         /* locale specific conversion */
         struct lconv *lc;
         /* separator has already been specified */
@@ -876,6 +890,7 @@ mpd_parse_fmt_str(mpd_spec_t *spec, const char *fmt, int caps)
         if (mpd_validate_lconv(spec) < 0) {
             return 0; /* GCOV_NOT_REACHED */
         }
+#endif
     }
 
     /* check correctness */
@@ -1386,6 +1401,8 @@ mpd_qformat(const mpd_t *dec, const char *fmt, const mpd_context_t *ctx,
 
     return mpd_qformat_spec(dec, &spec, ctx, status);
 }
+
+#ifndef SLIM_MPD
 
 /*
  * The specification has a *condition* called Invalid_operation and an

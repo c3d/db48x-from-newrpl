@@ -20,7 +20,7 @@ void growLAMs(WORD newtotalsize)
     do {
     newtotalsize=(newtotalsize+1023)&~1023;
 
-    newlam=hal_growmem(LAMs,newtotalsize);
+    newlam=halGrowMemory(LAMs,newtotalsize);
 
     if(!newlam) {
         if(!gc_done) { rplGCollect(); ++gc_done; }

@@ -34,7 +34,7 @@ void growDirs(WORD newtotalsize)
     do {
     newtotalsize=(newtotalsize+1023)&~1023;
 
-    newdir=hal_growmem(Directories,newtotalsize);
+    newdir=halGrowMemory(Directories,newtotalsize);
 
     if(!newdir) {
         if(!gc_done) { rplGCollect(); ++gc_done; }
