@@ -15,6 +15,7 @@
 #define LIB_ENUM lib66_enum
 #define LIB_NAMES lib66_names
 #define LIB_HANDLER lib66_handler
+#define LIB_TOKENINFO lib66_tokeninfo
 #define LIB_NUMBEROFCMDS LIB66_NUMBEROFCMDS
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
@@ -58,11 +59,11 @@ enum LIB_ENUM { CMD_LIST /*, CMD_EXTRAENUM */, LIB_NUMBEROFCMDS };
 
 // AND A LIST OF STRINGS WITH THE NAMES FOR THE COMPILER
 #define CMD(a,b) #a
-char *LIB_NAMES[]= { CMD_LIST /*, CMD_EXTRANAME*/ };
+const char * const LIB_NAMES[]= { CMD_LIST /*, CMD_EXTRANAME*/ };
 #undef CMD
 
 #define CMD(a,b) b
-BINT LIB_TOKENINFO[]=
+const BINT const LIB_TOKENINFO[]=
 {
         CMD_LIST
 };

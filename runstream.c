@@ -125,7 +125,6 @@ void rplCopyObject(WORDPTR dest, WORDPTR src)
 }
 
 
-extern LIBHANDLER ROMLibs[];
 // INITIALIZE THE RPL MACHINE
 void rplInit(void)
 {

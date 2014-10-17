@@ -49,6 +49,7 @@
 
 #undef isupper
 #define isupper(c) (((c)>='A') && ((c)<='Z'))
+#undef tolower
 #define tolower(c) ( (isupper(c))? ((c)+32):(c))
 
 #endif

@@ -6,6 +6,7 @@
  */
 
 #include "newrpl.h"
+#include "hal.h"
 
 // EXTERNAL RPL MACHINE REGISTERS
 
@@ -62,6 +63,6 @@ mpd_context_t Context;
 // PREALLOCATED STATIC REAL NUMBER REGISTERS FOR TEMPORARY STORAGE
 mpd_t RReg[REAL_REGISTERS];
 // TEMPORARY SCRATCH MEMORY FOR DIGITS
-mpd_uint_t RDigits[REAL_SCRATCHMEM];
+mpd_uint_t SCRATCH_MEMORY RDigits[REAL_SCRATCHMEM];
 
 BINT BINT2RealIdx;

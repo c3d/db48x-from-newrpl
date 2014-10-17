@@ -13,7 +13,7 @@
 
 
 // NEWSIZE IS IN 32-BIT WORDS!
-WORDPTR *halGrowMemory(WORDPTR *base, BINT newsize)
+WORDPTR *halGrowMemory(BINT zone, WORDPTR *base, BINT newsize)
 {
     if(!base) return  malloc(MAX_RAM);
     else {

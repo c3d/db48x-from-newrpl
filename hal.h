@@ -14,13 +14,31 @@
 
 #define MAX_RAM 16*1024    // 64KBYTES PER AREA = 6*64 TOTAL
 
+#define SCRATCH_MEMORY
+#define PERSISTENT_MEMORY
+
+#else
+
+#define SCRATCH_MEMORY __attribute__((section (".scratch_memory")))
+#define PERSISTENT_MEMORY __attribute__((section (".persistent_memory")))
+
 #endif
 
 // PULL IN ALL TYPE DEFINITIONS
 #include "newrpl.h"
 
+enum {
+    MEM_AREA_RSTK=0,
+    MEM_AREA_DSTK,
+    MEM_AREA_DIR,
+    MEM_AREA_LAM,
+    MEM_AREA_TEMPOB,
+    MEM_AREA_TEMPBLOCKS
+};
+
+
 // COMMON DEFINITIONS FOR ALL HARDWARE PLATFORMS
-WORDPTR *halGrowMemory(WORDPTR *base,BINT newsize);
+WORDPTR *halGrowMemory(BINT zone,WORDPTR *base,BINT newsize);
 
 
 #endif // HAL_H

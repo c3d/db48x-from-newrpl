@@ -19,7 +19,7 @@ void growRStk(WORD newtotalsize)
     do {
     newtotalsize=(newtotalsize+1023)&~1023;
 
-    newrstk=halGrowMemory(RStk,newtotalsize);
+    newrstk=halGrowMemory(MEM_AREA_RSTK,RStk,newtotalsize);
 
     if(!newrstk) {
         if(!gc_done) { rplGCollect(); ++gc_done; }

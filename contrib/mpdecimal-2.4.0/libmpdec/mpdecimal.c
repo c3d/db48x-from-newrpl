@@ -84,8 +84,8 @@
                       a->exp, a->digits, a->len, a->alloc, a->data}
 
 
-static mpd_uint_t data_one[1] = {1};
-static mpd_uint_t data_zero[1] = {0};
+static const mpd_uint_t data_one[1] = {1};
+static const mpd_uint_t data_zero[1] = {0};
 static const mpd_t one = {MPD_STATIC|MPD_CONST_DATA, 0, 1, 1, 1, data_one};
 static const mpd_t minus_one = {MPD_NEG|MPD_STATIC|MPD_CONST_DATA, 0, 1, 1, 1,
                                 data_one};

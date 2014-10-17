@@ -216,8 +216,8 @@ enum {
 
 enum { MPD_CLAMP_DEFAULT, MPD_CLAMP_IEEE_754, MPD_CLAMP_GUARD };
 
-extern const char *mpd_round_string[MPD_ROUND_GUARD];
-extern const char *mpd_clamp_string[MPD_CLAMP_GUARD];
+extern const char * const mpd_round_string[MPD_ROUND_GUARD];
+extern const char * const mpd_clamp_string[MPD_CLAMP_GUARD];
 
 
 typedef struct mpd_context_t {

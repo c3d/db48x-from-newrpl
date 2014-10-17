@@ -10,15 +10,15 @@
 #include "libraries.h"
 
 
-WORD dir_start_bint[]=
+const WORD const dir_start_bint[]=
 {
     (WORD)DIR_START_MARKER
 };
-WORD dir_end_bint[]=
+const WORD const dir_end_bint[]=
 {
     (WORD)DIR_END_MARKER
 };
-WORD dir_parent_bint[]=
+const WORD const dir_parent_bint[]=
 {
     (WORD)DIR_PARENT_MARKER
 };
@@ -34,7 +34,7 @@ void growDirs(WORD newtotalsize)
     do {
     newtotalsize=(newtotalsize+1023)&~1023;
 
-    newdir=halGrowMemory(Directories,newtotalsize);
+    newdir=halGrowMemory(MEM_AREA_DIR,Directories,newtotalsize);
 
     if(!newdir) {
         if(!gc_done) { rplGCollect(); ++gc_done; }

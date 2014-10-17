@@ -28,7 +28,7 @@ typedef union {
     };
 } REAL_HEADER;
 
-mpd_context_t CompileContext = {
+const mpd_context_t CompileContext = {
     .prec=REAL_PRECISION_MAX,
     .emax=REAL_EXPONENT_MAX,
     .emin=REAL_EXPONENT_MIN,

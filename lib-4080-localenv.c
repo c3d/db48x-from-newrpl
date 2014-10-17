@@ -42,7 +42,7 @@ enum LIB_ENUM {  CMD_EXTRAENUM , LIB_NUMBEROFCMDS };
 
 // AND A LIST OF STRINGS WITH THE NAMES FOR THE COMPILER
 #define CMD(a) #a
-char *LIB_NAMES[]= {  CMD_EXTRANAME  };
+const char * const LIB_NAMES[]= {  CMD_EXTRANAME  };
 #undef CMD
 
 

@@ -32,9 +32,9 @@
 
 #define MAXLOWLIBS  256
 #define MAXHILIBS   256
-extern LIBHANDLER ROMLibs[];
-extern LIBHANDLER ROMLibs2[];
-extern BINT ROMLibs2Num[];
+extern const LIBHANDLER const ROMLibs[];
+extern const LIBHANDLER const ROMLibs2[];
+extern const BINT const ROMLibs2Num[];
 
 
 // USEFUL MACROS

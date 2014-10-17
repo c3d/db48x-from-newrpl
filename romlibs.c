@@ -64,7 +64,7 @@ switch(OPCODE(CurOpcode))
 
 // THIS IS THE LIST OF ALL PRE-INSTALLED LIBRARIES IN THIS ROM
 
-LIBHANDLER ROMLibs[]={
+const LIBHANDLER const ROMLibs[]={
     dummy_libhandler,
     dummy_libhandler,
     lib2_handler,
@@ -168,13 +168,13 @@ LIBHANDLER ROMLibs[]={
 
 // HIGH LIBRARIES
 
-LIBHANDLER ROMLibs2[]={
+const LIBHANDLER const ROMLibs2[]={
     lib4080_handler,
     lib4090_handler,
     0
 };
 
-BINT ROMLibs2Num[]={
+const BINT const ROMLibs2Num[]={
     4080,
     4090,
     0

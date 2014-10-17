@@ -58,20 +58,20 @@
 
 
 #define OP(a,b) OVRT_ ## a
-char *LIB_NAMES[]=
+const char * const LIB_NAMES[]=
 {
         OP_LIST
 };
 #undef OP
 
 #define OP(a,b) OVR_ ## a
-WORD LIB_OPCODES[]=
+const WORD const LIB_OPCODES[]=
 {
         OP_LIST
 };
 #undef OP
 #define OP(a,b) b
-BINT LIB_TOKENINFO[]=
+const BINT const LIB_TOKENINFO[]=
 {
         OP_LIST
 };

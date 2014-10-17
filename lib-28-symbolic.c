@@ -62,7 +62,7 @@ enum LIB_ENUM { CMD_EXTRAENUM , CMD_LIST ,  LIB_NUMBEROFCMDS };
 
 // AND A LIST OF STRINGS WITH THE NAMES FOR THE COMPILER
 #define CMD(a) #a
-char *LIB_NAMES[]= { CMD_EXTRANAME, CMD_LIST   };
+const char * const LIB_NAMES[]= { CMD_EXTRANAME, CMD_LIST   };
 #undef CMD
 
 const WORD const symbeval_seco[]={

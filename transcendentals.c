@@ -17,37 +17,37 @@
  */
 
 // TRANSCENDENTAL FUNCTIONS TABLES
-extern uint32_t atan_1_dict[];
-extern uint16_t atan_1_offsets[];
-extern uint8_t  atan_1_stream[];
+extern const uint32_t atan_1_dict[];
+extern const uint16_t atan_1_offsets[];
+extern const uint8_t  atan_1_stream[];
 
-extern uint32_t atan_2_dict[];
-extern uint16_t atan_2_offsets[];
-extern uint8_t  atan_2_stream[];
+extern const uint32_t atan_2_dict[];
+extern const uint16_t atan_2_offsets[];
+extern const uint8_t  atan_2_stream[];
 
-extern uint32_t atan_5_dict[];
-extern uint16_t atan_5_offsets[];
-extern uint8_t  atan_5_stream[];
+extern const uint32_t atan_5_dict[];
+extern const uint16_t atan_5_offsets[];
+extern const uint8_t  atan_5_stream[];
 
-extern uint32_t atanh_1_dict[];
-extern uint16_t atanh_1_offsets[];
-extern uint8_t  atanh_1_stream[];
+extern const uint32_t atanh_1_dict[];
+extern const uint16_t atanh_1_offsets[];
+extern const uint8_t  atanh_1_stream[];
 
-extern uint32_t atanh_2_dict[];
-extern uint16_t atanh_2_offsets[];
-extern uint8_t  atanh_2_stream[];
+extern const uint32_t atanh_2_dict[];
+extern const uint16_t atanh_2_offsets[];
+extern const uint8_t  atanh_2_stream[];
 
-extern uint32_t atanh_5_dict[];
-extern uint16_t atanh_5_offsets[];
-extern uint8_t  atanh_5_stream[];
+extern const uint32_t atanh_5_dict[];
+extern const uint16_t atanh_5_offsets[];
+extern const uint8_t  atanh_5_stream[];
 
-extern uint32_t cordic_K_dict[];
-extern uint16_t cordic_K_offsets[];
-extern uint8_t  cordic_K_stream[];
+extern const uint32_t cordic_K_dict[];
+extern const uint16_t cordic_K_offsets[];
+extern const uint8_t  cordic_K_stream[];
 
-extern uint32_t cordic_Kh_dict[];
-extern uint16_t cordic_Kh_offsets[];
-extern uint8_t  cordic_Kh_stream[];
+extern const uint32_t cordic_Kh_dict[];
+extern const uint16_t cordic_Kh_offsets[];
+extern const uint8_t  cordic_Kh_stream[];
 
 
 // TRANSCENDENTAL CONSTANTS
@@ -363,10 +363,13 @@ static void atan_5_table(int exponent,mpd_t *real)
 // TAKES INITIAL PARAMETERS IN RREG[0], RREG[1] AND RREG[2]
 // RETURNS RESULTS IN RREG[5], RREG[6], RREG[7]
 
+typedef void (*hypfuncptr)(int,mpd_t *);
+
+
 static void CORDIC_Rotational(int digits,int startindex)
 {
-int sequence[4]={5,2,2,1};
-void (*functions[4])(int,mpd_t *)={atan_5_table,atan_2_table,atan_2_table,atan_1_table};
+const int sequence[4]={5,2,2,1};
+const hypfuncptr functions[4]={atan_5_table,atan_2_table,atan_2_table,atan_1_table};
 int startidx=(startindex)? 0:3;
 int exponent;
 uint32_t status;
@@ -597,7 +600,7 @@ void trig_sincos(mpd_t *angle)
 static void CORDIC_Vectoring(int digits,int startindex)
 {
 int sequence[4]={5,2,2,1};
-void (*functions[4])(int,mpd_t *)={atan_5_table,atan_2_table,atan_2_table,atan_1_table};
+const hypfuncptr functions[4]={atan_5_table,atan_2_table,atan_2_table,atan_1_table};
 int startidx=startindex? 0:3;
 int exponent;
 uint32_t status;
@@ -914,7 +917,7 @@ static void atanh_5_table(int exponent,mpd_t *real)
 // TAKES INITIAL PARAMETERS IN RREG[0], RREG[1] AND RREG[2]
 // RETURNS RESULTS IN RREG[5], RREG[6], RREG[7]
 
-void (*functions[4])(int,mpd_t *)={atanh_5_table,atanh_2_table,atanh_2_table,atanh_1_table};
+//void (*functions[4])(int,mpd_t *)={atanh_5_table,atanh_2_table,atanh_2_table,atanh_1_table};
 
 static void CORDIC_Hyp_Rotational_unrolled(int digits,int startexp)
 {
