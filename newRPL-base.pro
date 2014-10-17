@@ -2,6 +2,8 @@ TEMPLATE = app
 CONFIG += console
 CONFIG -= qt
 
+DEFINES += "TARGET_PC_SIMULATOR=1"
+
 SOURCES += main.cpp \
     runstream.c \
     hal.c \
