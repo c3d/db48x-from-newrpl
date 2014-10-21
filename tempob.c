@@ -65,7 +65,7 @@ void growTempOb(WORD newtotalsize)
 
     } while(!newtempob);
 
-        if(((WORDPTR *)TempOb)!=newtempob) {
+    if(TempOb && (((WORDPTR *)TempOb)!=newtempob)) {
             // TEMPOB HAD TO BE MOVED IN MEMORY
             // FIX ALL DSTK/RSTK/TEMPBLOCKS/DIRECTORIES/LAMS POINTERS
 

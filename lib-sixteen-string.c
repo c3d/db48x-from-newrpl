@@ -67,7 +67,11 @@ const char * const LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME  };
 #define STRLEN(prolog) ((OBJSIZE(prolog)<<2)-(LIBNUM(prolog)&3))
 
 
-
+BINT rplStrLen(WORDPTR string)
+{
+    if(ISSTRING(*string))  return STRLEN(*string);
+    return 0;
+}
 
 
 
