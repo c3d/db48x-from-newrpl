@@ -96,7 +96,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *val=rplFindLAM(rplPeekData(1),0);
+        WORDPTR *val=rplFindLAM(rplPeekData(1),1);
 
 
 

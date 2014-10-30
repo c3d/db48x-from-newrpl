@@ -61,9 +61,11 @@ void rplRun(void)
         }
         else {
             // THERE IS NO ERROR HANDLER --> UNTRAPPED ERROR
+            if(!(Exceptions&EX_BKPOINT)) {  // DON'T CLEANUP IF A BREAKPOINT WAS REACHED
                 rplClearRStk(); // CLEAR THE RETURN STACK
                 rplClearLAMs(); // CLEAR ALL LOCAL VARIABLES
-
+            }
+            else rplSkipNext(); // PREPARE TO RESUME ON NEXT CALL
             return;      // END EXECUTION IMMEDIATELY IF AN UNHANDLED EXCEPTION IS THROWN
         }
     }
