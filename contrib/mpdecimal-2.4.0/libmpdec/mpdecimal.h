@@ -771,11 +771,11 @@ void mpd_copy_flags(mpd_t *result, const mpd_t *a);
 /******************************************************************************/
 /*                            Memory handling                                 */
 /******************************************************************************/
-
-extern void *(* mpd_mallocfunc)(size_t size);
-extern void *(* mpd_callocfunc)(size_t nmemb, size_t size);
-extern void *(* mpd_reallocfunc)(void *ptr, size_t current, size_t size);
-extern void (* mpd_free)(void *ptr);
+#define __READ_ONLY__ __attribute__((section (".rodata")))
+extern void * __READ_ONLY__ (* mpd_mallocfunc)(size_t size);
+extern void * __READ_ONLY__ (* mpd_callocfunc)(size_t nmemb, size_t size);
+extern void * __READ_ONLY__ (* mpd_reallocfunc)(void *ptr, size_t current, size_t size);
+extern void __READ_ONLY__ (* mpd_free)(void *ptr);
 
 void *mpd_callocfunc_em(size_t nmemb, size_t size);
 

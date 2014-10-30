@@ -13,7 +13,7 @@
 #define EXIT_LOOP -1000
 
 BINT64 RPLTicks=0;
-
+WORD RPLLastOpcode;
 
 // GET A HANDLER FOR A LIBRARY
 // IT'S FAST FOR SYSTEM LIBRARIES, MUCH SLOWER FOR USER LIBS
@@ -46,7 +46,7 @@ void rplRun(void)
     LIBHANDLER han;
 
     do {
-    CurOpcode=*IPtr;
+    RPLLastOpcode=CurOpcode=*IPtr;
 
     if(CurOpcode==CMD_EXITRPL)
         return;  // END OF EXECUTION
@@ -129,12 +129,17 @@ void rplCopyObject(WORDPTR dest, WORDPTR src)
 void rplInit(void)
 {
 
+    int k;
+    for(k=0;k<MAX_GC_PTRUPDATE;++k) GC_PTRUpdate[k]=0;  // CLEAN UP ALL GC SAFE POINTERS
+
+
     RStk=0;
     DStk=0;
     Directories=0;
     LAMs=0;
     TempOb=0;
     TempBlocks=0;
+    TempBlocksEnd=0;
 
     IPtr=0;  // INSTRUCTION POINTER SHOULD BE SET LATER TO A VALID RUNSTREAM
     CurOpcode=0; // CURRENT OPCODE (WORD)
@@ -286,6 +291,7 @@ void rplWarmInit(void)
     CurrentDir=Directories; // SET CURRENT DIRECTORY TO HOME
     ErrorHandler=0;       // INITIALLY THERE'S NO ERROR HANDLER, AN EXCEPTION WILL EXIT THE RPL LOOP
 
+
     // CLEAR ALL INSTALLED LIBRARIES
     int count;
     for(count=0;count<MAXLOWLIBS;++count)
@@ -320,6 +326,7 @@ void rplWarmInit(void)
 
     // INITIALIZE THE FLOATING POINT CONTEXT
     mpd_init(&Context,18);
+    mpd_memory_reset();
 
     // LIMIT THE EXPONENT TO A 16 BIT VALUE FOR EASIER STORAGE
     mpd_qsetemax(&Context,29999);

@@ -85,24 +85,23 @@ while(start!=end) {
 }
 
 }
-
+*/
 void CheckTempBlocks()
 {
     WORDPTR *ptr=TempBlocks;
     WORDPTR prevptr=NULL;
     int count=0;
 
-    while(ptr<=TempBlocksEnd)
+    while(ptr<TempBlocksEnd)
     {
-        if( (*ptr<TempOb)||(*ptr>TempObEnd)) printf("Bad Block %d: %08X\n",count,(WORD)*ptr);
-        if(*ptr<prevptr) printf("Block out of order %d: %08X (prev=%08X)\n",count,(WORD)*ptr,(WORD)prevptr);
+        if( (*ptr<TempOb)||(*ptr>TempObEnd)) throw_dbgexception("Bad TempBlock",1);
+        if(*ptr<prevptr) throw_dbgexception("TempBlock out of order",1);
         prevptr=*ptr;
         ++ptr;
         ++count;
     }
-    printf("Total %d blocks\n",count);
 }
-*/
+
 
 void Patch(WORDPTR *start,WORDPTR *end,WORDPTR startfrom,WORDPTR endfrom,BINT offset)
 {
@@ -125,6 +124,11 @@ void rplGCollect()
     WORDPTR EndOfUsedMem,*EndOfRStk;
     int CompileBlock=0;
 
+    // FOR DEBUG ONLY, VERIFY THAT AL TEMPBLOCKS ARE VALID
+    //CheckTempBlocks();
+
+
+
     // MARK THE END OF USED TEMPOB, INCLUDING A PHANTOM BLOCK AFTER TempObEnd
     // WHICH IS USED DURING COMPILATION/DECOMPILATION
     // THIS BLOCK NEEDS TO BE PRESERVED AS A USED BLOCK!
@@ -138,7 +142,7 @@ void rplGCollect()
         // MARK THE BLOCK AS USED AT THE SAME TIME
         *TempBlocksEnd++=(WORDPTR)((WORD)TempObEnd|1);
         TempObEnd=EndOfUsedMem;
-        if(ValidateTop>RSTop) EndOfRStk=ValidateTop;
+        if((ValidateTop>RSTop)&&(ValidateTop<(RSTop+RStkSize))) EndOfRStk=ValidateTop;
     }
 
     *TempBlocksEnd=EndOfUsedMem;   // STORE THE END OF LAST BLOCK FOR CONVENIENCE (MARKED AS UNUSED)
@@ -182,6 +186,7 @@ void rplGCollect()
 
         if(CheckIdx==TempBlocksEnd) {
 
+            EndOfUsedMem=EndBlock;
             // REMOVE PHANTOM BLOCK USING DURING COMPILE/DECOMPILE
             if(CompileBlock) {
                 // ALL POINTERS SHOULD'VE BEEN UPDATED AUTOMATICALLY
@@ -204,10 +209,15 @@ void rplGCollect()
 //            CheckPTR(GC_PTRUpdate,GC_PTRUpdate+MAX_GC_PTRUPDATE);       // SYSTEM POINTERS
 //            CheckTempBlocks();
 
+//            throw_exception("Successful GC",1);
 
             // RELEASE PAGES AT END OF TEMPOB AND TEMPBLOCKS
-            shrinkTempOb(TempObEnd-TempOb+TEMPOBSLACK);
+            shrinkTempOb(EndOfUsedMem-TempOb+TEMPOBSLACK);
             shrinkTempBlocks(TempBlocksEnd-TempBlocks+TEMPBLOCKSLACK);
+
+            //halCheckMemoryMap();
+            //halCheckRplMemory();
+
             return;
         }
 

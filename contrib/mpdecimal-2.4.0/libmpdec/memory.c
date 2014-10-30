@@ -59,6 +59,14 @@ mpd_uint_t MPD_RegistersUsed=0,MPD_RegistersSlaved=0;
 #define mpd_getregnum(ptr) ( ((ptr)-MPD_StorageDigits)/MPD_MAX_REGISTER_ALLOC)
 #define mpd_getregister( ptr ) (& (MPD_Registers[mpd_getregnum(ptr)]))
 
+void mpd_memory_reset()
+{
+    MPD_RegistersUsed=0;
+    MPD_RegistersSlaved=0;
+}
+
+
+
 void mpd_custom_free(void *ptr)
 {
 
@@ -182,10 +190,10 @@ return ptr;
 
 
 /* Custom allocation and free functions */
-void *(* mpd_mallocfunc)(size_t size) = mpd_custom_malloc;
-void *(* mpd_reallocfunc)(void *ptr, size_t current, size_t size) = mpd_custom_realloc;
-void *(* mpd_callocfunc)(size_t nmemb, size_t size) = mpd_callocfunc_em;
-void (* mpd_free)(void *ptr) = mpd_custom_free;
+void * __READ_ONLY__ (* mpd_mallocfunc)(size_t size) =  &mpd_custom_malloc;
+void * __READ_ONLY__ (* mpd_reallocfunc)(void *ptr, size_t current, size_t size) = &mpd_custom_realloc;
+void * __READ_ONLY__ (* mpd_callocfunc)(size_t nmemb, size_t size) = &mpd_callocfunc_em;
+void __READ_ONLY__ (* mpd_free)(void *ptr) = &mpd_custom_free;
 
 
 /* emulate calloc if it is not available */

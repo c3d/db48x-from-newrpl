@@ -84,6 +84,8 @@ void growTempOb(WORD newtotalsize)
         }
         TempOb=(WORDPTR) newtempob;
         TempObSize=TempOb+newtotalsize;
+// FOR DEBUG ONLY
+        //halCheckRplMemory();
 }
 
 // SHRINK THE TEMPORARY OBJECT MEMORY
@@ -135,6 +137,8 @@ void growTempBlocks(WORD newtotalsize)
         TempBlocksEnd=TempBlocksEnd-TempBlocks+newtempblocks;
         TempBlocks=newtempblocks;
         TempBlocksSize=newtotalsize;
+        if(TempBlocksEnd>=TempBlocks+TempBlocksSize) throw_dbgexception("Bad TempBlocksEnd!",1);
+
         // NOTHING TO FIX
 }
 
@@ -154,6 +158,8 @@ void shrinkTempBlocks(WORD newtotalsize)
         TempBlocksEnd=TempBlocksEnd-TempBlocks+newtempblocks;
         TempBlocks=newtempblocks;
         TempBlocksSize=newtotalsize;
+
+        if(TempBlocksEnd>=TempBlocks+TempBlocksSize) throw_dbgexception("Bad TempBlocksEnd!",1);
         // NOTHING TO FIX
 }
 
