@@ -358,6 +358,7 @@ void LIB_HANDLER()
 
 
     case DO:
+    {
         ScratchPointer3=IPtr;       // THIS IS POINTING AT THE FOR STATEMENT
         BINT depth=1;               // TRACK NESTED LOOPS
         while( depth || (*ScratchPointer3!=MKOPCODE(LIBRARY_NUMBER,ENDDO))) {
@@ -377,6 +378,7 @@ void LIB_HANDLER()
         rplPushRet(IPtr);                             // PUT THE LOOP CLAUSE IN THE STACK TO DO THE LOOP
 
         return;
+    }
     case UNTIL:
         return;
 

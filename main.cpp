@@ -73,7 +73,7 @@ BYTEPTR testprogram=(BYTEPTR) "<< 8. 0. 0. 0. { } -> R S X Y A "
           "     1 10 START PRO DROP DROP NEXT"
           ;
 */
-/*
+
 // N-QUEENS WITH ALL CONSTANTS AS INTEGERS (SINT)
 BYTEPTR testprogram=(BYTEPTR) "<< 8 0 0 0 { } -> R S X Y A "
                 "  << "
@@ -92,7 +92,7 @@ BYTEPTR testprogram=(BYTEPTR) "<< 8 0 0 0 { } -> R S X Y A "
                "         'A' 'X' DECR A X GET 1 - PUT "
                "       END "
                "     END "
-               "   END "
+               "   END BREAKPOINT "
                "  UNTIL Y 1 == END "
                " UNTIL X R == END "
                " "
@@ -100,9 +100,9 @@ BYTEPTR testprogram=(BYTEPTR) "<< 8 0 0 0 { } -> R S X Y A "
             " >> "
           " >> "
           " 'PRO' STO "
-          "     1 1000 START PRO DROP DROP NEXT "
+          /* "     1 1000 START PRO DROP DROP NEXT " */
            ;
-*/
+
 
 /*
 BYTEPTR testprogram=(BYTEPTR) "1.0 'val' LAMSTO 1 1000000 FOR J 150. 1. DUP ROT FOR I I * NEXT 'val' LAMSTO NEXT val";
@@ -289,7 +289,7 @@ BYTEPTR testprogram=(BYTEPTR) "2025 SETPREC "
 ;
 */
 
-
+/*
 BYTEPTR testprogram=(BYTEPTR) "<< \"\" SWAP "
         "WHILE DUP 0 > REPEAT "
            "CASE "
@@ -397,7 +397,7 @@ BYTEPTR testprogram=(BYTEPTR) "<< \"\" SWAP "
 
 
         ;
-
+*/
 
 void PrintObj(WORDPTR obj)
 {
@@ -663,15 +663,19 @@ int main()
 
 
     Refresh();
-/*
+
     if(testprogram) {
 
         WORDPTR ptr=rplCompile(testprogram,strlen((char *)testprogram),1);
-        if(ptr)   { rplSetEntryPoint(ptr); rplRun(); }
+        if(ptr)   {
+            PrintSeco(ptr);
+            rplSetEntryPoint(ptr);
+            rplRun();
+        }
 
 
     }
-*/
+
 
     do {
 
@@ -696,24 +700,36 @@ int main()
     }
 
     clock_t start,end;
-
+    int debugging;
     start=clock();
     rplSetEntryPoint(ptr);
+
+    do {
+
+
     rplRun();
 
     end=clock();
 
+    debugging=0;
 
     if(Exceptions) {
         printf("Runtime Error: %08X at %08X\n",Exceptions,ExceptionPointer-TempOb);
         DumpErrors();
+        int oldexc=Exceptions;
         Exceptions=0;
         DumpLAMs();
         DumpDirs();
         Refresh();
+        if(oldexc&EX_BKPOINT) {
+            debugging=1;
+            printf("\nPress any key to continue...");
+            fgets(buffer,65535,stdin);
+        }
         Exceptions=0;
         continue;
     }
+    } while(debugging);
 
     printf("Elapsed time: %.6lf seconds\n",((double)(start-end))/(double)CLOCKS_PER_SEC);
     rplShowRuntimeState();
