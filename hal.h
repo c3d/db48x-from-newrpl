@@ -17,6 +17,11 @@
 #define SCRATCH_MEMORY
 #define PERSISTENT_MEMORY
 
+#define throw_exception(a,b) { printf(a); exit(b); }
+#define throw_dbgexception(a,b) { printf(a); exit(b); }
+
+
+
 #else
 
 #define SCRATCH_MEMORY __attribute__((section (".scratch_memory")))

@@ -689,6 +689,8 @@ void LIB_HANDLER()
        if((TokenLen==5) && (!strncmp((char *)TokenStart,"START",5)))
        {
            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,START));
+           rplCreateLAMEnvironment(CompileEnd-1);
+
            RetNum=OK_STARTCONSTRUCT;
            return;
        }

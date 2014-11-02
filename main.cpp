@@ -43,7 +43,7 @@ BYTEPTR testprogram=(BYTEPTR) "1 DISPDEBUG 1 100000 FOR i i 1 - DUP * + GARBAGE 
  BYTEPTR testprogram=(BYTEPTR) "{ 1 2 3 4 5 6 7 8 9 } 'A' LAMSTO 'A' 3 16 PUT 'A' 3 GET A";
 */
 
-/*
+
 // N-QUEENS WITH ALL CONSTANT NUMBERS AS REALS
 BYTEPTR testprogram=(BYTEPTR) "<< 8. 0. 0. 0. { } -> R S X Y A "
                 "  << "
@@ -72,9 +72,9 @@ BYTEPTR testprogram=(BYTEPTR) "<< 8. 0. 0. 0. { } -> R S X Y A "
           " 'PRO' STO "
           "     1 10 START PRO DROP DROP NEXT"
           ;
-*/
 
 // N-QUEENS WITH ALL CONSTANTS AS INTEGERS (SINT)
+/*
 BYTEPTR testprogram=(BYTEPTR) "<< 8 0 0 0 { } -> R S X Y A "
                 "  << "
                " 1 R START 0 NEXT R ->LIST 'A' STO "
@@ -92,7 +92,7 @@ BYTEPTR testprogram=(BYTEPTR) "<< 8 0 0 0 { } -> R S X Y A "
                "         'A' 'X' DECR A X GET 1 - PUT "
                "       END "
                "     END "
-               "   END BREAKPOINT "
+               "   END "
                "  UNTIL Y 1 == END "
                " UNTIL X R == END "
                " "
@@ -100,8 +100,85 @@ BYTEPTR testprogram=(BYTEPTR) "<< 8 0 0 0 { } -> R S X Y A "
             " >> "
           " >> "
           " 'PRO' STO "
-          /* "     1 1000 START PRO DROP DROP NEXT " */
+          "     1 10 START PRO DROP DROP NEXT "
            ;
+*/
+/*
+const BYTEPTR nq_stk=(const BYTEPTR) "<< 8. 0. 0. 0. -> R S X Y "
+  "<< 1. R "
+    " START 0. "
+    " NEXT DO R 'X' INCR UNPICK "
+        " DO 'S' INCR DROP X 'Y' STO "
+        " WHILE Y 1. > REPEAT X PICK 'Y' DECR 1. + PICK - "
+          " IF DUP 0. == SWAP ABS X Y - == OR "
+          " THEN 0. 'Y' STO X PICK 1. - X UNPICK "
+            " WHILE X PICK 0. == "
+            " REPEAT 'X' DECR PICK 1. - X UNPICK "
+            " END "
+          " END "
+        " END "
+      " UNTIL Y 1. == "
+      " END "
+    " UNTIL X R == "
+    " END 8. ->LIST S "
+  " >> "
+" >> "
+        " 'NQ.STK' STO 1 10 START NQ.STK NEXT"
+;
+*/
+const BYTEPTR nq_new=(const BYTEPTR) "<< 1 -> X RES << "
+" IF X 1 > THEN "
+" X PICK 1 X 1 - FOR I "
+        " DUP I 2 + PICK - ABS X I - ABS "
+   " IF == THEN "
+     " 0 'RES' STO X 'I' STO "
+   " END "
+   " NEXT "
+   " DROP RES "
+ " ELSE "
+   " 1 "
+ " END "
+" >> "
+" >> "
+        " 'CHECKQUEEN' STO "
+        " <<  9 OVER - -> X LIMIT "
+        " << "
+
+         " 1 8 START LIMIT 8 + ROLLD NEXT "
+         " LIMIT DUPN 1 8 START LIMIT LIMIT 8 + + ROLL NEXT "
+
+          " DO 9 ROLL X UNPICK "
+                " IF X CHECKQUEEN "
+                " THEN X 1 + DUP "
+                 " IF 8 <= THEN "
+                        "IF DOLEVEL THEN "
+                            "0 9 ROLLD 0 'LIMIT' STO "
+                            " ELSE X PICK 17 X - ROLLD "
+                        " END "
+                  " ELSE 9 ROLLD 0 'LIMIT' STO END "
+
+                " ELSE X PICK 17 X - ROLLD "
+                " END 'LIMIT' DECR "
+              " UNTIL 0 <= "
+              " END "
+              " 1 9 X - START 9 ROLL DROP NEXT "
+              " IF LIMIT 0 == "
+              " THEN 0 ELSE 1 END "
+          " >> "
+        " >> "
+
+        " 'DOLEVEL' STO "
+
+        " << "
+          " 1 2 3 4 5 6 7 8 "
+          " 0 0 0 0 0 0 0 0 "
+          " 1 DOLEVEL DROP "
+          " 1 8 START 9 ROLL DROP NEXT "
+        " 8 ->LIST "
+        " >> "
+        " 'NEW.RUN' STO " /*" 1 10 START NEW.RUN NEXT " */
+;
+
 
 
 /*
@@ -673,8 +750,15 @@ int main()
             rplRun();
         }
 
+        ptr=rplCompile(nq_new,strlen((char *)nq_new),1);
+        if(ptr)   {
+            PrintSeco(ptr);
+            rplSetEntryPoint(ptr);
+            rplRun();
+        }
 
     }
+
 
 
     do {
