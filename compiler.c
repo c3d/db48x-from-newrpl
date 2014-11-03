@@ -615,6 +615,11 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
     if( (CompileEnd!=TempObEnd) && !Exceptions) {
 
    WORDPTR newobject=TempObEnd;
+   if( CompileEnd+TEMPOBSLACK>TempObSize) {
+       // ENLARGE TEMPOB AS NEEDED
+       growTempOb((BINT)(CompileEnd-TempOb)+TEMPOBSLACK);
+       if(Exceptions) return 0;
+   }
 
     // STORE BLOCK SIZE
    rplAddTempBlock(TempObEnd);
@@ -1261,11 +1266,18 @@ end_of_expression:
     LAMTop=LAMTopSaved;     // RESTORE ENVIRONMENTS
     if( !Exceptions) {
 
+        // GUARANTEE MINIMUM SLACK SPACE
+        if( CompileEnd+TEMPOBSLACK>TempObSize) {
+            // ENLARGE TEMPOB AS NEEDED
+            growTempOb((BINT)(CompileEnd-TempOb)+TEMPOBSLACK);
+            if(Exceptions) return 0;
+        }
 
     // STORE BLOCK SIZE
    rplAddTempBlock(TempObEnd);
    WORDPTR newobject=TempObEnd;
    TempObEnd=CompileEnd;
+
    return newobject;
     }
 
