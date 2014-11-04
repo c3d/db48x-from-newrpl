@@ -24,6 +24,8 @@
 #define OPCODE_VALIDATE     0x7FFFC
 #define OPCODE_PROBETOKEN   0x7FFFB
 #define OPCODE_GETINFO      0x7FFFA
+#define OPCODE_LIBREMOVE    0x7FFF1
+#define OPCODE_LIBINSTALL   0x7FFF0
 
 
 
@@ -33,8 +35,6 @@
 #define MAXLOWLIBS  256
 #define MAXHILIBS   256
 extern const LIBHANDLER ROMLibs[];
-extern const LIBHANDLER ROMLibs2[];
-extern const BINT ROMLibs2Num[];
 
 
 // USEFUL MACROS

@@ -205,6 +205,13 @@ void LIB_HANDLER()
         libGetInfo(*DecompileObject,LIB_NAMES,LIB_OPCODES,LIB_TOKENINFO,LIB_NUMCMDS);
         return;
 
+    case OPCODE_LIBINSTALL:
+        RetNum=LIBRARY_NUMBER;
+        return;
+    case OPCODE_LIBREMOVE:
+        return;
+
+
     }
 
     RetNum=ERR_NOTMINE;

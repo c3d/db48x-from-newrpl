@@ -88,6 +88,7 @@ extern UBINT ArgNum1,ArgNum2,ArgNum3,RetNum;
 
 
 extern LIBHANDLER LowLibRegistry[MAXLOWLIBS];
+extern LIBHANDLER SysHiLibRegistry[MAXSYSHILIBS];
 extern LIBHANDLER HiLibRegistry[MAXHILIBS];
 extern BINT HiLibNumbers[MAXHILIBS];
 extern BINT NumHiLibs;

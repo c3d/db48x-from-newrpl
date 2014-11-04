@@ -2402,6 +2402,12 @@ void LIB_HANDLER()
 
         RetNum=OK_CONTINUE;
         return;
+    case OPCODE_LIBINSTALL:
+        RetNum=LIBRARY_NUMBER;
+        return;
+    case OPCODE_LIBREMOVE:
+        return;
+
     }
     // UNHANDLED OPCODE...
 

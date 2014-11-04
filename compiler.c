@@ -141,7 +141,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
         LastCompiledObject=CompileEnd;
         if(force_libnum<0) {
             // SCAN THROUGH ALL THE LIBRARIES, FROM HIGH TO LOW, TO SEE WHICH ONE WANTS THE TOKEN
-            libcnt=MAXLOWLIBS+NumHiLibs-1;
+            libcnt=MAXLIBNUMBER;
         }
         else libcnt=0;  // EXECUTE THE LOOP ONLY ONCE
 
@@ -151,11 +151,10 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
         }
 
                 while(libcnt>=0) {
-                if(libcnt>=MAXLOWLIBS) { libnum=HiLibNumbers[libcnt-MAXLOWLIBS]; handler=HiLibRegistry[libcnt-MAXLOWLIBS]; }
-                else {
-                    if(force_libnum<0) { libnum=libcnt; handler=LowLibRegistry[libcnt]; }
+                    if(force_libnum<0) {
+                        libnum=libcnt; handler=rplGetLibHandler(libcnt);
+                    }
                     else { libnum=force_libnum; handler=rplGetLibHandler(force_libnum); }
-                }
                 --libcnt;
 
                 if(!handler) continue;

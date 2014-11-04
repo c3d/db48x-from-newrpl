@@ -791,6 +791,13 @@ void LIB_HANDLER()
         libGetInfo2(*DecompileObject,LIB_NAMES,LIB_TOKENINFO,LIB_NUMBEROFCMDS);
         return;
 
+    case OPCODE_LIBINSTALL:
+        RetNum=LIBRARY_NUMBER;
+        return;
+    case OPCODE_LIBREMOVE:
+        return;
+
+
     }
     // UNHANDLED OPCODE...
 

@@ -324,6 +324,13 @@ void LIB_HANDLER()
         RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_IDENT,0,1);
         return;
     }
+    case OPCODE_LIBINSTALL:
+        RetNum=LIBRARY_NUMBER;
+        return;
+    case OPCODE_LIBREMOVE:
+        return;
+
+
 
     }
 

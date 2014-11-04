@@ -404,6 +404,12 @@ void LIB_HANDLER()
 
         RetNum=OK_CONTINUE;
         return;
+    case OPCODE_LIBINSTALL:
+        RetNum=LIBRARY_NUMBER + (4<<12);    // INSTALL FOR 4 CONSECUTIVE LIBRARY NUMBERS
+        return;
+    case OPCODE_LIBREMOVE:
+        return;
+
     }
     // UNHANDLED OPCODE...
 

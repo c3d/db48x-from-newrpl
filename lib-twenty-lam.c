@@ -900,10 +900,15 @@ void LIB_HANDLER()
         RetNum=ERR_NOTMINE;
         return;
     case OPCODE_GETINFO:
-    {
         RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_IDENT,0,1);
         return;
-    }
+
+    case OPCODE_LIBINSTALL:
+        RetNum=LIBRARY_NUMBER + (2<<12);    // INSTALL FOR 2 CONSECUTIVE LIBRARY NUMBERS
+        return;
+    case OPCODE_LIBREMOVE:
+        return;
+
 
     }
 

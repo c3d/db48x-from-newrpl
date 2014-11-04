@@ -21,6 +21,8 @@ WORD RPLLastOpcode;
 LIBHANDLER rplGetLibHandler(BINT libnum)
 {
     if(libnum<MAXLOWLIBS) return LowLibRegistry[libnum];
+    if(libnum>MAXLIBNUMBER-MAXSYSHILIBS) return SysHiLibRegistry[libnum-(MAXLIBNUMBER+1-MAXSYSHILIBS)];
+    // DO A BINARY SEARCH FOR USER FUNCTIONS OTHERWISE
     BINT lo=0;
     BINT hi=NumHiLibs-1;
     BINT x;
@@ -38,6 +40,148 @@ LIBHANDLER rplGetLibHandler(BINT libnum)
     return 0;
 }
 
+// REMOVE ALL REGISTERED LIBRARIES AND INSTALL ONLY CORE LIBRARIES PROVIDED IN ROM
+void rplClearLibraries()
+{
+    // CLEAR ALL INSTALLED LIBRARIES
+    int count;
+    for(count=0;count<MAXLOWLIBS;++count)
+    {
+        LowLibRegistry[count]=0;
+    }
+    for(count=0;count<MAXSYSHILIBS;++count)
+    {
+        SysHiLibRegistry[count]=0;
+    }
+
+
+    // CLEAR ALL USER LIBS
+    for(count=0;count<MAXHILIBS;++count)
+    {
+        HiLibRegistry[count]=0;
+        HiLibNumbers[count]=0;
+    }
+    NumHiLibs=0;
+
+}
+
+// INSTALL A LIBRARY HANDLER, RETURN 1 ON SUCCESS, 0 ON FAILURE
+
+BINT rplInstallLibrary(LIBHANDLER handler)
+{
+    BINT numcopies=1;
+    if(!handler) return 0;
+    WORD savedOpcode=CurOpcode;
+    CurOpcode=OPCODE_LIBINSTALL;
+    RetNum=-1;
+    (*handler)();   // CALL THE HANDLER TO GET THE LIBRARY NUMBER IN RetNum;
+    CurOpcode=savedOpcode;
+    if(RetNum>MAXLIBNUMBER) { numcopies=(RetNum>>12)&0xf; RetNum&=0xfff; }
+    if(!numcopies) return 0;
+    while(numcopies--) {
+
+    if(RetNum<MAXLOWLIBS) {
+        if(LowLibRegistry[RetNum]) {
+         // LIBRARY NUMBER ALREADY TAKEN OR LIB ALREADY INSTALLED
+            if(LowLibRegistry[RetNum]==handler) return 1;   // ALREADY INSTALLED
+            savedOpcode=CurOpcode;
+            CurOpcode=OPCODE_LIBREMOVE;
+            RetNum=-1;
+            (*handler)();   // CALL THE HANDLER TO INDICATE LIBRARY IS BEING REMOVED;
+            CurOpcode=savedOpcode;
+            return 0;
+        }
+        LowLibRegistry[RetNum]=handler;
+        ++RetNum;
+        continue;
+    }
+    if(RetNum>MAXLIBNUMBER-MAXSYSHILIBS) {
+        if(SysHiLibRegistry[RetNum-(MAXLIBNUMBER-MAXSYSHILIBS+1)]) {
+         // LIBRARY NUMBER ALREADY TAKEN OR LIB ALREADY INSTALLED
+            if(SysHiLibRegistry[RetNum-(MAXLIBNUMBER-MAXSYSHILIBS+1)]==handler) return 1;   // ALREADY INSTALLED
+            savedOpcode=CurOpcode;
+            CurOpcode=OPCODE_LIBREMOVE;
+            RetNum=-1;
+            (*handler)();   // CALL THE HANDLER TO INDICATE LIBRARY IS BEING REMOVED;
+            CurOpcode=savedOpcode;
+            return 0;
+        }
+        SysHiLibRegistry[RetNum-(MAXLIBNUMBER-MAXSYSHILIBS+1)]=handler;
+        ++RetNum;
+        continue;
+        return 1;
+    }
+
+    LIBHANDLER oldhan=rplGetLibHandler(RetNum);
+
+    if(oldhan) {
+     // LIBRARY NUMBER ALREADY TAKEN OR LIB ALREADY INSTALLED
+        if(oldhan==handler) return 1;   // ALREADY INSTALLED
+        savedOpcode=CurOpcode;
+        CurOpcode=OPCODE_LIBREMOVE;
+        RetNum=-1;
+        (*handler)();   // CALL THE HANDLER TO INDICATE LIBRARY IS BEING REMOVED;
+        CurOpcode=savedOpcode;
+        return 0;
+    }
+
+    // ADD LIBRARY
+    if(NumHiLibs>=MAXHILIBS) return 0;
+    BINT *ptr=HiLibNumbers+NumHiLibs;
+    LIBHANDLER *libptr=HiLibRegistry+NumHiLibs;
+
+    while(ptr>HiLibNumbers) {
+     if((UBINT)ptr[-1]>RetNum) {
+        ptr[0]=ptr[-1];
+        libptr[0]=libptr[-1];
+        --ptr;
+        --libptr;
+     }
+     else break;
+    }
+    *ptr=RetNum;
+    *libptr=handler;
+    ++NumHiLibs;
+    ++RetNum;
+    continue;
+}
+
+return 1;
+}
+
+
+void rplRemoveLibrary(BINT number)
+{
+    if(number<0 || number>MAXLIBNUMBER)  return;
+    if(number<MAXLOWLIBS) {
+        LowLibRegistry[number]=0;
+        return;
+    }
+    if(number>MAXLIBNUMBER-MAXSYSHILIBS) {
+        SysHiLibRegistry[number-(MAXLIBNUMBER-MAXSYSHILIBS+1)]=0;
+        return;
+    }
+
+    // ADD LIBRARY
+    if(NumHiLibs<=0) return;
+    BINT *ptr=HiLibNumbers,found=0;
+    LIBHANDLER *libptr=HiLibRegistry;
+
+    while(ptr<HiLibNumbers+NumHiLibs) {
+     if(*ptr==number) { found=1; break; }
+     ++ptr;
+     ++libptr;
+    }
+    ++ptr;
+    ++libptr;
+    while(ptr<HiLibNumbers+NumHiLibs) {
+        ptr[-1]=*ptr;
+        libptr[-1]=*libptr;
+        ++ptr;
+        ++libptr;
+    }
+    if(found) --NumHiLibs;
+}
 
 
 void rplRun(void)
@@ -131,7 +275,8 @@ void rplCopyObject(WORDPTR dest, WORDPTR src)
 void rplInit(void)
 {
 
-    int k;
+    int k,count;
+
     for(k=0;k<MAX_GC_PTRUPDATE;++k) GC_PTRUpdate[k]=0;  // CLEAN UP ALL GC SAFE POINTERS
 
 
@@ -153,7 +298,11 @@ void rplInit(void)
     Exceptions=0;   // NO EXCEPTIONS RAISED
     ExceptionPointer=0;
 
+    rplClearLibraries();
 
+    // INSTALL ALL ROM LIBRARIES FROM A NULL-TERMINATED LIST
+    LIBHANDLER *libptr=(LIBHANDLER *)ROMLibs;
+    while(*libptr) { rplInstallLibrary(*libptr); ++libptr; }
 
 
     growRStk(1024);   // GET SOME MEMORY FOR RETURN STACK
@@ -174,36 +323,6 @@ void rplInit(void)
     DirsTop=Directories;
     ErrorHandler=0;       // INITIALLY THERE'S NO ERROR HANDLER, AN EXCEPTION WILL EXIT THE RPL LOOP
 
-    // CLEAR ALL INSTALLED LIBRARIES
-    int count;
-    for(count=0;count<MAXLOWLIBS;++count)
-    {
-        LowLibRegistry[count]=0;
-    }
-
-    // CLEAR ALL USER LIBS
-    for(count=0;count<MAXHILIBS;++count)
-    {
-        HiLibRegistry[count]=0;
-        HiLibNumbers[count]=0;
-    }
-    NumHiLibs=0;
-
-
-
-    // INSTALL SYSTEM LIBRARIES
-    for(count=0; (count<MAXLOWLIBS) && (ROMLibs[count]);++count)
-    {
-        LowLibRegistry[count]=ROMLibs[count];
-    }
-
-    // INSTALL SYSTEM HILIBS
-    for(count=0; (count<MAXHILIBS) && (ROMLibs2[count]);++count)
-    {
-        HiLibRegistry[count]=ROMLibs2[count];
-        HiLibNumbers[count]=ROMLibs2Num[count];
-    }
-    NumHiLibs=count;
 
 
     // INITIALIZE THE HOME DIRECTORY
@@ -277,7 +396,7 @@ void rplInit(void)
 // ASSUME ALL VARRIABLES IN MEMORY ARE VALID
 void rplWarmInit(void)
 {
-
+    int count;
 
     IPtr=0;  // INSTRUCTION POINTER SHOULD BE SET LATER TO A VALID RUNSTREAM
     CurOpcode=0; // CURRENT OPCODE (WORD)
@@ -295,35 +414,10 @@ void rplWarmInit(void)
 
 
     // CLEAR ALL INSTALLED LIBRARIES
-    int count;
-    for(count=0;count<MAXLOWLIBS;++count)
-    {
-        LowLibRegistry[count]=0;
-    }
-
-    // CLEAR ALL USER LIBS
-    for(count=0;count<MAXHILIBS;++count)
-    {
-        HiLibRegistry[count]=0;
-        HiLibNumbers[count]=0;
-    }
-    NumHiLibs=0;
-
-
-
-    // INSTALL SYSTEM LIBRARIES
-    for(count=0; (count<MAXLOWLIBS) && (ROMLibs[count]);++count)
-    {
-        LowLibRegistry[count]=ROMLibs[count];
-    }
-
-    // INSTALL SYSTEM HILIBS
-    for(count=0; (count<MAXHILIBS) && (ROMLibs2[count]);++count)
-    {
-        HiLibRegistry[count]=ROMLibs2[count];
-        HiLibNumbers[count]=ROMLibs2Num[count];
-    }
-    NumHiLibs=count;
+    rplClearLibraries();
+    // INSTALL ALL ROM LIBRARIES FROM A NULL-TERMINATED LIST
+    LIBHANDLER *libptr=(LIBHANDLER *)ROMLibs;
+    while(*libptr) { rplInstallLibrary(*libptr); ++libptr; }
 
 
     // INITIALIZE THE FLOATING POINT CONTEXT

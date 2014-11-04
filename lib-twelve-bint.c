@@ -1100,6 +1100,12 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_INTEGER,0,1);
         return;
+    case OPCODE_LIBINSTALL:
+        RetNum=LIBRARY_NUMBER + (4<<12);    // INSTALL FOR 4 CONSECUTIVE LIBRARY NUMBERS
+        return;
+    case OPCODE_LIBREMOVE:
+        return;
+
 
     default:
 
