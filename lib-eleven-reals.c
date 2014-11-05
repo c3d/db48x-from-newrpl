@@ -352,9 +352,8 @@ void LIB_HANDLER()
             rplNewRealFromRRegPush(0);
             return;
         case OVR_NOT:
-            if(mpd_iszero(&Darg1)) rplOneToRReg(0);
-            else rplZeroToRReg(0);
-            rplNewRealFromRRegPush(0);
+            if(mpd_iszero(&Darg1)) rplPushData(one_bint);
+            else rplPushData(zero_bint);
             return;
 
 

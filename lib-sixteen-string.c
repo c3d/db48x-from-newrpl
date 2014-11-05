@@ -207,8 +207,21 @@ void LIB_HANDLER()
     case OVR_SAME:
     case OVR_EQ:
 
+        if(rplDepthData()<2) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
 
+        if( (!ISSTRING(*rplPeekData(2))) || (!ISSTRING(*rplPeekData(1)))) {
+            rplOverwriteData(2,zero_bint);
+            rplDropData(1);
+            return;
+        }
 
+        if(rplCompareObjects(rplPeekData(1),rplPeekData(2))) rplOverwriteData(2,one_bint);
+        else rplOverwriteData(2,zero_bint);
+        rplDropData(1);
         return;
 
 

@@ -292,7 +292,7 @@ void LIB_HANDLER()
                         return;
                     }
 
-                    rplNewSINTPush(1,DECBINT);
+                    rplPushData(one_bint);
                     return;
 
                 }
@@ -366,12 +366,12 @@ void LIB_HANDLER()
             return;
         }
         case OVR_EQ:
-         if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplNewSINTPush(0,DECBINT);
-            else rplNewSINTPush(1,DECBINT);
+         if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplPushData(zero_bint);
+            else rplPushData(one_bint);
             return;
         case OVR_NOTEQ:
-            if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplNewSINTPush(1,DECBINT);
-               else rplNewSINTPush(0,DECBINT);
+            if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplPushData(one_bint);
+               else rplPushData(zero_bint);
                return;
 /*
         // COMPARISONS ARE NOT DEFINED FOR COMPLEX NUMBERS
@@ -384,22 +384,22 @@ void LIB_HANDLER()
 
 */
         case OVR_SAME:
-            if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplNewSINTPush(0,DECBINT);
-               else rplNewSINTPush(1,DECBINT);
+            if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplPushData(zero_bint);
+               else rplPushData(one_bint);
                return;
         case OVR_AND:
-            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))||(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplNewSINTPush(0,DECBINT);
-            else rplNewSINTPush(1,DECBINT);
+            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))||(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData(zero_bint);
+            else rplPushData(one_bint);
             return;
         case OVR_OR:
-            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplNewSINTPush(0,DECBINT);
-            else rplNewSINTPush(1,DECBINT);
+            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData(zero_bint);
+            else rplPushData(one_bint);
             return;
         case OVR_XOR:
-            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplNewSINTPush(0,DECBINT);
+            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData(zero_bint);
             else {
-                if( !(mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&!(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplNewSINTPush(0,DECBINT);
-                else rplNewSINTPush(1,DECBINT);
+                if( !(mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&!(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData(zero_bint);
+                else rplPushData(one_bint);
             }
             return;
 
@@ -450,9 +450,8 @@ void LIB_HANDLER()
                 rplNewRealFromRRegPush(0);
                 return;
         case OVR_NOT:
-            if(mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1)) rplOneToRReg(0);
-            else rplZeroToRReg(0);
-            rplRRegToComplexPush(0,0);
+            if(mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1)) rplPushData(one_bint);
+            else rplPushData(zero_bint);
             return;
 
 
@@ -519,7 +518,7 @@ void LIB_HANDLER()
         } else {
             // NON-COMPLEX NUMBERS HAVE IMAGINARY PART = 0
             rplDropData(1);
-            rplNewSINTPush(0,DECBINT);
+            rplPushData(zero_bint);
         }
         return;
     case ARG:

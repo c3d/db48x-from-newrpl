@@ -68,6 +68,8 @@ void LIB_HANDLER()
     switch(OPCODE(CurOpcode))
     {
     case EXITRPL:
+        Exceptions|=EX_EXITRPL;
+        ExceptionPointer=IPtr;
         return;
     case BREAKPOINT:
         Exceptions|=EX_BKPOINT;

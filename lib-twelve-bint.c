@@ -509,7 +509,7 @@ void LIB_HANDLER()
                 status=0;
                 mpd_qround_to_intx(&RReg[1],&rop1,&Context,(uint32_t *)&status);
                 // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplNewSINTPush(0,DECBINT);
+                if(status) rplPushData(zero_bint);
                 else {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&RReg[1],&RReg[0],&Context);
@@ -524,7 +524,7 @@ void LIB_HANDLER()
                 status=0;
                 mpd_qround_to_intx(&RReg[1],&rop2,&Context,(uint32_t *)&status);
                 // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplNewSINTPush(0,DECBINT);
+                if(status) rplPushData(zero_bint);
                 else {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&RReg[1],&Context);
@@ -536,8 +536,8 @@ void LIB_HANDLER()
             return;
         }
             // BOTH WERE INTEGERS
-            if(op1==op2) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
+            if(op1==op2) rplPushData(one_bint);
+            else rplPushData(zero_bint);
             return;
         }
 
@@ -549,7 +549,7 @@ void LIB_HANDLER()
                 status=0;
                 mpd_qround_to_intx(&RReg[1],&rop1,&Context,(uint32_t *)&status);
                 // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplNewSINTPush(1,DECBINT);
+                if(status) rplPushData(one_bint);
                 else {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&RReg[1],&RReg[0],&Context);
@@ -563,7 +563,7 @@ void LIB_HANDLER()
                 status=0;
                 mpd_qround_to_intx(&RReg[1],&rop2,&Context,(uint32_t *)&status);
                 // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplNewSINTPush(1,DECBINT);
+                if(status) rplPushData(one_bint);
                 else {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&RReg[1],&Context);
@@ -573,8 +573,8 @@ void LIB_HANDLER()
             }
             return;
         }
-            if(op1==op2) rplNewSINTPush(0,DECBINT);
-            else rplNewSINTPush(1,DECBINT);
+            if(op1==op2) rplPushData(zero_bint);
+            else rplPushData(one_bint);
             return;
         }
         case OVR_LT:
@@ -597,8 +597,8 @@ void LIB_HANDLER()
             return;
             }
 
-            if(op1<op2) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
+            if(op1<op2) rplPushData(one_bint);
+            else rplPushData(zero_bint);
             return;
         }
         case OVR_GT:
@@ -621,8 +621,8 @@ void LIB_HANDLER()
             return;
             }
 
-            if(op1>op2) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
+            if(op1>op2) rplPushData(one_bint);
+            else rplPushData(zero_bint);
             return;
         }
 
@@ -648,8 +648,8 @@ void LIB_HANDLER()
             return;
             }
 
-            if(op1<=op2) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
+            if(op1<=op2) rplPushData(one_bint);
+            else rplPushData(zero_bint);
             return;
         }
         case OVR_GTE:
@@ -672,8 +672,8 @@ void LIB_HANDLER()
             return;
             }
 
-            if(op1>=op2) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
+            if(op1>=op2) rplPushData(one_bint);
+            else rplPushData(zero_bint);
             return;
         }
         case OVR_SAME:
@@ -684,7 +684,7 @@ void LIB_HANDLER()
                 status=0;
                 mpd_qround_to_intx(&RReg[1],&rop1,&Context,(uint32_t *)&status);
                 // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplNewSINTPush(0,DECBINT);
+                if(status) rplPushData(zero_bint);
                 else {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&RReg[1],&RReg[0],&Context);
@@ -699,7 +699,7 @@ void LIB_HANDLER()
                 status=0;
                 mpd_qround_to_intx(&RReg[1],&rop2,&Context,(uint32_t *)&status);
                 // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplNewSINTPush(0,DECBINT);
+                if(status) rplPushData(zero_bint);
                 else {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&RReg[1],&Context);
@@ -711,8 +711,8 @@ void LIB_HANDLER()
             return;
         }
             // BOTH WERE INTEGERS
-            if(op1==op2) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
+            if(op1==op2) rplPushData(one_bint);
+            else rplPushData(zero_bint);
             return;
         }
 
@@ -722,14 +722,14 @@ void LIB_HANDLER()
         case OVR_AND:
             if(op1type) op1=!mpd_iszero(&rop1);
             if(op2type) op2=!mpd_iszero(&rop2);
-            if(op1&&op2) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
+            if(op1&&op2) rplPushData(one_bint);
+            else rplPushData(zero_bint);
             return;
         case OVR_OR:
             if(op1type) op1=!mpd_iszero(&rop1);
             if(op2type) op2=!mpd_iszero(&rop2);
-            if(op1||op2) rplNewSINTPush(1,DECBINT);
-            else rplNewSINTPush(0,DECBINT);
+            if(op1||op2) rplPushData(one_bint);
+            else rplPushData(zero_bint);
             return;
 
         case OVR_CMP:
@@ -748,9 +748,9 @@ void LIB_HANDLER()
             return;
             }
 
-            if(op1>op2) rplNewSINTPush(1,DECBINT);
+            if(op1>op2) rplPushData(one_bint);
             else if(op1<op2) rplNewSINTPush(-1,DECBINT);
-                else rplNewSINTPush(0,DECBINT);
+                else rplPushData(zero_bint);
             return;
         }
 
@@ -781,8 +781,8 @@ void LIB_HANDLER()
             else rplPushData(arg1);
             return;
         case OVR_NOT:
-            if(op1) rplNewSINTPush(0,DECBINT);
-            else rplNewSINTPush(1,DECBINT);
+            if(op1) rplPushData(zero_bint);
+            else rplPushData(one_bint);
             return;
 
 

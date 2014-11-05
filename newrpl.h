@@ -278,10 +278,10 @@ extern void rplSymbRuleMatch();
 
 // DEFINED EXCEPTIONS
 
-#define EX_BADOPCODE        1
+#define EX_EXITRPL          1
 #define EX_BKPOINT          2
-#define EX_OUTOFMEM         4
-#define EX_PTROUTOFRANGE    8
+#define EX_BADOPCODE        4
+#define EX_OUTOFMEM         8
 #define EX_MATHDIVZERO     16
 #define EX_MATHOVERFLOW    32
 #define EX_EMPTYSTACK      64

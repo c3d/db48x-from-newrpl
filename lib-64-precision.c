@@ -146,7 +146,7 @@ void LIB_HANDLER()
     WORDPTR arg=rplPeekData(1);
     if(ISBINT(*arg)) {
         rplDropData(1);
-        rplNewSINTPush(0,DECBINT);
+        rplPushData(zero_bint);
         return;
     }
     mpd_t rnum;

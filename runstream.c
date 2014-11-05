@@ -12,7 +12,6 @@
 // MAIN RUNSTREAM MANAGEMENT FOR newRPL
 #define EXIT_LOOP -1000
 
-BINT64 RPLTicks=0;
 WORD RPLLastOpcode;
 
 // GET A HANDLER FOR A LIBRARY
@@ -192,13 +191,24 @@ void rplRun(void)
     do {
     RPLLastOpcode=CurOpcode=*IPtr;
 
-    if(CurOpcode==CMD_EXITRPL)
-        return;  // END OF EXECUTION
-
     han=rplGetLibHandler(LIBNUM(CurOpcode));
 
     if(han) (*han)();
+    else {
+        Exceptions=EX_BADOPCODE;
+        ExceptionPointer=IPtr;
+        rplClearRStk(); // CLEAR THE RETURN STACK
+        rplClearLAMs(); // CLEAR ALL LOCAL VARIABLES
+        // INVALID OPCODE = END OF EXECUTION (CANNOT BE TRAPPED BY HANDLER)
+        return;
+    }
     if(Exceptions) {
+        if(Exceptions==EX_EXITRPL) {
+            Exceptions=0;
+            rplClearRStk(); // CLEAR THE RETURN STACK
+            rplClearLAMs(); // CLEAR ALL LOCAL VARIABLES
+            return; // DON'T ALLOW HANDLER TO TRAP THIS EXCEPTION
+        }
         if(ErrorHandler) {
             // ERROR WAS TRAPPED BY A HANDLER
             rplCatchException();
@@ -214,17 +224,12 @@ void rplRun(void)
         }
     }
 
-    ++RPLTicks;
-
     // SKIP TO THE NEXT INSTRUCTION / OBJECT BASED ON CurOpcode
     // NOTICE THAT CurOpcode MIGHT BE MODIFIED BY A LIBRARY HANDLER TO ALTER THE FLOW
     IPtr+=1+((ISPROLOG(CurOpcode))? OBJSIZE(CurOpcode):0);
 
-    } while(han);
+    } while(1);
 
-    Exceptions=EX_BADOPCODE;
-    ExceptionPointer=IPtr;
-    // INVALID OPCODE = END OF EXECUTION.
 }
 
 
