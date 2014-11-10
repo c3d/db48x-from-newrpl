@@ -126,25 +126,35 @@ return 0;
 // CREATE A NEW EMPTY DIRECTORY AT THE PARENT DIRECTORY
 
 // NOTE: THIS FUNCTION RELIES ON DIRSLACK>8
-void rplCreateNewDir(WORDPTR name,WORDPTR *parentdir)
+// USES 2 SCRATCH POINTERS
+WORDPTR *rplCreateNewDir(WORDPTR name,WORDPTR *parentdir)
 {
-    WORDPTR *dirptr=rplMakeNewDir();
+    ScratchPointer1=name;
 
-    if(!dirptr) return;
+    WORDPTR *dirptr=rplMakeNewDir();    // MAY CAUSE A GC
+
+    if(!dirptr) return NULL;
 
     // LINK TO PARENT DIR HANDLE
     dirptr[3]=parentdir[1];
 
-    WORDPTR *var=rplFindGlobalInDir(name,parentdir,0);
+
+    WORDPTR *var=rplFindGlobalInDir(ScratchPointer1,parentdir,0);
     if(var) {
         // THAT NAME IS BEING USED, OVERWRITE
         *(var+1)=(WORDPTR)dirptr[1];
+        return dirptr[1];
+
     }
     else {
+        // PROTECT THE HANDLE FROM MOVING DURING A GC
+        ScratchPointer2=dirptr[1];
         // CREATE THE GLOBAL VARIABLE TO LINK THE DIRECTORY
-        rplCreateGlobalInDir(name,dirptr[1],parentdir);
+        rplCreateGlobalInDir(ScratchPointer1,dirptr[1],parentdir);
+        return ScratchPointer2;
     }
-  }
+
+}
 
 // LOW LEVEL VERSION CREATES AN UNLINKED DIRECTORY, WITH NO PARENT
 
