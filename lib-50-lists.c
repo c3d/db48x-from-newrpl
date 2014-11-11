@@ -2289,11 +2289,11 @@ void LIB_HANDLER()
         *newlist=MKPROLOG(LIBRARY_NUMBER,size1+size2+1);
 
         // DO NOT REUSE obj1, COULD'VE BEEN MOVED BY GC
-        if(ISLIST(*rplPeekData(2))) memmove(newlist+1,rplPeekData(2)+1,size1<<2);
-        else memmove(newlist+1,rplPeekData(2),size1<<2);
+        if(ISLIST(*rplPeekData(2))) memmovew(newlist+1,rplPeekData(2)+1,size1);
+        else memmovew(newlist+1,rplPeekData(2),size1);
 
-        if(ISLIST(*rplPeekData(1))) memmove(newlist+1+size1,rplPeekData(1)+1,size2<<2);
-        else memmove(newlist+1+size1,rplPeekData(1),size2<<2);
+        if(ISLIST(*rplPeekData(1))) memmovew(newlist+1+size1,rplPeekData(1)+1,size2);
+        else memmovew(newlist+1+size1,rplPeekData(1),size2);
 
         // CLOSE THE NEW LIST WITH ENDLIST
 

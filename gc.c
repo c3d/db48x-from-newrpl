@@ -15,7 +15,7 @@
 
 
 // memmove WILL PROPERLY WORK ON OVERLAPPING BLOCKS. CAREFUL IF USING OTHER CUSTOM IMPLEMENTATIONS
-#define CloseHole(hole,start,end) memmove((hole),(start), (WORD)(end)-(WORD)(start))
+#define CloseHole(hole,start,end) memmovew((hole),(start), (WORD)(end-start))
 
 
 // GET A TEMPBLOCK THAT CORRESPONDS OR CONTAINS THE GIVEN ADDRESS

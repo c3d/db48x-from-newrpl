@@ -272,7 +272,7 @@ void rplCopyObject(WORDPTR dest, WORDPTR src)
     if(ISPROLOG(prolog)) size=OBJSIZE(prolog);
     else size=0;
 
-    memmove((void *)dest,(void *)src,4+(size<<2));
+    memmovew((void *)dest,(void *)src,1+size);
 }
 
 
