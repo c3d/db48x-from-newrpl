@@ -71,6 +71,12 @@ const WORD const one_bint[]=
     (WORD)MAKESINT(1)
 };
 
+const WORD const minusone_bint[]=
+{
+    (WORD)MAKESINT(-1)
+};
+
+
 const WORD const two_bint[]=
 {
     (WORD)MAKESINT(2)
@@ -513,9 +519,8 @@ void LIB_HANDLER()
                 else {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&RReg[1],&RReg[0],&Context);
-                if(res) res=0;
-                else res=1;
-                rplNewSINTPush(res,DECBINT);
+                if(res) rplPushData(zero_bint);
+                else rplPushData(one_bint);
                 }
             }
 
@@ -528,9 +533,8 @@ void LIB_HANDLER()
                 else {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&RReg[1],&Context);
-                if(res) res=0;
-                else res=1;
-                rplNewSINTPush(res,DECBINT);
+                if(res) rplPushData(zero_bint);
+                else rplPushData(one_bint);
                 }
             }
             return;
@@ -553,8 +557,8 @@ void LIB_HANDLER()
                 else {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&RReg[1],&RReg[0],&Context);
-                if(res) res=1;
-                rplNewSINTPush(res,DECBINT);
+                if(res) rplPushData(one_bint);
+                else rplPushData(zero_bint);
                 }
             }
 
@@ -567,8 +571,8 @@ void LIB_HANDLER()
                 else {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&RReg[1],&Context);
-                if(res) res=1;
-                rplNewSINTPush(res,DECBINT);
+                if(res) rplPushData(one_bint);
+                else rplPushData(zero_bint);
                 }
             }
             return;
@@ -583,16 +587,14 @@ void LIB_HANDLER()
             if(op1type) {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&rop1,&RReg[0],&Context);
-                if(res<0) res=1;
-                else res=0;
-                rplNewSINTPush(res,DECBINT);
+                if(res<0) rplPushData(one_bint);
+                else rplPushData(zero_bint);
             }
             if(op2type) {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&rop2,&Context);
-                if(res<0) res=1;
-                else res=0;
-                rplNewSINTPush(res,DECBINT);
+                if(res<0) rplPushData(one_bint);
+                else rplPushData(zero_bint);
                 }
             return;
             }
@@ -607,16 +609,14 @@ void LIB_HANDLER()
             if(op1type) {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&rop1,&RReg[0],&Context);
-                if(res>0) res=1;
-                else res=0;
-                rplNewSINTPush(res,DECBINT);
+                if(res>0) rplPushData(one_bint);
+                else rplPushData(zero_bint);
             }
             if(op2type) {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&rop2,&Context);
-                if(res>0) res=1;
-                else res=0;
-                rplNewSINTPush(res,DECBINT);
+                if(res>0) rplPushData(one_bint);
+                else rplPushData(zero_bint);
                 }
             return;
             }
@@ -634,16 +634,14 @@ void LIB_HANDLER()
             if(op1type) {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&rop1,&RReg[0],&Context);
-                if(res<=0) res=1;
-                else res=0;
-                rplNewSINTPush(res,DECBINT);
+                if(res<=0) rplPushData(one_bint);
+                else rplPushData(zero_bint);
             }
             if(op2type) {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&rop2,&Context);
-                if(res<=0) res=1;
-                else res=0;
-                rplNewSINTPush(res,DECBINT);
+                if(res<=0) rplPushData(one_bint);
+                else rplPushData(zero_bint);
                 }
             return;
             }
@@ -658,16 +656,14 @@ void LIB_HANDLER()
             if(op1type) {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&rop1,&RReg[0],&Context);
-                if(res>=0) res=1;
-                else res=0;
-                rplNewSINTPush(res,DECBINT);
+                if(res>=0) rplPushData(one_bint);
+                else rplPushData(zero_bint);
             }
             if(op2type) {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&rop2,&Context);
-                if(res>=0) res=1;
-                else res=0;
-                rplNewSINTPush(res,DECBINT);
+                if(res>=0) rplPushData(one_bint);
+                else rplPushData(zero_bint);
                 }
             return;
             }
@@ -688,9 +684,8 @@ void LIB_HANDLER()
                 else {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&RReg[1],&RReg[0],&Context);
-                if(res) res=0;
-                else res=1;
-                rplNewSINTPush(res,DECBINT);
+                if(res) rplPushData(zero_bint);
+                else rplPushData(one_bint);
                 }
             }
 
@@ -703,9 +698,8 @@ void LIB_HANDLER()
                 else {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&RReg[1],&Context);
-                if(res) res=0;
-                else res=1;
-                rplNewSINTPush(res,DECBINT);
+                if(res) rplPushData(zero_bint);
+                else rplPushData(one_bint);
                 }
             }
             return;
@@ -738,18 +732,22 @@ void LIB_HANDLER()
             if(op1type) {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&rop1,&RReg[0],&Context);
-                rplNewSINTPush(res,DECBINT);
+                if(res<0) rplPushData(minusone_bint);
+                else if(res>0) rplPushData(one_bint);
+                        else rplPushData(zero_bint);
             }
             if(op2type) {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&rop2,&Context);
-                rplNewSINTPush(res,DECBINT);
+                if(res<0) rplPushData(minusone_bint);
+                else if(res>0) rplPushData(one_bint);
+                        else rplPushData(zero_bint);
                 }
             return;
             }
 
             if(op1>op2) rplPushData(one_bint);
-            else if(op1<op2) rplNewSINTPush(-1,DECBINT);
+            else if(op1<op2) rplPushData(minusone_bint);
                 else rplPushData(zero_bint);
             return;
         }

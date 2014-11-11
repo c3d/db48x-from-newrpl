@@ -14,6 +14,13 @@
 
 WORD RPLLastOpcode;
 
+extern const WORD dotsettings_ident[];
+extern const WORD flags_ident[];
+
+
+
+
+
 // GET A HANDLER FOR A LIBRARY
 // IT'S FAST FOR SYSTEM LIBRARIES, MUCH SLOWER FOR USER LIBS
 
@@ -331,9 +338,9 @@ void rplInit(void)
 
 
     // INITIALIZE THE HOME DIRECTORY
-    rplMakeNewDir();
+    WORDPTR *HomeDir=rplMakeNewDir();
     // INITIALIZE THE SETTINGS DIRECTORY
-    SettingsDir=(WORDPTR)rplMakeNewDir();
+    SettingsDir=(WORDPTR)rplCreateNewDir(dotsettings_ident,HomeDir);
 
     // CREATE AN EMPTY LIST OF SYSTEM FLAGS
     SystemFlags=rplAllocTempOb(7);  // FOR NOW: 128 SYSTEM FLAGS IN 2 BINTS WITH 64 BITS EACH
@@ -341,14 +348,17 @@ void rplInit(void)
     if(!SystemFlags) return;
 
     SystemFlags[0]=MKPROLOG(DOLIST,7);  // PUT ALL SYSTEM FLAGS ON A LIST
-    SystemFlags[1]=MKPROLOG(DECBINT,2); // USE A BINT PROLOG
+    SystemFlags[1]=MKPROLOG(HEXBINT,2); // USE A BINT PROLOG
     SystemFlags[2]=0;                   // FLAGS 0-31 ARE IN SystemFlags[2]
     SystemFlags[3]=0;                   // FLAGS 32-63 ARE IN SystemFlags[3]
-    SystemFlags[4]=MKPROLOG(DECBINT,2);
+    SystemFlags[4]=MKPROLOG(HEXBINT,2);
     SystemFlags[5]=0;                   // FLAGS 64-95 ARE IN SystemFlags[5]
     SystemFlags[6]=0;                   // FLAGS 96-127 ARE IN SystemFlags[6]
                                         // FUTURE EXPANSION: ADD MORE FLAGS HERE
     SystemFlags[7]=CMD_ENDLIST;         // CLOSE THE LIST
+
+
+    rplStoreSettings(flags_ident,SystemFlags);
 
 
     // INITIALIZE THE FLOATING POINT CONTEXT

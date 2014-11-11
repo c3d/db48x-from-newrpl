@@ -205,7 +205,7 @@ extern void growDirs(WORD newtotalsize);
 extern void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir);
 extern void rplCreateGlobal(WORDPTR nameobj,WORDPTR value);
 extern WORDPTR *rplFindDirbyHandle(WORDPTR handle);
-extern void rplCreateNewDir(WORDPTR name,WORDPTR *parentdir);
+extern WORDPTR *rplCreateNewDir(WORDPTR name,WORDPTR *parentdir);
 extern WORDPTR *rplGetParentDir(WORDPTR *directory);
 extern WORDPTR *rplFindGlobalbyName(BYTEPTR name,BINT len,BINT scanparents);
 extern WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name,BINT len,WORDPTR *parent,BINT scanparents);

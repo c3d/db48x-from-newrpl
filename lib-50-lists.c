@@ -251,6 +251,7 @@ void LIB_HANDLER()
 
     if(ISUNARYOP(CurOpcode)) {
         // ALL UNARY OPERATORS PASS THEIR OPERATION DIRECTLY TO EACH ELEMENT
+        if(OPCODE(CurOpcode)==OVR_XEQ) return;  // JUST LEAVE THE LIST ON THE STACK
 
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
@@ -2306,10 +2307,6 @@ void LIB_HANDLER()
         return;
 
     }
-    case OVR_XEQ:
-        // JUST LEAVE THE LIST ON THE STACK
-        return;
-
 
         // ADD MORE OPCODES HERE
 

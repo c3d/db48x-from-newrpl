@@ -46,6 +46,8 @@ extern const LIBHANDLER ROMLibs[];
 #define LIBNUM(p) ((((WORD)(p))>>20)&0xFFF)
 #define ISPROLOG(p) ((((WORD)(p))>>19)&1)
 
+#define TEXT2WORD(a,b,c,d) (WORD)( (WORD)(a) | ((WORD)(b)<<8) | ((WORD)(c)<<16) | ((WORD)(d)<<24))
+
 
 #define TI_LENGTH(tokeninfo) ((tokeninfo)&0x3fff)
 #define TI_TYPE(tokeninfo) (((tokeninfo)&0xfc000)>>14)
