@@ -127,7 +127,8 @@ return 0;
 
 // NOTE: THIS FUNCTION RELIES ON DIRSLACK>8
 // USES 2 SCRATCH POINTERS
-WORDPTR *rplCreateNewDir(WORDPTR name,WORDPTR *parentdir)
+// RETURNS POINTER TO HANDLE OBJECT
+WORDPTR rplCreateNewDir(WORDPTR name,WORDPTR *parentdir)
 {
     ScratchPointer1=name;
 
@@ -174,12 +175,12 @@ WORDPTR *rplMakeNewDir()
     WORDPTR *direntry=DirsTop;
     DirsTop+=6;
 
-    direntry[0]=dir_start_bint;
-    direntry[1]=dirobj;
-    direntry[2]=dir_parent_bint;
+    direntry[0]=(WORDPTR)dir_start_bint;
+    direntry[1]=(WORDPTR)dirobj;
+    direntry[2]=(WORDPTR)dir_parent_bint;
     direntry[3]=0;      // NO PARENT!!!
-    direntry[4]=dir_end_bint;
-    direntry[5]=dirobj;
+    direntry[4]=(WORDPTR)dir_end_bint;
+    direntry[5]=(WORDPTR)dirobj;
 
     if(DirSize<=DirsTop-Directories+DIRSLACK) growDirs((WORD)(DirsTop-Directories+DIRSLACK+1024));
     if(Exceptions) return 0;

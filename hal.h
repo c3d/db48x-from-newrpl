@@ -8,6 +8,9 @@
 #ifndef HAL_H
 #define HAL_H
 
+#define UNUSED_ARGUMENT(a) (void)(a)
+
+
 #ifdef TARGET_PC_SIMULATOR
 #include <stdlib.h>
 #include <string.h>

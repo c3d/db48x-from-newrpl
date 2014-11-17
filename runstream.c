@@ -6,6 +6,7 @@
  */
 
 #include "newrpl.h"
+#include "memory.h"
 #include "libraries.h"
 #include "hal.h"
 
@@ -340,7 +341,7 @@ void rplInit(void)
     // INITIALIZE THE HOME DIRECTORY
     WORDPTR *HomeDir=rplMakeNewDir();
     // INITIALIZE THE SETTINGS DIRECTORY
-    SettingsDir=(WORDPTR)rplCreateNewDir(dotsettings_ident,HomeDir);
+    SettingsDir=(WORDPTR)rplCreateNewDir((WORDPTR)dotsettings_ident,HomeDir);
 
     // CREATE AN EMPTY LIST OF SYSTEM FLAGS
     SystemFlags=rplAllocTempOb(7);  // FOR NOW: 128 SYSTEM FLAGS IN 2 BINTS WITH 64 BITS EACH
@@ -358,7 +359,7 @@ void rplInit(void)
     SystemFlags[7]=CMD_ENDLIST;         // CLOSE THE LIST
 
 
-    rplStoreSettings(flags_ident,SystemFlags);
+    rplStoreSettings((WORDPTR)flags_ident,SystemFlags);
 
 
     // INITIALIZE THE FLOATING POINT CONTEXT

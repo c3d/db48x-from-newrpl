@@ -265,7 +265,7 @@ void LIB_HANDLER()
         rplDropData(1);
 
         WORDPTR objn=rplPeekData(level);
-        WORDPTR stkptr=DSTop-level;
+        WORDPTR *stkptr=DSTop-level;
 
         BINT64 count;
         for(count=1;count<level;++count,++stkptr) *stkptr=*(stkptr+1);
@@ -294,7 +294,7 @@ void LIB_HANDLER()
         rplDropData(1);
 
         WORDPTR objn=rplPeekData(1);
-        WORDPTR stkptr=DSTop-1;
+        WORDPTR *stkptr=DSTop-1;
 
         BINT64 count;
         for(count=1;count<level;++count,--stkptr) *stkptr=*(stkptr-1);
@@ -377,7 +377,7 @@ void LIB_HANDLER()
         // THIS INTERNAL OPCODE PROVIDES SAFETY GUARD AGAINST DATA STACK PROTECTION
         // IF A PROGRAM FORGETS TO UNPROTECT THE STACK, IT WILL BE UNPROTECTED
         // AUTOMATICALLY ON EXIT
-        WORDPTR *oldstack=rplPopRet();
+        WORDPTR *oldstack=(WORDPTR *)rplPopRet();
         DStkProtect=oldstack;
         return;
     }
@@ -401,7 +401,7 @@ void LIB_HANDLER()
             // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
             // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
 
-        libCompileCmds(LIBRARY_NUMBER,LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
      return;
 
     case OPCODE_DECOMPILE:
@@ -414,7 +414,7 @@ void LIB_HANDLER()
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
-        libDecompileCmds(LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY

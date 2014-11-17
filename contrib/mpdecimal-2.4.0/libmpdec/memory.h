@@ -44,6 +44,7 @@ int mpd_realloc_dyn(mpd_t *result, mpd_ssize_t size, uint32_t *status);
 
 MPD_PRAGMA(MPD_HIDE_SYMBOLS_END) /* restore previous scope rules */
 
+void mpd_memory_reset();
 
 #endif
 

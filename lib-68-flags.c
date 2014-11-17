@@ -99,6 +99,100 @@ const systemflag const flags_names[]= {
     { NULL , {0,0,0,0,0,0,0,0} }
 };
 
+
+void rplSetSystemFlag(BINT flag)
+{
+    if(flag>-1 || flag<-128) return;
+
+    WORDPTR low64=SystemFlags+2;
+    WORDPTR hi64=SystemFlags+5;
+    if(flag>=-32) low64[0]|=(1 << -(flag+1));
+    else if(flag>=-64) low64[1]|=(1 << -(flag+33));
+    else if(flag>=96) hi64[0]|=(1 << -(flag+65));
+    else hi64[1]|=(1 << -(flag+97));
+}
+
+void rplClrSystemFlag(BINT flag)
+{
+    if(flag>-1 || flag<-128) return;
+
+    WORDPTR low64=SystemFlags+2;
+    WORDPTR hi64=SystemFlags+5;
+    if(flag>=-32) low64[0]&=~(1 << -(flag+1));
+    else if(flag>=-64) low64[1]&=~(1 << -(flag+33));
+    else if(flag>=96) hi64[0]&=~(1 << -(flag+65));
+    else hi64[1]&=~(1 << -(flag+97));
+}
+
+void rplSetSystemFlagByName(BYTEPTR name,BINT len)
+{
+        BINT idx=0;
+        while(flags_names[idx].flagname) {
+        if(!strncmp((char *)name,flags_names[idx].flagname,len))
+        {
+            BINT count;
+            for(count=0;count<8;++count)
+            {
+                if(flags_names[idx].flags[count]) {
+                    BINT flag=flags_names[idx].flags[count]&0x7f;
+                    BINT value=flags_names[idx].flags[count]>>7;
+                    //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
+                    WORDPTR low64=SystemFlags+2;
+                    WORDPTR hi64=SystemFlags+5;
+                    if(value) {
+                    if(flag<=32) low64[0]|=(1 << (flag-1));
+                    else if(flag<=64) low64[1]|=(1 << (flag-33));
+                    else if(flag<=96) hi64[0]|=(1 << (flag-65));
+                    else hi64[1]|=(1 << (flag-97));
+                    } else {
+                        if(flag<=32) low64[0]&=~(1 << (flag-1));
+                        else if(flag<=64) low64[1]&=~(1 << (flag-33));
+                        else if(flag<=96) hi64[0]&=~(1 << (flag-65));
+                        else hi64[1]&=~(1 << (flag-97));
+                    }
+
+                }
+            }
+
+            return;
+
+        }
+        ++idx;
+        }
+
+}
+
+void rplClrSystemFlagByName(BYTEPTR name,BINT len)
+{
+        BINT idx=0;
+        while(flags_names[idx].flagname) {
+        if(!strncmp((char *)name,flags_names[idx].flagname,len))
+        {
+            BINT count;
+            for(count=0;count<8;++count)
+            {
+                if(flags_names[idx].flags[count]) {
+                    BINT flag=flags_names[idx].flags[count]&0x7f;
+                    //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
+                    WORDPTR low64=SystemFlags+2;
+                    WORDPTR hi64=SystemFlags+5;
+                        if(flag<=32) low64[0]&=~(1 << (flag-1));
+                        else if(flag<=64) low64[1]&=~(1 << (flag-33));
+                        else if(flag<=96) hi64[0]&=~(1 << (flag-65));
+                        else hi64[1]&=~(1 << (flag-97));
+
+                }
+            }
+
+            return;
+
+        }
+        ++idx;
+        }
+
+}
+
+
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
@@ -151,14 +245,14 @@ void LIB_HANDLER()
             WORDPTR id=rplPeekData(1);
             BINT idx=0;
             while(flags_names[idx].flagname) {
-            if(rplCompareIDENTByName(id,flags_names[idx].flagname,strlen(flags_names[idx].flagname)))
+            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,strlen(flags_names[idx].flagname)))
             {
                 BINT count;
                 for(count=0;count<8;++count)
                 {
                     if(flags_names[idx].flags[count]) {
                         BINT flag=flags_names[idx].flags[count]&0x7f;
-                        BINT value=flags_names[idx].flags[count]>>7;
+                        //BINT value=flags_names[idx].flags[count]>>7;
                         if(!ISLIST(*SystemFlags)) {
                             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
                             Exceptions|=EX_VARUNDEF;
@@ -235,7 +329,7 @@ void LIB_HANDLER()
             WORDPTR id=rplPeekData(1);
             BINT idx=0;
             while(flags_names[idx].flagname) {
-            if(rplCompareIDENTByName(id,flags_names[idx].flagname,strlen(flags_names[idx].flagname)))
+            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,strlen(flags_names[idx].flagname)))
             {
                 BINT count;
                 for(count=0;count<8;++count)
@@ -309,8 +403,8 @@ void LIB_HANDLER()
                 else if(flag>=-64) result=low64[1]&(1 << -(flag+33));
                 else if(flag>=96) result=hi64[0]&(1 << -(flag+65));
                 else result=hi64[1]&(1 << -(flag+97));
-                if(result) rplOverwriteData(1,zero_bint);
-                else rplOverwriteData(1,one_bint);
+                if(result) rplOverwriteData(1,(WORDPTR)zero_bint);
+                else rplOverwriteData(1,(WORDPTR)one_bint);
                 return;
             }
 
@@ -326,7 +420,7 @@ void LIB_HANDLER()
             WORDPTR id=rplPeekData(1);
             BINT idx=0;
             while(flags_names[idx].flagname) {
-            if(rplCompareIDENTByName(id,flags_names[idx].flagname,strlen(flags_names[idx].flagname)))
+            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,strlen(flags_names[idx].flagname)))
             {
                 BINT count;
                 BINT match=1;
@@ -353,8 +447,8 @@ void LIB_HANDLER()
                     }
                 }
 
-                if(match) rplOverwriteData(1,zero_bint);
-                else rplOverwriteData(1,one_bint);
+                if(match) rplOverwriteData(1,(WORDPTR)zero_bint);
+                else rplOverwriteData(1,(WORDPTR)one_bint);
                 return;
 
             }
@@ -397,8 +491,8 @@ void LIB_HANDLER()
                 else if(flag>=-64) result=low64[1]&(1 << -(flag+33));
                 else if(flag>=96) result=hi64[0]&(1 << -(flag+65));
                 else result=hi64[1]&(1 << -(flag+97));
-                if(result) rplOverwriteData(1,one_bint);
-                else rplOverwriteData(1,zero_bint);
+                if(result) rplOverwriteData(1,(WORDPTR)one_bint);
+                else rplOverwriteData(1,(WORDPTR)zero_bint);
                 return;
             }
 
@@ -414,7 +508,7 @@ void LIB_HANDLER()
             WORDPTR id=rplPeekData(1);
             BINT idx=0;
             while(flags_names[idx].flagname) {
-            if(rplCompareIDENTByName(id,flags_names[idx].flagname,strlen(flags_names[idx].flagname)))
+            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,strlen(flags_names[idx].flagname)))
             {
                 BINT count;
                 BINT match=1;
@@ -441,8 +535,8 @@ void LIB_HANDLER()
                     }
                 }
 
-                if(match) rplOverwriteData(1,one_bint);
-                else rplOverwriteData(1,zero_bint);
+                if(match) rplOverwriteData(1,(WORDPTR)one_bint);
+                else rplOverwriteData(1,(WORDPTR)zero_bint);
                 return;
 
             }
@@ -486,8 +580,8 @@ void LIB_HANDLER()
                 else if(flag>=-64) { result=low64[1]&(1 << -(flag+33)); low64[1]&=~(1 << -(flag+33)); }
                 else if(flag>=96) { result=hi64[0]&(1 << -(flag+65)); hi64[0]&=~(1 << -(flag+65)); }
                 else { result=hi64[1]&(1 << -(flag+97)); hi64[1]&=~(1 << -(flag+97)); }
-                if(result) rplOverwriteData(1,zero_bint);
-                else rplOverwriteData(1,one_bint);
+                if(result) rplOverwriteData(1,(WORDPTR)zero_bint);
+                else rplOverwriteData(1,(WORDPTR)one_bint);
                 return;
             }
 
@@ -530,8 +624,8 @@ void LIB_HANDLER()
                 else if(flag>=-64) { result=low64[1]&(1 << -(flag+33)); low64[1]&=~(1 << -(flag+33)); }
                 else if(flag>=96) { result=hi64[0]&(1 << -(flag+65)); hi64[0]&=~(1 << -(flag+65)); }
                 else { result=hi64[1]&(1 << -(flag+97)); hi64[1]&=~(1 << -(flag+97)); }
-                if(result) rplOverwriteData(1,one_bint);
-                else rplOverwriteData(1,zero_bint);
+                if(result) rplOverwriteData(1,(WORDPTR)one_bint);
+                else rplOverwriteData(1,(WORDPTR)zero_bint);
                 return;
             }
 
@@ -570,7 +664,7 @@ void LIB_HANDLER()
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
-        libCompileCmds(LIBRARY_NUMBER,LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
 
      return;
 
@@ -584,7 +678,7 @@ void LIB_HANDLER()
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
-        libDecompileCmds(LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY
@@ -618,14 +712,14 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
         {
-        libProbeCmds(LIB_NAMES,LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
 
         return;
         }
 
 
     case OPCODE_GETINFO:
-        libGetInfo2(*DecompileObject,LIB_NAMES,LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+        libGetInfo2(*DecompileObject,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
         return;
 
     case OPCODE_LIBINSTALL:

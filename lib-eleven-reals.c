@@ -288,41 +288,41 @@ void LIB_HANDLER()
 
         case OVR_EQ:
 
-            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplPushData(zero_bint);
-            else rplPushData(one_bint);
+            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplPushData((WORDPTR)zero_bint);
+            else rplPushData((WORDPTR)one_bint);
             return;
 
         case OVR_NOTEQ:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplPushData(one_bint);
-            else rplPushData(zero_bint);
+            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
         case OVR_LT:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)==-1) rplPushData(one_bint);
-            else rplPushData(zero_bint);
+            if(mpd_cmp(&Darg1,&Darg2,&Context)==-1) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
         case OVR_GT:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)==1) rplPushData(one_bint);
-            else rplPushData(zero_bint);
+            if(mpd_cmp(&Darg1,&Darg2,&Context)==1) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
         case OVR_LTE:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)!=1) rplPushData(one_bint);
-            else rplPushData(zero_bint);
+            if(mpd_cmp(&Darg1,&Darg2,&Context)!=1) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
         case OVR_GTE:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)!=-1) rplPushData(one_bint);
-            else rplPushData(zero_bint);
+            if(mpd_cmp(&Darg1,&Darg2,&Context)!=-1) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
         case OVR_SAME:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplPushData(zero_bint);
-            else rplPushData(one_bint);
+            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplPushData((WORDPTR)zero_bint);
+            else rplPushData((WORDPTR)one_bint);
             return;
         case OVR_AND:
-            if(mpd_iszero(&Darg1)||mpd_iszero(&Darg2)) rplPushData(zero_bint);
-            else rplPushData(one_bint);
+            if(mpd_iszero(&Darg1)||mpd_iszero(&Darg2)) rplPushData((WORDPTR)zero_bint);
+            else rplPushData((WORDPTR)one_bint);
             return;
         case OVR_OR:
-            if(mpd_iszero(&Darg1)&&mpd_iszero(&Darg2)) rplPushData(zero_bint);
-            else rplPushData(one_bint);
+            if(mpd_iszero(&Darg1)&&mpd_iszero(&Darg2)) rplPushData((WORDPTR)zero_bint);
+            else rplPushData((WORDPTR)one_bint);
             return;
         case OVR_CMP:
             rplNewSINTPush(mpd_cmp(&Darg1,&Darg2,&Context),DECBINT);
@@ -352,8 +352,8 @@ void LIB_HANDLER()
             rplNewRealFromRRegPush(0);
             return;
         case OVR_NOT:
-            if(mpd_iszero(&Darg1)) rplPushData(one_bint);
-            else rplPushData(zero_bint);
+            if(mpd_iszero(&Darg1)) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
 
 
@@ -481,9 +481,9 @@ void LIB_HANDLER()
         BINT mode=MODE_IP;
         BYTE num;
         int f,exitfor=0;
-        BYTEPTR ptr=(BYTEPTR *)TokenStart;
+        BYTEPTR ptr=(BYTEPTR)TokenStart;
 
-        for(f=0;f<TokenLen;++f,++ptr) {
+        for(f=0;f<(int)TokenLen;++f,++ptr) {
             num=*ptr;
             switch(mode)
             {
