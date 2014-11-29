@@ -227,14 +227,14 @@ static void const_K_table(int startindex,mpd_t *real)
         return;
     }
 
-    uint8_t *byte=&(cordic_K_stream[cordic_K_offsets[REAL_PRECISION_MAX/2-startindex]]);
+    uint8_t *byte=(uint8_t *)&(cordic_K_stream[cordic_K_offsets[REAL_PRECISION_MAX/2-startindex]]);
 
     real->exp=-REAL_PRECISION_MAX;
     real->len=REAL_PRECISION_MAX/9;
     real->flags&=MPD_DATAFLAGS;
     real->digits=REAL_PRECISION_MAX;
 
-    decompress_number(byte,cordic_K_dict,real->data,real->data+REAL_PRECISION_MAX/9);
+    decompress_number(byte,(uint32_t *)cordic_K_dict,real->data,real->data+REAL_PRECISION_MAX/9);
 
 }
 
@@ -258,14 +258,14 @@ static void const_Kh_table(int startindex,mpd_t *real)
         return;
     }
 
-    uint8_t *byte=&(cordic_Kh_stream[cordic_Kh_offsets[REAL_PRECISION_MAX/2-startindex]]);
+    uint8_t *byte=(uint8_t *)&(cordic_Kh_stream[cordic_Kh_offsets[REAL_PRECISION_MAX/2-startindex]]);
 
     real->exp=-REAL_PRECISION_MAX+1;
     real->len=REAL_PRECISION_MAX/9;
     real->flags&=MPD_DATAFLAGS;
     real->digits=REAL_PRECISION_MAX;
 
-    decompress_number(byte,cordic_Kh_dict,real->data,real->data+REAL_PRECISION_MAX/9);
+    decompress_number(byte,(uint32_t *)cordic_Kh_dict,real->data,real->data+REAL_PRECISION_MAX/9);
 
 }
 
@@ -290,14 +290,14 @@ static void atan_1_table(int exponent,mpd_t *real)
         return;
     }
 
-    uint8_t *byte=&(atan_1_stream[atan_1_offsets[exponent]]);
+    uint8_t *byte=(uint8_t *)&(atan_1_stream[atan_1_offsets[exponent]]);
 
     real->exp=-REAL_PRECISION_MAX-exponent;
     real->len=REAL_PRECISION_MAX/9;
     real->flags&=MPD_DATAFLAGS;
     real->digits=REAL_PRECISION_MAX;
 
-    decompress_number(byte,atan_1_dict,real->data,real->data+REAL_PRECISION_MAX/9);
+    decompress_number(byte,(uint32_t *)atan_1_dict,real->data,real->data+REAL_PRECISION_MAX/9);
 
 }
 
@@ -322,14 +322,14 @@ static void atan_2_table(int exponent,mpd_t *real)
         return;
     }
 
-    uint8_t *byte=&(atan_2_stream[atan_2_offsets[exponent-1]]);
+    uint8_t *byte=(uint8_t *)&(atan_2_stream[atan_2_offsets[exponent-1]]);
 
     real->exp=-REAL_PRECISION_MAX-(exponent-1);
     real->len=REAL_PRECISION_MAX/9;
     real->flags&=MPD_DATAFLAGS;
     real->digits=REAL_PRECISION_MAX;
 
-    decompress_number(byte,atan_2_dict,real->data,real->data+REAL_PRECISION_MAX/9);
+    decompress_number(byte,(uint32_t *)atan_2_dict,real->data,real->data+REAL_PRECISION_MAX/9);
 
 }
 
@@ -347,14 +347,14 @@ static void atan_5_table(int exponent,mpd_t *real)
         return;
     }
 
-    uint8_t *byte=&(atan_5_stream[atan_5_offsets[exponent-1]]);
+    uint8_t *byte=(uint8_t *)&(atan_5_stream[atan_5_offsets[exponent-1]]);
 
     real->exp=-REAL_PRECISION_MAX-(exponent-1);
     real->len=REAL_PRECISION_MAX/9;
     real->flags&=MPD_DATAFLAGS;
     real->digits=REAL_PRECISION_MAX;
 
-    decompress_number(byte,atan_5_dict,real->data,real->data+REAL_PRECISION_MAX/9);
+    decompress_number(byte,(uint32_t *)atan_5_dict,real->data,real->data+REAL_PRECISION_MAX/9);
 
 }
 
@@ -842,14 +842,14 @@ static void atanh_1_table(int exponent,mpd_t *real)
         return;
     }
 
-    uint8_t *byte=&(atanh_1_stream[atanh_1_offsets[exponent-1]]);
+    uint8_t *byte=(uint8_t *)&(atanh_1_stream[atanh_1_offsets[exponent-1]]);
 
     real->exp=-REAL_PRECISION_MAX-(exponent-1);
     real->len=REAL_PRECISION_MAX/9;
     real->flags&=MPD_DATAFLAGS;
     real->digits=REAL_PRECISION_MAX;
 
-    decompress_number(byte,atanh_1_dict,real->data,real->data+REAL_PRECISION_MAX/9);
+    decompress_number(byte,(uint32_t *)atanh_1_dict,real->data,real->data+REAL_PRECISION_MAX/9);
 
 }
 
@@ -874,14 +874,14 @@ static void atanh_2_table(int exponent,mpd_t *real)
         return;
     }
 
-    uint8_t *byte=&(atanh_2_stream[atanh_2_offsets[exponent-1]]);
+    uint8_t *byte=(uint8_t *)&(atanh_2_stream[atanh_2_offsets[exponent-1]]);
 
     real->exp=-REAL_PRECISION_MAX-(exponent-1);
     real->len=REAL_PRECISION_MAX/9;
     real->flags&=MPD_DATAFLAGS;
     real->digits=REAL_PRECISION_MAX;
 
-    decompress_number(byte,atanh_2_dict,real->data,real->data+REAL_PRECISION_MAX/9);
+    decompress_number(byte,(uint32_t *)atanh_2_dict,real->data,real->data+REAL_PRECISION_MAX/9);
 
 }
 
@@ -899,14 +899,14 @@ static void atanh_5_table(int exponent,mpd_t *real)
         return;
     }
 
-    uint8_t *byte=&(atanh_5_stream[atanh_5_offsets[exponent-1]]);
+    uint8_t *byte=(uint8_t *)&(atanh_5_stream[atanh_5_offsets[exponent-1]]);
 
     real->exp=-REAL_PRECISION_MAX-(exponent-1);
     real->len=REAL_PRECISION_MAX/9;
     real->flags&=MPD_DATAFLAGS;
     real->digits=REAL_PRECISION_MAX;
 
-    decompress_number(byte,atanh_5_dict,real->data,real->data+REAL_PRECISION_MAX/9);
+    decompress_number(byte,(uint32_t *)atanh_5_dict,real->data,real->data+REAL_PRECISION_MAX/9);
 
 }
 

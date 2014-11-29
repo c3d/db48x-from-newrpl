@@ -801,14 +801,14 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
         {
-        libProbeCmds(LIB_NAMES,LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
 
         return;
         }
 
 
     case OPCODE_GETINFO:
-        libGetInfo2(*DecompileObject,LIB_NAMES,LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+        libGetInfo2(*DecompileObject,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
         return;
 
     case OPCODE_LIBINSTALL:
