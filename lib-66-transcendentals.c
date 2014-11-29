@@ -35,7 +35,11 @@
     CMD(ASINH,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
     CMD(ACOSH,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
     CMD(ATANH,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
-    CMD(SQRT,MKTOKENINFO(4,TITYPE_FUNCTION,1,2))
+    CMD(SQRT,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(DEG,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    CMD(GRAD,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RAD,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2))
+
 
 // ADD MORE OPCODES HERE
 
@@ -99,6 +103,9 @@ void LIB_HANDLER()
 
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
+
+        // PRECONVERT ARGUMENT IF ITS IN ANYTHING OTHER THAN RADIANS
+
 
         trig_sincos(&dec);
 
@@ -711,6 +718,19 @@ void LIB_HANDLER()
 
     }
 
+    case DEG:
+        rplClrSystemFlag(-17);
+        rplClrSystemFlag(-18);
+        return;
+    case RAD:
+        rplSetSystemFlag(-17);
+        rplClrSystemFlag(-18);
+        return;
+    case GRAD:
+        rplClrSystemFlag(-17);
+        rplSetSystemFlag(-18);
+        return;
+
 
     // ADD MORE OPCODES HERE
 
@@ -733,7 +753,7 @@ void LIB_HANDLER()
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
-        libCompileCmds(LIBRARY_NUMBER,LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
 
      return;
 
@@ -747,7 +767,7 @@ void LIB_HANDLER()
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
-        libDecompileCmds(LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY

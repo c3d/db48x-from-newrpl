@@ -86,10 +86,10 @@
 
 static const mpd_uint_t data_one[1] = {1};
 static const mpd_uint_t data_zero[1] = {0};
-static const mpd_t one = {MPD_STATIC|MPD_CONST_DATA, 0, 1, 1, 1, data_one};
+static const mpd_t one = {MPD_STATIC|MPD_CONST_DATA, 0, 1, 1, 1, (mpd_uint_t *)data_one};
 static const mpd_t minus_one = {MPD_NEG|MPD_STATIC|MPD_CONST_DATA, 0, 1, 1, 1,
-                                data_one};
-static const mpd_t zero = {MPD_STATIC|MPD_CONST_DATA, 0, 1, 1, 1, data_zero};
+                                (mpd_uint_t *)data_one};
+static const mpd_t zero = {MPD_STATIC|MPD_CONST_DATA, 0, 1, 1, 1, (mpd_uint_t *)data_zero};
 
 static inline void _mpd_check_exp(mpd_t *dec, const mpd_context_t *ctx,
                                   uint32_t *status);
@@ -4443,7 +4443,7 @@ mpd_qfma(mpd_t *result, const mpd_t *a, const mpd_t *b, const mpd_t *c,
             mpd_qadd(&res2, &res2, c, ctx, &workstatus);
         }
 
-        mpd_copy(result,&res2,ctx);
+        mpd_copy(result,&res2,(mpd_context_t *)ctx);
 
         mpd_del(&res2);
 

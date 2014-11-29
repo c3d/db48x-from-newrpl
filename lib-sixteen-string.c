@@ -214,13 +214,13 @@ void LIB_HANDLER()
         }
 
         if( (!ISSTRING(*rplPeekData(2))) || (!ISSTRING(*rplPeekData(1)))) {
-            rplOverwriteData(2,zero_bint);
+            rplOverwriteData(2,(WORDPTR)zero_bint);
             rplDropData(1);
             return;
         }
 
-        if(rplCompareObjects(rplPeekData(1),rplPeekData(2))) rplOverwriteData(2,one_bint);
-        else rplOverwriteData(2,zero_bint);
+        if(rplCompareObjects(rplPeekData(1),rplPeekData(2))) rplOverwriteData(2,(WORDPTR)one_bint);
+        else rplOverwriteData(2,(WORDPTR)zero_bint);
         rplDropData(1);
         return;
 
@@ -311,7 +311,7 @@ void LIB_HANDLER()
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
-        libCompileCmds(LIBRARY_NUMBER,LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
      return;
 
 
@@ -400,7 +400,7 @@ void LIB_HANDLER()
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
-        libDecompileCmds(LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY

@@ -169,6 +169,16 @@ extern void growRStk(WORD newsize);
 extern WORDPTR rplPeekRet(int level);
 extern void rplClearRStk();
 
+// SYSTEM FLAGS
+extern void rplSetSystemFlag(BINT flag);
+extern void rplClrSystemFlag(BINT flag);
+extern void rplClrSystemFlagByName(BYTEPTR name,BINT len);
+extern void rplSetSystemFlagByName(BYTEPTR name,BINT len);
+
+
+
+
+
 // GARBAGE COLLECTION
 extern void rplGCollect();
 
@@ -205,7 +215,7 @@ extern void growDirs(WORD newtotalsize);
 extern void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir);
 extern void rplCreateGlobal(WORDPTR nameobj,WORDPTR value);
 extern WORDPTR *rplFindDirbyHandle(WORDPTR handle);
-extern WORDPTR *rplCreateNewDir(WORDPTR name,WORDPTR *parentdir);
+extern WORDPTR rplCreateNewDir(WORDPTR name,WORDPTR *parentdir);
 extern WORDPTR *rplGetParentDir(WORDPTR *directory);
 extern WORDPTR *rplFindGlobalbyName(BYTEPTR name,BINT len,BINT scanparents);
 extern WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name,BINT len,WORDPTR *parent,BINT scanparents);

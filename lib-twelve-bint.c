@@ -282,7 +282,7 @@ void LIB_HANDLER()
         // OVERLOADABLE OPERATORS LIBRARY.
 
         // PROVIDE BEHAVIOR FOR OVERLOADABLE OPERATORS HERE
-        BINT64 op1,op2;
+        BINT64 op1=0,op2=0;
         mpd_t rop1,rop2;
         int op1type=0,op2type=0;
         int status;
@@ -515,12 +515,12 @@ void LIB_HANDLER()
                 status=0;
                 mpd_qround_to_intx(&RReg[1],&rop1,&Context,(uint32_t *)&status);
                 // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplPushData(zero_bint);
+                if(status) rplPushData((WORDPTR)(WORDPTR)zero_bint);
                 else {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&RReg[1],&RReg[0],&Context);
-                if(res) rplPushData(zero_bint);
-                else rplPushData(one_bint);
+                if(res) rplPushData((WORDPTR)zero_bint);
+                else rplPushData((WORDPTR)one_bint);
                 }
             }
 
@@ -529,19 +529,19 @@ void LIB_HANDLER()
                 status=0;
                 mpd_qround_to_intx(&RReg[1],&rop2,&Context,(uint32_t *)&status);
                 // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplPushData(zero_bint);
+                if(status) rplPushData((WORDPTR)zero_bint);
                 else {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&RReg[1],&Context);
-                if(res) rplPushData(zero_bint);
-                else rplPushData(one_bint);
+                if(res) rplPushData((WORDPTR)zero_bint);
+                else rplPushData((WORDPTR)one_bint);
                 }
             }
             return;
         }
             // BOTH WERE INTEGERS
-            if(op1==op2) rplPushData(one_bint);
-            else rplPushData(zero_bint);
+            if(op1==op2) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
         }
 
@@ -553,12 +553,12 @@ void LIB_HANDLER()
                 status=0;
                 mpd_qround_to_intx(&RReg[1],&rop1,&Context,(uint32_t *)&status);
                 // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplPushData(one_bint);
+                if(status) rplPushData((WORDPTR)one_bint);
                 else {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&RReg[1],&RReg[0],&Context);
-                if(res) rplPushData(one_bint);
-                else rplPushData(zero_bint);
+                if(res) rplPushData((WORDPTR)one_bint);
+                else rplPushData((WORDPTR)zero_bint);
                 }
             }
 
@@ -567,18 +567,18 @@ void LIB_HANDLER()
                 status=0;
                 mpd_qround_to_intx(&RReg[1],&rop2,&Context,(uint32_t *)&status);
                 // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplPushData(one_bint);
+                if(status) rplPushData((WORDPTR)one_bint);
                 else {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&RReg[1],&Context);
-                if(res) rplPushData(one_bint);
-                else rplPushData(zero_bint);
+                if(res) rplPushData((WORDPTR)one_bint);
+                else rplPushData((WORDPTR)zero_bint);
                 }
             }
             return;
         }
-            if(op1==op2) rplPushData(zero_bint);
-            else rplPushData(one_bint);
+            if(op1==op2) rplPushData((WORDPTR)zero_bint);
+            else rplPushData((WORDPTR)one_bint);
             return;
         }
         case OVR_LT:
@@ -587,20 +587,20 @@ void LIB_HANDLER()
             if(op1type) {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&rop1,&RReg[0],&Context);
-                if(res<0) rplPushData(one_bint);
-                else rplPushData(zero_bint);
+                if(res<0) rplPushData((WORDPTR)one_bint);
+                else rplPushData((WORDPTR)zero_bint);
             }
             if(op2type) {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&rop2,&Context);
-                if(res<0) rplPushData(one_bint);
-                else rplPushData(zero_bint);
+                if(res<0) rplPushData((WORDPTR)one_bint);
+                else rplPushData((WORDPTR)zero_bint);
                 }
             return;
             }
 
-            if(op1<op2) rplPushData(one_bint);
-            else rplPushData(zero_bint);
+            if(op1<op2) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
         }
         case OVR_GT:
@@ -609,20 +609,20 @@ void LIB_HANDLER()
             if(op1type) {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&rop1,&RReg[0],&Context);
-                if(res>0) rplPushData(one_bint);
-                else rplPushData(zero_bint);
+                if(res>0) rplPushData((WORDPTR)one_bint);
+                else rplPushData((WORDPTR)zero_bint);
             }
             if(op2type) {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&rop2,&Context);
-                if(res>0) rplPushData(one_bint);
-                else rplPushData(zero_bint);
+                if(res>0) rplPushData((WORDPTR)one_bint);
+                else rplPushData((WORDPTR)zero_bint);
                 }
             return;
             }
 
-            if(op1>op2) rplPushData(one_bint);
-            else rplPushData(zero_bint);
+            if(op1>op2) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
         }
 
@@ -634,20 +634,20 @@ void LIB_HANDLER()
             if(op1type) {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&rop1,&RReg[0],&Context);
-                if(res<=0) rplPushData(one_bint);
-                else rplPushData(zero_bint);
+                if(res<=0) rplPushData((WORDPTR)one_bint);
+                else rplPushData((WORDPTR)zero_bint);
             }
             if(op2type) {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&rop2,&Context);
-                if(res<=0) rplPushData(one_bint);
-                else rplPushData(zero_bint);
+                if(res<=0) rplPushData((WORDPTR)one_bint);
+                else rplPushData((WORDPTR)zero_bint);
                 }
             return;
             }
 
-            if(op1<=op2) rplPushData(one_bint);
-            else rplPushData(zero_bint);
+            if(op1<=op2) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
         }
         case OVR_GTE:
@@ -656,20 +656,20 @@ void LIB_HANDLER()
             if(op1type) {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&rop1,&RReg[0],&Context);
-                if(res>=0) rplPushData(one_bint);
-                else rplPushData(zero_bint);
+                if(res>=0) rplPushData((WORDPTR)one_bint);
+                else rplPushData((WORDPTR)zero_bint);
             }
             if(op2type) {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&rop2,&Context);
-                if(res>=0) rplPushData(one_bint);
-                else rplPushData(zero_bint);
+                if(res>=0) rplPushData((WORDPTR)one_bint);
+                else rplPushData((WORDPTR)zero_bint);
                 }
             return;
             }
 
-            if(op1>=op2) rplPushData(one_bint);
-            else rplPushData(zero_bint);
+            if(op1>=op2) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
         }
         case OVR_SAME:
@@ -680,12 +680,12 @@ void LIB_HANDLER()
                 status=0;
                 mpd_qround_to_intx(&RReg[1],&rop1,&Context,(uint32_t *)&status);
                 // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplPushData(zero_bint);
+                if(status) rplPushData((WORDPTR)zero_bint);
                 else {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&RReg[1],&RReg[0],&Context);
-                if(res) rplPushData(zero_bint);
-                else rplPushData(one_bint);
+                if(res) rplPushData((WORDPTR)zero_bint);
+                else rplPushData((WORDPTR)one_bint);
                 }
             }
 
@@ -694,19 +694,19 @@ void LIB_HANDLER()
                 status=0;
                 mpd_qround_to_intx(&RReg[1],&rop2,&Context,(uint32_t *)&status);
                 // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplPushData(zero_bint);
+                if(status) rplPushData((WORDPTR)zero_bint);
                 else {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&RReg[1],&Context);
-                if(res) rplPushData(zero_bint);
-                else rplPushData(one_bint);
+                if(res) rplPushData((WORDPTR)zero_bint);
+                else rplPushData((WORDPTR)one_bint);
                 }
             }
             return;
         }
             // BOTH WERE INTEGERS
-            if(op1==op2) rplPushData(one_bint);
-            else rplPushData(zero_bint);
+            if(op1==op2) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
         }
 
@@ -716,14 +716,14 @@ void LIB_HANDLER()
         case OVR_AND:
             if(op1type) op1=!mpd_iszero(&rop1);
             if(op2type) op2=!mpd_iszero(&rop2);
-            if(op1&&op2) rplPushData(one_bint);
-            else rplPushData(zero_bint);
+            if(op1&&op2) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
         case OVR_OR:
             if(op1type) op1=!mpd_iszero(&rop1);
             if(op2type) op2=!mpd_iszero(&rop2);
-            if(op1||op2) rplPushData(one_bint);
-            else rplPushData(zero_bint);
+            if(op1||op2) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
 
         case OVR_CMP:
@@ -732,23 +732,23 @@ void LIB_HANDLER()
             if(op1type) {
                 rplBINTToRReg(0,op2);
                 int res=mpd_cmp(&rop1,&RReg[0],&Context);
-                if(res<0) rplPushData(minusone_bint);
-                else if(res>0) rplPushData(one_bint);
-                        else rplPushData(zero_bint);
+                if(res<0) rplPushData((WORDPTR)minusone_bint);
+                else if(res>0) rplPushData((WORDPTR)one_bint);
+                        else rplPushData((WORDPTR)zero_bint);
             }
             if(op2type) {
                 rplBINTToRReg(0,op1);
                 int res=mpd_cmp(&RReg[0],&rop2,&Context);
-                if(res<0) rplPushData(minusone_bint);
-                else if(res>0) rplPushData(one_bint);
-                        else rplPushData(zero_bint);
+                if(res<0) rplPushData((WORDPTR)minusone_bint);
+                else if(res>0) rplPushData((WORDPTR)one_bint);
+                        else rplPushData((WORDPTR)zero_bint);
                 }
             return;
             }
 
-            if(op1>op2) rplPushData(one_bint);
-            else if(op1<op2) rplPushData(minusone_bint);
-                else rplPushData(zero_bint);
+            if(op1>op2) rplPushData((WORDPTR)one_bint);
+            else if(op1<op2) rplPushData((WORDPTR)minusone_bint);
+                else rplPushData((WORDPTR)zero_bint);
             return;
         }
 
@@ -779,8 +779,8 @@ void LIB_HANDLER()
             else rplPushData(arg1);
             return;
         case OVR_NOT:
-            if(op1) rplPushData(zero_bint);
-            else rplPushData(one_bint);
+            if(op1) rplPushData((WORDPTR)zero_bint);
+            else rplPushData((WORDPTR)one_bint);
             return;
 
 

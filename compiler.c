@@ -94,10 +94,10 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
     // START COMPILATION LOOP
     BINT force_libnum,splittoken,validate,infixmode;
-    BINT probe_libnum,probe_tokeninfo,previous_tokeninfo;
+    BINT probe_libnum=0,probe_tokeninfo=0,previous_tokeninfo;
     LIBHANDLER handler,ValidateHandler;
     BINT libcnt,libnum;
-    WORDPTR InfixOpTop;
+    WORDPTR InfixOpTop=0;
 
     LAMTopSaved=LAMTop;     // SAVE LAM ENVIRONMENT
 

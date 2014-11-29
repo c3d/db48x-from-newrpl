@@ -166,7 +166,7 @@ void LIB_HANDLER()
 
     case OPCODE_COMPILE:
 
-        libCompileCmds(LIBRARY_NUMBER,LIB_NAMES,LIB_OPCODES,LIB_NUMCMDS);
+        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,(WORDPTR)LIB_OPCODES,LIB_NUMCMDS);
      return;
 
     case OPCODE_DECOMPILE:
@@ -176,7 +176,7 @@ void LIB_HANDLER()
         if(OPCODE(*DecompileObject)==OVR_UPLUS) { rplDecompAppendChar('+'); RetNum=OK_CONTINUE; return; }
 
 
-        libDecompileCmds(LIB_NAMES,LIB_OPCODES,LIB_NUMCMDS);
+        libDecompileCmds((char **)LIB_NAMES,(WORDPTR)LIB_OPCODES,LIB_NUMCMDS);
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY
@@ -194,7 +194,7 @@ void LIB_HANDLER()
         RetNum=OK_CONTINUE;
         return;
     case OPCODE_PROBETOKEN:
-        libProbeCmds(LIB_NAMES,LIB_TOKENINFO,LIB_NUMCMDS);
+        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMCMDS);
         return;
     case OPCODE_GETINFO:
         // MANUALLY RETURN INFO FOR UNARY PLUS AND MINUS
@@ -202,7 +202,7 @@ void LIB_HANDLER()
         if(OPCODE(*DecompileObject)==OVR_UPLUS) { RetNum=OK_TOKENINFO | MKTOKENINFO(1,TITYPE_PREFIXOP,1,4); return; }
 
 
-        libGetInfo(*DecompileObject,LIB_NAMES,LIB_OPCODES,LIB_TOKENINFO,LIB_NUMCMDS);
+        libGetInfo(*DecompileObject,(char **)LIB_NAMES,(WORDPTR)LIB_OPCODES,(BINT *)LIB_TOKENINFO,LIB_NUMCMDS);
         return;
 
     case OPCODE_LIBINSTALL:

@@ -108,6 +108,7 @@ extern void libCompileCmds(BINT libnum, char *libnames[], WORD libopcodes[], int
 extern void libDecompileCmds(           char *libnames[], WORD libopcodes[], int numcmds);
 extern void libProbeCmds(char *libnames[], BINT tokeninfo[], int numcmds);
 extern void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT tokeninfo[],int numcmds);
+extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int numcmds);
 
 
 // SOME BASIC OBJECT TYPES HERE NEEDED FOR COMPILER
