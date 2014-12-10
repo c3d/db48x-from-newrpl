@@ -94,7 +94,7 @@ void rplCopyRealToRReg(int num,WORDPTR real)
     RReg[num].exp=head->exp;
     RReg[num].flags|=head->flags;
     RReg[num].digits=head->digits+(head->len-1)*9;
-    memcpy(RReg[num].data,real+2,sizeof(mpd_ssize_t)*RReg[num].len);
+    memcpyw(RReg[num].data,real+2,RReg[num].len);
 }
 
 

@@ -72,7 +72,7 @@ static BINT rplInfixApply(WORD opcode,WORD tokeninfo)
     }
 
     // MOVE THE ENTIRE LIST TO MAKE ROOM FOR THE HEADER
-    memmove(ptr+2,ptr,(CompileEnd-ptr-2)*sizeof(WORD));
+    memmovew(ptr+2,ptr,CompileEnd-ptr-2);
 
     ptr[0]=MKPROLOG(DOSYMB,CompileEnd-ptr-1);
     ptr[1]=opcode;

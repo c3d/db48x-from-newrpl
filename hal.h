@@ -48,5 +48,10 @@ enum {
 // COMMON DEFINITIONS FOR ALL HARDWARE PLATFORMS
 WORDPTR *halGrowMemory(BINT zone,WORDPTR *base,BINT newsize);
 
+// BASIC MEMORY MOVEMENT ROUTINES (FOR WORD ALIGNED DATA)
+void memmovew(void *dest,const void *source,int nwords);
+void memcpyw(void *dest,const void *source,int nwords);
+
+
 
 #endif // HAL_H
