@@ -247,6 +247,12 @@ extern void rplNewBINTPush(BINT64 num,int base);
 extern BINT64 rplReadBINT(WORDPTR ptr);
 extern WORDPTR rplWriteBINT(BINT64 num,int base,WORDPTR dest);
 
+// TRUE/FALSE FUNCTIONS
+extern void rplPushFalse();
+extern void rplPushTrue();
+extern BINT rplIsFalse(WORDPTR objptr);
+extern BINT rplIsTrue(WORDPTR objptr);
+
 
 // REAL FUNCTIONS
 extern void rplOneToRReg(int num);

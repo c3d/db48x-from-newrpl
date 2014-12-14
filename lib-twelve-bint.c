@@ -185,6 +185,50 @@ BINT64 rplReadBINT(WORDPTR ptr)
     return result;
 }
 
+// A FEW FUNCTIONS THAT DEAL WITH TRUE/FALSE
+
+void rplPushFalse()
+{
+    rplPushData((WORDPTR)zero_bint);
+}
+
+void rplPushTrue()
+{
+    rplPushData((WORDPTR)one_bint);
+
+}
+
+BINT rplIsFalse(WORDPTR objptr)
+{
+    if(IS_FALSE(*objptr)) return 1;
+    if(ISREAL(*objptr)) {
+        mpd_t dec;
+        rplReadReal(objptr,&dec);
+        if(mpd_iszero(&dec)) return 1;
+    }
+
+    return 0;
+}
+
+BINT rplIsTrue(WORDPTR objptr)
+{
+    if(IS_FALSE(*objptr)) return 0;
+    if(ISREAL(*objptr)) {
+        mpd_t dec;
+        rplReadReal(objptr,&dec);
+        if(mpd_iszero(&dec)) return 0;
+    }
+
+    return 1;
+}
+
+
+
+
+
+
+
+
 // READS A SINT, BINT OR REAL INTO A REAL NUMBER REGISTER
 void rplNumberToRReg(int num,WORDPTR number)
 {
@@ -513,29 +557,19 @@ void LIB_HANDLER()
             if(op1type) {
                 // ROUND TO INTEGER
                 status=0;
-                mpd_qround_to_intx(&RReg[1],&rop1,&Context,(uint32_t *)&status);
-                // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplPushData((WORDPTR)(WORDPTR)zero_bint);
-                else {
                 rplBINTToRReg(0,op2);
-                int res=mpd_cmp(&RReg[1],&RReg[0],&Context);
+                int res=mpd_cmp(&rop1,&RReg[0],&Context);
                 if(res) rplPushData((WORDPTR)zero_bint);
                 else rplPushData((WORDPTR)one_bint);
-                }
             }
 
             if(op2type) {
                 // ROUND TO INTEGER
                 status=0;
-                mpd_qround_to_intx(&RReg[1],&rop2,&Context,(uint32_t *)&status);
-                // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplPushData((WORDPTR)zero_bint);
-                else {
                 rplBINTToRReg(0,op1);
-                int res=mpd_cmp(&RReg[0],&RReg[1],&Context);
+                int res=mpd_cmp(&RReg[0],&rop2,&Context);
                 if(res) rplPushData((WORDPTR)zero_bint);
                 else rplPushData((WORDPTR)one_bint);
-                }
             }
             return;
         }
@@ -551,29 +585,20 @@ void LIB_HANDLER()
             if(op1type) {
                 // ROUND TO INTEGER
                 status=0;
-                mpd_qround_to_intx(&RReg[1],&rop1,&Context,(uint32_t *)&status);
-                // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplPushData((WORDPTR)one_bint);
-                else {
                 rplBINTToRReg(0,op2);
-                int res=mpd_cmp(&RReg[1],&RReg[0],&Context);
+                int res=mpd_cmp(&rop1,&RReg[0],&Context);
                 if(res) rplPushData((WORDPTR)one_bint);
                 else rplPushData((WORDPTR)zero_bint);
-                }
+
             }
 
             if(op2type) {
                 // ROUND TO INTEGER
                 status=0;
-                mpd_qround_to_intx(&RReg[1],&rop2,&Context,(uint32_t *)&status);
-                // IF MPD_Rounded OR MPD_Inexact, IT CAN'T BE EQUAL TO A BINT
-                if(status) rplPushData((WORDPTR)one_bint);
-                else {
                 rplBINTToRReg(0,op1);
-                int res=mpd_cmp(&RReg[0],&RReg[1],&Context);
+                int res=mpd_cmp(&RReg[0],&rop2,&Context);
                 if(res) rplPushData((WORDPTR)one_bint);
                 else rplPushData((WORDPTR)zero_bint);
-                }
             }
             return;
         }

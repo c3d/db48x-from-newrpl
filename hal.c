@@ -25,6 +25,51 @@ WORDPTR *halGrowMemory(BINT zone, WORDPTR *base, BINT newsize)
 }
 
 
+// COPY ASCENDING BY WORDS
+void memcpyw(void *dest,const void *source,int nwords)
+{
+    int *destint = (int *) dest;
+    int *sourceint = (int *) source;
+    while(nwords) {
+        *destint=*sourceint;
+        ++destint; ++sourceint; --nwords;
+    }
+
+}
+
+// COPY DESCENDING BY WORDS
+void memcpywd(void *dest,const void *source,int nwords)
+{
+    int *destint = ((int *) dest)+nwords;
+    int *sourceint = ((int *) source)+nwords;
+    while(nwords) {
+        *--destint=*--sourceint;
+        --nwords;
+    }
+
+}
+
+// MOVE MEMORY, HANDLE OVERLAPPING BLOCKS PROPERLY
+void memmovew(void *dest,const void *source,int nwords)
+{
+    int offset=((int *)dest)-((int *)source);
+    int *ptr=(int *)source;
+    if(offset>0) {
+        ptr+=nwords-1;
+        while(nwords>0) {
+            ptr[offset]=*ptr;
+            --ptr;
+            --nwords;
+        }
+    }
+    else {
+        while(nwords>0) {
+            ptr[offset]=*ptr;
+            ++ptr;
+            --nwords;
+        }
+    }
+}
 
 
 #endif

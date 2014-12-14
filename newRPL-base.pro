@@ -62,7 +62,8 @@ SOURCES += main.cpp \
     lib-26-complex.c \
     symbolic.c \
     lib-28-symbolic.c \
-    lib-68-flags.c
+    lib-68-flags.c \
+    lib-70-binary.c
 
 HEADERS += \
     libraries.h \

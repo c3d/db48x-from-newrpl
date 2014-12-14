@@ -181,6 +181,7 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 
 #define ISUNARYOP(prolog) ( (OPCODE(prolog)>=OVR_OPERATORS) && (((prolog)&0xf000)==OVR_UNARY))
 #define ISBINARYOP(prolog) ( (OPCODE(prolog)>=OVR_OPERATORS) && (((prolog)&0xf000)==OVR_BINARY))
+#define ISTESTOP(prolog)   ( (OPCODE(prolog)>=OVR_OPERATORS) && (((prolog)&0xfff0)==OVR_BINARY))
 
 // UNARY OPERATORS
 #define OVRT_INV              "INV"

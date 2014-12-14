@@ -31,6 +31,7 @@ extern void lib65_handler();
 extern void lib66_handler();
 extern void lib68_handler();
 
+extern void lib70_handler();
 
 
 
@@ -101,6 +102,8 @@ const LIBHANDLER const ROMLibs[]={
     lib65_handler,
     lib66_handler,
     lib68_handler,
+
+    lib70_handler,
 
     lib4080_handler,
     lib4090_handler,
