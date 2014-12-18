@@ -640,9 +640,9 @@ void DumpDStack()
         --nlevels;
     }
 
-    while(count<(DSTop-DStk)) {
-        printf("%d:\t",DSTop-DStk-count);
-        string=rplDecompile((WORDPTR)DStk[count]);
+    while(count<(DSTop-DStkProtect)) {
+        printf("%d:\t",DSTop-DStkProtect-count);
+        string=rplDecompile((WORDPTR)DStkProtect[count]);
 
         if(string) {
         // NOW PRINT THE STRING OBJECT
@@ -740,7 +740,7 @@ int main()
 
 
     Refresh();
-
+/*
     if(testprogram) {
 
         WORDPTR ptr=rplCompile(testprogram,strlen((char *)testprogram),1);
@@ -759,15 +759,24 @@ int main()
 
     }
 
-
+*/
 
     do {
 
     fgets(buffer,65535,stdin);
+
+
+
     if(buffer[0]=='\n' && buffer[1]==0) {
         printf("Do you want to exit? Y/n: ");
         fgets(buffer,65535,stdin);
         if(buffer[0]=='y' || buffer[0]=='Y') return 0;
+        Refresh();
+        continue;
+    }
+
+    if(!strncmp(buffer,"UNDO",4)) {
+        rplRevertToSnapshot(1);
         Refresh();
         continue;
     }
@@ -787,6 +796,11 @@ int main()
     int debugging;
     start=clock();
     rplSetEntryPoint(ptr);
+
+    // LIMIT UNDO LEVELS TO 10
+    while(rplCountSnapshots()>=10) rplRemoveSnapshot(rplCountSnapshots());
+
+    rplTakeSnapshot();
 
     do {
 

@@ -91,7 +91,7 @@ void rplDropData(int n)
 // LEVELS = 1 ... DEPTH. DON'T CHECK FOR NEGATIVE NUMBERS!
 
 // GET STACK DEPTH
-inline BINT rplDepthData() { return (BINT)(DSTop-DStk); }
+inline BINT rplDepthData() { return (BINT)(DSTop-DStkProtect); }
 // READ LEVEL 'N' WITHOUT REMOVING THE POINTER
 inline WORDPTR rplPeekData(int level)  {  return *(DSTop-level); }
 // OVERWRITE LEVEL 'N' WITH A DIFFERENT POINTER
@@ -108,7 +108,7 @@ WORDPTR *rplProtectData()
     WORDPTR *ret=DStkProtect;
     DStkProtect=DSTop;
     // ADD PROTECTION IN THE STACK FOR RECURSIVE USE
-    rplPushRet((WORDPTR)ret);
+    rplPushRet((WORDPTR)((ret-DStk)));
     rplPushRet(unprotect_seco);
     return ret;
 }
@@ -120,7 +120,118 @@ WORDPTR *rplUnprotectData()
     if(rplPeekRet(1)==unprotect_seco) {
         // REMOVE THE PROTECTION FROM THE RETURN STACK
         rplPopRet();
-        DStkProtect=(WORDPTR *)rplPopRet();
+        DStkProtect=DStk+(BINT)rplPopRet();
     } else DStkProtect=DStk;
     return ret;
+}
+
+// STACK SNAPSHOTS:
+// SNAPSHOTS ARE NUMBERED FROM 1 TO N INCLUSIVE, WHERE N=rplCountSnapshots();
+// SNAPSHOTS WORK LIKE A STACK OF STACKS.
+// LEVEL 0 = CURRENT WORKING STACK, LEVEL 1 = LAST STORED SNAPSHOT, N=OLDEST STORED SNAPSHOT
+// SWITCH TO A SNAPSHOT "ROLLS" IT DOWN TO LEVEL 0.
+// TAKING A SNAPSHOT PUSHES THE CURRENT STACK TO SNAPSHOT LEVEL 1
+
+
+// GET A COUNT OF HOW MANY SNAPSHOTS ARE CURRENTLY STORED IN THE STACK
+BINT rplCountSnapshots()
+{
+    BINT count=0;
+    WORDPTR *snapptr=DStkProtect;
+
+    while(snapptr>DStk) {
+        ++count;
+        snapptr-=((BINT)*(snapptr-1))+1;
+    }
+    return count;
+}
+
+// REMOVES THE INDICATED SNAPSHOT
+// MOVES THE ENTIRE DATA STACK, ALL POINTERS INTO THE STACK BECOME INVALID!
+// MUST BE USED BY THE UI, NEVER WHILE AN RPL PROGRAM IS RUNNING.
+
+void rplRemoveSnapshot(BINT numsnap)
+{
+    WORDPTR *snapptr=DStkProtect;
+    WORDPTR *prevptr;
+
+    while((snapptr>DStk)&&(numsnap>0)) {
+        prevptr=snapptr;
+        snapptr-=((BINT)*(snapptr-1))+1;
+        --numsnap;
+    }
+
+    if((numsnap>0)||(snapptr<DStk)) {
+        // INVALID SNAPSHOT, DON'T DELETE ANYTHING!
+        return;
+    }
+
+    // MOVE THE ENTIRE STACK DOWN
+    memmovew(snapptr,prevptr,DSTop-prevptr);
+    // FIX THE POINTERS
+    DSTop-=prevptr-snapptr;
+    DStkProtect-=prevptr-snapptr;
+    return;
+}
+
+// PUSH THE CURRENT STACK AS SNAPSHOT LEVEL1
+void rplTakeSnapshot()
+{
+    // STACK CAN NEVER BE "PROTECTED" WHEN UNDO MARKS ARE CREATED
+    WORDPTR *top=DSTop,*bottom=DStkProtect;
+    BINT levels=top-bottom;
+    // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
+    // THE SNAPSHOT BARRIER
+    *DSTop++=levels;
+    rplExpandStack(levels);
+    if(Exceptions) {
+        // RETURN WITHOUT MAKING AN UNDO MARK
+        DSTop=top;
+        return;
+    }
+
+    memcpyw(DSTop,bottom,levels);
+    DStkProtect=DSTop;
+    DSTop+=levels;
+    return;
+}
+
+// RESET THE STACK TO A PREVIOUSLY SAVED SNAPSHOT
+// THE CURRENT STACK WILL BE COMPELTELY OVERWRITTEN.
+void rplRestoreSnapshot(BINT numsnap)
+{
+    WORDPTR *snapptr=DStkProtect;
+    WORDPTR *prevptr;
+
+    while((snapptr>DStk)&&(numsnap>0)) {
+        prevptr=snapptr;
+        snapptr-=((BINT)*(snapptr-1))+1;
+        --numsnap;
+    }
+
+    if((numsnap>0)||(snapptr<DStk)) {
+        // INVALID SNAPSHOT, DON'T DO ANYTHING!
+        return;
+    }
+
+
+        BINT levels=*(prevptr-1);
+
+        rplExpandStack(levels-rplDepthData());
+        if(Exceptions) {
+            return;
+        }
+
+        // COPY THE SNAPSHOT TO CURRENT STACK
+        memcpyw(DStkProtect,snapptr,levels);
+        // ADJUST STACK POINTERS
+        DSTop=DStkProtect+levels;
+
+}
+
+// ROLL A SNAPSHOT TO THE CURRENT STACK (REMOVING IT)
+void rplRevertToSnapshot(BINT numsnap)
+{
+    rplRestoreSnapshot(numsnap);
+    rplRemoveSnapshot(numsnap);
 }

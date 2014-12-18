@@ -160,6 +160,18 @@ extern void growDStk(WORD newsize);
 extern WORDPTR *rplProtectData();
 extern WORDPTR *rplUnprotectData();
 
+// SNAPSHOT FUNCTIONS THAT SAVE/RESTORE THE STACK
+extern BINT rplCountSnapshots();
+extern void rplTakeSnapshot();
+extern void rplRemoveSnapshot(BINT numsnap);
+extern void rplRestoreSnapshot(BINT numsnap);
+extern void rplRevertToSnapshot(BINT numsnap);
+
+
+
+
+
+
 
 // RETURN STACK FUNCTIONS IN RETURNSTACK.C
 

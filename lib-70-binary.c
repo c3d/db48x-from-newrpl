@@ -114,7 +114,7 @@ void LIB_HANDLER()
             WORDPTR low64=SystemFlags+2;
             WORDPTR hi64=SystemFlags+5;
 
-            low64[0]=(low64[0]&~(0x3f<<6))| (wsize<<6);
+            low64[0]=(low64[0]&~(0x3f<<4))| (wsize<<4);
 
             rplDropData(1);
             return;
@@ -138,7 +138,7 @@ void LIB_HANDLER()
         WORDPTR low64=SystemFlags+2;
         WORDPTR hi64=SystemFlags+5;
 
-        BINT wsize=(low64[0]>>6)&0x3f;
+        BINT wsize=(low64[0]>>4)&0x3f;
 
         rplNewBINTPush(wsize,DECBINT);
 
@@ -181,7 +181,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64=SystemFlags+2;
-        BINT wsize=(low64[0]>>6)&0x3f;
+        BINT wsize=(low64[0]>>4)&0x3f;
 
         num1|=num2;
 
@@ -232,7 +232,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64=SystemFlags+2;
-        BINT wsize=(low64[0]>>6)&0x3f;
+        BINT wsize=(low64[0]>>4)&0x3f;
 
         num1&=num2;
 
@@ -283,7 +283,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64=SystemFlags+2;
-        BINT wsize=(low64[0]>>6)&0x3f;
+        BINT wsize=(low64[0]>>4)&0x3f;
 
         num1^=num2;
 
@@ -334,7 +334,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64=SystemFlags+2;
-        BINT wsize=(low64[0]>>6)&0x3f;
+        BINT wsize=(low64[0]>>4)&0x3f;
 
         if(num2>0) num1<<=num2;
         else num1>>=-num2;
@@ -386,7 +386,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64=SystemFlags+2;
-        BINT wsize=(low64[0]>>6)&0x3f;
+        BINT wsize=(low64[0]>>4)&0x3f;
 
         num1&=((1LL<<(wsize+1))-1);
 
@@ -440,7 +440,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64=SystemFlags+2;
-        BINT wsize=(low64[0]>>6)&0x3f;
+        BINT wsize=(low64[0]>>4)&0x3f;
 
         if(num2>0) num1>>=num2;
         else num1<<=-num2;
@@ -493,7 +493,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64=SystemFlags+2;
-        BINT wsize=(low64[0]>>6)&0x3f;
+        BINT wsize=(low64[0]>>4)&0x3f;
 
         num1+=num2;
 
@@ -544,7 +544,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64=SystemFlags+2;
-        BINT wsize=(low64[0]>>6)&0x3f;
+        BINT wsize=(low64[0]>>4)&0x3f;
 
         num1-=num2;
 
@@ -595,7 +595,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64=SystemFlags+2;
-        BINT wsize=(low64[0]>>6)&0x3f;
+        BINT wsize=(low64[0]>>4)&0x3f;
 
         num1*=num2;
 
@@ -646,7 +646,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64=SystemFlags+2;
-        BINT wsize=(low64[0]>>6)&0x3f;
+        BINT wsize=(low64[0]>>4)&0x3f;
 
         num1/=num2;
 

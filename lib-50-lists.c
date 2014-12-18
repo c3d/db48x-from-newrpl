@@ -2021,7 +2021,7 @@ void LIB_HANDLER()
                         // THIS CAN ONLY HAPPEN WHEN BOTH LISTS WERE EMPTY
                         WORD Opcode=*((*rplGetLAMn(1))+1);  // GET OPCODE FROM THE PROGRAM WE APPLIED
 
-                        switch(Opcode)
+                        switch(OPCODE(Opcode))
                         {
                         case OVR_EQ:
                         case OVR_SAME:

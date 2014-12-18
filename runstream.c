@@ -273,6 +273,7 @@ inline WORD rplObjSize(WORDPTR ip)
 
 
 // COPIES AN OBJECT FROM src TO dest
+// SAFE EVEN IF OBJECTS OVERLAP
 void rplCopyObject(WORDPTR dest, WORDPTR src)
 {
     WORD prolog=*src;
@@ -350,7 +351,7 @@ void rplInit(void)
 
     SystemFlags[0]=MKPROLOG(DOLIST,7);  // PUT ALL SYSTEM FLAGS ON A LIST
     SystemFlags[1]=MKPROLOG(HEXBINT,2); // USE A BINT PROLOG
-    SystemFlags[2]=0;                   // FLAGS 0-31 ARE IN SystemFlags[2]
+    SystemFlags[2]=(63<<4)|(1<<29)|(7<<10);             // FLAGS 0-31 ARE IN SystemFlags[2], DEFAULTS: WORDSIZE=63, DEG, COMMENTS=ON, 7*8=56 UNDO LEVELS
     SystemFlags[3]=0;                   // FLAGS 32-63 ARE IN SystemFlags[3]
     SystemFlags[4]=MKPROLOG(HEXBINT,2);
     SystemFlags[5]=0;                   // FLAGS 64-95 ARE IN SystemFlags[5]

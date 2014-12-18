@@ -906,6 +906,13 @@ void LIB_HANDLER()
             // FROM NOW ON, ANY POINTERS TO THE STRING BECOME INVALID
             // DUE TO POSSIBLE GC
 
+            if(!count) {
+             // NO DIGITS?
+                RetNum=ERR_NOTMINE;
+                return;
+            }
+
+
             // FINISHED CONVERSION, NOW COMPILE TO SINT OR BINT AS NEEDED
             if(neg) result=-result;
 

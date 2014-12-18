@@ -19,7 +19,7 @@ void libCompileCmds(BINT libnum,char *libnames[],WORD libopcodes[],int numcmds)
     for(idx=0;idx<numcmds;++idx)
     {
         len=strlen((char *)libnames[idx]);
-        if((len==(BINT)TokenLen) && (!strncmp((char *)TokenStart,(char *)libnames[idx],len)))
+        if((len!=0) && (len==(BINT)TokenLen) && (!strncmp((char *)TokenStart,(char *)libnames[idx],len)))
        {
             if(libopcodes) rplCompileAppend((WORD) MKOPCODE(libnum,libopcodes[idx]));
            else rplCompileAppend((WORD) MKOPCODE(libnum,idx));
@@ -68,7 +68,7 @@ void libProbeCmds(char *libnames[],BINT tokeninfo[],int numcmds)
     for(idx=0;idx<numcmds;++idx)
     {
         len=strlen((char *)libnames[idx]);
-        if((len<=(BINT)TokenLen) && (!strncmp((char *)TokenStart,(char *)libnames[idx],len)))
+        if((len>0) && (len<=(BINT)TokenLen) && (!strncmp((char *)TokenStart,(char *)libnames[idx],len)))
        {
             // WE HAVE A MATCH, STORE THE INDEX BEFORE WE MAKE ANY DECISIONS
             if(len>maxlen) { maxidx=idx; maxlen=len; }

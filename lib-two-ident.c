@@ -76,6 +76,7 @@ const char const forbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@";
 BINT rplIsValidIdent(BYTEPTR tok,BINT len)
 {
     BYTEPTR ptr;
+    if(len<1) return 0;
     // IDENT CANNOT START WITH A NUMBER
     if( (((char)*tok)>='0') && (((char)*tok)<='9')) return 0;
 
