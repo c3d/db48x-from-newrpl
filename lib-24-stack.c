@@ -377,8 +377,9 @@ void LIB_HANDLER()
         // THIS INTERNAL OPCODE PROVIDES SAFETY GUARD AGAINST DATA STACK PROTECTION
         // IF A PROGRAM FORGETS TO UNPROTECT THE STACK, IT WILL BE UNPROTECTED
         // AUTOMATICALLY ON EXIT
-        WORDPTR *oldstack=(WORDPTR *)rplPopRet();
-        DStkProtect=oldstack;
+        BINT protlevel=(BINT)rplPopRet();
+        if((DStkBottom+protlevel>=DStkBottom) && (DStkBottom+protlevel<DSTop) )  DStkProtect=DStkBottom+protlevel;
+        else DStkProtect=DStkBottom;
         return;
     }
 

@@ -108,7 +108,7 @@ WORDPTR *rplProtectData()
     WORDPTR *ret=DStkProtect;
     DStkProtect=DSTop;
     // ADD PROTECTION IN THE STACK FOR RECURSIVE USE
-    rplPushRet((WORDPTR)((ret-DStk)));
+    rplPushRet((WORDPTR)((ret-DStkBottom)));
     rplPushRet(unprotect_seco);
     return ret;
 }
@@ -120,8 +120,11 @@ WORDPTR *rplUnprotectData()
     if(rplPeekRet(1)==unprotect_seco) {
         // REMOVE THE PROTECTION FROM THE RETURN STACK
         rplPopRet();
-        DStkProtect=DStk+(BINT)rplPopRet();
-    } else DStkProtect=DStk;
+        BINT protlevel=(BINT)rplPopRet();
+        if((DStkBottom+protlevel>=DStkBottom) && (DStkBottom+protlevel<DSTop) )  DStkProtect=DStkBottom+protlevel;
+        else DStkProtect=DStkBottom;
+
+    } else DStkProtect=DStkBottom;
     return ret;
 }
 
@@ -137,7 +140,7 @@ WORDPTR *rplUnprotectData()
 BINT rplCountSnapshots()
 {
     BINT count=0;
-    WORDPTR *snapptr=DStkProtect;
+    WORDPTR *snapptr=DStkBottom;
 
     while(snapptr>DStk) {
         ++count;
@@ -152,7 +155,7 @@ BINT rplCountSnapshots()
 
 void rplRemoveSnapshot(BINT numsnap)
 {
-    WORDPTR *snapptr=DStkProtect;
+    WORDPTR *snapptr=DStkBottom;
     WORDPTR *prevptr;
 
     while((snapptr>DStk)&&(numsnap>0)) {
@@ -170,6 +173,7 @@ void rplRemoveSnapshot(BINT numsnap)
     memmovew(snapptr,prevptr,DSTop-prevptr);
     // FIX THE POINTERS
     DSTop-=prevptr-snapptr;
+    DStkBottom-=prevptr-snapptr;
     DStkProtect-=prevptr-snapptr;
     return;
 }
@@ -178,7 +182,7 @@ void rplRemoveSnapshot(BINT numsnap)
 void rplTakeSnapshot()
 {
     // STACK CAN NEVER BE "PROTECTED" WHEN UNDO MARKS ARE CREATED
-    WORDPTR *top=DSTop,*bottom=DStkProtect;
+    WORDPTR *top=DSTop,*bottom=DStkBottom;
     BINT levels=top-bottom;
     // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
     // THE SNAPSHOT BARRIER
@@ -191,7 +195,8 @@ void rplTakeSnapshot()
     }
 
     memcpyw(DSTop,bottom,levels);
-    DStkProtect=DSTop;
+    DStkProtect+=levels+1;
+    DStkBottom+=levels+1;
     DSTop+=levels;
     return;
 }
@@ -200,7 +205,11 @@ void rplTakeSnapshot()
 // THE CURRENT STACK WILL BE COMPELTELY OVERWRITTEN.
 void rplRestoreSnapshot(BINT numsnap)
 {
-    WORDPTR *snapptr=DStkProtect;
+
+    // RESTORE IS FORBIDDEN IN A PROTECTED STACK
+    if(DStkProtect!=DStkBottom) return;
+
+    WORDPTR *snapptr=DStkBottom;
     WORDPTR *prevptr;
 
     while((snapptr>DStk)&&(numsnap>0)) {
@@ -223,15 +232,18 @@ void rplRestoreSnapshot(BINT numsnap)
         }
 
         // COPY THE SNAPSHOT TO CURRENT STACK
-        memcpyw(DStkProtect,snapptr,levels);
+        memcpyw(DStkBottom,snapptr,levels);
         // ADJUST STACK POINTERS
-        DSTop=DStkProtect+levels;
+        DSTop=DStkBottom+levels;
+        DStkProtect=DStkBottom; // PROTECTIONS ARE NOT SAVED WITHIN A SNAPSHOT
 
 }
 
 // ROLL A SNAPSHOT TO THE CURRENT STACK (REMOVING IT)
 void rplRevertToSnapshot(BINT numsnap)
 {
+    // REVERT IS FORBIDDEN IN A PROTECTED STACK
+    if(DStkProtect!=DStkBottom) return;
     rplRestoreSnapshot(numsnap);
     rplRemoveSnapshot(numsnap);
 }

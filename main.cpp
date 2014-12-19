@@ -640,9 +640,9 @@ void DumpDStack()
         --nlevels;
     }
 
-    while(count<(DSTop-DStkProtect)) {
-        printf("%d:\t",DSTop-DStkProtect-count);
-        string=rplDecompile((WORDPTR)DStkProtect[count]);
+    while(count<(DSTop-DStkBottom)) {
+        printf("%d:\t",DSTop-DStkBottom-count);
+        string=rplDecompile((WORDPTR)DStkBottom[count]);
 
         if(string) {
         // NOW PRINT THE STRING OBJECT

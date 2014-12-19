@@ -328,7 +328,7 @@ void rplInit(void)
 
     RSTop=RStk; // TOP OF THE RETURN STACK
     DSTop=DStk; // TOP OF THE DATA STACK
-    DStkProtect=DStk;   // UNPROTECTED STACK
+    DStkProtect=DStkBottom=DStk;   // UNPROTECTED STACK
     TempObEnd=TempOb;     // END OF USED TEMPOB
     LAMTop=LAMs;
     nLAMBase=LAMTop;
@@ -423,7 +423,7 @@ void rplWarmInit(void)
 
     RSTop=RStk; // CLEAR RETURN STACK
     DSTop=DStk; // CLEAR DATA STACK
-    DStkProtect=DStk;   // UNPROTECTED STACK
+    DStkProtect=DStkBottom=DStk;   // UNPROTECTED STACK
     LAMTop=LAMs;        // CLEAR ALL LAMS
     nLAMBase=LAMTop;    // CLEAR ALL LAM ENVIRONMENTS
     CurrentDir=Directories; // SET CURRENT DIRECTORY TO HOME
