@@ -18,6 +18,10 @@
 #define LIB_TOKENINFO lib66_tokeninfo
 #define LIB_NUMBEROFCMDS LIB66_NUMBEROFCMDS
 
+// LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
+// HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
+static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
+
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
     CMD(SIN,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
@@ -812,7 +816,7 @@ void LIB_HANDLER()
         return;
 
     case OPCODE_LIBINSTALL:
-        RetNum=LIBRARY_NUMBER;
+        RetNum=(UBINT)libnumberlist;
         return;
     case OPCODE_LIBREMOVE:
         return;

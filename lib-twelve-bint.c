@@ -20,6 +20,11 @@
 #define LIB_HANDLER lib12_handler
 #define LIB_NUMBEROFCMDS LIB12_NUMBEROFCMDS
 
+// LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
+// HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
+static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,LIBRARY_NUMBER+1,LIBRARY_NUMBER+2,LIBRARY_NUMBER+3,
+                                              LIBRARY_NUMBER|APPROX_BIT,(LIBRARY_NUMBER+1)|APPROX_BIT,
+                                              (LIBRARY_NUMBER+2)|APPROX_BIT,(LIBRARY_NUMBER+3)|APPROX_BIT,0 };
 
 //#define _ISBINT(w) (((LIBNUM(w))&~3)==12)
 
@@ -411,7 +416,7 @@ void LIB_HANDLER()
                 rplNewRealFromRRegPush(0);
                 return;
             }
-            rplNewBINTPush(op1+op2,LIBNUM(*arg1));
+            rplNewBINTPush(op1+op2,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
             return;
         }
         case OVR_SUB:
@@ -451,7 +456,7 @@ void LIB_HANDLER()
                 rplNewRealFromRRegPush(0);
                 return;
             }
-            rplNewBINTPush(op1-op2,LIBNUM(*arg1));
+            rplNewBINTPush(op1-op2,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
             return;
         }
         case OVR_MUL:
@@ -482,8 +487,8 @@ void LIB_HANDLER()
             if(!(op2>>32)) {
                 if(rpl_log2(op1,64)+rpl_log2(op2,32)<63) {
                     op1*=op2;
-                    if(sign1) rplNewBINTPush(-op1,LIBNUM(*arg1));
-                    else rplNewBINTPush(op1,LIBNUM(*arg1));
+                    if(sign1) rplNewBINTPush(-op1,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
+                    else rplNewBINTPush(op1,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
                     return;
                 }
             }
@@ -519,7 +524,7 @@ void LIB_HANDLER()
             uint32_t status=0;
             BINT64 result=mpd_qget_i64(&RReg[0],&status);
             if(status) rplNewRealFromRRegPush(0);
-            else rplNewBINTPush(result,LIBNUM(*arg1));
+            else rplNewBINTPush(result,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
             return;
             }
 
@@ -547,7 +552,7 @@ void LIB_HANDLER()
             uint32_t status=0;
             BINT64 result=mpd_qget_i64(&RReg[0],&status);
             if(status) rplNewRealFromRRegPush(0);
-            else rplNewBINTPush(result,LIBNUM(*arg1));
+            else rplNewBINTPush(result,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
             return;
             }
 
@@ -854,7 +859,11 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
-
+        if(LIBNUM(CurOpcode)&APPROX_BIT) {
+            // DO NOT COMPILE ANYTHING WHEN CALLED WITH THE UPPER (APPROX) LIBRARY NUMBER
+            RetNum=ERR_NOTMINE;
+            return;
+        }
 
         // COMPILE A NUMBER TO A SINT OR A BINT, DEPENDING ON THE ACTUAL NUMERIC VALUE
         result=0;
@@ -874,10 +883,17 @@ void LIB_HANDLER()
             basechr=strptr[argnum1-1];
 
             if( (basechr=='d') || (basechr=='D')) { --argnum1; }
-            if( (basechr=='h') || (basechr=='H')) { base=16; libbase=DECBINT+2; --argnum1; }
-            if( (basechr=='o') || (basechr=='O')) { base=8; libbase=DECBINT+1; --argnum1; }
-            if( (basechr=='b') || (basechr=='B')) { base=2; libbase=DECBINT-1; --argnum1; }
+            if( (basechr=='h') || (basechr=='H')) { base=16; libbase=HEXBINT; --argnum1; }
+            if( (basechr=='o') || (basechr=='O')) { base=8; libbase=OCTBINT; --argnum1; }
+            if( (basechr=='b') || (basechr=='B')) { base=2; libbase=BINBINT; --argnum1; }
         }
+
+        if(strptr[argnum1-1]=='.') {
+         // NUMBERS ENDING IN A DOT ARE APPROXIMATED
+            libbase|=APPROX_BIT;
+            --argnum1;
+        }
+
 
             for(count=0;count<argnum1;++count) {
                 digit=strptr[count];
@@ -941,7 +957,7 @@ void LIB_HANDLER()
             if(result&0x20000) result|=0xFFFFFFFFFFFc0000;  // SIGN EXTEND
             }
 
-            base=GETBASE(LIBNUM(*DecompileObject));
+            base=GETBASE(LIBNUM(*DecompileObject)&~APPROX_BIT);
 
             if(result<0) {
                 rplDecompAppendChar('-');
@@ -993,6 +1009,9 @@ void LIB_HANDLER()
 
             }
 
+            // ADD TRAILING DOT ON APPROXIMATED NUMBERS
+            if(LIBNUM(*DecompileObject)&APPROX_BIT) rplDecompAppendChar('.');
+
             RetNum=OK_CONTINUE;
 
         //DECOMPILE RETURNS
@@ -1028,7 +1047,7 @@ void LIB_HANDLER()
     {
 
         // COMPILE A NUMBER TO A SINT OR A BINT, DEPENDING ON THE ACTUAL NUMERIC VALUE
-        result=0;
+         result=0;
         strptr=(BYTEPTR )TokenStart;
         base=10;
         libbase=DECBINT;
@@ -1040,6 +1059,12 @@ void LIB_HANDLER()
         if(*strptr=='-') { neg=1; ++strptr; --argnum1; }
         else if(*strptr=='+') { neg=0; ++strptr; --argnum1; }
         */
+
+        if(LIBNUM(CurOpcode)&APPROX_BIT) {
+            // DO NOT COMPILE ANYTHING WHEN CALLED WITH THE UPPER (APPROX) LIBRARY NUMBER
+            RetNum=ERR_NOTMINE;
+            return;
+        }
 
         if(*strptr=='#') {
             ++strptr;
@@ -1131,7 +1156,7 @@ void LIB_HANDLER()
         RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_INTEGER,0,1);
         return;
     case OPCODE_LIBINSTALL:
-        RetNum=LIBRARY_NUMBER + (4<<12);    // INSTALL FOR 4 CONSECUTIVE LIBRARY NUMBERS
+        RetNum=(UBINT)libnumberlist;
         return;
     case OPCODE_LIBREMOVE:
         return;

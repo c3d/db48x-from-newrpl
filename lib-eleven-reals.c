@@ -20,6 +20,12 @@
 #define LIB_HANDLER lib11_handler
 #define LIB_NUMBEROFCMDS LIB11_NUMBEROFCMDS
 
+// LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
+// HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
+static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,LIBRARY_NUMBER|APPROX_BIT,0 };
+
+
+
 typedef union {
     WORD word;
     struct {
@@ -392,8 +398,25 @@ void LIB_HANDLER()
 
         // COMPILE A NUMBER TO A REAL
     {
+        if(LIBNUM(CurOpcode)&APPROX_BIT) {
+            // DO NOT COMPILE ANYTHING WHEN CALLED WITH THE UPPER (APPROX) LIBRARY NUMBER
+            RetNum=ERR_NOTMINE;
+            return;
+        }
+
         BINT status=0;
-        mpd_qset_string2(&RReg[0],(const char *)TokenStart,(const char *)BlankStart,&CompileContext,(uint32_t *)&status);
+        BYTEPTR strptr=(BYTEPTR )TokenStart;
+        BINT isapprox=0;
+        BINT tlen=TokenLen;
+
+        if(strptr[tlen-1]=='.') {
+         // NUMBERS ENDING IN A DOT ARE APPROXIMATED
+            isapprox|=APPROX_BIT;
+            --tlen;
+        }
+
+
+        mpd_qset_string2(&RReg[0],(const char *)TokenStart,(const char *)(strptr+tlen),&CompileContext,(uint32_t *)&status);
 
         if(status& (MPD_Conversion_syntax | MPD_Invalid_context | MPD_Invalid_operation | MPD_Malloc_error | MPD_Overflow | MPD_Underflow )) {
             // THERE WAS SOME ERROR DURING THE CONVERSION, PROBABLY A SYNTAX ERROR
@@ -402,7 +425,7 @@ void LIB_HANDLER()
         }
 
             // WRITE THE PROLOG
-            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER,1+RReg[0].len));
+            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER|isapprox,1+RReg[0].len));
             // PACK THE INFORMATION
             REAL_HEADER real;
             real.flags=RReg[0].flags&0xf;
@@ -436,6 +459,7 @@ void LIB_HANDLER()
         BINT len=(BINT)mpd_to_sci_size((char **)&string,&realnum,1);
         if(string) {
         rplDecompAppendString2(string,len);
+        if(LIBNUM(*DecompileObject)&APPROX_BIT) rplDecompAppendChar('.');
         mpd_free(string);
         RetNum=OK_CONTINUE;
         }
@@ -472,6 +496,14 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...), or ERR_NOTMINE IF NO TOKEN IS FOUND
     {
+
+        if(LIBNUM(CurOpcode)&APPROX_BIT) {
+            // DO NOT COMPILE ANYTHING WHEN CALLED WITH THE UPPER (APPROX) LIBRARY NUMBER
+            RetNum=ERR_NOTMINE;
+            return;
+        }
+
+
         enum {
             MODE_IP=0,
             MODE_FP,
@@ -510,7 +542,10 @@ void LIB_HANDLER()
 
         if(f==0) RetNum=ERR_NOTMINE;
 
-        else RetNum=OK_TOKENINFO | MKTOKENINFO(f,TITYPE_REAL,0,1);
+        else {
+            if(num=='.') RetNum=OK_TOKENINFO | MKTOKENINFO(f+1,TITYPE_REAL,0,1);
+            else RetNum=OK_TOKENINFO | MKTOKENINFO(f,TITYPE_REAL,0,1);
+        }
 
         return;
     }
@@ -519,7 +554,7 @@ void LIB_HANDLER()
         RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_REAL,0,1);
         return;
     case OPCODE_LIBINSTALL:
-        RetNum=LIBRARY_NUMBER;
+        RetNum=(UBINT)libnumberlist;
         return;
     case OPCODE_LIBREMOVE:
         return;

@@ -20,7 +20,7 @@ extern void lib20_handler();
 extern void lib22_handler();
 extern void lib24_handler();
 extern void lib26_handler();
-extern void lib28_handler();
+extern void lib32_handler();
 
 
 extern void lib50_handler();
@@ -92,7 +92,7 @@ const LIBHANDLER const ROMLibs[]={
 
 
     // SYMBOLICS
-    lib28_handler,
+    lib32_handler,
 
 
     // LISTS

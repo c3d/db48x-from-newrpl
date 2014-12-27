@@ -23,6 +23,9 @@
 #define LIB_TOKENINFO lib4090_tokeninfo
 #define LIB_NUMCMDS 23
 
+// LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
+// HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
+static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 
 // GET LIST OF OVERLOADABLE OPERATORS AS DEFINED IN <libraries.h>
 #define OP_LIST \
@@ -206,7 +209,7 @@ void LIB_HANDLER()
         return;
 
     case OPCODE_LIBINSTALL:
-        RetNum=LIBRARY_NUMBER;
+        RetNum=(UBINT)libnumberlist;
         return;
     case OPCODE_LIBREMOVE:
         return;

@@ -76,21 +76,22 @@ void rplClearLibraries()
 
 BINT rplInstallLibrary(LIBHANDLER handler)
 {
-    BINT numcopies=1;
+    HALFWORD *listnumbers;
+
     if(!handler) return 0;
     WORD savedOpcode=CurOpcode;
     CurOpcode=OPCODE_LIBINSTALL;
-    RetNum=-1;
+    RetNum=0;
     (*handler)();   // CALL THE HANDLER TO GET THE LIBRARY NUMBER IN RetNum;
     CurOpcode=savedOpcode;
-    if(RetNum>MAXLIBNUMBER) { numcopies=(RetNum>>12)&0xf; RetNum&=0xfff; }
-    if(!numcopies) return 0;
-    while(numcopies--) {
+    if(RetNum!=0) {
+    listnumbers=(HALFWORD *)RetNum;
+    while(*listnumbers) {
 
-    if(RetNum<MAXLOWLIBS) {
-        if(LowLibRegistry[RetNum]) {
+    if(*listnumbers<MAXLOWLIBS) {
+        if(LowLibRegistry[*listnumbers]) {
          // LIBRARY NUMBER ALREADY TAKEN OR LIB ALREADY INSTALLED
-            if(LowLibRegistry[RetNum]==handler) return 1;   // ALREADY INSTALLED
+            if(LowLibRegistry[*listnumbers]==handler) return 1;   // ALREADY INSTALLED
             savedOpcode=CurOpcode;
             CurOpcode=OPCODE_LIBREMOVE;
             RetNum=-1;
@@ -98,14 +99,14 @@ BINT rplInstallLibrary(LIBHANDLER handler)
             CurOpcode=savedOpcode;
             return 0;
         }
-        LowLibRegistry[RetNum]=handler;
-        ++RetNum;
+        LowLibRegistry[*listnumbers]=handler;
+        ++listnumbers;
         continue;
     }
-    if(RetNum>MAXLIBNUMBER-MAXSYSHILIBS) {
-        if(SysHiLibRegistry[RetNum-(MAXLIBNUMBER-MAXSYSHILIBS+1)]) {
+    if(*listnumbers>MAXLIBNUMBER-MAXSYSHILIBS) {
+        if(SysHiLibRegistry[*listnumbers-(MAXLIBNUMBER-MAXSYSHILIBS+1)]) {
          // LIBRARY NUMBER ALREADY TAKEN OR LIB ALREADY INSTALLED
-            if(SysHiLibRegistry[RetNum-(MAXLIBNUMBER-MAXSYSHILIBS+1)]==handler) return 1;   // ALREADY INSTALLED
+            if(SysHiLibRegistry[*listnumbers-(MAXLIBNUMBER-MAXSYSHILIBS+1)]==handler) return 1;   // ALREADY INSTALLED
             savedOpcode=CurOpcode;
             CurOpcode=OPCODE_LIBREMOVE;
             RetNum=-1;
@@ -113,13 +114,12 @@ BINT rplInstallLibrary(LIBHANDLER handler)
             CurOpcode=savedOpcode;
             return 0;
         }
-        SysHiLibRegistry[RetNum-(MAXLIBNUMBER-MAXSYSHILIBS+1)]=handler;
-        ++RetNum;
+        SysHiLibRegistry[*listnumbers-(MAXLIBNUMBER-MAXSYSHILIBS+1)]=handler;
+        ++listnumbers;
         continue;
-        return 1;
     }
 
-    LIBHANDLER oldhan=rplGetLibHandler(RetNum);
+    LIBHANDLER oldhan=rplGetLibHandler(*listnumbers);
 
     if(oldhan) {
      // LIBRARY NUMBER ALREADY TAKEN OR LIB ALREADY INSTALLED
@@ -129,7 +129,6 @@ BINT rplInstallLibrary(LIBHANDLER handler)
         RetNum=-1;
         (*handler)();   // CALL THE HANDLER TO INDICATE LIBRARY IS BEING REMOVED;
         CurOpcode=savedOpcode;
-        return 0;
     }
 
     // ADD LIBRARY
@@ -138,7 +137,7 @@ BINT rplInstallLibrary(LIBHANDLER handler)
     LIBHANDLER *libptr=HiLibRegistry+NumHiLibs;
 
     while(ptr>HiLibNumbers) {
-     if((UBINT)ptr[-1]>RetNum) {
+     if((UBINT)ptr[-1]>*listnumbers) {
         ptr[0]=ptr[-1];
         libptr[0]=libptr[-1];
         --ptr;
@@ -146,14 +145,16 @@ BINT rplInstallLibrary(LIBHANDLER handler)
      }
      else break;
     }
-    *ptr=RetNum;
+    *ptr=*listnumbers;
     *libptr=handler;
     ++NumHiLibs;
-    ++RetNum;
+    ++listnumbers;
     continue;
 }
 
 return 1;
+    }
+    else return 0;  // HANDLER FAILED TO REPORT ANY LIBRARY NUMBERS
 }
 
 

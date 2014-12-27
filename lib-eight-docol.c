@@ -21,6 +21,10 @@
 #define LIB_HANDLER lib8_handler
 #define LIB_NUMBEROFCMDS LIB8_NUMBEROFCMDS
 
+// LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
+// HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
+static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
+
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
     CMD(EXITRPL), \
@@ -188,7 +192,7 @@ void LIB_HANDLER()
         RetNum=OK_CONTINUE;
         return;
     case OPCODE_LIBINSTALL:
-        RetNum=LIBRARY_NUMBER;
+        RetNum=(UBINT)libnumberlist;
         return;
     case OPCODE_LIBREMOVE:
         return;

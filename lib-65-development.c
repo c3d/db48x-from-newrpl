@@ -31,6 +31,10 @@ extern void trig_atan2(mpd_t *x,mpd_t *y);
 #define LIB_HANDLER lib65_handler
 #define LIB_NUMBEROFCMDS LIB65_NUMBEROFCMDS
 
+// LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
+// HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
+static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
+
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
     CMD(TRANSCENTABLE), \
@@ -343,7 +347,7 @@ void LIB_HANDLER()
         RetNum=OK_CONTINUE;
         return;
     case OPCODE_LIBINSTALL:
-        RetNum=LIBRARY_NUMBER;
+        RetNum=(UBINT)libnumberlist;
         return;
     case OPCODE_LIBREMOVE:
         return;

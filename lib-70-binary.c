@@ -19,6 +19,10 @@
 #define LIB_TOKENINFO lib70_tokeninfo
 #define LIB_NUMBEROFCMDS LIB70_NUMBEROFCMDS
 
+// LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
+// HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
+static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
+
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
     CMD(STWS,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
@@ -29,8 +33,10 @@
     CMD(BLSL,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(BLSR,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(BASR,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BRL,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BRR,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    CMD(BRL,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BRR,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BNOT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+
 
 
 // ADD MORE OPCODES HERE
@@ -661,6 +667,50 @@ void LIB_HANDLER()
         return;
     }
 
+
+    case BNOT:
+    {
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        BINT64 num1;
+        BINT base;
+        if(ISNUMBER(*rplPeekData(1))) {
+            num1=rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions) return;
+            base=LIBNUM(*rplPeekData(1));
+        }
+        else {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(!ISLIST(*SystemFlags)) {
+            // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
+            Exceptions|=EX_VARUNDEF;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
+        WORDPTR low64=SystemFlags+2;
+        BINT wsize=(low64[0]>>4)&0x3f;
+
+        num1=~num1;
+
+        if(num1&(1LL<<wsize)) {
+            // SIGN EXTEND THE RESULT
+            num1|=~((1LL<<wsize)-1);
+        }
+        else num1&=((1LL<<wsize)-1);
+
+        rplDropData(1);
+        rplNewBINTPush(num1,base);
+        return;
+    }
+
+
     // ADD MORE OPCODES HERE
 
    // STANDARIZED OPCODES:
@@ -741,7 +791,7 @@ void LIB_HANDLER()
         return;
 
     case OPCODE_LIBINSTALL:
-        RetNum=LIBRARY_NUMBER;
+        RetNum=(UBINT)libnumberlist;
         return;
     case OPCODE_LIBREMOVE:
         return;

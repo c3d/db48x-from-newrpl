@@ -82,7 +82,7 @@ enum TokenInfo_Type {
 
 
 enum CompileErrors {
-    OK_CONTINUE=0,
+    OK_CONTINUE=1,
     OK_CONTINUE_NOVALIDATE,
     OK_STARTCONSTRUCT,
     OK_CHANGECONSTRUCT,
@@ -110,29 +110,36 @@ extern void libProbeCmds(char *libnames[], BINT tokeninfo[], int numcmds);
 extern void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT tokeninfo[],int numcmds);
 extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int numcmds);
 
+#define APPROX_BIT   16
 
 // SOME BASIC OBJECT TYPES HERE NEEDED FOR COMPILER
 #define SECO         10
 #define DOCOL         8
 #define DOREAL       11
+#define DOREALAPP    (DOREAL|APPROX_BIT)
 #define BINBINT      12
 #define DECBINT      13   // ACTUALLY IT'S 12 (BIN), 13, 14 (OCT) AND 15 (HEX), BUT 13 = DECIMAL NUMBER
 #define OCTBINT      14
 #define HEXBINT      15
+#define BINBINTAPP   (BINBINT|APPROX_BIT)
+#define DECBINTAPP   (DECBINT|APPROX_BIT)
+#define OCTBINTAPP   (OCTBINT|APPROX_BIT)
+#define HEXBINTAPP   (HEXBINT|APPROX_BIT)
 #define DOSTRING    16   // ACTUALLY USES 16, 17, 18 AND 19, WHERE LIBNUM&3 = NUMBER OF BYTES OF PADDING IN LAST WORD
 #define DOIDENT     20      // THIS IS FOR QUOTED IDENTS, BEING PUSHED IN THE STACK
 #define DOIDENTEVAL  21     // LIBRARY THAT EVALUATES THE IDENT IMMEDIATELY (UNQUOTED IDENTS, LAMS ARE PUSHED IN TEH STACK)
 #define DODIR       22      // DIRECTORY OBJECTS
 #define DOCMPLX     26
-#define DOSYMB      28      // SYMBOLIC OBJECT
+// LIBS 27 THRU 31 ARE RESERVED FOR APPROXIMATE REALS/BINTS
+#define DOSYMB      32      // SYMBOLIC OBJECT
 #define DOLIST      50
 
 // USEFUL MACROS FOR TYPE IDENTIFICATION
 
 #define ISIDENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOIDENT)||(LIBNUM(prolog)==DOIDENTEVAL)) )
-#define ISBINT(prolog) ( ((OPCODE(prolog)<0x400000) || ISPROLOG(prolog)) && ((LIBNUM(prolog)>=BINBINT) && (LIBNUM(prolog)<=HEXBINT)))
+#define ISBINT(prolog) ( ((OPCODE(prolog)<0x400000) || ISPROLOG(prolog)) && (((LIBNUM(prolog)&~APPROX_BIT)>=BINBINT) && ((LIBNUM(prolog)&~APPROX_BIT)<=HEXBINT)))
 #define ISLIST(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIST))
-#define ISREAL(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOREAL)))
+#define ISREAL(prolog) ( ISPROLOG(prolog) && (((LIBNUM(prolog)&~APPROX_BIT)==DOREAL)))
 #define ISCOMPLEX(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCMPLX)))
 #define ISPROGRAM(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCOL) || (LIBNUM(prolog)==SECO)))
 

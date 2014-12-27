@@ -20,6 +20,7 @@
 
 typedef void (*LIBHANDLER)(void);
 
+typedef uint16_t HALFWORD;
 typedef uint32_t WORD;
 typedef uint8_t BYTE;
 typedef WORD *WORDPTR;
