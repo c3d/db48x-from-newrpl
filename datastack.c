@@ -186,7 +186,7 @@ void rplTakeSnapshot()
     BINT levels=top-bottom;
     // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
     // THE SNAPSHOT BARRIER
-    *DSTop++=levels;
+    *DSTop++=(WORDPTR)levels;
     rplExpandStack(levels);
     if(Exceptions) {
         // RETURN WITHOUT MAKING AN UNDO MARK
@@ -224,7 +224,7 @@ void rplRestoreSnapshot(BINT numsnap)
     }
 
 
-        BINT levels=*(prevptr-1);
+        BINT levels=(BINT)*(prevptr-1);
 
         rplExpandStack(levels-rplDepthData());
         if(Exceptions) {

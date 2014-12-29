@@ -87,7 +87,7 @@ void rplReadCNumberAsImag(WORDPTR complex,mpd_t *imag)
     else {
         // SET IMAG TO ZERO
         imag->alloc=1;
-        imag->data=zero_data;
+        imag->data=(mpd_uint_t *)zero_data;
         imag->digits=1;
         imag->exp=0;
         imag->flags=MPD_STATIC|MPD_CONST_DATA|MPD_STATIC_DATA;
@@ -115,8 +115,8 @@ void rplRRegToComplexPush(BINT real,BINT imag)
         return;
     }
 
-    parts=rplRRegToRealInPlace(real,newobject+1);
-    parts=rplRRegToRealInPlace(imag,parts);
+    parts=rplRRegToRealInPlace(real,newobject+1,0);
+    parts=rplRRegToRealInPlace(imag,parts,0);
     newobject[0]=MKPROLOG(LIBRARY_NUMBER,parts-newobject-1);
 
     rplTruncateLastObject(parts);
@@ -134,11 +134,11 @@ WORDPTR rplRRegToComplexInPlace(BINT real,BINT imag,WORDPTR dest)
 {
     if(mpd_iszero(&RReg[imag])) {
         // IT'S A REAL NUMBER, THERE'S NO IMAGINARY PART
-        return rplRRegToRealInPlace(real,dest);
+        return rplRRegToRealInPlace(real,dest,0);
     }
     WORDPTR parts;
-    parts=rplRRegToRealInPlace(real,dest+1);
-    parts=rplRRegToRealInPlace(imag,parts);
+    parts=rplRRegToRealInPlace(real,dest+1,0);
+    parts=rplRRegToRealInPlace(imag,parts,0);
     dest[0]=MKPROLOG(LIBRARY_NUMBER,parts-dest-1);
 
     return parts;
@@ -295,7 +295,7 @@ void LIB_HANDLER()
                         return;
                     }
 
-                    rplPushData(one_bint);
+                    rplPushData((WORDPTR)one_bint);
                     return;
 
                 }
@@ -369,12 +369,12 @@ void LIB_HANDLER()
             return;
         }
         case OVR_EQ:
-         if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplPushData(zero_bint);
-            else rplPushData(one_bint);
+         if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplPushData((WORDPTR)zero_bint);
+            else rplPushData((WORDPTR)one_bint);
             return;
         case OVR_NOTEQ:
-            if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplPushData(one_bint);
-               else rplPushData(zero_bint);
+            if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplPushData((WORDPTR)one_bint);
+               else rplPushData((WORDPTR)zero_bint);
                return;
 /*
         // COMPARISONS ARE NOT DEFINED FOR COMPLEX NUMBERS
@@ -387,22 +387,22 @@ void LIB_HANDLER()
 
 */
         case OVR_SAME:
-            if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplPushData(zero_bint);
-               else rplPushData(one_bint);
+            if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplPushData((WORDPTR)zero_bint);
+               else rplPushData((WORDPTR)one_bint);
                return;
         case OVR_AND:
-            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))||(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData(zero_bint);
-            else rplPushData(one_bint);
+            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))||(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData((WORDPTR)zero_bint);
+            else rplPushData((WORDPTR)one_bint);
             return;
         case OVR_OR:
-            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData(zero_bint);
-            else rplPushData(one_bint);
+            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData((WORDPTR)zero_bint);
+            else rplPushData((WORDPTR)one_bint);
             return;
         case OVR_XOR:
-            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData(zero_bint);
+            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData((WORDPTR)zero_bint);
             else {
-                if( !(mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&!(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData(zero_bint);
-                else rplPushData(one_bint);
+                if( !(mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&!(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData((WORDPTR)zero_bint);
+                else rplPushData((WORDPTR)one_bint);
             }
             return;
 
@@ -453,8 +453,8 @@ void LIB_HANDLER()
                 rplNewRealFromRRegPush(0);
                 return;
         case OVR_NOT:
-            if(mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1)) rplPushData(one_bint);
-            else rplPushData(zero_bint);
+            if(mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1)) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
 
 
@@ -521,7 +521,7 @@ void LIB_HANDLER()
         } else {
             // NON-COMPLEX NUMBERS HAVE IMAGINARY PART = 0
             rplDropData(1);
-            rplPushData(zero_bint);
+            rplPushData((WORDPTR)zero_bint);
         }
         return;
     case ARG:
@@ -659,7 +659,7 @@ void LIB_HANDLER()
 
             rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER,0));
             if(TokenLen>1) {
-                NextTokenStart=((char *)TokenStart)+1;
+                NextTokenStart=(WORDPTR)(((char *)TokenStart)+1);
                 RetNum=OK_STARTCONSTRUCT;
             }
             else RetNum=OK_STARTCONSTRUCT;
@@ -670,7 +670,7 @@ void LIB_HANDLER()
         if(((char * )TokenStart)[TokenLen-1]==')')
         {
             if(TokenLen>1) {
-                BlankStart=NextTokenStart=((char * )TokenStart)+TokenLen-1;
+                BlankStart=NextTokenStart=(WORDPTR)(((char * )TokenStart)+TokenLen-1);
                 RetNum=ERR_NOTMINE_SPLITTOKEN;
                 return;
             }
@@ -692,9 +692,9 @@ void LIB_HANDLER()
             BYTEPTR ptr=(BYTEPTR)TokenStart;
             while(count && (((char)*ptr)!=',')) { ++ptr; --count; }
             if(count) {
-                if(ptr==TokenStart) {
+                if(ptr==(BYTEPTR)TokenStart) {
                     // STARTS WITH COMMA
-                    if(TokenLen>1)  NextTokenStart=((char *)TokenStart)+1;
+                    if(TokenLen>1)  NextTokenStart=(WORDPTR)(((char *)TokenStart)+1);
                     // WE DID NOT PRODUCE ANY OUTPUT, SO DON'T VALIDATE
                     RetNum=OK_CONTINUE_NOVALIDATE;
                     return;
@@ -756,7 +756,7 @@ void LIB_HANDLER()
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
-        libDecompileCmds(LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
         return;
 
     case OPCODE_VALIDATE:

@@ -385,8 +385,8 @@ void rplSymbRuleMatch()
     // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
     rplCreateLAMEnvironment(IPtr);
 
-    rplCreateLAM(nulllam_ident,zero_bint);  // GETLAM1 = MATCH OR NOT?
-    rplCreateLAM(nulllam_ident,zero_bint);  // GETLAM2 = LAST OBJECT SCANNED
+    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);  // GETLAM1 = MATCH OR NOT?
+    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);  // GETLAM2 = LAST OBJECT SCANNED
 
     // ... FROM HERE ON, THERE ARE NAMED LAM'S WITH THE PATTERNS
 
@@ -455,7 +455,7 @@ void rplSymbRuleMatch()
                     ScratchPointer2=endofobj;
                     ScratchPointer3=ruleleft;
                     ScratchPointer4=objptr;
-                BINT newlam=rplCreateLAM(ruleleft,zero_bint);       // CREATE A PLACEHOLDER FOR THE LAM
+                BINT newlam=rplCreateLAM(ruleleft,(WORDPTR)zero_bint);       // CREATE A PLACEHOLDER FOR THE LAM
                     endofrule=ScratchPointer1;
                     endofobj=ScratchPointer2;
                     ruleleft=ScratchPointer3;
@@ -864,8 +864,8 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
                 }
                 DSTop++;    // MOVE ONLY ONE SPOT, DROPPING THE NEW OBJECT IN THE SAME OPERATION
                 stkptr[0]=newobj;
-                stkptr[1]=two_bint;
-                stkptr[2]=uminus_opcode;
+                stkptr[1]=(WORDPTR)two_bint;
+                stkptr[2]=(WORDPTR)uminus_opcode;
             }
             }
 
@@ -888,8 +888,8 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
                 }
                 DSTop++;    // MOVE ONLY ONE SPOT, DROPPING THE NEW OBJECT IN THE SAME OPERATION
                 stkptr[0]=newobj;
-                stkptr[1]=two_bint;
-                stkptr[2]=uminus_opcode;
+                stkptr[1]=(WORDPTR)two_bint;
+                stkptr[2]=(WORDPTR)uminus_opcode;
             }
             }
 
@@ -919,9 +919,9 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
                 }
                 DSTop+=2;   // 2 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
                 stkptr+=2;
-                secondarg[1]=two_bint;
-                secondarg[2]=uminus_opcode;
-                *stkptr=add_opcode;
+                secondarg[1]=(WORDPTR)two_bint;
+                secondarg[2]=(WORDPTR)uminus_opcode;
+                *stkptr=(WORDPTR)add_opcode;
                 stkptr--;
                 rplExpandStack(2);  // NOW GROW THE STACK
                 if(Exceptions) { DSTop=endofstk+1; return NULL; }
@@ -978,8 +978,8 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
 
                         DSTop+=2;
                         stkptr+=2;
-                        nextarg[1]=two_bint;
-                        nextarg[2]=uminus_opcode;
+                        nextarg[1]=(WORDPTR)two_bint;
+                        nextarg[2]=(WORDPTR)uminus_opcode;
                         nextarg+=2;
                     }
 
@@ -1086,9 +1086,9 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
                     ++ptr;
                 }
 
-                *stkptr=inverse_opcode;
+                *stkptr=(WORDPTR)inverse_opcode;
                 --stkptr;
-                *stkptr=two_bint;
+                *stkptr=(WORDPTR)two_bint;
             }
             }
 
@@ -1117,9 +1117,9 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
                 }
                 DSTop+=2;   // 2 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
                 stkptr+=2;
-                secondarg[1]=two_bint;
-                secondarg[2]=inverse_opcode;
-                *stkptr=mul_opcode;
+                secondarg[1]=(WORDPTR)two_bint;
+                secondarg[2]=(WORDPTR)inverse_opcode;
+                *stkptr=(WORDPTR)mul_opcode;
                 stkptr--;
                 rplExpandStack(2);  // NOW GROW THE STACK
                 if(Exceptions) { DSTop=endofstk+1; return NULL; }
@@ -1173,8 +1173,8 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
 
                         DSTop+=2;
                         stkptr+=2;
-                        nextarg[1]=two_bint;
-                        nextarg[2]=inverse_opcode;
+                        nextarg[1]=(WORDPTR)two_bint;
+                        nextarg[2]=(WORDPTR)inverse_opcode;
                         nextarg+=2;
                         rplExpandStack(2);
                         if(Exceptions){ DSTop=endofstk+1; return NULL; }
@@ -1378,7 +1378,7 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
                     }
                     DSTop++;   // 2 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
                     stkptr++;
-                    firstarg[1]=one_bint;
+                    firstarg[1]=(WORDPTR)one_bint;
                     // INCREASE THE COUNT OF OBJECTS
                     BINT64 numargs=OPCODE(*firstarg[2]);
                     ++numargs;
@@ -1409,9 +1409,9 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
 
         DSTop+=3;   // 3 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
         stkptr+=3;
-        stkptr[0]=mul_opcode;
-        stkptr[-1]=three_bint;
-        stkptr[-2]=one_bint;
+        stkptr[0]=(WORDPTR)mul_opcode;
+        stkptr[-1]=(WORDPTR)three_bint;
+        stkptr[-2]=(WORDPTR)one_bint;
         rplExpandStack(3);  // NOW GROW THE STACK
         if(Exceptions) { DSTop=endofstk+1; return NULL; }
 
@@ -1445,9 +1445,9 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
                     DSTop+=3;   // 3 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
                     stkptr+=3;
                     argptr+=3;
-                    argptr[0]=mul_opcode;
-                    argptr[-1]=three_bint;
-                    argptr[-2]=one_bint;
+                    argptr[0]=(WORDPTR)mul_opcode;
+                    argptr[-1]=(WORDPTR)three_bint;
+                    argptr[-2]=(WORDPTR)one_bint;
                     rplExpandStack(3);  // NOW GROW THE STACK
                     if(Exceptions) { DSTop=endofstk+1; return NULL; }
 
@@ -2210,7 +2210,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         stkptr+=3;
                         DSTop+=3;
                         ptr[1]=rplPeekData(1);  // STORE THE DENOMINATOR
-                        ptr[2]=two_bint;
+                        ptr[2]=(WORDPTR)two_bint;
                         ptr[3]=inverse_opcode;
 
                     }
@@ -2223,8 +2223,8 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 if(neg) {
                     // HERE stkptr IS POINTING TO THE MULTIPLICATION
                     rplSymbInsertInStack(stkptr-2,2);
-                    *stkptr=uminus_opcode;
-                    *(stkptr-1)=two_bint;
+                    *stkptr=(WORDPTR)uminus_opcode;
+                    *(stkptr-1)=(WORDPTR)two_bint;
                     stkptr+=2;
                     DSTop+=2;
                 }
@@ -2339,18 +2339,18 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             if(isnegative) {
                 if(den_is_one)
                 {
-                    firstnum[0]=uminus_opcode;
-                    firstnum[-1]=two_bint;
+                    firstnum[0]=(WORDPTR)uminus_opcode;
+                    firstnum[-1]=(WORDPTR)two_bint;
                     firstnum[-2]=rplPeekData(2);
                 }
                 else {
-                    firstnum[0]=uminus_opcode;
-                    firstnum[-1]=two_bint;
-                    firstnum[-2]=mul_opcode;
-                    firstnum[-3]=three_bint;
+                    firstnum[0]=(WORDPTR)uminus_opcode;
+                    firstnum[-1]=(WORDPTR)two_bint;
+                    firstnum[-2]=(WORDPTR)mul_opcode;
+                    firstnum[-3]=(WORDPTR)three_bint;
                     firstnum[-4]=rplPeekData(2);
-                    firstnum[-5]=inverse_opcode;
-                    firstnum[-6]=two_bint;
+                    firstnum[-5]=(WORDPTR)inverse_opcode;
+                    firstnum[-6]=(WORDPTR)two_bint;
                     firstnum[-7]=rplPeekData(1);
                 }
 
@@ -2361,11 +2361,11 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 *firstnum=rplPeekData(2);
             }
             else {
-                firstnum[0]=mul_opcode;
-                firstnum[-1]=three_bint;
+                firstnum[0]=(WORDPTR)mul_opcode;
+                firstnum[-1]=(WORDPTR)three_bint;
                 firstnum[-2]=rplPeekData(2);
-                firstnum[-3]=inverse_opcode;
-                firstnum[-4]=two_bint;
+                firstnum[-3]=(WORDPTR)inverse_opcode;
+                firstnum[-4]=(WORDPTR)two_bint;
                 firstnum[-5]=rplPeekData(1);
             }
             }

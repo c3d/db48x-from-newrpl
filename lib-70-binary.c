@@ -118,7 +118,7 @@ void LIB_HANDLER()
             }
             //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
             WORDPTR low64=SystemFlags+2;
-            WORDPTR hi64=SystemFlags+5;
+            //WORDPTR hi64=SystemFlags+5;
 
             low64[0]=(low64[0]&~(0x3f<<4))| (wsize<<4);
 
@@ -142,7 +142,7 @@ void LIB_HANDLER()
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64=SystemFlags+2;
-        WORDPTR hi64=SystemFlags+5;
+        //WORDPTR hi64=SystemFlags+5;
 
         BINT wsize=(low64[0]>>4)&0x3f;
 

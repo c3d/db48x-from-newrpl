@@ -277,8 +277,9 @@ extern WORDPTR rplNewReal(mpd_t *num);
 extern WORDPTR rplNewRealFromRReg(int num);
 extern void rplNewRealPush(mpd_t *num);
 extern void rplNewRealFromRRegPush(int num);
+extern void rplNewApproxRealFromRRegPush(int num);
 
-extern WORDPTR rplRRegToRealInPlace(int num,WORDPTR dest);
+extern WORDPTR rplRRegToRealInPlace(int num, WORDPTR dest, BINT isapprox);
 
 
 // GENERIC FUNCTIONS FOR BINTS AND REALS

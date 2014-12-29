@@ -111,6 +111,9 @@ void LIB_HANDLER()
         // PRECONVERT ARGUMENT IF ITS IN ANYTHING OTHER THAN RADIANS
 
 
+
+
+
         trig_sincos(&dec);
 
 

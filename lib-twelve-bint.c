@@ -384,15 +384,18 @@ void LIB_HANDLER()
             if(op1type||op2type) {
                 if(op1type) {
                     rplBINTToRReg(1,op2);
+                    Context.status&=~MPD_Inexact;
                     mpd_add(&RReg[0],&rop1,&RReg[1],&Context);
                 }
 
                 if(op2type) {
                     // TODO: TRY TO RESPECT THE NUMBER TYPE OF THE FIRST ARGUMENT
                     rplBINTToRReg(1,op1);
+                    Context.status&=~MPD_Inexact;
                     mpd_add(&RReg[0],&RReg[1],&rop2,&Context);
                 }
-                rplNewRealFromRRegPush(0);
+                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                else rplNewRealFromRRegPush(0);
                 return;
             }
 
@@ -412,8 +415,10 @@ void LIB_HANDLER()
                 // CONVERT BOTH TO REALS
                 rplBINTToRReg(1,op1);
                 rplBINTToRReg(2,op2);
+                Context.status&=~MPD_Inexact;
                 mpd_add(&RReg[0],&RReg[1],&RReg[2],&Context);
-                rplNewRealFromRRegPush(0);
+                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                else rplNewRealFromRRegPush(0);
                 return;
             }
             rplNewBINTPush(op1+op2,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
@@ -424,15 +429,18 @@ void LIB_HANDLER()
             if(op1type||op2type) {
                 if(op1type) {
                     rplBINTToRReg(1,-op2);
+                    Context.status&=~MPD_Inexact;
                     mpd_add(&RReg[0],&rop1,&RReg[1],&Context);
                 }
 
                 if(op2type) {
                     // TODO: TRY TO RESPECT THE NUMBER TYPE OF THE FIRST ARGUMENT
                     rplBINTToRReg(1,op1);
+                    Context.status&=~MPD_Inexact;
                     mpd_sub(&RReg[0],&RReg[1],&rop2,&Context);
                 }
-                rplNewRealFromRRegPush(0);
+                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                else rplNewRealFromRRegPush(0);
                 return;
             }
 
@@ -452,8 +460,10 @@ void LIB_HANDLER()
                 // CONVERT BOTH TO REALS
                 rplBINTToRReg(1,op1);
                 rplBINTToRReg(2,op2);
+                Context.status&=~MPD_Inexact;
                 mpd_sub(&RReg[0],&RReg[1],&RReg[2],&Context);
-                rplNewRealFromRRegPush(0);
+                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                else rplNewRealFromRRegPush(0);
                 return;
             }
             rplNewBINTPush(op1-op2,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
@@ -463,15 +473,18 @@ void LIB_HANDLER()
             if(op1type||op2type) {
                 if(op1type) {
                     rplBINTToRReg(1,op2);
+                    Context.status&=~MPD_Inexact;
                     mpd_mul(&RReg[0],&rop1,&RReg[1],&Context);
                 }
 
                 if(op2type) {
                     // TODO: TRY TO RESPECT THE NUMBER TYPE OF THE FIRST ARGUMENT
                     rplBINTToRReg(1,op1);
+                    Context.status&=~MPD_Inexact;
                     mpd_mul(&RReg[0],&RReg[1],&rop2,&Context);
                 }
-                rplNewRealFromRRegPush(0);
+                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                else rplNewRealFromRRegPush(0);
                 return;
             }
             // DETECT OVERFLOW, AND CONVERT TO REALS IF SO
@@ -495,9 +508,11 @@ void LIB_HANDLER()
 
             rplBINTToRReg(1,op1);
             rplBINTToRReg(2,op2);
+            Context.status&=~MPD_Inexact;
             mpd_mul(&RReg[0],&RReg[1],&RReg[2],&Context);
             if(Exceptions) return;
-            rplNewRealFromRRegPush(0);
+            if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+            else rplNewRealFromRRegPush(0);
             return;
 
         case OVR_DIV:
@@ -505,25 +520,31 @@ void LIB_HANDLER()
             if(op1type||op2type) {
                 if(op1type) {
                     rplBINTToRReg(1,op2);
+                    Context.status&=~MPD_Inexact;
                     mpd_div(&RReg[0],&rop1,&RReg[1],&Context);
                 }
 
                 if(op2type) {
                     // TODO: TRY TO RESPECT THE NUMBER TYPE OF THE FIRST ARGUMENT
                     rplBINTToRReg(1,op1);
+                    Context.status&=~MPD_Inexact;
                     mpd_div(&RReg[0],&RReg[1],&rop2,&Context);
                 }
-                rplNewRealFromRRegPush(0);
+                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                else rplNewRealFromRRegPush(0);
                 return;
             }
-            // TODO: BINT/BINT = REAL IN APPROX. MODE??
             rplBINTToRReg(1,op1);
             rplBINTToRReg(2,op2);
+            Context.status&=~MPD_Inexact;
             mpd_div(&RReg[0],&RReg[1],&RReg[2],&Context);
             if(Exceptions) return;
             uint32_t status=0;
             BINT64 result=mpd_qget_i64(&RReg[0],&status);
-            if(status) rplNewRealFromRRegPush(0);
+            if(status) {
+                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                else rplNewRealFromRRegPush(0);
+            }
             else rplNewBINTPush(result,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
             return;
             }
@@ -531,6 +552,7 @@ void LIB_HANDLER()
         case OVR_POW:
             {
             if(op1type||op2type) {
+                Context.status&=~MPD_Inexact;
                 if(op1type) {
                     rplBINTToRReg(1,op2);
                     mpd_pow(&RReg[0],&rop1,&RReg[1],&Context);
@@ -540,7 +562,8 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
                     mpd_pow(&RReg[0],&RReg[1],&rop2,&Context);
                 }
-                rplNewRealFromRRegPush(0);
+                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                else rplNewRealFromRRegPush(0);
                 return;
             }
 
@@ -548,10 +571,14 @@ void LIB_HANDLER()
             // INTEGER POWER, USE REALS TO DEAL WITH NEGATIVE POWERS AND OVERFLOW
             rplBINTToRReg(1,op1);
             rplBINTToRReg(2,op2);
+            Context.status&=~MPD_Inexact;
             mpd_pow(&RReg[0],&RReg[1],&RReg[2],&Context);
             uint32_t status=0;
             BINT64 result=mpd_qget_i64(&RReg[0],&status);
-            if(status) rplNewRealFromRRegPush(0);
+            if(status) {
+                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                else rplNewRealFromRRegPush(0);
+            }
             else rplNewBINTPush(result,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
             return;
             }
@@ -791,8 +818,10 @@ void LIB_HANDLER()
             // INVERSE WILL ALWAYS BE A REAL, SINCE 1/N == 0 FOR ALL N>1 IN STRICT INTEGER MATH, ORIGINAL UserRPL DOES NOT SUPPORT INVERSE OF INTEGERS
             rplOneToRReg(0);
             rplBINTToRReg(1,op1);
+            Context.status&=~MPD_Inexact;
             mpd_div(&RReg[2],&RReg[0],&RReg[1],&Context);
-            rplNewRealFromRRegPush(2);
+            if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(2);
+            else rplNewRealFromRRegPush(2);
             return;
         case OVR_NEG:
         case OVR_UMINUS:

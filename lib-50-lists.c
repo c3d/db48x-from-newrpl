@@ -304,13 +304,13 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM(nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((WORDPTR)nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        rplCreateLAM(nulllam_ident,rplPeekData(1)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 3 = LIST
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 3 = LIST
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
 
@@ -361,21 +361,21 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM(nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((WORDPTR)nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        if(ISLIST(*rplPeekData(2))) rplCreateLAM(nulllam_ident,rplPeekData(2)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED ON LIST1
-        else rplCreateLAM(nulllam_ident,rplPeekData(2));
+        if(ISLIST(*rplPeekData(2))) rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED ON LIST1
+        else rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2));
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        if(ISLIST(*rplPeekData(1))) rplCreateLAM(nulllam_ident,rplPeekData(1)+1);     // LAM 3 = NEXT ELEMENT TO BE PROCESSED ON LIST2
-        else rplCreateLAM(nulllam_ident,rplPeekData(1));
+        if(ISLIST(*rplPeekData(1))) rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1)+1);     // LAM 3 = NEXT ELEMENT TO BE PROCESSED ON LIST2
+        else rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        rplCreateLAM(nulllam_ident,rplPeekData(2));     // LAM 4 = LIST1
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2));     // LAM 4 = LIST1
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 5 = LIST2
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 5 = LIST2
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
 
@@ -916,7 +916,7 @@ void LIB_HANDLER()
         rplCreateLAMEnvironment(IPtr);
         // NOW CREATE A LOCAL VARIABLE FOR THE INDEX
 
-        rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
 
         WORDPTR newb=rplNewBINT(nlists,DECBINT);
         if(!newb) {
@@ -926,7 +926,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplCreateLAM(nulllam_ident,newb);     // LAM 2 = BINT WITH NUMBER OF LISTS
+        rplCreateLAM((WORDPTR)nulllam_ident,newb);     // LAM 2 = BINT WITH NUMBER OF LISTS
 
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
@@ -938,7 +938,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplCreateLAM(nulllam_ident,newb);     // LAM 3 = BINT WITH NUMBER OF ITEMS PER LIST
+        rplCreateLAM((WORDPTR)nulllam_ident,newb);     // LAM 3 = BINT WITH NUMBER OF ITEMS PER LIST
 
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
@@ -950,11 +950,11 @@ void LIB_HANDLER()
             return;
         }
 
-        rplCreateLAM(nulllam_ident,newb);     // LAM 4 = 1, BINT WITH CURRENT INDEX IN TEH LOOP
+        rplCreateLAM((WORDPTR)nulllam_ident,newb);     // LAM 4 = 1, BINT WITH CURRENT INDEX IN TEH LOOP
 
 
         for(f=0;f<nlists;++f) {
-            rplCreateLAM(nulllam_ident,rplPeekData(2+nlists-f));     // LAM n+4 = LISTS IN REVERSE ORDER
+            rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2+nlists-f));     // LAM n+4 = LISTS IN REVERSE ORDER
             if(Exceptions) { rplCleanupLAMs(0); return; }
         }
 
@@ -1151,7 +1151,7 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
 
         WORDPTR newb=rplNewBINT(nvalues,DECBINT);
         if(!newb) {
@@ -1161,7 +1161,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplCreateLAM(nulllam_ident,newb);     // LAM 2 = NUMBER OF ARGUMENTS TO PROCESS
+        rplCreateLAM((WORDPTR)nulllam_ident,newb);     // LAM 2 = NUMBER OF ARGUMENTS TO PROCESS
 
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
@@ -1188,7 +1188,7 @@ void LIB_HANDLER()
         rplCreateLAM((WORDPTR)nsub_name,newb);     // LAM 4 = 1, BINT WITH CURRENT INDEX IN THE LOOP
 
 
-        rplCreateLAM(nulllam_ident,rplPeekData(3));     // LAM 5 = LIST
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(3));     // LAM 5 = LIST
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NVALUES, GETLAM3 = ENDSUB, GETLAM4 = NSUB, GETLAM 5 = LIST
@@ -1360,13 +1360,13 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        rplCreateLAM(nulllam_ident,rplPeekData(2)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        rplCreateLAM(nulllam_ident,rplPeekData(2));     // LAM 3 = LIST
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2));     // LAM 3 = LIST
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
@@ -1585,13 +1585,13 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        rplCreateLAM(nulllam_ident,rplPeekData(2)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        rplCreateLAM(nulllam_ident,rplPeekData(2));     // LAM 3 = LIST
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(2));     // LAM 3 = LIST
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
@@ -2219,13 +2219,13 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM(nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((WORDPTR)nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        rplCreateLAM(nulllam_ident,rplPeekData(1)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 3 = LIST
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 3 = LIST
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
@@ -2354,13 +2354,13 @@ void LIB_HANDLER()
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment(IPtr);
 
-        rplCreateLAM(nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
+        rplCreateLAM((WORDPTR)nulllam_ident,program);     // LAM 1 = ROUTINE TO EXECUTE ON EVERY STEP
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        rplCreateLAM(nulllam_ident,rplPeekData(1)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1)+1);     // LAM 2 = NEXT ELEMENT TO BE PROCESSED
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 3 = LIST
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 3 = LIST
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
         // HERE GETLAM1 = PROGRAM, GETLAM 2 = NEXT OBJECT, GETLAM3 = LIST
@@ -2542,7 +2542,7 @@ void LIB_HANDLER()
 
             rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER,0));
             if(TokenLen>1) {
-                NextTokenStart=((char *)TokenStart)+1;
+                NextTokenStart=(WORDPTR)(((char *)TokenStart)+1);
                 RetNum=OK_STARTCONSTRUCT;
             }
             else RetNum=OK_STARTCONSTRUCT;
@@ -2553,7 +2553,7 @@ void LIB_HANDLER()
         if(((char * )TokenStart)[TokenLen-1]=='}')
         {
             if(TokenLen>1) {
-                BlankStart=NextTokenStart=((char * )TokenStart)+TokenLen-1;
+                BlankStart=NextTokenStart=(WORDPTR)(((char * )TokenStart)+TokenLen-1);
                 RetNum=ERR_NOTMINE_SPLITTOKEN;
                 return;
             }

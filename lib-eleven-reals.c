@@ -112,12 +112,30 @@ void rplNewRealFromRRegPush(int num)
     if(newreal) rplPushData(newreal);
 }
 
+void rplNewApproxRealFromRRegPush(int num)
+{
+    WORDPTR newreal=rplNewRealFromRReg(num);
+    if(newreal) {
+        *newreal|=MKOPCODE(APPROX_BIT,0);
+        rplPushData(newreal);
+    }
+}
+
+
 void rplNewRealPush(mpd_t *num)
 {
     WORDPTR newreal=rplNewReal(num);
     if(newreal) rplPushData(newreal);
 }
 
+void rplNewApproxRealPush(mpd_t *num)
+{
+    WORDPTR newreal=rplNewReal(num);
+    if(newreal) {
+        *newreal|=MKOPCODE(APPROX_BIT,0);
+        rplPushData(newreal);
+    }
+}
 
 // ALLOCATE MEMORY AND STORE A REAL ON IT
 WORDPTR rplNewReal(mpd_t *num)
@@ -167,7 +185,7 @@ return rplNewReal(&RReg[num]);
 // DOES NOT ALLOCATE MEMORY FROM THE SYSTEM
 // USED INTERNALLY FOR COMPOSITE OBJECTS
 
-WORDPTR rplRRegToRealInPlace(int num,WORDPTR dest)
+WORDPTR rplRRegToRealInPlace(int num,WORDPTR dest,BINT isapprox)
 {
 
     REAL_HEADER real;
@@ -183,7 +201,7 @@ WORDPTR rplRRegToRealInPlace(int num,WORDPTR dest)
 
 
     // WRITE THE PROLOG
-    *dest=MKPROLOG(LIBRARY_NUMBER,1+RReg[num].len-correction);
+    *dest=MKPROLOG((LIBRARY_NUMBER|(isapprox? APPROX_BIT:0)),1+RReg[num].len-correction);
     // PACK THE INFORMATION
     real.flags=RReg[num].flags&0xf;
     real.len=RReg[num].len-correction;
