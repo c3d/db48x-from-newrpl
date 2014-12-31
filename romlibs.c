@@ -12,14 +12,14 @@
 
 extern void lib2_handler();
 extern void lib8_handler();
+extern void lib9_handler();
 extern void lib10_handler();
-extern void lib11_handler();
 extern void lib12_handler();
-extern void lib16_handler();
 extern void lib20_handler();
-extern void lib22_handler();
 extern void lib24_handler();
 extern void lib26_handler();
+extern void lib28_handler();
+extern void lib30_handler();
 extern void lib32_handler();
 
 
@@ -32,6 +32,7 @@ extern void lib66_handler();
 extern void lib68_handler();
 
 extern void lib70_handler();
+extern void lib72_handler();
 
 
 
@@ -69,26 +70,23 @@ switch(OPCODE(CurOpcode))
 const LIBHANDLER const ROMLibs[]={
     lib2_handler,
     lib8_handler,
+    lib9_handler,
+    // LIB 10 IS REAL NUMBERS
     lib10_handler,
-    // LIB 11 IS REAL NUMBERS
-    lib11_handler,
-    // LIBS 12 THRU 15 ARE BINTS
+    // LIBS 12 THRU 19 ARE BINTS
     lib12_handler,
 
-    // LIB 16 THRU 19 ARE STRING
-    lib16_handler,
-
-    // LIB 20 AND 21 ARE IDENTS
+    // LIB 20 THRU 23 ARE IDENTS
     lib20_handler,
 
-    // DIRECTORIES
-    lib22_handler,
-
-    // STACK COMMANDS
+    // LIB 24 THRU 27 ARE STRINGS
     lib24_handler,
 
+    // DIRECTORIES
+    lib28_handler,
+
     // COMPLEX NUMBERS
-    lib26_handler,
+    lib30_handler,
 
 
     // SYMBOLICS
@@ -102,8 +100,8 @@ const LIBHANDLER const ROMLibs[]={
     lib65_handler,
     lib66_handler,
     lib68_handler,
-
     lib70_handler,
+    lib72_handler,
 
     lib4080_handler,
     lib4090_handler,

@@ -22,18 +22,18 @@
 
 // LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
 // HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
-static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,LIBRARY_NUMBER+1,LIBRARY_NUMBER+2,LIBRARY_NUMBER+3,
-                                              LIBRARY_NUMBER|APPROX_BIT,(LIBRARY_NUMBER+1)|APPROX_BIT,
-                                              (LIBRARY_NUMBER+2)|APPROX_BIT,(LIBRARY_NUMBER+3)|APPROX_BIT,0 };
+static const HALFWORD const libnumberlist[]={ DECBINT,BINBINT,OCTBINT,HEXBINT,
+                                              DECBINT|APPROX_BIT,BINBINT|APPROX_BIT,
+                                              OCTBINT|APPROX_BIT,HEXBINT|APPROX_BIT,0 };
 
 //#define _ISBINT(w) (((LIBNUM(w))&~3)==12)
 
 // MACRO TO GET NUMBER OF BITS IN THE BASE
 // 1= BINARY, 3=OCTAL, 4=HEX, AND 2=DECIMAL
 
-#define GETBASE(libnum) ((libnum)-(DECBINT-2))
+#define GETBASE(libnum) (((libnum)-(BINBINT-2))>>1)
 
-#define LIBFROMBASE(base) ((base)+(DECBINT-2))
+#define LIBFROMBASE(base) ((base<<1)+(BINBINT-2))
 
 
 #define MIN_SINT    -131072
@@ -394,7 +394,7 @@ void LIB_HANDLER()
                     Context.status&=~MPD_Inexact;
                     mpd_add(&RReg[0],&RReg[1],&rop2,&Context);
                 }
-                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                if(ISAPPROX(*arg1|*arg2) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
                 else rplNewRealFromRRegPush(0);
                 return;
             }
@@ -417,7 +417,7 @@ void LIB_HANDLER()
                 rplBINTToRReg(2,op2);
                 Context.status&=~MPD_Inexact;
                 mpd_add(&RReg[0],&RReg[1],&RReg[2],&Context);
-                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                if(ISAPPROX(*arg1|*arg2) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
                 else rplNewRealFromRRegPush(0);
                 return;
             }
@@ -439,7 +439,7 @@ void LIB_HANDLER()
                     Context.status&=~MPD_Inexact;
                     mpd_sub(&RReg[0],&RReg[1],&rop2,&Context);
                 }
-                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                if(ISAPPROX(*arg1|*arg2) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
                 else rplNewRealFromRRegPush(0);
                 return;
             }
@@ -462,7 +462,7 @@ void LIB_HANDLER()
                 rplBINTToRReg(2,op2);
                 Context.status&=~MPD_Inexact;
                 mpd_sub(&RReg[0],&RReg[1],&RReg[2],&Context);
-                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                if(ISAPPROX(*arg1|*arg2) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
                 else rplNewRealFromRRegPush(0);
                 return;
             }
@@ -483,7 +483,7 @@ void LIB_HANDLER()
                     Context.status&=~MPD_Inexact;
                     mpd_mul(&RReg[0],&RReg[1],&rop2,&Context);
                 }
-                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                if(ISAPPROX(*arg1|*arg2) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
                 else rplNewRealFromRRegPush(0);
                 return;
             }
@@ -511,7 +511,7 @@ void LIB_HANDLER()
             Context.status&=~MPD_Inexact;
             mpd_mul(&RReg[0],&RReg[1],&RReg[2],&Context);
             if(Exceptions) return;
-            if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+            if(ISAPPROX(*arg1|*arg2) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
             else rplNewRealFromRRegPush(0);
             return;
 
@@ -530,7 +530,7 @@ void LIB_HANDLER()
                     Context.status&=~MPD_Inexact;
                     mpd_div(&RReg[0],&RReg[1],&rop2,&Context);
                 }
-                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                if(ISAPPROX(*arg1|*arg2) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
                 else rplNewRealFromRRegPush(0);
                 return;
             }
@@ -542,7 +542,7 @@ void LIB_HANDLER()
             uint32_t status=0;
             BINT64 result=mpd_qget_i64(&RReg[0],&status);
             if(status) {
-                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                if(ISAPPROX(*arg1|*arg2) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
                 else rplNewRealFromRRegPush(0);
             }
             else rplNewBINTPush(result,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
@@ -562,7 +562,7 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
                     mpd_pow(&RReg[0],&RReg[1],&rop2,&Context);
                 }
-                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                if(ISAPPROX(*arg1|*arg2) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
                 else rplNewRealFromRRegPush(0);
                 return;
             }
@@ -576,7 +576,7 @@ void LIB_HANDLER()
             uint32_t status=0;
             BINT64 result=mpd_qget_i64(&RReg[0],&status);
             if(status) {
-                if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(0);
+                if(ISAPPROX(*arg1|*arg2) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
                 else rplNewRealFromRRegPush(0);
             }
             else rplNewBINTPush(result,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
@@ -820,7 +820,7 @@ void LIB_HANDLER()
             rplBINTToRReg(1,op1);
             Context.status&=~MPD_Inexact;
             mpd_div(&RReg[2],&RReg[0],&RReg[1],&Context);
-            if(Context.status&MPD_Inexact) rplNewApproxRealFromRRegPush(2);
+            if(ISAPPROX(*arg1|*arg2) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(2);
             else rplNewRealFromRRegPush(2);
             return;
         case OVR_NEG:
@@ -1167,10 +1167,11 @@ void LIB_HANDLER()
                     return;
                     } else {
                         if(neg) {
-                            // IF THE BASE WAS SPECICIED EXPLICITLY, THERE CANNOT BE ILLEGAL DIGITS
+                            // IF THE BASE WAS SPECIFIED EXPLICITLY, THERE CANNOT BE ILLEGAL DIGITS
                             RetNum=ERR_NOTMINE;
                             return;
                         }
+                        if(digit==('.'+100)) ++count;
                         // REPORT AS MANY VALID DIGITS AS POSSIBLE
                         RetNum=OK_TOKENINFO | MKTOKENINFO((strptr+count)-(BYTEPTR)TokenStart,TITYPE_INTEGER,0,1);
                         return;

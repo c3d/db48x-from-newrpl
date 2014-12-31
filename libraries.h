@@ -110,27 +110,29 @@ extern void libProbeCmds(char *libnames[], BINT tokeninfo[], int numcmds);
 extern void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT tokeninfo[],int numcmds);
 extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int numcmds);
 
-#define APPROX_BIT   16
+#define APPROX_BIT    1
 
 // SOME BASIC OBJECT TYPES HERE NEEDED FOR COMPILER
-#define SECO         10
+#define SECO          9
 #define DOCOL         8
-#define DOREAL       11
+#define DOREAL       10
 #define DOREALAPP    (DOREAL|APPROX_BIT)
 #define BINBINT      12
-#define DECBINT      13   // ACTUALLY IT'S 12 (BIN), 13, 14 (OCT) AND 15 (HEX), BUT 13 = DECIMAL NUMBER
-#define OCTBINT      14
-#define HEXBINT      15
+#define DECBINT      14
+#define OCTBINT      16
+#define HEXBINT      18
 #define BINBINTAPP   (BINBINT|APPROX_BIT)
 #define DECBINTAPP   (DECBINT|APPROX_BIT)
 #define OCTBINTAPP   (OCTBINT|APPROX_BIT)
 #define HEXBINTAPP   (HEXBINT|APPROX_BIT)
-#define DOSTRING    16   // ACTUALLY USES 16, 17, 18 AND 19, WHERE LIBNUM&3 = NUMBER OF BYTES OF PADDING IN LAST WORD
 #define DOIDENT     20      // THIS IS FOR QUOTED IDENTS, BEING PUSHED IN THE STACK
-#define DOIDENTEVAL  21     // LIBRARY THAT EVALUATES THE IDENT IMMEDIATELY (UNQUOTED IDENTS, LAMS ARE PUSHED IN TEH STACK)
-#define DODIR       22      // DIRECTORY OBJECTS
+#define DOIDENTAPP  (DOIDENT|APPROX_BIT)      // THIS IS FOR QUOTED IDENTS, BEING PUSHED IN THE STACK
+#define DOIDENTEVAL  22     // LIBRARY THAT EVALUATES THE IDENT IMMEDIATELY (UNQUOTED IDENTS, LAMS ARE PUSHED IN TEH STACK)
+#define DOIDENTEVALAPP  (DOIDENTEVAL|APPROX_BIT)     // LIBRARY THAT EVALUATES THE IDENT IMMEDIATELY (UNQUOTED IDENTS, LAMS ARE PUSHED IN TEH STACK)
+#define DOSTRING    24   // ACTUALLY USES 24, 25, 26 AND 27, WHERE LIBNUM&3 = NUMBER OF BYTES OF PADDING IN LAST WORD
 #define DOCMPLX     26
-// LIBS 27 THRU 31 ARE RESERVED FOR APPROXIMATE REALS/BINTS
+#define DODIR       28      // DIRECTORY OBJECTS
+
 #define DOSYMB      32      // SYMBOLIC OBJECT
 #define DOLIST      50
 
@@ -149,6 +151,7 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 
 #define ISSYMBOLIC(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOSYMB))
 
+#define ISAPPROX(prolog) ((LIBNUM(prolog)&APPROX_BIT))
 
 // THIS IS TO CHECK IF AN OBJECT IS "FALSE", WHICH CAN BE THE BINT0 OR THE REAL0
 #define IS_FALSE(p)  ( (OPCODE(p)==0) && (((LIBNUM(p)+2)&~3)==BINBINT))
@@ -166,10 +169,10 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 
 // COMMANDS THAT NEED TO BE ACCESSED FROM MULTIPLE LIBRARIES
 
-#define CMD_EXITRPL         0x00800000
-#define CMD_XEQSECO         0x00800002
-#define CMD_SEMI            0x00800003
-#define CMD_ENDLIST         0x03200000
+#define CMD_EXITRPL         MKOPCODE(DOCOL,0)
+#define CMD_XEQSECO         MKOPCODE(DOCOL,2)
+#define CMD_SEMI            MKOPCODE(DOCOL,3)
+#define CMD_ENDLIST         MKOPCODE(DOLIST,0)
 
 #define CMD_RULESEPARATOR   MKOPCODE(DOSYMB,0)
 

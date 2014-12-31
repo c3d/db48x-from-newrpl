@@ -18,15 +18,11 @@ SOURCES += main.cpp \
     lam.c \
     lib-eight-docol.c \
     lib-twelve-bint.c \
-    lib-ten-docol2.c \
     lib-4080-localenv.c \
     lib-two-ident.c \
     lib-twenty-lam.c \
-    lib-sixteen-string.c \
-    lib-22-dirs.c \
     directory.c \
     gc.c \
-    lib-24-stack.c \
     contrib/mpdecimal-2.4.0/libmpdec/basearith.c \
     contrib/mpdecimal-2.4.0/libmpdec/constants.c \
     contrib/mpdecimal-2.4.0/libmpdec/context.c \
@@ -42,7 +38,6 @@ SOURCES += main.cpp \
     contrib/mpdecimal-2.4.0/libmpdec/numbertheory.c \
     contrib/mpdecimal-2.4.0/libmpdec/sixstep.c \
     contrib/mpdecimal-2.4.0/libmpdec/transpose.c \
-    lib-eleven-reals.c \
     io_substring.c \
     errors.c \
     lib-64-precision.c \
@@ -59,11 +54,16 @@ SOURCES += main.cpp \
     cordic_Kh_comp.c \
     lists.c \
     lib-50-lists.c \
-    lib-26-complex.c \
     symbolic.c \
     lib-68-flags.c \
     lib-70-binary.c \
-    lib-32-symbolic.c
+    lib-32-symbolic.c \
+    lib-nine-docol2.c \
+    lib-ten-reals.c \
+    lib-24-string.c \
+    lib-72-stack.c \
+    lib-28-dirs.c \
+    lib-30-complex.c
 
 HEADERS += \
     libraries.h \

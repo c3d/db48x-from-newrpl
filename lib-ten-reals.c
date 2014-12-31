@@ -14,11 +14,11 @@
 // ALL OTHER FUNCTIONS ARE LOCAL
 
 // MAIN LIBRARY NUMBER, CHANGE THIS FOR EACH LIBRARY
-#define LIBRARY_NUMBER  11
-#define LIB_ENUM lib11_enum
-#define LIB_NAMES lib11_names
-#define LIB_HANDLER lib11_handler
-#define LIB_NUMBEROFCMDS LIB11_NUMBEROFCMDS
+#define LIBRARY_NUMBER  10
+#define LIB_ENUM lib10_enum
+#define LIB_NAMES lib10 _names
+#define LIB_HANDLER lib10_handler
+#define LIB_NUMBEROFCMDS LIB10_NUMBEROFCMDS
 
 // LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
 // HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
@@ -278,22 +278,26 @@ void LIB_HANDLER()
         case OVR_ADD:
             // ADD TWO BINTS FROM THE STACK
             mpd_add(&RReg[0],&Darg1,&Darg2,&Context);
-            rplNewRealFromRRegPush(0);
+            if(ISAPPROX(*arg1|*arg2)) rplNewApproxRealFromRRegPush(0);
+            else rplNewRealFromRRegPush(0);
             return;
 
         case OVR_SUB:
             mpd_sub(&RReg[0],&Darg1,&Darg2,&Context);
-            rplNewRealFromRRegPush(0);
+            if(ISAPPROX(*arg1|*arg2)) rplNewApproxRealFromRRegPush(0);
+            else rplNewRealFromRRegPush(0);
             return;
 
         case OVR_MUL:
             mpd_mul(&RReg[0],&Darg1,&Darg2,&Context);
-            rplNewRealFromRRegPush(0);
+            if(ISAPPROX(*arg1|*arg2)) rplNewApproxRealFromRRegPush(0);
+            else rplNewRealFromRRegPush(0);
             return;
 
         case OVR_DIV:
             mpd_div(&RReg[0],&Darg1,&Darg2,&Context);
-            rplNewRealFromRRegPush(0);
+            if(ISAPPROX(*arg1|*arg2)) rplNewApproxRealFromRRegPush(0);
+            else rplNewRealFromRRegPush(0);
             return;
 
         case OVR_POW:
@@ -303,11 +307,14 @@ void LIB_HANDLER()
             RReg[1].digits=1;
             RReg[1].flags&=MPD_DATAFLAGS;
 
+            Context.status&=~MPD_Inexact;
             if(mpd_cmp(&Darg2,&RReg[1],&Context)==0)
                 // THIS IS A SQUARE ROOT
                 mpd_sqrt(&RReg[0],&Darg1,&Context);
             else mpd_pow(&RReg[0],&Darg1,&Darg2,&Context);
-            rplNewRealFromRRegPush(0);
+
+            if(ISAPPROX(*arg1|*arg2) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
+            else rplNewRealFromRRegPush(0);
             return;
 
         case OVR_EQ:
@@ -358,13 +365,16 @@ void LIB_HANDLER()
 
         case OVR_INV:
             rplOneToRReg(1);
+            Context.status&=~MPD_Inexact;
             mpd_div(&RReg[0],&RReg[1],&Darg1,&Context);
-            rplNewRealFromRRegPush(0);
+            if(ISAPPROX(*arg1) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
+            else rplNewRealFromRRegPush(0);
             return;
         case OVR_NEG:
         case OVR_UMINUS:
             mpd_qminus(&RReg[0],&Darg1,&Context,(uint32_t *)&status);
-            rplNewRealFromRRegPush(0);
+            if(ISAPPROX(*arg1)) rplNewApproxRealFromRRegPush(0);
+            else rplNewRealFromRRegPush(0);
             return;
         case OVR_EVAL:
         case OVR_XEQ:
@@ -373,7 +383,8 @@ void LIB_HANDLER()
             return;
         case OVR_ABS:
             mpd_abs(&RReg[0],&Darg1,&Context);
-            rplNewRealFromRRegPush(0);
+            if(ISAPPROX(*arg1) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
+            else rplNewRealFromRRegPush(0);
             return;
         case OVR_NOT:
             if(mpd_iszero(&Darg1)) rplPushData((WORDPTR)one_bint);

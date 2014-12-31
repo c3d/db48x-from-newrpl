@@ -851,7 +851,7 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
             BINT64 num=rplReadBINT(sobj);
             if(num<0) {
                 num=-num;
-                rplNewBINTPush(num,DECBINT);
+                rplNewBINTPush(num,LIBNUM(*sobj));
                 if(Exceptions) { DSTop=endofstk+1; return NULL; }
                 WORDPTR newobj=rplPeekData(1);
 
@@ -875,7 +875,8 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
             rplCopyRealToRReg(0,sobj);
             if(mpd_isnegative(&RReg[0])) {
                 RReg[0].flags^=MPD_NEG; // MAKE IT POSITIVE
-                rplNewRealFromRRegPush(0);
+                if(ISAPPROX(*sobj)) rplNewApproxRealFromRRegPush(0);
+                else rplNewRealFromRRegPush(0);
                 if(Exceptions) { DSTop=endofstk+1; return NULL; }
                 WORDPTR newobj=rplPeekData(1);
 
