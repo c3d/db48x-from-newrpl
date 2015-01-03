@@ -66,7 +66,7 @@ BINT rplCompareIDENTByName(WORDPTR id1,BYTEPTR name,BINT len)
 {
 BINT nwords=(len+3)>>2;
 BINT extra=(nwords<<2)-len;
-if ((*id1!=MKPROLOG(DOIDENT,nwords))&&(*id1!=MKPROLOG(DOIDENT+1,nwords))) return 0;
+if ((*id1!=MKPROLOG(DOIDENT,nwords))&&(*id1!=MKPROLOG(DOIDENTEVAL,nwords))) return 0;
 
 BYTEPTR ptr=(BYTEPTR) (id1+1);
 while(len) {
@@ -96,8 +96,8 @@ BINT nwords;
 nwords=rplObjSize(id1);
 
 // ADDED THIS SPECIAL CASE FOR IDENTS QUOTED/UNQUOTED
-if( ((LIBNUM(*id1)==DOIDENT) || (LIBNUM(*id1)==DOIDENT+1))
-        && ((LIBNUM(*id2)==DOIDENT) || (LIBNUM(*id2)==DOIDENT+1)) )
+if( ((LIBNUM(*id1)==DOIDENT) || (LIBNUM(*id1)==DOIDENTEVAL))
+        && ((LIBNUM(*id2)==DOIDENT) || (LIBNUM(*id2)==DOIDENTEVAL)) )
 {
     if(OBJSIZE(*id1)!=OBJSIZE(*id2)) return 0;
     ++id1;

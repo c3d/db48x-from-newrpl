@@ -377,7 +377,9 @@ void LIB_HANDLER()
             else rplNewRealFromRRegPush(0);
             return;
         case OVR_EVAL:
+        case OVR_EVAL1:
         case OVR_XEQ:
+        case OVR_NUM:
             // NOTHING TO DO, JUST KEEP THE ARGUMENT IN THE STACK
             rplPushData(arg1);
             return;

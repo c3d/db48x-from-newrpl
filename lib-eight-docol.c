@@ -103,6 +103,7 @@ void LIB_HANDLER()
 
     // ADD MORE OPCODES HERE
     case OVR_EVAL:
+    case OVR_EVAL1:
         // EXECUTE THE OBJECT
     case OVR_XEQ:
         // ALSO EXECUTE THE OBJECT

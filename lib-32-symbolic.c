@@ -47,6 +47,9 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
     ",", \
     "", \
     "", \
+    "", \
+    "", \
+    "", \
     ""
 
 #define CMD_EXTRAENUM \
@@ -56,7 +59,10 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
     COMMA, \
     EVALPRE, \
     EVALPOST, \
-    EVALERR
+    EVALERR, \
+    EVAL1PRE, \
+    EVAL1POST, \
+    EVAL1ERR
 
 // INTERNAL DECLARATIONS
 
@@ -80,6 +86,15 @@ const WORD const symbeval_seco[]={
     CMD_SEMI
 };
 
+const WORD const symbeval1_seco[]={
+    MKPROLOG(DOCOL,5),
+    MKOPCODE(LIBRARY_NUMBER,EVAL1PRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
+    MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1),    // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER,EVAL1POST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER,EVAL1ERR),     // ERROR HANDLER
+    MKOPCODE(LIBRARY_NUMBER,AUTOSIMPLIFY),   // SIMPLIFY BEFORE RETURN
+    CMD_SEMI
+};
 
 
 
@@ -150,7 +165,7 @@ void LIB_HANDLER()
     return;
 
     }
-        case OVR_EVAL:
+        case OVR_EVAL1:
         // EVAL NEEDS TO SCAN THE SYMBOLIC, EVAL EACH ARGUMENT SEPARATELY AND APPLY THE OPCODE.
     {
         WORDPTR object=rplPeekData(1);
@@ -185,30 +200,88 @@ void LIB_HANDLER()
 
         // THIS NEEDS TO BE DONE IN 3 STEPS:
         // EVAL WILL PREPARE THE LAMS FOR OPEN EXECUTION
-        // EVALPRE WILL PUSH THE NEXT OBJECT IN THE STACK AND EVAL IT
-        // EVALPOST WILL CHECK IF THE ARGUMENT WAS PROCESSED WITHOUT ERRORS,
+        // EVAL1PRE WILL PUSH THE NEXT OBJECT IN THE STACK AND EVAL IT
+        // EVAL1POST WILL CHECK IF THE ARGUMENT WAS PROCESSED WITHOUT ERRORS,
         // AND CLOSE THE LOOP TO PROCESS MORE ARGUMENTS
 
         // THE INITIAL CODE FOR EVAL MUST TRANSFER FLOW CONTROL TO A
-        // SECONDARY THAT CONTAINS :: EVALPRE EVAL EVALPOST ;
-        // MAPPOST WILL CHANGE IP AGAIN TO BEGINNING OF THE SECO
+        // SECONDARY THAT CONTAINS :: EVAL1PRE EVAL EVAL1POST ;
+        // EVAL1POST WILL CHANGE IP AGAIN TO BEGINNING OF THE SECO
         // IN ORDER TO KEEP THE LOOP RUNNING
 
         rplPushRet(IPtr);
-        if((rplPeekRet(1)<symbeval_seco)||(rplPeekRet(1)>symbeval_seco+4))
+        if((rplPeekRet(1)<symbeval1_seco)||(rplPeekRet(1)>symbeval1_seco+4))
         {
             // THIS EVAL IS NOT INSIDE A RECURSIVE LOOP
             // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER EVAL
-            rplPushRet(symbeval_seco+4);
+            rplPushRet(symbeval1_seco+4);
         }
-        IPtr=(WORDPTR) symbeval_seco;
-        CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        IPtr=(WORDPTR) symbeval1_seco;
+        CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
 
         return;
     }
 
+    case OVR_EVAL:
+    // EVAL NEEDS TO SCAN THE SYMBOLIC, EVAL EACH ARGUMENT SEPARATELY AND APPLY THE OPCODE.
+{
+    WORDPTR object=rplPeekData(1);
+    if(!ISSYMBOLIC(*object)) {
+        Exceptions|=EX_BADARGTYPE;
+        ExceptionPointer=IPtr;
+        return;
+    }
+
+    // HERE WE HAVE program = PROGRAM TO EXECUTE
+
+    // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
+    rplCreateLAMEnvironment(IPtr);
+
+    object=rplSymbUnwrap(object);
+    WORDPTR endobject=rplSkipOb(object);
+    WORD Opcode=rplSymbMainOperator(object);
+
+    rplCreateLAM(nulllam_ident,Opcode);     // LAM 1 = OPCODE
+    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+    object++;
+    if(Opcode) object++;
+
+    rplCreateLAM(nulllam_ident,endobject);     // LAM 2 = END OF CURRENT OBJECT
+    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+    rplCreateLAM(nulllam_ident,object);     // LAM 3 = NEXT OBJECT TO PROCESS
+    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+    // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
+
+    // THIS NEEDS TO BE DONE IN 3 STEPS:
+    // EVAL WILL PREPARE THE LAMS FOR OPEN EXECUTION
+    // EVAL1PRE WILL PUSH THE NEXT OBJECT IN THE STACK AND EVAL IT
+    // EVAL1POST WILL CHECK IF THE ARGUMENT WAS PROCESSED WITHOUT ERRORS,
+    // AND CLOSE THE LOOP TO PROCESS MORE ARGUMENTS
+
+    // THE INITIAL CODE FOR EVAL MUST TRANSFER FLOW CONTROL TO A
+    // SECONDARY THAT CONTAINS :: EVALPRE EVAL EVALPOST ;
+    // EVAL1POST WILL CHANGE IP AGAIN TO BEGINNING OF THE SECO
+    // IN ORDER TO KEEP THE LOOP RUNNING
+
+    rplPushRet(IPtr);
+    if((rplPeekRet(1)<symbeval_seco)||(rplPeekRet(1)>symbeval_seco+4))
+    {
+        // THIS EVAL IS NOT INSIDE A RECURSIVE LOOP
+        // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER EVAL
+        rplPushRet(symbeval_seco+4);
+    }
+    IPtr=(WORDPTR) symbeval_seco;
+    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+
+    rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
+
+    return;
+}
 
 
 
@@ -420,6 +493,88 @@ void LIB_HANDLER()
     {
 
 
+    case EVAL1PRE:
+    {
+        // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
+
+
+        WORDPTR nextobj=*rplGetLAMn(3);
+        WORDPTR endoflist=*rplGetLAMn(2);
+
+        if(nextobj==endoflist) {
+            // THE LAST ARGUMENT WAS ALREADY PROCESSED, IF THERE IS AN OPERATOR WE NEED TO APPLY IT
+
+            WORD Opcode=*rplGetLAMn(1);
+
+            WORDPTR *prevDStk = rplUnprotectData();
+            BINT newdepth=(BINT)(DSTop-prevDStk);
+
+
+            if(Opcode) {
+                rplSymbApplyOperator(Opcode,newdepth);
+            }
+            // HERE WE ARE SUPPOSED TO HAVE ONLY ONE ARGUMENT ON THE STACK AND THE ORIGINAL OBJECT
+            rplOverwriteData(2,rplPeekData(1));
+            rplDropData(1);
+            // CLEANUP AND RETURN
+            rplCleanupLAMs(0);
+            IPtr=rplPopRet();
+            CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1);
+            return;
+
+        }
+
+        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE EVAL1ERR WORD
+
+
+        // PUSH THE NEXT OBJECT IN THE STACK
+        rplPushData(nextobj);
+
+        // AND EXECUTION WILL CONTINUE AT EVAL
+
+        return;
+    }
+
+    case EVAL1POST:
+    {
+        // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
+
+        rplRemoveExceptionHandler();    // THERE WAS NO ERROR DURING EVALUATION
+
+        rplPutLAMn(3,rplSkipOb(*rplGetLAMn(3)));    // MOVE TO THE NEXT OBJECT IN THE LIST
+
+
+        IPtr=(WORDPTR) symbeval1_seco;   // CONTINUE THE LOOP
+        // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
+        return;
+    }
+    case EVAL1ERR:
+        // JUST CLEANUP AND EXIT
+        DSTop=rplUnprotectData();
+        rplCleanupLAMs(0);
+        IPtr=rplPopRet();
+        Exceptions=TrappedExceptions;
+        ExceptionPointer=IPtr;
+        CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1);
+        return;
+
+    case AUTOSIMPLIFY:
+    {
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        if(!ISSYMBOLIC(*rplPeekData(1))) return;    // LEAVE IT ON THE STACK, NOT A SYMBOLIC
+
+        rplSymbAutoSimplify();
+
+        return;
+
+    }
+
+
     case EVALPRE:
     {
         // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
@@ -451,7 +606,7 @@ void LIB_HANDLER()
 
         }
 
-        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE EVALERR WORD
+        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE EVAL1ERR WORD
 
 
         // PUSH THE NEXT OBJECT IN THE STACK
@@ -485,21 +640,6 @@ void LIB_HANDLER()
         CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
         return;
 
-    case AUTOSIMPLIFY:
-    {
-        if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
-            return;
-        }
-
-        if(!ISSYMBOLIC(*rplPeekData(1))) return;    // LEAVE IT ON THE STACK, NOT A SYMBOLIC
-
-        rplSymbAutoSimplify();
-
-        return;
-
-    }
     case RULEMATCH:
     {
         if(rplDepthData()<2) {

@@ -678,10 +678,10 @@ void DumpErrors()
         const char *string;
     }
     error_table[]={
-    { 0x00000001,"Bad opcode"},
+    { 0x00000001,"Panic Exit"},
     { 0x00000002,"BreakPoint"},
-    { 0x00000004,"Out of memory"},
-    { 0x00000008,"Pointer out of range"}, // WILL CHANGE IN THE FUTURE
+    { 0x00000004,"Bad opcode"},
+    { 0x00000008,"Out of memory"}, // WILL CHANGE IN THE FUTURE
     { 0x00000010,"Divide by zero"}, // WILL CHANGE IN THE FUTURE
     { 0x00000020,"Overflow"}, // WILL CHANGE IN THE FUTURE
     { 0x00000040,"Empty stack"},

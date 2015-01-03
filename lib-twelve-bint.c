@@ -829,7 +829,9 @@ void LIB_HANDLER()
             rplNewBINTPush(op1,LIBNUM(*arg1));
             return;
         case OVR_EVAL:
+        case OVR_EVAL1:
         case OVR_XEQ:
+        case OVR_NUM:
             // NOTHING TO DO, JUST KEEP THE ARGUMENT IN THE STACK
             rplPushData(arg1);
             return;

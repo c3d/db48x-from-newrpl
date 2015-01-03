@@ -342,6 +342,7 @@ void LIB_HANDLER()
     // ADD MORE OPCODES HERE
 
     case OVR_EVAL:
+    case OVR_EVAL1:
     case OVR_XEQ:
     // EVALUATING THE OBJECT HAS TO CHANGE THE CURRENT DIRECTORY INTO THIS ONE
     {
@@ -356,6 +357,9 @@ void LIB_HANDLER()
         rplDropData(1);
         return;
     }
+        return;
+    case OVR_NUM:
+        // DO NOTHING
         return;
 
     // STANDARIZED OPCODES:

@@ -39,7 +39,7 @@
 
 31= BRACKETS/PARENTHESIS/COMMA
 
-16 = OVR_EVAL, OVR_XEQ
+16 = OVR_EVAL, OVR_EVAL1, OVR_XEQ
 14 = RULESEPARATOR, EQUATIONEQUAL
 13= OVR_OR
 12= OVR_XOR
@@ -1490,7 +1490,11 @@ BINT rplFractionSimplify()
 
     if( (!ISNUMBER(*rplPeekData(1))) || (!ISNUMBER(*rplPeekData(2))) ) return 0;    // DON'T TRY TO SIMPLIFY IF NOT A NUMBER
 
-    if( ISREAL(*rplPeekData(2)) || ISREAL(*rplPeekData(1)) ) {
+    BINT isapprox;
+    isapprox=ISAPPROX(*rplPeekData(2))|ISAPPROX(*rplPeekData(1));
+
+
+    if(isapprox || ISREAL(*rplPeekData(2)) || ISREAL(*rplPeekData(1)) ) {
         // TREAT ALL NUMBERS AS REALS
 
         BINT numneg,denneg;
@@ -1498,6 +1502,7 @@ BINT rplFractionSimplify()
         rplNumberToRReg(0,rplPeekData(2));  // REGISTER 0 = NUMERATOR
         rplNumberToRReg(1,rplPeekData(1));  // REGISTER 1 = DENOMINATOR
 
+        if(!isapprox) {
         // MAKE THEM BOTH POSITIVE
         numneg=RReg[0].flags&MPD_NEG;
         denneg=RReg[1].flags&MPD_NEG;
@@ -1550,13 +1555,26 @@ BINT rplFractionSimplify()
         // APPLY THE SIGN TO THE NUMERATOR ONLY
         RReg[5].flags|=numneg^denneg;
 
+        // HERE RREG[5]=NEW NUMERATOR, RREG[6]=NEW DENOMINATOR
+
+        }
+        else {
+            // JUST COMPUTE THE DIVISION
+            mpd_div(&RReg[5],&RReg[0],&RReg[1],&Context);
+            // AND SET DENOMINATOR TO ONE
+            rplOneToRReg(6);
+
+        }
+
 
         // NOW TRY TO CONVERT THE REALS TO INTEGERS IF POSSIBLE
         uint32_t status=0;
         BINT64 num;
         num=mpd_qget_i64(&RReg[5],&status);
-        if(!status) rplNewBINTPush(num,DECBINT);
-        else rplNewRealFromRRegPush(5);
+        if(!status) rplNewBINTPush(num,DECBINT|isapprox);
+        else { if(isapprox) rplNewApproxRealFromRRegPush(5);
+            else rplNewRealFromRRegPush(5);
+            }
         if(Exceptions) return 0;
         status=0;
         num=mpd_qget_i64(&RReg[6],&status);
@@ -1571,7 +1589,7 @@ BINT rplFractionSimplify()
 
     }
 
-    // BOTH NUMBERS ARE BINTS
+    // BOTH NUMBERS ARE EXACT BINTS
 
     BINT64 bnum,bden;
     BINT64 tmpbig,tmpsmall,swap;
@@ -2010,16 +2028,14 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             // HERE WE HAVE redargs VALUES IN THE STACK THAT NEED TO BE MULTIPLIED TOGETHER
             if(redargs>0) {
             Context.prec=REAL_PRECISION_MAX;
-            Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
+            // Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT -- NOT NEEDED, USE APPROX. NUMBERS
             for(f=1;f<redargs;++f) {
                 rplCallOvrOperator(OVR_MUL);
                 if(Exceptions) { DSTop=endofstk+1; return NULL; }
             }
 
-
-
             Context.prec=origprec;
-            Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
+            //Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
             }
             else rplPushData(one_bint);     //  IF NO NUMERATOR, THEN MAKE IT = 1
 
@@ -2105,14 +2121,14 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             if(reddenom>0) {
 
             Context.prec=REAL_PRECISION_MAX;
-            Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
+            //Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
             for(f=1;f<reddenom;++f) {
                 rplCallOvrOperator(OVR_MUL);
                 if(Exceptions) { DSTop=endofstk+1; return NULL; }
             }
 
             Context.prec=origprec;
-            Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
+            //Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
 
             // DONE, WE HAVE NUMERATOR AND DENOMINATOR IN THE STACK
 

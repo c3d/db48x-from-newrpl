@@ -28,7 +28,7 @@
 
 // LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
 // HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
-static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,LIBRARY_NUMBER+1,0 };
+static const HALFWORD const libnumberlist[]={ DOIDENT,DOIDENTAPP,DOIDENTEVAL,DOIDENTEVALAPP,0 };
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
@@ -111,7 +111,7 @@ void LIB_HANDLER()
         // NORMAL BEHAVIOR  ON A IDENT IS TO PUSH THE OBJECT ON THE STACK:
         rplPushData(IPtr);
 
-        if(LIBNUM(CurOpcode)==LIBRARY_NUMBER+1) {
+        if((LIBNUM(CurOpcode)|APPROX_BIT)==DOIDENTEVALAPP) {
             // UNQUOTED LAM, NEED TO ALSO DO XEQ ON ITS CONTENTS
             {
                 WORDPTR val=rplGetLAM(rplPeekData(1));
@@ -125,12 +125,13 @@ void LIB_HANDLER()
                 rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
                 LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
                 if(han) {
-                    BINT SavedOpcode=CurOpcode;
-                    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
+                    BINT SavedOpcode=CurOpcode,TmpOpcode;
+                    if(ISAPPROX(CurOpcode)) TmpOpcode=CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_NUM);
+                    else TmpOpcode=CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
                     // EXECUTE THE OTHER LIBRARY DIRECTLY
                     (*han)();
                     // RESTORE THE PREVIOUS ONE ONLY IF THE HANDLER DID NOT CHANGE IT
-                    if(CurOpcode==MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ)) CurOpcode=SavedOpcode;
+                    if(CurOpcode==TmpOpcode) CurOpcode=SavedOpcode;
                 }
                 else {
                     // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
@@ -157,7 +158,7 @@ void LIB_HANDLER()
 
             switch(OPCODE(CurOpcode))
             {
-            case OVR_EVAL:
+            case OVR_EVAL1:
             // RCL WHATEVER IS STORED IN THE LAM AND THEN XEQ ITS CONTENTS
             // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
             {
@@ -171,6 +172,73 @@ void LIB_HANDLER()
                 }
                 rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
                 CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
+                LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
+                if(han) {
+                    // EXECUTE THE OTHER LIBRARY DIRECTLY
+                    (*han)();
+                }
+                else {
+                    // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
+                    // THIS CAN ONLY HAPPEN IF TRYING TO EXECUTE WITH A CUSTOM OBJECT
+                    // WHOSE LIBRARY WAS UNINSTALLED AFTER BEING COMPILED (IT'S AN INVALID OBJECT)
+                    Exceptions=EX_BADARGTYPE;
+                    ExceptionPointer=IPtr;
+                    CurOpcode=*IPtr;
+                }
+
+
+            }
+                return;
+
+            case OVR_EVAL:
+            // RCL WHATEVER IS STORED IN THE LAM AND THEN EVAL ITS CONTENTS
+            // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
+            {
+                WORDPTR val=rplGetLAM(rplPeekData(1));
+                if(!val) {
+                    val=rplGetGlobal(rplPeekData(1));
+                    if(!val) {
+                        // INEXISTENT IDENT EVALS TO ITSELF, SO RETURN DIRECTLY
+                        return;
+                    }
+                }
+                rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
+                CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
+                if(han) {
+                    // EXECUTE THE OTHER LIBRARY DIRECTLY
+                    (*han)();
+                }
+                else {
+                    // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
+                    // THIS CAN ONLY HAPPEN IF TRYING TO EXECUTE WITH A CUSTOM OBJECT
+                    // WHOSE LIBRARY WAS UNINSTALLED AFTER BEING COMPILED (IT'S AN INVALID OBJECT)
+                    Exceptions=EX_BADARGTYPE;
+                    ExceptionPointer=IPtr;
+                    CurOpcode=*IPtr;
+                }
+
+
+            }
+                return;
+
+            case OVR_NUM:
+            // RCL WHATEVER IS STORED IN THE LAM AND THEN ->NUM ITS CONTENTS
+            // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "->NUM" DISPATCHER
+            {
+                WORDPTR val=rplGetLAM(rplPeekData(1));
+                if(!val) {
+                    val=rplGetGlobal(rplPeekData(1));
+                    if(!val) {
+                        // INEXISTENT IDENT EVALS TO ITSELF, SO RETURN DIRECTLY
+                        return;
+                    }
+                }
+
+                // TODO: CHECK FOR CIRCULAR REFERENCE!
+
+                rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
+                CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_NUM);
                 LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
                 if(han) {
                     // EXECUTE THE OTHER LIBRARY DIRECTLY

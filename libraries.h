@@ -136,6 +136,7 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 #define DOSYMB      32      // SYMBOLIC OBJECT
 #define DOLIST      50
 
+
 // USEFUL MACROS FOR TYPE IDENTIFICATION
 
 #define ISIDENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOIDENT)||(LIBNUM(prolog)==DOIDENTEVAL)) )
@@ -167,6 +168,13 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 #define DIR_END_MARKER    MAKESINT(0x20001)
 #define DIR_PARENT_MARKER MAKESINT(0x20002)
 
+
+// LOCAL ENVIRONMENTS LIBRARY
+#define LIB_LOCALENV 4080
+// DEFINE OVERLOADABLE OPERATORS
+#define LIB_OVERLOADABLE    4090
+
+
 // COMMANDS THAT NEED TO BE ACCESSED FROM MULTIPLE LIBRARIES
 
 #define CMD_EXITRPL         MKOPCODE(DOCOL,0)
@@ -176,8 +184,14 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 
 #define CMD_RULESEPARATOR   MKOPCODE(DOSYMB,0)
 
-// DEFINE OVERLOADABLE OPERATORS
-#define LIB_OVERLOADABLE    4090
+#define CMD_NEWLOCALENV     MKOPCODE(LIB_LOCALENV,0)
+
+
+
+
+
+
+
 
 #define OVR_GETNARGS(p) ( ((p)>>12)&0xf )
 
@@ -198,23 +212,27 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 #define OVR_INV      OVR_OPERATORS+OVR_UNARY+1
 #define OVRT_NEG              "NEG"
 #define OVR_NEG      OVR_OPERATORS+OVR_UNARY+2
+#define OVRT_EVAL1             "EVAL1"
+#define OVR_EVAL1     OVR_OPERATORS+OVR_UNARY+3
 #define OVRT_EVAL             "EVAL"
-#define OVR_EVAL      OVR_OPERATORS+OVR_UNARY+3
+#define OVR_EVAL      OVR_OPERATORS+OVR_UNARY+4
 #define OVRT_XEQ             "XEQ"
-#define OVR_XEQ      OVR_OPERATORS+OVR_UNARY+4
+#define OVR_XEQ      OVR_OPERATORS+OVR_UNARY+5
+#define OVRT_NUM             "->NUM"
+#define OVR_NUM      OVR_OPERATORS+OVR_UNARY+6
 #define OVRT_ABS              "ABS"
-#define OVR_ABS       OVR_OPERATORS+OVR_UNARY+5
+#define OVR_ABS       OVR_OPERATORS+OVR_UNARY+7
 #define OVRT_ISTRUE           "ISTRUE"
-#define OVR_ISTRUE     OVR_OPERATORS+OVR_UNARY+6
+#define OVR_ISTRUE     OVR_OPERATORS+OVR_UNARY+8
 #define OVRT_NOT              "NOT"
-#define OVR_NOT        OVR_OPERATORS+OVR_UNARY+7
+#define OVR_NOT        OVR_OPERATORS+OVR_UNARY+9
 
 //UNARY PLUS IN SYMBOLICS
 #define OVRT_UPLUS              "+"
-#define OVR_UPLUS        OVR_OPERATORS+OVR_UNARY+8
+#define OVR_UPLUS        OVR_OPERATORS+OVR_UNARY+10
 // OPCODE FOR UNARY MINUS IN SYMBOLICS ONLY
 #define OVRT_UMINUS           "-"
-#define OVR_UMINUS     OVR_OPERATORS+OVR_UNARY+9
+#define OVR_UMINUS     OVR_OPERATORS+OVR_UNARY+11
 
 
 
