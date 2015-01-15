@@ -208,8 +208,8 @@ extern BINT rplCompareObjects(WORDPTR id1,WORDPTR id2);
 extern WORDPTR rplGetLAM(WORDPTR nameobj);
 extern inline WORDPTR *rplGetLAMn(BINT idx);
 extern inline WORDPTR *rplGetLAMnName(BINT idx);
-extern inline WORDPTR *rplGetLAMnEnv(WORDPTR LAMEnv,BINT idx);
-extern inline WORDPTR *rplGetLAMnNameEnv(WORDPTR LAMEnv,BINT idx);
+extern inline WORDPTR *rplGetLAMnEnv(WORDPTR *LAMEnv, BINT idx);
+extern inline WORDPTR *rplGetLAMnNameEnv(WORDPTR *LAMEnv, BINT idx);
 extern inline void rplPutLAMn(BINT idx,WORDPTR object);
 extern void rplCleanupLAMs(WORDPTR currentseco);
 extern void rplClearLAMs();
@@ -312,8 +312,7 @@ extern void rplSymbRuleMatch();
 #define EX_BKPOINT          2
 #define EX_BADOPCODE        4
 #define EX_OUTOFMEM         8
-#define EX_MATHDIVZERO     16
-#define EX_MATHOVERFLOW    32
+#define EX_CIRCULARREF     16
 #define EX_EMPTYSTACK      64
 #define EX_EMPTYRSTK      128
 #define EX_SYNTAXERROR    256
@@ -325,6 +324,8 @@ extern void rplSymbRuleMatch();
 #define EX_NONEMPTYDIR  16384
 #define EX_INVALID_DIM  32768
 // ADD MORE HERE...
+#define EX_MATHDIVZERO     (MPD_Division_by_zero<<16)
+#define EX_MATHOVERFLOW    (MPD_Overflow<<16)
 
 
 

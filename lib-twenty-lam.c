@@ -43,9 +43,15 @@ static const HALFWORD const libnumberlist[]={ DOIDENT,DOIDENTAPP,DOIDENTEVAL,DOI
 // EXTRA LIST FOR COMMANDS WITH SYMBOLS THAT ARE DISALLOWED IN AN ENUM
 // THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
 #define CMD_EXTRANAME \
-    "->"
+    "->", \
+    "", \
+    "", \
+    ""
 #define CMD_EXTRAENUM \
-    NEWLOCALENV
+    NEWLOCALENV, \
+    EVALPRE, \
+    EVALPOST, \
+    EVALERR
 
 
 // THESE ARE SPECIAL OPCODES FOR THE COMPILER ONLY
@@ -66,6 +72,17 @@ enum LIB_ENUM { CMD_LIST , CMD_EXTRAENUM , LIB_NUMBEROFCMDS };
 #define CMD(a) #a
 const char * const LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME  };
 #undef CMD
+
+
+extern const WORD const symbeval_seco[];
+const WORD const lameval_seco[]={
+    MKPROLOG(DOCOL,5),
+    MKOPCODE(LIBRARY_NUMBER,EVALPRE),
+    MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER,EVALPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER,EVALERR),     // ERROR HANDLER
+    CMD_SEMI
+};
 
 
 
@@ -194,31 +211,43 @@ void LIB_HANDLER()
             // RCL WHATEVER IS STORED IN THE LAM AND THEN EVAL ITS CONTENTS
             // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
             {
-                WORDPTR val=rplGetLAM(rplPeekData(1));
+                WORDPTR *val=rplFindLAM(rplPeekData(1),1);
                 if(!val) {
-                    val=rplGetGlobal(rplPeekData(1));
+                    val=rplFindGlobal(rplPeekData(1),1);
                     if(!val) {
                         // INEXISTENT IDENT EVALS TO ITSELF, SO RETURN DIRECTLY
                         return;
                     }
                 }
-                rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
-                CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
-                LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
-                if(han) {
-                    // EXECUTE THE OTHER LIBRARY DIRECTLY
-                    (*han)();
-                }
-                else {
-                    // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
-                    // THIS CAN ONLY HAPPEN IF TRYING TO EXECUTE WITH A CUSTOM OBJECT
-                    // WHOSE LIBRARY WAS UNINSTALLED AFTER BEING COMPILED (IT'S AN INVALID OBJECT)
-                    Exceptions=EX_BADARGTYPE;
+
+                if(rplCheckCircularReference(symbeval_seco+2,*(val+1),4)) {
+                    Exceptions|=EX_CIRCULARREF;
                     ExceptionPointer=IPtr;
-                    CurOpcode=*IPtr;
+                    return;
                 }
 
+                // CREATE A NEW LAM ENVIRONMENT IDENTICAL TO THE ONE USED TO EVAL SYMBOLICS
+                // FOR CIRCULAR REFERENCE CHECK
+                rplCreateLAMEnvironment(symbeval_seco+2);
 
+                rplCreateLAM(nulllam_ident,zero_bint);     // LAM 1 = 0 (DUMMY)
+                if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                rplCreateLAM(nulllam_ident,zero_bint);     // LAM 2 = 0 (DUMMY)
+                if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                rplCreateLAM(nulllam_ident,zero_bint);     // LAM 3 = 0 (DUMMY)
+                if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 4 = MAIN VARIABLE NAME, FOR CIRCULAR REFERENCE CHECK
+                if(Exceptions) { rplCleanupLAMs(0); return; }
+
+
+                rplOverwriteData(1,*(val+1));    // REPLACE THE FIRST LEVEL WITH THE VALUE
+
+                rplPushRet(IPtr);
+                IPtr=(WORDPTR) lameval_seco;
+                CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
             }
                 return;
 
@@ -550,6 +579,37 @@ void LIB_HANDLER()
 
         return;
 
+    case EVALPRE:
+    {
+        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE EVAL1ERR WORD
+
+        // AND EXECUTION WILL CONTINUE AT EVAL
+
+        return;
+    }
+
+    case EVALPOST:
+    {
+        // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
+
+        rplRemoveExceptionHandler();    // THERE WAS NO ERROR DURING EVALUATION
+
+        rplCleanupLAMs(0);
+
+        IPtr=rplPopRet();
+        CurOpcode=*IPtr;
+
+        return;
+    }
+    case EVALERR:
+        // JUST CLEANUP AND EXIT
+        DSTop=rplUnprotectData();
+        rplCleanupLAMs(0);
+        IPtr=rplPopRet();
+        Exceptions=TrappedExceptions;
+        ExceptionPointer=IPtr;
+        CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+        return;
 
     // ADD MORE OPCODES HERE
 

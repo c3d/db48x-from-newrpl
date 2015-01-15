@@ -103,9 +103,29 @@ const WORD const emptylist_list[]={
     CMD_ENDLIST
 };
 
+// LOOKS INTO UPPER ENVIRONMENTS THAT MATCH env_owner,
+// SEARCHING IN lamnum INDEX FOR object. IF FOUND, MEANS
+// THAT A PARENT EVALUATION ALREADY USED THIS OBJECT
+// SO IT'S A CIRCULAR REFERENCE
 
 
-
+BINT rplCheckCircularReference(WORDPTR env_owner,WORDPTR object,BINT lamnum)
+{
+    WORDPTR *lamenv=rplGetNextLAMEnv(LAMTop);
+    WORDPTR *lamobj;
+    BINT nlams;
+    while(lamenv) {
+        if(*rplGetLAMnEnv(lamenv,0)==env_owner) {
+        nlams=rplLAMCount(lamenv);
+        if(lamnum>=nlams) {
+        lamobj=rplGetLAMnEnv(lamenv,lamnum);
+        if(*lamobj==object) return 1;
+        }
+        }
+        lamenv=rplGetNextLAMEnv(lamenv);
+    }
+    return 0;
+}
 
 
 
@@ -227,14 +247,20 @@ void LIB_HANDLER()
     case OVR_EVAL:
     // EVAL NEEDS TO SCAN THE SYMBOLIC, EVAL EACH ARGUMENT SEPARATELY AND APPLY THE OPCODE.
 {
-    WORDPTR object=rplPeekData(1);
+    WORDPTR object=rplPeekData(1),mainobj;
     if(!ISSYMBOLIC(*object)) {
         Exceptions|=EX_BADARGTYPE;
         ExceptionPointer=IPtr;
         return;
     }
 
-    // HERE WE HAVE program = PROGRAM TO EXECUTE
+    if(rplCheckCircularReference(symbeval_seco+2,object,4)) {
+        Exceptions|=EX_CIRCULARREF;
+        ExceptionPointer=IPtr;
+        return;
+    }
+
+    mainobj=object;
 
     // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
     rplCreateLAMEnvironment(IPtr);
@@ -253,6 +279,9 @@ void LIB_HANDLER()
     if(Exceptions) { rplCleanupLAMs(0); return; }
 
     rplCreateLAM(nulllam_ident,object);     // LAM 3 = NEXT OBJECT TO PROCESS
+    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+    rplCreateLAM(nulllam_ident,mainobj);     // LAM 4 = MAIN SYMBOLIC EXPRESSION, FOR CIRCULAR REFERENCE CHECK
     if(Exceptions) { rplCleanupLAMs(0); return; }
 
     // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
@@ -511,7 +540,15 @@ void LIB_HANDLER()
 
 
             if(Opcode) {
-                rplSymbApplyOperator(Opcode,newdepth);
+                if(Opcode!=MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL)) rplSymbApplyOperator(Opcode,newdepth);
+            }
+            if(newdepth!=1) {
+                Exceptions|=EX_BADARGCOUNT;
+                rplCleanupLAMs(0);
+                IPtr=rplPopRet();
+                ExceptionPointer=IPtr;
+                CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1);
+                return;
             }
             // HERE WE ARE SUPPOSED TO HAVE ONLY ONE ARGUMENT ON THE STACK AND THE ORIGINAL OBJECT
             rplOverwriteData(2,rplPeekData(1));
@@ -593,7 +630,26 @@ void LIB_HANDLER()
 
 
             if(Opcode) {
-                rplSymbApplyOperator(Opcode,newdepth);
+                if(Opcode!=MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL)) {
+                    rplSymbApplyOperator(Opcode,newdepth);
+                    newdepth=(BINT)(DSTop-prevDStk);
+                    if(Exceptions) {
+                    rplCleanupLAMs(0);
+                    IPtr=rplPopRet();
+                    ExceptionPointer=IPtr;
+                    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                    return;
+                    }
+
+                }
+            }
+            if(newdepth!=1) {
+                Exceptions|=EX_BADARGCOUNT;
+                rplCleanupLAMs(0);
+                IPtr=rplPopRet();
+                ExceptionPointer=IPtr;
+                CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                return;
             }
             // HERE WE ARE SUPPOSED TO HAVE ONLY ONE ARGUMENT ON THE STACK AND THE ORIGINAL OBJECT
             rplOverwriteData(2,rplPeekData(1));

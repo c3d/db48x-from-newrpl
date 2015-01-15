@@ -317,7 +317,7 @@ void LIB_HANDLER()
     {
         BINT len,maxlen;
 
-        for(maxlen=0,len=1;len<(BINT)TokenLen;++len) {
+        for(maxlen=0,len=1;len<=(BINT)TokenLen;++len) {
             if(rplIsValidIdent((BYTEPTR)TokenStart,len)) maxlen=len;
             else break;
         }

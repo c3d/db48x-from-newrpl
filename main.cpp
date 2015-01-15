@@ -682,8 +682,8 @@ void DumpErrors()
     { 0x00000002,"BreakPoint"},
     { 0x00000004,"Bad opcode"},
     { 0x00000008,"Out of memory"}, // WILL CHANGE IN THE FUTURE
-    { 0x00000010,"Divide by zero"}, // WILL CHANGE IN THE FUTURE
-    { 0x00000020,"Overflow"}, // WILL CHANGE IN THE FUTURE
+    { 0x00000010,"Circular Reference"}, // WILL CHANGE IN THE FUTURE
+    { 0x00000020,"????"}, // WILL CHANGE IN THE FUTURE
     { 0x00000040,"Empty stack"},
     { 0x00000080,"Empty return rtack"},
     { 0x00000100,"Syntax error"},

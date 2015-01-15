@@ -36,12 +36,47 @@ WORDPTR rplReverseSkipOb(WORDPTR list_start,WORDPTR after_object)
     return list_start;
 }
 
+// ROTATES A FUNCTION ARGUMENT LIST SO THE FIRST ARGUMENT BECOMES THE LAST,
+// SECOND ARGUMENT BECOMES FIRST, ETC.
+// ONLY USED BY THE SPECIAL CASE FUNCEVAL TO MOVE THE NAME OF THE FUNCTION LAST
+BINT rplRotArgs(BINT nargs)
+{
+
+    WORDPTR ptr=CompileEnd,symbstart=*(ValidateTop-1)+1;
+
+    //FIND THE START OF THE 'N' ARGUMENTS
+    for(;(nargs>0) && ptr ;--nargs)
+    {
+        ptr=rplReverseSkipOb(symbstart,ptr);
+    }
+
+    if(nargs || (!ptr)) return 0; // TOO FEW ARGUMENTS!
+
+    BINT firstsize = rplObjSize(ptr);
+    // ADJUST MEMORY AS NEEDED
+    if( CompileEnd+firstsize>=TempObSize) {
+        // ENLARGE TEMPOB AS NEEDED
+        growTempOb( ((WORD)(CompileEnd+firstsize-TempOb))+TEMPOBSLACK);
+        if(Exceptions) return 0;    // NOT ENOUGH MEMORY
+    }
+
+
+    // COPY THE FIRST ARGUMENT LAST
+    memmovew(CompileEnd,ptr,firstsize);
+    // MOVE THE ENTIRE LIST DOWN
+    memmovew(ptr,ptr+firstsize,CompileEnd-ptr);
+
+    return 1;
+
+
+}
+
 
 // APPLIES THE SYMBOLIC OPERATOR TO THE OUTPUT QUEUE
 // ONLY CALLED BY THE COMPILER
 // ON ENTRY: CompileEnd = top of the output stream (pointing after the last object)
 //           *(ValidateTop-1) = START OF THE SYMBOLIC OBJECT
-static BINT rplInfixApply(WORD opcode,WORD tokeninfo)
+static BINT rplInfixApply(WORD opcode,BINT nargs)
 {
     // FORMAT OF SYMBOLIC OBJECT:
     // DOSYMB PROLOG
@@ -53,11 +88,10 @@ static BINT rplInfixApply(WORD opcode,WORD tokeninfo)
     // END OF SYMBOLIC OBJECT
 
 
-    BINT nargs;
     WORDPTR ptr=CompileEnd,symbstart=*(ValidateTop-1)+1;
 
     //FIND THE START OF THE 'N' ARGUMENTS
-    for(nargs=TI_NARGS(tokeninfo);(nargs>0) && ptr ;--nargs)
+    for(;(nargs>0) && ptr ;--nargs)
     {
         ptr=rplReverseSkipOb(symbstart,ptr);
     }
@@ -281,7 +315,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             LAMTop=LAMTopSaved;
                             return 0;
                         }
-                        if(!rplInfixApply(InfixOpTop[0],InfixOpTop[1]))
+                        if(!rplInfixApply(InfixOpTop[0],TI_NARGS(InfixOpTop[1])))
                         {
                             Exceptions|=EX_SYNTAXERROR;
                             ExceptionPointer=IPtr;
@@ -386,7 +420,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         // REMOVE THE OPERATOR FROM THE OUTPUT STREAM
                         CompileEnd=LastCompiledObject;
 
-                        // SPECIAL CALSE THAT CAN ONLY BE HANDLED BY THE COMPILER:
+                        // SPECIAL CASE THAT CAN ONLY BE HANDLED BY THE COMPILER:
                         // AMBIGUITY BETWEEN UNARY MINUS AND SUBSTRACTION
                         if(Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_SUB))
                         {
@@ -428,12 +462,33 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         }
 
                         if(TI_TYPE(probe_tokeninfo)==TITYPE_OPENBRACKET) {
+
+                            if(TI_TYPE(previous_tokeninfo)>TITYPE_OPERATORS) {
+                                // THIS IS A PARENTHESIS FOLLOWING AN OPERATOR
                             // PUSH THE NEW OPERATOR
-                            if(RStkSize<=(InfixOpTop-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
+                            if(RStkSize<=(InfixOpTop+1-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
                             if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
                             InfixOpTop[0]=CompileEnd-TempObEnd;        // SAVE POSITION TO START COUNTING ARGUMENTS
                             InfixOpTop[1]=probe_tokeninfo;
                             InfixOpTop+=2;
+                            } else
+                            {
+                                // THIS IS EITHER MATRIX/VECTOR INDEXING OR A USER FUNCTION CALL
+
+                                // PUSH OPERATOR FUNCEVAL FIRST
+                                if(RStkSize<=(InfixOpTop+3-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
+                                if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
+                                InfixOpTop[0]=MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL);        // SAVE POSITION TO START COUNTING ARGUMENTS
+                                InfixOpTop[1]=MKTOKENINFO(TI_LENGTH(previous_tokeninfo),TITYPE_FUNCTION,0xf,2);
+                                InfixOpTop+=2;
+
+                                // THEN THE OPENING BRACKET
+                                InfixOpTop[0]=CompileEnd-TempObEnd;        // SAVE POSITION TO START COUNTING ARGUMENTS
+                                InfixOpTop[1]=probe_tokeninfo;
+                                InfixOpTop+=2;
+
+
+                            }
                         }
                         else {
 
@@ -444,7 +499,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                                 if((TI_TYPE(*(InfixOpTop-1))==TITYPE_OPENBRACKET)) break;
                                 // POP OPERATORS OFF THE STACK AND APPLY TO OBJECTS
                                 InfixOpTop-=2;
-                                if(!rplInfixApply(InfixOpTop[0],InfixOpTop[1]))
+                                if(!rplInfixApply(InfixOpTop[0],TI_NARGS(InfixOpTop[1])))
                                 {
                                     Exceptions|=EX_SYNTAXERROR;
                                     ExceptionPointer=IPtr;
@@ -478,7 +533,8 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             // CHECK IF THE TOP OF STACK IS A FUNCTION
                             if(InfixOpTop>(WORDPTR)ValidateTop) {
                                 if(TI_TYPE(*(InfixOpTop-1))==TITYPE_FUNCTION) {
-                                    if(nargs!=(BINT)TI_NARGS(*(InfixOpTop-1))) {
+                                    BINT needargs=(BINT)TI_NARGS(*(InfixOpTop-1));
+                                    if((needargs!=0xf) && (nargs!=needargs)) {
                                         Exceptions|=EX_BADARGCOUNT;
                                         ExceptionPointer=IPtr;
                                         LAMTop=LAMTopSaved;
@@ -486,8 +542,19 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                                     }
                                     // POP FUNCTION OFF THE STACK AND APPLY
                                     InfixOpTop-=2;
+                                    // SPECIAL CASE: IF THE OPERATOR IS FUNCEVAL, ADD ONE MORE PARAMETER: THE NAME OF THE FUNCTION
+                                    if(InfixOpTop[0]==MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL)) {
+                                        ++nargs;
+                                        if(!rplRotArgs(nargs)) {
+                                            Exceptions|=EX_OUTOFMEM;
+                                            ExceptionPointer=IPtr;
+                                            LAMTop=LAMTopSaved;
+                                            return 0;
+                                        }
+                                    }
 
-                                    if(!rplInfixApply(InfixOpTop[0],InfixOpTop[1]))
+
+                                    if(!rplInfixApply(InfixOpTop[0],nargs))
                                     {
                                         Exceptions|=EX_SYNTAXERROR;
                                         ExceptionPointer=IPtr;
@@ -513,7 +580,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             // POP OPERATORS OFF THE STACK AND APPLY TO OBJECTS
                             InfixOpTop-=2;
 
-                            if(!rplInfixApply(InfixOpTop[0],InfixOpTop[1]))
+                            if(!rplInfixApply(InfixOpTop[0],TI_NARGS(InfixOpTop[1])))
                             {
                                 Exceptions|=EX_SYNTAXERROR;
                                 ExceptionPointer=IPtr;
@@ -526,7 +593,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                                 {
                                     InfixOpTop-=2;
 
-                                    if(!rplInfixApply(InfixOpTop[0],InfixOpTop[1]))
+                                    if(!rplInfixApply(InfixOpTop[0],TI_NARGS(InfixOpTop[1])))
                                     {
                                         Exceptions|=EX_SYNTAXERROR;
                                         ExceptionPointer=IPtr;
@@ -539,7 +606,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             }
                         }
                         // PUSH THE NEW OPERATOR
-                        if(RStkSize<=(InfixOpTop-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
+                        if(RStkSize<=(InfixOpTop+1-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
                         if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
                         InfixOpTop[0]=Opcode;
                         InfixOpTop[1]=probe_tokeninfo;
@@ -772,7 +839,7 @@ WORDPTR rplDecompile(WORDPTR object)
         break;
     case OK_STARTCONSTRUCT_INFIX:
         // PUSH THE SYMBOLIC ON A STACK AND SAVE THE COMPILER STATE
-        if(RStkSize<=(InfixOpTop-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
+        if(RStkSize<=(InfixOpTop+1-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
         if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
         InfixOpTop[1]=infixmode;
         InfixOpTop[0]=DecompileObject-EndOfObject;
@@ -819,7 +886,7 @@ end_of_expression:
 
                 if(TI_TYPE(RetNum)>=TITYPE_OPERATORS) {
                 // PUSH THE OPERATOR ON THE STACK
-                if(RStkSize<=(InfixOpTop-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
+                if(RStkSize<=(InfixOpTop+1-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
                 if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
                 InfixOpTop[0]=*DecompileObject;
                 InfixOpTop[1]=RetNum;

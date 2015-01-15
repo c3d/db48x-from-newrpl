@@ -216,23 +216,25 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 #define OVR_EVAL1     OVR_OPERATORS+OVR_UNARY+3
 #define OVRT_EVAL             "EVAL"
 #define OVR_EVAL      OVR_OPERATORS+OVR_UNARY+4
+#define OVRT_FUNCEVAL       "FUNCEVAL"
+#define OVR_FUNCEVAL      OVR_OPERATORS+OVR_UNARY+5
 #define OVRT_XEQ             "XEQ"
-#define OVR_XEQ      OVR_OPERATORS+OVR_UNARY+5
+#define OVR_XEQ      OVR_OPERATORS+OVR_UNARY+6
 #define OVRT_NUM             "->NUM"
-#define OVR_NUM      OVR_OPERATORS+OVR_UNARY+6
+#define OVR_NUM      OVR_OPERATORS+OVR_UNARY+7
 #define OVRT_ABS              "ABS"
-#define OVR_ABS       OVR_OPERATORS+OVR_UNARY+7
+#define OVR_ABS       OVR_OPERATORS+OVR_UNARY+8
 #define OVRT_ISTRUE           "ISTRUE"
-#define OVR_ISTRUE     OVR_OPERATORS+OVR_UNARY+8
+#define OVR_ISTRUE     OVR_OPERATORS+OVR_UNARY+9
 #define OVRT_NOT              "NOT"
-#define OVR_NOT        OVR_OPERATORS+OVR_UNARY+9
+#define OVR_NOT        OVR_OPERATORS+OVR_UNARY+10
 
 //UNARY PLUS IN SYMBOLICS
 #define OVRT_UPLUS              "+"
-#define OVR_UPLUS        OVR_OPERATORS+OVR_UNARY+10
+#define OVR_UPLUS        OVR_OPERATORS+OVR_UNARY+11
 // OPCODE FOR UNARY MINUS IN SYMBOLICS ONLY
 #define OVRT_UMINUS           "-"
-#define OVR_UMINUS     OVR_OPERATORS+OVR_UNARY+11
+#define OVR_UMINUS     OVR_OPERATORS+OVR_UNARY+12
 
 
 
