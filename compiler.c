@@ -463,7 +463,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                         if(TI_TYPE(probe_tokeninfo)==TITYPE_OPENBRACKET) {
 
-                            if(TI_TYPE(previous_tokeninfo)>TITYPE_OPERATORS) {
+                            if(!previous_tokeninfo || (TI_TYPE(previous_tokeninfo)>TITYPE_OPERATORS)) {
                                 // THIS IS A PARENTHESIS FOLLOWING AN OPERATOR
                             // PUSH THE NEW OPERATOR
                             if(RStkSize<=(InfixOpTop+1-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);

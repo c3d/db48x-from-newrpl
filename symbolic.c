@@ -829,7 +829,7 @@ const WORD const mul_opcode[]={
 };
 
 
-WORDPTR rplSymbCanonicalForm(WORDPTR object)
+WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
 {
     BINT numitems=rplSymbExplode(object);
     BINT f;
@@ -1471,9 +1471,21 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
         return NULL;
     }
 
-    WORDPTR finalsymb=rplSymbImplode(DSTop-1);
+    return DSTop-1;
 
-    DSTop=endofstk+1;
+}
+
+
+// CONVERT A SYMBOLIC OBJECT TO CANONICAL FORM
+WORDPTR rplSymbCanonicalForm(WORDPTR object)
+{
+    WORDPTR result=rplSymbExplodeCanonicalForm(object);
+
+    if(!result) return NULL;
+
+    WORDPTR finalsymb=rplSymbImplode(result);
+
+    DSTop=rplSymbSkipInStack(result)+1;
     if(Exceptions) return NULL;
 
     return finalsymb;
@@ -1897,7 +1909,7 @@ BINT rplSymbReplaceInStack(WORDPTR *here, WORDPTR *newobj)
     BINT offset=sizenew-sizeold;
 
     if(offset>0) rplSymbInsertInStack(here,offset);
-    if(offset<0) rplSymbDeleteInStack(here,offset);
+    if(offset<0) rplSymbDeleteInStack(here,-offset);
     if(Exceptions) return 0;
 
     // NOW WE HAVE THE PROPER ROOM
@@ -2676,6 +2688,40 @@ WORDPTR *rplSymbReplaceVariable(WORDPTR *expr,WORDPTR varname,WORDPTR object)
 
 }
 
+// PRESERVE CURRENT STATE OF THE TRACING MACHINE
+// TO BACK TRACK LATER
+
+BINT rplSymbPushState(WORDPTR **savedstateptr,WORDPTR *ruleptr,WORDPTR *exprptr,WORDPTR *LAMTop,WORDPTR *listptr,WORDPTR *endoflist,BINT orderless)
+{
+    // THIS IMPLEMENTATION STORES IN THE RETURN STACK, AFTER THE END OF IT
+    if(RStkSize<=*savedstateptr-RStk+RSTKSLACK) growRStk((WORD)(*savedstateptr-RStk+RSTKSLACK+6));
+    if(Exceptions) return 0;
+
+    (*savedstateptr)[0]=(WORDPTR *)ruleptr;
+    (*savedstateptr)[1]=(WORDPTR *)exprptr;
+    (*savedstateptr)[2]=(WORDPTR *)LAMTop;
+    (*savedstateptr)[3]=(WORDPTR *)listptr;
+    (*savedstateptr)[4]=(WORDPTR *)endoflist;
+    (*savedstateptr)[5]=(WORDPTR *)orderless;
+    *savedstateptr+=6;
+    return 1;
+}
+
+BINT rplSymbPopState(WORDPTR **savedstateptr,WORDPTR **ruleptr,WORDPTR **exprptr,WORDPTR **LAMTop,WORDPTR **listptr,WORDPTR **endoflist,BINT *orderless)
+{
+    if(*savedstateptr<=RSTop) return 0;
+    *savedstateptr-=6;
+    *ruleptr=(WORDPTR *)(*savedstateptr)[0];
+    *exprptr=(WORDPTR *)(*savedstateptr)[1];
+    *LAMTop=(WORDPTR *)(*savedstateptr)[2];
+    *listptr=(WORDPTR *)(*savedstateptr)[3];
+    *endoflist=(WORDPTR *)(*savedstateptr)[4];
+    *orderless=(BINT)(*savedstateptr)[5];
+
+    return 1;
+}
+
+
 
 // SYMBOLIC EXPRESSION IN LEVEL 2
 // RULE IN LEVEL 1
@@ -2696,14 +2742,15 @@ WORDPTR *rplSymbReplaceVariable(WORDPTR *expr,WORDPTR varname,WORDPTR object)
 
 void rplSymbRuleApply()
 {
-    WORDPTR *rule,*ruleleft,*expr,*endofrule,*endofrun,*endofexpr,*runptr,*ruleptr,*exprptr;
+    WORDPTR *rule,*ruleleft,*expr,*endofrule,*endofrun,*endofexpr,*runptr,*ruleptr,*exprptr,*listptr,*endoflist;
     WORDPTR *saveddstop=DSTop;
     WORDPTR *savedlamtop=LAMTop;
-    BINT match,anymatch;
-    rplSymbExplode(rplPeekData(2));
+    WORDPTR *savedrstop=RSTop,*savedstate;
+    BINT match,anymatch,orderless;
+    rplSymbExplodeCanonicalForm(rplPeekData(2));
     if(Exceptions) { DSTop=saveddstop; LAMTop=savedlamtop; return; }
     expr=DSTop-1;
-    rplSymbExplode(*(saveddstop-1));
+    rplSymbExplodeCanonicalForm(*(saveddstop-1));
     if(Exceptions) { DSTop=saveddstop; LAMTop=savedlamtop; return; }
     rule=DSTop-1;
     ruleleft=rule-2;
@@ -2713,10 +2760,19 @@ void rplSymbRuleApply()
 
     // HERE WE HAVE BOTH SYMBOLICS EXPLODED, BEGIN COMPARISON
 
+    // TODO: SORT ALL TERMS IN THE RULE FROM MORE SPECIFIC TO MORE GENERIC
+    //       ON ALL ADDITIONS AND MULTIPLICATIONS
+
     runptr=expr;
     anymatch=0;
 
+    // INITIALIZE STATE TRACING STACK
+    savedstate=savedrstop;
+
     while(runptr>endofrun) {
+
+
+
 
         // TRY EVERY OBJECT AT runptr AS IF IT WAS A NEW SYMBOLIC TO TRY AND APPLY THE RULE
 
@@ -2724,17 +2780,100 @@ void rplSymbRuleApply()
         exprptr=runptr;
         endofexpr=rplSymbSkipInStack(exprptr);
         match=1;
+        orderless=0;
+        // START EVALUATING THE RULE
+
+partial_restart:
+
         while(ruleptr!=endofrule) {
-            if(exprptr==endofexpr) { match=0; break; }
+
+
+            // START LOOP FOR INDIVIDUAL TERMS AS NEEDED
+            while(exprptr!=endofexpr) {
+
+            // MATCH OBJECT AT ruleptr WITH OBJECT AT exprptr
+
+            if(match!=1) {
+                // WE HAVE "RETURNED" WITH A FAILED MATCH
+                    if(orderless) {
+                        // IF IN ORDERLESS MODE, TRY THE NEXT TERM IN THE LIST
+                        exprptr=rplSymbSkipInStack(exprptr);
+                        // CHECK IF AT THE END OF LIST, IF NOT THEN ALLOW THE NEXT TERM
+                        if(exprptr!=endoflist) match=1;
+                        else {
+                            if(!rplSymbPopState(&savedstate,&ruleptr,&exprptr,&LAMTop,&listptr,&endoflist,&orderless)) { match=-1; break; }
+                            continue;
+                        }
+                    } else {
+                        if(!rplSymbPopState(&savedstate,&ruleptr,&exprptr,&LAMTop,&listptr,&endoflist,&orderless)) { match=-1; break; }
+                        continue;
+                    }
+
+            }
+
+            if(exprptr==endoflist) {
+                // WE JUST FINISHED AN OPERATOR'S ARGUMENTS WITH A MATCH
+                // MUST RETURN A MATCH TO THE PREVIOUS NODE
+                WORDPTR *tmp;
+                // BUT DON'T RESTORE THE RULE OR EXPRESSION POINTERS
+                if(!rplSymbPopState(&savedstate,&tmp,&tmp,&tmp,&listptr,&endoflist,&orderless)) { match=-1; break; }
+            }
+
+            else {
+
+            if(!ISPROLOG(**ruleptr) && !ISBINT(**ruleptr)) {
+                // WE HAVE AN OPERATOR
+
+                if(**ruleptr!=**exprptr) {
+                    // OPERATORS DON'T MATCH
+                    match=0;
+                    continue;
+                }
+                else {
+                    if(!rplSymbPushState(&savedstate,ruleptr,exprptr,LAMTop,listptr,endoflist,orderless)) {
+                        // FATAL ERROR, CLEANUP AND RETURN
+                        DSTop=saveddstop; LAMTop=savedlamtop; return;
+                    }
+
+                    if((**ruleptr==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD))||
+                            (**ruleptr==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)))
+                    {
+                        // SWITCH TO ORDERLESS MODE
+                        endoflist=rplSymbSkipInStack(exprptr);
+                        exprptr-=2;
+                        listptr=exprptr;
+                        ruleptr-=2;
+                        orderless=1;
+                        continue;
+
+                    }
+
+                    // ALL OTHER OPERATORS, JUST SKIP TO THE NEXT ARGUMENT
+                    // SWITCH TO ORDERED MODE
+                    endoflist=rplSymbSkipInStack(exprptr);
+                    exprptr--;
+                    ruleptr--;
+                    listptr=exprptr;
+                    orderless=0;
+                    continue;
+
+
+                }
+
+
+            }
+
+            // NOW COMPARE ATOMIC OBJECTS
+
             if(ISNUMBER(**ruleptr)) {
                 // COMPARE NUMBERS
-                if(!ISNUMBER(**exprptr)) { match=0; break; }
+                if(!ISNUMBER(**exprptr)) { match=0; continue; }
                 if(ISBINT(**ruleptr) && ISBINT(**exprptr)) {
                     // COMPARE INTEGERS
                     BINT64 num1,num2;
                     num1=rplReadBINT(*ruleptr);
                     num2=rplReadBINT(*exprptr);
-                    if(num1!=num2) { match=0; break; }
+                    if(num1!=num2) { match=0; continue; }
                 }
                 else {
                     // COMPARE REALS
@@ -2742,24 +2881,26 @@ void rplSymbRuleApply()
                     rplReadNumberAsReal(*ruleptr,&num1);
                     rplReadNumberAsReal(*exprptr,&num2);
 
-                    if(mpd_cmp(&num1,&num2,&Context)!=0) { match=0; break; }
+                    if(mpd_cmp(&num1,&num2,&Context)!=0) { match=0; continue; }
 
                 }
 
 
 
-            } else {
+                } else {
                 if(ISIDENT(**ruleptr)) {
                     // CHECK FOR SPECIAL IDENT
                     if(rplSymbIsSpecialIdent(*ruleptr)) {
-                        // DO SPECIAL MATCH
+                        // TODO: IF NOT DEFINED, DO SPECIAL TYPES OF MATCH
+                        // TODO: DEFINE LOCAL VARIABLE WITH NEW VALUE
+                        // TODO: IF ALREADY DEFINED, MATCH ITS VALUE
 
 
                     }
                     else {
                         // COMPARE IDENTS
-                        if(!ISIDENT(**exprptr)) { match=0; break; }
-                        if(!rplCompareIDENT(*ruleptr,*exprptr)) { match=0; break; }
+                        if(!ISIDENT(**exprptr)) { match=0; continue; }
+                        if(!rplCompareIDENT(*ruleptr,*exprptr)) { match=0; continue; }
                     }
                 }
 
@@ -2774,53 +2915,48 @@ void rplSymbRuleApply()
                      rplCallOvrOperator(OVR_CMP);
                      if(Exceptions) { DSTop=saveddstop; LAMTop=savedlamtop; return; }
                      BINT64 result=rplReadBINT(rplPopData());
-                     if(result!=0) { match=0; break; }
-
-                 }
-                 else {
-                     // IT'S AN OPERATOR
-                     if(**ruleptr!=**exprptr) { match=0; break; }
-
-                     if(**ruleptr==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
-                         // THE NUMBER OF ARGUMENTS MIGHT DIFFER IF THERE'S
-                         // A SPECIAL IDENT INSIDE
-                         --ruleptr;
-                         --exprptr;
-
-
-
-                     } else {
-                         if(**ruleptr==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
-                             // THE NUMBER OF ARGUMENTS MIGHT DIFFER IF THERE'S
-                             // A SPECIAL IDENT INSIDE
-                             --ruleptr;
-                             --exprptr;
-
-
-                         }
-                         else {
-                             // SAME OPERATOR, CHECK ARGUMENT COUNT
-                             --ruleptr;
-                             --exprptr;
-
-                             if(**ruleptr!=**exprptr) { match=0; break; }
-                         }
-                     }
+                     if(result!=0) { match=0; continue; }
 
                  }
 
                 }
             }
 
+            }
+            // SO FAR IT'S A MATCH, SKIP TO THE NEXT OBJECT AND BREAK
+
+            if(orderless) {
+                // ROLL THE MATCHING ITEM TO THE START OF THE LIST
+                WORDPTR temp,*ptr;
+                BINT nwords=exprptr-rplSymbSkipInStack(exprptr),k;
+                for(k=0;k<nwords;++k) {
+                temp=*exprptr+nwords-1;
+                for(ptr=exprptr+nwords-1;ptr<listptr;++ptr) *ptr=*(ptr+1);
+                *listptr=temp;
+                }
+
+                // NOW UPDATE THE LIST TO SKIP THE MATCHED OBJECT
+                listptr-=nwords;
+                // AND SET CURRENT OBJECT AS THE REMAINDER OF THE LIST
+                exprptr=listptr;
+            }
+            else --exprptr;
+
+            break;
+        }   // END OF EXPRESSION LOOP
 
 
+        // THIS LEAF RETURNED EITHER match=0 OR -1 --> MATCH FAILED
+        // OR MATCH=1 --> THERE WAS A VALID MATCH FOR THIS RULE TERM
+
+        if(match!=1) break;
+
+        --ruleptr;
+
+        } // END OF RULE TERM LOOP
 
 
-            --ruleptr;
-            --exprptr;
-        }
-
-        if(match) {
+        if(match==1) {
             // THERE WAS A MATCH
 
             // REPLACE THE EXPRESSION AT runptr WITH THE RIGHT SIDE OF THE RULE
@@ -2829,7 +2965,38 @@ void rplSymbRuleApply()
 
             // ...AFTER REPLACING...
 
-            BINT offset=rplSymbReplaceInStack(runptr,endofrule);
+            BINT offset;
+
+            if(orderless) {
+            if(listptr!=endoflist) {
+                // THERE'S ITEMS LEFT ON THE LIST, THE RESULT
+                // IS A LIST WITH THE SAME OPERATOR
+
+                // NEED TO REMOVE THE TERMS THAT MATCHED
+                offset=-rplSymbDeleteInStack(runptr-2,runptr-2-listptr);
+                // INSERT A DUMMY TERM
+                offset+=rplSymbInsertInStack(listptr,1);
+                *(listptr+1)=zero_bint;
+                // AND REPLACE IT WITH THE RULE RESULT
+                offset+=rplSymbReplaceInStack(listptr+1,endofrule+offset);
+                // NOW WE NEED TO PATCH THE NUMBER OF ARGUMENTS IN THE MAIN
+                // OPERATOR
+                WORDPTR *count=runptr-1+offset;
+                BINT nargs=0;
+                while(count!=endoflist) { count=rplSymbSkipInStack(count); ++nargs; }
+                // AND PATCH THE COUNT
+                WORDPTR nargbint=rplNewBINT(nargs,DECBINT);
+                if(Exceptions) {
+                    // FATAL ERROR!
+                    DSTop=saveddstop; LAMTop=savedlamtop; return;
+                }
+
+                runptr[offset-1]=nargbint;
+
+
+            } else offset=rplSymbReplaceInStack(runptr,endofrule);
+
+
             if(Exceptions) { DSTop=saveddstop; LAMTop=savedlamtop; return; }
 
             // UPDATE ALL POINTERS
@@ -2841,17 +3008,47 @@ void rplSymbRuleApply()
             endofrule+=offset;
 
             // NOW SKIP THIS OBJECT TO AVOID APPLYING THE RULE RECURSIVELY
-            runptr=rplSymbSkipInStack(runptr);
+            //runptr=listptr;
+
+            // PREPARE TO CONTINUE EVALUATING TERMS AFTER THIS ONE
+            ruleptr=ruleleft-2;
+            exprptr=listptr;
             ++anymatch;
-            continue;
+
+
+            goto partial_restart;
+
+
+            }
+            else {
+                offset=rplSymbReplaceInStack(runptr,endofrule);
+                if(Exceptions) { DSTop=saveddstop; LAMTop=savedlamtop; return; }
+
+                // UPDATE ALL POINTERS
+                DSTop+=offset;
+                ruleleft+=offset;
+                runptr+=offset;
+                rule+=offset;
+                expr+=offset;
+                endofrule+=offset;
+
+                // NOW SKIP THIS OBJECT TO AVOID APPLYING THE RULE RECURSIVELY
+                runptr=rplSymbSkipInStack(runptr);
+                ++anymatch;
+                continue;
+
+            }
+
 
         }
+
+        // THERE WAS NO MATCH
 
         // SKIP TO NEXT OBJECT
         if(ISBINT(**runptr) || ISPROLOG(**runptr)) runptr--;
         else runptr-=2;  // IF IT'S NOT AN OBJECT OR A SINT, THEN IT'S SOME OPERATION, POINT TO THE FIRST ARGUMENT
 
-    }
+    } // END OR runptr LOOP
 
     // REASSEMBLE THE NEW EXPRESSION
 
@@ -2877,3 +3074,4 @@ if(!ISSYMBOLIC(*ptr)) return 0;
 if(rplSymbMainOperator(ptr)==CMD_RULESEPARATOR) return 1;
 return 0;
 }
+

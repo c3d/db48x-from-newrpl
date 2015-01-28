@@ -540,7 +540,18 @@ void LIB_HANDLER()
 
 
             if(Opcode) {
-                if(Opcode!=MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL)) rplSymbApplyOperator(Opcode,newdepth);
+                if(Opcode!=MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL)) {
+                    rplSymbApplyOperator(Opcode,newdepth);
+                    newdepth=(BINT)(DSTop-prevDStk);
+                    if(Exceptions) {
+                    rplCleanupLAMs(0);
+                    IPtr=rplPopRet();
+                    ExceptionPointer=IPtr;
+                    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1);
+                    return;
+                    }
+
+                }
             }
             if(newdepth!=1) {
                 Exceptions|=EX_BADARGCOUNT;
@@ -630,7 +641,20 @@ void LIB_HANDLER()
 
 
             if(Opcode) {
-                if(Opcode!=MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL)) {
+                if( (newdepth!=1) || (Opcode!=MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL))) {
+                    if(Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL)) {
+                        // DO MINIMAL TYPE CHECKING, LAST ARGUMENT HAS TO BE
+                        // AN IDENT, OTHERWISE THE RESULT IS INVALID
+                        if(!ISIDENT(*rplPeekData(1))) {
+                            // IT SHOULD ACTUALLY RETURN SOMETHING LIKE "INVALID USER FUNCTION"
+                            Exceptions|=EX_BADARGVALUE;
+                            rplCleanupLAMs(0);
+                            IPtr=rplPopRet();
+                            ExceptionPointer=IPtr;
+                            CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                            return;
+                        }
+                    }
                     rplSymbApplyOperator(Opcode,newdepth);
                     newdepth=(BINT)(DSTop-prevDStk);
                     if(Exceptions) {
