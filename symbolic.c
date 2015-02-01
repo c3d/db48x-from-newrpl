@@ -2746,7 +2746,7 @@ void rplSymbRuleApply()
     WORDPTR *saveddstop=DSTop;
     WORDPTR *savedlamtop=LAMTop;
     WORDPTR *savedrstop=RSTop,*savedstate;
-    BINT match,anymatch,orderless;
+    BINT match,anymatch,orderless,matchargcount;
     rplSymbExplodeCanonicalForm(rplPeekData(2));
     if(Exceptions) { DSTop=saveddstop; LAMTop=savedlamtop; return; }
     expr=DSTop-1;
@@ -2781,6 +2781,7 @@ void rplSymbRuleApply()
         endofexpr=rplSymbSkipInStack(exprptr);
         match=1;
         orderless=0;
+        matchargcount=0;
         // START EVALUATING THE RULE
 
 partial_restart:
@@ -2930,8 +2931,8 @@ partial_restart:
                 WORDPTR temp,*ptr;
                 BINT nwords=exprptr-rplSymbSkipInStack(exprptr),k;
                 for(k=0;k<nwords;++k) {
-                temp=*exprptr+nwords-1;
-                for(ptr=exprptr+nwords-1;ptr<listptr;++ptr) *ptr=*(ptr+1);
+                temp=*(exprptr-nwords+1);
+                for(ptr=exprptr-nwords+1;ptr<listptr;++ptr) *ptr=*(ptr+1);
                 *listptr=temp;
                 }
 
@@ -2973,12 +2974,15 @@ partial_restart:
                 // IS A LIST WITH THE SAME OPERATOR
 
                 // NEED TO REMOVE THE TERMS THAT MATCHED
-                offset=-rplSymbDeleteInStack(runptr-2,runptr-2-listptr);
+                offset=-rplSymbDeleteInStack(runptr-2-matchargcount,runptr-2-matchargcount-listptr);
                 // INSERT A DUMMY TERM
                 offset+=rplSymbInsertInStack(listptr,1);
                 *(listptr+1)=zero_bint;
                 // AND REPLACE IT WITH THE RULE RESULT
                 offset+=rplSymbReplaceInStack(listptr+1,endofrule+offset);
+
+                matchargcount+=(endofrule+offset)-rplSymbSkipInStack(endofrule+offset);
+
                 // NOW WE NEED TO PATCH THE NUMBER OF ARGUMENTS IN THE MAIN
                 // OPERATOR
                 WORDPTR *count=runptr-1+offset;
