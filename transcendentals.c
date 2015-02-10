@@ -469,6 +469,7 @@ void trig_sincos(mpd_t *angle)
 {
     int negsin,negcos,swap,startexp;
     mpd_t pi,pi2,pi4;
+    mpd_ssize_t savedprec;
 
     const_PI(&pi);
     const_PI_2(&pi2);
@@ -476,8 +477,8 @@ void trig_sincos(mpd_t *angle)
 
     negcos=negsin=swap=0;
 
-    // ALWAYS: NEED TO WORK ON PRECISION MULTIPLE OF 9
-    Context.prec+=MPD_RDIGITS;
+    savedprec=Context.prec;
+    Context.prec=(2*savedprec+9 > REAL_PRECISION_MAX)? REAL_PRECISION_MAX:(2*savedprec+9);
 
     // GET ANGLE MODULO PI
     mpd_divmod(&RReg[1],&RReg[0],angle,&pi,&Context);
@@ -518,7 +519,7 @@ void trig_sincos(mpd_t *angle)
     else startexp=0;
 
 
-    if(startexp>=Context.prec/2) {
+    if(startexp>=savedprec) {
         // VERY SMALL ANGLES
 
         if(swap) {
@@ -560,7 +561,7 @@ void trig_sincos(mpd_t *angle)
     RReg[1].exp=0;
     RReg[1].flags&=MPD_DATAFLAGS;
 
-
+    Context.prec=savedprec+MPD_RDIGITS;
 
     CORDIC_Rotational((Context.prec>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+9:Context.prec,startexp);
 
