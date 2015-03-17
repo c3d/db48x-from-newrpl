@@ -121,7 +121,8 @@ SOURCES += main.cpp\
     newrpl/contrib/mpdecimal-2.4.0/libmpdec/io.c \
     newrpl/contrib/mpdecimal-2.4.0/libmpdec/numbertheory.c \
     firmware/sys/target_pc/boot.c \
-    rplthread.cpp
+    rplthread.cpp \
+    firmware/ui_cmdline.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \

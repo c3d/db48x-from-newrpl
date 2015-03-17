@@ -155,7 +155,7 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 #define ISAPPROX(prolog) ((LIBNUM(prolog)&APPROX_BIT))
 
 // THIS IS TO CHECK IF AN OBJECT IS "FALSE", WHICH CAN BE THE BINT0 OR THE REAL0
-#define IS_FALSE(p)  ( (OPCODE(p)==0) && (((LIBNUM(p)+2)&~3)==BINBINT))
+#define IS_FALSE(p)   ( (OPCODE(p)==0) && (((LIBNUM(p)+4)&~7)==OCTBINT))
 
 // CONVENIENCE MACRO TO CREATE SMALL INTEGERS
 #define MAKESINT(a) MKOPCODE(DECBINT,(a)&0x3ffff)
@@ -289,6 +289,7 @@ extern const WORD zero_bint[];
 extern const WORD one_bint[];
 extern const WORD two_bint[];
 extern const WORD three_bint[];
-
+extern const WORD empty_string[];
+extern const WORD empty_list[];
 
 #endif // LIBRARIES_H

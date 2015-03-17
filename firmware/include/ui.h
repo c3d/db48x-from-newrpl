@@ -28,4 +28,13 @@ typedef uint64_t UBINT64;
 #include <hal_api.h>
 #endif
 
+extern BINT ui_visibleline,ui_nlines;
+extern BINT ui_currentline,ui_prevline;
+extern BINT ui_islinemodified;
+extern BINT ui_cursorx,ui_cursoroffset;
+extern BINT ui_visiblex;
+
+
+
+
 #endif // UI_H

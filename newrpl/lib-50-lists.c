@@ -234,6 +234,13 @@ const WORD const deltalist_seco[]={
 };
 
 
+const WORD const empty_list[]={
+    MKPROLOG(DOLIST,1),
+    MKOPCODE(DOLIST,ENDLIST)
+};
+
+
+
 // COMPARE TWO ITEMS WITHIN A LIST, BY CALLING THE OPERATOR CMP
 // OPERATOR CMP MUST RETURN -1, 0 OR 1 IF B>A, B==A, OR A>B RESPECTIVELY
 

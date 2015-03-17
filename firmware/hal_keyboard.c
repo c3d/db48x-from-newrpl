@@ -329,12 +329,203 @@ void waitforspeed_handler()
     waitforspeed=0;
 }
 
+// SYSTEM CONTEXT VARIABLE
+// STORES THE CONTEXT ID
+// ID=0 MEANS ANY CONTEXT
+// ID BIT 0 --> SET TO 1 WHEN THE COMMAND LINE IS ACTIVE OR TEXT IS BEING EDITED
+// ID BITS 1 AND BIT 2 ARE RESERVED FOR FUTURE USE AND SHOULD BE ZERO
+// ID=8 IS THE STACK
+// ID=16 IS PICT
+// ID N*8 WITH N<100 ARE RESERVED FOR THE SYSTEM APPLICATIONS (SOLVER, ETC)
+// ID= N*8 --> USER CONTEXTS FROM N=100 AND UP TO 16250 ARE FREE TO USE
+
+BINT __keycontext __attribute__ ((section (".system_globals")));
+
+// SET THE KEYBOARD CONTEXT
+void halSetContext(BINT KeyContext)
+{
+__keycontext=KeyContext;
+}
+
+// AND RETRIEVE
+BINT halGetContext()
+{
+    return __keycontext;
+}
+
+
+
+// DEBUG: DO-NOTHING KEYBOARD HANDLER
+void dummyKeyhandler(BINT keymsg)
+{
+    return;
+}
+
+void testKeyHandler(BINT keymsg)
+{
+    DRAWSURFACE scr;
+    ggl_initscr(&scr);
+
+    waitforspeed=1;
+    HEVENT ev=tmr_eventcreate(&waitforspeed_handler,2000,0);
+    // DO SOMETHING REALLY LONG HERE
+    char string[7];
+    string[0]='n';
+    string[1]='e';
+    string[2]='w';
+    string[3]='R';
+    string[4]='P';
+    string[5]='L';
+    string[6]=0;
+    int k=0;
+    while(waitforspeed) {
+        DrawText(30,30,string,(FONTDATA *)&System7Font,k&15,&scr);
+        ++k;
+    }
+
+    tmr_eventkill(ev);
+    DrawText(30,30,string,(FONTDATA *)&System7Font,0,&scr);
+
+    halSetCmdLineHeight(1*halScreen.CmdLineFont->BitmapHeight+2);
+    halRedrawAll(&scr);
+
+}
+
+enum {
+    CONTEXT_ANY=0,
+    CONTEXT_INEDITOR=1,
+    CONTEXT_STACK=8,
+    CONTEXT_PICT=16
+    // ADD MORE SYSTEM CONTEXTS HERE
+};
+
+
+
+void numberKeyHandler(BINT keymsg)
+{
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+        halSetContext(halGetContext()|CONTEXT_INEDITOR);
+        uiOpenCmdLine();
+        }
+    BINT number;
+    switch(KM_KEY(keymsg))
+    {
+    case KB_1:
+        number='1';
+        break;
+    case KB_2:
+        number='2';
+        break;
+    case KB_3:
+        number='3';
+        break;
+    case KB_4:
+        number='4';
+        break;
+    case KB_5:
+        number='5';
+        break;
+    case KB_6:
+        number='6';
+        break;
+    case KB_7:
+        number='7';
+        break;
+    case KB_8:
+        number='8';
+        break;
+    case KB_9:
+        number='9';
+        break;
+    case KB_0:
+        number='0';
+        break;
+    }
+        uiInsertCharacters((BYTEPTR) &number,1);
+        halScreen.DirtyFlag|=CMDLINE_DIRTY;
+
+}
+
+
+typedef void (*handlerfunc_t)(BINT keymsg);
+
+// STRUCTURE FOR DEFAULT KEYBOARD HANDLERS
+struct keyhandler_t {
+    BINT message;
+    BINT context;
+    handlerfunc_t action;
+} ;
+
+
+// LIST OF HANDLERS, END WITH action=NULL
+struct keyhandler_t __keydefaulthandlers[]= {
+    { KM_PRESS|KB_0, CONTEXT_ANY, &dummyKeyhandler  },
+    { KM_PRESS|KB_DOT, CONTEXT_ANY,&testKeyHandler },
+    { KM_PRESS|KB_1, CONTEXT_ANY,&numberKeyHandler },
+    { KM_PRESS|KB_2, CONTEXT_ANY,&numberKeyHandler },
+    { KM_PRESS|KB_3, CONTEXT_ANY,&numberKeyHandler },
+    { KM_PRESS|KB_4, CONTEXT_ANY,&numberKeyHandler },
+    { KM_PRESS|KB_5, CONTEXT_ANY,&numberKeyHandler },
+    { KM_PRESS|KB_6, CONTEXT_ANY,&numberKeyHandler },
+    { KM_PRESS|KB_7, CONTEXT_ANY,&numberKeyHandler },
+    { KM_PRESS|KB_8, CONTEXT_ANY,&numberKeyHandler },
+    { KM_PRESS|KB_9, CONTEXT_ANY,&numberKeyHandler },
+    { KM_PRESS|KB_0, CONTEXT_ANY,&numberKeyHandler },
+    { 0 , 0 , 0 }
+};
+
+// DO CUSTOM KEYBOARD ACTIONS. RETURN 0 IF NO ACTION WAS DEFINED, NONZERO IF SOMETHING WAS EXECUTED
+// KEY MESSAGES ARE PROCESSED THROUGH A LIST OF USER DEFINED KEYCODES
+// { [KEYMESSAGE] [KEYCONTEXT] [ACTION] ... [KEYMESSAGE2] [KEYCONTEXT2] [ACTION2] ...}
+// KEYS ARE IN NO PARTICULAR ORDER
+// KEY TABLE IS SCANNED FROM START TO FINISH, NEW KEYS SHOULD BE ADDED TO THE HEAD
+// OF THE LIST IN ORDER TO OVERRIDE PREVIOUS DEFINITIONS
+// [KEYMESSAGE] AND [KEYCONTEXT] ARE BOTH SINT OBJECTS.
+// [ACTION] IS AN ARBITRARY OBJECT THAT WILL BE XEQ'TED.
+// HANDLER SCANS THE LIST, LOOKS FOR A MATCH IN KEYMESSAGE AND KEYCONTEXT.
+// IF [KEYCONTEXT] IN THE TABLE IS 0, THEN ANY CONTEXT IS CONSIDERED A MATCH.
+// ONCE A MATCH IS FOUND, THE [ACTION] OBJECT IS XEQ'TED.
+// ONLY THE FIRST MATCH IS EXECUTED, THE SEARCH STOPS THERE.
+// IF THE TABLE HAS NO MATCH, THE DEFAULT ACTION HANDLER IS CALLED.
+// CUSTOM KEY LIST IS STORED IN Settings
+
+int halDoCustomKey(BINT keymsg)
+{
+    // TODO: READ THE KEYBOARD TABLE FROM THE Settings DIRECTORY AND DO IT
+
+    return 0;
+
+}
+
+int halDoDefaultKey(BINT keymsg)
+{
+struct keyhandler_t *ptr=__keydefaulthandlers;
+
+while(ptr->action) {
+    if(ptr->message==keymsg) {
+        // CHECK IF CONTEXT MATCHES
+        if((!ptr->context) || (ptr->context==__keycontext)) {
+            //  IT'S A MATCH, EXECUTE THE ACTION;
+            (ptr->action)(keymsg);
+            return 1;
+        }
+        }
+    ++ptr;
+}
+return 0;
+}
+
 // PROCESSES KEY MESSAGES AND CALL APPROPRIATE HANDLERS BY KEYCODE
 
 // RETURNS 0 IF THE LOOP HAS TO CONTINUE, 1 TO TERMINATE OUTER LOOP
+
+
+
+
 int halProcessKey(BINT keymsg)
 {
-    int wasProcessed=0;
+    int wasProcessed;
 
     waitforspeed=0;
 
@@ -345,7 +536,12 @@ int halProcessKey(BINT keymsg)
         halSetNotification(N_ALPHA,((KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA)? 1:0));
     }
 
-    // TODO: PROCESS CUSTOM KEYS HERE
+    wasProcessed=halDoCustomKey(keymsg);
+
+    if(!wasProcessed) wasProcessed=halDoDefaultKey(keymsg);
+
+    /*
+
     if( (KM_MESSAGE(keymsg)==KM_PRESS)||(KM_MESSAGE(keymsg)==KM_LPRESS)) {
         DRAWSURFACE scr;
         ggl_initscr(&scr);
@@ -681,9 +877,12 @@ int halProcessKey(BINT keymsg)
 
 
     }
+    */
 
     if(!wasProcessed) {
     // ALL OTHER KEYS, JUST DISPLAY THE KEY NAME ON SCREEN
+        DRAWSURFACE scr;
+        ggl_initscr(&scr);
 
     // FOR DEBUG ONLY
     int width=StringWidth((char *)keyNames[KM_KEY(keymsg)],(FONTDATA *)&System7Font);
@@ -723,10 +922,8 @@ int halProcessKey(BINT keymsg)
     if(KM_MESSAGE(keymsg)==KM_LPRESS) DrawText(SCREEN_WIDTH-width-42,ytop+halScreen.Menu2/2,"L=",(FONTDATA *)&System7Font,15,&scr);
 
     }
-    }
 
-    // TODO: PROCESS DEFAULT KEYS HERE
-
+    // ONLY RETURN 1 WHEN THE OUTER LOOP IS SUPPOSED TO END
     return 0;
 }
 
@@ -735,8 +932,10 @@ int halProcessKey(BINT keymsg)
 void halOuterLoop()
 {
     int keymsg;
-
+    DRAWSURFACE scr;
+    ggl_initscr(&scr);
     do {
+        halRedrawAll(&scr);
         keymsg=halWaitForKey();
     } while(!halProcessKey(keymsg));
 

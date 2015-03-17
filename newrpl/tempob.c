@@ -37,6 +37,23 @@ void rplTruncateLastObject(WORDPTR newend)
     TempObEnd=newend;
 }
 
+// RESIZE THE LAST OBJECT BY APPENDING WORDS AT THE END OF TEMPOB
+// DOES NOT CREATE A NEW OBJECT OR A NEW BLOCK
+// APPEND additionalsize WORDS TO THE END OF TEMPOB
+
+void rplResizeLastObject(WORD additionalsize)
+{
+    if( TempObEnd+additionalsize+TEMPOBSLACK>TempObSize) {
+        // ENLARGE TEMPOB AS NEEDED
+        growTempOb((BINT)(TempObEnd-TempOb)+additionalsize+TEMPOBSLACK);
+        if(Exceptions) return;
+    }
+
+    TempObEnd+=additionalsize;
+
+}
+
+
 
 // BORROW THE PATCH FUNCTION FROM THE GARBAGE COLLECTOR
 extern void Patch(WORDPTR *start,WORDPTR *end,WORDPTR startfrom,WORDPTR endfrom,BINT offset);

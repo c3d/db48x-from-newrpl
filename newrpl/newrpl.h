@@ -72,7 +72,7 @@ extern "C" {
 #define MAXSYSHILIBS 16
 #define MAXLIBNUMBER 4095
 // NUMBER OF SCRATCH POINTERS
-#define MAX_GC_PTRUPDATE 18
+#define MAX_GC_PTRUPDATE 21
 
 
 // MINIMUM GUARANTEED STACK LEVELS FOR MEMORY ALLOCATION
@@ -129,6 +129,7 @@ extern WORD rplObjSize(WORDPTR ip);
 
 extern WORDPTR rplAllocTempOb(WORD size);
 extern void rplTruncateLastObject(WORDPTR newend);
+extern void rplResizeLastObject(WORD additionalsize);
 extern void growTempOb(WORD newtotalsize);
 extern void shrinkTempOb(WORD newtotalsize);
 extern void rplAddTempBlock(WORDPTR block);
@@ -303,6 +304,10 @@ extern BINT rplIsAllowedInSymb(WORDPTR object);
 extern void rplSymbApplyOperator(WORD Opcode,BINT nargs);
 extern void rplSymbRuleMatch();
 
+// STRINGS
+extern void rplSetStringLength(WORDPTR string,BINT length);
+extern BINT rplStrLen(WORDPTR string);
+extern BINT rplStringGetLinePtr(WORDPTR str,BINT line);
 
 
 

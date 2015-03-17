@@ -1,5 +1,5 @@
 #include <ui.h>
-
+#include <newrpl.h>
 
 // THIS IS THE MAIN STABLE API TO ACCESS THE SCREEN
 
@@ -350,8 +350,11 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
 
     // TODO: SHOW COMMAND LINE TEXT HERE
 
-    DrawText(0,ytop+2,"Empty Cmd Line",(FONTDATA *)halScreen.CmdLineFont,15,scr);
-
+    // FOR NOW JUST SHOW THE CURRENT LINE
+    BINT y=(ui_currentline-ui_visibleline)*halScreen.CmdLineFont->BitmapHeight;
+    BYTEPTR cmdline=(BYTEPTR) (CmdLineCurrentLine+1);
+    BINT nchars=rplStrLen(CmdLineCurrentLine);
+    DrawTextBkN(-ui_visiblex,ytop+2+y,cmdline,nchars,(FONTDATA *)halScreen.CmdLineFont,0xf,0x0,scr);
     }
 
     halScreen.DirtyFlag&=~CMDLINE_DIRTY;

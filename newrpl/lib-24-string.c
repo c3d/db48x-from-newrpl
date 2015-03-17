@@ -71,6 +71,12 @@ const char * const LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME  };
 #define STRLEN(prolog) ((OBJSIZE(prolog)<<2)-(LIBNUM(prolog)&3))
 
 
+const WORD const empty_string[]={
+    MKPROLOG(DOSTRING,0)
+};
+
+
+
 BINT rplStrLen(WORDPTR string)
 {
     if(ISSTRING(*string))  return STRLEN(*string);
@@ -78,16 +84,40 @@ BINT rplStrLen(WORDPTR string)
 }
 
 
+// FIX THE PROLOG OF A STRING TO MATCH THE DESIRED LENGTH IN CHARACTERS
+// LOW-LEVEL FUNCTION, DOES NOT ACTUALLY RESIZE THE OBJECT
+void rplSetStringLength(WORDPTR string,BINT length)
+{
+    BINT padding=(4-((length)&3))&3;
+
+    *string=MKPROLOG(DOSTRING+padding,(length+3)>>2);
+}
 
 
+// ADDITIONAL API TO WORK WITH STRINGS FROM OTHER LIBRARIES
 
+// RETURN AN OFFSET TO THE START OF THE REQUESTED LINE
+// IF LINE<1 OR LINE>NUMBER OF LINES IN THE STRING, RETURNS -1
+//
+BINT rplStringGetLinePtr(WORDPTR str,BINT line)
+{
+    if(!ISSTRING(*str)) return -1;
+    BYTEPTR start=(BYTEPTR) (str+1),ptr;
+    BINT len=STRLEN(*str);
+    BINT count=1;
 
+    ptr=start;
+    while(count<line) {
+        while((ptr-start<len) && (*ptr!='\n')) ++ptr;
+        if(ptr-start>=len) return -1;
+        ++count;
+        ++ptr;
 
+    }
 
-
-
-
-
+    if(ptr-start>=len) return -1;   // THIS CAN ONLY HAPPEN ON STRINGS TERMINATED IN A NEWLINE WHEN THE NEXT LINE IS REQUESTED
+    return ptr-start;
+}
 
 
 void LIB_HANDLER()

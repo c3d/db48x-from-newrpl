@@ -1006,9 +1006,14 @@ extern const unsigned int MiniFont[];
 
 
 extern void DrawText(int x,int y,char *Text,FONTDATA *Font,int color,DRAWSURFACE *drawsurf);
+extern void DrawTextN(int x,int y,char *Text,int nchars,FONTDATA *Font,int color,DRAWSURFACE *drawsurf);
+
 extern void DrawTextBk(int x,int y,char *Text,FONTDATA *Font,int color,int bkcolor,DRAWSURFACE *drawsurf);
+extern void DrawTextBkN(int x,int y,char *Text,int nchars,FONTDATA *Font,int color,int bkcolor,DRAWSURFACE *drawsurf);
+
 extern void DrawTextMono(int x,int y,char *Text,FONTDATA *Font,int color,DRAWSURFACE *drawsurf);
 extern int StringWidth(char *Text,FONTDATA *Font);
+extern int StringWidthN(char *Text,int nchars,FONTDATA *Font);
 
 
 extern int cpu_getlock(int lockvar,volatile int *lock_ptr);

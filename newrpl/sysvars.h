@@ -33,11 +33,14 @@ extern WORDPTR GC_PTRUpdate[MAX_GC_PTRUPDATE];
 #define SystemFlags         GC_PTRUpdate[11]
 #define LastCompiledObject  GC_PTRUpdate[12]
 #define SavedDecompObject   GC_PTRUpdate[12]
-#define ScratchPointer1     GC_PTRUpdate[13]
-#define ScratchPointer2     GC_PTRUpdate[14]
-#define ScratchPointer3     GC_PTRUpdate[15]
-#define ScratchPointer4     GC_PTRUpdate[16]
-#define ScratchPointer5     GC_PTRUpdate[17]
+#define CmdLineText         GC_PTRUpdate[13]
+#define CmdLineCurrentLine  GC_PTRUpdate[14]
+#define CmdLineUndoList     GC_PTRUpdate[15]
+#define ScratchPointer1     GC_PTRUpdate[16]
+#define ScratchPointer2     GC_PTRUpdate[17]
+#define ScratchPointer3     GC_PTRUpdate[18]
+#define ScratchPointer4     GC_PTRUpdate[19]
+#define ScratchPointer5     GC_PTRUpdate[20]
 
 
 // THE POINTERS [12] TO [15] ARE AVAILABLE FOR LIBRARIES TO USE
