@@ -271,7 +271,7 @@ void DrawTextN(int x,int y,char *Text,int nchars,FONTDATA *Font,int color,DRAWSU
     srf.x=w&0xffff;
     w>>=16;
     if(drawsurf->x>drawsurf->clipx2) return;
-    if(drawsurf->x+w-1<drawsurf->clipx) return;
+    if(drawsurf->x+w-1<drawsurf->clipx) { drawsurf->x+=w; ++Text; --nchars; continue; }
     if(drawsurf->x<drawsurf->clipx) {
             srf.x+=drawsurf->clipx-drawsurf->x;
             w-=drawsurf->clipx-drawsurf->x;
@@ -325,7 +325,7 @@ void DrawTextBkN(int x,int y,char *Text,int nchars,FONTDATA *Font,int color,int 
     srf.x=w&0xffff;
     w>>=16;
     if(drawsurf->x>drawsurf->clipx2) return;
-    if(drawsurf->x+w-1<drawsurf->clipx) return;
+    if(drawsurf->x+w-1<drawsurf->clipx) { drawsurf->x+=w; ++Text; --nchars; continue; }
     if(drawsurf->x<drawsurf->clipx) {
             srf.x+=drawsurf->clipx-drawsurf->x;
             w-=drawsurf->clipx-drawsurf->x;

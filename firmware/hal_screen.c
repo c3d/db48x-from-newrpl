@@ -274,6 +274,7 @@ halScreen.Stack=1;
 halSetFormHeight(0);
 halScreen.DirtyFlag=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
 halScreen.SAreaTimer=0;
+halScreen.CursorTimer=0;
 halScreen.FormFont=halScreen.StackFont=halScreen.Stack1Font=(FONTDATA *)System7Font;
 halScreen.MenuFont=(FONTDATA *)System5Font;
 halScreen.StAreaFont=(FONTDATA *)MiniFont;
@@ -345,19 +346,54 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
 {
     if(halScreen.CmdLine) {
     int ytop=halScreen.Form+halScreen.Stack;
-    ggl_rect(scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.CmdLine-1,0);
-    ggl_hline(scr,ytop,0,SCREEN_WIDTH-1,0xf0f0f0f0);
-
-    // TODO: SHOW COMMAND LINE TEXT HERE
-
-    // FOR NOW JUST SHOW THE CURRENT LINE
-    BINT y=(ui_currentline-ui_visibleline)*halScreen.CmdLineFont->BitmapHeight;
-    BYTEPTR cmdline=(BYTEPTR) (CmdLineCurrentLine+1);
-    BINT nchars=rplStrLen(CmdLineCurrentLine);
-    DrawTextBkN(-ui_visiblex,ytop+2+y,cmdline,nchars,(FONTDATA *)halScreen.CmdLineFont,0xf,0x0,scr);
+    if((halScreen.DirtyFlag&CMDLINE_ALLDIRTY)==CMDLINE_ALLDIRTY) {
+        ggl_rect(scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.CmdLine-1,0);
+        ggl_hline(scr,ytop,0,SCREEN_WIDTH-1,0xf0f0f0f0);
     }
 
-    halScreen.DirtyFlag&=~CMDLINE_DIRTY;
+    BINT y=(halScreen.LineCurrent-halScreen.LineVisible)*halScreen.CmdLineFont->BitmapHeight;
+    BYTEPTR cmdline=(BYTEPTR) (CmdLineCurrentLine+1);
+    BINT nchars=rplStrLen(CmdLineCurrentLine);
+
+    // TODO: SHOW OTHER LINES HERE
+
+    if(halScreen.DirtyFlag&CMDLINE_LINEDIRTY) {
+    // UPDATE THE CURRENT LINE
+    DrawTextBkN(-halScreen.XVisible,ytop+2+y,cmdline,nchars,(FONTDATA *)halScreen.CmdLineFont,0xf,0x0,scr);
+    }
+
+    if(halScreen.DirtyFlag&CMDLINE_CURSORDIRTY) {
+    // DRAW THE CURSOR
+    if(!(halScreen.CursorState&0x8000)) DrawTextBkN(halScreen.CursorX-halScreen.XVisible,ytop+2+y,&halScreen.CursorState,1,(FONTDATA *)halScreen.CmdLineFont,0x0,0xf,scr);
+
+    else {
+        scr->clipx=halScreen.CursorX-halScreen.XVisible;
+        scr->clipx2=scr->clipx+8;   // HARD CODED MAXIMUM WIDTH OF THE CURSOR
+        if(scr->clipx2>=SCREEN_WIDTH) scr->clipx2=SCREEN_WIDTH-1;
+
+        ggl_cliprect(scr,halScreen.CursorX-halScreen.XVisible,ytop+2+y,halScreen.CursorX-halScreen.XVisible+StringWidthN(&halScreen.CursorState,1,halScreen.CmdLineFont)-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
+
+        // EITHER DON'T DRAW IT OR REDRAW THE PORTION OF COMMAND LINE UNDER THE CURSOR
+        if(!(halScreen.DirtyFlag&CMDLINE_LINEDIRTY))
+        {
+            // THE LINE WAS NOT UPDATED, MEANS WE ARE UPDATING ONLY THE CURSOR
+            // UPDATE THE CURRENT LINE
+            DrawTextBkN(-halScreen.XVisible,ytop+2+y,cmdline,nchars,(FONTDATA *)halScreen.CmdLineFont,0xf,0x0,scr);
+        }
+
+        // RESET THE CLIPPING RECTANGLE BACK TO WHOLE SCREEN
+        scr->clipx=0;
+        scr->clipx2=SCREEN_WIDTH-1;
+        scr->clipy=0;
+        scr->clipy2=SCREEN_HEIGHT-1;
+
+
+    }
+    }
+
+    }
+
+    halScreen.DirtyFlag&=~CMDLINE_ALLDIRTY;
 
 }
 
@@ -375,7 +411,7 @@ void halForceRedrawAll(DRAWSURFACE *scr)
 void halRedrawAll(DRAWSURFACE *scr)
 {
     if(halScreen.DirtyFlag&STACK_DIRTY) halRedrawStack(scr);
-    if(halScreen.DirtyFlag&CMDLINE_DIRTY) halRedrawCmdLine(scr);
+    if(halScreen.DirtyFlag&CMDLINE_ALLDIRTY) halRedrawCmdLine(scr);
     if(halScreen.DirtyFlag&MENU1_DIRTY) halRedrawMenu1(scr);
     if(halScreen.DirtyFlag&MENU2_DIRTY) halRedrawMenu2(scr);
     if(halScreen.DirtyFlag&STAREA_DIRTY) halRedrawStatus(scr);

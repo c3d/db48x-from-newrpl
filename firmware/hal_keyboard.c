@@ -400,6 +400,11 @@ enum {
 };
 
 
+// **************************************************************************
+// *******************    DEFAULT KEY HANDLERS     **************************
+// **************************************************************************
+
+
 
 void numberKeyHandler(BINT keymsg)
 {
@@ -443,9 +448,22 @@ void numberKeyHandler(BINT keymsg)
         break;
     }
         uiInsertCharacters((BYTEPTR) &number,1);
-        halScreen.DirtyFlag|=CMDLINE_DIRTY;
 
 }
+
+void dotKeyHandler(BINT keymsg)
+{
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+        halSetContext(halGetContext()|CONTEXT_INEDITOR);
+        uiOpenCmdLine();
+        }
+        uiInsertCharacters(".",1);
+        halScreen.DirtyFlag|=CMDLINE_DIRTY;
+}
+// **************************************************************************
+// ******************* END OF DEFAULT KEY HANDLERS **************************
+// **************************************************************************
 
 
 typedef void (*handlerfunc_t)(BINT keymsg);
@@ -460,8 +478,7 @@ struct keyhandler_t {
 
 // LIST OF HANDLERS, END WITH action=NULL
 struct keyhandler_t __keydefaulthandlers[]= {
-    { KM_PRESS|KB_0, CONTEXT_ANY, &dummyKeyhandler  },
-    { KM_PRESS|KB_DOT, CONTEXT_ANY,&testKeyHandler },
+    { KM_PRESS|KB_SPC, CONTEXT_ANY,&testKeyHandler },
     { KM_PRESS|KB_1, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_2, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_3, CONTEXT_ANY,&numberKeyHandler },
@@ -472,6 +489,7 @@ struct keyhandler_t __keydefaulthandlers[]= {
     { KM_PRESS|KB_8, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_9, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_0, CONTEXT_ANY,&numberKeyHandler },
+    { KM_PRESS|KB_DOT, CONTEXT_ANY,&dotKeyHandler },
     { 0 , 0 , 0 }
 };
 

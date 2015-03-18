@@ -15,8 +15,8 @@ void __ex_print(int x,int y,char *str)
     dr.width=LCD_W;
     dr.x=dr.y=0;
     dr.clipx=dr.clipy=0;
-    dr.clipx2=USERSCREEN_W;
-    dr.clipy2=USERSCREEN_H;
+    dr.clipx2=SCREEN_WIDTH;
+    dr.clipy2=SCREEN_HEIGHT;
 
     DrawTextMono(x,y,str,(FONTDATA *)MiniFont,1,&dr);
 }

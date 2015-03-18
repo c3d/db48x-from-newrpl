@@ -99,9 +99,12 @@ enum halNotification {
 #define FORM_DIRTY 1
 #define STACK_DIRTY 2
 #define CMDLINE_DIRTY 4
-#define MENU1_DIRTY 8
-#define MENU2_DIRTY 16
-#define STAREA_DIRTY 32
+#define CMDLINE_LINEDIRTY  8
+#define CMDLINE_CURSORDIRTY 16
+#define CMDLINE_ALLDIRTY   (4+8+16)
+#define MENU1_DIRTY 32
+#define MENU2_DIRTY 64
+#define STAREA_DIRTY 128
 
 
 // STRUCT TO CONTAIN THE HEIGHT IN PIXELS OF SCREEN AREAS (0=INVISIBLE)
@@ -112,7 +115,7 @@ typedef struct {
     int Menu1;
     int Menu2;
     int DirtyFlag;      // 1 BIT PER AREA IN ORDER, 1=FORM, 2=STACK, 4=CMDLINE, 8=MENU1,16=MENU2,32=STATUS
-    HEVENT SAreaTimer;
+    HEVENT SAreaTimer,CursorTimer;
     FONTDATA *FormFont;
     FONTDATA *StackFont;
     FONTDATA *Stack1Font;
@@ -121,8 +124,12 @@ typedef struct {
     FONTDATA *StAreaFont;
     int Menu1Page;
     int Menu2Page;
-    int CursorState;    // Lowercase, Uppercase, Token
-    int CursorPosition; // Offset from start of text
+    // VARIABLES FOR THE TEXT EDITOR / COMMAND LINE
+    int LineVisible,LineCurrent,LineIsModified;
+    int NumLinesVisible;    // HEIGHT OF COMMAND LINE AREA IN LINES OF TEXT
+    int CursorState;    // Lowercase, Uppercase, Token, VISIBLE OR INVISIBLE
+    int CursorPosition; // OFFSET FROM START OF CURRENT LINE
+    int CursorX,XVisible;
     int SelectionStart,SelectionEnd;
 } HALSCREEN;
 
@@ -382,9 +389,6 @@ void __irq_releasehook(int service_number);
 // PHYSICAL SCREEN SIZE
 #define SCREEN_W 160
 #define SCREEN_H 80
-// LOGICAL (VISIBLE) SCREEN SIZE
-#define USERSCREEN_W 131
-#define USERSCREEN_H 80
 
 // STYLE DEFINITION CONSTANTS
 #define CAPTIONHEIGHT 7

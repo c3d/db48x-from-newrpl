@@ -7,6 +7,7 @@ void battery_handler()
     bat_read();
     halSetNotification(N_CONNECTION,!halGetNotification(N_CONNECTION));
 
+    /*
     gglsurface scr;
     ggl_initscr(&scr);
 
@@ -50,6 +51,8 @@ void battery_handler()
     else k+='0';
     // CAREFUL, INTEGER USED AS STRING IS ONLY VALID IN LITTLE ENDIAN!
     DrawTextBk(STATUSAREA_X+8,SCREEN_HEIGHT-7,(char *)&k,(FONTDATA *)MiniFont,0xf,0,&scr);
+    */
+
 
     // THIS IS THE REAL HANDLER
     if(__battery<0x300) {

@@ -71,6 +71,7 @@ int  ggl_getnib(int *buff,int off);                // peek a pixel (off in nibbl
 void ggl_hline(gglsurface *srf,int y,int xl,int xr, int color); // fast low-level horizontal line
 void ggl_vline(gglsurface *srf,int x,int yt,int yb, int color); // fast low-level vertical line
 void ggl_rect(gglsurface *srf,int x1,int y1,int x2,int y2,int color); // low-level rectangle
+void ggl_cliprect(gglsurface *srf,int x1,int y1,int x2,int y2,int color); // low-level rectangle
 
 void ggl_rectp(gglsurface *srf,int x1,int y1,int x2,int y2,int *color); // low-level rectangle with 8x8 pattern
 
