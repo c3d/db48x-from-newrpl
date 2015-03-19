@@ -339,18 +339,16 @@ void waitforspeed_handler()
 // ID N*8 WITH N<100 ARE RESERVED FOR THE SYSTEM APPLICATIONS (SOLVER, ETC)
 // ID= N*8 --> USER CONTEXTS FROM N=100 AND UP TO 16250 ARE FREE TO USE
 
-BINT __keycontext __attribute__ ((section (".system_globals")));
-
 // SET THE KEYBOARD CONTEXT
 void halSetContext(BINT KeyContext)
 {
-__keycontext=KeyContext;
+halScreen.KeyContext=KeyContext;
 }
 
 // AND RETRIEVE
 BINT halGetContext()
 {
-    return __keycontext;
+    return halScreen.KeyContext;
 }
 
 
@@ -390,15 +388,6 @@ void testKeyHandler(BINT keymsg)
     halRedrawAll(&scr);
 
 }
-
-enum {
-    CONTEXT_ANY=0,
-    CONTEXT_INEDITOR=1,
-    CONTEXT_STACK=8,
-    CONTEXT_PICT=16
-    // ADD MORE SYSTEM CONTEXTS HERE
-};
-
 
 // **************************************************************************
 // *******************    DEFAULT KEY HANDLERS     **************************
@@ -459,8 +448,74 @@ void dotKeyHandler(BINT keymsg)
         uiOpenCmdLine();
         }
         uiInsertCharacters(".",1);
-        halScreen.DirtyFlag|=CMDLINE_DIRTY;
 }
+
+void enterKeyHandler(BINT keymsg)
+{
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        // PERFORM DUP
+        if(halGetContext()==CONTEXT_STACK) {
+            // PERFORM DUP ONLY IF THERE'S DATA ON THE STACK
+            // DON'T ERROR IF STACK IS EMPTY
+            if(rplDepthData()>0) rplPushData(rplPeekData(1));
+            halScreen.DirtyFlag|=STACK_DIRTY;
+        }
+
+        }
+    else{
+        WORDPTR text=uiGetCmdLineText();
+        if(!text) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            return;
+        }
+        BINT len=rplStrLen(text);
+        WORDPTR newobject;
+        if(len) {
+            newobject=rplCompile((BYTEPTR)(text+1),len,1);
+            if(Exceptions || (!newobject)) {
+                // TODO: SHOW ERROR MESSAGE AND SELECT THE WORD THAT CAUSED THE ERROR
+
+                return;
+            }
+            else {
+                // RUN THE OBJECT
+                rplSetEntryPoint(newobject);
+                rplRun();
+                if(Exceptions) {
+                    // TODO: SHOW ERROR MESSAGE
+
+
+                }
+                // EVERYTHING WENT FINE, CLOSE THE COMMAND LINE
+                uiCloseCmdLine();
+                halSetCmdLineHeight(0);
+                halSetContext(halGetContext()& (~CONTEXT_INEDITOR));
+
+            }
+        }
+    }
+}
+
+void backspKeyHandler(BINT keymsg)
+{
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        // DO DROP
+        if(halGetContext()==CONTEXT_STACK) {
+            // PERFORM DROP ONLY IF THERE'S DATA ON THE STACK
+            // DON'T ERROR IF STACK IS EMPTY
+            if(rplDepthData()>0) rplDropData(1);
+            halScreen.DirtyFlag|=STACK_DIRTY;
+        }
+
+    }
+    else{
+        // REMOVE CHARACTERS FROM THE COMMAND LINE
+        // TODO: IMPLEMENT THIS!
+        uiInsertCharacters("**",2);
+    }
+}
+
+
 // **************************************************************************
 // ******************* END OF DEFAULT KEY HANDLERS **************************
 // **************************************************************************
@@ -490,6 +545,9 @@ struct keyhandler_t __keydefaulthandlers[]= {
     { KM_PRESS|KB_9, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_0, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_DOT, CONTEXT_ANY,&dotKeyHandler },
+    { KM_PRESS|KB_ENT, CONTEXT_ANY,&enterKeyHandler },
+    { KM_PRESS|KB_BKS, CONTEXT_ANY,&backspKeyHandler },
+
     { 0 , 0 , 0 }
 };
 
@@ -523,7 +581,7 @@ struct keyhandler_t *ptr=__keydefaulthandlers;
 while(ptr->action) {
     if(ptr->message==keymsg) {
         // CHECK IF CONTEXT MATCHES
-        if((!ptr->context) || (ptr->context==__keycontext)) {
+        if((!ptr->context) || (ptr->context==halScreen.KeyContext)) {
             //  IT'S A MATCH, EXECUTE THE ACTION;
             (ptr->action)(keymsg);
             return 1;

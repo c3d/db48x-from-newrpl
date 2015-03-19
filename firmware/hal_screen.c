@@ -275,6 +275,7 @@ halSetFormHeight(0);
 halScreen.DirtyFlag=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
 halScreen.SAreaTimer=0;
 halScreen.CursorTimer=0;
+halScreen.KeyContext=CONTEXT_STACK;
 halScreen.FormFont=halScreen.StackFont=halScreen.Stack1Font=(FONTDATA *)System7Font;
 halScreen.MenuFont=(FONTDATA *)System5Font;
 halScreen.StAreaFont=(FONTDATA *)MiniFont;

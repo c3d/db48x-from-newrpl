@@ -131,11 +131,21 @@ typedef struct {
     int CursorPosition; // OFFSET FROM START OF CURRENT LINE
     int CursorX,XVisible;
     int SelectionStart,SelectionEnd;
+    // VARIABLES FOR USER INTERFACE
+    int KeyContext;
 } HALSCREEN;
 
 
 extern HALSCREEN halScreen;
 
+// CALCULATOR CONTEXT IDENTIFIERS
+enum {
+    CONTEXT_ANY=0,
+    CONTEXT_INEDITOR=1,
+    CONTEXT_STACK=8,
+    CONTEXT_PICT=16
+    // ADD MORE SYSTEM CONTEXTS HERE
+};
 
 
 //! Type definition for interrupt handler functions

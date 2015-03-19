@@ -144,6 +144,10 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
     infixmode=0;
     previous_tokeninfo=0;
 
+
+    NextTokenStart=(WORDPTR)string;
+    CompileStringEnd=(WORDPTR)(string+length);
+
     if(addwrapper) {
         rplCompileAppend(MKPROLOG(DOCOL,0));
         if(RStkSize<=(ValidateTop-RStk)) growRStk(ValidateTop-RStk+RSTKSLACK);
@@ -151,8 +155,6 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
         *ValidateTop++=CompileEnd-1; // POINTER TO THE WORD OF THE COMPOSITE, NEEDED TO STORE THE SIZE
     }
 
-    NextTokenStart=(WORDPTR)string;
-    CompileStringEnd=(WORDPTR)(string+length);
 
 
     // FIND THE START OF NEXT TOKEN

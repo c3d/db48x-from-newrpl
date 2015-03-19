@@ -412,7 +412,7 @@ __keynumber=0;
 __kmat=0LL;
 __keyb_repeattime=80/KEYB_SCANSPEED;
 __keyb_longpresstime=1000/KEYB_SCANSPEED;
-__keyb_debounce=20/KEYB_SCANSPEED;
+__keyb_debounce=0; //20/KEYB_SCANSPEED;
 __keyb_lock=0;
 __pckeymatrix=0;
 // INITIALIZE TIMER EVENT 0

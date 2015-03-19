@@ -32,6 +32,13 @@ void uiSetCmdLineText(WORDPTR text)
     halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
 }
 
+WORDPTR uiGetCmdLineText()
+{
+    if(halScreen.LineIsModified>0) uiModifyLine();
+    if(Exceptions) return NULL;
+    return CmdLineText;
+}
+
 // SCROLL UP/DOWN AND LEFT/RIGHT TO KEEP CURSOR ON SCREEN
 void uiEnsureCursorVisible()
 {
@@ -96,6 +103,26 @@ void uiOpenCmdLine()
     halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
 
 }
+
+// OPEN AN EMPTY COMMAND LINE
+void uiCloseCmdLine()
+{
+    tmr_eventkill(halScreen.CursorTimer);
+
+    CmdLineText=empty_string;
+    CmdLineCurrentLine=empty_string;
+    CmdLineUndoList=empty_list;
+    halScreen.LineCurrent=1;
+    halScreen.LineIsModified=-1;
+    halScreen.LineVisible=1;
+    halScreen.NumLinesVisible=1;
+    halScreen.CursorX=0;
+    halScreen.CursorPosition=0;
+    halScreen.CursorState=0;
+    halScreen.XVisible=0;
+    halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
+}
+
 
 void uiSetCurrentLine(BINT line)
 {
@@ -259,6 +286,7 @@ halScreen.CursorState&=~0x4000;
 void uiModifyLine()
 {
     WORDPTR newobj;
+    BINT newsize;
 
     // GET A NEW OBJECT WITH ROOM FOR THE ENTIRE TEXT
     newobj=rplAllocTempOb( (rplStrLen(CmdLineText)+rplStrLen(CmdLineCurrentLine)+1+ 3)>>2);
@@ -289,6 +317,8 @@ void uiModifyLine()
     }
 
     // COPY ALL PREVIOUS LINES TO NEW OBJECT
+    newsize=startline-src+rplStrLen(CmdLineCurrentLine);
+
     memmove(dest,src,startline-src);
     // COPY THE NEW LINE TO THE OBJECT
     memmove(dest+(startline-src),(WORDPTR)(CmdLineCurrentLine+1),rplStrLen(CmdLineCurrentLine));
@@ -297,8 +327,11 @@ void uiModifyLine()
         // APPEND A NEWLINE AND KEEP GOING
         dest+=startline-src+rplStrLen(CmdLineCurrentLine);
         *dest++='\n';
+        newsize+=((BYTEPTR)rplSkipOb(CmdLineText))-endline+1;
         memmove(dest,endline,((BYTEPTR)rplSkipOb(CmdLineText))-endline);
     }
+
+    rplSetStringLength(newobj,newsize);
 
     CmdLineText=newobj;
     halScreen.LineIsModified=0;
