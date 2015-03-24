@@ -389,6 +389,51 @@ void testKeyHandler(BINT keymsg)
 
 }
 
+// END THE CURRENTLY OPEN COMMAND LINE, RETURN 1 IF COMPILED SUCCESSFULLY
+// 0 IF ERROR.
+// WHEN 1, THE STACK CONTAINS THE OBJECT/S COMPILED
+// WHEN 0, THE COMMAND LINE IS STILL OPEN, WITH THE ERROR HIGHLIGHTED
+BINT endCmdLineAndCompile()
+{
+    WORDPTR text=uiGetCmdLineText();
+    if(!text) {
+        throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+        return 0;
+    }
+    BINT len=rplStrLen(text);
+    WORDPTR newobject;
+    if(len) {
+        newobject=rplCompile((BYTEPTR)(text+1),len,1);
+        if(Exceptions || (!newobject)) {
+            // TODO: SHOW ERROR MESSAGE AND SELECT THE WORD THAT CAUSED THE ERROR
+            halShowErrorMsg();
+            Exceptions=0;
+
+            return 0;
+        }
+        else {
+            // RUN THE OBJECT
+            rplSetEntryPoint(newobject);
+            rplRun();
+            if(Exceptions) {
+                // TODO: SHOW ERROR MESSAGE
+                halShowErrorMsg();
+                Exceptions=0;
+                uiCloseCmdLine();
+                halSetCmdLineHeight(0);
+                halSetContext(halGetContext()& (~CONTEXT_INEDITOR));
+                return 1;
+            }
+            // EVERYTHING WENT FINE, CLOSE THE COMMAND LINE
+            uiCloseCmdLine();
+            halSetCmdLineHeight(0);
+            halSetContext(halGetContext()& (~CONTEXT_INEDITOR));
+
+        }
+    }
+
+}
+
 // **************************************************************************
 // *******************    DEFAULT KEY HANDLERS     **************************
 // **************************************************************************
@@ -440,6 +485,64 @@ void numberKeyHandler(BINT keymsg)
 
 }
 
+
+
+void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
+{
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // ACTION WHEN IN THE STACK
+                rplCallOvrOperator(Opcode);
+                if(Exceptions) {
+                    // TODO: SHOW ERROR MESSAGE
+                    halShowErrorMsg();
+                    Exceptions=0;
+                }
+            halScreen.DirtyFlag|=STACK_DIRTY;
+
+
+        }
+
+    }
+    else{
+        // ACTION INSIDE THE EDITOR
+        switch(halScreen.CursorState&0xff)
+        {
+
+        case 'D':   // DIRECT EXECUTION
+        {
+
+                if(endCmdLineAndCompile()) {
+                rplCallOvrOperator(Opcode);
+                if(Exceptions) {
+                    // TODO: SHOW ERROR MESSAGE
+                    halShowErrorMsg();
+                    Exceptions=0;
+                }
+            halScreen.DirtyFlag|=STACK_DIRTY;
+                }
+            break;
+        }
+        case 'P':   // PROGRAMMING MODE
+            // TODO: SEPARATE TOKENS
+            uiSeparateToken();
+            uiInsertCharacters(Progmode,1);
+            break;
+
+        case 'A':   // ALPHANUMERIC MODE
+            uiInsertCharacters(Progmode,1);
+            if(IsFunc) {
+                uiInsertCharacters("()",2);
+                uiCursorLeft();
+            }
+            break;
+        default:
+         break;
+        }
+    }
+}
+
+
 void dotKeyHandler(BINT keymsg)
 {
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
@@ -463,37 +566,8 @@ void enterKeyHandler(BINT keymsg)
 
         }
     else{
-        WORDPTR text=uiGetCmdLineText();
-        if(!text) {
-            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
-            return;
-        }
-        BINT len=rplStrLen(text);
-        WORDPTR newobject;
-        if(len) {
-            newobject=rplCompile((BYTEPTR)(text+1),len,1);
-            if(Exceptions || (!newobject)) {
-                // TODO: SHOW ERROR MESSAGE AND SELECT THE WORD THAT CAUSED THE ERROR
-
-                return;
-            }
-            else {
-                // RUN THE OBJECT
-                rplSetEntryPoint(newobject);
-                rplRun();
-                if(Exceptions) {
-                    // TODO: SHOW ERROR MESSAGE
-
-
-                }
-                // EVERYTHING WENT FINE, CLOSE THE COMMAND LINE
-                uiCloseCmdLine();
-                halSetCmdLineHeight(0);
-                halSetContext(halGetContext()& (~CONTEXT_INEDITOR));
-
-            }
-        }
-    }
+     endCmdLineAndCompile();
+   }
 }
 
 void backspKeyHandler(BINT keymsg)
@@ -511,8 +585,115 @@ void backspKeyHandler(BINT keymsg)
     else{
         // REMOVE CHARACTERS FROM THE COMMAND LINE
         // TODO: IMPLEMENT THIS!
-        uiInsertCharacters("**",2);
+        uiCursorLeft(1);
+        uiRemoveCharacters(1);
     }
+}
+
+void leftKeyHandler(BINT keymsg)
+{
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: WHAT TO DO WITH LEFT CURSOR??
+
+        }
+
+    }
+    else{
+        uiCursorLeft(1);
+    }
+}
+
+void rightKeyHandler(BINT keymsg)
+{
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+
+            if(rplDepthData()>1) {
+                WORDPTR ptr=rplPeekData(2);
+                rplOverwriteData(2,rplPeekData(1));
+                rplOverwriteData(1,ptr);
+            halScreen.DirtyFlag|=STACK_DIRTY;
+            }
+
+        }
+
+    }
+    else{
+        uiCursorRight(1);
+    }
+}
+
+
+
+
+void addKeyHandler(BINT keymsg)
+{
+    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD),"+",0);
+}
+void subKeyHandler(BINT keymsg)
+{
+    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB),"-",0);
+}
+
+void divKeyHandler(BINT keymsg)
+{
+    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV),"/",0);
+}
+void mulKeyHandler(BINT keymsg)
+{
+    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL),"*",0);
+}
+void invKeyHandler(BINT keymsg)
+{
+    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_INV),"INV",1);
+}
+
+
+void onPlusKeyHandler(BINT keymsg)
+{
+// INCREASE CONTRAST
+DRAWSURFACE scr;
+ggl_initscr(&scr);
+int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+// CLEAR STATUS AREA
+ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+
+int j;
+for(j=0;j<15;++j) {
+    ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop+7,STATUSAREA_X+1+3*j+2,ytop+12,ggl_mkcolor(j));
+    ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop,STATUSAREA_X+1+3*j+2,ytop+5,ggl_mkcolor(15-j));
+}
+
+halStatusAreaPopup();
+
+__lcd_contrast++;
+if(__lcd_contrast>0xf) __lcd_contrast=0xf;
+
+lcd_setcontrast(__lcd_contrast);
+
+}
+
+void onMinusKeyHandler(BINT keymsg)
+{
+// DECREASE CONTRAST
+DRAWSURFACE scr;
+ggl_initscr(&scr);
+int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+// CLEAR STATUS AREA
+ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+
+int j;
+for(j=0;j<15;++j) {
+    ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop+7,STATUSAREA_X+1+3*j+2,ytop+12,ggl_mkcolor(j));
+    ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop,STATUSAREA_X+1+3*j+2,ytop+5,ggl_mkcolor(15-j));
+}
+
+halStatusAreaPopup();
+
+__lcd_contrast--;
+if(__lcd_contrast<0) __lcd_contrast=0;
+lcd_setcontrast(__lcd_contrast);
 }
 
 
@@ -547,6 +728,15 @@ struct keyhandler_t __keydefaulthandlers[]= {
     { KM_PRESS|KB_DOT, CONTEXT_ANY,&dotKeyHandler },
     { KM_PRESS|KB_ENT, CONTEXT_ANY,&enterKeyHandler },
     { KM_PRESS|KB_BKS, CONTEXT_ANY,&backspKeyHandler },
+    { KM_PRESS|KB_LF, CONTEXT_ANY,&leftKeyHandler },
+    { KM_PRESS|KB_RT, CONTEXT_ANY,&rightKeyHandler },
+    { KM_PRESS|KB_ADD, CONTEXT_ANY,&addKeyHandler },
+    { KM_PRESS|KB_SUB, CONTEXT_ANY,&subKeyHandler },
+    { KM_PRESS|KB_DIV, CONTEXT_ANY,&divKeyHandler },
+    { KM_PRESS|KB_MUL, CONTEXT_ANY,&mulKeyHandler },
+    { KM_PRESS|KB_Y, CONTEXT_ANY,&invKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_ONHOLD, CONTEXT_ANY,&onPlusKeyHandler },
+    { KM_PRESS|KB_SUB|SHIFT_ONHOLD, CONTEXT_ANY,&onMinusKeyHandler },
 
     { 0 , 0 , 0 }
 };
@@ -964,7 +1154,7 @@ int halProcessKey(BINT keymsg)
     int width=StringWidth((char *)keyNames[KM_KEY(keymsg)],(FONTDATA *)&System7Font);
     int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     // CLEAR STATUS AREA AND SHOW KEY THERE
-    ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+    //ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
     DrawText(SCREEN_WIDTH-width,ytop+halScreen.Menu2/2,(char *)keyNames[KM_KEY(keymsg)],(FONTDATA *)System7Font,15,&scr);
     char *shiftstr;
     switch(KM_SHIFTPLANE(keymsg))

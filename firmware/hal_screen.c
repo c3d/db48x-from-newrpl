@@ -1,6 +1,6 @@
 #include <ui.h>
 #include <newrpl.h>
-
+#include <libraries.h>
 // THIS IS THE MAIN STABLE API TO ACCESS THE SCREEN
 
 
@@ -280,6 +280,11 @@ halScreen.FormFont=halScreen.StackFont=halScreen.Stack1Font=(FONTDATA *)System7F
 halScreen.MenuFont=(FONTDATA *)System5Font;
 halScreen.StAreaFont=(FONTDATA *)MiniFont;
 halScreen.CmdLineFont=(FONTDATA *)System7Font;
+
+// NOT NECESSARILY PART OF HALSCREEN
+CmdLineText=empty_string;
+CmdLineCurrentLine=empty_string;
+
 }
 
 
@@ -360,7 +365,10 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
 
     if(halScreen.DirtyFlag&CMDLINE_LINEDIRTY) {
     // UPDATE THE CURRENT LINE
-    DrawTextBkN(-halScreen.XVisible,ytop+2+y,cmdline,nchars,(FONTDATA *)halScreen.CmdLineFont,0xf,0x0,scr);
+        BINT linelen=StringWidthN(cmdline,nchars,(FONTDATA *)halScreen.CmdLineFont);
+        DrawTextBkN(-halScreen.XVisible,ytop+2+y,cmdline,nchars,(FONTDATA *)halScreen.CmdLineFont,0xf,0x0,scr);
+        // CLEAR UP TO END OF LINE
+        ggl_cliprect(scr,-halScreen.XVisible+linelen,ytop+2+y,SCREEN_W-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
     }
 
     if(halScreen.DirtyFlag&CMDLINE_CURSORDIRTY) {
@@ -377,9 +385,14 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
         // EITHER DON'T DRAW IT OR REDRAW THE PORTION OF COMMAND LINE UNDER THE CURSOR
         if(!(halScreen.DirtyFlag&CMDLINE_LINEDIRTY))
         {
+            // UPDATE THE CURRENT LINE
+                BINT linelen=StringWidthN(cmdline,nchars,(FONTDATA *)halScreen.CmdLineFont);
             // THE LINE WAS NOT UPDATED, MEANS WE ARE UPDATING ONLY THE CURSOR
             // UPDATE THE CURRENT LINE
             DrawTextBkN(-halScreen.XVisible,ytop+2+y,cmdline,nchars,(FONTDATA *)halScreen.CmdLineFont,0xf,0x0,scr);
+            // CLEAR UP TO END OF LINE
+            ggl_cliprect(scr,-halScreen.XVisible+linelen,ytop+2+y,SCREEN_WIDTH-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
+
         }
 
         // RESET THE CLIPPING RECTANGLE BACK TO WHOLE SCREEN
@@ -420,11 +433,10 @@ void halRedrawAll(DRAWSURFACE *scr)
 
 void status_popup_handler()
 {
-    if(halScreen.DirtyFlag&STAREA_DIRTY) {
         DRAWSURFACE scr;
         ggl_initscr(&scr);
+        halRedrawMenu2(&scr);
         halRedrawStatus(&scr);
-    }
     halScreen.SAreaTimer=0;
 }
 
@@ -433,7 +445,6 @@ void status_popup_handler()
 // TO CLEAN UP POP-UP MESSAGES
 void halStatusAreaPopup()
 {
-    halScreen.DirtyFlag|=STAREA_DIRTY;
     if(halScreen.SAreaTimer) {
         tmr_eventkill(halScreen.SAreaTimer);
         //tmr_eventpause(halScreen.SAreaTimer);
@@ -441,4 +452,94 @@ void halStatusAreaPopup()
         //return;
     }
     halScreen.SAreaTimer=tmr_eventcreate(&status_popup_handler,5000,0);
+}
+
+// WILL KEEP THE STATUS AREA AS-IS FOR 5 SECONDS, THEN REDRAW IT
+// TO CLEAN UP POP-UP MESSAGES
+void halErrorPopup()
+{
+    if(halScreen.SAreaTimer) {
+        tmr_eventkill(halScreen.SAreaTimer);
+        //tmr_eventpause(halScreen.SAreaTimer);
+        //tmr_eventresume(halScreen.SAreaTimer);      // PAUSE/RESUME WILL RESTART THE 5 SECOND COUNT
+        //return;
+    }
+    halScreen.SAreaTimer=tmr_eventcreate(&status_popup_handler,5000,0);
+}
+
+
+// DISPLAY AN ERROR BOX FOR 5 SECONDS WITH AN ERROR MESSAGE
+// USES ERROR CODE FROM SYSTEM Exceptions
+
+struct error_message {
+    unsigned int num;
+    const char *string;
+} const error_table[]={
+{ 0x00000001,"Panic Exit"},
+{ 0x00000002,"BreakPoint"},
+{ 0x00000004,"Bad opcode"},
+{ 0x00000008,"Out of memory"}, // WILL CHANGE IN THE FUTURE
+{ 0x00000010,"Circular Reference"}, // WILL CHANGE IN THE FUTURE
+{ 0x00000020,"????"}, // WILL CHANGE IN THE FUTURE
+{ 0x00000040,"Empty stack"},
+{ 0x00000080,"Empty return rtack"},
+{ 0x00000100,"Syntax error"},
+{ 0x00000200,"Undefined"},
+{ 0x00000400,"Bad argument count"},
+{ 0x00000800,"Bad argument type"},
+{ 0x00001000,"Bad argument value"},
+{ 0x00002000,"Undefined variable"},
+{ 0x00004000,"Directory not empty"},
+{ 0x00008000,"Invalid Dimension"},
+// THESE ARE MPDECIMAL ERRORS
+{ 0x00010000,"Clamped exponent"},
+{ 0x00020000,"Conversion syntax"},
+{ 0x00040000,"Division by zero"},
+{ 0x00080000,"Division impossible"},
+{ 0x00100000,"Division undefined"},
+{ 0x00200000,"FPU Error"},
+{ 0x00400000,"Inexact"},
+{ 0x00800000,"Invalid context"},
+{ 0x01000000,"Invalid operation"},
+{ 0x02000000,"Internal out of memory"},
+{ 0x04000000,"Not implemented"},
+{ 0x08000000,"Overflow"},
+{ 0x10000000,"Rounded"},
+{ 0x20000000,"Subnormal"},
+{ 0x40000000,"Underflow"},
+{ 0x80000000,"Undefined error??"},
+};
+
+
+
+void halShowErrorMsg()
+{
+        int errbit;
+        if(!Exceptions) return;
+        WORD error=Exceptions &((Context.traps<<16)|0xffff);
+
+        DRAWSURFACE scr;
+        ggl_initscr(&scr);
+        BINT ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+        // CLEAR MENU2 AND STATUS AREA
+        ggl_rect(&scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+        // DO SOME DECORATIVE ELEMENTS
+        ggl_hline(&scr,ytop+1,1,SCREEN_WIDTH-2,ggl_mkcolor(8));
+        ggl_hline(&scr,ytop+halScreen.Menu2-1,1,SCREEN_WIDTH-2,ggl_mkcolor(8));
+        ggl_vline(&scr,1,ytop+2,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
+        ggl_vline(&scr,SCREEN_WIDTH-2,ytop+2,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
+
+        // SHOW ERROR MESSAGE
+
+        ("Error status:\n");
+        for(errbit=0;errbit<32;++errbit)
+        {
+        if(error_table[errbit].num&error) {
+            DrawText(3,ytop+3,error_table[errbit].string,halScreen.StAreaFont,0xf,&scr);
+            break;
+        }
+        }
+
+        halErrorPopup();
+
 }

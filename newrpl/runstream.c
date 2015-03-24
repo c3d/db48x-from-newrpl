@@ -365,7 +365,7 @@ void rplInit(void)
 
 
     // INITIALIZE THE FLOATING POINT CONTEXT
-    mpd_init(&Context,18);
+    mpd_init(&Context,36);
 
     // LIMIT THE EXPONENT TO A 16 BIT VALUE FOR EASIER STORAGE
     mpd_qsetemax(&Context,29999);

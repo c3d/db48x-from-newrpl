@@ -16,7 +16,11 @@
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QEmuScreen" name="EmuScreen"/>
+     <widget class="QEmuScreen" name="EmuScreen">
+      <property name="focusPolicy">
+       <enum>Qt::NoFocus</enum>
+      </property>
+     </widget>
     </item>
    </layout>
   </widget>

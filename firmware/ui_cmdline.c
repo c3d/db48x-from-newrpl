@@ -97,7 +97,7 @@ void uiOpenCmdLine()
     halScreen.NumLinesVisible=1;
     halScreen.CursorX=0;
     halScreen.CursorPosition=0;
-    halScreen.CursorState='T';
+    halScreen.CursorState='D';
     halScreen.XVisible=0;
     halScreen.CursorTimer=tmr_eventcreate(&__uicursorupdate,200,1);
     halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
@@ -175,7 +175,7 @@ void uiSetCurrentLine(BINT line)
     uiEnsureCursorVisible();
 
     // UNLOCK CURSOR
-    halScreen.CursorState&=~0x4000;
+    halScreen.CursorState&=~0xc000;
 
     halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
 
@@ -276,8 +276,100 @@ halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
 
 uiEnsureCursorVisible();
 // UNLOCK CURSOR
-halScreen.CursorState&=~0x4000;
+halScreen.CursorState&=~0xc000;
 
+}
+
+
+// MAIN FUNCTION TO REMOVE TEXT AT THE CURRENT CURSOR OFFSET
+
+void uiRemoveCharacters(BINT length)
+{
+if(length<=0) return;
+
+// LOCK CURSOR
+halScreen.CursorState|=0x4000;
+
+
+if(halScreen.LineIsModified<0) {
+
+uiExtractLine(halScreen.LineCurrent);
+
+if(Exceptions) {
+    throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+    // CLEAN UP AND RETURN
+    CmdLineText=empty_string;
+    CmdLineCurrentLine=empty_string;
+    CmdLineUndoList=empty_list;
+    return;
+}
+
+}
+
+if(rplSkipOb(CmdLineCurrentLine)!=TempObEnd) {
+        // NOT AT THE END OF TEMPOB
+        // MAKE A COPY OF THE OBJECT AT THE END
+        WORDPTR newobj=rplAllocTempOb(OBJSIZE(*CmdLineCurrentLine));
+        if(!newobj) {
+            throw_dbgexception("No memory to insert text",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            CmdLineText=empty_string;
+            CmdLineCurrentLine=empty_string;
+            CmdLineUndoList=empty_list;
+            return;
+        }
+        rplCopyObject(newobj,CmdLineCurrentLine);
+        CmdLineCurrentLine=newobj;
+
+    }
+
+// FINALLY, WE HAVE THE ORIGINAL LINE AT THE END OF TEMPOB, AND ENOUGH MEMORY ALLOCATED TO MAKE THE MOVE
+BINT tailchars=rplStrLen(CmdLineCurrentLine)-halScreen.CursorPosition;
+if(length>tailchars) length=tailchars;
+// MOVE THE TAIL TO THE END
+memmove( ((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition+length,tailchars-length);
+
+// PATCH THE LENGTH OF THE STRING
+BINT newlen=rplStrLen(CmdLineCurrentLine);
+newlen-=length;
+rplSetStringLength(CmdLineCurrentLine,newlen);
+
+// TRUNCATE THE OBJECT TO RELEASE MEMORY
+rplTruncateLastObject(rplSkipOb(CmdLineCurrentLine));
+
+halScreen.LineIsModified=1;
+
+halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
+
+// UNLOCK CURSOR
+halScreen.CursorState&=~0xc000;
+
+}
+
+// IF THE LAST CHARACTER IS NOT A BLANK, THEN INSERT A BLANK SPACE
+void uiSeparateToken()
+{
+
+    if(halScreen.LineIsModified<0) {
+
+    uiExtractLine(halScreen.LineCurrent);
+
+    if(Exceptions) {
+        throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+        // CLEAN UP AND RETURN
+        CmdLineText=empty_string;
+        CmdLineCurrentLine=empty_string;
+        CmdLineUndoList=empty_list;
+        return;
+    }
+
+    }
+
+    BYTEPTR start=(BYTEPTR) (CmdLineCurrentLine+1);
+    BYTEPTR lastchar=start+halScreen.CursorPosition-1;
+    if(lastchar>=start) {
+        if(*lastchar!=' ')  uiInsertCharacters(" ",1);
+    }
 }
 
 
@@ -412,21 +504,49 @@ BINT uiGetLinebyOffset(BINT offset,BINT *linestart)
 // MOVE THE CURSOR TO THE GIVEN OFFSET WITHIN THE STRING
 void uiMoveCursor(BINT offset)
 {
-if(halScreen.LineIsModified>0) uiModifyLine();
+if(halScreen.LineIsModified<0) {
+    uiExtractLine(halScreen.LineCurrent);
 
-BYTEPTR ptr=(BYTEPTR )(CmdLineText+1);
-BINT len=rplStrLen(CmdLineText);
+    if(Exceptions) {
+        throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+        // CLEAN UP AND RETURN
+        CmdLineText=empty_string;
+        CmdLineCurrentLine=empty_string;
+        CmdLineUndoList=empty_list;
+        return;
+    }
+
+    }
+
+BYTEPTR ptr=(BYTEPTR )(CmdLineCurrentLine+1);
+BINT len=rplStrLen(CmdLineCurrentLine);
 BINT lineoff;
 
 if(offset>len) offset=len;
 if(offset<0) offset=0;
 
-BINT line=uiGetLinebyOffset(offset,&lineoff);
+if(halScreen.CursorPosition==offset) return;
 
-uiSetCurrentLine(line);
+halScreen.CursorState|=0x4000;
 
 halScreen.CursorPosition=offset;
 
-halScreen.CursorX=StringWidthN(ptr,offset-lineoff,halScreen.CmdLineFont);
+halScreen.CursorX=StringWidthN(ptr,offset,halScreen.CmdLineFont);
+
+halScreen.CursorState&=~0xc000;
+
+halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
 }
 
+void uiCursorLeft(BINT nchars)
+{
+    uiMoveCursor(halScreen.CursorPosition-nchars);
+    uiEnsureCursorVisible();
+}
+
+void uiCursorRight(BINT nchars)
+{
+    uiMoveCursor(halScreen.CursorPosition+nchars);
+    uiEnsureCursorVisible();
+
+}
