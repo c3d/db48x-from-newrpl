@@ -97,6 +97,9 @@ inline WORDPTR rplPeekData(int level)  {  return *(DSTop-level); }
 // OVERWRITE LEVEL 'N' WITH A DIFFERENT POINTER
 inline void rplOverwriteData(int level,WORDPTR ptr)  {  *(DSTop-level)=ptr; }
 
+// CLEAR THE STACK COMPLETELY
+inline void rplClearData() { DSTop=DStkProtect; }
+
 // PROTECT THE CURRENT DATA STACK FROM DROP AT THE CURRENT LEVEL
 
 

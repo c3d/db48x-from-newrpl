@@ -157,6 +157,7 @@ extern WORDPTR rplPopData();
 extern WORDPTR rplPeekData(int level);
 extern void rplOverwriteData(int level,WORDPTR ptr);
 extern BINT rplDepthData();
+extern void rplClearData();
 extern void rplDropData(int n);
 extern void growDStk(WORD newsize);
 extern WORDPTR *rplProtectData();

@@ -22,7 +22,7 @@ extern void lib28_handler();
 extern void lib30_handler();
 extern void lib32_handler();
 
-
+extern void lib48_handler();
 extern void lib50_handler();
 
 
@@ -91,6 +91,9 @@ const LIBHANDLER const ROMLibs[]={
 
     // SYMBOLICS
     lib32_handler,
+
+    // MATRIX
+    lib48_handler,
 
 
     // LISTS
