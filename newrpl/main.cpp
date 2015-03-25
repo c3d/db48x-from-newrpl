@@ -726,6 +726,13 @@ void DumpErrors()
 void Refresh()
 {
     DumpDStack();
+
+    printf("sizeof(WORD)=%d\n",sizeof(WORD));
+    printf("sizeof(WORDPTR)=%d\n",sizeof(WORDPTR));
+    printf("sizeof(BYTE)=%d\n",sizeof(BYTE));
+    printf("sizeof(BYTEPTR)=%d\n",sizeof(BYTEPTR));
+
+
     printf("~~> ");
 }
 

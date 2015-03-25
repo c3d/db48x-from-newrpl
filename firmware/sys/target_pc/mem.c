@@ -10,13 +10,13 @@
 #define TEMPBLK_SIZE  16384 // 64K FOR TEMP BLOCKS
 
 // ALL MEMORY IS ALLOCATED STATICALLY FOR THE SIMULATOR
-unsigned int __dstk_memory[DSTK_SIZE];
-unsigned int __rstk_memory[RSTK_SIZE];
-unsigned int __dir_memory[DIR_SIZE];
-unsigned int __lam_memory[LAM_SIZE];
-unsigned int __tempob_memory[TEMPOB_SIZE];
-unsigned int __tempblk_memory[TEMPBLK_SIZE];
-int __dstk_used,__rstk_used,__dir_used,__lam_used,__tempob_used,__tempblk_used;
+WORDPTR __dstk_memory[DSTK_SIZE];
+WORDPTR __rstk_memory[RSTK_SIZE];
+WORD __dir_memory[DIR_SIZE];
+WORD __lam_memory[LAM_SIZE];
+WORD __tempob_memory[TEMPOB_SIZE];
+WORDPTR __tempblk_memory[TEMPBLK_SIZE];
+BINT __dstk_used,__rstk_used,__dir_used,__lam_used,__tempob_used,__tempblk_used;
 
 
 
@@ -39,7 +39,7 @@ int halGetFreePages()
 WORDPTR *halGrowMemory(BINT zone, WORDPTR *base, BINT newsize)
 {
     int maxpages;
-    int *current;
+    BINT *current;
     switch(zone) {
 
             case MEM_AREA_RSTK:

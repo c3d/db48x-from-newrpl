@@ -122,7 +122,8 @@ SOURCES += main.cpp\
     newrpl/contrib/mpdecimal-2.4.0/libmpdec/numbertheory.c \
     firmware/sys/target_pc/boot.c \
     rplthread.cpp \
-    firmware/ui_cmdline.c
+    firmware/ui_cmdline.c \
+    newrpl/lib-48-matrix.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -137,8 +138,9 @@ HEADERS  += mainwindow.h \
     newrpl/contrib/mpdecimal-2.4.0/libmpdec/mpdecimal.h \
     rplthread.h
 
-INCLUDEPATH += firmware/include newrpl newrpl/contrib/mpdecimal-2.4.0/libmpdec
+INCLUDEPATH += firmware/include newrpl newrpl/contrib/mpdecimal-2.4.0/libmpdec /usr/local/include /usr/include
 
+LIBS += -L/usr/local/lib
 
 FORMS    += mainwindow.ui
 

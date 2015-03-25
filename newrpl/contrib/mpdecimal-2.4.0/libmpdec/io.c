@@ -30,16 +30,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
+//#include <ctype.h>
 #include <limits.h>
 #include <assert.h>
 #include <errno.h>
-#include <locale.h>
+//#include <locale.h>
 #include "bits.h"
 #include "constants.h"
 #include "memory.h"
 #include "typearith.h"
 #include "io.h"
+
+#define SLIM_MPD
 
 #ifdef SLIM_MPD
 // DO THIS TO PREVENT PULLING ALL LOCALIZATION DEPENDENCIES

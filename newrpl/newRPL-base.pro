@@ -63,7 +63,8 @@ SOURCES += main.cpp \
     lib-24-string.c \
     lib-72-stack.c \
     lib-28-dirs.c \
-    lib-30-complex.c
+    lib-30-complex.c \
+    lib-48-matrix.c
 
 HEADERS += \
     libraries.h \
