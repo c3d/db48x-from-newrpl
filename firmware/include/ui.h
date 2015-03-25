@@ -34,7 +34,9 @@ extern BINT ui_islinemodified;
 extern BINT ui_cursorx,ui_cursoroffset;
 extern BINT ui_visiblex;
 
-
+extern void uiEnsureCursorVisible();
+extern void uiModifyLine();
+extern void uiExtractLine();
 
 
 #endif // UI_H

@@ -33,7 +33,7 @@ void __ex_hline(int y)
     yptr[0]=yptr[1]=yptr[2]=yptr[3]=yptr[4]=0xaaaaaaaa;
 }
 
-inline int __ex_width(char *string) { return StringWidth(string,(FONTDATA *)MiniFont); }
+int __ex_width(char *string) { return StringWidth(string,(FONTDATA *)MiniFont); }
 
 // MAIN EXCEPTION PROCESSOR
 

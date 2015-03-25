@@ -1,4 +1,8 @@
 #include <ui.h>
+
+typedef uint32_t size_t;
+
+
 // THESE ARE STUB FUNCTIONS NEEDED BY libgcc TO PROCESS DIV BY ZERO EXCEPTIONS
 
 int errno __attribute__ ((section (".system_globals")));
