@@ -224,11 +224,15 @@ if(CmdLineCurrentLine==empty_string) {
     *CmdLineCurrentLine=MKPROLOG(DOSTRING,0);   // MAKE AN EMPTY STRING
 }
 else {
-    if(rplSkipOb(CmdLineCurrentLine)==TempObEnd)  rplResizeLastObject(lenwords);
+    BINT totallen=rplStrLen(CmdLineCurrentLine)+length;
+    lenwords=(totallen+3)>>2;
+
+    if(rplSkipOb(CmdLineCurrentLine)==TempObEnd)  rplResizeLastObject(lenwords-OBJSIZE(*CmdLineCurrentLine));
     else {
         // NOT AT THE END OF TEMPOB
         // MAKE A COPY OF THE OBJECT AT THE END
-        WORDPTR newobj=rplAllocTempOb(OBJSIZE(*CmdLineCurrentLine));
+
+        WORDPTR newobj=rplAllocTempOb(lenwords);
         if(!newobj) {
             throw_dbgexception("No memory to insert text",__EX_CONT|__EX_WARM|__EX_RESET);
             // CLEAN UP AND RETURN

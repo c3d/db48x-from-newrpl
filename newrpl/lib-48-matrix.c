@@ -216,9 +216,9 @@ void LIB_HANDLER()
                 // INCREASE DEPTH OF DIMENSION AND ACCEPT
                 // WARNING, THIS USES INTERNAL COMPILER WORKINGS
                 WORDPTR matrix=*(ValidateTop-1);
-                *matrix++;
+                ++*matrix;
                 if(TokenLen>1) NextTokenStart=(WORDPTR)(((char *)TokenStart)+1);
-                RetNum=OK_CONTINUE;
+                RetNum=OK_CONTINUE_NOVALIDATE;
                 return;
                 }
                 else {
@@ -229,7 +229,6 @@ void LIB_HANDLER()
             }
 
             rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER,0));
-            rplCompileAppend(MKSIZE(0,0));    // ADD EMPTY ARRAY SIZE
             if(TokenLen>1) {
                 NextTokenStart=(WORDPTR)(((char *)TokenStart)+1);
                 RetNum=OK_STARTCONSTRUCT;
@@ -252,21 +251,21 @@ void LIB_HANDLER()
                 RetNum=ERR_SYNTAX;
                 return;
             }
+            WORDPTR matrix=*(ValidateTop-1);
+            BINT rows=ROWS(matrix[1]),cols=COLS(matrix[1]);
+            BINT totalelements=rows*cols;
+
             if(CurrentConstruct!=MKPROLOG(LIBRARY_NUMBER,0)) {
                 // CLOSED AN INNER DIMENSION
 
-                WORDPTR matrix=*(ValidateTop-1);
                 // DECREASE DIMENSION COUNT
-                *matrix--;
+                --*matrix;
 
                 // CHECK FULL ROW SIZE IS CORRECT
                 // BY CHECKING THE NEXT EMPTY OBJECT IS THE START OF A ROW
 
-                BINT rows=ROWS(matrix[1]),cols=COLS(matrix[1]);
-                BINT totalelements=rows*cols;
                 BINT count;
-                WORDPTR index=*ValidateTop;
-                index+=2;
+                WORDPTR index=matrix+2;
 
                 count=0;
                 while((count<totalelements) && (index<CompileEnd)) { ++count; index=rplSkipOb(index); }
@@ -279,15 +278,40 @@ void LIB_HANDLER()
 
 
                 if(TokenLen>1) NextTokenStart=(WORDPTR)(((char *)TokenStart)+1);
-                RetNum=OK_CONTINUE;
+                RetNum=OK_CONTINUE_NOVALIDATE;
                 return;
 
             }
 
             // CLOSE THE MATRIX OBJECT
 
-            // TODO: STRETCH THE OBJECT, ADD THE INDEX AND REMOVE DUPLICATES
 
+            // TODO: STRETCH THE OBJECT, ADD THE INDEX AND REMOVE DUPLICATES
+            WORDPTR endofobjects=rplCompileAppendWords(totalelements);
+            if(Exceptions) return;
+
+            // MAKE HOLE IN MEMORY
+            memmovew(matrix+2+totalelements,matrix+2,endofobjects-(matrix+2));
+            endofobjects+=totalelements;
+
+            // NOW WRITE THE INDICES. ALL OFFSETS ARE RELATIVE TO MATRIX PROLOG!
+            WORDPTR ptr=matrix+2,objptr=ptr+totalelements;
+            BINT count;
+
+            while( (objptr<endofobjects)&&(count<totalelements)) {
+                *ptr=objptr-matrix;
+                ++ptr;
+                ++count;
+                objptr=rplSkipOb(objptr);
+            }
+
+            if( (count!=totalelements)||(objptr!=endofobjects)) {
+                // MALFORMED MATRIX IS MISSING OBJECTS
+                RetNum=ERR_INVALID;
+                return;
+            }
+
+            // TODO: COMPACT MATRIX BY REMOVING DUPLICATED OBJECTS
 
             RetNum=OK_ENDCONSTRUCT;
             return;
@@ -333,7 +357,7 @@ void LIB_HANDLER()
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
 
         // FIRST, CHECK THAT THE OBJECT IS ALLOWED WITHIN AN ARRAY
-
+    {
         if(! (ISNUMBERCPLX(*LastCompiledObject)
               || ISSYMBOLIC(*LastCompiledObject)
               || ISIDENT(*LastCompiledObject))) {
@@ -341,8 +365,30 @@ void LIB_HANDLER()
                 return;
             }
 
+        WORDPTR matrix=*(ValidateTop-1);
+        if(LastCompiledObject==matrix+1) {
+            // THIS IS THE FIRST OBJECT IN THE ARRAY
+            // ADD A DUMMY WORD
+            rplCompileAppend(0);
+            // MOVE THE FIRST OBJECT UP IN MEMORY TO MAKE ROOM FOR THE SIZE WORD
+            memmovew(LastCompiledObject+1,LastCompiledObject,CompileEnd-1-LastCompiledObject);
+
+            matrix[1]=MKSIZE(1,1);
+
+        }
+
+        else {
+            // IF THIS IS THE FIRST ROW, INCREASE THE COLUMN COUNT
+            BINT rows=ROWS(matrix[1]),cols=COLS(matrix[1]);
+            if(rows==1) { matrix[1]=MKSIZE(rows,cols+1); }
+
+        }
+
+
+
         RetNum=OK_CONTINUE;
         return;
+    }
     case OPCODE_LIBINSTALL:
         RetNum=(UBINT)libnumberlist;
         return;
@@ -363,7 +409,7 @@ void LIB_HANDLER()
     return;
 
 
-}
+ }
 
 
 

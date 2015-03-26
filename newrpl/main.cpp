@@ -481,7 +481,7 @@ void PrintObj(WORDPTR obj)
     WORDPTR string;
     BINT nwords;
     BYTEPTR charptr;
-    string=rplDecompile(obj);
+    string=rplDecompile(obj,1);
 
     if(string) {
     // NOW PRINT THE STRING OBJECT
@@ -528,7 +528,7 @@ void PrintSeco(WORDPTR obj)
 
         printf("%08X: ",obj-TempOb);
 
-        string=rplDecompile(obj);
+        string=rplDecompile(obj,1);
 
     if(string) {
     // NOW PRINT THE STRING OBJECT
@@ -642,7 +642,7 @@ void DumpDStack()
 
     while(count<(DSTop-DStkBottom)) {
         printf("%d:\t",DSTop-DStkBottom-count);
-        string=rplDecompile((WORDPTR)DStkBottom[count]);
+        string=rplDecompile((WORDPTR)DStkBottom[count],1);
 
         if(string) {
         // NOW PRINT THE STRING OBJECT

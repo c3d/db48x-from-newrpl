@@ -19,14 +19,18 @@ extern WORDPTR GC_PTRUpdate[MAX_GC_PTRUPDATE];
 #define TempObSize          GC_PTRUpdate[2]
 #define CompileEnd          GC_PTRUpdate[3]     // ADDITIONAL DATA AT THE END OF TEMPOB DURING COMPILE
 #define ExceptionPointer    GC_PTRUpdate[4]
+
 #define ArgPtr1             GC_PTRUpdate[5]     // NAME FOR USE BY THE LIBRARIES
 #define DecompileObject     GC_PTRUpdate[5]     // NAME FOR USE BY THE DECOMPILER
 #define TokenStart          GC_PTRUpdate[5]     // NAME AS USED BY THE COMPILER
+
 #define ArgPtr2             GC_PTRUpdate[6]     // NAME FOR USE BY LIBRARIES
 #define BlankStart          GC_PTRUpdate[6]     // NAME AS USED BY THE COMPILER
 #define DecompStringEnd     GC_PTRUpdate[6]     // NAME AS USED BY THE DECOMPILER
+
 #define EndOfObject         GC_PTRUpdate[7]     // NAME AS USED BY THE DECOMPILER
 #define NextTokenStart      GC_PTRUpdate[7]     // NAME AS USED BY THE COMPILER
+
 #define CompileStringEnd    GC_PTRUpdate[8]
 #define ErrorHandler        GC_PTRUpdate[9]
 #define SettingsDir         GC_PTRUpdate[10]
@@ -88,8 +92,6 @@ extern UBINT ArgNum1,ArgNum2,ArgNum3,RetNum;
 #define TokenLen ArgNum1
 #define BlankLen ArgNum2
 #define CurrentConstruct ArgNum3
-
-
 
 extern LIBHANDLER LowLibRegistry[MAXLOWLIBS];
 extern LIBHANDLER SysHiLibRegistry[MAXSYSHILIBS];

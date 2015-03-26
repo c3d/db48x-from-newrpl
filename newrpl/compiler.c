@@ -25,6 +25,19 @@ void rplCompileAppend(WORD word)
 
 }
 
+WORDPTR rplCompileAppendWords(BINT nwords)
+{
+    CompileEnd+=nwords;
+    // ADJUST MEMORY AS NEEDED
+    if( CompileEnd>=TempObSize) {
+        // ENLARGE TEMPOB AS NEEDED
+        growTempOb( ((WORD)(CompileEnd-TempOb))+TEMPOBSLACK);
+    }
+
+    return CompileEnd-nwords;
+}
+
+
 
 // REVERSE-SKIP AN OBJECT, FROM A POINTER TO AFTER THE OBJECT TO SKIP
 // NO ARGUMENT CHECKS, DO NOT CALL UNLESS THERE'S A VALID OBJECT LIST
@@ -795,7 +808,7 @@ void rplDecompAppendString2(BYTEPTR str,BINT len)
 // BASIC DECOMPILE ONE OBJECT
 // RETURNS A NEW STRING OBJECT IN TEMPOB
 
-WORDPTR rplDecompile(WORDPTR object)
+WORDPTR rplDecompile(WORDPTR object,BINT addprolog)
 {
     LIBHANDLER han;
     BINT infixmode=0;
@@ -812,10 +825,10 @@ WORDPTR rplDecompile(WORDPTR object)
 
     // HERE ALL POINTERS ARE STORED IN GC-UPDATEABLE AREA
 
-
+    if(addprolog) {
     // CREATE EMPTY STRING AT END OF TEMPOB
     rplCompileAppend(MKPROLOG(DOSTRING,0));
-
+    }
 
     DecompStringEnd=CompileEnd;
     while(DecompileObject<EndOfObject)
@@ -1327,10 +1340,11 @@ end_of_expression:
 
     // DONE, HERE WE HAVE THE STRING FINISHED
 
+    if(addprolog) {
     // STORE THE SIZE OF THE STRING IN WORDS IN THE PROLOG
     *(CompileEnd-1)=MKPROLOG(DOSTRING+((-(WORD)DecompStringEnd)&3),(((WORD)DecompStringEnd-(WORD)CompileEnd)+3)>>2);
-
     CompileEnd=rplSkipOb(CompileEnd-1);
+    }
 
     LAMTop=LAMTopSaved;     // RESTORE ENVIRONMENTS
     if( !Exceptions) {
@@ -1342,13 +1356,15 @@ end_of_expression:
             if(Exceptions) return 0;
         }
 
+   if(addprolog) {
     // STORE BLOCK SIZE
    rplAddTempBlock(TempObEnd);
    WORDPTR newobject=TempObEnd;
    TempObEnd=CompileEnd;
 
    return newobject;
-    }
+   }
+   }
 
    return 0;
 

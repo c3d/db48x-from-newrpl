@@ -143,7 +143,7 @@ extern WORDPTR rplCompile(BYTEPTR string, BINT len, BINT addwrapper);
 extern void rplCompileAppend(WORD word);
 
 // DECOMPILER FUNCTIONS
-extern WORDPTR rplDecompile(WORDPTR object);
+extern WORDPTR rplDecompile(WORDPTR object, BINT addprolog);
 extern void rplDecompAppendChar(BYTE c);
 extern void rplDecompAppendString(BYTEPTR str);
 extern void rplDecompAppendString2(BYTEPTR str,BINT len);
