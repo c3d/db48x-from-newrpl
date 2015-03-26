@@ -550,3 +550,69 @@ void uiCursorRight(BINT nchars)
     uiEnsureCursorVisible();
 
 }
+
+// FIND THE START OF A NUMBER IN THE COMMAND LINE, ONLY USED BY +/- ROUTINE
+BYTEPTR uiFindNumberStart()
+{
+    if(halScreen.LineIsModified<0) {
+        uiExtractLine(halScreen.LineCurrent);
+
+        if(Exceptions) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            CmdLineText=empty_string;
+            CmdLineCurrentLine=empty_string;
+            CmdLineUndoList=empty_list;
+            return NULL;
+        }
+
+        }
+
+    BYTEPTR line=(BYTEPTR )(CmdLineCurrentLine+1);
+    BYTEPTR end,start,ptr;
+    BINT len=rplStrLen(CmdLineCurrentLine);
+    BINT flags;
+
+    // FIND NUMBER BEFORE
+    ptr=line+halScreen.CursorPosition;
+    end=ptr;
+    start=NULL;
+    flags=0;
+    while(end<line+len) {
+        if((*end>='0')&&(*end<='9')) { ++end; continue; }
+        if(*end=='.') { ++end; continue; }
+
+        if((*end>='A')&&(*end<='F')) { if(!start) start=end; ++end; continue; }
+        if((*end>='a')&&(*end<='f')) { if(!start) start=end; ++end; continue; }
+        if(*end=='h') { flags=3; break; }
+        if(*end=='o') { if(start) end=start; else flags=1; break; }
+        // ANY OTHER CHARACTER ENDS THE NUMBER
+        if(start) {
+            end=start;
+            if(*end=='b') flags=1;
+            if(*end=='d') flags=1;
+        }
+        break;
+    }
+    // HERE WE HAVE THE END OF THE NUMBER, AND flags=1 IF THE NUMBER STARTS WITH #
+    // NOW FIND THE START OF THE NUMBER
+    start=ptr;
+    if(ptr==line+len) --start;
+
+    while(start>=line) {
+        if((*start>='0')&&(*start<='9')) { --start; continue; }
+        if(*start=='.') { --start; continue; }
+        if((flags&2)&&(*start>='A')&&(*start<='F')) { --start; continue; }
+        if((flags&2)&&(*start>='a')&&(*start<='f')) {--start; continue; }
+
+        // ANY OTHER CHARACTER SHOULD END THE NUMBER
+        if((flags&1)&&(*start=='#')) break;
+        ++start;
+        break;
+    }
+
+    // HERE START POINTS TO THE FIRST CHARACTER IN THE NUMBER
+
+    if(start==end) return NULL;  // THERE WAS NO NUMBER
+    return start;
+}

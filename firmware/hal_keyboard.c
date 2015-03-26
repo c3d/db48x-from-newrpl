@@ -359,36 +359,6 @@ void dummyKeyhandler(BINT keymsg)
     return;
 }
 
-void testKeyHandler(BINT keymsg)
-{
-    DRAWSURFACE scr;
-    ggl_initscr(&scr);
-
-    waitforspeed=1;
-    HEVENT ev=tmr_eventcreate(&waitforspeed_handler,2000,0);
-    // DO SOMETHING REALLY LONG HERE
-    char string[7];
-    string[0]='n';
-    string[1]='e';
-    string[2]='w';
-    string[3]='R';
-    string[4]='P';
-    string[5]='L';
-    string[6]=0;
-    int k=0;
-    while(waitforspeed) {
-        DrawText(30,30,string,(FONTDATA *)&System7Font,k&15,&scr);
-        ++k;
-    }
-
-    tmr_eventkill(ev);
-    DrawText(30,30,string,(FONTDATA *)&System7Font,0,&scr);
-
-    halSetCmdLineHeight(1*halScreen.CmdLineFont->BitmapHeight+2);
-    halRedrawAll(&scr);
-
-}
-
 // END THE CURRENTLY OPEN COMMAND LINE, RETURN 1 IF COMPILED SUCCESSFULLY
 // 0 IF ERROR.
 // WHEN 1, THE STACK CONTAINS THE OBJECT/S COMPILED
@@ -650,6 +620,143 @@ void invKeyHandler(BINT keymsg)
 }
 
 
+void spcKeyHandler(BINT keymsg)
+{
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+        halSetContext(halGetContext()|CONTEXT_INEDITOR);
+        uiOpenCmdLine();
+        }
+        uiInsertCharacters(" ",1);
+
+}
+
+void chsKeyHandler(BINT keymsg)
+{
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // ACTION WHEN IN THE STACK
+                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+                if(Exceptions) {
+                    // TODO: SHOW ERROR MESSAGE
+                    halShowErrorMsg();
+                    Exceptions=0;
+                }
+            halScreen.DirtyFlag|=STACK_DIRTY;
+        }
+
+    }
+    else{
+        // ACTION INSIDE THE EDITOR
+
+        // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER, CHANGE THE SIGN OF THE NUMBER IN THE TEXT
+        BYTEPTR startnum;
+        BYTEPTR line=(BYTEPTR)(CmdLineCurrentLine+1);
+
+        startnum=uiFindNumberStart();
+        if(!startnum) {
+            // SECOND CASE: IF TOKEN UNDER CURSOR IS EMPTY, IN 'D' MODE COMPILE OBJECT AND THEN EXECUTE NEG
+            startnum=line+halScreen.CursorPosition;
+            if(startnum>line) {
+            if(startnum[-1]=='+') { startnum[-1]='-'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
+            if(startnum[-1]=='-') { startnum[-1]='+'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
+            if((startnum[-1]=='E')||(startnum[-1]=='e') ) { uiInsertCharacters("-",1); return; }
+
+
+            }
+
+
+            if((halScreen.CursorState&0xff)=='D') {
+            // COMPILE AND EXECUTE NEG
+            if(endCmdLineAndCompile()) {
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+            if(Exceptions) {
+                // TODO: SHOW ERROR MESSAGE
+                halShowErrorMsg();
+                Exceptions=0;
+            }
+        halScreen.DirtyFlag|=STACK_DIRTY;
+            }
+
+            return;
+            }
+
+        }
+        else {
+            // WE FOUND A NUMBER
+            if(startnum>line) {
+            if(startnum[-1]=='+') { startnum[-1]='-'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
+            if(startnum[-1]=='-') { startnum[-1]='+'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
+            }
+            // NEED TO INSERT A CHARACTER HERE
+            BINT oldposition=halScreen.CursorPosition;
+            uiMoveCursor(startnum-line);
+            uiInsertCharacters("-",1);
+            uiMoveCursor(oldposition+1);
+            uiEnsureCursorVisible();
+            return;
+      }
+
+        // THIRD CASE: IF TOKEN UNDER CURSOR IS SOMETHING OTHER THAN A NUMBER, JUST INSERT A MINUS SIGN
+
+    }
+}
+
+void eexKeyHandler(BINT keymsg)
+{
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+            halSetContext(halGetContext()|CONTEXT_INEDITOR);
+            uiOpenCmdLine();
+            uiInsertCharacters("1E",2);
+            return;
+        }
+
+    }
+    else{
+        // ACTION INSIDE THE EDITOR
+
+        // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER
+        BYTEPTR startnum;
+        BYTEPTR line=(BYTEPTR)(CmdLineCurrentLine+1);
+
+        startnum=uiFindNumberStart();
+        if(!startnum) {
+            startnum=line+halScreen.CursorPosition;
+            // DO NOTHING IF THERE'S ALREADY AN 'E' BEFORE THE CURSOR
+            if((startnum>line) && ((startnum[-1]=='E')||(startnum[-1]=='e') )) return;
+
+            // SECOND CASE: IF TOKEN UNDER CURSOR IS EMPTY, IN 'D' MODE COMPILE OBJECT AND THEN APPEND 1E
+            uiInsertCharacters("1E",2);
+            return;
+        }
+        else {
+            // WE FOUND A NUMBER
+            if((startnum>line)&&((startnum[-1]=='-')||(startnum[-1]=='+'))) --startnum;
+
+            if((startnum>line) && ((startnum[-1]=='E')||(startnum[-1]=='e') )) {
+                uiMoveCursor(startnum-line);
+                // TODO: SELECT THE EXISTING NUMBER FOR DELETION ON NEXT KEYPRESS
+                uiEnsureCursorVisible();
+                return;
+            }
+
+            // NEED TO INSERT A CHARACTER HERE
+            BINT oldposition=halScreen.CursorPosition;
+            uiInsertCharacters("E",1);
+            uiMoveCursor(oldposition+1);
+            uiEnsureCursorVisible();
+            return;
+      }
+
+    }
+}
+
+
+
+
+
 void onPlusKeyHandler(BINT keymsg)
 {
 // INCREASE CONTRAST
@@ -714,7 +821,6 @@ struct keyhandler_t {
 
 // LIST OF HANDLERS, END WITH action=NULL
 struct keyhandler_t __keydefaulthandlers[]= {
-    { KM_PRESS|KB_SPC, CONTEXT_ANY,&testKeyHandler },
     { KM_PRESS|KB_1, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_2, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_3, CONTEXT_ANY,&numberKeyHandler },
@@ -735,6 +841,10 @@ struct keyhandler_t __keydefaulthandlers[]= {
     { KM_PRESS|KB_DIV, CONTEXT_ANY,&divKeyHandler },
     { KM_PRESS|KB_MUL, CONTEXT_ANY,&mulKeyHandler },
     { KM_PRESS|KB_Y, CONTEXT_ANY,&invKeyHandler },
+    { KM_PRESS|KB_SPC, CONTEXT_ANY,&spcKeyHandler },
+    { KM_PRESS|KB_W, CONTEXT_ANY,&chsKeyHandler },
+    { KM_PRESS|KB_V, CONTEXT_ANY,&eexKeyHandler },
+
     { KM_PRESS|KB_ADD|SHIFT_ONHOLD, CONTEXT_ANY,&onPlusKeyHandler },
     { KM_PRESS|KB_SUB|SHIFT_ONHOLD, CONTEXT_ANY,&onMinusKeyHandler },
 
@@ -806,346 +916,10 @@ int halProcessKey(BINT keymsg)
 
     if(!wasProcessed) wasProcessed=halDoDefaultKey(keymsg);
 
+    // *************** DEBUG ONLY ************
     /*
-
-    if( (KM_MESSAGE(keymsg)==KM_PRESS)||(KM_MESSAGE(keymsg)==KM_LPRESS)) {
-        DRAWSURFACE scr;
-        ggl_initscr(&scr);
-
-        if(keymsg==(KM_PRESS|KB_X)) {
-            throw_dbgexception("Wipeout Test",__EX_CONT | __EX_WARM | __EX_WIPEOUT | __EX_RESET );
-        }
-
-        if(keymsg==(KM_PRESS|KB_DOT)) {
-
-            // TEST THE RPL CORE
-
-            WORDPTR ptr=rplCompile(testprogram,strlen((char *)testprogram),1);
-            if(ptr)   {
-                rplSetEntryPoint(ptr);
-                tmr_t tstart=tmr_ticks();
-                rplRun();
-                tmr_t tend=tmr_ticks();
-                rplNewBINTPush((BINT64) (tend-tstart),DECBINT);
-                rplNewSINTPush(100000,DECBINT);
-                rplCallOvrOperator(OVR_DIV);
-
-                halRedrawStack(&scr);
-
-            }
-            else {
-                throw_dbgexception("Compile Failed",__EX_CONT);
-            }
-
-            wasProcessed=1;
-        }
-
-
-        if(keymsg==(KM_PRESS|KB_0)) {
-
-            // TEST THE RPL CORE
-
-            WORDPTR ptr=rplCompile(nq_stk,strlen(nq_stk),1);
-            if(ptr)   {
-                rplSetEntryPoint(ptr);
-                tmr_t tstart=tmr_ticks();
-                rplRun();
-                tmr_t tend=tmr_ticks();
-                rplNewBINTPush((BINT64) (tend-tstart),DECBINT);
-                rplNewSINTPush(100000,DECBINT);
-                rplCallOvrOperator(OVR_DIV);
-
-                halRedrawStack(&scr);
-
-            }
-            else {
-                throw_dbgexception("Compile Failed",__EX_CONT);
-            }
-
-            wasProcessed=1;
-        }
-
-        if(keymsg==(KM_PRESS|KB_2)) {
-
-            // TEST THE RPL CORE
-
-            WORDPTR ptr=rplCompile(nq_idx,strlen(nq_idx),1);
-            if(ptr)   {
-                rplSetEntryPoint(ptr);
-                tmr_t tstart=tmr_ticks();
-                rplRun();
-                tmr_t tend=tmr_ticks();
-                rplNewBINTPush((BINT64) (tend-tstart),DECBINT);
-                rplNewSINTPush(100000,DECBINT);
-                rplCallOvrOperator(OVR_DIV);
-
-                halRedrawStack(&scr);
-
-            }
-            else {
-                throw_dbgexception("Compile Failed",__EX_CONT);
-            }
-
-            wasProcessed=1;
-        }
-
-        if(keymsg==(KM_PRESS|KB_1)) {
-
-            // TEST THE RPL CORE
-
-            WORDPTR ptr=rplCompile(nq_istk,strlen(nq_istk),1);
-            if(ptr)   {
-                rplSetEntryPoint(ptr);
-                tmr_t tstart=tmr_ticks();
-                rplRun();
-                tmr_t tend=tmr_ticks();
-                rplNewBINTPush((BINT64) (tend-tstart),DECBINT);
-                rplNewSINTPush(100000,DECBINT);
-                rplCallOvrOperator(OVR_DIV);
-
-                halRedrawStack(&scr);
-
-            }
-            else {
-                throw_dbgexception("Compile Failed",__EX_CONT);
-            }
-
-            wasProcessed=1;
-        }
-
-
-        if(keymsg==(KM_PRESS|KB_3)) {
-
-            // TEST THE RPL CORE
-
-            WORDPTR ptr=rplCompile(nq_new,strlen(nq_new),1);
-            if(ptr)   {
-                rplSetEntryPoint(ptr);
-                tmr_t tstart=tmr_ticks();
-                rplRun();
-                tmr_t tend=tmr_ticks();
-                rplNewBINTPush((BINT64) (tend-tstart),DECBINT);
-                rplNewSINTPush(100000,DECBINT);
-                rplCallOvrOperator(OVR_DIV);
-
-                halRedrawStack(&scr);
-
-            }
-            else {
-                throw_dbgexception("Compile Failed",__EX_CONT);
-            }
-
-            wasProcessed=1;
-        }
-
-        if(keymsg==(KM_PRESS|KB_4)) {
-
-            // TEST THE RPL CORE
-
-            WORDPTR ptr=rplCompile(nq_werner,strlen(nq_werner),1);
-            if(ptr)   {
-                rplSetEntryPoint(ptr);
-                tmr_t tstart=tmr_ticks();
-                rplRun();
-                tmr_t tend=tmr_ticks();
-                rplNewBINTPush((BINT64) (tend-tstart),DECBINT);
-                rplNewSINTPush(100000,DECBINT);
-                rplCallOvrOperator(OVR_DIV);
-
-                halRedrawStack(&scr);
-
-            }
-            else {
-                throw_dbgexception("Compile Failed",__EX_CONT);
-            }
-
-            wasProcessed=1;
-        }
-
-
-        if(keymsg==(KM_PRESS|KB_7)) {
-
-            // TEST THE RPL CORE
-
-            WORDPTR ptr=rplCompile(realtest36,strlen(realtest36),1);
-            if(ptr)   {
-                rplSetEntryPoint(ptr);
-                tmr_t tstart=tmr_ticks();
-                rplRun();
-                tmr_t tend=tmr_ticks();
-                rplNewBINTPush((BINT64) (tend-tstart),DECBINT);
-                rplNewSINTPush(100000,DECBINT);
-                rplCallOvrOperator(OVR_DIV);
-
-                halRedrawStack(&scr);
-
-            }
-            else {
-                throw_dbgexception("Compile Failed",__EX_CONT);
-            }
-
-            wasProcessed=1;
-        }
-
-        if(keymsg==(KM_PRESS|KB_8)) {
-
-            // TEST THE RPL CORE
-
-            WORDPTR ptr=rplCompile(realtest108,strlen(realtest108),1);
-            if(ptr)   {
-                rplSetEntryPoint(ptr);
-                tmr_t tstart=tmr_ticks();
-                rplRun();
-                tmr_t tend=tmr_ticks();
-                rplNewBINTPush((BINT64) (tend-tstart),DECBINT);
-                rplNewSINTPush(100000,DECBINT);
-                rplCallOvrOperator(OVR_DIV);
-
-                halRedrawStack(&scr);
-
-            }
-            else {
-                throw_dbgexception("Compile Failed",__EX_CONT);
-            }
-
-            wasProcessed=1;
-        }
-
-        if(keymsg==(KM_PRESS|KB_9)) {
-
-            // TEST THE RPL CORE
-
-            WORDPTR ptr=rplCompile(realtest1008,strlen(realtest1008),1);
-            if(ptr)   {
-                rplSetEntryPoint(ptr);
-                tmr_t tstart=tmr_ticks();
-                rplRun();
-                tmr_t tend=tmr_ticks();
-                rplNewBINTPush((BINT64) (tend-tstart),DECBINT);
-                rplNewSINTPush(100000,DECBINT);
-                rplCallOvrOperator(OVR_DIV);
-
-                halRedrawStack(&scr);
-
-            }
-            else {
-                throw_dbgexception("Compile Failed",__EX_CONT);
-            }
-
-            wasProcessed=1;
-        }
-
-        if(keymsg==(KM_PRESS|KB_S)) {
-
-            // TEST THE RPL CORE
-
-            WORDPTR ptr=rplCompile(sincostest,strlen(sincostest),1);
-            if(ptr)   {
-                rplSetEntryPoint(ptr);
-                tmr_t tstart=tmr_ticks();
-                rplRun();
-                tmr_t tend=tmr_ticks();
-                rplNewBINTPush((BINT64) (tend-tstart),DECBINT);
-                rplNewSINTPush(100000,DECBINT);
-                rplCallOvrOperator(OVR_DIV);
-
-                halRedrawStack(&scr);
-
-            }
-            else {
-                throw_dbgexception("Compile Failed",__EX_CONT);
-            }
-
-            wasProcessed=1;
-        }
-
-    if(KM_KEY(keymsg)==KB_SPC) {
-        // SETUP A TIMER TO STOP THIS LOOP
-
-
-
-
-
-
-        waitforspeed=1;
-        HEVENT ev=tmr_eventcreate(&waitforspeed_handler,2000,0);
-        // DO SOMETHING REALLY LONG HERE
-        char string[7];
-        string[0]='n';
-        string[1]='e';
-        string[2]='w';
-        string[3]='R';
-        string[4]='P';
-        string[5]='L';
-        string[6]=0;
-        int k=0;
-        while(waitforspeed) {
-            DrawText(30,30,string,(FONTDATA *)&System7Font,k&15,&scr);
-            ++k;
-        }
-
-        tmr_eventkill(ev);
-        DrawText(30,30,string,(FONTDATA *)&System7Font,0,&scr);
-
-        halSetCmdLineHeight(1*halScreen.CmdLineFont->BitmapHeight+2);
-        halRedrawAll(&scr);
-
-        wasProcessed=1;
-
-    }
-
-    if(keymsg== (KM_PRESS | SHIFT_ONHOLD | KB_ADD)) {
-        // INCREASE CONTRAST
-        DRAWSURFACE scr;
-        ggl_initscr(&scr);
-        int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
-        // CLEAR STATUS AREA
-        ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
-
-        int j;
-        for(j=0;j<15;++j) {
-            ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop+7,STATUSAREA_X+1+3*j+2,ytop+12,ggl_mkcolor(j));
-            ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop,STATUSAREA_X+1+3*j+2,ytop+5,ggl_mkcolor(15-j));
-        }
-
-        halStatusAreaPopup();
-
-        __lcd_contrast++;
-        if(__lcd_contrast>0xf) __lcd_contrast=0xf;
-
-        lcd_setcontrast(__lcd_contrast);
-
-        wasProcessed=1;
-
-    }
-
-    if(keymsg== (KM_PRESS | SHIFT_ONHOLD | KB_SUB)) {
-        // DECREASE CONTRAST
-        DRAWSURFACE scr;
-        ggl_initscr(&scr);
-        int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
-        // CLEAR STATUS AREA
-        ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
-
-        int j;
-        for(j=0;j<15;++j) {
-            ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop+7,STATUSAREA_X+1+3*j+2,ytop+12,ggl_mkcolor(j));
-            ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop,STATUSAREA_X+1+3*j+2,ytop+5,ggl_mkcolor(15-j));
-        }
-
-        halStatusAreaPopup();
-
-        __lcd_contrast--;
-        if(__lcd_contrast<0) __lcd_contrast=0;
-        lcd_setcontrast(__lcd_contrast);
-
-        wasProcessed=1;
-
-
-    }
-    */
-
     if(!wasProcessed) {
+
     // ALL OTHER KEYS, JUST DISPLAY THE KEY NAME ON SCREEN
         DRAWSURFACE scr;
         ggl_initscr(&scr);
@@ -1188,6 +962,7 @@ int halProcessKey(BINT keymsg)
     if(KM_MESSAGE(keymsg)==KM_LPRESS) DrawText(SCREEN_WIDTH-width-42,ytop+halScreen.Menu2/2,"L=",(FONTDATA *)&System7Font,15,&scr);
 
     }
+    */
 
     // ONLY RETURN 1 WHEN THE OUTER LOOP IS SUPPOSED TO END
     return 0;
