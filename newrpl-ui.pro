@@ -73,7 +73,6 @@ SOURCES += main.cpp\
     newrpl/directory.c \
     newrpl/errors.c \
     newrpl/gc.c \
-    newrpl/hal.c \
     newrpl/io_substring.c \
     newrpl/lam.c \
     newrpl/lib-24-string.c \

@@ -11,7 +11,7 @@
 #define UNUSED_ARGUMENT(a) (void)(a)
 
 
-#ifdef TARGET_PC_SIMULATOR
+#ifdef TARGET_PC
 #include <stdlib.h>
 #include <string.h>
 

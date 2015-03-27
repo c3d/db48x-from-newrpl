@@ -9,8 +9,7 @@
 #include "hal.h"
 
 
-#ifdef TARGET_PC_SIMULATOR
-
+#ifdef TARGET_PC
 
 // NEWSIZE IS IN 32-BIT WORDS!
 WORDPTR *halGrowMemory(BINT zone, WORDPTR *base, BINT newsize)
