@@ -200,7 +200,7 @@ void PrintObj(int x,int y,WORDPTR obj,DRAWSURFACE *scr)
     WORDPTR string;
     BINT nchars;
     BYTEPTR charptr;
-    string=rplDecompile(obj);
+    string=rplDecompile(obj,0);
 
     if(string) {
     // NOW PRINT THE STRING OBJECT

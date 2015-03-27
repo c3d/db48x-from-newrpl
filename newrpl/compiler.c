@@ -273,7 +273,19 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         LAMTop=LAMTopSaved;
                         return 0;
                     }
-                    if(ISPROLOG((BINT)**ValidateTop)) **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | ((((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1);    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
+                    if(ISPROLOG((BINT)**ValidateTop)) {
+                        // STORE THE SIZE OF THE COMPOSITE IN THE WORD
+                        **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | ((((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1);
+                        // PREPARE THE NEWLY CREATED OBJECT FOR VALIDATION BY ITS PARENT
+                        CurrentConstruct=(BINT)((ValidateTop>RSTop)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
+                        ValidateHandler=rplGetLibHandler(LIBNUM(CurrentConstruct));
+                        LastCompiledObject=*ValidateTop;
+                        validate=1;
+                    }
+
+
+
+
                     libcnt=EXIT_LOOP;
                     force_libnum=-1;
                     break;
@@ -357,7 +369,14 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         LAMTop=LAMTopSaved;
                         return 0;
                     }
-                    if(ISPROLOG((BINT)**ValidateTop)) **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | ((((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1);    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
+                    if(ISPROLOG((BINT)**ValidateTop)) {
+                        **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | ((((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1);    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
+                        // PREPARE THE NEWLY CREATED OBJECT FOR VALIDATION BY ITS PARENT
+                        CurrentConstruct=(BINT)((ValidateTop>RSTop)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
+                        ValidateHandler=rplGetLibHandler(LIBNUM(CurrentConstruct));
+                        LastCompiledObject=*ValidateTop;
+                        validate=1;
+                    }
 
                     // FUTURE OPTIMIZATION:
                     // THE COMPILER GENERATES A DOSYMB WRAPPER FOR ALL ITEMS
@@ -370,7 +389,6 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                     libcnt=EXIT_LOOP;
                     force_libnum=-1;
-                    validate=1;
 
                     break;
 

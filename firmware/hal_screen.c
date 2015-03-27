@@ -237,7 +237,7 @@ void halRedrawStack(DRAWSURFACE *scr)
 
 
       // TODO: CHANGE DECOMPILE INTO PROPER DISPLAY FUNCTION
-      string=rplDecompile(rplPeekData(level));
+      string=rplDecompile(rplPeekData(level),0);
 
       if(string) {
       // NOW PRINT THE STRING OBJECT
