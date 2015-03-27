@@ -370,6 +370,8 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                     libcnt=EXIT_LOOP;
                     force_libnum=-1;
+                    validate=1;
+
                     break;
 
 
@@ -646,7 +648,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
         // HERE WE HAVE A COMPILED OPCODE
 
     // SUBMIT THE LAST COMPILED OBJECT FOR VALIDATION WITH THE CURRENT CONSTRUCT
-    if(validate) {
+    if(validate&&!infixmode) {
         if(ValidateHandler) {
             // CALL THE LIBRARY TO SEE IF IT'S OK TO HAVE THIS OBJECT
             CurOpcode=MKOPCODE(LIBNUM(CurrentConstruct),OPCODE_VALIDATE);
@@ -807,17 +809,36 @@ void rplDecompAppendString2(BYTEPTR str,BINT len)
 
 // BASIC DECOMPILE ONE OBJECT
 // RETURNS A NEW STRING OBJECT IN TEMPOB
+#define SAVED_POINTERS  4
 
-WORDPTR rplDecompile(WORDPTR object,BINT addprolog)
+
+WORDPTR rplDecompile(WORDPTR object,BINT embedded)
 {
     LIBHANDLER han;
     BINT infixmode=0;
+    WORDPTR *SavedRSTop;
+    if(embedded) {
+        SavedRSTop=RSTop;
+        // RESERVE MEMORY
+        if(RStkSize<=(RSTop+SAVED_POINTERS-RStk)) growRStk(RSTop+SAVED_POINTERS-RStk+RSTKSLACK);
+        if(Exceptions) return 0;
+
+        // SAVE ALL DECOMPILER POINTERS
+        *RSTop++=DecompileObject;
+        *RSTop++=EndOfObject;
+        *RSTop++=(WORDPTR)LAMTopSaved;
+        *RSTop++=SavedDecompObject;
+
+
+    }
+
+
     WORDPTR InfixOpTop=(WORDPTR)RSTop;
 
     // START DECOMPILE LOOP
     DecompileObject=object;
     // CREATE A STRING AT THE END OF TEMPOB
-    CompileEnd=TempObEnd;
+    if(!embedded) CompileEnd=TempObEnd;
     // SKIPOB TO DETERMINE END OF COMPILATION
     EndOfObject=rplSkipOb(object);
 
@@ -825,12 +846,12 @@ WORDPTR rplDecompile(WORDPTR object,BINT addprolog)
 
     // HERE ALL POINTERS ARE STORED IN GC-UPDATEABLE AREA
 
-    if(addprolog) {
+    if(!embedded) {
     // CREATE EMPTY STRING AT END OF TEMPOB
     rplCompileAppend(MKPROLOG(DOSTRING,0));
+    DecompStringEnd=CompileEnd;
     }
 
-    DecompStringEnd=CompileEnd;
     while(DecompileObject<EndOfObject)
     {
     // GET FIRST WORD
@@ -855,7 +876,17 @@ WORDPTR rplDecompile(WORDPTR object,BINT addprolog)
     case OK_STARTCONSTRUCT_INFIX:
         // PUSH THE SYMBOLIC ON A STACK AND SAVE THE COMPILER STATE
         if(RStkSize<=(InfixOpTop+1-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
-        if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
+        if(Exceptions) { LAMTop=LAMTopSaved;
+            if(embedded) {
+                // RESTORE ALL POINTERS BEFORE RETURNING
+                SavedDecompObject=*--RSTop;
+                LAMTopSaved=(WORDPTR *)*--RSTop;
+                EndOfObject=*--RSTop;
+                DecompileObject=*--RSTop;
+                RSTop=SavedRSTop;
+            }
+                return 0;
+            }
         InfixOpTop[1]=infixmode;
         InfixOpTop[0]=DecompileObject-EndOfObject;
         InfixOpTop+=2;
@@ -902,7 +933,17 @@ end_of_expression:
                 if(TI_TYPE(RetNum)>=TITYPE_OPERATORS) {
                 // PUSH THE OPERATOR ON THE STACK
                 if(RStkSize<=(InfixOpTop+1-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
-                if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
+                if(Exceptions) {
+                    LAMTop=LAMTopSaved;
+                    if(embedded) {
+                        // RESTORE ALL POINTERS BEFORE RETURNING
+                        SavedDecompObject=*--RSTop;
+                        LAMTopSaved=(WORDPTR *)*--RSTop;
+                        EndOfObject=*--RSTop;
+                        DecompileObject=*--RSTop;
+                        RSTop=SavedRSTop;
+                    }
+                    return 0; }
                 InfixOpTop[0]=*DecompileObject;
                 InfixOpTop[1]=RetNum;
                 InfixOpTop+=2;
@@ -971,6 +1012,15 @@ end_of_expression:
                         Exceptions|=EX_BADOPCODE;
                         ExceptionPointer=IPtr;
                         LAMTop=LAMTopSaved;     // RESTORE ENVIRONMENTS
+                        if(embedded) {
+                            // RESTORE ALL POINTERS BEFORE RETURNING
+                            SavedDecompObject=*--RSTop;
+                            LAMTopSaved=(WORDPTR *)*--RSTop;
+                            EndOfObject=*--RSTop;
+                            DecompileObject=*--RSTop;
+                            RSTop=SavedRSTop;
+                        }
+
                         return 0;
                     }
                     ++DecompileObject;
@@ -1340,7 +1390,7 @@ end_of_expression:
 
     // DONE, HERE WE HAVE THE STRING FINISHED
 
-    if(addprolog) {
+    if(!embedded) {
     // STORE THE SIZE OF THE STRING IN WORDS IN THE PROLOG
     *(CompileEnd-1)=MKPROLOG(DOSTRING+((-(WORD)DecompStringEnd)&3),(((WORD)DecompStringEnd-(WORD)CompileEnd)+3)>>2);
     CompileEnd=rplSkipOb(CompileEnd-1);
@@ -1353,10 +1403,28 @@ end_of_expression:
         if( CompileEnd+TEMPOBSLACK>TempObSize) {
             // ENLARGE TEMPOB AS NEEDED
             growTempOb((BINT)(CompileEnd-TempOb)+TEMPOBSLACK);
-            if(Exceptions) return 0;
+            if(Exceptions) {
+                if(embedded) {
+                    // RESTORE ALL POINTERS BEFORE RETURNING
+                    SavedDecompObject=*--RSTop;
+                    LAMTopSaved=(WORDPTR *)*--RSTop;
+                    EndOfObject=*--RSTop;
+                    DecompileObject=*--RSTop;
+                    RSTop=SavedRSTop;
+                }
+                return 0;
+            }
         }
 
-   if(addprolog) {
+   if(embedded) {
+           // RESTORE ALL POINTERS BEFORE RETURNING
+           SavedDecompObject=*--RSTop;
+           LAMTopSaved=(WORDPTR *)*--RSTop;
+           EndOfObject=*--RSTop;
+           DecompileObject=*--RSTop;
+           RSTop=SavedRSTop;
+   }
+   else {
     // STORE BLOCK SIZE
    rplAddTempBlock(TempObEnd);
    WORDPTR newobject=TempObEnd;

@@ -217,6 +217,21 @@ void LIB_HANDLER()
                 // WARNING, THIS USES INTERNAL COMPILER WORKINGS
                 WORDPTR matrix=*(ValidateTop-1);
                 ++*matrix;
+                // CHECK IF THERE IS A SIZE WORD YET
+                if(CompileEnd==matrix+1) {
+                    // THIS IS THE FIRST OBJECT IN THE ARRAY
+                    // ADD A DUMMY WORD
+                    rplCompileAppend(MKSIZE(1,0));
+                }
+                else {
+                    // THERE SHOULD BE A SIZE WORD ALREADY
+                    // INCREASE THE ROW COUNT
+                    BINT rows=ROWS(matrix[1]),cols=COLS(matrix[1]);
+                    matrix[1]=MKSIZE(rows+1,cols);
+                }
+
+
+
                 if(TokenLen>1) NextTokenStart=(WORDPTR)(((char *)TokenStart)+1);
                 RetNum=OK_CONTINUE_NOVALIDATE;
                 return;
@@ -296,7 +311,7 @@ void LIB_HANDLER()
 
             // NOW WRITE THE INDICES. ALL OFFSETS ARE RELATIVE TO MATRIX PROLOG!
             WORDPTR ptr=matrix+2,objptr=ptr+totalelements;
-            BINT count;
+            BINT count=0;
 
             while( (objptr<endofobjects)&&(count<totalelements)) {
                 *ptr=objptr-matrix;
@@ -332,11 +347,37 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
 
 
-        // TODO: IMPLEMENT RECURSIVE INNER DECOMPILING, THIS IS NOT POSSIBLE WITH CURRENT COMPILER
         if(ISPROLOG(*DecompileObject)) {
-            rplDecompAppendString((BYTEPTR)"[");
-            RetNum=OK_STARTCONSTRUCT;
+            rplDecompAppendString((BYTEPTR)"[ ");
+            BINT rows=ROWS(*(DecompileObject+1)),cols=COLS(*(DecompileObject+1));
+
+            // SCAN THE INDEX AND OUTPUT ALL OBJECTS INSIDE
+            BINT i,j;
+
+            for(i=0;i<rows;++i)
+            {
+                if(rows!=1) rplDecompAppendString("[ ");
+                if(Exceptions) { RetNum=ERR_INVALID; return; }
+                for(j=0;j<cols;++j)
+                {
+                    BINT offset=*(DecompileObject+2+i*cols+j);
+
+                    rplDecompile(DecompileObject+offset,1);    // RUN EMBEDDED
+                 if(Exceptions) { RetNum=ERR_INVALID; return; }
+                 rplDecompAppendChar(' ');
+                }
+                if(rows!=1) rplDecompAppendString("] ");
+                if(Exceptions) { RetNum=ERR_INVALID; return; }
+            }
+
+            rplDecompAppendChar(']');
+            if(Exceptions) { RetNum=ERR_INVALID; return; }
+
+            RetNum=OK_CONTINUE;
             return;
+
+
+
         }
 
 
