@@ -1,8 +1,5 @@
-
-
-
-#include <ui.h>
 #include <newrpl.h>
+#include <ui.h>
 
 void setup_hardware()
 {

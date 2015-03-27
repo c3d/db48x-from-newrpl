@@ -12,9 +12,6 @@
 #ifndef MPDECIMAL_H
 #include "mpdecimal.h"
 #endif
-
-
-
 // EXTERNAL API FOR THE NEWRPL MACHINE - TO BE USED ONLY BY USER LIBRARIES
 // BASIC CONSTANTS AND TYPE DEFINITIONS FOR THE RUN ENVIRONMENT
 
@@ -29,6 +26,12 @@ typedef int32_t BINT;
 typedef uint32_t UBINT;
 typedef int64_t BINT64;
 typedef uint64_t UBINT64;
+#if defined(__LP64__) || defined(_WIN64)
+typedef uint64_t PTR2NUMBER;
+#else
+typedef uint32_t PTR2NUMBER;
+#endif
+
 
 
 #ifdef __cplusplus
@@ -208,11 +211,11 @@ extern BINT rplCompareIDENT(WORDPTR id1,WORDPTR id2);
 extern BINT rplCompareIDENTByName(WORDPTR id1,BYTEPTR name,BINT len);
 extern BINT rplCompareObjects(WORDPTR id1,WORDPTR id2);
 extern WORDPTR rplGetLAM(WORDPTR nameobj);
-extern inline WORDPTR *rplGetLAMn(BINT idx);
-extern inline WORDPTR *rplGetLAMnName(BINT idx);
-extern inline WORDPTR *rplGetLAMnEnv(WORDPTR *LAMEnv, BINT idx);
-extern inline WORDPTR *rplGetLAMnNameEnv(WORDPTR *LAMEnv, BINT idx);
-extern inline void rplPutLAMn(BINT idx,WORDPTR object);
+extern WORDPTR *rplGetLAMn(BINT idx);
+extern WORDPTR *rplGetLAMnName(BINT idx);
+extern WORDPTR *rplGetLAMnEnv(WORDPTR *LAMEnv, BINT idx);
+extern WORDPTR *rplGetLAMnNameEnv(WORDPTR *LAMEnv, BINT idx);
+extern void rplPutLAMn(BINT idx,WORDPTR object);
 extern void rplCleanupLAMs(WORDPTR currentseco);
 extern void rplClearLAMs();
 extern WORDPTR *rplFindLAM(WORDPTR nameobj, BINT scanparents);

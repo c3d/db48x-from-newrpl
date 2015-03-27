@@ -4,14 +4,14 @@ void __tmr_eventreschedule();
 
 
 // TIMERS
-volatile long long __systmr __attribute__ ((section (".system_globals")));
-volatile long long __evtmr __attribute__ ((section (".system_globals")));
+volatile long long __systmr __SYSTEM_GLOBAL__;
+volatile long long __evtmr __SYSTEM_GLOBAL__;
 
 volatile long long __pcsystmr;  // MOVING COUNTER FOR SYSTEM PC TIMER
 long long __pctmr1; // TIMER1 COUNTDOWN
-unsigned int __sysfreq __attribute__ ((section (".system_globals")));
-volatile int __tmr_lock __attribute__ ((section (".system_globals")));
-timed_event tmr_events[NUM_EVENTS] __attribute__ ((section (".system_globals")));
+unsigned int __sysfreq __SYSTEM_GLOBAL__;
+volatile int __tmr_lock __SYSTEM_GLOBAL__;
+timed_event tmr_events[NUM_EVENTS] __SYSTEM_GLOBAL__;
 
 
 
