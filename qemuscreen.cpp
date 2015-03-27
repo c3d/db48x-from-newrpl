@@ -59,7 +59,6 @@ QEmuScreen::QEmuScreen(QWidget *parent) :
     }
 
     // ADD SOME ANNUNCIATORS
-    QGraphicsPixmapItem *hglass;
     annHourglass.setMask(annHourglass.createMaskFromColor(Qt::white));
     annBattery.setMask(annBattery.createMaskFromColor(Qt::white));
     annComms.setMask(annComms.createMaskFromColor(Qt::white));

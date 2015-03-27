@@ -1,6 +1,6 @@
 // THIS IS THE MAIN STABLE API FOR KEYBOARD ACCESS
-#include <ui.h>
 #include <newrpl.h>
+#include <ui.h>
 #include <libraries.h>
 
 
@@ -929,7 +929,7 @@ int halProcessKey(BINT keymsg)
     int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     // CLEAR STATUS AREA AND SHOW KEY THERE
     //ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
-    DrawText(SCREEN_WIDTH-width,ytop+halScreen.Menu2/2,(char *)keyNames[KM_KEY(keymsg)],(FONTDATA *)System7Font,15,&scr);
+    DrawTextBk(SCREEN_WIDTH-width,ytop+halScreen.Menu2/2,(char *)keyNames[KM_KEY(keymsg)],(FONTDATA *)System7Font,15,0,&scr);
     char *shiftstr;
     switch(KM_SHIFTPLANE(keymsg))
     {
@@ -957,9 +957,9 @@ int halProcessKey(BINT keymsg)
     default:
         shiftstr="";
     }
-    DrawText(SCREEN_WIDTH-width-32,ytop+halScreen.Menu2/2,shiftstr,(FONTDATA *)&System7Font,15,&scr);
+    DrawTextBk(SCREEN_WIDTH-width-32,ytop+halScreen.Menu2/2,shiftstr,(FONTDATA *)&System7Font,15,0,&scr);
 
-    if(KM_MESSAGE(keymsg)==KM_LPRESS) DrawText(SCREEN_WIDTH-width-42,ytop+halScreen.Menu2/2,"L=",(FONTDATA *)&System7Font,15,&scr);
+    if(KM_MESSAGE(keymsg)==KM_LPRESS) DrawTextBk(SCREEN_WIDTH-width-42,ytop+halScreen.Menu2/2,"L=",(FONTDATA *)&System7Font,15,0,&scr);
 
     }
     */

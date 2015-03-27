@@ -750,7 +750,7 @@ void rplDecompAppendChar(BYTE c)
     DecompStringEnd=(WORDPTR)(((BYTEPTR)DecompStringEnd)+1);
 
     if(!(((BINT)DecompStringEnd)&3)) {
-        if( ((WORDPTR)((((WORD)DecompStringEnd)+3)&~3))+TEMPOBSLACK>=TempObSize) {
+        if( ((WORDPTR)((((PTR2NUMBER)DecompStringEnd)+3)&~((PTR2NUMBER)3)))+TEMPOBSLACK>=TempObSize) {
             // ENLARGE TEMPOB AS NEEDED
             growTempOb((((((BYTEPTR)DecompStringEnd)+3-(BYTEPTR)TempOb))>>2)+TEMPOBSLACK);
         }
@@ -762,7 +762,7 @@ void rplDecompAppendString(BYTEPTR str)
 {
     BINT len=strlen((char *)str);
 
-        if( ((WORDPTR)((((WORD)DecompStringEnd)+len+3)&~3))+TEMPOBSLACK>=TempObSize) {
+        if( ((WORDPTR)((((PTR2NUMBER)DecompStringEnd)+len+3)&~((PTR2NUMBER)3)))+TEMPOBSLACK>=TempObSize) {
             // ENLARGE TEMPOB AS NEEDED
             growTempOb((((((BYTEPTR)DecompStringEnd)+len+3-(BYTEPTR)TempOb))>>2)+TEMPOBSLACK);
             // IF THERE'S NOT ENOUGH MEMORY, RETURN IMMEDIATELY
@@ -784,7 +784,7 @@ void rplDecompAppendString(BYTEPTR str)
 
 void rplDecompAppendString2(BYTEPTR str,BINT len)
 {
-        if( ((WORDPTR)((((WORD)DecompStringEnd)+len+3)&~3))+TEMPOBSLACK>=TempObSize) {
+        if( ((WORDPTR)((((PTR2NUMBER)DecompStringEnd)+len+3)&~((PTR2NUMBER)3)))+TEMPOBSLACK>=TempObSize) {
             // ENLARGE TEMPOB AS NEEDED
             growTempOb((((((BYTEPTR)DecompStringEnd)+len+3-(BYTEPTR)TempOb))>>2)+TEMPOBSLACK);
             // IF THERE'S NOT ENOUGH MEMORY, RETURN IMMEDIATELY

@@ -1,5 +1,5 @@
-#include <ui.h>
 #include <newrpl.h>
+#include <ui.h>
 #include <libraries.h>
 // THIS IS THE MAIN STABLE API TO ACCESS THE SCREEN
 
@@ -228,7 +228,7 @@ void halRedrawStack(DRAWSURFACE *scr)
       halInt2String(level,num);
       numwidth=StringWidth(num,(FONTDATA *)System7Font);
       xright=numwidth>12? numwidth:12;
-      ggl_rect(scr,scr->clipx,ytop,scr->clipx2,y-1,0);  // CLEAR RECTANGLE
+      ggl_cliprect(scr,scr->clipx,ytop,scr->clipx2,y-1,0);  // CLEAR RECTANGLE
       DrawText(xright-numwidth,ytop,num,(FONTDATA *)System7Font,0xf,scr);
       ggl_vline(scr,xright,ytop,y-1,ggl_mkcolor(0x8));
 

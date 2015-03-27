@@ -1,5 +1,5 @@
-#include <ui.h>
 #include <newrpl.h>
+#include <ui.h>
 
 // PC IMPLEMENTATION
 #define DSTK_SIZE 16384     // 64K FOR DATA STACK MAXIMUM

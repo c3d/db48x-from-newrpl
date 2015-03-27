@@ -1,3 +1,4 @@
+#include <ui.h>
 
 #define LCD_TARGET_FREQ 500000
 #define LCD_W 160
@@ -12,7 +13,7 @@ char ExceptionScreen[8192];
 
 
 
-int __lcd_contrast __attribute__ ((section (".system_globals")));
+int __lcd_contrast __SYSTEM_GLOBAL__;
 
 void __lcd_fix()
 {
@@ -36,12 +37,14 @@ void lcd_on()
 void lcd_save(unsigned int *buf)
 {
     *buf=__lcd_mode;
-    buf[1]=(unsigned int)__lcd_buffer;
+    unsigned int **ptr=(unsigned int **)&(buf[1]);
+    *ptr=__lcd_buffer;
 }
 
 void lcd_restore(unsigned int *buf)
 {
-    __lcd_buffer=(unsigned int *)buf[1];
+    unsigned int **ptr=(unsigned int **)&(buf[1]);
+    __lcd_buffer=*ptr;
     __lcd_mode=*buf;
 }
 
@@ -52,7 +55,7 @@ void lcd_restore(unsigned int *buf)
 
 void lcd_setcontrast(int level)
 {
-    int value;
+//    int value;
 if(level>15 || level<0) level=7;
 
 // TODO: ADJUST CONTRAST IN EMULATED SCREEN
@@ -60,7 +63,7 @@ if(level>15 || level<0) level=7;
 
 // SETS VIDEO MODE AND RETURNS WIDTH OF THE SCREEN IN BYTES
 
-int lcd_setmode(int mode, int *physbuf)
+int lcd_setmode(int mode, unsigned int *physbuf)
 {
 
 // mode=0 -> Mono

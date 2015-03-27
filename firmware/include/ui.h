@@ -1,9 +1,9 @@
 #ifndef UI_H
 #define UI_H
 
-#ifndef NEWRPL_H
 #define UNUSED_ARGUMENT(a) (void)(a)
 
+#ifndef NEWRPL_H
 // DEFINE COMMON TYPES
 #include <stdint.h>
 
@@ -16,6 +16,12 @@ typedef int32_t BINT;
 typedef uint32_t UBINT;
 typedef int64_t BINT64;
 typedef uint64_t UBINT64;
+#if defined(__LP64__) || defined(_WIN64)
+typedef uint64_t PTR2NUMBER;
+#else
+typedef uint32_t PTR2NUMBER;
+#endif
+
 
 #endif
 

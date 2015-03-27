@@ -101,8 +101,13 @@ const char *mpd_version(void);
 #define CONFIG_32
 #define ANSI
 #undef LEGACY_COMPILER
-/* END OF newRPL SPECIFIC CODE, IT'S CLEAN FROM THE ORIGINAL MPDECIMAL LIBRARY FROM HERE ON  */
 
+#ifdef TARGET_PC
+#define __READ_ONLY__
+#else
+#define __READ_ONLY__ __attribute__((section (".rodata")))
+#endif
+/* END OF newRPL SPECIFIC CODE, IT'S CLEAN FROM THE ORIGINAL MPDECIMAL LIBRARY FROM HERE ON  */
 
 /* BEGIN CONFIG_64 */
 #if defined(CONFIG_64)
@@ -771,7 +776,6 @@ void mpd_copy_flags(mpd_t *result, const mpd_t *a);
 /******************************************************************************/
 /*                            Memory handling                                 */
 /******************************************************************************/
-#define __READ_ONLY__ __attribute__((section (".rodata")))
 extern void * __READ_ONLY__ (* mpd_mallocfunc)(size_t size);
 extern void * __READ_ONLY__ (* mpd_callocfunc)(size_t nmemb, size_t size);
 extern void * __READ_ONLY__ (* mpd_reallocfunc)(void *ptr, size_t current, size_t size);

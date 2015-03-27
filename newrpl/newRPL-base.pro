@@ -2,7 +2,7 @@ TEMPLATE = app
 CONFIG += console
 CONFIG -= qt
 
-DEFINES += "TARGET_PC_SIMULATOR=1"
+DEFINES += "TARGET_PC"
 
 SOURCES += main.cpp \
     runstream.c \
