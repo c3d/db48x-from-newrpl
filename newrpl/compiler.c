@@ -322,6 +322,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
                     *ValidateTop++=CompileEnd-1; // POINTER TO THE WORD OF THE COMPOSITE, NEEDED TO STORE THE SIZE
                     infixmode=1;
+                    previous_tokeninfo=0;
                     InfixOpTop=(WORDPTR)ValidateTop;
                     probe_libnum=-1;
                     probe_tokeninfo=0;
