@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_RAM 16*1024    // 64KBYTES PER AREA = 6*64 TOTAL
+#define MAX_RAM 16*1024    // 16KBYTES PER AREA = 6*16 TOTAL, ON 64-BIT SYSTEMS IT'S 32KBYTES
 
 #define SCRATCH_MEMORY
 #define PERSISTENT_MEMORY

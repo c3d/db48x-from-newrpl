@@ -68,7 +68,7 @@ void growDirs(WORD newtotalsize)
 
 
 
-#define MakeNewHole(start,end,nwords)    memmovew(start+nwords,start,(WORD)(end-start))
+#define MakeNewHole(start,end,nwords)    memmovew(start+nwords,start,(PTR2NUMBER)(end-start)*(sizeof(void*)>>2))
 
 
 // DIRS STACK IS INCREASE AFTER FOR STORE, DECREASE BEFORE FOR READ
