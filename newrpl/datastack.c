@@ -147,7 +147,7 @@ BINT rplCountSnapshots()
 
     while(snapptr>DStk) {
         ++count;
-        snapptr-=((BINT)*(snapptr-1))+1;
+        snapptr-=((PTR2NUMBER)*(snapptr-1))+1;
     }
     return count;
 }
@@ -163,7 +163,7 @@ void rplRemoveSnapshot(BINT numsnap)
 
     while((snapptr>DStk)&&(numsnap>0)) {
         prevptr=snapptr;
-        snapptr-=((BINT)*(snapptr-1))+1;
+        snapptr-=((PTR2NUMBER)*(snapptr-1))+1;
         --numsnap;
     }
 
@@ -173,7 +173,7 @@ void rplRemoveSnapshot(BINT numsnap)
     }
 
     // MOVE THE ENTIRE STACK DOWN
-    memmovew(snapptr,prevptr,DSTop-prevptr);
+    memmovew(snapptr,prevptr,(DSTop-prevptr)*(sizeof(void*)>>2));
     // FIX THE POINTERS
     DSTop-=prevptr-snapptr;
     DStkBottom-=prevptr-snapptr;
@@ -197,7 +197,7 @@ void rplTakeSnapshot()
         return;
     }
 
-    memcpyw(DSTop,bottom,levels);
+    memcpyw(DSTop,bottom,levels*(sizeof(void*)>>2));
     DStkProtect+=levels+1;
     DStkBottom+=levels+1;
     DSTop+=levels;
@@ -217,7 +217,7 @@ void rplRestoreSnapshot(BINT numsnap)
 
     while((snapptr>DStk)&&(numsnap>0)) {
         prevptr=snapptr;
-        snapptr-=((BINT)*(snapptr-1))+1;
+        snapptr-=((PTR2NUMBER)*(snapptr-1))+1;
         --numsnap;
     }
 
@@ -235,7 +235,7 @@ void rplRestoreSnapshot(BINT numsnap)
         }
 
         // COPY THE SNAPSHOT TO CURRENT STACK
-        memcpyw(DStkBottom,snapptr,levels);
+        memcpyw(DStkBottom,snapptr,levels*(sizeof(void*)>>2));
         // ADJUST STACK POINTERS
         DSTop=DStkBottom+levels;
         DStkProtect=DStkBottom; // PROTECTIONS ARE NOT SAVED WITHIN A SNAPSHOT
