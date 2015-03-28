@@ -1,3 +1,5 @@
+#include <ui.h>
+
 extern unsigned int __saveint;
 
 void cpu_intoff()

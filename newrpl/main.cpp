@@ -798,10 +798,15 @@ int main()
     start=clock();
     rplSetEntryPoint(ptr);
 
+
+    printf("1DStkBottom=%p\n",DStkBottom);
+
     // LIMIT UNDO LEVELS TO 10
     while(rplCountSnapshots()>=10) rplRemoveSnapshot(rplCountSnapshots());
+    printf("2DStkBottom=%p\n",DStkBottom);
 
     rplTakeSnapshot();
+    printf("3DStkBottom=%p\n",DStkBottom);
 
     do {
 

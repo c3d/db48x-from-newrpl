@@ -1,3 +1,5 @@
+#include <ui.h>
+
 extern unsigned int __cpu_intoff();
 extern void __cpu_inton(unsigned int);
 extern void __tmr_eventreschedule();

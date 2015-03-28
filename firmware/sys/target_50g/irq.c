@@ -1,3 +1,4 @@
+#include <ui.h>
 
 #define HWREG(base,off) ( (volatile unsigned int *) (((int)base+(int)off)))
 

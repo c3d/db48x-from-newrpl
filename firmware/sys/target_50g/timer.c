@@ -1,3 +1,4 @@
+#include <ui.h>
 
 void __tmr_eventreschedule();
 

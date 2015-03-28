@@ -1,3 +1,5 @@
+#include <ui.h>
+
 
 #define LCD_TARGET_FREQ 500000
 #define LCD_W 160
@@ -183,7 +185,7 @@ if(level>15 || level<0) level=7;
 
 // SETS VIDEO MODE AND RETURNS WIDTH OF THE SCREEN IN BYTES
 
-int lcd_setmode(int mode, int *physbuf)
+int lcd_setmode(int mode, unsigned int *physbuf)
 {
 
 // mode=0 -> Mono

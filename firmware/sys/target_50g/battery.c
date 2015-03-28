@@ -1,3 +1,5 @@
+#include <ui.h>
+
 unsigned int __battery __attribute__ ((section (".system_globals")));
 
 #define HWREG(base,off) ( (volatile unsigned int *) (((int)base+(int)off)))

@@ -1,3 +1,11 @@
+#include <ui.h>
+
+typedef int size_t;
+
+#define INT_MAX 0x7fffffff
+#define INT_MIN (-INT_MAX -1)
+
+
 // THESE ARE STUB FUNCTIONS NEEDED BY libgcc TO PROCESS DIV BY ZERO EXCEPTIONS
 
 int errno __attribute__ ((section (".system_globals")));

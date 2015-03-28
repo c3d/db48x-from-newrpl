@@ -1031,7 +1031,7 @@ extern int StringWidthN(char *Text,int nchars,FONTDATA *Font);
 
 
 extern int cpu_getlock(int lockvar,volatile int *lock_ptr);
-extern void cpu_setspeed(int);
+extern int cpu_setspeed(int);
 
 // LCD LOW-LEVEL HARDWARE API
 
