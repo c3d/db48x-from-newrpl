@@ -95,6 +95,7 @@ enum CompileErrors {
     OK_STARTCONSTRUCT_SPLITTOKEN,
     OK_STARTCONSTRUCT_INFIX,
     OK_ENDCONSTRUCT_INFIX,
+    OK_ENDCONSTRUCT_INFIX_SPLITTOKEN,
     ERR_NOTMINE,
     ERR_NOTMINE_SPLITTOKEN,
     ERR_SYNTAX,
@@ -162,6 +163,14 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 
 // CONVENIENCE MACRO TO CREATE SMALL INTEGERS
 #define MAKESINT(a) MKOPCODE(DECBINT,(a)&0x3ffff)
+
+
+// CONVENIENCE MACRO TO GET SIZE OF A MATRIX
+#define MATMKSIZE(rows,cols) ( (((rows)&0xffff)<<16)|((cols)&0xffff) )
+#define MATROWS(size) ( ((size)>>16)&0xffff )
+#define MATCOLS(size) ( (size)&0xffff )
+
+
 
 // CONSTANTS FOR LAM ENVIRONMENTS
 #define LAM_BASESECO     MAKESINT(0x10000)

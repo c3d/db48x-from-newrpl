@@ -585,7 +585,8 @@ void LIB_HANDLER()
         RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_REAL,0,1);
         return;
     case OPCODE_LIBINSTALL:
-        RetNum=(UBINT)libnumberlist;
+        LibraryList=(WORDPTR)libnumberlist;
+        RetNum=OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:
         return;

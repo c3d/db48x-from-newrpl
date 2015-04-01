@@ -81,11 +81,11 @@ BINT rplInstallLibrary(LIBHANDLER handler)
     if(!handler) return 0;
     WORD savedOpcode=CurOpcode;
     CurOpcode=OPCODE_LIBINSTALL;
-    RetNum=0;
+    RetNum=-1;
     (*handler)();   // CALL THE HANDLER TO GET THE LIBRARY NUMBER IN RetNum;
     CurOpcode=savedOpcode;
-    if(RetNum!=0) {
-    listnumbers=(HALFWORD *)RetNum;
+    if(RetNum==OK_CONTINUE) {
+    listnumbers=(HALFWORD *)LibraryList;
     while(*listnumbers) {
 
     if(*listnumbers<MAXLOWLIBS) {

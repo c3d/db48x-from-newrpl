@@ -23,6 +23,7 @@ extern WORDPTR GC_PTRUpdate[MAX_GC_PTRUPDATE];
 #define ArgPtr1             GC_PTRUpdate[5]     // NAME FOR USE BY THE LIBRARIES
 #define DecompileObject     GC_PTRUpdate[5]     // NAME FOR USE BY THE DECOMPILER
 #define TokenStart          GC_PTRUpdate[5]     // NAME AS USED BY THE COMPILER
+#define LibraryList         GC_PTRUpdate[5]     // NAME AS USED BY THE LIBRARY INSTALLATION ROUTINES
 
 #define ArgPtr2             GC_PTRUpdate[6]     // NAME FOR USE BY LIBRARIES
 #define BlankStart          GC_PTRUpdate[6]     // NAME AS USED BY THE COMPILER

@@ -330,6 +330,9 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     force_libnum=-1;
                     validate=1;
                     break;
+                case OK_ENDCONSTRUCT_INFIX_SPLITTOKEN:
+                    splittoken=1;
+                    // LET IT FALL THROUGH THE REGULAR INFIX
                 case OK_ENDCONSTRUCT_INFIX:
 
                 if(infixmode) {

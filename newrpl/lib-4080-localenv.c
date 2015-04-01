@@ -153,7 +153,8 @@ void LIB_HANDLER()
         RetNum=OK_CONTINUE;
         return;
     case OPCODE_LIBINSTALL:
-        RetNum=(UBINT)libnumberlist;
+        LibraryList=(WORDPTR)libnumberlist;
+        RetNum=OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:
         return;

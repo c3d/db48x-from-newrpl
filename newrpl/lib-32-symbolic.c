@@ -947,8 +947,8 @@ void LIB_HANDLER()
         if(*((char *)TokenStart)=='\'') {
             // FOUND END OF SYMBOLIC OBJECT
 
-            if(TokenLen>1) RetNum=ERR_SYNTAX;
-            else RetNum= OK_ENDCONSTRUCT_INFIX;
+            if(TokenLen>1) NextTokenStart=(WORDPTR)(((char *)TokenStart)+1);
+            RetNum= OK_ENDCONSTRUCT_INFIX;
             return;
         }
 
@@ -992,7 +992,8 @@ void LIB_HANDLER()
 
 
     case OPCODE_LIBINSTALL:
-        RetNum=(UBINT)libnumberlist;
+        LibraryList=(WORDPTR)libnumberlist;
+        RetNum=OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:
         return;
