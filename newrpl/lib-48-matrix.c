@@ -59,76 +59,6 @@ const char * const LIB_NAMES[]= { CMD_EXTRANAME , CMD_LIST  };
 
 
 
-#define MKSIZE(rows,cols) ( (((rows)&0xffff)<<16)|((cols)&0xffff) )
-#define ROWS(size) ( ((size)>>16)&0xffff )
-#define COLS(size) ( (size)&0xffff )
-
-
-
-
-// COMPARE TWO ITEMS WITHIN AN ARRAY, BY CALLING THE OPERATOR CMP
-// OPERATOR CMP MUST RETURN -1, 0 OR 1 IF B>A, B==A, OR A>B RESPECTIVELY
-
-BINT rplArraytemCompare(WORDPTR a,WORDPTR b)
-{
-
-    rplPushData(a);
-    rplPushData(b);
-    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_CMP));
-    if(Exceptions) return 0;
-    BINT r=rplReadBINT(rplPopData());
-    if(r==0) return (BINT)(a-b);
-    return r;
-
-}
-
-// PERFORM AN OPERATION BETWEEN 2 ITEMS, POP THE RESULT FROM THE STACK
-// AND RETURN IT AS A POINTER TO THE OBJECT.
-// KEEPS THE STACK CLEAN EVEN IF THERE ARE EXCEPTIONS
-// USES STACK PROTECTION AND PERFORMS PROPER STACK CLEANUP
-
-WORDPTR rplArrayItemBinaryOp(WORDPTR a,WORDPTR b, WORD Opcode)
-{
-    rplProtectData();
-    rplPushData(a);
-    rplPushData(b);
-    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OPCODE(Opcode)));
-    if(Exceptions) {
-        rplClearData();
-        rplUnprotectData();
-        return 0;
-    }
-    WORDPTR result=0;
-    if(rplDepthData()>0)   result=rplPopData();
-    rplClearData();
-    rplUnprotectData();
-    return result;
-}
-
-WORDPTR rplArrayItemUnaryOp(WORDPTR a, WORD Opcode)
-{
-    rplProtectData();
-    rplPushData(a);
-    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OPCODE(Opcode)));
-    if(Exceptions) {
-        rplClearData();
-        rplUnprotectData();
-        return 0;
-    }
-    WORDPTR result=0;
-    if(rplDepthData()>0)   result=rplPopData();
-    rplClearData();
-    rplUnprotectData();
-    return result;
-}
-
-
-// OTHER ARRAY FUNCTIONS HERE
-
-
-
-
-
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
@@ -221,13 +151,13 @@ void LIB_HANDLER()
                 if(CompileEnd==matrix+1) {
                     // THIS IS THE FIRST OBJECT IN THE ARRAY
                     // ADD A DUMMY WORD
-                    rplCompileAppend(MKSIZE(1,0));
+                    rplCompileAppend(MATMKSIZE(1,0));
                 }
                 else {
                     // THERE SHOULD BE A SIZE WORD ALREADY
                     // INCREASE THE ROW COUNT
-                    BINT rows=ROWS(matrix[1]),cols=COLS(matrix[1]);
-                    matrix[1]=MKSIZE(rows+1,cols);
+                    BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+                    matrix[1]=MATMKSIZE(rows+1,cols);
                 }
 
 
@@ -267,7 +197,7 @@ void LIB_HANDLER()
                 return;
             }
             WORDPTR matrix=*(ValidateTop-1);
-            BINT rows=ROWS(matrix[1]),cols=COLS(matrix[1]);
+            BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
             BINT totalelements=rows*cols;
 
             if(CurrentConstruct!=MKPROLOG(LIBRARY_NUMBER,0)) {
@@ -349,7 +279,7 @@ void LIB_HANDLER()
 
         if(ISPROLOG(*DecompileObject)) {
             rplDecompAppendString((BYTEPTR)"[ ");
-            BINT rows=ROWS(*(DecompileObject+1)),cols=COLS(*(DecompileObject+1));
+            BINT rows=MATROWS(*(DecompileObject+1)),cols=MATCOLS(*(DecompileObject+1));
 
             // SCAN THE INDEX AND OUTPUT ALL OBJECTS INSIDE
             BINT i,j;
@@ -414,14 +344,14 @@ void LIB_HANDLER()
             // MOVE THE FIRST OBJECT UP IN MEMORY TO MAKE ROOM FOR THE SIZE WORD
             memmovew(LastCompiledObject+1,LastCompiledObject,CompileEnd-1-LastCompiledObject);
 
-            matrix[1]=MKSIZE(1,1);
+            matrix[1]=MATMKSIZE(1,1);
 
         }
 
         else {
             // IF THIS IS THE FIRST ROW, INCREASE THE COLUMN COUNT
-            BINT rows=ROWS(matrix[1]),cols=COLS(matrix[1]);
-            if(rows==1) { matrix[1]=MKSIZE(rows,cols+1); }
+            BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+            if(rows==1) { matrix[1]=MATMKSIZE(rows,cols+1); }
 
         }
 
@@ -431,7 +361,8 @@ void LIB_HANDLER()
         return;
     }
     case OPCODE_LIBINSTALL:
-        RetNum=(UBINT)libnumberlist;
+        LibraryList=(WORDPTR)libnumberlist;
+        RetNum=OK_CONTINUE;
         return;
     case OPCODE_LIBREMOVE:
         return;
