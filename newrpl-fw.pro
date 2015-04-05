@@ -7,11 +7,22 @@
 
 TARGET = newrpl-fw
 TEMPLATE = lib
-CONFIG = static
+CONFIG = static ordered
 
 DEFINES += TARGET_50G
 
 SOURCES +=\
+    firmware/sys/target_50g/preamble.c \
+    firmware/sys/target_50g/boot.c \
+    firmware/sys/target_50g/battery.c \
+    firmware/sys/target_50g/cpu.c \
+    firmware/sys/target_50g/exception.c \
+    firmware/sys/target_50g/irq.c \
+    firmware/sys/target_50g/keyboard.c \
+    firmware/sys/target_50g/lcd.c \
+    firmware/sys/target_50g/stdlib.c \
+    firmware/sys/target_50g/timer.c \
+    firmware/sys/target_50g/mem.c \
     firmware/ggl/ggl/ggl_bitblt.c \
     firmware/ggl/ggl/ggl_bitbltoper.c \
     firmware/ggl/ggl/ggl_filter.c \
@@ -107,16 +118,7 @@ SOURCES +=\
     newrpl/contrib/mpdecimal-2.4.0/libmpdec/io.c \
     newrpl/contrib/mpdecimal-2.4.0/libmpdec/numbertheory.c \
     firmware/ui_cmdline.c \
-    newrpl/lib-48-matrix.c \
-    firmware/sys/target_50g/battery.c \
-    firmware/sys/target_50g/cpu.c \
-    firmware/sys/target_50g/exception.c \
-    firmware/sys/target_50g/irq.c \
-    firmware/sys/target_50g/keyboard.c \
-    firmware/sys/target_50g/lcd.c \
-    firmware/sys/target_50g/stdlib.c \
-    firmware/sys/target_50g/timer.c \
-    firmware/sys/target_50g/mem.c
+    newrpl/lib-48-matrix.c
 
 HEADERS  += \
     firmware/include/ggl.h \
@@ -130,6 +132,7 @@ HEADERS  += \
 
 # This might need to be adapted to each cross-compiler installation
 INCLUDEPATH += /usr/local/lib/gcc/arm-none-eabi/4.9.1/include
+QMAKE_LIBDIR += /usr/local/lib/gcc/arm-none-eabi/4.9.1
 # End of cross-compiler dependent
 
 
@@ -139,14 +142,17 @@ LIBS +=
 
 FORMS    +=
 
-DISTFILES +=
+DISTFILES += \
+    firmware/ld.script
 
 RESOURCES +=
 
 QMAKE_CC = arm-none-eabi-gcc
 QMAKE_CXX = arm-none-eabi-g++
-QMAKE_AR_CMD = arm-none-eabi-ar -cqs $(TARGET) $(OBJECTS)
+#QMAKE_AR_CMD = arm-none-eabi-ar -cqs $(TARGET) $(OBJECTS)
+QMAKE_AR_CMD = arm-none-eabi-ld --verbose -T$$PWD/firmware/ld.script -nodefaultlibs -nostdlib -L$$QMAKE_LIBDIR $(OBJECTS) -lgcc -o $(TARGET).elf
 
 QMAKE_CFLAGS = -mtune=arm920t -mcpu=arm920t -mlittle-endian -fomit-frame-pointer -msoft-float -Os -pipe -mthumb-interwork -nostdinc
 QMAKE_LFLAGS = -nodefaultlibs -nostdlib
+
 

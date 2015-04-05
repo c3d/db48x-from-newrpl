@@ -17,7 +17,7 @@ SEARCH_DIR(".");
 
 /* ALL MODULES WILL BE PRELINKED */
 
-STARTUP("fw_preamble.o")
+/* STARTUP("preamble.o")*/
 
 SECTIONS
 {
