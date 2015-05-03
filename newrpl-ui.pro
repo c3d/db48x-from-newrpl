@@ -122,7 +122,9 @@ SOURCES += main.cpp\
     firmware/sys/target_pc/boot.c \
     rplthread.cpp \
     firmware/ui_cmdline.c \
-    newrpl/lib-48-matrix.c
+    newrpl/lib-48-matrix.c \
+    newrpl/utf8lib.c \
+    newrpl/utf8data.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -135,7 +137,8 @@ HEADERS  += mainwindow.h \
     newrpl/newrpl.h \
     newrpl/sysvars.h \
     newrpl/contrib/mpdecimal-2.4.0/libmpdec/mpdecimal.h \
-    rplthread.h
+    rplthread.h \
+    newrpl/utf8lib.h
 
 INCLUDEPATH += firmware/include newrpl newrpl/contrib/mpdecimal-2.4.0/libmpdec /usr/local/include /usr/include
 

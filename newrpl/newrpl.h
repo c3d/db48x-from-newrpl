@@ -12,6 +12,10 @@
 #ifndef MPDECIMAL_H
 #include "mpdecimal.h"
 #endif
+#ifndef UTF8LIB_H
+#include "utf8lib.h"
+#endif
+
 // EXTERNAL API FOR THE NEWRPL MACHINE - TO BE USED ONLY BY USER LIBRARIES
 // BASIC CONSTANTS AND TYPE DEFINITIONS FOR THE RUN ENVIRONMENT
 
@@ -309,8 +313,10 @@ extern void rplSymbApplyOperator(WORD Opcode,BINT nargs);
 extern void rplSymbRuleMatch();
 
 // STRINGS
+// RPL STRING OBJECT
 extern void rplSetStringLength(WORDPTR string,BINT length);
 extern BINT rplStrLen(WORDPTR string);
+extern BINT rplStrSize(WORDPTR string);
 extern BINT rplStringGetLinePtr(WORDPTR str,BINT line);
 
 

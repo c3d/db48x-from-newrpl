@@ -18,7 +18,7 @@ void uiSetCmdLineText(WORDPTR text)
     halScreen.LineIsModified=-1;
 
     // SET CURSOR AT END OF TEXT
-    BINT end=rplStrLen(CmdLineText);
+    BINT end=rplStrSize(CmdLineText);
     BYTEPTR linestart;
     halScreen.LineCurrent=uiGetLinebyOffset(end,&linestart);
     halScreen.CursorPosition=((BYTEPTR)rplSkipOb(CmdLineText))-linestart;
@@ -153,7 +153,7 @@ void uiSetCurrentLine(BINT line)
     // POSITION THE CURSOR IN THE NEW LINE, TRYING TO PRESERVE THE X COORDINATE
 
     BINT tryoffset=halScreen.CursorPosition;
-    BINT len=rplStrLen(CmdLineCurrentLine);
+    BINT len=rplStrSize(CmdLineCurrentLine);
     BINT targetx;
     BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1);
     if(tryoffset>len) tryoffset=len;
@@ -224,7 +224,7 @@ if(CmdLineCurrentLine==empty_string) {
     *CmdLineCurrentLine=MKPROLOG(DOSTRING,0);   // MAKE AN EMPTY STRING
 }
 else {
-    BINT totallen=rplStrLen(CmdLineCurrentLine)+length;
+    BINT totallen=rplStrSize(CmdLineCurrentLine)+length;
     lenwords=(totallen+3)>>2;
 
     if(rplSkipOb(CmdLineCurrentLine)==TempObEnd)  rplResizeLastObject(lenwords-OBJSIZE(*CmdLineCurrentLine));
@@ -258,12 +258,12 @@ if(Exceptions) {
 // FINALLY, WE HAVE THE ORIGINAL LINE AT THE END OF TEMPOB, AND ENOUGH MEMORY ALLOCATED TO MAKE THE MOVE
 
 // MOVE THE TAIL TO THE END
-memmove( ((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition+length,((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,rplStrLen(CmdLineCurrentLine)-halScreen.CursorPosition);
+memmove( ((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition+length,((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,rplStrSize(CmdLineCurrentLine)-halScreen.CursorPosition);
 // ADD THE NEW DATA IN
 memmove(((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,string,length);
 
 // PATCH THE LENGTH OF THE STRING
-BINT newlen=rplStrLen(CmdLineCurrentLine);
+BINT newlen=rplStrSize(CmdLineCurrentLine);
 newlen+=length;
 rplSetStringLength(CmdLineCurrentLine,newlen);
 
@@ -328,13 +328,13 @@ if(rplSkipOb(CmdLineCurrentLine)!=TempObEnd) {
     }
 
 // FINALLY, WE HAVE THE ORIGINAL LINE AT THE END OF TEMPOB, AND ENOUGH MEMORY ALLOCATED TO MAKE THE MOVE
-BINT tailchars=rplStrLen(CmdLineCurrentLine)-halScreen.CursorPosition;
+BINT tailchars=rplStrSize(CmdLineCurrentLine)-halScreen.CursorPosition;
 if(length>tailchars) length=tailchars;
 // MOVE THE TAIL TO THE END
 memmove( ((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition+length,tailchars-length);
 
 // PATCH THE LENGTH OF THE STRING
-BINT newlen=rplStrLen(CmdLineCurrentLine);
+BINT newlen=rplStrSize(CmdLineCurrentLine);
 newlen-=length;
 rplSetStringLength(CmdLineCurrentLine,newlen);
 
@@ -385,7 +385,7 @@ void uiModifyLine()
     BINT newsize;
 
     // GET A NEW OBJECT WITH ROOM FOR THE ENTIRE TEXT
-    newobj=rplAllocTempOb( (rplStrLen(CmdLineText)+rplStrLen(CmdLineCurrentLine)+1+ 3)>>2);
+    newobj=rplAllocTempOb( (rplStrSize(CmdLineText)+rplStrSize(CmdLineCurrentLine)+1+ 3)>>2);
 
     if(Exceptions) {
         throw_dbgexception("No memory to insert text",__EX_CONT|__EX_WARM|__EX_RESET);
@@ -413,15 +413,15 @@ void uiModifyLine()
     }
 
     // COPY ALL PREVIOUS LINES TO NEW OBJECT
-    newsize=startline-src+rplStrLen(CmdLineCurrentLine);
+    newsize=startline-src+rplStrSize(CmdLineCurrentLine);
 
     memmove(dest,src,startline-src);
     // COPY THE NEW LINE TO THE OBJECT
-    memmove(dest+(startline-src),(WORDPTR)(CmdLineCurrentLine+1),rplStrLen(CmdLineCurrentLine));
+    memmove(dest+(startline-src),(WORDPTR)(CmdLineCurrentLine+1),rplStrSize(CmdLineCurrentLine));
     // COPY THE REST BACK
     if(endline>=src) {
         // APPEND A NEWLINE AND KEEP GOING
-        dest+=startline-src+rplStrLen(CmdLineCurrentLine);
+        dest+=startline-src+rplStrSize(CmdLineCurrentLine);
         *dest++='\n';
         newsize+=((BYTEPTR)rplSkipOb(CmdLineText))-endline+1;
         memmove(dest,endline,((BYTEPTR)rplSkipOb(CmdLineText))-endline);
@@ -449,7 +449,7 @@ void uiExtractLine(BINT line)
         startline=endline=text;
     }
 
-    if(endline<text) endline=text+rplStrLen(CmdLineText);
+    if(endline<text) endline=text+rplStrSize(CmdLineText);
 
 
     newobj=rplAllocTempOb( ((endline-startline)+ 3)>>2);
@@ -484,7 +484,7 @@ BINT uiGetLinebyOffset(BINT offset,BINT *linestart)
 
     BYTEPTR ptr=(BYTEPTR)(CmdLineText+1);
     BYTEPTR end=rplSkipOb(CmdLineText);
-    BINT len=rplStrLen(CmdLineText);
+    BINT len=rplStrSize(CmdLineText);
     BINT f,found,count;
     BYTEPTR *prevfind,*currfind;
 
@@ -523,7 +523,7 @@ if(halScreen.LineIsModified<0) {
     }
 
 BYTEPTR ptr=(BYTEPTR )(CmdLineCurrentLine+1);
-BINT len=rplStrLen(CmdLineCurrentLine);
+BINT len=rplStrSize(CmdLineCurrentLine);
 BINT lineoff;
 
 if(offset>len) offset=len;
@@ -574,7 +574,7 @@ BYTEPTR uiFindNumberStart()
 
     BYTEPTR line=(BYTEPTR )(CmdLineCurrentLine+1);
     BYTEPTR end,start,ptr;
-    BINT len=rplStrLen(CmdLineCurrentLine);
+    BINT len=rplStrSize(CmdLineCurrentLine);
     BINT flags;
 
     // FIND NUMBER BEFORE

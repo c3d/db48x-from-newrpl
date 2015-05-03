@@ -241,7 +241,7 @@ void halRedrawStack(DRAWSURFACE *scr)
 
       if(string) {
       // NOW PRINT THE STRING OBJECT
-          nchars=rplStrLen(string);
+          nchars=rplStrSize(string);
           charptr=(BYTEPTR) (string+1);
           numwidth=StringWidthN(charptr,nchars,(FONTDATA *)System7Font);
           xobj=SCREEN_WIDTH-numwidth;
@@ -359,7 +359,7 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
 
     BINT y=(halScreen.LineCurrent-halScreen.LineVisible)*halScreen.CmdLineFont->BitmapHeight;
     BYTEPTR cmdline=(BYTEPTR) (CmdLineCurrentLine+1);
-    BINT nchars=rplStrLen(CmdLineCurrentLine);
+    BINT nchars=rplStrSize(CmdLineCurrentLine);
 
     // TODO: SHOW OTHER LINES HERE
 

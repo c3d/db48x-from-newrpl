@@ -76,12 +76,32 @@ const WORD const empty_string[]={
 };
 
 
-
+// COMPUTE THE STRING LENGTH IN CHARACTERS
 BINT rplStrLen(WORDPTR string)
+{
+    if(ISSTRING(*string))  {
+        BINT len=STRLEN(*string),count=0;
+        BYTEPTR ptr=(BYTEPTR)(string+1),end;
+
+        end=ptr+len;
+
+        while(ptr<end) {
+            ptr=utf8Skip(ptr,end-ptr);
+            ++count;
+        }
+        return count;
+    }
+    return 0;
+}
+
+// COMPUTE THE STRING LENGTH IN BYTES
+BINT rplStrSize(WORDPTR string)
 {
     if(ISSTRING(*string))  return STRLEN(*string);
     return 0;
 }
+
+
 
 
 // FIX THE PROLOG OF A STRING TO MATCH THE DESIRED LENGTH IN CHARACTERS

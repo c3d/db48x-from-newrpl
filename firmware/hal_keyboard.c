@@ -204,7 +204,7 @@ void PrintObj(int x,int y,WORDPTR obj,DRAWSURFACE *scr)
 
     if(string) {
     // NOW PRINT THE STRING OBJECT
-        nchars=rplStrLen(string);
+        nchars=rplStrSize(string);
         charptr=(BYTEPTR) (string+1);
         DrawTextN(x,y,charptr,nchars,(FONTDATA *)&System7Font,15,scr);
     }
@@ -370,7 +370,7 @@ BINT endCmdLineAndCompile()
         throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
         return 0;
     }
-    BINT len=rplStrLen(text);
+    BINT len=rplStrSize(text);
     WORDPTR newobject;
     if(len) {
         newobject=rplCompile((BYTEPTR)(text+1),len,1);
