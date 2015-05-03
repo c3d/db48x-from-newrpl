@@ -44,8 +44,8 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 // THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
 #define CMD_EXTRANAME \
     "}", \
-    "->LIST", \
-    "LIST->", \
+    "→LIST", \
+    "LIST→", \
     "DOLIST", \
     "", \
     "", \
@@ -71,9 +71,9 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
     "", \
     "", \
     "", \
-    "DELTALIST", \
-    "SUMLIST", \
-    "PRODLIST", \
+    "ΔLIST", \
+    "ΣLIST", \
+    "ΠLIST", \
     "", \
     "", \
     "", \

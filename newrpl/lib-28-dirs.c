@@ -47,7 +47,7 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 // THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
 /*
 #define CMD_EXTRANAME \
-    "->"
+    "→"
 #define CMD_EXTRAENUM \
     NEWLOCALENV
 */

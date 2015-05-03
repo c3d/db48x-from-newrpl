@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
+
+
 #include "utf8lib.h"
 
 // UNICODE DATA FOR NFC NORMALIZATION
@@ -444,4 +452,47 @@ if(flags&NEED_COMP) lastchar=quickCompose(lastchar);
 unicodeBuffer[lastchar]=0;
 return len-(end-string);
 
+}
+
+// COMPARE len UNICODE CODE POINTS IN UTF8 ENCODED STRINGS
+// SIMILAR TO strncmp BUT WITH UTF8 SUPPORT
+
+int utf8ncmp(const char *s1,const char *s2,int len)
+{
+       if (len > 0)
+        {
+            while (len > 0)
+            {
+                if (utf82Char(s1,len) != utf82Char(s2,len)) break;
+                if (*s1 == '\0') return 0;
+
+                s1=utf8Skip(s1,len);
+                s2=utf8Skip(s2,len);
+                len--;
+            }
+
+            if (len > 0)
+            {
+                if (*s1 == '\0') return -1;
+                if (*s2 == '\0' ) return 1;
+
+                return (((unsigned char ) *s1 ) - ((unsigned char) *s2));
+            }
+        }
+
+        return 0;
+}
+
+
+// SAME AS STRLEN BUT RETURNS THE LENGTH IN UNICODE CODEPOINTS OF
+// A NULL-TERMINATED STRING
+
+int utf8len(char *string)
+{
+    int count=0;
+    while(*string) {
+        ++count;
+        string=utf8Skip(string,4);
+    }
+    return count;
 }

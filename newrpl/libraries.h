@@ -232,7 +232,7 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 #define OVR_FUNCEVAL      OVR_OPERATORS+OVR_UNARY+5
 #define OVRT_XEQ             "XEQ"
 #define OVR_XEQ      OVR_OPERATORS+OVR_UNARY+6
-#define OVRT_NUM             "->NUM"
+#define OVRT_NUM             "→NUM"
 #define OVR_NUM      OVR_OPERATORS+OVR_UNARY+7
 #define OVRT_ABS              "ABS"
 #define OVR_ABS       OVR_OPERATORS+OVR_UNARY+8

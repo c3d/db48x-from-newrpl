@@ -32,7 +32,7 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 // EXTRA LIST FOR COMMANDS WITH SYMBOLS THAT ARE DISALLOWED IN AN ENUM
 // THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
 #define CMD_EXTRANAME \
-    "->"
+    "→"
 #define CMD_EXTRAENUM \
     NEWLOCALENV
 
@@ -82,7 +82,7 @@ void LIB_HANDLER()
         // CHECK IF THE TOKEN IS THE OBJECT DOCOL
         // BUT ONLY IF WE ARE WITHIN A NEWLOCALENV CONSTRUCT
 
-       if((TokenLen==2) && (!strncmp((char *)TokenStart,"<<",2)))
+       if((TokenLen==1) && (!utf8ncmp((char *)TokenStart,"«",1)))
        {
            if(CurrentConstruct!=MKOPCODE(LIBRARY_NUMBER,NEWLOCALENV)) {
                RetNum=ERR_NOTMINE;
@@ -114,7 +114,7 @@ void LIB_HANDLER()
 
        // CHECK IF THE TOKEN IS THE NEW LOCAL
 
-       if((TokenLen==2) && (!strncmp((char *)TokenStart,"->",2)))
+       if((TokenLen==1) && (!utf8ncmp((char *)TokenStart,"→",1)))
        {
            rplCompileAppend(CMD_XEQSECO);   // EVAL THE NEXT SECO IN THE RUNSTREAM
            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,NEWLOCALENV));  // PUT A MARKER

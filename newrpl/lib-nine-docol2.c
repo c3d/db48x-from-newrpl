@@ -529,7 +529,7 @@ void LIB_HANDLER()
 
         // CHECK IF THE TOKEN IS THE OBJECT DOCOL
 
-       if((TokenLen==2) && (!strncmp((char *)TokenStart,"<<",2)))
+       if((TokenLen==1) && (!utf8ncmp((char *)TokenStart,"«",1)))
        {
            rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER,0));
            RetNum=OK_STARTCONSTRUCT;
@@ -538,7 +538,7 @@ void LIB_HANDLER()
 
        // CHECK IF THE TOKEN IS SEMI
 
-       if((TokenLen==2) && (!strncmp((char *)TokenStart,">>",2)))
+       if((TokenLen==1) && (!utf8ncmp((char *)TokenStart,"»",1)))
        {
            if(CurrentConstruct!=MKPROLOG(LIBRARY_NUMBER,0)) {
                RetNum=ERR_SYNTAX;
@@ -556,14 +556,14 @@ void LIB_HANDLER()
        // IFERR ... THEN ... END
        // AND ALSO CASE ... THEN ... END ... THEN ... END ... END
 
-       if((TokenLen==2) && (!strncmp((char *)TokenStart,"IF",2)))
+       if((TokenLen==2) && (!utf8ncmp((char *)TokenStart,"IF",2)))
        {
            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,IF));
            RetNum=OK_STARTCONSTRUCT;
            return;
        }
 
-       if((TokenLen==5) && (!strncmp((char *)TokenStart,"IFERR",2)))
+       if((TokenLen==5) && (!utf8ncmp((char *)TokenStart,"IFERR",2)))
        {
            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,IFERR));
            RetNum=OK_STARTCONSTRUCT;
@@ -571,14 +571,14 @@ void LIB_HANDLER()
        }
 
 
-       if((TokenLen==4) && (!strncmp((char *)TokenStart,"CASE",4)))
+       if((TokenLen==4) && (!utf8ncmp((char *)TokenStart,"CASE",4)))
        {
            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,CASE));
            RetNum=OK_STARTCONSTRUCT;
            return;
        }
 
-       if((TokenLen==4) && (!strncmp((char *)TokenStart,"THEN",4)))
+       if((TokenLen==4) && (!utf8ncmp((char *)TokenStart,"THEN",4)))
        {
            if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,IF)) {
                rplCleanupLAMs(*(ValidateTop-1));
@@ -604,7 +604,7 @@ void LIB_HANDLER()
            return;
        }
 
-       if((TokenLen==4) && (!strncmp((char *)TokenStart,"ELSE",4)))
+       if((TokenLen==4) && (!utf8ncmp((char *)TokenStart,"ELSE",4)))
        {
            if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,THEN)) {
                rplCleanupLAMs(*(ValidateTop-1));
@@ -624,7 +624,7 @@ void LIB_HANDLER()
 
        }
 
-       if((TokenLen==3) && (!strncmp((char *)TokenStart,"END",3)))
+       if((TokenLen==3) && (!utf8ncmp((char *)TokenStart,"END",3)))
        {
            // ENDIF OPCODE
            if( (CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,THEN)) || (CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,ELSE))) {
@@ -684,14 +684,14 @@ void LIB_HANDLER()
         // FOR... NEXT AND FOR... STEP
         // START... NEXT AND START... STEP
 
-       if((TokenLen==3) && (!strncmp((char *)TokenStart,"FOR",3)))
+       if((TokenLen==3) && (!utf8ncmp((char *)TokenStart,"FOR",3)))
        {
            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,FOR));
            RetNum=OK_NEEDMORESTARTCONST;
            return;
        }
 
-       if((TokenLen==5) && (!strncmp((char *)TokenStart,"START",5)))
+       if((TokenLen==5) && (!utf8ncmp((char *)TokenStart,"START",5)))
        {
            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,START));
            rplCreateLAMEnvironment(CompileEnd-1);
@@ -700,7 +700,7 @@ void LIB_HANDLER()
            return;
        }
 
-       if((TokenLen==4) && (!strncmp((char *)TokenStart,"NEXT",4)))
+       if((TokenLen==4) && (!utf8ncmp((char *)TokenStart,"NEXT",4)))
        {
            if( (CurrentConstruct!=MKOPCODE(LIBRARY_NUMBER,FOR))&&(CurrentConstruct!=MKOPCODE(LIBRARY_NUMBER,START))) {
                 RetNum=ERR_SYNTAX;
@@ -714,7 +714,7 @@ void LIB_HANDLER()
            return;
        }
 
-       if((TokenLen==4) && (!strncmp((char *)TokenStart,"STEP",4)))
+       if((TokenLen==4) && (!utf8ncmp((char *)TokenStart,"STEP",4)))
        {
            if( (CurrentConstruct!=MKOPCODE(LIBRARY_NUMBER,FOR))&&(CurrentConstruct!=MKOPCODE(LIBRARY_NUMBER,START))) {
                 RetNum=ERR_SYNTAX;
@@ -732,7 +732,7 @@ void LIB_HANDLER()
 
        // DO ... UNTIL ... END
 
-       if((TokenLen==2) && (!strncmp((char *)TokenStart,"DO",2)))
+       if((TokenLen==2) && (!utf8ncmp((char *)TokenStart,"DO",2)))
        {
            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,DO));
 
@@ -742,7 +742,7 @@ void LIB_HANDLER()
            return;
        }
 
-       if((TokenLen==5) && (!strncmp((char *)TokenStart,"UNTIL",5)))
+       if((TokenLen==5) && (!utf8ncmp((char *)TokenStart,"UNTIL",5)))
        {
            if(CurrentConstruct!=MKOPCODE(LIBRARY_NUMBER,DO)) {
                RetNum=ERR_SYNTAX;
@@ -755,7 +755,7 @@ void LIB_HANDLER()
 
        // WHILE ... REPEAT ... END
 
-               if((TokenLen==5) && (!strncmp((char *)TokenStart,"WHILE",5)))
+               if((TokenLen==5) && (!utf8ncmp((char *)TokenStart,"WHILE",5)))
                {
                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,WHILE));
                    rplCreateLAMEnvironment(CompileEnd-1);
@@ -763,7 +763,7 @@ void LIB_HANDLER()
                    return;
                }
 
-               if((TokenLen==6) && (!strncmp((char *)TokenStart,"REPEAT",6)))
+               if((TokenLen==6) && (!utf8ncmp((char *)TokenStart,"REPEAT",6)))
                {
                    if(CurrentConstruct!=MKOPCODE(LIBRARY_NUMBER,WHILE)) {
                        RetNum=ERR_SYNTAX;

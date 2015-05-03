@@ -132,7 +132,7 @@ void rplSetSystemFlagByName(BYTEPTR name,BINT len)
 {
         BINT idx=0;
         while(flags_names[idx].flagname) {
-        if(!strncmp((char *)name,flags_names[idx].flagname,len))
+        if(!utf8ncmp((char *)name,flags_names[idx].flagname,len))
         {
             BINT count;
             for(count=0;count<8;++count)
@@ -170,7 +170,7 @@ void rplClrSystemFlagByName(BYTEPTR name,BINT len)
 {
         BINT idx=0;
         while(flags_names[idx].flagname) {
-        if(!strncmp((char *)name,flags_names[idx].flagname,len))
+        if(!utf8ncmp((char *)name,flags_names[idx].flagname,len))
         {
             BINT count;
             for(count=0;count<8;++count)
@@ -249,7 +249,7 @@ void LIB_HANDLER()
             WORDPTR id=rplPeekData(1);
             BINT idx=0;
             while(flags_names[idx].flagname) {
-            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,strlen(flags_names[idx].flagname)))
+            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,utf8len(flags_names[idx].flagname)))
             {
                 BINT count;
                 for(count=0;count<8;++count)
@@ -333,7 +333,7 @@ void LIB_HANDLER()
             WORDPTR id=rplPeekData(1);
             BINT idx=0;
             while(flags_names[idx].flagname) {
-            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,strlen(flags_names[idx].flagname)))
+            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,utf8len(flags_names[idx].flagname)))
             {
                 BINT count;
                 for(count=0;count<8;++count)
@@ -424,7 +424,7 @@ void LIB_HANDLER()
             WORDPTR id=rplPeekData(1);
             BINT idx=0;
             while(flags_names[idx].flagname) {
-            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,strlen(flags_names[idx].flagname)))
+            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,utf8len(flags_names[idx].flagname)))
             {
                 BINT count;
                 BINT match=1;
@@ -512,7 +512,7 @@ void LIB_HANDLER()
             WORDPTR id=rplPeekData(1);
             BINT idx=0;
             while(flags_names[idx].flagname) {
-            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,strlen(flags_names[idx].flagname)))
+            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,utf8len(flags_names[idx].flagname)))
             {
                 BINT count;
                 BINT match=1;

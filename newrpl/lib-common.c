@@ -18,8 +18,8 @@ void libCompileCmds(BINT libnum,char *libnames[],WORD libopcodes[],int numcmds)
     int len;
     for(idx=0;idx<numcmds;++idx)
     {
-        len=strlen((char *)libnames[idx]);
-        if((len!=0) && (len==(BINT)TokenLen) && (!strncmp((char *)TokenStart,(char *)libnames[idx],len)))
+        len=utf8len((char *)libnames[idx]);
+        if((len!=0) && (len==(BINT)TokenLen) && (!utf8ncmp((char *)TokenStart,(char *)libnames[idx],len)))
        {
             if(libopcodes) rplCompileAppend((WORD) MKOPCODE(libnum,libopcodes[idx]));
            else rplCompileAppend((WORD) MKOPCODE(libnum,idx));
@@ -67,8 +67,8 @@ void libProbeCmds(char *libnames[],BINT tokeninfo[],int numcmds)
     // SCAN THROUGH ALL COMMANDS AND FIND LONGEST MATCH
     for(idx=0;idx<numcmds;++idx)
     {
-        len=strlen((char *)libnames[idx]);
-        if((len>0) && (len<=(BINT)TokenLen) && (!strncmp((char *)TokenStart,(char *)libnames[idx],len)))
+        len=utf8len((char *)libnames[idx]);
+        if((len>0) && (len<=(BINT)TokenLen) && (!utf8ncmp((char *)TokenStart,(char *)libnames[idx],len)))
        {
             // WE HAVE A MATCH, STORE THE INDEX BEFORE WE MAKE ANY DECISIONS
             if(len>maxlen) { maxidx=idx; maxlen=len; }
@@ -100,7 +100,7 @@ void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT tokeninfo[],
                 if(tokeninfo) {
                     RetNum=OK_TOKENINFO | tokeninfo[idx];
                 } else {
-                    len=strlen(libnames[idx]);
+                    len=utf8len(libnames[idx]);
                     RetNum=OK_TOKENINFO | MKTOKENINFO(len,TITYPE_NOTALLOWED,0,0);
                 }
                return;
@@ -122,7 +122,7 @@ void libGetInfo2(WORD opcode,char *libnames[],BINT tokeninfo[],int numcmds)
                 if(tokeninfo) {
                     RetNum=OK_TOKENINFO | tokeninfo[idx];
                 } else {
-                    len=strlen(libnames[idx]);
+                    len=utf8len(libnames[idx]);
                     RetNum=OK_TOKENINFO | MKTOKENINFO(len,TITYPE_NOTALLOWED,0,0);
                 }
                return;

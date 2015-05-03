@@ -46,6 +46,11 @@ char *utf8Skip(char *ptr,int len);
 // RETURNS -1 ON AN INVALID CODEPOINT THAT CANNOT BE ENCODED
 unsigned int Char2utf8(unsigned int codepoint);
 
+// UTF-8 COMPLIANT FORM OF strncmp.
+// len IS IN UNICODE CODE POINTS, NOT BYTES
+int utf8ncmp(const char *s1,const char *s2,int len);
+
+
 
 // ********************   INTERNAL API FOR UNICODE NORMALIZATION  *****************************
 

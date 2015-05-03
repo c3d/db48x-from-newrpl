@@ -43,7 +43,7 @@ static const HALFWORD const libnumberlist[]={ DOIDENT,DOIDENTAPP,DOIDENTEVAL,DOI
 // EXTRA LIST FOR COMMANDS WITH SYMBOLS THAT ARE DISALLOWED IN AN ENUM
 // THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
 #define CMD_EXTRANAME \
-    "->", \
+    "→", \
     "", \
     "", \
     ""
@@ -637,7 +637,7 @@ void LIB_HANDLER()
 
         // LSTO NEEDS SPECIAL CONSIDERATION TO CREATE LAMS AT COMPILE TIME
 
-        if((TokenLen==4) && (!strncmp((char *)TokenStart,"LSTO",4)))
+        if((TokenLen==4) && (!utf8ncmp((char *)TokenStart,"LSTO",4)))
         {
 
             // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
@@ -760,7 +760,7 @@ void LIB_HANDLER()
         }
 
 
-        if((TokenLen==4) && (!strncmp((char *)TokenStart,"LRCL",4)))
+        if((TokenLen==4) && (!utf8ncmp((char *)TokenStart,"LRCL",4)))
         {
 
             // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
