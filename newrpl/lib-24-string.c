@@ -86,7 +86,7 @@ BINT rplStrLen(WORDPTR string)
         end=ptr+len;
 
         while(ptr<end) {
-            ptr=utf8Skip(ptr,end-ptr);
+            ptr=utf8skip(ptr,end-ptr);
             ++count;
         }
         return count;

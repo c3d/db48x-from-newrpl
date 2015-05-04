@@ -53,7 +53,7 @@ unsigned int unicodeBuffer[MAX_UNICODE_CHARACTER_LEN];
 
 
 // DECODE A UTF8 CODE POINT AND RETURN ITS VALUE
-int utf82Char(char * ptr,int len)
+int utf82char(char * ptr,int len)
 {
     if(*ptr&0x80) {
         if((*ptr&0xe0)==0xc0) {
@@ -83,7 +83,7 @@ int utf82Char(char * ptr,int len)
 }
 
 // SKIP A CODE POINT
-char *utf8Skip(char *ptr,int len)
+char *utf8skip(char *ptr,int len)
 {
     if(len<1) return ptr;
     if(*ptr&0x80) {
@@ -98,9 +98,27 @@ char *utf8Skip(char *ptr,int len)
     return ++ptr;
 }
 
+// SKIP n CODE POINTS
+char *utf8nskip(char *ptr,int len,int n)
+{
+    char *end=ptr+len;
+    while(n>0) {
+    if(ptr>=end) break;
+    if(*ptr&0x80) {
+            ++ptr;
+            while(((*ptr&0xc0)==0x80)&&(ptr<end)) ++ptr;
+
+    } else { ++ptr; }
+    --n;
+    }
+    return ptr;
+}
+
+
+
 // ENCODE A CHARACTER AND RETURN A NULL TERMINATED STRING,
 // OR A NON-TERMINATED 4-BYTE STRING
-unsigned int Char2utf8(unsigned int codepoint)
+unsigned int char2utf8(unsigned int codepoint)
 {
     if(codepoint<=0x7f) return codepoint;
     if(codepoint<=0x7ff) return (((codepoint&0x3f)|0x80)<<8)|((codepoint>>6)&0x1f)|0xc0;
@@ -400,7 +418,7 @@ int lastchar=0,flags;
 
 flags=0;
 while(string<end) {
-        cp=utf82Char(string,end-string);
+        cp=utf82char(string,end-string);
         if(cp==-1) { unicodeBuffer[0]=0; return len; }
         cpinfo=getCPInfo(cp);
         qc=NFC_QC(cpinfo);
@@ -429,7 +447,7 @@ while(string<end) {
 
         }
 
-        string=utf8Skip(string,end-string);
+        string=utf8skip(string,end-string);
 
         if(qc) {
             // FAILED QUICK CHECK TEST
@@ -463,11 +481,11 @@ int utf8ncmp(const char *s1,const char *s2,int len)
         {
             while (len > 0)
             {
-                if (utf82Char(s1,len) != utf82Char(s2,len)) break;
+                if (utf82char(s1,len) != utf82char(s2,len)) break;
                 if (*s1 == '\0') return 0;
 
-                s1=utf8Skip(s1,len);
-                s2=utf8Skip(s2,len);
+                s1=utf8skip(s1,len);
+                s2=utf8skip(s2,len);
                 len--;
             }
 
@@ -492,7 +510,18 @@ int utf8len(char *string)
     int count=0;
     while(*string) {
         ++count;
-        string=utf8Skip(string,4);
+        string=utf8skip(string,4);
+    }
+    return count;
+}
+
+int utf8nlen(char *string,int size)
+{
+    int count=0;
+    char *end=string+size;
+    while(string<end) {
+        ++count;
+        string=utf8skip(string,end-string);
     }
     return count;
 }

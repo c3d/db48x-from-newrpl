@@ -65,7 +65,9 @@ SOURCES += main.cpp \
     lib-28-dirs.c \
     lib-30-complex.c \
     lib-48-matrix.c \
-    matrix.c
+    matrix.c \
+    utf8lib.c \
+    utf8data.c
 
 HEADERS += \
     libraries.h \
@@ -87,7 +89,8 @@ HEADERS += \
     contrib/mpdecimal-2.4.0/libmpdec/transpose.h \
     contrib/mpdecimal-2.4.0/libmpdec/typearith.h \
     contrib/mpdecimal-2.4.0/libmpdec/umodarith.h \
-    contrib/mpdecimal-2.4.0/libmpdec/mpdecimal.h
+    contrib/mpdecimal-2.4.0/libmpdec/mpdecimal.h \
+    utf8lib.h
 
 INCLUDEPATH += contrib/mpdecimal-2.4.0/libmpdec
 
