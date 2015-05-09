@@ -20,12 +20,46 @@ unsigned int ClrImp;
 
 #define MAX_GLYPHS 65536
 
+#define MAX_NCHARS       0xfffff
+
+#define PACKDATA(w,o) ((((w)<<12)|((o&0xfff)))&0xffff)
+
+#define SING_OFFSET(val) (((val)&0xFFF))
+#define SING_LEN(val) (((val)>>12)&0xfffff)
+
+#define MK_SINGRANGE(start,end,offset) ((((end)-(start)+1)<<12)|((offset)&0xfff))
+#define MK_SINGGAP(start,end) MK_SINGRANGE(start,end,0xfff)
+
+
+
 // GET FONT INFORMATION
 
 int width[MAX_GLYPHS];
 int offset[MAX_GLYPHS];
 int codeidx[0x110000];
 char txtbuff[256*1024]; // MAX. 256K FOR THE TEXT FILE
+unsigned short packedata[0x110000];
+unsigned int ranges[2000];
+int used_ranges;
+unsigned short offdata[20000];
+int used_data;
+
+
+
+// FIND DUPLICATED ITEMS IN THE STREAM
+int searchDupData(unsigned short *start,int nitems)
+{
+    int j,k;
+
+    for(j=0;j<used_data-nitems;++j) {
+        for(k=0;k<nitems;++k) if(start[k]!=offdata[j+k]) break;
+        if(k==nitems) return j;
+    }
+    return -1;
+}
+
+
+
 
 
 int main(int argc,char *argv[])
@@ -298,6 +332,93 @@ if(usedline!=idx) {
  *
  * ----- PADDING FOR WORD-ALIGNMENT
 */
+
+// ANALYZE RANGES AND PACK
+// BEGIN ANALYSIS OF RANGES
+
+// PACK THE OFFSET AND WIDTH DATA
+
+#define PACK_THRESHOLD 64
+
+int j,r;
+
+for(j=0;j<0x110000;++j) {
+    packedata[j]=PACKDATA(width[codeidx[j]],offset[codeidx[j]]);
+}
+
+
+
+used_data=0;
+used_ranges=0;
+
+int countranges=0;
+int tablebytes=0;
+int prevrange=0;
+j=0;
+do {
+    r=j+1;
+    while((packedata[r]==packedata[j])&&(r<0x110000)) ++r;
+    if(r-j>PACK_THRESHOLD) {
+        if(j!=prevrange) {
+
+            while(j-prevrange>MAX_NCHARS) {
+
+                int location=searchDupData(packedata+prevrange,MAX_NCHARS);
+                printf("Range: %04X..%04X, LEN=%d --> OFFSET=%d\n",prevrange,prevrange+MAX_NCHARS-1,MAX_NCHARS,location<0? used_data:location);
+                unsigned int data;
+
+                if(location<0) {
+                    // APPEND NEW DATA
+                    data=MK_SINGRANGE(1,MAX_NCHARS,used_data);
+                    int f;
+                    for(f=prevrange;f<prevrange+MAX_NCHARS;++f,++used_data) offdata[used_data]=packedata[f];
+                }
+                else {
+                    // DATA IS REPEATED, REUSE
+                    data=MK_SINGRANGE(1,MAX_NCHARS,location);
+                }
+
+                ranges[used_ranges]=data;
+                ++used_ranges;
+                prevrange+=MAX_NCHARS;
+            }
+
+
+
+
+            // THERE'S A GAP OF NON-REPEATED BYTES
+
+            int location=searchDupData(packedata+prevrange,j-prevrange);
+            unsigned int data;
+            printf("Range: %04X..%04X, LEN=%d --> OFFSET=%d\n",prevrange,j-1,j-prevrange,location<0? used_data:location);
+            if(location<0) {
+            data=MK_SINGRANGE(prevrange,j,used_data);
+            int f;
+            for(f=prevrange;f<j;++f,++used_data) offdata[used_data]=packedata[f];
+            }
+            else {
+                data=MK_SINGRANGE(prevrange,j,location);
+            }
+            ranges[used_ranges]=data;
+            ++used_ranges;
+
+        }
+        // ADD THE RANGE WITH REPETITIVE DATA
+
+        printf("Range: %04X..%04X = %02X, LEN=%d\n",j,r-1,packedata[j],r-j);
+        ranges[used_ranges]=MK_SINGGAP(j,r-1);
+        ++used_ranges;
+        prevrange=r;
+    }
+    j=r;
+} while(j<0x110000);
+
+
+
+printf("Total ranges=%d\n",used_ranges);
+printf("Total table bytes=%d\n",used_data);
+
+
 
 
 return 0;
