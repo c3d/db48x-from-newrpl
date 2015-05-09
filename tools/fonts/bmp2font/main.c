@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include <string.h>
 
 typedef struct {
 unsigned int FileSize;
@@ -18,6 +18,9 @@ unsigned int NumClr;
 unsigned int ClrImp;
 } BMP_Header;
 
+#define LIB_FONTS   80
+
+
 #define MAX_GLYPHS 65536
 
 #define MAX_NCHARS       0xfffff
@@ -30,6 +33,7 @@ unsigned int ClrImp;
 #define MK_SINGRANGE(start,end,offset) ((((end)-(start)+1)<<12)|((offset)&0xfff))
 #define MK_SINGGAP(start,end) MK_SINGRANGE(start,end,0xfff)
 
+#define MKPROLOG(lib,size) ((((lib)&0xFFF)<<20)|((size)&0x3FFFF)|0x80000)
 
 
 // GET FONT INFORMATION
@@ -66,11 +70,30 @@ int main(int argc,char *argv[])
 {
 if(argc<4) {
     printf("bmp2font 1.0\n------------\n\n");
-    printf("Syntax: bmp2font <font-bitmap-file.bmp> <font-text-file.txt> <output.c>\n\n");
+    printf("Syntax: bmp2font <font-bitmap-file.bmp> <font-text-file.txt> <output[.c or .nrpl]> [name of C variable]\n\n");
     return 0;
 }
-char *bmpfile=argv[1],*txtfile=argv[2],*outfile=argv[3];
+char *bmpfile=argv[1],*txtfile=argv[2],*outfile=argv[3],*fontname;
+char fname[4096];
 char *bmpdata,*txtdata;
+int binary=1;
+
+if(!strncmp(outfile+strlen(outfile)-2,".c",2)) {
+    // THE FILE REQUESTED IS IN .c FORMAT
+    binary=0;
+    if(argc>=5) fontname=argv[4];
+    else {
+        // IF NOT PROVIDED BY THE USER, USE A NAME EXTRACTED FROM THE OUTPUT FILE
+        int end=strlen(outfile)-2;
+        strncpy_s(fname,4096,outfile,end);
+        fname[end]=0;
+        fontname=fname;
+    }
+
+}
+
+
+
 
 FILE *han=fopen(bmpfile,"rb");
 
@@ -338,7 +361,7 @@ if(usedline!=idx) {
 
 // PACK THE OFFSET AND WIDTH DATA
 
-#define PACK_THRESHOLD 64
+#define PACK_THRESHOLD 40
 
 int j,r;
 
@@ -416,9 +439,162 @@ do {
 
 
 printf("Total ranges=%d\n",used_ranges);
-printf("Total table bytes=%d\n",used_data);
+printf("Total table bytes=%d\n",sizeof(unsigned short)*used_data);
+
+// DONE PROCESSING, CREATE FILE AND SAVE IT
 
 
+// WRITE BINARY FILE
+if(binary) {
+
+han=fopen(outfile,"wb");
+
+if(!han) {
+        printf("Cannot open output file '%s'.\n",outfile);
+        free(monobitmap);
+        free(bmpdata);
+        return 1;
+}
+
+printf("Starting binary output to file '%s'\n",outfile);
+
+int totalsize=2+used_ranges+((used_data+1)>>1)+((rowlen*hdr.Height-1+3)>>2);
+
+unsigned int prolog=MKPROLOG(LIB_FONTS,totalsize);
+
+fwrite(&prolog,4,1,han);
+
+prolog=((hdr.Height-1)<<16) | (rowlen&0xffff);
+
+fwrite(&prolog,4,1,han);
+
+prolog=((3+used_ranges) <<16 | ((3+used_ranges+((used_data+1)>>1))));
+
+fwrite(&prolog,4,1,han);
+
+// WRITE RANGES
+fwrite(&ranges,4,used_ranges,han);
+
+// WRITE DATA TABLE
+fwrite(&offdata,2,used_data,han);
+
+if(used_data&1) {
+    prolog=0;
+    fwrite(&prolog,2,1,han);
+}
+
+// WRITE BITMAP
+fwrite(&monobitmap,rowlen,hdr.Height-1,han);
+
+j=4-(rowlen*(hdr.Height-1))&3;
+if(j<4) {
+    prolog=0;
+    fwrite(&prolog,1,j,han);
+}
+}
+else {
+    // TEXT OUTPUT
+    han=fopen(outfile,"wt");
+
+    if(!han) {
+            printf("Cannot open output file '%s'.\n",outfile);
+            free(monobitmap);
+            free(bmpdata);
+            return 1;
+    }
+
+    printf("Starting C format output to file '%s'\n",outfile);
+
+    int totalsize=2+used_ranges+((used_data+1)>>1)+((rowlen*hdr.Height-1+3)>>2);
+
+    unsigned int prolog=MKPROLOG(LIB_FONTS,totalsize);
+
+
+
+    //fwrite(&prolog,4,1,han);
+    fprintf(han, "\n/*************** FONT FILE CONVERTED FROM %s AND %s ************** */\n",bmpfile,txtfile);
+
+    fprintf(han, "\n\n\n\nunsigned int Font_%s[]= { \n",fontname);
+
+    fprintf(han,"0x%X, // PROLOG\n",prolog);
+
+    prolog=((hdr.Height-1)<<16) | (rowlen&0xffff);
+
+    //fwrite(&prolog,4,1,han);
+    fprintf(han,"0x%X, // FONT HEIGHT AND BITMAP WIDTH\n",prolog);
+
+    prolog=((3+used_ranges) <<16 | ((3+used_ranges+((used_data+1)>>1))));
+
+    //fwrite(&prolog,4,1,han);
+    fprintf(han,"0x%X, // OFFSETS TO TABLES\n",prolog);
+
+    // WRITE RANGES
+    //fwrite(&ranges,4,used_ranges,han);
+    for(j=0;j<used_ranges;++j) {
+        fprintf(han,"0x%X, ",ranges[j]);
+        if(j%16==0) fprintf(han,"\n");
+    }
+
+
+    // WRITE DATA TABLE
+    //fwrite(&offdata,2,used_data,han);
+    for(j=0;j<used_data;++j) {
+        if(j&1) {
+            prolog|=offdata[j]<<16;
+            fprintf(han,"0x%X, ",prolog);
+        }
+        else {
+            prolog=offdata[j];
+        }
+            if(j%16==0) fprintf(han,"\n");
+    }
+    if(j&1) {
+        fprintf(han,"0x%X, ",prolog);
+        fprintf(han,"\n");
+
+    }
+
+    // WRITE BITMAP
+    //fwrite(&monobitmap,rowlen,hdr.Height-1,han);
+
+    r=rowlen*(hdr.Height-1);
+
+    for(j=0;j<r;++j) {
+        switch(j&3)
+        {
+        case 0:
+            prolog=monobitmap[j];
+            break;
+        case 1:
+            prolog|=monobitmap[j]<<8;
+            break;
+        case 2:
+            prolog|=monobitmap[j]<<16;
+            break;
+        case 3:
+            prolog|=monobitmap[j]<<24;
+            fprintf(han,"0x%X",prolog);
+            if(j!=r-1) fprintf(han,", ");
+        }
+            if(j%64==0) fprintf(han,"\n");
+    }
+    if(j&3) {
+        fprintf(han,"0x%X",prolog);
+        fprintf(han,"\n");
+    }
+
+    // FINISHED OUTPUT
+    fprintf(han,"\n\n};\n\n/*********** END OF CONVERTED FONT ******************/\n");
+
+}
+
+
+
+
+fclose(han);
+
+printf("Done.\n\n");
+// FINISHED WRITING FONT FILE
 
 
 return 0;
