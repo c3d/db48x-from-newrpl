@@ -24,6 +24,17 @@ typedef struct {
     unsigned int Bitmap[1];
 } FONTDATA;
 
+typedef struct {
+    unsigned int Prolog;
+    unsigned short BitmapWidth;
+    unsigned short BitmapHeight;
+    unsigned short OffsetBitmap;
+    unsigned short OffsetTable;
+    unsigned int MapTable[];
+} UNIFONT;
+
+
+
 typedef gglsurface DRAWSURFACE;
 
 

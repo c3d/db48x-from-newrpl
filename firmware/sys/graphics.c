@@ -344,3 +344,87 @@ void DrawTextBkN(int x,int y,char *Text,int nchars,FONTDATA *Font,int color,int 
 
 
 }
+
+// NEW VERSION WITH UNICODE SUPPORT, REMOVE THE PREFIX WHEN DONE
+
+// DRAW TEXT WITH TRANSPARENT BACKGROUND
+// NULL-TERMINATED UTF8 STRING
+
+void uniDrawTextN(int x,int y,char *Text,int nchars,UNIFONT *Font,int color,DRAWSURFACE *drawsurf)
+{
+    int cp,startcp,rangeend,offset;
+    unsigned short *offtable;
+    unsigned int *mapptr;
+    char *fontbitmap;
+    char *End=Text+nchars;
+
+    if(drawsurf->clipx<0) return;
+
+    if(y>drawsurf->clipy2) return;
+    if(y+(int)Font->BitmapHeight<=drawsurf->clipy) return;
+
+
+    fontbitmap=(char *)(((unsigned int *)Font)+Font->OffsetBitmap);
+    offtable=(unsigned short *)(((unsigned int *)Font)+Font->OffsetTable);
+
+    int w,h;
+    gglsurface srf;
+    srf.addr=(int *)fontbitmap;
+    srf.width=Font->BitmapWidth<<3;
+    srf.y=0;
+
+    h=Font->BitmapHeight;
+
+    if(y<drawsurf->clipy) {
+        h-=drawsurf->clipy-y;
+        srf.y=drawsurf->clipy-y;
+        y=drawsurf->clipy;
+    }
+    if(y+h-1>drawsurf->clipy2) h=drawsurf->clipy2-y+1;
+
+    drawsurf->y=y;
+    drawsurf->x=x;
+
+
+    while(Text<End) {
+
+        cp=utf82char(Text,End-Text);
+
+        if(cp=='\n' || cp=='\r') return;
+
+        // GET THE INFORMATION FROM THE FONT
+        rangeend=0;
+        mapptr=Font->MapTable-1;
+        do {
+            ++mapptr;
+            startcp=rangeend;
+            rangeend=startcp+RANGE_LEN(*mapptr);
+        } while(cp>=rangeend);
+
+        offset=FONT_OFFSET(*mapptr);
+        if(offset==0xfff) w=offtable[0];
+        else {
+            w=offtable[offset+cp-startcp];
+        }
+
+    srf.x=w&0xfff;
+    w>>=12;
+    if(drawsurf->x>drawsurf->clipx2) return;
+    if(drawsurf->x+w-1<drawsurf->clipx) { drawsurf->x+=w; Text=utf8skip(Text,End-Text); continue; }
+    if(drawsurf->x<drawsurf->clipx) {
+            srf.x+=drawsurf->clipx-drawsurf->x;
+            w-=drawsurf->clipx-drawsurf->x;
+            drawsurf->x=drawsurf->clipx;
+    }
+    if(drawsurf->x+w-1>drawsurf->clipx2) w=drawsurf->clipx2-drawsurf->x+1;
+
+    // MONOCHROME TO 16-GRAYS BLIT W/CONVERSION
+    if((color&0xf)==0xf) ggl_monobitbltmask(drawsurf,&srf,w,h,0);
+    else ggl_monobitbltoper(drawsurf,&srf,w,h,color&0xf,&gui_chgcolorfilter);
+    drawsurf->x+=w;
+    Text=utf8skip(Text,End-Text);
+    }
+    return;
+
+
+}

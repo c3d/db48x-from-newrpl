@@ -310,6 +310,10 @@ void halRedrawMenu1(DRAWSURFACE *scr)
     ggl_vline(scr,109,ytop,ybottom,0);
 
     halScreen.DirtyFlag&=~MENU1_DIRTY;
+    extern unsigned int Font_6A[];
+    uniDrawTextN(22,ytop,"ΣTest",strlen("ΣTest"),(UNIFONT *)Font_6A,0,scr);
+
+
 }
 
 // REDRAW THE OTHER MENU

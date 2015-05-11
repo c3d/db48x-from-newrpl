@@ -124,7 +124,9 @@ SOURCES += main.cpp\
     firmware/ui_cmdline.c \
     newrpl/lib-48-matrix.c \
     newrpl/utf8lib.c \
-    newrpl/utf8data.c
+    newrpl/utf8data.c \
+    firmware/sys/Font5C.c \
+    firmware/sys/Font6A.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 typedef struct {
 unsigned int FileSize;
@@ -75,7 +76,7 @@ if(argc<4) {
 }
 char *bmpfile=argv[1],*txtfile=argv[2],*outfile=argv[3],*fontname;
 char fname[4096];
-char *bmpdata,*txtdata;
+unsigned char *bmpdata;
 int binary=1;
 
 if(!strncmp(outfile+strlen(outfile)-2,".c",2)) {
@@ -90,7 +91,7 @@ if(!strncmp(outfile+strlen(outfile)-2,".c",2)) {
         fontname=fname;
     }
 
-}
+} else fontname=NULL;
 
 
 
@@ -102,14 +103,12 @@ if(!han) {
     return 1;
 }
 
-int bmpsize,invert;
+int invert;
 BMP_Header hdr;
 unsigned int Palette[256];
 
 
 
-fseek(han,0,SEEK_END);
-bmpsize=ftell(han);
 fseek(han,2,SEEK_SET);
 fread(&hdr,sizeof(BMP_Header),1,han);
 
@@ -130,10 +129,12 @@ else invert=1;
 
 int rowwords=((hdr.Width*hdr.BitsPixel)/8+3)>>2;
 
+//printf("rowwords=%d\n",rowwords);
+
 bmpdata=malloc(rowwords*4*hdr.Height);
 
 if(!bmpdata) {
-fclose(han);
+fclose(han);5
 printf("Memory allocation error\n");
 return 1;
 }
@@ -141,6 +142,8 @@ return 1;
 fseek(han,hdr.Offset,SEEK_SET);
 fread(bmpdata,4,rowwords*hdr.Height,han);
 fclose(han);
+
+//printf("Bitmap read=%d bytes (requested %d bytes)\n",bytesread*4,rowwords*hdr.Height*4);
 
 printf("Bitmap read correctly\n");
 
@@ -152,12 +155,12 @@ printf("Bitmap read correctly\n");
 // SCAN THE BITMAP FOR WIDTH AND OFFSET INFO
 
 int x;
-char *addr;
-char change=0xaa;
+unsigned char *addr;
+unsigned char change=0xaa;
 int idx=0;
 addr=bmpdata+(invert? 0:(rowwords*4*(hdr.Height-1)));
 
-for(x=0;x<hdr.Width;++x) {
+for(x=0;x<(int)hdr.Width;++x) {
     if(addr[x]!=change) {
         if(idx>0) width[idx-1]=x-offset[idx-1];
         offset[idx]=x;
@@ -184,7 +187,6 @@ if(!monobitmap) {
 
 
 int color;
-unsigned char byte;
 unsigned char *ptr=monobitmap;
 int y,ystart,yend,yinc,rowlen;
 
@@ -195,9 +197,9 @@ else { ystart=0; yend=hdr.Height-1; yinc=1; }
 
 for(y=ystart;y!=yend;y+=yinc) {
     addr=bmpdata+y*rowwords*4;
-for(x=0;x<hdr.Width;++x)
+for(x=0;x<(int)hdr.Width;++x)
 {
-    color=Palette[addr[x]];
+    color=Palette[(int)addr[x]];
     if(!color) {
         ptr[x>>3]|=1<<(x&7);
     }
@@ -223,8 +225,8 @@ fclose(han);
 
 // PROCESS THE TEXT FILE
 char *txtend=txtbuff+txtsize;
-char *lineend,*linestart;
-addr=txtbuff;
+char *lineend,*taddr;
+taddr=txtbuff;
 int txtidx=0,usedline=0,usedflag;
 int base,ndigits;
 
@@ -232,28 +234,28 @@ int base,ndigits;
 for(y=0;y<0x110000;++y) codeidx[y]=0;
 
 // SCAN THE FILE FOR CODES
-while(addr<txtend) {
+while(taddr<txtend) {
 
-    lineend=addr;
+    lineend=taddr;
     usedflag=0;
     while( (*lineend!='\n') && (lineend<txtend)) ++lineend;
 
     do {
         // SKIP ANY BLANKS
-        while( ((*addr==' ')||(*addr=='\t')) && (addr<lineend) ) ++addr;
+        while( ((*taddr==' ')||(*taddr=='\t')) && (taddr<lineend) ) ++taddr;
 
-        if(addr>=txtend) break;
+        if(taddr>=txtend) break;
 
-        if( (addr[0]=='/')|| (addr[0]=='\n')) {
+        if( (taddr[0]=='/')|| (taddr[0]=='\n')) {
             // DISCARD REST OF THE LINE
-            addr=lineend;
+            taddr=lineend;
             ++txtidx;
             continue;
         }
 
         base=10;
-        if(addr[0]=='0') {
-            if((addr[1]=='x')||(addr[1]=='X')) { base=16; addr+=2; }
+        if(taddr[0]=='0') {
+            if((taddr[1]=='x')||(taddr[1]=='X')) { base=16; taddr+=2; }
             // TODO: ADD OTHER FORMATS HERE
         }
         // CONVERT THE NUMBER
@@ -263,16 +265,16 @@ while(addr<txtend) {
 
         do {
 
-            if( (addr[0]>='0')&&(addr[0]<='9')) digit=addr[0]-'0';
+            if( (taddr[0]>='0')&&(taddr[0]<='9')) digit=taddr[0]-'0';
             else {
                 if(base==16) {
-                    if( (addr[0]>='A')&&(addr[0]<='F')) digit=addr[0]-'A'+10;
-                    else  if( (addr[0]>='a')&&(addr[0]<='f')) digit=addr[0]-'a'+10;
+                    if( (taddr[0]>='A')&&(taddr[0]<='F')) digit=taddr[0]-'A'+10;
+                    else  if( (taddr[0]>='a')&&(taddr[0]<='f')) digit=taddr[0]-'a'+10;
                 }
             }
 
             if(digit<0) {
-                if((addr[0]!=',')&&(addr[0]!='/')&&(addr[0]!='\n')&&(addr[0]!='\r')&&(addr[0]!=' ')&&(addr[0]!='\t'))
+                if((taddr[0]!=',')&&(taddr[0]!='/')&&(taddr[0]!='\n')&&(taddr[0]!='\r')&&(taddr[0]!=' ')&&(taddr[0]!='\t'))
                 {
                     printf("Syntax error in text file, line=%d\n",txtidx+1);
                     free(bmpdata);
@@ -280,7 +282,7 @@ while(addr<txtend) {
                     return 1;
                 }
                 if(ndigits) {
-                    if( (result<0)||(result>0x10ffff)) {
+                    if(result>0x10ffff) {
                         printf("Number out of range in text file, line=%d\n",txtidx+1);
                         free(bmpdata);
                         free(monobitmap);
@@ -295,21 +297,21 @@ while(addr<txtend) {
                 result=result*base+digit;
                 ++ndigits;
                 digit=-1;
-                ++addr;
+                ++taddr;
             }
 
-        } while(addr<lineend);
+        } while(taddr<lineend);
 
         // POSSIBLY SKIP BLANKS BEFORE A COMMA
-        while( ((*addr==' ')||(*addr=='\t')) && (addr<lineend) ) ++addr;
+        while( ((*taddr==' ')||(*taddr=='\t')) && (taddr<lineend) ) ++taddr;
 
 
-    } while(*addr++==',');
+    } while(*taddr++==',');
 
 
     // END OF LINE REACHED
         if(usedflag) ++usedline;
-        addr=lineend+1;
+        taddr=lineend+1;
 }
 
 printf("Number of codes in text file: %d\n",usedline);
@@ -339,8 +341,8 @@ if(usedline!=idx) {
  * 4-BYTES:
  *          0xHHHHWWWW --> H=FONT HEIGHT, W=TOTAL BITMAP ROW WIDTH IN BYTES
  * 4-BYTES:
- *          2-BYTES: OFFSET IN WORDS FROM PROLOG TO WIDTH&OFFSET TABLE
  *          2-BYTES: OFFSET IN WORDS FROM PROLOG TO FONT BITMAP
+ *          2-BYTES: OFFSET IN WORDS FROM PROLOG TO WIDTH&OFFSET TABLE
  * ------ TABLE OF UNICODE->GLYPH MAPPING -----
  * 4-BYTE RANGES: 0xNNNNNOOO, WITH N=NUMBER OF CODES IN THIS RANGE, OOO=INDEX INTO WIDTH&OFFSET TABLE (0-4094, 4095 IS RESERVED FOR UNMAPPED)
  *                0xNNNNNFFF, WHEN OOO=0XFFF, THE ENTIRE RANGE OF CODES IS MAPPED TO INDEX 0 OF THE WIDTH&OFFSET TABLE.
@@ -374,8 +376,6 @@ for(j=0;j<0x110000;++j) {
 used_data=0;
 used_ranges=0;
 
-int countranges=0;
-int tablebytes=0;
 int prevrange=0;
 j=0;
 do {
@@ -415,12 +415,12 @@ do {
             unsigned int data;
             printf("Range: %04X..%04X, LEN=%d --> OFFSET=%d\n",prevrange,j-1,j-prevrange,location<0? used_data:location);
             if(location<0) {
-            data=MK_SINGRANGE(prevrange,j,used_data);
+            data=MK_SINGRANGE(prevrange,j-1,used_data);
             int f;
             for(f=prevrange;f<j;++f,++used_data) offdata[used_data]=packedata[f];
             }
             else {
-                data=MK_SINGRANGE(prevrange,j,location);
+                data=MK_SINGRANGE(prevrange,j-1,location);
             }
             ranges[used_ranges]=data;
             ++used_ranges;
@@ -486,7 +486,7 @@ if(used_data&1) {
 // WRITE BITMAP
 fwrite(&monobitmap,rowlen,hdr.Height-1,han);
 
-j=4-(rowlen*(hdr.Height-1))&3;
+j=4-((rowlen*(hdr.Height-1))&3);
 if(j<4) {
     prolog=0;
     fwrite(&prolog,1,j,han);
@@ -567,12 +567,15 @@ else {
             break;
         case 1:
             prolog|=monobitmap[j]<<8;
+
             break;
         case 2:
             prolog|=monobitmap[j]<<16;
+
             break;
         case 3:
             prolog|=monobitmap[j]<<24;
+
             fprintf(han,"0x%X",prolog);
             if(j!=r-1) fprintf(han,", ");
         }
@@ -585,6 +588,24 @@ else {
 
     // FINISHED OUTPUT
     fprintf(han,"\n\n};\n\n/*********** END OF CONVERTED FONT ******************/\n");
+
+/*
+    fprintf(han,"unsigned int ggl_mono2gray[256]={\n");
+
+    for(j=0;j<256;j++)
+    {
+        prolog=0;
+        for(r=7;r>=0;--r)
+        {
+            prolog<<=4;
+            if(j&(1<<r)) prolog|=0xf;
+        }
+        fprintf(han,"0x%X",prolog);
+        if(j!=255) fprintf(han,", ");
+        if(j%16==0) fprintf(han,"\n");
+    }
+    fprintf(han,"\n\n};");
+*/
 
 }
 

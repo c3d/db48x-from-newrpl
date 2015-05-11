@@ -105,6 +105,7 @@ void ggl_revblt(gglsurface *dest,gglsurface *src,int width, int height); // copy
 void ggl_ovlblt(gglsurface *dest,gglsurface *src,int width, int height); // copy overlapped regions
 // ggl_bitbltmask behaves exactly as ggl_bitblt but using tcol as a transparent color
 #define ggl_bitbltmask(dest,src,width,height,tcol)  ggl_bitbltoper(dest,src,width,height,tcol,&ggl_opmask)
+#define ggl_monobitbltmask(dest,src,width,height,tcol)  ggl_monobitbltoper(dest,src,width,height,tcol,&ggl_opmask)
 
 
 // rectangle scrolling routines
@@ -124,8 +125,12 @@ void ggl_filter(gglsurface *dest,int width, int height, int param, gglfilter fil
 
 // low-level row operator routine
 void ggl_hbltoper(int *dest,int destoff,int *src,int srcoff, int npixels, int param,ggloperator foperator);
+// low-level row operator routine for monochrome bitmaps
+void ggl_monohbltoper(int *dest, int destoff, unsigned char *src, int srcoff, int npixels, int param, ggloperator foperator);
 // bitblt operator routine
 void ggl_bitbltoper(gglsurface *dest,gglsurface *src,int width, int height,int param,ggloperator fop);
+// bitblt operator routine for monochrome bitmaps
+void ggl_monobitbltoper(gglsurface *dest,gglsurface *src,int width, int height,int param,ggloperator fop);
 
 // predefined filters and operators
 

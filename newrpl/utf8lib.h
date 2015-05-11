@@ -19,6 +19,10 @@
 #define MK_SINGRANGE(start,end,offset) ((((end)-(start)+1)<<12)|((offset)&0xfff))
 #define MK_SINGGAP(start,end) MK_SINGRANGE(start,end,0xfff)
 
+#define FONT_OFFSET(val) (((val)&0xFFF))
+#define RANGE_LEN(val) (((val)>>12)&0xfffff)
+
+
 
 #define MAX_UNICODE_CHARACTER_LEN 32
 
