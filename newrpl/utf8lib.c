@@ -53,23 +53,23 @@ unsigned int unicodeBuffer[MAX_UNICODE_CHARACTER_LEN];
 
 
 // DECODE A UTF8 CODE POINT AND RETURN ITS VALUE
-int utf82char(char * ptr,int len)
+int utf82char(char * ptr, char *end)
 {
     if(*ptr&0x80) {
         if((*ptr&0xe0)==0xc0) {
-            if(len<2) return -1;
+            if(end-ptr<2) return -1;
             if( (ptr[1]&0xc0) != 0x80) return -1;
             return ((((unsigned int)ptr[0])&0x1f)<<6) | (((unsigned int)ptr[1])&0x3f);
         }
         if((*ptr&0xf0)==0xe0) {
-            if(len<3) return -1;
+            if(end-ptr<3) return -1;
             if((ptr[1]&0xc0) != 0x80) return -1;
             if((ptr[2]&0xc0) != 0x80) return -1;
 
             return ((((unsigned int)ptr[0])&0xf)<<12) | ((((unsigned int)ptr[1])&0x3f)<<6) | (((unsigned int)ptr[2])&0x3f);
         }
         if((*ptr&0xf8)==0xf0) {
-            if(len<4) return -1;
+            if(end-ptr<4) return -1;
             if((ptr[1]&0xc0) != 0x80) return -1;
             if((ptr[2]&0xc0) != 0x80) return -1;
             if((ptr[3]&0xc0) != 0x80) return -1;
@@ -83,25 +83,20 @@ int utf82char(char * ptr,int len)
 }
 
 // SKIP A CODE POINT
-char *utf8skip(char *ptr,int len)
+char *utf8skip(char *ptr, char *end)
 {
-    if(len<1) return ptr;
+    if(end<=ptr) return ptr;
     if(*ptr&0x80) {
             ++ptr;
-            --len;
-            while(((*ptr&0xc0)==0x80)&&len) {
-                ++ptr;
-                --len;
-            }
+            while(((*ptr&0xc0)==0x80)&& (ptr<end)) ++ptr;
             return ptr;
         }
     return ++ptr;
 }
 
 // SKIP n CODE POINTS
-char *utf8nskip(char *ptr,int len,int n)
+char *utf8nskip(char *ptr, char *end, int n)
 {
-    char *end=ptr+len;
     while(n>0) {
     if(ptr>=end) break;
     if(*ptr&0x80) {
@@ -198,7 +193,7 @@ void quickDecomp(unsigned int cp,unsigned int *dec1,unsigned int *dec2,unsigned 
                off=SING_OFFSET(packed_singletonRanges[k]);
                if(cp<codept+nchars) {
                    if(off==0xfff) break;    // NOT A SINGLETON
-                   if(packed_singletonData[off+cp-codept]!=-1) {
+                   if(packed_singletonData[off+cp-codept]!=0xffffffff) {
                    *dec1=packed_singletonData[off+cp-codept];
                    *dec2=-1;
                    return;
@@ -243,11 +238,11 @@ int appendDecomp(unsigned int cp,int lastchar)
     //dec1=dec2=-1;
     quickDecomp(cp,&dec1,&dec2,&dec3);
 
-    if(dec1!=-1) {
+    if(dec1!=0xffffffff) {
         lastchar=appendDecomp(dec1,lastchar);
-        if(dec2!=-1) {
+        if(dec2!=0xffffffff) {
             lastchar=appendDecomp(dec2,lastchar);
-            if(dec3!=-1) {
+            if(dec3!=0xffffffff) {
                 lastchar=appendDecomp(dec3,lastchar);
             }
         }
@@ -292,7 +287,7 @@ int getComposition(unsigned int char1,unsigned int char2)
             if(off==0xfff) return -1;    // NOT A COMBINER
             int tableoff=packed_starters[(off+char2-codept)];
             if(tableoff<0) return -1;   // NOT A COMBINER
-            for(j=0;j<packed_starterData[tableoff];++j)
+            for(j=0;j<(int)packed_starterData[tableoff];++j)
             {
                 if(char1==packed_starterData[tableoff+1+(j<<1)]) return packed_starterData[tableoff+2+(j<<1)];
                 if(char1<packed_starterData[tableoff+1+(j<<1)]) return -1;
@@ -345,7 +340,6 @@ int quickCompose(int lastch)
     // NORMAL CHARACTER COMPOSITION
 
     unsigned int starter=unicodeBuffer[0];
-    int cc=CCLASS(getCPInfo(starter));
 
     int idx=1;
     while(idx<lastch) {
@@ -410,16 +404,15 @@ enum {
 
 
 
-int utf82NFC(char *string,int len)
+int utf82NFC(char *string, char *end)
 {
-char *end=string+len;
 unsigned int cp,cc,qc,cpinfo;
 int lastchar=0,flags;
-
+int len=end-string;
 flags=0;
 while(string<end) {
-        cp=utf82char(string,end-string);
-        if(cp==-1) { unicodeBuffer[0]=0; return len; }
+        cp=utf82char(string,end);
+        if(cp==0xffffffff) { unicodeBuffer[0]=0; return len; }
         cpinfo=getCPInfo(cp);
         qc=NFC_QC(cpinfo);
         cc=CCLASS(cpinfo);
@@ -447,7 +440,7 @@ while(string<end) {
 
         }
 
-        string=utf8skip(string,end-string);
+        string=utf8skip(string,end);
 
         if(qc) {
             // FAILED QUICK CHECK TEST
@@ -479,14 +472,14 @@ int utf8ncmp(const char *s1,const char *s2,int len)
 {
        if (len > 0)
         {
-            while (len > 0)
+            while (len > 0 )
             {
-                if (utf82char(s1,len) != utf82char(s2,len)) break;
+                if (utf82char((char *)s1,(char *)s1+4) != utf82char((char *)s2,(char *)s2+4)) break;
                 if (*s1 == '\0') return 0;
 
-                s1=utf8skip(s1,len);
-                s2=utf8skip(s2,len);
-                len--;
+                s1=utf8skip((char *)s1,(char *)s1+4);
+                s2=utf8skip((char *)s2,(char *)s2+4);
+                --len;
             }
 
             if (len > 0)
@@ -494,7 +487,7 @@ int utf8ncmp(const char *s1,const char *s2,int len)
                 if (*s1 == '\0') return -1;
                 if (*s2 == '\0' ) return 1;
 
-                return (((unsigned char ) *s1 ) - ((unsigned char) *s2));
+                return (utf82char((char *)s1,(char *)s1+4) - utf82char((char *)s2,(char *)s2+4));
             }
         }
 
@@ -510,18 +503,27 @@ int utf8len(char *string)
     int count=0;
     while(*string) {
         ++count;
-        string=utf8skip(string,4);
+        if(*string&0x80) {
+                ++string;
+                while(((*string&0xc0)==0x80)) ++string;
+            }
+        else ++string;
     }
     return count;
 }
 
-int utf8nlen(char *string,int size)
+// RETURNS THE LENGTH IN UNICODE CODEPOINTS
+
+int utf8nlen(char *string, char *end)
 {
     int count=0;
-    char *end=string+size;
     while(string<end) {
         ++count;
-        string=utf8skip(string,end-string);
+        if(*string&0x80) {
+                ++string;
+                while(((*string&0xc0)==0x80)&& (string<end)) ++string;
+            }
+        else ++string;
     }
     return count;
 }

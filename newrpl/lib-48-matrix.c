@@ -286,7 +286,7 @@ void LIB_HANDLER()
 
             for(i=0;i<rows;++i)
             {
-                if(rows!=1) rplDecompAppendString("[ ");
+                if(rows!=1) rplDecompAppendString((BYTEPTR)"[ ");
                 if(Exceptions) { RetNum=ERR_INVALID; return; }
                 for(j=0;j<cols;++j)
                 {
@@ -296,7 +296,7 @@ void LIB_HANDLER()
                  if(Exceptions) { RetNum=ERR_INVALID; return; }
                  rplDecompAppendChar(' ');
                 }
-                if(rows!=1) rplDecompAppendString("] ");
+                if(rows!=1) rplDecompAppendString((BYTEPTR)"] ");
                 if(Exceptions) { RetNum=ERR_INVALID; return; }
             }
 

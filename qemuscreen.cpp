@@ -15,9 +15,9 @@ extern unsigned int *__lcd_buffer;
 QEmuScreen::QEmuScreen(QWidget *parent) :
     QGraphicsView(parent),
     annHourglass(QString(":/bitmap/bitmap/ann_busy.xbm")),
+    annComms(QString(":/bitmap/bitmap/ann_io.xbm")),
     annAlpha(QString(":/bitmap/bitmap/ann_alpha.xbm")),
     annBattery(QString(":/bitmap/bitmap/ann_battery.xbm")),
-    annComms(QString(":/bitmap/bitmap/ann_io.xbm")),
     annLShift(QString(":/bitmap/bitmap/ann_left.xbm")),
     annRShift(QString(":/bitmap/bitmap/ann_right.xbm"))
 {

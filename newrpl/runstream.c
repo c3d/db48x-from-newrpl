@@ -241,9 +241,6 @@ void rplRun(void)
 
 }
 
-
-
-
 // CHANGE THE CURRENT RUNSTREAM POINTER
 void rplSetEntryPoint(WORDPTR ip)
 {

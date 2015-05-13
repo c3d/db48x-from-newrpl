@@ -25,6 +25,11 @@ void rplCompileAppend(WORD word)
 
 }
 
+// ALLOCATE NWORDS FOR FUTURE COMPILATION BUT DOESN'T
+// ACTUALLY APPEND ANYTHING.
+// RETURNS A POINTER TO THE AREA OF MEMORY WHERE THE
+// CALLER WILL HAVE TO STORE THE WORDS
+
 WORDPTR rplCompileAppendWords(BINT nwords)
 {
     CompileEnd+=nwords;
@@ -184,7 +189,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
         while( (NextTokenStart<CompileStringEnd) && ((*((char *)NextTokenStart)==' ') || (*((char *)NextTokenStart)=='\t') || (*((char *)NextTokenStart)=='\n') || (*((char *)NextTokenStart)=='\r'))) NextTokenStart=(WORDPTR)(((char *)NextTokenStart)+1);
         } else splittoken=0;
 
-        TokenLen=(BINT)utf8nlen((char *)TokenStart,((BYTEPTR)BlankStart-(BYTEPTR)TokenStart));
+        TokenLen=(BINT)utf8nlen((char *)TokenStart,(char *)BlankStart);
         BlankLen=(BINT)((BYTEPTR)NextTokenStart-(BYTEPTR)BlankStart);
         CurrentConstruct=(BINT)((ValidateTop>RSTop)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
         ValidateHandler=rplGetLibHandler(LIBNUM(CurrentConstruct));
@@ -429,9 +434,9 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     handler=rplGetLibHandler(probe_libnum);
                     CurOpcode=MKOPCODE(probe_libnum,OPCODE_COMPILE);
 
-                    NextTokenStart=BlankStart=(WORDPTR)utf8nskip((char *)TokenStart,((BYTEPTR)BlankStart-(BYTEPTR)TokenStart),TI_LENGTH(probe_tokeninfo));
+                    NextTokenStart=BlankStart=(WORDPTR)utf8nskip((char *)TokenStart,(char *)BlankStart,TI_LENGTH(probe_tokeninfo));
                     while( (NextTokenStart<CompileStringEnd) && ((*((char *)NextTokenStart)==' ') || (*((char *)NextTokenStart)=='\t') || (*((char *)NextTokenStart)=='\n') || (*((char *)NextTokenStart)=='\r'))) NextTokenStart=(WORDPTR)(((char *)NextTokenStart)+1);
-                    TokenLen=(BINT)utf8nlen((char *)TokenStart,(BYTEPTR)BlankStart-(BYTEPTR)TokenStart);
+                    TokenLen=(BINT)utf8nlen((char *)TokenStart,(char *)BlankStart);
                     BlankLen=(BINT)((BYTEPTR)NextTokenStart-(BYTEPTR)BlankStart);
                     CurrentConstruct=(BINT)((ValidateTop>RSTop)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
                     LastCompiledObject=CompileEnd;

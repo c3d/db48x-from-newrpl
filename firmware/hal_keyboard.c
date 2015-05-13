@@ -206,7 +206,7 @@ void PrintObj(int x,int y,WORDPTR obj,DRAWSURFACE *scr)
     // NOW PRINT THE STRING OBJECT
         nchars=rplStrSize(string);
         charptr=(BYTEPTR) (string+1);
-        DrawTextN(x,y,charptr,nchars,(FONTDATA *)&System7Font,15,scr);
+        DrawTextN(x,y,(char *)charptr,nchars,(FONTDATA *)&System7Font,15,scr);
     }
 
 
@@ -356,6 +356,7 @@ BINT halGetContext()
 // DEBUG: DO-NOTHING KEYBOARD HANDLER
 void dummyKeyhandler(BINT keymsg)
 {
+    UNUSED_ARGUMENT(keymsg);
     return;
 }
 
@@ -402,6 +403,7 @@ BINT endCmdLineAndCompile()
         }
     }
 
+    return 0;
 }
 
 // **************************************************************************
@@ -455,14 +457,28 @@ void numberKeyHandler(BINT keymsg)
 
 }
 
+// NOT CONST, THIS IS ACTUALLY A GLOBAL VARIABLE TAKING PERMANENT SPACE
+// ONLY TO BE USED BY THE KEYBOARD HANDLER
+WORD cmdKeySeco[4]={
+    MKPROLOG(DOCOL,3),
+    MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),        // THIS IS TO BE REPLACED WITH THE DESIRED OPCODE
+    CMD_SEMI,
+    CMD_EXITRPL
+};
 
+void cmdRun(WORD Opcode)
+{
+cmdKeySeco[1]=Opcode;
+rplSetEntryPoint(cmdKeySeco);
+rplRun();
+}
 
 void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
 {
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()==CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-                rplCallOvrOperator(Opcode);
+                cmdRun(Opcode);
                 if(Exceptions) {
                     // TODO: SHOW ERROR MESSAGE
                     halShowErrorMsg();
@@ -483,7 +499,7 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
         {
 
                 if(endCmdLineAndCompile()) {
-                rplCallOvrOperator(Opcode);
+                cmdRun(Opcode);
                 if(Exceptions) {
                     // TODO: SHOW ERROR MESSAGE
                     halShowErrorMsg();
@@ -502,8 +518,8 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
         case 'A':   // ALPHANUMERIC MODE
             uiInsertCharacters(Progmode,1);
             if(IsFunc) {
-                uiInsertCharacters("()",2);
-                uiCursorLeft();
+                uiInsertCharacters((BYTEPTR)"()",2);
+                uiCursorLeft(1);
             }
             break;
         default:
@@ -515,16 +531,19 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
 
 void dotKeyHandler(BINT keymsg)
 {
+    UNUSED_ARGUMENT(keymsg);
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         uiOpenCmdLine();
         }
-        uiInsertCharacters(".",1);
+        uiInsertCharacters((BYTEPTR)".",1);
 }
 
 void enterKeyHandler(BINT keymsg)
 {
+    UNUSED_ARGUMENT(keymsg);
+
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         // PERFORM DUP
         if(halGetContext()==CONTEXT_STACK) {
@@ -542,6 +561,8 @@ void enterKeyHandler(BINT keymsg)
 
 void backspKeyHandler(BINT keymsg)
 {
+    UNUSED_ARGUMENT(keymsg);
+
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         // DO DROP
         if(halGetContext()==CONTEXT_STACK) {
@@ -562,6 +583,8 @@ void backspKeyHandler(BINT keymsg)
 
 void leftKeyHandler(BINT keymsg)
 {
+    UNUSED_ARGUMENT(keymsg);
+
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()==CONTEXT_STACK) {
             // TODO: WHAT TO DO WITH LEFT CURSOR??
@@ -576,6 +599,8 @@ void leftKeyHandler(BINT keymsg)
 
 void rightKeyHandler(BINT keymsg)
 {
+    UNUSED_ARGUMENT(keymsg);
+
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()==CONTEXT_STACK) {
 
@@ -599,44 +624,58 @@ void rightKeyHandler(BINT keymsg)
 
 void addKeyHandler(BINT keymsg)
 {
-    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD),"+",0);
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD),(BYTEPTR)"+",0);
 }
 void subKeyHandler(BINT keymsg)
 {
-    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB),"-",0);
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB),(BYTEPTR)"-",0);
 }
 
 void divKeyHandler(BINT keymsg)
 {
-    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV),"/",0);
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV),(BYTEPTR)"/",0);
 }
 void mulKeyHandler(BINT keymsg)
 {
-    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL),"*",0);
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL),(BYTEPTR)"*",0);
 }
 void invKeyHandler(BINT keymsg)
 {
-    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_INV),"INV",1);
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_INV),(BYTEPTR)"INV",1);
 }
 
 
 void spcKeyHandler(BINT keymsg)
 {
+    UNUSED_ARGUMENT(keymsg);
+
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         uiOpenCmdLine();
         }
-        uiInsertCharacters(" ",1);
+        uiInsertCharacters((BYTEPTR)" ",1);
 
 }
 
 void chsKeyHandler(BINT keymsg)
 {
+    UNUSED_ARGUMENT(keymsg);
+
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()==CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+                cmdRun(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
                 if(Exceptions) {
                     // TODO: SHOW ERROR MESSAGE
                     halShowErrorMsg();
@@ -660,7 +699,7 @@ void chsKeyHandler(BINT keymsg)
             if(startnum>line) {
             if(startnum[-1]=='+') { startnum[-1]='-'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
             if(startnum[-1]=='-') { startnum[-1]='+'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
-            if((startnum[-1]=='E')||(startnum[-1]=='e') ) { uiInsertCharacters("-",1); return; }
+            if((startnum[-1]=='E')||(startnum[-1]=='e') ) { uiInsertCharacters((BYTEPTR)"-",1); return; }
 
 
             }
@@ -669,7 +708,7 @@ void chsKeyHandler(BINT keymsg)
             if((halScreen.CursorState&0xff)=='D') {
             // COMPILE AND EXECUTE NEG
             if(endCmdLineAndCompile()) {
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+            cmdRun(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
             if(Exceptions) {
                 // TODO: SHOW ERROR MESSAGE
                 halShowErrorMsg();
@@ -691,7 +730,7 @@ void chsKeyHandler(BINT keymsg)
             // NEED TO INSERT A CHARACTER HERE
             BINT oldposition=halScreen.CursorPosition;
             uiMoveCursor(startnum-line);
-            uiInsertCharacters("-",1);
+            uiInsertCharacters((BYTEPTR)"-",1);
             uiMoveCursor(oldposition+1);
             uiEnsureCursorVisible();
             return;
@@ -704,12 +743,14 @@ void chsKeyHandler(BINT keymsg)
 
 void eexKeyHandler(BINT keymsg)
 {
+    UNUSED_ARGUMENT(keymsg);
+
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()==CONTEXT_STACK) {
             halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
             halSetContext(halGetContext()|CONTEXT_INEDITOR);
             uiOpenCmdLine();
-            uiInsertCharacters("1E",2);
+            uiInsertCharacters((BYTEPTR)"1E",2);
             return;
         }
 
@@ -728,7 +769,7 @@ void eexKeyHandler(BINT keymsg)
             if((startnum>line) && ((startnum[-1]=='E')||(startnum[-1]=='e') )) return;
 
             // SECOND CASE: IF TOKEN UNDER CURSOR IS EMPTY, IN 'D' MODE COMPILE OBJECT AND THEN APPEND 1E
-            uiInsertCharacters("1E",2);
+            uiInsertCharacters((BYTEPTR)"1E",2);
             return;
         }
         else {
@@ -744,7 +785,7 @@ void eexKeyHandler(BINT keymsg)
 
             // NEED TO INSERT A CHARACTER HERE
             BINT oldposition=halScreen.CursorPosition;
-            uiInsertCharacters("E",1);
+            uiInsertCharacters((BYTEPTR)"E",1);
             uiMoveCursor(oldposition+1);
             uiEnsureCursorVisible();
             return;
@@ -753,12 +794,26 @@ void eexKeyHandler(BINT keymsg)
     }
 }
 
+void BracketKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
 
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+        halSetContext(halGetContext()|CONTEXT_INEDITOR);
+        uiOpenCmdLine();
+        }
+    uiInsertCharacters((BYTEPTR)"{}",2);
+    uiCursorLeft(1);
+
+}
 
 
 
 void onPlusKeyHandler(BINT keymsg)
 {
+    UNUSED_ARGUMENT(keymsg);
+
 // INCREASE CONTRAST
 DRAWSURFACE scr;
 ggl_initscr(&scr);
@@ -783,6 +838,8 @@ lcd_setcontrast(__lcd_contrast);
 
 void onMinusKeyHandler(BINT keymsg)
 {
+    UNUSED_ARGUMENT(keymsg);
+
 // DECREASE CONTRAST
 DRAWSURFACE scr;
 ggl_initscr(&scr);
@@ -844,6 +901,8 @@ struct keyhandler_t __keydefaulthandlers[]= {
     { KM_PRESS|KB_SPC, CONTEXT_ANY,&spcKeyHandler },
     { KM_PRESS|KB_W, CONTEXT_ANY,&chsKeyHandler },
     { KM_PRESS|KB_V, CONTEXT_ANY,&eexKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_LS, CONTEXT_ANY,&BracketKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_LSHOLD, CONTEXT_ANY,&BracketKeyHandler },
 
     { KM_PRESS|KB_ADD|SHIFT_ONHOLD, CONTEXT_ANY,&onPlusKeyHandler },
     { KM_PRESS|KB_SUB|SHIFT_ONHOLD, CONTEXT_ANY,&onMinusKeyHandler },
@@ -869,6 +928,7 @@ struct keyhandler_t __keydefaulthandlers[]= {
 int halDoCustomKey(BINT keymsg)
 {
     // TODO: READ THE KEYBOARD TABLE FROM THE Settings DIRECTORY AND DO IT
+    UNUSED_ARGUMENT(keymsg);
 
     return 0;
 

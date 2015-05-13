@@ -34,19 +34,20 @@
 
 
 
-// ALL STRINGS ARE PROVIDED AS A POINTER AND A BYTE COUNT
+// ALL STRINGS ARE PROVIDED AS A POINTER TO THE START AND A
+// POINTER TO THE END OF STRING (IMMEDIATELY *AFTER* THE LAST BYTE)
 // STRINGS MAY CONTAIN THE NULL CHARACTER AND DON'T NEED TO BE NULL-TERMINATED
 
 // DECODE A SINGLE CODE POINT FROM THE GIVEN STRING TO A 32-BIT INTEGER
-int utf82char(char * ptr,int len);
+int utf82char(char * ptr,char *end);
 
 // SKIP A SINGLE CODE POINT IN A UTF-8 ENCODED STRING
 // RETURNS THE INCREASED POINTER, OR PTR AT THE END OF STRING
-char *utf8skip(char *ptr,int len);
+char *utf8skip(char *ptr,char * end);
 
 // SKIP N CODE POINTS IN A UTF-8 ENCODED STRING
 // RETURNS THE INCREASED POINTER, OR PTR AT THE END OF STRING
-char *utf8nskip(char *ptr,int len,int n);
+char *utf8nskip(char *ptr,char *end,int n);
 
 
 // ENCODE A UNICODE CODE POINT INTO A LITTLE ENDIAN SEQUENCE OF 4 BYTES, PACKED IN AN INT
@@ -64,8 +65,8 @@ int utf8ncmp(const char *s1,const char *s2,int len);
 int utf8len(char *string);
 
 // SAME AS STRLEN BUT RETURNS THE LENGTH IN UNICODE CODEPOINTS OF
-// A STRING GIVEN BY SIZE IN BYTES
-int utf8nlen(char *string,int size);
+// A STRING GIVEN BY START AND END
+int utf8nlen(char *string,char *end);
 
 
 
@@ -103,7 +104,7 @@ int quickCompose(int lastch);
 
 // READ A UNICODE CHARACTER (POSSIBLY MULTIPLE CODEPOINTS), CONVERT TO NFC AND LEAVE AT THE BUFFER.
 // RETURNS THE NUMBER OF BYTES CONSUMED FROM STRING.
-int utf82NFC(char *string,int len);
+int utf82NFC(char *string,char *end);
 
 
 

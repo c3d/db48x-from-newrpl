@@ -388,7 +388,7 @@ void uniDrawTextN(int x,int y,char *Text,int nchars,UNIFONT *Font,int color,DRAW
 
     while(Text<End) {
 
-        cp=utf82char(Text,End-Text);
+        cp=utf82char(Text,End);
 
         if(cp=='\n' || cp=='\r') return;
 
@@ -410,7 +410,7 @@ void uniDrawTextN(int x,int y,char *Text,int nchars,UNIFONT *Font,int color,DRAW
     srf.x=w&0xfff;
     w>>=12;
     if(drawsurf->x>drawsurf->clipx2) return;
-    if(drawsurf->x+w-1<drawsurf->clipx) { drawsurf->x+=w; Text=utf8skip(Text,End-Text); continue; }
+    if(drawsurf->x+w-1<drawsurf->clipx) { drawsurf->x+=w; Text=utf8skip(Text,End); continue; }
     if(drawsurf->x<drawsurf->clipx) {
             srf.x+=drawsurf->clipx-drawsurf->x;
             w-=drawsurf->clipx-drawsurf->x;
@@ -422,7 +422,7 @@ void uniDrawTextN(int x,int y,char *Text,int nchars,UNIFONT *Font,int color,DRAW
     if((color&0xf)==0xf) ggl_monobitbltmask(drawsurf,&srf,w,h,0);
     else ggl_monobitbltoper(drawsurf,&srf,w,h,color&0xf,&gui_chgcolorfilter);
     drawsurf->x+=w;
-    Text=utf8skip(Text,End-Text);
+    Text=utf8skip(Text,End);
     }
     return;
 

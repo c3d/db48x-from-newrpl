@@ -148,6 +148,8 @@ extern void shrinkTempBlocks(WORD newtotalsize);
 
 extern WORDPTR rplCompile(BYTEPTR string, BINT len, BINT addwrapper);
 extern void rplCompileAppend(WORD word);
+extern WORDPTR rplCompileAppendWords(BINT nwords);
+
 
 // DECOMPILER FUNCTIONS
 extern WORDPTR rplDecompile(WORDPTR object, BINT embedded);

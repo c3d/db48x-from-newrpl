@@ -80,16 +80,9 @@ const WORD const empty_string[]={
 BINT rplStrLen(WORDPTR string)
 {
     if(ISSTRING(*string))  {
-        BINT len=STRLEN(*string),count=0;
-        BYTEPTR ptr=(BYTEPTR)(string+1),end;
-
-        end=ptr+len;
-
-        while(ptr<end) {
-            ptr=utf8skip(ptr,end-ptr);
-            ++count;
-        }
-        return count;
+        BINT len=STRLEN(*string);
+        BYTEPTR start=(BYTEPTR)(string+1);
+        return utf8nlen((char *)start,(char *)(start+len));
     }
     return 0;
 }

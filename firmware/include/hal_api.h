@@ -1043,6 +1043,7 @@ extern int StringWidthN(char *Text,int nchars,FONTDATA *Font);
 
 extern int cpu_getlock(int lockvar,volatile int *lock_ptr);
 extern int cpu_setspeed(int);
+extern void cpu_waitforinterrupt();
 
 // LCD LOW-LEVEL HARDWARE API
 
@@ -1078,9 +1079,12 @@ void halSetBusyHandler();
 
 
 // SCREEN FUNCTIONS
-void halSetNotification(enum halNotification type,int show);
-int halGetNotification(enum halNotification type);
-
+extern void halSetNotification(enum halNotification type,int show);
+extern int halGetNotification(enum halNotification type);
+extern void halShowErrorMsg();
+extern void halSetCmdLineHeight(int h);
+extern void halStatusAreaPopup();
+extern void halRedrawAll(DRAWSURFACE *scr);
 
 
 // REDEFINE SOME CONSTANTS FOR THE PC EMULATOR TARGET

@@ -46,6 +46,20 @@ extern BINT ui_visiblex;
 extern void uiEnsureCursorVisible();
 extern void uiModifyLine();
 extern void uiExtractLine();
+extern BYTEPTR uiFindNumberStart();
+extern WORDPTR uiGetCmdLineText();
+extern void uiOpenCmdLine();
+extern void uiCloseCmdLine();
+extern void uiInsertCharacters(BYTEPTR string,BINT length);
+extern void uiRemoveCharacters(BINT length);
+
+extern void uiSeparateToken();
+
+extern void uiMoveCursor(BINT offset);
+extern void uiCursorLeft(BINT nchars);
+extern void uiCursorRight(BINT nchars);
+
+
 
 
 #endif // UI_H

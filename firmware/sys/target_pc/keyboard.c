@@ -383,7 +383,7 @@ doupdate:
 
     // On-C and On-A-F handling
 
-    if(__kmat== ((1LL<<KB_ON) | (1LL<<KB_A)  | (1LL<<KB_F)))
+    if(__kmat== ((1ULL<<KB_ON) | (1ULL<<KB_A)  | (1ULL<<KB_F)))
     {
         // ON-A-F pressed, offer the option to stop the program
 
@@ -429,6 +429,7 @@ __keyflags|=KF_RUNNING;
 
 void __keyb_stop(unsigned int *keysave)
 {
+UNUSED_ARGUMENT(keysave);
 
 tmr_events[0].status=0;
 
