@@ -399,6 +399,7 @@ BINT endCmdLineAndCompile()
             uiCloseCmdLine();
             halSetCmdLineHeight(0);
             halSetContext(halGetContext()& (~CONTEXT_INEDITOR));
+            return 1;
 
         }
     }
@@ -460,7 +461,7 @@ void numberKeyHandler(BINT keymsg)
 // NOT CONST, THIS IS ACTUALLY A GLOBAL VARIABLE TAKING PERMANENT SPACE
 // ONLY TO BE USED BY THE KEYBOARD HANDLER
 WORD cmdKeySeco[4]={
-    MKPROLOG(DOCOL,3),
+    MKPROLOG(DOCOL,2),
     MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),        // THIS IS TO BE REPLACED WITH THE DESIRED OPCODE
     CMD_SEMI,
     CMD_EXITRPL
@@ -881,6 +882,8 @@ struct keyhandler_t __keydefaulthandlers[]= {
     { KM_PRESS|KB_1, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_2, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_3, CONTEXT_ANY,&numberKeyHandler },
+    { KM_LPRESS|KB_3, CONTEXT_ANY,&numberKeyHandler },
+    { KM_LREPEAT|KB_3, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_4, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_5, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_6, CONTEXT_ANY,&numberKeyHandler },
@@ -891,18 +894,22 @@ struct keyhandler_t __keydefaulthandlers[]= {
     { KM_PRESS|KB_DOT, CONTEXT_ANY,&dotKeyHandler },
     { KM_PRESS|KB_ENT, CONTEXT_ANY,&enterKeyHandler },
     { KM_PRESS|KB_BKS, CONTEXT_ANY,&backspKeyHandler },
+    { KM_REPEAT|KB_BKS, CONTEXT_ANY,&backspKeyHandler },
     { KM_PRESS|KB_LF, CONTEXT_ANY,&leftKeyHandler },
+    { KM_REPEAT|KB_LF, CONTEXT_ANY,&leftKeyHandler },
     { KM_PRESS|KB_RT, CONTEXT_ANY,&rightKeyHandler },
+    { KM_REPEAT|KB_RT, CONTEXT_ANY,&rightKeyHandler },
     { KM_PRESS|KB_ADD, CONTEXT_ANY,&addKeyHandler },
     { KM_PRESS|KB_SUB, CONTEXT_ANY,&subKeyHandler },
     { KM_PRESS|KB_DIV, CONTEXT_ANY,&divKeyHandler },
     { KM_PRESS|KB_MUL, CONTEXT_ANY,&mulKeyHandler },
     { KM_PRESS|KB_Y, CONTEXT_ANY,&invKeyHandler },
     { KM_PRESS|KB_SPC, CONTEXT_ANY,&spcKeyHandler },
+    { KM_REPEAT|KB_SPC, CONTEXT_ANY,&spcKeyHandler },
     { KM_PRESS|KB_W, CONTEXT_ANY,&chsKeyHandler },
     { KM_PRESS|KB_V, CONTEXT_ANY,&eexKeyHandler },
     { KM_PRESS|KB_ADD|SHIFT_LS, CONTEXT_ANY,&BracketKeyHandler },
-    { KM_PRESS|KB_ADD|SHIFT_LSHOLD, CONTEXT_ANY,&BracketKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&BracketKeyHandler },
 
     { KM_PRESS|KB_ADD|SHIFT_ONHOLD, CONTEXT_ANY,&onPlusKeyHandler },
     { KM_PRESS|KB_SUB|SHIFT_ONHOLD, CONTEXT_ANY,&onMinusKeyHandler },
@@ -977,8 +984,8 @@ int halProcessKey(BINT keymsg)
     if(!wasProcessed) wasProcessed=halDoDefaultKey(keymsg);
 
     // *************** DEBUG ONLY ************
-    /*
-    if(!wasProcessed) {
+
+    if(!wasProcessed && ((KM_MESSAGE(keymsg)==KM_PRESS)||(KM_MESSAGE(keymsg)==KM_LPRESS)||(KM_MESSAGE(keymsg)==KM_REPEAT))) {
 
     // ALL OTHER KEYS, JUST DISPLAY THE KEY NAME ON SCREEN
         DRAWSURFACE scr;
@@ -988,7 +995,7 @@ int halProcessKey(BINT keymsg)
     int width=StringWidth((char *)keyNames[KM_KEY(keymsg)],(FONTDATA *)&System7Font);
     int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     // CLEAR STATUS AREA AND SHOW KEY THERE
-    //ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+    ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
     DrawTextBk(SCREEN_WIDTH-width,ytop+halScreen.Menu2/2,(char *)keyNames[KM_KEY(keymsg)],(FONTDATA *)System7Font,15,0,&scr);
     char *shiftstr;
     switch(KM_SHIFTPLANE(keymsg))
@@ -1014,6 +1021,19 @@ int halProcessKey(BINT keymsg)
     case SHIFT_ONHOLD:
         shiftstr="(ONH)";
         break;
+    case SHIFT_ALPHA|SHIFT_LS:
+        shiftstr="(AL-LS)";
+        break;
+    case SHIFT_ALPHA|SHIFT_RS:
+        shiftstr="(AL-RS)";
+        break;
+    case SHIFT_ALPHA|SHIFT_LSHOLD:
+        shiftstr="(AL-LSH)";
+        break;
+    case SHIFT_ALPHA|SHIFT_RSHOLD:
+        shiftstr="(AL-RSH)";
+        break;
+
     default:
         shiftstr="";
     }
@@ -1022,7 +1042,7 @@ int halProcessKey(BINT keymsg)
     if(KM_MESSAGE(keymsg)==KM_LPRESS) DrawTextBk(SCREEN_WIDTH-width-42,ytop+halScreen.Menu2/2,"L=",(FONTDATA *)&System7Font,15,0,&scr);
 
     }
-    */
+
 
     // ONLY RETURN 1 WHEN THE OUTER LOOP IS SUPPOSED TO END
     return 0;

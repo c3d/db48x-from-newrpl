@@ -1,3 +1,10 @@
 <RCC>
-    <qresource prefix="/bitmap"/>
+    <qresource prefix="/bitmap">
+        <file>bitmap/ann_right.xbm</file>
+        <file>bitmap/ann_left.xbm</file>
+        <file>bitmap/ann_io.xbm</file>
+        <file>bitmap/ann_busy.xbm</file>
+        <file>bitmap/ann_battery.xbm</file>
+        <file>bitmap/ann_alpha.xbm</file>
+    </qresource>
 </RCC>

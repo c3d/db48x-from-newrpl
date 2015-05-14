@@ -39,6 +39,7 @@ void main_virtual()
     else rplWarmInit();
 
     halInitScreen();
+    halSetBusyHandler();
     halRedrawAll(&scr);
 
     if(wascleared) DrawText(STATUSAREA_X,halScreen.Stack+halScreen.CmdLine+halScreen.Form+halScreen.Menu1,"Memory Cleared",(FONTDATA *)System7Font,0xf,&scr);

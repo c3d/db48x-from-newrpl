@@ -612,24 +612,30 @@ Bit set means key is pressed.
 // SHIFT CONSTANTS FOR HIGH-LEVEL KEYBOARD FUNCTIONS
 
 //! Shift constant to use in a combined shiftcode. Left Shift.
-#define SHIFT_LS          0x40
-//! Shift constant to use in a combined shiftcode. Hold-Left Shift.
-#define SHIFT_LSHOLD      0x80
-//! Shift constant to use in a combined shiftcode. Right Shift.
-#define SHIFT_RS         0x100
-//! Shift constant to use in a combined shiftcode. Hold-Right Shift.
-#define SHIFT_RSHOLD     0x200
+#define SHIFT_HOLD        0x400
 
+//! Shift constant to use in a combined shiftcode. Left Shift.
+#define SHIFT_LS          0x40
+//! Shift constant to use in a combined shiftcode. Right Shift.
+#define SHIFT_RS          0x80
 //! Shift constant to use in a combined shiftcode. Alpha.
-#define SHIFT_ALPHA      0x400
+#define SHIFT_ALPHA      0x200
+
+//! Shift constant to use in a combined shiftcode. Hold-Left Shift.
+#define SHIFT_LSHOLD      (SHIFT_LS|SHIFT_HOLD)
+//! Shift constant to use in a combined shiftcode. Hold-Right Shift.
+#define SHIFT_RSHOLD      (SHIFT_RS|SHIFT_HOLD)
 //! Shift constant to use in a combined shiftcode. Hold-Alpha.
-#define SHIFT_ALPHAHOLD  0x800
+#define SHIFT_ALPHAHOLD  (SHIFT_ALPHA|SHIFT_HOLD)
 
 //! Shift constant to use in a combined shiftcode. Hold-On key.
-#define SHIFT_ONHOLD    0x1000
+#define SHIFT_ONHOLD     0x100
+
+//#define SHIFT_ALPHALOCK 0x400   // THIS IS NOT FOR THE USER, SYSTEM USE ONLY
+
 
 //! Shift constant to use in a combined shiftcode. Any Shift or ON.
-#define SHIFT_ANY    0x1fc0
+#define SHIFT_ANY        0x7c0
 
 
 // 18-BIT KEY CODE FOR KEYBOARD HANDLER
@@ -795,7 +801,11 @@ int keyb_getkey(int wait);
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
 #define KM_PRESS  0x0000
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
+#define KM_REPEAT 0x1000
+//! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
 #define KM_LPRESS 0x2000
+//! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
+#define KM_LREPEAT (KM_LPRESS|KM_REPEAT)
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
 #define KM_KEYDN  0x4000
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants

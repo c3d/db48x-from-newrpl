@@ -329,13 +329,13 @@ doupdate:
         } else {
             // TODO: ADD SHIFT PLANE SWITCHING HERE
             if(key==KB_LSHIFT) {
-                __keyplane|=SHIFT_LSHOLD|SHIFT_LS;
                 __keyplane&=~(SHIFT_RSHOLD|SHIFT_RS | (SHIFT_RS<<16));
+                __keyplane|=SHIFT_LSHOLD|SHIFT_LS;
                 __keyplane^=SHIFT_LS<<16;
             }
             if(key==KB_RSHIFT) {
-                __keyplane|=SHIFT_RSHOLD|SHIFT_RS;
                 __keyplane&=~(SHIFT_LSHOLD|SHIFT_LS| (SHIFT_LS<<16));
+                __keyplane|=SHIFT_RSHOLD|SHIFT_RS;
                 __keyplane^=SHIFT_RS<<16;
             }
             if(key==KB_ALPHA) {
@@ -385,7 +385,7 @@ doupdate:
         __keycount=-BOUNCE_KEYTIME;
         __keyplane&=~((SHIFT_LS|SHIFT_RS|SHIFT_ALPHA)<<16);
 
-        if(!(__keyplane& (SHIFT_LSHOLD | SHIFT_RSHOLD | SHIFT_ALPHAHOLD | SHIFT_ONHOLD))) {
+        if(!(__keyplane& (SHIFT_HOLD | SHIFT_ONHOLD))) {
             int oldkeyplane=__keyplane;
             __keyplane&=~(SHIFT_LS|SHIFT_RS|SHIFT_ALPHA); // KILL ALL SHIFT PLANES
             __keyplane|=(__keyplane>>17)&SHIFT_ALPHA; // KEEP ALPHA IF LOCKED

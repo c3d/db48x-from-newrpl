@@ -202,6 +202,8 @@ void MainWindow::keyPressEvent(QKeyEvent *ev)
 
     int i;
 
+    if(ev->isAutoRepeat()) { ev->accept(); return; }
+
     for(i=0;keyMap[i]!=0;i+=2) {
         if(ev->key()==keyMap[i]) {
             __pckeymatrix|=1ULL<<(keyMap[i+1]);
@@ -218,6 +220,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent *ev)
 {
 
     int i;
+    if(ev->isAutoRepeat()) { ev->accept(); return; }
 
     for(i=0;keyMap[i]!=0;i+=2) {
         if(ev->key()==keyMap[i]) {
