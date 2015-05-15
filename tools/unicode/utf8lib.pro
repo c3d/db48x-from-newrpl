@@ -6,8 +6,8 @@ CONFIG -= qt
 SOURCES += main.c \
     utf8lib.c
 
-include(deployment.pri)
-qtcAddDeployment()
+#include(deployment.pri)
+#qtcAddDeployment()
 
 DISTFILES += \
     UnicodeData.txt \

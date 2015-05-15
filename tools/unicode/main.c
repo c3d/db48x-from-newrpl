@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <mem.h>
-#include <malloc.h>
+//#include <mem.h>
+//#include <malloc.h>
 
 #include "utf8lib.h"
 
