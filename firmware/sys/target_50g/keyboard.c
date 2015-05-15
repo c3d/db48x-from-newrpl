@@ -432,20 +432,62 @@ doupdate:
         ++__keycount;
         if( (__keycount>LONG_KEYPRESSTIME) )
         {
-            if(!(__keyflags&KF_NOREPEAT)) {
-            __keyb_postmsg(KM_PRESS | __keynumber | (__keyplane&SHIFT_ANY));
-            __keycount=-REPEAT_KEYTIME;
-            }
-            else {
-                // NOKEYBOARD REPEAT, ISSUE A LONG KEYPRESS
+            // ONLY CERTAIN KEYS WILL AUTOREPEAT
+            switch(__keynumber)
+            {
+            case KB_SPC:
+            case KB_BKS:
+                if(__keyplane&SHIFT_ANY) {
+                    __keyb_postmsg(KM_LPRESS | __keynumber | (__keyplane&SHIFT_ANY));
+                    __keycount=-LONG_KEYPRESSTIME;
+                    break;
+                }
+                // OTHERWISE DO REPEAT
+            case KB_UP:
+            case KB_DN:
+            case KB_LF:
+            case KB_RT:
+                // THESE ALWAYS REPEAT, EVEN SHIFTED
+                __keyb_postmsg(KM_REPEAT | __keynumber | (__keyplane&SHIFT_ANY));
+                __keycount=-REPEAT_KEYTIME;
+                break;
+            default:
+                // DO NOT AUTOREPEAT, DO LONG PRESS
                 __keyb_postmsg(KM_LPRESS | __keynumber | (__keyplane&SHIFT_ANY));
-                __keynumber=-__keynumber; // THERE WILL BE NO REPETITIONS OF LONG KEYPRESS
+                __keycount=-LONG_KEYPRESSTIME;
             }
+
         }
 
         if(!__keycount) {
-            __keyb_postmsg(KM_PRESS | __keynumber | (__keyplane&SHIFT_ANY));
-            __keycount=-REPEAT_KEYTIME;
+            switch(__keynumber)
+            {
+            case KB_SPC:
+            case KB_BKS:
+                if(__keyplane&SHIFT_ANY) {
+                    __keyb_postmsg(KM_LREPEAT | __keynumber | (__keyplane&SHIFT_ANY));
+                    __keycount-=LONG_KEYPRESSTIME;
+                    break;
+                }
+                // OTHERWISE DO REPEAT
+            case KB_UP:
+            case KB_DN:
+            case KB_LF:
+            case KB_RT:
+                // THESE ALWAYS REPEAT, EVEN SHIFTED
+                __keyb_postmsg(KM_REPEAT | __keynumber | (__keyplane&SHIFT_ANY));
+                __keycount-=REPEAT_KEYTIME;
+                break;
+            default:
+                // DO NOT AUTOREPEAT, DO LONG PRESS
+                __keyb_postmsg(KM_LREPEAT | __keynumber | (__keyplane&SHIFT_ANY));
+                __keycount-=LONG_KEYPRESSTIME;
+            }
+
+
+
+
+
         }
 
     }
@@ -509,8 +551,8 @@ __keyplane=0;
 __kused=__kcurrent=0;
 __keynumber=0;
 __kmat=0LL;
-__keyb_repeattime=80/KEYB_SCANSPEED;
-__keyb_longpresstime=1000/KEYB_SCANSPEED;
+__keyb_repeattime=50/KEYB_SCANSPEED;
+__keyb_longpresstime=800/KEYB_SCANSPEED;
 __keyb_debounce=20/KEYB_SCANSPEED;
 __keyb_lock=0;
 // INITIALIZE TIMER EVENT 0

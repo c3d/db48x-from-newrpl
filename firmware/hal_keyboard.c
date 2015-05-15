@@ -221,8 +221,9 @@ BINT halWaitForKey()
 {
     int keymsg;
 
-    if(!(halFlags&HAL_FASTMODE)) {
+    if(!(halFlags&HAL_FASTMODE) && (halBusyEvent>=0)) {
     tmr_eventkill(halBusyEvent);
+    halBusyEvent=-1;
     }
 
     do {
@@ -795,17 +796,62 @@ void eexKeyHandler(BINT keymsg)
     }
 }
 
-void BracketKeyHandler(BINT keymsg)
+// COMMON FUNCTION FOR AL "BRACKET TYPES"
+void BracketKeyHandler(BYTEPTR string,BINT len)
 {
-    UNUSED_ARGUMENT(keymsg);
-
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         uiOpenCmdLine();
         }
-    uiInsertCharacters((BYTEPTR)"{}",2);
-    uiCursorLeft(1);
+    if(((halScreen.CursorState&0xff)=='D')||((halScreen.CursorState&0xff)=='P')) uiSeparateToken();
+
+    uiInsertCharacters(string,len);
+    uiCursorLeft(len>>1);
+
+}
+
+void curlyBracketKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    BracketKeyHandler("{  }",4);
+
+}
+void squareBracketKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    BracketKeyHandler("[  ]",4);
+
+}
+void secoBracketKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    BracketKeyHandler("«  »",4);
+
+}
+void parenBracketKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    BracketKeyHandler("()",2);
+
+}
+void textBracketKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    BracketKeyHandler("\"\"",2);
+
+}
+
+void ticksKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    BracketKeyHandler("''",2);
 
 }
 
@@ -908,8 +954,17 @@ struct keyhandler_t __keydefaulthandlers[]= {
     { KM_REPEAT|KB_SPC, CONTEXT_ANY,&spcKeyHandler },
     { KM_PRESS|KB_W, CONTEXT_ANY,&chsKeyHandler },
     { KM_PRESS|KB_V, CONTEXT_ANY,&eexKeyHandler },
-    { KM_PRESS|KB_ADD|SHIFT_LS, CONTEXT_ANY,&BracketKeyHandler },
-    { KM_PRESS|KB_ADD|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&BracketKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_LS, CONTEXT_ANY,&curlyBracketKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&curlyBracketKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_RS, CONTEXT_ANY,&secoBracketKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&secoBracketKeyHandler },
+    { KM_PRESS|KB_SUB|SHIFT_LS, CONTEXT_ANY,&parenBracketKeyHandler },
+    { KM_PRESS|KB_SUB|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&parenBracketKeyHandler },
+    { KM_PRESS|KB_MUL|SHIFT_LS, CONTEXT_ANY,&squareBracketKeyHandler },
+    { KM_PRESS|KB_MUL|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&squareBracketKeyHandler },
+    { KM_PRESS|KB_MUL|SHIFT_RS, CONTEXT_ANY,&textBracketKeyHandler },
+    { KM_PRESS|KB_MUL|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&textBracketKeyHandler },
+    { KM_PRESS|KB_O, CONTEXT_ANY,&ticksKeyHandler },
 
     { KM_PRESS|KB_ADD|SHIFT_ONHOLD, CONTEXT_ANY,&onPlusKeyHandler },
     { KM_PRESS|KB_SUB|SHIFT_ONHOLD, CONTEXT_ANY,&onMinusKeyHandler },
