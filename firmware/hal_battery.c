@@ -33,24 +33,24 @@ void battery_handler()
             else         if((k&0xffff)<62259) text|='9'<<16;
             else         { text|='0'<<16; ++text; }
 
-    DrawTextBk(STATUSAREA_X,SCREEN_HEIGHT-14,(char *)&text,(FONTDATA *)MiniFont,0xf,0,&scr);
+    DrawTextBk(STATUSAREA_X,SCREEN_HEIGHT-14,(char *)&text,(UNIFONT *)MiniFont,0xf,0,&scr);
 
     k=(__battery>>8)&0xf;
     if(k>9) k+='A'-10;
     else k+='0';
 
-    DrawTextBk(STATUSAREA_X,SCREEN_HEIGHT-7,(char *)&k,(FONTDATA *)MiniFont,0xf,0,&scr);
+    DrawTextBk(STATUSAREA_X,SCREEN_HEIGHT-7,(char *)&k,(UNIFONT *)MiniFont,0xf,0,&scr);
 
     k=(__battery>>4)&0xf;
     if(k>9) k+='A'-10;
     else k+='0';
-    DrawTextBk(STATUSAREA_X+4,SCREEN_HEIGHT-7,(char *)&k,(FONTDATA *)MiniFont,0xf,0,&scr);
+    DrawTextBk(STATUSAREA_X+4,SCREEN_HEIGHT-7,(char *)&k,(UNIFONT *)MiniFont,0xf,0,&scr);
 
     k=(__battery)&0xf;
     if(k>9) k+='A'-10;
     else k+='0';
     // CAREFUL, INTEGER USED AS STRING IS ONLY VALID IN LITTLE ENDIAN!
-    DrawTextBk(STATUSAREA_X+8,SCREEN_HEIGHT-7,(char *)&k,(FONTDATA *)MiniFont,0xf,0,&scr);
+    DrawTextBk(STATUSAREA_X+8,SCREEN_HEIGHT-7,(char *)&k,(UNIFONT *)MiniFont,0xf,0,&scr);
     */
 
 

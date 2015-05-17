@@ -60,6 +60,7 @@ void ggl_initscr(gglsurface *surface);
 
 void ggl_pltnib(int *buff,int off,int color);    // poke a pixel (off in nibbles)
 int  ggl_getnib(int *buff,int off);                // peek a pixel (off in nibbles)
+int  ggl_getmonopix(char *buf,int off);            // peek a pixel in monochrome bitmap (off in pixels)
 
 // general drawing primitives
 

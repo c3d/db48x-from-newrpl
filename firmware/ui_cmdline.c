@@ -24,7 +24,7 @@ void uiSetCmdLineText(WORDPTR text)
     halScreen.CursorPosition=((BYTEPTR)rplSkipOb(CmdLineText))-linestart;
 
     if(halScreen.CursorPosition<0) halScreen.CursorPosition=0;
-    halScreen.CursorX=StringWidthN(linestart,halScreen.CursorPosition,(FONTDATA *)halScreen.CmdLineFont);
+    halScreen.CursorX=StringWidthN(linestart,halScreen.CursorPosition,(UNIFONT *)halScreen.CmdLineFont);
 
 
     uiEnsureCursorVisible();

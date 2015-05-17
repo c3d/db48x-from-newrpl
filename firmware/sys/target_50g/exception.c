@@ -5,7 +5,7 @@
 void __keyb_waitrelease();
 int __keyb_getkey(int wait);
 
-extern const unsigned int MiniFont[];
+extern const unsigned int Font6A[];
 extern unsigned int RPLLastOpcode;
 
 void __ex_print(int x,int y,char *str)
@@ -18,7 +18,7 @@ void __ex_print(int x,int y,char *str)
     dr.clipx2=SCREEN_WIDTH;
     dr.clipy2=SCREEN_HEIGHT;
 
-    DrawTextMono(x,y,str,(FONTDATA *)MiniFont,1,&dr);
+    DrawTextMono(x,y,str,(UNIFONT *)Font6A,1,&dr);
 }
 
 void __ex_clrscreen()
@@ -33,7 +33,7 @@ void __ex_hline(int y)
     yptr[0]=yptr[1]=yptr[2]=yptr[3]=yptr[4]=0xaaaaaaaa;
 }
 
-inline int __ex_width(char *string) { return StringWidth(string,(FONTDATA *)MiniFont); }
+inline int __ex_width(char *string) { return StringWidth(string,(UNIFONT *)Font6A); }
 
 // GET HIGH REGISTERS R8 TO R14 + CPSR (8 WORDS)
 

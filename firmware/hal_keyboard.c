@@ -194,7 +194,7 @@ const BYTEPTR realtest36=(const BYTEPTR)  "36 SETPREC << 0. 1000. 0.1 FOR n "
                                         ">> EVAL " ;
 
 
-
+/*
 void PrintObj(int x,int y,WORDPTR obj,DRAWSURFACE *scr)
 {
     WORDPTR string;
@@ -206,12 +206,12 @@ void PrintObj(int x,int y,WORDPTR obj,DRAWSURFACE *scr)
     // NOW PRINT THE STRING OBJECT
         nchars=rplStrSize(string);
         charptr=(BYTEPTR) (string+1);
-        DrawTextN(x,y,(char *)charptr,nchars,(FONTDATA *)&System7Font,15,scr);
+        DrawTextN(x,y,(char *)charptr,nchars,(UNIFONT *)&System7Font,15,scr);
     }
 
 
 }
-
+*/
 
 
 
@@ -1045,13 +1045,14 @@ int halProcessKey(BINT keymsg)
     // ALL OTHER KEYS, JUST DISPLAY THE KEY NAME ON SCREEN
         DRAWSURFACE scr;
         ggl_initscr(&scr);
+        UNIFONT *fnt=halScreen.StAreaFont;
 
     // FOR DEBUG ONLY
-    int width=StringWidth((char *)keyNames[KM_KEY(keymsg)],(FONTDATA *)&System7Font);
+    int width=StringWidth((char *)keyNames[KM_KEY(keymsg)],fnt);
     int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     // CLEAR STATUS AREA AND SHOW KEY THERE
     ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
-    DrawTextBk(SCREEN_WIDTH-width,ytop+halScreen.Menu2/2,(char *)keyNames[KM_KEY(keymsg)],(FONTDATA *)System7Font,15,0,&scr);
+    DrawTextBk(SCREEN_WIDTH-width,ytop+halScreen.Menu2/2,(char *)keyNames[KM_KEY(keymsg)],fnt,15,0,&scr);
     char *shiftstr;
     switch(KM_SHIFTPLANE(keymsg))
     {
@@ -1092,9 +1093,9 @@ int halProcessKey(BINT keymsg)
     default:
         shiftstr="";
     }
-    DrawTextBk(SCREEN_WIDTH-width-32,ytop+halScreen.Menu2/2,shiftstr,(FONTDATA *)&System7Font,15,0,&scr);
+    DrawTextBk(SCREEN_WIDTH-width-32,ytop+halScreen.Menu2/2,shiftstr,fnt,15,0,&scr);
 
-    if(KM_MESSAGE(keymsg)==KM_LPRESS) DrawTextBk(SCREEN_WIDTH-width-42,ytop+halScreen.Menu2/2,"L=",(FONTDATA *)&System7Font,15,0,&scr);
+    if(KM_MESSAGE(keymsg)==KM_LPRESS) DrawTextBk(SCREEN_WIDTH-width-42,ytop+halScreen.Menu2/2,"L=",fnt,15,0,&scr);
 
     }
 

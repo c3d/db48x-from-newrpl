@@ -14,16 +14,6 @@ typedef long long tmr_t;
 //! Handle to refer to a timed event.
 typedef int HEVENT;
 
-
-typedef struct {
-    unsigned int Signature;
-    unsigned int BitmapWidth;
-    unsigned int BitmapHeight;
-    unsigned int BitmapSize;
-    unsigned int WidthMap[256];
-    unsigned int Bitmap[1];
-} FONTDATA;
-
 typedef struct {
     unsigned int Prolog;
     unsigned short BitmapWidth;
@@ -51,7 +41,7 @@ int scrollh,scrollv;
 BYTEPTR *Text;
 int CursorPos,CursorLine;
 int SelStart,SelEnd;
-FONTDATA *Font;
+UNIFONT *Font;
 int Color,BkColor,SelColor;
 int DispLines;
 int TotalLines;
@@ -127,12 +117,12 @@ typedef struct {
     int Menu2;
     int DirtyFlag;      // 1 BIT PER AREA IN ORDER, 1=FORM, 2=STACK, 4=CMDLINE, 8=MENU1,16=MENU2,32=STATUS
     HEVENT SAreaTimer,CursorTimer;
-    FONTDATA *FormFont;
-    FONTDATA *StackFont;
-    FONTDATA *Stack1Font;
-    FONTDATA *MenuFont;
-    FONTDATA *CmdLineFont;
-    FONTDATA *StAreaFont;
+    UNIFONT *FormFont;
+    UNIFONT *StackFont;
+    UNIFONT *Stack1Font;
+    UNIFONT *MenuFont;
+    UNIFONT *CmdLineFont;
+    UNIFONT *StAreaFont;
     int Menu1Page;
     int Menu2Page;
     // VARIABLES FOR THE TEXT EDITOR / COMMAND LINE
@@ -1033,22 +1023,24 @@ void bat_read();
 extern WORD __battery;
 
 // SYSTEM FONTS
-extern const unsigned int System5Font[];
-extern const unsigned int System6Font[];
-extern const unsigned int System7Font[];
-extern const unsigned int MiniFont[];
+extern const unsigned int Font_6A[];
+extern const unsigned int Font_5C[];
+//extern const unsigned int System5Font[];
+//extern const unsigned int System6Font[];
+//extern const unsigned int System7Font[];
+//extern const unsigned int MiniFont[];
 
 
 
-extern void DrawText(int x,int y,char *Text,FONTDATA *Font,int color,DRAWSURFACE *drawsurf);
-extern void DrawTextN(int x,int y,char *Text,int nchars,FONTDATA *Font,int color,DRAWSURFACE *drawsurf);
+extern void DrawText(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *drawsurf);
+extern void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURFACE *drawsurf);
 
-extern void DrawTextBk(int x,int y,char *Text,FONTDATA *Font,int color,int bkcolor,DRAWSURFACE *drawsurf);
-extern void DrawTextBkN(int x,int y,char *Text,int nchars,FONTDATA *Font,int color,int bkcolor,DRAWSURFACE *drawsurf);
+extern void DrawTextBk(int x,int y,char *Text,UNIFONT *Font,int color,int bkcolor,DRAWSURFACE *drawsurf);
+extern void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,int bkcolor,DRAWSURFACE *drawsurf);
 
-extern void DrawTextMono(int x,int y,char *Text,FONTDATA *Font,int color,DRAWSURFACE *drawsurf);
-extern int StringWidth(char *Text,FONTDATA *Font);
-extern int StringWidthN(char *Text,int nchars,FONTDATA *Font);
+extern void DrawTextMono(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *drawsurf);
+extern int StringWidth(char *Text,UNIFONT *Font);
+extern int StringWidthN(char *Text,char *End,UNIFONT *Font);
 
 
 extern int cpu_getlock(int lockvar,volatile int *lock_ptr);

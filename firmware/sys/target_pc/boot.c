@@ -42,8 +42,8 @@ void main_virtual()
     halSetBusyHandler();
     halRedrawAll(&scr);
 
-    if(wascleared) DrawText(STATUSAREA_X,halScreen.Stack+halScreen.CmdLine+halScreen.Form+halScreen.Menu1,"Memory Cleared",(FONTDATA *)System7Font,0xf,&scr);
-    else DrawText(STATUSAREA_X,halScreen.Stack+halScreen.CmdLine+halScreen.Form+halScreen.Menu1,"Memory Recovered",(FONTDATA *)System7Font,0xf,&scr);
+    if(wascleared) halShowMsg("Memory Cleared");
+    halShowMsg("Memory Recovered");
     halStatusAreaPopup();
 
     halOuterLoop();
