@@ -247,13 +247,13 @@ void halRedrawStack(DRAWSURFACE *scr)
       // NOW PRINT THE STRING OBJECT
           nchars=rplStrSize(string);
           charptr=(BYTEPTR) (string+1);
-          numwidth=StringWidthN(charptr,nchars,levelfnt);
+          numwidth=StringWidthN((char *)charptr,(char *)charptr+nchars,levelfnt);
           xobj=SCREEN_WIDTH-numwidth;
           if(xobj<=xright) {
               xobj=xright+1;
               // TODO: OBJECT WILL BE TRUNCATED ON THE RIGHT
           }
-          DrawTextN(xobj,ytop,charptr,nchars,levelfnt,15,scr);
+          DrawTextN(xobj,ytop,(char *)charptr,(char *)charptr+nchars,levelfnt,15,scr);
       }
       else {
           DrawText(SCREEN_WIDTH-44,ytop,"~~Unknown~~",levelfnt,15,scr);
@@ -369,31 +369,31 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
 
     if(halScreen.DirtyFlag&CMDLINE_LINEDIRTY) {
     // UPDATE THE CURRENT LINE
-        BINT linelen=StringWidthN(cmdline,nchars,(UNIFONT *)halScreen.CmdLineFont);
-        DrawTextBkN(-halScreen.XVisible,ytop+2+y,cmdline,nchars,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
+        BINT linelen=StringWidthN((char *)cmdline,(char *)cmdline+nchars,(UNIFONT *)halScreen.CmdLineFont);
+        DrawTextBkN(-halScreen.XVisible,ytop+2+y,(char *)cmdline,(char *)cmdline+nchars,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
         // CLEAR UP TO END OF LINE
         ggl_cliprect(scr,-halScreen.XVisible+linelen,ytop+2+y,SCREEN_W-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
     }
 
     if(halScreen.DirtyFlag&CMDLINE_CURSORDIRTY) {
     // DRAW THE CURSOR
-    if(!(halScreen.CursorState&0x8000)) DrawTextBkN(halScreen.CursorX-halScreen.XVisible,ytop+2+y,&halScreen.CursorState,1,(UNIFONT *)halScreen.CmdLineFont,0x0,0xf,scr);
+    if(!(halScreen.CursorState&0x8000)) DrawTextBkN(halScreen.CursorX-halScreen.XVisible,ytop+2+y,(char *)&halScreen.CursorState,((char *)&halScreen.CursorState)+1,(UNIFONT *)halScreen.CmdLineFont,0x0,0xf,scr);
 
     else {
         scr->clipx=halScreen.CursorX-halScreen.XVisible;
         scr->clipx2=scr->clipx+8;   // HARD CODED MAXIMUM WIDTH OF THE CURSOR
         if(scr->clipx2>=SCREEN_WIDTH) scr->clipx2=SCREEN_WIDTH-1;
 
-        ggl_cliprect(scr,halScreen.CursorX-halScreen.XVisible,ytop+2+y,halScreen.CursorX-halScreen.XVisible+StringWidthN(&halScreen.CursorState,1,halScreen.CmdLineFont)-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
+        ggl_cliprect(scr,halScreen.CursorX-halScreen.XVisible,ytop+2+y,halScreen.CursorX-halScreen.XVisible+StringWidthN((char *)&halScreen.CursorState,((char *)&halScreen.CursorState)+1,halScreen.CmdLineFont)-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
 
         // EITHER DON'T DRAW IT OR REDRAW THE PORTION OF COMMAND LINE UNDER THE CURSOR
         if(!(halScreen.DirtyFlag&CMDLINE_LINEDIRTY))
         {
             // UPDATE THE CURRENT LINE
-                BINT linelen=StringWidthN(cmdline,nchars,(UNIFONT *)halScreen.CmdLineFont);
+                BINT linelen=StringWidthN((char *)cmdline,(char *)cmdline+nchars,(UNIFONT *)halScreen.CmdLineFont);
             // THE LINE WAS NOT UPDATED, MEANS WE ARE UPDATING ONLY THE CURSOR
             // UPDATE THE CURRENT LINE
-            DrawTextBkN(-halScreen.XVisible,ytop+2+y,cmdline,nchars,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
+            DrawTextBkN(-halScreen.XVisible,ytop+2+y,(char *)cmdline,(char *)cmdline+nchars,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
             // CLEAR UP TO END OF LINE
             ggl_cliprect(scr,-halScreen.XVisible+linelen,ytop+2+y,SCREEN_WIDTH-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
 

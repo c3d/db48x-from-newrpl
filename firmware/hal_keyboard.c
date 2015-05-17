@@ -455,7 +455,7 @@ void numberKeyHandler(BINT keymsg)
         number='0';
         break;
     }
-        uiInsertCharacters((BYTEPTR) &number,1);
+        uiInsertCharactersN((BYTEPTR) &number,((BYTEPTR) &number)+1);
 
 }
 
@@ -514,13 +514,13 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
         case 'P':   // PROGRAMMING MODE
             // TODO: SEPARATE TOKENS
             uiSeparateToken();
-            uiInsertCharacters(Progmode,1);
+            uiInsertCharacters(Progmode);
             break;
 
         case 'A':   // ALPHANUMERIC MODE
-            uiInsertCharacters(Progmode,1);
+            uiInsertCharacters(Progmode);
             if(IsFunc) {
-                uiInsertCharacters((BYTEPTR)"()",2);
+                uiInsertCharacters((BYTEPTR)"()");
                 uiCursorLeft(1);
             }
             break;
@@ -539,7 +539,7 @@ void dotKeyHandler(BINT keymsg)
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         uiOpenCmdLine();
         }
-        uiInsertCharacters((BYTEPTR)".",1);
+        uiInsertCharacters((BYTEPTR)".");
 }
 
 void enterKeyHandler(BINT keymsg)
@@ -666,7 +666,7 @@ void spcKeyHandler(BINT keymsg)
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         uiOpenCmdLine();
         }
-        uiInsertCharacters((BYTEPTR)" ",1);
+        uiInsertCharacters((BYTEPTR)" ");
 
 }
 
@@ -701,7 +701,7 @@ void chsKeyHandler(BINT keymsg)
             if(startnum>line) {
             if(startnum[-1]=='+') { startnum[-1]='-'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
             if(startnum[-1]=='-') { startnum[-1]='+'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
-            if((startnum[-1]=='E')||(startnum[-1]=='e') ) { uiInsertCharacters((BYTEPTR)"-",1); return; }
+            if((startnum[-1]=='E')||(startnum[-1]=='e') ) { uiInsertCharacters((BYTEPTR)"-"); return; }
 
 
             }
@@ -732,7 +732,7 @@ void chsKeyHandler(BINT keymsg)
             // NEED TO INSERT A CHARACTER HERE
             BINT oldposition=halScreen.CursorPosition;
             uiMoveCursor(startnum-line);
-            uiInsertCharacters((BYTEPTR)"-",1);
+            uiInsertCharacters((BYTEPTR)"-");
             uiMoveCursor(oldposition+1);
             uiEnsureCursorVisible();
             return;
@@ -752,7 +752,7 @@ void eexKeyHandler(BINT keymsg)
             halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
             halSetContext(halGetContext()|CONTEXT_INEDITOR);
             uiOpenCmdLine();
-            uiInsertCharacters((BYTEPTR)"1E",2);
+            uiInsertCharacters((BYTEPTR)"1E");
             return;
         }
 
@@ -771,7 +771,7 @@ void eexKeyHandler(BINT keymsg)
             if((startnum>line) && ((startnum[-1]=='E')||(startnum[-1]=='e') )) return;
 
             // SECOND CASE: IF TOKEN UNDER CURSOR IS EMPTY, IN 'D' MODE COMPILE OBJECT AND THEN APPEND 1E
-            uiInsertCharacters((BYTEPTR)"1E",2);
+            uiInsertCharacters((BYTEPTR)"1E");
             return;
         }
         else {
@@ -787,7 +787,7 @@ void eexKeyHandler(BINT keymsg)
 
             // NEED TO INSERT A CHARACTER HERE
             BINT oldposition=halScreen.CursorPosition;
-            uiInsertCharacters((BYTEPTR)"E",1);
+            uiInsertCharacters((BYTEPTR)"E");
             uiMoveCursor(oldposition+1);
             uiEnsureCursorVisible();
             return;
@@ -797,7 +797,7 @@ void eexKeyHandler(BINT keymsg)
 }
 
 // COMMON FUNCTION FOR AL "BRACKET TYPES"
-void BracketKeyHandler(BYTEPTR string,BINT len)
+void BracketKeyHandler(BYTEPTR string)
 {
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
@@ -806,8 +806,9 @@ void BracketKeyHandler(BYTEPTR string,BINT len)
         }
     if(((halScreen.CursorState&0xff)=='D')||((halScreen.CursorState&0xff)=='P')) uiSeparateToken();
 
-    uiInsertCharacters(string,len);
-    uiCursorLeft(len>>1);
+    BYTEPTR end=string+strlen(string);
+    uiInsertCharactersN(string,end);
+    uiCursorLeft((end-string)>>1);
 
 }
 
@@ -815,35 +816,35 @@ void curlyBracketKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    BracketKeyHandler("{  }",4);
+    BracketKeyHandler("{  }");
 
 }
 void squareBracketKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    BracketKeyHandler("[  ]",4);
+    BracketKeyHandler("[  ]");
 
 }
 void secoBracketKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    BracketKeyHandler("«  »",4);
+    BracketKeyHandler("«  »");
 
 }
 void parenBracketKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    BracketKeyHandler("()",2);
+    BracketKeyHandler("()");
 
 }
 void textBracketKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    BracketKeyHandler("\"\"",2);
+    BracketKeyHandler("\"\"");
 
 }
 
@@ -851,7 +852,7 @@ void ticksKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    BracketKeyHandler("''",2);
+    BracketKeyHandler("''");
 
 }
 
