@@ -12,6 +12,11 @@ int errno __attribute__ ((section (".system_globals")));
 
 int *__errno() { return &errno; }
 
+// SOME SYSTEMS (BSD) DEFINE errno POINTING TO __error
+// THIS IS NEEDED SO STANDARD HEADERS CAN BE USED
+int *__error() { return &errno; }
+
+
 #define	ERANGE 34
 #define errno (*__errno())
 

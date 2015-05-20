@@ -9,7 +9,7 @@ TARGET = newrpl-fw
 TEMPLATE = lib
 CONFIG = static ordered
 
-DEFINES += TARGET_50G NDEBUG
+DEFINES += TARGET_50G NDEBUG SLIM_MPD
 
 SOURCES +=\
     firmware/sys/target_50g/preamble.c \
@@ -157,7 +157,7 @@ QMAKE_CC = arm-none-eabi-gcc
 QMAKE_CXX = arm-none-eabi-g++
 #QMAKE_AR_CMD = arm-none-eabi-ar -cqs $(TARGET) $(OBJECTS)
 QMAKE_AR_CMD = arm-none-eabi-ld --verbose -T$$PWD/firmware/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR $(OBJECTS) -lgcc -o $(TARGET).elf
-QMAKE_CFLAGS = -mtune=arm920t -mcpu=arm920t -mlittle-endian -fomit-frame-pointer -msoft-float -Os -pipe -mthumb-interwork -nostdinc
+QMAKE_CFLAGS = -mtune=arm920t -mcpu=arm920t -mlittle-endian -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -Os -pipe -mthumb-interwork -nostdinc
 QMAKE_LFLAGS = -nodefaultlibs -nostdlib
 
 
