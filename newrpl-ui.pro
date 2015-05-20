@@ -11,7 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = newrpl-ui
 TEMPLATE = app
 
-DEFINES += TARGET_PC
+DEFINES += TARGET_PC SLIM_MPD
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -44,13 +44,8 @@ SOURCES += main.cpp\
     firmware/hal_battery.c \
     firmware/hal_keyboard.c \
     firmware/hal_screen.c \
-    firmware/sys/font5.c \
-    firmware/sys/font6.c \
-    firmware/sys/font7.c \
-    firmware/sys/font8.c \
     firmware/sys/graphics.c \
     firmware/sys/icons.c \
-    firmware/sys/minifont.c \
     firmware/sys/target_pc/battery.c \
     firmware/sys/target_pc/cpu.c \
     firmware/sys/target_pc/exception.c \

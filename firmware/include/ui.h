@@ -50,7 +50,8 @@ extern BYTEPTR uiFindNumberStart();
 extern WORDPTR uiGetCmdLineText();
 extern void uiOpenCmdLine();
 extern void uiCloseCmdLine();
-extern void uiInsertCharacters(BYTEPTR string,BINT length);
+extern void uiInsertCharacters(BYTEPTR string);
+extern void uiInsertCharactersN(BYTEPTR string,BYTEPTR end);
 extern void uiRemoveCharacters(BINT length);
 
 extern void uiSeparateToken();

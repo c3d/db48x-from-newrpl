@@ -21,10 +21,10 @@ void uiSetCmdLineText(WORDPTR text)
     BINT end=rplStrSize(CmdLineText);
     BYTEPTR linestart;
     halScreen.LineCurrent=uiGetLinebyOffset(end,&linestart);
-    halScreen.CursorPosition=((BYTEPTR)rplSkipOb(CmdLineText))-linestart;
+    halScreen.CursorPosition=((BYTEPTR)(CmdLineText+1))+end-linestart;
 
     if(halScreen.CursorPosition<0) halScreen.CursorPosition=0;
-    halScreen.CursorX=StringWidthN(linestart,halScreen.CursorPosition,(FONTDATA *)halScreen.CmdLineFont);
+    halScreen.CursorX=StringWidthN(linestart,linestart+halScreen.CursorPosition,(UNIFONT *)halScreen.CmdLineFont);
 
 
     uiEnsureCursorVisible();
@@ -158,15 +158,15 @@ void uiSetCurrentLine(BINT line)
     BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1);
     if(tryoffset>len) tryoffset=len;
 
-    targetx=StringWidthN(ptr,tryoffset,halScreen.CmdLineFont);
+    targetx=StringWidthN(ptr,ptr+tryoffset,halScreen.CmdLineFont);
 
     while( (targetx<halScreen.CursorX) && (tryoffset<=len) ) {
-        targetx+=StringWidthN(ptr+tryoffset,1,halScreen.CmdLineFont);
+        targetx+=StringWidthN(ptr+tryoffset,ptr+tryoffset+1,halScreen.CmdLineFont);
         ++tryoffset;
     }
     while( (targetx>halScreen.CursorX) && (tryoffset>0) ) {
         --tryoffset;
-        targetx-=StringWidthN(ptr+tryoffset,1,halScreen.CmdLineFont);
+        targetx-=StringWidthN(ptr+tryoffset,ptr+tryoffset+1,halScreen.CmdLineFont);
     }
 
     halScreen.CursorX=targetx;
@@ -184,10 +184,16 @@ void uiSetCurrentLine(BINT line)
 
 
 // MAIN FUNCTION TO INSERT TEXT AT THE CURRENT CURSOR OFFSET
-
-void uiInsertCharacters(BYTEPTR string,BINT length)
+void uiInsertCharacters(BYTEPTR string)
 {
-if(length<=0) return;
+BYTEPTR end=string+strlen(string);
+
+uiInsertCharactersN(string,end);
+}
+
+void uiInsertCharactersN(BYTEPTR string,BYTEPTR endstring)
+{
+if(endstring<=string) return;
 
 // LOCK CURSOR
 halScreen.CursorState|=0x4000;
@@ -208,6 +214,7 @@ if(Exceptions) {
 
 }
 
+BINT length=endstring-string;
 BINT lenwords=(length+3)>>2;
 
 if(CmdLineCurrentLine==empty_string) {
@@ -273,7 +280,7 @@ halScreen.LineIsModified=1;
 // TODO: IF THE INSERTED TEXT HAD ANY NEWLINES, THE CURRENT COMMAND LINE HAS MULTIPLE LINES IN ONE
 // MUST SPLIT THE LINES AND GET THE CURSOR ON THE LAST ONE
 
-halScreen.CursorX+=StringWidthN(((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,length,halScreen.CmdLineFont);
+halScreen.CursorX+=StringWidthN(((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition+length,halScreen.CmdLineFont);
 halScreen.CursorPosition+=length;
 
 halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
@@ -372,7 +379,7 @@ void uiSeparateToken()
     BYTEPTR start=(BYTEPTR) (CmdLineCurrentLine+1);
     BYTEPTR lastchar=start+halScreen.CursorPosition-1;
     if(lastchar>=start) {
-        if(*lastchar!=' ')  uiInsertCharacters(" ",1);
+        if(*lastchar!=' ')  uiInsertCharacters(" ");
     }
 }
 
@@ -535,7 +542,7 @@ halScreen.CursorState|=0x4000;
 
 halScreen.CursorPosition=offset;
 
-halScreen.CursorX=StringWidthN(ptr,offset,halScreen.CmdLineFont);
+halScreen.CursorX=StringWidthN(ptr,ptr+offset,halScreen.CmdLineFont);
 
 halScreen.CursorState&=~0xc000;
 

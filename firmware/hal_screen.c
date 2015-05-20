@@ -168,11 +168,11 @@ void halSetCmdLineHeight(int h)
 
 // COMPUTE HEIGHT AND WIDTH OF OBJECT TO DISPLAY ON STACK
 
-BINT halGetDispObjectHeight(WORDPTR object)
+BINT halGetDispObjectHeight(WORDPTR object,UNIFONT *font)
 {
-    // TODO: ADD PROPER FONT SELECTION, MULTILINE OBJECTS, ETC.
+    // TODO: ADD MULTILINE OBJECTS, ETC.
 
-    return 7;
+    return font->BitmapHeight;
 }
 
 
@@ -215,21 +215,25 @@ void halRedrawStack(DRAWSURFACE *scr)
   WORDPTR string;
   BINT nchars;
   BYTEPTR charptr;
-
+  UNIFONT *levelfnt;
 
 
   y=yend;
 
   while(y>ystart) {
+      if(level==1) levelfnt=halScreen.Stack1Font;
+      else levelfnt=halScreen.StackFont;
       // DRAW THE NUMBER
-      if(level<=depth) objheight=halGetDispObjectHeight(rplPeekData(level));
-      else objheight=((FONTDATA *)System7Font)->BitmapHeight;
+      if(level<=depth) objheight=halGetDispObjectHeight(rplPeekData(level),levelfnt);
+      else {
+          objheight=levelfnt->BitmapHeight;
+      }
       ytop=y-objheight;
       halInt2String(level,num);
-      numwidth=StringWidth(num,(FONTDATA *)System7Font);
+      numwidth=StringWidth(num,levelfnt);
       xright=numwidth>12? numwidth:12;
       ggl_cliprect(scr,scr->clipx,ytop,scr->clipx2,y-1,0);  // CLEAR RECTANGLE
-      DrawText(xright-numwidth,ytop,num,(FONTDATA *)System7Font,0xf,scr);
+      DrawText(xright-numwidth,ytop,num,levelfnt,0xf,scr);
       ggl_vline(scr,xright,ytop,y-1,ggl_mkcolor(0x8));
 
       if(level<=depth) {
@@ -243,16 +247,16 @@ void halRedrawStack(DRAWSURFACE *scr)
       // NOW PRINT THE STRING OBJECT
           nchars=rplStrSize(string);
           charptr=(BYTEPTR) (string+1);
-          numwidth=StringWidthN(charptr,nchars,(FONTDATA *)System7Font);
+          numwidth=StringWidthN((char *)charptr,(char *)charptr+nchars,levelfnt);
           xobj=SCREEN_WIDTH-numwidth;
           if(xobj<=xright) {
               xobj=xright+1;
               // TODO: OBJECT WILL BE TRUNCATED ON THE RIGHT
           }
-          DrawTextN(xobj,ytop,charptr,nchars,(FONTDATA *)System7Font,15,scr);
+          DrawTextN(xobj,ytop,(char *)charptr,(char *)charptr+nchars,levelfnt,15,scr);
       }
       else {
-          DrawText(SCREEN_WIDTH-44,ytop,"~~Unknown~~",(FONTDATA *)System7Font,15,scr);
+          DrawText(SCREEN_WIDTH-44,ytop,"~~Unknown~~",levelfnt,15,scr);
       }
        }
         y=ytop;
@@ -276,10 +280,10 @@ halScreen.DirtyFlag=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
 halScreen.SAreaTimer=0;
 halScreen.CursorTimer=0;
 halScreen.KeyContext=CONTEXT_STACK;
-halScreen.FormFont=halScreen.StackFont=halScreen.Stack1Font=(FONTDATA *)System7Font;
-halScreen.MenuFont=(FONTDATA *)System5Font;
-halScreen.StAreaFont=(FONTDATA *)MiniFont;
-halScreen.CmdLineFont=(FONTDATA *)System7Font;
+halScreen.FormFont=halScreen.StackFont=halScreen.Stack1Font=(UNIFONT *)Font_6A;
+halScreen.MenuFont=(UNIFONT *)Font_5C;
+halScreen.StAreaFont=(UNIFONT *)Font_6A;
+halScreen.CmdLineFont=(UNIFONT *)Font_6A;
 
 // NOT NECESSARILY PART OF HALSCREEN
 CmdLineText=empty_string;
@@ -310,10 +314,6 @@ void halRedrawMenu1(DRAWSURFACE *scr)
     ggl_vline(scr,109,ytop,ybottom,0);
 
     halScreen.DirtyFlag&=~MENU1_DIRTY;
-    extern unsigned int Font_6A[];
-    uniDrawTextN(22,ytop,"ΣTest",strlen("ΣTest"),(UNIFONT *)Font_6A,0,scr);
-
-
 }
 
 // REDRAW THE OTHER MENU
@@ -369,31 +369,31 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
 
     if(halScreen.DirtyFlag&CMDLINE_LINEDIRTY) {
     // UPDATE THE CURRENT LINE
-        BINT linelen=StringWidthN(cmdline,nchars,(FONTDATA *)halScreen.CmdLineFont);
-        DrawTextBkN(-halScreen.XVisible,ytop+2+y,cmdline,nchars,(FONTDATA *)halScreen.CmdLineFont,0xf,0x0,scr);
+        BINT linelen=StringWidthN((char *)cmdline,(char *)cmdline+nchars,(UNIFONT *)halScreen.CmdLineFont);
+        DrawTextBkN(-halScreen.XVisible,ytop+2+y,(char *)cmdline,(char *)cmdline+nchars,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
         // CLEAR UP TO END OF LINE
         ggl_cliprect(scr,-halScreen.XVisible+linelen,ytop+2+y,SCREEN_W-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
     }
 
     if(halScreen.DirtyFlag&CMDLINE_CURSORDIRTY) {
     // DRAW THE CURSOR
-    if(!(halScreen.CursorState&0x8000)) DrawTextBkN(halScreen.CursorX-halScreen.XVisible,ytop+2+y,&halScreen.CursorState,1,(FONTDATA *)halScreen.CmdLineFont,0x0,0xf,scr);
+    if(!(halScreen.CursorState&0x8000)) DrawTextBkN(halScreen.CursorX-halScreen.XVisible,ytop+2+y,(char *)&halScreen.CursorState,((char *)&halScreen.CursorState)+1,(UNIFONT *)halScreen.CmdLineFont,0x0,0xf,scr);
 
     else {
         scr->clipx=halScreen.CursorX-halScreen.XVisible;
         scr->clipx2=scr->clipx+8;   // HARD CODED MAXIMUM WIDTH OF THE CURSOR
         if(scr->clipx2>=SCREEN_WIDTH) scr->clipx2=SCREEN_WIDTH-1;
 
-        ggl_cliprect(scr,halScreen.CursorX-halScreen.XVisible,ytop+2+y,halScreen.CursorX-halScreen.XVisible+StringWidthN(&halScreen.CursorState,1,halScreen.CmdLineFont)-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
+        ggl_cliprect(scr,halScreen.CursorX-halScreen.XVisible,ytop+2+y,halScreen.CursorX-halScreen.XVisible+StringWidthN((char *)&halScreen.CursorState,((char *)&halScreen.CursorState)+1,halScreen.CmdLineFont)-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
 
         // EITHER DON'T DRAW IT OR REDRAW THE PORTION OF COMMAND LINE UNDER THE CURSOR
         if(!(halScreen.DirtyFlag&CMDLINE_LINEDIRTY))
         {
             // UPDATE THE CURRENT LINE
-                BINT linelen=StringWidthN(cmdline,nchars,(FONTDATA *)halScreen.CmdLineFont);
+                BINT linelen=StringWidthN((char *)cmdline,(char *)cmdline+nchars,(UNIFONT *)halScreen.CmdLineFont);
             // THE LINE WAS NOT UPDATED, MEANS WE ARE UPDATING ONLY THE CURSOR
             // UPDATE THE CURRENT LINE
-            DrawTextBkN(-halScreen.XVisible,ytop+2+y,cmdline,nchars,(FONTDATA *)halScreen.CmdLineFont,0xf,0x0,scr);
+            DrawTextBkN(-halScreen.XVisible,ytop+2+y,(char *)cmdline,(char *)cmdline+nchars,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
             // CLEAR UP TO END OF LINE
             ggl_cliprect(scr,-halScreen.XVisible+linelen,ytop+2+y,SCREEN_WIDTH-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
 
@@ -546,4 +546,35 @@ void halShowErrorMsg()
 
         halErrorPopup();
 
+}
+
+void halShowMsgN(char *Text,char *End)
+{
+        int errbit;
+
+        DRAWSURFACE scr;
+        ggl_initscr(&scr);
+        BINT ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+        // CLEAR MENU2 AND STATUS AREA
+        ggl_rect(&scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+        // DO SOME DECORATIVE ELEMENTS
+        ggl_hline(&scr,ytop+1,1,SCREEN_WIDTH-2,ggl_mkcolor(8));
+        ggl_hline(&scr,ytop+halScreen.Menu2-1,1,SCREEN_WIDTH-2,ggl_mkcolor(8));
+        ggl_vline(&scr,1,ytop+2,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
+        ggl_vline(&scr,SCREEN_WIDTH-2,ytop+2,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
+
+        // SHOW MESSAGE
+
+        DrawTextN(3,ytop+3,Text,End,halScreen.StAreaFont,0xf,&scr);
+
+        halErrorPopup();
+
+}
+
+void halShowMsg(char *Text)
+{
+    char *End=Text;
+    while(*End) ++End;
+
+    halShowMsgN(Text,End);
 }

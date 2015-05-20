@@ -194,7 +194,7 @@ const BYTEPTR realtest36=(const BYTEPTR)  "36 SETPREC << 0. 1000. 0.1 FOR n "
                                         ">> EVAL " ;
 
 
-
+/*
 void PrintObj(int x,int y,WORDPTR obj,DRAWSURFACE *scr)
 {
     WORDPTR string;
@@ -206,12 +206,12 @@ void PrintObj(int x,int y,WORDPTR obj,DRAWSURFACE *scr)
     // NOW PRINT THE STRING OBJECT
         nchars=rplStrSize(string);
         charptr=(BYTEPTR) (string+1);
-        DrawTextN(x,y,(char *)charptr,nchars,(FONTDATA *)&System7Font,15,scr);
+        DrawTextN(x,y,(char *)charptr,nchars,(UNIFONT *)&System7Font,15,scr);
     }
 
 
 }
-
+*/
 
 
 
@@ -221,8 +221,9 @@ BINT halWaitForKey()
 {
     int keymsg;
 
-    if(!(halFlags&HAL_FASTMODE)) {
+    if(!(halFlags&HAL_FASTMODE) && (halBusyEvent>=0)) {
     tmr_eventkill(halBusyEvent);
+    halBusyEvent=-1;
     }
 
     do {
@@ -454,7 +455,7 @@ void numberKeyHandler(BINT keymsg)
         number='0';
         break;
     }
-        uiInsertCharacters((BYTEPTR) &number,1);
+        uiInsertCharactersN((BYTEPTR) &number,((BYTEPTR) &number)+1);
 
 }
 
@@ -513,13 +514,13 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
         case 'P':   // PROGRAMMING MODE
             // TODO: SEPARATE TOKENS
             uiSeparateToken();
-            uiInsertCharacters(Progmode,1);
+            uiInsertCharacters(Progmode);
             break;
 
         case 'A':   // ALPHANUMERIC MODE
-            uiInsertCharacters(Progmode,1);
+            uiInsertCharacters(Progmode);
             if(IsFunc) {
-                uiInsertCharacters((BYTEPTR)"()",2);
+                uiInsertCharacters((BYTEPTR)"()");
                 uiCursorLeft(1);
             }
             break;
@@ -538,7 +539,7 @@ void dotKeyHandler(BINT keymsg)
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         uiOpenCmdLine();
         }
-        uiInsertCharacters((BYTEPTR)".",1);
+        uiInsertCharacters((BYTEPTR)".");
 }
 
 void enterKeyHandler(BINT keymsg)
@@ -665,7 +666,7 @@ void spcKeyHandler(BINT keymsg)
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         uiOpenCmdLine();
         }
-        uiInsertCharacters((BYTEPTR)" ",1);
+        uiInsertCharacters((BYTEPTR)" ");
 
 }
 
@@ -700,7 +701,7 @@ void chsKeyHandler(BINT keymsg)
             if(startnum>line) {
             if(startnum[-1]=='+') { startnum[-1]='-'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
             if(startnum[-1]=='-') { startnum[-1]='+'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
-            if((startnum[-1]=='E')||(startnum[-1]=='e') ) { uiInsertCharacters((BYTEPTR)"-",1); return; }
+            if((startnum[-1]=='E')||(startnum[-1]=='e') ) { uiInsertCharacters((BYTEPTR)"-"); return; }
 
 
             }
@@ -731,7 +732,7 @@ void chsKeyHandler(BINT keymsg)
             // NEED TO INSERT A CHARACTER HERE
             BINT oldposition=halScreen.CursorPosition;
             uiMoveCursor(startnum-line);
-            uiInsertCharacters((BYTEPTR)"-",1);
+            uiInsertCharacters((BYTEPTR)"-");
             uiMoveCursor(oldposition+1);
             uiEnsureCursorVisible();
             return;
@@ -751,7 +752,7 @@ void eexKeyHandler(BINT keymsg)
             halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
             halSetContext(halGetContext()|CONTEXT_INEDITOR);
             uiOpenCmdLine();
-            uiInsertCharacters((BYTEPTR)"1E",2);
+            uiInsertCharacters((BYTEPTR)"1E");
             return;
         }
 
@@ -770,7 +771,7 @@ void eexKeyHandler(BINT keymsg)
             if((startnum>line) && ((startnum[-1]=='E')||(startnum[-1]=='e') )) return;
 
             // SECOND CASE: IF TOKEN UNDER CURSOR IS EMPTY, IN 'D' MODE COMPILE OBJECT AND THEN APPEND 1E
-            uiInsertCharacters((BYTEPTR)"1E",2);
+            uiInsertCharacters((BYTEPTR)"1E");
             return;
         }
         else {
@@ -786,7 +787,7 @@ void eexKeyHandler(BINT keymsg)
 
             // NEED TO INSERT A CHARACTER HERE
             BINT oldposition=halScreen.CursorPosition;
-            uiInsertCharacters((BYTEPTR)"E",1);
+            uiInsertCharacters((BYTEPTR)"E");
             uiMoveCursor(oldposition+1);
             uiEnsureCursorVisible();
             return;
@@ -795,17 +796,63 @@ void eexKeyHandler(BINT keymsg)
     }
 }
 
-void BracketKeyHandler(BINT keymsg)
+// COMMON FUNCTION FOR AL "BRACKET TYPES"
+void BracketKeyHandler(BYTEPTR string)
 {
-    UNUSED_ARGUMENT(keymsg);
-
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         uiOpenCmdLine();
         }
-    uiInsertCharacters((BYTEPTR)"{}",2);
-    uiCursorLeft(1);
+    if(((halScreen.CursorState&0xff)=='D')||((halScreen.CursorState&0xff)=='P')) uiSeparateToken();
+
+    BYTEPTR end=string+strlen(string);
+    uiInsertCharactersN(string,end);
+    uiCursorLeft((end-string)>>1);
+
+}
+
+void curlyBracketKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    BracketKeyHandler("{  }");
+
+}
+void squareBracketKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    BracketKeyHandler("[  ]");
+
+}
+void secoBracketKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    BracketKeyHandler("«  »");
+
+}
+void parenBracketKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    BracketKeyHandler("()");
+
+}
+void textBracketKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    BracketKeyHandler("\"\"");
+
+}
+
+void ticksKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    BracketKeyHandler("''");
 
 }
 
@@ -908,8 +955,17 @@ struct keyhandler_t __keydefaulthandlers[]= {
     { KM_REPEAT|KB_SPC, CONTEXT_ANY,&spcKeyHandler },
     { KM_PRESS|KB_W, CONTEXT_ANY,&chsKeyHandler },
     { KM_PRESS|KB_V, CONTEXT_ANY,&eexKeyHandler },
-    { KM_PRESS|KB_ADD|SHIFT_LS, CONTEXT_ANY,&BracketKeyHandler },
-    { KM_PRESS|KB_ADD|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&BracketKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_LS, CONTEXT_ANY,&curlyBracketKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&curlyBracketKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_RS, CONTEXT_ANY,&secoBracketKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&secoBracketKeyHandler },
+    { KM_PRESS|KB_SUB|SHIFT_LS, CONTEXT_ANY,&parenBracketKeyHandler },
+    { KM_PRESS|KB_SUB|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&parenBracketKeyHandler },
+    { KM_PRESS|KB_MUL|SHIFT_LS, CONTEXT_ANY,&squareBracketKeyHandler },
+    { KM_PRESS|KB_MUL|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&squareBracketKeyHandler },
+    { KM_PRESS|KB_MUL|SHIFT_RS, CONTEXT_ANY,&textBracketKeyHandler },
+    { KM_PRESS|KB_MUL|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&textBracketKeyHandler },
+    { KM_PRESS|KB_O, CONTEXT_ANY,&ticksKeyHandler },
 
     { KM_PRESS|KB_ADD|SHIFT_ONHOLD, CONTEXT_ANY,&onPlusKeyHandler },
     { KM_PRESS|KB_SUB|SHIFT_ONHOLD, CONTEXT_ANY,&onMinusKeyHandler },
@@ -990,13 +1046,14 @@ int halProcessKey(BINT keymsg)
     // ALL OTHER KEYS, JUST DISPLAY THE KEY NAME ON SCREEN
         DRAWSURFACE scr;
         ggl_initscr(&scr);
+        UNIFONT *fnt=halScreen.StAreaFont;
 
     // FOR DEBUG ONLY
-    int width=StringWidth((char *)keyNames[KM_KEY(keymsg)],(FONTDATA *)&System7Font);
+    int width=StringWidth((char *)keyNames[KM_KEY(keymsg)],fnt);
     int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     // CLEAR STATUS AREA AND SHOW KEY THERE
     ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
-    DrawTextBk(SCREEN_WIDTH-width,ytop+halScreen.Menu2/2,(char *)keyNames[KM_KEY(keymsg)],(FONTDATA *)System7Font,15,0,&scr);
+    DrawTextBk(SCREEN_WIDTH-width,ytop+halScreen.Menu2/2,(char *)keyNames[KM_KEY(keymsg)],fnt,15,0,&scr);
     char *shiftstr;
     switch(KM_SHIFTPLANE(keymsg))
     {
@@ -1037,9 +1094,9 @@ int halProcessKey(BINT keymsg)
     default:
         shiftstr="";
     }
-    DrawTextBk(SCREEN_WIDTH-width-32,ytop+halScreen.Menu2/2,shiftstr,(FONTDATA *)&System7Font,15,0,&scr);
+    DrawTextBk(SCREEN_WIDTH-width-32,ytop+halScreen.Menu2/2,shiftstr,fnt,15,0,&scr);
 
-    if(KM_MESSAGE(keymsg)==KM_LPRESS) DrawTextBk(SCREEN_WIDTH-width-42,ytop+halScreen.Menu2/2,"L=",(FONTDATA *)&System7Font,15,0,&scr);
+    if(KM_MESSAGE(keymsg)==KM_LPRESS) DrawTextBk(SCREEN_WIDTH-width-42,ytop+halScreen.Menu2/2,"L=",fnt,15,0,&scr);
 
     }
 
