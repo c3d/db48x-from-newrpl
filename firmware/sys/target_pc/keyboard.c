@@ -241,7 +241,7 @@ doupdate:
         __keycount=0;
 
         } else {
-            // TODO: ADD SHIFT PLANE SWITCHING HERE
+            int oldplane=__keyplane;
             if(key==KB_LSHIFT) {
                 __keyplane&=~(SHIFT_RSHOLD|SHIFT_RS | (SHIFT_RS<<16));
                 __keyplane|=SHIFT_LSHOLD|SHIFT_LS;
@@ -285,8 +285,9 @@ doupdate:
             if(key==KB_ON) {
                 __keyplane|=SHIFT_ONHOLD;
             }
-
-            __keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY));
+            // THE KM_SHIFT MESSAGE CARRIES THE OLD PLANE IN THE KEY CODE
+            // AND THE NEW PLANE IN THE SHIFT CODE.
+            __keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY) | MKOLDSHIFT(oldplane));
 
         }
         }
@@ -303,11 +304,11 @@ doupdate:
             int oldkeyplane=__keyplane;
             __keyplane&=~(SHIFT_LS|SHIFT_RS|SHIFT_ALPHA); // KILL ALL SHIFT PLANES
             __keyplane|=(__keyplane>>17)&SHIFT_ALPHA; // KEEP ALPHA IF LOCKED
-            if(oldkeyplane!=__keyplane)	__keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY));
+            if(oldkeyplane!=__keyplane)	__keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY) | MKOLDSHIFT(oldkeyplane));
         }
         }
         else {
-            // TODO: ADD SHIFT PLANE SWITCHING HERE
+            int oldkeyplane=__keyplane;
             if(key==KB_LSHIFT) {
                 __keyplane&=~((SHIFT_LSHOLD|SHIFT_LS)^((__keyplane>>16)&SHIFT_LS));
                 __keyplane&=~((SHIFT_ALPHA)^(((__keyplane>>16)|(__keyplane>>17))&SHIFT_ALPHA));
@@ -325,7 +326,7 @@ doupdate:
             if(key==KB_ON) {
                 __keyplane&=~SHIFT_ONHOLD;
             }
-            __keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY));
+            __keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY) | MKOLDSHIFT(oldkeyplane));
 
             __keynumber=-key;
             __keycount=-BOUNCE_KEYTIME;
@@ -502,6 +503,9 @@ void keyb_setalphalock(int single_alpha_lock)
 void keyb_setshiftplane(int leftshift,int rightshift,int alpha,int alphalock)
 {
     while(keyb_getmatrix()!=0LL) ;		// WAIT UNTIL NO MORE KEYS ARE PRESSED TO UPDATE SHIFT STATE
+
+    int oldplane;
+
     if(leftshift) __keyplane|=SHIFT_LS|(SHIFT_LS<<16);
     else __keyplane&=~(SHIFT_LS|(SHIFT_LS<<16));
     if(rightshift) __keyplane|=SHIFT_RS|(SHIFT_RS<<16);
@@ -515,7 +519,7 @@ void keyb_setshiftplane(int leftshift,int rightshift,int alpha,int alphalock)
     else {
         __keyplane&=~(SHIFT_ALPHA<<17);
     }
-    keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY));
+    keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY) | MKOLDSHIFT(oldplane));
 
 }
 

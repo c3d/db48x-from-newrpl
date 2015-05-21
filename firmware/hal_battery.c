@@ -5,7 +5,7 @@ void battery_handler()
 {
 
     bat_read();
-    halSetNotification(N_CONNECTION,!halGetNotification(N_CONNECTION));
+    halSetNotification(N_CONNECTION,0xf^halGetNotification(N_CONNECTION));
 
     /*
     gglsurface scr;
@@ -59,12 +59,12 @@ void battery_handler()
         // SHOW CRITICAL BATTERY SIGNAL
         if(halFlags&HAL_FASTMODE) {
             // LOW VOLTAGE WHEN RUNNING FAST
-            halSetNotification(N_LOWBATTERY,!halGetNotification(N_LOWBATTERY));
+            halSetNotification(N_LOWBATTERY,0xf^halGetNotification(N_LOWBATTERY));
             halFlags|=HAL_SLOWLOCK;
         }
         else {
             // KEEP BLINKING INDICATOR
-        halSetNotification(N_LOWBATTERY,!halGetNotification(N_LOWBATTERY));
+        halSetNotification(N_LOWBATTERY,0xf^halGetNotification(N_LOWBATTERY));
         // AND DISALLOW FAST MODE
         halFlags|=HAL_SLOWLOCK;
         }
@@ -80,7 +80,7 @@ void battery_handler()
         else {
         // SET PERMANENT BATTERY ICON
         // AND DISALLOW FAST MODE
-        halSetNotification(N_LOWBATTERY,1);
+        halSetNotification(N_LOWBATTERY,0xf);
         halFlags|=HAL_SLOWLOCK;
         }
         return;
@@ -103,7 +103,7 @@ void busy_handler()
 {
     // THE CPU IS BUSY, SWITCH TO FAST SPEED!!
     // PREVENT HIGH SPEED UNDER LOW BATTERY CONDITION
-    halSetNotification(N_HOURGLASS,1);
+    halSetNotification(N_HOURGLASS,0xf);
     halFlags|=HAL_HOURGLASS;
     if(halFlags&HAL_SLOWLOCK) return;
     cpu_setspeed(192000000);

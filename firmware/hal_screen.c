@@ -6,14 +6,13 @@
 
 // SET TO SHOW/HIDE THE NOTIFICATION ICON
 
-void halSetNotification(enum halNotification type,int show)
+void halSetNotification(enum halNotification type,int color)
 {
     if(type<N_DISKACCESS) {
         unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
         scrptr+=65;
         scrptr+=type*80;
-        if(show) *scrptr|=0xf0;
-        else *scrptr&=0x0f;
+        *scrptr=(*scrptr&0xf)|(color<<4);
         return;
     }
     else {
@@ -28,8 +27,7 @@ int halGetNotification(enum halNotification type)
         unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
         scrptr+=65;
         scrptr+=type*80;
-        if(*scrptr&0xf0) return 1;
-        else return 0;
+        return *scrptr>>4;
     }
     else {
         // TODO: IMPLEMENT CUSTOM ANNUNCIATORS

@@ -352,7 +352,24 @@ BINT halGetContext()
     return halScreen.KeyContext;
 }
 
+// TOGGLES BETWEEN ALPHA AND ANOTHER MODE
+void halSwapCmdLineMode()
+{
+    int tmp=halScreen.CursorState;
+    halScreen.CursorState&=0x00ffff00;
+    halScreen.CursorState|=tmp<<24;
+    halScreen.CursorState|=(tmp>>24)&0xff;
+}
 
+void halSetCmdLineMode(BYTE mode)
+{
+    halScreen.CursorState=(halScreen.CursorState&~0xff)|mode;
+}
+
+BYTE halGetCmdLineMode()
+{
+    return halScreen.CursorState&0xff;
+}
 
 // DEBUG: DO-NOTHING KEYBOARD HANDLER
 void dummyKeyhandler(BINT keymsg)
@@ -515,6 +532,7 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
             // TODO: SEPARATE TOKENS
             uiSeparateToken();
             uiInsertCharacters(Progmode);
+            uiSeparateToken();
             break;
 
         case 'A':   // ALPHANUMERIC MODE
@@ -530,16 +548,46 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
     }
 }
 
+void symbolKeyHandler(BYTEPTR symbol,BINT separate)
+{
+if(!(halGetContext()&CONTEXT_INEDITOR)) {
+    halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+    halSetContext(halGetContext()|CONTEXT_INEDITOR);
+    uiOpenCmdLine();
+    }
+
+    if(separate && (halScreen.CursorState&0xff=='P')) uiSeparateToken();
+
+    uiInsertCharacters(symbol);
+
+    if(separate && (halScreen.CursorState&0xff=='P')) uiSeparateToken();
+
+}
+
+void alphasymbolKeyHandler(BYTEPTR symbol,BINT separate)
+{
+if(!(halGetContext()&CONTEXT_INEDITOR)) {
+    halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+    halSetContext(halGetContext()|CONTEXT_INEDITOR);
+    uiOpenCmdLine();
+    }
+
+    if(separate && (halScreen.CursorState&0xff=='P')) uiSeparateToken();
+
+    uiInsertCharacters(symbol);
+
+    if(separate && (halScreen.CursorState&0xff=='P')) uiSeparateToken();
+
+}
+
+
+
+
 
 void dotKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
-    if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
-        halSetContext(halGetContext()|CONTEXT_INEDITOR);
-        uiOpenCmdLine();
-        }
-        uiInsertCharacters((BYTEPTR)".");
+    symbolKeyHandler((BYTEPTR)".",0);
 }
 
 void enterKeyHandler(BINT keymsg)
@@ -656,17 +704,11 @@ void invKeyHandler(BINT keymsg)
     cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_INV),(BYTEPTR)"INV",1);
 }
 
-
 void spcKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
-        halSetContext(halGetContext()|CONTEXT_INEDITOR);
-        uiOpenCmdLine();
-        }
-        uiInsertCharacters((BYTEPTR)" ");
+   symbolKeyHandler((BYTEPTR)" ",0);
 
 }
 
@@ -721,6 +763,22 @@ void chsKeyHandler(BINT keymsg)
 
             return;
             }
+
+            if((halScreen.CursorState&0xff)=='P') {
+                uiSeparateToken();
+                uiInsertCharacters("NEG");
+                uiSeparateToken();
+            return;
+            }
+
+            if((halScreen.CursorState&0xff)=='A') {
+                uiSeparateToken();
+                uiInsertCharacters("-");
+                uiSeparateToken();
+            return;
+            }
+
+
 
         }
         else {
@@ -797,7 +855,7 @@ void eexKeyHandler(BINT keymsg)
 }
 
 // COMMON FUNCTION FOR AL "BRACKET TYPES"
-void BracketKeyHandler(BYTEPTR string)
+void bracketKeyHandler(BYTEPTR string)
 {
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
@@ -808,7 +866,7 @@ void BracketKeyHandler(BYTEPTR string)
 
     BYTEPTR end=string+strlen(string);
     uiInsertCharactersN(string,end);
-    uiCursorLeft((end-string)>>1);
+    uiCursorLeft(utf8nlen(string,end)>>1);
 
 }
 
@@ -816,35 +874,44 @@ void curlyBracketKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    BracketKeyHandler("{  }");
+    bracketKeyHandler("{  }");
 
 }
 void squareBracketKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    BracketKeyHandler("[  ]");
+    bracketKeyHandler("[  ]");
 
 }
 void secoBracketKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    BracketKeyHandler("«  »");
+    bracketKeyHandler("«  »");
+
+    halSetCmdLineMode('P');
 
 }
 void parenBracketKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    BracketKeyHandler("()");
+    bracketKeyHandler("()");
 
 }
 void textBracketKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    BracketKeyHandler("\"\"");
+    bracketKeyHandler("\"\"");
+
+    // GO INTO LOWERCASE MODE AND LOCK ALPHA MODE
+    // TODO: GO INTO LOWERCASE OR CAPS MODE, WHATEVER
+    // WAS USED LAST
+    halSetCmdLineMode('L');
+    keyb_setshiftplane(0,0,1,1);
+
 
 }
 
@@ -852,7 +919,9 @@ void ticksKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    BracketKeyHandler("''");
+    bracketKeyHandler("''");
+    // GO INTO ALGEBRAIC MODE
+    halSetCmdLineMode('A');
 
 }
 
@@ -907,6 +976,51 @@ __lcd_contrast--;
 if(__lcd_contrast<0) __lcd_contrast=0;
 lcd_setcontrast(__lcd_contrast);
 }
+
+
+void arrowKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    symbolKeyHandler((BYTEPTR)"→",1);
+}
+
+void commaKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    symbolKeyHandler((BYTEPTR)",",0);
+}
+
+void semiKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    symbolKeyHandler((BYTEPTR)";",0);
+}
+
+void infinityKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    symbolKeyHandler((BYTEPTR)"∞",1);
+}
+
+void underscoreKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    symbolKeyHandler((BYTEPTR)"_",0);
+    halSetCmdLineMode('A');
+}
+
+
+
+
+
+
+
+
 
 
 // **************************************************************************
@@ -970,6 +1084,13 @@ struct keyhandler_t __keydefaulthandlers[]= {
     { KM_PRESS|KB_ADD|SHIFT_ONHOLD, CONTEXT_ANY,&onPlusKeyHandler },
     { KM_PRESS|KB_SUB|SHIFT_ONHOLD, CONTEXT_ANY,&onMinusKeyHandler },
 
+    { KM_PRESS|KB_0|SHIFT_LS, CONTEXT_ANY,&infinityKeyHandler },
+    { KM_PRESS|KB_0|SHIFT_RS, CONTEXT_ANY,&arrowKeyHandler },
+    { KM_PRESS|KB_SPC|SHIFT_RS, CONTEXT_ANY,&commaKeyHandler },
+    { KM_PRESS|KB_SPC|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&semiKeyHandler },
+    { KM_PRESS|KB_SUB|SHIFT_RS, CONTEXT_ANY,&underscoreKeyHandler },
+
+
     { 0 , 0 , 0 }
 };
 
@@ -1030,9 +1151,30 @@ int halProcessKey(BINT keymsg)
 
     if(KM_MESSAGE(keymsg)==KM_SHIFT) {
         // THERE WAS A CHANGE IN SHIFT PLANE, UPDATE ANNUNCIATORS
-        halSetNotification(N_LEFTSHIFT,((KM_SHIFTPLANE(keymsg)&SHIFT_LS)? 1:0));
-        halSetNotification(N_RIGHTSHIFT,((KM_SHIFTPLANE(keymsg)&SHIFT_RS)? 1:0));
-        halSetNotification(N_ALPHA,((KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA)? 1:0));
+        if(KM_SHIFTPLANE(keymsg)&SHIFT_LS) {
+            if((KM_SHIFTPLANE(keymsg)&SHIFT_HOLD)) halSetNotification(N_LEFTSHIFT,0xf);
+            else halSetNotification(N_LEFTSHIFT,0x8);
+        } else halSetNotification(N_LEFTSHIFT,0);
+        if(KM_SHIFTPLANE(keymsg)&SHIFT_RS) {
+            if((KM_SHIFTPLANE(keymsg)&SHIFT_HOLD)) halSetNotification(N_RIGHTSHIFT,0xf);
+            else halSetNotification(N_RIGHTSHIFT,0x8);
+        } else halSetNotification(N_RIGHTSHIFT,0);
+        if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) {
+            if((KM_SHIFTPLANE(keymsg)&SHIFT_HOLD)) halSetNotification(N_ALPHA,0xf);
+            else halSetNotification(N_ALPHA,0x8);
+        } else halSetNotification(N_ALPHA,0);
+
+        // UPDATE EDITOR MODE ACCORDINGLY
+        int oldplane=OLDKEYSHIFT(keymsg);
+        if( KM_SHIFTPLANE(keymsg^oldplane)&SHIFT_ALPHA) {
+            // THERE WAS A CHANGE IN ALPHA MODE
+            halSwapCmdLineMode();
+            halScreen.DirtyFlag|=CMDLINE_CURSORDIRTY;
+        }
+
+
+        return 0;
+
     }
 
     wasProcessed=halDoCustomKey(keymsg);
@@ -1117,4 +1259,10 @@ void halOuterLoop()
         keymsg=halWaitForKey();
     } while(!halProcessKey(keymsg));
 
+}
+
+
+void halInitKeyboard()
+{
+    keyb_setalphalock(1);
 }

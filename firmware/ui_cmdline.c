@@ -97,7 +97,17 @@ void uiOpenCmdLine()
     halScreen.NumLinesVisible=1;
     halScreen.CursorX=0;
     halScreen.CursorPosition=0;
-    halScreen.CursorState='D';
+    if(((halScreen.CursorState&0xff)=='L')||((halScreen.CursorState&0xff)=='C'))
+    {
+        int tmp=halScreen.CursorState;
+        halScreen.CursorState=tmp<<24;
+        halScreen.CursorState|=(tmp>>24)&0xff;
+    }
+    else {
+        if(((halScreen.CursorState>>24)=='L')||((halScreen.CursorState>>24)=='C')) halScreen.CursorState&=~0xff000000;
+        else halScreen.CursorState=('L'<<24);
+    }
+    halScreen.CursorState|='D';
     halScreen.XVisible=0;
     halScreen.CursorTimer=tmr_eventcreate(&__uicursorupdate,200,1);
     halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
@@ -529,7 +539,7 @@ if(halScreen.LineIsModified<0) {
 
     }
 
-BYTEPTR ptr=(BYTEPTR )(CmdLineCurrentLine+1);
+BYTEPTR ptr=(BYTEPTR )(CmdLineCurrentLine+1),ptr2;
 BINT len=rplStrSize(CmdLineCurrentLine);
 BINT lineoff;
 
@@ -540,24 +550,94 @@ if(halScreen.CursorPosition==offset) return;
 
 halScreen.CursorState|=0x4000;
 
+// AVOID USING OFFSET THAT FALLS BETWEEN BYTES OF THE SAME CODEPOINT
+ptr2=ptr;
+while((ptr2-ptr<offset)&&(ptr2<ptr+len)) ptr2=utf8skip(ptr2,ptr+len);
+
+offset=ptr2-ptr;
+
 halScreen.CursorPosition=offset;
 
-halScreen.CursorX=StringWidthN(ptr,ptr+offset,halScreen.CmdLineFont);
+halScreen.CursorX=StringWidthN(ptr,ptr2,halScreen.CmdLineFont);
 
 halScreen.CursorState&=~0xc000;
 
 halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
 }
 
+
+// MOVE THE CURSOR LEFT, NCHARS IS GIVEN IN UNICODE CODEPOINTS
 void uiCursorLeft(BINT nchars)
 {
-    uiMoveCursor(halScreen.CursorPosition-nchars);
+    if(halScreen.LineIsModified<0) {
+        uiExtractLine(halScreen.LineCurrent);
+
+        if(Exceptions) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            CmdLineText=empty_string;
+            CmdLineCurrentLine=empty_string;
+            CmdLineUndoList=empty_list;
+            return;
+        }
+
+        }
+
+    BYTEPTR ptr=(BYTEPTR )(CmdLineCurrentLine+1),ptr2;
+    BINT len=rplStrSize(CmdLineCurrentLine);
+    BINT lineoff,offset;
+
+    // AVOID USING OFFSET THAT FALLS BETWEEN BYTES OF THE SAME CODEPOINT
+    ptr2=ptr+halScreen.CursorPosition;
+    while(nchars &&(ptr2>ptr)) { ptr2=utf8rskip(ptr2,ptr); --nchars; }
+
+    offset=ptr2-ptr;
+
+    halScreen.CursorPosition=offset;
+
+    halScreen.CursorX=StringWidthN(ptr,ptr2,halScreen.CmdLineFont);
+
+    halScreen.CursorState&=~0xc000;
+
+    halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
+
     uiEnsureCursorVisible();
 }
 
 void uiCursorRight(BINT nchars)
 {
-    uiMoveCursor(halScreen.CursorPosition+nchars);
+    if(halScreen.LineIsModified<0) {
+        uiExtractLine(halScreen.LineCurrent);
+
+        if(Exceptions) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            CmdLineText=empty_string;
+            CmdLineCurrentLine=empty_string;
+            CmdLineUndoList=empty_list;
+            return;
+        }
+
+        }
+
+    BYTEPTR ptr=(BYTEPTR )(CmdLineCurrentLine+1),ptr2;
+    BINT len=rplStrSize(CmdLineCurrentLine);
+    BINT lineoff,offset;
+
+    // AVOID USING OFFSET THAT FALLS BETWEEN BYTES OF THE SAME CODEPOINT
+    ptr2=ptr+halScreen.CursorPosition;
+    while(nchars &&(ptr2<ptr+len)) { ptr2=utf8skip(ptr2,ptr+len); --nchars; }
+
+    offset=ptr2-ptr;
+
+    halScreen.CursorPosition=offset;
+
+    halScreen.CursorX=StringWidthN(ptr,ptr2,halScreen.CmdLineFont);
+
+    halScreen.CursorState&=~0xc000;
+
+    halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
+
     uiEnsureCursorVisible();
 
 }
@@ -624,6 +704,6 @@ BYTEPTR uiFindNumberStart()
 
     // HERE START POINTS TO THE FIRST CHARACTER IN THE NUMBER
 
-    if(start==end) return NULL;  // THERE WAS NO NUMBER
+    if(start>=end) return NULL;  // THERE WAS NO NUMBER
     return start;
 }

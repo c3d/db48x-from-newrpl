@@ -273,6 +273,9 @@ int StringWidthN(char *Text,char *End,UNIFONT *Font)
 
         cp=utf82char(Text,End);
 
+        if(cp==-1) { ++Text; continue; }
+
+
         if(cp=='\n' || cp=='\r') return width;
 
         // GET THE INFORMATION FROM THE FONT
@@ -349,6 +352,7 @@ void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURF
 
         cp=utf82char(Text,End);
 
+        if(cp==-1) { ++Text; continue; }
         if(cp=='\n' || cp=='\r') return;
 
         // GET THE INFORMATION FROM THE FONT
@@ -368,6 +372,7 @@ void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURF
 
     srf.x=w&0xfff;
     w>>=12;
+    if(w) {
     if(drawsurf->x>drawsurf->clipx2) return;
     if(drawsurf->x+w-1<drawsurf->clipx) { drawsurf->x+=w; Text=utf8skip(Text,End); continue; }
     if(drawsurf->x<drawsurf->clipx) {
@@ -381,6 +386,7 @@ void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURF
     if((color&0xf)==0xf) ggl_monobitbltmask(drawsurf,&srf,w,h,0);
     else ggl_monobitbltoper(drawsurf,&srf,w,h,color&0xf,&gui_chgcolorfilter);
     drawsurf->x+=w;
+    }
     Text=utf8skip(Text,End);
     }
     return;
@@ -429,6 +435,8 @@ void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,int bk
 
         cp=utf82char(Text,End);
 
+        if(cp==-1) { ++Text; continue; }
+
         if(cp=='\n' || cp=='\r') return;
 
         // GET THE INFORMATION FROM THE FONT
@@ -448,6 +456,9 @@ void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,int bk
 
     srf.x=w&0xfff;
     w>>=12;
+
+    if(w) {
+
     if(drawsurf->x>drawsurf->clipx2) return;
     if(drawsurf->x+w-1<drawsurf->clipx) { drawsurf->x+=w; Text=utf8skip(Text,End); continue; }
     if(drawsurf->x<drawsurf->clipx) {
@@ -462,6 +473,7 @@ void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,int bk
     if((color&0xf)==0xf) ggl_monobitbltmask(drawsurf,&srf,w,h,0);
     else ggl_monobitbltoper(drawsurf,&srf,w,h,color&0xf,&gui_chgcolorfilter);
     drawsurf->x+=w;
+    }
     Text=utf8skip(Text,End);
     }
     return;
@@ -533,6 +545,7 @@ void DrawTextMono(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *dr
 
         cp=utf82char(Text,End);
 
+        if(cp==-1) { ++Text; continue; }
         if(cp=='\n' || cp=='\r') return;
 
         // GET THE INFORMATION FROM THE FONT
@@ -553,6 +566,8 @@ void DrawTextMono(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *dr
     srf.x=w&0xfff;
     w>>=12;
 
+    if(w) {
+
     if(drawsurf->x>drawsurf->clipx2) return;
     if(drawsurf->x+w-1<drawsurf->clipx) return;
     if(drawsurf->x<drawsurf->clipx) {
@@ -569,7 +584,7 @@ void DrawTextMono(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *dr
         address=srf.x+(srf.y+k)*srf.width;
         destword=0;
     for(f=0;f<w;++f) {
-        if(ggl_getmonopix(srf.addr,address)) {
+        if(ggl_getmonopix((char *)srf.addr,address)) {
             // PLOT A PIXEL ON DESTINATION
             destword|=1<<f;
         }
@@ -602,6 +617,8 @@ void DrawTextMono(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *dr
     }
 
     drawsurf->x+=w;
+
+    }
 
     Text=utf8skip(Text,End);
 

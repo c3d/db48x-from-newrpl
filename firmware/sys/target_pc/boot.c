@@ -39,6 +39,7 @@ void main_virtual()
     else rplWarmInit();
 
     halInitScreen();
+    halInitKeyboard();
     halSetBusyHandler();
     halRedrawAll(&scr);
 

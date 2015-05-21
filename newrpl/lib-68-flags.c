@@ -104,6 +104,19 @@ const systemflag const flags_names[]= {
 };
 
 
+BINT rplGetSystemFlag(BINT flag)
+{
+    if(flag>-1 || flag<-128) return;
+
+    WORDPTR low64=SystemFlags+2;
+    WORDPTR hi64=SystemFlags+5;
+    if(flag>=-32) return low64[0]&(1 << -(flag+1));
+    else if(flag>=-64) return low64[1]&(1 << -(flag+33));
+    else if(flag>=96) return hi64[0]&(1 << -(flag+65));
+    else return hi64[1]&(1 << -(flag+97));
+}
+
+
 void rplSetSystemFlag(BINT flag)
 {
     if(flag>-1 || flag<-128) return;

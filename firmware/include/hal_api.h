@@ -602,14 +602,14 @@ Bit set means key is pressed.
 // SHIFT CONSTANTS FOR HIGH-LEVEL KEYBOARD FUNCTIONS
 
 //! Shift constant to use in a combined shiftcode. Left Shift.
-#define SHIFT_HOLD        0x400
+#define SHIFT_HOLD        0x200
 
 //! Shift constant to use in a combined shiftcode. Left Shift.
 #define SHIFT_LS          0x40
 //! Shift constant to use in a combined shiftcode. Right Shift.
 #define SHIFT_RS          0x80
 //! Shift constant to use in a combined shiftcode. Alpha.
-#define SHIFT_ALPHA      0x200
+#define SHIFT_ALPHA      0x400
 
 //! Shift constant to use in a combined shiftcode. Hold-Left Shift.
 #define SHIFT_LSHOLD      (SHIFT_LS|SHIFT_HOLD)
@@ -621,7 +621,7 @@ Bit set means key is pressed.
 //! Shift constant to use in a combined shiftcode. Hold-On key.
 #define SHIFT_ONHOLD     0x100
 
-//#define SHIFT_ALPHALOCK 0x400   // THIS IS NOT FOR THE USER, SYSTEM USE ONLY
+//#define SHIFT_ALPHALOCK 0x800   // THIS IS NOT FOR THE USER, SYSTEM USE ONLY
 
 
 //! Shift constant to use in a combined shiftcode. Any Shift or ON.
@@ -631,6 +631,8 @@ Bit set means key is pressed.
 // 18-BIT KEY CODE FOR KEYBOARD HANDLER
 #define KEYCODE(context,shift,key) ((((context)&0x1f)<<13)|(((shift)&SHIFT_ANY))|((key&0x3f)))
 #define KEYCONTEXT(keycode) (((keycode)>>13)&0x1f)
+#define OLDKEYSHIFT(keycode) ((keycode<<6)&SHIFT_ANY)
+#define MKOLDSHIFT(keyplane) ((keyplane&SHIFT_ANY)>>6)
 #define KEYSHIFT(keycode) ((keycode)&SHIFT_ANY)
 #define KEYVALUE(keycode) ((keycode)&0x3f)
 
@@ -1081,12 +1083,17 @@ void halSetBusyHandler();
 
 
 // SCREEN FUNCTIONS
-extern void halSetNotification(enum halNotification type,int show);
+extern void halSetNotification(enum halNotification type,int color);
 extern int halGetNotification(enum halNotification type);
 extern void halShowErrorMsg();
 extern void halSetCmdLineHeight(int h);
 extern void halStatusAreaPopup();
 extern void halRedrawAll(DRAWSURFACE *scr);
+
+
+// KEYBOARD FUNCTIONS
+void halInitKeyboard();
+
 
 
 // REDEFINE SOME CONSTANTS FOR THE PC EMULATOR TARGET

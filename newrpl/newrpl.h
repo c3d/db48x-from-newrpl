@@ -194,6 +194,7 @@ extern WORDPTR rplPeekRet(int level);
 extern void rplClearRStk();
 
 // SYSTEM FLAGS
+extern BINT rplGetSystemFlag(BINT flag);
 extern void rplSetSystemFlag(BINT flag);
 extern void rplClrSystemFlag(BINT flag);
 extern void rplClrSystemFlagByName(BYTEPTR name,BINT len);

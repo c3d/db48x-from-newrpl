@@ -109,6 +109,15 @@ char *utf8nskip(char *ptr, char *end, int n)
     return ptr;
 }
 
+// SKIP A CODE POINT
+char *utf8rskip(char *ptr, char *start)
+{
+    if(start>=ptr) return ptr;
+    --ptr;
+    while(((*ptr&0xc0)==0x80)&& (ptr>start)) --ptr;
+    if((*ptr&0x80)&(ptr>start)) --ptr;
+    return ptr;
+}
 
 
 // ENCODE A CHARACTER AND RETURN A NULL TERMINATED STRING,
