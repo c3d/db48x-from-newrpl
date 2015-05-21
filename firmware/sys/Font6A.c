@@ -4,7 +4,7 @@
 
 
 
-unsigned int Font_6A[]= { 
+const unsigned int const Font_6A[]= {
 0x50801FD, // PROLOG
 0x6008D, // FONT HEIGHT AND BITMAP WIDTH
 0x130107, // OFFSETS TO TABLES

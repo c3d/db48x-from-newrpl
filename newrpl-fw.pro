@@ -5,8 +5,8 @@
 #-------------------------------------------------
 
 
-TARGET = newrpl-fw
-TEMPLATE = lib
+TARGET = newrplfw.elf
+TEMPLATE = app
 CONFIG = static ordered
 
 DEFINES += TARGET_50G NDEBUG SLIM_MPD
@@ -51,13 +51,8 @@ SOURCES +=\
     firmware/hal_battery.c \
     firmware/hal_keyboard.c \
     firmware/hal_screen.c \
-    firmware/sys/font5.c \
-    firmware/sys/font6.c \
-    firmware/sys/font7.c \
-    firmware/sys/font8.c \
     firmware/sys/graphics.c \
     firmware/sys/icons.c \
-    firmware/sys/minifont.c \
     firmware/hal_globals.c \
     newrpl/atan_1_comp.c \
     newrpl/atan_2_comp.c \
@@ -119,9 +114,10 @@ SOURCES +=\
     newrpl/contrib/mpdecimal-2.4.0/libmpdec/numbertheory.c \
     firmware/ui_cmdline.c \
     newrpl/lib-48-matrix.c \
-    firmware/sys/Font6A.c \
     newrpl/utf8lib.c \
-    newrpl/utf8data.c
+    newrpl/utf8data.c \
+    firmware/sys/Font6A.c \
+    firmware/sys/Font5C.c
 
 HEADERS  += \
     firmware/include/ggl.h \
@@ -144,7 +140,7 @@ QMAKE_LIBDIR += $$GCC_LIBDIR/4.9.2
 
 INCLUDEPATH += firmware/include newrpl newrpl/contrib/mpdecimal-2.4.0/libmpdec /usr/local/include /usr/include
 
-LIBS +=
+LIBS += -lgcc
 
 FORMS    +=
 
@@ -155,9 +151,10 @@ RESOURCES +=
 
 QMAKE_CC = arm-none-eabi-gcc
 QMAKE_CXX = arm-none-eabi-g++
+QMAKE_LINK = arm-none-eabi-gcc
 #QMAKE_AR_CMD = arm-none-eabi-ar -cqs $(TARGET) $(OBJECTS)
-QMAKE_AR_CMD = arm-none-eabi-ld --verbose -T$$PWD/firmware/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR $(OBJECTS) -lgcc -o $(TARGET).elf
+#QMAKE_AR_CMD = arm-none-eabi-ld --verbose -T$$PWD/firmware/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR $(OBJECTS) -lgcc -o $(TARGET).elf
 QMAKE_CFLAGS = -mtune=arm920t -mcpu=arm920t -mlittle-endian -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -Os -pipe -mthumb-interwork -nostdinc
-QMAKE_LFLAGS = -nodefaultlibs -nostdlib
+QMAKE_LFLAGS = -T$$PWD/firmware/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
 
-
+QMAKE_POST_LINK = $$PWD/firmware/elf2rom $(TARGET)

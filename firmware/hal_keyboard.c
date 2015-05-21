@@ -1039,7 +1039,7 @@ struct keyhandler_t {
 
 
 // LIST OF HANDLERS, END WITH action=NULL
-struct keyhandler_t __keydefaulthandlers[]= {
+const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_1, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_2, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_3, CONTEXT_ANY,&numberKeyHandler },
