@@ -1089,6 +1089,7 @@ extern void halShowErrorMsg();
 extern void halSetCmdLineHeight(int h);
 extern void halStatusAreaPopup();
 extern void halRedrawAll(DRAWSURFACE *scr);
+extern void halRedrawCmdLine(DRAWSURFACE *scr);
 
 
 // KEYBOARD FUNCTIONS

@@ -88,7 +88,7 @@ void startup()
 
     // DONE WITH SYSTEM INITIALIZATION, SWITCH BACK TO USER MODE
 
-    lcd_setmode(2,(int *)MEM_PHYS_SCREEN);
+    lcd_setmode(2,(unsigned int *)MEM_PHYS_SCREEN);
 
 
     main_virtual();

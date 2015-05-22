@@ -315,6 +315,10 @@ extern BINT rplIsAllowedInSymb(WORDPTR object);
 extern void rplSymbApplyOperator(WORD Opcode,BINT nargs);
 extern void rplSymbRuleMatch();
 
+// INTERNAL SYMBOLIC API, FOR USE BY OTHER LIBRARIES
+extern BINT rplCheckCircularReference(WORDPTR env_owner,WORDPTR object,BINT lamnum);
+
+
 // STRINGS
 // RPL STRING OBJECT
 extern void rplSetStringLength(WORDPTR string,BINT length);

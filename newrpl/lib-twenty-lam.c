@@ -142,7 +142,7 @@ void LIB_HANDLER()
                 rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
                 LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
                 if(han) {
-                    BINT SavedOpcode=CurOpcode,TmpOpcode;
+                    WORD SavedOpcode=CurOpcode,TmpOpcode;
                     if(ISAPPROX(CurOpcode)) TmpOpcode=CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_NUM);
                     else TmpOpcode=CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
                     // EXECUTE THE OTHER LIBRARY DIRECTLY
@@ -220,7 +220,7 @@ void LIB_HANDLER()
                     }
                 }
 
-                if(rplCheckCircularReference(symbeval_seco+2,*(val+1),4)) {
+                if(rplCheckCircularReference((WORDPTR)symbeval_seco+2,*(val+1),4)) {
                     Exceptions|=EX_CIRCULARREF;
                     ExceptionPointer=IPtr;
                     return;

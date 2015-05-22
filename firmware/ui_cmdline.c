@@ -9,6 +9,32 @@
 // * LINE IS EDITED AS THE LAST OBJECT IN TEMPOB, TO BE STRETCHED AT WILL
 // * IF LINE IS NOT AT THE END OF TEMPOB, A NEW COPY IS MADE
 
+
+// RETURN LINE NUMBER FOR A GIVEN OFFSET, AND THE OFFSET OF THE START OF LINE
+BINT uiGetLinebyOffset(BINT offset,BINT *linestart)
+{
+
+    BYTEPTR ptr=(BYTEPTR)(CmdLineText+1);
+    BINT len=rplStrSize(CmdLineText);
+    BINT f,found,count;
+
+    if(offset>len) offset=len;
+    if(offset<0) offset=0;
+    found=0;
+    for(f=0,count=0; (f<len) && (f<offset);++f,++ptr)
+    {
+    if(*ptr=='\n') {
+        found=f+1;
+        ++count;
+    }
+    }
+
+    if(linestart) *linestart=found;
+    return count+1;
+
+}
+
+
 // SET THE COMMAND LINE TO A GIVEN STRING OBJECT
 void uiSetCmdLineText(WORDPTR text)
 {
@@ -19,12 +45,14 @@ void uiSetCmdLineText(WORDPTR text)
 
     // SET CURSOR AT END OF TEXT
     BINT end=rplStrSize(CmdLineText);
+    BINT linestoff;
     BYTEPTR linestart;
-    halScreen.LineCurrent=uiGetLinebyOffset(end,&linestart);
+    halScreen.LineCurrent=uiGetLinebyOffset(end,&linestoff);
+    linestart=((BYTEPTR)(CmdLineText+1))+linestoff;
     halScreen.CursorPosition=((BYTEPTR)(CmdLineText+1))+end-linestart;
 
     if(halScreen.CursorPosition<0) halScreen.CursorPosition=0;
-    halScreen.CursorX=StringWidthN(linestart,linestart+halScreen.CursorPosition,(UNIFONT *)halScreen.CmdLineFont);
+    halScreen.CursorX=StringWidthN((char *)linestart,(char *)linestart+halScreen.CursorPosition,(UNIFONT *)halScreen.CmdLineFont);
 
 
     uiEnsureCursorVisible();
@@ -168,15 +196,15 @@ void uiSetCurrentLine(BINT line)
     BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1);
     if(tryoffset>len) tryoffset=len;
 
-    targetx=StringWidthN(ptr,ptr+tryoffset,halScreen.CmdLineFont);
+    targetx=StringWidthN((char *)ptr,(char *)ptr+tryoffset,halScreen.CmdLineFont);
 
     while( (targetx<halScreen.CursorX) && (tryoffset<=len) ) {
-        targetx+=StringWidthN(ptr+tryoffset,ptr+tryoffset+1,halScreen.CmdLineFont);
+        targetx+=StringWidthN((char *)ptr+tryoffset,(char *)ptr+tryoffset+1,halScreen.CmdLineFont);
         ++tryoffset;
     }
     while( (targetx>halScreen.CursorX) && (tryoffset>0) ) {
         --tryoffset;
-        targetx-=StringWidthN(ptr+tryoffset,ptr+tryoffset+1,halScreen.CmdLineFont);
+        targetx-=StringWidthN((char *)ptr+tryoffset,(char *)ptr+tryoffset+1,halScreen.CmdLineFont);
     }
 
     halScreen.CursorX=targetx;
@@ -196,7 +224,7 @@ void uiSetCurrentLine(BINT line)
 // MAIN FUNCTION TO INSERT TEXT AT THE CURRENT CURSOR OFFSET
 void uiInsertCharacters(BYTEPTR string)
 {
-BYTEPTR end=string+strlen(string);
+BYTEPTR end=string+strlen((char *)string);
 
 uiInsertCharactersN(string,end);
 }
@@ -290,7 +318,7 @@ halScreen.LineIsModified=1;
 // TODO: IF THE INSERTED TEXT HAD ANY NEWLINES, THE CURRENT COMMAND LINE HAS MULTIPLE LINES IN ONE
 // MUST SPLIT THE LINES AND GET THE CURSOR ON THE LAST ONE
 
-halScreen.CursorX+=StringWidthN(((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition+length,halScreen.CmdLineFont);
+halScreen.CursorX+=StringWidthN(((char *)CmdLineCurrentLine)+4+halScreen.CursorPosition,((char *)CmdLineCurrentLine)+4+halScreen.CursorPosition+length,halScreen.CmdLineFont);
 halScreen.CursorPosition+=length;
 
 halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
@@ -389,7 +417,7 @@ void uiSeparateToken()
     BYTEPTR start=(BYTEPTR) (CmdLineCurrentLine+1);
     BYTEPTR lastchar=start+halScreen.CursorPosition-1;
     if(lastchar>=start) {
-        if(*lastchar!=' ')  uiInsertCharacters(" ");
+        if(*lastchar!=' ')  uiInsertCharacters((BYTEPTR)" ");
     }
 }
 
@@ -495,30 +523,7 @@ void uiExtractLine(BINT line)
 }
 
 
-// RETURN LINE NUMBER FOR A GIVEN OFFSET, AND THE OFFSET OF THE START OF LINE
-BINT uiGetLinebyOffset(BINT offset,BINT *linestart)
-{
 
-    BYTEPTR ptr=(BYTEPTR)(CmdLineText+1);
-    BINT len=rplStrSize(CmdLineText);
-    BINT f,found,count;
-    BYTEPTR prevfind,currfind;
-
-    if(offset>len) offset=len;
-    if(offset<0) offset=0;
-    found=0;
-    for(f=0,count=0; (f<len) && (f<offset);++f,++ptr)
-    {
-    if(*ptr=='\n') {
-        found=f+1;
-        ++count;
-    }
-    }
-
-    if(linestart) *linestart=found;
-    return count+1;
-
-}
 
 // MOVE THE CURSOR TO THE GIVEN OFFSET WITHIN THE STRING
 void uiMoveCursor(BINT offset)
@@ -539,7 +544,6 @@ if(halScreen.LineIsModified<0) {
 
 BYTEPTR ptr=(BYTEPTR )(CmdLineCurrentLine+1),ptr2;
 BINT len=rplStrSize(CmdLineCurrentLine);
-BINT lineoff;
 
 if(offset>len) offset=len;
 if(offset<0) offset=0;
@@ -550,13 +554,13 @@ halScreen.CursorState|=0x4000;
 
 // AVOID USING OFFSET THAT FALLS BETWEEN BYTES OF THE SAME CODEPOINT
 ptr2=ptr;
-while((ptr2-ptr<offset)&&(ptr2<ptr+len)) ptr2=utf8skip(ptr2,ptr+len);
+while((ptr2-ptr<offset)&&(ptr2<ptr+len)) ptr2=(BYTEPTR)utf8skip((char *)ptr2,(char *)ptr+len);
 
 offset=ptr2-ptr;
 
 halScreen.CursorPosition=offset;
 
-halScreen.CursorX=StringWidthN(ptr,ptr2,halScreen.CmdLineFont);
+halScreen.CursorX=StringWidthN((char *)ptr,(char *)ptr2,halScreen.CmdLineFont);
 
 halScreen.CursorState&=~0xc000;
 
@@ -582,18 +586,17 @@ void uiCursorLeft(BINT nchars)
         }
 
     BYTEPTR ptr=(BYTEPTR )(CmdLineCurrentLine+1),ptr2;
-    BINT len=rplStrSize(CmdLineCurrentLine);
-    BINT lineoff,offset;
+    BINT offset;
 
     // AVOID USING OFFSET THAT FALLS BETWEEN BYTES OF THE SAME CODEPOINT
     ptr2=ptr+halScreen.CursorPosition;
-    while(nchars &&(ptr2>ptr)) { ptr2=utf8rskip(ptr2,ptr); --nchars; }
+    while(nchars &&(ptr2>ptr)) { ptr2=(BYTEPTR)utf8rskip((char *)ptr2,(char *)ptr); --nchars; }
 
     offset=ptr2-ptr;
 
     halScreen.CursorPosition=offset;
 
-    halScreen.CursorX=StringWidthN(ptr,ptr2,halScreen.CmdLineFont);
+    halScreen.CursorX=StringWidthN((char *)ptr,(char *)ptr2,halScreen.CmdLineFont);
 
     halScreen.CursorState&=~0xc000;
 
@@ -620,17 +623,17 @@ void uiCursorRight(BINT nchars)
 
     BYTEPTR ptr=(BYTEPTR )(CmdLineCurrentLine+1),ptr2;
     BINT len=rplStrSize(CmdLineCurrentLine);
-    BINT lineoff,offset;
+    BINT offset;
 
     // AVOID USING OFFSET THAT FALLS BETWEEN BYTES OF THE SAME CODEPOINT
     ptr2=ptr+halScreen.CursorPosition;
-    while(nchars &&(ptr2<ptr+len)) { ptr2=utf8skip(ptr2,ptr+len); --nchars; }
+    while(nchars &&(ptr2<ptr+len)) { ptr2=(BYTEPTR)utf8skip((char *)ptr2,(char *)ptr+len); --nchars; }
 
     offset=ptr2-ptr;
 
     halScreen.CursorPosition=offset;
 
-    halScreen.CursorX=StringWidthN(ptr,ptr2,halScreen.CmdLineFont);
+    halScreen.CursorX=StringWidthN((char *)ptr,(char *)ptr2,halScreen.CmdLineFont);
 
     halScreen.CursorState&=~0xc000;
 
