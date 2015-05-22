@@ -526,6 +526,23 @@ doupdate:
 
     }
 
+
+    if(__kmat== ((1LL<<KB_ON) | (1LL<<KB_A)  | (1LL<<KB_C)))
+    {
+        // ON-A-C pressed, offer the option to stop the program
+
+        __keyb_lock=0;
+
+
+        throw_exception("RPL Break requested",__EX_CONT | __EX_WIPEOUT | __EX_RESET | __EX_RPLREGS );
+
+        //  AFTER RETURNING FROM THE EXCEPTION HANDLER, ALL KEYS ARE GUARANTEED TO BE RELEASED
+        //  DO AN UPDATE TO SEND KEY_UP MESSAGES TO THE APPLICATION AND CORRECT SHIFT PLANES
+        goto doupdate;
+
+    }
+
+
     __keyb_lock=0;
 
 }

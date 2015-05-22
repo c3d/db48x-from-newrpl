@@ -228,18 +228,18 @@ void LIB_HANDLER()
 
                 // CREATE A NEW LAM ENVIRONMENT IDENTICAL TO THE ONE USED TO EVAL SYMBOLICS
                 // FOR CIRCULAR REFERENCE CHECK
-                rplCreateLAMEnvironment(symbeval_seco+2);
+                rplCreateLAMEnvironment((WORDPTR)symbeval_seco+2);
 
-                rplCreateLAM(nulllam_ident,zero_bint);     // LAM 1 = 0 (DUMMY)
+                rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 1 = 0 (DUMMY)
                 if(Exceptions) { rplCleanupLAMs(0); return; }
 
-                rplCreateLAM(nulllam_ident,zero_bint);     // LAM 2 = 0 (DUMMY)
+                rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 2 = 0 (DUMMY)
                 if(Exceptions) { rplCleanupLAMs(0); return; }
 
-                rplCreateLAM(nulllam_ident,zero_bint);     // LAM 3 = 0 (DUMMY)
+                rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 3 = 0 (DUMMY)
                 if(Exceptions) { rplCleanupLAMs(0); return; }
 
-                rplCreateLAM(nulllam_ident,rplPeekData(1));     // LAM 4 = MAIN VARIABLE NAME, FOR CIRCULAR REFERENCE CHECK
+                rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 4 = MAIN VARIABLE NAME, FOR CIRCULAR REFERENCE CHECK
                 if(Exceptions) { rplCleanupLAMs(0); return; }
 
 

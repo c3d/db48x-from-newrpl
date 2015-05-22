@@ -204,16 +204,16 @@ void LIB_HANDLER()
         WORDPTR endobject=rplSkipOb(object);
         WORD Opcode=rplSymbMainOperator(object);
 
-        rplCreateLAM(nulllam_ident,Opcode);     // LAM 1 = OPCODE
+        rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)Opcode);     // LAM 1 = OPCODE
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
         object++;
         if(Opcode) object++;
 
-        rplCreateLAM(nulllam_ident,endobject);     // LAM 2 = END OF CURRENT OBJECT
+        rplCreateLAM((WORDPTR)nulllam_ident,endobject);     // LAM 2 = END OF CURRENT OBJECT
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
-        rplCreateLAM(nulllam_ident,object);     // LAM 3 = NEXT OBJECT TO PROCESS
+        rplCreateLAM((WORDPTR)nulllam_ident,object);     // LAM 3 = NEXT OBJECT TO PROCESS
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
         // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
@@ -234,7 +234,7 @@ void LIB_HANDLER()
         {
             // THIS EVAL IS NOT INSIDE A RECURSIVE LOOP
             // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER EVAL
-            rplPushRet(symbeval1_seco+4);
+            rplPushRet((WORDPTR)symbeval1_seco+4);
         }
         IPtr=(WORDPTR) symbeval1_seco;
         CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
@@ -254,7 +254,7 @@ void LIB_HANDLER()
         return;
     }
 
-    if(rplCheckCircularReference(symbeval_seco+2,object,4)) {
+    if(rplCheckCircularReference((WORDPTR)symbeval_seco+2,object,4)) {
         Exceptions|=EX_CIRCULARREF;
         ExceptionPointer=IPtr;
         return;
@@ -269,19 +269,19 @@ void LIB_HANDLER()
     WORDPTR endobject=rplSkipOb(object);
     WORD Opcode=rplSymbMainOperator(object);
 
-    rplCreateLAM(nulllam_ident,Opcode);     // LAM 1 = OPCODE
+    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)Opcode);     // LAM 1 = OPCODE
     if(Exceptions) { rplCleanupLAMs(0); return; }
 
     object++;
     if(Opcode) object++;
 
-    rplCreateLAM(nulllam_ident,endobject);     // LAM 2 = END OF CURRENT OBJECT
+    rplCreateLAM((WORDPTR)nulllam_ident,endobject);     // LAM 2 = END OF CURRENT OBJECT
     if(Exceptions) { rplCleanupLAMs(0); return; }
 
-    rplCreateLAM(nulllam_ident,object);     // LAM 3 = NEXT OBJECT TO PROCESS
+    rplCreateLAM((WORDPTR)nulllam_ident,object);     // LAM 3 = NEXT OBJECT TO PROCESS
     if(Exceptions) { rplCleanupLAMs(0); return; }
 
-    rplCreateLAM(nulllam_ident,mainobj);     // LAM 4 = MAIN SYMBOLIC EXPRESSION, FOR CIRCULAR REFERENCE CHECK
+    rplCreateLAM((WORDPTR)nulllam_ident,mainobj);     // LAM 4 = MAIN SYMBOLIC EXPRESSION, FOR CIRCULAR REFERENCE CHECK
     if(Exceptions) { rplCleanupLAMs(0); return; }
 
     // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
@@ -302,7 +302,7 @@ void LIB_HANDLER()
     {
         // THIS EVAL IS NOT INSIDE A RECURSIVE LOOP
         // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER EVAL
-        rplPushRet(symbeval_seco+4);
+        rplPushRet((WORDPTR)symbeval_seco+4);
     }
     IPtr=(WORDPTR) symbeval_seco;
     CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
@@ -533,7 +533,7 @@ void LIB_HANDLER()
         if(nextobj==endoflist) {
             // THE LAST ARGUMENT WAS ALREADY PROCESSED, IF THERE IS AN OPERATOR WE NEED TO APPLY IT
 
-            WORD Opcode=*rplGetLAMn(1);
+            WORD Opcode=(WORD)*rplGetLAMn(1);
 
             WORDPTR *prevDStk = rplUnprotectData();
             BINT newdepth=(BINT)(DSTop-prevDStk);
@@ -634,7 +634,7 @@ void LIB_HANDLER()
         if(nextobj==endoflist) {
             // THE LAST ARGUMENT WAS ALREADY PROCESSED, IF THERE IS AN OPERATOR WE NEED TO APPLY IT
 
-            WORD Opcode=*rplGetLAMn(1);
+            WORD Opcode=(WORD)*rplGetLAMn(1);
 
             WORDPTR *prevDStk = rplUnprotectData();
             BINT newdepth=(BINT)(DSTop-prevDStk);
@@ -757,7 +757,7 @@ void LIB_HANDLER()
             return;
         }
 
-        } else { rplPushData(emptylist_list); }
+        } else { rplPushData((WORDPTR)emptylist_list); }
 
         rplPushData(*rplGetLAMn(1));    // NULLAM1 HAS THE RESULT OF THE MATCH (0=NO MATCH, 1 = MATCH FOUND)
 
@@ -819,10 +819,10 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(1));
+        WORDPTR newobj=(WORDPTR)rplSymbCanonicalForm(rplPeekData(1));
         if(newobj) rplOverwriteData(1,newobj);
 
-        newobj=rplSymbNumericReduce(rplPeekData(1));
+        newobj=(WORDPTR)rplSymbNumericReduce(rplPeekData(1));
 
         if(newobj) rplPushData(newobj);
         return;
