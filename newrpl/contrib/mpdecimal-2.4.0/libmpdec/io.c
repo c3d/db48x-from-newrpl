@@ -41,7 +41,6 @@
 #include "typearith.h"
 #include "io.h"
 
-#define SLIM_MPD
 
 #ifdef SLIM_MPD
 // DO THIS TO PREVENT PULLING ALL LOCALIZATION DEPENDENCIES

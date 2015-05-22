@@ -556,11 +556,11 @@ if(!(halGetContext()&CONTEXT_INEDITOR)) {
     uiOpenCmdLine();
     }
 
-    if(separate && (halScreen.CursorState&0xff=='P')) uiSeparateToken();
+    if(separate && ((halScreen.CursorState&0xff)=='P')) uiSeparateToken();
 
     uiInsertCharacters(symbol);
 
-    if(separate && (halScreen.CursorState&0xff=='P')) uiSeparateToken();
+    if(separate && ((halScreen.CursorState&0xff)=='P')) uiSeparateToken();
 
 }
 
@@ -572,11 +572,11 @@ if(!(halGetContext()&CONTEXT_INEDITOR)) {
     uiOpenCmdLine();
     }
 
-    if(separate && (halScreen.CursorState&0xff=='P')) uiSeparateToken();
+    if(separate && ((halScreen.CursorState&0xff)=='P')) uiSeparateToken();
 
     uiInsertCharacters(symbol);
 
-    if(separate && (halScreen.CursorState&0xff=='P')) uiSeparateToken();
+    if(separate && ((halScreen.CursorState&0xff)=='P')) uiSeparateToken();
 
 }
 
@@ -766,14 +766,14 @@ void chsKeyHandler(BINT keymsg)
 
             if((halScreen.CursorState&0xff)=='P') {
                 uiSeparateToken();
-                uiInsertCharacters("NEG");
+                uiInsertCharacters((BYTEPTR)"NEG");
                 uiSeparateToken();
             return;
             }
 
             if((halScreen.CursorState&0xff)=='A') {
                 uiSeparateToken();
-                uiInsertCharacters("-");
+                uiInsertCharacters((BYTEPTR)"-");
                 uiSeparateToken();
             return;
             }
@@ -864,9 +864,9 @@ void bracketKeyHandler(BYTEPTR string)
         }
     if(((halScreen.CursorState&0xff)=='D')||((halScreen.CursorState&0xff)=='P')) uiSeparateToken();
 
-    BYTEPTR end=string+strlen(string);
+    BYTEPTR end=string+strlen((char *)string);
     uiInsertCharactersN(string,end);
-    uiCursorLeft(utf8nlen(string,end)>>1);
+    uiCursorLeft(utf8nlen((char *)string,(char *)end)>>1);
 
 }
 
@@ -874,21 +874,21 @@ void curlyBracketKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    bracketKeyHandler("{  }");
+    bracketKeyHandler((BYTEPTR)"{  }");
 
 }
 void squareBracketKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    bracketKeyHandler("[  ]");
+    bracketKeyHandler((BYTEPTR)"[  ]");
 
 }
 void secoBracketKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    bracketKeyHandler("«  »");
+    bracketKeyHandler((BYTEPTR)"«  »");
 
     halSetCmdLineMode('P');
 
@@ -897,14 +897,14 @@ void parenBracketKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    bracketKeyHandler("()");
+    bracketKeyHandler((BYTEPTR)"()");
 
 }
 void textBracketKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    bracketKeyHandler("\"\"");
+    bracketKeyHandler((BYTEPTR)"\"\"");
 
     // GO INTO LOWERCASE MODE AND LOCK ALPHA MODE
     // TODO: GO INTO LOWERCASE OR CAPS MODE, WHATEVER
@@ -919,7 +919,7 @@ void ticksKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-    bracketKeyHandler("''");
+    bracketKeyHandler((BYTEPTR)"''");
     // GO INTO ALGEBRAIC MODE
     halSetCmdLineMode('A');
 
@@ -1120,7 +1120,7 @@ int halDoCustomKey(BINT keymsg)
 
 int halDoDefaultKey(BINT keymsg)
 {
-struct keyhandler_t *ptr=__keydefaulthandlers;
+struct keyhandler_t *ptr=(struct keyhandler_t *)__keydefaulthandlers;
 
 while(ptr->action) {
     if(ptr->message==keymsg) {

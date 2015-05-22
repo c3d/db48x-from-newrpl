@@ -504,7 +504,7 @@ void keyb_setshiftplane(int leftshift,int rightshift,int alpha,int alphalock)
 {
     while(keyb_getmatrix()!=0LL) ;		// WAIT UNTIL NO MORE KEYS ARE PRESSED TO UPDATE SHIFT STATE
 
-    int oldplane;
+    int oldplane=__keyplane;
 
     if(leftshift) __keyplane|=SHIFT_LS|(SHIFT_LS<<16);
     else __keyplane&=~(SHIFT_LS|(SHIFT_LS<<16));

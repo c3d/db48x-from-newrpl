@@ -1,13 +1,16 @@
 #include <ui.h>
 
+extern void stop_singleshot();
+extern void timer_singleshot(int ms);
+
 void __tmr_eventreschedule();
 
 
 // TIMERS
-volatile long long __systmr __SYSTEM_GLOBAL__;
-volatile long long __evtmr __SYSTEM_GLOBAL__;
+volatile tmr_t __systmr __SYSTEM_GLOBAL__;
+volatile tmr_t __evtmr __SYSTEM_GLOBAL__;
 
-volatile long long __pcsystmr;  // MOVING COUNTER FOR SYSTEM PC TIMER
+volatile unsigned long long __pcsystmr;  // MOVING COUNTER FOR SYSTEM PC TIMER
 long long __pctmr1; // TIMER1 COUNTDOWN
 unsigned int __sysfreq __SYSTEM_GLOBAL__;
 volatile int __tmr_lock __SYSTEM_GLOBAL__;
@@ -20,7 +23,7 @@ timed_event tmr_events[NUM_EVENTS] __SYSTEM_GLOBAL__;
 // SAVE TIMERS CONFIGURATION - 13 WORDS REQUIRED
 void tmr_save(unsigned int *tmrbuffer)
 {
-
+UNUSED_ARGUMENT(tmrbuffer);
 
 }
 
@@ -29,6 +32,8 @@ void tmr_save(unsigned int *tmrbuffer)
 
 void tmr_restore(unsigned int *tmrbuffer)
 {
+    UNUSED_ARGUMENT(tmrbuffer);
+
 }
 
 
@@ -206,7 +211,7 @@ void tmr_delayus(int microseconds)
 unsigned long long end=start+((microseconds*tmr_getsysfreq())/1000000);
 
 // AND WAIT
-while(end>tmr_ticks());
+while(end>(unsigned long long)tmr_ticks());
 
 }
 

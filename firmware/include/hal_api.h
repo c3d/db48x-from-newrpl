@@ -632,7 +632,7 @@ Bit set means key is pressed.
 #define KEYCODE(context,shift,key) ((((context)&0x1f)<<13)|(((shift)&SHIFT_ANY))|((key&0x3f)))
 #define KEYCONTEXT(keycode) (((keycode)>>13)&0x1f)
 #define OLDKEYSHIFT(keycode) ((keycode<<6)&SHIFT_ANY)
-#define MKOLDSHIFT(keyplane) ((keyplane&SHIFT_ANY)>>6)
+#define MKOLDSHIFT(keyplane) (((keyplane)&SHIFT_ANY)>>6)
 #define KEYSHIFT(keycode) ((keycode)&SHIFT_ANY)
 #define KEYVALUE(keycode) ((keycode)&0x3f)
 
@@ -935,7 +935,7 @@ void keyb_setshiftplane(int leftshift,int rightshift,int alpha,int alphalock);
 // INTERNAL USE ONLY
 typedef struct {
 __interrupt__ eventhandler;
-unsigned long long ticks;
+long long ticks;
 unsigned int  delay;
 unsigned int status; // 1=ACTIVE, 2=AUTORELOAD, 4=PAUSED, NOT FINISHED
 } timed_event;

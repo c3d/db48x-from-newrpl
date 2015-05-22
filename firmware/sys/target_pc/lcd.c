@@ -71,7 +71,7 @@ int lcd_setmode(int mode, unsigned int *physbuf)
 //     =2 -> 16-gray
 // physbuf MUST be the physical address
 
-int height=80/*(lcdreg[3])>>8*/, pagewidth=LCD_W>>(4-mode);
+int /*height=(lcdreg[3])>>8,*/ pagewidth=LCD_W>>(4-mode);
 
 __lcd_mode=mode;
 __lcd_buffer=physbuf;

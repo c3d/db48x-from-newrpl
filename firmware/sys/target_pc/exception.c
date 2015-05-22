@@ -57,7 +57,7 @@ int f,j;
 
 
 lcd_save(lcd_buffer);
-lcd_setmode(0,(int *)MEM_PHYS_EXSCREEN);
+lcd_setmode(0,(unsigned int *)MEM_PHYS_EXSCREEN);
 
 doitagain:
 

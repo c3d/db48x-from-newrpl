@@ -168,6 +168,7 @@ void halSetCmdLineHeight(int h)
 
 BINT halGetDispObjectHeight(WORDPTR object,UNIFONT *font)
 {
+    UNUSED_ARGUMENT(object);
     // TODO: ADD MULTILINE OBJECTS, ETC.
 
     return font->BitmapHeight;
@@ -188,7 +189,7 @@ void halInt2String(int num,char *str)
     firstdigit=1;
     do {
         digit=0;
-        while(num>=powersof10[pow10idx]) { ++digit; num-=powersof10[pow10idx]; }
+        while((UBINT64)num>=powersof10[pow10idx]) { ++digit; num-=powersof10[pow10idx]; }
         if(!( (digit==0) && firstdigit)) {
         *ptr++=digit+'0';
         firstdigit=0;
@@ -284,8 +285,8 @@ halScreen.StAreaFont=(UNIFONT *)Font_6A;
 halScreen.CmdLineFont=(UNIFONT *)Font_6A;
 
 // NOT NECESSARILY PART OF HALSCREEN
-CmdLineText=empty_string;
-CmdLineCurrentLine=empty_string;
+CmdLineText=(WORDPTR)empty_string;
+CmdLineCurrentLine=(WORDPTR)empty_string;
 
 }
 
@@ -322,7 +323,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
         return;
     }
 // TODO: EVERYTHING, SHOW EMPTY MENU FOR NOW
-    int ytop,ybottom,y;
+    int ytop,ybottom;
     ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     ybottom=ytop+halScreen.Menu2-1;
     // DRAW BACKGROUND
@@ -533,11 +534,10 @@ void halShowErrorMsg()
 
         // SHOW ERROR MESSAGE
 
-        ("Error status:\n");
         for(errbit=0;errbit<32;++errbit)
         {
         if(error_table[errbit].num&error) {
-            DrawText(3,ytop+3,error_table[errbit].string,halScreen.StAreaFont,0xf,&scr);
+            DrawText(3,ytop+3,(char *)error_table[errbit].string,halScreen.StAreaFont,0xf,&scr);
             break;
         }
         }
@@ -548,8 +548,6 @@ void halShowErrorMsg()
 
 void halShowMsgN(char *Text,char *End)
 {
-        int errbit;
-
         DRAWSURFACE scr;
         ggl_initscr(&scr);
         BINT ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;

@@ -4,13 +4,16 @@ typedef uint32_t size_t;
 
 
 // THESE ARE STUB FUNCTIONS NEEDED BY libgcc TO PROCESS DIV BY ZERO EXCEPTIONS
-
+#ifndef errno
 int errno __SYSTEM_GLOBAL__;
 
 int *__errno() { return &errno; }
 
-#define	ERANGE 34
 #define errno (*__errno())
+
+#endif
+
+#define	ERANGE 34
 
 #define INT_MAX ((int)((1u<<31)-1))
 #define INT_MIN (-INT_MAX)
@@ -226,7 +229,7 @@ long strtol(const char *number,char **endptr,int base)
 {
     int digit,neg=0,countdigit=0;
     long long result=0;
-    char *start=number;
+    char *start=(char *)number;
 
     // SKIP INITIAL BLANKS
     while((*number==' ') || (*number=='\t')) ++number;
@@ -296,6 +299,7 @@ return result;
 
 int raise(int sig)
 {
+    UNUSED_ARGUMENT(sig);
     return 0;
 }
 
