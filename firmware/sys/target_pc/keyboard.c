@@ -25,7 +25,7 @@ int __keyb_repeattime,__keyb_longpresstime __SYSTEM_GLOBAL__,__keyb_debounce __S
 
 
 // QT-BASED KEYBOARD MESSAGES MUST UPDATE THIS MATRIX;
-keymatrix __pckeymatrix;
+volatile keymatrix __pckeymatrix;
 
 
 
@@ -51,6 +51,7 @@ keymatrix __keyb_getmatrixEX()
 {
     unsigned int saved=__cpu_intoff();
     keymatrix m=__keyb_getmatrix();
+    thread_processevents();
     __cpu_inton(saved);
     return m;
 }
@@ -117,7 +118,9 @@ int __keyb_getkey(int wait)
 void __keyb_waitrelease()
 {
     keymatrix m=1;
+    // DO NOT LOCK THE THREAD
     while(m!=0LL) { m=__keyb_getmatrixEX(); }
+    __pckeymatrix=0;
 }
 
 
@@ -440,6 +443,22 @@ doupdate:
         goto doupdate;
 
     }
+
+    if(__kmat== ((1ULL<<KB_ON) | (1ULL<<KB_A)  | (1ULL<<KB_C)))
+    {
+        // ON-A-C pressed, offer the option to stop the program
+
+        __keyb_lock=0;
+
+
+        throw_exception("RPL Break requested",__EX_CONT | __EX_WIPEOUT | __EX_RESET | __EX_RPLREGS );
+
+        //  AFTER RETURNING FROM THE EXCEPTION HANDLER, ALL KEYS ARE GUARANTEED TO BE RELEASED
+        //  DO AN UPDATE TO SEND KEY_UP MESSAGES TO THE APPLICATION AND CORRECT SHIFT PLANES
+        goto doupdate;
+
+    }
+
 
     __keyb_lock=0;
 

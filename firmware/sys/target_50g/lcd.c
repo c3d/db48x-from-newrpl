@@ -5,7 +5,7 @@
 #define LCD_W 160
 #define HOZVAL ((LCD_W>>2)-1)
 
-int __lcd_contrast __attribute__ ((section (".system_globals")));
+int __lcd_contrast __SYSTEM_GLOBAL__;
 
 void __lcd_fix()
 {

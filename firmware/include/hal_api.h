@@ -1100,4 +1100,7 @@ void halInitKeyboard();
 // REDEFINE SOME CONSTANTS FOR THE PC EMULATOR TARGET
 #ifdef TARGET_PC
 #include <target_pc.h>
+
+
+
 #endif

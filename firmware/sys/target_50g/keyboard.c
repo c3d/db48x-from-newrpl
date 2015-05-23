@@ -10,14 +10,14 @@ extern void __tmr_eventreschedule();
 
 
 // KEYBOARD, LOW LEVEL GLOBAL VARIABLES
-unsigned short int __keyb_buffer[KEYB_BUFFER] __attribute__((section (".system_globals")));
-volatile int __keyb_lock __attribute__((section (".system_globals")));
-int __keyflags __attribute__((section (".system_globals")));
-int __kused __attribute__((section (".system_globals"))),__kcurrent __attribute__((section (".system_globals")));
-keymatrix __kmat __attribute__((section (".system_globals")));
-int __keyplane __attribute__((section (".system_globals")));
-int __keynumber __attribute__((section (".system_globals"))),__keycount __attribute__((section (".system_globals")));
-int __keyb_repeattime,__keyb_longpresstime __attribute__((section (".system_globals"))),__keyb_debounce __attribute__((section (".system_globals")));
+unsigned short int __keyb_buffer[KEYB_BUFFER] __SYSTEM_GLOBAL__;
+volatile int __keyb_lock __SYSTEM_GLOBAL__;
+int __keyflags __SYSTEM_GLOBAL__;
+int __kused __SYSTEM_GLOBAL__,__kcurrent __SYSTEM_GLOBAL__;
+keymatrix __kmat __SYSTEM_GLOBAL__;
+int __keyplane __SYSTEM_GLOBAL__;
+int __keynumber __SYSTEM_GLOBAL__,__keycount __SYSTEM_GLOBAL__;
+int __keyb_repeattime,__keyb_longpresstime __SYSTEM_GLOBAL__,__keyb_debounce __SYSTEM_GLOBAL__;
 
 
 

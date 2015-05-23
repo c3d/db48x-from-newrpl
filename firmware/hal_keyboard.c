@@ -255,7 +255,7 @@ BINT halWaitForKey()
 
 
 // FOR TESTING ONLY
-volatile int waitforspeed;
+
 const char * const keyNames[64]={
     "[NONE]",
     "<-",
@@ -323,12 +323,6 @@ const char * const keyNames[64]={
     "ON"
 };
 
-
-
-void waitforspeed_handler()
-{
-    waitforspeed=0;
-}
 
 // SYSTEM CONTEXT VARIABLE
 // STORES THE CONTEXT ID
@@ -476,18 +470,14 @@ void numberKeyHandler(BINT keymsg)
 
 }
 
-// NOT CONST, THIS IS ACTUALLY A GLOBAL VARIABLE TAKING PERMANENT SPACE
-// ONLY TO BE USED BY THE KEYBOARD HANDLER
-WORD cmdKeySeco[4]={
-    MKPROLOG(DOCOL,2),
-    MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),        // THIS IS TO BE REPLACED WITH THE DESIRED OPCODE
-    CMD_SEMI,
-    CMD_EXITRPL
-};
+extern WORD cmdKeySeco[4];
 
 void cmdRun(WORD Opcode)
 {
+cmdKeySeco[0]=MKPROLOG(DOCOL,2),
 cmdKeySeco[1]=Opcode;
+cmdKeySeco[2]=CMD_SEMI;
+cmdKeySeco[3]=CMD_EXITRPL;
 rplSetEntryPoint(cmdKeySeco);
 rplRun();
 }
@@ -1146,8 +1136,6 @@ return 0;
 int halProcessKey(BINT keymsg)
 {
     int wasProcessed;
-
-    waitforspeed=0;
 
     if(KM_MESSAGE(keymsg)==KM_SHIFT) {
         // THERE WAS A CHANGE IN SHIFT PLANE, UPDATE ANNUNCIATORS

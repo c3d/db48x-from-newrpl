@@ -204,6 +204,14 @@ void MainWindow::keyPressEvent(QKeyEvent *ev)
 
     if(ev->isAutoRepeat()) { ev->accept(); return; }
 
+    if(ev->key()==Qt::Key_F12) {
+        __pckeymatrix=(1ULL<<63) | (1ULL<<41) | (1ULL<<43);
+        __keyb_update();
+        ev->accept();
+        return;
+    }
+
+
     for(i=0;keyMap[i]!=0;i+=2) {
         if(ev->key()==keyMap[i]) {
             __pckeymatrix|=1ULL<<(keyMap[i+1]);
@@ -222,6 +230,15 @@ void MainWindow::keyReleaseEvent(QKeyEvent *ev)
     int i;
     if(ev->isAutoRepeat()) { ev->accept(); return; }
 
+    if(ev->key()==Qt::Key_F12) {
+        __pckeymatrix&=~((1ULL<<63) | (1ULL<<41) | (1ULL<<43));
+        __keyb_update();
+        ev->accept();
+        return;
+    }
+
+
+
     for(i=0;keyMap[i]!=0;i+=2) {
         if(ev->key()==keyMap[i]) {
             __pckeymatrix&=~(1ULL<<(keyMap[i+1]));
@@ -233,4 +250,9 @@ void MainWindow::keyReleaseEvent(QKeyEvent *ev)
 
 
     QMainWindow::keyReleaseEvent(ev);
+}
+
+extern "C" void thread_processevents()
+{
+    QCoreApplication::processEvents();
 }

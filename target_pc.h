@@ -12,6 +12,7 @@ extern char ExceptionScreen[8192];
 #define MEM_PHYS_EXSCREEN ExceptionScreen
 
 
+#undef __SYSTEM_GLOBAL__
 #define __SYSTEM_GLOBAL__
 
 

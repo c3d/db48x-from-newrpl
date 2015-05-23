@@ -17,8 +17,8 @@
 
 #define MAX_RAM 16*1024    // 16KBYTES PER AREA = 6*16 TOTAL, ON 64-BIT SYSTEMS IT'S 32KBYTES
 
-#define SCRATCH_MEMORY
-#define PERSISTENT_MEMORY
+#define __SCRATCH_MEMORY__
+#define __PERSISTENT_MEMORY__
 
 #define throw_exception(a,b) { printf(a); exit(b); }
 #define throw_dbgexception(a,b) { printf(a); exit(b); }
@@ -27,8 +27,8 @@
 
 #else
 
-#define SCRATCH_MEMORY __attribute__((section (".scratch_memory")))
-#define PERSISTENT_MEMORY __attribute__((section (".persistent_memory")))
+#define __SCRATCH_MEMORY__ __attribute__((section (".scratch_memory")))
+#define __PERSISTENT_MEMORY__ __attribute__((section (".persistent_memory")))
 
 #endif
 

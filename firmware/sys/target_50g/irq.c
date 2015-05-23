@@ -3,8 +3,8 @@
 #define HWREG(base,off) ( (volatile unsigned int *) (((int)base+(int)off)))
 
 // IRQ AND CPU LOW LEVEL
-unsigned int irq_table[32] __attribute__ ((section (".system_globals")));
-unsigned int __saveint __attribute__ ((section (".system_globals")));
+unsigned int irq_table[32] __SYSTEM_GLOBAL__;
+unsigned int __saveint __SYSTEM_GLOBAL__;
 
 
 

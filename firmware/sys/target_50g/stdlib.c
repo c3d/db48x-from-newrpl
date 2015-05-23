@@ -8,7 +8,7 @@ typedef int size_t;
 
 // THESE ARE STUB FUNCTIONS NEEDED BY libgcc TO PROCESS DIV BY ZERO EXCEPTIONS
 
-int errno __attribute__ ((section (".system_globals")));
+int errno __SYSTEM_GLOBAL__;
 
 int *__errno() { return &errno; }
 
