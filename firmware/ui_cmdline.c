@@ -374,13 +374,17 @@ if(rplSkipOb(CmdLineCurrentLine)!=TempObEnd) {
 
 // FINALLY, WE HAVE THE ORIGINAL LINE AT THE END OF TEMPOB, AND ENOUGH MEMORY ALLOCATED TO MAKE THE MOVE
 BINT tailchars=rplStrSize(CmdLineCurrentLine)-halScreen.CursorPosition;
-if(length>tailchars) length=tailchars;
+BINT delbytes=0;
+BYTEPTR delete_start=((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition;
+BYTEPTR delete_end=utf8nskip(delete_start,delete_start+tailchars,length);
+
+
 // MOVE THE TAIL TO THE END
-memmove( ((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition+length,tailchars-length);
+memmove( delete_start,delete_end,delete_start+tailchars-delete_end);
 
 // PATCH THE LENGTH OF THE STRING
 BINT newlen=rplStrSize(CmdLineCurrentLine);
-newlen-=length;
+newlen-=delete_end-delete_start;
 rplSetStringLength(CmdLineCurrentLine,newlen);
 
 // TRUNCATE THE OBJECT TO RELEASE MEMORY
