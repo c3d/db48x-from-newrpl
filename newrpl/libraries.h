@@ -304,4 +304,18 @@ extern const WORD three_bint[];
 extern const WORD empty_string[];
 extern const WORD empty_list[];
 
+// CONVENIENCE COMMAND NUMBERS
+// THESE ARE HARDCODED, THERE SHOULD BE A BETTER WAY
+// TO REFERENCE COMMANDS FROM THE KEYBOARD DRIVERS
+
+#define CMD_SIN MKOPCODE(66,0)
+#define CMD_COS MKOPCODE(66,1)
+#define CMD_TAN MKOPCODE(66,2)
+#define CMD_SQRT MKOPCODE(66,18)
+#define CMD_STO MKOPCODE(28,0)
+#define CMD_RCL MKOPCODE(28,1)
+#define CMD_PURGE MKOPCODE(28,4)
+
+
+
 #endif // LIBRARIES_H

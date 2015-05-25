@@ -482,6 +482,15 @@ rplSetEntryPoint(cmdKeySeco);
 rplRun();
 }
 
+// TYPICAL COMMAND KEY HANDLER.
+// EXECUTES Opcode IN DIRECT MODE
+// INSERTS Progmode AS TEXT IN THE COMMEND LINE WHEN IN PROGRAMMING MODE
+// IF IsFunc == 0 --> IN ALG MODE INSERT THE SAME TEXT AS IN PROG. MODE
+//    IsFunc == 1 --> IN ALG MODE INSERT THE SAME TEXT AS IN PROG, WITH FUNCTION PARENTHESIS
+//    IsFunc < 0  --> NOT ALLOWED IN SYMBOLIC (ALG) MODE, DO NOTHING
+
+
+
 void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
 {
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
@@ -526,10 +535,12 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
             break;
 
         case 'A':   // ALPHANUMERIC MODE
+            if(IsFunc>=0) {
             uiInsertCharacters(Progmode);
-            if(IsFunc) {
+            if(IsFunc==1) {
                 uiInsertCharacters((BYTEPTR)"()");
                 uiCursorLeft(1);
+            }
             }
             break;
         default:
@@ -554,7 +565,7 @@ if(!(halGetContext()&CONTEXT_INEDITOR)) {
 
 }
 
-void alphasymbolKeyHandler(BYTEPTR symbol,BINT separate)
+void alphasymbolKeyHandler(BYTEPTR Lsymbol,BYTEPTR Csymbol)
 {
 if(!(halGetContext()&CONTEXT_INEDITOR)) {
     halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
@@ -562,11 +573,8 @@ if(!(halGetContext()&CONTEXT_INEDITOR)) {
     uiOpenCmdLine();
     }
 
-    if(separate && ((halScreen.CursorState&0xff)=='P')) uiSeparateToken();
-
-    uiInsertCharacters(symbol);
-
-    if(separate && ((halScreen.CursorState&0xff)=='P')) uiSeparateToken();
+    if(halGetCmdLineMode()=='L') uiInsertCharacters(Lsymbol);
+    if(halGetCmdLineMode()=='C') uiInsertCharacters(Csymbol);
 
 }
 
@@ -701,6 +709,66 @@ void spcKeyHandler(BINT keymsg)
    symbolKeyHandler((BYTEPTR)" ",0);
 
 }
+
+void sinKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(CMD_SIN,(BYTEPTR)"SIN",1);
+}
+
+void cosKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(CMD_COS,(BYTEPTR)"COS",1);
+}
+
+void tanKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(CMD_TAN,(BYTEPTR)"TAN",1);
+}
+
+void evalKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),(BYTEPTR)"EVAL",-1);
+}
+
+void sqrtKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(CMD_SQRT,(BYTEPTR)"√",0);
+}
+
+void powKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_POW),(BYTEPTR)"^",0);
+}
+
+void stoKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(CMD_STO,(BYTEPTR)"STO",-1);
+
+}
+
+void rclKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(CMD_RCL,(BYTEPTR)"RCL",-1);
+
+}
+
+
 
 void chsKeyHandler(BINT keymsg)
 {
@@ -1004,9 +1072,38 @@ void underscoreKeyHandler(BINT keymsg)
     halSetCmdLineMode('A');
 }
 
+#define DECLARE_KEYHANDLER(name,lsymbol,csymbol) void name##KeyHandler(BINT keymsg) \
+                                                    { UNUSED_ARGUMENT(keymsg); \
+                                                    alphasymbolKeyHandler((BYTEPTR)(lsymbol),(BYTEPTR)(csymbol)); \
+                                                    }
+#define KEYHANDLER_NAME(name)  &(name##KeyHandler)
 
-
-
+DECLARE_KEYHANDLER(a,"a","A");
+DECLARE_KEYHANDLER(b,"b","B");
+DECLARE_KEYHANDLER(c,"c","C");
+DECLARE_KEYHANDLER(d,"d","D");
+DECLARE_KEYHANDLER(e,"e","E");
+DECLARE_KEYHANDLER(f,"f","F");
+DECLARE_KEYHANDLER(g,"g","G");
+DECLARE_KEYHANDLER(h,"h","H");
+DECLARE_KEYHANDLER(i,"i","I");
+DECLARE_KEYHANDLER(j,"j","J");
+DECLARE_KEYHANDLER(k,"k","K");
+DECLARE_KEYHANDLER(l,"l","L");
+DECLARE_KEYHANDLER(m,"m","M");
+DECLARE_KEYHANDLER(n,"n","N");
+DECLARE_KEYHANDLER(o,"o","O");
+DECLARE_KEYHANDLER(p,"p","P");
+DECLARE_KEYHANDLER(q,"q","Q");
+DECLARE_KEYHANDLER(r,"r","R");
+DECLARE_KEYHANDLER(s,"s","S");
+DECLARE_KEYHANDLER(t,"t","T");
+DECLARE_KEYHANDLER(u,"u","U");
+DECLARE_KEYHANDLER(v,"v","V");
+DECLARE_KEYHANDLER(w,"w","W");
+DECLARE_KEYHANDLER(x,"x","X");
+DECLARE_KEYHANDLER(y,"y","Y");
+DECLARE_KEYHANDLER(z,"z","Z");
 
 
 
@@ -1079,6 +1176,43 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_SPC|SHIFT_RS, CONTEXT_ANY,&commaKeyHandler },
     { KM_PRESS|KB_SPC|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&semiKeyHandler },
     { KM_PRESS|KB_SUB|SHIFT_RS, CONTEXT_ANY,&underscoreKeyHandler },
+    { KM_PRESS|KB_S, CONTEXT_ANY,&sinKeyHandler },
+    { KM_PRESS|KB_T, CONTEXT_ANY,&cosKeyHandler },
+    { KM_PRESS|KB_U, CONTEXT_ANY,&tanKeyHandler },
+    { KM_PRESS|KB_N, CONTEXT_ANY,&evalKeyHandler },
+    { KM_PRESS|KB_R, CONTEXT_ANY,&sqrtKeyHandler },
+    { KM_PRESS|KB_Q, CONTEXT_ANY,&powKeyHandler },
+    { KM_PRESS|KB_M, CONTEXT_ANY,&stoKeyHandler },
+    { KM_PRESS|KB_M|SHIFT_LS, CONTEXT_ANY,&rclKeyHandler },
+    { KM_PRESS|KB_M|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&rclKeyHandler },
+    { KM_PRESS|KB_A|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(a) },
+    { KM_PRESS|KB_B|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(b) },
+    { KM_PRESS|KB_C|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(c) },
+    { KM_PRESS|KB_D|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(d) },
+    { KM_PRESS|KB_E|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(e) },
+    { KM_PRESS|KB_F|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(f) },
+    { KM_PRESS|KB_G|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(g) },
+    { KM_PRESS|KB_H|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(h) },
+    { KM_PRESS|KB_I|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(i) },
+    { KM_PRESS|KB_J|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(j) },
+    { KM_PRESS|KB_K|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(k) },
+    { KM_PRESS|KB_L|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(l) },
+    { KM_PRESS|KB_M|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(m) },
+    { KM_PRESS|KB_N|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(n) },
+    { KM_PRESS|KB_O|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(o) },
+    { KM_PRESS|KB_P|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(p) },
+    { KM_PRESS|KB_Q|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(q) },
+    { KM_PRESS|KB_R|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(r) },
+    { KM_PRESS|KB_S|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(s) },
+    { KM_PRESS|KB_T|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(t) },
+    { KM_PRESS|KB_U|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(u) },
+    { KM_PRESS|KB_V|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(v) },
+    { KM_PRESS|KB_W|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(w) },
+    { KM_PRESS|KB_X|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(x) },
+    { KM_PRESS|KB_Y|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(y) },
+    { KM_PRESS|KB_DIV|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(z) },
+
+
 
 
     { 0 , 0 , 0 }
