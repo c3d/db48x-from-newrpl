@@ -258,8 +258,16 @@ doupdate:
             if(key==KB_ALPHA) {
                 if( __keyflags&KF_ALPHALOCK) {
                     if(__keyplane&SHIFT_ALPHA)  {
-                        // OTHER KEYS WERE PRESSED, SO END ALPHA MODE
-                        __keyplane&=~((SHIFT_ALPHA<<17)|(SHIFT_ALPHA<<16)); // UNLOCK ALPHA
+                        if(__keyplane&(SHIFT_ALPHA<<16)) {
+                            // DOUBLE ALPHA KEYPRESS
+                            __keyplane^=SHIFT_ALPHA<<17; // UNLOCK ALPHA
+                            __keyplane&=~(SHIFT_ALPHA<<16);
+                        }
+
+                        else {
+                         // ISSUE AN ALPHA KEY PRESS TO CHANGE CAPS LOCK
+                        __keyplane^=SHIFT_ALPHA<<16; //~((SHIFT_ALPHA<<17)|(SHIFT_ALPHA<<16));
+                        }
 
                     } else {
                             __keyplane|=SHIFT_ALPHA<<17; // LOCK ALPHA
@@ -323,7 +331,15 @@ doupdate:
 
             }
             if(key==KB_ALPHA) {
-                __keyplane&=~((SHIFT_ALPHAHOLD|SHIFT_ALPHA)^(((__keyplane>>16)|(__keyplane>>17))&SHIFT_ALPHA));
+                // KILL ALPHA PLANE
+                // BUT KEEP IT IF ALPHA IS LOCKED OR PREVIOUS KEY WAS ALPHA
+                if(__keyplane&(SHIFT_ALPHA<<16)) {
+                __keyb_postmsg(KM_PRESS + key + (__keyplane&SHIFT_ANY));
+                __keynumber=key;
+                __keycount=0;
+                }
+
+                __keyplane&=~((SHIFT_ALPHAHOLD|SHIFT_ALPHA)^((/*(__keyplane>>16)|*/(__keyplane>>17))&SHIFT_ALPHA));
 
             }
             if(key==KB_ON) {

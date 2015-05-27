@@ -49,7 +49,7 @@ extern void uiModifyLine();
 extern void uiExtractLine();
 extern BYTEPTR uiFindNumberStart();
 extern WORDPTR uiGetCmdLineText();
-extern void uiOpenCmdLine();
+extern void uiOpenCmdLine(BINT mode);
 extern void uiCloseCmdLine();
 extern void uiInsertCharacters(BYTEPTR string);
 extern void uiInsertCharactersN(BYTEPTR string,BYTEPTR end);

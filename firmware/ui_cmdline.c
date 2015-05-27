@@ -114,8 +114,14 @@ void __uicursorupdate()
 
 
 // OPEN AN EMPTY COMMAND LINE
-void uiOpenCmdLine()
+// MODE CAN BE: 'A','P' OR 'D'
+// OR IN ALPHA: 'L','C' OR 'X', WHERE 'X'= L OR C, WHATEVER WAS USED LAST
+
+// ANY OTHER VALUE WILL DEFAULT TO MODE 'D'
+
+void uiOpenCmdLine(BINT mode)
 {
+    int inAlpha=0;
     CmdLineText=(WORDPTR)empty_string;
     CmdLineCurrentLine=(WORDPTR)empty_string;
     CmdLineUndoList=(WORDPTR)empty_list;
@@ -135,14 +141,22 @@ void uiOpenCmdLine()
         if(((halScreen.CursorState>>24)=='L')||((halScreen.CursorState>>24)=='C')) halScreen.CursorState&=~0xff000000;
         else halScreen.CursorState=('L'<<24);
     }
-    halScreen.CursorState|='D';
+    if((mode=='A')||(mode=='D')||(mode=='P')) halScreen.CursorState|=mode;
+    else halScreen.CursorState|='D';
+    if((mode=='L')||(mode=='C')||(mode=='X')) {
+        int tmp=halScreen.CursorState;
+        halScreen.CursorState=tmp<<24;
+        if(mode!='X') halScreen.CursorState|=mode;
+        else halScreen.CursorState|=(tmp>>24)&0xff;
+    }
+
     halScreen.XVisible=0;
     halScreen.CursorTimer=tmr_eventcreate(&__uicursorupdate,200,1);
     halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
 
 }
 
-// OPEN AN EMPTY COMMAND LINE
+// CLOSE THE COMMAND LINE
 void uiCloseCmdLine()
 {
     tmr_eventkill(halScreen.CursorTimer);
@@ -156,7 +170,7 @@ void uiCloseCmdLine()
     halScreen.NumLinesVisible=1;
     halScreen.CursorX=0;
     halScreen.CursorPosition=0;
-    halScreen.CursorState=0;
+    halScreen.CursorState&=0xff0000ff;
     halScreen.XVisible=0;
     halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
 }
