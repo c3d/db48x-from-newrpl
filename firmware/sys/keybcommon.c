@@ -484,7 +484,7 @@ void keyb_setalphalock(int single_alpha_lock)
 
 void keyb_setshiftplane(int leftshift,int rightshift,int alpha,int alphalock)
 {
-    while(keyb_getmatrix()!=0LL) ;		// WAIT UNTIL NO MORE KEYS ARE PRESSED TO UPDATE SHIFT STATE
+//    while(keyb_getmatrix()!=0LL) ;		// WAIT UNTIL NO MORE KEYS ARE PRESSED TO UPDATE SHIFT STATE
 
     int oldplane=__keyplane;
 

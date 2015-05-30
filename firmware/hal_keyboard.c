@@ -405,22 +405,24 @@ BINT endCmdLineAndCompile()
             return 0;
         }
         else {
+            // END ALPHA MODE
+            halSwapCmdLineMode(0);
+            keyb_setshiftplane(0,0,0,0);
+
+            uiCloseCmdLine();
+            halSetCmdLineHeight(0);
+            halSetContext(halGetContext()& (~CONTEXT_INEDITOR));
             // RUN THE OBJECT
+
             rplSetEntryPoint(newobject);
             rplRun();
             if(Exceptions) {
                 // TODO: SHOW ERROR MESSAGE
                 halShowErrorMsg();
                 Exceptions=0;
-                uiCloseCmdLine();
-                halSetCmdLineHeight(0);
-                halSetContext(halGetContext()& (~CONTEXT_INEDITOR));
                 return 1;
             }
             // EVERYTHING WENT FINE, CLOSE THE COMMAND LINE
-            uiCloseCmdLine();
-            halSetCmdLineHeight(0);
-            halSetContext(halGetContext()& (~CONTEXT_INEDITOR));
             return 1;
 
         }

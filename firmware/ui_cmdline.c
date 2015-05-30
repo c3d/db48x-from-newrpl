@@ -121,7 +121,7 @@ void __uicursorupdate()
 
 void uiOpenCmdLine(BINT mode)
 {
-    int inAlpha=0;
+    BINT AlphaMode;
     CmdLineText=(WORDPTR)empty_string;
     CmdLineCurrentLine=(WORDPTR)empty_string;
     CmdLineUndoList=(WORDPTR)empty_list;
@@ -131,23 +131,20 @@ void uiOpenCmdLine(BINT mode)
     halScreen.NumLinesVisible=1;
     halScreen.CursorX=0;
     halScreen.CursorPosition=0;
-    if(((halScreen.CursorState&0xff)=='L')||((halScreen.CursorState&0xff)=='C'))
-    {
-        int tmp=halScreen.CursorState;
-        halScreen.CursorState=tmp<<24;
-        halScreen.CursorState|=(tmp>>24)&0xff;
-    }
+
+    if(((halScreen.CursorState&0xff)=='L')||((halScreen.CursorState&0xff)=='C')) AlphaMode=halScreen.CursorState&0xff;
+    else if(((halScreen.CursorState>>24)=='L')||((halScreen.CursorState>>24)=='C')) AlphaMode=halScreen.CursorState>>24;
+         else AlphaMode='L';
+
+    if((mode=='A')||(mode=='D')||(mode=='P')) halScreen.CursorState=mode | (AlphaMode<<24);
     else {
-        if(((halScreen.CursorState>>24)=='L')||((halScreen.CursorState>>24)=='C')) halScreen.CursorState&=~0xff000000;
-        else halScreen.CursorState=('L'<<24);
-    }
-    if((mode=='A')||(mode=='D')||(mode=='P')) halScreen.CursorState|=mode;
-    else halScreen.CursorState|='D';
-    if((mode=='L')||(mode=='C')||(mode=='X')) {
-        int tmp=halScreen.CursorState;
-        halScreen.CursorState=tmp<<24;
-        if(mode!='X') halScreen.CursorState|=mode;
-        else halScreen.CursorState|=(tmp>>24)&0xff;
+        halScreen.CursorState='D';
+        if((mode=='L')||(mode=='C')||(mode=='X')) {
+            halScreen.CursorState<<=24;
+            if(mode!='X') halScreen.CursorState|=mode;
+            else halScreen.CursorState|=AlphaMode;
+        }
+        else halScreen.CursorState|=AlphaMode<<24;
     }
 
     halScreen.XVisible=0;
