@@ -117,7 +117,8 @@ SOURCES +=\
     newrpl/utf8lib.c \
     newrpl/utf8data.c \
     firmware/sys/Font6A.c \
-    firmware/sys/Font5C.c
+    firmware/sys/Font5C.c \
+    firmware/sys/keybcommon.c
 
 HEADERS  += \
     firmware/include/ggl.h \
