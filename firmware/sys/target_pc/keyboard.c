@@ -208,6 +208,12 @@ keymatrix keyb_getmatrix()
 }
 
 // ANALYZE CHANGES IN THE KEYBOARD STATUS AND POST MESSAGES ACCORDINGLY
+#define ALPHALOCK   (SHIFT_ALPHA<<17)
+#define OTHER_KEY   (SHIFT_ALPHA<<18)
+#define ONE_PRESS   (SHIFT_ALPHA<<19)
+#define ALPHASWAP   (SHIFT_ALPHA<<20)
+
+
 
 void __keyb_update()
 {
@@ -243,6 +249,8 @@ doupdate:
         __keynumber=key;
         __keycount=0;
 
+        __keyplane&=~ONE_PRESS;
+
         } else {
             int oldplane=__keyplane;
             if(key==KB_LSHIFT) {
@@ -256,39 +264,14 @@ doupdate:
                 __keyplane^=SHIFT_RS<<16;
             }
             if(key==KB_ALPHA) {
-                if( __keyflags&KF_ALPHALOCK) {
-                    if(__keyplane&SHIFT_ALPHA)  {
-                        if(__keyplane&(SHIFT_ALPHA<<16)) {
-                            // DOUBLE ALPHA KEYPRESS
-                            __keyplane^=SHIFT_ALPHA<<17; // UNLOCK ALPHA
-                            __keyplane&=~(SHIFT_ALPHA<<16);
-                        }
-
-                        else {
-                         // ISSUE AN ALPHA KEY PRESS TO CHANGE CAPS LOCK
-                        __keyplane^=SHIFT_ALPHA<<16; //~((SHIFT_ALPHA<<17)|(SHIFT_ALPHA<<16));
-                        }
-
-                    } else {
-                            __keyplane|=SHIFT_ALPHA<<17; // LOCK ALPHA
-                            __keyplane&=~(SHIFT_ALPHA<<16);
-                        }
-
-                }
-                else {
-                if(__keyplane&SHIFT_ALPHA)  {
-                    if(__keyplane&(SHIFT_ALPHA<<16)) {
-                        // DOUBLE ALPHA KEYPRESS
-                        __keyplane|=SHIFT_ALPHA<<17; // LOCK ALPHA
-                        __keyplane&=~(SHIFT_ALPHA<<16);
-                    }
-                    else {
-                        // OTHER KEYS WERE PRESSED, SO END ALPHA MODE
-                        __keyplane&=~((SHIFT_ALPHA<<17)|(SHIFT_ALPHA<<16)); // UNLOCK ALPHA
-                    }
-                }
-                else __keyplane^=SHIFT_ALPHA<<16;
-                }
+                __keyplane&=~OTHER_KEY;
+               if(__keyplane&SHIFT_ALPHA) {
+                    // ALREADY IN ALPHA MODE
+                    __keyplane|=ALPHASWAP;
+               }
+               else {
+                    __keyplane&=~ONE_PRESS;
+               }
                 __keyplane|=SHIFT_ALPHAHOLD|SHIFT_ALPHA;
 
 
@@ -298,7 +281,7 @@ doupdate:
             }
             // THE KM_SHIFT MESSAGE CARRIES THE OLD PLANE IN THE KEY CODE
             // AND THE NEW PLANE IN THE SHIFT CODE.
-            __keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY) | MKOLDSHIFT(oldplane));
+            __keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY) | MKOLDSHIFT(oldplane|((oldplane&ALPHALOCK)>>16)));
 
         }
         }
@@ -309,14 +292,25 @@ doupdate:
         if(key<60 || (__keynumber==KB_ALPHA)) {
         if(__keynumber>0) __keynumber=-__keynumber;
         __keycount=-BOUNCE_KEYTIME;
-        __keyplane&=~((SHIFT_LS|SHIFT_RS|SHIFT_ALPHA)<<16);
+        __keyplane&=~((SHIFT_LS|SHIFT_RS)<<16);
 
         if(!(__keyplane& (SHIFT_HOLD | SHIFT_ONHOLD))) {
             int oldkeyplane=__keyplane;
             __keyplane&=~(SHIFT_LS|SHIFT_RS|SHIFT_ALPHA); // KILL ALL SHIFT PLANES
-            __keyplane|=(__keyplane>>17)&SHIFT_ALPHA; // KEEP ALPHA IF LOCKED
-            if(oldkeyplane!=__keyplane)	__keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY) | MKOLDSHIFT(oldkeyplane));
+            if(__keyplane&ALPHALOCK) __keyplane|=SHIFT_ALPHA; // KEEP ALPHA IF LOCKED
+            __keyplane&=~((SHIFT_ALPHA)<<16);
+
+            if(oldkeyplane!=__keyplane)	__keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY) | MKOLDSHIFT(oldkeyplane|((oldkeyplane&ALPHALOCK)>>16)));
         }
+        else {
+            if(__keyplane&SHIFT_ALPHA) {
+            // THIS IS A PRESS AND HOLD KEY BEING RAISED
+                __keyplane|=OTHER_KEY;
+
+            }
+        }
+
+
         }
         else {
             int oldkeyplane=__keyplane;
@@ -331,21 +325,59 @@ doupdate:
 
             }
             if(key==KB_ALPHA) {
-                // KILL ALPHA PLANE
-                // BUT KEEP IT IF ALPHA IS LOCKED OR PREVIOUS KEY WAS ALPHA
-                if(__keyplane&(SHIFT_ALPHA<<16)) {
-                __keyb_postmsg(KM_PRESS + key + (__keyplane&SHIFT_ANY));
-                __keynumber=key;
-                __keycount=0;
+                if(__keyplane&ALPHASWAP) {
+                    // ALPHA WAS PRESSED WHILE ALREADY IN ALPHA MODE
+                    if(__keyplane&OTHER_KEY) {
+                        // ANOTHER KEY WAS PRESSED BEFORE RELEASING ALPHA
+                        __keyplane&=~ONE_PRESS;
+
+                    }
+                    else {
+                        // ALPHA WAS PRESSED AND RELEASED, NO OTHER KEYS
+                        if(__keyplane&ONE_PRESS) {
+                            // THIS IS THE SECOND PRESS, KILL ALPHA MODE
+                            __keyplane&=~ALPHALOCK;
+                            __keyplane&=~SHIFT_ALPHA;
+                        }
+                        else __keyplane|=ONE_PRESS;
+
+                        // SEND MESSAGE THAT ALPHA MODE CYCLING WAS REQUESTED
+                        __keyb_postmsg(KM_PRESS + key + (__keyplane&SHIFT_ANY));
+                        __keynumber=key;
+                        __keycount=0;
+
+
+
+                    }
+                    __keyplane&=~ALPHASWAP;
+
+                }
+                else {
+                    // ALPHA WAS PRESSED FOR THE FIRST TIME FROM OTHER MODE
+                    if(__keyplane&OTHER_KEY) {
+
+                        __keyplane&=~SHIFT_ALPHAHOLD;
+                    }
+                    else {
+                        // ALPHA WAS PRESSED AND RELEASED
+                        __keyplane|=ALPHALOCK;
+
+                    }
+                    __keyplane&=~ONE_PRESS;
+
+
+
                 }
 
-                __keyplane&=~((SHIFT_ALPHAHOLD|SHIFT_ALPHA)^((/*(__keyplane>>16)|*/(__keyplane>>17))&SHIFT_ALPHA));
+                __keyplane&=~SHIFT_HOLD;
+
+
 
             }
             if(key==KB_ON) {
                 __keyplane&=~SHIFT_ONHOLD;
             }
-            __keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY) | MKOLDSHIFT(oldkeyplane));
+            __keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY) | MKOLDSHIFT(oldkeyplane|((oldkeyplane&ALPHALOCK)>>16)));
 
             __keynumber=-key;
             __keycount=-BOUNCE_KEYTIME;
@@ -371,7 +403,7 @@ doupdate:
             {
             case KB_SPC:
             case KB_BKS:
-                if(__keyplane&SHIFT_ANY) {
+                if(__keyplane&(SHIFT_LS|SHIFT_RS|SHIFT_HOLD)) {
                     __keyb_postmsg(KM_LPRESS | __keynumber | (__keyplane&SHIFT_ANY));
                     __keycount=-LONG_KEYPRESSTIME;
                     break;
@@ -399,7 +431,7 @@ doupdate:
             {
             case KB_SPC:
             case KB_BKS:
-                if(__keyplane&SHIFT_ANY) {
+                if(__keyplane&(SHIFT_LS|SHIFT_RS|SHIFT_HOLD)) {
                     __keyb_postmsg(KM_LREPEAT | __keynumber | (__keyplane&SHIFT_ANY));
                     __keycount-=LONG_KEYPRESSTIME;
                     break;
@@ -554,7 +586,7 @@ void keyb_setshiftplane(int leftshift,int rightshift,int alpha,int alphalock)
     else {
         __keyplane&=~(SHIFT_ALPHA<<17);
     }
-    keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY) | MKOLDSHIFT(oldplane));
+    keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY) | MKOLDSHIFT(oldplane|((oldplane&ALPHALOCK)>>16)));
 
 }
 

@@ -621,18 +621,18 @@ Bit set means key is pressed.
 //! Shift constant to use in a combined shiftcode. Hold-On key.
 #define SHIFT_ONHOLD     0x100
 
-//#define SHIFT_ALPHALOCK 0x800   // THIS IS NOT FOR THE USER, SYSTEM USE ONLY
+#define SHIFT_ALPHALOCK  0x800   // THIS IS NOT FOR THE USER, SYSTEM USE ONLY
 
 
 //! Shift constant to use in a combined shiftcode. Any Shift or ON.
 #define SHIFT_ANY        0x7c0
-
+#define SHIFT_ANYLOCK    0xfc0  // THIS IS FOR THE SYSTEM ONLY, USED DURING SHIFT MESSAGES
 
 // 18-BIT KEY CODE FOR KEYBOARD HANDLER
-#define KEYCODE(context,shift,key) ((((context)&0x1f)<<13)|(((shift)&SHIFT_ANY))|((key&0x3f)))
+//#define KEYCODE(context,shift,key) ((((context)&0x1f)<<13)|(((shift)&SHIFT_ANY))|((key&0x3f)))
 #define KEYCONTEXT(keycode) (((keycode)>>13)&0x1f)
-#define OLDKEYSHIFT(keycode) ((keycode<<6)&SHIFT_ANY)
-#define MKOLDSHIFT(keyplane) (((keyplane)&SHIFT_ANY)>>6)
+#define OLDKEYSHIFT(keycode) ((keycode<<6)&SHIFT_ANYLOCK)
+#define MKOLDSHIFT(keyplane) (((keyplane)&SHIFT_ANYLOCK)>>6)
 #define KEYSHIFT(keycode) ((keycode)&SHIFT_ANY)
 #define KEYVALUE(keycode) ((keycode)&0x3f)
 
