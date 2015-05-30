@@ -86,7 +86,7 @@ if(!strncmp(outfile+strlen(outfile)-2,".c",2)) {
     else {
         // IF NOT PROVIDED BY THE USER, USE A NAME EXTRACTED FROM THE OUTPUT FILE
         int end=strlen(outfile)-2;
-        strncpy_s(fname,4096,outfile,end);
+        strncpy(fname,outfile,end);
         fname[end]=0;
         fontname=fname;
     }
@@ -134,7 +134,7 @@ int rowwords=((hdr.Width*hdr.BitsPixel)/8+3)>>2;
 bmpdata=malloc(rowwords*4*hdr.Height);
 
 if(!bmpdata) {
-fclose(han);5
+fclose(han);
 printf("Memory allocation error\n");
 return 1;
 }
@@ -289,6 +289,8 @@ while(taddr<txtend) {
                         return 1;
                     }
                     codeidx[result]=usedline;
+                    //printf("Matched %04X = %04X , Offset=%d\n",result,usedline,offset[usedline]);
+
                     usedflag=1;
                 }
                 break;
@@ -302,6 +304,22 @@ while(taddr<txtend) {
 
         } while(taddr<lineend);
 
+        if(taddr==lineend) {
+            if(ndigits) {
+                if(result>0x10ffff) {
+                    printf("Number out of range in text file, line=%d\n",txtidx+1);
+                    free(bmpdata);
+                    free(monobitmap);
+                    return 1;
+                }
+                codeidx[result]=usedline;
+                //printf("Matched %04X = %04X , Offset=%d\n",result,usedline,offset[usedline]);
+                usedflag=1;
+            }
+
+
+
+        }
         // POSSIBLY SKIP BLANKS BEFORE A COMMA
         while( ((*taddr==' ')||(*taddr=='\t')) && (taddr<lineend) ) ++taddr;
 
@@ -439,7 +457,7 @@ do {
 
 
 printf("Total ranges=%d\n",used_ranges);
-printf("Total table bytes=%d\n",sizeof(unsigned short)*used_data);
+printf("Total table bytes=%d\n",(int)sizeof(unsigned short)*used_data);
 
 // DONE PROCESSING, CREATE FILE AND SAVE IT
 
@@ -514,7 +532,7 @@ else {
     //fwrite(&prolog,4,1,han);
     fprintf(han, "\n/*************** FONT FILE CONVERTED FROM %s AND %s ************** */\n",bmpfile,txtfile);
 
-    fprintf(han, "\n\n\n\nunsigned int Font_%s[]= { \n",fontname);
+    fprintf(han, "\n\n\n\nconst unsigned int const Font_%s[]= { \n",fontname);
 
     fprintf(han,"0x%X, // PROLOG\n",prolog);
 
