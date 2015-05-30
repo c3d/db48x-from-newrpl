@@ -436,7 +436,7 @@ void rplWarmInit(void)
 
 
     // INITIALIZE THE FLOATING POINT CONTEXT
-    mpd_init(&Context,18);
+    mpd_init(&Context,36);
     mpd_memory_reset();
 
     // LIMIT THE EXPONENT TO A 16 BIT VALUE FOR EASIER STORAGE
