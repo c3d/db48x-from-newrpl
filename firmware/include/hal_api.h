@@ -449,7 +449,7 @@ Bit set means key is pressed.
     | 61|  | 29|  | 21|  | 13|  | 05|
     +---+  +---+  +---+  +---+  +---+
 
-    RS]-+  1]--+  2]--+  3]--+  +]--+
+    RS]-+  1]--+  2]--+  3]--+  +]--+AL_API
     | 62|  | 30|  | 22|  | 14|  | 06|
     +---+  +---+  +---+  +---+  +---+
 
@@ -1071,6 +1071,11 @@ extern void set_stackall();
 void memcpyw(void *dest,const void *source,int nwords);
 void memmovew(void *dest,const void *source,int nwords);
 
+// LOW LEVEL MEMORY MANAGEMENT
+
+WORDPTR *halGrowMemory(BINT zone,WORDPTR *base,BINT newsize);
+
+
 // HIGHER LEVEL GLOBAL VARIABLES
 
 
@@ -1096,6 +1101,15 @@ extern void halRedrawCmdLine(DRAWSURFACE *scr);
 // KEYBOARD FUNCTIONS
 void halInitKeyboard();
 
+
+
+// SPECIAL CONSTANTS FOR PROPER COMPILATION OF FIRMWARE IMAGE
+#define __SYSTEM_GLOBAL__ __attribute__((section (".system_globals")))
+#define __DATAORDER1__ __attribute__((section (".data_1")))
+#define __DATAORDER2__ __attribute__((section (".data_2")))
+#define __DATAORDER3__ __attribute__((section (".data_3")))
+#define __DATAORDERLAST__ __attribute__((section (".data_last")))
+#define __SCRATCH_MEMORY__ __attribute__((section (".scratch_memory")))
 
 
 // REDEFINE SOME CONSTANTS FOR THE PC EMULATOR TARGET

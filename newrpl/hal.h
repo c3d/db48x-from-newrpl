@@ -8,6 +8,14 @@
 #ifndef HAL_H
 #define HAL_H
 
+#ifndef UI_H
+#include <ui.h>
+#endif
+
+
+/* THIS SECTION WAS USED ONLY TO HAVE THE NEWRPL CORE DECOUPLED FROM THE UI */
+
+/*
 #define UNUSED_ARGUMENT(a) (void)(a)
 
 
@@ -52,6 +60,6 @@ WORDPTR *halGrowMemory(BINT zone,WORDPTR *base,BINT newsize);
 void memmovew(void *dest,const void *source,int nwords);
 void memcpyw(void *dest,const void *source,int nwords);
 
-
+*/
 
 #endif // HAL_H

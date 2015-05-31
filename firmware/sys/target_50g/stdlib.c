@@ -231,16 +231,22 @@ char * strcpy(char *t, const char *s)
 
 long strtol(const char *number,char **endptr,int base)
 {
+    int digit,neg=0,countdigit=0;
+    long long result=0;
+    char *start=(char *)number;
+
     // SKIP INITIAL BLANKS
     while((*number==' ') || (*number=='\t')) ++number;
+
+    if(*number=='+') ++number;
+    else if(*number=='-') { neg=1; ++number; }
+
 
     if(base==16) {
         if(*number=='0') {
             if((number[1]=='x')||(number[1]=='X')) number+=2;
         }
     }
-int digit;
-long long result=0;
 
 
 
@@ -252,6 +258,8 @@ while(*number) {
     if((*number>='A')&&(*number<='Z')) digit=*number-'A'+10;
     if(digit<0 || digit>=base) {
 
+        if(!countdigit) number=start;
+        if(neg) result=-result;
 
         if(result<INT_MIN) {
             errno=ERANGE;
@@ -266,10 +274,14 @@ while(*number) {
         if((endptr)) *endptr=(char *)number;
         return result;
     }
+    ++countdigit;
     ++number;
-    result=result+digit*base;
+    result=result*base+digit;
 }
 
+if(!countdigit) number=start;
+
+if(neg) result=-result;
 if(result<INT_MIN) {
     errno=ERANGE;
     result=INT_MIN;
@@ -288,9 +300,9 @@ return result;
 
 
 
-
 int raise(int sig)
 {
+    UNUSED_ARGUMENT(sig);
     return 0;
 }
 

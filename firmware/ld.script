@@ -129,6 +129,9 @@ SECTIONS
 
   .persistent_memory ALIGN(4) : { * (.persistent_memory) }
 
+  .data_1 ALIGN(4) : { * (.data_1) }
+  .data_2 ALIGN(4) : { * (.data_2) }
+  .data_3 ALIGN(4) : { * (.data_3) }
 
 
   .data ALIGN(4) : 
@@ -136,6 +139,10 @@ SECTIONS
     *(.data .data.* .gnu.linkonce.d.*)
     SORT(CONSTRUCTORS)
   }
+
+  .data_last ALIGN(4) : { * (.data_last) }
+
+
 /* OUTPUT THE SIZE OF THE DATA SEGMENT */
   __data_size = . - __tmp_datastart;
 

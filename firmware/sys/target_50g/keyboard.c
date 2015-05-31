@@ -211,8 +211,8 @@ __keyplane=0;
 __kused=__kcurrent=0;
 __keynumber=0;
 __kmat=0LL;
-__keyb_repeattime=50/KEYB_SCANSPEED;
-__keyb_longpresstime=800/KEYB_SCANSPEED;
+__keyb_repeattime=100/KEYB_SCANSPEED;
+__keyb_longpresstime=1000/KEYB_SCANSPEED;
 __keyb_debounce=20/KEYB_SCANSPEED;
 __keyb_lock=0;
 // INITIALIZE TIMER EVENT 0

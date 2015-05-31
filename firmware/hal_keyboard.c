@@ -426,10 +426,38 @@ BINT endCmdLineAndCompile()
             return 1;
 
         }
+    } else {
+        // EMPTY COMMAND LINE!
+
+        // END ALPHA MODE
+        halSwapCmdLineMode(0);
+        keyb_setshiftplane(0,0,0,0);
+
+        // AND COMMAND LINE
+        uiCloseCmdLine();
+        halSetCmdLineHeight(0);
+        halSetContext(halGetContext()& (~CONTEXT_INEDITOR));
+
+        return 1;
     }
 
     return 0;
 }
+
+BINT endCmdLine()
+{
+            // END ALPHA MODE
+            halSwapCmdLineMode(0);
+            keyb_setshiftplane(0,0,0,0);
+
+            // CLOSE COMMAND LINE DISCARDING CONTENTS
+            uiCloseCmdLine();
+            halSetCmdLineHeight(0);
+            halSetContext(halGetContext()& (~CONTEXT_INEDITOR));
+}
+
+
+
 
 // **************************************************************************
 // *******************    DEFAULT KEY HANDLERS     **************************
@@ -621,6 +649,20 @@ void enterKeyHandler(BINT keymsg)
      endCmdLineAndCompile();
    }
 }
+
+
+void cancelKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if((halGetContext()&CONTEXT_INEDITOR)) {
+        // END THE COMMAND LINE
+     endCmdLine();
+   }
+}
+
+
+
 
 void backspKeyHandler(BINT keymsg)
 {
@@ -1176,6 +1218,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_0|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_DOT|SHIFT_ALPHA, CONTEXT_ANY,&dotKeyHandler },
 
+    { KM_KEYDN|KB_ON, CONTEXT_ANY,&cancelKeyHandler },
 
     { KM_PRESS|KB_ENT, CONTEXT_ANY,&enterKeyHandler },
     { KM_PRESS|KB_ENT|SHIFT_ALPHA, CONTEXT_ANY,&enterKeyHandler },

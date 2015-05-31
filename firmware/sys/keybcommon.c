@@ -17,7 +17,7 @@ int __kused __SYSTEM_GLOBAL__,__kcurrent __SYSTEM_GLOBAL__;
 keymatrix __kmat __SYSTEM_GLOBAL__;
 int __keyplane __SYSTEM_GLOBAL__;
 int __keynumber __SYSTEM_GLOBAL__,__keycount __SYSTEM_GLOBAL__;
-int __keyb_repeattime,__keyb_longpresstime __SYSTEM_GLOBAL__,__keyb_debounce __SYSTEM_GLOBAL__;
+int __keyb_repeattime __SYSTEM_GLOBAL__,__keyb_longpresstime __SYSTEM_GLOBAL__,__keyb_debounce __SYSTEM_GLOBAL__;
 
 
 

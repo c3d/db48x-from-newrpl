@@ -25,7 +25,6 @@ typedef uint32_t PTR2NUMBER;
 
 #endif
 
-#define __SYSTEM_GLOBAL__ __attribute__((section (".system_globals")))
 
 
 #ifndef _GGL_H

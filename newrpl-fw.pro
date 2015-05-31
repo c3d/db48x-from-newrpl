@@ -11,6 +11,10 @@ CONFIG = static ordered
 
 DEFINES += TARGET_50G NDEBUG SLIM_MPD
 
+
+# DO NOT ALTER THE ORDER OF THESE MODULES
+
+
 SOURCES +=\
     firmware/sys/target_50g/preamble.c \
     firmware/sys/target_50g/boot.c \
@@ -19,10 +23,13 @@ SOURCES +=\
     firmware/sys/target_50g/exception.c \
     firmware/sys/target_50g/irq.c \
     firmware/sys/target_50g/keyboard.c \
+    firmware/sys/keybcommon.c \
     firmware/sys/target_50g/lcd.c \
     firmware/sys/target_50g/stdlib.c \
     firmware/sys/target_50g/timer.c \
     firmware/sys/target_50g/mem.c \
+    firmware/hal_globals.c \
+    newrpl/sysvars.c \
     firmware/ggl/ggl/ggl_bitblt.c \
     firmware/ggl/ggl/ggl_bitbltoper.c \
     firmware/ggl/ggl/ggl_filter.c \
@@ -53,7 +60,6 @@ SOURCES +=\
     firmware/hal_screen.c \
     firmware/sys/graphics.c \
     firmware/sys/icons.c \
-    firmware/hal_globals.c \
     newrpl/atan_1_comp.c \
     newrpl/atan_2_comp.c \
     newrpl/atan_5_comp.c \
@@ -94,7 +100,6 @@ SOURCES +=\
     newrpl/romlibs.c \
     newrpl/runstream.c \
     newrpl/symbolic.c \
-    newrpl/sysvars.c \
     newrpl/tempob.c \
     newrpl/transcendentals.c \
     newrpl/contrib/mpdecimal-2.4.0/libmpdec/basearith.c \
@@ -118,7 +123,7 @@ SOURCES +=\
     newrpl/utf8data.c \
     firmware/sys/Font6A.c \
     firmware/sys/Font5C.c \
-    firmware/sys/keybcommon.c
+    firmware/sys/Font7A.c
 
 HEADERS  += \
     firmware/include/ggl.h \
