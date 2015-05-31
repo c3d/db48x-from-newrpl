@@ -122,7 +122,8 @@ SOURCES += main.cpp\
     newrpl/utf8data.c \
     firmware/sys/Font5C.c \
     firmware/sys/Font6A.c \
-    firmware/sys/keybcommon.c
+    firmware/sys/keybcommon.c \
+    firmware/sys/Font7A.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \

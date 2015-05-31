@@ -1025,6 +1025,7 @@ void bat_read();
 extern WORD __battery;
 
 // SYSTEM FONTS
+extern const unsigned int Font_7A[];
 extern const unsigned int Font_6A[];
 extern const unsigned int Font_5C[];
 //extern const unsigned int System5Font[];
