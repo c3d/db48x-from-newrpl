@@ -105,6 +105,7 @@ void busy_handler()
     // PREVENT HIGH SPEED UNDER LOW BATTERY CONDITION
     halSetNotification(N_HOURGLASS,0xf);
     halFlags|=HAL_HOURGLASS;
+    halBusyEvent=-1;
     if(halFlags&HAL_SLOWLOCK) return;
     cpu_setspeed(192000000);
     halFlags|=HAL_FASTMODE;
@@ -115,6 +116,6 @@ void halSetBusyHandler()
 {
     if(!(halFlags&HAL_FASTMODE)) {
     // START THE EVENT AGAIN
-    halBusyEvent=tmr_eventcreate(&busy_handler,500,0);
+    if(halBusyEvent<=0) halBusyEvent=tmr_eventcreate(&busy_handler,500,0);
     }
 }

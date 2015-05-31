@@ -444,7 +444,7 @@ BINT endCmdLineAndCompile()
     return 0;
 }
 
-BINT endCmdLine()
+void endCmdLine()
 {
             // END ALPHA MODE
             halSwapCmdLineMode(0);
@@ -1506,6 +1506,7 @@ void halOuterLoop()
     do {
         halRedrawAll(&scr);
         keymsg=halWaitForKey();
+        halSetBusyHandler();
     } while(!halProcessKey(keymsg));
 
 }

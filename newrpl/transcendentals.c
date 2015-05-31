@@ -521,6 +521,7 @@ void trig_sincos(mpd_t *angle)
 
     if(startexp>=savedprec) {
         // VERY SMALL ANGLES
+        Context.prec=savedprec;
 
         if(swap) {
             // COS = 1
@@ -581,13 +582,15 @@ void trig_sincos(mpd_t *angle)
         mpd_add(&RReg[6],&RReg[5],&RReg[4],&Context);
     }
 
+    // RESTORE PREVIOUS PRECISION
+    Context.prec-=MPD_RDIGITS;
+
+
     }
 
     if(negcos) RReg[6].flags|=MPD_NEG;
     if(negsin) RReg[7].flags|=MPD_NEG;
 
-    // RESTORE PREVIOUS PRECISION
-    Context.prec-=MPD_RDIGITS;
 
 }
 
