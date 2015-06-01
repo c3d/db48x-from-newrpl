@@ -1079,31 +1079,6 @@ lcd_setcontrast(__lcd_contrast);
 }
 
 
-void arrowKeyHandler(BINT keymsg)
-{
-    symbolKeyHandler(keymsg,(BYTEPTR)"→",1);
-}
-
-void commaKeyHandler(BINT keymsg)
-{
-    symbolKeyHandler(keymsg,(BYTEPTR)",",0);
-}
-
-void semiKeyHandler(BINT keymsg)
-{
-    symbolKeyHandler(keymsg,(BYTEPTR)";",0);
-}
-
-void infinityKeyHandler(BINT keymsg)
-{
-    symbolKeyHandler(keymsg,(BYTEPTR)"∞",1);
-}
-
-void underscoreKeyHandler(BINT keymsg)
-{
-    symbolKeyHandler(keymsg,(BYTEPTR)"_",0);
-    halSetCmdLineMode('A');
-}
 
 
 void alphaKeyHandler(BINT keymsg)
@@ -1133,37 +1108,70 @@ void alphaKeyHandler(BINT keymsg)
                                                     { \
                                                     alphasymbolKeyHandler(keymsg,(BYTEPTR)(lsymbol),(BYTEPTR)(csymbol)); \
                                                     }
+
+#define DECLARE_SYMBKEYHANDLER(name,symbol,sep) void name##KeyHandler(BINT keymsg) \
+                                                    { \
+                                                    symbolKeyHandler(keymsg,(BYTEPTR)(symbol),(sep)); \
+                                                    }
+
 #define KEYHANDLER_NAME(name)  &(name##KeyHandler)
 
-DECLARE_KEYHANDLER(a,"a","A");
-DECLARE_KEYHANDLER(b,"b","B");
-DECLARE_KEYHANDLER(c,"c","C");
-DECLARE_KEYHANDLER(d,"d","D");
-DECLARE_KEYHANDLER(e,"e","E");
-DECLARE_KEYHANDLER(f,"f","F");
-DECLARE_KEYHANDLER(g,"g","G");
-DECLARE_KEYHANDLER(h,"h","H");
-DECLARE_KEYHANDLER(i,"i","I");
-DECLARE_KEYHANDLER(j,"j","J");
-DECLARE_KEYHANDLER(k,"k","K");
-DECLARE_KEYHANDLER(l,"l","L");
-DECLARE_KEYHANDLER(m,"m","M");
-DECLARE_KEYHANDLER(n,"n","N");
-DECLARE_KEYHANDLER(o,"o","O");
-DECLARE_KEYHANDLER(p,"p","P");
-DECLARE_KEYHANDLER(q,"q","Q");
-DECLARE_KEYHANDLER(r,"r","R");
-DECLARE_KEYHANDLER(s,"s","S");
-DECLARE_KEYHANDLER(t,"t","T");
-DECLARE_KEYHANDLER(u,"u","U");
-DECLARE_KEYHANDLER(v,"v","V");
-DECLARE_KEYHANDLER(w,"w","W");
-DECLARE_KEYHANDLER(x,"x","X");
-DECLARE_KEYHANDLER(y,"y","Y");
-DECLARE_KEYHANDLER(z,"z","Z");
+DECLARE_KEYHANDLER(a,"a","A")
+DECLARE_KEYHANDLER(b,"b","B")
+DECLARE_KEYHANDLER(c,"c","C")
+DECLARE_KEYHANDLER(d,"d","D")
+DECLARE_KEYHANDLER(e,"e","E")
+DECLARE_KEYHANDLER(f,"f","F")
+DECLARE_KEYHANDLER(g,"g","G")
+DECLARE_KEYHANDLER(h,"h","H")
+DECLARE_KEYHANDLER(i,"i","I")
+DECLARE_KEYHANDLER(j,"j","J")
+DECLARE_KEYHANDLER(k,"k","K")
+DECLARE_KEYHANDLER(l,"l","L")
+DECLARE_KEYHANDLER(m,"m","M")
+DECLARE_KEYHANDLER(n,"n","N")
+DECLARE_KEYHANDLER(o,"o","O")
+DECLARE_KEYHANDLER(p,"p","P")
+DECLARE_KEYHANDLER(q,"q","Q")
+DECLARE_KEYHANDLER(r,"r","R")
+DECLARE_KEYHANDLER(s,"s","S")
+DECLARE_KEYHANDLER(t,"t","T")
+DECLARE_KEYHANDLER(u,"u","U")
+DECLARE_KEYHANDLER(v,"v","V")
+DECLARE_KEYHANDLER(w,"w","W")
+DECLARE_KEYHANDLER(x,"x","X")
+DECLARE_KEYHANDLER(y,"y","Y")
+DECLARE_KEYHANDLER(z,"z","Z")
 
+DECLARE_SYMBKEYHANDLER(arrow,"→",1)
+DECLARE_SYMBKEYHANDLER(comma,",",0)
+DECLARE_SYMBKEYHANDLER(semi,";",0)
+DECLARE_SYMBKEYHANDLER(infinity,"∞",1)
 
+void underscoreKeyHandler(BINT keymsg)
+{
+    symbolKeyHandler(keymsg,(BYTEPTR)"_",0);
+    if((halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C')) halSetCmdLineMode('A');
+}
 
+DECLARE_SYMBKEYHANDLER(hash,"#",0)
+DECLARE_SYMBKEYHANDLER(equal,"=",1)
+DECLARE_SYMBKEYHANDLER(notequal,"≠",1)
+DECLARE_SYMBKEYHANDLER(ls,"<",1)
+DECLARE_SYMBKEYHANDLER(gt,">",1)
+DECLARE_SYMBKEYHANDLER(le,"≤",1)
+DECLARE_SYMBKEYHANDLER(ge,"≥",1)
+
+DECLARE_KEYHANDLER(sub0,"₀","⁰")
+DECLARE_KEYHANDLER(sub1,"₁","¹")
+DECLARE_KEYHANDLER(sub2,"₂","²")
+DECLARE_KEYHANDLER(sub3,"₃","³")
+DECLARE_KEYHANDLER(sub4,"₄","⁴")
+DECLARE_KEYHANDLER(sub5,"₅","⁵")
+DECLARE_KEYHANDLER(sub6,"₆","⁶")
+DECLARE_KEYHANDLER(sub7,"₇","⁷")
+DECLARE_KEYHANDLER(sub8,"₈","⁸")
+DECLARE_KEYHANDLER(sub9,"₉","⁹")
 
 
 
@@ -1264,10 +1272,15 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_SUB|SHIFT_ONHOLD, CONTEXT_ANY,&onMinusKeyHandler },
 
     { KM_PRESS|KB_0|SHIFT_LS, CONTEXT_ANY,&infinityKeyHandler },
+    { KM_PRESS|KB_0|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&infinityKeyHandler },
     { KM_PRESS|KB_0|SHIFT_RS, CONTEXT_ANY,&arrowKeyHandler },
+    { KM_PRESS|KB_0|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&arrowKeyHandler },
     { KM_PRESS|KB_SPC|SHIFT_RS, CONTEXT_ANY,&commaKeyHandler },
+    { KM_PRESS|KB_SPC|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&commaKeyHandler },
     { KM_PRESS|KB_SPC|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&semiKeyHandler },
+    { KM_PRESS|KB_SPC|SHIFT_RS|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&semiKeyHandler },
     { KM_PRESS|KB_SUB|SHIFT_RS, CONTEXT_ANY,&underscoreKeyHandler },
+    { KM_PRESS|KB_SUB|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&underscoreKeyHandler },
     { KM_PRESS|KB_S, CONTEXT_ANY,&sinKeyHandler },
     { KM_PRESS|KB_T, CONTEXT_ANY,&cosKeyHandler },
     { KM_PRESS|KB_U, CONTEXT_ANY,&tanKeyHandler },
@@ -1331,6 +1344,38 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_DIV|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(z) },
 
     { KM_PRESS|KB_ALPHA|SHIFT_ALPHAHOLD,CONTEXT_ANY, &alphaKeyHandler },
+
+    { KM_PRESS|KB_3|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
+    { KM_PRESS|KB_3|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
+
+    { KM_PRESS|KB_W|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(equal) },
+    { KM_PRESS|KB_W|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(equal) },
+    { KM_PRESS|KB_W|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(notequal) },
+    { KM_PRESS|KB_W|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(notequal) },
+    { KM_PRESS|KB_X|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(ls) },
+    { KM_PRESS|KB_X|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(ls) },
+    { KM_PRESS|KB_Y|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(gt) },
+    { KM_PRESS|KB_Y|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(gt) },
+    { KM_PRESS|KB_X|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(le) },
+    { KM_PRESS|KB_X|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(le) },
+    { KM_PRESS|KB_Y|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(ge) },
+    { KM_PRESS|KB_Y|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(ge) },
+
+
+    // NUMBERS
+
+    { KM_PRESS|KB_0|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub0) },
+    { KM_PRESS|KB_1|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub1) },
+    { KM_PRESS|KB_2|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub2) },
+    { KM_PRESS|KB_3|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub3) },
+    { KM_PRESS|KB_4|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub4) },
+    { KM_PRESS|KB_5|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub5) },
+    { KM_PRESS|KB_6|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub6) },
+    { KM_PRESS|KB_7|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub7) },
+    { KM_PRESS|KB_8|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub8) },
+    { KM_PRESS|KB_9|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub9) },
+
+
 
 
 
