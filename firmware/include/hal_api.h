@@ -601,38 +601,40 @@ Bit set means key is pressed.
 
 // SHIFT CONSTANTS FOR HIGH-LEVEL KEYBOARD FUNCTIONS
 
-//! Shift constant to use in a combined shiftcode. Left Shift.
-#define SHIFT_HOLD        0x200
+//! Shift constant to use in a combined shiftcode. Shift-Hold.
+#define SHIFT_HOLD       0x200
+//! Shift constant to use in a combined shiftcode. Hold-On key.
+#define SHIFT_ONHOLD     0x40
+//! Shift constant to use in a combined shiftcode. Alpha-Hold.
+#define SHIFT_ALHOLD     0x400
 
 //! Shift constant to use in a combined shiftcode. Left Shift.
-#define SHIFT_LS          0x40
+#define SHIFT_LS          0x80
 //! Shift constant to use in a combined shiftcode. Right Shift.
-#define SHIFT_RS          0x80
+#define SHIFT_RS          0x100
 //! Shift constant to use in a combined shiftcode. Alpha.
-#define SHIFT_ALPHA      0x400
+#define SHIFT_ALPHA      0x800
 
 //! Shift constant to use in a combined shiftcode. Hold-Left Shift.
 #define SHIFT_LSHOLD      (SHIFT_LS|SHIFT_HOLD)
 //! Shift constant to use in a combined shiftcode. Hold-Right Shift.
 #define SHIFT_RSHOLD      (SHIFT_RS|SHIFT_HOLD)
 //! Shift constant to use in a combined shiftcode. Hold-Alpha.
-#define SHIFT_ALPHAHOLD  (SHIFT_ALPHA|SHIFT_HOLD)
+#define SHIFT_ALPHAHOLD  (SHIFT_ALPHA|SHIFT_ALHOLD)
 
-//! Shift constant to use in a combined shiftcode. Hold-On key.
-#define SHIFT_ONHOLD     0x100
 
-#define SHIFT_ALPHALOCK  0x800   // THIS IS NOT FOR THE USER, SYSTEM USE ONLY
+#define SHIFT_ALPHALOCK  0x1000   // THIS IS NOT FOR THE USER, SYSTEM USE ONLY
 
 
 //! Shift constant to use in a combined shiftcode. Any Shift or ON.
-#define SHIFT_ANY        0x7c0
-#define SHIFT_ANYLOCK    0xfc0  // THIS IS FOR THE SYSTEM ONLY, USED DURING SHIFT MESSAGES
+#define SHIFT_ANY        0xfc0
+#define SHIFT_ANYLOCK    0x1fc0  // THIS IS FOR THE SYSTEM ONLY, USED DURING SHIFT MESSAGES
 
 // 18-BIT KEY CODE FOR KEYBOARD HANDLER
 //#define KEYCODE(context,shift,key) ((((context)&0x1f)<<13)|(((shift)&SHIFT_ANY))|((key&0x3f)))
-#define KEYCONTEXT(keycode) (((keycode)>>13)&0x1f)
-#define OLDKEYSHIFT(keycode) ((keycode<<6)&SHIFT_ANYLOCK)
-#define MKOLDSHIFT(keyplane) (((keyplane)&SHIFT_ANYLOCK)>>6)
+//#define KEYCONTEXT(keycode) (((keycode)>>13)&0x1f)
+#define OLDKEYSHIFT(keycode) ((keycode<<7)&SHIFT_ANYLOCK)
+#define MKOLDSHIFT(keyplane) (((keyplane)&SHIFT_ANYLOCK)>>7)
 #define KEYSHIFT(keycode) ((keycode)&SHIFT_ANY)
 #define KEYVALUE(keycode) ((keycode)&0x3f)
 
@@ -793,20 +795,20 @@ int keyb_getkey(int wait);
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
 #define KM_PRESS  0x0000
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
-#define KM_REPEAT 0x1000
+#define KM_REPEAT 0x2000
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
-#define KM_LPRESS 0x2000
+#define KM_LPRESS 0x4000
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
 #define KM_LREPEAT (KM_LPRESS|KM_REPEAT)
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
-#define KM_KEYDN  0x4000
+#define KM_KEYDN  0x8000
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
-#define KM_KEYUP  0x8000
+#define KM_KEYUP  0xA000
 //! \brief Keyboard message constant, to be combined with one of the KB_XXX key constants
 #define KM_SHIFT 0xc000
 
 //! \brief Mask to isolate the key shift plane bits
-#define KM_SHIFTMASK 0x1fc0
+#define KM_SHIFTMASK SHIFT_ANYLOCK
 //! \brief Mask to isolate the key value bits
 #define KM_KEYMASK  0x003f
 //! \brief Mask to isolate the key message bits

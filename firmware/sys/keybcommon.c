@@ -15,7 +15,7 @@ volatile int __keyb_lock __SYSTEM_GLOBAL__;
 int __keyflags __SYSTEM_GLOBAL__;
 int __kused __SYSTEM_GLOBAL__,__kcurrent __SYSTEM_GLOBAL__;
 keymatrix __kmat __SYSTEM_GLOBAL__;
-int __keyplane __SYSTEM_GLOBAL__;
+unsigned int __keyplane __SYSTEM_GLOBAL__;
 int __keynumber __SYSTEM_GLOBAL__,__keycount __SYSTEM_GLOBAL__;
 int __keyb_repeattime __SYSTEM_GLOBAL__,__keyb_longpresstime __SYSTEM_GLOBAL__,__keyb_debounce __SYSTEM_GLOBAL__;
 
@@ -200,7 +200,7 @@ doupdate:
         __keyplane&=~ONE_PRESS;
 
         } else {
-            int oldplane=__keyplane;
+            unsigned int oldplane=__keyplane;
             if(key==KB_LSHIFT) {
                 __keyplane&=~(SHIFT_RSHOLD|SHIFT_RS | (SHIFT_RS<<16));
                 __keyplane|=SHIFT_LSHOLD|SHIFT_LS;
@@ -242,8 +242,8 @@ doupdate:
         __keycount=-BOUNCE_KEYTIME;
         __keyplane&=~((SHIFT_LS|SHIFT_RS)<<16);
 
-        if(!(__keyplane& (SHIFT_HOLD | SHIFT_ONHOLD))) {
-            int oldkeyplane=__keyplane;
+        if(!(__keyplane& (SHIFT_HOLD | SHIFT_ALHOLD | SHIFT_ONHOLD))) {
+            unsigned int oldkeyplane=__keyplane;
             __keyplane&=~(SHIFT_LS|SHIFT_RS|SHIFT_ALPHA); // KILL ALL SHIFT PLANES
             if(__keyplane&ALPHALOCK) __keyplane|=SHIFT_ALPHA; // KEEP ALPHA IF LOCKED
             __keyplane&=~((SHIFT_ALPHA)<<16);
@@ -261,7 +261,7 @@ doupdate:
 
         }
         else {
-            int oldkeyplane=__keyplane;
+            unsigned int oldkeyplane=__keyplane;
             if(key==KB_LSHIFT) {
                 __keyplane&=~((SHIFT_LSHOLD|SHIFT_LS)^((__keyplane>>16)&SHIFT_LS));
                 __keyplane&=~((SHIFT_ALPHA)^(((__keyplane>>16)|(__keyplane>>17))&SHIFT_ALPHA));
@@ -317,7 +317,7 @@ doupdate:
 
                 }
 
-                __keyplane&=~SHIFT_HOLD;
+                __keyplane&=~SHIFT_ALHOLD;
 
 
 
@@ -351,7 +351,7 @@ doupdate:
             {
             case KB_SPC:
             case KB_BKS:
-                if(__keyplane&(SHIFT_LS|SHIFT_RS|SHIFT_HOLD)) {
+                if(__keyplane&(SHIFT_LS|SHIFT_RS|SHIFT_HOLD|SHIFT_ALHOLD)) {
                     __keyb_postmsg(KM_LPRESS | __keynumber | (__keyplane&SHIFT_ANY));
                     __keycount=-LONG_KEYPRESSTIME;
                     break;
@@ -379,7 +379,7 @@ doupdate:
             {
             case KB_SPC:
             case KB_BKS:
-                if(__keyplane&(SHIFT_LS|SHIFT_RS|SHIFT_HOLD)) {
+                if(__keyplane&(SHIFT_LS|SHIFT_RS|SHIFT_HOLD|SHIFT_ALHOLD)) {
                     __keyb_postmsg(KM_LREPEAT | __keynumber | (__keyplane&SHIFT_ANY));
                     __keycount-=LONG_KEYPRESSTIME;
                     break;

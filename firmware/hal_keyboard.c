@@ -1446,7 +1446,7 @@ int halProcessKey(BINT keymsg)
             else halSetNotification(N_RIGHTSHIFT,0x8);
         } else halSetNotification(N_RIGHTSHIFT,0);
         if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) {
-            if((KM_SHIFTPLANE(keymsg)&SHIFT_HOLD)) halSetNotification(N_ALPHA,0xf);
+            if((KM_SHIFTPLANE(keymsg)&SHIFT_ALHOLD)) halSetNotification(N_ALPHA,0xf);
             else halSetNotification(N_ALPHA,0x8);
         } else halSetNotification(N_ALPHA,0);
 
@@ -1459,7 +1459,7 @@ int halProcessKey(BINT keymsg)
         else {
             // NO CHANGE IN ALPHA STATE
             if(KM_SHIFTPLANE(oldplane)&SHIFT_ALPHALOCK) {
-            if((KM_SHIFTPLANE(keymsg^oldplane)&SHIFT_ALPHAHOLD)==SHIFT_HOLD) {
+            if((KM_SHIFTPLANE(keymsg^oldplane)&SHIFT_ALPHAHOLD)==SHIFT_ALHOLD) {
                 // CHECK GOING FROM ALPHA TO ALPHA-HOLD OR VICEVERSA
                 // TEMPORARILY CHANGE SHIFT STATE
                 alphaKeyHandler(0);
