@@ -575,6 +575,8 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
             uiSeparateToken();
             break;
 
+        case 'L':
+        case 'C':
         case 'A':   // ALPHANUMERIC MODE
             if(IsFunc>=0) {
             uiInsertCharacters(Progmode);
@@ -1024,6 +1026,7 @@ void ticksKeyHandler(BINT keymsg)
 {
     bracketKeyHandler(keymsg,(BYTEPTR)"''");
     // GO INTO ALGEBRAIC MODE
+    if( (halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C'))
     halSetCmdLineMode('A');
 
 }
@@ -1185,6 +1188,14 @@ DECLARE_SYMBKEYHANDLER(gt,">",1)
 DECLARE_SYMBKEYHANDLER(le,"≤",1)
 DECLARE_SYMBKEYHANDLER(ge,"≥",1)
 
+DECLARE_SYMBKEYHANDLER(sadd,"+",0)
+DECLARE_SYMBKEYHANDLER(ssub,"-",0)
+DECLARE_SYMBKEYHANDLER(smul,"*",0)
+DECLARE_SYMBKEYHANDLER(sdiv,"/",0)
+DECLARE_SYMBKEYHANDLER(spow,"^",0)
+
+
+
 DECLARE_KEYHANDLER(sub0,"₀","⁰")
 DECLARE_KEYHANDLER(sub1,"₁","¹")
 DECLARE_KEYHANDLER(sub2,"₂","²")
@@ -1279,6 +1290,11 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_SUB, CONTEXT_ANY,&subKeyHandler },
     { KM_PRESS|KB_DIV, CONTEXT_ANY,&divKeyHandler },
     { KM_PRESS|KB_MUL, CONTEXT_ANY,&mulKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sadd) },
+    { KM_PRESS|KB_SUB|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(ssub) },
+    { KM_PRESS|KB_DIV|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sdiv) },
+    { KM_PRESS|KB_MUL|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(smul) },
+
     { KM_PRESS|KB_Y, CONTEXT_ANY,&invKeyHandler },
     { KM_PRESS|KB_SPC, CONTEXT_ANY,&spcKeyHandler },
     { KM_REPEAT|KB_SPC, CONTEXT_ANY,&spcKeyHandler },
@@ -1331,6 +1347,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_N, CONTEXT_ANY,&evalKeyHandler },
     { KM_PRESS|KB_R, CONTEXT_ANY,&sqrtKeyHandler },
     { KM_PRESS|KB_Q, CONTEXT_ANY,&powKeyHandler },
+    { KM_PRESS|KB_Q|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,&powKeyHandler },
     { KM_PRESS|KB_M, CONTEXT_ANY,&stoKeyHandler },
     { KM_PRESS|KB_M|SHIFT_LS, CONTEXT_ANY,&rclKeyHandler },
     { KM_PRESS|KB_M|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&rclKeyHandler },
@@ -1339,6 +1356,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
 
 
     // LETTERS
+
 
     { KM_PRESS|KB_A|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(a) },
     { KM_PRESS|KB_B|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(b) },
@@ -1395,6 +1413,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
 
     { KM_PRESS|KB_ALPHA|SHIFT_ALPHAHOLD,CONTEXT_ANY, &alphaKeyHandler },
 
+    // SYMBOLS
     { KM_PRESS|KB_3|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
     { KM_PRESS|KB_3|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
 
@@ -1411,6 +1430,8 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_Y|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(ge) },
     { KM_PRESS|KB_Y|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(ge) },
 
+    { KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(sdiv) },
+    { KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_RSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(sdiv) },
 
     // NUMBERS
 
