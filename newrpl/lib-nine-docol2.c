@@ -803,7 +803,7 @@ void LIB_HANDLER()
     case OPCODE_COMPILECONT:
         // COMPILE THE IDENT IMMEDIATELY AFTER A FOR LOOP
 
-        if(!rplIsValidIdent((BYTEPTR)TokenStart,TokenLen)) {
+        if(!rplIsValidIdent((BYTEPTR)TokenStart,(BYTEPTR)BlankStart)) {
          RetNum=ERR_SYNTAX;
          return;
         }
@@ -812,7 +812,7 @@ void LIB_HANDLER()
 
 
         // CAREFUL, COMPILEIDENT USES ScratchPointer1!!!
-        rplCompileIDENT(DOIDENT,(BYTEPTR)TokenStart,TokenLen);
+        rplCompileIDENT(DOIDENT,(BYTEPTR)TokenStart,(BYTEPTR)BlankStart);
 
         rplCreateLAMEnvironment(ScratchPointer2-1);
         rplCreateLAM((WORDPTR)nulllam_ident,ScratchPointer2);        // NULLLAM FOR THE COMPILER

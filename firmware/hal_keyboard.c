@@ -1000,7 +1000,8 @@ void secoBracketKeyHandler(BINT keymsg)
 {
     bracketKeyHandler(keymsg,(BYTEPTR)"«  »");
 
-    halSetCmdLineMode('P');
+    if( (halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C'))
+        halSetCmdLineMode('P');
 
 }
 void parenBracketKeyHandler(BINT keymsg)
@@ -1012,8 +1013,9 @@ void textBracketKeyHandler(BINT keymsg)
 {
     bracketKeyHandler(keymsg,(BYTEPTR)"\"\"");
 
-    // GO INTO LOWERCASE MODE AND LOCK ALPHA MODE
-    keyb_setshiftplane(0,0,1,1);
+    //  LOCK ALPHA MODE
+    if( (halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C'))
+        keyb_setshiftplane(0,0,1,1);
 
 
 }
@@ -1101,7 +1103,28 @@ void alphaKeyHandler(BINT keymsg)
     }
 }
 
+void shiftedalphaKeyHandler(BINT keymsg)
+{
+// CYCLE BETWEEN D, P AND A MODES WHEN ALPHA IS DISABLED
+    UNUSED_ARGUMENT(keymsg);
 
+    switch(halScreen.CursorState&0xff)
+    {
+     case 'D':
+        halSetCmdLineMode('P');
+        halScreen.DirtyFlag|=CMDLINE_CURSORDIRTY;
+        break;
+    case 'P':
+        halSetCmdLineMode('A');
+        halScreen.DirtyFlag|=CMDLINE_CURSORDIRTY;
+        break;
+    case 'A':
+        halSetCmdLineMode('D');
+        halScreen.DirtyFlag|=CMDLINE_CURSORDIRTY;
+        break;
+    }
+
+}
 
 
 #define DECLARE_KEYHANDLER(name,lsymbol,csymbol) void name##KeyHandler(BINT keymsg) \
@@ -1173,6 +1196,11 @@ DECLARE_KEYHANDLER(sub7,"₇","⁷")
 DECLARE_KEYHANDLER(sub8,"₈","⁸")
 DECLARE_KEYHANDLER(sub9,"₉","⁹")
 
+DECLARE_SYMBKEYHANDLER(keyx,"X",0)
+
+
+
+
 
 
 // **************************************************************************
@@ -1228,6 +1256,10 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
 
     { KM_KEYDN|KB_ON, CONTEXT_ANY,&cancelKeyHandler },
 
+    { KM_PRESS|KB_ALPHA|SHIFT_RS, CONTEXT_ANY,&shiftedalphaKeyHandler },
+    { KM_PRESS|KB_ALPHA|SHIFT_RSHOLD, CONTEXT_ANY,&shiftedalphaKeyHandler },
+
+
     { KM_PRESS|KB_ENT, CONTEXT_ANY,&enterKeyHandler },
     { KM_PRESS|KB_ENT|SHIFT_ALPHA, CONTEXT_ANY,&enterKeyHandler },
     { KM_PRESS|KB_ENT|SHIFT_ALPHAHOLD, CONTEXT_ANY,&enterKeyHandler },
@@ -1267,6 +1299,18 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_MUL|SHIFT_RS, CONTEXT_ANY,&textBracketKeyHandler },
     { KM_PRESS|KB_MUL|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&textBracketKeyHandler },
     { KM_PRESS|KB_O, CONTEXT_ANY,&ticksKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,&curlyBracketKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_ALPHA|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&curlyBracketKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,&secoBracketKeyHandler },
+    { KM_PRESS|KB_ADD|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&secoBracketKeyHandler },
+    { KM_PRESS|KB_SUB|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,&parenBracketKeyHandler },
+    { KM_PRESS|KB_SUB|SHIFT_ALPHA|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&parenBracketKeyHandler },
+    { KM_PRESS|KB_MUL|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,&squareBracketKeyHandler },
+    { KM_PRESS|KB_MUL|SHIFT_ALPHA|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&squareBracketKeyHandler },
+    { KM_PRESS|KB_MUL|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,&textBracketKeyHandler },
+    { KM_PRESS|KB_MUL|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&textBracketKeyHandler },
+    { KM_PRESS|KB_O|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,&ticksKeyHandler },
+    { KM_PRESS|KB_O|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&ticksKeyHandler },
 
     { KM_PRESS|KB_ADD|SHIFT_ONHOLD, CONTEXT_ANY,&onPlusKeyHandler },
     { KM_PRESS|KB_SUB|SHIFT_ONHOLD, CONTEXT_ANY,&onMinusKeyHandler },
@@ -1290,6 +1334,12 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_M, CONTEXT_ANY,&stoKeyHandler },
     { KM_PRESS|KB_M|SHIFT_LS, CONTEXT_ANY,&rclKeyHandler },
     { KM_PRESS|KB_M|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&rclKeyHandler },
+
+    { KM_PRESS|KB_X, CONTEXT_ANY,KEYHANDLER_NAME(keyx) },
+
+
+    // LETTERS
+
     { KM_PRESS|KB_A|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(a) },
     { KM_PRESS|KB_B|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(b) },
     { KM_PRESS|KB_C|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(c) },

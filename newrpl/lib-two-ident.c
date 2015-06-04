@@ -41,11 +41,11 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 //#define PUTLAMN    0x10000   // SPECIAL OPCODE TO STO THE CONTENT OF A LAM
 
 
-void rplCompileIDENT(BINT libnum,BYTEPTR tok,BINT len)
+void rplCompileIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
 {
     // WE HAVE A VALID QUOTED IDENT, CREATE THE OBJECT
-    BINT lenwords=(len+3)>>2;
-
+    BINT lenwords=(tokend-tok+3)>>2;
+    BINT len=tokend-tok;
     ScratchPointer1=(WORDPTR)tok;
     rplCompileAppend(MKPROLOG(libnum,lenwords));
     WORD nextword;
@@ -76,26 +76,28 @@ void rplCompileIDENT(BINT libnum,BYTEPTR tok,BINT len)
 }
 
 // THESE ARE THE ONLY CHARACTERS THAT ARE FORBIDDEN IN AN IDENTIFIER
-const char const forbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@";
+const char const forbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@|√«»≤≥≠→∡";
 
 
-BINT rplIsValidIdent(BYTEPTR tok,BINT len)
+BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend)
 {
     BYTEPTR ptr;
-    if(len<1) return 0;
+    BINT char1,char2;
+    if(tokend<=tok) return 0;
     // IDENT CANNOT START WITH A NUMBER
     if( (((char)*tok)>='0') && (((char)*tok)<='9')) return 0;
 
     // OR CONTAIN ANY OF THE FORBIDDEN CHARACTERS
-    while(len)
+    while(tok!=tokend)
     {
         ptr=(BYTEPTR )forbiddenChars;
+        char1=utf82char((char *)tok,(char *)tokend);
         do {
-        if(*tok==*ptr) return 0;
-        ++ptr;
+        char2=utf82char((char *)ptr,(char *)ptr+4);
+        if(char1==char2) return 0;
+        ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)ptr+4);
         } while(*ptr);
-        ++tok;
-        --len;
+        tok=(BYTEPTR)utf8skip((char *)tok,(char *)tokend);
     }
     return 1;
 }
@@ -135,7 +137,7 @@ void LIB_HANDLER()
 
         if(*tok=='\'') {
                 // QUOTED IDENT OR ALGEBRAIC OBJECT
-                if(tok[TokenLen-1]!='\'') {
+                if(*utf8nskip((char *)tok,(char *)BlankStart,TokenLen-1)!='\'') {
                     // NOT A SIMPLE IDENT, THEN IT'S A SYMBOLIC EXPRESSION
                     rplCompileAppend(MKPROLOG(DOSYMB,0));
 
@@ -149,7 +151,7 @@ void LIB_HANDLER()
                 ++tok;
                 len-=2;
 
-                if(!rplIsValidIdent(tok,len)) {
+                if(!rplIsValidIdent(tok,((BYTEPTR)BlankStart)-1)) {
 
                         // NOT A SIMPLE IDENT, THEN IT'S A SYMBOLIC EXPRESSION
                         rplCompileAppend(MKPROLOG(DOSYMB,0));
@@ -162,7 +164,7 @@ void LIB_HANDLER()
                 }
 
 
-                rplCompileIDENT(DOIDENT,tok,len);
+                rplCompileIDENT(DOIDENT,tok,((BYTEPTR)BlankStart)-1);
 
                 RetNum=OK_CONTINUE;
                 return;
@@ -173,7 +175,7 @@ void LIB_HANDLER()
         // UNQUOTED IDENTS
 
 
-        if(!rplIsValidIdent(tok,len)) {
+        if(!rplIsValidIdent(tok,(BYTEPTR)BlankStart)) {
          RetNum=ERR_SYNTAX;
          return;
         }
@@ -182,7 +184,7 @@ void LIB_HANDLER()
             // INSIDE THIS CONSTRUCT WE NEED TO QUOTE ALL
             // IDENTS
 
-            rplCompileIDENT(DOIDENT,tok,len);
+            rplCompileIDENT(DOIDENT,tok,(BYTEPTR)BlankStart);
 
             RetNum=OK_CONTINUE;
             return;
@@ -190,7 +192,7 @@ void LIB_HANDLER()
         if(CurrentConstruct==MKPROLOG(DOSYMB,0)) {
             // INSIDE SYMBOLICS, ALL IDENTS ARE UNQUOTED
 
-            rplCompileIDENT(DOIDENTEVAL,tok,len);
+            rplCompileIDENT(DOIDENTEVAL,tok,(BYTEPTR)BlankStart);
 
             RetNum=OK_CONTINUE;
             return;
@@ -205,7 +207,7 @@ void LIB_HANDLER()
         if(LAMptr<LAMTopSaved) {
             // THIS IS NOT A VALID LAM, COMPILE AS AN UNQUOTED IDENT
 
-            rplCompileIDENT(DOIDENTEVAL,tok,len);
+            rplCompileIDENT(DOIDENTEVAL,tok,(BYTEPTR)BlankStart);
 
             RetNum=OK_CONTINUE;
             return;
@@ -222,7 +224,7 @@ void LIB_HANDLER()
                 prolog=**(env+1);   // GET THE PROLOG OF THE SECONDARY
                 if(ISPROLOG(prolog) && LIBNUM(prolog)==SECO) {
                 // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
-                rplCompileIDENT(DOIDENTEVAL,tok,len);
+                rplCompileIDENT(DOIDENTEVAL,tok,(BYTEPTR)BlankStart);
                 RetNum=OK_CONTINUE;
                 return;
                 }
@@ -251,7 +253,7 @@ void LIB_HANDLER()
                     // FOUND INNERMOST SECONDARY
                     if(*scanenv>*(nLAMBase+1)) {
                         // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
-                    rplCompileIDENT(DOIDENTEVAL,tok,len);
+                    rplCompileIDENT(DOIDENTEVAL,tok,(BYTEPTR)BlankStart);
 
                     RetNum=OK_CONTINUE;
                     return;
@@ -266,7 +268,7 @@ void LIB_HANDLER()
         // BUT ONLY IF WE ARE NOT INSIDE A COMPOSITE (LIST, ARRAY, ETC)
         if( (CurrentConstruct==MKPROLOG(DOLIST,0)) // ADD HERE ARRAYS LATER
                 ) {
-            rplCompileIDENT(DOIDENTEVAL,tok,len);
+            rplCompileIDENT(DOIDENTEVAL,tok,(BYTEPTR)BlankStart);
 
             RetNum=OK_CONTINUE;
             return;
@@ -315,11 +317,17 @@ void LIB_HANDLER()
         return;
     case OPCODE_PROBETOKEN:
     {
-        BINT len,maxlen;
+        BYTEPTR tokptr,tokend;
+        BINT maxlen,len;
 
-        for(maxlen=0,len=1;len<=(BINT)TokenLen;++len) {
-            if(rplIsValidIdent((BYTEPTR)TokenStart,len)) maxlen=len;
+        tokptr=(BYTEPTR)TokenStart;
+        tokend=(BYTEPTR)BlankStart;
+
+        tokptr=(BYTEPTR)utf8skip((char *)tokptr,(char *)tokend);
+        for(maxlen=0,len=1;tokptr<=tokend;++len) {
+            if(rplIsValidIdent((BYTEPTR)TokenStart,tokptr)) maxlen=len;
             else break;
+            tokptr=(BYTEPTR)utf8skip((char *)tokptr,(char *)tokend);
         }
         if(maxlen>0) RetNum=OK_TOKENINFO | MKTOKENINFO(maxlen,TITYPE_IDENT,0,1);
         else RetNum=ERR_NOTMINE;
