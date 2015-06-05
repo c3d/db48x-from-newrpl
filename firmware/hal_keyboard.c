@@ -408,7 +408,9 @@ BINT endCmdLineAndCompile()
             // END ALPHA MODE
             halSwapCmdLineMode(0);
             keyb_setshiftplane(0,0,0,0);
-
+            if(uiGetCmdLineState()&CMDSTATE_OVERWRITE) {
+                if(rplDepthData()>=1) rplDropData(1);
+            }
             uiCloseCmdLine();
             halSetCmdLineHeight(0);
             halSetContext(halGetContext()& (~CONTEXT_INEDITOR));
@@ -688,6 +690,18 @@ void backspKeyHandler(BINT keymsg)
     }
 }
 
+void deleteKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if((halGetContext()&CONTEXT_INEDITOR)) {
+        // REMOVE CHARACTERS FROM THE COMMAND LINE
+        uiRemoveCharacters(1);
+    }
+}
+
+
+
 void leftKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
@@ -726,6 +740,54 @@ void rightKeyHandler(BINT keymsg)
     }
 }
 
+
+void downKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+
+            if(rplDepthData()>=1) {
+                WORDPTR ptr=rplPeekData(1);
+                WORDPTR text=rplDecompile(ptr,0);
+                if(Exceptions) {
+                    halShowErrorMsg();
+                    Exceptions=0;
+                    return;
+                }
+                // OPEN THE COMMAND LINE
+                halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+                halSetContext(halGetContext()|CONTEXT_INEDITOR);
+                if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
+                else uiOpenCmdLine('D');
+                uiSetCmdLineText(text);
+                uiSetCmdLineState(uiGetCmdLineState()|CMDSTATE_OVERWRITE);
+                return;
+                }
+
+            }
+        // TODO: ADD OTHER CONTEXTS HERE
+    }
+
+    else {
+        // TODO: GO DOWN ONE LINE IN MULTILINE TEXT EDITOR
+    }
+}
+
+
+
+
+
+
+
+
+void clearKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(CMD_CLEAR,(BYTEPTR)"CLEAR",-1);
+}
 
 
 
@@ -1278,6 +1340,13 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_REPEAT|KB_BKS, CONTEXT_ANY,&backspKeyHandler },
     { KM_PRESS|KB_BKS|SHIFT_ALPHA, CONTEXT_ANY,&backspKeyHandler },
     { KM_REPEAT|KB_BKS|SHIFT_ALPHA, CONTEXT_ANY,&backspKeyHandler },
+    { KM_PRESS|KB_BKS|SHIFT_RS, CONTEXT_ANY,&clearKeyHandler },
+    { KM_PRESS|KB_BKS|SHIFT_RSHOLD, CONTEXT_ANY,&clearKeyHandler },
+    { KM_PRESS|KB_BKS|SHIFT_LS, CONTEXT_ANY,&deleteKeyHandler },
+    { KM_PRESS|KB_BKS|SHIFT_LSHOLD, CONTEXT_ANY,&deleteKeyHandler },
+    { KM_PRESS|KB_BKS|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&deleteKeyHandler },
+    { KM_PRESS|KB_BKS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&deleteKeyHandler },
+
     { KM_PRESS|KB_LF, CONTEXT_ANY,&leftKeyHandler },
     { KM_REPEAT|KB_LF, CONTEXT_ANY,&leftKeyHandler },
     { KM_PRESS|KB_RT, CONTEXT_ANY,&rightKeyHandler },
@@ -1286,6 +1355,9 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_REPEAT|KB_LF|SHIFT_ALPHA, CONTEXT_ANY,&leftKeyHandler },
     { KM_PRESS|KB_RT|SHIFT_ALPHA, CONTEXT_ANY,&rightKeyHandler },
     { KM_REPEAT|KB_RT|SHIFT_ALPHA, CONTEXT_ANY,&rightKeyHandler },
+    { KM_PRESS|KB_DN, CONTEXT_ANY,&downKeyHandler },
+    { KM_PRESS|KB_DN|SHIFT_ALPHA, CONTEXT_ANY,&downKeyHandler },
+
     { KM_PRESS|KB_ADD, CONTEXT_ANY,&addKeyHandler },
     { KM_PRESS|KB_SUB, CONTEXT_ANY,&subKeyHandler },
     { KM_PRESS|KB_DIV, CONTEXT_ANY,&divKeyHandler },

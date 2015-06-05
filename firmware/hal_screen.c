@@ -277,16 +277,22 @@ halScreen.Stack=1;
 halSetFormHeight(0);
 halScreen.DirtyFlag=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
 halScreen.SAreaTimer=0;
-halScreen.CursorTimer=0;
+halScreen.CursorTimer=-1;
 halScreen.KeyContext=CONTEXT_STACK;
 halScreen.FormFont=halScreen.StackFont=halScreen.Stack1Font=(UNIFONT *)Font_7A;
 halScreen.MenuFont=(UNIFONT *)Font_5C;
 halScreen.StAreaFont=(UNIFONT *)Font_6A;
 halScreen.CmdLineFont=(UNIFONT *)Font_7A;
 
-// NOT NECESSARILY PART OF HALSCREEN
-CmdLineText=(WORDPTR)empty_string;
-CmdLineCurrentLine=(WORDPTR)empty_string;
+halSetNotification(N_LEFTSHIFT,0);
+halSetNotification(N_RIGHTSHIFT,0);
+halSetNotification(N_ALPHA,0);
+halSetNotification(N_LOWBATTERY,0);
+halSetNotification(N_HOURGLASS,0);
+halSetNotification(N_DISKACCESS,0);
+
+// NOT NECESSARILY PART OF HALSCREEN, BUT INITIALIZE THE COMMAND LINE
+uiCloseCmdLine();
 
 }
 

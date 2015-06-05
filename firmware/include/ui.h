@@ -43,11 +43,16 @@ extern BINT ui_islinemodified;
 extern BINT ui_cursorx,ui_cursoroffset;
 extern BINT ui_visiblex;
 
+
+extern void uiSetCmdLineState(BINT state);
+extern BINT uiGetCmdLineState();
+
 extern void uiEnsureCursorVisible();
 extern void uiModifyLine();
-extern void uiExtractLine();
+extern void uiExtractLine(BINT line);
 extern BYTEPTR uiFindNumberStart();
 extern WORDPTR uiGetCmdLineText();
+extern void uiSetCmdLineText(WORDPTR text);
 extern void uiOpenCmdLine(BINT mode);
 extern void uiCloseCmdLine();
 extern void uiInsertCharacters(BYTEPTR string);

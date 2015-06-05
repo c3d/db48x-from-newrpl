@@ -34,6 +34,14 @@ BINT uiGetLinebyOffset(BINT offset,BINT *linestart)
 
 }
 
+void uiSetCmdLineState(BINT state)
+{
+    halScreen.CmdLineState=state;
+}
+BINT uiGetCmdLineState()
+{
+    return halScreen.CmdLineState;
+}
 
 // SET THE COMMAND LINE TO A GIVEN STRING OBJECT
 void uiSetCmdLineText(WORDPTR text)
@@ -42,6 +50,7 @@ void uiSetCmdLineText(WORDPTR text)
     CmdLineCurrentLine=(WORDPTR)empty_string;
     CmdLineUndoList=(WORDPTR)empty_list;
     halScreen.LineIsModified=-1;
+
 
     // SET CURSOR AT END OF TEXT
     BINT end=rplStrSize(CmdLineText);
@@ -53,6 +62,19 @@ void uiSetCmdLineText(WORDPTR text)
 
     if(halScreen.CursorPosition<0) halScreen.CursorPosition=0;
     halScreen.CursorX=StringWidthN((char *)linestart,(char *)linestart+halScreen.CursorPosition,(UNIFONT *)halScreen.CmdLineFont);
+
+
+
+    uiExtractLine(halScreen.LineCurrent);
+
+    if(Exceptions) {
+        throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+        // CLEAN UP AND RETURN
+        CmdLineText=(WORDPTR)empty_string;
+        CmdLineCurrentLine=(WORDPTR)empty_string;
+        CmdLineUndoList=(WORDPTR)empty_list;
+        return;
+    }
 
 
     uiEnsureCursorVisible();
@@ -131,6 +153,7 @@ void uiOpenCmdLine(BINT mode)
     halScreen.NumLinesVisible=1;
     halScreen.CursorX=0;
     halScreen.CursorPosition=0;
+    halScreen.CmdLineState=0;
 
     if(((halScreen.CursorState&0xff)=='L')||((halScreen.CursorState&0xff)=='C')) AlphaMode=halScreen.CursorState&0xff;
     else if(((halScreen.CursorState>>24)=='L')||((halScreen.CursorState>>24)=='C')) AlphaMode=halScreen.CursorState>>24;
@@ -169,7 +192,9 @@ void uiCloseCmdLine()
     halScreen.CursorPosition=0;
     halScreen.CursorState&=0xff0000ff;
     halScreen.XVisible=0;
+    halScreen.CmdLineState=0;
     halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
+
 }
 
 

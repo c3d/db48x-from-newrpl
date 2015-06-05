@@ -132,6 +132,7 @@ typedef struct {
     int CursorPosition; // OFFSET FROM START OF CURRENT LINE
     int CursorX,XVisible;
     int SelectionStart,SelectionEnd;
+    int CmdLineState;   // STATUS FLAGS FOR THE COMMAND LINE
     // VARIABLES FOR USER INTERFACE
     int KeyContext;
 } HALSCREEN;
@@ -147,6 +148,8 @@ enum {
     CONTEXT_PICT=16
     // ADD MORE SYSTEM CONTEXTS HERE
 };
+
+#define CMDSTATE_OVERWRITE  0x8000
 
 
 //! Type definition for interrupt handler functions

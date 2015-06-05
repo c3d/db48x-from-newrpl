@@ -315,7 +315,7 @@ extern const WORD empty_list[];
 #define CMD_STO MKOPCODE(28,0)
 #define CMD_RCL MKOPCODE(28,1)
 #define CMD_PURGE MKOPCODE(28,4)
-
+#define CMD_CLEAR MKOPCODE(72,1)
 
 
 #endif // LIBRARIES_H
