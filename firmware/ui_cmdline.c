@@ -179,7 +179,10 @@ void uiOpenCmdLine(BINT mode)
 // CLOSE THE COMMAND LINE
 void uiCloseCmdLine()
 {
-    tmr_eventkill(halScreen.CursorTimer);
+    if(halScreen.CursorTimer>=0) {
+        tmr_eventkill(halScreen.CursorTimer);
+        halScreen.CursorTimer=-1;
+    }
 
     CmdLineText=(WORDPTR)empty_string;
     CmdLineCurrentLine=(WORDPTR)empty_string;
