@@ -782,6 +782,42 @@ void LIB_HANDLER()
         libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
      return;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     case OPCODE_DECOMPILE:
         // DECOMPILE RECEIVES:
         // DecompileObject = Ptr to prolog of object to decompile
@@ -795,6 +831,145 @@ void LIB_HANDLER()
             return;
         }
 
+
+        // CHECK IF THE TOKEN IS SEMI
+
+        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,QSEMI))
+        {
+            if(! (ISPROLOG(CurrentConstruct)&&(LIBNUM(CurrentConstruct)==LIBRARY_NUMBER))) {
+                RetNum=ERR_SYNTAX;
+                return;
+            }
+            rplCleanupLAMs(*(ValidateTop-1));
+            rplDecompAppendString((BYTEPTR)"»");
+            RetNum=OK_ENDCONSTRUCT;
+            return;
+        }
+
+
+
+
+
+
+         // FOR... NEXT AND FOR... STEP
+         // START... NEXT AND START... STEP
+
+    if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,FOR)) {
+
+            rplDecompAppendString((BYTEPTR)"FOR");
+
+            // CREATE A NEW ENVIRONMENT
+            rplCreateLAMEnvironment(DecompileObject);
+            rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);        // NULLLAM FOR THE COMPILER
+            rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);        // NULLLAM FOR THE COMPILER
+            rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);        // NULLLAM FOR THE COMPILER
+            rplCreateLAM(rplSkipOb(DecompileObject),(WORDPTR)zero_bint);      // LAM COUNTER
+
+            RetNum=OK_STARTCONSTRUCT;
+            return;
+        }
+
+    if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,START)) {
+
+            rplDecompAppendString((BYTEPTR)"START");
+
+            // CREATE A NEW ENVIRONMENT
+            rplCreateLAMEnvironment(DecompileObject);
+            rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);        // NULLLAM FOR THE COMPILER
+            rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);        // NULLLAM FOR THE COMPILER
+            rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);        // NULLLAM FOR THE COMPILER
+            rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);      // LAM COUNTER
+
+            RetNum=OK_STARTCONSTRUCT;
+            return;
+        }
+
+        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,NEXT))
+        {
+            // NEXT
+             if((CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,FOR))||(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,START))) {
+                rplCleanupLAMs(*(ValidateTop-1));
+                rplDecompAppendString((BYTEPTR)"NEXT");
+                RetNum=OK_ENDCONSTRUCT;
+                return;
+            }
+             RetNum=ERR_SYNTAX;
+             return;
+
+        }
+
+        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,STEP))
+        {
+            // STEP
+             if((CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,FOR))||(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,START))) {
+                rplCleanupLAMs(*(ValidateTop-1));
+                rplDecompAppendString((BYTEPTR)"STEP");
+                RetNum=OK_ENDCONSTRUCT;
+                return;
+            }
+             RetNum=ERR_SYNTAX;
+             return;
+
+        }
+
+        // DO ... UNTIL ... END
+
+        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,DO)) {
+
+                rplDecompAppendString((BYTEPTR)"DO");
+
+                // CREATE A NEW ENVIRONMENT
+                rplCreateLAMEnvironment(DecompileObject);
+
+                RetNum=OK_STARTCONSTRUCT;
+                return;
+            }
+
+        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,ENDDO))
+        {
+            // ENDDO
+             if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,DO)) {
+                rplCleanupLAMs(*(ValidateTop-1));
+                rplDecompAppendString((BYTEPTR)"END");
+                RetNum=OK_ENDCONSTRUCT;
+                return;
+            }
+             RetNum=ERR_SYNTAX;
+             return;
+
+        }
+
+
+
+        // WHILE ... REPEAT ... END
+
+        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,DO)) {
+
+                rplDecompAppendString((BYTEPTR)"DO");
+
+                // CREATE A NEW ENVIRONMENT
+                rplCreateLAMEnvironment(DecompileObject);
+
+                RetNum=OK_STARTCONSTRUCT;
+                return;
+            }
+
+                if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,ENDWHILE)) {
+                    // ENDWHILE
+
+                    if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,WHILE)) {
+                        rplCleanupLAMs(*(ValidateTop-1));
+                        rplDecompAppendString((BYTEPTR)"END");
+                        RetNum=OK_ENDCONSTRUCT;
+                        return;
+                    }
+                    RetNum=ERR_SYNTAX;
+                    return;
+
+                }
+
+
+
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
         libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
@@ -802,8 +977,24 @@ void LIB_HANDLER()
 
     case OPCODE_COMPILECONT:
         // COMPILE THE IDENT IMMEDIATELY AFTER A FOR LOOP
+    {
+        BYTEPTR tokst=(BYTEPTR)TokenStart;
+        BYTEPTR tokend=(BYTEPTR)BlankStart;
 
-        if(!rplIsValidIdent((BYTEPTR)TokenStart,(BYTEPTR)BlankStart)) {
+        if(*tokst=='\'') {
+            // IT'S A QUOTED IDENT
+            if((tokend>tokst+2) && (*(tokend-1)=='\'')) {
+                --tokend;
+                ++tokst;
+            }
+            else {
+                RetNum=ERR_SYNTAX;
+                return;
+            }
+
+        }
+
+        if(!rplIsValidIdent(tokst,tokend)) {
          RetNum=ERR_SYNTAX;
          return;
         }
@@ -812,7 +1003,7 @@ void LIB_HANDLER()
 
 
         // CAREFUL, COMPILEIDENT USES ScratchPointer1!!!
-        rplCompileIDENT(DOIDENT,(BYTEPTR)TokenStart,(BYTEPTR)BlankStart);
+        rplCompileIDENT(DOIDENT,tokst,tokend);
 
         rplCreateLAMEnvironment(ScratchPointer2-1);
         rplCreateLAM((WORDPTR)nulllam_ident,ScratchPointer2);        // NULLLAM FOR THE COMPILER
@@ -823,7 +1014,7 @@ void LIB_HANDLER()
 
         RetNum=OK_CONTINUE;
         return;
-
+    }
 
 
     case OPCODE_VALIDATE:

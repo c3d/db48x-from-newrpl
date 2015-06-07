@@ -749,7 +749,16 @@ void LIB_HANDLER()
                 RetNum=OK_CONTINUE;
                 return;
             }
+            else {
+                // THIS WOULD CREATE A LOCAL THAT CANNOT BE TRACED
+                // BY THE COMPILER. DISABLE PUTLAM/GETLAM OPTIMIZATION
+                // FOR THE REST OF THIS ENVIRONMENT
 
+                // ISSUE A SYNTAX ERROR, LSTO REQUIRES A COMPILE-TIME VARIABLE NAME
+                RetNum=ERR_SYNTAX;
+                return;
+
+            }
 
             }
 
@@ -903,6 +912,124 @@ void LIB_HANDLER()
 
         }
 
+        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,LSTO)) {
+
+            rplDecompAppendString("LSTO");
+
+            // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
+            WORDPTR object,prevobject;
+                object=*(ValidateTop-1);    // GET LATEST CONSTRUCT
+                ++object;                   // AND SKIP THE PROLOG / ENTRY WORD
+
+            do {
+                prevobject=object;
+                object=rplSkipOb(object);
+            } while(object<DecompileObject);
+
+            // HERE PREVOBJECT CONTAINS THE LAST OBJECT THAT WAS DECOMPILED
+
+            if(!ISIDENT(*prevobject)) {
+                // MAKE SURE IT'S AN IDENT, OTHERWISE IT'S AN ERROR
+                RetNum=ERR_SYNTAX;
+                return;
+            }
+                // WE HAVE A HARD-CODED IDENT
+                // CHECK IF IT'S AN EXISTING LAM
+
+
+                WORDPTR *LAMptr=rplFindLAM(prevobject,1);
+
+
+                if(LAMptr<LAMTopSaved) {
+                    // THIS IS NOT A VALID LAM, CREATE A NEW ONE
+
+                    // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
+
+                    // DO WE NEED A NEW ENVIRONMENT?
+
+                    if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
+                        rplCreateLAMEnvironment(*(ValidateTop-1));
+                    }
+                    rplCreateLAM(prevobject,zero_bint);
+
+
+                    RetNum=OK_CONTINUE;
+                    return;
+                }
+
+                if(LAMptr<nLAMBase) {
+                    // THIS IS A LAM FROM AN UPPER CONSTRUCT
+                    // WE CAN USE PUTLAM ONLY INSIDE LOOPS, NEVER ACROSS SECONDARIES
+
+                    WORDPTR *env=nLAMBase;
+                    WORD prolog;
+                    do {
+                        if(LAMptr>env) break;
+                        prolog=**(env+1);   // GET THE PROLOG OF THE SECONDARY
+                        if(ISPROLOG(prolog) && LIBNUM(prolog)==SECO) {
+                        // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
+                        // SO WE CREATE A NEW ONE
+                            if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
+                                rplCreateLAMEnvironment(*(ValidateTop-1));
+                            }
+                            rplCreateLAM(prevobject,zero_bint);
+                        RetNum=OK_CONTINUE;
+                        return;
+                        }
+                        env=rplGetNextLAMEnv(env);
+                    } while(env);
+
+
+
+                }
+
+
+                // SPECIAL CASE: WHEN A SECO DOESN'T HAVE ANY LOCALS YET
+                // BUT LAMS FROM THE PREVIOUS SECO SHOULDN'T BE COMPILED TO GETLAMS
+
+                // SCAN ALL CURRENT CONSTRUCTS TO FIND THE INNERMOST SECONDARY
+                // THEN VERIFY IF THAT SECONDARY IS THE CURRENT LAM ENVIRONMENT
+
+                // THIS IS TO FORCE ALL LAMS IN A SECO TO BE COMPILED AS IDENTS
+                // INSTEAD OF PUTLAMS
+
+                // LAMS ACROSS DOCOL'S ARE OK AND ALWAYS COMPILED AS PUTLAMS
+                WORDPTR *scanenv=ValidateTop-1;
+
+                while(scanenv>=RSTop) {
+                    if( (LIBNUM(**scanenv)==SECO)&& (ISPROLOG(**scanenv))) {
+                            // FOUND INNERMOST SECONDARY
+                            if(*scanenv>*(nLAMBase+1)) {
+                                // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
+                            if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
+                                rplCreateLAMEnvironment(*(ValidateTop-1));
+                            }
+                            rplCreateLAM(prevobject,zero_bint);
+
+
+                            RetNum=OK_CONTINUE;
+                            return;
+                            }
+                            break;
+
+                    }
+                    --scanenv;
+                }
+
+                // IT'S A KNOWN LOCAL VARIABLE, NO NEED TO TRACE IT
+                RetNum=OK_CONTINUE;
+                return;
+
+//*************************************************************
+
+
+
+
+
+        }
+
+
+
         switch(OPCODE(*DecompileObject)&0x70000)
         {
         case NEWNLOCALS:
@@ -926,6 +1053,32 @@ void LIB_HANDLER()
             return;
         case GETLAMN:
         {
+
+            BINT num=OPCODE(*DecompileObject)&0xffff;
+            if(num&0x8000) num|=0xFFFF0000; // GET NEGATIVE LAMS TOO!
+
+            rplDecompAppendChar('\'');
+            WORDPTR name=*rplGetLAMnName(num);
+            if(!ISIDENT(*name)) {
+                RetNum=ERR_SYNTAX;
+                return;
+            }
+            BINT len=OBJSIZE(*name);
+
+            WORD lastword=name[len];
+
+            len<<=2;
+
+            if(lastword<0x1000000) rplDecompAppendString((BYTEPTR)(name+1));
+            else rplDecompAppendString2( ((BYTEPTR)(name+1)),len);
+
+            rplDecompAppendString("\' LRCL");
+            RetNum=OK_CONTINUE;
+            return;
+        }
+
+            /*
+            //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
             rplDecompAppendString((BYTEPTR)"GETLAM");
             BINT result=OPCODE(*DecompileObject)&0xffff;
             if(result&0x8000) result|=0xFFFF0000;
@@ -949,8 +1102,36 @@ void LIB_HANDLER()
         }
             RetNum=OK_CONTINUE;
             return;
+            */
         case GETLAMNEVAL:
         {
+            BINT num=OPCODE(*DecompileObject)&0xffff;
+            if(num&0x8000) num|=0xFFFF0000; // GET NEGATIVE LAMS TOO!
+
+            WORDPTR name=*rplGetLAMnName(num);
+            if(!ISIDENT(*name)) {
+                RetNum=ERR_SYNTAX;
+                return;
+            }
+            BINT len=OBJSIZE(*name);
+
+            WORD lastword=name[len];
+
+            len<<=2;
+
+            if(lastword<0x1000000) rplDecompAppendString((BYTEPTR)(name+1));
+            else rplDecompAppendString2( ((BYTEPTR)(name+1)),len);
+
+
+            RetNum=OK_CONTINUE;
+
+            return;
+
+        }
+
+            /*
+            //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
+
             rplDecompAppendString((BYTEPTR)"GETLAM");
             BINT result=OPCODE(*DecompileObject)&0xffff;
             if(result&0x8000) result|=0xFFFF0000;
@@ -975,9 +1156,33 @@ void LIB_HANDLER()
             rplDecompAppendString((BYTEPTR)"EVAL");
             RetNum=OK_CONTINUE;
             return;
-
+            */
         case PUTLAMN:
         {
+            BINT num=OPCODE(*DecompileObject)&0xffff;
+            if(num&0x8000) num|=0xFFFF0000; // GET NEGATIVE LAMS TOO!
+
+            rplDecompAppendChar('\'');
+            WORDPTR name=*rplGetLAMnName(num);
+            if(!ISIDENT(*name)) {
+                RetNum=ERR_SYNTAX;
+                return;
+            }
+            BINT len=OBJSIZE(*name);
+
+            WORD lastword=name[len];
+
+            len<<=2;
+
+            if(lastword<0x1000000) rplDecompAppendString((BYTEPTR)(name+1));
+            else rplDecompAppendString2( ((BYTEPTR)(name+1)),len);
+
+            rplDecompAppendString("\' LSTO");
+            RetNum=OK_CONTINUE;
+            return;
+        }
+            /*
+            //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
             rplDecompAppendString((BYTEPTR)"PUTLAM");
             BINT result=OPCODE(*DecompileObject)&0xffff;
             if(result&0x8000) result|=0xFFFF0000;
@@ -1001,7 +1206,7 @@ void LIB_HANDLER()
         }
             RetNum=OK_CONTINUE;
             return;
-
+            */
 
         }
 

@@ -846,9 +846,6 @@ WORDPTR rplDecompile(WORDPTR object,BINT embedded)
     WORDPTR *SavedRSTop;
     if(embedded) {
         SavedRSTop=RSTop;
-        // RESERVE MEMORY
-        if(RStkSize<=(RSTop+SAVED_POINTERS-RStk)) growRStk(RSTop+SAVED_POINTERS-RStk+RSTKSLACK);
-        if(Exceptions) return 0;
 
         // SAVE ALL DECOMPILER POINTERS
         *RSTop++=DecompileObject;
@@ -856,21 +853,30 @@ WORDPTR rplDecompile(WORDPTR object,BINT embedded)
         *RSTop++=(WORDPTR)LAMTopSaved;
         *RSTop++=SavedDecompObject;
 
+        // STORE POINTER BEFORE POSSIBLY TRIGGERING A GC
+        DecompileObject=object;
+
+        // RESERVE MEMORY
+        if(RStkSize<=(RSTop+SAVED_POINTERS-RStk)) growRStk(RSTop+SAVED_POINTERS-RStk+RSTKSLACK);
+        if(Exceptions) return 0;
 
     }
+    else DecompileObject=object;
+
+
 
 
     WORDPTR InfixOpTop=(WORDPTR)RSTop;
 
     // START DECOMPILE LOOP
-    DecompileObject=object;
     // CREATE A STRING AT THE END OF TEMPOB
     if(!embedded) CompileEnd=TempObEnd;
     // SKIPOB TO DETERMINE END OF COMPILATION
     EndOfObject=rplSkipOb(object);
 
     LAMTopSaved=LAMTop; //SAVE LAM ENVIRONMENTS
-
+    ValidateTop=RSTop;
+    *ValidateTop++=DecompileObject; // STORE START OF OBJECT FOR QUICK SKIPPING
     // HERE ALL POINTERS ARE STORED IN GC-UPDATEABLE AREA
 
     if(!embedded) {
@@ -887,6 +893,8 @@ WORDPTR rplDecompile(WORDPTR object,BINT embedded)
     han=rplGetLibHandler(LIBNUM(*DecompileObject));
 
     CurOpcode=MKOPCODE(0,OPCODE_DECOMPILE);
+    if(ValidateTop>RSTop) CurrentConstruct=**(ValidateTop-1);
+    else CurrentConstruct=0;
 
     if(!han) {
         RetNum=ERR_INVALID;
@@ -898,10 +906,36 @@ WORDPTR rplDecompile(WORDPTR object,BINT embedded)
         DecompileObject=rplSkipOb(DecompileObject);
         break;
     case OK_STARTCONSTRUCT:
+        if(RStkSize<=(ValidateTop-RStk)) growRStk(ValidateTop-RStk+RSTKSLACK);
+        if(Exceptions) {
+            LAMTop=LAMTopSaved;
+            if(embedded) {
+                // RESTORE ALL POINTERS BEFORE RETURNING
+                SavedDecompObject=*--RSTop;
+                LAMTopSaved=(WORDPTR *)*--RSTop;
+                EndOfObject=*--RSTop;
+                DecompileObject=*--RSTop;
+                RSTop=SavedRSTop;
+            }
+            return 0;
+        }
+        *ValidateTop++=DecompileObject; // POINTER TO THE WORD THAT CREATES THE CONSTRUCT
         ++DecompileObject;
         break;
+    case OK_ENDCONSTRUCT:
+        --ValidateTop;
+        if(ValidateTop<RSTop) {
+            Exceptions|=EX_EMPTYRSTK;
+            ExceptionPointer=IPtr;
+            LAMTop=LAMTopSaved;
+            return 0;
+        }
+        DecompileObject=rplSkipOb(DecompileObject);
+        break;
+
     case OK_STARTCONSTRUCT_INFIX:
         // PUSH THE SYMBOLIC ON A STACK AND SAVE THE COMPILER STATE
+        if(!infixmode) InfixOpTop=ValidateTop;
         if(RStkSize<=(InfixOpTop+1-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
         if(Exceptions) { LAMTop=LAMTopSaved;
             if(embedded) {

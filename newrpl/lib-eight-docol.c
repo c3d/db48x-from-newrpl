@@ -172,6 +172,25 @@ void LIB_HANDLER()
             return;
         }
 
+        // CHECK IF THE TOKEN IS SEMI
+
+        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,SEMI))
+        {
+            if(! (ISPROLOG(CurrentConstruct)&&(LIBNUM(CurrentConstruct)==LIBRARY_NUMBER))) {
+                RetNum=ERR_SYNTAX;
+                return;
+            }
+            rplCleanupLAMs(*(ValidateTop-1));
+            rplDecompAppendString((BYTEPTR)";");
+            RetNum=OK_ENDCONSTRUCT;
+            return;
+        }
+
+
+
+
+
+
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
