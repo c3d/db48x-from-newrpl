@@ -742,10 +742,19 @@ void LIB_HANDLER()
                     --scanenv;
                 }
 
+
                 // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS PUTLAM
-                CompileEnd=prevobject;
                 BINT Offset=((BINT)(LAMptr-nLAMBase))>>1;
+
+                // ONLY USE PUTLAM IF OFFSET IS WITHIN RANGE
+                if(Offset<=32767 && Offset>=-32768) {
+                CompileEnd=prevobject;
                 rplCompileAppend(MKOPCODE(DOIDENT,PUTLAMN+(Offset&0xffff)));
+                }
+                else {
+                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
+                }
+
                 RetNum=OK_CONTINUE;
                 return;
             }
@@ -860,9 +869,15 @@ void LIB_HANDLER()
                 }
 
                 // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS GETLAM
-                CompileEnd=prevobject;
                 BINT Offset=((BINT)(LAMptr-nLAMBase))>>1;
+
+                if(Offset<=32767 && Offset>=-32768) {
+                CompileEnd=prevobject;
                 rplCompileAppend(MKOPCODE(DOIDENT,GETLAMN+(Offset&0xffff)));
+                }
+                else {
+                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LRCL));
+                }
                 RetNum=OK_CONTINUE;
                 return;
             }
@@ -871,7 +886,7 @@ void LIB_HANDLER()
             }
 
 
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
+            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LRCL));
             RetNum=OK_CONTINUE;
             return;
         }
@@ -914,7 +929,7 @@ void LIB_HANDLER()
 
         if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,LSTO)) {
 
-            rplDecompAppendString("LSTO");
+            rplDecompAppendString((BYTEPTR)"LSTO");
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
             WORDPTR object,prevobject;
@@ -950,7 +965,7 @@ void LIB_HANDLER()
                     if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
                         rplCreateLAMEnvironment(*(ValidateTop-1));
                     }
-                    rplCreateLAM(prevobject,zero_bint);
+                    rplCreateLAM((WORDPTR)prevobject,(WORDPTR)zero_bint);
 
 
                     RetNum=OK_CONTINUE;
@@ -972,7 +987,7 @@ void LIB_HANDLER()
                             if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
                                 rplCreateLAMEnvironment(*(ValidateTop-1));
                             }
-                            rplCreateLAM(prevobject,zero_bint);
+                            rplCreateLAM((WORDPTR)prevobject,(WORDPTR)zero_bint);
                         RetNum=OK_CONTINUE;
                         return;
                         }
@@ -1004,7 +1019,7 @@ void LIB_HANDLER()
                             if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
                                 rplCreateLAMEnvironment(*(ValidateTop-1));
                             }
-                            rplCreateLAM(prevobject,zero_bint);
+                            rplCreateLAM((WORDPTR)prevobject,(WORDPTR)zero_bint);
 
 
                             RetNum=OK_CONTINUE;
@@ -1019,12 +1034,6 @@ void LIB_HANDLER()
                 // IT'S A KNOWN LOCAL VARIABLE, NO NEED TO TRACE IT
                 RetNum=OK_CONTINUE;
                 return;
-
-//*************************************************************
-
-
-
-
 
         }
 
@@ -1072,7 +1081,7 @@ void LIB_HANDLER()
             if(lastword<0x1000000) rplDecompAppendString((BYTEPTR)(name+1));
             else rplDecompAppendString2( ((BYTEPTR)(name+1)),len);
 
-            rplDecompAppendString("\' LRCL");
+            rplDecompAppendString((BYTEPTR)"\' LRCL");
             RetNum=OK_CONTINUE;
             return;
         }
@@ -1177,7 +1186,7 @@ void LIB_HANDLER()
             if(lastword<0x1000000) rplDecompAppendString((BYTEPTR)(name+1));
             else rplDecompAppendString2( ((BYTEPTR)(name+1)),len);
 
-            rplDecompAppendString("\' LSTO");
+            rplDecompAppendString((BYTEPTR)"\' LSTO");
             RetNum=OK_CONTINUE;
             return;
         }
