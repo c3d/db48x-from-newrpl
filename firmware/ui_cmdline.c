@@ -171,7 +171,7 @@ void uiOpenCmdLine(BINT mode)
     }
 
     halScreen.XVisible=0;
-    halScreen.CursorTimer=tmr_eventcreate(&__uicursorupdate,200,1);
+    halScreen.CursorTimer=tmr_eventcreate(&__uicursorupdate,700,1);
     halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
 
 }
