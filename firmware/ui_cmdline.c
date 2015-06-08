@@ -745,6 +745,8 @@ BYTEPTR uiFindNumberStart()
         break;
     }
 
+    if(start<line) start=line;
+
     // HERE START POINTS TO THE FIRST CHARACTER IN THE NUMBER
 
     if(start>=end) return NULL;  // THERE WAS NO NUMBER

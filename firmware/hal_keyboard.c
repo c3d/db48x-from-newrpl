@@ -635,7 +635,7 @@ void dotKeyHandler(BINT keymsg)
     symbolKeyHandler(keymsg,(BYTEPTR)".",0);
 }
 
-void enterKeyHandler(BINT keymsg)
+void  enterKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -999,9 +999,11 @@ void eexKeyHandler(BINT keymsg)
 
         // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER
         BYTEPTR startnum;
-        BYTEPTR line=(BYTEPTR)(CmdLineCurrentLine+1);
 
         startnum=uiFindNumberStart();
+
+        BYTEPTR line=(BYTEPTR)(CmdLineCurrentLine+1);
+
         if(!startnum) {
             startnum=line+halScreen.CursorPosition;
             // DO NOTHING IF THERE'S ALREADY AN 'E' BEFORE THE CURSOR

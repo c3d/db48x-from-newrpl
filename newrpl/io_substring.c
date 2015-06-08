@@ -184,6 +184,85 @@ string_to_coeff(mpd_uint_t *data, const char *s, const char *dpoint, int r,
 
 
 
+long mpd_strtossize2(const char *number,const char *numend,char **endptr,int base)
+{
+    int digit,neg=0,countdigit=0;
+    long long result=0;
+    char *start=(char *)number;
+
+    // SKIP INITIAL BLANKS
+    while(((*number==' ') || (*number=='\t')) && (number<numend)) ++number;
+
+    if(number>=numend) {
+        errno=EINVAL;
+        return 0;
+    }
+
+
+    if(*number=='+') ++number;
+    else if(*number=='-') { neg=1; ++number; }
+
+    if(number>=numend) {
+        errno=EINVAL;
+        return 0;
+    }
+
+    if(base==16) {
+        if(*number=='0') {
+            if((number[1]=='x')||(number[1]=='X')) number+=2;
+        }
+    }
+
+
+
+
+while(number<numend) {
+    digit=-1;
+    if((*number>='0')&&(*number<='9')) digit=*number-'0';
+    if((*number>='a') &&(*number<='z')) digit=*number-'a'+10;
+    if((*number>='A')&&(*number<='Z')) digit=*number-'A'+10;
+    if(digit<0 || digit>=base) {
+
+        if(!countdigit) number=start;
+        if(neg) result=-result;
+
+        if(result<INT_MIN) {
+            errno=ERANGE;
+            result=INT_MIN;
+        }
+
+            if(result>INT_MAX) {
+                errno=ERANGE;
+                result=INT_MAX;
+            }
+    //SET END POINTER AND RETURN
+        if((endptr)) *endptr=(char *)number;
+        return result;
+    }
+    ++countdigit;
+    ++number;
+    result=result*base+digit;
+}
+
+if(!countdigit) number=start;
+
+if(neg) result=-result;
+if(result<INT_MIN) {
+    errno=ERANGE;
+    result=INT_MIN;
+}
+
+    if(result>INT_MAX) {
+        errno=ERANGE;
+        result=INT_MAX;
+    }
+//SET END POINTER AND RETURN
+if((endptr)) *endptr=(char *)number;
+return result;
+}
+
+
+
 
 static mpd_ssize_t
 strtoexp2(const char *s,const char *send)
@@ -192,8 +271,8 @@ strtoexp2(const char *s,const char *send)
     mpd_ssize_t retval;
 
     errno = 0;
-    retval = mpd_strtossize(s, &end, 10);
-    if (errno == 0 && !(*s != '\0' && end == send))
+    retval = mpd_strtossize2(s, send,&end, 10);
+    if (errno == 0 && !(end == send))
         errno = EINVAL;
 
     return retval;
