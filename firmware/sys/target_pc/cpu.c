@@ -89,3 +89,8 @@ void cpu_flushTLB(void)
 {
 // DUMMY
 }
+
+void cpu_off()
+{
+    // DUMMY
+}

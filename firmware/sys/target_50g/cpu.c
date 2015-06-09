@@ -223,3 +223,25 @@ void cpu_flushTLB(void)
     asm volatile ("mcr p15, 0, %0, c8, c7, 0" : : "r" (value));
 
 }
+
+void cpu_off()
+{
+    // TODO: CHECK FOR SERIAL TRANSMISSIONS, SD CARD WRITE OPERATIONS, ETC BEFORE GOING DOWN
+
+
+    // MASK ALL INTERRUPTS
+    __cpu_intoff();
+
+    // SETUP ON KEY TO WAKE UP
+
+
+
+
+    // SETUP ALARM TO WAKE UP
+
+    // SAVE SOMETHING IN RSTATUS3 AND 4
+
+    // GO OFF!
+
+
+}

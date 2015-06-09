@@ -1194,6 +1194,17 @@ void shiftedalphaKeyHandler(BINT keymsg)
 }
 
 
+void offKeyHandler(BINT keymsg)
+{
+    // GET EVERYTHING READY FOR A WARM-RESTART
+
+    cpu_off();
+    // DOES NOT RETURN
+
+}
+
+
+
 #define DECLARE_KEYHANDLER(name,lsymbol,csymbol) void name##KeyHandler(BINT keymsg) \
                                                     { \
                                                     alphasymbolKeyHandler(keymsg,(BYTEPTR)(lsymbol),(BYTEPTR)(csymbol)); \
