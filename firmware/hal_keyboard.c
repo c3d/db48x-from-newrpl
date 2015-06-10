@@ -659,6 +659,13 @@ void cancelKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
+    if(halGetNotification(N_RIGHTSHIFT)) {
+      // SHIFT-ON MEANS POWER OFF!
+       cpu_off();
+       return;
+
+    }
+
     if((halGetContext()&CONTEXT_INEDITOR)) {
         // END THE COMMAND LINE
      endCmdLine();
@@ -1193,15 +1200,6 @@ void shiftedalphaKeyHandler(BINT keymsg)
 
 }
 
-
-void offKeyHandler(BINT keymsg)
-{
-    // GET EVERYTHING READY FOR A WARM-RESTART
-
-    cpu_off();
-    // DOES NOT RETURN
-
-}
 
 
 
