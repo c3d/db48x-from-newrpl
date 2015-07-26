@@ -1,0 +1,371 @@
+#ifndef DECIMAL_H
+#define DECIMAL_H
+
+
+
+#define MAX_EXPONENT    30000
+
+#define MAX_USERPRECISION 2000
+#define MAX_PRECISION   2016
+
+#define MIN_EXPONENT    (-MAX_EXPONENT-MAX_PRECISION)
+
+
+#define MAX_PRECWORDS   (MAX_PRECISION/8)
+
+#define REGISTER_STORAGE    (2*MAX_PRECWORDS+1)
+
+#define NUM_REGISTERS   26  // FROM 1 TO 32
+
+#define EMPTY_STORAGEBMP (0xffffffffu ^ ((1u<<NUM_REGISTERS)-1))
+
+typedef int BINT;
+typedef long long BINT64;
+typedef unsigned int WORD;
+typedef unsigned long long WORD64;
+
+typedef union {
+    WORD64 w;
+    WORD w32[2];
+} UWORD;
+
+
+typedef struct __REAL {
+    WORD flags;
+    BINT exp;
+    BINT len;
+    BINT *data;
+} REAL;
+
+typedef struct {
+    WORD flags;
+    WORD precdigits;
+    WORD alloc_bmp;
+    BINT regdata[REGISTER_STORAGE*NUM_REGISTERS];
+} CONTEXT;
+
+enum ContextFlags {
+    CTX_OUTOFMEMORY=1,
+    CTX_DIVBYZERO=2,
+    CTX_APPROXIMATED=4
+};
+
+enum RealFlags {
+    F_NEGATIVE=1,           // SIGN BIT
+    F_NOTNORMALIZED=2,      // BIT TO INDICATE IF NUMBER WAS NORMALIZED OR NOT YET
+    F_INFINITY=4,           // INFINITY
+    F_NOTANUMBER=8,         // NAN
+    F_APPROX=16,            // NUMBER IS GIVEN AS APPROXIMATED,
+                            // OR THE RESULT OF AN APPROXIMATED OPERATION
+                            // OR THE RESULT OF AN EXACT OPERATION W/APPROX. OPERANDS
+    F_ERROR=32              // GENERAL ERROR
+};
+
+
+// *************************************************************************
+// ************* LOW LEVEL API FOR DECIMAL LIBRARY ************************
+// *************************************************************************
+
+
+
+extern CONTEXT Context;
+
+extern void initContext(WORD precision);
+
+extern BINT *allocRegister();
+extern void freeRegister(BINT *data);
+
+extern void carry_correct(BINT *start,BINT nwords);
+
+// CHECK THE NUMBER RANGE, CHANGE TO INFINITY OR ZERO AS NEEDED
+extern void checkrange(REAL *number);
+
+// FULLY NORMALIZE A NUMBER
+extern void normalize(REAL *number);
+
+// FASTER ROUNDING ROUTINE WITHOUT SHIFTING
+// APPLY ROUNDING IN-PLACE TO THE GIVEN NUMBER OF DIGITS
+// OR JUST TRUNCATES THE NUMBER IF truncate IS NON-ZERO
+
+extern void round_real(REAL *r,int digits,int truncate);
+
+
+// FULLY NORMALIZE, RANGE CHECK AND ROUND TO SYSTEM PRECISION
+extern void finalize(REAL *number);
+
+// SHIFT AN 8-DIGIT WORD TO THE RIGHT n PLACES (DIVIDE BY 10^n)
+// word MUST BE POSITIVE
+// n = 0-7
+
+extern BINT shift_right(BINT word,BINT digits);
+
+// ISOLATE LOW n DIGITS IN A WORD, DISCARD HI DIGITS
+extern BINT lo_digits(BINT word,BINT digits);
+
+// ISOLATE HIGH (8-n) DIGITS IN A WORD, DISCARD LOW DIGITS
+// CLEAR THE LOWER n DIGITS IN WORD
+extern BINT hi_digits(BINT word,BINT digits);
+
+// ISOLATE HIGH (8-n) DIGITS IN A WORD, ROUND LOW DIGITS
+// CLEAR THE LOWER n DIGITS IN WORD AFTER ROUNDING
+extern BINT hi_digits_rounded(BINT word,BINT digits);
+
+// COUNT NUMBER OF SIGNIFICANT USED DIGITS IN A WORD
+// WORD MUST BE NORMALIZED AND >0
+extern BINT sig_digits(BINT word);
+
+// LEFT-JUSTIFY THE DATA OF THE NUMBER
+// WITHOUT CHANGING THE VALUE
+// ADDS TRAILING ZEROS, SO IT MAY NOT BE POSSIBLE TO DETERMINE
+// THE ACTUAL NUMBER OF SIGNIFICANT DIGITS
+// AFTER THIS OPERATION
+
+extern void left_justify(REAL *number);
+
+
+extern void add_long(BINT *result,BINT *n1start,BINT nwords);
+
+// SAME BUT SUBTRACTING, NO CARRY CHECKS
+
+extern void sub_long(BINT *result,BINT *n1start,BINT nwords);
+
+// SINGLE-STEP SHIFT-AND-ACCUMULATE
+// MULTIPLIES BY 10^N AND ADDS INTO result
+extern void sub_long_shift(BINT *result,BINT *n1start,BINT nwords,BINT shift);
+
+
+extern void zero_words(BINT *ptr,BINT nwords);
+
+extern void copy_words(BINT *ptr,BINT *source,BINT nwords);
+
+
+// ADDS 2 REAL NUMBERS AT FULL PRECISION
+// NUMBERS SHOULD BE NORMALIZED
+extern void add_real(REAL *r,REAL *a,REAL *b);
+
+// SUBTRACTS 2 REAL NUMBERS AT FULL PRECISION
+// NUMBERS SHOULD BE NORMALIZED
+
+extern void sub_real(REAL *result,REAL *a,REAL *b);
+
+// MULTIPLY 2 REAL NUMBERS AND ACCUMULATE RESULT
+// ALL COEFFICIENTS **MUST** BE POSITIVE
+// USES NAIVE METHOD WITH THE KARATSUBA TRICK TO GET A 25% SPEEDUP
+
+extern void mul_real(REAL *r,REAL *a,REAL *b);
+
+// PERFORM KARATSUBA MULTIPLICATION m x m WORDS
+// IF m IS ODD, THE SUBDIVISION LEAVES ONE WORD OUT
+// SO LAST WORD IS A SINGLE X m MULTIPLICATION
+
+extern void mul_long_karatsuba(BINT *result,BINT *a,BINT *b,BINT m);
+
+
+// MULTIPLY 2 REALS AND ACCUMULATE IN result
+// USES FULL KARATSUBA METHOD ADAPTED FOR UNBALANCED OPERANDS TOO
+// THIS IS THE OUTER CODE SHELL WITH PROPER INITIALIZATION
+
+extern void mul_real2(REAL *r,REAL *a,REAL *b);
+
+
+// CONVERT TEXT TO A REAL NUMBER
+// IT IS UTF8 COMPLIANT, WILL RETURN ERROR IF THERE'S
+// ANY INVALID CHARACTERS IN THE text, WITHIN textlen CHARACTERS
+
+extern void text2real(REAL *result,char *text,int textlen);
+
+// CONVERT A REAL TO FORMATTED TEXT AS FOLLOWS:
+
+// MINIMUM BUFFER SIZE = PRECISION * n+1/n + 10
+// n+1/n FOR DIGIT SEPARATOR EVERY n DIGITS
+// 10 = '-',...,'.',...,'e','-','00000','.'
+
+// format = BIT FLAGS AS FOLLOWS:
+// BITS 0-11 = NUMBER OF DIGITS TO DISPLAY (0-4095)
+
+// BIT 12 = 1 -> DECOMPILE FOR CODE
+//        = 0 -> DECOMPILE FOR DISPLAY
+// BIT 13 = 1 -> SCIENTIFIC NOTATION N.NNNEXXX
+//        = 0 -> NORMAL NNNNNN.NNNN
+// BIT 14 = 1 -> ENGINEERING NOTATION, MAKE EXPONENT MULTIPLE OF 3
+//        = 0 -> LEAVE EXPONENT AS-IS
+// BIT 15 = 1 -> FORCE SIGN +1 INSTEAD OF 1
+//        = 0 -> SIGN ONLY IF NEGATIVE
+// BIT 16 = 1 -> FORCE SIGN E+1 ON EXPONENT
+//        = 0 -> EXPONENT SIGN ONLY IF NEGATIVE
+// BIT 17 = 1 -> DO NOT ADD TRAILING DOT FOR APPROX. NUMBERS
+//        = 0 -> APPROX. NUMBERS USE TRAILING DOT
+// BIT 18 = 1 -> ADD TRAILING ZEROS IF NEEDED TO COMPLETE THE NUMBER OF DIGITS (FIX MODE)
+// BIT 19 = 1 -> ADD SEPARATOR EVERY 3 DIGITS FOR INTEGER PART
+// BIT 20 = 1 -> ADD SEPARATOR EVERY 3 DIGITS FOR FRACTION PART
+
+// BITS 21-31 = RESERVED FOR FUTURE USE
+
+// EXPLANATION:
+// BITS 0-11: IN NORMAL FORMAT: MAX. NUMBER OF DECIMAL FIGURES AFTER THE DOT
+//            IN SCIENTIFIC OR ENG NOTATION: MAX TOTAL NUMBER OF SIGNIFICANT FIGURES
+// BIT 12: DECOMPILE FOR CODE IGNORES THE NUMBER OF DIGITS, IT INCLUDES ALL DIGITS ON THE STRING
+//         ALSO IGNORES SEPARATORS EVERY 3 DIGITS, AND IGNORES THE TRAILING DOT DISABLE BIT
+// BIT 13: NNNN.MMMM OR N.NNNMMMMEXXX
+// BIT 14: ONLY IF BIT 13 IS SET, CHANGE THE EXPONENT TO BE A MULTIPLE OF 3
+// BIT 15: DO +1 INSTEAD OF JUST 1
+// BIT 16: DO 1E+10 INSTEAD OF 1E10
+// BIT 17: DON'T SHOW 3. IF A NUMBER IS APPROXIMATED, ONLY 3
+// BIT 18: SHOW NNNN.MMMM0000 WHEN THE NUMBER OF AVAILABLE DIGITS IS LESS THAN THE REQUESTED NUMBER
+// BIT 19: DON'T SHOW ZERO EXPONENT 2.5 INSTEAD OF 2.5E0 IN SCI AND ENG
+// BIT 20: SHOW NNNNNNN.MMM MMM MMM
+// BIT 21: SHOW NNN,NNN,NNN,NNN.MMMMMM
+// BITS 22,23,24,25: NUMBER OF DIGITS IN A GROUP 0-15
+
+// BITS 26-31: RESERVED FOR FUTURE USE
+
+// THE SEPARATORS AND DECIMAL ARE GIVEN IN THE chars ARGUMENT
+// LSB = DECIMAL DOT
+// 2ND = THOUSAND SEPARATOR
+// 3RD = DECIMAL DIGIT SEPARATOR
+// MSB = EXPONENT CHARACTER (E OR e)
+
+// ALL FOUR CHARACTERS ARE PACKED IN A 32-BIT WORD
+enum FORMAT_BITS {
+    FMT_NUMDIGITS=      0x00000fff,
+    FMT_CODE=           0x00001000,
+    FMT_SCI=            0X00002000,
+    FMT_ENG=            0X00004000,
+    FMT_FORCESIGN=      0X00008000,
+    FMT_EXPSIGN=        0X00010000,
+    FMT_NOTRAILDOT=     0X00020000,
+    FMT_TRAILINGZEROS=  0X00040000,
+    FMT_NOZEROEXP=      0X00080000,
+    FMT_FRACSEPARATOR=  0X00100000,
+    FMT_NUMSEPARATOR=   0X00200000,
+    FMT_GROUPDIGITSMSK= 0x03C00000
+
+};
+
+// MACRO TO BE USED WITH THE FMT_XXX CONSTANTS TO DEFINE DIGIT GROUPING
+#define FMT_GROUPDIGITS(a) (((a)&0xf)<<22)
+#define SEP_SPACING(a) (((a)>>22)&0xf)
+
+#define DECIMAL_DOT(a) ((char)((a)&0xff))
+#define THOUSAND_SEP(a) ((char)(((a)>>8)&0xff))
+#define FRAC_SEP(a) ((char)(((a)>>16)&0xff))
+#define EXP_LETTER(a) ((char)(((a)>>24)&0xff))
+
+
+
+extern void real2text(REAL *number,char *buffer,int format,unsigned int chars);
+
+// DIVIDES 2 REALS (OBTAIN DIVISION ONLY, NOT REMAINDER)
+// OBTAIN AT LEAST MAXDIGITS SIGNIFICANT FIGURES
+// USES LONG DIVISION ALGORITHM
+
+extern void div_real(REAL *r,REAL *num,REAL *d,int maxdigits);
+
+
+// DIVIDE A NUMBER USING NEWTON-RAPHSON INVERSION
+
+extern void div_real_nr(REAL *result,REAL *num,REAL *div);
+
+extern void int2real(REAL *result,int number);
+
+
+// *************************************************************************
+// ************* HIGH LEVEL API FOR DECIMAL LIBRARY ************************
+// *************************************************************************
+
+// INITIALIZE A REAL, OBTAIN STORAGE FOR IT.
+
+extern void initReal(REAL *a);
+
+// RELEASE MEMORY USED BY REAL
+
+extern void destroyReal(REAL *a);
+
+// SELECT WORKING PRECISION
+
+extern void setPrecision(BINT prec);
+
+// GET THE CURRENT PRECISION
+
+extern BINT getPrecision();
+
+// COPY CONTENTS OF ONE REAL TO ANOTHER
+extern void copyReal(REAL *dest,REAL *src);
+
+// ADDITION OF 2 REALS
+// DEALS WITH SPECIALS AND FULLY FINALIZE THE ANSWER
+
+extern void addReal(REAL *result,REAL *a,REAL *b);
+
+// SUBTRACTION OF 2 REALS
+// DEALS WITH SPECIALS AND FULLY FINALIZE THE ANSWER
+
+extern void subReal(REAL *result,REAL *a,REAL *b);
+
+// MULTIPLICATION OF 2 REALS
+// DEALS WITH SPECIALS AND FULLY FINALIZES ANSWER
+
+extern void mulReal(REAL *result,REAL *a,REAL *b);
+
+
+// DIVIDE 2 REALS, DEAL WITH SPECIALS
+
+extern void divReal(REAL *result,REAL *a,REAL *b);
+
+// DIVIDE 2 REALS, RETURN INTEGER DIVISION AND REMAINDER, DEAL WITH SPECIALS
+
+extern void divmodReal(REAL *quotient,REAL *remainder,REAL *a,REAL *b);
+
+
+
+// ROUND A REAL NUMBER TO A CERTAIN NUMBER OF DIGITS AFTER DECIMAL DOT
+// IF NFIGURES IS NEGATIVE, NFIGURES = TOTAL NUMBER OF SIGNIFICANT DIGITS
+// HANDLE SPECIALS
+
+extern void roundReal(REAL *result,REAL *num,BINT nfigures);
+
+// TRUNCATE A REAL NUMBER TO A CERTAIN NUMBER OF DIGITS AFTER DECIMAL DOT
+// IF NFIGURES IS NEGATIVE, NFIGURES = TOTAL NUMBER OF SIGNIFICANT DIGITS
+// HANDLE SPECIALS
+
+extern void truncReal(REAL *result,REAL *num,BINT nfigures);
+
+// RETURN THE INTEGER PART (TRUNCATED)
+extern void ipReal(REAL *result,REAL *num);
+
+// RETURN THE FRACTION PART ONLY
+extern void fracReal(REAL *result,REAL *num);
+
+// COMPARISON OPERATORS
+extern BINT ltReal(REAL *a,REAL *b);
+extern BINT gtReal(REAL *a,REAL *b);
+
+extern BINT lteReal(REAL *a,REAL *b);
+extern BINT gteReal(REAL *a,REAL *b);
+
+extern BINT eqReal(REAL *a,REAL *b);
+
+// RETURN -1 IF A<B, 0 IF A==B AND 1 IF A>B, -2 IF NAN
+// NAN HANDLING IS NOT CONSISTENT WITH OTHER TESTS
+// ALL OTHER TESTS FAIL ON NAN, THERE'S NO FAIL CODE IN cmpReal
+
+extern BINT cmpReal(REAL *a,REAL *b);
+
+// *************************************************************************
+// **************************** END DECIMAL LIBRARY ************************
+// *************************************************************************
+
+
+
+
+
+
+
+
+
+
+
+
+
+#endif // DECIMAL_H
+
