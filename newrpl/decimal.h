@@ -143,6 +143,11 @@ extern void copy_words(BINT *ptr,BINT *source,BINT nwords);
 // NUMBERS SHOULD BE NORMALIZED
 extern void add_real(REAL *r,REAL *a,REAL *b);
 
+// PERFORMS r=a+b*mult, WITH 0<mult<31
+// NUMBERS SHOULD BE NORMALIZED
+extern void add_real_mul(REAL *r,REAL *a,REAL *b,BINT mult);
+
+
 // SUBTRACTS 2 REAL NUMBERS AT FULL PRECISION
 // NUMBERS SHOULD BE NORMALIZED
 
@@ -350,6 +355,9 @@ extern BINT eqReal(REAL *a,REAL *b);
 // ALL OTHER TESTS FAIL ON NAN, THERE'S NO FAIL CODE IN cmpReal
 
 extern BINT cmpReal(REAL *a,REAL *b);
+
+// TRUE=1 IF A NUMBER IS ZERO, 0 OTHERWISE
+extern BINT iszeroReal(REAL *n);
 
 // *************************************************************************
 // **************************** END DECIMAL LIBRARY ************************

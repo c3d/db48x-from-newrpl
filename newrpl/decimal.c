@@ -3646,6 +3646,15 @@ BINT cmpReal(REAL *a,REAL *b)
     return 1;
 }
 
+
+BINT iszeroReal(REAL *n)
+{
+    if(n->flags&(F_INFINITY|F_NOTANUMBER)) return 0;
+    if(n->len!=1) return 0;
+    if(n->data[0]!=0) return 0;
+    return 1;
+}
+
 // *************************************************************************
 // **************************** END DECIMAL LIBRARY ************************
 // *************************************************************************
