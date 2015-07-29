@@ -1331,7 +1331,6 @@ inline int sig_digits(BINT word)
     }
 }
 
-
 // LEFT-JUSTIFY THE DATA OF THE NUMBER
 // WITHOUT CHANGING THE VALUE
 // ADDS TRAILING ZEROS, SO IT MAY NOT BE POSSIBLE TO DETERMINE
@@ -1352,6 +1351,26 @@ long_shift(number->data,number->len,ndig);  // AND DO THE SHIFT
 }
 
 
+// JUSTIFY THE DATA OF THE NUMBER SO THAT DECIMAL POINT IS AT WORD BOUNDARY
+// WITHOUT CHANGING THE VALUE
+// ADDS TRAILING ZEROS, SO IT MAY NOT BE POSSIBLE TO DETERMINE
+// THE ACTUAL NUMBER OF SIGNIFICANT DIGITS
+// AFTER THIS OPERATION
+
+void int_justify(REAL *number)
+{
+    if(number->exp>=0) return;
+
+int ndig=(-number->exp)&7;
+
+if(!ndig) return; // NOTHING TO SHIFT
+
+ndig=8-ndig;        // DIGITS NEEDED FOR THE SHIFT TO LINE-UP THE EXPONENT WITH A MULTIPLE OF 8
+
+number->exp-=ndig;  // CORRECT THE EXPONENT
+long_shift(number->data,number->len,ndig);  // AND DO THE SHIFT
+
+}
 
 
 
@@ -1767,6 +1786,17 @@ void sub_real(REAL *result,REAL *a,REAL *b)
     add_real(result,a,&c);
 }
 
+void sub_real_mul(REAL *r, REAL *a, REAL *b, BINT mult)
+{
+    REAL c;
+    // MAKE A NEGATIVE b WITH THE SAME DATA
+    c.data=b->data;
+    c.exp=b->exp;
+    c.flags=b->flags^F_NEGATIVE;
+    c.len=b->len;
+    // AND USE STANDARD ADDITION
+    add_real_mul(r,a,&c,mult);
+}
 
 
 // ACCUMULATE SMALL INTEGER INTO AN EXISTING REAL (MODIFYING THE ARGUMENT)
@@ -3251,9 +3281,15 @@ void truncReal(REAL *result,REAL *num,BINT nfigures)
 
 
 // RETURN THE INTEGER PART (TRUNCATED)
-inline void ipReal(REAL *result,REAL *num)
+// RETURN THE NUMBER ALIGNED AND RIGHT-JUSTIFIED IF align IS TRUE
+inline void ipReal(REAL *result,REAL *num,BINT align)
 {
     truncReal(result,num,0);
+
+    if(align) {
+        int_justify(result);
+        normalize(result);
+    }
 }
 
 // RETURN THE FRACTION PART ONLY
@@ -3646,6 +3682,7 @@ BINT cmpReal(REAL *a,REAL *b)
     return 1;
 }
 
+// TRUE IF REAL IS ZERO
 
 BINT iszeroReal(REAL *n)
 {
@@ -3654,6 +3691,331 @@ BINT iszeroReal(REAL *n)
     if(n->data[0]!=0) return 0;
     return 1;
 }
+
+BINT inBINTRange(REAL *n)
+{
+const BINT const max_bint[]={
+    2147483647,
+    214748364,
+    21474836,
+    2147483,
+    214748,
+    21474,
+    2147,
+    214,
+    21,
+    2
+};
+    int digits=((n->len-1)<<3)+sig_digits(n->data[n->len-1])+n->exp;
+
+    if(digits<10) return 1;
+    if(digits>10) return 0;
+
+    // THE NUMBER HAS EXACTLY 10 DIGITS
+    if(n->exp>=0) {
+        BINT64 result;
+        if(n->len>1) result=n->data[1]*100000000LL;
+        else result=0;
+        result+=n->data[0];
+        // THE NUMBER IS MISSING SOME DIGITS
+        if(result<=max_bint[n->exp]) return 1;
+        return 0;
+    }
+
+    // NEGATIVE EXPONENT
+    int idx=(-n->exp)>>3;
+
+    switch((-n->exp)&7) {
+    case 0:
+        if(n->data[idx+1]>21) return 0;
+        if(n->data[idx+1]<21) return 1;
+        if(n->data[idx]<=47483647) return 1;
+        return 0;
+    case 1:
+    {
+        if(n->data[idx+1]>214) return 0;
+        if(n->data[idx+1]<214) return 1;
+        if(shift_right(n->data[idx],1)<=7483647) return 1;
+        return 0;
+    }
+    case 2:
+    {
+        if(n->data[idx+1]>2147) return 0;
+        if(n->data[idx+1]<2147) return 1;
+        if(shift_right(n->data[idx],2)<=483647) return 1;
+        return 0;
+    }
+
+    case 3:
+    {
+        if(n->data[idx+1]>21474) return 0;
+        if(n->data[idx+1]<21474) return 1;
+        if(shift_right(n->data[idx],3)<=83647) return 1;
+        return 0;
+    }
+
+    case 4:
+    {
+        if(n->data[idx+1]>214748) return 0;
+        if(n->data[idx+1]<214748) return 1;
+        if(shift_right(n->data[idx],4)<=3647) return 1;
+        return 0;
+    }
+
+    case 5:
+    {
+        if(n->data[idx+1]>2147483) return 0;
+        if(n->data[idx+1]<2147483) return 1;
+        if(shift_right(n->data[idx],5)<=647) return 1;
+        return 0;
+    }
+
+    case 6:
+    {
+        if(n->data[idx+1]>21474836) return 0;
+        if(n->data[idx+1]<21474836) return 1;
+        if(shift_right(n->data[idx],6)<=47) return 1;
+        return 0;
+    }
+
+    case 7:
+    {
+        if(n->data[idx+2]>2) return 0;
+        if(n->data[idx+2]<2) return 1;
+        if(n->data[idx+1]>14748364) return 0;
+        if(n->data[idx+1]<14748364) return 1;
+        if(shift_right(n->data[idx],7)<=7) return 1;
+    }
+    }
+return 0;
+
+}
+
+
+
+
+
+BINT inBINT64Range(REAL *n)
+    {
+    const BINT64 const max_bint64[]={
+        9223372036854775807,
+        922337203685477580,
+        92233720368547758,
+        9223372036854775,
+        922337203685477,
+        92233720368547,
+        9223372036854,
+        922337203685,
+        92233720368,
+        9223372036,
+        922337203,
+        92233720,
+        9223372,
+        922337,
+        92233,
+        9223,
+        922,
+        92,
+        9
+    };
+
+        // 922 33720368 54775807
+
+        int digits=((n->len-1)<<3)+sig_digits(n->data[n->len-1])+n->exp;
+
+        if(digits<19) return 1;
+        if(digits>19) return 0;
+
+        // THE NUMBER HAS EXACTLY 19 DIGITS
+        if(n->exp>0) {
+            BINT64 result;
+            if(n->len>2) result=n->data[2]*1000000000000000LL;
+            else result=0;
+            if(n->len>1) result+=n->data[1]*100000000LL;
+            result+=n->data[0];
+            // THE NUMBER IS MISSING SOME DIGITS
+            if(result<=max_bint64[n->exp]) return 1;
+            return 0;
+        }
+        if(n->exp==0) {
+            if(n->data[2]<922) return 1;
+            if(n->data[2]>922) return 0;
+            if(n->data[1]<33720368) return 1;
+            if(n->data[1]>33720368) return 0;
+            if(n->data[0]<=54775807) return 1;
+            return 0;
+        }
+
+        // NEGATIVE EXPONENT
+        int idx=(-n->exp)>>3;
+
+        switch((-n->exp)&7) {
+        case 0:
+            if(n->data[idx+2]<922) return 1;
+            if(n->data[idx+2]>922) return 0;
+            if(n->data[idx+1]<33720368) return 1;
+            if(n->data[idx+1]>33720368) return 0;
+            if(n->data[idx]<=54775807) return 1;
+            return 0;
+        case 1:
+        {
+            if(n->data[idx+2]<9223) return 1;
+            if(n->data[idx+2]>9223) return 0;
+            if(n->data[idx+1]<37203685) return 1;
+            if(n->data[idx+1]>37203685) return 0;
+            if(shift_right(n->data[idx],1)<=4775807) return 1;
+            return 0;
+        }
+        case 2:
+        {
+            if(n->data[idx+2]<92233) return 1;
+            if(n->data[idx+2]>92233) return 0;
+            if(n->data[idx+1]<72036854) return 1;
+            if(n->data[idx+1]>72036854) return 0;
+            if(shift_right(n->data[idx],2)<=775807) return 1;
+            return 0;
+        }
+
+        case 3:
+        {
+            if(n->data[idx+2]<922337) return 1;
+            if(n->data[idx+2]>922337) return 0;
+            if(n->data[idx+1]<20368547) return 1;
+            if(n->data[idx+1]>20368547) return 0;
+            if(shift_right(n->data[idx],3)<=75807) return 1;
+            return 0;
+        }
+
+        case 4:
+        {
+            if(n->data[idx+2]<9223372) return 1;
+            if(n->data[idx+2]>9223372) return 0;
+            if(n->data[idx+1]<3685477) return 1;
+            if(n->data[idx+1]>3685477) return 0;
+            if(shift_right(n->data[idx],4)<=5807) return 1;
+            return 0;
+        }
+
+        case 5:
+        {
+            if(n->data[idx+2]<92233720) return 1;
+            if(n->data[idx+2]>92233720) return 0;
+            if(n->data[idx+1]<36854775) return 1;
+            if(n->data[idx+1]>36854775) return 0;
+            if(shift_right(n->data[idx],5)<=807) return 1;
+            return 0;
+        }
+
+        case 6:
+        {
+            if(n->data[idx+3]<9) return 1;
+            if(n->data[idx+3]>9) return 0;
+            if(n->data[idx+2]<22337203) return 1;
+            if(n->data[idx+2]>22337203) return 0;
+            if(n->data[idx+1]<68547758) return 1;
+            if(n->data[idx+1]>68547758) return 0;
+            if(shift_right(n->data[idx],6)<=07) return 1;
+            return 0;
+        }
+
+        case 7:
+        {
+            if(n->data[idx+3]<92) return 1;
+            if(n->data[idx+3]>92) return 0;
+            if(n->data[idx+2]<23372036) return 1;
+            if(n->data[idx+2]>23372036) return 0;
+            if(n->data[idx+1]<85477580) return 1;
+            if(n->data[idx+1]>85477580) return 0;
+            if(shift_right(n->data[idx],7)<=7) return 1;
+            return 0;
+        }
+       }
+    return 0;
+
+    }
+
+
+
+// TRUE IF A REAL IS INTEGER
+// DOES NOT NEED TO BE ALIGNED
+
+BINT isIntegerReal(REAL *n)
+{
+if(n->exp>=0) return 1;
+
+int k;
+for(k=0;k<((-n->exp)>>3);++k) if(n->data[k]!=0) return 0;
+
+if(lo_digits(n->data[(-n->exp)>>3],(-n->exp)&7)!=0) return 0;
+
+return 1;
+}
+
+
+// EXTRACT A 32-BIT INTEGER FROM A REAL
+BINT getBINTReal(REAL *n)
+{
+    BINT result;
+
+        int digits=((n->len-1)<<3)+sig_digits(n->data[n->len-1])+n->exp;
+
+        // THIS SHOULDN'T HAPPEN, USER SHOULD CHECK IF WITHIN RANGE OF A BINT BEFORE CALLING
+        if(digits>10) return 0;
+
+        // THE NUMBER HAS EXACTLY 10 DIGITS
+        if(n->exp>=0) {
+            if(n->len>1) result=n->data[1]*100000000;
+            else result=0;
+            result+=n->data[0];
+            // THE NUMBER IS MISSING SOME DIGITS, RESTORE THEM
+            if(n->exp>7) result*=100000000;
+            if(n->flags&F_NEGATIVE) result=-result;
+            return result*shiftmul_K2[n->exp&7];
+        }
+
+        // NEGATIVE EXPONENT
+        int idx=(-n->exp)>>3;
+        int nwords=n->len-idx;
+        int rshift=((-n->exp)&7);
+        int lshift=(8-rshift)&7;
+        BINT carry=0;
+        result=0;
+        while(nwords--) {
+            result*=100000000;
+            result+=carry*shiftmul_K2[lshift];
+            result+=shift_right(n->data[idx+nwords],rshift);
+            carry=lo_digits(n->data[idx+nwords],rshift);
+        }
+
+        if(n->flags&F_NEGATIVE) return -result;
+        return result;
+
+}
+
+// EXTRACT A 64-BIT INTEGER FROM A REAL
+BINT getBINT64Real(REAL *n)
+{
+    REAL tmp;
+    BINT64 result;
+    tmp.data=allocRegister();
+    ipReal(&tmp,n,1);
+
+    if(!inBINT64Range(&tmp)) {
+        // TODO: OVERFLOW ERROR
+        freeRegister(tmp.data);
+        return 0;
+    }
+
+    if(tmp.len==3) result=(BINT64)tmp.data[2]*10000000000000000LL+(BINT64)tmp.data[1]*100000000LL+tmp.data[0];
+    else if(tmp.len==2) result=(BINT64)tmp.data[1]*100000000LL+tmp.data[0];
+            else result=tmp.data[0];
+    if(tmp.flags&F_NEGATIVE) result=-result;
+    freeRegister(tmp.data);
+    return result;
+}
+
+
+
 
 // *************************************************************************
 // **************************** END DECIMAL LIBRARY ************************

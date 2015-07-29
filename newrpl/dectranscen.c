@@ -897,7 +897,7 @@ static void atanh_2_table(int exponent,REAL *real)
         return;
     }
 
-    uint8_t *byte=(uint8_t *)&(atanh_2_stream[atanh_2_offsets[exponent-1]]);
+    uint8_t *byte=(uint8_t *)&(atanh_2_8_stream[atanh_2_8_offsets[exponent-1]]);
 
 
     int words=(Context.precdigits>>3)+2;
@@ -924,7 +924,7 @@ static void atanh_5_table(int exponent,REAL *real)
         return;
     }
 
-    uint8_t *byte=(uint8_t *)&(atanh_5_stream[atanh_5_offsets[exponent-1]]);
+    uint8_t *byte=(uint8_t *)&(atanh_5_8_stream[atanh_5_8_offsets[exponent-1]]);
 
     int words=(Context.precdigits>>3)+2;
     if(words>REAL_PRECISION_MAX/8) words=REAL_PRECISION_MAX/8;
@@ -1055,35 +1055,46 @@ for(exponent=startexp;exponent<startexp+digits;++exponent)
 
 
     // ITERATION WITH 1
+    tmpexp=ynext->exp;
     ynext->exp-=exponent;
 
     if(!(znext->flags&F_NEGATIVE)) {
-        mpd_qadd(x,ynext,xnext,&mpContext,&status);  // x(i+1)=x(i)+S(i)*y(i)
+        add_real(x,xnext,ynext);  // x(i+1)=x(i)+S(i)*y(i)
     }
     else {
-        mpd_qsub(x,xnext,ynext,&mpContext,&status);  // x(i+1)=x(i)+S(i)*y(i)
+        sub_real(x,xnext,ynext);  // x(i+1)=x(i)+S(i)*y(i)
     }
-    ynext->exp+=exponent;
+    ynext->exp=tmpexp;
     xnext->exp-=exponent;
     if(!(znext->flags&F_NEGATIVE)) {
-        mpd_qadd(y,ynext,xnext,&mpContext,&status);  // x(i+1)=x(i)+S(i)*y(i)
+        add_real(y,ynext,xnext);  // x(i+1)=x(i)+S(i)*y(i)
     }
     else {
-        mpd_qsub(y,ynext,xnext,&mpContext,&status);  // x(i+1)=x(i)+S(i)*y(i)
+        sub_real(y,ynext,xnext);  // x(i+1)=x(i)+S(i)*y(i)
     }
-    xnext->exp+=exponent;
+    //xnext->exp+=exponent;
 
     atanh_1_table(exponent,&decRReg[4]);     // GET Alpha(i)
-    decRReg[4].flags|=znext->flags&F_NEGATIVE;
+    decRReg[4].flags=znext->flags&F_NEGATIVE;
 
-    mpd_qsub(z,znext,&decRReg[4],&mpContext,&status);  // z(i+1)=z(i)-Alpha(i)
+    sub_real(z,znext,&decRReg[4]);  // z(i+1)=z(i)-Alpha(i)
+
+    normalize(x);
+    normalize(y);
+    normalize(z);
+
 
 }
 // THE FINAL RESULTS ARE ALWAYS IN RREG[0], RREG[1] AND RREG[2]
 
 // FINAL ROTATION SHOULD NOT AFFECT THE Kh CONSTANT
-mpd_qfma(xnext,z,y,x,&mpContext,&status);  // x(i+1)=x(i)+S(i)*y(i)
-mpd_qfma(ynext,z,x,y,&mpContext,&status);  // y(i+1)=y(i)+S(i)*x(i)
+mul_real(&decRReg[3],z,y);
+normalize(&decRReg[3]);
+add_real(xnext,x,&decRReg[3]); // x(i+1)=x(i)+S(i)*y(i)
+mul_real(&decRReg[3],z,x);
+normalize(&decRReg[3]);
+
+add_real(ynext,y,&decRReg[3]);  // y(i+1)=y(i)+S(i)*x(i)
 
 // THE FINAL RESULTS ARE ALWAYS IN RREG[6] AND RREG[7]
 
@@ -1099,6 +1110,7 @@ static void CORDIC_Hyp_Rotational_exp(int digits,int startexp)
 int exponent;
 uint32_t status;
 REAL *x,*z;
+REAL xp;
 REAL *xnext,*znext;
 
 // USE decRReg[0]=z; decRReg[1]=x;
@@ -1115,72 +1127,86 @@ for(exponent=startexp;exponent<startexp+digits;++exponent)
 {
     // ITERATION W/5
 
-    // decRReg[3]= (5*10^-exponent)*y
-    mpd_qadd(&decRReg[3],x,x,&mpContext,&status);
-    mpd_qadd(&decRReg[4],&decRReg[3],&decRReg[3],&mpContext,&status);
-    mpd_qadd(&decRReg[3],&decRReg[4],x,&mpContext,&status);
+    xp.data=x->data;
+    xp.exp=x->exp-exponent;
+    xp.flags=x->flags;
+    xp.len=x->len;
 
-    decRReg[3].exp-=exponent;
-    if(!(z->flags&F_NEGATIVE)) decRReg[3].flags&=~F_NEGATIVE;
-    else decRReg[3].flags|=F_NEGATIVE;
-
-    mpd_qadd(xnext,&decRReg[3],x,&mpContext,&status);  // y(i+1)=y(i)+S(i)*x(i)
+    if(!(z->flags&F_NEGATIVE)) add_real_mul(xnext,x,&xp,5);
+    else sub_real_mul(xnext,x,&xp,5);
 
     atanh_5_table(exponent,&decRReg[4]);     // GET Alpha(i)
-    decRReg[4].flags|=z->flags&F_NEGATIVE;
+    decRReg[4].flags=z->flags&F_NEGATIVE;
 
-    mpd_qsub(znext,z,&decRReg[4],&mpContext,&status);  // z(i+1)=z(i)-Alpha(i)
+    sub_real(znext,z,&decRReg[4]);  // z(i+1)=z(i)-Alpha(i)
 
+    normalize(xnext);
+    normalize(znext);
     // FIRST ITERATION WITH 2
 
-    // decRReg[3]= (2*10^-exponent)*y
-    mpd_qadd(&decRReg[3],xnext,xnext,&mpContext,&status);
-    decRReg[3].exp-=exponent;
-    if(!(znext->flags&F_NEGATIVE)) decRReg[3].flags&=~F_NEGATIVE;
-    else decRReg[3].flags|=F_NEGATIVE;
+    xp.data=xnext->data;
+    xp.exp=xnext->exp-exponent;
+    xp.flags=xnext->flags;
+    xp.len=xnext->len;
 
-    mpd_qadd(x,&decRReg[3],xnext,&mpContext,&status);  // y(i+1)=y(i)+S(i)*x(i)
+    if(!(znext->flags&F_NEGATIVE)) add_real_mul(x,xnext,&xp,2); // x(i+1)=x(i)+S(i)*y(i)
+    else sub_real_mul(x,xnext,&xp,2);
+
 
     atanh_2_table(exponent,&decRReg[4]);     // GET Alpha(i)
-    decRReg[4].flags|=znext->flags&F_NEGATIVE;
+    decRReg[4].flags=znext->flags&F_NEGATIVE;
 
-    mpd_qsub(z,znext,&decRReg[4],&mpContext,&status);  // z(i+1)=z(i)-Alpha(i)
+    sub_real(z,znext,&decRReg[4]);  // z(i+1)=z(i)-Alpha(i)
+
+
+    normalize(x);
+    normalize(z);
 
     // SECOND ITERATION WITH 2
+    xp.data=x->data;
+    xp.exp=x->exp-exponent;
+    xp.flags=x->flags;
+    xp.len=x->len;
 
-    mpd_qadd(&decRReg[3],x,x,&mpContext,&status);
-    decRReg[3].exp-=exponent;
-    if(!(z->flags&F_NEGATIVE)) decRReg[3].flags&=~F_NEGATIVE;
-    else decRReg[3].flags|=F_NEGATIVE;
+    if(!(z->flags&F_NEGATIVE)) add_real_mul(xnext,x,&xp,2); // y(i+1)=y(i)+S(i)*x(i)
+    else sub_real_mul(xnext,x,&xp,2);
 
-    mpd_qadd(xnext,&decRReg[3],x,&mpContext,&status);  // y(i+1)=y(i)+S(i)*x(i)
+    decRReg[4].flags=z->flags&F_NEGATIVE;
 
-    decRReg[4].flags&=~F_NEGATIVE;
-    decRReg[4].flags|=z->flags&F_NEGATIVE;
+    sub_real(znext,z,&decRReg[4]);  // z(i+1)=z(i)-Alpha(i)
 
-    mpd_qsub(znext,z,&decRReg[4],&mpContext,&status);  // z(i+1)=z(i)-Alpha(i)
+    normalize(xnext);
+    normalize(znext);
+
 
     // ITERATION WITH 1
-    mpd_copy(&decRReg[3],xnext,&mpContext);
-    decRReg[3].exp-=exponent;
+    xp.data=xnext->data;
+    xp.exp=xnext->exp-exponent;
+    xp.flags=xnext->flags;
+    xp.len=xnext->len;
 
     if(!(znext->flags&F_NEGATIVE)) {
-        mpd_qadd(x,&decRReg[3],xnext,&mpContext,&status);  // x(i+1)=x(i)+S(i)*y(i)
+        add_real(x,xnext,&xp);  // x(i+1)=x(i)+S(i)*y(i)
     }
     else {
-        mpd_qsub(x,xnext,&decRReg[3],&mpContext,&status);  // x(i+1)=x(i)+S(i)*y(i)
+        sub_real(x,xnext,&xp);  // x(i+1)=x(i)+S(i)*y(i)
     }
 
     atanh_1_table(exponent,&decRReg[4]);     // GET Alpha(i)
-    decRReg[4].flags|=znext->flags&F_NEGATIVE;
+    decRReg[4].flags=znext->flags&F_NEGATIVE;
 
-    mpd_qsub(z,znext,&decRReg[4],&mpContext,&status);  // z(i+1)=z(i)-Alpha(i)
+    sub_real(z,znext,&decRReg[4]);  // z(i+1)=z(i)-Alpha(i)
+
+    normalize(x);
+    normalize(z);
 
 }
 // THE FINAL RESULTS ARE ALWAYS IN RREG[0], RREG[1] AND RREG[2]
 
 // FINAL ROTATION SHOULD NOT AFFECT THE Kh CONSTANT
-mpd_qfma(xnext,z,x,x,&mpContext,&status);  // x(i+1)=x(i)+S(i)*y(i)
+mul_real(&decRReg[3],z,x);
+normalize(&decRReg[3]);
+add_real(xnext,x,&decRReg[3]);  // x(i+1)=x(i)+S(i)*y(i)
 
 // THE FINAL RESULTS ARE ALWAYS IN RREG[6] AND RREG[7]
 
@@ -1188,7 +1214,7 @@ mpd_qfma(xnext,z,x,x,&mpContext,&status);  // x(i+1)=x(i)+S(i)*y(i)
 // SO ROUNDING/FINALIZING IS NEEDED
 }
 
-
+/*
 
 // CALCULATES EXP(x0), AND RETURNS IT IN RREG[0]
 
@@ -1203,21 +1229,23 @@ isneg=x0->flags&F_NEGATIVE;
 x0->flags&=~F_NEGATIVE;
 
 // ALWAYS: NEED TO WORK ON PRECISION MULTIPLE OF 9
-mpContext.prec+=MPD_RDIGITS;
+Context.precdigits+=8;
 // GET ANGLE MODULO LN(10)
 REAL ln10,ln10_2,Kh;
 
-const_ln10(&ln10);
-const_ln10_2(&ln10_2);
-const_Kh1(&Kh);
+decconst_ln10(&ln10);
+decconst_ln10_2(&ln10_2);
+decconst_Kh1(&Kh);
 
-mpd_divmod(&decRReg[1],&decRReg[0],x0,&ln10,&mpContext);
+divmodReal(&decRReg[1],&decRReg[0],x0,&ln10);
 
 // HERE decRReg[0] HAS THE REMAINDER THAT WE NEED TO WORK WITH
 
 // THE QUOTIENT NEEDS TO BE ADDED TO THE EXPONENT, SO IT SHOULD BE +/-30000
-uint32_t status=0;
-BINT64 quotient=mpd_qget_i64(&decRReg[1],&status);
+// MAKE SURE THE INTEGER IS ALIGNED AND RIGHT-JUSTIFIED
+ipReal(&decRReg[1],&decRReg[1],1);
+if()
+BINT64 quotient=getBINT64Real(&decRReg[1]);
 if(status) {
     if(isneg) {
         decRReg[0].data[0]=0; // IF THE NUMBER IS SO BIG, THEN EXP(-Inf)=0
@@ -1265,7 +1293,7 @@ memcpy(decRReg[2].data,Constant_Kh1,REAL_PRECISION_MAX/MPD_RDIGITS*sizeof(uint32
 decRReg[2].exp=-(REAL_PRECISION_MAX-1);
 decRReg[2].flags&=MPD_DATAFLAGS;
 */
-
+/*
 decRReg[1].len=decRReg[2].len=1;
 decRReg[1].digits=decRReg[2].digits=1;
 decRReg[1].data[0]=decRReg[2].data[0]=1;
@@ -1775,7 +1803,7 @@ void hyp_sqrt(REAL *x0)
 
     }
 */
-
+/*
     if(mpd_iszero(x0)) {
 
      decRReg[0].digits=1;
@@ -1899,3 +1927,4 @@ void hyp_acosh(REAL *x)
 
 
 
+*/
