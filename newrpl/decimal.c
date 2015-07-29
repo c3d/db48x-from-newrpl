@@ -1084,6 +1084,34 @@ BINT shift_right(BINT word,BINT digits)
 
 }
 
+// SHIFT AND SPLIT DIGITS
+// RETURN A 64-BIT NUMBER WITH THE LOW N DIGITS IN THE LOW WORD
+// AND THE HIGH (8-N) DIGITS IN THE HIGH WORD
+BINT64 shift_split(BINT word,BINT digits)
+{
+    if(!digits) return 0;
+
+    BINT shift=(8-digits)&7;
+
+    if(!shift) return word;
+    BINT *consts=(BINT *)shift_constants+(shift<<1);
+
+    UWORD tmp;
+
+    tmp.w=word*(WORD64)*consts;
+
+    tmp.w32[0]=word-tmp.w32[1]*shift_constants[((digits&7)<<1)+1];
+
+    // DO ONE FINAL CARRY CORRECTION TO PROPERLY SPLIT THE DIGITS
+    if(tmp.w32[0]>=(WORD)shift_constants[((digits&7)<<1)+1]) ++tmp.w32[1];
+
+    // HERE tmp.w32[0] HAS THE LOW DIGITS
+    // tmp.w32[1] HAS THE HIGH DIGITS, RIGHT JUSTIFIED
+    return (BINT64)tmp.w;
+
+}
+
+
 // ISOLATE LOW n DIGITS IN A WORD, DISCARD HI DIGITS
 
 BINT lo_digits(BINT word,BINT digits)
@@ -3962,11 +3990,12 @@ BINT getBINTReal(REAL *n)
         // THIS SHOULDN'T HAPPEN, USER SHOULD CHECK IF WITHIN RANGE OF A BINT BEFORE CALLING
         if(digits>10) return 0;
 
-        // THE NUMBER HAS EXACTLY 10 DIGITS
+        // THE NUMBER HAS EXACTLY 19 DIGITS
         if(n->exp>=0) {
             if(n->len>1) result=n->data[1]*100000000;
             else result=0;
             result+=n->data[0];
+
             // THE NUMBER IS MISSING SOME DIGITS, RESTORE THEM
             if(n->exp>7) result*=100000000;
             if(n->flags&F_NEGATIVE) result=-result;
@@ -3979,12 +4008,14 @@ BINT getBINTReal(REAL *n)
         int rshift=((-n->exp)&7);
         int lshift=(8-rshift)&7;
         BINT carry=0;
+        BINT64 tmp;
         result=0;
         while(nwords--) {
-            result*=100000000;
+            result*=100000000LL;
             result+=carry*shiftmul_K2[lshift];
-            result+=shift_right(n->data[idx+nwords],rshift);
-            carry=lo_digits(n->data[idx+nwords],rshift);
+            tmp=shift_split(n->data[idx+nwords],rshift);
+            result+=tmp>>32;
+            carry=tmp&0xffffffff;
         }
 
         if(n->flags&F_NEGATIVE) return -result;
@@ -3993,25 +4024,47 @@ BINT getBINTReal(REAL *n)
 }
 
 // EXTRACT A 64-BIT INTEGER FROM A REAL
-BINT getBINT64Real(REAL *n)
+BINT64 getBINT64Real(REAL *n)
 {
-    REAL tmp;
     BINT64 result;
-    tmp.data=allocRegister();
-    ipReal(&tmp,n,1);
 
-    if(!inBINT64Range(&tmp)) {
-        // TODO: OVERFLOW ERROR
-        freeRegister(tmp.data);
-        return 0;
-    }
+        int digits=((n->len-1)<<3)+sig_digits(n->data[n->len-1])+n->exp;
 
-    if(tmp.len==3) result=(BINT64)tmp.data[2]*10000000000000000LL+(BINT64)tmp.data[1]*100000000LL+tmp.data[0];
-    else if(tmp.len==2) result=(BINT64)tmp.data[1]*100000000LL+tmp.data[0];
-            else result=tmp.data[0];
-    if(tmp.flags&F_NEGATIVE) result=-result;
-    freeRegister(tmp.data);
-    return result;
+        // THIS SHOULDN'T HAPPEN, USER SHOULD CHECK IF WITHIN RANGE OF A BINT BEFORE CALLING
+        if(digits>19) return 0;
+
+        // THE NUMBER HAS EXACTLY 10 DIGITS
+        if(n->exp>=0) {
+            if(n->len>2) result=n->data[2]*1000000000000000LL;
+            else result=0;
+            if(n->len>1) result+=n->data[1]*100000000LL;
+            result+=n->data[0];
+
+            // THE NUMBER IS MISSING SOME DIGITS, RESTORE THEM
+            if(n->exp>15) result*=10000000000000000LL;
+            else if(n->exp>7) result*=100000000LL;
+            if(n->flags&F_NEGATIVE) result=-result;
+            return result*shiftmul_K2[n->exp&7];
+        }
+
+        // NEGATIVE EXPONENT
+        int idx=(-n->exp)>>3;
+        int nwords=n->len-idx;
+        int rshift=((-n->exp)&7);
+        int lshift=(8-rshift)&7;
+        BINT carry=0;
+        BINT64 tmp;
+        result=0;
+        while(nwords--) {
+            result*=100000000;
+            result+=carry*shiftmul_K2[lshift];
+            tmp=shift_split(n->data[idx+nwords],rshift);
+            result+=tmp>>32;
+            carry=tmp&0xffffffff;
+        }
+
+        if(n->flags&F_NEGATIVE) return -result;
+        return result;
 }
 
 

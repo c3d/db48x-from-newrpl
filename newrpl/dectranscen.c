@@ -1214,11 +1214,11 @@ add_real(xnext,x,&decRReg[3]);  // x(i+1)=x(i)+S(i)*y(i)
 // SO ROUNDING/FINALIZING IS NEEDED
 }
 
-/*
+
 
 // CALCULATES EXP(x0), AND RETURNS IT IN RREG[0]
 
-void hyp_exp(REAL *x0)
+void dechyp_exp(REAL *x0)
 {
 
 int isneg;
@@ -1243,35 +1243,33 @@ divmodReal(&decRReg[1],&decRReg[0],x0,&ln10);
 
 // THE QUOTIENT NEEDS TO BE ADDED TO THE EXPONENT, SO IT SHOULD BE +/-30000
 // MAKE SURE THE INTEGER IS ALIGNED AND RIGHT-JUSTIFIED
-ipReal(&decRReg[1],&decRReg[1],1);
-if()
-BINT64 quotient=getBINT64Real(&decRReg[1]);
-if(status) {
-    if(isneg) {
-        decRReg[0].data[0]=0; // IF THE NUMBER IS SO BIG, THEN EXP(-Inf)=0
-        decRReg[0].digits=1;
-        decRReg[0].exp=0;
-        decRReg[0].flags&=~F_NEGATIVE;
-        decRReg[0].len=1;
-    }
-    else {
-    // SET THE ERROR
-    mpd_addstatus_raise(&mpContext,MPD_Overflow);
-    // AND RETURN INFINITY
-    mpd_set_infinity(&decRReg[0]);
-    }
+if(!inBINTRange(&decRReg[1])) {
+    // TODO: RAISE OVERFLOW ERROR!
+    decRReg[0].len=1;
+    decRReg[0].data[0]=0;
+    decRReg[0].exp=0;
+    if(isneg) decRReg[0].flags=0;       // exp(-INF) = 0
+        else decRReg[0].flags=F_INFINITY;   // exp(INF) = INF
+    return;
+}
+BINT quotient=getBINTReal(&decRReg[1]);
+if( (quotient>30000) || (quotient<-30000)) {
+    // TODO: RAISE OVERFLOW ERROR!
+    decRReg[0].len=1;
+    decRReg[0].data[0]=0;
+    decRReg[0].exp=0;
+    if(isneg) decRReg[0].flags=0;       // exp(-INF) = 0
+        else decRReg[0].flags=F_INFINITY;   // exp(INF) = INF
     return;
 }
 
-if(mpd_cmp(&decRReg[0],&ln10_2,&mpContext)==1) {
+if(gtReal(&decRReg[0],&ln10_2)) {
     // IS OUTSIDE THE RANGE OF CONVERGENCE
     // SUBTRACT ONE MORE ln(10)
-    mpd_sub(&decRReg[1],&decRReg[0],&ln10,&mpContext);
+    sub_real(&decRReg[0],&decRReg[0],&ln10);
+    normalize(&decRReg[0]);
     // AND ADD IT TO THE EXPONENT CORRECTION
     ++quotient;
-
-    mpd_copy(&decRReg[0],&decRReg[1],&mpContext);
-
 }
 
 
@@ -1293,26 +1291,24 @@ memcpy(decRReg[2].data,Constant_Kh1,REAL_PRECISION_MAX/MPD_RDIGITS*sizeof(uint32
 decRReg[2].exp=-(REAL_PRECISION_MAX-1);
 decRReg[2].flags&=MPD_DATAFLAGS;
 */
-/*
+
 decRReg[1].len=decRReg[2].len=1;
-decRReg[1].digits=decRReg[2].digits=1;
 decRReg[1].data[0]=decRReg[2].data[0]=1;
 decRReg[1].exp=decRReg[2].exp=0;
-decRReg[1].flags&=MPD_DATAFLAGS;
-decRReg[2].flags&=MPD_DATAFLAGS;
+decRReg[1].flags=decRReg[2].flags=0;
 
 
-CORDIC_Hyp_Rotational_exp((mpContext.prec>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+9:mpContext.prec,1);
+CORDIC_Hyp_Rotational_exp((Context.precdigits>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+8:Context.precdigits,1);
 
-// HERE decRReg[0] CONTAINS THE ANGLE WITH 9 DIGITS MORE THAN THE CURRENT PRECISION (NONE OF THEM WILL BE ACCURATE), ROUNDING IS REQUIRED
-mpd_mul(&decRReg[0],&decRReg[6],&Kh,&mpContext);
+// HERE decRReg[0] CONTAINS THE ANGLE WITH 8 DIGITS MORE THAN THE CURRENT PRECISION (NONE OF THEM WILL BE ACCURATE), ROUNDING IS REQUIRED
+mul_real(&decRReg[0],&decRReg[6],&Kh);
 if(isneg) decRReg[0].exp-=quotient;
 else decRReg[0].exp+=quotient;  // THIS CAN EXCEED THE MAXIMUM EXPONENT IN NEWRPL, IT WILL JUST DELAY THE ERROR UNTIL ROUNDING OCCURS
-mpContext.prec-=MPD_RDIGITS;
+Context.precdigits-=8;
 
 }
 
-
+/*
 // CALCULATES SINH(x0) AND COSH(x0), AND RETURNS THEM IN RREG[1] AND RREG[2]
 
 void hyp_sinhcosh(REAL *x0)

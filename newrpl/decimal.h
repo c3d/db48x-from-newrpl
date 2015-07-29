@@ -146,6 +146,7 @@ extern void add_real(REAL *r,REAL *a,REAL *b);
 // PERFORMS r=a+b*mult, WITH 0<mult<31
 // NUMBERS SHOULD BE NORMALIZED
 extern void add_real_mul(REAL *r,REAL *a,REAL *b,BINT mult);
+extern void sub_real_mul(REAL *r,REAL *a,REAL *b,BINT mult);
 
 
 // SUBTRACTS 2 REAL NUMBERS AT FULL PRECISION
@@ -336,7 +337,7 @@ extern void roundReal(REAL *result,REAL *num,BINT nfigures);
 extern void truncReal(REAL *result,REAL *num,BINT nfigures);
 
 // RETURN THE INTEGER PART (TRUNCATED)
-extern void ipReal(REAL *result,REAL *num);
+extern void ipReal(REAL *result, REAL *num, BINT align);
 
 // RETURN THE FRACTION PART ONLY
 extern void fracReal(REAL *result,REAL *num);
@@ -358,6 +359,30 @@ extern BINT cmpReal(REAL *a,REAL *b);
 
 // TRUE=1 IF A NUMBER IS ZERO, 0 OTHERWISE
 extern BINT iszeroReal(REAL *n);
+
+// TRUE IF THE NUMBER HAS NO FRACTIONAL PART (IS AN INTEGER)
+BINT isIntegerReal(REAL *n);
+
+
+
+// CONVERSION TO/FROM OTHER TYPES
+
+// RETURN TRUE IF THE MAGNITUDE OF THE NUMBER IS WITHIN
+// RANGE SO IT CAN BE CONVERTED TO BINT OR BINT64 WITHOUT
+// OVERFLOW.
+BINT inBINTRange(REAL *n);
+BINT inBINT64Range(REAL *n);
+
+
+// EXTRACT A 32-BIT INTEGER FROM A REAL
+// MUST BE WITHIN RANGE
+extern BINT getBINTReal(REAL *n);
+
+// EXTRACT A BINT64 FROM A REAL
+// MUST BE WITHIN RANGE
+extern BINT64 getBINT64Real(REAL *n);
+
+
 
 // *************************************************************************
 // **************************** END DECIMAL LIBRARY ************************
