@@ -77,6 +77,14 @@ void LIB_HANDLER()
 
         // TODO: IMPLEMENT BINARY OPERATORS
 
+        switch(OPCODE(CurOpcode))
+        {
+        case OVR_ADD:
+
+
+
+        break;
+        }
     }
 
     switch(OPCODE(CurOpcode))
@@ -91,7 +99,7 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-        if(!ISARRAY(*rplPeekData(1))) {
+        if(!ISMATRIX(*rplPeekData(1))) {
             Exceptions|=EX_BADARGTYPE;
             ExceptionPointer=IPtr;
             return;
@@ -157,6 +165,11 @@ void LIB_HANDLER()
                     // THERE SHOULD BE A SIZE WORD ALREADY
                     // INCREASE THE ROW COUNT
                     BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+                    if(!rows) {
+                        // VECTOR CAN'T OPEN A SECOND DIMENSION
+                        RetNum=ERR_SYNTAX;
+                        return;
+                    }
                     matrix[1]=MATMKSIZE(rows+1,cols);
                 }
 
@@ -197,14 +210,28 @@ void LIB_HANDLER()
                 return;
             }
             WORDPTR matrix=*(ValidateTop-1);
-            BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
-            BINT totalelements=rows*cols;
+            BINT rows,cols;
+            BINT totalelements;
+
+            if(CompileEnd>matrix+1) {
+            rows=MATROWS(matrix[1]);
+            cols=MATCOLS(matrix[1]);
+            if(rows==0) totalelements=cols;
+            else totalelements=rows*cols;
+            } else rows=cols=totalelements=0;
 
             if(CurrentConstruct!=MKPROLOG(LIBRARY_NUMBER,0)) {
                 // CLOSED AN INNER DIMENSION
 
+                // CAN'T CLOSE AN EMPTY MATRIX
+                if(!totalelements) {
+                    RetNum=ERR_SYNTAX;
+                    return;
+                }
+
                 // DECREASE DIMENSION COUNT
                 --*matrix;
+
 
                 // CHECK FULL ROW SIZE IS CORRECT
                 // BY CHECKING THE NEXT EMPTY OBJECT IS THE START OF A ROW
@@ -229,9 +256,12 @@ void LIB_HANDLER()
             }
 
             // CLOSE THE MATRIX OBJECT
+            if(!totalelements) {
+                RetNum=ERR_SYNTAX;
+                return;
+            }
 
-
-            // TODO: STRETCH THE OBJECT, ADD THE INDEX AND REMOVE DUPLICATES
+            // STRETCH THE OBJECT, ADD THE INDEX AND REMOVE DUPLICATES
             WORDPTR endofobjects=rplCompileAppendWords(totalelements);
             if(Exceptions) return;
 
@@ -240,7 +270,7 @@ void LIB_HANDLER()
             endofobjects+=totalelements;
 
             // NOW WRITE THE INDICES. ALL OFFSETS ARE RELATIVE TO MATRIX PROLOG!
-            WORDPTR ptr=matrix+2,objptr=ptr+totalelements;
+            WORDPTR ptr=matrix+2,objptr=ptr+totalelements,nextobj,index;
             BINT count=0;
 
             while( (objptr<endofobjects)&&(count<totalelements)) {
@@ -256,7 +286,36 @@ void LIB_HANDLER()
                 return;
             }
 
-            // TODO: COMPACT MATRIX BY REMOVING DUPLICATED OBJECTS
+            // COMPACT MATRIX BY REMOVING DUPLICATED OBJECTS
+            index=matrix+2;
+            objptr=matrix+2+totalelements;
+
+            while(objptr<endofobjects) {
+                // CHECK AND REMOVE DUPLICATES OF CURRENT OBJECT
+                ptr=rplSkipOb(objptr);
+                while(ptr<endofobjects) {
+                    if(rplCompareObjects(ptr,objptr)) {
+                        // OBJECTS ARE IDENTICAL, REMOVE
+
+                        // REPLACE ALL REFERENCES TO THIS COPY WITH REFERENCES TO THE ORIGINAL
+                        for(count=0;count<totalelements;++count) if(index[count]==ptr-matrix) index[count]=objptr-matrix;
+
+                        // AND REMOVE THE COPY
+                        nextobj=rplSkipOb(ptr);
+                        if(nextobj<endofobjects) {
+                            // THERE'S MORE OBJECTS, MOVE ALL MEMORY AND FIX ALL INDICES
+                            memmovew(ptr,nextobj,endofobjects-nextobj);
+                            for(count=0;count<totalelements;++count) if(index[count]>ptr-matrix) index[count]-=nextobj-ptr;
+                        }
+                        endofobjects-=nextobj-ptr;
+                        rplCompileRemoveWords(nextobj-ptr);
+                        // DO NOT ADVANCE ptr, SINCE OBJECTS MOVED
+                    }
+                    else ptr=rplSkipOb(ptr);
+                    }
+                objptr=rplSkipOb(objptr);
+                }
+
 
             RetNum=OK_ENDCONSTRUCT;
             return;
@@ -280,13 +339,16 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
             rplDecompAppendString((BYTEPTR)"[ ");
             BINT rows=MATROWS(*(DecompileObject+1)),cols=MATCOLS(*(DecompileObject+1));
+            BINT doublebracket=rows;
+
+            if(!rows) ++rows;
 
             // SCAN THE INDEX AND OUTPUT ALL OBJECTS INSIDE
             BINT i,j;
 
             for(i=0;i<rows;++i)
             {
-                if(rows!=1) rplDecompAppendString((BYTEPTR)"[ ");
+                if(doublebracket) rplDecompAppendString((BYTEPTR)"[ ");
                 if(Exceptions) { RetNum=ERR_INVALID; return; }
                 for(j=0;j<cols;++j)
                 {
@@ -296,7 +358,7 @@ void LIB_HANDLER()
                  if(Exceptions) { RetNum=ERR_INVALID; return; }
                  rplDecompAppendChar(' ');
                 }
-                if(rows!=1) rplDecompAppendString((BYTEPTR)"] ");
+                if(doublebracket) rplDecompAppendString((BYTEPTR)"] ");
                 if(Exceptions) { RetNum=ERR_INVALID; return; }
             }
 
@@ -344,14 +406,14 @@ void LIB_HANDLER()
             // MOVE THE FIRST OBJECT UP IN MEMORY TO MAKE ROOM FOR THE SIZE WORD
             memmovew(LastCompiledObject+1,LastCompiledObject,CompileEnd-1-LastCompiledObject);
 
-            matrix[1]=MATMKSIZE(1,1);
+            matrix[1]=MATMKSIZE(0,1);
 
         }
 
         else {
             // IF THIS IS THE FIRST ROW, INCREASE THE COLUMN COUNT
             BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
-            if(rows==1) { matrix[1]=MATMKSIZE(rows,cols+1); }
+            if(rows<=1) { matrix[1]=MATMKSIZE(rows,cols+1); }
 
         }
 

@@ -135,7 +135,7 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 #define DODIR       28      // DIRECTORY OBJECTS
 
 #define DOSYMB      32      // SYMBOLIC OBJECT
-#define DOARRAY     48      // ARRAY OBJECT
+#define DOMATRIX     48      // ARRAY OBJECT
 #define DOLIST      50
 
 
@@ -153,7 +153,7 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 #define ISSTRING(prolog) ((LIBNUM(prolog)&~3)==DOSTRING)
 
 #define ISSYMBOLIC(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOSYMB))
-#define ISARRAY(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOARRAY))
+#define ISMATRIX(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOMATRIX))
 
 
 #define ISAPPROX(prolog) ((LIBNUM(prolog)&APPROX_BIT))

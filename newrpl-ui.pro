@@ -123,7 +123,8 @@ SOURCES += main.cpp\
     firmware/sys/Font5C.c \
     firmware/sys/Font6A.c \
     firmware/sys/keybcommon.c \
-    firmware/sys/Font7A.c
+    firmware/sys/Font7A.c \
+    newrpl/matrix.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
