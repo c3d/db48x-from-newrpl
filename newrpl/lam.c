@@ -118,6 +118,8 @@ return 1;
 // COMPARE OBJECTS FOR EQUALITY IN THEIR DEFINITION
 BINT rplCompareObjects(WORDPTR id1,WORDPTR id2)
 {
+if(id1==id2) return 1;
+
 BINT nwords;
 
 nwords=rplObjSize(id1);

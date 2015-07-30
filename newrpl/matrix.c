@@ -1,5 +1,6 @@
+
 /*
- * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * Copyright (c) 2015, Claudio Lapilli and the newRPL Team
  * All rights reserved.
  * This file is released under the 3-clause BSD license.
  * See the file LICENSE.txt that shipped with this distribution.
@@ -7,103 +8,115 @@
 
 
 #include "libraries.h"
-#include "hal.h"
+#include "newrpl.h"
 
-// COMPARE TWO ITEMS WITHIN AN ARRAY, BY CALLING THE OPERATOR CMP
-// OPERATOR CMP MUST RETURN -1, 0 OR 1 IF B>A, B==A, OR A>B RESPECTIVELY
-BINT rplArrayItemCompare(WORDPTR a,WORDPTR b)
+
+// GET A POINTER TO AN OBJECT WITHIN THE MATRIX/VECTOR
+// RETURN NULL ON OUT-OF-RANGE
+// VECTORS ARE AUTO-ROTATED
+// ROWS AND COLUMNS ARE 1-BASED
+
+WORDPTR rplMatrixGet(WORDPTR matrix,BINT row,BINT col)
 {
+    if(!ISMATRIX(matrix)) return NULL;
+    BINT rows=MATROWS(*(matrix+1)),cols=MATCOLS(*(matrix+1));
 
-    rplPushData(a);
-    rplPushData(b);
-    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_CMP));
-    if(Exceptions) return 0;
-    BINT r=rplReadBINT(rplPopData());
-    if(r==0) return (BINT)(a-b);
-    return r;
-
-}
-
-// PERFORM AN OPERATION BETWEEN 2 ITEMS, POP THE RESULT FROM THE STACK
-// AND RETURN IT AS A POINTER TO THE OBJECT.
-// KEEPS THE STACK CLEAN EVEN IF THERE ARE EXCEPTIONS
-// USES STACK PROTECTION AND PERFORMS PROPER STACK CLEANUP
-
-WORDPTR rplArrayItemBinaryOp(WORDPTR a,WORDPTR b, WORD Opcode)
-{
-    rplProtectData();
-    rplPushData(a);
-    rplPushData(b);
-    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OPCODE(Opcode)));
-    if(Exceptions) {
-        rplClearData();
-        rplUnprotectData();
-        return 0;
+    if(!rows) {
+        // THIS IS A VECTOR
+        if(row==1) {
+            if(col>0 && col<=cols) return matrix+matrix[col+1];
+            else return NULL;
+        } else if(col==1) {
+            if(row>0 && row<=cols) return matrix+matrix[row+1];
+            else return NULL;
+            } else return NULL;
     }
-    WORDPTR result=0;
-    if(rplDepthData()>0)   result=rplPopData();
-    rplClearData();
-    rplUnprotectData();
-    return result;
+
+    if(row<1 || row>rows) return NULL;
+    if(col<1 || col>cols) return NULL;
+
+    return matrix+matrix[(row-1)*cols+col+1];
+
 }
 
-WORDPTR rplArrayItemUnaryOp(WORDPTR a, WORD Opcode)
+// GET AN ELEMENT OF AN ARRAY - LOW-LEVEL, NO CHECKS OF ANY KIND DONE
+
+WORDPTR rplMatrixFastGet(WORDPTR matrix,BINT row,BINT col)
 {
-    rplProtectData();
-    rplPushData(a);
-    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OPCODE(Opcode)));
-    if(Exceptions) {
-        rplClearData();
-        rplUnprotectData();
-        return 0;
+    BINT rows=MATROWS(*(matrix+1)),cols=MATCOLS(*(matrix+1));
+    if(!rows) return matrix+matrix[row+col];
+    return matrix+matrix[(row-1)*cols+col+1];
+}
+
+
+// COMPOSES A NEW MATRIX OBJECT FROM OBJECTS IN THE STACK
+// OBJECTS MUST BE IN ROW-ORDER
+// RETURNS NULL IF ERROR, AND SETS Exception AND ExceptionPtr.
+// CREATES A VECTOR IF ROWS == 0, OTHERWISE A MATRIX
+
+WORDPTR rplMatrixCompose(BINT rows,BINT cols)
+{
+BINT totalelements=(rows)? rows*cols:cols;
+
+// CHECK IF ENOUGH ELEMENTS IN THE STACK
+if(rplDepthData()<totalelements) {
+    Exceptions|=EX_BADARGCOUNT;
+    ExceptionPointer=IPtr;
+    return NULL;
+}
+
+
+//   CHECK VALIDITY OF ALL ELEMENTS
+BINT k,j,totalsize=0;
+WORDPTR obj;
+
+for(k=1;k<=totalelements;++k) {
+obj=rplPeekData(k);
+if(! (ISNUMBERCPLX(*obj)
+      || ISSYMBOLIC(*obj)
+      || ISIDENT(*obj))) {
+    Exceptions|=EX_BADARGTYPE;
+    ExceptionPointer=IPtr;
+    return NULL;
     }
-    WORDPTR result=0;
-    if(rplDepthData()>0)   result=rplPopData();
-    rplClearData();
-    rplUnprotectData();
-    return result;
+totalsize+=rplObjSize(obj);
 }
 
+WORDPTR matrix=rplAllocTempOb(totalsize+1+totalelements);
+WORDPTR newobj=matrix+2+totalelements;  // POINT TO THE NEXT OBJECT TO STORE
 
-// BASIC LOW-LEVEL GET ITEM
-// DOESN'T CHECK FOR ARGUMENT TO BE A MATRIX OR FOR INDEX OUT OF RANGE
+if(!matrix) return NULL;
 
-// INDEX STARTS AT ZERO!
-WORDPTR rplArrayGetItem(WORDPTR matrix,BINT row,BINT col)
-{
-    return matrix+*(matrix+2+row*MATCOLS(matrix[1])+col);
-}
-
-
-
-// CREATE A NEW OBJECT WITH A TRANSPOSED ARRAY
-// LOW-LEVEL DOESN'T CHECK FOR ITS ARGUMENTS
-WORDPTR rplArrayTranspose(WORDPTR matrix)
-{
-    // PROTECT THE MATRIX FROM GARBAGE COLLECTION BY PUSHING IN THE STACK
-    rplPushData(matrix);
-    WORDPTR newmat=rplAllocTempOb(rplObjSize(matrix));
-    if(!newmat) { rplPopData(); return newmat; }
-
-    matrix=rplPopData();
-
-    newmat[0]=matrix[0];
-
-
-    BINT cols=MATROWS(matrix[1]),rows=MATCOLS(matrix[1]);
-    newmat[1]=MATMKSIZE(rows,cols);
-
-    BINT i,j;
-    WORDPTR src=matrix+2,dest=newmat+2;
-
-    for(i=0;i<rows;++i) {
-        for(j=0;j<cols;++j) {
-            dest[i*cols+j]=src[j*rows+i];
+// FINALLY, ASSEMBLE THE OBJECT
+for(k=0;k<totalelements;++k) {
+    obj=rplPeekData(totalelements-k);
+    for(j=0;j<k;++j) {
+        if(rplCompareObjects(obj,rplPeekData(totalelements-j))) {
+            // ADD THE ORIGINAL OBJECT
+            matrix[2+k]=matrix[2+j];
+        }
+        else {
+            // ADD A NEW OBJECT
+            matrix[2+k]=newobj-matrix;
+            rplCopyObject(newobj,obj);
+            newobj=rplSkipOb(newobj);
         }
     }
-
-    memmovew(dest+rows*cols,src+rows*cols,rplSkipOb(matrix)-(src+rows*cols));
-
-    return newmat;
 }
 
+
+rplTruncateLastObject(newobj);
+
+matrix[0]=MKPROLOG(DOMATRIX,newobj-matrix-1);
+matrix[1]=MATMKSIZE(rows,cols);
+
+return matrix;
+
+}
+
+
+// ADD TWO MATRICES, A+B, WITH A IN LEVEL 2 AND B IN LEVEL 1 OF THE STACK
+void rplMatrixAdd()
+{
+
+}
