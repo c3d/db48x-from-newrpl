@@ -80,6 +80,84 @@ void LIB_HANDLER()
         switch(OPCODE(CurOpcode))
         {
         case OVR_ADD:
+        {
+            if(rplDepthData()<2) {
+                Exceptions|=EX_BADARGCOUNT;
+                ExceptionPointer=IPtr;
+                return;
+            }
+            WORDPTR a=rplPeekData(2),b=rplPeekData(1);
+
+            if(!ISMATRIX(*a) || !ISMATRIX(*b)) {
+                Exceptions|=EX_BADARGTYPE;
+                ExceptionPointer=IPtr;
+                return;
+            }
+
+            rplMatrixAdd();
+            return;
+        }
+        case OVR_SUB:
+        {
+            if(rplDepthData()<2) {
+                Exceptions|=EX_BADARGCOUNT;
+                ExceptionPointer=IPtr;
+                return;
+            }
+            WORDPTR a=rplPeekData(2),b=rplPeekData(1);
+
+            if(!ISMATRIX(*a) || !ISMATRIX(*b)) {
+                Exceptions|=EX_BADARGTYPE;
+                ExceptionPointer=IPtr;
+                return;
+            }
+
+            rplMatrixSub();
+            return;
+        }
+        case OVR_MUL:
+        {
+            if(rplDepthData()<2) {
+                Exceptions|=EX_BADARGCOUNT;
+                ExceptionPointer=IPtr;
+                return;
+            }
+
+            WORDPTR a=rplPeekData(2),b=rplPeekData(1);
+
+            // NEED TO DETECT SCALAR * MATRIX AND MATRIX * SCALAR CASES
+            if((ISNUMBERCPLX(*a)
+                  || ISSYMBOLIC(*a)
+                  || ISIDENT(*a))) {
+                // SCALAR BY MATRIX
+                // TODO: GET THIS DONE!
+                return;
+            }
+            if((ISNUMBERCPLX(*b)
+                  || ISSYMBOLIC(*b)
+                  || ISIDENT(*b))) {
+                // SCALAR BY MATRIX
+                // TODO: GET THIS DONE!
+                return;
+            }
+
+            // HERE IT HAS TO BE MATRIX x MATRIX
+
+            if(!ISMATRIX(*a) || !ISMATRIX(*b)) {
+                Exceptions|=EX_BADARGTYPE;
+                ExceptionPointer=IPtr;
+                return;
+            }
+
+            rplMatrixMul();
+            return;
+
+
+        }
+
+
+
+
 
 
 
@@ -412,7 +490,23 @@ void LIB_HANDLER()
 
         else {
             // IF THIS IS THE FIRST ROW, INCREASE THE COLUMN COUNT
+            BINT dimlevel=OBJSIZE(CurrentConstruct);
             BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+            
+            if(rows) {
+                // THIS IS A MATRIX, ONLY ALLOW ELEMENTS INSIDE LEVEL 1
+                if(!dimlevel) {
+                    RetNum=ERR_INVALID;
+                    return;
+                }
+            } else {
+                // THIS IS A VECTOR, ONLY ALLOW ELEMENTS IN THE OUTER LEVEL
+                if(dimlevel) {
+                    RetNum=ERR_INVALID;
+                    return;
+                }
+
+            }
             if(rows<=1) { matrix[1]=MATMKSIZE(rows,cols+1); }
 
         }
