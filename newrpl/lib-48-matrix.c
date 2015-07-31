@@ -70,6 +70,28 @@ void LIB_HANDLER()
 
     if(ISUNARYOP(CurOpcode)) {
         // TODO: IMPLEMENT UNARY OPERATORS
+        switch(OPCODE(CurOpcode))
+        {
+
+        case OVR_INV:
+        {
+            if(rplDepthData()<1) {
+                Exceptions|=EX_BADARGCOUNT;
+                ExceptionPointer=IPtr;
+                return;
+            }
+            WORDPTR a=rplPeekData(1);
+
+            if(!ISMATRIX(*a)) {
+                Exceptions|=EX_BADARGTYPE;
+                ExceptionPointer=IPtr;
+                return;
+            }
+
+            rplMatrixBareiss();
+            return;
+        }
+        }
 
     }
 
@@ -540,8 +562,6 @@ void LIB_HANDLER()
 
 
  }
-
-
 
 
 

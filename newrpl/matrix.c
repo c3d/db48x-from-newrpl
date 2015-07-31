@@ -54,6 +54,31 @@ WORDPTR rplMatrixFastGet(WORDPTR matrix,BINT row,BINT col)
 }
 
 
+
+// EXPLODES A MATRIX IN THE STACK
+// PUTS A POINTER TO THE MATRIX, THEN THE ELEMENTS IN ROW ORDER
+// RETURNS A POINTER TO THE DATA STACK WHERE THE FIRST ELEMENT IS
+// LEAVES THE ORIGINAL MATRIX POINTER IN THE STACK
+WORDPTR *rplMatrixExplode()
+{
+    WORDPTR *matrix=DSTop-1;
+    BINT rows=MATROWS(*(*matrix+1)),cols=MATCOLS(*(*matrix+1));
+    if(!rows) ++rows;
+
+    BINT k,nelem;
+
+    nelem=rows*cols;
+
+    for(k=0;k<nelem;++k) rplPushData(*matrix+(*matrix)[2+k]);
+
+    if(Exceptions) {
+        DSTop=matrix+1;
+        return NULL;
+    }
+
+    return matrix+1;
+}
+
 // COMPOSES A NEW MATRIX OBJECT FROM OBJECTS IN THE STACK
 // OBJECTS MUST BE IN ROW-ORDER
 // RETURNS NULL IF ERROR, AND SETS Exceptions AND ExceptionPtr.
@@ -466,5 +491,115 @@ void rplMatrixMul()
     DSTop=Savestk;
     rplOverwriteData(2,newmat);
     rplDropData(1);
+
+}
+
+
+// FRACTION-FREE GAUSSIAN ELIMINATION
+void rplMatrixBareiss()
+{
+    WORDPTR *Savestk,*a;
+    // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
+    // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
+    Savestk=DSTop;
+    a=DSTop-1;
+
+    // NO TYPE CHECK, DO THAT AT HIGHER LEVEL
+
+    // CHECK DIMENSIONS
+
+    BINT rowsa=MATROWS(*(*a+1)),colsa=MATCOLS(*(*a+1)),nelements;
+
+    // SIZE CHECK, ONLY SQUARE MATRICES ALLOWED FOR NOW
+    if(rowsa!=colsa) {
+        Exceptions|=EX_INVALID_DIM;
+        ExceptionPointer=IPtr;
+        return;
+    }
+
+    BINT i,j,k;
+
+    /*
+    Single step Bareiss
+    bareiss := procedure(~M)
+    n := NumberOfRows(M);
+    for k in [1..n-1] do
+    for i in [k+1..n] do
+    for j in [k+1..n] do
+    D := M[k][k]*M[i][j] - M[k][j]*M[i][k];
+    M[i][j] := k eq 1 select D div 1
+                        else D div M[k-1][k-1];
+    end for;
+    end for;
+    end for;
+    print M;
+    end procedure;
+    */
+
+    rplMatrixExplode();
+    if(Exceptions) {
+        DSTop=Savestk;
+        return;
+    }
+
+// CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
+// a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
+#define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
+
+    for(k=1;k<rowsa;++k) {
+        for(i=k+1;i<=rowsa;++i) {
+            for(j=k+1;j<=colsa;++j) {
+                rplPushData(STACKELEM(k,k));  // M[k][k];
+                rplPushData(STACKELEM(i,j));  // M[i][j];
+                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+                if(Exceptions) {
+                    DSTop=Savestk;
+                    return;
+                }
+                rplPushData(STACKELEM(k,j));  // M[k][j];
+                rplPushData(STACKELEM(i,k));  // M[i][k];
+                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+                if(Exceptions) {
+                    DSTop=Savestk;
+                    return;
+                }
+                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB));
+                if(Exceptions) {
+                    DSTop=Savestk;
+                    return;
+                }
+                if(k>1) {
+                    rplPushData(STACKELEM(k-1,k-1));
+                    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+                    if(Exceptions) {
+                        DSTop=Savestk;
+                        return;
+                    }
+                }
+
+                // SIMPLIFY IF IT'S A SYMBOLIC TO KEEP THE OBJECTS SMALL
+                if(ISSYMBOLIC(*rplPeekData(1))) {
+                    rplSymbAutoSimplify();
+                    if(Exceptions) {
+                        DSTop=Savestk;
+                        return;
+                    }
+                }
+
+                // PUT THE ELEMENT IN ITS PLACE M[i][j]
+                STACKELEM(i,j)=rplPopData();
+
+            }
+        }
+
+
+    }
+
+
+// IF WE GOT HERE WITHOUT DIVISION BY ZERO THEN THE MARIX IS INVERTIBLE
+    WORDPTR newmat=rplMatrixCompose(rowsa,colsa);
+    DSTop=Savestk;
+    if(Exceptions) return;
+    rplOverwriteData(1,newmat);
 
 }
