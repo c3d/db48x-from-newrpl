@@ -130,14 +130,16 @@ void LIB_HANDLER()
                   || ISSYMBOLIC(*a)
                   || ISIDENT(*a))) {
                 // SCALAR BY MATRIX
-                // TODO: GET THIS DONE!
+                rplMatrixMulScalar();
+
                 return;
             }
             if((ISNUMBERCPLX(*b)
                   || ISSYMBOLIC(*b)
                   || ISIDENT(*b))) {
                 // SCALAR BY MATRIX
-                // TODO: GET THIS DONE!
+                rplMatrixMulScalar();
+
                 return;
             }
 

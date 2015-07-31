@@ -334,6 +334,7 @@ extern WORDPTR rplMatrixCompose(BINT rows,BINT cols);
 extern void rplMatrixAdd();
 extern void rplMatrixSub();
 extern void rplMatrixMul();
+extern void rplMatrixMulScalar();
 
 
 

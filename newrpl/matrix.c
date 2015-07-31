@@ -130,13 +130,8 @@ Savestk=DSTop;
 a=DSTop-2;
 b=DSTop-1;
 
-// CHECK TYPE
+// NO TYPE CHECK, THAT SHOULD BE DONE BY HIGHER LEVEL FUNCTIONS
 
-if(!ISMATRIX(**a) || !ISMATRIX(**b)) {
-    Exceptions|=EX_BADARGTYPE;
-    ExceptionPointer=IPtr;
-    return;
-}
 
 // CHECK DIMENSIONS
 
@@ -226,6 +221,74 @@ void rplMatrixAdd() { rplMatrixBinary(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)); }
 void rplMatrixSub() { rplMatrixBinary(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB)); }
 
 
+// APPLIES ANY OVERLOADABLE BINARY OPERATOR THAT WORKS ELEMENT-BY-ELEMENT (ADD/SUBTRACT)
+
+void rplMatrixMulScalar()
+{
+WORDPTR *Savestk,*a,*b;
+// DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
+// AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
+Savestk=DSTop;
+a=DSTop-2;
+b=DSTop-1;
+
+// MAKE SURE THAT b IS THE SCALAR VALUE, a IS THE MATRIX
+
+if(!ISMATRIX(**a)) {
+    WORDPTR *tmp=a;
+    a=b;
+    b=tmp;
+}
+
+// CHECK DIMENSIONS
+
+BINT rowsa=MATROWS(*(*a+1)),colsa=MATCOLS(*(*a+1));
+
+BINT totalelements=(rowsa)? rowsa*colsa:colsa;
+
+BINT j;
+
+// DO THE ELEMENT-BY-ELEMENT OPERATION
+
+for(j=0;j<totalelements;++j) {
+ rplPushData(GETELEMENT(*a,j));
+ rplPushData(*b);
+ rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+ if(Exceptions) {
+     DSTop=Savestk;
+     return;
+ }
+ if(ISSYMBOLIC(*rplPeekData(1))) {
+     rplSymbAutoSimplify();
+     if(Exceptions) {
+         DSTop=Savestk;
+         return;
+     }
+ }
+
+}
+
+WORDPTR newmat=rplMatrixCompose(rowsa,colsa);
+DSTop=Savestk;
+if(!newmat) return;
+rplOverwriteData(2,newmat);
+rplDropData(1);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // MATRIX BY MATRIX MULTIPLICATION
 // DOES A*B WITH A ON LEVEL 2 AND B ON LEVEL 1
 // DOES AUTOTRANSPOSE OF VECTORS
@@ -240,13 +303,7 @@ void rplMatrixMul()
     a=DSTop-2;
     b=DSTop-1;
 
-    // CHECK TYPE
-
-    if(!ISMATRIX(**a) || !ISMATRIX(**b)) {
-        Exceptions|=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
-        return;
-    }
+    // NO TYPE CHECK, DO THAT AT HIGHER LEVEL
 
     // CHECK DIMENSIONS
 
