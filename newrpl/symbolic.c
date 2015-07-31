@@ -641,6 +641,7 @@ BINT rplSymbExplode(WORDPTR object)
     BINT count=0,countops=0,nargs;
 
     WORDPTR ptr,end,localend,numbers;
+    WORDPTR *sptr;
 
     ptr=object;
     end=rplSkipOb(object);
@@ -659,7 +660,7 @@ BINT rplSymbExplode(WORDPTR object)
     numbers=rplAllocTempOb(countops);
     if(!numbers) return 0;
     object=ScratchPointer1;
-    ptr=DSTop+count+countops-1;
+    sptr=DSTop+count+countops-1;
     end=rplSkipOb(object);
     countops=0;
 
@@ -675,9 +676,9 @@ BINT rplSymbExplode(WORDPTR object)
             ++object;
             continue;
         }
-        *ptr=object;
-        if(! (ISPROLOG(*object) || ISBINT(*object))) { numbers[countops]=MAKESINT(nargs); --ptr; *ptr=&numbers[countops]; ++countops; }
-        --ptr;
+        *sptr=object;
+        if(! (ISPROLOG(*object) || ISBINT(*object))) { numbers[countops]=MAKESINT(nargs); --sptr; *sptr=&numbers[countops]; ++countops; }
+        --sptr;
         object=rplSkipOb(object);
     }
 
