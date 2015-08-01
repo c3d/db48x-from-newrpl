@@ -267,7 +267,7 @@ void LIB_HANDLER()
         // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS GETLAM
         // BUT ONLY IF WE ARE NOT INSIDE A COMPOSITE (LIST, ARRAY, ETC)
         if( (CurrentConstruct==MKPROLOG(DOLIST,0)) ||
-            (CurrentConstruct==MKPROLOG(DOARRAY,0)) // ADD HERE ARRAYS LATER
+            (CurrentConstruct==MKPROLOG(DOMATRIX,0)) // ADD HERE ARRAYS LATER
                 ) {
             rplCompileIDENT(DOIDENTEVAL,tok,(BYTEPTR)BlankStart);
 
