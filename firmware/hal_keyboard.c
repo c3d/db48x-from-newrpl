@@ -661,7 +661,7 @@ void cancelKeyHandler(BINT keymsg)
 
     if(halGetNotification(N_RIGHTSHIFT)) {
       // SHIFT-ON MEANS POWER OFF!
-       cpu_off();
+       halEnterPowerOff();
        return;
 
     }

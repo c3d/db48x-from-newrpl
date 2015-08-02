@@ -587,3 +587,25 @@ void halReset()
     while(1);
 
 }
+
+// ENTER POWER OFF MODE
+void halEnterPowerOff()
+{
+    // TODO: ADD RPL ENGINE CLEANUP HERE BEFORE RESET
+    // PUT THE CPU IN A KNOWN SLOW SPEED
+    cpu_setspeed(6000000);
+
+    // WAIT FOR ALL KEYS TO BE RELEASED
+    __keyb_waitrelease();
+
+
+    cpu_off_prepare();
+
+    // DISABLE THE MMU
+    disable_mmu();
+    // AND GO DIE
+
+    //startup(0);
+    cpu_off_die();
+
+}

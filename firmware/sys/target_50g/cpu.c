@@ -224,7 +224,7 @@ void cpu_flushTLB(void)
 
 }
 
-void cpu_off()
+void cpu_off_prepare()
 {
     // TODO: CHECK FOR SERIAL TRANSMISSIONS, SD CARD WRITE OPERATIONS, ETC BEFORE GOING DOWN
 
@@ -251,7 +251,7 @@ void cpu_off()
 
     // SETUP ON KEY TO WAKE UP
     *HWREG(IO_REGS,0x58)=0;   // PULLUP ENABLED
-    *HWREG(IO_REGS,0x88)=6;   // RISING EDGE TRIGGERS EINT0
+    *HWREG(IO_REGS,0x88)=6;   // TRY HIGH LEVEL - RISING EDGE TRIGGERS EINT0
     *HWREG(IO_REGS,0x50)=2;   // ONLY ENABLE EINT0, ALL OTHERS INPUT
 
     *HWREG(INT_REGS,0x8)=0xfffffffe;    // UNMASK ONLY THE ON INTERRUPT
@@ -261,10 +261,17 @@ void cpu_off()
 
     // TODO: SETUP ALARM TO WAKE UP
     // FLUSH ALL BUFFERS
+}
 
 
+// WARNING: CALL THIS FUNCTION AFTER DISABLING MMU
+
+#define PHYS_CLK_REGS 0x4c000000
+
+void cpu_off_die()
+{
     // GO OFF!
-    *HWREG(CLK_REGS,0)|=0x8;    // POWER OFF
+    *HWREG(PHYS_CLK_REGS,0)|=0x8;    // POWER OFF
     // DOES NOT RETURN
 
     while(1);
