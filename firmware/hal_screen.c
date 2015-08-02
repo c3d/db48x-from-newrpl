@@ -279,10 +279,10 @@ halScreen.DirtyFlag=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
 halScreen.SAreaTimer=0;
 halScreen.CursorTimer=-1;
 halScreen.KeyContext=CONTEXT_STACK;
-halScreen.FormFont=halScreen.StackFont=halScreen.Stack1Font=(UNIFONT *)Font_7A;
+halScreen.FormFont=halScreen.StackFont=halScreen.Stack1Font=(UNIFONT *)Font_8C;
 halScreen.MenuFont=(UNIFONT *)Font_5C;
 halScreen.StAreaFont=(UNIFONT *)Font_6A;
-halScreen.CmdLineFont=(UNIFONT *)Font_7A;
+halScreen.CmdLineFont=(UNIFONT *)Font_8C;
 
 halSetNotification(N_LEFTSHIFT,0);
 halSetNotification(N_RIGHTSHIFT,0);
