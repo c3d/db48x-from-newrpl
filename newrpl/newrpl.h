@@ -170,9 +170,11 @@ extern void rplOverwriteData(int level,WORDPTR ptr);
 extern BINT rplDepthData();
 extern void rplClearData();
 extern void rplDropData(int n);
+extern void rplExpandStack(BINT numobjects);
 extern void growDStk(WORD newsize);
 extern WORDPTR *rplProtectData();
 extern WORDPTR *rplUnprotectData();
+
 
 // SNAPSHOT FUNCTIONS THAT SAVE/RESTORE THE STACK
 extern BINT rplCountSnapshots();

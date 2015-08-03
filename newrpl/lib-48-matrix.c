@@ -88,7 +88,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            rplMatrixBareiss();
+            rplMatrixInvert();
             return;
         }
         }
