@@ -131,3 +131,9 @@ void halReset()
 
 }
 
+void halEnterPowerOff()
+{
+    // TODO: SAVE STATE BEFORE CLOSING
+
+    exit(0);
+}
