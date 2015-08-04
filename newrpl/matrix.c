@@ -95,6 +95,11 @@ if(rplDepthData()<totalelements) {
     return NULL;
 }
 
+if((rows<0) || (rows>65535) || (cols<1) || (cols>65535)) {
+    Exceptions|=EX_INVALID_DIM;
+    ExceptionPointer=IPtr;
+    return NULL;
+}
 
 //   CHECK VALIDITY OF ALL ELEMENTS
 BINT k,j,totalsize=0;

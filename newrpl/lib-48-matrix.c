@@ -26,7 +26,60 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
-    CMD(IDN)
+    CMD(AUGMENT), \
+    CMD(AXL), \
+    CMD(AXM), \
+    CMD(BASIS), \
+    CMD(CHOLESKY), \
+    CMD(CNRM), \
+    CMD(CON), \
+    CMD(COND), \
+    CMD(CROSS), \
+    CMD(CSWP), \
+    CMD(DET), \
+    CMD(DIAGMAP), \
+    CMD(DOT), \
+    CMD(EGV), \
+    CMD(EGVL), \
+    CMD(GRAMSCHMIDT), \
+    CMD(HADAMARD), \
+    CMD(HILBERT), \
+    CMD(IBASIS), \
+    CMD(IDN), \
+    CMD(IMAGE), \
+    CMD(ISOM), \
+    CMD(JORDAN), \
+    CMD(KER), \
+    CMD(LQ), \
+    CMD(LSQ), \
+    CMD(LU), \
+    CMD(MAD), \
+    CMD(MKISOM), \
+    CMD(PMINI), \
+    CMD(QR), \
+    CMD(RANK), \
+    CMD(RANM), \
+    CMD(RCI), \
+    CMD(RCIJ), \
+    CMD(RDM), \
+    CMD(REF), \
+    CMD(RNRM), \
+    CMD(RREF), \
+    CMD(RREFMOD), \
+    CMD(RSD), \
+    CMD(RSWP), \
+    CMD(SCHUR), \
+    CMD(SNRM), \
+    CMD(SRAD), \
+    CMD(SVD), \
+    CMD(SVL), \
+    CMD(SYLVESTER), \
+    CMD(TRACE), \
+    CMD(TRAN), \
+    CMD(TRN), \
+    CMD(VANDERMONDE)
+
+
 
 // ADD MORE OPCODES HERE
 
@@ -35,12 +88,40 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 // THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
 #define CMD_EXTRANAME \
     "→ARRY", \
-    "ARRY→"
+    "ARRY→", \
+    "→COL", \
+    "COL-", \
+    "COL+", \
+    "COL→", \
+    "→DIAG", \
+    "DIAG→", \
+    "→ROW", \
+    "ROW-", \
+    "ROW+", \
+    "ROW→", \
+    "→V2", \
+    "→V3", \
+    "V→"
+
 
 
 #define CMD_EXTRAENUM \
     TOARRAY, \
-    ARRAYDECOMP
+    ARRAYDECOMP, \
+    TOCOL, \
+    ADDCOL, \
+    REMCOL, \
+    FROMCOL, \
+    TODIAG, \
+    FROMDIAG, \
+    TOROW, \
+    ADDROW, \
+    REMROW, \
+    FROMROW, \
+    TOV2, \
+    TOV3, \
+    FROMV
+
 
 
 
@@ -291,6 +372,14 @@ void LIB_HANDLER()
                 }
 
             }
+                BINT rows=MATROWS(a[1]),cols=MATCOLS(a[1]);
+
+                if(rows!=cols) {
+                    Exceptions|=EX_INVALID_DIM;
+                    ExceptionPointer=IPtr;
+                    return;
+                }
+
                 // TODO: CHECK FOR INTEGER RANGE AND ISSUE "Integer too large" ERROR
                 BINT64 exp=rplReadNumberAsBINT(b);
                 if(Exceptions) return;
@@ -335,10 +424,107 @@ void LIB_HANDLER()
     switch(OPCODE(CurOpcode))
     {
     case TOARRAY:
-        // TODO: BUILD AN ARRAY FROM ITS PIECES
-    return;
+    {
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        BINT64 rows,cols;
+        WORDPTR *Savestk=DSTop;
 
+        if(ISLIST(*rplPeekData(1))) {
+            rplExplodeList(rplPeekData(1));
+            BINT ndims=rplReadNumberAsBINT(rplPopData());
+            if((ndims<1) || (ndims>2)) {
+                DSTop=Savestk;
+                Exceptions|=EX_INVALID_DIM;
+                ExceptionPointer=IPtr;
+                return;
+            }
+
+            if(!ISNUMBER(*rplPeekData(1))) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NUM));
+
+            cols=rplReadNumberAsBINT(rplPopData());
+            if(Exceptions) {
+                DSTop=Savestk;
+                Exceptions|=EX_INVALID_DIM;
+                ExceptionPointer=IPtr;
+                return;
+            }
+
+            if(ndims==2) {
+
+                if(!ISNUMBER(*rplPeekData(1))) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NUM));
+
+                rows=rplReadNumberAsBINT(rplPopData());
+                if(Exceptions) {
+                    DSTop=Savestk;
+                    Exceptions|=EX_INVALID_DIM;
+                    ExceptionPointer=IPtr;
+                    return;
+                }
+
+
+
+            } else rows=0;
+
+
+            if( (rows<0)||(rows>65535)||(cols<1)||(cols>65535))  {
+                DSTop=Savestk;
+                Exceptions|=EX_INVALID_DIM;
+                ExceptionPointer=IPtr;
+                return;
+            }
+
+            // REMOVE THE LIST
+            rplDropData(1);
+
+            }
+        else {
+            // IT HAS TO BE A NUMBER
+            if(!ISNUMBER(*rplPeekData(1))) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NUM));
+
+            cols=rplReadNumberAsBINT(rplPopData());
+            if(Exceptions) {
+                DSTop=Savestk;
+                Exceptions|=EX_INVALID_DIM;
+                ExceptionPointer=IPtr;
+                return;
+            }
+
+            rows=0;
+
+            if((cols<1)||(cols>65535))  {
+                DSTop=Savestk;
+                Exceptions|=EX_INVALID_DIM;
+                ExceptionPointer=IPtr;
+                return;
+            }
+
+        }
+
+        // HERE WE HAVE PROPER ROWS AND COLUMNS
+        BINT elements=(rows)? rows*cols:cols;
+
+        if(rplDepthData()<elements) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        WORDPTR newmat=rplMatrixCompose(rows,cols);
+
+        if(newmat) {
+            rplDropData(elements);
+            rplPushData(newmat);
+        }
+
+        return;
+        
+       }
     case ARRAYDECOMP:
+    {
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -350,13 +536,28 @@ void LIB_HANDLER()
             return;
         }
 
-        // TODO: IMPLEMENT BASIC MATRIX FUNCTIONS
-        //rplExplodeMatrix(rplPopData());
+        WORDPTR matrix=rplPeekData(1);
+        BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+
+        WORDPTR *elem=rplMatrixExplode();
+        if(Exceptions) return;
+
+        // NOW REMOVE THE ORIGINAL MATRIX FROM THE STACK
+        memmovew(elem-1,elem,(DSTop-elem)*(sizeof(WORDPTR *)/sizeof(WORD))); // ADDED sizeof() ONLY FOR 64-BIT COMPATIBILITY
+
+        DSTop--;
+
+
+        if(rows) rplNewBINTPush(rows,DECBINT);
+        rplNewBINTPush(cols,DECBINT);
+        rplPushData((rows)? two_bint : one_bint);
+        rplCreateList();
+
 
         return;
-
+    }
         // ADD MORE OPCODES HERE
-
+    
 
 
 

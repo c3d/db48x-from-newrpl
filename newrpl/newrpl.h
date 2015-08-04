@@ -164,6 +164,7 @@ extern void rplDecompAppendString2(BYTEPTR str,BINT len);
 // DATA STACK FUNCTIONS IN DATASTACK.C
 
 extern void rplPushData(WORDPTR p);
+extern void rplPushDataNoGrow(WORDPTR p);
 extern WORDPTR rplPopData();
 extern WORDPTR rplPeekData(int level);
 extern void rplOverwriteData(int level,WORDPTR ptr);
