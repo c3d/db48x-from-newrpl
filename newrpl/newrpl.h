@@ -266,6 +266,7 @@ extern WORDPTR rplGetSettingsbyName(BYTEPTR name,BINT namelen);
 
 // GENERIC OBJECT FUNCTIONS
 extern void rplCallOvrOperator(WORD op);
+extern void rplCallOperator(WORD op);
 extern void rplCopyObject(WORDPTR dest, WORDPTR src);
 
 // BINT FUNCTIONS

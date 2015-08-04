@@ -69,7 +69,7 @@ void LIB_HANDLER()
 
 
     if(ISUNARYOP(CurOpcode)) {
-        // TODO: IMPLEMENT UNARY OPERATORS
+        // UNARY OPERATORS
         switch(OPCODE(CurOpcode))
         {
 
@@ -91,6 +91,28 @@ void LIB_HANDLER()
             rplMatrixInvert();
             return;
         }
+        case OVR_ABS:
+        {
+           // COMPUTE THE FROBENIUS NORM ON MATRICES
+            if(rplDepthData()<1) {
+                Exceptions|=EX_BADARGCOUNT;
+                ExceptionPointer=IPtr;
+                return;
+            }
+            WORDPTR a=rplPeekData(1);
+
+            if(!ISMATRIX(*a)) {
+                Exceptions|=EX_BADARGTYPE;
+                ExceptionPointer=IPtr;
+                return;
+            }
+
+            rplMatrixNorm();
+            return;
+
+        }
+
+
         }
 
     }
@@ -493,6 +515,7 @@ void LIB_HANDLER()
 
         // FIRST, CHECK THAT THE OBJECT IS ALLOWED WITHIN AN ARRAY
     {
+
         if(! (ISNUMBERCPLX(*LastCompiledObject)
               || ISSYMBOLIC(*LastCompiledObject)
               || ISIDENT(*LastCompiledObject))) {

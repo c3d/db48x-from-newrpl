@@ -787,3 +787,76 @@ void rplMatrixInvert()
     rplOverwriteData(1,newmat);
 
 }
+
+
+
+// TAKE A MATRIX FROM THE STACK AND RETURN THE FROBENIUS NORM
+
+void rplMatrixNorm()
+{
+WORDPTR *Savestk,*a;
+// DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
+// AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
+Savestk=DSTop;
+a=DSTop-1;
+
+// NO TYPE CHECK, THAT SHOULD BE DONE BY HIGHER LEVEL FUNCTIONS
+
+
+// CHECK DIMENSIONS
+
+BINT rowsa=MATROWS(*(*a+1)),colsa=MATCOLS(*(*a+1));
+
+if(!rowsa) rowsa=1;
+
+
+BINT i,j;
+rplPushData((WORDPTR)zero_bint);
+// DO THE ELEMENT-BY-ELEMENT OPERATION
+for(i=0;i<rowsa;++i) {
+for(j=0;j<colsa;++j) {
+ rplPushData(GETELEMENT(*a,i*colsa+j));
+ rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_ABS));
+ if(Exceptions) {
+     DSTop=Savestk;
+     return;
+ }
+ rplPushData(rplPeekData(1));   // DUP
+ rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+ if(Exceptions) {
+     DSTop=Savestk;
+     return;
+ }
+ rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD));
+ if(Exceptions) {
+     DSTop=Savestk;
+     return;
+ }
+
+}
+
+// SIMPLIFY IF IT'S A SYMBOLIC TO KEEP THE OBJECTS SMALL
+if(ISSYMBOLIC(*rplPeekData(1))) {
+    rplSymbAutoSimplify();
+    if(Exceptions) {
+        DSTop=Savestk;
+        return;
+    }
+}
+
+}
+
+// COMPUTE THE SQUARE ROOT
+rplCallOperator(CMD_SQRT);
+if(Exceptions) {
+    DSTop=Savestk;
+    return;
+}
+
+
+rplOverwriteData(2,rplPeekData(1));
+rplDropData(1);
+}
+
+
+

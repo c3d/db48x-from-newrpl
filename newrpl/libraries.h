@@ -188,6 +188,8 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 
 
 // COMMANDS THAT NEED TO BE ACCESSED FROM MULTIPLE LIBRARIES
+// WARNING: IF COMMANDS ARE REORGANIZED WITHIN LIBRARIES, THIS WILL BREAK
+// TODO: FIND A BETTER WAY TO EXPORT COMMANDS (??)
 
 #define CMD_EXITRPL         MKOPCODE(DOCOL,0)
 #define CMD_XEQSECO         MKOPCODE(DOCOL,2)
@@ -197,7 +199,6 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 #define CMD_RULESEPARATOR   MKOPCODE(DOSYMB,0)
 
 #define CMD_NEWLOCALENV     MKOPCODE(LIB_LOCALENV,0)
-
 
 
 

@@ -264,7 +264,8 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     *ValidateTop++=CompileEnd-1; // POINTER TO THE WORD OF THE COMPOSITE, NEEDED TO STORE THE SIZE
                     libcnt=EXIT_LOOP;
                     force_libnum=-1;
-                    validate=1;
+                    if(ISPROLOG((BINT)**(ValidateTop-1))) validate=0;
+                    else validate=1;
                     break;
                 case OK_CHANGECONSTRUCT:
                     *(ValidateTop-1)=CompileEnd-1; // POINTER TO THE WORD OF THE COMPOSITE, NEEDED TO STORE THE SIZE
@@ -312,7 +313,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     *ValidateTop++=CompileEnd-1; // POINTER TO THE WORD OF THE COMPOSITE, NEEDED TO STORE THE SIZE
                     force_libnum=libnum;
                     libcnt=EXIT_LOOP;
-                    validate=1;
+                    validate=0;
                     break;
                 case OK_SPLITTOKEN:
                     splittoken=1;
@@ -327,7 +328,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     splittoken=1;
                     libcnt=EXIT_LOOP;
                     force_libnum=-1;
-                    validate=1;
+                    validate=0;
                     break;
                 case OK_STARTCONSTRUCT_INFIX:
                     if(RStkSize<=(ValidateTop-RStk)) growRStk(ValidateTop-RStk+RSTKSLACK);
@@ -686,6 +687,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
         if(ValidateHandler) {
             // CALL THE LIBRARY TO SEE IF IT'S OK TO HAVE THIS OBJECT
             CurOpcode=MKOPCODE(LIBNUM(CurrentConstruct),OPCODE_VALIDATE);
+
             (*ValidateHandler)();
 
             switch(RetNum)
