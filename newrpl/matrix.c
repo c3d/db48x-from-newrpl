@@ -246,7 +246,6 @@ void rplMatrixAdd() { rplMatrixBinary(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)); }
 void rplMatrixSub() { rplMatrixBinary(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB)); }
 
 
-// APPLIES ANY OVERLOADABLE BINARY OPERATOR THAT WORKS ELEMENT-BY-ELEMENT (ADD/SUBTRACT)
 
 void rplMatrixMulScalar()
 {
@@ -302,6 +301,49 @@ rplDropData(1);
 
 
 
+void rplMatrixNeg()
+{
+WORDPTR *Savestk,*a;
+// DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
+// AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
+Savestk=DSTop;
+a=DSTop-1;
+
+// MAKE SURE THAT b IS THE SCALAR VALUE, a IS THE MATRIX
+
+// CHECK DIMENSIONS
+
+BINT rowsa=MATROWS(*(*a+1)),colsa=MATCOLS(*(*a+1));
+
+BINT totalelements=(rowsa)? rowsa*colsa:colsa;
+
+BINT j;
+
+// DO THE ELEMENT-BY-ELEMENT OPERATION
+
+for(j=0;j<totalelements;++j) {
+ rplPushData(GETELEMENT(*a,j));
+ rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+ if(Exceptions) {
+     DSTop=Savestk;
+     return;
+ }
+ if(ISSYMBOLIC(*rplPeekData(1))) {
+     rplSymbAutoSimplify();
+     if(Exceptions) {
+         DSTop=Savestk;
+         return;
+     }
+ }
+
+}
+
+WORDPTR newmat=rplMatrixCompose(rowsa,colsa);
+DSTop=Savestk;
+if(!newmat) return;
+rplOverwriteData(2,newmat);
+rplDropData(1);
+}
 
 
 

@@ -335,12 +335,21 @@ extern BINT rplStringGetLinePtr(WORDPTR str,BINT line);
 // MATRIX
 extern WORDPTR rplMatrixCompose(BINT rows,BINT cols);
 extern WORDPTR *rplMatrixExplode();
+extern WORDPTR rplMatrixGet(WORDPTR matrix,BINT row,BINT col);
+extern WORDPTR rplMatrixFastGet(WORDPTR matrix,BINT row,BINT col);
 
+
+extern void rplMatrixNorm();
+extern void rplMatrixNeg();
 extern void rplMatrixAdd();
 extern void rplMatrixSub();
 extern void rplMatrixMul();
 extern void rplMatrixMulScalar();
 extern void rplMatrixBareiss();
+extern void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa);
+extern void rplMatrixInvert();
+extern void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
+
 
 // DEFINED EXCEPTIONS
 

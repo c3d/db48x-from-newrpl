@@ -111,8 +111,25 @@ void LIB_HANDLER()
             return;
 
         }
+        case OVR_NEG:
+        {
+            if(rplDepthData()<1) {
+                Exceptions|=EX_BADARGCOUNT;
+                ExceptionPointer=IPtr;
+                return;
+            }
+            WORDPTR a=rplPeekData(1);
 
+            if(!ISMATRIX(*a)) {
+                Exceptions|=EX_BADARGTYPE;
+                ExceptionPointer=IPtr;
+                return;
+            }
 
+            rplMatrixNeg();
+            return;
+
+        }
         }
 
     }
@@ -197,15 +214,119 @@ void LIB_HANDLER()
 
             rplMatrixMul();
             return;
+        }
+
+        case OVR_DIV:
+        {
+            if(rplDepthData()<2) {
+                Exceptions|=EX_BADARGCOUNT;
+                ExceptionPointer=IPtr;
+                return;
+            }
+
+            WORDPTR a=rplPeekData(2),b=rplPeekData(1);
+
+            // NEED TO DETECT SCALAR / MATRIX AND MATRIX / SCALAR CASES
+            if((ISNUMBERCPLX(*a)
+                  || ISSYMBOLIC(*a)
+                  || ISIDENT(*a))) {
+                // SCALAR BY MATRIX
+                Exceptions|=EX_BADARGTYPE;
+                ExceptionPointer=IPtr;
+                return;
+            }
+            if((ISNUMBERCPLX(*b)
+                  || ISSYMBOLIC(*b)
+                  || ISIDENT(*b))) {
+                // MATRIX DIV BY SCALAR
+                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_INV));
+                if(Exceptions) return;
+                rplMatrixMulScalar();
+
+                return;
+            }
+
+            // HERE IT HAS TO BE MATRIX / MATRIX
+
+            if(!ISMATRIX(*a) || !ISMATRIX(*b)) {
+                Exceptions|=EX_BADARGTYPE;
+                ExceptionPointer=IPtr;
+                return;
+            }
+
+            // PERFORM A*INV(B)
+
+            rplMatrixInvert();
+            if(Exceptions) return;
+            rplMatrixMul();
+            return;
 
 
         }
 
+        case OVR_POW:
+        {
+            if(rplDepthData()<2) {
+                Exceptions|=EX_BADARGCOUNT;
+                ExceptionPointer=IPtr;
+                return;
+            }
 
+            WORDPTR a=rplPeekData(2),b=rplPeekData(1);
 
+            // ONLY MATRIX RAISED TO NUMERIC POWER IS SUPPORTED
+            if(!ISMATRIX(*a) || !ISNUMBER(*b)) {
+                Exceptions|=EX_BADARGTYPE;
+                ExceptionPointer=IPtr;
+                return;
+            }
 
+            if(ISREAL(*b)) {
+                mpd_t real;
+                rplReadReal(b,&real);
+                if(!mpd_isinteger(&real)) {
+                    Exceptions|=EX_BADARGVALUE;
+                    ExceptionPointer=IPtr;
+                    return;
+                }
 
+            }
+                // TODO: CHECK FOR INTEGER RANGE AND ISSUE "Integer too large" ERROR
+                BINT64 exp=rplReadNumberAsBINT(b);
+                if(Exceptions) return;
+                rplPopData();
+                if(exp<0) {
+                 rplMatrixInvert();
+                 if(Exceptions) return;
+                 exp=-exp;
+                }
 
+                BINT hasresult=0;
+                while(exp) {
+                if(exp&1) {
+                    if(!hasresult) { rplPushData(rplPeekData(1));   // DUP THE CURRENT MATRIX
+                                     hasresult=1;
+                                }
+                                else {
+                                        rplPushData(rplPeekData(2));
+                                        rplPushData(rplPeekData(2));
+                                        rplMatrixMul();
+                                        if(Exceptions) return;
+                                        rplOverwriteData(3,rplPeekData(1));
+                                        rplPopData();
+                                 }
+                }
+                exp>>=1;
+                if(exp) {
+                rplPushData(rplPeekData(1));
+                rplMatrixMul();
+                if(Exceptions) return;
+                }
+                }
+
+                rplPopData();
+                return;
+            }
 
         break;
         }
