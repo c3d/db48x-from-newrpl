@@ -2830,21 +2830,32 @@ void div_real(REAL *r,REAL *num,REAL *d,int maxdigits)
     remainder.data[remainder.len]=0;    // EXTRA ZERO PADDING FOR THE ALGORITHM
 
     remword=remainder.len-1; // TAKE THE FIRST WORD TO START
-
+    BINT tempres;
+    BINT64 tmp64;
     while(resword>=0) {
         // COMPUTE A NEW WORD OF THE QUOTIENT
-
-        result->data[resword]=(remainder.data[remword+1]*invhi)>>28;
-        result->data[resword]+=(remainder.data[remword]*inverse)>>37;
+        result->data[resword]=0;
+        do {
+        if(remainder.data[remword+1]<0) tempres=-(((-remainder.data[remword+1])*invhi)>>28);
+        else tempres=(remainder.data[remword+1]*invhi)>>28;
+        if(remainder.data[remword]<0) tempres-=((-remainder.data[remword])*inverse)>>37;
+        else tempres+=(remainder.data[remword]*inverse)>>37;
         //result->data[resword]=((BINT64)remainder.data[remword]+(BINT64)remainder.data[remword+1]*100000000LL)/div->data[div->len-1];
 
         // SUBTRACT FROM THE REMAINDER
-        //for(j=0;j<div->len;++j) add_single64(remainder.data+remword+1-div->len+j,-(BINT64)result->data[resword]*div->data[j]);
-        add_long_mul(remainder.data+remword+1-div->len,div->data,div->len,-result->data[resword]);
+        for(j=0;j<div->len;++j) add_single64(remainder.data+remword+1-div->len+j,-(BINT64)tempres*div->data[j]);
+        //add_long_mul(remainder.data+remword+1-div->len,div->data,div->len,-tempres);
         // CORRECT THE MOST SIGNIFICANT WORD OF THE REMAINDER
-        remainder.data[remword]+=remainder.data[remword+1]*100000000;
+        tmp64=(BINT64)remainder.data[remword]+(BINT64)remainder.data[remword+1]*100000000LL;
+        if(tmp64>2147483648 || tmp64<-214783648) {
+            carry_correct(remainder.data+remword,2);
+        } else {
+        remainder.data[remword]=tmp64;
+        remainder.data[remword+1]=0;
+        }
         carry_correct(remainder.data+remword+1-div->len,div->len);
 
+        result->data[resword]+=tempres;
         //  STOP IF THE REMAINDER IS ZERO
         /*
         ptr=remainder.data+remword+1-div->len;
@@ -2856,6 +2867,7 @@ void div_real(REAL *r,REAL *num,REAL *d,int maxdigits)
             break;
         }
         */
+        } while(tmp64>div->data[div->len-1]);
 
         --resword;
         --remword;
@@ -2875,7 +2887,6 @@ void div_real(REAL *r,REAL *num,REAL *d,int maxdigits)
 
 
 }
-
 
 // DIVIDE A NUMBER USING NEWTON-RAPHSON INVERSION
 

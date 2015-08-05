@@ -90,8 +90,8 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
     "→ARRY", \
     "ARRY→", \
     "→COL", \
-    "COL-", \
     "COL+", \
+    "COL-", \
     "COL→", \
     "→DIAG", \
     "DIAG→", \
@@ -558,6 +558,399 @@ void LIB_HANDLER()
     }
         // ADD MORE OPCODES HERE
     
+    case TOCOL:
+    {
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(!ISMATRIX(*rplPeekData(1))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        WORDPTR matrix=rplPeekData(1);
+        WORDPTR *matptr=DSTop-1;
+        WORDPTR elem;
+        BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+        BINT nrows=(rows)? rows:1;
+        BINT i,j;
+
+        for(j=1;j<=cols;++j) {
+        for(i=1;i<=nrows;++i) rplPushData(rplMatrixFastGet(*matptr,i,j));
+        if(rows) {
+            elem=rplMatrixCompose(0,nrows);
+            if(!elem) return;
+            rplDropData(nrows);
+        } else elem=rplPopData();
+
+        rplPushData(*matptr);
+        rplOverwriteData(2,elem);
+        matptr=DSTop-1;
+        }
+
+        rplDropData(1);
+        rplNewBINTPush(cols,DECBINT);
+
+        return;
+
+    }
+
+    case ADDCOL:
+    {
+        if(rplDepthData()<3) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(!ISMATRIX(*rplPeekData(3))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(!ISMATRIX(*rplPeekData(2)) && !ISNUMBER(*rplPeekData(2))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(1))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        BINT64 nelem=rplReadNumberAsBINT(rplPeekData(1));
+
+
+
+
+
+        WORDPTR matrix=rplPeekData(3);
+        BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+
+        WORDPTR *matptr=DSTop-3;
+        WORDPTR elem;
+
+        if( (nelem<1)||(nelem>cols+1)) {
+            Exceptions|=EX_BADARGVALUE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+
+        if(!rows) {
+            // ADD ELEMENTS TO A VECTOR
+
+            // CHECK VALID TYPES FOR MATRIX ELEMENTS
+            if(!ISNUMBERCPLX(*rplPeekData(2)) && !ISSYMBOLIC(*rplPeekData(2))
+                  && !ISIDENT(*rplPeekData(2)))
+             {
+                Exceptions|=EX_BADARGTYPE;
+                ExceptionPointer=IPtr;
+                return;
+            }
+
+            WORDPTR *first=rplMatrixNewEx(1,cols+1);
+
+            if(!first) {
+                return;
+            }
+
+
+            BINT j;
+            WORDPTR *stkelem;
+            for(j=1;j<nelem;++j) {
+                stkelem=rplMatrixFastGetEx(first,cols+1,1,j);
+                *stkelem=rplMatrixFastGet(*matptr,1,j);
+            }
+
+            stkelem=rplMatrixFastGetEx(first,cols+1,1,j);
+            *stkelem=matptr[1]; // THE NEW ELEMENT MIGHT HAVE MOVED, SO GET IT FROM THE STACK
+            ++j;
+
+            for(;j<=cols+1;++j) {
+                stkelem=rplMatrixFastGetEx(first,cols+1,1,j);
+                *stkelem=rplMatrixFastGet(*matptr,1,j-1);
+            }
+
+            // MAKE A NEW VECTOR
+
+            WORDPTR newmat=rplMatrixCompose(0,cols+1);
+            if(!newmat) {
+                DSTop=matptr+3;
+                return;
+            }
+
+            rplDropData(cols+4);
+            rplPushData(newmat);
+            return;
+
+        }
+
+        // ADD A VECTOR OR A MATRIX TO A MATRIX
+
+        if(!ISMATRIX(*rplPeekData(2))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+
+
+        WORDPTR mat2=rplPeekData(2);
+        BINT rows2=MATROWS(mat2[1]),cols2=MATCOLS(mat2[1]);
+
+
+        // CHECK PROPER SIZE
+
+        if(!rows2) {
+            // MAKE IT A COLUMN VECTOR
+            rows2=cols2;
+            cols2=1;
+        }
+
+        if(rows2!=rows) {
+            Exceptions|=EX_INVALID_DIM;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        // ADD THE COLUMNS
+
+        WORDPTR *first=rplMatrixNewEx(rows,cols+cols2);
+
+        if(!first) {
+            return;
+        }
+
+
+        BINT i,j;
+        WORDPTR *stkelem;
+        for(j=1;j<nelem;++j) {
+            for(i=1;i<=rows;++i) {
+            stkelem=rplMatrixFastGetEx(first,cols+cols2,i,j);
+            *stkelem=rplMatrixFastGet(*matptr,i,j);
+            }
+        }
+
+        for(;j<nelem+cols2;++j) {
+            for(i=1;i<=rows;++i) {
+            stkelem=rplMatrixFastGetEx(first,cols+cols2,i,j);
+            *stkelem=rplMatrixFastGet(matptr[1],i,j-nelem+1);
+            }
+        }
+
+        for(;j<=cols+cols2;++j) {
+            for(i=1;i<=rows;++i) {
+            stkelem=rplMatrixFastGetEx(first,cols+cols2,i,j);
+            *stkelem=rplMatrixFastGet(*matptr,i,j-cols2);
+            }
+        }
+
+        // MAKE A NEW VECTOR
+
+        WORDPTR newmat=rplMatrixCompose(rows,cols+cols2);
+        if(!newmat) {
+            DSTop=matptr+3;
+            return;
+        }
+
+        rplDropData(rows*(cols+cols2)+3);
+        rplPushData(newmat);
+        return;
+    }
+
+    case REMCOL:
+    {
+        if(rplDepthData()<2) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(!ISMATRIX(*rplPeekData(2))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(!ISNUMBER(*rplPeekData(1))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        BINT64 ncol=rplReadNumberAsBINT(rplPeekData(1));
+
+        WORDPTR matrix=rplPeekData(2);
+        BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+        BINT nrows=(rows)? rows:1;
+
+        WORDPTR *matptr=DSTop-2;
+        WORDPTR elem;
+
+        if(cols<=1) {
+            Exceptions|=EX_INVALID_DIM;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+
+        if( (ncol<1)||(ncol>cols)) {
+            Exceptions|=EX_BADARGVALUE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        // MAKE THE NEW MATRIX WITHOUT ONE COLUMN
+
+        WORDPTR *first=rplMatrixNewEx(rows,cols-1);
+
+        if(!first) {
+            return;
+        }
+
+
+        BINT i,j;
+        WORDPTR *stkelem;
+        for(j=1;j<ncol;++j) {
+            for(i=1;i<=nrows;++i) {
+            stkelem=rplMatrixFastGetEx(first,cols-1,i,j);
+            *stkelem=rplMatrixFastGet(*matptr,i,j);
+            }
+        }
+
+        // SEPARATE THE COLUMN VECTOR/ELEMENT
+        for(i=1;i<=nrows;++i) {
+        rplPushData(rplMatrixFastGet(*matptr,i,j));
+        }
+
+
+        for(;j<=cols-1;++j) {
+            for(i=1;i<=nrows;++i) {
+            stkelem=rplMatrixFastGetEx(first,cols-1,i,j);
+            *stkelem=rplMatrixFastGet(*matptr,i,j+1);
+            }
+        }
+
+
+        // MAKE THE VECTOR FROM THE ELEMENTS
+        WORDPTR newmat;
+
+        if(rows) {
+            newmat=rplMatrixCompose(0,nrows);
+            if(!newmat) {
+                DSTop=matptr+2;
+                return;
+            }
+            rplDropData(nrows);
+
+        } else newmat=rplPopData();
+
+        matptr[1]=newmat;   //  OVERWRITE THE FIRST ARGUMENT WITH THE VECTOR
+
+
+        // MAKE A NEW VECTOR/MATRIX
+
+        newmat=rplMatrixCompose(rows,cols-1);
+        if(!newmat) {
+            DSTop=matptr+2;
+            return;
+        }
+
+        rplDropData(nrows*(cols-1));
+
+        rplOverwriteData(2,newmat);
+
+        return;
+
+    }
+    case FROMCOL:
+        {
+        if(rplDepthData()<1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+        if(!ISNUMBER(*rplPeekData(1))) {
+            Exceptions|=EX_BADARGTYPE;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        BINT64 nelem=rplReadNumberAsBINT(rplPeekData(1));
+
+        if(rplDepthData()<nelem+1) {
+            Exceptions|=EX_BADARGCOUNT;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+        BINT i;
+        BINT veclen=0;
+
+        for(i=2;i<=nelem+1;++i) {
+            if(ISMATRIX(*rplPeekData(i))) {
+                WORDPTR matrix=rplPeekData(i);
+                BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+
+                if(rows) {
+                    Exceptions|=EX_INVALID_DIM;
+                    ExceptionPointer=IPtr;
+                    return;
+                }
+
+                if(veclen) {
+                    if(cols!=veclen) {
+                        Exceptions|=EX_INVALID_DIM;
+                        ExceptionPointer=IPtr;
+                        return;
+                    }
+                } else {
+                    if(i==2) veclen=cols;
+                    else {
+                        // DON'T ALLOW MIX OF VECTOR/NUMBERS
+                        Exceptions|=EX_INVALID_DIM;
+                        ExceptionPointer=IPtr;
+                        return;
+                    }
+                }
+            }
+            else {
+                if(! (ISNUMBERCPLX(*LastCompiledObject)
+                      || ISSYMBOLIC(*LastCompiledObject)
+                      || ISIDENT(*LastCompiledObject))) {
+                            Exceptions|=EX_BADARGTYPE;
+                            ExceptionPointer=IPtr;
+                            return;
+                }
+
+                if(veclen) {
+                    Exceptions|=EX_INVALID_DIM;
+                    ExceptionPointer=IPtr;
+                    return;
+                }
+
+            }
+        }
+
+        // HERE WE HAVE ALL ELEMENTS PROPERLY VALIDATED
+
+
+
+
+
+        }
+    case TODIAG:
+    case FROMDIAG:
+    case TOROW:
+    case ADDROW:
+    case REMROW:
+    case FROMROW:
+    case TOV2:
+    case TOV3:
+    case FROMV:
 
 
 
@@ -569,7 +962,7 @@ void LIB_HANDLER()
 
 
 
-
+    break;
 
 
 

@@ -53,6 +53,40 @@ WORDPTR rplMatrixFastGet(WORDPTR matrix,BINT row,BINT col)
     return matrix+matrix[(row-1)*cols+col+1];
 }
 
+// FAST GET THE PTR TO AN ELEMENT IN A MATRIX EXPLODED IN THE STACK
+
+WORDPTR *rplMatrixFastGetEx(WORDPTR *first,BINT cols,BINT i,BINT j)
+{
+    return first+(i-1)*cols+(j-1);
+}
+
+
+// CREATE A NEW MATRIX EXPLODED IN THE STACK, FILLED WITH ZEROS
+// RETURN THE POINTER TO THE FIRST ELEMENT IN THE STACK
+
+WORDPTR *rplMatrixNewEx(BINT rows,BINT cols)
+{
+    if(!rows) ++rows;
+
+    if( (rows<1)||(cols<1)) return NULL;
+
+    WORDPTR *Firstelem=DSTop;
+    BINT k,nelem;
+
+    nelem=rows*cols;
+
+    for(k=0;k<nelem;++k) {
+        rplPushData(zero_bint);
+        if(Exceptions) {
+            DSTop=Firstelem;
+            return NULL;
+        }
+
+    }
+
+    return Firstelem;
+}
+
 
 
 // EXPLODES A MATRIX IN THE STACK
@@ -314,7 +348,7 @@ WORDPTR *Savestk,*a;
 Savestk=DSTop;
 a=DSTop-1;
 
-// MAKE SURE THAT b IS THE SCALAR VALUE, a IS THE MATRIX
+// a IS THE MATRIX
 
 // CHECK DIMENSIONS
 
@@ -346,8 +380,7 @@ for(j=0;j<totalelements;++j) {
 WORDPTR newmat=rplMatrixCompose(rowsa,colsa);
 DSTop=Savestk;
 if(!newmat) return;
-rplOverwriteData(2,newmat);
-rplDropData(1);
+rplOverwriteData(1,newmat);
 }
 
 

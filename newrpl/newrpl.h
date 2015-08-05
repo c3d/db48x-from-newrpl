@@ -338,6 +338,8 @@ extern WORDPTR rplMatrixCompose(BINT rows,BINT cols);
 extern WORDPTR *rplMatrixExplode();
 extern WORDPTR rplMatrixGet(WORDPTR matrix,BINT row,BINT col);
 extern WORDPTR rplMatrixFastGet(WORDPTR matrix,BINT row,BINT col);
+extern WORDPTR *rplMatrixFastGetEx(WORDPTR *first,BINT cols,BINT i,BINT j);
+extern WORDPTR *rplMatrixNewEx(BINT rows,BINT cols);
 
 
 extern void rplMatrixNorm();
