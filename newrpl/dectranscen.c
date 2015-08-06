@@ -1833,7 +1833,7 @@ decRReg[0].flags=0;
 CORDIC_Hyp_Vectoring_unrolled((Context.precdigits>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+8:Context.precdigits,startexp);
 
 // ADD BACK THE EXPONENT AS LN(A)=EXP*LN(10)+LN(A')
-int2real(&decRReg[4],adjustexp);
+newRealFromBINT(&decRReg[4],adjustexp);
 mul_real(&decRReg[4],&decRReg[4],&ln10);
 normalize(&decRReg[4]);
 add_real(&decRReg[3],&decRReg[0],&decRReg[0]);
@@ -1917,7 +1917,7 @@ CORDIC_Hyp_Vectoring_unrolled((Context.precdigits>REAL_PRECISION_MAX)? REAL_PREC
 decconst_Kh1(&Kh1);
 
 // ADD BACK THE EXPONENT AS sqrt(A)= 2*sqrt(xin^2-yin^2) * Kh1 * 10^(exponent/2)
-int2real(&decRReg[3],5);
+newRealFromBINT(&decRReg[3],5);
 normalize(&decRReg[1]);
 mul_real(&decRReg[4],&decRReg[3],&decRReg[1]);
 decRReg[4].exp--;
@@ -1956,10 +1956,12 @@ void dechyp_asinh(REAL *x)
 
     div_real(&decRReg[7],x,&decRReg[2],Context.precdigits); // 7 = sinh / (cosh + 1)
     normalize(&decRReg[7]);
-    Context.precdigits-=8;
 
 
     dechyp_atanh(&decRReg[7]);
+
+    Context.precdigits-=8;
+
 
     add_real(&decRReg[1],&decRReg[0],&decRReg[0]);
 

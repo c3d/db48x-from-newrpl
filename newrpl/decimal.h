@@ -272,8 +272,6 @@ extern void div_real(REAL *r,REAL *num,REAL *d,int maxdigits);
 
 extern void div_real_nr(REAL *result,REAL *num,REAL *div);
 
-extern void int2real(REAL *result,int number);
-
 
 // *************************************************************************
 // ************* HIGH LEVEL API FOR DECIMAL LIBRARY ************************
@@ -294,6 +292,13 @@ extern void setPrecision(BINT prec);
 // GET THE CURRENT PRECISION
 
 extern BINT getPrecision();
+
+// MAKE A REAL NUMBER FROM AN INTEGER
+extern void newRealFromBINT(REAL *result,BINT number);
+
+// MAKE A REAL NUMBER FROM A 64-BIT INTEGER
+extern void newRealFromBINT64(REAL *result,BINT64 number);
+
 
 // COPY CONTENTS OF ONE REAL TO ANOTHER
 extern void copyReal(REAL *dest,REAL *src);

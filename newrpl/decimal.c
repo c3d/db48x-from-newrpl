@@ -73,7 +73,15 @@ void freeRegister(BINT *data)
 
 }
 
-
+const unsigned char const carry_table[64]={
+    0,1,2,2,3,4,4,5,6,6,7,
+    8,8,9,10,10,11,12,12,13,14,
+    14,15,16,16,17,18,18,19,20,20,
+    21,22,22,23,24,24,25,26,26,27,
+    28,28,29,30,30,31,32,32,33,34,
+    34,35,36,36,37,38,38,39,40,40,
+    41,42,42
+};
 // NEW FORMAT USES 8-DIGIT WITH -1E8 TO 1E8 RANGE
 
 // ALL NUMBERS ARE INTEGERS
@@ -83,12 +91,44 @@ void freeRegister(BINT *data)
 // CORRECT CARRY FROM START TO end (END EXCLUDED, POSSIBLE END CARRY NEEDS TO BE HANDLED BY OTHER ROUTINES)
 void carry_correct(BINT *start,BINT nwords)
 {
-    BINT *end=start+nwords;
+    BINT *end=start+nwords-1;
+    /*
     while(start<end-1) {
         while(*start>=100000000) { ++*(start+1); *start-=100000000; }
         while(*start<0) { --*(start+1); *start+=100000000; }
         ++start;
     }
+    */
+    BINT carry=0,word;
+    while(start<end) {
+    word=*start+carry;
+
+    if(word<0) {
+        if(word<=-200000000) {
+            carry=-carry_table[(-word)>>26];
+            word-=carry*100000000;
+        } else {
+            if(word<=-100000000) {
+                carry=-1;
+                word+=100000000;
+            } else carry=0;
+        }
+    }
+    else {
+        if(word>=200000000) {
+            carry=carry_table[word>>26];
+            word-=carry*100000000;
+        } else carry=0;
+    }
+    // HERE word IS WITHIN +/-1E8
+    if(word<0) { word+=100000000; --carry; }
+    else if(word>=100000000) { word-=100000000; ++carry; }
+    *start=word;
+    ++start;
+    }
+
+    *start+=carry;
+
 }
 
 
@@ -118,15 +158,7 @@ void checkrange(REAL *number)
 
 }
 
-const unsigned char const carry_table[64]={
-    0,1,2,2,3,4,4,5,6,6,7,
-    8,8,9,10,10,11,12,12,13,14,
-    14,15,16,16,17,18,18,19,20,20,
-    21,22,22,23,24,24,25,26,26,27,
-    28,28,29,30,30,31,32,32,33,34,
-    34,35,36,36,37,38,38,39,40,40,
-    41,42,42
-};
+
 
 
 
@@ -473,64 +505,6 @@ void add_long(BINT *result,BINT *n1start,BINT nwords)
         --nwords;
     }
 }
-
-
-// MULTIPLY BY A SINGLE WORD AND ADD TO RESULT
-// USED DURING DIVISION
-
-void add_long_mul(BINT *result,BINT *n1start,BINT nwords,BINT mul)
-{
-    BINT hi,lo,sign;
-    /*
-    union {
-        WORD64 w64;
-        WORD w[2];
-    } u;
-    */
-
-
-    //if(mul<0) { mul=-mul; sign=1; }
-    //else sign=0;
-
-    while(nwords) {
-        add_single64(result+nwords-1,(BINT64)n1start[nwords-1]*(BINT64)mul);
-        /*
-        if(n1start[nwords-1]<0) {
-            u.w64=(WORD64)-n1start[nwords-1]*(WORD64)mul;
-            hi=(720575940LL*u.w[1])>>24;
-            lo=u.w[0]-hi*100000000;
-
-            if(sign) {
-                result[nwords-1]+=lo;
-                result[nwords]+=hi;
-            }
-            else {
-                result[nwords-1]-=lo;
-                result[nwords]-=hi;
-            }
-
-
-
-        } else {
-            u.w64=(WORD64)n1start[nwords-1]*(WORD64)mul;
-            hi=(720575940LL*u.w[1])>>24;
-            lo=u.w[0]-hi*100000000;
-
-            if(sign) {
-                result[nwords-1]-=lo;
-                result[nwords]-=hi;
-            }
-            else {
-                result[nwords-1]+=lo;
-                result[nwords]+=hi;
-            }
-
-        }
-        */
-        --nwords;
-    }
-}
-
 
 
 // NEW FASTER VERSION OF SHIFT, INCLUDES A SMALL MULTIPLICATIVE CONSTANT 0-31
@@ -2844,7 +2818,7 @@ void div_real(REAL *r,REAL *num,REAL *d,int maxdigits)
 
         // SUBTRACT FROM THE REMAINDER
         for(j=0;j<div->len;++j) add_single64(remainder.data+remword+1-div->len+j,-(BINT64)tempres*div->data[j]);
-        //add_long_mul(remainder.data+remword+1-div->len,div->data,div->len,-tempres);
+        carry_correct(remainder.data+remword+1-div->len,div->len);
         // CORRECT THE MOST SIGNIFICANT WORD OF THE REMAINDER
         tmp64=(BINT64)remainder.data[remword]+(BINT64)remainder.data[remword+1]*100000000LL;
         if(tmp64>2147483648 || tmp64<-214783648) {
@@ -2853,7 +2827,6 @@ void div_real(REAL *r,REAL *num,REAL *d,int maxdigits)
         remainder.data[remword]=tmp64;
         remainder.data[remword+1]=0;
         }
-        carry_correct(remainder.data+remword+1-div->len,div->len);
 
         result->data[resword]+=tempres;
         //  STOP IF THE REMAINDER IS ZERO
@@ -2953,23 +2926,6 @@ void div_real_nr(REAL *result,REAL *num,REAL *div)
 
 
 
-void int2real(REAL *result,int number)
-{
-    if(number<0) { result->flags=F_NEGATIVE; number=-number; }
-    else result->flags=0;
-
-    result->exp=0;
-
-    if(number<100000000) {
-        result->data[0]=number;
-        result->len=1;
-        return;
-    }
-    result->data[0]=0;
-    result->data[1]=0;
-    add_single64(result->data,(BINT64)number);
-    result->len=2;
-}
 
 
 
@@ -3007,6 +2963,66 @@ void setPrecision(BINT prec) {
 // GET THE CURRENT PRECISION
 
 BINT getPrecision() { return Context.precdigits; }
+
+// MAKE A REAL OUT OF AN INTEGER
+void newRealFromBINT(REAL *result,BINT number)
+{
+    if(number<0) { result->flags=F_NEGATIVE; number=-number; }
+    else result->flags=0;
+
+    result->exp=0;
+
+    if(number<100000000) {
+        result->data[0]=number;
+        result->len=1;
+        return;
+    }
+    result->data[0]=0;
+    result->data[1]=0;
+    add_single64(result->data,(BINT64)number);
+    carry_correct(result->data,2);
+    result->len=2;
+}
+
+// MAKE A REAL OUT OF A 64-BIT INTEGER
+void newRealFromBINT64(REAL *result,BINT64 number)
+{
+    if(number<0) { result->flags=F_NEGATIVE; number=-number; }
+    else result->flags=0;
+
+    result->exp=0;
+
+    if(number<100000000) {
+        // SINGLE WORD CASE
+        result->data[0]=number;
+        result->len=1;
+        return;
+    }
+    if(number<10000000000000000LL) {
+        // UP TO 10^16 CAN BE HANDLED BY add_single64();
+    result->data[0]=0;
+    result->data[1]=0;
+    add_single64(result->data,(BINT64)number);
+    carry_correct(result->data,2);
+    result->len=2;
+    return;
+    }
+
+    // DEAL WITH NUMBER THAT IS MORE THAN 16-DIGITS
+    result->data[0]=0;
+    result->data[1]=0;
+    result->data[2]=0;
+    // THIS IS 2^48 IN 8-DIGIT BASE
+    const BINT two_48[2]={76710656,2814749};
+    BINT64 hibits=number>>48;
+    number&=(1LL<<48)-1;
+    add_single64(result->data,number);
+    add_karatsuba(result->data,(BINT *)&hibits,two_48);
+    carry_correct(result->data,3);
+    result->len=3;
+    return;
+}
+
 
 // ADDITION OF 2 REALS
 // DEALS WITH SPECIALS AND FULLY FINALIZE THE ANSWER
