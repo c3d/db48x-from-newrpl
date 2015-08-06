@@ -1946,11 +1946,9 @@ void dechyp_asinh(REAL *x)
     add_real(&decRReg[7],&decRReg[1],&one);   // 2 = x^2+1
 
     normalize(&decRReg[7]);
-    Context.precdigits-=8;
 
     dechyp_sqrt(&decRReg[7]); // 7 = cosh = sqrt(sinh^2+1)
 
-    Context.precdigits+=8;
     normalize(&decRReg[0]);
 
     add_real(&decRReg[2],&decRReg[0],&one);   // 2 = cosh + 1
@@ -1980,11 +1978,11 @@ void dechyp_acosh(REAL *x)
     normalize(&decRReg[2]);
     div_real(&decRReg[7],&decRReg[1],&decRReg[2],Context.precdigits);
     normalize(&decRReg[7]);
-    Context.precdigits-=8;
 
     dechyp_sqrt(&decRReg[7]);
 
     normalize(&decRReg[0]);
+    Context.precdigits-=8;
 
     dechyp_atanh(&decRReg[0]);
 

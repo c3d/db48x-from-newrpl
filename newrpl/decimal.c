@@ -81,7 +81,7 @@ void freeRegister(BINT *data)
 // CARRY WILL BE DEFERRED AS MUCH AS POSSIBLE
 
 // CORRECT CARRY FROM START TO end (END EXCLUDED, POSSIBLE END CARRY NEEDS TO BE HANDLED BY OTHER ROUTINES)
-inline void carry_correct(BINT *start,BINT nwords)
+void carry_correct(BINT *start,BINT nwords)
 {
     BINT *end=start+nwords;
     while(start<end-1) {
@@ -369,7 +369,7 @@ void finalize(REAL *number)
 
 // ADD A 64-BIT INTEGER TO A LONG NUMBER AT start
 
-inline void add_single64(BINT *start,BINT64 number)
+static inline void add_single64(BINT *start,BINT64 number)
 {
     UWORD tmp;
     BINT lo,hi;
@@ -444,7 +444,7 @@ inline void add_single64(BINT *start,BINT64 number)
 
 // MULTIPLIES 2 WORDS X 2 WORDS IN 3 MULTIPLICATIONS USING KARATSUBA TRICK
 // AND ACCUMULATE RESULT
-inline void add_karatsuba(BINT *start,BINT *a,BINT *b)
+static inline void add_karatsuba(BINT *start,BINT *a,BINT *b)
 {
     BINT64 hi,lo,mid;
     lo=a[0]*(BINT64)b[0];
@@ -459,7 +459,7 @@ inline void add_karatsuba(BINT *start,BINT *a,BINT *b)
 
 // ADD nwords FROM n1 TO result, NO CARRY CHECK
 // RESULT MUST BE INITIALIZED SOMEWHERE ELSE
-inline void add_long(BINT *result,BINT *n1start,BINT nwords)
+void add_long(BINT *result,BINT *n1start,BINT nwords)
 {
     while(nwords>=3) {
         result[nwords-1]+=n1start[nwords-1];
@@ -1328,7 +1328,7 @@ void long_shift(BINT *n1start,BINT nwords,BINT shift)
 // COUNT NUMBER OF SIGNIFICANT USED DIGITS IN A WORD
 // WORD MUST BE NORMALIZED AND >0
 
-inline int sig_digits(BINT word)
+int sig_digits(BINT word)
 {
 
     if(word>=10000) {
@@ -1407,7 +1407,7 @@ long_shift(number->data,number->len,ndig);  // AND DO THE SHIFT
 
 // SAME BUT SUBTRACTING, NO CARRY CHECKS
 
-inline void sub_long(BINT *result,BINT *n1start,BINT nwords)
+void sub_long(BINT *result,BINT *n1start,BINT nwords)
 {
     while(nwords>=3) {
         result[nwords-1]-=n1start[nwords-1];
@@ -1507,7 +1507,7 @@ void sub_long_shift(BINT *result,BINT *n1start,BINT nwords,BINT shift)
 
 
 
-inline void zero_words(BINT *ptr,BINT nwords)
+void zero_words(BINT *ptr,BINT nwords)
 {
     while(nwords>=3) {
         ptr[nwords-1]=0;
@@ -1523,7 +1523,7 @@ inline void zero_words(BINT *ptr,BINT nwords)
 
 }
 
-inline void copy_words(BINT *ptr,BINT *source,BINT nwords)
+void copy_words(BINT *ptr,BINT *source,BINT nwords)
 {
     if(ptr>source) {
     while(nwords>=3) {
@@ -1766,7 +1766,9 @@ void add_real_mul(REAL *r,REAL *a,REAL *b,BINT mult)
     result->data[totalwords]=0;
 
     int skipbwords=trimwords-apos-wordshift;
-    if(skipbwords<0) skipbwords=0;
+    if(skipbwords<0) {
+        wordshift-=trimwords;
+        skipbwords=0; }
     if(apos+wordshift+b->len>-1) {
         // ADD ONLY IF NUMBERS OVERLAP
     if((a->flags^b->flags)&F_NEGATIVE)     sub_long_mul_shift(result->data+apos+wordshift,b->data+skipbwords,b->len-skipbwords,smallshift,mult);
@@ -2992,7 +2994,7 @@ void initReal(REAL *a)
 
 // RELEASE MEMORY USED BY REAL
 
-inline void destroyReal(REAL *a) { freeRegister(a->data); }
+void destroyReal(REAL *a) { freeRegister(a->data); }
 
 // SELECT WORKING PRECISION
 
@@ -3326,7 +3328,7 @@ void truncReal(REAL *result,REAL *num,BINT nfigures)
 
 // RETURN THE INTEGER PART (TRUNCATED)
 // RETURN THE NUMBER ALIGNED AND RIGHT-JUSTIFIED IF align IS TRUE
-inline void ipReal(REAL *result,REAL *num,BINT align)
+void ipReal(REAL *result,REAL *num,BINT align)
 {
     truncReal(result,num,0);
 
