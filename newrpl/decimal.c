@@ -202,6 +202,11 @@ void normalize(REAL *number)
 
     }
 
+    // FINALLY, IF NUMBER IS ZERO, FORCE EXPONENT TO BE ZERO
+    if((number->len==1) && (number->data[0]==0)) {
+        number->exp=0;
+    }
+
     number->flags&=~F_NOTNORMALIZED;
 
 }
@@ -373,15 +378,12 @@ inline void add_single64(BINT *start,BINT64 number)
 
         tmp.w=-number;
 
-        /*
 
+/*
         if(tmp.w>1ULL<<58) {
             printf("Problem!!!\n");
         }
-        if(tmp.w>=10000000000000000ULL) {
-            printf("Other problem\n");
-        }
-        */
+*/
 
 
         if(((tmp.w32[1]<<6)|(tmp.w32[0]>>26))) {
@@ -391,16 +393,14 @@ inline void add_single64(BINT *start,BINT64 number)
         hi=0;
         lo=tmp.w32[0];
         }
-
+/*
         // DEBUG ONLY - JUST DOUBLE CHECK
-        /*
-        WORD64 test=sign*((WORD64)lo+((WORD64)hi*100000000ULL));
+        WORD64 test=-((WORD64)lo+((WORD64)hi*100000000ULL));
 
         if(test!=number) {
             printf("Error!");
         }
-        */
-
+*/
 
 
         start[0]-=lo;
@@ -411,16 +411,11 @@ inline void add_single64(BINT *start,BINT64 number)
     else {
         tmp.w=number;
 
-        /*
-
+/*
         if(tmp.w>1ULL<<58) {
             printf("Problem!!!\n");
         }
-        if(tmp.w>=10000000000000000ULL) {
-            printf("Other problem\n");
-        }
-        */
-
+*/
 
 
         if(((tmp.w32[1]<<6)|(tmp.w32[0]>>26))) {
@@ -430,16 +425,14 @@ inline void add_single64(BINT *start,BINT64 number)
         hi=0;
         lo=tmp.w32[0];
         }
-
+/*
         // DEBUG ONLY - JUST DOUBLE CHECK
-        /*
-        WORD64 test=sign*((WORD64)lo+((WORD64)hi*100000000ULL));
+        WORD64 test=((WORD64)lo+((WORD64)hi*100000000ULL));
 
         if(test!=number) {
             printf("Error!");
         }
-        */
-
+*/
 
         start[0]+=lo;
         start[1]+=hi;
@@ -488,15 +481,20 @@ inline void add_long(BINT *result,BINT *n1start,BINT nwords)
 void add_long_mul(BINT *result,BINT *n1start,BINT nwords,BINT mul)
 {
     BINT hi,lo,sign;
+    /*
     union {
         WORD64 w64;
         WORD w[2];
     } u;
+    */
 
-    if(mul<0) { mul=-mul; sign=1; }
-    else sign=0;
+
+    //if(mul<0) { mul=-mul; sign=1; }
+    //else sign=0;
 
     while(nwords) {
+        add_single64(result+nwords-1,(BINT64)n1start[nwords-1]*(BINT64)mul);
+        /*
         if(n1start[nwords-1]<0) {
             u.w64=(WORD64)-n1start[nwords-1]*(WORD64)mul;
             hi=(720575940LL*u.w[1])>>24;
@@ -514,7 +512,7 @@ void add_long_mul(BINT *result,BINT *n1start,BINT nwords,BINT mul)
 
 
         } else {
-            u.w64=(WORD64)n1start[0]*(WORD64)mul;
+            u.w64=(WORD64)n1start[nwords-1]*(WORD64)mul;
             hi=(720575940LL*u.w[1])>>24;
             lo=u.w[0]-hi*100000000;
 
@@ -528,7 +526,7 @@ void add_long_mul(BINT *result,BINT *n1start,BINT nwords,BINT mul)
             }
 
         }
-
+        */
         --nwords;
     }
 }
@@ -1628,7 +1626,7 @@ void add_real(REAL *r,REAL *a,REAL *b)
     if(totalwords>(Context.precdigits+23)>>3) {
         //  THERE'S UNNECESSARY WORDS FOR THE CURRENT PRECISION, SKIP SOME
         skipbwords=totalwords;
-        totalwords=((Context.precdigits+23)>>3)+2;
+        totalwords=((Context.precdigits+7)>>3)+2;
         skipbwords-=totalwords;
     }
 
@@ -2888,6 +2886,7 @@ void div_real(REAL *r,REAL *num,REAL *d,int maxdigits)
 
 }
 
+
 // DIVIDE A NUMBER USING NEWTON-RAPHSON INVERSION
 
 void div_real_nr(REAL *result,REAL *num,REAL *div)
@@ -3234,11 +3233,17 @@ BINT ndigits=((a->len-1)<<3)+sig_digits(a->data[a->len-1])+a->exp-((b->len-1)<<3
 if(ndigits>MAX_PRECISION) ndigits=MAX_PRECISION;
 
 
-
-
+if(ndigits<0) {
+// NUMERATOR IS SMALLER THAN DIVISOR, QUOTIENT IS ZERO
+quotient->data[0]=0;
+quotient->len=1;
+quotient->exp=1;
+quotient->flags=0;
+}
+else {
 div_real(quotient,a,b,ndigits);
 normalize(quotient);
-
+}
 if(quotient->exp<0) {
 BINT ndigits=sig_digits(quotient->data[quotient->len-1])+((quotient->len-1)<<3);
 if(ndigits+quotient->exp<0) {
@@ -3458,7 +3463,7 @@ BINT gtReal(REAL *a,REAL *b)
     int digits_a,digits_b;
 
     digits_a=sig_digits(a->data[a->len-1])+((a->len-1)<<3)+a->exp;
-    digits_b=sig_digits(b->data[b->len-1])+((b->len-1)<<3)+a->exp;
+    digits_b=sig_digits(b->data[b->len-1])+((b->len-1)<<3)+b->exp;
 
     if(digits_a>digits_b) {
         // ABS(A)>ABS(B)
