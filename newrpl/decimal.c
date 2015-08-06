@@ -401,7 +401,7 @@ void finalize(REAL *number)
 
 // ADD A 64-BIT INTEGER TO A LONG NUMBER AT start
 
-static inline void add_single64(BINT *start,BINT64 number)
+ void add_single64(BINT *start,BINT64 number)
 {
     UWORD tmp;
     BINT lo,hi;
@@ -476,7 +476,7 @@ static inline void add_single64(BINT *start,BINT64 number)
 
 // MULTIPLIES 2 WORDS X 2 WORDS IN 3 MULTIPLICATIONS USING KARATSUBA TRICK
 // AND ACCUMULATE RESULT
-static inline void add_karatsuba(BINT *start,BINT *a,BINT *b)
+ void add_karatsuba(BINT *start,BINT *a,BINT *b)
 {
     BINT64 hi,lo,mid;
     lo=a[0]*(BINT64)b[0];
@@ -2131,7 +2131,7 @@ const int const pow10_8[8]={
 };
 
 
-void text2real(REAL *result,char *text,int textlen)
+void newRealFromText(REAL *result,char *text,int textlen)
 {
     int digits=0;
     int exp=0;
@@ -2525,7 +2525,7 @@ int round_in_string(char *start,char *end,int format,unsigned int chars,char rou
 
 }
 
-void real2text(REAL *number,char *buffer,int format,unsigned int chars)
+void formatReal(REAL *number,char *buffer,int format,unsigned int chars)
 {
     int totaldigits,integer,frac,realexp,leftzeros,sep_spacing;
     int dotpos;

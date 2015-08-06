@@ -859,7 +859,6 @@ void dectrig_acos(REAL *x)
 
 
 
-
 // *******************************************  HYPERBOLICS ***************************************************
 
 
@@ -1941,6 +1940,7 @@ void dechyp_asinh(REAL *x)
 
     Context.precdigits+=8;
 
+    /*
     mul_real(&decRReg[1],x,x);   // 1 = x^2
 
     add_real(&decRReg[7],&decRReg[1],&one);   // 2 = x^2+1
@@ -1965,7 +1965,36 @@ void dechyp_asinh(REAL *x)
 
     add_real(&decRReg[1],&decRReg[0],&decRReg[0]);
 
+    */
+
+    // NEW IMPLEMENTATION BASED ON ASINH(X)= LN( X + SQRT(X^2+1) )
+
+    mul_real(&decRReg[3],x,x);   // x^2
+    normalize(&decRReg[3]);
+    add_real(&decRReg[4],&decRReg[3],&one); // x^2+1
+    normalize(&decRReg[4]);
+
+    dechyp_sqrt(&decRReg[4]);
+
+    normalize(&decRReg[0]);
+    add_real(&decRReg[3],x,&decRReg[0]);
+
+    normalize(&decRReg[3]);
+
+    Context.precdigits-=8;
+
+    dechyp_ln(&decRReg[3]);
+
+    // RESULT IS ON decRREg[0]
+
+
+
 }
+
+// WARNING: USING THIS ROUTINE REQUIRES THAT
+// THE ARGUMENT x IS NOT decRREG[0] .. [7]
+// OR IT WILL FAIL
+
 
 void dechyp_acosh(REAL *x)
 {
@@ -1974,6 +2003,10 @@ void dechyp_acosh(REAL *x)
 
     Context.precdigits+=8;
 
+
+    // THIS IS BASED ON ACOSH(X) = ATANH( SQRT( (X-1)/(X+1) ) )
+    // STARTS LOSING DIGITS FOR LARGE X
+/*
     sub_real(&decRReg[1],x,&one);   // 1 = x-1
     add_real(&decRReg[2],x,&one);   // 2 = x+1
     normalize(&decRReg[1]);
@@ -1989,6 +2022,26 @@ void dechyp_acosh(REAL *x)
     dechyp_atanh(&decRReg[0]);
 
     add_real(&decRReg[1],&decRReg[0],&decRReg[0]);
+*/
+    // NEW IMPLEMENTATION BASED ON ACOSH(X)= LN( X + SQRT(X^2-1) )
+
+    mul_real(&decRReg[3],x,x);   // x^2
+    normalize(&decRReg[3]);
+    sub_real(&decRReg[4],&decRReg[3],&one); // x^2-1
+    normalize(&decRReg[4]);
+
+    dechyp_sqrt(&decRReg[4]);
+
+    normalize(&decRReg[0]);
+    add_real(&decRReg[3],x,&decRReg[0]);
+
+    normalize(&decRReg[3]);
+
+    Context.precdigits-=8;
+
+    dechyp_ln(&decRReg[3]);
+
+    // RESULT IS ON decRREg[0]
 
 }
 
