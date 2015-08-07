@@ -1095,6 +1095,7 @@ extern HEVENT halBusyEvent;
 
 // CPU AND POWER MANAGEMENT FUNCTIONS
 void halSetBusyHandler();
+void halEnterPowerOff();
 
 
 // SCREEN FUNCTIONS

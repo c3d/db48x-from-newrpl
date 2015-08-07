@@ -427,7 +427,7 @@ void finalize(REAL *number)
         }
 /*
         // DEBUG ONLY - JUST DOUBLE CHECK
-        WORD64 test=-((WORD64)lo+((WORD64)hi*100000000ULL));
+        UBINT64 test=-((UBINT64)lo+((UBINT64)hi*100000000ULL));
 
         if(test!=number) {
             printf("Error!");
@@ -459,7 +459,7 @@ void finalize(REAL *number)
         }
 /*
         // DEBUG ONLY - JUST DOUBLE CHECK
-        WORD64 test=((WORD64)lo+((WORD64)hi*100000000ULL));
+        UBINT64 test=((UBINT64)lo+((UBINT64)hi*100000000ULL));
 
         if(test!=number) {
             printf("Error!");
@@ -1043,7 +1043,7 @@ BINT shift_right(BINT word,BINT digits)
 
     UWORD tmp;
 
-    tmp.w=word*(WORD64)*consts;
+    tmp.w=word*(UBINT64)*consts;
 
     tmp.w32[0]=word-tmp.w32[1]*shift_constants[((digits&7)<<1)+1];
 
@@ -1070,7 +1070,7 @@ BINT64 shift_split(BINT word,BINT digits)
 
     UWORD tmp;
 
-    tmp.w=word*(WORD64)*consts;
+    tmp.w=word*(UBINT64)*consts;
 
     tmp.w32[0]=word-tmp.w32[1]*shift_constants[((digits&7)<<1)+1];
 
@@ -1097,7 +1097,7 @@ BINT lo_digits(BINT word,BINT digits)
 
     UWORD tmp;
 
-    tmp.w=word*(WORD64)*consts;
+    tmp.w=word*(UBINT64)*consts;
 
     tmp.w32[0]=word-tmp.w32[1]*shift_constants[((digits&7)<<1)+1];
 
@@ -1122,7 +1122,7 @@ BINT hi_digits(BINT word,BINT digits)
 
     UWORD tmp;
 
-    tmp.w=word*(WORD64)*consts;
+    tmp.w=word*(UBINT64)*consts;
 
     tmp.w32[0]=word-tmp.w32[1]*shift_constants[((digits&7)<<1)+1];
 
@@ -1151,7 +1151,7 @@ BINT hi_digits_rounded(BINT word,BINT digits)
 
     UWORD tmp;
     word+=5*shift_constants[((digits&7)<<1)-1];
-    tmp.w=word*(WORD64)*consts;
+    tmp.w=word*(UBINT64)*consts;
 
 
     tmp.w32[0]=word-tmp.w32[1]*shift_constants[((digits&7)<<1)+1];
@@ -1237,12 +1237,12 @@ void add_long_shift(BINT *result,BINT *n1start,BINT nwords,BINT shift)
    // X=(2^32-10^8)/10^(8-N)+10^N
 
    UWORD tmp;
-   WORD64 a;
+   UBINT64 a;
 
    while(nwords) {
-       tmp.w=n1start[nwords-1]*(WORD64)*consts;
+       tmp.w=n1start[nwords-1]*(UBINT64)*consts;
        result[nwords]+=tmp.w32[1];
-       a=n1start[nwords-1]*(WORD64)consts[1];
+       a=n1start[nwords-1]*(UBINT64)consts[1];
        tmp.w=a-tmp.w32[1]*100000000ULL;
        result[nwords-1]+=tmp.w32[0];
        --nwords;
@@ -1262,7 +1262,7 @@ void long_shift(BINT *n1start,BINT nwords,BINT shift)
    // X=(2^32-10^8)/10^(8-N)+10^N
 
    UWORD tmp;
-   WORD64 a;
+   UBINT64 a;
    BINT *nptr;
    nptr=n1start+nwords;
 
@@ -1271,8 +1271,8 @@ void long_shift(BINT *n1start,BINT nwords,BINT shift)
    --nptr;
    while(nptr>=n1start) {
        if(*nptr<0) {
-           tmp.w=(-*nptr)*(WORD64)*consts;
-           a=(-*nptr)*(WORD64)consts[1];
+           tmp.w=(-*nptr)*(UBINT64)*consts;
+           a=(-*nptr)*(UBINT64)consts[1];
            nptr[1]-=tmp.w32[1];
            tmp.w=a-tmp.w32[1]*100000000ULL;
            if(tmp.w32[0]>=100000000) {
@@ -1282,8 +1282,8 @@ void long_shift(BINT *n1start,BINT nwords,BINT shift)
            *nptr=-tmp.w32[0];
        }
        else {
-           tmp.w=(*nptr)*(WORD64)*consts;
-           a=(*nptr)*(WORD64)consts[1];
+           tmp.w=(*nptr)*(UBINT64)*consts;
+           a=(*nptr)*(UBINT64)consts[1];
            nptr[1]+=tmp.w32[1];
            tmp.w=a-tmp.w32[1]*100000000ULL;
            if(tmp.w32[0]>=100000000) {
@@ -1465,12 +1465,12 @@ void sub_long_shift(BINT *result,BINT *n1start,BINT nwords,BINT shift)
    // X=(2^32-10^8)/10^(8-N)+10^N
 
    UWORD tmp;
-   WORD64 a;
+   UBINT64 a;
 
    while(nwords) {
-       tmp.w=n1start[nwords-1]*(WORD64)*consts;
+       tmp.w=n1start[nwords-1]*(UBINT64)*consts;
        result[nwords]-=tmp.w32[1];
-       a=n1start[nwords-1]*(WORD64)consts[1];
+       a=n1start[nwords-1]*(UBINT64)consts[1];
        tmp.w=a-tmp.w32[1]*100000000ULL;
        result[nwords-1]-=tmp.w32[0];
        --nwords;
@@ -1897,8 +1897,8 @@ void mul_real(REAL *r,REAL *a,REAL *b)
             j+=2;
         }
         if(j<a->len) {
-            add_single64(result->data+i+j,a->data[j]*(WORD64)b->data[i]);
-            add_single64(result->data+i+1+j,a->data[j]*(WORD64)b->data[i+1]);
+            add_single64(result->data+i+j,a->data[j]*(UBINT64)b->data[i]);
+            add_single64(result->data+i+1+j,a->data[j]*(UBINT64)b->data[i+1]);
         }
 
         if(!(i&7)) carry_correct(result->data,result->len);
@@ -1910,7 +1910,7 @@ void mul_real(REAL *r,REAL *a,REAL *b)
     while(i<b->len) {
         j=0;
         while(j<a->len) {
-            add_single64(result->data+i+j,a->data[j]*(WORD64)b->data[i]);
+            add_single64(result->data+i+j,a->data[j]*(UBINT64)b->data[i]);
             ++j;
         }
         if(!(i&7)) carry_correct(result->data,result->len);
@@ -2073,8 +2073,8 @@ void mul_real2(REAL *r,REAL *a,REAL *b)
             j+=2;
         }
         if(j<a->len) {
-            add_single64(result->data+i+j,a->data[j]*(WORD64)b->data[i]);
-            add_single64(result->data+i+1+j,a->data[j]*(WORD64)b->data[i+1]);
+            add_single64(result->data+i+j,a->data[j]*(UBINT64)b->data[i]);
+            add_single64(result->data+i+1+j,a->data[j]*(UBINT64)b->data[i+1]);
         }
         if(!(i&7)) carry_correct(result->data,result->len);
         i+=2;
@@ -2085,7 +2085,7 @@ void mul_real2(REAL *r,REAL *a,REAL *b)
     while(i<b->len) {
         j=wordoffset;
         while(j<a->len) {
-            add_single64(result->data+i+j,a->data[j]*(WORD64)b->data[i]);
+            add_single64(result->data+i+j,a->data[j]*(UBINT64)b->data[i]);
             ++j;
         }
         if(!(i&7)) carry_correct(result->data,result->len);
@@ -2525,7 +2525,10 @@ int round_in_string(char *start,char *end,int format,unsigned int chars,char rou
 
 }
 
-void formatReal(REAL *number,char *buffer,int format,unsigned int chars)
+
+// RETURN A POINTER TO THE END OF THE STRING (NOT NULL TERMINATED)
+
+char *formatReal(REAL *number, char *buffer, BINT format, UBINT chars)
 {
     int totaldigits,integer,frac,realexp,leftzeros,sep_spacing;
     int dotpos;
@@ -2737,8 +2740,97 @@ void formatReal(REAL *number,char *buffer,int format,unsigned int chars)
         }
 
 
-        buffer[idx]=0;
+        //buffer[idx]=0;
+
+        return buffer+idx;
 }
+
+
+
+BINT formatlengthReal(REAL *number,int format)
+{
+    int totaldigits,integer,frac,realexp,leftzeros,sep_spacing;
+    int dotpos;
+    int wantdigits=format&0xfff;
+    int wantzeros;
+    int countdigits=0,totalcount;
+    int idx=0;
+
+
+    totaldigits=((number->len-1)<<3)+sig_digits(number->data[number->len-1]);
+
+    // GET SEPARATOR SPACING, DEFAULT TO 3 IF NOT SPECIFIED
+    sep_spacing=SEP_SPACING(format);
+    if(!sep_spacing) sep_spacing=3;
+
+    if(format&FMT_CODE) wantdigits=totaldigits;
+    if(format&FMT_SCI) {
+      realexp=-(totaldigits-1) - number->exp;
+
+    if(format&FMT_ENG) {
+     // ADJUST EXPONENT
+        if(realexp<0) realexp+=(-realexp)%3;
+        else if(realexp%3) realexp+=3-realexp%3;
+    }
+
+
+    integer=totaldigits+number->exp+realexp;
+    wantdigits-=integer;
+    dotpos=integer;
+    frac=totaldigits-integer;
+    leftzeros=0;
+    wantzeros=0;
+    }
+    else {
+    realexp=0;
+    integer= totaldigits+number->exp;
+    if(integer<=0) {
+        leftzeros=-integer+1;
+        dotpos=1;
+        integer=0;
+        if(format&FMT_CODE) {
+         wantzeros=leftzeros;
+        }
+        else {
+            if(leftzeros-1>wantdigits) {
+            wantzeros=wantdigits+1;
+            wantdigits=0;
+        }
+        else { wantzeros=leftzeros; wantdigits-=leftzeros-1; }
+        }
+    }
+    else { leftzeros=0; wantzeros=0; dotpos=integer; }
+    frac=totaldigits-integer;
+
+    }
+
+    totalcount=integer+wantzeros+wantdigits;
+
+    if(format& (FMT_NUMSEPARATOR|FMT_FRACSEPARATOR) )  totalcount+=(totalcount/sep_spacing)+1;
+
+    totalcount+=2; // SIGN AND DECIMAL DOT
+    if((number->flags&F_APPROX)&& (!(format&FMT_NOTRAILDOT)||(format&FMT_CODE))) totalcount++;   // TRAILING DOT
+
+
+    // EXPONENT
+
+    if(format&FMT_SCI) {
+    if(!((format&FMT_NOZEROEXP) && (realexp==0))) {
+    if(realexp<0) totalcount+=sig_digits(-realexp)+2;
+    else totalcount+=sig_digits(realexp)+2;     // DIGITS + SIGN + E LETTER
+    }
+    }
+
+
+    return totalcount;
+}
+
+
+
+
+
+
+
 
 
 // DIVIDES 2 REALS (OBTAIN DIVISION ONLY, NOT REMAINDER)
@@ -2790,8 +2882,8 @@ void div_real(REAL *r,REAL *num,REAL *d,int maxdigits)
 
 
     // DETERMINE MULTIPLICATIVE INVERSE OF THE FIRST WORD
-    WORD64 inverse=((1ULL<<63)/div->data[div->len-1])>>26;
-    WORD64 invhi=(100000000ULL<<28)/div->data[div->len-1];
+    UBINT64 inverse=((1ULL<<63)/div->data[div->len-1])>>26;
+    UBINT64 invhi=(100000000ULL<<28)/div->data[div->len-1];
 
     REAL remainder;
 

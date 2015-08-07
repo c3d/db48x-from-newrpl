@@ -908,7 +908,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT embedded)
     if(!han) {
         RetNum=ERR_INVALID;
     } else (*han)();
-
+    if(Exceptions) break;
     switch(RetNum)
     {
     case OK_CONTINUE:

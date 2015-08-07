@@ -86,7 +86,7 @@ WORDPTR rplGetListElementFlat(WORDPTR composite, BINT pos)
         ++count;
         }
     }
-    if(ptr==end) return NULL;
+    if(ptr==end) return 0;
     return ptr;
 }
 
@@ -99,7 +99,7 @@ WORDPTR rplGetListElement(WORDPTR composite, BINT pos)
         ptr=rplSkipOb(ptr);
         ++count;
     }
-    if(ptr==end) return NULL;
+    if(ptr==end) return 0;
     return ptr;
 }
 

@@ -30,11 +30,11 @@ typedef union {
     WORD word;
     struct {
     signed exp:16;
-    unsigned len:8,digits:4,flags:4;
+    unsigned len:12,flags:4;
     };
 } REAL_HEADER;
-
-const mpd_context_t CompileContext = {
+/*
+const CONTEXT CompileContext = {
     .prec=REAL_PRECISION_MAX,
     .emax=REAL_EXPONENT_MAX,
     .emin=REAL_EXPONENT_MIN,
@@ -46,14 +46,14 @@ const mpd_context_t CompileContext = {
     .allcr=0
 
 };
+*/
 
 
 // SET THE REGISTER TO THE NUMBER 0NE
 void rplOneToRReg(int num)
 {
-    RReg[num].digits=1;
     RReg[num].exp=0;
-    RReg[num].flags=MPD_STATIC | MPD_STATIC_DATA;
+    RReg[num].flags=0;
     RReg[num].len=1;
     RReg[num].data[0]=1;
 }
@@ -61,45 +61,56 @@ void rplOneToRReg(int num)
 // SET THE REGISTER TO ZERO
 void rplZeroToRReg(int num)
 {
-    RReg[num].digits=1;
     RReg[num].exp=0;
-    RReg[num].flags=MPD_STATIC | MPD_STATIC_DATA;
+    RReg[num].flags=0;
     RReg[num].len=1;
     RReg[num].data[0]=0;
 }
 
-void rplBINTToRReg(int num,BINT64 value)
+void rplInfinityToRReg(int num)
 {
-    // CLEAR ALL FLAGS
-    RReg[num].flags=MPD_STATIC|MPD_STATIC_DATA;
-    mpd_set_i64(&RReg[num],value,&Context);
+    RReg[num].exp=0;
+    RReg[num].flags=F_INFINITY;
+    RReg[num].len=1;
+    RReg[num].data[0]=0;
+}
+
+void rplNANToRReg(int num)
+{
+    RReg[num].exp=0;
+    RReg[num].flags=F_NOTANUMBER;
+    RReg[num].len=1;
+    RReg[num].data[0]=0;
 }
 
 
-// EXTRACT A CALCULATOR REAL INTO AN EXISTING mpd_t STRUCTURE
+void rplBINTToRReg(int num,BINT64 value)
+{
+    newRealFromBINT64(&RReg[num],value);
+}
+
+
+// EXTRACT A CALCULATOR REAL INTO AN EXISTING REAL STRUCTURE
 // DATA IS **NOT** COPIED
 // DO **NOT** USE THIS FUNCTION WITH RREG REGISTERS
-void rplReadReal(WORDPTR real,mpd_t *dec)
+void rplReadReal(WORDPTR real,REAL *dec)
 {
 REAL_HEADER *head=(REAL_HEADER *)(real+1);
-dec->flags=MPD_STATIC | MPD_STATIC_DATA;
-dec->alloc=OBJSIZE(*real)-1;
+dec->flags=0;
 dec->data=(uint32_t *) (real+2);
 dec->len=head->len;
 dec->exp=head->exp;
 dec->flags|=head->flags;
-dec->digits=head->digits+(head->len-1)*9;
 }
 
 // EXTRACT A CALCULATOR REAL INTO A RREG REGISTER
 void rplCopyRealToRReg(int num,WORDPTR real)
 {
     REAL_HEADER *head=(REAL_HEADER *)(real+1);
-    RReg[num].flags=MPD_STATIC | MPD_STATIC_DATA;
+    RReg[num].flags=0;
     RReg[num].len=head->len;
     RReg[num].exp=head->exp;
     RReg[num].flags|=head->flags;
-    RReg[num].digits=head->digits+(head->len-1)*9;
     memcpyw(RReg[num].data,real+2,RReg[num].len);
 }
 
@@ -112,43 +123,46 @@ void rplNewRealFromRRegPush(int num)
     if(newreal) rplPushData(newreal);
 }
 
+/*
 void rplNewApproxRealFromRRegPush(int num)
 {
+    RReg[num].flags|=F_APPROX;
     WORDPTR newreal=rplNewRealFromRReg(num);
     if(newreal) {
         *newreal|=MKOPCODE(APPROX_BIT,0);
         rplPushData(newreal);
     }
 }
+*/
 
-
-void rplNewRealPush(mpd_t *num)
+void rplNewRealPush(REAL *num)
 {
     WORDPTR newreal=rplNewReal(num);
     if(newreal) rplPushData(newreal);
 }
 
-void rplNewApproxRealPush(mpd_t *num)
+/*
+void rplNewApproxRealPush(REAL *num)
 {
+
+    num->flags|=F_APPROX;
     WORDPTR newreal=rplNewReal(num);
     if(newreal) {
         *newreal|=MKOPCODE(APPROX_BIT,0);
         rplPushData(newreal);
     }
 }
+*/
 
-// ALLOCATE MEMORY AND STORE A REAL ON IT
-WORDPTR rplNewReal(mpd_t *num)
+
+
+// STORE A REAL ON THE GIVEN POINTER
+// DOES NOT ALLOCATE MEMORY, USED FOR COMPOSITES
+WORDPTR rplNewRealInPlace(REAL *num,WORDPTR newreal)
 {
 
     REAL_HEADER real;
     BINT correction;
-
-    WORDPTR newreal=rplAllocTempOb(num->len+1);
-    if(!newreal) {
-        Exceptions|=EX_OUTOFMEM;
-        return 0;
-    }
 
     // REMOVE ALL TRAILING ZEROES
     correction=0;
@@ -160,12 +174,11 @@ WORDPTR rplNewReal(mpd_t *num)
 
 
     // WRITE THE PROLOG
-    *newreal=MKPROLOG(LIBRARY_NUMBER,1+num->len-correction);
+    *newreal=MKPROLOG((num->flags&F_APPROX)? APPROX_BIT | LIBRARY_NUMBER : LIBRARY_NUMBER,1+num->len-correction);
     // PACK THE INFORMATION
     real.flags=num->flags&0xf;
     real.len=num->len-correction;
-    real.digits=num->digits-((num->len-1)*9);
-    real.exp=num->exp+correction*9;
+    real.exp=num->exp+correction*8;
     // STORE THE PACKED EXPONENT WORD
     newreal[1]=real.word;
 
@@ -174,8 +187,30 @@ WORDPTR rplNewReal(mpd_t *num)
         newreal[count+2]=(num->data[count+correction]);      // STORE ALL THE MANTISSA WORDS
     }
 
+    return newreal+count+2;
+}
+
+
+// ALLOCATE MEMORY AND STORE A REAL ON IT
+WORDPTR rplNewReal(REAL *num)
+{
+
+    ScratchPointer1=num->data;
+
+    WORDPTR newreal=rplAllocTempOb(num->len+1);
+    if(!newreal) {
+        Exceptions|=EX_OUTOFMEM;
+        return 0;
+    }
+
+    num->data=ScratchPointer1;
+
+    rplNewRealInPlace(num,newreal);
+
     return newreal;
 }
+
+
 WORDPTR rplNewRealFromRReg(int num)
 {
 return rplNewReal(&RReg[num]);
@@ -185,38 +220,9 @@ return rplNewReal(&RReg[num]);
 // DOES NOT ALLOCATE MEMORY FROM THE SYSTEM
 // USED INTERNALLY FOR COMPOSITE OBJECTS
 
-WORDPTR rplRRegToRealInPlace(int num,WORDPTR dest,BINT isapprox)
+WORDPTR rplRRegToRealInPlace(int num,WORDPTR dest)
 {
-
-    REAL_HEADER real;
-    BINT correction;
-
-    // REMOVE ALL TRAILING ZEROES
-    correction=0;
-    while(correction<RReg[num].len-1)
-    {
-        if(RReg[num].data[correction]!=0) break;
-        ++correction;
-    }
-
-
-    // WRITE THE PROLOG
-    *dest=MKPROLOG((LIBRARY_NUMBER|(isapprox? APPROX_BIT:0)),1+RReg[num].len-correction);
-    // PACK THE INFORMATION
-    real.flags=RReg[num].flags&0xf;
-    real.len=RReg[num].len-correction;
-    real.digits=RReg[num].digits-((RReg[num].len-1)*9);
-    real.exp=RReg[num].exp+correction*9;
-    // STORE THE PACKED EXPONENT WORD
-    dest[1]=real.word;
-
-    BINT count;
-    for(count=0;count<RReg[num].len-correction;++count) {
-        dest[count+2]=(RReg[num].data[count+correction]);      // STORE ALL THE MANTISSA WORDS
-    }
-
-    return dest+count+2;
-
+    return rplNewRealInPlace(&RReg[num],dest);
 }
 
 
@@ -239,7 +245,7 @@ void LIB_HANDLER()
 #define arg2 ScratchPointer2
 
         int nargs=OVR_GETNARGS(CurOpcode);
-        mpd_t Darg1,Darg2;
+        REAL Darg1,Darg2;
         int status;
 
         if(rplDepthData()<nargs) {
@@ -277,87 +283,93 @@ void LIB_HANDLER()
         {
         case OVR_ADD:
             // ADD TWO BINTS FROM THE STACK
-            mpd_add(&RReg[0],&Darg1,&Darg2,&Context);
-            if(ISAPPROX(*arg1|*arg2)) rplNewApproxRealFromRRegPush(0);
-            else rplNewRealFromRRegPush(0);
+            addReal(&RReg[0],&Darg1,&Darg2);
+            rplNewRealFromRRegPush(0);
             return;
 
         case OVR_SUB:
-            mpd_sub(&RReg[0],&Darg1,&Darg2,&Context);
-            if(ISAPPROX(*arg1|*arg2)) rplNewApproxRealFromRRegPush(0);
-            else rplNewRealFromRRegPush(0);
+            subReal(&RReg[0],&Darg1,&Darg2);
+            rplNewRealFromRRegPush(0);
             return;
 
         case OVR_MUL:
-            mpd_mul(&RReg[0],&Darg1,&Darg2,&Context);
-            if(ISAPPROX(*arg1|*arg2)) rplNewApproxRealFromRRegPush(0);
-            else rplNewRealFromRRegPush(0);
+            mulReal(&RReg[0],&Darg1,&Darg2);
+            rplNewRealFromRRegPush(0);
             return;
 
         case OVR_DIV:
-            mpd_div(&RReg[0],&Darg1,&Darg2,&Context);
-            if(ISAPPROX(*arg1|*arg2)) rplNewApproxRealFromRRegPush(0);
-            else rplNewRealFromRRegPush(0);
+            divReal(&RReg[0],&Darg1,&Darg2);
+            rplNewRealFromRRegPush(0);
             return;
 
         case OVR_POW:
             RReg[1].data[0]=5;
             RReg[1].exp=-1;
             RReg[1].len=1;
-            RReg[1].digits=1;
-            RReg[1].flags&=MPD_DATAFLAGS;
+            RReg[1].flags=0;
 
-            Context.status&=~MPD_Inexact;
-            if(mpd_cmp(&Darg2,&RReg[1],&Context)==0)
+            if(eqReal(&Darg2,&RReg[1]))
                 // THIS IS A SQUARE ROOT
-                mpd_sqrt(&RReg[0],&Darg1,&Context);
-            else mpd_pow(&RReg[0],&Darg1,&Darg2,&Context);
+            {
+                dechyp_sqrt(&Darg1);
+                finalize(&RReg[0]);
+            }
+            else {
+                // TODO: CALL DECIMAL POWER FUNCTION
 
-            if(ISAPPROX(*arg1|*arg2) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
-            else rplNewRealFromRRegPush(0);
+                newRealFromBINT(&RReg[0],12345678);
+
+                //mpd_pow(&RReg[0],&Darg1,&Darg2,&Context);
+
+            }
+
+            rplNewRealFromRRegPush(0);
             return;
 
         case OVR_EQ:
 
-            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplPushData((WORDPTR)zero_bint);
+            if(eqReal(&Darg1,&Darg2)) rplPushData((WORDPTR)zero_bint);
             else rplPushData((WORDPTR)one_bint);
             return;
 
         case OVR_NOTEQ:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplPushData((WORDPTR)one_bint);
+            if(!eqReal(&Darg1,&Darg2)) rplPushData((WORDPTR)one_bint);
             else rplPushData((WORDPTR)zero_bint);
             return;
         case OVR_LT:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)==-1) rplPushData((WORDPTR)one_bint);
+            if(ltReal(&Darg1,&Darg2)) rplPushData((WORDPTR)one_bint);
             else rplPushData((WORDPTR)zero_bint);
             return;
         case OVR_GT:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)==1) rplPushData((WORDPTR)one_bint);
+            if(gtReal(&Darg1,&Darg2)) rplPushData((WORDPTR)one_bint);
             else rplPushData((WORDPTR)zero_bint);
             return;
         case OVR_LTE:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)!=1) rplPushData((WORDPTR)one_bint);
+            if(!gtReal(&Darg1,&Darg2)) rplPushData((WORDPTR)one_bint);
             else rplPushData((WORDPTR)zero_bint);
             return;
         case OVR_GTE:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)!=-1) rplPushData((WORDPTR)one_bint);
+            if(!ltReal(&Darg1,&Darg2)) rplPushData((WORDPTR)one_bint);
             else rplPushData((WORDPTR)zero_bint);
             return;
         case OVR_SAME:
-            if(mpd_cmp(&Darg1,&Darg2,&Context)) rplPushData((WORDPTR)zero_bint);
+            if(eqReal(&Darg1,&Darg2)) rplPushData((WORDPTR)zero_bint);
             else rplPushData((WORDPTR)one_bint);
             return;
         case OVR_AND:
-            if(mpd_iszero(&Darg1)||mpd_iszero(&Darg2)) rplPushData((WORDPTR)zero_bint);
+            if(iszeroReal(&Darg1)||iszeroReal(&Darg2)) rplPushData((WORDPTR)zero_bint);
             else rplPushData((WORDPTR)one_bint);
             return;
         case OVR_OR:
-            if(mpd_iszero(&Darg1)&&mpd_iszero(&Darg2)) rplPushData((WORDPTR)zero_bint);
+            if(iszeroReal(&Darg1)&&iszeroReal(&Darg2)) rplPushData((WORDPTR)zero_bint);
             else rplPushData((WORDPTR)one_bint);
             return;
         case OVR_CMP:
-            rplNewSINTPush(mpd_cmp(&Darg1,&Darg2,&Context),DECBINT);
+            rplNewSINTPush(cmpReal(&Darg1,&Darg2),DECBINT);
             return;
+
+
+
 
 
 
@@ -365,16 +377,15 @@ void LIB_HANDLER()
 
         case OVR_INV:
             rplOneToRReg(1);
-            Context.status&=~MPD_Inexact;
-            mpd_div(&RReg[0],&RReg[1],&Darg1,&Context);
-            if(ISAPPROX(*arg1) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
-            else rplNewRealFromRRegPush(0);
+            divReal(&RReg[0],&RReg[1],&Darg1);
+            rplNewRealFromRRegPush(0);
             return;
         case OVR_NEG:
         case OVR_UMINUS:
-            mpd_qminus(&RReg[0],&Darg1,&Context,(uint32_t *)&status);
-            if(ISAPPROX(*arg1)) rplNewApproxRealFromRRegPush(0);
-            else rplNewRealFromRRegPush(0);
+        {
+            if(!(Darg1.len==1 && Darg1.data[0]==0)) Darg1.flags^=F_NEGATIVE;
+            rplNewRealPush(&Darg1);
+        }
             return;
         case OVR_EVAL:
         case OVR_EVAL1:
@@ -384,12 +395,11 @@ void LIB_HANDLER()
             rplPushData(arg1);
             return;
         case OVR_ABS:
-            mpd_abs(&RReg[0],&Darg1,&Context);
-            if(ISAPPROX(*arg1) || (Context.status&MPD_Inexact)) rplNewApproxRealFromRRegPush(0);
-            else rplNewRealFromRRegPush(0);
+            Darg1.flags&=~F_NEGATIVE;
+            rplNewRealPush(&Darg1);
             return;
         case OVR_NOT:
-            if(mpd_iszero(&Darg1)) rplPushData((WORDPTR)one_bint);
+            if(iszeroReal(&Darg1)) rplPushData((WORDPTR)one_bint);
             else rplPushData((WORDPTR)zero_bint);
             return;
 
@@ -435,7 +445,6 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT status=0;
         BYTEPTR strptr=(BYTEPTR )TokenStart;
         BINT isapprox=0;
         BINT tlen=TokenLen;
@@ -447,9 +456,9 @@ void LIB_HANDLER()
         }
 
 
-        mpd_qset_string2(&RReg[0],(const char *)TokenStart,(const char *)(strptr+tlen),&CompileContext,(uint32_t *)&status);
+        newRealFromText(&RReg[0],(char *)TokenStart,tlen);
 
-        if(status& (MPD_Conversion_syntax | MPD_Invalid_context | MPD_Invalid_operation | MPD_Malloc_error | MPD_Overflow | MPD_Underflow )) {
+        if(RReg[0].flags&F_ERROR) {
             // THERE WAS SOME ERROR DURING THE CONVERSION, PROBABLY A SYNTAX ERROR
             RetNum=ERR_NOTMINE;
             return;
@@ -461,7 +470,6 @@ void LIB_HANDLER()
             REAL_HEADER real;
             real.flags=RReg[0].flags&0xf;
             real.len=RReg[0].len;
-            real.digits=RReg[0].digits-((RReg[0].len-1)*9);
             real.exp=RReg[0].exp;
 
             rplCompileAppend(real.word);      // CAREFUL: THIS IS FOR LITTLE ENDIAN SYSTEMS ONLY!
@@ -477,24 +485,45 @@ void LIB_HANDLER()
         // DecompileObject = Ptr to WORD of object to decompile
         // DecompStringEnd = Byte Ptr to end of current string. Write here with rplDecompAppendString(); rplDecompAppendChar();
     {
-        mpd_t realnum;
+        REAL realnum;
 
         rplReadReal(DecompileObject,&realnum);
 
 
         // CONVERT TO STRING
-        // THIS NEEDS TO BE CHANGED, SINCE IT RELIES ON MALLOC
-        // NEED A FUNCTION THAT CALLS rplDecompAppendChar DIRECTLY
+        // TODO: USER SELECTABLE FORMATS, THIS IS FIXED FOR NOW
 
-        BYTEPTR string;
-        BINT len=(BINT)mpd_to_sci_size((char **)&string,&realnum,1);
-        if(string) {
+        BINT  FmtNormal=9,FmtLarge=9|FMT_SCI, FmtSmall=9|FMT_SCI;
+        BINT  Locale= ((BINT)'.') | (((BINT)',')<<8) | (((BINT)' ')<<16) | (((BINT)'E')<<24);
+        REAL  BigNumLimit,SmallNumLimit;
+        BINT  BigNumData[1]={ 1 };
+        BigNumLimit.data=SmallNumLimit.data=BigNumData;
+        BigNumLimit.len=SmallNumLimit.len=1;
+        BigNumLimit.flags=SmallNumLimit.flags=0;
+        BigNumLimit.exp=12;
+        SmallNumLimit.exp=-4;
+
+        BINT *Format;
+
+        if(ltReal(&realnum,&SmallNumLimit)) Format=&FmtSmall;
+        else if(gtReal(&realnum,&BigNumLimit)) Format=&FmtLarge;
+        else Format=&FmtNormal;
+
+        // ESTIMATE THE MAXIMUM STRING LENGTH AND RESERVE THE MEMORY
+
+        BYTEPTR string=(BYTEPTR)DecompStringEnd;
+
+        BINT len=formatlengthReal(&realnum,*Format);
+
         rplDecompAppendString2(string,len);
-        if(LIBNUM(*DecompileObject)&APPROX_BIT) rplDecompAppendChar('.');
-        mpd_free(string);
-        RetNum=OK_CONTINUE;
+
+        if(Exceptions) {
+            RetNum=ERR_INVALID;
+            return;
         }
-        else RetNum=ERR_INVALID;
+        DecompStringEnd=(WORDPTR) formatReal(&realnum,string,*Format,Locale);
+
+        RetNum=OK_CONTINUE;
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
@@ -534,7 +563,7 @@ void LIB_HANDLER()
             return;
         }
 
-
+        // TODO: ADD LOCALE TO THIS ROUTINE
         enum {
             MODE_IP=0,
             MODE_FP,

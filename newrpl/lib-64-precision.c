@@ -91,7 +91,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        mpd_t rnum;
+        REAL rnum;
         if(ISBINT(*arg)) return;
         rplReadNumberAsReal(rplPeekData(1),&rnum);
         if(Exceptions) return;
@@ -111,7 +111,7 @@ void LIB_HANDLER()
         }
         WORDPTR arg=rplPeekData(1);
         if(ISBINT(*arg)) return;
-        mpd_t rnum;
+        REAL rnum;
         rplReadNumberAsReal(rplPeekData(1),&rnum);
         if(Exceptions) return;
         mpd_ceil(&RReg[1],&rnum,&Context);
@@ -130,10 +130,10 @@ void LIB_HANDLER()
     }
     WORDPTR arg=rplPeekData(1);
     if(ISBINT(*arg)) return;
-    mpd_t rnum;
+    REAL rnum;
     rplReadNumberAsReal(arg,&rnum);
     if(Exceptions) return;
-    mpd_trunc(&RReg[1],&rnum,&Context);
+    REALrunc(&RReg[1],&rnum,&Context);
     if(Exceptions) return;
     rplDropData(1);
     rplNewRealFromRRegPush(1);
@@ -153,10 +153,10 @@ void LIB_HANDLER()
         rplPushData((WORDPTR)zero_bint);
         return;
     }
-    mpd_t rnum;
+    REAL rnum;
     rplReadNumberAsReal(arg,&rnum);
     if(Exceptions) return;
-    mpd_trunc(&RReg[1],&rnum,&Context);
+    REALrunc(&RReg[1],&rnum,&Context);
     if(Exceptions) return;
     mpd_sub(&RReg[2],&rnum,&RReg[1],&Context);
     if(Exceptions) return;

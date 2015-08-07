@@ -92,7 +92,7 @@ void LIB_HANDLER()
     {
     case SIN:
     {
-        mpd_t dec;
+        REAL dec;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -118,22 +118,16 @@ void LIB_HANDLER()
 
         trig_sincos(&dec);
 
-
-
-        BINT exponent=Context.prec-RReg[7].digits-RReg[7].exp;
-        RReg[7].exp+=exponent;
-        mpd_round_to_intx(&RReg[2],&RReg[7],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[2].exp-=exponent;
-        mpd_reduce(&RReg[1],&RReg[2],&Context);
+        finalize(&RReg[7]);
 
         rplDropData(1);
-        rplNewRealFromRRegPush(1);       // SIN
+        rplNewRealFromRRegPush(7);       // SIN
         return;
 
     }
     case COS:
     {
-        mpd_t dec;
+        REAL dec;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -152,21 +146,15 @@ void LIB_HANDLER()
 
         trig_sincos(&dec);
 
-
-        BINT exponent=Context.prec-RReg[6].digits-RReg[6].exp;
-        RReg[6].exp+=exponent;
-        mpd_round_to_intx(&RReg[2],&RReg[6],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[2].exp-=exponent;
-        mpd_reduce(&RReg[0],&RReg[2],&Context);
-
+        finalize(&RReg[6]);
         rplDropData(1);
-        rplNewRealFromRRegPush(0);       // COS
+        rplNewRealFromRRegPush(6);       // COS
         return;
 
     }
     case TAN:
     {
-        mpd_t dec;
+        REAL dec;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -183,13 +171,14 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         trig_sincos(&dec);
-
-        if(mpd_iszero(&RReg[6])) {
-            mpd_set_infinity(&RReg[2]);
-            if(mpd_isnegative(&RReg[7]))  mpd_set_negative(&RReg[2]);
+        normalize(&RReg[6]);
+        normalize(&RReg[7]);
+        if(iszeroReal(&RReg[6])) {
+            rplInfinityToRReg(2);
+            RReg[2].flags^=RReg[7].flags&F_NEGATIVE;
         }
         else {
-            mpd_div(&RReg[2],&RReg[7],&RReg[6],&Context);
+            divReal(&RReg[2],&RReg[7],&RReg[6]);
         }
 
         rplDropData(1);
@@ -200,7 +189,7 @@ void LIB_HANDLER()
     }
     case ASIN:
     {
-        mpd_t y;
+        REAL y;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -218,10 +207,10 @@ void LIB_HANDLER()
         if(Exceptions) return;
         // WARNING: TRANSCENDENTAL FUNCTIONS OVERWRITE ALL RREGS. INITIAL ARGUMENTS ARE PASSED ON RREG 0, 1 AND 2, SO USING 7 IS SAFE.
         rplOneToRReg(7);
-        BINT signy=y.flags&MPD_NEG;
+        BINT signy=y.flags&F_NEGATIVE;
         y.flags^=signy;
 
-        if(mpd_cmp(&y,&RReg[7],&Context)==1) {
+        if(gtReal(&y,&RReg[7])) {
             // TODO: INCLUDE COMPLEX ARGUMENTS HERE
             Exceptions|=EX_BADARGVALUE;
             ExceptionPointer=IPtr;
@@ -230,12 +219,7 @@ void LIB_HANDLER()
         y.flags^=signy;
         trig_asin(&y);
 
-        BINT exponent=Context.prec-RReg[0].digits-RReg[0].exp;
-        RReg[0].exp+=exponent;
-        mpd_round_to_intx(&RReg[2],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[2].exp-=exponent;
-        mpd_reduce(&RReg[0],&RReg[2],&Context);
-
+        finalize(&RReg[0]);
 
         rplDropData(1);
         rplNewRealFromRRegPush(0);       // RESULTING ANGLE
@@ -246,7 +230,7 @@ void LIB_HANDLER()
 
     case ACOS:
     {
-        mpd_t y;
+        REAL y;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -264,9 +248,9 @@ void LIB_HANDLER()
         if(Exceptions) return;
         // WARNING: TRANSCENDENTAL FUNCTIONS OVERWRITE ALL RREGS. INITIAL ARGUMENTS ARE PASSED ON RREG 0, 1 AND 2, SO USING 7 IS SAFE.
         rplOneToRReg(7);
-        BINT signy=y.flags&MPD_NEG;
+        BINT signy=y.flags&F_NEGATIVE;
         y.flags^=signy;
-        if(mpd_cmp(&y,&RReg[7],&Context)==1) {
+        if(gtReal(&y,&RReg[7])) {
             // TODO: INCLUDE COMPLEX ARGUMENTS HERE
             Exceptions|=EX_BADARGVALUE;
             ExceptionPointer=IPtr;
@@ -275,13 +259,7 @@ void LIB_HANDLER()
         y.flags^=signy;
 
         trig_acos(&y);
-
-        BINT exponent=Context.prec-RReg[0].digits-RReg[0].exp;
-        RReg[0].exp+=exponent;
-        mpd_round_to_intx(&RReg[2],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[2].exp-=exponent;
-        mpd_reduce(&RReg[0],&RReg[2],&Context);
-
+        finalize(&RReg[0]);
 
         rplDropData(1);
         rplNewRealFromRRegPush(0);       // RESULTING ANGLE
@@ -295,7 +273,7 @@ void LIB_HANDLER()
     case ATAN:
         // CALCULATE ATAN FROM ATAN2(Y,1)
     {
-        mpd_t y;
+        REAL y;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -316,13 +294,7 @@ void LIB_HANDLER()
 
 
         trig_atan2(&y,&RReg[7]);
-
-
-        BINT exponent=Context.prec-RReg[0].digits-RReg[0].exp;
-        RReg[0].exp+=exponent;
-        mpd_round_to_intx(&RReg[2],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[2].exp-=exponent;
-        mpd_reduce(&RReg[0],&RReg[2],&Context);
+        finalize(&RReg[0]);
 
         rplDropData(1);
         rplNewRealFromRRegPush(0);       // RESULTING ANGLE
@@ -333,7 +305,7 @@ void LIB_HANDLER()
     case ATAN2:
         // CALCULATE ATAN IN THE RANGE -PI,+PI
     {
-        mpd_t y,x;
+        REAL y,x;
         if(rplDepthData()<2) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -353,11 +325,7 @@ void LIB_HANDLER()
 
         trig_atan2(&y,&x);
 
-        BINT exponent=Context.prec-RReg[0].digits-RReg[0].exp;
-        RReg[0].exp+=exponent;
-        mpd_round_to_intx(&RReg[2],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[2].exp-=exponent;
-        mpd_reduce(&RReg[0],&RReg[2],&Context);
+        finalize(&RReg[0]);
 
         rplDropData(2);
         rplNewRealFromRRegPush(0);       // RESULTING ANGLE
@@ -368,7 +336,7 @@ void LIB_HANDLER()
 
     case LN:
     {
-        mpd_t x;
+        REAL x;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -385,16 +353,16 @@ void LIB_HANDLER()
 
         if(Exceptions) return;
 
-        if(mpd_iszero(&x)) {
+        if(iszeroReal(&x)) {
             // RETURN -INFINITY AND SET OVERFLOW
             // TODO: IMPLEMENT FLAGS TO AVOID THROWING AN ERROR
-            mpd_set_infinity(&RReg[0]);
+            rplInfinityToRReg(0);
             Exceptions|=EX_MATHOVERFLOW;
             ExceptionPointer=IPtr;
             return;
         }
 
-        if(mpd_isnegative(&x)) {
+        if(x.flags&F_NEGATIVE) {
             // TODO: RETURN COMPLEX VALUE!
             // FOR NOW JUST THROW AN EXCEPTION
             Exceptions|=EX_BADARGVALUE;
@@ -403,22 +371,17 @@ void LIB_HANDLER()
         }
 
         hyp_ln(&x);
-
-        BINT exponent=Context.prec-RReg[0].digits-RReg[0].exp;
-        RReg[0].exp+=exponent;
-        mpd_round_to_intx(&RReg[2],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[2].exp-=exponent;
-        mpd_reduce(&RReg[1],&RReg[2],&Context);
+        finalize(&RReg[0]);
 
         rplDropData(1);
-        rplNewRealFromRRegPush(1);
+        rplNewRealFromRRegPush(0);
         return;
 
     }
 
     case EXP:
     {
-        mpd_t dec;
+        REAL dec;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -437,21 +400,17 @@ void LIB_HANDLER()
 
         hyp_exp(&dec);
 
-        BINT exponent=Context.prec-RReg[0].digits-RReg[0].exp;
-        RReg[0].exp+=exponent;
-        mpd_round_to_intx(&RReg[2],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[2].exp-=exponent;
-        mpd_reduce(&RReg[1],&RReg[2],&Context);
+        finalize(&RReg[0]);
 
         rplDropData(1);
-        rplNewRealFromRRegPush(1);       // EXP
+        rplNewRealFromRRegPush(0);       // EXP
         return;
 
 
     }
     case SINH:
     {
-        mpd_t dec;
+        REAL dec;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -469,21 +428,17 @@ void LIB_HANDLER()
 
         hyp_sinhcosh(&dec);
 
-        BINT exponent=Context.prec-RReg[2].digits-RReg[2].exp;
-        RReg[2].exp+=exponent;
-        mpd_round_to_intx(&RReg[7],&RReg[2],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[7].exp-=exponent;
-        mpd_reduce(&RReg[0],&RReg[7],&Context);
+        finalize(&RReg[2]);
 
         rplDropData(1);
-        rplNewRealFromRRegPush(0);       // SINH
+        rplNewRealFromRRegPush(2);       // SINH
         return;
 
     }
 
     case COSH:
     {
-        mpd_t dec;
+        REAL dec;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -500,15 +455,10 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         hyp_sinhcosh(&dec);
-
-        BINT exponent=Context.prec-RReg[1].digits-RReg[1].exp;
-        RReg[1].exp+=exponent;
-        mpd_round_to_intx(&RReg[2],&RReg[1],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[2].exp-=exponent;
-        mpd_reduce(&RReg[0],&RReg[2],&Context);
+        finalize(&RReg[1]);
 
         rplDropData(1);
-        rplNewRealFromRRegPush(0);       // COSH
+        rplNewRealFromRRegPush(1);       // COSH
         return;
 
     }
@@ -516,7 +466,7 @@ void LIB_HANDLER()
     case TANH:
 
     {
-        mpd_t dec;
+        REAL dec;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -534,12 +484,11 @@ void LIB_HANDLER()
 
         hyp_sinhcosh(&dec);
 
+        normalize(&RReg[2]);
+        normalize(&RReg[1]);
+
         // TANH=SINH/COSH
-        mpd_div(&RReg[0],&RReg[7],&RReg[6],&Context);
-//        RReg[0].exp+=Context.prec;
-//        mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-//        RReg[7].exp-=Context.prec;
-//        mpd_reduce(&RReg[0],&RReg[7],&Context);
+        divReal(&RReg[0],&RReg[2],&RReg[1]);
 
         rplDropData(1);
         rplNewRealFromRRegPush(0);       // TANH
@@ -550,7 +499,7 @@ void LIB_HANDLER()
 
     case ASINH:
     {
-        mpd_t x;
+        REAL x;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -563,17 +512,14 @@ void LIB_HANDLER()
             return;
         }
 
+
         rplReadNumberAsReal(rplPeekData(1),&x);
 
         if(Exceptions) return;
 
         hyp_asinh(&x);
 
-        BINT exponent=Context.prec-RReg[1].digits-RReg[1].exp;
-        RReg[1].exp+=exponent;
-        mpd_round_to_intx(&RReg[7],&RReg[1],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[7].exp-=exponent;
-        mpd_reduce(&RReg[0],&RReg[7],&Context);
+        finalize(&RReg[0]);
 
         rplDropData(1);
         rplNewRealFromRRegPush(0);
@@ -587,7 +533,7 @@ void LIB_HANDLER()
 
     case ACOSH:
     {
-        mpd_t x;
+        REAL x;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -606,7 +552,7 @@ void LIB_HANDLER()
 
         rplOneToRReg(0);
 
-        if(mpd_cmp(&RReg[0],&x,&Context)>0) {
+        if(gtReal(&RReg[0],&x)) {
             // TODO: EXPAND THIS TO RETURN COMPLEX VALUES
            Exceptions|=EX_BADARGVALUE;
            ExceptionPointer=IPtr;
@@ -614,12 +560,7 @@ void LIB_HANDLER()
         }
 
         hyp_acosh(&x);
-
-        BINT exponent=Context.prec-RReg[1].digits-RReg[1].exp;
-        RReg[1].exp+=exponent;
-        mpd_round_to_intx(&RReg[7],&RReg[1],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[7].exp-=exponent;
-        mpd_reduce(&RReg[0],&RReg[7],&Context);
+        finalize(&RReg[0]);
 
         rplDropData(1);
         rplNewRealFromRRegPush(0);
@@ -629,7 +570,7 @@ void LIB_HANDLER()
 
     case ATANH:
     {
-        mpd_t x;
+        REAL x;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -647,10 +588,10 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         rplOneToRReg(0);
-        BINT signx=mpd_sign(&x);
-        mpd_set_positive(&x);
-        BINT ismorethan1=mpd_cmp(&x,&RReg[0],&Context);
-        mpd_set_sign(&x,signx);
+        BINT signx=x.flags;
+        x.flags&=~F_NEGATIVE;
+        BINT ismorethan1=cmpReal(&x,&RReg[0]);
+        x.flags=signx;
 
         if(ismorethan1==1) {    // x > 1.0
             // TODO: CHANGE THIS ERROR INTO COMPLEX RESULTS!
@@ -661,8 +602,8 @@ void LIB_HANDLER()
         if(ismorethan1==0)
         {
             // TODO: IMPLEMENT INFINITY FLAGS TO THROW EXCEPTION ON INFINITY
-            mpd_set_infinity(&RReg[0]);
-            if(mpd_isnegative(&x)) mpd_set_negative(&RReg[0]);
+            rplInfinityToRReg(0);
+            if(signx&F_NEGATIVE) RReg[0].flags|=F_NEGATIVE;
 
             rplDropData(1);
             rplNewRealFromRRegPush(0);
@@ -671,11 +612,7 @@ void LIB_HANDLER()
 
         hyp_atanh(&x);
 
-        BINT exponent=Context.prec-RReg[0].digits-RReg[0].exp;
-        RReg[0].exp+=exponent;
-        mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[7].exp-=exponent;
-        mpd_reduce(&RReg[0],&RReg[7],&Context);
+        finalize(&RReg[0]);
 
         rplDropData(1);
         rplNewRealFromRRegPush(0);
@@ -689,7 +626,7 @@ void LIB_HANDLER()
 
     case SQRT:
     {
-        mpd_t x;
+        REAL x;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -706,7 +643,7 @@ void LIB_HANDLER()
 
         if(Exceptions) return;
 
-        if(mpd_isnegative(&x)) {
+        if(x.flags&F_NEGATIVE) {
             // TODO: EXPAND THIS TO RETURN COMPLEX VALUES
            Exceptions|=EX_BADARGVALUE;
            ExceptionPointer=IPtr;
@@ -714,12 +651,7 @@ void LIB_HANDLER()
         }
 
         hyp_sqrt(&x);
-
-        BINT exponent=Context.prec-RReg[0].digits-RReg[0].exp;
-        RReg[0].exp+=exponent;
-        mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[7].exp-=exponent;
-        mpd_reduce(&RReg[0],&RReg[7],&Context);
+        finalize(&RReg[0]);
 
         rplDropData(1);
         rplNewRealFromRRegPush(0);

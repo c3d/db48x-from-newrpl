@@ -9,12 +9,11 @@
 
 // THIS IS THE TRAP THAT HANDLES REAL NUMBER EXCEPTIONS AND CONVERTS THEM
 // TO RPL KERNEL EXCEPTIONS
-void MPDTrapHandler(mpd_context_t *ctx)
+void decTrapHandler(BINT error)
 {
     // SIMPLY COPY THE MATHEMATIC EXCEPTIONS INTO THE UPPER 16 BITS OF OUR EXCEPTION WORD
-    Exceptions|=ctx->status<<16;
+    Exceptions|=error;
     ExceptionPointer=IPtr;
-    ctx->newtrap=0;
     // RETURN AND KEEP GOING
     return;
 }

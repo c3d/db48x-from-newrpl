@@ -363,7 +363,7 @@ void LIB_HANDLER()
             }
 
             if(ISREAL(*b)) {
-                mpd_t real;
+                REAL real;
                 rplReadReal(b,&real);
                 if(!mpd_isinteger(&real)) {
                     Exceptions|=EX_BADARGVALUE;

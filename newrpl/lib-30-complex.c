@@ -63,34 +63,32 @@ const uint32_t const zero_data[1]={0};
 // DECODE A COMPLEX NUMBER INTO A REAL
 // DOES NOT ALLOCATE ANY MEMORY, MIGHT USE RREG[8] IF STORAGE IS NEEDED
 
-void rplRealPart(WORDPTR complex,mpd_t *real)
+void rplRealPart(WORDPTR complex,REAL *real)
 {
     rplReadNumberAsReal(++complex,real);
 }
 
-void rplImaginaryPart(WORDPTR complex,mpd_t *imag)
+void rplImaginaryPart(WORDPTR complex,REAL *imag)
 {
     rplReadNumberAsReal(rplSkipOb(++complex),imag);
 }
 
 
 // GETS THE REAL PART OF ANY NUMBER: IF BINT OR REAL, GET THE NUMBER. IF COMPLEX, RETURN THE REAL PART.
-void rplReadCNumberAsReal(WORDPTR complex,mpd_t *real)
+void rplReadCNumberAsReal(WORDPTR complex,REAL *real)
 {
     if(ISCOMPLEX(*complex)) ++complex;
     rplReadNumberAsReal(complex,real);
 }
 
-void rplReadCNumberAsImag(WORDPTR complex,mpd_t *imag)
+void rplReadCNumberAsImag(WORDPTR complex,REAL *imag)
 {
     if(ISCOMPLEX(*complex)) rplImaginaryPart(complex,imag);
     else {
         // SET IMAG TO ZERO
-        imag->alloc=1;
-        imag->data=(mpd_uint_t *)zero_data;
-        imag->digits=1;
+        imag->data=(BINT *)zero_data;
         imag->exp=0;
-        imag->flags=MPD_STATIC|MPD_CONST_DATA|MPD_STATIC_DATA;
+        imag->flags=0;
         imag->len=1;
     }
 }
@@ -98,14 +96,17 @@ void rplReadCNumberAsImag(WORDPTR complex,mpd_t *imag)
 
 // CREATE COMPLEX NUMBER FROM 2 RREG'S AND PUSH IT ON THE STACK
 
-void rplRRegToComplexPush(BINT real,BINT imag)
+void rplNewComplexPush(REAL *real,REAL *imag)
 {
-    if(mpd_iszero(&RReg[imag])) {
+    if(iszeroReal(imag)) {
         // IT'S A REAL NUMBER, THERE'S NO IMAGINARY PART
-        rplNewRealFromRRegPush(real);
+        rplNewRealPush(real);
         return;
     }
-    BINT size=4+RReg[real].len+RReg[imag].len;
+    BINT size=4+real->len+imag->len;
+
+    ScratchPointer1=(WORDPTR)real->data;
+    ScratchPointer2=(WORDPTR)imag->data;
 
     WORDPTR newobject=rplAllocTempOb(size);
     WORDPTR parts;
@@ -115,8 +116,11 @@ void rplRRegToComplexPush(BINT real,BINT imag)
         return;
     }
 
-    parts=rplRRegToRealInPlace(real,newobject+1,0);
-    parts=rplRRegToRealInPlace(imag,parts,0);
+    real->data=(BINT *)ScratchPointer1;
+    imag->data=(BINT *)ScratchPointer2;
+
+    parts=rplNewRealInPlace(real,newobject+1);
+    parts=rplNewRealInPlace(imag,parts);
     newobject[0]=MKPROLOG(LIBRARY_NUMBER,parts-newobject-1);
 
     rplTruncateLastObject(parts);
@@ -125,6 +129,19 @@ void rplRRegToComplexPush(BINT real,BINT imag)
 
 }
 
+
+// CREATE COMPLEX NUMBER FROM 2 RREG'S AND PUSH IT ON THE STACK
+
+void rplRRegToComplexPush(BINT real,BINT imag)
+{
+    rplNewComplexPush( &RReg[real],&RReg[imag]);
+}
+
+
+
+
+
+
 // CREATE COMPLEX NUMBER FROM 2 RREG'S AT ADDRESS dest
 // AND RETURN POINTER IMMEDIATELY AFTER THE NUMBER
 // DOES NOT ALLOCATE MEMORY FROM THE SYSTEM
@@ -132,13 +149,13 @@ void rplRRegToComplexPush(BINT real,BINT imag)
 
 WORDPTR rplRRegToComplexInPlace(BINT real,BINT imag,WORDPTR dest)
 {
-    if(mpd_iszero(&RReg[imag])) {
+    if(iszeroReal(&RReg[imag])) {
         // IT'S A REAL NUMBER, THERE'S NO IMAGINARY PART
-        return rplRRegToRealInPlace(real,dest,0);
+        return rplRRegToRealInPlace(real,dest);
     }
     WORDPTR parts;
-    parts=rplRRegToRealInPlace(real,dest+1,0);
-    parts=rplRRegToRealInPlace(imag,parts,0);
+    parts=rplRRegToRealInPlace(real,dest+1);
+    parts=rplRRegToRealInPlace(imag,parts);
     dest[0]=MKPROLOG(LIBRARY_NUMBER,parts-dest-1);
 
     return parts;
@@ -163,8 +180,7 @@ void LIB_HANDLER()
 #define arg2 ScratchPointer2
 
         int nargs=OVR_GETNARGS(CurOpcode);
-        mpd_t Rarg1,Iarg1,Rarg2,Iarg2;
-        int status;
+        REAL Rarg1,Iarg1,Rarg2,Iarg2;
 
         if(rplDepthData()<nargs) {
             Exceptions=EX_BADARGCOUNT;
@@ -206,15 +222,15 @@ void LIB_HANDLER()
         {
         case OVR_ADD:
             // ADD THE REAL PART FIRST
-            mpd_add(&RReg[0],&Rarg1,&Rarg2,&Context);
-            mpd_add(&RReg[1],&Iarg1,&Iarg2,&Context);
+            addReal(&RReg[0],&Rarg1,&Rarg2);
+            addReal(&RReg[1],&Iarg1,&Iarg2);
 
             rplRRegToComplexPush(0,1);
             return;
 
         case OVR_SUB:
-            mpd_sub(&RReg[0],&Rarg1,&Rarg2,&Context);
-            mpd_sub(&RReg[1],&Iarg1,&Iarg2,&Context);
+            subReal(&RReg[0],&Rarg1,&Rarg2);
+            subReal(&RReg[1],&Iarg1,&Iarg2);
 
             rplRRegToComplexPush(0,1);
 
@@ -222,14 +238,14 @@ void LIB_HANDLER()
 
         case OVR_MUL:
 
-            Context.prec+=MPD_RDIGITS;
-            mpd_mul(&RReg[0],&Rarg1,&Rarg2,&Context);
-            mpd_mul(&RReg[1],&Iarg1,&Iarg2,&Context);
-            mpd_sub(&RReg[2],&RReg[0],&RReg[1],&Context);
-            mpd_mul(&RReg[0],&Rarg1,&Iarg2,&Context);
-            mpd_mul(&RReg[1],&Iarg1,&Rarg2,&Context);
-            Context.prec-=MPD_RDIGITS;
-            mpd_add(&RReg[3],&RReg[0],&RReg[1],&Context);
+            Context.precdigits+=8;
+            mulReal(&RReg[0],&Rarg1,&Rarg2);
+            mulReal(&RReg[1],&Iarg1,&Iarg2);
+            subReal(&RReg[2],&RReg[0],&RReg[1]);
+            mulReal(&RReg[0],&Rarg1,&Iarg2);
+            mulReal(&RReg[1],&Iarg1,&Rarg2);
+            Context.precdigits-=8;
+            addReal(&RReg[3],&RReg[0],&RReg[1]);
 
             rplRRegToComplexPush(2,3);
             return;
@@ -237,21 +253,22 @@ void LIB_HANDLER()
         case OVR_DIV:
 
             // (a+b*i)/(c+d*i) = (a+b*i)*(c-d*i)/((c+d*i)*(c-d*i)) = (a*c+b*d)/(c^2+d^2) + (b*c-a*d)/(c^2+d^2)*i
-            Context.prec+=MPD_RDIGITS;
-            mpd_mul(&RReg[0],&Rarg1,&Rarg2,&Context);
-            mpd_mul(&RReg[1],&Iarg1,&Iarg2,&Context);
-            mpd_add(&RReg[2],&RReg[0],&RReg[1],&Context);
-            mpd_mul(&RReg[0],&Iarg1,&Rarg2,&Context);
-            mpd_mul(&RReg[1],&Rarg1,&Iarg2,&Context);
-            mpd_sub(&RReg[3],&RReg[0],&RReg[1],&Context);
-            mpd_mul(&RReg[0],&Rarg2,&Rarg2,&Context);
-            mpd_mul(&RReg[1],&Iarg2,&Iarg2,&Context);
-            mpd_add(&RReg[4],&RReg[0],&RReg[1],&Context);
+            Context.precdigits+=8;
+            mulReal(&RReg[0],&Rarg1,&Rarg2);
+            mulReal(&RReg[1],&Iarg1,&Iarg2);
+            addReal(&RReg[2],&RReg[0],&RReg[1]);
+            mulReal(&RReg[0],&Iarg1,&Rarg2);
+            mulReal(&RReg[1],&Rarg1,&Iarg2);
+            subReal(&RReg[3],&RReg[0],&RReg[1]);
+            mulReal(&RReg[0],&Rarg2,&Rarg2);
+            mulReal(&RReg[1],&Iarg2,&Iarg2);
+            addReal(&RReg[4],&RReg[0],&RReg[1]);
 
-            Context.prec-=MPD_RDIGITS;
+            Context.precdigits-=8;
 
-            mpd_div(&RReg[0],&RReg[2],&RReg[4],&Context);
-            mpd_div(&RReg[1],&RReg[3],&RReg[4],&Context);
+            // TODO: CHECK FOR DIV BY ZERO AND ISSUE ERROR
+            divReal(&RReg[0],&RReg[2],&RReg[4]);
+            divReal(&RReg[1],&RReg[3],&RReg[4]);
 
             rplRRegToComplexPush(0,1);
 
@@ -259,37 +276,38 @@ void LIB_HANDLER()
 
         case OVR_POW:
         {
-            Context.prec+=MPD_RDIGITS;
+            Context.precdigits+=8;
 
-            mpd_mul(&RReg[0],&Rarg1,&Rarg1,&Context);
-            mpd_mul(&RReg[1],&Iarg1,&Iarg1,&Context);
-            mpd_add(&RReg[2],&RReg[0],&RReg[1],&Context);
+            mulReal(&RReg[0],&Rarg1,&Rarg1);
+            mulReal(&RReg[1],&Iarg1,&Iarg1);
+            addReal(&RReg[2],&RReg[0],&RReg[1]);
 
-            Context.prec-=MPD_RDIGITS;
+            Context.precdigits-=8;
 
 
             hyp_sqrt(&RReg[2]);
 
+            normalize(&RReg[0]);
             // RReg[8] = r
-            mpd_copy(&RReg[8],&RReg[0],&Context);
+            copyReal(&RReg[8],&RReg[0]);
 
             trig_atan2(&Iarg1,&Rarg1);
 
             // RReg[9]=Theta
-            mpd_copy(&RReg[9],&RReg[0],&Context);
+            copyReal(&RReg[9],&RReg[0]);
 
             // HERE WE HAVE 'Z' IN POLAR COORDINATES
 
-            if(mpd_iszero(&Iarg2)) {
+            if(iszeroReal(&Iarg2)) {
                 // REAL POWER OF A COMPLEX NUMEBR
                 //Z^n= e^(ln(Z^n)) = e^(n*ln(Z)) = e^(n*[ln(r)+i*Theta)
                 //Z^n= e^(n*ln(r))*e^(i*Theta*n) = r^n * e(i*Theta*n)
                 //Z^n= r^n * cos(Theta*n) + i* r^n * sin(Theta*n)
 
-                if(mpd_iszero(&Rarg2)) {
+                if(iszeroReal(&Rarg2)) {
                     // Z^0 = 1, UNLESS Z=0
 
-                    if(mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1)) {
+                    if(iszeroReal(&Rarg1)&&iszeroReal(&Iarg1)) {
                         Exceptions|=EX_UNDEFINED;
                         ExceptionPointer=IPtr;
                         return;
@@ -301,35 +319,38 @@ void LIB_HANDLER()
                 }
 
                 hyp_ln(&RReg[8]);
-
-                Context.prec+=MPD_RDIGITS;
+                normalize(&RReg[0]);
+                
+                Context.precdigits+=8;
 
                 // RReg[8]=n*ln(r);
-                mpd_mul(&RReg[2],&RReg[0],&Rarg2,&Context);
+                mulReal(&RReg[2],&RReg[0],&Rarg2);
 
-                Context.prec-=MPD_RDIGITS;
+                Context.precdigits-=8;
 
 
                 hyp_exp(&RReg[2]);
-
+                normalize(&RReg[0]);
 
                 // RReg[8]=r^n
-                mpd_copy(&RReg[8],&RReg[0],&Context);
+                copyReal(&RReg[8],&RReg[0]);
 
-                Context.prec+=MPD_RDIGITS;
+                Context.precdigits+=8;
 
-                mpd_mul(&RReg[2],&Rarg2,&RReg[9],&Context);
+                mulReal(&RReg[2],&Rarg2,&RReg[9]);
 
-                Context.prec-=MPD_RDIGITS;
+                Context.precdigits-=8;
 
 
                 trig_sincos(&RReg[2]);
+                normalize(&RReg[6]);
+                normalize(&RReg[7]);
 
                 // RESULT IS RReg[6]=cos(Theta*n) AND RReg[7]=sin(Theta*n)
 
                 // RReg[0]=r^n*cos(Theta*n)
-                mpd_mul(&RReg[0],&RReg[6],&RReg[8],&Context);
-                mpd_mul(&RReg[1],&RReg[7],&RReg[8],&Context);
+                mulReal(&RReg[0],&RReg[6],&RReg[8]);
+                mulReal(&RReg[1],&RReg[7],&RReg[8]);
 
 
                 rplRRegToComplexPush(0,1);
@@ -342,38 +363,42 @@ void LIB_HANDLER()
             // SO FAR WE HAVE RREG[8]=r, RREG[9]=Theta
 
             hyp_ln(&RReg[8]);
+            normalize(&RReg[0]);
 
             // RREG[0]=ln(r)
-            Context.prec+=MPD_RDIGITS;
+            Context.precdigits+=8;
 
-            mpd_mul(&RReg[1],&RReg[0],&Rarg2,&Context); // RReg[1]=a*ln(r)
-            mpd_mul(&RReg[2],&RReg[0],&Iarg2,&Context); // RReg[2]=b*ln(r)
-            mpd_mul(&RReg[3],&RReg[9],&Rarg2,&Context); // RReg[3]=a*Theta
-            mpd_mul(&RReg[4],&RReg[9],&Iarg2,&Context); // RReg[3]=b*Theta
-            mpd_sub(&RReg[8],&RReg[1],&RReg[4],&Context);   // RReg[8]=a*ln(r)-b*Theta
-            mpd_add(&RReg[9],&RReg[2],&RReg[3],&Context);   // RReg[9]=b*ln(r)+a*Theta
+            mulReal(&RReg[1],&RReg[0],&Rarg2); // RReg[1]=a*ln(r)
+            mulReal(&RReg[2],&RReg[0],&Iarg2); // RReg[2]=b*ln(r)
+            mulReal(&RReg[3],&RReg[9],&Rarg2); // RReg[3]=a*Theta
+            mulReal(&RReg[4],&RReg[9],&Iarg2); // RReg[3]=b*Theta
+            subReal(&RReg[8],&RReg[1],&RReg[4]);   // RReg[8]=a*ln(r)-b*Theta
+            addReal(&RReg[9],&RReg[2],&RReg[3]);   // RReg[9]=b*ln(r)+a*Theta
 
-            Context.prec-=MPD_RDIGITS;
+            Context.precdigits-=8;
 
             hyp_exp(&RReg[8]);
+            normalize(&RReg[0]);
 
-            mpd_copy(&RReg[8],&RReg[0],&Context);
+            copyReal(&RReg[8],&RReg[0]);
 
             trig_sincos(&RReg[9]);
+            normalize(&RReg[6]);
+            normalize(&RReg[7]);
 
-            mpd_mul(&RReg[0],&RReg[6],&RReg[8],&Context);
-            mpd_mul(&RReg[1],&RReg[7],&RReg[8],&Context);
+            mulReal(&RReg[0],&RReg[6],&RReg[8]);
+            mulReal(&RReg[1],&RReg[7],&RReg[8]);
 
             rplRRegToComplexPush(0,1);
 
             return;
         }
         case OVR_EQ:
-         if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplPushData((WORDPTR)zero_bint);
+         if(!eqReal(&Rarg1,&Rarg2)||!eqReal(&Iarg1,&Iarg2)) rplPushData((WORDPTR)zero_bint);
             else rplPushData((WORDPTR)one_bint);
             return;
         case OVR_NOTEQ:
-            if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplPushData((WORDPTR)one_bint);
+            if(!eqReal(&Rarg1,&Rarg2)||!eqReal(&Iarg1,&Iarg2)) rplPushData((WORDPTR)one_bint);
                else rplPushData((WORDPTR)zero_bint);
                return;
 /*
@@ -387,73 +412,69 @@ void LIB_HANDLER()
 
 */
         case OVR_SAME:
-            if(mpd_cmp(&Rarg1,&Rarg2,&Context)||mpd_cmp(&Iarg1,&Iarg2,&Context)) rplPushData((WORDPTR)zero_bint);
+            if(!eqReal(&Rarg1,&Rarg2)||!eqReal(&Iarg1,&Iarg2)) rplPushData((WORDPTR)zero_bint);
                else rplPushData((WORDPTR)one_bint);
                return;
         case OVR_AND:
-            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))||(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData((WORDPTR)zero_bint);
+            if( (iszeroReal(&Rarg1)&&iszeroReal(&Iarg1))||(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2))) rplPushData((WORDPTR)zero_bint);
             else rplPushData((WORDPTR)one_bint);
             return;
         case OVR_OR:
-            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData((WORDPTR)zero_bint);
+            if( (iszeroReal(&Rarg1)&&iszeroReal(&Iarg1))&&(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2))) rplPushData((WORDPTR)zero_bint);
             else rplPushData((WORDPTR)one_bint);
             return;
         case OVR_XOR:
-            if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData((WORDPTR)zero_bint);
+            if( (iszeroReal(&Rarg1)&&iszeroReal(&Iarg1))&&(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2))) rplPushData((WORDPTR)zero_bint);
             else {
-                if( !(mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1))&&!(mpd_iszero(&Rarg2)&&mpd_iszero(&Iarg2))) rplPushData((WORDPTR)zero_bint);
+                if( !(iszeroReal(&Rarg1)&&iszeroReal(&Iarg1))&&!(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2))) rplPushData((WORDPTR)zero_bint);
                 else rplPushData((WORDPTR)one_bint);
             }
             return;
 
         case OVR_INV:
                 // 1/(a+b*i) = (a/(a^2+b^2) - b/(a^2/b^2) i
-                if( (mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1)) ) {
+                if( (iszeroReal(&Rarg1)&&iszeroReal(&Iarg1)) ) {
                     Exceptions|=EX_MATHDIVZERO;
                     ExceptionPointer=IPtr;
                     return;
                 }
 
-                Context.prec+=MPD_RDIGITS;
+                Context.precdigits+=8;
 
-                mpd_mul(&RReg[2],&Rarg1,&Rarg1,&Context);
-                mpd_mul(&RReg[3],&Iarg1,&Iarg1,&Context);
-                mpd_add(&RReg[4],&RReg[2],&RReg[3],&Context);
-                Context.prec-=MPD_RDIGITS;
+                mulReal(&RReg[2],&Rarg1,&Rarg1);
+                mulReal(&RReg[3],&Iarg1,&Iarg1);
+                addReal(&RReg[4],&RReg[2],&RReg[3]);
+                Context.precdigits-=8;
 
-                mpd_div(&RReg[0],&Rarg1,&RReg[4],&Context);
-                mpd_div(&RReg[1],&Iarg1,&RReg[4],&Context);
-                RReg[1].flags^=MPD_NEG;
+                divReal(&RReg[0],&Rarg1,&RReg[4]);
+                divReal(&RReg[1],&Iarg1,&RReg[4]);
+                RReg[1].flags^=F_NEGATIVE;
                 rplRRegToComplexPush(0,1);
 
                 return;
 
         case OVR_NEG:
-            mpd_qminus(&RReg[0],&Rarg1,&Context,(uint32_t *)&status);
-            mpd_qminus(&RReg[1],&Iarg1,&Context,(uint32_t *)&status);
-            rplRRegToComplexPush(0,1);
+            if(!iszeroReal(&Rarg1)) Rarg1.flags^=F_NEGATIVE;
+            if(!iszeroReal(&Iarg1)) Iarg1.flags^=F_NEGATIVE;
+
+            rplNewComplexPush(&Rarg1,&Iarg1);
+
             return;
         case OVR_ABS:
-                Context.prec+=MPD_RDIGITS;
-                mpd_mul(&RReg[2],&Rarg1,&Rarg1,&Context);
-                mpd_mul(&RReg[3],&Iarg1,&Iarg1,&Context);
-                mpd_add(&RReg[0],&RReg[2],&RReg[3],&Context);
+                Context.precdigits+=8;
+                mulReal(&RReg[2],&Rarg1,&Rarg1);
+                mulReal(&RReg[3],&Iarg1,&Iarg1);
+                addReal(&RReg[0],&RReg[2],&RReg[3]);
 
-                Context.prec-=MPD_RDIGITS;
+                Context.precdigits-=8;
 
                 hyp_sqrt(&RReg[0]);
-
-                BINT exponent=Context.prec-RReg[0].digits-RReg[0].exp;
-                RReg[0].exp+=exponent;
-                mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-                RReg[7].exp-=exponent;
-                mpd_reduce(&RReg[0],&RReg[7],&Context);
-
+                finalize(&RReg[0]);
 
                 rplNewRealFromRRegPush(0);
                 return;
         case OVR_NOT:
-            if(mpd_iszero(&Rarg1)&&mpd_iszero(&Iarg1)) rplPushData((WORDPTR)one_bint);
+            if(iszeroReal(&Rarg1)&&iszeroReal(&Iarg1)) rplPushData((WORDPTR)one_bint);
             else rplPushData((WORDPTR)zero_bint);
             return;
 
@@ -538,18 +559,13 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-            mpd_t real,imag;
+            REAL real,imag;
 
             rplReadCNumberAsReal(rplPeekData(1),&real);
             rplReadCNumberAsImag(rplPeekData(1),&imag);
 
             trig_atan2(&imag,&real);
-
-            BINT exponent=Context.prec-RReg[0].digits-RReg[0].exp;
-            RReg[0].exp+=exponent;
-            mpd_round_to_intx(&RReg[2],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-            RReg[2].exp-=exponent;
-            mpd_reduce(&RReg[0],&RReg[2],&Context);
+            finalize(&RReg[0]);
 
             rplDropData(1);
             rplNewRealFromRRegPush(0);
@@ -568,15 +584,14 @@ void LIB_HANDLER()
             ExceptionPointer=IPtr;
             return;
         }
-            mpd_t real,imag;
+            REAL real,imag;
 
             rplReadCNumberAsReal(rplPeekData(1),&real);
             rplReadCNumberAsImag(rplPeekData(1),&imag);
-            mpd_copy(&RReg[0],&real,&Context);
-            mpd_copy_negate(&RReg[1],&imag,&Context);
+            if(!iszeroReal(&imag)) imag.flags^=F_NEGATIVE;
 
             rplDropData(1);
-            rplRRegToComplexPush(0,1);
+            rplNewComplexPush(&real,&imag);
 
         return;
     }

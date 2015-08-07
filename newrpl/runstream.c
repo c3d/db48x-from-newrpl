@@ -362,46 +362,20 @@ void rplInit(void)
 
 
     // INITIALIZE THE FLOATING POINT CONTEXT
-    mpd_init(&Context,36);
-
-    // LIMIT THE EXPONENT TO A 16 BIT VALUE FOR EASIER STORAGE
-    mpd_qsetemax(&Context,29999);
-    mpd_qsetemin(&Context,-29999);
-
-
+    initContext(32);
 
     // INITIALIZE THE REAL REGISTERS
     for(count=0;count<REAL_REGISTERS;++count)
     {
-        RReg[count].alloc=REAL_REGISTER_STORAGE;  // NUMBER OF ALLOCATED WORDS
-        RReg[count].data=RDigits+EXTRA_STORAGE+count*REAL_REGISTER_STORAGE;
-        RReg[count].flags=MPD_STATIC|MPD_STATIC_DATA;
-        RReg[count].digits=0;
+        RReg[count].data=allocRegister();
+        RReg[count].flags=0;
         RReg[count].exp=0;
         RReg[count].len=1;
-        RReg[count].digits=0;
     }
     // INITIALIZE TEMP STORAGE FOR INTEGER TO REAL CONVERSION
     BINT2RealIdx=0;
 
     // SET ERROR TRAP HANDLER
-    mpd_traphandler=&MPDTrapHandler;
-    Context.traps=MPD_Clamped |
-        MPD_Conversion_syntax   |
-        MPD_Division_by_zero    |
-        MPD_Division_impossible |
-        MPD_Division_undefined  |
-        MPD_Fpu_error           |
-        //MPD_Inexact             |
-        MPD_Invalid_context     |
-        MPD_Invalid_operation   |
-        MPD_Malloc_error        |
-        MPD_Not_implemented     |
-        MPD_Overflow            |
-        //MPD_Rounded             |
-        //MPD_Subnormal           |
-        MPD_Underflow           ;
-
 
 
 }
@@ -436,44 +410,18 @@ void rplWarmInit(void)
 
 
     // INITIALIZE THE FLOATING POINT CONTEXT
-    mpd_init(&Context,36);
-    mpd_memory_reset();
-
-    // LIMIT THE EXPONENT TO A 16 BIT VALUE FOR EASIER STORAGE
-    mpd_qsetemax(&Context,29999);
-    mpd_qsetemin(&Context,-29999);
+    initContext(32);
 
     // INITIALIZE THE REAL REGISTERS
     for(count=0;count<REAL_REGISTERS;++count)
     {
-        RReg[count].alloc=REAL_REGISTER_STORAGE;  // NUMBER OF ALLOCATED WORDS
-        RReg[count].data=RDigits+EXTRA_STORAGE+count*REAL_REGISTER_STORAGE;
-        RReg[count].flags=MPD_STATIC|MPD_STATIC_DATA;
-        RReg[count].digits=0;
+        RReg[count].data=allocRegister();
+        RReg[count].flags=0;
         RReg[count].exp=0;
         RReg[count].len=1;
-        RReg[count].digits=0;
     }
     // INITIALIZE TEMP STORAGE FOR INTEGER TO REAL CONVERSION
     BINT2RealIdx=0;
-
-    // SET ERROR TRAP HANDLER
-    mpd_traphandler=&MPDTrapHandler;
-    Context.traps=MPD_Clamped |
-        MPD_Conversion_syntax   |
-        MPD_Division_by_zero    |
-        MPD_Division_impossible |
-        MPD_Division_undefined  |
-        MPD_Fpu_error           |
-        //MPD_Inexact             |
-        MPD_Invalid_context     |
-        MPD_Invalid_operation   |
-        MPD_Malloc_error        |
-        MPD_Not_implemented     |
-        MPD_Overflow            |
-        //MPD_Rounded             |
-        //MPD_Subnormal           |
-        MPD_Underflow           ;
 
 }
 
@@ -484,7 +432,7 @@ void rplWarmInit(void)
 
 // FOR DEBUG ONLY: SHOW STATUS OF THE EXECUTION ENVIRONMENT
 #ifndef NDEBUG
-extern mpd_uint_t MPD_RegistersUsed;
+extern BINT MPD_RegistersUsed;
 void rplShowRuntimeState(void)
 {
     printf("Used memory:\n-------------\n");

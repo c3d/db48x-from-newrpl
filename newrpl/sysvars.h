@@ -103,12 +103,12 @@ extern BINT NumHiLibs;
 
 
 // MATH LIBRARY CONTEXT
-extern mpd_context_t Context;
+extern CONTEXT Context;
 
 // PREALLOCATED STATIC REAL NUMBER REGISTERS FOR TEMPORARY STORAGE
-extern mpd_t RReg[REAL_REGISTERS];
+extern REAL RReg[REAL_REGISTERS];
 // TEMPORARY SCRATCH MEMORY FOR DIGITS
-extern mpd_uint_t RDigits[REAL_SCRATCHMEM];
+extern BINT RDigits[EXTRA_STORAGE];
 
 extern BINT BINT2RealIdx;
 

@@ -55,20 +55,11 @@ SOURCES += main.cpp\
     firmware/sys/target_pc/stdlib.c \
     firmware/sys/target_pc/timer.c \
     firmware/hal_globals.c \
-    newrpl/atan_1_comp.c \
-    newrpl/atan_2_comp.c \
-    newrpl/atan_5_comp.c \
-    newrpl/atanh_1_comp.c \
-    newrpl/atanh_2_comp.c \
-    newrpl/atanh_5_comp.c \
     newrpl/compiler.c \
-    newrpl/cordic_K_comp.c \
-    newrpl/cordic_Kh_comp.c \
     newrpl/datastack.c \
     newrpl/directory.c \
     newrpl/errors.c \
     newrpl/gc.c \
-    newrpl/io_substring.c \
     newrpl/lam.c \
     newrpl/lib-24-string.c \
     newrpl/lib-28-dirs.c \
@@ -97,23 +88,7 @@ SOURCES += main.cpp\
     newrpl/symbolic.c \
     newrpl/sysvars.c \
     newrpl/tempob.c \
-    newrpl/transcendentals.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/basearith.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/memory.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/mpdecimal.c \
     firmware/sys/target_pc/mem.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/context.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/mpsignal.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/fnt.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/crt.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/constants.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/convolute.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/sixstep.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/difradix2.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/fourstep.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/transpose.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/io.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/numbertheory.c \
     firmware/sys/target_pc/boot.c \
     rplthread.cpp \
     firmware/ui_cmdline.c \
@@ -126,7 +101,17 @@ SOURCES += main.cpp\
     firmware/sys/Font7A.c \
     newrpl/matrix.c \
     firmware/sys/Font8C.c \
-    firmware/sys/Font8D.c
+    firmware/sys/Font8D.c \
+    newrpl/atan_1_8_comp.c \
+    newrpl/atan_2_8_comp.c \
+    newrpl/atan_5_8_comp.c \
+    newrpl/atanh_1_8_comp.c \
+    newrpl/atanh_2_8_comp.c \
+    newrpl/atanh_5_8_comp.c \
+    newrpl/cordic_K_8_comp.c \
+    newrpl/cordic_Kh_8_comp.c \
+    newrpl/decimal.c \
+    newrpl/dectranscen.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -138,11 +123,11 @@ HEADERS  += mainwindow.h \
     newrpl/libraries.h \
     newrpl/newrpl.h \
     newrpl/sysvars.h \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/mpdecimal.h \
     rplthread.h \
-    newrpl/utf8lib.h
+    newrpl/utf8lib.h \
+    newrpl/decimal.h
 
-INCLUDEPATH += firmware/include newrpl newrpl/contrib/mpdecimal-2.4.0/libmpdec /usr/local/include /usr/include
+INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
 
 LIBS += -L/usr/local/lib
 

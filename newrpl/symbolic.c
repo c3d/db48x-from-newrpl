@@ -274,12 +274,12 @@ BINT rplSymbObjectMatch(WORDPTR baseobject,WORDPTR objptr)
         if(ISNUMBER(*baseobject)) {
             if(!ISNUMBER(*objptr)) return 0;   // MATCH FAILED
 
-            mpd_t num1,num2;
+            REAL num1,num2;
 
             rplReadNumberAsReal(baseobject,&num1);
             rplReadNumberAsReal(objptr,&num2);
 
-            if(mpd_cmp(&num1,&num2,&Context)) return 0; // MATCH FAILED
+            if(cmpReal(&num1,&num2)) return 0; // MATCH FAILED
         }
         else
         if(!ISPROLOG(*baseobject)) {
@@ -522,7 +522,7 @@ void rplSymbRuleMatch()
 
     if((ruleleft!=endofrule)||(objptr!=endofobj)) return;   // RETURN WITH "NO MATCH" RESULT
 
-    rplPutLAMn(1,one_bint);    // RETURN NULLLAM1 = 1
+    rplPutLAMn(1,one_bint);    // RETURN 0LAM1 = 1
     rplPutLAMn(2,endofobj);    // NEXT OBJECT TO BE SCANNED
 
     return;
@@ -616,7 +616,7 @@ WORDPTR rplSymbReplace(WORDPTR mainobj,WORDPTR arg,WORDPTR newarg)
     ScratchPointer2=arg;
     ScratchPointer3=newarg;
     WORDPTR newobj=rplAllocTempOb(rplObjSize(mainobj)-rplObjSize(arg)+rplObjSize(newarg)-1),ptr,end;
-    if(Exceptions) return NULL;
+    if(Exceptions) return 0;
     ptr=newobj;
     mainobj=ScratchPointer1;
     arg=ScratchPointer2;
@@ -713,7 +713,7 @@ WORDPTR rplSymbImplode(WORDPTR exprstart)
 
     WORDPTR newobject=rplAllocTempOb(size),newptr,object;
 
-    if(!newobject) return NULL;
+    if(!newobject) return 0;
 
     stkptr=exprstart;
     newptr=newobject;
@@ -853,7 +853,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
             if(num<0) {
                 num=-num;
                 rplNewBINTPush(num,LIBNUM(*sobj));
-                if(Exceptions) { DSTop=endofstk+1; return NULL; }
+                if(Exceptions) { DSTop=endofstk+1; return 0; }
                 WORDPTR newobj=rplPeekData(1);
 
                 WORDPTR *ptr=DSTop-2;
@@ -872,13 +872,12 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
 
         if(ISREAL(*sobj)) {
             // THE OBJECT IS A REAL NUMBER
-            mpd_t dec;
-            rplCopyRealToRReg(0,sobj);
-            if(mpd_isnegative(&RReg[0])) {
-                RReg[0].flags^=MPD_NEG; // MAKE IT POSITIVE
-                if(ISAPPROX(*sobj)) rplNewApproxRealFromRRegPush(0);
-                else rplNewRealFromRRegPush(0);
-                if(Exceptions) { DSTop=endofstk+1; return NULL; }
+            REAL dec;
+            rplReadReal(sobj,&dec);
+            if(dec.flags&F_NEGATIVE) {
+                if(!iszeroReal(&dec)) dec.flags^=F_NEGATIVE; // MAKE IT POSITIVE
+                rplNewRealPush(&dec);
+                if(Exceptions) { DSTop=endofstk+1; return 0; }
                 WORDPTR newobj=rplPeekData(1);
 
                 WORDPTR *ptr=DSTop-2;
@@ -926,7 +925,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
                 *stkptr=(WORDPTR)add_opcode;
                 stkptr--;
                 rplExpandStack(2);  // NOW GROW THE STACK
-                if(Exceptions) { DSTop=endofstk+1; return NULL; }
+                if(Exceptions) { DSTop=endofstk+1; return 0; }
             }
 
 
@@ -1050,7 +1049,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
                 // STORE THE NEW TOTAL NUMBER OF ARGUMENTS
                 if(orignargs!=nargs) {
                 WORDPTR newnumber=rplNewSINT(nargs+1,DECBINT);
-                if(!newnumber) { DSTop=endofstk+1; return NULL; }
+                if(!newnumber) { DSTop=endofstk+1; return 0; }
                 *(stkptr-1)=newnumber;
                 }
 
@@ -1124,7 +1123,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
                 *stkptr=(WORDPTR)mul_opcode;
                 stkptr--;
                 rplExpandStack(2);  // NOW GROW THE STACK
-                if(Exceptions) { DSTop=endofstk+1; return NULL; }
+                if(Exceptions) { DSTop=endofstk+1; return 0; }
             }
 
 
@@ -1179,7 +1178,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
                         nextarg[2]=(WORDPTR)inverse_opcode;
                         nextarg+=2;
                         rplExpandStack(2);
-                        if(Exceptions){ DSTop=endofstk+1; return NULL; }
+                        if(Exceptions){ DSTop=endofstk+1; return 0; }
                     }
 
                     nextarg=rplSymbSkipInStack(nextarg);
@@ -1302,7 +1301,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
                 // STORE THE NEW TOTAL NUMBER OF ARGUMENTS
                 if(orignargs!=nargs) {
                 WORDPTR newnumber=rplNewSINT(nargs+1,DECBINT);
-                if(!newnumber) { DSTop=endofstk+1; return NULL; }
+                if(!newnumber) { DSTop=endofstk+1; return 0; }
                 *(stkptr-1)=newnumber;
                 }
 
@@ -1332,7 +1331,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
                 BINT c,orignargs=nargs;
                 WORDPTR *nextarg=stkptr-2;
                 WORDPTR *firstarg=nextarg;
-                WORDPTR *firstinv=NULL;
+                WORDPTR *firstinv=0;
 
                 for(c=0;c<nargs;++c) {
 
@@ -1344,7 +1343,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
                                 //                               ^________________________|
                                 // GROW STACK BY nterms
                                 rplExpandStack(nterms);
-                                if(Exceptions) { DSTop=endofstk+1; return NULL; }
+                                if(Exceptions) { DSTop=endofstk+1; return 0; }
                                 // MOVE nextarg TO THE END OF STACK
                                 WORDPTR *ptr=DSTop;
                                 BINT f;
@@ -1385,10 +1384,10 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
                     BINT64 numargs=OPCODE(*firstarg[2]);
                     ++numargs;
                     WORDPTR nnum=rplNewSINT(numargs,DECBINT);
-                    if(Exceptions) { DSTop=endofstk+1; return NULL; }
+                    if(Exceptions) { DSTop=endofstk+1; return 0; }
                     firstarg[2]=nnum;
                     rplExpandStack(1);  // NOW GROW THE STACK
-                    if(Exceptions) { DSTop=endofstk+1; return NULL; }
+                    if(Exceptions) { DSTop=endofstk+1; return 0; }
                 }
 
                 stkptr--;
@@ -1415,7 +1414,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
         stkptr[-1]=(WORDPTR)three_bint;
         stkptr[-2]=(WORDPTR)one_bint;
         rplExpandStack(3);  // NOW GROW THE STACK
-        if(Exceptions) { DSTop=endofstk+1; return NULL; }
+        if(Exceptions) { DSTop=endofstk+1; return 0; }
 
     }
 
@@ -1451,7 +1450,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
                     argptr[-1]=(WORDPTR)three_bint;
                     argptr[-2]=(WORDPTR)one_bint;
                     rplExpandStack(3);  // NOW GROW THE STACK
-                    if(Exceptions) { DSTop=endofstk+1; return NULL; }
+                    if(Exceptions) { DSTop=endofstk+1; return 0; }
 
                 }
                 argptr=rplSymbSkipInStack(argptr);
@@ -1469,7 +1468,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
 
     if(Exceptions) {
         DSTop=endofstk+1;
-        return NULL;
+        return 0;
     }
 
     return DSTop-1;
@@ -1482,12 +1481,12 @@ WORDPTR rplSymbCanonicalForm(WORDPTR object)
 {
     WORDPTR result=rplSymbExplodeCanonicalForm(object);
 
-    if(!result) return NULL;
+    if(!result) return 0;
 
     WORDPTR finalsymb=rplSymbImplode(result);
 
     DSTop=rplSymbSkipInStack(result)+1;
-    if(Exceptions) return NULL;
+    if(Exceptions) return 0;
 
     return finalsymb;
 
@@ -1517,8 +1516,8 @@ BINT rplFractionSimplify()
 
         if(!isapprox) {
         // MAKE THEM BOTH POSITIVE
-        numneg=RReg[0].flags&MPD_NEG;
-        denneg=RReg[1].flags&MPD_NEG;
+        numneg=RReg[0].flags&F_NEGATIVE;
+        denneg=RReg[1].flags&F_NEGATIVE;
         RReg[0].flags^=numneg;
         RReg[1].flags^=denneg;
 
@@ -1527,24 +1526,24 @@ BINT rplFractionSimplify()
         if(RReg[1].exp<0) { RReg[0].exp+=-RReg[1].exp; RReg[1].exp=0;  }
 
         // SWITCH TO MAX CONTEXT
-        mpd_ssize_t previousprec=Context.prec;
-        Context.prec=REAL_PRECISION_MAX;
+        WORD previousprec=Context.precdigits;
+        Context.precdigits=REAL_PRECISION_MAX;
 
 
         // FIND GCD
-        mpd_t *big,*small,*tmpbig,*tmpsmall,*swap,*remainder;
-        if(mpd_cmp(&RReg[0],&RReg[1],&Context)>0) { big=&RReg[0]; small=&RReg[1]; }
+        REAL *big,*small,*tmpbig,*tmpsmall,*swap,*remainder;
+        if(cmpReal(&RReg[0],&RReg[1])>0) { big=&RReg[0]; small=&RReg[1]; }
             else { big=&RReg[1]; small=&RReg[0]; }
         tmpbig=&RReg[2];
         tmpsmall=&RReg[3];
         remainder=&RReg[4];
 
-        mpd_copy(tmpbig,big,&Context);
-        mpd_copy(tmpsmall,small,&Context);
+        copyReal(tmpbig,big);
+        copyReal(tmpsmall,small);
 
-        while(!mpd_iszero(tmpsmall)) {
+        while(!iszeroReal(tmpsmall)) {
 
-            mpd_rem(remainder,tmpbig,tmpsmall,&Context);
+            divmodReal(&RReg[7],remainder,tmpbig,tmpsmall);
 
             swap=tmpbig;
             tmpbig=tmpsmall;
@@ -1555,15 +1554,15 @@ BINT rplFractionSimplify()
 
         // HERE tmpbig = GCD(NUM,DEN)
         rplOneToRReg(5);
-        if(mpd_cmp(tmpbig,&RReg[5],&Context)<=0) {
+        if(cmpReal(tmpbig,&RReg[5])<=0) {
             // THERE'S NO COMMON DIVISOR, RETURN UNMODIFIED
             // THIS IS <=0 SO IT CATCHES 0/0
             return 0;
         }
 
         // SIMPLIFY
-        mpd_div(&RReg[5],&RReg[0],tmpbig,&Context);
-        mpd_div(&RReg[6],&RReg[1],tmpbig,&Context);
+        divReal(&RReg[5],&RReg[0],tmpbig);
+        divReal(&RReg[6],&RReg[1],tmpbig);
 
         // APPLY THE SIGN TO THE NUMERATOR ONLY
         RReg[5].flags|=numneg^denneg;
@@ -1573,7 +1572,7 @@ BINT rplFractionSimplify()
         }
         else {
             // JUST COMPUTE THE DIVISION
-            mpd_div(&RReg[5],&RReg[0],&RReg[1],&Context);
+            divReal(&RReg[5],&RReg[0],&RReg[1]);
             // AND SET DENOMINATOR TO ONE
             rplOneToRReg(6);
 
@@ -1581,18 +1580,19 @@ BINT rplFractionSimplify()
 
 
         // NOW TRY TO CONVERT THE REALS TO INTEGERS IF POSSIBLE
-        uint32_t status=0;
         BINT64 num;
-        num=mpd_qget_i64(&RReg[5],&status);
-        if(!status) rplNewBINTPush(num,DECBINT|isapprox);
-        else { if(isapprox) rplNewApproxRealFromRRegPush(5);
-            else rplNewRealFromRRegPush(5);
-            }
+        if(inBINT64Range(&RReg[5])) {
+        num=getBINT64Real(&RReg[5]);
+        rplNewBINTPush(num,DECBINT|isapprox);
+        }
+        else { rplNewRealFromRRegPush(5); }
+
         if(Exceptions) return 0;
-        status=0;
-        num=mpd_qget_i64(&RReg[6],&status);
-        if(!status) rplNewBINTPush(num,DECBINT);
-        else rplNewRealFromRRegPush(6);
+        if(inBINT64Range(&RReg[6])) {
+        num=getBINT64Real(&RReg[6]);
+        rplNewBINTPush(num,DECBINT|isapprox);
+        }
+        else { rplNewRealFromRRegPush(6); }
         if(Exceptions) { rplDropData(1); return 0; }
 
         rplOverwriteData(3,rplPeekData(1));
@@ -1939,7 +1939,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
     BINT f,changed,origprec;
     WORDPTR *stkptr,sobj,*endofstk;
 
-    origprec=Context.prec;
+    origprec=Context.precdigits;
 
     endofstk=DSTop-1-numitems;
 
@@ -1975,14 +1975,14 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         if(ISNUMBER(**(argptr-2))) {
                             rplPushData(*(argptr-2));
                             // NEGATE THE NUMBER
-                            Context.prec=REAL_PRECISION_MAX;
-                            Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
+                            Context.precdigits=REAL_PRECISION_MAX;
+                            //Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
 
                             rplCallOvrOperator(OVR_NEG);
-                            if(Exceptions) { DSTop=endofstk+1; return NULL; }
+                            if(Exceptions) { DSTop=endofstk+1; return 0; }
 
-                            Context.prec=origprec;
-                            Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
+                            Context.precdigits=origprec;
+                            //Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
 
                             // REMOVE THE ARGUMENT FROM THE LIST
 
@@ -2040,14 +2040,14 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
             // HERE WE HAVE redargs VALUES IN THE STACK THAT NEED TO BE MULTIPLIED TOGETHER
             if(redargs>0) {
-            Context.prec=REAL_PRECISION_MAX;
+            Context.precdigits=REAL_PRECISION_MAX;
             // Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT -- NOT NEEDED, USE APPROX. NUMBERS
             for(f=1;f<redargs;++f) {
                 rplCallOvrOperator(OVR_MUL);
-                if(Exceptions) { DSTop=endofstk+1; return NULL; }
+                if(Exceptions) { DSTop=endofstk+1; return 0; }
             }
 
-            Context.prec=origprec;
+            Context.precdigits=origprec;
             //Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
             }
             else rplPushData(one_bint);     //  IF NO NUMERATOR, THEN MAKE IT = 1
@@ -2067,14 +2067,14 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         if(ISNUMBER(**(argptr-4))) {
                             rplPushData(*(argptr-4));
                             // NEGATE THE NUMBER
-                            Context.prec=REAL_PRECISION_MAX;
-                            Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
+                            Context.precdigits=REAL_PRECISION_MAX;
+                            //Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
 
                             rplCallOvrOperator(OVR_NEG);
-                            if(Exceptions) { DSTop=endofstk+1; return NULL; }
+                            if(Exceptions) { DSTop=endofstk+1; return 0; }
 
-                            Context.prec=origprec;
-                            Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
+                            Context.precdigits=origprec;
+                            //Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
 
                             // REMOVE THE ARGUMENT FROM THE LIST
 
@@ -2133,14 +2133,14 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             // HERE WE HAVE reddenom VALUES IN THE STACK THAT NEED TO BE MULTIPLIED TOGETHER
             if(reddenom>0) {
 
-            Context.prec=REAL_PRECISION_MAX;
+            Context.precdigits=REAL_PRECISION_MAX;
             //Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
             for(f=1;f<reddenom;++f) {
                 rplCallOvrOperator(OVR_MUL);
-                if(Exceptions) { DSTop=endofstk+1; return NULL; }
+                if(Exceptions) { DSTop=endofstk+1; return 0; }
             }
 
-            Context.prec=origprec;
+            Context.precdigits=origprec;
             //Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
 
             // DONE, WE HAVE NUMERATOR AND DENOMINATOR IN THE STACK
@@ -2167,20 +2167,20 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                             neg^=1;
                         // KEEP THE NUMERATOR POSITIVE
                         WORDPTR newnum=rplNewBINT(-nnum,DECBINT);
-                        if(!newnum) { DSTop=endofstk+1; return NULL; }
+                        if(!newnum) { DSTop=endofstk+1; return 0; }
                         rplOverwriteData(n,newnum);
                         }
 
                     } else {
                         if(ISREAL(*rplPeekData(n))) {
-                            mpd_t number;
+                            REAL number;
                             rplReadReal(rplPeekData(n),&number);
                             if(mpd_isnegative(&number)) {
-                                number.flags^=MPD_NEG;
+                                number.flags^=F_NEGATIVE;
                                 neg^=1;
-                                number.flags^=MPD_NEG;
+                                number.flags^=F_NEGATIVE;
                                 WORDPTR newnum=rplNewReal(&number);
-                                if(!newnum) { DSTop=endofstk+1; return NULL; }
+                                if(!newnum) { DSTop=endofstk+1; return 0; }
                                 rplOverwriteData(n,newnum);
                             }
                         }
@@ -2211,10 +2211,10 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         if(denom==1) den_is_one=1;
                     } else {
                         if(ISREAL(*rplPeekData(1))) {
-                            mpd_t number;
+                            REAL number;
                             rplReadReal(rplPeekData(1),&number);
                             rplOneToRReg(0);
-                            if(mpd_cmp(&number,&RReg[0],&Context)==0) den_is_one=1;
+                            if(cmpReal(&number,&RReg[0])==0) den_is_one=1;
                         }
                     }
 
@@ -2280,7 +2280,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                     }
                     else {
                         WORDPTR newnumber=rplNewSINT(newcount+1,DECBINT);
-                        if(!newnumber) { DSTop=endofstk+1; return NULL; }
+                        if(!newnumber) { DSTop=endofstk+1; return 0; }
                         *(stkptr-1)=newnumber;
                     }
 
@@ -2302,7 +2302,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             BINT nargs=OPCODE(**(stkptr-1))-1;
             WORDPTR *argptr=stkptr-2;
 
-            WORDPTR *firstnum=NULL,*secondnum=NULL;
+            WORDPTR *firstnum=0,*secondnum=0;
 
             for(f=0;f<nargs;++f)
             {
@@ -2317,7 +2317,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
             }
 
-            if( (firstnum==NULL) || (secondnum==NULL) ) { --stkptr; continue; }
+            if( (firstnum==0) || (secondnum==0) ) { --stkptr; continue; }
 
             // HERE WE HAVE 2 FRACTIONS OR NUMBERS READY TO ADD
 
@@ -2351,10 +2351,10 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 if(denom==1) den_is_one=1;
             } else {
                 if(ISREAL(*rplPeekData(1))) {
-                    mpd_t number;
+                    REAL number;
                     rplReadReal(rplPeekData(1),&number);
                     rplOneToRReg(0);
-                    if(mpd_cmp(&number,&RReg[0],&Context)==0) den_is_one=1;
+                    if(cmpReal(&number,&RReg[0])==0) den_is_one=1;
                 }
             }
 
@@ -2461,14 +2461,14 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                             rplPushData(*(argptr-2));
 
                             // NEGATE THE NUMBER
-                            Context.prec=REAL_PRECISION_MAX;
-                            Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
+                            Context.precdigits=REAL_PRECISION_MAX;
+                            //Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
 
                             rplCallOvrOperator(OVR_NEG);
-                            if(Exceptions) { DSTop=endofstk+1; return NULL; }
+                            if(Exceptions) { DSTop=endofstk+1; return 0; }
 
-                            Context.prec=origprec;
-                            Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
+                            Context.precdigits=origprec;
+                            //Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
 
                         }
                    }
@@ -2477,18 +2477,18 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 }
 
                 // CALL THE MAIN OPERATOR
-                Context.prec=REAL_PRECISION_MAX;
-                Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
+                Context.precdigits=REAL_PRECISION_MAX;
+                //Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
 
                 rplCallOperator(**stkptr);
 
-                Context.prec=origprec;
-                Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
+                Context.precdigits=origprec;
+                //Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
 
                 if(!( (Exceptions>>16)&MPD_Inexact)) {
 
                     // THERE WERE EXCEPTIONS AND IS NOT BECAUSE OF INEXACT --> RETURN
-                    if(Exceptions) { DSTop=endofstk+1; return NULL; }
+                    if(Exceptions) { DSTop=endofstk+1; return 0; }
 
                     // REPLACE A SINGLE ARGUMENT
 
@@ -2526,13 +2526,13 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
     if(Exceptions) {
         DSTop=endofstk+1;
-        return NULL;
+        return 0;
     }
 
     WORDPTR finalsymb=rplSymbImplode(DSTop-1);
 
     DSTop=endofstk+1;
-    if(Exceptions) return NULL;
+    if(Exceptions) return 0;
 
     return finalsymb;
 
@@ -2879,11 +2879,11 @@ partial_restart:
                 }
                 else {
                     // COMPARE REALS
-                    mpd_t num1,num2;
+                    REAL num1,num2;
                     rplReadNumberAsReal(*ruleptr,&num1);
                     rplReadNumberAsReal(*exprptr,&num2);
 
-                    if(mpd_cmp(&num1,&num2,&Context)!=0) { match=0; continue; }
+                    if(cmpReal(&num1,&num2)!=0) { match=0; continue; }
 
                 }
 

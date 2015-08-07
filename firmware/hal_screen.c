@@ -525,8 +525,7 @@ void halShowErrorMsg()
 {
         int errbit;
         if(!Exceptions) return;
-        WORD error=Exceptions &((Context.traps<<16)|0xffff);
-
+        WORD error=Exceptions;
         DRAWSURFACE scr;
         ggl_initscr(&scr);
         BINT ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;

@@ -13,8 +13,8 @@
 
 
 
-extern void trig_sincos(mpd_t *ptr);
-extern void trig_atan2(mpd_t *x,mpd_t *y);
+extern void trig_sincos(REAL *ptr);
+extern void trig_atan2(REAL *x,REAL *y);
 
 
 
@@ -88,7 +88,7 @@ void LIB_HANDLER()
         // TERMPORARY USE ONLY, CONVERT A REAL AS A 'C' STRING OF 32-BIT WORDS
         // FORMAT IS: EXPONENT, NUM.WORDS, MANTISA0 , ... ALL MANTISSA WORDS.
     {
-        mpd_t dec;
+        REAL dec;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -101,8 +101,8 @@ void LIB_HANDLER()
         // FOR THE TABLES, WE'LL ROUND TO THE NEAREST INTEGER, DISCARDING THE LAST 9 DIGITS (1 WORD)
         int exponent=dec.digits+dec.exp;
         dec.exp=TABLES_OUTPUT_PRECISION-dec.digits;
-        mpd_context_t newctx;
-        memcpy(&newctx,&Context,sizeof(mpd_context_t));
+        CONTEXT newctx;
+        memcpy(&newctx,&Context,sizeof(CONTEXT));
 
         newctx.round=MPD_ROUND_HALF_UP;
         mpd_round_to_intx(&RReg[0],&dec,&newctx);
@@ -185,7 +185,7 @@ void LIB_HANDLER()
         */
     case CLN:
     {
-        mpd_t x;
+        REAL x;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -211,7 +211,7 @@ void LIB_HANDLER()
     }
     case SINCOSH:
     {
-        mpd_t x;
+        REAL x;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -239,7 +239,7 @@ void LIB_HANDLER()
 
     case CATANH:
     {
-        mpd_t x;
+        REAL x;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;
@@ -268,7 +268,7 @@ void LIB_HANDLER()
 
     case CSQRT:
     {
-        mpd_t x;
+        REAL x;
         if(rplDepthData()<1) {
             Exceptions|=EX_BADARGCOUNT;
             ExceptionPointer=IPtr;

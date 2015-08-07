@@ -8,10 +8,7 @@
 #ifndef NEWRPL_H
 #define NEWRPL_H
 
-
-#ifndef MPDECIMAL_H
-#include "mpdecimal.h"
-#endif
+#include <stdint.h>
 #ifndef UTF8LIB_H
 #include "utf8lib.h"
 #endif
@@ -58,17 +55,21 @@ extern "C" {
 
 // SCRATCHPAD MEMORY TO ALLOCATE DIGITS FOR ARBITRARY PRECISION TEMP RESULTS
 // THIS IS THE NUMBER OF WORDS, EACH GOOD FOR 9 DIGITS.
-#define REAL_REGISTER_STORAGE ((REAL_PRECISION_MAX*2)/9+3)
+#define REAL_REGISTER_STORAGE ((REAL_PRECISION_MAX*2)/8+3)
 #define BINT_REGISTER_STORAGE  3
 #define EXTRA_STORAGE BINT2REAL*BINT_REGISTER_STORAGE
-#define REAL_SCRATCHMEM (REAL_REGISTERS*REAL_REGISTER_STORAGE)+EXTRA_STORAGE
-
-#define RREG_STORAGE_START EXTRA_STORAGE
 
 // DEFINE THE LIMITS FOR THE EXPONENT RANGE FOR ALL REALS
 // NOTE: THIS HAS TO FIT WITHIN THE FIELDS OF REAL_HEADER
 #define REAL_EXPONENT_MAX   30000
 #define REAL_EXPONENT_MIN   -30000
+
+
+#ifndef DECIMAL_H
+#include "decimal.h"
+#endif
+
+
 
 
 
@@ -100,22 +101,22 @@ extern "C" {
 #include "sysvars.h"
 
 // INTERNAL TRANSCENDENTAL FUNCTIONS
-void hyp_exp(mpd_t *);
-void hyp_ln(mpd_t *);
-void hyp_sqrt(mpd_t *);
-void hyp_sinhcosh(mpd_t *);
-void hyp_atanh(mpd_t *);
-void hyp_asinh(mpd_t *);
-void hyp_acosh(mpd_t *);
+void hyp_exp(REAL *);
+void hyp_ln(REAL *);
+void hyp_sqrt(REAL *);
+void hyp_sinhcosh(REAL *);
+void hyp_atanh(REAL *);
+void hyp_asinh(REAL *);
+void hyp_acosh(REAL *);
 
-void trig_sincos(mpd_t *);
-void trig_atan2(mpd_t *,mpd_t *);
-void trig_asin(mpd_t *);
-void trig_acos(mpd_t *);
+void trig_sincos(REAL *);
+void trig_atan2(REAL *,REAL *);
+void trig_asin(REAL *);
+void trig_acos(REAL *);
 
 
 // ERROR MANAGEMENT FUNCTIONS
-extern void MPDTrapHandler(mpd_context_t *ctx);
+extern void decTrapHandler(BINT error);
 extern void rplSetExceptionHandler(WORDPTR Handler);
 extern void rplRemoveExceptionHandler();
 extern void rplCatchException();
@@ -288,22 +289,35 @@ extern BINT rplIsTrue(WORDPTR objptr);
 // REAL FUNCTIONS
 extern void rplOneToRReg(int num);
 extern void rplZeroToRReg(int num);
+extern void rplInfinityToRReg(int num);
+extern void rplNANToRReg(int num);
 extern void rplBINTToRReg(int num,BINT64 value);
-extern void rplReadReal(WORDPTR real,mpd_t *dec);
+extern void rplReadReal(WORDPTR real,REAL *dec);
 extern void rplCopyRealToRReg(int num,WORDPTR real);
-extern WORDPTR rplNewReal(mpd_t *num);
+extern WORDPTR rplNewReal(REAL *num);
+extern WORDPTR rplNewRealInPlace(REAL *num,WORDPTR addr);
 extern WORDPTR rplNewRealFromRReg(int num);
-extern void rplNewRealPush(mpd_t *num);
+extern void rplNewRealPush(REAL *num);
 extern void rplNewRealFromRRegPush(int num);
 extern void rplNewApproxRealFromRRegPush(int num);
+extern WORDPTR rplRRegToRealInPlace(int num, WORDPTR dest);
 
-extern WORDPTR rplRRegToRealInPlace(int num, WORDPTR dest, BINT isapprox);
+
+// COMPLEX FUNCTIONS
+extern void rplRealPart(WORDPTR complex,REAL *real);
+extern void rplImaginaryPart(WORDPTR complex,REAL *imag);
+extern void rplReadCNumberAsReal(WORDPTR complex,REAL *real);
+extern void rplReadCNumberAsImag(WORDPTR complex,REAL *imag);
+extern void rplNewComplexPush(REAL *real,REAL *imag);
+extern void rplRRegToComplexPush(BINT real,BINT imag);
+extern WORDPTR rplRRegToComplexInPlace(BINT real,BINT imag,WORDPTR dest);
+
 
 
 // GENERIC FUNCTIONS FOR BINTS AND REALS
 extern void rplNumberToRReg(int num,WORDPTR number);
 extern BINT64 rplReadNumberAsBINT(WORDPTR number);
-extern void rplReadNumberAsReal(WORDPTR number,mpd_t*dec);
+extern void rplReadNumberAsReal(WORDPTR number,REAL*dec);
 
 // LIST FUNCTIONS
 extern BINT rplListLength(WORDPTR composite);
@@ -372,8 +386,8 @@ extern void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 #define EX_NONEMPTYDIR  16384
 #define EX_INVALID_DIM  32768
 // ADD MORE HERE...
-#define EX_MATHDIVZERO     (MPD_Division_by_zero<<16)
-#define EX_MATHOVERFLOW    (MPD_Overflow<<16)
+#define EX_MATHDIVZERO     (1<<16)
+#define EX_MATHOVERFLOW    (2<<16)
 
 
 
