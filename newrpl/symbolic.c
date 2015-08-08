@@ -2175,10 +2175,9 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         if(ISREAL(*rplPeekData(n))) {
                             REAL number;
                             rplReadReal(rplPeekData(n),&number);
-                            if(mpd_isnegative(&number)) {
+                            if(number.flags&F_NEGATIVE) {
                                 number.flags^=F_NEGATIVE;
                                 neg^=1;
-                                number.flags^=F_NEGATIVE;
                                 WORDPTR newnum=rplNewReal(&number);
                                 if(!newnum) { DSTop=endofstk+1; return 0; }
                                 rplOverwriteData(n,newnum);
@@ -2485,7 +2484,8 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 Context.precdigits=origprec;
                 //Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
 
-                if(!( (Exceptions>>16)&MPD_Inexact)) {
+                // TODO: REPLACE THIS INEXACT BEHAVIOR
+                if(1 /*!( (Exceptions>>16)&MPD_Inexact)*/) {
 
                     // THERE WERE EXCEPTIONS AND IS NOT BECAUSE OF INEXACT --> RETURN
                     if(Exceptions) { DSTop=endofstk+1; return 0; }

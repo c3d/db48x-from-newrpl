@@ -24,6 +24,7 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
     CMD(SETPREC), \
+    CMD(GETPREC), \
     CMD(FLOOR), \
     CMD(CEIL), \
     CMD(IP), \
@@ -78,8 +79,14 @@ void LIB_HANDLER()
         if(Exceptions) return;
         if(number<9) number=9;
         if(number>REAL_PRECISION_MAX) number=REAL_PRECISION_MAX;
-        mpd_qsetprec(&Context,number);
+        setPrecision(number);
         rplDropData(1);
+        return;
+    }
+
+    case GETPREC:
+    {
+        rplNewBINTPush(getPrecision(),DECBINT);
         return;
     }
 
@@ -95,7 +102,7 @@ void LIB_HANDLER()
         if(ISBINT(*arg)) return;
         rplReadNumberAsReal(rplPeekData(1),&rnum);
         if(Exceptions) return;
-        mpd_floor(&RReg[1],&rnum,&Context);
+        truncReal(&RReg[1],&rnum,0);
         if(Exceptions) return;
         rplDropData(1);
         rplNewRealFromRRegPush(1);
@@ -114,10 +121,14 @@ void LIB_HANDLER()
         REAL rnum;
         rplReadNumberAsReal(rplPeekData(1),&rnum);
         if(Exceptions) return;
-        mpd_ceil(&RReg[1],&rnum,&Context);
-        if(Exceptions) return;
+        fracReal(&RReg[1],&rnum);
+        ipReal(&RReg[2],&rnum,1);
+        if(!iszeroReal(&RReg[1])) {
+            RReg[2].data[0]++;
+            normalize(&RReg[2]);
+        }
         rplDropData(1);
-        rplNewRealFromRRegPush(1);
+        rplNewRealFromRRegPush(2);
         return;
         }
 
@@ -133,8 +144,7 @@ void LIB_HANDLER()
     REAL rnum;
     rplReadNumberAsReal(arg,&rnum);
     if(Exceptions) return;
-    REALrunc(&RReg[1],&rnum,&Context);
-    if(Exceptions) return;
+    ipReal(&RReg[1],&rnum,1);
     rplDropData(1);
     rplNewRealFromRRegPush(1);
     return;
@@ -156,12 +166,9 @@ void LIB_HANDLER()
     REAL rnum;
     rplReadNumberAsReal(arg,&rnum);
     if(Exceptions) return;
-    REALrunc(&RReg[1],&rnum,&Context);
-    if(Exceptions) return;
-    mpd_sub(&RReg[2],&rnum,&RReg[1],&Context);
-    if(Exceptions) return;
+    fracReal(&RReg[1],&rnum);
     rplDropData(1);
-    rplNewRealFromRRegPush(2);
+    rplNewRealFromRRegPush(1);
     return;
     }
 

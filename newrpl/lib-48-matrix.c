@@ -365,7 +365,7 @@ void LIB_HANDLER()
             if(ISREAL(*b)) {
                 REAL real;
                 rplReadReal(b,&real);
-                if(!mpd_isinteger(&real)) {
+                if(!isIntegerReal(&real)) {
                     Exceptions|=EX_BADARGVALUE;
                     ExceptionPointer=IPtr;
                     return;

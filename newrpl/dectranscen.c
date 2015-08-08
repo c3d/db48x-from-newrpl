@@ -15,8 +15,11 @@
  */
 
 // DECIMAL TRANSCENDENTAL FUNCTIONS
-#include <decimal.h>
-#include <stdint.h>
+
+#include <newrpl.h>
+
+//#include <decimal.h>
+//#include <stdint.h>
 
 // TRANSCENDENTAL FUNCTIONS TABLES
 extern const uint32_t atan_1_8_dict[];
@@ -50,14 +53,6 @@ extern const uint8_t  cordic_K_8_stream[];
 extern const uint32_t cordic_Kh_8_dict[];
 extern const uint16_t cordic_Kh_8_offsets[];
 extern const uint8_t  cordic_Kh_8_stream[];
-
-
-
-
-
-
-#define REAL_PRECISION_MAX MAX_PRECISION
-extern REAL RReg[10];
 
 
 // TRANSCENDENTAL CONSTANTS
@@ -520,7 +515,7 @@ normalize(xnext);
 
 // CALCULATE RReg[0]=cos(angle) and RReg[1]=sin(angle) BOTH WITH 8 DIGITS MORE THAN CURRENT SYSTEM PRECISION (ABOUT 6 OF THEM ARE GOOD DIGITS, ROUNDING IS NEEDED)
 
-void dectrig_sincos(REAL *angle)
+void trig_sincos(REAL *angle)
 {
     int negsin,negcos,swap,startexp;
     REAL pi,pi2,pi4;
@@ -735,7 +730,7 @@ for(exponent=startindex;exponent<startindex+digits;++exponent)
 
 
 
-void dectrig_atan2(REAL *y0,REAL *x0)
+void trig_atan2(REAL *y0,REAL *x0)
 {
 // THE ONLY REQUIREMENT IS THAT y0 <= x0
 int startexp,correction;
@@ -817,7 +812,7 @@ Context.precdigits-=8;
 
 // COMPUTE ASIN(Y) = ATAN2(Y,SQRT(1-Y^2))
 
-void dectrig_asin(REAL *x)
+void trig_asin(REAL *x)
 {
     REAL one;
     decconst_One(&one);
@@ -831,12 +826,12 @@ void dectrig_asin(REAL *x)
 
     //hyp_sqrt(&RReg[7]); // 7 = cos = sqrt(1-sin^2)
 
-    dectrig_atan2(x,&RReg[0]);
+    trig_atan2(x,&RReg[0]);
 }
 
 // COMPUTE ACOS(X) = ATAN2(SQRT(1-X^2),X)
 
-void dectrig_acos(REAL *x)
+void trig_acos(REAL *x)
 {
     REAL one;
     decconst_One(&one);
@@ -850,7 +845,7 @@ void dectrig_acos(REAL *x)
 
     //hyp_sqrt(&RReg[7]); // 7 = cos = sqrt(1-sin^2)
 
-    dectrig_atan2(&RReg[0],x);
+    trig_atan2(&RReg[0],x);
 }
 
 
@@ -1228,7 +1223,7 @@ mul_real(&RReg[3],z,x);
 normalize(&RReg[3]);
 add_real(xnext,x,&RReg[3]);  // x(i+1)=x(i)+S(i)*y(i)
 
-normalize(&xnext);
+normalize(xnext);
 // THE FINAL RESULTS ARE ALWAYS IN RREG[6] AND RREG[7]
 
 // RESULTS HAVE TYPICALLY 9 DIGITS MORE THAN REQUIRED, NONE OF THEM ARE ACCURATE
@@ -1239,7 +1234,7 @@ normalize(&xnext);
 
 // CALCULATES EXP(x0), AND RETURNS IT IN RREG[0]
 
-void dechyp_exp(REAL *x0)
+void hyp_exp(REAL *x0)
 {
 
 int isneg;
@@ -1332,7 +1327,7 @@ Context.precdigits-=8;
 
 // CALCULATES SINH(x0) AND COSH(x0), AND RETURNS THEM IN RREG[1] AND RREG[2]
 
-void dechyp_sinhcosh(REAL *x0)
+void hyp_sinhcosh(REAL *x0)
 {
 
 int isneg;
@@ -1736,7 +1731,7 @@ for(exponent=startexp;exponent<startexp+digits;++exponent)
 
 // CALCULATES ATANH(x0), AND RETURNS IT IN RREG[0]
 
-void dechyp_atanh(REAL *x0)
+void hyp_atanh(REAL *x0)
 {
 // THE ONLY REQUIREMENT IS THAT y0 <= x0
 int negx=x0->flags&F_NEGATIVE;
@@ -1794,7 +1789,7 @@ Context.precdigits-=8;
 // CALCULATES LN(x0), AND RETURNS IT IN RREG[0]
 // ARGUMENT MUST BE POSITIVE, NO ARGUMENT CHECKS HERE
 
-void dechyp_ln(REAL *x0)
+void hyp_ln(REAL *x0)
 {
     int adjustexp;
     int startexp=1;
@@ -1843,7 +1838,7 @@ Context.precdigits-=8;
 // USE A CORDIC LOOP TO COMPUTE THE SQUARE ROOT
 // SAME AS LN, BUT WE USE THE RESULT FROM x
 
-void dechyp_sqrt(REAL *x0)
+void hyp_sqrt(REAL *x0)
 {
     int adjustexp;
     int startexp=1;
@@ -1914,7 +1909,7 @@ Context.precdigits-=8;
 }
 
 
-void dechyp_asinh(REAL *x)
+void hyp_asinh(REAL *x)
 {
     REAL one;
     decconst_One(&one);
@@ -1928,7 +1923,7 @@ void dechyp_asinh(REAL *x)
 
     normalize(&RReg[7]);
 
-    dechyp_sqrt(&RReg[7]); // 7 = cosh = sqrt(sinh^2+1)
+    hyp_sqrt(&RReg[7]); // 7 = cosh = sqrt(sinh^2+1)
 
     normalize(&RReg[0]);
 
@@ -1939,7 +1934,7 @@ void dechyp_asinh(REAL *x)
     normalize(&RReg[7]);
 
 
-    dechyp_atanh(&RReg[7]);
+    hyp_atanh(&RReg[7]);
 
     Context.precdigits-=8;
 
@@ -1955,7 +1950,7 @@ void dechyp_asinh(REAL *x)
     add_real(&RReg[4],&RReg[3],&one); // x^2+1
     normalize(&RReg[4]);
 
-    dechyp_sqrt(&RReg[4]);
+    hyp_sqrt(&RReg[4]);
 
     normalize(&RReg[0]);
     add_real(&RReg[3],x,&RReg[0]);
@@ -1964,7 +1959,7 @@ void dechyp_asinh(REAL *x)
 
     Context.precdigits-=8;
 
-    dechyp_ln(&RReg[3]);
+    hyp_ln(&RReg[3]);
 
     // RESULT IS ON decRREg[0]
 
@@ -1977,7 +1972,7 @@ void dechyp_asinh(REAL *x)
 // OR IT WILL FAIL
 
 
-void dechyp_acosh(REAL *x)
+void hyp_acosh(REAL *x)
 {
     REAL one;
     decconst_One(&one);
@@ -1995,12 +1990,12 @@ void dechyp_acosh(REAL *x)
     div_real(&RReg[7],&RReg[1],&RReg[2],Context.precdigits);
     normalize(&RReg[7]);
 
-    dechyp_sqrt(&RReg[7]);
+    hyp_sqrt(&RReg[7]);
 
     normalize(&RReg[0]);
     Context.precdigits-=8;
 
-    dechyp_atanh(&RReg[0]);
+    hyp_atanh(&RReg[0]);
 
     add_real(&RReg[1],&RReg[0],&RReg[0]);
 */
@@ -2011,7 +2006,7 @@ void dechyp_acosh(REAL *x)
     sub_real(&RReg[4],&RReg[3],&one); // x^2-1
     normalize(&RReg[4]);
 
-    dechyp_sqrt(&RReg[4]);
+    hyp_sqrt(&RReg[4]);
 
     normalize(&RReg[0]);
     add_real(&RReg[3],x,&RReg[0]);
@@ -2020,7 +2015,7 @@ void dechyp_acosh(REAL *x)
 
     Context.precdigits-=8;
 
-    dechyp_ln(&RReg[3]);
+    hyp_ln(&RReg[3]);
 
     // RESULT IS ON decRREg[0]
 

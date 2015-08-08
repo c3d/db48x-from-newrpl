@@ -1,6 +1,8 @@
-#include <decimal.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <newrpl.h>
+
+//#include <decimal.h>
+//#include <stdlib.h>
+//#include <stdio.h>
 
 
 // *************************************************************************
@@ -13,7 +15,7 @@ CONTEXT Context;
 
 void initContext(WORD precision)
 {
-    if(precision>MAX_PRECISION) precision=MAX_PRECISION;
+    if(precision>REAL_PRECISION_MAX) precision=REAL_PRECISION_MAX;
     Context.flags=0;
     Context.precdigits=precision;
     Context.alloc_bmp=EMPTY_STORAGEBMP;
@@ -50,7 +52,7 @@ BINT *allocRegister()
     for(k=0;k<8;++k) {
         if(lowestzerobit[bmp&0xf]>=0) {
             Context.alloc_bmp|=1<<((k<<2)+lowestzerobit[bmp&0xf]);
-            return Context.regdata+((k<<2)+lowestzerobit[bmp&0xf])*REGISTER_STORAGE;
+            return Context.regdata+((k<<2)+lowestzerobit[bmp&0xf])*REAL_REGISTER_STORAGE;
         }
         bmp>>=4;
     }
@@ -67,7 +69,7 @@ BINT *allocRegister()
 
 void freeRegister(BINT *data)
 {
-    int regnum=(data-Context.regdata)/REGISTER_STORAGE;
+    int regnum=(data-Context.regdata)/REAL_REGISTER_STORAGE;
 
     Context.alloc_bmp^=1<<regnum;
 
@@ -1832,7 +1834,7 @@ void acc_real_int(REAL *result,BINT number,BINT exponent)
         return;
         }
 
-        if(wordshift>=REGISTER_STORAGE) {
+        if(wordshift>=REAL_REGISTER_STORAGE) {
             // NEED TO SHIFT THE WHOLE NUMBER DOWN
 
             // NUMBERS DO OVERLAP
@@ -2192,12 +2194,12 @@ void newRealFromText(REAL *result,char *text,int textlen)
         ++digits;
         if(!(digits&7)) {
             expdone=1;
-            if(digits>REGISTER_STORAGE*8) {
+            if(digits>REAL_REGISTER_STORAGE*8) {
                // EXCEEDED THE NUMBER OF DIGITS ALLOWED
                // APPLY ROUNDING AND REMOVE ONE WORD
                if(result->data[0]>=50000000) ++result->data[1];
                int j;
-               for(j=0;j<REGISTER_STORAGE-1;++j) result->data[j]=result->data[j+1];
+               for(j=0;j<REAL_REGISTER_STORAGE-1;++j) result->data[j]=result->data[j+1];
 
                digits-=8;
             }
@@ -2303,7 +2305,7 @@ if(result->exp<MIN_EXPONENT) {
 }
 
 
-// NUMBER MAY HAVE CARRY PROBLEMS ONLY IF > 2*MAX_PRECISION DIGITS WERE IN THE STRING
+// NUMBER MAY HAVE CARRY PROBLEMS ONLY IF > 2*REAL_PRECISION_MAX DIGITS WERE IN THE STRING
 // REDUCE len IF MSW ARE ZERO
 
 normalize(result);
@@ -3048,7 +3050,7 @@ void destroyReal(REAL *a) { freeRegister(a->data); }
 
 void setPrecision(BINT prec) {
     if(prec<0) prec=32;
-    if(prec>MAX_PRECISION) prec=MAX_PRECISION;
+    if(prec>REAL_PRECISION_MAX) prec=REAL_PRECISION_MAX;
     Context.precdigits=prec;
 }
 
@@ -3340,7 +3342,7 @@ void divmodReal(REAL *quotient,REAL *remainder,REAL *a,REAL *b)
 
 BINT ndigits=((a->len-1)<<3)+sig_digits(a->data[a->len-1])+a->exp-((b->len-1)<<3)-sig_digits(b->data[b->len-1])-b->exp;
 
-if(ndigits>MAX_PRECISION) ndigits=MAX_PRECISION;
+if(ndigits>REAL_PRECISION_MAX) ndigits=REAL_PRECISION_MAX;
 
 
 if(ndigits<0) {

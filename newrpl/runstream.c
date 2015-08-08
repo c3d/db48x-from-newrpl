@@ -432,7 +432,6 @@ void rplWarmInit(void)
 
 // FOR DEBUG ONLY: SHOW STATUS OF THE EXECUTION ENVIRONMENT
 #ifndef NDEBUG
-extern BINT MPD_RegistersUsed;
 void rplShowRuntimeState(void)
 {
     printf("Used memory:\n-------------\n");
@@ -442,6 +441,6 @@ void rplShowRuntimeState(void)
     printf("Return Stack=%d words (%d allocated)\n",(WORD)(RSTop-RStk),RStkSize);
     printf("Local vars=%d words (%d allocated)\n",(WORD)(LAMTop-LAMs),LAMSize);
     printf("Directories=%d words (%d allocated)\n",(WORD)(DirsTop-Directories),DirSize);
-    if(MPD_RegistersUsed) printf("************* MPD Memory leak!!!\n");
+    if(Context.alloc_bmp) printf("************* Real numbers Memory leak!!!\n");
 }
 #endif

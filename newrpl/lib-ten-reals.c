@@ -195,7 +195,7 @@ WORDPTR rplNewRealInPlace(REAL *num,WORDPTR newreal)
 WORDPTR rplNewReal(REAL *num)
 {
 
-    ScratchPointer1=num->data;
+    ScratchPointer1=(WORDPTR)num->data;
 
     WORDPTR newreal=rplAllocTempOb(num->len+1);
     if(!newreal) {
@@ -203,7 +203,7 @@ WORDPTR rplNewReal(REAL *num)
         return 0;
     }
 
-    num->data=ScratchPointer1;
+    num->data=(BINT *)ScratchPointer1;
 
     rplNewRealInPlace(num,newreal);
 
@@ -311,7 +311,7 @@ void LIB_HANDLER()
             if(eqReal(&Darg2,&RReg[1]))
                 // THIS IS A SQUARE ROOT
             {
-                dechyp_sqrt(&Darg1);
+                hyp_sqrt(&Darg1);
                 finalize(&RReg[0]);
             }
             else {
