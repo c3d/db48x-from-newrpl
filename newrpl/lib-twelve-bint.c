@@ -330,6 +330,7 @@ void LIB_HANDLER()
         BINT64 op1=0,op2=0;
         REAL rop1,rop2;
         int op1type=0,op2type=0;
+        int op1app=0,op2app=0;
         int status;
 
         // USE GC-SAFE POINTERS, NEVER LOCAL COPIES OF POINTERS INTO TEMPOB
@@ -365,10 +366,10 @@ void LIB_HANDLER()
                 return;
             }
 
-            if(ISREAL(*arg1)) { rplReadReal(arg1,&rop1); op1type=1; }
-            else { op1=rplReadBINT(arg1); op1type=0; }
-            if(ISREAL(*arg2)) { rplReadReal(arg2,&rop2); op2type=1; }
-            else { op2=rplReadBINT(arg2); op2type=0; }
+            if(ISREAL(*arg1)) { rplReadReal(arg1,&rop1); op1type=1; op1app=rop1.flags&F_APPROX;}
+            else { op1=rplReadBINT(arg1); op1type=0; op1app=ISAPPROX(*arg1); }
+            if(ISREAL(*arg2)) { rplReadReal(arg2,&rop2); op2type=1; op1app=rop2.flags&F_APPROX;}
+            else { op2=rplReadBINT(arg2); op2type=0; op2app=ISAPPROX(*arg2); }
             rplDropData(2);
         }
 
@@ -381,6 +382,7 @@ void LIB_HANDLER()
                 if(op1type) {
                     rplBINTToRReg(1,op2);
                     addReal(&RReg[0],&rop1,&RReg[1]);
+                    if(op2app) RReg[0].flags|=F_APPROX;
                 }
 
                 if(op2type) {
@@ -388,6 +390,7 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
 
                     addReal(&RReg[0],&RReg[1],&rop2);
+                    if(op1app) RReg[0].flags|=F_APPROX;
                 }
                 rplNewRealFromRRegPush(0);
                 return;
@@ -411,6 +414,10 @@ void LIB_HANDLER()
                 rplBINTToRReg(2,op2);
 
                 addReal(&RReg[0],&RReg[1],&RReg[2]);
+
+                if(op1app||op2app) RReg[0].flags|=F_APPROX;
+
+
                 rplNewRealFromRRegPush(0);
                 return;
             }
@@ -424,6 +431,8 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,-op2);
 
                     addReal(&RReg[0],&rop1,&RReg[1]);
+                    if(op2app) RReg[0].flags|=F_APPROX;
+
                 }
 
                 if(op2type) {
@@ -431,6 +440,8 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
 
                     subReal(&RReg[0],&RReg[1],&rop2);
+                    if(op1app) RReg[0].flags|=F_APPROX;
+
                 }
                 rplNewRealFromRRegPush(0);
                 return;
@@ -454,6 +465,9 @@ void LIB_HANDLER()
                 rplBINTToRReg(2,op2);
 
                 subReal(&RReg[0],&RReg[1],&RReg[2]);
+
+                if(op1app||op2app) RReg[0].flags|=F_APPROX;
+
                 rplNewRealFromRRegPush(0);
                 return;
             }
@@ -466,6 +480,8 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op2);
 
                     mulReal(&RReg[0],&rop1,&RReg[1]);
+                    if(op2app) RReg[0].flags|=F_APPROX;
+
                 }
 
                 if(op2type) {
@@ -473,6 +489,8 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
 
                     mulReal(&RReg[0],&RReg[1],&rop2);
+                    if(op1app) RReg[0].flags|=F_APPROX;
+
                 }
                 rplNewRealFromRRegPush(0);
                 return;
@@ -500,6 +518,9 @@ void LIB_HANDLER()
             rplBINTToRReg(2,op2);
 
             mulReal(&RReg[0],&RReg[1],&RReg[2]);
+
+            if(op1app||op2app) RReg[0].flags|=F_APPROX;
+
             if(Exceptions) return;
             rplNewRealFromRRegPush(0);
             return;
@@ -511,6 +532,8 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op2);
 
                     divReal(&RReg[0],&rop1,&RReg[1]);
+                    if(op2app) RReg[0].flags|=F_APPROX;
+
                 }
 
                 if(op2type) {
@@ -518,6 +541,8 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
 
                     divReal(&RReg[0],&RReg[1],&rop2);
+                    if(op1app) RReg[0].flags|=F_APPROX;
+
                 }
                 rplNewRealFromRRegPush(0);
                 return;
@@ -526,6 +551,9 @@ void LIB_HANDLER()
             rplBINTToRReg(2,op2);
 
             divReal(&RReg[0],&RReg[1],&RReg[2]);
+
+            if(op1app||op2app) RReg[0].flags|=F_APPROX;
+
             if(Exceptions) return;
             if(!(isIntegerReal(&RReg[0]) && inBINT64Range(&RReg[0]))) {
                 rplNewRealFromRRegPush(0);

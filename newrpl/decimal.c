@@ -322,6 +322,7 @@ void round_real(REAL *r,int digits,int truncate)
 
     int smallshift=trim&7;
 
+
     trim>>=3;
 
 
@@ -330,19 +331,24 @@ void round_real(REAL *r,int digits,int truncate)
     BINT *end=r->data+r->len;
     BINT *start=r->data+trim;
     BINT *dest=r->data;
+    BINT lodigits=0;
 
     *end=0; // ADD A ZERO WORD FOR POSSIBLE FINAL CARRY
 
     if(!truncate) {
         // DO THE ACTUAL ROUNDING HERE
       if(smallshift) {
+          lodigits=r->data[trim];
           r->data[trim]=hi_digits_rounded(r->data[trim],smallshift);
+          lodigits-=r->data[trim];
           if(r->data[trim]>=100000000) {
               // CARRY PROPAGATION
               carry_correct(start,end-start+1);
           }
       }
       else {
+          if(trim>0) lodigits=r->data[trim-1];
+          else lodigits=0;
           if((trim>0) && (r->data[trim-1]>=50000000)) r->data[trim]+=1;
           if(r->data[trim]>=100000000) {
               // CARRY PROPAGATION
@@ -354,6 +360,16 @@ void round_real(REAL *r,int digits,int truncate)
         // JUST TRUNCATE, NO NEED TO ROUND
         if(smallshift) r->data[trim]=hi_digits(r->data[trim],smallshift);
     }
+    // CHECK IF ALL TRIMMED WORDS ARE ZEROS
+    if(trim>0) {
+        BINT *ptr=r->data+trim-1;
+        while(ptr>=r->data) {
+            if(*ptr) break;
+            --ptr;
+        }
+        if(ptr>=r->data) lodigits|=1;
+    }
+
 
     // SKIP TRAILING ZEROS IF ANY IN THE NUMBER
     while((*start==0)&& (start<end)) { ++start; ++trim; }
@@ -384,7 +400,7 @@ void round_real(REAL *r,int digits,int truncate)
     }
 
     r->len=dest-r->data;
-    r->flags|=F_APPROX;
+    if(lodigits) r->flags|=F_APPROX;
 
 }
 
@@ -2916,11 +2932,12 @@ void div_real(REAL *r,REAL *num,REAL *d,int maxdigits)
         else tempres=(remainder.data[remword+1]*invhi)>>28;
         if(remainder.data[remword]<0) tempres-=((-remainder.data[remword])*inverse)>>37;
         else tempres+=(remainder.data[remword]*inverse)>>37;
-        //result->data[resword]=((BINT64)remainder.data[remword]+(BINT64)remainder.data[remword+1]*100000000LL)/div->data[div->len-1];
 
+        if(tempres) {
         // SUBTRACT FROM THE REMAINDER
         for(j=0;j<div->len;++j) add_single64(remainder.data+remword+1-div->len+j,-(BINT64)tempres*div->data[j]);
         carry_correct(remainder.data+remword+1-div->len,div->len);
+        }
         // CORRECT THE MOST SIGNIFICANT WORD OF THE REMAINDER
         tmp64=(BINT64)remainder.data[remword]+(BINT64)remainder.data[remword+1]*100000000LL;
         if(tmp64>2147483648 || tmp64<-214783648) {
@@ -2931,22 +2948,30 @@ void div_real(REAL *r,REAL *num,REAL *d,int maxdigits)
         }
 
         result->data[resword]+=tempres;
-        //  STOP IF THE REMAINDER IS ZERO
-        /*
-        ptr=remainder.data+remword+1-div->len;
-        while((*ptr==0)&&(ptr<=remainder.data+remword+1)) ++ptr;
-        if(ptr==remainder.data+remword+2) {
-            // THE REST OF THE DIVISION IS ZERO
-            int k;
-            for(k=0;k<resword;++k) result->data[k]=0;
-            break;
-        }
-        */
-        } while(tmp64>div->data[div->len-1]);
+
+        } while((tmp64>div->data[div->len-1]));
 
         --resword;
         --remword;
     }
+
+    BINT *ptr=remainder.data+remword+2-div->len;
+    BINT *divptr=div->data;
+    BINT eq=1,zero=1;
+    while((ptr<remainder.data+remword+2)) {
+        if(*ptr!=*divptr) eq=0;
+        if(*ptr!=0) zero=0;
+        ++ptr;
+        ++divptr;
+    }
+    if(eq) {
+        // THIS WAS AN EXACT DIVISION
+        // NEED TO INCREASE BY ONE THE RESULT
+        ++result->data[0];
+    } else {
+    if(!zero) result->flags|=F_APPROX;
+    }
+
 
     freeRegister(remainder.data);
     if(dd.data) freeRegister(dd.data);
