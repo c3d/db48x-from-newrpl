@@ -1604,6 +1604,7 @@ void add_real(REAL *r,REAL *a,REAL *b)
         skipbwords=totalwords;
         totalwords=((Context.precdigits+7)>>3)+2;
         skipbwords-=totalwords;
+        result->flags|=F_APPROX;
     }
 
     // COPY THE VAULE a TO THE result
@@ -1632,11 +1633,18 @@ void add_real(REAL *r,REAL *a,REAL *b)
     else add_long(result->data+totalwords-alen+wordshift+skipbwords,b->data+skipbwords,b->len-skipbwords);
     }
 
+    } else {
+      // THERE'S NO OVERLAP WITHIN THE CURRENT PRECISION
+      // DON'T DO THE ADDITION, BUT MARK THE RESULT AS APPROXIMATED
+
+      result->flags|=F_APPROX;
+
+
     }
     // NO CARRY CORRECTION
 
     result->len=totalwords;
-    result->flags|=F_NOTNORMALIZED;
+    result->flags|=F_NOTNORMALIZED | ((a->flags|b->flags)&F_APPROX);
     result->exp=a->exp-((totalwords-a->len)<<3);
 
     // NO ROUNDING OR TRUNCATION
@@ -3512,7 +3520,7 @@ BINT ltReal(REAL *a,REAL *b)
     int digits_a,digits_b;
 
     digits_a=sig_digits(a->data[a->len-1])+((a->len-1)<<3)+a->exp;
-    digits_b=sig_digits(b->data[b->len-1])+((b->len-1)<<3)+a->exp;
+    digits_b=sig_digits(b->data[b->len-1])+((b->len-1)<<3)+b->exp;
 
     if(digits_a>digits_b) {
         // ABS(A)>ABS(B)
@@ -3606,126 +3614,12 @@ BINT gtReal(REAL *a,REAL *b)
 
 BINT lteReal(REAL *a,REAL *b)
 {
-    // TEST 1, SIGN
-    if((a->flags^b->flags)&F_NEGATIVE) {
-        // BOTH NUMBERS HAVE DIFFERENT SIGNS
-        if(a->flags&F_NEGATIVE) return 1;
-        else return 0;
-    }
-
-    // NUMBERS HAVE THE SAME SIGNS
-
-    // CHECK FOR SPECIALS
-    if((a->flags|b->flags)&F_NOTANUMBER) {
-        // IF ANY OF THE NUMBERS IS NOT A NUMBER, THE COMPARISON MAKES NO SENSE
-        // COMPARISONS ARE ALWAYS FALSE
-        return 0;
-    }
-    if(a->flags&F_INFINITY) {
-        if(a->flags&F_NEGATIVE) {
-            // A <= B
-            return 1;
-        }
-        else {
-            // A >= B
-            if(b->flags&F_INFINITY) return 1;
-            return 0;
-        }
-    }
-
-    // TEST 2, POSITION OF THE MOST SIGNIFICANT DIGIT
-
-    int digits_a,digits_b;
-
-    digits_a=sig_digits(a->data[a->len-1])+((a->len-1)<<3)+a->exp;
-    digits_b=sig_digits(b->data[b->len-1])+((b->len-1)<<3)+a->exp;
-
-    if(digits_a>digits_b) {
-        // ABS(A)>ABS(B)
-        if(a->flags&F_NEGATIVE) return 1; // A<B
-        return 0;
-    }
-    if(digits_a<digits_b) {
-        // ABS(A)<ABS(B)
-        if(a->flags&F_NEGATIVE) return 0; // A>B
-        return 1;
-    }
-
-    // HERE NUMBERS HAVE THE SAME SIGN AND SAME ORDER OF MAGNITUDE
-    // NEED TO DO A SUBTRACTION
-    REAL c;
-    c.data=allocRegister();
-
-    sub_real(&c,a,b);
-
-    normalize(&c);
-
-    if(c.len==1 && c.data[0]==0) { freeRegister(c.data); return 1; }
-    freeRegister(c.data);
-    if(c.flags&F_NEGATIVE) return 1;
-    return 0;
+return !gtReal(a,b);
 }
 
 BINT gteReal(REAL *a,REAL *b)
 {
-    // TEST 1, SIGN
-    if((a->flags^b->flags)&F_NEGATIVE) {
-        // BOTH NUMBERS HAVE DIFFERENT SIGNS
-        if(a->flags&F_NEGATIVE) return 0;
-        else return 1;
-    }
-
-    // NUMBERS HAVE THE SAME SIGNS
-
-    // CHECK FOR SPECIALS
-    if((a->flags|b->flags)&F_NOTANUMBER) {
-        // IF ANY OF THE NUMBERS IS NOT A NUMBER, THE COMPARISON MAKES NO SENSE
-        // COMPARISONS ARE ALWAYS FALSE
-        return 0;
-    }
-    if(a->flags&F_INFINITY) {
-        if(!(a->flags&F_NEGATIVE)) {
-            // A >= B
-            return 1;
-        }
-        else {
-            // A <= B
-            if(b->flags&F_INFINITY) return 1;
-            return 0;
-        }
-    }
-
-    // TEST 2, POSITION OF THE MOST SIGNIFICANT DIGIT
-
-    int digits_a,digits_b;
-
-    digits_a=sig_digits(a->data[a->len-1])+((a->len-1)<<3)+a->exp;
-    digits_b=sig_digits(b->data[b->len-1])+((b->len-1)<<3)+a->exp;
-
-    if(digits_a>digits_b) {
-        // ABS(A)>ABS(B)
-        if(a->flags&F_NEGATIVE) return 0; // A<B
-        return 1;
-    }
-    if(digits_a<digits_b) {
-        // ABS(A)<ABS(B)
-        if(a->flags&F_NEGATIVE) return 1; // A>B
-        return 0;
-    }
-
-    // HERE NUMBERS HAVE THE SAME SIGN AND SAME ORDER OF MAGNITUDE
-    // NEED TO DO A SUBTRACTION
-    REAL c;
-    c.data=allocRegister();
-
-    sub_real(&c,a,b);
-
-    normalize(&c);
-
-    if(c.len==1 && c.data[0]==0) { freeRegister(c.data); return 1; }    // A==B
-    freeRegister(c.data);
-    if(c.flags&F_NEGATIVE) return 0;
-    return 1;
+    return !ltReal(a,b);
 }
 
 BINT eqReal(REAL *a,REAL *b)
@@ -3753,7 +3647,7 @@ BINT eqReal(REAL *a,REAL *b)
     int digits_a,digits_b;
 
     digits_a=sig_digits(a->data[a->len-1])+((a->len-1)<<3)+a->exp;
-    digits_b=sig_digits(b->data[b->len-1])+((b->len-1)<<3)+a->exp;
+    digits_b=sig_digits(b->data[b->len-1])+((b->len-1)<<3)+b->exp;
 
     if(digits_a!=digits_b) return 0;
 
@@ -3810,7 +3704,7 @@ BINT cmpReal(REAL *a,REAL *b)
     int digits_a,digits_b;
 
     digits_a=sig_digits(a->data[a->len-1])+((a->len-1)<<3)+a->exp;
-    digits_b=sig_digits(b->data[b->len-1])+((b->len-1)<<3)+a->exp;
+    digits_b=sig_digits(b->data[b->len-1])+((b->len-1)<<3)+b->exp;
 
     if(digits_a>digits_b) {
         // ABS(A)>ABS(B)

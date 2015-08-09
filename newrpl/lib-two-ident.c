@@ -294,6 +294,7 @@ void LIB_HANDLER()
 
 
      return;
+    case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
         // DECOMPILE RECEIVES:

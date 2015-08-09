@@ -422,7 +422,7 @@ void LIB_HANDLER()
         //  THIS IS UNREACHABLE CODE HERE
 
     }
-
+    case OPCODE_DECOMPEDIT:
     case OPCODE_DECOMPILE:
         // DECOMPILE RECEIVES:
         // DecompileObject = Ptr to prolog of object to decompile

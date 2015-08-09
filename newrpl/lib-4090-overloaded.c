@@ -174,6 +174,7 @@ void LIB_HANDLER()
 
         libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,(WORDPTR)LIB_OPCODES,LIB_NUMCMDS);
      return;
+    case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
 

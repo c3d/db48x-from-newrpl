@@ -449,14 +449,8 @@ void LIB_HANDLER()
         BINT isapprox=0;
         BINT tlen=TokenLen;
 
-        if(strptr[tlen-1]=='.') {
-         // NUMBERS ENDING IN A DOT ARE APPROXIMATED
-            isapprox|=APPROX_BIT;
-            --tlen;
-        }
-
-
         newRealFromText(&RReg[0],(char *)TokenStart,tlen);
+
 
         if(RReg[0].flags&F_ERROR) {
             // THERE WAS SOME ERROR DURING THE CONVERSION, PROBABLY A SYNTAX ERROR
@@ -464,6 +458,7 @@ void LIB_HANDLER()
             return;
         }
 
+            if(RReg[0].flags&F_APPROX) isapprox=APPROX_BIT;
             // WRITE THE PROLOG
             rplCompileAppend(MKPROLOG(LIBRARY_NUMBER|isapprox,1+RReg[0].len));
             // PACK THE INFORMATION
@@ -480,6 +475,9 @@ void LIB_HANDLER()
             RetNum=OK_CONTINUE;
      return;
     }
+
+    case OPCODE_DECOMPEDIT:
+
     case OPCODE_DECOMPILE:
         // DECOMPILE RECEIVES:
         // DecompileObject = Ptr to WORD of object to decompile
@@ -503,25 +501,32 @@ void LIB_HANDLER()
         BigNumLimit.exp=12;
         SmallNumLimit.exp=-4;
 
-        BINT *Format;
+        BINT Format;
 
-        if(ltReal(&realnum,&SmallNumLimit)) Format=&FmtSmall;
-        else if(gtReal(&realnum,&BigNumLimit)) Format=&FmtLarge;
-        else Format=&FmtNormal;
+        if(ltReal(&realnum,&SmallNumLimit)) Format=FmtSmall;
+        else if(gtReal(&realnum,&BigNumLimit)) Format=FmtLarge;
+        else Format=FmtNormal;
+
+        if(CurOpcode==OPCODE_DECOMPEDIT) Format|=FMT_CODE;
 
         // ESTIMATE THE MAXIMUM STRING LENGTH AND RESERVE THE MEMORY
 
-        BYTEPTR string=(BYTEPTR)DecompStringEnd;
+        BYTEPTR string;
 
-        BINT len=formatlengthReal(&realnum,*Format);
+        BINT len=formatlengthReal(&realnum,Format);
 
-        rplDecompAppendString2(string,len);
+        // RESERVE THE MEMORY FIRST
+        rplDecompAppendString2(DecompStringEnd,len);
+
+        // NOW USE IT
+        string=(BYTEPTR)DecompStringEnd;
+        string-=len;
 
         if(Exceptions) {
             RetNum=ERR_INVALID;
             return;
         }
-        DecompStringEnd=(WORDPTR) formatReal(&realnum,string,*Format,Locale);
+        DecompStringEnd=(WORDPTR) formatReal(&realnum,string,Format,Locale);
 
         RetNum=OK_CONTINUE;
 

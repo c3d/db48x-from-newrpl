@@ -958,6 +958,7 @@ void LIB_HANDLER()
             rplCompileAppend((WORD)( (result>>32)&0xffffffff));
             RetNum=OK_CONTINUE;
      return;
+    case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
         // DECOMPILE RECEIVES:

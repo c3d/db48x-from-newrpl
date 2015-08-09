@@ -1165,6 +1165,7 @@ void LIB_HANDLER()
         libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
 
         return;
+    case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
         // DECOMPILE RECEIVES:
@@ -1173,6 +1174,7 @@ void LIB_HANDLER()
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
+
 
 
         if(ISPROLOG(*DecompileObject)) {
@@ -1193,7 +1195,7 @@ void LIB_HANDLER()
                 {
                     BINT offset=*(DecompileObject+2+i*cols+j);
 
-                    rplDecompile(DecompileObject+offset,1);    // RUN EMBEDDED
+                    rplDecompile(DecompileObject+offset,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? DECOMP_EDIT:0));    // RUN EMBEDDED
                  if(Exceptions) { RetNum=ERR_INVALID; return; }
                  rplDecompAppendChar(' ');
                 }

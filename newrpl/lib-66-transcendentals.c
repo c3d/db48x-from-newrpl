@@ -697,6 +697,7 @@ void LIB_HANDLER()
         libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
 
      return;
+    case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
         // DECOMPILE RECEIVES:

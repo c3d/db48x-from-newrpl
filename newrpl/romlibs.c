@@ -39,6 +39,7 @@ extern void lib72_handler();
 extern void lib4080_handler();
 extern void lib4090_handler();
 
+
 void dummy_libhandler()
 {
 if(ISPROLOG(CurOpcode)) return;
@@ -51,15 +52,18 @@ switch(OPCODE(CurOpcode))
         // --------------------
         // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
 
+        case OPCODE_LIBINSTALL:
+        RetNum=ERR_INVALID;
+        return;
 
-        case OPCODE_COMPILE:
-               RetNum=ERR_NOTMINE;
-               return;
-
-        case OPCODE_DECOMPILE:
-                RetNum=ERR_INVALID;
-                return;
         }
+
+        RetNum=ERR_INVALID;
+        Exceptions|=EX_BADOPCODE;
+        ExceptionPointer=IPtr;
+        return;
+
+
 }
 
 

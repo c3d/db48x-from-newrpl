@@ -100,6 +100,11 @@ extern "C" {
 
 #include "sysvars.h"
 
+
+
+
+
+
 // INTERNAL TRANSCENDENTAL FUNCTIONS
 void hyp_exp(REAL *);
 void hyp_ln(REAL *);
@@ -147,15 +152,18 @@ extern void shrinkTempBlocks(WORD newtotalsize);
 
 // COMPILER FUNCTIONS IN COMPILER.C
 
+
 extern WORDPTR rplCompile(BYTEPTR string, BINT len, BINT addwrapper);
 extern void rplCompileAppend(WORD word);
 extern WORDPTR rplCompileAppendWords(BINT nwords);
 extern void rplCompileRemoveWords(BINT nwords);
 
+#define DECOMP_EMBEDDED     1
+#define DECOMP_EDIT         2
 
 
 // DECOMPILER FUNCTIONS
-extern WORDPTR rplDecompile(WORDPTR object, BINT embedded);
+extern WORDPTR rplDecompile(WORDPTR object, BINT flags);
 extern void rplDecompAppendChar(BYTE c);
 extern void rplDecompAppendString(BYTEPTR str);
 extern void rplDecompAppendString2(BYTEPTR str,BINT len);

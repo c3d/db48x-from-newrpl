@@ -757,7 +757,7 @@ void downKeyHandler(BINT keymsg)
 
             if(rplDepthData()>=1) {
                 WORDPTR ptr=rplPeekData(1);
-                WORDPTR text=rplDecompile(ptr,0);
+                WORDPTR text=rplDecompile(ptr,DECOMP_EDIT);
                 if(Exceptions) {
                     halShowErrorMsg();
                     Exceptions=0;

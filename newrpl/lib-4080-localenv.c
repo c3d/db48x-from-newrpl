@@ -125,6 +125,7 @@ void LIB_HANDLER()
 
        RetNum=ERR_NOTMINE;
         return;
+    case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
         // DECOMPILE RECEIVES:

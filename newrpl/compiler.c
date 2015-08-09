@@ -848,12 +848,12 @@ void rplDecompAppendString2(BYTEPTR str,BINT len)
 #define SAVED_POINTERS  4
 
 
-WORDPTR rplDecompile(WORDPTR object,BINT embedded)
+WORDPTR rplDecompile(WORDPTR object,BINT flags)
 {
     LIBHANDLER han;
     BINT infixmode=0;
     WORDPTR *SavedRSTop;
-    if(embedded) {
+    if(flags&DECOMP_EMBEDDED) {
         SavedRSTop=RSTop;
 
         // SAVE ALL DECOMPILER POINTERS
@@ -879,7 +879,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT embedded)
 
     // START DECOMPILE LOOP
     // CREATE A STRING AT THE END OF TEMPOB
-    if(!embedded) CompileEnd=TempObEnd;
+    if(!(flags&DECOMP_EMBEDDED)) CompileEnd=TempObEnd;
     // SKIPOB TO DETERMINE END OF COMPILATION
     EndOfObject=rplSkipOb(object);
 
@@ -888,7 +888,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT embedded)
     *ValidateTop++=DecompileObject; // STORE START OF OBJECT FOR QUICK SKIPPING
     // HERE ALL POINTERS ARE STORED IN GC-UPDATEABLE AREA
 
-    if(!embedded) {
+    if(!(flags&DECOMP_EMBEDDED)) {
     // CREATE EMPTY STRING AT END OF TEMPOB
     rplCompileAppend(MKPROLOG(DOSTRING,0));
     DecompStringEnd=CompileEnd;
@@ -901,7 +901,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT embedded)
     // CALL LIBRARY HANDLER TO DECOMPILE
     han=rplGetLibHandler(LIBNUM(*DecompileObject));
 
-    CurOpcode=MKOPCODE(0,OPCODE_DECOMPILE);
+    CurOpcode=MKOPCODE(0,(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
     if(ValidateTop>RSTop) CurrentConstruct=**(ValidateTop-1);
     else CurrentConstruct=0;
 
@@ -918,7 +918,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT embedded)
         if(RStkSize<=(ValidateTop-RStk)) growRStk(ValidateTop-RStk+RSTKSLACK);
         if(Exceptions) {
             LAMTop=LAMTopSaved;
-            if(embedded) {
+            if(flags&DECOMP_EMBEDDED) {
                 // RESTORE ALL POINTERS BEFORE RETURNING
                 SavedDecompObject=*--RSTop;
                 LAMTopSaved=(WORDPTR *)*--RSTop;
@@ -947,7 +947,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT embedded)
         if(!infixmode) InfixOpTop=ValidateTop;
         if(RStkSize<=(InfixOpTop+1-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
         if(Exceptions) { LAMTop=LAMTopSaved;
-            if(embedded) {
+            if(flags&DECOMP_EMBEDDED) {
                 // RESTORE ALL POINTERS BEFORE RETURNING
                 SavedDecompObject=*--RSTop;
                 LAMTopSaved=(WORDPTR *)*--RSTop;
@@ -1005,7 +1005,7 @@ end_of_expression:
                 if(RStkSize<=(InfixOpTop+1-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
                 if(Exceptions) {
                     LAMTop=LAMTopSaved;
-                    if(embedded) {
+                    if(flags&DECOMP_EMBEDDED) {
                         // RESTORE ALL POINTERS BEFORE RETURNING
                         SavedDecompObject=*--RSTop;
                         LAMTopSaved=(WORDPTR *)*--RSTop;
@@ -1075,14 +1075,14 @@ end_of_expression:
                     break;
                 case TITYPE_PREFIXOP:
                     // DECOMPILE THE OPERATOR NOW!
-                    CurOpcode=MKOPCODE(LIBNUM(*DecompileObject),OPCODE_DECOMPILE);
+                    CurOpcode=MKOPCODE(LIBNUM(*DecompileObject),(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
                     (*handler)();
                     // IGNORE THE RESULT OF DECOMPILATION
                     if(RetNum!=OK_CONTINUE) {
                         Exceptions|=EX_BADOPCODE;
                         ExceptionPointer=IPtr;
                         LAMTop=LAMTopSaved;     // RESTORE ENVIRONMENTS
-                        if(embedded) {
+                        if(flags&DECOMP_EMBEDDED) {
                             // RESTORE ALL POINTERS BEFORE RETURNING
                             SavedDecompObject=*--RSTop;
                             LAMTopSaved=(WORDPTR *)*--RSTop;
@@ -1100,7 +1100,7 @@ end_of_expression:
                 case TITYPE_FUNCTION:
                 default:
                     // DECOMPILE THE OPERATOR NOW, THEN ADD PARENTHESIS FOR THE LIST
-                    CurOpcode=MKOPCODE(LIBNUM(*DecompileObject),OPCODE_DECOMPILE);
+                    CurOpcode=MKOPCODE(LIBNUM(*DecompileObject),(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
                     RetNum=-1;
                     if(handler) (*handler)();
                     // IGNORE THE RESULT OF DECOMPILATION
@@ -1163,7 +1163,7 @@ end_of_expression:
             if(no_output==0) {
             BINT libnum=LIBNUM(Operator);
             DecompileObject=&Operator;
-            CurOpcode=MKOPCODE(libnum,OPCODE_DECOMPILE);
+            CurOpcode=MKOPCODE(libnum,(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
             handler=rplGetLibHandler(libnum);
             RetNum=-1;
 
@@ -1233,7 +1233,7 @@ end_of_expression:
 
             BINT libnum=LIBNUM(Operator);
             DecompileObject=&Operator;
-            CurOpcode=MKOPCODE(libnum,OPCODE_DECOMPILE);
+            CurOpcode=MKOPCODE(libnum,(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
             handler=rplGetLibHandler(libnum);
             RetNum=-1;
 
@@ -1349,7 +1349,7 @@ end_of_expression:
             BINT libnum=LIBNUM(*(InfixOpTop-2));
             SavedDecompObject=DecompileObject;
             DecompileObject=InfixOpTop-2;
-            CurOpcode=MKOPCODE(libnum,OPCODE_DECOMPILE);
+            CurOpcode=MKOPCODE(libnum,(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
             handler=rplGetLibHandler(libnum);
             RetNum=-1;
 
@@ -1460,7 +1460,7 @@ end_of_expression:
 
     // DONE, HERE WE HAVE THE STRING FINISHED
 
-    if(!embedded) {
+    if(!(flags&DECOMP_EMBEDDED)) {
     // STORE THE SIZE OF THE STRING IN WORDS IN THE PROLOG
     *(CompileEnd-1)=MKPROLOG(DOSTRING+((-(WORD)DecompStringEnd)&3),(((WORD)DecompStringEnd-(WORD)CompileEnd)+3)>>2);
     CompileEnd=rplSkipOb(CompileEnd-1);
@@ -1474,7 +1474,7 @@ end_of_expression:
             // ENLARGE TEMPOB AS NEEDED
             growTempOb((BINT)(CompileEnd-TempOb)+TEMPOBSLACK);
             if(Exceptions) {
-                if(embedded) {
+                if(flags&DECOMP_EMBEDDED) {
                     // RESTORE ALL POINTERS BEFORE RETURNING
                     SavedDecompObject=*--RSTop;
                     LAMTopSaved=(WORDPTR *)*--RSTop;
@@ -1486,7 +1486,7 @@ end_of_expression:
             }
         }
 
-   if(embedded) {
+   if(flags&DECOMP_EMBEDDED) {
            // RESTORE ALL POINTERS BEFORE RETURNING
            SavedDecompObject=*--RSTop;
            LAMTopSaved=(WORDPTR *)*--RSTop;
