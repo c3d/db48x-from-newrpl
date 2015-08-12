@@ -439,7 +439,7 @@ for(exponent=startindex;exponent<startindex+digits;++exponent)
         tmpexp=y->exp;
         tmpflags=y->flags;
         y->exp-=exponent;
-    if(!z->flags&F_NEGATIVE) y->flags^=F_NEGATIVE;
+    if(!(z->flags&F_NEGATIVE)) y->flags^=F_NEGATIVE;
     // x(i+1)=x(i)-S(i)*y(i)
     add_real_mul(xnext,x,y,sequence[startidx]);
     y->exp=tmpexp;
@@ -521,14 +521,13 @@ void trig_sincos(REAL *angle)
     REAL pi,pi2,pi4;
     BINT savedprec;
 
-    decconst_PI(&pi);
-    decconst_PI_2(&pi2);
-    decconst_PI_4(&pi4);
-
     negcos=negsin=swap=0;
 
     savedprec=Context.precdigits;
     Context.precdigits=(2*savedprec+8 > REAL_PRECISION_MAX)? REAL_PRECISION_MAX:(2*savedprec+8);
+    decconst_PI(&pi);
+    decconst_PI_2(&pi2);
+    decconst_PI_4(&pi4);
 
     copyReal(&RReg[0],angle);
     // TODO: GET ANGLE MODULO PI
@@ -537,7 +536,7 @@ void trig_sincos(REAL *angle)
     // HERE RReg[0] HAS THE REMAINDER THAT WE NEED TO WORK WITH
 
     // IF THE RESULT OF THE DIVISION IS ODD, THEN WE ARE IN THE OTHER HALF OF THE CIRCLE
-    if(RReg[1].data[0]&1) { negcos=negsin=1; }
+    if(isoddReal(&RReg[1])) { negcos=negsin=1; }
 
     if(RReg[0].flags&F_NEGATIVE) { negsin^=1; RReg[0].flags&=~F_NEGATIVE; }
 
@@ -627,6 +626,7 @@ void trig_sincos(REAL *angle)
     else {
         mul_real(&RReg[7],&RReg[2],&RReg[4]);
         mul_real(&RReg[5],&RReg[1],&RReg[4]);
+        normalize(&RReg[5]);
         add_real(&RReg[6],&RReg[5],&RReg[4]);
     }
 
@@ -820,12 +820,14 @@ void trig_asin(REAL *x)
     Context.precdigits+=8;
 
     mulReal(&RReg[1],x,x);   // 1 = x^2
+    normalize(&RReg[1]);
     subReal(&RReg[7],&one,&RReg[1]);   // 2 = 1-x^2
 
     Context.precdigits-=8;
 
-    //hyp_sqrt(&RReg[7]); // 7 = cos = sqrt(1-sin^2)
+    hyp_sqrt(&RReg[7]); // 7 = cos = sqrt(1-sin^2)
 
+    normalize(&RReg[0]);
     trig_atan2(x,&RReg[0]);
 }
 

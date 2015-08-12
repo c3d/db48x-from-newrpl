@@ -1631,6 +1631,10 @@ void add_real(REAL *r,REAL *a,REAL *b)
         skipbwords=totalwords;
         totalwords=((Context.precdigits+7)>>3)+2;
         skipbwords-=totalwords;
+        if(wordshift>0) {
+            skipbwords-=wordshift;
+            if(skipbwords<0) skipbwords=0;
+        }
         result->flags|=F_APPROX;
     }
 
@@ -4148,7 +4152,7 @@ BINT isoddReal(REAL *r)
         if(position<min_pos) return 0;
         if(position>max_pos) return 0;
 
-        int trim=dig+((r->len-1)<<3)-position;
+        int trim=position-min_pos;
 
         int smallshift=trim&7;
 

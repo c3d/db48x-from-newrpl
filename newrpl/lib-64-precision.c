@@ -77,8 +77,8 @@ void LIB_HANDLER()
         }
         BINT64 number=rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions) return;
-        if(number<9) number=9;
-        if(number>REAL_PRECISION_MAX) number=REAL_PRECISION_MAX;
+        if(number<4) number=4;
+        if(number>MAX_USERPRECISION) number=MAX_USERPRECISION;
         setPrecision(number);
         rplDropData(1);
         return;
