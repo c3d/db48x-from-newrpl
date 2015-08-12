@@ -259,7 +259,10 @@ void LIB_HANDLER()
         y.flags^=signy;
 
         trig_acos(&y);
-        finalize(&RReg[0]);
+        normalize(&RReg[0]);
+        // FIRST ELIMINATE BAD DIGITS SO ACOS(1)=0 INSTEAD OF SMALL NUMBER
+        truncReal(&RReg[0],&RReg[0],Context.precdigits+6);
+        round_real(&RReg[0],Context.precdigits,0);
 
         rplDropData(1);
         rplNewRealFromRRegPush(0);       // RESULTING ANGLE

@@ -17,28 +17,28 @@
 
 
 // GET A POINTER TO AN OBJECT WITHIN THE MATRIX/VECTOR
-// RETURN NULL ON OUT-OF-RANGE
+// RETURN 0 ON OUT-OF-RANGE
 // VECTORS ARE AUTO-ROTATED
 // ROWS AND COLUMNS ARE 1-BASED
 
 WORDPTR rplMatrixGet(WORDPTR matrix,BINT row,BINT col)
 {
-    if(!ISMATRIX(matrix)) return NULL;
+    if(!ISMATRIX(matrix)) return 0;
     BINT rows=MATROWS(*(matrix+1)),cols=MATCOLS(*(matrix+1));
 
     if(!rows) {
         // THIS IS A VECTOR
         if(row==1) {
             if(col>0 && col<=cols) return matrix+matrix[col+1];
-            else return NULL;
+            else return 0;
         } else if(col==1) {
             if(row>0 && row<=cols) return matrix+matrix[row+1];
-            else return NULL;
-            } else return NULL;
+            else return 0;
+            } else return 0;
     }
 
-    if(row<1 || row>rows) return NULL;
-    if(col<1 || col>cols) return NULL;
+    if(row<1 || row>rows) return 0;
+    if(col<1 || col>cols) return 0;
 
     return matrix+matrix[(row-1)*cols+col+1];
 
@@ -68,7 +68,7 @@ WORDPTR *rplMatrixNewEx(BINT rows,BINT cols)
 {
     if(!rows) ++rows;
 
-    if( (rows<1)||(cols<1)) return NULL;
+    if( (rows<1)||(cols<1)) return 0;
 
     WORDPTR *Firstelem=DSTop;
     BINT k,nelem;
@@ -79,7 +79,7 @@ WORDPTR *rplMatrixNewEx(BINT rows,BINT cols)
         rplPushData(zero_bint);
         if(Exceptions) {
             DSTop=Firstelem;
-            return NULL;
+            return 0;
         }
 
     }
@@ -107,7 +107,7 @@ WORDPTR *rplMatrixExplode()
 
     if(Exceptions) {
         DSTop=matrix+1;
-        return NULL;
+        return 0;
     }
 
     return matrix+1;
@@ -115,7 +115,7 @@ WORDPTR *rplMatrixExplode()
 
 // COMPOSES A NEW MATRIX OBJECT FROM OBJECTS IN THE STACK
 // OBJECTS MUST BE IN ROW-ORDER
-// RETURNS NULL IF ERROR, AND SETS Exceptions AND ExceptionPtr.
+// RETURNS 0 IF ERROR, AND SETS Exceptions AND ExceptionPtr.
 // CREATES A VECTOR IF ROWS == 0, OTHERWISE A MATRIX
 
 WORDPTR rplMatrixCompose(BINT rows,BINT cols)
@@ -126,13 +126,13 @@ BINT totalelements=(rows)? rows*cols:cols;
 if(rplDepthData()<totalelements) {
     Exceptions|=EX_BADARGCOUNT;
     ExceptionPointer=IPtr;
-    return NULL;
+    return 0;
 }
 
 if((rows<0) || (rows>65535) || (cols<1) || (cols>65535)) {
     Exceptions|=EX_INVALID_DIM;
     ExceptionPointer=IPtr;
-    return NULL;
+    return 0;
 }
 
 //   CHECK VALIDITY OF ALL ELEMENTS
@@ -146,7 +146,7 @@ if(! (ISNUMBERCPLX(*obj)
       || ISIDENT(*obj))) {
     Exceptions|=EX_BADARGTYPE;
     ExceptionPointer=IPtr;
-    return NULL;
+    return 0;
     }
 totalsize+=rplObjSize(obj);
 }
@@ -154,7 +154,7 @@ totalsize+=rplObjSize(obj);
 WORDPTR matrix=rplAllocTempOb(totalsize+1+totalelements);
 WORDPTR newobj=matrix+2+totalelements;  // POINT TO THE NEXT OBJECT TO STORE
 
-if(!matrix) return NULL;
+if(!matrix) return 0;
 
 // FINALLY, ASSEMBLE THE OBJECT
 for(k=0;k<totalelements;++k) {

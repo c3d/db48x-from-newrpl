@@ -61,15 +61,19 @@ BINT *allocRegister()
 
     Context.flags|=CTX_OUTOFMEMORY;
 
-    printf("Total panic: Out of memory\n");
-    exit(-1);
+    // TODO: PROPER MANAGEMENT ALTHOUGH THIS SHOULD NEVER HAPPEN!
+    //printf("Total panic: Out of memory\n");
+    //exit(-1);
 
-    return NULL;
+    return 0;
 }
 
 void freeRegister(BINT *data)
 {
     int regnum=(data-Context.regdata)/REAL_REGISTER_STORAGE;
+
+    if(regnum<0 || regnum>31)
+        return;
 
     Context.alloc_bmp^=1<<regnum;
 
@@ -444,7 +448,7 @@ void finalize(REAL *number)
 
 
         if(((tmp.w32[1]<<6)|(tmp.w32[0]>>26))) {
-        hi=((UWORD)( ((tmp.w32[1]<<6)|(tmp.w32[0]>>26))*2882303762ULL)).w32[1];
+        hi=(((tmp.w32[1]<<6)|(tmp.w32[0]>>26))*2882303762ULL)>>32;
         lo=tmp.w+hi*4194967296U;
         } else {
         hi=0;
@@ -476,7 +480,7 @@ void finalize(REAL *number)
 
 
         if(((tmp.w32[1]<<6)|(tmp.w32[0]>>26))) {
-        hi=((UWORD)( ((tmp.w32[1]<<6)|(tmp.w32[0]>>26))*2882303762ULL)).w32[1];
+        hi=(((tmp.w32[1]<<6)|(tmp.w32[0]>>26))*2882303762ULL)>>32;
         lo=tmp.w+hi*4194967296U;
         } else {
         hi=0;
@@ -1633,7 +1637,7 @@ void add_real(REAL *r,REAL *a,REAL *b)
     // COPY THE VAULE a TO THE result
     if(alen>totalwords) {
         // NEED TO SKIP WORDS IN a AS WELL
-        skipbwords-=alen-totalwords;
+        //skipbwords+=alen-totalwords;
         wordshift-=alen-totalwords;
         copy_words(result->data,a->data+alen-totalwords,totalwords);
         alen=totalwords;
@@ -2559,7 +2563,7 @@ int round_in_string(char *start,char *end,int format,unsigned int chars,char rou
 }
 
 
-// RETURN A POINTER TO THE END OF THE STRING (NOT NULL TERMINATED)
+// RETURN A POINTER TO THE END OF THE STRING (NOT 0 TERMINATED)
 
 char *formatReal(REAL *number, char *buffer, BINT format, UBINT chars)
 {
@@ -2899,7 +2903,7 @@ void div_real(REAL *r,REAL *num,REAL *d,int maxdigits)
         copy_words(dd.data,d->data,dd.len);
         // LEFT-JUSTIFY THE DIVISOR
         left_justify(div);
-    } else dd.data=NULL;
+    } else dd.data=0;
 
 
     // COMPUTE THE EXPONENT BASED ON THE FIRST WORD

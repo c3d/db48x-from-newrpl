@@ -123,38 +123,11 @@ void rplNewRealFromRRegPush(int num)
     if(newreal) rplPushData(newreal);
 }
 
-/*
-void rplNewApproxRealFromRRegPush(int num)
-{
-    RReg[num].flags|=F_APPROX;
-    WORDPTR newreal=rplNewRealFromRReg(num);
-    if(newreal) {
-        *newreal|=MKOPCODE(APPROX_BIT,0);
-        rplPushData(newreal);
-    }
-}
-*/
-
 void rplNewRealPush(REAL *num)
 {
     WORDPTR newreal=rplNewReal(num);
     if(newreal) rplPushData(newreal);
 }
-
-/*
-void rplNewApproxRealPush(REAL *num)
-{
-
-    num->flags|=F_APPROX;
-    WORDPTR newreal=rplNewReal(num);
-    if(newreal) {
-        *newreal|=MKOPCODE(APPROX_BIT,0);
-        rplPushData(newreal);
-    }
-}
-*/
-
-
 
 // STORE A REAL ON THE GIVEN POINTER
 // DOES NOT ALLOCATE MEMORY, USED FOR COMPOSITES

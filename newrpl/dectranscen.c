@@ -843,8 +843,9 @@ void trig_acos(REAL *x)
 
     Context.precdigits-=8;
 
-    //hyp_sqrt(&RReg[7]); // 7 = cos = sqrt(1-sin^2)
+    hyp_sqrt(&RReg[7]); // 7 = cos = sqrt(1-sin^2)
 
+    normalize(&RReg[0]);
     trig_atan2(&RReg[0],x);
 }
 
@@ -2165,6 +2166,10 @@ void powReal(REAL *result,REAL *x,REAL *a)
     }
 
 
+
+
+
+    BINT approx=(x->flags|a->flags)&F_APPROX;
     // COMPUTE THE ACTUAL POWER
 
     hyp_pow(x,a);
@@ -2172,4 +2177,7 @@ void powReal(REAL *result,REAL *x,REAL *a)
     finalize(&RReg[0]);
 
     copyReal(result,&RReg[0]);
+
+    result->flags|=approx;
+
 }
