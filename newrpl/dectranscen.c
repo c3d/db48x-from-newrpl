@@ -2021,3 +2021,155 @@ void hyp_acosh(REAL *x)
 
 }
 
+
+// PERFORMS x^a IN THE SIMPLEST POSSIBLE WAY
+// IF a IS AN INTEGER WITHIN RANGE OF +/- 30000
+// IT WILL BE PERFORMED BY SIMPLE MULTIPLICATIONS
+// OTHERWISE IT DEFAULTS TO x^a = exp(a*ln(x))
+
+// RETURNS THE RESULT IN RReg[0]
+
+void hyp_pow(REAL *x,REAL *a)
+{
+
+    if(isIntegerReal(a)&& inBINT64Range(a)) {
+        // INTEGER EXPONENTIATION
+        BINT64 exponent=getBINT64Real(a);
+        BINT invert;
+        REAL One;
+        if(exponent<0) { invert=1; exponent=-exponent; }
+        else invert=0;
+        copyReal(&RReg[1],x);   // THIS IS THE CURRENT TERM
+        decconst_One(&One); // THIS IS THE RESULT
+        copyReal(&RReg[0],&One);
+        Context.precdigits+=8;
+        while(exponent) {
+            if(exponent&1) {
+                mul_real(&RReg[0],&RReg[0],&RReg[1]);  // RESULT*=TERM;
+                finalize(&RReg[0]);
+            }
+            mul_real(&RReg[1],&RReg[1],&RReg[1]);    // TERM*=TERM;
+            finalize(&RReg[1]);
+            exponent>>=1;
+        }
+        Context.precdigits-=8;
+
+        if(invert) {
+            divReal(&RReg[0],&One,&RReg[0]);    // INVERT THE RESULT
+        }
+        // RESULT IN RReg[0]
+        return;
+
+    }
+    // TODO: USE EXP AND LN
+    copyReal(&RReg[8],a);
+
+    hyp_ln(x);
+
+    normalize(&RReg[0]);
+
+    mul_real(&RReg[7],&RReg[0],&RReg[8]);
+
+    normalize(&RReg[7]);
+
+    hyp_exp(&RReg[7]);
+
+    // RESULT IS IN RReg[0]
+
+}
+
+// COMPUTE POWERS, HIGH LEVEL MATH FUNCTION
+// RESULT IS FINALIZED, USES ALL RRegs FROM 0 TO 8 INCLUSIVE
+// COPIES THE FINAL RESULT TO result
+
+// HANDLES SPECIALS
+
+void powReal(REAL *result,REAL *x,REAL *a)
+{
+    if((x->flags|a->flags)&(F_INFINITY|F_NOTANUMBER)) {
+        if( (x->flags|a->flags)&F_NOTANUMBER) {
+            // THE RESULT IS NOT A NUMBER
+            result->data[0]=0;
+            result->exp=0;
+            result->len=1;
+            result->flags=F_NOTANUMBER;
+            return;
+        }
+        // DEAL WITH SPECIALS
+        if(x->flags&F_INFINITY) {
+
+            if(a->flags&F_INFINITY) {
+                // INF ^ INF = INF
+                if(a->flags&F_NEGATIVE) {
+                    result->data[0]=0;
+                    result->exp=0;
+                    result->len=1;
+                    result->flags=F_APPROX;
+                } else {
+                    result->data[0]=0;
+                    result->exp=0;
+                    result->len=1;
+                    result->flags=F_INFINITY|F_APPROX;
+                }
+                return;
+            }
+
+            if( !(a->flags&F_INFINITY) && (a->len==1) && (a->data[0]==0)) {
+                // INF ^ 0 = NAN
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_NOTANUMBER;
+                return;
+            }
+
+            // INF ^ a = ZERO FOR a<0
+            if(a->flags&F_NEGATIVE) {
+            result->data[0]=0;
+            result->exp=0;
+            result->len=1;
+            result->flags=F_APPROX;
+            }
+            else {
+                // INF^a FOR A>0 ==> -INF IF a IS ODD AND x IS NEGATIVE, +INF OTHERWISE
+                if(x->flags&F_NEGATIVE) {
+                    if(isoddReal(a)) result->flags=F_NEGATIVE;
+                    else result->flags=0;
+                }
+
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags|=F_INFINITY|F_APPROX;
+            }
+            return;
+        }
+
+
+        if(a->flags&F_INFINITY) {
+
+            //x^INF = INF, x^(-INF) = 0
+            if(a->flags&F_NEGATIVE) {
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_APPROX;
+            } else {
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_INFINITY|F_APPROX;
+            }
+            return;
+        }
+    }
+
+
+    // COMPUTE THE ACTUAL POWER
+
+    hyp_pow(x,a);
+
+    finalize(&RReg[0]);
+
+    copyReal(result,&RReg[0]);
+}

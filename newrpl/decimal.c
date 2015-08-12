@@ -404,6 +404,13 @@ void round_real(REAL *r,int digits,int truncate)
 
 }
 
+// EXTRACT ONE DECIMAL DIGIT FROM A NUMBER, AT position
+// THE POSITION IS n FOR THE 10^n DIGIT
+
+
+
+
+
 
 // FULLY NORMALIZE, RANGE CHECK AND ROUND TO SYSTEM PRECISION
 
@@ -1079,7 +1086,7 @@ BINT shift_right(BINT word,BINT digits)
 // AND THE HIGH (8-N) DIGITS IN THE HIGH WORD
 BINT64 shift_split(BINT word,BINT digits)
 {
-    if(!digits) return 0;
+    if(!digits) return ((BINT64)digits)<<32;
 
     BINT shift=(8-digits)&7;
 
@@ -1093,7 +1100,7 @@ BINT64 shift_split(BINT word,BINT digits)
     tmp.w32[0]=word-tmp.w32[1]*shift_constants[((digits&7)<<1)+1];
 
     // DO ONE FINAL CARRY CORRECTION TO PROPERLY SPLIT THE DIGITS
-    if(tmp.w32[0]>=(WORD)shift_constants[((digits&7)<<1)+1]) ++tmp.w32[1];
+    if(tmp.w32[0]>=(WORD)shift_constants[((digits&7)<<1)+1]) { ++tmp.w32[1]; tmp.w32[0]-=(WORD)shift_constants[((digits&7)<<1)+1]; }
 
     // HERE tmp.w32[0] HAS THE LOW DIGITS
     // tmp.w32[1] HAS THE HIGH DIGITS, RIGHT JUSTIFIED
@@ -1120,7 +1127,7 @@ BINT lo_digits(BINT word,BINT digits)
     tmp.w32[0]=word-tmp.w32[1]*shift_constants[((digits&7)<<1)+1];
 
     // DO ONE FINAL CARRY CORRECTION TO PROPERLY SPLIT THE DIGITS
-    if(tmp.w32[0]>=(WORD)shift_constants[((digits&7)<<1)+1]) { ++tmp.w32[1]; tmp.w32[0]-=consts[1]; }
+    if(tmp.w32[0]>=(WORD)shift_constants[((digits&7)<<1)+1]) { ++tmp.w32[1]; tmp.w32[0]-=(WORD)shift_constants[((digits&7)<<1)+1]; }
 
     // HERE tmp.w32[0] HAS THE LOW DIGITS
     // tmp.w32[1] HAS THE HIGH DIGITS, RIGHT JUSTIFIED
@@ -1145,7 +1152,7 @@ BINT hi_digits(BINT word,BINT digits)
     tmp.w32[0]=word-tmp.w32[1]*shift_constants[((digits&7)<<1)+1];
 
     // DO ONE FINAL CARRY CORRECTION TO PROPERLY SPLIT THE DIGITS
-    if(tmp.w32[0]>=(WORD)shift_constants[((digits&7)<<1)+1]) { ++tmp.w32[1]; tmp.w32[0]-=consts[1]; }
+    if(tmp.w32[0]>=(WORD)shift_constants[((digits&7)<<1)+1]) { ++tmp.w32[1]; tmp.w32[0]-=(WORD)shift_constants[((digits&7)<<1)+1]; }
 
     // HERE tmp.w32[0] HAS THE LOW DIGITS
     // tmp.w32[1] HAS THE HIGH DIGITS, RIGHT JUSTIFIED
@@ -1175,7 +1182,7 @@ BINT hi_digits_rounded(BINT word,BINT digits)
     tmp.w32[0]=word-tmp.w32[1]*shift_constants[((digits&7)<<1)+1];
 
     // DO ONE FINAL CARRY CORRECTION TO PROPERLY SPLIT THE DIGITS
-    if(tmp.w32[0]>=(WORD)shift_constants[((digits&7)<<1)+1]) { ++tmp.w32[1]; tmp.w32[0]-=consts[1]; }
+    if(tmp.w32[0]>=(WORD)shift_constants[((digits&7)<<1)+1]) { ++tmp.w32[1]; tmp.w32[0]-=(WORD)shift_constants[((digits&7)<<1)+1]; }
 
     // HERE tmp.w32[0] HAS THE LOW DIGITS
     // tmp.w32[1] HAS THE HIGH DIGITS, RIGHT JUSTIFIED
@@ -1898,7 +1905,7 @@ void mul_real(REAL *r,REAL *a,REAL *b)
 
 
 
-    result->flags=F_NOTNORMALIZED|((a->flags^b->flags)&F_NEGATIVE);
+    result->flags=F_NOTNORMALIZED|((a->flags^b->flags)&F_NEGATIVE)|((a->flags|b->flags)&F_APPROX);
     result->exp=a->exp+b->exp;
     result->len=a->len+b->len;
 
@@ -2276,7 +2283,7 @@ void newRealFromText(REAL *result,char *text,int textlen)
         }
     }
 
-    if( (*end=='e')||(*end!='E')) {
+    if( (*end=='e')||(*end=='E')) {
 
         if(expdone) {
         result->len=0;
@@ -2927,6 +2934,7 @@ void div_real(REAL *r,REAL *num,REAL *d,int maxdigits)
     while(resword>=0) {
         // COMPUTE A NEW WORD OF THE QUOTIENT
         result->data[resword]=0;
+        tmp64=0;
         do {
         if(remainder.data[remword+1]<0) tempres=-(((-remainder.data[remword+1])*invhi)>>28);
         else tempres=(remainder.data[remword+1]*invhi)>>28;
@@ -2937,6 +2945,15 @@ void div_real(REAL *r,REAL *num,REAL *d,int maxdigits)
         // SUBTRACT FROM THE REMAINDER
         for(j=0;j<div->len;++j) add_single64(remainder.data+remword+1-div->len+j,-(BINT64)tempres*div->data[j]);
         carry_correct(remainder.data+remword+1-div->len,div->len);
+        }
+        else {
+          if(tmp64) {
+              if(tmp64<0) tempres=-1;
+              else tempres=1;
+              // SUBTRACT FROM THE REMAINDER
+              for(j=0;j<div->len;++j) add_single64(remainder.data+remword+1-div->len+j,-(BINT64)tempres*div->data[j]);
+              carry_correct(remainder.data+remword+1-div->len,div->len);
+              }
         }
         // CORRECT THE MOST SIGNIFICANT WORD OF THE REMAINDER
         tmp64=(BINT64)remainder.data[remword]+(BINT64)remainder.data[remword+1]*100000000LL;
@@ -4114,7 +4131,34 @@ BINT64 getBINT64Real(REAL *n)
         return result;
 }
 
+BINT isoddReal(REAL *r)
+{
+    BINT position=0;
+    BINT digits;
 
+        int dig=sig_digits(r->data[r->len-1]);
+
+        BINT max_pos=((r->len-1)<<3)+dig+r->exp;
+        BINT min_pos=r->exp;
+
+        if(position<min_pos) return 0;
+        if(position>max_pos) return 0;
+
+        int trim=dig+((r->len-1)<<3)-position;
+
+        int smallshift=trim&7;
+
+
+        trim>>=3;
+
+        digits=shift_split(r->data[trim],smallshift)>>32;
+
+
+        if(digits&1) return 1;
+
+        return 0;
+
+}
 
 
 // *************************************************************************

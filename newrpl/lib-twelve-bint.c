@@ -572,16 +572,14 @@ void LIB_HANDLER()
                 if(op1type) {
                     rplBINTToRReg(1,op2);
                     // TODO: IMPLEMENT REAL POWERS
-                    //powReal(&RReg[0],&rop1,&RReg[1]);
-                    rplZeroToRReg(0);
+                    powReal(&RReg[0],&rop1,&RReg[1]);
 
                 }
 
                 if(op2type) {
                     rplBINTToRReg(1,op1);
                     // TODO: IMPLEMENT REAL POWERS
-                    //powReal(&RReg[0],&RReg[1],&rop2);
-                    rplZeroToRReg(0);
+                    powReal(&RReg[0],&RReg[1],&rop2);
                 }
                 rplNewRealFromRRegPush(0);
                 return;
@@ -593,8 +591,7 @@ void LIB_HANDLER()
             rplBINTToRReg(2,op2);
 
             // TODO: REAL POWERS
-            //mpd_pow(&RReg[0],&RReg[1],&RReg[2]);
-            rplZeroToRReg(0);
+            powReal(&RReg[0],&RReg[1],&RReg[2]);
 
             if(isIntegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
                 BINT64 result=getBINT64Real(&RReg[0]);
