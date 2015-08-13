@@ -290,9 +290,7 @@ void LIB_HANDLER()
             else {
                 // TODO: CALL DECIMAL POWER FUNCTION
 
-                newRealFromBINT(&RReg[0],12345678);
-
-                //mpd_pow(&RReg[0],&Darg1,&Darg2,&Context);
+                powReal(&RReg[0],&Darg1,&Darg2);
 
             }
 
@@ -474,11 +472,17 @@ void LIB_HANDLER()
         BigNumLimit.exp=12;
         SmallNumLimit.exp=-4;
 
-        BINT Format;
+        BINT Format,sign;
+
+        sign=realnum.flags&F_NEGATIVE;
+
+        realnum.flags^=sign;
 
         if(ltReal(&realnum,&SmallNumLimit)) Format=FmtSmall;
         else if(gtReal(&realnum,&BigNumLimit)) Format=FmtLarge;
         else Format=FmtNormal;
+
+        realnum.flags^=sign;
 
         if(CurOpcode==OPCODE_DECOMPEDIT) Format|=FMT_CODE;
 
