@@ -44,7 +44,7 @@ void main_virtual()
     halRedrawAll(&scr);
 
     if(wascleared) halShowMsg("Memory Cleared");
-    halShowMsg("Memory Recovered");
+    else halShowMsg("Memory Recovered");
     halStatusAreaPopup();
 
     halOuterLoop();

@@ -19,6 +19,16 @@
 #define TOTAL_REGISTERS   (REAL_REGISTERS+8) // FROM 1 TO 32
 
 #define EMPTY_STORAGEBMP (0xffffffffu ^ ((1u<<TOTAL_REGISTERS)-1))
+
+#ifdef NDEBUG
+#define PROTECT_WRITE_AREA(ptr,len) (void)
+#else
+#define PROTECT_WRITE_AREA(ptr,len) { if( ((ptr)<Context.regdata) || ((((WORDPTR)ptr)+(len))>=Context.regdata+REAL_REGISTER_STORAGE*TOTAL_REGISTERS)) { printf("PANIC EXIT-BAD WRITE\n"); exit(-1); } }
+#endif
+
+
+
+
 /*
 typedef int BINT;
 typedef long long BINT64;
@@ -286,11 +296,13 @@ extern BINT cmpReal(REAL *a,REAL *b);
 extern BINT iszeroReal(REAL *n);
 
 // TRUE IF THE NUMBER HAS NO FRACTIONAL PART (IS AN INTEGER)
-BINT isIntegerReal(REAL *n);
+BINT isintegerReal(REAL *n);
 
 // TRUE IF THE NUMBER IS NOT DIVISIBLE BY 2
 BINT isoddReal(REAL *r);
 
+// GET THE NUMBER OF DIGITS ON THE INTEGER PART OF A NUMBER
+BINT intdigitsReal(REAL *r);
 
 // CONVERSION TO/FROM OTHER TYPES
 

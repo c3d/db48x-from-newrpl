@@ -522,6 +522,8 @@ void finalize(REAL *number)
 // RESULT MUST BE INITIALIZED SOMEWHERE ELSE
 void add_long(BINT *result,BINT *n1start,BINT nwords)
 {
+    PROTECT_WRITE_AREA(result,nwords);
+
     while(nwords>=3) {
         result[nwords-1]+=n1start[nwords-1];
         result[nwords-2]+=n1start[nwords-2];
@@ -1202,6 +1204,9 @@ BINT hi_digits_rounded(BINT word,BINT digits)
 
 void add_long_mul_shift(BINT *result,BINT *n1start,BINT nwords,BINT shift,BINT mul)
 {
+
+    PROTECT_WRITE_AREA(result,nwords);
+
     BINT K1,K2;
     BINT hi,lo,hi2,lo2,hi3,lo3;
 
@@ -1260,6 +1265,9 @@ void add_long_mul_shift(BINT *result,BINT *n1start,BINT nwords,BINT shift,BINT m
 // MULTIPLIES BY 10^N AND ADDS INTO result
 void add_long_shift(BINT *result,BINT *n1start,BINT nwords,BINT shift)
 {
+
+    PROTECT_WRITE_AREA(result,nwords);
+
    BINT *consts=(BINT *)shift_constants+((shift&7)<<1);
 
    // consts[0]=MULTIPLY-HIGH CONSTANT TO GET THE HIGH WORD
@@ -1285,6 +1293,10 @@ void add_long_shift(BINT *result,BINT *n1start,BINT nwords,BINT shift)
 // shift HAS TO BE 0 TO 7
 void long_shift(BINT *n1start,BINT nwords,BINT shift)
 {
+
+    PROTECT_WRITE_AREA(n1start,nwords);
+
+
    BINT *consts=(BINT *)shift_constants+((shift&7)<<1);
 
    // consts[0]=MULTIPLY-HIGH CONSTANT TO GET THE HIGH WORD
@@ -1429,6 +1441,10 @@ void sub_long(BINT *result,BINT *n1start,BINT nwords)
 
 void sub_long_mul_shift(BINT *result,BINT *n1start,BINT nwords,BINT shift,BINT mul)
 {
+
+    PROTECT_WRITE_AREA(result,nwords);
+
+
     BINT K1,K2;
     BINT hi,lo,hi2,lo2,hi3,lo3;
 
@@ -1488,6 +1504,10 @@ void sub_long_mul_shift(BINT *result,BINT *n1start,BINT nwords,BINT shift,BINT m
 // MULTIPLIES BY 10^N AND ADDS INTO result
 void sub_long_shift(BINT *result,BINT *n1start,BINT nwords,BINT shift)
 {
+
+    PROTECT_WRITE_AREA(result,nwords);
+
+
    BINT *consts=(BINT *)shift_constants+((shift&7)<<1);
 
    // consts[0]=MULTIPLY-HIGH CONSTANT TO GET THE HIGH WORD
@@ -1512,6 +1532,9 @@ void sub_long_shift(BINT *result,BINT *n1start,BINT nwords,BINT shift)
 
 void zero_words(BINT *ptr,BINT nwords)
 {
+
+    PROTECT_WRITE_AREA(ptr,nwords);
+
     while(nwords>=3) {
         ptr[nwords-1]=0;
         ptr[nwords-2]=0;
@@ -1528,6 +1551,10 @@ void zero_words(BINT *ptr,BINT nwords)
 
 void copy_words(BINT *ptr,BINT *source,BINT nwords)
 {
+
+    PROTECT_WRITE_AREA(ptr,nwords);
+
+
     if(ptr>source) {
     while(nwords>=3) {
         ptr[nwords-1]=source[nwords-1];
@@ -4039,7 +4066,7 @@ BINT inBINT64Range(REAL *n)
 // TRUE IF A REAL IS INTEGER
 // DOES NOT NEED TO BE ALIGNED
 
-BINT isIntegerReal(REAL *n)
+BINT isintegerReal(REAL *n)
 {
 if(n->exp>=0) return 1;
 
@@ -4168,6 +4195,11 @@ BINT isoddReal(REAL *r)
 
 }
 
+// RETURN THE NUMBER OF DIGITS OF THE INTEGER PART OF THE REAL
+BINT intdigitsReal(REAL *r)
+{
+    return ((r->len-1)<<3)+sig_digits(r->data[r->len-1])+r->exp;
+}
 
 // *************************************************************************
 // **************************** END DECIMAL LIBRARY ************************

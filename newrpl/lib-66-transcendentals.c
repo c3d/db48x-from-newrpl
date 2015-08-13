@@ -112,7 +112,12 @@ void LIB_HANDLER()
 
         // PRECONVERT ARGUMENT IF ITS IN ANYTHING OTHER THAN RADIANS
 
-
+        if(intdigitsReal(&dec)>MAX_USERPRECISION) {
+            // TODO: NOT REALLY OVERFLOW, BUT ARGUMENT TOO BIG
+            Exceptions|=EX_BADARGVALUE;
+            ExceptionPointer=IPtr;
+            return;
+        }
 
 
 

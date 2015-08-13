@@ -525,6 +525,18 @@ void trig_sincos(REAL *angle)
 
     savedprec=Context.precdigits;
     Context.precdigits=(2*savedprec+8 > REAL_PRECISION_MAX)? REAL_PRECISION_MAX:(2*savedprec+8);
+    if(angle->exp>savedprec) {
+        // THIS IS A VERY LARGE ANGLE, NEED TO INCREASE THE PRECISION
+        // TO GET AN ACCURATE RESULT ON THE MODULO
+        BINT minprec=((savedprec+intdigitsReal(angle))+7)&(~7);
+        if(minprec>REAL_PRECISION_MAX) {
+            // TODO: ISSUE AN ERROR
+            // FOR NOW JUST LEAVE IT WITH PARTIAL LOSS OF PRECISION
+            minprec=REAL_PRECISION_MAX;
+        }
+        Context.precdigits=minprec;
+    }
+
     decconst_PI(&pi);
     decconst_PI_2(&pi2);
     decconst_PI_4(&pi4);
@@ -2035,7 +2047,7 @@ void hyp_acosh(REAL *x)
 void hyp_pow(REAL *x,REAL *a)
 {
 
-    if(isIntegerReal(a)&& inBINT64Range(a)) {
+    if(isintegerReal(a)&& inBINT64Range(a)) {
         // INTEGER EXPONENTIATION
         BINT64 exponent=getBINT64Real(a);
         BINT invert;

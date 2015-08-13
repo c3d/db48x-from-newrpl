@@ -555,7 +555,7 @@ void LIB_HANDLER()
             if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
             if(Exceptions) return;
-            if(!(isIntegerReal(&RReg[0]) && inBINT64Range(&RReg[0]))) {
+            if(!(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0]))) {
                 rplNewRealFromRRegPush(0);
             }
             else {
@@ -593,7 +593,7 @@ void LIB_HANDLER()
             // TODO: REAL POWERS
             powReal(&RReg[0],&RReg[1],&RReg[2]);
 
-            if(isIntegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
+            if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
                 BINT64 result=getBINT64Real(&RReg[0]);
                 rplNewBINTPush(result,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
             }
@@ -752,7 +752,7 @@ void LIB_HANDLER()
         if(op1type||op2type) {
             if(op1type) {
                 // IF IT'S NOT INTEGER, CAN'T BE EQUAL TO ONE
-                if(!isIntegerReal(&rop1)) rplPushData((WORDPTR)zero_bint);
+                if(!isintegerReal(&rop1)) rplPushData((WORDPTR)zero_bint);
                 else {
                 rplBINTToRReg(0,op2);
                 int res=eqReal(&RReg[1],&RReg[0]);
@@ -762,7 +762,7 @@ void LIB_HANDLER()
             }
 
             if(op2type) {
-                if(!isIntegerReal(&rop2)) rplPushData((WORDPTR)zero_bint);
+                if(!isintegerReal(&rop2)) rplPushData((WORDPTR)zero_bint);
                 else {
                 rplBINTToRReg(0,op1);
                 int res=eqReal(&RReg[0],&RReg[1]);
