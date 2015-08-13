@@ -7,7 +7,7 @@
 
 // DICTIONARY TABLE WITH UNIQUE STREAMS
 
-uint32_t cordic_Kh_8_dict[63808]= {
+const uint32_t const cordic_Kh_8_dict[63808]= {
 2, 0, 10000000, 172, 17172, 1717172, 71717172, 1, 71717172, 171, 
 71717172, 17171, 71717172, 1717171, 71717172, 71717171, 1, 71717172, 71717171, 171, 
 71717172, 71717171, 17171, 71717172, 71717171, 1717171, 71717203, 72029122, 91221041, 71717202, 
@@ -6395,7 +6395,7 @@ uint32_t cordic_Kh_8_dict[63808]= {
 
 // TABLE WITH OFFSET OF EACH NUMBER WITHIN THE COMPRESSION STREAM
 
-uint16_t cordic_Kh_8_offsets[1008]= {
+const uint16_t const cordic_Kh_8_offsets[1008]= {
 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 
 100, 110, 120, 136, 152, 168, 184, 200, 216, 232, 
 248, 264, 280, 296, 312, 328, 344, 360, 376, 392, 
@@ -6503,7 +6503,7 @@ uint16_t cordic_Kh_8_offsets[1008]= {
 
 // TABLE WITH COMPRESSION STREAM
 
-uint8_t cordic_Kh_8_stream[17204]= {
+const uint8_t const cordic_Kh_8_stream[17204]= {
 0, 0, 0, 240, 1, 0, 249, 0, 2, 0, 
 0, 3, 0, 240, 1, 0, 249, 0, 2, 0, 
 0, 4, 0, 240, 1, 0, 249, 0, 2, 0, 

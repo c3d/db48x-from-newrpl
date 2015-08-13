@@ -9,7 +9,7 @@ TARGET = newrplfw.elf
 TEMPLATE = app
 CONFIG = static ordered
 
-DEFINES += TARGET_50G NDEBUG SLIM_MPD
+DEFINES += TARGET_50G NDEBUG
 
 
 # DO NOT ALTER THE ORDER OF THESE MODULES
@@ -60,20 +60,21 @@ SOURCES +=\
     firmware/hal_screen.c \
     firmware/sys/graphics.c \
     firmware/sys/icons.c \
-    newrpl/atan_1_comp.c \
-    newrpl/atan_2_comp.c \
-    newrpl/atan_5_comp.c \
-    newrpl/atanh_1_comp.c \
-    newrpl/atanh_2_comp.c \
-    newrpl/atanh_5_comp.c \
+    newrpl/decimal.c \
+    newrpl/dectranscen.c \
+    newrpl/atan_1_8_comp.c \
+    newrpl/atan_2_8_comp.c \
+    newrpl/atan_5_8_comp.c \
+    newrpl/atanh_1_8_comp.c \
+    newrpl/atanh_2_8_comp.c \
+    newrpl/atanh_5_8_comp.c \
     newrpl/compiler.c \
-    newrpl/cordic_K_comp.c \
-    newrpl/cordic_Kh_comp.c \
+    newrpl/cordic_K_8_comp.c \
+    newrpl/cordic_Kh_8_comp.c \
     newrpl/datastack.c \
     newrpl/directory.c \
     newrpl/errors.c \
     newrpl/gc.c \
-    newrpl/io_substring.c \
     newrpl/lam.c \
     newrpl/lib-24-string.c \
     newrpl/lib-28-dirs.c \
@@ -101,22 +102,6 @@ SOURCES +=\
     newrpl/runstream.c \
     newrpl/symbolic.c \
     newrpl/tempob.c \
-    newrpl/transcendentals.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/basearith.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/memory.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/mpdecimal.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/context.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/mpsignal.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/fnt.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/crt.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/constants.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/convolute.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/sixstep.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/difradix2.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/fourstep.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/transpose.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/io.c \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/numbertheory.c \
     firmware/ui_cmdline.c \
     newrpl/lib-48-matrix.c \
     newrpl/utf8lib.c \
@@ -136,7 +121,8 @@ HEADERS  += \
     newrpl/libraries.h \
     newrpl/newrpl.h \
     newrpl/sysvars.h \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/mpdecimal.h
+    newrpl/contrib/mpdecimal-2.4.0/libmpdec/mpdecimal.h \
+    newrpl/decimal.h
 
 # This might need to be adapted to each cross-compiler installation
 GCC_LIBDIR = /usr/local/lib/gcc/arm-none-eabi/4.9.2
@@ -147,7 +133,7 @@ QMAKE_LIBDIR += $$GCC_LIBDIR/4.9.2
 # End of cross-compiler dependent
 
 
-INCLUDEPATH += firmware/include newrpl newrpl/contrib/mpdecimal-2.4.0/libmpdec /usr/local/include /usr/include
+INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
 
 LIBS += -lgcc
 
