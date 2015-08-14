@@ -763,11 +763,15 @@ void downKeyHandler(BINT keymsg)
                     Exceptions=0;
                     return;
                 }
+                BYTE cursorstart='D';
+
+                if(ISPROGRAM(*ptr)) cursorstart='P';
+                if(ISSYMBOLIC(*ptr)) cursorstart='A';
                 // OPEN THE COMMAND LINE
                 halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
                 halSetContext(halGetContext()|CONTEXT_INEDITOR);
                 if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
-                else uiOpenCmdLine('D');
+                else uiOpenCmdLine(cursorstart);
                 uiSetCmdLineText(text);
                 uiSetCmdLineState(uiGetCmdLineState()|CMDSTATE_OVERWRITE);
                 return;

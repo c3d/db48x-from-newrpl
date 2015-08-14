@@ -2925,6 +2925,8 @@ void div_real(REAL *r,REAL *num,REAL *d,int maxdigits)
     result->len=(maxdigits+7)>>3;
     result->len+=2;  // DO EXTRA 16 DIGITS FOR PROPER ROUNDING
 
+    if(result->len<num->len) result->len=num->len;
+
     if(sig_digits(div->data[div->len-1])<8) {
         dd.data=allocRegister();
         dd.exp=d->exp;
