@@ -827,9 +827,10 @@ void LIB_HANDLER()
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
         if(ISPROLOG(*DecompileObject)) {
-            rplDecompAppendString((BYTEPTR)"«");
+            if(CurrentConstruct!=CMD_XEQSECO)
+                rplDecompAppendString((BYTEPTR)"«");
             RetNum=OK_STARTCONSTRUCT;
-            return;
+           return;
         }
 
 

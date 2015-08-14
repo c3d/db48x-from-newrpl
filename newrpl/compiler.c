@@ -931,12 +931,39 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
         *ValidateTop++=DecompileObject; // POINTER TO THE WORD THAT CREATES THE CONSTRUCT
         ++DecompileObject;
         break;
+    case OK_CHANGECONSTRUCT:
+        --ValidateTop;
+        if(ValidateTop<RSTop) {
+            Exceptions|=EX_EMPTYRSTK;
+            ExceptionPointer=IPtr;
+            LAMTop=LAMTopSaved;
+            if(flags&DECOMP_EMBEDDED) {
+                // RESTORE ALL POINTERS BEFORE RETURNING
+                SavedDecompObject=*--RSTop;
+                LAMTopSaved=(WORDPTR *)*--RSTop;
+                EndOfObject=*--RSTop;
+                DecompileObject=*--RSTop;
+                RSTop=SavedRSTop;
+            }
+            return 0;
+        }
+        *ValidateTop++=DecompileObject; // POINTER TO THE WORD THAT CREATES THE CONSTRUCT
+        ++DecompileObject;
+        break;
     case OK_ENDCONSTRUCT:
         --ValidateTop;
         if(ValidateTop<RSTop) {
             Exceptions|=EX_EMPTYRSTK;
             ExceptionPointer=IPtr;
             LAMTop=LAMTopSaved;
+            if(flags&DECOMP_EMBEDDED) {
+                // RESTORE ALL POINTERS BEFORE RETURNING
+                SavedDecompObject=*--RSTop;
+                LAMTopSaved=(WORDPTR *)*--RSTop;
+                EndOfObject=*--RSTop;
+                DecompileObject=*--RSTop;
+                RSTop=SavedRSTop;
+            }
             return 0;
         }
         DecompileObject=rplSkipOb(DecompileObject);

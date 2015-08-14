@@ -187,6 +187,11 @@ void LIB_HANDLER()
             return;
         }
 
+        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,XEQSECO)) {
+            rplDecompAppendString((BYTEPTR)"→");
+            RetNum=OK_STARTCONSTRUCT;
+            return;
+        }
 
 
 

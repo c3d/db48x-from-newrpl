@@ -908,7 +908,19 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
         if(ISPROLOG(*DecompileObject)) {
 
-            if(LIBNUM(*DecompileObject)==LIBRARY_NUMBER)
+            // FIND UPPER CONSTRUCT, NOT JUST THE LAST ONE
+
+            // WARNING: THIS USES DECOMPILER INTERNALS, ONLY USE THIS FOR CORE
+            WORDPTR *prevconst=ValidateTop-2;
+            WORD PreviousConstruct;
+            if(prevconst<RSTop) {
+                // THERE'S NO UPPER CONSTRUCT
+                PreviousConstruct=0;
+            } else {
+                PreviousConstruct=**prevconst;
+            }
+
+            if((LIBNUM(*DecompileObject)==LIBRARY_NUMBER)||(PreviousConstruct==CMD_XEQSECO))
                 // THIS IS A QUOTED IDENT
                 rplDecompAppendChar('\'');
 
@@ -919,7 +931,7 @@ void LIB_HANDLER()
             else
                 rplDecompAppendString2((BYTEPTR)(DecompileObject+1),OBJSIZE(*DecompileObject)<<2);
 
-            if(LIBNUM(*DecompileObject)==LIBRARY_NUMBER)
+            if((LIBNUM(*DecompileObject)==LIBRARY_NUMBER)||(PreviousConstruct==CMD_XEQSECO))
                 // THIS IS A QUOTED IDENT
                 rplDecompAppendChar('\'');
 
@@ -1044,23 +1056,47 @@ void LIB_HANDLER()
         {
         case NEWNLOCALS:
         {
-            rplDecompAppendString((BYTEPTR)"NEWLOCALS");
-            BINT result=OPCODE(*DecompileObject)&0xffff;
-            BINT digit=0;
-            char basechr='0';
-            while(result<powersof10[digit]) ++digit;  // SKIP ALL LEADING ZEROS
-            // NOW DECOMPILE THE NUMBER
-            while(digit<18) {
-            while(result>=powersof10[digit]) { ++basechr; result-=powersof10[digit]; }
-            rplDecompAppendChar(basechr);
-            ++digit;
-            basechr='0';
+
+            // WARNING: THIS USES DECOMPILER INTERNALS, ONLY USE THIS FOR CORE
+            WORDPTR *prevconst=ValidateTop-2;
+            WORD PreviousConstruct;
+            if(prevconst<RSTop) {
+                // THERE'S NO UPPER CONSTRUCT
+                PreviousConstruct=0;
+            } else {
+                PreviousConstruct=**prevconst;
             }
-            basechr+=result;
-            rplDecompAppendChar(basechr);
-        }
-            RetNum=OK_CONTINUE;
+
+            if(PreviousConstruct!=CMD_XEQSECO) {
+                RetNum=ERR_INVALID;
+                return;
+            }
+
+
+            rplCreateLAMEnvironment(*prevconst+1);  // OWNER WILL BE THE SECONDARY
+            BINT offset=0;
+
+            // HERE WE HAVE *prevconst POINTING TO THE XEQSECO COMMAND
+            // ADD 2 TO SKIP THE WORD + PROLOG OF THE SECO
+            // POINTING TO THE FIRST LAM NAME WHEN OFFSET=0
+
+            while((*prevconst)+2+offset < DecompileObject) {
+                // CREATE ALL THE NAMED VARIABLES
+                rplCreateLAM((*prevconst)+2+offset,(WORDPTR)zero_bint);        // NULLLAM FOR THE COMPILER
+                offset+=rplObjSize((*prevconst)+2+offset);
+            }
+
+            // DONE CREATING THE ENVIRONMENT
+
+            // NOW REMOVE THE XEQSECO CONSTRUCT WITHOUT ENDING THE SECO
+            *prevconst=*(prevconst+1);
+
+            rplDecompAppendString("«");
+
+
+            RetNum=OK_ENDCONSTRUCT;
             return;
+        }
         case GETLAMN:
         {
 
