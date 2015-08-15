@@ -119,3 +119,10 @@ void halSetBusyHandler()
     if(halBusyEvent<=0) halBusyEvent=tmr_eventcreate(&busy_handler,500,0);
     }
 }
+
+
+// RETURN THE SYSTEM CLOCK TICKS
+BINT64 halTicks()
+{
+    return (BINT64)tmr_ticks2us(0,tmr_ticks());
+}

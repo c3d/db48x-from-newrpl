@@ -21,7 +21,7 @@
 #define EMPTY_STORAGEBMP (0xffffffffu ^ ((1u<<TOTAL_REGISTERS)-1))
 
 #ifdef NDEBUG
-#define PROTECT_WRITE_AREA(ptr,len) (void)
+#define PROTECT_WRITE_AREA(ptr,len)
 #else
 #define PROTECT_WRITE_AREA(ptr,len) { if( ((ptr)<Context.regdata) || ((((WORDPTR)ptr)+(len))>=Context.regdata+REAL_REGISTER_STORAGE*TOTAL_REGISTERS)) { printf("PANIC EXIT-BAD WRITE\n"); exit(-1); } }
 #endif

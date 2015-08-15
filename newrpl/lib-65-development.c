@@ -37,13 +37,7 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
-    CMD(TRANSCENTABLE), \
-    CMD(WRITETABLE), \
-    CMD(CLN), \
-    CMD(SINCOSH),\
-    CMD(CATANH),\
-    CMD(CSQRT), \
-    CMD(MPDPOW)
+    CMD(TICKS)
 
 
 // ADD MORE OPCODES HERE
@@ -83,6 +77,14 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
+    case TICKS:
+        // RETURN SYSTEM CLOCK
+    {
+        BINT64 ticks=halTicks();
+        rplNewBINTPush(ticks,DECBINT);
+        return;
+    }
+
 /*
     case TRANSCENTABLE:
         // TERMPORARY USE ONLY, CONVERT A REAL AS A 'C' STRING OF 32-BIT WORDS
@@ -183,115 +185,7 @@ void LIB_HANDLER()
         return;
         }
         */
-    case CLN:
-    {
-        REAL x;
-        if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
-            return;
-        }
-        rplReadNumberAsReal(rplPeekData(1),&x);
 
-        if(Exceptions) return;
-
-        hyp_ln(&x);
-        if(Exceptions) return;
-
-/*
-        RReg[0].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[7].exp-=Context.prec;
-        mpd_reduce(&RReg[0],&RReg[7],&Context);
-*/
-        rplDropData(1);
-        rplNewRealFromRRegPush(0);
-        return;
-
-    }
-    case SINCOSH:
-    {
-        REAL x;
-        if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
-            return;
-        }
-        rplReadNumberAsReal(rplPeekData(1),&x);
-
-        if(Exceptions) return;
-
-        hyp_sinhcosh(&x);
-        if(Exceptions) return;
-
-/*
-        RReg[0].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[7].exp-=Context.prec;
-        mpd_reduce(&RReg[0],&RReg[7],&Context);
-*/
-        rplDropData(1);
-        rplNewRealFromRRegPush(2);
-        rplNewRealFromRRegPush(1);
-        return;
-
-    }
-
-    case CATANH:
-    {
-        REAL x;
-        if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
-            return;
-        }
-        rplReadNumberAsReal(rplPeekData(1),&x);
-
-        if(Exceptions) return;
-
-        hyp_atanh(&x);
-        if(Exceptions) return;
-
-/*
-        RReg[0].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[7].exp-=Context.prec;
-        mpd_reduce(&RReg[0],&RReg[7],&Context);
-*/
-        rplDropData(1);
-        rplNewRealFromRRegPush(2);
-        rplNewRealFromRRegPush(1);
-        rplNewRealFromRRegPush(0);
-        return;
-
-    }
-
-    case CSQRT:
-    {
-        REAL x;
-        if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
-            return;
-        }
-        rplReadNumberAsReal(rplPeekData(1),&x);
-
-        if(Exceptions) return;
-
-        hyp_sqrt(&x);
-        if(Exceptions) return;
-
-/*
-        RReg[0].exp+=Context.prec;
-        mpd_round_to_intx(&RReg[7],&RReg[0],&Context);  // ROUND TO THE REQUESTED PRECISION
-        RReg[7].exp-=Context.prec;
-        mpd_reduce(&RReg[0],&RReg[7],&Context);
-*/
-        rplDropData(1);
-        rplNewRealFromRRegPush(0);
-        return;
-
-    }
 
 
     // ADD MORE OPCODES HERE

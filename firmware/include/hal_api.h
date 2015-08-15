@@ -1097,6 +1097,10 @@ extern HEVENT halBusyEvent;
 void halSetBusyHandler();
 void halEnterPowerOff();
 
+// TIMER FUNCTIONS
+BINT64 halTicks();
+
+
 
 // SCREEN FUNCTIONS
 extern void halSetNotification(enum halNotification type,int color);
