@@ -920,7 +920,7 @@ void LIB_HANDLER()
                 PreviousConstruct=**prevconst;
             }
 
-            if((LIBNUM(*DecompileObject)==LIBRARY_NUMBER)||(PreviousConstruct==CMD_XEQSECO))
+            if((LIBNUM(*DecompileObject)==LIBRARY_NUMBER)&&(PreviousConstruct!=CMD_XEQSECO))
                 // THIS IS A QUOTED IDENT
                 rplDecompAppendChar('\'');
 
@@ -931,7 +931,7 @@ void LIB_HANDLER()
             else
                 rplDecompAppendString2((BYTEPTR)(DecompileObject+1),OBJSIZE(*DecompileObject)<<2);
 
-            if((LIBNUM(*DecompileObject)==LIBRARY_NUMBER)||(PreviousConstruct==CMD_XEQSECO))
+            if((LIBNUM(*DecompileObject)==LIBRARY_NUMBER)&&(PreviousConstruct!=CMD_XEQSECO))
                 // THIS IS A QUOTED IDENT
                 rplDecompAppendChar('\'');
 
