@@ -3594,6 +3594,16 @@ BINT ltReal(REAL *a,REAL *b)
         }
     }
 
+    // TEST 1.B, IF BOTH HAVE THE SAME SIGN, CHECK FOR ZERO
+
+    if( (a->len==1) && (a->data[0]==0) ) {
+        if( (b->len==1) && (b->data[0]==0) ) return 0;   // A==B
+        return 1;   // A<B SINCE B>0 PER SIGN TEST
+    }
+    if( (b->len==1) && (b->data[0]==0) ) return 0;   // A>0
+
+
+
     // TEST 2, POSITION OF THE MOST SIGNIFICANT DIGIT
 
     int digits_a,digits_b;
@@ -3656,6 +3666,15 @@ BINT gtReal(REAL *a,REAL *b)
             return 0;
         }
     }
+
+    // TEST 1.B, IF BOTH HAVE THE SAME SIGN, CHECK FOR ZERO
+
+    if( (b->len==1) && (b->data[0]==0) ) {
+        if( (a->len==1) && (a->data[0]==0) ) return 0;   // A==B
+        return 1;   // A>B SINCE A>0 PER SIGN TEST
+    }
+    if( (a->len==1) && (a->data[0]==0) ) return 0;   // A<B
+
 
     // TEST 2, POSITION OF THE MOST SIGNIFICANT DIGIT
 
@@ -3721,6 +3740,15 @@ BINT eqReal(REAL *a,REAL *b)
         return 0;
     }
 
+    // TEST 1.B, IF BOTH HAVE THE SAME SIGN, CHECK FOR ZERO
+
+    if( (a->len==1) && (a->data[0]==0) ) {
+        if( (b->len==1) && (b->data[0]==0) ) return 1;   // A==B
+        return 0;
+    }
+    if( (b->len==1) && (b->data[0]==0) ) return 0;   // A!=0
+
+
     // TEST 2, POSITION OF THE MOST SIGNIFICANT DIGIT
 
     int digits_a,digits_b;
@@ -3777,6 +3805,15 @@ BINT cmpReal(REAL *a,REAL *b)
             return 1;
         }
     }
+
+    // TEST 1.B, IF BOTH HAVE THE SAME SIGN, CHECK FOR ZERO
+
+    if( (a->len==1) && (a->data[0]==0) ) {
+        if( (b->len==1) && (b->data[0]==0) ) return 0;   // A==B
+        return -1;   // A<B SINCE B>0 PER SIGN TEST
+    }
+    if( (b->len==1) && (b->data[0]==0) ) return 1;   // A>B SINCE A>0 PER SIGN TEST
+
 
     // TEST 2, POSITION OF THE MOST SIGNIFICANT DIGIT
 
