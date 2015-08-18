@@ -111,6 +111,11 @@ void busy_handler()
     halFlags|=HAL_FASTMODE;
 }
 
+void halInitBusyHandler()
+{
+    halFlags=0;
+    halBusyEvent=tmr_eventcreate(&busy_handler,500,0);
+}
 
 void halSetBusyHandler()
 {

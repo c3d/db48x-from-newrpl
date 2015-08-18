@@ -158,18 +158,18 @@ void main_virtual(unsigned int mode)
 
     halInitScreen();
     halInitKeyboard();
-    halSetBusyHandler();
+    halInitBusyHandler();
     halRedrawAll(&scr);
 
     if(wascleared) halShowMsg("Memory Cleared");
-    halShowMsg("Memory Recovered");
-    halStatusAreaPopup();
+    else halShowMsg("Memory Recovered");
+    //halStatusAreaPopup();
 
     halOuterLoop();
 
     tmr_eventkill(event);
     //   CLEAR SCREEN
-    ggl_rect(&scr,0,0,131,80,0x12345678);
+    ggl_rect(&scr,0,0,SCREEN_WIDTH-1,SCREEN_HEIGHT-1,0x12345678);
 
 }
 
@@ -495,6 +495,35 @@ void set_stackall()
     asm volatile ("nop");   // DO SOMETHING IN USER MODE TO PREVENT COMPILER FROM MAKING A TAIL CALL OPTIMIZATION
 }
 
+void reset_stackall()
+{
+    // THE USER STACK IS ALREADY SETUP PROPERLY
+
+    switch_mode(SVC_MODE);
+
+    set_stack((unsigned int *)0x40000e00);
+
+    switch_mode(ABT_MODE);
+
+    set_stack((unsigned int *)0x40000e00);
+
+    switch_mode(UND_MODE);
+
+    set_stack((unsigned int *)0x40000e00);
+
+    switch_mode(FIQ_MODE);
+
+    set_stack((unsigned int *)0x40000ffc);
+
+    switch_mode(IRQ_MODE);
+
+    set_stack((unsigned int *)0x40000f80);
+
+    switch_mode(SYS_MODE);
+
+    asm volatile ("nop");   // DO SOMETHING IN USER MODE TO PREVENT COMPILER FROM MAKING A TAIL CALL OPTIMIZATION
+}
+
 void enable_mmu()
 {
 
@@ -603,9 +632,16 @@ void halEnterPowerOff()
 
     // DISABLE THE MMU
     disable_mmu();
-    // AND GO DIE
+    reset_stackall();
 
+    // AND GO DIE
     //startup(0);
     cpu_off_die();
 
+}
+
+// NEVER EXIT, THIS IS NOT AN APP, IT'S A FIRMWARE
+int halExitOuterLoop()
+{
+    return 0;
 }

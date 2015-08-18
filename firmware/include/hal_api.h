@@ -1095,6 +1095,7 @@ extern HEVENT halBusyEvent;
 
 // CPU AND POWER MANAGEMENT FUNCTIONS
 void halSetBusyHandler();
+void halInitBusyHandler();
 void halEnterPowerOff();
 
 //  IF THIS FUNCTION RETURNS TRUE, TERMINATE THE OUTER LOOP
