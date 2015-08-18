@@ -26,7 +26,8 @@ extern int __keyb_repeattime,__keyb_longpresstime __SYSTEM_GLOBAL__,__keyb_debou
 
 // QT-BASED KEYBOARD MESSAGES MUST UPDATE THIS MATRIX;
 volatile keymatrix __pckeymatrix;
-
+// QT-BASED TERMINATE MESSAGE COMES IN THIS VARIABLE
+volatile int __pc_terminate;
 
 
 

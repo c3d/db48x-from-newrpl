@@ -1,6 +1,10 @@
 #include <newrpl.h>
 #include <ui.h>
 
+
+extern int __pc_terminate;
+
+
 void setup_hardware()
 {
     // SETUP HARDWARE
@@ -61,7 +65,6 @@ void clear_globals()
     // TODO: DO THIS MANUALLY ON THE PC
 
 
-
 }
 
 
@@ -70,6 +73,10 @@ void startup()
 
     // BOOTLOADER LEAVES STACK ON MAIN RAM, MOVE TO SRAM
     // ALSO WE ENTER IN SUPERVISOR MODE
+
+    // CLEAR THE REQUEST TO TERMINATE THE THREAD
+    __pc_terminate=0;
+
 
     setup_hardware();       // SETUP ACCESS TO OUT-OF-CHIP RAM MEMORY AMONG OTHER THINGS, THIS IS DONE BY THE BOOTLOADER BUT JUST TO BE SURE
 
@@ -136,4 +143,9 @@ void halEnterPowerOff()
     // TODO: SAVE STATE BEFORE CLOSING
 
     exit(0);
+}
+
+int halExitOuterLoop()
+{
+    return __pc_terminate;
 }

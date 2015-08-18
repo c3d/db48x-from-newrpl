@@ -1097,6 +1097,9 @@ extern HEVENT halBusyEvent;
 void halSetBusyHandler();
 void halEnterPowerOff();
 
+//  IF THIS FUNCTION RETURNS TRUE, TERMINATE THE OUTER LOOP
+int halExitOuterLoop();
+
 // TIMER FUNCTIONS
 BINT64 halTicks();
 

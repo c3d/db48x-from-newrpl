@@ -1709,6 +1709,7 @@ void halOuterLoop()
     ggl_initscr(&scr);
     do {
         halRedrawAll(&scr);
+        if(halExitOuterLoop()) break;
         keymsg=halWaitForKey();
         halSetBusyHandler();
     } while(!halProcessKey(keymsg));
