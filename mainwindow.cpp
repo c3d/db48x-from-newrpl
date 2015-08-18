@@ -1,9 +1,18 @@
 #include <QtGui>
 #include <QtCore>
+#include <QFileDialog>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
 MainWindow *myMainWindow;
+
+
+
+extern unsigned long long __pckeymatrix;
+extern int __pc_terminate;
+extern "C" void __keyb_update();
+
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -15,21 +24,39 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     screentmr=new QTimer(this);
     ui->EmuScreen->connect(screentmr,SIGNAL(timeout()),ui->EmuScreen,SLOT(update()));
-    screentmr->start(50);
     maintmr=new QTimer(this);
     connect(maintmr,SIGNAL(timeout()),this,SLOT(domaintimer()));
-    maintmr->start(1);
 
     rpl.start();
+    maintmr->start(1);
+    screentmr->start(50);
 
 }
 
 MainWindow::~MainWindow()
 {
-    screentmr->stop();
+    delete maintmr;
     delete screentmr;
     delete ui;
 }
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    maintmr->stop();
+    screentmr->stop();
+    if(rpl.isRunning()) {
+
+    __pc_terminate=1;
+    __pckeymatrix^=(1ULL<<63);
+    __keyb_update();
+
+    while(rpl.isRunning());
+    }
+
+    event->accept();
+
+}
+
 
 void MainWindow::on_EmuScreen_destroyed()
 {
@@ -193,9 +220,6 @@ const int keyMap[] = {
 
 
 
-extern unsigned long long __pckeymatrix;
-extern "C" void __keyb_update();
-
 
 void MainWindow::keyPressEvent(QKeyEvent *ev)
 {
@@ -255,4 +279,27 @@ void MainWindow::keyReleaseEvent(QKeyEvent *ev)
 extern "C" void thread_processevents()
 {
     QCoreApplication::processEvents();
+}
+
+void MainWindow::on_actionExit_triggered()
+{
+    maintmr->stop();
+    screentmr->stop();
+    if(rpl.isRunning()) {
+        __pc_terminate=1;
+        __pckeymatrix^=(1ULL<<63);
+        __keyb_update();
+    while(rpl.isRunning());
+    }
+
+}
+
+void MainWindow::on_actionSave_triggered()
+{
+    // STOP THE RPL ENGINE AND SAVE ITS CONTENTS
+
+    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpl");
+
+
+
 }

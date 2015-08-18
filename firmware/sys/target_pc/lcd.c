@@ -73,10 +73,10 @@ int lcd_setmode(int mode, unsigned int *physbuf)
 
 int /*height=(lcdreg[3])>>8,*/ pagewidth=LCD_W>>(4-mode);
 
-__lcd_mode=mode;
 __lcd_buffer=physbuf;
 // TODO: POINT THE QT SCREEN INTO THE GIVEN BUFFER
 lcd_setcontrast(__lcd_contrast);
+__lcd_mode=mode;
 
 return pagewidth<<1;
 }

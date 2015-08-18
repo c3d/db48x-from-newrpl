@@ -19,9 +19,14 @@ public:
 protected:
     virtual void keyPressEvent(QKeyEvent *ev);
     virtual void keyReleaseEvent(QKeyEvent *ev);
+    void closeEvent(QCloseEvent *event);
 
 private slots:
     void on_EmuScreen_destroyed();
+    void on_actionExit_triggered();
+
+    void on_actionSave_triggered();
+
 public slots:
     void domaintimer();
 private:

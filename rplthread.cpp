@@ -20,5 +20,4 @@ void RPLThread::run()
 extern "C" void thread_yield()
 {
     QThread::msleep(1);
-    QThread::yieldCurrentThread();
 }
