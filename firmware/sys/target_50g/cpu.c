@@ -280,7 +280,7 @@ void cpu_off_prepare()
 void cpu_off_die()
 {
     // GO OFF!
-    *HWREG(PHYS_CLK_REGS,0)|=0x8;    // POWER OFF
+    *HWREG(PHYS_CLK_REGS,0xC)|=0x8;    // POWER OFF
     // DOES NOT RETURN
 
     while(1);

@@ -140,7 +140,8 @@ LIBS += -lgcc
 FORMS    +=
 
 DISTFILES += \
-    firmware/ld.script
+    firmware/ld.script \
+    firmware/sys/target_50g/bootrom.txt
 
 RESOURCES +=
 
