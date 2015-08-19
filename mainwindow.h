@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QFile>
 #include "rplthread.h"
 namespace Ui {
 class MainWindow;
@@ -13,7 +14,12 @@ class MainWindow : public QMainWindow
 
     QTimer *screentmr,*maintmr;
     RPLThread rpl;
+
 public:
+    QFile *fileptr;
+
+    static void WriteWord(unsigned int word);
+
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 protected:

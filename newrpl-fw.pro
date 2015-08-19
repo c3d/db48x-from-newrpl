@@ -125,10 +125,10 @@ HEADERS  += \
     newrpl/decimal.h
 
 # This might need to be adapted to each cross-compiler installation
-GCC_LIBDIR = /usr/local/lib/gcc/arm-none-eabi/4.9.2
+GCC_LIBDIR = /usr/local/lib/gcc/arm-none-eabi/5.2.0
 
 INCLUDEPATH += $$GCC_LIBDIR/include
-QMAKE_LIBDIR += $$GCC_LIBDIR/4.9.2
+QMAKE_LIBDIR += $$GCC_LIBDIR
 
 # End of cross-compiler dependent
 
@@ -140,8 +140,7 @@ LIBS += -lgcc
 FORMS    +=
 
 DISTFILES += \
-    firmware/ld.script \
-    firmware/sys/target_50g/bootrom.txt
+    firmware/ld.script
 
 RESOURCES +=
 

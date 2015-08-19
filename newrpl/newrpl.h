@@ -222,6 +222,9 @@ extern void rplSetSystemFlagByName(BYTEPTR name,BINT len);
 // GARBAGE COLLECTION
 extern void rplGCollect();
 
+// BACKUP/RESTORE
+void rplBackup(void (*writefunc)(unsigned int));
+void rplRestoreBackup(void (*readfunc)(unsigned int));
 
 
 

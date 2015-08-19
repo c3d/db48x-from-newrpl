@@ -1,9 +1,11 @@
 #include <QtGui>
 #include <QtCore>
 #include <QFileDialog>
+#include <QFile>
+#include <QMessageBox>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include "newrpl.h"
 MainWindow *myMainWindow;
 
 
@@ -294,12 +296,58 @@ void MainWindow::on_actionExit_triggered()
 
 }
 
+void MainWindow::WriteWord(unsigned int word)
+{
+    myMainWindow->fileptr->write((const char *)&word,4);
+}
+
+extern "C" void write_data(unsigned int word)
+{
+    MainWindow::WriteWord(word);
+}
+
 void MainWindow::on_actionSave_triggered()
 {
     // STOP THE RPL ENGINE AND SAVE ITS CONTENTS
 
     QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpl");
 
+    if(!fname.isEmpty()) {
+        // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
 
+        if(!fname.endsWith(".nrpl")) fname+=".nrpl";
+
+        QFile file(fname);
+
+        if(!file.open(QIODevice::WriteOnly)) {
+            QMessageBox a(QMessageBox::Warning,"Error while saving","Cannot write to file "+ fname,QMessageBox::Ok,this);
+            a.exec();
+            return;
+        }
+
+        // FILE IS OPEN AND READY FOR WRITING
+
+        // STOP RPL ENGINE
+        maintmr->stop();
+        screentmr->stop();
+        if(rpl.isRunning()) {
+            __pc_terminate=1;
+            __pckeymatrix^=(1ULL<<63);
+            __keyb_update();
+        while(rpl.isRunning());
+        }
+
+        // PERFORM BACKUP
+        myMainWindow=this;
+        fileptr=&file;
+        rplBackup(&write_data);
+
+        // RESTART RPL ENGINE
+        __pc_terminate=0;
+        __pckeymatrix=0;
+        rpl.start();
+        maintmr->start(1);
+        screentmr->start(50);
+        }
 
 }

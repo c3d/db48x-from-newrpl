@@ -55,7 +55,7 @@ void main_virtual()
 
     tmr_eventkill(event);
     //   CLEAR SCREEN
-    ggl_rect(&scr,0,0,131,80,0x12345678);
+    ggl_rect(&scr,0,0,SCREEN_WIDTH-1,SCREEN_HEIGHT-1,0x12345678);
 
 }
 

@@ -233,7 +233,7 @@ void halRedrawStack(DRAWSURFACE *scr)
       xright=numwidth>12? numwidth:12;
       ggl_cliprect(scr,scr->clipx,ytop,scr->clipx2,y-1,0);  // CLEAR RECTANGLE
       DrawText(xright-numwidth,ytop,num,levelfnt,0xf,scr);
-      ggl_vline(scr,xright,ytop,y-1,ggl_mkcolor(0x8));
+      ggl_clipvline(scr,xright,ytop,y-1,ggl_mkcolor(0x8));
 
       if(level<=depth) {
       // DRAW THE OBJECT
@@ -310,13 +310,13 @@ void halRedrawMenu1(DRAWSURFACE *scr)
     ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine;
     ybottom=ytop+halScreen.Menu1-1;
     // DRAW BACKGROUND
-    ggl_rect(scr,0,ytop,SCREEN_WIDTH-1,ybottom-1,ggl_mkcolor(0xf));
-    ggl_hline(scr,ybottom,0,SCREEN_WIDTH-1,0);
-    ggl_vline(scr,21,ytop,ybottom,0);
-    ggl_vline(scr,43,ytop,ybottom,0);
-    ggl_vline(scr,65,ytop,ybottom,0);
-    ggl_vline(scr,87,ytop,ybottom,0);
-    ggl_vline(scr,109,ytop,ybottom,0);
+    ggl_cliprect(scr,0,ytop,SCREEN_WIDTH-1,ybottom-1,ggl_mkcolor(0xf));
+    ggl_cliphline(scr,ybottom,0,SCREEN_WIDTH-1,0);
+    ggl_clipvline(scr,21,ytop,ybottom,0);
+    ggl_clipvline(scr,43,ytop,ybottom,0);
+    ggl_clipvline(scr,65,ytop,ybottom,0);
+    ggl_clipvline(scr,87,ytop,ybottom,0);
+    ggl_clipvline(scr,109,ytop,ybottom,0);
 
     halScreen.DirtyFlag&=~MENU1_DIRTY;
 }
@@ -333,13 +333,13 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     ybottom=ytop+halScreen.Menu2-1;
     // DRAW BACKGROUND
-    ggl_rect(scr,0,ytop,64,ybottom,ggl_mkcolor(0x8));
-    ggl_vline(scr,21,ytop,ybottom,0);
-    ggl_vline(scr,43,ytop,ybottom,0);
-    ggl_vline(scr,65,ytop,ybottom,0);
-//    ggl_vline(scr,87,ytop,ybottom,0);
-//    ggl_vline(scr,109,ytop,ybottom,0);
-    ggl_hline(scr,ytop+6,0,64,0);
+    ggl_cliprect(scr,0,ytop,64,ybottom,ggl_mkcolor(0x8));
+    ggl_clipvline(scr,21,ytop,ybottom,0);
+    ggl_clipvline(scr,43,ytop,ybottom,0);
+    ggl_clipvline(scr,65,ytop,ybottom,0);
+//    ggl_clipvline(scr,87,ytop,ybottom,0);
+//    ggl_clipvline(scr,109,ytop,ybottom,0);
+    ggl_cliphline(scr,ytop+6,0,64,0);
 
     halScreen.DirtyFlag&=~MENU2_DIRTY;
 }
@@ -348,7 +348,7 @@ void halRedrawStatus(DRAWSURFACE *scr)
 {
     if(halScreen.Menu2) {
     int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
-    ggl_rect(scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+    ggl_cliprect(scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
     }
     // TODO: SHOW THE CURRENT DIR, ETC. HERE
@@ -362,8 +362,8 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
     if(halScreen.CmdLine) {
     int ytop=halScreen.Form+halScreen.Stack;
     if((halScreen.DirtyFlag&CMDLINE_ALLDIRTY)==CMDLINE_ALLDIRTY) {
-        ggl_rect(scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.CmdLine-1,0);
-        ggl_hline(scr,ytop,0,SCREEN_WIDTH-1,0xf0f0f0f0);
+        ggl_cliprect(scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.CmdLine-1,0);
+        ggl_cliphline(scr,ytop,0,SCREEN_WIDTH-1,0xf0f0f0f0);
     }
 
     BINT y=(halScreen.LineCurrent-halScreen.LineVisible)*halScreen.CmdLineFont->BitmapHeight;
@@ -530,12 +530,12 @@ void halShowErrorMsg()
         ggl_initscr(&scr);
         BINT ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
         // CLEAR MENU2 AND STATUS AREA
-        ggl_rect(&scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+        ggl_cliprect(&scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
         // DO SOME DECORATIVE ELEMENTS
-        ggl_hline(&scr,ytop+1,1,SCREEN_WIDTH-2,ggl_mkcolor(8));
-        ggl_hline(&scr,ytop+halScreen.Menu2-1,1,SCREEN_WIDTH-2,ggl_mkcolor(8));
-        ggl_vline(&scr,1,ytop+2,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
-        ggl_vline(&scr,SCREEN_WIDTH-2,ytop+2,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
+        ggl_cliphline(&scr,ytop+1,1,SCREEN_WIDTH-2,ggl_mkcolor(8));
+        ggl_cliphline(&scr,ytop+halScreen.Menu2-1,1,SCREEN_WIDTH-2,ggl_mkcolor(8));
+        ggl_clipvline(&scr,1,ytop+2,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
+        ggl_clipvline(&scr,SCREEN_WIDTH-2,ytop+2,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
 
         // SHOW ERROR MESSAGE
 
@@ -557,12 +557,12 @@ void halShowMsgN(char *Text,char *End)
         ggl_initscr(&scr);
         BINT ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
         // CLEAR MENU2 AND STATUS AREA
-        ggl_rect(&scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+        ggl_cliprect(&scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
         // DO SOME DECORATIVE ELEMENTS
-        ggl_hline(&scr,ytop+1,1,SCREEN_WIDTH-2,ggl_mkcolor(8));
-        ggl_hline(&scr,ytop+halScreen.Menu2-1,1,SCREEN_WIDTH-2,ggl_mkcolor(8));
-        ggl_vline(&scr,1,ytop+2,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
-        ggl_vline(&scr,SCREEN_WIDTH-2,ytop+2,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
+        ggl_cliphline(&scr,ytop+1,1,SCREEN_WIDTH-2,ggl_mkcolor(8));
+        ggl_cliphline(&scr,ytop+halScreen.Menu2-1,1,SCREEN_WIDTH-2,ggl_mkcolor(8));
+        ggl_clipvline(&scr,1,ytop+2,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
+        ggl_clipvline(&scr,SCREEN_WIDTH-2,ytop+2,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
 
         // SHOW MESSAGE
 
