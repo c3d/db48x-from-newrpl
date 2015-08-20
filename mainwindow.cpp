@@ -5,14 +5,20 @@
 #include <QMessageBox>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "newrpl.h"
+
+
 MainWindow *myMainWindow;
 
 
+// CAN'T INCLUDE THE HEADERS DIRECTLY DUE TO CONFLICTING TYPES ON WINDOWS ONLY...
 
 extern unsigned long long __pckeymatrix;
 extern int __pc_terminate;
 extern "C" void __keyb_update();
+// BACKUP/RESTORE
+extern "C" void rplBackup(void (*writefunc)(unsigned int));
+extern "C" void rplRestoreBackup(void (*readfunc)(unsigned int));
+
 
 
 

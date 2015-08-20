@@ -34,7 +34,7 @@ void rplBackup(void (*writefunc)(unsigned int))
     offset=1024;        // SAVE 1024 WORD ON THE FILE TO STORE SYSTEM VARIABLES
                         // AND SECTION INFORMATION
 
-
+    k=0;
     // TEMPBLOCKS
     sections[k].start= (WORDPTR)TempBlocks;
     sections[k].nitems= TempBlocksEnd-TempBlocks;
@@ -77,40 +77,46 @@ void rplBackup(void (*writefunc)(unsigned int))
     // END OFFSET IS THE START OF THE SECTION IMMEDIATELY AFTER
 
     for(k=0;k<10;++k) {
-        write(sections[k].offwords);
+        writefunc(sections[k].offwords);
         ++writeoff;
     }
 
     // TODO: WRITE OTHER SYSTEM VARIABLES HERE
 
     // FILL THE HEADER SECTION
-    while(writeoff<1024) { write(0) ++writeoff; }
+    while(writeoff<1024) { writefunc(0); ++writeoff; }
 
     // HERE WE ARE AT OFFSET 4096 (1024 WORDS)
 
     // DUMP TEMPBLOCKS TO THE FILE
     for(k=0;k<sections[0].nitems;++k) {
-        write((BINT)(TempBlocks[k]-TempOb)+sections[1].offwords);        // WRITE BLOCKS AS OFFSET RELATIVE TO THE FILE INSTEAD OF POINTER
+        writefunc((BINT)(TempBlocks[k]-TempOb)+sections[1].offwords);        // WRITE BLOCKS AS OFFSET RELATIVE TO THE FILE INSTEAD OF POINTER
         ++writeoff;
     }
 
     // DUMP TEMPOB TO THE FILE
     for(k=0;k<sections[1].nitems;++k) {
-        write(TempOb[k]);        // WRITE TEMPOB AS-IS, NO POINTERS THERE
+        writefunc(TempOb[k]);        // WRITE TEMPOB AS-IS, NO POINTERS THERE
         ++writeoff;
     }
 
     // DUMP DIRECTORIES TO THE FILE
+    WORDPTR ptr;
     for(k=0;k<sections[2].nitems;++k) {
-
-        write(TempOb[k]);        // WRITE TEMPOB AS-IS, NO POINTERS THERE
+        ptr=Directories[k];
+        if( (ptr>=TempOb) && (ptr<TempObEnd) ) {
+            // VALID POINTER INTO TEMPOB, CONVERT INTO FILE OFFSET
+            writefunc( (BINT)(ptr-TempOb)+ sections[1].offwords);
+        } else {
+            // IF THE OBJECT IS NOT IN TEMPOB IS IN ROM
+            // HOW DO WE DEAL WITH THIS??
+            // IN FIRMWARE IS EASY, SINCE ROM HAS KNOWN RANGE
+            // ON PC IS DIFFICULT, SINCE .RODATA SECTION IS UNKNOWN AND COULD BE 64-BIT
+            // LEAVE IT EMPTY FOR NOW
+            writefunc(0);
+        }
         ++writeoff;
     }
-
-
-
-    // TODO: JUST WRITE A WORD FOR NOW
-    writefunc(0X12345678);
 
     return;
 
