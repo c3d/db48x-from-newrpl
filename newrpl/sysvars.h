@@ -24,6 +24,7 @@ extern WORDPTR GC_PTRUpdate[MAX_GC_PTRUPDATE];
 #define DecompileObject     GC_PTRUpdate[5]     // NAME FOR USE BY THE DECOMPILER
 #define TokenStart          GC_PTRUpdate[5]     // NAME AS USED BY THE COMPILER
 #define LibraryList         GC_PTRUpdate[5]     // NAME AS USED BY THE LIBRARY INSTALLATION ROUTINES
+#define ObjectPTR           GC_PTRUpdate[5]     // NAME AS USED BY THE ROM ID CONVERSION OPCODES
 
 #define ArgPtr2             GC_PTRUpdate[6]     // NAME FOR USE BY LIBRARIES
 #define BlankStart          GC_PTRUpdate[6]     // NAME AS USED BY THE COMPILER
@@ -93,6 +94,7 @@ extern UBINT ArgNum1,ArgNum2,ArgNum3,RetNum;
 #define TokenLen ArgNum1
 #define BlankLen ArgNum2
 #define CurrentConstruct ArgNum3
+#define ObjectID      ArgNum3
 
 extern LIBHANDLER LowLibRegistry[MAXLOWLIBS];
 extern LIBHANDLER SysHiLibRegistry[MAXSYSHILIBS];

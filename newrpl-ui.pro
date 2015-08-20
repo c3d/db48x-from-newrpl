@@ -112,7 +112,8 @@ SOURCES += main.cpp\
     newrpl/cordic_Kh_8_comp.c \
     newrpl/decimal.c \
     newrpl/dectranscen.c \
-    newrpl/backup.c
+    newrpl/backup.c \
+    newrpl/sanity.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \

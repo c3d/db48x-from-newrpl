@@ -1286,6 +1286,48 @@ void LIB_HANDLER()
         RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_IDENT,0,1);
         return;
 
+    case OPCODE_GETROMID:
+        // THIS OPCODE RECEIVES A POINTER TO AN RPL OBJECT IN ROM, EXPORTED BY THIS LIBRARY
+        // AND CONVERTS IT TO A UNIQUE ID FOR BACKUP PURPOSES
+        // ObjectPTR = POINTER TO ROM OBJECT
+        // LIBBRARY RETURNS: ObjectID=new ID, RetNum=OK_CONTINUE
+        // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
+
+        RetNum=ERR_NOTMINE;
+        return;
+    case OPCODE_ROMID2PTR:
+        // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
+        // ObjectID = ID
+        // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
+        // OR RetNum= ERR_NOTMINE;
+
+        RetNum=ERR_NOTMINE;
+        return;
+
+    case OPCODE_CHECKOBJ:
+        // THIS OPCODE RECEIVES A POINTER TO AN OBJECT FROM THIS LIBRARY AND MUST
+        // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
+        // ObjectPTR = POINTER TO THE OBJECT TO CHECK
+        // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
+        if(ISPROLOG(*ObjectPTR)) {
+
+            // IDENTS ARE ZERO-PADDED STRINGS, DETERMINE THE ACTUAL NUMBER OF BYTES USED
+            BINT len=OBJSIZE(*ObjectPTR);
+            if(len<1) { RetNum=ERR_INVALID; return; }
+            WORD lastword=*(ObjectPTR+len);
+            BINT usedbytes=0;
+            while( !(lastword&0xff000000) && (usedbytes<4) ) { lastword<<=8; ++usedbytes; }
+            usedbytes=4-usedbytes;
+
+            if(!usedbytes) { RetNum=ERR_INVALID; return; }  // IDENT HAS AN EXTRA WORD
+
+            // AND CHECK FOR NAME VALIDITY
+            if(!rplIsValidIdent((BYTEPTR)(ObjectPTR+1),((BYTEPTR)ObjectPTR)+((len-1)<<2)+usedbytes)) { RetNum=ERR_INVALID; return; }
+        }
+        RetNum=OK_CONTINUE;
+        return;
+
+
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;
         RetNum=OK_CONTINUE;

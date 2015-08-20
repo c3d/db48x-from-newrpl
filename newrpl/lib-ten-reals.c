@@ -595,6 +595,50 @@ void LIB_HANDLER()
     case OPCODE_GETINFO:
         RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_REAL,0,1);
         return;
+
+    case OPCODE_GETROMID:
+        // THIS OPCODE RECEIVES A POINTER TO AN RPL OBJECT IN ROM, EXPORTED BY THIS LIBRARY
+        // AND CONVERTS IT TO A UNIQUE ID FOR BACKUP PURPOSES
+        // ObjectPTR = POINTER TO ROM OBJECT
+        // LIBBRARY RETURNS: ObjectID=new ID, RetNum=OK_CONTINUE
+        // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
+
+        RetNum=ERR_NOTMINE;
+        return;
+    case OPCODE_ROMID2PTR:
+        // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
+        // ObjectID = ID
+        // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
+        // OR RetNum= ERR_NOTMINE;
+
+        RetNum=ERR_NOTMINE;
+        return;
+
+    case OPCODE_CHECKOBJ:
+        // THIS OPCODE RECEIVES A POINTER TO AN OBJECT FROM THIS LIBRARY AND MUST
+        // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
+        // ObjectPTR = POINTER TO THE OBJECT TO CHECK
+        // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
+
+        if(ISPROLOG(*ObjectPTR)) {
+            if(OBJSIZE(*ObjectPTR)<2) { RetNum=ERR_INVALID; return; }
+            REAL r;
+            rplReadReal(ObjectPTR,&r);
+            // CHECK PROPER LENGTH
+            if(r.len+1!=OBJSIZE(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
+            // CHECK FOR CORRUPTED DATA
+            BINT k;
+            for(k=0;k<r.len;++k) {
+                // IF THE NUMBER IS NOT NORMALIZED, ASSUME IT WAS CORRUPTED
+                if( (r.data[k]<0) || (r.data[k]>=100000000) ) { RetNum=ERR_INVALID; return; }
+            }
+        }
+        RetNum=OK_CONTINUE;
+        return;
+
+
+
+
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;
         RetNum=OK_CONTINUE;
