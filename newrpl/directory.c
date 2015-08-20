@@ -281,29 +281,20 @@ WORDPTR *rplGetDirfromGlobal(WORDPTR *var)
 
 
 
-// PURGE A SINGLE VARIABLE
 
-void rplPurgeGlobal(WORDPTR nameobj)
+
+
+// LOW LEVEL VERSION OF PURGE
+void rplPurgeForced(WORDPTR *var)
 {
-    WORDPTR *var=rplFindGlobal(nameobj,1);
-
-    if(!var) {
-        Exceptions|=EX_VARUNDEF;
-        ExceptionPointer=IPtr;
-        return;
-    }
-
     if(ISPROLOG(**(var+1)) && (LIBNUM(**(var+1))==DODIR)) {
         // TRYING TO PURGE AN ENTIRE DIRECTORY
 
         WORD dirsize=*(*(var+1)+1);
 
         // NEED TO USE PGDIR FOR THAT
-        if(dirsize) {
-            Exceptions|=EX_NONEMPTYDIR;
-            ExceptionPointer=IPtr;
-            return;
-        }
+        if(dirsize) return;
+
 
         // REMOVE THE EMPTY DIR
 
@@ -331,6 +322,42 @@ void rplPurgeGlobal(WORDPTR nameobj)
 
     return;
 }
+
+
+// PURGE A SINGLE VARIABLE
+
+void rplPurgeGlobal(WORDPTR nameobj)
+{
+    WORDPTR *var=rplFindGlobal(nameobj,1);
+
+    if(!var) {
+        Exceptions|=EX_VARUNDEF;
+        ExceptionPointer=IPtr;
+        return;
+    }
+
+    if(ISPROLOG(**(var+1)) && (LIBNUM(**(var+1))==DODIR)) {
+        // TRYING TO PURGE AN ENTIRE DIRECTORY
+
+        WORD dirsize=*(*(var+1)+1);
+
+        // NEED TO USE PGDIR FOR THAT
+        if(dirsize) {
+            Exceptions|=EX_NONEMPTYDIR;
+            ExceptionPointer=IPtr;
+            return;
+        }
+
+    }
+
+    rplPurgeForced(var);
+}
+
+
+
+
+
+
 
 WORDPTR rplGetDirName(WORDPTR *dir)
 {

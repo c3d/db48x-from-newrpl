@@ -158,7 +158,7 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 
 #define ISSYMBOLIC(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOSYMB))
 #define ISMATRIX(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOMATRIX))
-
+#define ISDIR(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DODIR))
 
 #define ISAPPROX(prolog) ((LIBNUM(prolog)&APPROX_BIT))
 

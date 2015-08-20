@@ -118,7 +118,7 @@ WORDPTR *rplProtectData()
     WORDPTR *ret=DStkProtect;
     DStkProtect=DSTop;
     // ADD PROTECTION IN THE STACK FOR RECURSIVE USE
-    rplPushRet((WORDPTR)((ret-DStkBottom)));
+    rplPushRet((WORDPTR)(DStk+(BINT)(ret-DStkBottom)));
     rplPushRet(unprotect_seco);
     return ret;
 }
@@ -130,7 +130,7 @@ WORDPTR *rplUnprotectData()
     if(rplPeekRet(1)==unprotect_seco) {
         // REMOVE THE PROTECTION FROM THE RETURN STACK
         rplPopRet();
-        BINT protlevel=(BINT)rplPopRet();
+        BINT protlevel=(BINT) ((WORDPTR *)rplPopRet()-DStk);
         if((DStkBottom+protlevel>=DStkBottom) && (DStkBottom+protlevel<DSTop) )  DStkProtect=DStkBottom+protlevel;
         else DStkProtect=DStkBottom;
 
@@ -191,7 +191,6 @@ void rplRemoveSnapshot(BINT numsnap)
 // PUSH THE CURRENT STACK AS SNAPSHOT LEVEL1
 void rplTakeSnapshot()
 {
-    // STACK CAN NEVER BE "PROTECTED" WHEN UNDO MARKS ARE CREATED
     WORDPTR *top=DSTop,*bottom=DStkBottom;
     BINT levels=top-bottom;
     // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK

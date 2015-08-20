@@ -34,6 +34,14 @@ WORDPTR rplAllocTempOb(WORD size)
 // IT HAS TO BE THE LAST BLOCK ALLOCATED WITH ALLOCTEMPOB
 void rplTruncateLastObject(WORDPTR newend)
 {
+
+    if(newend<=*(TempBlocksEnd-1)) {
+        // TRIED TO TRUNCATE BEYOND THE LAST OBJECT, CAN'T ALLOW THAT
+        // REMOVE LAST ALLOCATED BLOCK COMPLETELY
+        --TempBlocksEnd;
+        TempObEnd=*TempBlocksEnd;
+        return;
+    }
     TempObEnd=newend;
 }
 
