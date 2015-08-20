@@ -101,7 +101,7 @@ return 0;
 BINT rplVerifyDStack(BINT fix)
 {
 BINT errors=0;
-WORDPTR *stkptr=DSTop;
+WORDPTR *stkptr=DSTop-1;
 WORDPTR *bottom=DStkBottom;
 
 do {
@@ -153,7 +153,7 @@ return 1;
 
 BINT rplVerifyRStack()
 {
-    WORDPTR *stkptr=RSTop;
+    WORDPTR *stkptr=RSTop-1;
 
     while(stkptr>=RStk) {
         if((stkptr>=DStk)&&(stkptr<DSTop)) {

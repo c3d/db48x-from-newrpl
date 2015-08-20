@@ -37,7 +37,9 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
-    CMD(TICKS)
+    CMD(TICKS), \
+    CMD(MEMCHECK), \
+    CMD(MEMFIX)
 
 
 // ADD MORE OPCODES HERE
@@ -82,6 +84,34 @@ void LIB_HANDLER()
     {
         BINT64 ticks=halTicks();
         rplNewBINTPush(ticks,DECBINT);
+        return;
+    }
+    case MEMCHECK:
+    {
+        // SYSTEM SANITY CHECK
+
+        if(rplVerifyDStack(0)) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
+        if(rplVerifyRStack()) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
+        if(rplVerifyTempOb()) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
+        if(rplVerifyDirectories(0)) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
+
+        return;
+
+    }
+    case MEMFIX:
+    {
+        if(rplVerifyDStack(0)) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
+        if(rplVerifyRStack()) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
+        if(rplVerifyTempOb()) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
+        if(rplVerifyDirectories(0)) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
         return;
     }
 

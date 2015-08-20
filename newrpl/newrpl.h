@@ -226,6 +226,19 @@ extern void rplGCollect();
 void rplBackup(void (*writefunc)(unsigned int));
 void rplRestoreBackup(void (*readfunc)(unsigned int));
 
+// SYSTEM SANITY CHECKS
+BINT rplVerifyObject(WORDPTR obj);
+BINT rplIsTempObPointer(WORDPTR ptr);
+BINT rplVerifyObjPointer(WORDPTR ptr);
+BINT rplVerifyDStack(BINT fix);
+BINT rplVerifyRStack();
+BINT rplVerifyTempOb();
+BINT rplVerifyDirectories(BINT fix);
+
+
+
+
+
 
 
 // LAM FUNCTIONS
