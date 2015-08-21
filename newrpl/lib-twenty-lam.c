@@ -1322,7 +1322,7 @@ void LIB_HANDLER()
             if(!usedbytes) { RetNum=ERR_INVALID; return; }  // IDENT HAS AN EXTRA WORD
 
             // AND CHECK FOR NAME VALIDITY
-            if(!rplIsValidIdent((BYTEPTR)(ObjectPTR+1),((BYTEPTR)ObjectPTR)+((len-1)<<2)+usedbytes)) { RetNum=ERR_INVALID; return; }
+            if(!rplIsValidIdent((BYTEPTR)(ObjectPTR+1),((BYTEPTR)ObjectPTR)+(len<<2)+usedbytes)) { RetNum=ERR_INVALID; return; }
         }
         RetNum=OK_CONTINUE;
         return;

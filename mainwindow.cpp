@@ -160,6 +160,7 @@ const int keyMap[] = {
     Qt::Key_Backspace,  1,
     Qt::Key_U,          2,
     Qt::Key_Slash,      3,
+    Qt::Key_Z,          3,
     Qt::Key_Asterisk,   4,
     Qt::Key_Minus,      5,
     Qt::Key_Plus,       6,

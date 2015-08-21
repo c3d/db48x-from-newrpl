@@ -445,9 +445,10 @@ else {
 // IF CONTENTS ARE A DIRECTORY HANDLE, CHECK IF THE HANDLE IS VALID
 
 if(ISDIR(*dirptr[1])) {
-    if(!rplFindDirbyHandle(*dirptr[1])) {
+    if(!rplFindDirbyHandle(dirptr[1])) {
         // THIS IS AN INVALID ENTRY TO A NON-EXISTENT OR CORRUPTED DIRECTORY OBJECT
         // JUST PURGE IT
+        if(!fix) return 0;
         rplPurgeForced(dirptr);
         continue;
     }

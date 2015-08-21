@@ -97,11 +97,14 @@ SOURCES +=\
     newrpl/lib-twenty-lam.c \
     newrpl/lib-two-ident.c \
     newrpl/lists.c \
+    newrpl/matrix.c \
     newrpl/returnstack.c \
     newrpl/romlibs.c \
     newrpl/runstream.c \
     newrpl/symbolic.c \
     newrpl/tempob.c \
+    newrpl/backup.c \
+    newrpl/sanity.c \
     firmware/ui_cmdline.c \
     newrpl/lib-48-matrix.c \
     newrpl/utf8lib.c \
@@ -109,7 +112,6 @@ SOURCES +=\
     firmware/sys/Font6A.c \
     firmware/sys/Font5C.c \
     firmware/sys/Font7A.c \
-    newrpl/matrix.c \
     firmware/sys/Font8C.c \
     firmware/sys/Font8D.c
 
