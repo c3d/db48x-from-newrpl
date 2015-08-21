@@ -10,20 +10,10 @@
 #include "libraries.h"
 
 
-const WORD const dir_start_bint[]=
-{
-    (WORD)DIR_START_MARKER
-};
-const WORD const dir_end_bint[]=
-{
-    (WORD)DIR_END_MARKER
-};
-const WORD const dir_parent_bint[]=
-{
-    (WORD)DIR_PARENT_MARKER
-};
-
-
+extern const WORD const dir_start_bint[];
+extern const WORD const dir_end_bint[];
+extern const WORD const dir_parent_bint[];
+extern const WORD const root_dir_handle[];
 
 // GROW THE DIRECTORY REGION
 
@@ -110,8 +100,6 @@ void rplCreateGlobal(WORDPTR nameobj,WORDPTR value)
 WORDPTR *rplFindDirbyHandle(WORDPTR handle)
 {
 
-if(!handle) return 0;
-
 WORDPTR *scan=Directories;
 
 while(scan<DirsTop) {
@@ -178,7 +166,7 @@ WORDPTR *rplMakeNewDir()
     direntry[0]=(WORDPTR)dir_start_bint;
     direntry[1]=(WORDPTR)dirobj;
     direntry[2]=(WORDPTR)dir_parent_bint;
-    direntry[3]=0;      // NO PARENT!!!
+    direntry[3]=(WORDPTR)root_dir_handle;      // NO PARENT!!!
     direntry[4]=(WORDPTR)dir_end_bint;
     direntry[5]=(WORDPTR)dirobj;
 
@@ -362,9 +350,10 @@ void rplPurgeGlobal(WORDPTR nameobj)
 WORDPTR rplGetDirName(WORDPTR *dir)
 {
     WORDPTR *parent=dir+3;
-    if(!*parent) return 0;
+
     parent=rplFindDirbyHandle(*parent);
 
+    if(!parent) return 0;
 
     while(*parent!=dir_end_bint) {
         if(*(parent+1)==*(dir+1)) return *parent;

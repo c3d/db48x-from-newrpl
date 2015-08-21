@@ -22,6 +22,7 @@
 #define LIB_NAMES lib28_names
 #define LIB_HANDLER lib28_handler
 #define LIB_NUMBEROFCMDS LIB28_NUMBEROFCMDS
+#define ROMPTR_TABLE    romptr_table28
 
 // LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
 // HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
@@ -69,6 +70,43 @@ enum LIB_ENUM { CMD_LIST /*, CMD_EXTRAENUM*/ , LIB_NUMBEROFCMDS };
 #define CMD(a) #a
 const char * const LIB_NAMES[]= { CMD_LIST /*, CMD_EXTRANAME*/  };
 #undef CMD
+
+
+const WORD const dir_start_bint[]=
+{
+    (WORD)DIR_START_MARKER
+};
+const WORD const dir_end_bint[]=
+{
+    (WORD)DIR_END_MARKER
+};
+const WORD const dir_parent_bint[]=
+{
+    (WORD)DIR_PARENT_MARKER
+};
+const WORD const root_dir_handle[]=
+{
+    (WORD)MKPROLOG(DODIR,1),
+    (WORD)0
+};
+
+
+// EXTERNAL EXPORTED OBJECT TABLE
+// UP TO 64 OBJECTS ALLOWED, NO MORE
+const WORDPTR const ROMPTR_TABLE[]={
+    (WORDPTR)dir_start_bint,
+    (WORDPTR)dir_parent_bint,
+    (WORDPTR)dir_end_bint,
+    (WORDPTR)root_dir_handle,
+    0
+};
+
+
+
+
+
+
+
 
 
 void LIB_HANDLER()
@@ -432,7 +470,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        RetNum=ERR_NOTMINE;
+        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -440,7 +478,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        RetNum=ERR_NOTMINE;
+        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID);
         return;
 
     case OPCODE_CHECKOBJ:

@@ -45,6 +45,8 @@ extern const LIBHANDLER ROMLibs[];
 
 #define MKOPCODE(lib,op) (WORD)((((lib)&0xFFF)<<20)|((op)&0x7FFFF))
 #define MKPROLOG(lib,size) ((((lib)&0xFFF)<<20)|((size)&0x3FFFF)|0x80000)
+
+
 #define OPCODE(p) ( (p)&0x7FFFF)
 #define OBJSIZE(p) ((p)&0x3FFFF)
 #define LIBNUM(p) ((((WORD)(p))>>20)&0xFFF)
@@ -114,6 +116,11 @@ extern void libDecompileCmds(           char *libnames[], WORD libopcodes[], int
 extern void libProbeCmds(char *libnames[], BINT tokeninfo[], int numcmds);
 extern void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT tokeninfo[],int numcmds);
 extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int numcmds);
+extern void libGetRomptrID(BINT libnum,WORDPTR *table,WORDPTR ptr);
+extern void libGetPTRFromID(WORDPTR *table,WORD id);
+
+
+
 
 #define APPROX_BIT    1
 
@@ -169,6 +176,7 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 #define MAKESINT(a) MKOPCODE(DECBINT,(a)&0x3ffff)
 
 
+
 // CONVENIENCE MACRO TO GET SIZE OF A MATRIX
 #define MATMKSIZE(rows,cols) ( (((rows)&0xffff)<<16)|((cols)&0xffff) )
 #define MATROWS(size) ( ((size)>>16)&0xffff )
@@ -189,7 +197,19 @@ extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int num
 #define LIB_LOCALENV 4080
 // DEFINE OVERLOADABLE OPERATORS
 #define LIB_OVERLOADABLE    4090
+// ROMPTR ID'S
+#define LIB_ROMPTR          0xfe0
 
+// MACRO TO CREATE/EXTRACT ROMPTR ID'S
+// ROMPTR IDS HAVE THE HIGH BYTE = 0XFE
+// NO LIBRARIES CAN USE THE NUMBERS ABOVE 0XFE0 (4064 TO 4079 ARE ROMPTR ID'S, 4080 TO 4095 ARE SYSTEM LIBS)
+// ROMPTR ID ENCODES UP TO 63 ROM OBJECTS, WITH MAXIMUM SIZE OF 31 WORDS EACH
+
+
+#define MKROMPTRID(lib,idx,off) MKOPCODE(LIB_ROMPTR+(((lib)>>8)&0xf), ((((lib)&0xFF)<<11)|(((idx)<<5)&0x3f)|(((off)&0x1f))) )
+#define ROMPTRID_IDX(id) (((id)>>5)&0x3f)
+#define ROMPTRID_OFF(id) ((id)&0x1f)
+#define ROMPTRID_LIB(id) ((((id)>>16)&0xf00)|(((id)>>11)&0xff))
 
 // COMMANDS THAT NEED TO BE ACCESSED FROM MULTIPLE LIBRARIES
 // WARNING: IF COMMANDS ARE REORGANIZED WITHIN LIBRARIES, THIS WILL BREAK

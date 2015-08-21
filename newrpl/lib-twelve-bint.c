@@ -19,6 +19,7 @@
 #define LIB_NAMES lib12_names
 #define LIB_HANDLER lib12_handler
 #define LIB_NUMBEROFCMDS LIB12_NUMBEROFCMDS
+#define ROMPTR_TABLE    romptr_table12
 
 // LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
 // HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
@@ -91,6 +92,21 @@ const WORD const three_bint[]=
 {
     (WORD)MAKESINT(3)
 };
+
+
+// EXTERNAL EXPORTED OBJECT TABLE
+// UP TO 64 OBJECTS ALLOWED, NO MORE
+const WORDPTR const ROMPTR_TABLE[]={
+    (WORDPTR)zero_bint,
+    (WORDPTR)one_bint,
+    (WORDPTR)two_bint,
+    (WORDPTR)three_bint,
+    (WORDPTR)minusone_bint,
+    0
+};
+
+
+
 
 const char const alldigits[]="0123456789ABCDEF";
 
@@ -1206,7 +1222,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        RetNum=ERR_NOTMINE;
+        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -1214,7 +1230,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        RetNum=ERR_NOTMINE;
+        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID);
         return;
 
     case OPCODE_CHECKOBJ:

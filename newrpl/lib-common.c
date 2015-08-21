@@ -130,3 +130,32 @@ void libGetInfo2(WORD opcode,char *libnames[],BINT tokeninfo[],int numcmds)
         }
         RetNum=ERR_NOTMINE;
     }
+
+
+void libGetRomptrID(BINT libnum,WORDPTR *table,WORDPTR ptr)
+{
+    BINT idx=0;
+    while(table[idx]) {
+        if( (ptr>=table[idx]) && (ptr<table[idx]+OBJSIZE(*table[idx])+1)) {
+            BINT offset=ptr-table[idx];
+            ObjectID=MKROMPTRID(libnum,idx,offset);
+            RetNum=OK_CONTINUE;
+            return;
+        }
+        ++idx;
+    }
+    RetNum=ERR_NOTMINE;
+    return;
+}
+
+void libGetPTRFromID(WORDPTR *table,WORD id)
+{
+    BINT idx;
+    while(table[idx]) ++idx;
+    if(ROMPTRID_IDX(id)>=idx) {
+        RetNum=ERR_NOTMINE;
+        return;
+    }
+    ObjectPTR=table[ROMPTRID_IDX(id)]+ROMPTRID_OFF(id);
+    RetNum=OK_CONTINUE;
+}

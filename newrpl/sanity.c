@@ -238,6 +238,7 @@ return obj;
 extern const WORD const dir_start_bint[];
 extern const WORD const dir_end_bint[];
 extern const WORD const dir_parent_bint[];
+extern const WORD const root_dir_handle[];
 
 BINT rplVerifyDirectories(BINT fix)
 {
@@ -340,10 +341,11 @@ while(dirptr<DirsTop) {
     parent=dirptr[3];
 
     if(!rplIsTempObPointer(parent)) {
+        if(parent!=root_dir_handle) {
         // BAD HANDLE POINTER
         if(!fix) return 0;
         // SCAN FOR A POSSIBLE PARENT DIR ENTRY WITH OUR HANDLE
-
+        parent=root_dir_handle;
         WORDPTR *scan=Directories+1;
         while(scan<DirsTop) {
             if( (scan>=dirptr)&&(scan<dirend)) { scan=dirend+3; continue; }
@@ -367,8 +369,9 @@ while(dirptr<DirsTop) {
 
             }
         }
-        // HERE EITHER WE HAVE A NEW PARENT HANDLE OR IT'S UNCHANGED
+        // HERE EITHER WE HAVE A NEW PARENT HANDLE OR IT'S ROOT
         dirptr[3]=parent;
+        }
 
     }
 
