@@ -25,6 +25,7 @@
 #define LIB_NAMES lib20_names
 #define LIB_HANDLER lib20_handler
 #define LIB_NUMBEROFCMDS LIB20_NUMBEROFCMDS
+#define ROMPTR_TABLE    romptr_table20
 
 // LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
 // HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
@@ -111,6 +112,18 @@ const WORD const lam_errhandler_bint[]=
 const WORD const nulllam_ident[]=
 {
     (WORD)MKOPCODE(LIBRARY_NUMBER,NULLLAM)
+};
+
+
+// EXTERNAL EXPORTED OBJECT TABLE
+// UP TO 64 OBJECTS ALLOWED, NO MORE
+const WORDPTR const ROMPTR_TABLE[]={
+    (WORDPTR)lameval_seco,
+    (WORDPTR)abnd_prog,
+    (WORDPTR)lam_baseseco_bint,
+    (WORDPTR)lam_errhandler_bint,
+    (WORDPTR)nulllam_ident,
+    0
 };
 
 
@@ -1293,7 +1306,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        RetNum=ERR_NOTMINE;
+        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -1301,7 +1314,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        RetNum=ERR_NOTMINE;
+        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID);
         return;
 
     case OPCODE_CHECKOBJ:

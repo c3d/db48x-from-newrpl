@@ -17,6 +17,7 @@
 #define LIB_HANDLER lib68_handler
 #define LIB_TOKENINFO lib68_tokeninfo
 #define LIB_NUMBEROFCMDS LIB68_NUMBEROFCMDS
+#define ROMPTR_TABLE    romptr_table68
 
 // LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
 // HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
@@ -72,17 +73,32 @@ const BINT const LIB_TOKENINFO[]=
 
 
 
-const WORD dotsettings_ident[]= {
+const WORD const dotsettings_ident[]= {
         MKPROLOG(DOIDENT,3),
         TEXT2WORD('.','S','e','t'),
         TEXT2WORD('t','i','n','g'),
         TEXT2WORD('s',0,0,0)
 };
-const WORD flags_ident[]= {
+const WORD const flags_ident[]= {
         MKPROLOG(DOIDENT,2),
         TEXT2WORD('F','L','A','G'),
         TEXT2WORD('S',0,0,0)
 };
+
+
+// EXTERNAL EXPORTED OBJECT TABLE
+// UP TO 64 OBJECTS ALLOWED, NO MORE
+const WORDPTR const ROMPTR_TABLE[]={
+    (WORDPTR)dotsettings_ident,
+    (WORDPTR)flags_ident,
+    0
+};
+
+
+
+
+
+
 
 typedef struct {
     const char *flagname;
@@ -747,7 +763,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        RetNum=ERR_NOTMINE;
+        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -755,7 +771,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        RetNum=ERR_NOTMINE;
+        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID);
         return;
     case OPCODE_CHECKOBJ:
         // THIS OPCODE RECEIVES A POINTER TO AN OBJECT FROM THIS LIBRARY AND MUST

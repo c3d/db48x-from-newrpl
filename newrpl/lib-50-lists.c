@@ -20,6 +20,7 @@
 #define LIB_NAMES lib50_names
 #define LIB_HANDLER lib50_handler
 #define LIB_NUMBEROFCMDS LIB50_NUMBEROFCMDS
+#define ROMPTR_TABLE    romptr_table50
 
 // LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
 // HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
@@ -239,6 +240,24 @@ const WORD const empty_list[]={
     MKOPCODE(DOLIST,ENDLIST)
 };
 
+// EXTERNAL EXPORTED OBJECT TABLE
+// UP TO 64 OBJECTS ALLOWED, NO MORE
+const WORDPTR const ROMPTR_TABLE[]={
+    (WORDPTR)dolist_seco,
+    (WORDPTR)dosubs_seco,
+    (WORDPTR)map_seco,
+    (WORDPTR)stream_seco,
+    (WORDPTR)nsub_name,
+    (WORDPTR)endsub_name,
+    (WORDPTR)unary_seco,
+    (WORDPTR)binary_seco,
+    (WORDPTR)testop_seco,
+    (WORDPTR)oplist_seco,
+    (WORDPTR)deltalist_seco,
+    (WORDPTR)empty_list,
+
+    0
+};
 
 
 // COMPARE TWO ITEMS WITHIN A LIST, BY CALLING THE OPERATOR CMP
@@ -2624,7 +2643,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        RetNum=ERR_NOTMINE;
+        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -2632,7 +2651,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        RetNum=ERR_NOTMINE;
+        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID);
         return;
 
     case OPCODE_CHECKOBJ:

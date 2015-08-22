@@ -22,6 +22,7 @@
 #define LIB_NAMES lib32_names
 #define LIB_HANDLER lib32_handler
 #define LIB_NUMBEROFCMDS LIB32_NUMBEROFCMDS
+#define ROMPTR_TABLE    romptr_table32
 
 // LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
 // HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
@@ -97,11 +98,14 @@ const WORD const symbeval1_seco[]={
 };
 
 
-
-const WORD const emptylist_list[]={
-    MKPROLOG(DOLIST,1),
-    CMD_ENDLIST
+// EXTERNAL EXPORTED OBJECT TABLE
+// UP TO 64 OBJECTS ALLOWED, NO MORE
+const WORDPTR const ROMPTR_TABLE[]={
+    (WORDPTR)symbeval_seco,
+    (WORDPTR)symbeval1_seco,
+    0
 };
+
 
 // LOOKS INTO UPPER ENVIRONMENTS THAT MATCH env_owner,
 // SEARCHING IN lamnum INDEX FOR object. IF FOUND, MEANS
@@ -757,7 +761,7 @@ void LIB_HANDLER()
             return;
         }
 
-        } else { rplPushData((WORDPTR)emptylist_list); }
+        } else { rplPushData((WORDPTR)empty_list); }
 
         rplPushData(*rplGetLAMn(1));    // NULLAM1 HAS THE RESULT OF THE MATCH (0=NO MATCH, 1 = MATCH FOUND)
 
@@ -998,7 +1002,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        RetNum=ERR_NOTMINE;
+        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -1006,7 +1010,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        RetNum=ERR_NOTMINE;
+        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID);
         return;
 
     case OPCODE_CHECKOBJ:
