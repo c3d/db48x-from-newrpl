@@ -13,6 +13,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
     QTimer *screentmr,*maintmr;
+    QString currentfile;
     RPLThread rpl;
 
 public:
@@ -35,6 +36,10 @@ private slots:
     void on_actionSave_triggered();
 
     void on_actionOpen_triggered();
+
+    void on_actionSaveAs_triggered();
+
+    void on_actionNew_triggered();
 
 public slots:
     void domaintimer();

@@ -221,8 +221,6 @@ WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name,BINT len,WORDPTR *parent,BINT sca
 return 0;
 }
 
-
-
 WORDPTR *rplFindGlobalInDir(WORDPTR nameobj,WORDPTR *parent,BINT scanparents)
 {
     WORDPTR *direntry=parent;
@@ -246,6 +244,33 @@ WORDPTR *rplFindGlobal(WORDPTR nameobj,BINT scanparents)
     return rplFindGlobalInDir(nameobj,CurrentDir,scanparents);
 }
 
+// GET A POINTER TO THE KEY/VALUD PAIR AT idx WITHIN directory
+// RETURN NULL IF idx IS NOT WITHIN 0<idx<NITEMS IN DIRECTORY
+
+WORDPTR *rplFindGlobalByIndexInDir(BINT idx,WORDPTR *directory)
+{
+    BINT nitems=*(directory[1]+1);
+
+    if( (idx<0) || (idx>=nitems)) return 0;
+    return directory+4+2*idx;
+}
+
+// SAME AS ABOVE BUT FOR CURRENT DIRECTORY ONLY
+WORDPTR *rplFindGlobalByIndex(BINT idx)
+{
+    return rplFindGlobalByIndexInDir(idx,CurrentDir);
+}
+
+// GET TOTAL NUMBER OF VARIABLES IN THE DIRECTORY
+BINT rplGetVarCountInDir(WORDPTR *directory)
+{
+    return *(directory[1]+1);
+}
+
+BINT rplGetVarCount()
+{
+    return *(CurrentDir[1]+1);
+}
 
 // RCL A GLOBAL, RETURN POINTER TO ITS VALUE
 // LOOKS IN CURRENT DIR AND PARENT DIRECTORIES
@@ -420,3 +445,4 @@ WORDPTR rplGetSettingsbyName(BYTEPTR name,BINT namelen)
     if(setting) return setting[1];
     return 0;
 }
+

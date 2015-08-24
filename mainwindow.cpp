@@ -6,6 +6,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#define takemax(a,b) (((a)>(b))? (a):(b))
 
 MainWindow *myMainWindow;
 
@@ -39,6 +40,8 @@ MainWindow::MainWindow(QWidget *parent) :
     rpl.start();
     maintmr->start(1);
     screentmr->start(50);
+    setWindowTitle("newRPL - [Unnamed]");
+
 
 }
 
@@ -329,8 +332,10 @@ extern "C" unsigned int read_data()
 
 void MainWindow::on_actionSave_triggered()
 {
-    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpl");
+    QString fname;
 
+    if(currentfile.isEmpty()) fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpl");
+    else fname=currentfile;
     if(!fname.isEmpty()) {
         // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
 
@@ -412,6 +417,8 @@ void MainWindow::on_actionOpen_triggered()
         {
             QMessageBox a(QMessageBox::Warning,"Error while opening","File "+ fname + " is corrupt or incompatible.\nCan't recover and memory was destroyed.",QMessageBox::Ok,this);
             a.exec();
+            currentfile.clear();
+            setWindowTitle("newRPL - [Unnamed]");
             __memmap_intact=0;
             break;
         }
@@ -426,6 +433,10 @@ void MainWindow::on_actionOpen_triggered()
         {
             QMessageBox a(QMessageBox::Warning,"Recovery success","File "+ fname + " was sucessfully recovered.",QMessageBox::Ok,this);
             a.exec();
+            currentfile=fname;
+            QString nameonly=currentfile.right(currentfile.length()-1-takemax(currentfile.lastIndexOf("/"),currentfile.lastIndexOf("\\")));
+            setWindowTitle("newRPL - ["+ nameonly + "]");
+
             __memmap_intact=1;
 
             break;
@@ -434,6 +445,10 @@ void MainWindow::on_actionOpen_triggered()
         {
             QMessageBox a(QMessageBox::Warning,"Recovery success","File "+ fname + " was recovered with minor errors.\nRun MEMFIX to correct them.",QMessageBox::Ok,this);
             a.exec();
+            currentfile=fname;
+            QString nameonly=currentfile.right(currentfile.length()-1-takemax(currentfile.lastIndexOf("/"),currentfile.lastIndexOf("\\")));
+            setWindowTitle("newRPL - ["+ nameonly + "]");
+
             __memmap_intact=1;
             break;
         }
@@ -448,6 +463,80 @@ void MainWindow::on_actionOpen_triggered()
         maintmr->start(1);
         screentmr->start(50);
         }
+
+
+}
+
+void MainWindow::on_actionSaveAs_triggered()
+{
+    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpl");
+
+    if(!fname.isEmpty()) {
+        // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
+
+        if(!fname.endsWith(".nrpl")) fname+=".nrpl";
+
+        QFile file(fname);
+
+        if(!file.open(QIODevice::WriteOnly)) {
+            QMessageBox a(QMessageBox::Warning,"Error while saving","Cannot write to file "+ fname,QMessageBox::Ok,this);
+            a.exec();
+            return;
+        }
+
+        // FILE IS OPEN AND READY FOR WRITING
+
+        // STOP RPL ENGINE
+        maintmr->stop();
+        screentmr->stop();
+        if(rpl.isRunning()) {
+            __pc_terminate=1;
+            __pckeymatrix^=(1ULL<<63);
+            __keyb_update();
+        while(rpl.isRunning());
+        }
+
+        // PERFORM BACKUP
+        myMainWindow=this;
+        fileptr=&file;
+        rplBackup(&write_data);
+
+        file.close();
+
+        // RESTART RPL ENGINE
+        __pc_terminate=0;
+        __pckeymatrix=0;
+        rpl.start();
+        maintmr->start(1);
+        screentmr->start(50);
+        }
+
+}
+
+void MainWindow::on_actionNew_triggered()
+{
+
+
+    // STOP RPL ENGINE
+    maintmr->stop();
+    screentmr->stop();
+    if(rpl.isRunning()) {
+        __pc_terminate=1;
+        __pckeymatrix^=(1ULL<<63);
+        __keyb_update();
+    while(rpl.isRunning());
+    }
+
+    currentfile.clear();
+    setWindowTitle("newRPL - [Unnamed]");
+    __memmap_intact=0;
+
+    // RESTART RPL ENGINE
+    __pc_terminate=0;
+    __pckeymatrix=0;
+    rpl.start();
+    maintmr->start(1);
+    screentmr->start(50);
 
 
 }

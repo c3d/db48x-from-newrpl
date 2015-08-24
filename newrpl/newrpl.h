@@ -273,10 +273,17 @@ extern void rplCreateGlobal(WORDPTR nameobj,WORDPTR value);
 extern WORDPTR *rplFindDirbyHandle(WORDPTR handle);
 extern WORDPTR rplCreateNewDir(WORDPTR name,WORDPTR *parentdir);
 extern WORDPTR *rplGetParentDir(WORDPTR *directory);
-extern WORDPTR *rplFindGlobalbyName(BYTEPTR name,BINT len,BINT scanparents);
+// VARIOUS WAYS TO RCL GLOBAL VARIABLES
 extern WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name,BINT len,WORDPTR *parent,BINT scanparents);
+extern WORDPTR *rplFindGlobalbyName(BYTEPTR name,BINT len,BINT scanparents);
+extern WORDPTR *rplFindGlobalByIndexInDir(BINT idx,WORDPTR *directory);
+extern WORDPTR *rplFindGlobalByIndex(BINT idx);
 extern WORDPTR *rplFindGlobalInDir(WORDPTR nameobj,WORDPTR *parentdir,BINT scanparents);
 extern WORDPTR *rplFindGlobal(WORDPTR nameobj,BINT scanparents);
+
+extern BINT rplGetVarCountInDir(WORDPTR *directory);
+extern BINT rplGetVarCount();
+
 extern void rplPurgeGlobal(WORDPTR nameobj);
 extern WORDPTR rplGetGlobal(WORDPTR nameobj);
 extern WORDPTR *rplMakeNewDir();
