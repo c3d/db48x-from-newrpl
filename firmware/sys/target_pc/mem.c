@@ -17,7 +17,7 @@ WORD __lam_memory[LAM_SIZE];
 WORD __tempob_memory[TEMPOB_SIZE];
 WORDPTR __tempblk_memory[TEMPBLK_SIZE];
 BINT __dstk_used,__rstk_used,__dir_used,__lam_used,__tempob_used,__tempblk_used;
-
+BINT __memmap_intact=0;
 
 
 int halGetFreePages()
@@ -123,8 +123,7 @@ __dstk_used=__rstk_used=__dir_used=__lam_used=__tempob_used=__tempblk_used=0;
 // RETURN TRUE IF MEMORY MAPS ARE INTACT, ZERO IF THEY ARE BAD OR INEXISTENT
 int halCheckMemoryMap()
 {
-
-    return 0;
+return __memmap_intact;
 }
 
 

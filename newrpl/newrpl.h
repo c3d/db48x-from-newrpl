@@ -223,8 +223,8 @@ extern void rplSetSystemFlagByName(BYTEPTR name,BINT len);
 extern void rplGCollect();
 
 // BACKUP/RESTORE
-void rplBackup(void (*writefunc)(unsigned int));
-void rplRestoreBackup(void (*readfunc)(unsigned int));
+BINT rplBackup(void (*writefunc)(unsigned int));
+BINT rplRestoreBackup(WORD (*readfunc)());
 
 // SYSTEM SANITY CHECKS
 BINT rplVerifyObject(WORDPTR obj);

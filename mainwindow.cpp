@@ -14,10 +14,11 @@ MainWindow *myMainWindow;
 
 extern unsigned long long __pckeymatrix;
 extern int __pc_terminate;
+extern int __memmap_intact;
 extern "C" void __keyb_update();
 // BACKUP/RESTORE
-extern "C" void rplBackup(void (*writefunc)(unsigned int));
-extern "C" void rplRestoreBackup(void (*readfunc)(unsigned int));
+extern "C" int rplBackup(void (*writefunc)(unsigned int));
+extern "C" int rplRestoreBackup(unsigned int (*readfunc)());
 
 
 
@@ -34,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->EmuScreen->connect(screentmr,SIGNAL(timeout()),ui->EmuScreen,SLOT(update()));
     maintmr=new QTimer(this);
     connect(maintmr,SIGNAL(timeout()),this,SLOT(domaintimer()));
-
+    __memmap_intact=0;
     rpl.start();
     maintmr->start(1);
     screentmr->start(50);
@@ -308,15 +309,26 @@ void MainWindow::WriteWord(unsigned int word)
     myMainWindow->fileptr->write((const char *)&word,4);
 }
 
+unsigned int MainWindow::ReadWord()
+{
+    unsigned int w;
+    myMainWindow->fileptr->read((char *)&w,4);
+    return w;
+}
+
+
 extern "C" void write_data(unsigned int word)
 {
     MainWindow::WriteWord(word);
 }
+extern "C" unsigned int read_data()
+{
+    return MainWindow::ReadWord();
+}
+
 
 void MainWindow::on_actionSave_triggered()
 {
-    // STOP THE RPL ENGINE AND SAVE ITS CONTENTS
-
     QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpl");
 
     if(!fname.isEmpty()) {
@@ -349,6 +361,8 @@ void MainWindow::on_actionSave_triggered()
         fileptr=&file;
         rplBackup(&write_data);
 
+        file.close();
+
         // RESTART RPL ENGINE
         __pc_terminate=0;
         __pckeymatrix=0;
@@ -356,5 +370,84 @@ void MainWindow::on_actionSave_triggered()
         maintmr->start(1);
         screentmr->start(50);
         }
+
+}
+
+void MainWindow::on_actionOpen_triggered()
+{
+    QString fname=QFileDialog::getOpenFileName(this,"Open File Name",QString(),"*.nrpl");
+
+    if(!fname.isEmpty()) {
+        QFile file(fname);
+
+        if(!file.open(QIODevice::ReadOnly)) {
+            QMessageBox a(QMessageBox::Warning,"Error while opening","Cannot open file "+ fname,QMessageBox::Ok,this);
+            a.exec();
+            return;
+        }
+
+        // FILE IS OPEN AND READY FOR READING
+
+        // STOP RPL ENGINE
+        maintmr->stop();
+        screentmr->stop();
+        if(rpl.isRunning()) {
+            __pc_terminate=1;
+            __pckeymatrix^=(1ULL<<63);
+            __keyb_update();
+        while(rpl.isRunning());
+        }
+
+        // PERFORM RESTORE PROCEDURE
+        myMainWindow=this;
+        fileptr=&file;
+        int result=rplRestoreBackup(&read_data);
+
+        file.close();
+
+
+        switch(result)
+        {
+        case -1:
+        {
+            QMessageBox a(QMessageBox::Warning,"Error while opening","File "+ fname + " is corrupt or incompatible.\nCan't recover and memory was destroyed.",QMessageBox::Ok,this);
+            a.exec();
+            __memmap_intact=0;
+            break;
+        }
+        case 0:
+        {
+            QMessageBox a(QMessageBox::Warning,"Error while opening","File "+ fname + " is corrupt or incompatible.\nCan't recover but memory was left intact.",QMessageBox::Ok,this);
+            a.exec();
+            __memmap_intact=1;
+            break;
+        }
+        case 1:
+        {
+            QMessageBox a(QMessageBox::Warning,"Recovery success","File "+ fname + " was sucessfully recovered.",QMessageBox::Ok,this);
+            a.exec();
+            __memmap_intact=1;
+
+            break;
+        }
+        case 2:
+        {
+            QMessageBox a(QMessageBox::Warning,"Recovery success","File "+ fname + " was recovered with minor errors.\nRun MEMFIX to correct them.",QMessageBox::Ok,this);
+            a.exec();
+            __memmap_intact=1;
+            break;
+        }
+
+        }
+
+        // RESTART RPL ENGINE
+        __pc_terminate=0;
+        __pckeymatrix=0;
+
+        rpl.start();
+        maintmr->start(1);
+        screentmr->start(50);
+        }
+
 
 }

@@ -19,6 +19,7 @@ public:
     QFile *fileptr;
 
     static void WriteWord(unsigned int word);
+    static unsigned int ReadWord();
 
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
@@ -32,6 +33,8 @@ private slots:
     void on_actionExit_triggered();
 
     void on_actionSave_triggered();
+
+    void on_actionOpen_triggered();
 
 public slots:
     void domaintimer();
