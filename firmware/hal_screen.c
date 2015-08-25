@@ -358,7 +358,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
         halScreen.Menu2Page=0;
     }
 
-    BINT nvars=rplGetVarCount();
+    BINT nvars=rplGetVisibleVarCount();
     BINT k;
     WORDPTR *var;
 
@@ -375,14 +375,12 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     for(k=0;k<3;++k) {
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
-    var=rplFindGlobalByIndex(halScreen.Menu2Page+k);
+    var=rplFindVisibleGlobalByIndex(halScreen.Menu2Page+k);
     if(var) {
-        if(ISIDENT(**var)) {
             BINT w=StringWidthN((char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont);
             if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
             else w=(scr->clipx2+scr->clipx-w)>>1;
         DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xF,scr);
-        }
     }
     }
 
@@ -394,15 +392,12 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     for(k=0;k<2;++k) {
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
-    var=rplFindGlobalByIndex(halScreen.Menu2Page+3+k);
+    var=rplFindVisibleGlobalByIndex(halScreen.Menu2Page+3+k);
     if(var) {
-        if(ISIDENT(**var)) {
             BINT w=StringWidthN((char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont);
             if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
             else w=(scr->clipx2+scr->clipx-w)>>1;
-
-        DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xF,scr);
-        }
+            DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xF,scr);
     }
     }
 
@@ -411,15 +406,12 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     scr->clipx2=22*k+20;
 
     if(nvars==6) {
-        var=rplFindGlobalByIndex(halScreen.Menu2Page+3+k);
+        var=rplFindVisibleGlobalByIndex(halScreen.Menu2Page+3+k);
         if(var) {
-            if(ISIDENT(**var)) {
                 BINT w=StringWidthN((char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont);
                 if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
                 else w=(scr->clipx2+scr->clipx-w)>>1;
-
-            DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xF,scr);
-            }
+                DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xF,scr);
         }
     } else {
      if(nvars>6) {

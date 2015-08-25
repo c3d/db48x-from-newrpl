@@ -403,7 +403,7 @@ void varsKeyHandler(BINT keymsg,BINT varnum)
                 }
                 // THIS IS A REGULAR VAR KEY
                 WORD Opcode;
-                WORDPTR *var=rplFindGlobalByIndex(idx);
+                WORDPTR *var=rplFindVisibleGlobalByIndex(idx);
                 if(!var) return;    // EMPTY SLOT, NOTHING TO DO
 
                 if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) {
@@ -448,7 +448,7 @@ void varsKeyHandler(BINT keymsg,BINT varnum)
         }
         // THIS IS A REGULAR VAR KEY
         WORD Opcode;
-        WORDPTR *var=rplFindGlobalByIndex(idx);
+        WORDPTR *var=rplFindVisibleGlobalByIndex(idx);
         if(!var) return;    // EMPTY SLOT, NOTHING TO DO
 
         if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) {

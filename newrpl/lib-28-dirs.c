@@ -349,8 +349,8 @@ void LIB_HANDLER()
             return;
 
         }
-
-        rplCreateNewDir(rplPeekData(1),CurrentDir);
+        WORDPTR name=rplMakeIdentQuoted(rplPeekData(1));
+        rplCreateNewDir(name,CurrentDir);
 
         rplDropData(1);
 

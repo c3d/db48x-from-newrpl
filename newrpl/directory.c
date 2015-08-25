@@ -274,6 +274,29 @@ WORDPTR *rplFindGlobal(WORDPTR nameobj,BINT scanparents)
 // GET A POINTER TO THE KEY/VALUD PAIR AT idx WITHIN directory
 // RETURN NULL IF idx IS NOT WITHIN 0<idx<NITEMS IN DIRECTORY
 
+WORDPTR *rplFindVisibleGlobalByIndexInDir(BINT idx,WORDPTR *directory)
+{
+    BINT nitems=*(directory[1]+1);
+
+    if( (idx<0) || (idx>=nitems)) return 0;
+    BINT k=4;
+    while(directory[k]!=dir_end_bint) {
+        if(ISIDENT(*directory[k]) && !ISHIDDENIDENT(*directory[k])) --idx;
+        if(idx<0) return directory+k;
+        k+=2;
+    }
+    return 0;
+}
+
+// SAME AS ABOVE BUT FOR CURRENT DIRECTORY ONLY
+WORDPTR *rplFindVisibleGlobalByIndex(BINT idx)
+{
+    return rplFindVisibleGlobalByIndexInDir(idx,CurrentDir);
+}
+
+// GET A POINTER TO THE KEY/VALUD PAIR AT idx WITHIN directory
+// RETURN NULL IF idx IS NOT WITHIN 0<idx<NITEMS IN DIRECTORY
+
 WORDPTR *rplFindGlobalByIndexInDir(BINT idx,WORDPTR *directory)
 {
     BINT nitems=*(directory[1]+1);

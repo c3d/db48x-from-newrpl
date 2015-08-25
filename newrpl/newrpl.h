@@ -283,9 +283,14 @@ extern WORDPTR *rplFindGlobalByIndexInDir(BINT idx,WORDPTR *directory);
 extern WORDPTR *rplFindGlobalByIndex(BINT idx);
 extern WORDPTR *rplFindGlobalInDir(WORDPTR nameobj,WORDPTR *parentdir,BINT scanparents);
 extern WORDPTR *rplFindGlobal(WORDPTR nameobj,BINT scanparents);
+extern WORDPTR *rplFindVisibleGlobalByIndexInDir(BINT idx,WORDPTR *directory);
+extern WORDPTR *rplFindVisibleGlobalByIndex(BINT idx);
+
 
 extern BINT rplGetVarCountInDir(WORDPTR *directory);
 extern BINT rplGetVarCount();
+extern BINT rplGetVisibleVarCountInDir(WORDPTR *directory);
+extern BINT rplGetVisibleVarCount();
 
 extern void rplPurgeGlobal(WORDPTR nameobj);
 extern WORDPTR rplGetGlobal(WORDPTR nameobj);
