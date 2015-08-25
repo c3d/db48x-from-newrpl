@@ -94,7 +94,7 @@ void LIB_HANDLER()
         else rplPushDataNoGrow((WORDPTR)zero_bint);
         if(rplVerifyRStack()) rplPushDataNoGrow((WORDPTR)one_bint);
         else rplPushDataNoGrow((WORDPTR)zero_bint);
-        if(rplVerifyTempOb()) rplPushDataNoGrow((WORDPTR)one_bint);
+        if(rplVerifyTempOb(0)) rplPushDataNoGrow((WORDPTR)one_bint);
         else rplPushDataNoGrow((WORDPTR)zero_bint);
         if(rplVerifyDirectories(0)) rplPushDataNoGrow((WORDPTR)one_bint);
         else rplPushDataNoGrow((WORDPTR)zero_bint);
@@ -108,7 +108,7 @@ void LIB_HANDLER()
         else rplPushDataNoGrow((WORDPTR)zero_bint);
         if(rplVerifyRStack()) rplPushDataNoGrow((WORDPTR)one_bint);
         else rplPushDataNoGrow((WORDPTR)zero_bint);
-        if(rplVerifyTempOb()) rplPushDataNoGrow((WORDPTR)one_bint);
+        if(rplVerifyTempOb(1)) rplPushDataNoGrow((WORDPTR)one_bint);
         else rplPushDataNoGrow((WORDPTR)zero_bint);
         if(rplVerifyDirectories(0)) rplPushDataNoGrow((WORDPTR)one_bint);
         else rplPushDataNoGrow((WORDPTR)zero_bint);

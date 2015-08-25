@@ -182,19 +182,28 @@ BINT rplVerifyRStack()
 // RETURNS TRUS IF TEMPOB LAYOUT IS VALID
 
 
-BINT rplVerifyTempOb()
+BINT rplVerifyTempOb(BINT fix)
 {
+    BINT errors=0;
     WORDPTR *tbptr=TempBlocks;
     WORDPTR prevptr=0;
 
     while(tbptr<TempBlocksEnd) {
-        if((*tbptr<TempOb)||(*tbptr>=TempObEnd)) return 0;
-        if(*tbptr<=prevptr) return 0;
+        if((*tbptr<TempOb)||(*tbptr>=TempObEnd)|| (*tbptr<=prevptr) ) {
+            if(!fix) return 0;
+            // FIX IT BY DELETING THE BLOCK, EFFECTIVELY FUSING IT WITH
+            // THE NEXT BLOCK IN THE CHAIN
+            memmovew(tbptr,tbptr+1,TempBlocksEnd-tbptr-1);
+            --TempBlocksEnd;
+            ++errors;
+            continue;
+        }
         prevptr=*tbptr;
         ++tbptr;
     }
 
     // ALL BLOCKS CHECKED
+    if(errors) return 0;
     return 1;
 }
 
@@ -268,7 +277,21 @@ while(dirptr<DirsTop) {
 
     // FIND THE END OF THE DIRECTORY
     dirend=dirptr+4;
-    while( (*dirend!=dir_end_bint) && (dirend<DirsTop)) dirend+=2;
+    while( (dirend<DirsTop)) {
+        if(!rplVerifyObjPointer(*dirend)) {
+            // BAD OBJECT MIGHT BE THE DIRECTORY END?
+            if(dirend[1]==dirptr[1]) {
+                // WE FOUND THE END OF THIS DIR, REPAIR IT
+                if(!fix) return 0;
+                dirend[0]=dir_end_bint;
+                break;
+            }
+        }
+        else {
+        if(**dirend==DIR_END_MARKER) break;
+        }
+        dirend+=2;
+    }
 
     if(dirend>=DirsTop) {
         // THERE'S NO END IN SIGHT!
@@ -359,7 +382,13 @@ while(dirptr<DirsTop) {
                 if(ISIDENT(**(scan-1))) {
                     // THE ENTRY IS GOOD - FIND THE DIRECTORY HANDLE
                     --scan;
-                    while( (*scan!=dir_start_bint) && (scan>Directories)) scan-=2;
+                    while(scan>=Directories)
+                    {
+                        if(rplVerifyObjPointer(*scan)) {
+                        if((**scan==DIR_START_MARKER) ) break;
+                        }
+                        scan-=2;
+                    }
                     if(ISDIR(**(scan+1))) {
                         // WE HAVE A GOOD HANDLE
                         parent=*(scan+1);
@@ -449,6 +478,7 @@ if(ISDIR(*dirptr[1])) {
         // THIS IS AN INVALID ENTRY TO A NON-EXISTENT OR CORRUPTED DIRECTORY OBJECT
         // JUST PURGE IT
         if(!fix) return 0;
+        dirptr[1]=zero_bint;        // CHANGE TO A BINT SO IT CAN BE PURGED
         rplPurgeForced(dirptr);
         continue;
     }

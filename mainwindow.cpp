@@ -20,6 +20,7 @@ extern "C" void __keyb_update();
 // BACKUP/RESTORE
 extern "C" int rplBackup(void (*writefunc)(unsigned int));
 extern "C" int rplRestoreBackup(unsigned int (*readfunc)());
+extern "C" int rplRestoreBackupMessedup(unsigned int (*readfunc)());    // DEBUG ONLY
 
 
 
@@ -368,6 +369,7 @@ void MainWindow::on_actionSave_triggered()
 
         file.close();
 
+        __memmap_intact=1;
         // RESTART RPL ENGINE
         __pc_terminate=0;
         __pckeymatrix=0;
@@ -406,7 +408,7 @@ void MainWindow::on_actionOpen_triggered()
         // PERFORM RESTORE PROCEDURE
         myMainWindow=this;
         fileptr=&file;
-        int result=rplRestoreBackup(&read_data);
+        int result=rplRestoreBackupMessedup(&read_data);
 
         file.close();
 
@@ -504,6 +506,7 @@ void MainWindow::on_actionSaveAs_triggered()
         file.close();
 
         // RESTART RPL ENGINE
+        __memmap_intact=1;
         __pc_terminate=0;
         __pckeymatrix=0;
         rpl.start();

@@ -441,6 +441,11 @@ void rplWarmInit(void)
     // INITIALIZE TEMP STORAGE FOR INTEGER TO REAL CONVERSION
     BINT2RealIdx=0;
 
+    // FINALLY, CHECK EXISTING MEMORY FOR DAMAGE AND REPAIR AUTOMATICALLY
+
+    rplVerifyTempOb(1);
+    rplVerifyDirectories(1);
+
 }
 
 

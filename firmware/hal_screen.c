@@ -523,11 +523,11 @@ void halRedrawAll(DRAWSURFACE *scr)
     if(halScreen.DirtyFlag&STACK_DIRTY) halRedrawStack(scr);
     if(halScreen.DirtyFlag&CMDLINE_ALLDIRTY) halRedrawCmdLine(scr);
     if(halScreen.DirtyFlag&MENU1_DIRTY) halRedrawMenu1(scr);
-    if(!halScreen.SAreaTimer) {
+//    if(!halScreen.SAreaTimer) {
     // ONLY REDRAW IF THERE'S NO POPUP MESSAGES
     if(halScreen.DirtyFlag&MENU2_DIRTY) halRedrawMenu2(scr);
     if(halScreen.DirtyFlag&STAREA_DIRTY) halRedrawStatus(scr);
-    }
+//    }
 }
 
 void status_popup_handler()

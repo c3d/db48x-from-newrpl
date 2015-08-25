@@ -340,3 +340,122 @@ BINT rplRestoreBackup(WORD (*readfunc)())
     if(errors) return 2;
     return 1;
 }
+
+#define DO_SOME_DAMAGE 0x123
+
+BINT rplRestoreBackupMessedup(WORD (*readfunc)())
+{
+
+    // GENERIC SECTIONS
+    struct {
+        WORDPTR start;
+        BINT nitems;
+        BINT offwords;
+    } sections[10];
+
+    BINT offset=0,k,errors=0;
+
+    WORD data;
+
+    //  CHECK FILE SIGNATURE
+    data=readfunc();
+    ++offset;
+
+    if(data!=TEXT2WORD('N','R','P','L')) return 0;
+
+    // READ ALL 10 SECTIONS
+    for(k=0;k<10;++k)
+    {
+        sections[k].offwords=readfunc();
+        ++offset;
+        if(k>0) sections[k-1].nitems=sections[k].offwords-sections[k-1].offwords;
+    }
+
+    // NOW DETERMINE THE POINTERS
+
+    sections[0].start=TempBlocks;
+    sections[1].start=TempOb;
+    sections[2].start=TempOb+sections[1].nitems;
+    sections[3].start=Directories;
+
+
+    // TODO: ADD OTHER SECTIONS HERE (STACKS, ETC)
+
+
+
+
+    // ERASE ALL RPL MEMORY IN PREPARATION FOR RESTORE
+    // ALL SECTIONS TO MINIMUM SIZE TO FREE AS MANY PAGES AS POSSIBLE
+    shrinkTempOb(1024); // GET SOME MEMORY FOR TEMPORARY OBJECT STORAGE
+    TempObEnd=TempOb;
+    shrinkTempBlocks(1024); // GET SOME MEMORY FOR TEMPORARY OBJECT BLOCKS
+    TempBlocksEnd=TempBlocks;
+
+    growRStk(1024);   // GET SOME MEMORY FOR RETURN STACK
+    RSTop=RStk;
+    growDStk(1024);   // GET SOME MEMORY FOR DATA STACK
+    DSTop=DStkBottom=DStkProtect=DStk;
+
+    growLAMs(1024); // GET SOME MEMORY FOR LAM ENVIRONMENTS
+    LAMTopSaved=LAMTop=nLAMBase=LAMs;
+
+    growDirs(1024); // MEMORY FOR ROOT DIRECTORY
+    CurrentDir=Directories;
+    DirsTop=Directories;
+
+    // RESIZE ALL SECTIONS TO THE REQUESTED SIZE
+    if(sections[0].nitems+TEMPBLOCKSLACK>1024) growTempBlocks(sections[0].nitems+TEMPBLOCKSLACK);
+    if(sections[1].nitems+sections[2].nitems>1024) growTempOb(sections[1].nitems+sections[2].nitems);
+    if(sections[3].nitems+DIRSLACK>1024) growDirs(sections[3].nitems+DIRSLACK);
+
+    if(Exceptions) return -1;
+
+    // SKIP TO THE PROPER FILE OFFSET
+
+    while(offset!=1024) { readfunc(); ++offset; }
+
+    // HERE'S THE START OF TEMPBLOCKS
+    for(k=0;k<sections[0].nitems;++k) {
+        data=readfunc();
+        TempBlocks[k]=TempOb+(data-sections[1].offwords);
+        ++offset;
+    }
+    TempBlocksEnd=TempBlocks+sections[0].nitems;
+
+    // HERE'S THE START OF TEMPOB
+    for(k=0;k<sections[1].nitems;++k)
+    {
+        data=readfunc();
+        TempOb[k]=data;
+        ++offset;
+    }
+    TempObEnd=TempOb+sections[1].nitems;
+
+    // AFTER TEMPOB
+    for(k=0;k<sections[2].nitems;++k)
+    {
+        data=readfunc();
+        TempObEnd[k]=data;
+        ++offset;
+    }
+
+
+    // HERE'S THE START OF THE DIRECTORIES
+
+    for(k=0;k<sections[3].nitems;++k)
+    {
+        data=readfunc();
+        if(ISROMPTRID(data)) Directories[k]=rplConvertIDToPTR(data)+DO_SOME_DAMAGE;
+        else Directories[k]=TempOb+(data-sections[1].offwords);
+        if(Directories[k]==0) ++errors; // JUST COUNT THE ERRORS BUT DON'T STOP, RECOVER AS MUCH AS POSSIBLE
+        ++offset;
+    }
+
+    DirsTop=Directories+sections[3].nitems;
+
+    // TODO: MORE SECTIONS OR OTHER CLEANUP HERE
+
+    if(errors) return 2;
+    return 1;
+}
+

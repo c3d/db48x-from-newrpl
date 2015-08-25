@@ -136,7 +136,7 @@ void libGetRomptrID(BINT libnum,WORDPTR *table,WORDPTR ptr)
 {
     BINT idx=0;
     while(table[idx]) {
-        if( (ptr>=table[idx]) && (ptr<table[idx]+OBJSIZE(*table[idx])+1)) {
+        if( (ptr>=table[idx]) && (ptr<table[idx]+rplObjSize(table[idx]))) {
             BINT offset=ptr-table[idx];
             ObjectID=MKROMPTRID(libnum,idx,offset);
             RetNum=OK_CONTINUE;

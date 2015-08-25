@@ -193,7 +193,7 @@ WORDPTR *rplMakeNewDir()
     direntry[0]=(WORDPTR)dir_start_bint;
     direntry[1]=(WORDPTR)dirobj;
     direntry[2]=(WORDPTR)dir_parent_bint;
-    direntry[3]=(WORDPTR)root_dir_handle;      // NO PARENT!!!
+    direntry[3]=(WORDPTR)root_dir_handle;     // NO PARENT!!!
     direntry[4]=(WORDPTR)dir_end_bint;
     direntry[5]=(WORDPTR)dirobj;
 
@@ -222,7 +222,7 @@ WORDPTR *rplFindGlobalbyName(BYTEPTR name,BINT len,BINT scanparents)
     do {
     parentdir=*(direntry-3);
     while(direntry<DirsTop) {
-        if(*direntry==dir_end_bint) break;
+        if(**direntry==DIR_END_MARKER) break;
         if(rplCompareIDENTByName(*direntry,name,len)) return direntry;
         direntry+=2;
     }
@@ -239,7 +239,7 @@ WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name,BINT len,WORDPTR *parent,BINT sca
     do {
     parentdir=*(direntry-3);
     while(direntry<DirsTop) {
-        if(*direntry==dir_end_bint) break;
+        if(**direntry==DIR_END_MARKER) break;
         if(rplCompareIDENTByName(*direntry,name,len)) return direntry;
         direntry+=2;
     }
@@ -257,7 +257,7 @@ WORDPTR *rplFindGlobalInDir(WORDPTR nameobj,WORDPTR *parent,BINT scanparents)
     parentdir=*(direntry+3);
     direntry+=4;    // SKIP SELF REFERENCE AND PARENT DIR
     while(direntry<DirsTop) {
-        if(*direntry==dir_end_bint) break;
+        if(**direntry==DIR_END_MARKER) break;
         if(rplCompareIDENT(*direntry,nameobj)) return direntry;
         direntry+=2;
     }
@@ -280,7 +280,7 @@ WORDPTR *rplFindVisibleGlobalByIndexInDir(BINT idx,WORDPTR *directory)
 
     if( (idx<0) || (idx>=nitems)) return 0;
     BINT k=4;
-    while(directory[k]!=dir_end_bint) {
+    while(*directory[k]!=DIR_END_MARKER) {
         if(ISIDENT(*directory[k]) && !ISHIDDENIDENT(*directory[k])) --idx;
         if(idx<0) return directory+k;
         k+=2;
@@ -330,7 +330,7 @@ BINT rplGetVisibleVarCountInDir(WORDPTR *directory)
 {
     BINT n=0;
     WORDPTR *dirptr=directory+4;
-    while(*dirptr!=dir_end_bint) {
+    while(**dirptr!=DIR_END_MARKER) {
         if(ISIDENT(**dirptr) && !ISHIDDENIDENT(**dirptr)) ++n;
         dirptr+=2;
     }
@@ -362,7 +362,7 @@ WORDPTR rplGetGlobal(WORDPTR nameobj)
 
 WORDPTR *rplGetDirfromGlobal(WORDPTR *var)
 {
-    while((*var!=dir_start_bint)&& (var>Directories)) var-=2;
+    while((var>=Directories) && (**var!=DIR_START_MARKER) ) var-=2;
     return var;
 }
 
@@ -454,7 +454,7 @@ WORDPTR rplGetDirName(WORDPTR *dir)
 
     if(!parent) return 0;
 
-    while(*parent!=dir_end_bint) {
+    while(**parent!=DIR_END_MARKER) {
         if(*(parent+1)==*(dir+1)) return *parent;
         parent+=2;
     }
@@ -470,7 +470,7 @@ WORDPTR *rplDeepCopyDir(WORDPTR *sourcedir)
     WORDPTR *targetdir=rplMakeNewDir();
     if(!targetdir) return 0;
     WORDPTR *srcvars=sourcedir+4;
-    while(*srcvars!=dir_end_bint) {
+    while(**srcvars!=DIR_END_MARKER) {
         if(LIBNUM(**(srcvars+1))==DODIR) {
             //POINTS TO A DIRECTORY, NEED TO DEEP-COPY THAT ONE TOO
             WORDPTR *subdir=rplDeepCopyDir(rplFindDirbyHandle(*(srcvars+1)));
