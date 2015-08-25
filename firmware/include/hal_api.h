@@ -123,6 +123,8 @@ typedef struct {
     UNIFONT *MenuFont;
     UNIFONT *CmdLineFont;
     UNIFONT *StAreaFont;
+    WORDPTR Menu1List;
+    WORDPTR *Menu2Dir;
     int Menu1Page;
     int Menu2Page;
     // VARIABLES FOR THE TEXT EDITOR / COMMAND LINE

@@ -43,6 +43,32 @@ void growDirs(WORD newtotalsize)
         DirSize=newtotalsize;
 }
 
+// CHECK IF AN IDENT IS QUOTED, IF NOT THEN
+// CREATE A NEW QUOTED OBJECT AND RETURN IT
+// MAY CAUSE GARBAGE COLLECTION
+WORDPTR rplMakeIdentQuoted(WORDPTR ident)
+{
+    if(!ISHIDDENIDENT(*ident)) return ident;
+
+    ident=rplMakeNewCopy(ident);
+
+    //  CHANGE FROM A IDENTEVAL TO A REGULAR IDENT
+    ident[0]-=MKOPCODE(DOIDENTEVAL-DOIDENT,0);
+
+    return ident;
+
+}
+
+
+
+
+
+
+
+
+
+
+
 
 // DIRECTORY STRUCTURE:
 
@@ -82,8 +108,9 @@ void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir)
     // FIX THE CURRENT DIR IN CASE IT MOVED
     if(CurrentDir>=direntry) CurrentDir+=2;
 
-
     if(DirSize<=DirsTop-Directories+DIRSLACK) growDirs((WORD)(DirsTop-Directories+DIRSLACK+1024));
+
+
     if(Exceptions) return;
 
 }
@@ -271,6 +298,30 @@ BINT rplGetVarCount()
 {
     return *(CurrentDir[1]+1);
 }
+
+
+// GET TOTAL NUMBER OF VISIBLE VARIABLES IN THE DIRECTORY
+// SKIPS ANY VARIABLES WHERE THE KEY IS NOT A NUMBER OR
+// ANY IDENTS THAT ARE MARKED AS HIDDEN (BY PROLOG DOIDENTEVAL...)
+BINT rplGetVisibleVarCountInDir(WORDPTR *directory)
+{
+    BINT n=0;
+    WORDPTR *dirptr=directory+4;
+    while(*dirptr!=dir_end_bint) {
+        if(ISIDENT(**dirptr) && !ISHIDDENIDENT(**dirptr)) ++n;
+        dirptr+=2;
+    }
+    return n;
+}
+
+BINT rplGetVisibleVarCount()
+{
+    return rplGetVisibleVarCountInDir(CurrentDir);
+}
+
+
+
+
 
 // RCL A GLOBAL, RETURN POINTER TO ITS VALUE
 // LOOKS IN CURRENT DIR AND PARENT DIRECTORIES

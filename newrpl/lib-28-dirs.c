@@ -163,7 +163,8 @@ void LIB_HANDLER()
                         }
                         else {
                             *(newdir+3)=*(CurrentDir+1);
-                            rplCreateGlobal(rplPeekData(1),*(newdir+1));
+                            WORDPTR name=rplMakeIdentQuoted(rplPeekData(1));
+                            rplCreateGlobal(name,*(newdir+1));
                         }
                         rplDropData(2);
                         return;
@@ -178,7 +179,8 @@ void LIB_HANDLER()
             }
             else {
                 // CREATE A NEW GLOBAL VARIABLE
-                rplCreateGlobal(rplPeekData(1),rplPeekData(2));
+                WORDPTR name=rplMakeIdentQuoted(rplPeekData(1));
+                rplCreateGlobal(name,rplPeekData(2));
             }
             rplDropData(2);
         }

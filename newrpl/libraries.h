@@ -153,6 +153,7 @@ extern void libGetPTRFromID(WORDPTR *table,WORD id);
 // USEFUL MACROS FOR TYPE IDENTIFICATION
 
 #define ISIDENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)>=DOIDENT)&&(LIBNUM(prolog)<=DOIDENTEVALAPP)) )
+#define ISHIDDENIDENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)>=DOIDENTEVAL)&&(LIBNUM(prolog)<=DOIDENTEVALAPP)) )
 #define ISBINT(prolog) ( ((OPCODE(prolog)<0x400000) || ISPROLOG(prolog)) && (((LIBNUM(prolog)&~APPROX_BIT)>=BINBINT) && ((LIBNUM(prolog)&~APPROX_BIT)<=HEXBINT)))
 #define ISLIST(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIST))
 #define ISREAL(prolog) ( ISPROLOG(prolog) && (((LIBNUM(prolog)&~APPROX_BIT)==DOREAL)))
@@ -341,6 +342,7 @@ extern const WORD empty_list[];
 #define CMD_TAN MKOPCODE(66,2)
 #define CMD_SQRT MKOPCODE(66,18)
 #define CMD_STO MKOPCODE(28,0)
+#define CMD_XEQ MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ)
 #define CMD_RCL MKOPCODE(28,1)
 #define CMD_PURGE MKOPCODE(28,4)
 #define CMD_CLEAR MKOPCODE(72,1)

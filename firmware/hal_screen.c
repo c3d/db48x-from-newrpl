@@ -283,6 +283,8 @@ halScreen.FormFont=halScreen.StackFont=halScreen.Stack1Font=(UNIFONT *)Font_8C;
 halScreen.MenuFont=(UNIFONT *)Font_6A;
 halScreen.StAreaFont=(UNIFONT *)Font_6A;
 halScreen.CmdLineFont=(UNIFONT *)Font_8C;
+halScreen.Menu1List=0;
+halScreen.Menu2Dir=0;
 halScreen.Menu1Page=halScreen.Menu2Page=0;
 halSetNotification(N_LEFTSHIFT,0);
 halSetNotification(N_RIGHTSHIFT,0);
@@ -328,7 +330,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
         halScreen.DirtyFlag&=~MENU2_DIRTY;
         return;
     }
-// TODO: EVERYTHING, SHOW EMPTY MENU FOR NOW
+
     int ytop,ybottom;
     int oldclipx,oldclipx2,oldclipy,oldclipy2;
 
@@ -350,10 +352,21 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     oldclipy=scr->clipy;
     oldclipy2=scr->clipy2;
 
+    // BASIC CHECK FOR CHANGE OF DIRECTORY
+    if(halScreen.Menu2Dir!=CurrentDir) {
+        halScreen.Menu2Dir=CurrentDir;
+        halScreen.Menu2Page=0;
+    }
 
     BINT nvars=rplGetVarCount();
     BINT k;
     WORDPTR *var;
+
+    // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
+    // FOR EXAMPLE BY PURGING VARIABLES
+    if((halScreen.Menu2Page>=nvars)||(halScreen.Menu2Page<0)) halScreen.Menu2Page=0;
+
+
     // FIRST ROW
 
     scr->clipy=ytop;
@@ -365,9 +378,53 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     var=rplFindGlobalByIndex(halScreen.Menu2Page+k);
     if(var) {
         if(ISIDENT(**var)) {
-        DrawTextN(scr->clipx,ytop,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xF,scr);
+            BINT w=StringWidthN((char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont);
+            if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
+            else w=(scr->clipx2+scr->clipx-w)>>1;
+        DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xF,scr);
         }
     }
+    }
+
+    // SECOND ROW
+
+    scr->clipy=ytop+7;
+    scr->clipy2=ybottom;
+
+    for(k=0;k<2;++k) {
+    scr->clipx=22*k;
+    scr->clipx2=22*k+20;
+    var=rplFindGlobalByIndex(halScreen.Menu2Page+3+k);
+    if(var) {
+        if(ISIDENT(**var)) {
+            BINT w=StringWidthN((char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont);
+            if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
+            else w=(scr->clipx2+scr->clipx-w)>>1;
+
+        DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xF,scr);
+        }
+    }
+    }
+
+    // NOW DO THE NXT KEY
+    scr->clipx=22*k;
+    scr->clipx2=22*k+20;
+
+    if(nvars==6) {
+        var=rplFindGlobalByIndex(halScreen.Menu2Page+3+k);
+        if(var) {
+            if(ISIDENT(**var)) {
+                BINT w=StringWidthN((char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont);
+                if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
+                else w=(scr->clipx2+scr->clipx-w)>>1;
+
+            DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xF,scr);
+            }
+        }
+    } else {
+     if(nvars>6) {
+         DrawText(scr->clipx,scr->clipy,"NXT...",halScreen.MenuFont,0xF,scr);
+     }
     }
 
 
@@ -474,8 +531,11 @@ void halRedrawAll(DRAWSURFACE *scr)
     if(halScreen.DirtyFlag&STACK_DIRTY) halRedrawStack(scr);
     if(halScreen.DirtyFlag&CMDLINE_ALLDIRTY) halRedrawCmdLine(scr);
     if(halScreen.DirtyFlag&MENU1_DIRTY) halRedrawMenu1(scr);
+    if(!halScreen.SAreaTimer) {
+    // ONLY REDRAW IF THERE'S NO POPUP MESSAGES
     if(halScreen.DirtyFlag&MENU2_DIRTY) halRedrawMenu2(scr);
     if(halScreen.DirtyFlag&STAREA_DIRTY) halRedrawStatus(scr);
+    }
 }
 
 void status_popup_handler()
@@ -508,10 +568,10 @@ void halErrorPopup()
     if(halScreen.SAreaTimer) {
         tmr_eventkill(halScreen.SAreaTimer);
         //tmr_eventpause(halScreen.SAreaTimer);
-        //tmr_eventresume(halScreen.SAreaTimer);      // PAUSE/RESUME WILL RESTART THE 5 SECOND COUNT
+        //tmr_eventresume(halScreen.SAreaTimer);      // PAUSE/RESUME WILL RESTART THE 3 SECOND COUNT
         //return;
     }
-    halScreen.SAreaTimer=tmr_eventcreate(&status_popup_handler,5000,0);
+    halScreen.SAreaTimer=tmr_eventcreate(&status_popup_handler,3000,0);
 }
 
 

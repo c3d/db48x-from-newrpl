@@ -270,6 +270,7 @@ extern BINT rplLAMCount(WORDPTR *LAMEnvironment);
 
 // GLOBAL VARIABLES AND DIRECTORY FUNCTIONS
 extern void growDirs(WORD newtotalsize);
+extern WORDPTR rplMakeIdentQuoted(WORDPTR ident);
 extern void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir);
 extern void rplCreateGlobal(WORDPTR nameobj,WORDPTR value);
 extern WORDPTR *rplFindDirbyHandle(WORDPTR handle);
@@ -304,6 +305,8 @@ extern WORDPTR rplGetSettingsbyName(BYTEPTR name,BINT namelen);
 extern void rplCallOvrOperator(WORD op);
 extern void rplCallOperator(WORD op);
 extern void rplCopyObject(WORDPTR dest, WORDPTR src);
+extern WORDPTR rplMakeNewCopy(WORDPTR object);
+
 
 // BINT FUNCTIONS
 extern WORDPTR rplNewSINT(int num,int base);

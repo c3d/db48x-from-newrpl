@@ -4,217 +4,6 @@
 #include <libraries.h>
 
 
-
-// DEBUG ONLY
-const BYTEPTR testprogram=(const BYTEPTR) "<< 8 0 0 0 { } -> R S X Y A "
-                "  << "
-               " 1 R START 0 NEXT R ->LIST 'A' STO "
-               " DO "
-               "  'A' 'X' INCR R PUT "
-               "  DO "
-               "    'S' INCR DROP "
-               "   X 'Y' STO "
-               "   WHILE Y 1 > REPEAT "
-               "     A X GET A 'Y' DECR  GET - "
-               "     IF DUP 0 == SWAP ABS X Y - == OR THEN "
-               "       0 'Y' STO "
-               "      'A' X A X GET 1 - PUT "
-               "       WHILE A X GET 0 == REPEAT "
-               "         'A' 'X' DECR A X GET 1 - PUT "
-               "       END "
-               "     END "
-               "   END "
-               "  UNTIL Y 1 == END "
-               " UNTIL X R == END "
-               " "
-               " S A "
-            " >> "
-          " >> "
-          " 'PRO' STO "
-          "     1 10 START PRO NEXT "
-           ;
-
-const BYTEPTR nq_stk=(const BYTEPTR) "<< 8 0 0 0 -> R S X Y "
-  "<< 1 R "
-    " START 0 "
-    " NEXT DO R 'X' INCR UNPICK "
-        " DO 'S' INCR DROP X 'Y' STO "
-        " WHILE Y 1 > REPEAT X PICK 'Y' DECR 1 + PICK - "
-          " IF DUP 0 == SWAP ABS X Y - == OR "
-          " THEN 0 'Y' STO X PICK 1 - X UNPICK "
-            " WHILE X PICK 0 == "
-            " REPEAT 'X' DECR PICK 1 - X UNPICK "
-            " END "
-          " END "
-        " END "
-      " UNTIL Y 1 == "
-      " END "
-    " UNTIL X R == "
-    " END 8 ->LIST S "
-  " >> "
-" >> "
-        " 'NQ.STK' STO 1 10 START NQ.STK NEXT "
-;
-
-const BYTEPTR nq_idx=(const BYTEPTR) "<< 8 0 0 0 -> R S X Y "
-        "<< 1 R START 0 NEXT "
-    " DO R 'X' INCR UNPICK "
-      " DO 'S' INCR DROP X 'Y' STO "
-        " WHILE Y 1 > "
-        " REPEAT X PICK 'Y' DECR 1 + PICK - "
-          " IF DUP 0 == SWAP ABS X Y - == OR "
-          " THEN 0 'Y' STO X PICK 1 - X UNPICK "
-            " WHILE X PICK 0 == "
-            " REPEAT 'X' DECR PICK 1 - X UNPICK "
-            " END "
-          " END "
-        " END "
-        " UNTIL Y 1 == "
-      " END "
-    " UNTIL X R == "
-    " END 8 ->LIST S "
-        " >> "
-" >> "
-        " 'NQ.IDX' STO 1 10 START NQ.IDX NEXT "
-;
-
-const BYTEPTR nq_istk=(const BYTEPTR) "<< 8 0 0 0 0 -> R S X Y Ax "
-  " << 1 R START 0 NEXT "
-    " DO 'X' INCR DROP R 'Ax' STO "
-      " DO 'S' INCR DROP X 'Y' STO "
-        " WHILE Y 1 > "
-        " REPEAT Ax Y PICK - 'Y' DECR DROP "
-          " IF DUP 0 == SWAP ABS X Y - == OR "
-          " THEN 0 'Y' STO 'Ax' DECR DROP "
-            " WHILE Ax 0 == "
-            " REPEAT 'X' DECR PICK 1 - 'Ax' STO "
-            " END "
-          " END "
-        " END "
-      " UNTIL Y 1 == "
-      " END Ax X UNPICK "
-    " UNTIL X R == "
-    " END 8 ->LIST S "
-  " >> "
-" >> "
-        " 'NQ.ISTK' STO 1 10 START NQ.ISTK NEXT "
-;
-
-const BYTEPTR nq_new=(const BYTEPTR) "<< 1 -> X RES << "
-" IF X 1 > THEN "
-" X PICK 1 X 1 - FOR I "
-        " DUP I 2 + PICK - ABS X I - ABS "
-   " IF == THEN "
-     " 0 'RES' STO X 'I' STO "
-   " END "
-   " NEXT "
-   " DROP RES "
- " ELSE "
-   " 1 "
- " END "
-" >> "
-" >> "
-        " 'CHECKQUEEN' STO "
-        " <<  9 OVER - -> X LIMIT "
-        " << "
-
-         " 1 8 START LIMIT 8 + ROLLD NEXT "
-         " LIMIT DUPN 1 8 START LIMIT LIMIT 8 + + ROLL NEXT "
-
-          " DO 9 ROLL X UNPICK "
-                " IF X CHECKQUEEN "
-                " THEN X 1 + DUP  "
-                 " IF 8 <= THEN IF DOLEVEL THEN 0 9 ROLLD 0 'LIMIT' STO ELSE X PICK 17 X - ROLLD END "
-                  " ELSE 9 ROLLD 0 'LIMIT' STO END "
-
-                " ELSE X PICK 17 X - ROLLD "
-                " END 'LIMIT' DECR "
-              " UNTIL 0 <= "
-              " END "
-              " 1 9 X - START 9 ROLL DROP NEXT "
-              " IF LIMIT 0 == "
-              " THEN 0 ELSE 1 END "
-          " >> "
-        " >> "
-
-        " 'DOLEVEL' STO "
-
-        " << "
-          " 1 2 3 4 5 6 7 8 "
-          " 0 0 0 0 0 0 0 0 "
-          " 1 DOLEVEL DROP "
-          " 1 8 START 9 ROLL DROP NEXT "
-        " 8 ->LIST "
-        " >> "
-        " 'NEW.RUN' STO 1 10 START NEW.RUN NEXT "
-;
-
-const BYTEPTR nq_werner=(const BYTEPTR) "<< "
-  " 0 "
-  " DO "
-        " 8 SWAP 1 + "
-    " WHILE "
-        "  DUP2 "
-      " DO 1 - "
-      " UNTIL "
-        " DUP2 5 + PICK - ABS "
-        " DUP2 - * NOT "
-      " END "
-    " REPEAT "
-        "  DROP "
-        "  WHILE SWAP DUP 1 SAME "
-      " REPEAT - "
-      " END "
-      " 1 - SWAP "
-    " END "
-    " DROP "
-  " UNTIL DUP 8 SAME "
-  " END "
-  " ->LIST "
-" >> "
-        " 'NQ.W' STO 1 10 START NQ.W NEXT "
-;
-
-const BYTEPTR sincostest=(const BYTEPTR) "108 SETPREC -1 ACOS DUP 6 / SIN ";
-
-const BYTEPTR realtest1008=(const BYTEPTR)  "1008 SETPREC << 0. 1000. 0.1 FOR n "
-                                        "0.02 n DUP 0.1 + * / + "
-                                        "-0.1 STEP "
-                                        ">> EVAL " ;
-
-
-
-const BYTEPTR realtest108=(const BYTEPTR)  "108 SETPREC << 0. 1000. 0.1 FOR n "
-                                        "0.02 n DUP 0.1 + * / + "
-                                        "-0.1 STEP "
-                                        ">> EVAL " ;
-const BYTEPTR realtest36=(const BYTEPTR)  "36 SETPREC << 0. 1000. 0.1 FOR n "
-                                        "0.02 n DUP 0.1 + * / + "
-                                        "-0.1 STEP "
-                                        ">> EVAL " ;
-
-
-/*
-void PrintObj(int x,int y,WORDPTR obj,DRAWSURFACE *scr)
-{
-    WORDPTR string;
-    BINT nchars;
-    BYTEPTR charptr;
-    string=rplDecompile(obj,0);
-
-    if(string) {
-    // NOW PRINT THE STRING OBJECT
-        nchars=rplStrSize(string);
-        charptr=(BYTEPTR) (string+1);
-        DrawTextN(x,y,(char *)charptr,nchars,(UNIFONT *)&System7Font,15,scr);
-    }
-
-
-}
-*/
-
-
-
 // WAITS FOR A KEY TO BE PRESSED IN SLOW MODE
 
 BINT halWaitForKey()
@@ -517,17 +306,18 @@ extern WORD cmdKeySeco[4];
 
 void cmdRun(WORD Opcode)
 {
-cmdKeySeco[0]=MKPROLOG(DOCOL,2),
-cmdKeySeco[1]=Opcode;
-cmdKeySeco[2]=CMD_SEMI;
-cmdKeySeco[3]=CMD_EXITRPL;
-rplSetEntryPoint(cmdKeySeco);
+WORDPTR obj=rplAllocTempOb(1);
+if(obj) {
+obj[0]=Opcode;
+obj[1]=CMD_EXITRPL;
+rplSetEntryPoint(obj);
 rplRun();
+}
 }
 
 // TYPICAL COMMAND KEY HANDLER.
 // EXECUTES Opcode IN DIRECT MODE
-// INSERTS Progmode AS TEXT IN THE COMMEND LINE WHEN IN PROGRAMMING MODE
+// INSERTS Progmode AS TEXT IN THE COMMAND LINE WHEN IN PROGRAMMING MODE
 // IF IsFunc == 0 --> IN ALG MODE INSERT THE SAME TEXT AS IN PROG. MODE
 //    IsFunc == 1 --> IN ALG MODE INSERT THE SAME TEXT AS IN PROG, WITH FUNCTION PARENTHESIS
 //    IsFunc < 0  --> NOT ALLOWED IN SYMBOLIC (ALG) MODE, DO NOTHING
@@ -594,6 +384,182 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
     }
 }
 
+void varsKeyHandler(BINT keymsg,BINT varnum)
+{
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // ACTION WHEN IN THE STACK
+
+                BINT nvars=rplGetVarCount();
+                BINT idx=halScreen.Menu2Page+varnum;
+                if((nvars>6)&&(varnum==5)) {
+                    // THIS IS THE NXT KEY
+                    if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) halScreen.Menu2Page-=5;
+                    else halScreen.Menu2Page+=5;
+                    if(halScreen.Menu2Page>=nvars) halScreen.Menu2Page=0;
+                    if(halScreen.Menu2Page<0) halScreen.Menu2Page=0;
+                    halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+                    return;
+                }
+                // THIS IS A REGULAR VAR KEY
+                WORD Opcode;
+                WORDPTR *var=rplFindGlobalByIndex(idx);
+                if(!var) return;    // EMPTY SLOT, NOTHING TO DO
+
+                if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) {
+                    // USER IS TRYING TO 'STO' INTO THE VARIABLE
+                        rplPushData(var[0]);    // PUSH THE NAME ON THE STACK
+                        Opcode=CMD_STO;
+                } else {
+
+                    if( (KM_SHIFTPLANE(keymsg)==SHIFT_RS)||(KM_SHIFTPLANE(keymsg)==SHIFT_RSHOLD)) {
+                        // USER IS TRYING TO 'RCL' THE VARIABLE
+                        rplPushData(var[1]);    // PUSH THE CONTENT ON THE STACK
+                        Opcode=0;
+                    }
+                    else {
+                    // NORMAL EXECUTION IS BY DOING XEQ ON ITS CONTENTS
+                        rplPushData(var[1]);    // PUSH THE CONTENT ON THE STACK
+                        Opcode=CMD_XEQ;
+                    }
+                }
+                if(Opcode) cmdRun(Opcode);
+                if(Exceptions) {
+                    // TODO: SHOW ERROR MESSAGE
+                    halShowErrorMsg();
+                    Exceptions=0;
+                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+            halScreen.DirtyFlag|=STACK_DIRTY;
+        }
+
+    }
+    else {
+        // ACTION INSIDE THE EDITOR
+        BINT nvars=rplGetVarCount();
+        BINT idx=halScreen.Menu2Page+varnum;
+        if((nvars>6)&&(varnum==5)) {
+            // THIS IS THE NXT KEY
+            if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) halScreen.Menu2Page-=5;
+            else halScreen.Menu2Page+=5;
+            if(halScreen.Menu2Page>=nvars) halScreen.Menu2Page=0;
+            if(halScreen.Menu2Page<0) halScreen.Menu2Page=0;
+            halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+            return;
+        }
+        // THIS IS A REGULAR VAR KEY
+        WORD Opcode;
+        WORDPTR *var=rplFindGlobalByIndex(idx);
+        if(!var) return;    // EMPTY SLOT, NOTHING TO DO
+
+        if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) {
+
+            switch(halScreen.CursorState&0xff)
+            {
+            case 'D':
+            case 'A':
+                if(endCmdLineAndCompile()) {
+                    // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUR TO GC
+                    var=rplFindGlobalByIndex(idx);
+                    // USER IS TRYING TO 'STO' INTO THE VARIABLE
+                        rplPushData(var[0]);    // PUSH THE NAME ON THE STACK
+                        cmdRun(CMD_STO);
+                        if(Exceptions) {
+                            // TODO: SHOW ERROR MESSAGE
+                            halShowErrorMsg();
+                            Exceptions=0;
+                        } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+                    halScreen.DirtyFlag|=STACK_DIRTY;
+                    return;
+                }
+                break;
+            case 'P':
+                // USER IS TRYING TO 'STO' INTO THE VARIABLE
+                uiSeparateToken();
+                uiInsertCharacters("'");
+                uiInsertCharactersN((BYTEPTR)(*var+1),(BYTEPTR)(*var+1)+rplGetIdentLength(*var));
+                uiInsertCharacters("' STO");
+                uiSeparateToken();
+                break;
+            }
+
+        } else {
+            if( (KM_SHIFTPLANE(keymsg)==SHIFT_RS)||(KM_SHIFTPLANE(keymsg)==SHIFT_RSHOLD)) {
+                // USER IS TRYING TO RCL THE VARIABLE
+                switch(halScreen.CursorState&0xff)
+                {
+                case 'D':
+                case 'A':
+                    if(endCmdLineAndCompile()) {
+                        // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUR TO GC
+                        var=rplFindGlobalByIndex(idx);
+                        // USER IS TRYING TO 'RCL' INTO THE VARIABLE
+                            rplPushData(var[1]);    // PUSH THE CONTENTS ON THE STACK
+                            if(Exceptions) {
+                                // TODO: SHOW ERROR MESSAGE
+                                halShowErrorMsg();
+                                Exceptions=0;
+                            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+                        halScreen.DirtyFlag|=STACK_DIRTY;
+                        return;
+                    }
+                    break;
+                case 'P':
+                    uiSeparateToken();
+                    uiInsertCharacters("'");
+                    uiInsertCharactersN((BYTEPTR)(*var+1),(BYTEPTR)(*var+1)+rplGetIdentLength(*var));
+                    uiInsertCharacters("' RCL");
+                    uiSeparateToken();
+                    break;
+                }
+            } else {
+                // NORMAL EXECUTION - XEQ THE CONTENTS OR INSER THE NAME IN THE COMMAND LINE
+                switch(halScreen.CursorState&0xff)
+                {
+                case 'D':
+                    if(endCmdLineAndCompile()) {
+                        // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUR TO GC
+                        var=rplFindGlobalByIndex(idx);
+                            rplPushData(var[1]);    // XEQ THE CONTENTS
+                            cmdRun(CMD_XEQ);
+                            if(Exceptions) {
+                                // TODO: SHOW ERROR MESSAGE
+                                halShowErrorMsg();
+                                Exceptions=0;
+                            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+                        halScreen.DirtyFlag|=STACK_DIRTY;
+                        return;
+                    }
+                    break;
+
+                case 'A':
+                {
+                    // JUST INSERT THE NAME
+                    uiInsertCharactersN((BYTEPTR)(*var+1),(BYTEPTR)(*var+1)+rplGetIdentLength(*var));
+                    break;
+                }
+                case 'P':
+                {
+                    // INSERT THE NAME WITH SEPARATORS
+                    uiSeparateToken();
+                    uiInsertCharactersN((BYTEPTR)(*var+1),(BYTEPTR)(*var+1)+rplGetIdentLength(*var));
+                    uiSeparateToken();
+                    break;
+                }
+                }
+            }
+
+        }
+
+    }
+
+}
+
+
+
+
+
+
+
 void symbolKeyHandler(BINT keymsg,BYTEPTR symbol,BINT separate)
 {
 if(!(halGetContext()&CONTEXT_INEDITOR)) {
@@ -650,7 +616,11 @@ void  enterKeyHandler(BINT keymsg)
 
         }
     else{
-     endCmdLineAndCompile();
+     if(endCmdLineAndCompile()) {
+         halScreen.DirtyFlag|=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
+
+     }
+
    }
 }
 
@@ -1204,6 +1174,10 @@ void shiftedalphaKeyHandler(BINT keymsg)
 
 }
 
+#define DECLARE_VARKEYHANDLER(name,idx) void name##KeyHandler(BINT keymsg) \
+                                                    { \
+                                                    varsKeyHandler(keymsg,(BINT)(idx)); \
+                                                    }
 
 
 
@@ -1265,6 +1239,12 @@ DECLARE_SYMBKEYHANDLER(angle,"∡",0)
 DECLARE_SYMBKEYHANDLER(degree,"°",0)
 
 
+DECLARE_VARKEYHANDLER(var1,0)
+DECLARE_VARKEYHANDLER(var2,1)
+DECLARE_VARKEYHANDLER(var3,2)
+DECLARE_VARKEYHANDLER(var4,3)
+DECLARE_VARKEYHANDLER(var5,4)
+DECLARE_VARKEYHANDLER(var6,5)
 
 
 
@@ -1328,6 +1308,8 @@ struct keyhandler_t {
 
 // LIST OF HANDLERS, END WITH action=NULL
 const struct keyhandler_t const __keydefaulthandlers[]= {
+
+    // BASIC NUMBERS
     { KM_PRESS|KB_1, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_2, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_3, CONTEXT_ANY,&numberKeyHandler },
@@ -1362,12 +1344,13 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_0|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_DOT|SHIFT_ALPHA, CONTEXT_ANY,&dotKeyHandler },
 
+    // BASIC ON AND SHIFTS
     { KM_KEYDN|KB_ON, CONTEXT_ANY,&cancelKeyHandler },
 
     { KM_PRESS|KB_ALPHA|SHIFT_RS, CONTEXT_ANY,&shiftedalphaKeyHandler },
     { KM_PRESS|KB_ALPHA|SHIFT_RSHOLD, CONTEXT_ANY,&shiftedalphaKeyHandler },
 
-
+    // TEXT EDITING KEYS
     { KM_PRESS|KB_ENT, CONTEXT_ANY,&enterKeyHandler },
     { KM_PRESS|KB_ENT|SHIFT_ALPHA, CONTEXT_ANY,&enterKeyHandler },
     { KM_PRESS|KB_ENT|SHIFT_ALPHAHOLD, CONTEXT_ANY,&enterKeyHandler },
@@ -1393,6 +1376,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_DN, CONTEXT_ANY,&downKeyHandler },
     { KM_PRESS|KB_DN|SHIFT_ALPHA, CONTEXT_ANY,&downKeyHandler },
 
+    // BASIC OPERATORS
     { KM_PRESS|KB_ADD, CONTEXT_ANY,&addKeyHandler },
     { KM_PRESS|KB_SUB, CONTEXT_ANY,&subKeyHandler },
     { KM_PRESS|KB_DIV, CONTEXT_ANY,&divKeyHandler },
@@ -1402,6 +1386,51 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(sdiv) },
     { KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sdiv) },
     { KM_PRESS|KB_MUL|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(smul) },
+
+    // VARS MENU KEYS
+    { KM_PRESS|KB_G, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
+    { KM_PRESS|KB_G|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
+    { KM_PRESS|KB_G|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
+    { KM_PRESS|KB_G|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
+    { KM_PRESS|KB_G|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
+    //{ KM_LPRESS|KB_G, CONTEXT_ANY,KEYHANDLER_NAME(apps)},
+
+    { KM_PRESS|KB_H, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
+    { KM_PRESS|KB_H|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
+    { KM_PRESS|KB_H|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
+    { KM_PRESS|KB_H|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
+    { KM_PRESS|KB_H|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
+    //{ KM_LPRESS|KB_H, CONTEXT_ANY,KEYHANDLER_NAME(mode)},
+
+    { KM_PRESS|KB_I, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
+    { KM_PRESS|KB_I|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
+    { KM_PRESS|KB_I|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
+    { KM_PRESS|KB_I|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
+    { KM_PRESS|KB_I|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
+    //{ KM_LPRESS|KB_I, CONTEXT_ANY,KEYHANDLER_NAME(tool)},
+
+    { KM_PRESS|KB_J, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
+    { KM_PRESS|KB_J|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
+    { KM_PRESS|KB_J|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
+    { KM_PRESS|KB_J|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
+    { KM_PRESS|KB_J|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
+    //{ KM_LPRESS|KB_J, CONTEXT_ANY,KEYHANDLER_NAME(varsmenu)},
+
+    { KM_PRESS|KB_K, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
+    { KM_PRESS|KB_K|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
+    { KM_PRESS|KB_K|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
+    { KM_PRESS|KB_K|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
+    { KM_PRESS|KB_K|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
+    //{ KM_LPRESS|KB_K, CONTEXT_ANY,KEYHANDLER_NAME(oldsto)},
+
+    { KM_PRESS|KB_L, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
+    { KM_PRESS|KB_L|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
+    { KM_PRESS|KB_L|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
+    { KM_PRESS|KB_L|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
+    { KM_PRESS|KB_L|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
+    //{ KM_LPRESS|KB_L, CONTEXT_ANY,KEYHANDLER_NAME(nxt)},
+
+
 
     { KM_PRESS|KB_Y, CONTEXT_ANY,&invKeyHandler },
     { KM_PRESS|KB_SPC, CONTEXT_ANY,&spcKeyHandler },

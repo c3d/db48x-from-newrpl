@@ -269,6 +269,24 @@ inline WORD rplObjSize(WORDPTR ip)
     return 1+((ISPROLOG(*ip))? OBJSIZE(*ip):0);
 }
 
+// ALLOCATES MEMORY AND MAKES AN EXACT DUPLICATE OF object
+// USES ONE SCRATCH POINTER
+// RETURNS NULL IF ERROR
+WORDPTR rplMakeNewCopy(WORDPTR object)
+{
+    WORD prolog=*object;
+    BINT size=0;
+    if(ISPROLOG(prolog)) size=OBJSIZE(prolog);
+    ScratchPointer1=object;
+
+    WORDPTR newobj=rplAllocTempOb(size);
+
+    if(!newobj) return 0;
+
+    memmovew((void *)newobj,(void *)ScratchPointer1,1+size);
+    return newobj;
+}
+
 
 // COPIES AN OBJECT FROM src TO dest
 // SAFE EVEN IF OBJECTS OVERLAP
