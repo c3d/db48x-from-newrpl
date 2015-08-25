@@ -280,10 +280,10 @@ halScreen.SAreaTimer=0;
 halScreen.CursorTimer=-1;
 halScreen.KeyContext=CONTEXT_STACK;
 halScreen.FormFont=halScreen.StackFont=halScreen.Stack1Font=(UNIFONT *)Font_8C;
-halScreen.MenuFont=(UNIFONT *)Font_5C;
+halScreen.MenuFont=(UNIFONT *)Font_6A;
 halScreen.StAreaFont=(UNIFONT *)Font_6A;
 halScreen.CmdLineFont=(UNIFONT *)Font_8C;
-
+halScreen.Menu1Page=halScreen.Menu2Page=0;
 halSetNotification(N_LEFTSHIFT,0);
 halSetNotification(N_RIGHTSHIFT,0);
 halSetNotification(N_ALPHA,0);
@@ -330,6 +330,8 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     }
 // TODO: EVERYTHING, SHOW EMPTY MENU FOR NOW
     int ytop,ybottom;
+    int oldclipx,oldclipx2,oldclipy,oldclipy2;
+
     ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     ybottom=ytop+halScreen.Menu2-1;
     // DRAW BACKGROUND
@@ -340,6 +342,42 @@ void halRedrawMenu2(DRAWSURFACE *scr)
 //    ggl_clipvline(scr,87,ytop,ybottom,0);
 //    ggl_clipvline(scr,109,ytop,ybottom,0);
     ggl_cliphline(scr,ytop+6,0,64,0);
+
+    // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
+
+    oldclipx=scr->clipx;
+    oldclipx2=scr->clipx2;
+    oldclipy=scr->clipy;
+    oldclipy2=scr->clipy2;
+
+
+    BINT nvars=rplGetVarCount();
+    BINT k;
+    WORDPTR *var;
+    // FIRST ROW
+
+    scr->clipy=ytop;
+    scr->clipy2=ytop+5;
+
+    for(k=0;k<3;++k) {
+    scr->clipx=22*k;
+    scr->clipx2=22*k+20;
+    var=rplFindGlobalByIndex(halScreen.Menu2Page+k);
+    if(var) {
+        if(ISIDENT(**var)) {
+        DrawTextN(scr->clipx,ytop,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xF,scr);
+        }
+    }
+    }
+
+
+
+    scr->clipx=oldclipx;
+    scr->clipx2=oldclipx2;
+    scr->clipy=oldclipy;
+    scr->clipy2=oldclipy2;
+
+
 
     halScreen.DirtyFlag&=~MENU2_DIRTY;
 }

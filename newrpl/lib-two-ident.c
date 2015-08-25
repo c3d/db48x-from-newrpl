@@ -102,6 +102,19 @@ BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend)
     return 1;
 }
 
+// DETERMINE THE LENGTH OF AN IDENT STRING IN BYTES (NOT CHARACTERS)
+BINT rplGetIdentLength(WORDPTR ident)
+{
+    BINT len=OBJSIZE(*ident);
+    WORD lastword=*(ident+len);
+    BINT usedbytes=0;
+    while( !(lastword&0xff000000) && (usedbytes<4) ) { lastword<<=8; ++usedbytes; }
+    usedbytes=4-usedbytes;
+
+    return ((len-1)<<2)+usedbytes;
+}
+
+
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {

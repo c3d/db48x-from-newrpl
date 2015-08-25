@@ -237,6 +237,10 @@ BINT rplVerifyDirectories(BINT fix);
 
 
 
+//IDENTIFIER FUNCTIONS
+extern BINT rplGetIdentLength(WORDPTR ident);
+extern void rplCompileIDENT(BINT libnum, BYTEPTR tok, BYTEPTR tokend);
+extern BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend);
 
 
 
@@ -261,8 +265,6 @@ extern WORDPTR *rplFindLAMbyName(BYTEPTR name,BINT len,BINT scanparents);
 extern WORDPTR *rplGetNextLAMEnv(WORDPTR *startpoint);
 extern BINT rplNeedNewLAMEnv();
 extern BINT rplNeedNewLAMEnvCompiler();
-extern void rplCompileIDENT(BINT libnum, BYTEPTR tok, BYTEPTR tokend);
-extern BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend);
 extern BINT rplLAMCount(WORDPTR *LAMEnvironment);
 
 
