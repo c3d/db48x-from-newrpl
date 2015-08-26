@@ -166,7 +166,7 @@ void rplSymbApplyOperator(WORD Opcode,BINT nargs)
         }
         rplCopyObject(ptr,obj);
         // REPLACE QUOTED IDENT WITH UNQUOTED ONES FOR SYMBOLIC OBJECTS
-        if(LIBNUM(*ptr)==DOIDENT) *ptr=MKPROLOG(DOIDENTEVAL,OBJSIZE(*ptr));
+        if(ISIDENT(*ptr)) *ptr=SETLIBNUMBIT(*ptr,UNQUOTED_BIT);
 
         ptr=rplSkipOb(ptr);
     }

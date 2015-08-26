@@ -20,11 +20,15 @@ extern void lib24_handler();
 extern void lib26_handler();
 extern void lib28_handler();
 extern void lib30_handler();
+
 extern void lib32_handler();
 
-extern void lib48_handler();
+
 extern void lib50_handler();
 
+extern void lib52_handler();
+
+extern void lib58_handler();
 
 extern void lib64_handler();
 extern void lib65_handler();
@@ -80,9 +84,6 @@ const LIBHANDLER const ROMLibs[]={
     // LIBS 12 THRU 19 ARE BINTS
     lib12_handler,
 
-    // LIB 20 THRU 23 ARE IDENTS
-    lib20_handler,
-
     // LIB 24 THRU 27 ARE STRINGS
     lib24_handler,
 
@@ -92,16 +93,18 @@ const LIBHANDLER const ROMLibs[]={
     // COMPLEX NUMBERS
     lib30_handler,
 
-
-    // SYMBOLICS
+    // LIB 32 THRU 47 ARE IDENTS
     lib32_handler,
-
-    // MATRIX
-    lib48_handler,
-
 
     // LISTS
     lib50_handler,     // THIS IS LIB 50
+
+    // SYMBOLICS
+    lib52_handler,
+
+    // MATRIX
+    lib58_handler,
+
 
     lib64_handler,
     lib65_handler,

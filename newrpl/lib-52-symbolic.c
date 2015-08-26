@@ -17,12 +17,12 @@
 // ALL OTHER FUNCTIONS ARE LOCAL
 
 // MAIN LIBRARY NUMBER, CHANGE THIS FOR EACH LIBRARY
-#define LIBRARY_NUMBER  32
-#define LIB_ENUM lib32enum
-#define LIB_NAMES lib32_names
-#define LIB_HANDLER lib32_handler
-#define LIB_NUMBEROFCMDS LIB32_NUMBEROFCMDS
-#define ROMPTR_TABLE    romptr_table32
+#define LIBRARY_NUMBER  52
+#define LIB_ENUM lib52enum
+#define LIB_NAMES lib52_names
+#define LIB_HANDLER lib52_handler
+#define LIB_NUMBEROFCMDS LIB52_NUMBEROFCMDS
+#define ROMPTR_TABLE    romptr_table52
 
 // LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
 // HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
@@ -183,7 +183,7 @@ void LIB_HANDLER()
 
     // REMOVE QUOTES ON ANY IDENTS
     ptr=newobject+2;
-    if(ISIDENT(*ptr)) *ptr=MKPROLOG(DOIDENTEVAL,OBJSIZE(*ptr));
+    if(ISIDENT(*ptr)) *ptr=SETLIBNUMBIT(*ptr,UNQUOTED_BIT);
 
     rplOverwriteData(1,newobject);
     return;

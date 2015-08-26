@@ -64,7 +64,6 @@ SOURCES += main.cpp\
     newrpl/lib-24-string.c \
     newrpl/lib-28-dirs.c \
     newrpl/lib-30-complex.c \
-    newrpl/lib-32-symbolic.c \
     newrpl/lib-50-lists.c \
     newrpl/lib-64-precision.c \
     newrpl/lib-65-development.c \
@@ -79,7 +78,6 @@ SOURCES += main.cpp\
     newrpl/lib-nine-docol2.c \
     newrpl/lib-ten-reals.c \
     newrpl/lib-twelve-bint.c \
-    newrpl/lib-twenty-lam.c \
     newrpl/lib-two-ident.c \
     newrpl/lists.c \
     newrpl/returnstack.c \
@@ -92,7 +90,6 @@ SOURCES += main.cpp\
     firmware/sys/target_pc/boot.c \
     rplthread.cpp \
     firmware/ui_cmdline.c \
-    newrpl/lib-48-matrix.c \
     newrpl/utf8lib.c \
     newrpl/utf8data.c \
     firmware/sys/Font5C.c \
@@ -113,7 +110,10 @@ SOURCES += main.cpp\
     newrpl/decimal.c \
     newrpl/dectranscen.c \
     newrpl/backup.c \
-    newrpl/sanity.c
+    newrpl/sanity.c \
+    newrpl/lib-52-symbolic.c \
+    newrpl/lib-32-lam.c \
+    newrpl/lib-58-matrix.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \

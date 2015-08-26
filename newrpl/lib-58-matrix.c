@@ -14,11 +14,11 @@
 // ALL OTHER FUNCTIONS ARE LOCAL
 
 // MAIN LIBRARY NUMBER, CHANGE THIS FOR EACH LIBRARY
-#define LIBRARY_NUMBER  48
-#define LIB_ENUM lib48_enum
-#define LIB_NAMES lib48_names
-#define LIB_HANDLER lib48_handler
-#define LIB_NUMBEROFCMDS LIB48_NUMBEROFCMDS
+#define LIBRARY_NUMBER  58
+#define LIB_ENUM lib58_enum
+#define LIB_NAMES lib58_names
+#define LIB_HANDLER lib58_handler
+#define LIB_NUMBEROFCMDS LIB58_NUMBEROFCMDS
 
 // LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
 // HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
@@ -101,7 +101,10 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
     "ROW→", \
     "→V2", \
     "→V3", \
-    "V→"
+    "V→", \
+    "", \
+    "", \
+    ""
 
 
 
@@ -120,7 +123,11 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
     FROMROW, \
     TOV2, \
     TOV3, \
-    FROMV
+    FROMV, \
+    DOMATPRE, \
+    DOMATPOST, \
+    DOMATERR
+
 
 
 
@@ -137,6 +144,41 @@ enum LIB_ENUM { CMD_EXTRAENUM , CMD_LIST ,  LIB_NUMBEROFCMDS };
 #define CMD(a) #a
 const char * const LIB_NAMES[]= { CMD_EXTRANAME , CMD_LIST  };
 #undef CMD
+
+
+
+const WORD const matrixeval_seco[]={
+    MKPROLOG(DOCOL,5),
+    MKOPCODE(LIBRARY_NUMBER,DOMATPRE),     // PREPARE EACH ELEMENT
+    MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER,DOMATPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER,DOMATERR),     // ERROR HANDLER
+    CMD_SEMI
+};
+
+const WORD const matrixeval1_seco[]={
+    MKPROLOG(DOCOL,5),
+    MKOPCODE(LIBRARY_NUMBER,DOMATPRE),     // PREPARE EACH ELEMENT
+    MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1),    // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER,DOMATPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER,DOMATERR),     // ERROR HANDLER
+    CMD_SEMI
+};
+
+const WORD const matrixtonum_seco[]={
+    MKPROLOG(DOCOL,5),
+    MKOPCODE(LIBRARY_NUMBER,DOMATPRE),     // PREPARE EACH ELEMENT
+    MKOPCODE(LIB_OVERLOADABLE,OVR_NUM),    // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER,DOMATPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER,DOMATERR),     // ERROR HANDLER
+    CMD_SEMI
+};
+
+
+
+
+
+
 
 
 
@@ -210,6 +252,147 @@ void LIB_HANDLER()
             rplMatrixNeg();
             return;
 
+        }
+        case OVR_EVAL1:
+            // EVAL NEEDS TO SCAN THE MATRIX, EVAL EACH ARGUMENT SEPARATELY AND REBUILD IT.
+        {
+            WORDPTR object=rplPeekData(1),mainobj;
+            if(!ISMATRIX(*object)) {
+                Exceptions|=EX_BADARGTYPE;
+                ExceptionPointer=IPtr;
+                return;
+            }
+            mainobj=object;
+
+            // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
+            rplCreateLAMEnvironment(IPtr);
+
+            object=rplMatrixGetFirstObj(object);
+            WORDPTR endobject=rplSkipOb(mainobj);
+
+            rplCreateLAM((WORDPTR)nulllam_ident,endobject);     // LAM 1 = END OF CURRENT LIST
+            if(Exceptions) { rplCleanupLAMs(0); return; }
+
+            rplCreateLAM((WORDPTR)nulllam_ident,object);     // LAM 2 = NEXT OBJECT TO PROCESS
+            if(Exceptions) { rplCleanupLAMs(0); return; }
+
+            rplCreateLAM((WORDPTR)nulllam_ident,mainobj);     // LAM 3 = ORIGINAL MATRIX
+            if(Exceptions) { rplCleanupLAMs(0); return; }
+
+            // GETLAM 1 = END OF MATRIX, GETLAM2 = OBJECT, GETLAM3 = ORIGINAL MATRIX
+
+            // THIS NEEDS TO BE DONE IN 3 STEPS:
+            // EVAL WILL PREPARE THE LAMS FOR OPEN EXECUTION
+            // MATPRE WILL PUSH THE NEXT OBJECT IN THE STACK
+            // MATPOST WILL CHECK IF THE ARGUMENT WAS PROCESSED WITHOUT ERRORS,
+            // AND CLOSE THE LOOP TO PROCESS MORE ARGUMENTS
+
+            // THE INITIAL CODE FOR EVAL MUST TRANSFER FLOW CONTROL TO A
+            // SECONDARY THAT CONTAINS :: MATPRE EVAL MATPOST ;
+            // MATPOST WILL CHANGE IP AGAIN TO BEGINNING OF THE SECO
+            // IN ORDER TO KEEP THE LOOP RUNNING
+
+            rplPushRet(IPtr);
+            IPtr=(WORDPTR)  matrixeval1_seco;
+            CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+
+            rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
+
+            return;
+        }
+        case OVR_EVAL:
+            // EVAL NEEDS TO SCAN THE MATRIX, EVAL EACH ARGUMENT SEPARATELY AND REBUILD IT.
+        {
+            WORDPTR object=rplPeekData(1),mainobj;
+            if(!ISMATRIX(*object)) {
+                Exceptions|=EX_BADARGTYPE;
+                ExceptionPointer=IPtr;
+                return;
+            }
+            mainobj=object;
+
+            // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
+            rplCreateLAMEnvironment(IPtr);
+
+            object=rplMatrixGetFirstObj(object);
+            WORDPTR endobject=rplSkipOb(mainobj);
+
+            rplCreateLAM((WORDPTR)nulllam_ident,endobject);     // LAM 1 = END OF CURRENT LIST
+            if(Exceptions) { rplCleanupLAMs(0); return; }
+
+            rplCreateLAM((WORDPTR)nulllam_ident,object);     // LAM 2 = NEXT OBJECT TO PROCESS
+            if(Exceptions) { rplCleanupLAMs(0); return; }
+
+            rplCreateLAM((WORDPTR)nulllam_ident,mainobj);     // LAM 3 = ORIGINAL MATRIX
+            if(Exceptions) { rplCleanupLAMs(0); return; }
+
+            // GETLAM 1 = END OF MATRIX, GETLAM2 = OBJECT, GETLAM3 = ORIGINAL MATRIX
+
+            // THIS NEEDS TO BE DONE IN 3 STEPS:
+            // EVAL WILL PREPARE THE LAMS FOR OPEN EXECUTION
+            // MATPRE WILL PUSH THE NEXT OBJECT IN THE STACK
+            // MATPOST WILL CHECK IF THE ARGUMENT WAS PROCESSED WITHOUT ERRORS,
+            // AND CLOSE THE LOOP TO PROCESS MORE ARGUMENTS
+
+            // THE INITIAL CODE FOR EVAL MUST TRANSFER FLOW CONTROL TO A
+            // SECONDARY THAT CONTAINS :: MATPRE EVAL MATPOST ;
+            // MATPOST WILL CHANGE IP AGAIN TO BEGINNING OF THE SECO
+            // IN ORDER TO KEEP THE LOOP RUNNING
+
+            rplPushRet(IPtr);
+            IPtr=(WORDPTR)  matrixeval_seco;
+            CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+
+            rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
+
+            return;
+        }
+        case OVR_NUM:
+            // EVAL NEEDS TO SCAN THE MATRIX, EVAL EACH ARGUMENT SEPARATELY AND REBUILD IT.
+        {
+            WORDPTR object=rplPeekData(1),mainobj;
+            if(!ISMATRIX(*object)) {
+                Exceptions|=EX_BADARGTYPE;
+                ExceptionPointer=IPtr;
+                return;
+            }
+            mainobj=object;
+
+            // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
+            rplCreateLAMEnvironment(IPtr);
+
+            object=rplMatrixGetFirstObj(object);
+            WORDPTR endobject=rplSkipOb(mainobj);
+
+            rplCreateLAM((WORDPTR)nulllam_ident,endobject);     // LAM 1 = END OF CURRENT LIST
+            if(Exceptions) { rplCleanupLAMs(0); return; }
+
+            rplCreateLAM((WORDPTR)nulllam_ident,object);     // LAM 2 = NEXT OBJECT TO PROCESS
+            if(Exceptions) { rplCleanupLAMs(0); return; }
+
+            rplCreateLAM((WORDPTR)nulllam_ident,mainobj);     // LAM 3 = ORIGINAL MATRIX
+            if(Exceptions) { rplCleanupLAMs(0); return; }
+
+            // GETLAM 1 = END OF MATRIX, GETLAM2 = OBJECT, GETLAM3 = ORIGINAL MATRIX
+
+            // THIS NEEDS TO BE DONE IN 3 STEPS:
+            // EVAL WILL PREPARE THE LAMS FOR OPEN EXECUTION
+            // MATPRE WILL PUSH THE NEXT OBJECT IN THE STACK
+            // MATPOST WILL CHECK IF THE ARGUMENT WAS PROCESSED WITHOUT ERRORS,
+            // AND CLOSE THE LOOP TO PROCESS MORE ARGUMENTS
+
+            // THE INITIAL CODE FOR EVAL MUST TRANSFER FLOW CONTROL TO A
+            // SECONDARY THAT CONTAINS :: MATPRE EVAL MATPOST ;
+            // MATPOST WILL CHANGE IP AGAIN TO BEGINNING OF THE SECO
+            // IN ORDER TO KEEP THE LOOP RUNNING
+
+            rplPushRet(IPtr);
+            IPtr=(WORDPTR)  matrixtonum_seco;
+            CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_NUM);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+
+            rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
+
+            return;
         }
         }
 
@@ -556,8 +739,6 @@ void LIB_HANDLER()
 
         return;
     }
-        // ADD MORE OPCODES HERE
-    
     case TOCOL:
     {
         if(rplDepthData()<1) {
@@ -597,7 +778,6 @@ void LIB_HANDLER()
         return;
 
     }
-
     case ADDCOL:
     {
         if(rplDepthData()<3) {
@@ -762,7 +942,6 @@ void LIB_HANDLER()
         rplPushData(newmat);
         return;
     }
-
     case REMCOL:
     {
         if(rplDepthData()<2) {
@@ -951,18 +1130,118 @@ void LIB_HANDLER()
     case TOV2:
     case TOV3:
     case FROMV:
+    case DOMATPRE:
+    {
+
+        // GETLAM 1 = END OF MATRIX, GETLAM2 = OBJECT, GETLAM3 = ORIGINAL MATRIX
+
+
+        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE DOLISTERR WORD
+
+        // NOW RECALL THE MATRIX OBJECT TO THE STACK
+
+        rplPushData(*rplGetLAMn(2));
+
+        // AND EXECUTION WILL CONTINUE AT EVAL
+
+        return;
+    }
+
+    case DOMATPOST:
+    {
+
+        rplRemoveExceptionHandler();    // THERE WAS NO ERROR DOING THE EVALUATION
+
+        // GETLAM 1 = END OF MATRIX, GETLAM2 = OBJECT, GETLAM3 = ORIGINAL MATRIX
+        WORDPTR endobj=*rplGetLAMn(1),
+                nextobj=rplSkipOb(*rplGetLAMn(2)),
+                matrix=*rplGetLAMn(3);
+
+        if(nextobj<endobj) {
+            // NEED TO DO ONE MORE LOOP
+            rplPutLAMn(2,nextobj);  // STORE NEW OBJECT
+
+            IPtr-=3;   // CONTINUE THE LOOP, MAKE NEXT INSTRUCTION BE DOMATPRE ON ANY LOOP (2 INSTRUCTIONS BACK)
+            // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
+            return;
+        }
+
+        // ALL ELEMENTS WERE PROCESSED
+        // FORM A NEW MATRIX WITH ALL THE NEW ELEMENTS
+
+        WORDPTR *prevDStk = rplUnprotectData();
+
+        BINT newdepth=(BINT)(DSTop-prevDStk);
+
+        // COMPUTE THE REQUIRED SIZE
+
+        BINT totalsize=rplMatrixGetFirstObj(matrix)-matrix;
+        BINT k;
+        for(k=1;k<=newdepth;++k) {
+            totalsize+=rplObjSize(rplPeekData(k));
+        }
+
+        // NOW ALLOCATE THE NEW MATRIX
+
+         WORDPTR newmat=rplAllocTempOb(totalsize-1);
+        if( (!newmat) || Exceptions) {
+            DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+            rplCleanupLAMs(0);      // CLEANUP LOCAL VARIABLES
+            CurOpcode=*(IPtr-1);    // BLAME THE OPERATOR IN QUESTION
+            IPtr=rplPopRet();       // AND RETURN
+            return;
+        }
+
+        // RE-READ ALL POINTERS, SINCE THEY COULD'VE MOVED
+        matrix=*rplGetLAMn(3);
+        nextobj=rplMatrixGetFirstObj(matrix);       // FIRST OBJECT = END OF TABLES
+        newmat[0]=MKPROLOG(DOMATRIX,totalsize-1);
+        newmat[1]=matrix[1];    // SAME SIZE AS ORIGINAL MATRIX
+
+        BINT nelem=nextobj-matrix-2;
+        BINT oldidx;
+        WORDPTR oldobj,newobj,firstobj,oldfirst,oldptr;
+
+        // FILL THE MATRIX WITH ALL THE OBJECTS FROM THE STACK
+        firstobj=newobj=rplMatrixGetFirstObj(newmat);        // STORE NEW OBJECTS HERE
+        for(k=newdepth;k>=1;--k) { rplCopyObject(newobj,rplPeekData(k)); newobj=rplSkipOb(newobj); }
+
+        oldfirst=rplMatrixGetFirstObj(matrix);
+
+        for(k=0;k<nelem;++k) {
+            // GET THE INDEX NUMBER OF THE OBJECT FROM THE OFFSET
+            oldobj=matrix+matrix[2+k];
+            for(oldidx=0,oldptr=oldfirst;oldptr<oldobj;++oldidx) oldptr=rplSkipOb(oldptr);
+            // FIND THE OBJECT ON THE NEW MATRIX
+            for(newobj=firstobj;oldidx>0;--oldidx) newobj=rplSkipOb(newobj);
+            // STORE THE NEW OFFSET
+            newmat[2+k]=newobj-newmat;
+        }
 
 
 
+        // HERE THE STACK HAS: MATRIX ELEM1... ELEMN
+        rplOverwriteData(newdepth+1,newmat);
+        rplDropData(newdepth);
 
+        rplCleanupLAMs(0);
+        CurOpcode=*(IPtr-1);    // BLAME THE OPERATOR IN QUESTION
+        IPtr=rplPopRet();       // AND RETURN
+        return;
+    }
 
+    case DOMATERR:
+    {
+        // JUST CLEANUP AND EXIT
+        DSTop=rplUnprotectData();
+        rplCleanupLAMs(0);
+        CurOpcode=*(IPtr-2);    // BLAME THE OPERATOR IN QUESTION
+        IPtr=rplPopRet();
+        Exceptions=TrappedExceptions;
+        ExceptionPointer=IPtr;
+        return;
+    }
 
-
-
-
-
-
-    break;
 
 
 

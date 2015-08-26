@@ -74,7 +74,7 @@ const BINT const LIB_TOKENINFO[]=
 
 
 const WORD const dotsettings_ident[]= {
-        MKPROLOG(DOIDENTEVAL,3),
+        MKPROLOG(DOIDENTHIDDEN,3),
         TEXT2WORD('.','S','e','t'),
         TEXT2WORD('t','i','n','g'),
         TEXT2WORD('s',0,0,0)

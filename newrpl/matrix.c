@@ -44,6 +44,17 @@ WORDPTR rplMatrixGet(WORDPTR matrix,BINT row,BINT col)
 
 }
 
+// GET A POINTER TO THE FIRST OBJECT WITHIN A MATRIX
+
+WORDPTR rplMatrixGetFirstObj(WORDPTR matrix)
+{
+    BINT rows=MATROWS(*(matrix+1)),cols=MATCOLS(*(matrix+1));
+    if(!rows) rows=1;
+    return matrix+2+rows*cols;
+}
+
+
+
 // GET AN ELEMENT OF AN ARRAY - LOW-LEVEL, NO CHECKS OF ANY KIND DONE
 
 WORDPTR rplMatrixFastGet(WORDPTR matrix,BINT row,BINT col)
@@ -339,8 +350,8 @@ rplDropData(1);
 }
 
 
-
-void rplMatrixNeg()
+// APPLY UNARY OPERATOR THAT WORKS ELEMENT-BY-ELEMENT (NEG, EVAL, ->NUM, ETC)
+void rplMatrixUnary(WORD Opcode)
 {
 WORDPTR *Savestk,*a;
 // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
@@ -362,7 +373,7 @@ BINT j;
 
 for(j=0;j<totalelements;++j) {
  rplPushData(GETELEMENT(*a,j));
- rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+ rplCallOvrOperator(Opcode);
  if(Exceptions) {
      DSTop=Savestk;
      return;
@@ -385,9 +396,10 @@ rplOverwriteData(1,newmat);
 
 
 
-
-
-
+void rplMatrixNeg()
+{
+    rplMatrixUnary(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+}
 
 
 

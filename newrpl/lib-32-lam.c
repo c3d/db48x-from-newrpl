@@ -10,26 +10,37 @@
 #include "hal.h"
 
 
-// THIS LIBRARY PROVIDES ONLY COMPILATION OF IDENTS AFTER ALL OTHER LIBRARIES
-// HAD A CHANCE TO IDENTIFY THEIR COMMANDS
-// ANY LAM COMMANDS HAVE TO BE IN A SEPARATE LIBRARY
-
-
-
 // THERE'S ONLY ONE EXTERNAL FUNCTION: THE LIBRARY HANDLER
 // ALL OTHER FUNCTIONS ARE LOCAL
 
 // MAIN LIBRARY NUMBER, CHANGE THIS FOR EACH LIBRARY
-#define LIBRARY_NUMBER  20
-#define LIB_ENUM lib20enum
-#define LIB_NAMES lib20_names
-#define LIB_HANDLER lib20_handler
-#define LIB_NUMBEROFCMDS LIB20_NUMBEROFCMDS
-#define ROMPTR_TABLE    romptr_table20
+#define LIBRARY_NUMBER  32
+#define LIB_ENUM lib32enum
+#define LIB_NAMES lib32_names
+#define LIB_HANDLER lib32_handler
+#define LIB_NUMBEROFCMDS LIB32_NUMBEROFCMDS
+#define ROMPTR_TABLE    romptr_table32
 
 // LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
 // HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
-static const HALFWORD const libnumberlist[]={ DOIDENT,DOIDENTAPP,DOIDENTEVAL,DOIDENTEVALAPP,0 };
+static const HALFWORD const libnumberlist[]={
+    DOIDENT,
+    DOIDENT+1,
+    DOIDENT+2,
+    DOIDENT+3,
+    DOIDENT+4,
+    DOIDENT+5,
+    DOIDENT+6,
+    DOIDENT+7,
+    DOIDENT+8,
+    DOIDENT+9,
+    DOIDENT+10,
+    DOIDENT+11,
+    DOIDENT+12,
+    DOIDENT+13,
+    DOIDENT+14,
+    DOIDENT+15,
+    0 };
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
@@ -141,7 +152,7 @@ void LIB_HANDLER()
         // NORMAL BEHAVIOR  ON A IDENT IS TO PUSH THE OBJECT ON THE STACK:
         rplPushData(IPtr);
 
-        if((LIBNUM(CurOpcode)|APPROX_BIT)==DOIDENTEVALAPP) {
+        if(ISUNQUOTEDIDENT(CurOpcode)) {
             // UNQUOTED LAM, NEED TO ALSO DO XEQ ON ITS CONTENTS
             {
                 WORDPTR val=rplGetLAM(rplPeekData(1));
@@ -343,57 +354,27 @@ void LIB_HANDLER()
 
                 if(ISIDENT(*rplPeekData(1))) {
 
-                    if(LIBNUM(rplPeekData(1))==DOIDENTEVAL) {
+                if(ISUNQUOTEDIDENT(*rplPeekData(1))) {
 
                    WORDPTR val=rplGetLAM(rplPeekData(1));
                 if(!val) {
                     val=rplGetGlobal(rplPeekData(1));
-                    if(!val) {
-                        // INEXISTENT IDENT EVALS TO ITSELF, SO LEAVE ON STACK
-                    }
                 }
-                if(!val) {
-                 // TODO: APPLY THE OPERATOR AS A SYMBOLIC OBJECT
-                    rplSymbApplyOperator(CurOpcode,2);
-                    return;
-                }
-                else
+                if(val)
                 // HERE val HAS THE CONTENTS OF THE NAMED VARIABLE
                 rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
                 }
-                    else {
-                        // QUOTED IDENTS ARE TREATED AS SYMBOLIC OBJECTS
-                        rplSymbApplyOperator(CurOpcode,2);
-                        return;
-                    }
                 }
 
                 if(ISIDENT(*rplPeekData(2))) {
 
-                    if(LIBNUM(rplPeekData(2))==DOIDENTEVAL) {
+                    if(ISUNQUOTEDIDENT(*rplPeekData(2))) {
                 WORDPTR val=rplGetLAM(rplPeekData(2));
                 if(!val) {
                     val=rplGetGlobal(rplPeekData(2));
-                    if(!val) {
-                        // INEXISTENT IDENT EVALS TO ITSELF, SO LEAVE ON STACK
-                    }
                 }
-                if(!val) {
-                 // TODO: APPLY THE OPERATOR AS A SYMBOLIC OBJECT
-                    rplSymbApplyOperator(CurOpcode,2);
-                    return;
+                if(val) rplOverwriteData(2,val);    // REPLACE THE SECOND LEVEL WITH THE VALUE
                 }
-                else
-                // HERE val HAS THE CONTENTS OF THE NAMED VARIABLE
-
-                rplOverwriteData(2,val);    // REPLACE THE SECOND LEVEL WITH THE VALUE
-                }
-                else {
-
-                        rplSymbApplyOperator(CurOpcode,2);
-                        return;
-
-                    }
                 }
 
 
@@ -405,12 +386,13 @@ void LIB_HANDLER()
                 libnum1=tmp;
             }
 
-            if((libnum1==LIBRARY_NUMBER)||(libnum1==LIBRARY_NUMBER+1)) {
+            if((libnum1>=DOIDENT)&&(libnum1<=DOMAXIDENT)) {
+                // IF THE IDENT IS THE DISPATCH CANDIDATE, TREAT AS SYMBOLIC
                 LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
                 (*symblib)();
                 return;
             }
-
+            // OTHERWISE JUST SEND TO DISPATCHER
             rplCallOvrOperator(CurOpcode);
             return;
 
@@ -933,7 +915,7 @@ void LIB_HANDLER()
                 PreviousConstruct=**prevconst;
             }
 
-            if((LIBNUM(*DecompileObject)==LIBRARY_NUMBER)&&(PreviousConstruct!=CMD_XEQSECO))
+            if((ISQUOTEDIDENT(*DecompileObject))&&(PreviousConstruct!=CMD_XEQSECO))
                 // THIS IS A QUOTED IDENT
                 rplDecompAppendChar('\'');
 
@@ -944,7 +926,7 @@ void LIB_HANDLER()
             else
                 rplDecompAppendString2((BYTEPTR)(DecompileObject+1),OBJSIZE(*DecompileObject)<<2);
 
-            if((LIBNUM(*DecompileObject)==LIBRARY_NUMBER)&&(PreviousConstruct!=CMD_XEQSECO))
+            if((ISQUOTEDIDENT(*DecompileObject))&&(PreviousConstruct!=CMD_XEQSECO))
                 // THIS IS A QUOTED IDENT
                 rplDecompAppendChar('\'');
 
