@@ -337,7 +337,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     ybottom=ytop+halScreen.Menu2-1;
     // DRAW BACKGROUND
-    ggl_cliprect(scr,0,ytop,64,ybottom,ggl_mkcolor(0x8));
+    ggl_cliprect(scr,0,ytop,64,ybottom,ggl_mkcolor(0x6));
     ggl_clipvline(scr,21,ytop,ybottom,0);
     ggl_clipvline(scr,43,ytop,ybottom,0);
     ggl_clipvline(scr,65,ytop,ybottom,0);
@@ -380,9 +380,13 @@ void halRedrawMenu2(DRAWSURFACE *scr)
             BINT w=StringWidthN((char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont);
             if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
             else w=(scr->clipx2+scr->clipx-w)>>1;
-            if(ISDIR(*var[1])) DrawTextN(w+1,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xf,scr);
+            if(ISDIR(*var[1])) {
+                //DrawTextN(w+1,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0x0,scr);
+                ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(0xf));
+                ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor(0xf));
+            }
 
-        DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0x0,scr);
+        DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xf,scr);
     }
     }
 
@@ -399,9 +403,14 @@ void halRedrawMenu2(DRAWSURFACE *scr)
             BINT w=StringWidthN((char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont);
             if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
             else w=(scr->clipx2+scr->clipx-w)>>1;
-            if(ISDIR(*var[1])) DrawTextN(w+1,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xf,scr);
+            if(ISDIR(*var[1])) {
+                //  DrawTextN(w+1,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0x0,scr);
+                ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(0xf));
+                ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor(0xf));
 
-            DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0x0,scr);
+            }
+
+            DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xf,scr);
     }
     }
 
@@ -415,12 +424,17 @@ void halRedrawMenu2(DRAWSURFACE *scr)
                 BINT w=StringWidthN((char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont);
                 if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
                 else w=(scr->clipx2+scr->clipx-w)>>1;
-                if(ISDIR(*var[1])) DrawTextN(w+1,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xf,scr);
-                DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0x0,scr);
+                if(ISDIR(*var[1])) {
+                    // DrawTextN(w+1,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0x0,scr);
+                    ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(0xf));
+                    ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor(0xf));
+
+                }
+                DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xf,scr);
         }
     } else {
      if(nvars>6) {
-         DrawText(scr->clipx,scr->clipy,"NXT...",halScreen.MenuFont,0x0,scr);
+         DrawText(scr->clipx,scr->clipy,"NXT...",halScreen.MenuFont,0xf,scr);
      }
     }
 
@@ -555,7 +569,7 @@ void halStatusAreaPopup()
         //tmr_eventresume(halScreen.SAreaTimer);      // PAUSE/RESUME WILL RESTART THE 5 SECOND COUNT
         //return;
     }
-    halScreen.SAreaTimer=tmr_eventcreate(&status_popup_handler,5000,0);
+    halScreen.SAreaTimer=tmr_eventcreate(&status_popup_handler,3000,0);
 }
 
 // WILL KEEP THE STATUS AREA AS-IS FOR 5 SECONDS, THEN REDRAW IT

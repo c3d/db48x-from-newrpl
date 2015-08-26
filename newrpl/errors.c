@@ -64,9 +64,9 @@ void rplCatchException()
     // SAVE THE EXCEPTIONS
     TrappedExceptions=Exceptions;   // THE ERROR HANDLER CAN KNOW THE EXCEPTIONS BY LOOKING AT THIS VARIABLE
                                     // ExceptionPointer STILL POINTS TO THE WORD THAT CAUSED THE EXCEPTION
+    TrappedErrorCode=ErrorCode;
+
     Exceptions=0;                   // RESET THE EXCEPTIONS TO ALLOW HANDLER TO RUN
-
-
 
     // SET INSTRUCTION POINTER AND CONTINUE EXECUTION AT THE ERROR HANDLER
     IPtr=ErrorHandler-1;    // MAKE SURE THE FIRST OBJECT AT THE ERROR HANDLER IS NOT SKIPPED
@@ -74,4 +74,19 @@ void rplCatchException()
 
     rplRemoveExceptionHandler();
 
+}
+
+// RAISE AN RPL EXCEPTION
+void rplException(WORD exception)
+{
+    Exceptions|=exception;
+    ExceptionPointer=IPtr;
+}
+
+// RAISE A LIBRARY ERROR EXCEPTION
+// AND SET THE ERROR CODE TO THE GIVEN OPCODE
+void rplError(WORD errorcode)
+{
+    Exceptions|=EX_ERRORCODE;
+    ErrorCode=errorcode;
 }

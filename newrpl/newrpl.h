@@ -127,6 +127,11 @@ extern void rplSetExceptionHandler(WORDPTR Handler);
 extern void rplRemoveExceptionHandler();
 extern void rplCatchException();
 
+// ERROR TRIGGER FUNCTIONS
+void rplError(WORD errorcode);
+void rplException(WORD exception);
+
+
 
 // ENVIRONMENT FUNCTIONS IN RUNSTREAM.C
 extern void rplInit(void);
@@ -422,6 +427,7 @@ extern void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 #define EX_BADOPCODE        4
 #define EX_OUTOFMEM         8
 #define EX_CIRCULARREF     16
+#define EX_ERRORCODE       32
 #define EX_EMPTYSTACK      64
 #define EX_EMPTYRSTK      128
 #define EX_SYNTAXERROR    256
@@ -435,14 +441,6 @@ extern void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 // ADD MORE HERE...
 #define EX_MATHDIVZERO     (1<<16)
 #define EX_MATHOVERFLOW    (2<<16)
-
-
-
-
-
-
-
-
 
 
 

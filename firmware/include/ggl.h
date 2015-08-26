@@ -70,6 +70,7 @@ int  ggl_getmonopix(char *buf,int off);            // peek a pixel in monochrome
 //       or call ggl_mkcolor for that purpose
 
 void ggl_hline(gglsurface *srf,int y,int xl,int xr, int color); // fast low-level horizontal line
+void ggl_cliphline(gglsurface *srf,int y,int xl,int xr, int color);
 void ggl_vline(gglsurface *srf,int x,int yt,int yb, int color); // fast low-level vertical line
 void ggl_clipvline(gglsurface *srf,int x,int yt,int yb, int color);
 void ggl_rect(gglsurface *srf,int x1,int y1,int x2,int y2,int color); // low-level rectangle

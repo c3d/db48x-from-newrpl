@@ -75,7 +75,10 @@ BINT rplRotArgs(BINT nargs)
         ptr=rplReverseSkipOb(symbstart,ptr);
     }
 
-    if(nargs || (!ptr)) return 0; // TOO FEW ARGUMENTS!
+    if(nargs || (!ptr)) {
+         rplError(ERR_BADARGCOUNT);
+        return 0; // TOO FEW ARGUMENTS!
+    }
 
     BINT firstsize = rplObjSize(ptr);
     // ADJUST MEMORY AS NEEDED
@@ -121,7 +124,10 @@ static BINT rplInfixApply(WORD opcode,BINT nargs)
         ptr=rplReverseSkipOb(symbstart,ptr);
     }
 
-    if(nargs || (!ptr)) return 0; // TOO FEW ARGUMENTS!
+    if(nargs || (!ptr)) {
+        rplError(ERR_BADARGCOUNT);
+        return 0; // TOO FEW ARGUMENTS!
+    }
 
     CompileEnd+=2;
     // ADJUST MEMORY AS NEEDED
@@ -235,8 +241,8 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     // PROCESS THE INFORMATION ABOUT THE TOKEN
                     if(TI_TYPE(RetNum)==TITYPE_NOTALLOWED) {
                         // THIS TOKEN IS NOT ALLOWED IN SYMBOLICS
-                        Exceptions|=EX_SYNTAXERROR;
-                        ExceptionPointer=IPtr;
+
+                        rplError(ERR_NOTALLOWEDINSYMBOLICS);
                         LAMTop=LAMTopSaved;
                         return 0;
                     }
@@ -281,8 +287,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                 case OK_ENDCONSTRUCT:
                     --ValidateTop;
                     if(ValidateTop<RSTop) {
-                        Exceptions|=EX_SYNTAXERROR;
-                        ExceptionPointer=IPtr;
+                        rplError(ERR_ENDWITHOUTSTART);
                         LAMTop=LAMTopSaved;
                         return 0;
                     }
@@ -354,15 +359,13 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         InfixOpTop-=2;
                         if(TI_TYPE(InfixOpTop[1])==TITYPE_OPENBRACKET) {
                             // MISSING BRACKET SOMEWHERE!
-                            Exceptions|=EX_SYNTAXERROR;
-                            ExceptionPointer=IPtr;
+                            rplError(ERR_MISSINGBRACKET);
                             LAMTop=LAMTopSaved;
                             return 0;
                         }
                         if(!rplInfixApply(InfixOpTop[0],TI_NARGS(InfixOpTop[1])))
                         {
-                            Exceptions|=EX_SYNTAXERROR;
-                            ExceptionPointer=IPtr;
+                            // ERROR IS SET BY rplInfixApply
                             LAMTop=LAMTopSaved;
                             return 0;
                         }
@@ -370,8 +373,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     // ALL PENDING OPERATORS WERE APPLIED, NOW CHECK THAT THERE IS ONE AND ONLY ONE RESULT
 
                     if(rplSkipOb(*(ValidateTop-1)+1)!=CompileEnd) {
-                        Exceptions|=EX_SYNTAXERROR;
-                        ExceptionPointer=IPtr;
+                        rplError(ERR_SYNTAXERROR);
                         LAMTop=LAMTopSaved;
                         return 0;
                     }
@@ -381,8 +383,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                  }
                     --ValidateTop;
                     if(ValidateTop<RSTop) {
-                        Exceptions|=EX_SYNTAXERROR;
-                        ExceptionPointer=IPtr;
+                        rplError(ERR_ENDWITHOUTSTART);
                         LAMTop=LAMTopSaved;
                         return 0;
                     }
@@ -420,8 +421,8 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                 case ERR_INVALID:
                 case ERR_SYNTAX:
-                    Exceptions|=EX_SYNTAXERROR;
-                    ExceptionPointer=IPtr;
+                    // RAISE THE ERROR ONLY IF THE LIBRARY DIDN'T DO IT
+                    if(!Exceptions) rplError(ERR_SYNTAXERROR);
                     LAMTop=LAMTopSaved;
                     return 0;
 
@@ -432,8 +433,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                if(infixmode) {
                 // FINISHED PROBING FOR TOKENS
                 if(probe_libnum<0) {
-                    Exceptions|=EX_UNDEFINED;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_INVALIDTOKEN);
                 }
                 else {
                 // GOT THE NEXT TOKEN IN THE STREAM
@@ -454,8 +454,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                     if(RetNum!=OK_CONTINUE) {
                         // THE LIBRARY ACCEPTED THE TOKEN DURING PROBE, SO WHAT COULD POSSIBLY GO WRONG?
-                        Exceptions|=EX_SYNTAXERROR;
-                        ExceptionPointer=IPtr;
+                        rplError(ERR_INVALIDTOKEN);
                         LAMTop=LAMTopSaved;
                         return 0;
                     }
@@ -553,8 +552,6 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                                 InfixOpTop-=2;
                                 if(!rplInfixApply(InfixOpTop[0],TI_NARGS(InfixOpTop[1])))
                                 {
-                                    Exceptions|=EX_SYNTAXERROR;
-                                    ExceptionPointer=IPtr;
                                     LAMTop=LAMTopSaved;
                                     return 0;
                                 }
@@ -563,8 +560,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                             if(InfixOpTop<=(WORDPTR)ValidateTop) {
                                 // OPENING BRACKET NOT FOUND, SYNTAX ERROR
-                                    Exceptions|=EX_SYNTAXERROR;
-                                    ExceptionPointer=IPtr;
+                                    rplError(ERR_MISSINGBRACKET);
                                     LAMTop=LAMTopSaved;
                                     return 0;
                             }
@@ -587,8 +583,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                                 if(TI_TYPE(*(InfixOpTop-1))==TITYPE_FUNCTION) {
                                     BINT needargs=(BINT)TI_NARGS(*(InfixOpTop-1));
                                     if((needargs!=0xf) && (nargs!=needargs)) {
-                                        Exceptions|=EX_BADARGCOUNT;
-                                        ExceptionPointer=IPtr;
+                                        rplError(ERR_BADARGCOUNT);
                                         LAMTop=LAMTopSaved;
                                         return 0;
                                     }
@@ -598,8 +593,6 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                                     if(InfixOpTop[0]==MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL)) {
                                         ++nargs;
                                         if(!rplRotArgs(nargs)) {
-                                            Exceptions|=EX_OUTOFMEM;
-                                            ExceptionPointer=IPtr;
                                             LAMTop=LAMTopSaved;
                                             return 0;
                                         }
@@ -608,8 +601,6 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                                     if(!rplInfixApply(InfixOpTop[0],nargs))
                                     {
-                                        Exceptions|=EX_SYNTAXERROR;
-                                        ExceptionPointer=IPtr;
                                         LAMTop=LAMTopSaved;
                                         return 0;
                                     }
@@ -634,8 +625,6 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                             if(!rplInfixApply(InfixOpTop[0],TI_NARGS(InfixOpTop[1])))
                             {
-                                Exceptions|=EX_SYNTAXERROR;
-                                ExceptionPointer=IPtr;
                                 LAMTop=LAMTopSaved;
                                 return 0;
                             }
@@ -647,8 +636,6 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                                     if(!rplInfixApply(InfixOpTop[0],TI_NARGS(InfixOpTop[1])))
                                     {
-                                        Exceptions|=EX_SYNTAXERROR;
-                                        ExceptionPointer=IPtr;
                                         LAMTop=LAMTopSaved;
                                         return 0;
                                     }
@@ -674,8 +661,9 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                }
                else {
-                    Exceptions|=EX_UNDEFINED;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_INVALIDTOKEN);
+                    LAMTop=LAMTopSaved;
+                    return 0;
                }
 
                 }
@@ -697,8 +685,8 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                 break;
 
                 case ERR_INVALID:
-                Exceptions|=EX_SYNTAXERROR;
-                ExceptionPointer=IPtr;
+                // GIVE A CHANCE TO THE LIBRARY TO SET ITS OWN ERROR CODE
+                if(!Exceptions) rplError(ERR_SYNTAXERROR);
                 LAMTop=LAMTopSaved;
                 return 0;
             }
@@ -714,8 +702,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
      rplCompileAppend(CMD_SEMI);
      --ValidateTop;
      if(ValidateTop<RSTop) {
-         Exceptions|=EX_SYNTAXERROR;
-         ExceptionPointer=IPtr;
+         rplError(ERR_ENDWITHOUTSTART);
          LAMTop=LAMTopSaved;
          return 0;
      }
@@ -725,9 +712,12 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
 
 // END OF STRING OBJECT WAS REACHED
-    if(ValidateTop!=RSTop) {
-        Exceptions|=EX_SYNTAXERROR;
-        ExceptionPointer=IPtr;
+    if(ValidateTop<RSTop) {
+        rplError(ERR_ENDWITHOUTSTART);
+    } else {
+    if(ValidateTop>RSTop) {
+        rplError(ERR_STARTWITHOUTEND);
+    }
     }
 
      LAMTop=LAMTopSaved; // RESTORE LAM ENVIRONMENT BEFORE RETURN
@@ -934,8 +924,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
     case OK_CHANGECONSTRUCT:
         --ValidateTop;
         if(ValidateTop<RSTop) {
-            Exceptions|=EX_EMPTYRSTK;
-            ExceptionPointer=IPtr;
+            rplError(ERR_MALFORMEDOBJECT);
             LAMTop=LAMTopSaved;
             if(flags&DECOMP_EMBEDDED) {
                 // RESTORE ALL POINTERS BEFORE RETURNING
@@ -953,8 +942,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
     case OK_ENDCONSTRUCT:
         --ValidateTop;
         if(ValidateTop<RSTop) {
-            Exceptions|=EX_EMPTYRSTK;
-            ExceptionPointer=IPtr;
+            rplError(ERR_MALFORMEDOBJECT);
             LAMTop=LAMTopSaved;
             if(flags&DECOMP_EMBEDDED) {
                 // RESTORE ALL POINTERS BEFORE RETURNING
@@ -1106,8 +1094,10 @@ end_of_expression:
                     (*handler)();
                     // IGNORE THE RESULT OF DECOMPILATION
                     if(RetNum!=OK_CONTINUE) {
-                        Exceptions|=EX_BADOPCODE;
-                        ExceptionPointer=IPtr;
+                        rplDecompAppendString((BYTEPTR)"##INVALID##");
+
+                        /*
+                        rplError(ERR_INVALIDOPERATORINSYMBOLIC);
                         LAMTop=LAMTopSaved;     // RESTORE ENVIRONMENTS
                         if(flags&DECOMP_EMBEDDED) {
                             // RESTORE ALL POINTERS BEFORE RETURNING
@@ -1119,6 +1109,7 @@ end_of_expression:
                         }
 
                         return 0;
+                        */
                     }
                     ++DecompileObject;
                     infixmode=INFIX_PREFIXARG;

@@ -202,6 +202,8 @@ extern void libGetPTRFromID(WORDPTR *table,WORD id);
 // CONVENIENCE MACRO TO CREATE SMALL INTEGERS
 #define MAKESINT(a) MKOPCODE(DECBINT,(a)&0x3ffff)
 
+// CONVENIENCE MACRO TO ENCODE ERROR MESSAGES
+#define MKERROR(lib,num) MKOPCODE(DECBINT, (((lib)&0xfff)<<7) | ((num)&0x7f))
 
 
 // CONVENIENCE MACRO TO GET SIZE OF A MATRIX
@@ -373,5 +375,6 @@ extern const WORD empty_list[];
 #define CMD_PURGE MKOPCODE(28,4)
 #define CMD_CLEAR MKOPCODE(72,1)
 
+#include "errorcodes.h"
 
 #endif // LIBRARIES_H

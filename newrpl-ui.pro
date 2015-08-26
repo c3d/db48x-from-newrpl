@@ -66,7 +66,6 @@ SOURCES += main.cpp\
     newrpl/lib-30-complex.c \
     newrpl/lib-50-lists.c \
     newrpl/lib-64-precision.c \
-    newrpl/lib-65-development.c \
     newrpl/lib-66-transcendentals.c \
     newrpl/lib-68-flags.c \
     newrpl/lib-70-binary.c \
@@ -113,7 +112,8 @@ SOURCES += main.cpp\
     newrpl/sanity.c \
     newrpl/lib-52-symbolic.c \
     newrpl/lib-32-lam.c \
-    newrpl/lib-58-matrix.c
+    newrpl/lib-58-matrix.c \
+    newrpl/lib-65-system.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -127,7 +127,8 @@ HEADERS  += mainwindow.h \
     newrpl/sysvars.h \
     rplthread.h \
     newrpl/utf8lib.h \
-    newrpl/decimal.h
+    newrpl/decimal.h \
+    newrpl/errorcodes.h
 
 INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
 
