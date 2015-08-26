@@ -380,7 +380,9 @@ void halRedrawMenu2(DRAWSURFACE *scr)
             BINT w=StringWidthN((char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont);
             if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
             else w=(scr->clipx2+scr->clipx-w)>>1;
-        DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xF,scr);
+            if(ISDIR(*var[1])) DrawTextN(w+1,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xf,scr);
+
+        DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0x0,scr);
     }
     }
 
@@ -397,7 +399,9 @@ void halRedrawMenu2(DRAWSURFACE *scr)
             BINT w=StringWidthN((char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont);
             if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
             else w=(scr->clipx2+scr->clipx-w)>>1;
-            DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xF,scr);
+            if(ISDIR(*var[1])) DrawTextN(w+1,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xf,scr);
+
+            DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0x0,scr);
     }
     }
 
@@ -411,11 +415,12 @@ void halRedrawMenu2(DRAWSURFACE *scr)
                 BINT w=StringWidthN((char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont);
                 if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
                 else w=(scr->clipx2+scr->clipx-w)>>1;
-                DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xF,scr);
+                if(ISDIR(*var[1])) DrawTextN(w+1,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xf,scr);
+                DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0x0,scr);
         }
     } else {
      if(nvars>6) {
-         DrawText(scr->clipx,scr->clipy,"NXT...",halScreen.MenuFont,0xF,scr);
+         DrawText(scr->clipx,scr->clipy,"NXT...",halScreen.MenuFont,0x0,scr);
      }
     }
 

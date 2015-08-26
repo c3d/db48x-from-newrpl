@@ -44,7 +44,7 @@ void main_virtual()
 
     halInitScreen();
     halInitKeyboard();
-    halSetBusyHandler();
+    halInitBusyHandler();
     halRedrawAll(&scr);
 
     if(wascleared) halShowMsg("Memory Cleared");
