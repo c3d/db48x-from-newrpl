@@ -6,6 +6,7 @@
  */
 
 #include "newrpl.h"
+#include "libraries.h"
 #include "hal.h"
 
 // GROW THE RETURN STACK
@@ -54,8 +55,7 @@ if(Exceptions) return;
 WORDPTR rplPopRet()
 {
     if(RSTop<=RStk) {
-        Exceptions|=EX_EMPTYRSTK;
-        ExceptionPointer=IPtr;
+        rplError(ERR_INTERNALEMPTYRETSTACK);
         return 0;
     }
     return *(--RSTop);

@@ -152,14 +152,12 @@ void rplSymbApplyOperator(WORD Opcode,BINT nargs)
             CurOpcode=savedopc;
             if(RetNum>OK_TOKENINFO) {
                 if(TI_TYPE(RetNum)==TITYPE_NOTALLOWED) {
-                    Exceptions|=EX_BADARGTYPE;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_NOTALLOWEDINSYMBOLICS);
                     return;
                 }
             }
             else {
-                Exceptions|=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_NOTALLOWEDINSYMBOLICS);
                 return;
             }
 
@@ -188,7 +186,7 @@ void rplSymbApplyOperator(WORD Opcode,BINT nargs)
 
 // APPLY AN OPERATOR WITH ARGUMENTS RECENTLY EVAL'ED, AND EVAL THE RESULT AS WELL
 // SIMILAR TO APPLYING THE OPERATOR BUT IT ALSO DOES MINOR SIMPLIFICATION
-
+/*
 #define SYMBITEMCOMPARE(item1,item2) ((BINT)LIBNUM(*(item2))-(BINT)LIBNUM(*(item1)))
 
 
@@ -251,7 +249,7 @@ void rplSymbEVALApplyOperator(WORD Opcode,BINT nargs)
     else rplSymbApplyOperator(Opcode,nargs);
 }
 
-
+*/
 
 
 // DETERMINES WHETHER TWO SYMBOLIC OBJECTS ARE IDENTICAL OR NOT
@@ -352,19 +350,16 @@ void rplSymbRuleMatch()
 
     ruleleft=rplSymbUnwrap(rplPeekData(1));
     if(!ruleleft) {
-        Exceptions|=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_SYMBOLICEXPECTED);
         return;
     }
     if(!ISSYMBOLIC(*ruleleft)) {
-        Exceptions|=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_SYMBOLICEXPECTED);
         return;
     }
     ++ruleleft;
     if(*ruleleft!=CMD_RULESEPARATOR) {
-        Exceptions|=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_NOTAVALIDRULE);
         return;
     }
     ++ruleleft;
@@ -373,8 +368,7 @@ void rplSymbRuleMatch()
     objptr=rplSymbUnwrap(rplPeekData(2));
 
     if(!objptr) {
-        Exceptions|=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_SYMBOLICEXPECTED);
         return;
     }
 
@@ -531,7 +525,7 @@ void rplSymbRuleMatch()
 // COUNT HOW MANY ARGUMENTS THERE ARE FOR THE MAIN SYMBOLIC OPERATOR
 // RETURNS ZERO FOR ATOMIC OBJECTS, OR THE NUMBER OF ARGUMENTS FOR AN OPERATOR OR FUNCTION
 // IT FLATTENS ADDITION AND MULTIPLICATION
-
+/*
 BINT rplSymbCountArguments(WORDPTR object)
 {
     object=rplSymbUnwrap(object);
@@ -565,7 +559,7 @@ BINT rplSymbCountArguments(WORDPTR object)
 
 }
 
-
+*/
 // SCAN AN OBJECT, RETURN 1 IF IT'S NUMERIC, 0 OTHERWISE
 /*
 BINT rplSymbIsNumeric(WORDPTR object)
@@ -608,7 +602,7 @@ BINT rplSymbHasSpecialIdent(WORDPTR object)
 // USES ScratchPointers 1 THRU 3 DURING GC
 // RETURNS A POINTER TO THE NEW OBJECT
 // LOW LEVEL FUNCTION - NO ARGUMENT CHECKS!!!
-
+/*
 WORDPTR rplSymbReplace(WORDPTR mainobj,WORDPTR arg,WORDPTR newarg)
 {
 
@@ -629,7 +623,7 @@ WORDPTR rplSymbReplace(WORDPTR mainobj,WORDPTR arg,WORDPTR newarg)
     while(mainobj!=end) *ptr++=*mainobj++;
     return newobj;
 }
-
+*/
 
 // EXPLODE A SYMBOLIC IN THE STACK IN REVERSE (LEVEL 1 CONTAINS THE FIRST OBJECT, LEVEL 2 THE SECOND, ETC.)
 // INCLUDING OPERATORS

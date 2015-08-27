@@ -135,14 +135,12 @@ BINT totalelements=(rows)? rows*cols:cols;
 
 // CHECK IF ENOUGH ELEMENTS IN THE STACK
 if(rplDepthData()<totalelements) {
-    Exceptions|=EX_BADARGCOUNT;
-    ExceptionPointer=IPtr;
+    rplError(ERR_BADARGCOUNT);
     return 0;
 }
 
 if((rows<0) || (rows>65535) || (cols<1) || (cols>65535)) {
-    Exceptions|=EX_INVALID_DIM;
-    ExceptionPointer=IPtr;
+    rplError(ERR_INVALIDDIMENSION);
     return 0;
 }
 
@@ -155,8 +153,7 @@ obj=rplPeekData(k);
 if(! (ISNUMBERCPLX(*obj)
       || ISSYMBOLIC(*obj)
       || ISIDENT(*obj))) {
-    Exceptions|=EX_BADARGTYPE;
-    ExceptionPointer=IPtr;
+    rplError(ERR_NOTALLOWEDINMATRIX);
     return 0;
     }
 totalsize+=rplObjSize(obj);
@@ -222,8 +219,7 @@ if(rowsa!=rowsb) {
             rowsa=colsa;
             colsa=1;
             if(rowsa!=rowsb) {
-                Exceptions|=EX_INVALID_DIM;
-                ExceptionPointer=IPtr;
+                rplError(ERR_INCOMPATIBLEDIMENSION);
                 return;
             }
         }
@@ -235,14 +231,12 @@ if(rowsa!=rowsb) {
                 rowsb=colsb;
                 colsb=1;
                 if(rowsa!=rowsb) {
-                    Exceptions|=EX_INVALID_DIM;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_INCOMPATIBLEDIMENSION);
                     return;
                 }
             }
         } else {
-            Exceptions|=EX_INVALID_DIM;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INCOMPATIBLEDIMENSION);
             return;
         }
 
@@ -253,10 +247,9 @@ if(rowsa!=rowsb) {
 
 // CHECK COLUMN SIZE
 if(colsa!=colsb) {
-        Exceptions|=EX_INVALID_DIM;
-        ExceptionPointer=IPtr;
-        return;
-    }
+    rplError(ERR_INCOMPATIBLEDIMENSION);
+    return;
+}
 
 // HERE WE HAVE COMPATIBLE SIZE VECTOR/MATRIX
 
@@ -432,8 +425,8 @@ void rplMatrixMul()
         // VECTOR BY VECTOR MULTIPLICATION
         // DO A DOT PRODUCT
         if(colsa!=colsb) {
-            Exceptions|=EX_INVALID_DIM;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INCOMPATIBLEDIMENSION);
+
             return;
         }
 
@@ -469,8 +462,8 @@ void rplMatrixMul()
                     rcols=colsb;
                 }
                 else {
-                    Exceptions|=EX_INVALID_DIM;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_INCOMPATIBLEDIMENSION);
+
                     return;
                 }
             }
@@ -500,8 +493,8 @@ void rplMatrixMul()
                         rcols=colsb;
                     }
                     else {
-                        Exceptions|=EX_INVALID_DIM;
-                        ExceptionPointer=IPtr;
+                        rplError(ERR_INCOMPATIBLEDIMENSION);
+
                         return;
                     }
 
@@ -516,8 +509,8 @@ void rplMatrixMul()
 
                 // NO AUTOTRANSPOSE HERE
                 if(colsa!=rowsb) {
-                    Exceptions|=EX_INVALID_DIM;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_INCOMPATIBLEDIMENSION);
+
                     return;
                 }
 
@@ -692,8 +685,7 @@ void rplMatrixBareiss()
 
     // SIZE CHECK, ONLY AUGMENTED SQUARE MATRICES ALLOWED
     if(rowsa>colsa) {
-        Exceptions|=EX_INVALID_DIM;
-        ExceptionPointer=IPtr;
+        rplError(ERR_INVALIDDIMENSION);
         return;
     }
 
@@ -800,8 +792,7 @@ void rplMatrixInvert()
 
     // SIZE CHECK, ONLY SQUARE MATRICES ALLOWED
     if(rowsa!=colsa) {
-        Exceptions|=EX_INVALID_DIM;
-        ExceptionPointer=IPtr;
+        rplError(ERR_INVALIDDIMENSION);
         return;
     }
 

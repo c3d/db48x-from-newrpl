@@ -72,12 +72,10 @@ void LIB_HANDLER()
     switch(OPCODE(CurOpcode))
     {
     case EXITRPL:
-        Exceptions|=EX_EXITRPL;
-        ExceptionPointer=IPtr;
+        rplException(EX_EXITRPL);
         return;
     case BREAKPOINT:
-        Exceptions|=EX_BKPOINT;
-        ExceptionPointer=IPtr;
+        rplException(EX_BKPOINT);
         return;
     case XEQSECO:
         // IF THE NEXT OBJECT IN THE SECONDARY

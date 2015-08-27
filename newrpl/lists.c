@@ -142,8 +142,7 @@ void rplCreateList()
     // NO ARGUMENT CHECKING
     BINT64 num=rplReadNumberAsBINT(rplPeekData(1));
     if(rplDepthData()<num+1) {
-        Exceptions|=EX_BADARGCOUNT;
-        ExceptionPointer=IPtr;
+        rplError(ERR_BADARGCOUNT);
         return;
     }
     BINT size=1;    // 1 WORD FOR THE END MARKER

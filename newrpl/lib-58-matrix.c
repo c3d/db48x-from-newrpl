@@ -199,15 +199,13 @@ void LIB_HANDLER()
         case OVR_INV:
         {
             if(rplDepthData()<1) {
-                Exceptions|=EX_BADARGCOUNT;
-                ExceptionPointer=IPtr;
+                rplError(ERR_BADARGCOUNT);
                 return;
             }
             WORDPTR a=rplPeekData(1);
 
             if(!ISMATRIX(*a)) {
-                Exceptions|=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_MATRIXEXPECTED);
                 return;
             }
 
@@ -218,15 +216,13 @@ void LIB_HANDLER()
         {
            // COMPUTE THE FROBENIUS NORM ON MATRICES
             if(rplDepthData()<1) {
-                Exceptions|=EX_BADARGCOUNT;
-                ExceptionPointer=IPtr;
+                rplError(ERR_BADARGCOUNT);
                 return;
             }
             WORDPTR a=rplPeekData(1);
 
             if(!ISMATRIX(*a)) {
-                Exceptions|=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_MATRIXEXPECTED);
                 return;
             }
 
@@ -237,15 +233,13 @@ void LIB_HANDLER()
         case OVR_NEG:
         {
             if(rplDepthData()<1) {
-                Exceptions|=EX_BADARGCOUNT;
-                ExceptionPointer=IPtr;
+                rplError(ERR_BADARGCOUNT);
                 return;
             }
             WORDPTR a=rplPeekData(1);
 
             if(!ISMATRIX(*a)) {
-                Exceptions|=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_MATRIXEXPECTED);
                 return;
             }
 
@@ -258,8 +252,7 @@ void LIB_HANDLER()
         {
             WORDPTR object=rplPeekData(1),mainobj;
             if(!ISMATRIX(*object)) {
-                Exceptions|=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_MATRIXEXPECTED);
                 return;
             }
             mainobj=object;
@@ -305,8 +298,7 @@ void LIB_HANDLER()
         {
             WORDPTR object=rplPeekData(1),mainobj;
             if(!ISMATRIX(*object)) {
-                Exceptions|=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_MATRIXEXPECTED);
                 return;
             }
             mainobj=object;
@@ -352,8 +344,7 @@ void LIB_HANDLER()
         {
             WORDPTR object=rplPeekData(1),mainobj;
             if(!ISMATRIX(*object)) {
-                Exceptions|=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_MATRIXEXPECTED);
                 return;
             }
             mainobj=object;
@@ -407,15 +398,14 @@ void LIB_HANDLER()
         case OVR_ADD:
         {
             if(rplDepthData()<2) {
-                Exceptions|=EX_BADARGCOUNT;
-                ExceptionPointer=IPtr;
+                rplError(ERR_BADARGCOUNT);
+
                 return;
             }
             WORDPTR a=rplPeekData(2),b=rplPeekData(1);
 
             if(!ISMATRIX(*a) || !ISMATRIX(*b)) {
-                Exceptions|=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_MATRIXEXPECTED);
                 return;
             }
 
@@ -425,15 +415,13 @@ void LIB_HANDLER()
         case OVR_SUB:
         {
             if(rplDepthData()<2) {
-                Exceptions|=EX_BADARGCOUNT;
-                ExceptionPointer=IPtr;
+                rplError(ERR_BADARGCOUNT);
                 return;
             }
             WORDPTR a=rplPeekData(2),b=rplPeekData(1);
 
             if(!ISMATRIX(*a) || !ISMATRIX(*b)) {
-                Exceptions|=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_MATRIXEXPECTED);
                 return;
             }
 
@@ -443,8 +431,7 @@ void LIB_HANDLER()
         case OVR_MUL:
         {
             if(rplDepthData()<2) {
-                Exceptions|=EX_BADARGCOUNT;
-                ExceptionPointer=IPtr;
+                rplError(ERR_BADARGCOUNT);
                 return;
             }
 
@@ -471,8 +458,7 @@ void LIB_HANDLER()
             // HERE IT HAS TO BE MATRIX x MATRIX
 
             if(!ISMATRIX(*a) || !ISMATRIX(*b)) {
-                Exceptions|=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_MATRIXEXPECTED);
                 return;
             }
 
@@ -483,8 +469,7 @@ void LIB_HANDLER()
         case OVR_DIV:
         {
             if(rplDepthData()<2) {
-                Exceptions|=EX_BADARGCOUNT;
-                ExceptionPointer=IPtr;
+                rplError(ERR_BADARGCOUNT);
                 return;
             }
 
@@ -495,8 +480,7 @@ void LIB_HANDLER()
                   || ISSYMBOLIC(*a)
                   || ISIDENT(*a))) {
                 // SCALAR BY MATRIX
-                Exceptions|=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_MATRIXEXPECTED);
                 return;
             }
             if((ISNUMBERCPLX(*b)
@@ -513,8 +497,7 @@ void LIB_HANDLER()
             // HERE IT HAS TO BE MATRIX / MATRIX
 
             if(!ISMATRIX(*a) || !ISMATRIX(*b)) {
-                Exceptions|=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_MATRIXEXPECTED);
                 return;
             }
 
@@ -531,17 +514,20 @@ void LIB_HANDLER()
         case OVR_POW:
         {
             if(rplDepthData()<2) {
-                Exceptions|=EX_BADARGCOUNT;
-                ExceptionPointer=IPtr;
+                rplError(ERR_BADARGCOUNT);
                 return;
             }
 
             WORDPTR a=rplPeekData(2),b=rplPeekData(1);
 
             // ONLY MATRIX RAISED TO NUMERIC POWER IS SUPPORTED
-            if(!ISMATRIX(*a) || !ISNUMBER(*b)) {
-                Exceptions|=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+            if(!ISMATRIX(*a))
+            {
+                rplError(ERR_MATRIXEXPECTED);
+                return;
+            }
+            if( !ISNUMBER(*b)) {
+                rplError(ERR_INTEGEREXPECTED);
                 return;
             }
 
@@ -549,8 +535,7 @@ void LIB_HANDLER()
                 REAL real;
                 rplReadReal(b,&real);
                 if(!isintegerReal(&real)) {
-                    Exceptions|=EX_BADARGVALUE;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_INTEGEREXPECTED);
                     return;
                 }
 
@@ -558,8 +543,7 @@ void LIB_HANDLER()
                 BINT rows=MATROWS(a[1]),cols=MATCOLS(a[1]);
 
                 if(rows!=cols) {
-                    Exceptions|=EX_INVALID_DIM;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_SQUAREMATRIXONLY);
                     return;
                 }
 
@@ -609,8 +593,7 @@ void LIB_HANDLER()
     case TOARRAY:
     {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         BINT64 rows,cols;
@@ -621,30 +604,21 @@ void LIB_HANDLER()
             BINT ndims=rplReadNumberAsBINT(rplPopData());
             if((ndims<1) || (ndims>2)) {
                 DSTop=Savestk;
-                Exceptions|=EX_INVALID_DIM;
-                ExceptionPointer=IPtr;
+                rplError(ERR_INVALIDDIMENSION);
                 return;
             }
-
-            if(!ISNUMBER(*rplPeekData(1))) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NUM));
 
             cols=rplReadNumberAsBINT(rplPopData());
             if(Exceptions) {
                 DSTop=Savestk;
-                Exceptions|=EX_INVALID_DIM;
-                ExceptionPointer=IPtr;
                 return;
             }
 
             if(ndims==2) {
 
-                if(!ISNUMBER(*rplPeekData(1))) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NUM));
-
                 rows=rplReadNumberAsBINT(rplPopData());
                 if(Exceptions) {
                     DSTop=Savestk;
-                    Exceptions|=EX_INVALID_DIM;
-                    ExceptionPointer=IPtr;
                     return;
                 }
 
@@ -655,8 +629,7 @@ void LIB_HANDLER()
 
             if( (rows<0)||(rows>65535)||(cols<1)||(cols>65535))  {
                 DSTop=Savestk;
-                Exceptions|=EX_INVALID_DIM;
-                ExceptionPointer=IPtr;
+                rplError(ERR_INVALIDDIMENSION);
                 return;
             }
 
@@ -666,13 +639,10 @@ void LIB_HANDLER()
             }
         else {
             // IT HAS TO BE A NUMBER
-            if(!ISNUMBER(*rplPeekData(1))) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NUM));
 
             cols=rplReadNumberAsBINT(rplPopData());
             if(Exceptions) {
                 DSTop=Savestk;
-                Exceptions|=EX_INVALID_DIM;
-                ExceptionPointer=IPtr;
                 return;
             }
 
@@ -680,8 +650,7 @@ void LIB_HANDLER()
 
             if((cols<1)||(cols>65535))  {
                 DSTop=Savestk;
-                Exceptions|=EX_INVALID_DIM;
-                ExceptionPointer=IPtr;
+                rplError(ERR_INVALIDDIMENSION);
                 return;
             }
 
@@ -691,8 +660,7 @@ void LIB_HANDLER()
         BINT elements=(rows)? rows*cols:cols;
 
         if(rplDepthData()<elements) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
 
@@ -709,13 +677,11 @@ void LIB_HANDLER()
     case ARRAYDECOMP:
     {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(!ISMATRIX(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_MATRIXEXPECTED);
             return;
         }
 
@@ -742,13 +708,11 @@ void LIB_HANDLER()
     case TOCOL:
     {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(!ISMATRIX(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_MATRIXEXPECTED);
             return;
         }
 
@@ -781,24 +745,20 @@ void LIB_HANDLER()
     case ADDCOL:
     {
         if(rplDepthData()<3) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(!ISMATRIX(*rplPeekData(3))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_MATRIXEXPECTED);
             return;
         }
         if(!ISMATRIX(*rplPeekData(2)) && !ISNUMBER(*rplPeekData(2))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_MATRIXORREALEXPECTED);
             return;
         }
 
         if(!ISNUMBER(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_REALEXPECTED);
             return;
         }
 
@@ -815,8 +775,7 @@ void LIB_HANDLER()
         WORDPTR elem;
 
         if( (nelem<1)||(nelem>cols+1)) {
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INDEXOUTOFBOUNDS);
             return;
         }
 
@@ -828,8 +787,7 @@ void LIB_HANDLER()
             if(!ISNUMBERCPLX(*rplPeekData(2)) && !ISSYMBOLIC(*rplPeekData(2))
                   && !ISIDENT(*rplPeekData(2)))
              {
-                Exceptions|=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_NOTALLOWEDINMATRIX);
                 return;
             }
 
@@ -873,8 +831,7 @@ void LIB_HANDLER()
         // ADD A VECTOR OR A MATRIX TO A MATRIX
 
         if(!ISMATRIX(*rplPeekData(2))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_MATRIXEXPECTED);
             return;
         }
 
@@ -893,8 +850,7 @@ void LIB_HANDLER()
         }
 
         if(rows2!=rows) {
-            Exceptions|=EX_INVALID_DIM;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INVALIDDIMENSION);
             return;
         }
 
@@ -945,18 +901,15 @@ void LIB_HANDLER()
     case REMCOL:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(!ISMATRIX(*rplPeekData(2))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_MATRIXEXPECTED);
             return;
         }
         if(!ISNUMBER(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
             return;
         }
 
@@ -970,15 +923,13 @@ void LIB_HANDLER()
         WORDPTR elem;
 
         if(cols<=1) {
-            Exceptions|=EX_INVALID_DIM;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INVALIDDIMENSION);
             return;
         }
 
 
         if( (ncol<1)||(ncol>cols)) {
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INDEXOUTOFBOUNDS);
             return;
         }
 
@@ -1048,21 +999,18 @@ void LIB_HANDLER()
     case FROMCOL:
         {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(!ISNUMBER(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
             return;
         }
 
         BINT64 nelem=rplReadNumberAsBINT(rplPeekData(1));
 
         if(rplDepthData()<nelem+1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
 
@@ -1075,23 +1023,20 @@ void LIB_HANDLER()
                 BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
 
                 if(rows) {
-                    Exceptions|=EX_INVALID_DIM;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_VECTOREXPECTED);
                     return;
                 }
 
                 if(veclen) {
                     if(cols!=veclen) {
-                        Exceptions|=EX_INVALID_DIM;
-                        ExceptionPointer=IPtr;
+                        rplError(ERR_INVALIDDIMENSION);
                         return;
                     }
                 } else {
                     if(i==2) veclen=cols;
                     else {
                         // DON'T ALLOW MIX OF VECTOR/NUMBERS
-                        Exceptions|=EX_INVALID_DIM;
-                        ExceptionPointer=IPtr;
+                        rplError(ERR_REALEXPECTED);
                         return;
                     }
                 }
@@ -1100,14 +1045,12 @@ void LIB_HANDLER()
                 if(! (ISNUMBERCPLX(*LastCompiledObject)
                       || ISSYMBOLIC(*LastCompiledObject)
                       || ISIDENT(*LastCompiledObject))) {
-                            Exceptions|=EX_BADARGTYPE;
-                            ExceptionPointer=IPtr;
+                    rplError(ERR_NOTALLOWEDINMATRIX);
                             return;
                 }
 
                 if(veclen) {
-                    Exceptions|=EX_INVALID_DIM;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_VECTOREXPECTED);
                     return;
                 }
 

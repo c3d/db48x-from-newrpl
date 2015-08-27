@@ -70,8 +70,7 @@ void LIB_HANDLER()
     {
         // TAKE AN INTEGER NUMBER FROM THE STACK
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         BINT64 number=rplReadNumberAsBINT(rplPeekData(1));
@@ -92,8 +91,7 @@ void LIB_HANDLER()
     case FLOOR:
         {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -111,8 +109,7 @@ void LIB_HANDLER()
     case CEIL:
         {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -134,8 +131,8 @@ void LIB_HANDLER()
     case IP:
     {
     if(rplDepthData()<1) {
-        Exceptions|=EX_BADARGCOUNT;
-        ExceptionPointer=IPtr;
+        rplError(ERR_BADARGCOUNT);
+
         return;
     }
     WORDPTR arg=rplPeekData(1);
@@ -152,8 +149,8 @@ void LIB_HANDLER()
     case FP:
     {
     if(rplDepthData()<1) {
-        Exceptions|=EX_BADARGCOUNT;
-        ExceptionPointer=IPtr;
+        rplError(ERR_BADARGCOUNT);
+
         return;
     }
     WORDPTR arg=rplPeekData(1);
