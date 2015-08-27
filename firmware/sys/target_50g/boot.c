@@ -568,7 +568,7 @@ void disable_mmu()
 void halWarmStart()
 {
     // TODO: ADD RPL ENGINE CLEANUP HERE BEFORE RESET
-
+    disable_interrupts();
 
     // PUT THE CPU IN A KNOWN SLOW SPEED
     cpu_setspeed(6000000);
@@ -622,21 +622,25 @@ void halEnterPowerOff()
 {
     // TODO: ADD RPL ENGINE CLEANUP HERE BEFORE RESET
     // PUT THE CPU IN A KNOWN SLOW SPEED
-    cpu_setspeed(6000000);
+    cpu_setspeed(192000000);
 
     // WAIT FOR ALL KEYS TO BE RELEASED
     __keyb_waitrelease();
 
 
+    disable_interrupts();
+
     cpu_off_prepare();
 
     // DISABLE THE MMU
     disable_mmu();
-    reset_stackall();
+    //reset_stackall();
 
     // AND GO DIE
     //startup(0);
-    cpu_off_die();
+    //cpu_off_die();
+
+    startup(0);
 
 }
 

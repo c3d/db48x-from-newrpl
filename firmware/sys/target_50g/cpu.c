@@ -251,7 +251,7 @@ void cpu_off_prepare()
 
     // SETUP ON KEY TO WAKE UP
     *HWREG(IO_REGS,0x58)=1;   // PULLUP DISABLED
-    *HWREG(IO_REGS,0x88)=4;   // TRY HIGH LEVEL - RISING EDGE TRIGGERS EINT0
+    *HWREG(IO_REGS,0x88)=6;   // TRY HIGH LEVEL - RISING EDGE TRIGGERS EINT0
     *HWREG(IO_REGS,0x50)=2;   // ONLY ENABLE EINT0, ALL OTHERS INPUT
 
 
@@ -263,13 +263,18 @@ void cpu_off_prepare()
 
 
 
-    cpu_flushwritebuffers();
 
-
+    *HWREG(IO_REGS,0xa4)=0x00fffff0;    // EINTMASK ALL INTERRUPTS
     *HWREG(INT_REGS,0x8)=0xfffffffe;    // UNMASK ONLY THE ON INTERRUPT
+
+
+
 
     // TODO: SETUP ALARM TO WAKE UP
     // FLUSH ALL BUFFERS
+
+    cpu_flushwritebuffers();
+
 }
 
 
@@ -283,5 +288,5 @@ void cpu_off_die()
     *HWREG(PHYS_CLK_REGS,0xC)|=0x8;    // POWER OFF
     // DOES NOT RETURN
 
-    while(1);
+    //while(1);
 }

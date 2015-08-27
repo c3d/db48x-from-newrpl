@@ -28,8 +28,56 @@ SOURCES +=\
     firmware/sys/target_50g/stdlib.c \
     firmware/sys/target_50g/timer.c \
     firmware/sys/target_50g/mem.c \
-    firmware/hal_globals.c \
     newrpl/sysvars.c \
+    newrpl/decimal.c \
+    newrpl/dectranscen.c \
+    newrpl/atan_1_8_comp.c \
+    newrpl/atan_2_8_comp.c \
+    newrpl/atan_5_8_comp.c \
+    newrpl/atanh_1_8_comp.c \
+    newrpl/atanh_2_8_comp.c \
+    newrpl/atanh_5_8_comp.c \
+    newrpl/compiler.c \
+    newrpl/cordic_K_8_comp.c \
+    newrpl/cordic_Kh_8_comp.c \
+    newrpl/datastack.c \
+    newrpl/directory.c \
+    newrpl/errors.c \
+    newrpl/gc.c \
+    newrpl/lam.c \
+    newrpl/lib-24-string.c \
+    newrpl/lib-28-dirs.c \
+    newrpl/lib-30-complex.c \
+    newrpl/lib-32-lam.c \
+    newrpl/lib-50-lists.c \
+    newrpl/lib-52-symbolic.c \
+    newrpl/lib-58-matrix.c \
+    newrpl/lib-64-precision.c \
+    newrpl/lib-65-system.c \
+    newrpl/lib-66-transcendentals.c \
+    newrpl/lib-68-flags.c \
+    newrpl/lib-70-binary.c \
+    newrpl/lib-72-stack.c \
+    newrpl/lib-4080-localenv.c \
+    newrpl/lib-4090-overloaded.c \
+    newrpl/lib-common.c \
+    newrpl/lib-eight-docol.c \
+    newrpl/lib-nine-docol2.c \
+    newrpl/lib-ten-reals.c \
+    newrpl/lib-twelve-bint.c \
+    newrpl/lib-two-ident.c \
+    newrpl/lists.c \
+    newrpl/matrix.c \
+    newrpl/returnstack.c \
+    newrpl/romlibs.c \
+    newrpl/runstream.c \
+    newrpl/symbolic.c \
+    newrpl/tempob.c \
+    newrpl/backup.c \
+    newrpl/sanity.c \
+    newrpl/utf8lib.c \
+    newrpl/utf8data.c \
+    firmware/hal_globals.c \
     firmware/ggl/ggl/ggl_bitblt.c \
     firmware/ggl/ggl/ggl_bitbltoper.c \
     firmware/ggl/ggl/ggl_filter.c \
@@ -55,60 +103,12 @@ SOURCES +=\
     firmware/ggl/ggl/ggl_scrollrt.c \
     firmware/ggl/ggl/ggl_scrollup.c \
     firmware/ggl/ggl/ggl_vline.c \
+    firmware/ui_cmdline.c \
     firmware/hal_battery.c \
     firmware/hal_keyboard.c \
     firmware/hal_screen.c \
     firmware/sys/graphics.c \
     firmware/sys/icons.c \
-    newrpl/decimal.c \
-    newrpl/dectranscen.c \
-    newrpl/atan_1_8_comp.c \
-    newrpl/atan_2_8_comp.c \
-    newrpl/atan_5_8_comp.c \
-    newrpl/atanh_1_8_comp.c \
-    newrpl/atanh_2_8_comp.c \
-    newrpl/atanh_5_8_comp.c \
-    newrpl/compiler.c \
-    newrpl/cordic_K_8_comp.c \
-    newrpl/cordic_Kh_8_comp.c \
-    newrpl/datastack.c \
-    newrpl/directory.c \
-    newrpl/errors.c \
-    newrpl/gc.c \
-    newrpl/lam.c \
-    newrpl/lib-24-string.c \
-    newrpl/lib-28-dirs.c \
-    newrpl/lib-30-complex.c \
-    newrpl/lib-32-symbolic.c \
-    newrpl/lib-50-lists.c \
-    newrpl/lib-64-precision.c \
-    newrpl/lib-65-development.c \
-    newrpl/lib-66-transcendentals.c \
-    newrpl/lib-68-flags.c \
-    newrpl/lib-70-binary.c \
-    newrpl/lib-72-stack.c \
-    newrpl/lib-4080-localenv.c \
-    newrpl/lib-4090-overloaded.c \
-    newrpl/lib-common.c \
-    newrpl/lib-eight-docol.c \
-    newrpl/lib-nine-docol2.c \
-    newrpl/lib-ten-reals.c \
-    newrpl/lib-twelve-bint.c \
-    newrpl/lib-twenty-lam.c \
-    newrpl/lib-two-ident.c \
-    newrpl/lists.c \
-    newrpl/matrix.c \
-    newrpl/returnstack.c \
-    newrpl/romlibs.c \
-    newrpl/runstream.c \
-    newrpl/symbolic.c \
-    newrpl/tempob.c \
-    newrpl/backup.c \
-    newrpl/sanity.c \
-    firmware/ui_cmdline.c \
-    newrpl/lib-48-matrix.c \
-    newrpl/utf8lib.c \
-    newrpl/utf8data.c \
     firmware/sys/Font6A.c \
     firmware/sys/Font5C.c \
     firmware/sys/Font7A.c \
@@ -123,8 +123,9 @@ HEADERS  += \
     newrpl/libraries.h \
     newrpl/newrpl.h \
     newrpl/sysvars.h \
-    newrpl/contrib/mpdecimal-2.4.0/libmpdec/mpdecimal.h \
-    newrpl/decimal.h
+    newrpl/decimal.h \
+    newrpl/errorcodes.h
+
 
 # This might need to be adapted to each cross-compiler installation
 GCC_LIBDIR = /usr/local/lib/gcc/arm-none-eabi/5.2.0
