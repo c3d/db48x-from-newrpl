@@ -641,20 +641,42 @@ void halShowErrorMsg()
         // CLEAR MENU2 AND STATUS AREA
         ggl_cliprect(&scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
         // DO SOME DECORATIVE ELEMENTS
-        ggl_cliphline(&scr,ytop+1,1,SCREEN_WIDTH-2,ggl_mkcolor(8));
-        ggl_cliphline(&scr,ytop+halScreen.Menu2-1,1,SCREEN_WIDTH-2,ggl_mkcolor(8));
-        ggl_clipvline(&scr,1,ytop+2,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
-        ggl_clipvline(&scr,SCREEN_WIDTH-2,ytop+2,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
+        ggl_cliphline(&scr,ytop,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
+        ggl_cliphline(&scr,ytop+halScreen.Menu2-1,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
+        ggl_clipvline(&scr,0,ytop+1,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
+        ggl_clipvline(&scr,SCREEN_WIDTH-1,ytop+1,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
 
+        scr.clipx=1;
+        scr.clipx2=SCREEN_WIDTH-2;
+        scr.clipy=ytop+1;
+        scr.clipy2=ytop+halScreen.Menu2-2;
         // SHOW ERROR MESSAGE
 
-        for(errbit=0;errbit<32;++errbit)
-        {
-        if(error_table[errbit].num&error) {
-            DrawText(3,ytop+3,(char *)error_table[errbit].string,halScreen.StAreaFont,0xf,&scr);
-            break;
+        if(Exceptions!=EX_ERRORCODE) {
+            DrawText(scr.clipx,scr.clipy,"Exception:",halScreen.StAreaFont,0xf,&scr);
+
+            // TODO: TRY TO DECOMPILE THE OPCODE THAT CAUSED THE ERROR
+
+
+
+            for(errbit=0;errbit<8;++errbit)     // THERE'S ONLY A FEW EXCEPTIONS IN THE NEW ERROR MODEL
+            {
+            if(error_table[errbit].num&error) {
+                DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)error_table[errbit].string,halScreen.StAreaFont,0xf,&scr);
+                break;
+            }
+            }
         }
+        else {
+            DrawText(scr.clipx,scr.clipy,"Error:",halScreen.StAreaFont,0xf,&scr);
+            // TODO: TRY TO DECOMPILE THE OPCODE THAT CAUSED THE ERROR
+
+            // TODO: GET NEW TRANSLATABLE MESSAGES
+
         }
+
+
+
 
         halErrorPopup();
 
