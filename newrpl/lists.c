@@ -155,8 +155,6 @@ void rplCreateList()
     // ALLOCATE MEMORY
     WORDPTR list=rplAllocTempOb(size);
     if(!list) {
-        Exceptions|=EX_OUTOFMEM;
-        ExceptionPointer=IPtr;
         return;
     }
 

@@ -136,6 +136,7 @@ extern void libGetPTRFromID(WORDPTR *table,WORD id);
 #define DOCOL         8
 #define DOREAL       10
 #define DOREALAPP    (DOREAL|APPROX_BIT)
+#define DOBINT       12                     // JUST A GENERIC ALIAS
 #define BINBINT      12
 #define DECBINT      14
 #define OCTBINT      16
@@ -203,7 +204,7 @@ extern void libGetPTRFromID(WORDPTR *table,WORD id);
 #define MAKESINT(a) MKOPCODE(DECBINT,(a)&0x3ffff)
 
 // CONVENIENCE MACRO TO ENCODE ERROR MESSAGES
-#define MKERROR(lib,num) MKOPCODE(DECBINT, (((lib)&0xfff)<<7) | ((num)&0x7f))
+#define MAKEMSG(lib,num) MKOPCODE(DECBINT, (((lib)&0xfff)<<7) | ((num)&0x7f))
 
 
 // CONVENIENCE MACRO TO GET SIZE OF A MATRIX

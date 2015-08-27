@@ -256,8 +256,7 @@ void rplNumberToRReg(int num,WORDPTR number)
     if(ISREAL(*number)) rplCopyRealToRReg(num,number);
     else if(ISBINT(*number)) rplBINTToRReg(num,rplReadBINT(number));
     else {
-        Exceptions|=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_REALEXPECTED);
     }
 }
 
@@ -274,8 +273,7 @@ BINT64 rplReadNumberAsBINT(WORDPTR number)
         int status;
         rplReadReal(number,&dec);
         if(!inBINT64Range(&dec)) {
-            Exceptions|=EX_MATHOVERFLOW;
-            ExceptionPointer=IPtr;
+            rplError(ERR_NUMBERTOOBIG);
             return 0;
         }
         value=getBINT64Real(&dec);
@@ -283,8 +281,7 @@ BINT64 rplReadNumberAsBINT(WORDPTR number)
     }
     else if(ISBINT(*number)) return rplReadBINT(number);
     else {
-        Exceptions|=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_REALEXPECTED);
     }
     return 0;
 }
@@ -308,8 +305,7 @@ void rplReadNumberAsReal(WORDPTR number,REAL*dec)
         if(BINT2RealIdx>=BINT2REAL) BINT2RealIdx=0;
     }
     else {
-        Exceptions|=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_REALEXPECTED);
     }
 
 }
@@ -356,16 +352,14 @@ void LIB_HANDLER()
         int nargs=OVR_GETNARGS(CurOpcode);
 
         if(rplDepthData()<nargs) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(nargs==1) {
             // UNARY OPERATORS
             arg1=rplPeekData(1);
             if(!ISBINT(*arg1)) {
-                Exceptions=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_INTEGEREXPECTED);
                 return;
             }
             op1=rplReadBINT(arg1);
@@ -377,8 +371,7 @@ void LIB_HANDLER()
             arg2=rplPeekData(1);
 
             if(!(ISBINT(*arg1)||ISREAL(*arg1)) || !(ISBINT(*arg2)||ISREAL(*arg2))) {
-                Exceptions=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_REALEXPECTED);
                 return;
             }
 
@@ -880,8 +873,7 @@ void LIB_HANDLER()
 
         // ADD MORE case's HERE
         default:
-            Exceptions=EX_BADARGTYPE;   // RETURN BAD TYPE SINCE THIS LIBRARY DOES NOT OVERLOAD THE OPERATOR
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGERSNOTSUPPORTED);
             return;
 
 

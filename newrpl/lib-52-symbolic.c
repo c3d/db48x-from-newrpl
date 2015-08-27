@@ -606,6 +606,7 @@ void LIB_HANDLER()
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;
+        ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
         CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1);
         return;
@@ -720,6 +721,7 @@ void LIB_HANDLER()
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;
+        ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
         CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
         return;
@@ -1040,8 +1042,7 @@ void LIB_HANDLER()
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
-    Exceptions|=EX_BADOPCODE;
-    ExceptionPointer=IPtr;
+    rplError(ERR_INVALIDOPCODE);
     return;
 
 

@@ -301,14 +301,12 @@ void LIB_HANDLER()
         if(OPCODE(CurOpcode)==OVR_XEQ) return;  // JUST LEAVE THE LIST ON THE STACK
 
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
 
         if(!ISLIST(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
             return;
         }
 
@@ -316,8 +314,6 @@ void LIB_HANDLER()
 
         WORDPTR program=rplAllocTempOb(2);
         if(!program) {
-            Exceptions|=EX_OUTOFMEM;
-            ExceptionPointer=IPtr;
             return;
         }
 
@@ -356,14 +352,12 @@ void LIB_HANDLER()
         // ALL BINARY OPERATORS PASS THEIR OPERATIONS DIRECTLY TO EACH ELEMENT
 
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
 
         if((!ISLIST(*rplPeekData(1)))  && (!ISLIST(*rplPeekData(2)))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
             return;
         }
 
@@ -373,8 +367,6 @@ void LIB_HANDLER()
 
         WORDPTR program=rplAllocTempOb(2);
         if(!program) {
-            Exceptions|=EX_OUTOFMEM;
-            ExceptionPointer=IPtr;
             return;
         }
 
@@ -425,8 +417,7 @@ void LIB_HANDLER()
     {
         // CHECK ARGUMENTS
         if(rplDepthData()<3) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
 
@@ -437,8 +428,7 @@ void LIB_HANDLER()
             if(!var) {
                 var=rplFindGlobal(list,1);
                 if(!var) {
-                    Exceptions|=EX_BADARGTYPE;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_LISTEXPECTED);
                     return;
                 }
 
@@ -446,14 +436,12 @@ void LIB_HANDLER()
             list=*(var+1);
         }
         if(!ISLIST(*list)) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
             return;
         }
 
         if(!ISNUMBER(*rplPeekData(2))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_REALEXPECTED);
             return;
         }
 
@@ -462,8 +450,7 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         if(position<1 || position>nitems) {
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INDEXOUTOFBOUNDS);
             return;
         }
         rplOverwriteData(nitems+2-position,rplPeekData(nitems+2));
@@ -483,8 +470,7 @@ void LIB_HANDLER()
     {
         // CHECK ARGUMENTS
         if(rplDepthData()<3) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
 
@@ -496,8 +482,7 @@ void LIB_HANDLER()
             if(!var) {
                 var=rplFindGlobal(list,1);
                 if(!var) {
-                    Exceptions|=EX_BADARGTYPE;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_LISTEXPECTED);
                     return;
                 }
 
@@ -505,14 +490,12 @@ void LIB_HANDLER()
             list=*(var+1);
         }
         if(!ISLIST(*list)) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
             return;
         }
 
         if(!ISNUMBER(*rplPeekData(2))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_REALEXPECTED);
             return;
         }
 
@@ -525,8 +508,7 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         if(position<1 || position>nitems) {
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INDEXOUTOFBOUNDS);
             return;
         }
         rplOverwriteData(nitems+2-position,rplPeekData(nitems+2));
@@ -552,8 +534,7 @@ void LIB_HANDLER()
     {
         // CHECK ARGUMENTS
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         WORDPTR list=rplPeekData(2);
@@ -563,8 +544,8 @@ void LIB_HANDLER()
             if(!var) {
                 var=rplFindGlobal(list,1);
                 if(!var) {
-                    Exceptions|=EX_BADARGTYPE;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_LISTEXPECTED);
+
                     return;
                 }
 
@@ -572,14 +553,13 @@ void LIB_HANDLER()
             list=*(var+1);
         }
         if(!ISLIST(*list)) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
+
             return;
         }
 
         if(!ISNUMBER(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_REALEXPECTED);
             return;
         }
 
@@ -588,8 +568,7 @@ void LIB_HANDLER()
         if(Exceptions) return;
         if(position<1 || position>nitems) {
             rplDropData(nitems+1);
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INDEXOUTOFBOUNDS);
             return;
         }
         rplOverwriteData(nitems+3,rplPeekData(nitems+2-position));
@@ -604,8 +583,7 @@ void LIB_HANDLER()
     {
         // CHECK ARGUMENTS
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         WORDPTR list=rplPeekData(2);
@@ -615,8 +593,8 @@ void LIB_HANDLER()
             if(!var) {
                 var=rplFindGlobal(list,1);
                 if(!var) {
-                    Exceptions|=EX_BADARGTYPE;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_LISTEXPECTED);
+
                     return;
                 }
 
@@ -624,14 +602,14 @@ void LIB_HANDLER()
             list=*(var+1);
         }
         if(!ISLIST(*list)) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
+
             return;
         }
 
         if(!ISNUMBER(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_REALEXPECTED);
+
             return;
         }
 
@@ -640,8 +618,8 @@ void LIB_HANDLER()
         if(Exceptions) return;
         if(position<1 || position>nitems) {
             rplDropData(nitems+1);
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INDEXOUTOFBOUNDS);
+
             return;
         }
 
@@ -660,15 +638,15 @@ void LIB_HANDLER()
     {
         // CHECK ARGUMENTS
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         WORDPTR list=rplPeekData(1);
 
         if(!ISLIST(*list)) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
+
             return;
         }
 
@@ -680,8 +658,7 @@ void LIB_HANDLER()
         }
         else {
             rplDropData(1);
-            Exceptions|=EX_INVALID_DIM;
-            ExceptionPointer=IPtr;
+            rplError(ERR_EMPTYLIST);
             return;
         }
 
@@ -693,15 +670,14 @@ void LIB_HANDLER()
     {
         // CHECK ARGUMENTS
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         WORDPTR list=rplPeekData(1);
 
         if(!ISLIST(*list)) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
+
             return;
         }
 
@@ -726,15 +702,14 @@ void LIB_HANDLER()
     {
         // CHECK ARGUMENTS
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         WORDPTR list=rplPeekData(1);
 
         if(!ISLIST(*list)) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
+
             return;
         }
 
@@ -788,15 +763,14 @@ void LIB_HANDLER()
      {
         // CHECK ARGUMENTS
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         WORDPTR list=rplPeekData(1);
 
         if(!ISLIST(*list)) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
+
             return;
         }
 
@@ -833,13 +807,12 @@ void LIB_HANDLER()
         return;
     case TOLIST:
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(!ISNUMBER(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_REALEXPECTED);
+
             return;
         }
 
@@ -848,13 +821,12 @@ void LIB_HANDLER()
         return;
     case INNERCOMP:
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(!ISLIST(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
+
             return;
         }
 
@@ -869,14 +841,14 @@ void LIB_HANDLER()
     {
         BINT initdepth=rplDepthData();
         if(initdepth<3) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
 
         if(!ISNUMBER(*rplPeekData(2))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_REALEXPECTED);
+
             return;
         }
 
@@ -885,8 +857,8 @@ void LIB_HANDLER()
         BINT64 nlists=rplReadNumberAsBINT(rplPeekData(2));
 
         if(initdepth<2+nlists) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
 
@@ -896,8 +868,8 @@ void LIB_HANDLER()
             if(!var) {
                 var=rplFindGlobal(program,1);
                 if(!var) {
-                    Exceptions|=EX_UNDEFINED;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_LISTEXPECTED);
+
                     return;
                 }
             }
@@ -906,8 +878,8 @@ void LIB_HANDLER()
         }
 
         if(!ISPROGRAM(*program)) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_PROGRAMEXPECTED);
+
             return;
         }
 
@@ -918,23 +890,20 @@ void LIB_HANDLER()
         BINT f,l,length=-1;
         for(f=3;f<3+nlists;++f) {
             if(!ISLIST(*rplPeekData(f))) {
-                Exceptions|=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_LISTEXPECTED);
                 return;
             }
             // MAKE SURE ALL LISTS ARE EQUAL LENGTH
             l=rplListLength(rplPeekData(f));
             if(length<0) length=l;
             else if(l!=length) {
-                Exceptions|=EX_INVALID_DIM;
-                ExceptionPointer=IPtr;
+                rplError(ERR_INVALIDLISTSIZE);
                 return;
             }
         }
 
         if(length<1) {
-            Exceptions|=EX_INVALID_DIM;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INVALIDLISTSIZE);
             return;
         }
 
@@ -946,8 +915,6 @@ void LIB_HANDLER()
 
         WORDPTR newb=rplNewBINT(nlists,DECBINT);
         if(!newb) {
-            Exceptions|=EX_OUTOFMEM;
-            ExceptionPointer=IPtr;
             rplCleanupLAMs(0);
             return;
         }
@@ -958,8 +925,6 @@ void LIB_HANDLER()
 
         newb=rplNewBINT(length,DECBINT);
         if(!newb) {
-            Exceptions|=EX_OUTOFMEM;
-            ExceptionPointer=IPtr;
             rplCleanupLAMs(0);
             return;
         }
@@ -970,8 +935,6 @@ void LIB_HANDLER()
 
         newb=rplNewBINT(1,DECBINT);
         if(!newb) {
-            Exceptions|=EX_OUTOFMEM;
-            ExceptionPointer=IPtr;
             rplCleanupLAMs(0);
             return;
         }
@@ -1102,6 +1065,7 @@ void LIB_HANDLER()
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;
+        ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
         CurOpcode=MKOPCODE(LIBRARY_NUMBER,CMDDOLIST);
         return;
@@ -1113,20 +1077,20 @@ void LIB_HANDLER()
     {
         BINT initdepth=rplDepthData();
         if(initdepth<3) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
 
         if(!ISNUMBER(*rplPeekData(2))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_REALEXPECTED);
+
             return;
         }
 
         if(!ISLIST(*rplPeekData(3))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
+
             return;
         }
 
@@ -1142,8 +1106,8 @@ void LIB_HANDLER()
             if(!var) {
                 var=rplFindGlobal(program,1);
                 if(!var) {
-                    Exceptions|=EX_UNDEFINED;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_PROGRAMEXPECTED);
+
                     return;
                 }
             }
@@ -1153,8 +1117,7 @@ void LIB_HANDLER()
 
 
         if(!ISPROGRAM(*program)) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_PROGRAMEXPECTED);
             return;
         }
 
@@ -1166,8 +1129,7 @@ void LIB_HANDLER()
         length=rplListLength(rplPeekData(3));
 
         if(length<nvalues) {
-            Exceptions|=EX_INVALID_DIM;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INVALIDLISTSIZE);
             return;
         }
 
@@ -1181,8 +1143,6 @@ void LIB_HANDLER()
 
         WORDPTR newb=rplNewBINT(nvalues,DECBINT);
         if(!newb) {
-            Exceptions|=EX_OUTOFMEM;
-            ExceptionPointer=IPtr;
             rplCleanupLAMs(0);
             return;
         }
@@ -1193,8 +1153,6 @@ void LIB_HANDLER()
 
         newb=rplNewBINT(maxpos,DECBINT);
         if(!newb) {
-            Exceptions|=EX_OUTOFMEM;
-            ExceptionPointer=IPtr;
             rplCleanupLAMs(0);
             return;
         }
@@ -1205,8 +1163,6 @@ void LIB_HANDLER()
 
         newb=rplNewBINT(1,DECBINT);
         if(!newb) {
-            Exceptions|=EX_OUTOFMEM;
-            ExceptionPointer=IPtr;
             rplCleanupLAMs(0);
             return;
         }
@@ -1332,6 +1288,8 @@ void LIB_HANDLER()
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;
+        ErrorCode=TrappedErrorCode;
+
         ExceptionPointer=IPtr;
         CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOSUBS);
         return;
@@ -1347,14 +1305,14 @@ void LIB_HANDLER()
     case MAP:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
 
         if(!ISLIST(*rplPeekData(2))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
+
             return;
         }
 
@@ -1365,8 +1323,8 @@ void LIB_HANDLER()
             if(!var) {
                 var=rplFindGlobal(program,1);
                 if(!var) {
-                    Exceptions|=EX_UNDEFINED;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_PROGRAMEXPECTED);
+
                     return;
                 }
             }
@@ -1376,8 +1334,8 @@ void LIB_HANDLER()
 
 
         if(!ISPROGRAM(*program)) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_PROGRAMEXPECTED);
+
             return;
         }
 
@@ -1550,6 +1508,7 @@ void LIB_HANDLER()
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;
+        ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
         CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
         return;
@@ -1564,22 +1523,21 @@ void LIB_HANDLER()
     case STREAM:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
 
         if(!ISLIST(*rplPeekData(2))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
+
             return;
         }
 
         BINT length=rplListLength(rplPeekData(2));
 
         if(length<2) {
-            Exceptions|=EX_INVALID_DIM;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INVALIDLISTSIZE);
             return;
         }
 
@@ -1590,8 +1548,7 @@ void LIB_HANDLER()
             if(!var) {
                 var=rplFindGlobal(program,1);
                 if(!var) {
-                    Exceptions|=EX_UNDEFINED;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_PROGRAMEXPECTED);
                     return;
                 }
             }
@@ -1601,8 +1558,7 @@ void LIB_HANDLER()
 
 
         if(!ISPROGRAM(*program)) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_PROGRAMEXPECTED);
             return;
         }
 
@@ -1696,6 +1652,7 @@ void LIB_HANDLER()
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;
+        ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
         CurOpcode=MKOPCODE(LIBRARY_NUMBER,STREAM);
         return;
@@ -1840,6 +1797,7 @@ void LIB_HANDLER()
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;
+        ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
         CurOpcode=MKOPCODE(LIBRARY_NUMBER,OVR_EVAL);
         return;
@@ -1865,7 +1823,7 @@ void LIB_HANDLER()
                  if(ISLIST(**rplGetLAMn(5))) {
                     if(*nextobj2!=MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
                         // THE LISTS HAVE INVALID DIMENSIONS
-                        Exceptions|=EX_INVALID_DIM;
+                        rplError(ERR_INVALIDLISTSIZE);
                         DSTop=rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
                         rplCleanupLAMs(0);
                         IPtr=rplPopRet();
@@ -1913,7 +1871,7 @@ void LIB_HANDLER()
                  if(ISLIST(**rplGetLAMn(4))) {
                     if(*nextobj1!=MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
                         // THE LISTS HAVE INVALID DIMENSIONS
-                        Exceptions|=EX_INVALID_DIM;
+                        rplError(ERR_INVALIDLISTSIZE);
                         DSTop=rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
                         rplCleanupLAMs(0);
                         IPtr=rplPopRet();
@@ -2000,6 +1958,7 @@ void LIB_HANDLER()
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;
+        ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
         CurOpcode=MKOPCODE(LIBRARY_NUMBER,OVR_ADD);
         return;
@@ -2025,7 +1984,7 @@ void LIB_HANDLER()
                  if(ISLIST(**rplGetLAMn(5))) {
                     if(*nextobj2!=MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
                         // THE LISTS HAVE INVALID DIMENSIONS
-                        Exceptions|=EX_INVALID_DIM;
+                        rplError(ERR_INVALIDLISTSIZE);
                         DSTop=rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
                         rplCleanupLAMs(0);
                         IPtr=rplPopRet();
@@ -2086,7 +2045,7 @@ void LIB_HANDLER()
                  if(ISLIST(**rplGetLAMn(4))) {
                     if(*nextobj1!=MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
                         // THE LISTS HAVE INVALID DIMENSIONS
-                        Exceptions|=EX_INVALID_DIM;
+                        rplError(ERR_INVALIDLISTSIZE);
                         DSTop=rplUnprotectData(); // REMOVE ALL JUNK FROM THE STACK
                         rplCleanupLAMs(0);
                         IPtr=rplPopRet();
@@ -2173,6 +2132,7 @@ void LIB_HANDLER()
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;
+        ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
         CurOpcode=MKOPCODE(LIBRARY_NUMBER,OVR_SAME);
         return;
@@ -2201,22 +2161,22 @@ void LIB_HANDLER()
     case SUMLIST:
     {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
 
         if(!ISLIST(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
+
             return;
         }
 
         BINT length=rplListLength(rplPeekData(1));
 
         if(length<1) {
-            Exceptions|=EX_INVALID_DIM;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INVALIDLISTSIZE);
+
             return;
         }
 
@@ -2230,8 +2190,6 @@ void LIB_HANDLER()
 
         WORDPTR program=rplAllocTempOb(2);
         if(!program) {
-            Exceptions|=EX_OUTOFMEM;
-            ExceptionPointer=IPtr;
             return;
         }
 
@@ -2330,6 +2288,7 @@ void LIB_HANDLER()
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;
+        ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
         CurOpcode=MKOPCODE(LIBRARY_NUMBER,SUMLIST);
         return;
@@ -2344,30 +2303,28 @@ void LIB_HANDLER()
     case DELTALIST:
     {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
 
         if(!ISLIST(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_LISTEXPECTED);
+
             return;
         }
 
         BINT length=rplListLength(rplPeekData(1));
 
         if(length<2) {
-            Exceptions|=EX_INVALID_DIM;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INVALIDLISTSIZE);
+
             return;
         }
 
 
         WORDPTR program=rplAllocTempOb(2);
         if(!program) {
-            Exceptions|=EX_OUTOFMEM;
-            ExceptionPointer=IPtr;
             return;
         }
 
@@ -2490,6 +2447,7 @@ void LIB_HANDLER()
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;
+        ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
         CurOpcode=MKOPCODE(LIBRARY_NUMBER,DELTALIST);
         return;
@@ -2502,8 +2460,8 @@ void LIB_HANDLER()
         // CONCATENATE LISTS
      {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         BINT size1,size2;
@@ -2518,8 +2476,6 @@ void LIB_HANDLER()
 
         WORDPTR newlist=rplAllocTempOb(size1+size2+1);
         if(!newlist) {
-            Exceptions|=EX_OUTOFMEM;
-            ExceptionPointer=IPtr;
             return;
         }
         *newlist=MKPROLOG(LIBRARY_NUMBER,size1+size2+1);
@@ -2695,8 +2651,7 @@ void LIB_HANDLER()
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
-    Exceptions|=EX_BADOPCODE;
-    ExceptionPointer=IPtr;
+    rplError(ERR_INVALIDOPCODE);
     return;
 
 

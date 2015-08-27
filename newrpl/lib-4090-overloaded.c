@@ -99,8 +99,7 @@ void rplCallOperator(WORD op)
         if(CurOpcode==op) CurOpcode=SavedOpcode;
     }
     else {
-        Exceptions=EX_BADOPCODE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_MISSINGLIBRARY);
     }
     return;
     }
@@ -118,8 +117,7 @@ void rplCallOvrOperator(WORD op)
     int libnum=0;
     WORDPTR ptr;
     if(nargs>rplDepthData()) {
-        Exceptions=EX_BADARGCOUNT;
-        ExceptionPointer=IPtr;
+        rplError(ERR_BADARGCOUNT);
         return;
     }
     while(nargs) {
@@ -140,8 +138,7 @@ void rplCallOvrOperator(WORD op)
         // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
         // THIS CAN ONLY HAPPEN IF TRYING TO EXECUTE WITH A CUSTOM OBJECT
         // WHOSE LIBRARY WAS UNINSTALLED AFTER BEING COMPILED (IT'S AN INVALID OBJECT)
-        Exceptions=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_MISSINGLIBRARY);
     }
 
 }
@@ -154,8 +151,7 @@ void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
         // THIS LIBRARY DOES NOT DEFINE A TYPE, SO THIS IS AN INVALID OPCODE
-        Exceptions=EX_BADOPCODE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_INVALIDOBJECT);
         return;
     }
 
@@ -257,8 +253,7 @@ void LIB_HANDLER()
     }
 
     if(OPCODE(CurOpcode)<MIN_OVERLOAD_OPCODE) {
-        Exceptions=EX_BADOPCODE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_INVALIDOPCODE);
         return;
     }
 

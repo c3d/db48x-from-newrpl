@@ -6,6 +6,7 @@
  */
 
 #include "newrpl.h"
+#include "libraries.h"
 #include "hal.h"
 
 
@@ -25,9 +26,8 @@ void growDStk(WORD newtotalsize)
     if(!newdstk) {
         if(!gc_done) { rplGCollect(); ++gc_done; }
         else {
-        Exceptions|=EX_OUTOFMEM;
-        ExceptionPointer=IPtr;
-        return;
+            rplException(EX_OUTOFMEM);
+            return;
         }
     }
 
@@ -76,8 +76,7 @@ if(Exceptions) return;
 WORDPTR rplPopData()
 {
     if(DSTop<=DStkProtect) {
-        Exceptions|=EX_EMPTYSTACK;
-        ExceptionPointer=IPtr;
+        rplError(ERR_INTERNALEMPTYSTACK);
         return 0;
     }
     return *(--DSTop);
@@ -87,8 +86,7 @@ WORDPTR rplPopData()
 void rplDropData(int n)
 {
     if(DSTop-DStkProtect<n) {
-        Exceptions|=EX_EMPTYSTACK;
-        ExceptionPointer=IPtr;
+        rplError(ERR_INTERNALEMPTYSTACK);
         return;
     }
     DSTop-=n;

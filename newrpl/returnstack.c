@@ -24,9 +24,8 @@ void growRStk(WORD newtotalsize)
     if(!newrstk) {
         if(!gc_done) { rplGCollect(); ++gc_done; }
         else {
-        Exceptions|=EX_OUTOFMEM;
-        ExceptionPointer=IPtr;
-        return;
+            rplException(EX_OUTOFMEM);
+            return;
         }
     }
 

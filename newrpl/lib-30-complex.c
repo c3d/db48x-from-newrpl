@@ -111,8 +111,6 @@ void rplNewComplexPush(REAL *real,REAL *imag)
     WORDPTR newobject=rplAllocTempOb(size);
     WORDPTR parts;
     if(!newobject) {
-        Exceptions|=EX_OUTOFMEM;
-        ExceptionPointer=IPtr;
         return;
     }
 
@@ -183,16 +181,14 @@ void LIB_HANDLER()
         REAL Rarg1,Iarg1,Rarg2,Iarg2;
 
         if(rplDepthData()<nargs) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(nargs==1) {
             // UNARY OPERATORS
             arg1=rplPeekData(1);
             if(!ISCOMPLEX(*arg1)) {
-                Exceptions=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_COMPLEXEXPECTED);
                 return;
             }
 
@@ -205,8 +201,7 @@ void LIB_HANDLER()
             arg2=rplPeekData(1);
 
             if(!ISNUMBERCPLX(*arg1) || !ISNUMBERCPLX(*arg2)) {
-                Exceptions=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_COMPLEXORREALEXPECTED);
                 return;
             }
 
@@ -308,8 +303,7 @@ void LIB_HANDLER()
                     // Z^0 = 1, UNLESS Z=0
 
                     if(iszeroReal(&Rarg1)&&iszeroReal(&Iarg1)) {
-                        Exceptions|=EX_UNDEFINED;
-                        ExceptionPointer=IPtr;
+                        rplError(ERR_MATHUNDEFINED);
                         return;
                     }
 
@@ -434,8 +428,7 @@ void LIB_HANDLER()
         case OVR_INV:
                 // 1/(a+b*i) = (a/(a^2+b^2) - b/(a^2/b^2) i
                 if( (iszeroReal(&Rarg1)&&iszeroReal(&Iarg1)) ) {
-                    Exceptions|=EX_MATHDIVZERO;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_MATHDIVIDEBYZERO);
                     return;
                 }
 
@@ -492,9 +485,8 @@ void LIB_HANDLER()
 
         // ADD MORE case's HERE
         default:
-            Exceptions=EX_BADARGTYPE;   // RETURN BAD TYPE SINCE THIS LIBRARY DOES NOT OVERLOAD THE OPERATOR
-            ExceptionPointer=IPtr;
-            return;
+            rplError(ERR_COMPLEXNOTSUPPORTED);
+        return;
 
 
         }
@@ -511,13 +503,11 @@ void LIB_HANDLER()
 
     case RE:
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(!ISNUMBERCPLX(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_COMPLEXORREALEXPECTED);
             return;
         }
         if(ISCOMPLEX(*rplPeekData(1))) {
@@ -529,13 +519,11 @@ void LIB_HANDLER()
 
     case IM:
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(!ISNUMBERCPLX(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_COMPLEXORREALEXPECTED);
             return;
         }
         if(ISCOMPLEX(*rplPeekData(1))) {
@@ -550,13 +538,11 @@ void LIB_HANDLER()
     case ARG:
     {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(!ISNUMBERCPLX(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_COMPLEXORREALEXPECTED);
             return;
         }
             REAL real,imag;
@@ -575,13 +561,11 @@ void LIB_HANDLER()
     case CONJ:
     {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(!ISNUMBERCPLX(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_COMPLEXORREALEXPECTED);
             return;
         }
             REAL real,imag;
@@ -600,13 +584,11 @@ void LIB_HANDLER()
 
     case CPLX2REAL:
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(!ISCOMPLEX(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_COMPLEXEXPECTED);
             return;
         }
         ScratchPointer1=rplPeekData(1);
@@ -617,13 +599,11 @@ void LIB_HANDLER()
     case REAL2CPLX:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(!ISNUMBER(*rplPeekData(1)) || !ISNUMBER(*rplPeekData(2))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_REALEXPECTED);
             return;
         }
 
@@ -632,8 +612,6 @@ void LIB_HANDLER()
         BINT sizei=rplObjSize(rplPeekData(1));
         WORDPTR newcplx=rplAllocTempOb(sizer+sizei);
         if(!newcplx) {
-            Exceptions|=EX_OUTOFMEM;
-            ExceptionPointer=IPtr;
             return;
         }
 
@@ -855,8 +833,8 @@ void LIB_HANDLER()
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
-    Exceptions|=EX_BADOPCODE;
-    ExceptionPointer=IPtr;
+    rplError(ERR_INVALIDOPCODE);
+
     return;
 
 

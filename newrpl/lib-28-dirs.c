@@ -115,8 +115,7 @@ void LIB_HANDLER()
         // PROVIDE BEHAVIOR OF EXECUTING THE OBJECT HERE
         // THIS SHOULD NEVER HAPPEN, AS DIRECTORY OBJECTS ARE SPECIAL HANDLES
         // THEY ARE NEVER USED IN THE MIDDLE OF THE CODE
-        Exceptions=EX_BADOPCODE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_INVALIDOBJECT);
         return;
     }
 
@@ -126,15 +125,13 @@ void LIB_HANDLER()
     {
         // STORE CONTENT INSIDE A LAM OR GLOBAL VARIABLE, CREATE A NEW "GLOBAL" VARIABLE IF NEEDED
         if(rplDepthData()<2) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         // ONLY ACCEPT IDENTS AS KEYS
 
         if(!ISIDENT(*rplPeekData(1))) {
-            Exceptions=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_IDENTEXPECTED);
             return;
         }
 
@@ -192,15 +189,13 @@ void LIB_HANDLER()
     {
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
         if(rplDepthData()<1) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
         if(!ISIDENT(*rplPeekData(1))) {
-            Exceptions=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_IDENTEXPECTED);
             return;
 
         }
@@ -216,8 +211,7 @@ void LIB_HANDLER()
                 rplOverwriteData(1,val);
             }
             else {
-            Exceptions=EX_VARUNDEF;
-            ExceptionPointer=IPtr;
+                rplError(ERR_UNDEFINEDVARIABLE);
             return;
             }
         }
@@ -227,15 +221,13 @@ void LIB_HANDLER()
     case INCR:
         {
         if(rplDepthData()<1) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
         if(!ISIDENT(*rplPeekData(1))) {
-            Exceptions=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_IDENTEXPECTED);
             return;
 
         }
@@ -258,10 +250,9 @@ void LIB_HANDLER()
             *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
         }
         else {
-            Exceptions=EX_VARUNDEF;
-            ExceptionPointer=IPtr;
+            rplError(ERR_UNDEFINEDVARIABLE);
             return;
-            }
+        }
 
         }
         return;
@@ -270,15 +261,13 @@ void LIB_HANDLER()
     case DECR:
     {
     if(rplDepthData()<1) {
-        Exceptions=EX_BADARGCOUNT;
-        ExceptionPointer=IPtr;
+        rplError(ERR_BADARGCOUNT);
         return;
     }
     // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
     if(!ISIDENT(*rplPeekData(1))) {
-        Exceptions=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_IDENTEXPECTED);
         return;
 
     }
@@ -301,10 +290,9 @@ void LIB_HANDLER()
         *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
     }
     else {
-        Exceptions=EX_VARUNDEF;
-        ExceptionPointer=IPtr;
+        rplError(ERR_UNDEFINEDVARIABLE);
         return;
-        }
+    }
 
     }
     return;
@@ -314,17 +302,14 @@ void LIB_HANDLER()
     case PURGE:
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
         if(rplDepthData()<1) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
         if(!ISIDENT(*rplPeekData(1))) {
-            Exceptions=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_IDENTEXPECTED);
             return;
-
         }
 
         // TODO: ALSO ACCEPT A LIST OF VARS, WHEN WE HAVE LISTS!
@@ -337,15 +322,13 @@ void LIB_HANDLER()
     {
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
         if(rplDepthData()<1) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
         if(!ISIDENT(*rplPeekData(1))) {
-            Exceptions=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_IDENTEXPECTED);
             return;
 
         }
@@ -389,9 +372,8 @@ void LIB_HANDLER()
         WORDPTR *dir=rplFindDirbyHandle(rplPeekData(1));
 
         if(!dir) {
-            Exceptions|=EX_UNDEFINED;
-            ExceptionPointer=IPtr;
-            return; //  LEAVE THE OBJECT UNEVALUATED. IT'S AN ORPHAN DIRECTORY OBJECT???
+        rplError(ERR_DIRECTORYNOTFOUND);
+        return; //  LEAVE THE OBJECT UNEVALUATED. IT'S AN ORPHAN DIRECTORY OBJECT???
         }
         CurrentDir=dir;
         rplDropData(1);
@@ -514,8 +496,8 @@ void LIB_HANDLER()
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
-    Exceptions|=EX_BADOPCODE;
-    ExceptionPointer=IPtr;
+    rplError(ERR_INVALIDOPCODE);
+
     return;
 
 

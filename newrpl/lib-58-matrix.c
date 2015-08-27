@@ -1238,6 +1238,7 @@ void LIB_HANDLER()
         CurOpcode=*(IPtr-2);    // BLAME THE OPERATOR IN QUESTION
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;
+        ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
         return;
     }
@@ -1608,8 +1609,7 @@ void LIB_HANDLER()
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
-    Exceptions|=EX_BADOPCODE;
-    ExceptionPointer=IPtr;
+    rplError(ERR_INVALIDOPCODE);
     return;
 
 

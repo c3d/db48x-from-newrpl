@@ -204,15 +204,14 @@ void rplRun(void)
 
     if(han) (*han)();
     else {
-        Exceptions=EX_BADOPCODE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_MISSINGLIBRARY);
         rplClearRStk(); // CLEAR THE RETURN STACK
         rplClearLAMs(); // CLEAR ALL LOCAL VARIABLES
         // INVALID OPCODE = END OF EXECUTION (CANNOT BE TRAPPED BY HANDLER)
         return;
     }
     if(Exceptions) {
-        if(Exceptions==EX_EXITRPL) {
+        if(Exceptions&EX_EXITRPL) {
             Exceptions=0;
             rplClearRStk(); // CLEAR THE RETURN STACK
             rplClearLAMs(); // CLEAR ALL LOCAL VARIABLES

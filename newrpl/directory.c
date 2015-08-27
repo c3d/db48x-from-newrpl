@@ -29,8 +29,7 @@ void growDirs(WORD newtotalsize)
     if(!newdir) {
         if(!gc_done) { rplGCollect(); ++gc_done; }
         else {
-        Exceptions|=EX_OUTOFMEM;
-        ExceptionPointer=IPtr;
+            rplException(EX_OUTOFMEM);
         return;
         }
     }
@@ -418,8 +417,7 @@ void rplPurgeGlobal(WORDPTR nameobj)
     WORDPTR *var=rplFindGlobal(nameobj,1);
 
     if(!var) {
-        Exceptions|=EX_VARUNDEF;
-        ExceptionPointer=IPtr;
+        rplError(ERR_UNDEFINEDVARIABLE);
         return;
     }
 
@@ -430,8 +428,7 @@ void rplPurgeGlobal(WORDPTR nameobj)
 
         // NEED TO USE PGDIR FOR THAT
         if(dirsize) {
-            Exceptions|=EX_NONEMPTYDIR;
-            ExceptionPointer=IPtr;
+            rplError(ERR_NONEMPTYDIRECTORY);
             return;
         }
 

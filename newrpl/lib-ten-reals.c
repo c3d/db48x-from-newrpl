@@ -172,7 +172,6 @@ WORDPTR rplNewReal(REAL *num)
 
     WORDPTR newreal=rplAllocTempOb(num->len+1);
     if(!newreal) {
-        Exceptions|=EX_OUTOFMEM;
         return 0;
     }
 
@@ -222,16 +221,14 @@ void LIB_HANDLER()
         int status;
 
         if(rplDepthData()<nargs) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+             rplError(ERR_BADARGCOUNT);
             return;
         }
         if(nargs==1) {
             // UNARY OPERATORS
             arg1=rplPeekData(1);
             if(!ISREAL(*arg1)) {
-                Exceptions=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_REALEXPECTED);
                 return;
             }
             rplReadReal(arg1,&Darg1);
@@ -242,8 +239,7 @@ void LIB_HANDLER()
             arg2=rplPeekData(1);
 
             if(!ISREAL(*arg1) || !ISREAL(*arg2)) {
-                Exceptions=EX_BADARGTYPE;
-                ExceptionPointer=IPtr;
+                rplError(ERR_REALEXPECTED);
                 return;
             }
 
@@ -377,8 +373,7 @@ void LIB_HANDLER()
 
         // ADD MORE case's HERE
         default:
-            Exceptions=EX_BADARGTYPE;   // RETURN BAD TYPE SINCE THIS LIBRARY DOES NOT OVERLOAD THE OPERATOR
-            ExceptionPointer=IPtr;
+            rplError(ERR_REALSNOTSUPPORTED);
             return;
 
 
@@ -656,8 +651,8 @@ void LIB_HANDLER()
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
-    Exceptions|=EX_BADOPCODE;
-    ExceptionPointer=IPtr;
+    rplError(ERR_INVALIDOPCODE);
+
     return;
 
 

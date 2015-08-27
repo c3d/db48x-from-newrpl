@@ -130,6 +130,7 @@ extern void rplCatchException();
 // ERROR TRIGGER FUNCTIONS
 void rplError(WORD errorcode);
 void rplException(WORD exception);
+void rplClearErrors();
 
 
 

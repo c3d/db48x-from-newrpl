@@ -90,3 +90,9 @@ void rplError(WORD errorcode)
     Exceptions|=EX_ERRORCODE;
     ErrorCode=errorcode;
 }
+
+// CLEAR ERRORS AFTER THEY WERE HANDLED
+void rplClearErrors()
+{
+    Exceptions=0;
+}

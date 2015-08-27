@@ -25,8 +25,7 @@ void growLAMs(WORD newtotalsize)
     if(!newlam) {
         if(!gc_done) { rplGCollect(); ++gc_done; }
         else {
-        Exceptions|=EX_OUTOFMEM;
-        ExceptionPointer=IPtr;
+            rplException(EX_OUTOFMEM);
         return;
         }
     }

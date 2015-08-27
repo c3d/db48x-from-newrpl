@@ -119,8 +119,7 @@ void LIB_HANDLER()
         {
         // BY DEFINITION, BINT 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
         if(rplDepthData()<1) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
             // EXTRACT THE OBJECT INTO A GC-SAFE POINTER
@@ -158,8 +157,7 @@ void LIB_HANDLER()
         {
         // BY DEFINITION, BINT 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
         if(rplDepthData()<1) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
             // EXTRACT OBJECT INTO A GC-SAFE POINTER
@@ -183,8 +181,7 @@ void LIB_HANDLER()
     {
         // DEFINE 3 LAMS, THE FIRST WILL BE THE LOW LIMIT, THEN THE HIGH LIMIT, THEN THE ITERATOR
         if(rplDepthData()<2) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
 
@@ -230,8 +227,7 @@ void LIB_HANDLER()
     {
         // DEFINE 3 LAMS, THE FIRST WILL BE THE LOW LIMIT, THEN THE HIGH LIMIT, THEN THE ITERATOR
         if(rplDepthData()<2) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         // MAKE 2DUP
@@ -319,8 +315,7 @@ void LIB_HANDLER()
         // INCREMENT THE COUNTER
         // THE NUMBER TO ADD IS EXPECTED TO BE ON THE STACK
         if(rplDepthData()<1) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
 
@@ -390,8 +385,7 @@ void LIB_HANDLER()
     case ENDDO:
     {
         if(rplDepthData()<1) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
 
@@ -432,8 +426,7 @@ void LIB_HANDLER()
     case REPEAT:
     {
         if(rplDepthData()<1) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
 
@@ -1102,8 +1095,8 @@ void LIB_HANDLER()
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
-    Exceptions|=EX_BADOPCODE;
-    ExceptionPointer=IPtr;
+    rplError(ERR_INVALIDOPCODE);
+
     return;
 
 

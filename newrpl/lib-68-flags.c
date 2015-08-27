@@ -230,8 +230,7 @@ void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
         // THIS LIBRARY DOES NOT DEFINE ANY OBJECTS
-        Exceptions=EX_BADOPCODE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_INVALIDOBJECT);
         return;
     }
 
@@ -800,8 +799,8 @@ void LIB_HANDLER()
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
-    Exceptions|=EX_BADOPCODE;
-    ExceptionPointer=IPtr;
+    rplError(ERR_INVALIDOPCODE);
+
     return;
 
 

@@ -46,8 +46,10 @@ extern void lib4090_handler();
 
 void dummy_libhandler()
 {
-if(ISPROLOG(CurOpcode)) return;
-
+if(ISPROLOG(CurOpcode)) {
+    rplError(ERR_INVALIDOBJECT);
+    return;
+}
 
 switch(OPCODE(CurOpcode))
         {
@@ -63,8 +65,8 @@ switch(OPCODE(CurOpcode))
         }
 
         RetNum=ERR_INVALID;
-        Exceptions|=EX_BADOPCODE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_INVALIDOPCODE);
+
         return;
 
 

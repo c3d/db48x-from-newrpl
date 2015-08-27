@@ -170,8 +170,7 @@ void LIB_HANDLER()
         // VERY IMPORTANT: DECOMPILE FUNCTION
     {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
 
@@ -185,14 +184,12 @@ void LIB_HANDLER()
         // COMPILER FUNCTION, FOR STR-> AND ->OBJ COMMANDS
     {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         WORDPTR string=rplPeekData(1);
         if(!ISSTRING(*string)) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_STRINGEXPECTED);
             return;
         }
         BINT length=STRLEN(*string);
@@ -215,8 +212,7 @@ void LIB_HANDLER()
         // APPEND TWO STRINGS
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         ScratchPointer1=rplPeekData(2);
@@ -239,8 +235,7 @@ void LIB_HANDLER()
 
         WORDPTR newobject=rplAllocTempOb((len1+len2+3)>>2);
         if(!newobject) {
-           Exceptions|=EX_OUTOFMEM;
-           ExceptionPointer=IPtr;
+            rplException(EX_OUTOFMEM);
            return;
         }
         // COPY BOTH STRINGS
@@ -267,8 +262,7 @@ void LIB_HANDLER()
     case OVR_EQ:
 
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
 
@@ -522,8 +516,7 @@ void LIB_HANDLER()
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
-    Exceptions|=EX_BADOPCODE;
-    ExceptionPointer=IPtr;
+    rplError(ERR_INVALIDOPCODE);
     return;
 
 

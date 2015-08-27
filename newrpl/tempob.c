@@ -82,8 +82,7 @@ void growTempOb(WORD newtotalsize)
     if(!newtempob) {
         if(!gc_done) { rplGCollect(); ++gc_done; newtotalsize=(WORD)(TempObEnd-TempOb)+slack; }
         else {
-        Exceptions|=EX_OUTOFMEM;
-        ExceptionPointer=IPtr;
+            rplException(EX_OUTOFMEM);
         return;
         }
     }
@@ -125,8 +124,7 @@ void shrinkTempOb(WORD newtotalsize)
     newtempob=halGrowMemory(MEM_AREA_TEMPOB,(WORDPTR *)TempOb,newtotalsize);
 
     if(!newtempob) {
-        Exceptions|=EX_OUTOFMEM;
-        ExceptionPointer=IPtr;
+        rplException(EX_OUTOFMEM);
         return;
         }
 
@@ -151,8 +149,7 @@ void growTempBlocks(WORD newtotalsize)
     if(!newtempblocks) {
         if(!gc_done) { rplGCollect(); ++gc_done; newtotalsize=(WORD)((TempBlocksEnd+slack)-TempBlocks); }
         else {
-        Exceptions|=EX_OUTOFMEM;
-        ExceptionPointer=IPtr;
+            rplException(EX_OUTOFMEM);
         return;
         }
     }
@@ -176,8 +173,7 @@ void shrinkTempBlocks(WORD newtotalsize)
     newtempblocks=halGrowMemory(MEM_AREA_TEMPBLOCKS,TempBlocks,newtotalsize);
 
     if(!newtempblocks) {
-        Exceptions|=EX_OUTOFMEM;
-        ExceptionPointer=IPtr;
+        rplException(EX_OUTOFMEM);
         return;
         }
         TempBlocksEnd=TempBlocksEnd-TempBlocks+newtempblocks;

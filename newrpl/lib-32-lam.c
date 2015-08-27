@@ -178,8 +178,7 @@ void LIB_HANDLER()
                     // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
                     // THIS CAN ONLY HAPPEN IF TRYING TO EXECUTE WITH A CUSTOM OBJECT
                     // WHOSE LIBRARY WAS UNINSTALLED AFTER BEING COMPILED (IT'S AN INVALID OBJECT)
-                    Exceptions=EX_BADARGTYPE;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_MISSINGLIBRARY);
                 }
 
             return;
@@ -222,8 +221,7 @@ void LIB_HANDLER()
                     // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
                     // THIS CAN ONLY HAPPEN IF TRYING TO EXECUTE WITH A CUSTOM OBJECT
                     // WHOSE LIBRARY WAS UNINSTALLED AFTER BEING COMPILED (IT'S AN INVALID OBJECT)
-                    Exceptions=EX_BADARGTYPE;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_MISSINGLIBRARY);
                     CurOpcode=*IPtr;
                 }
 
@@ -245,8 +243,7 @@ void LIB_HANDLER()
                 }
 
                 if(rplCheckCircularReference((WORDPTR)symbeval_seco+2,*(val+1),4)) {
-                    Exceptions|=EX_CIRCULARREF;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_CIRCULARREFERENCE);
                     return;
                 }
 
@@ -289,6 +286,10 @@ void LIB_HANDLER()
                 }
 
                 // TODO: CHECK FOR CIRCULAR REFERENCE!
+                if(rplCheckCircularReference((WORDPTR)symbeval_seco+2,*(val+1),4)) {
+                    rplError(ERR_CIRCULARREFERENCE);
+                    return;
+                }
 
                 rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
                 CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_NUM);
@@ -301,8 +302,7 @@ void LIB_HANDLER()
                     // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
                     // THIS CAN ONLY HAPPEN IF TRYING TO EXECUTE WITH A CUSTOM OBJECT
                     // WHOSE LIBRARY WAS UNINSTALLED AFTER BEING COMPILED (IT'S AN INVALID OBJECT)
-                    Exceptions=EX_BADARGTYPE;
-                    ExceptionPointer=IPtr;
+                    rplError(ERR_MISSINGLIBRARY);
                     CurOpcode=*IPtr;
                 }
 
@@ -416,8 +416,7 @@ void LIB_HANDLER()
         case 1: // PUTLAMn
         {
             if(rplDepthData()<1) {
-                Exceptions=EX_BADARGCOUNT;
-                ExceptionPointer=IPtr;
+                rplError(ERR_BADARGCOUNT);
                 return;
             }
             WORDPTR *local=rplGetLAMn(num);
@@ -437,8 +436,8 @@ void LIB_HANDLER()
             // THE STACK CONTAINS VAL1 VAL2 ... VALN LAM1 LAM2 ... LAMN
         {
             if(rplDepthData()<2*num) {
-                Exceptions=EX_BADARGCOUNT;
-                ExceptionPointer=IPtr;
+                // MALFORMED SECONDARY? THIS SHOULD NEVER HAPPEN
+                rplError(ERR_BADARGCOUNT);
                 return;
             }
 
@@ -446,9 +445,8 @@ void LIB_HANDLER()
             BINT cnt=num;
             while(cnt) {
                 if(!ISIDENT(*rplPeekData(cnt))) {
-                        Exceptions=EX_BADARGTYPE;
-                        ExceptionPointer=IPtr;
-                        return;
+                    rplError(ERR_IDENTEXPECTED);
+                    return;
                 }
                 --cnt;
             }
@@ -477,15 +475,13 @@ void LIB_HANDLER()
     {
         // STORE CONTENT INSIDE A LAM VARIABLE, CREATE A NEW VARIABLE IF NEEDED
         if(rplDepthData()<2) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
         if(!ISIDENT(*rplPeekData(1))) {
-            Exceptions=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_IDENTEXPECTED);
             return;
         }
 
@@ -516,17 +512,14 @@ void LIB_HANDLER()
     {
         // RCL CONTENT FROM INSIDE A LAM VARIABLE
         if(rplDepthData()<1) {
-            Exceptions=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
         if(!ISIDENT(*rplPeekData(1))) {
-            Exceptions=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_IDENTEXPECTED);
             return;
-
         }
 
         WORDPTR val=rplGetLAM(rplPeekData(1));
@@ -534,8 +527,7 @@ void LIB_HANDLER()
             rplOverwriteData(1,val);
         }
         else {
-            Exceptions=EX_VARUNDEF;
-            ExceptionPointer=IPtr;
+            rplError(ERR_UNDEFINEDVARIABLE);
             return;
         }
     }
@@ -598,10 +590,11 @@ void LIB_HANDLER()
     }
     case EVALERR:
         // JUST CLEANUP AND EXIT
-        DSTop=rplUnprotectData();
+        //DSTop=rplUnprotectData();
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;
+        ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
         CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
         return;
@@ -1341,8 +1334,8 @@ void LIB_HANDLER()
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
-    Exceptions|=EX_BADOPCODE;
-    ExceptionPointer=IPtr;
+    rplError(ERR_INVALIDOPCODE);
+
     return;
 
 }
