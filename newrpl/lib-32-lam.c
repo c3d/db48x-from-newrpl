@@ -87,6 +87,8 @@ const char * const LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME  };
 
 
 extern const WORD const symbeval_seco[];
+extern const WORD const symbnum_seco[];
+
 const WORD const lameval_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,EVALPRE),
@@ -96,6 +98,14 @@ const WORD const lameval_seco[]={
     CMD_SEMI
 };
 
+const WORD const lamnum_seco[]={
+    MKPROLOG(DOCOL,5),
+    MKOPCODE(LIBRARY_NUMBER,EVALPRE),
+    MKOPCODE(LIB_OVERLOADABLE,OVR_NUM),    // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER,EVALPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER,EVALERR),     // ERROR HANDLER
+    CMD_SEMI
+};
 
 
 
@@ -274,41 +284,47 @@ void LIB_HANDLER()
 
             case OVR_NUM:
             // RCL WHATEVER IS STORED IN THE LAM AND THEN ->NUM ITS CONTENTS
-            // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "->NUM" DISPATCHER
-            {
-                WORDPTR val=rplGetLAM(rplPeekData(1));
-                if(!val) {
-                    val=rplGetGlobal(rplPeekData(1));
+                // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
+                {
+                    WORDPTR *val=rplFindLAM(rplPeekData(1),1);
                     if(!val) {
-                        // INEXISTENT IDENT EVALS TO ITSELF, SO RETURN DIRECTLY
+                        val=rplFindGlobal(rplPeekData(1),1);
+                        if(!val) {
+                            // INEXISTENT VARIABLE CANNOT BE CONVERTED TO NUMBER
+                            rplError(ERR_UNDEFINEDVARIABLE);
+                            return;
+                        }
+                    }
+
+                    if(rplCheckCircularReference((WORDPTR)symbnum_seco+2,*(val+1),4)) {
+                        rplError(ERR_CIRCULARREFERENCE);
                         return;
                     }
-                }
 
-                // TODO: CHECK FOR CIRCULAR REFERENCE!
-                if(rplCheckCircularReference((WORDPTR)symbeval_seco+2,*(val+1),4)) {
-                    rplError(ERR_CIRCULARREFERENCE);
+                    // CREATE A NEW LAM ENVIRONMENT IDENTICAL TO THE ONE USED TO EVAL SYMBOLICS
+                    // FOR CIRCULAR REFERENCE CHECK
+                    rplCreateLAMEnvironment((WORDPTR)symbnum_seco+2);
+
+                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 1 = 0 (DUMMY)
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 2 = 0 (DUMMY)
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 3 = 0 (DUMMY)
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                    rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 4 = MAIN VARIABLE NAME, FOR CIRCULAR REFERENCE CHECK
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+
+                    rplOverwriteData(1,*(val+1));    // REPLACE THE FIRST LEVEL WITH THE VALUE
+
+                    rplPushRet(IPtr);
+                    IPtr=(WORDPTR) lamnum_seco;
+                    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_NUM);
+                }
                     return;
-                }
-
-                rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
-                CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_NUM);
-                LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
-                if(han) {
-                    // EXECUTE THE OTHER LIBRARY DIRECTLY
-                    (*han)();
-                }
-                else {
-                    // THE LIBRARY DOESN'T EXIST BUT THE OBJECT DOES?
-                    // THIS CAN ONLY HAPPEN IF TRYING TO EXECUTE WITH A CUSTOM OBJECT
-                    // WHOSE LIBRARY WAS UNINSTALLED AFTER BEING COMPILED (IT'S AN INVALID OBJECT)
-                    rplError(ERR_MISSINGLIBRARY);
-                    CurOpcode=*IPtr;
-                }
-
-
-            }
-                return;
 
             case OVR_XEQ:
                 // JUST KEEP THE IDENT ON THE STACK, UNEVALUATED
