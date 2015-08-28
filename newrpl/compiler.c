@@ -786,7 +786,7 @@ void rplDecompAppendChar(BYTE c)
 
 void rplDecompAppendString(BYTEPTR str)
 {
-    BINT len=strlen((char *)str);
+    BINT len=stringlen((char *)str);
 
         if( ((WORDPTR)((((PTR2NUMBER)DecompStringEnd)+len+3)&~((PTR2NUMBER)3)))+TEMPOBSLACK>=TempObSize) {
             // ENLARGE TEMPOB AS NEEDED

@@ -162,8 +162,8 @@ void LIB_HANDLER()
 
      object=rplSymbUnwrap(object);
      if(!object) {
-         Exceptions|=EX_BADARGVALUE;
-         ExceptionPointer=IPtr;
+         rplError(ERR_SYMBOLICEXPECTED);
+
          return;
      }
      BINT size=rplObjSize(object);
@@ -194,8 +194,8 @@ void LIB_HANDLER()
     {
         WORDPTR object=rplPeekData(1);
         if(!ISSYMBOLIC(*object)) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYMBOLICEXPECTED);
+
             return;
         }
 
@@ -253,14 +253,14 @@ void LIB_HANDLER()
 {
     WORDPTR object=rplPeekData(1),mainobj;
     if(!ISSYMBOLIC(*object)) {
-        Exceptions|=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_SYMBOLICEXPECTED);
+
         return;
     }
 
     if(rplCheckCircularReference((WORDPTR)symbeval_seco+2,object,4)) {
-        Exceptions|=EX_CIRCULARREF;
-        ExceptionPointer=IPtr;
+        rplError(ERR_CIRCULARREFERENCE);
+
         return;
     }
 
@@ -337,8 +337,8 @@ void LIB_HANDLER()
 
      object=rplSymbUnwrap(object);
      if(!object) {
-         Exceptions|=EX_BADARGVALUE;
-         ExceptionPointer=IPtr;
+         rplError(ERR_SYMBOLICEXPECTED);
+
          return;
      }
      BINT size=rplObjSize(object);
@@ -367,8 +367,8 @@ void LIB_HANDLER()
         // FIRST, CHECK THAT ARGUMENTS ARE ACCEPTABLE FOR SYMBOLIC OPERATION
         if( (!rplIsAllowedInSymb(rplPeekData(2))) || (!rplIsAllowedInSymb(rplPeekData(1))))
         {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_NOTALLOWEDINSYMBOLICS);
+
             return;
         }
 
@@ -508,8 +508,8 @@ void LIB_HANDLER()
         WORDPTR arg2=rplPeekData(1);
         if( (!rplIsAllowedInSymb(arg1)) || (!rplIsAllowedInSymb(arg2)))
         {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_NOTALLOWEDINSYMBOLICS);
+
             return;
         }
 
@@ -558,10 +558,9 @@ void LIB_HANDLER()
                 }
             }
             if(newdepth!=1) {
-                Exceptions|=EX_BADARGCOUNT;
                 rplCleanupLAMs(0);
                 IPtr=rplPopRet();
-                ExceptionPointer=IPtr;
+                rplError(ERR_BADARGCOUNT);
                 CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1);
                 return;
             }
@@ -614,8 +613,8 @@ void LIB_HANDLER()
     case AUTOSIMPLIFY:
     {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
 
@@ -652,10 +651,9 @@ void LIB_HANDLER()
                         // AN IDENT, OTHERWISE THE RESULT IS INVALID
                         if(!ISIDENT(*rplPeekData(1))) {
                             // IT SHOULD ACTUALLY RETURN SOMETHING LIKE "INVALID USER FUNCTION"
-                            Exceptions|=EX_BADARGVALUE;
                             rplCleanupLAMs(0);
                             IPtr=rplPopRet();
-                            ExceptionPointer=IPtr;
+                            rplError(ERR_INVALIDUSERDEFINEDFUNCTION);
                             CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
                             return;
                         }
@@ -673,10 +671,9 @@ void LIB_HANDLER()
                 }
             }
             if(newdepth!=1) {
-                Exceptions|=EX_BADARGCOUNT;
                 rplCleanupLAMs(0);
                 IPtr=rplPopRet();
-                ExceptionPointer=IPtr;
+                rplError(ERR_BADARGCOUNT);
                 CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
                 return;
             }
@@ -729,8 +726,7 @@ void LIB_HANDLER()
     case RULEMATCH:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+                rplError(ERR_BADARGCOUNT);
             return;
         }
         // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
@@ -775,25 +771,23 @@ void LIB_HANDLER()
     case RULEAPPLY:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+                rplError(ERR_BADARGCOUNT);
             return;
         }
 
         if(!ISSYMBOLIC(*rplPeekData(2))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYMBOLICEXPECTED);
+
             return;
         }
         if(!ISSYMBOLIC(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYMBOLICEXPECTED);
+
             return;
         }
 
         if(!rplSymbIsRule(rplPeekData(1))) {
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_NOTAVALIDRULE);
             return;
         }
 
@@ -814,14 +808,13 @@ void LIB_HANDLER()
     {
     // THIS IS FOR DEBUG ONLY
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+                rplError(ERR_BADARGCOUNT);
             return;
         }
 
         if(!ISSYMBOLIC(*rplPeekData(1))) {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYMBOLICEXPECTED);
+
             return;
         }
 

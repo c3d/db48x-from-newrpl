@@ -120,22 +120,10 @@ const systemflag const flags_names[]= {
 };
 
 
-BINT rplGetSystemFlag(BINT flag)
+BINT rplSetSystemFlag(BINT flag)
 {
     if(flag>-1 || flag<-128) return -1;
-
-    WORDPTR low64=SystemFlags+2;
-    WORDPTR hi64=SystemFlags+5;
-    if(flag>=-32) return low64[0]&(1 << -(flag+1));
-    else if(flag>=-64) return low64[1]&(1 << -(flag+33));
-    else if(flag>=96) return hi64[0]&(1 << -(flag+65));
-    else return hi64[1]&(1 << -(flag+97));
-}
-
-
-void rplSetSystemFlag(BINT flag)
-{
-    if(flag>-1 || flag<-128) return;
+    if(!ISLIST(*SystemFlags)) return -2;
 
     WORDPTR low64=SystemFlags+2;
     WORDPTR hi64=SystemFlags+5;
@@ -143,11 +131,14 @@ void rplSetSystemFlag(BINT flag)
     else if(flag>=-64) low64[1]|=(1 << -(flag+33));
     else if(flag>=96) hi64[0]|=(1 << -(flag+65));
     else hi64[1]|=(1 << -(flag+97));
+
+    return 0;
 }
 
-void rplClrSystemFlag(BINT flag)
+BINT rplClrSystemFlag(BINT flag)
 {
-    if(flag>-1 || flag<-128) return;
+    if(flag>-1 || flag<-128) return -1;
+    if(!ISLIST(*SystemFlags)) return -2;
 
     WORDPTR low64=SystemFlags+2;
     WORDPTR hi64=SystemFlags+5;
@@ -155,13 +146,21 @@ void rplClrSystemFlag(BINT flag)
     else if(flag>=-64) low64[1]&=~(1 << -(flag+33));
     else if(flag>=96) hi64[0]&=~(1 << -(flag+65));
     else hi64[1]&=~(1 << -(flag+97));
+
+    return 0;
 }
 
-void rplSetSystemFlagByName(BYTEPTR name,BINT len)
+BINT rplSetSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
 {
-        BINT idx=0;
-        while(flags_names[idx].flagname) {
-        if(!utf8ncmp((char *)name,flags_names[idx].flagname,len))
+    if(!ISLIST(*SystemFlags)) return -2;
+
+    BINT idx=0;
+    BINT len=utf8nlen((char *)name,(char *)nameend);
+    BINT flaglen;
+
+    while(flags_names[idx].flagname) {
+        flaglen=utf8len((char *)flags_names[idx].flagname);
+        if((flaglen==len) && !utf8ncmp((char *)name,flags_names[idx].flagname,len))
         {
             BINT count;
             for(count=0;count<8;++count)
@@ -173,10 +172,10 @@ void rplSetSystemFlagByName(BYTEPTR name,BINT len)
                     WORDPTR low64=SystemFlags+2;
                     WORDPTR hi64=SystemFlags+5;
                     if(value) {
-                    if(flag<=32) low64[0]|=(1 << (flag-1));
-                    else if(flag<=64) low64[1]|=(1 << (flag-33));
-                    else if(flag<=96) hi64[0]|=(1 << (flag-65));
-                    else hi64[1]|=(1 << (flag-97));
+                        if(flag<=32) low64[0]|=(1 << (flag-1));
+                        else if(flag<=64) low64[1]|=(1 << (flag-33));
+                        else if(flag<=96) hi64[0]|=(1 << (flag-65));
+                        else hi64[1]|=(1 << (flag-97));
                     } else {
                         if(flag<=32) low64[0]&=~(1 << (flag-1));
                         else if(flag<=64) low64[1]&=~(1 << (flag-33));
@@ -187,19 +186,25 @@ void rplSetSystemFlagByName(BYTEPTR name,BINT len)
                 }
             }
 
-            return;
+            return 0;
 
         }
         ++idx;
-        }
-
+    }
+ return -1;
 }
 
-void rplClrSystemFlagByName(BYTEPTR name,BINT len)
+BINT rplClrSystemFlagByName(BYTEPTR name,BYTEPTR nameend)
 {
-        BINT idx=0;
-        while(flags_names[idx].flagname) {
-        if(!utf8ncmp((char *)name,flags_names[idx].flagname,len))
+    if(!ISLIST(*SystemFlags)) return -2;
+
+    BINT idx=0;
+    BINT len=utf8nlen((char *)name,(char *)nameend);
+    BINT flaglen;
+
+    while(flags_names[idx].flagname) {
+        flaglen=utf8len((char *)flags_names[idx].flagname);
+        if((flaglen==len) && !utf8ncmp((char *)name,flags_names[idx].flagname,len))
         {
             BINT count;
             for(count=0;count<8;++count)
@@ -209,20 +214,105 @@ void rplClrSystemFlagByName(BYTEPTR name,BINT len)
                     //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
                     WORDPTR low64=SystemFlags+2;
                     WORDPTR hi64=SystemFlags+5;
-                        if(flag<=32) low64[0]&=~(1 << (flag-1));
-                        else if(flag<=64) low64[1]&=~(1 << (flag-33));
-                        else if(flag<=96) hi64[0]&=~(1 << (flag-65));
-                        else hi64[1]&=~(1 << (flag-97));
+                    if(flag<=32) low64[0]&=~(1 << (flag-1));
+                    else if(flag<=64) low64[1]&=~(1 << (flag-33));
+                    else if(flag<=96) hi64[0]&=~(1 << (flag-65));
+                    else hi64[1]&=~(1 << (flag-97));
 
                 }
             }
 
-            return;
+            return 0;
 
         }
         ++idx;
-        }
+    }
 
+    return -1;
+
+}
+
+// RETURNS 1 IF FLAG IS SET, 0 OTHERWISE
+// RETURN -1 IF THE NUMBER IS NOT VALID
+// RETURN -2 IF SYSTEM FLAGS ARE CORRUPTED OR INVALID
+
+BINT rplTestSystemFlag(BINT flag)
+{
+    if(flag>-1 || flag<-128) return -1;
+    if(!ISLIST(*SystemFlags)) return -2;
+
+        //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
+        WORDPTR low64=SystemFlags+2;
+        WORDPTR hi64=SystemFlags+5;
+        BINT result;
+        if(flag>=-32) result=low64[0]&(1 << -(flag+1));
+        else if(flag>=-64) result=low64[1]&(1 << -(flag+33));
+        else if(flag>=96) result=hi64[0]&(1 << -(flag+65));
+        else result=hi64[1]&(1 << -(flag+97));
+        if(result) return 1;
+        return 0;
+
+}
+
+
+// RETURN 0/1 IF THE MULTIPLE FLAGS MATCH THE SETTINGS
+// RETURN -1 IF THE NAME IS NOT VALID
+// RETURN -2 IF SYSTEM FLAGS ARE CORRUPTED OR INVALID
+
+BINT rplTestSystemFlagByName(BYTEPTR name,BYTEPTR nameend)
+{
+    if(!ISLIST(*SystemFlags)) return -2;
+    BINT idx=0;
+    BINT len=utf8nlen((char *)name,(char *)nameend);
+    BINT flaglen;
+    while(flags_names[idx].flagname) {
+        flaglen=utf8len((char *)flags_names[idx].flagname);
+        if((flaglen==len) && !utf8ncmp((char *)name,flags_names[idx].flagname,len))
+        {
+            BINT count;
+            BINT match=0;
+            for(count=0;count<8;++count)
+            {
+                if(flags_names[idx].flags[count]) {
+                    BINT flag=flags_names[idx].flags[count]&0x7f;
+                    BINT value=flags_names[idx].flags[count]>>7;
+
+                    WORDPTR low64=SystemFlags+2;
+                    WORDPTR hi64=SystemFlags+5;
+                    BINT res;
+                    if(flag<=32) res=(low64[0]>> (flag-1))&1;
+                    else if(flag<=64) res=(low64[1]>>(flag-33))&1;
+                    else if(flag<=96) res=(hi64[0]>>(flag-65))&1;
+                    else res=(hi64[1]>> (flag-97))&1;
+                    match|=(value^res);
+                }
+            }
+            if(!match) return 1; // MATCH LOGIC IS REVERSED
+            else return 0;
+
+        }
+        ++idx;
+    }
+    return -1;
+
+}
+
+BINT rplSetSystemFlagByIdent(WORDPTR ident)
+{
+    BYTEPTR text=(BYTEPTR)(ident+1);
+    return rplSetSystemFlagByName(text,text+rplGetIdentLength(ident));
+}
+
+BINT rplClrSystemFlagByIdent(WORDPTR ident)
+{
+    BYTEPTR text=(BYTEPTR)(ident+1);
+    return rplSetSystemFlagByName(text,text+rplGetIdentLength(ident));
+}
+
+BINT rplTestSystemFlagByIdent(WORDPTR ident)
+{
+    BYTEPTR text=(BYTEPTR)(ident+1);
+    return rplTestSystemFlagByName(text,text+rplGetIdentLength(ident));
 }
 
 
@@ -239,440 +329,303 @@ void LIB_HANDLER()
 
     case CF:
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
             BINT64 flag=rplReadNumberAsBINT(rplPeekData(1));
 
-            if(flag<0 && flag>=-128) {
-                if(!ISLIST(*SystemFlags)) {
-                    // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-                    Exceptions|=EX_VARUNDEF;
-                    ExceptionPointer=IPtr;
-                    return;
-                }
-                //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-                WORDPTR low64=SystemFlags+2;
-                WORDPTR hi64=SystemFlags+5;
-                if(flag>=-32) low64[0]&=~(1 << -(flag+1));
-                else if(flag>=-64) low64[1]&=~(1 << -(flag+33));
-                else if(flag>=96) hi64[0]&=~(1 << -(flag+65));
-                else hi64[1]&=~(1 << -(flag+97));
-                rplDropData(1);
-                return;
+            switch(rplClrSystemFlag(flag))
+            {
+                   case -1:
+                   rplError(ERR_INVALIDFLAGNUMBER);
+                   return;
+                   case -2:
+                   rplError(ERR_SYSTEMFLAGSINVALID);
+                   return;
+                   default:
+                   rplDropData(1);
             }
-
-            // USER FLAGS NOT SUPPORTED FOR NOW
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
-            return;
-
+                return;
         }
 
         if(ISIDENT(*rplPeekData(1))) {
-
+            // FLAG GIVEN BY NAME
             WORDPTR id=rplPeekData(1);
-            BINT idx=0;
-            while(flags_names[idx].flagname) {
-            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,utf8len((char *)flags_names[idx].flagname)))
+            switch(rplClrSystemFlagByIdent(id))
             {
-                BINT count;
-                for(count=0;count<8;++count)
-                {
-                    if(flags_names[idx].flags[count]) {
-                        BINT flag=flags_names[idx].flags[count]&0x7f;
-                        //BINT value=flags_names[idx].flags[count]>>7;
-                        if(!ISLIST(*SystemFlags)) {
-                            // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-                            Exceptions|=EX_VARUNDEF;
-                            ExceptionPointer=IPtr;
-                            return;
-                        }
-                        //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-                        WORDPTR low64=SystemFlags+2;
-                        WORDPTR hi64=SystemFlags+5;
-                        // ALWAYS CLEAR THE FLAGS, REGARDLESS OF VALUE
-                            if(flag<=32) low64[0]&=~(1 << (flag-1));
-                            else if(flag<=64) low64[1]&=~(1 << (flag-33));
-                            else if(flag<=96) hi64[0]&=~(1 << (flag-65));
-                            else hi64[1]&=~(1 << (flag-97));
-
-                    }
-                }
-
-                rplDropData(1);
+                   case -1:
+                   rplError(ERR_INVALIDFLAGNAME);
+                   return;
+                   case -2:
+                   rplError(ERR_SYSTEMFLAGSINVALID);
+                   return;
+                   default:
+                   rplDropData(1);
+            }
                 return;
-            }
-            ++idx;
-            }
-
-            // UNKNOWN IDENTIFIER FOR A FLAG
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
-            return;
-
-
         }
 
-        Exceptions|=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_IDENTORINTEGEREXPECTED);
         return;
 
     case SF:
+
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
             BINT64 flag=rplReadNumberAsBINT(rplPeekData(1));
 
-            if(flag<0 && flag>=-128) {
-                if(!ISLIST(*SystemFlags)) {
-                    // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-                    Exceptions|=EX_VARUNDEF;
-                    ExceptionPointer=IPtr;
-                    return;
-                }
-                //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-                WORDPTR low64=SystemFlags+2;
-                WORDPTR hi64=SystemFlags+5;
-                if(flag>=-32) low64[0]|=(1 << -(flag+1));
-                else if(flag>=-64) low64[1]|=(1 << -(flag+33));
-                else if(flag>=96) hi64[0]|=(1 << -(flag+65));
-                else hi64[1]|=(1 << -(flag+97));
-                rplDropData(1);
-                return;
+            switch(rplSetSystemFlag(flag))
+            {
+                   case -1:
+                   rplError(ERR_INVALIDFLAGNUMBER);
+                   return;
+                   case -2:
+                   rplError(ERR_SYSTEMFLAGSINVALID);
+                   return;
+                   default:
+                   rplDropData(1);
             }
-
-            // USER FLAGS NOT SUPPORTED FOR NOW
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
-            return;
-
+                return;
         }
 
         if(ISIDENT(*rplPeekData(1))) {
-
+            // FLAG GIVEN BY NAME
             WORDPTR id=rplPeekData(1);
-            BINT idx=0;
-            while(flags_names[idx].flagname) {
-            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,utf8len((char *)flags_names[idx].flagname)))
+            switch(rplSetSystemFlagByIdent(id))
             {
-                BINT count;
-                for(count=0;count<8;++count)
-                {
-                    if(flags_names[idx].flags[count]) {
-                        BINT flag=flags_names[idx].flags[count]&0x7f;
-                        BINT value=flags_names[idx].flags[count]>>7;
-                        if(!ISLIST(*SystemFlags)) {
-                            // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-                            Exceptions|=EX_VARUNDEF;
-                            ExceptionPointer=IPtr;
-                            return;
-                        }
-                        //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-                        WORDPTR low64=SystemFlags+2;
-                        WORDPTR hi64=SystemFlags+5;
-                        if(value) {
-                        if(flag<=32) low64[0]|=(1 << (flag-1));
-                        else if(flag<=64) low64[1]|=(1 << (flag-33));
-                        else if(flag<=96) hi64[0]|=(1 << (flag-65));
-                        else hi64[1]|=(1 << (flag-97));
-                        } else {
-                            if(flag<=32) low64[0]&=~(1 << (flag-1));
-                            else if(flag<=64) low64[1]&=~(1 << (flag-33));
-                            else if(flag<=96) hi64[0]&=~(1 << (flag-65));
-                            else hi64[1]&=~(1 << (flag-97));
-                        }
-
-                    }
-                }
-
-                rplDropData(1);
+                   case -1:
+                   rplError(ERR_INVALIDFLAGNAME);
+                   return;
+                   case -2:
+                   rplError(ERR_SYSTEMFLAGSINVALID);
+                   return;
+                   default:
+                   rplDropData(1);
+            }
                 return;
-
-            }
-            ++idx;
-            }
-
-            // UNKNOWN IDENTIFIER FOR A FLAG
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
-            return;
-
         }
-        Exceptions|=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+
+        rplError(ERR_IDENTORINTEGEREXPECTED);
         return;
+
 
     case FCTEST:
+    {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
+        BINT test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
             BINT64 flag=rplReadNumberAsBINT(rplPeekData(1));
 
-            if(flag<0 && flag>=-128) {
-                if(!ISLIST(*SystemFlags)) {
-                    // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-                    Exceptions|=EX_VARUNDEF;
-                    ExceptionPointer=IPtr;
-                    return;
-                }
-                //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-                WORDPTR low64=SystemFlags+2;
-                WORDPTR hi64=SystemFlags+5;
-                BINT result;
-                if(flag>=-32) result=low64[0]&(1 << -(flag+1));
-                else if(flag>=-64) result=low64[1]&(1 << -(flag+33));
-                else if(flag>=96) result=hi64[0]&(1 << -(flag+65));
-                else result=hi64[1]&(1 << -(flag+97));
-                if(result) rplOverwriteData(1,(WORDPTR)zero_bint);
-                else rplOverwriteData(1,(WORDPTR)one_bint);
-                return;
+            switch(test=rplTestSystemFlag(flag))
+            {
+                   case -1:
+                   rplError(ERR_INVALIDFLAGNUMBER);
+                   return;
+                   case -2:
+                   rplError(ERR_SYSTEMFLAGSINVALID);
+                   return;
+                   default:
+                   rplDropData(1);
             }
-
-            // USER FLAGS NOT SUPPORTED FOR NOW
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            if(test) rplPushData((WORDPTR)zero_bint);
+            else rplPushData((WORDPTR)one_bint);
             return;
-
         }
 
         if(ISIDENT(*rplPeekData(1))) {
-
+            // FLAG GIVEN BY NAME
             WORDPTR id=rplPeekData(1);
-            BINT idx=0;
-            while(flags_names[idx].flagname) {
-            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,utf8len((char *)flags_names[idx].flagname)))
+            switch(test=rplTestSystemFlagByIdent(id))
             {
-                BINT count;
-                BINT match=1;
-                for(count=0;count<8;++count)
-                {
-                    if(flags_names[idx].flags[count]) {
-                        BINT flag=flags_names[idx].flags[count]&0x7f;
-                        BINT value=flags_names[idx].flags[count]>>7;
-                        if(!ISLIST(*SystemFlags)) {
-                            // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-                            Exceptions|=EX_VARUNDEF;
-                            ExceptionPointer=IPtr;
-                            return;
-                        }
-                        //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-                        WORDPTR low64=SystemFlags+2;
-                        WORDPTR hi64=SystemFlags+5;
-                        BINT res;
-                            if(flag<=32) res=(low64[0]>> (flag-1))&1;
-                            else if(flag<=64) res=(low64[1]>>(flag-33))&1;
-                            else if(flag<=96) res=(hi64[0]>>(flag-65))&1;
-                            else res=(hi64[1]>> (flag-97))&1;
-                            match&=!(value^res);
-                    }
-                }
-
-                if(match) rplOverwriteData(1,(WORDPTR)zero_bint);
-                else rplOverwriteData(1,(WORDPTR)one_bint);
-                return;
-
+                   case -1:
+                   rplError(ERR_INVALIDFLAGNAME);
+                   return;
+                   case -2:
+                   rplError(ERR_SYSTEMFLAGSINVALID);
+                   return;
+                   default:
+                   rplDropData(1);
             }
-            ++idx;
-            }
-
-            // UNKNOWN IDENTIFIER FOR A FLAG
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            if(test) rplPushData((WORDPTR)zero_bint);
+            else rplPushData((WORDPTR)one_bint);
             return;
-
         }
 
-        Exceptions|=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_IDENTORINTEGEREXPECTED);
         return;
 
+
+     }
     case FSTEST:
+    {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
+        BINT test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
             BINT64 flag=rplReadNumberAsBINT(rplPeekData(1));
 
-            if(flag<0 && flag>=-128) {
-                if(!ISLIST(*SystemFlags)) {
-                    // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-                    Exceptions|=EX_VARUNDEF;
-                    ExceptionPointer=IPtr;
-                    return;
-                }
-                //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-                WORDPTR low64=SystemFlags+2;
-                WORDPTR hi64=SystemFlags+5;
-                BINT result;
-                if(flag>=-32) result=low64[0]&(1 << -(flag+1));
-                else if(flag>=-64) result=low64[1]&(1 << -(flag+33));
-                else if(flag>=96) result=hi64[0]&(1 << -(flag+65));
-                else result=hi64[1]&(1 << -(flag+97));
-                if(result) rplOverwriteData(1,(WORDPTR)one_bint);
-                else rplOverwriteData(1,(WORDPTR)zero_bint);
-                return;
+            switch(test=rplTestSystemFlag(flag))
+            {
+                   case -1:
+                   rplError(ERR_INVALIDFLAGNUMBER);
+                   return;
+                   case -2:
+                   rplError(ERR_SYSTEMFLAGSINVALID);
+                   return;
+                   default:
+                   rplDropData(1);
             }
-
-            // USER FLAGS NOT SUPPORTED FOR NOW
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            if(test) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
-
         }
 
         if(ISIDENT(*rplPeekData(1))) {
-
+            // FLAG GIVEN BY NAME
             WORDPTR id=rplPeekData(1);
-            BINT idx=0;
-            while(flags_names[idx].flagname) {
-            if(rplCompareIDENTByName(id,(BYTEPTR)flags_names[idx].flagname,utf8len((char *)flags_names[idx].flagname)))
+            switch(test=rplTestSystemFlagByIdent(id))
             {
-                BINT count;
-                BINT match=1;
-                for(count=0;count<8;++count)
-                {
-                    if(flags_names[idx].flags[count]) {
-                        BINT flag=flags_names[idx].flags[count]&0x7f;
-                        BINT value=flags_names[idx].flags[count]>>7;
-                        if(!ISLIST(*SystemFlags)) {
-                            // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-                            Exceptions|=EX_VARUNDEF;
-                            ExceptionPointer=IPtr;
-                            return;
-                        }
-                        //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-                        WORDPTR low64=SystemFlags+2;
-                        WORDPTR hi64=SystemFlags+5;
-                        BINT res;
-                            if(flag<=32) res=(low64[0]>> (flag-1))&1;
-                            else if(flag<=64) res=(low64[1]>>(flag-33))&1;
-                            else if(flag<=96) res=(hi64[0]>>(flag-65))&1;
-                            else res=(hi64[1]>> (flag-97))&1;
-                            match&=!(value^res);
-                    }
-                }
-
-                if(match) rplOverwriteData(1,(WORDPTR)one_bint);
-                else rplOverwriteData(1,(WORDPTR)zero_bint);
-                return;
-
+                   case -1:
+                   rplError(ERR_INVALIDFLAGNAME);
+                   return;
+                   case -2:
+                   rplError(ERR_SYSTEMFLAGSINVALID);
+                   return;
+                   default:
+                   rplDropData(1);
             }
-            ++idx;
-            }
-
-            // UNKNOWN IDENTIFIER FOR A FLAG
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            if(test) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
-
         }
 
-
-        Exceptions|=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_IDENTORINTEGEREXPECTED);
         return;
+
+
+     }
 
     case FCTESTCLEAR:
+    {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
+        BINT test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
             BINT64 flag=rplReadNumberAsBINT(rplPeekData(1));
 
-            if(flag<0 && flag>=-128) {
-                if(!ISLIST(*SystemFlags)) {
-                    // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-                    Exceptions|=EX_VARUNDEF;
-                    ExceptionPointer=IPtr;
-                    return;
-                }
-                //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-                WORDPTR low64=SystemFlags+2;
-                WORDPTR hi64=SystemFlags+5;
-                BINT result;
-                if(flag>=-32) { result=low64[0]&(1 << -(flag+1)); low64[0]&=~(1 << -(flag+1)); }
-                else if(flag>=-64) { result=low64[1]&(1 << -(flag+33)); low64[1]&=~(1 << -(flag+33)); }
-                else if(flag>=96) { result=hi64[0]&(1 << -(flag+65)); hi64[0]&=~(1 << -(flag+65)); }
-                else { result=hi64[1]&(1 << -(flag+97)); hi64[1]&=~(1 << -(flag+97)); }
-                if(result) rplOverwriteData(1,(WORDPTR)zero_bint);
-                else rplOverwriteData(1,(WORDPTR)one_bint);
-                return;
+            switch(test=rplTestSystemFlag(flag))
+            {
+                   case -1:
+                   rplError(ERR_INVALIDFLAGNUMBER);
+                   return;
+                   case -2:
+                   rplError(ERR_SYSTEMFLAGSINVALID);
+                   return;
+                   default:
+                   rplDropData(1);
             }
-
-            // USER FLAGS NOT SUPPORTED FOR NOW
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplClrSystemFlag(flag);
+            if(test) rplPushData((WORDPTR)zero_bint);
+            else rplPushData((WORDPTR)one_bint);
             return;
-
         }
 
-        // TODO: ADD SUPPORT FOR NAMED FLAGS
+        if(ISIDENT(*rplPeekData(1))) {
+            // FLAG GIVEN BY NAME
+            WORDPTR id=rplPeekData(1);
+            switch(test=rplTestSystemFlagByIdent(id))
+            {
+                   case -1:
+                   rplError(ERR_INVALIDFLAGNAME);
+                   return;
+                   case -2:
+                   rplError(ERR_SYSTEMFLAGSINVALID);
+                   return;
+                   default:
+                   rplDropData(1);
+            }
+            rplClrSystemFlagByIdent(id);
+            if(test) rplPushData((WORDPTR)zero_bint);
+            else rplPushData((WORDPTR)one_bint);
+            return;
+        }
 
-        Exceptions|=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_IDENTORINTEGEREXPECTED);
         return;
+
+
+     }
 
     case FSTESTCLEAR:
 
+    {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
+        BINT test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
             BINT64 flag=rplReadNumberAsBINT(rplPeekData(1));
 
-            if(flag<0 && flag>=-128) {
-                if(!ISLIST(*SystemFlags)) {
-                    // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-                    Exceptions|=EX_VARUNDEF;
-                    ExceptionPointer=IPtr;
-                    return;
-                }
-                //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-                WORDPTR low64=SystemFlags+2;
-                WORDPTR hi64=SystemFlags+5;
-                BINT result;
-                if(flag>=-32) { result=low64[0]&(1 << -(flag+1)); low64[0]&=~(1 << -(flag+1)); }
-                else if(flag>=-64) { result=low64[1]&(1 << -(flag+33)); low64[1]&=~(1 << -(flag+33)); }
-                else if(flag>=96) { result=hi64[0]&(1 << -(flag+65)); hi64[0]&=~(1 << -(flag+65)); }
-                else { result=hi64[1]&(1 << -(flag+97)); hi64[1]&=~(1 << -(flag+97)); }
-                if(result) rplOverwriteData(1,(WORDPTR)one_bint);
-                else rplOverwriteData(1,(WORDPTR)zero_bint);
-                return;
+            switch(test=rplTestSystemFlag(flag))
+            {
+                   case -1:
+                   rplError(ERR_INVALIDFLAGNUMBER);
+                   return;
+                   case -2:
+                   rplError(ERR_SYSTEMFLAGSINVALID);
+                   return;
+                   default:
+                   rplDropData(1);
             }
-
-            // USER FLAGS NOT SUPPORTED FOR NOW
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplClrSystemFlag(flag);
+            if(test) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
-
         }
 
-        // TODO: ADD SUPPORT FOR NAMED FLAGS
+        if(ISIDENT(*rplPeekData(1))) {
+            // FLAG GIVEN BY NAME
+            WORDPTR id=rplPeekData(1);
+            switch(test=rplTestSystemFlagByIdent(id))
+            {
+                   case -1:
+                   rplError(ERR_INVALIDFLAGNAME);
+                   return;
+                   case -2:
+                   rplError(ERR_SYSTEMFLAGSINVALID);
+                   return;
+                   default:
+                   rplDropData(1);
+            }
+            rplClrSystemFlagByIdent(id);
+            if(test) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
+            return;
+        }
 
-        Exceptions|=EX_BADARGTYPE;
-        ExceptionPointer=IPtr;
+        rplError(ERR_IDENTORINTEGEREXPECTED);
         return;
+
+
+     }
 
 
     // ADD MORE OPCODES HERE

@@ -271,7 +271,7 @@ void uiSetCurrentLine(BINT line)
 // MAIN FUNCTION TO INSERT TEXT AT THE CURRENT CURSOR OFFSET
 void uiInsertCharacters(BYTEPTR string)
 {
-BYTEPTR end=string+strlen((char *)string);
+BYTEPTR end=string+stringlen((char *)string);
 
 uiInsertCharactersN(string,end);
 }

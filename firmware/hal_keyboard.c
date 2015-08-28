@@ -457,7 +457,6 @@ void varsKeyHandler(BINT keymsg,BINT varnum)
             return;
         }
         // THIS IS A REGULAR VAR KEY
-        WORD Opcode;
         WORDPTR *var=rplFindVisibleGlobalByIndex(idx);
         if(!var) return;    // EMPTY SLOT, NOTHING TO DO
 
@@ -485,9 +484,9 @@ void varsKeyHandler(BINT keymsg,BINT varnum)
             case 'P':
                 // USER IS TRYING TO 'STO' INTO THE VARIABLE
                 uiSeparateToken();
-                uiInsertCharacters("'");
+                uiInsertCharacters((BYTEPTR)"'");
                 uiInsertCharactersN((BYTEPTR)(*var+1),(BYTEPTR)(*var+1)+rplGetIdentLength(*var));
-                uiInsertCharacters("' STO");
+                uiInsertCharacters((BYTEPTR)"' STO");
                 uiSeparateToken();
                 break;
             }
@@ -515,9 +514,9 @@ void varsKeyHandler(BINT keymsg,BINT varnum)
                     break;
                 case 'P':
                     uiSeparateToken();
-                    uiInsertCharacters("'");
+                     uiInsertCharacters((BYTEPTR)"'");
                     uiInsertCharactersN((BYTEPTR)(*var+1),(BYTEPTR)(*var+1)+rplGetIdentLength(*var));
-                    uiInsertCharacters("' RCL");
+                     uiInsertCharacters((BYTEPTR)"' RCL");
                     uiSeparateToken();
                     break;
                 }
@@ -828,12 +827,36 @@ void sinKeyHandler(BINT keymsg)
 
     cmdKeyHandler(CMD_SIN,(BYTEPTR)"SIN",1);
 }
+void asinKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(CMD_ASIN,(BYTEPTR)"ASIN",1);
+}
+void sinhKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(CMD_SINH,(BYTEPTR)"SINH",1);
+}
 
 void cosKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
     cmdKeyHandler(CMD_COS,(BYTEPTR)"COS",1);
+}
+void acosKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(CMD_ACOS,(BYTEPTR)"ACOS",1);
+}
+void coshKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(CMD_COSH,(BYTEPTR)"COSH",1);
 }
 
 void tanKeyHandler(BINT keymsg)
@@ -842,6 +865,19 @@ void tanKeyHandler(BINT keymsg)
 
     cmdKeyHandler(CMD_TAN,(BYTEPTR)"TAN",1);
 }
+void atanKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(CMD_ATAN,(BYTEPTR)"ATAN",1);
+}
+void tanhKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    cmdKeyHandler(CMD_TANH,(BYTEPTR)"TANH",1);
+}
+
 
 void evalKeyHandler(BINT keymsg)
 {
@@ -1037,7 +1073,7 @@ void bracketKeyHandler(BINT keymsg,BYTEPTR string)
         }
     if(((halScreen.CursorState&0xff)=='D')||((halScreen.CursorState&0xff)=='P')) uiSeparateToken();
 
-    BYTEPTR end=string+strlen((char *)string);
+    BYTEPTR end=string+stringlen((char *)string);
     uiInsertCharactersN(string,end);
     uiCursorLeft(utf8nlen((char *)string,(char *)end)>>1);
 
@@ -1491,6 +1527,16 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_S, CONTEXT_ANY,&sinKeyHandler },
     { KM_PRESS|KB_T, CONTEXT_ANY,&cosKeyHandler },
     { KM_PRESS|KB_U, CONTEXT_ANY,&tanKeyHandler },
+    { KM_PRESS|KB_S|SHIFT_LS, CONTEXT_ANY,&asinKeyHandler },
+    { KM_PRESS|KB_T|SHIFT_LS, CONTEXT_ANY,&acosKeyHandler },
+    { KM_PRESS|KB_U|SHIFT_LS, CONTEXT_ANY,&atanKeyHandler },
+    { KM_PRESS|KB_S|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&asinKeyHandler },
+    { KM_PRESS|KB_T|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&acosKeyHandler },
+    { KM_PRESS|KB_U|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&atanKeyHandler },
+    { KM_LPRESS|KB_S, CONTEXT_ANY,&sinhKeyHandler },
+    { KM_LPRESS|KB_T, CONTEXT_ANY,&coshKeyHandler },
+    { KM_LPRESS|KB_U, CONTEXT_ANY,&tanhKeyHandler },
+
     { KM_PRESS|KB_N, CONTEXT_ANY,&evalKeyHandler },
     { KM_PRESS|KB_R, CONTEXT_ANY,&sqrtKeyHandler },
     { KM_PRESS|KB_Q, CONTEXT_ANY,&powKeyHandler },
@@ -1642,6 +1688,17 @@ int halDoCustomKey(BINT keymsg)
 
 }
 
+// RETURN TRUE/FALSE IF A CUSTOM HANDLER EXISTS
+int halCustomKeyExists(BINT keymsg)
+{
+    // TODO: READ THE KEYBOARD TABLE FROM THE Settings DIRECTORY AND DO IT
+    UNUSED_ARGUMENT(keymsg);
+
+    return 0;
+
+}
+
+
 int halDoDefaultKey(BINT keymsg)
 {
 struct keyhandler_t *ptr=(struct keyhandler_t *)__keydefaulthandlers;
@@ -1659,6 +1716,27 @@ while(ptr->action) {
 }
 return 0;
 }
+
+// RETURN TRUE/FALSE IF A DEFAULT HANDLER EXISTS
+int halDefaultKeyExists(BINT keymsg)
+{
+    struct keyhandler_t *ptr=(struct keyhandler_t *)__keydefaulthandlers;
+
+    while(ptr->action) {
+        if(ptr->message==keymsg) {
+            // CHECK IF CONTEXT MATCHES
+            if((!ptr->context) || (ptr->context==halScreen.KeyContext)) {
+                //  IT'S A MATCH;
+                return 1;
+            }
+            }
+        ++ptr;
+    }
+    return 0;
+
+}
+
+
 
 // PROCESSES KEY MESSAGES AND CALL APPROPRIATE HANDLERS BY KEYCODE
 
@@ -1706,6 +1784,38 @@ int halProcessKey(BINT keymsg)
         return 0;
 
     }
+
+    // THIS ALLOWS KEYS WITH LONG PRESS DEFINITION TO POSTPONE
+    // EXECUTION UNTIL THE KEY IS RELEASED
+    if(halLongKeyPending) {
+        // THERE WAS A KEY PENDING EXECUTION
+        if( (KM_MESSAGE(keymsg)==KM_LPRESS) && (KM_KEY(keymsg)==KM_KEY(halLongKeyPending))) {
+            // WE RECEIVED A LONG PRESS ON THAT KEY, DISCARD THE OLD EVENT AND DO A LONG PRESS ONLY
+           halLongKeyPending=0;
+        }
+        else {
+            // ANY OTHER MESSAGE SHOULD CAUSE THE EXECUTION OF THE OLD KEY FIRST, THEN THE NEW ONE
+
+            wasProcessed=halDoCustomKey(halLongKeyPending);
+
+            if(!wasProcessed) wasProcessed=halDoDefaultKey(halLongKeyPending);
+
+            halLongKeyPending=0;
+        }
+
+    }
+
+    // BEFORE EXECUTING, CHECK IF THIS KEY HAS A LONG PRESS ASSIGNMENT
+    // AND IF SO, DELAY EXECUTION
+
+    if(KM_MESSAGE(keymsg)==KM_PRESS) {
+        BINT longmsg=KM_LPRESS | KM_SHIFTEDKEY(keymsg);
+
+        if(halCustomKeyExists(longmsg)) { halLongKeyPending=keymsg; return 0; }
+        if(halDefaultKeyExists(longmsg)) { halLongKeyPending=keymsg; return 0; }
+    }
+
+
 
     wasProcessed=halDoCustomKey(keymsg);
 

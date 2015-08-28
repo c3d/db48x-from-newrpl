@@ -219,7 +219,7 @@ int strncmp ( const char *s1, const char *s2, size_t num)
 }
 
 
-size_t strlen(const char *s)
+size_t stringlen(const char *s)
 {
     int c = 0;
     while (*s++) c++;

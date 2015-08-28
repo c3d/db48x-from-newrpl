@@ -124,15 +124,13 @@ void LIB_HANDLER()
     case DROPN:
     {
         if(rplDepthData()<1) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+        rplError(ERR_BADARGCOUNT);
          return;
         }
         BINT64 count=rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions) return;
         if(count<0 || rplDepthData()<count+1) {
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADSTACKINDEX);
             return;
         }
         rplDropData(count+1);
@@ -140,16 +138,15 @@ void LIB_HANDLER()
     }
     case DUP:
         if(rplDepthData()<1) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
          return;
         }
         rplPushData(rplPeekData(1));
         return;
     case DUP2:
         if(rplDepthData()<2) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
          return;
         }
         rplPushData(rplPeekData(2));
@@ -157,8 +154,8 @@ void LIB_HANDLER()
         return;
     case DUPDUP:
         if(rplDepthData()<1) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
          return;
         }
         rplPushData(rplPeekData(1));
@@ -167,15 +164,15 @@ void LIB_HANDLER()
     case DUPN:
     {
         if(rplDepthData()<1) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
          return;
         }
         BINT64 count=rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions) return;
         if(count<0 || rplDepthData()<count+1) {
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADSTACKINDEX);
+
             return;
         }
         rplDropData(1);
@@ -189,15 +186,15 @@ void LIB_HANDLER()
     case NDUPN:
     {
         if(rplDepthData()<2) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
          return;
         }
         BINT64 count=rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions) return;
         if(count<0) {
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADSTACKINDEX);
+
             return;
         }
         rplDropData(1);
@@ -211,8 +208,8 @@ void LIB_HANDLER()
     }
     case NIP:
         if(rplDepthData()<2) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
          return;
         }
         rplOverwriteData(2,rplPeekData(1));
@@ -221,8 +218,8 @@ void LIB_HANDLER()
 
     case OVER:
         if(rplDepthData()<2) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
          return;
         }
         rplPushData(rplPeekData(2));
@@ -231,16 +228,16 @@ void LIB_HANDLER()
     {
 
         if(rplDepthData()<1) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
          return;
         }
 
         BINT64 level=rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions) return;
         if( (level<1) || (rplDepthData()<1+level)) {
-         Exceptions|=EX_BADARGVALUE;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADSTACKINDEX);
+
          return;
         }
 
@@ -250,8 +247,8 @@ void LIB_HANDLER()
     }
     case PICK3:
         if(rplDepthData()<3) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
          return;
         }
         rplPushData(rplPeekData(3));
@@ -259,8 +256,8 @@ void LIB_HANDLER()
     case ROLL:
     {
         if(rplDepthData()<1) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
          return;
         }
 
@@ -268,8 +265,8 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         if( (level<1) || (rplDepthData()<1+level)) {
-         Exceptions|=EX_BADARGVALUE;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADSTACKINDEX);
+
          return;
         }
 
@@ -288,8 +285,8 @@ void LIB_HANDLER()
     case ROLLD:
     {
         if(rplDepthData()<1) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
          return;
         }
 
@@ -297,8 +294,8 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         if( (level<1) || (rplDepthData()<1+level)) {
-         Exceptions|=EX_BADARGVALUE;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADSTACKINDEX);
+
          return;
         }
 
@@ -317,8 +314,8 @@ void LIB_HANDLER()
     case ROT:
     {
         if(rplDepthData()<3) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
          return;
         }
         WORDPTR obj1=rplPeekData(1);
@@ -331,8 +328,8 @@ void LIB_HANDLER()
     case SWAP:
     {
         if(rplDepthData()<2) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
          return;
         }
         WORDPTR obj=rplPeekData(1);
@@ -345,8 +342,8 @@ void LIB_HANDLER()
     {
 
         if(rplDepthData()<2) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
          return;
         }
 
@@ -354,8 +351,8 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         if( (level<1) || (rplDepthData()<2+level)) {
-         Exceptions|=EX_BADARGVALUE;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADSTACKINDEX);
+
          return;
         }
 
@@ -371,8 +368,8 @@ void LIB_HANDLER()
     {
 
         if(rplDepthData()<3) {
-         Exceptions|=EX_BADARGCOUNT;
-         ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
          return;
         }
         WORDPTR obj1=rplPeekData(1);

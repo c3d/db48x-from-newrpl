@@ -89,8 +89,7 @@ void LIB_HANDLER()
 
     case STWS:
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         if(ISNUMBER(*rplPeekData(1))) {
@@ -102,8 +101,7 @@ void LIB_HANDLER()
 
             if(!ISLIST(*SystemFlags)) {
                 // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-                Exceptions|=EX_VARUNDEF;
-                ExceptionPointer=IPtr;
+                rplError(ERR_SYSTEMFLAGSINVALID);
                 return;
             }
             //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
@@ -117,8 +115,7 @@ void LIB_HANDLER()
             }
 
             // USER FLAGS NOT SUPPORTED FOR NOW
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
             return;
 
 
@@ -126,8 +123,7 @@ void LIB_HANDLER()
     {
         if(!ISLIST(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-            Exceptions|=EX_VARUNDEF;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYSTEMFLAGSINVALID);
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
@@ -144,8 +140,8 @@ void LIB_HANDLER()
     case BOR:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         BINT64 num1,num2;
@@ -155,8 +151,7 @@ void LIB_HANDLER()
             if(Exceptions) return;
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
@@ -165,14 +160,14 @@ void LIB_HANDLER()
             base=LIBNUM(*rplPeekData(2));
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(!ISLIST(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-            Exceptions|=EX_VARUNDEF;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYSTEMFLAGSINVALID);
+
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
@@ -195,8 +190,8 @@ void LIB_HANDLER()
     case BAND:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         BINT64 num1,num2;
@@ -206,8 +201,8 @@ void LIB_HANDLER()
             if(Exceptions) return;
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
@@ -216,14 +211,14 @@ void LIB_HANDLER()
             base=LIBNUM(*rplPeekData(2));
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(!ISLIST(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-            Exceptions|=EX_VARUNDEF;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYSTEMFLAGSINVALID);
+
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
@@ -246,8 +241,8 @@ void LIB_HANDLER()
     case BXOR:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         BINT64 num1,num2;
@@ -257,8 +252,8 @@ void LIB_HANDLER()
             if(Exceptions) return;
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
@@ -267,14 +262,14 @@ void LIB_HANDLER()
             base=LIBNUM(*rplPeekData(2));
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(!ISLIST(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-            Exceptions|=EX_VARUNDEF;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYSTEMFLAGSINVALID);
+
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
@@ -297,8 +292,8 @@ void LIB_HANDLER()
     case BLSL:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         BINT64 num1,num2;
@@ -308,8 +303,8 @@ void LIB_HANDLER()
             if(Exceptions) return;
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
@@ -318,14 +313,14 @@ void LIB_HANDLER()
             base=LIBNUM(*rplPeekData(2));
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(!ISLIST(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-            Exceptions|=EX_VARUNDEF;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYSTEMFLAGSINVALID);
+
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
@@ -349,8 +344,8 @@ void LIB_HANDLER()
     case BLSR:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         BINT64 num1,num2;
@@ -360,8 +355,8 @@ void LIB_HANDLER()
             if(Exceptions) return;
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
@@ -370,14 +365,13 @@ void LIB_HANDLER()
             base=LIBNUM(*rplPeekData(2));
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(!ISLIST(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-            Exceptions|=EX_VARUNDEF;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYSTEMFLAGSINVALID);
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
@@ -403,8 +397,8 @@ void LIB_HANDLER()
     case BASR:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         BINT64 num1,num2;
@@ -414,8 +408,8 @@ void LIB_HANDLER()
             if(Exceptions) return;
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
@@ -424,14 +418,14 @@ void LIB_HANDLER()
             base=LIBNUM(*rplPeekData(2));
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(!ISLIST(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-            Exceptions|=EX_VARUNDEF;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYSTEMFLAGSINVALID);
+
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
@@ -456,8 +450,8 @@ void LIB_HANDLER()
     case BADD:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         BINT64 num1,num2;
@@ -467,8 +461,8 @@ void LIB_HANDLER()
             if(Exceptions) return;
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
@@ -477,14 +471,14 @@ void LIB_HANDLER()
             base=LIBNUM(*rplPeekData(2));
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(!ISLIST(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-            Exceptions|=EX_VARUNDEF;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYSTEMFLAGSINVALID);
+
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
@@ -507,8 +501,8 @@ void LIB_HANDLER()
     case BSUB:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         BINT64 num1,num2;
@@ -518,8 +512,8 @@ void LIB_HANDLER()
             if(Exceptions) return;
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
@@ -528,14 +522,14 @@ void LIB_HANDLER()
             base=LIBNUM(*rplPeekData(2));
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(!ISLIST(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-            Exceptions|=EX_VARUNDEF;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYSTEMFLAGSINVALID);
+
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
@@ -558,8 +552,8 @@ void LIB_HANDLER()
     case BMUL:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         BINT64 num1,num2;
@@ -569,8 +563,8 @@ void LIB_HANDLER()
             if(Exceptions) return;
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
@@ -579,14 +573,14 @@ void LIB_HANDLER()
             base=LIBNUM(*rplPeekData(2));
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(!ISLIST(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-            Exceptions|=EX_VARUNDEF;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYSTEMFLAGSINVALID);
+
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
@@ -609,8 +603,8 @@ void LIB_HANDLER()
     case BDIV:
     {
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         BINT64 num1,num2;
@@ -620,8 +614,8 @@ void LIB_HANDLER()
             if(Exceptions) return;
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(ISNUMBER(*rplPeekData(2))) {
@@ -630,14 +624,14 @@ void LIB_HANDLER()
             base=LIBNUM(*rplPeekData(2));
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(!ISLIST(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-            Exceptions|=EX_VARUNDEF;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYSTEMFLAGSINVALID);
+
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
@@ -661,8 +655,8 @@ void LIB_HANDLER()
     case BNOT:
     {
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         BINT64 num1;
@@ -673,14 +667,14 @@ void LIB_HANDLER()
             base=LIBNUM(*rplPeekData(1));
         }
         else {
-            Exceptions|=EX_BADARGTYPE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INTEGEREXPECTED);
+
             return;
         }
         if(!ISLIST(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
-            Exceptions|=EX_VARUNDEF;
-            ExceptionPointer=IPtr;
+            rplError(ERR_SYSTEMFLAGSINVALID);
+
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE

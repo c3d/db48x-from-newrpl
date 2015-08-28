@@ -303,7 +303,7 @@ void LIB_HANDLER()
                     // Z^0 = 1, UNLESS Z=0
 
                     if(iszeroReal(&Rarg1)&&iszeroReal(&Iarg1)) {
-                        rplError(ERR_MATHUNDEFINED);
+                        rplError(ERR_UNDEFINEDRESULT);
                         return;
                     }
 

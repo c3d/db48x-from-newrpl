@@ -1089,6 +1089,8 @@ extern void set_stackall();
 
 void memcpyw(void *dest,const void *source,int nwords);
 void memmovew(void *dest,const void *source,int nwords);
+int stringlen(const char *s);
+
 
 // LOW LEVEL MEMORY MANAGEMENT
 
@@ -1100,6 +1102,7 @@ WORDPTR *halGrowMemory(BINT zone,WORDPTR *base,BINT newsize);
 
 extern BINT halFlags;
 extern HEVENT halBusyEvent;
+extern BINT halLongKeyPending;
 
 // HIGHER LEVEL HAL FUNCTIONS
 

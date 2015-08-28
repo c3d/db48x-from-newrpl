@@ -215,11 +215,15 @@ extern WORDPTR rplPeekRet(int level);
 extern void rplClearRStk();
 
 // SYSTEM FLAGS
-extern BINT rplGetSystemFlag(BINT flag);
-extern void rplSetSystemFlag(BINT flag);
-extern void rplClrSystemFlag(BINT flag);
-extern void rplClrSystemFlagByName(BYTEPTR name,BINT len);
-extern void rplSetSystemFlagByName(BYTEPTR name,BINT len);
+extern BINT rplSetSystemFlag(BINT flag);
+extern BINT rplSetSystemFlagByName(BYTEPTR name,BYTEPTR nameend);
+extern BINT rplSetSystemFlagByIdent(WORDPTR ident);
+extern BINT rplClrSystemFlag(BINT flag);
+extern BINT rplClrSystemFlagByName(BYTEPTR name, BYTEPTR nameend);
+extern BINT rplClrSystemFlagByIdent(WORDPTR ident);
+extern BINT rplTestSystemFlag(BINT flag);
+extern BINT rplTestSystemFlagByName(BYTEPTR name, BYTEPTR nameend);
+extern BINT rplTestSystemFlagByIdent(WORDPTR ident);
 
 
 

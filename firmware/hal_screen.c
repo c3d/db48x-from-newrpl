@@ -550,11 +550,11 @@ void halRedrawAll(DRAWSURFACE *scr)
     if(halScreen.DirtyFlag&STACK_DIRTY) halRedrawStack(scr);
     if(halScreen.DirtyFlag&CMDLINE_ALLDIRTY) halRedrawCmdLine(scr);
     if(halScreen.DirtyFlag&MENU1_DIRTY) halRedrawMenu1(scr);
-//    if(!halScreen.SAreaTimer) {
+    if(!halScreen.SAreaTimer) {
     // ONLY REDRAW IF THERE'S NO POPUP MESSAGES
     if(halScreen.DirtyFlag&MENU2_DIRTY) halRedrawMenu2(scr);
     if(halScreen.DirtyFlag&STAREA_DIRTY) halRedrawStatus(scr);
-//    }
+    }
 }
 
 void status_popup_handler()
@@ -654,7 +654,7 @@ WORDPTR halGetCommandName(WORD Opcode)
     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
     WORDPTR opname=rplDecompile(Opcodes,0);
     Exceptions=SavedException;
-    SavedErrorCode=ErrorCode;
+    ErrorCode=SavedErrorCode;
 
     return opname;
 }
@@ -689,8 +689,8 @@ void halShowErrorMsg()
             BYTEPTR start=(BYTEPTR)(cmdname+1);
             BYTEPTR end=start+rplStrSize(cmdname);
 
-            xstart+=StringWidthN(start,end,halScreen.StAreaFont);
-            DrawTextN(scr.clipx,scr.clipy,start,end,halScreen.StAreaFont,0xf,&scr);
+            xstart+=StringWidthN((char *)start,(char *)end,halScreen.StAreaFont);
+            DrawTextN(scr.clipx,scr.clipy,(char *)start,(char *)end,halScreen.StAreaFont,0xf,&scr);
             xstart+=4;
             }
             DrawText(xstart,scr.clipy,"Exception:",halScreen.StAreaFont,0xf,&scr);
@@ -712,8 +712,8 @@ void halShowErrorMsg()
             BYTEPTR start=(BYTEPTR)(cmdname+1);
             BYTEPTR end=start+rplStrSize(cmdname);
 
-            xstart+=StringWidthN(start,end,halScreen.StAreaFont);
-            DrawTextN(scr.clipx,scr.clipy,start,end,halScreen.StAreaFont,0xf,&scr);
+            xstart+=StringWidthN((char *)start,(char *)end,halScreen.StAreaFont);
+            DrawTextN(scr.clipx,scr.clipy,(char *)start,(char *)end,halScreen.StAreaFont,0xf,&scr);
             xstart+=4;
             }
             DrawText(xstart,scr.clipy,"Error:",halScreen.StAreaFont,0xf,&scr);

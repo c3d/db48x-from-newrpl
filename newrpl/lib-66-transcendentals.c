@@ -93,8 +93,7 @@ void LIB_HANDLER()
     {
         REAL dec;
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
 
@@ -112,9 +111,7 @@ void LIB_HANDLER()
         // PRECONVERT ARGUMENT IF ITS IN ANYTHING OTHER THAN RADIANS
 
         if(intdigitsReal(&dec)>MAX_USERPRECISION) {
-            // TODO: NOT REALLY OVERFLOW, BUT ARGUMENT TOO BIG
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_NUMBERTOOBIG);
             return;
         }
 
@@ -133,8 +130,8 @@ void LIB_HANDLER()
     {
         REAL dec;
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -160,8 +157,8 @@ void LIB_HANDLER()
     {
         REAL dec;
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -195,8 +192,8 @@ void LIB_HANDLER()
     {
         REAL y;
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -216,8 +213,8 @@ void LIB_HANDLER()
 
         if(gtReal(&y,&RReg[7])) {
             // TODO: INCLUDE COMPLEX ARGUMENTS HERE
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_ARGOUTSIDEDOMAIN);
+
             return;
         }
         y.flags^=signy;
@@ -236,8 +233,8 @@ void LIB_HANDLER()
     {
         REAL y;
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -256,8 +253,8 @@ void LIB_HANDLER()
         y.flags^=signy;
         if(gtReal(&y,&RReg[7])) {
             // TODO: INCLUDE COMPLEX ARGUMENTS HERE
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_ARGOUTSIDEDOMAIN);
+
             return;
         }
         y.flags^=signy;
@@ -282,8 +279,8 @@ void LIB_HANDLER()
     {
         REAL y;
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -314,8 +311,8 @@ void LIB_HANDLER()
     {
         REAL y,x;
         if(rplDepthData()<2) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -345,8 +342,8 @@ void LIB_HANDLER()
     {
         REAL x;
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -364,16 +361,14 @@ void LIB_HANDLER()
             // RETURN -INFINITY AND SET OVERFLOW
             // TODO: IMPLEMENT FLAGS TO AVOID THROWING AN ERROR
             rplInfinityToRReg(0);
-            Exceptions|=EX_MATHOVERFLOW;
-            ExceptionPointer=IPtr;
+            rplError(ERR_INFINITERESULT);
             return;
         }
 
         if(x.flags&F_NEGATIVE) {
             // TODO: RETURN COMPLEX VALUE!
             // FOR NOW JUST THROW AN EXCEPTION
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_ARGOUTSIDEDOMAIN);
             return;
         }
 
@@ -390,8 +385,8 @@ void LIB_HANDLER()
     {
         REAL dec;
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
 
@@ -419,8 +414,8 @@ void LIB_HANDLER()
     {
         REAL dec;
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -447,8 +442,8 @@ void LIB_HANDLER()
     {
         REAL dec;
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -475,8 +470,7 @@ void LIB_HANDLER()
     {
         REAL dec;
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -508,8 +502,8 @@ void LIB_HANDLER()
     {
         REAL x;
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -542,8 +536,8 @@ void LIB_HANDLER()
     {
         REAL x;
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -561,8 +555,7 @@ void LIB_HANDLER()
 
         if(gtReal(&RReg[0],&x)) {
             // TODO: EXPAND THIS TO RETURN COMPLEX VALUES
-           Exceptions|=EX_BADARGVALUE;
-           ExceptionPointer=IPtr;
+            rplError(ERR_ARGOUTSIDEDOMAIN);
            return;
         }
 
@@ -579,8 +572,8 @@ void LIB_HANDLER()
     {
         REAL x;
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -602,8 +595,8 @@ void LIB_HANDLER()
 
         if(ismorethan1==1) {    // x > 1.0
             // TODO: CHANGE THIS ERROR INTO COMPLEX RESULTS!
-            Exceptions|=EX_BADARGVALUE;
-            ExceptionPointer=IPtr;
+            rplError(ERR_ARGOUTSIDEDOMAIN);
+
             return;
         }
         if(ismorethan1==0)
@@ -635,8 +628,8 @@ void LIB_HANDLER()
     {
         REAL x;
         if(rplDepthData()<1) {
-            Exceptions|=EX_BADARGCOUNT;
-            ExceptionPointer=IPtr;
+            rplError(ERR_BADARGCOUNT);
+
             return;
         }
         WORDPTR arg=rplPeekData(1);
@@ -652,8 +645,8 @@ void LIB_HANDLER()
 
         if(x.flags&F_NEGATIVE) {
             // TODO: EXPAND THIS TO RETURN COMPLEX VALUES
-           Exceptions|=EX_BADARGVALUE;
-           ExceptionPointer=IPtr;
+            rplError(ERR_ARGOUTSIDEDOMAIN);
+
            return;
         }
 
