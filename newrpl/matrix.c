@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2015, Claudio Lapilli and the newRPL Team
  * All rights reserved.

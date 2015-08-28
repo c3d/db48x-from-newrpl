@@ -113,7 +113,8 @@ SOURCES += main.cpp\
     newrpl/lib-52-symbolic.c \
     newrpl/lib-32-lam.c \
     newrpl/lib-58-matrix.c \
-    newrpl/lib-65-system.c
+    newrpl/lib-65-system.c \
+    firmware/hal_msgenglish.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \

@@ -1,10 +1,9 @@
-//& *** (c) 2006-2011 The HPGCC3 Team ***
-//& Claudio Lapilli
-//& Ingo Blank
-//&
-//& This file is licensed under the terms and conditions of the
-//& HPGCC3 license that is included with the source distribution.
-//& *** (c) 2006-2011 The HPGCC3 Team ***
+/*
+ * Copyright (c) 2014-2015, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
 
 // CONVERTED FROM Calculator.bmp
 

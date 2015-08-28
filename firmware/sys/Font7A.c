@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2014-2015, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
 
 /*************** FONT FILE CONVERTED FROM Font7_StyleA_1.bmp AND Font7_StyleA_1.txt ************** */
 

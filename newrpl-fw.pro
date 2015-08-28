@@ -113,7 +113,8 @@ SOURCES +=\
     firmware/sys/Font5C.c \
     firmware/sys/Font7A.c \
     firmware/sys/Font8C.c \
-    firmware/sys/Font8D.c
+    firmware/sys/Font8D.c \
+    firmware/hal_msgenglish.c
 
 HEADERS  += \
     firmware/include/ggl.h \
