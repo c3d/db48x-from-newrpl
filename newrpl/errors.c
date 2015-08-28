@@ -89,6 +89,8 @@ void rplError(WORD errorcode)
 {
     Exceptions|=EX_ERRORCODE;
     ErrorCode=errorcode;
+    ExceptionPointer=IPtr;
+
 }
 
 // CLEAR ERRORS AFTER THEY WERE HANDLED

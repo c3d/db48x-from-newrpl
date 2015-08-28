@@ -629,6 +629,27 @@ struct error_message {
 };
 
 
+// DECOMPILE THE OPCODE NAME IF POSSIBLE
+
+WORDPTR halGetCommandName(WORD Opcode)
+{
+
+    if(ISPROLOG(Opcode)) return 0;  // ONLY DECOMPILE COMMANDS, NOT OBJECTS
+
+    BINT SavedException=Exceptions;
+    BINT SavedErrorCode=ErrorCode;
+    WORD Opcodes[1];
+
+
+    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+    Opcodes[0]=Opcode;  // STORE IT IN MEMORY INSTEAD OF REGISTER
+    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+    WORDPTR opname=rplDecompile(Opcodes,0);
+    Exceptions=SavedException;
+    SavedErrorCode=ErrorCode;
+
+    return opname;
+}
 
 void halShowErrorMsg()
 {
@@ -639,24 +660,32 @@ void halShowErrorMsg()
         ggl_initscr(&scr);
         BINT ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
         // CLEAR MENU2 AND STATUS AREA
-        ggl_cliprect(&scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+        ggl_cliprect(&scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.StAreaFont->BitmapHeight-1,ggl_mkcolor(6));
+        ggl_cliprect(&scr,0,ytop+halScreen.StAreaFont->BitmapHeight,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
         // DO SOME DECORATIVE ELEMENTS
-        ggl_cliphline(&scr,ytop,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
+        //ggl_cliphline(&scr,ytop,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
         ggl_cliphline(&scr,ytop+halScreen.Menu2-1,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
-        ggl_clipvline(&scr,0,ytop+1,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
-        ggl_clipvline(&scr,SCREEN_WIDTH-1,ytop+1,ytop+halScreen.Menu2-2,ggl_mkcolor(8));
+        ggl_clipvline(&scr,0,ytop+halScreen.StAreaFont->BitmapHeight,ytop+halScreen.Menu2-2,ggl_mkcolor(6));
+        ggl_clipvline(&scr,SCREEN_WIDTH-1,ytop+1,ytop+halScreen.Menu2-2,ggl_mkcolor(6));
 
         scr.clipx=1;
         scr.clipx2=SCREEN_WIDTH-2;
-        scr.clipy=ytop+1;
+        scr.clipy=ytop;
         scr.clipy2=ytop+halScreen.Menu2-2;
         // SHOW ERROR MESSAGE
 
         if(Exceptions!=EX_ERRORCODE) {
-            DrawText(scr.clipx,scr.clipy,"Exception:",halScreen.StAreaFont,0xf,&scr);
+            WORDPTR cmdname=halGetCommandName(*ExceptionPointer);
+            BINT xstart=scr.clipx;
+            if(cmdname) {
+            BYTEPTR start=(BYTEPTR)(cmdname+1);
+            BYTEPTR end=start+rplStrSize(cmdname);
 
-            // TODO: TRY TO DECOMPILE THE OPCODE THAT CAUSED THE ERROR
-
+            xstart+=StringWidthN(start,end,halScreen.StAreaFont);
+            DrawTextN(scr.clipx,scr.clipy,start,end,halScreen.StAreaFont,0xf,&scr);
+            xstart+=4;
+            }
+            DrawText(xstart,scr.clipy,"Exception:",halScreen.StAreaFont,0xf,&scr);
 
 
             for(errbit=0;errbit<8;++errbit)     // THERE'S ONLY A FEW EXCEPTIONS IN THE NEW ERROR MODEL
@@ -668,10 +697,21 @@ void halShowErrorMsg()
             }
         }
         else {
-            DrawText(scr.clipx,scr.clipy,"Error:",halScreen.StAreaFont,0xf,&scr);
-            // TODO: TRY TO DECOMPILE THE OPCODE THAT CAUSED THE ERROR
+            // TRY TO DECOMPILE THE OPCODE THAT CAUSED THE ERROR
+            WORDPTR cmdname=halGetCommandName(*ExceptionPointer);
+            BINT xstart=scr.clipx;
+            if(cmdname) {
+            BYTEPTR start=(BYTEPTR)(cmdname+1);
+            BYTEPTR end=start+rplStrSize(cmdname);
 
+            xstart+=StringWidthN(start,end,halScreen.StAreaFont);
+            DrawTextN(scr.clipx,scr.clipy,start,end,halScreen.StAreaFont,0xf,&scr);
+            xstart+=4;
+            }
+            DrawText(xstart,scr.clipy,"Error:",halScreen.StAreaFont,0xf,&scr);
             // TODO: GET NEW TRANSLATABLE MESSAGES
+
+            DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,"Sample error message",halScreen.StAreaFont,0xf,&scr);
 
         }
 

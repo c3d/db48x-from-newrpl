@@ -187,7 +187,9 @@ BINT endCmdLineAndCompile()
     if(len) {
         newobject=rplCompile((BYTEPTR)(text+1),len,1);
         if(Exceptions || (!newobject)) {
-            // TODO: SHOW ERROR MESSAGE AND SELECT THE WORD THAT CAUSED THE ERROR
+            // TODO: SELECT THE WORD THAT CAUSED THE ERROR
+            WORD fakeprogram = 0;
+            ExceptionPointer=&fakeprogram;
             halShowErrorMsg();
             Exceptions=0;
 
