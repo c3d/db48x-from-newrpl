@@ -26,20 +26,21 @@ const MSGLIST const all_messages[]={
 
 
     // PROGRAM EXECUTION ERRORS
-    { ERR_EXITRPL, "Panic - Aborting RPL engine" },
-    { ERR_BKPOINT, "Breakpoint reached" },
     { ERR_PROGRAMEXPECTED, "Expected a program" },
 
     // COMPILER/DECOMPILER AND GENERAL CORE ERRORS
-    { ERR_NOTALLOWEDINSYMBOLICS, "Not allowed in symbolics" },
+    { ERR_EXITRPLEXCEPTION, "Panic - Aborting RPL engine" },
+    { ERR_BKPOINTEXCEPTION, "Breakpoint reached" },
+    { ERR_OUTOFMEMORYEXCEPTION, "Out of memory" },
     { ERR_ENDWITHOUTSTART, "Block ends without matching start" },
+    { ERR_STARTWITHOUTEND, "Block starts but never ends" },
     { ERR_MISSINGBRACKET, "Missing bracket" },
     { ERR_BADARGCOUNT, "Bad argument count" },
     { ERR_BADARGTYPE, "Bad argument type" },
     { ERR_SYNTAXERROR, "Syntax error" },
     { ERR_INVALIDTOKEN, "Invalid word" },
-    { ERR_STARTWITHOUTEND, "Block starts but never ends" },
     { ERR_MALFORMEDOBJECT, "Malformed/corrupted object" },
+    { ERR_NOTALLOWEDINSYMBOLICS, "Not allowed in symbolics" },
     { ERR_INVALIDOPERATORINSYMBOLIC, "Invalid operator in symbolic" },
     { ERR_UNRECOGNIZEDOBJECT, "Unrecognized object" },
     { ERR_INVALIDOPCODE, "Invalid opcode" },

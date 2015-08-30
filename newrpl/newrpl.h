@@ -454,24 +454,9 @@ extern void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 
 #define EX_EXITRPL          1
 #define EX_BKPOINT          2
-#define EX_BADOPCODE        4
-#define EX_OUTOFMEM         8
-#define EX_CIRCULARREF     16
-#define EX_ERRORCODE       32
-#define EX_EMPTYSTACK      64
-#define EX_EMPTYRSTK      128
-#define EX_SYNTAXERROR    256
-#define EX_UNDEFINED      512
-#define EX_BADARGCOUNT   1024
-#define EX_BADARGTYPE    2048
-#define EX_BADARGVALUE   4096
-#define EX_VARUNDEF      8192
-#define EX_NONEMPTYDIR  16384
-#define EX_INVALID_DIM  32768
-// ADD MORE HERE...
-#define EX_MATHDIVZERO     (1<<16)
-#define EX_MATHOVERFLOW    (2<<16)
-
+#define EX_OUTOFMEM         4
+#define EX_ERRORCODE        8
+// ADD OTHER EXCEPTIONS HERE
 
 
 #ifdef __cplusplus

@@ -594,48 +594,6 @@ void halErrorPopup()
 }
 
 
-// DISPLAY AN ERROR BOX FOR 5 SECONDS WITH AN ERROR MESSAGE
-// USES ERROR CODE FROM SYSTEM Exceptions
-
-struct error_message {
-    unsigned int num;
-    const char *string;
-} const error_table[]={
-{ 0x00000001,"Panic Exit"},
-{ 0x00000002,"BreakPoint"},
-{ 0x00000004,"Bad opcode"},
-{ 0x00000008,"Out of memory"}, // WILL CHANGE IN THE FUTURE
-{ 0x00000010,"Circular Reference"}, // WILL CHANGE IN THE FUTURE
-{ 0x00000020,"????"}, // WILL CHANGE IN THE FUTURE
-{ 0x00000040,"Empty stack"},
-{ 0x00000080,"Empty return rtack"},
-{ 0x00000100,"Syntax error"},
-{ 0x00000200,"Undefined"},
-{ 0x00000400,"Bad argument count"},
-{ 0x00000800,"Bad argument type"},
-{ 0x00001000,"Bad argument value"},
-{ 0x00002000,"Undefined variable"},
-{ 0x00004000,"Directory not empty"},
-{ 0x00008000,"Invalid Dimension"},
-// THESE ARE MPDECIMAL ERRORS
-{ 0x00010000,"Clamped exponent"},
-{ 0x00020000,"Conversion syntax"},
-{ 0x00040000,"Division by zero"},
-{ 0x00080000,"Division impossible"},
-{ 0x00100000,"Division undefined"},
-{ 0x00200000,"FPU Error"},
-{ 0x00400000,"Inexact"},
-{ 0x00800000,"Invalid context"},
-{ 0x01000000,"Invalid operation"},
-{ 0x02000000,"Internal out of memory"},
-{ 0x04000000,"Not implemented"},
-{ 0x08000000,"Overflow"},
-{ 0x10000000,"Rounded"},
-{ 0x20000000,"Subnormal"},
-{ 0x40000000,"Underflow"},
-{ 0x80000000,"Undefined error??"},
-};
-
 
 // DECOMPILE THE OPCODE NAME IF POSSIBLE
 
@@ -672,6 +630,8 @@ BYTEPTR halGetMessage(WORD errorcode)
     return all_messages[0].text;
 }
 
+// DISPLAY AN ERROR BOX FOR 5 SECONDS WITH AN ERROR MESSAGE
+// USES ERROR CODE FROM SYSTEM Exceptions
 void halShowErrorMsg()
 {
         int errbit;
@@ -696,8 +656,9 @@ void halShowErrorMsg()
         // SHOW ERROR MESSAGE
 
         if(Exceptions!=EX_ERRORCODE) {
-            WORDPTR cmdname=halGetCommandName(*ExceptionPointer);
             BINT xstart=scr.clipx;
+            if(*ExceptionPointer!=0) {  // ONLY IF THERE'S A VALID COMMAND TO BLAME
+            WORDPTR cmdname=halGetCommandName(*ExceptionPointer);
             if(cmdname) {
             BYTEPTR start=(BYTEPTR)(cmdname+1);
             BYTEPTR end=start+rplStrSize(cmdname);
@@ -706,21 +667,25 @@ void halShowErrorMsg()
             DrawTextN(scr.clipx,scr.clipy,(char *)start,(char *)end,halScreen.StAreaFont,0xf,&scr);
             xstart+=4;
             }
+            }
             DrawText(xstart,scr.clipy,"Exception:",halScreen.StAreaFont,0xf,&scr);
 
-
+            BINT ecode;
             for(errbit=0;errbit<8;++errbit)     // THERE'S ONLY A FEW EXCEPTIONS IN THE NEW ERROR MODEL
             {
-            if(error_table[errbit].num&error) {
-                DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)error_table[errbit].string,halScreen.StAreaFont,0xf,&scr);
+            if(Exceptions&(1<<errbit)) {
+                ecode=MAKEMSG(0,errbit);
+                BYTEPTR message=halGetMessage(ecode);
+                DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,message,halScreen.StAreaFont,0xf,&scr);
                 break;
             }
             }
         }
         else {
             // TRY TO DECOMPILE THE OPCODE THAT CAUSED THE ERROR
-            WORDPTR cmdname=halGetCommandName(*ExceptionPointer);
             BINT xstart=scr.clipx;
+            if(*ExceptionPointer!=0) {  // ONLY IF THERE'S A VALID COMMAND TO BLAME
+            WORDPTR cmdname=halGetCommandName(*ExceptionPointer);
             if(cmdname) {
             BYTEPTR start=(BYTEPTR)(cmdname+1);
             BYTEPTR end=start+rplStrSize(cmdname);
@@ -728,6 +693,7 @@ void halShowErrorMsg()
             xstart+=StringWidthN((char *)start,(char *)end,halScreen.StAreaFont);
             DrawTextN(scr.clipx,scr.clipy,(char *)start,(char *)end,halScreen.StAreaFont,0xf,&scr);
             xstart+=4;
+            }
             }
             DrawText(xstart,scr.clipy,"Error:",halScreen.StAreaFont,0xf,&scr);
             // TODO: GET NEW TRANSLATABLE MESSAGES

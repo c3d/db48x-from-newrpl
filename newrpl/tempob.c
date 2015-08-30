@@ -24,6 +24,8 @@ WORDPTR rplAllocTempOb(WORD size)
     }
 
     rplAddTempBlock(TempObEnd);
+    if(Exceptions) return 0;
+
     WORDPTR ptr=TempObEnd;
     TempObEnd+=size+1;
     return ptr;

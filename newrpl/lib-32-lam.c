@@ -331,33 +331,12 @@ void LIB_HANDLER()
                return;
 
             default:
-                // PASS AL OTHER OPERATORS DIRECTLY TO THE CONTENTS
+                // PASS AL OTHER OPERATORS DIRECTLY AS A SYMBOLIC OBJECT
             {
-            WORDPTR val=rplGetLAM(rplPeekData(1));
-            if(!val) {
-                val=rplGetGlobal(rplPeekData(1));
-                if(!val) {
-                    // TODO: INEXISTENT IDENT SHOULD BE OPERATED ON AS A SYMBOLIC
                     LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
                     (*symblib)();
                     return;
-                }
             }
-
-            // CHECK FOR CIRCULAR REFERENCE
-            if(ISIDENT(*val)) {
-                // TODO: IDENTS NEED TO BE OPERATED ON AS A SYMBOLIC OBJECT
-                Exceptions=EX_BADOPCODE;
-                ExceptionPointer=IPtr;
-                return;
-            }
-            // FOR ALL OTHER OBJECT TYPES, JUST APPLY THE OPERATOR
-            rplOverwriteData(1,val);
-
-            rplCallOvrOperator(CurOpcode);
-            return;
-            }
-
         }
 
 
@@ -365,54 +344,10 @@ void LIB_HANDLER()
 
     if(ISBINARYOP(CurOpcode)) {
 
-        // APPLY BINARY OPERATORS DIRECTLY TO THE CONTENTS OF THE VARIABLE
-        // TODO: ADD SYMBOLIC OPERATION MODE
-
-                if(ISIDENT(*rplPeekData(1))) {
-
-                if(ISUNQUOTEDIDENT(*rplPeekData(1))) {
-
-                   WORDPTR val=rplGetLAM(rplPeekData(1));
-                if(!val) {
-                    val=rplGetGlobal(rplPeekData(1));
-                }
-                if(val)
-                // HERE val HAS THE CONTENTS OF THE NAMED VARIABLE
-                rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
-                }
-                }
-
-                if(ISIDENT(*rplPeekData(2))) {
-
-                    if(ISUNQUOTEDIDENT(*rplPeekData(2))) {
-                WORDPTR val=rplGetLAM(rplPeekData(2));
-                if(!val) {
-                    val=rplGetGlobal(rplPeekData(2));
-                }
-                if(val) rplOverwriteData(2,val);    // REPLACE THE SECOND LEVEL WITH THE VALUE
-                }
-                }
-
-
-                // PASS ALL OTHER OPERATORS DIRECTLY TO THE CONTENTS
-            BINT libnum1=LIBNUM(*rplPeekData(1)),libnum2=LIBNUM(*rplPeekData(2));
-            if(libnum2>libnum1) {
-                BINT tmp=libnum2;
-                libnum2=libnum1;
-                libnum1=tmp;
-            }
-
-            if((libnum1>=DOIDENT)&&(libnum1<=DOMAXIDENT)) {
-                // IF THE IDENT IS THE DISPATCH CANDIDATE, TREAT AS SYMBOLIC
-                LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
-                (*symblib)();
-                return;
-            }
-            // OTHERWISE JUST SEND TO DISPATCHER
-            rplCallOvrOperator(CurOpcode);
+        // PASS AL OTHER OPERATORS DIRECTLY AS A SYMBOLIC OBJECT
+            LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+            (*symblib)();
             return;
-
-
         }
 
 
