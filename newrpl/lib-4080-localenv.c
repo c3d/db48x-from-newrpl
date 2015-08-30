@@ -55,7 +55,7 @@ const char * const LIB_NAMES[]= {  CMD_EXTRANAME  };
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
-        rplError(ERR_INVALIDOBJECT);
+        rplError(ERR_UNRECOGNIZEDOBJECT);
         return;
     }
 

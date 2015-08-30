@@ -198,6 +198,30 @@ WORDPTR rplRRegToRealInPlace(int num,WORDPTR dest)
 }
 
 
+// CHECKS THE RESULT AND ISSUE ERRORS/EXCEPTIONS AS NEEDED
+void rplCheckResultAndError(REAL *real)
+{
+    if(real->flags&F_INFINITY) {
+        if(!rplTestSystemFlag(FL_INIFINITEERROR)) rplError(ERR_INFINITERESULT);
+        else rplSetSystemFlag(FL_INFINITE);
+    }
+    if(real->flags&F_OVERFLOW) {
+        if(!rplTestSystemFlag(FL_OVERFLOWERROR)) rplError(ERR_MATHOVERFLOW);
+        else rplSetSystemFlag(FL_OVERFLOW);
+    }
+    if(real->flags&F_NEGUNDERFLOW) {
+        if(!rplTestSystemFlag(FL_UNDERFLOWERROR)) rplError(ERR_MATHUNDERFLOW);
+        else rplSetSystemFlag(FL_NEGUNDERFLOW);
+    }
+    if(real->flags&F_POSUNDERFLOW) {
+        if(!rplTestSystemFlag(FL_UNDERFLOWERROR)) rplError(ERR_MATHUNDERFLOW);
+        else rplSetSystemFlag(FL_POSUNDERFLOW);
+    }
+    if(real->flags&F_NOTANUMBER) {
+        rplError(ERR_UNDEFINEDRESULT);
+    }
+
+}
 
 void LIB_HANDLER()
 {
@@ -423,6 +447,18 @@ void LIB_HANDLER()
             RetNum=ERR_NOTMINE;
             return;
         }
+
+            if(RReg[0].flags&F_OVERFLOW) {
+                rplError(ERR_MATHOVERFLOW);
+                RetNum=ERR_INVALID;
+                return;
+            }
+            if(RReg[0].flags&(F_NEGUNDERFLOW|F_POSUNDERFLOW)) {
+                rplError(ERR_MATHUNDERFLOW);
+                RetNum=ERR_INVALID;
+                return;
+            }
+
 
             if(RReg[0].flags&F_APPROX) isapprox=APPROX_BIT;
             // WRITE THE PROLOG

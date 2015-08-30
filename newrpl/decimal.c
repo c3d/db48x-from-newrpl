@@ -154,7 +154,7 @@ void checkrange(REAL *number)
         // TODO: RAISE OVERFLOW EXCEPTION WHEN THIS HAPPENS
         number->data[0]=0;
         number->len=1;
-        number->flags|=F_INFINITY;
+        number->flags|=F_INFINITY|F_OVERFLOW;
         number->exp=0;
         return;
     }
@@ -164,7 +164,7 @@ void checkrange(REAL *number)
         // TURN TO ZERO
         number->data[0]=0;
         number->len=1;
-        number->flags|=F_APPROX;
+        number->flags=((number->flags&F_NEGATIVE)? F_NEGUNDERFLOW:F_POSUNDERFLOW) | F_APPROX;
         number->exp=0;
         return;
     }
@@ -2362,18 +2362,18 @@ result->exp+=exp;
 
 if(result->exp>MAX_EXPONENT) {
     // CHANGE TO +/- INFINITY
-    result->flags|=F_INFINITY;
+    result->flags|=F_INFINITY|F_OVERFLOW;
     result->data[0]=0;
-    result->len=0;
-    result->exp=MAX_EXPONENT;
+    result->len=1;
+    result->exp=0;
     return;
 }
 
 if(result->exp<MIN_EXPONENT) {
     // CHANGE TO APPROX. ZERO
-    result->flags=F_APPROX;
+    result->flags=F_APPROX| ((result->flags&F_NEGATIVE)? (F_NEGATIVE|F_NEGUNDERFLOW):F_POSUNDERFLOW);
     result->data[0]=0;
-    result->len=0;
+    result->len=1;
     result->exp=0;
     return;
 }
@@ -2708,7 +2708,8 @@ char *formatReal(REAL *number, char *buffer, BINT format, UBINT chars)
         //   INTEGER PART
         while(digitcount<integer) {
             if(i==0) {
-                word2digits(number->data[j],worddigits);
+                if(j>=0) word2digits(number->data[j],worddigits);
+                         else word2digits(0,worddigits);
                 if(j==number->len-1) i=8-sig_digits(number->data[j]);
                 --j;
             }
@@ -3868,6 +3869,10 @@ BINT iszeroReal(REAL *n)
 
 BINT inBINTRange(REAL *n)
 {
+
+if(n->flags&(F_NOTANUMBER|F_INFINITY)) return 0;
+
+
 const BINT const max_bint[]={
     2147483647,
     214748364,
@@ -3971,6 +3976,10 @@ return 0;
 
 BINT inBINT64Range(REAL *n)
     {
+
+    if(n->flags&(F_NOTANUMBER|F_INFINITY)) return 0;
+
+
     const BINT64 const max_bint64[]={
         9223372036854775807,
         922337203685477580,
@@ -4115,6 +4124,8 @@ BINT inBINT64Range(REAL *n)
 
 BINT isintegerReal(REAL *n)
 {
+if(n->flags&(F_NOTANUMBER|F_INFINITY)) return 0;
+
 if(n->exp>=0) return 1;
 
 int k;

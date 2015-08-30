@@ -119,7 +119,7 @@ void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
         // THIS LIBRARY DOES NOT DEFINE ANY OBJECTS
-        rplError(ERR_INVALIDOBJECT);
+        rplError(ERR_UNRECOGNIZEDOBJECT);
         return;
     }
 

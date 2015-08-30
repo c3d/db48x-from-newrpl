@@ -35,6 +35,11 @@ typedef uint32_t PTR2NUMBER;
 
 
 
+// HERE'S THE LANGUAGE OF THE ROM
+// CHANGE THIS FOR OTHER LANGUAGES
+// ONLY THE MATCHING LANGUAGE WILL BE COMPILED AND INCLUDED
+#define LANG_ENGLISH 1
+
 #ifndef _GGL_H
 #include <ggl.h>
 #endif
@@ -44,6 +49,15 @@ typedef uint32_t PTR2NUMBER;
 #ifndef _HAL_API_H
 #include <hal_api.h>
 #endif
+
+
+typedef struct {
+    const WORD code;
+    const char *text;
+} MSGLIST;
+
+extern const MSGLIST all_messages[];
+
 
 extern BINT ui_visibleline,ui_nlines;
 extern BINT ui_currentline,ui_prevline;

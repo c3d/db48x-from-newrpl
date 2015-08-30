@@ -354,6 +354,7 @@ extern void rplNewRealPush(REAL *num);
 extern void rplNewRealFromRRegPush(int num);
 extern void rplNewApproxRealFromRRegPush(int num);
 extern WORDPTR rplRRegToRealInPlace(int num, WORDPTR dest);
+extern void rplCheckResultAndError(REAL *real);
 
 
 // COMPLEX FUNCTIONS
@@ -423,6 +424,30 @@ extern void rplMatrixBareiss();
 extern void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa);
 extern void rplMatrixInvert();
 extern void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
+
+
+// SYSTEM FLAGS
+#define FL_ANGLEMODE1     -17
+#define FL_ANGLEMODE2     -18
+#define FL_UNDERFLOWERROR -20
+#define FL_OVERFLOWERROR  -21
+#define FL_INIFINITEERROR -22
+#define FL_NEGUNDERFLOW   -23
+#define FL_POSUNDERFLOW   -24
+#define FL_OVERFLOW       -25
+#define FL_INFINITE       -26
+#define FL_STRIPCOMMENTS  -30
+
+
+
+
+
+
+
+
+
+
+
 
 
 // DEFINED EXCEPTIONS

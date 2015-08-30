@@ -151,7 +151,7 @@ void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
         // THIS LIBRARY DOES NOT DEFINE A TYPE, SO THIS IS AN INVALID OPCODE
-        rplError(ERR_INVALIDOBJECT);
+        rplError(ERR_UNRECOGNIZEDOBJECT);
         return;
     }
 

@@ -47,7 +47,7 @@ extern void lib4090_handler();
 void dummy_libhandler()
 {
 if(ISPROLOG(CurOpcode)) {
-    rplError(ERR_INVALIDOBJECT);
+    rplError(ERR_UNRECOGNIZEDOBJECT);
     return;
 }
 

@@ -659,6 +659,19 @@ WORDPTR halGetCommandName(WORD Opcode)
     return opname;
 }
 
+
+// RETRIEVES A NULL-TERMINATED MESSAGE BASED ON MESSAGE CODE
+BYTEPTR halGetMessage(WORD errorcode)
+{
+    MSGLIST *ptr=all_messages;
+    while(ptr->code) {
+        if(ptr->code==errorcode) return (BYTEPTR)ptr->text;
+        ptr++;
+    }
+    // MESSAGE 0 IS THE UNKNOWN ERROR MESSAGE
+    return all_messages[0].text;
+}
+
 void halShowErrorMsg()
 {
         int errbit;
@@ -718,8 +731,8 @@ void halShowErrorMsg()
             }
             DrawText(xstart,scr.clipy,"Error:",halScreen.StAreaFont,0xf,&scr);
             // TODO: GET NEW TRANSLATABLE MESSAGES
-
-            DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,"Sample error message",halScreen.StAreaFont,0xf,&scr);
+            BYTEPTR message=halGetMessage(ErrorCode);
+            DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,message,halScreen.StAreaFont,0xf,&scr);
 
         }
 
