@@ -233,6 +233,10 @@ extern BINT rplTestSystemFlag(BINT flag);
 extern BINT rplTestSystemFlagByName(BYTEPTR name, BYTEPTR nameend);
 extern BINT rplTestSystemFlagByIdent(WORDPTR ident);
 
+extern WORD rplGetSystemLocale();
+extern void rplGetSystemNumberFormat(NUMFORMAT *fmt);
+
+
 
 
 

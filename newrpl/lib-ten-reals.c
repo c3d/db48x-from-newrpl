@@ -439,10 +439,10 @@ void LIB_HANDLER()
         BINT isapprox=0;
         BINT tlen=TokenLen;
 
-        BINT  Locale= ((BINT)'.') | (((BINT)',')<<8) | (((BINT)' ')<<16) | (((BINT)'E')<<24);
+        WORD  locale=rplGetSystemLocale();
 
 
-        newRealFromText(&RReg[0],(char *)strptr,utf8nskip((char *)strptr,(char *)BlankStart,tlen),(WORD)Locale);
+        newRealFromText(&RReg[0],(char *)strptr,utf8nskip((char *)strptr,(char *)BlankStart,tlen),(WORD)locale);
 
 
         if(RReg[0].flags&F_ERROR) {
@@ -496,25 +496,20 @@ void LIB_HANDLER()
         // CONVERT TO STRING
         // TODO: USER SELECTABLE FORMATS, THIS IS FIXED FOR NOW
 
-        BINT  FmtNormal=9|FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITS(3),FmtLarge=9|FMT_SCI, FmtSmall=9|FMT_SCI;
-        BINT  Locale= ((BINT)'.') | (((BINT)',')<<8) | (((BINT)' ')<<16) | (((BINT)'E')<<24);
-        REAL  BigNumLimit,SmallNumLimit;
-        BINT  BigNumData[1]={ 1 };
-        BigNumLimit.data=SmallNumLimit.data=BigNumData;
-        BigNumLimit.len=SmallNumLimit.len=1;
-        BigNumLimit.flags=SmallNumLimit.flags=0;
-        BigNumLimit.exp=12;
-        SmallNumLimit.exp=-4;
+        NUMFORMAT fmt;
 
         BINT Format,sign;
+
+        rplGetSystemNumberFormat(&fmt);
 
         sign=realnum.flags&F_NEGATIVE;
 
         realnum.flags^=sign;
 
-        if(ltReal(&realnum,&SmallNumLimit)) Format=FmtSmall;
-        else if(gtReal(&realnum,&BigNumLimit)) Format=FmtLarge;
-        else Format=FmtNormal;
+        if(iszeroReal(&realnum)) Format=fmt.MiddleFmt;
+        else if(ltReal(&realnum,&(fmt.SmallLimit))) Format=fmt.SmallFmt;
+        else if(gtReal(&realnum,&(fmt.BigLimit))) Format=fmt.BigFmt;
+        else Format=fmt.MiddleFmt;
 
         realnum.flags^=sign;
 
@@ -537,7 +532,7 @@ void LIB_HANDLER()
             RetNum=ERR_INVALID;
             return;
         }
-        DecompStringEnd=(WORDPTR) formatReal(&realnum,string,Format,Locale);
+        DecompStringEnd=(WORDPTR) formatReal(&realnum,string,Format,fmt.Locale);
 
         RetNum=OK_CONTINUE;
 
@@ -579,13 +574,14 @@ void LIB_HANDLER()
             return;
         }
 
-        // TODO: ADD LOCALE TO THIS ROUTINE
         enum {
             MODE_IP=0,
             MODE_FP,
+            MODE_EXPLETTER,
             MODE_EXPSIGN,
             MODE_EXP
         };
+        WORD Locale=rplGetSystemLocale();
         BINT mode=MODE_IP;
         BYTE num;
         int f,exitfor=0;
@@ -596,13 +592,20 @@ void LIB_HANDLER()
             switch(mode)
             {
             case MODE_IP:
-                if(num=='.') { mode=MODE_FP; break; }
-                if(num=='e' || num=='E') { mode=MODE_EXPSIGN; break; }
+                if(num==DECIMAL_DOT(Locale)) { mode=MODE_FP; break; }
+                if(num==THOUSAND_SEP(Locale)) { break; }
+                if(num=='e' || num=='E' || num==EXP_LETTER(Locale)) { mode=MODE_EXPSIGN; break; }
                 if(num<'0' || num>'9') { exitfor=1; break; }
                 break;
             case MODE_FP:
-                if(num=='e' || num=='E') { mode=MODE_EXPSIGN; break; }
+                if(num==FRAC_SEP(Locale)) { break; }
+                if(num=='.') { mode=MODE_EXPLETTER; break; }
+                if(num=='e' || num=='E' || num==EXP_LETTER(Locale)) { mode=MODE_EXPSIGN; break; }
                 if(num<'0' || num>'9') { exitfor=1; break; }
+                break;
+            case MODE_EXPLETTER:
+                if(num=='e' || num=='E' || num==EXP_LETTER(Locale)) { mode=MODE_EXPSIGN; break; }
+                exitfor=1;
                 break;
             case MODE_EXPSIGN:
                 if(num=='+' || num=='-') { mode=MODE_EXP; break; }
