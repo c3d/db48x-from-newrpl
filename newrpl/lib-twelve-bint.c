@@ -404,8 +404,9 @@ void LIB_HANDLER()
                     if(op1app) RReg[0].flags|=F_APPROX;
                 }
 
-                rplCheckResultAndError(&RReg[0]);
                 rplNewRealFromRRegPush(0);
+                if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
                 return;
             }
 
@@ -430,9 +431,10 @@ void LIB_HANDLER()
 
                 if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
-                rplCheckResultAndError(&RReg[0]);
 
                 rplNewRealFromRRegPush(0);
+                if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
                 return;
             }
             rplNewBINTPush(op1+op2,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
@@ -457,8 +459,9 @@ void LIB_HANDLER()
                     if(op1app) RReg[0].flags|=F_APPROX;
 
                 }
-                rplCheckResultAndError(&RReg[0]);
                 rplNewRealFromRRegPush(0);
+                if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
                 return;
             }
 
@@ -483,9 +486,9 @@ void LIB_HANDLER()
 
                 if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
-                rplCheckResultAndError(&RReg[0]);
-
                 rplNewRealFromRRegPush(0);
+                if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
                 return;
             }
             rplNewBINTPush(op1-op2,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
@@ -509,9 +512,9 @@ void LIB_HANDLER()
                     if(op1app) RReg[0].flags|=F_APPROX;
 
                 }
-                rplCheckResultAndError(&RReg[0]);
-
                 rplNewRealFromRRegPush(0);
+                if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
                 return;
             }
             // DETECT OVERFLOW, AND CONVERT TO REALS IF SO
@@ -540,9 +543,9 @@ void LIB_HANDLER()
 
             if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
-            rplCheckResultAndError(&RReg[0]);
-
             rplNewRealFromRRegPush(0);
+            if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
             return;
 
         case OVR_DIV:
@@ -564,9 +567,10 @@ void LIB_HANDLER()
                     if(op1app) RReg[0].flags|=F_APPROX;
 
                 }
-                rplCheckResultAndError(&RReg[0]);
 
                 rplNewRealFromRRegPush(0);
+                if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
                 return;
             }
             rplBINTToRReg(1,op1);
@@ -576,7 +580,6 @@ void LIB_HANDLER()
 
             if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
-            rplCheckResultAndError(&RReg[0]);
 
             if(!(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0]))) {
                 rplNewRealFromRRegPush(0);
@@ -585,6 +588,7 @@ void LIB_HANDLER()
                 BINT64 result=getBINT64Real(&RReg[0]);
                 rplNewBINTPush(result,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
             }
+            if(!Exceptions) rplCheckResultAndError(&RReg[0]);
             return;
             }
 
@@ -604,9 +608,9 @@ void LIB_HANDLER()
                     // TODO: IMPLEMENT REAL POWERS
                     powReal(&RReg[0],&RReg[1],&rop2);
                 }
-                rplCheckResultAndError(&RReg[0]);
-
                 rplNewRealFromRRegPush(0);
+                if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
                 return;
             }
 
@@ -618,13 +622,13 @@ void LIB_HANDLER()
             // TODO: REAL POWERS
             powReal(&RReg[0],&RReg[1],&RReg[2]);
 
-            rplCheckResultAndError(&RReg[0]);
-
             if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
                 BINT64 result=getBINT64Real(&RReg[0]);
                 rplNewBINTPush(result,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
             }
             else rplNewRealFromRRegPush(0);
+            if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
             return;
             }
 
@@ -859,9 +863,10 @@ void LIB_HANDLER()
 
             divReal(&RReg[2],&RReg[0],&RReg[1]);
 
-            rplCheckResultAndError(&RReg[2]);
 
             rplNewRealFromRRegPush(2);
+            if(!Exceptions) rplCheckResultAndError(&RReg[2]);
+
             return;
         case OVR_NEG:
         case OVR_UMINUS:

@@ -2242,7 +2242,6 @@ void newRealFromText(REAL *result,char *text,int textlen)
         --end;
     }
 
-
     // GET DIGITS
     while(--end>=text) {
 
@@ -2613,6 +2612,25 @@ char *formatReal(REAL *number, char *buffer, BINT format, UBINT chars)
     int countdigits=0,totalcount;
     int idx=0;
 
+    // HANDLE SPECIALS FIRST
+
+    if(number->flags&F_INFINITY) {
+        if(number->flags&F_NEGATIVE) buffer[idx++]='-';
+        else if(format&FMT_FORCESIGN) buffer[idx++]='+';
+        const char *infinitystring="∞";
+        while(*infinitystring!=0) { buffer[idx++]=*infinitystring; ++infinitystring; }
+        return buffer+idx;
+    }
+
+    if(number->flags&F_NOTANUMBER) {
+        if(number->flags&F_NEGATIVE) buffer[idx++]='-';
+        else if(format&FMT_FORCESIGN) buffer[idx++]='+';
+        const char *nanstring="NaN";
+        while(*nanstring!=0) { buffer[idx++]=*nanstring; ++nanstring; }
+        return buffer+idx;
+    }
+
+
 
     totaldigits=((number->len-1)<<3)+sig_digits(number->data[number->len-1]);
 
@@ -2832,6 +2850,24 @@ BINT formatlengthReal(REAL *number,int format)
     int wantzeros;
     int countdigits=0,totalcount;
     int idx=0;
+
+
+    if(number->flags&F_INFINITY) {
+        if(number->flags&F_NEGATIVE) idx++;
+        else if(format&FMT_FORCESIGN) idx++;
+        const char *infinitystring="∞";
+        while(*infinitystring!=0) { idx++; ++infinitystring; }
+        return idx;
+    }
+
+    if(number->flags&F_NOTANUMBER) {
+        if(number->flags&F_NEGATIVE) idx++;
+        else if(format&FMT_FORCESIGN) idx++;
+        const char *nanstring="NaN";
+        while(*nanstring!=0) { idx++; ++nanstring; }
+        return idx;
+    }
+
 
 
     totaldigits=((number->len-1)<<3)+sig_digits(number->data[number->len-1]);
