@@ -419,8 +419,8 @@ void LIB_HANDLER()
         // COMPILE RECEIVES:
         // TokenStart = token string
         // TokenLen = token length
-        // ArgPtr2 = token blanks afterwards
-        // ArgNum2 = blanks length
+        // BlankStart = token blanks afterwards
+        // BlankLen = blanks length
 
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
@@ -439,7 +439,10 @@ void LIB_HANDLER()
         BINT isapprox=0;
         BINT tlen=TokenLen;
 
-        newRealFromText(&RReg[0],(char *)TokenStart,tlen);
+        BINT  Locale= ((BINT)'.') | (((BINT)',')<<8) | (((BINT)' ')<<16) | (((BINT)'E')<<24);
+
+
+        newRealFromText(&RReg[0],(char *)strptr,utf8nskip((char *)strptr,(char *)BlankStart,tlen),(WORD)Locale);
 
 
         if(RReg[0].flags&F_ERROR) {
@@ -493,7 +496,7 @@ void LIB_HANDLER()
         // CONVERT TO STRING
         // TODO: USER SELECTABLE FORMATS, THIS IS FIXED FOR NOW
 
-        BINT  FmtNormal=9,FmtLarge=9|FMT_SCI, FmtSmall=9|FMT_SCI;
+        BINT  FmtNormal=9|FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITS(3),FmtLarge=9|FMT_SCI, FmtSmall=9|FMT_SCI;
         BINT  Locale= ((BINT)'.') | (((BINT)',')<<8) | (((BINT)' ')<<16) | (((BINT)'E')<<24);
         REAL  BigNumLimit,SmallNumLimit;
         BINT  BigNumData[1]={ 1 };

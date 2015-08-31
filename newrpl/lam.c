@@ -61,8 +61,9 @@ void rplCreateLAMEnvironment(WORDPTR owner)
 }
 
 
-BINT rplCompareIDENTByName(WORDPTR id1,BYTEPTR name,BINT len)
+BINT rplCompareIDENTByName(WORDPTR id1,BYTEPTR name,BYTEPTR nameend)
 {
+BINT len=nameend-name;
 BINT nwords=(len+3)>>2;
 BINT extra=(nwords<<2)-len;
 if ((*id1!=MKPROLOG(DOIDENT,nwords))&&(*id1!=MKPROLOG(DOIDENTEVAL,nwords))) return 0;

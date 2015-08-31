@@ -573,6 +573,11 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
+        if(LIBNUM(CurOpcode)!=DOIDENT) {
+            // WHEN CALLED WITH UPPER LIBRARY NUMBERS, RETURN QUICKLY TO SPEED UP COMPILE TIME
+            RetNum=ERR_NOTMINE;
+            return;
+        }
 
         // LSTO NEEDS SPECIAL CONSIDERATION TO CREATE LAMS AT COMPILE TIME
 

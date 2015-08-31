@@ -75,6 +75,49 @@ void rplCompileIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
 
 }
 
+// ALLOCATES MEMORY AND CREATES AN IDENT OBJECT
+// RETURNS NULL ON ERROR, DOESN'T CHECK IF IDENT IS VALID!
+// USER MUST CALL rplIsValidIdent() BEFORE CALLING THIS FUNCTION
+
+WORDPTR rplCreateIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
+{
+    // CREATE THE OBJECT
+    BINT lenwords=(tokend-tok+3)>>2;
+    BINT len=tokend-tok;
+
+    ScratchPointer1=(WORDPTR)tok;
+
+    WORDPTR newobj=rplAllocTempOb(lenwords),newptr;
+    if(!newobj) return 0;
+    newptr=newobj;
+    *newptr=MKPROLOG(libnum,lenwords);
+    ++newptr;
+    WORD nextword;
+    tok=(BYTEPTR )ScratchPointer1;
+    while(len>3) {
+        // WARNING: THIS IS LITTLE ENDIAN ONLY!
+        nextword=tok[0]+(tok[1]<<8)+(tok[2]<<16)+(tok[3]<<24);
+        *newptr=nextword;
+        ++newptr;
+        tok+=4;
+        len-=4;
+    }
+    if(len) {
+    nextword=0;
+    BINT rot=0;
+    while(len) {
+        // WARNING: THIS IS LITTLE ENDIAN ONLY!
+        nextword|=(*tok)<<rot;
+        --len;
+        ++tok;
+        rot+=8;
+    }
+    *newptr=nextword;
+    }
+    // DONE
+ return newobj;
+}
+
 // THESE ARE THE ONLY CHARACTERS THAT ARE FORBIDDEN IN AN IDENTIFIER
 const char const forbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@|√«»≤≥≠→∡";
 

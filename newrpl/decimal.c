@@ -2193,7 +2193,7 @@ void mul_real2(REAL *r,REAL *a,REAL *b)
 
 // CONVERT TEXT TO A REAL NUMBER
 // IT IS UTF8 COMPLIANT, WILL RETURN ERROR IF THERE'S
-// ANY INVALID CHARACTERS IN THE text, WITHIN textlen CHARACTERS
+// ANY INVALID CHARACTERS IN THE text, BETWEEN text AND end
 
 const int const pow10_8[8]={
     1,
@@ -2207,7 +2207,7 @@ const int const pow10_8[8]={
 };
 
 
-void newRealFromText(REAL *result,char *text,int textlen)
+void newRealFromText(REAL *result,char *text,char *end,WORD chars)
 {
     int digits=0;
     int exp=0;
@@ -2219,14 +2219,12 @@ void newRealFromText(REAL *result,char *text,int textlen)
     result->exp=0;
 
 
-    if(textlen<1) {
+    if(end<=text) {
         result->len=0;
         result->exp=0;
         result->flags=F_ERROR;
         return;
     }
-
-    char *end=text+textlen;
 
     // GET POSSIBLE SIGN
     if(*text=='+') ++text;
@@ -2235,6 +2233,7 @@ void newRealFromText(REAL *result,char *text,int textlen)
         ++text;
     }
 
+
     // GET POSSIBLE END DOT, AFTER EXPONENT
 
     if(*(end-1)=='.') {
@@ -2242,11 +2241,39 @@ void newRealFromText(REAL *result,char *text,int textlen)
         --end;
     }
 
+    // HANDLE SPECIALS
+    {
+        const char *infinitystring="∞";
+        char *textptr=text,*ptr=(char *)infinitystring;
+        while(*ptr!=0) { if(*textptr!=*ptr) break; ++textptr; ++ptr; }
+
+        if(*ptr==0) {
+            // THERE WAS AN INFINITY SIGN THERE
+            if(textptr!=end) {
+                // NOTHING SHOULD BE AFTER INFINITY
+                result->len=0;
+                result->exp=0;
+                result->flags=F_ERROR;
+                return;
+            }
+            result->data[0]=0;
+            result->len=1;
+            result->exp=0;
+            result->flags|=F_INFINITY;
+            return;
+
+        }
+
+    }
+
+
+
+
     // GET DIGITS
     while(--end>=text) {
 
     if(expdone==-1) {
-        if( (*end!='e')&&(*end!='E')) {
+        if( (*end!='e')&&(*end!='E')&&(*end!=EXP_LETTER(chars))) {
             result->len=0;
             result->exp=0;
             result->flags=F_ERROR;
@@ -2282,7 +2309,7 @@ void newRealFromText(REAL *result,char *text,int textlen)
         continue;
     }
 
-    if(*end=='.') {
+    if((*end==DECIMAL_DOT(chars))) {
         if(dotdone) {
             result->len=0;
             result->exp=0;
@@ -2290,7 +2317,16 @@ void newRealFromText(REAL *result,char *text,int textlen)
             return;
         }
 
-        if(digits==0) result->flags|=F_APPROX;
+        if(digits==0) {
+            // IN CASE DECIMAL_DOT IS '.'
+            if(*end=='.') result->flags|=F_APPROX;
+             else {
+            result->len=0;
+            result->exp=0;
+            result->flags=F_ERROR;
+            return;
+            }
+        } else dotdone=1;
 
         if(!expdone) expdone=1;
         exp=-digits;
@@ -2325,7 +2361,7 @@ void newRealFromText(REAL *result,char *text,int textlen)
         }
     }
 
-    if( (*end=='e')||(*end=='E')) {
+    if( (*end=='e')||(*end=='E')||(*end==EXP_LETTER(chars))) {
 
         if(expdone) {
         result->len=0;
@@ -2343,6 +2379,28 @@ void newRealFromText(REAL *result,char *text,int textlen)
     }
 
     }
+
+    if(*end==FRAC_SEP(chars)) {
+        // ONLY ACCEPTED IF WITHIN THE FRACTIONAL PART
+        if(dotdone) {
+            result->len=0;
+            result->exp=0;
+            result->flags=F_ERROR;
+            return;
+        }
+        if(!expdone) expdone=1;
+        continue;
+    }
+
+    if(*end==THOUSAND_SEP(chars)) {
+        // ONLY ACCEPTED IN THE INTEGER PART
+        // BUT WE DON'T KNOW SINCE WE ARE GOING BACKWARDS
+        // JUST IGNORE THE CHARACTER
+        if(!dotdone) dotdone=1;
+        if(!expdone) expdone=1;
+        continue;
+    }
+
 
     result->len=0;
     result->exp=0;
@@ -2415,10 +2473,13 @@ normalize(result);
 // BIT 17 = 1 -> DO NOT ADD TRAILING DOT FOR APPROX. NUMBERS
 //        = 0 -> APPROX. NUMBERS USE TRAILING DOT
 // BIT 18 = 1 -> ADD TRAILING ZEROS IF NEEDED TO COMPLETE THE NUMBER OF DIGITS (FIX MODE)
-// BIT 19 = 1 -> ADD SEPARATOR EVERY 3 DIGITS FOR INTEGER PART
-// BIT 20 = 1 -> ADD SEPARATOR EVERY 3 DIGITS FOR FRACTION PART
+// BIT 19 = 1 -> SUPPRESS ZERO EXPONENTS IN SCI MODE
+//        = 0 -> IN SCI MODE, USE ZERO EXPONENTS
+// BIT 20 = 1 -> ADD SEPARATOR EVERY x DIGITS FOR FRACTION PART
+// BIT 21 = 1 -> ADD SEPARATOR EVERY x DIGITS FOR INTEGER PART
+// BITS 22-25 = NUMBER OF DIGITS x TO SHOW IN EACH GROUP
 
-// BITS 21-31 = RESERVED FOR FUTURE USE
+// BITS 26-31 = RESERVED FOR FUTURE USE
 
 // EXPLANATION:
 // BITS 0-11: IN NORMAL FORMAT: MAX. NUMBER OF DECIMAL FIGURES AFTER THE DOT
@@ -2603,7 +2664,7 @@ int round_in_string(char *start,char *end,int format,unsigned int chars,char rou
 
 // RETURN A POINTER TO THE END OF THE STRING (NOT 0 TERMINATED)
 
-char *formatReal(REAL *number, char *buffer, BINT format, UBINT chars)
+char *formatReal(REAL *number, char *buffer, BINT format, WORD chars)
 {
     int totaldigits,integer,frac,realexp,leftzeros,sep_spacing;
     int dotpos;
@@ -2842,7 +2903,7 @@ char *formatReal(REAL *number, char *buffer, BINT format, UBINT chars)
 
 
 
-BINT formatlengthReal(REAL *number,int format)
+BINT formatlengthReal(REAL *number, BINT format)
 {
     int totaldigits,integer,frac,realexp,leftzeros,sep_spacing;
     int dotpos;
@@ -3410,7 +3471,11 @@ void divReal(REAL *result,REAL *a,REAL *b)
         result->data[0]=0;
         result->exp=0;
         result->len=1;
-        result->flags=((a->flags^b->flags)&F_NEGATIVE)|F_INFINITY|F_APPROX;
+        if((a->len==1) && (a->data[0]==0)) {
+            // 0/0 = UNDEFINED
+            result->flags=((a->flags^b->flags)&F_NEGATIVE)|F_NOTANUMBER|F_APPROX;
+        }
+        else result->flags=((a->flags^b->flags)&F_NEGATIVE)|F_INFINITY|F_APPROX;
         return;
     }
 

@@ -81,9 +81,23 @@ const WORD const dotsettings_ident[]= {
 };
 const WORD const flags_ident[]= {
         MKPROLOG(DOIDENT,2),
-        TEXT2WORD('F','L','A','G'),
-        TEXT2WORD('S',0,0,0)
+        TEXT2WORD('F','l','a','g'),
+        TEXT2WORD('s',0,0,0)
 };
+
+const WORD const locale_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('L','o','c','a'),
+        TEXT2WORD('l','e',0,0)
+};
+
+const WORD const numfmt_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('N','u','m','F'),
+        TEXT2WORD('m','t',0,0)
+
+};
+
 
 
 // EXTERNAL EXPORTED OBJECT TABLE
@@ -91,12 +105,10 @@ const WORD const flags_ident[]= {
 const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)dotsettings_ident,
     (WORDPTR)flags_ident,
+    (WORDPTR)locale_ident,
+    (WORDPTR)numfmt_ident,
     0
 };
-
-
-
-
 
 
 
@@ -314,6 +326,84 @@ BINT rplTestSystemFlagByIdent(WORDPTR ident)
     BYTEPTR text=(BYTEPTR)(ident+1);
     return rplTestSystemFlagByName(text,text+rplGetIdentLength(ident));
 }
+
+
+// RETURN THE SYSTEM LOCALE WORD, CONTAINING THE CHARACTERS TO BE USED FOR NUMBERS
+WORD rplGetSystemLocale()
+{
+    WORDPTR systemlist=rplGetSettings(numfmt_ident);
+    if(systemlist) {
+        if(ISLIST(systemlist)) {
+        WORDPTR localestring=rplGetListElement(systemlist,1);
+        if(localestring && (ISSTRING(*localestring))) return *(localestring+1);
+        }
+    }
+    // INVALID FLAGS, JUST RETURN A DEFAULT SETTING
+    return ((WORD)'.') | (((WORD)',')<<8) | (((WORD)' ')<<16) | (((WORD)'E')<<24);
+
+}
+
+// FILLS OUT THE NUMFORMAT STRUCTURE WITH INFORMATION FROM THE SYSTEM FLAGS
+// IT PROVIDES DEFAULTS IF SYSTEM FLAGS ARE INVALID, NEVER FAILS
+// fmt MUST POINT TO A PREVIOUSLY ALLOCATED NUMFORMAT STRUCTURE THAT WILL BE
+// OVERWRITTEN, NO NULL CHECKS
+
+void rplGetSystemNumberFormat(NUMFORMAT *fmt)
+{
+    WORDPTR systemlist=rplGetSettings(numfmt_ident);
+    if(systemlist) {
+        if(ISLIST(systemlist)) {
+        WORDPTR localestring=rplGetListElement(systemlist,1);
+        if(localestring && (ISSTRING(*localestring))) fmt->Locale=*(localestring+1);
+        else fmt->Locale=((WORD)'.') | (((WORD)',')<<8) | (((WORD)' ')<<16) | (((WORD)'E')<<24);
+        WORDPTR nfmt=rplGetListElement(systemlist,2);
+        if(nfmt && (ISBINT(*nfmt))) fmt->SmallFmt=(BINT)rplReadBINT(nfmt);
+        else fmt->SmallFmt=12|FMT_SCI|FMT_NOZEROEXP;
+        nfmt=rplGetListElement(systemlist,3);
+        if(nfmt && (ISBINT(*nfmt))) fmt->MiddleFmt=(BINT)rplReadBINT(nfmt);
+        else fmt->MiddleFmt=12;
+        nfmt=rplGetListElement(systemlist,4);
+        if(nfmt && (ISBINT(*nfmt))) fmt->BigFmt=(BINT)rplReadBINT(nfmt);
+        else fmt->BigFmt=12|FMT_SCI|FMT_NOZEROEXP;
+        nfmt=rplGetListElement(systemlist,5);
+        if(nfmt && (ISNUMBER(*nfmt))) rplReadNumberAsReal(nfmt,&(fmt->SmallLimit));
+        else {
+            rplReadNumberAsReal(one_bint,&(fmt->SmallLimit));
+            fmt->SmallLimit.exp=-12;
+        }
+        nfmt=rplGetListElement(systemlist,6);
+        if(nfmt && (ISNUMBER(*nfmt))) rplReadNumberAsReal(nfmt,&(fmt->BigLimit));
+        else {
+            rplReadNumberAsReal(one_bint,&(fmt->BigLimit));
+            fmt->BigLimit.exp=12;
+        }
+
+        return;
+
+    }
+    }
+
+    fmt->Locale=((WORD)'.') | (((WORD)',')<<8) | (((WORD)' ')<<16) | (((WORD)'E')<<24);
+    fmt->SmallFmt=12|FMT_SCI|FMT_NOZEROEXP;
+    fmt->MiddleFmt=12;
+    fmt->BigFmt=12|FMT_SCI|FMT_NOZEROEXP;
+    rplReadNumberAsReal(one_bint,&(fmt->SmallLimit));
+    fmt->SmallLimit.exp=-12;
+    rplReadNumberAsReal(one_bint,&(fmt->BigLimit));
+    fmt->BigLimit.exp=12;
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 void LIB_HANDLER()

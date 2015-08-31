@@ -142,9 +142,9 @@ return 0;
 // NOTE: THIS FUNCTION RELIES ON DIRSLACK>8
 // USES 2 SCRATCH POINTERS
 // RETURNS POINTER TO HANDLE OBJECT
-WORDPTR rplCreateNewDir(WORDPTR name,WORDPTR *parentdir)
+WORDPTR rplCreateNewDir(WORDPTR nameobj,WORDPTR *parentdir)
 {
-    ScratchPointer1=name;
+    ScratchPointer1=nameobj;
 
     WORDPTR *dirptr=rplMakeNewDir();    // MAY CAUSE A GC
 
@@ -213,7 +213,7 @@ WORDPTR *rplGetParentDir(WORDPTR *directory)
 
 // FINDS A GLOBAL, AND RETURNS THE ADDRESS OF THE KEY/VALUE PAIR WITHIN THE DIRECTORY ENVIRONMENT
 
-WORDPTR *rplFindGlobalbyName(BYTEPTR name,BINT len,BINT scanparents)
+WORDPTR *rplFindGlobalbyName(BYTEPTR name,BYTEPTR nameend,BINT scanparents)
 {
     WORDPTR *direntry=CurrentDir+4;
     WORDPTR parentdir;
@@ -222,7 +222,7 @@ WORDPTR *rplFindGlobalbyName(BYTEPTR name,BINT len,BINT scanparents)
     parentdir=*(direntry-3);
     while(direntry<DirsTop) {
         if(**direntry==DIR_END_MARKER) break;
-        if(rplCompareIDENTByName(*direntry,name,len)) return direntry;
+        if(rplCompareIDENTByName(*direntry,name,nameend)) return direntry;
         direntry+=2;
     }
     direntry=rplFindDirbyHandle(parentdir);
@@ -230,7 +230,7 @@ WORDPTR *rplFindGlobalbyName(BYTEPTR name,BINT len,BINT scanparents)
 return 0;
 }
 
-WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name,BINT len,WORDPTR *parent,BINT scanparents)
+WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name,BYTEPTR nameend,WORDPTR *parent,BINT scanparents)
 {
     WORDPTR *direntry=parent+4;
     WORDPTR parentdir;
@@ -239,7 +239,7 @@ WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name,BINT len,WORDPTR *parent,BINT sca
     parentdir=*(direntry-3);
     while(direntry<DirsTop) {
         if(**direntry==DIR_END_MARKER) break;
-        if(rplCompareIDENTByName(*direntry,name,len)) return direntry;
+        if(rplCompareIDENTByName(*direntry,name,nameend)) return direntry;
         direntry+=2;
     }
     direntry=rplFindDirbyHandle(parentdir);
@@ -488,17 +488,24 @@ WORDPTR *rplDeepCopyDir(WORDPTR *sourcedir)
 
 }
 
-
+// CREATE OR MODIFY VARIABLES IN THE SETTINGS DIRECTORY
 void rplStoreSettings(WORDPTR nameobject,WORDPTR object)
 {
-    rplCreateGlobalInDir(nameobject,object,rplFindDirbyHandle(SettingsDir));
+    WORDPTR *setting=rplFindGlobalInDir(nameobject,rplFindDirbyHandle(SettingsDir),0);
+    if(setting) setting[1]=object;
+    else rplCreateGlobalInDir(nameobject,object,rplFindDirbyHandle(SettingsDir));
 }
 
-void rplStoreSettingsbyName(BYTEPTR name,BINT namelen,WORDPTR object)
+void rplStoreSettingsbyName(BYTEPTR name,BYTEPTR nameend,WORDPTR object)
 {
-    WORDPTR *setting=rplFindGlobalbyNameInDir(name,namelen,rplFindDirbyHandle(SettingsDir),0);
+    WORDPTR *setting=rplFindGlobalbyNameInDir(name,nameend,rplFindDirbyHandle(SettingsDir),0);
     if(setting) {
         setting[1]=object;
+    } else {
+
+        WORDPTR nameobject=rplCreateIDENT(DOIDENT,name,nameend);
+        if(!nameobject) return;
+        rplCreateGlobalInDir(nameobject,object,rplFindDirbyHandle(SettingsDir));
     }
 }
 
@@ -510,9 +517,9 @@ WORDPTR rplGetSettings(WORDPTR nameobject)
     return 0;
 }
 
-WORDPTR rplGetSettingsbyName(BYTEPTR name,BINT namelen)
+WORDPTR rplGetSettingsbyName(BYTEPTR name,BYTEPTR nameend)
 {
-    WORDPTR *setting=rplFindGlobalbyNameInDir(name,namelen,rplFindDirbyHandle(SettingsDir),0);
+    WORDPTR *setting=rplFindGlobalbyNameInDir(name,nameend,rplFindDirbyHandle(SettingsDir),0);
     if(setting) return setting[1];
     return 0;
 }

@@ -101,7 +101,15 @@ extern "C" {
 
 #include "sysvars.h"
 
-
+// FORMATTING FOR NUMBERS
+typedef struct {
+    WORD Locale;
+    BINT SmallFmt;
+    BINT MiddleFmt;
+    BINT BigFmt;
+    REAL SmallLimit;
+    REAL BigLimit;
+} NUMFORMAT;
 
 
 
@@ -251,6 +259,7 @@ extern BINT rplVerifyDirectories(BINT fix);
 //IDENTIFIER FUNCTIONS
 extern BINT rplGetIdentLength(WORDPTR ident);
 extern void rplCompileIDENT(BINT libnum, BYTEPTR tok, BYTEPTR tokend);
+extern WORDPTR rplCreateIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend);
 extern BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend);
 
 
@@ -261,7 +270,7 @@ extern void growLAMs(WORD newtotalsize);
 extern void rplCreateLAMEnvironment(WORDPTR owner);
 extern BINT rplCreateLAM(WORDPTR nameobj,WORDPTR value);
 extern BINT rplCompareIDENT(WORDPTR id1,WORDPTR id2);
-extern BINT rplCompareIDENTByName(WORDPTR id1,BYTEPTR name,BINT len);
+extern BINT rplCompareIDENTByName(WORDPTR id1, BYTEPTR name, BYTEPTR nameend);
 extern BINT rplCompareObjects(WORDPTR id1,WORDPTR id2);
 extern WORDPTR rplGetLAM(WORDPTR nameobj);
 extern WORDPTR *rplGetLAMn(BINT idx);
@@ -285,11 +294,11 @@ extern WORDPTR rplMakeIdentQuoted(WORDPTR ident);
 extern void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir);
 extern void rplCreateGlobal(WORDPTR nameobj,WORDPTR value);
 extern WORDPTR *rplFindDirbyHandle(WORDPTR handle);
-extern WORDPTR rplCreateNewDir(WORDPTR name,WORDPTR *parentdir);
+extern WORDPTR rplCreateNewDir(WORDPTR nameobj, WORDPTR *parentdir);
 extern WORDPTR *rplGetParentDir(WORDPTR *directory);
 // VARIOUS WAYS TO RCL GLOBAL VARIABLES
-extern WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name,BINT len,WORDPTR *parent,BINT scanparents);
-extern WORDPTR *rplFindGlobalbyName(BYTEPTR name,BINT len,BINT scanparents);
+extern WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name, BYTEPTR nameend, WORDPTR *parent, BINT scanparents);
+extern WORDPTR *rplFindGlobalbyName(BYTEPTR name, BYTEPTR nameend, BINT scanparents);
 extern WORDPTR *rplFindGlobalByIndexInDir(BINT idx,WORDPTR *directory);
 extern WORDPTR *rplFindGlobalByIndex(BINT idx);
 extern WORDPTR *rplFindGlobalInDir(WORDPTR nameobj,WORDPTR *parentdir,BINT scanparents);
@@ -310,9 +319,9 @@ extern WORDPTR rplGetDirName(WORDPTR *dir);
 extern WORDPTR *rplGetDirfromGlobal(WORDPTR *var);
 extern WORDPTR *rplDeepCopyDir(WORDPTR *sourcedir);
 extern void rplStoreSettings(WORDPTR nameobject,WORDPTR object);
-extern void rplStoreSettingsbyName(BYTEPTR name,BINT namelen,WORDPTR object);
+extern void rplStoreSettingsbyName(BYTEPTR name, BYTEPTR nameend, WORDPTR object);
 extern WORDPTR rplGetSettings(WORDPTR nameobject);
-extern WORDPTR rplGetSettingsbyName(BYTEPTR name,BINT namelen);
+extern WORDPTR rplGetSettingsbyName(BYTEPTR name, BYTEPTR nameend);
 
 
 
