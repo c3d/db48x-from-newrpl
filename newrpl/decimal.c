@@ -2273,7 +2273,7 @@ void newRealFromText(REAL *result,char *text,char *end,WORD chars)
     while(--end>=text) {
 
     if(expdone==-1) {
-        if( (*end!='e')&&(*end!='E')&&(*end!=EXP_LETTER(chars))) {
+        if( (*end!='e')&&(*end!='E')) {
             result->len=0;
             result->exp=0;
             result->flags=F_ERROR;
@@ -2361,7 +2361,7 @@ void newRealFromText(REAL *result,char *text,char *end,WORD chars)
         }
     }
 
-    if( (*end=='e')||(*end=='E')||(*end==EXP_LETTER(chars))) {
+    if( (*end=='e')||(*end=='E')) {
 
         if(expdone) {
         result->len=0;
@@ -2882,7 +2882,7 @@ char *formatReal(REAL *number, char *buffer, BINT format, WORD chars)
 
         if(format&FMT_SCI) {
         if(!((format&FMT_NOZEROEXP) && (realexp==0))) {
-        buffer[idx++]=EXP_LETTER(chars);
+        buffer[idx++]=EXP_LETTER(format);
         realexp=-realexp;
         if(realexp<0) { buffer[idx++]='-'; realexp=-realexp; }
         else if(format&FMT_EXPSIGN) buffer[idx++]='+';

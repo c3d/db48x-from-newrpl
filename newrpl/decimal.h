@@ -392,27 +392,31 @@ extern BINT64 getBINT64Real(REAL *n);
 enum FORMAT_BITS {
     FMT_NUMDIGITS=      0x00000fff,
     FMT_CODE=           0x00001000,
-    FMT_SCI=            0X00002000,
-    FMT_ENG=            0X00004000,
-    FMT_FORCESIGN=      0X00008000,
-    FMT_EXPSIGN=        0X00010000,
-    FMT_NOTRAILDOT=     0X00020000,
-    FMT_TRAILINGZEROS=  0X00040000,
-    FMT_NOZEROEXP=      0X00080000,
-    FMT_FRACSEPARATOR=  0X00100000,
-    FMT_NUMSEPARATOR=   0X00200000,
-    FMT_GROUPDIGITSMSK= 0x03C00000
+    FMT_SCI=            0x00002000,
+    FMT_ENG=            0x00004000,
+    FMT_FORCESIGN=      0x00008000,
+    FMT_EXPSIGN=        0x00010000,
+    FMT_NOTRAILDOT=     0x00020000,
+    FMT_TRAILINGZEROS=  0x00040000,
+    FMT_NOZEROEXP=      0x00080000,
+    FMT_FRACSEPARATOR=  0x00100000,
+    FMT_NUMSEPARATOR=   0x00200000,
+    FMT_USECAPITALS=    0x00400000,
+    FMT_GROUPDIGITSMSK= 0x0F000000,
 
 };
 
 // MACRO TO BE USED WITH THE FMT_XXX CONSTANTS TO DEFINE DIGIT GROUPING
-#define FMT_GROUPDIGITS(a) (((a)&0xf)<<22)
-#define SEP_SPACING(a) (((a)>>22)&0xf)
+#define FMT_GROUPDIGITS(a) (((a)&0xf)<<24)
+#define SEP_SPACING(a) (((a)>>24)&0xf)
+#define EXP_LETTER(a) (((a)&FMT_USECAPITALS)? 'E':'e')
+
+// MACROS TO BE USED WITH THE LOCALE CHARACTERS
 
 #define DECIMAL_DOT(a) ((char)((a)&0xff))
 #define THOUSAND_SEP(a) ((char)(((a)>>8)&0xff))
 #define FRAC_SEP(a) ((char)(((a)>>16)&0xff))
-#define EXP_LETTER(a) ((char)(((a)>>24)&0xff))
+#define ARG_SEP(a) ((char)(((a)>>24)&0xff))
 
 
 

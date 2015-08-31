@@ -646,7 +646,7 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
-
+    {
         // COMPILE COMPLEX OBJECTS IN THE FORM ( X , Y ) BUT ALSO ACCEPT (X,Y) (NO SPACES)
 
         if(*((char * )TokenStart)=='(')
@@ -685,20 +685,39 @@ void LIB_HANDLER()
             {
             BINT count=TokenLen;
             BYTEPTR ptr=(BYTEPTR)TokenStart;
-            while(count && (((char)*ptr)!=',')) { ++ptr; --count; }
-            if(count) {
-                if(ptr==(BYTEPTR)TokenStart) {
-                    // STARTS WITH COMMA
+            WORD Locale=rplGetSystemLocale();
+
+
+            // THERE'S 3 PLACES TO HAVE A COMMA
+            // ENDING TOKEN
+            // STARTING A TOKEN
+            // IN THE MIDDLE WOULD BE PART OF A NUMBER
+
+            if(*ptr==ARG_SEP(Locale)) {
+               // STARTS WITH COMMA
                     if(TokenLen>1)  NextTokenStart=(WORDPTR)(((char *)TokenStart)+1);
                     // WE DID NOT PRODUCE ANY OUTPUT, SO DON'T VALIDATE
                     RetNum=OK_CONTINUE_NOVALIDATE;
                     return;
-                }
-                // FOUND A COMMA IN THE MIDDLE, SPLIT THE TOKEN
-                BlankStart=NextTokenStart=(WORDPTR)ptr;
+            }
+            if((ptr[count-1]==ARG_SEP(Locale))) {
+                // ENDS WITH A COMMA, SPLIT THE TOKEN
+                BlankStart=NextTokenStart=(WORDPTR)(ptr+count-1);
                 RetNum=ERR_NOTMINE_SPLITTOKEN;
                 return;
             }
+
+            while(count && (*ptr!=ARG_SEP(Locale))) { ++ptr; --count; }
+
+            if(count) {
+
+              // THERE'S A COMMA IN THE MIDDLE
+                  // SPLIT THE TOKEN
+                  BlankStart=NextTokenStart=(WORDPTR)(ptr);
+                  RetNum=ERR_NOTMINE_SPLITTOKEN;
+                  return;
+              }
+
 
             // THERE IS NO COMMA IN THIS TOKEN
 
@@ -715,6 +734,7 @@ void LIB_HANDLER()
         libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
 
         return;
+    }
     case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
@@ -726,6 +746,8 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
 
         if(ISPROLOG(*DecompileObject)) {
+            WORD Locale=rplGetSystemLocale();
+
             rplDecompAppendString((BYTEPTR)"(");
 
             // POINT TO THE REAL PART
@@ -734,7 +756,7 @@ void LIB_HANDLER()
             LIBHANDLER libhan=rplGetLibHandler(LIBNUM(*DecompileObject));
             if(libhan) (*libhan)();
 
-            rplDecompAppendString((BYTEPTR)",");
+            rplDecompAppendChar(ARG_SEP(Locale));
 
             // POINT TO THE IMAGINARY PART
             DecompileObject=rplSkipOb(DecompileObject);
@@ -767,7 +789,10 @@ void LIB_HANDLER()
         // VALIDATE RETURNS:
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
         if(ISNUMBER(*LastCompiledObject)) RetNum=OK_INCARGCOUNT;
-        else RetNum=ERR_INVALID;
+        else {
+            rplError(ERR_NOTALLOWEDINCOMPLEX);
+            RetNum=ERR_INVALID;
+        }
 
         return;
 

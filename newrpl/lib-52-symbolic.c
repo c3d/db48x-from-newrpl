@@ -1043,6 +1043,7 @@ void LIB_HANDLER()
 
     {
         BYTEPTR tok=(BYTEPTR )TokenStart;
+        WORD Locale=rplGetSystemLocale();
 
 
 
@@ -1064,7 +1065,7 @@ void LIB_HANDLER()
             else RetNum=ERR_NOTMINE;
         return;
         }
-        if(*tok==',') {
+        if(*tok==ARG_SEP(Locale)) {
             if((TokenLen==1) && (CurrentConstruct==MKPROLOG(DOSYMB,0))) {
                 rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,COMMA));
                 RetNum=OK_CONTINUE;
@@ -1106,6 +1107,15 @@ void LIB_HANDLER()
             return;
         }
 
+        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,COMMA)) {
+            // SPECIAL TREATMENT FOR ARGUMENT SEPARATOR DUE TO LOCALE
+            WORD Locale=rplGetSystemLocale();
+
+            rplDecompAppendChar(ARG_SEP(Locale));
+            RetNum=OK_CONTINUE;
+            return;
+        }
+
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
         libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
@@ -1142,6 +1152,7 @@ void LIB_HANDLER()
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
         {
 
+        WORD Locale=rplGetSystemLocale();
         if(*((char *)TokenStart)=='\'') {
             // FOUND END OF SYMBOLIC OBJECT
 
@@ -1160,7 +1171,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(*((char *)TokenStart)==',') {
+        if(*((char *)TokenStart)==ARG_SEP(Locale)) {
             RetNum= OK_TOKENINFO | MKTOKENINFO(1,TITYPE_COMMA,0,31);
             return;
         }

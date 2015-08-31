@@ -278,21 +278,29 @@ void LIB_HANDLER()
             // ADD TWO BINTS FROM THE STACK
             addReal(&RReg[0],&Darg1,&Darg2);
             rplNewRealFromRRegPush(0);
+            if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
             return;
 
         case OVR_SUB:
             subReal(&RReg[0],&Darg1,&Darg2);
             rplNewRealFromRRegPush(0);
+            if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
             return;
 
         case OVR_MUL:
             mulReal(&RReg[0],&Darg1,&Darg2);
             rplNewRealFromRRegPush(0);
+            if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
             return;
 
         case OVR_DIV:
             divReal(&RReg[0],&Darg1,&Darg2);
             rplNewRealFromRRegPush(0);
+            if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
             return;
 
         case OVR_POW:
@@ -315,6 +323,8 @@ void LIB_HANDLER()
             }
 
             rplNewRealFromRRegPush(0);
+            if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
             return;
 
         case OVR_EQ:
@@ -370,6 +380,8 @@ void LIB_HANDLER()
             rplOneToRReg(1);
             divReal(&RReg[0],&RReg[1],&Darg1);
             rplNewRealFromRRegPush(0);
+            if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
             return;
         case OVR_NEG:
         case OVR_UMINUS:
@@ -494,7 +506,6 @@ void LIB_HANDLER()
 
 
         // CONVERT TO STRING
-        // TODO: USER SELECTABLE FORMATS, THIS IS FIXED FOR NOW
 
         NUMFORMAT fmt;
 
@@ -593,12 +604,12 @@ void LIB_HANDLER()
             {
             case MODE_IP:
                 if(num==DECIMAL_DOT(Locale)) { mode=MODE_FP; break; }
-                if(num==THOUSAND_SEP(Locale)) { break; }
+                //if(num==THOUSAND_SEP(Locale)) { break; }
                 if(num=='e' || num=='E' || num==EXP_LETTER(Locale)) { mode=MODE_EXPSIGN; break; }
                 if(num<'0' || num>'9') { exitfor=1; break; }
                 break;
             case MODE_FP:
-                if(num==FRAC_SEP(Locale)) { break; }
+                //if(num==FRAC_SEP(Locale)) { break; }
                 if(num=='.') { mode=MODE_EXPLETTER; break; }
                 if(num=='e' || num=='E' || num==EXP_LETTER(Locale)) { mode=MODE_EXPSIGN; break; }
                 if(num<'0' || num>'9') { exitfor=1; break; }

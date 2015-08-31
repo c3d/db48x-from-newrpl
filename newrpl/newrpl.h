@@ -412,6 +412,7 @@ extern void rplSetStringLength(WORDPTR string,BINT length);
 extern BINT rplStrLen(WORDPTR string);
 extern BINT rplStrSize(WORDPTR string);
 extern BINT rplStringGetLinePtr(WORDPTR str,BINT line);
+extern WORDPTR rplCreateString(BYTEPTR text,BYTEPTR textend);
 
 
 // MATRIX
