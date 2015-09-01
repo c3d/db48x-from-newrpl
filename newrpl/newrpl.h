@@ -136,9 +136,12 @@ extern void rplRemoveExceptionHandler();
 extern void rplCatchException();
 
 // ERROR TRIGGER FUNCTIONS
-void rplError(WORD errorcode);
-void rplException(WORD exception);
-void rplClearErrors();
+extern void rplError(WORD errorcode);
+extern void rplException(WORD exception);
+extern void rplClearErrors();
+extern void rplBlameUserCommand();
+extern void rplBlameError(WORDPTR command);
+
 
 
 
@@ -221,6 +224,8 @@ extern WORDPTR rplPopRet();
 extern void growRStk(WORD newsize);
 extern WORDPTR rplPeekRet(int level);
 extern void rplClearRStk();
+extern BINT rplDepthRet();
+
 
 // SYSTEM FLAGS
 extern BINT rplSetSystemFlag(BINT flag);

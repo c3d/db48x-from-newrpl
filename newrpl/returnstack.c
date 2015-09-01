@@ -71,3 +71,9 @@ void rplClearRStk()
 {
     RSTop=RStk; // CLEAR RETURN STACK, TYPICAL AFTER UNTRAPPED ERRORS
 }
+
+// RETURN THE DEPTH OF THE RETURN STACK
+BINT rplDepthRet()
+{
+    return RSTop-RStk;
+}

@@ -98,3 +98,22 @@ void rplClearErrors()
 {
     Exceptions=0;
 }
+
+// BLAME A USER COMMAND, NOT A ROM INTERNAL COMMAND FOR AN ERROR
+void rplBlameUserCommand()
+{
+    BINT depth=rplDepthRet();
+    BINT idx=1;
+    WORDPTR cmdpointer=ExceptionPointer;
+
+    while(!rplIsTempObPointer(cmdpointer) && (idx<=depth)) { cmdpointer=rplPeekRet(idx); ++idx; }
+
+    if(idx<=depth) ExceptionPointer=cmdpointer;
+
+}
+
+// BLAMES AN ERROR TO THE GIVEN COMMAND (WITHIN A USER PROGRAM OR OBJECT)
+void rplBlameError(WORDPTR command)
+{
+    ExceptionPointer=command;
+}

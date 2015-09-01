@@ -1958,7 +1958,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             WORDPTR *number;
             BINT nargs=OPCODE(**(stkptr-1))-1,redargs=0;
             WORDPTR *argptr=stkptr-2,*savedstop;
-            BINT simplified=0,den_is_one=0,neg=0;
+            BINT simplified=0,den_is_one=0,neg=0,approx=0;
 
             savedstop=DSTop;
 
@@ -1967,16 +1967,12 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                     // CHECK IF IT'S A NEGATIVE NUMBER
                     if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
                         if(ISNUMBER(**(argptr-2))) {
+                            if(ISAPPROX(**(argptr-2))) ++approx;
                             rplPushData(*(argptr-2));
                             // NEGATE THE NUMBER
-                            Context.precdigits=REAL_PRECISION_MAX;
-                            //Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
 
                             rplCallOvrOperator(OVR_NEG);
-                            if(Exceptions) { DSTop=endofstk+1; return 0; }
-
-                            Context.precdigits=origprec;
-                            //Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
+                            if(Exceptions) { rplBlameError(sobj); DSTop=endofstk+1; return 0; }
 
                             // REMOVE THE ARGUMENT FROM THE LIST
 
@@ -2008,6 +2004,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 }
                 else {
                     // THIS IS A NUMBER
+                    if(ISAPPROX(**argptr)) ++approx;
                     rplPushData(*(argptr));
 
                     // REMOVE THE ARGUMENT FROM THE LIST
@@ -2034,22 +2031,20 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
             // HERE WE HAVE redargs VALUES IN THE STACK THAT NEED TO BE MULTIPLIED TOGETHER
             if(redargs>0) {
-            Context.precdigits=REAL_PRECISION_MAX;
-            // Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT -- NOT NEEDED, USE APPROX. NUMBERS
+            if(!approx) Context.precdigits=REAL_PRECISION_MAX;
             for(f=1;f<redargs;++f) {
                 rplCallOvrOperator(OVR_MUL);
-                if(Exceptions) { DSTop=endofstk+1; return 0; }
+                if(Exceptions) { rplBlameError(sobj); DSTop=endofstk+1; return 0; }
             }
 
             Context.precdigits=origprec;
-            //Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
             }
             else rplPushData(one_bint);     //  IF NO NUMERATOR, THEN MAKE IT = 1
 
             // HERE WE HAVE A NUMERATOR RESULT IN THE STACK! KEEP IT THERE FOR NOW
 
             // SCAN ALL NUMERIC FACTORS IN THE DENOMINATOR AND MULTIPLY TOGETHER
-            BINT reddenom=0;
+            BINT reddenom=0,approxdenom=0;
             argptr=stkptr-2;
 
             for(f=0;f<nargs-redargs;++f) {
@@ -2059,6 +2054,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                     // CHECK IF IT'S A NEGATIVE NUMBER
                     if(**(argptr-2)==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
                         if(ISNUMBER(**(argptr-4))) {
+                            if(ISAPPROX(**(argptr-4))) ++approxdenom;
                             rplPushData(*(argptr-4));
                             // NEGATE THE NUMBER
                             Context.precdigits=REAL_PRECISION_MAX;
@@ -2099,6 +2095,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 }
                 else {
                     // THIS IS A NUMBER
+                    if(ISAPPROX(**(argptr-2))) ++approxdenom;
                     rplPushData(*(argptr-2));
 
                     // REMOVE THE ARGUMENT FROM THE LIST
@@ -2127,23 +2124,30 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             // HERE WE HAVE reddenom VALUES IN THE STACK THAT NEED TO BE MULTIPLIED TOGETHER
             if(reddenom>0) {
 
-            Context.precdigits=REAL_PRECISION_MAX;
-            //Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
+            if(!approxdenom) Context.precdigits=REAL_PRECISION_MAX;
+
             for(f=1;f<reddenom;++f) {
                 rplCallOvrOperator(OVR_MUL);
-                if(Exceptions) { DSTop=endofstk+1; return 0; }
+                if(Exceptions) { rplBlameError(sobj); DSTop=endofstk+1; return 0; }
             }
 
             Context.precdigits=origprec;
-            //Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
 
             // DONE, WE HAVE NUMERATOR AND DENOMINATOR IN THE STACK
-
+            if(!approx && !approxdenom) {
             // FIND THE GCD OF THE NUMERATOR AND DENOMINATOR
 
             // DIVIDE BOTH BY THE GCD
             simplified=rplFractionSimplify();
 
+            }
+            else {
+                // DO THE DIVISION NOW
+                rplCallOvrOperator(OVR_DIV);
+                if(Exceptions) { rplBlameError(sobj); DSTop=endofstk+1; return 0; }
+                // AND PUSH A DENOMINATOR OF 1
+                rplPushData((WORDPTR)one_bint);
+            }
             }
 
             // PUT BOTH NUMBERS BACK IN PLACE
@@ -2321,6 +2325,8 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
             BINT isnegative=rplSymbFractionAdd();
 
+            if(Exceptions) { rplBlameError(sobj); DSTop=endofstk+1; return 0; }
+
             // AND REPLACE IT IN THE ORIGINAL
 
             // REMOVE ORIGINAL ARGUMENTS
@@ -2423,18 +2429,24 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                 BINT nargs=OPCODE(**(stkptr-1))-1;
                 WORDPTR *argptr=stkptr-2,*savedstop;
-                BINT notanumber=0;
+                BINT notanumber=0,approxnumber=0;
                 for(f=0;f<nargs;++f) {
                     if(!ISNUMBER(**argptr)) {
                         // CHECK IF IT'S A NEGATIVE NUMBER
                         if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
                             if(!ISNUMBER(**(argptr-2))) {
                                 notanumber=1;
-                                break; }
+                                break;
+                            }
+                            // CHECK IF THERE'S AN APPROXIMATE OR EXACT NUMBER
+                            if(ISAPPROX(**(argptr-2))) ++approxnumber;
                         }
                         else {
                         notanumber=1;
                         break; }
+                    } else {
+                        // CHECK IF IT'S AN APPROXIMATE OR EXACT NUMBER
+                        if(ISAPPROX(**argptr)) ++approxnumber;
                     }
                     argptr=rplSymbSkipInStack(argptr);
                 }
@@ -2444,6 +2456,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 savedstop=DSTop;
 
                 // HERE ALL ARGUMENTS ARE SIMPLE NUMBERS, APPLY THE OPERATOR
+                // WE ALSO KNOW IF THERE WERE ANY ARGUMENTS THAT WERE APPROXIMATED
                 argptr=stkptr-2;
                 for(f=0;f<nargs;++f) {
                     if(ISNUMBER(**argptr)) rplPushData(*argptr);
@@ -2455,13 +2468,11 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                             // NEGATE THE NUMBER
                             Context.precdigits=REAL_PRECISION_MAX;
-                            //Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
 
                             rplCallOvrOperator(OVR_NEG);
-                            if(Exceptions) { DSTop=endofstk+1; return 0; }
+                            if(Exceptions) { rplBlameError(sobj); DSTop=endofstk+1; return 0; }
 
                             Context.precdigits=origprec;
-                            //Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
 
                         }
                    }
@@ -2469,22 +2480,12 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                 }
 
-                // CALL THE MAIN OPERATOR
-                Context.precdigits=REAL_PRECISION_MAX;
-                //Context.traps|=MPD_Inexact;         // THROW AN EXCEPTION WHEN RESULT IS INEXACT
-
                 rplCallOperator(**stkptr);
+                if(Exceptions) { rplBlameError(*stkptr); DSTop=endofstk+1; return 0; }
 
-                Context.precdigits=origprec;
-                //Context.traps&=~MPD_Inexact;         // BACK TO NORMAL
+                if(!ISNUMBER(*rplPeekData(1))) {
 
-                // TODO: REPLACE THIS INEXACT BEHAVIOR
-                if(1 /*!( (Exceptions>>16)&MPD_Inexact)*/) {
-
-                    // THERE WERE EXCEPTIONS AND IS NOT BECAUSE OF INEXACT --> RETURN
-                    if(Exceptions) { DSTop=endofstk+1; return 0; }
-
-                    // REPLACE A SINGLE ARGUMENT
+                    // THIS IS STRANGE, A COMMAND WITH NUMERIC INPUT SHOULD RETURN A NUMERIC OUTPUT
 
                     // TODO: IF THE RESULT IS SYMBOLIC, NEED TO EXPAND BEFORE INSERTING, SO ADDITIONAL SIMPLIFICATION CAN BE DONE INSIDE
 
@@ -2503,9 +2504,34 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                 }
                 else {
-                    // THE EXCEPTION WAS INEXACT
-                    Exceptions&=0xffff; // MASK OUT ALL MATH EXCEPTIONS
-                    DSTop=savedstop;    // CLEANUP THE STACK
+                 // IT'S A NUMBER, CHECK IF IT'S AN APPROXIMATED ANSWER
+                    if( (ISAPPROX(*rplPeekData(1)))&& !approxnumber) {
+                     // WE GAVE EXACT NUMBERS, CAN'T ACCEPT AN INEXACT ANSWER
+                            DSTop=savedstop;    // CLEANUP THE STACK
+                    }
+                    else {
+                    // REPLACE A SINGLE ARGUMENT
+
+
+                    WORDPTR *ptr,*endofobj=rplSymbSkipInStack(stkptr);   // POINT TO THE NEXT OBJECT
+                    ptr=endofobj+1;
+                    *ptr=rplPeekData(1);
+                    --DSTop;
+                    ++ptr;
+                    ++stkptr;
+                    // NOW CLOSE THE GAP
+                    while(stkptr!=DSTop) { *ptr=*stkptr; ++stkptr; ++ptr; }
+                    DSTop=ptr;
+                    stkptr=endofobj;
+                    changed=1;
+                    continue;
+
+
+                }
+
+
+
+
                 }
 
 

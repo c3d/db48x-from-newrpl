@@ -697,7 +697,7 @@ void LIB_HANDLER()
     {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
-
+            rplBlameUserCommand();
             return;
         }
 
