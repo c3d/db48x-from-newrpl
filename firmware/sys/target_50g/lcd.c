@@ -7,6 +7,9 @@
 
 #include <ui.h>
 
+#define IO_GPDDAT HWREG(IO_REGS,0x34)
+#define IO_GPDUP HWREG(IO_REGS,0x38)
+#define IO_GPDCON HWREG(IO_REGS,0x30)
 
 #define LCD_TARGET_FREQ 500000
 #define LCD_W 160
@@ -85,17 +88,49 @@ void lcd_sync()
     while( ((*LCDCON1)>>18) > 2) ;
 }
 
+void lcd_poweron()
+{
+__lcd_setmode(2,(int *)MEM_PHYS_SCREEN);    // set default values
+
+*IO_GPDDAT=0x300;
+
+// send unknown init commands to lcd
+__lcd_txbyte(0);
+__lcd_txbyte(0x27);
+__lcd_txbyte(0x65);
+
+lcd_setcontrast(__lcd_contrast);
+
+__lcd_fix();        // fix frequency and enable video
+
+lcd_on();
+
+}
+
+
+
 void lcd_off()
 {
     lcd_sync();
     volatile unsigned int *LCDCON1 = (unsigned int*)LCD_REGS;
     *LCDCON1=(*LCDCON1)&(0xFFFFFFFE);
+
+    *IO_GPDCON=(*IO_GPDCON&~0xC000)|0x4000;  // SET GPD7 AS OUTPUT
+    *IO_GPDUP&=~0x80;    // ENABLE PULLUPS
+    *IO_GPDDAT&=~0x80;  // DISCONNECT POWER TO THE LCD WITH GPD7
+
+
 }
 
 void lcd_on()
 {
-    volatile unsigned int *LCDCON1 = (unsigned int*)LCD_REGS;
-    *LCDCON1=(*LCDCON1)|(0x1);
+
+    volatile unsigned int *LCDCON1 = (unsigned int *)LCD_REGS;
+    *LCDCON1=(*LCDCON1)|1;
+
+    *IO_GPDCON=(*IO_GPDCON&~0xC000)|0x4000;  // SET GPD7 AS OUTPUT
+    *IO_GPDUP&=~0x80;    // ENABLE PULLUPS
+    *IO_GPDDAT|=0x80;  // ENABLE POWER TO THE LCD WITH GPD7
 }
 
 void lcd_save(unsigned int *buf)
@@ -126,7 +161,6 @@ memcpyw(lcdr+0x13,buf+11,6);
 
 
 
-#define IO_GPDDAT HWREG(IO_REGS,0x34)
 
 #define CONT_TXSTOP  0x200
 #define CONT_BITREADY 0x2000
@@ -186,7 +220,52 @@ if(level>15 || level<0) level=7;
 }
 
 
+int __lcd_setmode(int mode, unsigned int *physbuf)
+{
+    // mode=0 -> Mono
+    //     =1 -> 4-gray
+    //     =2 -> 16-gray
+    // physbuf MUST be the physical address
 
+    volatile unsigned int *lcdreg=(unsigned int *)LCD_REGS;
+    int height=80/*(lcdreg[3])>>8*/, pagewidth=LCD_W>>(4-mode);
+
+    // TURN OFF
+    lcdreg[0]&=0xfffffffe;
+
+    // set LINEVAL to height+5-1 (like ROM does)
+    // when LINECNT<5 is safe for updating display
+    lcdreg[1]=(height+4)<<14;
+    // set HOZVAL, but leave LINEBLANK for sys_lcdfix()
+    lcdreg[2]=HOZVAL<<8;
+
+    // leave MVAL alone (used for screen height determination)
+
+    // set proper byte swapping, ensure the rest at 0
+    lcdreg[4]=(2-mode);
+
+    // set LCDBANK and LCDBASEU
+    lcdreg[5]=((unsigned int)physbuf)>>1;
+
+    // set LCDBASEL
+    lcdreg[6]=(((unsigned int)physbuf)>>1)+(height+5)*pagewidth;
+
+    // set PAGEWIDTH
+    lcdreg[7]=pagewidth;
+
+    // set palette lookup for 4-GRAY mode. ignored for other modes
+    lcdreg[10]=0xfa70;
+
+    // set dither mode only when in grayscale
+    if(mode) lcdreg[19]=0x12210; else lcdreg[19]=0;
+
+    // set video mode, overwrite CLKVAL
+    lcdreg[0]=32+(mode<<1);
+
+    return pagewidth<<1;
+
+
+}
 
 
 
@@ -194,54 +273,16 @@ if(level>15 || level<0) level=7;
 
 int lcd_setmode(int mode, unsigned int *physbuf)
 {
+    int pagewidth=__lcd_setmode(mode,physbuf);
 
-// mode=0 -> Mono
-//     =1 -> 4-gray
-//     =2 -> 16-gray
-// physbuf MUST be the physical address
+    // fix CLKVAL and other clock dependent constants
+    // and turn on
+    __lcd_fix();
 
-volatile unsigned int *lcdreg=(unsigned int *)LCD_REGS;
-int height=80/*(lcdreg[3])>>8*/, pagewidth=LCD_W>>(4-mode);
-
-// TURN OFF
-lcdreg[0]&=0xfffffffe;
-
-// set LINEVAL to height+5-1 (like ROM does)
-// when LINECNT<5 is safe for updating display
-lcdreg[1]=(height+4)<<14;
-// set HOZVAL, but leave LINEBLANK for sys_lcdfix()
-lcdreg[2]=HOZVAL<<8;
-
-// leave MVAL alone (used for screen height determination)
-
-// set proper byte swapping, ensure the rest at 0
-lcdreg[4]=(2-mode);
-
-// set LCDBANK and LCDBASEU
-lcdreg[5]=((unsigned int)physbuf)>>1;
-
-// set LCDBASEL
-lcdreg[6]=(((unsigned int)physbuf)>>1)+(height+5)*pagewidth;
-
-// set PAGEWIDTH
-lcdreg[7]=pagewidth;
-
-// set palette lookup for 4-GRAY mode. ignored for other modes
-lcdreg[10]=0xfa70;
-
-// set dither mode only when in grayscale
-if(mode) lcdreg[19]=0x12210; else lcdreg[19]=0;
-
-// set video mode, overwrite CLKVAL
-lcdreg[0]=32+(mode<<1);
-
-// fix CLKVAL and other clock dependent constants
-// and turn on
-__lcd_fix();
 
 lcd_setcontrast(__lcd_contrast);
 
-return pagewidth<<1;
+return pagewidth;
 }
 
 

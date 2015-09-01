@@ -90,7 +90,12 @@ void set_stack(unsigned int *newstackptr)
 }
 
 
-
+void set_async_bus()
+{
+    asm volatile ("mrc p15,0,r0,c1,c0,0");
+    asm volatile ("orr r0,r0,#0xC0000000");
+    asm volatile ("mcr p15,0,r0,c1,c0,0");
+}
 
 void setup_hardware()
 {
@@ -107,14 +112,17 @@ volatile unsigned int *ptr=(unsigned int *)0x48000000;
   ptr[3]=0xE330;    // ENABLE CLOCK FOR ADC, RTC, GPIO, PWM, SD, LCD, FLASH, DISABLE EVERYTHING ELSE (INCLUDING USB)
   // THE REST OF THE REGISTERS WILL BE PROGRAMMED BY cpu_setspeed
 
+  set_async_bus();
+
   // SETUP GPIO
   ptr=(unsigned int *)0x56000000;
   ptr[0]=0x103f;    // GPACON
   ptr[4]=0x155555;  // GPBCON
   ptr[6]=0x7ff;     // GPB PULLUPS
-  ptr[8]=0xaa56a9;  // GPCCON
+  ptr[8]=0xaaaaaaaa;  // GPCCON
   ptr[10]=0xffff;    // GPC PULLUPS
-  ptr[12]=0x55555515; // GPDCON
+  ptr[12]=0x05054000; // GPDCON
+  ptr[13]=0x300;      // SET ALL LINES LOW, EXCEPT THE STOP BIT FOR THE I2C
   ptr[14]=0xffff;     // GPD PULLUPS
   ptr[16]=0x56aa955;    // GPECON
   ptr[18]=0xf83f;       // GPE PULLUPS
@@ -124,7 +132,7 @@ volatile unsigned int *ptr=(unsigned int *)0x48000000;
   ptr[26]=0x1;          // GPG PULLUPS
   ptr[28]=0x155555;     // GPHCON
   ptr[30]=0x7ff;        // GPH PULLUPS
-
+  ptr[32]&=~0x3008;     // MISCCR - USB IN HOST MODE AND USB SUSPEND MODE OFF
   ptr[41]=0x00fffff0;   // EINTMASK = MASK ALL EXTERNAL INTS
   // SETUP MISCELLANEOUS
 
@@ -244,7 +252,8 @@ void startup(int prevstate)
     // NON-PRIVILEGED MODE FROM HERE ON...
 
     cpu_setspeed(6000000);
-    lcd_setmode(2,(int *)MEM_PHYS_SCREEN);
+    lcd_poweron();
+    //lcd_setmode(2,(int *)MEM_PHYS_SCREEN);
 
 
     main_virtual(mode);
@@ -381,6 +390,7 @@ void __SVM_enable_mmu()
     asm volatile ("mov r0,#0x08000000");
     asm volatile ("add r0,r0,#0x8000");
     asm volatile ("mcr p15,0,r0,c2,c0,0");      // WRITE MMU BASE REGISTER, ALL CACHES SHOULD'VE BEEN CLEARED BEFORE
+
 
     asm volatile ("mrc p15, 0, r0, c1, c0, 0");
     asm volatile ("orr r0,r0,#5");              // ENABLE MMU AND DATA CACHES
@@ -564,6 +574,7 @@ void disable_mmu()
    asm volatile ("bic sp,sp,#0xff000000");
    asm volatile ("orr sp,sp,#0x40000000");
 
+    __SVM_flush_TLB();
 
 }
 
@@ -584,7 +595,7 @@ void halWarmStart()
     // AND RESTART LIKE NEW
     startup(0);
 
-    // STARTUP NEVER RETURNS...
+    // STARTUP NEVER RETURNS
 }
 
 void halWipeoutWarmStart()
@@ -634,20 +645,20 @@ void halEnterPowerOff()
     // WAIT FOR ALL KEYS TO BE RELEASED
     __keyb_waitrelease();
 
-
     disable_interrupts();
 
     cpu_off_prepare();
 
     // DISABLE THE MMU
     disable_mmu();
-    //reset_stackall();
+    reset_stackall();
 
     // AND GO DIE
     //startup(0);
-    //cpu_off_die();
+    enable_interrupts();
+    cpu_off_die();
 
-    startup(0);
+    //startup(0);
 
 }
 

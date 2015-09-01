@@ -1074,6 +1074,7 @@ extern void cpu_off();
 extern int __lcd_contrast;
 extern void lcd_off();
 extern void lcd_on();
+extern void lcd_poweron();
 extern void lcd_setcontrast(int level);
 extern int lcd_setmode(int mode, unsigned int *physbuf);
 extern void lcd_save(unsigned int *buf);
