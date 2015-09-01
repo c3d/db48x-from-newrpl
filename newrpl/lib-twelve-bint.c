@@ -299,8 +299,8 @@ void rplReadNumberAsReal(WORDPTR number,REAL*dec)
     else if(ISBINT(*number))  {
         // PROVIDE STORAGE
         dec->data=RDigits+BINT2RealIdx*BINT_REGISTER_STORAGE;
-        dec->flags=0;
         newRealFromBINT64(dec,rplReadBINT(number));
+        if(ISAPPROX(*number)) dec->flags|=F_APPROX;
         ++BINT2RealIdx;
         if(BINT2RealIdx>=BINT2REAL) BINT2RealIdx=0;
     }
@@ -393,7 +393,7 @@ void LIB_HANDLER()
                     addReal(&RReg[0],&rop1,&RReg[1]);
 
 
-                    if(op2app) RReg[0].flags|=F_APPROX;
+                    if(op1app||op2app) RReg[0].flags|=F_APPROX;
                 }
 
                 if(op2type) {
@@ -401,7 +401,7 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
 
                     addReal(&RReg[0],&RReg[1],&rop2);
-                    if(op1app) RReg[0].flags|=F_APPROX;
+                    if(op1app||op2app) RReg[0].flags|=F_APPROX;
                 }
 
                 rplNewRealFromRRegPush(0);
@@ -447,7 +447,7 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,-op2);
 
                     addReal(&RReg[0],&rop1,&RReg[1]);
-                    if(op2app) RReg[0].flags|=F_APPROX;
+                    if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
                 }
 
@@ -456,7 +456,7 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
 
                     subReal(&RReg[0],&RReg[1],&rop2);
-                    if(op1app) RReg[0].flags|=F_APPROX;
+                    if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
                 }
                 rplNewRealFromRRegPush(0);
@@ -500,7 +500,7 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op2);
 
                     mulReal(&RReg[0],&rop1,&RReg[1]);
-                    if(op2app) RReg[0].flags|=F_APPROX;
+                    if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
                 }
 
@@ -509,7 +509,7 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
 
                     mulReal(&RReg[0],&RReg[1],&rop2);
-                    if(op1app) RReg[0].flags|=F_APPROX;
+                    if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
                 }
                 rplNewRealFromRRegPush(0);
@@ -555,7 +555,7 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op2);
 
                     divReal(&RReg[0],&rop1,&RReg[1]);
-                    if(op2app) RReg[0].flags|=F_APPROX;
+                    if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
                 }
 
@@ -564,7 +564,7 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
 
                     divReal(&RReg[0],&RReg[1],&rop2);
-                    if(op1app) RReg[0].flags|=F_APPROX;
+                    if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
                 }
 
@@ -933,13 +933,14 @@ void LIB_HANDLER()
 
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
-
+    {
         if(LIBNUM(CurOpcode)&APPROX_BIT) {
             // DO NOT COMPILE ANYTHING WHEN CALLED WITH THE UPPER (APPROX) LIBRARY NUMBER
             RetNum=ERR_NOTMINE;
             return;
         }
 
+        WORD Locale=rplGetSystemLocale();
         // COMPILE A NUMBER TO A SINT OR A BINT, DEPENDING ON THE ACTUAL NUMERIC VALUE
         result=0;
         strptr=(BYTEPTR )TokenStart;
@@ -972,6 +973,7 @@ void LIB_HANDLER()
 
             for(count=0;count<argnum1;++count) {
                 digit=strptr[count];
+                if((base==10) && (digit==THOUSAND_SEP(Locale))) continue;
                 if((digit>='0')&&(digit<='9')) digit-=48;
                 else if((digit>='a')&&(digit<='f')) digit-=87;
                 else if((digit>='A')&&(digit<='F')) digit-=55;
@@ -1017,6 +1019,7 @@ void LIB_HANDLER()
             rplCompileAppend((WORD)( (result>>32)&0xffffffff));
             RetNum=OK_CONTINUE;
      return;
+    }
     case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
@@ -1035,31 +1038,65 @@ void LIB_HANDLER()
 
             base=GETBASE(LIBNUM(*DecompileObject)&~APPROX_BIT);
 
-            if(result<0) {
-                rplDecompAppendChar('-');
-                uresult=-result;
-            } else uresult=result;
 
 
 
             if(base==2) {
                 // THIS IS A BASE-10 NUMBER
-                digit=0;
-                basechr='0';
-                while(uresult<powersof10[digit]) ++digit;  // SKIP ALL LEADING ZEROS
-                // NOW DECOMPILE THE NUMBER
-                while(digit<18) {
-                while(uresult>=powersof10[digit]) { ++basechr; uresult-=powersof10[digit]; }
-                rplDecompAppendChar(basechr);
-                ++digit;
-                basechr='0';
+                // CONVERT TO STRING
+
+                REAL realnum;
+
+                NUMFORMAT fmt;
+
+                BINT Format,sign;
+
+                rplGetSystemNumberFormat(&fmt);
+
+                rplReadNumberAsReal(DecompileObject,&realnum);
+
+                sign=realnum.flags&F_NEGATIVE;
+
+                realnum.flags^=sign;
+
+                if(iszeroReal(&realnum)) Format=fmt.MiddleFmt;
+                else if(ltReal(&realnum,&(fmt.SmallLimit))) Format=fmt.SmallFmt;
+                else if(gtReal(&realnum,&(fmt.BigLimit))) Format=fmt.BigFmt;
+                else Format=fmt.MiddleFmt;
+
+                realnum.flags^=sign;
+
+                if(CurOpcode==OPCODE_DECOMPEDIT) Format|=FMT_CODE;
+
+                // ESTIMATE THE MAXIMUM STRING LENGTH AND RESERVE THE MEMORY
+
+                BYTEPTR string;
+
+                BINT len=formatlengthReal(&realnum,Format);
+
+                // RESERVE THE MEMORY FIRST
+                rplDecompAppendString2(DecompStringEnd,len);
+
+                // NOW USE IT
+                string=(BYTEPTR)DecompStringEnd;
+                string-=len;
+
+                if(Exceptions) {
+                    RetNum=ERR_INVALID;
+                    return;
                 }
-                basechr+=uresult;
-                rplDecompAppendChar(basechr);
+                DecompStringEnd=(WORDPTR) formatReal(&realnum,string,Format,fmt.Locale);
+
+
             }
             else {
             // THIS IS A BINARY, OCTAL OR HEXA NUMBER
             // base HAS THE NUMBER OF BITS PER DIGIT
+                if(result<0) {
+                    rplDecompAppendChar('-');
+                    uresult=-result;
+                } else uresult=result;
+
             rplDecompAppendChar('#');
 
             if(base>=3) digit=60;
@@ -1083,10 +1120,11 @@ void LIB_HANDLER()
             if(base==3) rplDecompAppendChar('o');
             if(base==4) rplDecompAppendChar('h');
 
-            }
+
 
             // ADD TRAILING DOT ON APPROXIMATED NUMBERS
             if(LIBNUM(*DecompileObject)&APPROX_BIT) rplDecompAppendChar('.');
+            }
 
             RetNum=OK_CONTINUE;
 

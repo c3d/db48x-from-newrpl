@@ -144,6 +144,26 @@ BINT rplStringGetLinePtr(WORDPTR str,BINT line)
 }
 
 
+// CREATE A NEW STRING OBEJCT AND RETURN ITS ADDRESS
+// RETURNS NULL IF ANY ERRORS
+WORDPTR rplCreateString(BYTEPTR text,BYTEPTR textend)
+{
+    BINT lenbytes=textend-text;
+    BINT len=(lenbytes+3)>>2;
+    if(lenbytes<0) return 0;
+    WORDPTR newstring=rplAllocTempOb(len);
+    if(newstring) {
+        BYTEPTR ptr=(BYTEPTR) (newstring+1);
+        while(text!=textend) *ptr++=*text++;
+        while(((PTR2NUMBER)ptr)&3) *ptr++=0;
+
+        rplSetStringLength(newstring,lenbytes);
+
+        return newstring;
+    }
+}
+
+
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {

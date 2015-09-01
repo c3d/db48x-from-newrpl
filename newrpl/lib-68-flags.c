@@ -25,6 +25,8 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
+    CMD(SETLOCALE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SETNUMFORMAT,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(SF,MKTOKENINFO(2,TITYPE_NOTALLOWED,1,2)), \
     CMD(CF,MKTOKENINFO(2,TITYPE_NOTALLOWED,1,2))
 
@@ -331,15 +333,15 @@ BINT rplTestSystemFlagByIdent(WORDPTR ident)
 // RETURN THE SYSTEM LOCALE WORD, CONTAINING THE CHARACTERS TO BE USED FOR NUMBERS
 WORD rplGetSystemLocale()
 {
-    WORDPTR systemlist=rplGetSettings(numfmt_ident);
+    WORDPTR systemlist=rplGetSettings((WORDPTR)numfmt_ident);
     if(systemlist) {
-        if(ISLIST(systemlist)) {
+        if(ISLIST(*systemlist)) {
         WORDPTR localestring=rplGetListElement(systemlist,1);
         if(localestring && (ISSTRING(*localestring))) return *(localestring+1);
         }
     }
     // INVALID FLAGS, JUST RETURN A DEFAULT SETTING
-    return ((WORD)'.') | (((WORD)',')<<8) | (((WORD)' ')<<16) | (((WORD)'E')<<24);
+    return ((WORD)'.') | (((WORD)' ')<<8) | (((WORD)' ')<<16) | (((WORD)',')<<24);
 
 }
 
@@ -350,12 +352,12 @@ WORD rplGetSystemLocale()
 
 void rplGetSystemNumberFormat(NUMFORMAT *fmt)
 {
-    WORDPTR systemlist=rplGetSettings(numfmt_ident);
+    WORDPTR systemlist=rplGetSettings((WORDPTR)numfmt_ident);
     if(systemlist) {
-        if(ISLIST(systemlist)) {
+        if(ISLIST(*systemlist)) {
         WORDPTR localestring=rplGetListElement(systemlist,1);
         if(localestring && (ISSTRING(*localestring))) fmt->Locale=*(localestring+1);
-        else fmt->Locale=((WORD)'.') | (((WORD)',')<<8) | (((WORD)' ')<<16) | (((WORD)'E')<<24);
+        else fmt->Locale=((WORD)'.') | (((WORD)' ')<<8) | (((WORD)' ')<<16) | (((WORD)',')<<24);
         WORDPTR nfmt=rplGetListElement(systemlist,2);
         if(nfmt && (ISBINT(*nfmt))) fmt->SmallFmt=(BINT)rplReadBINT(nfmt);
         else fmt->SmallFmt=12|FMT_SCI|FMT_NOZEROEXP;
@@ -368,13 +370,13 @@ void rplGetSystemNumberFormat(NUMFORMAT *fmt)
         nfmt=rplGetListElement(systemlist,5);
         if(nfmt && (ISNUMBER(*nfmt))) rplReadNumberAsReal(nfmt,&(fmt->SmallLimit));
         else {
-            rplReadNumberAsReal(one_bint,&(fmt->SmallLimit));
+            rplReadNumberAsReal((WORDPTR)one_bint,&(fmt->SmallLimit));
             fmt->SmallLimit.exp=-12;
         }
         nfmt=rplGetListElement(systemlist,6);
         if(nfmt && (ISNUMBER(*nfmt))) rplReadNumberAsReal(nfmt,&(fmt->BigLimit));
         else {
-            rplReadNumberAsReal(one_bint,&(fmt->BigLimit));
+            rplReadNumberAsReal((WORDPTR)one_bint,&(fmt->BigLimit));
             fmt->BigLimit.exp=12;
         }
 
@@ -383,18 +385,51 @@ void rplGetSystemNumberFormat(NUMFORMAT *fmt)
     }
     }
 
-    fmt->Locale=((WORD)'.') | (((WORD)',')<<8) | (((WORD)' ')<<16) | (((WORD)'E')<<24);
+    fmt->Locale=((WORD)'.') | (((WORD)' ')<<8) | (((WORD)' ')<<16) | (((WORD)',')<<24);
     fmt->SmallFmt=12|FMT_SCI|FMT_NOZEROEXP;
     fmt->MiddleFmt=12;
     fmt->BigFmt=12|FMT_SCI|FMT_NOZEROEXP;
-    rplReadNumberAsReal(one_bint,&(fmt->SmallLimit));
+    rplReadNumberAsReal((WORDPTR)one_bint,&(fmt->SmallLimit));
     fmt->SmallLimit.exp=-12;
-    rplReadNumberAsReal(one_bint,&(fmt->BigLimit));
+    rplReadNumberAsReal((WORDPTR)one_bint,&(fmt->BigLimit));
     fmt->BigLimit.exp=12;
 }
 
 
+// SETS THE SYSTEM SETTING NUMFORMAT TO THE GIVEN STRUCTURE
+// CAN TRIGGER GC, USES RREG[0], RREG[1] AND SCRATCHPOINTERS
+void rplSetSystemNumberFormat(NUMFORMAT *fmt)
+{
+    // CREATE THE LIST WITH THE NUMFORMAT
+    WORDPTR *savestk=DSTop;
 
+    // COPY TO RReg TO PROTECT FROM GARBAGE COLLECTION
+    copyReal(&RReg[0],&(fmt->SmallLimit));
+    copyReal(&RReg[1],&(fmt->BigLimit));
+
+    WORDPTR item=rplCreateString((BYTEPTR)&(fmt->Locale),((BYTEPTR)&(fmt->Locale))+4);
+    if(!item) return;
+    rplPushData(item);
+    rplNewBINTPush(fmt->SmallFmt,DECBINT);
+    if(Exceptions) { DSTop=savestk; return; }
+    rplNewBINTPush(fmt->MiddleFmt,DECBINT);
+    if(Exceptions) { DSTop=savestk; return; }
+    rplNewBINTPush(fmt->BigFmt,DECBINT);
+    if(Exceptions) { DSTop=savestk; return; }
+    rplNewRealFromRRegPush(0);
+    if(Exceptions) { DSTop=savestk; return; }
+    rplNewRealFromRRegPush(1);
+    if(Exceptions) { DSTop=savestk; return; }
+    rplNewSINTPush(6,DECBINT);
+    rplCreateList();
+    if(Exceptions) { DSTop=savestk; return; }
+
+    rplStoreSettings((WORDPTR)numfmt_ident,rplPeekData(1));
+
+    DSTop=savestk;
+    return;
+
+}
 
 
 
@@ -416,7 +451,33 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
+    case SETLOCALE:
+    {
+     NUMFORMAT fmt;
+     if(rplDepthData()<1) {
+         rplError(ERR_BADARGCOUNT);
+         return;
+     }
+     if(!ISSTRING(*rplPeekData(1))) {
+     rplError(ERR_STRINGEXPECTED);
+     return;
+     }
 
+     BINT slen=rplStrSize(rplPeekData(1));
+
+     if(slen!=4) {
+         rplError(ERR_INVALIDLOCALESTRING);
+         return;
+    }
+
+     rplGetSystemNumberFormat(&fmt);
+
+     fmt.Locale=*(rplPopData()+1);
+
+     rplSetSystemNumberFormat(&fmt);
+     return;
+
+    }
     case CF:
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
