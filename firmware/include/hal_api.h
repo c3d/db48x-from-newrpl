@@ -115,6 +115,14 @@ enum halNotification {
 #define MENU2_DIRTY 64
 #define STAREA_DIRTY 128
 
+// BASIC HEIGHT OF SCREEN AREAS IN PIXELS - THIS IS HARDWARE DEPENDENT
+
+#define MENU2_HEIGHT 13
+#define MENU1_HEIGHT  7
+
+
+
+
 
 // STRUCT TO CONTAIN THE HEIGHT IN PIXELS OF SCREEN AREAS (0=INVISIBLE)
 typedef struct {
@@ -1128,6 +1136,13 @@ extern void halSetCmdLineHeight(int h);
 extern void halStatusAreaPopup();
 extern void halRedrawAll(DRAWSURFACE *scr);
 extern void halRedrawCmdLine(DRAWSURFACE *scr);
+extern void halSetStackHeight(int h);
+extern void halSetFormHeight(int h);
+extern void halSetMenu1Height(int h);
+extern void halSetMenu2Height(int h);
+
+
+
 
 
 // KEYBOARD FUNCTIONS

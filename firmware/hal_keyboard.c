@@ -602,6 +602,16 @@ if(!(halGetContext()&CONTEXT_INEDITOR)) {
 
 
 
+void VarMenuKeyHandler(BINT keymsg)
+{
+    // SIMPLY TOGGLE THE MENU UPON PRESS
+    if(halScreen.Menu2) halSetMenu2Height(0);
+    else halSetMenu2Height(MENU2_HEIGHT);
+
+}
+
+
+
 
 
 void dotKeyHandler(BINT keymsg)
@@ -771,150 +781,6 @@ void downKeyHandler(BINT keymsg)
 
 
 
-
-void clearKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(CMD_CLEAR,(BYTEPTR)"CLEAR",-1);
-}
-
-
-
-void addKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD),(BYTEPTR)"+",0);
-}
-void subKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB),(BYTEPTR)"-",0);
-}
-
-void divKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV),(BYTEPTR)"/",0);
-}
-void mulKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL),(BYTEPTR)"*",0);
-}
-void invKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_INV),(BYTEPTR)"INV",1);
-}
-
-void spcKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-   symbolKeyHandler(keymsg,(BYTEPTR)" ",0);
-
-}
-
-void sinKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(CMD_SIN,(BYTEPTR)"SIN",1);
-}
-void asinKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(CMD_ASIN,(BYTEPTR)"ASIN",1);
-}
-void sinhKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(CMD_SINH,(BYTEPTR)"SINH",1);
-}
-
-void cosKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(CMD_COS,(BYTEPTR)"COS",1);
-}
-void acosKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(CMD_ACOS,(BYTEPTR)"ACOS",1);
-}
-void coshKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(CMD_COSH,(BYTEPTR)"COSH",1);
-}
-
-void tanKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(CMD_TAN,(BYTEPTR)"TAN",1);
-}
-void atanKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(CMD_ATAN,(BYTEPTR)"ATAN",1);
-}
-void tanhKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(CMD_TANH,(BYTEPTR)"TANH",1);
-}
-
-
-void evalKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),(BYTEPTR)"EVAL",-1);
-}
-
-void sqrtKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(CMD_SQRT,(BYTEPTR)"√",0);
-}
-
-void powKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(MKOPCODE(LIB_OVERLOADABLE,OVR_POW),(BYTEPTR)"^",0);
-}
-
-void stoKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(CMD_STO,(BYTEPTR)"STO",-1);
-
-}
-
-void rclKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    cmdKeyHandler(CMD_RCL,(BYTEPTR)"RCL",-1);
-
-}
 
 
 
@@ -1220,6 +1086,18 @@ void shiftedalphaKeyHandler(BINT keymsg)
 
 }
 
+
+
+
+
+#define DECLARE_CMDKEYHANDLER(name,opcode,string,issymbfunc) void name##KeyHandler(BINT keymsg) \
+                                                             { \
+                                                             UNUSED_ARGUMENT(keymsg); \
+                                                             cmdKeyHandler(opcode,(BYTEPTR)string,issymbfunc); \
+                                                             }
+
+
+
 #define DECLARE_VARKEYHANDLER(name,idx) void name##KeyHandler(BINT keymsg) \
                                                     { \
                                                     varsKeyHandler(keymsg,(BINT)(idx)); \
@@ -1303,6 +1181,7 @@ void underscoreKeyHandler(BINT keymsg)
     if((halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C')) halSetCmdLineMode('A');
 }
 
+DECLARE_SYMBKEYHANDLER(spc," ",0)
 DECLARE_SYMBKEYHANDLER(hash,"#",0)
 DECLARE_SYMBKEYHANDLER(equal,"=",1)
 DECLARE_SYMBKEYHANDLER(notequal,"≠",1)
@@ -1334,6 +1213,38 @@ DECLARE_SYMBKEYHANDLER(keyx,"X",0)
 
 
 
+
+DECLARE_CMDKEYHANDLER(clear,CMD_CLEAR,"CLEAR",-1)
+DECLARE_CMDKEYHANDLER(add,MKOPCODE(LIB_OVERLOADABLE,OVR_ADD),"+",0)
+DECLARE_CMDKEYHANDLER(sub,MKOPCODE(LIB_OVERLOADABLE,OVR_SUB),"-",0)
+DECLARE_CMDKEYHANDLER(div,MKOPCODE(LIB_OVERLOADABLE,OVR_DIV),"/",0)
+DECLARE_CMDKEYHANDLER(mul,MKOPCODE(LIB_OVERLOADABLE,OVR_MUL),"*",0)
+DECLARE_CMDKEYHANDLER(inv,MKOPCODE(LIB_OVERLOADABLE,OVR_INV),"INV",1)
+DECLARE_CMDKEYHANDLER(sin,CMD_SIN,"SIN",1)
+DECLARE_CMDKEYHANDLER(asin,CMD_ASIN,"ASIN",1)
+DECLARE_CMDKEYHANDLER(sinh,CMD_SINH,"SINH",1)
+DECLARE_CMDKEYHANDLER(asinh,CMD_ASINH,"ASINH",1)
+
+DECLARE_CMDKEYHANDLER(cos,CMD_COS,"COS",1)
+DECLARE_CMDKEYHANDLER(acos,CMD_ACOS,"ACOS",1)
+DECLARE_CMDKEYHANDLER(cosh,CMD_COSH,"COSH",1)
+DECLARE_CMDKEYHANDLER(acosh,CMD_ACOSH,"ACOSH",1)
+
+DECLARE_CMDKEYHANDLER(tan,CMD_TAN,"TAN",1)
+DECLARE_CMDKEYHANDLER(atan,CMD_ATAN,"ATAN",1)
+DECLARE_CMDKEYHANDLER(tanh,CMD_TANH,"TANH",1)
+DECLARE_CMDKEYHANDLER(atanh,CMD_ATANH,"ATANH",1)
+
+DECLARE_CMDKEYHANDLER(eval,MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),"EVAL",-1)
+DECLARE_CMDKEYHANDLER(eval1,MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1),"EVAL1",-1)
+DECLARE_CMDKEYHANDLER(tonum,MKOPCODE(LIB_OVERLOADABLE,OVR_NUM),"→NUM",-1)
+
+
+DECLARE_CMDKEYHANDLER(sqrt,CMD_SQRT,"√",0)
+DECLARE_CMDKEYHANDLER(pow,MKOPCODE(LIB_OVERLOADABLE,OVR_POW),"^",0)
+
+DECLARE_CMDKEYHANDLER(sto,CMD_STO,"STO",-1)
+DECLARE_CMDKEYHANDLER(rcl,CMD_RCL,"RCL",-1)
 
 
 
@@ -1439,44 +1350,42 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_G|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
     { KM_PRESS|KB_G|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
     { KM_PRESS|KB_G|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
-    //{ KM_LPRESS|KB_G, CONTEXT_ANY,KEYHANDLER_NAME(apps)},
 
     { KM_PRESS|KB_H, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
     { KM_PRESS|KB_H|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
     { KM_PRESS|KB_H|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
     { KM_PRESS|KB_H|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
     { KM_PRESS|KB_H|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
-    //{ KM_LPRESS|KB_H, CONTEXT_ANY,KEYHANDLER_NAME(mode)},
 
     { KM_PRESS|KB_I, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
     { KM_PRESS|KB_I|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
     { KM_PRESS|KB_I|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
     { KM_PRESS|KB_I|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
     { KM_PRESS|KB_I|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
-    //{ KM_LPRESS|KB_I, CONTEXT_ANY,KEYHANDLER_NAME(tool)},
 
     { KM_PRESS|KB_J, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
     { KM_PRESS|KB_J|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
     { KM_PRESS|KB_J|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
     { KM_PRESS|KB_J|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
     { KM_PRESS|KB_J|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
-    //{ KM_LPRESS|KB_J, CONTEXT_ANY,KEYHANDLER_NAME(varsmenu)},
 
     { KM_PRESS|KB_K, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
     { KM_PRESS|KB_K|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
     { KM_PRESS|KB_K|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
     { KM_PRESS|KB_K|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
     { KM_PRESS|KB_K|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
-    //{ KM_LPRESS|KB_K, CONTEXT_ANY,KEYHANDLER_NAME(oldsto)},
 
     { KM_PRESS|KB_L, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
     { KM_PRESS|KB_L|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
     { KM_PRESS|KB_L|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
     { KM_PRESS|KB_L|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
     { KM_PRESS|KB_L|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
-    //{ KM_LPRESS|KB_L, CONTEXT_ANY,KEYHANDLER_NAME(nxt)},
+
+    // SHOW/HIDE THE VARS MENU UPON LONG PRESS
+    { KM_LPRESS|KB_J, CONTEXT_ANY,KEYHANDLER_NAME(VarMenu)},
 
 
+    // NORMAL COMMANDS/FUNCTIONS
 
     { KM_PRESS|KB_Y, CONTEXT_ANY,&invKeyHandler },
     { KM_PRESS|KB_SPC, CONTEXT_ANY,&spcKeyHandler },
@@ -1536,8 +1445,19 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_LPRESS|KB_S, CONTEXT_ANY,&sinhKeyHandler },
     { KM_LPRESS|KB_T, CONTEXT_ANY,&coshKeyHandler },
     { KM_LPRESS|KB_U, CONTEXT_ANY,&tanhKeyHandler },
+    { KM_LPRESS|KB_S|SHIFT_LS, CONTEXT_ANY,&asinhKeyHandler },
+    { KM_LPRESS|KB_T|SHIFT_LS, CONTEXT_ANY,&acoshKeyHandler },
+    { KM_LPRESS|KB_U|SHIFT_LS, CONTEXT_ANY,&atanhKeyHandler },
+    { KM_LPRESS|KB_S|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&asinhKeyHandler },
+    { KM_LPRESS|KB_T|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&acoshKeyHandler },
+    { KM_LPRESS|KB_U|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&atanhKeyHandler },
+
 
     { KM_PRESS|KB_N, CONTEXT_ANY,&evalKeyHandler },
+    { KM_LPRESS|KB_N, CONTEXT_ANY,&eval1KeyHandler },
+    { KM_PRESS|KB_ENT|SHIFT_RS, CONTEXT_ANY,&tonumKeyHandler },
+    { KM_PRESS|KB_ENT|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&tonumKeyHandler },
+
     { KM_PRESS|KB_R, CONTEXT_ANY,&sqrtKeyHandler },
     { KM_PRESS|KB_Q, CONTEXT_ANY,&powKeyHandler },
     { KM_PRESS|KB_Q|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,&powKeyHandler },

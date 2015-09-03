@@ -136,7 +136,7 @@ void halSetMenu2Height(int h)
         }
         total=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1+halScreen.Menu2;
     }
-    halScreen.DirtyFlag|=MENU2_DIRTY|STAREA_DIRTY;
+    halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
 
 }
 
@@ -279,8 +279,8 @@ void halRedrawStack(DRAWSURFACE *scr)
 void halInitScreen()
 {
 halScreen.CmdLine=0;
-halScreen.Menu1=7;
-halScreen.Menu2=13;
+halScreen.Menu1=MENU1_HEIGHT;
+halScreen.Menu2=MENU2_HEIGHT;
 halScreen.Stack=1;
 halSetFormHeight(0);
 halScreen.DirtyFlag=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
@@ -639,6 +639,16 @@ void halShowErrorMsg()
         WORD error=Exceptions;
         DRAWSURFACE scr;
         ggl_initscr(&scr);
+
+
+        if(!halScreen.Menu2) {
+            // SHOW THE SECOND MENU TO DISPLAY THE MESSAGE
+            halSetMenu2Height(MENU2_HEIGHT);
+            halRedrawAll(&scr);
+        }
+
+
+
         BINT ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
         // CLEAR MENU2 AND STATUS AREA
         ggl_cliprect(&scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.StAreaFont->BitmapHeight-1,ggl_mkcolor(6));
@@ -713,6 +723,14 @@ void halShowMsgN(char *Text,char *End)
 {
         DRAWSURFACE scr;
         ggl_initscr(&scr);
+
+        if(!halScreen.Menu2) {
+            // SHOW THE SECOND MENU TO DISPLAY THE MESSAGE
+            halSetMenu2Height(MENU2_HEIGHT);
+            halRedrawAll(&scr);
+        }
+
+
         BINT ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
         // CLEAR MENU2 AND STATUS AREA
         ggl_cliprect(&scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
