@@ -336,7 +336,7 @@ void LIB_HANDLER()
                 Context.precdigits-=8;
 
 
-                trig_sincos(&RReg[2]);
+                trig_sincos(&RReg[2],0);
                 normalize(&RReg[6]);
                 normalize(&RReg[7]);
 
@@ -376,7 +376,7 @@ void LIB_HANDLER()
 
             copyReal(&RReg[8],&RReg[0]);
 
-            trig_sincos(&RReg[9]);
+            trig_sincos(&RReg[9],0);
             normalize(&RReg[6]);
             normalize(&RReg[7]);
 

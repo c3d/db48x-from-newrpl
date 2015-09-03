@@ -13,7 +13,7 @@
 
 
 
-extern void trig_sincos(REAL *ptr);
+extern void trig_sincos(REAL *ptr,BINT);
 extern void trig_atan2(REAL *x,REAL *y);
 
 
@@ -39,7 +39,8 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 #define CMD_LIST \
     CMD(TICKS), \
     CMD(MEMCHECK), \
-    CMD(MEMFIX)
+    CMD(MEMFIX), \
+    CMD(CONSTANTS)
 
 
 // ADD MORE OPCODES HERE
@@ -113,7 +114,49 @@ void LIB_HANDLER()
         else rplPushDataNoGrow((WORDPTR)zero_bint);
         return;
     }
+    case CONSTANTS:
+    {
+        REAL num;
+     decconst_PI_200(&num);
 
+     rplNewRealPush(&num);
+
+     decconst_PI_180(&num);
+
+     rplNewRealPush(&num);
+
+     decconst_180_PI(&num);
+
+     rplNewRealPush(&num);
+
+
+     return;
+    }
+        /*
+    case DONUM:
+    {
+        BINT f;
+        REAL r;
+
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        rplReadNumberAsReal(rplPeekData(1),&r);
+        copyReal(&RReg[0],&r);
+        left_justify(&RReg);
+
+        printf("// LEN=%d\n",RReg[0].len);
+
+        for(f=0;f<RReg[0].len;++f) {
+            printf("%d, ",RReg[0].data[f]);
+        }
+
+        return;
+
+
+    }*/
 
     // ADD MORE OPCODES HERE
 

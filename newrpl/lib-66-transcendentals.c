@@ -92,6 +92,7 @@ void LIB_HANDLER()
     case SIN:
     {
         REAL dec;
+        BINT angmode;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -103,7 +104,6 @@ void LIB_HANDLER()
             rplSymbApplyOperator(CurOpcode,1);
             return;
         }
-
 
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
@@ -116,8 +116,13 @@ void LIB_HANDLER()
         }
 
 
+        if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
+            // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
+            if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
+            else angmode=1;
+        } else angmode=0;
 
-        trig_sincos(&dec);
+        trig_sincos(&dec,angmode);
 
         finalize(&RReg[7]);
 
@@ -129,6 +134,7 @@ void LIB_HANDLER()
     case COS:
     {
         REAL dec;
+        BINT angmode;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -145,7 +151,14 @@ void LIB_HANDLER()
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
-        trig_sincos(&dec);
+        if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
+            // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
+            if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
+            else angmode=1;
+        } else angmode=0;
+
+
+        trig_sincos(&dec,angmode);
 
         finalize(&RReg[6]);
         rplDropData(1);
@@ -156,6 +169,7 @@ void LIB_HANDLER()
     case TAN:
     {
         REAL dec;
+        BINT angmode;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -171,7 +185,14 @@ void LIB_HANDLER()
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
-        trig_sincos(&dec);
+        if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
+            // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
+            if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
+            else angmode=1;
+        } else angmode=0;
+
+
+        trig_sincos(&dec,angmode);
         normalize(&RReg[6]);
         normalize(&RReg[7]);
         if(iszeroReal(&RReg[6])) {
