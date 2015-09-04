@@ -3968,6 +3968,21 @@ BINT iszeroReal(REAL *n)
     return 1;
 }
 
+// TRUE IF THE REAL IS INIFINTY (+ OR -)
+
+BINT isinfiniteReal(REAL *n)
+{
+    if(n->flags&F_INFINITY) return 1;
+    return 0;
+}
+
+BINT signofReal(REAL *n)
+{
+    if(n->flags&F_NEGATIVE) return -1;
+    else return 1;
+}
+
+
 BINT inBINTRange(REAL *n)
 {
 

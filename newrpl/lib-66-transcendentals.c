@@ -238,8 +238,18 @@ void LIB_HANDLER()
 
             return;
         }
+
+        BINT angmode;
+        if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
+            // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
+            if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
+            else angmode=1;
+        } else angmode=0;
+
+
+
         y.flags^=signy;
-        trig_asin(&y);
+        trig_asin(&y,angmode);
 
         finalize(&RReg[0]);
 
@@ -278,9 +288,20 @@ void LIB_HANDLER()
 
             return;
         }
+
+        BINT angmode;
+        if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
+            // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
+            if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
+            else angmode=1;
+        } else angmode=0;
+
+
+
+
         y.flags^=signy;
 
-        trig_acos(&y);
+        trig_acos(&y,angmode);
         normalize(&RReg[0]);
         // FIRST ELIMINATE BAD DIGITS SO ACOS(1)=0 INSTEAD OF SMALL NUMBER
         truncReal(&RReg[0],&RReg[0],Context.precdigits+6);
@@ -318,7 +339,15 @@ void LIB_HANDLER()
         rplOneToRReg(7);
 
 
-        trig_atan2(&y,&RReg[7]);
+        BINT angmode;
+        if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
+            // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
+            if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
+            else angmode=1;
+        } else angmode=0;
+
+
+        trig_atan2(&y,&RReg[7],angmode);
         finalize(&RReg[0]);
 
         rplDropData(1);
@@ -348,7 +377,15 @@ void LIB_HANDLER()
 
         if(Exceptions) return;
 
-        trig_atan2(&y,&x);
+        BINT angmode;
+        if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
+            // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
+            if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
+            else angmode=1;
+        } else angmode=0;
+
+
+        trig_atan2(&y,&x,angmode);
 
         finalize(&RReg[0]);
 

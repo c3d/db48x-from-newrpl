@@ -124,9 +124,9 @@ void hyp_asinh(REAL *);
 void hyp_acosh(REAL *);
 
 void trig_sincos(REAL *,BINT angmode);
-void trig_atan2(REAL *,REAL *);
-void trig_asin(REAL *);
-void trig_acos(REAL *);
+void trig_atan2(REAL *, REAL *, BINT angmode);
+void trig_asin(REAL *,BINT angmode);
+void trig_acos(REAL *, BINT angmode);
 
 
 // ERROR MANAGEMENT FUNCTIONS

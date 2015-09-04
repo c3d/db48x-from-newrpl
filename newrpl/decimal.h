@@ -306,14 +306,21 @@ extern BINT cmpReal(REAL *a,REAL *b);
 // TRUE=1 IF A NUMBER IS ZERO, 0 OTHERWISE
 extern BINT iszeroReal(REAL *n);
 
+// TRUE=1 IF A NUMBER IS INFINITY, 0 OTHERWISE
+extern BINT isinfiniteReal(REAL *n);
+
+// RETURN -1 IF NEGATIVE, 1 OTHERWISE
+extern BINT signofReal(REAL *n);
+
+
 // TRUE IF THE NUMBER HAS NO FRACTIONAL PART (IS AN INTEGER)
-BINT isintegerReal(REAL *n);
+extern BINT isintegerReal(REAL *n);
 
 // TRUE IF THE NUMBER IS NOT DIVISIBLE BY 2
-BINT isoddReal(REAL *r);
+extern BINT isoddReal(REAL *r);
 
 // GET THE NUMBER OF DIGITS ON THE INTEGER PART OF A NUMBER
-BINT intdigitsReal(REAL *r);
+extern BINT intdigitsReal(REAL *r);
 
 // CONVERSION TO/FROM OTHER TYPES
 

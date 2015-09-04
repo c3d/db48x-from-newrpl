@@ -286,7 +286,7 @@ void LIB_HANDLER()
             // RReg[8] = r
             copyReal(&RReg[8],&RReg[0]);
 
-            trig_atan2(&Iarg1,&Rarg1);
+            trig_atan2(&Iarg1,&Rarg1,0);
 
             // RReg[9]=Theta
             copyReal(&RReg[9],&RReg[0]);
@@ -550,7 +550,14 @@ void LIB_HANDLER()
             rplReadCNumberAsReal(rplPeekData(1),&real);
             rplReadCNumberAsImag(rplPeekData(1),&imag);
 
-            trig_atan2(&imag,&real);
+            BINT angmode;
+            if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
+                // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
+                if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
+                else angmode=1;
+            } else angmode=0;
+
+            trig_atan2(&imag,&real,angmode);
             finalize(&RReg[0]);
 
             rplDropData(1);

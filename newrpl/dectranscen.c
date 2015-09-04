@@ -575,7 +575,7 @@ normalize(xnext);
 
 
 // CALCULATE RReg[0]=cos(angle) and RReg[1]=sin(angle) BOTH WITH 8 DIGITS MORE THAN CURRENT SYSTEM PRECISION (ABOUT 6 OF THEM ARE GOOD DIGITS, ROUNDING IS NEEDED)
-
+// angmode = 0->RADIANS, 1->DEGREES, 2->GRADS
 void trig_sincos(REAL *angle, BINT angmode)
 {
     int negsin,negcos,swap,startexp;
@@ -857,8 +857,9 @@ for(exponent=startindex;exponent<startindex+digits;++exponent)
 
 
 
+// angmode = 0->RADIANS, 1->DEGREES, 2->GRADS
 
-void trig_atan2(REAL *y0,REAL *x0)
+void trig_atan2(REAL *y0,REAL *x0, BINT angmode)
 {
 // THE ONLY REQUIREMENT IS THAT y0 <= x0
 int startexp,correction;
@@ -866,18 +867,91 @@ int negx=x0->flags&F_NEGATIVE;
 int negy=y0->flags&F_NEGATIVE;
 int swap=0;
 
-x0->flags^=negx;
-y0->flags^=negy;
 // ALWAYS: NEED TO WORK ON PRECISION MULTIPLE OF 9
 Context.precdigits+=8;
 
-if(iszeroReal(x0)) {
-    REAL pi_2;
-    decconst_PI_2(&pi_2);
-    copyReal(&RReg[5],&pi_2);
+// HANDLE SOME SPECIAL CASES FIRST
+if(iszeroReal(x0) || isinfiniteReal(y0)) {
+    if(iszeroReal(y0)) {
+        // UNDEFINED!
+        RReg[0].data=0;
+        RReg[0].len=1;
+        RReg[0].exp=0;
+        RReg[0].flags=F_NOTANUMBER;
+        return;
+    }
+    // RETURN +/- PI/2 DEPENDING ON SIGNS
+    if(!angmode) {
+    REAL *pi;
+    decconst_PI_2(&pi);
+    copyReal(&RReg[0],&pi);
+    RReg[0].flags=negy;
+    RReg[0].flags|=F_APPROX;    // PI/2 IS ALWAYS APPROXIMATED
+    } else {
+        if(angmode==1) { // DEGREES
+                RReg[0].data[0]=90;
+                RReg[0].len=1;
+                RReg[0].exp=0;
+                RReg[0].flags=y0->flags&(F_NEGATIVE|F_APPROX)|(x0->flags&F_APPROX);
+            }
+            else {
+                RReg[0].data[0]=100;
+                RReg[0].len=1;
+                RReg[0].exp=0;
+                RReg[0].flags=y0->flags&(F_NEGATIVE|F_APPROX)|(x0->flags&F_APPROX);
+            }
+    }
+    return;
+
 }
-else {
-    if(cmpReal(y0,x0)==1) {
+
+if(iszeroReal(y0) || isinfiniteReal(x0)) {
+    // x0 IS NOT ZERO PER PREVIOUS CHECK
+    // RETURN 0 OR PI DEPENDING ON SIGNS
+    if(negx) {
+        if(!angmode) {
+        REAL *pi;
+        decconst_PI(&pi);
+        copyReal(&RReg[0],&pi);
+        RReg[0].flags=negy;
+        RReg[0].flags|=F_APPROX;    // PI IS ALWAYS APPROXIMATED
+        } else {
+            if(angmode==1) { // DEGREES
+                    RReg[0].data[0]=180;
+                    RReg[0].len=1;
+                    RReg[0].exp=0;
+                    RReg[0].flags=(y0->flags&F_APPROX)|(x0->flags&F_APPROX);
+                }
+                else {
+                    RReg[0].data[0]=200;
+                    RReg[0].len=1;
+                    RReg[0].exp=0;
+                    RReg[0].flags=(y0->flags&F_APPROX)|(x0->flags&F_APPROX);
+                }
+        }
+
+
+
+    } else {
+        // RETURN ZERO
+        RReg[0].data[0]=0;
+        RReg[0].len=1;
+        RReg[0].exp=0;
+        RReg[0].flags=(y0->flags&F_APPROX)|(x0->flags&F_APPROX);
+    }
+
+    return;
+
+}
+
+
+
+
+x0->flags^=negx;
+y0->flags^=negy;
+
+
+    if(gtReal(y0,x0)) {
         // NEED TO COMPUTE ATAN(X/Y) AND THEN CONVERT
         copyReal(&RReg[1],y0);
         copyReal(&RReg[2],x0);
@@ -903,26 +977,86 @@ else {
 
     CORDIC_Vectoring((Context.precdigits>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+8:Context.precdigits,startexp);
 
-}
-
-
+    // RESULT IN RREG[5] HERE IS IN RADIANS, NEED TO CONVERT TO PROPER angmode
 if(swap) {
-    REAL pi_2;
-    decconst_PI_2(&pi_2);
-    // RESULT = (PI/2 - ANGLE) FOR x0 POSITIVE
-    // OR (PI/2+ANGLE) FOR x0 NEGATIVE
-    if(negx) RReg[5].flags|=F_NEGATIVE;
-    sub_real(&RReg[0],&pi_2,&RReg[5]);
+
+    if(!angmode) {
+        REAL pi_2;
+
+        decconst_PI_2(&pi_2);
+        // RESULT = (PI/2 - ANGLE) FOR x0 POSITIVE
+        // OR (PI/2+ANGLE) FOR x0 NEGATIVE
+        if(negx) RReg[5].flags|=F_NEGATIVE;
+        sub_real(&RReg[0],&pi_2,&RReg[5]);
+    }
+    else {
+        REAL pi_2;
+        BINT pi_2data;
+        REAL convfactor;
+
+        pi_2.data=&pi_2data;
+        pi_2.exp=0;
+        pi_2.len=1;
+        pi_2.flags=0;
+        if(angmode==1) {
+            pi_2data=90;
+            decconst_180_PI(&convfactor);
+        }
+        else {
+            pi_2data=100;
+            decconst_200_PI(&convfactor);
+        }
+        if(negx) RReg[5].flags|=F_NEGATIVE;
+
+        mul_real(&RReg[6],&RReg[5],&convfactor);
+        normalize(&RReg[6]);
+        sub_real(&RReg[0],&pi_2,&RReg[6]);
+
+    }
 }
 else {
 if(negx) {
+    if(!angmode) {
     REAL pi;
     decconst_PI(&pi);
     // RESULT = PI - ANGLE
     sub_real(&RReg[0],&pi,&RReg[5]);
+    } else {
+        REAL pi;
+        BINT pidata;
+        REAL convfactor;
+
+        pi.data=&pidata;
+        pi.exp=0;
+        pi.len=1;
+        pi.flags=0;
+        if(angmode==1) {
+            pidata=180;
+            decconst_180_PI(&convfactor);
+        }
+        else {
+            pidata=200;
+            decconst_200_PI(&convfactor);
+        }
+        mul_real(&RReg[6],&RReg[5],&convfactor);
+        normalize(&RReg[6]);
+        sub_real(&RReg[0],&pi,&RReg[6]);
+    }
 }
 else {
-    copyReal(&RReg[0],&RReg[5]);
+
+    if(!angmode) copyReal(&RReg[0],&RReg[5]);
+    else {
+        REAL convfactor;
+
+        if(angmode==1) {
+            decconst_180_PI(&convfactor);
+        }
+        else {
+            decconst_200_PI(&convfactor);
+        }
+        mul_real(&RReg[0],&RReg[5],&convfactor);
+    }
 }
 }
 
@@ -939,11 +1073,52 @@ Context.precdigits-=8;
 }
 
 // COMPUTE ASIN(Y) = ATAN2(Y,SQRT(1-Y^2))
+// angmode = 0->RADIANS, 1->DEGREES, 2->GRADS
 
-void trig_asin(REAL *x)
+void trig_asin(REAL *x, BINT angmode)
 {
     REAL one;
     decconst_One(&one);
+
+
+    one.flags|=x->flags&F_NEGATIVE;
+
+    if(iszeroReal(x)) {
+                // X==0, RETURN EXACTLY 0
+                RReg[0].data[0]=0;
+                RReg[0].len=1;
+                RReg[0].exp=0;
+                RReg[0].flags=x->flags&F_APPROX;
+        return;
+    }
+
+
+    if(eqReal(x,&one)) {
+                // X==+/-1, RETURN PI/2, 90 OR 100
+                if(!angmode) {
+                REAL *pi;
+                decconst_PI_2(&pi);
+                copyReal(&RReg[0],&pi);
+                RReg[0].flags=x->flags&F_NEGATIVE;
+                RReg[0].flags|=F_APPROX;    // PI/2 IS ALWAYS APPROXIMATED
+                } else {
+                    if(angmode==1) { // DEGREES
+                            RReg[0].data[0]=90;
+                            RReg[0].len=1;
+                            RReg[0].exp=0;
+                            RReg[0].flags=x->flags&(F_NEGATIVE|F_APPROX);
+                        }
+                        else {
+                            RReg[0].data[0]=100;
+                            RReg[0].len=1;
+                            RReg[0].exp=0;
+                            RReg[0].flags=x->flags&(F_NEGATIVE|F_APPROX);
+                        }
+                }
+        return;
+    }
+
+    one.flags=0;
 
     Context.precdigits+=8;
 
@@ -956,15 +1131,79 @@ void trig_asin(REAL *x)
     hyp_sqrt(&RReg[7]); // 7 = cos = sqrt(1-sin^2)
 
     normalize(&RReg[0]);
-    trig_atan2(x,&RReg[0]);
+    trig_atan2(x,&RReg[0],angmode);
 }
 
 // COMPUTE ACOS(X) = ATAN2(SQRT(1-X^2),X)
+// angmode = 0->RADIANS, 1->DEGREES, 2->GRADS
 
-void trig_acos(REAL *x)
+void trig_acos(REAL *x,BINT angmode)
 {
     REAL one;
     decconst_One(&one);
+
+    one.flags|=x->flags&F_NEGATIVE;
+
+    if(eqReal(x,&one)) {
+        if(x->flags&F_NEGATIVE) {
+                // X==-1, RETURN PI, 180 OR 200
+                if(!angmode) {
+                REAL *pi;
+                decconst_PI(&pi);
+                copyReal(&RReg[0],&pi);
+                RReg[0].flags|=F_APPROX;    // PI IS ALWAYS APPROXIMATED
+                } else {
+                    if(angmode==1) { // DEGREES
+                            RReg[0].data[0]=180;
+                            RReg[0].len=1;
+                            RReg[0].exp=0;
+                            RReg[0].flags=x->flags&F_APPROX;
+                        }
+                        else {
+                            RReg[0].data[0]=200;
+                            RReg[0].len=1;
+                            RReg[0].exp=0;
+                            RReg[0].flags=x->flags&F_APPROX;
+                        }
+                }
+
+            }
+            else {
+                // X==1, RETURN EXACTLY 0
+                RReg[0].data[0]=0;
+                RReg[0].len=1;
+                RReg[0].exp=0;
+                RReg[0].flags=x->flags&F_APPROX;
+            }
+        return;
+    }
+
+
+    if(iszeroReal(x)) {
+                // X==0, RETURN PI/2, 90 OR 100
+                if(!angmode) {
+                REAL *pi;
+                decconst_PI_2(&pi);
+                copyReal(&RReg[0],&pi);
+                RReg[0].flags|=F_APPROX;    // PI/2 IS ALWAYS APPROXIMATED
+                } else {
+                    if(angmode==1) { // DEGREES
+                            RReg[0].data[0]=90;
+                            RReg[0].len=1;
+                            RReg[0].exp=0;
+                            RReg[0].flags=x->flags&F_APPROX;
+                        }
+                        else {
+                            RReg[0].data[0]=100;
+                            RReg[0].len=1;
+                            RReg[0].exp=0;
+                            RReg[0].flags=x->flags&F_APPROX;
+                        }
+                }
+        return;
+    }
+
+    one.flags=0;
 
     Context.precdigits+=8;
 
@@ -976,7 +1215,7 @@ void trig_acos(REAL *x)
     hyp_sqrt(&RReg[7]); // 7 = cos = sqrt(1-sin^2)
 
     normalize(&RReg[0]);
-    trig_atan2(&RReg[0],x);
+    trig_atan2(&RReg[0],x,angmode);
 }
 
 
