@@ -65,7 +65,7 @@ SOURCES += main.cpp\
     newrpl/lib-28-dirs.c \
     newrpl/lib-30-complex.c \
     newrpl/lib-50-lists.c \
-    newrpl/lib-64-precision.c \
+    newrpl/lib-64-arithmetic.c \
     newrpl/lib-66-transcendentals.c \
     newrpl/lib-68-flags.c \
     newrpl/lib-70-binary.c \

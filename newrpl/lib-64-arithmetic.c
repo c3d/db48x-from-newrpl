@@ -15,6 +15,7 @@
 #define LIB_ENUM lib64_enum
 #define LIB_NAMES lib64_names
 #define LIB_HANDLER lib64_handler
+#define LIB_TOKENINFO lib64_tokeninfo
 #define LIB_NUMBEROFCMDS LIB64_NUMBEROFCMDS
 
 // LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
@@ -23,37 +24,107 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
-    CMD(SETPREC), \
-    CMD(GETPREC), \
-    CMD(FLOOR), \
-    CMD(CEIL), \
-    CMD(IP), \
-    CMD(FP)
+    CMD(SETPREC,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(GETPREC,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FLOOR,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
+    CMD(CEIL,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(IP,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
+    CMD(FP,MKTOKENINFO(2,TITYPE_FUNCTION,1,2))
 
 // ADD MORE OPCODES HERE
 
 
 // EXTRA LIST FOR COMMANDS WITH SYMBOLS THAT ARE DISALLOWED IN AN ENUM
 // THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
-/*#define CMD_EXTRANAME \
-    "VOID",
+#define CMD_EXTRANAME \
+    "!",
 
 #define CMD_EXTRAENUM \
-    VOID
-*/
+    FACTORIAL
+
+#define CMD_EXTRAINFO \
+    MKTOKENINFO(1,TITYPE_POSTFIXOP,1,3)
+
 
 // INTERNAL DECLARATIONS
 
 
 // CREATE AN ENUM WITH THE OPCODE NAMES FOR THE DISPATCHER
-#define CMD(a) a
-enum LIB_ENUM { CMD_LIST /*, CMD_EXTRAENUM */, LIB_NUMBEROFCMDS };
+#define CMD(a,b) a
+enum LIB_ENUM { CMD_LIST , CMD_EXTRAENUM , LIB_NUMBEROFCMDS };
 #undef CMD
 
 // AND A LIST OF STRINGS WITH THE NAMES FOR THE COMPILER
-#define CMD(a) #a
-const char * const LIB_NAMES[]= { CMD_LIST /*, CMD_EXTRANAME*/ };
+#define CMD(a,b) #a
+const char * const LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME };
 #undef CMD
+
+#define CMD(a,b) b
+const BINT const LIB_TOKENINFO[]=
+{
+        CMD_LIST ,
+        CMD_EXTRAINFO
+};
+#undef CMD
+
+
+// EITHER RETURN THE FACTORIAL AS A BINT64 WHEN THE NUMBER IS SMALL ENOUGH
+// OR RETURN THE FACTORIAL ON RReg[0], WHEN THE NUMBER GROWS OUT OF RANGE
+// THE RETURN VALUE IS EITHER -1 OR THE ACTUAL FACTORIAL
+
+static BINT64 multiply(BINT n,BINT m,BINT regnum)
+{
+    if(n==m) return n;
+    if(m<n) return 1;
+    BINT64 left=multiply(n,(n+m)/2,regnum);
+    if(Exceptions) return -1;
+
+    if(left<0) rplNewRealFromRRegPush(regnum);
+
+    BINT64 right=multiply((n+m)/2+1,m,regnum);
+    if(Exceptions) {
+        if(left<0) rplDropData(1);
+        return -1;
+    }
+
+    if(left>=0) {
+        if(right>=0) {
+            if(!((left>>32)|(right>>32))) return left*right;
+            newRealFromBINT64(&RReg[regnum],right);
+        }
+        newRealFromBINT64(&RReg[regnum+1],left);
+        mulReal(&RReg[regnum],&RReg[regnum],&RReg[regnum+1]);
+        return -1;
+    }
+        REAL *leftnum;
+        rplReadReal(rplPeekData(1),&leftnum);
+        if(right>=0) newRealFromBINT64(&RReg[regnum],right);
+        mulReal(&RReg[regnum],&RReg[regnum],&leftnum);
+        rplDropData(1);
+        return -1;
+}
+
+
+
+BINT64 rplFastFactorial(BINT n)
+{
+    return multiply(1,n,0);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 void LIB_HANDLER()
@@ -168,7 +239,53 @@ void LIB_HANDLER()
     return;
     }
 
+    case FACTORIAL:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
 
+            return;
+        }
+        WORDPTR arg=rplPeekData(1);
+
+        if(ISSYMBOLIC(*arg)||ISIDENT(*arg)) {
+         rplSymbApplyOperator(MKOPCODE(LIBRARY_NUMBER,FACTORIAL),1);
+         return;
+        }
+
+        if(!ISNUMBER(*arg)) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+        REAL rnum;
+        rplReadNumberAsReal(arg,&rnum);
+        if(Exceptions) return;
+        if(!isintegerReal(&rnum)) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+        if(rnum.flags&F_NEGATIVE) {
+            rplError(ERR_ARGOUTSIDEDOMAIN);
+            return;
+        }
+
+        if(!inBINTRange(&rnum)) {
+            rplError(ERR_NUMBERTOOBIG);
+            return;
+        }
+        // DIVIDE AND CONQUER ALGORITHM
+
+        BINT n=(BINT)rplReadNumberAsBINT(arg);
+
+        BINT64 result=rplFastFactorial(n);
+        if(Exceptions) return;
+
+        rplDropData(1);
+        if(result<0) rplNewRealFromRRegPush(0);
+        else rplNewBINTPush(result,DECBINT);
+        return;
+
+    }
     // ADD MORE OPCODES HERE
 
    // STANDARIZED OPCODES:
@@ -251,6 +368,30 @@ void LIB_HANDLER()
         RetNum=OK_CONTINUE;
         return;
 
+    case OPCODE_PROBETOKEN:
+        // PROBETOKEN FINDS A VALID WORD AT THE BEGINNING OF THE GIVEN TOKEN AND RETURNS
+        // INFORMATION ABOUT IT. THIS OPCODE IS MANDATORY
+
+        // COMPILE RECEIVES:
+        // TokenStart = token string
+        // TokenLen = token length
+        // BlankStart = token blanks afterwards
+        // BlanksLen = blanks length
+        // CurrentConstruct = Opcode of current construct/WORD of current composite
+
+        // COMPILE RETURNS:
+        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
+        {
+        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+
+        return;
+        }
+
+
+    case OPCODE_GETINFO:
+        libGetInfo2(*DecompileObject,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+        return;
 
 
     case OPCODE_LIBINSTALL:
