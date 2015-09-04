@@ -635,6 +635,9 @@ void trig_sincos(REAL *angle, BINT angmode)
             rplZeroToRReg(7);
             rplOneToRReg(6);
             if(isoddReal(&RReg[1])) RReg[6].flags|=F_NEGATIVE;
+            // RESTORE PREVIOUS PRECISION
+            Context.precdigits=savedprec;
+
             return;
         }
         RReg[2].data[0]>>=1; // 90 OR 100 DEGREES
@@ -646,6 +649,10 @@ void trig_sincos(REAL *angle, BINT angmode)
             rplOneToRReg(7);
             RReg[7].flags|=RReg[2].flags&F_NEGATIVE;
             if(isoddReal(&RReg[1])) RReg[7].flags^=F_NEGATIVE;
+
+            // RESTORE PREVIOUS PRECISION
+            Context.precdigits=savedprec;
+
 
             return;
         }
@@ -867,8 +874,6 @@ int negx=x0->flags&F_NEGATIVE;
 int negy=y0->flags&F_NEGATIVE;
 int swap=0;
 
-// ALWAYS: NEED TO WORK ON PRECISION MULTIPLE OF 9
-Context.precdigits+=8;
 
 // HANDLE SOME SPECIAL CASES FIRST
 if(iszeroReal(x0) || isinfiniteReal(y0)) {
@@ -945,6 +950,8 @@ if(iszeroReal(y0) || isinfiniteReal(x0)) {
 }
 
 
+// ALWAYS: NEED TO WORK ON PRECISION MULTIPLE OF 8
+Context.precdigits+=8;
 
 
 x0->flags^=negx;
