@@ -2280,6 +2280,14 @@ void newRealFromText(REAL *result,char *text,char *end,WORD chars)
             return;
         }
         else {
+            if(!digits) {
+                // TEXT ENDS IN LETTER 'E', NO DIGITS AFTERWARDS
+            result->len=0;
+            result->exp=0;
+            result->flags=F_ERROR;
+            return;
+            }
+
           // EXPONENT LETTER ACCEPTED
           result->exp=word;
           word=0;
@@ -2370,6 +2378,14 @@ void newRealFromText(REAL *result,char *text,char *end,WORD chars)
         return;
         }
         else {
+            if(!digits) {
+                // TEXT ENDS IN LETTER 'E', NO DIGITS AFTERWARDS
+            result->len=0;
+            result->exp=0;
+            result->flags=F_ERROR;
+            return;
+            }
+
       // EXPONENT LETTER ACCEPTED
       result->exp=word;
       word=0;
@@ -2408,6 +2424,16 @@ void newRealFromText(REAL *result,char *text,char *end,WORD chars)
     return;
 
     }
+
+    if(!digits) {
+        // TEXT HAD NO NUMERIC DIGITS??
+    result->len=0;
+    result->exp=0;
+    result->flags=F_ERROR;
+    return;
+    }
+
+
 
 result->data[(digits>>3)]=word;
 result->len=(digits+7)>>3;

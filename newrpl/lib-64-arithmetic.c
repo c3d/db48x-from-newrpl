@@ -89,18 +89,25 @@ static BINT64 multiply(BINT n,BINT m,BINT regnum)
 
     if(left>=0) {
         if(right>=0) {
-            if(!((left>>32)|(right>>32))) return left*right;
+            if(!(left>>31) && !(right>>31)) return left*right;
             newRealFromBINT64(&RReg[regnum],right);
         }
         newRealFromBINT64(&RReg[regnum+1],left);
         mulReal(&RReg[regnum],&RReg[regnum],&RReg[regnum+1]);
+        if(RReg[regnum].flags&(F_INFINITY|F_NOTANUMBER|F_OVERFLOW|F_ERROR)) {
+            rplError(ERR_NUMBERTOOBIG);
+        }
+
         return -1;
     }
-        REAL *leftnum;
+        REAL leftnum;
         rplReadReal(rplPeekData(1),&leftnum);
         if(right>=0) newRealFromBINT64(&RReg[regnum],right);
         mulReal(&RReg[regnum],&RReg[regnum],&leftnum);
         rplDropData(1);
+        if(RReg[regnum].flags&(F_INFINITY|F_NOTANUMBER|F_OVERFLOW|F_ERROR)) {
+            rplError(ERR_NUMBERTOOBIG);
+        }
         return -1;
 }
 

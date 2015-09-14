@@ -345,13 +345,13 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     ybottom=ytop+halScreen.Menu2-1;
     // DRAW BACKGROUND
-    ggl_cliprect(scr,0,ytop,64,ybottom,ggl_mkcolor(0x6));
-    ggl_clipvline(scr,21,ytop,ybottom,0);
-    ggl_clipvline(scr,43,ytop,ybottom,0);
-    ggl_clipvline(scr,65,ytop,ybottom,0);
+    ggl_cliprect(scr,0,ytop-1,64,ybottom,0);
+    ggl_clipvline(scr,21,ytop-1,ybottom,ggl_mkcolor(0x8));
+    ggl_clipvline(scr,43,ytop-1,ybottom,ggl_mkcolor(0x8));
+    ggl_clipvline(scr,65,ytop-1,ybottom,ggl_mkcolor(0x8));
 //    ggl_clipvline(scr,87,ytop,ybottom,0);
 //    ggl_clipvline(scr,109,ytop,ybottom,0);
-    ggl_cliphline(scr,ytop+6,0,64,0);
+    ggl_cliphline(scr,ytop+6,0,64,ggl_mkcolor(0x8));
 
     // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
 

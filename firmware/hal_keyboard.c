@@ -400,7 +400,7 @@ void varsKeyHandler(BINT keymsg,BINT varnum)
         if(halGetContext()==CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
 
-                BINT nvars=rplGetVarCount();
+                BINT nvars=rplGetVisibleVarCount();
                 BINT idx=halScreen.Menu2Page+varnum;
                 if((nvars>6)&&(varnum==5)) {
                     // THIS IS THE NXT KEY
@@ -445,7 +445,7 @@ void varsKeyHandler(BINT keymsg,BINT varnum)
     }
     else {
         // ACTION INSIDE THE EDITOR
-        BINT nvars=rplGetVarCount();
+        BINT nvars=rplGetVisibleVarCount();
         BINT idx=halScreen.Menu2Page+varnum;
         if((nvars>6)&&(varnum==5)) {
             // THIS IS THE NXT KEY
