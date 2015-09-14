@@ -72,53 +72,33 @@ const BINT const LIB_TOKENINFO[]=
 // OR RETURN THE FACTORIAL ON RReg[0], WHEN THE NUMBER GROWS OUT OF RANGE
 // THE RETURN VALUE IS EITHER -1 OR THE ACTUAL FACTORIAL
 
-static BINT64 multiply(BINT n,BINT m,BINT regnum)
+BINT64 rplFactorial(BINT n)
 {
-    if(n==m) return n;
-    if(m<n) return 1;
-    BINT64 left=multiply(n,(n+m)/2,regnum);
-    if(Exceptions) return -1;
+    BINT64 result=1;
+    BINT k;
 
-    if(left<0) rplNewRealFromRRegPush(regnum);
+    for(k=2;(k<=n)&&(k<=20);++k) result=result*k;
+    if(k>n) return result;
 
-    BINT64 right=multiply((n+m)/2+1,m,regnum);
-    if(Exceptions) {
-        if(left<0) rplDropData(1);
-        return -1;
+    Context.precdigits+=8;
+    newRealFromBINT64(&RReg[0],result);
+
+    for(;k<=n;++k) {
+            newRealFromBINT(&RReg[1],k);
+            mulReal(&RReg[0],&RReg[0],&RReg[1]);
+            if(RReg[0].flags&(F_INFINITY|F_NOTANUMBER|F_OVERFLOW|F_ERROR)) {
+                rplError(ERR_NUMBERTOOBIG);
+                Context.precdigits-=8;
+                return -1;
+            }
+
     }
+    Context.precdigits-=8;
 
-    if(left>=0) {
-        if(right>=0) {
-            if(!(left>>31) && !(right>>31)) return left*right;
-            newRealFromBINT64(&RReg[regnum],right);
-        }
-        newRealFromBINT64(&RReg[regnum+1],left);
-        mulReal(&RReg[regnum],&RReg[regnum],&RReg[regnum+1]);
-        if(RReg[regnum].flags&(F_INFINITY|F_NOTANUMBER|F_OVERFLOW|F_ERROR)) {
-            rplError(ERR_NUMBERTOOBIG);
-        }
+    round_real(&RReg[0],Context.precdigits,0);
 
-        return -1;
-    }
-        REAL leftnum;
-        rplReadReal(rplPeekData(1),&leftnum);
-        if(right>=0) newRealFromBINT64(&RReg[regnum],right);
-        mulReal(&RReg[regnum],&RReg[regnum],&leftnum);
-        rplDropData(1);
-        if(RReg[regnum].flags&(F_INFINITY|F_NOTANUMBER|F_OVERFLOW|F_ERROR)) {
-            rplError(ERR_NUMBERTOOBIG);
-        }
-        return -1;
+    return -1;
 }
-
-
-
-BINT64 rplFastFactorial(BINT n)
-{
-    return multiply(1,n,0);
-}
-
-
 
 
 
@@ -280,11 +260,10 @@ void LIB_HANDLER()
             rplError(ERR_NUMBERTOOBIG);
             return;
         }
-        // DIVIDE AND CONQUER ALGORITHM
 
         BINT n=(BINT)rplReadNumberAsBINT(arg);
 
-        BINT64 result=rplFastFactorial(n);
+        BINT64 result=rplFactorial(n);
         if(Exceptions) return;
 
         rplDropData(1);
