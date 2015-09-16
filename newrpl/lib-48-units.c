@@ -135,13 +135,115 @@ void LIB_HANDLER()
         if(CurrentConstruct==MKPROLOG(LIBRARY_NUMBER,0)) {
             // THE NUMBER WAS COMPILED PROPERLY, NOW ADD THE UNIT ITSELF
 
+            // START COMPILING THE UNIT EXPRESSION
+
+            // ONLY ALLOWS IDENTIFIERS, * AND / OPERATIONS BETWEEN THEM
+            // ALSO ALLOWS ^ BUT ONLY WITH REAL EXPONENTS
+            // PARENTHESIS ARE SUPPORTED BUT REMOVED AT COMPILE TIME s^2/(Kg*m) --> s^2*Kg^-1*m^-1
+            // MAXIMUM 8 LEVELS SUPPORTED
+
+            BYTEPTR *nextptr;
+            BINT expisreal=0;
+            BINT count=0;
+            BINT exponent=1,negexp=0,needident=0;
+            BINT groupoff[8];
+            BINT groupidx=0;
+
+            nextptr=ptr+1;
+
+            needident=1;
+
+            while(count<(BINT)TokenLen-1) {
+                if(needident) {
+
+                // HANDLE THE SPECIAL CASE OF A PARENTHESIS
+
+                if(*nextptr=='(') {
+                    // SET THE EXPONENT FOR ALL IDENTS
+                    if(negexp) {
+                        exponent=-exponent;
+                        negexp=0;
+                    }
+                    // OPEN A NEW GROUP
+                    groupoff[groupidx]=CompileEnd-*(ValidateTop-1); // STORE THE OFFSET OF THE CURRENT OBJECT
+                    ++groupidx;
+                    if(groupidx>=8) {
+                        // NO MORE THAN 8 NESTED LEVELS ALLOWED
+                        RetNum=ERR_SYNTAX;
+                        return;
+                    }
+                    ++nextptr;
+                    ++count;
+                    continue;
+                }
 
 
+                // GET THE NEXT IDENT
+
+
+                }
+                else {
+                    // NOT LOOKING FOR AN IDENTIFIER
+                if(*nextptr==')') {
+
+
+                    if(*(nextptr+1)=='^') {
+                        // TODO: HANDLE SPECIAL CASE OF A GROUP TO AN EXPONENT
+
+
+
+
+                    }
+
+                    // END OF A GROUP
+                    if(!groupidx) {
+                        RetNum=ERR_SYNTAX;
+                        return;
+                    }
+
+                    --groupidx;
+                    ++nextptr;
+                    ++count;
+                    continue;
+                }
+
+                if(*nextptr=='*') {
+                    // NOTHING TO DO ON MULTIPLICATION
+                   ++nextptr;
+                    ++count;
+                    continue;
+                }
+                if(*nextptr=='/') {
+                    // NEGATE THE EXPONENT FOR THE NEXT IDENT
+                    negexp^=1;
+                    ++nextptr;
+                    ++count;
+                    continue;
+                }
+
+                if(*nextptr=='^') {
+
+
+                }
+
+                // AT THIS POINT ANYTHING ELSE IS A SYNTAX ERROR
+                RetNum=ERR_SYNTAX;
+                return;
+
+                }
+            }   // END WHILE
+
+            // HERE WE SHOULD HAVE A UNIT OBJECT PROPERLY COMPILED!
+
+            RetNum=OK_ENDCONSTRUCT;
+            return;
         }
+        // IF  WE ARE NOT IN A UNIT CONSTRUCT, IT'S SYNTAX ERROR
             RetNum=ERR_SYNTAX;
             return;
         }
 
+        // DOESN'T START WITH '_'
         // FIRST LOOK FOR THE PRESENCE OF THE '_' SEPARATOR INSIDE THE TOKEN
 
         int f;
@@ -169,6 +271,7 @@ void LIB_HANDLER()
 
         libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
      return;
+
     case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
