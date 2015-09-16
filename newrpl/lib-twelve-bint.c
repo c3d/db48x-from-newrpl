@@ -67,28 +67,28 @@ const UBINT64 const powersof10[20]={
 
 
 // INTERNAL SINT OBJECTS
-const WORD const zero_bint[]=
+ROMOBJECT zero_bint[]=
 {
     (WORD)MAKESINT(0)
 };
 
-const WORD const one_bint[]=
+ROMOBJECT one_bint[]=
 {
     (WORD)MAKESINT(1)
 };
 
-const WORD const minusone_bint[]=
+ROMOBJECT minusone_bint[]=
 {
     (WORD)MAKESINT(-1)
 };
 
 
-const WORD const two_bint[]=
+ROMOBJECT two_bint[]=
 {
     (WORD)MAKESINT(2)
 };
 
-const WORD const three_bint[]=
+ROMOBJECT three_bint[]=
 {
     (WORD)MAKESINT(3)
 };
@@ -167,6 +167,21 @@ WORDPTR rplWriteBINT(BINT64 num,int base,WORDPTR dest)
         return dest+3;
     }
 
+}
+
+
+// WRITE AN INTEGER TO THE GIVEN DESTINATION. RETURN A POINTER AFTER THE LAST WRITTEN WORD
+void rplCompileBINT(BINT64 num,int base)
+{
+
+    if((num>=MIN_SINT)&&(num<=MAX_SINT)) {
+        rplCompileAppend(MKOPCODE(base,num&0x3ffff));
+    }
+    else {
+        rplCompileAppend(MKPROLOG(base,2));
+        rplCompileAppend((WORD)(num&0xffffffff));      // CAREFUL: THIS IS FOR LITTLE ENDIAN SYSTEMS ONLY!
+        rplCompileAppend((WORD)( (num>>32)&0xffffffff));
+    }
 }
 
 

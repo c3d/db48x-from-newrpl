@@ -75,25 +75,25 @@ const BINT const LIB_TOKENINFO[]=
 
 
 
-const WORD const dotsettings_ident[]= {
+ROMOBJECT dotsettings_ident[]= {
         MKPROLOG(DOIDENTHIDDEN,3),
         TEXT2WORD('.','S','e','t'),
         TEXT2WORD('t','i','n','g'),
         TEXT2WORD('s',0,0,0)
 };
-const WORD const flags_ident[]= {
+ROMOBJECT flags_ident[]= {
         MKPROLOG(DOIDENT,2),
         TEXT2WORD('F','l','a','g'),
         TEXT2WORD('s',0,0,0)
 };
 
-const WORD const locale_ident[]= {
+ROMOBJECT locale_ident[]= {
         MKPROLOG(DOIDENT,2),
         TEXT2WORD('L','o','c','a'),
         TEXT2WORD('l','e',0,0)
 };
 
-const WORD const numfmt_ident[]= {
+ROMOBJECT numfmt_ident[]= {
         MKPROLOG(DOIDENT,2),
         TEXT2WORD('N','u','m','F'),
         TEXT2WORD('m','t',0,0)

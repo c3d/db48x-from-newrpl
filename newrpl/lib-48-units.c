@@ -76,7 +76,7 @@ const BINT const LIB_TOKENINFO[]=
 };
 
 // LIST OF ALL KNOWN SYSTEM UNIT OBJECTS
-const WORD const system_units[]={
+ROMOBJECT system_units[]={
 
     // 'm'
     MKPROLOG(DOIDENT,1),
@@ -89,6 +89,27 @@ const WORD const system_units[]={
 const WORDPTR const ROMPTR_TABLE[]={
      0
 };
+
+
+// RETURN A POINTER TO THE END OF THE NEXT UNIT IDENTIFIER
+// SEPARATOR SYMBOLS ALLOWED ARE ( ) * / ^
+
+BYTEPTR rplNextUnitToken(BYTEPTR start,BYTEPTR end)
+{
+    while(start<end) {
+        if((*start=='*')||(*start=='/')||(*start=='^')||(*start=='(')||(*start==')')) break;
+        start=(BYTEPTR)utf8skip((char *)start,(char *)end);
+    }
+    return start;
+}
+
+
+
+
+
+
+
+
 
 
 
@@ -142,10 +163,10 @@ void LIB_HANDLER()
             // PARENTHESIS ARE SUPPORTED BUT REMOVED AT COMPILE TIME s^2/(Kg*m) --> s^2*Kg^-1*m^-1
             // MAXIMUM 8 LEVELS SUPPORTED
 
-            BYTEPTR *nextptr;
+            BYTEPTR nextptr;
             BINT expisreal=0;
             BINT count=0;
-            BINT exponent=1,negexp=0,needident=0;
+            BINT exponent=1,negexp=0,needident=0,needexp=0;
             BINT groupoff[8];
             BINT groupidx=0;
 
@@ -179,7 +200,34 @@ void LIB_HANDLER()
 
 
                 // GET THE NEXT IDENT
+                BYTEPTR nameend=rplNextUnitToken(nextptr,(BYTEPTR)BlankStart);
 
+                if(nameend<=nextptr) {
+                    RetNum=ERR_SYNTAX;
+                    return;
+                }
+
+                if(!rplIsValidIdent(nextptr,nameend)) {
+                    RetNum=ERR_SYNTAX;
+                    return;
+                }
+
+                BINT nletters=utf8nlen((char *)nextptr,(char *)nameend);
+                // COMPILE THE IDENT
+
+                rplCompileIDENT(DOIDENT,nextptr,nameend);
+                if(Exceptions) {
+                RetNum=ERR_INVALID;
+                return;
+                }
+
+
+                // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
+                nextptr=(BYTEPTR)utf8nskip(((char *)TokenStart)+1,(char *)BlankStart,count)+(nameend-nextptr);
+
+                count+=nletters;
+                needexp=1;
+                needident=0;
 
                 }
                 else {
@@ -208,21 +256,96 @@ void LIB_HANDLER()
                 }
 
                 if(*nextptr=='*') {
+                    if(needexp) {
+                        BINT finalexp=(negexp)? -exponent:exponent;
+                        rplCompileAppend(MAKESINT(finalexp));
+                        // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
+                        nextptr=(BYTEPTR)utf8nskip(((char *)TokenStart)+1,(char *)BlankStart,count);
+                        needexp=0;
+                    }
+
+
                     // NOTHING TO DO ON MULTIPLICATION
+                   needident=1;
                    ++nextptr;
                     ++count;
                     continue;
                 }
                 if(*nextptr=='/') {
+                    if(needexp) {
+                        BINT finalexp=(negexp)? -exponent:exponent;
+                        rplCompileAppend(MAKESINT(finalexp));
+                        // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
+                        nextptr=(BYTEPTR)utf8nskip(((char *)TokenStart)+1,(char *)BlankStart,count);
+                        needexp=0;
+                    }
+
                     // NEGATE THE EXPONENT FOR THE NEXT IDENT
                     negexp^=1;
+                    needident=1;
                     ++nextptr;
                     ++count;
                     continue;
                 }
 
                 if(*nextptr=='^') {
+                    // ONLY A REAL NUMBER SUPPORTED AS EXPONENT
+                    // GET THE NEXT TOKEN
+                    nextptr++;
+                    BYTEPTR numend=rplNextUnitToken(nextptr,(BYTEPTR)BlankStart);
 
+                    if(numend<=nextptr) {
+                        RetNum=ERR_SYNTAX;
+                        return;
+                    }
+
+                    newRealFromText(&RReg[0],nextptr,numend,rplGetSystemLocale());
+
+                    if(RReg[0].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
+                        // BAD EXPONENT!
+                        RetNum=ERR_SYNTAX;
+                        return;
+                    }
+
+
+                    BINT nletters=utf8nlen((char *)nextptr,(char *)numend);
+
+
+                    if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
+                        // EXPONENT IS AN INTEGER
+                        BINT64 finalexp=getBINT64Real(&RReg[0]);
+                        finalexp*=exponent;
+                        if(negexp) finalexp=-finalexp;
+
+                        // COMPILE AS A BINT OR A SINT
+                        rplCompileBINT(finalexp,DECBINT);
+                        if(Exceptions) {
+                        RetNum=ERR_INVALID;
+                        return;
+                        }
+
+                    }
+                    else {
+                        // EXPONENT WILL HAVE TO BE A REAL
+                        BINT sign=(negexp)? -exponent:exponent;
+
+                        if(sign<0) RReg[0].flags^=F_NEGATIVE;
+
+                        rplCompileReal(&RReg[0]);
+                        if(Exceptions) {
+                        RetNum=ERR_INVALID;
+                        return;
+                        }
+
+
+                    }
+
+
+                    count+=1+nletters;
+                    // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
+                    nextptr=(BYTEPTR)utf8nskip(((char *)TokenStart)+1,(char *)BlankStart,count);
+                    needexp=0;
+                    continue;
 
                 }
 
@@ -232,6 +355,11 @@ void LIB_HANDLER()
 
                 }
             }   // END WHILE
+
+            if(needexp) {
+                BINT finalexp=(negexp)? -exponent:exponent;
+                rplCompileAppend(MAKESINT(finalexp));
+            }
 
             // HERE WE SHOULD HAVE A UNIT OBJECT PROPERLY COMPILED!
 
@@ -260,17 +388,14 @@ void LIB_HANDLER()
             return;
         }
 
-        // THERE IS A '_', NOW SPLIT THE TOKEN
+        // THERE IS A '_', NOW SPLIT THE TOKEN AND START A PROLOG OF A UNIT
+        rplCompileAppend(MKPROLOG(LIBRARY_NUMBER,0));
 
         BlankStart=NextTokenStart=(WORDPTR)utf8nskip((char * )TokenStart,(char *)BlankStart,f);
         RetNum=OK_STARTCONSTRUCT_SPLITTOKEN;
+        return;
     }
 
-            // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
-            // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
-
-        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
-     return;
 
     case OPCODE_DECOMPEDIT:
 

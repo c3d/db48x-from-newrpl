@@ -72,19 +72,19 @@ const char * const LIB_NAMES[]= { CMD_LIST /*, CMD_EXTRANAME*/  };
 #undef CMD
 
 
-const WORD const dir_start_bint[]=
+ROMOBJECT dir_start_bint[]=
 {
     (WORD)DIR_START_MARKER
 };
-const WORD const dir_end_bint[]=
+ROMOBJECT dir_end_bint[]=
 {
     (WORD)DIR_END_MARKER
 };
-const WORD const dir_parent_bint[]=
+ROMOBJECT dir_parent_bint[]=
 {
     (WORD)DIR_PARENT_MARKER
 };
-const WORD const root_dir_handle[]=
+ROMOBJECT root_dir_handle[]=
 {
     (WORD)MKPROLOG(DODIR,1),
     (WORD)0

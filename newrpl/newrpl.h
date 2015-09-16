@@ -349,6 +349,8 @@ extern void rplNewSINTPush(int num,int base);
 extern void rplNewBINTPush(BINT64 num,int base);
 extern BINT64 rplReadBINT(WORDPTR ptr);
 extern WORDPTR rplWriteBINT(BINT64 num,int base,WORDPTR dest);
+extern void rplCompileBINT(BINT64 num,int base);
+
 
 // TRUE/FALSE FUNCTIONS
 extern void rplPushFalse();

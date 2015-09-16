@@ -138,7 +138,7 @@ const char * const LIB_NAMES[]= { CMD_EXTRANAME , CMD_LIST  };
 #undef CMD
 
 
-const WORD const dolist_seco[]={
+ROMOBJECT dolist_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,DOLISTPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
@@ -147,7 +147,7 @@ const WORD const dolist_seco[]={
     CMD_SEMI
 };
 
-const WORD const dosubs_seco[]={
+ROMOBJECT dosubs_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,DOSUBSPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
@@ -156,7 +156,7 @@ const WORD const dosubs_seco[]={
     CMD_SEMI
 };
 
-const WORD const map_seco[]={
+ROMOBJECT map_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,MAPPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
@@ -165,7 +165,7 @@ const WORD const map_seco[]={
     CMD_SEMI
 };
 
-const WORD const stream_seco[]={
+ROMOBJECT stream_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,STREAMPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
@@ -175,19 +175,19 @@ const WORD const stream_seco[]={
 };
 
 
-const WORD const nsub_name[]={
+ROMOBJECT nsub_name[]={
     MKPROLOG(DOIDENT,1),
     (WORD)('N' | ('S'<<8) | ('U'<<16) | ('B'<<24))
 };
 
-const WORD const endsub_name[]={
+ROMOBJECT endsub_name[]={
     MKPROLOG(DOIDENT,2),
     (WORD)('E' | ('N'<<8) | ('D'<<16) | ('S'<<24)),
     (WORD)('U' | ('B'<<8))
 
 };
 
-const WORD const unary_seco[]={
+ROMOBJECT unary_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,UNARYPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
@@ -196,7 +196,7 @@ const WORD const unary_seco[]={
     CMD_SEMI
 };
 
-const WORD const binary_seco[]={
+ROMOBJECT binary_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,BINARYPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
@@ -205,7 +205,7 @@ const WORD const binary_seco[]={
     CMD_SEMI
 };
 
-const WORD const testop_seco[]={
+ROMOBJECT testop_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,TESTPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
@@ -216,7 +216,7 @@ const WORD const testop_seco[]={
 
 
 
-const WORD const oplist_seco[]={
+ROMOBJECT oplist_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,OPLISTPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
@@ -225,7 +225,7 @@ const WORD const oplist_seco[]={
     CMD_SEMI
 };
 
-const WORD const deltalist_seco[]={
+ROMOBJECT deltalist_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,DELTAPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
@@ -235,7 +235,7 @@ const WORD const deltalist_seco[]={
 };
 
 
-const WORD const empty_list[]={
+ROMOBJECT empty_list[]={
     MKPROLOG(DOLIST,1),
     MKOPCODE(DOLIST,ENDLIST)
 };

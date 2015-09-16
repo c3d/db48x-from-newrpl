@@ -1,8 +1,8 @@
  
 #include <stdio.h>
-//#include <libelf.h>
+#include <libelf.h>
 // THIS IS TEMPORARY TO AVOID A VERSION CONFLICT BETWEEN GNU LIBELF AND BSD LIBELF ON FREEBSD
-#include </usr/local/include/libelf/libelf.h>
+//#include </usr/local/include/libelf/libelf.h>
 #ifdef __GNUC__
 #include <unistd.h>
 #ifndef O_BINARY

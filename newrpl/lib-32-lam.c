@@ -89,7 +89,7 @@ const char * const LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME  };
 extern const WORD const symbeval_seco[];
 extern const WORD const symbnum_seco[];
 
-const WORD const lameval_seco[]={
+ROMOBJECT lameval_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,EVALPRE),
     MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
@@ -98,7 +98,7 @@ const WORD const lameval_seco[]={
     CMD_SEMI
 };
 
-const WORD const lamnum_seco[]={
+ROMOBJECT lamnum_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,EVALPRE),
     MKOPCODE(LIB_OVERLOADABLE,OVR_NUM),    // DO THE EVAL
@@ -110,7 +110,7 @@ const WORD const lamnum_seco[]={
 
 
 // INTERNAL RPL PROGRAM THAT CALLS ABND
-const WORD const abnd_prog[]=
+ROMOBJECT abnd_prog[]=
 {
     (WORD)MKOPCODE(LIBRARY_NUMBER,ABND),  // JUST A WORD THAT WILL BE SKIPPED BY THE COMPILER
     (WORD)MKOPCODE(LIBRARY_NUMBER,ABND)   // THIS IS THE WORD THAT WILL BE EXECUTED
@@ -118,19 +118,19 @@ const WORD const abnd_prog[]=
 };
 
 // INTERNAL SINT OBJECTS
-const WORD const lam_baseseco_bint[]=
+ROMOBJECT lam_baseseco_bint[]=
 {
     (WORD)LAM_BASESECO
 };
 
 // INTERNAL SINT OBJECTS
-const WORD const lam_errhandler_bint[]=
+ROMOBJECT lam_errhandler_bint[]=
 {
     (WORD)LAM_ERRHANDLER
 };
 
 // INTERNAL NULLLAM IDENT OBJECTS
-const WORD const nulllam_ident[]=
+ROMOBJECT nulllam_ident[]=
 {
     (WORD)MKOPCODE(LIBRARY_NUMBER,NULLLAM)
 };

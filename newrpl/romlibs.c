@@ -23,6 +23,7 @@ extern void lib30_handler();
 
 extern void lib32_handler();
 
+extern void lib48_handler();
 
 extern void lib50_handler();
 
@@ -97,6 +98,9 @@ const LIBHANDLER const ROMLibs[]={
 
     // LIB 32 THRU 47 ARE IDENTS
     lib32_handler,
+
+    // UNITS
+    lib48_handler,
 
     // LISTS
     lib50_handler,     // THIS IS LIB 50

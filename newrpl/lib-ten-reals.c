@@ -198,6 +198,52 @@ WORDPTR rplRRegToRealInPlace(int num,WORDPTR dest)
 }
 
 
+// STORE A REAL ON THE COMPILER OUTPUT STREAM
+void rplCompileReal(REAL *num)
+{
+
+    REAL_HEADER real;
+    BINT correction;
+
+    // REMOVE ALL TRAILING ZEROES
+    correction=0;
+    while(correction<num->len-1)
+    {
+        if(num->data[correction]!=0) break;
+        ++correction;
+    }
+
+
+    // WRITE THE PROLOG
+    rplCompileAppend(MKPROLOG((num->flags&F_APPROX)? APPROX_BIT | LIBRARY_NUMBER : LIBRARY_NUMBER,1+num->len-correction));
+    // PACK THE INFORMATION
+    real.flags=num->flags&0xf;
+    real.len=num->len-correction;
+    real.exp=num->exp+correction*8;
+    // STORE THE PACKED EXPONENT WORD
+    rplCompileAppend(real.word);
+
+    BINT count;
+    for(count=0;count<num->len-correction;++count) {
+        rplCompileAppend(num->data[count+correction]);      // STORE ALL THE MANTISSA WORDS
+        if(Exceptions) return;
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // CHECKS THE RESULT AND ISSUE ERRORS/EXCEPTIONS AS NEEDED
 void rplCheckResultAndError(REAL *real)
 {

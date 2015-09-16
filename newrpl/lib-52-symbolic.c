@@ -83,7 +83,7 @@ enum LIB_ENUM { CMD_EXTRAENUM , CMD_LIST ,  LIB_NUMBEROFCMDS };
 const char * const LIB_NAMES[]= { CMD_EXTRANAME, CMD_LIST   };
 #undef CMD
 
-const WORD const symbeval_seco[]={
+ROMOBJECT symbeval_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,EVALPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
@@ -93,7 +93,7 @@ const WORD const symbeval_seco[]={
     CMD_SEMI
 };
 
-const WORD const symbeval1_seco[]={
+ROMOBJECT symbeval1_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,EVAL1PRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1),    // DO THE EVAL
@@ -103,7 +103,7 @@ const WORD const symbeval1_seco[]={
     CMD_SEMI
 };
 
-const WORD const symbnum_seco[]={
+ROMOBJECT symbnum_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,NUMPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     MKOPCODE(LIB_OVERLOADABLE,OVR_NUM),    // DO THE EVAL

@@ -79,7 +79,7 @@ const char * const LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME  };
 #undef CMD
 
 
-const WORD const unprotect_seco[]={
+ROMOBJECT unprotect_seco[]={
     MKPROLOG(DOCOL,2),
     MKOPCODE(LIBRARY_NUMBER,UNPROTECTSTACK),
     CMD_SEMI
