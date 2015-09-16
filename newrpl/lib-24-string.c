@@ -71,8 +71,7 @@ const char * const LIB_NAMES[]= { CMD_LIST , CMD_EXTRANAME  };
 // GET THE LENGTH OF A STRING FROM ITS PROLOG
 #define STRLEN(prolog) ((OBJSIZE(prolog)<<2)-(LIBNUM(prolog)&3))
 
-
-const WORD const empty_string[]={
+ROMOBJECT empty_string[] = {
     MKPROLOG(DOSTRING,0)
 };
 

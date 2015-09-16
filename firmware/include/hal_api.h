@@ -1157,6 +1157,8 @@ void halInitKeyboard();
 #define __DATAORDER3__ __attribute__((section (".data_3")))
 #define __DATAORDERLAST__ __attribute__((section (".data_last")))
 #define __SCRATCH_MEMORY__ __attribute__((section (".scratch_memory")))
+#define __ROMOBJECT__ __attribute__((section (".romobjects")))
+#define __ROMLINK__  __attribute__((section (".romlink")))
 
 
 // REDEFINE SOME CONSTANTS FOR THE PC EMULATOR TARGET

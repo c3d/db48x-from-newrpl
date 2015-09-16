@@ -38,4 +38,11 @@ extern char ExceptionScreen[8192];
 #undef __SCRATCH_MEMORY__
 #define __SCRATCH_MEMORY__
 
+#undef __ROMOBJECT__
+#define __ROMOBJECT__
+
+#undef __ROMLINK__
+#define __ROMLINK__
+
+
 #endif // TARGET_PC_H

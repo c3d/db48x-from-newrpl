@@ -220,7 +220,16 @@ dump_sections(FILE *out, Elf_file *elf_file)
 
             _copy_flag = 0;
             
-            if (!(strcmp(entry.name,".text") && strcmp(entry.name,".rodata") && strcmp(entry.name,".preamble") && strcmp(entry.name,".codepreamble")))
+            // THESE SECTIONS ARE SPECIFIC TO NEWRPL FIRMWARE
+
+
+            if (!( strcmp(entry.name,".text")
+                   && strcmp(entry.name,".rodata")
+                   && strcmp(entry.name,".preamble")
+                   && strcmp(entry.name,".codepreamble")
+                   && strcmp(entry.name,".romobjects")
+                   && strcmp(entry.name,".romlink")
+                   ))
             {
                 //create the binary files (word aligned)
                 text_size += entry.size;
