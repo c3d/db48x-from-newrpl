@@ -1258,11 +1258,11 @@ void LIB_HANDLER()
         }
         // CHECK IF THE TOKEN IS THE CLOSING BRACKET
 
-        if(((char * )TokenStart)[TokenLen-1]==']')
+        if(*utf8nskip((char * )TokenStart,(char *)BlankStart,TokenLen-1)==']')
         {
 
             if(TokenLen>1) {
-                BlankStart=NextTokenStart=(WORDPTR)(((char * )TokenStart)+TokenLen-1);
+                BlankStart=NextTokenStart=(WORDPTR)utf8nskip((char * )TokenStart,(char *)BlankStart,TokenLen-1);
                 RetNum=ERR_NOTMINE_SPLITTOKEN;
                 return;
             }

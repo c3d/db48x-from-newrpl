@@ -125,7 +125,44 @@ void LIB_HANDLER()
 
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
+    {
 
+        BYTEPTR ptr=(BYTEPTR)TokenStart;
+
+        if(*ptr=='_') {
+        // STARTS WITH THE UNIT, CHECK IF WE ARE IN A UNIT CONSTRUCT
+
+        if(CurrentConstruct==MKPROLOG(LIBRARY_NUMBER,0)) {
+            // THE NUMBER WAS COMPILED PROPERLY, NOW ADD THE UNIT ITSELF
+
+
+
+        }
+            RetNum=ERR_SYNTAX;
+            return;
+        }
+
+        // FIRST LOOK FOR THE PRESENCE OF THE '_' SEPARATOR INSIDE THE TOKEN
+
+        int f;
+
+        for(f=0;f<(int)TokenLen;++f)
+        {
+            if(*ptr=='_') break;
+            ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)BlankStart);
+        }
+
+        if(f==(int)TokenLen) {
+            // NOT FOUND, THIS IS NOT A UNIT
+            libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+            return;
+        }
+
+        // THERE IS A '_', NOW SPLIT THE TOKEN
+
+        BlankStart=NextTokenStart=(WORDPTR)utf8nskip((char * )TokenStart,(char *)BlankStart,f);
+        RetNum=OK_STARTCONSTRUCT_SPLITTOKEN;
+    }
 
             // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
             // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
