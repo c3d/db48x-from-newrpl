@@ -178,7 +178,7 @@ int halCheckMemoryMap()
     // CHECK INITIAL USED PAGES TO VERIFY IF VALID MMU MAP EXISTS
     while(virt<end) {
         if(mmutable[(virt-0x02000000)>>12]!=virt) {
-            throw_dbgexception("bad initial pages",__EX_CONT);
+            throw_dbgexception("Install will wipe out RAM",__EX_CONT|__EX_NOREG);
             return 0;   // MMU TABLE WAS CORRUPTED
         }
         virt+=0x1000;

@@ -63,6 +63,22 @@ SECTIONS
     KEEP (*(.init))
   } 
   .plt            : { *(.plt) }
+
+  /* STORE THE PREAMBLE FIRST */
+  .preamble ALIGN(4) : { *(.preamble) }
+  .codepreamble ALIGN(4) : { *(.codepreamble) }
+
+  /* THEN THE ROM EXPORTED OBJECTS */
+  .romobjects ALIGN(4) : { *(.romobjects) }
+
+  .=ALIGN(0x1000);      /* ALIGN ROM LINKAGE TABLES TO A FULL 4K PAGE */
+
+  /* THEN THE ROM LINK TABLES */
+  .romlink : { *(.romlink) }
+
+  .=ALIGN(0x1000);      /* ALIGN CODE TO A FULL 4K PAGE */
+
+  /* NOW THE REST OF THE CODE */
   .text           :
   {
     *(.text .stub .text.* .gnu.linkonce.t.*)

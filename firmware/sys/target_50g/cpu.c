@@ -335,6 +335,8 @@ void cpu_off_prepare()
     asm volatile ("mov r0,r0"); // USE NOPS AS BARRIER TO FORCE COMPILER TO RESPECT THE ORDER
 
     // SETUP ON KEY TO WAKE UP
+    // 01 01 01 01 01 01 01 10 =0x5556
+    //  7  6  5  4  3  2  1  0
     *HWREG(IO_REGS,0x50)=0x5556;   // ONLY ENABLE EINT0, ALL OTHERS OUTPUT
     *HWREG(IO_REGS,0x88)=4;   //    BOTH EDGE TRIGGERS EINT0
 
@@ -374,5 +376,5 @@ void cpu_off_die()
     asm volatile ("mov r0,r0");
     asm volatile ("mov r0,r0");
 
-    //while(1);
+    while(1);
 }

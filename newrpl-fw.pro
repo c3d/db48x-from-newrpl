@@ -51,8 +51,9 @@ SOURCES +=\
     newrpl/lib-32-lam.c \
     newrpl/lib-50-lists.c \
     newrpl/lib-52-symbolic.c \
+    newrpl/lib-48-units.c \
     newrpl/lib-58-matrix.c \
-    newrpl/lib-64-precision.c \
+    newrpl/lib-64-arithmetic.c \
     newrpl/lib-65-system.c \
     newrpl/lib-66-transcendentals.c \
     newrpl/lib-68-flags.c \

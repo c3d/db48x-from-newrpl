@@ -89,6 +89,25 @@ void set_stack(unsigned int *newstackptr)
 
 }
 
+void dbg_reset()
+{
+
+    // DO A FULL RESET IF IT COMES BACK FROM POWER OFF MODE
+
+    if(*HWREG(0x56000000,0xb4)&2) {
+
+    *HWREG(0x56000000,0xb4)=*HWREG(0x56000000,0xb4);
+
+// SET THE PRESCALER OF THE WATCHDOG AS FAST AS POSSIBLE AND A REASONABLE COUNT (ABOUT 87ms)
+    *HWREG(0x53000000,8)=0x8000;
+    *HWREG(0x53000000,0)=0x21;
+
+    // AND WAIT FOR IT TO HAPPEN
+    while(1);
+    }
+
+}
+
 
 void set_async_bus()
 {
@@ -102,9 +121,21 @@ void setup_hardware()
 volatile unsigned int *ptr=(unsigned int *)0x48000000;
 
 // SETUP MEMORY CONTROLLER, TO MAKE SURE WE CAN ACCESS ROM AND RAM CORRECTLY
- *ptr=0x11111192;
-  ptr[1]=0x200;
-  ptr[2]=0x300;
+//  this is set by the bootloader, but do this here again in case
+// a warm start is done
+  ptr[0]=0x11111192;
+  ptr[1]=0x300;         // these values only work for slow clocks
+  ptr[2]=0x300;         // make sure CPU slows down before calling here
+  ptr[3]=0x300;
+  ptr[4]=0x300;
+  ptr[5]=0x300;
+  ptr[6]=0x300;
+  ptr[7]=5;
+  ptr[8]=5;
+  ptr[9]=0xe0459;
+  ptr[10]=0x12;
+  ptr[11]=0x30;
+  ptr[12]=0x30;
 
 // SETUP POWER MANAGEMENT
   ptr=(unsigned int *)0x4C000000;
@@ -132,7 +163,7 @@ volatile unsigned int *ptr=(unsigned int *)0x48000000;
   ptr[26]=0x1;          // GPG PULLUPS
   ptr[28]=0x155555;     // GPHCON
   ptr[30]=0x7ff;        // GPH PULLUPS
-  ptr[32]&=~0x3008;     // MISCCR - USB IN HOST MODE AND USB SUSPEND MODE OFF
+  ptr[32]&=~0x3000;     // MISCCR - USB IN HOST MODE AND USB SUSPEND MODE OFF
   ptr[41]=0x00fffff0;   // EINTMASK = MASK ALL EXTERNAL INTS
   // SETUP MISCELLANEOUS
 
@@ -206,9 +237,14 @@ void startup(int prevstate)
 
     disable_interrupts();   // THIS REQUIRES SUPERVISOR MODE
 
+    dbg_reset();
+
+
     unsigned int mode=get_mode();
 
     set_stack((unsigned int *)0x40000e00);  // INITIAL STACK:
+
+
 
     setup_hardware();       // SETUP ACCESS TO OUT-OF-CHIP RAM MEMORY AMONG OTHER THINGS, THIS IS DONE BY THE BOOTLOADER BUT JUST TO BE SURE
     create_mmu_tables();
@@ -640,7 +676,7 @@ void halEnterPowerOff()
 {
     // TODO: ADD RPL ENGINE CLEANUP HERE BEFORE RESET
     // PUT THE CPU IN A KNOWN SLOW SPEED
-    cpu_setspeed(192000000);
+    cpu_setspeed(48000000);
 
     // WAIT FOR ALL KEYS TO BE RELEASED
     __keyb_waitrelease();
@@ -655,8 +691,12 @@ void halEnterPowerOff()
 
     // AND GO DIE
     //startup(0);
-    enable_interrupts();
-    cpu_off_die();
+    //enable_interrupts();
+
+
+    //cpu_off_die();
+
+    asm volatile ("b 0");
 
     //startup(0);
 

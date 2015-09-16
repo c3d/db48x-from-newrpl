@@ -1,6 +1,8 @@
  
 #include <stdio.h>
-#include <libelf.h>
+//#include <libelf.h>
+// THIS IS TEMPORARY TO AVOID A VERSION CONFLICT BETWEEN GNU LIBELF AND BSD LIBELF ON FREEBSD
+#include </usr/local/include/libelf/libelf.h>
 #ifdef __GNUC__
 #include <unistd.h>
 #ifndef O_BINARY
@@ -218,7 +220,7 @@ dump_sections(FILE *out, Elf_file *elf_file)
 
             _copy_flag = 0;
             
-            if (!(strcmp(entry.name,".text") && strcmp(entry.name,".rodata")))
+            if (!(strcmp(entry.name,".text") && strcmp(entry.name,".rodata") && strcmp(entry.name,".preamble") && strcmp(entry.name,".codepreamble")))
             {
                 //create the binary files (word aligned)
                 text_size += entry.size;
