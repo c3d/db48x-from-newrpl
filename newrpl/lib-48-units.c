@@ -169,6 +169,7 @@ void LIB_HANDLER()
             BINT exponent=1,negexp=0,needident=0,needexp=0;
             BINT groupoff[8];
             BINT groupidx=0;
+            WORD Locale=rplGetSystemLocale();
 
             nextptr=ptr+1;
 
@@ -234,21 +235,254 @@ void LIB_HANDLER()
                     // NOT LOOKING FOR AN IDENTIFIER
                 if(*nextptr==')') {
 
-
-                    if(*(nextptr+1)=='^') {
-                        // TODO: HANDLE SPECIAL CASE OF A GROUP TO AN EXPONENT
-
-
-
-
-                    }
-
                     // END OF A GROUP
                     if(!groupidx) {
                         RetNum=ERR_SYNTAX;
                         return;
                     }
+                    if(needexp) {
+                        BINT finalexp=(negexp)? -exponent:exponent;
+                        rplCompileAppend(MAKESINT(finalexp));
+                        rplCompileAppend(MAKESINT(1));
+                        // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
+                        nextptr=(BYTEPTR)utf8nskip(((char *)TokenStart)+1,(char *)BlankStart,count);
+                        needexp=0;
+                    }
 
+                    if(*(nextptr+1)=='^') {
+                        // TODO: HANDLE SPECIAL CASE OF A GROUP TO AN EXPONENT
+
+                        nextptr++;
+                        count++;
+
+                        // DO THE EXACT SAME THING TO READ THE EXPONENT
+
+                        if(*(nextptr+1)=='(') {
+                            // THE EXPONENT IS A FRACTION OR NUMERIC EXPRESSION
+
+
+                         nextptr+=2;
+                         count+=2;
+
+                             BYTEPTR numend=rplNextUnitToken(nextptr,(BYTEPTR)BlankStart);
+
+                             if(numend<=nextptr) {
+                                 RetNum=ERR_SYNTAX;
+                                 return;
+                             }
+
+                             // GET THE NUMERATOR INTO RReg[0]
+                             newRealFromText(&RReg[0],nextptr,numend,Locale);
+
+                             if(RReg[0].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
+                                 // BAD EXPONENT!
+                                 RetNum=ERR_SYNTAX;
+                                 return;
+                             }
+
+                             BINT nletters=utf8nlen((char *)nextptr,(char *)numend);
+
+                             count+=nletters;
+                             nextptr=(BYTEPTR)utf8nskip(((char *)TokenStart)+1,(char *)BlankStart,count);
+
+                             // ONLY OPERATOR ALLOWED HERE IS DIVISION
+
+                             if(*nextptr==')') {
+                                 // JUST A NUMBER WITHIN PARENTHESIS, SET DENOMINATOR TO 1
+                                 rplOneToRReg(1);
+                                 nletters=1;
+                             }
+                             else {
+
+                             if(*nextptr!='/') {
+                                 RetNum=ERR_SYNTAX;
+                                 return;
+                             }
+
+                             ++nextptr;
+                             ++count;
+
+                             BYTEPTR numend=rplNextUnitToken(nextptr,(BYTEPTR)BlankStart);
+
+                             if(numend<=nextptr) {
+                                 RetNum=ERR_SYNTAX;
+                                 return;
+                             }
+
+                             // GET THE DENOMINATOR INTO RReg[1]
+                             newRealFromText(&RReg[1],nextptr,numend,Locale);
+
+                             if(RReg[1].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
+                                 // BAD EXPONENT!
+                                 RetNum=ERR_SYNTAX;
+                                 return;
+                             }
+
+                             nletters=utf8nlen((char *)nextptr,(char *)numend);
+
+                             nextptr+=nletters;
+
+                             if(*nextptr!=')') {
+                                 RetNum=ERR_SYNTAX;
+                                 return;
+                             }
+
+                             ++nletters;
+
+                             }
+
+
+
+                             // RESTORE POINTERS AND CONTINUE
+
+                             count+=nletters;
+                        }
+                        else {
+                        // ONLY A REAL NUMBER SUPPORTED AS EXPONENT
+                        // GET THE NEXT TOKEN
+                        nextptr++;
+                        BYTEPTR numend=rplNextUnitToken(nextptr,(BYTEPTR)BlankStart);
+
+                        if(numend<=nextptr) {
+                            RetNum=ERR_SYNTAX;
+                            return;
+                        }
+
+                        newRealFromText(&RReg[0],nextptr,numend,Locale);
+
+                        if(RReg[0].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
+                            // BAD EXPONENT!
+                            RetNum=ERR_SYNTAX;
+                            return;
+                        }
+
+
+                        rplOneToRReg(1);
+
+                        BINT nletters=utf8nlen((char *)nextptr,(char *)numend);
+
+
+                        count+=1+nletters;
+
+
+                        }
+
+                        // HERE WE HAVE NUMERATOR AND DENOMINATOR
+
+                        // KEEP ONLY THE NUMERATOR SIGN
+                        RReg[0].flags^=RReg[1].flags&F_NEGATIVE;
+                        RReg[1].flags&=~F_NEGATIVE;
+
+
+                        // CYCLE THROUGH ALL IDENTIFIERS SINCE THE GROUP STARTED
+                        // MULTIPLY THEIR EXPONENTS BY THIS ONE
+
+                        WORDPTR groupptr,unitptr,numptr,denptr;
+                        BINT groupsize,offset=0;
+                        REAL orgnum,orgden;
+
+                        groupptr=*(ValidateTop-1)+groupoff[groupidx-1];
+
+                        groupsize=CompileEnd-groupptr;
+
+                        while(offset<groupsize) {
+                            // FIRST THING IS TO RESTORE POSSIBLY MOVED POINTERS
+                            groupptr=*(ValidateTop-1)+groupoff[groupidx-1];
+                            unitptr=groupptr+offset;
+                            numptr=rplSkipOb(unitptr);
+                            denptr=rplSkipOb(numptr);
+
+
+                            // NOW GET THE EXPONENTS OF THE NEXT UNIT
+                            rplReadNumberAsReal(numptr,&orgnum);
+                            rplReadNumberAsReal(denptr,&orgden);
+
+                            mulReal(&RReg[2],&RReg[0],&orgnum);
+                            mulReal(&RReg[3],&RReg[1],&orgden);
+
+                            // AND COMPILE THEM AS NEW
+
+                            BINT unitlen=rplObjSize(unitptr);
+
+                            rplCompileAppendWords(unitlen);     // MAKE A COPY OF THE IDENT
+                            if(Exceptions) {
+                                RetNum=ERR_INVALID;
+                                return;
+                            }
+
+                            groupptr=*(ValidateTop-1)+groupoff[groupidx-1];
+                            unitptr=groupptr+offset;
+                            numptr=rplSkipOb(unitptr);
+                            denptr=rplSkipOb(numptr);
+
+                            // MAKE A COPY OF THE IDENTIFIER
+                            memmovew(CompileEnd-unitlen,unitptr,unitlen);
+
+                            offset=rplSkipOb(denptr)-groupptr;
+
+                            if(isintegerReal(&RReg[2]) && inBINT64Range(&RReg[2])) {
+                                // EXPONENT IS AN INTEGER
+                                BINT64 finalexp=getBINT64Real(&RReg[2]);
+                                // COMPILE AS A BINT OR A SINT
+                                rplCompileBINT(finalexp,DECBINT);
+                                if(Exceptions) {
+                                RetNum=ERR_INVALID;
+                                return;
+                                }
+
+
+                            }
+                            else {
+                                // EXPONENT WILL HAVE TO BE A REAL
+                                rplCompileReal(&RReg[2]);
+                                if(Exceptions) {
+                                RetNum=ERR_INVALID;
+                                return;
+                                }
+
+                            }
+
+
+                            if(isintegerReal(&RReg[3]) && inBINT64Range(&RReg[3])) {
+                                // EXPONENT IS AN INTEGER
+                                BINT64 finalexp=getBINT64Real(&RReg[3]);
+
+                                // COMPILE AS A BINT OR A SINT
+                                rplCompileBINT(finalexp,DECBINT);
+                                if(Exceptions) {
+                                RetNum=ERR_INVALID;
+                                return;
+                                }
+
+
+                            }
+                            else {
+                                // EXPONENT WILL HAVE TO BE A REAL
+                                rplCompileReal(&RReg[3]);
+                                if(Exceptions) {
+                                RetNum=ERR_INVALID;
+                                return;
+                                }
+
+                            }
+
+
+
+                        } // AND REPEAT FOR ALL IDENTIFIERS
+
+                        // HERE WE HAVE THE ENTIRE GROUP DUPLICATED, WE NEED TO MOVE THE MEMORY
+
+                        groupptr=*(ValidateTop-1)+groupoff[groupidx-1];
+
+                        memmovew(groupptr,groupptr+groupsize,CompileEnd-(groupptr+groupsize));
+                        CompileEnd-=groupsize;
+
+
+
+                    }
+
+
+                    needexp=0;
                     --groupidx;
                     ++nextptr;
                     ++count;
@@ -259,6 +493,7 @@ void LIB_HANDLER()
                     if(needexp) {
                         BINT finalexp=(negexp)? -exponent:exponent;
                         rplCompileAppend(MAKESINT(finalexp));
+                        rplCompileAppend(MAKESINT(1));
                         // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
                         nextptr=(BYTEPTR)utf8nskip(((char *)TokenStart)+1,(char *)BlankStart,count);
                         needexp=0;
@@ -275,6 +510,7 @@ void LIB_HANDLER()
                     if(needexp) {
                         BINT finalexp=(negexp)? -exponent:exponent;
                         rplCompileAppend(MAKESINT(finalexp));
+                        rplCompileAppend(MAKESINT(1));
                         // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
                         nextptr=(BYTEPTR)utf8nskip(((char *)TokenStart)+1,(char *)BlankStart,count);
                         needexp=0;
@@ -289,6 +525,160 @@ void LIB_HANDLER()
                 }
 
                 if(*nextptr=='^') {
+
+                    if(!needexp) {
+                        RetNum=ERR_SYNTAX;
+                        return;
+                    }
+
+
+                    if(*(nextptr+1)=='(') {
+                        // THE EXPONENT IS A FRACTION OR NUMERIC EXPRESSION
+
+
+                     nextptr+=2;
+                     count+=2;
+
+                         BYTEPTR numend=rplNextUnitToken(nextptr,(BYTEPTR)BlankStart);
+
+                         if(numend<=nextptr) {
+                             RetNum=ERR_SYNTAX;
+                             return;
+                         }
+
+                         // GET THE NUMERATOR INTO RReg[0]
+                         newRealFromText(&RReg[0],nextptr,numend,Locale);
+
+                         if(RReg[0].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
+                             // BAD EXPONENT!
+                             RetNum=ERR_SYNTAX;
+                             return;
+                         }
+
+                         BINT nletters=utf8nlen((char *)nextptr,(char *)numend);
+
+                         count+=nletters;
+                         nextptr=(BYTEPTR)utf8nskip(((char *)TokenStart)+1,(char *)BlankStart,count);
+
+                         // ONLY OPERATOR ALLOWED HERE IS DIVISION
+
+                         if(*nextptr==')') {
+                             // JUST A NUMBER WITHIN PARENTHESIS, SET DENOMINATOR TO 1
+                             rplOneToRReg(1);
+                             nletters=1;
+                         }
+                         else {
+
+                         if(*nextptr!='/') {
+                             RetNum=ERR_SYNTAX;
+                             return;
+                         }
+
+                         ++nextptr;
+                         ++count;
+
+                         BYTEPTR numend=rplNextUnitToken(nextptr,(BYTEPTR)BlankStart);
+
+                         if(numend<=nextptr) {
+                             RetNum=ERR_SYNTAX;
+                             return;
+                         }
+
+                         // GET THE DENOMINATOR INTO RReg[1]
+                         newRealFromText(&RReg[1],nextptr,numend,Locale);
+
+                         if(RReg[1].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
+                             // BAD EXPONENT!
+                             RetNum=ERR_SYNTAX;
+                             return;
+                         }
+
+                         nletters=utf8nlen((char *)nextptr,(char *)numend);
+
+                         nextptr+=nletters;
+
+                         if(*nextptr!=')') {
+                             RetNum=ERR_SYNTAX;
+                             return;
+                         }
+
+                         ++nletters;
+
+                         }
+
+
+                         // HERE WE HAVE NUMERATOR AND DENOMINATOR
+
+                         // KEEP ONLY THE NUMERATOR SIGN
+                         RReg[0].flags^=RReg[1].flags&F_NEGATIVE;
+                         RReg[1].flags&=~F_NEGATIVE;
+
+                         if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
+                             // EXPONENT IS AN INTEGER
+                             BINT64 finalexp=getBINT64Real(&RReg[0]);
+                             finalexp*=exponent;
+                             if(negexp) finalexp=-finalexp;
+
+                             // COMPILE AS A BINT OR A SINT
+                             rplCompileBINT(finalexp,DECBINT);
+                             if(Exceptions) {
+                             RetNum=ERR_INVALID;
+                             return;
+                             }
+
+
+                         }
+                         else {
+                             // EXPONENT WILL HAVE TO BE A REAL
+                             BINT sign=(negexp)? -exponent:exponent;
+
+                             if(sign<0) RReg[0].flags^=F_NEGATIVE;
+
+                             rplCompileReal(&RReg[0]);
+                             if(Exceptions) {
+                             RetNum=ERR_INVALID;
+                             return;
+                             }
+
+                         }
+
+
+                         if(isintegerReal(&RReg[1]) && inBINT64Range(&RReg[1])) {
+                             // EXPONENT IS AN INTEGER
+                             BINT64 finalexp=getBINT64Real(&RReg[1]);
+
+                             // COMPILE AS A BINT OR A SINT
+                             rplCompileBINT(finalexp,DECBINT);
+                             if(Exceptions) {
+                             RetNum=ERR_INVALID;
+                             return;
+                             }
+
+
+                         }
+                         else {
+                             // EXPONENT WILL HAVE TO BE A REAL
+                             rplCompileReal(&RReg[1]);
+                             if(Exceptions) {
+                             RetNum=ERR_INVALID;
+                             return;
+                             }
+
+                         }
+
+
+                         // RESTORE POINTERS AND CONTINUE
+
+                         count+=nletters;
+                         // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
+                         nextptr=(BYTEPTR)utf8nskip(((char *)TokenStart)+1,(char *)BlankStart,count);
+                         needexp=0;
+                         continue;
+
+
+
+                    }
+                    else {
                     // ONLY A REAL NUMBER SUPPORTED AS EXPONENT
                     // GET THE NEXT TOKEN
                     nextptr++;
@@ -299,7 +689,7 @@ void LIB_HANDLER()
                         return;
                     }
 
-                    newRealFromText(&RReg[0],nextptr,numend,rplGetSystemLocale());
+                    newRealFromText(&RReg[0],nextptr,numend,Locale);
 
                     if(RReg[0].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
                         // BAD EXPONENT!
@@ -323,6 +713,8 @@ void LIB_HANDLER()
                         RetNum=ERR_INVALID;
                         return;
                         }
+                        rplCompileAppend(MAKESINT(1));
+
 
                     }
                     else {
@@ -337,15 +729,16 @@ void LIB_HANDLER()
                         return;
                         }
 
+                        rplCompileAppend(MAKESINT(1));
 
                     }
-
 
                     count+=1+nletters;
                     // RESTORE THE NEXT POINTER, WHICH MAY HAVE BEEN MOVED DUE TO GC
                     nextptr=(BYTEPTR)utf8nskip(((char *)TokenStart)+1,(char *)BlankStart,count);
                     needexp=0;
                     continue;
+                    }
 
                 }
 
@@ -359,6 +752,8 @@ void LIB_HANDLER()
             if(needexp) {
                 BINT finalexp=(negexp)? -exponent:exponent;
                 rplCompileAppend(MAKESINT(finalexp));
+                rplCompileAppend(MAKESINT(1));
+
             }
 
             // HERE WE SHOULD HAVE A UNIT OBJECT PROPERLY COMPILED!
@@ -406,6 +801,145 @@ void LIB_HANDLER()
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
+
+
+        if(ISPROLOG(*DecompileObject)) {
+
+
+            // DO AN EMBEDDED DECOMPILATION OF THE VALUE OBJECT
+
+            rplDecompile(DecompileObject+1,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? DECOMP_EDIT:0));    // RUN EMBEDDED
+            if(Exceptions) { RetNum=ERR_INVALID; return; }
+
+            // NOW ADD THE UNIT
+            rplDecompAppendChar('_');
+
+            BINT offset=1;
+            BINT totalsize=rplObjSize(DecompileObject);
+            BINT needmult=0;
+            BINT Format=4 | ((CurOpcode==OPCODE_DECOMPEDIT)? FMT_CODE:0);  // SIMPLE FORMAT FOR ALL EXPONENTS, ONLY 4 DECIMAL PLACES IS ENOUGH
+            WORD Locale=rplGetSystemLocale();
+
+            offset+=rplObjSize(DecompileObject+1);  // SKIP THE MAIN VALUE
+
+            while(offset<totalsize) {
+
+                // TAKE A LOOK AT THE EXPONENT
+                WORDPTR expnum,expden;
+                REAL rnum,rden;
+                expnum=rplSkipOb(DecompileObject+offset);
+                expden=rplSkipOb(expnum);
+                rplReadNumberAsReal(expnum,&rnum);
+                rplReadNumberAsReal(expden,&rden);
+
+                if(needmult) {
+                    // CHECK FOR THE SIGN OF THE EXPONENT, ADD A '*' IF POSITIVE, '/' IF NEGATIVE
+                if(rnum.flags&F_NEGATIVE) { rplDecompAppendChar('/'); rnum.flags^=F_NEGATIVE; }
+                else rplDecompAppendChar('*');
+                }
+
+                // DECOMPILE THE IDENTIFIER
+
+                BYTEPTR ptr=(BYTEPTR)(DecompileObject+offset+OBJSIZE(*(DecompileObject+offset)));
+                if(ptr[3]==0)
+                    // WE HAVE A NULL-TERMINATED STRING, SO WE CAN USE THE STANDARD FUNCTION
+                    rplDecompAppendString((BYTEPTR) (DecompileObject+offset+1));
+                else
+                    rplDecompAppendString2((BYTEPTR)(DecompileObject+offset+1),OBJSIZE(*(DecompileObject+offset))<<2);
+
+                if(Exceptions) { RetNum=ERR_INVALID; return; }
+
+                // ONLY ADD AN EXPONENT IF IT'S NOT ONE
+
+                if(!((rden.len==1) && (rden.data[0]==1) && (rnum.len==1) && (rnum.data[0]==1))) {
+                    rplDecompAppendChar('^');
+                    if(!((rden.len==1) && (rden.data[0]==1))) {
+                        // THIS IS A FRACTION
+                        rplDecompAppendChar('(');
+
+                        // ESTIMATE THE MAXIMUM STRING LENGTH AND RESERVE THE MEMORY
+
+                        BYTEPTR string;
+
+                        BINT len=formatlengthReal(&rnum,Format);
+
+                        // RESERVE THE MEMORY FIRST
+                        rplDecompAppendString2(DecompStringEnd,len);
+
+                        // NOW USE IT
+                        string=(BYTEPTR)DecompStringEnd;
+                        string-=len;
+
+                        if(Exceptions) {
+                            RetNum=ERR_INVALID;
+                            return;
+                        }
+                        DecompStringEnd=(WORDPTR) formatReal(&rnum,string,Format,Locale);
+
+
+                        rplDecompAppendChar('/');
+
+
+                        len=formatlengthReal(&rden,Format);
+
+                        // RESERVE THE MEMORY FIRST
+                        rplDecompAppendString2(DecompStringEnd,len);
+
+                        // NOW USE IT
+                        string=(BYTEPTR)DecompStringEnd;
+                        string-=len;
+
+                        if(Exceptions) {
+                            RetNum=ERR_INVALID;
+                            return;
+                        }
+                        DecompStringEnd=(WORDPTR) formatReal(&rden,string,Format,Locale);
+
+                        rplDecompAppendChar(')');
+
+                    }
+                    else {
+                        // JUST A NUMBER
+                        // ESTIMATE THE MAXIMUM STRING LENGTH AND RESERVE THE MEMORY
+
+                        BYTEPTR string;
+
+                        BINT len=formatlengthReal(&rnum,Format);
+
+                        // RESERVE THE MEMORY FIRST
+                        rplDecompAppendString2(DecompStringEnd,len);
+
+                        // NOW USE IT
+                        string=(BYTEPTR)DecompStringEnd;
+                        string-=len;
+
+                        if(Exceptions) {
+                            RetNum=ERR_INVALID;
+                            return;
+                        }
+                        DecompStringEnd=(WORDPTR) formatReal(&rnum,string,Format,Locale);
+
+
+
+
+                    }
+                }
+
+                needmult=1;
+
+                // SKIP THE THREE OBJECTS
+                offset+=rplObjSize(DecompileObject+offset);
+                offset+=rplObjSize(DecompileObject+offset);
+                offset+=rplObjSize(DecompileObject+offset);
+
+
+            }
+
+            // DONE
+            RetNum=OK_CONTINUE;
+            return;
+
+        }
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES

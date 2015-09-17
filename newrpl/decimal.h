@@ -56,6 +56,14 @@ typedef struct __REAL {
     BINT *data;
 } REAL;
 
+typedef struct __NUMBER {
+    WORD flags;
+    BINT exp;
+    BINT len;
+    BINT *data;
+    BINT storage[3];
+} NUMBER;
+
 typedef struct {
     WORD flags;
     WORD precdigits;
