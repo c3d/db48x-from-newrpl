@@ -193,6 +193,8 @@ extern void libGetPTRFromID(WORDPTR *table,WORD id);
 #define ISNUMBERCPLX(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISCOMPLEX(prolog))
 #define ISSTRING(prolog) ((LIBNUM(prolog)&~3)==DOSTRING)
 
+#define ISUNIT(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOUNIT))
+
 #define ISSYMBOLIC(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOSYMB))
 #define ISMATRIX(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOMATRIX))
 #define ISDIR(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DODIR))
