@@ -119,11 +119,44 @@ void rplUnitMulItem(BINT level1,BINT level2)
     if(ISIDENT(*rplPeekData(level1)) && ISIDENT(*rplPeekData(level2))) {
         // MULTIPLY 2 IDENTIFIERS BY ADDING THEIR EXPONENTS
         if(!rplCompareIDENT(rplPeekData(level1),rplPeekData(level2))) return;   // NOTHING TO DO IF DIFFERENT IDENTS
+        // COPY THE IDENTIFIER TO THE TOP OF STACK
+        WORDPTR *stackptr=DSTop;
+
+        rplPushData(rplPeekData(level1));
 
         // ADD THE EXPONENTS
+        rplPushData(rplPeekData(level1));   // FIRST NUMERATOR
+        rplPushData(rplPeekData(level1));   // FIRST DENOMINATOR
+        rplPushData(rplPeekData(level2+2)); // SECOND NUMERATOR
+        rplPushData(rplPeekData(level2+2)); // SECOND DENOMINATOR
+        if(Exceptions) { DSTop=stackptr; return; }
+        BINT sign=rplFractionAdd();
+        if(Exceptions) { DSTop=stackptr; return; }
+
+        rplFractionSimplify();
+        if(Exceptions) { DSTop=stackptr; return; }
+
+        if(sign) {
+            // ADD THE SIGN TO THE NUMERATOR
+            rplPushData(rplPeekData(2));
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+            if(Exceptions) { DSTop=stackptr; return; }
+
+            rplOverwriteData(3,rplPeekData(1));
+            rplDropData(1);
+        }
 
 
-
+        // NOW REMOVE THE ORIGINALS FROM THE STACK
+        if(level1>level2) {
+        rplUnitPopItem(level1+3);
+        rplUnitPopItem(level2+3);
+        }
+        else {
+            rplUnitPopItem(level2+3);
+            rplUnitPopItem(level1+3);
+        }
+        return;
     }
 
     // NOT AN IDENTIFIER, USE THE OVERLOADED OPERATOR TO MULTIPLY
@@ -144,6 +177,12 @@ void rplUnitMulItem(BINT level1,BINT level2)
     }
 }
 
+// SKIPS AN ITEM (VALUE OR IDENT) AND RETURNS THE LEVEL OF THE NEXT ITEM
+BINT rplUnitSkipItem(BINT level)
+{
+    if(ISIDENT(*rplPeekData(level))) return level-3;
+    return level-1;
+}
 
 // SIMPLIFY A UNIT IN THE STACK BY COLLAPSING REPEATED IDENTS
 // AND PERFORMING FRACTION SIMPLIFICATION OF EXPONENTS
@@ -151,6 +190,29 @@ void rplUnitMulItem(BINT level1,BINT level2)
 // AFTER SIMPLIFICATION
 BINT rplUnitSimplify(BINT nlevels)
 {
+    BINT lvl=nlevels,lvl2;
+
+    while(lvl>0) {
+        lvl2=rplUnitSkipItem(lvl);
+
+        while(lvl2>0) {
+            if(ISIDENT(*rplPeekData(lvl2))) {
+                if(rplCompareIDENT(rplPeekData(lvl),rplPeekData(lvl2))) {
+                   // SAME IDENTIFIER, COLLAPSE THESE TWO
+
+
+                }
+            } else {
+                // NOT AN IDENT, MULTIPLY TO THE CURRENT VALUE
+
+
+            }
+         lvl2=rplUnitSkipItem(lvl2);
+        }
+        lvl=rplUnitSkipItem(lvl);
+    }
+
+
 
 }
 

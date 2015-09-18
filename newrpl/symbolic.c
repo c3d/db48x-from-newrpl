@@ -1791,7 +1791,7 @@ return;
 // DOES NOT APPLY ANY SIMPLIFICATION
 // MAKES RESULTING NUM AND DEN POSITIVE, AND RETURNS THE SIGN OF THE RESULTING FRACTION 0=POSITIVE, 1=NEGATIVE
 
-BINT rplSymbFractionAdd()
+BINT rplFractionAdd()
 {
     BINT sign=0;
     rplPushData(rplPeekData(4));    // NUM1
@@ -2323,7 +2323,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
             // NOW COMPUTE THE RESULT
 
-            BINT isnegative=rplSymbFractionAdd();
+            BINT isnegative=rplFractionAdd();
 
             if(Exceptions) { rplBlameError(sobj); DSTop=endofstk+1; return 0; }
 
