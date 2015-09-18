@@ -26,7 +26,10 @@
 BINT rplUnitExplode(WORDPTR unitobj)
 {
     WORDPTR *savestk=DSTop;
-if(!ISUNIT(*unitobj)) return 0;
+if(!ISUNIT(*unitobj)) {
+    rplPushData(unitobj);
+    return 1;
+}
 
 ScratchPointer1=unitobj;
 ScratchPointer2=rplSkipOb(unitobj);
@@ -48,7 +51,7 @@ return count;
 // DOES NOT CLEAN UP THE STACK
 // WARNING: THIS IS LOW-LEVEL, NO VALIDITY CHECKS DONE HERE
 
-WORDPTR rplUnitImplode(BINT nlevels)
+WORDPTR rplUnitAssemble(BINT nlevels)
 {
     // COMPUTE THE REQUIRED SIZE
     BINT size=0;
@@ -85,11 +88,11 @@ void rplUnitPopItem(BINT level)
     else nitems=1;
 
     if(level-nitems<=0) {
-        rplPopData(level);
+        rplDropData(level);
         return;
     }
 
-    memmove(DSTop-level,DSTop-level+nitems,level-nitems);
+    memmovew(DSTop-level,DSTop-level+nitems,level-nitems);
     DSTop-=nitems;
 }
 
@@ -111,14 +114,18 @@ void rplUnitPickItem(BINT level)
 }
 
 // TAKES 2 VALUES OR 2 IDENTIFIERS AND MULTIPLIES THEM TOGETHER
-// REMOVES BOTH ORIGINALS FROM THE STACK AND ADDS THE RESULT AT THE BOTTOM OF THE STACK
+// REMOVES THE SECOND IDENTIFIER FROM THE STACK AND OVERWRITES THE FIRST ELEMENT WITH THE RESULT
 // LOW LEVEL, NO CHECKS OF ANY KIND DONE HERE
-
-void rplUnitMulItem(BINT level1,BINT level2)
+// RETURNS THE NUMBER OF LEVELS CHANGED IN THE STACK (NEGATIVE=REMOVED ELEMENTS)
+BINT rplUnitMulItem(BINT level1,BINT level2)
 {
-    if(ISIDENT(*rplPeekData(level1)) && ISIDENT(*rplPeekData(level2))) {
+    if(ISIDENT(*rplPeekData(level1))) {
+        if(!ISIDENT(*rplPeekData(level2))) {
+            // ONE IS VALUE AND ONE IS IDENT, NOTHING TO DO
+            return 0;
+        }
         // MULTIPLY 2 IDENTIFIERS BY ADDING THEIR EXPONENTS
-        if(!rplCompareIDENT(rplPeekData(level1),rplPeekData(level2))) return;   // NOTHING TO DO IF DIFFERENT IDENTS
+        if(!rplCompareIDENT(rplPeekData(level1),rplPeekData(level2))) return 0;   // NOTHING TO DO IF DIFFERENT IDENTS
         // COPY THE IDENTIFIER TO THE TOP OF STACK
         WORDPTR *stackptr=DSTop;
 
@@ -129,53 +136,120 @@ void rplUnitMulItem(BINT level1,BINT level2)
         rplPushData(rplPeekData(level1));   // FIRST DENOMINATOR
         rplPushData(rplPeekData(level2+2)); // SECOND NUMERATOR
         rplPushData(rplPeekData(level2+2)); // SECOND DENOMINATOR
-        if(Exceptions) { DSTop=stackptr; return; }
+        if(Exceptions) { DSTop=stackptr; return 0; }
         BINT sign=rplFractionAdd();
-        if(Exceptions) { DSTop=stackptr; return; }
+        if(Exceptions) { DSTop=stackptr; return 0; }
 
         rplFractionSimplify();
-        if(Exceptions) { DSTop=stackptr; return; }
+        if(Exceptions) { DSTop=stackptr; return 0; }
 
         if(sign) {
             // ADD THE SIGN TO THE NUMERATOR
             rplPushData(rplPeekData(2));
             rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
-            if(Exceptions) { DSTop=stackptr; return; }
+            if(Exceptions) { DSTop=stackptr; return 0; }
 
             rplOverwriteData(3,rplPeekData(1));
             rplDropData(1);
         }
 
+        // OVERWRITE level1 WITH THE NEW VALUES
+        rplOverwriteData(level1+3,rplPeekData(3));
+        rplOverwriteData(level1+2,rplPeekData(2));
+        rplOverwriteData(level1+1,rplPeekData(1));
+
+        rplDropData(3);
 
         // NOW REMOVE THE ORIGINALS FROM THE STACK
-        if(level1>level2) {
-        rplUnitPopItem(level1+3);
-        rplUnitPopItem(level2+3);
-        }
-        else {
-            rplUnitPopItem(level2+3);
-            rplUnitPopItem(level1+3);
-        }
-        return;
+         rplUnitPopItem(level2);
+        return -3;
+    }
+
+    if(ISIDENT(*rplPeekData(level2))) {
+        // ONE IS VALUE AND ONE IS IDENT, NOTHING TO DO
+        return 0;
     }
 
     // NOT AN IDENTIFIER, USE THE OVERLOADED OPERATOR TO MULTIPLY
+
     WORDPTR *savestk=DSTop;
     rplUnitPickItem(level1);
     rplUnitPickItem(level2+1);
     rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
-    if(Exceptions) { DSTop=savestk; return; }
+    if(Exceptions) { DSTop=savestk; return 0; }
+
+    rplOverwriteData(level1+1,rplPeekData(1));
+    rplDropData(1);
 
     // JUST REMOVE THE ORIGINALS
-    if(level1>level2) {
-        rplUnitPopItem(level1+1);
-        rplUnitPopItem(level2+1);
-    }
-    else  {
-        rplUnitPopItem(level2+1);
-        rplUnitPopItem(level1+1);
-    }
+    rplUnitPopItem(level2);
+
+    return -1;
 }
+
+
+// TAKES 2 VALUES OR 2 IDENTIFIERS AND DOES level2=level2**exponent(level1)
+// IF level1 IS A VALUE, THEN IT IS USED AS EXPONENT TO ANY VALUES IN level2 AND
+// TO MULTIPLY ANY EXPONENTS IN level2 IDENTIFIERS
+// IF level1 IS AN IDENTIFIER, ITS EXPONENT IS USED AS EXPONENT TO ANY VALUES IN level2 AND
+// TO MULTIPLY ANY EXPONENTS IN level2 IDENTIFIERS
+// DOES NOT REMOVE ANYTHING FROM THE STACK, MODIFIES level2 ON THE SPOT
+// LOW LEVEL, NO CHECKS OF ANY KIND DONE HERE
+void rplUnitPowItem(BINT level1,BINT level2)
+{
+    if(ISIDENT(*rplPeekData(level2))) {
+        // POW 2 IDENTIFIERS BY MULTIPLYING THEIR EXPONENTS
+        WORDPTR *stackptr=DSTop;
+        BINT isident=ISIDENT(*rplPeekData(level1));
+        if(isident) rplPushData(rplPeekData(level1-1));   // FIRST NUMERATOR
+        else rplPushData(rplPeekData(level1));
+        rplPushData(rplPeekData(level2)); // SECOND NUMERATOR
+        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+        if(Exceptions) { DSTop=stackptr; return; }
+        if(isident) {
+            rplPushData(rplPeekData(level1-1));   // FIRST DENOMINATOR
+            rplPushData(rplPeekData(level2)); // SECOND DENOMINATOR
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+            if(Exceptions) { DSTop=stackptr; return; }
+        } else {
+            rplPushData(rplPeekData(level2)); // SECOND DENOMINATOR
+        }
+
+        rplFractionSimplify();
+        if(Exceptions) { DSTop=stackptr; return; }
+
+        // NOW OVERWRITE THE ORIGINALS FROM THE STACK
+        rplOverwriteData(level2+1,rplPeekData(2));
+        rplOverwriteData(level2,rplPeekData(1));
+
+        rplDropData(2);
+
+       return;
+    }
+
+    // NOT AN IDENTIFIER, USE THE OVERLOADED OPERATOR TO DO THE POWER
+    WORDPTR *savestk=DSTop;
+    rplUnitPickItem(level2);
+    if(ISIDENT(*rplPeekData(level1+1))) {
+        // DIVIDE THE NUMERATOR AND DENOMINATOR TO GET AN EXPONENT
+        rplPushData(rplPeekData(level1));
+        if(*rplPeekData(level1)!=MAKESINT(1)) {
+            rplPushData(rplPeekData(level1-1));
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            if(Exceptions) { DSTop=savestk; return; }
+        }
+    } else rplUnitPickItem(level1+1);
+
+    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_POW));
+    if(Exceptions) { DSTop=savestk; return; }
+
+    // HERE WE SHOULD HAVE A SINGLE VALUE
+    rplOverwriteData(level1+1,rplPeekData(1));
+    rplDropData(1);
+
+}
+
+
 
 // SKIPS AN ITEM (VALUE OR IDENT) AND RETURNS THE LEVEL OF THE NEXT ITEM
 BINT rplUnitSkipItem(BINT level)
@@ -190,29 +264,49 @@ BINT rplUnitSkipItem(BINT level)
 // AFTER SIMPLIFICATION
 BINT rplUnitSimplify(BINT nlevels)
 {
-    BINT lvl=nlevels,lvl2;
+    BINT lvl=nlevels,lvl2,reduction;
 
     while(lvl>0) {
         lvl2=rplUnitSkipItem(lvl);
 
         while(lvl2>0) {
-            if(ISIDENT(*rplPeekData(lvl2))) {
-                if(rplCompareIDENT(rplPeekData(lvl),rplPeekData(lvl2))) {
-                   // SAME IDENTIFIER, COLLAPSE THESE TWO
 
-
-                }
-            } else {
-                // NOT AN IDENT, MULTIPLY TO THE CURRENT VALUE
-
-
-            }
-         lvl2=rplUnitSkipItem(lvl2);
+                    reduction=rplUnitMulItem(lvl,lvl2);
+                    if(Exceptions) return nlevels;
+                    lvl+=reduction; // POINT TO THE NEXT ITEM, SINCE THIS ONE VANISHED
+                    lvl2+=reduction;
+                    nlevels+=reduction;
+                    if(!reduction) lvl2=rplUnitSkipItem(lvl2);
         }
+        if(lvl2<=0) lvl=rplUnitSkipItem(lvl);
+    }
+
+    // AT THIS POINT THERE SHOULD BE ONLY ONE VALUE AND MANY UNITS
+    // NEEDS TO BE SORTED SO THAT THE VALUE IS FIRST AND UNITS ARE
+    // AFTERWARDS
+
+    lvl=nlevels;
+
+    while(lvl>0) {
+        if(!ISIDENT(*rplPeekData(lvl))) break;
         lvl=rplUnitSkipItem(lvl);
     }
 
+    if(lvl<=0) {
+        // ERROR! SOMETHING HAPPENED AND THERE'S NO UNIT VALUE!
+        // TRY TO FIX IT BY ADDING A 1
+        rplPushData(one_bint);
+        ++nlevels;
+        lvl=1;
+    }
 
+    // UNROLL THIS VALUE TO THE BOTTOM OF THE UNIT
+    WORDPTR value=rplPeekData(lvl);
+
+    while(lvl!=nlevels) { rplOverwriteData(lvl,rplPeekData(lvl-1)); --lvl; }
+    rplOverwriteData(nlevels,value);
+
+    return nlevels;
 
 }
 

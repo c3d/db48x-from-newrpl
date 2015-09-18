@@ -393,6 +393,22 @@ extern void rplNumberToRReg(int num,WORDPTR number);
 extern BINT64 rplReadNumberAsBINT(WORDPTR number);
 extern void rplReadNumberAsReal(WORDPTR number,REAL*dec);
 
+
+// UNIT FUNCTIONS
+extern BINT rplUnitExplode(WORDPTR unitobj);
+extern WORDPTR rplUnitAssemble(BINT nlevels);
+extern void rplUnitPopItem(BINT level);
+extern void rplUnitPickItem(BINT level);
+extern BINT rplUnitMulItem(BINT level1,BINT level2);
+extern void rplUnitPowItem(BINT level1,BINT level2);
+extern BINT rplUnitSkipItem(BINT level);
+extern BINT rplUnitSimplify(BINT nlevels);
+extern void rplUnitInvert(BINT level);
+extern void rplUnitExpand(BINT level);
+extern BINT rplUnitToBase(BINT nlevels);
+extern BINT rplUnitSort(BINT nlevels, BINT reflevel);
+extern BINT rplUnitIsConsistent(BINT nlevels,BINT reflevel);
+
 // LIST FUNCTIONS
 extern BINT rplListLength(WORDPTR composite);
 extern BINT rplListLengthFlat(WORDPTR composite);

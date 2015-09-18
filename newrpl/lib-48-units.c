@@ -121,6 +121,70 @@ void LIB_HANDLER()
         return;
     }
 
+    if(LIBNUM(CurOpcode)==LIB_OVERLOADABLE)
+    {
+        // THESE ARE OVERLOADABLE COMMANDS DISPATCHED FROM THE
+        // OVERLOADABLE OPERATORS LIBRARY.
+
+        int nargs=OVR_GETNARGS(CurOpcode);
+
+        if(rplDepthData()<nargs) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        switch(OPCODE(CurOpcode))
+        {
+        case OVR_ABS:
+        case OVR_NEG:
+        {
+            if(!ISUNIT(*rplPeekData(1))) {
+                rplError(ERR_UNITEXPECTED);
+                return;
+            }
+            // JUST APPLY THE OPERATOR TO THE VALUE
+            WORDPTR *stkclean=DSTop;
+            rplPushData(rplPeekData(1)+1);
+            rplCallOvrOperator(CurOpcode);
+            if(Exceptions) { DSTop=stkclean; return; }
+            // AND PUT BACK THE SAME UNIT
+            BINT nlevels=rplUnitExplode(rplPeekData(2));
+            rplUnitPopItem(nlevels);
+            if(Exceptions) { DSTop=stkclean; return; }
+            WORDPTR newunit=rplUnitAssemble(nlevels);
+            if(!newunit) { DSTop=stkclean; return; }
+
+            // FINAL CLEANUP
+            rplDropData(nlevels);
+            rplOverwriteData(1,newunit);
+
+        return;
+        }
+        case OVR_MUL:
+        {
+            BINT nlevels1,nlevels2;
+            WORDPTR *stkclean=DSTop;
+
+            nlevels1=rplUnitExplode(rplPeekData(2));
+            nlevels2=rplUnitExplode(rplPeekData(1+nlevels1));
+
+            nlevels1=rplUnitSimplify(nlevels1+nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+            WORDPTR newunit=rplUnitAssemble(nlevels1);
+            if(!newunit) { DSTop=stkclean; return; }
+
+            // FINAL CLEANUP
+            rplDropData(nlevels1+1);
+            rplOverwriteData(1,newunit);
+            return;
+        }
+        }
+
+
+
+    }
+
+
     switch(OPCODE(CurOpcode))
     {
     case UNITDEF:
@@ -754,6 +818,10 @@ void LIB_HANDLER()
                 rplCompileAppend(MAKESINT(finalexp));
                 rplCompileAppend(MAKESINT(1));
 
+            }
+            if(needident) {
+                RetNum=ERR_SYNTAX;
+                return;
             }
 
             // HERE WE SHOULD HAVE A UNIT OBJECT PROPERLY COMPILED!
