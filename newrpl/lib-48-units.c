@@ -166,7 +166,9 @@ void LIB_HANDLER()
             WORDPTR *stkclean=DSTop;
 
             nlevels1=rplUnitExplode(rplPeekData(2));
+            if(Exceptions) { DSTop=stkclean; return; }
             nlevels2=rplUnitExplode(rplPeekData(1+nlevels1));
+            if(Exceptions) { DSTop=stkclean; return; }
 
             nlevels1=rplUnitSimplify(nlevels1+nlevels2);
             if(Exceptions) { DSTop=stkclean; return; }
@@ -178,6 +180,27 @@ void LIB_HANDLER()
             rplOverwriteData(1,newunit);
             return;
         }
+        case OVR_DIV:
+        {
+            BINT nlevels1,nlevels2;
+            WORDPTR *stkclean=DSTop;
+
+            nlevels1=rplUnitExplode(rplPeekData(2));
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels2=rplUnitExplode(rplPeekData(1+nlevels1));
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            nlevels1=rplUnitDivide(nlevels1+nlevels2,nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+            WORDPTR newunit=rplUnitAssemble(nlevels1);
+            if(!newunit) { DSTop=stkclean; return; }
+
+            // FINAL CLEANUP
+            rplDropData(nlevels1+1);
+            rplOverwriteData(1,newunit);
+            return;
+        }
+
         }
 
 
@@ -190,11 +213,35 @@ void LIB_HANDLER()
     case UNITDEF:
     case UNITPURGE:
     case UVAL:
-    case UBASE:
     case CONVERT:
     case TOUNIT:
     return;
 
+    case UBASE:
+    {
+        if(!ISUNIT(*rplPeekData(1))) {
+            rplError(ERR_UNITEXPECTED);
+            return;
+        }
+        WORDPTR *stkclean=DSTop;
+        BINT nlevels=rplUnitExplode(rplPeekData(1));
+        if(Exceptions) { DSTop=stkclean; return; }
+
+        nlevels=rplUnitToBase(nlevels);
+        if(Exceptions) { DSTop=stkclean; return; }
+
+        nlevels=rplUnitSimplify(nlevels);
+        if(Exceptions) { DSTop=stkclean; return; }
+
+        WORDPTR newunit=rplUnitAssemble(nlevels);
+        if(!newunit) { DSTop=stkclean; return; }
+
+        // FINAL CLEANUP
+        rplDropData(nlevels);
+        rplOverwriteData(1,newunit);
+
+        return;
+    }
 
         // STANDARIZED OPCODES:
         // --------------------

@@ -302,6 +302,7 @@ extern void growDirs(WORD newtotalsize);
 extern WORDPTR rplMakeIdentQuoted(WORDPTR ident);
 extern void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir);
 extern void rplCreateGlobal(WORDPTR nameobj,WORDPTR value);
+extern void rplPurgeGlobal(WORDPTR nameobj);
 extern WORDPTR *rplFindDirbyHandle(WORDPTR handle);
 extern WORDPTR rplCreateNewDir(WORDPTR nameobj, WORDPTR *parentdir);
 extern WORDPTR *rplGetParentDir(WORDPTR *directory);
@@ -314,19 +315,22 @@ extern WORDPTR *rplFindGlobalInDir(WORDPTR nameobj,WORDPTR *parentdir,BINT scanp
 extern WORDPTR *rplFindGlobal(WORDPTR nameobj,BINT scanparents);
 extern WORDPTR *rplFindVisibleGlobalByIndexInDir(BINT idx,WORDPTR *directory);
 extern WORDPTR *rplFindVisibleGlobalByIndex(BINT idx);
-
-
+// DIRECTORY SCANNING AND LOWER-LEVEL ACCESS
+WORDPTR *rplFindFirstInDir(WORDPTR dirhandle);
+WORDPTR *rplFindNext(WORDPTR *direntry);
 extern BINT rplGetVarCountInDir(WORDPTR *directory);
 extern BINT rplGetVarCount();
 extern BINT rplGetVisibleVarCountInDir(WORDPTR *directory);
 extern BINT rplGetVisibleVarCount();
 
-extern void rplPurgeGlobal(WORDPTR nameobj);
 extern WORDPTR rplGetGlobal(WORDPTR nameobj);
 extern WORDPTR *rplMakeNewDir();
 extern WORDPTR rplGetDirName(WORDPTR *dir);
 extern WORDPTR *rplGetDirfromGlobal(WORDPTR *var);
 extern WORDPTR *rplDeepCopyDir(WORDPTR *sourcedir);
+
+
+// FUNCTIONS SPECIFIC FOR THE .Settings DIRECTORY
 extern void rplStoreSettings(WORDPTR nameobject,WORDPTR object);
 extern void rplStoreSettingsbyName(BYTEPTR name, BYTEPTR nameend, WORDPTR object);
 extern WORDPTR rplGetSettings(WORDPTR nameobject);
@@ -397,14 +401,15 @@ extern void rplReadNumberAsReal(WORDPTR number,REAL*dec);
 // UNIT FUNCTIONS
 extern BINT rplUnitExplode(WORDPTR unitobj);
 extern WORDPTR rplUnitAssemble(BINT nlevels);
-extern void rplUnitPopItem(BINT level);
+extern BINT rplUnitPopItem(BINT level);
 extern void rplUnitPickItem(BINT level);
 extern BINT rplUnitMulItem(BINT level1,BINT level2);
 extern void rplUnitPowItem(BINT level1,BINT level2);
 extern BINT rplUnitSkipItem(BINT level);
 extern BINT rplUnitSimplify(BINT nlevels);
+extern BINT rplUnitDivide(BINT numlvl,BINT divlvl);
 extern void rplUnitInvert(BINT level);
-extern void rplUnitExpand(BINT level);
+extern BINT rplUnitExpand(BINT level);
 extern BINT rplUnitToBase(BINT nlevels);
 extern BINT rplUnitSort(BINT nlevels, BINT reflevel);
 extern BINT rplUnitIsConsistent(BINT nlevels,BINT reflevel);

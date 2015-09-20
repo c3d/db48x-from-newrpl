@@ -488,6 +488,36 @@ WORDPTR *rplDeepCopyDir(WORDPTR *sourcedir)
 
 }
 
+
+
+// FIND FIRST ENTRY IN A DIRECTORY BY HANDLE
+// RETURN NULL IF INVALID DIRECTORY
+WORDPTR *rplFindFirstInDir(WORDPTR dirhandle)
+{
+    WORDPTR *direntry=rplFindDirbyHandle(dirhandle);
+    if(!direntry) return 0;
+    if(*direntry[4]==DIR_END_MARKER) return 0;  // DIRECTORY WAS EMPTY
+    return direntry+4;  // FIRST ACTUAL VARIABLE IN THE DIRECTORY
+}
+// RETURN THE NEXT ENTRY IN A DIRECTORY
+// OR NULL IF END OF DIR
+WORDPTR *rplFindNext(WORDPTR *direntry)
+{
+    direntry+=2;
+    if(**direntry==DIR_END_MARKER) return 0;
+    return direntry;
+}
+
+
+
+
+
+
+
+
+
+
+
 // CREATE OR MODIFY VARIABLES IN THE SETTINGS DIRECTORY
 void rplStoreSettings(WORDPTR nameobject,WORDPTR object)
 {
