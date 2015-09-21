@@ -144,7 +144,7 @@ BINT rplUnitPopItem(BINT level)
         return nitems;
     }
 
-    memmovew(DSTop-level,DSTop-level+nitems,level-nitems);
+    memmovew(DSTop-level,DSTop-level+nitems,(level-nitems)*sizeof(WORDPTR*)/sizeof(WORD));
     DSTop-=nitems;
     return nitems;
 }
@@ -297,7 +297,7 @@ void rplUnitPowItem(BINT level1,BINT level2)
     if(Exceptions) { DSTop=savestk; return; }
 
     // HERE WE SHOULD HAVE A SINGLE VALUE
-    rplOverwriteData(level1+1,rplPeekData(1));
+    rplOverwriteData(level2+1,rplPeekData(1));
     rplDropData(1);
 
 }
@@ -688,7 +688,12 @@ BINT rplUnitExpand(BINT level)
 
              // NOW APPLY THE EXPONENT!
 
-            rplUnitPowItem(level+nlevels,nlevels);
+            BINT lvl2=nlevels;
+
+            while(lvl2>0) {
+                rplUnitPowItem(level+nlevels,lvl2);
+                lvl2=rplUnitSkipItem(lvl2);
+            }
 
             // NOW REMOVE IT FROM THE STACK
 
@@ -723,8 +728,66 @@ BINT rplUnitToBase(BINT nlevels)
 
 // RETURN TRUE/FALSE IF THE UNIT IN THE FIRST nlevels ARE CONSISTENT
 // WITH THE UNIT IN reflevel TO (nlevels+1)
-// BOTH UNITS MUST BE EXPLODED AND REDUCED TO BASE IF NECESSARY
+// BOTH UNITS MUST BE EXPLODED AND REDUCED TO BASE BEFOREHAND
 BINT rplUnitIsConsistent(BINT nlevels,BINT reflevel)
 {
+if(reflevel<nlevels) {
+    BINT tmp=reflevel;
+    reflevel=nlevels;
+    nlevels=tmp;
+}
 
+
+if(nlevels!=reflevel-nlevels) return 0; // UNITS MUST HAVE THE SAME NUMBER OF IDENTS TO BE CONSISTENT
+
+BINT lvl=nlevels,lvl2=reflevel;
+
+while(lvl>0) {
+    if(!ISIDENT(*rplPeekData(lvl))) { lvl=rplUnitSkipItem(lvl); continue; }
+    WORDPTR mainident=rplPeekData(lvl);
+    lvl2=reflevel;
+    while(lvl2>nlevels) {
+        if(rplCompareIDENT(mainident,rplPeekData(lvl2))) {
+            // FOUND, COMPARE THE EXPONENTS
+
+            if(ISREAL(*rplPeekData(lvl-1))) {
+                // DO A REAL COMPARISON
+                REAL num1,num2;
+
+                rplReadNumberAsReal(rplPeekData(lvl-1),&num1);
+                rplReadNumberAsReal(rplPeekData(lvl2-1),&num2);
+                if(!eqReal(&num1,&num2)) return 0;  // INCONSISTENT UNITS
+            } else {
+                if(!rplCompareObjects(rplPeekData(lvl-1),rplPeekData(lvl2-1))) return 0; // INCONSISTENT UNITS
+            }
+
+            if(ISREAL(*rplPeekData(lvl-2))) {
+                // DO A REAL COMPARISON
+                REAL num1,num2;
+
+                rplReadNumberAsReal(rplPeekData(lvl-2),&num1);
+                rplReadNumberAsReal(rplPeekData(lvl2-2),&num2);
+                if(!eqReal(&num1,&num2)) return 0;  // INCONSISTENT UNITS
+            } else {
+                if(!rplCompareObjects(rplPeekData(lvl-2),rplPeekData(lvl2-2))) return 0; // INCONSISTENT UNITS
+            }
+
+            // HERE WE HAVE A MATCH
+
+            break;
+
+
+        }
+
+        lvl2=rplUnitSkipItem(lvl2);
+
+
+    }
+
+    if(lvl2==nlevels) return 0; // NO MATCH = INCONSISTENT UNITS
+
+    lvl=rplUnitSkipItem(lvl);
+}
+
+return 1;
 }

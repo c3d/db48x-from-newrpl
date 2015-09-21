@@ -200,6 +200,63 @@ void LIB_HANDLER()
             rplOverwriteData(1,newunit);
             return;
         }
+        case OVR_ADD:
+        {
+            BINT nlevels1,nlevels2;
+            WORDPTR *stkclean=DSTop;
+
+            nlevels1=rplUnitExplode(rplPeekData(2));
+            if(Exceptions) { DSTop=stkclean; return; }
+            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            nlevels1=rplUnitToBase(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels1=rplUnitSimplify(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            nlevels2=rplUnitExplode(rplPeekData(1+nlevels1));
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels2=rplUnitToBase(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels2=rplUnitSimplify(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            // BOTH UNITS WERE REDUCED TO THE BASE
+            BINT result=rplUnitIsConsistent(nlevels1+nlevels2,nlevels2);
+            if(!result) {
+                rplError(ERR_INCONSISTENTUNITS);
+                DSTop=stkclean;
+                return;
+            }
+
+            // THE UNITS ARE CONSISTENT
+            WORDPTR unitval=rplPeekData(2+nlevels1+nlevels2);
+
+            if(ISUNIT(*unitval)) ++unitval; // IF IT'S A UNIT, POINT TO THE VALUE
+
+            rplPushData(unitval);
+            rplPushData(nlevels2+1);
+            rplPushData(nlevels1+nlevels2+2);
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            if(Exceptions) { DSTop=stkclean; return; }
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD));
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            unitval=rplPopData();   // GET THE NEW VALUE
+            rplDropData(nlevels2+nlevels1); // CLEANUP THE STACK, EXCEPT THE ORIGINAL ARGUMENTS
+            rplPushData(unitval);               // PUSH THE NEW VALUE
+            nlevels1=rplUnitExplode(rplPeekData(3));    // EXPLODE THE OLD UNIT
+            if(Exceptions) { DSTop=stkclean; return; }
+            rplUnitPopItem(nlevels1);           // AND REMOVE THE OLD VALUE, LEAVING THE NEW VALUE AND THE UNIT
+
+            WORDPTR newunit=rplUnitAssemble(nlevels1);
+            if(!newunit) { DSTop=stkclean; return; }
+
+            // FINAL CLEANUP
+            rplDropData(nlevels1+1);
+            rplOverwriteData(1,newunit);
+
+            return;
+        }
 
         }
 
