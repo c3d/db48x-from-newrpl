@@ -15,11 +15,15 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('m',0,0,0),        // [0]='m'
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('g',0,0,0),        // [2]='g'
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('s',0,0,0),        // [4]='s'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('i','n',0,0),        // [6]='in'
+
 };
 
 // SYSTEM UNIT DEFINITION TABLE: CONTAINS THE VALUES OF ALL SYSTEM DEFINED UNITS
 const WORD const system_unit_defs[]={
-
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-4,1,0),254,       // 0.0254
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(1),MAKESINT(1),
 
 };
 
@@ -28,7 +32,7 @@ const WORDPTR const system_unit_dir[]={
     &system_unit_names[0],&one_bint,            // 'm'=1
     &system_unit_names[2],&one_bint,            // 'g'=1
     &system_unit_names[4],&one_bint,            // 's'=1
-
+    &system_unit_names[6],&system_unit_defs[0],            // 'in'=0.0254_m
     0,0                                         // NULL TERMINATED LIST
 };
 
@@ -518,6 +522,8 @@ BINT rplUnitCompare(WORDPTR ident,WORDPTR baseident)
     BINT siidx;
 
     if(rplCompareIDENT(ident,baseident)) return -1;
+
+    if(LIBNUM(*baseident)!=DOIDENTSIPREFIX) return 0;   // BASE UNIT DOESN'T SUPPORT SI PREFIXES
 
     siidx=rplUnitGetSIPrefix(ident);
 

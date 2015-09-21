@@ -210,6 +210,8 @@ extern void libGetPTRFromID(WORDPTR *table,WORD id);
 // CONVENIENCE MACRO TO CREATE SMALL INTEGERS
 #define MAKESINT(a) MKOPCODE(DECBINT,(a)&0x3ffff)
 
+#define MAKEREALFLAGS(exp,len,flags)  ((WORD)(((exp)&0xffff)|(((len)&0xfff)<<16)|(((flags)&0xf)<<28) ))
+
 // CONVENIENCE MACRO TO ENCODE ERROR MESSAGES
 #define MAKEMSG(lib,num) MKOPCODE(DECBINT, (((lib)&0xfff)<<7) | ((num)&0x7f))
 
