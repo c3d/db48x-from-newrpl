@@ -12,27 +12,141 @@
 
 // SYSTEM UNIT NAME TABLE: CONTAINS NAMES FOR ALL SYSTEM DEFINED UNITS
 const WORD const system_unit_names[]={
-    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('m',0,0,0),        // [0]='m'
-    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('g',0,0,0),        // [2]='g'
-    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('s',0,0,0),        // [4]='s'
-    MKPROLOG(DOIDENT,1),TEXT2WORD('i','n',0,0),        // [6]='in'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('m',0,0,0),                           // [0]='m'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('g',0,0,0),                           // [2]='g'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('s',0,0,0),                           // [4]='s'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('a',0,0,0),                           // [6]='a'     (are=100 m^2)
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xe2,0x84,0xab,0),                            // [8]='Å'     (1e-10 m)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('A',0,0,0),                           // [10]='A'     (Ampere)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('a','c','r','e'),                             // [12]='acre'    (acre international)
+    MKPROLOG(DOIDENT,2),TEXT2WORD('a','c','r','e'),TEXT2WORD('U','S',0,0),      // [14]='acreUS'    (acre US Survey)
+    MKPROLOG(DOIDENT,2),TEXT2WORD('a','r','c','m'),TEXT2WORD('i','n',0,0),      // [17]='arcmin'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('a','r','c','s'),                              // [20]='arcs'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('a','t','m', 0 ),                              // [22]='atm'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('a','u', 0 , 0 ),                              // [24]='au'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('b', 0 , 0 , 0 ),                              // [26]='b'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('b','a','r', 0 ),                              // [28]='bar'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('b','b','l', 0 ),                              // [30]='bbl'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('B','q', 0 , 0 ),                              // [32]='Bq'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('B','t','u', 0 ),                              // [34]='Btu'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('b','u', 0 , 0 ),                              // [36]='bu'
+
+
+
+
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),          // [??]='?CPI'   (INTERNAL CONSTANT PI)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','D','G'),          // [??]='?CDG'  (INTERNAL CONSTANT 180 FOR DEGREE CONVERSION)
+
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','F','T'),          // [??]='?CFT'  (INTERNAL CONSTANT 3937 FOR US ft DEFINITION)
+
+
 
 };
 
 // SYSTEM UNIT DEFINITION TABLE: CONTAINS THE VALUES OF ALL SYSTEM DEFINED UNITS
 const WORD const system_unit_defs[]={
+    // [0] = are
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(100),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(2),MAKESINT(1),
+
+    // [6] = Å
     MKPROLOG(DOUNIT,7),
-    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-4,1,0),254,       // 0.0254
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-10,1,0),1,       // 1e-10
     MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[14] = acre
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(4840),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('y','d',0,0),MAKESINT(2),MAKESINT(1),
+
+    //[20] = acreUS
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(4840),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('y','d','U','S'),MAKESINT(2),MAKESINT(1),
+
+    //[26] = arcmin
+    MKPROLOG(DOUNIT,13),
+    MAKESINT(3),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','D','G'),MAKESINT(-2),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('r',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[40] = arcs
+    MKPROLOG(DOUNIT,13),
+    MAKESINT(9),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','D','G'),MAKESINT(-3),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('r',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[54] = atm
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(101325),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('P','a',0,0),MAKESINT(1),MAKESINT(1),
+
+    //[60] = au
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DECBINT,2),3568982636,34,
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[68] = b
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-28,1,0),1,       // 1e-28
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(2),MAKESINT(1),
+
+    //[76] = bar
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(100000),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('P','a',0,0),MAKESINT(1),MAKESINT(1),
+
+    //[82] = bbl
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(42),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a','l',0),MAKESINT(1),MAKESINT(1),
+
+    //[88] = Bq
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-1),MAKESINT(1),
+
+    //[94] = Btu
+    MKPROLOG(DOUNIT,8),
+    MKPROLOG(DOREAL,3),MAKEREALFLAGS(-8,2,0),5585262,1055,       // 1055.05585262
+    MKPROLOG(DOIDENT,1),TEXT2WORD('J',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[103] = bu
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-2,1,0),215042,       // 2150.42
+    MKPROLOG(DOIDENT,1),TEXT2WORD('i','n',0,0),MAKESINT(3),MAKESINT(1),
+
+    //[111] =
 
 };
 
 // SYSTEM UNIT DEFINITION DIRECTORY: CONTAINS PONTERS TO NAME/VALUE PAIRS FOR ALL SYSTEM UNITS
 const WORDPTR const system_unit_dir[]={
-    &system_unit_names[0],&one_bint,            // 'm'=1
-    &system_unit_names[2],&one_bint,            // 'g'=1
-    &system_unit_names[4],&one_bint,            // 's'=1
-    &system_unit_names[6],&system_unit_defs[0],            // 'in'=0.0254_m
+    (WORDPTR)&system_unit_names[0],(WORDPTR)&one_bint,            // 'm'=1
+    (WORDPTR)&system_unit_names[2],(WORDPTR)&one_bint,            // 'g'=1
+    (WORDPTR)&system_unit_names[4],(WORDPTR)&one_bint,            // 's'=1
+    (WORDPTR)&system_unit_names[6],(WORDPTR)&system_unit_defs[0], // 'a'=1_m^2
+    (WORDPTR)&system_unit_names[8],(WORDPTR)&system_unit_defs[6], // 'Å'=1e-10_m
+    (WORDPTR)&system_unit_names[10],(WORDPTR)&one_bint,            // 'A'=1
+    (WORDPTR)&system_unit_names[12],(WORDPTR)&system_unit_defs[14], // 'acre'=4840_yd
+    (WORDPTR)&system_unit_names[14],(WORDPTR)&system_unit_defs[20], // 'acreUS'=4840_ydUS
+    (WORDPTR)&system_unit_names[17],(WORDPTR)&system_unit_defs[26], // 'arcmin'=3*(180^-2)*pi_r
+    (WORDPTR)&system_unit_names[20],(WORDPTR)&system_unit_defs[40], // 'arcs'=9*(180^-3)*pi_r
+    (WORDPTR)&system_unit_names[22],(WORDPTR)&system_unit_defs[54], // 'atm'=101325_Pa
+    (WORDPTR)&system_unit_names[24],(WORDPTR)&system_unit_defs[60], // 'au'=149597870700_m
+    (WORDPTR)&system_unit_names[26],(WORDPTR)&system_unit_defs[68], // 'b'=1e-28_m
+    (WORDPTR)&system_unit_names[28],(WORDPTR)&system_unit_defs[76], // 'bar'=1e5_Pa
+    (WORDPTR)&system_unit_names[30],(WORDPTR)&system_unit_defs[82], // 'bbl'=42_gal
+    (WORDPTR)&system_unit_names[32],(WORDPTR)&system_unit_defs[88], // 'Bq'=1_1/s
+    (WORDPTR)&system_unit_names[34],(WORDPTR)&system_unit_defs[94], // 'Btu'=1055.05585262_J
+    (WORDPTR)&system_unit_names[36],(WORDPTR)&system_unit_defs[103], // 'bu'=2150.42_in^3
+
+
+
+
     0,0                                         // NULL TERMINATED LIST
 };
 
@@ -293,7 +407,9 @@ void rplUnitPowItem(BINT level1,BINT level2)
         }
     } else rplUnitPickItem(level1+1);
 
-    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_POW));
+    if(*rplPeekData(1)==MAKESINT(-1)) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_INV));
+    else if(*rplPeekData(1)!=MAKESINT(1)) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_POW));
+    else rplDropData(1);
     if(Exceptions) { DSTop=savestk; return; }
 
     // HERE WE SHOULD HAVE A SINGLE VALUE

@@ -1,0 +1,17 @@
+// THIS FILE WILL TAKE UNIT DEFINITIONS AND GENERATE A .C FILE WITH THE PROPER FORMAT
+// TO BE INCLUDED IN THE MAIN NEWRPL PROJECT
+
+// FORMAT OF THE UNIT DEFINITION
+
+
+
+
+
+#include <stdio.h>
+
+int main(void)
+{
+    printf("Hello World!\n");
+    return 0;
+}
+
