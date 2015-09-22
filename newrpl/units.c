@@ -332,6 +332,7 @@ BINT rplUnitSimplify(BINT nlevels)
                     if(!reduction) lvl2=rplUnitSkipItem(lvl2);
         }
 
+        if(ISIDENT(*rplPeekData(lvl))) {
         // CHECK IF EXPONENT ENDED UP BEING ZERO FOR THIS UNIT
 
         if(*rplPeekData(lvl-1)==MAKESINT(0)) {
@@ -341,6 +342,7 @@ BINT rplUnitSimplify(BINT nlevels)
             rplUnitPopItem(oldlvl);
             nlevels-=oldlvl-lvl;
         } else  lvl=rplUnitSkipItem(lvl);
+        } else lvl=rplUnitSkipItem(lvl);
 
     }
 

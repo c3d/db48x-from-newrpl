@@ -81,6 +81,11 @@ const MSGLIST const all_messages[]={
     // STRINGS
     { ERR_STRINGEXPECTED, "Expected a string" },
 
+    // UNITS
+    { ERR_UNITEXPECTED, "Expected an object with units" },
+    { ERR_INCONSISTENTUNITS, "Inconsistent units" },
+
+
 
     // LISTS
     { ERR_LISTEXPECTED, "Expected a list" },
