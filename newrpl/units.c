@@ -27,16 +27,25 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('b', 0 , 0 , 0 ),                              // [26]='b'
     MKPROLOG(DOIDENT,1),TEXT2WORD('b','a','r', 0 ),                              // [28]='bar'
     MKPROLOG(DOIDENT,1),TEXT2WORD('b','b','l', 0 ),                              // [30]='bbl'
-    MKPROLOG(DOIDENT,1),TEXT2WORD('B','q', 0 , 0 ),                              // [32]='Bq'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('B','q', 0 , 0 ),                              // [32]='Bq'
     MKPROLOG(DOIDENT,1),TEXT2WORD('B','t','u', 0 ),                              // [34]='Btu'
     MKPROLOG(DOIDENT,1),TEXT2WORD('b','u', 0 , 0 ),                              // [36]='bu'
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xc2,0xb0,'C', 0 ),                            // [38]='°C'
+    MKPROLOG(DOIDENT,2),TEXT2WORD(0xce,0x94,0xc2,0xb0),TEXT2WORD('C',0,0,0),     // [40]='Δ°C'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('c', 0 , 0 , 0 ),                              // [43]='c' (speed of light)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('C', 0 , 0 , 0 ),                      // [45]='C'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('c','a','l', 0 ),                              // [47]='cal'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','c','a','l'),                              // [49]='kcal'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('c','d', 0 , 0 ),                      // [51]='cd'
+    MKPROLOG(DOIDENT,2),TEXT2WORD('c','h','a','i'),TEXT2WORD('n',0,0,0),         // [53]='chain'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('C','i', 0 , 0 ),                              // [56]='Ci' (Curie)
+
 
 
 
 
     MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),          // [??]='?CPI'   (INTERNAL CONSTANT PI)
     MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','D','G'),          // [??]='?CDG'  (INTERNAL CONSTANT 180 FOR DEGREE CONVERSION)
-
     MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','F','T'),          // [??]='?CFT'  (INTERNAL CONSTANT 3937 FOR US ft DEFINITION)
 
 
@@ -119,7 +128,44 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DOREAL,2),MAKEREALFLAGS(-2,1,0),215042,       // 2150.42
     MKPROLOG(DOIDENT,1),TEXT2WORD('i','n',0,0),MAKESINT(3),MAKESINT(1),
 
-    //[111] =
+    //[111] = Δ°C
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xce,0x94,'K',0),MAKESINT(1),MAKESINT(1),
+
+    //[117] = c
+    MKPROLOG(DOUNIT,11),
+    MKPROLOG(DECBINT,2),299792458,0,
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-1),MAKESINT(1),
+
+    //[129] = C
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('A',0,0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[139] = cal
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-4,1,0),41868,       // 4.1868
+    MKPROLOG(DOIDENT,1),TEXT2WORD('J', 0 ,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[147] = kcal
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1000),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('c','a','l',0),MAKESINT(1),MAKESINT(1),
+
+    //[153] = chain
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(66),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t','U','S'),MAKESINT(1),MAKESINT(1),
+
+    //[159] = Ci
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DECBINT,2),2640261632,8,
+    MKPROLOG(DOIDENT,1),TEXT2WORD('B','q',0,0),MAKESINT(1),MAKESINT(1),
+
+
 
 };
 
@@ -142,7 +188,22 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[30],(WORDPTR)&system_unit_defs[82], // 'bbl'=42_gal
     (WORDPTR)&system_unit_names[32],(WORDPTR)&system_unit_defs[88], // 'Bq'=1_1/s
     (WORDPTR)&system_unit_names[34],(WORDPTR)&system_unit_defs[94], // 'Btu'=1055.05585262_J
-    (WORDPTR)&system_unit_names[36],(WORDPTR)&system_unit_defs[103], // 'bu'=2150.42_in^3
+    (WORDPTR)&system_unit_names[36],(WORDPTR)&system_unit_defs[103],// 'bu'=2150.42_in^3
+    (WORDPTR)&system_unit_names[38],(WORDPTR)&one_bint,             // '°C' IS A BASE UNIT BECAUSE IT'S INCONSISTENT UNLESS SPECIAL CASES
+    (WORDPTR)&system_unit_names[40],(WORDPTR)&system_unit_defs[111], // 'Δ°C'=1_ΔK
+    (WORDPTR)&system_unit_names[43],(WORDPTR)&system_unit_defs[117], // 'c'=299792458_m/s
+    (WORDPTR)&system_unit_names[45],(WORDPTR)&system_unit_defs[129], // 'C'=1_A*s
+    (WORDPTR)&system_unit_names[47],(WORDPTR)&system_unit_defs[139], // 'cal'=4.1868_J
+    (WORDPTR)&system_unit_names[49],(WORDPTR)&system_unit_defs[147], // 'kcal'=1000_cal
+    (WORDPTR)&system_unit_names[51],(WORDPTR)&one_bint,              // 'cd'=1
+    (WORDPTR)&system_unit_names[53],(WORDPTR)&system_unit_defs[153], // 'chain'=66_ftUS
+    (WORDPTR)&system_unit_names[56],(WORDPTR)&system_unit_defs[159], // 'Ci'=3.7e10_Bq
+
+
+
+
+
+
 
 
 
