@@ -39,6 +39,23 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('c','d', 0 , 0 ),                      // [51]='cd'
     MKPROLOG(DOIDENT,2),TEXT2WORD('c','h','a','i'),TEXT2WORD('n',0,0,0),         // [53]='chain'
     MKPROLOG(DOIDENT,1),TEXT2WORD('C','i', 0 , 0 ),                              // [56]='Ci' (Curie)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('c','t', 0 , 0 ),                              // [58]='ct' (carat)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('c','u', 0 , 0 ),                              // [60]='cu' (US cup)
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xc2,0xb0, 0 , 0 ),                            // [62]='°' (angular degree)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('d', 0 , 0 , 0 ),                              // [64]='d' (day)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('d','y','n', 0 ),                              // [66]='dyn'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('e','r','g', 0 ),                              // [68]='erg'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('e','V', 0 , 0 ),                              // [70]='eV'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('F', 0 , 0 , 0 ),                      // [72]='F'
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xc2,0xb0,'F', 0 ),                            // [74]='°F'
+    MKPROLOG(DOIDENT,2),TEXT2WORD(0xce,0x94,0xc2,0xb0),TEXT2WORD('F',0,0,0),     // [76]='Δ°F'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','a','t','h'),                              // [79]='fath' (fathom)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','b','m', 0 ),                              // [81]='fbm' (board foot)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','c', 0 , 0 ),                              // [83]='fc' (footcandle)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('F','d','y', 0 ),                              // [85]='Fdy' (Faraday)
+
+
+
 
 
 
@@ -165,7 +182,80 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DECBINT,2),2640261632,8,
     MKPROLOG(DOIDENT,1),TEXT2WORD('B','q',0,0),MAKESINT(1),MAKESINT(1),
 
+    //[167] = ct
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(200),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m','g',0,0),MAKESINT(1),MAKESINT(1),
 
+    //[173] = cu
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-4,1,0),625,       // 1/16
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a','l',0),MAKESINT(1),MAKESINT(1),
+
+    //[181] = °
+    MKPROLOG(DOUNIT,13),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','D','G'),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('r',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[195] = d
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(86400),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[201] = dyn
+    MKPROLOG(DOUNIT,13),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g',0,0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('c','m',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-2),MAKESINT(1),
+
+    //[215] = erg
+    MKPROLOG(DOUNIT,13),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g',0,0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('c','m',0,0),MAKESINT(2),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-2),MAKESINT(1),
+
+    //[229] = eV
+    MKPROLOG(DOUNIT,8),
+    MKPROLOG(DOREAL,3),MAKEREALFLAGS(-29,2,0),21766208,160,       // 1.6021766208e-19 per CODATA 2014
+    MKPROLOG(DOIDENT,1),TEXT2WORD('J',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[238] = F
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('C',0,0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('V',0,0,0),MAKESINT(-1),MAKESINT(1),
+
+    //[248] = Δ°F
+    MKPROLOG(DOUNIT,6),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,2),TEXT2WORD(0xce,0x94,0xc2,0xb0),TEXT2WORD('R',0,0,0),MAKESINT(1),MAKESINT(1),     // 'Δ°R'
+
+    //[255] = fath
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(6),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t','U','S'),MAKESINT(1),MAKESINT(1),
+
+    //[261] = fbm
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(144),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('i','n',0,0),MAKESINT(3),MAKESINT(1),
+
+    //[267] = fc
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','m',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t',0,0),MAKESINT(-2),MAKESINT(1),
+
+    //[277] = Fdy
+    MKPROLOG(DOUNIT,9),
+    MKPROLOG(DOREAL,4),MAKEREALFLAGS(-16,3,0),98760256,53328824,9648,       // 6.022140857e23 * 1.6021766208e-19 per CODATA 2014
+    MKPROLOG(DOIDENT,1),TEXT2WORD('C',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[287] =
 
 };
 
@@ -198,6 +288,24 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[51],(WORDPTR)&one_bint,              // 'cd'=1
     (WORDPTR)&system_unit_names[53],(WORDPTR)&system_unit_defs[153], // 'chain'=66_ftUS
     (WORDPTR)&system_unit_names[56],(WORDPTR)&system_unit_defs[159], // 'Ci'=3.7e10_Bq
+    (WORDPTR)&system_unit_names[58],(WORDPTR)&system_unit_defs[167], // 'ct'=200_mg
+    (WORDPTR)&system_unit_names[60],(WORDPTR)&system_unit_defs[173], // 'cu'=1/16_gal (US cup)
+    (WORDPTR)&system_unit_names[62],(WORDPTR)&system_unit_defs[181], // '°'=pi/180_r
+    (WORDPTR)&system_unit_names[64],(WORDPTR)&system_unit_defs[195], // 'd'=86400_s
+    (WORDPTR)&system_unit_names[66],(WORDPTR)&system_unit_defs[201], // 'dyn'=1_g*cm/s^2
+    (WORDPTR)&system_unit_names[68],(WORDPTR)&system_unit_defs[215], // 'erg'=1_g*cm^2/s^2
+    (WORDPTR)&system_unit_names[70],(WORDPTR)&system_unit_defs[229], // 'eV'=1.6021766208e-19_J
+    (WORDPTR)&system_unit_names[72],(WORDPTR)&system_unit_defs[238], // 'F'=1_C/V
+    (WORDPTR)&system_unit_names[74],(WORDPTR)&one_bint,              // '°F' IS A BASE UNIT BECAUSE IT'S INCONSISTENT UNLESS SPECIAL CASES
+    (WORDPTR)&system_unit_names[76],(WORDPTR)&system_unit_defs[248], // 'Δ°F'=1_Δ°R
+    (WORDPTR)&system_unit_names[79],(WORDPTR)&system_unit_defs[255], // 'fath'=6_ftUS
+    (WORDPTR)&system_unit_names[81],(WORDPTR)&system_unit_defs[261], // 'fbm'=144_in^3
+    (WORDPTR)&system_unit_names[83],(WORDPTR)&system_unit_defs[267], // 'fc'=1_lm/ft^2
+    (WORDPTR)&system_unit_names[85],(WORDPTR)&system_unit_defs[277], // 'Fdy'=9648.5332882498760256_C (per CODATA 2014)
+
+
+
+
 
 
 

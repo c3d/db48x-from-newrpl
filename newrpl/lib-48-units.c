@@ -488,6 +488,15 @@ void LIB_HANDLER()
                     continue;
                 }
 
+                // HANDLE SPECIAL CASE OF '1/X'
+
+                if(*nextptr=='1') {
+                    ++nextptr;
+                    ++count;
+                    needident=0;
+                    continue;
+                }
+
 
                 // GET THE NEXT IDENT
                 BYTEPTR nameend=rplNextUnitToken(nextptr,(BYTEPTR)BlankStart);
@@ -1124,6 +1133,10 @@ void LIB_HANDLER()
                 expden=rplSkipOb(expnum);
                 rplReadNumberAsReal(expnum,&rnum);
                 rplReadNumberAsReal(expden,&rden);
+
+                if(!needmult) {
+                    if(rnum.flags&F_NEGATIVE) { rplDecompAppendChar('1'); needmult=1; }
+                }
 
                 if(needmult) {
                     // CHECK FOR THE SIGN OF THE EXPONENT, ADD A '*' IF POSITIVE, '/' IF NEGATIVE
