@@ -414,6 +414,12 @@ extern BINT rplUnitToBase(BINT nlevels);
 extern BINT rplUnitSort(BINT nlevels, BINT reflevel);
 extern BINT rplUnitIsConsistent(BINT nlevels,BINT reflevel);
 
+extern BINT rplUnitIsSpecial(WORDPTR unitobj);
+extern void rplUnitReplaceSpecial(BINT nlevels);
+extern void rplUnitReverseReplaceSpecial(BINT nlevels);
+
+
+
 // LIST FUNCTIONS
 extern BINT rplListLength(WORDPTR composite);
 extern BINT rplListLengthFlat(WORDPTR composite);

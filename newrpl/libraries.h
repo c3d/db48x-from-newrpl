@@ -356,6 +356,8 @@ extern void libGetPTRFromID(WORDPTR *table,WORD id);
 #define OVR_DIV      OVR_OPERATORS+OVR_BINARY+19
 #define OVRT_POW           "^"
 #define OVR_POW      OVR_OPERATORS+OVR_BINARY+22
+#define OVRT_XROOT         "XROOT"
+#define OVR_XROOT      OVR_OPERATORS+OVR_BINARY+24
 
 // ADD MORE OPERATORS HERE
 

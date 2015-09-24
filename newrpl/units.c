@@ -327,23 +327,13 @@ const WORDPTR const system_unit_dir[]={
 // IT EFFECTIVELY CONVERTS °C INTO K, AND °F INTO °R
 
 const WORDPTR const system_unit_special[]={
-    (WORDPTR)&system_unit_names[38],(WORDPTR)&system_unit_defs[287],
-    (WORDPTR)&system_unit_names[74],(WORDPTR)&system_unit_defs[295],
+    // SPECIAL UNIT NAME ,     DELTA UNIT NAME      ,   ABSOLUTE UNIT EQUIVALENT OF THE ZERO IN THE SCALE
+    (WORDPTR)&system_unit_names[38],(WORDPTR)&system_unit_names[40],(WORDPTR)&system_unit_defs[287],
+    (WORDPTR)&system_unit_names[74],(WORDPTR)&system_unit_names[76],(WORDPTR)&system_unit_defs[295],
 
-    0,0
+    // ADD HERE RANKINE AND KELVIN FOR CONVERSION TO THEIR DELTA TYPES
+    0,0,0
 };
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -720,6 +710,39 @@ BINT rplUnitDivide(BINT numlvl,BINT divlvl)
 
 }
 
+
+
+// RAISE A UNIT TO A REAL EXPONENT
+// RETURN THE NUMBER OF ELEMENTS AFTER THE SIMPLIFICATION
+BINT rplUnitPow(BINT lvlexp,BINT nlevels)
+{
+    BINT lvl=nlevels;
+
+    while(lvl>0) {
+
+        rplUnitPowItem(lvlexp,lvl);
+
+        lvl=rplUnitSkipItem(lvl);
+    }
+
+    // UNIT IS READY TO BE SIMPLIFIED
+
+    return rplUnitSimplify(nlevels);
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 #define NUM_SIPREFIXES 21
 
 // THIS IS THE TEXT OF THE 20 SI PREFIXES
@@ -1086,3 +1109,171 @@ while(lvl>0) {
 
 return 1;
 }
+
+
+
+// SPECIAL UNITS (TEMPERATURE) WHICH NEED SEPARATE HANDLING DUE TO
+// SCALE SHIFTING
+
+BINT rplUnitIsSpecial(WORDPTR unitobj)
+{
+    if(!ISUNIT(*unitobj)) return   0;
+
+    // THERE HAS TO BE ONE AND ONLY ONE IDENT
+    WORDPTR id=unitobj+1,end=rplSkipOb(unitobj);
+    BINT count=0;
+
+    while(id!=end) { ++count; id=rplSkipOb(id); }
+
+    if(count!=4) return 0;  // 4 = 1 VALUE + 1 IDENT + 2 EXPONENT NUMBERS
+
+    id=rplSkipOb(unitobj+1);    // POINT TO THE IDENTIFIER
+
+    WORDPTR *ptr=system_unit_special;
+
+    while(*ptr) {
+       if(rplCompareIDENT(id,*ptr)) break;
+       ptr+=3;
+    }
+
+    if(!*ptr) return 0;
+
+    return 1;
+
+}
+
+
+// REPLACE THE VALUE AND IDENT OF AN EXPLODED SPECIAL UNIT
+// WITH THEIR SHIFTED-SCALE ABSOLUTE COUNTERPART
+// WARNING: NO CHECKS DONE HERE, MAKE SURE THE UNIT IS SPECIAL BEFORE CALLING THIS!
+
+void rplUnitReplaceSpecial(BINT nlevels)
+{
+    BINT lvl=nlevels;
+    BINT value=0;
+    BINT ident=0;
+
+    // FIND THE VALUE AND THE IDENTIFIER IN CASE THEY ARE OUT OF ORDER
+    while(lvl>0) {
+     if(!ISIDENT(*rplPeekData(lvl))) value=lvl;
+     else ident=lvl;
+
+     if(value && ident) break;
+
+     lvl=rplUnitSkipItem(lvl);
+
+    }
+
+     WORDPTR *ptr=system_unit_special;
+
+     while(ptr[2]) {
+         if(rplCompareIDENT(rplPeekData(ident),*ptr)) break;
+         ptr+=3;
+     }
+
+     if(!ptr[2]) return;          // NOTHING SPECIAL IN THIS UNIT
+
+     WORDPTR *savestk=DSTop;
+     // DO THE REPLACEMENT
+     rplPushData(rplPeekData(value));
+     rplPushData(ptr[2]+1);
+
+     rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD));    // DO THE SCALE SHIFT
+
+     if(Exceptions) { DSTop=savestk; return; }
+
+     rplOverwriteData(value,rplPopData());          // REPLACE THE VALUE
+
+     // FINALLY, REPLACE THE IDENT OF THE UNIT (KEEP THE EXPONENTS)
+
+     rplOverwriteData(ident,rplSkipOb(ptr[2]+1));
+
+
+}
+
+// REPLACE THE VALUE AND IDENT OF AN EXPLODED ABSOLUTE SPECIAL UNIT
+// WITH THEIR SHIFTED-SCALE RELATIVE COUNTERPART
+// WARNING: NO CHECKS DONE HERE, MAKE SURE THE UNIT IS SPECIAL BEFORE CALLING THIS!
+
+void rplUnitReverseReplaceSpecial(BINT nlevels)
+{
+    BINT lvl=nlevels;
+    BINT value=0;
+    BINT ident=0;
+
+    // FIND THE VALUE AND THE IDENTIFIER IN CASE THEY ARE OUT OF ORDER
+    while(lvl>0) {
+     if(!ISIDENT(*rplPeekData(lvl))) value=lvl;
+     else ident=lvl;
+
+     if(value && ident) break;
+
+     lvl=rplUnitSkipItem(lvl);
+
+    }
+
+     WORDPTR *ptr=system_unit_special;
+
+     while(ptr[2]) {
+         if(rplCompareIDENT(rplPeekData(ident),rplSkipOb(ptr[2]+1))) break;
+         ptr+=3;
+     }
+
+     if(!ptr[2]) return;          // NOTHING SPECIAL IN THIS UNIT
+
+     WORDPTR *savestk=DSTop;
+     // DO THE REPLACEMENT
+     rplPushData(rplPeekData(value));
+     rplPushData(ptr[2]+1);
+
+     rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB));    // DO THE SCALE SHIFT
+
+     if(Exceptions) { DSTop=savestk; return; }
+
+     rplOverwriteData(value,rplPopData());          // REPLACE THE VALUE
+
+     // FINALLY, REPLACE THE IDENT OF THE UNIT (KEEP THE EXPONENTS)
+
+     rplOverwriteData(ident,ptr[0]);
+
+
+}
+
+
+// REPLACE THE VALUE AND IDENT OF AN EXPLODED SPECIAL UNIT
+// WITH THEIR SHIFTED-SCALE ABSOLUTE COUNTERPART
+// WARNING: NO CHECKS DONE HERE, MAKE SURE THE UNIT IS SPECIAL BEFORE CALLING THIS!
+
+void rplUnitSpecialToDelta(BINT nlevels)
+{
+    BINT lvl=nlevels;
+    BINT value=0;
+    BINT ident=0;
+
+    // FIND THE VALUE AND THE IDENTIFIER IN CASE THEY ARE OUT OF ORDER
+    while(lvl>0) {
+     if(!ISIDENT(*rplPeekData(lvl))) value=lvl;
+     else ident=lvl;
+
+     if(value && ident) break;
+
+     lvl=rplUnitSkipItem(lvl);
+
+    }
+
+     WORDPTR *ptr=system_unit_special;
+
+     while(*ptr) {
+         if(rplCompareIDENT(rplPeekData(ident),*ptr)) break;
+         ptr+=3;
+     }
+
+     if(!*ptr) return;          // NOTHING SPECIAL IN THIS UNIT
+
+     // REPLACE THE IDENT OF THE UNIT (KEEP THE EXPONENTS)
+
+     rplOverwriteData(ident,ptr[1]);
+
+
+}
+

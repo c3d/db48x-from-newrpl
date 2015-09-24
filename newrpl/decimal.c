@@ -248,9 +248,10 @@ void normalize(REAL *number)
 
     }
 
-    // FINALLY, IF NUMBER IS ZERO, FORCE EXPONENT TO BE ZERO
+    // FINALLY, IF NUMBER IS ZERO, FORCE EXPONENT TO BE ZERO AND SIGN TO BE POSITIVE
     if((number->len==1) && (number->data[0]==0)) {
         number->exp=0;
+        number->flags&=~F_NEGATIVE;
     }
 
     number->flags&=~F_NOTNORMALIZED;
