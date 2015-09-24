@@ -13,7 +13,7 @@
 // SYSTEM UNIT NAME TABLE: CONTAINS NAMES FOR ALL SYSTEM DEFINED UNITS
 const WORD const system_unit_names[]={
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('m',0,0,0),                           // [0]='m'
-    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('g',0,0,0),                           // [2]='g'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),                                  // [2]='kg'
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('s',0,0,0),                           // [4]='s'
     MKPROLOG(DOIDENT,1),TEXT2WORD('a',0,0,0),                           // [6]='a'     (are=100 m^2)
     MKPROLOG(DOIDENT,1),TEXT2WORD(0xe2,0x84,0xab,0),                            // [8]='Å'     (1e-10 m)
@@ -27,7 +27,7 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('b', 0 , 0 , 0 ),                              // [26]='b'
     MKPROLOG(DOIDENT,1),TEXT2WORD('b','a','r', 0 ),                              // [28]='bar'
     MKPROLOG(DOIDENT,1),TEXT2WORD('b','b','l', 0 ),                              // [30]='bbl'
-    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('B','q', 0 , 0 ),                              // [32]='Bq'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('B','q', 0 , 0 ),                      // [32]='Bq'
     MKPROLOG(DOIDENT,1),TEXT2WORD('B','t','u', 0 ),                              // [34]='Btu'
     MKPROLOG(DOIDENT,1),TEXT2WORD('b','u', 0 , 0 ),                              // [36]='bu'
     MKPROLOG(DOIDENT,1),TEXT2WORD(0xc2,0xb0,'C', 0 ),                            // [38]='°C'
@@ -53,6 +53,51 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('f','b','m', 0 ),                              // [81]='fbm' (board foot)
     MKPROLOG(DOIDENT,1),TEXT2WORD('f','c', 0 , 0 ),                              // [83]='fc' (footcandle)
     MKPROLOG(DOIDENT,1),TEXT2WORD('F','d','y', 0 ),                              // [85]='Fdy' (Faraday)
+    MKPROLOG(DOIDENT,2),TEXT2WORD('f','e','r','m'),TEXT2WORD('i',0,0,0),         // [87]='fermi'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','l','a','m'),                              // [90]='flam' (footlambert)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t', 0 , 0 ),                              // [92]='ft'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t','U','S'),                              // [94]='ftUS'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('g', 0 , 0 , 0 ),                      // [96]='g'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a', 0 , 0 ),                              // [98]='ga' (gravity's acceleration)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a','l', 0 ),                              // [100]='gal' (US gallon)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a','l','C'),                              // [102]='galC' (Canadian gallon)
+    MKPROLOG(DOIDENT,2),TEXT2WORD('g','a','l','U'),TEXT2WORD('K',0,0,0),         // [104]='galUK' (UK gallon)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('g','f', 0 , 0 ),                      // [107]='gf' (gram force)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','r','a','d'),                              // [109]='grad'
+    MKPROLOG(DOIDENT,2),TEXT2WORD('g','r','a','i'),TEXT2WORD('n',0,0,0),         // [111]='grain'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('G','y', 0 , 0 ),                      // [114]='Gy' (Gray)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('H', 0 , 0 , 0 ),                      // [116]='H' (Henry)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('h', 0 , 0 , 0 ),                              // [118]='h' (hour)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('h','p', 0 , 0 ),                              // [120]='hp' (horsepower)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('H','z', 0 , 0 ),                      // [122]='Hz'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('i','n', 0 , 0 ),                              // [124]='in'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('i','n','H','g'),                              // [126]='inHg'
+    MKPROLOG(DOIDENT,2),TEXT2WORD('i','n','H','2'),TEXT2WORD('O',0,0,0),         // [128]='inH2O'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('J', 0 , 0 , 0 ),                      // [131]='J'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('K', 0 , 0 , 0 ),                      // [133]='K'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD(0xce,0x94,'K', 0 ),                    // [135]='ΔK'
+
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','i','p', 0 ),                              // [137]='kip'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','n','o','t'),                              // [139]='knot'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','p','h', 0 ),                              // [141]='kph'  (kilometers per hour)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('l', 0 , 0 , 0 ),                      // [143]='l'   (liter)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','a','m', 0 ),                              // [145]='lam' (Lambert)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','b', 0 , 0 ),                              // [147]='lb'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','b','f', 0 ),                              // [149]='lbf'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -265,14 +310,161 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DOREAL,2),MAKEREALFLAGS(-2,1,0),45967,       // 459.67
     MKPROLOG(DOIDENT,1),TEXT2WORD(0xc2,0xb0,'R', 0 ),MAKESINT(1),MAKESINT(1),
 
-    //[303] =
+    //[303] = fermi
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','m',0,0),MAKESINT(1),MAKESINT(1),
 
+    //[309] = flam
+    MKPROLOG(DOUNIT,13),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('c','d',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t',0,0),MAKESINT(-2),MAKESINT(1),
+
+    //[323] = ft
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(12),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('i','n',0,0),MAKESINT(1),MAKESINT(1),
+
+    //[329] = ftUS
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1200),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','F','T'),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[339] = g
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-3,1,0),1,       // 0.001
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(1),MAKESINT(1),
+
+    //[347] = ga
+    MKPROLOG(DOUNIT,11),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-5,1,0),980665,       // 9.80665
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-2),MAKESINT(1),
+
+    //[359] = gal
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(231),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('i','n',0,0),MAKESINT(3),MAKESINT(1),
+
+    //[365] = galC = galUK
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-8,1,0),454609,       // 0.00454609
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(3),MAKESINT(1),
+
+    //[373] = gf
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g',0,0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a',0,0),MAKESINT(1),MAKESINT(1),
+
+    //[383] = grad
+    MKPROLOG(DOUNIT,11),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-3,1,0),5,       // 1/200
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('r',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[395] = grain
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-11,1,0),6479891,       // 0.00006479891
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(1),MAKESINT(1),
+
+    //[403] = Gy
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('J',0,0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(-1),MAKESINT(1),
+
+    //[413] = H
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('W','b',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('A',0,0,0),MAKESINT(-1),MAKESINT(1),
+
+    //[423] = h
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(3600),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[429] = hp
+    MKPROLOG(DOUNIT,13),
+    MAKESINT(550),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','b','f',0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-1),MAKESINT(1),
+
+    //[443] = Hz
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-1),MAKESINT(1),
+
+    //[449] = in
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-4,1,0),254,       // 0.0254
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[457] = inHg
+    MKPROLOG(DOUNIT,19),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-1,1,0),135951,       // 13595.1
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(-3),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('i','n',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a',0,0),MAKESINT(1),MAKESINT(1),
+
+    //[477] = inH2O
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-2,1,0),24884,       // 248.84
+    MKPROLOG(DOIDENT,1),TEXT2WORD('P','a',0,0),MAKESINT(1),MAKESINT(1),
+
+    //[485] = kip
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1000),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','b','f',0),MAKESINT(1),MAKESINT(1),
+
+    //[491] = knot
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('n','m','i',0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('h',0,0,0),MAKESINT(-1),MAKESINT(1),
+
+    //[501] = kph
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','m',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('h',0,0,0),MAKESINT(-1),MAKESINT(1),
+
+    //[511] = l
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('d','m',0,0),MAKESINT(3),MAKESINT(1),
+
+    //[517] = lam
+    MKPROLOG(DOUNIT,13),
+    MAKESINT(10000),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('c','d',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(-2),MAKESINT(1),
+
+    //[531] = lb
+    MKPROLOG(DOUNIT,6),
+    MAKESINT(7000),
+    MKPROLOG(DOIDENT,2),TEXT2WORD('g','r','a','i'),TEXT2WORD('n',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[538] = lbf
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','b',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a',0,0),MAKESINT(1),MAKESINT(1),
+
+    //[548] =
 };
 
 // SYSTEM UNIT DEFINITION DIRECTORY: CONTAINS PONTERS TO NAME/VALUE PAIRS FOR ALL SYSTEM UNITS
 const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[0],(WORDPTR)&one_bint,            // 'm'=1
-    (WORDPTR)&system_unit_names[2],(WORDPTR)&one_bint,            // 'g'=1
+    (WORDPTR)&system_unit_names[2],(WORDPTR)&one_bint,            // 'kg'=1
     (WORDPTR)&system_unit_names[4],(WORDPTR)&one_bint,            // 's'=1
     (WORDPTR)&system_unit_names[6],(WORDPTR)&system_unit_defs[0], // 'a'=1_m^2
     (WORDPTR)&system_unit_names[8],(WORDPTR)&system_unit_defs[6], // 'Å'=1e-10_m
@@ -312,6 +504,49 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[81],(WORDPTR)&system_unit_defs[261], // 'fbm'=144_in^3
     (WORDPTR)&system_unit_names[83],(WORDPTR)&system_unit_defs[267], // 'fc'=1_lm/ft^2
     (WORDPTR)&system_unit_names[85],(WORDPTR)&system_unit_defs[277], // 'Fdy'=9648.5332882498760256_C (per CODATA 2014)
+    (WORDPTR)&system_unit_names[87],(WORDPTR)&system_unit_defs[303], // 'fermi'=1_fm
+    (WORDPTR)&system_unit_names[90],(WORDPTR)&system_unit_defs[309], // 'flam'=1/pi_cd/ft^2
+    (WORDPTR)&system_unit_names[92],(WORDPTR)&system_unit_defs[323], // 'ft'=12_in'
+    (WORDPTR)&system_unit_names[94],(WORDPTR)&system_unit_defs[329], // 'ftUS'=1200/3937_m
+    (WORDPTR)&system_unit_names[96],(WORDPTR)&system_unit_defs[339], // 'g'=0.001_kg
+    (WORDPTR)&system_unit_names[98],(WORDPTR)&system_unit_defs[347], // 'ga'=9.80665_m/s^2
+    (WORDPTR)&system_unit_names[100],(WORDPTR)&system_unit_defs[359], // 'gal'=231_in^3
+    (WORDPTR)&system_unit_names[102],(WORDPTR)&system_unit_defs[365], // 'galC'='galUK'=0.00454609_m^3
+    (WORDPTR)&system_unit_names[104],(WORDPTR)&system_unit_defs[365], // 'galC'='galUK'=0.00454609_m^3
+    (WORDPTR)&system_unit_names[107],(WORDPTR)&system_unit_defs[373], // 'gf'=1_g*ga
+    (WORDPTR)&system_unit_names[109],(WORDPTR)&system_unit_defs[383], // 'grad'=pi/200_r
+    (WORDPTR)&system_unit_names[111],(WORDPTR)&system_unit_defs[395], // 'grain'=0.00006479891
+    (WORDPTR)&system_unit_names[114],(WORDPTR)&system_unit_defs[403], // 'Gy'=1_J/kg
+    (WORDPTR)&system_unit_names[116],(WORDPTR)&system_unit_defs[413], // 'H'=1_Wb/A
+    (WORDPTR)&system_unit_names[118],(WORDPTR)&system_unit_defs[423], // 'h'=3600_s
+    (WORDPTR)&system_unit_names[120],(WORDPTR)&system_unit_defs[429], // 'hp'=550_ft*lbf/s
+    (WORDPTR)&system_unit_names[122],(WORDPTR)&system_unit_defs[443], // 'Hz'=1/s
+    (WORDPTR)&system_unit_names[124],(WORDPTR)&system_unit_defs[449], // 'in'=0.0254_m
+    (WORDPTR)&system_unit_names[126],(WORDPTR)&system_unit_defs[457], // 'inHg'=13595.1_kg/m^3*in*ga
+    (WORDPTR)&system_unit_names[128],(WORDPTR)&system_unit_defs[477], // 'inH2O'=248.84_Pa (at 60°F)
+    (WORDPTR)&system_unit_names[131],(WORDPTR)&one_bint,              // 'J'=1
+    (WORDPTR)&system_unit_names[133],(WORDPTR)&one_bint,              // 'K'=1
+    (WORDPTR)&system_unit_names[135],(WORDPTR)&one_bint,              // 'ΔK'=1
+
+    (WORDPTR)&system_unit_names[137],(WORDPTR)&system_unit_defs[485], // 'kip'=1000_lbf
+    (WORDPTR)&system_unit_names[139],(WORDPTR)&system_unit_defs[491], // 'knot'=1_nmi/h
+    (WORDPTR)&system_unit_names[141],(WORDPTR)&system_unit_defs[501], // 'kph'=1_km/h
+    (WORDPTR)&system_unit_names[143],(WORDPTR)&system_unit_defs[511], // 'l'=1_dm^3
+    (WORDPTR)&system_unit_names[145],(WORDPTR)&system_unit_defs[517], // 'lam'=10000/pi_cd/m^2
+    (WORDPTR)&system_unit_names[147],(WORDPTR)&system_unit_defs[531], // 'lb'=7000_grain
+    (WORDPTR)&system_unit_names[149],(WORDPTR)&system_unit_defs[538], // 'lbf'=1_lb*ga
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -650,8 +885,7 @@ BINT rplUnitSimplify(BINT nlevels)
 
     // UNROLL THIS VALUE TO THE BOTTOM OF THE UNIT
     WORDPTR value=rplPeekData(lvl);
-
-    while(lvl!=nlevels) { rplOverwriteData(lvl,rplPeekData(lvl-1)); --lvl; }
+    while(lvl!=nlevels) { rplOverwriteData(lvl,rplPeekData(lvl+1)); ++lvl; }
     rplOverwriteData(nlevels,value);
 
     return nlevels;
