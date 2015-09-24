@@ -255,7 +255,17 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DOREAL,4),MAKEREALFLAGS(-16,3,0),98760256,53328824,9648,       // 6.022140857e23 * 1.6021766208e-19 per CODATA 2014
     MKPROLOG(DOIDENT,1),TEXT2WORD('C',0,0,0),MAKESINT(1),MAKESINT(1),
 
-    //[287] =
+    //[287] = zero Celsius
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-2,1,0),27315,       // 273.15
+    MKPROLOG(DOIDENT,1),TEXT2WORD('K',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[295] = zero Farenheit
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-2,1,0),45967,       // 459.67
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xc2,0xb0,'R', 0 ),MAKESINT(1),MAKESINT(1),
+
+    //[303] =
 
 };
 
@@ -307,23 +317,21 @@ const WORDPTR const system_unit_dir[]={
 
 
 
-
-
-
-
-
-
-
-
-
     0,0                                         // NULL TERMINATED LIST
 };
 
 
 
+// THESE ARE SPECIAL UNITS THAT NEED TO BE REPLACED
+// °C AND °F, AND THE REPLACEMENT IS DONE BY ADDING A CONSTANT RATHER THAN MULTIPLYING
+// IT EFFECTIVELY CONVERTS °C INTO K, AND °F INTO °R
 
+const WORDPTR const system_unit_special[]={
+    (WORDPTR)&system_unit_names[38],(WORDPTR)&system_unit_defs[287],
+    (WORDPTR)&system_unit_names[74],(WORDPTR)&system_unit_defs[295],
 
-
+    0,0
+};
 
 
 
