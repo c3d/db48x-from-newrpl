@@ -76,7 +76,6 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('J', 0 , 0 , 0 ),                      // [131]='J'
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('K', 0 , 0 , 0 ),                      // [133]='K'
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD(0xce,0x94,'K', 0 ),                    // [135]='ΔK'
-
     MKPROLOG(DOIDENT,1),TEXT2WORD('k','i','p', 0 ),                              // [137]='kip'
     MKPROLOG(DOIDENT,1),TEXT2WORD('k','n','o','t'),                              // [139]='knot'
     MKPROLOG(DOIDENT,1),TEXT2WORD('k','p','h', 0 ),                              // [141]='kph'  (kilometers per hour)
@@ -84,6 +83,64 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('l','a','m', 0 ),                              // [145]='lam' (Lambert)
     MKPROLOG(DOIDENT,1),TEXT2WORD('l','b', 0 , 0 ),                              // [147]='lb'
     MKPROLOG(DOIDENT,1),TEXT2WORD('l','b','f', 0 ),                              // [149]='lbf'
+
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','b','t', 0 ),                              // [151]='lbt' (pound troy)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('l','m', 0 , 0 ),                      // [153]='lm' (lumen)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('l','x', 0 , 0 ),                      // [155]='lx' (lux)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','y','r', 0 ),                              // [157]='lyr' (light year)
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xce,0xbc, 0 , 0 ),                            // [159]='μ'   (micron)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m','h','o', 0 ),                              // [161]='mho'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m','i', 0 , 0 ),                              // [163]='mi'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m','i','l', 0 ),                              // [165]='mil'  (mils)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m','i','n', 0 ),                              // [167]='min'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m','i','U','S'),                              // [169]='miUS' (mile US)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m','m','H','g'),                              // [171]='mmHg'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('m','o','l', 0 ),                      // [173]='mol'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m','p','h', 0 ),                              // [175]='mph'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('N', 0 , 0 , 0 ),                      // [177]='N'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('n','m','i', 0 ),                              // [179]='nmi' (nautical mile)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD(0xce,0xa9, 0 , 0 ),                    // [181]='Ω' (Ohm)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('o','z', 0 , 0 ),                              // [183]='oz' (ounce)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('o','z','f','l'),                              // [185]='ozfl' (US fluid ounce)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('o','z','t', 0 ),                              // [187]='ozt' (Troy ounce)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('o','z','U','K'),                              // [189]='ozUK' (UK ounce)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('P', 0 , 0 , 0 ),                      // [191]='P' (poise)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('P','a', 0 , 0 ),                      // [193]='Pa' (pascal)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('p','c', 0 , 0 ),                              // [195]='pc' (parsec)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('p','d','l', 0 ),                              // [197]='pdl' (poundal)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('p','h', 0 , 0 ),                              // [199]='ph' (phot)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('p','k', 0 , 0 ),                              // [201]='pk' (peck)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('p','s','i', 0 ),                              // [203]='psi'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('p','t', 0 , 0 ),                              // [205]='pt' (pint)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('q','t', 0 , 0 ),                              // [207]='qt' (quart)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('r', 0 , 0 , 0 ),                              // [209]='r' (radian)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('R', 0 , 0 , 0 ),                              // [211]='R' (roentgen)
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xc2,0xb0,'R', 0 ),                            // [213]='°R' (Rankine)
+    MKPROLOG(DOIDENT,2),TEXT2WORD(0xce,0x94,0xc2,0xb0),TEXT2WORD('R',0,0,0),     // [215]='Δ°R'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('r','a','d', 0 ),                              // [218]='rad' (rad)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('r','d', 0 , 0 ),                              // [220]='rd' (rod international)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('r','d','U','S'),                              // [222]='rdUS' (rod US survey)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('p','t','U','K'),                              // [224]='ptUK' (pint imperial)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('q','t','U','K'),                              // [226]='qtUK' (quart imperial)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -458,7 +515,228 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('l','b',0,0),MAKESINT(1),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('g','a',0,0),MAKESINT(1),MAKESINT(1),
 
-    //[548] =
+    //[548] = 'lbt'
+    MKPROLOG(DOUNIT,6),
+    MAKESINT(5760),
+    MKPROLOG(DOIDENT,2),TEXT2WORD('g','r','a','i'),TEXT2WORD('n',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[555]='lm' (lumen)
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('c','d',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s','r',0,0),MAKESINT(1),MAKESINT(1),
+
+    //[565]='lx' (lux)
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','m',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(-2),MAKESINT(1),
+
+
+     //[575]='lyr' (light year)
+    MKPROLOG(DOUNIT,11),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-2,1,0),36525,       // 365.25
+    MKPROLOG(DOIDENT,1),TEXT2WORD('d',0,0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('c',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[587]=?????????????????????????????
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xce,0xbc,'m',0),MAKESINT(1),MAKESINT(1),
+
+
+    //[593]='μ'   (micron)
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xce,0xbc,'m',0),MAKESINT(1),MAKESINT(1),
+
+    //[599]='mho'
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('A',0,0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('V',0,0,0),MAKESINT(-1),MAKESINT(1),
+
+    //[609]='mi'
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(5280),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t',0,0),MAKESINT(1),MAKESINT(1),
+
+    //[615]='mil'  (mils)
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-3,1,0),1,       // 0.001
+    MKPROLOG(DOIDENT,1),TEXT2WORD('i','n',0,0),MAKESINT(1),MAKESINT(1),
+
+
+    //[623]='min'
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(60),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[629]='miUS' (mile US)
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(5280),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t','U','S'),MAKESINT(1),MAKESINT(1),
+
+    //[635]='mmHg'
+    MKPROLOG(DOUNIT,19),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-1,1,0),135951,       // 13595.1
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(-3),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m','m',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a',0,0),MAKESINT(1),MAKESINT(1),
+
+    //[655]='mph'
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m','i',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('h',0,0,0),MAKESINT(-1),MAKESINT(1),
+
+    // [665]='N'
+    MKPROLOG(DOUNIT,13),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-2),MAKESINT(1),
+
+    //[679]='nmi' (nautical mile)
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1852),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[685]='Ω' (Ohm)
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('V',0,0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('A',0,0,0),MAKESINT(-1),MAKESINT(1),
+
+    //[695]='oz' (ounce)
+    MKPROLOG(DOUNIT,8),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-1,1,0),4375,       // 437.5
+    MKPROLOG(DOIDENT,2),TEXT2WORD('g','r','a','i'),TEXT2WORD('n',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[704]='ozfl' (US fluid ounce)
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-7,1,0),78125,       // 0.0078125 = 1/128
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a','l',0),MAKESINT(1),MAKESINT(1),
+
+    //[712]='ozt' (Troy ounce)
+    MKPROLOG(DOUNIT,6),
+    MAKESINT(480),
+    MKPROLOG(DOIDENT,2),TEXT2WORD('g','r','a','i'),TEXT2WORD('n',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[719]='ozUK' (UK ounce)
+    MKPROLOG(DOUNIT,8),
+    MKPROLOG(DOREAL,3),MAKEREALFLAGS(-13,2,0),84130625,2,       // 2.84130625e-5
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(3),MAKESINT(1),
+
+    //[728]='P' (poise)
+    MKPROLOG(DOUNIT,11),
+    MKPROLOG(DOREAL,1),MAKEREALFLAGS(-1,1,0),1,       // 0.1
+    MKPROLOG(DOIDENT,1),TEXT2WORD('P','a',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    //[740]='Pa' (pascal)
+    MKPROLOG(DOUNIT,13),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-2),MAKESINT(1),
+
+    //[754]='pc' (parsec)
+    MKPROLOG(DOUNIT,11),
+    MKPROLOG(DECBINT,2),648000,0,
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('a','u',0,0),MAKESINT(1),MAKESINT(1),
+
+
+    //[766]='pdl' (poundal)
+    MKPROLOG(DOUNIT,13),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','b',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-2),MAKESINT(1),
+
+    //[780]='ph' (phot)
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','m',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('c','m',0,0),MAKESINT(-2),MAKESINT(1),
+
+    //[790]='pk' (peck)
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-3,1,0),537605,       // 537.605
+    MKPROLOG(DOIDENT,1),TEXT2WORD('i','n',0,0),MAKESINT(3),MAKESINT(1),
+
+    //[798]='psi'
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','b','f',0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('i','n',0,0),MAKESINT(-2),MAKESINT(1),
+
+    //[808]='pt' (pint)
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-3,1,0),125,       // 0.125 = 1/8
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a','l',0),MAKESINT(1),MAKESINT(1),
+
+    //[816]='qt' (quart)
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-2,1,0),25,       // 0.25 = 1/4
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a','l',0),MAKESINT(1),MAKESINT(1),
+
+    //[824]='R' (roentgen)
+    MKPROLOG(DOUNIT,11),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-6,1,0),258,       // 2.58e-4
+    MKPROLOG(DOIDENT,1),TEXT2WORD('C',0,0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(-1),MAKESINT(1),
+
+
+    // [836]='°R' (Rankine)
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(100),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','D','G'),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('K',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    // [846]='Δ°R'
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(100),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','D','G'),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xce,0x94,'K',0),MAKESINT(1),MAKESINT(1),
+
+
+    //[856]='rad' (rad)
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-2,1,0),1,       // 0.01
+    MKPROLOG(DOIDENT,1),TEXT2WORD('G','y',0,0),MAKESINT(1),MAKESINT(1),
+
+    //[864]='rd' (rod)
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-1,1,0),165,       // 16.5
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t',0,0),MAKESINT(1),MAKESINT(1),
+
+    //[872]='rdUS' (rod)
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-1,1,0),165,       // 16.5
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t','U','S'),MAKESINT(1),MAKESINT(1),
+
+    //[880]='ptUK' (pint)
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-3,1,0),125,       // 0.125 = 1/8
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a','l','C'),MAKESINT(1),MAKESINT(1),
+
+    //[888]='qtUK' (quart)
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-2,1,0),25,       // 0.25 = 1/4
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a','l','C'),MAKESINT(1),MAKESINT(1),
+
+    // [896]='J'
+    MKPROLOG(DOUNIT,13),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(2),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-2),MAKESINT(1),
+
+
+
 };
 
 // SYSTEM UNIT DEFINITION DIRECTORY: CONTAINS PONTERS TO NAME/VALUE PAIRS FOR ALL SYSTEM UNITS
@@ -524,10 +802,9 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[124],(WORDPTR)&system_unit_defs[449], // 'in'=0.0254_m
     (WORDPTR)&system_unit_names[126],(WORDPTR)&system_unit_defs[457], // 'inHg'=13595.1_kg/m^3*in*ga
     (WORDPTR)&system_unit_names[128],(WORDPTR)&system_unit_defs[477], // 'inH2O'=248.84_Pa (at 60°F)
-    (WORDPTR)&system_unit_names[131],(WORDPTR)&one_bint,              // 'J'=1
+    (WORDPTR)&system_unit_names[131],(WORDPTR)&system_unit_defs[896], // 'J'=1_N*m
     (WORDPTR)&system_unit_names[133],(WORDPTR)&one_bint,              // 'K'=1
     (WORDPTR)&system_unit_names[135],(WORDPTR)&one_bint,              // 'ΔK'=1
-
     (WORDPTR)&system_unit_names[137],(WORDPTR)&system_unit_defs[485], // 'kip'=1000_lbf
     (WORDPTR)&system_unit_names[139],(WORDPTR)&system_unit_defs[491], // 'knot'=1_nmi/h
     (WORDPTR)&system_unit_names[141],(WORDPTR)&system_unit_defs[501], // 'kph'=1_km/h
@@ -536,18 +813,44 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[147],(WORDPTR)&system_unit_defs[531], // 'lb'=7000_grain
     (WORDPTR)&system_unit_names[149],(WORDPTR)&system_unit_defs[538], // 'lbf'=1_lb*ga
 
-
-
-
-
-
-
-
-
-
-
-
-
+    (WORDPTR)&system_unit_names[151],(WORDPTR)&system_unit_defs[548], // 'lbt'=5760_grain
+    (WORDPTR)&system_unit_names[153],(WORDPTR)&system_unit_defs[555], // 'lm'=1_cd*sr
+    (WORDPTR)&system_unit_names[155],(WORDPTR)&system_unit_defs[565], // 'lx'=1_lm*m^2
+    (WORDPTR)&system_unit_names[157],(WORDPTR)&system_unit_defs[575], // 'lyr'=365.25_d*c
+    (WORDPTR)&system_unit_names[159],(WORDPTR)&system_unit_defs[593], // 'μ'=1_μm
+    (WORDPTR)&system_unit_names[161],(WORDPTR)&system_unit_defs[599], // 'mho'=1_A/V
+    (WORDPTR)&system_unit_names[163],(WORDPTR)&system_unit_defs[609], // 'mi'=5280_ft
+    (WORDPTR)&system_unit_names[165],(WORDPTR)&system_unit_defs[615], // 'mil'=0.001_in
+    (WORDPTR)&system_unit_names[167],(WORDPTR)&system_unit_defs[623], // 'min'=60_s
+    (WORDPTR)&system_unit_names[169],(WORDPTR)&system_unit_defs[629], // 'miUS'=5280_ftUS
+    (WORDPTR)&system_unit_names[171],(WORDPTR)&system_unit_defs[635], // 'mmHg'=1_13595.1_kg/m^3*mm*ga
+    (WORDPTR)&system_unit_names[173],(WORDPTR)&one_bint,              // 'mol'=1 (base unit)
+    (WORDPTR)&system_unit_names[175],(WORDPTR)&system_unit_defs[655], // 'mph'=1_mi/h
+    (WORDPTR)&system_unit_names[177],(WORDPTR)&system_unit_defs[665], // 'N'=1_kg*m/s^2
+    (WORDPTR)&system_unit_names[179],(WORDPTR)&system_unit_defs[679], // 'nmi'=1852_m
+    (WORDPTR)&system_unit_names[181],(WORDPTR)&system_unit_defs[685], // 'Ω'= 1_V/A
+    (WORDPTR)&system_unit_names[183],(WORDPTR)&system_unit_defs[695], // 'oz'= 437.5_grain
+    (WORDPTR)&system_unit_names[185],(WORDPTR)&system_unit_defs[704], // 'ozfl'= 1/128_gal
+    (WORDPTR)&system_unit_names[187],(WORDPTR)&system_unit_defs[712], // 'ozt'= 480_grain
+    (WORDPTR)&system_unit_names[189],(WORDPTR)&system_unit_defs[719], // 'ozUK'= 1/160_galUK = 2.84130625e-5_m^3
+    (WORDPTR)&system_unit_names[191],(WORDPTR)&system_unit_defs[728], // 'P'=0.1_Pa*s
+    (WORDPTR)&system_unit_names[193],(WORDPTR)&system_unit_defs[740], // 'Pa'=1_N/m^2 = 1_kg/m/s^2
+    (WORDPTR)&system_unit_names[195],(WORDPTR)&system_unit_defs[754], // 'pc'=648000/pi_au
+    (WORDPTR)&system_unit_names[197],(WORDPTR)&system_unit_defs[766], // 'pdl'= 1_lb*ft/s^2
+    (WORDPTR)&system_unit_names[199],(WORDPTR)&system_unit_defs[780], // 'ph'= 1_lm/cm^2
+    (WORDPTR)&system_unit_names[201],(WORDPTR)&system_unit_defs[790], // 'pk'=1/4_bu
+    (WORDPTR)&system_unit_names[203],(WORDPTR)&system_unit_defs[798], // 'psi'=1_lbf/in^2
+    (WORDPTR)&system_unit_names[205],(WORDPTR)&system_unit_defs[808], // 'pt'=1/8_gal
+    (WORDPTR)&system_unit_names[207],(WORDPTR)&system_unit_defs[816], // 'qt'=1/4_gal
+    (WORDPTR)&system_unit_names[209],(WORDPTR)&one_bint,              // 'r'=1
+    (WORDPTR)&system_unit_names[211],(WORDPTR)&system_unit_defs[824], // 'R'=2.58e-4_C/kg
+    (WORDPTR)&system_unit_names[213],(WORDPTR)&system_unit_defs[836], // '°R'=5/9_K
+    (WORDPTR)&system_unit_names[215],(WORDPTR)&system_unit_defs[846], // 'Δ°R'=5/9_ΔK
+    (WORDPTR)&system_unit_names[218],(WORDPTR)&system_unit_defs[856], // 'rad'=0.01_Gy
+    (WORDPTR)&system_unit_names[220],(WORDPTR)&system_unit_defs[864], // 'rd'=16.5_ft
+    (WORDPTR)&system_unit_names[222],(WORDPTR)&system_unit_defs[872], // 'rdUS'=16.5_ftUS
+    (WORDPTR)&system_unit_names[224],(WORDPTR)&system_unit_defs[880], // 'ptUK'=1/8_galUK
+    (WORDPTR)&system_unit_names[226],(WORDPTR)&system_unit_defs[888], // 'qtUK'=1/4_galUK
 
 
 
@@ -996,7 +1299,7 @@ const char * const siprefix_text[]={
     "d",
     "c",
     "m",
-    "µ",
+    "μ",
     "n",
     "p",
     "f",
