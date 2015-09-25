@@ -2455,6 +2455,34 @@ void hyp_pow(REAL *x,REAL *a)
 
 }
 
+
+// PERFORMS x^(1/a)
+// DEFAULTS TO x^(1/a) = exp(ln(x)/a)
+
+// RETURNS THE RESULT IN RReg[0]
+
+void hyp_xroot(REAL *x,REAL *a)
+{
+
+    copyReal(&RReg[8],a);
+
+    hyp_ln(x);
+
+    normalize(&RReg[0]);
+
+    div_real(&RReg[7],&RReg[0],&RReg[8],Context.precdigits+8);
+
+    normalize(&RReg[7]);
+
+    hyp_exp(&RReg[7]);
+
+    // RESULT IS IN RReg[0]
+
+}
+
+
+
+
 // COMPUTE POWERS, HIGH LEVEL MATH FUNCTION
 // RESULT IS FINALIZED, USES ALL RRegs FROM 0 TO 8 INCLUSIVE
 // COPIES THE FINAL RESULT TO result
@@ -2493,6 +2521,110 @@ void powReal(REAL *result,REAL *x,REAL *a)
 
             if( !(a->flags&F_INFINITY) && (a->len==1) && (a->data[0]==0)) {
                 // INF ^ 0 = NAN
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_NOTANUMBER;
+                return;
+            }
+
+            // INF ^ a = ZERO FOR a<0
+            if(a->flags&F_NEGATIVE) {
+            result->data[0]=0;
+            result->exp=0;
+            result->len=1;
+            result->flags=F_APPROX;
+            }
+            else {
+                // INF^a FOR A>0 ==> -INF IF a IS ODD AND x IS NEGATIVE, +INF OTHERWISE
+                if(x->flags&F_NEGATIVE) {
+                    if(isoddReal(a)) result->flags=F_NEGATIVE;
+                    else result->flags=0;
+                }
+
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags|=F_INFINITY|F_APPROX;
+            }
+            return;
+        }
+
+
+        if(a->flags&F_INFINITY) {
+
+            //x^INF = INF, x^(-INF) = 0
+            if(a->flags&F_NEGATIVE) {
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_APPROX;
+            } else {
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_INFINITY|F_APPROX;
+            }
+            return;
+        }
+    }
+
+
+
+
+
+    BINT approx=(x->flags|a->flags)&F_APPROX;
+    // COMPUTE THE ACTUAL POWER
+
+    hyp_pow(x,a);
+
+    finalize(&RReg[0]);
+
+    copyReal(result,&RReg[0]);
+
+    result->flags|=approx;
+
+}
+
+
+// COMPUTE POWERS, HIGH LEVEL MATH FUNCTION
+// RESULT IS FINALIZED, USES ALL RRegs FROM 0 TO 8 INCLUSIVE
+// COPIES THE FINAL RESULT TO result
+
+// HANDLES SPECIALS
+
+void xrootReal(REAL *result,REAL *x,REAL *a)
+{
+    if((x->flags|a->flags)&(F_INFINITY|F_NOTANUMBER)) {
+        if( (x->flags|a->flags)&F_NOTANUMBER) {
+            // THE RESULT IS NOT A NUMBER
+            result->data[0]=0;
+            result->exp=0;
+            result->len=1;
+            result->flags=F_NOTANUMBER;
+            return;
+        }
+        // DEAL WITH SPECIALS
+        if(x->flags&F_INFINITY) {
+
+            if(a->flags&F_INFINITY) {
+                // INF ^ 1/INF = NAN
+                if(a->flags&F_NEGATIVE) {
+                    result->data[0]=0;
+                    result->exp=0;
+                    result->len=1;
+                    result->flags=F_APPROX;
+                } else {
+                    result->data[0]=0;
+                    result->exp=0;
+                    result->len=1;
+                    result->flags=F_INFINITY|F_APPROX;
+                }
+                return;
+            }
+
+            if( !(a->flags&F_INFINITY) && (a->len==1) && (a->data[0]==0)) {
+                // INF ^ 1/0 = NAN
                 result->data[0]=0;
                 result->exp=0;
                 result->len=1;

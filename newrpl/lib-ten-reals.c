@@ -373,6 +373,32 @@ void LIB_HANDLER()
 
             return;
 
+        case OVR_XROOT:
+            RReg[1].data[0]=2;
+            RReg[1].exp=0;
+            RReg[1].len=1;
+            RReg[1].flags=0;
+
+            if(eqReal(&Darg2,&RReg[1]))
+                // THIS IS A SQUARE ROOT
+            {
+                hyp_sqrt(&Darg1);
+                finalize(&RReg[0]);
+            }
+            else {
+
+
+
+                powReal(&RReg[0],&Darg1,&Darg2);
+
+            }
+
+            rplNewRealFromRRegPush(0);
+            if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
+            return;
+
+
         case OVR_EQ:
 
             if(eqReal(&Darg1,&Darg2)) rplPushData((WORDPTR)zero_bint);

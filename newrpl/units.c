@@ -809,7 +809,7 @@ void rplUnitPowItem(BINT level1,BINT level2)
         }
     } else rplUnitPickItem(level1+1);
 
-    if(*rplPeekData(1)==MAKESINT(-1)) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_INV));
+    if(*rplPeekData(1)==MAKESINT(-1)) { rplPopData(); rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_INV)); }
     else if(*rplPeekData(1)!=MAKESINT(1)) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_POW));
     else rplDropData(1);
     if(Exceptions) { DSTop=savestk; return; }
@@ -1263,7 +1263,7 @@ BINT rplUnitToBase(BINT nlevels)
 {
     BINT lvl=nlevels,lvl2,morelevels;
 
-    while(lvl>0) {
+   while(lvl>0) {
         morelevels=rplUnitExpand(lvl);
 
         if(!morelevels) lvl=rplUnitSkipItem(lvl);
