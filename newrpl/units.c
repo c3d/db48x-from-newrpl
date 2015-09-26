@@ -123,44 +123,29 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('p','t','U','K'),                              // [224]='ptUK' (pint imperial)
     MKPROLOG(DOIDENT,1),TEXT2WORD('q','t','U','K'),                              // [226]='qtUK' (quart imperial)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    MKPROLOG(DOIDENT,1),TEXT2WORD('r','e','m', 0 ),                              // [228]='rem' (roentgen equivalent man)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('r','p','m', 0 ),                              // [230]='rpm' (revolutions per minute)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('S', 0 , 0 , 0 ),                      // [232]='S' (Siemens)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s','b', 0 , 0 ),                              // [234]='sb' (stilb)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s','l','u','g'),                              // [236]='slug'
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s','r', 0 , 0 ),                              // [238]='sr' (steradian)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s','t', 0 , 0 ),                              // [240]='st' (stere)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('S','t', 0 , 0 ),                              // [242]='St' (Stokes)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('S','v', 0 , 0 ),                      // [244]='Sv' (Sievert)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('t', 0 , 0 , 0 ),                              // [246]='t' (metric ton)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('T', 0 , 0 , 0 ),                      // [248]='T' (Tesla)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('t','b','s','p'),                              // [250]='tbsp' (tablespoon)
+    MKPROLOG(DOIDENT,2),TEXT2WORD('t','h','e','r'),TEXT2WORD('m',0,0,0),         // [252]='therm' (EEC therm)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('t','o','n', 0 ),                              // [255]='ton' (short ton)
+    MKPROLOG(DOIDENT,2),TEXT2WORD('t','o','n','U'),TEXT2WORD('K',0,0,0),         // [257]='tonUK' (long ton UK)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('t','o','r','r'),                              // [260]='torr' (=mmHg)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('t','s','p', 0 ),                              // [262]='tsp' (teaspoon)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('u', 0 , 0 , 0 ),                              // [264]='u' (unified atomic mass)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('V', 0 , 0 , 0 ),                      // [266]='V' (Volt)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('W', 0 , 0 , 0 ),                      // [268]='W' (Watt)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('W','b', 0 , 0 ),                      // [270]='Wb' (Weber)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('y','d', 0 , 0 ),                              // [272]='yd' (yard)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('y','r', 0 , 0 ),                              // [274]='yr' (year)
 
 
     MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),          // [??]='?CPI'   (INTERNAL CONSTANT PI)
