@@ -148,7 +148,7 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('y','r', 0 , 0 ),                              // [274]='yr' (year)
 
 
-    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),          // [276]='?CPI'   (INTERNAL CONSTANT PI)
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xcf,0x80,0,0),          // [276]='π'   (INTERNAL CONSTANT PI AS A UNIT)
     MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','D','G'),          // [278]='?CDG'  (INTERNAL CONSTANT 180 FOR DEGREE CONVERSION)
     MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','F','T'),          // [280]='?CFT'  (INTERNAL CONSTANT 3937 FOR US ft DEFINITION)
 
@@ -182,14 +182,14 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DOUNIT,13),
     MAKESINT(3),
     MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','D','G'),MAKESINT(-2),MAKESINT(1),
-    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xcf,0x80,0,0),MAKESINT(1),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('r',0,0,0),MAKESINT(1),MAKESINT(1),
 
     //[40] = arcs
     MKPROLOG(DOUNIT,13),
     MAKESINT(9),
     MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','D','G'),MAKESINT(-3),MAKESINT(1),
-    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xcf,0x80,0,0),MAKESINT(1),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('r',0,0,0),MAKESINT(1),MAKESINT(1),
 
     //[54] = atm
@@ -282,7 +282,7 @@ const WORD const system_unit_defs[]={
     //[181] = °
     MKPROLOG(DOUNIT,13),
     MAKESINT(1),
-    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xcf,0x80,0,0),MAKESINT(1),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','D','G'),MAKESINT(-1),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('r',0,0,0),MAKESINT(1),MAKESINT(1),
 
@@ -360,7 +360,7 @@ const WORD const system_unit_defs[]={
     //[309] = flam
     MKPROLOG(DOUNIT,13),
     MAKESINT(1),
-    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xcf,0x80,0,0),MAKESINT(-1),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('c','d',0,0),MAKESINT(1),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('f','t',0,0),MAKESINT(-2),MAKESINT(1),
 
@@ -405,7 +405,7 @@ const WORD const system_unit_defs[]={
     //[383] = grad
     MKPROLOG(DOUNIT,11),
     MKPROLOG(DOREAL,2),MAKEREALFLAGS(-3,1,0),5,       // 1/200
-    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xcf,0x80,0,0),MAKESINT(1),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('r',0,0,0),MAKESINT(1),MAKESINT(1),
 
     //[395] = grain
@@ -485,7 +485,7 @@ const WORD const system_unit_defs[]={
     //[517] = lam
     MKPROLOG(DOUNIT,13),
     MAKESINT(10000),
-    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xcf,0x80,0,0),MAKESINT(-1),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('c','d',0,0),MAKESINT(1),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(-2),MAKESINT(1),
 
@@ -524,10 +524,16 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('d',0,0,0),MAKESINT(1),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('c',0,0,0),MAKESINT(1),MAKESINT(1),
 
-    //[587]='?CDG' (constant 180 for degree and other conversions)
-    MKPROLOG(DOUNIT,5),
+    //[587]='pi'   (INTERNAL CONSTANT PI)
+    CMD_PINUM,
+    //[588]='?CDG' (constant 180 for degree and other conversions)
     MAKESINT(180),
-    MKPROLOG(DOIDENT,1),TEXT2WORD('?',0,0,0),MAKESINT(0),MAKESINT(1),
+
+
+    //[589]='?CFT'  (INTERNAL CONSTANT 3937 FOR US ft DEFINITION)
+    MAKESINT(3937),
+
+    0,0,0,
 
 
     //[593]='μ'   (micron)
@@ -630,7 +636,7 @@ const WORD const system_unit_defs[]={
     //[754]='pc' (parsec)
     MKPROLOG(DOUNIT,11),
     MKPROLOG(DECBINT,2),648000,0,
-    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xcf,0x80,0,0),MAKESINT(-1),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('a','u',0,0),MAKESINT(1),MAKESINT(1),
 
 
@@ -850,14 +856,6 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DOREAL,3),MAKEREALFLAGS(-4,2,0),69259747,3155,       // 31556925.9747
     MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(1),MAKESINT(1),
 
-    // [??]='?CPI'   (INTERNAL CONSTANT PI)
-    // NO NEED TO DEFINE IT, SHOULD BE REPLACED INTERNALLY
-
-    // [1114]='?CFT'  (INTERNAL CONSTANT 3937 FOR US ft DEFINITION)
-
-    MKPROLOG(DOUNIT,5),
-    MAKESINT(3937),
-    MKPROLOG(DOIDENT,1),TEXT2WORD('?',0,0,0),MAKESINT(0),MAKESINT(1),
 
 
 };
@@ -999,13 +997,9 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[272],(WORDPTR)&system_unit_defs[1099], // 'yd'=3_ft
     (WORDPTR)&system_unit_names[274],(WORDPTR)&system_unit_defs[1105], // 'yr'=31556925.9747_s (tropical year)
 
-    // ?CPI IS NOT DEFINED HERE, IT'S REPLACED DIRECTLY BY THE SYSTEM AS
-    // A SPECIAL CASE
-    //(WORDPTR)&system_unit_names[276],(WORDPTR)&system_unit_defs[1099], // '?CPI'=3.141592..... (VARIABLE PRECISION)
-
-
-    (WORDPTR)&system_unit_names[278],(WORDPTR)&system_unit_defs[587], // '?CDG'=180 (NON-DIMENSIONAL)
-    (WORDPTR)&system_unit_names[280],(WORDPTR)&system_unit_defs[1114], // '?CFT'=3937 (NON-DIMENSIONAL)
+    (WORDPTR)&system_unit_names[276],(WORDPTR)&system_unit_defs[587], // 'π'= π0 = 3.141592..... (VARIABLE PRECISION)
+    (WORDPTR)&system_unit_names[278],(WORDPTR)&system_unit_defs[588], // '?CDG'=180 (NON-DIMENSIONAL)
+    (WORDPTR)&system_unit_names[280],(WORDPTR)&system_unit_defs[589], // '?CFT'=3937 (NON-DIMENSIONAL)
 
     0,0                                         // NULL TERMINATED LIST
 };
@@ -1047,8 +1041,19 @@ BINT rplUnitExplode(WORDPTR unitobj)
 {
     WORDPTR *savestk=DSTop;
 if(!ISUNIT(*unitobj)) {
+    if(!ISBINT(*unitobj) && !ISPROLOG(*unitobj)) {
+        // IF IT'S NOT AN OBJECT, THEN IT'S A COMMAND THAT WILL RETURN A CONSTANT OR A UNIT
+        rplCallOperator(*unitobj);
+        if(DSTop==savestk+1) {
+            // IT RETURNED A SINGLE OBJECT, CHECK IF IT'S A UNIT
+            if(ISUNIT(*rplPeekData(1))) unitobj=rplPopData();
+            else return DSTop-savestk;
+        } else return DSTop-savestk;
+    }
+    else {
     rplPushData(unitobj);
     return 1;
+    }
 }
 
 ScratchPointer1=unitobj;
@@ -1676,9 +1681,12 @@ BINT rplUnitExpand(BINT level)
                 nlevels+=3;
                 }
                 else {
+                    if(*rplPeekData(1)==MAKESINT(1))
+                    {
                     // UNIT WAS ALREADY A BASE UNIT, DO NOTHING
                     DSTop=stktop;
                     return 0;
+                    }
                 }
             }
 

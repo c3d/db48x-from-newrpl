@@ -69,7 +69,7 @@ void libProbeCmds(char *libnames[],BINT tokeninfo[],int numcmds)
     {
         len=utf8len((char *)libnames[idx]);
         if((len>0) && (len<=(BINT)TokenLen) && (!utf8ncmp((char *)TokenStart,(char *)libnames[idx],len)))
-       {
+        {
             // WE HAVE A MATCH, STORE THE INDEX BEFORE WE MAKE ANY DECISIONS
             if(len>maxlen) { maxidx=idx; maxlen=len; }
        }

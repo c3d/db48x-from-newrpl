@@ -697,7 +697,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
     } while( (NextTokenStart<CompileStringEnd) && !Exceptions );
 
- if(addwrapper) {
+ if(!Exceptions && addwrapper) {
      // JUST FINISHED THE STRING, NOW ADD THE END OF THE WRAPPER
      rplCompileAppend(CMD_SEMI);
      --ValidateTop;
@@ -712,6 +712,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
 
 // END OF STRING OBJECT WAS REACHED
+ if(!Exceptions) {
     if(ValidateTop<RSTop) {
         rplError(ERR_ENDWITHOUTSTART);
     } else {
@@ -719,6 +720,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
         rplError(ERR_STARTWITHOUTEND);
     }
     }
+ }
 
      LAMTop=LAMTopSaved; // RESTORE LAM ENVIRONMENT BEFORE RETURN
 

@@ -949,7 +949,7 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
     {
-        if(LIBNUM(CurOpcode)&APPROX_BIT) {
+        if(LIBNUM(CurOpcode)!=DOBINT) {
             // DO NOT COMPILE ANYTHING WHEN CALLED WITH THE UPPER (APPROX) LIBRARY NUMBER
             RetNum=ERR_NOTMINE;
             return;
@@ -1189,7 +1189,7 @@ void LIB_HANDLER()
         else if(*strptr=='+') { neg=0; ++strptr; --argnum1; }
         */
 
-        if(LIBNUM(CurOpcode)&APPROX_BIT) {
+        if(LIBNUM(CurOpcode)!=DOBINT) {
             // DO NOT COMPILE ANYTHING WHEN CALLED WITH THE UPPER (APPROX) LIBRARY NUMBER
             RetNum=ERR_NOTMINE;
             return;

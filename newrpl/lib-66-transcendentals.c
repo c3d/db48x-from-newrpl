@@ -50,13 +50,17 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 // EXTRA LIST FOR COMMANDS WITH SYMBOLS THAT ARE DISALLOWED IN AN ENUM
 // THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
 #define CMD_EXTRANAME \
-    "√",
+    "√", \
+    "π0"
 
 #define CMD_EXTRAENUM \
-    SQRT
+    SQRT, \
+    PINUM
 
 #define CMD_EXTRAINFO \
-    MKTOKENINFO(1,TITYPE_PREFIXOP,1,3)
+    MKTOKENINFO(1,TITYPE_PREFIXOP,1,3), \
+    MKTOKENINFO(2,TITYPE_PREFIXOP,0,3)
+
 
 // INTERNAL DECLARATIONS
 
@@ -89,6 +93,16 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
+    case PINUM:
+    {
+        REAL pi;
+
+        decconst_PI(&pi);
+
+        rplNewRealPush(&pi);
+        return;
+
+    }
     case SIN:
     {
         REAL dec;
