@@ -148,9 +148,9 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('y','r', 0 , 0 ),                              // [274]='yr' (year)
 
 
-    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),          // [??]='?CPI'   (INTERNAL CONSTANT PI)
-    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','D','G'),          // [??]='?CDG'  (INTERNAL CONSTANT 180 FOR DEGREE CONVERSION)
-    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','F','T'),          // [??]='?CFT'  (INTERNAL CONSTANT 3937 FOR US ft DEFINITION)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','P','I'),          // [276]='?CPI'   (INTERNAL CONSTANT PI)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','D','G'),          // [278]='?CDG'  (INTERNAL CONSTANT 180 FOR DEGREE CONVERSION)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','F','T'),          // [280]='?CFT'  (INTERNAL CONSTANT 3937 FOR US ft DEFINITION)
 
 
 
@@ -524,10 +524,10 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('d',0,0,0),MAKESINT(1),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('c',0,0,0),MAKESINT(1),MAKESINT(1),
 
-    //[587]=?????????????????????????????
+    //[587]='?CDG' (constant 180 for degree and other conversions)
     MKPROLOG(DOUNIT,5),
-    MAKESINT(1),
-    MKPROLOG(DOIDENT,1),TEXT2WORD(0xce,0xbc,'m',0),MAKESINT(1),MAKESINT(1),
+    MAKESINT(180),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?',0,0,0),MAKESINT(0),MAKESINT(1),
 
 
     //[593]='μ'   (micron)
@@ -535,7 +535,7 @@ const WORD const system_unit_defs[]={
     MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD(0xce,0xbc,'m',0),MAKESINT(1),MAKESINT(1),
 
-    //[599]='mho'
+    //[599]='mho' = 'S'
     MKPROLOG(DOUNIT,9),
     MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('A',0,0,0),MAKESINT(1),MAKESINT(1),
@@ -720,6 +720,144 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(2),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-2),MAKESINT(1),
 
+    // [910]='rem' (roentgen equivalent man)
+    MKPROLOG(DOUNIT,11),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-2,1,0),1,       // 0.01
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(2),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-2),MAKESINT(1),
+
+
+    // [922]='rpm' (revolutions per minute)
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(60),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-1),MAKESINT(1),
+
+    // [928]='sb' (stilb)
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(10000),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('c','d',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(-2),MAKESINT(1),
+
+
+    // [938]='slug'
+    MKPROLOG(DOUNIT,17),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','b',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(2),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t',0,0),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a',0,0),MAKESINT(1),MAKESINT(1),
+
+    // [956]='st' (stere)
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(3),MAKESINT(1),
+
+
+    // [962]='St' (Stokes)
+    MKPROLOG(DOUNIT,11),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-4,1,0),1,       // 0.0001
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(2),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-1),MAKESINT(1),
+
+    // [974]='Sv' (Sievert)
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(2),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-2),MAKESINT(1),
+
+    // [984]='t' (metric ton)
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1000),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(1),MAKESINT(1),
+
+
+    // [990]='T' (Tesla)
+    MKPROLOG(DOUNIT,13),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('A',0,0,0),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-2),MAKESINT(1),
+
+    // [1004]='tbsp' (tablespoon)
+    MKPROLOG(DOUNIT,7),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-1,1,0),5,       // 0.5
+    MKPROLOG(DOIDENT,1),TEXT2WORD('o','z','f','l'),MAKESINT(1),MAKESINT(1),
+
+    // [1012]='therm' (EEC therm)
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(100000),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('B','t','u',0),MAKESINT(1),MAKESINT(1),
+
+    // [1018]='ton' (short ton)
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(2000),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','b',0,0),MAKESINT(1),MAKESINT(1),
+
+
+
+    // [1024]='tonUK' (long ton UK)
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(2240),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','b',0,0),MAKESINT(1),MAKESINT(1),
+
+    // [____]='torr' (=mmHg)
+    // NO NEED FOR SEPARATE DEFINITION, USE THE mmHg DEFINITION
+
+    // [1030]='tsp' (teaspoon)
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(30),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?','C','D','G'),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('o','z','f','l'),MAKESINT(1),MAKESINT(1),
+
+
+    // [1040]='u' (unified atomic mass)
+    MKPROLOG(DOUNIT,8),
+    MKPROLOG(DOREAL,3),MAKEREALFLAGS(-36,2,0),60539040,16,       // 1.660 539 040 x 10-27 kg
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(1),MAKESINT(1),
+
+    // [1049]='V' (Volt)
+    MKPROLOG(DOUNIT,17),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(2),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('A',0,0,0),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-3),MAKESINT(1),
+
+    // [1067]='W' (Watt)
+    MKPROLOG(DOUNIT,13),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(2),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-3),MAKESINT(1),
+
+
+    // [1081]='Wb' (Weber)
+    MKPROLOG(DOUNIT,17),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(2),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('A',0,0,0),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-2),MAKESINT(1),
+
+
+    // [1099]='yd' (yard)
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(3),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t',0,0),MAKESINT(1),MAKESINT(1),
+
+    // [1105]='yr' (year)
+    MKPROLOG(DOUNIT,8),
+    MKPROLOG(DOREAL,3),MAKEREALFLAGS(-4,2,0),69259747,3155,       // 31556925.9747
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(1),MAKESINT(1),
+
+    // [??]='?CPI'   (INTERNAL CONSTANT PI)
+    // NO NEED TO DEFINE IT, SHOULD BE REPLACED INTERNALLY
+
+    // [1114]='?CFT'  (INTERNAL CONSTANT 3937 FOR US ft DEFINITION)
+
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(3937),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('?',0,0,0),MAKESINT(0),MAKESINT(1),
 
 
 };
@@ -837,8 +975,37 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[224],(WORDPTR)&system_unit_defs[880], // 'ptUK'=1/8_galUK
     (WORDPTR)&system_unit_names[226],(WORDPTR)&system_unit_defs[888], // 'qtUK'=1/4_galUK
 
+    (WORDPTR)&system_unit_names[228],(WORDPTR)&system_unit_defs[910], // 'rem'=0.01_m^2/s^2
+    (WORDPTR)&system_unit_names[230],(WORDPTR)&system_unit_defs[922], // 'rpm'=60_1/s
+    (WORDPTR)&system_unit_names[232],(WORDPTR)&system_unit_defs[599], // 'S'=1_A/V
+    (WORDPTR)&system_unit_names[234],(WORDPTR)&system_unit_defs[928], // 'sb'=10000_cd/m^2
+    (WORDPTR)&system_unit_names[236],(WORDPTR)&system_unit_defs[938], // 'slug'=1_lb*s^2/ft*ga
+    (WORDPTR)&system_unit_names[238],(WORDPTR)&one_bint,              // 'sr'=1
+    (WORDPTR)&system_unit_names[240],(WORDPTR)&system_unit_defs[956], // 'st'=1_m^3
+    (WORDPTR)&system_unit_names[242],(WORDPTR)&system_unit_defs[962], // 'St'=0.0001_m^2/s
+    (WORDPTR)&system_unit_names[244],(WORDPTR)&system_unit_defs[974], // 'Sv'=1_m^2/s^2
+    (WORDPTR)&system_unit_names[246],(WORDPTR)&system_unit_defs[984], // 't'=1000_kg
+    (WORDPTR)&system_unit_names[248],(WORDPTR)&system_unit_defs[990], // 'T'=1_kg/A/s^2
+    (WORDPTR)&system_unit_names[250],(WORDPTR)&system_unit_defs[1004], // 'tbsp'=0.5_ozfl
+    (WORDPTR)&system_unit_names[252],(WORDPTR)&system_unit_defs[1012], // 'therm'=100000_Btu
+    (WORDPTR)&system_unit_names[255],(WORDPTR)&system_unit_defs[1018], // 'ton'=2000_lb
+    (WORDPTR)&system_unit_names[257],(WORDPTR)&system_unit_defs[1024], // 'tonUK'=2240_lb
+    (WORDPTR)&system_unit_names[260],(WORDPTR)&system_unit_defs[635], // 'torr'=1_mmHg
+    (WORDPTR)&system_unit_names[262],(WORDPTR)&system_unit_defs[1030], // 'tsp'=1/6_ozfl
+    (WORDPTR)&system_unit_names[264],(WORDPTR)&system_unit_defs[1040], // 'u'= 1.660539040E-27_kg
+    (WORDPTR)&system_unit_names[266],(WORDPTR)&system_unit_defs[1049], // 'V'=1_kg*m^2/A/s^3
+    (WORDPTR)&system_unit_names[268],(WORDPTR)&system_unit_defs[1067], // 'W'=1_J/s=1_kg*m^2/s^3
+    (WORDPTR)&system_unit_names[270],(WORDPTR)&system_unit_defs[1081], // 'Wb'=1_kg*m^2/A/s^2
+    (WORDPTR)&system_unit_names[272],(WORDPTR)&system_unit_defs[1099], // 'yd'=3_ft
+    (WORDPTR)&system_unit_names[274],(WORDPTR)&system_unit_defs[1105], // 'yr'=31556925.9747_s (tropical year)
+
+    // ?CPI IS NOT DEFINED HERE, IT'S REPLACED DIRECTLY BY THE SYSTEM AS
+    // A SPECIAL CASE
+    //(WORDPTR)&system_unit_names[276],(WORDPTR)&system_unit_defs[1099], // '?CPI'=3.141592..... (VARIABLE PRECISION)
 
 
+    (WORDPTR)&system_unit_names[278],(WORDPTR)&system_unit_defs[587], // '?CDG'=180 (NON-DIMENSIONAL)
+    (WORDPTR)&system_unit_names[280],(WORDPTR)&system_unit_defs[1114], // '?CFT'=3937 (NON-DIMENSIONAL)
 
     0,0                                         // NULL TERMINATED LIST
 };
