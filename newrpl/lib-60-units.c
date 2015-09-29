@@ -45,14 +45,17 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 
 #define CMD_EXTRANAME \
     "", \
-    "→UNIT"
+    "→UNIT", \
+    "_["
 #define CMD_EXTRAENUM \
     UNITOP, \
-    TOUNIT
+    TOUNIT, \
+    SYMBTOUNIT
 
 #define CMD_EXTRAINFO \
     MKTOKENINFO(1,TITYPE_BINARYOP_LEFT,1,2), \
-    MKTOKENINFO(5,TITYPE_FUNCTION,2,2)
+    MKTOKENINFO(5,TITYPE_FUNCTION,2,2), \
+    MKTOKENINFO(2,TITYPE_BINARYOP_LEFT,2,2)
 
 
 // INTERNAL DECLARATIONS
@@ -138,6 +141,7 @@ void LIB_HANDLER()
         case OVR_EVAL:
         case OVR_EVAL1:
         case OVR_XEQ:
+        case OVR_NUM:
             // JUST LEAVE IT ON THE STACK
             return;
         case OVR_ABS:
@@ -538,6 +542,10 @@ void LIB_HANDLER()
         return;
     }
 
+    case SYMBTOUNIT:
+        // TODO: THIS VERSION ONLY ACCEPTS NUMBERS AS FIRST ARGUMENT
+
+        // DELIBERATE FALL THROUGH
     case TOUNIT:
         // THIS IS IDENTICAL TO OVR_MUL
     {
@@ -1287,7 +1295,7 @@ void LIB_HANDLER()
             *ScratchPointer2=MKPROLOG(LIBRARY_NUMBER,sizewords-1);
             // AND ADD THE UNIT APPLY OPERATOR
 
-            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,TOUNIT));
+            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,SYMBTOUNIT));
 
             RetNum=OK_CONTINUE;
             return;
@@ -1356,6 +1364,7 @@ void LIB_HANDLER()
         // DECOMPILE RECEIVES:
         // DecompileObject = Ptr to prolog of object to decompile
         // DecompStringEnd = Ptr to the end of decompile string
+        // DecompMode = infix mode number, 0 = RPL mode
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
@@ -1364,13 +1373,28 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
 
 
-            // DO AN EMBEDDED DECOMPILATION OF THE VALUE OBJECT
+            // THIS IS CHEATING, BUT LOOK AT THE TEXT STRING
+            // TO SEE IF THE SYMBOLIC UNIT OPERATOR WAS ALREADY INCLUDED
+            // AND SKIP THE NUMERIC PART OF THE UNIT IF IT WAS
 
+            BYTEPTR decstring=DecompStringEnd;
+            BINT closebracket=1;
+
+            if( (decstring[-2]!='_') || (decstring[-1]!='[')) {
+
+            // DO AN EMBEDDED DECOMPILATION OF THE VALUE OBJECT
+            BINT save=DecompMode;   // DECOMPMODE WILL BE AFFECTED BY THE EMBEDDED CALL
             rplDecompile(DecompileObject+1,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? DECOMP_EDIT:0));    // RUN EMBEDDED
+            DecompMode=save;
             if(Exceptions) { RetNum=ERR_INVALID; return; }
 
             // NOW ADD THE UNIT
             rplDecompAppendChar('_');
+
+            // NO NEED TO USE BRACKETS UNLESS IT'S A SYMBOLIC
+            if(!DecompMode) closebracket=0;
+
+            }
 
             BINT offset=1;
             BINT totalsize=rplObjSize(DecompileObject);
@@ -1497,6 +1521,8 @@ void LIB_HANDLER()
 
             }
 
+
+            if(closebracket) rplDecompAppendChar(']');
             // DONE
             RetNum=OK_CONTINUE;
             return;
@@ -1569,9 +1595,8 @@ void LIB_HANDLER()
     }
 
     case OPCODE_GETINFO:
-        // MANUALLY RETURN INFO FOR THE UNIT OPERATOR
-//        if(OPCODE(*DecompileObject)==OVR_UMINUS) { RetNum=OK_TOKENINFO | MKTOKENINFO(1,TITYPE_PREFIXOP,1,4); return; }
-        libGetInfo2(*DecompileObject,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+            if(ISPROLOG(*DecompileObject)) RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NUMBER,0,1);
+            libGetInfo2(*DecompileObject,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
         return;
 
 

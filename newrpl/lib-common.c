@@ -128,7 +128,7 @@ void libGetInfo2(WORD opcode,char *libnames[],BINT tokeninfo[],int numcmds)
                return;
 
         }
-        RetNum=ERR_NOTMINE;
+        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NOTALLOWED,0,0);
     }
 
 

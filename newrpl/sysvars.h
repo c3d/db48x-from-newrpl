@@ -93,9 +93,11 @@ extern UBINT ArgNum1,ArgNum2,ArgNum3,RetNum;
 
 // SOME CONVENIENCE NAMES FOR USE IN LIBRARIES
 #define TokenLen ArgNum1
+#define DecompMode ArgNum1
+
 #define BlankLen ArgNum2
 #define CurrentConstruct ArgNum3
-#define ObjectID      ArgNum3
+#define ObjectID   ArgNum3
 
 extern LIBHANDLER LowLibRegistry[MAXLOWLIBS];
 extern LIBHANDLER SysHiLibRegistry[MAXSYSHILIBS];

@@ -234,8 +234,12 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                 if(force_libnum!=-1) CurOpcode=MKOPCODE(libnum,OPCODE_COMPILECONT);
                     else CurOpcode=MKOPCODE(libnum,OPCODE_COMPILE);
                 }
-
+                // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
+                WORDPTR *tmpRSTop=RSTop;
+                if(infixmode) RSTop=(WORDPTR *)InfixOpTop;
+                else RSTop=(WORDPTR *)ValidateTop;
                 (*handler)();
+                RSTop=tmpRSTop;
 
                 if(RetNum>=OK_TOKENINFO) {
                     // PROCESS THE INFORMATION ABOUT THE TOKEN
@@ -450,7 +454,14 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     LastCompiledObject=CompileEnd;
 
                     RetNum=-1;
-                    if(handler) (*handler)();
+                    if(handler) {
+                        // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
+                        WORDPTR *tmpRSTop=RSTop;
+                        RSTop=(WORDPTR *)InfixOpTop;
+                        (*handler)();
+                        RSTop=tmpRSTop;
+
+                    }
 
                     if(RetNum!=OK_CONTINUE) {
                         // THE LIBRARY ACCEPTED THE TOKEN DURING PROBE, SO WHAT COULD POSSIBLY GO WRONG?
@@ -912,10 +923,18 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
     CurOpcode=MKOPCODE(0,(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
     if(ValidateTop>RSTop) CurrentConstruct=**(ValidateTop-1);
     else CurrentConstruct=0;
+    DecompMode=infixmode;
 
     if(!han) {
         RetNum=ERR_INVALID;
-    } else (*han)();
+    } else {
+        // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
+        WORDPTR *tmpRSTop=RSTop;
+        if(infixmode) RSTop=(WORDPTR *)InfixOpTop;
+        else RSTop=(WORDPTR *)ValidateTop;
+        (*han)();
+        RSTop=tmpRSTop;
+    }
     if(Exceptions) break;
     switch(RetNum)
     {
@@ -1028,7 +1047,13 @@ end_of_expression:
                 if(handler) {
 
                  CurOpcode=MKOPCODE(LIBNUM(*DecompileObject),OPCODE_GETINFO);
+                 DecompMode=infixmode;
+
+                 // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
+                 WORDPTR *tmpRSTop=RSTop;
+                 RSTop=(WORDPTR *)InfixOpTop;
                 (*handler)();
+                 RSTop=tmpRSTop;
                 }
 
                 if(RetNum<OK_TOKENINFO) RetNum=MKTOKENINFO(0,TITYPE_FUNCTION,0,20); //    TREAT LIKE A NORMAL FUNCTION, THAT WILL BE CALLED [INVALID] LATER
@@ -1109,7 +1134,15 @@ end_of_expression:
                 case TITYPE_PREFIXOP:
                     // DECOMPILE THE OPERATOR NOW!
                     CurOpcode=MKOPCODE(LIBNUM(*DecompileObject),(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
+                    {
+                    // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
+                    WORDPTR *tmpRSTop=RSTop;
+                    RSTop=(WORDPTR *)InfixOpTop;
+                    DecompMode=infixmode;
+
                     (*handler)();
+                    RSTop=tmpRSTop;
+                    }
                     // IGNORE THE RESULT OF DECOMPILATION
                     if(RetNum!=OK_CONTINUE) {
                         rplDecompAppendString((BYTEPTR)"##INVALID##");
@@ -1137,8 +1170,17 @@ end_of_expression:
                 default:
                     // DECOMPILE THE OPERATOR NOW, THEN ADD PARENTHESIS FOR THE LIST
                     CurOpcode=MKOPCODE(LIBNUM(*DecompileObject),(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
+                    DecompMode=infixmode;
+
                     RetNum=-1;
-                    if(handler) (*handler)();
+                    if(handler) {
+                        // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
+                        WORDPTR *tmpRSTop=RSTop;
+                        RSTop=(WORDPTR *)InfixOpTop;
+
+                        (*handler)();
+                        RSTop=tmpRSTop;
+                    }
                     // IGNORE THE RESULT OF DECOMPILATION
                     if(RetNum!=OK_CONTINUE) {
                         rplDecompAppendString((BYTEPTR)"##INVALID##");
@@ -1200,10 +1242,19 @@ end_of_expression:
             BINT libnum=LIBNUM(Operator);
             DecompileObject=&Operator;
             CurOpcode=MKOPCODE(libnum,(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
+            DecompMode=infixmode;
+
             handler=rplGetLibHandler(libnum);
             RetNum=-1;
 
-            if(handler) (*handler)();
+            if(handler) {
+                // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
+                WORDPTR *tmpRSTop=RSTop;
+                RSTop=(WORDPTR *)InfixOpTop;
+                (*handler)();
+                RSTop=tmpRSTop;
+
+            }
 
             DecompileObject=SavedDecompObject;
             // IGNORE THE RESULT OF DECOMPILATION
@@ -1270,10 +1321,18 @@ end_of_expression:
             BINT libnum=LIBNUM(Operator);
             DecompileObject=&Operator;
             CurOpcode=MKOPCODE(libnum,(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
+            DecompMode=infixmode;
+
             handler=rplGetLibHandler(libnum);
             RetNum=-1;
 
-            if(handler) (*handler)();
+            if(handler) {
+                // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
+                WORDPTR *tmpRSTop=RSTop;
+                RSTop=(WORDPTR *)InfixOpTop;
+                (*handler)();
+                RSTop=tmpRSTop;
+            }
 
             DecompileObject=SavedDecompObject;
             // IGNORE THE RESULT OF DECOMPILATION
@@ -1386,10 +1445,18 @@ end_of_expression:
             SavedDecompObject=DecompileObject;
             DecompileObject=InfixOpTop-2;
             CurOpcode=MKOPCODE(libnum,(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
+            DecompMode=infixmode;
+
             handler=rplGetLibHandler(libnum);
             RetNum=-1;
 
-            if(handler) (*handler)();
+            if(handler) {
+                // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
+                WORDPTR *tmpRSTop=RSTop;
+                RSTop=(WORDPTR *)InfixOpTop;
+                (*handler)();
+                RSTop=tmpRSTop;
+            }
 
             DecompileObject=SavedDecompObject;
             // IGNORE THE RESULT OF DECOMPILATION

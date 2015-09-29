@@ -839,9 +839,11 @@ void LIB_HANDLER()
                         }
                     }
                     // DO THE OPERATION
+                    WORDPTR *savedstop=DSTop;
                     rplCallOperator(Opcode);
                     newdepth=(BINT)(DSTop-prevDStk);
                     if(Exceptions) {
+                    DSTop=savedstop;
                     rplCleanupLAMs(0);
                     IPtr=rplPopRet();
                     ExceptionPointer=IPtr;

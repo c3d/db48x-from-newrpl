@@ -103,7 +103,7 @@ BINT rplIsAllowedInSymb(WORDPTR object)
     WORD savedopcode=CurOpcode;
     // ARGUMENTS TO PASS TO THE HANDLER
     DecompileObject=object;
-    RetNum=-1;
+    RetNum=0;
     CurOpcode=MKOPCODE(LIBNUM(*object),OPCODE_GETINFO);
     if(handler) (*handler)();
 
@@ -147,7 +147,8 @@ void rplSymbApplyOperator(WORD Opcode,BINT nargs)
             LIBHANDLER han=rplGetLibHandler(LIBNUM(*obj));
             WORD savedopc=CurOpcode;
             CurOpcode=MKOPCODE(LIBNUM(*obj),OPCODE_GETINFO);
-            RetNum=-1;
+            DecompileObject=obj;
+            RetNum=0;
             if(han) (*han)();
             CurOpcode=savedopc;
             if(RetNum>OK_TOKENINFO) {
