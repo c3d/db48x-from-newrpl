@@ -461,6 +461,22 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                     // HERE LastCompiledObject HAS THE NEW OBJECT/COMMAND
 
+                    // THE LIBRARY MAY HAVE COMPILED SOME ARGUMENTS AND THEN
+                    // LEAVE THE OPERATOR LAST. FOR EXAMPLE THE SUPERSCRIPT NUMBER
+                    // 2 (X²) COULD BE COMPILED AS THE OBJECT 2 AND THE OPERATOR POW
+                    // UNITS ARE COMPILED AS A UNIT OBJECT AND THEN THE OPERATOR
+                    // UNITAPPLY (_[)
+
+                    {
+                        WORDPTR NextObject=LastCompiledObject;
+                        while(rplSkipOb(NextObject)<CompileEnd) NextObject=rplSkipOb(NextObject);
+
+                        // HERE NextObject POINTS TO THE LAST OBJECT COMPILED BY THE LIBRARY
+                        // LEAVE ALL PREVIOUS OBJECTS IN THE OUTPUT STREAM AS ARGUMENTS
+                        LastCompiledObject=NextObject;
+                    }
+
+
                     // IF IT'S AN ATOMIC OBJECT, JUST LEAVE IT THERE IN THE OUTPUT STREAM
 
                     // IF IT'S AN OPERATOR

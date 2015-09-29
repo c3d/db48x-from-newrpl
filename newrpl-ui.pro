@@ -64,7 +64,6 @@ SOURCES += main.cpp\
     newrpl/lib-24-string.c \
     newrpl/lib-28-dirs.c \
     newrpl/lib-30-complex.c \
-    newrpl/lib-50-lists.c \
     newrpl/lib-64-arithmetic.c \
     newrpl/lib-66-transcendentals.c \
     newrpl/lib-68-flags.c \
@@ -115,8 +114,9 @@ SOURCES += main.cpp\
     newrpl/lib-58-matrix.c \
     newrpl/lib-65-system.c \
     firmware/hal_msgenglish.c \
-    newrpl/lib-48-units.c \
-    newrpl/units.c
+    newrpl/units.c \
+    newrpl/lib-60-units.c \
+    newrpl/lib-62-lists.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
