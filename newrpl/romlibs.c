@@ -27,9 +27,9 @@ extern void lib32_handler();
 
 extern void lib52_handler();
 
-extern void lib58_handler();
+extern void lib54_handler();
 
-extern void lib60_handler();
+extern void lib56_handler();
 extern void lib62_handler();
 
 extern void lib64_handler();
@@ -100,14 +100,14 @@ const LIBHANDLER const ROMLibs[]={
     // LIB 32 THRU 47 ARE IDENTS
     lib32_handler,
 
-    // SYMBOLICS
+    // MATRIX
     lib52_handler,
 
-    // MATRIX
-    lib58_handler,
-
     // UNITS
-    lib60_handler,
+    lib54_handler,
+
+    // SYMBOLIC
+    lib56_handler,
 
     // LISTS
     lib62_handler,

@@ -169,13 +169,13 @@ extern void libGetPTRFromID(WORDPTR *table,WORD id);
 // RESERVE (DOIDENT|8) FOR FUTURE FLAG USE IN SYMBOLICS
 #define DOMAXIDENT  47                          // JUST A CONVENIENCE MACRO - MAXIMUM LIB NUMBER TAKEN BY IDENTS
 
-#define DOUNIT      60       // UNIT OBJECT
+#define DOUNIT      54       // UNIT OBJECT
 
 #define DOLIST      62
 
-#define DOSYMB      52      // SYMBOLIC OBJECT
+#define DOSYMB      56      // SYMBOLIC OBJECT
 
-#define DOMATRIX    58       // ARRAY OBJECT
+#define DOMATRIX    52       // ARRAY OBJECT
 
 
 

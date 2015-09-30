@@ -109,14 +109,14 @@ SOURCES += main.cpp\
     newrpl/dectranscen.c \
     newrpl/backup.c \
     newrpl/sanity.c \
-    newrpl/lib-52-symbolic.c \
     newrpl/lib-32-lam.c \
-    newrpl/lib-58-matrix.c \
     newrpl/lib-65-system.c \
     firmware/hal_msgenglish.c \
     newrpl/units.c \
-    newrpl/lib-60-units.c \
-    newrpl/lib-62-lists.c
+    newrpl/lib-62-lists.c \
+    newrpl/lib-56-symbolic.c \
+    newrpl/lib-52-matrix.c \
+    newrpl/lib-54-units.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \

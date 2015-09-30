@@ -17,13 +17,13 @@
 // ALL OTHER FUNCTIONS ARE LOCAL
 
 // MAIN LIBRARY NUMBER, CHANGE THIS FOR EACH LIBRARY
-#define LIBRARY_NUMBER  60
-#define LIB_ENUM lib60enum
-#define LIB_NAMES lib60_names
-#define LIB_HANDLER lib60_handler
-#define LIB_TOKENINFO lib60_tokeninfo
-#define LIB_NUMBEROFCMDS LIB60_NUMBEROFCMDS
-#define ROMPTR_TABLE    romptr_table60
+#define LIBRARY_NUMBER  54
+#define LIB_ENUM lib54enum
+#define LIB_NAMES lib54_names
+#define LIB_HANDLER lib54_handler
+#define LIB_TOKENINFO lib54_tokeninfo
+#define LIB_NUMBEROFCMDS LIB54_NUMBEROFCMDS
+#define ROMPTR_TABLE    romptr_table54
 
 // LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
 // HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
@@ -1338,6 +1338,17 @@ void LIB_HANDLER()
         }
 
         // THERE IS A '_', NOW SPLIT THE TOKEN AND START A PROLOG OF A UNIT
+
+        if( (*(ptr-1)==']') || (*(ptr-1)=='}') ) {
+            // LET THE MATRIX OR LIST FINISH COMPILING, THEN DO
+            // A UNIT-APPLY OPERATOR INSTEAD OF COMPILING A UNIT OBJECT
+
+            BlankStart=NextTokenStart=(WORDPTR)utf8nskip((char * )TokenStart,(char *)BlankStart,f);
+            RetNum=ERR_NOTMINE_SPLITTOKEN;
+            return;
+
+        }
+
         rplCompileAppend(MKPROLOG(LIBRARY_NUMBER,0));
 
         BlankStart=NextTokenStart=(WORDPTR)utf8nskip((char * )TokenStart,(char *)BlankStart,f);
@@ -1392,7 +1403,9 @@ void LIB_HANDLER()
             rplDecompAppendChar('_');
 
             // NO NEED TO USE BRACKETS UNLESS IT'S A SYMBOLIC
-            if(!DecompMode) closebracket=0;
+            if(DecompMode) rplDecompAppendChar('[');
+            else closebracket=0;
+
 
             }
 
@@ -1595,7 +1608,10 @@ void LIB_HANDLER()
     }
 
     case OPCODE_GETINFO:
-            if(ISPROLOG(*DecompileObject)) RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NUMBER,0,1);
+            if(ISPROLOG(*DecompileObject)) {
+                RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NUMBER,0,1);
+                return;
+            }
             libGetInfo2(*DecompileObject,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
         return;
 
