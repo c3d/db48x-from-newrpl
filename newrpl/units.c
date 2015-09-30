@@ -1014,6 +1014,8 @@ const WORDPTR const system_unit_special[]={
     // SPECIAL UNIT NAME ,     DELTA UNIT NAME      ,   ABSOLUTE UNIT EQUIVALENT OF THE ZERO IN THE SCALE
     (WORDPTR)&system_unit_names[38],(WORDPTR)&system_unit_names[40],(WORDPTR)&system_unit_defs[287],
     (WORDPTR)&system_unit_names[74],(WORDPTR)&system_unit_names[76],(WORDPTR)&system_unit_defs[295],
+    (WORDPTR)&system_unit_names[133],(WORDPTR)&system_unit_names[135],0,
+    (WORDPTR)&system_unit_names[213],(WORDPTR)&system_unit_names[215],0,
 
     // ADD HERE RANKINE AND KELVIN FOR CONVERSION TO THEIR DELTA TYPES
     0,0,0
