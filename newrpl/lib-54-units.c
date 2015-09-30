@@ -150,6 +150,8 @@ void LIB_HANDLER()
             // JUST LEAVE IT ON THE STACK
             return;
         case OVR_ABS:
+        case OVR_ISTRUE:
+        case OVR_NOT:
         case OVR_NEG:
         {
             if(!ISUNIT(*rplPeekData(1))) {
@@ -297,6 +299,7 @@ void LIB_HANDLER()
             if(Exceptions) { DSTop=stkclean; return; }
 
             if(isspec2) {
+                if(isspec1) {
                 // WE SHOULD NEG AND SUBTRACT SPECIALS: A+B = A-(-B)
                 rplPushData(rplPeekData(nlevels2));  // GET THE VALUE
 
@@ -304,6 +307,7 @@ void LIB_HANDLER()
                 if(Exceptions) { DSTop=stkclean; return; }
 
                 rplOverwriteData(nlevels2,rplPopData());
+                }
 
                 rplUnitReplaceSpecial(nlevels2);
                 if(Exceptions) { DSTop=stkclean; return; }
@@ -336,17 +340,30 @@ void LIB_HANDLER()
             rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
             if(Exceptions) { DSTop=stkclean; return; }
 
-            if(isspec2) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB));
+            if(isspec2 && isspec1) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB));
                 else rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD));
             if(Exceptions) { DSTop=stkclean; return; }
 
             unitval=rplPopData();   // GET THE NEW VALUE
+
             rplDropData(nlevels2+nlevels1); // CLEANUP THE STACK, EXCEPT THE ORIGINAL ARGUMENTS
             rplPushData(unitval);               // PUSH THE NEW VALUE
-            nlevels1=rplUnitExplode(rplPeekData(3));    // EXPLODE THE OLD UNIT
+
+
+            if(isspec2 && (!isspec1)) {
+                nlevels1=rplUnitExplode(rplPeekData(2));    // EXPLODE THE OLD UNIT
+                rplUnitReplaceSpecial(nlevels1);
+            }
+            else {
+                nlevels1=rplUnitExplode(rplPeekData(3));    // EXPLODE THE OLD UNIT
+                if(isspec1 && (!isspec2)) rplUnitReplaceSpecial(nlevels1);
+            }
             if(Exceptions) { DSTop=stkclean; return; }
             rplUnitPopItem(nlevels1);           // AND REMOVE THE OLD VALUE, LEAVING THE NEW VALUE AND THE UNIT
-            if(isspec1) rplUnitSpecialToDelta(nlevels1);
+            if(isspec1 && isspec2) rplUnitSpecialToDelta(nlevels1);
+            else {
+                if((isspec1+isspec2>0) && (isspec1+isspec2<7)) rplUnitReverseReplaceSpecial(nlevels1);
+            }
 
             WORDPTR newunit=rplUnitAssemble(nlevels1);
             if(!newunit) { DSTop=stkclean; return; }
@@ -376,12 +393,13 @@ void LIB_HANDLER()
 
             nlevels1=rplUnitExplode(rplPeekData(2));
             if(Exceptions) { DSTop=stkclean; return; }
+
             if(isspec1) {
                 rplUnitReplaceSpecial(nlevels1);
                 if(Exceptions) { DSTop=stkclean; return; }
                 ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
-
             }
+
             rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1=rplUnitToBase(nlevels1);
             if(Exceptions) { DSTop=stkclean; return; }
@@ -390,7 +408,18 @@ void LIB_HANDLER()
 
             nlevels2=rplUnitExplode(rplPeekData(1+nlevels1));
             if(Exceptions) { DSTop=stkclean; return; }
+
             if(isspec2) {
+                if(!isspec1) {
+                // WE SHOULD NEG AND ADD SPECIALS: A-B = A+(-B)
+                rplPushData(rplPeekData(nlevels2));  // GET THE VALUE
+
+                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+                if(Exceptions) { DSTop=stkclean; return; }
+
+                rplOverwriteData(nlevels2,rplPopData());
+                }
+
                 rplUnitReplaceSpecial(nlevels2);
                 if(Exceptions) { DSTop=stkclean; return; }
             }
@@ -411,7 +440,6 @@ void LIB_HANDLER()
             // THE UNITS ARE CONSISTENT
             WORDPTR unitval;
 
-
             if(isspec1) rplPushData(ScratchPointer3);
             else {
                 unitval=rplPeekData(2+nlevels1+nlevels2);
@@ -422,17 +450,31 @@ void LIB_HANDLER()
             rplPushData(rplPeekData(nlevels1+nlevels2+2));
             rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
             if(Exceptions) { DSTop=stkclean; return; }
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB));
+
+            if(isspec2 && (!isspec1)) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD));
+                else rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB));
             if(Exceptions) { DSTop=stkclean; return; }
 
             unitval=rplPopData();   // GET THE NEW VALUE
+
             rplDropData(nlevels2+nlevels1); // CLEANUP THE STACK, EXCEPT THE ORIGINAL ARGUMENTS
             rplPushData(unitval);               // PUSH THE NEW VALUE
-            nlevels1=rplUnitExplode(rplPeekData(3));    // EXPLODE THE OLD UNIT
+
+
+            if(isspec2 && (!isspec1)) {
+                nlevels1=rplUnitExplode(rplPeekData(2));    // EXPLODE THE OLD UNIT
+                rplUnitReplaceSpecial(nlevels1);
+            }
+            else {
+                nlevels1=rplUnitExplode(rplPeekData(3));    // EXPLODE THE OLD UNIT
+                if(isspec1 && (!isspec2)) rplUnitReplaceSpecial(nlevels1);
+            }
             if(Exceptions) { DSTop=stkclean; return; }
             rplUnitPopItem(nlevels1);           // AND REMOVE THE OLD VALUE, LEAVING THE NEW VALUE AND THE UNIT
-
-            if(isspec1) rplUnitSpecialToDelta(nlevels1);
+            if(isspec1 && isspec2) rplUnitSpecialToDelta(nlevels1);
+            else {
+                if((isspec1+isspec2>0) && (isspec1+isspec2<7)) rplUnitReverseReplaceSpecial(nlevels1);
+            }
 
             WORDPTR newunit=rplUnitAssemble(nlevels1);
             if(!newunit) { DSTop=stkclean; return; }
@@ -443,6 +485,7 @@ void LIB_HANDLER()
 
             return;
         }
+
         case OVR_POW:
         {
             if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
@@ -525,92 +568,783 @@ void LIB_HANDLER()
             return;
         }
 
-
-        case OVR_LT:
-        {
+        case OVR_CMP:
             // COMPARISON OPERATIONS REQUIRE UNIT CONSISTENCY
             // FIRST, DO A SUBTRACTION
-            {
-                if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
-                    // TREAT ANY IDENTS AS SYMBOLICS
-                            LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
-                            (*symblib)();
-                            return;
-                }
-
-                BINT nlevels1,nlevels2;
-                WORDPTR *stkclean=DSTop;
-
-                BINT isspec1,isspec2;
-                isspec2=rplUnitIsSpecial(rplPeekData(1));
-                isspec1=rplUnitIsSpecial(rplPeekData(2));
-
-
-                nlevels1=rplUnitExplode(rplPeekData(2));
-                if(Exceptions) { DSTop=stkclean; return; }
-                if(isspec1) {
-                    rplUnitReplaceSpecial(nlevels1);
-                    if(Exceptions) { DSTop=stkclean; return; }
-                    ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
-
-                }
-                if(*rplPeekData(nlevels1)!=*zero_bint) rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
-                nlevels1=rplUnitToBase(nlevels1);
-                if(Exceptions) { DSTop=stkclean; return; }
-                nlevels1=rplUnitSimplify(nlevels1);
-                if(Exceptions) { DSTop=stkclean; return; }
-
-                nlevels2=rplUnitExplode(rplPeekData(1+nlevels1));
-                if(Exceptions) { DSTop=stkclean; return; }
-                if(isspec2) {
-                    rplUnitReplaceSpecial(nlevels2);
-                    if(Exceptions) { DSTop=stkclean; return; }
-                }
-
-                nlevels2=rplUnitToBase(nlevels2);
-                if(Exceptions) { DSTop=stkclean; return; }
-                nlevels2=rplUnitSimplify(nlevels2);
-                if(Exceptions) { DSTop=stkclean; return; }
-
-                // BOTH UNITS WERE REDUCED TO THE BASE
-                BINT result=rplUnitIsConsistent(nlevels1+nlevels2,nlevels2);
-                if(!result) {
-                    rplError(ERR_INCONSISTENTUNITS);
-                    DSTop=stkclean;
-                    return;
-                }
-
-                // THE UNITS ARE CONSISTENT
-                WORDPTR unitval;
-
-
-                if(isspec1) rplPushData(ScratchPointer3);
-                else {
-                    unitval=rplPeekData(2+nlevels1+nlevels2);
-                    if(ISUNIT(*unitval)) ++unitval; // IF IT'S A UNIT, POINT TO THE VALUE
-                    rplPushData(unitval);
-                }
-                rplPushData(rplPeekData(nlevels2+1));
-                rplPushData(rplPeekData(nlevels1+nlevels2+2));
-                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
-                if(Exceptions) { DSTop=stkclean; return; }
-                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_LT));
-                if(Exceptions) { DSTop=stkclean; return; }
-
-                unitval=rplPopData();   // GET THE  RESULT
-                rplDropData(nlevels2+nlevels1+1); // CLEANUP THE STACK
-                rplOverwriteData(1,unitval);
-
+        {
+            if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
+                // TREAT ANY IDENTS AS SYMBOLICS
+                LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                (*symblib)();
                 return;
+            }
+
+            BINT nlevels1,nlevels2,swap=0;
+            WORDPTR *stkclean=DSTop;
+
+            BINT isspec1,isspec2;
+
+            if(ISREAL(*rplPeekData(2))) {
+                // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
+                // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
+                REAL p;
+                rplReadReal(rplPeekData(2),&p);
+                if(iszeroReal(&p)) {
+                    swap=1;
+                    WORDPTR tmp=rplPeekData(1);
+                    rplOverwriteData(1,rplPeekData(2));
+                    rplOverwriteData(2,tmp);
+                }
+
+            }
+            if(ISBINT(*rplPeekData(2))) {
+                // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
+                // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
+                BINT64 num=rplReadBINT(rplPeekData(2));
+
+                if(num==0) {
+                    swap=1;
+                    WORDPTR tmp=rplPeekData(1);
+                    rplOverwriteData(1,rplPeekData(2));
+                    rplOverwriteData(2,tmp);
+                }
+
             }
 
 
 
+            isspec2=rplUnitIsSpecial(rplPeekData(1));
+            isspec1=rplUnitIsSpecial(rplPeekData(2));
 
+
+            nlevels1=rplUnitExplode(rplPeekData(2));
+            if(Exceptions) { DSTop=stkclean; return; }
+            if(isspec1) {
+                rplUnitReplaceSpecial(nlevels1);
+                if(Exceptions) { DSTop=stkclean; return; }
+                ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
+
+            }
+            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            nlevels1=rplUnitToBase(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels1=rplUnitSimplify(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            nlevels2=rplUnitExplode(rplPeekData(1+nlevels1));
+            if(Exceptions) { DSTop=stkclean; return; }
+            if(isspec2) {
+                rplUnitReplaceSpecial(nlevels2);
+                if(Exceptions) { DSTop=stkclean; return; }
+            }
+
+            nlevels2=rplUnitToBase(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels2=rplUnitSimplify(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            // BOTH UNITS WERE REDUCED TO THE BASE
+            BINT result=rplUnitIsConsistent(nlevels1+nlevels2,nlevels2);
+            if(!result) {
+                rplError(ERR_INCONSISTENTUNITS);
+                DSTop=stkclean;
+                return;
+            }
+
+            // THE UNITS ARE CONSISTENT
+            WORDPTR unitval;
+
+
+            if(isspec1) rplPushData(ScratchPointer3);
+            else {
+                unitval=rplPeekData(2+nlevels1+nlevels2);
+                if(ISUNIT(*unitval)) ++unitval; // IF IT'S A UNIT, POINT TO THE VALUE
+                rplPushData(unitval);
+            }
+            rplPushData(rplPeekData(nlevels2+1));
+            rplPushData(rplPeekData(nlevels1+nlevels2+2));
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            // INVERT THE RESULT IF THE OPERANDS WERE SWAPPED
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_CMP));
+            if(swap)  rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+
+
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            unitval=rplPopData();   // GET THE  RESULT
+            rplDropData(nlevels2+nlevels1+1); // CLEANUP THE STACK
+            rplOverwriteData(1,unitval);
+
+            return;
         }
 
 
+        case OVR_LT:
 
+            // COMPARISON OPERATIONS REQUIRE UNIT CONSISTENCY
+            // FIRST, DO A SUBTRACTION
+        {
+            if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
+                // TREAT ANY IDENTS AS SYMBOLICS
+                LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                (*symblib)();
+                return;
+            }
+
+            BINT nlevels1,nlevels2,swap=0;
+            WORDPTR *stkclean=DSTop;
+
+            BINT isspec1,isspec2;
+
+            if(ISREAL(*rplPeekData(2))) {
+                // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
+                // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
+                REAL p;
+                rplReadReal(rplPeekData(2),&p);
+                if(iszeroReal(&p)) {
+                    swap=1;
+                    WORDPTR tmp=rplPeekData(1);
+                    rplOverwriteData(1,rplPeekData(2));
+                    rplOverwriteData(2,tmp);
+                }
+
+            }
+            if(ISBINT(*rplPeekData(2))) {
+                // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
+                // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
+                BINT64 num=rplReadBINT(rplPeekData(2));
+
+                if(num==0) {
+                    swap=1;
+                    WORDPTR tmp=rplPeekData(1);
+                    rplOverwriteData(1,rplPeekData(2));
+                    rplOverwriteData(2,tmp);
+                }
+
+            }
+
+
+
+            isspec2=rplUnitIsSpecial(rplPeekData(1));
+            isspec1=rplUnitIsSpecial(rplPeekData(2));
+
+
+            nlevels1=rplUnitExplode(rplPeekData(2));
+            if(Exceptions) { DSTop=stkclean; return; }
+            if(isspec1) {
+                rplUnitReplaceSpecial(nlevels1);
+                if(Exceptions) { DSTop=stkclean; return; }
+                ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
+
+            }
+            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            nlevels1=rplUnitToBase(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels1=rplUnitSimplify(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            nlevels2=rplUnitExplode(rplPeekData(1+nlevels1));
+            if(Exceptions) { DSTop=stkclean; return; }
+            if(isspec2) {
+                rplUnitReplaceSpecial(nlevels2);
+                if(Exceptions) { DSTop=stkclean; return; }
+            }
+
+            nlevels2=rplUnitToBase(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels2=rplUnitSimplify(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            // BOTH UNITS WERE REDUCED TO THE BASE
+            BINT result=rplUnitIsConsistent(nlevels1+nlevels2,nlevels2);
+            if(!result) {
+                rplError(ERR_INCONSISTENTUNITS);
+                DSTop=stkclean;
+                return;
+            }
+
+            // THE UNITS ARE CONSISTENT
+            WORDPTR unitval;
+
+
+            if(isspec1) rplPushData(ScratchPointer3);
+            else {
+                unitval=rplPeekData(2+nlevels1+nlevels2);
+                if(ISUNIT(*unitval)) ++unitval; // IF IT'S A UNIT, POINT TO THE VALUE
+                rplPushData(unitval);
+            }
+            rplPushData(rplPeekData(nlevels2+1));
+            rplPushData(rplPeekData(nlevels1+nlevels2+2));
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            // INVERT THE RESULT IF THE OPERANDS WERE SWAPPED
+            if(swap) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_GT));
+            else rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_LT));
+
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            unitval=rplPopData();   // GET THE  RESULT
+            rplDropData(nlevels2+nlevels1+1); // CLEANUP THE STACK
+            rplOverwriteData(1,unitval);
+
+            return;
+        }
+
+        case OVR_GT:
+
+            // COMPARISON OPERATIONS REQUIRE UNIT CONSISTENCY
+            // FIRST, DO A SUBTRACTION
+        {
+            if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
+                // TREAT ANY IDENTS AS SYMBOLICS
+                LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                (*symblib)();
+                return;
+            }
+
+            BINT nlevels1,nlevels2,swap=0;
+            WORDPTR *stkclean=DSTop;
+
+            BINT isspec1,isspec2;
+
+            if(ISREAL(*rplPeekData(2))) {
+                // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
+                // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
+                REAL p;
+                rplReadReal(rplPeekData(2),&p);
+                if(iszeroReal(&p)) {
+                    swap=1;
+                    WORDPTR tmp=rplPeekData(1);
+                    rplOverwriteData(1,rplPeekData(2));
+                    rplOverwriteData(2,tmp);
+                }
+
+            }
+            if(ISBINT(*rplPeekData(2))) {
+                // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
+                // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
+                BINT64 num=rplReadBINT(rplPeekData(2));
+
+                if(num==0) {
+                    swap=1;
+                    WORDPTR tmp=rplPeekData(1);
+                    rplOverwriteData(1,rplPeekData(2));
+                    rplOverwriteData(2,tmp);
+                }
+
+            }
+
+
+
+            isspec2=rplUnitIsSpecial(rplPeekData(1));
+            isspec1=rplUnitIsSpecial(rplPeekData(2));
+
+
+            nlevels1=rplUnitExplode(rplPeekData(2));
+            if(Exceptions) { DSTop=stkclean; return; }
+            if(isspec1) {
+                rplUnitReplaceSpecial(nlevels1);
+                if(Exceptions) { DSTop=stkclean; return; }
+                ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
+
+            }
+            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            nlevels1=rplUnitToBase(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels1=rplUnitSimplify(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            nlevels2=rplUnitExplode(rplPeekData(1+nlevels1));
+            if(Exceptions) { DSTop=stkclean; return; }
+            if(isspec2) {
+                rplUnitReplaceSpecial(nlevels2);
+                if(Exceptions) { DSTop=stkclean; return; }
+            }
+
+            nlevels2=rplUnitToBase(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels2=rplUnitSimplify(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            // BOTH UNITS WERE REDUCED TO THE BASE
+            BINT result=rplUnitIsConsistent(nlevels1+nlevels2,nlevels2);
+            if(!result) {
+                rplError(ERR_INCONSISTENTUNITS);
+                DSTop=stkclean;
+                return;
+            }
+
+            // THE UNITS ARE CONSISTENT
+            WORDPTR unitval;
+
+
+            if(isspec1) rplPushData(ScratchPointer3);
+            else {
+                unitval=rplPeekData(2+nlevels1+nlevels2);
+                if(ISUNIT(*unitval)) ++unitval; // IF IT'S A UNIT, POINT TO THE VALUE
+                rplPushData(unitval);
+            }
+            rplPushData(rplPeekData(nlevels2+1));
+            rplPushData(rplPeekData(nlevels1+nlevels2+2));
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            // INVERT THE RESULT IF THE OPERANDS WERE SWAPPED
+            if(swap) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_LT));
+            else rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_GT));
+
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            unitval=rplPopData();   // GET THE  RESULT
+            rplDropData(nlevels2+nlevels1+1); // CLEANUP THE STACK
+            rplOverwriteData(1,unitval);
+
+            return;
+        }
+
+        case OVR_LTE:
+
+            // COMPARISON OPERATIONS REQUIRE UNIT CONSISTENCY
+            // FIRST, DO A SUBTRACTION
+        {
+            if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
+                // TREAT ANY IDENTS AS SYMBOLICS
+                LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                (*symblib)();
+                return;
+            }
+
+            BINT nlevels1,nlevels2,swap=0;
+            WORDPTR *stkclean=DSTop;
+
+            BINT isspec1,isspec2;
+
+            if(ISREAL(*rplPeekData(2))) {
+                // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
+                // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
+                REAL p;
+                rplReadReal(rplPeekData(2),&p);
+                if(iszeroReal(&p)) {
+                    swap=1;
+                    WORDPTR tmp=rplPeekData(1);
+                    rplOverwriteData(1,rplPeekData(2));
+                    rplOverwriteData(2,tmp);
+                }
+
+            }
+            if(ISBINT(*rplPeekData(2))) {
+                // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
+                // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
+                BINT64 num=rplReadBINT(rplPeekData(2));
+
+                if(num==0) {
+                    swap=1;
+                    WORDPTR tmp=rplPeekData(1);
+                    rplOverwriteData(1,rplPeekData(2));
+                    rplOverwriteData(2,tmp);
+                }
+
+            }
+
+
+
+            isspec2=rplUnitIsSpecial(rplPeekData(1));
+            isspec1=rplUnitIsSpecial(rplPeekData(2));
+
+
+            nlevels1=rplUnitExplode(rplPeekData(2));
+            if(Exceptions) { DSTop=stkclean; return; }
+            if(isspec1) {
+                rplUnitReplaceSpecial(nlevels1);
+                if(Exceptions) { DSTop=stkclean; return; }
+                ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
+
+            }
+            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            nlevels1=rplUnitToBase(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels1=rplUnitSimplify(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            nlevels2=rplUnitExplode(rplPeekData(1+nlevels1));
+            if(Exceptions) { DSTop=stkclean; return; }
+            if(isspec2) {
+                rplUnitReplaceSpecial(nlevels2);
+                if(Exceptions) { DSTop=stkclean; return; }
+            }
+
+            nlevels2=rplUnitToBase(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels2=rplUnitSimplify(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            // BOTH UNITS WERE REDUCED TO THE BASE
+            BINT result=rplUnitIsConsistent(nlevels1+nlevels2,nlevels2);
+            if(!result) {
+                rplError(ERR_INCONSISTENTUNITS);
+                DSTop=stkclean;
+                return;
+            }
+
+            // THE UNITS ARE CONSISTENT
+            WORDPTR unitval;
+
+
+            if(isspec1) rplPushData(ScratchPointer3);
+            else {
+                unitval=rplPeekData(2+nlevels1+nlevels2);
+                if(ISUNIT(*unitval)) ++unitval; // IF IT'S A UNIT, POINT TO THE VALUE
+                rplPushData(unitval);
+            }
+            rplPushData(rplPeekData(nlevels2+1));
+            rplPushData(rplPeekData(nlevels1+nlevels2+2));
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            // INVERT THE RESULT IF THE OPERANDS WERE SWAPPED
+            if(swap) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_GTE));
+            else rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_LTE));
+
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            unitval=rplPopData();   // GET THE  RESULT
+            rplDropData(nlevels2+nlevels1+1); // CLEANUP THE STACK
+            rplOverwriteData(1,unitval);
+
+            return;
+        }
+        case OVR_GTE:
+
+            // COMPARISON OPERATIONS REQUIRE UNIT CONSISTENCY
+            // FIRST, DO A SUBTRACTION
+        {
+            if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
+                // TREAT ANY IDENTS AS SYMBOLICS
+                LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                (*symblib)();
+                return;
+            }
+
+            BINT nlevels1,nlevels2,swap=0;
+            WORDPTR *stkclean=DSTop;
+
+            BINT isspec1,isspec2;
+
+            if(ISREAL(*rplPeekData(2))) {
+                // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
+                // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
+                REAL p;
+                rplReadReal(rplPeekData(2),&p);
+                if(iszeroReal(&p)) {
+                    swap=1;
+                    WORDPTR tmp=rplPeekData(1);
+                    rplOverwriteData(1,rplPeekData(2));
+                    rplOverwriteData(2,tmp);
+                }
+
+            }
+            if(ISBINT(*rplPeekData(2))) {
+                // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
+                // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
+                BINT64 num=rplReadBINT(rplPeekData(2));
+
+                if(num==0) {
+                    swap=1;
+                    WORDPTR tmp=rplPeekData(1);
+                    rplOverwriteData(1,rplPeekData(2));
+                    rplOverwriteData(2,tmp);
+                }
+
+            }
+
+
+
+            isspec2=rplUnitIsSpecial(rplPeekData(1));
+            isspec1=rplUnitIsSpecial(rplPeekData(2));
+
+
+            nlevels1=rplUnitExplode(rplPeekData(2));
+            if(Exceptions) { DSTop=stkclean; return; }
+            if(isspec1) {
+                rplUnitReplaceSpecial(nlevels1);
+                if(Exceptions) { DSTop=stkclean; return; }
+                ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
+
+            }
+            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            nlevels1=rplUnitToBase(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels1=rplUnitSimplify(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            nlevels2=rplUnitExplode(rplPeekData(1+nlevels1));
+            if(Exceptions) { DSTop=stkclean; return; }
+            if(isspec2) {
+                rplUnitReplaceSpecial(nlevels2);
+                if(Exceptions) { DSTop=stkclean; return; }
+            }
+
+            nlevels2=rplUnitToBase(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels2=rplUnitSimplify(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            // BOTH UNITS WERE REDUCED TO THE BASE
+            BINT result=rplUnitIsConsistent(nlevels1+nlevels2,nlevels2);
+            if(!result) {
+                rplError(ERR_INCONSISTENTUNITS);
+                DSTop=stkclean;
+                return;
+            }
+
+            // THE UNITS ARE CONSISTENT
+            WORDPTR unitval;
+
+
+            if(isspec1) rplPushData(ScratchPointer3);
+            else {
+                unitval=rplPeekData(2+nlevels1+nlevels2);
+                if(ISUNIT(*unitval)) ++unitval; // IF IT'S A UNIT, POINT TO THE VALUE
+                rplPushData(unitval);
+            }
+            rplPushData(rplPeekData(nlevels2+1));
+            rplPushData(rplPeekData(nlevels1+nlevels2+2));
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            // INVERT THE RESULT IF THE OPERANDS WERE SWAPPED
+            if(swap) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_LTE));
+            else rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_GTE));
+
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            unitval=rplPopData();   // GET THE  RESULT
+            rplDropData(nlevels2+nlevels1+1); // CLEANUP THE STACK
+            rplOverwriteData(1,unitval);
+
+            return;
+        }
+
+        case OVR_SAME:
+        case OVR_EQ:
+            // COMPARISON OPERATIONS REQUIRE UNIT CONSISTENCY
+            // FIRST, DO A SUBTRACTION
+        {
+            if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
+                // TREAT ANY IDENTS AS SYMBOLICS
+                LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                (*symblib)();
+                return;
+            }
+
+            BINT nlevels1,nlevels2,swap=0;
+            WORDPTR *stkclean=DSTop;
+
+            BINT isspec1,isspec2;
+
+            if(ISREAL(*rplPeekData(2))) {
+                // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
+                // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
+                REAL p;
+                rplReadReal(rplPeekData(2),&p);
+                if(iszeroReal(&p)) {
+                    swap=1;
+                    WORDPTR tmp=rplPeekData(1);
+                    rplOverwriteData(1,rplPeekData(2));
+                    rplOverwriteData(2,tmp);
+                }
+
+            }
+            if(ISBINT(*rplPeekData(2))) {
+                // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
+                // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
+                BINT64 num=rplReadBINT(rplPeekData(2));
+
+                if(num==0) {
+                    swap=1;
+                    WORDPTR tmp=rplPeekData(1);
+                    rplOverwriteData(1,rplPeekData(2));
+                    rplOverwriteData(2,tmp);
+                }
+
+            }
+
+
+
+            isspec2=rplUnitIsSpecial(rplPeekData(1));
+            isspec1=rplUnitIsSpecial(rplPeekData(2));
+
+
+            nlevels1=rplUnitExplode(rplPeekData(2));
+            if(Exceptions) { DSTop=stkclean; return; }
+            if(isspec1) {
+                rplUnitReplaceSpecial(nlevels1);
+                if(Exceptions) { DSTop=stkclean; return; }
+                ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
+
+            }
+            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            nlevels1=rplUnitToBase(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels1=rplUnitSimplify(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            nlevels2=rplUnitExplode(rplPeekData(1+nlevels1));
+            if(Exceptions) { DSTop=stkclean; return; }
+            if(isspec2) {
+                rplUnitReplaceSpecial(nlevels2);
+                if(Exceptions) { DSTop=stkclean; return; }
+            }
+
+            nlevels2=rplUnitToBase(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels2=rplUnitSimplify(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            // BOTH UNITS WERE REDUCED TO THE BASE
+            BINT result=rplUnitIsConsistent(nlevels1+nlevels2,nlevels2);
+            if(!result) {
+                rplError(ERR_INCONSISTENTUNITS);
+                DSTop=stkclean;
+                return;
+            }
+
+            // THE UNITS ARE CONSISTENT
+            WORDPTR unitval;
+
+
+            if(isspec1) rplPushData(ScratchPointer3);
+            else {
+                unitval=rplPeekData(2+nlevels1+nlevels2);
+                if(ISUNIT(*unitval)) ++unitval; // IF IT'S A UNIT, POINT TO THE VALUE
+                rplPushData(unitval);
+            }
+            rplPushData(rplPeekData(nlevels2+1));
+            rplPushData(rplPeekData(nlevels1+nlevels2+2));
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_EQ));
+
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            unitval=rplPopData();   // GET THE  RESULT
+            rplDropData(nlevels2+nlevels1+1); // CLEANUP THE STACK
+            rplOverwriteData(1,unitval);
+
+            return;
+        }
+        case OVR_NOTEQ:
+            // COMPARISON OPERATIONS REQUIRE UNIT CONSISTENCY
+            // FIRST, DO A SUBTRACTION
+        {
+            if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
+                // TREAT ANY IDENTS AS SYMBOLICS
+                LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                (*symblib)();
+                return;
+            }
+
+            BINT nlevels1,nlevels2,swap=0;
+            WORDPTR *stkclean=DSTop;
+
+            BINT isspec1,isspec2;
+
+            if(ISREAL(*rplPeekData(2))) {
+                // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
+                // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
+                REAL p;
+                rplReadReal(rplPeekData(2),&p);
+                if(iszeroReal(&p)) {
+                    swap=1;
+                    WORDPTR tmp=rplPeekData(1);
+                    rplOverwriteData(1,rplPeekData(2));
+                    rplOverwriteData(2,tmp);
+                }
+
+            }
+            if(ISBINT(*rplPeekData(2))) {
+                // ONLY THE SPECIAL CASE OF ZERO NEEDS TO BE CONSIDERED
+                // SINCE ZERO DOESN'T MAKE A GOOD CONVERSION FACTOR
+                BINT64 num=rplReadBINT(rplPeekData(2));
+
+                if(num==0) {
+                    swap=1;
+                    WORDPTR tmp=rplPeekData(1);
+                    rplOverwriteData(1,rplPeekData(2));
+                    rplOverwriteData(2,tmp);
+                }
+
+            }
+
+
+
+            isspec2=rplUnitIsSpecial(rplPeekData(1));
+            isspec1=rplUnitIsSpecial(rplPeekData(2));
+
+
+            nlevels1=rplUnitExplode(rplPeekData(2));
+            if(Exceptions) { DSTop=stkclean; return; }
+            if(isspec1) {
+                rplUnitReplaceSpecial(nlevels1);
+                if(Exceptions) { DSTop=stkclean; return; }
+                ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
+
+            }
+            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            nlevels1=rplUnitToBase(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels1=rplUnitSimplify(nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            nlevels2=rplUnitExplode(rplPeekData(1+nlevels1));
+            if(Exceptions) { DSTop=stkclean; return; }
+            if(isspec2) {
+                rplUnitReplaceSpecial(nlevels2);
+                if(Exceptions) { DSTop=stkclean; return; }
+            }
+
+            nlevels2=rplUnitToBase(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+            nlevels2=rplUnitSimplify(nlevels2);
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            // BOTH UNITS WERE REDUCED TO THE BASE
+            BINT result=rplUnitIsConsistent(nlevels1+nlevels2,nlevels2);
+            if(!result) {
+                rplError(ERR_INCONSISTENTUNITS);
+                DSTop=stkclean;
+                return;
+            }
+
+            // THE UNITS ARE CONSISTENT
+            WORDPTR unitval;
+
+
+            if(isspec1) rplPushData(ScratchPointer3);
+            else {
+                unitval=rplPeekData(2+nlevels1+nlevels2);
+                if(ISUNIT(*unitval)) ++unitval; // IF IT'S A UNIT, POINT TO THE VALUE
+                rplPushData(unitval);
+            }
+            rplPushData(rplPeekData(nlevels2+1));
+            rplPushData(rplPeekData(nlevels1+nlevels2+2));
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NOTEQ));
+
+            if(Exceptions) { DSTop=stkclean; return; }
+
+            unitval=rplPopData();   // GET THE  RESULT
+            rplDropData(nlevels2+nlevels1+1); // CLEANUP THE STACK
+            rplOverwriteData(1,unitval);
+
+            return;
+        }
 
 
         }

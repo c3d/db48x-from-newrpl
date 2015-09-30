@@ -856,6 +856,10 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DOREAL,3),MAKEREALFLAGS(-4,2,0),69259747,3155,       // 31556925.9747
     MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(1),MAKESINT(1),
 
+    // [1114]='ΔK'
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('K',0,0,0),MAKESINT(1),MAKESINT(1)
 
 
 };
@@ -925,7 +929,7 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[128],(WORDPTR)&system_unit_defs[477], // 'inH2O'=248.84_Pa (at 60°F)
     (WORDPTR)&system_unit_names[131],(WORDPTR)&system_unit_defs[896], // 'J'=1_N*m
     (WORDPTR)&system_unit_names[133],(WORDPTR)&one_bint,              // 'K'=1
-    (WORDPTR)&system_unit_names[135],(WORDPTR)&one_bint,              // 'ΔK'=1
+    (WORDPTR)&system_unit_names[135],(WORDPTR)&system_unit_defs[1114],// 'ΔK'=1_K
     (WORDPTR)&system_unit_names[137],(WORDPTR)&system_unit_defs[485], // 'kip'=1000_lbf
     (WORDPTR)&system_unit_names[139],(WORDPTR)&system_unit_defs[491], // 'knot'=1_nmi/h
     (WORDPTR)&system_unit_names[141],(WORDPTR)&system_unit_defs[501], // 'kph'=1_km/h
@@ -1000,6 +1004,7 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[276],(WORDPTR)&system_unit_defs[587], // 'π'= π0 = 3.141592..... (VARIABLE PRECISION)
     (WORDPTR)&system_unit_names[278],(WORDPTR)&system_unit_defs[588], // '?CDG'=180 (NON-DIMENSIONAL)
     (WORDPTR)&system_unit_names[280],(WORDPTR)&system_unit_defs[589], // '?CFT'=3937 (NON-DIMENSIONAL)
+
 
     0,0                                         // NULL TERMINATED LIST
 };
@@ -1845,7 +1850,7 @@ BINT rplUnitIsSpecial(WORDPTR unitobj)
 
     if(!*ptr) return 0;
 
-    return 1;
+    return 1+(ptr-system_unit_special);
 
 }
 

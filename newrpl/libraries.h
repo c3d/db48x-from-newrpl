@@ -324,15 +324,15 @@ extern void libGetPTRFromID(WORDPTR *table,WORD id);
 // TESTS
 #define OVRT_EQ           "=="
 #define OVR_EQ      OVR_OPERATORS+OVR_BINARY+1
-#define OVRT_NOTEQ        "!="
+#define OVRT_NOTEQ        "≠"
 #define OVR_NOTEQ   OVR_OPERATORS+OVR_BINARY+2
 #define OVRT_LT        "<"
 #define OVR_LT      OVR_OPERATORS+OVR_BINARY+3
 #define OVRT_GT        ">"
 #define OVR_GT      OVR_OPERATORS+OVR_BINARY+4
-#define OVRT_LTE        "<="
+#define OVRT_LTE        "≤"
 #define OVR_LTE      OVR_OPERATORS+OVR_BINARY+5
-#define OVRT_GTE        ">="
+#define OVRT_GTE        "≥"
 #define OVR_GTE      OVR_OPERATORS+OVR_BINARY+6
 #define OVRT_SAME        "SAME"
 #define OVR_SAME    OVR_OPERATORS+OVR_BINARY+7
