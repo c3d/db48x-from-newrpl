@@ -110,7 +110,12 @@ BYTEPTR rplNextUnitToken(BYTEPTR start,BYTEPTR end)
 
 
 
-
+//   THIS IS TEMPORARY AND WILL NEVER BE SEEN BY THE USER OR STORED ANYWHERE
+const WORD const temp_ident[]=
+{
+    MKPROLOG(DOIDENT,1),
+    TEXT2WORD('?',0,0,0)
+};
 
 
 
@@ -171,6 +176,13 @@ void LIB_HANDLER()
         }
         case OVR_MUL:
         {
+            if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
+                // TREAT ANY IDENTS AS SYMBOLICS
+                        LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                        (*symblib)();
+                        return;
+            }
+
             BINT nlevels1,nlevels2;
             WORDPTR *stkclean=DSTop;
 
@@ -203,8 +215,21 @@ void LIB_HANDLER()
             return;
         }
 
+        case OVR_INV:
+            // JUST PUT A NUMBER ONE IN THE STACK AND FALL THROUGH A NORMAL DIVISION
+            rplPushData(rplPeekData(1));
+            rplOverwriteData(2,&one_bint);
+            // DELIBERATE FALL THROUGH
+
         case OVR_DIV:
         {
+            if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
+                // TREAT ANY IDENTS AS SYMBOLICS
+                        LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                        (*symblib)();
+                        return;
+            }
+
             BINT nlevels1,nlevels2;
             WORDPTR *stkclean=DSTop;
 
@@ -238,6 +263,13 @@ void LIB_HANDLER()
         }
         case OVR_ADD:
         {
+            if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
+                // TREAT ANY IDENTS AS SYMBOLICS
+                        LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                        (*symblib)();
+                        return;
+            }
+
             BINT nlevels1,nlevels2;
             WORDPTR *stkclean=DSTop;
 
@@ -327,6 +359,13 @@ void LIB_HANDLER()
         }
         case OVR_SUB:
         {
+            if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
+                // TREAT ANY IDENTS AS SYMBOLICS
+                        LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                        (*symblib)();
+                        return;
+            }
+
             BINT nlevels1,nlevels2;
             WORDPTR *stkclean=DSTop;
 
@@ -406,6 +445,13 @@ void LIB_HANDLER()
         }
         case OVR_POW:
         {
+            if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
+                // TREAT ANY IDENTS AS SYMBOLICS
+                        LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                        (*symblib)();
+                        return;
+            }
+
             BINT nlevels1;
             WORDPTR *stkclean=DSTop;
 
@@ -434,6 +480,136 @@ void LIB_HANDLER()
             rplOverwriteData(1,newunit);
             return;
         }
+
+        case OVR_XROOT:
+        {
+            if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
+                // TREAT ANY IDENTS AS SYMBOLICS
+                        LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                        (*symblib)();
+                        return;
+            }
+
+            BINT nlevels1;
+            WORDPTR *stkclean=DSTop;
+
+            BINT isspec1;
+
+            if(!ISNUMBER(*rplPeekData(1))) {
+                rplError(ERR_REALEXPECTED);
+                return;
+            }
+
+            rplPushData(&temp_ident);
+            rplPushData(&one_bint);
+            rplPushData(rplPeekData(3));
+
+
+            isspec1=rplUnitIsSpecial(rplPeekData(5));
+
+            nlevels1=rplUnitExplode(rplPeekData(5));
+            if(Exceptions) { DSTop=stkclean; return; }
+            if(isspec1) {
+                rplUnitReplaceSpecial(nlevels1);
+                if(Exceptions) { DSTop=stkclean; return; }
+            }
+
+            nlevels1=rplUnitPow(nlevels1+3,nlevels1);
+            if(Exceptions) { DSTop=stkclean; return; }
+            WORDPTR newunit=rplUnitAssemble(nlevels1);
+            if(!newunit) { DSTop=stkclean; return; }
+
+            // FINAL CLEANUP
+            rplDropData(nlevels1+3);
+            rplOverwriteData(1,newunit);
+            return;
+        }
+
+
+        case OVR_LT:
+        {
+            // COMPARISON OPERATIONS REQUIRE UNIT CONSISTENCY
+            // FIRST, DO A SUBTRACTION
+            {
+                if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
+                    // TREAT ANY IDENTS AS SYMBOLICS
+                            LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                            (*symblib)();
+                            return;
+                }
+
+                BINT nlevels1,nlevels2;
+                WORDPTR *stkclean=DSTop;
+
+                BINT isspec1,isspec2;
+                isspec2=rplUnitIsSpecial(rplPeekData(1));
+                isspec1=rplUnitIsSpecial(rplPeekData(2));
+
+
+                nlevels1=rplUnitExplode(rplPeekData(2));
+                if(Exceptions) { DSTop=stkclean; return; }
+                if(isspec1) {
+                    rplUnitReplaceSpecial(nlevels1);
+                    if(Exceptions) { DSTop=stkclean; return; }
+                    ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
+
+                }
+                if(*rplPeekData(nlevels1)!=*zero_bint) rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+                nlevels1=rplUnitToBase(nlevels1);
+                if(Exceptions) { DSTop=stkclean; return; }
+                nlevels1=rplUnitSimplify(nlevels1);
+                if(Exceptions) { DSTop=stkclean; return; }
+
+                nlevels2=rplUnitExplode(rplPeekData(1+nlevels1));
+                if(Exceptions) { DSTop=stkclean; return; }
+                if(isspec2) {
+                    rplUnitReplaceSpecial(nlevels2);
+                    if(Exceptions) { DSTop=stkclean; return; }
+                }
+
+                nlevels2=rplUnitToBase(nlevels2);
+                if(Exceptions) { DSTop=stkclean; return; }
+                nlevels2=rplUnitSimplify(nlevels2);
+                if(Exceptions) { DSTop=stkclean; return; }
+
+                // BOTH UNITS WERE REDUCED TO THE BASE
+                BINT result=rplUnitIsConsistent(nlevels1+nlevels2,nlevels2);
+                if(!result) {
+                    rplError(ERR_INCONSISTENTUNITS);
+                    DSTop=stkclean;
+                    return;
+                }
+
+                // THE UNITS ARE CONSISTENT
+                WORDPTR unitval;
+
+
+                if(isspec1) rplPushData(ScratchPointer3);
+                else {
+                    unitval=rplPeekData(2+nlevels1+nlevels2);
+                    if(ISUNIT(*unitval)) ++unitval; // IF IT'S A UNIT, POINT TO THE VALUE
+                    rplPushData(unitval);
+                }
+                rplPushData(rplPeekData(nlevels2+1));
+                rplPushData(rplPeekData(nlevels1+nlevels2+2));
+                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+                if(Exceptions) { DSTop=stkclean; return; }
+                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_LT));
+                if(Exceptions) { DSTop=stkclean; return; }
+
+                unitval=rplPopData();   // GET THE  RESULT
+                rplDropData(nlevels2+nlevels1+1); // CLEANUP THE STACK
+                rplOverwriteData(1,unitval);
+
+                return;
+            }
+
+
+
+
+        }
+
+
 
 
 
@@ -543,8 +719,6 @@ void LIB_HANDLER()
     }
 
     case SYMBTOUNIT:
-        // TODO: THIS VERSION ONLY ACCEPTS NUMBERS AS FIRST ARGUMENT
-
         // DELIBERATE FALL THROUGH
     case TOUNIT:
         // THIS IS IDENTICAL TO OVR_MUL
@@ -679,6 +853,7 @@ void LIB_HANDLER()
                     ++groupidx;
                     if(groupidx>8) {
                         // NO MORE THAN 8 NESTED LEVELS ALLOWED
+                        rplError(ERR_INVALIDUNITDEFINITION);
                         RetNum=ERR_SYNTAX;
                         return;
                     }
@@ -708,11 +883,13 @@ void LIB_HANDLER()
                 BYTEPTR nameend=rplNextUnitToken(nextptr,endptr);
 
                 if(nameend<=nextptr) {
+                    rplError(ERR_INVALIDUNITDEFINITION);
                     RetNum=ERR_SYNTAX;
                     return;
                 }
 
                 if(!rplIsValidIdent(nextptr,nameend)) {
+                    rplError(ERR_INVALIDUNITDEFINITION);
                     RetNum=ERR_SYNTAX;
                     return;
                 }
@@ -742,6 +919,7 @@ void LIB_HANDLER()
 
                     // END OF A GROUP
                     if(!groupidx) {
+                        rplError(ERR_INVALIDUNITDEFINITION);
                         RetNum=ERR_SYNTAX;
                         return;
                     }
@@ -774,6 +952,7 @@ void LIB_HANDLER()
                              BYTEPTR numend=rplNextUnitToken(nextptr,endptr);
 
                              if(numend<=nextptr) {
+                                 rplError(ERR_INVALIDUNITDEFINITION);
                                  RetNum=ERR_SYNTAX;
                                  return;
                              }
@@ -783,6 +962,7 @@ void LIB_HANDLER()
 
                              if(RReg[0].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
                                  // BAD EXPONENT!
+                                 rplError(ERR_EXPECTEDREALEXPONENT);
                                  RetNum=ERR_SYNTAX;
                                  return;
                              }
@@ -802,6 +982,7 @@ void LIB_HANDLER()
                              else {
 
                              if(*nextptr!='/') {
+                                 rplError(ERR_EXPECTEDREALEXPONENT);
                                  RetNum=ERR_SYNTAX;
                                  return;
                              }
@@ -812,6 +993,7 @@ void LIB_HANDLER()
                              BYTEPTR numend=rplNextUnitToken(nextptr,endptr);
 
                              if(numend<=nextptr) {
+                                 rplError(ERR_INVALIDUNITDEFINITION);
                                  RetNum=ERR_SYNTAX;
                                  return;
                              }
@@ -821,6 +1003,7 @@ void LIB_HANDLER()
 
                              if(RReg[1].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
                                  // BAD EXPONENT!
+                                 rplError(ERR_EXPECTEDREALEXPONENT);
                                  RetNum=ERR_SYNTAX;
                                  return;
                              }
@@ -830,6 +1013,7 @@ void LIB_HANDLER()
                              nextptr+=nletters;
 
                              if(*nextptr!=')') {
+                                 rplError(ERR_INVALIDUNITDEFINITION);
                                  RetNum=ERR_SYNTAX;
                                  return;
                              }
@@ -851,6 +1035,7 @@ void LIB_HANDLER()
                         BYTEPTR numend=rplNextUnitToken(nextptr,endptr);
 
                         if(numend<=nextptr) {
+                            rplError(ERR_INVALIDUNITDEFINITION);
                             RetNum=ERR_SYNTAX;
                             return;
                         }
@@ -859,6 +1044,7 @@ void LIB_HANDLER()
 
                         if(RReg[0].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
                             // BAD EXPONENT!
+                            rplError(ERR_EXPECTEDREALEXPONENT);
                             RetNum=ERR_SYNTAX;
                             return;
                         }
@@ -1042,6 +1228,7 @@ void LIB_HANDLER()
                 if(*nextptr=='^') {
 
                     if(!needexp) {
+                        rplError(ERR_INVALIDUNITDEFINITION);
                         RetNum=ERR_SYNTAX;
                         return;
                     }
@@ -1057,6 +1244,7 @@ void LIB_HANDLER()
                          BYTEPTR numend=rplNextUnitToken(nextptr,endptr);
 
                          if(numend<=nextptr) {
+                             rplError(ERR_INVALIDUNITDEFINITION);
                              RetNum=ERR_SYNTAX;
                              return;
                          }
@@ -1066,6 +1254,7 @@ void LIB_HANDLER()
 
                          if(RReg[0].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
                              // BAD EXPONENT!
+                             rplError(ERR_EXPECTEDREALEXPONENT);
                              RetNum=ERR_SYNTAX;
                              return;
                          }
@@ -1085,6 +1274,7 @@ void LIB_HANDLER()
                          else {
 
                          if(*nextptr!='/') {
+                             rplError(ERR_INVALIDUNITDEFINITION);
                              RetNum=ERR_SYNTAX;
                              return;
                          }
@@ -1095,6 +1285,7 @@ void LIB_HANDLER()
                          BYTEPTR numend=rplNextUnitToken(nextptr,endptr);
 
                          if(numend<=nextptr) {
+                             rplError(ERR_INVALIDUNITDEFINITION);
                              RetNum=ERR_SYNTAX;
                              return;
                          }
@@ -1104,6 +1295,7 @@ void LIB_HANDLER()
 
                          if(RReg[1].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
                              // BAD EXPONENT!
+                             rplError(ERR_EXPECTEDREALEXPONENT);
                              RetNum=ERR_SYNTAX;
                              return;
                          }
@@ -1113,6 +1305,7 @@ void LIB_HANDLER()
                          nextptr+=nletters;
 
                          if(*nextptr!=')') {
+                             rplError(ERR_INVALIDUNITDEFINITION);
                              RetNum=ERR_SYNTAX;
                              return;
                          }
@@ -1202,6 +1395,7 @@ void LIB_HANDLER()
                     BYTEPTR numend=rplNextUnitToken(nextptr,endptr);
 
                     if(numend<=nextptr) {
+                        rplError(ERR_INVALIDUNITDEFINITION);
                         RetNum=ERR_SYNTAX;
                         return;
                     }
@@ -1210,6 +1404,7 @@ void LIB_HANDLER()
 
                     if(RReg[0].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
                         // BAD EXPONENT!
+                        rplError(ERR_EXPECTEDREALEXPONENT);
                         RetNum=ERR_SYNTAX;
                         return;
                     }
@@ -1262,6 +1457,7 @@ void LIB_HANDLER()
                 }
 
                 // AT THIS POINT ANYTHING ELSE IS A SYNTAX ERROR
+                rplError(ERR_INVALIDUNITDEFINITION);
                 RetNum=ERR_SYNTAX;
                 return;
 
@@ -1275,6 +1471,7 @@ void LIB_HANDLER()
 
             }
             if(needident) {
+                rplError(ERR_INVALIDUNITDEFINITION);
                 RetNum=ERR_SYNTAX;
                 return;
             }
@@ -1287,6 +1484,7 @@ void LIB_HANDLER()
             // THERE'S NO CONSTRUCT, WE MUST COMPILE AN ATOMIC OBJECT
             if( (endptr==(BYTEPTR)BlankStart)&&(tokstart>1)) {
                     // THIS IMMEDIATE MODE REQUIRES THE CLOSING BRACKET
+                    rplError(ERR_INVALIDUNITDEFINITION);
                     RetNum=ERR_SYNTAX;
                     return;
                 }
@@ -1365,6 +1563,7 @@ void LIB_HANDLER()
             return;
         }
         // ANYTHING ELSE SHOULD BE A SYNTAX ERROR
+        rplError(ERR_INVALIDUNITDEFINITION);
         RetNum=ERR_SYNTAX;
         return;
 

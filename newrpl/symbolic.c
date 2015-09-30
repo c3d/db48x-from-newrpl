@@ -1678,9 +1678,9 @@ WORDPTR *argptr=stkptr;
 // CHECK THE NUMERATOR
 
 if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
-    if(!ISNUMBER(**(argptr-2))) return 0;
+    if(!ISNUMBERORUNIT(**(argptr-2))) return 0;
 }
-else if(!ISNUMBER(**argptr)) return 0;
+else if(!ISNUMBERORUNIT(**argptr)) return 0;
 
 
 argptr=rplSymbSkipInStack(argptr);
@@ -1689,15 +1689,15 @@ argptr=rplSymbSkipInStack(argptr);
 if(**argptr!=MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) return 0;
 argptr-=2;
 if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
-    if(!ISNUMBER(**(argptr-2))) return 0;
+    if(!ISNUMBERORUNIT(**(argptr-2))) return 0;
 }
-else if(!ISNUMBER(**argptr)) return 0;
+else if(!ISNUMBERORUNIT(**argptr)) return 0;
 
 
 }
 else {
 // SINGLE NUMBERS ARE ALSO CONSIDERED FRACTIONS N/1
-  if(!ISNUMBER(**stkptr)) return 0;
+  if(!ISNUMBERORUNIT(**stkptr)) return 0;
 
 }
 
@@ -1952,7 +1952,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
         if(ISPROLOG(*sobj)||ISBINT(*sobj)) { --stkptr;  continue; }
 
-        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+        if((*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL))||(*sobj==CMD_SYMBTOUNIT)) {
             // SCAN ALL NUMERIC FACTORS IN THE NUMERATOR AND MULTIPLY TOGETHER
 
 
@@ -1964,10 +1964,10 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             savedstop=DSTop;
 
             for(f=0;f<nargs;++f) {
-                if(!ISNUMBER(**argptr)) {
+                if(!ISNUMBERORUNIT(**argptr)) {
                     // CHECK IF IT'S A NEGATIVE NUMBER
                     if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
-                        if(ISNUMBER(**(argptr-2))) {
+                        if(ISNUMBERORUNIT(**(argptr-2))) {
                             if(ISAPPROX(**(argptr-2))) ++approx;
                             rplPushData(*(argptr-2));
                             // NEGATE THE NUMBER
@@ -2051,10 +2051,10 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             for(f=0;f<nargs-redargs;++f) {
                 if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) {
 
-                if(!ISNUMBER(**(argptr-2))) {
+                if(!ISNUMBERORUNIT(**(argptr-2))) {
                     // CHECK IF IT'S A NEGATIVE NUMBER
                     if(**(argptr-2)==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
-                        if(ISNUMBER(**(argptr-4))) {
+                        if(ISNUMBERORUNIT(**(argptr-4))) {
                             if(ISAPPROX(**(argptr-4))) ++approxdenom;
                             rplPushData(*(argptr-4));
                             // NEGATE THE NUMBER
@@ -2432,10 +2432,10 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 WORDPTR *argptr=stkptr-2,*savedstop;
                 BINT notanumber=0,approxnumber=0;
                 for(f=0;f<nargs;++f) {
-                    if(!ISNUMBER(**argptr)) {
+                    if(!ISNUMBERORUNIT(**argptr)) {
                         // CHECK IF IT'S A NEGATIVE NUMBER
                         if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
-                            if(!ISNUMBER(**(argptr-2))) {
+                            if(!ISNUMBERORUNIT(**(argptr-2))) {
                                 notanumber=1;
                                 break;
                             }
@@ -2460,7 +2460,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 // WE ALSO KNOW IF THERE WERE ANY ARGUMENTS THAT WERE APPROXIMATED
                 argptr=stkptr-2;
                 for(f=0;f<nargs;++f) {
-                    if(ISNUMBER(**argptr)) rplPushData(*argptr);
+                    if(ISNUMBERORUNIT(**argptr)) rplPushData(*argptr);
                     else {
                         // CHECK IF IT'S A NEGATIVE NUMBER
                         if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
@@ -2484,7 +2484,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 rplCallOperator(**stkptr);
                 if(Exceptions) { rplBlameError(*stkptr); DSTop=endofstk+1; return 0; }
 
-                if(!ISNUMBER(*rplPeekData(1))) {
+                if(!ISNUMBERORUNIT(*rplPeekData(1))) {
 
                     // THIS IS STRANGE, A COMMAND WITH NUMERIC INPUT SHOULD RETURN A NUMERIC OUTPUT
 

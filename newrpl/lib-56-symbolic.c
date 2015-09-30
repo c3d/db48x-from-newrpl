@@ -583,6 +583,7 @@ void LIB_HANDLER()
         case OVR_MUL:
         case OVR_DIV:
         case OVR_POW:
+        case OVR_XROOT:
         {
         // BINARY OPERATORS
 

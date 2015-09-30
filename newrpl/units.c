@@ -1263,7 +1263,7 @@ void rplUnitPowItem(BINT level1,BINT level2)
         // DIVIDE THE NUMERATOR AND DENOMINATOR TO GET AN EXPONENT
         rplPushData(rplPeekData(level1));
         if(*rplPeekData(level1)!=MAKESINT(1)) {
-            rplPushData(rplPeekData(level1-1));
+            rplPushData(rplPeekData(level1));
             rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
             if(Exceptions) { DSTop=savestk; return; }
         }
@@ -1750,6 +1750,14 @@ if(reflevel<nlevels) {
     BINT tmp=reflevel;
     reflevel=nlevels;
     nlevels=tmp;
+}
+
+// SPECIAL CASE: THE NUMBER ZERO IS ALWAYS CONSISTENT!
+if(nlevels==1) {
+    if(*rplPeekData(1)==MAKESINT(0)) return 1;
+}
+if(reflevel-nlevels==1) {
+    if(*rplPeekData(nlevels+1)==MAKESINT(0)) return 1;
 }
 
 

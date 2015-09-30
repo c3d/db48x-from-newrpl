@@ -84,6 +84,8 @@ const MSGLIST const all_messages[]={
     // UNITS
     { ERR_UNITEXPECTED, "Expected an object with units" },
     { ERR_INCONSISTENTUNITS, "Inconsistent units" },
+    { ERR_INVALIDUNITDEFINITION, "Invalid unit expression" },
+    { ERR_EXPECTEDREALEXPONENT, "Expected real/fraction exponent" },
 
 
 
@@ -107,6 +109,7 @@ const MSGLIST const all_messages[]={
     { ERR_MATRIXORREALEXPECTED, "Matrix or number expected" },
     { ERR_SQUAREMATRIXONLY, "Matrix must be square" },
     { ERR_VECTOREXPECTED, "Expected a vector" },
+    { ERR_MISPLACEDBRACKETS, "Misplaced brackets" },
 
     // FLAGS
     { ERR_SYSTEMFLAGSINVALID, "System flags corrupt/invalid." },

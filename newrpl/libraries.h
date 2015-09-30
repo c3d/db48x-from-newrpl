@@ -197,6 +197,7 @@ extern void libGetPTRFromID(WORDPTR *table,WORD id);
 #define ISSTRING(prolog) ((LIBNUM(prolog)&~3)==DOSTRING)
 
 #define ISUNIT(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOUNIT))
+#define ISNUMBERORUNIT(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISUNIT(prolog))
 
 #define ISSYMBOLIC(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOSYMB))
 #define ISMATRIX(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOMATRIX))
@@ -405,6 +406,9 @@ extern const WORD empty_list[];
 #define CMD_RCL MKOPCODE(28,1)
 #define CMD_PURGE MKOPCODE(28,4)
 #define CMD_CLEAR MKOPCODE(72,1)
+
+#define CMD_SYMBTOUNIT MKOPCODE(DOUNIT,7)
+
 
 #include "errorcodes.h"
 

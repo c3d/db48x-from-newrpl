@@ -465,7 +465,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                     if(RetNum!=OK_CONTINUE) {
                         // THE LIBRARY ACCEPTED THE TOKEN DURING PROBE, SO WHAT COULD POSSIBLY GO WRONG?
-                        rplError(ERR_INVALIDTOKEN);
+                        if(!Exceptions) rplError(ERR_INVALIDTOKEN); // GIVE A CHANCE FOR THE LIBRARY TO SET ITS OWN ERROR CODE
                         LAMTop=LAMTopSaved;
                         return 0;
                     }

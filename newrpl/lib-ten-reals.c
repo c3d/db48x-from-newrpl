@@ -389,7 +389,7 @@ void LIB_HANDLER()
 
 
 
-                powReal(&RReg[0],&Darg1,&Darg2);
+                xrootReal(&RReg[0],&Darg1,&Darg2);
 
             }
 

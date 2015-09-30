@@ -2680,7 +2680,7 @@ void xrootReal(REAL *result,REAL *x,REAL *a)
     BINT approx=(x->flags|a->flags)&F_APPROX;
     // COMPUTE THE ACTUAL POWER
 
-    hyp_pow(x,a);
+    hyp_xroot(x,a);
 
     finalize(&RReg[0]);
 

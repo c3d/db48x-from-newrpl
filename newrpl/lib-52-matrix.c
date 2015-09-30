@@ -1459,6 +1459,7 @@ void LIB_HANDLER()
         if(! (ISNUMBERCPLX(*LastCompiledObject)
               || ISSYMBOLIC(*LastCompiledObject)
               || ISIDENT(*LastCompiledObject))) {
+                rplError(ERR_NOTALLOWEDINMATRIX);
                 RetNum=ERR_INVALID;
                 return;
             }
@@ -1483,12 +1484,14 @@ void LIB_HANDLER()
             if(rows) {
                 // THIS IS A MATRIX, ONLY ALLOW ELEMENTS INSIDE LEVEL 1
                 if(!dimlevel) {
+                    rplError(ERR_MISPLACEDBRACKETS);
                     RetNum=ERR_INVALID;
                     return;
                 }
             } else {
                 // THIS IS A VECTOR, ONLY ALLOW ELEMENTS IN THE OUTER LEVEL
                 if(dimlevel) {
+                    rplError(ERR_MISPLACEDBRACKETS);
                     RetNum=ERR_INVALID;
                     return;
                 }
@@ -1529,7 +1532,7 @@ void LIB_HANDLER()
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
 
 
-        // TODO: CHECK VALIDITY OF A MATRIX, RECUSRIVELY VERIFY OBJECTS INSIDE
+        // TODO: CHECK VALIDITY OF A MATRIX, RECURSIVELY VERIFY OBJECTS INSIDE
 
 
         RetNum=OK_CONTINUE;

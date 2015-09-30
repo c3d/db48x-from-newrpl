@@ -647,6 +647,44 @@ void LIB_HANDLER()
             return;
             }
 
+        case OVR_XROOT:
+        {
+        if(op1type||op2type) {
+
+            if(op1type) {
+                rplBINTToRReg(1,op2);
+                xrootReal(&RReg[0],&rop1,&RReg[1]);
+
+            }
+
+            if(op2type) {
+                rplBINTToRReg(1,op1);
+                xrootReal(&RReg[0],&RReg[1],&rop2);
+            }
+            rplNewRealFromRRegPush(0);
+            if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
+            return;
+        }
+
+
+        // INTEGER POWER, USE REALS TO DEAL WITH NEGATIVE POWERS AND OVERFLOW
+        rplBINTToRReg(1,op1);
+        rplBINTToRReg(2,op2);
+
+        // TODO: REAL POWERS
+        xrootReal(&RReg[0],&RReg[1],&RReg[2]);
+
+        if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
+            BINT64 result=getBINT64Real(&RReg[0]);
+            rplNewBINTPush(result,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
+        }
+        else rplNewRealFromRRegPush(0);
+        if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+
+        return;
+        }
+
         case OVR_EQ:
         {
         if(op1type||op2type) {

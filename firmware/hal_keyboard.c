@@ -1181,7 +1181,14 @@ DECLARE_VARKEYHANDLER(var6,5)
 void underscoreKeyHandler(BINT keymsg)
 {
     symbolKeyHandler(keymsg,(BYTEPTR)"_",0);
-    if((halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C')) halSetCmdLineMode('A');
+
+    if(halGetCmdLineMode()=='A') {
+     uiInsertCharacters("[]");
+     uiCursorLeft(1);
+    }
+    else {
+        if((halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C')) halSetCmdLineMode('A');
+    }
 }
 
 DECLARE_SYMBKEYHANDLER(spc," ",0)
