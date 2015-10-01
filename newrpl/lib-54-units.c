@@ -189,19 +189,21 @@ void LIB_HANDLER()
             WORDPTR *stkclean=DSTop;
 
             BINT isspec1,isspec2;
+            BINT bothunit= (ISUNIT(*rplPeekData(1)) && ISUNIT(*rplPeekData(2)));
+
             isspec2=rplUnitIsSpecial(rplPeekData(1));
             isspec1=rplUnitIsSpecial(rplPeekData(2));
 
             nlevels1=rplUnitExplode(rplPeekData(2));
             if(Exceptions) { DSTop=stkclean; return; }
-            if(isspec1) {
+            if(isspec1 && bothunit) {
                 rplUnitReplaceSpecial(nlevels1);
                 if(Exceptions) { DSTop=stkclean; return; }
             }
 
             nlevels2=rplUnitExplode(rplPeekData(1+nlevels1));
             if(Exceptions) { DSTop=stkclean; return; }
-            if(isspec2) {
+            if(isspec2 && bothunit) {
                 rplUnitReplaceSpecial(nlevels2);
                 if(Exceptions) { DSTop=stkclean; return; }
             }
@@ -235,13 +237,15 @@ void LIB_HANDLER()
             BINT nlevels1,nlevels2;
             WORDPTR *stkclean=DSTop;
 
-            BINT isspec1,isspec2;
+            BINT isspec1,isspec2,bothunit;
+
+            bothunit= (ISUNIT(*rplPeekData(1)) && ISUNIT(*rplPeekData(2)));
             isspec2=rplUnitIsSpecial(rplPeekData(1));
             isspec1=rplUnitIsSpecial(rplPeekData(2));
 
             nlevels1=rplUnitExplode(rplPeekData(2));
             if(Exceptions) { DSTop=stkclean; return; }
-            if(isspec1) {
+            if(isspec1 && bothunit) {
                 rplUnitReplaceSpecial(nlevels1);
                 if(Exceptions) { DSTop=stkclean; return; }
             }
@@ -2572,7 +2576,33 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
+        if(ISPROLOG(*ObjectPTR)) {
+        // BASIC CHECKS
+        WORDPTR ptr,objend;
+
+        objend=rplSkipOb(ObjectPTR);
+        ptr=ObjectPTR+1;
+
+        ptr=rplSkipOb(ptr); // TODO: CHECK IF THE VALUE IS A VALID OBJECT
+
+        // CAN'T BE THE LAST OBJECT IN THE UNIT
+        if(ptr>=objend) { RetNum=ERR_INVALID; return; }
+
+        while(ptr<objend) {
+
+            if(!ISIDENT(*ptr)) { RetNum=ERR_INVALID; return; }
+            ptr=rplSkipOb(ptr);
+            if(ptr>=objend) { RetNum=ERR_INVALID; return; }
+            if(!ISNUMBER(*ptr)) { RetNum=ERR_INVALID; return; }
+            ptr=rplSkipOb(ptr);
+            if(ptr>=objend) { RetNum=ERR_INVALID; return; }
+            if(!ISNUMBER(*ptr)) { RetNum=ERR_INVALID; return; }
+            ptr=rplSkipOb(ptr);
+        }
+
+        if(ptr!=objend) { RetNum=ERR_INVALID; return; }
+
+        }
 
         RetNum=OK_CONTINUE;
         return;
