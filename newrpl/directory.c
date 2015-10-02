@@ -110,7 +110,7 @@ void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir)
     if(DirSize<=DirsTop-Directories+DIRSLACK) growDirs((WORD)(DirsTop-Directories+DIRSLACK+1024));
 
 
-    if(Exceptions) return;
+    //if(Exceptions) return;
 
 }
 

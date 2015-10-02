@@ -32,11 +32,13 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
-    CMD(UNITDEF,MKTOKENINFO(6,TITYPE_NOTALLOWED,2,2)), \
-    CMD(UNITPURGE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(UDEFINE,MKTOKENINFO(6,TITYPE_NOTALLOWED,2,2)), \
+    CMD(UPURGE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(UVAL,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(UBASE,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
-    CMD(CONVERT,MKTOKENINFO(7,TITYPE_NOTALLOWED,2,2))
+    CMD(CONVERT,MKTOKENINFO(7,TITYPE_NOTALLOWED,2,2)), \
+    CMD(UFACT,MKTOKENINFO(5,TITYPE_FUNCTION,1,2))
+
 // ADD MORE OPCODES HERE
 
 
@@ -78,18 +80,24 @@ const BINT const LIB_TOKENINFO[]=
         CMD_EXTRAINFO
 };
 
-// LIST OF ALL KNOWN SYSTEM UNIT OBJECTS
-ROMOBJECT system_units[]={
 
-    // 'm'
-    MKPROLOG(DOIDENT,1),
-    TEXT2WORD('m',0,0,0),
-    0
+
+
+ROMOBJECT unitdir_ident[]={
+    MKPROLOG(DOIDENT,2),
+    TEXT2WORD('U','N','I','T'),
+    TEXT2WORD('S',0,0,0)
 };
+
+
+
+
+
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
+     (WORDPTR)unitdir_ident,
      0
 };
 
@@ -1360,8 +1368,122 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
-    case UNITDEF:
-    case UNITPURGE:
+    case UDEFINE:
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR unit,name;
+        unit=rplPeekData(2);
+        name=rplPeekData(1);
+
+        if( (!ISNUMBER(*unit))&&(!ISUNIT(*unit))) {
+            rplError(ERR_UNITEXPECTED);
+            return;
+        }
+        if(!ISIDENT(*name)) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+
+        if( (name[1]&0xffffff)==0x9286e2) {
+            // GIVEN NAME STARTS WITH RIGHT ARROW, SO
+            // THIS UNIT WILL ACCEPT SI PREFIX
+
+            // NEED TO REPLACE THE IDENT WITH A NEW
+            // ONE THAT DOESN'T HAVE THE RIGHT ARROW
+
+            BINT newlen=rplGetIdentLength(name);
+
+            newlen-=3;
+
+            if(newlen<=0) {
+                rplError(ERR_INVALIDUNITNAME);
+                return;
+            }
+
+            name=rplCreateIDENT(DOIDENTSIPREFIX,(BYTEPTR)(name+1),(BYTEPTR)(name+1)+newlen);
+
+            if(!name) return;
+            rplOverwriteData(1,name);   // LEAVE IT ON THE STACK FOR GC PROTECTION
+            unit=rplPeekData(2);    // RELOAD POINTER IN CASE IT MOVED
+
+        }
+
+        // HERE WE HAVE A PROPER NAME AND UNIT OBJECT
+
+        // CHECK IF THE UNIT EXISTS OR CONFLICTS WITH ANOTHER UNIT
+        BINT siindex=0;
+        WORDPTR *found=rplUnitFindCustom(name,&siindex);
+
+        if(found) {
+            // HERE, WE HAVE A UNIT THAT WAS EXISTING
+            if(siindex!=0) {
+                rplError(ERR_INVALIDUNITNAME);
+                return;
+            }
+
+            // JUST OVERWRITE THE UNIT
+            found[0]=name;
+            found[1]=unit;
+            return;
+        }
+
+
+        // UNIT DOESN'T EXIST, WE NEED TO CREATE IT
+        // GET THE UNITS DIRECTORY
+
+        WORDPTR unitdir_obj=rplGetSettings(unitdir_ident);
+
+        if(!unitdir_obj) {
+            // NEED TO CREATE A NEW DIRECTORY
+            unitdir_obj=rplCreateNewDir(unitdir_ident,SettingsDir);
+            if(!unitdir_obj) return;  // EXCEPTIONS SHOULD'VE BEEN RAISED ALREADY
+            // RELOAD THE POINTERS FROM THE STACK, IN CASE THERE WAS A GC
+            unit=rplPeekData(2);
+            name=rplPeekData(1);
+        }
+
+        rplCreateGlobalInDir(name,unit,unitdir_obj);
+
+        return;
+
+    }
+    case UPURGE:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR name=rplPeekData(1);
+
+        if(!ISIDENT(*name)) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+
+        //  GET THE UNITS DIRECTORY
+
+        WORDPTR unitdir_obj=rplGetSettings(unitdir_ident);
+
+        if(!unitdir_obj) {
+        rplError(ERR_UNDEFINEDUNIT);
+        return;
+        }
+        BINT siindex=0;
+        WORDPTR *found=rplUnitFindCustom(name,&siindex);
+
+        if( (!found) || (siindex!=0)) {
+            rplError(ERR_UNDEFINEDUNIT);
+            return;
+        }
+
+        rplPurgeForced(found);
+
+        return;
+
+    }
     case UVAL:
     {
         if(!ISUNIT(*rplPeekData(1))) {

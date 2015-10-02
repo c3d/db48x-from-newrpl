@@ -1649,6 +1649,55 @@ WORDPTR *rplUnitFind(WORDPTR ident,BINT *siindex)
 }
 
 
+// GET THE DEFINITION OF A UNIT FROM ITS IDENTIFIER
+// FIRST IT STRIPS ANY SI PREFIXES AND SEARCHES FOR
+// BOTH THE ORIGINAL UNIT AND THE STRIPPED ONE
+// RETURNS A POINTER WITHIN THE DIRECTORY ENTRY
+// THE FIRST POINTER POINTS TO THE IDENTIFIER
+// THE SECOND TO ITS VALUE
+// THE SEARCH IS DONE FIRST IN THE USER'S UNIT DIRECTORY
+// THEN IN THE SYSTEM BASE UNITS DEFINED IN ROM
+// IF THE siindex POINTER IS NOT NULL, IT STORES THE
+// INDEX TO THE SI PREFIX THAT WAS FOUND IN THE GIVEN NAME
+
+WORDPTR *rplUnitFindCustom(WORDPTR ident,BINT *siindex)
+{
+    const BYTEPTR const unitdir_name[]={(BYTEPTR)"UNITS"};
+
+    WORDPTR unitdir_obj=rplGetSettingsbyName(unitdir_name,unitdir_name+5);
+    WORDPTR baseid,baseunit;
+    BINT result;
+    WORDPTR *entry;
+
+    if(unitdir_obj) {
+        // FOUND UNITS DIRECTORY IN SETTINGS, SCAN IT TO FIND OUT IDENT
+        entry=rplFindFirstInDir(unitdir_obj);
+        while(entry) {
+            baseid=entry[0];
+            baseunit=entry[1];
+
+            result=rplUnitCompare(ident,baseid);
+            if(result) {
+                // WE FOUND A MATCH!
+                if(result<0) result=0;
+                if(siindex) *siindex=result;
+                return entry;
+            }
+
+            entry=rplFindNext(entry);
+        }
+
+        // NOT FOUND IN THE USERS DIR, TRY THE SYSTEM LIST
+
+    }
+
+    // UNIT IS NOT DEFINED
+    return 0;
+
+}
+
+
+
 
 
 // TAKE ONE UNIT IDENTIFIER GIVEN AT LEVEL, REMOVE IT FROM THE STACK WITH ITS EXPONENTS
