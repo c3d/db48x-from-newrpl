@@ -1596,7 +1596,7 @@ BINT rplUnitCompare(WORDPTR ident,WORDPTR baseident)
 
 WORDPTR *rplUnitFind(WORDPTR ident,BINT *siindex)
 {
-    const BYTEPTR const unitdir_name[]={(BYTEPTR)"UNITS"};
+    const BYTE const unitdir_name[]="UNITS";
 
     WORDPTR unitdir_obj=rplGetSettingsbyName(unitdir_name,unitdir_name+5);
     WORDPTR baseid,baseunit;
@@ -1662,7 +1662,7 @@ WORDPTR *rplUnitFind(WORDPTR ident,BINT *siindex)
 
 WORDPTR *rplUnitFindCustom(WORDPTR ident,BINT *siindex)
 {
-    const BYTEPTR const unitdir_name[]={(BYTEPTR)"UNITS"};
+    const BYTE const unitdir_name[]="UNITS";
 
     WORDPTR unitdir_obj=rplGetSettingsbyName(unitdir_name,unitdir_name+5);
     WORDPTR baseid,baseunit;

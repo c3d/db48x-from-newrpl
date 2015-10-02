@@ -86,7 +86,8 @@ const MSGLIST const all_messages[]={
     { ERR_INCONSISTENTUNITS, "Inconsistent units" },
     { ERR_INVALIDUNITDEFINITION, "Invalid unit expression" },
     { ERR_EXPECTEDREALEXPONENT, "Expected real/fraction exponent" },
-
+    { ERR_INVALIDUNITNAME, "Invalid unit name" },
+    { ERR_UNDEFINEDUNIT, "Unit not defined" },
 
 
     // LISTS

@@ -46,16 +46,13 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 // THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
 
 #define CMD_EXTRANAME \
-    "", \
     "→UNIT", \
     "_["
 #define CMD_EXTRAENUM \
-    UNITOP, \
     TOUNIT, \
     SYMBTOUNIT
 
 #define CMD_EXTRAINFO \
-    MKTOKENINFO(1,TITYPE_BINARYOP_LEFT,1,2), \
     MKTOKENINFO(5,TITYPE_FUNCTION,2,2), \
     MKTOKENINFO(2,TITYPE_BINARYOP_LEFT,2,2)
 
@@ -1387,8 +1384,8 @@ void LIB_HANDLER()
             return;
         }
 
-        if( (name[1]&0xffffff)==0x9286e2) {
-            // GIVEN NAME STARTS WITH RIGHT ARROW, SO
+        if( (name[1]&0xff)=='?') {
+            // GIVEN NAME STARTS QUESTION MARK, SO
             // THIS UNIT WILL ACCEPT SI PREFIX
 
             // NEED TO REPLACE THE IDENT WITH A NEW
@@ -1396,14 +1393,17 @@ void LIB_HANDLER()
 
             BINT newlen=rplGetIdentLength(name);
 
-            newlen-=3;
-
-            if(newlen<=0) {
+            if(newlen<=1) {
                 rplError(ERR_INVALIDUNITNAME);
                 return;
             }
 
-            name=rplCreateIDENT(DOIDENTSIPREFIX,(BYTEPTR)(name+1),(BYTEPTR)(name+1)+newlen);
+            if(!rplIsValidIdent((BYTEPTR)(name+1)+1,(BYTEPTR)(name+1)+newlen)) {
+                rplError(ERR_INVALIDUNITNAME);
+                return;
+            }
+
+            name=rplCreateIDENT(DOIDENTSIPREFIX,(BYTEPTR)(name+1)+1,(BYTEPTR)(name+1)+newlen);
 
             if(!name) return;
             rplOverwriteData(1,name);   // LEAVE IT ON THE STACK FOR GC PROTECTION
@@ -1427,6 +1427,8 @@ void LIB_HANDLER()
             // JUST OVERWRITE THE UNIT
             found[0]=name;
             found[1]=unit;
+
+            rplDropData(2);
             return;
         }
 
@@ -1437,16 +1439,21 @@ void LIB_HANDLER()
         WORDPTR unitdir_obj=rplGetSettings(unitdir_ident);
 
         if(!unitdir_obj) {
+            WORDPTR *settings=rplFindDirbyHandle(SettingsDir);
+            if(!settings) return;
+
             // NEED TO CREATE A NEW DIRECTORY
-            unitdir_obj=rplCreateNewDir(unitdir_ident,SettingsDir);
+            unitdir_obj=rplCreateNewDir(unitdir_ident,settings);
             if(!unitdir_obj) return;  // EXCEPTIONS SHOULD'VE BEEN RAISED ALREADY
             // RELOAD THE POINTERS FROM THE STACK, IN CASE THERE WAS A GC
             unit=rplPeekData(2);
             name=rplPeekData(1);
         }
 
-        rplCreateGlobalInDir(name,unit,unitdir_obj);
-
+        WORDPTR unitdir=rplFindDirbyHandle(unitdir_obj);
+        if(!unitdir) return;  // EXCEPTIONS SHOULD'VE BEEN RAISED ALREADY
+        rplCreateGlobalInDir(name,unit,unitdir);
+        rplDropData(2);
         return;
 
     }
@@ -1481,6 +1488,7 @@ void LIB_HANDLER()
 
         rplPurgeForced(found);
 
+        rplDropData(1);
         return;
 
     }
