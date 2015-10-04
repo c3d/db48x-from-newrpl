@@ -871,10 +871,14 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
 {
     LIBHANDLER han;
     BINT infixmode=0;
+    UBINT savecstruct,savedecompmode,validtop;
     WORDPTR *SavedRSTop;
     if(flags&DECOMP_EMBEDDED) {
         SavedRSTop=RSTop;
-
+        savecstruct=CurrentConstruct;
+        savedecompmode=DecompMode;
+        validtop=ValidateTop-RSTop;
+        if(ValidateTop>RSTop) RSTop=ValidateTop;
         // SAVE ALL DECOMPILER POINTERS
         *RSTop++=DecompileObject;
         *RSTop++=EndOfObject;
@@ -951,7 +955,10 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
                 LAMTopSaved=(WORDPTR *)*--RSTop;
                 EndOfObject=*--RSTop;
                 DecompileObject=*--RSTop;
+                CurrentConstruct=savecstruct;
+                DecompMode=savedecompmode;
                 RSTop=SavedRSTop;
+                ValidateTop=RSTop+validtop;
             }
             return 0;
         }
@@ -969,7 +976,11 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
                 LAMTopSaved=(WORDPTR *)*--RSTop;
                 EndOfObject=*--RSTop;
                 DecompileObject=*--RSTop;
+                CurrentConstruct=savecstruct;
+                DecompMode=savedecompmode;
                 RSTop=SavedRSTop;
+                ValidateTop=RSTop+validtop;
+
             }
             return 0;
         }
@@ -987,7 +998,11 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
                 LAMTopSaved=(WORDPTR *)*--RSTop;
                 EndOfObject=*--RSTop;
                 DecompileObject=*--RSTop;
+                CurrentConstruct=savecstruct;
+                DecompMode=savedecompmode;
                 RSTop=SavedRSTop;
+                ValidateTop=RSTop+validtop;
+
             }
             return 0;
         }
@@ -1005,7 +1020,10 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
                 LAMTopSaved=(WORDPTR *)*--RSTop;
                 EndOfObject=*--RSTop;
                 DecompileObject=*--RSTop;
+                CurrentConstruct=savecstruct;
+                DecompMode=savedecompmode;
                 RSTop=SavedRSTop;
+                ValidateTop=RSTop+validtop;
             }
                 return 0;
             }
@@ -1069,7 +1087,10 @@ end_of_expression:
                         LAMTopSaved=(WORDPTR *)*--RSTop;
                         EndOfObject=*--RSTop;
                         DecompileObject=*--RSTop;
+                        CurrentConstruct=savecstruct;
+                        DecompMode=savedecompmode;
                         RSTop=SavedRSTop;
+                        ValidateTop=RSTop+validtop;
                     }
                     return 0; }
                 InfixOpTop[0]=*DecompileObject;
@@ -1583,7 +1604,11 @@ end_of_expression:
                     LAMTopSaved=(WORDPTR *)*--RSTop;
                     EndOfObject=*--RSTop;
                     DecompileObject=*--RSTop;
+                    CurrentConstruct=savecstruct;
+                    DecompMode=savedecompmode;
                     RSTop=SavedRSTop;
+                    ValidateTop=RSTop+validtop;
+
                 }
                 return 0;
             }
@@ -1595,7 +1620,11 @@ end_of_expression:
            LAMTopSaved=(WORDPTR *)*--RSTop;
            EndOfObject=*--RSTop;
            DecompileObject=*--RSTop;
+           CurrentConstruct=savecstruct;
+           DecompMode=savedecompmode;
            RSTop=SavedRSTop;
+           ValidateTop=RSTop+validtop;
+
    }
    else {
     // STORE BLOCK SIZE

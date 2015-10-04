@@ -2000,6 +2000,29 @@ void rplUnitReverseReplaceSpecial(BINT nlevels)
 
 }
 
+// REPLACE THE ONLY THE VALUE ON THE STACK
+// WITH THEIR SHIFTED-SCALE RELATIVE COUNTERPART
+// ARGUMENT IS THE INDEX RETURNED BY rplUnitIsSpecial
+// WARNING: NO CHECKS DONE HERE, MAKE SURE THE UNIT IS SPECIAL BEFORE CALLING THIS!
+
+void rplUnitReverseReplaceSpecial2(BINT isspec_idx)
+{
+     WORDPTR *ptr=system_unit_special;
+
+     ptr+=isspec_idx-1;
+
+     if(!ptr[2]) return;          // NOTHING SPECIAL IN THIS UNIT
+
+     WORDPTR *savestk=DSTop;
+     // DO THE REPLACEMENT
+     rplPushData(ptr[2]+1);
+
+     rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB));    // DO THE SCALE SHIFT
+
+     if(Exceptions) { DSTop=savestk; return; }
+
+}
+
 
 // REPLACE THE VALUE AND IDENT OF AN EXPLODED SPECIAL UNIT
 // WITH THEIR SHIFTED-SCALE ABSOLUTE COUNTERPART

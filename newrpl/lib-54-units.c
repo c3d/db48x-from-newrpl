@@ -1557,12 +1557,8 @@ void LIB_HANDLER()
 
 
         if(isspec1) {
-            rplPushData(rplPeekData(nlevels1+nlevels2));
-            rplPushData(rplPeekData(nlevels1+nlevels2));
-            rplPushData(rplPeekData(nlevels1+nlevels2));
-            rplUnitReverseReplaceSpecial(nlevels1);
+            rplUnitReverseReplaceSpecial2(isspec1);
             if(Exceptions) { DSTop=stkclean; return; }
-            rplDropData(3);
         }
 
 
@@ -2461,9 +2457,7 @@ void LIB_HANDLER()
             if( (decstring[-2]!='_') || (decstring[-1]!='[')) {
 
             // DO AN EMBEDDED DECOMPILATION OF THE VALUE OBJECT
-            BINT save=DecompMode;   // DECOMPMODE WILL BE AFFECTED BY THE EMBEDDED CALL
             rplDecompile(DecompileObject+1,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? DECOMP_EDIT:0));    // RUN EMBEDDED
-            DecompMode=save;
             if(Exceptions) { RetNum=ERR_INVALID; return; }
 
             // NOW ADD THE UNIT
@@ -2608,6 +2602,18 @@ void LIB_HANDLER()
             return;
 
         }
+
+        // MANUALLY DECOMPILE THE OPERATOR _ WHEN NOT IN SYMBOLIC MODE
+
+        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,SYMBTOUNIT)) {
+            if(!DecompMode) {
+               rplDecompAppendString("→UNIT");
+               RetNum=OK_CONTINUE;
+               return;
+            }
+        }
+
+
 
         // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
         // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
