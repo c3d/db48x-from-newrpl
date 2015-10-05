@@ -1494,6 +1494,10 @@ void LIB_HANDLER()
     }
     case UVAL:
     {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
         if(!ISUNIT(*rplPeekData(1))) {
             rplError(ERR_UNITEXPECTED);
             return;
@@ -1508,6 +1512,12 @@ void LIB_HANDLER()
     }
     case CONVERT:
     {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+
         BINT nlevels1,nlevels2;
         WORDPTR *stkclean=DSTop;
         BINT isspec1,isspec2;
@@ -1582,6 +1592,36 @@ void LIB_HANDLER()
         return;
     }
 
+    case UFACT:
+    {
+        // THIS IS EASILY ACHIEVED WITH << SWAP OVER / UBASE * >>
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        // DO SWAP OVER
+        WORDPTR *savestk=DSTop;
+        rplPushData(rplPeekData(2));
+        rplPushData(rplPeekData(2));
+
+        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+        if(Exceptions) { DSTop=savestk; return; }
+
+        rplCallOperator(MKOPCODE(LIBRARY_NUMBER,UBASE));
+        if(Exceptions) { DSTop=savestk; return; }
+
+        rplPushData(rplPeekData(2));
+
+        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+        if(Exceptions) { DSTop=savestk; return; }
+
+        rplOverwriteData(3,rplPeekData(1));
+
+        rplDropData(2);
+
+    return;
+    }
     case SYMBTOUNIT:
         // DELIBERATE FALL THROUGH
     case TOUNIT:
@@ -2452,13 +2492,26 @@ void LIB_HANDLER()
             // AND SKIP THE NUMERIC PART OF THE UNIT IF IT WAS
 
             BYTEPTR decstring=DecompStringEnd;
-            BINT closebracket=1;
+            BINT closebracket=1, addnumber=1;
 
             if( (decstring[-2]!='_') || (decstring[-1]!='[')) {
 
+            // ALSO, IF NOT IN SYMBOLIC MODE, CHECK IF THE NEXT OBJECT IS THE SYMBTOUNIT COMMAND
+            if(!DecompMode) {
+                WORDPTR nextobj=rplSkipOb(DecompileObject);
+                if(nextobj<EndOfObject) {
+                    if(*nextobj==MKOPCODE(LIBRARY_NUMBER,SYMBTOUNIT)) {
+                        // SPECIAL CASE, DON'T ADD THE NUMERIC PART OF THE UNIT AND DON'T
+                        addnumber=0;
+                    }
+                }
+            }
+
             // DO AN EMBEDDED DECOMPILATION OF THE VALUE OBJECT
-            rplDecompile(DecompileObject+1,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? DECOMP_EDIT:0));    // RUN EMBEDDED
-            if(Exceptions) { RetNum=ERR_INVALID; return; }
+            if(addnumber) {
+                rplDecompile(DecompileObject+1,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? DECOMP_EDIT:0));    // RUN EMBEDDED
+                if(Exceptions) { RetNum=ERR_INVALID; return; }
+            }
 
             // NOW ADD THE UNIT
             rplDecompAppendChar('_');
@@ -2607,7 +2660,12 @@ void LIB_HANDLER()
 
         if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,SYMBTOUNIT)) {
             if(!DecompMode) {
-               rplDecompAppendString("→UNIT");
+               // THE UNIT ITSELF ELIMINATED THE NUMBER, SO DON'T INCLUDE ANY OUTPUT
+               //rplDecompAppendString("→UNIT");
+               // NEED TO REMOVE THE LAST SPACE TO PREVENT A DOUBLE SPACE
+               BYTEPTR lastspace=(BYTEPTR)DecompStringEnd;
+               --lastspace;
+               if(*lastspace==' ') DecompStringEnd=(WORDPTR)lastspace;
                RetNum=OK_CONTINUE;
                return;
             }
