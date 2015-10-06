@@ -668,11 +668,112 @@ void LIB_HANDLER()
            }
 
 
+           rplError(ERR_MISPLACEDEND);
            RetNum=ERR_SYNTAX;
            return;
 
        }
 
+       // NOW ALL THE DIFFERENT END'S SEPARATED
+
+
+       if((TokenLen==5) && (!utf8ncmp((char *)TokenStart,"ENDIF",3)))
+       {
+           // ENDIF OPCODE
+           if( (CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,THEN)) || (CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,ELSE))) {
+           rplCleanupLAMs(*(ValidateTop-1));
+           rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,ENDIF));
+           RetNum=OK_ENDCONSTRUCT;
+           return;
+           }
+           rplError(ERR_MISPLACEDEND);
+           RetNum=ERR_SYNTAX;
+           return;
+
+       }
+
+       if((TokenLen==6) && (!utf8ncmp((char *)TokenStart,"ENDERR",3)))
+       {
+           // ENDERR
+           if( (CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,THENERR)) || (CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,ELSEERR))) {
+               rplCleanupLAMs(*(ValidateTop-1));
+               rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,ENDERR));
+               RetNum=OK_ENDCONSTRUCT;
+               return;
+           }
+
+           rplError(ERR_MISPLACEDEND);
+           RetNum=ERR_SYNTAX;
+           return;
+
+       }
+
+       if((TokenLen==7) && (!utf8ncmp((char *)TokenStart,"ENDTHEN",3)))
+       {
+
+           // ENDTHEN
+           if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,THENCASE)) {
+               rplCleanupLAMs(*(ValidateTop-1));
+               rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,ENDTHEN));
+               RetNum=OK_ENDCONSTRUCT;
+               return;
+           }
+
+           rplError(ERR_MISPLACEDEND);
+           RetNum=ERR_SYNTAX;
+           return;
+
+       }
+
+       if((TokenLen==7) && (!utf8ncmp((char *)TokenStart,"ENDCASE",3)))
+       {
+           // ENDCASE
+           if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,CASE)) {
+               rplCleanupLAMs(*(ValidateTop-1));
+               rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,ENDCASE));
+               RetNum=OK_ENDCONSTRUCT;
+               return;
+           }
+
+           rplError(ERR_MISPLACEDEND);
+           RetNum=ERR_SYNTAX;
+           return;
+
+       }
+
+       if((TokenLen==5) && (!utf8ncmp((char *)TokenStart,"ENDDO",3)))
+       {
+           // ENDDO
+
+           if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,UNTIL)) {
+               rplCleanupLAMs(0);
+               rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,ENDDO));
+               RetNum=OK_ENDCONSTRUCT;
+               return;
+           }
+
+           rplError(ERR_MISPLACEDEND);
+           RetNum=ERR_SYNTAX;
+           return;
+
+       }
+
+       if((TokenLen==8) && (!utf8ncmp((char *)TokenStart,"ENDWHILE",3)))
+       {
+           // ENDWHILE
+
+           if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,REPEAT)) {
+               rplCleanupLAMs(0);
+               rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,ENDWHILE));
+               RetNum=OK_ENDCONSTRUCT;
+               return;
+           }
+
+           rplError(ERR_MISPLACEDEND);
+           RetNum=ERR_SYNTAX;
+           return;
+
+       }
 
         // FOR... NEXT AND FOR... STEP
         // START... NEXT AND START... STEP

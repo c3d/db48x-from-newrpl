@@ -48,6 +48,7 @@ const MSGLIST const all_messages[]={
     { ERR_INTERNALEMPTYSTACK, "Empty data stack (internal)" },
     { ERR_INTERNALEMPTYRETSTACK, "Emtpy return stack (internal)" },
     { ERR_BADSTACKINDEX, "Stack index out of bounds" },
+    { ERR_MISPLACEDEND, "Misplaced END statement" },
 
     // IDENTIFIERS AND VARIABLES
     { ERR_IDENTEXPECTED, "Expected an identifier" },
