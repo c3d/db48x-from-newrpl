@@ -677,7 +677,7 @@ void LIB_HANDLER()
             case MODE_IP:
                 if(num==DECIMAL_DOT(Locale)) { mode=MODE_FP; break; }
                 //if(num==THOUSAND_SEP(Locale)) { break; }
-                if(num=='e' || num=='E' || num==EXP_LETTER(Locale)) { mode=MODE_EXPSIGN; break; }
+                if((f!=0) && (num=='e' || num=='E' || num==EXP_LETTER(Locale))) { mode=MODE_EXPSIGN; break; }
                 if(num<'0' || num>'9') { exitfor=1; break; }
                 break;
             case MODE_FP:
@@ -702,6 +702,7 @@ void LIB_HANDLER()
             if(exitfor) break;
         }
 
+        if(mode==MODE_EXPSIGN) --f;
         if(f==0) RetNum=ERR_NOTMINE;
 
         else {

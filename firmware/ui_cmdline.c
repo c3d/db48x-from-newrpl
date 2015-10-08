@@ -739,7 +739,7 @@ BYTEPTR uiFindNumberStart()
     // HERE WE HAVE THE END OF THE NUMBER, AND flags=1 IF THE NUMBER STARTS WITH #
     // NOW FIND THE START OF THE NUMBER
     start=ptr;
-    if(ptr==line+len) --start;
+    if(start>=end) start=end-1;
 
     while(start>=line) {
         if((*start>='0')&&(*start<='9')) { --start; continue; }

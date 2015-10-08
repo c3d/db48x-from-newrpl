@@ -231,8 +231,47 @@ void LIB_HANDLER()
 
 
         if(!rplIsValidIdent(tok,(BYTEPTR)BlankStart)) {
+            if( (*tok>='0')&&(*tok<='9')) {
+                // IDENT STARTS WITH A NUMBER, THERE'S IMPLICIT MULTIPLICATION
+
+
+                LIBHANDLER hanreal=rplGetLibHandler(DOREAL);
+                WORD saveopcode=CurOpcode;
+                RetNum=-1;
+                CurOpcode=MKOPCODE(DOREAL,OPCODE_PROBETOKEN);
+                    (*hanreal)();
+                CurOpcode=saveopcode;
+
+                    if(RetNum<OK_TOKENINFO) {
+                        RetNum=ERR_SYNTAX;
+                        return;
+                    }
+                // WE POSSIBLY HAVE IMPLICIT MULTIPLICATION BETWEEN REAL AND IDENT
+                BINT numberlen=TI_LENGTH(RetNum);
+                BYTEPTR splitpoint=utf8nskip(tok,(BYTEPTR)BlankStart,numberlen);
+                BINT splitoff=splitpoint-(BYTEPTR)TokenStart;
+                if(rplIsValidIdent(splitpoint,(BYTEPTR)BlankStart)) {
+                    // CONFIRMED IMPLICIT MULTIPLICATION
+                    // TRY TO COMPILE AS NUMBER IDENT *
+                    WORD  locale=rplGetSystemLocale();
+                    newRealFromText(&RReg[0],tok,splitpoint,locale);
+                    if(RReg[0].flags&F_ERROR) {
+                        RetNum=ERR_SYNTAX;
+                        return;
+                    }
+
+                    if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
+                        rplCompileBINT(getBINT64Real(&RReg[0]),(RReg[0].flags&F_APPROX)? DECBINTAPP:DECBINT);
+                    }
+                    else rplCompileReal(&RReg[0]);
+                    tok=((BYTEPTR)TokenStart)+splitoff;
+                }
+
+
+            } else {
          RetNum=ERR_SYNTAX;
          return;
+            }
         }
 
         if(CurrentConstruct==CMD_NEWLOCALENV) {
@@ -280,6 +319,7 @@ void LIB_HANDLER()
                 if(ISPROLOG(prolog) && LIBNUM(prolog)==SECO) {
                 // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
                 rplCompileIDENT(DOIDENTEVAL,tok,(BYTEPTR)BlankStart);
+
                 RetNum=OK_CONTINUE;
                 return;
                 }

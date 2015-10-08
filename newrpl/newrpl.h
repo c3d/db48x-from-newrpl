@@ -379,6 +379,7 @@ extern void rplNewRealFromRRegPush(int num);
 extern void rplNewApproxRealFromRRegPush(int num);
 extern WORDPTR rplRRegToRealInPlace(int num, WORDPTR dest);
 extern void rplCheckResultAndError(REAL *real);
+extern void rplCompileReal(REAL *num);
 
 
 // COMPLEX FUNCTIONS

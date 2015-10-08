@@ -844,9 +844,7 @@ void chsKeyHandler(BINT keymsg)
             }
 
             if((halScreen.CursorState&0xff)=='A') {
-                uiSeparateToken();
                 uiInsertCharacters((BYTEPTR)"-");
-                uiSeparateToken();
             return;
             }
 
