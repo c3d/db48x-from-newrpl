@@ -28,6 +28,8 @@
 #define OPCODE_GETROMID     0x7FFF8
 #define OPCODE_ROMID2PTR    0x7FFF7
 #define OPCODE_CHECKOBJ     0x7FFF6
+#define OPCODE_AUTOCOMPNEXT 0x7FFF5
+#define OPCODE_AUTOCOMPPREV 0x7FFF4
 #define OPCODE_LIBREMOVE    0x7FFF1
 #define OPCODE_LIBINSTALL   0x7FFF0
 
@@ -121,6 +123,8 @@ extern void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT token
 extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int numcmds);
 extern void libGetRomptrID(BINT libnum,WORDPTR *table,WORDPTR ptr);
 extern void libGetPTRFromID(WORDPTR *table,WORD id);
+extern void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds);
+extern void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds);
 
 
 

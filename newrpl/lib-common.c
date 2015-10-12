@@ -159,3 +159,82 @@ void libGetPTRFromID(WORDPTR *table,WORD id)
     ObjectPTR=table[ROMPTRID_IDX(id)]+ROMPTRID_OFF(id);
     RetNum=OK_CONTINUE;
 }
+
+
+// STANDARD AUTOCOMPLETE FOR COMMANDS
+// COMMON TO ALL LIBRARIES THAT DEFINE COMMANDS
+// STARTING TO COUNT FROM COMMAND NUMBER 0
+void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds)
+{
+    // TokenStart = token string
+    // TokenLen = token length
+    // SuggestedOpcode = OPCODE OF THE CURRENT SUGGESTION, OR 0 IF SUGGESTION IS AN OBJECT
+    // SuggestedObject = POINTER TO AN OBJECT (ONLY VALID IF SuggestedOpcode==0)
+
+    WORD Prolog=SuggestedOpcode;
+
+    if(LIBNUM(Prolog)<libnum) {
+        // COMMANDS ARE SUGGESTED BEFORE ANY OBJECTS
+        // SO IF THE PREVIOUS RESULT WAS AN OBJECT, WE ARE DONE HERE
+        RetNum=ERR_NOTMINE;
+        return;
+    }
+    BINT idx,len;
+
+    if(LIBNUM(Prolog)==libnum) idx=OPCODE(Prolog)-1;
+    else idx=numcmds-1;
+
+    while(idx>=0) {
+        len=utf8len((char *)libnames[idx]);
+        if((len>=(BINT)TokenLen) && (!utf8ncmp((char *)TokenStart,(char *)libnames[idx],TokenLen)))
+        {
+            // WE HAVE THE NEXT MATCH
+            SuggestedOpcode=MKOPCODE(libnum,idx);
+            RetNum=OK_CONTINUE;
+            return;
+        }
+        --idx;
+    }
+
+    RetNum=ERR_NOTMINE;
+}
+
+void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds)
+{
+    // TokenStart = token string
+    // TokenLen = token length
+    // SuggestedOpcode = OPCODE OF THE CURRENT SUGGESTION, OR 0 IF SUGGESTION IS AN OBJECT
+    // SuggestedObject = POINTER TO AN OBJECT (ONLY VALID IF SuggestedOpcode==0)
+
+    WORD Prolog=SuggestedOpcode;
+
+    if(!Prolog) Prolog=*SuggestedObject;
+
+    if(LIBNUM(Prolog)>libnum) {
+        // ALREADY PAST HERE
+        RetNum=ERR_NOTMINE;
+        return;
+    }
+
+    BINT idx,len;
+
+    if(LIBNUM(Prolog)==libnum) {
+        if(ISPROLOG(Prolog)) idx=0;
+        else idx=OPCODE(Prolog)+1;
+    }
+    else idx=0;
+
+    while(idx<numcmds) {
+        len=utf8len((char *)libnames[idx]);
+        if((len>=(BINT)TokenLen) && (!utf8ncmp((char *)TokenStart,(char *)libnames[idx],TokenLen)))
+        {
+            // WE HAVE THE NEXT MATCH
+            SuggestedOpcode=MKOPCODE(libnum,idx);
+            RetNum=OK_CONTINUE;
+            return;
+        }
+        ++idx;
+    }
+
+    RetNum=ERR_NOTMINE;
+}
