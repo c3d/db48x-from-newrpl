@@ -15,7 +15,7 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('m',0,0,0),                           // [0]='m'
     MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),                                  // [2]='kg'
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('s',0,0,0),                           // [4]='s'
-    MKPROLOG(DOIDENT,1),TEXT2WORD('a',0,0,0),                           // [6]='a'     (are=100 m^2)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('a',0,0,0),                           // [6]='a'     (are=100 m^2)
     MKPROLOG(DOIDENT,1),TEXT2WORD(0xe2,0x84,0xab,0),                            // [8]='Å'     (1e-10 m)
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('A',0,0,0),                           // [10]='A'     (Ampere)
     MKPROLOG(DOIDENT,1),TEXT2WORD('a','c','r','e'),                             // [12]='acre'    (acre international)

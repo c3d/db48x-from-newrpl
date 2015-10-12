@@ -242,6 +242,9 @@ void normalize(REAL *number)
         --dest;
         while(dest>number->data) { *dest=99999999-*dest; --dest; }
         *dest=100000000-*dest;
+        // CHECK FOR CARRY IN THE LAST WORD
+        while((*dest>=100000000)&&(dest<number->data+number->len)) { *dest-=100000000; ++dest; ++*dest; }
+
         number->flags^=F_NEGATIVE;
         // FINAL TRIM FOR LEFT ZEROS
         while((number->data[number->len-1]==0)&&(number->len>1)) --number->len;
