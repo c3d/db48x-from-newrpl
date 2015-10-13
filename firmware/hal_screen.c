@@ -143,25 +143,46 @@ void halSetMenu2Height(int h)
 void halSetCmdLineHeight(int h)
 {
     int total;
+    int previous=halScreen.CmdLine;
     if(h<0) h=0;
     halScreen.CmdLine=h;
     total=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1+halScreen.Menu2;
     while(total!=SCREEN_HEIGHT) {
         // STRETCH THE STACK FIRST (IF ACTIVE), THEN FORM
 
-        if(halScreen.Stack) {
+        if(halScreen.Stack>1) {
             halScreen.Stack+=SCREEN_HEIGHT-total;
             halScreen.DirtyFlag|=STACK_DIRTY;
 
-            if(halScreen.Stack<0) halScreen.Stack=0;
+            if(halScreen.Stack<1) halScreen.Stack=1;
         }
         else {
+            if(halScreen.Form>1) {
             halScreen.Form+=SCREEN_HEIGHT-total;
             halScreen.DirtyFlag|=FORM_DIRTY;
 
-            if(halScreen.Form<0) {
-                halScreen.Menu2+=halScreen.Form;
-                halScreen.Form=0;
+            if(halScreen.Form<1) halScreen.Form=1;
+            }
+            else {
+                // STACK AND FORMS ARE AT MINIMUM
+                if(total>SCREEN_HEIGHT) halScreen.CmdLine=previous;
+                else {
+                // ENLARGE STACK
+                    if(halScreen.Stack>0) {
+                        halScreen.Stack+=SCREEN_HEIGHT-total;
+                        halScreen.DirtyFlag|=STACK_DIRTY;
+                    }
+                    else {
+                        // IF THE STACK IS CLOSED, THEN IT HAS TO BE A FORM!
+
+                        halScreen.Form+=SCREEN_HEIGHT-total;
+                        halScreen.DirtyFlag|=FORM_DIRTY;
+                    }
+
+
+
+
+                }
             }
         }
         total=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1+halScreen.Menu2;
@@ -485,7 +506,27 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
     BYTEPTR cmdline=(BYTEPTR) (CmdLineCurrentLine+1);
     BINT nchars=rplStrSize(CmdLineCurrentLine);
 
-    // TODO: SHOW OTHER LINES HERE
+    if(halScreen.DirtyFlag&CMDLINE_DIRTY) {
+        // SHOW OTHER LINES HERE EXCEPT THE CURRENT EDITED LINE
+        BINT k;
+        BINT totallines=rplStringCountLines(CmdLineText);
+        for(k=0;k<halScreen.NumLinesVisible;++k) {
+        // UPDATE THE LINE
+            if(halScreen.LineVisible+k<1) continue;
+            if(halScreen.LineVisible+k>totallines) break;
+
+            if(halScreen.LineVisible+k==halScreen.LineCurrent) continue;
+            BINT startoff=rplStringGetLinePtr(CmdLineText,halScreen.LineVisible+k);
+            BINT endoff=rplStringGetLinePtr(CmdLineText,halScreen.LineVisible+k+1);
+            if(endoff<0) endoff=rplStrSize(CmdLineText);
+            BYTEPTR string=(BYTEPTR)(CmdLineText+1)+startoff;
+            BYTEPTR strend=(BYTEPTR)(CmdLineText+1)+endoff;
+            BINT linelen=StringWidthN((char *)string,(char *)strend,(UNIFONT *)halScreen.CmdLineFont);
+            DrawTextBkN(-halScreen.XVisible,ytop+2+k*halScreen.CmdLineFont->BitmapHeight,(char *)string,(char *)strend,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
+            // CLEAR UP TO END OF LINE
+            ggl_cliprect(scr,-halScreen.XVisible+linelen,ytop+2+k*halScreen.CmdLineFont->BitmapHeight,SCREEN_W-1,ytop+2+(k+1)*halScreen.CmdLineFont->BitmapHeight-1,0);
+        }
+    }
 
     if(halScreen.DirtyFlag&CMDLINE_LINEDIRTY) {
     // UPDATE THE CURRENT LINE

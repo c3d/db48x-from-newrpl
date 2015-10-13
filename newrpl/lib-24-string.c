@@ -142,6 +142,22 @@ BINT rplStringGetLinePtr(WORDPTR str,BINT line)
     return ptr-start;
 }
 
+BINT rplStringCountLines(WORDPTR str)
+{
+    if(!ISSTRING(*str)) return -1;
+    BYTEPTR start=(BYTEPTR) (str+1),ptr;
+    BINT len=STRLEN(*str);
+    BINT count=1;
+
+    ptr=start;
+    while(ptr-start<len) {
+        if(*ptr=='\n') ++count;
+        ++ptr;
+    }
+
+    return count;
+
+}
 
 // CREATE A NEW STRING OBEJCT AND RETURN ITS ADDRESS
 // RETURNS NULL IF ANY ERRORS
