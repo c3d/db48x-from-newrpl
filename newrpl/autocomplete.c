@@ -34,7 +34,7 @@ WORD rplGetNextSuggestion(WORD suggestion,BYTEPTR *start,BYTEPTR *end)
     while(libcnt>=0) {
         RetNum=-1;
         CurOpcode=MKOPCODE(libcnt,OPCODE_AUTOCOMPNEXT);
-        han=rplGetLibHandler(libnum);
+        han=rplGetLibHandler(libcnt);
         if(han) (*han)();
 
         if(RetNum==OK_CONTINUE) {

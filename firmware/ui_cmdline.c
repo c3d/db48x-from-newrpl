@@ -527,12 +527,13 @@ void uiModifyLine()
         return;
     }
     BYTEPTR src=(BYTEPTR)(CmdLineText+1),dest=(BYTEPTR)(newobj+1);
+    BINT totallen=rplStrSize(CmdLineText);
     BINT lineoff=rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent);
-    if(lineoff<0) lineoff=rplStrSize(CmdLineText);
+    if(lineoff<0) lineoff=totallen;
     BYTEPTR startline=src+lineoff;
     lineoff=rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent+1);
-    if(lineoff<0) lineoff=rplStrSize(CmdLineText);
-    BYTEPTR endline=src+rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent+1);
+    if(lineoff<0) lineoff=totallen;
+    BYTEPTR endline=src+lineoff;
     if(endline>startline) {
         if(*(endline-1)=='\n') --endline;
     }
@@ -544,12 +545,12 @@ void uiModifyLine()
     // COPY THE NEW LINE TO THE OBJECT
     memmove(dest+(startline-src),(WORDPTR)(CmdLineCurrentLine+1),rplStrSize(CmdLineCurrentLine));
     // COPY THE REST BACK
-    if(endline>=src) {
+    if(endline<src+totallen) {
         // APPEND A NEWLINE AND KEEP GOING
         dest+=startline-src+rplStrSize(CmdLineCurrentLine);
-        *dest++='\n';
-        newsize+=((BYTEPTR)rplSkipOb(CmdLineText))-endline+1;
-        memmove(dest,endline,((BYTEPTR)rplSkipOb(CmdLineText))-endline);
+        newsize+=src+totallen-endline;
+        if(*endline!='\n') { *dest++='\n'; ++newsize; }
+        memmove(dest,endline,src+totallen-endline);
     }
 
     rplSetStringLength(newobj,newsize);
