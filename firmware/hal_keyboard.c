@@ -611,7 +611,27 @@ void VarMenuKeyHandler(BINT keymsg)
 }
 
 
+void newlineKeyHandler(BINT keymsg)
+{
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+        halSetContext(halGetContext()|CONTEXT_INEDITOR);
+        if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
+        else uiOpenCmdLine('D');
 
+        }
+
+    // INCREASE THE HEIGHT ON-SCREEN UP TO THE MAXIMUM
+    uiStretchCmdLine(1);
+
+    // ADD A NEW LINE
+    uiInsertCharacters((BYTEPTR)"\n");
+
+
+    // AND MOVE THE CURSOR OVER TO THE NEXT LINE
+    uiCursorRight(1);
+
+}
 
 
 void dotKeyHandler(BINT keymsg)
@@ -1340,6 +1360,11 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_REPEAT|KB_RT|SHIFT_ALPHA, CONTEXT_ANY,&rightKeyHandler },
     { KM_PRESS|KB_DN, CONTEXT_ANY,&downKeyHandler },
     { KM_PRESS|KB_DN|SHIFT_ALPHA, CONTEXT_ANY,&downKeyHandler },
+
+    { KM_PRESS|KB_DOT|SHIFT_RS,CONTEXT_ANY,&newlineKeyHandler },
+    { KM_PRESS|KB_DOT|SHIFT_RSHOLD,CONTEXT_ANY,&newlineKeyHandler },
+
+
 
     // BASIC OPERATORS
     { KM_PRESS|KB_ADD, CONTEXT_ANY,&addKeyHandler },
