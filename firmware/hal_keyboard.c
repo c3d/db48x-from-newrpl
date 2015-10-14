@@ -734,6 +734,43 @@ void leftKeyHandler(BINT keymsg)
     }
 }
 
+
+void rsleftKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: WHAT TO DO WITH RS-LEFT CURSOR??
+            // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
+
+        }
+
+    }
+    else{
+        uiCursorStartOfLine();
+    }
+}
+
+void rsholdleftKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: WHAT TO DO WITH RS-LEFT CURSOR??
+            // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
+
+        }
+
+    }
+    else{
+        uiCursorPageLeft();
+    }
+}
+
+
+
 void rightKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
@@ -755,6 +792,42 @@ void rightKeyHandler(BINT keymsg)
         uiCursorRight(1);
     }
 }
+
+
+void rsrightKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: WHAT TO DO WITH RS-RIGHT CURSOR??
+            // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
+
+        }
+
+    }
+    else{
+        uiCursorEndOfLine();
+    }
+}
+
+void rsholdrightKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: WHAT TO DO WITH RS-RIGHT CURSOR??
+            // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
+
+        }
+
+    }
+    else{
+        uiCursorPageRight();
+    }
+}
+
 
 
 void downKeyHandler(BINT keymsg)
@@ -791,14 +864,99 @@ void downKeyHandler(BINT keymsg)
     }
 
     else {
-        // TODO: GO DOWN ONE LINE IN MULTILINE TEXT EDITOR
+        // GO DOWN ONE LINE IN MULTILINE TEXT EDITOR
+        uiCursorDown(1);
+    }
+}
+
+
+void rsholddownKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: ??
+            }
+        // TODO: ADD OTHER CONTEXTS HERE
+    }
+
+    else {
+        // GO UP ONE LINE IN MULTILINE TEXT EDITOR
+        uiCursorPageDown();
+    }
+}
+
+void rsdownKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: ??
+            }
+        // TODO: ADD OTHER CONTEXTS HERE
+    }
+
+    else {
+        // GO UP ONE LINE IN MULTILINE TEXT EDITOR
+        uiCursorEndOfText();
     }
 }
 
 
 
+void upKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: START INTERACTIVE STACK MANIPULATION HERE
+            }
+        // TODO: ADD OTHER CONTEXTS HERE
+    }
+
+    else {
+        // GO UP ONE LINE IN MULTILINE TEXT EDITOR
+        uiCursorUp(1);
+    }
+}
 
 
+void rsholdupKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: START INTERACTIVE STACK MANIPULATION HERE
+            }
+        // TODO: ADD OTHER CONTEXTS HERE
+    }
+
+    else {
+        // GO UP ONE LINE IN MULTILINE TEXT EDITOR
+        uiCursorPageUp();
+    }
+}
+
+void rsupKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: START INTERACTIVE STACK MANIPULATION HERE
+            }
+        // TODO: ADD OTHER CONTEXTS HERE
+    }
+
+    else {
+        // GO UP ONE LINE IN MULTILINE TEXT EDITOR
+        uiCursorStartOfText();
+    }
+}
 
 
 
@@ -1350,6 +1508,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_BKS|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&deleteKeyHandler },
     { KM_PRESS|KB_BKS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&deleteKeyHandler },
 
+    // CURSOR MOVEMENT KEYS
     { KM_PRESS|KB_LF, CONTEXT_ANY,&leftKeyHandler },
     { KM_REPEAT|KB_LF, CONTEXT_ANY,&leftKeyHandler },
     { KM_PRESS|KB_RT, CONTEXT_ANY,&rightKeyHandler },
@@ -1359,7 +1518,33 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_RT|SHIFT_ALPHA, CONTEXT_ANY,&rightKeyHandler },
     { KM_REPEAT|KB_RT|SHIFT_ALPHA, CONTEXT_ANY,&rightKeyHandler },
     { KM_PRESS|KB_DN, CONTEXT_ANY,&downKeyHandler },
+    { KM_REPEAT|KB_DN, CONTEXT_ANY,&downKeyHandler },
     { KM_PRESS|KB_DN|SHIFT_ALPHA, CONTEXT_ANY,&downKeyHandler },
+    { KM_REPEAT|KB_DN|SHIFT_ALPHA, CONTEXT_ANY,&downKeyHandler },
+    { KM_PRESS|KB_UP, CONTEXT_ANY,&upKeyHandler },
+    { KM_REPEAT|KB_UP, CONTEXT_ANY,&upKeyHandler },
+    { KM_PRESS|KB_UP|SHIFT_ALPHA, CONTEXT_ANY,&upKeyHandler },
+    { KM_REPEAT|KB_UP|SHIFT_ALPHA, CONTEXT_ANY,&upKeyHandler },
+
+    { KM_PRESS|KB_LF|SHIFT_RS, CONTEXT_ANY,&rsleftKeyHandler },
+    { KM_PRESS|KB_LF|SHIFT_RSHOLD, CONTEXT_ANY,&rsholdleftKeyHandler },
+    { KM_PRESS|KB_LF|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsleftKeyHandler },
+    { KM_PRESS|KB_LF|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholdleftKeyHandler },
+    { KM_PRESS|KB_RT|SHIFT_RS, CONTEXT_ANY,&rsrightKeyHandler },
+    { KM_PRESS|KB_RT|SHIFT_RSHOLD, CONTEXT_ANY,&rsholdrightKeyHandler },
+    { KM_PRESS|KB_RT|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsrightKeyHandler },
+    { KM_PRESS|KB_RT|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholdrightKeyHandler },
+
+    { KM_PRESS|KB_UP|SHIFT_RS, CONTEXT_ANY,&rsupKeyHandler },
+    { KM_PRESS|KB_UP|SHIFT_RSHOLD, CONTEXT_ANY,&rsholdupKeyHandler },
+    { KM_PRESS|KB_UP|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsupKeyHandler },
+    { KM_PRESS|KB_UP|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholdupKeyHandler },
+    { KM_PRESS|KB_DN|SHIFT_RS, CONTEXT_ANY,&rsdownKeyHandler },
+    { KM_PRESS|KB_DN|SHIFT_RSHOLD, CONTEXT_ANY,&rsholddownKeyHandler },
+    { KM_PRESS|KB_DN|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsdownKeyHandler },
+    { KM_PRESS|KB_DN|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholddownKeyHandler },
+
+
 
     { KM_PRESS|KB_DOT|SHIFT_RS,CONTEXT_ANY,&newlineKeyHandler },
     { KM_PRESS|KB_DOT|SHIFT_RSHOLD,CONTEXT_ANY,&newlineKeyHandler },

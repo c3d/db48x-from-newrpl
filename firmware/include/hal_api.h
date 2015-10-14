@@ -1075,6 +1075,7 @@ extern void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color
 extern void DrawTextMono(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *drawsurf);
 extern int StringWidth(char *Text,UNIFONT *Font);
 extern int StringWidthN(char *Text,char *End,UNIFONT *Font);
+extern char *StringCoordToPointer(char *Text,char *End,UNIFONT *Font,int *xcoord);
 
 
 extern int cpu_getlock(int lockvar,volatile int *lock_ptr);

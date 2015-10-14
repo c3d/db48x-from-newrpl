@@ -138,8 +138,10 @@ void uiEnsureCursorVisible()
     if(halScreen.CursorX<halScreen.XVisible+8) {
         if(halScreen.XVisible>0) {
         if(halScreen.XVisible<8) halScreen.XVisible=0;
-        else halScreen.XVisible=halScreen.CursorX-8;    // FIXED AT 16 PIXELS
+        else {
+            halScreen.XVisible=(halScreen.CursorX>8)? halScreen.CursorX-8:0;
         scrolled=1;
+        }
         }
     }
 
@@ -254,29 +256,26 @@ void uiSetCurrentLine(BINT line)
     }
 
     halScreen.LineCurrent=line;
-    halScreen.LineIsModified=-1;
+        uiExtractLine(halScreen.LineCurrent);
+
+        if(Exceptions) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            CmdLineText=(WORDPTR)empty_string;
+            CmdLineCurrentLine=(WORDPTR)empty_string;
+            CmdLineUndoList=(WORDPTR)empty_list;
+            return;
+        }
 
     // POSITION THE CURSOR IN THE NEW LINE, TRYING TO PRESERVE THE X COORDINATE
 
-    BINT tryoffset=halScreen.CursorPosition;
     BINT len=rplStrSize(CmdLineCurrentLine);
-    BINT targetx;
+    BINT targetx=halScreen.CursorX;
     BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1);
-    if(tryoffset>len) tryoffset=len;
-
-    targetx=StringWidthN((char *)ptr,(char *)ptr+tryoffset,halScreen.CmdLineFont);
-
-    while( (targetx<halScreen.CursorX) && (tryoffset<=len) ) {
-        targetx+=StringWidthN((char *)ptr+tryoffset,(char *)ptr+tryoffset+1,halScreen.CmdLineFont);
-        ++tryoffset;
-    }
-    while( (targetx>halScreen.CursorX) && (tryoffset>0) ) {
-        --tryoffset;
-        targetx-=StringWidthN((char *)ptr+tryoffset,(char *)ptr+tryoffset+1,halScreen.CmdLineFont);
-    }
+    BYTEPTR ptr2=(BYTEPTR)StringCoordToPointer((char *)ptr,(char *)ptr+len,halScreen.CmdLineFont,&targetx);
 
     halScreen.CursorX=targetx;
-    halScreen.CursorPosition=tryoffset;
+    halScreen.CursorPosition=ptr2-ptr;
 
     uiEnsureCursorVisible();
 
@@ -863,6 +862,147 @@ void uiCursorRight(BINT nchars)
     uiEnsureCursorVisible();
 
 }
+
+
+
+// MOVE THE CURSOR DOWN BY NLINES
+void uiCursorDown(BINT nlines)
+{
+BINT totallines=rplStringCountLines(CmdLineText);
+BINT newline=halScreen.LineCurrent+nlines;
+if(newline>totallines) newline=totallines;
+if(newline<1) newline=1;
+
+uiSetCurrentLine(newline);
+
+
+}
+
+// MOVE THE CURSOR UP BY NLINES
+void uiCursorUp(BINT nlines)
+{
+uiCursorDown(-nlines);
+}
+
+
+void uiCursorEndOfLine()
+{
+uiMoveCursor(2147483647);
+uiEnsureCursorVisible();
+}
+
+void uiCursorStartOfLine()
+{
+uiMoveCursor(0);
+uiEnsureCursorVisible();
+
+}
+
+void uiCursorStartOfText()
+{
+uiSetCurrentLine(1);
+uiCursorStartOfLine();
+}
+
+void uiCursorEndOfText()
+{
+    uiSetCurrentLine(rplStringCountLines(CmdLineText));
+    uiCursorEndOfLine();
+}
+
+void uiCursorPageRight()
+{
+    if(halScreen.LineIsModified<0) {
+
+    uiExtractLine(halScreen.LineCurrent);
+
+    if(Exceptions) {
+        throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+        // CLEAN UP AND RETURN
+        CmdLineText=(WORDPTR)empty_string;
+        CmdLineCurrentLine=(WORDPTR)empty_string;
+        CmdLineUndoList=(WORDPTR)empty_list;
+        return;
+    }
+    }
+
+// POSITION THE CURSOR TRYING TO PRESERVE THE X COORDINATE
+
+BINT len=rplStrSize(CmdLineCurrentLine);
+BINT targetx=halScreen.CursorX+SCREEN_WIDTH;
+BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1);
+BYTEPTR ptr2=StringCoordToPointer((char *)ptr,(char *)ptr+len,halScreen.CmdLineFont,&targetx);
+
+halScreen.CursorX=targetx;
+halScreen.CursorPosition=ptr2-ptr;
+
+uiEnsureCursorVisible();
+
+// UNLOCK CURSOR
+halScreen.CursorState&=~0xc000;
+
+halScreen.DirtyFlag|=CMDLINE_CURSORDIRTY|CMDLINE_LINEDIRTY;
+
+}
+
+
+void uiCursorPageLeft()
+{
+    if(halScreen.LineIsModified<0) {
+
+    uiExtractLine(halScreen.LineCurrent);
+
+    if(Exceptions) {
+        throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+        // CLEAN UP AND RETURN
+        CmdLineText=(WORDPTR)empty_string;
+        CmdLineCurrentLine=(WORDPTR)empty_string;
+        CmdLineUndoList=(WORDPTR)empty_list;
+        return;
+    }
+    }
+
+// POSITION THE CURSOR TRYING TO PRESERVE THE X COORDINATE
+
+BINT len=rplStrSize(CmdLineCurrentLine);
+BINT targetx=halScreen.CursorX-SCREEN_WIDTH;
+BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1);
+BYTEPTR ptr2=StringCoordToPointer((char *)ptr,(char *)ptr+len,halScreen.CmdLineFont,&targetx);
+
+halScreen.CursorX=targetx;
+halScreen.CursorPosition=ptr2-ptr;
+
+uiEnsureCursorVisible();
+
+// UNLOCK CURSOR
+halScreen.CursorState&=~0xc000;
+
+halScreen.DirtyFlag|=CMDLINE_CURSORDIRTY|CMDLINE_LINEDIRTY;
+
+}
+
+
+void uiCursorPageUp()
+{
+    BINT linesperpage=halScreen.NumLinesVisible;
+
+    if(linesperpage<6) linesperpage=6;
+
+    uiCursorDown(-linesperpage);
+
+}
+
+void uiCursorPageDown()
+{
+    BINT linesperpage=halScreen.NumLinesVisible;
+
+    if(linesperpage<6) linesperpage=6;
+
+    uiCursorDown(linesperpage);
+
+}
+
+
 
 // FIND THE START OF A NUMBER IN THE COMMAND LINE, ONLY USED BY +/- ROUTINE
 BYTEPTR uiFindNumberStart()

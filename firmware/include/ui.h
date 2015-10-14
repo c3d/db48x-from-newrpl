@@ -86,6 +86,13 @@ extern void uiSeparateToken();
 extern void uiMoveCursor(BINT offset);
 extern void uiCursorLeft(BINT nchars);
 extern void uiCursorRight(BINT nchars);
+extern void uiCursorDown(BINT nlines);
+extern void uiCursorUp(BINT nlines);
+extern void uiCursorEndOfLine();
+extern void uiCursorStartOfLine();
+extern void uiCursorStartOfText();
+extern void uiCursorEndOfText();
+
 
 
 

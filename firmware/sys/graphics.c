@@ -310,6 +310,62 @@ int StringWidthN(char *Text,char *End,UNIFONT *Font)
 
 }
 
+// GET A POINTER INTO THE CHARACTER THAT WILL BE PRINTED AT *xcoord
+// ASSUMING x=0 AT Text START
+// IT WILL RETURN A POINTER INTO THE STRING, AND MODIFY *xcoord WITH THE CORRECT X COORDINATE
+// ALIGNED WITH THE FONT
+
+// WARNING: DO NOT PASS xcoord=NULL, NO ARGUMENT CHECKS
+
+char *StringCoordToPointer(char *Text,char *End,UNIFONT *Font,int *xcoord)
+{
+    int cp,startcp,rangeend,offset;
+    unsigned short *offtable;
+    unsigned int *mapptr;
+    int w,width=0;
+
+    if(*xcoord<0) { *xcoord=0; return Text; }
+
+    offtable=(unsigned short *)(((unsigned int *)Font)+Font->OffsetTable);
+
+    while(Text<End) {
+
+        cp=utf82char(Text,End);
+
+        if(cp==-1) { ++Text; continue; }
+
+
+        if(cp=='\n' || cp=='\r') { *xcoord=width; return Text; }
+
+        // GET THE INFORMATION FROM THE FONT
+        rangeend=0;
+        mapptr=Font->MapTable-1;
+        do {
+            ++mapptr;
+            startcp=rangeend;
+            rangeend=startcp+RANGE_LEN(*mapptr);
+        } while(cp>=rangeend);
+
+        offset=FONT_OFFSET(*mapptr);
+        if(offset==0xfff) w=offtable[0];
+        else {
+            w=offtable[offset+cp-startcp];
+        }
+
+        if( (*xcoord>=width) && (*xcoord<width+(w>>12))) { *xcoord=width; return Text; }
+
+        width+=w>>12;
+
+        Text=utf8skip(Text,End);
+
+    }
+
+    *xcoord=width;
+    return End;
+
+
+}
+
 int StringWidth(char *Text,UNIFONT *Font)
 {
     char *End=Text;

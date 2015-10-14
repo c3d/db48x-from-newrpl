@@ -518,6 +518,7 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
             if(halScreen.LineVisible+k==halScreen.LineCurrent) continue;
             BINT startoff=rplStringGetLinePtr(CmdLineText,halScreen.LineVisible+k);
             BINT endoff=rplStringGetLinePtr(CmdLineText,halScreen.LineVisible+k+1);
+            if(startoff<0) startoff=rplStrSize(CmdLineText);
             if(endoff<0) endoff=rplStrSize(CmdLineText);
             BYTEPTR string=(BYTEPTR)(CmdLineText+1)+startoff;
             BYTEPTR strend=(BYTEPTR)(CmdLineText+1)+endoff;
