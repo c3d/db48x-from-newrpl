@@ -47,6 +47,54 @@ LIBHANDLER rplGetLibHandler(BINT libnum)
     return 0;
 }
 
+
+// DECREASE THE LIBRARY NUMBER, TO THE NEXT VALID HANDLER
+BINT rplGetNextLib(BINT libnum)
+{
+    if(libnum>MAXLIBNUMBER-MAXSYSHILIBS) {
+        --libnum;
+        while((libnum>MAXLIBNUMBER-MAXSYSHILIBS) && (!SysHiLibRegistry[libnum-(MAXLIBNUMBER+1-MAXSYSHILIBS)])) --libnum;
+        if(libnum>MAXLIBNUMBER-MAXSYSHILIBS) return libnum;
+        if(NumHiLibs) return HiLibNumbers[NumHiLibs-1];
+        // OTHERWISE CONTINUE SCANNING THE LOW LIBS
+        libnum=MAXLOWLIBS;
+    }
+
+    if(libnum>MAXLOWLIBS) {
+    // DO A BINARY SEARCH FOR USER FUNCTIONS OTHERWISE
+        if(NumHiLibs>0) {
+            BINT lo=0;
+            BINT hi=NumHiLibs-1;
+            BINT x;
+            do {
+                x=(hi+lo)/2;
+                if(HiLibNumbers[x]==libnum) {
+                    if(x>0) return HiLibNumbers[x-1];
+                    libnum=MAXLOWLIBS;
+                    break;
+                }
+                if(HiLibNumbers[x]>libnum) hi=x;
+                else lo=x;
+            } while(hi-lo>1);
+            if(HiLibNumbers[hi]==libnum) {
+                if(hi>0) return HiLibNumbers[hi-1];
+                libnum=MAXLOWLIBS;
+            }
+        } else libnum=MAXLOWLIBS;
+
+    }
+
+    if(libnum<=MAXLOWLIBS) {
+        --libnum;
+        while((libnum>=0) && (!LowLibRegistry[libnum])) --libnum;
+        return libnum;
+    }
+
+    return -1;
+}
+
+
+
 // REMOVE ALL REGISTERED LIBRARIES AND INSTALL ONLY CORE LIBRARIES PROVIDED IN ROM
 void rplClearLibraries()
 {

@@ -149,7 +149,14 @@ extern void rplBlameError(WORDPTR command);
 extern void rplInit(void);
 extern void rplSetEntryPoint(WORDPTR ip);
 extern void rplRun(void);
+
+
+
+// LIBRARY LOW-LEVEL ACCESS FUNCTIONS
 extern LIBHANDLER rplGetLibHandler(BINT libnum);
+extern BINT rplGetNextLib(BINT libnum);
+
+// BASIC GENERIC OBJECT FUNCTIONS
 extern WORDPTR rplSkipOb(WORDPTR ip);
 extern void rplSkipNext();
 extern WORD rplObjSize(WORDPTR ip);

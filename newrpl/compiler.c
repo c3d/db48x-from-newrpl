@@ -223,7 +223,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         libnum=libcnt; handler=rplGetLibHandler(libcnt);
                     }
                     else { libnum=force_libnum; handler=rplGetLibHandler(force_libnum); }
-                --libcnt;
+                libcnt=rplGetNextLib(libcnt);
 
                 if(!handler) continue;
 
