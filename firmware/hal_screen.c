@@ -486,8 +486,21 @@ void halRedrawStatus(DRAWSURFACE *scr)
     int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     ggl_cliprect(scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
+
+
+    if(halScreen.CmdLineState&CMDSTATE_ACACTIVE) {
+        // DISPLAY THE CURRENTLY SELECTED AUTOCOMPLETE COMMAND IN THE
+        // SECOND LINE
+
+        BINT y=ytop+halScreen.CmdLineFont->BitmapHeight;
+        // FOR NOW JUST DISPLAY THE SELECTED TOKEN
+
+        DrawTextBkN(STATUSAREA_X+2,y,(char *)uiAutocompStringStart(),(char *)uiAutocompStringEnd(),(UNIFONT *)halScreen.StAreaFont,0xf,0x0,scr);
+
     }
-    // TODO: SHOW THE CURRENT DIR, ETC. HERE
+
+
+    }
 
     halScreen.DirtyFlag&=~STAREA_DIRTY;
 

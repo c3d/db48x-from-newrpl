@@ -147,10 +147,12 @@ typedef struct {
     int LineVisible,LineCurrent,LineIsModified;
     int NumLinesVisible;    // HEIGHT OF COMMAND LINE AREA IN LINES OF TEXT
     int CursorState;    // Lowercase, Uppercase, Token, VISIBLE OR INVISIBLE
+    int ACTokenStart;   // START OF TOKEN FOR AUTO COMPLETE, OFFSET FROM START OF LINE
     int CursorPosition; // OFFSET FROM START OF CURRENT LINE
     int CursorX,XVisible;
     int SelectionStart,SelectionEnd;
     int CmdLineState;   // STATUS FLAGS FOR THE COMMAND LINE
+
     // VARIABLES FOR USER INTERFACE
     int KeyContext;
 } HALSCREEN;
@@ -173,6 +175,8 @@ enum {
 #define CMDSTATE_SELEND      0x800
 #define CMDSTATE_SELECTION   0xC00
 #define CMDSTATE_OVERWRITE  0x1000
+#define CMDSTATE_ACACTIVE   0x2000
+#define CMDSTATE_ACUPDATE   0x4000
 
 
 //! Type definition for interrupt handler functions
