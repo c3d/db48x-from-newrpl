@@ -1155,7 +1155,7 @@ void uiAutocompleteUpdate()
     if(tokptr==end) halScreen.CmdLineState&=~(CMDSTATE_ACACTIVE|CMDSTATE_ACUPDATE);
     else halScreen.CmdLineState|=CMDSTATE_ACUPDATE|CMDSTATE_ACACTIVE;
 
-    if(oldstate || (oldstate!=halScreen.CmdLineState&CMDSTATE_ACACTIVE)) halScreen.DirtyFlag|=STAREA_DIRTY;
+    if(oldstate || (oldstate!=(halScreen.CmdLineState&CMDSTATE_ACACTIVE))) halScreen.DirtyFlag|=STAREA_DIRTY;
 
 
 }
