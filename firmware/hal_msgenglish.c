@@ -32,11 +32,8 @@ const MSGLIST const all_messages[]={
     { ERR_EXITRPLEXCEPTION, "Panic - Aborting RPL engine" },
     { ERR_BKPOINTEXCEPTION, "Breakpoint reached" },
     { ERR_OUTOFMEMORYEXCEPTION, "Out of memory" },
-    { ERR_ENDWITHOUTSTART, "Block ends without matching start" },
-    { ERR_STARTWITHOUTEND, "Block starts but never ends" },
-    { ERR_MISSINGBRACKET, "Missing bracket" },
-    { ERR_BADARGCOUNT, "Bad argument count" },
-    { ERR_BADARGTYPE, "Bad argument type" },
+    { ERR_USERBREAK, "User BREAK" },
+
     { ERR_SYNTAXERROR, "Syntax error" },
     { ERR_INVALIDTOKEN, "Invalid word" },
     { ERR_MALFORMEDOBJECT, "Malformed/corrupted object" },
@@ -49,6 +46,11 @@ const MSGLIST const all_messages[]={
     { ERR_INTERNALEMPTYRETSTACK, "Emtpy return stack (internal)" },
     { ERR_BADSTACKINDEX, "Stack index out of bounds" },
     { ERR_MISPLACEDEND, "Misplaced END statement" },
+    { ERR_ENDWITHOUTSTART, "Block ends without matching start" },
+    { ERR_STARTWITHOUTEND, "Block starts but never ends" },
+    { ERR_MISSINGBRACKET, "Missing bracket" },
+    { ERR_BADARGCOUNT, "Bad argument count" },
+    { ERR_BADARGTYPE, "Bad argument type" },
 
     // IDENTIFIERS AND VARIABLES
     { ERR_IDENTEXPECTED, "Expected an identifier" },

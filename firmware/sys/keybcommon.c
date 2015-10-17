@@ -440,7 +440,7 @@ doupdate:
         __keyb_lock=0;
 
 
-        throw_exception("User BREAK requested",__EX_CONT | __EX_WARM | __EX_RESET );
+        throw_exception("User BREAK requested",__EX_CONT | __EX_WARM | __EX_WIPEOUT | __EX_RESET | __EX_RPLREGS);
 
         //  AFTER RETURNING FROM THE EXCEPTION HANDLER, ALL KEYS ARE GUARANTEED TO BE RELEASED
         //  DO AN UPDATE TO SEND KEY_UP MESSAGES TO THE APPLICATION AND CORRECT SHIFT PLANES
@@ -455,7 +455,7 @@ doupdate:
         __keyb_lock=0;
 
 
-        throw_exception("RPL Break requested",__EX_CONT | __EX_WARM | __EX_WIPEOUT | __EX_RESET | __EX_RPLREGS );
+        throw_exception("RPL Break requested",__EX_CONT | __EX_EXIT | __EX_WARM | __EX_RESET  );
 
         //  AFTER RETURNING FROM THE EXCEPTION HANDLER, ALL KEYS ARE GUARANTEED TO BE RELEASED
         //  DO AN UPDATE TO SEND KEY_UP MESSAGES TO THE APPLICATION AND CORRECT SHIFT PLANES

@@ -31,7 +31,7 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
     CMD(TICKS), \
     CMD(MEMCHECK), \
     CMD(MEMFIX), \
-    CMD(CONSTANTS)
+    CMD(READCFI)
 
 
 // ADD MORE OPCODES HERE
@@ -105,21 +105,15 @@ void LIB_HANDLER()
         else rplPushDataNoGrow((WORDPTR)zero_bint);
         return;
     }
-    case CONSTANTS:
+    case READCFI:
     {
-        REAL num;
-     decconst_PI_200(&num);
+        unsigned short buffer[100];
 
-     rplNewRealPush(&num);
+        flash_CFIRead(buffer);
 
-     decconst_PI_180(&num);
+        WORDPTR newobj=rplCreateString((BYTEPTR)buffer,(BYTEPTR)buffer+6);
 
-     rplNewRealPush(&num);
-
-     decconst_180_PI(&num);
-
-     rplNewRealPush(&num);
-
+        rplPushData(newobj);
 
      return;
     }

@@ -49,10 +49,11 @@ SOURCES +=\
     newrpl/lib-28-dirs.c \
     newrpl/lib-30-complex.c \
     newrpl/lib-32-lam.c \
-    newrpl/lib-50-lists.c \
-    newrpl/lib-52-symbolic.c \
-    newrpl/lib-48-units.c \
-    newrpl/lib-58-matrix.c \
+    newrpl/units.c \
+    newrpl/lib-52-matrix.c \
+    newrpl/lib-54-units.c \
+    newrpl/lib-56-symbolic.c \
+    newrpl/lib-62-lists.c \
     newrpl/lib-64-arithmetic.c \
     newrpl/lib-65-system.c \
     newrpl/lib-66-transcendentals.c \
@@ -115,7 +116,8 @@ SOURCES +=\
     firmware/sys/Font7A.c \
     firmware/sys/Font8C.c \
     firmware/sys/Font8D.c \
-    firmware/hal_msgenglish.c
+    firmware/hal_msgenglish.c \
+    firmware/sys/target_50g/flash.c
 
 HEADERS  += \
     firmware/include/ggl.h \
