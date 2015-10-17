@@ -167,7 +167,12 @@ enum {
     // ADD MORE SYSTEM CONTEXTS HERE
 };
 
-#define CMDSTATE_OVERWRITE  0x8000
+#define CMDSTATE_OPEN        0x100
+#define CMDSTATE_FULLSCREEN  0x200
+#define CMDSTATE_SELBEGIN    0x400
+#define CMDSTATE_SELEND      0x800
+#define CMDSTATE_SELECTION   0xC00
+#define CMDSTATE_OVERWRITE  0x1000
 
 
 //! Type definition for interrupt handler functions
@@ -1070,6 +1075,7 @@ extern void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color
 extern void DrawTextMono(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *drawsurf);
 extern int StringWidth(char *Text,UNIFONT *Font);
 extern int StringWidthN(char *Text,char *End,UNIFONT *Font);
+extern char *StringCoordToPointer(char *Text,char *End,UNIFONT *Font,int *xcoord);
 
 
 extern int cpu_getlock(int lockvar,volatile int *lock_ptr);

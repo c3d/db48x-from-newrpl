@@ -29,6 +29,7 @@ extern WORDPTR GC_PTRUpdate[MAX_GC_PTRUPDATE];
 #define ArgPtr2             GC_PTRUpdate[6]     // NAME FOR USE BY LIBRARIES
 #define BlankStart          GC_PTRUpdate[6]     // NAME AS USED BY THE COMPILER
 #define DecompStringEnd     GC_PTRUpdate[6]     // NAME AS USED BY THE DECOMPILER
+#define SuggestedObject     GC_PTRUpdate[6]     // NAME AS USED BY THE AUTOCOMPLETE FEATURE
 
 #define EndOfObject         GC_PTRUpdate[7]     // NAME AS USED BY THE DECOMPILER
 #define NextTokenStart      GC_PTRUpdate[7]     // NAME AS USED BY THE COMPILER
@@ -97,6 +98,7 @@ extern UBINT ArgNum1,ArgNum2,ArgNum3,RetNum;
 
 #define BlankLen ArgNum2
 #define CurrentConstruct ArgNum3
+#define SuggestedOpcode  ArgNum3
 #define ObjectID   ArgNum3
 
 extern LIBHANDLER LowLibRegistry[MAXLOWLIBS];

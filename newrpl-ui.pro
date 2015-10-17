@@ -116,7 +116,8 @@ SOURCES += main.cpp\
     newrpl/lib-62-lists.c \
     newrpl/lib-56-symbolic.c \
     newrpl/lib-52-matrix.c \
-    newrpl/lib-54-units.c
+    newrpl/lib-54-units.c \
+    newrpl/autocomplete.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \

@@ -42,6 +42,27 @@ BINT uiGetLinebyOffset(BINT offset,BINT *linestart)
 
 }
 
+
+BYTEPTR uiGetStartOfLine(BYTEPTR ptr,BYTEPTR startofstring)
+{
+    while(ptr>startofstring) {
+        --ptr;
+        if(*ptr=='\n') return ptr+1;
+    }
+    return ptr;
+}
+
+BYTEPTR uiGetEndOfLine(BYTEPTR ptr,BYTEPTR endofstring)
+{
+    while(ptr<endofstring) {
+        if(*ptr=='\n') return ptr;
+        ++ptr;
+    }
+    return ptr;
+}
+
+
+
 void uiSetCmdLineState(BINT state)
 {
     halScreen.CmdLineState=state;
@@ -117,8 +138,10 @@ void uiEnsureCursorVisible()
     if(halScreen.CursorX<halScreen.XVisible+8) {
         if(halScreen.XVisible>0) {
         if(halScreen.XVisible<8) halScreen.XVisible=0;
-        else halScreen.XVisible=halScreen.CursorX-8;    // FIXED AT 16 PIXELS
+        else {
+            halScreen.XVisible=(halScreen.CursorX>8)? halScreen.CursorX-8:0;
         scrolled=1;
+        }
         }
     }
 
@@ -161,7 +184,7 @@ void uiOpenCmdLine(BINT mode)
     halScreen.NumLinesVisible=1;
     halScreen.CursorX=0;
     halScreen.CursorPosition=0;
-    halScreen.CmdLineState=0;
+    halScreen.CmdLineState=CMDSTATE_OPEN;
 
     if(((halScreen.CursorState&0xff)=='L')||((halScreen.CursorState&0xff)=='C')) AlphaMode=halScreen.CursorState&0xff;
     else if(((halScreen.CursorState>>24)=='L')||((halScreen.CursorState>>24)=='C')) AlphaMode=halScreen.CursorState>>24;
@@ -233,29 +256,26 @@ void uiSetCurrentLine(BINT line)
     }
 
     halScreen.LineCurrent=line;
-    halScreen.LineIsModified=-1;
+        uiExtractLine(halScreen.LineCurrent);
+
+        if(Exceptions) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            CmdLineText=(WORDPTR)empty_string;
+            CmdLineCurrentLine=(WORDPTR)empty_string;
+            CmdLineUndoList=(WORDPTR)empty_list;
+            return;
+        }
 
     // POSITION THE CURSOR IN THE NEW LINE, TRYING TO PRESERVE THE X COORDINATE
 
-    BINT tryoffset=halScreen.CursorPosition;
     BINT len=rplStrSize(CmdLineCurrentLine);
-    BINT targetx;
+    BINT targetx=halScreen.CursorX;
     BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1);
-    if(tryoffset>len) tryoffset=len;
-
-    targetx=StringWidthN((char *)ptr,(char *)ptr+tryoffset,halScreen.CmdLineFont);
-
-    while( (targetx<halScreen.CursorX) && (tryoffset<=len) ) {
-        targetx+=StringWidthN((char *)ptr+tryoffset,(char *)ptr+tryoffset+1,halScreen.CmdLineFont);
-        ++tryoffset;
-    }
-    while( (targetx>halScreen.CursorX) && (tryoffset>0) ) {
-        --tryoffset;
-        targetx-=StringWidthN((char *)ptr+tryoffset,(char *)ptr+tryoffset+1,halScreen.CmdLineFont);
-    }
+    BYTEPTR ptr2=(BYTEPTR)StringCoordToPointer((char *)ptr,(char *)ptr+len,halScreen.CmdLineFont,&targetx);
 
     halScreen.CursorX=targetx;
-    halScreen.CursorPosition=tryoffset;
+    halScreen.CursorPosition=ptr2-ptr;
 
     uiEnsureCursorVisible();
 
@@ -282,7 +302,6 @@ if(endstring<=string) return;
 
 // LOCK CURSOR
 halScreen.CursorState|=0x4000;
-
 
 if(halScreen.LineIsModified<0) {
 
@@ -362,11 +381,27 @@ rplSetStringLength(CmdLineCurrentLine,newlen);
 halScreen.LineIsModified=1;
 
 // ADVANCE THE CURSOR
-// TODO: IF THE INSERTED TEXT HAD ANY NEWLINES, THE CURRENT COMMAND LINE HAS MULTIPLE LINES IN ONE
-// MUST SPLIT THE LINES AND GET THE CURSOR ON THE LAST ONE
+// IF THE INSERTED TEXT HAD ANY NEWLINES, THE CURRENT COMMAND LINE HAS MULTIPLE LINES IN ONE
+BYTEPTR newstart=((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition;
+BYTEPTR newend=newstart+length;
+BINT nl=0;
+while(newstart!=newend) {
+    if(*newstart=='\n') ++nl;
+    newstart=(BYTEPTR)utf8skip((char *)newstart,(char *)newend);
+}
 
+if(nl)  {
+// MUST SPLIT THE LINES AND GET THE CURSOR ON THE LAST ONE
+    BINT newoff=rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent)+halScreen.CursorPosition+length;
+
+    uiSetCurrentLine(halScreen.LineCurrent+nl);
+    uiMoveCursor(newoff);
+
+}
+else {
 halScreen.CursorX+=StringWidthN(((char *)CmdLineCurrentLine)+4+halScreen.CursorPosition,((char *)CmdLineCurrentLine)+4+halScreen.CursorPosition+length,halScreen.CmdLineFont);
 halScreen.CursorPosition+=length;
+}
 
 halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
 
@@ -491,20 +526,15 @@ void uiModifyLine()
         return;
     }
     BYTEPTR src=(BYTEPTR)(CmdLineText+1),dest=(BYTEPTR)(newobj+1);
-    BYTEPTR startline=src+rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent);
-    BYTEPTR endline=src+rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent+1);
-
-    if(startline<src) {
-        /*
-        throw_dbgexception("Bad starting line",__EX_CONT|__EX_WARM|__EX_RESET);
-        // CLEAN UP AND RETURN
-        CmdLineText=empty_string;
-        CmdLineCurrentLine=empty_string;
-        CmdLineUndoList=(WORDPTR)empty_list;
-        return;
-        */
-        // LINE DOESN'T EXIST, ADD AT THE END OF TEXT AS A NEW LINE
-        startline=src;
+    BINT totallen=rplStrSize(CmdLineText);
+    BINT lineoff=rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent);
+    if(lineoff<0) lineoff=totallen;
+    BYTEPTR startline=src+lineoff;
+    lineoff=rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent+1);
+    if(lineoff<0) lineoff=totallen;
+    BYTEPTR endline=src+lineoff;
+    if(endline>startline) {
+        if(*(endline-1)=='\n') --endline;
     }
 
     // COPY ALL PREVIOUS LINES TO NEW OBJECT
@@ -514,12 +544,12 @@ void uiModifyLine()
     // COPY THE NEW LINE TO THE OBJECT
     memmove(dest+(startline-src),(WORDPTR)(CmdLineCurrentLine+1),rplStrSize(CmdLineCurrentLine));
     // COPY THE REST BACK
-    if(endline>=src) {
+    if(endline<src+totallen) {
         // APPEND A NEWLINE AND KEEP GOING
         dest+=startline-src+rplStrSize(CmdLineCurrentLine);
-        *dest++='\n';
-        newsize+=((BYTEPTR)rplSkipOb(CmdLineText))-endline+1;
-        memmove(dest,endline,((BYTEPTR)rplSkipOb(CmdLineText))-endline);
+        newsize+=src+totallen-endline;
+        if(*endline!='\n') { *dest++='\n'; ++newsize; }
+        memmove(dest,endline,src+totallen-endline);
     }
 
     rplSetStringLength(newobj,newsize);
@@ -545,6 +575,10 @@ void uiExtractLine(BINT line)
     }
 
     if(endline<text) endline=text+rplStrSize(CmdLineText);
+    if(endline>startline) {
+        // DO NOT EXTRACT THE FINAL NEWLINE CHARACTER
+        if(*(endline-1)=='\n') --endline;
+    }
 
 
     newobj=rplAllocTempOb( ((endline-startline)+ 3)>>2);
@@ -621,6 +655,11 @@ halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
 // MOVE THE CURSOR LEFT, NCHARS IS GIVEN IN UNICODE CODEPOINTS
 void uiCursorLeft(BINT nchars)
 {
+    BYTEPTR ptr,ptr2,newptr;
+    BINT offset;
+
+
+
     if(halScreen.LineIsModified<0) {
         uiExtractLine(halScreen.LineCurrent);
 
@@ -635,12 +674,75 @@ void uiCursorLeft(BINT nchars)
 
         }
 
-    BYTEPTR ptr=(BYTEPTR )(CmdLineCurrentLine+1),ptr2;
-    BINT offset;
-
+    ptr=(BYTEPTR )(CmdLineCurrentLine+1);
     // AVOID USING OFFSET THAT FALLS BETWEEN BYTES OF THE SAME CODEPOINT
     ptr2=ptr+halScreen.CursorPosition;
-    while(nchars &&(ptr2>ptr)) { ptr2=(BYTEPTR)utf8rskip((char *)ptr2,(char *)ptr); --nchars; }
+
+    while(nchars &&(ptr2>ptr)) {
+        ptr2=(BYTEPTR)utf8rskip((char *)ptr2,(char *)ptr);
+        --nchars;
+    }
+
+    if(nchars) {
+        // THERE'S MORE CHARACTERS LEFT!
+        if(halScreen.LineCurrent==1) {
+            // BEGINNING OF FIRST LINE, NOWHERE ELSE TO GO
+            nchars=0;
+        }
+        else {
+            if(halScreen.LineIsModified>0) {
+                // INSERT THE MODIFIED TEXT BACK INTO ORIGINAL TEXT
+
+                uiModifyLine();
+
+                if(Exceptions) {
+                    throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+                    // CLEAN UP AND RETURN
+                    CmdLineText=(WORDPTR)empty_string;
+                    CmdLineCurrentLine=(WORDPTR)empty_string;
+                    CmdLineUndoList=(WORDPTR)empty_list;
+                    return;
+                }
+
+            }
+
+            // RELOAD VALUES FOR THE WHOLE TEXT
+            offset=rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent);
+            if(offset<0) offset=rplStrSize(CmdLineText);
+            ptr=(BYTEPTR )(CmdLineText+1);
+            ptr2=ptr+offset;    // THIS IS THE BEGINNING OF THE CURRENT LINE
+            while(nchars &&(ptr2>ptr)) {
+                ptr2=(BYTEPTR)utf8rskip((char *)ptr2,(char *)ptr);
+                if(*ptr2=='\n') --halScreen.LineCurrent;
+                --nchars;
+            }
+
+            if(nchars) nchars=0;    // NO MORE TEXT!
+            if(halScreen.LineCurrent<1) halScreen.LineCurrent=1;
+
+            offset=ptr2-uiGetStartOfLine(ptr2,ptr);
+
+            uiExtractLine(halScreen.LineCurrent);
+            if(Exceptions) {
+                throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+                // CLEAN UP AND RETURN
+                CmdLineText=(WORDPTR)empty_string;
+                CmdLineCurrentLine=(WORDPTR)empty_string;
+                CmdLineUndoList=(WORDPTR)empty_list;
+                return;
+            }
+
+            uiMoveCursor(offset);
+
+            halScreen.CursorState&=~0xc000;
+
+            halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
+
+            uiEnsureCursorVisible();
+
+            return;
+        }
+    }
 
     offset=ptr2-ptr;
 
@@ -679,6 +781,74 @@ void uiCursorRight(BINT nchars)
     ptr2=ptr+halScreen.CursorPosition;
     while(nchars &&(ptr2<ptr+len)) { ptr2=(BYTEPTR)utf8skip((char *)ptr2,(char *)ptr+len); --nchars; }
 
+    if(nchars) {
+        // THERE'S MORE CHARACTERS LEFT!
+        BINT totallines=rplStringCountLines(CmdLineText);
+
+        if(halScreen.LineCurrent==totallines) {
+            // LAST LINE, NOWHERE ELSE TO GO
+            nchars=0;
+        }
+        else {
+            if(halScreen.LineIsModified>0) {
+                // INSERT THE MODIFIED TEXT BACK INTO ORIGINAL TEXT
+
+                uiModifyLine();
+
+                if(Exceptions) {
+                    throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+                    // CLEAN UP AND RETURN
+                    CmdLineText=(WORDPTR)empty_string;
+                    CmdLineCurrentLine=(WORDPTR)empty_string;
+                    CmdLineUndoList=(WORDPTR)empty_list;
+                    return;
+                }
+
+            }
+
+            // RELOAD VALUES FOR THE WHOLE TEXT
+            offset=rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent);
+            if(offset<0) offset=rplStrSize(CmdLineText);
+            ptr=(BYTEPTR )(CmdLineText+1);
+            len=rplStrSize(CmdLineText);
+            ptr2=uiGetEndOfLine(ptr+offset,ptr+len);    // THIS IS THE END OF THE CURRENT LINE
+            while(nchars &&(ptr2<ptr+len)) {
+                if(*ptr2=='\n') ++halScreen.LineCurrent;
+                ptr2=(BYTEPTR)utf8skip((char *)ptr2,(char *)ptr+len);
+                --nchars;
+            }
+
+            if(nchars) nchars=0;    // NO MORE TEXT!
+            if(halScreen.LineCurrent>totallines) halScreen.LineCurrent=totallines;
+
+            offset=ptr2-uiGetStartOfLine(ptr2,ptr);
+
+            uiExtractLine(halScreen.LineCurrent);
+            if(Exceptions) {
+                throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+                // CLEAN UP AND RETURN
+                CmdLineText=(WORDPTR)empty_string;
+                CmdLineCurrentLine=(WORDPTR)empty_string;
+                CmdLineUndoList=(WORDPTR)empty_list;
+                return;
+            }
+
+            uiMoveCursor(offset);
+
+            halScreen.CursorState&=~0xc000;
+
+            halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
+
+            uiEnsureCursorVisible();
+
+            return;
+        }
+    }
+
+
+
+
+
     offset=ptr2-ptr;
 
     halScreen.CursorPosition=offset;
@@ -692,6 +862,147 @@ void uiCursorRight(BINT nchars)
     uiEnsureCursorVisible();
 
 }
+
+
+
+// MOVE THE CURSOR DOWN BY NLINES
+void uiCursorDown(BINT nlines)
+{
+BINT totallines=rplStringCountLines(CmdLineText);
+BINT newline=halScreen.LineCurrent+nlines;
+if(newline>totallines) newline=totallines;
+if(newline<1) newline=1;
+
+uiSetCurrentLine(newline);
+
+
+}
+
+// MOVE THE CURSOR UP BY NLINES
+void uiCursorUp(BINT nlines)
+{
+uiCursorDown(-nlines);
+}
+
+
+void uiCursorEndOfLine()
+{
+uiMoveCursor(2147483647);
+uiEnsureCursorVisible();
+}
+
+void uiCursorStartOfLine()
+{
+uiMoveCursor(0);
+uiEnsureCursorVisible();
+
+}
+
+void uiCursorStartOfText()
+{
+uiSetCurrentLine(1);
+uiCursorStartOfLine();
+}
+
+void uiCursorEndOfText()
+{
+    uiSetCurrentLine(rplStringCountLines(CmdLineText));
+    uiCursorEndOfLine();
+}
+
+void uiCursorPageRight()
+{
+    if(halScreen.LineIsModified<0) {
+
+    uiExtractLine(halScreen.LineCurrent);
+
+    if(Exceptions) {
+        throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+        // CLEAN UP AND RETURN
+        CmdLineText=(WORDPTR)empty_string;
+        CmdLineCurrentLine=(WORDPTR)empty_string;
+        CmdLineUndoList=(WORDPTR)empty_list;
+        return;
+    }
+    }
+
+// POSITION THE CURSOR TRYING TO PRESERVE THE X COORDINATE
+
+BINT len=rplStrSize(CmdLineCurrentLine);
+BINT targetx=halScreen.CursorX+SCREEN_WIDTH;
+BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1);
+BYTEPTR ptr2=StringCoordToPointer((char *)ptr,(char *)ptr+len,halScreen.CmdLineFont,&targetx);
+
+halScreen.CursorX=targetx;
+halScreen.CursorPosition=ptr2-ptr;
+
+uiEnsureCursorVisible();
+
+// UNLOCK CURSOR
+halScreen.CursorState&=~0xc000;
+
+halScreen.DirtyFlag|=CMDLINE_CURSORDIRTY|CMDLINE_LINEDIRTY;
+
+}
+
+
+void uiCursorPageLeft()
+{
+    if(halScreen.LineIsModified<0) {
+
+    uiExtractLine(halScreen.LineCurrent);
+
+    if(Exceptions) {
+        throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+        // CLEAN UP AND RETURN
+        CmdLineText=(WORDPTR)empty_string;
+        CmdLineCurrentLine=(WORDPTR)empty_string;
+        CmdLineUndoList=(WORDPTR)empty_list;
+        return;
+    }
+    }
+
+// POSITION THE CURSOR TRYING TO PRESERVE THE X COORDINATE
+
+BINT len=rplStrSize(CmdLineCurrentLine);
+BINT targetx=halScreen.CursorX-SCREEN_WIDTH;
+BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1);
+BYTEPTR ptr2=StringCoordToPointer((char *)ptr,(char *)ptr+len,halScreen.CmdLineFont,&targetx);
+
+halScreen.CursorX=targetx;
+halScreen.CursorPosition=ptr2-ptr;
+
+uiEnsureCursorVisible();
+
+// UNLOCK CURSOR
+halScreen.CursorState&=~0xc000;
+
+halScreen.DirtyFlag|=CMDLINE_CURSORDIRTY|CMDLINE_LINEDIRTY;
+
+}
+
+
+void uiCursorPageUp()
+{
+    BINT linesperpage=halScreen.NumLinesVisible;
+
+    if(linesperpage<6) linesperpage=6;
+
+    uiCursorDown(-linesperpage);
+
+}
+
+void uiCursorPageDown()
+{
+    BINT linesperpage=halScreen.NumLinesVisible;
+
+    if(linesperpage<6) linesperpage=6;
+
+    uiCursorDown(linesperpage);
+
+}
+
+
 
 // FIND THE START OF A NUMBER IN THE COMMAND LINE, ONLY USED BY +/- ROUTINE
 BYTEPTR uiFindNumberStart()
@@ -759,4 +1070,27 @@ BYTEPTR uiFindNumberStart()
 
     if(start>=end) return NULL;  // THERE WAS NO NUMBER
     return start;
+}
+
+// ADD OR SUBTRACT VISIBLE LINES TO THE OPEN COMMAND LINE
+void uiStretchCmdLine(BINT addition)
+{
+
+    if(!(halScreen.CmdLineState&CMDSTATE_OPEN)) return;
+
+    if(halScreen.CmdLineState&CMDSTATE_FULLSCREEN) return;
+
+    halScreen.NumLinesVisible+=addition;
+    if(halScreen.NumLinesVisible<1) halScreen.NumLinesVisible=1;
+
+    halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight*halScreen.NumLinesVisible+2);
+    if(halScreen.CmdLine!=halScreen.CmdLineFont->BitmapHeight*halScreen.NumLinesVisible+2) {
+        // NO ROOM, ADJUST NUMBER OF VISIBLE LINES
+        BINT actuallines=(halScreen.CmdLine-2)/halScreen.CmdLineFont->BitmapHeight;
+        halScreen.NumLinesVisible=actuallines;
+        if(halScreen.NumLinesVisible<1) halScreen.NumLinesVisible=1;
+    }
+
+
+
 }
