@@ -488,14 +488,30 @@ void halRedrawStatus(DRAWSURFACE *scr)
 
 
 
-    if(halScreen.CmdLineState&CMDSTATE_ACACTIVE) {
+    if( halScreen.CmdLineState&CMDSTATE_ACACTIVE) {
+        BYTEPTR namest;
+        BYTEPTR nameend;
+        if(halScreen.ACSuggestion!=0) {
         // DISPLAY THE CURRENTLY SELECTED AUTOCOMPLETE COMMAND IN THE
         // SECOND LINE
-
+        if(!Exceptions) {
+        // BUT ONLY IF THERE WERE NO ERRORS
         BINT y=ytop+halScreen.CmdLineFont->BitmapHeight;
         // FOR NOW JUST DISPLAY THE SELECTED TOKEN
+        WORDPTR cmdname=rplDecompile(&halScreen.ACSuggestion,0);
+        if( (!cmdname) || Exceptions) {
+            // JUST IGNORE, CLEAR EXCEPTIONS AND RETURN;
+            Exceptions=0;
+            halScreen.DirtyFlag&=~STAREA_DIRTY;
+            return;
+        }
 
-        DrawTextBkN(STATUSAREA_X+2,y,(char *)uiAutocompStringStart(),(char *)uiAutocompStringEnd(),(UNIFONT *)halScreen.StAreaFont,0xf,0x0,scr);
+        namest=(BYTEPTR)(cmdname+1);
+        nameend=namest+rplStrSize(cmdname);
+        DrawTextBkN(STATUSAREA_X+2,y,namest,nameend,(UNIFONT *)halScreen.StAreaFont,0xf,0x0,scr);
+
+        }
+        }
 
     }
 

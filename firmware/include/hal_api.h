@@ -147,11 +147,12 @@ typedef struct {
     int LineVisible,LineCurrent,LineIsModified;
     int NumLinesVisible;    // HEIGHT OF COMMAND LINE AREA IN LINES OF TEXT
     int CursorState;    // Lowercase, Uppercase, Token, VISIBLE OR INVISIBLE
-    int ACTokenStart;   // START OF TOKEN FOR AUTO COMPLETE, OFFSET FROM START OF LINE
     int CursorPosition; // OFFSET FROM START OF CURRENT LINE
     int CursorX,XVisible;
     int SelectionStart,SelectionEnd;
     int CmdLineState;   // STATUS FLAGS FOR THE COMMAND LINE
+    int ACTokenStart;   // START OF TOKEN FOR AUTO COMPLETE, OFFSET FROM START OF LINE
+    WORD ACSuggestion;  // CURRENT SUGGESTED OPCODE
 
     // VARIABLES FOR USER INTERFACE
     int KeyContext;

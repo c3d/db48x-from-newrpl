@@ -83,6 +83,8 @@ extern void uiRemoveCharacters(BINT length);
 
 extern void uiStretchCmdLine(BINT addition);
 extern void uiAutocompleteUpdate();
+extern void uiAutocompNext();
+
 extern BYTEPTR uiAutocompStringStart();
 extern BYTEPTR uiAutocompStringEnd();
 

@@ -46,6 +46,8 @@ WORD rplGetNextSuggestion(WORD suggestion,BYTEPTR *start,BYTEPTR *end)
 
     libcnt=rplGetNextLib(MAXLIBNUMBER+1);
 
+    SuggestedOpcode=0xffffffff;
+
     // RESTART FROM THE TOP IF THERE WAS A PREVIOUS SUGGESTION
     // COULD RETURN THE SAME SUGGESTION IF THERE WAS ONLY ONE
     } while(suggestion--);

@@ -924,6 +924,22 @@ void rsdownKeyHandler(BINT keymsg)
     }
 }
 
+void alphaholddownKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: ??
+            }
+        // TODO: ADD OTHER CONTEXTS HERE
+    }
+
+    else {
+        // GO UP ONE LINE IN MULTILINE TEXT EDITOR
+        uiAutocompNext();
+    }
+}
 
 
 void upKeyHandler(BINT keymsg)
@@ -1574,6 +1590,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_DN|SHIFT_RSHOLD, CONTEXT_ANY,&rsholddownKeyHandler },
     { KM_PRESS|KB_DN|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsdownKeyHandler },
     { KM_PRESS|KB_DN|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholddownKeyHandler },
+    { KM_PRESS|KB_DN|SHIFT_ALPHAHOLD|SHIFT_ALPHA, CONTEXT_ANY,&alphaholddownKeyHandler },
 
 
 

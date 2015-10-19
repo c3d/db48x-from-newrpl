@@ -1155,10 +1155,43 @@ void uiAutocompleteUpdate()
     if(tokptr==end) halScreen.CmdLineState&=~(CMDSTATE_ACACTIVE|CMDSTATE_ACUPDATE);
     else halScreen.CmdLineState|=CMDSTATE_ACUPDATE|CMDSTATE_ACACTIVE;
 
+    halScreen.ACSuggestion=rplGetNextSuggestion(-1,tokptr,end);
+
     if(oldstate || (oldstate!=(halScreen.CmdLineState&CMDSTATE_ACACTIVE))) halScreen.DirtyFlag|=STAREA_DIRTY;
 
 
 }
+
+
+void uiAutocompNext()
+{
+    if(halScreen.CmdLineState&CMDSTATE_ACACTIVE) {
+
+    if(halScreen.LineIsModified<0) {
+        uiExtractLine(halScreen.LineCurrent);
+
+        if(Exceptions) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            CmdLineText=(WORDPTR)empty_string;
+            CmdLineCurrentLine=(WORDPTR)empty_string;
+            CmdLineUndoList=(WORDPTR)empty_list;
+            return NULL;
+        }
+
+        }
+
+
+    BYTEPTR start=(BYTEPTR)(CmdLineCurrentLine+1);
+    BYTEPTR end=start+halScreen.CursorPosition;
+
+    halScreen.ACSuggestion=rplGetNextSuggestion(halScreen.ACSuggestion,start+halScreen.ACTokenStart,end);
+    halScreen.CmdLineState|=CMDSTATE_ACUPDATE;
+    halScreen.DirtyFlag|=STAREA_DIRTY;
+    }
+
+}
+
 
 BYTEPTR uiAutocompStringStart()
 {
