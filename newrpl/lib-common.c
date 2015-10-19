@@ -198,7 +198,7 @@ void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds)
 
     RetNum=ERR_NOTMINE;
 }
-
+/*
 void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds)
 {
     // TokenStart = token string
@@ -238,3 +238,4 @@ void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds)
 
     RetNum=ERR_NOTMINE;
 }
+*/

@@ -486,8 +486,37 @@ void halRedrawStatus(DRAWSURFACE *scr)
     int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     ggl_cliprect(scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
+
+
+    if( halScreen.CmdLineState&CMDSTATE_ACACTIVE) {
+        BYTEPTR namest;
+        BYTEPTR nameend;
+        if(halScreen.ACSuggestion!=0) {
+        // DISPLAY THE CURRENTLY SELECTED AUTOCOMPLETE COMMAND IN THE
+        // SECOND LINE
+        if(!Exceptions) {
+        // BUT ONLY IF THERE WERE NO ERRORS
+        BINT y=ytop+halScreen.CmdLineFont->BitmapHeight;
+        // FOR NOW JUST DISPLAY THE SELECTED TOKEN
+        WORDPTR cmdname=rplDecompile(&halScreen.ACSuggestion,0);
+        if( (!cmdname) || Exceptions) {
+            // JUST IGNORE, CLEAR EXCEPTIONS AND RETURN;
+            Exceptions=0;
+            halScreen.DirtyFlag&=~STAREA_DIRTY;
+            return;
+        }
+
+        namest=(BYTEPTR)(cmdname+1);
+        nameend=namest+rplStrSize(cmdname);
+        DrawTextBkN(STATUSAREA_X+2,y,namest,nameend,(UNIFONT *)halScreen.StAreaFont,0xf,0x0,scr);
+
+        }
+        }
+
     }
-    // TODO: SHOW THE CURRENT DIR, ETC. HERE
+
+
+    }
 
     halScreen.DirtyFlag&=~STAREA_DIRTY;
 

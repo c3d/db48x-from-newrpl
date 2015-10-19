@@ -81,6 +81,14 @@ extern void uiInsertCharacters(BYTEPTR string);
 extern void uiInsertCharactersN(BYTEPTR string,BYTEPTR end);
 extern void uiRemoveCharacters(BINT length);
 
+extern void uiStretchCmdLine(BINT addition);
+extern void uiAutocompleteUpdate();
+extern void uiAutocompNext();
+
+extern BYTEPTR uiAutocompStringStart();
+extern BYTEPTR uiAutocompStringEnd();
+
+
 extern void uiSeparateToken();
 
 extern void uiMoveCursor(BINT offset);

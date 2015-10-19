@@ -1094,3 +1094,233 @@ void uiStretchCmdLine(BINT addition)
 
 
 }
+
+// CALL THIS FUNCTION WHENEVER THE COMMAND LINE CHANGES, TO INDICATE THE
+// AUTOCOMPLETE FUNCTION NEEDS TO BE UPDATED
+void uiAutocompleteUpdate()
+{
+    // LOOK AT THE TEXT TO THE LEFT OF THE CURSOR FOR A TOKEN
+    // THEN START A NEW SEARCH
+
+    if(halScreen.LineIsModified<0) {
+        uiExtractLine(halScreen.LineCurrent);
+
+        if(Exceptions) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            CmdLineText=(WORDPTR)empty_string;
+            CmdLineCurrentLine=(WORDPTR)empty_string;
+            CmdLineUndoList=(WORDPTR)empty_list;
+            return;
+        }
+
+        }
+
+
+    BYTEPTR start=(BYTEPTR)(CmdLineCurrentLine+1);
+    BYTEPTR end=start+halScreen.CursorPosition;
+    BYTEPTR ptr,tokptr=utf8rskip(end,start);
+    BINT char1,char2;
+    // THESE ARE CHARACTERS THAT WOULD STOP A TOKEN SEARCH
+    const char const forbiddenChars[]="{}[]()#;:, \"\'_`@|«»";  // OUTSIDE OF ALG. MODE
+    const char const algforbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@|√«»≤≥≠→∡"; // IN ALG. MODE
+
+    char *forbstring=( (halScreen.CursorState&0xff)=='A')? algforbiddenChars:forbiddenChars;
+
+
+    while(tokptr>=start) {
+        ptr=(BYTEPTR )forbstring;
+        char1=utf82char((char *)tokptr,(char *)end);
+        do {
+        char2=utf82char((char *)ptr,(char *)ptr+4);
+        if(char1==char2) {
+            tokptr=utf8skip(tokptr,end);
+            break;
+        }
+        ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)ptr+4);
+        } while(*ptr);
+        if(*ptr) {
+            // WE FOUND THE START OF THE TOKEN
+            break;
+        }
+        if(tokptr>start) tokptr=(BYTEPTR)utf8rskip((char *)tokptr,(char *)start);
+        else --tokptr;
+
+    }
+    if(tokptr<start) tokptr=start;
+
+    // HERE WE HAVE THE ISOLATED TOKEN WE WANT TO AUTOCOMPLETE
+    halScreen.ACTokenStart=tokptr-start;
+    BINT oldstate=halScreen.CmdLineState&CMDSTATE_ACACTIVE;
+    if(tokptr==end) halScreen.CmdLineState&=~(CMDSTATE_ACACTIVE|CMDSTATE_ACUPDATE);
+    else halScreen.CmdLineState|=CMDSTATE_ACUPDATE|CMDSTATE_ACACTIVE;
+
+    halScreen.ACSuggestion=rplGetNextSuggestion(-1,tokptr,end);
+
+    if(oldstate || (oldstate!=(halScreen.CmdLineState&CMDSTATE_ACACTIVE))) halScreen.DirtyFlag|=STAREA_DIRTY;
+
+
+}
+
+
+void uiAutocompNext()
+{
+    if(halScreen.CmdLineState&CMDSTATE_ACACTIVE) {
+
+    if(halScreen.LineIsModified<0) {
+        uiExtractLine(halScreen.LineCurrent);
+
+        if(Exceptions) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            CmdLineText=(WORDPTR)empty_string;
+            CmdLineCurrentLine=(WORDPTR)empty_string;
+            CmdLineUndoList=(WORDPTR)empty_list;
+            return;
+        }
+
+        }
+
+
+    BYTEPTR start=(BYTEPTR)(CmdLineCurrentLine+1);
+    BYTEPTR end=start+halScreen.CursorPosition;
+
+    halScreen.ACSuggestion=rplGetNextSuggestion(halScreen.ACSuggestion,start+halScreen.ACTokenStart,end);
+    //if(!halScreen.ACSuggestion) halScreen.ACSuggestion=rplGetNextSuggestion(halScreen.ACSuggestion,start+halScreen.ACTokenStart,end);
+
+    halScreen.CmdLineState|=CMDSTATE_ACUPDATE;
+    halScreen.DirtyFlag|=STAREA_DIRTY;
+    }
+
+}
+
+void uiAutocompPrev()
+{
+    if(halScreen.CmdLineState&CMDSTATE_ACACTIVE) {
+
+    if(halScreen.LineIsModified<0) {
+        uiExtractLine(halScreen.LineCurrent);
+
+        if(Exceptions) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            CmdLineText=(WORDPTR)empty_string;
+            CmdLineCurrentLine=(WORDPTR)empty_string;
+            CmdLineUndoList=(WORDPTR)empty_list;
+            return;
+        }
+
+        }
+
+
+    BYTEPTR start=(BYTEPTR)(CmdLineCurrentLine+1);
+    BYTEPTR end=start+halScreen.CursorPosition;
+
+    halScreen.ACSuggestion=rplGetPrevSuggestion(halScreen.ACSuggestion,start+halScreen.ACTokenStart,end);
+
+    halScreen.CmdLineState|=CMDSTATE_ACUPDATE;
+    halScreen.DirtyFlag|=STAREA_DIRTY;
+    }
+
+}
+
+// INSERT THE CURRENT SUGGESTION IN THE COMMAND LINE
+
+void uiAutocompInsert()
+{
+    if(halScreen.ACSuggestion!=0) {
+    BYTEPTR tokstart=uiAutocompStringStart();
+    BYTEPTR tokend=uiAutocompStringEnd();
+
+    WORDPTR cmdname=rplDecompile(&halScreen.ACSuggestion,0);
+    BYTEPTR namest=(BYTEPTR)(cmdname+1);
+    BYTEPTR nameend=namest+rplStrSize(cmdname);
+
+    if( (!cmdname) || Exceptions) {
+        // JUST IGNORE, CLEAR EXCEPTIONS AND RETURN;
+        Exceptions=0;
+        return;
+    }
+
+
+    // MOVE THE CURSOR TO THE START OF THE TOKEN;
+    BINT nchars=0;
+    while(tokstart!=tokend) { ++nchars; tokstart=utf8skip(tokstart,tokend); }
+
+    uiCursorLeft(nchars);
+    uiInsertCharactersN(namest,nameend);
+    uiRemoveCharacters(nchars);
+
+
+    }
+
+}
+
+
+
+BYTEPTR uiAutocompStringStart()
+{
+    if(halScreen.LineIsModified<0) {
+        uiExtractLine(halScreen.LineCurrent);
+
+        if(Exceptions) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            CmdLineText=(WORDPTR)empty_string;
+            CmdLineCurrentLine=(WORDPTR)empty_string;
+            CmdLineUndoList=(WORDPTR)empty_list;
+            return NULL;
+        }
+
+        }
+
+    BYTEPTR start=(BYTEPTR)(CmdLineCurrentLine+1);
+    BYTEPTR end=start+halScreen.CursorPosition;
+
+    return start+halScreen.ACTokenStart;
+}
+
+
+BYTEPTR uiAutocompStringEnd()
+{
+    if(halScreen.LineIsModified<0) {
+        uiExtractLine(halScreen.LineCurrent);
+
+        if(Exceptions) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            CmdLineText=(WORDPTR)empty_string;
+            CmdLineCurrentLine=(WORDPTR)empty_string;
+            CmdLineUndoList=(WORDPTR)empty_list;
+            return NULL;
+        }
+
+        }
+
+    BYTEPTR start=(BYTEPTR)(CmdLineCurrentLine+1);
+    BYTEPTR end=start+halScreen.CursorPosition;
+
+    return end;
+}
+
+BYTEPTR uiAutocompStringTokEnd()
+{
+    if(halScreen.LineIsModified<0) {
+        uiExtractLine(halScreen.LineCurrent);
+
+        if(Exceptions) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            CmdLineText=(WORDPTR)empty_string;
+            CmdLineCurrentLine=(WORDPTR)empty_string;
+            CmdLineUndoList=(WORDPTR)empty_list;
+            return NULL;
+        }
+
+        }
+
+    BYTEPTR start=(BYTEPTR)(CmdLineCurrentLine+1);
+    BYTEPTR end=start+halScreen.CursorPosition;
+
+    return end;
+}

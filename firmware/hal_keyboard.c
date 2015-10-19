@@ -156,6 +156,9 @@ void halSwapCmdLineMode(BINT isalpha)
     }
     else {
         if(!isalpha) return;
+        // LOCK CAPS MODE WHEN ENTERING ALPHA MODE
+        tmp&=0x00ffffff;
+        tmp|='C'<<24;
     }
     halScreen.CursorState&=0x00ffff00;
     halScreen.CursorState|=tmp<<24;
@@ -309,6 +312,7 @@ void numberKeyHandler(BINT keymsg)
         break;
     }
         uiInsertCharactersN((BYTEPTR) &number,((BYTEPTR) &number)+1);
+        uiAutocompleteUpdate();
 
 }
 
@@ -375,6 +379,7 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
             uiSeparateToken();
             uiInsertCharacters(Progmode);
             uiSeparateToken();
+            uiAutocompleteUpdate();
             break;
 
         case 'L':
@@ -386,6 +391,7 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
                 uiInsertCharacters((BYTEPTR)"()");
                 uiCursorLeft(1);
             }
+            uiAutocompleteUpdate();
             }
             break;
         default:
@@ -488,6 +494,7 @@ void varsKeyHandler(BINT keymsg,BINT varnum)
                 uiInsertCharactersN((BYTEPTR)(*var+1),(BYTEPTR)(*var+1)+rplGetIdentLength(*var));
                 uiInsertCharacters((BYTEPTR)"' STO");
                 uiSeparateToken();
+                uiAutocompleteUpdate();
                 break;
             }
 
@@ -518,6 +525,7 @@ void varsKeyHandler(BINT keymsg,BINT varnum)
                     uiInsertCharactersN((BYTEPTR)(*var+1),(BYTEPTR)(*var+1)+rplGetIdentLength(*var));
                      uiInsertCharacters((BYTEPTR)"' RCL");
                     uiSeparateToken();
+                    uiAutocompleteUpdate();
                     break;
                 }
             } else {
@@ -544,6 +552,7 @@ void varsKeyHandler(BINT keymsg,BINT varnum)
                 {
                     // JUST INSERT THE NAME
                     uiInsertCharactersN((BYTEPTR)(*var+1),(BYTEPTR)(*var+1)+rplGetIdentLength(*var));
+                    uiAutocompleteUpdate();
                     break;
                 }
                 case 'P':
@@ -552,6 +561,7 @@ void varsKeyHandler(BINT keymsg,BINT varnum)
                     uiSeparateToken();
                     uiInsertCharactersN((BYTEPTR)(*var+1),(BYTEPTR)(*var+1)+rplGetIdentLength(*var));
                     uiSeparateToken();
+                    uiAutocompleteUpdate();
                     break;
                 }
                 }
@@ -583,6 +593,7 @@ if(!(halGetContext()&CONTEXT_INEDITOR)) {
     uiInsertCharacters(symbol);
 
     if(separate && ((halScreen.CursorState&0xff)=='P')) uiSeparateToken();
+    uiAutocompleteUpdate();
 
 }
 
@@ -597,6 +608,7 @@ if(!(halGetContext()&CONTEXT_INEDITOR)) {
 
     if(halGetCmdLineMode()=='L') uiInsertCharacters(Lsymbol);
     if(halGetCmdLineMode()=='C') uiInsertCharacters(Csymbol);
+    uiAutocompleteUpdate();
 
 }
 
@@ -630,6 +642,7 @@ void newlineKeyHandler(BINT keymsg)
 
     // AND MOVE THE CURSOR OVER TO THE NEXT LINE
     uiCursorRight(1);
+    uiAutocompleteUpdate();
 
 }
 
@@ -703,6 +716,7 @@ void backspKeyHandler(BINT keymsg)
         // TODO: IMPLEMENT THIS!
         uiCursorLeft(1);
         uiRemoveCharacters(1);
+        uiAutocompleteUpdate();
     }
 }
 
@@ -731,6 +745,7 @@ void leftKeyHandler(BINT keymsg)
     }
     else{
         uiCursorLeft(1);
+        uiAutocompleteUpdate();
     }
 }
 
@@ -749,6 +764,7 @@ void rsleftKeyHandler(BINT keymsg)
     }
     else{
         uiCursorStartOfLine();
+        uiAutocompleteUpdate();
     }
 }
 
@@ -766,6 +782,7 @@ void rsholdleftKeyHandler(BINT keymsg)
     }
     else{
         uiCursorPageLeft();
+        uiAutocompleteUpdate();
     }
 }
 
@@ -790,6 +807,7 @@ void rightKeyHandler(BINT keymsg)
     }
     else{
         uiCursorRight(1);
+        uiAutocompleteUpdate();
     }
 }
 
@@ -808,6 +826,7 @@ void rsrightKeyHandler(BINT keymsg)
     }
     else{
         uiCursorEndOfLine();
+        uiAutocompleteUpdate();
     }
 }
 
@@ -825,10 +844,27 @@ void rsholdrightKeyHandler(BINT keymsg)
     }
     else{
         uiCursorPageRight();
+        uiAutocompleteUpdate();
     }
 }
 
+void alphaholdrightKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
 
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: ??
+            }
+        // TODO: ADD OTHER CONTEXTS HERE
+    }
+
+    else {
+        // GO UP ONE LINE IN MULTILINE TEXT EDITOR
+        uiAutocompInsert();
+        uiAutocompleteUpdate();
+    }
+}
 
 void downKeyHandler(BINT keymsg)
 {
@@ -866,6 +902,7 @@ void downKeyHandler(BINT keymsg)
     else {
         // GO DOWN ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorDown(1);
+        uiAutocompleteUpdate();
     }
 }
 
@@ -884,6 +921,7 @@ void rsholddownKeyHandler(BINT keymsg)
     else {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorPageDown();
+        uiAutocompleteUpdate();
     }
 }
 
@@ -901,9 +939,26 @@ void rsdownKeyHandler(BINT keymsg)
     else {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorEndOfText();
+        uiAutocompleteUpdate();
     }
 }
 
+void alphaholddownKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: ??
+            }
+        // TODO: ADD OTHER CONTEXTS HERE
+    }
+
+    else {
+        // GO UP ONE LINE IN MULTILINE TEXT EDITOR
+        uiAutocompNext();
+    }
+}
 
 
 void upKeyHandler(BINT keymsg)
@@ -920,6 +975,7 @@ void upKeyHandler(BINT keymsg)
     else {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorUp(1);
+        uiAutocompleteUpdate();
     }
 }
 
@@ -938,6 +994,7 @@ void rsholdupKeyHandler(BINT keymsg)
     else {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorPageUp();
+        uiAutocompleteUpdate();
     }
 }
 
@@ -955,10 +1012,27 @@ void rsupKeyHandler(BINT keymsg)
     else {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorStartOfText();
+        uiAutocompleteUpdate();
     }
 }
 
 
+void alphaholdupKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: ??
+            }
+        // TODO: ADD OTHER CONTEXTS HERE
+    }
+
+    else {
+        // GO UP ONE LINE IN MULTILINE TEXT EDITOR
+        uiAutocompPrev();
+    }
+}
 
 
 
@@ -993,7 +1067,7 @@ void chsKeyHandler(BINT keymsg)
             if(startnum>line) {
             if(startnum[-1]=='+') { startnum[-1]='-'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
             if(startnum[-1]=='-') { startnum[-1]='+'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
-            if((startnum[-1]=='E')||(startnum[-1]=='e') ) { uiInsertCharacters((BYTEPTR)"-"); return; }
+            if((startnum[-1]=='E')||(startnum[-1]=='e') ) { uiInsertCharacters((BYTEPTR)"-"); uiAutocompleteUpdate(); return; }
 
 
             }
@@ -1018,11 +1092,13 @@ void chsKeyHandler(BINT keymsg)
                 uiSeparateToken();
                 uiInsertCharacters((BYTEPTR)"NEG");
                 uiSeparateToken();
+                uiAutocompleteUpdate();
             return;
             }
 
             if((halScreen.CursorState&0xff)=='A') {
                 uiInsertCharacters((BYTEPTR)"-");
+                uiAutocompleteUpdate();
             return;
             }
 
@@ -1041,6 +1117,7 @@ void chsKeyHandler(BINT keymsg)
             uiInsertCharacters((BYTEPTR)"-");
             uiMoveCursor(oldposition+1);
             uiEnsureCursorVisible();
+            uiAutocompleteUpdate();
             return;
       }
 
@@ -1059,6 +1136,7 @@ void eexKeyHandler(BINT keymsg)
             if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
             else uiOpenCmdLine('D');
             uiInsertCharacters((BYTEPTR)"1E");
+            uiAutocompleteUpdate();
             return;
         }
 
@@ -1080,6 +1158,7 @@ void eexKeyHandler(BINT keymsg)
 
             // SECOND CASE: IF TOKEN UNDER CURSOR IS EMPTY, IN 'D' MODE COMPILE OBJECT AND THEN APPEND 1E
             uiInsertCharacters((BYTEPTR)"1E");
+            uiAutocompleteUpdate();
             return;
         }
         else {
@@ -1090,6 +1169,7 @@ void eexKeyHandler(BINT keymsg)
                 uiMoveCursor(startnum-line);
                 // TODO: SELECT THE EXISTING NUMBER FOR DELETION ON NEXT KEYPRESS
                 uiEnsureCursorVisible();
+                uiAutocompleteUpdate();
                 return;
             }
 
@@ -1098,6 +1178,7 @@ void eexKeyHandler(BINT keymsg)
             uiInsertCharacters((BYTEPTR)"E");
             uiMoveCursor(oldposition+1);
             uiEnsureCursorVisible();
+            uiAutocompleteUpdate();
             return;
       }
 
@@ -1118,6 +1199,7 @@ void bracketKeyHandler(BINT keymsg,BYTEPTR string)
     BYTEPTR end=string+stringlen((char *)string);
     uiInsertCharactersN(string,end);
     uiCursorLeft(utf8nlen((char *)string,(char *)end)>>1);
+    uiAutocompleteUpdate();
 
 }
 
@@ -1255,7 +1337,7 @@ void shiftedalphaKeyHandler(BINT keymsg)
         halScreen.DirtyFlag|=CMDLINE_CURSORDIRTY;
         break;
     case 'A':
-        halSetCmdLineMode('D');
+        halSetCmdLineMode('P');
         halScreen.DirtyFlag|=CMDLINE_CURSORDIRTY;
         break;
     }
@@ -1534,15 +1616,19 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_RT|SHIFT_RSHOLD, CONTEXT_ANY,&rsholdrightKeyHandler },
     { KM_PRESS|KB_RT|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsrightKeyHandler },
     { KM_PRESS|KB_RT|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholdrightKeyHandler },
+    { KM_PRESS|KB_RT|SHIFT_ALPHAHOLD, CONTEXT_ANY,&alphaholdrightKeyHandler },
 
     { KM_PRESS|KB_UP|SHIFT_RS, CONTEXT_ANY,&rsupKeyHandler },
     { KM_PRESS|KB_UP|SHIFT_RSHOLD, CONTEXT_ANY,&rsholdupKeyHandler },
     { KM_PRESS|KB_UP|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsupKeyHandler },
     { KM_PRESS|KB_UP|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholdupKeyHandler },
+    { KM_PRESS|KB_UP|SHIFT_ALPHAHOLD|SHIFT_ALPHA, CONTEXT_ANY,&alphaholdupKeyHandler },
+
     { KM_PRESS|KB_DN|SHIFT_RS, CONTEXT_ANY,&rsdownKeyHandler },
     { KM_PRESS|KB_DN|SHIFT_RSHOLD, CONTEXT_ANY,&rsholddownKeyHandler },
     { KM_PRESS|KB_DN|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsdownKeyHandler },
     { KM_PRESS|KB_DN|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholddownKeyHandler },
+    { KM_PRESS|KB_DN|SHIFT_ALPHAHOLD|SHIFT_ALPHA, CONTEXT_ANY,&alphaholddownKeyHandler },
 
 
 

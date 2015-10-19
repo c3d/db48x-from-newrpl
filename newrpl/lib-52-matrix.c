@@ -1538,6 +1538,9 @@ void LIB_HANDLER()
         RetNum=OK_CONTINUE;
         return;
 
+    case OPCODE_AUTOCOMPNEXT:
+        libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
+        return;
 
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;
