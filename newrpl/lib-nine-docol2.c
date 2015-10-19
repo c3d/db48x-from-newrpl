@@ -1178,6 +1178,9 @@ void LIB_HANDLER()
         return;
 
 
+    case OPCODE_AUTOCOMPNEXT:
+        libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
+        return;
 
 
     case OPCODE_LIBINSTALL:

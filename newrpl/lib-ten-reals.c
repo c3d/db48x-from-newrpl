@@ -16,7 +16,7 @@
 // MAIN LIBRARY NUMBER, CHANGE THIS FOR EACH LIBRARY
 #define LIBRARY_NUMBER  10
 #define LIB_ENUM lib10_enum
-#define LIB_NAMES lib10 _names
+#define LIB_NAMES lib10_names
 #define LIB_HANDLER lib10_handler
 #define LIB_NUMBEROFCMDS LIB10_NUMBEROFCMDS
 
@@ -758,6 +758,10 @@ void LIB_HANDLER()
         return;
 
 
+    case OPCODE_AUTOCOMPNEXT:
+        //libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
+        RetNum=ERR_NOTMINE;
+        return;
 
 
     case OPCODE_LIBINSTALL:

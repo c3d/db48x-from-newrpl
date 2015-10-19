@@ -473,9 +473,6 @@ void LIB_HANDLER()
     case OPCODE_AUTOCOMPNEXT:
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         return;
-    case OPCODE_AUTOCOMPPREV:
-        libAutoCompletePrev(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
-        return;
 
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;

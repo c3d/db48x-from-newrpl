@@ -239,6 +239,32 @@ void LIB_HANDLER()
         RetNum=OK_CONTINUE;
         return;
 
+    case OPCODE_AUTOCOMPNEXT:
+    {
+        BINT idx;
+        do {
+        if(LIBNUM(SuggestedOpcode)==LIBRARY_NUMBER) {
+            // CONVERT OPCODE INTO INDEX
+            BINT k;
+
+            for(k=0;k<LIB_NUMCMDS;++k)
+            {
+                if(LIB_OPCODES[k]==OPCODE(SuggestedOpcode)) break;
+            }
+            if(k==LIB_NUMCMDS) { RetNum=ERR_NOTMINE; return; }
+            SuggestedOpcode=MKOPCODE(LIBRARY_NUMBER,k);
+        }
+
+        libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMCMDS);
+        // DO SOME POST-PROCESSING DUE TO DIFFERENT HANDLING OF DATA IN THIS LIBRARY
+        if(RetNum==OK_CONTINUE) {
+            idx=OPCODE(SuggestedOpcode);
+            SuggestedOpcode=MKOPCODE(LIBRARY_NUMBER,LIB_OPCODES[idx]);
+        } else idx=0;
+        } while(idx==4);    // NEVER OFFER 'FUNCEVAL' FOR AUTOCOMPLETE
+
+        return;
+    }
 
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;

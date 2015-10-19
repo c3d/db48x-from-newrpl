@@ -156,6 +156,9 @@ void halSwapCmdLineMode(BINT isalpha)
     }
     else {
         if(!isalpha) return;
+        // LOCK CAPS MODE WHEN ENTERING ALPHA MODE
+        tmp&=0x00ffffff;
+        tmp|='C'<<24;
     }
     halScreen.CursorState&=0x00ffff00;
     halScreen.CursorState|=tmp<<24;
@@ -845,7 +848,23 @@ void rsholdrightKeyHandler(BINT keymsg)
     }
 }
 
+void alphaholdrightKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
 
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: ??
+            }
+        // TODO: ADD OTHER CONTEXTS HERE
+    }
+
+    else {
+        // GO UP ONE LINE IN MULTILINE TEXT EDITOR
+        uiAutocompInsert();
+        uiAutocompleteUpdate();
+    }
+}
 
 void downKeyHandler(BINT keymsg)
 {
@@ -998,6 +1017,22 @@ void rsupKeyHandler(BINT keymsg)
 }
 
 
+void alphaholdupKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()==CONTEXT_STACK) {
+            // TODO: ??
+            }
+        // TODO: ADD OTHER CONTEXTS HERE
+    }
+
+    else {
+        // GO UP ONE LINE IN MULTILINE TEXT EDITOR
+        uiAutocompPrev();
+    }
+}
 
 
 
@@ -1302,7 +1337,7 @@ void shiftedalphaKeyHandler(BINT keymsg)
         halScreen.DirtyFlag|=CMDLINE_CURSORDIRTY;
         break;
     case 'A':
-        halSetCmdLineMode('D');
+        halSetCmdLineMode('P');
         halScreen.DirtyFlag|=CMDLINE_CURSORDIRTY;
         break;
     }
@@ -1581,11 +1616,14 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_RT|SHIFT_RSHOLD, CONTEXT_ANY,&rsholdrightKeyHandler },
     { KM_PRESS|KB_RT|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsrightKeyHandler },
     { KM_PRESS|KB_RT|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholdrightKeyHandler },
+    { KM_PRESS|KB_RT|SHIFT_ALPHAHOLD, CONTEXT_ANY,&alphaholdrightKeyHandler },
 
     { KM_PRESS|KB_UP|SHIFT_RS, CONTEXT_ANY,&rsupKeyHandler },
     { KM_PRESS|KB_UP|SHIFT_RSHOLD, CONTEXT_ANY,&rsholdupKeyHandler },
     { KM_PRESS|KB_UP|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsupKeyHandler },
     { KM_PRESS|KB_UP|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholdupKeyHandler },
+    { KM_PRESS|KB_UP|SHIFT_ALPHAHOLD|SHIFT_ALPHA, CONTEXT_ANY,&alphaholdupKeyHandler },
+
     { KM_PRESS|KB_DN|SHIFT_RS, CONTEXT_ANY,&rsdownKeyHandler },
     { KM_PRESS|KB_DN|SHIFT_RSHOLD, CONTEXT_ANY,&rsholddownKeyHandler },
     { KM_PRESS|KB_DN|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsdownKeyHandler },

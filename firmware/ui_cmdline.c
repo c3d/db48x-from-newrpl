@@ -1176,7 +1176,7 @@ void uiAutocompNext()
             CmdLineText=(WORDPTR)empty_string;
             CmdLineCurrentLine=(WORDPTR)empty_string;
             CmdLineUndoList=(WORDPTR)empty_list;
-            return NULL;
+            return;
         }
 
         }
@@ -1186,11 +1186,76 @@ void uiAutocompNext()
     BYTEPTR end=start+halScreen.CursorPosition;
 
     halScreen.ACSuggestion=rplGetNextSuggestion(halScreen.ACSuggestion,start+halScreen.ACTokenStart,end);
+    //if(!halScreen.ACSuggestion) halScreen.ACSuggestion=rplGetNextSuggestion(halScreen.ACSuggestion,start+halScreen.ACTokenStart,end);
+
     halScreen.CmdLineState|=CMDSTATE_ACUPDATE;
     halScreen.DirtyFlag|=STAREA_DIRTY;
     }
 
 }
+
+void uiAutocompPrev()
+{
+    if(halScreen.CmdLineState&CMDSTATE_ACACTIVE) {
+
+    if(halScreen.LineIsModified<0) {
+        uiExtractLine(halScreen.LineCurrent);
+
+        if(Exceptions) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            CmdLineText=(WORDPTR)empty_string;
+            CmdLineCurrentLine=(WORDPTR)empty_string;
+            CmdLineUndoList=(WORDPTR)empty_list;
+            return;
+        }
+
+        }
+
+
+    BYTEPTR start=(BYTEPTR)(CmdLineCurrentLine+1);
+    BYTEPTR end=start+halScreen.CursorPosition;
+
+    halScreen.ACSuggestion=rplGetPrevSuggestion(halScreen.ACSuggestion,start+halScreen.ACTokenStart,end);
+
+    halScreen.CmdLineState|=CMDSTATE_ACUPDATE;
+    halScreen.DirtyFlag|=STAREA_DIRTY;
+    }
+
+}
+
+// INSERT THE CURRENT SUGGESTION IN THE COMMAND LINE
+
+void uiAutocompInsert()
+{
+    if(halScreen.ACSuggestion!=0) {
+    BYTEPTR tokstart=uiAutocompStringStart();
+    BYTEPTR tokend=uiAutocompStringEnd();
+
+    WORDPTR cmdname=rplDecompile(&halScreen.ACSuggestion,0);
+    BYTEPTR namest=(BYTEPTR)(cmdname+1);
+    BYTEPTR nameend=namest+rplStrSize(cmdname);
+
+    if( (!cmdname) || Exceptions) {
+        // JUST IGNORE, CLEAR EXCEPTIONS AND RETURN;
+        Exceptions=0;
+        return;
+    }
+
+
+    // MOVE THE CURSOR TO THE START OF THE TOKEN;
+    BINT nchars=0;
+    while(tokstart!=tokend) { ++nchars; tokstart=utf8skip(tokstart,tokend); }
+
+    uiCursorLeft(nchars);
+    uiInsertCharactersN(namest,nameend);
+    uiRemoveCharacters(nchars);
+
+
+    }
+
+}
+
 
 
 BYTEPTR uiAutocompStringStart()
@@ -1217,6 +1282,28 @@ BYTEPTR uiAutocompStringStart()
 
 
 BYTEPTR uiAutocompStringEnd()
+{
+    if(halScreen.LineIsModified<0) {
+        uiExtractLine(halScreen.LineCurrent);
+
+        if(Exceptions) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            CmdLineText=(WORDPTR)empty_string;
+            CmdLineCurrentLine=(WORDPTR)empty_string;
+            CmdLineUndoList=(WORDPTR)empty_list;
+            return NULL;
+        }
+
+        }
+
+    BYTEPTR start=(BYTEPTR)(CmdLineCurrentLine+1);
+    BYTEPTR end=start+halScreen.CursorPosition;
+
+    return end;
+}
+
+BYTEPTR uiAutocompStringTokEnd()
 {
     if(halScreen.LineIsModified<0) {
         uiExtractLine(halScreen.LineCurrent);
