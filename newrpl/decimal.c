@@ -1104,7 +1104,7 @@ BINT shift_right(BINT word,BINT digits)
 // AND THE HIGH (8-N) DIGITS IN THE HIGH WORD
 BINT64 shift_split(BINT word,BINT digits)
 {
-    if(!digits) return ((BINT64)digits)<<32;
+    if(!digits) return ((BINT64)word)<<32;
 
     BINT shift=(8-digits)&7;
 

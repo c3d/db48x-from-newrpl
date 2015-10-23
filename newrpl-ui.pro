@@ -117,7 +117,8 @@ SOURCES += main.cpp\
     newrpl/lib-56-symbolic.c \
     newrpl/lib-52-matrix.c \
     newrpl/lib-54-units.c \
-    newrpl/autocomplete.c
+    newrpl/autocomplete.c \
+    newrpl/arithmetic.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -132,7 +133,8 @@ HEADERS  += mainwindow.h \
     rplthread.h \
     newrpl/utf8lib.h \
     newrpl/decimal.h \
-    newrpl/errorcodes.h
+    newrpl/errorcodes.h \
+    newrpl/arithmetic.h
 
 INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
 
