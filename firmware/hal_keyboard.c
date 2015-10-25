@@ -639,9 +639,6 @@ void newlineKeyHandler(BINT keymsg)
     // ADD A NEW LINE
     uiInsertCharacters((BYTEPTR)"\n");
 
-
-    // AND MOVE THE CURSOR OVER TO THE NEXT LINE
-    uiCursorRight(1);
     uiAutocompleteUpdate();
 
 }

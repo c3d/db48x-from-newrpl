@@ -70,7 +70,7 @@ extern void uiSetCmdLineState(BINT state);
 extern BINT uiGetCmdLineState();
 
 extern void uiEnsureCursorVisible();
-extern void uiModifyLine();
+extern void uiModifyLine(int dontaddnewline);
 extern void uiExtractLine(BINT line);
 extern BYTEPTR uiFindNumberStart();
 extern WORDPTR uiGetCmdLineText();
