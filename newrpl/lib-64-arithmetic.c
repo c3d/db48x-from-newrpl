@@ -395,15 +395,22 @@ void LIB_HANDLER()
 
                 BINT saveprec=Context.precdigits;
                 BINT moddigits=(intdigitsReal(&m)+7)&~7;
+                BINT numdigits=(intdigitsReal(&a)+7)&~7;
+                BINT expdigits=(intdigitsReal(&e)+7)&~7;
 
-                if(2*moddigits>MAX_USERPRECISION) {
+                moddigits*=2;
+                moddigits=(moddigits>numdigits)? moddigits:numdigits;
+                moddigits=(moddigits>expdigits)? moddigits:expdigits;
+                moddigits=(moddigits>Context.precdigits)? moddigits:Context.precdigits;
+
+                if(moddigits>MAX_USERPRECISION) {
                     rplError(ERR_NUMBERTOOBIG);
                     return;
                 }
 
                 //   AUTOMATICALLY INCREASE PRECISION TEMPORARILY
 
-                Context.precdigits=2*moddigits;
+                Context.precdigits=moddigits;
 
                 powmodReal(&RReg[7],&a,&e,&m);
 

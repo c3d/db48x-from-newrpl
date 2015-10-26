@@ -386,9 +386,9 @@ void rplGetSystemNumberFormat(NUMFORMAT *fmt)
     }
 
     fmt->Locale=((WORD)'.') | (((WORD)' ')<<8) | (((WORD)' ')<<16) | (((WORD)',')<<24);
-    fmt->SmallFmt=12|FMT_SCI|FMT_NOZEROEXP;
+    fmt->SmallFmt=12|FMT_SCI|FMT_NOZEROEXP|FMT_USECAPITALS;
     fmt->MiddleFmt=12;
-    fmt->BigFmt=12|FMT_SCI|FMT_NOZEROEXP;
+    fmt->BigFmt=12|FMT_SCI|FMT_NOZEROEXP|FMT_USECAPITALS;
     rplReadNumberAsReal((WORDPTR)one_bint,&(fmt->SmallLimit));
     fmt->SmallLimit.exp=-12;
     rplReadNumberAsReal((WORDPTR)one_bint,&(fmt->BigLimit));
