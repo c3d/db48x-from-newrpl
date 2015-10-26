@@ -639,9 +639,6 @@ void newlineKeyHandler(BINT keymsg)
     // ADD A NEW LINE
     uiInsertCharacters((BYTEPTR)"\n");
 
-
-    // AND MOVE THE CURSOR OVER TO THE NEXT LINE
-    uiCursorRight(1);
     uiAutocompleteUpdate();
 
 }
@@ -1135,7 +1132,11 @@ void eexKeyHandler(BINT keymsg)
             halSetContext(halGetContext()|CONTEXT_INEDITOR);
             if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
             else uiOpenCmdLine('D');
-            uiInsertCharacters((BYTEPTR)"1E");
+            NUMFORMAT config;
+
+            rplGetSystemNumberFormat(&config);
+            if(config.MiddleFmt&FMT_USECAPITALS) uiInsertCharacters((BYTEPTR)"1E");
+            else uiInsertCharacters((BYTEPTR)"1e");
             uiAutocompleteUpdate();
             return;
         }
@@ -1146,6 +1147,10 @@ void eexKeyHandler(BINT keymsg)
 
         // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER
         BYTEPTR startnum;
+        NUMFORMAT config;
+
+        rplGetSystemNumberFormat(&config);
+
 
         startnum=uiFindNumberStart();
 
@@ -1157,7 +1162,8 @@ void eexKeyHandler(BINT keymsg)
             if((startnum>line) && ((startnum[-1]=='E')||(startnum[-1]=='e') )) return;
 
             // SECOND CASE: IF TOKEN UNDER CURSOR IS EMPTY, IN 'D' MODE COMPILE OBJECT AND THEN APPEND 1E
-            uiInsertCharacters((BYTEPTR)"1E");
+            if(config.MiddleFmt&FMT_USECAPITALS)    uiInsertCharacters((BYTEPTR)"1E");
+            else uiInsertCharacters((BYTEPTR)"1e");
             uiAutocompleteUpdate();
             return;
         }
@@ -1175,7 +1181,8 @@ void eexKeyHandler(BINT keymsg)
 
             // NEED TO INSERT A CHARACTER HERE
             BINT oldposition=halScreen.CursorPosition;
-            uiInsertCharacters((BYTEPTR)"E");
+            if(config.MiddleFmt&FMT_USECAPITALS) uiInsertCharacters((BYTEPTR)"E");
+            else uiInsertCharacters((BYTEPTR)"e");
             uiMoveCursor(oldposition+1);
             uiEnsureCursorVisible();
             uiAutocompleteUpdate();

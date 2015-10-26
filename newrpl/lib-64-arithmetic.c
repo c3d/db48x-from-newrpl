@@ -29,7 +29,8 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
     CMD(FLOOR,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
     CMD(CEIL,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(IP,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
-    CMD(FP,MKTOKENINFO(2,TITYPE_FUNCTION,1,2))
+    CMD(FP,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
+    CMD(POWMOD,MKTOKENINFO(6,TITYPE_FUNCTION,3,2))
 
 // ADD MORE OPCODES HERE
 
@@ -37,13 +38,17 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 // EXTRA LIST FOR COMMANDS WITH SYMBOLS THAT ARE DISALLOWED IN AN ENUM
 // THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
 #define CMD_EXTRANAME \
-    "!",
+    "!", \
+    "ISPRIME?"
 
 #define CMD_EXTRAENUM \
-    FACTORIAL
+    FACTORIAL, \
+    ISPRIME
 
 #define CMD_EXTRAINFO \
-    MKTOKENINFO(1,TITYPE_POSTFIXOP,1,3)
+    MKTOKENINFO(1,TITYPE_POSTFIXOP,1,3), \
+    MKTOKENINFO(8,TITYPE_FUNCTION,1,2)
+
 
 
 // INTERNAL DECLARATIONS
@@ -66,47 +71,6 @@ const BINT const LIB_TOKENINFO[]=
         CMD_EXTRAINFO
 };
 #undef CMD
-
-
-// EITHER RETURN THE FACTORIAL AS A BINT64 WHEN THE NUMBER IS SMALL ENOUGH
-// OR RETURN THE FACTORIAL ON RReg[0], WHEN THE NUMBER GROWS OUT OF RANGE
-// THE RETURN VALUE IS EITHER -1 OR THE ACTUAL FACTORIAL
-
-BINT64 rplFactorial(BINT n)
-{
-    BINT64 result=1;
-    BINT k;
-
-    for(k=2;(k<=n)&&(k<=20);++k) result=result*k;
-    if(k>n) return result;
-
-    Context.precdigits+=8;
-    newRealFromBINT64(&RReg[0],result);
-
-    for(;k<=n;++k) {
-            newRealFromBINT(&RReg[1],k);
-            mulReal(&RReg[0],&RReg[0],&RReg[1]);
-            if(RReg[0].flags&(F_INFINITY|F_NOTANUMBER|F_OVERFLOW|F_ERROR)) {
-                rplError(ERR_NUMBERTOOBIG);
-                Context.precdigits-=8;
-                return -1;
-            }
-
-    }
-    Context.precdigits-=8;
-
-    round_real(&RReg[0],Context.precdigits,0);
-
-    return -1;
-}
-
-
-
-
-
-
-
-
 
 
 
@@ -263,13 +227,200 @@ void LIB_HANDLER()
 
         BINT n=(BINT)rplReadNumberAsBINT(arg);
 
-        BINT64 result=rplFactorial(n);
+        BINT64 result=factorialBINT(n);
         if(Exceptions) return;
 
         rplDropData(1);
         if(result<0) rplNewRealFromRRegPush(0);
         else rplNewBINTPush(result,DECBINT);
         return;
+
+    }
+
+    case ISPRIME:
+    {
+
+
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+
+            return;
+        }
+        WORDPTR arg=rplPeekData(1);
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
+        if(!ISNUMBER(*arg)) {
+            rplError(ERR_BADARGTYPE);
+            return;
+        }
+
+
+        if(ISBINT(*arg)) {
+            BINT64 n=rplReadBINT(arg);
+
+            if(isprimeBINT(n)) rplOverwriteData(1,one_bint);
+            else rplOverwriteData(1,zero_bint);
+
+        } else {
+            REAL *num;
+            rplReadNumberAsReal(arg,&num);
+
+            if(!isintegerReal(&num)) {
+                rplError(ERR_INTEGEREXPECTED);
+                return;
+            }
+
+            if(isprimeReal(&num)) rplOverwriteData(1,one_bint);
+            else rplOverwriteData(1,zero_bint);
+
+        }
+        return;
+    }
+    case POWMOD:
+        {
+
+
+            if(rplDepthData()<3) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            WORDPTR arg=rplPeekData(3);
+
+            // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+            // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+            if(ISLIST(*arg)) {
+
+                BINT size1=rplObjSize(rplPeekData(1))+rplObjSize(rplPeekData(2));
+                WORDPTR *savestk=DSTop;
+
+                WORDPTR newobj=rplAllocTempOb(2+size1);
+                if(!newobj) return;
+
+                // CREATE A PROGRAM AND RUN THE MAP COMMAND
+                newobj[0]=MKPROLOG(DOCOL,2+size1);
+                rplCopyObject(newobj+1,rplPeekData(2));
+                rplCopyObject(rplSkipOb(newobj+1),rplPeekData(1));
+                newobj[size1+1]=CurOpcode;
+                newobj[size1+2]=CMD_SEMI;
+
+                rplDropData(2);
+                rplPushData(newobj);
+
+                rplCallOperator(CMD_MAP);
+
+                if(Exceptions) {
+                    if(DSTop>savestk) DSTop=savestk;
+                }
+
+                // EXECUTION WILL CONTINUE AT MAP
+
+                return;
+            }
+
+
+            if(!ISNUMBER(*arg)) {
+                rplError(ERR_BADARGTYPE);
+                return;
+            }
+
+            WORDPTR exp=rplPeekData(2);
+            WORDPTR mod=rplPeekData(1);
+
+            if( !ISNUMBER(*exp) || !ISNUMBER(*mod)) {
+                rplError(ERR_BADARGTYPE);
+                return;
+            }
+
+            if(ISBINT(*arg) && ISBINT(*exp) && ISBINT(*mod)) {
+
+                BINT64 a=rplReadBINT(arg);
+                BINT64 e=rplReadBINT(exp);
+                BINT64 m=rplReadBINT(mod);
+
+                if(m<2147483648) {  // MAXIMUM MOD WE CAN USE WITH BINTS
+
+                a=powmodBINT(a,e,m);
+
+                rplNewBINTPush(a,DECBINT);
+                return;
+                }
+
+            }
+                // THERE'S REALS INVOLVED, DO IT ALL WITH REALS
+
+                REAL a,e,m;
+                rplReadNumberAsReal(arg,&a);
+                rplReadNumberAsReal(exp,&e);
+                rplReadNumberAsReal(mod,&m);
+
+                if(!isintegerReal(&a)) {
+                    rplError(ERR_INTEGEREXPECTED);
+                    return;
+                }
+
+                if(!isintegerReal(&e)) {
+                    rplError(ERR_INTEGEREXPECTED);
+                    return;
+                }
+
+                if(!isintegerReal(&m)) {
+                    rplError(ERR_INTEGEREXPECTED);
+                    return;
+                }
+
+                BINT saveprec=Context.precdigits;
+                BINT moddigits=(intdigitsReal(&m)+7)&~7;
+                BINT numdigits=(intdigitsReal(&a)+7)&~7;
+                BINT expdigits=(intdigitsReal(&e)+7)&~7;
+
+                moddigits*=2;
+                moddigits=(moddigits>numdigits)? moddigits:numdigits;
+                moddigits=(moddigits>expdigits)? moddigits:expdigits;
+                moddigits=(moddigits>Context.precdigits)? moddigits:Context.precdigits;
+
+                if(moddigits>MAX_USERPRECISION) {
+                    rplError(ERR_NUMBERTOOBIG);
+                    return;
+                }
+
+                //   AUTOMATICALLY INCREASE PRECISION TEMPORARILY
+
+                Context.precdigits=moddigits;
+
+                powmodReal(&RReg[7],&a,&e,&m);
+
+                Context.precdigits=saveprec;
+
+                rplNewRealFromRRegPush(7);
+
+
+
+            return;
 
     }
     // ADD MORE OPCODES HERE

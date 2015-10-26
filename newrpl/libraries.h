@@ -267,6 +267,7 @@ extern void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds);
 #define CMD_XEQSECO         MKOPCODE(DOCOL,2)
 #define CMD_SEMI            MKOPCODE(DOCOL,3)
 #define CMD_ENDLIST         MKOPCODE(DOLIST,0)
+#define CMD_MAP             MKOPCODE(DOLIST,11)
 
 #define CMD_RULESEPARATOR   MKOPCODE(DOSYMB,0)
 

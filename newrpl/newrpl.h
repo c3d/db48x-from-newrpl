@@ -522,4 +522,6 @@ extern void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 #endif
 
 
+#include "arithmetic.h"
+
 #endif // NEWRPL_H
