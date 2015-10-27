@@ -193,7 +193,26 @@ void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds)
             RetNum=OK_CONTINUE;
             return;
         }
-        --idx;
+        // NOW CHECK IF FIRST LETTER OF COMMAND IS NOT A LETTER
+        if( ((*libnames[idx]>='A') && (*libnames[idx]<='Z')) ||
+            ((*libnames[idx]>='a') && (*libnames[idx]<='z')) )
+        {
+            --idx;
+        }
+        else {
+        // SKIP THE FIRST CHARACTER AND SHECK AGAIN
+            --len;
+            if((len>=(BINT)TokenLen) && (!utf8ncmp((char *)TokenStart,utf8skip((char *)libnames[idx],(char *)libnames[idx]+4),TokenLen)))
+            {
+                // WE HAVE THE NEXT MATCH
+                SuggestedOpcode=MKOPCODE(libnum,idx);
+                RetNum=OK_CONTINUE;
+                return;
+            }
+
+            --idx;
+
+        }
     }
 
     RetNum=ERR_NOTMINE;
