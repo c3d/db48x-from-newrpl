@@ -3591,6 +3591,8 @@ if(ndigits+quotient->exp<0) {
     return;
 }
 round_real(quotient,ndigits+quotient->exp,1);
+if((a->flags&F_APPROX)||(b->flags&F_APPROX)) quotient->flags|=F_APPROX;
+else quotient->flags&=~F_APPROX;    // REMOVE THE APPROXIMATED FLAG AFTER TRUNCATION
 }
 mul_real(remainder,quotient,b);
 normalize(remainder);
