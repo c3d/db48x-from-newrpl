@@ -88,6 +88,9 @@ const LIBHANDLER const ROMLibs[]={
     // LIBS 12 THRU 19 ARE BINTS
     lib12_handler,
 
+    // LIB 20 THRU 23 ARE COMMENTS
+    lib20_handler,
+
     // LIB 24 THRU 27 ARE STRINGS
     lib24_handler,
 

@@ -118,7 +118,8 @@ SOURCES += main.cpp\
     newrpl/lib-52-matrix.c \
     newrpl/lib-54-units.c \
     newrpl/autocomplete.c \
-    newrpl/arithmetic.c
+    newrpl/arithmetic.c \
+    newrpl/lib-20-comments.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
