@@ -45,14 +45,15 @@ SOURCES +=\
     newrpl/errors.c \
     newrpl/gc.c \
     newrpl/lam.c \
+    newrpl/lib-20-comments.c \
     newrpl/lib-24-string.c \
     newrpl/lib-28-dirs.c \
     newrpl/lib-30-complex.c \
     newrpl/lib-32-lam.c \
-    newrpl/lib-50-lists.c \
-    newrpl/lib-52-symbolic.c \
-    newrpl/lib-48-units.c \
-    newrpl/lib-58-matrix.c \
+    newrpl/lib-52-matrix.c \
+    newrpl/lib-54-units.c \
+    newrpl/lib-56-symbolic.c \
+    newrpl/lib-62-lists.c \
     newrpl/lib-64-arithmetic.c \
     newrpl/lib-65-system.c \
     newrpl/lib-66-transcendentals.c \
@@ -69,6 +70,7 @@ SOURCES +=\
     newrpl/lib-two-ident.c \
     newrpl/lists.c \
     newrpl/matrix.c \
+    newrpl/units.c \
     newrpl/returnstack.c \
     newrpl/romlibs.c \
     newrpl/runstream.c \
@@ -78,6 +80,8 @@ SOURCES +=\
     newrpl/sanity.c \
     newrpl/utf8lib.c \
     newrpl/utf8data.c \
+    newrpl/autocomplete.c \
+    newrpl/arithmetic.c \
     firmware/hal_globals.c \
     firmware/ggl/ggl/ggl_bitblt.c \
     firmware/ggl/ggl/ggl_bitbltoper.c \
@@ -126,7 +130,8 @@ HEADERS  += \
     newrpl/newrpl.h \
     newrpl/sysvars.h \
     newrpl/decimal.h \
-    newrpl/errorcodes.h
+    newrpl/errorcodes.h \
+    newrpl/arithmetic.h
 
 
 # This might need to be adapted to each cross-compiler installation
