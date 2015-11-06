@@ -533,9 +533,10 @@ void rplStoreSettingsbyName(BYTEPTR name,BYTEPTR nameend,WORDPTR object)
         setting[1]=object;
     } else {
 
+        ScratchPointer2=object;
         WORDPTR nameobject=rplCreateIDENT(DOIDENT,name,nameend);
         if(!nameobject) return;
-        rplCreateGlobalInDir(nameobject,object,rplFindDirbyHandle(SettingsDir));
+        rplCreateGlobalInDir(nameobject,ScratchPointer2,rplFindDirbyHandle(SettingsDir));
     }
 }
 

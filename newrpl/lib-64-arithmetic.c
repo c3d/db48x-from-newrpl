@@ -30,6 +30,7 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
     CMD(CEIL,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(IP,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
     CMD(FP,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
+    CMD(MODSTO,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(POWMOD,MKTOKENINFO(6,TITYPE_FUNCTION,3,2))
 
 // ADD MORE OPCODES HERE
@@ -73,7 +74,7 @@ const BINT const LIB_TOKENINFO[]=
 #undef CMD
 
 
-
+const char const modulo_name[]="MOD";
 
 
 
@@ -287,7 +288,7 @@ void LIB_HANDLER()
             else rplOverwriteData(1,zero_bint);
 
         } else {
-            REAL *num;
+            REAL num;
             rplReadNumberAsReal(arg,&num);
 
             if(!isintegerReal(&num)) {
@@ -301,21 +302,48 @@ void LIB_HANDLER()
         }
         return;
     }
+    case MODSTO:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR arg=rplPeekData(1);
+
+        if(!ISNUMBER(*arg)) {
+            rplError(ERR_BADARGTYPE);
+            return;
+        }
+
+        if(ISREAL(*arg)) {
+            REAL num;
+            rplReadNumberAsReal(arg,&num);
+            if(!isintegerReal(&num)) {
+                rplError(ERR_INTEGEREXPECTED);
+                return;
+         }
+        }
+
+            rplStoreSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)(modulo_name+3),arg);
+            rplDropData(1);
+        return;
+    }
+
     case POWMOD:
         {
 
 
-            if(rplDepthData()<3) {
+            if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
-            WORDPTR arg=rplPeekData(3);
+            WORDPTR arg=rplPeekData(2);
 
             // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
             // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
             if(ISLIST(*arg)) {
 
-                BINT size1=rplObjSize(rplPeekData(1))+rplObjSize(rplPeekData(2));
+                BINT size1=rplObjSize(rplPeekData(1));
                 WORDPTR *savestk=DSTop;
 
                 WORDPTR newobj=rplAllocTempOb(2+size1);
@@ -323,12 +351,11 @@ void LIB_HANDLER()
 
                 // CREATE A PROGRAM AND RUN THE MAP COMMAND
                 newobj[0]=MKPROLOG(DOCOL,2+size1);
-                rplCopyObject(newobj+1,rplPeekData(2));
-                rplCopyObject(rplSkipOb(newobj+1),rplPeekData(1));
+                rplCopyObject(newobj+1,rplPeekData(1));
                 newobj[size1+1]=CurOpcode;
                 newobj[size1+2]=CMD_SEMI;
 
-                rplDropData(2);
+                rplDropData(1);
                 rplPushData(newobj);
 
                 rplCallOperator(CMD_MAP);
@@ -348,9 +375,9 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR exp=rplPeekData(2);
-            WORDPTR mod=rplPeekData(1);
-
+            WORDPTR exp=rplPeekData(1);
+            WORDPTR mod=rplGetSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)modulo_name+3);
+            if(!mod) mod=zero_bint;
             if( !ISNUMBER(*exp) || !ISNUMBER(*mod)) {
                 rplError(ERR_BADARGTYPE);
                 return;
@@ -365,6 +392,8 @@ void LIB_HANDLER()
                 if(m<2147483648) {  // MAXIMUM MOD WE CAN USE WITH BINTS
 
                 a=powmodBINT(a,e,m);
+
+                rplDropData(2);
 
                 rplNewBINTPush(a,DECBINT);
                 return;
@@ -415,6 +444,8 @@ void LIB_HANDLER()
                 powmodReal(&RReg[7],&a,&e,&m);
 
                 Context.precdigits=saveprec;
+
+                rplDropData(2);
 
                 rplNewRealFromRRegPush(7);
 

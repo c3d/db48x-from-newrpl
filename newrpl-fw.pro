@@ -28,6 +28,7 @@ SOURCES +=\
     firmware/sys/target_50g/stdlib.c \
     firmware/sys/target_50g/timer.c \
     firmware/sys/target_50g/mem.c \
+    firmware/sys/target_50g/flash.c \
     newrpl/sysvars.c \
     newrpl/decimal.c \
     newrpl/dectranscen.c \
@@ -45,6 +46,7 @@ SOURCES +=\
     newrpl/errors.c \
     newrpl/gc.c \
     newrpl/lam.c \
+    newrpl/lib-20-comments.c \
     newrpl/lib-24-string.c \
     newrpl/lib-28-dirs.c \
     newrpl/lib-30-complex.c \
@@ -70,6 +72,7 @@ SOURCES +=\
     newrpl/lib-two-ident.c \
     newrpl/lists.c \
     newrpl/matrix.c \
+    newrpl/units.c \
     newrpl/returnstack.c \
     newrpl/romlibs.c \
     newrpl/runstream.c \
@@ -79,6 +82,8 @@ SOURCES +=\
     newrpl/sanity.c \
     newrpl/utf8lib.c \
     newrpl/utf8data.c \
+    newrpl/autocomplete.c \
+    newrpl/arithmetic.c \
     firmware/hal_globals.c \
     firmware/ggl/ggl/ggl_bitblt.c \
     firmware/ggl/ggl/ggl_bitbltoper.c \
@@ -117,7 +122,6 @@ SOURCES +=\
     firmware/sys/Font8C.c \
     firmware/sys/Font8D.c \
     firmware/hal_msgenglish.c \
-    firmware/sys/target_50g/flash.c
 
 HEADERS  += \
     firmware/include/ggl.h \
@@ -128,7 +132,8 @@ HEADERS  += \
     newrpl/newrpl.h \
     newrpl/sysvars.h \
     newrpl/decimal.h \
-    newrpl/errorcodes.h
+    newrpl/errorcodes.h \
+    newrpl/arithmetic.h
 
 
 # This might need to be adapted to each cross-compiler installation

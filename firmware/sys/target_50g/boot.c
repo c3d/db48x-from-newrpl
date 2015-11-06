@@ -427,9 +427,11 @@ void __SVM_enable_mmu()
     asm volatile ("add r0,r0,#0x8000");
     asm volatile ("mcr p15,0,r0,c2,c0,0");      // WRITE MMU BASE REGISTER, ALL CACHES SHOULD'VE BEEN CLEARED BEFORE
 
+    asm volatile ("mvn r0,#0");
+    asm volatile ("mcr p15,0,r0,c3,c0,0");      // SET R/W ACCESS PERMISSIONS FOR ALL DOMAINS
 
     asm volatile ("mrc p15, 0, r0, c1, c0, 0");
-    asm volatile ("orr r0,r0,#5");              // ENABLE MMU AND DATA CACHES
+    asm volatile ("orr r0,r0,#5");              // ENABLE MMU AND DATA CACHESx49gp->env->regs[15]==0x5570
     asm volatile ("orr r0,r0,#0x1000");         // ENABLE INSTRUCTION CACHE
 
     asm volatile ("mcr p15, 0, r0, c1, c0, 0");

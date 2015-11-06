@@ -334,6 +334,7 @@ rplRun();
 // INSERTS Progmode AS TEXT IN THE COMMAND LINE WHEN IN PROGRAMMING MODE
 // IF IsFunc == 0 --> IN ALG MODE INSERT THE SAME TEXT AS IN PROG. MODE
 //    IsFunc == 1 --> IN ALG MODE INSERT THE SAME TEXT AS IN PROG, WITH FUNCTION PARENTHESIS
+//    IsFunc == 2 --> IN ALG MODE, RUN THE OPCODE DIRECTLY, AS IN 'D' MODE
 //    IsFunc < 0  --> NOT ALLOWED IN SYMBOLIC (ALG) MODE, DO NOTHING
 
 
@@ -386,12 +387,27 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
         case 'C':
         case 'A':   // ALPHANUMERIC MODE
             if(IsFunc>=0) {
+
+                if(IsFunc==2) {
+                    if(endCmdLineAndCompile()) {
+                        cmdRun(Opcode);
+                        if(Exceptions) {
+                            // TODO: SHOW ERROR MESSAGE
+                            halShowErrorMsg();
+                            Exceptions=0;
+                        } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+                        halScreen.DirtyFlag|=STACK_DIRTY;
+                    }
+                    break;
+                }
+            if(IsFunc<2) {
             uiInsertCharacters(Progmode);
             if(IsFunc==1) {
                 uiInsertCharacters((BYTEPTR)"()");
                 uiCursorLeft(1);
             }
             uiAutocompleteUpdate();
+            }
             }
             break;
         default:
@@ -1428,8 +1444,8 @@ DECLARE_SYMBKEYHANDLER(angle,"∡",0)
 DECLARE_SYMBKEYHANDLER(degree,"°",0)
 DECLARE_SYMBKEYHANDLER(pi,"π",1)
 DECLARE_SYMBKEYHANDLER(delta,"Δ",0)
-
-
+DECLARE_SYMBKEYHANDLER(at,"@",0)
+DECLARE_SYMBKEYHANDLER(and,"&",0)
 
 DECLARE_VARKEYHANDLER(var1,0)
 DECLARE_VARKEYHANDLER(var2,1)
@@ -1518,8 +1534,8 @@ DECLARE_CMDKEYHANDLER(tonum,MKOPCODE(LIB_OVERLOADABLE,OVR_NUM),"→NUM",-1)
 DECLARE_CMDKEYHANDLER(sqrt,CMD_SQRT,"√",0)
 DECLARE_CMDKEYHANDLER(pow,MKOPCODE(LIB_OVERLOADABLE,OVR_POW),"^",0)
 
-DECLARE_CMDKEYHANDLER(sto,CMD_STO,"STO",-1)
-DECLARE_CMDKEYHANDLER(rcl,CMD_RCL,"RCL",-1)
+DECLARE_CMDKEYHANDLER(sto,CMD_STO,"STO",2)
+DECLARE_CMDKEYHANDLER(rcl,CMD_RCL,"RCL",2)
 
 
 
@@ -1641,6 +1657,8 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
 
     { KM_PRESS|KB_DOT|SHIFT_RS,CONTEXT_ANY,&newlineKeyHandler },
     { KM_PRESS|KB_DOT|SHIFT_RSHOLD,CONTEXT_ANY,&newlineKeyHandler },
+    { KM_PRESS|KB_DOT|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY,&newlineKeyHandler },
+    { KM_PRESS|KB_DOT|SHIFT_RSHOLD|SHIFT_ALPHA,CONTEXT_ANY,&newlineKeyHandler },
 
 
 
@@ -1863,6 +1881,10 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_SPC|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(pi) },
     { KM_PRESS|KB_SPC|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(pi) },
 
+    { KM_PRESS|KB_ENT|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(and) },
+    { KM_PRESS|KB_ENT|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(at) },
+    { KM_PRESS|KB_ENT|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(and) },
+    { KM_PRESS|KB_ENT|SHIFT_RS|SHIFT_RSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(at) },
 
 
 
