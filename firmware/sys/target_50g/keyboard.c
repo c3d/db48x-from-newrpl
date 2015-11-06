@@ -63,9 +63,8 @@ keymatrix __keyb_getmatrix()
 
     control = 1<<((col+8)*2);
     control = control | 0x1;
+    *GPGDAT = 0;        // DRIVE THE OUTPUT COLUMN LOW
     *GPGCON = control;
-    // GPGDAT WAS SET TO ZERO, SO THE SELECTED COLUMN IS DRIVEN LOW
-
 
     // DEBOUNCE TECHNIQUE
 
@@ -92,7 +91,9 @@ keymatrix __keyb_getmatrix()
 
     control = 1<<((col+8)*2);
     control = control | 0x1;
+    *GPGDAT = 0;        // DRIVE THE OUTPUT COLUMN LOW
     *GPGCON = control;
+
     // GPGDAT WAS SET TO ZERO, SO THE SELECTED COLUMN IS DRIVEN LOW
     for(f=0;f<DEBOUNCE;++f) tmp[f]=f;
     // DO CIRCULAR BUFFER, CHECKING FOR NOISE ON EVERY READ
