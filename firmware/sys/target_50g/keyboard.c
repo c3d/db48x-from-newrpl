@@ -20,14 +20,14 @@ extern void __keyb_update();
 
 
 // KEYBOARD, LOW LEVEL GLOBAL VARIABLES
-extern unsigned short int __keyb_buffer[KEYB_BUFFER] __SYSTEM_GLOBAL__;
-extern volatile int __keyb_lock __SYSTEM_GLOBAL__;
-extern int __keyflags __SYSTEM_GLOBAL__;
-extern int __kused __SYSTEM_GLOBAL__,__kcurrent __SYSTEM_GLOBAL__;
-extern keymatrix __kmat __SYSTEM_GLOBAL__;
-extern int __keyplane __SYSTEM_GLOBAL__;
-extern int __keynumber __SYSTEM_GLOBAL__,__keycount __SYSTEM_GLOBAL__;
-extern int __keyb_repeattime,__keyb_longpresstime __SYSTEM_GLOBAL__,__keyb_debounce __SYSTEM_GLOBAL__;
+extern unsigned short int __keyb_buffer[KEYB_BUFFER];
+extern volatile int __keyb_lock;
+extern int __keyflags;
+extern int __kused,__kcurrent ;
+extern keymatrix __kmat ;
+extern int __keyplane ;
+extern int __keynumber ,__keycount ;
+extern int __keyb_repeattime,__keyb_longpresstime ,__keyb_debounce ;
 
 
 

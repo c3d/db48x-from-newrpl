@@ -51,7 +51,6 @@ SOURCES +=\
     newrpl/lib-28-dirs.c \
     newrpl/lib-30-complex.c \
     newrpl/lib-32-lam.c \
-    newrpl/units.c \
     newrpl/lib-52-matrix.c \
     newrpl/lib-54-units.c \
     newrpl/lib-56-symbolic.c \
@@ -161,7 +160,18 @@ QMAKE_CXX = arm-none-eabi-g++
 QMAKE_LINK = arm-none-eabi-gcc
 #QMAKE_AR_CMD = arm-none-eabi-ar -cqs $(TARGET) $(OBJECTS)
 #QMAKE_AR_CMD = arm-none-eabi-ld --verbose -T$$PWD/firmware/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR $(OBJECTS) -lgcc -o $(TARGET).elf
+QMAKE_CFLAGS_DEBUG =
+QMAKE_CFLAGS_RELEASE =
+QMAKE_CFLAGS_SHLIB =
+QMAKE_CFLAGS_MT =
+QMAKE_CFLAGS_MT_DBG =
+QMAKE_CFLAGS_THREAD =
 QMAKE_CFLAGS = -mtune=arm920t -mcpu=arm920t -mlittle-endian -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -Os -pipe -mthumb-interwork -nostdinc
+QMAKE_CFLAGS_APP =
+
+QMAKE_LFLAGS_DEBUG =
+QMAKE_LFLAGS_SHAPP =
+QMAKE_LFLAGS_THREAD =
 QMAKE_LFLAGS = -T$$PWD/firmware/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
 
 QMAKE_POST_LINK = $$PWD/firmware/elf2rom $(TARGET)
