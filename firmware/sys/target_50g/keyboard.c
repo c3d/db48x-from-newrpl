@@ -113,6 +113,7 @@ keymatrix __keyb_getmatrix()
     }
 
     *GPGCON = 0x5555AAA9; // SET TO TRIGGER INTERRUPTS ON ANY KEY
+    *GPGDAT = 0;        // DRIVE ALL OUTPUT COLUMNS LOW
 
     unsigned int volatile *GPFDAT = ((unsigned int*) (IO_REGS+0x54));
 
