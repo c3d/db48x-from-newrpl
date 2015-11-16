@@ -237,7 +237,7 @@ void startup(int prevstate)
 
     disable_interrupts();   // THIS REQUIRES SUPERVISOR MODE
 
-    dbg_reset();
+    //dbg_reset();
 
 
     unsigned int mode=get_mode();
@@ -696,7 +696,7 @@ void halEnterPowerOff()
     //enable_interrupts();
 
 
-    //cpu_off_die();
+    cpu_off_die();
 
     asm volatile ("b 0");
 
