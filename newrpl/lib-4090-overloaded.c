@@ -125,7 +125,7 @@ void rplCallOvrOperator(WORD op)
     while(nargs) {
         // CHECK EACH ARGUMENT
         ptr=rplPeekData(nargs);
-        if(LIBNUM(*ptr)>(WORD)libnum) libnum=LIBNUM(*ptr);
+        if( (LIBNUM(*ptr)>(WORD)libnum)&&(LIBNUM(*ptr)!=LIBRARY_NUMBER)) libnum=LIBNUM(*ptr);
         --nargs;
     }
     LIBHANDLER han=rplGetLibHandler(libnum);
