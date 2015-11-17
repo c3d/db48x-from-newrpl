@@ -342,7 +342,7 @@ rplRun();
 void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
 {
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
                 cmdRun(Opcode);
                 if(Exceptions) {
@@ -419,7 +419,7 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
 void varsKeyHandler(BINT keymsg,BINT varnum)
 {
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
 
                 BINT nvars=rplGetVisibleVarCount();
@@ -429,6 +429,11 @@ void varsKeyHandler(BINT keymsg,BINT varnum)
                     if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) halScreen.Menu2Page-=5;
                     else halScreen.Menu2Page+=5;
                     if(halScreen.Menu2Page>=nvars) halScreen.Menu2Page=0;
+                    if(halScreen.Menu2Page<=-5) {
+                        halScreen.Menu2Page=nvars/5;
+                        halScreen.Menu2Page*=5;
+                        if(halScreen.Menu2Page==nvars) halScreen.Menu2Page-=5;
+                    }
                     if(halScreen.Menu2Page<0) halScreen.Menu2Page=0;
                     halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
                     return;
@@ -474,6 +479,11 @@ void varsKeyHandler(BINT keymsg,BINT varnum)
             if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) halScreen.Menu2Page-=5;
             else halScreen.Menu2Page+=5;
             if(halScreen.Menu2Page>=nvars) halScreen.Menu2Page=0;
+            if(halScreen.Menu2Page<=-5) {
+                halScreen.Menu2Page=nvars/5;
+                halScreen.Menu2Page*=5;
+                if(halScreen.Menu2Page==nvars) halScreen.Menu2Page-=5;
+            }
             if(halScreen.Menu2Page<0) halScreen.Menu2Page=0;
             halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
             return;
@@ -672,7 +682,7 @@ void  enterKeyHandler(BINT keymsg)
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         // PERFORM DUP
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // PERFORM DUP ONLY IF THERE'S DATA ON THE STACK
             // DON'T ERROR IF STACK IS EMPTY
             if(rplDepthData()>0) rplPushData(rplPeekData(1));
@@ -716,7 +726,7 @@ void backspKeyHandler(BINT keymsg)
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         // DO DROP
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // PERFORM DROP ONLY IF THERE'S DATA ON THE STACK
             // DON'T ERROR IF STACK IS EMPTY
             if(rplDepthData()>0) rplDropData(1);
@@ -750,7 +760,7 @@ void leftKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // TODO: WHAT TO DO WITH LEFT CURSOR??
 
         }
@@ -768,7 +778,7 @@ void rsleftKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // TODO: WHAT TO DO WITH RS-LEFT CURSOR??
             // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
 
@@ -786,7 +796,7 @@ void rsholdleftKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // TODO: WHAT TO DO WITH RS-LEFT CURSOR??
             // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
 
@@ -806,7 +816,7 @@ void rightKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
 
             if(rplDepthData()>1) {
                 WORDPTR ptr=rplPeekData(2);
@@ -830,7 +840,7 @@ void rsrightKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // TODO: WHAT TO DO WITH RS-RIGHT CURSOR??
             // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
 
@@ -848,7 +858,7 @@ void rsholdrightKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // TODO: WHAT TO DO WITH RS-RIGHT CURSOR??
             // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
 
@@ -866,7 +876,7 @@ void alphaholdrightKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // TODO: ??
             }
         // TODO: ADD OTHER CONTEXTS HERE
@@ -884,7 +894,7 @@ void downKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
 
             if(rplDepthData()>=1) {
                 WORDPTR ptr=rplPeekData(1);
@@ -925,7 +935,7 @@ void rsholddownKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // TODO: ??
             }
         // TODO: ADD OTHER CONTEXTS HERE
@@ -943,7 +953,7 @@ void rsdownKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // TODO: ??
             }
         // TODO: ADD OTHER CONTEXTS HERE
@@ -961,7 +971,7 @@ void alphaholddownKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // TODO: ??
             }
         // TODO: ADD OTHER CONTEXTS HERE
@@ -979,7 +989,7 @@ void upKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // TODO: START INTERACTIVE STACK MANIPULATION HERE
             }
         // TODO: ADD OTHER CONTEXTS HERE
@@ -998,7 +1008,7 @@ void rsholdupKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // TODO: START INTERACTIVE STACK MANIPULATION HERE
             }
         // TODO: ADD OTHER CONTEXTS HERE
@@ -1016,7 +1026,7 @@ void rsupKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // TODO: START INTERACTIVE STACK MANIPULATION HERE
             }
         // TODO: ADD OTHER CONTEXTS HERE
@@ -1035,7 +1045,7 @@ void alphaholdupKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // TODO: ??
             }
         // TODO: ADD OTHER CONTEXTS HERE
@@ -1054,7 +1064,7 @@ void chsKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
                 cmdRun(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
                 if(Exceptions) {
@@ -1143,7 +1153,7 @@ void eexKeyHandler(BINT keymsg)
 {
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()==CONTEXT_STACK) {
+        if(halGetContext()&CONTEXT_STACK) {
             halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
             halSetContext(halGetContext()|CONTEXT_INEDITOR);
             if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
@@ -1962,6 +1972,14 @@ int halCustomKeyExists(BINT keymsg)
 }
 
 
+// CONTEXT MATCH FOR KEYS:
+// IF CONTEXT == 0 (CONTEXT_ANY) IT'S CONSIDERED A MATCH TO ALL CONTEXTS/SUBCONTEXTS
+// IF CONTEXT HAS A SUBCONTEXT, THEN IT ONLY MATCHES THE CONTEXT AND SUBCONTEXT EXACTLY
+// IF CONTEXT DOESN'T HAVE A SUBCONTEXT (SUBCONTEXT_ANY), THEN IT MATCHES ALL SUBCONTEXTS WITHIN
+// THE GIVEN MAIN CONTEXT.
+
+
+
 int halDoDefaultKey(BINT keymsg)
 {
 struct keyhandler_t *ptr=(struct keyhandler_t *)__keydefaulthandlers;
@@ -1969,7 +1987,8 @@ struct keyhandler_t *ptr=(struct keyhandler_t *)__keydefaulthandlers;
 while(ptr->action) {
     if(ptr->message==keymsg) {
         // CHECK IF CONTEXT MATCHES
-        if((!ptr->context) || (ptr->context==halScreen.KeyContext)) {
+        if((!ptr->context) || (ptr->context==halScreen.KeyContext) ||
+                ( !(ptr->context&0x1f)&&(ptr->context==(halScreen.KeyContext&~0x1f)))) {
             //  IT'S A MATCH, EXECUTE THE ACTION;
             (ptr->action)(keymsg);
             return 1;
@@ -1988,7 +2007,9 @@ int halDefaultKeyExists(BINT keymsg)
     while(ptr->action) {
         if(ptr->message==keymsg) {
             // CHECK IF CONTEXT MATCHES
-            if((!ptr->context) || (ptr->context==halScreen.KeyContext)) {
+            if((!ptr->context) || (ptr->context==halScreen.KeyContext) ||
+                ( !(ptr->context&0x1f)&&(ptr->context==(halScreen.KeyContext&~0x1f))))
+            {
                 //  IT'S A MATCH;
                 return 1;
             }
