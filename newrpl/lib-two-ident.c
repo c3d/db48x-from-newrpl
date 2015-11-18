@@ -119,7 +119,7 @@ WORDPTR rplCreateIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
 }
 
 // THESE ARE THE ONLY CHARACTERS THAT ARE FORBIDDEN IN AN IDENTIFIER
-const char const forbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@|√«»≤≥≠→∡";
+const char const forbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@|√«»≤≥≠∡";
 
 
 BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend)

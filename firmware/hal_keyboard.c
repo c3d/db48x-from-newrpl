@@ -1279,6 +1279,14 @@ void ticksKeyHandler(BINT keymsg)
 
 }
 
+void tagKeyHandler(BINT keymsg)
+{
+    bracketKeyHandler(keymsg,(BYTEPTR)"::");
+    //  LOCK ALPHA MODE
+    if( (halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C'))
+        keyb_setshiftplane(0,0,1,1);
+
+}
 
 
 void onPlusKeyHandler(BINT keymsg)
@@ -1438,6 +1446,7 @@ DECLARE_KEYHANDLER(z,"z","Z")
 DECLARE_SYMBKEYHANDLER(arrow,"→",1)
 DECLARE_SYMBKEYHANDLER(comma,",",0)
 DECLARE_SYMBKEYHANDLER(semi,";",0)
+DECLARE_SYMBKEYHANDLER(colon,":",0)
 DECLARE_SYMBKEYHANDLER(infinity,"∞",1)
 
 DECLARE_SYMBKEYHANDLER(question,"?",0)
@@ -1758,6 +1767,11 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_MUL|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&textBracketKeyHandler },
     { KM_PRESS|KB_O|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,&ticksKeyHandler },
     { KM_PRESS|KB_O|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&ticksKeyHandler },
+    { KM_PRESS|KB_DOT|SHIFT_LS, CONTEXT_ANY,&tagKeyHandler },
+    { KM_PRESS|KB_DOT|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&tagKeyHandler },
+    { KM_PRESS|KB_DOT|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(colon) },
+    { KM_PRESS|KB_DOT|SHIFT_ALPHA|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(colon) },
+
 
     { KM_PRESS|KB_ADD|SHIFT_ONHOLD, CONTEXT_ANY,&onPlusKeyHandler },
     { KM_PRESS|KB_SUB|SHIFT_ONHOLD, CONTEXT_ANY,&onMinusKeyHandler },

@@ -42,7 +42,7 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 // EXTRA LIST FOR COMMANDS WITH SYMBOLS THAT ARE DISALLOWED IN AN ENUM
 // THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
 #define CMD_EXTRANAME \
-    "→", \
+    ":→", \
     "(", \
     ")", \
     ",", \
@@ -1077,7 +1077,7 @@ void LIB_HANDLER()
         return;
         }
 
-        if( (TokenLen==1) && !utf8ncmp((char *)tok,"→",1)) {
+        if( (TokenLen==2) && !utf8ncmp((char *)tok,":→",2)) {
             if(CurrentConstruct==MKPROLOG(DOSYMB,0)) {
                 rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,RULESEPARATOR));
                 RetNum=OK_CONTINUE;
@@ -1179,7 +1179,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if( !utf8ncmp((char *)TokenStart,"→",1) ) {
+        if( !utf8ncmp((char *)TokenStart,":→",2) ) {
             RetNum= OK_TOKENINFO | MKTOKENINFO(2,TITYPE_BINARYOP_LEFT,2,14);
             return;
         }
