@@ -335,7 +335,7 @@ extern WORDPTR *rplMakeNewDir();
 extern WORDPTR rplGetDirName(WORDPTR *dir);
 extern WORDPTR *rplGetDirfromGlobal(WORDPTR *var);
 extern WORDPTR *rplDeepCopyDir(WORDPTR *sourcedir);
-extern BINT rplWipeDir(WORDPTR *directory);
+extern void rplWipeDir(WORDPTR *directory);
 
 
 // FUNCTIONS SPECIFIC FOR THE .Settings DIRECTORY

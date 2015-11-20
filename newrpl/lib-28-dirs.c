@@ -90,6 +90,10 @@ ROMOBJECT root_dir_handle[]=
     (WORD)0
 };
 
+ROMOBJECT home_opcode[]=
+{
+    (WORD)MKOPCODE(LIBRARY_NUMBER,HOME)
+};
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
@@ -98,6 +102,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)dir_parent_bint,
     (WORDPTR)dir_end_bint,
     (WORDPTR)root_dir_handle,
+    (WORDPTR)home_opcode,
     0
 };
 
@@ -307,6 +312,32 @@ void LIB_HANDLER()
         }
         // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);
             return;
@@ -347,6 +378,32 @@ void LIB_HANDLER()
         }
         // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);
             return;
@@ -370,10 +427,35 @@ void LIB_HANDLER()
         return;
     case PATH:
 
-        // TODO: DO THIS LATER
+    {
+        WORDPTR *scandir=CurrentDir;
+        BINT nitems=0;
+        WORDPTR *stksave=DSTop;
 
+        while(scandir!=Directories) {
+            WORDPTR name=rplGetDirName(scandir);
+            if(name) {
+                rplPushData(name);
+                if(Exceptions) { DSTop=stksave; return; }
+                ++nitems;
+            }
+            scandir=rplGetParentDir(scandir);
+        }
+
+        if(scandir==Directories) {
+            rplPushData(home_opcode);
+            ++nitems;
+            if(Exceptions) { DSTop=stksave; return; }
+        }
+
+        if(nitems==0) rplPushData(empty_list);
+        else {
+            rplNewBINTPush(nitems,DECBINT);
+            rplCreateList();
+        }
+        if(Exceptions) DSTop=stksave;
         return;
-
+    }
 
 
     // ADD MORE OPCODES HERE
@@ -383,6 +465,12 @@ void LIB_HANDLER()
     case OVR_XEQ:
     // EVALUATING THE OBJECT HAS TO CHANGE THE CURRENT DIRECTORY INTO THIS ONE
     {
+        if(*rplPeekData(1)==MKOPCODE(LIBRARY_NUMBER,HOME)) {
+            // THE HOME OPCODE CAN BE EVALUATED LIKE AN OBJECT
+            CurrentDir=Directories;
+            rplPopData();
+            return;
+        }
         WORDPTR *dir=rplFindDirbyHandle(rplPeekData(1));
 
         if(!dir) {

@@ -377,14 +377,22 @@ void rplPurgeForced(WORDPTR *var)
         // TRYING TO PURGE AN ENTIRE DIRECTORY
 
         WORD dirsize=*(*(var+1)+1);
+        WORDPTR *emptydir=rplFindDirbyHandle(*(var+1));
 
-        // NEED TO USE PGDIR FOR THAT
-        if(dirsize) return;
+        if(dirsize) {
+            // EITHER DIRECTORY IS FULL OR THIS IS AN ORPHAN HANDLER
+            if(emptydir) {
+                // DIRECTORY IS NOT EMPTY!
+                return;
+            }
+
+            // DIRECTORY NO LONGER EXISTS, PROBABLY WIPED OUT PREVIOUSLY, IT'S OK TO PURGE
+
+        }
 
 
         // REMOVE THE EMPTY DIR
 
-        WORDPTR *emptydir=rplFindDirbyHandle(*(var+1));
 
         if(CurrentDir==emptydir) {
             CurrentDir=rplFindDirbyHandle(emptydir[3]); // CHANGE CURRENT DIR TO PARENT
@@ -509,17 +517,27 @@ WORDPTR *rplFindNext(WORDPTR *direntry)
 
 
 
-// PURGE EVERYTHING IN THE DIRECTORY, EXCEPT NON-EMPTY DIRECTORIES
-// RETURN NUMBER OF VARIABLES REMAINING AFTER WIPE (NON-EMPTY DIRS)
-BINT rplWipeDir(WORDPTR *directory)
+// PURGE EVERYTHING IN THE DIRECTORY, RECURSIVELY
+
+void rplWipeDir(WORDPTR *directory)
 {
     WORDPTR *direntry=directory+4;
-    WORDPTR *startblock;
+    WORDPTR *Stacksave=DSTop;
 
-    if(!directory) return 0;
-    if(**direntry==DIR_END_MARKER) return 1;  // DIRECTORY WAS EMPTY
+    if(!directory) return ;
 
-    startblock=direntry;
+    // PUSH THE HANDLE TO PURGE LATER
+    rplNewBINTPush(direntry-directory,DECBINT);
+    rplPushData(directory[1]);
+
+    while(DSTop!=Stacksave) {
+
+        directory=rplFindDirbyHandle(rplPopData());
+        direntry=directory+rplReadBINT(rplPopData());
+        if(!directory) continue;    // SAFEGUARD IN CASE OF DUPLICATED ENTRIES POINTING TO THE SAME DIRECTORY
+
+
+    // CONTINUE SCANNING
 
     while(**direntry!=DIR_END_MARKER) {
 
@@ -530,19 +548,15 @@ BINT rplWipeDir(WORDPTR *directory)
 
         // NEED TO USE PGDIR FOR THAT
         if(dirsize) {
-            // NON-EMPTY DIR, KEEP IT
-            if(startblock!=direntry) {
-                // REMOVE A WHOLE BLOCK OF VARIABLES
-                MakeNewHole(direntry,DirsTop,-(direntry-startblock));     // THIS WILL REMOVE ALL ENTRIES AT ONCE
-                if(CurrentDir>=direntry) CurrentDir-=direntry-startblock;
-                DirsTop-=direntry-startblock;
-                direntry=startblock;
-                startblock+=2;
-                continue;
-            }
-
+            // NON-EMPTY DIR, RECURSE INTO IT
+            ScratchPointer1=*(direntry+1);  // PROTECT THE HANDLE FROM GC
+            rplNewBINTPush(direntry+2-directory,DECBINT);   // RESUME AT THE FOLLOWING ENTRY
+            rplPushData(directory[1]);
+            if(Exceptions) { DSTop=Stacksave; return; }
+            directory=rplFindDirbyHandle(ScratchPointer1);
+            direntry=directory+4;
+            continue;
         }
-
         else {
         // REMOVE THE EMPTY DIR
 
@@ -558,8 +572,8 @@ BINT rplWipeDir(WORDPTR *directory)
             DirsTop-=6;
             if(directory>=emptydir) directory-=6;
             if(direntry>=emptydir) direntry-=6;
-            if(startblock>=emptydir) startblock-=6;
         }
+
         }
 
     }
@@ -568,22 +582,19 @@ BINT rplWipeDir(WORDPTR *directory)
 
     }
 
-    // FINISHED SCANNING
+    // FINISHED SCANNING, THE DIRECTORY NOW CONTAINS ALL VARIABLES AND EMPTY DIRS
 
-    if(startblock!=direntry) {
-    // REMOVE LAST BLOCK OF VARIABLES
-    MakeNewHole(direntry,DirsTop,-(direntry-startblock));     // THIS WILL REMOVE ALL ENTRIES AT ONCE
-    if(CurrentDir>=direntry) CurrentDir-=direntry-startblock;
-    DirsTop-=direntry-startblock;
-    direntry=startblock;
+    // REMOVE ALL VARIABLES
+    direntry+=2;
+    MakeNewHole(direntry,DirsTop,-(direntry-directory));     // THIS WILL REMOVE ALL ENTRIES AT ONCE
+    if(CurrentDir>=direntry) CurrentDir-=direntry-directory;
+    DirsTop-=direntry-directory;
+    direntry=directory;
+
     }
 
-    // UPDATE THE DIRECTORY COUNT
-    BINT newcount=(direntry-directory-4)>>1;
-    WORDPTR handleptr=*(directory+1);
-    handleptr[1]=newcount;
-
-    return newcount;
+    // DONE, THE GIVEN DIRECTORY NO LONGER EXISTS
+    return;
 
 }
 
@@ -601,21 +612,14 @@ void rplPurgeDir(WORDPTR nameobj)
         // TRYING TO PURGE AN ENTIRE DIRECTORY
         WORDPTR *dir=rplFindDirbyHandle(*(var+1));
 
-        if(dir) {
-            BINT count=rplWipeDir(dir);
-
-
-            // GET DIRECTORY POINTERS FROM NAME AGAIN, SINCE WIPE DIR MIGHT'VE MOVED THE POINTERS!
-            if(!count) { rplPurgeGlobal(nameobj); return; }
-
-            // TODO: WIPE DIRS RECURSIVELY
-
-            return;
+        // RECURSIVELY WIPE OUT THE DIRECTORY
+        rplWipeDir(dir);
+        // GET DIRECTORY POINTERS FROM NAME AGAIN, SINCE WIPE DIR MIGHT'VE MOVED THE POINTERS!
+        var=rplFindGlobal(nameobj,1);
+        rplPurgeForced(var);
+        return;
 
         }
-
-
-    }
 
     rplError(ERR_DIRECTORYNOTFOUND);
 }
