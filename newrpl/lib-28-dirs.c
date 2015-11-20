@@ -340,10 +340,24 @@ void LIB_HANDLER()
      }
     return;
     case PGDIR:
-    {
-        // SAME AS PURGE BUT RECURSIVELY DELETE EVERYTHING IN NON-EMPTY DIRECTORY
-    }
-    return;
+        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
+
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+
+        // TODO: ALSO ACCEPT A LIST OF VARS, WHEN WE HAVE LISTS!
+
+        rplPurgeDir(rplPeekData(1));
+        if(!Exceptions) rplDropData(1);
+        return;
+
     case UPDIR:
     {
         WORDPTR *dir=rplGetParentDir(CurrentDir);
