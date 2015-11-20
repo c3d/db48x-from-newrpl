@@ -122,7 +122,7 @@ char *utf8rskip(char *ptr, char *start)
 
 // ENCODE A CHARACTER AND RETURN A NULL TERMINATED STRING,
 // OR A NON-TERMINATED 4-BYTE STRING
-unsigned int char2utf8(unsigned int codepoint)
+unsigned int char2utf8(int codepoint)
 {
     if(codepoint<=0x7f) return codepoint;
     if(codepoint<=0x7ff) return (((codepoint&0x3f)|0x80)<<8)|((codepoint>>6)&0x1f)|0xc0;

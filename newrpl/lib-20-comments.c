@@ -100,6 +100,177 @@ void LIB_HANDLER()
     case STRIPCOMMENTS:
     {
         // TODO: IMPLEMENT THIS
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISPROGRAM(*rplPeekData(1))) {
+            rplError(ERR_PROGRAMEXPECTED);
+            return;
+        }
+
+        // SCAN THE EXECUTABLE TO DETERMINE SIZE WITHOUT COMMENTS
+        BINT newsize=1;
+
+        WORDPTR ptr,end;
+        WORDPTR *Stacksave=DSTop;
+
+        ptr=rplPeekData(1);
+        end=rplSkipOb(ptr);
+        ++ptr;
+
+        // RECURSIVE SCAN
+        do {
+
+            if(Stacksave!=DSTop) {
+                // CONTINUE OBJECT WHERE WE LEFT OFF
+                newsize+=rplReadBINT(rplPopData());
+                end=rplSkipOb(rplPopData());
+            }
+
+
+        while(ptr!=end) {
+            if(ISPROGRAM(*ptr)) {
+                rplPushData(ptr);   // PUSH THE CURRENT OBJECT
+                rplNewBINTPush(newsize,DECBINT);
+                if(Exceptions) {
+                    DSTop=Stacksave;
+                    return;
+                }
+                ptr=rplPeekData(2); // RE-READ POINTERS IN CASE OF GC
+                end=rplSkipOb(ptr);
+                newsize=1;
+                ++ptr;
+                continue;
+            }
+            if(ISLIST(*ptr)) {
+                rplPushData(ptr);   // PUSH THE CURRENT OBJECT
+                rplNewBINTPush(newsize,DECBINT);
+                if(Exceptions) {
+                    DSTop=Stacksave;
+                    return;
+                }
+                ptr=rplPeekData(2); // RE-READ POINTERS IN CASE OF GC
+                end=rplSkipOb(ptr);
+                newsize=1;
+                ++ptr;
+                continue;
+            }
+
+            if(ISCOMMENT(*ptr)) {
+                // CHECK IF A COMMENT IS PERMANENT, OTHERWISE SKIP
+                BINT len=OBJSIZE(*ptr);
+                if(!( (len>0) && ((ptr[1]&0xff)=='@') && (((ptr[1]>>8)&0xff)!='@'))) {
+                    // NOT A PERMANENT COMMENT SKIP AND CONTINUE
+                    ptr=rplSkipOb(ptr);
+                    continue;
+                }
+
+            }
+
+            // ALL OTHER OBJECTS NEED TO BE KEPT
+            newsize+=rplObjSize(ptr);
+            ptr=rplSkipOb(ptr);
+
+
+            }
+
+            // FINISHED ONE OBJECT, CONTINUE IF THERE'S MORE OBJECTS IN THE STACK
+
+
+        } while(DSTop!=Stacksave);
+
+        // HERE newsize HAS THE TOTAL SIZE OF THE NEW OBJECT WITHOUT COMMENTS
+
+        ptr=rplAllocTempOb(newsize-1);
+        if(!ptr) return;
+
+        ScratchPointer1=ptr;   // SAFEKEEPING AGAINST POSSIBLE GC DURING RECURSIVE COPY
+        ScratchPointer2=ptr;   // RUNNING POINTER, DESTINATION WHERE TO COPY
+        ScratchPointer3=ptr;   // START OF DESTINATION OBJECT, USED TO PATCH THE FINAL SIZE
+
+        // SECOND PASS, COPY TO NEW OBJECT
+        ptr=rplPeekData(1);
+        end=rplSkipOb(ptr);
+        *ScratchPointer2=MKPROLOG(LIBNUM(*ptr),0);
+        ++ScratchPointer2;
+        ++ptr;
+        newsize=1;
+
+
+        // RECURSIVE SCAN
+        do {
+
+            if(Stacksave!=DSTop) {
+                // CONTINUE OBJECT WHERE WE LEFT OFF
+                newsize+=rplReadBINT(rplPopData());
+                end=rplSkipOb(rplPopData());
+                ScratchPointer3=rplPopData();
+            }
+
+
+        while(ptr!=end) {
+            if(ISPROGRAM(*ptr)) {
+                rplPushDataNoGrow(ScratchPointer2);
+                rplPushData(ptr);   // PUSH THE CURRENT OBJECT
+                rplNewBINTPush(newsize,DECBINT);
+                if(Exceptions) {
+                    DSTop=Stacksave;
+                    return;
+                }
+                ptr=rplPeekData(2); // RE-READ POINTERS IN CASE OF GC
+                end=rplSkipOb(ptr);
+                *ScratchPointer2=MKPROLOG(LIBNUM(*ptr),0);
+                ++ScratchPointer2;
+                newsize=1;
+                ++ptr;
+                continue;
+            }
+            if(ISLIST(*ptr)) {
+                rplPushDataNoGrow(ScratchPointer2);
+                rplPushData(ptr);   // PUSH THE CURRENT OBJECT
+                rplNewBINTPush(newsize,DECBINT);
+                if(Exceptions) {
+                    DSTop=Stacksave;
+                    return;
+                }
+                ptr=rplPeekData(1); // RE-READ POINTERS IN CASE OF GC
+                end=rplSkipOb(ptr);
+                *ScratchPointer2=MKPROLOG(LIBNUM(*ptr),0);
+                ++ScratchPointer2;
+                newsize=1;
+                ++ptr;
+                continue;
+            }
+
+            if(ISCOMMENT(*ptr)) {
+                // CHECK IF A COMMENT IS PERMANENT, OTHERWISE SKIP
+                BINT len=OBJSIZE(*ptr);
+                if(!( (len>0) && ((ptr[1]&0xff)=='@') && (((ptr[1]>>8)&0xff)!='@'))) {
+                    // NOT A PERMANENT COMMENT SKIP AND CONTINUE
+                    ptr=rplSkipOb(ptr);
+                    continue;
+                }
+
+            }
+
+            // ALL OTHER OBJECTS NEED TO BE KEPT
+            rplCopyObject(ScratchPointer2,ptr);
+            newsize+=rplObjSize(ptr);
+            ptr=rplSkipOb(ptr);
+            ScratchPointer2=rplSkipOb(ScratchPointer2);
+            }
+
+            // FINISHED ONE OBJECT, CONTINUE IF THERE'S MORE OBJECTS IN THE STACK
+            *ScratchPointer3=*ScratchPointer3|OBJSIZE(newsize-1);
+
+        } while(DSTop!=Stacksave);
+
+
+        // DONE, PUT THE NEW OBJECT IN THE STACK NOW
+
+        rplOverwriteData(1,ScratchPointer1);
 
         return;
     }

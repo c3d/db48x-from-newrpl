@@ -66,7 +66,7 @@ char *utf8rskip(char *ptr,char *start);
 // LSB IS ALWAYS USED, AND CONTAINS THE FIRST BYTE
 // HIGHER ORDER BYTES ONLY CONTAIN VALID DATA WHEN NON-ZERO
 // RETURNS -1 ON AN INVALID CODEPOINT THAT CANNOT BE ENCODED
-unsigned int char2utf8(unsigned int codepoint);
+unsigned int char2utf8(int codepoint);
 
 // UTF-8 COMPLIANT FORM OF strncmp.
 // len IS IN UNICODE CODE POINTS, NOT BYTES

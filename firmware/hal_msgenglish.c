@@ -83,6 +83,7 @@ const MSGLIST const all_messages[]={
 
     // STRINGS
     { ERR_STRINGEXPECTED, "Expected a string" },
+    { ERR_INVALIDCODEPOINT, "Invalid Unicode code point" },
 
     // UNITS
     { ERR_UNITEXPECTED, "Expected an object with units" },

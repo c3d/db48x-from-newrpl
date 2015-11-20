@@ -29,13 +29,8 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,LIBRARY_NUMBER+1,LI
 
 // LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
-    CMD(TOUPPER), \
-    CMD(TOLOWER), \
-    CMD(LEN), \
-    CMD(LEFT),   \
-    CMD(MID), \
-    CMD(RIGHT), \
-    CMD(SUBSTR)
+    CMD(CHR), \
+    CMD(NUM)
 
 // ADD MORE OPCODES HERE
 
@@ -191,16 +186,62 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
-    case TOUPPER:
-    case TOLOWER:
-    case LEN:
-    case LEFT:
-    case MID:
-    case RIGHT:
-    case SUBSTR:
-        // TODO: IMPLEMENT ALL THESE!
+    case CHR:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+        BINT64 code=rplReadNumberAsBINT(rplPeekData(1));
+
+        WORD utfchar=char2utf8((UBINT)code);
+
+        if(utfchar==-1) {
+            rplError(ERR_INVALIDCODEPOINT);
+            return;
+        }
+
+        BINT len= (utfchar&0xffff0000)? ((utfchar&0xff000000)? 4:3) : ((utfchar&0xff00)? 2:1);
+
+        WORDPTR newobj=rplAllocTempOb(1);
+        if(!newobj) return;
+
+        rplSetStringLength(newobj,len);
+        newobj[1]=utfchar;
+
+        rplOverwriteData(1,newobj);
+        return;
+    }
+    case NUM:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISSTRING(*rplPeekData(1))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
+
+        if(rplStrLen(rplPeekData(1))<1) {
+            rplOverwriteData(1,zero_bint);
+            return;
+        }
+        BYTEPTR string=(BYTEPTR) (rplPeekData(1)+1);
+
+        BINT utfchar=utf82char((char *) string,(char *)(string+4));
+
+        rplNewBINTPush(utfchar,HEXBINT);
+        if(Exceptions) return;
+        rplOverwriteData(2,rplPeekData(1));
+        rplDropData(1);
         return;
 
+    }
     case TOSTR:
         // VERY IMPORTANT: DECOMPILE FUNCTION
     {

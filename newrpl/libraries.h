@@ -198,7 +198,7 @@ extern void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds);
 
 #define ISNUMBER(prolog) (ISBINT(prolog)||ISREAL(prolog))
 #define ISNUMBERCPLX(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISCOMPLEX(prolog))
-#define ISSTRING(prolog) ((LIBNUM(prolog)&~3)==DOSTRING)
+#define ISSTRING(prolog) (ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOSTRING))
 
 #define ISUNIT(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOUNIT))
 #define ISNUMBERORUNIT(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISUNIT(prolog))
@@ -208,6 +208,11 @@ extern void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds);
 #define ISDIR(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DODIR))
 
 #define ISAPPROX(prolog) ((LIBNUM(prolog)&APPROX_BIT))
+
+
+#define ISCOMMENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOCOMMENT))
+
+
 
 // THIS IS TO CHECK IF AN OBJECT IS "FALSE", WHICH CAN BE THE BINT0 OR THE REAL0
 #define IS_FALSE(p)   ( (OPCODE(p)==0) && (((LIBNUM(p)+4)&~7)==OCTBINT))
