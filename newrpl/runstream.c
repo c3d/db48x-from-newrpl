@@ -525,7 +525,86 @@ void rplWarmInit(void)
 }
 
 
+// INITIALIZE RPL ENGINE AFTER A POWER OFF
+// ASSUME ALL VARRIABLES IN MEMORY ARE VALID
+void rplHotInit(void)
+{
+    int count;
 
+    IPtr=0;  // INSTRUCTION POINTER SHOULD BE SET LATER TO A VALID RUNSTREAM
+    CurOpcode=0; // CURRENT OPCODE (WORD)
+
+    Exceptions=0;   // NO EXCEPTIONS RAISED
+    ExceptionPointer=0;
+
+    RSTop=RStk; // CLEAR RETURN STACK
+    // KEEP DATA STACK INTACT
+    //DSTop=DStk; // CLEAR DATA STACK
+    //DStkProtect=DStkBottom=DStk;   // UNPROTECTED STACK
+    LAMTop=LAMs;        // CLEAR ALL LAMS
+    nLAMBase=LAMTop;    // CLEAR ALL LAM ENVIRONMENTS
+
+    // KEEP CURRENT DIR
+    //CurrentDir=Directories; // SET CURRENT DIRECTORY TO HOME
+    ErrorHandler=0;       // INITIALLY THERE'S NO ERROR HANDLER, AN EXCEPTION WILL EXIT THE RPL LOOP
+
+
+    // CLEAR ALL INSTALLED LIBRARIES
+    rplClearLibraries();
+    // INSTALL ALL ROM LIBRARIES FROM A NULL-TERMINATED LIST
+    LIBHANDLER *libptr=(LIBHANDLER *)ROMLibs;
+    while(*libptr) { rplInstallLibrary(*libptr); ++libptr; }
+
+
+    // INITIALIZE THE FLOATING POINT CONTEXT
+    initContext(32);
+
+    // INITIALIZE THE REAL REGISTERS
+    for(count=0;count<REAL_REGISTERS;++count)
+    {
+        RReg[count].data=allocRegister();
+        RReg[count].flags=0;
+        RReg[count].exp=0;
+        RReg[count].len=1;
+    }
+    // INITIALIZE TEMP STORAGE FOR INTEGER TO REAL CONVERSION
+    BINT2RealIdx=0;
+
+    // FINALLY, CHECK EXISTING MEMORY FOR DAMAGE AND REPAIR AUTOMATICALLY
+    rplVerifyTempOb(1);
+    rplVerifyDirectories(1);
+
+    // VERIFY IF SETTINGS AND ROOT DIRECTORY ARE PROPERLY SET
+
+    WORDPTR *settings=rplFindGlobal((WORDPTR)dotsettings_ident,0);
+    if(settings) SettingsDir=settings[1];
+    else {
+        // CREATE THE SETTINGS DIRECTORY
+        // INITIALIZE THE SETTINGS DIRECTORY
+        SettingsDir=(WORDPTR)rplCreateNewDir((WORDPTR)dotsettings_ident,CurrentDir);
+
+        // CREATE AN EMPTY LIST OF SYSTEM FLAGS
+        SystemFlags=rplAllocTempOb(7);  // FOR NOW: 128 SYSTEM FLAGS IN 2 BINTS WITH 64 BITS EACH
+
+        if(!SystemFlags) return;
+
+        SystemFlags[0]=MKPROLOG(DOLIST,7);  // PUT ALL SYSTEM FLAGS ON A LIST
+        SystemFlags[1]=MKPROLOG(HEXBINT,2); // USE A BINT PROLOG
+        SystemFlags[2]=(63<<4)|(1<<29)|(7<<10);             // FLAGS 0-31 ARE IN SystemFlags[2], DEFAULTS: WORDSIZE=63, DEG, COMMENTS=ON, 7*8=56 UNDO LEVELS
+        SystemFlags[3]=0;                   // FLAGS 32-63 ARE IN SystemFlags[3]
+        SystemFlags[4]=MKPROLOG(HEXBINT,2);
+        SystemFlags[5]=0;                   // FLAGS 64-95 ARE IN SystemFlags[5]
+        SystemFlags[6]=0;                   // FLAGS 96-127 ARE IN SystemFlags[6]
+                                            // FUTURE EXPANSION: ADD MORE FLAGS HERE
+        SystemFlags[7]=CMD_ENDLIST;         // CLOSE THE LIST
+
+
+        rplStoreSettings((WORDPTR)flags_ident,SystemFlags);
+
+    }
+
+
+}
 
 
 

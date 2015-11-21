@@ -173,7 +173,7 @@ volatile unsigned int *ptr=(unsigned int *)0x48000000;
 
 // REAL PROGRAM STARTUP (main)
 // WITH VIRTUAL MEMORY ALREADY INITIALIZED
-
+// mode IS NON-ZERO WHEN WOKE UP FROM POWEROFF, OTHERWISE WOKE UP FROM RESET
 
 void main_virtual(unsigned int mode)
 {
@@ -193,6 +193,8 @@ void main_virtual(unsigned int mode)
     //   CLEAR SCREEN
     ggl_rect(&scr,0,0,SCREEN_WIDTH-1,SCREEN_HEIGHT-1,0);
 
+    if(!mode) {
+
     // CAREFUL: THESE TWO ERASE THE WHOLE RAM, SHOULD ONLY BE CALLED AFTER TTRM
     if(!halCheckMemoryMap()) {
         // WIPEOUT MEMORY
@@ -202,13 +204,22 @@ void main_virtual(unsigned int mode)
     }
     else rplWarmInit();
 
+    } else {
+        rplHotInit();
+    }
+
+
     halInitScreen();
     halInitKeyboard();
     halInitBusyHandler();
     halRedrawAll(&scr);
 
+    if(!mode) {
     if(wascleared) halShowMsg("Memory Cleared");
-    else halShowMsg("Memory Recovered");
+    else {
+        halShowMsg("Memory Recovered");
+    }
+    }
     //halStatusAreaPopup();
 
     halOuterLoop();
@@ -240,13 +251,14 @@ void startup(int prevstate)
     //dbg_reset();
 
 
-    unsigned int mode=get_mode();
+    //unsigned int mode=get_mode();
 
     set_stack((unsigned int *)0x40000e00);  // INITIAL STACK:
 
 
 
     setup_hardware();       // SETUP ACCESS TO OUT-OF-CHIP RAM MEMORY AMONG OTHER THINGS, THIS IS DONE BY THE BOOTLOADER BUT JUST TO BE SURE
+
     create_mmu_tables();
 
     //set_swivector_phys(__SVM_enter_mode);   // GET READY TO SWITCH PROCESSOR MODES
@@ -265,8 +277,21 @@ void startup(int prevstate)
 
     set_stackall(); // SET FINAL STACK POINTERS FOR ALL MODES IN VIRTUAL SPACE
 
-    clear_globals();    // CLEAR TO ZERO ALL NON-PERSISTENT GLOBALS
+    cpu_setspeed(192000000);
 
+    if(*HWREG(0x05600000,0xb4)&2) {
+        // WOKE UP FROM POWEROFF
+        // DON'T CLEAR ANYTHING
+
+        // ADD ANY OTHER INITIALIZATION HERE
+
+
+    } else {
+        // FROM RESET OR WARMSTART, CLEAN VARIABLES
+
+    clear_globals();    // CLEAR TO ZERO ALL NON-PERSISTENT GLOBALS
+    __lcd_contrast=7;
+    }
 
     __exception_install();  // INITIALIZE IRQ AND EXCEPTION HANDLING
 
@@ -274,8 +299,6 @@ void startup(int prevstate)
 
     tmr_setup();
     __keyb_init();
-
-    __lcd_contrast=7;
 
     // ADD MORE HARDWARE INITIALIZATION HERE
 
@@ -291,7 +314,8 @@ void startup(int prevstate)
     lcd_poweron();
     //lcd_setmode(2,(int *)MEM_PHYS_SCREEN);
 
-
+    register int mode=*HWREG(0x05600000,0xb4)&2;
+    *HWREG(0x05600000,0xb4)|=2;
     main_virtual(mode);
 
     while(1) ;
