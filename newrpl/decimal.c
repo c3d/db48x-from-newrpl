@@ -1414,15 +1414,17 @@ void int_justify(REAL *number)
 {
     if(number->exp>=0) return;
 
-int ndig=(-number->exp)&7;
+    int ndig=(-number->exp)&7;
 
-if(!ndig) return; // NOTHING TO SHIFT
+    if(!ndig) return; // NOTHING TO SHIFT
 
-ndig=8-ndig;        // DIGITS NEEDED FOR THE SHIFT TO LINE-UP THE EXPONENT WITH A MULTIPLE OF 8
+    int digits=((number->len-1)<<3)+sig_digits(number->data[number->len-1]);
+    ndig=8-ndig;        // DIGITS NEEDED FOR THE SHIFT TO LINE-UP THE EXPONENT WITH A MULTIPLE OF 8
 
-number->exp-=ndig;  // CORRECT THE EXPONENT
-long_shift(number->data,number->len,ndig);  // AND DO THE SHIFT
+    number->exp-=ndig;  // CORRECT THE EXPONENT
+    long_shift(number->data,number->len,ndig);  // AND DO THE SHIFT
 
+    number->len=(digits+ndig+7)>>3;
 }
 
 

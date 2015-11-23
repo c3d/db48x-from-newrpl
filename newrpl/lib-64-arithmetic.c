@@ -31,7 +31,8 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
     CMD(IP,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
     CMD(FP,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
     CMD(MODSTO,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(POWMOD,MKTOKENINFO(6,TITYPE_FUNCTION,3,2))
+    CMD(POWMOD,MKTOKENINFO(6,TITYPE_FUNCTION,2,2)), \
+    CMD(MOD,MKTOKENINFO(3,TITYPE_FUNCTION,2,2))
 
 // ADD MORE OPCODES HERE
 
@@ -454,7 +455,91 @@ void LIB_HANDLER()
             return;
 
     }
-    // ADD MORE OPCODES HERE
+
+
+    case MOD:
+    {
+
+            if(rplDepthData()<2) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            WORDPTR arg=rplPeekData(2);
+
+            // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+            // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+            if(ISLIST(*arg)) {
+
+                BINT size1=rplObjSize(rplPeekData(1));
+                WORDPTR *savestk=DSTop;
+
+                WORDPTR newobj=rplAllocTempOb(2+size1);
+                if(!newobj) return;
+
+                // CREATE A PROGRAM AND RUN THE MAP COMMAND
+                newobj[0]=MKPROLOG(DOCOL,2+size1);
+                rplCopyObject(newobj+1,rplPeekData(1));
+                newobj[size1+1]=CurOpcode;
+                newobj[size1+2]=CMD_SEMI;
+
+                rplDropData(1);
+                rplPushData(newobj);
+
+                rplCallOperator(CMD_MAP);
+
+                if(Exceptions) {
+                    if(DSTop>savestk) DSTop=savestk;
+                }
+
+                // EXECUTION WILL CONTINUE AT MAP
+
+                return;
+            }
+
+
+
+            if(!ISNUMBER(*arg)) {
+                rplError(ERR_BADARGTYPE);
+                return;
+            }
+
+            WORDPTR mod=rplPeekData(1);
+
+            if(ISIDENT(*arg) || ISSYMBOLIC(*arg) || ISIDENT(*mod) || ISSYMBOLIC(*mod)) {
+                rplSymbApplyOperator(CurOpcode,2);
+                return;
+            }
+
+
+            if( !ISNUMBER(*arg) || !ISNUMBER(*mod)) {
+                rplError(ERR_BADARGTYPE);
+                return;
+            }
+
+            if(ISBINT(*arg) && ISBINT(*mod)) {
+
+                BINT64 a=rplReadBINT(arg);
+                BINT64 m=rplReadBINT(mod);
+                rplDropData(2);
+                rplNewBINTPush(a%m,DECBINT);
+                return;
+            }
+                // THERE'S REALS INVOLVED, DO IT ALL WITH REALS
+
+                REAL a,m;
+                rplReadNumberAsReal(arg,&a);
+                rplReadNumberAsReal(mod,&m);
+
+                divmodReal(&RReg[7],&RReg[6],&a,&m);
+
+                rplDropData(2);
+
+                rplNewRealFromRRegPush(6);
+
+            return;
+
+    }
+        // ADD MORE OPCODES HERE
 
    // STANDARIZED OPCODES:
     // --------------------
