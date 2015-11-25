@@ -416,50 +416,118 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
     }
 }
 
-void varsKeyHandler(BINT keymsg,BINT varnum)
+
+
+void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 {
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-
-                BINT nvars=rplGetVisibleVarCount();
-                BINT idx=halScreen.Menu2Page+varnum;
-                if((nvars>6)&&(varnum==5)) {
+                WORD mcode=(menunum==1)? halScreen.Menu1Code:halScreen.Menu2Code;
+                WORDPTR menu=uiGetLibMenu(mcode);
+                BINT nitems=uiCountMenuItems(mcode,menu);
+                BINT idx=MENUPAGE(mcode)+varnum,page=MENUPAGE(mcode);
+                if((nitems>6)&&(varnum==5)) {
                     // THIS IS THE NXT KEY
-                    if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) halScreen.Menu2Page-=5;
-                    else halScreen.Menu2Page+=5;
-                    if(halScreen.Menu2Page>=nvars) halScreen.Menu2Page=0;
-                    if(halScreen.Menu2Page<=-5) {
-                        halScreen.Menu2Page=nvars/5;
-                        halScreen.Menu2Page*=5;
-                        if(halScreen.Menu2Page==nvars) halScreen.Menu2Page-=5;
+                    if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) page-=5;
+                    else page+=5;
+                    if(page>=nitems) page=0;
+                    if(page<=-5) {
+                        page=nitems/5;
+                        page*=5;
+                        if(page==nitems) page-=5;
                     }
-                    if(halScreen.Menu2Page<0) halScreen.Menu2Page=0;
+                    if(page<0) page=0;
+                    if(menunum==1) halScreen.Menu1Code=MKMENUCODE(MENUSPECIAL(mcode),MENULIBRARY(mcode),page);
+                    else halScreen.Menu2Code=MKMENUCODE(MENUSPECIAL(mcode),MENULIBRARY(mcode),page);
                     halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
                     return;
                 }
                 // THIS IS A REGULAR VAR KEY
-                WORD Opcode;
-                WORDPTR *var=rplFindVisibleGlobalByIndex(idx);
-                if(!var) return;    // EMPTY SLOT, NOTHING TO DO
 
-                if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) {
-                    // USER IS TRYING TO 'STO' INTO THE VARIABLE
-                        rplPushData(var[0]);    // PUSH THE NAME ON THE STACK
+                WORDPTR item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
+
+                WORDPTR action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
+                WORD Opcode=0;
+
+                if(!action) return;
+
+                switch(KM_SHIFTPLANE(keymsg))
+                {
+                case SHIFT_LS:
+                case SHIFT_LSHOLD:
+                {
+                    // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
+
+                    if(ISIDENT(*action)) {
+                        // USER IS TRYING TO 'STO' INTO THE VARIABLE
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
                         Opcode=CMD_STO;
-                } else {
+                        break;
+                    }
+                    if(ISUNIT(*action)) {
+                        // FOR UNITS, TRY TO CONVERT
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=CMD_CONVERT;
+                        break;
+                    }
 
-                    if( (KM_SHIFTPLANE(keymsg)==SHIFT_RS)||(KM_SHIFTPLANE(keymsg)==SHIFT_RSHOLD)) {
-                        // USER IS TRYING TO 'RCL' THE VARIABLE
-                        rplPushData(var[1]);    // PUSH THE CONTENT ON THE STACK
-                        Opcode=0;
-                    }
-                    else {
-                    // NORMAL EXECUTION IS BY DOING XEQ ON ITS CONTENTS
-                        rplPushData(var[1]);    // PUSH THE CONTENT ON THE STACK
-                        Opcode=CMD_XEQ;
-                    }
+                    // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
+                    rplPushData(action);
+                    Opcode=OVR_XEQ;
+                    break;
+
                 }
+                case SHIFT_RS:
+                case SHIFT_RSHOLD:
+                {
+                    // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
+
+                    if(ISIDENT(*action)) {
+                        // USER IS TRYING TO 'RCL' THE VARIABLE
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=CMD_RCL;
+                        break;
+                    }
+                    if(ISUNIT(*action)) {
+                        // FOR UNITS, APPLY THE INVERSE
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_DIV);
+                        break;
+                    }
+
+                    // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
+                    rplPushData(action);
+                    Opcode=OVR_XEQ;
+                    break;
+
+                }
+                default:
+                {
+                    // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
+
+                    if(ISIDENT(*action)) {
+                        // JUST EVAL THE VARIABLE
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                        break;
+                    }
+                    if(ISUNIT(*action)) {
+                        // FOR UNITS, APPLY THE INVERSE
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_MUL);
+                        break;
+                    }
+
+                    // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
+                    rplPushData(action);
+                    Opcode=OVR_XEQ;
+                    break;
+
+
+                }
+                }
+
                 if(Opcode) cmdRun(Opcode);
                 if(Exceptions) {
                     // TODO: SHOW ERROR MESSAGE
@@ -472,130 +540,460 @@ void varsKeyHandler(BINT keymsg,BINT varnum)
     }
     else {
         // ACTION INSIDE THE EDITOR
-        BINT nvars=rplGetVisibleVarCount();
-        BINT idx=halScreen.Menu2Page+varnum;
-        if((nvars>6)&&(varnum==5)) {
+        WORD mcode=(menunum==1)? halScreen.Menu1Code:halScreen.Menu2Code;
+        WORDPTR menu=uiGetLibMenu(mcode);
+        BINT nitems=uiCountMenuItems(mcode,menu);
+        BINT idx=MENUPAGE(mcode)+varnum,page=MENUPAGE(mcode);
+        if((nitems>6)&&(varnum==5)) {
             // THIS IS THE NXT KEY
-            if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) halScreen.Menu2Page-=5;
-            else halScreen.Menu2Page+=5;
-            if(halScreen.Menu2Page>=nvars) halScreen.Menu2Page=0;
-            if(halScreen.Menu2Page<=-5) {
-                halScreen.Menu2Page=nvars/5;
-                halScreen.Menu2Page*=5;
-                if(halScreen.Menu2Page==nvars) halScreen.Menu2Page-=5;
+            if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) page-=5;
+            else page+=5;
+            if(page>=nitems) page=0;
+            if(page<=-5) {
+                page=nitems/5;
+                page*=5;
+                if(page==nitems) page-=5;
             }
-            if(halScreen.Menu2Page<0) halScreen.Menu2Page=0;
+            if(page<0) page=0;
+            if(menunum==1) halScreen.Menu1Code=MKMENUCODE(MENUSPECIAL(mcode),MENULIBRARY(mcode),page);
+            else halScreen.Menu2Code=MKMENUCODE(MENUSPECIAL(mcode),MENULIBRARY(mcode),page);
             halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
             return;
         }
         // THIS IS A REGULAR VAR KEY
-        WORDPTR *var=rplFindVisibleGlobalByIndex(idx);
-        if(!var) return;    // EMPTY SLOT, NOTHING TO DO
 
-        if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) {
+        WORDPTR item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
 
-            switch(halScreen.CursorState&0xff)
-            {
-            case 'D':
-            case 'A':
-                if(endCmdLineAndCompile()) {
-                    // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUR TO GC
-                    var=rplFindGlobalByIndex(idx);
+        WORDPTR action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
+        WORD Opcode=0;
+
+        if(!action) return;
+
+        switch(KM_SHIFTPLANE(keymsg))
+        {
+        case SHIFT_LS:
+        case SHIFT_LSHOLD:
+        {
+            // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
+
+            if(ISIDENT(*action)) {
+                switch(halScreen.CursorState&0xff)
+                {
+                case 'D':
+                case 'A':
+                    if(endCmdLineAndCompile()) {
+                        // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
+                        menu=uiGetLibMenu(mcode);
+                        item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
+                        action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
+
+                        // USER IS TRYING TO 'STO' INTO THE VARIABLE
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=CMD_STO;
+                    }
+                    break;
+                case 'P':
                     // USER IS TRYING TO 'STO' INTO THE VARIABLE
-                        rplPushData(var[0]);    // PUSH THE NAME ON THE STACK
-                        cmdRun(CMD_STO);
-                        if(Exceptions) {
-                            // TODO: SHOW ERROR MESSAGE
-                            halShowErrorMsg();
-                            Exceptions=0;
-                        } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
-                    halScreen.DirtyFlag|=STACK_DIRTY;
-                    return;
-                }
-                break;
-            case 'P':
-                // USER IS TRYING TO 'STO' INTO THE VARIABLE
-                uiSeparateToken();
-                uiInsertCharacters((BYTEPTR)"'");
-                uiInsertCharactersN((BYTEPTR)(*var+1),(BYTEPTR)(*var+1)+rplGetIdentLength(*var));
-                uiInsertCharacters((BYTEPTR)"' STO");
-                uiSeparateToken();
-                uiAutocompleteUpdate();
-                break;
-            }
-
-        } else {
-            if( (KM_SHIFTPLANE(keymsg)==SHIFT_RS)||(KM_SHIFTPLANE(keymsg)==SHIFT_RSHOLD)) {
-                // USER IS TRYING TO RCL THE VARIABLE
-                switch(halScreen.CursorState&0xff)
-                {
-                case 'D':
-                case 'A':
-                    if(endCmdLineAndCompile()) {
-                        // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUR TO GC
-                        var=rplFindGlobalByIndex(idx);
-                        // USER IS TRYING TO 'RCL' INTO THE VARIABLE
-                            rplPushData(var[1]);    // PUSH THE CONTENTS ON THE STACK
-                            if(Exceptions) {
-                                // TODO: SHOW ERROR MESSAGE
-                                halShowErrorMsg();
-                                Exceptions=0;
-                            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
-                        halScreen.DirtyFlag|=STACK_DIRTY;
-                        return;
-                    }
-                    break;
-                case 'P':
                     uiSeparateToken();
-                     uiInsertCharacters((BYTEPTR)"'");
-                    uiInsertCharactersN((BYTEPTR)(*var+1),(BYTEPTR)(*var+1)+rplGetIdentLength(*var));
-                     uiInsertCharacters((BYTEPTR)"' RCL");
+                    uiInsertCharacters((BYTEPTR)"'");
+                    uiInsertCharactersN((BYTEPTR)(action+1),(BYTEPTR)(action+1)+rplGetIdentLength(action));
+                    uiInsertCharacters((BYTEPTR)"' STO");
                     uiSeparateToken();
                     uiAutocompleteUpdate();
                     break;
                 }
-            } else {
-                // NORMAL EXECUTION - XEQ THE CONTENTS OR INSER THE NAME IN THE COMMAND LINE
+                break;
+            }
+            if(ISUNIT(*action)) {
+
                 switch(halScreen.CursorState&0xff)
                 {
                 case 'D':
                     if(endCmdLineAndCompile()) {
-                        // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUR TO GC
-                        var=rplFindGlobalByIndex(idx);
-                            rplPushData(var[1]);    // XEQ THE CONTENTS
-                            cmdRun(CMD_XEQ);
-                            if(Exceptions) {
-                                // TODO: SHOW ERROR MESSAGE
-                                halShowErrorMsg();
-                                Exceptions=0;
-                            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
-                        halScreen.DirtyFlag|=STACK_DIRTY;
-                        return;
+                        // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
+                        menu=uiGetLibMenu(mcode);
+                        item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
+                        action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
+
+                        // USER IS TRYING TO CONVERT
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=CMD_CONVERT;
                     }
                     break;
 
                 case 'A':
-                {
-                    // JUST INSERT THE NAME
-                    uiInsertCharactersN((BYTEPTR)(*var+1),(BYTEPTR)(*var+1)+rplGetIdentLength(*var));
-                    uiAutocompleteUpdate();
-                    break;
-                }
                 case 'P':
                 {
-                    // INSERT THE NAME WITH SEPARATORS
+
+                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                    BINT SavedException=Exceptions;
+                    BINT SavedErrorCode=ErrorCode;
+
+                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    Exceptions=SavedException;
+                    ErrorCode=SavedErrorCode;
+
+                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                    BYTEPTR string=(BYTEPTR) (opname+1);
+                    BINT totaln=rplStrLen(opname);
+                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+
                     uiSeparateToken();
-                    uiInsertCharactersN((BYTEPTR)(*var+1),(BYTEPTR)(*var+1)+rplGetIdentLength(*var));
+                    uiInsertCharactersN(string,endstring);
+                    uiSeparateToken();
+                    uiInsertCharacters((BYTEPTR)"CONVERT");
                     uiSeparateToken();
                     uiAutocompleteUpdate();
+
                     break;
                 }
+
                 }
+                break;
             }
+
+            // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
+            rplPushData(action);
+            Opcode=OVR_XEQ;
+            break;
 
         }
+        case SHIFT_RS:
+        case SHIFT_RSHOLD:
+        {
+            // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
 
-    }
+            if(ISIDENT(*action)) {
+                switch(halScreen.CursorState&0xff)
+                {
+                case 'D':
+                    if(endCmdLineAndCompile()) {
+                        // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
+                        menu=uiGetLibMenu(mcode);
+                        item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
+                        action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
+
+                        // USER IS TRYING TO 'RCL' THE VARIABLE
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=CMD_RCL;
+                    }
+                    break;
+                case 'A':
+                    // USER IS TRYING TO 'RCL' THE VARIABLE
+
+                    if(KM_SHIFTPLANE(keymsg)&SHIFT_HOLD) {
+                    //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
+
+                        WORDPTR *var=rplFindGlobal(action,1);
+                        if(var) {
+                        // VARIABLE EXISTS, GET THE CONTENTS
+                        BINT SavedException=Exceptions;
+                        BINT SavedErrorCode=ErrorCode;
+
+                        Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                        // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                        WORDPTR opname=rplDecompile(var[1],DECOMP_EDIT);
+                        Exceptions=SavedException;
+                        ErrorCode=SavedErrorCode;
+
+                        if(opname) {
+                        BYTEPTR string=(BYTEPTR) (opname+1);
+                        BINT totaln=rplStrLen(opname);
+                        BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+
+                        // IN ALGEBRAIC MODE, REMOVE THE TICK MARKS AND INSERT WITHOUT SEPARATION
+                        // TO ALLOW PASTING EQUATIONS INTO OTHER EXPRESSIONS
+                        if( (totaln>2) && (string[0]=='\'')) {
+                            string++;
+                            endstring--;
+                        }
+
+                        uiInsertCharactersN(string,endstring);
+                        uiAutocompleteUpdate();
+                        break;
+                        }
+                        }
+                    }
+                    uiSeparateToken();
+                    uiInsertCharacters((BYTEPTR)"'");
+                    uiInsertCharactersN((BYTEPTR)(action+1),(BYTEPTR)(action+1)+rplGetIdentLength(action));
+                    uiInsertCharacters((BYTEPTR)"' RCL");
+                    uiSeparateToken();
+                    uiAutocompleteUpdate();
+                    break;
+
+                case 'P':
+                    // USER IS TRYING TO 'RCL' THE VARIABLE
+
+                    if(KM_SHIFTPLANE(keymsg)&SHIFT_HOLD) {
+                    //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
+
+                        WORDPTR *var=rplFindGlobal(action,1);
+                        if(var) {
+                        // VARIABLE EXISTS, GET THE CONTENTS
+                        BINT SavedException=Exceptions;
+                        BINT SavedErrorCode=ErrorCode;
+
+                        Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                        // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                        WORDPTR opname=rplDecompile(var[1],DECOMP_EDIT);
+                        Exceptions=SavedException;
+                        ErrorCode=SavedErrorCode;
+
+                        if(opname) {
+                        BYTEPTR string=(BYTEPTR) (opname+1);
+                        BINT totaln=rplStrLen(opname);
+                        BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+
+                        uiSeparateToken();
+                        uiInsertCharactersN(string,endstring);
+                        uiSeparateToken();
+                        break;
+                        }
+                        }
+                    }
+                    uiSeparateToken();
+                    uiInsertCharacters((BYTEPTR)"'");
+                    uiInsertCharactersN((BYTEPTR)(action+1),(BYTEPTR)(action+1)+rplGetIdentLength(action));
+                    uiInsertCharacters((BYTEPTR)"' RCL");
+                    uiSeparateToken();
+                    uiAutocompleteUpdate();
+                    break;
+                }
+                break;
+            }
+            if(ISUNIT(*action)) {
+
+                switch(halScreen.CursorState&0xff)
+                {
+                case 'D':
+                    if(endCmdLineAndCompile()) {
+                        // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
+                        menu=uiGetLibMenu(mcode);
+                        item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
+                        action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
+
+                        // USER IS TRYING TO APPLY DIVIDING
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_DIV);
+                    }
+                    break;
+
+                case 'A':
+                case 'P':
+                {
+
+                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                    BINT SavedException=Exceptions;
+                    BINT SavedErrorCode=ErrorCode;
+
+                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    Exceptions=SavedException;
+                    ErrorCode=SavedErrorCode;
+
+                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                    BYTEPTR string=(BYTEPTR) (opname+1);
+                    BINT totaln=rplStrLen(opname);
+                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+
+                    uiSeparateToken();
+                    uiInsertCharactersN(string,endstring);
+                    uiSeparateToken();
+                    uiInsertCharacters((BYTEPTR)"/");
+                    uiSeparateToken();
+                    uiAutocompleteUpdate();
+
+                    break;
+                }
+
+                }
+                break;
+            }
+
+            // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
+            rplPushData(action);
+            Opcode=OVR_XEQ;
+            break;
+        }
+        default:
+        {
+            // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
+
+            if(ISIDENT(*action)) {
+                switch(halScreen.CursorState&0xff)
+                {
+                case 'D':
+                    if(endCmdLineAndCompile()) {
+                        // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
+                        menu=uiGetLibMenu(mcode);
+                        item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
+                        action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
+
+                        // USER IS TRYING TO EVAL THE VARIABLE
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                    }
+                    break;
+
+                case 'A':
+                {
+
+                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                    BINT SavedException=Exceptions;
+                    BINT SavedErrorCode=ErrorCode;
+
+                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    Exceptions=SavedException;
+                    ErrorCode=SavedErrorCode;
+
+                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                    BYTEPTR string=(BYTEPTR) (opname+1);
+                    BINT totaln=rplStrLen(opname);
+                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+
+                    // REMOVE THE TICK MARKS IN ALG MODE
+                    if((totaln>2)&&(string[0]=='\'')) {
+                        ++string;
+                        --endstring;
+                    }
+
+                    uiInsertCharactersN(string,endstring);
+                    uiAutocompleteUpdate();
+
+                    break;
+                }
+
+                case 'P':
+                {
+
+                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                    BINT SavedException=Exceptions;
+                    BINT SavedErrorCode=ErrorCode;
+
+                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    Exceptions=SavedException;
+                    ErrorCode=SavedErrorCode;
+
+                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                    BYTEPTR string=(BYTEPTR) (opname+1);
+                    BINT totaln=rplStrLen(opname);
+                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+
+                    uiSeparateToken();
+                    uiInsertCharactersN(string,endstring);
+                    uiSeparateToken();
+                    uiAutocompleteUpdate();
+
+                    break;
+                }
+                }
+
+            }
+            if(ISUNIT(*action)) {
+                switch(halScreen.CursorState&0xff)
+                {
+                case 'D':
+                    if(endCmdLineAndCompile()) {
+                        // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
+                        menu=uiGetLibMenu(mcode);
+                        item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
+                        action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
+
+                        // USER IS TRYING TO APPLY THE UNIT
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_MUL);
+                    }
+                    break;
+
+                case 'A':
+                {
+
+                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                    BINT SavedException=Exceptions;
+                    BINT SavedErrorCode=ErrorCode;
+
+                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    Exceptions=SavedException;
+                    ErrorCode=SavedErrorCode;
+
+                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                    BYTEPTR string=(BYTEPTR) (opname+1);
+                    BINT totaln=rplStrLen(opname);
+                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+
+                    if( (totaln>2)&&(string[0]=='1')&&(string[1]=='_')) string+=2;
+
+                    uiInsertCharactersN(string,endstring);
+                    uiAutocompleteUpdate();
+
+                    break;
+                }
+
+                case 'P':
+                {
+
+                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                    BINT SavedException=Exceptions;
+                    BINT SavedErrorCode=ErrorCode;
+
+                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    Exceptions=SavedException;
+                    ErrorCode=SavedErrorCode;
+
+                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                    BYTEPTR string=(BYTEPTR) (opname+1);
+                    BINT totaln=rplStrLen(opname);
+                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+
+                    uiSeparateToken();
+                    uiInsertCharactersN(string,endstring);
+                    uiSeparateToken();
+                    uiInsertCharacters((BYTEPTR)"*");
+                    uiSeparateToken();
+                    uiAutocompleteUpdate();
+
+                    break;
+                }
+
+                }
+                break;
+            }
+
+            // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
+            rplPushData(action);
+            Opcode=OVR_XEQ;
+            break;
+
+
+        }
+        }
+
+        if(Opcode) cmdRun(Opcode);
+        if(Exceptions) {
+            // TODO: SHOW ERROR MESSAGE
+            halShowErrorMsg();
+            Exceptions=0;
+        } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+        halScreen.DirtyFlag|=STACK_DIRTY;
+}
 
 }
 
@@ -1397,9 +1795,9 @@ void shiftedalphaKeyHandler(BINT keymsg)
 
 
 
-#define DECLARE_VARKEYHANDLER(name,idx) void name##KeyHandler(BINT keymsg) \
+#define DECLARE_VARKEYHANDLER(name,menu,idx) void name##KeyHandler(BINT keymsg) \
                                                     { \
-                                                    varsKeyHandler(keymsg,(BINT)(idx)); \
+                                                    varsKeyHandler(keymsg,(menu),(BINT)(idx)); \
                                                     }
 
 
@@ -1466,12 +1864,12 @@ DECLARE_SYMBKEYHANDLER(delta,"Δ",0)
 DECLARE_SYMBKEYHANDLER(at,"@",0)
 DECLARE_SYMBKEYHANDLER(and,"&",0)
 
-DECLARE_VARKEYHANDLER(var1,0)
-DECLARE_VARKEYHANDLER(var2,1)
-DECLARE_VARKEYHANDLER(var3,2)
-DECLARE_VARKEYHANDLER(var4,3)
-DECLARE_VARKEYHANDLER(var5,4)
-DECLARE_VARKEYHANDLER(var6,5)
+DECLARE_VARKEYHANDLER(var1,2,0)
+DECLARE_VARKEYHANDLER(var2,2,1)
+DECLARE_VARKEYHANDLER(var3,2,2)
+DECLARE_VARKEYHANDLER(var4,2,3)
+DECLARE_VARKEYHANDLER(var5,2,4)
+DECLARE_VARKEYHANDLER(var6,2,5)
 
 
 

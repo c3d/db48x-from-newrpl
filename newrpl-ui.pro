@@ -120,7 +120,8 @@ SOURCES += main.cpp\
     newrpl/autocomplete.c \
     newrpl/arithmetic.c \
     newrpl/lib-20-comments.c \
-    firmware/sys/target_pc/flash.c
+    firmware/sys/target_pc/flash.c \
+    firmware/ui_softmenu.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \

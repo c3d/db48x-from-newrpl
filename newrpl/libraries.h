@@ -29,6 +29,7 @@
 #define OPCODE_ROMID2PTR    0x7FFF7
 #define OPCODE_CHECKOBJ     0x7FFF6
 #define OPCODE_AUTOCOMPNEXT 0x7FFF5
+#define OPCODE_LIBMENU      0x7FFF4
 #define OPCODE_LIBREMOVE    0x7FFF1
 #define OPCODE_LIBINSTALL   0x7FFF0
 
@@ -65,6 +66,19 @@ extern const LIBHANDLER ROMLibs[];
 #define TI_PRECEDENCE(tokeninfo) (((tokeninfo)&0x3f000000)>>24)
 
 #define MKTOKENINFO(length,type,nargs,precedence) (((length)&0x3fff)|(((type)&0x3f)<<14)|(((nargs)&0xf)<<20)|(((precedence)&0x3f)<<24))
+
+
+#define MENULIBRARY(menucode) (((menucode)>>12)&0xfff)
+#define MENUPAGE(menucode) ((menucode)&0xfff)
+#define MENUSPECIAL(menucode) (((menucode)>>24)&0xf)
+#define MKMENUCODE(special,lib,page) ( (((special)&0xf)<<24) | (((lib)&0xfff)<<12) | ((page)&0xfff) )
+
+
+
+
+
+
+
 
 enum TokenInfo_Type {
     TITYPE_UNKNOWN=0,
@@ -418,7 +432,7 @@ extern const WORD empty_list[];
 #define CMD_CLEAR MKOPCODE(72,1)
 
 #define CMD_SYMBTOUNIT MKOPCODE(DOUNIT,7)
-
+#define CMD_CONVERT    MKOPCODE(DOUNIT,4)
 
 #include "errorcodes.h"
 

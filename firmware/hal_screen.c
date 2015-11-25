@@ -312,9 +312,8 @@ halScreen.FormFont=halScreen.StackFont=halScreen.Stack1Font=(UNIFONT *)Font_8C;
 halScreen.MenuFont=(UNIFONT *)Font_6A;
 halScreen.StAreaFont=(UNIFONT *)Font_6A;
 halScreen.CmdLineFont=(UNIFONT *)Font_8C;
-halScreen.Menu1List=0;
-halScreen.Menu2Dir=0;
-halScreen.Menu1Page=halScreen.Menu2Page=0;
+halScreen.Menu1Code=0;
+halScreen.Menu2Code=MKMENUCODE(1,0,0);  // START WITH THE VARS MENU
 halSetNotification(N_LEFTSHIFT,0);
 halSetNotification(N_RIGHTSHIFT,0);
 halSetNotification(N_ALPHA,0);
@@ -382,19 +381,15 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     oldclipy=scr->clipy;
     oldclipy2=scr->clipy2;
 
-    // BASIC CHECK FOR CHANGE OF DIRECTORY
-    if(halScreen.Menu2Dir!=CurrentDir) {
-        halScreen.Menu2Dir=CurrentDir;
-        halScreen.Menu2Page=0;
-    }
 
-    BINT nvars=rplGetVisibleVarCount();
+    WORDPTR MenuObj=uiGetLibMenu(halScreen.Menu2Code);
+    BINT nitems=uiCountMenuItems(halScreen.Menu2Code,MenuObj);
     BINT k;
-    WORDPTR *var;
+    WORDPTR item;
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
     // FOR EXAMPLE BY PURGING VARIABLES
-    if((halScreen.Menu2Page>=nvars)||(halScreen.Menu2Page<0)) halScreen.Menu2Page=0;
+    if((MENUPAGE(halScreen.Menu2Code)>=nitems)||(MENUPAGE(halScreen.Menu2Code)<0)) halScreen.Menu2Code=MKMENUCODE(MENUSPECIAL(halScreen.Menu2Code),MENULIBRARY(halScreen.Menu2Code),0);
 
 
     // FIRST ROW
@@ -405,19 +400,8 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     for(k=0;k<3;++k) {
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
-    var=rplFindVisibleGlobalByIndex(halScreen.Menu2Page+k);
-    if(var) {
-            BINT w=StringWidthN((char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont);
-            if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
-            else w=(scr->clipx2+scr->clipx-w)>>1;
-            if(ISDIR(*var[1])) {
-                //DrawTextN(w+1,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0x0,scr);
-                ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(0xf));
-                ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor(0xf));
-            }
-
-        DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xf,scr);
-    }
+    item=uiGetMenuItem(halScreen.Menu2Code,MenuObj,k);
+    uiDrawMenuItem(item,scr);
     }
 
     // SECOND ROW
@@ -428,42 +412,19 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     for(k=0;k<2;++k) {
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
-    var=rplFindVisibleGlobalByIndex(halScreen.Menu2Page+3+k);
-    if(var) {
-            BINT w=StringWidthN((char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont);
-            if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
-            else w=(scr->clipx2+scr->clipx-w)>>1;
-            if(ISDIR(*var[1])) {
-                //  DrawTextN(w+1,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0x0,scr);
-                ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(0xf));
-                ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor(0xf));
-
-            }
-
-            DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xf,scr);
-    }
+    item=uiGetMenuItem(halScreen.Menu2Code,MenuObj,k+3);
+    uiDrawMenuItem(item,scr);
     }
 
     // NOW DO THE NXT KEY
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
 
-    if(nvars==6) {
-        var=rplFindVisibleGlobalByIndex(halScreen.Menu2Page+3+k);
-        if(var) {
-                BINT w=StringWidthN((char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont);
-                if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
-                else w=(scr->clipx2+scr->clipx-w)>>1;
-                if(ISDIR(*var[1])) {
-                    // DrawTextN(w+1,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0x0,scr);
-                    ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(0xf));
-                    ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor(0xf));
-
-                }
-                DrawTextN(w,scr->clipy,(char *)(*var+1),(char *)(*var+1)+rplGetIdentLength(*var),halScreen.MenuFont,0xf,scr);
-        }
+    if(nitems==6) {
+        item=uiGetMenuItem(halScreen.Menu2Code,MenuObj,5);
+        uiDrawMenuItem(item,scr);
     } else {
-     if(nvars>6) {
+     if(nitems>6) {
          DrawText(scr->clipx,scr->clipy,"NXT...",halScreen.MenuFont,0xf,scr);
      }
     }
