@@ -312,7 +312,7 @@ halScreen.FormFont=halScreen.StackFont=halScreen.Stack1Font=(UNIFONT *)Font_8C;
 halScreen.MenuFont=(UNIFONT *)Font_6A;
 halScreen.StAreaFont=(UNIFONT *)Font_6A;
 halScreen.CmdLineFont=(UNIFONT *)Font_8C;
-halScreen.Menu1Code=0;
+halScreen.Menu1Code=MKMENUCODE(1,0,0);
 halScreen.Menu2Code=MKMENUCODE(1,0,0);  // START WITH THE VARS MENU
 halSetNotification(N_LEFTSHIFT,0);
 halSetNotification(N_RIGHTSHIFT,0);
@@ -337,6 +337,9 @@ void halRedrawMenu1(DRAWSURFACE *scr)
 
 // TODO: EVERYTHING, SHOW EMPTY MENU FOR NOW
     int ytop,ybottom;
+    int oldclipx,oldclipx2,oldclipy,oldclipy2;
+
+
     ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine;
     ybottom=ytop+halScreen.Menu1-1;
     // DRAW BACKGROUND
@@ -347,6 +350,57 @@ void halRedrawMenu1(DRAWSURFACE *scr)
     ggl_clipvline(scr,65,ytop,ybottom,0);
     ggl_clipvline(scr,87,ytop,ybottom,0);
     ggl_clipvline(scr,109,ytop,ybottom,0);
+
+
+    // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
+
+    oldclipx=scr->clipx;
+    oldclipx2=scr->clipx2;
+    oldclipy=scr->clipy;
+    oldclipy2=scr->clipy2;
+
+
+    WORDPTR MenuObj=uiGetLibMenu(halScreen.Menu1Code);
+    BINT nitems=uiCountMenuItems(halScreen.Menu1Code,MenuObj);
+    BINT k;
+    WORDPTR item;
+
+    // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
+    // FOR EXAMPLE BY PURGING VARIABLES
+    if((MENUPAGE(halScreen.Menu1Code)>=nitems)||(MENUPAGE(halScreen.Menu1Code)<0)) halScreen.Menu1Code=MKMENUCODE(MENUSPECIAL(halScreen.Menu1Code),MENULIBRARY(halScreen.Menu1Code),0);
+
+
+    // FIRST ROW
+
+    scr->clipy=ytop+1;
+    scr->clipy2=ytop+6;
+
+    for(k=0;k<5;++k) {
+    scr->clipx=22*k;
+    scr->clipx2=22*k+20;
+    item=uiGetMenuItem(halScreen.Menu1Code,MenuObj,k);
+    uiDrawMenuItem(item,0,scr);
+    }
+
+    // NOW DO THE NXT KEY
+    scr->clipx=22*k;
+    scr->clipx2=22*k+20;
+
+    if(nitems==6) {
+        item=uiGetMenuItem(halScreen.Menu1Code,MenuObj,5);
+        uiDrawMenuItem(item,0,scr);
+    } else {
+     if(nitems>6) {
+         DrawText(scr->clipx,scr->clipy,"NXT...",halScreen.MenuFont,0,scr);
+     }
+    }
+
+
+
+    scr->clipx=oldclipx;
+    scr->clipx2=oldclipx2;
+    scr->clipy=oldclipy;
+    scr->clipy2=oldclipy2;
 
     halScreen.DirtyFlag&=~MENU1_DIRTY;
 }
@@ -401,7 +455,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
     item=uiGetMenuItem(halScreen.Menu2Code,MenuObj,k);
-    uiDrawMenuItem(item,scr);
+    uiDrawMenuItem(item,0xf,scr);
     }
 
     // SECOND ROW
@@ -413,7 +467,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
     item=uiGetMenuItem(halScreen.Menu2Code,MenuObj,k+3);
-    uiDrawMenuItem(item,scr);
+    uiDrawMenuItem(item,0xf,scr);
     }
 
     // NOW DO THE NXT KEY
@@ -422,7 +476,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
 
     if(nitems==6) {
         item=uiGetMenuItem(halScreen.Menu2Code,MenuObj,5);
-        uiDrawMenuItem(item,scr);
+        uiDrawMenuItem(item,0xf,scr);
     } else {
      if(nitems>6) {
          DrawText(scr->clipx,scr->clipy,"NXT...",halScreen.MenuFont,0xf,scr);

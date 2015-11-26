@@ -60,6 +60,7 @@ const MSGLIST const all_messages[]={
     // DIRECTORIES AND VARIABLES
     { ERR_NONEMPTYDIRECTORY, "Non-empty directory" },
     { ERR_DIRECTORYNOTFOUND, "Directory not found" },
+    { ERR_CANTOVERWRITEDIR, "Can't overwrite directory" },
 
     // INTEGER NUMBERS
     { ERR_INTEGEREXPECTED, "Expected an integer" },

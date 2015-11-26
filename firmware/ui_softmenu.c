@@ -145,7 +145,7 @@ WORDPTR uiGetMenuItemAction(WORDPTR item,BINT shift)
 // DOES NOT CLEAR BACKGROUND
 
 
-void uiDrawMenuItem(WORDPTR item,DRAWSURFACE *scr)
+void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 {
     WORDPTR ptr;
     if(!item) return;
@@ -163,11 +163,11 @@ void uiDrawMenuItem(WORDPTR item,DRAWSURFACE *scr)
         if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
         else w=(scr->clipx2+scr->clipx-w)>>1;
         if(var && ISDIR(*var[1])) {
-            ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(0xf));
-            ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor(0xf));
+            ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(color));
+            ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor(color));
         }
 
-        DrawTextN(w,scr->clipy,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.MenuFont,0xf,scr);
+        DrawTextN(w,scr->clipy,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.MenuFont,color,scr);
         return;
     }
 
@@ -225,7 +225,7 @@ void uiDrawMenuItem(WORDPTR item,DRAWSURFACE *scr)
     BINT w=StringWidthN((char *)string,(char *)endstring,halScreen.MenuFont);
     if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
     else w=(scr->clipx2+scr->clipx-w)>>1;
-    DrawTextN(w,scr->clipy,(char *)string,(char *)endstring,halScreen.MenuFont,0xf,scr);
+    DrawTextN(w,scr->clipy,(char *)string,(char *)endstring,halScreen.MenuFont,color,scr);
     return;
 
 }

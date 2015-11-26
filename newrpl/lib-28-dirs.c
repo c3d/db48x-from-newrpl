@@ -145,13 +145,22 @@ void LIB_HANDLER()
 
 
         if(val) {
+            if(ISDIR(*val[1])) {
+                rplError(ERR_CANTOVERWRITEDIR);
+                return;
+            }
             val[1]=rplPeekData(2);
             rplDropData(2);
         }
         else {
             // LAM WAS NOT FOUND, TRY A GLOBAL
             val=rplFindGlobal(rplPeekData(1),0);
-
+            if(val) {
+                if(ISDIR(*val[1])) {
+                    rplError(ERR_CANTOVERWRITEDIR);
+                    return;
+                }
+            }
             // HANDLE SPECIAL CASE OF STORING DIRECTORY OBJECTS
             WORDPTR obj=rplPeekData(2);
             if(LIBNUM(*obj)==DODIR) {
@@ -242,6 +251,11 @@ void LIB_HANDLER()
         WORDPTR *var=rplFindLAM(rplPeekData(1),1);
         if(!var) var=rplFindGlobal(rplPeekData(1),1);
         if(var) {
+                if(ISDIR(*var[1])) {
+                    rplError(ERR_CANTOVERWRITEDIR);
+                    return;
+                }
+
             rplOverwriteData(1,*(var+1));
             rplPushData((WORDPTR)one_bint);       // PUSH THE NUMBER ONE
 
@@ -282,6 +296,12 @@ void LIB_HANDLER()
     WORDPTR *var=rplFindLAM(rplPeekData(1),1);
     if(!var) var=rplFindGlobal(rplPeekData(1),1);
     if(var) {
+        if(ISDIR(*var[1])) {
+            rplError(ERR_CANTOVERWRITEDIR);
+            return;
+        }
+
+
         rplOverwriteData(1,*(var+1));
         rplPushData((WORDPTR)one_bint);       // PUSH THE NUMBER ONE
 
@@ -343,7 +363,6 @@ void LIB_HANDLER()
             return;
         }
 
-        // TODO: ALSO ACCEPT A LIST OF VARS, WHEN WE HAVE LISTS!
 
         rplPurgeGlobal(rplPeekData(1));
         if(!Exceptions) rplDropData(1);
