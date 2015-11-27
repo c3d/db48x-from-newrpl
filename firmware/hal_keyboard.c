@@ -829,6 +829,18 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 switch(halScreen.CursorState&0xff)
                 {
                 case 'D':
+                {
+                    // HANDLE DIRECTORIES IN A SPECIAL WAY: DON'T CLOSE THE COMMAND LINE
+                    WORDPTR *var=rplFindGlobal(action,1);
+                    if(var) {
+                        if(ISDIR(*(var[1]))) {
+                            // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
+                            rplPushData(action);    // PUSH THE NAME ON THE STACK
+                            Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                            break;
+                        }
+                    }
+
                     if(endCmdLineAndCompile()) {
                         // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
                         menu=uiGetLibMenu(mcode);
@@ -840,7 +852,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
                     }
                     break;
-
+                }
                 case 'A':
                 {
 
@@ -1874,12 +1886,12 @@ DECLARE_SYMBKEYHANDLER(delta,"Δ",0)
 DECLARE_SYMBKEYHANDLER(at,"@",0)
 DECLARE_SYMBKEYHANDLER(and,"&",0)
 
-DECLARE_VARKEYHANDLER(var1_1,2,0)
-DECLARE_VARKEYHANDLER(var2_1,2,1)
-DECLARE_VARKEYHANDLER(var3_1,2,2)
-DECLARE_VARKEYHANDLER(var4_1,2,3)
-DECLARE_VARKEYHANDLER(var5_1,2,4)
-DECLARE_VARKEYHANDLER(var6_1,2,5)
+DECLARE_VARKEYHANDLER(var1_1,1,0)
+DECLARE_VARKEYHANDLER(var2_1,1,1)
+DECLARE_VARKEYHANDLER(var3_1,1,2)
+DECLARE_VARKEYHANDLER(var4_1,1,3)
+DECLARE_VARKEYHANDLER(var5_1,1,4)
+DECLARE_VARKEYHANDLER(var6_1,1,5)
 
 DECLARE_VARKEYHANDLER(var1,2,0)
 DECLARE_VARKEYHANDLER(var2,2,1)

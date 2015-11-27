@@ -372,13 +372,13 @@ void halRedrawMenu1(DRAWSURFACE *scr)
 
     // FIRST ROW
 
-    scr->clipy=ytop+1;
-    scr->clipy2=ytop+6;
+    scr->clipy=ytop;
+    scr->clipy2=ytop+5;
 
     for(k=0;k<5;++k) {
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
-    item=uiGetMenuItem(halScreen.Menu1Code,MenuObj,k);
+    item=uiGetMenuItem(halScreen.Menu1Code,MenuObj,k+MENUPAGE(halScreen.Menu1Code));
     uiDrawMenuItem(item,0,scr);
     }
 
@@ -454,7 +454,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     for(k=0;k<3;++k) {
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
-    item=uiGetMenuItem(halScreen.Menu2Code,MenuObj,k);
+    item=uiGetMenuItem(halScreen.Menu2Code,MenuObj,k+MENUPAGE(halScreen.Menu2Code));
     uiDrawMenuItem(item,0xf,scr);
     }
 
@@ -466,7 +466,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     for(k=0;k<2;++k) {
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
-    item=uiGetMenuItem(halScreen.Menu2Code,MenuObj,k+3);
+    item=uiGetMenuItem(halScreen.Menu2Code,MenuObj,k+3+MENUPAGE(halScreen.Menu2Code));
     uiDrawMenuItem(item,0xf,scr);
     }
 
