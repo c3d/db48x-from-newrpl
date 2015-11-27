@@ -32,7 +32,9 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
     CMD(FP,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
     CMD(MODSTO,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(POWMOD,MKTOKENINFO(6,TITYPE_FUNCTION,2,2)), \
-    CMD(MOD,MKTOKENINFO(3,TITYPE_FUNCTION,2,2))
+    CMD(MOD,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
+    CMD(SQ,MKTOKENINFO(2,TITYPE_FUNCTION,1,2))
+
 
 // ADD MORE OPCODES HERE
 
@@ -539,6 +541,60 @@ void LIB_HANDLER()
             return;
 
     }
+
+    case SQ:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR arg=rplPeekData(1);
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            BINT size1=rplObjSize(rplPeekData(1));
+            WORDPTR *savestk=DSTop;
+
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
+
+        // FOR ALL OTHER OBJECTS, JUST DO DUP *
+
+        rplPushData(arg);
+
+        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+
+        return;
+     }
+
+
         // ADD MORE OPCODES HERE
 
    // STANDARIZED OPCODES:
