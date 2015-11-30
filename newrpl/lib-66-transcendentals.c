@@ -39,6 +39,8 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
     CMD(ASINH,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
     CMD(ACOSH,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
     CMD(ATANH,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
+    CMD(LOG,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
+    CMD(ALOG,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(DEG,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
     CMD(GRAD,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(RAD,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2))
@@ -730,6 +732,82 @@ void LIB_HANDLER()
         return;
 
     }
+
+
+    case LOG:
+    {
+        REAL x;
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+
+            return;
+        }
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
+        rplReadNumberAsReal(rplPeekData(1),&x);
+
+        if(Exceptions) return;
+
+        if(iszeroReal(&x)) {
+            // RETURN -INFINITY AND SET OVERFLOW
+            // TODO: IMPLEMENT FLAGS TO AVOID THROWING AN ERROR
+            rplInfinityToRReg(0);
+            rplError(ERR_INFINITERESULT);
+            return;
+        }
+
+        if(x.flags&F_NEGATIVE) {
+            // TODO: RETURN COMPLEX VALUE!
+            // FOR NOW JUST THROW AN EXCEPTION
+            rplError(ERR_ARGOUTSIDEDOMAIN);
+            return;
+        }
+
+        hyp_log(&x);
+        finalize(&RReg[0]);
+
+        rplDropData(1);
+        rplNewRealFromRRegPush(0);
+        return;
+
+    }
+
+    case ALOG:
+    {
+        REAL dec,ten;
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+
+            return;
+        }
+
+        WORDPTR arg=rplPeekData(1);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
+        rplReadNumberAsReal(rplPeekData(1),&dec);
+        rplReadNumberAsReal(ten_bint,&ten);
+
+        if(Exceptions) return;
+        powReal(&RReg[0],&ten,&dec);
+
+        finalize(&RReg[0]);
+
+        rplDropData(1);
+        rplNewRealFromRRegPush(0);
+        return;
+
+
+    }
+
 
     case DEG:
         rplClrSystemFlag(-17);

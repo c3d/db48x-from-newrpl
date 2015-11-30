@@ -93,6 +93,10 @@ ROMOBJECT three_bint[]=
     (WORD)MAKESINT(3)
 };
 
+ROMOBJECT ten_bint[]=
+{
+    (WORD)MAKESINT(10)
+};
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
@@ -102,6 +106,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)two_bint,
     (WORDPTR)three_bint,
     (WORDPTR)minusone_bint,
+    (WORDPTR)ten_bint,
     0
 };
 

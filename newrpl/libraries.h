@@ -397,6 +397,7 @@ extern const WORD zero_bint[];
 extern const WORD one_bint[];
 extern const WORD two_bint[];
 extern const WORD three_bint[];
+extern const WORD ten_bint[];
 extern const WORD empty_string[];
 extern const WORD empty_list[];
 

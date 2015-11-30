@@ -117,6 +117,12 @@ typedef struct {
 // INTERNAL TRANSCENDENTAL FUNCTIONS
 void hyp_exp(REAL *);
 void hyp_ln(REAL *);
+void hyp_log(REAL *);
+void hyp_alog(REAL *);
+
+void powReal(REAL *result,REAL *x,REAL *a);
+
+
 void hyp_sqrt(REAL *);
 void hyp_sinhcosh(REAL *);
 void hyp_atanh(REAL *);

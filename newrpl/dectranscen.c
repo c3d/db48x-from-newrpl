@@ -2212,6 +2212,60 @@ Context.precdigits-=8;
 
 }
 
+
+// CALCULATES LOG(x0)=LN(X0)/LN(10), AND RETURNS IT IN RREG[0]
+// ARGUMENT MUST BE POSITIVE, NO ARGUMENT CHECKS HERE
+
+void hyp_log(REAL *x0)
+{
+    int adjustexp;
+    int startexp=1;
+REAL ln10,one;
+
+Context.precdigits+=8;
+
+decconst_ln10(&ln10);
+decconst_One(&one);
+
+copyReal(&RReg[3],x0);
+adjustexp=x0->exp+( ((x0->len-1)<<3)+sig_digits(x0->data[x0->len-1])-1);
+RReg[3].exp=-(((RReg[3].len-1)<<3)+sig_digits(RReg[3].data[RReg[3].len-1])-1);    // TAKE ONLY THE MANTISSA, LEFT JUSTIFIED
+
+// y0=A-1
+sub_real(&RReg[2],&RReg[3],&one);
+// x0=A+1
+add_real(&RReg[1],&RReg[3],&one);
+normalize(&RReg[2]);
+normalize(&RReg[1]);
+
+// z = 0
+RReg[0].len=1;
+RReg[0].data[0]=0;
+RReg[0].exp=0;
+RReg[0].flags=0;
+
+
+CORDIC_Hyp_Vectoring_unrolled((Context.precdigits>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+8:Context.precdigits,startexp);
+
+// ADD BACK THE EXPONENT AS LN(A)=EXP*LN(10)+2*LN(A')
+// IN THIS CASE: LOG(A)=EXP+2*LN(A')/LN(10)
+
+add_real(&RReg[3],&RReg[0],&RReg[0]);
+normalize(&RReg[3]);
+div_real(&RReg[4],&RReg[3],&ln10,Context.precdigits);
+normalize(&RReg[4]);
+newRealFromBINT(&RReg[3],adjustexp);
+add_real(&RReg[0],&RReg[3],&RReg[4]);
+
+Context.precdigits-=8;
+
+// HERE RReg[0] CONTAINS THE ANGLE WITH 9 DIGITS MORE THAN THE CURRENT PRECISION (NONE OF THEM WILL BE ACCURATE), ROUNDING IS REQUIRED
+// THE ANGLE IS IN THE RANGE -PI, +PI
+// THE LAST DIGIT MIGHT BE OFF BY +/-1 WHEN USING THE MAXIMUM SYSTEM PRECISION
+
+}
+
+
 // USE A CORDIC LOOP TO COMPUTE THE SQUARE ROOT
 // SAME AS LN, BUT WE USE THE RESULT FROM x
 
