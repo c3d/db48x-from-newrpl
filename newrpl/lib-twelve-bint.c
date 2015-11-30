@@ -674,11 +674,11 @@ void LIB_HANDLER()
 
 
         // INTEGER POWER, USE REALS TO DEAL WITH NEGATIVE POWERS AND OVERFLOW
-        rplBINTToRReg(1,op1);
-        rplBINTToRReg(2,op2);
+        rplBINTToRReg(6,op1);
+        rplBINTToRReg(7,op2);
 
         // TODO: REAL POWERS
-        xrootReal(&RReg[0],&RReg[1],&RReg[2]);
+        xrootReal(&RReg[0],&RReg[6],&RReg[7]);
 
         if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
             BINT64 result=getBINT64Real(&RReg[0]);

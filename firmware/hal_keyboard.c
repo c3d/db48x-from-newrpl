@@ -1578,7 +1578,7 @@ void eexKeyHandler(BINT keymsg)
             NUMFORMAT config;
 
             rplGetSystemNumberFormat(&config);
-            if(config.MiddleFmt&FMT_USECAPITALS) uiInsertCharacters((BYTEPTR)"1E");
+            if((config.MiddleFmt|config.BigFmt|config.SmallFmt)&FMT_USECAPITALS) uiInsertCharacters((BYTEPTR)"1E");
             else uiInsertCharacters((BYTEPTR)"1e");
             uiAutocompleteUpdate();
             return;
@@ -1605,7 +1605,7 @@ void eexKeyHandler(BINT keymsg)
             if((startnum>line) && ((startnum[-1]=='E')||(startnum[-1]=='e') )) return;
 
             // SECOND CASE: IF TOKEN UNDER CURSOR IS EMPTY, IN 'D' MODE COMPILE OBJECT AND THEN APPEND 1E
-            if(config.MiddleFmt&FMT_USECAPITALS)    uiInsertCharacters((BYTEPTR)"1E");
+            if((config.MiddleFmt|config.BigFmt|config.SmallFmt)&FMT_USECAPITALS)    uiInsertCharacters((BYTEPTR)"1E");
             else uiInsertCharacters((BYTEPTR)"1e");
             uiAutocompleteUpdate();
             return;
@@ -1624,7 +1624,7 @@ void eexKeyHandler(BINT keymsg)
 
             // NEED TO INSERT A CHARACTER HERE
             BINT oldposition=halScreen.CursorPosition;
-            if(config.MiddleFmt&FMT_USECAPITALS) uiInsertCharacters((BYTEPTR)"E");
+            if((config.MiddleFmt|config.BigFmt|config.SmallFmt)&FMT_USECAPITALS) uiInsertCharacters((BYTEPTR)"E");
             else uiInsertCharacters((BYTEPTR)"e");
             uiMoveCursor(oldposition+1);
             uiEnsureCursorVisible();
@@ -1979,6 +1979,12 @@ DECLARE_CMDKEYHANDLER(tonum,MKOPCODE(LIB_OVERLOADABLE,OVR_NUM),"→NUM",-1)
 
 DECLARE_CMDKEYHANDLER(sqrt,CMD_SQRT,"√",0)
 DECLARE_CMDKEYHANDLER(pow,MKOPCODE(LIB_OVERLOADABLE,OVR_POW),"^",0)
+DECLARE_CMDKEYHANDLER(ln,CMD_LN,"LN",1)
+DECLARE_CMDKEYHANDLER(exp,CMD_EXP,"EXP",1)
+DECLARE_CMDKEYHANDLER(log,CMD_LOG,"LOG",1)
+DECLARE_CMDKEYHANDLER(alog,CMD_ALOG,"ALOG",1)
+DECLARE_CMDKEYHANDLER(sq,CMD_SQ,"SQ",1)
+DECLARE_CMDKEYHANDLER(xroot,MKOPCODE(LIB_OVERLOADABLE,OVR_XROOT),"XROOT",1)
 
 DECLARE_CMDKEYHANDLER(sto,CMD_STO,"STO",2)
 DECLARE_CMDKEYHANDLER(rcl,CMD_RCL,"RCL",2)
@@ -2288,6 +2294,22 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_M, CONTEXT_ANY,&stoKeyHandler },
     { KM_PRESS|KB_M|SHIFT_LS, CONTEXT_ANY,&rclKeyHandler },
     { KM_PRESS|KB_M|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&rclKeyHandler },
+
+    { KM_PRESS|KB_Q|SHIFT_LS,CONTEXT_ANY,KEYHANDLER_NAME(exp) },
+    { KM_PRESS|KB_Q|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(exp) },
+    { KM_PRESS|KB_Q|SHIFT_RS,CONTEXT_ANY,KEYHANDLER_NAME(ln) },
+    { KM_PRESS|KB_Q|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(ln) },
+
+    { KM_PRESS|KB_V|SHIFT_LS,CONTEXT_ANY,KEYHANDLER_NAME(alog) },
+    { KM_PRESS|KB_V|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(alog) },
+    { KM_PRESS|KB_V|SHIFT_RS,CONTEXT_ANY,KEYHANDLER_NAME(log) },
+    { KM_PRESS|KB_V|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(log) },
+
+    { KM_PRESS|KB_R|SHIFT_LS,CONTEXT_ANY,KEYHANDLER_NAME(sq) },
+    { KM_PRESS|KB_R|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(sq) },
+    { KM_PRESS|KB_R|SHIFT_RS,CONTEXT_ANY,KEYHANDLER_NAME(xroot) },
+    { KM_PRESS|KB_R|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(xroot) },
+
 
     { KM_PRESS|KB_X, CONTEXT_ANY,KEYHANDLER_NAME(keyx) },
 

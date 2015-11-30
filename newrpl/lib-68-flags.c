@@ -360,13 +360,13 @@ void rplGetSystemNumberFormat(NUMFORMAT *fmt)
         else fmt->Locale=((WORD)'.') | (((WORD)' ')<<8) | (((WORD)' ')<<16) | (((WORD)',')<<24);
         WORDPTR nfmt=rplGetListElement(systemlist,2);
         if(nfmt && (ISBINT(*nfmt))) fmt->SmallFmt=(BINT)rplReadBINT(nfmt);
-        else fmt->SmallFmt=12|FMT_SCI|FMT_NOZEROEXP;
+        else fmt->SmallFmt=12|FMT_SCI|FMT_NOZEROEXP|FMT_USECAPITALS;
         nfmt=rplGetListElement(systemlist,3);
         if(nfmt && (ISBINT(*nfmt))) fmt->MiddleFmt=(BINT)rplReadBINT(nfmt);
-        else fmt->MiddleFmt=12;
+        else fmt->MiddleFmt=12|FMT_USECAPITALS;
         nfmt=rplGetListElement(systemlist,4);
         if(nfmt && (ISBINT(*nfmt))) fmt->BigFmt=(BINT)rplReadBINT(nfmt);
-        else fmt->BigFmt=12|FMT_SCI|FMT_NOZEROEXP;
+        else fmt->BigFmt=12|FMT_SCI|FMT_NOZEROEXP|FMT_USECAPITALS;
         nfmt=rplGetListElement(systemlist,5);
         if(nfmt && (ISNUMBER(*nfmt))) rplReadNumberAsReal(nfmt,&(fmt->SmallLimit));
         else {
@@ -387,7 +387,7 @@ void rplGetSystemNumberFormat(NUMFORMAT *fmt)
 
     fmt->Locale=((WORD)'.') | (((WORD)' ')<<8) | (((WORD)' ')<<16) | (((WORD)',')<<24);
     fmt->SmallFmt=12|FMT_SCI|FMT_NOZEROEXP|FMT_USECAPITALS;
-    fmt->MiddleFmt=12;
+    fmt->MiddleFmt=12|FMT_USECAPITALS;
     fmt->BigFmt=12|FMT_SCI|FMT_NOZEROEXP|FMT_USECAPITALS;
     rplReadNumberAsReal((WORDPTR)one_bint,&(fmt->SmallLimit));
     fmt->SmallLimit.exp=-12;
