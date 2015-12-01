@@ -657,14 +657,17 @@ void LIB_HANDLER()
         if(op1type||op2type) {
 
             if(op1type) {
+                if(op2type) xrootReal(&RReg[0],&rop1,&rop2);
+                else {
                 rplBINTToRReg(1,op2);
                 xrootReal(&RReg[0],&rop1,&RReg[1]);
-
+                }
             }
-
+            else {
             if(op2type) {
                 rplBINTToRReg(1,op1);
                 xrootReal(&RReg[0],&RReg[1],&rop2);
+            }
             }
             rplNewRealFromRRegPush(0);
             if(!Exceptions) rplCheckResultAndError(&RReg[0]);

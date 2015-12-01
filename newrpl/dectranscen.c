@@ -2641,7 +2641,7 @@ void powReal(REAL *result,REAL *x,REAL *a)
 }
 
 
-// COMPUTE POWERS, HIGH LEVEL MATH FUNCTION
+// COMPUTE REAL POWERS, HIGH LEVEL MATH FUNCTION
 // RESULT IS FINALIZED, USES ALL RRegs FROM 0 TO 8 INCLUSIVE
 // COPIES THE FINAL RESULT TO result
 
@@ -2728,10 +2728,31 @@ void xrootReal(REAL *result,REAL *x,REAL *a)
     }
 
 
-
-
-
     BINT approx=(x->flags|a->flags)&F_APPROX;
+    BINT isneg=x->flags&F_NEGATIVE;
+
+    if(isneg) {
+        if(!isintegerReal(a)) {
+            // THROW AN ERROR
+            // THE RESULT IS NOT A NUMBER
+            result->data[0]=0;
+            result->exp=0;
+            result->len=1;
+            result->flags=F_NOTANUMBER;
+            return;
+        }
+        if(!isoddReal(a)) {
+            // THE RESULT IS NOT A NUMBER
+            result->data[0]=0;
+            result->exp=0;
+            result->len=1;
+            result->flags=F_NOTANUMBER;
+            return;
+        }
+
+        x->flags&=~F_NEGATIVE;
+    }
+
     // COMPUTE THE ACTUAL POWER
 
     hyp_xroot(x,a);
@@ -2740,6 +2761,6 @@ void xrootReal(REAL *result,REAL *x,REAL *a)
 
     copyReal(result,&RReg[0]);
 
-    result->flags|=approx;
+    result->flags|=approx|isneg;
 
 }
