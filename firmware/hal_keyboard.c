@@ -438,8 +438,8 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         if(page==nitems) page-=5;
                     }
                     if(page<0) page=0;
-                    if(menunum==1) halScreen.Menu1Code=MKMENUCODE(MENUSPECIAL(mcode),MENULIBRARY(mcode),page);
-                    else halScreen.Menu2Code=MKMENUCODE(MENUSPECIAL(mcode),MENULIBRARY(mcode),page);
+                    if(menunum==1) halScreen.Menu1Code=SETMENUPAGE(mcode,page);
+                    else halScreen.Menu2Code=SETMENUPAGE(mcode,page);
                     halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
                     return;
                 }
@@ -555,8 +555,8 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 if(page==nitems) page-=5;
             }
             if(page<0) page=0;
-            if(menunum==1) halScreen.Menu1Code=MKMENUCODE(MENUSPECIAL(mcode),MENULIBRARY(mcode),page);
-            else halScreen.Menu2Code=MKMENUCODE(MENUSPECIAL(mcode),MENULIBRARY(mcode),page);
+            if(menunum==1) halScreen.Menu1Code=SETMENUPAGE(mcode,page);
+            else halScreen.Menu2Code=SETMENUPAGE(mcode,page);
             halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
             return;
         }

@@ -46,6 +46,7 @@ WORDPTR uiGetLibMenu(WORD MenuCode)
 
     Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
     CurOpcode=MKOPCODE(libnum,OPCODE_LIBMENU);
+    MenuCodeArg=MenuCode;
     RetNum=-1;
     (*han)();
 

@@ -110,6 +110,7 @@ SOURCES +=\
     firmware/ggl/ggl/ggl_scrollup.c \
     firmware/ggl/ggl/ggl_vline.c \
     firmware/ui_cmdline.c \
+    firmware/ui_softmenu.c \
     firmware/hal_battery.c \
     firmware/hal_keyboard.c \
     firmware/hal_screen.c \
@@ -120,7 +121,7 @@ SOURCES +=\
     firmware/sys/Font7A.c \
     firmware/sys/Font8C.c \
     firmware/sys/Font8D.c \
-    firmware/hal_msgenglish.c \
+    firmware/hal_msgenglish.c
 
 HEADERS  += \
     firmware/include/ggl.h \

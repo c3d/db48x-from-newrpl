@@ -533,7 +533,7 @@ void powmodReal(REAL *result,REAL *a,REAL *b,REAL *mod)
     RReg[0].flags=0;
 
     if(eqReal(b,&RReg[0])) {
-        divmodReal(&RReg[0],&result,a,mod);
+        divmodReal(&RReg[0],result,a,mod);
         return;
     }
     RReg[0].flags^=F_NEGATIVE;

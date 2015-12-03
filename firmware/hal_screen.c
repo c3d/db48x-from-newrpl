@@ -312,8 +312,8 @@ halScreen.FormFont=halScreen.StackFont=halScreen.Stack1Font=(UNIFONT *)Font_8C;
 halScreen.MenuFont=(UNIFONT *)Font_6A;
 halScreen.StAreaFont=(UNIFONT *)Font_6A;
 halScreen.CmdLineFont=(UNIFONT *)Font_8C;
-halScreen.Menu1Code=MKMENUCODE(1,0,0);
-halScreen.Menu2Code=MKMENUCODE(1,0,0);  // START WITH THE VARS MENU
+halScreen.Menu1Code=MKMENUCODE(1,0,0,0);
+halScreen.Menu2Code=MKMENUCODE(1,0,0,0);  // START WITH THE VARS MENU
 halSetNotification(N_LEFTSHIFT,0);
 halSetNotification(N_RIGHTSHIFT,0);
 halSetNotification(N_ALPHA,0);
@@ -367,7 +367,7 @@ void halRedrawMenu1(DRAWSURFACE *scr)
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
     // FOR EXAMPLE BY PURGING VARIABLES
-    if((MENUPAGE(halScreen.Menu1Code)>=nitems)||(MENUPAGE(halScreen.Menu1Code)<0)) halScreen.Menu1Code=MKMENUCODE(MENUSPECIAL(halScreen.Menu1Code),MENULIBRARY(halScreen.Menu1Code),0);
+    if((MENUPAGE(halScreen.Menu1Code)>=nitems)||(MENUPAGE(halScreen.Menu1Code)<0)) halScreen.Menu1Code=SETMENUPAGE(halScreen.Menu1Code,0);
 
 
     // FIRST ROW
@@ -443,7 +443,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
     // FOR EXAMPLE BY PURGING VARIABLES
-    if((MENUPAGE(halScreen.Menu2Code)>=nitems)||(MENUPAGE(halScreen.Menu2Code)<0)) halScreen.Menu2Code=MKMENUCODE(MENUSPECIAL(halScreen.Menu2Code),MENULIBRARY(halScreen.Menu2Code),0);
+    if((MENUPAGE(halScreen.Menu2Code)>=nitems)||(MENUPAGE(halScreen.Menu2Code)<0)) halScreen.Menu2Code=SETMENUPAGE(halScreen.Menu2Code,0);
 
 
     // FIRST ROW

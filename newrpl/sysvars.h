@@ -100,6 +100,7 @@ extern UBINT ArgNum1,ArgNum2,ArgNum3,RetNum;
 #define CurrentConstruct ArgNum3
 #define SuggestedOpcode  ArgNum3
 #define ObjectID   ArgNum3
+#define MenuCodeArg ArgNum3
 
 extern LIBHANDLER LowLibRegistry[MAXLOWLIBS];
 extern LIBHANDLER SysHiLibRegistry[MAXSYSHILIBS];

@@ -87,7 +87,26 @@ ROMOBJECT unitdir_ident[]={
 };
 
 
-
+ROMOBJECT unitmenu_zero[]={
+    // MENU LIST
+    MKPROLOG(DOLIST,12),
+        // ITEM: { Display Action Help }
+        MKPROLOG(DOLIST,10),
+            // DISPLAY
+            MAKESTRING(5),
+            TEXT2WORD('T','O','O','L'),
+            TEXT2WORD('S',0,0,0),
+            // ACTION
+            MAKESINT(1234),
+            // HELP
+            MAKESTRING(16),
+            TEXT2WORD('T','o','o','l'),
+            TEXT2WORD('s',' ','f','o'),
+            TEXT2WORD('r',' ','U','n'),
+            TEXT2WORD('i','t','s','.'),
+        CMD_ENDLIST,
+    CMD_ENDLIST
+};
 
 
 
@@ -95,6 +114,7 @@ ROMOBJECT unitdir_ident[]={
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
      (WORDPTR)unitdir_ident,
+     (WORDPTR)unitmenu_zero,
      0
 };
 
@@ -2805,6 +2825,24 @@ void LIB_HANDLER()
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         return;
 
+
+    case OPCODE_LIBMENU:
+        // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
+        // MUST RETURN A MENU LIST IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+    switch(MENUNUMBER(MenuCodeArg))
+    {
+    case 0:
+        ObjectPTR=unitmenu_zero;
+        RetNum=OK_CONTINUE;
+        break;
+    default:
+        RetNum=ERR_NOTMINE;
+    }
+
+       return;
+    }
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;
         RetNum=OK_CONTINUE;

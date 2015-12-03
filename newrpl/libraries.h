@@ -68,11 +68,12 @@ extern const LIBHANDLER ROMLibs[];
 #define MKTOKENINFO(length,type,nargs,precedence) (((length)&0x3fff)|(((type)&0x3f)<<14)|(((nargs)&0xf)<<20)|(((precedence)&0x3f)<<24))
 
 
-#define MENULIBRARY(menucode) (((menucode)>>12)&0xfff)
-#define MENUPAGE(menucode) ((menucode)&0xfff)
-#define MENUSPECIAL(menucode) (((menucode)>>24)&0xf)
-#define MKMENUCODE(special,lib,page) ( (((special)&0xf)<<24) | (((lib)&0xfff)<<12) | ((page)&0xfff) )
-
+#define MENULIBRARY(menucode) (((menucode)>>16)&0xfff)
+#define MENUNUMBER(menucode) (((menucode)>>8)&0xff)
+#define MENUPAGE(menucode) ((menucode)&0xff)
+#define MENUSPECIAL(menucode) (((menucode)>>30)&0x7)
+#define MKMENUCODE(special,lib,num,page) ( (((special)&0x7)<<30) | (((lib)&0xfff)<<16) | (((num)&0xff)<<8) | ((page)&0xff) )
+#define SETMENUPAGE(menucode,newpage) (((menucode)&~0xff) | ((newpage)&0xff))
 
 
 
@@ -238,6 +239,9 @@ extern void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds);
 
 // CONVENIENCE MACRO TO ENCODE ERROR MESSAGES
 #define MAKEMSG(lib,num) MKOPCODE(DECBINT, (((lib)&0xfff)<<7) | ((num)&0x7f))
+
+// CONVENIENCE MACRO TO ENCODE THE PROLOG OF STRINGS
+#define MAKESTRING(length) MKPROLOG(DOSTRING+((4-((length)&3))&3),((length)+3)>>2)
 
 
 // CONVENIENCE MACRO TO GET SIZE OF A MATRIX
