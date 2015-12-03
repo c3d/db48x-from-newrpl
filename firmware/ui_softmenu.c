@@ -104,9 +104,17 @@ WORDPTR uiGetMenuItemAction(WORDPTR item,BINT shift)
 
     if(!ISLIST(*item)) return item;
 
+    // GET ACTION ITEM WITHIN THE ITEM
+
+    item=rplGetListElement(item,2);
+
+    if(!item) return 0;
+
+    if(!ISLIST(*item)) return item;
+
 
     int index;
-    switch(shift)
+    switch(KM_SHIFTPLANE(shift))
     {
     case 0:
         index=0;

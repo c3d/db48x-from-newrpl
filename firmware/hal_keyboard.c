@@ -474,7 +474,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                     // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
                     rplPushData(action);
-                    Opcode=OVR_XEQ;
+                    Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
                     break;
 
                 }
@@ -498,7 +498,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                     // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
                     rplPushData(action);
-                    Opcode=OVR_XEQ;
+                    Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
                     break;
 
                 }
@@ -521,7 +521,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                     // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
                     rplPushData(action);
-                    Opcode=OVR_XEQ;
+                    Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
                     break;
 
 
@@ -657,7 +657,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
             // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
             rplPushData(action);
-            Opcode=OVR_XEQ;
+            Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
             break;
 
         }
@@ -818,7 +818,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
             // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
             rplPushData(action);
-            Opcode=OVR_XEQ;
+            Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
             break;
         }
         default:
@@ -998,7 +998,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
             // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
             rplPushData(action);
-            Opcode=OVR_XEQ;
+            Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
             break;
 
 

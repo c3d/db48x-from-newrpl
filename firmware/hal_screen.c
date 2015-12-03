@@ -312,7 +312,7 @@ halScreen.FormFont=halScreen.StackFont=halScreen.Stack1Font=(UNIFONT *)Font_8C;
 halScreen.MenuFont=(UNIFONT *)Font_6A;
 halScreen.StAreaFont=(UNIFONT *)Font_6A;
 halScreen.CmdLineFont=(UNIFONT *)Font_8C;
-halScreen.Menu1Code=MKMENUCODE(1,0,0,0);
+halScreen.Menu1Code=MKMENUCODE(0,54,0,0);
 halScreen.Menu2Code=MKMENUCODE(1,0,0,0);  // START WITH THE VARS MENU
 halSetNotification(N_LEFTSHIFT,0);
 halSetNotification(N_RIGHTSHIFT,0);
