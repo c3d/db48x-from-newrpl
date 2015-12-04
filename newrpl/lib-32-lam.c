@@ -859,7 +859,7 @@ void LIB_HANDLER()
             // WARNING: THIS USES DECOMPILER INTERNALS, ONLY USE THIS FOR CORE
             WORDPTR *prevconst=ValidateTop-2;
             WORD PreviousConstruct;
-            if(prevconst<RSTop) {
+            if(prevconst<ValidateBottom) {
                 // THERE'S NO UPPER CONSTRUCT
                 PreviousConstruct=0;
             } else {
@@ -1006,7 +1006,7 @@ void LIB_HANDLER()
             // WARNING: THIS USES DECOMPILER INTERNALS, ONLY USE THIS FOR CORE
             WORDPTR *prevconst=ValidateTop-2;
             WORD PreviousConstruct;
-            if(prevconst<RSTop) {
+            if(prevconst<ValidateBottom) {
                 // THERE'S NO UPPER CONSTRUCT
                 PreviousConstruct=0;
             } else {

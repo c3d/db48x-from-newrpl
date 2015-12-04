@@ -167,7 +167,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
     LAMTopSaved=LAMTop;     // SAVE LAM ENVIRONMENT
 
-    ValidateTop=RSTop;
+    ValidateTop=ValidateBottom=RSTop;
     ValidateHandler=NULL;
 
     force_libnum=-1;
@@ -204,7 +204,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
         TokenLen=(BINT)utf8nlen((char *)TokenStart,(char *)BlankStart);
         BlankLen=(BINT)((BYTEPTR)NextTokenStart-(BYTEPTR)BlankStart);
-        CurrentConstruct=(BINT)((ValidateTop>RSTop)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
+        CurrentConstruct=(BINT)((ValidateTop>ValidateBottom)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
         ValidateHandler=rplGetLibHandler(LIBNUM(CurrentConstruct));
         LastCompiledObject=CompileEnd;
         if(force_libnum<0) {
@@ -290,7 +290,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                 case OK_ENDCONSTRUCT:
                     --ValidateTop;
-                    if(ValidateTop<RSTop) {
+                    if(ValidateTop<ValidateBottom) {
                         rplError(ERR_ENDWITHOUTSTART);
                         LAMTop=LAMTopSaved;
                         return 0;
@@ -299,7 +299,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         // STORE THE SIZE OF THE COMPOSITE IN THE WORD
                         **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | ((((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1);
                         // PREPARE THE NEWLY CREATED OBJECT FOR VALIDATION BY ITS PARENT
-                        CurrentConstruct=(BINT)((ValidateTop>RSTop)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
+                        CurrentConstruct=(BINT)((ValidateTop>ValidateBottom)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
                         ValidateHandler=rplGetLibHandler(LIBNUM(CurrentConstruct));
                         LastCompiledObject=*ValidateTop;
                         validate=1;
@@ -386,7 +386,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     infixmode=0;
                  }
                     --ValidateTop;
-                    if(ValidateTop<RSTop) {
+                    if(ValidateTop<ValidateBottom) {
                         rplError(ERR_ENDWITHOUTSTART);
                         LAMTop=LAMTopSaved;
                         return 0;
@@ -394,7 +394,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     if(ISPROLOG((BINT)**ValidateTop)) {
                         **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | ((((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1);    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
                         // PREPARE THE NEWLY CREATED OBJECT FOR VALIDATION BY ITS PARENT
-                        CurrentConstruct=(BINT)((ValidateTop>RSTop)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
+                        CurrentConstruct=(BINT)((ValidateTop>ValidateBottom)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
                         ValidateHandler=rplGetLibHandler(LIBNUM(CurrentConstruct));
                         LastCompiledObject=*ValidateTop;
                         validate=1;
@@ -450,7 +450,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     while( (NextTokenStart<CompileStringEnd) && ((*((char *)NextTokenStart)==' ') || (*((char *)NextTokenStart)=='\t') || (*((char *)NextTokenStart)=='\n') || (*((char *)NextTokenStart)=='\r'))) NextTokenStart=(WORDPTR)(((char *)NextTokenStart)+1);
                     TokenLen=(BINT)utf8nlen((char *)TokenStart,(char *)BlankStart);
                     BlankLen=(BINT)((BYTEPTR)NextTokenStart-(BYTEPTR)BlankStart);
-                    CurrentConstruct=(BINT)((ValidateTop>RSTop)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
+                    CurrentConstruct=(BINT)((ValidateTop>ValidateBottom)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
                     LastCompiledObject=CompileEnd;
 
                     RetNum=-1;
@@ -728,7 +728,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
      // JUST FINISHED THE STRING, NOW ADD THE END OF THE WRAPPER
      rplCompileAppend(CMD_SEMI);
      --ValidateTop;
-     if(ValidateTop<RSTop) {
+     if(ValidateTop<ValidateBottom) {
          rplError(ERR_ENDWITHOUTSTART);
          LAMTop=LAMTopSaved;
          return 0;
@@ -740,10 +740,10 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
 // END OF STRING OBJECT WAS REACHED
  if(!Exceptions) {
-    if(ValidateTop<RSTop) {
+    if(ValidateTop<ValidateBottom) {
         rplError(ERR_ENDWITHOUTSTART);
     } else {
-    if(ValidateTop>RSTop) {
+    if(ValidateTop>ValidateBottom) {
         rplError(ERR_STARTWITHOUTEND);
     }
     }
@@ -871,13 +871,14 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
 {
     LIBHANDLER han;
     BINT infixmode=0;
-    UBINT savecstruct,savedecompmode,validtop;
+    UBINT savecstruct,savedecompmode,validtop,validbottom;
     WORDPTR *SavedRSTop;
     if(flags&DECOMP_EMBEDDED) {
         SavedRSTop=RSTop;
         savecstruct=CurrentConstruct;
         savedecompmode=DecompMode;
         validtop=ValidateTop-RSTop;
+        validbottom=ValidateBottom-RSTop;
         if(ValidateTop>RSTop) RSTop=ValidateTop;
         // SAVE ALL DECOMPILER POINTERS
         *RSTop++=DecompileObject;
@@ -889,7 +890,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
         DecompileObject=object;
 
         // RESERVE MEMORY
-        if(RStkSize<=(RSTop+SAVED_POINTERS-RStk)) growRStk(RSTop+SAVED_POINTERS-RStk+RSTKSLACK);
+        if(RStkSize<=(RSTop+RSTKSLACK-RStk)) growRStk(RSTop-RStk+RSTKSLACK);
         if(Exceptions) return 0;
 
     }
@@ -907,7 +908,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
     EndOfObject=rplSkipOb(object);
 
     LAMTopSaved=LAMTop; //SAVE LAM ENVIRONMENTS
-    ValidateTop=RSTop;
+    ValidateTop=ValidateBottom=RSTop;
     *ValidateTop++=DecompileObject; // STORE START OF OBJECT FOR QUICK SKIPPING
     // HERE ALL POINTERS ARE STORED IN GC-UPDATEABLE AREA
 
@@ -925,7 +926,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
     han=rplGetLibHandler(LIBNUM(*DecompileObject));
 
     CurOpcode=MKOPCODE(0,(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
-    if(ValidateTop>RSTop) CurrentConstruct=**(ValidateTop-1);
+    if(ValidateTop>ValidateBottom) CurrentConstruct=**(ValidateTop-1);
     else CurrentConstruct=0;
     DecompMode=infixmode;
 
@@ -959,6 +960,8 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
                 DecompMode=savedecompmode;
                 RSTop=SavedRSTop;
                 ValidateTop=RSTop+validtop;
+                ValidateBottom=RSTop+validbottom;
+
             }
             return 0;
         }
@@ -967,7 +970,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
         break;
     case OK_CHANGECONSTRUCT:
         --ValidateTop;
-        if(ValidateTop<RSTop) {
+        if(ValidateTop<ValidateBottom) {
             rplError(ERR_MALFORMEDOBJECT);
             LAMTop=LAMTopSaved;
             if(flags&DECOMP_EMBEDDED) {
@@ -980,6 +983,8 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
                 DecompMode=savedecompmode;
                 RSTop=SavedRSTop;
                 ValidateTop=RSTop+validtop;
+                ValidateBottom=RSTop+validbottom;
+
 
             }
             return 0;
@@ -989,7 +994,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
         break;
     case OK_ENDCONSTRUCT:
         --ValidateTop;
-        if(ValidateTop<RSTop) {
+        if(ValidateTop<ValidateBottom) {
             rplError(ERR_MALFORMEDOBJECT);
             LAMTop=LAMTopSaved;
             if(flags&DECOMP_EMBEDDED) {
@@ -1002,6 +1007,8 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
                 DecompMode=savedecompmode;
                 RSTop=SavedRSTop;
                 ValidateTop=RSTop+validtop;
+                ValidateBottom=RSTop+validbottom;
+
 
             }
             return 0;
@@ -1024,6 +1031,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
                 DecompMode=savedecompmode;
                 RSTop=SavedRSTop;
                 ValidateTop=RSTop+validtop;
+                ValidateBottom=RSTop+validbottom;
             }
                 return 0;
             }
@@ -1091,6 +1099,7 @@ end_of_expression:
                         DecompMode=savedecompmode;
                         RSTop=SavedRSTop;
                         ValidateTop=RSTop+validtop;
+                        ValidateBottom=RSTop+validbottom;
                     }
                     return 0; }
                 InfixOpTop[0]=*DecompileObject;
@@ -1608,6 +1617,7 @@ end_of_expression:
                     DecompMode=savedecompmode;
                     RSTop=SavedRSTop;
                     ValidateTop=RSTop+validtop;
+                    ValidateBottom=RSTop+validbottom;
 
                 }
                 return 0;
@@ -1624,6 +1634,8 @@ end_of_expression:
            DecompMode=savedecompmode;
            RSTop=SavedRSTop;
            ValidateTop=RSTop+validtop;
+           ValidateBottom=RSTop+validbottom;
+
 
    }
    else {
