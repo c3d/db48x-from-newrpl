@@ -677,7 +677,7 @@ void LIB_HANDLER()
        // NOW ALL THE DIFFERENT END'S SEPARATED
 
 
-       if((TokenLen==5) && (!utf8ncmp((char *)TokenStart,"ENDIF",3)))
+       if((TokenLen==5) && (!utf8ncmp((char *)TokenStart,"ENDIF",5)))
        {
            // ENDIF OPCODE
            if( (CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,THEN)) || (CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,ELSE))) {
@@ -692,7 +692,7 @@ void LIB_HANDLER()
 
        }
 
-       if((TokenLen==6) && (!utf8ncmp((char *)TokenStart,"ENDERR",3)))
+       if((TokenLen==6) && (!utf8ncmp((char *)TokenStart,"ENDERR",6)))
        {
            // ENDERR
            if( (CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,THENERR)) || (CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,ELSEERR))) {
@@ -708,7 +708,7 @@ void LIB_HANDLER()
 
        }
 
-       if((TokenLen==7) && (!utf8ncmp((char *)TokenStart,"ENDTHEN",3)))
+       if((TokenLen==7) && (!utf8ncmp((char *)TokenStart,"ENDTHEN",7)))
        {
 
            // ENDTHEN
@@ -725,7 +725,7 @@ void LIB_HANDLER()
 
        }
 
-       if((TokenLen==7) && (!utf8ncmp((char *)TokenStart,"ENDCASE",3)))
+       if((TokenLen==7) && (!utf8ncmp((char *)TokenStart,"ENDCASE",7)))
        {
            // ENDCASE
            if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,CASE)) {
@@ -741,7 +741,7 @@ void LIB_HANDLER()
 
        }
 
-       if((TokenLen==5) && (!utf8ncmp((char *)TokenStart,"ENDDO",3)))
+       if((TokenLen==5) && (!utf8ncmp((char *)TokenStart,"ENDDO",5)))
        {
            // ENDDO
 
@@ -758,7 +758,7 @@ void LIB_HANDLER()
 
        }
 
-       if((TokenLen==8) && (!utf8ncmp((char *)TokenStart,"ENDWHILE",3)))
+       if((TokenLen==8) && (!utf8ncmp((char *)TokenStart,"ENDWHILE",8)))
        {
            // ENDWHILE
 
@@ -1039,9 +1039,9 @@ void LIB_HANDLER()
 
         // WHILE ... REPEAT ... END
 
-        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,DO)) {
+        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,WHILE)) {
 
-                rplDecompAppendString((BYTEPTR)"DO");
+                rplDecompAppendString((BYTEPTR)"WHILE");
 
                 // CREATE A NEW ENVIRONMENT
                 rplCreateLAMEnvironment(DecompileObject);
