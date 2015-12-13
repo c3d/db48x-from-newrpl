@@ -28,7 +28,10 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
     CMD(SETLOCALE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(SETNUMFORMAT,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(SF,MKTOKENINFO(2,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CF,MKTOKENINFO(2,TITYPE_NOTALLOWED,1,2))
+    CMD(CF,MKTOKENINFO(2,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TMENU,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)),\
+    CMD(SWAPMENU,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+
 
 // ADD MORE OPCODES HERE
 
@@ -100,6 +103,17 @@ ROMOBJECT numfmt_ident[]= {
 
 };
 
+ROMOBJECT menu1_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('M','e','n','u'),
+        TEXT2WORD('l',0,0,0)
+};
+
+ROMOBJECT menu2_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('M','e','n','u'),
+        TEXT2WORD('2',0,0,0)
+};
 
 
 // EXTERNAL EXPORTED OBJECT TABLE
@@ -109,6 +123,9 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)flags_ident,
     (WORDPTR)locale_ident,
     (WORDPTR)numfmt_ident,
+    (WORDPTR)menu1_ident,
+    (WORDPTR)menu2_ident,
+
     0
 };
 
@@ -128,6 +145,8 @@ const systemflag const flags_names[]= {
     { "RAD", {0x80|17,18,0,0,0,0,0,0} },
     { "GRAD", {17, 0X80|18,0,0,0,0,0,0} },
     { "COMMENTS", {0x80|30,0,0,0,0,0,0,0} },
+    { "ACTIVEMENU1", { 0x80|4,0,0,0,0,0,0,0} },
+    { "ACTIVEMENU2", { 4, 0,0,0,0,0,0,0} },
 
 // TODO: ADD MORE FLAG NAMES HERE
     { NULL , {0,0,0,0,0,0,0,0} }
@@ -433,12 +452,46 @@ void rplSetSystemNumberFormat(NUMFORMAT *fmt)
 
 
 
+// ONLY VALID menunumbers ARE 1 AND 2
+// THIS MAY CHANGE IN OTHER IMPLEMENTATIONS
 
+void rplSetMenuCode(BINT menunumber,WORD menucode)
+{
+    if(!ISLIST(*SystemFlags)) return;
 
+    if((menunumber<1)||(menunumber>2)) return;
 
+    SystemFlags[7+menunumber]=menucode;
 
+    return;
+}
 
+WORD rplGetMenuCode(BINT menunumber)
+{
+    if(!ISLIST(*SystemFlags)) return 0;
 
+    if((menunumber<1)||(menunumber>2)) return 0;
+
+    return  SystemFlags[7+menunumber];
+
+}
+
+void rplSetActiveMenu(BINT menunumber)
+{
+    if((menunumber<1)||(menunumber>2)) return;
+
+    if(menunumber==1) { rplClrSystemFlag(FL_ACTIVEMENU); return; }
+    rplSetSystemFlag(FL_ACTIVEMENU);
+
+}
+
+BINT rplGetActiveMenu()
+{
+BINT a=rplTestSystemFlag(FL_ACTIVEMENU);
+
+if(a==1) return 2;
+return 1;
+}
 
 
 void LIB_HANDLER()
@@ -778,6 +831,94 @@ void LIB_HANDLER()
 
      }
 
+    case TMENU:
+     {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR arg=rplPeekData(1);
+        BINT menu=rplGetActiveMenu();
+
+        if(ISIDENT(*arg)) {
+
+            // RCL THE VARIABLE AND LEAVE CONTENTS ON THE STACK
+
+            WORDPTR *var=rplFindLAM(arg,1);
+            if(!var) var=rplFindGlobal(arg,1);
+
+            if(!var) {
+               rplError(ERR_UNDEFINEDVARIABLE);
+               return;
+            }
+
+            // REPLACE THE IDENT WITH ITS CONTENTS
+            rplOverwriteData(1,var[1]);
+
+            // AND CONTINUE EXCECUTION
+        }
+
+        if(ISLIST(*arg)) {
+            // CUSTOM MENU
+
+           WORD mcode=MKMENUCODE(0,LIBRARY_NUMBER,0,0);
+
+           rplSetMenuCode(menu,mcode);
+
+           // STORE THE LIST IN .Settings AS CURRENT MENU
+           if(menu==2) rplStoreSettings(menu2_ident,arg);
+           else rplStoreSettings(menu1_ident,arg);
+
+           rplDropData(1);
+          return;
+        }
+
+
+
+        if(ISBINT(*arg)) {
+            // IT'S A PREDEFINED MENU CODE
+            BINT64 num=rplReadBINT(arg);
+
+            if((num<0)||(num>0xffffffff)) {
+                // JUST SET IT TO ZERO
+                rplSetMenuCode(menu,0);
+                // STORE THE LIST IN .Settings AS CURRENT MENU
+                if(menu==2) rplStoreSettings(menu2_ident,zero_bint);
+                else rplStoreSettings(menu1_ident,zero_bint);
+
+            }
+            else {
+            // WE HAVE A VALID MENU NUMBER
+
+            rplSetMenuCode(menu,num);
+            // STORE THE LIST IN .Settings AS CURRENT MENU
+            if(menu==2) rplStoreSettings(menu2_ident,arg);
+            else rplStoreSettings(menu1_ident,arg);
+
+            }
+
+            rplDropData(1);
+            return;
+        }
+
+        rplError(ERR_BADARGTYPE);
+
+      return;
+    }
+
+    case SWAPMENU:
+    {
+        // JUST SWAP MENUS 1 AND 2
+        WORD m1code=rplGetMenuCode(1);
+        WORD m2code=rplGetMenuCode(2);
+
+        rplSetMenuCode(1,m2code);
+        rplSetMenuCode(2,m1code);
+
+        return;
+    }
+
+
 
     // ADD MORE OPCODES HERE
 
@@ -890,6 +1031,29 @@ void LIB_HANDLER()
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         return;
 
+    case OPCODE_LIBMENU:
+        // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
+        // MUST RETURN A MENU LIST IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        WORDPTR menuobj;
+    switch(MENUNUMBER(MenuCodeArg))
+    {
+    case 0:
+        menuobj=rplGetSettings(menu1_ident);
+        break;
+    case 1:
+        menuobj=rplGetSettings(menu2_ident);
+        break;
+
+    default:
+        menuobj=0;
+    }
+    if(!menuobj) ObjectPTR=empty_list;
+    else ObjectPTR=menuobj;
+    RetNum=OK_CONTINUE;
+    return;
+    }
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;
         RetNum=OK_CONTINUE;

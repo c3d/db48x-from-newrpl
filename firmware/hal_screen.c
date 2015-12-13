@@ -312,8 +312,6 @@ halScreen.FormFont=halScreen.StackFont=halScreen.Stack1Font=(UNIFONT *)Font_8C;
 halScreen.MenuFont=(UNIFONT *)Font_6A;
 halScreen.StAreaFont=(UNIFONT *)Font_6A;
 halScreen.CmdLineFont=(UNIFONT *)Font_8C;
-halScreen.Menu1Code=MKMENUCODE(0,54,0,0);
-halScreen.Menu2Code=MKMENUCODE(1,0,0,0);  // START WITH THE VARS MENU
 halSetNotification(N_LEFTSHIFT,0);
 halSetNotification(N_RIGHTSHIFT,0);
 halSetNotification(N_ALPHA,0);
@@ -359,15 +357,15 @@ void halRedrawMenu1(DRAWSURFACE *scr)
     oldclipy=scr->clipy;
     oldclipy2=scr->clipy2;
 
-
-    WORDPTR MenuObj=uiGetLibMenu(halScreen.Menu1Code);
-    BINT nitems=uiCountMenuItems(halScreen.Menu1Code,MenuObj);
+    WORD m1code=rplGetMenuCode(1);
+    WORDPTR MenuObj=uiGetLibMenu(m1code);
+    BINT nitems=uiCountMenuItems(m1code,MenuObj);
     BINT k;
     WORDPTR item;
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
     // FOR EXAMPLE BY PURGING VARIABLES
-    if((MENUPAGE(halScreen.Menu1Code)>=nitems)||(MENUPAGE(halScreen.Menu1Code)<0)) halScreen.Menu1Code=SETMENUPAGE(halScreen.Menu1Code,0);
+    if((MENUPAGE(m1code)>=nitems)||(MENUPAGE(m1code)<0)) m1code=SETMENUPAGE(m1code,0);
 
 
     // FIRST ROW
@@ -378,7 +376,7 @@ void halRedrawMenu1(DRAWSURFACE *scr)
     for(k=0;k<5;++k) {
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
-    item=uiGetMenuItem(halScreen.Menu1Code,MenuObj,k+MENUPAGE(halScreen.Menu1Code));
+    item=uiGetMenuItem(m1code,MenuObj,k+MENUPAGE(m1code));
     uiDrawMenuItem(item,0,scr);
     }
 
@@ -387,7 +385,7 @@ void halRedrawMenu1(DRAWSURFACE *scr)
     scr->clipx2=22*k+20;
 
     if(nitems==6) {
-        item=uiGetMenuItem(halScreen.Menu1Code,MenuObj,5);
+        item=uiGetMenuItem(m1code,MenuObj,5);
         uiDrawMenuItem(item,0,scr);
     } else {
      if(nitems>6) {
@@ -435,15 +433,15 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     oldclipy=scr->clipy;
     oldclipy2=scr->clipy2;
 
-
-    WORDPTR MenuObj=uiGetLibMenu(halScreen.Menu2Code);
-    BINT nitems=uiCountMenuItems(halScreen.Menu2Code,MenuObj);
+    WORD m2code=rplGetMenuCode(2);
+    WORDPTR MenuObj=uiGetLibMenu(m2code);
+    BINT nitems=uiCountMenuItems(m2code,MenuObj);
     BINT k;
     WORDPTR item;
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
     // FOR EXAMPLE BY PURGING VARIABLES
-    if((MENUPAGE(halScreen.Menu2Code)>=nitems)||(MENUPAGE(halScreen.Menu2Code)<0)) halScreen.Menu2Code=SETMENUPAGE(halScreen.Menu2Code,0);
+    if((MENUPAGE(m2code)>=nitems)||(MENUPAGE(m2code)<0)) m2code=SETMENUPAGE(m2code,0);
 
 
     // FIRST ROW
@@ -454,7 +452,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     for(k=0;k<3;++k) {
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
-    item=uiGetMenuItem(halScreen.Menu2Code,MenuObj,k+MENUPAGE(halScreen.Menu2Code));
+    item=uiGetMenuItem(m2code,MenuObj,k+MENUPAGE(m2code));
     uiDrawMenuItem(item,0xf,scr);
     }
 
@@ -466,7 +464,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     for(k=0;k<2;++k) {
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
-    item=uiGetMenuItem(halScreen.Menu2Code,MenuObj,k+3+MENUPAGE(halScreen.Menu2Code));
+    item=uiGetMenuItem(m2code,MenuObj,k+3+MENUPAGE(m2code));
     uiDrawMenuItem(item,0xf,scr);
     }
 
@@ -475,7 +473,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     scr->clipx2=22*k+20;
 
     if(nitems==6) {
-        item=uiGetMenuItem(halScreen.Menu2Code,MenuObj,5);
+        item=uiGetMenuItem(m2code,MenuObj,5);
         uiDrawMenuItem(item,0xf,scr);
     } else {
      if(nitems>6) {

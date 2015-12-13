@@ -253,8 +253,11 @@ extern BINT rplTestSystemFlagByIdent(WORDPTR ident);
 
 extern WORD rplGetSystemLocale();
 extern void rplGetSystemNumberFormat(NUMFORMAT *fmt);
+extern void rplSetSystemNumberFormat(NUMFORMAT *fmt);
 
-
+// SYSTEM SOFT MENUS
+void rplSetMenuCode(BINT menunumber,WORD menucode);
+WORD rplGetMenuCode(BINT menunumber);
 
 
 
@@ -492,6 +495,7 @@ extern void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 
 
 // SYSTEM FLAGS
+#define FL_ACTIVEMENU      -4
 #define FL_ANGLEMODE1     -17
 #define FL_ANGLEMODE2     -18
 #define FL_UNDERFLOWERROR -20

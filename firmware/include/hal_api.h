@@ -139,8 +139,6 @@ typedef struct {
     UNIFONT *MenuFont;
     UNIFONT *CmdLineFont;
     UNIFONT *StAreaFont;
-    int Menu1Code;      // CODE = SPECIAL << 24 + LIB NUMBER << 12 + PAGE NUMBER (0x0NLLLPPP)
-    int Menu2Code;
     // VARIABLES FOR THE TEXT EDITOR / COMMAND LINE
     int LineVisible,LineCurrent,LineIsModified;
     int NumLinesVisible;    // HEIGHT OF COMMAND LINE AREA IN LINES OF TEXT

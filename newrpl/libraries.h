@@ -69,11 +69,11 @@ extern const LIBHANDLER ROMLibs[];
 
 
 #define MENULIBRARY(menucode) (((menucode)>>16)&0xfff)
-#define MENUNUMBER(menucode) (((menucode)>>8)&0xff)
-#define MENUPAGE(menucode) ((menucode)&0xff)
-#define MENUSPECIAL(menucode) (((menucode)>>30)&0x7)
-#define MKMENUCODE(special,lib,num,page) ( (((special)&0x7)<<30) | (((lib)&0xfff)<<16) | (((num)&0xff)<<8) | ((page)&0xff) )
-#define SETMENUPAGE(menucode,newpage) (((menucode)&~0xff) | ((newpage)&0xff))
+#define MENUNUMBER(menucode) (((menucode)>>10)&0x3f)
+#define MENUPAGE(menucode) ((menucode)&0x3ff)
+#define MENUSPECIAL(menucode) (((menucode)>>28)&0x7)
+#define MKMENUCODE(special,lib,num,page) ( (((special)&0x7)<<28) | (((lib)&0xfff)<<16) | (((num)&0x3f)<<10) | ((page)&0x3ff) )
+#define SETMENUPAGE(menucode,newpage) (((menucode)&~0x3ff) | ((newpage)&0x3ff))
 
 
 

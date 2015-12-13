@@ -423,7 +423,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-                WORD mcode=(menunum==1)? halScreen.Menu1Code:halScreen.Menu2Code;
+                WORD mcode=rplGetMenuCode(menunum);
                 WORDPTR menu=uiGetLibMenu(mcode);
                 BINT nitems=uiCountMenuItems(mcode,menu);
                 BINT idx=MENUPAGE(mcode)+varnum,page=MENUPAGE(mcode);
@@ -438,8 +438,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         if(page==nitems) page-=5;
                     }
                     if(page<0) page=0;
-                    if(menunum==1) halScreen.Menu1Code=SETMENUPAGE(mcode,page);
-                    else halScreen.Menu2Code=SETMENUPAGE(mcode,page);
+                    rplSetMenuCode(menunum,SETMENUPAGE(mcode,page));
                     halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
                     return;
                 }
@@ -540,7 +539,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
     }
     else {
         // ACTION INSIDE THE EDITOR
-        WORD mcode=(menunum==1)? halScreen.Menu1Code:halScreen.Menu2Code;
+        WORD mcode=rplGetMenuCode(menunum);
         WORDPTR menu=uiGetLibMenu(mcode);
         BINT nitems=uiCountMenuItems(mcode,menu);
         BINT idx=MENUPAGE(mcode)+varnum,page=MENUPAGE(mcode);
@@ -555,8 +554,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 if(page==nitems) page-=5;
             }
             if(page<0) page=0;
-            if(menunum==1) halScreen.Menu1Code=SETMENUPAGE(mcode,page);
-            else halScreen.Menu2Code=SETMENUPAGE(mcode,page);
+            rplSetMenuCode(menunum,SETMENUPAGE(mcode,page));
             halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
             return;
         }

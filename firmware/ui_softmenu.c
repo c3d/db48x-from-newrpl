@@ -44,7 +44,7 @@ WORDPTR uiGetLibMenu(WORD MenuCode)
     BINT SavedException=Exceptions;
     BINT SavedErrorCode=ErrorCode;
 
-    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE LIBRARY TO RUN
     CurOpcode=MKOPCODE(libnum,OPCODE_LIBMENU);
     MenuCodeArg=MenuCode;
     RetNum=-1;
