@@ -993,6 +993,101 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 }
                 break;
             }
+            if(!ISBINT(*action) && !ISPROLOG(*action)) {
+                // THIS IS A COMMAND, DECOMPILE AND INSERT NAME
+                switch(halScreen.CursorState&0xff)
+                {
+                case 'D':
+                    if(endCmdLineAndCompile()) {
+                        // FIND THE COMMAND AGAIN, IT MIGHT'VE MOVED DUE TO GC
+                        menu=uiGetLibMenu(mcode);
+                        item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
+                        action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
+
+                        Opcode=*action;
+                    }
+                    break;
+
+                case 'A':
+                {
+
+                    WORD tokeninfo=0;
+                    LIBHANDLER han=rplGetLibHandler(LIBNUM(*action));
+
+
+                    // GET THE SYMBOLIC TOKEN INFORMATION
+                    if(han) {
+                        WORD savecurOpcode=CurOpcode;
+
+                        CurOpcode=MKOPCODE(LIBNUM(*action),OPCODE_GETINFO);
+                        (*han)();
+
+                        if(RetNum>OK_TOKENINFO) tokeninfo=RetNum;
+
+                        CurOpcode=savecurOpcode;
+                    }
+
+
+                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                    BINT SavedException=Exceptions;
+                    BINT SavedErrorCode=ErrorCode;
+
+                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    Exceptions=SavedException;
+                    ErrorCode=SavedErrorCode;
+
+                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                    BYTEPTR string=(BYTEPTR) (opname+1);
+                    BINT totaln=rplStrLen(opname);
+                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+
+                    uiInsertCharactersN(string,endstring);
+                    if(TI_TYPE(tokeninfo)==TITYPE_FUNCTION) {
+                        uiInsertCharacters((BYTEPTR)"()");
+                        uiCursorLeft(1);
+                    }
+                    uiAutocompleteUpdate();
+
+                    break;
+                }
+
+                case 'P':
+                {
+
+                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                    BINT SavedException=Exceptions;
+                    BINT SavedErrorCode=ErrorCode;
+
+                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    Exceptions=SavedException;
+                    ErrorCode=SavedErrorCode;
+
+                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                    BYTEPTR string=(BYTEPTR) (opname+1);
+                    BINT totaln=rplStrLen(opname);
+                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+
+                    uiSeparateToken();
+                    uiInsertCharactersN(string,endstring);
+                    uiSeparateToken();
+                    uiAutocompleteUpdate();
+
+                    break;
+                }
+
+                }
+                break;
+
+
+
+
+            }
 
             // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
             rplPushData(action);
