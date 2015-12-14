@@ -125,7 +125,29 @@ void rplCallOvrOperator(WORD op)
     while(nargs) {
         // CHECK EACH ARGUMENT
         ptr=rplPeekData(nargs);
-        if( (LIBNUM(*ptr)>(WORD)libnum)&&(LIBNUM(*ptr)!=LIBRARY_NUMBER)) libnum=LIBNUM(*ptr);
+        if(LIBNUM(*ptr)>(WORD)libnum) libnum=LIBNUM(*ptr);
+        if((LIBNUM(*ptr)==LIBRARY_NUMBER)) {
+            // ARGUMENT OF THE OPERATOR IS AN OVERLOADED OPERATOR
+            // SO WE NEED TO PROCESS THIS LOCALLY TO AVOID RECURSIVE CALL
+            // RESPOND TO OVERLOADED OPERATORS LIKE A LIBRARY HANDLER
+            switch(OPCODE(op))
+            {
+            case OVR_EVAL:
+            case OVR_EVAL1:
+            case OVR_XEQ:
+            // IF IT'S AN OPCODE, EXECUTE IT
+            rplCallOvrOperator(*rplPopData());
+            return;
+            default:
+                rplError(ERR_INVALIDOPCODE);
+                return;
+
+
+            }
+
+
+
+        }
         --nargs;
     }
     LIBHANDLER han=rplGetLibHandler(libnum);
