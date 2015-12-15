@@ -232,7 +232,24 @@ void rplCompileReal(REAL *num)
 }
 
 
+void rplSwapRReg(int reg1,int reg2)
+{
+    REAL a;
+    a.data=RReg[reg1].data;
+    a.exp=RReg[reg1].exp;
+    a.flags=RReg[reg1].flags;
+    a.len=RReg[reg1].len;
 
+    RReg[reg1].data=RReg[reg2].data;
+    RReg[reg1].exp=RReg[reg2].exp;
+    RReg[reg1].flags=RReg[reg2].flags;
+    RReg[reg1].len=RReg[reg2].len;
+
+    RReg[reg2].data=a.data;
+    RReg[reg2].exp=a.exp;
+    RReg[reg2].flags=a.flags;
+    RReg[reg2].len=a.len;
+}
 
 
 

@@ -206,14 +206,21 @@ void LIB_HANDLER()
         if(ISUNARYOP(CurOpcode))
         {
         // APPLY UNARY OPERATOR DIRECTLY TO THE CONTENTS OF THE VARIABLE
-        // TODO: ADD SYMBOLIC OPERATION MODE
-
             switch(OPCODE(CurOpcode))
             {
             case OVR_EVAL1:
             // RCL WHATEVER IS STORED IN THE LAM AND THEN XEQ ITS CONTENTS
             // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
             {
+                if(!ISPROLOG(*rplPeekData(1))) {
+                WORD saveOpcode=CurOpcode;
+                CurOpcode=*rplPopData();
+                // RECURSIVE CALL
+                LIB_HANDLER();
+                CurOpcode=saveOpcode;
+                return;
+                }
+
                 WORDPTR val=rplGetLAM(rplPeekData(1));
                 if(!val) {
                     val=rplGetGlobal(rplPeekData(1));
@@ -245,6 +252,16 @@ void LIB_HANDLER()
             // RCL WHATEVER IS STORED IN THE LAM AND THEN EVAL ITS CONTENTS
             // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
             {
+                if(!ISPROLOG(*rplPeekData(1))) {
+                WORD saveOpcode=CurOpcode;
+                CurOpcode=*rplPopData();
+                // RECURSIVE CALL
+                LIB_HANDLER();
+                CurOpcode=saveOpcode;
+                return;
+                }
+
+
                 WORDPTR *val=rplFindLAM(rplPeekData(1),1);
                 if(!val) {
                     val=rplFindGlobal(rplPeekData(1),1);
@@ -330,6 +347,15 @@ void LIB_HANDLER()
 
             case OVR_XEQ:
                 // JUST KEEP THE IDENT ON THE STACK, UNEVALUATED
+                if(!ISPROLOG(*rplPeekData(1))) {
+                WORD saveOpcode=CurOpcode;
+                CurOpcode=*rplPopData();
+                // RECURSIVE CALL
+                LIB_HANDLER();
+                CurOpcode=saveOpcode;
+                return;
+                }
+
                return;
 
             default:

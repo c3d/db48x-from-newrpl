@@ -331,7 +331,15 @@ void LIB_HANDLER()
     case OVR_EVAL:
     case OVR_EVAL1:
     case OVR_XEQ:
-        // JUST LEAVE THE OBJECT ON THE STACK WHERE IT IS.
+        // JUST LEAVE THE OBJECT ON THE STACK WHERE IT IS, UNLESS IT'S A COMMAND DEFINED BY THIS LIBRARY
+        if(!ISPROLOG(*rplPeekData(1))) {
+        WORD saveOpcode=CurOpcode;
+        CurOpcode=*rplPopData();
+        // RECURSIVE CALL
+        LIB_HANDLER();
+        CurOpcode=saveOpcode;
+        return;
+        }
         return;
 
     case OVR_SAME:

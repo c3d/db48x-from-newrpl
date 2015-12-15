@@ -33,7 +33,8 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
     CMD(MODSTO,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(POWMOD,MKTOKENINFO(6,TITYPE_FUNCTION,2,2)), \
     CMD(MOD,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
-    CMD(SQ,MKTOKENINFO(2,TITYPE_FUNCTION,1,2))
+    CMD(SQ,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
+    CMD(NEXTPRIME,MKTOKENINFO(9,TITYPE_FUNCTION,1,2))
 
 
 // ADD MORE OPCODES HERE
@@ -89,6 +90,34 @@ void LIB_HANDLER()
         rplError(ERR_UNRECOGNIZEDOBJECT);
         return;
     }
+
+    // LIBRARIES THAT DEFINE ONLY COMMANDS STILL HAVE TO RESPOND TO A FEW OVERLOADABLE OPERATORS
+    if(LIBNUM(CurOpcode)==LIB_OVERLOADABLE) {
+        // ONLY RESPOND TO EVAL, EVAL1 AND XEQ FOR THE COMMANDS DEFINED HERE
+        // IN CASE OF COMMANDS TREATED AS OBJECTS (WHEN EMBEDDED IN LISTS)
+        if( (OPCODE(CurOpcode)==OVR_EVAL)||
+                (OPCODE(CurOpcode)==OVR_EVAL1)||
+                (OPCODE(CurOpcode)==OVR_XEQ) )
+        {
+            // EXECUTE THE COMMAND BY CHANGING THE CURRENT OPCODE
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            if(ISPROLOG(*rplPeekData(1))) {
+                // DO-NOTHING
+                rplPopData();
+                return;
+            }
+            WORD saveOpcode=CurOpcode;
+            CurOpcode=*rplPopData();
+            // RECURSIVE CALL
+            LIB_HANDLER();
+            CurOpcode=saveOpcode;
+            return;
+        }
+    }
+
 
     switch(OPCODE(CurOpcode))
     {
@@ -305,6 +334,82 @@ void LIB_HANDLER()
         }
         return;
     }
+    case NEXTPRIME:
+    {
+
+
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+
+            return;
+        }
+        WORDPTR arg=rplPeekData(1);
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
+        if(!ISNUMBER(*arg)) {
+            rplError(ERR_BADARGTYPE);
+            return;
+        }
+
+
+        if(ISBINT(*arg)) {
+            BINT64 n=rplReadBINT(arg);
+
+            BINT64 next=nextprimeBINT(n);
+            if(next>0) {
+                rplNewBINTPush(next,DECBINT);
+                if(Exceptions) return;
+                WORDPTR ptr=rplPopData();
+                rplOverwriteData(1,ptr);
+                return;
+            }
+            // THE NEXT PRIME IS > 2^63, USE REALS INSTEAD
+
+        }
+
+        REAL num;
+            rplReadNumberAsReal(arg,&num);
+
+            if(!isintegerReal(&num)) {
+                rplError(ERR_INTEGEREXPECTED);
+                return;
+            }
+
+            nextprimeReal(0,&num);
+            rplDropData(1);
+            rplNewRealFromRRegPush(0);
+
+        return;
+    }
+
+
+
+
     case MODSTO:
     {
         if(rplDepthData()<1) {

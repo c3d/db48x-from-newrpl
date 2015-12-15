@@ -484,12 +484,15 @@ void LIB_HANDLER()
     case OVR_XEQ:
     // EVALUATING THE OBJECT HAS TO CHANGE THE CURRENT DIRECTORY INTO THIS ONE
     {
-        if(*rplPeekData(1)==MKOPCODE(LIBRARY_NUMBER,HOME)) {
-            // THE HOME OPCODE CAN BE EVALUATED LIKE AN OBJECT
-            CurrentDir=Directories;
-            rplPopData();
-            return;
+        if(!ISPROLOG(*rplPeekData(1))) {
+        WORD saveOpcode=CurOpcode;
+        CurOpcode=*rplPopData();
+        // RECURSIVE CALL
+        LIB_HANDLER();
+        CurOpcode=saveOpcode;
+        return;
         }
+
         WORDPTR *dir=rplFindDirbyHandle(rplPeekData(1));
 
         if(!dir) {

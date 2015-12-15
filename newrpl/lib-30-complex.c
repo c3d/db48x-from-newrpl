@@ -168,6 +168,8 @@ void LIB_HANDLER()
         return;
     }
 
+
+
     if(LIBNUM(CurOpcode)==LIB_OVERLOADABLE)
     {
         // THESE ARE OVERLOADABLE COMMANDS DISPATCHED FROM THE
@@ -188,6 +190,24 @@ void LIB_HANDLER()
             // UNARY OPERATORS
             arg1=rplPeekData(1);
             if(!ISCOMPLEX(*arg1)) {
+                if(!ISPROLOG(*arg1)) {
+                    // ALLOW EXECUTION OF COMMANDS AS OBJECTS
+                    if( (OPCODE(CurOpcode)==OVR_EVAL)||
+                            (OPCODE(CurOpcode)==OVR_EVAL1)||
+                            (OPCODE(CurOpcode)==OVR_XEQ) )
+                    {
+                        // EXECUTE THE COMMAND BY CHANGING THE CURRENT OPCODE
+                        WORD saveOpcode=CurOpcode;
+                        CurOpcode=*rplPopData();
+                        // RECURSIVE CALL
+                        LIB_HANDLER();
+                        CurOpcode=saveOpcode;
+                        return;
+                    }
+
+
+
+                }
                 rplError(ERR_COMPLEXEXPECTED);
                 return;
             }

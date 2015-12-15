@@ -386,6 +386,7 @@ extern void rplZeroToRReg(int num);
 extern void rplInfinityToRReg(int num);
 extern void rplNANToRReg(int num);
 extern void rplBINTToRReg(int num,BINT64 value);
+extern void rplSwapRReg(int reg1,int reg2);
 extern void rplReadReal(WORDPTR real,REAL *dec);
 extern void rplCopyRealToRReg(int num,WORDPTR real);
 extern WORDPTR rplNewReal(REAL *num);

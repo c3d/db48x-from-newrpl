@@ -192,6 +192,25 @@ void LIB_HANDLER()
 
 
     if(ISUNARYOP(CurOpcode)) {
+        if(!ISPROLOG(*rplPeekData(1))) {
+            if( (OPCODE(CurOpcode)==OVR_EVAL)||
+                    (OPCODE(CurOpcode)==OVR_EVAL1)||
+                    (OPCODE(CurOpcode)==OVR_XEQ) )
+            {
+
+                WORD saveOpcode=CurOpcode;
+                CurOpcode=*rplPopData();
+                // RECURSIVE CALL
+                LIB_HANDLER();
+                CurOpcode=saveOpcode;
+                return;
+            }
+            else {
+                rplError(ERR_INVALIDOPCODE);
+                return;
+            }
+        }
+
         // UNARY OPERATORS
         switch(OPCODE(CurOpcode))
         {
@@ -250,6 +269,7 @@ void LIB_HANDLER()
         case OVR_EVAL1:
             // EVAL NEEDS TO SCAN THE MATRIX, EVAL EACH ARGUMENT SEPARATELY AND REBUILD IT.
         {
+
             WORDPTR object=rplPeekData(1),mainobj;
             if(!ISMATRIX(*object)) {
                 rplError(ERR_MATRIXEXPECTED);
@@ -385,6 +405,10 @@ void LIB_HANDLER()
 
             return;
         }
+        case OVR_XEQ:
+            // XEQ NEEDS TO LEAVE THE MATRIX ON THE STACK
+            return;
+
         }
 
     }

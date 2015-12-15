@@ -318,9 +318,9 @@ const int const primesieve_pack[30]={-1,0,-1,-1,-1,-1,-1,1,-1,-1,
               -1,-1,-1,6,-1,-1,-1,-1,-1,7
              };
 
-const int const primesieve_nextpack[30]={0,1,1,1,1,1,1,1,2,2,
+const int const primesieve_nextpack[30]={0,1,1,1,1,1,1,2,2,
               2,2,3,3,4,4,4,4,5,5,
-              6,6,6,6,7,7,7,7,7,8
+              6,6,6,6,7,7,7,7,7,7,8
              };
 
 const int const primesieve_unpack[8]={1,7,11,13,17,19,23,29};
@@ -360,6 +360,7 @@ BINT64 nextcbprimeBINT(BINT64 n)
 
     // BASIC PRIMALITY TEST FOR 2,3 AND 5
     idx=primesieve_nextpack[n%30];
+    n-=n%30;
     n+=30*(idx>>3);
     n+=primesieve_unpack[idx&7];
 
@@ -402,6 +403,7 @@ BINT64 nextprimeBINT(BINT64 n)
     // FULL PRIMALITY TEST
     do {
     idx=primesieve_nextpack[n%30];
+    n-=n%30;
     n+=30*(idx>>3);
     n+=primesieve_unpack[idx&7];
 
@@ -467,7 +469,7 @@ BINT isprimeReal(REAL *n)
     // NOW TEST FOR ALL PRIMES, 7 AND UP TO SQRT OF N
     BINT64 i=7;
 
-    while(i*i<3037000500LL) {
+    while(i<3037000500LL) {
         newRealFromBINT64(&RReg[2],i);
         divmodReal(&RReg[0],&RReg[1],n,&RReg[2]);
         if(iszeroReal(&RReg[1])) return 0;
@@ -485,6 +487,81 @@ BINT isprimeReal(REAL *n)
 
 
 }
+
+// RETURN THE NEXT PRIME NUMBER IN RReg[regnum]
+void nextprimeReal(BINT regnum,REAL *n)
+{
+    // MAKE POSITIVE
+    n->flags&=~F_NEGATIVE;
+
+    if(inBINT64Range(n)) {
+        BINT64 nbint=getBINT64Real(n);
+        BINT64 next=nextprimeBINT(nbint);
+        if(next>0) {
+            newRealFromBINT64(&RReg[regnum],next);
+            return;
+        }
+        // TESTED ALL INTEGERS UP TO 2^63, CONTINUE WITH LARGER ONES???
+        RReg[0].exp=0;
+        RReg[0].flags=0;
+        RReg[0].len=3;
+        RReg[0].data[0]=54775809;
+        RReg[0].data[1]=33720368;
+        RReg[0].data[2]=922;
+
+    }
+    else copyReal(&RReg[0],n);
+
+    newRealFromBINT(&RReg[2],30);
+
+    BINT64 i;
+
+    do {
+
+    divmodReal(&RReg[3],&RReg[1],&RReg[0],&RReg[2]);
+
+    BINT rem=getBINTReal(&RReg[1]); // EXTRACT THE INTEGER REMAINDER
+
+    if(primesieve_pack[rem]<0) {
+        // NOT PRIME, NEXT
+        BINT idx=primesieve_nextpack[rem];
+        // THIS IS LOW-LEVEL ACCESS TO DECIMAL LIBRARY FOR SPEED
+        RReg[0].data[0]-=rem;
+        RReg[0].data[0]+=30*(idx>>3);
+        RReg[0].data[0]+=primesieve_unpack[idx&7];
+        normalize(&RReg[0]);
+        continue;
+    }
+
+    // NOW TEST FOR ALL PRIMES, 7 AND UP TO SQRT OF N
+    i=7;
+
+    while(i<3037000500LL) {
+        newRealFromBINT64(&RReg[4],i);
+        divmodReal(&RReg[3],&RReg[1],&RReg[0],&RReg[4]);
+        if(iszeroReal(&RReg[1])) {
+            // NOT PRIME, NEXT
+            rem=getBINTReal(&RReg[1]); // EXTRACT THE INTEGER REMAINDER
+            BINT idx=primesieve_nextpack[rem];
+            // THIS IS LOW-LEVEL ACCESS TO DECIMAL LIBRARY FOR SPEED
+            RReg[0].data[0]-=rem;
+            RReg[0].data[0]+=30*(idx>>3);
+            RReg[0].data[0]+=primesieve_unpack[idx&7];
+            normalize(&RReg[0]);
+            break;
+        }
+
+        i=nextcbprimeBINT(i);
+    }
+
+    // HERE WE TESTED ALL PRIMES UP TO 2^63 AND IT'S STILL PRIME!
+
+    // TODO: MORE TESTING (FERMAT?)
+    } while(i<3037000500LL);
+
+    if(regnum!=0) rplSwapRReg(regnum,0);
+}
+
 
 
 // COMPUTE a^b MOD mod
