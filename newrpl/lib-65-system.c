@@ -68,6 +68,32 @@ void LIB_HANDLER()
         return;
     }
 
+    if(ISUNARYOP(CurOpcode)) {
+        if(!ISPROLOG(*rplPeekData(1))) {
+            if( (OPCODE(CurOpcode)==OVR_EVAL)||
+                    (OPCODE(CurOpcode)==OVR_EVAL1)||
+                    (OPCODE(CurOpcode)==OVR_XEQ) )
+            {
+
+                WORD saveOpcode=CurOpcode;
+                CurOpcode=*rplPopData();
+                // RECURSIVE CALL
+                LIB_HANDLER();
+                CurOpcode=saveOpcode;
+                return;
+            }
+            else {
+                rplError(ERR_INVALIDOPCODE);
+                return;
+            }
+        }
+        else {
+            rplError(ERR_UNRECOGNIZEDOBJECT);
+            return;
+        }
+    }
+
+
     switch(OPCODE(CurOpcode))
     {
     case TICKS:

@@ -159,6 +159,29 @@ void LIB_HANDLER()
     }
 
     if((OPCODE(CurOpcode)>=MIN_OVERLOAD_OPCODE)&&(OPCODE(CurOpcode)<MIN_RESERVED_OPCODE)) {
+
+        if(ISUNARYOP(CurOpcode) && !ISPROLOG(*rplPeekData(1))) {
+            // COMMAND AS ARGUMENT
+            if( (OPCODE(CurOpcode)==OVR_EVAL)||
+                    (OPCODE(CurOpcode)==OVR_EVAL1)||
+                    (OPCODE(CurOpcode)==OVR_XEQ) )
+            {
+
+                WORD saveOpcode=CurOpcode;
+                CurOpcode=*rplPopData();
+                // RECURSIVE CALL
+                LIB_HANDLER();
+                CurOpcode=saveOpcode;
+                return;
+            }
+            else {
+                rplError(ERR_INVALIDOPCODE);
+                return;
+            }
+        }
+
+
+
         // OVERLOADED OPERATORS
     switch(OPCODE(CurOpcode))
     {

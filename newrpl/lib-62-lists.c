@@ -298,6 +298,26 @@ void LIB_HANDLER()
 
     if(ISUNARYOP(CurOpcode)) {
         // ALL UNARY OPERATORS PASS THEIR OPERATION DIRECTLY TO EACH ELEMENT
+        if(!ISPROLOG(*rplPeekData(1))) {
+            // COMMAND AS ARGUMENT
+            if( (OPCODE(CurOpcode)==OVR_EVAL)||
+                    (OPCODE(CurOpcode)==OVR_EVAL1)||
+                    (OPCODE(CurOpcode)==OVR_XEQ) )
+            {
+
+                WORD saveOpcode=CurOpcode;
+                CurOpcode=*rplPopData();
+                // RECURSIVE CALL
+                LIB_HANDLER();
+                CurOpcode=saveOpcode;
+                return;
+            }
+            else {
+                rplError(ERR_INVALIDOPCODE);
+                return;
+            }
+        }
+
         if(OPCODE(CurOpcode)==OVR_XEQ) return;  // JUST LEAVE THE LIST ON THE STACK
 
         if(rplDepthData()<1) {

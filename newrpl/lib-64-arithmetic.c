@@ -105,8 +105,7 @@ void LIB_HANDLER()
                 return;
             }
             if(ISPROLOG(*rplPeekData(1))) {
-                // DO-NOTHING
-                rplPopData();
+                rplError(ERR_UNRECOGNIZEDOBJECT);
                 return;
             }
             WORD saveOpcode=CurOpcode;
