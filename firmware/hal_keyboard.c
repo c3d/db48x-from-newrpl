@@ -325,7 +325,17 @@ if(obj) {
 obj[0]=Opcode;
 obj[1]=CMD_EXITRPL;
 rplSetEntryPoint(obj);
-rplRun();
+if(Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ)) {
+    // STORE THE OBJECT/OPCODE THAT MAY CAUSE AN EXCEPTION
+    rplPushRet(rplPeekData(1));
+    rplRun();
+    if(Exceptions) {
+        // BLAME THE OBJECT IF THERE WERE ANY PROBLEMS
+        rplBlameUserCommand();
+        rplPopRet();
+    }
+}
+else rplRun();
 }
 }
 

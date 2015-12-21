@@ -1630,6 +1630,19 @@ decconst_ln10(&ln10);
 decconst_ln10_2(&ln10_2);
 decconst_Kh1(&Kh);
 
+if(iszeroReal(x0)) {
+    // e^0=1
+    RReg[0].data[0]=1;
+    RReg[0].exp=0;
+    RReg[0].flags=x0->flags&F_APPROX;
+    RReg[0].len=1;
+
+    Context.precdigits-=8;
+
+    return;
+
+}
+
 divmodReal(&RReg[1],&RReg[0],x0,&ln10);
 
 // HERE RReg[0] HAS THE REMAINDER THAT WE NEED TO WORK WITH
@@ -2177,6 +2190,20 @@ Context.precdigits+=8;
 decconst_ln10(&ln10);
 decconst_One(&one);
 
+if(eqReal(&one,x0)) {
+    // LN(1)=0
+
+    RReg[0].data[0]=0;
+    RReg[0].exp=0;
+    RReg[0].flags=x0->flags&F_APPROX;
+    RReg[0].len=1;
+
+    Context.precdigits-=8;
+    return;
+}
+
+
+
 copyReal(&RReg[3],x0);
 adjustexp=x0->exp+( ((x0->len-1)<<3)+sig_digits(x0->data[x0->len-1])-1);
 RReg[3].exp=-(((RReg[3].len-1)<<3)+sig_digits(RReg[3].data[RReg[3].len-1])-1);    // TAKE ONLY THE MANTISSA, LEFT JUSTIFIED
@@ -2226,6 +2253,20 @@ Context.precdigits+=8;
 
 decconst_ln10(&ln10);
 decconst_One(&one);
+
+if(eqReal(&one,x0)) {
+    // LOG(1)=0
+
+    RReg[0].data[0]=0;
+    RReg[0].exp=0;
+    RReg[0].flags=x0->flags&F_APPROX;
+    RReg[0].len=1;
+
+    Context.precdigits-=8;
+    return;
+}
+
+
 
 copyReal(&RReg[3],x0);
 adjustexp=x0->exp+( ((x0->len-1)<<3)+sig_digits(x0->data[x0->len-1])-1);

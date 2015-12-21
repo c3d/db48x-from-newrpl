@@ -457,8 +457,11 @@ void LIB_HANDLER()
 
         if(iszeroReal(&x)) {
             // RETURN -INFINITY AND SET OVERFLOW
-            // TODO: IMPLEMENT FLAGS TO AVOID THROWING AN ERROR
             rplInfinityToRReg(0);
+            RReg[0].flags|=F_NEGATIVE;
+            rplDropData(1);
+            rplNewRealFromRRegPush(0);
+            // TODO: IMPLEMENT FLAGS TO AVOID THROWING AN ERROR
             rplError(ERR_INFINITERESULT);
             return;
         }
@@ -469,6 +472,13 @@ void LIB_HANDLER()
             rplError(ERR_ARGOUTSIDEDOMAIN);
             return;
         }
+
+        // HANDLE SPECIAL VALUES
+        if(isinfiniteReal(&x)) {
+           rplError(ERR_INFINITERESULT);
+           return;
+        }
+
 
         hyp_ln(&x);
         finalize(&RReg[0]);
@@ -497,6 +507,19 @@ void LIB_HANDLER()
 
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
+
+        // HANDLE SPECIAL VALUES
+        if(isinfiniteReal(&dec)) {
+           if(dec.flags&F_NEGATIVE) {
+               // e^-Inf = 0
+               rplDropData(1);
+               rplNewBINTPush(0,DECBINT|((dec.flags&F_APPROX)? APPROX_BIT:0));
+               return;
+           }
+           rplError(ERR_INFINITERESULT);
+           return;
+        }
+
 
         hyp_exp(&dec);
 
@@ -748,6 +771,13 @@ void LIB_HANDLER()
            return;
         }
 
+        // HANDLE SPECIAL VALUES
+        if(isinfiniteReal(&x)) {
+           rplError(ERR_INFINITERESULT);
+           return;
+        }
+
+
         hyp_sqrt(&x);
         finalize(&RReg[0]);
 
@@ -781,6 +811,9 @@ void LIB_HANDLER()
             // RETURN -INFINITY AND SET OVERFLOW
             // TODO: IMPLEMENT FLAGS TO AVOID THROWING AN ERROR
             rplInfinityToRReg(0);
+            RReg[0].flags|=F_NEGATIVE;
+            rplDropData(1);
+            rplNewRealFromRRegPush(0);
             rplError(ERR_INFINITERESULT);
             return;
         }
@@ -791,6 +824,13 @@ void LIB_HANDLER()
             rplError(ERR_ARGOUTSIDEDOMAIN);
             return;
         }
+
+        // HANDLE SPECIAL VALUES
+        if(isinfiniteReal(&x)) {
+           rplError(ERR_INFINITERESULT);
+           return;
+        }
+
 
         hyp_log(&x);
         finalize(&RReg[0]);
@@ -818,7 +858,16 @@ void LIB_HANDLER()
         }
 
         rplReadNumberAsReal(rplPeekData(1),&dec);
-        rplReadNumberAsReal(ten_bint,&ten);
+
+        // HANDLE SPECIAL VALUES
+        if(isinfiniteReal(&dec)) {
+           rplError(ERR_INFINITERESULT);
+           return;
+        }
+
+
+
+        rplReadNumberAsReal((WORDPTR)ten_bint,&ten);
 
         if(Exceptions) return;
         powReal(&RReg[0],&ten,&dec);

@@ -288,6 +288,7 @@ extern void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds);
 // TODO: FIND A BETTER WAY TO EXPORT COMMANDS (??)
 
 #define CMD_EXITRPL         MKOPCODE(DOCOL,0)
+#define CMD_BKPOINT         MKOPCODE(DOCOL,1)
 #define CMD_XEQSECO         MKOPCODE(DOCOL,2)
 #define CMD_SEMI            MKOPCODE(DOCOL,3)
 #define CMD_ENDLIST         MKOPCODE(DOLIST,0)

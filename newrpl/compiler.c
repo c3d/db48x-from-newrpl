@@ -213,6 +213,8 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
         }
         else libcnt=0;  // EXECUTE THE LOOP ONLY ONCE
 
+        if(TokenStart>=CompileStringEnd) break;
+
         if(infixmode) {
          probe_libnum=-1;
          probe_tokeninfo=0;
