@@ -239,8 +239,9 @@ void rplRemoveLibrary(BINT number)
     if(found) --NumHiLibs;
 }
 
-
-void rplRun(void)
+// RETURNS 0 = FINISHED OK
+// 1 = SOME ERROR, MAY NEED CLEANUP
+BINT rplRun(void)
 // TAKE THE NEXT WORD AND EXECUTE IT
 {
     LIBHANDLER han;
@@ -253,17 +254,15 @@ void rplRun(void)
     if(han) (*han)();
     else {
         rplError(ERR_MISSINGLIBRARY);
-        rplClearRStk(); // CLEAR THE RETURN STACK
-        rplClearLAMs(); // CLEAR ALL LOCAL VARIABLES
         // INVALID OPCODE = END OF EXECUTION (CANNOT BE TRAPPED BY HANDLER)
-        return;
+        return 1;
     }
     if(Exceptions) {
         if(Exceptions&EX_EXITRPL) {
             Exceptions=0;
             rplClearRStk(); // CLEAR THE RETURN STACK
             rplClearLAMs(); // CLEAR ALL LOCAL VARIABLES
-            return; // DON'T ALLOW HANDLER TO TRAP THIS EXCEPTION
+            return 0; // DON'T ALLOW HANDLER TO TRAP THIS EXCEPTION
         }
         if(ErrorHandler) {
             // ERROR WAS TRAPPED BY A HANDLER
@@ -271,12 +270,8 @@ void rplRun(void)
         }
         else {
             // THERE IS NO ERROR HANDLER --> UNTRAPPED ERROR
-            if(!(Exceptions&EX_BKPOINT)) {  // DON'T CLEANUP IF A BREAKPOINT WAS REACHED
-                rplClearRStk(); // CLEAR THE RETURN STACK
-                rplClearLAMs(); // CLEAR ALL LOCAL VARIABLES
-            }
-            else rplSkipNext(); // PREPARE TO RESUME ON NEXT CALL
-            return;      // END EXECUTION IMMEDIATELY IF AN UNHANDLED EXCEPTION IS THROWN
+            if(Exceptions&EX_BKPOINT) rplSkipNext(); // PREPARE TO RESUME ON NEXT CALL
+            return 1;      // END EXECUTION IMMEDIATELY IF AN UNHANDLED EXCEPTION IS THROWN
         }
     }
 
@@ -287,6 +282,16 @@ void rplRun(void)
     } while(1);
 
 }
+
+
+// CLEANUP THE RUN ENVIRONMENT AFTER SOME ERRORS
+// USED WHEN rplRun RETURNS NON-ZERO
+void rplCleanup()
+{
+    rplClearRStk(); // CLEAR THE RETURN STACK
+    rplClearLAMs(); // CLEAR ALL LOCAL VARIABLES
+}
+
 
 // CHANGE THE CURRENT RUNSTREAM POINTER
 void rplSetEntryPoint(WORDPTR ip)

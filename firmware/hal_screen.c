@@ -682,20 +682,21 @@ void halErrorPopup()
 
 // DECOMPILE THE OPCODE NAME IF POSSIBLE
 
-WORDPTR halGetCommandName(WORD Opcode)
+WORDPTR halGetCommandName(WORDPTR NameObject)
 {
+    WORD Opcode=*NameObject;
 
-    if(ISPROLOG(Opcode)) return 0;  // ONLY DECOMPILE COMMANDS, NOT OBJECTS
+    if(ISPROLOG(Opcode)) {
+        // ONLY ACCEPT IDENTS AND STRINGS AS COMMAND NAMES
+        if(!ISSTRING(Opcode) && !ISIDENT(Opcode)) return 0;
+    }
 
     BINT SavedException=Exceptions;
     BINT SavedErrorCode=ErrorCode;
-    WORD Opcodes[1];
-
 
     Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-    Opcodes[0]=Opcode;  // STORE IT IN MEMORY INSTEAD OF REGISTER
     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-    WORDPTR opname=rplDecompile(Opcodes,0);
+    WORDPTR opname=rplDecompile(NameObject,0);
     Exceptions=SavedException;
     ErrorCode=SavedErrorCode;
 
@@ -753,7 +754,7 @@ void halShowErrorMsg()
         if(Exceptions!=EX_ERRORCODE) {
             BINT xstart=scr.clipx;
             if(*ExceptionPointer!=0) {  // ONLY IF THERE'S A VALID COMMAND TO BLAME
-            WORDPTR cmdname=halGetCommandName(*ExceptionPointer);
+            WORDPTR cmdname=halGetCommandName(ExceptionPointer);
             if(cmdname) {
             BYTEPTR start=(BYTEPTR)(cmdname+1);
             BYTEPTR end=start+rplStrSize(cmdname);
@@ -780,7 +781,7 @@ void halShowErrorMsg()
             // TRY TO DECOMPILE THE OPCODE THAT CAUSED THE ERROR
             BINT xstart=scr.clipx;
             if(*ExceptionPointer!=0) {  // ONLY IF THERE'S A VALID COMMAND TO BLAME
-            WORDPTR cmdname=halGetCommandName(*ExceptionPointer);
+            WORDPTR cmdname=halGetCommandName(ExceptionPointer);
             if(cmdname) {
             BYTEPTR start=(BYTEPTR)(cmdname+1);
             BYTEPTR end=start+rplStrSize(cmdname);

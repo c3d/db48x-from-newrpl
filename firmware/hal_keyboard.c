@@ -219,7 +219,10 @@ BINT endCmdLineAndCompile()
             // RUN THE OBJECT
 
             rplSetEntryPoint(newobject);
-            rplRun();
+
+            // RUN AND CLEANUP PROPERLY
+            if(rplRun()==NEEDS_CLEANUP) rplCleanup();
+
             if(Exceptions) {
                 // TODO: SHOW ERROR MESSAGE
                 halShowErrorMsg();
@@ -325,17 +328,19 @@ if(obj) {
 obj[0]=Opcode;
 obj[1]=CMD_EXITRPL;
 rplSetEntryPoint(obj);
-if(Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ)) {
+if((Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ)) || (Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL)) || (Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1))) {
     // STORE THE OBJECT/OPCODE THAT MAY CAUSE AN EXCEPTION
     rplPushRet(rplPeekData(1));
-    rplRun();
-    if(Exceptions) {
-        // BLAME THE OBJECT IF THERE WERE ANY PROBLEMS
-        rplBlameUserCommand();
-        rplPopRet();
+    WORDPTR *rstksave=RSTop;
+    if(rplRun()==NEEDS_CLEANUP) {
+        // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
+        if(RSTop>rstksave) RSTop=rstksave;
+        // BLAME THE ERROR ON THE COMMAND WE CALLED
+        if(rplDepthRet()>=1) rplBlameError(rplPopRet());
     }
+    rplCleanup();
 }
-else rplRun();
+else { if(rplRun()==NEEDS_CLEANUP) rplCleanup(); }
 }
 }
 

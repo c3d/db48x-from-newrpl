@@ -149,12 +149,13 @@ extern void rplBlameUserCommand();
 extern void rplBlameError(WORDPTR command);
 
 
-
+#define NEEDS_CLEANUP   1
 
 // ENVIRONMENT FUNCTIONS IN RUNSTREAM.C
 extern void rplInit(void);
 extern void rplSetEntryPoint(WORDPTR ip);
-extern void rplRun(void);
+extern BINT rplRun(void);
+void rplCleanup();
 
 
 

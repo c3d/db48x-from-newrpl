@@ -116,9 +116,11 @@ void LIB_HANDLER()
         rplNewBINTPush(rplDepthData(),DECBINT);
         return;
     case DROP:
+        if(rplDepthData()<1) { rplError(ERR_BADARGCOUNT); return; }
         rplDropData(1);
         return;
     case DROP2:
+        if(rplDepthData()<2) { rplError(ERR_BADARGCOUNT); return; }
         rplDropData(2);
         return;
     case DROPN:
