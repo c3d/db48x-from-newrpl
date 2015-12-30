@@ -168,15 +168,31 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
     if(ISIDENT(*ptr)) {
         WORDPTR *var=rplFindGlobal(ptr,1);
 
-        BINT w=StringWidthN((char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.MenuFont);
-        if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
-        else w=(scr->clipx2+scr->clipx-w)>>1;
+        BINT w=StringWidthN((char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.MenuFont),pos;
+
+        if(w>=scr->clipx2-scr->clipx) pos=scr->clipx+1;
+        else pos=(scr->clipx2+scr->clipx-w)>>1;
+
         if(var && ISDIR(*var[1])) {
             ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(color));
             ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor(color));
         }
 
-        DrawTextN(w,scr->clipy,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.MenuFont,color,scr);
+        DrawTextN(pos,scr->clipy,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.MenuFont,color,scr);
+
+        // DARKEN/LIGHTEN EFFECT ON LAST FEW PIXELS
+        if(w>=scr->clipx2-scr->clipx) {
+            scr->x=scr->clipx2;
+            scr->y=scr->clipy;
+            ggl_filter(scr,1,scr->clipy2-scr->clipy,0xA,(color)? &ggl_fltlighten:&ggl_fltdarken);
+            scr->x--;
+            ggl_filter(scr,1,scr->clipy2-scr->clipy,0x6,(color)? &ggl_fltlighten:&ggl_fltdarken);
+            scr->x--;
+            ggl_filter(scr,1,scr->clipy2-scr->clipy,0x4,(color)? &ggl_fltlighten:&ggl_fltdarken);
+
+        }
+
+
         return;
     }
 
@@ -231,10 +247,23 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 
     // JUST DISPLAY THE STRING
 
-    BINT w=StringWidthN((char *)string,(char *)endstring,halScreen.MenuFont);
-    if(w>=scr->clipx2-scr->clipx+1) w=scr->clipx;
-    else w=(scr->clipx2+scr->clipx-w)>>1;
-    DrawTextN(w,scr->clipy,(char *)string,(char *)endstring,halScreen.MenuFont,color,scr);
+    BINT w=StringWidthN((char *)string,(char *)endstring,halScreen.MenuFont),pos;
+    if(w>=scr->clipx2-scr->clipx) pos=scr->clipx+1;
+    else pos=(scr->clipx2+scr->clipx-w)>>1;
+    DrawTextN(pos,scr->clipy,(char *)string,(char *)endstring,halScreen.MenuFont,color,scr);
+
+    // DARKEN/LIGHTEN EFFECT ON LAST FEW PIXELS
+    if(w>=scr->clipx2-scr->clipx) {
+        scr->x=scr->clipx2;
+        scr->y=scr->clipy;
+        ggl_filter(scr,1,scr->clipy2-scr->clipy,0xA,(color)? &ggl_fltlighten:&ggl_fltdarken);
+        scr->x--;
+        ggl_filter(scr,1,scr->clipy2-scr->clipy,0x6,(color)? &ggl_fltlighten:&ggl_fltdarken);
+        scr->x--;
+        ggl_filter(scr,1,scr->clipy2-scr->clipy,0x4,(color)? &ggl_fltlighten:&ggl_fltdarken);
+
+    }
+
     return;
 
 }

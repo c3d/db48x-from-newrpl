@@ -89,15 +89,21 @@ ROMOBJECT unitdir_ident[]={
 
 ROMOBJECT unitmenu_zero[]={
     // MENU LIST
-    MKPROLOG(DOLIST,12),
+    MKPROLOG(DOLIST,17),
         // ITEM: { Display Action Help }
-        MKPROLOG(DOLIST,10),
+        MKPROLOG(DOLIST,15),
             // DISPLAY
             MAKESTRING(5),
             TEXT2WORD('T','O','O','L'),
             TEXT2WORD('S',0,0,0),
             // ACTION
-            MAKESINT(1234),
+            MKPROLOG(DOCOL,5),                  // <<
+            MKPROLOG(HEXBINT,2),                // #MENUCODEh
+            MKMENUCODE(0,LIBRARY_NUMBER,1,0),
+            0,
+            CMD_TMENU,                          // TMENU
+            CMD_SEMI,                           // >>
+
             // HELP
             MAKESTRING(16),
             TEXT2WORD('T','o','o','l'),
@@ -108,6 +114,19 @@ ROMOBJECT unitmenu_zero[]={
     CMD_ENDLIST
 };
 
+ROMOBJECT unitmenu_one[]={
+    // MENU LIST
+    MKPROLOG(DOLIST,8),
+        // ITEM: { Display Action Help }
+            MKOPCODE(LIBRARY_NUMBER,UDEFINE),
+            MKOPCODE(LIBRARY_NUMBER,UPURGE),
+            MKOPCODE(LIBRARY_NUMBER,UVAL),
+            MKOPCODE(LIBRARY_NUMBER,UBASE),
+            MKOPCODE(LIBRARY_NUMBER,CONVERT),
+            MKOPCODE(LIBRARY_NUMBER,UFACT),
+            MKOPCODE(LIBRARY_NUMBER,TOUNIT),
+    CMD_ENDLIST
+};
 
 
 // EXTERNAL EXPORTED OBJECT TABLE
@@ -115,6 +134,7 @@ ROMOBJECT unitmenu_zero[]={
 const WORDPTR const ROMPTR_TABLE[]={
      (WORDPTR)unitdir_ident,
      (WORDPTR)unitmenu_zero,
+     (WORDPTR)unitmenu_one,
      0
 };
 
@@ -2857,6 +2877,11 @@ void LIB_HANDLER()
         ObjectPTR=unitmenu_zero;
         RetNum=OK_CONTINUE;
         break;
+    case 1:
+        ObjectPTR=unitmenu_one;
+        RetNum=OK_CONTINUE;
+        break;
+
     default:
         RetNum=ERR_NOTMINE;
     }
