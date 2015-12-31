@@ -389,7 +389,7 @@ void halRedrawMenu1(DRAWSURFACE *scr)
         uiDrawMenuItem(item,0,scr);
     } else {
      if(nitems>6) {
-         DrawText(scr->clipx,scr->clipy,"NXT...",halScreen.MenuFont,0,scr);
+         DrawText(scr->clipx+1,scr->clipy,"NXT...",halScreen.MenuFont,0,scr);
      }
     }
 
@@ -477,7 +477,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
         uiDrawMenuItem(item,0xf,scr);
     } else {
      if(nitems>6) {
-         DrawText(scr->clipx,scr->clipy,"NXT...",halScreen.MenuFont,0xf,scr);
+         DrawText(scr->clipx+1,scr->clipy,"NXT...",halScreen.MenuFont,0xf,scr);
      }
     }
 

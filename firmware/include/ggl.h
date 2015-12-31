@@ -150,6 +150,8 @@ void ggl_monobitbltoper(gglsurface *dest,gglsurface *src,int width, int height,i
 unsigned ggl_fltlighten(unsigned word,int param);
 // darkens an image by adding param to all pixels
 unsigned ggl_fltdarken(unsigned word,int param);
+// invert the colors on all pixels
+unsigned ggl_fltinvert(unsigned word,int param);
 
 // operators (between two surfaces)
 // standard mask, tcolor in src is considered transparent

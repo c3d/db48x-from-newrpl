@@ -330,19 +330,113 @@ obj[1]=CMD_EXITRPL;
 rplSetEntryPoint(obj);
 if((Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ)) || (Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL)) || (Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1))) {
     // STORE THE OBJECT/OPCODE THAT MAY CAUSE AN EXCEPTION
-    rplPushRet(rplPeekData(1));
+    BINT depth=rplDepthData();
+    if(depth>0) rplPushRet(rplPeekData(1));
     WORDPTR *rstksave=RSTop;
     if(rplRun()==NEEDS_CLEANUP) {
         // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
         if(RSTop>rstksave) RSTop=rstksave;
         // BLAME THE ERROR ON THE COMMAND WE CALLED
-        if(rplDepthRet()>=1) rplBlameError(rplPopRet());
+        if( (depth>0) && (rplDepthRet()>=1)) rplBlameError(rplPopRet());
     }
     rplCleanup();
 }
 else { if(rplRun()==NEEDS_CLEANUP) rplCleanup(); }
 }
 }
+
+// EXECUTE THE OPCODE IN A PROTECTED "TRANSPARENT" ENVIRONMENT
+// THE USER STACK. RETURN STACK AND LAM ENVIRONMENTS ARE
+// ALL PRESERVED AND PROTECTED
+// THE COMMAND RECEIVES nargs IN THE STACK AND RETURNS AT MOST nresults
+// IT RETURNS THE NUMBER OF RESULTS LEFT IN THE STACK
+
+BINT cmdRunTransparent(WORD Opcode,BINT nargs,BINT nresults)
+{
+WORDPTR obj=rplAllocTempOb(1);
+if(obj) {
+obj[0]=Opcode;
+obj[1]=CMD_BKPOINT;
+
+BINT rsave,lamsave,nlambase,retvalue;
+WORD exceptsave,errcodesave;
+// PRESERVE VARIOUS STACK POINTERS
+
+exceptsave=Exceptions;
+errcodesave=ErrorCode;
+
+rplSetExceptionHandler(0);  // SAVE CURRENT EXCEPTION HANDLERS
+rplPushRet(IPtr);   // SAVE THE CURRENT INSTRUCTION POINTER
+
+rplTakeSnapshotN(nargs);  // RUN THE COMMAND WITH A PROTECTED STACK WITH nargs ARGUMENTS ONLY
+
+rsave=RSTop-RStk;        // PROTECT THE RETURN STACK
+lamsave=LAMTop-LAMs;     // PROTECT LAM ENVIRONMENTS
+nlambase=nLAMBase-LAMs;
+
+Exceptions=0;           // REMOVE ALL EXCEPTIONS
+
+rplSetEntryPoint(obj);
+
+rplRun();
+
+// DISCARD ANY ERRORS DURING EXECUTION,  IDEALLY IT HIT THE BREAKPOINT
+if(Exceptions!=EX_BKPOINT) {
+    // THERE WAS SOME OTHER ERROR DURING EXECUTION, DISCARD ALL OUTPUT FROM THE FAILED PROGRAM
+    rplClearData();
+}
+
+Exceptions=0;
+
+// MANUAL RESTORE
+
+if(RSTop>=RStk+rsave) RSTop=RStk+rsave;  // IF RSTop<RStk+rsave THE RETURN STACK WAS COMPLETELY CORRUPTED, SHOULD NEVER HAPPEN BUT...
+else rplCleanup();
+if(LAMTop>=LAMs+lamsave) LAMTop=LAMs+lamsave;  // OTHERWISE THE LAM ENVIRONMENTS WERE DESTROYED, SHOULD NEVER HAPPEN BUT...
+else rplCleanup();
+if(nLAMBase>=LAMs+nlambase) nLAMBase=LAMs+nlambase;  // OTHERWISE THE LAM ENVIRONMENTS WERE DESTROYED, SHOULD NEVER HAPPEN BUT...
+else rplCleanup();
+
+// CLEAN THE STACK
+if(rplDepthData()>nresults) {
+    BINT f;
+    BINT depth=rplDepthData(),offset=depth-nresults;
+    for(f=depth;f>depth-nresults;++f) {
+        rplOverwriteData(f,rplPeekData(f-offset));
+    }
+    rplDropData(offset);
+}
+// HERE THE STACK CONTAINS UP TO nresults ONLY
+
+rplTakeSnapshotAndClear();  // HERE SNAPSHOT1 = RESULTS, SNAPSHOT2 = PREVIOUS STACK
+rplRevertToSnapshot(2);     // RECOVER THE PREVIOUS STACK
+rplDropData(nargs);         // REMOVE THE ORIGINAL ARGUMENTS
+nresults=retvalue=rplDepthSnapshot(1);   // GET THE NUMBER OF RESULTS
+while(nresults) { rplPushData(rplPeekSnapshot(1,nresults)); --nresults; }   // EXTRACT THE RESULTS INTO THE CURRENT STACK
+rplRemoveSnapshot(1);       // AND CLEANUP
+
+// RESTORE THE ERROR CODES FIRST, TO CAPTURE ANY ERRORS DURING POPPING THE RETURN STACK
+Exceptions=exceptsave;
+ErrorCode=errcodesave;
+
+// RESTORE THE IP POINTER
+IPtr=rplPopRet();
+
+// AND THE ERROR HANDLERS
+rplRemoveExceptionHandler();
+
+// IF EVERYTHING WENT WELL, HERE WE HAVE THE SAME ENVIRONMENT AS BEFORE
+// IF SOMETHING GOT CORRUPTED, WE SHOULD HAVE AN INTERNAL EMPTY RSTACK ERROR
+return retvalue;
+
+}
+return 0;
+}
+
+
+
+
+
 
 // TYPICAL COMMAND KEY HANDLER.
 // EXECUTES Opcode IN DIRECT MODE

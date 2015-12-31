@@ -121,7 +121,8 @@ SOURCES += main.cpp\
     newrpl/arithmetic.c \
     newrpl/lib-20-comments.c \
     firmware/sys/target_pc/flash.c \
-    firmware/ui_softmenu.c
+    firmware/ui_softmenu.c \
+    firmware/ggl/ggl/ggl_fltinvert.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \

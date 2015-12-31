@@ -187,6 +187,7 @@ void rplRemoveSnapshot(BINT numsnap)
 }
 
 // PUSH THE CURRENT STACK AS SNAPSHOT LEVEL1
+// AND MAKE A COPY AS CURRENT STACK
 void rplTakeSnapshot()
 {
     WORDPTR *top=DSTop,*bottom=DStkBottom;
@@ -205,6 +206,45 @@ void rplTakeSnapshot()
     DStkProtect+=levels+1;
     DStkBottom+=levels+1;
     DSTop+=levels;
+    return;
+}
+
+// PUSH THE CURRENT STACK AS SNAPSHOT LEVEL1
+// COPY ONLY nargs INTO THE CURRENT STACK
+void rplTakeSnapshotN(BINT nargs)
+{
+    WORDPTR *top=DSTop,*bottom=DStkBottom;
+    BINT levels=top-bottom;
+    if(levels<nargs) nargs=levels;
+    // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
+    // THE SNAPSHOT BARRIER
+    *DSTop++=(WORDPTR)levels;
+    rplExpandStack(levels);
+    if(Exceptions) {
+        // RETURN WITHOUT MAKING AN UNDO MARK
+        DSTop=top;
+        return;
+    }
+
+    memcpyw(DSTop,top-nargs,nargs*(sizeof(void*)>>2));
+    DStkProtect+=levels+1;
+    DStkBottom+=levels+1;
+    DSTop+=nargs;
+    return;
+}
+// PUSH THE CURRENT STACK AS SNAPSHOT LEVEL1
+// AND CLEAR THE CURRENT STACK
+
+void rplTakeSnapshotAndClear()
+{
+    WORDPTR *top=DSTop,*bottom=DStkBottom;
+    BINT levels=top-bottom;
+    // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
+    // THE SNAPSHOT BARRIER
+    *DSTop++=(WORDPTR)levels;
+
+    DStkProtect+=levels+1;
+    DStkBottom+=levels+1;
     return;
 }
 
@@ -253,4 +293,51 @@ void rplRevertToSnapshot(BINT numsnap)
     if(DStkProtect!=DStkBottom) return;
     rplRestoreSnapshot(numsnap);
     rplRemoveSnapshot(numsnap);
+}
+
+// RETURN THE STACK DEPTH IN THE GIVEN SNAPSHOT
+BINT rplDepthSnapshot(BINT numsnap)
+{
+    WORDPTR *snapptr=DStkBottom;
+    WORDPTR *prevptr;
+
+    while((snapptr>DStk)&&(numsnap>0)) {
+        prevptr=snapptr;
+        snapptr-=((PTR2NUMBER)*(snapptr-1))+1;
+        --numsnap;
+    }
+
+    if((numsnap>0)||(snapptr<DStk)) {
+        // INVALID SNAPSHOT, DON'T DO ANYTHING!
+        return 0;
+    }
+
+
+        return (BINT)*(prevptr-1);
+}
+
+// SAME AS rplPeekData() BUT IT CAN LOOK INTO SNAPSHOTS
+
+WORDPTR rplPeekSnapshot(BINT numsnap,BINT level)
+{
+    WORDPTR *snapptr=DStkBottom;
+    WORDPTR *prevptr;
+
+    while((snapptr>DStk)&&(numsnap>0)) {
+        prevptr=snapptr;
+        snapptr-=((PTR2NUMBER)*(snapptr-1))+1;
+        --numsnap;
+    }
+
+    if((numsnap>0)||(snapptr<DStk)) {
+        // INVALID SNAPSHOT, DON'T DO ANYTHING!
+        return 0;
+    }
+
+
+        BINT levels=(BINT)*(prevptr-1);
+
+        if( (level<1) || (level>levels)) return 0;  // DO NOT PEEK OUTSIDE THE CURRENT SNAPSHOT
+
+        return *(prevptr-level-1);
 }

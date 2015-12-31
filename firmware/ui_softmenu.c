@@ -157,15 +157,52 @@ WORDPTR uiGetMenuItemAction(WORDPTR item,BINT shift)
 void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 {
     WORDPTR ptr;
+    BINT flags=0;
     if(!item) return;
     if(ISLIST(*item)) {
         ptr=item+1;
         if(ptr>=rplSkipOb(item)-1) return;
+
+        if(*ptr==CMD_ENDLIST) ptr=item;
+        else {
+        // IF IT'S A PROGRAM, RUN IT AND TAKE THE RESULT FROM THE STACK
+        if(ISPROGRAM(*ptr)) {
+            rplPushData(item);
+            rplPushData(ptr);
+
+            BINT nresults=cmdRunTransparent(CMD_XEQ,1,1);
+
+            if(nresults==1) ptr=rplPopData();
+            else ptr=empty_string;      // IF THE PROGRAM FAILED TO RETURN AN OBJECT, JUST USE THE EMPTY STRING
+            item=rplPopData();  // RESTORE THE item POINTER IN CASE OF GC
+            // CONTINUE HERE WITH THE NEW ptr
+
+        }
+
+        //  IF IT'S A LIST, THEN TAKE THE FLAGS FROM THE SECOND ELEMENT IN THE LIST, AND USE THE FIRST AS THE DISPLAY OBJECT
+        if(ISLIST(*ptr)) {
+            ptr=ptr+1;
+            if(ptr>=rplSkipOb(item)-1) return;
+            if(*ptr==CMD_ENDLIST) ptr=item;
+            else {
+                WORDPTR next=rplSkipOb(ptr);
+                if(ISBINT(*next)) flags=rplReadBINT(next);
+            }
+        }
+
+        }
     } else ptr=item;
+
 
     // HERE ptr HAS AN OBJECT TO DISPLAY
 
+    // AND flags HAS THE FLAGS
+
+
+
     if(ISIDENT(*ptr)) {
+
+        // SPECIAL CASE: FOR IDENTS LOOK FOR VARIABLES AND DRAW DIFFERENTLY IF IT'S A DIRECTORY
         WORDPTR *var=rplFindGlobal(ptr,1);
 
         BINT w=StringWidthN((char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.MenuFont),pos;
@@ -173,8 +210,8 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
         if(w>=scr->clipx2-scr->clipx) pos=scr->clipx+1;
         else pos=(scr->clipx2+scr->clipx-w)>>1;
 
-        if(var && ISDIR(*var[1])) {
-            ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(color));
+        if((flags&1) || (var && ISDIR(*var[1]))) {
+            //ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(color));
             ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor(color));
         }
 
@@ -184,14 +221,20 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
         if(w>=scr->clipx2-scr->clipx) {
             scr->x=scr->clipx2;
             scr->y=scr->clipy;
-            ggl_filter(scr,1,scr->clipy2-scr->clipy,0xA,(color)? &ggl_fltlighten:&ggl_fltdarken);
+            ggl_filter(scr,1,scr->clipy2-scr->clipy+1,0xA,(color)? &ggl_fltlighten:&ggl_fltdarken);
             scr->x--;
-            ggl_filter(scr,1,scr->clipy2-scr->clipy,0x6,(color)? &ggl_fltlighten:&ggl_fltdarken);
+            ggl_filter(scr,1,scr->clipy2-scr->clipy+1,0x6,(color)? &ggl_fltlighten:&ggl_fltdarken);
             scr->x--;
-            ggl_filter(scr,1,scr->clipy2-scr->clipy,0x4,(color)? &ggl_fltlighten:&ggl_fltdarken);
+            ggl_filter(scr,1,scr->clipy2-scr->clipy+1,0x4,(color)? &ggl_fltlighten:&ggl_fltdarken);
 
         }
 
+                if(flags&2) {
+                   // SECOND BIT IN FLAGS MEANS INVERTED
+                            scr->x=scr->clipx;
+                            scr->y=scr->clipy;
+                            ggl_filter(scr,scr->clipx2-scr->clipx+1,scr->clipy2-scr->clipy+1,0,&ggl_fltinvert);
+                }
 
         return;
     }
@@ -250,18 +293,32 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
     BINT w=StringWidthN((char *)string,(char *)endstring,halScreen.MenuFont),pos;
     if(w>=scr->clipx2-scr->clipx) pos=scr->clipx+1;
     else pos=(scr->clipx2+scr->clipx-w)>>1;
+
+    if(flags&1) {   // FOR NOW, flags & 1 INDICATES THE MENU IS TO BE DISPLAYED AS A DIRECTORY
+        //ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(color));
+        ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor(color));
+    }
+
+
     DrawTextN(pos,scr->clipy,(char *)string,(char *)endstring,halScreen.MenuFont,color,scr);
 
     // DARKEN/LIGHTEN EFFECT ON LAST FEW PIXELS
     if(w>=scr->clipx2-scr->clipx) {
         scr->x=scr->clipx2;
         scr->y=scr->clipy;
-        ggl_filter(scr,1,scr->clipy2-scr->clipy,0xA,(color)? &ggl_fltlighten:&ggl_fltdarken);
+        ggl_filter(scr,1,scr->clipy2-scr->clipy+1,0xA,(color)? &ggl_fltlighten:&ggl_fltdarken);
         scr->x--;
-        ggl_filter(scr,1,scr->clipy2-scr->clipy,0x6,(color)? &ggl_fltlighten:&ggl_fltdarken);
+        ggl_filter(scr,1,scr->clipy2-scr->clipy+1,0x6,(color)? &ggl_fltlighten:&ggl_fltdarken);
         scr->x--;
-        ggl_filter(scr,1,scr->clipy2-scr->clipy,0x4,(color)? &ggl_fltlighten:&ggl_fltdarken);
+        ggl_filter(scr,1,scr->clipy2-scr->clipy+1,0x4,(color)? &ggl_fltlighten:&ggl_fltdarken);
 
+    }
+
+    if(flags&2) {
+       // SECOND BIT IN FLAGS MEANS INVERTED
+                scr->x=scr->clipx;
+                scr->y=scr->clipy;
+                ggl_filter(scr,scr->clipx2-scr->clipx+1,scr->clipy2-scr->clipy+1,0,&ggl_fltinvert);
     }
 
     return;
