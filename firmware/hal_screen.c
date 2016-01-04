@@ -325,9 +325,166 @@ uiCloseCmdLine();
 }
 
 
+
+
+void halRedrawHelp(DRAWSURFACE *scr)
+{
+
+
+        if(!halScreen.Menu2) {
+            // SHOW THE SECOND MENU TO DISPLAY THE MESSAGE
+            halSetMenu2Height(MENU2_HEIGHT);
+            halRedrawAll(&scr);             // THIS CALL WILL CALL HERE RECURSIVELY
+            return;                         // SO IT'S BEST TO RETURN DIRECTLY
+        }
+
+        WORDPTR helptext;
+        WORD m1code=rplGetMenuCode(halScreen.HelpMode>>16);
+        WORDPTR MenuObj=uiGetLibMenu(m1code);
+        BINT nitems=uiCountMenuItems(m1code,MenuObj);
+        BINT k;
+        WORDPTR item;
+
+        // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
+        // FOR EXAMPLE BY PURGING VARIABLES
+        if((MENUPAGE(m1code)>=nitems)||(MENUPAGE(m1code)<0)) m1code=SETMENUPAGE(m1code,0);
+
+        // GET THE ITEM
+        item=uiGetMenuItem(m1code,MenuObj,(halScreen.HelpMode&0xffff)+MENUPAGE(m1code));
+        helptext=uiGetMenuItemHelp(item);
+
+        if(!helptext) {
+            halScreen.HelpMode=0;           // CLOSE HELP MODE IMMEDIATELY
+            halRedrawAll(scr);             // AND ISSUE A REDRAW
+            return;
+        }
+
+
+        if(ISIDENT(*helptext)) {
+            // THE HELP TEXT SHOULD BE THE OBJECT DECOMPILED
+
+            // SPECIAL CASE: FOR IDENTS LOOK FOR VARIABLES AND DRAW DIFFERENTLY IF IT'S A DIRECTORY
+            WORDPTR *var=rplFindGlobal(helptext,1);
+
+            if(!var) {
+                halScreen.HelpMode=0;           // CLOSE HELP MODE IMMEDIATELY
+                halRedrawAll(scr);             // AND ISSUE A REDRAW
+                return;
+            }
+
+            WORD ptrprolog=*var[1];
+
+            BINT SavedException=Exceptions;
+            BINT SavedErrorCode=ErrorCode;
+
+            Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+            // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+            WORDPTR objdecomp=rplDecompile(var[1],0);
+            Exceptions=SavedException;
+            ErrorCode=SavedErrorCode;
+
+            if(!objdecomp) helptext=empty_string;
+            else helptext=objdecomp;
+
+
+            BINT ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine;
+            BINT ybot=ytop+halScreen.Menu1+halScreen.Menu2-1;
+
+
+            // CLEAR MENU2 AND STATUS AREA
+            ggl_cliprect(scr,0,ytop,SCREEN_WIDTH-1,ybot,0);
+            // DO SOME DECORATIVE ELEMENTS
+            ggl_cliphline(scr,ytop,0,SCREEN_WIDTH-1,0xf4f4f4f4);
+
+
+            // SHOW 3 LINES ONLY
+
+            BINT namew=StringWidthN((char *)(var[0]+1),((char *)(var[0]+1))+rplGetIdentLength(var[0]),halScreen.StAreaFont);
+
+            // SHOW THE NAME OF THE VARIABLE
+            DrawTextN(3,ytop+2,(char *)(var[0]+1),((char *)(var[0]+1))+rplGetIdentLength(var[0]),halScreen.StAreaFont,0xf,scr);
+            DrawText(3+namew,ytop+2,": ",halScreen.StAreaFont,0xf,scr);
+            namew+=3+StringWidth(": ",halScreen.StAreaFont);
+
+            BINT xend;
+            BYTEPTR basetext=(BYTEPTR) (helptext+1);
+            BYTEPTR endoftext=basetext+rplStrSize(helptext);
+            BYTEPTR nextline,endofline;
+
+            for(k=0;k<3;++k) {
+                xend=SCREEN_WIDTH-1-namew;
+                endofline=(BYTEPTR)StringCoordToPointer(basetext,endoftext,halScreen.StAreaFont,&xend);
+                if(endofline<endoftext) {
+                // BACK UP TO THE NEXT WHITE CHARACTER
+                BYTEPTR whitesp=endofline;
+                while( (whitesp>basetext)&&(*whitesp!=' ')) --whitesp;
+                if(whitesp>=basetext) endofline=whitesp;    // ONLY IF THERE'S WHITESPACES
+                }
+            nextline=endofline;
+            // SKIP ANY NEWLINE OR WHITE CHARACTERS
+            while( (nextline<endoftext) && ((*nextline==' ')||(*nextline=='\n')||(*nextline=='\t')||(*nextline=='\r'))) ++nextline;
+
+
+            // DRAW THE TEXT
+            DrawTextN(namew,ytop+2+k*halScreen.StAreaFont->BitmapHeight,basetext,endofline,halScreen.StAreaFont,0xf,scr);
+            basetext=nextline;
+            namew=3;
+            }
+
+            return;
+
+        }
+
+
+
+        BINT ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine;
+        BINT ybot=ytop+halScreen.Menu1+halScreen.Menu2-1;
+
+
+        // CLEAR MENU2 AND STATUS AREA
+        ggl_cliprect(scr,0,ytop,SCREEN_WIDTH-1,ybot,0);
+        // DO SOME DECORATIVE ELEMENTS
+        ggl_cliphline(scr,ytop,0,SCREEN_WIDTH-1,0xf4f4f4f4);
+
+
+        // SHOW MESSAGE'S FIRST 3 LINES ONLY
+        BINT currentline=0,nextline;
+        BYTEPTR basetext=(BYTEPTR) (helptext+1);
+        for(k=0;k<3;++k) {
+        nextline=rplStringGetLinePtr(helptext,2+k);
+        if(nextline<0) {
+            nextline=rplStrSize(helptext);
+        }
+        DrawTextN(3,ytop+2+k*halScreen.StAreaFont->BitmapHeight,basetext+currentline,basetext+nextline,halScreen.StAreaFont,0xf,scr);
+
+        currentline=nextline;
+        }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 // REDRAW THE VARS MENU
 void halRedrawMenu1(DRAWSURFACE *scr)
 {
+    if(halScreen.HelpMode) {
+        // IN HELP MODE, JUST REDRAW THE HELP MESSAGE
+        halRedrawHelp(scr);
+        // NO NEED TO REDRAW OTHER MENUS OR THE STATUS AREA
+        halScreen.DirtyFlag&=~(MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY);
+        return;
+    }
     if(halScreen.Menu1==0) {
         halScreen.DirtyFlag&=~MENU1_DIRTY;
         return;
@@ -406,6 +563,14 @@ void halRedrawMenu1(DRAWSURFACE *scr)
 // REDRAW THE OTHER MENU
 void halRedrawMenu2(DRAWSURFACE *scr)
 {
+    if(halScreen.HelpMode) {
+        // IN HELP MODE, JUST REDRAW THE HELP MESSAGE
+        halRedrawHelp(scr);
+        // NO NEED TO REDRAW OTHER MENUS OR THE STATUS AREA
+        halScreen.DirtyFlag&=~(MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY);
+        return;
+    }
+
     if(halScreen.Menu2==0) {
         halScreen.DirtyFlag&=~MENU2_DIRTY;
         return;
@@ -495,6 +660,16 @@ void halRedrawMenu2(DRAWSURFACE *scr)
 
 void halRedrawStatus(DRAWSURFACE *scr)
 {
+    if(halScreen.HelpMode) {
+        // IN HELP MODE, JUST REDRAW THE HELP MESSAGE
+        halRedrawHelp(scr);
+        // NO NEED TO REDRAW OTHER MENUS OR THE STATUS AREA
+        halScreen.DirtyFlag&=~(MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY);
+        return;
+    }
+
+
+
     if(halScreen.Menu2) {
     int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     ggl_cliprect(scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);

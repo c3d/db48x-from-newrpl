@@ -131,6 +131,7 @@ typedef struct {
     int CmdLine;
     int Menu1;
     int Menu2;
+    int HelpMode;       // SOFT MENU ON-SCREEN HELP
     int DirtyFlag;      // 1 BIT PER AREA IN ORDER, 1=FORM, 2=STACK, 4=CMDLINE, 8=MENU1,16=MENU2,32=STATUS
     HEVENT SAreaTimer,CursorTimer;
     UNIFONT *FormFont;

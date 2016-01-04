@@ -89,13 +89,16 @@ ROMOBJECT unitdir_ident[]={
 
 ROMOBJECT unitmenu_zero[]={
     // MENU LIST
-    MKPROLOG(DOLIST,17),
+    MKPROLOG(DOLIST,39),
         // ITEM: { Display Action Help }
-        MKPROLOG(DOLIST,15),
+        MKPROLOG(DOLIST,18),
             // DISPLAY
+            MKPROLOG(DOLIST,5),
             MAKESTRING(5),
             TEXT2WORD('T','O','O','L'),
             TEXT2WORD('S',0,0,0),
+            MAKESINT(1),
+            CMD_ENDLIST,
             // ACTION
             MKPROLOG(DOCOL,5),                  // <<
             MKPROLOG(HEXBINT,2),                // #MENUCODEh
@@ -111,6 +114,32 @@ ROMOBJECT unitmenu_zero[]={
             TEXT2WORD('r',' ','U','n'),
             TEXT2WORD('i','t','s','.'),
         CMD_ENDLIST,
+    // ITEM: { Display Action Help }
+    MKPROLOG(DOLIST,18),
+        // DISPLAY
+        MKPROLOG(DOLIST,5),
+        MAKESTRING(6),
+        TEXT2WORD('L','E','N','G'),
+        TEXT2WORD('T','H',0,0),
+        MAKESINT(1),
+        CMD_ENDLIST,
+        // ACTION
+        MKPROLOG(DOCOL,5),                  // <<
+        MKPROLOG(HEXBINT,2),                // #MENUCODEh
+        MKMENUCODE(0,LIBRARY_NUMBER,2,0),
+        0,
+        CMD_TMENU,                          // TMENU
+        CMD_SEMI,                           // >>
+
+        // HELP
+        MAKESTRING(16),
+        TEXT2WORD('U','n','i','t'),
+        TEXT2WORD('s',' ','o','f'),
+        TEXT2WORD(' ','l','e','n'),
+        TEXT2WORD('g','t','h','.'),
+    CMD_ENDLIST,
+
+
     CMD_ENDLIST
 };
 

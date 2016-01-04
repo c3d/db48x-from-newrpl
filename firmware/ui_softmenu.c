@@ -150,6 +150,32 @@ WORDPTR uiGetMenuItemAction(WORDPTR item,BINT shift)
 }
 
 
+// GET THE HELP OBJECT OF A MENU ITEM
+// RETURN 0 IF THE HELP IS NOT A STRING OR THERE WAS NO HELP IN THE MENU DEFINITION
+
+WORDPTR uiGetMenuItemHelp(WORDPTR item)
+{
+
+    if(!item) return 0;
+
+    if(ISIDENT(*item)) return item;
+    if(!ISLIST(*item)) return 0;
+
+    // GET ACTION ITEM WITHIN THE ITEM
+
+    item=rplGetListElement(item,3);
+
+    if(!item) return 0;
+
+    if(!ISSTRING(*item)) return 0;
+
+
+    return item;
+
+}
+
+
+
 // DRAW A SINGLE ITEM IN THE CURRENT CLIPPING BOX
 // DOES NOT CLEAR BACKGROUND
 
