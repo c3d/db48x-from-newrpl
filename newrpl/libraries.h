@@ -395,7 +395,7 @@ extern const WORD empty_list[];
 // COMMANDS THAT NEED TO BE ACCESSED FROM MULTIPLE LIBRARIES
 // WARNING: IF COMMANDS ARE REORGANIZED WITHIN LIBRARIES, THIS WILL BREAK
 // TODO: FIND A BETTER WAY TO EXPORT COMMANDS (??)
-
+/*
 #define CMD_EXITRPL         MKOPCODE(DOCOL,0)
 #define CMD_BKPOINT         MKOPCODE(DOCOL,1)
 #define CMD_XEQSECO         MKOPCODE(DOCOL,2)
@@ -447,7 +447,8 @@ extern const WORD empty_list[];
 
 #define CMD_TMENU MKOPCODE(68,4)
 
-
+*/
+#include "cmdcodes.h"
 #include "errorcodes.h"
 
 #endif // LIBRARIES_H

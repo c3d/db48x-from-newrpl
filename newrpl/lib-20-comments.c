@@ -13,65 +13,89 @@
 #include "libraries.h"
 #include "hal.h"
 
-// THERE'S ONLY ONE EXTERNAL FUNCTION: THE LIBRARY HANDLER
-// ALL OTHER FUNCTIONS ARE LOCAL
+// *****************************
+// *** COMMON LIBRARY HEADER ***
+// *****************************
 
-// MAIN LIBRARY NUMBER, CHANGE THIS FOR EACH LIBRARY
+
+
+// REPLACE THE NUMBER
+// IN EACH DEFINITION BELOW
+
 #define LIBRARY_NUMBER  20
-#define LIB_ENUM lib20enum
+#define LIB_ENUM lib##LIBRARY_NUMBER##enum
+#define LIB_CMDS lib20cmds
 #define LIB_NAMES lib20_names
 #define LIB_HANDLER lib20_handler
 #define LIB_NUMBEROFCMDS LIB20_NUMBEROFCMDS
 #define ROMPTR_TABLE    romptr_table20
 
-// LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
-// HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
-static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,LIBRARY_NUMBER+1,LIBRARY_NUMBER+2,LIBRARY_NUMBER+3,0 };
+// LIST OF COMMANDS EXPORTED,
+// INCLUDING INFORMATION FOR SYMBOLIC COMPILER
+// IN THE CMD() FORM, THE COMMAND NAME AND ITS
+// ENUM SYMBOL ARE IDENTICAL
+// IN THE ECMD() FORM, THE ENUM SYMBOL AND THE
+// COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
-// LIST OF COMMANDS EXPORTED, CHANGE FOR EACH LIBRARY
 #define CMD_LIST \
-    CMD(STRIPCOMMENTS)
+    CMD(STRIPCOMMENTS,MKTOKENINFO(13,TITYPE_NOTALLOWED,1,2))
+//    ECMD(CMDNAME,"CMDNAME",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
 
-// EXTRA LIST FOR COMMANDS WITH SYMBOLS THAT ARE DISALLOWED IN AN ENUM
-// THE NAMES AND ENUM SYMBOLS ARE GIVEN SEPARATELY
-//#define CMD_EXTRANAME \
-//    "→STR", \
+// ***** INTERNAL DECLARATIONS - DO NOT CHANGE! *****
 
-//#define CMD_EXTRAENUM \
-//    TOSTR, \
-
-
-
-// INTERNAL DECLARATIONS
-
-
-
-// CREATE AN ENUM WITH THE OPCODE NAMES FOR THE DISPATCHER
-#define CMD(a) a
-enum LIB_ENUM { CMD_LIST , /*CMD_EXTRAENUM , */ LIB_NUMBEROFCMDS };
+// CREATE AN ENUM WITH THE OPCODE NAMES FOR THE switch() DISPATCHER
+#define CMD(a,b) a
+#define ECMD(a,b,c) a
+enum LIB_ENUM { CMD_LIST , LIB_NUMBEROFCMDS };
 #undef CMD
+#undef ECMD
+
+// IF COMMANDS_ONLY_PASS IS DEFINED, WE ARE NOT SUPPOSED TO
+// DEFINE ANYTHING OTHER THAN THE COMMANDS ENUM
+// SO EVERYTHING ELSE IS CONDITIONAL COMPILATION
+#ifdef COMMANDS_ONLY_PASS
+// CREATE AN ENUM WITH THE OPCODE NAMES FOR THE DISPATCHER
+#define CMD(a,b) CMD_##a = MKOPCODE(LIBRARY_NUMBER,a)
+#define ECMD(a,b,c) CMD_##a = MKOPCODE(LIBRARY_NUMBER,a)
+enum LIB_CMDS { CMD_LIST  };
+#undef CMD
+#undef ECMD
+
+// AND EXPORT A DECLRATION OF THE LIBRARY HANDLER
+
+extern void LIB_HANDLER();
+
+#else
+
 
 // AND A LIST OF STRINGS WITH THE NAMES FOR THE COMPILER
-#define CMD(a) #a
-const char * const LIB_NAMES[]= { CMD_LIST /*, CMD_EXTRANAME */  };
+#define CMD(a,b) #a
+#define ECMD(a,b,c) b
+const char * const LIB_NAMES[]= { CMD_LIST };
+#undef CMD
+#undef ECMD
+
+// AND A LIST WITH THE SYMBOLIC TOKENINFO DATA
+#define CMD(a,b) b
+#define ECMD(a,b,c) c
+const BINT const LIB_TOKENINFO[]={ CMD_LIST };
+#undef ECMD
 #undef CMD
 
+// ***** END INTERNAL DECLARATIONS *****
+
+// LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
+// HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
+static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,LIBRARY_NUMBER+1,LIBRARY_NUMBER+2,LIBRARY_NUMBER+3,0 };
 
 
 
-/*
-// EXTERNAL EXPORTED OBJECT TABLE
-// UP TO 64 OBJECTS ALLOWED, NO MORE
-const WORDPTR const ROMPTR_TABLE[]={
-    (WORDPTR)empty_string,
-    0
-};
-
-*/
-
+// ************************************
+// *** END OF COMMON LIBRARY HEADER ***
+// ************************************
 
 
 // FIX THE PROLOG OF A STRING TO MATCH THE DESIRED LENGTH IN CHARACTERS
@@ -375,9 +399,9 @@ void LIB_HANDLER()
                     }
                     *ScratchPointer4=MKPROLOG(LIBRARY_NUMBER+((4-count)&3),(WORD)(CompileEnd-ScratchPointer4)-1);
 
-                    if(ptr<BlankStart) {
+                    if(ptr<(BYTEPTR)BlankStart) {
                     //   FOUND THE AT SYMBOL WITHIN THE COMMENT ITSELF, SPLIT THE TOKEN
-                    TokenStart=ptr;
+                    TokenStart=(WORDPTR)ptr;
                     RetNum=OK_SPLITTOKEN;
                     } else RetNum=OK_CONTINUE;
                     return;
@@ -470,9 +494,9 @@ void LIB_HANDLER()
                 if(count) rplCompileAppend(temp.word);
                 *ScratchPointer4=MKPROLOG(LIBRARY_NUMBER+((4-count)&3),(WORD)(CompileEnd-ScratchPointer4)-1);
 
-                if(ptr<BlankStart) {
+                if(ptr<(BYTEPTR)BlankStart) {
                 //   FOUND THE AT SYMBOL WITHIN THE COMMENT ITSELF, SPLIT THE TOKEN
-                TokenStart=ptr;
+                TokenStart=(WORDPTR)ptr;
                 RetNum=OK_SPLITTOKEN;
                 } else RetNum=OK_CONTINUE;
                 return;
@@ -598,7 +622,7 @@ void LIB_HANDLER()
 }
 
 
-
+#endif  // COMMANDS_ONLY_PASS
 
 
 

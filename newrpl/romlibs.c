@@ -5,126 +5,67 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
+// LIBRARIES TO BE INCLUDED IN ROM
+#define ROM_LIST \
+    INCLUDELIB(2,lib-two-ident.c) _COMMA \
+    INCLUDELIB(8,lib-eight-docol.c) _COMMA \
+    INCLUDELIB(9,lib-nine-docol.c) _COMMA \
+    INCLUDELIB(10,a) _COMMA \
+    INCLUDELIB(12,a) _COMMA \
+    INCLUDELIB(20,lib-20-comments.c) _COMMA \
+    INCLUDELIB(24,a) _COMMA \
+    INCLUDELIB(26,a) _COMMA \
+    INCLUDELIB(28,a) _COMMA \
+    INCLUDELIB(30,a) _COMMA \
+    INCLUDELIB(32,a) _COMMA \
+    INCLUDELIB(52,a) _COMMA \
+    INCLUDELIB(54,a) _COMMA \
+    INCLUDELIB(56,a) _COMMA \
+    INCLUDELIB(62,a) _COMMA \
+    INCLUDELIB(64,a) _COMMA \
+    INCLUDELIB(65,a) _COMMA \
+    INCLUDELIB(66,a) _COMMA \
+    INCLUDELIB(68,a) _COMMA \
+    INCLUDELIB(70,a) _COMMA \
+    INCLUDELIB(72,a) _COMMA \
+    INCLUDELIB(4080,a) _COMMA \
+    INCLUDELIB(4090,a)
+
+
+#ifndef COMMANDS_ONLY_PASS
+
+
 #include "libraries.h"
 #include "newrpl.h"
 
 
-
-extern void lib2_handler();
-extern void lib8_handler();
-extern void lib9_handler();
-extern void lib10_handler();
-extern void lib12_handler();
-extern void lib20_handler();
-extern void lib24_handler();
-extern void lib26_handler();
-extern void lib28_handler();
-extern void lib30_handler();
-
-extern void lib32_handler();
-
-
-
-extern void lib52_handler();
-
-extern void lib54_handler();
-
-extern void lib56_handler();
-extern void lib62_handler();
-
-extern void lib64_handler();
-extern void lib65_handler();
-extern void lib66_handler();
-extern void lib68_handler();
-
-extern void lib70_handler();
-extern void lib72_handler();
-
-
-
-extern void lib4080_handler();
-extern void lib4090_handler();
-
-
-void dummy_libhandler()
-{
-if(ISPROLOG(CurOpcode)) {
-    rplError(ERR_UNRECOGNIZEDOBJECT);
-    return;
-}
-
-switch(OPCODE(CurOpcode))
-        {
-
-// STANDARIZED OPCODES:
-        // --------------------
-        // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
-
-        case OPCODE_LIBINSTALL:
-        RetNum=ERR_INVALID;
-        return;
-
-        }
-
-        RetNum=ERR_INVALID;
-        rplError(ERR_INVALIDOPCODE);
-
-        return;
-
-
-}
-
-
-
-
+// CREATE AN ENUM WITH THE OPCODE NAMES FOR THE switch() DISPATCHER
+#define _COMMA ,
+#define INCLUDELIB(a,b) lib##a##_handler
 // THIS IS THE LIST OF ALL PRE-INSTALLED LIBRARIES IN THIS ROM
+const LIBHANDLER const ROMLibs[]={ ROM_LIST , 0 };
+#undef L
 
-const LIBHANDLER const ROMLibs[]={
-    lib2_handler,
-    lib8_handler,
-    lib9_handler,
-    // LIB 10 IS REAL NUMBERS
-    lib10_handler,
-    // LIBS 12 THRU 19 ARE BINTS
-    lib12_handler,
+#else
 
-    // LIB 20 THRU 23 ARE COMMENTS
-    lib20_handler,
+#define _COMMA
+#define INCLUDELIB(a,b) #b
 
-    // LIB 24 THRU 27 ARE STRINGS
-    lib24_handler,
+#define HEAD(first, ... ) first
+#define TAIL(first, ... ) __VA_ARGS__
+#define ARGLIST( ... ) __VA_ARGS__ , ENDOFLIST
 
-    // DIRECTORIES
-    lib28_handler,
+// ITERATE OVER ALL LIBRARIES
+#include "romlib-loop.h"
 
-    // COMPLEX NUMBERS
-    lib30_handler,
+#undef __COMMA
+#undef _COMMA
+#undef INCLUDELIB
 
-    // LIB 32 THRU 47 ARE IDENTS
-    lib32_handler,
+#ifndef CMD_STRIPCOMMENTS
+#error Not working!
+#endif
 
-    // MATRIX
-    lib52_handler,
+#endif
 
-    // UNITS
-    lib54_handler,
 
-    // SYMBOLIC
-    lib56_handler,
-
-    // LISTS
-    lib62_handler,
-
-    lib64_handler,
-    lib65_handler,
-    lib66_handler,
-    lib68_handler,
-    lib70_handler,
-    lib72_handler,
-
-    lib4080_handler,
-    lib4090_handler,
-
-    // ADD MORE LIBRARIES HERE
-    0
-};

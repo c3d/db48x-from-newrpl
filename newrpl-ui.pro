@@ -138,7 +138,9 @@ HEADERS  += mainwindow.h \
     newrpl/utf8lib.h \
     newrpl/decimal.h \
     newrpl/errorcodes.h \
-    newrpl/arithmetic.h
+    newrpl/arithmetic.h \
+    newrpl/cmdcodes.h \
+    newrpl/romlib-loop.h
 
 INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
 
@@ -150,3 +152,5 @@ DISTFILES +=
 
 RESOURCES += \
     annunciators.qrc
+
+QMAKE_CFLAGS += -Wno-duplicate-decl-specifier

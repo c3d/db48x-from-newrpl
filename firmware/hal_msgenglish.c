@@ -134,4 +134,18 @@ const MSGLIST const all_messages[]={
 };
 
 
+// THIS IS THE HELP TEXT FOR ALL COMMANDS PROVIDED IN ROM
+// UP TO 3 LINES OF TEXT, LAYOUT IS HARDWARE DEPENDENT
+// MAKE SURE IT LOOKS GOOD
+
+const MSGLIST const all_cmdhelp[]={
+    // BASIC UNKNOWN ERROR MESSAGE
+    { CMD_EXITRPL, "EXITRPL: End RPL execution.\nPanic exit, should not be used.\n → [end exec.]"},
+    { CMD_BKPOINT, "BREAKPOINT: Pause RPL execution\nand enter interactive debugger.\n → [pause exec.]"},
+
+    // ADD MORE MESSAGES HERE...
+
+    // END OF LIST MARKER
+    { 0 , ""}
+};
 #endif

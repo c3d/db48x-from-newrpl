@@ -1,0 +1,21 @@
+#ifndef ROMLIBLOOP_H
+#define ROMLIBLOOP_H
+
+// RECURSIVELY INCLUDE ALL REGISTERED LIBRARIES
+
+#if( HEAD(ARGLIST) != ENDOFLIST)
+
+#include HEAD(ARGLIST)
+
+#define TAIL_LIST TAIL(ARGLIST)
+
+#undef ARGLIST
+
+#define ARGLIST TAIL_LIST
+
+#include "romlib-loop.h"
+
+#endif
+
+#endif // ROMLIBLOOP_H
+
