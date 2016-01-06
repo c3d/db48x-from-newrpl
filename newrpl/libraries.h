@@ -9,6 +9,7 @@
 #define LIBRARIES_H
 
 #include "newrpl.h"
+#include "common-macros.h"
 
 
 
@@ -448,7 +449,10 @@ extern const WORD empty_list[];
 #define CMD_TMENU MKOPCODE(68,4)
 
 */
-#include "cmdcodes.h"
 #include "errorcodes.h"
+
+#include "cmdcodes.h"
+
+
 
 #endif // LIBRARIES_H
