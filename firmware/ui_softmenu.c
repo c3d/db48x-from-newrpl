@@ -196,7 +196,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
             rplPushData(item);
             rplPushData(ptr);
 
-            BINT nresults=cmdRunTransparent(CMD_XEQ,1,1);
+            BINT nresults=cmdRunTransparent(CMD_OVR_XEQ,1,1);
 
             if(nresults==1) ptr=rplPopData();
             else ptr=empty_string;      // IF THE PROGRAM FAILED TO RETURN AN OBJECT, JUST USE THE EMPTY STRING

@@ -1138,6 +1138,33 @@ void LIB_HANDLER()
         RetNum=OK_CONTINUE;
         return;
 
+    case OPCODE_PROBETOKEN:
+        // PROBETOKEN FINDS A VALID WORD AT THE BEGINNING OF THE GIVEN TOKEN AND RETURNS
+        // INFORMATION ABOUT IT. THIS OPCODE IS MANDATORY
+
+        // COMPILE RECEIVES:
+        // TokenStart = token string
+        // TokenLen = token length
+        // BlankStart = token blanks afterwards
+        // BlanksLen = blanks length
+        // CurrentConstruct = Opcode of current construct/WORD of current composite
+
+        // COMPILE RETURNS:
+        // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
+        // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
+        {
+        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+
+        return;
+        }
+
+
+    case OPCODE_GETINFO:
+        libGetInfo2(*DecompileObject,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+        return;
+
+
+
     case OPCODE_GETROMID:
         // THIS OPCODE RECEIVES A POINTER TO AN RPL OBJECT IN ROM, EXPORTED BY THIS LIBRARY
         // AND CONVERTS IT TO A UNIQUE ID FOR BACKUP PURPOSES

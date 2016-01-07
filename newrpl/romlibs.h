@@ -17,23 +17,22 @@
     INCLUDELIB(10,lib-ten-reals.c) , \
     INCLUDELIB(12,lib-twelve-bint.c) , \
     INCLUDELIB(20,lib-20-comments.c) , \
-    INCLUDELIB(24,a) , \
-    INCLUDELIB(26,a) , \
-    INCLUDELIB(28,a) , \
-    INCLUDELIB(30,a) , \
-    INCLUDELIB(32,a) , \
-    INCLUDELIB(52,a) , \
-    INCLUDELIB(54,a) , \
-    INCLUDELIB(56,a) , \
-    INCLUDELIB(62,a) , \
-    INCLUDELIB(64,a) , \
-    INCLUDELIB(65,a) , \
-    INCLUDELIB(66,a) , \
-    INCLUDELIB(68,a) , \
-    INCLUDELIB(70,a) , \
-    INCLUDELIB(72,a) , \
-    INCLUDELIB(4080,a) , \
-    INCLUDELIB(4090,a)
+    INCLUDELIB(24,lib-24-string.c) , \
+    INCLUDELIB(28,lib-28-dirs.c) , \
+    INCLUDELIB(30,lib-30-complex.c) , \
+    INCLUDELIB(32,lib-32-lam.c) , \
+    INCLUDELIB(52,lib-52-matrix.c) , \
+    INCLUDELIB(54,lib-54-units.c) , \
+    INCLUDELIB(56,lib-56-symbolic.c) , \
+    INCLUDELIB(62,lib-62-lists.c) , \
+    INCLUDELIB(64,lib-64-arithmetic.c) , \
+    INCLUDELIB(65,lib-65-system.c) , \
+    INCLUDELIB(66,lib-66-transcendentals.c) , \
+    INCLUDELIB(68,lib-68-flags.c) , \
+    INCLUDELIB(70,lib-70-binary.c) , \
+    INCLUDELIB(72,lib-72-stack.c) , \
+    INCLUDELIB(4080,lib-4080-localenv.c) , \
+    INCLUDELIB(4090,lib-4090-overloaded.c)
 
 // ADD MORE LIBRARIES HERE
 

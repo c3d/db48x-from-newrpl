@@ -5,29 +5,23 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
-// LIBRARY ZERO HAS SPECIAL RUNSTREAM OPERATORS
-
 #include "newrpl.h"
 #include "libraries.h"
 #include "hal.h"
-// THERE'S ONLY ONE EXTERNAL FUNCTION: THE LIBRARY HANDLER
-// ALL OTHER FUNCTIONS ARE LOCAL
-// LIB4090 PROVIDES OVERLOADABLE OPERATORS, IT COMPILES GENERIC VERSIONS OF OPERATORS AND DISPATCHES
-// TO OTHER LIBRARIES FOR PROCESSING
 
-// MAIN LIBRARY NUMBER, CHANGE THIS FOR EACH LIBRARY
-#define LIBRARY_NUMBER  LIB_OVERLOADABLE
-#define LIB_HANDLER lib4090_handler
-#define LIB_NAMES lib4090_names
-#define LIB_OPCODES lib4090_opcodes
-#define LIB_TOKENINFO lib4090_tokeninfo
-#define LIB_NUMCMDS 27
+// ******************************
+// *** SPECIAL LIBRARY HEADER ***
+// ******************************
 
-// LIST OF LIBRARY NUMBERS WHERE THIS LIBRARY REGISTERS TO
-// HAS TO BE A HALFWORD LIST TERMINATED IN ZERO
-static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
 
-// GET LIST OF OVERLOADABLE OPERATORS AS DEFINED IN <libraries.h>
+
+// REPLACE THE NUMBER
+#define LIBRARY_NUMBER  4090
+
+
+// LIST OF OPERATORS EXPORTED,
+// SIMILAR TO THE GENERAL LIBRARY HEADER, BUT FOR OPERATORS ONLY
+
 #define OP_LIST \
     OP(INV,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
     OP(NEG,MKTOKENINFO(1,TITYPE_FUNCTION,1,4)), \
@@ -60,8 +54,48 @@ static const HALFWORD const libnumberlist[]={ LIBRARY_NUMBER,0 };
     // ADD MORE OPERATORS HERE
 
 
+// LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
+#define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
+
+// THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
+#include "lib-header.h"
 
 
+#ifdef COMMANDS_ONLY_PASS
+
+// CREATE AN ENUM WITH THE OPCODE NAMES FOR THE DISPATCHER
+// THIS IS ONLY FOR THIS LIBRARY
+
+#define OP(a,b) CMD_OVR_##a = MKOPCODE(LIBRARY_NUMBER,OVR_##a)
+enum LIB_CMDS { OP_LIST  };
+#undef OP
+
+
+// CLEANUP FOR OTHER LIBRARIES TO DEFINE THEIR OWN
+
+#undef LIBRARY_NUMBER
+#undef COMMAND_LIST
+#undef LIBRARY_ASSIGNED_NUMBERS
+
+#undef LIB_ENUM
+#undef LIB_CMDS
+#undef LIB_NAMES
+#undef LIB_HANDLER
+#undef LIB_NUMBEROFCMDS
+#undef ROMPTR_TABLE
+
+
+#else
+
+// ************************************
+// *** END OF COMMON LIBRARY HEADER ***
+// ************************************
+
+
+// SPECIAL DECLARATIONS FOR THIS LIBRARY
+#define OP(a,b) UNUSED_ENUM_##a
+enum { OP_LIST , LIB_NUMBEROFCMDS };
+#undef OP
 
 
 
@@ -192,7 +226,7 @@ void LIB_HANDLER()
 
     case OPCODE_COMPILE:
 
-        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,(WORDPTR)LIB_OPCODES,LIB_NUMCMDS);
+        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,(WORDPTR)LIB_OPCODES,LIB_NUMBEROFCMDS);
      return;
     case OPCODE_DECOMPEDIT:
 
@@ -203,7 +237,7 @@ void LIB_HANDLER()
         if(OPCODE(*DecompileObject)==OVR_UPLUS) { rplDecompAppendChar('+'); RetNum=OK_CONTINUE; return; }
 
 
-        libDecompileCmds((char **)LIB_NAMES,(WORDPTR)LIB_OPCODES,LIB_NUMCMDS);
+        libDecompileCmds((char **)LIB_NAMES,(WORDPTR)LIB_OPCODES,LIB_NUMBEROFCMDS);
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY
@@ -221,7 +255,7 @@ void LIB_HANDLER()
         RetNum=OK_CONTINUE;
         return;
     case OPCODE_PROBETOKEN:
-        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMCMDS);
+        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
         return;
     case OPCODE_GETINFO:
         // MANUALLY RETURN INFO FOR UNARY PLUS AND MINUS
@@ -229,7 +263,7 @@ void LIB_HANDLER()
         if(OPCODE(*DecompileObject)==OVR_UPLUS) { RetNum=OK_TOKENINFO | MKTOKENINFO(1,TITYPE_PREFIXOP,1,4); return; }
 
 
-        libGetInfo(*DecompileObject,(char **)LIB_NAMES,(WORDPTR)LIB_OPCODES,(BINT *)LIB_TOKENINFO,LIB_NUMCMDS);
+        libGetInfo(*DecompileObject,(char **)LIB_NAMES,(WORDPTR)LIB_OPCODES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
         return;
 
     case OPCODE_GETROMID:
@@ -269,15 +303,15 @@ void LIB_HANDLER()
             // CONVERT OPCODE INTO INDEX
             BINT k;
 
-            for(k=0;k<LIB_NUMCMDS;++k)
+            for(k=0;k<LIB_NUMBEROFCMDS;++k)
             {
                 if(LIB_OPCODES[k]==OPCODE(SuggestedOpcode)) break;
             }
-            if(k==LIB_NUMCMDS) { RetNum=ERR_NOTMINE; return; }
+            if(k==LIB_NUMBEROFCMDS) { RetNum=ERR_NOTMINE; return; }
             SuggestedOpcode=MKOPCODE(LIBRARY_NUMBER,k);
         }
 
-        libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMCMDS);
+        libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         // DO SOME POST-PROCESSING DUE TO DIFFERENT HANDLING OF DATA IN THIS LIBRARY
         if(RetNum==OK_CONTINUE) {
             idx=OPCODE(SuggestedOpcode);
@@ -313,5 +347,6 @@ void LIB_HANDLER()
 }
 
 
+#endif
 
 

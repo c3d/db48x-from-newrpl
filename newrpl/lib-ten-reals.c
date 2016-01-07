@@ -516,7 +516,7 @@ void LIB_HANDLER()
         case OVR_NEG:
         case OVR_UMINUS:
         {
-            if((Darg1.flags&F_INFINITY|F_NOTANUMBER) || !(Darg1.len==1 && Darg1.data[0]==0)) Darg1.flags^=F_NEGATIVE;
+            if((Darg1.flags&(F_INFINITY|F_NOTANUMBER)) || !(Darg1.len==1 && Darg1.data[0]==0)) Darg1.flags^=F_NEGATIVE;
             rplNewRealPush(&Darg1);
         }
             return;
