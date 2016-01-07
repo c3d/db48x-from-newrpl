@@ -284,7 +284,7 @@ BINT rplNeedNewLAMEnv()
             // THERE IS AN EXISTING ENVIRONMENT
             rsptr=RSTop-1;
             if(rsptr<RStk) return 0;    // THERE'S NO RETURN ADDRESS, WE ARE EXECUTING FREE COMMANDS FROM THE COMMAND LINE
-            if( **rsptr==MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL)) {
+            if( **rsptr==(CMD_OVR_EVAL)) {
                 // WE ARE EXECUTING A SECONDARY THAT WAS 'EVAL'd, NEED A NEW ENVIRONMENT
                 return 1;
             }
@@ -302,7 +302,7 @@ BINT rplNeedNewLAMEnv()
 
     if(nLAMBase>=LAMs && nLAMBase<LAMTop) {
         if((ISPROLOG(**(nLAMBase+1)) && ((LIBNUM(*(nLAMBase+1))==SECO)||(LIBNUM(*(nLAMBase+1))==DOCOL)))
-        || (**(nLAMBase+1)==MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL))) {
+        || (**(nLAMBase+1)==(CMD_OVR_EVAL))) {
             // THIS ENVIRONMENT BELONGS TO A SECONDARY
             if(*(nLAMBase+1)==seco) {
                 // FOUND AN ENVIRONMENT THAT BELONGS TO THE CURRENT SECONDARY, SO NO NEED FOR ONE
@@ -314,7 +314,7 @@ BINT rplNeedNewLAMEnv()
             // CURRENT ENVIRONMENT BELONGS TO SOMETHING NOT-A-SECO (LOOPS, ETC.)
             rsptr=RSTop-1;
             if(rsptr<RStk) return 0;    // THERE'S NO RETURN ADDRESS, WE ARE EXECUTING FREE COMMANDS FROM THE COMMAND LINE
-            if( **rsptr==MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL)) {
+            if( **rsptr==(CMD_OVR_EVAL)) {
                 // WE ARE EXECUTING A SECONDARY THAT WAS 'EVAL'd, NEED A NEW ENVIRONMENT
                 return 1;
             }

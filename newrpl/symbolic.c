@@ -404,7 +404,7 @@ void rplSymbRuleMatch()
             // INCREASE THE POINTERS TO SCAN INSIDE THE SYMBOLIC
             ++ruleleft;
             ++objptr;
-            if(*ruleleft==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+            if(*ruleleft==(CMD_OVR_ADD)) {
                 // DO COMMUTATIVE/ASSOCIATIVE MATCHING
                 //if(!rplSymbAdditionMatch(ruleleft-1,objptr-1)) break;
 
@@ -548,7 +548,7 @@ BINT rplSymbCountArguments(WORDPTR object)
         if(ISSYMBOLIC(*object)) {
         if(*(object+1)==Opcode) {
             // SAME OPERATION
-            if( (Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) || (Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL))) { object+=2; continue; }
+            if( (Opcode==(CMD_OVR_ADD)) || (Opcode==(CMD_OVR_MUL))) { object+=2; continue; }
         }
 
         }
@@ -812,16 +812,16 @@ WORDPTR *rplSymbSkipInStack(WORDPTR *stkptr)
 // H) FLATTEN ALL MULTIPLICATION TREES
 
 const WORD const uminus_opcode[]={
-    MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)
+    (CMD_OVR_UMINUS)
 };
 const WORD const add_opcode[]={
-    MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)
+    (CMD_OVR_ADD)
 };
 const WORD const inverse_opcode[]={
-    MKOPCODE(LIB_OVERLOADABLE,OVR_INV)
+    (CMD_OVR_INV)
 };
 const WORD const mul_opcode[]={
-    MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)
+    (CMD_OVR_MUL)
 };
 
 
@@ -902,7 +902,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
     while(stkptr!=endofstk) {
         sobj=*stkptr;
 
-        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_SUB)) {
+        if(*sobj==(CMD_OVR_SUB)) {
 
                 WORDPTR *secondarg=rplSymbSkipInStack(stkptr-2);
 
@@ -939,10 +939,10 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
     while(stkptr!=endofstk) {
         sobj=*stkptr;
 
-        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+        if(*sobj==(CMD_OVR_UMINUS)) {
             WORDPTR *nextarg=stkptr-2;
 
-            if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+            if(**nextarg==(CMD_OVR_ADD)) {
                 // A SUM NEGATED? DISTRIBUTE THE OPERATOR OVER THE ARGUMENTS
 
                 BINT nargs=OPCODE(**(nextarg-1))-1;
@@ -951,7 +951,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
                 nextarg-=2;
                 for(c=0;c<nargs;++c) {
 
-                    if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                    if(**nextarg==(CMD_OVR_UMINUS)) {
                         // NEG/NEG = REMOVE THE NEGATION
                     WORDPTR *ptr=nextarg-1;
                     // AND REMOVE THE GAP
@@ -1014,7 +1014,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
     while(stkptr!=endofstk) {
         sobj=*stkptr;
 
-        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+        if(*sobj==(CMD_OVR_ADD)) {
                 BINT nargs=OPCODE(**(stkptr-1))-1;
 
                 BINT c,orignargs=nargs;
@@ -1022,7 +1022,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
 
                 for(c=0;c<nargs;++c) {
 
-                    if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+                    if(**nextarg==(CMD_OVR_ADD)) {
                         // FLATTEN BY REMOVING THE ADDITION
                     WORDPTR *ptr=nextarg-1;
                     nargs+=OPCODE(**(nextarg-1))-2;   // ADD THE ARGUMENTS TO THE BASE LOOP
@@ -1066,12 +1066,12 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
     while(stkptr!=endofstk) {
         sobj=*stkptr;
 
-        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_POW)) {
+        if(*sobj==(CMD_OVR_POW)) {
 
             WORDPTR *arg1=stkptr-2;
             WORDPTR *arg2=rplSymbSkipInStack(arg1);
 
-            if(**arg2==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+            if(**arg2==(CMD_OVR_UMINUS)) {
                 // NEGATIVE POWER DETECTED WE JUST NEED TO REPLACE THE UMINUS
                 // WITH AN INV()
 
@@ -1100,7 +1100,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
     while(stkptr!=endofstk) {
         sobj=*stkptr;
 
-        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_DIV)) {
+        if(*sobj==(CMD_OVR_DIV)) {
 
                 WORDPTR *secondarg=rplSymbSkipInStack(stkptr-2);
 
@@ -1135,10 +1135,10 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
     while(stkptr!=endofstk) {
         sobj=*stkptr;
 
-        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) {
+        if(*sobj==(CMD_OVR_INV)) {
             WORDPTR *nextarg=stkptr-2;
 
-            if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+            if(**nextarg==(CMD_OVR_MUL)) {
 
                 BINT nargs=OPCODE(**(nextarg-1))-1;
 
@@ -1146,7 +1146,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
                 nextarg-=2;
                 for(c=0;c<nargs;++c) {
 
-                    if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) {
+                    if(**nextarg==(CMD_OVR_INV)) {
                         // INV/INV = REMOVE THE OPERATOR
                     WORDPTR *ptr=nextarg-1;
                     // AND REMOVE THE GAP
@@ -1206,10 +1206,10 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
     while(stkptr!=endofstk) {
         sobj=*stkptr;
 
-        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+        if(*sobj==(CMD_OVR_UMINUS)) {
             WORDPTR *nextarg=stkptr-2;
 
-            if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+            if(**nextarg==(CMD_OVR_MUL)) {
 
                 WORDPTR tmp;
 
@@ -1236,10 +1236,10 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
     while(stkptr!=endofstk) {
         sobj=*stkptr;
 
-        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+        if(*sobj==(CMD_OVR_UMINUS)) {
             WORDPTR *nextarg=stkptr-2;
 
-            if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+            if(**nextarg==(CMD_OVR_UMINUS)) {
                         // NEG/NEG = REMOVE THE NEGATION
                     WORDPTR *ptr=nextarg-1;
                     // AND REMOVE THE GAP
@@ -1266,7 +1266,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
     while(stkptr!=endofstk) {
         sobj=*stkptr;
 
-        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+        if(*sobj==(CMD_OVR_MUL)) {
                 BINT nargs=OPCODE(**(stkptr-1))-1;
 
                 BINT c,orignargs=nargs;
@@ -1274,7 +1274,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
 
                 for(c=0;c<nargs;++c) {
 
-                    if(**nextarg==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+                    if(**nextarg==(CMD_OVR_MUL)) {
                         // FLATTEN BY REMOVING THE ADDITION
                     WORDPTR *ptr=nextarg-1;
                     nargs+=OPCODE(**(nextarg-1))-2;   // ADD THE ARGUMENTS TO THE BASE LOOP
@@ -1320,7 +1320,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
     while(stkptr!=endofstk) {
         sobj=*stkptr;
 
-        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+        if(*sobj==(CMD_OVR_MUL)) {
                 BINT nargs=OPCODE(**(stkptr-1))-1;
 
                 BINT c,orignargs=nargs;
@@ -1330,7 +1330,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
 
                 for(c=0;c<nargs;++c) {
 
-                    if(**nextarg!=MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) {
+                    if(**nextarg!=(CMD_OVR_INV)) {
                             if(firstinv) {
                                 // MOVE nextarg BEFORE firstinv
                                 BINT nterms=nextarg-rplSymbSkipInStack(nextarg);
@@ -1400,7 +1400,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
 
     stkptr=DSTop-1;
 
-    if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) {
+    if(**stkptr==(CMD_OVR_INV)) {
     // NEED TO ADD 1*INV() AT THE BEGINNING OF THE EXPRESSION
 
         DSTop+=3;   // 3 PLACES IN THE STACK ARE GUARANTEED BY STACK SLACK
@@ -1420,7 +1420,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
 
         if(ISPROLOG(*sobj)||ISBINT(*sobj)) { --stkptr;  continue; }
 
-        if(*sobj!=MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+        if(*sobj!=(CMD_OVR_MUL)) {
                 // EXCEPT MULTIPLICATIONS, CHECK IF ANY OTHER EXPRESSION STARTS WITH INV()
 
                 BINT nargs=OPCODE(**(stkptr-1))-1;
@@ -1428,7 +1428,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
                 WORDPTR *argptr=stkptr-2;
 
                 while(nargs) {
-                if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) {
+                if(**argptr==(CMD_OVR_INV)) {
                 // IN ANY OTHER CASE, NEED TO ADD 1*INV()
 
                     WORDPTR *ptr=DSTop-1;
@@ -1658,7 +1658,7 @@ BINT rplFractionSimplify()
 BINT rplSymbIsFractionInStack(WORDPTR *stkptr)
 {
 
-if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+if(**stkptr==(CMD_OVR_UMINUS)) {
 // COULD BE A NEGATIVE FRACTION -(1/2)
 stkptr-=2;
 }
@@ -1666,7 +1666,7 @@ stkptr-=2;
 
 
 //NOT A FRACTION UNLESS THERE'S A MULTIPLICATION
-if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+if(**stkptr==(CMD_OVR_MUL)) {
     stkptr--;
 BINT nargs=OBJSIZE(**stkptr)-1;
 // NOT A FRACTION IF MORE THAN 2 ARGUMENTS
@@ -1677,7 +1677,7 @@ WORDPTR *argptr=stkptr;
 
 // CHECK THE NUMERATOR
 
-if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+if(**argptr==(CMD_OVR_UMINUS)) {
     if(!ISNUMBERORUNIT(**(argptr-2))) return 0;
 }
 else if(!ISNUMBERORUNIT(**argptr)) return 0;
@@ -1686,9 +1686,9 @@ else if(!ISNUMBERORUNIT(**argptr)) return 0;
 argptr=rplSymbSkipInStack(argptr);
 
 // CHECK THE DENOMINATOR
-if(**argptr!=MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) return 0;
+if(**argptr!=(CMD_OVR_INV)) return 0;
 argptr-=2;
-if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+if(**argptr==(CMD_OVR_UMINUS)) {
     if(!ISNUMBERORUNIT(**(argptr-2))) return 0;
 }
 else if(!ISNUMBERORUNIT(**argptr)) return 0;
@@ -1713,13 +1713,13 @@ void rplSymbFractionExtractNumDen(WORDPTR *stkptr)
     BINT negnum=0,negden=0;
     WORDPTR *savedstop=DSTop;
 
-if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+if(**stkptr==(CMD_OVR_UMINUS)) {
 // COULD BE A NEGATIVE FRACTION -(1/2)
     negnum=1;
     stkptr-=2;
 }
 
-if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
+if(**stkptr==(CMD_OVR_MUL)) {
 
     stkptr-=2;
 
@@ -1727,7 +1727,7 @@ if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
 
     // CHECK THE NUMERATOR
 
-    if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+    if(**argptr==(CMD_OVR_UMINUS)) {
        negnum^=1;
        rplPushData(*(argptr-2));
     }
@@ -1735,7 +1735,7 @@ if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
 
     // NUMERATOR IS IN THE STACK
     if(negnum) {
-        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+        rplCallOvrOperator((CMD_OVR_NEG));
         if(Exceptions) { DSTop=savedstop; return; }
     }
 
@@ -1744,7 +1744,7 @@ if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
 
     // CHECK THE DENOMINATOR
     argptr-=2;  // SKIP THE INVERSE OPERATOR
-    if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+    if(**argptr==(CMD_OVR_UMINUS)) {
        negden^=1;
        rplPushData(*(argptr-2));
     }
@@ -1752,14 +1752,14 @@ if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
 
     // DENOMINATOR IS IN THE STACK
     if(negden) {
-        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+        rplCallOvrOperator((CMD_OVR_NEG));
         if(Exceptions) { DSTop=savedstop; return; }
     }
 
 }
 else {
 // SINGLE NUMBERS ARE ALSO CONSIDERED FRACTIONS N/1
-    if(**stkptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+    if(**stkptr==(CMD_OVR_UMINUS)) {
        negnum^=1;
        rplPushData(*(stkptr-2));
     }
@@ -1767,7 +1767,7 @@ else {
 
     // NUMERATOR IS IN THE STACK
     if(negnum) {
-        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+        rplCallOvrOperator((CMD_OVR_NEG));
         if(Exceptions) { DSTop=savedstop; return; }
     }
 
@@ -1797,18 +1797,18 @@ BINT rplFractionAdd()
     BINT sign=0;
     rplPushData(rplPeekData(4));    // NUM1
     rplPushData(rplPeekData(2));    // DEN2
-    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+    rplCallOvrOperator((CMD_OVR_MUL));
     if(Exceptions) return 0;
     rplPushData(rplPeekData(3));    // NUM2
     rplPushData(rplPeekData(5));    // DEN1
-    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+    rplCallOvrOperator((CMD_OVR_MUL));
     if(Exceptions) return 0;
-    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD));
+    rplCallOvrOperator((CMD_OVR_ADD));
     if(Exceptions) return 0;
 
     rplPushData(rplPeekData(4));     // DEN1
     rplPushData(rplPeekData(3));    // DEN2
-    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+    rplCallOvrOperator((CMD_OVR_MUL));
     if(Exceptions) return 0;
 
     // TODO: IF NUM OR DEN ARE NEGATIVE, CHANGE THE SIGN AND SET sign APPROPRIATELY
@@ -1816,7 +1816,7 @@ BINT rplFractionAdd()
     // CHECK SIGN OF THE NUMERATOR
     rplPushData(rplPeekData(2));
     rplPushData(zero_bint);
-    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_LT));
+    rplCallOvrOperator((CMD_OVR_LT));
 
     // RESULT OF COMPARISON OPERATORS IS ALWAYS A SINT OR A SYMBOLIC
     WORDPTR numsign=rplPeekData(1);
@@ -1824,7 +1824,7 @@ BINT rplFractionAdd()
     if(ISBINT(*numsign)) {
         if(*numsign!=MAKESINT(0)) {
         rplPushData(rplPeekData(2));
-        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+        rplCallOvrOperator((CMD_OVR_NEG));
         rplOverwriteData(3,rplPeekData(1));
         rplDropData(1);
         sign^=1;
@@ -1834,14 +1834,14 @@ BINT rplFractionAdd()
     // CHECK SIGN OF THE DENOMINATOR JUST IN CASE
     rplPushData(rplPeekData(1));
     rplPushData(zero_bint);
-    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_LT));
+    rplCallOvrOperator((CMD_OVR_LT));
 
     // RESULT OF COMPARISON OPERATORS IS ALWAYS A SINT OR A SYMBOLIC
     WORDPTR densign=rplPeekData(1);
     rplDropData(1);
     if(ISBINT(*densign)) {
         if(*densign!=MAKESINT(0)) {
-        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+        rplCallOvrOperator((CMD_OVR_NEG));
         sign^=1;
         }
     }
@@ -1952,7 +1952,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
         if(ISPROLOG(*sobj)||ISBINT(*sobj)) { --stkptr;  continue; }
 
-        if((*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL))||(*sobj==CMD_SYMBTOUNIT)) {
+        if((*sobj==(CMD_OVR_MUL))||(*sobj==CMD_SYMBTOUNIT)) {
             // SCAN ALL NUMERIC FACTORS IN THE NUMERATOR AND MULTIPLY TOGETHER
 
 
@@ -1966,7 +1966,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             for(f=0;f<nargs;++f) {
                 if(!ISNUMBERORUNIT(**argptr)) {
                     // CHECK IF IT'S A NEGATIVE NUMBER
-                    if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                    if(**argptr==(CMD_OVR_UMINUS)) {
                         if(ISNUMBERORUNIT(**(argptr-2))) {
                             if(ISAPPROX(**(argptr-2))) ++approx;
                             rplPushData(*(argptr-2));
@@ -2049,11 +2049,11 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             argptr=stkptr-2;
 
             for(f=0;f<nargs-redargs;++f) {
-                if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) {
+                if(**argptr==(CMD_OVR_INV)) {
 
                 if(!ISNUMBERORUNIT(**(argptr-2))) {
                     // CHECK IF IT'S A NEGATIVE NUMBER
-                    if(**(argptr-2)==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                    if(**(argptr-2)==(CMD_OVR_UMINUS)) {
                         if(ISNUMBERORUNIT(**(argptr-4))) {
                             if(ISAPPROX(**(argptr-4))) ++approxdenom;
                             rplPushData(*(argptr-4));
@@ -2226,7 +2226,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         WORDPTR *ptr=stkptr-2;
                         // FIND THE FIRST FACTOR IN THE DENOMINATOR
                         while(ptr!=endofobj) {
-                            if(**ptr==MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) break;
+                            if(**ptr==(CMD_OVR_INV)) break;
                             ptr=rplSymbSkipInStack(ptr);
                         }
 
@@ -2294,7 +2294,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
         }   // END OF MULTIPLICATION
 
 
-        if(*sobj==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+        if(*sobj==(CMD_OVR_ADD)) {
             // SCAN ALL NUMERIC FACTORS AND ADD TOGETHER (INCLUDING FRACTIONS)
 
             BINT nargs=OPCODE(**(stkptr-1))-1;
@@ -2425,7 +2425,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
 
 
-        if( (*sobj!=MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) && (*sobj!=MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) && (*sobj!=MKOPCODE(LIB_OVERLOADABLE,OVR_INV)) && (*sobj!=MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS))) {
+        if( (*sobj!=(CMD_OVR_MUL)) && (*sobj!=(CMD_OVR_ADD)) && (*sobj!=(CMD_OVR_INV)) && (*sobj!=(CMD_OVR_UMINUS))) {
                 // EXCEPT ADDITION AND MULTIPLICATIONS, CHECK IF ALL ARGUMENTS ARE NUMERIC AND APPLY THE OPERATOR
 
                 BINT nargs=OPCODE(**(stkptr-1))-1;
@@ -2434,7 +2434,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 for(f=0;f<nargs;++f) {
                     if(!ISNUMBERORUNIT(**argptr)) {
                         // CHECK IF IT'S A NEGATIVE NUMBER
-                        if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                        if(**argptr==(CMD_OVR_UMINUS)) {
                             if(!ISNUMBERORUNIT(**(argptr-2))) {
                                 notanumber=1;
                                 break;
@@ -2463,7 +2463,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                     if(ISNUMBERORUNIT(**argptr)) rplPushData(*argptr);
                     else {
                         // CHECK IF IT'S A NEGATIVE NUMBER
-                        if(**argptr==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                        if(**argptr==(CMD_OVR_UMINUS)) {
                             // WE KNOW FROM PREVIOUS LOOP THAT A NUMBER FOLLOWS
                             rplPushData(*(argptr-2));
 
@@ -2858,8 +2858,8 @@ partial_restart:
                         DSTop=saveddstop; LAMTop=savedlamtop; return;
                     }
 
-                    if((**ruleptr==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD))||
-                            (**ruleptr==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)))
+                    if((**ruleptr==(CMD_OVR_ADD))||
+                            (**ruleptr==(CMD_OVR_MUL)))
                     {
                         // SWITCH TO ORDERLESS MODE
                         endoflist=rplSymbSkipInStack(exprptr);

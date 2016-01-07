@@ -502,7 +502,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                         // SPECIAL CASE THAT CAN ONLY BE HANDLED BY THE COMPILER:
                         // AMBIGUITY BETWEEN UNARY MINUS AND SUBSTRACTION
-                        if(Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_SUB))
+                        if(Opcode==(CMD_OVR_SUB))
                         {
                             switch(TI_TYPE(previous_tokeninfo))
                             {
@@ -512,7 +512,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             case TITYPE_OPENBRACKET:
                             case TITYPE_PREFIXOP:
                             // IT'S A UNARY MINUS
-                                Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS);
+                                Opcode=(CMD_OVR_UMINUS);
                                 probe_tokeninfo=MKTOKENINFO(1,TITYPE_PREFIXOP,1,4);
                                 break;
                             default:
@@ -522,7 +522,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         }
 
                         // AMBIGUITY BETWEEN UNARY PLUS AND ADDITION
-                        if(Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD))
+                        if(Opcode==(CMD_OVR_ADD))
                         {
                             switch(TI_TYPE(previous_tokeninfo))
                             {
@@ -532,7 +532,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             case TITYPE_OPENBRACKET:
                             case TITYPE_PREFIXOP:
                             // IT'S A UNARY PLUS
-                                Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_UPLUS);
+                                Opcode=(CMD_OVR_UPLUS);
                                 probe_tokeninfo=MKTOKENINFO(1,TITYPE_PREFIXOP,1,4);
                                 break;
                             default:
@@ -558,7 +558,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                                 // PUSH OPERATOR FUNCEVAL FIRST
                                 if(RStkSize<=(InfixOpTop+3-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
                                 if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
-                                InfixOpTop[0]=MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL);        // SAVE POSITION TO START COUNTING ARGUMENTS
+                                InfixOpTop[0]=(CMD_OVR_FUNCEVAL);        // SAVE POSITION TO START COUNTING ARGUMENTS
                                 InfixOpTop[1]=MKTOKENINFO(TI_LENGTH(previous_tokeninfo),TITYPE_FUNCTION,0xf,2);
                                 InfixOpTop+=2;
 
@@ -619,7 +619,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                                     // POP FUNCTION OFF THE STACK AND APPLY
                                     InfixOpTop-=2;
                                     // SPECIAL CASE: IF THE OPERATOR IS FUNCEVAL, ADD ONE MORE PARAMETER: THE NAME OF THE FUNCTION
-                                    if(InfixOpTop[0]==MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL)) {
+                                    if(InfixOpTop[0]==(CMD_OVR_FUNCEVAL)) {
                                         ++nargs;
                                         if(!rplRotArgs(nargs)) {
                                             LAMTop=LAMTopSaved;
@@ -1124,7 +1124,7 @@ end_of_expression:
                                         (*(InfixOpTop-3)==INFIX_PREFIXARG))
                                         rplDecompAppendChar('(');
                                 else
-                                if(*(InfixOpTop-6)==MKOPCODE(LIB_OVERLOADABLE,OVR_POW)) {
+                                if(*(InfixOpTop-6)==(CMD_OVR_POW)) {
                                     // ALWAYS PARENTHESIZE THE ARGUMENTS OF POWER
                                     if(TI_TYPE(*(InfixOpTop-1))!=TITYPE_FUNCTION)
                                         rplDecompAppendChar('(');
@@ -1137,7 +1137,7 @@ end_of_expression:
 
                         if(TI_PRECEDENCE(*(InfixOpTop-5))==TI_PRECEDENCE(RetNum)) {
                             // ALWAYS ADD PARENTHESIS, EXCEPT FOR MUL AND ADD
-                          if( (*DecompileObject!=MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) && (*DecompileObject!=MKOPCODE(LIB_OVERLOADABLE,OVR_ADD))) {
+                          if( (*DecompileObject!=(CMD_OVR_MUL)) && (*DecompileObject!=(CMD_OVR_ADD))) {
                               rplDecompAppendChar('(');
 
                           }
@@ -1241,18 +1241,18 @@ end_of_expression:
             //                       A+(-B)/2 --> A-B/2
             //                       A-(-B)/2 --> A-(-B)/2
 
-            if(Operator==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+            if(Operator==(CMD_OVR_ADD)) {
                 WORD newop=rplSymbMainOperator(DecompileObject);
-                if(newop==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS))
-                          { Operator=MKOPCODE(LIB_OVERLOADABLE,OVR_SUB);
+                if(newop==(CMD_OVR_UMINUS))
+                          { Operator=(CMD_OVR_SUB);
                             // MAKE NEXT OBJECT SKIP THE UMINUS OPERATOR
                             SavedDecompObject=rplSymbUnwrap(DecompileObject)+2;
                             }
-                if( (newop==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) || (newop==MKOPCODE(LIB_OVERLOADABLE,OVR_DIV)))
+                if( (newop==(CMD_OVR_MUL)) || (newop==(CMD_OVR_DIV)))
                 {
                     // IF THE FIRST ARGUMENT IN THE MUL OR DIV EXPRESSION IS NEGATIVE, THEN ADD PARENTHESIS
                     newop=rplSymbMainOperator(rplSymbUnwrap(DecompileObject)+2);
-                    if(newop==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                    if(newop==(CMD_OVR_UMINUS)) {
                         // WE DON'T NEED TO PUT THE '+' SIGN, SINCE A MINUS WILL FOLLOW
                         no_output=1;
                     }
@@ -1260,9 +1260,9 @@ end_of_expression:
 
             }
 
-            if(Operator==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
-                if(rplSymbMainOperator(DecompileObject)==MKOPCODE(LIB_OVERLOADABLE,OVR_INV))
-                         {  Operator=MKOPCODE(LIB_OVERLOADABLE,OVR_DIV);
+            if(Operator==(CMD_OVR_MUL)) {
+                if(rplSymbMainOperator(DecompileObject)==(CMD_OVR_INV))
+                         {  Operator=(CMD_OVR_DIV);
                             // MAKE NEXT OBJECT SKIP THE INV OPERATOR
                             SavedDecompObject=rplSymbUnwrap(DecompileObject)+2;
                 }
@@ -1318,18 +1318,18 @@ end_of_expression:
             SavedDecompObject=DecompileObject;
 
 
-            if(Operator==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+            if(Operator==(CMD_OVR_ADD)) {
                 WORD newop=rplSymbMainOperator(DecompileObject);
-                if(newop==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS))
-                          { Operator=MKOPCODE(LIB_OVERLOADABLE,OVR_SUB);
+                if(newop==(CMD_OVR_UMINUS))
+                          { Operator=(CMD_OVR_SUB);
                             // MAKE NEXT OBJECT SKIP THE UMINUS OPERATOR
                             SavedDecompObject=rplSymbUnwrap(DecompileObject)+2;
                             }
-                if( (newop==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) || (newop==MKOPCODE(LIB_OVERLOADABLE,OVR_DIV)))
+                if( (newop==(CMD_OVR_MUL)) || (newop==(CMD_OVR_DIV)))
                 {
                     // IF THE FIRST ARGUMENT IN THE MUL OR DIV EXPRESSION IS NEGATIVE, THEN ADD PARENTHESIS
                     newop=rplSymbMainOperator(rplSymbUnwrap(DecompileObject)+2);
-                    if(newop==MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS)) {
+                    if(newop==(CMD_OVR_UMINUS)) {
                         // WE DON'T NEED TO PUT THE '+' SIGN, SINCE A MINUS WILL FOLLOW
                         no_output=1;
                     }
@@ -1337,9 +1337,9 @@ end_of_expression:
 
             }
 
-            if(Operator==MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) {
-                if(rplSymbMainOperator(DecompileObject)==MKOPCODE(LIB_OVERLOADABLE,OVR_INV))
-                         {  Operator=MKOPCODE(LIB_OVERLOADABLE,OVR_DIV);
+            if(Operator==(CMD_OVR_MUL)) {
+                if(rplSymbMainOperator(DecompileObject)==(CMD_OVR_INV))
+                         {  Operator=(CMD_OVR_DIV);
                             // MAKE NEXT OBJECT SKIP THE INV OPERATOR
                             SavedDecompObject=rplSymbUnwrap(DecompileObject)+2;
                 }
@@ -1436,7 +1436,7 @@ end_of_expression:
                                     (*(InfixOpTop-3)==INFIX_PREFIXARG))
                                     rplDecompAppendChar(')');
                             else
-                            if(*(InfixOpTop-6)==MKOPCODE(LIB_OVERLOADABLE,OVR_POW)) {
+                            if(*(InfixOpTop-6)==(CMD_OVR_POW)) {
                                 // ALWAYS PARENTHESIZE THE ARGUMENTS OF POWER
                                 if(TI_TYPE(*(InfixOpTop-1))!=TITYPE_FUNCTION)
                                     rplDecompAppendChar(')');
@@ -1448,7 +1448,7 @@ end_of_expression:
                     {
                         if(TI_PRECEDENCE(*(InfixOpTop-5))==TI_PRECEDENCE(*(InfixOpTop-1))) {
                             // ALWAYS ADD PARENTHESIS, EXCEPT FOR MUL AND ADD
-                          if( (*(InfixOpTop-2)!=MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) && (*(InfixOpTop-2)!=MKOPCODE(LIB_OVERLOADABLE,OVR_ADD))) {
+                          if( (*(InfixOpTop-2)!=(CMD_OVR_MUL)) && (*(InfixOpTop-2)!=(CMD_OVR_ADD))) {
                               rplDecompAppendChar(')');
 
                           }
@@ -1506,7 +1506,7 @@ end_of_expression:
                 else {
                     if(TI_PRECEDENCE(*(InfixOpTop-5))==TI_PRECEDENCE(*(InfixOpTop-1))) {
                         // ALWAYS ADD PARENTHESIS, EXCEPT FOR MUL AND ADD
-                      if( (*(InfixOpTop-2)!=MKOPCODE(LIB_OVERLOADABLE,OVR_MUL)) && (*(InfixOpTop-2)!=MKOPCODE(LIB_OVERLOADABLE,OVR_ADD))) {
+                      if( (*(InfixOpTop-2)!=(CMD_OVR_MUL)) && (*(InfixOpTop-2)!=(CMD_OVR_ADD))) {
                           rplDecompAppendChar(')');
 
                       }

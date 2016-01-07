@@ -284,8 +284,8 @@ rplDropData(1);
 }
 
 // ADD/SUBTRACT TWO MATRICES, A+B, WITH A IN LEVEL 2 AND B IN LEVEL 1 OF THE STACK
-void rplMatrixAdd() { rplMatrixBinary(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)); }
-void rplMatrixSub() { rplMatrixBinary(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB)); }
+void rplMatrixAdd() { rplMatrixBinary((CMD_OVR_ADD)); }
+void rplMatrixSub() { rplMatrixBinary((CMD_OVR_SUB)); }
 
 
 
@@ -319,7 +319,7 @@ BINT j;
 for(j=0;j<totalelements;++j) {
  rplPushData(GETELEMENT(*a,j));
  rplPushData(*b);
- rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+ rplCallOvrOperator((CMD_OVR_MUL));
  if(Exceptions) {
      DSTop=Savestk;
      return;
@@ -390,7 +390,7 @@ rplOverwriteData(1,newmat);
 
 void rplMatrixNeg()
 {
-    rplMatrixUnary(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+    rplMatrixUnary((CMD_OVR_NEG));
 }
 
 
@@ -532,14 +532,14 @@ void rplMatrixMul()
             for(k=0;k<colsa;++k) {
             rplPushData(GETELEMENT(*a,i*colsa+k));
             rplPushData(GETELEMENT(*b,k*colsb+j));
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+            rplCallOvrOperator((CMD_OVR_MUL));
             if(Exceptions) {
                 // CLEAN UP THE STACK AND RETURN
                 DSTop=Savestk;
                 return;
             }
             if(k) {
-                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD));
+                rplCallOvrOperator((CMD_OVR_ADD));
                 if(Exceptions) {
                     // CLEAN UP THE STACK AND RETURN
                     DSTop=Savestk;
@@ -618,17 +618,17 @@ void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa)
             for(j=k+1;j<=colsa;++j) {
                 rplPushData(STACKELEM(k,k));  // M[k][k];
                 rplPushData(STACKELEM(i,j));  // M[i][j];
-                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+                rplCallOvrOperator((CMD_OVR_MUL));
                 if(Exceptions) return;
                 rplPushData(STACKELEM(k,j));  // M[k][j];
                 rplPushData(STACKELEM(i,k));  // M[i][k];
-                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+                rplCallOvrOperator((CMD_OVR_MUL));
                 if(Exceptions) return;
-                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB));
+                rplCallOvrOperator((CMD_OVR_SUB));
                 if(Exceptions) return;
                 if(k>1) {
                     rplPushData(STACKELEM(k-1,k-1));
-                    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+                    rplCallOvrOperator((CMD_OVR_DIV));
                     if(Exceptions) return;
                 }
 
@@ -727,7 +727,7 @@ void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa)
             for(j=colsa;j>=i;--j) {
                 rplPushData(STACKELEM(i,j));
                 rplPushData(STACKELEM(i,i));
-                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+                rplCallOvrOperator((CMD_OVR_DIV));
                 if(Exceptions) return;
                 // SIMPLIFY IF IT'S A SYMBOLIC TO KEEP THE OBJECTS SMALL
                 if(ISSYMBOLIC(*rplPeekData(1))) {
@@ -743,9 +743,9 @@ void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa)
                     rplPushData(STACKELEM(k,j));
                     rplPushData(STACKELEM(k,i));
                     rplPushData(STACKELEM(i,j));
-                    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+                    rplCallOvrOperator((CMD_OVR_MUL));
                     if(Exceptions) return;
-                    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB));
+                    rplCallOvrOperator((CMD_OVR_SUB));
                     if(Exceptions) return;
 
                     // SIMPLIFY IF IT'S A SYMBOLIC TO KEEP THE OBJECTS SMALL
@@ -898,18 +898,18 @@ rplPushData((WORDPTR)zero_bint);
 for(i=0;i<rowsa;++i) {
 for(j=0;j<colsa;++j) {
  rplPushData(GETELEMENT(*a,i*colsa+j));
- rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_ABS));
+ rplCallOvrOperator((CMD_OVR_ABS));
  if(Exceptions) {
      DSTop=Savestk;
      return;
  }
  rplPushData(rplPeekData(1));   // DUP
- rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+ rplCallOvrOperator((CMD_OVR_MUL));
  if(Exceptions) {
      DSTop=Savestk;
      return;
  }
- rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD));
+ rplCallOvrOperator((CMD_OVR_ADD));
  if(Exceptions) {
      DSTop=Savestk;
      return;

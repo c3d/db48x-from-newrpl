@@ -59,23 +59,7 @@
 #include "lib-header.h"
 
 
-#ifdef COMMANDS_ONLY_PASS
-
-// CLEANUP FOR OTHER LIBRARIES TO DEFINE THEIR OWN
-
-#undef LIBRARY_NUMBER
-#undef COMMAND_LIST
-#undef LIBRARY_ASSIGNED_NUMBERS
-
-#undef LIB_ENUM
-#undef LIB_CMDS
-#undef LIB_NAMES
-#undef LIB_HANDLER
-#undef LIB_NUMBEROFCMDS
-#undef ROMPTR_TABLE
-
-
-#else
+#ifndef COMMANDS_ONLY_PASS
 
 // ************************************
 // *** END OF COMMON LIBRARY HEADER ***
@@ -84,7 +68,7 @@
 ROMOBJECT symbeval_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,SYMBEVALPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
-    MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
+    (CMD_OVR_EVAL),    // DO THE EVAL
     MKOPCODE(LIBRARY_NUMBER,SYMBEVALPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
     MKOPCODE(LIBRARY_NUMBER,SYMBEVALERR),     // ERROR HANDLER
     MKOPCODE(LIBRARY_NUMBER,AUTOSIMPLIFY),   // SIMPLIFY BEFORE RETURN
@@ -94,7 +78,7 @@ ROMOBJECT symbeval_seco[]={
 ROMOBJECT symbeval1_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,SYMBEVAL1PRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
-    MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1),    // DO THE EVAL
+    (CMD_OVR_EVAL1),    // DO THE EVAL
     MKOPCODE(LIBRARY_NUMBER,SYMBEVAL1POST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
     MKOPCODE(LIBRARY_NUMBER,SYMBEVAL1ERR),     // ERROR HANDLER
     MKOPCODE(LIBRARY_NUMBER,AUTOSIMPLIFY),   // SIMPLIFY BEFORE RETURN
@@ -104,7 +88,7 @@ ROMOBJECT symbeval1_seco[]={
 ROMOBJECT symbnum_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,SYMBNUMPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
-    MKOPCODE(LIB_OVERLOADABLE,OVR_NUM),    // DO THE EVAL
+    (CMD_OVR_NUM),    // DO THE EVAL
     MKOPCODE(LIBRARY_NUMBER,SYMBNUMPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
     MKOPCODE(LIBRARY_NUMBER,SYMBNUMERR),     // ERROR HANDLER
     MKOPCODE(LIBRARY_NUMBER,AUTOSIMPLIFY),   // SIMPLIFY BEFORE RETURN
@@ -184,7 +168,7 @@ void LIB_HANDLER()
     switch(OPCODE(CurOpcode))
     {
         case OVR_NEG:
-        CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_UMINUS);
+        CurOpcode=(CMD_OVR_UMINUS);
         case OVR_INV:
         case OVR_NOT:
     {
@@ -278,7 +262,7 @@ void LIB_HANDLER()
             rplPushRet((WORDPTR)symbeval1_seco+4);
         }
         IPtr=(WORDPTR) symbeval1_seco;
-        CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+        CurOpcode=(CMD_OVR_EVAL1);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
         rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
 
@@ -346,7 +330,7 @@ void LIB_HANDLER()
         rplPushRet((WORDPTR)symbeval_seco+4);
     }
     IPtr=(WORDPTR) symbeval_seco;
-    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+    CurOpcode=(CMD_OVR_EVAL);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
     rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
 
@@ -414,7 +398,7 @@ void LIB_HANDLER()
         rplPushRet((WORDPTR)symbnum_seco+4);
     }
     IPtr=(WORDPTR) symbnum_seco;
-    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_NUM);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+    CurOpcode=(CMD_OVR_NUM);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
     rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
 
@@ -480,12 +464,12 @@ void LIB_HANDLER()
         BINT argtype=0;
         WORDPTR arg1=rplPeekData(2);
 
-        if(ISSYMBOLIC(*arg1) && rplSymbMainOperator(arg1)==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+        if(ISSYMBOLIC(*arg1) && rplSymbMainOperator(arg1)==(CMD_OVR_ADD)) {
             // EXPLODE ALL ARGUMENTS ON THE STACK
             ScratchPointer1=rplSymbUnwrap(arg1);
             ScratchPointer2=rplSkipOb(ScratchPointer1);
             while(ScratchPointer1!=ScratchPointer2) {
-            if(ISSYMBOLIC(*ScratchPointer1) && rplSymbMainOperator(ScratchPointer1)==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+            if(ISSYMBOLIC(*ScratchPointer1) && rplSymbMainOperator(ScratchPointer1)==(CMD_OVR_ADD)) {
                 ScratchPointer1=rplSymbUnwrap(ScratchPointer1);
                 ScratchPointer1++;  // POINT TO THE OPCODE, SO THE NEXT OBJECT WILL BE THE FIRST ARGUMENT
             }
@@ -501,12 +485,12 @@ void LIB_HANDLER()
         WORDPTR arg2=rplPeekData(rplDepthData()-initdepth+1);
 
         // EXPLODE THE SECOND ARGUMENT EXACTLY THE SAME
-        if(ISSYMBOLIC(*arg2) && rplSymbMainOperator(arg2)==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+        if(ISSYMBOLIC(*arg2) && rplSymbMainOperator(arg2)==(CMD_OVR_ADD)) {
             // EXPLODE ALL ARGUMENTS ON THE STACK
             ScratchPointer1=rplSymbUnwrap(arg2);
             ScratchPointer2=rplSkipOb(ScratchPointer1);
             while(ScratchPointer1!=ScratchPointer2) {
-            if(ISSYMBOLIC(*ScratchPointer1) && rplSymbMainOperator(ScratchPointer1)==MKOPCODE(LIB_OVERLOADABLE,OVR_ADD)) {
+            if(ISSYMBOLIC(*ScratchPointer1) && rplSymbMainOperator(ScratchPointer1)==(CMD_OVR_ADD)) {
                 ScratchPointer1=rplSymbUnwrap(ScratchPointer1);
                 ScratchPointer1++;  // POINT TO THE OPCODE, SO THE NEXT OBJECT WILL BE THE FIRST ARGUMENT
             }
@@ -649,14 +633,14 @@ void LIB_HANDLER()
 
 
             if(Opcode) {
-                if(Opcode!=MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL)) {
+                if(Opcode!=(CMD_OVR_FUNCEVAL)) {
                     rplSymbApplyOperator(Opcode,newdepth);
                     newdepth=(BINT)(DSTop-prevDStk);
                     if(Exceptions) {
                     rplCleanupLAMs(0);
                     IPtr=rplPopRet();
                     ExceptionPointer=IPtr;
-                    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1);
+                    CurOpcode=(CMD_OVR_EVAL1);
                     return;
                     }
 
@@ -666,7 +650,7 @@ void LIB_HANDLER()
                 rplCleanupLAMs(0);
                 IPtr=rplPopRet();
                 rplError(ERR_BADARGCOUNT);
-                CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1);
+                CurOpcode=(CMD_OVR_EVAL1);
                 return;
             }
             // HERE WE ARE SUPPOSED TO HAVE ONLY ONE ARGUMENT ON THE STACK AND THE ORIGINAL OBJECT
@@ -675,7 +659,7 @@ void LIB_HANDLER()
             // CLEANUP AND RETURN
             rplCleanupLAMs(0);
             IPtr=rplPopRet();
-            CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1);
+            CurOpcode=(CMD_OVR_EVAL1);
             return;
 
         }
@@ -712,7 +696,7 @@ void LIB_HANDLER()
         Exceptions=TrappedExceptions;
         ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
-        CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1);
+        CurOpcode=(CMD_OVR_EVAL1);
         return;
 
     case AUTOSIMPLIFY:
@@ -750,8 +734,8 @@ void LIB_HANDLER()
 
 
             if(Opcode) {
-                if( (newdepth!=1) || (Opcode!=MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL))) {
-                    if(Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL)) {
+                if( (newdepth!=1) || (Opcode!=(CMD_OVR_FUNCEVAL))) {
+                    if(Opcode==(CMD_OVR_FUNCEVAL)) {
                         // DO MINIMAL TYPE CHECKING, LAST ARGUMENT HAS TO BE
                         // AN IDENT, OTHERWISE THE RESULT IS INVALID
                         if(!ISIDENT(*rplPeekData(1))) {
@@ -759,7 +743,7 @@ void LIB_HANDLER()
                             rplCleanupLAMs(0);
                             IPtr=rplPopRet();
                             rplError(ERR_INVALIDUSERDEFINEDFUNCTION);
-                            CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                            CurOpcode=(CMD_OVR_EVAL);
                             return;
                         }
                     }
@@ -769,7 +753,7 @@ void LIB_HANDLER()
                     rplCleanupLAMs(0);
                     IPtr=rplPopRet();
                     ExceptionPointer=IPtr;
-                    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                    CurOpcode=(CMD_OVR_EVAL);
                     return;
                     }
 
@@ -779,7 +763,7 @@ void LIB_HANDLER()
                 rplCleanupLAMs(0);
                 IPtr=rplPopRet();
                 rplError(ERR_BADARGCOUNT);
-                CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                CurOpcode=(CMD_OVR_EVAL);
                 return;
             }
             // HERE WE ARE SUPPOSED TO HAVE ONLY ONE ARGUMENT ON THE STACK AND THE ORIGINAL OBJECT
@@ -788,7 +772,7 @@ void LIB_HANDLER()
             // CLEANUP AND RETURN
             rplCleanupLAMs(0);
             IPtr=rplPopRet();
-            CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+            CurOpcode=(CMD_OVR_EVAL);
             return;
 
         }
@@ -825,7 +809,7 @@ void LIB_HANDLER()
         Exceptions=TrappedExceptions;
         ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
-        CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+        CurOpcode=(CMD_OVR_EVAL);
         return;
 
 
@@ -847,8 +831,8 @@ void LIB_HANDLER()
 
 
             if(Opcode) {
-                if( (newdepth!=1) || (Opcode!=MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL))) {
-                    if(Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL)) {
+                if( (newdepth!=1) || (Opcode!=(CMD_OVR_FUNCEVAL))) {
+                    if(Opcode==(CMD_OVR_FUNCEVAL)) {
                         // DO MINIMAL TYPE CHECKING, LAST ARGUMENT HAS TO BE
                         // AN IDENT, OTHERWISE THE RESULT IS INVALID
                         if(!ISIDENT(*rplPeekData(1))) {
@@ -856,7 +840,7 @@ void LIB_HANDLER()
                             rplCleanupLAMs(0);
                             IPtr=rplPopRet();
                             rplError(ERR_INVALIDUSERDEFINEDFUNCTION);
-                            CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_NUM);
+                            CurOpcode=(CMD_OVR_NUM);
                             return;
                         }
                     }
@@ -869,7 +853,7 @@ void LIB_HANDLER()
                     rplCleanupLAMs(0);
                     IPtr=rplPopRet();
                     ExceptionPointer=IPtr;
-                    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_NUM);
+                    CurOpcode=(CMD_OVR_NUM);
                     return;
                     }
 
@@ -879,7 +863,7 @@ void LIB_HANDLER()
                 rplCleanupLAMs(0);
                 IPtr=rplPopRet();
                 rplError(ERR_BADARGCOUNT);
-                CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_NUM);
+                CurOpcode=(CMD_OVR_NUM);
                 return;
             }
             // HERE WE ARE SUPPOSED TO HAVE ONLY ONE ARGUMENT ON THE STACK AND THE ORIGINAL OBJECT
@@ -888,7 +872,7 @@ void LIB_HANDLER()
             // CLEANUP AND RETURN
             rplCleanupLAMs(0);
             IPtr=rplPopRet();
-            CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_NUM);
+            CurOpcode=(CMD_OVR_NUM);
             return;
 
         }
@@ -916,7 +900,7 @@ void LIB_HANDLER()
 
         if(nextobj<endoflist) {
             // SPECIAL CASE: DON'T DO ->NUM ON THE NAME OF A FUNCTION, KEEP IT AS-IS
-            if((Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_FUNCEVAL)) && (rplSkipOb(nextobj)==endoflist) ) {
+            if((Opcode==(CMD_OVR_FUNCEVAL)) && (rplSkipOb(nextobj)==endoflist) ) {
             nextobj=rplSkipOb(nextobj);
             }
         }
@@ -941,7 +925,7 @@ void LIB_HANDLER()
         Exceptions=TrappedExceptions;
         ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
-        CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+        CurOpcode=(CMD_OVR_EVAL);
         return;
 
 

@@ -328,7 +328,7 @@ if(obj) {
 obj[0]=Opcode;
 obj[1]=CMD_EXITRPL;
 rplSetEntryPoint(obj);
-if((Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ)) || (Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL)) || (Opcode==MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1))) {
+if((Opcode==(CMD_OVR_XEQ)) || (Opcode==(CMD_OVR_EVAL)) || (Opcode==(CMD_OVR_EVAL1))) {
     // STORE THE OBJECT/OPCODE THAT MAY CAUSE AN EXCEPTION
     BINT depth=rplDepthData();
     if(depth>0) rplPushRet(rplPeekData(1));
@@ -599,7 +599,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                     // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
                     rplPushData(action);
-                    Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
+                    Opcode=(CMD_OVR_XEQ);
                     break;
 
                 }
@@ -617,13 +617,13 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     if(ISUNIT(*action)) {
                         // FOR UNITS, APPLY THE INVERSE
                         rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_DIV);
+                        Opcode=(CMD_OVR_DIV);
                         break;
                     }
 
                     // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
                     rplPushData(action);
-                    Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
+                    Opcode=(CMD_OVR_XEQ);
                     break;
 
                 }
@@ -634,19 +634,19 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     if(ISIDENT(*action)) {
                         // JUST EVAL THE VARIABLE
                         rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                        Opcode=(CMD_OVR_EVAL);
                         break;
                     }
                     if(ISUNIT(*action)) {
                         // FOR UNITS, APPLY THE INVERSE
                         rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_MUL);
+                        Opcode=(CMD_OVR_MUL);
                         break;
                     }
 
                     // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
                     rplPushData(action);
-                    Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
+                    Opcode=(CMD_OVR_XEQ);
                     break;
 
 
@@ -781,7 +781,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
             // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
             rplPushData(action);
-            Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
+            Opcode=(CMD_OVR_XEQ);
             break;
 
         }
@@ -902,7 +902,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                         // USER IS TRYING TO APPLY DIVIDING
                         rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_DIV);
+                        Opcode=(CMD_OVR_DIV);
                     }
                     break;
 
@@ -942,7 +942,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
             // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
             rplPushData(action);
-            Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
+            Opcode=(CMD_OVR_XEQ);
             break;
         }
         default:
@@ -960,7 +960,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         if(ISDIR(*(var[1]))) {
                             // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
                             rplPushData(action);    // PUSH THE NAME ON THE STACK
-                            Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                            Opcode=(CMD_OVR_EVAL);
                             break;
                         }
                     }
@@ -973,7 +973,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                         // USER IS TRYING TO EVAL THE VARIABLE
                         rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                        Opcode=(CMD_OVR_EVAL);
                     }
                     break;
                 }
@@ -1056,7 +1056,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                         // USER IS TRYING TO APPLY THE UNIT
                         rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_MUL);
+                        Opcode=(CMD_OVR_MUL);
                     }
                     break;
 
@@ -1226,7 +1226,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
                     action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
                     if(!ISPROLOG(*action)) Opcode=*action; // RUN COMMANDS DIRECTLY
-                    else Opcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
+                    else Opcode=(CMD_OVR_XEQ);
                 }
                 break;
 
@@ -1790,7 +1790,7 @@ void chsKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-                cmdRun(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+                cmdRun((CMD_OVR_NEG));
                 if(Exceptions) {
                     // TODO: SHOW ERROR MESSAGE
                     halShowErrorMsg();
@@ -1823,7 +1823,7 @@ void chsKeyHandler(BINT keymsg)
             if((halScreen.CursorState&0xff)=='D') {
             // COMPILE AND EXECUTE NEG
             if(endCmdLineAndCompile()) {
-            cmdRun(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+            cmdRun((CMD_OVR_NEG));
             if(Exceptions) {
                 // TODO: SHOW ERROR MESSAGE
                 halShowErrorMsg();
@@ -2259,11 +2259,11 @@ DECLARE_SYMBKEYHANDLER(keyx,"X",0)
 
 
 DECLARE_CMDKEYHANDLER(clear,CMD_CLEAR,"CLEAR",-1)
-DECLARE_CMDKEYHANDLER(add,MKOPCODE(LIB_OVERLOADABLE,OVR_ADD),"+",0)
-DECLARE_CMDKEYHANDLER(sub,MKOPCODE(LIB_OVERLOADABLE,OVR_SUB),"-",0)
-DECLARE_CMDKEYHANDLER(div,MKOPCODE(LIB_OVERLOADABLE,OVR_DIV),"/",0)
-DECLARE_CMDKEYHANDLER(mul,MKOPCODE(LIB_OVERLOADABLE,OVR_MUL),"*",0)
-DECLARE_CMDKEYHANDLER(inv,MKOPCODE(LIB_OVERLOADABLE,OVR_INV),"INV",1)
+DECLARE_CMDKEYHANDLER(add,(CMD_OVR_ADD),"+",0)
+DECLARE_CMDKEYHANDLER(sub,(CMD_OVR_SUB),"-",0)
+DECLARE_CMDKEYHANDLER(div,(CMD_OVR_DIV),"/",0)
+DECLARE_CMDKEYHANDLER(mul,(CMD_OVR_MUL),"*",0)
+DECLARE_CMDKEYHANDLER(inv,(CMD_OVR_INV),"INV",1)
 DECLARE_CMDKEYHANDLER(sin,CMD_SIN,"SIN",1)
 DECLARE_CMDKEYHANDLER(asin,CMD_ASIN,"ASIN",1)
 DECLARE_CMDKEYHANDLER(sinh,CMD_SINH,"SINH",1)
@@ -2279,19 +2279,19 @@ DECLARE_CMDKEYHANDLER(atan,CMD_ATAN,"ATAN",1)
 DECLARE_CMDKEYHANDLER(tanh,CMD_TANH,"TANH",1)
 DECLARE_CMDKEYHANDLER(atanh,CMD_ATANH,"ATANH",1)
 
-DECLARE_CMDKEYHANDLER(eval,MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),"EVAL",-1)
-DECLARE_CMDKEYHANDLER(eval1,MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL1),"EVAL1",-1)
-DECLARE_CMDKEYHANDLER(tonum,MKOPCODE(LIB_OVERLOADABLE,OVR_NUM),"→NUM",-1)
+DECLARE_CMDKEYHANDLER(eval,(CMD_OVR_EVAL),"EVAL",-1)
+DECLARE_CMDKEYHANDLER(eval1,(CMD_OVR_EVAL1),"EVAL1",-1)
+DECLARE_CMDKEYHANDLER(tonum,(CMD_OVR_NUM),"→NUM",-1)
 
 
 DECLARE_CMDKEYHANDLER(sqrt,CMD_SQRT,"√",0)
-DECLARE_CMDKEYHANDLER(pow,MKOPCODE(LIB_OVERLOADABLE,OVR_POW),"^",0)
+DECLARE_CMDKEYHANDLER(pow,(CMD_OVR_POW),"^",0)
 DECLARE_CMDKEYHANDLER(ln,CMD_LN,"LN",1)
 DECLARE_CMDKEYHANDLER(exp,CMD_EXP,"EXP",1)
 DECLARE_CMDKEYHANDLER(log,CMD_LOG,"LOG",1)
 DECLARE_CMDKEYHANDLER(alog,CMD_ALOG,"ALOG",1)
 DECLARE_CMDKEYHANDLER(sq,CMD_SQ,"SQ",1)
-DECLARE_CMDKEYHANDLER(xroot,MKOPCODE(LIB_OVERLOADABLE,OVR_XROOT),"XROOT",1)
+DECLARE_CMDKEYHANDLER(xroot,(CMD_OVR_XROOT),"XROOT",1)
 
 DECLARE_CMDKEYHANDLER(sto,CMD_STO,"STO",2)
 DECLARE_CMDKEYHANDLER(rcl,CMD_RCL,"RCL",2)

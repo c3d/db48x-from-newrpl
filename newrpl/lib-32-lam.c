@@ -61,23 +61,7 @@
 #include "lib-header.h"
 
 
-#ifdef COMMANDS_ONLY_PASS
-
-// CLEANUP FOR OTHER LIBRARIES TO DEFINE THEIR OWN
-
-#undef LIBRARY_NUMBER
-#undef COMMAND_LIST
-#undef LIBRARY_ASSIGNED_NUMBERS
-
-#undef LIB_ENUM
-#undef LIB_CMDS
-#undef LIB_NAMES
-#undef LIB_HANDLER
-#undef LIB_NUMBEROFCMDS
-#undef ROMPTR_TABLE
-
-
-#else
+#ifndef COMMANDS_ONLY_PASS
 
 // ************************************
 // *** END OF COMMON LIBRARY HEADER ***
@@ -101,7 +85,7 @@ extern const WORD const symbnum_seco[];
 ROMOBJECT lameval_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,LAMEVALPRE),
-    MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL),    // DO THE EVAL
+    (CMD_OVR_EVAL),    // DO THE EVAL
     MKOPCODE(LIBRARY_NUMBER,LAMEVALPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
     MKOPCODE(LIBRARY_NUMBER,LAMEVALERR),     // ERROR HANDLER
     CMD_SEMI
@@ -110,7 +94,7 @@ ROMOBJECT lameval_seco[]={
 ROMOBJECT lamnum_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,LAMEVALPRE),
-    MKOPCODE(LIB_OVERLOADABLE,OVR_NUM),    // DO THE EVAL
+    (CMD_OVR_NUM),    // DO THE EVAL
     MKOPCODE(LIBRARY_NUMBER,LAMEVALPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
     MKOPCODE(LIBRARY_NUMBER,LAMEVALERR),     // ERROR HANDLER
     CMD_SEMI
@@ -188,8 +172,8 @@ void LIB_HANDLER()
                 LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
                 if(han) {
                     WORD SavedOpcode=CurOpcode,TmpOpcode;
-                    if(ISAPPROX(CurOpcode)) TmpOpcode=CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_NUM);
-                    else TmpOpcode=CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
+                    if(ISAPPROX(CurOpcode)) TmpOpcode=CurOpcode=(CMD_OVR_NUM);
+                    else TmpOpcode=CurOpcode=(CMD_OVR_XEQ);
                     // EXECUTE THE OTHER LIBRARY DIRECTLY
                     (*han)();
                     // RESTORE THE PREVIOUS ONE ONLY IF THE HANDLER DID NOT CHANGE IT
@@ -239,7 +223,7 @@ void LIB_HANDLER()
                     }
                 }
                 rplOverwriteData(1,val);    // REPLACE THE FIRST LEVEL WITH THE VALUE
-                CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ);
+                CurOpcode=(CMD_OVR_XEQ);
                 LIBHANDLER han=rplGetLibHandler(LIBNUM(*val));  // AND EVAL THE OBJECT
                 if(han) {
                     // EXECUTE THE OTHER LIBRARY DIRECTLY
@@ -306,7 +290,7 @@ void LIB_HANDLER()
 
                 rplPushRet(IPtr);
                 IPtr=(WORDPTR) lameval_seco;
-                CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+                CurOpcode=(CMD_OVR_EVAL);
             }
                 return;
 
@@ -350,7 +334,7 @@ void LIB_HANDLER()
 
                     rplPushRet(IPtr);
                     IPtr=(WORDPTR) lamnum_seco;
-                    CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_NUM);
+                    CurOpcode=(CMD_OVR_NUM);
                 }
                     return;
 
@@ -416,7 +400,7 @@ void LIB_HANDLER()
             return;
         case 3: // GETLAMnEVAL
             rplPushData(*rplGetLAMn(num));
-            //rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_XEQ));
+            //rplCallOvrOperator((CMD_OVR_XEQ));
             return;
         case 4: // NEWNLOCALS
             // THIS ONE HAS TO CREATE 'N' LOCALS TAKING THE NAMES AND OBJECTS FROM THE STACK
@@ -579,7 +563,7 @@ void LIB_HANDLER()
         Exceptions=TrappedExceptions;
         ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
-        CurOpcode=MKOPCODE(LIB_OVERLOADABLE,OVR_EVAL);
+        CurOpcode=(CMD_OVR_EVAL);
         return;
 
     // ADD MORE OPCODES HERE

@@ -47,23 +47,8 @@
 #include "lib-header.h"
 
 
-#ifdef COMMANDS_ONLY_PASS
+#ifndef COMMANDS_ONLY_PASS
 
-// CLEANUP FOR OTHER LIBRARIES TO DEFINE THEIR OWN
-
-#undef LIBRARY_NUMBER
-#undef COMMAND_LIST
-#undef LIBRARY_ASSIGNED_NUMBERS
-
-#undef LIB_ENUM
-#undef LIB_CMDS
-#undef LIB_NAMES
-#undef LIB_HANDLER
-#undef LIB_NUMBEROFCMDS
-#undef ROMPTR_TABLE
-
-
-#else
 
 // ************************************
 // *** END OF COMMON LIBRARY HEADER ***
@@ -390,7 +375,7 @@ void LIB_HANDLER()
                 // WE SHOULD NEG AND SUBTRACT SPECIALS: A+B = A-(-B)
                 rplPushData(rplPeekData(nlevels2));  // GET THE VALUE
 
-                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+                rplCallOvrOperator((CMD_OVR_NEG));
                 if(Exceptions) { DSTop=stkclean; return; }
 
                 rplOverwriteData(nlevels2,rplPopData());
@@ -424,11 +409,11 @@ void LIB_HANDLER()
             }
             rplPushData(rplPeekData(nlevels2+1));
             rplPushData(rplPeekData(nlevels1+nlevels2+2));
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            rplCallOvrOperator((CMD_OVR_DIV));
             if(Exceptions) { DSTop=stkclean; return; }
 
-            if(isspec2 && isspec1) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB));
-                else rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD));
+            if(isspec2 && isspec1) rplCallOvrOperator((CMD_OVR_SUB));
+                else rplCallOvrOperator((CMD_OVR_ADD));
             if(Exceptions) { DSTop=stkclean; return; }
 
             unitval=rplPopData();   // GET THE NEW VALUE
@@ -501,7 +486,7 @@ void LIB_HANDLER()
                 // WE SHOULD NEG AND ADD SPECIALS: A-B = A+(-B)
                 rplPushData(rplPeekData(nlevels2));  // GET THE VALUE
 
-                rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+                rplCallOvrOperator((CMD_OVR_NEG));
                 if(Exceptions) { DSTop=stkclean; return; }
 
                 rplOverwriteData(nlevels2,rplPopData());
@@ -535,11 +520,11 @@ void LIB_HANDLER()
             }
             rplPushData(rplPeekData(nlevels2+1));
             rplPushData(rplPeekData(nlevels1+nlevels2+2));
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            rplCallOvrOperator((CMD_OVR_DIV));
             if(Exceptions) { DSTop=stkclean; return; }
 
-            if(isspec2 && (!isspec1)) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD));
-                else rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB));
+            if(isspec2 && (!isspec1)) rplCallOvrOperator((CMD_OVR_ADD));
+                else rplCallOvrOperator((CMD_OVR_SUB));
             if(Exceptions) { DSTop=stkclean; return; }
 
             unitval=rplPopData();   // GET THE NEW VALUE
@@ -750,12 +735,12 @@ void LIB_HANDLER()
             }
             rplPushData(rplPeekData(nlevels2+1));
             rplPushData(rplPeekData(nlevels1+nlevels2+2));
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            rplCallOvrOperator((CMD_OVR_DIV));
             if(Exceptions) { DSTop=stkclean; return; }
 
             // INVERT THE RESULT IF THE OPERANDS WERE SWAPPED
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_CMP));
-            if(swap)  rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+            rplCallOvrOperator((CMD_OVR_CMP));
+            if(swap)  rplCallOvrOperator((CMD_OVR_NEG));
 
 
             if(Exceptions) { DSTop=stkclean; return; }
@@ -864,12 +849,12 @@ void LIB_HANDLER()
             }
             rplPushData(rplPeekData(nlevels2+1));
             rplPushData(rplPeekData(nlevels1+nlevels2+2));
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            rplCallOvrOperator((CMD_OVR_DIV));
             if(Exceptions) { DSTop=stkclean; return; }
 
             // INVERT THE RESULT IF THE OPERANDS WERE SWAPPED
-            if(swap) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_GT));
-            else rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_LT));
+            if(swap) rplCallOvrOperator((CMD_OVR_GT));
+            else rplCallOvrOperator((CMD_OVR_LT));
 
             if(Exceptions) { DSTop=stkclean; return; }
 
@@ -976,12 +961,12 @@ void LIB_HANDLER()
             }
             rplPushData(rplPeekData(nlevels2+1));
             rplPushData(rplPeekData(nlevels1+nlevels2+2));
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            rplCallOvrOperator((CMD_OVR_DIV));
             if(Exceptions) { DSTop=stkclean; return; }
 
             // INVERT THE RESULT IF THE OPERANDS WERE SWAPPED
-            if(swap) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_LT));
-            else rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_GT));
+            if(swap) rplCallOvrOperator((CMD_OVR_LT));
+            else rplCallOvrOperator((CMD_OVR_GT));
 
             if(Exceptions) { DSTop=stkclean; return; }
 
@@ -1088,12 +1073,12 @@ void LIB_HANDLER()
             }
             rplPushData(rplPeekData(nlevels2+1));
             rplPushData(rplPeekData(nlevels1+nlevels2+2));
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            rplCallOvrOperator((CMD_OVR_DIV));
             if(Exceptions) { DSTop=stkclean; return; }
 
             // INVERT THE RESULT IF THE OPERANDS WERE SWAPPED
-            if(swap) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_GTE));
-            else rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_LTE));
+            if(swap) rplCallOvrOperator((CMD_OVR_GTE));
+            else rplCallOvrOperator((CMD_OVR_LTE));
 
             if(Exceptions) { DSTop=stkclean; return; }
 
@@ -1199,12 +1184,12 @@ void LIB_HANDLER()
             }
             rplPushData(rplPeekData(nlevels2+1));
             rplPushData(rplPeekData(nlevels1+nlevels2+2));
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            rplCallOvrOperator((CMD_OVR_DIV));
             if(Exceptions) { DSTop=stkclean; return; }
 
             // INVERT THE RESULT IF THE OPERANDS WERE SWAPPED
-            if(swap) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_LTE));
-            else rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_GTE));
+            if(swap) rplCallOvrOperator((CMD_OVR_LTE));
+            else rplCallOvrOperator((CMD_OVR_GTE));
 
             if(Exceptions) { DSTop=stkclean; return; }
 
@@ -1311,10 +1296,10 @@ void LIB_HANDLER()
             }
             rplPushData(rplPeekData(nlevels2+1));
             rplPushData(rplPeekData(nlevels1+nlevels2+2));
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            rplCallOvrOperator((CMD_OVR_DIV));
             if(Exceptions) { DSTop=stkclean; return; }
 
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_EQ));
+            rplCallOvrOperator((CMD_OVR_EQ));
 
             if(Exceptions) { DSTop=stkclean; return; }
 
@@ -1419,10 +1404,10 @@ void LIB_HANDLER()
             }
             rplPushData(rplPeekData(nlevels2+1));
             rplPushData(rplPeekData(nlevels1+nlevels2+2));
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            rplCallOvrOperator((CMD_OVR_DIV));
             if(Exceptions) { DSTop=stkclean; return; }
 
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NOTEQ));
+            rplCallOvrOperator((CMD_OVR_NOTEQ));
 
             if(Exceptions) { DSTop=stkclean; return; }
 
@@ -1640,7 +1625,7 @@ void LIB_HANDLER()
         // THE UNITS ARE CONSISTENT
         rplPushData(rplPeekData(nlevels2));
         rplPushData(rplPeekData(nlevels1+nlevels2+1));
-        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+        rplCallOvrOperator((CMD_OVR_DIV));
         if(Exceptions) { DSTop=stkclean; return; }
 
 
@@ -1683,7 +1668,7 @@ void LIB_HANDLER()
         rplPushData(rplPeekData(2));
         rplPushData(rplPeekData(2));
 
-        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+        rplCallOvrOperator((CMD_OVR_DIV));
         if(Exceptions) { DSTop=savestk; return; }
 
         rplCallOperator(MKOPCODE(LIBRARY_NUMBER,UBASE));
@@ -1691,7 +1676,7 @@ void LIB_HANDLER()
 
         rplPushData(rplPeekData(2));
 
-        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+        rplCallOvrOperator((CMD_OVR_MUL));
         if(Exceptions) { DSTop=savestk; return; }
 
         rplOverwriteData(3,rplPeekData(1));
@@ -1714,7 +1699,7 @@ void LIB_HANDLER()
             return;
         }
 
-        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+        rplCallOvrOperator((CMD_OVR_MUL));
         return;
     }
 

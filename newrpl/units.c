@@ -1182,7 +1182,7 @@ BINT rplUnitMulItem(BINT level1,BINT level2)
         if(sign) {
             // ADD THE SIGN TO THE NUMERATOR
             rplPushData(rplPeekData(2));
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+            rplCallOvrOperator((CMD_OVR_NEG));
             if(Exceptions) { DSTop=stackptr; return 0; }
 
             rplOverwriteData(3,rplPeekData(1));
@@ -1211,7 +1211,7 @@ BINT rplUnitMulItem(BINT level1,BINT level2)
     WORDPTR *savestk=DSTop;
     rplUnitPickItem(level1);
     rplUnitPickItem(level2+1);
-    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+    rplCallOvrOperator((CMD_OVR_MUL));
     if(Exceptions) { DSTop=savestk; return 0; }
 
     rplOverwriteData(level1+1,rplPeekData(1));
@@ -1240,12 +1240,12 @@ void rplUnitPowItem(BINT level1,BINT level2)
         if(isident) rplPushData(rplPeekData(level1-1));   // FIRST NUMERATOR
         else rplPushData(rplPeekData(level1));
         rplPushData(rplPeekData(level2)); // SECOND NUMERATOR
-        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+        rplCallOvrOperator((CMD_OVR_MUL));
         if(Exceptions) { DSTop=stackptr; return; }
         if(isident) {
             rplPushData(rplPeekData(level1-1));   // FIRST DENOMINATOR
             rplPushData(rplPeekData(level2)); // SECOND DENOMINATOR
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+            rplCallOvrOperator((CMD_OVR_MUL));
             if(Exceptions) { DSTop=stackptr; return; }
         } else {
             rplPushData(rplPeekData(level2)); // SECOND DENOMINATOR
@@ -1271,13 +1271,13 @@ void rplUnitPowItem(BINT level1,BINT level2)
         rplPushData(rplPeekData(level1));
         if(*rplPeekData(level1)!=MAKESINT(1)) {
             rplPushData(rplPeekData(level1));
-            rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+            rplCallOvrOperator((CMD_OVR_DIV));
             if(Exceptions) { DSTop=savestk; return; }
         }
     } else rplUnitPickItem(level1+1);
 
-    if(*rplPeekData(1)==MAKESINT(-1)) { rplPopData(); rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_INV)); }
-    else if(*rplPeekData(1)!=MAKESINT(1)) rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_POW));
+    if(*rplPeekData(1)==MAKESINT(-1)) { rplPopData(); rplCallOvrOperator((CMD_OVR_INV)); }
+    else if(*rplPeekData(1)!=MAKESINT(1)) rplCallOvrOperator((CMD_OVR_POW));
     else rplDropData(1);
     if(Exceptions) { DSTop=savestk; return; }
 
@@ -1368,7 +1368,7 @@ if(!ISIDENT(*rplPeekData(level))) return;
 WORDPTR savestk=DSTop;
 
 rplPushData(rplPeekData(level-1));
-rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_NEG));
+rplCallOvrOperator((CMD_OVR_NEG));
 if(Exceptions) { DSTop=savestk; return; }
 rplOverwriteData(level-1,rplPopData());
 
@@ -1387,7 +1387,7 @@ BINT rplUnitDivide(BINT numlvl,BINT divlvl)
     rplPushData(rplPeekData(numlvl));   // GET THE VALUE
     rplPushData(rplPeekData(divlvl+1)); // GET THE VALUE OF THE DIVISOR
 
-    rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_DIV));
+    rplCallOvrOperator((CMD_OVR_DIV));
     if(Exceptions) { DSTop=savestk; return 0; }
 
     // NOW REPLACE THE NUMERATOR VALUE WITH THE RESULT
@@ -1939,7 +1939,7 @@ void rplUnitReplaceSpecial(BINT nlevels)
      rplPushData(rplPeekData(value));
      rplPushData(ptr[2]+1);
 
-     rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_ADD));    // DO THE SCALE SHIFT
+     rplCallOvrOperator((CMD_OVR_ADD));    // DO THE SCALE SHIFT
 
      if(Exceptions) { DSTop=savestk; return; }
 
@@ -1987,7 +1987,7 @@ void rplUnitReverseReplaceSpecial(BINT nlevels)
      rplPushData(rplPeekData(value));
      rplPushData(ptr[2]+1);
 
-     rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB));    // DO THE SCALE SHIFT
+     rplCallOvrOperator((CMD_OVR_SUB));    // DO THE SCALE SHIFT
 
      if(Exceptions) { DSTop=savestk; return; }
 
@@ -2017,7 +2017,7 @@ void rplUnitReverseReplaceSpecial2(BINT isspec_idx)
      // DO THE REPLACEMENT
      rplPushData(ptr[2]+1);
 
-     rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_SUB));    // DO THE SCALE SHIFT
+     rplCallOvrOperator((CMD_OVR_SUB));    // DO THE SCALE SHIFT
 
      if(Exceptions) { DSTop=savestk; return; }
 

@@ -52,23 +52,7 @@
 #include "lib-header.h"
 
 
-#ifdef COMMANDS_ONLY_PASS
-
-// CLEANUP FOR OTHER LIBRARIES TO DEFINE THEIR OWN
-
-#undef LIBRARY_NUMBER
-#undef COMMAND_LIST
-#undef LIBRARY_ASSIGNED_NUMBERS
-
-#undef LIB_ENUM
-#undef LIB_CMDS
-#undef LIB_NAMES
-#undef LIB_HANDLER
-#undef LIB_NUMBEROFCMDS
-#undef ROMPTR_TABLE
-
-
-#else
+#ifndef COMMANDS_ONLY_PASS
 
 // ************************************
 // *** END OF COMMON LIBRARY HEADER ***
@@ -689,7 +673,7 @@ void LIB_HANDLER()
 
         rplPushData(arg);
 
-        rplCallOvrOperator(MKOPCODE(LIB_OVERLOADABLE,OVR_MUL));
+        rplCallOvrOperator((CMD_OVR_MUL));
 
         return;
      }
