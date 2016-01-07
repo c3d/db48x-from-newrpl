@@ -14,8 +14,8 @@
     INCLUDELIB(2,lib-two-ident.c) , \
     INCLUDELIB(8,lib-eight-docol.c) , \
     INCLUDELIB(9,lib-nine-docol2.c) , \
-    INCLUDELIB(10,a) , \
-    INCLUDELIB(12,a) , \
+    INCLUDELIB(10,lib-ten-reals.c) , \
+    INCLUDELIB(12,lib-twelve-bint.c) , \
     INCLUDELIB(20,lib-20-comments.c) , \
     INCLUDELIB(24,a) , \
     INCLUDELIB(26,a) , \
