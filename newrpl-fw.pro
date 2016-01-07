@@ -89,6 +89,7 @@ SOURCES +=\
     firmware/ggl/ggl/ggl_filter.c \
     firmware/ggl/ggl/ggl_fltdarken.c \
     firmware/ggl/ggl/ggl_fltlighten.c \
+    firmware/ggl/ggl/ggl_fltinvert.c \
     firmware/ggl/ggl/ggl_getnib.c \
     firmware/ggl/ggl/ggl_hblt.c \
     firmware/ggl/ggl/ggl_hbltfilter.c \
@@ -133,7 +134,12 @@ HEADERS  += \
     newrpl/sysvars.h \
     newrpl/decimal.h \
     newrpl/errorcodes.h \
-    newrpl/arithmetic.h
+    newrpl/arithmetic.h \
+    newrpl/cmdcodes.h \
+    newrpl/common-macros.h \
+    newrpl/lib-header.h \
+    newrpl/include-all.h \
+    newrpl/romlibs.h
 
 
 # This might need to be adapted to each cross-compiler installation
