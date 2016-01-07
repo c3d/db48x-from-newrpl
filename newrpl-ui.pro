@@ -140,9 +140,10 @@ HEADERS  += mainwindow.h \
     newrpl/errorcodes.h \
     newrpl/arithmetic.h \
     newrpl/cmdcodes.h \
-    newrpl/romlib-loop.h \
     newrpl/common-macros.h \
-    newrpl/lib-header.h
+    newrpl/lib-header.h \
+    newrpl/include-all.h \
+    newrpl/romlibs.h
 
 INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
 
