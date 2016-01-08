@@ -1192,6 +1192,11 @@ void halSetFormHeight(int h);
 void halSetMenu1Height(int h);
 void halSetMenu2Height(int h);
 
+// ERROR REPORTING AND MESSAGES
+WORDPTR halGetCommandName(WORDPTR NameObject);
+BYTEPTR halGetMessage(WORD errorcode);
+
+
 
 // OUTER LOOP
 void halOuterLoop();
