@@ -476,7 +476,7 @@ void LIB_HANDLER()
                 BINT64 e=rplReadBINT(exp);
                 BINT64 m=rplReadBINT(mod);
 
-                if(m<2147483648) {  // MAXIMUM MOD WE CAN USE WITH BINTS
+                if(m<2147483648LL) {  // MAXIMUM MOD WE CAN USE WITH BINTS
 
                 a=powmodBINT(a,e,m);
 

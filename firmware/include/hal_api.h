@@ -1121,7 +1121,7 @@ void set_stackall();
 void memcpyw(void *dest,const void *source,int nwords);
 void memmovew(void *dest,const void *source,int nwords);
 int stringlen(const char *s);
-void *memcpy(void *trg, const void *src, unsigned long n);
+void *memcpy(void *trg, const void *src, size_t n);
 void *memmove(void *_dest, const void *_source, unsigned long nbytes);
 
 // LOW-LEVEL HARDWARE DRIVERS - POWER

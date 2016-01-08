@@ -181,7 +181,7 @@ void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds)
     }
     BINT idx,len;
 
-    if(LIBNUM(Prolog)==libnum) idx=OPCODE(Prolog)-1;
+    if(LIBNUM(Prolog)==(WORD)libnum) idx=OPCODE(Prolog)-1;
     else idx=numcmds-1;
 
     while(idx>=0) {

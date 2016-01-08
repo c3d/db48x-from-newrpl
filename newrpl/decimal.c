@@ -3132,7 +3132,7 @@ void div_real(REAL *r,REAL *num,REAL *d,int maxdigits)
         }
         // CORRECT THE MOST SIGNIFICANT WORD OF THE REMAINDER
         tmp64=(BINT64)remainder.data[remword]+(BINT64)remainder.data[remword+1]*100000000LL;
-        if(tmp64>2147483648 || tmp64<-214783648) {
+        if(tmp64>2147483648LL || tmp64<-214783648LL) {
             carry_correct(remainder.data+remword,2);
         } else {
         remainder.data[remword]=tmp64;

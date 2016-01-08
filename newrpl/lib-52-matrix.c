@@ -1353,14 +1353,14 @@ void LIB_HANDLER()
                         // OBJECTS ARE IDENTICAL, REMOVE
 
                         // REPLACE ALL REFERENCES TO THIS COPY WITH REFERENCES TO THE ORIGINAL
-                        for(count=0;count<totalelements;++count) if(index[count]==ptr-matrix) index[count]=objptr-matrix;
+                        for(count=0;count<totalelements;++count) if(index[count]==(WORD)(ptr-matrix)) index[count]=objptr-matrix;
 
                         // AND REMOVE THE COPY
                         nextobj=rplSkipOb(ptr);
                         if(nextobj<endofobjects) {
                             // THERE'S MORE OBJECTS, MOVE ALL MEMORY AND FIX ALL INDICES
                             memmovew(ptr,nextobj,endofobjects-nextobj);
-                            for(count=0;count<totalelements;++count) if(index[count]>ptr-matrix) index[count]-=nextobj-ptr;
+                            for(count=0;count<totalelements;++count) if(index[count]>(WORD)(ptr-matrix)) index[count]-=nextobj-ptr;
                         }
                         endofobjects-=nextobj-ptr;
                         rplCompileRemoveWords(nextobj-ptr);

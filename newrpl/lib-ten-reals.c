@@ -782,7 +782,7 @@ void LIB_HANDLER()
             REAL r;
             rplReadReal(ObjectPTR,&r);
             // CHECK PROPER LENGTH
-            if(r.len+1!=OBJSIZE(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
+            if((WORD)(r.len+1)!=OBJSIZE(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
             // CHECK FOR CORRUPTED DATA
             BINT k;
             for(k=0;k<r.len;++k) {

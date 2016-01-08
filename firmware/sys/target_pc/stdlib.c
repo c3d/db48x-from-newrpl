@@ -31,7 +31,7 @@ void abort()
 }
 
 
-void *memcpy(void *trg, const void *src, unsigned long n)
+void *memcpy(void *trg, const void *src, size_t n)
 {
     void *r  = trg;
     char *t8 = (char *) trg;

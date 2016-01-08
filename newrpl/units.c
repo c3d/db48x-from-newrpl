@@ -199,7 +199,7 @@ const WORD const system_unit_defs[]={
 
     //[60] = au
     MKPROLOG(DOUNIT,7),
-    MKPROLOG(DECBINT,2),3568982636,34,
+    MKPROLOG(DECBINT,2),3568982636U,34,
     MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(1),MAKESINT(1),
 
     //[68] = b
@@ -266,7 +266,7 @@ const WORD const system_unit_defs[]={
 
     //[159] = Ci
     MKPROLOG(DOUNIT,7),
-    MKPROLOG(DECBINT,2),2640261632,8,
+    MKPROLOG(DECBINT,2),2640261632U,8,
     MKPROLOG(DOIDENT,1),TEXT2WORD('B','q',0,0),MAKESINT(1),MAKESINT(1),
 
     //[167] = ct
