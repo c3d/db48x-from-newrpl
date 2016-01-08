@@ -7,6 +7,13 @@
 
 #include <ui.h>
 
+// IMPORT A FEW FUNCTIONS FROM THE CPU MODULE
+int __cpu_getPCLK();
+
+
+
+
+
 void __tmr_eventreschedule();
 
 

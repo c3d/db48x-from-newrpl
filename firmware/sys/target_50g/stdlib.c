@@ -7,8 +7,6 @@
 
 #include <ui.h>
 
-typedef unsigned long size_t;
-
 #define INT_MAX 0x7fffffff
 #define INT_MIN (-INT_MAX -1)
 
@@ -35,13 +33,13 @@ void abort()
 }
 
 
-void *memcpy(void *trg, const void *src, size_t n)
+void *memcpyb(void *trg, const void *src, int n)
 {
     void *r  = trg;
     char *t8 = (char *) trg;
     char *s8 = (char *) src;
 
-    #define ESIZE sizeof(size_t)
+    #define ESIZE sizeof(int)
     #define CSIZE (4*ESIZE)
 
     if (n >= CSIZE &&  ! ( ((unsigned)t8 & (ESIZE-1)) || ((unsigned)s8 & (ESIZE-1)) ) ) {
@@ -49,11 +47,11 @@ void *memcpy(void *trg, const void *src, size_t n)
         // source & target properly aligned
         // use word copy...
 
-        size_t *T,*S;
+        int *T,*S;
 
 
-        T = (size_t *) t8;
-        S = (size_t *) s8;
+        T = (int *) t8;
+        S = (int *) s8;
 
         for (; n >= CSIZE ;) {
             *T++ = *S++;
@@ -132,7 +130,7 @@ void memmovew(void *dest,const void *source,int nwords)
     }
 }
 
-void *memmove(void *_dest, const void *_source, size_t nbytes)
+void *memmoveb(void *_dest, const void *_source, int nbytes)
 {
     register char *dest= (char *) _dest;
     register char *source= (char *) _source;
@@ -152,13 +150,13 @@ void *memmove(void *_dest, const void *_source, size_t nbytes)
     return _dest;
 }
 
-void memsetw(void *dest,int value,size_t nwords)
+void memsetw(void *dest,int value,int nwords)
 {
     int *_dest=(int *)dest;
     while(nwords) { *_dest++=value; --nwords; }
 }
 
-void *memset(void *_dest,int value, size_t nbytes)
+void *memsetb(void *_dest,int value, int nbytes)
 {
     char *destc = (char *) _dest;
 
@@ -192,7 +190,7 @@ void *memset(void *_dest,int value, size_t nbytes)
 
 
 
-int strncmp ( const char *s1, const char *s2, size_t num)
+int strncmp ( const char *s1, const char *s2, int num)
 {
     if (num > 0)
     {

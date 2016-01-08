@@ -31,14 +31,14 @@ void abort()
 }
 
 
-void *memcpy(void *trg, const void *src, size_t n)
+void *memcpyb(void *trg, const void *src, int n)
 {
     void *r  = trg;
     char *t8 = (char *) trg;
     char *s8 = (char *) src;
 
-    #define ESIZE sizeof(unsigned long)
-    #define CSIZE (4*ESIZE)
+    #define ESIZE (int)sizeof(int)
+    #define CSIZE (int)(4*ESIZE)
 
     if (n >= CSIZE &&  ! ( ((unsigned)t8 & (ESIZE-1)) || ((unsigned)s8 & (ESIZE-1)) ) ) {
 
@@ -128,7 +128,7 @@ void memmovew(void *dest,const void *source,int nwords)
     }
 }
 
-void *memmove(void *_dest, const void *_source, unsigned long nbytes)
+void *memmoveb(void *_dest, const void *_source, int nbytes)
 {
     register char *dest= (char *) _dest;
     register char *source= (char *) _source;
@@ -148,13 +148,13 @@ void *memmove(void *_dest, const void *_source, unsigned long nbytes)
     return _dest;
 }
 
-void memsetw(void *dest,int value,unsigned long nwords)
+void memsetw(void *dest,int value,int nwords)
 {
     int *_dest=(int *)dest;
     while(nwords) { *_dest++=value; --nwords; }
 }
 
-void *memset(void *_dest,int value, unsigned long nbytes)
+void *memsetb(void *_dest,int value, int nbytes)
 {
     char *destc = (char *) _dest;
 

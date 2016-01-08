@@ -1686,13 +1686,13 @@ RReg[0].flags^=isneg;
 /*
 RReg[1].len=REAL_PRECISION_MAX/MPD_RDIGITS;
 RReg[1].digits=REAL_PRECISION_MAX;
-memcpy(RReg[1].data,Constant_Kh1,REAL_PRECISION_MAX/MPD_RDIGITS*sizeof(uint32_t));
+memcpyb(RReg[1].data,Constant_Kh1,REAL_PRECISION_MAX/MPD_RDIGITS*sizeof(uint32_t));
 RReg[1].exp=-(REAL_PRECISION_MAX-1);
 RReg[1].flags=0;
 
 RReg[2].len=REAL_PRECISION_MAX/MPD_RDIGITS;
 RReg[2].digits=REAL_PRECISION_MAX;
-memcpy(RReg[2].data,Constant_Kh1,REAL_PRECISION_MAX/MPD_RDIGITS*sizeof(uint32_t));
+memcpyb(RReg[2].data,Constant_Kh1,REAL_PRECISION_MAX/MPD_RDIGITS*sizeof(uint32_t));
 RReg[2].exp=-(REAL_PRECISION_MAX-1);
 RReg[2].flags=0;
 */

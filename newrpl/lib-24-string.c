@@ -314,8 +314,8 @@ void LIB_HANDLER()
            return;
         }
         // COPY BOTH STRINGS
-        memmove(newobject+1,ScratchPointer1+1,len1);
-        memmove( ((BYTEPTR)newobject)+len1+4,ScratchPointer2+1,len2);
+        memmoveb(newobject+1,ScratchPointer1+1,len1);
+        memmoveb( ((BYTEPTR)newobject)+len1+4,ScratchPointer2+1,len2);
 
         BINT padding=(4-((len1+len2)&3))&3;
 

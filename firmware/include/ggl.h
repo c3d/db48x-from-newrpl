@@ -89,7 +89,7 @@ void ggl_rectp(gglsurface *srf,int x1,int y1,int x2,int y2,int *color); // low-l
 // bit-blit functions
 
 // LOW-LEVEL row copy functions
-// ggl_ll_hblt is a general nibble-aligned memcpy
+// ggl_ll_hblt is a general nibble-aligned memcpyb
 // WARNING: npixels is limited to 512!!
 //          if you need more than that, increase the constant HBLT_BUFFER above
 //          and RE-COMPILE the ggl library

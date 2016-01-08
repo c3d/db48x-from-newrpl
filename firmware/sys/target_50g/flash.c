@@ -4,7 +4,7 @@
  * This file is released under the 3-clause BSD license.
  * See the file LICENSE.txt that shipped with this distribution.
  */
-
+#include <ui.h>
 // LOW-LEVEL FLASH DRIVER FOR SST 36VF1601 CHIPSET
 
 
@@ -178,7 +178,7 @@ void flash_Write(unsigned short *ptr,unsigned int data)
 
     copy=(unsigned int *)&flash_ProgramWord;
 
-    funcquery=(void (*)(unsigned short *))buffer;
+    funcquery=(void (*)(unsigned short *,unsigned int))buffer;
 
     // COPY ROUTINES TO RAM
     for(k=0;k<flash_code_end-(unsigned int *)&flash_ProgramWord;++k) buffer[k]=copy[k];

@@ -364,9 +364,9 @@ if(Exceptions) {
 // FINALLY, WE HAVE THE ORIGINAL LINE AT THE END OF TEMPOB, AND ENOUGH MEMORY ALLOCATED TO MAKE THE MOVE
 
 // MOVE THE TAIL TO THE END
-memmove( ((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition+length,((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,rplStrSize(CmdLineCurrentLine)-halScreen.CursorPosition);
+memmoveb( ((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition+length,((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,rplStrSize(CmdLineCurrentLine)-halScreen.CursorPosition);
 // ADD THE NEW DATA IN
-memmove(((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,string,length);
+memmoveb(((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,string,length);
 
 // PATCH THE LENGTH OF THE STRING
 BINT newlen=rplStrSize(CmdLineCurrentLine);
@@ -459,7 +459,7 @@ BYTEPTR delete_end=(BYTEPTR) utf8nskip((char *)delete_start,(char *)delete_start
 BINT actualcount=utf8nlen((char *)delete_start,(char *)delete_end);
 
 // MOVE THE TAIL TO THE END
-memmove( delete_start,delete_end,delete_start+tailchars-delete_end);
+memmoveb( delete_start,delete_end,delete_start+tailchars-delete_end);
 
 // PATCH THE LENGTH OF THE STRING
 BINT newlen=rplStrSize(CmdLineCurrentLine);
@@ -560,16 +560,16 @@ void uiModifyLine(int dontaddnewline)
     // COPY ALL PREVIOUS LINES TO NEW OBJECT
     newsize=startline-src+rplStrSize(CmdLineCurrentLine);
 
-    memmove(dest,src,startline-src);
+    memmoveb(dest,src,startline-src);
     // COPY THE NEW LINE TO THE OBJECT
-    memmove(dest+(startline-src),(WORDPTR)(CmdLineCurrentLine+1),rplStrSize(CmdLineCurrentLine));
+    memmoveb(dest+(startline-src),(WORDPTR)(CmdLineCurrentLine+1),rplStrSize(CmdLineCurrentLine));
     // COPY THE REST BACK
     if(endline<src+totallen) {
         // APPEND A NEWLINE AND KEEP GOING
         dest+=startline-src+rplStrSize(CmdLineCurrentLine);
         newsize+=src+totallen-endline;
         if((!dontaddnewline)&&(*endline!='\n')) { *dest++='\n'; ++newsize; }
-        memmove(dest,endline,src+totallen-endline);
+        memmoveb(dest,endline,src+totallen-endline);
     }
 
     rplSetStringLength(newobj,newsize);
@@ -616,7 +616,7 @@ void uiExtractLine(BINT line)
     newobj[(endline-startline)>>2]=0;
 
     // COPY LINE TO NEW OBJECT
-    memmove(newobj+1,startline,endline-startline);
+    memmoveb(newobj+1,startline,endline-startline);
 
     rplSetStringLength(newobj,endline-startline);
 
@@ -1126,8 +1126,8 @@ void uiAutocompleteUpdate()
     BYTEPTR ptr,tokptr=(BYTEPTR)utf8rskip((char *)end,(char *)start);
     BINT char1,char2;
     // THESE ARE CHARACTERS THAT WOULD STOP A TOKEN SEARCH
-    const char const forbiddenChars[]="{}[]()#;:, \"\'_`@|«»";  // OUTSIDE OF ALG. MODE
-    const char const algforbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@|√«»≤≥≠→∡"; // IN ALG. MODE
+    static const char const forbiddenChars[]="{}[]()#;:, \"\'_`@|«»";  // OUTSIDE OF ALG. MODE
+    static const char const algforbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@|√«»≤≥≠→∡"; // IN ALG. MODE
 
     const char *forbstring=( (halScreen.CursorState&0xff)=='A')? algforbiddenChars:forbiddenChars;
 

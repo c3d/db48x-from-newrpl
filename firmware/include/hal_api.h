@@ -1121,12 +1121,16 @@ void set_stackall();
 void memcpyw(void *dest,const void *source,int nwords);
 void memmovew(void *dest,const void *source,int nwords);
 int stringlen(const char *s);
-void *memcpy(void *trg, const void *src, size_t n);
-void *memmove(void *_dest, const void *_source, unsigned long nbytes);
+void *memcpyb(void *trg, const void *src, int n);
+void *memmoveb(void *_dest, const void *_source, int nbytes);
+void memsetw(void *dest,int value,int nwords);
 
 // LOW-LEVEL HARDWARE DRIVERS - POWER
 void cpu_off_prepare();
 void cpu_off_die();
+void cpu_flushwritebuffers();
+void cpu_flushTLB();
+
 
 
 // LOW-LEVEL HARDWARE DRIVERS - KEYBOARD

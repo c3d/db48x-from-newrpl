@@ -241,7 +241,7 @@ void rplSymbEVALApplyOperator(WORD Opcode,BINT nargs)
                } else right=left;
             // INSERT THE POINTER RIGHT BEFORE right
             for(ptr2=ptr;ptr2>right; ptr2-=1 ) *ptr2=*(ptr2-1);
-            //memmove(right+1,right,(ptr-right)*sizeof(WORDPTR));
+            //memmoveb(right+1,right,(ptr-right)*sizeof(WORDPTR));
             *right=save;
             }
         }

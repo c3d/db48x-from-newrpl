@@ -4130,7 +4130,7 @@ BINT inBINT64Range(REAL *n)
     if(n->flags&(F_NOTANUMBER|F_INFINITY)) return 0;
 
 
-    const BINT64 const max_bint64[]={
+    static const BINT64 const max_bint64[]={
         9223372036854775807,
         922337203685477580,
         92233720368547758,
