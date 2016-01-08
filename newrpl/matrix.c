@@ -86,7 +86,7 @@ WORDPTR *rplMatrixNewEx(BINT rows,BINT cols)
     nelem=rows*cols;
 
     for(k=0;k<nelem;++k) {
-        rplPushData(zero_bint);
+        rplPushData((WORDPTR)zero_bint);
         if(Exceptions) {
             DSTop=Firstelem;
             return 0;

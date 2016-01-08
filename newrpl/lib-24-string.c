@@ -169,6 +169,7 @@ WORDPTR rplCreateString(BYTEPTR text,BYTEPTR textend)
 
         return newstring;
     }
+    return 0;
 }
 
 
@@ -198,7 +199,7 @@ void LIB_HANDLER()
 
         WORD utfchar=char2utf8((UBINT)code);
 
-        if(utfchar==-1) {
+        if(utfchar==(WORD)-1) {
             rplError(ERR_INVALIDCODEPOINT);
             return;
         }
@@ -226,7 +227,7 @@ void LIB_HANDLER()
         }
 
         if(rplStrLen(rplPeekData(1))<1) {
-            rplOverwriteData(1,zero_bint);
+            rplOverwriteData(1,(WORDPTR)zero_bint);
             return;
         }
         BYTEPTR string=(BYTEPTR) (rplPeekData(1)+1);

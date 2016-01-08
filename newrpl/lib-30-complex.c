@@ -722,7 +722,7 @@ void LIB_HANDLER()
                     RetNum=OK_CONTINUE_NOVALIDATE;
                     return;
             }
-            if((ptr[count-1]==ARG_SEP(Locale))) {
+            if(ptr[count-1]==ARG_SEP(Locale)) {
                 // ENDS WITH A COMMA, SPLIT THE TOKEN
                 BlankStart=NextTokenStart=(WORDPTR)(ptr+count-1);
                 RetNum=ERR_NOTMINE_SPLITTOKEN;

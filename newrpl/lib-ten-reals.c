@@ -117,7 +117,7 @@ void rplReadReal(WORDPTR real,REAL *dec)
 {
 REAL_HEADER *head=(REAL_HEADER *)(real+1);
 dec->flags=0;
-dec->data=(uint32_t *) (real+2);
+dec->data=(BINT *) (real+2);
 dec->len=head->len;
 dec->exp=head->exp;
 dec->flags|=head->flags;
@@ -325,7 +325,6 @@ void LIB_HANDLER()
 
         int nargs=OVR_GETNARGS(CurOpcode);
         REAL Darg1,Darg2;
-        int status;
 
         if(rplDepthData()<nargs) {
              rplError(ERR_BADARGCOUNT);
@@ -642,7 +641,7 @@ void LIB_HANDLER()
         BINT len=formatlengthReal(&realnum,Format);
 
         // RESERVE THE MEMORY FIRST
-        rplDecompAppendString2(DecompStringEnd,len);
+        rplDecompAppendString2((BYTEPTR)DecompStringEnd,len);
 
         // NOW USE IT
         string=(BYTEPTR)DecompStringEnd;
@@ -652,7 +651,7 @@ void LIB_HANDLER()
             RetNum=ERR_INVALID;
             return;
         }
-        DecompStringEnd=(WORDPTR) formatReal(&realnum,string,Format,fmt.Locale);
+        DecompStringEnd=(WORDPTR) formatReal(&realnum,(char *)string,Format,fmt.Locale);
 
         RetNum=OK_CONTINUE;
 

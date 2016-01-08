@@ -237,9 +237,6 @@ void quickDecomp(unsigned int cp,unsigned int *dec1,unsigned int *dec2,unsigned 
 // READ ONE CHARACTER OF A UTF8 STRING
 
 
-unsigned int unicodeBuffer[MAX_UNICODE_CHARACTER_LEN];
-
-
 int appendDecomp(unsigned int cp,int lastchar)
 {
     // DECOMPOSE IN THE BUFFER

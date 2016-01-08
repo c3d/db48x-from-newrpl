@@ -8,7 +8,6 @@
 #include "newrpl.h"
 #include "libraries.h"
 #include "hal.h"
-#include <string.h>
 
 
 #define EXIT_LOOP -10000
@@ -1020,7 +1019,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
 
     case OK_STARTCONSTRUCT_INFIX:
         // PUSH THE SYMBOLIC ON A STACK AND SAVE THE COMPILER STATE
-        if(!infixmode) InfixOpTop=ValidateTop;
+        if(!infixmode) InfixOpTop=(WORDPTR)ValidateTop;
         if(RStkSize<=(InfixOpTop+1-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
         if(Exceptions) { LAMTop=LAMTopSaved;
             if(flags&DECOMP_EMBEDDED) {

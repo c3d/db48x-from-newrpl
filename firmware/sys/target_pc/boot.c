@@ -10,7 +10,17 @@
 #include <ui.h>
 
 
-extern int __pc_terminate;
+
+
+
+
+
+
+
+
+
+
+int __pc_terminate;
 
 
 void setup_hardware()

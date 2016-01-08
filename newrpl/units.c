@@ -1345,7 +1345,7 @@ BINT rplUnitSimplify(BINT nlevels)
     if(lvl<=0) {
         // ERROR! SOMETHING HAPPENED AND THERE'S NO UNIT VALUE!
         // TRY TO FIX IT BY ADDING A 1
-        rplPushData(one_bint);
+        rplPushData((WORDPTR)one_bint);
         ++nlevels;
         lvl=1;
     }
@@ -1365,7 +1365,7 @@ void rplUnitInvert(BINT level)
 {
 if(!ISIDENT(*rplPeekData(level))) return;
 
-WORDPTR savestk=DSTop;
+WORDPTR *savestk=DSTop;
 
 rplPushData(rplPeekData(level-1));
 rplCallOvrOperator((CMD_OVR_NEG));
@@ -1382,7 +1382,7 @@ rplOverwriteData(level-1,rplPopData());
 // RETURN THE NUMBER OF ELEMENTS AFTER THE SIMPLIFICATION
 BINT rplUnitDivide(BINT numlvl,BINT divlvl)
 {
-    WORDPTR savestk=DSTop;
+    WORDPTR *savestk=DSTop;
 
     rplPushData(rplPeekData(numlvl));   // GET THE VALUE
     rplPushData(rplPeekData(divlvl+1)); // GET THE VALUE OF THE DIVISOR
@@ -1510,9 +1510,9 @@ BYTEPTR istart,iend;
 
 // FIND START AND END OF THE IDENT TEXT
 istart=(BYTEPTR) (ident+1);
-iend=rplSkipOb(ident);
+iend=(BYTEPTR)rplSkipOb(ident);
 while( (iend>istart) && (*(iend-1)==0)) --iend;
-ilen=utf8nlen(istart,iend);
+ilen=utf8nlen((char *)istart,(char *)iend);
 if(ilen<2) return 0;
 
 // HERE WE ARE READY FOR STRING COMPARISON
@@ -1521,7 +1521,7 @@ for(k=1;k<NUM_SIPREFIXES;++k)
 {
 // LEN IN UNICODE CHARATERS OF THE SI PREFIX
 if(k==10) len=2; else len=1;
-if(!utf8ncmp(istart,siprefix_text[k],len)) {
+if(!utf8ncmp((char *)istart,(char *)siprefix_text[k],len)) {
  // FOUND A VALID PREFIX
  if(ilen>len) return k;
 }
@@ -1550,18 +1550,17 @@ BINT rplUnitCompare(WORDPTR ident,WORDPTR baseident)
 
     // THERE'S AN SI PREFIX, NEED TO COMPARE TEXT BY SKIPPING IT
     BYTEPTR st1,end1,st2,end2;
-    BINT len1,len2;
     st1=(BYTEPTR) (ident+1);
     st2=(BYTEPTR) (baseident+1);
-    end1=rplSkipOb(ident);
-    end2=rplSkipOb(baseident);
+    end1=(BYTEPTR)rplSkipOb(ident);
+    end2=(BYTEPTR)rplSkipOb(baseident);
 
     // FIND THE END IN BOTH IDENTS
     while( (end1>st1) && (*(end1-1)==0)) --end1;
     while( (end2>st2) && (*(end2-1)==0)) --end2;
 
-    if(siidx==10) st1=utf8nskip(st1,end1,2);
-    else st1=utf8nskip(st1,end1,1);
+    if(siidx==10) st1=(BYTEPTR)utf8nskip((char *)st1,(char *)end1,2);
+    else st1=(BYTEPTR)utf8nskip((char *)st1,(char *)end1,1);
 
     // NOW DO THE COMPARISON BYTE BY BYTE
     if( (end1-st1)!=(end2-st2)) return 0;
@@ -1598,7 +1597,7 @@ WORDPTR *rplUnitFind(WORDPTR ident,BINT *siindex)
 {
     const BYTE const unitdir_name[]="UNITS";
 
-    WORDPTR unitdir_obj=rplGetSettingsbyName(unitdir_name,unitdir_name+5);
+    WORDPTR unitdir_obj=rplGetSettingsbyName((BYTEPTR)unitdir_name,(BYTEPTR)unitdir_name+5);
     WORDPTR baseid,baseunit;
     BINT result;
     WORDPTR *entry;
@@ -1627,7 +1626,7 @@ WORDPTR *rplUnitFind(WORDPTR ident,BINT *siindex)
 
     // SEARCH THROUGH THE SYSTEM UNITS
 
-    entry=system_unit_dir;
+    entry=(WORDPTR *)system_unit_dir;
     while(entry[0]) {
         baseid=entry[0];
         baseunit=entry[1];
@@ -1664,7 +1663,7 @@ WORDPTR *rplUnitFindCustom(WORDPTR ident,BINT *siindex)
 {
     const BYTE const unitdir_name[]="UNITS";
 
-    WORDPTR unitdir_obj=rplGetSettingsbyName(unitdir_name,unitdir_name+5);
+    WORDPTR unitdir_obj=rplGetSettingsbyName((BYTEPTR)unitdir_name,(BYTEPTR)unitdir_name+5);
     WORDPTR baseid,baseunit;
     BINT result;
     WORDPTR *entry;
@@ -1732,8 +1731,8 @@ BINT rplUnitExpand(BINT level)
                 // UNIT WAS A BASE UNIT WITH AN SI PREFIX
                 // ADD THE BASE UNIT WITHOUT THE PREFIX
                 rplPushData(entry[0]);
-                rplPushData(one_bint);
-                rplPushData(one_bint);
+                rplPushData((WORDPTR)one_bint);
+                rplPushData((WORDPTR)one_bint);
                 nlevels+=3;
                 }
                 else {
@@ -1780,7 +1779,7 @@ BINT rplUnitExpand(BINT level)
 // RETURN THE NEW TOTAL NUMBER OF ELEMENTS
 BINT rplUnitToBase(BINT nlevels)
 {
-    BINT lvl=nlevels,lvl2,morelevels;
+    BINT lvl=nlevels,morelevels;
 
    while(lvl>0) {
         morelevels=rplUnitExpand(lvl);
@@ -1890,7 +1889,7 @@ BINT rplUnitIsSpecial(WORDPTR unitobj)
 
     id=rplSkipOb(unitobj+1);    // POINT TO THE IDENTIFIER
 
-    WORDPTR *ptr=system_unit_special;
+    WORDPTR *ptr=(WORDPTR *)system_unit_special;
 
     while(*ptr) {
        if(rplCompareIDENT(id,*ptr)) break;
@@ -1925,7 +1924,7 @@ void rplUnitReplaceSpecial(BINT nlevels)
 
     }
 
-     WORDPTR *ptr=system_unit_special;
+     WORDPTR *ptr=(WORDPTR *)system_unit_special;
 
      while(ptr[2]) {
          if(rplCompareIDENT(rplPeekData(ident),*ptr)) break;
@@ -1973,7 +1972,7 @@ void rplUnitReverseReplaceSpecial(BINT nlevels)
 
     }
 
-     WORDPTR *ptr=system_unit_special;
+     WORDPTR *ptr=(WORDPTR *)system_unit_special;
 
      while(ptr[2]) {
          if(rplCompareIDENT(rplPeekData(ident),rplSkipOb(ptr[2]+1))) break;
@@ -2007,7 +2006,7 @@ void rplUnitReverseReplaceSpecial(BINT nlevels)
 
 void rplUnitReverseReplaceSpecial2(BINT isspec_idx)
 {
-     WORDPTR *ptr=system_unit_special;
+     WORDPTR *ptr=(WORDPTR *)system_unit_special;
 
      ptr+=isspec_idx-1;
 
@@ -2045,7 +2044,7 @@ void rplUnitSpecialToDelta(BINT nlevels)
 
     }
 
-     WORDPTR *ptr=system_unit_special;
+     WORDPTR *ptr=(WORDPTR *)system_unit_special;
 
      while(*ptr) {
          if(rplCompareIDENT(rplPeekData(ident),*ptr)) break;

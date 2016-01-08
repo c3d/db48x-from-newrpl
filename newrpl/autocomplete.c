@@ -8,11 +8,10 @@
 #include "newrpl.h"
 #include "libraries.h"
 #include "hal.h"
-#include <string.h>
 
 
 
-WORD rplGetNextSuggestion(WORD suggestion,BYTEPTR *start,BYTEPTR *end)
+WORD rplGetNextSuggestion(WORD suggestion,BYTEPTR start,BYTEPTR end)
 {
 
     BINT libcnt;
@@ -21,9 +20,9 @@ WORD rplGetNextSuggestion(WORD suggestion,BYTEPTR *start,BYTEPTR *end)
     if(!suggestion) libcnt=rplGetNextLib(MAXLIBNUMBER+1);  // START FROM THE HIGHEST NUMBER
     else libcnt=LIBNUM(suggestion);
 
-    TokenStart=(WORDPTR *)start;
-    TokenLen=(BINT) utf8nlen(start,end);
-    SuggestedObject=zero_bint;
+    TokenStart=(WORDPTR)start;
+    TokenLen=(BINT) utf8nlen((char *)start,(char *)end);
+    SuggestedObject=(WORDPTR)zero_bint;
     SuggestedOpcode=suggestion;
 
     //if(!suggestion) suggestion=1;
@@ -57,7 +56,7 @@ WORD rplGetNextSuggestion(WORD suggestion,BYTEPTR *start,BYTEPTR *end)
     return 0;
 }
 
-WORD rplGetPrevSuggestion(WORD suggestion,BYTEPTR *start,BYTEPTR *end)
+WORD rplGetPrevSuggestion(WORD suggestion,BYTEPTR start,BYTEPTR end)
 {
 
     BINT libcnt;
@@ -70,7 +69,7 @@ WORD rplGetPrevSuggestion(WORD suggestion,BYTEPTR *start,BYTEPTR *end)
 
     TokenStart=(WORDPTR)start;
     TokenLen=(BINT) utf8nlen((char *)start,(char *)end);
-    SuggestedObject=zero_bint;
+    SuggestedObject=(WORDPTR)zero_bint;
     SuggestedOpcode=-1;
 
     //if(!suggestion) suggestion=1;
@@ -103,7 +102,7 @@ WORD rplGetPrevSuggestion(WORD suggestion,BYTEPTR *start,BYTEPTR *end)
 
 
 // UPDATE THE SUGGESTION
-WORD rplUpdateSuggestion(WORD suggestion,BYTEPTR *start,BYTEPTR *end)
+WORD rplUpdateSuggestion(WORD suggestion,BYTEPTR start,BYTEPTR end)
 {
     return rplGetNextSuggestion(suggestion+1,start,end);
 }

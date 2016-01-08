@@ -673,7 +673,7 @@ halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
 // MOVE THE CURSOR LEFT, NCHARS IS GIVEN IN UNICODE CODEPOINTS
 void uiCursorLeft(BINT nchars)
 {
-    BYTEPTR ptr,ptr2,newptr;
+    BYTEPTR ptr,ptr2;
     BINT offset;
 
 
@@ -935,7 +935,7 @@ void uiCursorPageRight()
 BINT len=rplStrSize(CmdLineCurrentLine);
 BINT targetx=halScreen.CursorX+SCREEN_WIDTH;
 BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1);
-BYTEPTR ptr2=StringCoordToPointer((char *)ptr,(char *)ptr+len,halScreen.CmdLineFont,&targetx);
+BYTEPTR ptr2=(BYTEPTR)StringCoordToPointer((char *)ptr,(char *)ptr+len,halScreen.CmdLineFont,&targetx);
 
 halScreen.CursorX=targetx;
 halScreen.CursorPosition=ptr2-ptr;
@@ -971,7 +971,7 @@ void uiCursorPageLeft()
 BINT len=rplStrSize(CmdLineCurrentLine);
 BINT targetx=halScreen.CursorX-SCREEN_WIDTH;
 BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1);
-BYTEPTR ptr2=StringCoordToPointer((char *)ptr,(char *)ptr+len,halScreen.CmdLineFont,&targetx);
+BYTEPTR ptr2=(BYTEPTR)StringCoordToPointer((char *)ptr,(char *)ptr+len,halScreen.CmdLineFont,&targetx);
 
 halScreen.CursorX=targetx;
 halScreen.CursorPosition=ptr2-ptr;
@@ -1123,13 +1123,13 @@ void uiAutocompleteUpdate()
 
     BYTEPTR start=(BYTEPTR)(CmdLineCurrentLine+1);
     BYTEPTR end=start+halScreen.CursorPosition;
-    BYTEPTR ptr,tokptr=utf8rskip(end,start);
+    BYTEPTR ptr,tokptr=(BYTEPTR)utf8rskip((char *)end,(char *)start);
     BINT char1,char2;
     // THESE ARE CHARACTERS THAT WOULD STOP A TOKEN SEARCH
     const char const forbiddenChars[]="{}[]()#;:, \"\'_`@|«»";  // OUTSIDE OF ALG. MODE
     const char const algforbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@|√«»≤≥≠→∡"; // IN ALG. MODE
 
-    char *forbstring=( (halScreen.CursorState&0xff)=='A')? algforbiddenChars:forbiddenChars;
+    const char *forbstring=( (halScreen.CursorState&0xff)=='A')? algforbiddenChars:forbiddenChars;
 
 
     while(tokptr>=start) {
@@ -1138,7 +1138,7 @@ void uiAutocompleteUpdate()
         do {
         char2=utf82char((char *)ptr,(char *)ptr+4);
         if(char1==char2) {
-            tokptr=utf8skip(tokptr,end);
+            tokptr=(BYTEPTR)utf8skip((char *)tokptr,(char *)end);
             break;
         }
         ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)ptr+4);
@@ -1249,7 +1249,7 @@ void uiAutocompInsert()
 
     // MOVE THE CURSOR TO THE START OF THE TOKEN;
     BINT nchars=0;
-    while(tokstart!=tokend) { ++nchars; tokstart=utf8skip(tokstart,tokend); }
+    while(tokstart!=tokend) { ++nchars; tokstart=(BYTEPTR)utf8skip((char *)tokstart,(char *)tokend); }
 
     uiCursorLeft(nchars);
     uiInsertCharactersN(namest,nameend);
@@ -1279,7 +1279,6 @@ BYTEPTR uiAutocompStringStart()
         }
 
     BYTEPTR start=(BYTEPTR)(CmdLineCurrentLine+1);
-    BYTEPTR end=start+halScreen.CursorPosition;
 
     return start+halScreen.ACTokenStart;
 }

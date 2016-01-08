@@ -66,7 +66,7 @@ void rplResizeLastObject(WORD additionalsize)
 
 
 // BORROW THE PATCH FUNCTION FROM THE GARBAGE COLLECTOR
-extern void Patch(WORDPTR *start,WORDPTR *end,WORDPTR startfrom,WORDPTR endfrom,BINT offset);
+void Patch(WORDPTR *start,WORDPTR *end,WORDPTR startfrom,WORDPTR endfrom,BINT offset);
 
 // GROW THE TEMPORARY OBJECT MEMORY
 

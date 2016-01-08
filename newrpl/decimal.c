@@ -2323,7 +2323,7 @@ void newRealFromText(REAL *result,char *text,char *end,WORD chars)
         continue;
     }
 
-    if((*end==DECIMAL_DOT(chars))) {
+    if(*end==DECIMAL_DOT(chars)) {
         if(dotdone) {
             result->len=0;
             result->exp=0;
@@ -2941,7 +2941,7 @@ BINT formatlengthReal(REAL *number, BINT format)
     int dotpos;
     int wantdigits=format&0xfff;
     int wantzeros;
-    int countdigits=0,totalcount;
+    int totalcount;
     int idx=0;
 
 
@@ -3336,7 +3336,7 @@ void newRealFromBINT64(REAL *result,BINT64 number)
     BINT64 hibits=number>>48;
     number&=(1LL<<48)-1;
     add_single64(result->data,number);
-    add_karatsuba(result->data,(BINT *)&hibits,two_48);
+    add_karatsuba(result->data,(BINT *)&hibits,(BINT *)two_48);
     carry_correct(result->data,3);
     result->len=3;
     return;

@@ -295,8 +295,8 @@ void LIB_HANDLER()
         if(ISBINT(*arg)) {
             BINT64 n=rplReadBINT(arg);
 
-            if(isprimeBINT(n)) rplOverwriteData(1,one_bint);
-            else rplOverwriteData(1,zero_bint);
+            if(isprimeBINT(n)) rplOverwriteData(1,(WORDPTR)one_bint);
+            else rplOverwriteData(1,(WORDPTR)zero_bint);
 
         } else {
             REAL num;
@@ -307,8 +307,8 @@ void LIB_HANDLER()
                 return;
             }
 
-            if(isprimeReal(&num)) rplOverwriteData(1,one_bint);
-            else rplOverwriteData(1,zero_bint);
+            if(isprimeReal(&num)) rplOverwriteData(1,(WORDPTR)one_bint);
+            else rplOverwriteData(1,(WORDPTR)zero_bint);
 
         }
         return;
@@ -464,7 +464,7 @@ void LIB_HANDLER()
 
             WORDPTR exp=rplPeekData(1);
             WORDPTR mod=rplGetSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)modulo_name+3);
-            if(!mod) mod=zero_bint;
+            if(!mod) mod=(WORDPTR)zero_bint;
             if( !ISNUMBER(*exp) || !ISNUMBER(*mod)) {
                 rplError(ERR_BADARGTYPE);
                 return;
@@ -638,7 +638,6 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
 
-            BINT size1=rplObjSize(rplPeekData(1));
             WORDPTR *savestk=DSTop;
 
             WORDPTR newobj=rplAllocTempOb(2);

@@ -140,7 +140,7 @@ WORDPTR *rplFindLAMbyName(BYTEPTR name, BINT len, BINT scanparents)
 
 while(ltop>stop) {
     ltop-=2;
-    if(rplCompareIDENTByName(*ltop,name,len)) return ltop;
+    if(rplCompareIDENTByName(*ltop,name,name+len)) return ltop;
 }
 return 0;
 }

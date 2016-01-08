@@ -313,7 +313,6 @@ BINT64 rplReadNumberAsBINT(WORDPTR number)
     BINT64 value;
     if(ISREAL(*number)) {
         REAL dec;
-        int status;
         rplReadReal(number,&dec);
         if(!inBINT64Range(&dec)) {
             rplError(ERR_NUMBERTOOBIG);
@@ -1159,7 +1158,7 @@ void LIB_HANDLER()
                 BINT len=formatlengthReal(&realnum,Format);
 
                 // RESERVE THE MEMORY FIRST
-                rplDecompAppendString2(DecompStringEnd,len);
+                rplDecompAppendString2((BYTEPTR)DecompStringEnd,len);
 
                 // NOW USE IT
                 string=(BYTEPTR)DecompStringEnd;
@@ -1169,7 +1168,7 @@ void LIB_HANDLER()
                     RetNum=ERR_INVALID;
                     return;
                 }
-                DecompStringEnd=(WORDPTR) formatReal(&realnum,string,Format,fmt.Locale);
+                DecompStringEnd=(WORDPTR) formatReal(&realnum,(char *)string,Format,fmt.Locale);
 
 
             }

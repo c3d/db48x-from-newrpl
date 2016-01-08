@@ -82,6 +82,19 @@ WORD rplSymbMainOperator(WORDPTR symbolic)
     return 0;
 }
 
+// SAME AS ABOVE, BUT RETURN A POINTER TO THE OPCODE WITHIN THE SYMBOLIC
+// BETTER TO PUSH ON STACK OR LAMS
+WORDPTR rplSymbMainOperatorPTR(WORDPTR symbolic)
+{
+    WORDPTR endptr=rplSkipOb(symbolic);
+    while( (ISSYMBOLIC(*(symbolic+1))) && ((symbolic+1)<endptr)) ++symbolic;
+    if(symbolic+1>=endptr) return 0;
+    if(!ISPROLOG(*(symbolic+1))) return (symbolic+1);
+    return 0;
+}
+
+
+
 // PEEL OFF USELESS LAYERS OF DOSYMB WRAPPING
 // DO NOT CALL FOR ANY OBJECTS OTHER THAN A SYMBOLIC
 // NO ARGUMENT CHECKS
@@ -347,7 +360,7 @@ void rplSymbRuleMatch()
 {
     // MATCH A RULE IN THE CURRENT SYMBOLIC, DOES NOT MATCH RECURSIVELY INSIDE THE SYMBOLIC
 
-    WORDPTR ruleleft,ruleright,ruleptr,objptr;
+    WORDPTR ruleleft,ruleright,objptr;
 
     ruleleft=rplSymbUnwrap(rplPeekData(1));
     if(!ruleleft) {
@@ -417,7 +430,6 @@ void rplSymbRuleMatch()
         if(ISIDENT(*ruleleft)) {
             // CHECK IF IT'S A PLACEHOLDER
             BINT len=OBJSIZE(*ruleleft)<<2;
-            BINT shortlen;
             BYTE type=0;
             BYTEPTR varname=(BYTEPTR)(ruleleft+1);
             if(*((char *)varname)=='.') {
@@ -438,7 +450,7 @@ void rplSymbRuleMatch()
                 // IF THIS NAME ALREADY EXISTS, WE NEED TO MATCH ITS CONTENTS
                 // IF IT DOESN'T, WE NEED TO FIND A PROPER MATCH
 
-                WORDPTR lamptr=rplFindLAM(ruleleft,0);
+                WORDPTR *lamptr=rplFindLAM(ruleleft,0);
                 if(lamptr) {
                     // NAME ALREADY EXISTS, THE OBJECT MUST MATCH
 
@@ -517,7 +529,7 @@ void rplSymbRuleMatch()
 
     if((ruleleft!=endofrule)||(objptr!=endofobj)) return;   // RETURN WITH "NO MATCH" RESULT
 
-    rplPutLAMn(1,one_bint);    // RETURN 0LAM1 = 1
+    rplPutLAMn(1,(WORDPTR)one_bint);    // RETURN 0LAM1 = 1
     rplPutLAMn(2,endofobj);    // NEXT OBJECT TO BE SCANNED
 
     return;
@@ -635,7 +647,7 @@ BINT rplSymbExplode(WORDPTR object)
 {
     BINT count=0,countops=0,nargs;
 
-    WORDPTR ptr,end,localend,numbers;
+    WORDPTR ptr,end,numbers;
     WORDPTR *sptr;
 
     ptr=object;
@@ -686,7 +698,7 @@ BINT rplSymbExplode(WORDPTR object)
 // REASSEMBLE A SYMBOLIC THAT WAS EXPLODED IN THE STACK
 // DOES NOT CHECK FOR VALIDITY OF THE SYMBOLIC!
 
-WORDPTR rplSymbImplode(WORDPTR exprstart)
+WORDPTR rplSymbImplode(WORDPTR *exprstart)
 {
 
     WORDPTR *stkptr=exprstart;
@@ -825,10 +837,9 @@ const WORD const mul_opcode[]={
 };
 
 
-WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
+WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object)
 {
     BINT numitems=rplSymbExplode(object);
-    BINT f;
     WORDPTR *stkptr,sobj,*endofstk;
 
     stkptr=DSTop-1;
@@ -1323,7 +1334,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
         if(*sobj==(CMD_OVR_MUL)) {
                 BINT nargs=OPCODE(**(stkptr-1))-1;
 
-                BINT c,orignargs=nargs;
+                BINT c;
                 WORDPTR *nextarg=stkptr-2;
                 WORDPTR *firstarg=nextarg;
                 WORDPTR *firstinv=0;
@@ -1474,7 +1485,7 @@ WORDPTR rplSymbExplodeCanonicalForm(WORDPTR object)
 // CONVERT A SYMBOLIC OBJECT TO CANONICAL FORM
 WORDPTR rplSymbCanonicalForm(WORDPTR object)
 {
-    WORDPTR result=rplSymbExplodeCanonicalForm(object);
+    WORDPTR *result=rplSymbExplodeCanonicalForm(object);
 
     if(!result) return 0;
 
@@ -1552,6 +1563,7 @@ BINT rplFractionSimplify()
         if(cmpReal(tmpbig,&RReg[5])<=0) {
             // THERE'S NO COMMON DIVISOR, RETURN UNMODIFIED
             // THIS IS <=0 SO IT CATCHES 0/0
+            Context.precdigits=previousprec;
             return 0;
         }
 
@@ -1563,7 +1575,7 @@ BINT rplFractionSimplify()
         RReg[5].flags|=numneg^denneg;
 
         // HERE RREG[5]=NEW NUMERATOR, RREG[6]=NEW DENOMINATOR
-
+        Context.precdigits=previousprec;
         }
         else {
             // JUST COMPUTE THE DIVISION
@@ -1589,6 +1601,7 @@ BINT rplFractionSimplify()
         }
         else { rplNewRealFromRRegPush(6); }
         if(Exceptions) { rplDropData(1); return 0; }
+
 
         rplOverwriteData(3,rplPeekData(1));
         rplOverwriteData(4,rplPeekData(2));
@@ -1772,7 +1785,7 @@ else {
     }
 
     // DENOMINATOR IS ONE
-    rplPushData(one_bint);
+    rplPushData((WORDPTR)one_bint);
 
 }
 
@@ -1815,7 +1828,7 @@ BINT rplFractionAdd()
 
     // CHECK SIGN OF THE NUMERATOR
     rplPushData(rplPeekData(2));
-    rplPushData(zero_bint);
+    rplPushData((WORDPTR)zero_bint);
     rplCallOvrOperator((CMD_OVR_LT));
 
     // RESULT OF COMPARISON OPERATORS IS ALWAYS A SINT OR A SYMBOLIC
@@ -1833,7 +1846,7 @@ BINT rplFractionAdd()
 
     // CHECK SIGN OF THE DENOMINATOR JUST IN CASE
     rplPushData(rplPeekData(1));
-    rplPushData(zero_bint);
+    rplPushData((WORDPTR)zero_bint);
     rplCallOvrOperator((CMD_OVR_LT));
 
     // RESULT OF COMPARISON OPERATORS IS ALWAYS A SINT OR A SYMBOLIC
@@ -1956,7 +1969,6 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
             // SCAN ALL NUMERIC FACTORS IN THE NUMERATOR AND MULTIPLY TOGETHER
 
 
-            WORDPTR *number;
             BINT nargs=OPCODE(**(stkptr-1))-1,redargs=0;
             WORDPTR *argptr=stkptr-2,*savedstop;
             BINT simplified=0,den_is_one=0,neg=0,approx=0;
@@ -2040,7 +2052,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
             Context.precdigits=origprec;
             }
-            else rplPushData(one_bint);     //  IF NO NUMERATOR, THEN MAKE IT = 1
+            else rplPushData((WORDPTR)one_bint);     //  IF NO NUMERATOR, THEN MAKE IT = 1
 
             // HERE WE HAVE A NUMERATOR RESULT IN THE STACK! KEEP IT THERE FOR NOW
 
@@ -2239,7 +2251,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         DSTop+=3;
                         ptr[1]=rplPeekData(1);  // STORE THE DENOMINATOR
                         ptr[2]=(WORDPTR)two_bint;
-                        ptr[3]=inverse_opcode;
+                        ptr[3]=(WORDPTR)inverse_opcode;
 
                     }
                     --DSTop;
@@ -2584,7 +2596,10 @@ BINT rplSymbCommutativeMatch(WORD Opcode,WORDPTR rulelist,WORDPTR objlist)
     // MATCH NEXT TERM IN rulelist WITH ANY OF THE REMAINDER TERMS IN objlist, SORTING AS NEEDED
     // IF THE TERM IN rulelist IS A SPECIAL IDENT, MATCH AS MANY TERMS IN objlist AS REQUESTED AND DEFINE THE VARIABLE
     // AT THE END OF rulelist, IF THERE ARE ANY UNMATCHED TERMS THERE IS A PARTIAL MATCH
-
+UNUSED_ARGUMENT(Opcode);
+UNUSED_ARGUMENT(rulelist);
+UNUSED_ARGUMENT(objlist);
+return 0;
 }
 
 
@@ -2635,7 +2650,7 @@ WORDPTR *ptr=stkptr;
 
 while(ptr!=endobj) {
     if(ISIDENT(**ptr)) {
-        BYTEPTR *string=(BYTEPTR *)(*ptr+1);
+        BYTEPTR string=(BYTEPTR)(*ptr+1);
         if(*string=='.') return 1;
     }
     --ptr;
@@ -2650,7 +2665,7 @@ BINT rplSymbIsSpecialIdent(WORDPTR ptr)
 {
 
     if(ISIDENT(*ptr)) {
-        BYTEPTR *string=(BYTEPTR *)(ptr+1);
+        BYTEPTR string=(BYTEPTR)(ptr+1);
         if(*string=='.') return 1;
     }
 return 0;
@@ -2719,12 +2734,12 @@ BINT rplSymbPushState(WORDPTR **savedstateptr,WORDPTR *ruleptr,WORDPTR *exprptr,
     if(RStkSize<=*savedstateptr-RStk+RSTKSLACK) growRStk((WORD)(*savedstateptr-RStk+RSTKSLACK+6));
     if(Exceptions) return 0;
 
-    (*savedstateptr)[0]=(WORDPTR *)ruleptr;
-    (*savedstateptr)[1]=(WORDPTR *)exprptr;
-    (*savedstateptr)[2]=(WORDPTR *)LAMTop;
-    (*savedstateptr)[3]=(WORDPTR *)listptr;
-    (*savedstateptr)[4]=(WORDPTR *)endoflist;
-    (*savedstateptr)[5]=(WORDPTR *)orderless;
+    (*savedstateptr)[0]=(WORDPTR)ruleptr;
+    (*savedstateptr)[1]=(WORDPTR)exprptr;
+    (*savedstateptr)[2]=(WORDPTR)LAMTop;
+    (*savedstateptr)[3]=(WORDPTR)listptr;
+    (*savedstateptr)[4]=(WORDPTR)endoflist;
+    (*savedstateptr)[5]=NUMBER2PTR(orderless);
     *savedstateptr+=6;
     return 1;
 }
@@ -2999,7 +3014,7 @@ partial_restart:
                 offset=-rplSymbDeleteInStack(runptr-2-matchargcount,runptr-2-matchargcount-listptr);
                 // INSERT A DUMMY TERM
                 offset+=rplSymbInsertInStack(listptr,1);
-                *(listptr+1)=zero_bint;
+                *(listptr+1)=(WORDPTR)zero_bint;
                 // AND REPLACE IT WITH THE RULE RESULT
                 offset+=rplSymbReplaceInStack(listptr+1,endofrule+offset);
 
@@ -3095,7 +3110,6 @@ partial_restart:
 
 BINT rplSymbIsRule(WORDPTR ptr)
 {
-WORDPTR obj;
 if(!ISSYMBOLIC(*ptr)) return 0;
 if(rplSymbMainOperator(ptr)==CMD_RULESEPARATOR) return 1;
 return 0;

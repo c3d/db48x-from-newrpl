@@ -196,10 +196,10 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
             rplPushData(item);
             rplPushData(ptr);
 
-            BINT nresults=cmdRunTransparent(CMD_OVR_XEQ,1,1);
+            BINT nresults=uiCmdRunTransparent(CMD_OVR_XEQ,1,1);
 
             if(nresults==1) ptr=rplPopData();
-            else ptr=empty_string;      // IF THE PROGRAM FAILED TO RETURN AN OBJECT, JUST USE THE EMPTY STRING
+            else ptr=(WORDPTR)empty_string;      // IF THE PROGRAM FAILED TO RETURN AN OBJECT, JUST USE THE EMPTY STRING
             item=rplPopData();  // RESTORE THE item POINTER IN CASE OF GC
             // CONTINUE HERE WITH THE NEW ptr
 
@@ -293,7 +293,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
     string=(BYTEPTR) (opname+1);
     skipn=0;
     totaln=rplStrLen(opname);
-    endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+    endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
     if(ISUNIT(ptrprolog)) {
         // TODO: SKIP THE NUMERIC PORTION, LEAVE JUST THE UNIT
@@ -311,7 +311,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
         string=(BYTEPTR) (ptr+1);
         skipn=0;
         totaln=rplStrLen(ptr);
-        endstring=utf8nskip(string,rplSkipOb(ptr),totaln);
+        endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(ptr),totaln);
     }
 
     // JUST DISPLAY THE STRING

@@ -11,9 +11,9 @@
 
 
 
-extern unsigned int __cpu_intoff();
-extern void __cpu_inton(unsigned int);
-extern void __tmr_eventreschedule();
+unsigned int __cpu_intoff();
+void __cpu_inton(unsigned int);
+void __tmr_eventreschedule();
 
 
 
@@ -32,18 +32,18 @@ int __keyb_repeattime __SYSTEM_GLOBAL__,__keyb_longpresstime __SYSTEM_GLOBAL__,_
 // LOW-LEVEL ROUTINE TO BE USED BY THE IRQ HANDLERS AND EXCEPTION
 // HANDLERS ONLY
 
-extern keymatrix __keyb_getmatrix();
+keymatrix __keyb_getmatrix();
 
 // WRAPPER TO DISABLE INTERRUPTS WHILE READING THE KEYBOARD
 // NEEDED ONLY WHEN CALLED FROM WITHIN AN EXCEPTION HANDLER
 
-extern keymatrix __keyb_getmatrixEX();
+keymatrix __keyb_getmatrixEX();
 
-extern void __keyb_waitrelease();
+void __keyb_waitrelease();
 
 // RETURNS THE CURRENT WORKING MATRIX INSTEAD OF
 // MESSING WITH THE HARDWARE, BUT ONLY IF KEYBOARD HANDLERS WERE STARTED
-extern keymatrix keyb_getmatrix();
+keymatrix keyb_getmatrix();
 
 
 // LOW-LEVEL FUNCTION TO BE USED BY THE

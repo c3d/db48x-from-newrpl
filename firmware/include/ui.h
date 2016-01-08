@@ -26,8 +26,10 @@ typedef int64_t BINT64;
 typedef uint64_t UBINT64;
 #if defined(__LP64__) || defined(_WIN64)
 typedef uint64_t PTR2NUMBER;
+#define NUMBER2PTR(a) ((WORDPTR)((UBINT64)a))
 #else
 typedef uint32_t PTR2NUMBER;
+#define NUMBER2PTR(a) ((WORDPTR)a)
 #endif
 
 
@@ -51,6 +53,8 @@ typedef uint32_t PTR2NUMBER;
 #endif
 
 
+// ERROR MESSAGES
+
 typedef struct {
     const WORD code;
     const char *text;
@@ -59,48 +63,72 @@ typedef struct {
 extern const MSGLIST all_messages[];
 
 
-extern BINT ui_visibleline,ui_nlines;
-extern BINT ui_currentline,ui_prevline;
-extern BINT ui_islinemodified;
-extern BINT ui_cursorx,ui_cursoroffset;
-extern BINT ui_visiblex;
+// COMMAND LINE
+
+BINT ui_visibleline,ui_nlines;
+BINT ui_currentline,ui_prevline;
+BINT ui_islinemodified;
+BINT ui_cursorx,ui_cursoroffset;
+BINT ui_visiblex;
 
 
-extern void uiSetCmdLineState(BINT state);
-extern BINT uiGetCmdLineState();
+void uiSetCmdLineState(BINT state);
+BINT uiGetCmdLineState();
 
-extern void uiEnsureCursorVisible();
-extern void uiModifyLine(int dontaddnewline);
-extern void uiExtractLine(BINT line);
-extern BYTEPTR uiFindNumberStart();
-extern WORDPTR uiGetCmdLineText();
-extern void uiSetCmdLineText(WORDPTR text);
-extern void uiOpenCmdLine(BINT mode);
-extern void uiCloseCmdLine();
-extern void uiInsertCharacters(BYTEPTR string);
-extern void uiInsertCharactersN(BYTEPTR string,BYTEPTR end);
-extern void uiRemoveCharacters(BINT length);
+void uiEnsureCursorVisible();
+void uiModifyLine(int dontaddnewline);
+void uiExtractLine(BINT line);
+BYTEPTR uiFindNumberStart();
+WORDPTR uiGetCmdLineText();
+void uiSetCmdLineText(WORDPTR text);
+void uiOpenCmdLine(BINT mode);
+void uiCloseCmdLine();
+void uiInsertCharacters(BYTEPTR string);
+void uiInsertCharactersN(BYTEPTR string,BYTEPTR end);
+void uiRemoveCharacters(BINT length);
 
-extern void uiStretchCmdLine(BINT addition);
-extern void uiAutocompleteUpdate();
-extern void uiAutocompNext();
+void uiStretchCmdLine(BINT addition);
+void uiAutocompleteUpdate();
+void uiAutocompNext();
+void uiAutocompPrev();
+void uiAutocompInsert();
 
-extern BYTEPTR uiAutocompStringStart();
-extern BYTEPTR uiAutocompStringEnd();
 
 
-extern void uiSeparateToken();
+BYTEPTR uiAutocompStringStart();
+BYTEPTR uiAutocompStringEnd();
 
-extern void uiMoveCursor(BINT offset);
-extern void uiCursorLeft(BINT nchars);
-extern void uiCursorRight(BINT nchars);
-extern void uiCursorDown(BINT nlines);
-extern void uiCursorUp(BINT nlines);
-extern void uiCursorEndOfLine();
-extern void uiCursorStartOfLine();
-extern void uiCursorStartOfText();
-extern void uiCursorEndOfText();
 
+void uiSeparateToken();
+
+void uiMoveCursor(BINT offset);
+void uiCursorLeft(BINT nchars);
+void uiCursorRight(BINT nchars);
+void uiCursorDown(BINT nlines);
+void uiCursorUp(BINT nlines);
+void uiCursorEndOfLine();
+void uiCursorStartOfLine();
+void uiCursorStartOfText();
+void uiCursorEndOfText();
+void uiCursorPageLeft();
+void uiCursorPageUp();
+void uiCursorPageDown();
+void uiCursorPageRight();
+
+
+
+// SOFT MENUS
+
+BINT uiCountMenuItems(WORD MenuCode,WORDPTR menu);
+WORDPTR uiGetLibMenu(WORD MenuCode);
+WORDPTR uiGetMenuItem(WORD MenuCode,WORDPTR menu,BINT item);
+WORDPTR uiGetMenuItemAction(WORDPTR item,BINT shift);
+WORDPTR uiGetMenuItemHelp(WORDPTR item);
+void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr);
+
+// RPL CODE EXECUTION FROM UI
+void uiCmdRun(WORD Opcode);
+BINT uiCmdRunTransparent(WORD Opcode,BINT nargs,BINT nresults);
 
 
 

@@ -543,7 +543,7 @@ void rplWarmInit(void)
 
 // INITIALIZE RPL ENGINE AFTER A POWER OFF
 // ASSUME ALL VARRIABLES IN MEMORY ARE VALID
-void rplHotInit(void)
+void rplHotInit()
 {
     int count;
 

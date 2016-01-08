@@ -694,7 +694,7 @@ void LIB_HANDLER()
 
         if(rows) rplNewBINTPush(rows,DECBINT);
         rplNewBINTPush(cols,DECBINT);
-        rplPushData((rows)? two_bint : one_bint);
+        rplPushData((WORDPTR)((rows)? two_bint : one_bint));
         rplCreateList();
 
 
@@ -767,7 +767,6 @@ void LIB_HANDLER()
         BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
 
         WORDPTR *matptr=DSTop-3;
-        WORDPTR elem;
 
         if( (nelem<1)||(nelem>cols+1)) {
             rplError(ERR_INDEXOUTOFBOUNDS);
@@ -915,7 +914,6 @@ void LIB_HANDLER()
         BINT nrows=(rows)? rows:1;
 
         WORDPTR *matptr=DSTop-2;
-        WORDPTR elem;
 
         if(cols<=1) {
             rplError(ERR_INVALIDDIMENSION);

@@ -454,12 +454,12 @@ void LIB_HANDLER()
         }
 
         if(scandir==Directories) {
-            rplPushData(home_opcode);
+            rplPushData((WORDPTR)home_opcode);
             ++nitems;
             if(Exceptions) { DSTop=stksave; return; }
         }
 
-        if(nitems==0) rplPushData(empty_list);
+        if(nitems==0) rplPushData((WORDPTR)empty_list);
         else {
             rplNewBINTPush(nitems,DECBINT);
             rplCreateList();

@@ -7,7 +7,7 @@
 
 #include <ui.h>
 
-typedef int size_t;
+typedef unsigned long size_t;
 
 #define INT_MAX 0x7fffffff
 #define INT_MIN (-INT_MAX -1)
@@ -219,7 +219,7 @@ int strncmp ( const char *s1, const char *s2, size_t num)
 }
 
 
-size_t stringlen(const char *s)
+int stringlen(const char *s)
 {
     int c = 0;
     while (*s++) c++;

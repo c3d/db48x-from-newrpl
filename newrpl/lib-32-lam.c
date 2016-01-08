@@ -144,7 +144,7 @@ const WORDPTR const ROMPTR_TABLE[]={
 
 
 
-extern BINT64 powersof10[20];
+BINT64 powersof10[20];
 
 
 
@@ -1051,7 +1051,7 @@ void LIB_HANDLER()
             // NOW REMOVE THE XEQSECO CONSTRUCT WITHOUT ENDING THE SECO
             *prevconst=*(prevconst+1);
 
-            rplDecompAppendString("«");
+            rplDecompAppendString((BYTEPTR)"«");
 
 
             RetNum=OK_ENDCONSTRUCT;

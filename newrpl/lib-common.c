@@ -150,7 +150,7 @@ void libGetRomptrID(BINT libnum,WORDPTR *table,WORDPTR ptr)
 
 void libGetPTRFromID(WORDPTR *table,WORD id)
 {
-    BINT idx;
+    BINT idx=0;
     while(table[idx]) ++idx;
     if(ROMPTRID_IDX(id)>=idx) {
         RetNum=ERR_NOTMINE;
@@ -173,7 +173,7 @@ void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds)
 
     WORD Prolog=SuggestedOpcode;
 
-    if(LIBNUM(Prolog)<libnum) {
+    if(LIBNUM(Prolog)<(WORD)libnum) {
         // COMMANDS ARE SUGGESTED BEFORE ANY OBJECTS
         // SO IF THE PREVIOUS RESULT WAS AN OBJECT, WE ARE DONE HERE
         RetNum=ERR_NOTMINE;

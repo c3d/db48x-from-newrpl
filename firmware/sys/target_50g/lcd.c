@@ -88,24 +88,6 @@ void lcd_sync()
     while( ((*LCDCON1)>>18) > 2) ;
 }
 
-void lcd_poweron()
-{
-__lcd_setmode(2,(int *)MEM_PHYS_SCREEN);    // set default values
-
-*IO_GPDDAT=0x300;
-
-// send unknown init commands to lcd
-__lcd_txbyte(0);
-__lcd_txbyte(0x27);
-__lcd_txbyte(0x65);
-
-lcd_setcontrast(__lcd_contrast);
-
-__lcd_fix();        // fix frequency and enable video
-
-lcd_on();
-
-}
 
 
 
@@ -287,3 +269,21 @@ return pagewidth;
 
 
 
+void lcd_poweron()
+{
+__lcd_setmode(2,(int *)MEM_PHYS_SCREEN);    // set default values
+
+*IO_GPDDAT=0x300;
+
+// send unknown init commands to lcd
+__lcd_txbyte(0);
+__lcd_txbyte(0x27);
+__lcd_txbyte(0x65);
+
+lcd_setcontrast(__lcd_contrast);
+
+__lcd_fix();        // fix frequency and enable video
+
+lcd_on();
+
+}

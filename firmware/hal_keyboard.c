@@ -319,9 +319,9 @@ void numberKeyHandler(BINT keymsg)
 
 }
 
-extern WORD cmdKeySeco[4];
+WORD cmdKeySeco[4];
 
-void cmdRun(WORD Opcode)
+void uiCmdRun(WORD Opcode)
 {
 WORDPTR obj=rplAllocTempOb(1);
 if(obj) {
@@ -351,7 +351,7 @@ else { if(rplRun()==NEEDS_CLEANUP) rplCleanup(); }
 // THE COMMAND RECEIVES nargs IN THE STACK AND RETURNS AT MOST nresults
 // IT RETURNS THE NUMBER OF RESULTS LEFT IN THE STACK
 
-BINT cmdRunTransparent(WORD Opcode,BINT nargs,BINT nresults)
+BINT uiCmdRunTransparent(WORD Opcode,BINT nargs,BINT nresults)
 {
 WORDPTR obj=rplAllocTempOb(1);
 if(obj) {
@@ -453,7 +453,7 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-                cmdRun(Opcode);
+                uiCmdRun(Opcode);
                 if(Exceptions) {
                     // TODO: SHOW ERROR MESSAGE
                     halShowErrorMsg();
@@ -474,7 +474,7 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
         {
 
                 if(endCmdLineAndCompile()) {
-                cmdRun(Opcode);
+                uiCmdRun(Opcode);
                 if(Exceptions) {
                     // TODO: SHOW ERROR MESSAGE
                     halShowErrorMsg();
@@ -499,7 +499,7 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
 
                 if(IsFunc==2) {
                     if(endCmdLineAndCompile()) {
-                        cmdRun(Opcode);
+                        uiCmdRun(Opcode);
                         if(Exceptions) {
                             // TODO: SHOW ERROR MESSAGE
                             halShowErrorMsg();
@@ -570,7 +570,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 }
                 // THIS IS A REGULAR VAR KEY
 
-                WORDPTR item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
+                WORDPTR item=uiGetMenuItem(mcode,menu,idx);
 
                 WORDPTR action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
                 WORD Opcode=0;
@@ -653,7 +653,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 }
                 }
 
-                if(Opcode) cmdRun(Opcode);
+                if(Opcode) uiCmdRun(Opcode);
                 if(Exceptions) {
                     // TODO: SHOW ERROR MESSAGE
                     halShowErrorMsg();
@@ -686,7 +686,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
         }
         // THIS IS A REGULAR VAR KEY
 
-        WORDPTR item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
+        WORDPTR item=uiGetMenuItem(mcode,menu,idx);
 
         WORDPTR action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
         WORD Opcode=0;
@@ -763,7 +763,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
                     BINT totaln=rplStrLen(opname);
-                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     uiSeparateToken();
                     uiInsertCharactersN(string,endstring);
@@ -826,7 +826,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         if(opname) {
                         BYTEPTR string=(BYTEPTR) (opname+1);
                         BINT totaln=rplStrLen(opname);
-                        BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+                        BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                         // IN ALGEBRAIC MODE, REMOVE THE TICK MARKS AND INSERT WITHOUT SEPARATION
                         // TO ALLOW PASTING EQUATIONS INTO OTHER EXPRESSIONS
@@ -870,7 +870,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         if(opname) {
                         BYTEPTR string=(BYTEPTR) (opname+1);
                         BINT totaln=rplStrLen(opname);
-                        BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+                        BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                         uiSeparateToken();
                         uiInsertCharactersN(string,endstring);
@@ -924,7 +924,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
                     BINT totaln=rplStrLen(opname);
-                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     uiSeparateToken();
                     uiInsertCharactersN(string,endstring);
@@ -994,7 +994,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
                     BINT totaln=rplStrLen(opname);
-                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     // REMOVE THE TICK MARKS IN ALG MODE
                     if((totaln>2)&&(string[0]=='\'')) {
@@ -1025,7 +1025,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
                     BINT totaln=rplStrLen(opname);
-                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     // REMOVE THE TICK MARKS IN ALG MODE
                     if((totaln>2)&&(string[0]=='\'')) {
@@ -1077,7 +1077,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
                     BINT totaln=rplStrLen(opname);
-                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     if( (totaln>2)&&(string[0]=='1')&&(string[1]=='_')) string+=2;
 
@@ -1104,7 +1104,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
                     BINT totaln=rplStrLen(opname);
-                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     uiSeparateToken();
                     uiInsertCharactersN(string,endstring);
@@ -1168,7 +1168,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
                     BINT totaln=rplStrLen(opname);
-                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     uiInsertCharactersN(string,endstring);
                     if(TI_TYPE(tokeninfo)==TITYPE_FUNCTION) {
@@ -1197,7 +1197,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
                     BINT totaln=rplStrLen(opname);
-                    BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     uiSeparateToken();
                     uiInsertCharactersN(string,endstring);
@@ -1264,7 +1264,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                 BYTEPTR string=(BYTEPTR) (opname+1);
                 BINT totaln=rplStrLen(opname);
-                BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+                BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                 uiInsertCharactersN(string,endstring);
                 if(TI_TYPE(tokeninfo)==TITYPE_FUNCTION) {
@@ -1293,7 +1293,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                 BYTEPTR string=(BYTEPTR) (opname+1);
                 BINT totaln=rplStrLen(opname);
-                BYTEPTR endstring=utf8nskip(string,rplSkipOb(opname),totaln);
+                BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                 uiSeparateToken();
                 uiInsertCharactersN(string,endstring);
@@ -1312,7 +1312,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
         }
         }
 
-        if(Opcode) cmdRun(Opcode);
+        if(Opcode) uiCmdRun(Opcode);
         if(Exceptions) {
             // TODO: SHOW ERROR MESSAGE
             halShowErrorMsg();
@@ -1366,6 +1366,8 @@ if(!(halGetContext()&CONTEXT_INEDITOR)) {
 
 void VarMenuKeyHandler(BINT keymsg)
 {
+    UNUSED_ARGUMENT(keymsg);
+
     // SIMPLY TOGGLE THE MENU UPON PRESS
     if(halScreen.Menu2) halSetMenu2Height(0);
     else halSetMenu2Height(MENU2_HEIGHT);
@@ -1790,7 +1792,7 @@ void chsKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-                cmdRun((CMD_OVR_NEG));
+                uiCmdRun((CMD_OVR_NEG));
                 if(Exceptions) {
                     // TODO: SHOW ERROR MESSAGE
                     halShowErrorMsg();
@@ -1823,7 +1825,7 @@ void chsKeyHandler(BINT keymsg)
             if((halScreen.CursorState&0xff)=='D') {
             // COMPILE AND EXECUTE NEG
             if(endCmdLineAndCompile()) {
-            cmdRun((CMD_OVR_NEG));
+            uiCmdRun((CMD_OVR_NEG));
             if(Exceptions) {
                 // TODO: SHOW ERROR MESSAGE
                 halShowErrorMsg();
@@ -2217,7 +2219,7 @@ void underscoreKeyHandler(BINT keymsg)
     symbolKeyHandler(keymsg,(BYTEPTR)"_",0);
 
     if(halGetCmdLineMode()=='A') {
-     uiInsertCharacters("[]");
+     uiInsertCharacters((BYTEPTR)"[]");
      uiCursorLeft(1);
     }
     else {

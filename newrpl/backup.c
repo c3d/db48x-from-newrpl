@@ -255,10 +255,10 @@ BINT rplRestoreBackup(WORD (*readfunc)())
 
     // NOW DETERMINE THE POINTERS
 
-    sections[0].start=TempBlocks;
+    sections[0].start=(WORDPTR)TempBlocks;
     sections[1].start=TempOb;
     sections[2].start=TempOb+sections[1].nitems;
-    sections[3].start=Directories;
+    sections[3].start=(WORDPTR)Directories;
 
 
     // TODO: ADD OTHER SECTIONS HERE (STACKS, ETC)
@@ -373,10 +373,10 @@ BINT rplRestoreBackupMessedup(WORD (*readfunc)())
 
     // NOW DETERMINE THE POINTERS
 
-    sections[0].start=TempBlocks;
+    sections[0].start=(WORDPTR)TempBlocks;
     sections[1].start=TempOb;
     sections[2].start=TempOb+sections[1].nitems;
-    sections[3].start=Directories;
+    sections[3].start=(WORDPTR)Directories;
 
 
     // TODO: ADD OTHER SECTIONS HERE (STACKS, ETC)

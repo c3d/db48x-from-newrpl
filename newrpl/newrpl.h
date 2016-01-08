@@ -29,14 +29,16 @@ typedef int64_t BINT64;
 typedef uint64_t UBINT64;
 #if defined(__LP64__) || defined(_WIN64)
 typedef uint64_t PTR2NUMBER;
+#define NUMBER2PTR(a) ((WORDPTR)((UBINT64)a))
 #else
 typedef uint32_t PTR2NUMBER;
+#define NUMBER2PTR(a) ((WORDPTR)a)
 #endif
 
 
 
 #ifdef __cplusplus
-extern "C" {
+"C" {
 #endif
 
 // CONSTANTS THAT CONTROL THE MAIN RPL ENGINE
@@ -114,116 +116,106 @@ typedef struct {
 
 
 
-// INTERNAL TRANSCENDENTAL FUNCTIONS
-void hyp_exp(REAL *);
-void hyp_ln(REAL *);
-void hyp_log(REAL *);
-void hyp_alog(REAL *);
-
-void powReal(REAL *result,REAL *x,REAL *a);
-
-
-void hyp_sqrt(REAL *);
-void hyp_sinhcosh(REAL *);
-void hyp_atanh(REAL *);
-void hyp_asinh(REAL *);
-void hyp_acosh(REAL *);
-
-void trig_sincos(REAL *,BINT angmode);
-void trig_atan2(REAL *, REAL *, BINT angmode);
-void trig_asin(REAL *,BINT angmode);
-void trig_acos(REAL *, BINT angmode);
 
 
 // ERROR MANAGEMENT FUNCTIONS
-extern void decTrapHandler(BINT error);
-extern void rplSetExceptionHandler(WORDPTR Handler);
-extern void rplRemoveExceptionHandler();
-extern void rplCatchException();
+void decTrapHandler(BINT error);
+void rplSetExceptionHandler(WORDPTR Handler);
+void rplRemoveExceptionHandler();
+void rplCatchException();
 
 // ERROR TRIGGER FUNCTIONS
-extern void rplError(WORD errorcode);
-extern void rplException(WORD exception);
-extern void rplClearErrors();
-extern void rplBlameUserCommand();
-extern void rplBlameError(WORDPTR command);
+void rplError(WORD errorcode);
+void rplException(WORD exception);
+void rplClearErrors();
+void rplBlameUserCommand();
+void rplBlameError(WORDPTR command);
 
 
 #define NEEDS_CLEANUP   1
 
 // ENVIRONMENT FUNCTIONS IN RUNSTREAM.C
-extern void rplInit(void);
-extern void rplSetEntryPoint(WORDPTR ip);
-extern BINT rplRun(void);
+void rplInit();
+void rplWarmInit();
+void rplHotInit();
+void rplSetEntryPoint(WORDPTR ip);
+BINT rplRun();
 void rplCleanup();
 
 
 
 // LIBRARY LOW-LEVEL ACCESS FUNCTIONS
-extern LIBHANDLER rplGetLibHandler(BINT libnum);
-extern BINT rplGetNextLib(BINT libnum);
+LIBHANDLER rplGetLibHandler(BINT libnum);
+BINT rplGetNextLib(BINT libnum);
 
 // BASIC GENERIC OBJECT FUNCTIONS
-extern WORDPTR rplSkipOb(WORDPTR ip);
-extern void rplSkipNext();
-extern WORD rplObjSize(WORDPTR ip);
+WORDPTR rplSkipOb(WORDPTR ip);
+void rplSkipNext();
+WORD rplObjSize(WORDPTR ip);
 
 
 
 // TEMPOB MEMORY MANAGEMENT IN TEMPOB.C
 
-extern WORDPTR rplAllocTempOb(WORD size);
-extern void rplTruncateLastObject(WORDPTR newend);
-extern void rplResizeLastObject(WORD additionalsize);
-extern void growTempOb(WORD newtotalsize);
-extern void shrinkTempOb(WORD newtotalsize);
-extern void rplAddTempBlock(WORDPTR block);
-extern void growTempBlocks(WORD newtotalsize);
-extern void shrinkTempBlocks(WORD newtotalsize);
+WORDPTR rplAllocTempOb(WORD size);
+void rplTruncateLastObject(WORDPTR newend);
+void rplResizeLastObject(WORD additionalsize);
+void growTempOb(WORD newtotalsize);
+void shrinkTempOb(WORD newtotalsize);
+void rplAddTempBlock(WORDPTR block);
+void growTempBlocks(WORD newtotalsize);
+void shrinkTempBlocks(WORD newtotalsize);
 
 
 // COMPILER FUNCTIONS IN COMPILER.C
 
 
-extern WORDPTR rplCompile(BYTEPTR string, BINT len, BINT addwrapper);
-extern void rplCompileAppend(WORD word);
-extern WORDPTR rplCompileAppendWords(BINT nwords);
-extern void rplCompileRemoveWords(BINT nwords);
+WORDPTR rplCompile(BYTEPTR string, BINT len, BINT addwrapper);
+void rplCompileAppend(WORD word);
+WORDPTR rplCompileAppendWords(BINT nwords);
+void rplCompileRemoveWords(BINT nwords);
 
 #define DECOMP_EMBEDDED     1
 #define DECOMP_EDIT         2
 
 
 // DECOMPILER FUNCTIONS
-extern WORDPTR rplDecompile(WORDPTR object, BINT flags);
-extern void rplDecompAppendChar(BYTE c);
-extern void rplDecompAppendString(BYTEPTR str);
-extern void rplDecompAppendString2(BYTEPTR str,BINT len);
+WORDPTR rplDecompile(WORDPTR object, BINT flags);
+void rplDecompAppendChar(BYTE c);
+void rplDecompAppendString(BYTEPTR str);
+void rplDecompAppendString2(BYTEPTR str,BINT len);
 
 
 
 // DATA STACK FUNCTIONS IN DATASTACK.C
 
-extern void rplPushData(WORDPTR p);
-extern void rplPushDataNoGrow(WORDPTR p);
-extern WORDPTR rplPopData();
-extern WORDPTR rplPeekData(int level);
-extern void rplOverwriteData(int level,WORDPTR ptr);
-extern BINT rplDepthData();
-extern void rplClearData();
-extern void rplDropData(int n);
-extern void rplExpandStack(BINT numobjects);
-extern void growDStk(WORD newsize);
-extern WORDPTR *rplProtectData();
-extern WORDPTR *rplUnprotectData();
+void rplPushData(WORDPTR p);
+void rplPushDataNoGrow(WORDPTR p);
+WORDPTR rplPopData();
+WORDPTR rplPeekData(int level);
+void rplOverwriteData(int level,WORDPTR ptr);
+BINT rplDepthData();
+void rplClearData();
+void rplDropData(int n);
+void rplExpandStack(BINT numobjects);
+void growDStk(WORD newsize);
+WORDPTR *rplProtectData();
+WORDPTR *rplUnprotectData();
 
 
 // SNAPSHOT FUNCTIONS THAT SAVE/RESTORE THE STACK
-extern BINT rplCountSnapshots();
-extern void rplTakeSnapshot();
-extern void rplRemoveSnapshot(BINT numsnap);
-extern void rplRestoreSnapshot(BINT numsnap);
-extern void rplRevertToSnapshot(BINT numsnap);
+BINT rplCountSnapshots();
+void rplTakeSnapshot();
+void rplRemoveSnapshot(BINT numsnap);
+void rplRestoreSnapshot(BINT numsnap);
+void rplRevertToSnapshot(BINT numsnap);
+void rplTakeSnapshotN(BINT nargs);
+void rplTakeSnapshotAndClear();
+BINT rplDepthSnapshot(BINT numsnap);
+WORDPTR rplPeekSnapshot(BINT numsnap,BINT level);
+
+
+
 
 
 
@@ -233,267 +225,286 @@ extern void rplRevertToSnapshot(BINT numsnap);
 
 // RETURN STACK FUNCTIONS IN RETURNSTACK.C
 
-extern void rplPushRet(WORDPTR p);
-extern WORDPTR rplPopRet();
-extern void growRStk(WORD newsize);
-extern WORDPTR rplPeekRet(int level);
-extern void rplClearRStk();
-extern BINT rplDepthRet();
+void rplPushRet(WORDPTR p);
+WORDPTR rplPopRet();
+void growRStk(WORD newsize);
+WORDPTR rplPeekRet(int level);
+void rplClearRStk();
+BINT rplDepthRet();
 
 
 // SYSTEM FLAGS
-extern BINT rplSetSystemFlag(BINT flag);
-extern BINT rplSetSystemFlagByName(BYTEPTR name,BYTEPTR nameend);
-extern BINT rplSetSystemFlagByIdent(WORDPTR ident);
-extern BINT rplClrSystemFlag(BINT flag);
-extern BINT rplClrSystemFlagByName(BYTEPTR name, BYTEPTR nameend);
-extern BINT rplClrSystemFlagByIdent(WORDPTR ident);
-extern BINT rplTestSystemFlag(BINT flag);
-extern BINT rplTestSystemFlagByName(BYTEPTR name, BYTEPTR nameend);
-extern BINT rplTestSystemFlagByIdent(WORDPTR ident);
+BINT rplSetSystemFlag(BINT flag);
+BINT rplSetSystemFlagByName(BYTEPTR name,BYTEPTR nameend);
+BINT rplSetSystemFlagByIdent(WORDPTR ident);
+BINT rplClrSystemFlag(BINT flag);
+BINT rplClrSystemFlagByName(BYTEPTR name, BYTEPTR nameend);
+BINT rplClrSystemFlagByIdent(WORDPTR ident);
+BINT rplTestSystemFlag(BINT flag);
+BINT rplTestSystemFlagByName(BYTEPTR name, BYTEPTR nameend);
+BINT rplTestSystemFlagByIdent(WORDPTR ident);
 
-extern WORD rplGetSystemLocale();
-extern void rplGetSystemNumberFormat(NUMFORMAT *fmt);
-extern void rplSetSystemNumberFormat(NUMFORMAT *fmt);
+WORD rplGetSystemLocale();
+void rplGetSystemNumberFormat(NUMFORMAT *fmt);
+void rplSetSystemNumberFormat(NUMFORMAT *fmt);
 
 // SYSTEM SOFT MENUS
 void rplSetMenuCode(BINT menunumber,WORD menucode);
 WORD rplGetMenuCode(BINT menunumber);
 
+// SYSTEM AUTOCOMPLETE
+WORD rplGetNextSuggestion(WORD suggestion, BYTEPTR start, BYTEPTR end);
+WORD rplGetPrevSuggestion(WORD suggestion,BYTEPTR start,BYTEPTR end);
+WORD rplUpdateSuggestion(WORD suggestion,BYTEPTR start,BYTEPTR end);
 
 
 
 // GARBAGE COLLECTION
-extern void rplGCollect();
+void rplGCollect();
 
 // BACKUP/RESTORE
-extern BINT rplBackup(void (*writefunc)(unsigned int));
-extern BINT rplRestoreBackup(WORD (*readfunc)());
+BINT rplBackup(void (*writefunc)(unsigned int));
+BINT rplRestoreBackup(WORD (*readfunc)());
 
 
 // SYSTEM SANITY CHECKS
-extern BINT rplVerifyObject(WORDPTR obj);
-extern BINT rplIsTempObPointer(WORDPTR ptr);
-extern BINT rplVerifyObjPointer(WORDPTR ptr);
-extern BINT rplVerifyDStack(BINT fix);
-extern BINT rplVerifyRStack();
-extern BINT rplVerifyTempOb(BINT fix);
-extern BINT rplVerifyDirectories(BINT fix);
+BINT rplVerifyObject(WORDPTR obj);
+BINT rplIsTempObPointer(WORDPTR ptr);
+BINT rplVerifyObjPointer(WORDPTR ptr);
+BINT rplVerifyDStack(BINT fix);
+BINT rplVerifyRStack();
+BINT rplVerifyTempOb(BINT fix);
+BINT rplVerifyDirectories(BINT fix);
 
 
 
 //IDENTIFIER FUNCTIONS
-extern BINT rplGetIdentLength(WORDPTR ident);
-extern void rplCompileIDENT(BINT libnum, BYTEPTR tok, BYTEPTR tokend);
-extern WORDPTR rplCreateIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend);
-extern BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend);
+BINT rplGetIdentLength(WORDPTR ident);
+void rplCompileIDENT(BINT libnum, BYTEPTR tok, BYTEPTR tokend);
+WORDPTR rplCreateIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend);
+BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend);
 
 
 
 
 // LAM FUNCTIONS
-extern void growLAMs(WORD newtotalsize);
-extern void rplCreateLAMEnvironment(WORDPTR owner);
-extern BINT rplCreateLAM(WORDPTR nameobj,WORDPTR value);
-extern BINT rplCompareIDENT(WORDPTR id1,WORDPTR id2);
-extern BINT rplCompareIDENTByName(WORDPTR id1, BYTEPTR name, BYTEPTR nameend);
-extern BINT rplCompareObjects(WORDPTR id1,WORDPTR id2);
-extern WORDPTR rplGetLAM(WORDPTR nameobj);
-extern WORDPTR *rplGetLAMn(BINT idx);
-extern WORDPTR *rplGetLAMnName(BINT idx);
-extern WORDPTR *rplGetLAMnEnv(WORDPTR *LAMEnv, BINT idx);
-extern WORDPTR *rplGetLAMnNameEnv(WORDPTR *LAMEnv, BINT idx);
-extern void rplPutLAMn(BINT idx,WORDPTR object);
-extern void rplCleanupLAMs(WORDPTR currentseco);
-extern void rplClearLAMs();
-extern WORDPTR *rplFindLAM(WORDPTR nameobj, BINT scanparents);
-extern WORDPTR *rplFindLAMbyName(BYTEPTR name,BINT len,BINT scanparents);
-extern WORDPTR *rplGetNextLAMEnv(WORDPTR *startpoint);
-extern BINT rplNeedNewLAMEnv();
-extern BINT rplNeedNewLAMEnvCompiler();
-extern BINT rplLAMCount(WORDPTR *LAMEnvironment);
+void growLAMs(WORD newtotalsize);
+void rplCreateLAMEnvironment(WORDPTR owner);
+BINT rplCreateLAM(WORDPTR nameobj,WORDPTR value);
+BINT rplCompareIDENT(WORDPTR id1,WORDPTR id2);
+BINT rplCompareIDENTByName(WORDPTR id1, BYTEPTR name, BYTEPTR nameend);
+BINT rplCompareObjects(WORDPTR id1,WORDPTR id2);
+WORDPTR rplGetLAM(WORDPTR nameobj);
+WORDPTR *rplGetLAMn(BINT idx);
+WORDPTR *rplGetLAMnName(BINT idx);
+WORDPTR *rplGetLAMnEnv(WORDPTR *LAMEnv, BINT idx);
+WORDPTR *rplGetLAMnNameEnv(WORDPTR *LAMEnv, BINT idx);
+void rplPutLAMn(BINT idx,WORDPTR object);
+void rplCleanupLAMs(WORDPTR currentseco);
+void rplClearLAMs();
+WORDPTR *rplFindLAM(WORDPTR nameobj, BINT scanparents);
+WORDPTR *rplFindLAMbyName(BYTEPTR name,BINT len,BINT scanparents);
+WORDPTR *rplGetNextLAMEnv(WORDPTR *startpoint);
+BINT rplNeedNewLAMEnv();
+BINT rplNeedNewLAMEnvCompiler();
+BINT rplLAMCount(WORDPTR *LAMEnvironment);
 
 
 // GLOBAL VARIABLES AND DIRECTORY FUNCTIONS
-extern void growDirs(WORD newtotalsize);
-extern WORDPTR rplMakeIdentQuoted(WORDPTR ident);
-extern void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir);
-extern void rplCreateGlobal(WORDPTR nameobj,WORDPTR value);
-extern void rplPurgeGlobal(WORDPTR nameobj);
-extern WORDPTR *rplFindDirbyHandle(WORDPTR handle);
-extern WORDPTR rplCreateNewDir(WORDPTR nameobj, WORDPTR *parentdir);
-extern WORDPTR *rplGetParentDir(WORDPTR *directory);
+void growDirs(WORD newtotalsize);
+WORDPTR rplMakeIdentQuoted(WORDPTR ident);
+void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir);
+void rplCreateGlobal(WORDPTR nameobj,WORDPTR value);
+void rplPurgeGlobal(WORDPTR nameobj);
+WORDPTR *rplFindDirbyHandle(WORDPTR handle);
+WORDPTR rplCreateNewDir(WORDPTR nameobj, WORDPTR *parentdir);
+void rplPurgeDir(WORDPTR nameobj);
+WORDPTR *rplGetParentDir(WORDPTR *directory);
 // VARIOUS WAYS TO RCL GLOBAL VARIABLES
-extern WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name, BYTEPTR nameend, WORDPTR *parent, BINT scanparents);
-extern WORDPTR *rplFindGlobalbyName(BYTEPTR name, BYTEPTR nameend, BINT scanparents);
-extern WORDPTR *rplFindGlobalByIndexInDir(BINT idx,WORDPTR *directory);
-extern WORDPTR *rplFindGlobalByIndex(BINT idx);
-extern WORDPTR *rplFindGlobalInDir(WORDPTR nameobj,WORDPTR *parentdir,BINT scanparents);
-extern WORDPTR *rplFindGlobal(WORDPTR nameobj,BINT scanparents);
-extern WORDPTR *rplFindVisibleGlobalByIndexInDir(BINT idx,WORDPTR *directory);
-extern WORDPTR *rplFindVisibleGlobalByIndex(BINT idx);
+WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name, BYTEPTR nameend, WORDPTR *parent, BINT scanparents);
+WORDPTR *rplFindGlobalbyName(BYTEPTR name, BYTEPTR nameend, BINT scanparents);
+WORDPTR *rplFindGlobalByIndexInDir(BINT idx,WORDPTR *directory);
+WORDPTR *rplFindGlobalByIndex(BINT idx);
+WORDPTR *rplFindGlobalInDir(WORDPTR nameobj,WORDPTR *parentdir,BINT scanparents);
+WORDPTR *rplFindGlobal(WORDPTR nameobj,BINT scanparents);
+WORDPTR *rplFindVisibleGlobalByIndexInDir(BINT idx,WORDPTR *directory);
+WORDPTR *rplFindVisibleGlobalByIndex(BINT idx);
 // DIRECTORY SCANNING AND LOWER-LEVEL ACCESS
 WORDPTR *rplFindFirstInDir(WORDPTR dirhandle);
 WORDPTR *rplFindNext(WORDPTR *direntry);
-extern BINT rplGetVarCountInDir(WORDPTR *directory);
-extern BINT rplGetVarCount();
-extern BINT rplGetVisibleVarCountInDir(WORDPTR *directory);
-extern BINT rplGetVisibleVarCount();
+BINT rplGetVarCountInDir(WORDPTR *directory);
+BINT rplGetVarCount();
+BINT rplGetVisibleVarCountInDir(WORDPTR *directory);
+BINT rplGetVisibleVarCount();
 
-extern WORDPTR rplGetGlobal(WORDPTR nameobj);
-extern WORDPTR *rplMakeNewDir();
-extern WORDPTR rplGetDirName(WORDPTR *dir);
-extern WORDPTR *rplGetDirfromGlobal(WORDPTR *var);
-extern WORDPTR *rplDeepCopyDir(WORDPTR *sourcedir);
-extern void rplWipeDir(WORDPTR *directory);
-
+WORDPTR rplGetGlobal(WORDPTR nameobj);
+WORDPTR *rplMakeNewDir();
+WORDPTR rplGetDirName(WORDPTR *dir);
+WORDPTR *rplGetDirfromGlobal(WORDPTR *var);
+WORDPTR *rplDeepCopyDir(WORDPTR *sourcedir);
+void rplWipeDir(WORDPTR *directory);
+void rplPurgeForced(WORDPTR *var);
 
 // FUNCTIONS SPECIFIC FOR THE .Settings DIRECTORY
-extern void rplStoreSettings(WORDPTR nameobject,WORDPTR object);
-extern void rplStoreSettingsbyName(BYTEPTR name, BYTEPTR nameend, WORDPTR object);
-extern WORDPTR rplGetSettings(WORDPTR nameobject);
-extern WORDPTR rplGetSettingsbyName(BYTEPTR name, BYTEPTR nameend);
+void rplStoreSettings(WORDPTR nameobject,WORDPTR object);
+void rplStoreSettingsbyName(BYTEPTR name, BYTEPTR nameend, WORDPTR object);
+WORDPTR rplGetSettings(WORDPTR nameobject);
+WORDPTR rplGetSettingsbyName(BYTEPTR name, BYTEPTR nameend);
 
 
 
 
 // GENERIC OBJECT FUNCTIONS
-extern void rplCallOvrOperator(WORD op);
-extern void rplCallOperator(WORD op);
-extern void rplCopyObject(WORDPTR dest, WORDPTR src);
-extern WORDPTR rplMakeNewCopy(WORDPTR object);
+void rplCallOvrOperator(WORD op);
+void rplCallOperator(WORD op);
+void rplCopyObject(WORDPTR dest, WORDPTR src);
+WORDPTR rplMakeNewCopy(WORDPTR object);
 
 
 // BINT FUNCTIONS
-extern WORDPTR rplNewSINT(int num,int base);
-extern WORDPTR rplNewBINT(BINT64 num,int base);
-extern void rplNewSINTPush(int num,int base);
-extern void rplNewBINTPush(BINT64 num,int base);
-extern BINT64 rplReadBINT(WORDPTR ptr);
-extern WORDPTR rplWriteBINT(BINT64 num,int base,WORDPTR dest);
-extern void rplCompileBINT(BINT64 num,int base);
+WORDPTR rplNewSINT(int num,int base);
+WORDPTR rplNewBINT(BINT64 num,int base);
+void rplNewSINTPush(int num,int base);
+void rplNewBINTPush(BINT64 num,int base);
+BINT64 rplReadBINT(WORDPTR ptr);
+WORDPTR rplWriteBINT(BINT64 num,int base,WORDPTR dest);
+void rplCompileBINT(BINT64 num,int base);
 
 
 // TRUE/FALSE FUNCTIONS
-extern void rplPushFalse();
-extern void rplPushTrue();
-extern BINT rplIsFalse(WORDPTR objptr);
-extern BINT rplIsTrue(WORDPTR objptr);
+void rplPushFalse();
+void rplPushTrue();
+BINT rplIsFalse(WORDPTR objptr);
+BINT rplIsTrue(WORDPTR objptr);
 
 
 // REAL FUNCTIONS
-extern void rplOneToRReg(int num);
-extern void rplZeroToRReg(int num);
-extern void rplInfinityToRReg(int num);
-extern void rplNANToRReg(int num);
-extern void rplBINTToRReg(int num,BINT64 value);
-extern void rplSwapRReg(int reg1,int reg2);
-extern void rplReadReal(WORDPTR real,REAL *dec);
-extern void rplCopyRealToRReg(int num,WORDPTR real);
-extern WORDPTR rplNewReal(REAL *num);
-extern WORDPTR rplNewRealInPlace(REAL *num,WORDPTR addr);
-extern WORDPTR rplNewRealFromRReg(int num);
-extern void rplNewRealPush(REAL *num);
-extern void rplNewRealFromRRegPush(int num);
-extern void rplNewApproxRealFromRRegPush(int num);
-extern WORDPTR rplRRegToRealInPlace(int num, WORDPTR dest);
-extern void rplCheckResultAndError(REAL *real);
-extern void rplCompileReal(REAL *num);
+void rplOneToRReg(int num);
+void rplZeroToRReg(int num);
+void rplInfinityToRReg(int num);
+void rplNANToRReg(int num);
+void rplBINTToRReg(int num,BINT64 value);
+void rplSwapRReg(int reg1,int reg2);
+void rplReadReal(WORDPTR real,REAL *dec);
+void rplCopyRealToRReg(int num,WORDPTR real);
+WORDPTR rplNewReal(REAL *num);
+WORDPTR rplNewRealInPlace(REAL *num,WORDPTR addr);
+WORDPTR rplNewRealFromRReg(int num);
+void rplNewRealPush(REAL *num);
+void rplNewRealFromRRegPush(int num);
+void rplNewApproxRealFromRRegPush(int num);
+WORDPTR rplRRegToRealInPlace(int num, WORDPTR dest);
+void rplCheckResultAndError(REAL *real);
+void rplCompileReal(REAL *num);
 
 
 // COMPLEX FUNCTIONS
-extern void rplRealPart(WORDPTR complex,REAL *real);
-extern void rplImaginaryPart(WORDPTR complex,REAL *imag);
-extern void rplReadCNumberAsReal(WORDPTR complex,REAL *real);
-extern void rplReadCNumberAsImag(WORDPTR complex,REAL *imag);
-extern void rplNewComplexPush(REAL *real,REAL *imag);
-extern void rplRRegToComplexPush(BINT real,BINT imag);
-extern WORDPTR rplRRegToComplexInPlace(BINT real,BINT imag,WORDPTR dest);
+void rplRealPart(WORDPTR complex,REAL *real);
+void rplImaginaryPart(WORDPTR complex,REAL *imag);
+void rplReadCNumberAsReal(WORDPTR complex,REAL *real);
+void rplReadCNumberAsImag(WORDPTR complex,REAL *imag);
+void rplNewComplexPush(REAL *real,REAL *imag);
+void rplRRegToComplexPush(BINT real,BINT imag);
+WORDPTR rplRRegToComplexInPlace(BINT real,BINT imag,WORDPTR dest);
 
 
 
 // GENERIC FUNCTIONS FOR BINTS AND REALS
-extern void rplNumberToRReg(int num,WORDPTR number);
-extern BINT64 rplReadNumberAsBINT(WORDPTR number);
-extern void rplReadNumberAsReal(WORDPTR number,REAL*dec);
+void rplNumberToRReg(int num,WORDPTR number);
+BINT64 rplReadNumberAsBINT(WORDPTR number);
+void rplReadNumberAsReal(WORDPTR number,REAL*dec);
 
 
 // UNIT FUNCTIONS
-extern BINT rplUnitExplode(WORDPTR unitobj);
-extern WORDPTR rplUnitAssemble(BINT nlevels);
-extern BINT rplUnitPopItem(BINT level);
-extern void rplUnitPickItem(BINT level);
-extern BINT rplUnitMulItem(BINT level1,BINT level2);
-extern void rplUnitPowItem(BINT level1,BINT level2);
-extern BINT rplUnitSkipItem(BINT level);
-extern BINT rplUnitSimplify(BINT nlevels);
-extern BINT rplUnitDivide(BINT numlvl,BINT divlvl);
-extern void rplUnitInvert(BINT level);
-extern BINT rplUnitExpand(BINT level);
-extern BINT rplUnitToBase(BINT nlevels);
-extern BINT rplUnitSort(BINT nlevels, BINT reflevel);
-extern BINT rplUnitIsConsistent(BINT nlevels,BINT reflevel);
+BINT rplUnitExplode(WORDPTR unitobj);
+WORDPTR rplUnitAssemble(BINT nlevels);
+BINT rplUnitPopItem(BINT level);
+void rplUnitPickItem(BINT level);
+BINT rplUnitMulItem(BINT level1,BINT level2);
+void rplUnitPowItem(BINT level1,BINT level2);
+BINT rplUnitSkipItem(BINT level);
+BINT rplUnitSimplify(BINT nlevels);
+BINT rplUnitDivide(BINT numlvl,BINT divlvl);
+void rplUnitInvert(BINT level);
+BINT rplUnitExpand(BINT level);
+BINT rplUnitToBase(BINT nlevels);
+BINT rplUnitSort(BINT nlevels, BINT reflevel);
+BINT rplUnitIsConsistent(BINT nlevels,BINT reflevel);
+BINT rplUnitPow(BINT lvlexp,BINT nlevels);
 
-extern BINT rplUnitIsSpecial(WORDPTR unitobj);
-extern void rplUnitReplaceSpecial(BINT nlevels);
-extern void rplUnitReverseReplaceSpecial(BINT nlevels);
+
+BINT rplUnitIsSpecial(WORDPTR unitobj);
+void rplUnitReplaceSpecial(BINT nlevels);
+void rplUnitReverseReplaceSpecial(BINT nlevels);
+void rplUnitReverseReplaceSpecial2(BINT isspec_idx);
+void rplUnitSpecialToDelta(BINT nlevels);
+WORDPTR *rplUnitFindCustom(WORDPTR ident,BINT *siindex);
 
 
 
 // LIST FUNCTIONS
-extern BINT rplListLength(WORDPTR composite);
-extern BINT rplListLengthFlat(WORDPTR composite);
-extern void rplCreateList();
-extern BINT rplExplodeList(WORDPTR composite);
-extern WORDPTR rplGetListElement(WORDPTR composite, BINT pos);
-extern WORDPTR rplGetListElementFlat(WORDPTR composite, BINT pos);
-extern BINT rplIsLastElementFlat(WORDPTR composite, BINT pos);
+BINT rplListLength(WORDPTR composite);
+BINT rplListLengthFlat(WORDPTR composite);
+void rplCreateList();
+BINT rplExplodeList(WORDPTR composite);
+WORDPTR rplGetListElement(WORDPTR composite, BINT pos);
+WORDPTR rplGetListElementFlat(WORDPTR composite, BINT pos);
+BINT rplIsLastElementFlat(WORDPTR composite, BINT pos);
 
 // SYMBOLIC FUNCTIONS
-extern WORDPTR rplSymbUnwrap(WORDPTR symbolic);
-extern WORD rplSymbMainOperator(WORDPTR symbolic);
-extern BINT rplIsAllowedInSymb(WORDPTR object);
-extern void rplSymbApplyOperator(WORD Opcode,BINT nargs);
-extern void rplSymbRuleMatch();
+WORDPTR rplSymbUnwrap(WORDPTR symbolic);
+WORD rplSymbMainOperator(WORDPTR symbolic);
+WORDPTR rplSymbMainOperatorPTR(WORDPTR symbolic);
+BINT rplIsAllowedInSymb(WORDPTR object);
+void rplSymbApplyOperator(WORD Opcode,BINT nargs);
+void rplSymbRuleMatch();
+void rplSymbRuleApply();
+BINT rplSymbIsRule(WORDPTR ptr);
+void rplSymbAutoSimplify();
+WORDPTR rplSymbNumericReduce(WORDPTR object);
+
 
 // INTERNAL SYMBOLIC API, FOR USE BY OTHER LIBRARIES
-extern BINT rplCheckCircularReference(WORDPTR env_owner,WORDPTR object,BINT lamnum);
+BINT rplCheckCircularReference(WORDPTR env_owner,WORDPTR object,BINT lamnum);
+BINT rplFractionSimplify();
+BINT rplFractionAdd();
+WORDPTR rplSymbCanonicalForm(WORDPTR object);
 
 
 // STRINGS
 // RPL STRING OBJECT
-extern void rplSetStringLength(WORDPTR string,BINT length);
-extern BINT rplStrLen(WORDPTR string);
-extern BINT rplStrSize(WORDPTR string);
-extern BINT rplStringGetLinePtr(WORDPTR str,BINT line);
-extern BINT rplStringCountLines(WORDPTR str);
+void rplSetStringLength(WORDPTR string,BINT length);
+BINT rplStrLen(WORDPTR string);
+BINT rplStrSize(WORDPTR string);
+BINT rplStringGetLinePtr(WORDPTR str,BINT line);
+BINT rplStringCountLines(WORDPTR str);
 
-extern WORDPTR rplCreateString(BYTEPTR text,BYTEPTR textend);
+WORDPTR rplCreateString(BYTEPTR text,BYTEPTR textend);
 
 
 // MATRIX
-extern WORDPTR rplMatrixCompose(BINT rows,BINT cols);
-extern WORDPTR *rplMatrixExplode();
-extern WORDPTR rplMatrixGetFirstObj(WORDPTR matrix);
-extern WORDPTR rplMatrixGet(WORDPTR matrix,BINT row,BINT col);
-extern WORDPTR rplMatrixFastGet(WORDPTR matrix,BINT row,BINT col);
-extern WORDPTR *rplMatrixFastGetEx(WORDPTR *first,BINT cols,BINT i,BINT j);
-extern WORDPTR *rplMatrixNewEx(BINT rows,BINT cols);
+WORDPTR rplMatrixCompose(BINT rows,BINT cols);
+WORDPTR *rplMatrixExplode();
+WORDPTR rplMatrixGetFirstObj(WORDPTR matrix);
+WORDPTR rplMatrixGet(WORDPTR matrix,BINT row,BINT col);
+WORDPTR rplMatrixFastGet(WORDPTR matrix,BINT row,BINT col);
+WORDPTR *rplMatrixFastGetEx(WORDPTR *first,BINT cols,BINT i,BINT j);
+WORDPTR *rplMatrixNewEx(BINT rows,BINT cols);
 
 
-extern void rplMatrixNorm();
-extern void rplMatrixNeg();
-extern void rplMatrixEval1();
-extern void rplMatrixEval();
-extern void rplMatrixToNum();
-extern void rplMatrixAdd();
-extern void rplMatrixSub();
-extern void rplMatrixMul();
-extern void rplMatrixMulScalar();
-extern void rplMatrixBareiss();
-extern void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa);
-extern void rplMatrixInvert();
-extern void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
+void rplMatrixNorm();
+void rplMatrixNeg();
+void rplMatrixEval1();
+void rplMatrixEval();
+void rplMatrixToNum();
+void rplMatrixAdd();
+void rplMatrixSub();
+void rplMatrixMul();
+void rplMatrixMulScalar();
+void rplMatrixBareiss();
+void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa);
+void rplMatrixInvert();
+void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 
 
 // SYSTEM FLAGS

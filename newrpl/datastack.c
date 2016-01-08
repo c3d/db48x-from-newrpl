@@ -194,7 +194,7 @@ void rplTakeSnapshot()
     BINT levels=top-bottom;
     // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
     // THE SNAPSHOT BARRIER
-    *DSTop++=(WORDPTR)levels;
+    *DSTop++=NUMBER2PTR(levels);
     rplExpandStack(levels);
     if(Exceptions) {
         // RETURN WITHOUT MAKING AN UNDO MARK
@@ -218,7 +218,7 @@ void rplTakeSnapshotN(BINT nargs)
     if(levels<nargs) nargs=levels;
     // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
     // THE SNAPSHOT BARRIER
-    *DSTop++=(WORDPTR)levels;
+    *DSTop++=NUMBER2PTR(levels);
     rplExpandStack(levels);
     if(Exceptions) {
         // RETURN WITHOUT MAKING AN UNDO MARK
@@ -241,7 +241,7 @@ void rplTakeSnapshotAndClear()
     BINT levels=top-bottom;
     // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
     // THE SNAPSHOT BARRIER
-    *DSTop++=(WORDPTR)levels;
+    *DSTop++=NUMBER2PTR(levels);
 
     DStkProtect+=levels+1;
     DStkBottom+=levels+1;

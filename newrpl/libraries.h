@@ -131,15 +131,15 @@ enum CompileErrors {
     OK_TOKENINFO=0x40000000
 };
 
-extern void libCompileCmds(BINT libnum, char *libnames[], WORD libopcodes[], int numcmds);
-extern void libDecompileCmds(           char *libnames[], WORD libopcodes[], int numcmds);
-extern void libProbeCmds(char *libnames[], BINT tokeninfo[], int numcmds);
-extern void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT tokeninfo[],int numcmds);
-extern void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int numcmds);
-extern void libGetRomptrID(BINT libnum,WORDPTR *table,WORDPTR ptr);
-extern void libGetPTRFromID(WORDPTR *table,WORD id);
-extern void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds);
-extern void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds);
+void libCompileCmds(BINT libnum, char *libnames[], WORD libopcodes[], int numcmds);
+void libDecompileCmds(           char *libnames[], WORD libopcodes[], int numcmds);
+void libProbeCmds(char *libnames[], BINT tokeninfo[], int numcmds);
+void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT tokeninfo[],int numcmds);
+void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int numcmds);
+void libGetRomptrID(BINT libnum,WORDPTR *table,WORDPTR ptr);
+void libGetPTRFromID(WORDPTR *table,WORD id);
+void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds);
+void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds);
 
 
 
@@ -277,7 +277,7 @@ extern void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds);
 #define ROMOBJECT const WORD const __ROMOBJECT__
 
 #define MKROMPTRID(lib,idx,off) MKOPCODE(LIB_ROMPTR+(((lib)>>8)&0xf), ((((lib)&0xFF)<<11)|(((idx)<<5)&0x3f)|(((off)&0x1f))) )
-#define ROMPTRID_IDX(id) (((id)>>5)&0x3f)
+#define ROMPTRID_IDX(id) ((BINT)((id)>>5)&0x3f)
 #define ROMPTRID_OFF(id) ((id)&0x1f)
 #define ROMPTRID_LIB(id) ((((id)>>12)&0xf00)|(((id)>>11)&0xff))
 

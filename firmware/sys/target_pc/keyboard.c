@@ -9,26 +9,26 @@
 #include <newrpl.h>
 #include <ui.h>
 
+void thread_processevents(); // ONLY NEEDED TO AVOID LOCKING IN MULTITHREADED ENVIRONMENTS
 
+unsigned int __cpu_intoff();
+void __cpu_inton(unsigned int);
+void __tmr_eventreschedule();
 
-extern unsigned int __cpu_intoff();
-extern void __cpu_inton(unsigned int);
-extern void __tmr_eventreschedule();
-
-extern void __keyb_update();
+void __keyb_update();
 
 #define DEBOUNCE  16  // 10 SEEMS TO BE ADEQUATE EVEN AT 75 MHz
 
 
 // KEYBOARD, LOW LEVEL GLOBAL VARIABLES
-extern unsigned short int __keyb_buffer[KEYB_BUFFER] __SYSTEM_GLOBAL__;
-extern volatile int __keyb_lock __SYSTEM_GLOBAL__;
-extern int __keyflags __SYSTEM_GLOBAL__;
-extern int __kused __SYSTEM_GLOBAL__,__kcurrent __SYSTEM_GLOBAL__;
-extern keymatrix __kmat __SYSTEM_GLOBAL__;
-extern int __keyplane __SYSTEM_GLOBAL__;
-extern int __keynumber __SYSTEM_GLOBAL__,__keycount __SYSTEM_GLOBAL__;
-extern int __keyb_repeattime,__keyb_longpresstime __SYSTEM_GLOBAL__,__keyb_debounce __SYSTEM_GLOBAL__;
+unsigned short int __keyb_buffer[KEYB_BUFFER] __SYSTEM_GLOBAL__;
+volatile int __keyb_lock __SYSTEM_GLOBAL__;
+int __keyflags __SYSTEM_GLOBAL__;
+int __kused __SYSTEM_GLOBAL__,__kcurrent __SYSTEM_GLOBAL__;
+keymatrix __kmat __SYSTEM_GLOBAL__;
+int __keyplane __SYSTEM_GLOBAL__;
+int __keynumber __SYSTEM_GLOBAL__,__keycount __SYSTEM_GLOBAL__;
+int __keyb_repeattime,__keyb_longpresstime __SYSTEM_GLOBAL__,__keyb_debounce __SYSTEM_GLOBAL__;
 
 
 

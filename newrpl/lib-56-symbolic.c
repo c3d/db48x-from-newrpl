@@ -228,8 +228,10 @@ void LIB_HANDLER()
         object=rplSymbUnwrap(object);
         WORDPTR endobject=rplSkipOb(object);
         WORD Opcode=rplSymbMainOperator(object);
+        WORDPTR Opcodeptr=rplSymbMainOperatorPTR(object);
+        if(!Opcodeptr) Opcodeptr=(WORDPTR)zero_bint;
 
-        rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)Opcode);     // LAM 1 = OPCODE
+        rplCreateLAM((WORDPTR)nulllam_ident,Opcodeptr);     // LAM 1 = OPCODE
         if(Exceptions) { rplCleanupLAMs(0); return; }
 
         object++;
@@ -293,8 +295,10 @@ void LIB_HANDLER()
     object=rplSymbUnwrap(object);
     WORDPTR endobject=rplSkipOb(object);
     WORD Opcode=rplSymbMainOperator(object);
+    WORDPTR Opcodeptr=rplSymbMainOperatorPTR(object);
+    if(!Opcodeptr) Opcodeptr=(WORDPTR)zero_bint;
 
-    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)Opcode);     // LAM 1 = OPCODE
+    rplCreateLAM((WORDPTR)nulllam_ident,Opcodeptr);     // LAM 1 = OPCODE
     if(Exceptions) { rplCleanupLAMs(0); return; }
 
     object++;
@@ -361,8 +365,10 @@ void LIB_HANDLER()
     object=rplSymbUnwrap(object);
     WORDPTR endobject=rplSkipOb(object);
     WORD Opcode=rplSymbMainOperator(object);
+    WORDPTR Opcodeptr=rplSymbMainOperatorPTR(object);
+    if(!Opcodeptr) Opcodeptr=(WORDPTR)zero_bint;
 
-    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)Opcode);     // LAM 1 = OPCODE
+    rplCreateLAM((WORDPTR)nulllam_ident,Opcodeptr);     // LAM 1 = OPCODE
     if(Exceptions) { rplCleanupLAMs(0); return; }
 
     object++;
@@ -626,7 +632,8 @@ void LIB_HANDLER()
         if(nextobj==endoflist) {
             // THE LAST ARGUMENT WAS ALREADY PROCESSED, IF THERE IS AN OPERATOR WE NEED TO APPLY IT
 
-            WORD Opcode=(WORD)*rplGetLAMn(1);
+            WORDPTR Opcodeptr=*rplGetLAMn(1);
+            WORD Opcode=(Opcodeptr==zero_bint)? 0:*Opcodeptr;
 
             WORDPTR *prevDStk = rplUnprotectData();
             BINT newdepth=(BINT)(DSTop-prevDStk);
@@ -727,7 +734,9 @@ void LIB_HANDLER()
         if(nextobj==endoflist) {
             // THE LAST ARGUMENT WAS ALREADY PROCESSED, IF THERE IS AN OPERATOR WE NEED TO APPLY IT
 
-            WORD Opcode=(WORD)*rplGetLAMn(1);
+            WORDPTR Opcodeptr=*rplGetLAMn(1);
+            WORD Opcode=(Opcodeptr==zero_bint)? 0:*Opcodeptr;
+
 
             WORDPTR *prevDStk = rplUnprotectData();
             BINT newdepth=(BINT)(DSTop-prevDStk);
@@ -824,7 +833,9 @@ void LIB_HANDLER()
         if(nextobj==endoflist) {
             // THE LAST ARGUMENT WAS ALREADY PROCESSED, IF THERE IS AN OPERATOR WE NEED TO APPLY IT
 
-            WORD Opcode=(WORD)*rplGetLAMn(1);
+            WORDPTR Opcodeptr=*rplGetLAMn(1);
+            WORD Opcode=(Opcodeptr==zero_bint)? 0:*Opcodeptr;
+
 
             WORDPTR *prevDStk = rplUnprotectData();
             BINT newdepth=(BINT)(DSTop-prevDStk);
@@ -894,7 +905,9 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR DURING EVALUATION
 
-        WORD Opcode=(WORD)*rplGetLAMn(1);
+        WORDPTR Opcodeptr=*rplGetLAMn(1);
+        WORD Opcode=(Opcodeptr==zero_bint)? 0:*Opcodeptr;
+
         WORDPTR endoflist=*rplGetLAMn(2);
         WORDPTR nextobj=rplSkipOb(*rplGetLAMn(3));
 

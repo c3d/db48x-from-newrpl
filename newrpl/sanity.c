@@ -110,13 +110,13 @@ while(stkptr>=bottom) {
     if(!rplVerifyObjPointer(*stkptr)) {
         if(!fix) return 0;
         // FIX THE BAD POINTER
-        *stkptr=zero_bint;
+        *stkptr=(WORDPTR)zero_bint;
         ++errors;
     } else {
         // POINTER IS GOOD, CHECK OBJECT
         if(!rplVerifyObject(*stkptr)) {
             if(!fix) return 0;
-            *stkptr=zero_bint;
+            *stkptr=(WORDPTR)zero_bint;
             ++errors;
         }
     }
@@ -264,14 +264,14 @@ while(dirptr<DirsTop) {
         // INVALID DIRECTORY START
         if(!fix) return 0;
         // FORCE A START MARKER HERE
-        dirptr[0]=dir_start_bint;
+        dirptr[0]=(WORDPTR)dir_start_bint;
         ++errors;
     }
     if(dirptr[2]!=dir_parent_bint) {
         // INVALID PARENT MARKER
         if(!fix) return 0;
         // FORCE A PARENT MARKER HERE
-        dirptr[2]=dir_parent_bint;
+        dirptr[2]=(WORDPTR)dir_parent_bint;
         ++errors;
     }
 
@@ -283,7 +283,7 @@ while(dirptr<DirsTop) {
             if(dirend[1]==dirptr[1]) {
                 // WE FOUND THE END OF THIS DIR, REPAIR IT
                 if(!fix) return 0;
-                dirend[0]=dir_end_bint;
+                dirend[0]=(WORDPTR)dir_end_bint;
                 break;
             }
         }
@@ -296,7 +296,7 @@ while(dirptr<DirsTop) {
     if(dirend>=DirsTop) {
         // THERE'S NO END IN SIGHT!
         if(!fix) return 0;
-        dirend[0]=dir_end_bint;
+        dirend[0]=(WORDPTR)dir_end_bint;
         dirend[1]=dirptr[1];
         DirsTop=dirend+2;
         if(DirSize<=DirsTop-Directories+DIRSLACK) growDirs((WORD)(DirsTop-Directories+DIRSLACK+1024));
@@ -354,7 +354,7 @@ while(dirptr<DirsTop) {
 
     // CHECK FOR CORRECT NUMBER OF ITEMS IN THE HANDLE
 
-    if(handle[1]!=nitems) {
+    if(handle[1]!=(WORD)nitems) {
         if(!fix) return 0;
         handle[1]=nitems;
     }
@@ -368,7 +368,7 @@ while(dirptr<DirsTop) {
         // BAD HANDLE POINTER
         if(!fix) return 0;
         // SCAN FOR A POSSIBLE PARENT DIR ENTRY WITH OUR HANDLE
-        parent=root_dir_handle;
+        parent=(WORDPTR)root_dir_handle;
         WORDPTR *scan=Directories+1;
         while(scan<DirsTop) {
             if( (scan>=dirptr)&&(scan<dirend)) { scan=dirend+3; continue; }
@@ -385,7 +385,7 @@ while(dirptr<DirsTop) {
                     while(scan>=Directories)
                     {
                         if(rplVerifyObjPointer(*scan)) {
-                        if((**scan==DIR_START_MARKER) ) break;
+                        if(**scan==DIR_START_MARKER) break;
                         }
                         scan-=2;
                     }
@@ -446,7 +446,7 @@ else {
 if(!rplVerifyObjPointer(dirptr[1])) {
     if(!fix) return 0;
         // PURGE BAD VARIABLES
-        dirptr[1]=zero_bint;
+        dirptr[1]=(WORDPTR)zero_bint;
         rplPurgeForced(dirptr);
         continue;
 
@@ -455,7 +455,7 @@ else {
     if(!rplVerifyObject(dirptr[1])) {
         if(!fix) return 0;
         // PURGE BAD VARIABLES
-        dirptr[1]=zero_bint;
+        dirptr[1]=(WORDPTR)zero_bint;
         rplPurgeForced(dirptr);
         continue;
     }
@@ -478,7 +478,7 @@ if(ISDIR(*dirptr[1])) {
         // THIS IS AN INVALID ENTRY TO A NON-EXISTENT OR CORRUPTED DIRECTORY OBJECT
         // JUST PURGE IT
         if(!fix) return 0;
-        dirptr[1]=zero_bint;        // CHANGE TO A BINT SO IT CAN BE PURGED
+        dirptr[1]=(WORDPTR)zero_bint;        // CHANGE TO A BINT SO IT CAN BE PURGED
         rplPurgeForced(dirptr);
         continue;
     }

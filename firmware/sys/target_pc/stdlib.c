@@ -8,8 +8,6 @@
 
 #include <ui.h>
 
-typedef uint32_t size_t;
-
 
 // THESE ARE STUB FUNCTIONS NEEDED BY libgcc TO PROCESS DIV BY ZERO EXCEPTIONS
 #ifndef errno
@@ -28,17 +26,18 @@ int *__errno() { return &errno; }
 
 void abort()
 {
-    throw_exception("ABORT CALLED",__EX_EXIT | __EX_RESET);
+    throw_exception("ABORT CALLED", __EX_RESET);
+    while(1);
 }
 
 
-void *memcpy(void *trg, const void *src, size_t n)
+void *memcpy(void *trg, const void *src, unsigned long n)
 {
     void *r  = trg;
     char *t8 = (char *) trg;
     char *s8 = (char *) src;
 
-    #define ESIZE sizeof(size_t)
+    #define ESIZE sizeof(unsigned long)
     #define CSIZE (4*ESIZE)
 
     if (n >= CSIZE &&  ! ( ((unsigned)t8 & (ESIZE-1)) || ((unsigned)s8 & (ESIZE-1)) ) ) {
@@ -46,11 +45,11 @@ void *memcpy(void *trg, const void *src, size_t n)
         // source & target properly aligned
         // use word copy...
 
-        size_t *T,*S;
+        unsigned long *T,*S;
 
 
-        T = (size_t *) t8;
-        S = (size_t *) s8;
+        T = (unsigned long *) t8;
+        S = (unsigned long *) s8;
 
         for (; n >= CSIZE ;) {
             *T++ = *S++;
@@ -129,7 +128,7 @@ void memmovew(void *dest,const void *source,int nwords)
     }
 }
 
-void *memmove(void *_dest, const void *_source, size_t nbytes)
+void *memmove(void *_dest, const void *_source, unsigned long nbytes)
 {
     register char *dest= (char *) _dest;
     register char *source= (char *) _source;
@@ -149,13 +148,13 @@ void *memmove(void *_dest, const void *_source, size_t nbytes)
     return _dest;
 }
 
-void memsetw(void *dest,int value,size_t nwords)
+void memsetw(void *dest,int value,unsigned long nwords)
 {
     int *_dest=(int *)dest;
     while(nwords) { *_dest++=value; --nwords; }
 }
 
-void *memset(void *_dest,int value, size_t nbytes)
+void *memset(void *_dest,int value, unsigned long nbytes)
 {
     char *destc = (char *) _dest;
 
@@ -189,7 +188,7 @@ void *memset(void *_dest,int value, size_t nbytes)
 
 
 
-int strncmp ( const char *s1, const char *s2, size_t num)
+int strncmp ( const char *s1, const char *s2, unsigned long num)
 {
     if (num > 0)
     {

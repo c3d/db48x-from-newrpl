@@ -14,7 +14,7 @@ void __keyb_waitrelease();
 int __keyb_getkey(int wait);
 
 extern const unsigned int Font_6A[];
-extern unsigned int RPLLastOpcode;
+unsigned int RPLLastOpcode;
 
 void __ex_print(int x,int y,char *str)
 {

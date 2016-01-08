@@ -9,7 +9,7 @@
 #include <ui.h>
 
 unsigned int cpu_state;
-extern unsigned int __saveint;
+unsigned int __saveint;
 
 enum {
     CPU_INTMASKED=1,
@@ -47,7 +47,7 @@ void __cpu_inton(unsigned int state)
    cpu_state=state;
 }
 
-extern void __tmr_fix();
+void __tmr_fix();
 
 
 
@@ -65,7 +65,7 @@ return 75000000;
 }
 
 
-extern void thread_yield();
+void thread_yield();
 
 // PUT THE CPU IN "DOZE" MODE
 void cpu_waitforinterrupt()

@@ -844,8 +844,8 @@ void LIB_HANDLER()
            rplSetMenuCode(menu,mcode);
 
            // STORE THE LIST IN .Settings AS CURRENT MENU
-           if(menu==2) rplStoreSettings(menu2_ident,arg);
-           else rplStoreSettings(menu1_ident,arg);
+           if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,arg);
+           else rplStoreSettings((WORDPTR)menu1_ident,arg);
 
            rplDropData(1);
           return;
@@ -861,8 +861,8 @@ void LIB_HANDLER()
                 // JUST SET IT TO ZERO
                 rplSetMenuCode(menu,0);
                 // STORE THE LIST IN .Settings AS CURRENT MENU
-                if(menu==2) rplStoreSettings(menu2_ident,zero_bint);
-                else rplStoreSettings(menu1_ident,zero_bint);
+                if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,(WORDPTR)zero_bint);
+                else rplStoreSettings((WORDPTR)menu1_ident,(WORDPTR)zero_bint);
 
             }
             else {
@@ -870,8 +870,8 @@ void LIB_HANDLER()
 
             rplSetMenuCode(menu,num);
             // STORE THE LIST IN .Settings AS CURRENT MENU
-            if(menu==2) rplStoreSettings(menu2_ident,arg);
-            else rplStoreSettings(menu1_ident,arg);
+            if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,arg);
+            else rplStoreSettings((WORDPTR)menu1_ident,arg);
 
             }
 
@@ -1018,16 +1018,16 @@ void LIB_HANDLER()
     switch(MENUNUMBER(MenuCodeArg))
     {
     case 0:
-        menuobj=rplGetSettings(menu1_ident);
+        menuobj=rplGetSettings((WORDPTR)menu1_ident);
         break;
     case 1:
-        menuobj=rplGetSettings(menu2_ident);
+        menuobj=rplGetSettings((WORDPTR)menu2_ident);
         break;
 
     default:
         menuobj=0;
     }
-    if(!menuobj) ObjectPTR=empty_list;
+    if(!menuobj) ObjectPTR=(WORDPTR)empty_list;
     else ObjectPTR=menuobj;
     RetNum=OK_CONTINUE;
     return;

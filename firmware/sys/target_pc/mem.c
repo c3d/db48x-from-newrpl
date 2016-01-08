@@ -119,7 +119,7 @@ WORDPTR *halGrowMemory(BINT zone, WORDPTR *base, BINT newsize)
 }
 
 
-extern int __last_used_byte;
+int __last_used_byte;
 
 // INITIALIZE THE MEMORY AFTER A TOTAL RESET
 void halInitMemoryMap()

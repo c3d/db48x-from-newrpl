@@ -290,7 +290,7 @@ void LIB_HANDLER()
         case OVR_INV:
             // JUST PUT A NUMBER ONE IN THE STACK AND FALL THROUGH A NORMAL DIVISION
             rplPushData(rplPeekData(1));
-            rplOverwriteData(2,&one_bint);
+            rplOverwriteData(2,(WORDPTR)one_bint);
             // DELIBERATE FALL THROUGH
 
         case OVR_DIV:
@@ -361,7 +361,7 @@ void LIB_HANDLER()
                 ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
             }
 
-            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1,(WORDPTR)one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1=rplUnitToBase(nlevels1);
             if(Exceptions) { DSTop=stkclean; return; }
             nlevels1=rplUnitSimplify(nlevels1);
@@ -472,7 +472,7 @@ void LIB_HANDLER()
                 ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
             }
 
-            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1,(WORDPTR)one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1=rplUnitToBase(nlevels1);
             if(Exceptions) { DSTop=stkclean; return; }
             nlevels1=rplUnitSimplify(nlevels1);
@@ -615,8 +615,8 @@ void LIB_HANDLER()
                 return;
             }
 
-            rplPushData(&temp_ident);
-            rplPushData(&one_bint);
+            rplPushData((WORDPTR)temp_ident);
+            rplPushData((WORDPTR)one_bint);
             rplPushData(rplPeekData(3));
 
 
@@ -697,7 +697,7 @@ void LIB_HANDLER()
                 ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
             }
-            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1,(WORDPTR)one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1=rplUnitToBase(nlevels1);
             if(Exceptions) { DSTop=stkclean; return; }
             nlevels1=rplUnitSimplify(nlevels1);
@@ -811,7 +811,7 @@ void LIB_HANDLER()
                 ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
             }
-            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1,(WORDPTR)one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1=rplUnitToBase(nlevels1);
             if(Exceptions) { DSTop=stkclean; return; }
             nlevels1=rplUnitSimplify(nlevels1);
@@ -923,7 +923,7 @@ void LIB_HANDLER()
                 ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
             }
-            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1,(WORDPTR)one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1=rplUnitToBase(nlevels1);
             if(Exceptions) { DSTop=stkclean; return; }
             nlevels1=rplUnitSimplify(nlevels1);
@@ -1035,7 +1035,7 @@ void LIB_HANDLER()
                 ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
             }
-            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1,(WORDPTR)one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1=rplUnitToBase(nlevels1);
             if(Exceptions) { DSTop=stkclean; return; }
             nlevels1=rplUnitSimplify(nlevels1);
@@ -1146,7 +1146,7 @@ void LIB_HANDLER()
                 ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
             }
-            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1,(WORDPTR)one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1=rplUnitToBase(nlevels1);
             if(Exceptions) { DSTop=stkclean; return; }
             nlevels1=rplUnitSimplify(nlevels1);
@@ -1258,7 +1258,7 @@ void LIB_HANDLER()
                 ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
             }
-            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1,(WORDPTR)one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1=rplUnitToBase(nlevels1);
             if(Exceptions) { DSTop=stkclean; return; }
             nlevels1=rplUnitSimplify(nlevels1);
@@ -1366,7 +1366,7 @@ void LIB_HANDLER()
                 ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
             }
-            rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+            rplOverwriteData(nlevels1,(WORDPTR)one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1=rplUnitToBase(nlevels1);
             if(Exceptions) { DSTop=stkclean; return; }
             nlevels1=rplUnitSimplify(nlevels1);
@@ -1499,21 +1499,21 @@ void LIB_HANDLER()
         // UNIT DOESN'T EXIST, WE NEED TO CREATE IT
         // GET THE UNITS DIRECTORY
 
-        WORDPTR unitdir_obj=rplGetSettings(unitdir_ident);
+        WORDPTR unitdir_obj=rplGetSettings((WORDPTR)unitdir_ident);
 
         if(!unitdir_obj) {
             WORDPTR *settings=rplFindDirbyHandle(SettingsDir);
             if(!settings) return;
 
             // NEED TO CREATE A NEW DIRECTORY
-            unitdir_obj=rplCreateNewDir(unitdir_ident,settings);
+            unitdir_obj=rplCreateNewDir((WORDPTR)unitdir_ident,settings);
             if(!unitdir_obj) return;  // EXCEPTIONS SHOULD'VE BEEN RAISED ALREADY
             // RELOAD THE POINTERS FROM THE STACK, IN CASE THERE WAS A GC
             unit=rplPeekData(2);
             name=rplPeekData(1);
         }
 
-        WORDPTR unitdir=rplFindDirbyHandle(unitdir_obj);
+        WORDPTR *unitdir=rplFindDirbyHandle(unitdir_obj);
         if(!unitdir) return;  // EXCEPTIONS SHOULD'VE BEEN RAISED ALREADY
         rplCreateGlobalInDir(name,unit,unitdir);
         rplDropData(2);
@@ -1535,7 +1535,7 @@ void LIB_HANDLER()
 
         //  GET THE UNITS DIRECTORY
 
-        WORDPTR unitdir_obj=rplGetSettings(unitdir_ident);
+        WORDPTR unitdir_obj=rplGetSettings((WORDPTR)unitdir_ident);
 
         if(!unitdir_obj) {
         rplError(ERR_UNDEFINEDUNIT);
@@ -1596,7 +1596,7 @@ void LIB_HANDLER()
             if(Exceptions) { DSTop=stkclean; return; }
         }
 
-        rplOverwriteData(nlevels1,one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
+        rplOverwriteData(nlevels1,(WORDPTR)one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
         nlevels1=rplUnitToBase(nlevels1);
         if(Exceptions) { DSTop=stkclean; return; }
         nlevels1=rplUnitSimplify(nlevels1);
@@ -1767,7 +1767,6 @@ void LIB_HANDLER()
             // MAXIMUM 8 LEVELS SUPPORTED
 
             BYTEPTR nextptr,endptr;
-            BINT expisreal=0;
             BINT count=0;
             BINT exponent=1,negexp=0,needident=0,needexp=0;
             BINT groupoff[8];
@@ -1789,7 +1788,7 @@ void LIB_HANDLER()
                 endptr=nextptr;
 
                 while( (endptr<(BYTEPTR)BlankStart) && (*endptr!=']')) {
-                    endptr=utf8skip((char *)endptr,(char *)BlankStart);
+                    endptr=(BYTEPTR)utf8skip((char *)endptr,(char *)BlankStart);
                 }
 
                 // IT'S OK TO REACH END OF TOKEN WITHOUT A BRACKET
@@ -1925,7 +1924,7 @@ void LIB_HANDLER()
                              }
 
                              // GET THE NUMERATOR INTO RReg[0]
-                             newRealFromText(&RReg[0],nextptr,numend,Locale);
+                             newRealFromText(&RReg[0],(char *)nextptr,(char *)numend,Locale);
 
                              if(RReg[0].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
                                  // BAD EXPONENT!
@@ -1966,7 +1965,7 @@ void LIB_HANDLER()
                              }
 
                              // GET THE DENOMINATOR INTO RReg[1]
-                             newRealFromText(&RReg[1],nextptr,numend,Locale);
+                             newRealFromText(&RReg[1],(char *)nextptr,(char *)numend,Locale);
 
                              if(RReg[1].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
                                  // BAD EXPONENT!
@@ -2007,7 +2006,7 @@ void LIB_HANDLER()
                             return;
                         }
 
-                        newRealFromText(&RReg[0],nextptr,numend,Locale);
+                        newRealFromText(&RReg[0],(char *)nextptr,(char *)numend,Locale);
 
                         if(RReg[0].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
                             // BAD EXPONENT!
@@ -2217,7 +2216,7 @@ void LIB_HANDLER()
                          }
 
                          // GET THE NUMERATOR INTO RReg[0]
-                         newRealFromText(&RReg[0],nextptr,numend,Locale);
+                         newRealFromText(&RReg[0],(char *)nextptr,(char *)numend,Locale);
 
                          if(RReg[0].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
                              // BAD EXPONENT!
@@ -2258,7 +2257,7 @@ void LIB_HANDLER()
                          }
 
                          // GET THE DENOMINATOR INTO RReg[1]
-                         newRealFromText(&RReg[1],nextptr,numend,Locale);
+                         newRealFromText(&RReg[1],(char *)nextptr,(char *)numend,Locale);
 
                          if(RReg[1].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
                              // BAD EXPONENT!
@@ -2367,7 +2366,7 @@ void LIB_HANDLER()
                         return;
                     }
 
-                    newRealFromText(&RReg[0],nextptr,numend,Locale);
+                    newRealFromText(&RReg[0],(char *)nextptr,(char *)numend,Locale);
 
                     if(RReg[0].flags&(F_ERROR|F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW)) {
                         // BAD EXPONENT!
@@ -2554,7 +2553,7 @@ void LIB_HANDLER()
             // TO SEE IF THE SYMBOLIC UNIT OPERATOR WAS ALREADY INCLUDED
             // AND SKIP THE NUMERIC PART OF THE UNIT IF IT WAS
 
-            BYTEPTR decstring=DecompStringEnd;
+            BYTEPTR decstring=(BYTEPTR)DecompStringEnd;
             BINT closebracket=1, addnumber=1;
 
             if( (decstring[-2]!='_') || (decstring[-1]!='[')) {
@@ -2640,7 +2639,7 @@ void LIB_HANDLER()
                         BINT len=formatlengthReal(&rnum,Format);
 
                         // RESERVE THE MEMORY FIRST
-                        rplDecompAppendString2(DecompStringEnd,len);
+                        rplDecompAppendString2((BYTEPTR)DecompStringEnd,len);
 
                         // NOW USE IT
                         string=(BYTEPTR)DecompStringEnd;
@@ -2650,7 +2649,7 @@ void LIB_HANDLER()
                             RetNum=ERR_INVALID;
                             return;
                         }
-                        DecompStringEnd=(WORDPTR) formatReal(&rnum,string,Format,Locale);
+                        DecompStringEnd=(WORDPTR) formatReal(&rnum,(char *)string,Format,Locale);
 
 
                         rplDecompAppendChar('/');
@@ -2659,7 +2658,7 @@ void LIB_HANDLER()
                         len=formatlengthReal(&rden,Format);
 
                         // RESERVE THE MEMORY FIRST
-                        rplDecompAppendString2(DecompStringEnd,len);
+                        rplDecompAppendString2((BYTEPTR)DecompStringEnd,len);
 
                         // NOW USE IT
                         string=(BYTEPTR)DecompStringEnd;
@@ -2669,7 +2668,7 @@ void LIB_HANDLER()
                             RetNum=ERR_INVALID;
                             return;
                         }
-                        DecompStringEnd=(WORDPTR) formatReal(&rden,string,Format,Locale);
+                        DecompStringEnd=(WORDPTR) formatReal(&rden,(char *)string,Format,Locale);
 
                         rplDecompAppendChar(')');
 
@@ -2683,7 +2682,7 @@ void LIB_HANDLER()
                         BINT len=formatlengthReal(&rnum,Format);
 
                         // RESERVE THE MEMORY FIRST
-                        rplDecompAppendString2(DecompStringEnd,len);
+                        rplDecompAppendString2((BYTEPTR)DecompStringEnd,len);
 
                         // NOW USE IT
                         string=(BYTEPTR)DecompStringEnd;
@@ -2693,7 +2692,7 @@ void LIB_HANDLER()
                             RetNum=ERR_INVALID;
                             return;
                         }
-                        DecompStringEnd=(WORDPTR) formatReal(&rnum,string,Format,Locale);
+                        DecompStringEnd=(WORDPTR) formatReal(&rnum,(char *)string,Format,Locale);
 
 
 
@@ -2783,7 +2782,7 @@ void LIB_HANDLER()
             endptr=ptr+2;
 
             while( (endptr<(BYTEPTR)BlankStart) && (*endptr!=']')) {
-                endptr=utf8skip((char *)endptr,(char *)BlankStart);
+                endptr=(BYTEPTR)utf8skip((char *)endptr,(char *)BlankStart);
                 ++count;
             }
 
@@ -2877,11 +2876,11 @@ void LIB_HANDLER()
     switch(MENUNUMBER(MenuCodeArg))
     {
     case 0:
-        ObjectPTR=unitmenu_zero;
+        ObjectPTR=(WORDPTR)unitmenu_zero;
         RetNum=OK_CONTINUE;
         break;
     case 1:
-        ObjectPTR=unitmenu_one;
+        ObjectPTR=(WORDPTR)unitmenu_one;
         RetNum=OK_CONTINUE;
         break;
 

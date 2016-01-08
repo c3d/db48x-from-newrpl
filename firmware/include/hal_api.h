@@ -156,7 +156,7 @@ typedef struct {
 } HALSCREEN;
 
 
-extern HALSCREEN halScreen;
+HALSCREEN halScreen;
 
 // CALCULATOR CONTEXT IDENTIFIERS
 enum {
@@ -981,7 +981,7 @@ unsigned int status; // 1=ACTIVE, 2=AUTORELOAD, 4=PAUSED, NOT FINISHED
 
 
 // LOW-LEVEL TIMER STRUCTURE
-extern timed_event tmr_events[NUM_EVENTS];
+timed_event tmr_events[NUM_EVENTS];
 
 //! Save all timers state to a buffer (13-word)
 void tmr_save(unsigned int *tmrbuffer);
@@ -1052,16 +1052,17 @@ HEVENT tmr_eventcreate(__interrupt__ handler,unsigned int ms,int autorepeat);
  \sa tmr_eventcreate
 */
 
-extern void tmr_eventkill(HEVENT event);
+void tmr_eventkill(HEVENT event);
 
 // BATTERY LEVEL MEASUREMENT API
 
+void bat_setup();
 void battery_handler();
 // READ THE BATTERY LEVEL AND STORE IT IN __battery
 void bat_read();
 
 // VARIABLE WHERE THE BATTERY STATUS IS STORED
-extern WORD __battery;
+WORD __battery;
 
 // SYSTEM FONTS
 extern const unsigned int Font_8C[];
@@ -1070,65 +1071,93 @@ extern const unsigned int Font_7A[];
 extern const unsigned int Font_6A[];
 extern const unsigned int Font_5C[];
 
-//extern const unsigned int System5Font[];
-//extern const unsigned int System6Font[];
-//extern const unsigned int System7Font[];
-//extern const unsigned int MiniFont[];
+//const unsigned int System5Font[];
+//const unsigned int System6Font[];
+//const unsigned int System7Font[];
+//const unsigned int MiniFont[];
 
 
 
-extern void DrawText(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *drawsurf);
-extern void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURFACE *drawsurf);
+void DrawText(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *drawsurf);
+void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURFACE *drawsurf);
 
-extern void DrawTextBk(int x,int y,char *Text,UNIFONT *Font,int color,int bkcolor,DRAWSURFACE *drawsurf);
-extern void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,int bkcolor,DRAWSURFACE *drawsurf);
+void DrawTextBk(int x,int y,char *Text,UNIFONT *Font,int color,int bkcolor,DRAWSURFACE *drawsurf);
+void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,int bkcolor,DRAWSURFACE *drawsurf);
 
-extern void DrawTextMono(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *drawsurf);
-extern int StringWidth(char *Text,UNIFONT *Font);
-extern int StringWidthN(char *Text,char *End,UNIFONT *Font);
-extern char *StringCoordToPointer(char *Text,char *End,UNIFONT *Font,int *xcoord);
+void DrawTextMono(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *drawsurf);
+int StringWidth(char *Text,UNIFONT *Font);
+int StringWidthN(char *Text,char *End,UNIFONT *Font);
+char *StringCoordToPointer(char *Text,char *End,UNIFONT *Font,int *xcoord);
 
 
-extern int cpu_getlock(int lockvar,volatile int *lock_ptr);
-extern int cpu_setspeed(int);
-extern void cpu_waitforinterrupt();
-extern void cpu_off();
+int cpu_getlock(int lockvar,volatile int *lock_ptr);
+int cpu_setspeed(int);
+void cpu_waitforinterrupt();
+void cpu_off();
 
 // LCD LOW-LEVEL HARDWARE API
 
-extern int __lcd_contrast;
-extern void lcd_off();
-extern void lcd_on();
-extern void lcd_poweron();
-extern void lcd_setcontrast(int level);
-extern int lcd_setmode(int mode, unsigned int *physbuf);
-extern void lcd_save(unsigned int *buf);
-extern void lcd_restore(unsigned int *buf);
+int __lcd_contrast;
+void lcd_sync();
+void __lcd_fix();
+void lcd_off();
+void lcd_on();
+void lcd_poweron();
+void lcd_setcontrast(int level);
+int lcd_setmode(int mode, unsigned int *physbuf);
+void lcd_save(unsigned int *buf);
+void lcd_restore(unsigned int *buf);
 
+// BASIC LOW-LEVEL INTERRUPT HANDLERS
+void __exception_install();
+void __irq_install();
+void __keyb_init();
 
-
-extern void __irq_install(void);
-
-extern void create_mmu_tables();
-extern void enable_mmu();
-extern void set_stackall();
+// LOW-LEVEL MEMORY MANAGEMENT
+void create_mmu_tables();
+void enable_mmu();
+void set_stackall();
 
 void memcpyw(void *dest,const void *source,int nwords);
 void memmovew(void *dest,const void *source,int nwords);
 int stringlen(const char *s);
+void *memcpy(void *trg, const void *src, unsigned long n);
+void *memmove(void *_dest, const void *_source, unsigned long nbytes);
+
+// LOW-LEVEL HARDWARE DRIVERS - POWER
+void cpu_off_prepare();
+void cpu_off_die();
 
 
-// LOW LEVEL MEMORY MANAGEMENT
+// LOW-LEVEL HARDWARE DRIVERS - KEYBOARD
+void __keyb_waitrelease();
+
+
+// LOW-LEVEL HARDWARE DRIVERS - FLASH MEMORY
+void flash_CFIRead(unsigned short *ptr);
+
+
+
+
+
+
+
+
+// HIGHER LEVEL MEMORY MANAGEMENT
 
 WORDPTR *halGrowMemory(BINT zone,WORDPTR *base,BINT newsize);
-
+int halGetFreePages();
+int halCheckMemoryMap();
+int halCountUsedPages(int zone);
+void halCheckRplMemory();
+void halInitMemoryMap();
 
 // HIGHER LEVEL GLOBAL VARIABLES
 
 
-extern BINT halFlags;
-extern HEVENT halBusyEvent;
-extern BINT halLongKeyPending;
+BINT halFlags;
+HEVENT halBusyEvent;
+BINT halLongKeyPending;
 
 // HIGHER LEVEL HAL FUNCTIONS
 
@@ -1137,8 +1166,7 @@ void halSetBusyHandler();
 void halInitBusyHandler();
 void halEnterPowerOff();
 
-//  IF THIS FUNCTION RETURNS TRUE, TERMINATE THE OUTER LOOP
-int halExitOuterLoop();
+
 
 // TIMER FUNCTIONS
 BINT64 halTicks();
@@ -1146,21 +1174,25 @@ BINT64 halTicks();
 
 
 // SCREEN FUNCTIONS
-extern void halSetNotification(enum halNotification type,int color);
-extern int halGetNotification(enum halNotification type);
-extern void halShowErrorMsg();
-extern void halSetCmdLineHeight(int h);
-extern void halStatusAreaPopup();
-extern void halRedrawAll(DRAWSURFACE *scr);
-extern void halRedrawCmdLine(DRAWSURFACE *scr);
-extern void halSetStackHeight(int h);
-extern void halSetFormHeight(int h);
-extern void halSetMenu1Height(int h);
-extern void halSetMenu2Height(int h);
+void halInitScreen();
+void halSetNotification(enum halNotification type,int color);
+int halGetNotification(enum halNotification type);
+void halShowErrorMsg();
+void halShowMsg(char *Text);
+void halSetCmdLineHeight(int h);
+void halStatusAreaPopup();
+void halRedrawAll(DRAWSURFACE *scr);
+void halRedrawCmdLine(DRAWSURFACE *scr);
+void halSetStackHeight(int h);
+void halSetFormHeight(int h);
+void halSetMenu1Height(int h);
+void halSetMenu2Height(int h);
 
 
-
-
+// OUTER LOOP
+void halOuterLoop();
+//  IF THIS FUNCTION RETURNS TRUE, TERMINATE THE OUTER LOOP
+int halExitOuterLoop();
 
 // KEYBOARD FUNCTIONS
 void halInitKeyboard();
@@ -1181,7 +1213,6 @@ void halInitKeyboard();
 // REDEFINE SOME CONSTANTS FOR THE PC EMULATOR TARGET
 #ifdef TARGET_PC
 #include <target_pc.h>
-
 
 
 #endif

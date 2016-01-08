@@ -204,7 +204,7 @@ BINT halGetDispObjectHeight(WORDPTR object,UNIFONT *font)
 }
 
 
-extern const UBINT64 const powersof10[20];
+const UBINT64 const powersof10[20];
 
 // CONVERT INTEGER NUMBER INTO STRING FOR STACK LEVEL
 // str MUST CONTAIN AT LEAST 15: BYTES "-1,345,789,123[NULL]"
@@ -334,7 +334,7 @@ void halRedrawHelp(DRAWSURFACE *scr)
         if(!halScreen.Menu2) {
             // SHOW THE SECOND MENU TO DISPLAY THE MESSAGE
             halSetMenu2Height(MENU2_HEIGHT);
-            halRedrawAll(&scr);             // THIS CALL WILL CALL HERE RECURSIVELY
+            halRedrawAll(scr);             // THIS CALL WILL CALL HERE RECURSIVELY
             return;                         // SO IT'S BEST TO RETURN DIRECTLY
         }
 
@@ -347,7 +347,7 @@ void halRedrawHelp(DRAWSURFACE *scr)
 
         // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
         // FOR EXAMPLE BY PURGING VARIABLES
-        if((MENUPAGE(m1code)>=nitems)||(MENUPAGE(m1code)<0)) m1code=SETMENUPAGE(m1code,0);
+        if(MENUPAGE(m1code)>=(WORD)nitems) m1code=SETMENUPAGE(m1code,0);
 
         // GET THE ITEM
         item=uiGetMenuItem(m1code,MenuObj,(halScreen.HelpMode&0xffff)+MENUPAGE(m1code));
@@ -372,8 +372,6 @@ void halRedrawHelp(DRAWSURFACE *scr)
                 return;
             }
 
-            WORD ptrprolog=*var[1];
-
             BINT SavedException=Exceptions;
             BINT SavedErrorCode=ErrorCode;
 
@@ -383,7 +381,7 @@ void halRedrawHelp(DRAWSURFACE *scr)
             Exceptions=SavedException;
             ErrorCode=SavedErrorCode;
 
-            if(!objdecomp) helptext=empty_string;
+            if(!objdecomp) helptext=(WORDPTR)empty_string;
             else helptext=objdecomp;
 
 
@@ -413,7 +411,7 @@ void halRedrawHelp(DRAWSURFACE *scr)
 
             for(k=0;k<3;++k) {
                 xend=SCREEN_WIDTH-1-namew;
-                endofline=(BYTEPTR)StringCoordToPointer(basetext,endoftext,halScreen.StAreaFont,&xend);
+                endofline=(BYTEPTR)StringCoordToPointer((char *)basetext,(char *)endoftext,halScreen.StAreaFont,&xend);
                 if(endofline<endoftext) {
                 // BACK UP TO THE NEXT WHITE CHARACTER
                 BYTEPTR whitesp=endofline;
@@ -426,7 +424,7 @@ void halRedrawHelp(DRAWSURFACE *scr)
 
 
             // DRAW THE TEXT
-            DrawTextN(namew,ytop+2+k*halScreen.StAreaFont->BitmapHeight,basetext,endofline,halScreen.StAreaFont,0xf,scr);
+            DrawTextN(namew,ytop+2+k*halScreen.StAreaFont->BitmapHeight,(char *)basetext,(char *)endofline,halScreen.StAreaFont,0xf,scr);
             basetext=nextline;
             namew=3;
             }
@@ -455,7 +453,7 @@ void halRedrawHelp(DRAWSURFACE *scr)
         if(nextline<0) {
             nextline=rplStrSize(helptext);
         }
-        DrawTextN(3,ytop+2+k*halScreen.StAreaFont->BitmapHeight,basetext+currentline,basetext+nextline,halScreen.StAreaFont,0xf,scr);
+        DrawTextN(3,ytop+2+k*halScreen.StAreaFont->BitmapHeight,(char *)basetext+currentline,(char *)basetext+nextline,halScreen.StAreaFont,0xf,scr);
 
         currentline=nextline;
         }
@@ -522,7 +520,7 @@ void halRedrawMenu1(DRAWSURFACE *scr)
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
     // FOR EXAMPLE BY PURGING VARIABLES
-    if((MENUPAGE(m1code)>=nitems)||(MENUPAGE(m1code)<0)) m1code=SETMENUPAGE(m1code,0);
+    if(MENUPAGE(m1code)>=(WORD)nitems) m1code=SETMENUPAGE(m1code,0);
 
 
     // FIRST ROW
@@ -606,7 +604,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
     // FOR EXAMPLE BY PURGING VARIABLES
-    if((MENUPAGE(m2code)>=nitems)||(MENUPAGE(m2code)<0)) m2code=SETMENUPAGE(m2code,0);
+    if(MENUPAGE(m2code)>=(WORD)nitems) m2code=SETMENUPAGE(m2code,0);
 
 
     // FIRST ROW
@@ -696,7 +694,7 @@ void halRedrawStatus(DRAWSURFACE *scr)
 
         namest=(BYTEPTR)(cmdname+1);
         nameend=namest+rplStrSize(cmdname);
-        DrawTextBkN(STATUSAREA_X+2,y,namest,nameend,(UNIFONT *)halScreen.StAreaFont,0xf,0x0,scr);
+        DrawTextBkN(STATUSAREA_X+2,y,(char *)namest,(char *)nameend,(UNIFONT *)halScreen.StAreaFont,0xf,0x0,scr);
 
         }
         }
@@ -882,13 +880,13 @@ WORDPTR halGetCommandName(WORDPTR NameObject)
 // RETRIEVES A NULL-TERMINATED MESSAGE BASED ON MESSAGE CODE
 BYTEPTR halGetMessage(WORD errorcode)
 {
-    MSGLIST *ptr=all_messages;
+    MSGLIST *ptr=(MSGLIST *)all_messages;
     while(ptr->code) {
         if(ptr->code==errorcode) return (BYTEPTR)ptr->text;
         ptr++;
     }
     // MESSAGE 0 IS THE UNKNOWN ERROR MESSAGE
-    return all_messages[0].text;
+    return (BYTEPTR)all_messages[0].text;
 }
 
 // DISPLAY AN ERROR BOX FOR 5 SECONDS WITH AN ERROR MESSAGE
@@ -897,7 +895,6 @@ void halShowErrorMsg()
 {
         int errbit;
         if(!Exceptions) return;
-        WORD error=Exceptions;
         DRAWSURFACE scr;
         ggl_initscr(&scr);
 
@@ -947,7 +944,7 @@ void halShowErrorMsg()
             if(Exceptions&(1<<errbit)) {
                 ecode=MAKEMSG(0,errbit);
                 BYTEPTR message=halGetMessage(ecode);
-                DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,message,halScreen.StAreaFont,0xf,&scr);
+                DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)message,halScreen.StAreaFont,0xf,&scr);
                 break;
             }
             }
@@ -969,7 +966,7 @@ void halShowErrorMsg()
             DrawText(xstart,scr.clipy,"Error:",halScreen.StAreaFont,0xf,&scr);
             // TODO: GET NEW TRANSLATABLE MESSAGES
             BYTEPTR message=halGetMessage(ErrorCode);
-            DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,message,halScreen.StAreaFont,0xf,&scr);
+            DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)message,halScreen.StAreaFont,0xf,&scr);
 
         }
 

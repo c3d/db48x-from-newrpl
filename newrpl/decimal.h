@@ -31,7 +31,9 @@
 #ifdef NDEBUG
 #define PROTECT_WRITE_AREA(ptr,len)
 #else
-#define PROTECT_WRITE_AREA(ptr,len) { if( ((ptr)<Context.regdata) || ((((WORDPTR)ptr)+(len))>=Context.regdata+REAL_REGISTER_STORAGE*TOTAL_REGISTERS)) { printf("PANIC EXIT-BAD WRITE\n"); exit(-1); } }
+#include <stdio.h>
+#include <stdlib.h>
+#define PROTECT_WRITE_AREA(ptr,len) { if( ((ptr)<Context.regdata) || ((((WORDPTR)ptr)+(len))>=(WORDPTR)Context.regdata+REAL_REGISTER_STORAGE*TOTAL_REGISTERS)) { printf("PANIC EXIT-BAD WRITE\n"); exit(-1); } }
 #endif
 
 
@@ -66,7 +68,7 @@ typedef struct __NUMBER {
 
 typedef struct {
     WORD flags;
-    WORD precdigits;
+    BINT precdigits;
     WORD alloc_bmp;
     BINT regdata[REAL_REGISTER_STORAGE*TOTAL_REGISTERS];
 } CONTEXT;
@@ -99,51 +101,51 @@ enum RealFlags {
 
 
 
-extern CONTEXT Context;
+CONTEXT Context;
 
-extern void initContext(WORD precision);
+void initContext(WORD precision);
 
-extern BINT *allocRegister();
-extern void freeRegister(BINT *data);
+BINT *allocRegister();
+void freeRegister(BINT *data);
 
-extern void carry_correct(BINT *start,BINT nwords);
+void carry_correct(BINT *start,BINT nwords);
 
 // CHECK THE NUMBER RANGE, CHANGE TO INFINITY OR ZERO AS NEEDED
-extern void checkrange(REAL *number);
+void checkrange(REAL *number);
 
 // FULLY NORMALIZE A NUMBER
-extern void normalize(REAL *number);
+void normalize(REAL *number);
 
 // FASTER ROUNDING ROUTINE WITHOUT SHIFTING
 // APPLY ROUNDING IN-PLACE TO THE GIVEN NUMBER OF DIGITS
 // OR JUST TRUNCATES THE NUMBER IF truncate IS NON-ZERO
 
-extern void round_real(REAL *r,int digits,int truncate);
+void round_real(REAL *r,int digits,int truncate);
 
 
 // FULLY NORMALIZE, RANGE CHECK AND ROUND TO SYSTEM PRECISION
-extern void finalize(REAL *number);
+void finalize(REAL *number);
 
 // SHIFT AN 8-DIGIT WORD TO THE RIGHT n PLACES (DIVIDE BY 10^n)
 // word MUST BE POSITIVE
 // n = 0-7
 
-extern BINT shift_right(BINT word,BINT digits);
+BINT shift_right(BINT word,BINT digits);
 
 // ISOLATE LOW n DIGITS IN A WORD, DISCARD HI DIGITS
-extern BINT lo_digits(BINT word,BINT digits);
+BINT lo_digits(BINT word,BINT digits);
 
 // ISOLATE HIGH (8-n) DIGITS IN A WORD, DISCARD LOW DIGITS
 // CLEAR THE LOWER n DIGITS IN WORD
-extern BINT hi_digits(BINT word,BINT digits);
+BINT hi_digits(BINT word,BINT digits);
 
 // ISOLATE HIGH (8-n) DIGITS IN A WORD, ROUND LOW DIGITS
 // CLEAR THE LOWER n DIGITS IN WORD AFTER ROUNDING
-extern BINT hi_digits_rounded(BINT word,BINT digits);
+BINT hi_digits_rounded(BINT word,BINT digits);
 
 // COUNT NUMBER OF SIGNIFICANT USED DIGITS IN A WORD
 // WORD MUST BE NORMALIZED AND >0
-extern BINT sig_digits(BINT word);
+BINT sig_digits(BINT word);
 
 // LEFT-JUSTIFY THE DATA OF THE NUMBER
 // WITHOUT CHANGING THE VALUE
@@ -151,70 +153,72 @@ extern BINT sig_digits(BINT word);
 // THE ACTUAL NUMBER OF SIGNIFICANT DIGITS
 // AFTER THIS OPERATION
 
-extern void left_justify(REAL *number);
+void left_justify(REAL *number);
 
 
-extern void add_long(BINT *result,BINT *n1start,BINT nwords);
+void add_long(BINT *result,BINT *n1start,BINT nwords);
 
 // SAME BUT SUBTRACTING, NO CARRY CHECKS
 
-extern void sub_long(BINT *result,BINT *n1start,BINT nwords);
+void sub_long(BINT *result,BINT *n1start,BINT nwords);
 
 // SINGLE-STEP SHIFT-AND-ACCUMULATE
 // MULTIPLIES BY 10^N AND ADDS INTO result
-extern void sub_long_shift(BINT *result,BINT *n1start,BINT nwords,BINT shift);
+void sub_long_shift(BINT *result,BINT *n1start,BINT nwords,BINT shift);
 
 
-extern void zero_words(BINT *ptr,BINT nwords);
+void zero_words(BINT *ptr,BINT nwords);
 
-extern void copy_words(BINT *ptr,BINT *source,BINT nwords);
+void copy_words(BINT *ptr,BINT *source,BINT nwords);
 
 
 // ADDS 2 REAL NUMBERS AT FULL PRECISION
 // NUMBERS SHOULD BE NORMALIZED
-extern void add_real(REAL *r,REAL *a,REAL *b);
+void add_real(REAL *r,REAL *a,REAL *b);
 
 // PERFORMS r=a+b*mult, WITH 0<mult<31
 // NUMBERS SHOULD BE NORMALIZED
-extern void add_real_mul(REAL *r,REAL *a,REAL *b,BINT mult);
-extern void sub_real_mul(REAL *r,REAL *a,REAL *b,BINT mult);
+void add_real_mul(REAL *r,REAL *a,REAL *b,BINT mult);
+void sub_real_mul(REAL *r,REAL *a,REAL *b,BINT mult);
 
+// ACCUMULATE SMALL INTEGER INTO AN EXISTING REAL (MODIFYING THE ARGUMENT)
+void acc_real_int(REAL *result,BINT number,BINT exponent);
 
 // SUBTRACTS 2 REAL NUMBERS AT FULL PRECISION
 // NUMBERS SHOULD BE NORMALIZED
 
-extern void sub_real(REAL *result,REAL *a,REAL *b);
+void sub_real(REAL *result,REAL *a,REAL *b);
 
 // MULTIPLY 2 REAL NUMBERS AND ACCUMULATE RESULT
 // ALL COEFFICIENTS **MUST** BE POSITIVE
 // USES NAIVE METHOD WITH THE KARATSUBA TRICK TO GET A 25% SPEEDUP
 
-extern void mul_real(REAL *r,REAL *a,REAL *b);
+void mul_real(REAL *r,REAL *a,REAL *b);
 
 // PERFORM KARATSUBA MULTIPLICATION m x m WORDS
 // IF m IS ODD, THE SUBDIVISION LEAVES ONE WORD OUT
 // SO LAST WORD IS A SINGLE X m MULTIPLICATION
 
-extern void mul_long_karatsuba(BINT *result,BINT *a,BINT *b,BINT m);
+void mul_long_karatsuba(BINT *result,BINT *a,BINT *b,BINT m);
 
 
 // MULTIPLY 2 REALS AND ACCUMULATE IN result
 // USES FULL KARATSUBA METHOD ADAPTED FOR UNBALANCED OPERANDS TOO
 // THIS IS THE OUTER CODE SHELL WITH PROPER INITIALIZATION
 
-extern void mul_real2(REAL *r,REAL *a,REAL *b);
+void mul_real2(REAL *r,REAL *a,REAL *b);
 
 
 // DIVIDES 2 REALS (OBTAIN DIVISION ONLY, NOT REMAINDER)
 // OBTAIN AT LEAST MAXDIGITS SIGNIFICANT FIGURES
 // USES LONG DIVISION ALGORITHM
 
-extern void div_real(REAL *r,REAL *num,REAL *d,int maxdigits);
+void div_real(REAL *r,REAL *num,REAL *d,int maxdigits);
 
 
 // DIVIDE A NUMBER USING NEWTON-RAPHSON INVERSION
 
-extern void div_real_nr(REAL *result,REAL *num,REAL *div);
+void div_real_nr(REAL *result,REAL *num,REAL *div);
 
 
 // *************************************************************************
@@ -223,58 +227,58 @@ extern void div_real_nr(REAL *result,REAL *num,REAL *div);
 
 // INITIALIZE A REAL, OBTAIN STORAGE FOR IT.
 
-extern void initReal(REAL *a);
+void initReal(REAL *a);
 
 // RELEASE MEMORY USED BY REAL
 
-extern void destroyReal(REAL *a);
+void destroyReal(REAL *a);
 
 // SELECT WORKING PRECISION
 
-extern void setPrecision(BINT prec);
+void setPrecision(BINT prec);
 
 // GET THE CURRENT PRECISION
 
-extern BINT getPrecision();
+BINT getPrecision();
 
 // MAKE A REAL NUMBER FROM AN INTEGER
-extern void newRealFromBINT(REAL *result,BINT number);
+void newRealFromBINT(REAL *result,BINT number);
 
 // MAKE A REAL NUMBER FROM A 64-BIT INTEGER
-extern void newRealFromBINT64(REAL *result,BINT64 number);
+void newRealFromBINT64(REAL *result,BINT64 number);
 
 // CONVERT TEXT TO A REAL NUMBER
 // IT IS UTF8 COMPLIANT, WILL RETURN ERROR IF THERE'S
 // ANY INVALID CHARACTERS IN THE text, BETWEEN POINTERS text AND end
 
-extern void newRealFromText(REAL *result, char *text, char *end, WORD chars);
+void newRealFromText(REAL *result, char *text, char *end, WORD chars);
 
 // COPY CONTENTS OF ONE REAL TO ANOTHER
-extern void copyReal(REAL *dest,REAL *src);
+void copyReal(REAL *dest,REAL *src);
 
 // ADDITION OF 2 REALS
 // DEALS WITH SPECIALS AND FULLY FINALIZE THE ANSWER
 
-extern void addReal(REAL *result,REAL *a,REAL *b);
+void addReal(REAL *result,REAL *a,REAL *b);
 
 // SUBTRACTION OF 2 REALS
 // DEALS WITH SPECIALS AND FULLY FINALIZE THE ANSWER
 
-extern void subReal(REAL *result,REAL *a,REAL *b);
+void subReal(REAL *result,REAL *a,REAL *b);
 
 // MULTIPLICATION OF 2 REALS
 // DEALS WITH SPECIALS AND FULLY FINALIZES ANSWER
 
-extern void mulReal(REAL *result,REAL *a,REAL *b);
+void mulReal(REAL *result,REAL *a,REAL *b);
 
 
 // DIVIDE 2 REALS, DEAL WITH SPECIALS
 
-extern void divReal(REAL *result,REAL *a,REAL *b);
+void divReal(REAL *result,REAL *a,REAL *b);
 
 // DIVIDE 2 REALS, RETURN INTEGER DIVISION AND REMAINDER, DEAL WITH SPECIALS
 
-extern void divmodReal(REAL *quotient,REAL *remainder,REAL *a,REAL *b);
+void divmodReal(REAL *quotient,REAL *remainder,REAL *a,REAL *b);
 
 
 
@@ -282,53 +286,53 @@ extern void divmodReal(REAL *quotient,REAL *remainder,REAL *a,REAL *b);
 // IF NFIGURES IS NEGATIVE, NFIGURES = TOTAL NUMBER OF SIGNIFICANT DIGITS
 // HANDLE SPECIALS
 
-extern void roundReal(REAL *result,REAL *num,BINT nfigures);
+void roundReal(REAL *result,REAL *num,BINT nfigures);
 
 // TRUNCATE A REAL NUMBER TO A CERTAIN NUMBER OF DIGITS AFTER DECIMAL DOT
 // IF NFIGURES IS NEGATIVE, NFIGURES = TOTAL NUMBER OF SIGNIFICANT DIGITS
 // HANDLE SPECIALS
 
-extern void truncReal(REAL *result,REAL *num,BINT nfigures);
+void truncReal(REAL *result,REAL *num,BINT nfigures);
 
 // RETURN THE INTEGER PART (TRUNCATED)
-extern void ipReal(REAL *result, REAL *num, BINT align);
+void ipReal(REAL *result, REAL *num, BINT align);
 
 // RETURN THE FRACTION PART ONLY
-extern void fracReal(REAL *result,REAL *num);
+void fracReal(REAL *result,REAL *num);
 
 // COMPARISON OPERATORS
-extern BINT ltReal(REAL *a,REAL *b);
-extern BINT gtReal(REAL *a,REAL *b);
+BINT ltReal(REAL *a,REAL *b);
+BINT gtReal(REAL *a,REAL *b);
 
-extern BINT lteReal(REAL *a,REAL *b);
-extern BINT gteReal(REAL *a,REAL *b);
+BINT lteReal(REAL *a,REAL *b);
+BINT gteReal(REAL *a,REAL *b);
 
-extern BINT eqReal(REAL *a,REAL *b);
+BINT eqReal(REAL *a,REAL *b);
 
 // RETURN -1 IF A<B, 0 IF A==B AND 1 IF A>B, -2 IF NAN
 // NAN HANDLING IS NOT CONSISTENT WITH OTHER TESTS
 // ALL OTHER TESTS FAIL ON NAN, THERE'S NO FAIL CODE IN cmpReal
 
-extern BINT cmpReal(REAL *a,REAL *b);
+BINT cmpReal(REAL *a,REAL *b);
 
 // TRUE=1 IF A NUMBER IS ZERO, 0 OTHERWISE
-extern BINT iszeroReal(REAL *n);
+BINT iszeroReal(REAL *n);
 
 // TRUE=1 IF A NUMBER IS INFINITY, 0 OTHERWISE
-extern BINT isinfiniteReal(REAL *n);
+BINT isinfiniteReal(REAL *n);
 
 // RETURN -1 IF NEGATIVE, 1 OTHERWISE
-extern BINT signofReal(REAL *n);
+BINT signofReal(REAL *n);
 
 
 // TRUE IF THE NUMBER HAS NO FRACTIONAL PART (IS AN INTEGER)
-extern BINT isintegerReal(REAL *n);
+BINT isintegerReal(REAL *n);
 
 // TRUE IF THE NUMBER IS NOT DIVISIBLE BY 2
-extern BINT isoddReal(REAL *r);
+BINT isoddReal(REAL *r);
 
 // GET THE NUMBER OF DIGITS ON THE INTEGER PART OF A NUMBER
-extern BINT intdigitsReal(REAL *r);
+BINT intdigitsReal(REAL *r);
 
 // CONVERSION TO/FROM OTHER TYPES
 
@@ -341,11 +345,11 @@ BINT inBINT64Range(REAL *n);
 
 // EXTRACT A 32-BIT INTEGER FROM A REAL
 // MUST BE WITHIN RANGE
-extern BINT getBINTReal(REAL *n);
+BINT getBINTReal(REAL *n);
 
 // EXTRACT A BINT64 FROM A REAL
 // MUST BE WITHIN RANGE
-extern BINT64 getBINT64Real(REAL *n);
+BINT64 getBINT64Real(REAL *n);
 
 
 
@@ -435,11 +439,11 @@ enum FORMAT_BITS {
 
 
 
-extern char *formatReal(REAL *number, char *buffer, BINT format, WORD chars);
+char *formatReal(REAL *number, char *buffer, BINT format, WORD chars);
 
 // RETURNS AN ESTIMATED SIZE OF BUFFER GUARANTEED TO HOLD THE TEXT
 // GENERATED BY formatReal()
-extern BINT formatlengthReal(REAL *number,BINT format);
+BINT formatlengthReal(REAL *number,BINT format);
 
 
 // *************************************************************************

@@ -250,7 +250,7 @@ void decconst_Kh1(REAL *real)
 static void decompress_number(uint8_t *stream, uint32_t *dictionary, uint32_t *data, uint32_t nwords)
 {
     int _index, repeat,len,len2,idx,skip;
-    uint32_t enddata=data+nwords;
+    uint32_t *enddata=data+nwords;
     // 1-byte w/LOWER 4-BITS = MATCH LENGTH-1 (1-16 WORDS)
     // UPPER 4-BITS = REPEAT COUNT-1 (1-16 TIMES)
     // 2-BYTES = OFFSET INTO DICTIONARY
@@ -312,7 +312,7 @@ static void const_K_table(int startindex,REAL *real)
     real->len=words;
     real->flags=0;
 
-    decompress_number(byte,(uint32_t *)cordic_K_8_dict,real->data,words);
+    decompress_number(byte,(uint32_t *)cordic_K_8_dict,(uint32_t *)real->data,words);
 
 }
 
@@ -346,7 +346,7 @@ static void const_Kh_table(int startindex,REAL *real)
     real->flags=0;
 
 
-    decompress_number(byte,(uint32_t *)cordic_Kh_8_dict,real->data,words);
+    decompress_number(byte,(uint32_t *)cordic_Kh_8_dict,(uint32_t *)real->data,words);
 
 }
 
@@ -379,7 +379,7 @@ static void atan_1_table(int exponent,REAL *real)
     real->len=words;
     real->flags=0;
 
-    decompress_number(byte,(uint32_t *)atan_1_8_dict,real->data,words);
+    decompress_number(byte,(uint32_t *)atan_1_8_dict,(uint32_t *)real->data,words);
 
 }
 
@@ -412,7 +412,7 @@ static void atan_2_table(int exponent,REAL *real)
     real->len=words;
     real->flags=0;
 
-    decompress_number(byte,(uint32_t *)atan_2_8_dict,real->data,words);
+    decompress_number(byte,(uint32_t *)atan_2_8_dict,(uint32_t *)real->data,words);
 
 }
 
@@ -438,7 +438,7 @@ static void atan_5_table(int exponent,REAL *real)
     real->len=words;
     real->flags=0;
 
-    decompress_number(byte,(uint32_t *)atan_5_8_dict,real->data,words);
+    decompress_number(byte,(uint32_t *)atan_5_8_dict,(uint32_t *)real->data,words);
 
 }
 
@@ -610,7 +610,6 @@ void trig_sincos(REAL *angle, BINT angmode)
     }
     else {
         REAL convfactor;
-        REAL modreal;
         BINT modulo;
 
         if(angmode==1) {
@@ -887,7 +886,7 @@ if(iszeroReal(x0) || isinfiniteReal(y0)) {
     }
     // RETURN +/- PI/2 DEPENDING ON SIGNS
     if(!angmode) {
-    REAL *pi;
+    REAL pi;
     decconst_PI_2(&pi);
     copyReal(&RReg[0],&pi);
     RReg[0].flags=negy;
@@ -897,13 +896,13 @@ if(iszeroReal(x0) || isinfiniteReal(y0)) {
                 RReg[0].data[0]=90;
                 RReg[0].len=1;
                 RReg[0].exp=0;
-                RReg[0].flags=y0->flags&(F_NEGATIVE|F_APPROX)|(x0->flags&F_APPROX);
+                RReg[0].flags=(y0->flags&(F_NEGATIVE|F_APPROX))|(x0->flags&F_APPROX);
             }
             else {
                 RReg[0].data[0]=100;
                 RReg[0].len=1;
                 RReg[0].exp=0;
-                RReg[0].flags=y0->flags&(F_NEGATIVE|F_APPROX)|(x0->flags&F_APPROX);
+                RReg[0].flags=(y0->flags&(F_NEGATIVE|F_APPROX))|(x0->flags&F_APPROX);
             }
     }
     return;
@@ -915,7 +914,7 @@ if(iszeroReal(y0) || isinfiniteReal(x0)) {
     // RETURN 0 OR PI DEPENDING ON SIGNS
     if(negx) {
         if(!angmode) {
-        REAL *pi;
+        REAL pi;
         decconst_PI(&pi);
         copyReal(&RReg[0],&pi);
         RReg[0].flags=negy;
@@ -1103,7 +1102,7 @@ void trig_asin(REAL *x, BINT angmode)
     if(eqReal(x,&one)) {
                 // X==+/-1, RETURN PI/2, 90 OR 100
                 if(!angmode) {
-                REAL *pi;
+                REAL pi;
                 decconst_PI_2(&pi);
                 copyReal(&RReg[0],&pi);
                 RReg[0].flags=x->flags&F_NEGATIVE;
@@ -1155,7 +1154,7 @@ void trig_acos(REAL *x,BINT angmode)
         if(x->flags&F_NEGATIVE) {
                 // X==-1, RETURN PI, 180 OR 200
                 if(!angmode) {
-                REAL *pi;
+                REAL pi;
                 decconst_PI(&pi);
                 copyReal(&RReg[0],&pi);
                 RReg[0].flags|=F_APPROX;    // PI IS ALWAYS APPROXIMATED
@@ -1189,7 +1188,7 @@ void trig_acos(REAL *x,BINT angmode)
     if(iszeroReal(x)) {
                 // X==0, RETURN PI/2, 90 OR 100
                 if(!angmode) {
-                REAL *pi;
+                REAL pi;
                 decconst_PI_2(&pi);
                 copyReal(&RReg[0],&pi);
                 RReg[0].flags|=F_APPROX;    // PI/2 IS ALWAYS APPROXIMATED
@@ -1265,7 +1264,7 @@ static void atanh_1_table(int exponent,REAL *real)
     real->len=words;
     real->flags=0;
 
-    decompress_number(byte,(uint32_t *)atanh_1_8_dict,real->data,words);
+    decompress_number(byte,(uint32_t *)atanh_1_8_dict,(uint32_t *)real->data,words);
 
 }
 
@@ -1299,7 +1298,7 @@ static void atanh_2_table(int exponent,REAL *real)
     real->len=words;
     real->flags=0;
 
-    decompress_number(byte,(uint32_t *)atanh_2_8_dict,real->data,words);
+    decompress_number(byte,(uint32_t *)atanh_2_8_dict,(uint32_t *)real->data,words);
 
 }
 
@@ -1325,7 +1324,7 @@ static void atanh_5_table(int exponent,REAL *real)
     real->len=words;
     real->flags=0;
 
-    decompress_number(byte,(uint32_t *)atanh_5_8_dict,real->data,words);
+    decompress_number(byte,(uint32_t *)atanh_5_8_dict,(uint32_t *)real->data,words);
 
 }
 
@@ -1855,7 +1854,6 @@ Context.precdigits-=8;
 static void CORDIC_Hyp_Vectoring_unrolled(int digits,int startexp)
 {
 int exponent;
-uint32_t status;
 BINT tmpexp,tmpflags;
 REAL *x,*y,*z;
 REAL *xnext,*ynext,*znext;

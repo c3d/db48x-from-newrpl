@@ -270,13 +270,13 @@ void LIB_HANDLER()
                     }
                 // WE POSSIBLY HAVE IMPLICIT MULTIPLICATION BETWEEN REAL AND IDENT
                 BINT numberlen=TI_LENGTH(RetNum);
-                BYTEPTR splitpoint=utf8nskip(tok,(BYTEPTR)BlankStart,numberlen);
+                BYTEPTR splitpoint=(BYTEPTR)utf8nskip((char *)tok,(char *)BlankStart,numberlen);
                 BINT splitoff=splitpoint-(BYTEPTR)TokenStart;
                 if(rplIsValidIdent(splitpoint,(BYTEPTR)BlankStart)) {
                     // CONFIRMED IMPLICIT MULTIPLICATION
                     // TRY TO COMPILE AS NUMBER IDENT *
                     WORD  locale=rplGetSystemLocale();
-                    newRealFromText(&RReg[0],tok,splitpoint,locale);
+                    newRealFromText(&RReg[0],(char *)tok,(char *)splitpoint,locale);
                     if(RReg[0].flags&F_ERROR) {
                         RetNum=ERR_SYNTAX;
                         return;

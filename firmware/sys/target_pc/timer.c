@@ -7,8 +7,8 @@
 
 #include <ui.h>
 
-extern void stop_singleshot();
-extern void timer_singleshot(int ms);
+void stop_singleshot();
+void timer_singleshot(int ms);
 
 void __tmr_eventreschedule();
 
