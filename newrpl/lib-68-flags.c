@@ -839,7 +839,7 @@ void LIB_HANDLER()
         if(ISLIST(*arg)) {
             // CUSTOM MENU
 
-           WORD mcode=MKMENUCODE(0,LIBRARY_NUMBER,0,0);
+           WORD mcode=MKMENUCODE(0,LIBRARY_NUMBER,menu-1,0);
 
            rplSetMenuCode(menu,mcode);
 
@@ -890,8 +890,21 @@ void LIB_HANDLER()
         WORD m1code=rplGetMenuCode(1);
         WORD m2code=rplGetMenuCode(2);
 
+        if(MENULIBRARY(m2code)==LIBRARY_NUMBER) m2code=MKMENUCODE(0,LIBRARY_NUMBER,MENUNUMBER(m2code)^1,MENUPAGE(m2code));  // ALTERNATE MENU'S 1 AND 2
+        if(MENULIBRARY(m1code)==LIBRARY_NUMBER) m1code=MKMENUCODE(0,LIBRARY_NUMBER,MENUNUMBER(m1code)^1,MENUPAGE(m1code));  // ALTERNATE MENU'S 1 AND 2
+
+
         rplSetMenuCode(1,m2code);
         rplSetMenuCode(2,m1code);
+
+        WORDPTR *m1setting,*m2setting;
+
+        m1setting=rplGetSettings((WORDPTR)menu1_ident);
+        m2setting=rplGetSettings((WORDPTR)menu2_ident);
+
+        if(m1setting) rplStoreSettings((WORDPTR)menu2_ident,m1setting);
+        if(m2setting) rplStoreSettings((WORDPTR)menu1_ident,m2setting);
+
 
         return;
     }
