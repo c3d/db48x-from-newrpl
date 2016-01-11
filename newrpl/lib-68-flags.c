@@ -897,7 +897,7 @@ void LIB_HANDLER()
         rplSetMenuCode(1,m2code);
         rplSetMenuCode(2,m1code);
 
-        WORDPTR *m1setting,*m2setting;
+        WORDPTR m1setting,m2setting;
 
         m1setting=rplGetSettings((WORDPTR)menu1_ident);
         m2setting=rplGetSettings((WORDPTR)menu2_ident);

@@ -6,7 +6,8 @@ CONFIG -= qt
 SOURCES += \
     elf2rom.c
 
-include(deployment.pri)
-qtcAddDeployment()
-
 LIBS += -lelf
+
+install_bin.path = $$PWD/../../tools-bin
+install_bin.files = $$OUT_PWD/elf2rom
+INSTALLS += install_bin

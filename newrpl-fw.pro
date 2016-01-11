@@ -182,3 +182,12 @@ QMAKE_LFLAGS_THREAD =
 QMAKE_LFLAGS = -T$$PWD/firmware/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
 
 QMAKE_POST_LINK = $$PWD/firmware/elf2rom $(TARGET)
+
+
+# Additional RPL compiler, make sure it's in the PATH
+rpl_compiler.output = auto_${QMAKE_FILE_BASE}.c
+rpl_compiler.commands = $$PWD/tools-bin/newrpl-comp -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
+rpl_compiler.input = RPL_OBJECTS
+rpl_compiler.variable_out = SOURCES
+
+QMAKE_EXTRA_COMPILERS += rpl_compiler

@@ -60,7 +60,10 @@ ROMOBJECT unitdir_ident[]={
     TEXT2WORD('S',0,0,0)
 };
 
+INCLUDE_ROMOBJECT(unitmenu_zero);
+INCLUDE_ROMOBJECT(unitmenu_one);
 
+/*
 ROMOBJECT unitmenu_zero[]={
     // MENU LIST
     MKPROLOG(DOLIST,39),
@@ -130,7 +133,7 @@ ROMOBJECT unitmenu_one[]={
             MKOPCODE(LIBRARY_NUMBER,TOUNIT),
     CMD_ENDLIST
 };
-
+*/
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE

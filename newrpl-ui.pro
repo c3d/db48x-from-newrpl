@@ -145,6 +145,18 @@ HEADERS  += mainwindow.h \
     newrpl/include-all.h \
     newrpl/romlibs.h
 
+RPL_OBJECTS = newrpl/rpl-objects/lib-54.nrpl
+
+
+
+
+
+
+
+
+
+
+
 INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
 
 LIBS += -L/usr/local/lib
@@ -157,3 +169,20 @@ RESOURCES += \
     annunciators.qrc
 
 QMAKE_CFLAGS += -Wno-duplicate-decl-specifier
+
+
+
+# Additional RPL compiler, make sure it's in the PATH
+rpl_compiler.output = auto_${QMAKE_FILE_BASE}.c
+rpl_compiler.commands = $$PWD/tools-bin/newrpl-comp -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
+rpl_compiler.input = RPL_OBJECTS
+rpl_compiler.variable_out = SOURCES
+
+QMAKE_EXTRA_COMPILERS += rpl_compiler
+
+
+
+
+
+
+

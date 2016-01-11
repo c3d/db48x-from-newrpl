@@ -27,12 +27,33 @@
 // DISPLAY AN ERROR MESSAGE
 // USES ERROR CODE FROM SYSTEM Exceptions
 // OUTPUTS THE ERROR TO THE GIVEN STREAM (USUALLY stderr)
-void compShowErrorMsg(char *inputfile,char *mainbuffer,long long length,FILE *stream)
+void compShowErrorMsg(char *inputfile,char *mainbuffer,FILE *stream)
 {
         int errbit;
         if(!Exceptions) return;
+        char *position = (char *)TokenStart;
+        char *linestart=NULL;
 
-        fprintf(stream,"%s:%d:%d:",inputfile,1,1);
+        // COMPUTE LINE NUMBER
+        int linenum=1;
+
+        while(position>mainbuffer) {
+            --position;
+            if(*position=='\n') {
+                ++linenum;
+                if(!linestart) linestart=position+1;
+            }
+        }
+
+        // COUNT CHARACTERS FROM START OF LINE
+        position=(char *)TokenStart;
+
+        while(*linestart=='\r') ++linestart;
+
+        int posnum=utf8nlen(linestart,position)+1;
+
+
+        fprintf(stream,"%s:%d:%d:",inputfile,linenum,posnum);
 
         if(Exceptions!=EX_ERRORCODE) {
             if(ExceptionPointer && (*ExceptionPointer!=0)) {  // ONLY IF THERE'S A VALID COMMAND TO BLAME
@@ -140,10 +161,6 @@ int main(int argc, char *argv[])
     }
 
 
-    printf("Input file: %s\n",inputfile);
-    printf("Output file: %s\n",outputfile);
-    printf("Output type: %s\n",(outputtype==OUTPUT_C)? "C":"Binary");
-
     // READ THE INPUT FILE INTO A BUFFER
     FILE *f=fopen(inputfile,"rb");
     if(f==NULL) {
@@ -234,7 +251,7 @@ int main(int argc, char *argv[])
     }
     else {
         fprintf(f,"// newRPL binary version 1.0\n\n");
-
+        fprintf(f,"#include \"libraries.h\"\n\n");
     }
 
 
@@ -260,7 +277,7 @@ int main(int argc, char *argv[])
     WORDPTR newobject=rplCompile((BYTEPTR)start,end-start,1);
 
     if(Exceptions) {
-        compShowErrorMsg(inputfile,mainbuffer,length,stderr);
+        compShowErrorMsg(inputfile,mainbuffer,stderr);
         fclose(f);
         remove(outputfile);
 

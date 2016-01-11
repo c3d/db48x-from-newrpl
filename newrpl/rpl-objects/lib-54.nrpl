@@ -1,0 +1,35 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+
+
+@#name unitmenu_zero
+{
+  { { "TOOLS" 1 } « #360400h TMENU » }
+  { { "LENGTH" 1 } « #360800h TMENU » }
+}
+
+@#name unitmenu_one
+{
+    1_m
+    1_cm
+    1_mm
+    1_yd
+    1_ft
+    1_in
+    1_Mpc
+    1_pc
+    1_lyr
+    1_au
+    1_km
+    1_mi
+    1_nmi
+    1_miUS
+    1_chain
+    1_rd
+    1_fath
+    1_ftUS
+    1_mil
+    1_μ
+    1_Å
+    1_fermi
+}

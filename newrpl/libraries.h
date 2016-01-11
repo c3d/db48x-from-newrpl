@@ -283,7 +283,13 @@ void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds);
 
 #define ISROMPTRID(id) ( (LIBNUM(id)&0xff0) == LIB_ROMPTR)
 
-
+// MACRO TO INCLUDE PRECOMPILED BINARIES
+// IT REPLACES ALL OBJECTS WITH BINT ZERO IF NO_RPL_OBJECTS IS DEFINED
+#ifndef  NO_RPL_OBJECTS
+#define INCLUDE_ROMOBJECT(id_name) extern ROMOBJECT id_name[]
+#else
+#define INCLUDE_ROMOBJECT(id_name) ROMOBJECT id_name[]={ MAKESINT(0) }
+#endif
 
 
 

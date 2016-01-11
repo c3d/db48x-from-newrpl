@@ -10,7 +10,7 @@ CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
-DEFINES += TARGET_PC
+DEFINES += TARGET_PC NO_RPL_OBJECTS
 
 SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/ggl/ggl/ggl_bitbltoper.c \
@@ -147,3 +147,9 @@ DISTFILES +=
 
 
 QMAKE_CFLAGS += -Wno-duplicate-decl-specifier
+
+
+
+install_bin.path = $$PWD/tools-bin
+install_bin.files = $$OUT_PWD/newrpl-comp
+INSTALLS += install_bin
