@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
         needcleanup++;
         outputfile=malloc(end-inputfile+10);
         if(!outputfile) {
-            fprintf(stderr,"Memory allocation error\n");
+            fprintf(stderr,"error: Memory allocation error\n");
             return 1;
         }
         memmove(outputfile,inputfile,end-inputfile);
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
     // READ THE INPUT FILE INTO A BUFFER
     FILE *f=fopen(inputfile,"rb");
     if(f==NULL) {
-        fprintf(stderr,"Error: File not found %s\n",inputfile);
+        fprintf(stderr,"error: File not found %s\n",inputfile);
         if(needcleanup) free(outputfile);
         return 1;
     }
@@ -157,37 +157,177 @@ int main(int argc, char *argv[])
 
     mainbuffer=malloc(length);
     if(!mainbuffer) {
-        fprintf(stderr,"Memory allocation error\n");
+        fprintf(stderr,"error: Memory allocation error\n");
         if(needcleanup) free(outputfile);
         return 1;
     }
     if(fread(mainbuffer,1,length,f)!=(size_t)length) {
-        fprintf(stderr,"Can't read from input file\n");
+        fprintf(stderr,"error: Can't read from input file\n");
         if(needcleanup) free(outputfile);
+        free(mainbuffer);
         return 1;
     }
     fclose(f);
 
     // HERE WE HAVE THE MAIN FILE
-
-
-    // TODO: ADD SOME PREPROCESSING HERE
-
-
-    // TODO: COMPILE THE CODE AND DISPLAY ANY ERRORS
     rplInit();
+    rplSetSystemFlag(FL_STRIPCOMMENTS);
 
-    WORDPTR newobject=rplCompile((BYTEPTR)mainbuffer,length,1);
 
-    if(Exceptions) {
-        compShowErrorMsg(inputfile,mainbuffer,length,stderr);
+    // IDENTIFY CHUNKS OF CODE
+
+    char *chunk=mainbuffer;
+    int numchunks=0;
+    char *chunkstart[65537]; // MAXIMUM NUMBER OF VARIABLES IN A SINGLE FILE
+
+
+    while(chunk-mainbuffer<length) {
+
+    if(!utf8ncmp(chunk,"@#name",6)) {
+        // FOUND START OF CHUNK
+        chunkstart[numchunks]=chunk;
+        ++numchunks;
+        if(numchunks>65535) {
+            fprintf(stderr,"error: Too many chunks in same file.\n");
+            if(needcleanup) free(outputfile);
+            free(mainbuffer);
+            return 1;
+
+        }
+
+    }
+
+    //SKIP TO THE NEXT LINE
+    while( (*chunk!='\n')&&(*chunk!='\r')&&(chunk-mainbuffer<length)) ++chunk;
+    while( ((*chunk=='\n')||(*chunk=='\r'))&&(chunk-mainbuffer<length)) ++chunk;
+
+    }
+
+
+    if(numchunks==0) {
+        chunkstart[numchunks]=mainbuffer;
+        ++numchunks;
+    }
+
+
+    chunkstart[numchunks]=chunk;
+
+
+
+    f=fopen(outputfile,"wb");
+    if(f==NULL) {
+        fprintf(stderr,"error: Can't open %s for writing.\n",outputfile);
         if(needcleanup) free(outputfile);
         free(mainbuffer);
         return 1;
     }
 
-    printf("Compile OK\n");
-    // TODO: GET READY TO OUTPUT THE FILE
+    if(outputtype==OUTPUT_BINARY) {
+        // WRITE THE BINARY FILE MARKER
+        WORD marker[3]= {
+            MKPROLOG(HEXBINT,2),        // PROLOG OF A 64-BIT BINT
+            0x4c50526e,                 // STRING "nRPL"
+            1                           // VERSION OF THE newRPL BINARY FORMAT
+        };
+
+        fwrite(marker,4,3,f);
+    }
+    else {
+        fprintf(f,"// newRPL binary version 1.0\n\n");
+
+    }
+
+
+
+    // COMPILE ALL CHUNKS
+
+
+    int k;
+    char *start,*end;
+    for(k=0;k<numchunks;++k) {
+
+        start=chunkstart[k];
+        end=chunkstart[k+1];
+
+        if(!utf8ncmp(start,"@#name",6)) {
+        // SKIP TO THE NEXT LINE FOR THE REAL DATA
+        while( (*start!='\n')&&(*start!='\r')&&(start<end)) ++start;
+        while( ((*start=='\n')||(*start=='\r'))&&(start<end)) ++start;
+        }
+
+       if(end>start) {
+
+    WORDPTR newobject=rplCompile((BYTEPTR)start,end-start,1);
+
+    if(Exceptions) {
+        compShowErrorMsg(inputfile,mainbuffer,length,stderr);
+        fclose(f);
+        remove(outputfile);
+
+        if(needcleanup) free(outputfile);
+        free(mainbuffer);
+        return 1;
+    }
+
+        // OUTPUT THE CHUNK
+
+        if(outputtype==OUTPUT_C) {
+
+            if(rplObjSize(newobject)>2) {
+            // OUTPUT C FORMATTED CODE
+
+            char *objname;
+            char *nameend;
+            if(!utf8ncmp(chunkstart[k],"@#name",6)) {
+                objname=chunkstart[k]+6;
+                while( (*objname==' ') || (*objname=='\t')) ++objname;
+                nameend=objname;
+                while( (*nameend!='\n') && (*nameend!='\r') && (*nameend!=' ') && (*nameend!='\t')) ++nameend;
+            } else { nameend=objname=NULL; }
+
+            fprintf(f,"ROMOBJECT ");
+            if(nameend<=objname) fprintf(f,"chunk%05d",k+1);
+            else fwrite(objname,1,nameend-objname,f);
+
+            fprintf(f,"[]= {\n");
+
+            WORDPTR p=newobject+1,endp=rplSkipOb(newobject)-1;
+            int wordcount=0;
+            while(p<endp) {
+                fprintf(f,"0x%08X",*p);
+                if(p!=endp-1) fprintf(f,",");
+
+                wordcount++;
+                if((wordcount&7)==0) fprintf(f,"\n");
+                ++p;
+            }
+
+
+            if((wordcount&7)!=0) fprintf(f,"\n");
+
+            fprintf(f,"};\n\n\n");
+            }
+
+        }
+        else {
+            if(rplObjSize(newobject)>2) {
+            // RAW BINARY OUTPUT
+            fwrite(newobject+1,4,rplObjSize(newobject)-2,f);
+            }
+        }
+
+
+
+       }
+
+        // AND MOVE ON TO THE NEXT ONE
+
+    }
+
+
+
+    // CLOSE THE OUTPUT FILE
+    fclose(f);
 
     return 0;
 
