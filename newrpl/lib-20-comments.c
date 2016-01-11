@@ -357,6 +357,11 @@ void LIB_HANDLER()
                     TokenStart=(WORDPTR)ptr;
                     RetNum=OK_SPLITTOKEN;
                     } else RetNum=OK_CONTINUE;
+
+                    // DROP THE COMMENT DEPENDING ON FLAGS
+                    if( (mode!=0x40000002) && (rplTestSystemFlag(FL_STRIPCOMMENTS)==1)) CompileEnd=ScratchPointer4;
+
+
                     return;
                 }
                 if(count==0) temp.word=0;
@@ -452,6 +457,11 @@ void LIB_HANDLER()
                 TokenStart=(WORDPTR)ptr;
                 RetNum=OK_SPLITTOKEN;
                 } else RetNum=OK_CONTINUE;
+
+                // DROP THE COMMENT DEPENDING ON FLAGS
+                if( (mode!=0x40000002) && (rplTestSystemFlag(FL_STRIPCOMMENTS)==1)) CompileEnd=ScratchPointer4;
+
+
                 return;
             }
             if(count==0) temp.word=0;
