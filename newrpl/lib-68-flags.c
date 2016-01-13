@@ -471,6 +471,79 @@ if(a==1) return 2;
 return 1;
 }
 
+// REPLACE THE ACTIVE MENU WITH THE GIVEN OBJECT
+// THIS DOES THE SAME JOB AS TMENU, BUT CAN BE CALLED
+// FROM OTHER LIBRARIES. MAY TRIGGER GC WHEN STORING
+// IN SETTINGS DIRECTORY
+void rplChangeMenu(WORDPTR newmenu)
+{
+       BINT menu=rplGetActiveMenu();
+
+       if(ISIDENT(*newmenu)) {
+
+           // RCL THE VARIABLE AND LEAVE CONTENTS ON THE STACK
+
+           WORDPTR *var=rplFindLAM(newmenu,1);
+           if(!var) var=rplFindGlobal(newmenu,1);
+
+           if(!var) {
+              rplError(ERR_UNDEFINEDVARIABLE);
+              return;
+           }
+
+           // REPLACE THE IDENT WITH ITS CONTENTS
+           newmenu=var[1];
+
+           // AND CONTINUE EXCECUTION
+       }
+
+       if(ISLIST(*newmenu)) {
+           // CUSTOM MENU
+
+          WORD mcode=MKMENUCODE(0,LIBRARY_NUMBER,menu-1,0);
+
+          rplSetMenuCode(menu,mcode);
+
+          // STORE THE LIST IN .Settings AS CURRENT MENU
+          if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,newmenu);
+          else rplStoreSettings((WORDPTR)menu1_ident,newmenu);
+
+         return;
+       }
+
+
+
+       if(ISBINT(*newmenu)) {
+           // IT'S A PREDEFINED MENU CODE
+           BINT64 num=rplReadBINT(newmenu);
+
+           if((num<0)||(num>0xffffffff)) {
+               // JUST SET IT TO ZERO
+               rplSetMenuCode(menu,0);
+               // STORE THE LIST IN .Settings AS CURRENT MENU
+               if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,(WORDPTR)zero_bint);
+               else rplStoreSettings((WORDPTR)menu1_ident,(WORDPTR)zero_bint);
+
+           }
+           else {
+           // WE HAVE A VALID MENU NUMBER
+
+           rplSetMenuCode(menu,num);
+           // STORE THE LIST IN .Settings AS CURRENT MENU
+           if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,newmenu);
+           else rplStoreSettings((WORDPTR)menu1_ident,newmenu);
+
+           }
+
+           return;
+       }
+
+       rplError(ERR_INVALIDMENUDEFINITION);
+
+     return;
+}
+
+
 
 void LIB_HANDLER()
 {

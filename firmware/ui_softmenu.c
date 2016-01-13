@@ -238,7 +238,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 
         if((flags&1) || (var && ISDIR(*var[1]))) {
             //ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(color));
-            ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor(color));
+            ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor(8));
         }
 
         DrawTextN(pos,scr->clipy,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.MenuFont,color,scr);
@@ -322,7 +322,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 
     if(flags&1) {   // FOR NOW, flags & 1 INDICATES THE MENU IS TO BE DISPLAYED AS A DIRECTORY
         //ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(color));
-        ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor(color));
+        ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor(8));
     }
 
 

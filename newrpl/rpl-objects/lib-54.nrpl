@@ -2,13 +2,40 @@
 @ « » →
 
 
-@#name unitmenu_zero
+@#name unitmenu_0_main
 {
-  { { "TOOLS" 1 } « #360400h TMENU » }
-  { { "LENGTH" 1 } « #360800h TMENU » }
+  { { "Tools" 1 } « 1 #400h * #360000h + TMENU » }
+  { { "Leng" 1 } « 2 #400h * #360000h + TMENU » }
+  { { "Area" 1 } « 3 #400h * #360000h + TMENU » }
+  { { "Vol" 1 } « 4 #400h * #360000h + TMENU » }
+  { { "Time" 1 } « 5 #400h * #360000h + TMENU » }
+  { { "Speed" 1 } « 6 #400h * #360000h + TMENU » }
+  { { "Mass" 1 } « 7 #400h * #360000h + TMENU » }
+  { { "Force" 1 } « 8 #400h * #360000h + TMENU » }
+  { { "Energy" 1 } « 9 #400h * #360000h + TMENU » }
+  { { "Power" 1 } « 10 #400h * #360000h + TMENU » }
+  { { "Press" 1 } « 11 #400h * #360000h + TMENU » }
+  { { "Temp" 1 } « 12 #400h * #360000h + TMENU » }
+  { { "Elec" 1 } « 13 #400h * #360000h + TMENU » }
+  { { "Angle" 1 } « 14 #400h * #360000h + TMENU » }
+  { { "Light" 1 } « 15 #400h * #360000h + TMENU » }
+  { { "Rad" 1 } « 16 #400h * #360000h + TMENU » }
+  { { "Visc" 1 } « 17 #400h * #360000h + TMENU » }
 }
 
-@#name unitmenu_one
+@#name unitmenu_1_tools
+{
+CONVERT
+UBASE
+UVAL
+UFACT
+→UNIT
+UDEFINE
+UPURGE
+{ { "Units" 1 } « #360000h TMENU » }
+}
+
+@#name unitmenu_2_length
 {
     1_m
     1_cm
@@ -32,4 +59,80 @@
     1_μ
     1_Å
     1_fermi
+    { { "Units" 1 } « #360000h TMENU » }
+
+}
+
+@#name unitmenu_3_area
+{
+    1_m^2
+    1_cm^2
+    1_b
+    1_yd^2
+    1_ft^2
+    1_in^2
+    1_km^2
+    1_ha
+    1_a
+    1_mi^2
+    1_miUS^2
+    1_acre
+    { { "Units" 1 } « #360000h TMENU » }
+
+}
+@#name unitmenu_4_volume
+{
+{ { "Units" 1 } « #360000h TMENU » }
+}
+@#name unitmenu_5_time
+{
+{ { "Units" 1 } « #360000h TMENU » }
+}
+@#name unitmenu_6_speed
+{
+{ { "Units" 1 } « #360000h TMENU » }
+}
+@#name unitmenu_7_mass
+{
+{ { "Units" 1 } « #360000h TMENU » }
+}
+@#name unitmenu_8_force
+{
+{ { "Units" 1 } « #360000h TMENU » }
+}
+@#name unitmenu_9_energy
+{
+{ { "Units" 1 } « #360000h TMENU » }
+}
+@#name unitmenu_10_power
+{
+{ { "Units" 1 } « #360000h TMENU » }
+}
+@#name unitmenu_11_pressure
+{
+{ { "Units" 1 } « #360000h TMENU » }
+}
+@#name unitmenu_12_temperature
+{
+{ { "Units" 1 } « #360000h TMENU » }
+}
+@#name unitmenu_13_electrical
+{
+{ { "Units" 1 } « #360000h TMENU » }
+}
+@#name unitmenu_14_angles
+{
+{ { "Units" 1 } « #360000h TMENU » }
+}
+@#name unitmenu_15_light
+{
+{ { "Units" 1 } « #360000h TMENU » }
+}
+@#name unitmenu_16_radiation
+{
+{ { "Units" 1 } « #360000h TMENU » }
+}
+@#name unitmenu_17_viscosity
+{
+{ { "Units" 1 } « #360000h TMENU » }
 }

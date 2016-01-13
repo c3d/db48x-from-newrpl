@@ -251,6 +251,10 @@ void rplSetSystemNumberFormat(NUMFORMAT *fmt);
 // SYSTEM SOFT MENUS
 void rplSetMenuCode(BINT menunumber,WORD menucode);
 WORD rplGetMenuCode(BINT menunumber);
+void rplSetActiveMenu(BINT menunumber);
+BINT rplGetActiveMenu();
+void rplChangeMenu(WORDPTR newmenu);
+
 
 // SYSTEM AUTOCOMPLETE
 WORD rplGetNextSuggestion(WORD suggestion, BYTEPTR start, BYTEPTR end);
@@ -350,6 +354,9 @@ void rplStoreSettings(WORDPTR nameobject,WORDPTR object);
 void rplStoreSettingsbyName(BYTEPTR name, BYTEPTR nameend, WORDPTR object);
 WORDPTR rplGetSettings(WORDPTR nameobject);
 WORDPTR rplGetSettingsbyName(BYTEPTR name, BYTEPTR nameend);
+
+
+
 
 
 

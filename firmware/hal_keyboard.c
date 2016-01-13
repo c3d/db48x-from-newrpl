@@ -527,6 +527,7 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
 
 
 
+
 void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 {
     if(KM_MESSAGE(keymsg)==KM_LPRESS) {
@@ -2115,7 +2116,20 @@ void shiftedalphaKeyHandler(BINT keymsg)
 }
 
 
+void changemenuKeyHandler(BINT keymsg,WORD menucode)
+{
+    UNUSED_ARGUMENT(keymsg);
 
+    WORDPTR numobject=rplNewBINT(menucode,HEXBINT);
+
+    if(!numobject || Exceptions) return;
+
+    rplChangeMenu(numobject);
+
+    if(rplGetActiveMenu()==1) halScreen.DirtyFlag|=MENU1_DIRTY;
+    else halScreen.DirtyFlag|=MENU2_DIRTY;
+
+}
 
 
 #define DECLARE_CMDKEYHANDLER(name,opcode,string,issymbfunc) void name##KeyHandler(BINT keymsg) \
@@ -2131,6 +2145,10 @@ void shiftedalphaKeyHandler(BINT keymsg)
                                                     varsKeyHandler(keymsg,(menu),(BINT)(idx)); \
                                                     }
 
+#define DECLARE_MENUKEYHANDLER(name,menucode) void name##KeyHandler(BINT keymsg) \
+                                                    { \
+                                                    changemenuKeyHandler(keymsg,(WORD)(menucode)); \
+                                                    }
 
 
 #define DECLARE_KEYHANDLER(name,lsymbol,csymbol) void name##KeyHandler(BINT keymsg) \
@@ -2297,6 +2315,9 @@ DECLARE_CMDKEYHANDLER(xroot,(CMD_OVR_XROOT),"XROOT",1)
 
 DECLARE_CMDKEYHANDLER(sto,CMD_STO,"STO",2)
 DECLARE_CMDKEYHANDLER(rcl,CMD_RCL,"RCL",2)
+
+
+DECLARE_MENUKEYHANDLER(unitmenu,MKMENUCODE(0,DOUNIT,0,0))
 
 
 
@@ -2707,6 +2728,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_1|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(percent) },
     { KM_PRESS|KB_2|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(exclamation) },
     { KM_PRESS|KB_3|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
+    { KM_PRESS|KB_3|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
     { KM_PRESS|KB_3|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
     { KM_PRESS|KB_3|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(question) },
     { KM_PRESS|KB_4|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(euro) },
@@ -2762,6 +2784,8 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_9|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub9) },
 
 
+    // MENUS
+    { KM_PRESS|KB_6|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(unitmenu) },
 
 
 

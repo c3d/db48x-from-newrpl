@@ -60,87 +60,51 @@ ROMOBJECT unitdir_ident[]={
     TEXT2WORD('S',0,0,0)
 };
 
-INCLUDE_ROMOBJECT(unitmenu_zero);
-INCLUDE_ROMOBJECT(unitmenu_one);
-
-/*
-ROMOBJECT unitmenu_zero[]={
-    // MENU LIST
-    MKPROLOG(DOLIST,39),
-        // ITEM: { Display Action Help }
-        MKPROLOG(DOLIST,18),
-            // DISPLAY
-            MKPROLOG(DOLIST,5),
-            MAKESTRING(5),
-            TEXT2WORD('T','O','O','L'),
-            TEXT2WORD('S',0,0,0),
-            MAKESINT(1),
-            CMD_ENDLIST,
-            // ACTION
-            MKPROLOG(DOCOL,5),                  // <<
-            MKPROLOG(HEXBINT,2),                // #MENUCODEh
-            MKMENUCODE(0,LIBRARY_NUMBER,1,0),
-            0,
-            CMD_TMENU,                          // TMENU
-            CMD_SEMI,                           // >>
-
-            // HELP
-            MAKESTRING(16),
-            TEXT2WORD('T','o','o','l'),
-            TEXT2WORD('s',' ','f','o'),
-            TEXT2WORD('r',' ','U','n'),
-            TEXT2WORD('i','t','s','.'),
-        CMD_ENDLIST,
-    // ITEM: { Display Action Help }
-    MKPROLOG(DOLIST,18),
-        // DISPLAY
-        MKPROLOG(DOLIST,5),
-        MAKESTRING(6),
-        TEXT2WORD('L','E','N','G'),
-        TEXT2WORD('T','H',0,0),
-        MAKESINT(1),
-        CMD_ENDLIST,
-        // ACTION
-        MKPROLOG(DOCOL,5),                  // <<
-        MKPROLOG(HEXBINT,2),                // #MENUCODEh
-        MKMENUCODE(0,LIBRARY_NUMBER,2,0),
-        0,
-        CMD_TMENU,                          // TMENU
-        CMD_SEMI,                           // >>
-
-        // HELP
-        MAKESTRING(16),
-        TEXT2WORD('U','n','i','t'),
-        TEXT2WORD('s',' ','o','f'),
-        TEXT2WORD(' ','l','e','n'),
-        TEXT2WORD('g','t','h','.'),
-    CMD_ENDLIST,
+INCLUDE_ROMOBJECT(unitmenu_0_main);
+INCLUDE_ROMOBJECT(unitmenu_1_tools);
+INCLUDE_ROMOBJECT(unitmenu_2_length);
+INCLUDE_ROMOBJECT(unitmenu_3_area);
+INCLUDE_ROMOBJECT(unitmenu_4_volume);
+INCLUDE_ROMOBJECT(unitmenu_5_time);
+INCLUDE_ROMOBJECT(unitmenu_6_speed);
+INCLUDE_ROMOBJECT(unitmenu_7_mass);
+INCLUDE_ROMOBJECT(unitmenu_8_force);
+INCLUDE_ROMOBJECT(unitmenu_9_energy);
+INCLUDE_ROMOBJECT(unitmenu_10_power);
+INCLUDE_ROMOBJECT(unitmenu_11_pressure);
+INCLUDE_ROMOBJECT(unitmenu_12_temperature);
+INCLUDE_ROMOBJECT(unitmenu_13_electrical);
+INCLUDE_ROMOBJECT(unitmenu_14_angles);
+INCLUDE_ROMOBJECT(unitmenu_15_light);
+INCLUDE_ROMOBJECT(unitmenu_16_radiation);
+INCLUDE_ROMOBJECT(unitmenu_17_viscosity);
 
 
-    CMD_ENDLIST
-};
 
-ROMOBJECT unitmenu_one[]={
-    // MENU LIST
-    MKPROLOG(DOLIST,8),
-        // ITEM: { Display Action Help }
-            MKOPCODE(LIBRARY_NUMBER,UDEFINE),
-            MKOPCODE(LIBRARY_NUMBER,UPURGE),
-            MKOPCODE(LIBRARY_NUMBER,UVAL),
-            MKOPCODE(LIBRARY_NUMBER,UBASE),
-            MKOPCODE(LIBRARY_NUMBER,CONVERT),
-            MKOPCODE(LIBRARY_NUMBER,UFACT),
-            MKOPCODE(LIBRARY_NUMBER,TOUNIT),
-    CMD_ENDLIST
-};
-*/
+
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
      (WORDPTR)unitdir_ident,
-     (WORDPTR)unitmenu_zero,
-     (WORDPTR)unitmenu_one,
+    (WORDPTR)unitmenu_0_main,
+    (WORDPTR)unitmenu_1_tools,
+    (WORDPTR)unitmenu_2_length,
+    (WORDPTR)unitmenu_3_area,
+    (WORDPTR)unitmenu_4_volume,
+    (WORDPTR)unitmenu_5_time,
+    (WORDPTR)unitmenu_6_speed,
+    (WORDPTR)unitmenu_7_mass,
+    (WORDPTR)unitmenu_8_force,
+    (WORDPTR)unitmenu_9_energy,
+    (WORDPTR)unitmenu_10_power,
+    (WORDPTR)unitmenu_11_pressure,
+    (WORDPTR)unitmenu_12_temperature,
+    (WORDPTR)unitmenu_13_electrical,
+    (WORDPTR)unitmenu_14_angles,
+    (WORDPTR)unitmenu_15_light,
+    (WORDPTR)unitmenu_16_radiation,
+    (WORDPTR)unitmenu_17_viscosity,
      0
 };
 
@@ -2875,22 +2839,11 @@ void LIB_HANDLER()
         // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
-    {
-    switch(MENUNUMBER(MenuCodeArg))
-    {
-    case 0:
-        ObjectPTR=(WORDPTR)unitmenu_zero;
+    {\
+        if(MENUNUMBER(MenuCodeArg)>17) RetNum=ERR_NOTMINE;
+        // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
+        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+1];
         RetNum=OK_CONTINUE;
-        break;
-    case 1:
-        ObjectPTR=(WORDPTR)unitmenu_one;
-        RetNum=OK_CONTINUE;
-        break;
-
-    default:
-        RetNum=ERR_NOTMINE;
-    }
-
        return;
     }
     case OPCODE_LIBINSTALL:

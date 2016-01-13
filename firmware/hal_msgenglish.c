@@ -122,6 +122,8 @@ const MSGLIST const all_messages[]={
     { ERR_INVALIDFLAGNUMBER, "Invalid flag number" },
     { ERR_INVALIDFLAGNAME, "Invalid flag name" },
     { ERR_IDENTORINTEGEREXPECTED, "Expected identifier or integer" },
+    { ERR_INVALIDLOCALESTRING, "Invalid Locale string" },
+    { ERR_INVALIDMENUDEFINITION, "Invalid menu definition" },
 
     // TRANSCENDENTAL FUNCTIONS
     { ERR_ARGOUTSIDEDOMAIN, "Argument outside domain" },
