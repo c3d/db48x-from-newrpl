@@ -142,6 +142,12 @@ HEADERS  += \
     newrpl/romlibs.h
 
 
+RPL_OBJECTS = newrpl/rpl-objects/lib-54.nrpl
+
+
+
+
+
 # This might need to be adapted to each cross-compiler installation
 GCC_LIBDIR = /usr/local/lib/gcc/arm-none-eabi/5.2.0
 
@@ -184,7 +190,7 @@ QMAKE_LFLAGS = -T$$PWD/firmware/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDI
 QMAKE_POST_LINK = $$PWD/firmware/elf2rom $(TARGET)
 
 
-# Additional RPL compiler, make sure it's in the PATH
+## Additional RPL compiler, make sure it's in the PATH
 rpl_compiler.output = auto_${QMAKE_FILE_BASE}.c
 rpl_compiler.commands = $$PWD/tools-bin/newrpl-comp -c -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_NAME}
 rpl_compiler.input = RPL_OBJECTS
