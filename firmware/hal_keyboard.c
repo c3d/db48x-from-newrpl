@@ -319,8 +319,6 @@ void numberKeyHandler(BINT keymsg)
 
 }
 
-WORD cmdKeySeco[4];
-
 void uiCmdRun(WORD Opcode)
 {
 WORDPTR obj=rplAllocTempOb(1);
@@ -795,6 +793,40 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 switch(halScreen.CursorState&0xff)
                 {
                 case 'D':
+
+                    if(KM_SHIFTPLANE(keymsg)&SHIFT_HOLD) {
+                    //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
+
+                        WORDPTR *var=rplFindGlobal(action,1);
+                        if(var) {
+                        // VARIABLE EXISTS, GET THE CONTENTS
+                        BINT SavedException=Exceptions;
+                        BINT SavedErrorCode=ErrorCode;
+
+                        Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                        // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                        WORDPTR opname=rplDecompile(var[1],DECOMP_EDIT);
+                        Exceptions=SavedException;
+                        ErrorCode=SavedErrorCode;
+
+                        if(opname) {
+                        BYTEPTR string=(BYTEPTR) (opname+1);
+                        BINT totaln=rplStrLen(opname);
+                        BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+
+                        uiSeparateToken();
+                        uiInsertCharactersN(string,endstring);
+                        uiSeparateToken();
+                        uiAutocompleteUpdate();
+                        break;
+                        }
+                        }
+                    }
+
+
+                    // NOT HOLD, JUST END THE COMMAND LINE AND RCL THE VARIABLE
+
+
                     if(endCmdLineAndCompile()) {
                         // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
                         menu=uiGetLibMenu(mcode);
@@ -876,6 +908,8 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         uiSeparateToken();
                         uiInsertCharactersN(string,endstring);
                         uiSeparateToken();
+                        uiAutocompleteUpdate();
+
                         break;
                         }
                         }
