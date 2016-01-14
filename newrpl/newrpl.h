@@ -254,6 +254,8 @@ WORD rplGetMenuCode(BINT menunumber);
 void rplSetActiveMenu(BINT menunumber);
 BINT rplGetActiveMenu();
 void rplChangeMenu(WORDPTR newmenu);
+void rplSetLastMenu(BINT menunumber);
+BINT rplGetLastMenu();
 
 
 // SYSTEM AUTOCOMPLETE
@@ -515,7 +517,8 @@ void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 
 
 // SYSTEM FLAGS
-#define FL_ACTIVEMENU      -4
+#define FL_ACTIVEMENU     -11
+#define FL_LASTMENU       -12
 #define FL_ANGLEMODE1     -17
 #define FL_ANGLEMODE2     -18
 #define FL_UNDERFLOWERROR -20

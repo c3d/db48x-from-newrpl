@@ -36,7 +36,8 @@
     ECMD(FCTESTCLEAR,"FC?C",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     ECMD(FSTESTCLEAR,"FS?C",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(TMENU,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)),\
-    CMD(SWAPMENU,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
+    CMD(TMENULST,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)),\
+    CMD(MENUSWAP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -454,6 +455,17 @@ WORD rplGetMenuCode(BINT menunumber)
 
 }
 
+void rplSetLastMenu(BINT menunumber)
+{
+    if((menunumber<1)||(menunumber>2)) return;
+
+    if(menunumber==1) { rplClrSystemFlag(FL_LASTMENU); return; }
+    rplSetSystemFlag(FL_LASTMENU);
+
+}
+
+
+
 void rplSetActiveMenu(BINT menunumber)
 {
     if((menunumber<1)||(menunumber>2)) return;
@@ -462,6 +474,16 @@ void rplSetActiveMenu(BINT menunumber)
     rplSetSystemFlag(FL_ACTIVEMENU);
 
 }
+
+BINT rplGetLastMenu()
+{
+BINT a=rplTestSystemFlag(FL_LASTMENU);
+
+if(a==1) return 2;
+return 1;
+}
+
+
 
 BINT rplGetActiveMenu()
 {
@@ -957,7 +979,83 @@ void LIB_HANDLER()
       return;
     }
 
-    case SWAPMENU:
+
+    case TMENULST:
+     {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR arg=rplPeekData(1);
+        BINT menu=rplGetLastMenu();
+
+        if(ISIDENT(*arg)) {
+
+            // RCL THE VARIABLE AND LEAVE CONTENTS ON THE STACK
+
+            WORDPTR *var=rplFindLAM(arg,1);
+            if(!var) var=rplFindGlobal(arg,1);
+
+            if(!var) {
+               rplError(ERR_UNDEFINEDVARIABLE);
+               return;
+            }
+
+            // REPLACE THE IDENT WITH ITS CONTENTS
+            rplOverwriteData(1,var[1]);
+
+            // AND CONTINUE EXCECUTION
+        }
+
+        if(ISLIST(*arg)) {
+            // CUSTOM MENU
+
+           WORD mcode=MKMENUCODE(0,LIBRARY_NUMBER,menu-1,0);
+
+           rplSetMenuCode(menu,mcode);
+
+           // STORE THE LIST IN .Settings AS CURRENT MENU
+           if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,arg);
+           else rplStoreSettings((WORDPTR)menu1_ident,arg);
+
+           rplDropData(1);
+          return;
+        }
+
+
+
+        if(ISBINT(*arg)) {
+            // IT'S A PREDEFINED MENU CODE
+            BINT64 num=rplReadBINT(arg);
+
+            if((num<0)||(num>0xffffffff)) {
+                // JUST SET IT TO ZERO
+                rplSetMenuCode(menu,0);
+                // STORE THE LIST IN .Settings AS CURRENT MENU
+                if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,(WORDPTR)zero_bint);
+                else rplStoreSettings((WORDPTR)menu1_ident,(WORDPTR)zero_bint);
+
+            }
+            else {
+            // WE HAVE A VALID MENU NUMBER
+
+            rplSetMenuCode(menu,num);
+            // STORE THE LIST IN .Settings AS CURRENT MENU
+            if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,arg);
+            else rplStoreSettings((WORDPTR)menu1_ident,arg);
+
+            }
+
+            rplDropData(1);
+            return;
+        }
+
+        rplError(ERR_BADARGTYPE);
+
+      return;
+    }
+
+    case MENUSWAP:
     {
         // JUST SWAP MENUS 1 AND 2
         WORD m1code=rplGetMenuCode(1);

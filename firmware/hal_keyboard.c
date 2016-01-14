@@ -552,6 +552,9 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 WORDPTR menu=uiGetLibMenu(mcode);
                 BINT nitems=uiCountMenuItems(mcode,menu);
                 BINT idx=MENUPAGE(mcode)+varnum,page=MENUPAGE(mcode);
+
+                rplSetLastMenu(menunum);
+
                 if((nitems>6)&&(varnum==5)) {
                     // THIS IS THE NXT KEY
                     if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) page-=5;
@@ -668,6 +671,10 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
         WORDPTR menu=uiGetLibMenu(mcode);
         BINT nitems=uiCountMenuItems(mcode,menu);
         BINT idx=MENUPAGE(mcode)+varnum,page=MENUPAGE(mcode);
+
+        rplSetLastMenu(menunum);
+
+
         if((nitems>6)&&(varnum==5)) {
             // THIS IS THE NXT KEY
             if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) page-=5;
@@ -2270,12 +2277,10 @@ void underscoreKeyHandler(BINT keymsg)
 {
     symbolKeyHandler(keymsg,(BYTEPTR)"_",0);
 
-    if(halGetCmdLineMode()=='A') {
+    if((halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C')) {
      uiInsertCharacters((BYTEPTR)"[]");
      uiCursorLeft(1);
-    }
-    else {
-        if((halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C')) halSetCmdLineMode('A');
+     halSetCmdLineMode('A');
     }
 }
 
