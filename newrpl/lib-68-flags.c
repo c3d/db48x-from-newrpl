@@ -915,18 +915,18 @@ void LIB_HANDLER()
 
         if(ISIDENT(*arg)) {
 
-            // RCL THE VARIABLE AND LEAVE CONTENTS ON THE STACK
+            // CUSTOM MENU
 
-            WORDPTR *var=rplFindLAM(arg,1);
-            if(!var) var=rplFindGlobal(arg,1);
+           WORD mcode=MKMENUCODE(0,LIBRARY_NUMBER,menu-1,0);
 
-            if(!var) {
-               rplError(ERR_UNDEFINEDVARIABLE);
-               return;
-            }
+           rplSetMenuCode(menu,mcode);
 
-            // REPLACE THE IDENT WITH ITS CONTENTS
-            rplOverwriteData(1,var[1]);
+           // STORE THE IDENT IN .Settings AS CURRENT MENU
+           if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,arg);
+           else rplStoreSettings((WORDPTR)menu1_ident,arg);
+
+           rplDropData(1);
+          return;
 
             // AND CONTINUE EXCECUTION
         }
@@ -991,20 +991,18 @@ void LIB_HANDLER()
 
         if(ISIDENT(*arg)) {
 
-            // RCL THE VARIABLE AND LEAVE CONTENTS ON THE STACK
+            // CUSTOM MENU
 
-            WORDPTR *var=rplFindLAM(arg,1);
-            if(!var) var=rplFindGlobal(arg,1);
+           WORD mcode=MKMENUCODE(0,LIBRARY_NUMBER,menu-1,0);
 
-            if(!var) {
-               rplError(ERR_UNDEFINEDVARIABLE);
-               return;
-            }
+           rplSetMenuCode(menu,mcode);
 
-            // REPLACE THE IDENT WITH ITS CONTENTS
-            rplOverwriteData(1,var[1]);
+           // STORE THE IDENT IN .Settings AS CURRENT MENU
+           if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,arg);
+           else rplStoreSettings((WORDPTR)menu1_ident,arg);
 
-            // AND CONTINUE EXCECUTION
+           rplDropData(1);
+          return;
         }
 
         if(ISLIST(*arg)) {
@@ -1213,6 +1211,17 @@ void LIB_HANDLER()
     }
     if(!menuobj) ObjectPTR=(WORDPTR)empty_list;
     else ObjectPTR=menuobj;
+
+    if(ISIDENT(*ObjectPTR)) {
+        // RCL THE VARIABLE
+
+        WORDPTR *var=rplFindGlobal(ObjectPTR,1);
+        if(!var) ObjectPTR=(WORDPTR)empty_list;
+        else ObjectPTR=var[1];
+    }
+
+
+
     RetNum=OK_CONTINUE;
     return;
     }
