@@ -68,13 +68,18 @@ extern const LIBHANDLER ROMLibs[];
 
 #define MKTOKENINFO(length,type,nargs,precedence) (((length)&0x3fff)|(((type)&0x3f)<<14)|(((nargs)&0xf)<<20)|(((precedence)&0x3f)<<24))
 
+// MENU CODE OS 0XLLLMmPPP
+// WHERE LLL = LIBRARY NUMBER IN HEX
+//       Mm = SSmm mmmm BITS. 2 UPPER BITS (S) ARE THE SPECIAL FLAG (0-3).
+//              mm mmmm = MENU NUMBER WITHIN THE LIBRARY (0-63).
+//       PPP = NUMBER OF THE FIRST ITEM TO DISPLAY IN THE CURRENT PAGE
 
-#define MENULIBRARY(menucode) (((menucode)>>16)&0xfff)
-#define MENUNUMBER(menucode) (((menucode)>>10)&0x3f)
-#define MENUPAGE(menucode) ((menucode)&0x3ff)
-#define MENUSPECIAL(menucode) (((menucode)>>28)&0x7)
-#define MKMENUCODE(special,lib,num,page) ( (((special)&0x7)<<28) | (((lib)&0xfff)<<16) | (((num)&0x3f)<<10) | ((page)&0x3ff) )
-#define SETMENUPAGE(menucode,newpage) (((menucode)&~0x3ff) | ((newpage)&0x3ff))
+#define MENULIBRARY(menucode) (((menucode)>>20)&0xfff)
+#define MENUNUMBER(menucode) (((menucode)>>12)&0x3f)
+#define MENUPAGE(menucode) ((menucode)&0xfff)
+#define MENUSPECIAL(menucode) (((menucode)>>18)&0x3)
+#define MKMENUCODE(special,lib,num,page) ( (((special)&0x3)<<18) | (((lib)&0xfff)<<20) | (((num)&0x3f)<<12) | ((page)&0xfff) )
+#define SETMENUPAGE(menucode,newpage) (((menucode)&~0xfff) | ((newpage)&0xfff))
 
 
 

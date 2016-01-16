@@ -4,23 +4,23 @@
 
 @#name unitmenu_0_main
 {
-  { { "Tools" 1 } « 1 #400h * #360000h + TMENULST » }
-  { { "Leng" 1 } « 2 #400h * #360000h + TMENULST » }
-  { { "Area" 1 } « 3 #400h * #360000h + TMENULST » }
-  { { "Vol" 1 } « 4 #400h * #360000h + TMENULST » }
-  { { "Time" 1 } « 5 #400h * #360000h + TMENULST » }
-  { { "Speed" 1 } « 6 #400h * #360000h + TMENULST » }
-  { { "Mass" 1 } « 7 #400h * #360000h + TMENULST » }
-  { { "Force" 1 } « 8 #400h * #360000h + TMENULST » }
-  { { "Energy" 1 } « 9 #400h * #360000h + TMENULST » }
-  { { "Power" 1 } « 10 #400h * #360000h + TMENULST » }
-  { { "Press" 1 } « 11 #400h * #360000h + TMENULST » }
-  { { "Temp" 1 } « 12 #400h * #360000h + TMENULST » }
-  { { "Elec" 1 } « 13 #400h * #360000h + TMENULST » }
-  { { "Angle" 1 } « 14 #400h * #360000h + TMENULST » }
-  { { "Light" 1 } « 15 #400h * #360000h + TMENULST » }
-  { { "Rad" 1 } « 16 #400h * #360000h + TMENULST » }
-  { { "Visc" 1 } « 17 #400h * #360000h + TMENULST » }
+  { { "Tools" 1 } «  #03601000h TMENULST » }
+  { { "Leng" 1 } «   #03602000h TMENULST » }
+  { { "Area" 1 } «   #03603000h TMENULST » }
+  { { "Vol" 1 } «    #03604000h TMENULST » }
+  { { "Time" 1 } «   #03605000h TMENULST » }
+  { { "Speed" 1 } «  #03606000h TMENULST » }
+  { { "Mass" 1 } «   #03607000h TMENULST » }
+  { { "Force" 1 } «  #03608000h TMENULST » }
+  { { "Energy" 1 } « #03609000h TMENULST » }
+  { { "Power" 1 } «  #0360A000h TMENULST » }
+  { { "Press" 1 } «  #0360B000h TMENULST » }
+  { { "Temp" 1 } «   #0360C000h TMENULST » }
+  { { "Elec" 1 } «   #0360D000h TMENULST » }
+  { { "Angle" 1 } «  #0360E000h TMENULST » }
+  { { "Light" 1 } «  #0360F000h TMENULST » }
+  { { "Rad" 1 } «    #03610000h TMENULST » }
+  { { "Visc" 1 } «   #03611000h TMENULST » }
 }
 
 @#name unitmenu_1_tools
@@ -32,7 +32,7 @@ UFACT
 →UNIT
 UDEFINE
 UPURGE
-{ { "Units" 1 } « #360000h TMENULST » }
+{ { "Units" 1 } « #03600000h TMENULST » }
 }
 
 @#name unitmenu_2_length
@@ -59,7 +59,7 @@ UPURGE
     1_μ
     1_Å
     1_fermi
-    { { "Units" 1 } « #360000h TMENULST » }
+    { { "Units" 1 } « #03600000h TMENULST » }
 
 }
 
@@ -77,7 +77,7 @@ UPURGE
     1_mi^2
     1_miUS^2
     1_acre
-    { { "Units" 1 } « #360000h TMENULST » }
+    { { "Units" 1 } « #03600000h TMENULST » }
 
 }
 @#name unitmenu_4_volume
@@ -103,7 +103,7 @@ UPURGE
     1_bu
     1_pk
     1_fbm
-{ { "Units" 1 } « #360000h TMENULST » }
+{ { "Units" 1 } « #03600000h TMENULST » }
 }
 @#name unitmenu_5_time
 {
@@ -113,7 +113,7 @@ UPURGE
     1_min
     1_s
     1_Hz
-{ { "Units" 1 } « #360000h TMENULST » }
+{ { "Units" 1 } « #03600000h TMENULST » }
 }
 @#name unitmenu_6_speed
 {
@@ -125,7 +125,7 @@ UPURGE
     1_knot
     1_c
     1_ga
-{ { "Units" 1 } « #360000h TMENULST » }
+{ { "Units" 1 } « #03600000h TMENULST » }
 }
 @#name unitmenu_7_mass
 {
@@ -144,7 +144,7 @@ UPURGE
     1_u
     1_mol
 
-{ { "Units" 1 } « #360000h TMENULST » }
+{ { "Units" 1 } « #03600000h TMENULST » }
 }
 @#name unitmenu_8_force
 {
@@ -155,7 +155,7 @@ UPURGE
     1_lbf
     1_pdl
 
-{ { "Units" 1 } « #360000h TMENULST » }
+{ { "Units" 1 } « #03600000h TMENULST » }
 }
 @#name unitmenu_9_energy
 {
@@ -169,14 +169,14 @@ UPURGE
     1_MeV
     1_eV
 
-{ { "Units" 1 } « #360000h TMENULST » }
+{ { "Units" 1 } « #03600000h TMENULST » }
 }
 @#name unitmenu_10_power
 {
     1_W
     1_hp
 
-{ { "Units" 1 } « #360000h TMENULST » }
+{ { "Units" 1 } « #03600000h TMENULST » }
 }
 @#name unitmenu_11_pressure
 {
@@ -189,7 +189,7 @@ UPURGE
     1_inHg
     1_inH2O
 
-{ { "Units" 1 } « #360000h TMENULST » }
+{ { "Units" 1 } « #03600000h TMENULST » }
 }
 @#name unitmenu_12_temperature
 {
@@ -201,7 +201,7 @@ UPURGE
     1_ΔK
     1_°R
     1_Δ°R
-{ { "Units" 1 } « #360000h TMENULST » }
+{ { "Units" 1 } « #03600000h TMENULST » }
 }
 @#name unitmenu_13_electrical
 {
@@ -218,7 +218,7 @@ UPURGE
     1_T
     1_Wb
 
-{ { "Units" 1 } « #360000h TMENULST » }
+{ { "Units" 1 } « #03600000h TMENULST » }
 }
 @#name unitmenu_14_angles
 {
@@ -229,7 +229,7 @@ UPURGE
     1_arcs
     1_sr
 
-{ { "Units" 1 } « #360000h TMENULST » }
+{ { "Units" 1 } « #03600000h TMENULST » }
 }
 @#name unitmenu_15_light
 {
@@ -242,7 +242,7 @@ UPURGE
     1_cd
     1_lam
 
-{ { "Units" 1 } « #360000h TMENULST » }
+{ { "Units" 1 } « #03600000h TMENULST » }
 }
 @#name unitmenu_16_radiation
 {
@@ -254,11 +254,11 @@ UPURGE
     1_Ci
     1_R
 
-{ { "Units" 1 } « #360000h TMENULST » }
+{ { "Units" 1 } « #03600000h TMENULST » }
 }
 @#name unitmenu_17_viscosity
 {
     1_P
     1_St
-{ { "Units" 1 } « #360000h TMENULST » }
+{ { "Units" 1 } « #03600000h TMENULST » }
 }
