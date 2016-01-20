@@ -785,9 +785,28 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 break;
             }
 
-            // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
-            rplPushData(action);
-            Opcode=(CMD_OVR_XEQ);
+
+            if(ISPROGRAM(*action)) {
+                if(!ISSECO(*action)) {
+                    // IT'S A DOCOL PROGRAM, EXECUTE TRANSPARENTLY
+                    rplPushData(action);    // PUSH THE NAME ON THE STACK
+                    Opcode=CMD_OVR_XEQ;
+                    break;
+                }
+            }
+
+            // ALL OTHER OBJECTS AND COMMANDS, DO XEQ AFTER ENDING THE COMMAND LINE
+            if(endCmdLineAndCompile()) {
+                // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
+                menu=uiGetLibMenu(mcode);
+                item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
+                action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
+
+                // USER IS TRYING TO 'STO' INTO THE VARIABLE
+                rplPushData(action);    // PUSH THE NAME ON THE STACK
+                Opcode=CMD_OVR_XEQ;
+                break;
+            }
             break;
 
         }
@@ -982,9 +1001,25 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 break;
             }
 
-            // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
-            rplPushData(action);
-            Opcode=(CMD_OVR_XEQ);
+            if(ISPROGRAM(*action)) {
+                if(!ISSECO(*action)) {
+                    // IT'S A DOCOL PROGRAM, EXECUTE TRANSPARENTLY
+                    rplPushData(action);    // PUSH THE NAME ON THE STACK
+                    Opcode=CMD_OVR_XEQ;
+                    break;
+                }
+            }
+
+            // ALL OTHER OBJECTS AND COMMANDS, DO XEQ AFTER ENDING THE COMMAND LINE
+            if(endCmdLineAndCompile()) {
+                // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
+                menu=uiGetLibMenu(mcode);
+                item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
+                action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
+                rplPushData(action);    // PUSH THE NAME ON THE STACK
+                Opcode=CMD_OVR_XEQ;
+            }
+
             break;
         }
         default:
@@ -1257,6 +1292,25 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
             }
 
+            if(ISPROGRAM(*action)) {
+                if(!ISSECO(*action)) {
+                    // IT'S A DOCOL PROGRAM, EXECUTE TRANSPARENTLY
+                    rplPushData(action);    // PUSH THE NAME ON THE STACK
+                    Opcode=CMD_OVR_XEQ;
+                }
+                else {
+                    if(endCmdLineAndCompile()) {
+                        // FIND THE VARIABLE AGAIN, IT MIGHT'VE MOVED DUE TO GC
+                        menu=uiGetLibMenu(mcode);
+                        item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
+                        action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=CMD_OVR_XEQ;
+                    }
+                }
+                break;
+            }
+
 
             // ALL OTHER OBJECTS AND COMMANDS
             switch(halScreen.CursorState&0xff)
@@ -1269,6 +1323,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
                     if(!ISPROLOG(*action)) Opcode=*action; // RUN COMMANDS DIRECTLY
                     else Opcode=(CMD_OVR_XEQ);
+                    rplPushData(action);
                 }
                 break;
 
