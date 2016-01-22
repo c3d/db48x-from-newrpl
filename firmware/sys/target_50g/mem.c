@@ -110,7 +110,7 @@ WORDPTR *halGrowMemory(BINT zone, WORDPTR *base, BINT newsize)
             int index=(mmubase[current-1]-RAM_BASE_PHYSICAL)>>12;
 
             if( (index<0) || ( (index<<12)>(RAM_END_PHYSICAL-RAM_BASE_PHYSICAL))) {
-                throw_dbgexception("Corrupted MMU",__EX_WARM | __EX_RESET);
+                throw_dbgexception("Corrupted MMU",__EX_WARM | __EX_WIPEOUT | __EX_RESET);
             }
                 // REMOVE PAGE FROM MEMORY AREA
                 mmubase[current-1]=0;
