@@ -29,8 +29,8 @@ SOURCES +=\
     firmware/sys/target_50g/timer.c \
     firmware/sys/target_50g/mem.c \
     firmware/sys/target_50g/flash.c \
-    newrpl/sysvars.c \
     newrpl/decimal.c \
+    newrpl/sysvars.c \
     newrpl/dectranscen.c \
     newrpl/atan_1_8_comp.c \
     newrpl/atan_2_8_comp.c \

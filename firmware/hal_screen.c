@@ -299,6 +299,7 @@ void halRedrawStack(DRAWSURFACE *scr)
 
 void halInitScreen()
 {
+halScreen.HelpMode=0;
 halScreen.CmdLine=0;
 halScreen.Menu1=MENU1_HEIGHT;
 halScreen.Menu2=MENU2_HEIGHT;
@@ -329,7 +330,6 @@ uiCloseCmdLine();
 
 void halRedrawHelp(DRAWSURFACE *scr)
 {
-
 
         if(!halScreen.Menu2) {
             // SHOW THE SECOND MENU TO DISPLAY THE MESSAGE
