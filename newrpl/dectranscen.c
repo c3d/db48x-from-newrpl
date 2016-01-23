@@ -877,11 +877,11 @@ int swap=0;
 // HANDLE SOME SPECIAL CASES FIRST
 if(iszeroReal(x0) || isinfiniteReal(y0)) {
     if(iszeroReal(y0)) {
-        // UNDEFINED!
-        RReg[0].data=0;
+        // IT'S UNDEFINED, BUT MOST CALCULATORS DEFINE atan2(0,0)=0
+        RReg[0].data[0]=0;
         RReg[0].len=1;
         RReg[0].exp=0;
-        RReg[0].flags=F_NOTANUMBER;
+        RReg[0].flags=0;
         return;
     }
     // RETURN +/- PI/2 DEPENDING ON SIGNS
