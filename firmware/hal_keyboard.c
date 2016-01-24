@@ -1731,6 +1731,9 @@ void downKeyHandler(BINT keymsg)
 
                 if(ISPROGRAM(*ptr)) cursorstart='P';
                 if(ISSYMBOLIC(*ptr)) cursorstart='A';
+                if(ISUNIT(*ptr)) cursorstart='A';
+                if(ISLIST(*ptr)) cursorstart='P';
+
                 // OPEN THE COMMAND LINE
                 halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
                 halSetContext(halGetContext()|CONTEXT_INEDITOR);

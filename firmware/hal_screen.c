@@ -525,8 +525,8 @@ void halRedrawMenu1(DRAWSURFACE *scr)
 
     // FIRST ROW
 
-    scr->clipy=ytop;
-    scr->clipy2=ytop+5;
+    scr->clipy=ytop+1;
+    scr->clipy2=ytop+6;
 
     for(k=0;k<5;++k) {
     scr->clipx=22*k;
