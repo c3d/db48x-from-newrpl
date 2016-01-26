@@ -924,7 +924,8 @@ void LIB_HANDLER()
         if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,QSEMI))
         {
             if(! (ISPROLOG(CurrentConstruct)&&(LIBNUM(CurrentConstruct)==LIBRARY_NUMBER))) {
-                RetNum=ERR_SYNTAX;
+                rplDecompAppendString((BYTEPTR)"»");
+                RetNum=OK_CONTINUE;
                 return;
             }
             rplCleanupLAMs(*(ValidateTop-1));
@@ -980,7 +981,8 @@ void LIB_HANDLER()
                 RetNum=OK_ENDCONSTRUCT;
                 return;
             }
-             RetNum=ERR_SYNTAX;
+             rplDecompAppendString((BYTEPTR)"NEXT");
+             RetNum=OK_CONTINUE;
              return;
 
         }
@@ -994,7 +996,8 @@ void LIB_HANDLER()
                 RetNum=OK_ENDCONSTRUCT;
                 return;
             }
-             RetNum=ERR_SYNTAX;
+             rplDecompAppendString((BYTEPTR)"STEP");
+             RetNum=OK_CONTINUE;
              return;
 
         }
@@ -1021,7 +1024,8 @@ void LIB_HANDLER()
                 RetNum=OK_ENDCONSTRUCT;
                 return;
             }
-             RetNum=ERR_SYNTAX;
+             rplDecompAppendString((BYTEPTR)"END");
+             RetNum=OK_CONTINUE;
              return;
 
         }
@@ -1050,7 +1054,8 @@ void LIB_HANDLER()
                         RetNum=OK_ENDCONSTRUCT;
                         return;
                     }
-                    RetNum=ERR_SYNTAX;
+                    rplDecompAppendString((BYTEPTR)"END");
+                    RetNum=OK_CONTINUE;
                     return;
 
                 }
