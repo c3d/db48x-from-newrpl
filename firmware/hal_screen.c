@@ -496,8 +496,8 @@ void halRedrawMenu1(DRAWSURFACE *scr)
     ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine;
     ybottom=ytop+halScreen.Menu1-1;
     // DRAW BACKGROUND
-    ggl_cliprect(scr,0,ytop,SCREEN_WIDTH-1,ybottom,ggl_mkcolor(0xf));
-    //ggl_cliphline(scr,ybottom,0,SCREEN_WIDTH-1,0);
+    ggl_cliprect(scr,0,ytop+1,SCREEN_WIDTH-1,ybottom,ggl_mkcolor(0xf));
+    ggl_cliphline(scr,ytop,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
     ggl_clipvline(scr,21,ytop,ybottom,0);
     ggl_clipvline(scr,43,ytop,ybottom,0);
     ggl_clipvline(scr,65,ytop,ybottom,0);
