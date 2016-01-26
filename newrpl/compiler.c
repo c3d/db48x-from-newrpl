@@ -754,7 +754,6 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
     if( (CompileEnd!=TempObEnd) && !Exceptions) {
 
-   WORDPTR newobject=TempObEnd;
    if( CompileEnd+TEMPOBSLACK>TempObSize) {
        // ENLARGE TEMPOB AS NEEDED
        growTempOb((BINT)(CompileEnd-TempOb)+TEMPOBSLACK);
@@ -763,6 +762,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
     // STORE BLOCK SIZE
    rplAddTempBlock(TempObEnd);
+   WORDPTR newobject=TempObEnd;
    TempObEnd=CompileEnd;
    return newobject;
     }

@@ -82,7 +82,8 @@ void growTempOb(WORD newtotalsize)
     newtempob=halGrowMemory(MEM_AREA_TEMPOB,(WORDPTR *)TempOb,newtotalsize);
 
     if(!newtempob) {
-        if(!gc_done) { rplGCollect(); ++gc_done; newtotalsize=(WORD)(TempObEnd-TempOb)+slack; }
+        if(!gc_done) {
+            rplGCollect(); ++gc_done; newtotalsize=(WORD)(TempObEnd-TempOb)+slack; }
         else {
             rplException(EX_OUTOFMEM);
         return;
@@ -149,7 +150,10 @@ void growTempBlocks(WORD newtotalsize)
     newtempblocks=halGrowMemory(MEM_AREA_TEMPBLOCKS,TempBlocks,newtotalsize);
 
     if(!newtempblocks) {
-        if(!gc_done) { rplGCollect(); ++gc_done; newtotalsize=(WORD)((TempBlocksEnd+slack)-TempBlocks); }
+        if(!gc_done) {
+            rplGCollect();
+            ++gc_done;
+            newtotalsize=(WORD)((TempBlocksEnd+slack)-TempBlocks); }
         else {
             rplException(EX_OUTOFMEM);
         return;

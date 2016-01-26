@@ -347,7 +347,7 @@ void halRedrawHelp(DRAWSURFACE *scr)
 
         // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
         // FOR EXAMPLE BY PURGING VARIABLES
-        if(MENUPAGE(m1code)>=(WORD)nitems) m1code=SETMENUPAGE(m1code,0);
+        if(MENUPAGE(m1code)>=(WORD)nitems) { m1code=SETMENUPAGE(m1code,0); rplSetMenuCode(halScreen.HelpMode>>16,m1code); }
 
         // GET THE ITEM
         item=uiGetMenuItem(m1code,MenuObj,(halScreen.HelpMode&0xffff)+MENUPAGE(m1code));
@@ -520,7 +520,7 @@ void halRedrawMenu1(DRAWSURFACE *scr)
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
     // FOR EXAMPLE BY PURGING VARIABLES
-    if(MENUPAGE(m1code)>=(WORD)nitems) m1code=SETMENUPAGE(m1code,0);
+    if(MENUPAGE(m1code)>=(WORD)nitems) { m1code=SETMENUPAGE(m1code,0); rplSetMenuCode(1,m1code); }
 
 
     // FIRST ROW
@@ -604,7 +604,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
     // FOR EXAMPLE BY PURGING VARIABLES
-    if(MENUPAGE(m2code)>=(WORD)nitems) m2code=SETMENUPAGE(m2code,0);
+    if(MENUPAGE(m2code)>=(WORD)nitems) { m2code=SETMENUPAGE(m2code,0); rplSetMenuCode(2,m2code); }
 
 
     // FIRST ROW

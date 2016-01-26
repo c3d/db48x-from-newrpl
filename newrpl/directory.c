@@ -107,7 +107,7 @@ void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir)
     // FIX THE CURRENT DIR IN CASE IT MOVED
     if(CurrentDir>=direntry) CurrentDir+=2;
 
-    if(DirSize<=DirsTop-Directories+DIRSLACK) growDirs((WORD)(DirsTop-Directories+DIRSLACK+1024));
+    if(DirSize<=DirsTop-Directories+DIRSLACK) growDirs((WORD)(DirsTop-Directories+DIRSLACK));
 
 
     //if(Exceptions) return;
@@ -604,7 +604,7 @@ void rplPurgeDir(WORDPTR nameobj)
     WORDPTR *var=rplFindGlobal(nameobj,1);
 
     if(!var) {
-        rplError(ERR_UNDEFINEDVARIABLE);
+        rplError(ERR_DIRECTORYNOTFOUND);
         return;
     }
 
