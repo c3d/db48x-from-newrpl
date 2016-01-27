@@ -14,7 +14,7 @@ void __keyb_waitrelease();
 int __keyb_getkey(int wait);
 
 extern const unsigned int Font_6A[];
-unsigned int RPLLastOpcode;
+extern unsigned int RPLLastOpcode;
 
 void __ex_print(int x,int y,char *str)
 {
@@ -52,6 +52,7 @@ int __ex_width(char *string) { return StringWidth(string,(UNIFONT *)Font_6A); }
 #define __EX_NOREG 16	// DON'T SHOW REGISTERS
 #define __EX_WIPEOUT 32	// FULL MEMORY WIPEOUT AND WARMSTART
 #define __EX_RPLREGS 64 // SHOW RPL REGISTERS INSTEAD
+#define __EX_RPLEXIT 128 // SHOW EXIT OPTION, IT RESUMES EXECUTION AFTER SETTING Exception=EX_EXITRPL
 
 
 int __exception_handler(char *exstr, unsigned int *registers,int options)
@@ -171,6 +172,70 @@ else {
          }
         __ex_print(16,60,a);
 
+        // RIGHT COLUMN
+
+        __ex_print(64,12,"DSs: ");
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)DStkSize)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,12,a);
+
+        __ex_print(64,18,"DIe:");
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)DirsTop)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,18,a);
+
+        __ex_print(64,24,"DIs:");
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)DirSize)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,24,a);
+
+        __ex_print(64,30,"LAe:");
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)LAMTop)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,30,a);
+
+        __ex_print(64,36,"LAs:");
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)LAMSize)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,36,a);
+
+        __ex_print(64,42,"Exc:");
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)Exceptions)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,42,a);
+
+        __ex_print(64,48,"Err:");
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)ErrorCode)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,48,a);
 
     __ex_hline(70);
 		
@@ -281,6 +346,12 @@ void __attribute__ ((noinline)) throw_exception(char * message, unsigned int opt
 
     value=__exception_handler((char *)message,NULL,options | __EX_NOREG);
 
+    if(value==__EX_RPLEXIT) {
+        Exceptions|=EX_EXITRPL;
+        value=__EX_CONT;
+    }
+
+
     if(value==__EX_RESET) {
         // TODO: RESET ON THE PC TARGET
 
@@ -300,6 +371,14 @@ void __attribute__ ((noinline)) throw_dbgexception(char * message, unsigned int 
     int value;
 
     value=__exception_handler((char *)message,NULL,options);
+
+    if(value==__EX_RPLEXIT) {
+        Exceptions|=EX_EXITRPL;
+        value=__EX_CONT;
+    }
+
+
+
     if(value==__EX_RESET) {
         // TODO: RESET ON THE PC TARGET
 

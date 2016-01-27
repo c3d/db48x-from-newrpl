@@ -79,6 +79,8 @@ return;
 #define __EX_NOREG 16	// DON'T SHOW REGISTERS
 #define __EX_WIPEOUT 32	// FULL MEMORY WIPEOUT AND WARMSTART
 #define __EX_RPLREGS 64 // SHOW RPL REGISTERS INSTEAD
+#define __EX_RPLEXIT 128 // SHOW EXIT OPTION, IT RESUMES EXECUTION AFTER SETTING Exception=EX_EXITRPL
+
 int __exception_handler(char *exstr, unsigned int *registers,int options)
 {
 unsigned int lcd_buffer[17];
@@ -195,7 +197,94 @@ else {
          }
         __ex_print(16,60,a);
 
-    }
+        // RIGHT COLUMN
+
+        __ex_print(64,12,"DSs: ");
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)DStkSize)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,12,a);
+
+        __ex_print(64,18,"DIe:");
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)DirsTop)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,18,a);
+
+        __ex_print(64,24,"DIs:");
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)DirSize)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,24,a);
+
+        __ex_print(64,30,"LAe:");
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)LAMTop)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,30,a);
+
+        __ex_print(64,36,"LAs:");
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)LAMSize)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,36,a);
+
+        __ex_print(64,42,"Exc:");
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)Exceptions)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,42,a);
+
+        __ex_print(64,48,"Err:");
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)ErrorCode)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,48,a);
+
+        /*
+        __ex_print(64,54,"RSs:");
+
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)RStkSize)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,54,a);
+
+        __ex_print(64,60,"DSe:");
+
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=((((WORD)DSTop)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,60,a);
+        */
+
+     }
     else {
         // PRINT CPU REGISTERS
 	a[2]=0;
@@ -564,6 +653,13 @@ register unsigned int value asm("r0");
  	else
         value=__exception_handler("Undefined instruction",stackptr,__EX_CONT | __EX_WARM | __EX_RESET);
 	}
+
+    if(value==__EX_RPLEXIT) {
+        // RAISE AN RPL EXCEPTION AND ISSUE A CONTINUE
+        Exceptions|=EX_EXITRPL;
+        value=__EX_CONT;
+    }
+
    	if(value==__EX_CONT) {
 	// RESTORE ALL REGISTERS
 	asm volatile ("add sp,sp,#4");
