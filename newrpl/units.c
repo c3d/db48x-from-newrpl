@@ -16,7 +16,7 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),                                  // [2]='kg'
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('s',0,0,0),                           // [4]='s'
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('a',0,0,0),                           // [6]='a'     (are=100 m^2)
-    MKPROLOG(DOIDENT,1),TEXT2WORD(0xe2,0x84,0xab,0),                            // [8]='Å'     (1e-10 m)
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xc3,0x85,0,0),                               // [8]='Å'     (1e-10 m)
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('A',0,0,0),                           // [10]='A'     (Ampere)
     MKPROLOG(DOIDENT,1),TEXT2WORD('a','c','r','e'),                             // [12]='acre'    (acre international)
     MKPROLOG(DOIDENT,2),TEXT2WORD('a','c','r','e'),TEXT2WORD('U','S',0,0),      // [14]='acreUS'    (acre US Survey)
@@ -163,7 +163,7 @@ const WORD const system_unit_defs[]={
     MAKESINT(100),
     MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(2),MAKESINT(1),
 
-    // [6] = Å
+    // [6] = Å
     MKPROLOG(DOUNIT,7),
     MKPROLOG(DOREAL,2),MAKEREALFLAGS(-10,1,0),1,       // 1e-10
     MKPROLOG(DOIDENT,1),TEXT2WORD('m',0,0,0),MAKESINT(1),MAKESINT(1),
@@ -870,7 +870,7 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[2],(WORDPTR)&one_bint,            // 'kg'=1
     (WORDPTR)&system_unit_names[4],(WORDPTR)&one_bint,            // 's'=1
     (WORDPTR)&system_unit_names[6],(WORDPTR)&system_unit_defs[0], // 'a'=1_m^2
-    (WORDPTR)&system_unit_names[8],(WORDPTR)&system_unit_defs[6], // 'Å'=1e-10_m
+    (WORDPTR)&system_unit_names[8],(WORDPTR)&system_unit_defs[6], // 'Å'=1e-10_m
     (WORDPTR)&system_unit_names[10],(WORDPTR)&one_bint,            // 'A'=1
     (WORDPTR)&system_unit_names[12],(WORDPTR)&system_unit_defs[14], // 'acre'=4840_yd
     (WORDPTR)&system_unit_names[14],(WORDPTR)&system_unit_defs[20], // 'acreUS'=4840_ydUS

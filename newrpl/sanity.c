@@ -81,7 +81,7 @@ while(libnum>=0) {
 
        if(RetNum==OK_CONTINUE) return 1;
    }
-   --libnum;
+   libnum=rplGetNextLib(libnum);
 }
 CurOpcode=SavedOpcode;
 

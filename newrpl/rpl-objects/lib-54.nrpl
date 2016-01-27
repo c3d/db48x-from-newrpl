@@ -57,7 +57,7 @@ UPURGE
     1_ftUS
     1_mil
     1_μ
-    1_Å
+    1_Å
     1_fermi
     { { "Units" 1 } :: #03600000h TMENULST ; }
 
