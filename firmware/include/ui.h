@@ -98,6 +98,11 @@ void uiAutocompInsert();
 BYTEPTR uiAutocompStringStart();
 BYTEPTR uiAutocompStringEnd();
 
+void uiSetSelectionStart();
+void uiSetSelectionEnd();
+
+
+
 
 void uiSeparateToken();
 

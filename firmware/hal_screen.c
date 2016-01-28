@@ -736,20 +736,81 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
             if(startoff<0) startoff=rplStrSize(CmdLineText);
             if(endoff<0) endoff=rplStrSize(CmdLineText);
             BYTEPTR string=(BYTEPTR)(CmdLineText+1)+startoff;
+            BYTEPTR selst,selend;
             BYTEPTR strend=(BYTEPTR)(CmdLineText+1)+endoff;
-            BINT linelen=StringWidthN((char *)string,(char *)strend,(UNIFONT *)halScreen.CmdLineFont);
-            DrawTextBkN(-halScreen.XVisible,ytop+2+k*halScreen.CmdLineFont->BitmapHeight,(char *)string,(char *)strend,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
+            BINT xcoord,tail;
+
+            selst=selend=strend;
+            tail=0;
+            if(halScreen.SelStartLine<halScreen.LineVisible+k) { selst=string; tail=1; }
+            if(halScreen.SelStartLine==halScreen.LineVisible+k) { selst=string+halScreen.SelStart; tail=1; }
+            if(halScreen.SelEndLine<halScreen.LineVisible+k) { selend=string; tail=0; }
+            if(halScreen.SelEndLine==halScreen.LineVisible+k) { selend=string+halScreen.SelEnd; tail=0; }
+
+            if(selend<=selst) selend=selst=string;
+
+            // DRAW THE LINE SPLIT IN 3 SECTIONS: string TO selst, selst TO selend, selend TO strend
+            xcoord=-halScreen.XVisible;
+            if(selst>string) {
+                DrawTextBkN(xcoord,ytop+2+k*halScreen.CmdLineFont->BitmapHeight,(char *)string,(char *)selst,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
+                xcoord+=StringWidthN((char *)string,(char *)selst,(UNIFONT *)halScreen.CmdLineFont);
+            }
+            if(selend>selst) {
+                DrawTextBkN(xcoord,ytop+2+k*halScreen.CmdLineFont->BitmapHeight,(char *)selst,(char *)selend,(UNIFONT *)halScreen.CmdLineFont,0xf,0x6,scr);
+                xcoord+=StringWidthN((char *)selst,(char *)selend,(UNIFONT *)halScreen.CmdLineFont);
+            }
+            if(strend>selend) {
+                DrawTextBkN(xcoord,ytop+2+k*halScreen.CmdLineFont->BitmapHeight,(char *)selend,(char *)strend,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
+                xcoord+=StringWidthN((char *)selend,(char *)strend,(UNIFONT *)halScreen.CmdLineFont);
+            }
+            if(tail) {
+                ggl_cliprect(scr,xcoord,ytop+2+k*halScreen.CmdLineFont->BitmapHeight,xcoord+3,ytop+2+(k+1)*halScreen.CmdLineFont->BitmapHeight-1,0x66666666);
+                xcoord+=3;
+            }
+
             // CLEAR UP TO END OF LINE
-            ggl_cliprect(scr,-halScreen.XVisible+linelen,ytop+2+k*halScreen.CmdLineFont->BitmapHeight,SCREEN_W-1,ytop+2+(k+1)*halScreen.CmdLineFont->BitmapHeight-1,0);
+            ggl_cliprect(scr,xcoord,ytop+2+k*halScreen.CmdLineFont->BitmapHeight,SCREEN_W-1,ytop+2+(k+1)*halScreen.CmdLineFont->BitmapHeight-1,0);
         }
     }
 
     if(halScreen.DirtyFlag&CMDLINE_LINEDIRTY) {
     // UPDATE THE CURRENT LINE
-        BINT linelen=StringWidthN((char *)cmdline,(char *)cmdline+nchars,(UNIFONT *)halScreen.CmdLineFont);
-        DrawTextBkN(-halScreen.XVisible,ytop+2+y,(char *)cmdline,(char *)cmdline+nchars,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
+        BYTEPTR string=cmdline;
+        BYTEPTR selst,selend;
+        BYTEPTR strend=cmdline+nchars;
+        BINT xcoord,tail;
+
+        selst=selend=strend;
+        tail=0;
+        if(halScreen.SelStartLine<halScreen.LineCurrent) { selst=string; tail=1; }
+        if(halScreen.SelStartLine==halScreen.LineCurrent) { selst=string+halScreen.SelStart; tail=1; }
+        if(halScreen.SelEndLine<halScreen.LineCurrent) { selend=string; tail=0; }
+        if(halScreen.SelEndLine==halScreen.LineCurrent) { selend=string+halScreen.SelEnd; tail=0; }
+
+        if(selend<=selst) selend=selst=string;
+
+        // DRAW THE LINE SPLIT IN 3 SECTIONS: string TO selst, selst TO selend, selend TO strend
+        xcoord=-halScreen.XVisible;
+        if(selst>string) {
+            DrawTextBkN(xcoord,ytop+2+y,(char *)string,(char *)selst,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
+            xcoord+=StringWidthN((char *)string,(char *)selst,(UNIFONT *)halScreen.CmdLineFont);
+        }
+        if(selend>selst) {
+            DrawTextBkN(xcoord,ytop+2+y,(char *)selst,(char *)selend,(UNIFONT *)halScreen.CmdLineFont,0xf,0x6,scr);
+            xcoord+=StringWidthN((char *)selst,(char *)selend,(UNIFONT *)halScreen.CmdLineFont);
+        }
+        if(strend>selend) {
+            DrawTextBkN(xcoord,ytop+2+y,(char *)selend,(char *)strend,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
+            xcoord+=StringWidthN((char *)selend,(char *)strend,(UNIFONT *)halScreen.CmdLineFont);
+        }
+        if(tail) {
+            ggl_cliprect(scr,xcoord,ytop+2+y,xcoord+3,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0x66666666);
+            xcoord+=3;
+        }
+
         // CLEAR UP TO END OF LINE
-        ggl_cliprect(scr,-halScreen.XVisible+linelen,ytop+2+y,SCREEN_W-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
+        ggl_cliprect(scr,xcoord,ytop+2+y,SCREEN_W-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
+
     }
 
     if(halScreen.DirtyFlag&CMDLINE_CURSORDIRTY) {
@@ -761,19 +822,46 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
         scr->clipx2=scr->clipx+8;   // HARD CODED MAXIMUM WIDTH OF THE CURSOR
         if(scr->clipx2>=SCREEN_WIDTH) scr->clipx2=SCREEN_WIDTH-1;
 
-        ggl_cliprect(scr,halScreen.CursorX-halScreen.XVisible,ytop+2+y,halScreen.CursorX-halScreen.XVisible+StringWidthN((char *)&halScreen.CursorState,((char *)&halScreen.CursorState)+1,halScreen.CmdLineFont)-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
-
-        // EITHER DON'T DRAW IT OR REDRAW THE PORTION OF COMMAND LINE UNDER THE CURSOR
+        // REDRAW THE PORTION OF COMMAND LINE UNDER THE CURSOR
         if(!(halScreen.DirtyFlag&CMDLINE_LINEDIRTY))
         {
             // UPDATE THE CURRENT LINE
-                BINT linelen=StringWidthN((char *)cmdline,(char *)cmdline+nchars,(UNIFONT *)halScreen.CmdLineFont);
-            // THE LINE WAS NOT UPDATED, MEANS WE ARE UPDATING ONLY THE CURSOR
             // UPDATE THE CURRENT LINE
-            DrawTextBkN(-halScreen.XVisible,ytop+2+y,(char *)cmdline,(char *)cmdline+nchars,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
-            // CLEAR UP TO END OF LINE
-            ggl_cliprect(scr,-halScreen.XVisible+linelen,ytop+2+y,SCREEN_WIDTH-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
+                BYTEPTR string=cmdline;
+                BYTEPTR selst,selend;
+                BYTEPTR strend=cmdline+nchars;
+                BINT xcoord,tail;
 
+                selst=selend=strend;
+                tail=0;
+                if(halScreen.SelStartLine<halScreen.LineCurrent) { selst=string; tail=1; }
+                if(halScreen.SelStartLine==halScreen.LineCurrent) { selst=string+halScreen.SelStart; tail=1; }
+                if(halScreen.SelEndLine<halScreen.LineCurrent) { selend=string; tail=0; }
+                if(halScreen.SelEndLine==halScreen.LineCurrent) { selend=string+halScreen.SelEnd; tail=0; }
+
+                if(selend<=selst) selend=selst=string;
+
+                // DRAW THE LINE SPLIT IN 3 SECTIONS: string TO selst, selst TO selend, selend TO strend
+                xcoord=-halScreen.XVisible;
+                if(selst>string) {
+                    DrawTextBkN(xcoord,ytop+2+y,(char *)string,(char *)selst,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
+                    xcoord+=StringWidthN((char *)string,(char *)selst,(UNIFONT *)halScreen.CmdLineFont);
+                }
+                if(selend>selst) {
+                    DrawTextBkN(xcoord,ytop+2+y,(char *)selst,(char *)selend,(UNIFONT *)halScreen.CmdLineFont,0xf,0x6,scr);
+                    xcoord+=StringWidthN((char *)selst,(char *)selend,(UNIFONT *)halScreen.CmdLineFont);
+                }
+                if(strend>selend) {
+                    DrawTextBkN(xcoord,ytop+2+y,(char *)selend,(char *)strend,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
+                    xcoord+=StringWidthN((char *)selend,(char *)strend,(UNIFONT *)halScreen.CmdLineFont);
+                }
+
+                if(tail) {
+                    ggl_cliprect(scr,xcoord,ytop+2+y,xcoord+3,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0x66666666);
+                    xcoord+=3;
+                }
+                // CLEAR UP TO END OF LINE
+                ggl_cliprect(scr,xcoord,ytop+2+y,SCREEN_W-1,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0);
         }
 
         // RESET THE CLIPPING RECTANGLE BACK TO WHOLE SCREEN

@@ -1633,6 +1633,27 @@ void rsholdleftKeyHandler(BINT keymsg)
 }
 
 
+void lsleftKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()&CONTEXT_STACK) {
+            // TODO: WHAT TO DO WITH RS-LEFT CURSOR??
+            // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
+
+        }
+
+    }
+    else {
+        uiSetSelectionStart();
+    }
+}
+
+
+
+
+
 
 void rightKeyHandler(BINT keymsg)
 {
@@ -1675,6 +1696,26 @@ void rsrightKeyHandler(BINT keymsg)
         uiAutocompleteUpdate();
     }
 }
+
+void lsrightKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()&CONTEXT_STACK) {
+            // NOT SURE WHAT TO DO WITH THIS KEY
+
+        }
+
+    }
+    else {
+        // IN THE EDITOR, DO SELECTION
+        uiSetSelectionEnd();
+    }
+}
+
+
+
 
 void rsholdrightKeyHandler(BINT keymsg)
 {
@@ -2498,6 +2539,9 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_BKS|SHIFT_LSHOLD, CONTEXT_ANY,&deleteKeyHandler },
     { KM_PRESS|KB_BKS|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&deleteKeyHandler },
     { KM_PRESS|KB_BKS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&deleteKeyHandler },
+    { KM_PRESS|KB_LF|SHIFT_LS, CONTEXT_ANY,&lsleftKeyHandler },
+    { KM_PRESS|KB_RT|SHIFT_LS, CONTEXT_ANY,&lsrightKeyHandler },
+
 
     // CURSOR MOVEMENT KEYS
     { KM_PRESS|KB_LF, CONTEXT_ANY,&leftKeyHandler },

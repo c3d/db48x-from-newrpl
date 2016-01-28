@@ -146,7 +146,8 @@ typedef struct {
     int CursorState;    // Lowercase, Uppercase, Token, VISIBLE OR INVISIBLE
     int CursorPosition; // OFFSET FROM START OF CURRENT LINE
     int CursorX,XVisible;
-    int SelectionStart,SelectionEnd;
+    int SelStart,SelEnd;    // CURRENT SELECTION START/END OFFSET WITHIN THE LINE
+    int SelStartLine,SelEndLine; // CURRENT SELECTION START/END LINE (-1 IF NO SELECTION)
     int CmdLineState;   // STATUS FLAGS FOR THE COMMAND LINE
     int ACTokenStart;   // START OF TOKEN FOR AUTO COMPLETE, OFFSET FROM START OF LINE
     WORD ACSuggestion;  // CURRENT SUGGESTED OPCODE
@@ -156,7 +157,7 @@ typedef struct {
 } HALSCREEN;
 
 
-HALSCREEN halScreen;
+extern HALSCREEN halScreen;
 
 // CALCULATOR CONTEXT IDENTIFIERS
 enum {

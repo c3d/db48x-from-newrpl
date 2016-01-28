@@ -185,6 +185,8 @@ void uiOpenCmdLine(BINT mode)
     halScreen.CursorX=0;
     halScreen.CursorPosition=0;
     halScreen.CmdLineState=CMDSTATE_OPEN;
+    halScreen.SelEndLine=halScreen.SelStartLine=-1;
+    halScreen.SelStart=halScreen.SelEnd=0;
 
     if(((halScreen.CursorState&0xff)=='L')||((halScreen.CursorState&0xff)=='C')) AlphaMode=halScreen.CursorState&0xff;
     else if(((halScreen.CursorState>>24)=='L')||((halScreen.CursorState>>24)=='C')) AlphaMode=halScreen.CursorState>>24;
@@ -394,17 +396,46 @@ if(nl)  {
         if(Exceptions)  return;
 
     BINT newoff=rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent);
+    BINT oldoff=halScreen.CursorPosition;
     newoff+=halScreen.CursorPosition+length;
 
-    uiSetCurrentLine(halScreen.LineCurrent+nl);
+    newoff-=rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent+nl);
 
-    newoff-=rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent);
+    // MOVE THE CURRENT SELECTION
+    if(halScreen.SelStartLine==halScreen.LineCurrent) {
+        if(halScreen.SelStart>=halScreen.CursorPosition) {
+            halScreen.SelStartLine+=nl;
+            halScreen.SelStart+=newoff-oldoff;
+        }
+    }
+    else {
+        if(halScreen.SelStartLine>halScreen.LineCurrent) halScreen.SelStartLine+=nl;
+    }
+
+    if(halScreen.SelEndLine==halScreen.LineCurrent) {
+        if(halScreen.SelEnd>=halScreen.CursorPosition) {
+            halScreen.SelEndLine+=nl;
+            halScreen.SelEnd+=newoff-oldoff;
+        }
+    }
+    else {
+        if(halScreen.SelEndLine>halScreen.LineCurrent) halScreen.SelEndLine+=nl;
+    }
+
+
+    uiSetCurrentLine(halScreen.LineCurrent+nl);
     uiMoveCursor(newoff);
 
 }
 else {
 halScreen.CursorX+=StringWidthN(((char *)CmdLineCurrentLine)+4+halScreen.CursorPosition,((char *)CmdLineCurrentLine)+4+halScreen.CursorPosition+length,halScreen.CmdLineFont);
+
+// MOVE CURRENT SELECTION
+if((halScreen.SelStartLine==halScreen.LineCurrent)&&(halScreen.SelStart>=halScreen.CursorPosition))    halScreen.SelStart+=length;
+if((halScreen.SelEndLine==halScreen.LineCurrent)&&(halScreen.SelEnd>=halScreen.CursorPosition)) halScreen.SelEnd+=length;
+
 halScreen.CursorPosition+=length;
+
 }
 
 halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
@@ -421,7 +452,7 @@ halScreen.CursorState&=~0xc000;
 void uiRemoveCharacters(BINT length)
 {
 if(length<=0) return;
-
+int numlines=0;
 // LOCK CURSOR
 halScreen.CursorState|=0x4000;
 
@@ -473,18 +504,44 @@ length-=actualcount;
 
 halScreen.LineIsModified=1;
 
+if(halScreen.SelStartLine==halScreen.LineCurrent) {
+    if(halScreen.SelStart>halScreen.CursorPosition) {
+        halScreen.SelStart-=delete_end-delete_start;
+        if(halScreen.SelStart<halScreen.CursorPosition) halScreen.SelStart=halScreen.CursorPosition;
+    }
+}
+if(halScreen.SelEndLine==halScreen.LineCurrent) {
+    if(halScreen.SelEnd>halScreen.CursorPosition) {
+        halScreen.SelEnd-=delete_end-delete_start;
+        if(halScreen.SelEnd<halScreen.CursorPosition) halScreen.SelEnd=halScreen.CursorPosition;
+    }
+}
+
+
+
 if(length>0) {
     // MORE CHARACTERS TO BE REMOVED!
 
-    uiModifyLine(1);    // MODIFY THE LINE, BUREMOVE THE NEWLINE AT THE END
+    uiModifyLine(1);    // MODIFY THE LINE, REMOVE THE NEWLINE AT THE END
 
     if(Exceptions) return;
 
     --length;
 
+    if(halScreen.SelStartLine>halScreen.LineCurrent) {
+        --halScreen.SelStartLine;
+        if(halScreen.SelStartLine==halScreen.LineCurrent) halScreen.SelStart+=halScreen.CursorPosition;
+    }
+    if(halScreen.SelEndLine>halScreen.LineCurrent) {
+        --halScreen.SelEndLine;
+        if(halScreen.SelEndLine==halScreen.LineCurrent) halScreen.SelEnd+=halScreen.CursorPosition;
+    }
+
     uiExtractLine(halScreen.LineCurrent);
 
     if(Exceptions) return;
+
+    ++numlines;
 
 }
 
@@ -493,8 +550,8 @@ if(length>0) {
 
 
 
-halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
-
+if(!numlines) halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
+else halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
 // UNLOCK CURSOR
 halScreen.CursorState&=~0xc000;
 
@@ -1326,4 +1383,47 @@ BYTEPTR uiAutocompStringTokEnd()
     BYTEPTR end=start+halScreen.CursorPosition;
 
     return end;
+}
+
+// SET SELECTION START AT THE CURRENT CURSOR POSITION
+void uiSetSelectionStart()
+{
+    int prevline=halScreen.SelStartLine;
+    halScreen.SelStart=halScreen.CursorPosition;
+    halScreen.SelStartLine=halScreen.LineCurrent;
+
+    if(halScreen.SelEndLine<halScreen.SelStartLine) {
+        halScreen.SelEndLine=-1;
+        halScreen.SelEnd=0;
+    }
+    else {
+        if(halScreen.SelEndLine==halScreen.SelStartLine) {
+            if(halScreen.SelEnd<halScreen.SelStart) { halScreen.SelEndLine=-1; halScreen.SelEnd=0; }
+        }
+    }
+
+
+    halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
+
+
+}
+
+// SET SELECTION START AT THE CURRENT CURSOR POSITION
+void uiSetSelectionEnd()
+{
+    int prevline=halScreen.SelEndLine;
+    halScreen.SelEnd=halScreen.CursorPosition;
+    halScreen.SelEndLine=halScreen.LineCurrent;
+
+    if( (halScreen.SelStartLine<0) || (halScreen.SelStartLine>halScreen.SelEndLine)) {
+        halScreen.SelStartLine=-1;
+        halScreen.SelStart=0;
+    }
+    else {
+        if(halScreen.SelEndLine==halScreen.SelStartLine) {
+            if(halScreen.SelEnd<halScreen.SelStart) { halScreen.SelStartLine=-1; halScreen.SelStart=0; }
+        }
+    }
+
+    halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
 }
