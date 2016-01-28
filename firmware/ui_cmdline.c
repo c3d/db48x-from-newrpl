@@ -300,6 +300,12 @@ if(endstring<=string) return;
 // LOCK CURSOR
 halScreen.CursorState|=0x4000;
 
+BINT length=endstring-string;
+BINT lenwords=(length+3)>>2;
+// PROTECT string FROM POSSIBLE GC
+ScratchPointer1=(WORDPTR)string;
+
+
 if(halScreen.LineIsModified<0) {
 
 uiExtractLine(halScreen.LineCurrent);
@@ -315,10 +321,10 @@ if(Exceptions) {
 
 }
 
-BINT length=endstring-string;
-BINT lenwords=(length+3)>>2;
 
 if(CmdLineCurrentLine==(WORDPTR)empty_string) {
+
+
     WORDPTR newobj=rplAllocTempOb(lenwords);
     if(!newobj) {
         throw_dbgexception("No memory to insert text",__EX_CONT|__EX_WARM|__EX_RESET);
@@ -328,6 +334,7 @@ if(CmdLineCurrentLine==(WORDPTR)empty_string) {
         CmdLineUndoList=(WORDPTR)empty_list;
         return;
     }
+
     CmdLineCurrentLine=newobj;
     *CmdLineCurrentLine=MKPROLOG(DOSTRING,0);   // MAKE AN EMPTY STRING
 }
@@ -368,7 +375,7 @@ if(Exceptions) {
 // MOVE THE TAIL TO THE END
 memmoveb( ((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition+length,((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,rplStrSize(CmdLineCurrentLine)-halScreen.CursorPosition);
 // ADD THE NEW DATA IN
-memmoveb(((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,string,length);
+memmoveb(((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition,ScratchPointer1,length);
 
 // PATCH THE LENGTH OF THE STRING
 BINT newlen=rplStrSize(CmdLineCurrentLine);
@@ -1388,7 +1395,6 @@ BYTEPTR uiAutocompStringTokEnd()
 // SET SELECTION START AT THE CURRENT CURSOR POSITION
 void uiSetSelectionStart()
 {
-    int prevline=halScreen.SelStartLine;
     halScreen.SelStart=halScreen.CursorPosition;
     halScreen.SelStartLine=halScreen.LineCurrent;
 
@@ -1411,19 +1417,48 @@ void uiSetSelectionStart()
 // SET SELECTION START AT THE CURRENT CURSOR POSITION
 void uiSetSelectionEnd()
 {
-    int prevline=halScreen.SelEndLine;
     halScreen.SelEnd=halScreen.CursorPosition;
     halScreen.SelEndLine=halScreen.LineCurrent;
 
-    if( (halScreen.SelStartLine<0) || (halScreen.SelStartLine>halScreen.SelEndLine)) {
+    if(halScreen.SelStartLine>halScreen.SelEndLine) {
         halScreen.SelStartLine=-1;
         halScreen.SelStart=0;
     }
     else {
+        if(halScreen.SelStartLine<0) {
+            halScreen.SelStartLine=1;
+            halScreen.SelStart=0;
+        }
         if(halScreen.SelEndLine==halScreen.SelStartLine) {
             if(halScreen.SelEnd<halScreen.SelStart) { halScreen.SelStartLine=-1; halScreen.SelStart=0; }
         }
     }
 
     halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
+}
+
+
+// CREATE A NEW RPL STRING WITH THE TEXT SELECTED IN THE EDITOR
+
+WORDPTR uiExtractSelection()
+{
+    if(!(halScreen.CmdLineState&CMDSTATE_OPEN)) return 0;
+
+    if(halScreen.SelStartLine<0) return 0;
+    if(halScreen.SelEndLine<0) return 0;
+
+    // COMMIT ANY CHANGES TO THE CURRENT LINE
+    if(halScreen.LineIsModified>0) uiModifyLine(0);
+    if(Exceptions) return 0;
+
+
+    BINT selst=rplStringGetLinePtr(CmdLineText,halScreen.SelStartLine)+halScreen.SelStart;
+    BINT selend=rplStringGetLinePtr(CmdLineText,halScreen.SelEndLine)+halScreen.SelEnd;
+
+    if(selend<=selst) return 0;
+
+    // HERE WE NEED TO CREATE A NEW OBJECT
+    WORDPTR newstr=rplCreateString((BYTEPTR)(CmdLineText+1)+selst,(BYTEPTR)(CmdLineText+1)+selend);
+
+    return newstr;
 }

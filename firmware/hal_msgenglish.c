@@ -124,6 +124,7 @@ const MSGLIST const all_messages[]={
     { ERR_IDENTORINTEGEREXPECTED, "Expected identifier or integer" },
     { ERR_INVALIDLOCALESTRING, "Invalid Locale string" },
     { ERR_INVALIDMENUDEFINITION, "Invalid menu definition" },
+    { ERR_EMPTYCLIPBOARD, "Empty clipboard" },
 
     // TRANSCENDENTAL FUNCTIONS
     { ERR_ARGOUTSIDEDOMAIN, "Argument outside domain" },

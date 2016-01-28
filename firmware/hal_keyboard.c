@@ -524,6 +524,33 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
 }
 
 
+void transpcmdKeyHandler(WORD Opcode)
+{
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()&CONTEXT_STACK) {
+            // ACTION WHEN IN THE STACK
+                uiCmdRun(Opcode);
+                if(Exceptions) {
+                    // TODO: SHOW ERROR MESSAGE
+                    halShowErrorMsg();
+                    Exceptions=0;
+                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+            halScreen.DirtyFlag|=STACK_DIRTY;
+        }
+
+    }
+    else{
+        // ACTION INSIDE THE EDITOR
+            uiCmdRun(Opcode);
+            if(Exceptions) {
+                // TODO: SHOW ERROR MESSAGE
+                halShowErrorMsg();
+                Exceptions=0;
+            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+        halScreen.DirtyFlag|=STACK_DIRTY;
+    }
+
+}
 
 
 void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
@@ -1543,6 +1570,88 @@ void cancelKeyHandler(BINT keymsg)
 
 
 
+
+
+void copyclipKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()&CONTEXT_STACK) {
+            // ACTION WHEN IN THE STACK
+                uiCmdRunTransparent(CMD_COPYCLIP,1,0);
+                if(Exceptions) {
+                    // TODO: SHOW ERROR MESSAGE
+                    halShowErrorMsg();
+                    Exceptions=0;
+                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+            halScreen.DirtyFlag|=STACK_DIRTY;
+        }
+
+    }
+    else {
+        // ACTION INSIDE THE EDITOR
+            WORDPTR string=uiExtractSelection();
+
+            if(string) {
+                rplPushData(string);
+                uiCmdRunTransparent(CMD_COPYCLIP,1,0);
+            if(Exceptions) {
+                // TODO: SHOW ERROR MESSAGE
+                halShowErrorMsg();
+                Exceptions=0;
+            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+        halScreen.DirtyFlag|=STACK_DIRTY;
+    }
+
+
+    }
+}
+
+
+void pasteclipKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()&CONTEXT_STACK) {
+            // ACTION WHEN IN THE STACK
+                uiCmdRunTransparent(CMD_PASTECLIP,0,1);
+                if(Exceptions) {
+                    halShowErrorMsg();
+                    Exceptions=0;
+                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+            halScreen.DirtyFlag|=STACK_DIRTY;
+        }
+
+    }
+    else {
+        // ACTION INSIDE THE EDITOR
+                if(uiCmdRunTransparent(CMD_PASTECLIP,0,1)==1) {
+                    WORDPTR object=rplPopData(1);
+                    if(!ISSTRING(*object)) {
+                        object=rplDecompile(object,DECOMP_EDIT);
+                        if(!object || Exceptions) {
+                            halShowErrorMsg();
+                            Exceptions=0;
+                            return;
+                        }
+                        if(((halScreen.CursorState&0xff)=='P')||((halScreen.CursorState&0xff)=='D')) uiSeparateToken();
+                    }
+
+
+                    uiInsertCharactersN((BYTEPTR)(object+1),(BYTEPTR)(object+1)+rplStrSize(object));
+
+                }
+
+
+    }
+}
+
+
+
+
+
 void backspKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
@@ -2271,6 +2380,11 @@ void changemenuKeyHandler(BINT keymsg,WORD menucode)
 
 }
 
+#define DECLARE_TRANSPCMDKEYHANDLER(name,opcode) void name##KeyHandler(BINT keymsg) \
+                                                             { \
+                                                             UNUSED_ARGUMENT(keymsg); \
+                                                             transpcmdKeyHandler(opcode); \
+                                                             }
 
 #define DECLARE_CMDKEYHANDLER(name,opcode,string,issymbfunc) void name##KeyHandler(BINT keymsg) \
                                                              { \
@@ -2459,8 +2573,8 @@ DECLARE_CMDKEYHANDLER(purge,CMD_PURGE,"PURGE",-1)
 DECLARE_CMDKEYHANDLER(abs,CMD_OVR_ABS,"ABS",1)
 DECLARE_CMDKEYHANDLER(arg,CMD_ARG,"ARG",1)
 
-DECLARE_CMDKEYHANDLER(updir,CMD_UPDIR,"UPDIR",-1)
-DECLARE_CMDKEYHANDLER(home,CMD_HOME,"HOME",-1)
+DECLARE_TRANSPCMDKEYHANDLER(updir,CMD_UPDIR)
+DECLARE_TRANSPCMDKEYHANDLER(home,CMD_HOME)
 
 DECLARE_MENUKEYHANDLER(unitmenu,MKMENUCODE(0,DOUNIT,0,0))
 
@@ -2541,6 +2655,8 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_BKS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&deleteKeyHandler },
     { KM_PRESS|KB_LF|SHIFT_LS, CONTEXT_ANY,&lsleftKeyHandler },
     { KM_PRESS|KB_RT|SHIFT_LS, CONTEXT_ANY,&lsrightKeyHandler },
+    { KM_PRESS|KB_LF|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&copyclipKeyHandler },
+    { KM_PRESS|KB_RT|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&pasteclipKeyHandler },
 
 
     // CURSOR MOVEMENT KEYS
@@ -2812,7 +2928,9 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
 
 
     { KM_PRESS|KB_UP|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(updir) },
-    { KM_PRESS|KB_UP|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(home) },
+    { KM_PRESS|KB_UP|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(updir) },
+    { KM_PRESS|KB_UP|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(home) },
+    { KM_PRESS|KB_UP|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(home) },
 
 
     { KM_PRESS|KB_X, CONTEXT_ANY,KEYHANDLER_NAME(keyx) },

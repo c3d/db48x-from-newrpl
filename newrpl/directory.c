@@ -630,6 +630,7 @@ void rplPurgeDir(WORDPTR nameobj)
 // CREATE OR MODIFY VARIABLES IN THE SETTINGS DIRECTORY
 void rplStoreSettings(WORDPTR nameobject,WORDPTR object)
 {
+    if(!ISDIR(*SettingsDir)) return;
     WORDPTR *setting=rplFindGlobalInDir(nameobject,rplFindDirbyHandle(SettingsDir),0);
     if(setting) setting[1]=object;
     else rplCreateGlobalInDir(nameobject,object,rplFindDirbyHandle(SettingsDir));
@@ -637,6 +638,8 @@ void rplStoreSettings(WORDPTR nameobject,WORDPTR object)
 
 void rplStoreSettingsbyName(BYTEPTR name,BYTEPTR nameend,WORDPTR object)
 {
+    if(!ISDIR(*SettingsDir)) return;
+
     WORDPTR *setting=rplFindGlobalbyNameInDir(name,nameend,rplFindDirbyHandle(SettingsDir),0);
     if(setting) {
         setting[1]=object;
@@ -652,6 +655,7 @@ void rplStoreSettingsbyName(BYTEPTR name,BYTEPTR nameend,WORDPTR object)
 // GET THE SETTINGS AND RETURN A POINTER TO THE OBJECT, OR NULL IF IT DOESN'T EXIST
 WORDPTR rplGetSettings(WORDPTR nameobject)
 {
+    if(!ISDIR(*SettingsDir)) return 0;
     WORDPTR *setting=rplFindGlobalInDir(nameobject,rplFindDirbyHandle(SettingsDir),0);
     if(setting) return setting[1];
     return 0;
@@ -659,6 +663,7 @@ WORDPTR rplGetSettings(WORDPTR nameobject)
 
 WORDPTR rplGetSettingsbyName(BYTEPTR name,BYTEPTR nameend)
 {
+    if(!ISDIR(*SettingsDir)) return 0;
     WORDPTR *setting=rplFindGlobalbyNameInDir(name,nameend,rplFindDirbyHandle(SettingsDir),0);
     if(setting) return setting[1];
     return 0;

@@ -37,7 +37,9 @@
     ECMD(FSTESTCLEAR,"FS?C",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(TMENU,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)),\
     CMD(TMENULST,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)),\
-    CMD(MENUSWAP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
+    CMD(MENUSWAP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(COPYCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(PASTECLIP,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -94,6 +96,13 @@ ROMOBJECT menu2_ident[]= {
         TEXT2WORD('2',0,0,0)
 };
 
+ROMOBJECT clipbd_ident[] = {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('C','l','i','p'),
+        TEXT2WORD('B','d',0,0)
+
+};
+
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
@@ -104,6 +113,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)numfmt_ident,
     (WORDPTR)menu1_ident,
     (WORDPTR)menu2_ident,
+    (WORDPTR)clipbd_ident,
 
     0
 };
@@ -1078,7 +1088,27 @@ void LIB_HANDLER()
         return;
     }
 
+    case COPYCLIP:
+    {
+        // STORE LEVEL 1 INTO .Settings/Clipbd
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
 
+        rplStoreSettings((WORDPTR)clipbd_ident,rplPopData());
+
+        return;
+
+    }
+    case PASTECLIP:
+    {
+        WORDPTR object=rplGetSettings((WORDPTR)clipbd_ident);
+
+        if(!object) rplError(ERR_EMPTYCLIPBOARD);
+        else rplPushData(object);
+        return;
+    }
 
     // ADD MORE OPCODES HERE
 
