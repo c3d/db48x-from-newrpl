@@ -404,9 +404,12 @@ if(nl)  {
 
     BINT newoff=rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent);
     BINT oldoff=halScreen.CursorPosition;
-    newoff+=halScreen.CursorPosition+length;
+    BINT newline=rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent+nl);
 
-    newoff-=rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent+nl);
+    if(newline<0) newline=rplStrSize(CmdLineText);
+
+    newoff+=halScreen.CursorPosition+length;
+    newoff-=newline;
 
     // MOVE THE CURRENT SELECTION
     if(halScreen.SelStartLine==halScreen.LineCurrent) {

@@ -851,7 +851,18 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
 
                         WORDPTR *var=rplFindGlobal(action,1);
+                        BYTEPTR string=0,endstring;
+
                         if(var) {
+
+                        if(ISDIR(*var[1])) {
+                            // VARIABLE IS A DIRECTORY, DON'T RCL
+                            // BUT PUT THE NAME
+                            string=(BYTEPTR)(action+1);
+                            endstring=rplGetIdentLength(action);
+                        }
+                        else {
+
                         // VARIABLE EXISTS, GET THE CONTENTS
                         BINT SavedException=Exceptions;
                         BINT SavedErrorCode=ErrorCode;
@@ -863,16 +874,20 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         ErrorCode=SavedErrorCode;
 
                         if(opname) {
-                        BYTEPTR string=(BYTEPTR) (opname+1);
                         BINT totaln=rplStrLen(opname);
-                        BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+                        string=(BYTEPTR) (opname+1);
+                        endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+                        }
+                        }
+
+                        if(string) {
 
                         uiSeparateToken();
                         uiInsertCharactersN(string,endstring);
                         uiSeparateToken();
                         uiAutocompleteUpdate();
-                        break;
                         }
+                        break;
                         }
                     }
 
@@ -2657,6 +2672,10 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_RT|SHIFT_LS, CONTEXT_ANY,&lsrightKeyHandler },
     { KM_PRESS|KB_LF|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&copyclipKeyHandler },
     { KM_PRESS|KB_RT|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&pasteclipKeyHandler },
+    { KM_PRESS|KB_LF|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&lsleftKeyHandler },
+    { KM_PRESS|KB_RT|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&lsrightKeyHandler },
+    { KM_PRESS|KB_LF|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&copyclipKeyHandler },
+    { KM_PRESS|KB_RT|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&pasteclipKeyHandler },
 
 
     // CURSOR MOVEMENT KEYS
