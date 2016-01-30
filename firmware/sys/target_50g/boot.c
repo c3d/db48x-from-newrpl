@@ -310,7 +310,6 @@ void startup(int prevstate)
 
     // NON-PRIVILEGED MODE FROM HERE ON...
 
-    cpu_setspeed(6000000);
     lcd_poweron();
     //lcd_setmode(2,(int *)MEM_PHYS_SCREEN);
 

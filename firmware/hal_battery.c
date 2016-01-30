@@ -121,6 +121,7 @@ void busy_handler()
 
 void halInitBusyHandler()
 {
+    cpu_setspeed(6000000);
     halFlags=0;
     halBusyEvent=tmr_eventcreate(&busy_handler,500,0);
 }

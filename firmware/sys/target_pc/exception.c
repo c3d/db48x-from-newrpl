@@ -239,7 +239,7 @@ else {
         __ex_print(80,48,a);
 
 
-        __ex_print(64,54,"Fre:");
+        __ex_print(64,54,"Um:");
 
         {
         WORD total=halGetTotalPages();
@@ -253,7 +253,7 @@ else {
         __ex_print(80,54,a);
 
 
-        __ex_print(64,60,"Mem:");
+        __ex_print(64,60,"Tm:");
 
         a[8]=0;
         for(j=7;j>=0;j--)
