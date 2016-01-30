@@ -859,7 +859,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                             // VARIABLE IS A DIRECTORY, DON'T RCL
                             // BUT PUT THE NAME
                             string=(BYTEPTR)(action+1);
-                            endstring=rplGetIdentLength(action);
+                            endstring=string+rplGetIdentLength(action);
                         }
                         else {
 
@@ -887,8 +887,9 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         uiSeparateToken();
                         uiAutocompleteUpdate();
                         }
-                        break;
                         }
+                        break;
+
                     }
 
 
@@ -913,7 +914,19 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
 
                         WORDPTR *var=rplFindGlobal(action,1);
+                        BYTEPTR string=0,endstring;
+
                         if(var) {
+
+                        if(ISDIR(*var[1])) {
+                            // VARIABLE IS A DIRECTORY, DON'T RCL
+                            // BUT PUT THE NAME
+                            string=(BYTEPTR)(action+1);
+                            endstring=string+rplGetIdentLength(action);
+                        }
+                        else {
+
+
                         // VARIABLE EXISTS, GET THE CONTENTS
                         BINT SavedException=Exceptions;
                         BINT SavedErrorCode=ErrorCode;
@@ -925,9 +938,9 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         ErrorCode=SavedErrorCode;
 
                         if(opname) {
-                        BYTEPTR string=(BYTEPTR) (opname+1);
+                        string=(BYTEPTR) (opname+1);
                         BINT totaln=rplStrLen(opname);
-                        BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+                        endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                         // IN ALGEBRAIC MODE, REMOVE THE TICK MARKS AND INSERT WITHOUT SEPARATION
                         // TO ALLOW PASTING EQUATIONS INTO OTHER EXPRESSIONS
@@ -935,12 +948,17 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                             string++;
                             endstring--;
                         }
+                        }
+                        }
 
+                        if(string) {
                         uiInsertCharactersN(string,endstring);
                         uiAutocompleteUpdate();
+                        }
+                        }
                         break;
-                        }
-                        }
+
+
                     }
                     uiSeparateToken();
                     uiInsertCharacters((BYTEPTR)"'");
@@ -956,8 +974,20 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     if(KM_SHIFTPLANE(keymsg)&SHIFT_HOLD) {
                     //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
 
+
                         WORDPTR *var=rplFindGlobal(action,1);
+
+                        BYTEPTR string=0,endstring;
+
                         if(var) {
+
+                        if(ISDIR(*var[1])) {
+                            // VARIABLE IS A DIRECTORY, DON'T RCL
+                            // BUT PUT THE NAME
+                            string=(BYTEPTR)(action+1);
+                            endstring=string+rplGetIdentLength(action);
+                        }
+                        else {
                         // VARIABLE EXISTS, GET THE CONTENTS
                         BINT SavedException=Exceptions;
                         BINT SavedErrorCode=ErrorCode;
@@ -969,18 +999,23 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         ErrorCode=SavedErrorCode;
 
                         if(opname) {
-                        BYTEPTR string=(BYTEPTR) (opname+1);
+                        string=(BYTEPTR) (opname+1);
                         BINT totaln=rplStrLen(opname);
-                        BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+                        endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
+                        }
+
+                        }
+                        if(string) {
                         uiSeparateToken();
                         uiInsertCharactersN(string,endstring);
                         uiSeparateToken();
                         uiAutocompleteUpdate();
-
+                        }
+                        }
                         break;
-                        }
-                        }
+
+
                     }
                     uiSeparateToken();
                     uiInsertCharacters((BYTEPTR)"'");
@@ -1098,6 +1133,15 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 }
                 case 'A':
                 {
+                    WORDPTR *var=rplFindGlobal(action,1);
+                    if(var) {
+                        if(ISDIR(*(var[1]))) {
+                            // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
+                            rplPushData(action);    // PUSH THE NAME ON THE STACK
+                            Opcode=(CMD_OVR_EVAL);
+                            break;
+                        }
+                    }
 
                     // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
                     BINT SavedException=Exceptions;
@@ -1129,6 +1173,15 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                 case 'P':
                 {
+                    WORDPTR *var=rplFindGlobal(action,1);
+                    if(var) {
+                        if(ISDIR(*(var[1]))) {
+                            // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
+                            rplPushData(action);    // PUSH THE NAME ON THE STACK
+                            Opcode=(CMD_OVR_EVAL);
+                            break;
+                        }
+                    }
 
                     // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
                     BINT SavedException=Exceptions;
@@ -1594,7 +1647,7 @@ void copyclipKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-                uiCmdRunTransparent(CMD_COPYCLIP,1,0);
+                uiCmdRunTransparent(CMD_COPYCLIP,1,1);
                 if(Exceptions) {
                     // TODO: SHOW ERROR MESSAGE
                     halShowErrorMsg();
@@ -1610,7 +1663,7 @@ void copyclipKeyHandler(BINT keymsg)
 
             if(string) {
                 rplPushData(string);
-                uiCmdRunTransparent(CMD_COPYCLIP,1,0);
+                uiCmdRunTransparent(CMD_CUTCLIP,1,0);
             if(Exceptions) {
                 // TODO: SHOW ERROR MESSAGE
                 halShowErrorMsg();

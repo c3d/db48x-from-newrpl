@@ -39,6 +39,7 @@
     CMD(TMENULST,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)),\
     CMD(MENUSWAP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(COPYCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CUTCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(PASTECLIP,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
@@ -1096,11 +1097,25 @@ void LIB_HANDLER()
             return;
         }
 
+        rplStoreSettings((WORDPTR)clipbd_ident,rplPeekData(1));
+
+        return;
+
+    }
+    case CUTCLIP:
+    {
+        // STORE LEVEL 1 INTO .Settings/Clipbd
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
         rplStoreSettings((WORDPTR)clipbd_ident,rplPopData());
 
         return;
 
     }
+
     case PASTECLIP:
     {
         WORDPTR object=rplGetSettings((WORDPTR)clipbd_ident);
