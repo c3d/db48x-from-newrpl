@@ -262,6 +262,7 @@ BINT rplRun(void)
             Exceptions=0;
             rplClearRStk(); // CLEAR THE RETURN STACK
             rplClearLAMs(); // CLEAR ALL LOCAL VARIABLES
+            ErrorHandler=0;
             return 0; // DON'T ALLOW HANDLER TO TRAP THIS EXCEPTION
         }
         if(ErrorHandler) {

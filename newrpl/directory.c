@@ -447,10 +447,10 @@ void rplPurgeForced(WORDPTR *var)
 
 void rplPurgeGlobal(WORDPTR nameobj)
 {
-    WORDPTR *var=rplFindGlobal(nameobj,1);
+    WORDPTR *var=rplFindGlobal(nameobj,0);
 
     if(!var) {
-        rplError(ERR_UNDEFINEDVARIABLE);
+        //rplError(ERR_UNDEFINEDVARIABLE);
         return;
     }
 

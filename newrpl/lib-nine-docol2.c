@@ -588,6 +588,33 @@ void LIB_HANDLER()
            return;
        }
 
+       if((TokenLen==7) && (!utf8ncmp((char *)TokenStart,"THENERR",7)))
+       {
+           if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,IFERR)) {
+               rplCleanupLAMs(*(ValidateTop-1));
+               rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,THENERR));
+               RetNum=OK_CHANGECONSTRUCT;
+               return;
+           }
+
+           RetNum=ERR_SYNTAX;
+           return;
+       }
+
+       if((TokenLen==8) && (!utf8ncmp((char *)TokenStart,"THENCASE",8)))
+       {
+           if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,CASE)) {
+               rplCleanupLAMs(*(ValidateTop-1));
+               rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,THENCASE));
+               RetNum=OK_STARTCONSTRUCT;
+               return;
+           }
+
+           RetNum=ERR_SYNTAX;
+           return;
+       }
+
+
        if((TokenLen==4) && (!utf8ncmp((char *)TokenStart,"ELSE",4)))
        {
            if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,THEN)) {
@@ -607,6 +634,21 @@ void LIB_HANDLER()
            return;
 
        }
+
+       if((TokenLen==7) && (!utf8ncmp((char *)TokenStart,"ELSEERR",7)))
+       {
+           if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,THENERR)) {
+               rplCleanupLAMs(*(ValidateTop-1));
+               rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,ELSEERR));
+               RetNum=OK_CHANGECONSTRUCT;
+               return;
+           }
+
+           RetNum=ERR_SYNTAX;
+           return;
+
+       }
+
 
        if((TokenLen==3) && (!utf8ncmp((char *)TokenStart,"END",3)))
        {
@@ -875,33 +917,6 @@ void LIB_HANDLER()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
@@ -1058,6 +1073,44 @@ void LIB_HANDLER()
                     RetNum=OK_CONTINUE;
                     return;
 
+                }
+
+                // TODO: ADD A FLAG TO CONTROL IF USER WANTS ENDIF INSTEAD OF END, ETC.
+
+                if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,THENERR)) {
+                    rplDecompAppendString((BYTEPTR)"THEN");
+                    RetNum=OK_CONTINUE;
+                    return;
+                }
+                if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,THENCASE)) {
+                    rplDecompAppendString((BYTEPTR)"THEN");
+                    RetNum=OK_CONTINUE;
+                    return;
+                }
+                if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,ENDIF)) {
+                    rplDecompAppendString((BYTEPTR)"END");
+                    RetNum=OK_CONTINUE;
+                    return;
+                }
+                if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,ENDERR)) {
+                    rplDecompAppendString((BYTEPTR)"END");
+                    RetNum=OK_CONTINUE;
+                    return;
+                }
+                if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,ENDTHEN)) {
+                    rplDecompAppendString((BYTEPTR)"END");
+                    RetNum=OK_CONTINUE;
+                    return;
+                }
+                if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,ENDCASE)) {
+                    rplDecompAppendString((BYTEPTR)"END");
+                    RetNum=OK_CONTINUE;
+                    return;
+                }
+                if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,ELSEERR)) {
+                    rplDecompAppendString((BYTEPTR)"ELSE");
+                    RetNum=OK_CONTINUE;
+                    return;
                 }
 
 

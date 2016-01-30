@@ -3384,6 +3384,10 @@ void halOuterLoop()
     do {
         halRedrawAll(&scr);
         if(halExitOuterLoop()) break;
+        if(Exceptions) {
+            halShowErrorMsg();
+            Exceptions=0;
+        }
         keymsg=halWaitForKey();
         halSetBusyHandler();
     } while(!halProcessKey(keymsg));

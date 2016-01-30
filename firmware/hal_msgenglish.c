@@ -29,7 +29,7 @@ const MSGLIST const all_messages[]={
     { ERR_PROGRAMEXPECTED, "Expected a program" },
 
     // COMPILER/DECOMPILER AND GENERAL CORE ERRORS
-    { ERR_EXITRPLEXCEPTION, "Panic - Aborting RPL engine" },
+    { ERR_EXITRPLEXCEPTION, "Aborting RPL engine" },
     { ERR_BKPOINTEXCEPTION, "Breakpoint reached" },
     { ERR_OUTOFMEMORYEXCEPTION, "Out of memory" },
     { ERR_USERBREAK, "User BREAK" },
