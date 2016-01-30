@@ -42,6 +42,31 @@ void growDirs(WORD newtotalsize)
         DirSize=newtotalsize;
 }
 
+// SIMILAR TO GROW, BUT DOES NOT DO GARBAGE COLLECTION
+// USED TO RELEASE PAGES RIGHT BEFORE A GC
+void shrinkDirs(WORD newtotalsize)
+{
+    WORDPTR *newdir;
+
+    newtotalsize=(newtotalsize+1023)&~1023;
+
+    newdir=halGrowMemory(MEM_AREA_DIR,Directories,newtotalsize);
+
+    if(!newdir) {
+        rplException(EX_OUTOFMEM);
+        return;
+        }
+    CurrentDir=CurrentDir-Directories+newdir;
+    DirsTop=DirsTop-Directories+newdir;
+    Directories=newdir;
+    DirSize=newtotalsize;
+
+}
+
+
+
+
+
 // CHECK IF AN IDENT IS QUOTED, IF NOT THEN
 // CREATE A NEW QUOTED OBJECT AND RETURN IT
 // MAY CAUSE GARBAGE COLLECTION
@@ -196,7 +221,7 @@ WORDPTR *rplMakeNewDir()
     direntry[4]=(WORDPTR)dir_end_bint;
     direntry[5]=(WORDPTR)dirobj;
 
-    if(DirSize<=DirsTop-Directories+DIRSLACK) growDirs((WORD)(DirsTop-Directories+DIRSLACK+1024));
+    if(DirSize<=DirsTop-Directories+DIRSLACK) growDirs((WORD)(DirsTop-Directories+DIRSLACK));
     if(Exceptions) return 0;
 
     return direntry;

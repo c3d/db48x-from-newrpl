@@ -37,6 +37,27 @@ void growRStk(WORD newtotalsize)
         RStkSize=newtotalsize;
 }
 
+void shrinkRStk(WORD newtotalsize)
+{
+    WORDPTR *newrstk;
+
+    newtotalsize=(newtotalsize+1023)&~1023;
+
+    newrstk=halGrowMemory(MEM_AREA_RSTK,RStk,newtotalsize);
+
+    if(!newrstk) {
+            rplException(EX_OUTOFMEM);
+            return;
+        }
+
+        RSTop+=newrstk-RStk;
+        RStk=newrstk;
+        RStkSize=newtotalsize;
+}
+
+
+
+
 // RETURN STACK ONLY STORES ADDRESS POINTERS
 // NEVER DIRECTLY A WORD OR A COMMAND
 // STACK IS "INCREASE AFTER" FOR STORE, "DECREASE BEFORE" FOR READ

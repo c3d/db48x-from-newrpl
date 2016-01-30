@@ -38,6 +38,26 @@ void growLAMs(WORD newtotalsize)
         LAMSize=newtotalsize;
 }
 
+void shrinkLAMs(WORD newtotalsize)
+{
+    WORDPTR *newlam;
+
+    newtotalsize=(newtotalsize+1023)&~1023;
+
+    newlam=halGrowMemory(MEM_AREA_LAM,LAMs,newtotalsize);
+
+    if(!newlam) {
+            rplException(EX_OUTOFMEM);
+        return;
+        }
+
+        LAMTop=LAMTop-LAMs+newlam;
+        nLAMBase=nLAMBase-LAMs+newlam;
+        LAMs=newlam;
+        LAMSize=newtotalsize;
+}
+
+
 
 // LAM STACK IS INCREASE AFTER FOR STORE, DECREASE BEFORE FOR READ
 // RETURN THE LAM NUMBER IN THE CURRENT ENVIRONMENT (FOR USE WITH FAST GETLAMn FUNCTIONS)

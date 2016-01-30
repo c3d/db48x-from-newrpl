@@ -455,7 +455,7 @@ doupdate:
         __keyb_lock=0;
 
 
-        throw_exception("RPL Break requested",__EX_CONT | __EX_EXIT | __EX_WARM | __EX_RESET  );
+        throw_exception("RPL Break requested",__EX_CONT | __EX_RPLEXIT | __EX_WARM | __EX_RESET  );
 
         //  AFTER RETURNING FROM THE EXCEPTION HANDLER, ALL KEYS ARE GUARANTEED TO BE RELEASED
         //  DO AN UPDATE TO SEND KEY_UP MESSAGES TO THE APPLICATION AND CORRECT SHIFT PLANES

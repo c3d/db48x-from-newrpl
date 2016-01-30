@@ -43,6 +43,7 @@ void __ex_hline(int y)
 
 int __ex_width(char *string) { return StringWidth(string,(UNIFONT *)Font_6A); }
 
+/*
 // MAIN EXCEPTION PROCESSOR
 
 #define __EX_CONT 1		// SHOW CONTINUE OPTION
@@ -53,7 +54,7 @@ int __ex_width(char *string) { return StringWidth(string,(UNIFONT *)Font_6A); }
 #define __EX_WIPEOUT 32	// FULL MEMORY WIPEOUT AND WARMSTART
 #define __EX_RPLREGS 64 // SHOW RPL REGISTERS INSTEAD
 #define __EX_RPLEXIT 128 // SHOW EXIT OPTION, IT RESUMES EXECUTION AFTER SETTING Exception=EX_EXITRPL
-
+*/
 
 int __exception_handler(char *exstr, unsigned int *registers,int options)
 {
@@ -237,6 +238,32 @@ else {
          }
         __ex_print(80,48,a);
 
+
+        __ex_print(64,54,"Fre:");
+
+        {
+        WORD total=halGetTotalPages();
+        WORD freemem=halGetFreePages();
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=(((freemem)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,54,a);
+
+
+        __ex_print(64,60,"Mem:");
+
+        a[8]=0;
+        for(j=7;j>=0;j--)
+         {
+         a[7-j]=(((total)>>(j<<2))&0xf)+48;
+          if(a[7-j]>'9') a[7-j]+=7;
+         }
+        __ex_print(80,60,a);
+        }
+
     __ex_hline(70);
 		
 }
@@ -251,7 +278,7 @@ if(options&__EX_CONT) {
 		pnewb[79*5]|=0x3fffc;
 }
 
-if(options&__EX_EXIT) {
+if(options&(__EX_EXIT|__EX_RPLEXIT)) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 
 		// DRAW BUTTON 2
@@ -301,8 +328,8 @@ if(options&__EX_CONT) {
 j=__EX_CONT;
 if( KEYVALUE(f)==KB_A )	break;
 }
-if(options&__EX_EXIT) {
-j=__EX_EXIT;
+if(options&(__EX_EXIT|__EX_RPLEXIT)) {
+j=options&(__EX_EXIT|__EX_RPLEXIT);
 if( KEYVALUE(f)==KB_B )	break;
 }
 if( KEYVALUE(f)==KB_L) {

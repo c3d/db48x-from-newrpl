@@ -16,7 +16,10 @@ int halGetFreePages()
     while(mmutable<(int *)(MEM_REVERSEMMU+0x200)) { if(*mmutable==0) ++count; ++mmutable; }
     return count;
 }
-
+int halGetTotalPages()
+{
+    return  (RAM_END_PHYSICAL-RAM_BASE_PHYSICAL)>>12;
+}
 
 
 // GROW AREA OF MEMORY AT base, TO AT LEAST newsize WORDS

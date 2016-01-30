@@ -215,6 +215,12 @@ void rplGCollect()
             shrinkTempOb(EndOfUsedMem-TempOb+TEMPOBSLACK);
             shrinkTempBlocks(TempBlocksEnd-TempBlocks+TEMPBLOCKSLACK);
 
+            // AND ALL OTHER AREAS TOO
+            shrinkDirs(DirsTop-Directories+DIRSLACK);
+            shrinkLAMs(LAMTop-LAMs+LAMSLACK);
+            shrinkRStk(EndOfRStk-RStk+RSTKSLACK);
+            shrinkDStk(DSTop-DStk+DSTKSLACK);
+
             //halCheckMemoryMap();
             //halCheckRplMemory();
 

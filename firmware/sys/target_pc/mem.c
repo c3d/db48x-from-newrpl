@@ -37,7 +37,15 @@ int halGetFreePages()
             +(TEMPOB_SIZE>>10)-__tempob_used
             +(TEMPBLK_SIZE>>10)-__tempblk_used);
 }
-
+int halGetTotalPages()
+{
+    return  ((DSTK_SIZE>>10)
+             +(RSTK_SIZE>>10)
+              +(DIR_SIZE>>10)
+              +(LAM_SIZE>>10)
+              +(TEMPOB_SIZE>>10)
+              +(TEMPBLK_SIZE>>10));
+}
 
 
 // GROW AREA OF MEMORY AT base, TO AT LEAST newsize WORDS

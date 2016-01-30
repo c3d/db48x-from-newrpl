@@ -325,6 +325,8 @@ enum {
 #define __EX_NOREG 16	// DON'T SHOW REGISTERS
 #define __EX_WIPEOUT 32	// FULL MEMORY WIPEOUT AND WARMSTART
 #define __EX_RPLREGS 64 // SHOW RPL REGISTERS INSTEAD
+#define __EX_RPLEXIT 128 // SHOW EXIT OPTION, IT RESUMES EXECUTION AFTER SETTING Exception=EX_EXITRPL
+
 
 
 // GENERAL HARDWARE REGISTER MACRO
@@ -1152,6 +1154,7 @@ void flash_CFIRead(unsigned short *ptr);
 
 WORDPTR *halGrowMemory(BINT zone,WORDPTR *base,BINT newsize);
 int halGetFreePages();
+int halGetTotalPages();
 int halCheckMemoryMap();
 int halCountUsedPages(int zone);
 void halCheckRplMemory();

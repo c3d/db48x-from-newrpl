@@ -155,7 +155,7 @@ WORD rplObjSize(WORDPTR ip);
 
 
 
-// TEMPOB MEMORY MANAGEMENT IN TEMPOB.C
+// LOW-LEVEL MEMORY MANAGEMENT
 
 WORDPTR rplAllocTempOb(WORD size);
 void rplTruncateLastObject(WORDPTR newend);
@@ -165,6 +165,14 @@ void shrinkTempOb(WORD newtotalsize);
 void rplAddTempBlock(WORDPTR block);
 void growTempBlocks(WORD newtotalsize);
 void shrinkTempBlocks(WORD newtotalsize);
+void growDirs(WORD newtotalsize);
+void shrinkDirs(WORD newtotalsize);
+void growLAMs(WORD newtotalsize);
+void shrinkLAMs(WORD newtotalsize);
+void growDStk(WORD newtotalsize);
+void shrinkDStk(WORD newtotalsize);
+void growRStk(WORD newtotalsize);
+void shrinkRStk(WORD newtotalsize);
 
 
 // COMPILER FUNCTIONS IN COMPILER.C

@@ -186,7 +186,7 @@ void shrinkTempBlocks(WORD newtotalsize)
         TempBlocks=newtempblocks;
         TempBlocksSize=newtotalsize;
 
-        if(TempBlocksEnd>=TempBlocks+TempBlocksSize) throw_dbgexception("Bad TempBlocksEnd!",1);
+        if(TempBlocksEnd>=TempBlocks+TempBlocksSize) throw_dbgexception("Bad TempBlocksEnd!",__EX_CONT | __EX_RPLREGS);
         // NOTHING TO FIX
 }
 

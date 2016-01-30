@@ -41,6 +41,29 @@ void growDStk(WORD newtotalsize)
         // NO POINTERS SHOULD POINT INTO THE STACK, SO NOTHING TO FIX
 }
 
+void shrinkDStk(WORD newtotalsize)
+{
+    WORDPTR *newdstk;
+
+    newtotalsize=(newtotalsize+1023)&~1023;
+
+    newdstk=halGrowMemory(MEM_AREA_DSTK,DStk,newtotalsize);
+
+    if(!newdstk) {
+            rplException(EX_OUTOFMEM);
+            return;
+        }
+
+    DSTop=DSTop-DStk+newdstk;
+    DStk=newdstk;
+    DStkSize=newtotalsize;
+
+        // NO POINTERS SHOULD POINT INTO THE STACK, SO NOTHING TO FIX
+}
+
+
+
+
 // DATA STACK ONLY STORES ADDRESS POINTERS
 // NEVER DIRECTLY A WORD OR A COMMAND
 // STACK IS "INCREASE AFTER" FOR STORE, "DECREASE BEFORE" FOR READ
