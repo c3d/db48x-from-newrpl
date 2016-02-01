@@ -1971,7 +1971,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
             BINT nargs=OPCODE(**(stkptr-1))-1,redargs=0;
             WORDPTR *argptr=stkptr-2,*savedstop;
-            BINT simplified=0,den_is_one=0,neg=0,approx=0;
+            BINT simplified=0,den_is_one=0,num_is_one=0,neg=0,approx=0;
 
             savedstop=DSTop;
 
@@ -2160,6 +2160,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 if(Exceptions) { rplBlameError(sobj); DSTop=endofstk+1; return 0; }
                 // AND PUSH A DENOMINATOR OF 1
                 rplPushData((WORDPTR)one_bint);
+                simplified=1;
             }
             }
 
@@ -2167,7 +2168,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
             {
 
-                if(redargs>0) {
+                if((redargs>0)||(reddenom>0)) {
 
                     BINT n=1+((reddenom>0)? 1:0);
                     // IF NUMERATOR IS NEGATIVE, STORE AS POSITIVE AND SET neg
@@ -2181,6 +2182,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         if(!newnum) { DSTop=endofstk+1; return 0; }
                         rplOverwriteData(n,newnum);
                         }
+                        if(nnum==1) num_is_one=1;
 
                     } else {
                         if(ISREAL(*rplPeekData(n))) {
@@ -2193,6 +2195,8 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                                 if(!newnum) { DSTop=endofstk+1; return 0; }
                                 rplOverwriteData(n,newnum);
                             }
+                            rplOneToRReg(0);
+                            if(eqReal(&number,&RReg[0])) num_is_one=1;
                         }
                     }
 
@@ -2272,7 +2276,8 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 if(redargs+reddenom) {
                     // UPDATE THE ARGUMENT COUNT
                     BINT newcount=nargs-redargs-reddenom;
-                    if(redargs) ++newcount;
+                    if(redargs || num_is_one) ++newcount;
+                    else if(approxdenom) ++newcount;
                     if(reddenom) {
                         ++newcount;
                         if(den_is_one) --newcount;
@@ -2296,7 +2301,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
 
 
-                    if(redargs>1 || reddenom>1 || simplified) changed=1;
+                    if((redargs>1) || (reddenom>1) || simplified) changed=1;
                 }
                 --stkptr;
                 continue;

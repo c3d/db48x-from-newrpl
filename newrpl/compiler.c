@@ -819,8 +819,11 @@ void rplDecompAppendString(BYTEPTR str)
     BINT len=stringlen((char *)str);
 
         if( ((WORDPTR)((((PTR2NUMBER)DecompStringEnd)+len+3)&~((PTR2NUMBER)3)))+TEMPOBSLACK>=TempObSize) {
+
+            rplPushDataNoGrow((WORDPTR)str);
             // ENLARGE TEMPOB AS NEEDED
             growTempOb((((((BYTEPTR)DecompStringEnd)+len+3-(BYTEPTR)TempOb))>>2)+TEMPOBSLACK);
+            str=(BYTEPTR)rplPopData();
             // IF THERE'S NOT ENOUGH MEMORY, RETURN IMMEDIATELY
             if(Exceptions&EX_OUTOFMEM) return;
         }
@@ -841,8 +844,11 @@ void rplDecompAppendString(BYTEPTR str)
 void rplDecompAppendString2(BYTEPTR str,BINT len)
 {
         if( ((WORDPTR)((((PTR2NUMBER)DecompStringEnd)+len+3)&~((PTR2NUMBER)3)))+TEMPOBSLACK>=TempObSize) {
+            rplPushDataNoGrow((WORDPTR)str);
             // ENLARGE TEMPOB AS NEEDED
             growTempOb((((((BYTEPTR)DecompStringEnd)+len+3-(BYTEPTR)TempOb))>>2)+TEMPOBSLACK);
+            str=(BYTEPTR)rplPopData();
+
             // IF THERE'S NOT ENOUGH MEMORY, RETURN IMMEDIATELY
             if(Exceptions&EX_OUTOFMEM) return;
 
