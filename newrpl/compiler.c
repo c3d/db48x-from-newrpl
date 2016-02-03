@@ -841,13 +841,17 @@ void rplDecompAppendString(BYTEPTR str)
     DecompStringEnd=(WORDPTR) ptr;
 }
 
+
+// APPEND A STRING OF A GIVEN LENGTH
+// IF PASSED POINTER IS NULL, MEMORY IS RESERVED BUT NOTHING IS COPIED
+
 void rplDecompAppendString2(BYTEPTR str,BINT len)
 {
         if( ((WORDPTR)((((PTR2NUMBER)DecompStringEnd)+len+3)&~((PTR2NUMBER)3)))+TEMPOBSLACK>=TempObSize) {
-            rplPushDataNoGrow((WORDPTR)str);
+            if(str) rplPushDataNoGrow((WORDPTR)str);
             // ENLARGE TEMPOB AS NEEDED
             growTempOb((((((BYTEPTR)DecompStringEnd)+len+3-(BYTEPTR)TempOb))>>2)+TEMPOBSLACK);
-            str=(BYTEPTR)rplPopData();
+            if(str) str=(BYTEPTR)rplPopData();
 
             // IF THERE'S NOT ENOUGH MEMORY, RETURN IMMEDIATELY
             if(Exceptions&EX_OUTOFMEM) return;
@@ -855,16 +859,24 @@ void rplDecompAppendString2(BYTEPTR str,BINT len)
         }
 
 
+        if(str) {
 
-    BYTEPTR ptr=(BYTEPTR) DecompStringEnd;
+            BYTEPTR ptr=(BYTEPTR) DecompStringEnd;
 
-    while(len) {
-        *ptr=*str;
-        ++ptr;
-        ++str;
-        --len;
-    }
-    DecompStringEnd=(WORDPTR) ptr;
+            while(len) {
+                *ptr=*str;
+                ++ptr;
+                ++str;
+                --len;
+            }
+
+            DecompStringEnd=(WORDPTR) ptr;
+
+        }  else {
+            BYTEPTR ptr=(BYTEPTR) DecompStringEnd;
+            ptr+=len;
+            DecompStringEnd=(WORDPTR)ptr;
+        }
 }
 
 
