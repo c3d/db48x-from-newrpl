@@ -1158,7 +1158,7 @@ void LIB_HANDLER()
                 BINT len=formatlengthReal(&realnum,Format);
 
                 // RESERVE THE MEMORY FIRST
-                rplDecompAppendString2((BYTEPTR)DecompStringEnd,len);
+                rplDecompAppendString2(0,len);
 
                 // NOW USE IT
                 string=(BYTEPTR)DecompStringEnd;
