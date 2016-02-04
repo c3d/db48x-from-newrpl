@@ -720,7 +720,7 @@ void LIB_HANDLER()
 
         digits=sig_digits(rnum.data[rnum.len-1])+((rnum.len-1)<<3);
 
-        digits=rnum.exp-digits;
+        digits+=rnum.exp-1;
         rplNewBINTPush(digits,DECBINT);
         return;
 
