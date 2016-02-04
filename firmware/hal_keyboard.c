@@ -17,13 +17,16 @@
 BINT halWaitForKey()
 {
     int keymsg;
+    BINT64 offcounter;
 
     if(!(halFlags&HAL_FASTMODE) && (halBusyEvent>=0)) {
     tmr_eventkill(halBusyEvent);
     halBusyEvent=-1;
     }
 
+    offcounter=halTicks();
     do {
+
 
     keymsg=keyb_getmsg();
 
@@ -36,6 +39,14 @@ BINT halWaitForKey()
     if(halFlags&HAL_HOURGLASS) {
     halSetNotification(N_HOURGLASS,0);
     halFlags&=~HAL_HOURGLASS;
+    }
+
+    if(halFlags&HAL_AUTOOFFTIME) {
+    BINT64 autoofftime=15000000 << (GET_AUTOOFFTIME(halFlags));
+    if(halTicks()-offcounter >=autoofftime) {
+        halEnterPowerOff();
+        return 0;
+    }
     }
 
     // LAST: GO INTO "WAIT FOR INTERRUPT"

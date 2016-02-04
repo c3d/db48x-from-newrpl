@@ -39,7 +39,11 @@
     CMD(SQ,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
     CMD(NEXTPRIME,MKTOKENINFO(9,TITYPE_FUNCTION,1,2)), \
     ECMD(FACTORIAL,"!",MKTOKENINFO(1,TITYPE_POSTFIXOP,1,3)), \
-    ECMD(ISPRIME,"ISPRIME?",MKTOKENINFO(8,TITYPE_FUNCTION,1,2))
+    ECMD(ISPRIME,"ISPRIME?",MKTOKENINFO(8,TITYPE_FUNCTION,1,2)), \
+    CMD(MANT,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(XPON,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(SIGN,MKTOKENINFO(4,TITYPE_FUNCTION,1,2))
+
 
 // ADD MORE OPCODES HERE
 
@@ -676,6 +680,83 @@ void LIB_HANDLER()
 
         return;
      }
+    case MANT:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_REALEXPECTED);
+            return;
+        }
+        REAL rnum;
+        BINT digits;
+        rplReadNumberAsReal(rplPopData(),&rnum);
+
+        digits=sig_digits(rnum.data[rnum.len-1])+((rnum.len-1)<<3);
+
+        rnum.exp=-digits+1;
+        rnum.flags&=~F_NEGATIVE;
+
+        rplNewRealPush(&rnum);
+        return;
+    }
+    case XPON:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_REALEXPECTED);
+            return;
+        }
+        REAL rnum;
+        BINT digits;
+        rplReadNumberAsReal(rplPopData(),&rnum);
+
+        digits=sig_digits(rnum.data[rnum.len-1])+((rnum.len-1)<<3);
+
+        digits=rnum.exp-digits;
+        rplNewBINTPush(digits,DECBINT);
+        return;
+
+    }
+    case SIGN:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(ISBINT(*rplPeekData(1))) {
+            BINT64 r=rplReadBINT(rplPeekData(1));
+            if(r>0) rplOverwriteData(1,(WORDPTR)one_bint);
+            else {
+                if(r<0) rplOverwriteData(1,(WORDPTR)minusone_bint);
+                else rplOverwriteData(1,(WORDPTR)zero_bint);
+            }
+            return;
+        }
+
+        if(ISREAL(*rplPeekData(1))) {
+            REAL rnum;
+            rplReadNumberAsReal(rplPeekData(1),&rnum);
+
+            if(iszeroReal(&rnum)) rplOverwriteData(1,(WORDPTR)zero_bint);
+            else {
+                if(rnum.flags&F_NEGATIVE) rplOverwriteData(1,(WORDPTR)minusone_bint);
+                else rplOverwriteData(1,(WORDPTR)one_bint);
+            }
+            return;
+        }
+
+        rplError(ERR_REALEXPECTED);
+        return;
+    }
 
 
         // ADD MORE OPCODES HERE

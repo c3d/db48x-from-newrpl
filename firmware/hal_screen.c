@@ -299,6 +299,7 @@ void halRedrawStack(DRAWSURFACE *scr)
 
 void halInitScreen()
 {
+halFlags=0;
 halScreen.HelpMode=0;
 halScreen.CmdLine=0;
 halScreen.Menu1=MENU1_HEIGHT;
