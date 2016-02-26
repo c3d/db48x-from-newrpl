@@ -234,6 +234,8 @@ void LIB_HANDLER()
             // ADD THE REAL PART FIRST
             addReal(&RReg[0],&Rarg1,&Rarg2);
             addReal(&RReg[1],&Iarg1,&Iarg2);
+            rplCheckResultAndError(&RReg[0]);
+            rplCheckResultAndError(&RReg[1]);
 
             rplRRegToComplexPush(0,1);
             return;
@@ -241,6 +243,8 @@ void LIB_HANDLER()
         case OVR_SUB:
             subReal(&RReg[0],&Rarg1,&Rarg2);
             subReal(&RReg[1],&Iarg1,&Iarg2);
+            rplCheckResultAndError(&RReg[0]);
+            rplCheckResultAndError(&RReg[1]);
 
             rplRRegToComplexPush(0,1);
 
@@ -256,12 +260,19 @@ void LIB_HANDLER()
             mulReal(&RReg[1],&Iarg1,&Rarg2);
             Context.precdigits-=8;
             addReal(&RReg[3],&RReg[0],&RReg[1]);
-
+            finalize(&RReg[2]);
+            rplCheckResultAndError(&RReg[0]);
+            rplCheckResultAndError(&RReg[1]);
             rplRRegToComplexPush(2,3);
             return;
 
         case OVR_DIV:
 
+            if(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2)) {
+                // HANDLE SPECIALS
+                rplError(ERR_MATHDIVIDEBYZERO);
+                return;
+            }
             // (a+b*i)/(c+d*i) = (a+b*i)*(c-d*i)/((c+d*i)*(c-d*i)) = (a*c+b*d)/(c^2+d^2) + (b*c-a*d)/(c^2+d^2)*i
             Context.precdigits+=8;
             mulReal(&RReg[0],&Rarg1,&Rarg2);
@@ -279,6 +290,9 @@ void LIB_HANDLER()
             // TODO: CHECK FOR DIV BY ZERO AND ISSUE ERROR
             divReal(&RReg[0],&RReg[2],&RReg[4]);
             divReal(&RReg[1],&RReg[3],&RReg[4]);
+
+            rplCheckResultAndError(&RReg[0]);
+            rplCheckResultAndError(&RReg[1]);
 
             rplRRegToComplexPush(0,1);
 
@@ -398,6 +412,8 @@ void LIB_HANDLER()
             mulReal(&RReg[0],&RReg[6],&RReg[8]);
             mulReal(&RReg[1],&RReg[7],&RReg[8]);
 
+            rplCheckResultAndError(&RReg[0]);
+            rplCheckResultAndError(&RReg[1]);
             rplRRegToComplexPush(0,1);
 
             return;
@@ -457,6 +473,9 @@ void LIB_HANDLER()
                 divReal(&RReg[0],&Rarg1,&RReg[4]);
                 divReal(&RReg[1],&Iarg1,&RReg[4]);
                 RReg[1].flags^=F_NEGATIVE;
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[1]);
+
                 rplRRegToComplexPush(0,1);
 
                 return;

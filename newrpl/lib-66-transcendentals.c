@@ -731,7 +731,7 @@ void LIB_HANDLER()
 
     case SQRT:
     {
-        REAL x;
+        REAL x,y;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -743,17 +743,73 @@ void LIB_HANDLER()
             rplSymbApplyOperator(CurOpcode,1);
             return;
         }
+        
+        if(ISCOMPLEX(*arg)) {
+        rplReadCNumberAsReal(arg,&x);
+        rplReadCNumberAsImag(arg,&y);
 
+        // HANDLE SPECIAL VALUES
+        if(isinfiniteReal(&y)) {
+           rplError(ERR_INFINITERESULT);
+           return;
+        }
+        // HANDLE SPECIAL VALUES
+        if(isinfiniteReal(&x)) {
+           rplError(ERR_INFINITERESULT);
+           return;
+        }
+
+            
+        if(!iszeroReal(&y)) {
+            mulReal(&RReg[0],&x,&x);
+            mulReal(&RReg[1],&y,&y);
+            addReal(&RReg[7],&RReg[0],&RReg[1]);
+            
+            hyp_sqrt(&RReg[7]);     // RReg[0]=sqrt(x^2+y^2);
+            normalize(&RReg[0]);
+            addReal(&RReg[1],&RReg[0],&x);
+            subReal(&RReg[2],&RReg[0],&x);  // ONLY POW AND XROOT USE REGISTER 8, SO THIS IS SAFE
+
+            RReg[0].exp=-1;
+            RReg[0].len=1;
+            RReg[0].flags=0;
+            RReg[0].data[0]=5;
+
+            mulReal(&RReg[7],&RReg[1],&RReg[0]);
+            mulReal(&RReg[8],&RReg[2],&RReg[0]);
+
+            hyp_sqrt(&RReg[7]);     // THIS IS THE REAL PART OF THE RESULT
+
+            finalize(&RReg[0]);
+            rplSwapRReg(9,0);       // SAVE THIS RESULT
+
+            hyp_sqrt(&RReg[8]);     // THIS IS THE IMAGINARY PART
+
+            finalize(&RReg[0]);
+
+            RReg[0].flags|=y.flags&F_NEGATIVE;
+
+            // DONE, RETURN THE COMPLEX ROOTS
+            rplDropData(1);
+            rplNewComplexPush(&RReg[9],&RReg[0]);
+
+
+            return;
+
+            
+
+        }
+            
+        }
+        else {
         rplReadNumberAsReal(rplPeekData(1),&x);
 
         if(Exceptions) return;
-
-        if(x.flags&F_NEGATIVE) {
-            // TODO: EXPAND THIS TO RETURN COMPLEX VALUES
-            rplError(ERR_ARGOUTSIDEDOMAIN);
-
-           return;
         }
+
+        BINT iscplx=x.flags&F_NEGATIVE;
+
+        x.flags&=~F_NEGATIVE;
 
         // HANDLE SPECIAL VALUES
         if(isinfiniteReal(&x)) {
@@ -766,7 +822,10 @@ void LIB_HANDLER()
         finalize(&RReg[0]);
 
         rplDropData(1);
-        rplNewRealFromRRegPush(0);
+        if(iscplx) {
+            rplZeroToRReg(1);
+            rplNewComplexPush(&RReg[1],&RReg[0]);
+        } else rplNewRealFromRRegPush(0);
         return;
 
     }
