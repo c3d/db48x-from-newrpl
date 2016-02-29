@@ -24,6 +24,20 @@ void rplCompileAppend(WORD word)
 
 }
 
+// INSERT A WORD IN THE MIDDLE OF THE COMPILED STREAM
+void rplCompileInsert(WORDPTR position,WORD word)
+{
+    memmovew(position+1,position,CompileEnd-position);
+    *position=word;
+    CompileEnd++;
+    // ADJUST MEMORY AS NEEDED
+    if( CompileEnd>=TempObSize) {
+        // ENLARGE TEMPOB AS NEEDED
+        growTempOb( ((WORD)(CompileEnd-TempOb))+TEMPOBSLACK);
+    }
+
+}
+
 // REMOVE WORDS THAT WERE ALLOCATED DURING COMPILATION
 void rplCompileRemoveWords(BINT nwords)
 {
@@ -717,6 +731,27 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                 if(!Exceptions) rplError(ERR_SYNTAXERROR);
                 LAMTop=LAMTopSaved;
                 return 0;
+            case OK_ENDCONSTRUCT:
+                --ValidateTop;
+                if(ValidateTop<ValidateBottom) {
+                    rplError(ERR_ENDWITHOUTSTART);
+                    LAMTop=LAMTopSaved;
+                    return 0;
+                }
+                if(ISPROLOG((BINT)**ValidateTop)) {
+                    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
+                    **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | ((((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1);
+                    // PREPARE THE NEWLY CREATED OBJECT FOR VALIDATION BY ITS PARENT
+                    CurrentConstruct=(BINT)((ValidateTop>ValidateBottom)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
+                    ValidateHandler=rplGetLibHandler(LIBNUM(CurrentConstruct));
+                    LastCompiledObject=*ValidateTop;
+                    validate=1;
+                }
+
+               break;
+
+
+
             }
 
         }

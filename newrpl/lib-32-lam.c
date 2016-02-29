@@ -71,13 +71,6 @@
 
 
 
-// THESE ARE SPECIAL OPCODES FOR THE COMPILER ONLY
-// THE LOWER 16 BITS ARE THE NUMBER OF LAMS TO CREATE, OR THE INDEX OF LAM NUMBER TO STO/RCL
-#define NEWNLOCALS     0x40000   // SPECIAL OPCODE TO CREATE NEW LOCAL VARIABLES
-#define GETLAMNEVAL    0x30000   // SPECIAL OPCODE TO RCL THE CONTENT OF A LAM AND EVAL (XEQ ITS CONTENT)
-#define GETLAMN        0x20000   // SPECIAL OPCODE TO RCL THE CONTENT OF A LAM
-#define PUTLAMN        0x10000   // SPECIAL OPCODE TO STO THE CONTENT OF A LAM
-
 
 extern const WORD const symbeval_seco[];
 extern const WORD const symbnum_seco[];
@@ -1051,7 +1044,29 @@ void LIB_HANDLER()
             // NOW REMOVE THE XEQSECO CONSTRUCT WITHOUT ENDING THE SECO
             *prevconst=*(prevconst+1);
 
-            rplDecompAppendString((BYTEPTR)"«");
+
+            // NOW LOOK FORWARD TO DETERMINE IF THIS IS AN ALGEBRAIC EXPRESSION
+
+            WORDPTR fwd;
+            WORD alg=0,eval1=0,semi=0;
+
+            fwd=DecompileObject+1;
+            if(fwd<EndOfObject) {
+                alg=*fwd;
+                fwd=rplSkipOb(fwd);
+                if(fwd<EndOfObject) {
+                    eval1=*fwd;
+                    fwd=rplSkipOb(fwd);
+                    if(fwd<EndOfObject) semi=*fwd;
+                }
+            }
+
+            if(ISSYMBOLIC(alg)&&(eval1==CMD_OVR_EVAL1)&&(semi==CMD_QSEMI)) {
+                // THIS IS AN ALGEBRAIC CONSTRUCT
+       //         rplDecompile(DecompileObject+1,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? DECOMP_EDIT:0));
+                DecompileObject+=3+OBJSIZE(alg);    // SKIP UNTIL END OF SECO
+            }
+            else             rplDecompAppendString((BYTEPTR)"«");
 
 
             RetNum=OK_ENDCONSTRUCT;

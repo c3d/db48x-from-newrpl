@@ -80,7 +80,7 @@ void LIB_HANDLER()
 
        if((TokenLen==1) && (!utf8ncmp((char *)TokenStart,"«",1)))
        {
-           if(CurrentConstruct!=MKOPCODE(LIBRARY_NUMBER,NEWLOCALENV)) {
+           if((CurrentConstruct&~0xffff)!=MKOPCODE(LIBRARY_NUMBER,NEWLOCALENV)) {
                RetNum=ERR_NOTMINE;
                return;
            }
@@ -98,6 +98,11 @@ void LIB_HANDLER()
                ScratchPointer1=rplSkipOb(ScratchPointer1);
                ++lamcount;
            }
+
+           if(!lamcount) {
+               RetNum=ERR_SYNTAX;
+               return;
+           }
            // NOW REPLACE THE -> WORD FOR A STANDARD <<
 
            ScratchPointer1=*(ValidateTop-1);
@@ -107,6 +112,7 @@ void LIB_HANDLER()
            RetNum=OK_CONTINUE;
            return;
        }
+
 
        // CHECK IF THE TOKEN IS THE NEW LOCAL
 
@@ -146,8 +152,33 @@ void LIB_HANDLER()
         // VALIDATE RETURNS:
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
 
+        if(ISPROLOG(*LastCompiledObject)) {
+            if(ISIDENT(*LastCompiledObject)) {
+            RetNum=OK_INCARGCOUNT;
+            return;
+            }
+            if(ISSYMBOLIC(*LastCompiledObject)) {
+                BINT lamcount=CurrentConstruct&0xffff;
+                if(!lamcount) { RetNum=ERR_INVALID; return; }
 
-        RetNum=OK_CONTINUE;
+                // NOW REPLACE THE -> WORD FOR A STANDARD <<
+
+                **(ValidateTop-1)=MKPROLOG(SECO,0);  // STANDARD SECONDARY PROLOG SO ALL LAMS ARE CREATED INSIDE OF IT
+                CurrentConstruct=MKPROLOG(SECO,0);
+
+                rplCompileInsert(LastCompiledObject,MKOPCODE(DOIDENT,NEWNLOCALS+lamcount));
+                rplCompileAppend(CMD_OVR_EVAL1);
+                rplCompileAppend(CMD_QSEMI);
+                RetNum=OK_ENDCONSTRUCT;
+                return;
+            }
+        }
+        else {
+            // NOT AN OBJECT, THERE'S ONLY A COUPLE OF ACCEPTED COMMANDS HERE
+        if((LIBNUM(*LastCompiledObject)==DOIDENT)&& ( ((*LastCompiledObject)&0x70000)==NEWNLOCALS)) { RetNum=OK_CONTINUE; return; }
+
+        }
+        RetNum=ERR_INVALID;
         return;
 
     case OPCODE_GETROMID:

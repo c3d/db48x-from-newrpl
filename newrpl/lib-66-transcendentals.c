@@ -743,7 +743,6 @@ void LIB_HANDLER()
             rplSymbApplyOperator(CurOpcode,1);
             return;
         }
-        
         if(ISCOMPLEX(*arg)) {
         rplReadCNumberAsReal(arg,&x);
         rplReadCNumberAsImag(arg,&y);
@@ -802,6 +801,24 @@ void LIB_HANDLER()
             
         }
         else {
+
+            if(!ISNUMBER(*arg)) {
+                // ALL OTHER OBJECT TYPES DO
+                // obj ^ 0.5
+
+                RReg[0].data[0]=5;
+                RReg[0].exp=-1;
+                RReg[0].flags=0;
+                RReg[0].len=1;
+
+                rplNewRealFromRRegPush(0);
+
+                rplCallOvrOperator(CMD_OVR_POW);
+
+                return;
+            }
+
+
         rplReadNumberAsReal(rplPeekData(1),&x);
 
         if(Exceptions) return;

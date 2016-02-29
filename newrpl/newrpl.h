@@ -180,6 +180,7 @@ void shrinkRStk(WORD newtotalsize);
 
 WORDPTR rplCompile(BYTEPTR string, BINT len, BINT addwrapper);
 void rplCompileAppend(WORD word);
+void rplCompileInsert(WORDPTR position,WORD word);
 WORDPTR rplCompileAppendWords(BINT nwords);
 void rplCompileRemoveWords(BINT nwords);
 

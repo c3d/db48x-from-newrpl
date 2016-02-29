@@ -1248,7 +1248,7 @@ void rplUnitPowItem(BINT level1,BINT level2)
             rplCallOvrOperator((CMD_OVR_MUL));
             if(Exceptions) { DSTop=stackptr; return; }
         } else {
-            rplPushData(rplPeekData(level2)); // SECOND DENOMINATOR
+            rplPushData(rplPeekData(level2-1)); // SECOND DENOMINATOR
         }
 
         rplFractionSimplify();
