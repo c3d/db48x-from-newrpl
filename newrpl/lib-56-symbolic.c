@@ -44,6 +44,7 @@
     CMD(AUTOSIMPLIFY,MKTOKENINFO(12,TITYPE_NOTALLOWED,1,2)), \
     CMD(RULEMATCH,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(RULEAPPLY,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TOFRACTION,"→Q",MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
     CMD(TEST,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
 
 //    ECMD(CMDNAME,"CMDNAME",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
@@ -1022,6 +1023,77 @@ void LIB_HANDLER()
 
      }
 
+    case TOFRACTION:
+    {
+        if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_REALEXPECTED);
+            return;
+        }
+
+        BINT64 Ai1,Ai2,Bi1,Bi2,A,B,k;
+        REAL num;
+        rplReadNumberAsReal(rplPeekData(1),&num);
+
+        Ai1=0;
+        Ai2=1;
+        Bi1=1;
+        Bi2=0;
+        A=0;
+        B=1;
+        // WORK WITH FRACTIONAL PART ONLY
+        fracReal(&RReg[0],&num);
+        // SAVE INTEGER PART FOR LATER
+        ipReal(&RReg[1],&num,0);
+
+        rplOneToRReg(2);    // CONSTANT ONE FOR INVERSE
+
+        do {
+            if(iszeroReal(&RReg[0])) break; // NO FRACTIONAL PART, THE NUMBER WAS EXACT
+            divReal(&RReg[3],&RReg[2],&RReg[0]);
+            ipReal(&RReg[4],&RReg[3],0);
+            fracReal(&RReg[0],&RReg[3]);
+            if(!inBINT64Range(&RReg[4])) {
+                // DENOMINATOR TOO BIG = ERROR TOO SMALL
+                break;
+            }
+            k=getBINT64Real(&RReg[4]);
+            A=Ai2+k*Ai1;
+            B=Bi2+k*Bi1;
+            if((A<0) || (B<0)) {
+                // OVERFLOW! USE THE PREVIOUS RESULT
+                A=Ai1;
+                B=Bi1;
+                break;
+            }
+            Ai2=Ai1;
+            Bi2=Bi1;
+            Ai1=A;
+            Bi1=B;
+        } while(1);
+
+
+        newRealFromBINT64(&RReg[0],B);
+        newRealFromBINT64(&RReg[2],A);
+        RReg[1].flags&=~F_APPROX;
+        mulReal(&RReg[3],&RReg[1],&RReg[0]);
+        addReal(&RReg[0],&RReg[2],&RReg[3]);
+
+        rplNewRealFromRRegPush(0);
+        if(Exceptions) return;
+        rplNewBINTPush(B,DECBINT);
+        if(Exceptions) { rplDropData(1); return; }
+        rplSymbApplyOperator(CMD_OVR_DIV,2);
+        if(Exceptions) return;
+        rplOverwriteData(2,rplPeekData(1));
+        rplDropData(1);
+
+        return;
+    }
 
     case TEST:
     {

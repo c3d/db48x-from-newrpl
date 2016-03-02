@@ -3703,6 +3703,9 @@ void fracReal(REAL *result,REAL *num)
     result->len=(-result->exp+7)>>3;
     if( (-result->exp)&7 ) result->data[result->len-1]=lo_digits(result->data[result->len-1],(-result->exp)&7);
 
+    // REMOVE LEFT ZEROES
+    while((result->len>1) && (result->data[result->len-1]==0)) --result->len;
+
     // DONE, NO CARRY CORRECTION NEEDED
 }
 
