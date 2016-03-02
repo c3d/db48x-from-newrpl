@@ -925,7 +925,8 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
 {
     LIBHANDLER han;
     BINT infixmode=0;
-    UBINT savecstruct,savedecompmode,validtop,validbottom;
+    UBINT savecstruct,savedecompmode;
+    BINT validtop,validbottom;
     WORDPTR *SavedRSTop;
     if(flags&DECOMP_EMBEDDED) {
         SavedRSTop=RSTop;
