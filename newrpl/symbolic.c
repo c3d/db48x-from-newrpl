@@ -1588,14 +1588,14 @@ BINT rplFractionSimplify()
 
         // NOW TRY TO CONVERT THE REALS TO INTEGERS IF POSSIBLE
         BINT64 num;
-        if(inBINT64Range(&RReg[5])) {
+        if(isintegerReal(&RReg[5]) && inBINT64Range(&RReg[5])) {
         num=getBINT64Real(&RReg[5]);
         rplNewBINTPush(num,DECBINT|isapprox);
         }
         else { rplNewRealFromRRegPush(5); }
 
         if(Exceptions) return 0;
-        if(inBINT64Range(&RReg[6])) {
+        if(isintegerReal(&RReg[6]) && inBINT64Range(&RReg[6])) {
         num=getBINT64Real(&RReg[6]);
         rplNewBINTPush(num,DECBINT|isapprox);
         }
