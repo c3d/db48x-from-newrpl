@@ -2830,6 +2830,7 @@ char *formatReal(REAL *number, char *buffer, BINT format, WORD chars)
                 int result;
                 result=round_in_string(buffer,buffer+idx,format,chars,worddigits[i]);
                 idx+=result&0xffff;
+
                 realexp-=result>>16;
                 break;
 
@@ -2865,6 +2866,7 @@ char *formatReal(REAL *number, char *buffer, BINT format, WORD chars)
                 int result;
                 result=round_in_string(buffer,buffer+idx,format,chars,worddigits[i]);
                 idx+=result&0xffff;
+                dotpos+=result&0xffff;
                 realexp-=result>>16;
                 break;
 
