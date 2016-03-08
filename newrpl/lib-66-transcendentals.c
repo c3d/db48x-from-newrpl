@@ -129,6 +129,34 @@ void LIB_HANDLER()
             return;
         }
 
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
+
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
@@ -171,6 +199,32 @@ void LIB_HANDLER()
             return;
         }
 
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
 
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
@@ -205,6 +259,32 @@ void LIB_HANDLER()
             rplSymbApplyOperator(CurOpcode,1);
             return;
         }
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
 
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
@@ -247,6 +327,32 @@ void LIB_HANDLER()
             rplSymbApplyOperator(CurOpcode,1);
             return;
         }
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
 
         rplReadNumberAsReal(rplPeekData(1),&y);
 
@@ -298,6 +404,32 @@ void LIB_HANDLER()
             rplSymbApplyOperator(CurOpcode,1);
             return;
         }
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
 
         rplReadNumberAsReal(rplPeekData(1),&y);
 
@@ -356,6 +488,32 @@ void LIB_HANDLER()
             return;
         }
 
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
         rplReadNumberAsReal(rplPeekData(1),&y);
 
         if(Exceptions) return;
@@ -389,12 +547,39 @@ void LIB_HANDLER()
 
             return;
         }
-        WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        WORDPTR arg=rplPeekData(1),arg2=rplPeekData(2);
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISSYMBOLIC(*arg2) || ISIDENT(*arg2)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,2);
             return;
         }
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg) || ISLIST(*arg2)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushDataNoGrow((WORDPTR)two_bint);
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_CMDDOLIST);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT DOLIST
+
+            return;
+        }
+
 
         rplReadNumberAsReal(rplPeekData(2),&y);
         rplReadNumberAsReal(rplPeekData(1),&x);
@@ -432,6 +617,30 @@ void LIB_HANDLER()
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
             return;
         }
 
@@ -488,6 +697,30 @@ void LIB_HANDLER()
             rplSymbApplyOperator(CurOpcode,1);
             return;
         }
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
 
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
@@ -529,6 +762,30 @@ void LIB_HANDLER()
             rplSymbApplyOperator(CurOpcode,1);
             return;
         }
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
 
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
@@ -557,6 +814,30 @@ void LIB_HANDLER()
             rplSymbApplyOperator(CurOpcode,1);
             return;
         }
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
 
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
@@ -582,6 +863,30 @@ void LIB_HANDLER()
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
             return;
         }
 
@@ -615,6 +920,30 @@ void LIB_HANDLER()
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
             return;
         }
 
@@ -651,6 +980,30 @@ void LIB_HANDLER()
             rplSymbApplyOperator(CurOpcode,1);
             return;
         }
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
 
         rplReadNumberAsReal(rplPeekData(1),&x);
 
@@ -685,6 +1038,30 @@ void LIB_HANDLER()
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
             return;
         }
 
@@ -743,6 +1120,34 @@ void LIB_HANDLER()
             rplSymbApplyOperator(CurOpcode,1);
             return;
         }
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
+
+
         if(ISCOMPLEX(*arg)) {
         rplReadCNumberAsReal(arg,&x);
         rplReadCNumberAsImag(arg,&y);
@@ -862,6 +1267,30 @@ void LIB_HANDLER()
             rplSymbApplyOperator(CurOpcode,1);
             return;
         }
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
 
         rplReadNumberAsReal(rplPeekData(1),&x);
 
@@ -914,6 +1343,30 @@ void LIB_HANDLER()
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
             return;
         }
 

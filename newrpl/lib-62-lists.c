@@ -955,9 +955,9 @@ void LIB_HANDLER()
         BINT64 idx=rplReadBINT(*rplGetLAMn(4));
         BINT k;
 
-        for(k=nlists;k>0;--k)
+        for(k=0;k<nlists;++k)
         {
-            rplPushData(rplGetListElement(*rplGetLAMn(k+4),idx));
+            rplPushData(rplGetListElement(*rplGetLAMn(k+5),idx));
             if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,CMDDOLIST); return; }
         }
 
