@@ -158,9 +158,9 @@ void halReset()
 
 void halEnterPowerOff()
 {
-    // TODO: SAVE STATE BEFORE CLOSING
+    // TODO: NOT IDEAL, BUT INDICATE WE WANT TO EXIT THE APPLICATION
 
-    exit(0);
+    __pc_terminate=1;
 }
 
 int halExitOuterLoop()

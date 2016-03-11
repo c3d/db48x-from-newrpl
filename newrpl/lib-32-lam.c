@@ -910,8 +910,8 @@ void LIB_HANDLER()
             // HERE PREVOBJECT CONTAINS THE LAST OBJECT THAT WAS DECOMPILED
 
             if(!ISIDENT(*prevobject)) {
-                // MAKE SURE IT'S AN IDENT, OTHERWISE IT'S AN ERROR
-                RetNum=ERR_SYNTAX;
+                // MAKE SURE IT'S AN IDENT, OTHERWISE IT'S FINE BUT NO VARIABLE CREATION IS TRACKED
+                RetNum=OK_CONTINUE;
                 return;
             }
                 // WE HAVE A HARD-CODED IDENT
