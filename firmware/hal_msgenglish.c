@@ -87,12 +87,12 @@ const MSGLIST const all_messages[]={
     { ERR_INVALIDCODEPOINT, "Invalid Unicode code point" },
 
     // UNITS
-    { ERR_UNITEXPECTED, "Expected an object with units" },
-    { ERR_INCONSISTENTUNITS, "Inconsistent units" },
-    { ERR_INVALIDUNITDEFINITION, "Invalid unit expression" },
-    { ERR_EXPECTEDREALEXPONENT, "Expected real/fraction exponent" },
-    { ERR_INVALIDUNITNAME, "Invalid unit name" },
-    { ERR_UNDEFINEDUNIT, "Unit not defined" },
+//    { ERR_UNITEXPECTED, "Expected an object with units" },
+//    { ERR_INCONSISTENTUNITS, "Inconsistent units" },
+//    { ERR_INVALIDUNITDEFINITION, "Invalid unit expression" },
+//    { ERR_EXPECTEDREALEXPONENT, "Expected real/fraction exponent" },
+//    { ERR_INVALIDUNITNAME, "Invalid unit name" },
+//    { ERR_UNDEFINEDUNIT, "Unit not defined" },
 
 
     // LISTS

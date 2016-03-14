@@ -258,3 +258,27 @@ void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds)
     RetNum=ERR_NOTMINE;
 }
 */
+
+// FINDS A TEXT MESSAGE IN A TABLE IN THE FORM
+// { #MSGNUMBER "Message" ...  0 }
+// SET ObjectPTR TO THE TEXT MESSAGE AND RETURN IF THE MESSAGE IS FOUND
+
+void libFindMsg(BINT message,WORDPTR table)
+{
+
+
+
+    if(!ISLIST(*table)) { RetNum=ERR_NOTMINE; return; }
+    ++table;
+    while(*table!=CMD_ENDLIST) {
+        if(*table==(WORD)message) {
+            ObjectPTR=rplSkipOb(table);
+            if(!ISSTRING(*ObjectPTR)) { RetNum=ERR_NOTMINE; return; }
+            RetNum=OK_CONTINUE;
+            return;
+        }
+        table=rplSkipOb(table);
+        if(*table==CMD_ENDLIST) { RetNum=ERR_NOTMINE; return; }
+        table=rplSkipOb(table);
+    }
+}

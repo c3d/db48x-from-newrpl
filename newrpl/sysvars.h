@@ -102,6 +102,8 @@ UBINT ArgNum1,ArgNum2,ArgNum3,RetNum;
 #define SuggestedOpcode  ArgNum3
 #define ObjectID   ArgNum3
 #define MenuCodeArg ArgNum3
+#define CmdHelp     ArgNum3
+#define LibError    ArgNum3
 
 LIBHANDLER LowLibRegistry[MAXLOWLIBS];
 LIBHANDLER SysHiLibRegistry[MAXSYSHILIBS];

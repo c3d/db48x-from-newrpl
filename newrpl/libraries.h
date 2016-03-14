@@ -32,6 +32,7 @@
 #define OPCODE_AUTOCOMPNEXT 0x7FFF5
 #define OPCODE_LIBMENU      0x7FFF4
 #define OPCODE_LIBHELP      0x7FFF3
+#define OPCODE_LIBMSG       0x7FFF2
 #define OPCODE_LIBREMOVE    0x7FFF1
 #define OPCODE_LIBINSTALL   0x7FFF0
 
@@ -146,6 +147,7 @@ void libGetRomptrID(BINT libnum,WORDPTR *table,WORDPTR ptr);
 void libGetPTRFromID(WORDPTR *table,WORD id);
 void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds);
 void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds);
+void libFindMsg(BINT message,WORDPTR table);
 
 
 
@@ -241,12 +243,13 @@ void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds);
 
 // CONVENIENCE MACRO TO CREATE SMALL INTEGERS
 #define MAKESINT(a) MKOPCODE(DECBINT,(a)&0x3ffff)
+#define MAKEBINT64(a) MKPROLOG(DECBINT,2),(WORD)(((BINT64)a)&0xffffffff),((WORD)(((BINT64)a)>>32))
 
 #define MAKEREALFLAGS(exp,len,flags)  ((WORD)(((exp)&0xffff)|(((len)&0xfff)<<16)|(((flags)&0xf)<<28) ))
 
 // CONVENIENCE MACRO TO ENCODE ERROR MESSAGES
 #define MAKEMSG(lib,num) MKOPCODE(DECBINT, (((lib)&0xfff)<<7) | ((num)&0x7f))
-
+#define LIBFROMMSG(msg) (((msg)>>7)&0xfff)
 // CONVENIENCE MACRO TO ENCODE THE PROLOG OF STRINGS
 #define MAKESTRING(length) MKPROLOG(DOSTRING+((4-((length)&3))&3),((length)+3)>>2)
 

@@ -39,6 +39,17 @@
 // ADD MORE OPCODES HERE
 
 
+// LIST OF ERROR CODES DEFINED BY THIS LIBRARY
+
+#define ERROR_LIST \
+        ERR(UNITEXPECTED,0), \
+        ERR(INCONSISTENTUNITS,1), \
+        ERR(INVALIDUNITDEFINITION,2), \
+        ERR(EXPECTEDREALEXPONENT,3), \
+        ERR(INVALIDUNITNAME,4), \
+        ERR(UNDEFINEDUNIT,5)
+
+
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
 
@@ -60,6 +71,8 @@ ROMOBJECT unitdir_ident[]={
     TEXT2WORD('S',0,0,0)
 };
 
+INCLUDE_ROMOBJECT(LIB_MSGTABLE);
+INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(unitmenu_0_main);
 INCLUDE_ROMOBJECT(unitmenu_1_tools);
 INCLUDE_ROMOBJECT(unitmenu_2_length);
@@ -87,6 +100,9 @@ INCLUDE_ROMOBJECT(unitmenu_17_viscosity);
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
      (WORDPTR)unitdir_ident,
+     (WORDPTR)LIB_MSGTABLE,
+     (WORDPTR)LIB_HELPTABLE,
+
     (WORDPTR)unitmenu_0_main,
     (WORDPTR)unitmenu_1_tools,
     (WORDPTR)unitmenu_2_length,
@@ -2842,10 +2858,30 @@ void LIB_HANDLER()
     {\
         if(MENUNUMBER(MenuCodeArg)>17) RetNum=ERR_NOTMINE;
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+1];
+        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+3];
         RetNum=OK_CONTINUE;
        return;
     }
+
+    case OPCODE_LIBHELP:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN CmdHelp
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
+       return;
+    }
+    case OPCODE_LIBMSG:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+
+        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+       return;
+    }
+
+
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;
         RetNum=OK_CONTINUE;

@@ -1053,9 +1053,20 @@ void halShowErrorMsg()
             }
             }
             DrawText(xstart,scr.clipy,"Error:",halScreen.StAreaFont,0xf,&scr);
-            // TODO: GET NEW TRANSLATABLE MESSAGES
-            BYTEPTR message=halGetMessage(ErrorCode);
-            DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)message,halScreen.StAreaFont,0xf,&scr);
+            // GET NEW TRANSLATABLE MESSAGES
+            
+            WORDPTR message=uiGetLibMsg(ErrorCode);
+            if(message) {
+            BYTEPTR msgstart=(BYTEPTR)(message+1);
+            BYTEPTR msgend=msgstart+rplStrSize(message);
+            
+            DrawTextN(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)msgstart,(char *)msgend,halScreen.StAreaFont,0xf,&scr);
+            }
+            else {
+                BYTEPTR message2=halGetMessage(ErrorCode);
+                DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)message2,halScreen.StAreaFont,0xf,&scr);
+
+            }
 
         }
 

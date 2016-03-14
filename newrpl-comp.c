@@ -339,8 +339,8 @@ int main(int argc, char *argv[])
                             ++endtext;
                         }
 
-
-                        if(givenwords==storedwords) {
+                        // REMOVED THIS CHECK TO ALLOW FOR C MACROS THAT EXPAND TO MORE THAN ONE WORD
+                        //if(givenwords==storedwords) {
                         // IT'S A VALID SPECIAL OBJECT
                         fwrite(foundtext,1,endtext-foundtext,f);
                         p+=storedwords;
@@ -349,7 +349,7 @@ int main(int argc, char *argv[])
                         wordcount+=storedwords;
                         continue;
 
-                    }
+                        //}
 
 
 

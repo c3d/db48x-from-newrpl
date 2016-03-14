@@ -132,6 +132,10 @@ WORDPTR uiGetMenuItemAction(WORDPTR item,BINT shift);
 WORDPTR uiGetMenuItemHelp(WORDPTR item);
 void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr);
 
+WORDPTR uiGetLibCmdHelp(WORD Command);
+WORDPTR uiGetLibMsg(WORD MsgCode);
+
+
 // RPL CODE EXECUTION FROM UI
 void uiCmdRun(WORD Opcode);
 BINT uiCmdRunTransparent(WORD Opcode,BINT nargs,BINT nresults);

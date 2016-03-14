@@ -262,3 +262,19 @@ UPURGE
     1_St
 { { "Units" 1 } :: #03600000h TMENULST ; }
 }
+
+@#name lib54_msgtable
+{
+##1,ERR_UNITEXPECTED  "Expected an object with units"
+##1,ERR_INCONSISTENTUNITS  "Inconsistent units"
+##1,ERR_INVALIDUNITDEFINITION  "Invalid unit expression"
+##1,ERR_EXPECTEDREALEXPONENT  "Expected real/fraction exponent"
+##1,ERR_INVALIDUNITNAME  "Invalid unit name"
+##1,ERR_UNDEFINEDUNIT  "Unit not defined"
+}
+
+
+@#name lib54_cmdhelp
+{
+##1,CMD_UDEFINE  "Define new unit\nunit -> <empty>"
+}
