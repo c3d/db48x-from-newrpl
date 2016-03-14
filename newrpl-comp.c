@@ -15,7 +15,7 @@
 
 
 
-
+extern void lib4079_handler();
 
 
 
@@ -189,6 +189,7 @@ int main(int argc, char *argv[])
     // HERE WE HAVE THE MAIN FILE
     rplInit();
     rplSetSystemFlag(FL_STRIPCOMMENTS);
+    rplInstallLibrary(lib4079_handler);
 
 
     // IDENTIFY CHUNKS OF CODE
@@ -309,8 +310,63 @@ int main(int argc, char *argv[])
             fprintf(f,"[]= {\n");
 
             WORDPTR p=newobject+1,endp=rplSkipOb(newobject)-1;
+
             int wordcount=0;
             while(p<endp) {
+
+                if(LIBNUM(*p)==4079) {
+                    // THIS IS A PSEUDO-OBJECT, NEEDS TO BE REPLACED WITH TEXT
+                    int textoffset;
+                    int givenwords,storedwords;
+                    if(ISPROLOG(*p)) { textoffset=p[1]; storedwords=OBJSIZE(*p)+1; }
+                    else { textoffset=OBJSIZE(*p); storedwords=1; }
+
+                    if(textoffset>0) {
+
+                    char *foundtext=end-textoffset,*endtext;
+                    if(foundtext>=start) {
+                        // IT'S A VALID POINTER INTO THE TEXT!
+
+                        // FIND THE END OF THE TEXT
+                        givenwords=1;
+                        endtext=foundtext;
+                        while(endtext<end) {
+                            if(*endtext==',') ++givenwords;
+                            if(*endtext==' ') break;
+                            if(*endtext=='\t') break;
+                            if(*endtext=='\n') break;
+                            if(*endtext=='\r') break;
+                            ++endtext;
+                        }
+
+
+                        if(givenwords==storedwords) {
+                        // IT'S A VALID SPECIAL OBJECT
+                        fwrite(foundtext,1,endtext-foundtext,f);
+                        p+=storedwords;
+                        if(p!=endp) fprintf(f,",");
+                        if((wordcount&7)+storedwords>7)    fprintf(f,"\n");
+                        wordcount+=storedwords;
+                        continue;
+
+                    }
+
+
+
+
+                    }
+
+                    rplError(ERR_SYNTAXERROR);
+                    TokenStart=(WORDPTR)foundtext;
+                    compShowErrorMsg(inputfile,mainbuffer,stderr);
+
+                }
+
+                    // IF IT FALLS THROUGH, THEN IT'S AN INVALID SPECIAL SEQUENCE
+                    // JUST CONTINUE NORMALLY, AS IT COULD BE RANDOM DATA
+                }
+
+
                 fprintf(f,"0x%08X",*p);
                 if(p!=endp-1) fprintf(f,",");
 

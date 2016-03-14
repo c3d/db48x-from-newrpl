@@ -142,6 +142,9 @@ void rplSetEntryPoint(WORDPTR ip);
 BINT rplRun();
 void rplCleanup();
 
+// LIBRARY MANAGEMENT
+BINT rplInstallLibrary(LIBHANDLER handler);
+void rplRemoveLibrary(BINT number);
 
 
 // LIBRARY LOW-LEVEL ACCESS FUNCTIONS
