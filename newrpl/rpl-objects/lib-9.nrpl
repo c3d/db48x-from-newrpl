@@ -1,0 +1,75 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+
+
+@#name lib9_menu
+{
+  IF CASE THEN ELSE END FOR START NEXT STEP DO UNTIL WHILE REPEAT
+}
+
+@#name lib9_msgtable
+{
+##1,ERR_PROGRAMEXPECTED  "Expected an program"
+}
+
+
+@#name lib9_cmdhelp
+{
+IF
+"Conditional statement
+
+IF <clause> THEN ... ELSE ... END"
+
+CASE
+"Multiple conditional statement
+CASE <clause1> THEN ... END
+     <clause2> THEN ... END ... END"
+
+THEN
+"Part of conditional statement
+see IF and CASE"
+
+ELSE
+"Part of conditional statement
+see IF"
+
+END
+"Termination of statement
+see IF, IFERR, CASE, DO, WHILE"
+
+FOR
+"Loop with counter
+<start> <end> FOR V ... NEXT
+<start> <end> FOR V ... <incr> STEP"
+
+START
+"Loop without counter
+<start> <end> START ... NEXT
+<start> <end> START ... <incr> STEP"
+
+NEXT
+"End of loop
+see FOR and START"
+
+STEP
+"Increment counter and loop
+see FOR and START
+<incr> →"
+
+DO
+"Loop with condition
+DO ... UNTIL <clause> END"
+
+UNTIL
+"Part of loop statement
+see DO"
+
+WHILE
+"Loop with condition
+WHILE <clause> REPEAT ... END"
+
+REPEAT
+"Part of loop statement
+see WHILE"
+
+}

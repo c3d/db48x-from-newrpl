@@ -26,7 +26,7 @@ const MSGLIST const all_messages[]={
 
 
     // PROGRAM EXECUTION ERRORS
-    { ERR_PROGRAMEXPECTED, "Expected a program" },
+    //{ ERR_PROGRAMEXPECTED, "Expected a program" },
 
     // COMPILER/DECOMPILER AND GENERAL CORE ERRORS
     { ERR_EXITRPLEXCEPTION, "Aborting RPL engine" },

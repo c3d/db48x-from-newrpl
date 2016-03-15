@@ -53,7 +53,8 @@
     ECMD(QSEMI,"»",MKTOKENINFO(1,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
-
+#define ERROR_LIST \
+    ERR(PROGRAMEXPECTED,0)
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
@@ -68,6 +69,19 @@
 // ************************************
 // *** END OF COMMON LIBRARY HEADER ***
 // ************************************
+
+INCLUDE_ROMOBJECT(LIB_MSGTABLE);
+INCLUDE_ROMOBJECT(LIB_HELPTABLE);
+INCLUDE_ROMOBJECT(lib9_menu);
+
+// EXTERNAL EXPORTED OBJECT TABLE
+// UP TO 64 OBJECTS ALLOWED, NO MORE
+const WORDPTR const ROMPTR_TABLE[]={
+     (WORDPTR)LIB_MSGTABLE,
+     (WORDPTR)LIB_HELPTABLE,
+     (WORDPTR)lib9_menu
+};
+
 
 
 void LIB_HANDLER()
@@ -1257,6 +1271,36 @@ void LIB_HANDLER()
     case OPCODE_AUTOCOMPNEXT:
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         return;
+
+    case OPCODE_LIBMENU:
+        // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
+        // MUST RETURN A MENU LIST IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {\
+        if(MENUNUMBER(MenuCodeArg)>0) RetNum=ERR_NOTMINE;
+        // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
+        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+2];
+        RetNum=OK_CONTINUE;
+       return;
+    }
+
+    case OPCODE_LIBHELP:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN CmdHelp
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
+       return;
+    }
+    case OPCODE_LIBMSG:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+
+        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+       return;
+    }
 
 
     case OPCODE_LIBINSTALL:

@@ -350,6 +350,12 @@ void halRedrawHelp(DRAWSURFACE *scr)
         // FOR EXAMPLE BY PURGING VARIABLES
         if(MENUPAGE(m1code)>=(WORD)nitems) { m1code=SETMENUPAGE(m1code,0); rplSetMenuCode(halScreen.HelpMode>>16,m1code); }
 
+        if(((halScreen.HelpMode&0xffff)==5)&&(nitems>6)) {
+            halScreen.HelpMode=0;           // CLOSE HELP MODE IMMEDIATELY
+            halRedrawAll(scr);             // AND ISSUE A REDRAW
+            return;
+        }
+
         // GET THE ITEM
         item=uiGetMenuItem(m1code,MenuObj,(halScreen.HelpMode&0xffff)+MENUPAGE(m1code));
         helptext=uiGetMenuItemHelp(item);

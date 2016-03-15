@@ -276,5 +276,40 @@ UPURGE
 
 @#name lib54_cmdhelp
 {
-##1,CMD_UDEFINE  "Define new unit\nunit -> <empty>"
+
+UDEFINE
+"Define new unit
+
+U N →"
+
+UPURGE
+"Purge a custom unit
+
+U →"
+
+UVAL
+"Get numeric part of a unit
+
+U → R"
+
+UBASE
+"Expand all units to base units
+
+U → U<base>"
+
+CONVERT
+"Convert one unit into another
+
+U<from> U<to> → U<to>"
+
+UFACT
+"Factors a unit out
+
+U<unit1> U<factor> → U_<unit1*factor>"
+
+→UNIT
+"Apply a unit to a number
+
+R U → R*U"
+
 }

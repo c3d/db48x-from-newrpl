@@ -145,7 +145,9 @@ HEADERS  += mainwindow.h \
     newrpl/include-all.h \
     newrpl/romlibs.h
 
-RPL_OBJECTS = newrpl/rpl-objects/lib-54.nrpl
+RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
+                newrpl/rpl-objects/lib-9.nrpl
+
 
 
 
@@ -162,8 +164,6 @@ INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
 LIBS += -L/usr/local/lib
 
 FORMS    += mainwindow.ui
-
-DISTFILES +=
 
 RESOURCES += \
     annunciators.qrc
