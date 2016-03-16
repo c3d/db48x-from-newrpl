@@ -79,7 +79,8 @@ INCLUDE_ROMOBJECT(lib9_menu);
 const WORDPTR const ROMPTR_TABLE[]={
      (WORDPTR)LIB_MSGTABLE,
      (WORDPTR)LIB_HELPTABLE,
-     (WORDPTR)lib9_menu
+     (WORDPTR)lib9_menu,
+        0
 };
 
 

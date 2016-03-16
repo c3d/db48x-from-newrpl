@@ -1,0 +1,17 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+
+
+@#name lib10_msgtable
+{
+##1,ERR_REALEXPECTED "Expected a real number"
+##1,ERR_REALSNOTSUPPORTED "Operation not supported on reals"
+##1,ERR_INFINITERESULT "Infinite result"
+##1,ERR_UNDEFINEDRESULT "Undefined result"
+##1,ERR_NUMBERTOOBIG "Number too big"
+##1,ERR_MATHDIVIDEBYZERO "Divide by zero"
+##1,ERR_MATHOVERFLOW "Overflow"
+##1,ERR_MATHUNDERFLOW "Underflow"
+}
+
+

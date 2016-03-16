@@ -146,8 +146,8 @@ HEADERS  += mainwindow.h \
     newrpl/romlibs.h
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
-                newrpl/rpl-objects/lib-9.nrpl
-
+                newrpl/rpl-objects/lib-9.nrpl \
+                newrpl/rpl-objects/lib10.nrpl
 
 
 
@@ -179,6 +179,7 @@ rpl_compiler.input = RPL_OBJECTS
 rpl_compiler.variable_out = SOURCES
 
 QMAKE_EXTRA_COMPILERS += rpl_compiler
+
 
 
 

@@ -67,14 +67,6 @@ const MSGLIST const all_messages[]={
     { ERR_INTEGERSNOTSUPPORTED, "Operation not supported on integers" },
 
     // REAL NUMBERS
-    { ERR_REALEXPECTED, "Expected a real number" },
-    { ERR_REALSNOTSUPPORTED, "Operation not supported on reals" },
-    { ERR_INFINITERESULT, "Infinite result" },
-    { ERR_UNDEFINEDRESULT, "Undefined result" },
-    { ERR_NUMBERTOOBIG, "Number too big" },
-    { ERR_MATHDIVIDEBYZERO, "Divide by zero" },
-    { ERR_MATHOVERFLOW, "Overflow" },
-    { ERR_MATHUNDERFLOW, "Underflow" },
 
     // COMPLEX NUMBERS
     { ERR_COMPLEXEXPECTED, "Expected a complex number" },

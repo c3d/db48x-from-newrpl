@@ -27,6 +27,17 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 //#define COMMAND_LIST
+#define ERROR_LIST \
+        ERR(REALEXPECTED,0), \
+        ERR(REALSNOTSUPPORTED,1), \
+        ERR(INFINITERESULT,2), \
+        ERR(UNDEFINEDRESULT,3), \
+        ERR(NUMBERTOOBIG,4), \
+        ERR(MATHDIVIDEBYZERO,5), \
+        ERR(MATHOVERFLOW,6), \
+        ERR(MATHUNDERFLOW,7)
+
+
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER,LIBRARY_NUMBER|APPROX_BIT
@@ -43,7 +54,14 @@
 // ************************************
 
 
+INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 
+// EXTERNAL EXPORTED OBJECT TABLE
+// UP TO 64 OBJECTS ALLOWED, NO MORE
+const WORDPTR const ROMPTR_TABLE[]={
+     (WORDPTR)LIB_MSGTABLE,
+    0
+};
 
 
 typedef union {
@@ -798,6 +816,16 @@ void LIB_HANDLER()
         //libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         RetNum=ERR_NOTMINE;
         return;
+
+      case OPCODE_LIBMSG:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+
+        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+       return;
+    }
 
 
     case OPCODE_LIBINSTALL:
