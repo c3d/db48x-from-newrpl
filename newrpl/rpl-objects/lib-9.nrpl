@@ -4,7 +4,12 @@
 
 @#name lib9_menu
 {
-  IF CASE THEN ELSE END FOR START NEXT STEP DO UNTIL WHILE REPEAT
+  ##1,CMD_IF ##1,CMD_THEN ##1,CMD_ELSE ##1,CMD_ENDIF { "" }
+  ##1,CMD_CASE ##1,CMD_THENCASE ##1,CMD_ENDTHEN ##1,CMD_ENDCASE { "" }
+  ##1,CMD_IFERR ##1,CMD_THENERR ##1,CMD_ELSEERR ##1,CMD_ENDERR { "" }
+  ##1,CMD_FOR ##1,CMD_START ##1,CMD_NEXT ##1,CMD_STEP { "" }
+  ##1,CMD_DO ##1,CMD_UNTIL ##1,CMD_ENDDO { "" } { "" }
+  ##1,CMD_WHILE ##1,CMD_REPEAT ##1,CMD_ENDWHILE
 }
 
 @#name lib9_msgtable
@@ -15,60 +20,88 @@
 
 @#name lib9_cmdhelp
 {
-IF
+##1,CMD_IF
 "Conditional statement
 
 IF <clause> THEN ... ELSE ... END"
 
-CASE
+##1,CMD_CASE
 "Multiple conditional statement
 CASE <clause1> THEN ... END
      <clause2> THEN ... END ... END"
 
-THEN
+##1,CMD_THEN
 "Part of conditional statement
-see IF and CASE"
+see IF, IFERR and CASE"
 
-ELSE
+##1,CMD_THENCASE
 "Part of conditional statement
-see IF"
+see IF, IFERR and CASE"
 
-END
+##1,CMD_THENERR
+"Part of conditional statement
+see IF, IFERR and CASE"
+
+
+##1,CMD_ELSE
+"Part of conditional statement
+see IF, IFERR"
+
+##1,CMD_ELSEERR
+"Part of conditional statement
+see IF, IFERR"
+
+##1,CMD_ENDIF
+"Termination of statement
+see IF, IFERR, CASE, DO, WHILE"
+##1,CMD_ENDERR
+"Termination of statement
+see IF, IFERR, CASE, DO, WHILE"
+##1,CMD_ENDTHEN
+"Termination of statement
+see IF, IFERR, CASE, DO, WHILE"
+##1,CMD_ENDCASE
+"Termination of statement
+see IF, IFERR, CASE, DO, WHILE"
+##1,CMD_ENDDO
+"Termination of statement
+see IF, IFERR, CASE, DO, WHILE"
+##1,CMD_ENDWHILE
 "Termination of statement
 see IF, IFERR, CASE, DO, WHILE"
 
-FOR
+##1,CMD_FOR
 "Loop with counter
 <start> <end> FOR V ... NEXT
 <start> <end> FOR V ... <incr> STEP"
 
-START
+##1,CMD_START
 "Loop without counter
 <start> <end> START ... NEXT
 <start> <end> START ... <incr> STEP"
 
-NEXT
+##1,CMD_NEXT
 "End of loop
 see FOR and START"
 
-STEP
+##1,CMD_STEP
 "Increment counter and loop
 see FOR and START
 <incr> →"
 
-DO
+##1,CMD_DO
 "Loop with condition
 DO ... UNTIL <clause> END"
 
-UNTIL
+##1,CMD_UNTIL
 "Part of loop statement
 see DO"
 
-WHILE
+##1,CMD_WHILE
 "Loop with condition
 WHILE <clause> REPEAT ... END"
 
-REPEAT
+##1,CMD_REPEAT
 "Part of loop statement
 see WHILE"
 

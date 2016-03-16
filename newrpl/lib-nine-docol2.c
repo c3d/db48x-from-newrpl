@@ -109,11 +109,18 @@ void LIB_HANDLER()
     case OVR_EVAL1:
     case OVR_XEQ:
     // EXECUTE THE SECONDARY THAT'S ON THE STACK
-    // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
+        if(ISPROLOG(*rplPeekData(1))) {
         rplPushRet(IPtr);       // PUSH CURRENT POINTER AS THE RETURN ADDRESS. AT THIS POINT, IPtr IS POINTING TO THIS SECONDARY WORD
                                 // BUT THE MAIN LOOP WILL ALWAYS SKIP TO THE NEXT OBJECT AFTER A SEMI.
         IPtr=rplPopData();
         CurOpcode=MKPROLOG(LIBRARY_NUMBER,0); // ALTER THE SIZE OF THE SECONDARY TO ZERO WORDS, SO THE NEXT EXECUTED INSTRUCTION WILL BE THE FIRST IN THIS SECONDARY
+        return;
+        }
+
+     // NOT A SECONDARY, IT HAS TO BE A COMMAND
+     // DO NOTHING
+     rplDropData(1);
+
     return;
 
     case IF:
@@ -136,6 +143,8 @@ void LIB_HANDLER()
                 while( (count!=0) || ((*IPtr!=MKOPCODE(LIBRARY_NUMBER,ELSE))&&(*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDIF)))) {
                     if(*IPtr==MKOPCODE(LIBRARY_NUMBER,IF)) ++count;
                     if(*IPtr==MKOPCODE(LIBRARY_NUMBER,ENDIF)) --count;
+                    if(*IPtr==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { --IPtr; return; }  // MALFORMED, JUST EXIT AT THE SEMI
+                    if(*IPtr==CMD_SEMI) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
                     rplSkipNext();
                 }
             }
@@ -148,6 +157,8 @@ void LIB_HANDLER()
         while(count || (*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDIF))) {
             if(*IPtr==MKOPCODE(LIBRARY_NUMBER,IF)) ++count;
             if(*IPtr==MKOPCODE(LIBRARY_NUMBER,ENDIF)) --count;
+            if(*IPtr==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
+            if(*IPtr==CMD_SEMI) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
             rplSkipNext();
         }
         }
@@ -170,13 +181,21 @@ void LIB_HANDLER()
 
             if(IS_FALSE(*ScratchPointer1)) {
                 // SKIP ALL OBJECTS UNTIL ENDTHEN
-                while(*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDTHEN)) rplSkipNext();
+                while(*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDTHEN)) {
+                    if(*IPtr==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
+                    if(*IPtr==CMD_SEMI) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
+                    rplSkipNext();
+                }
             }
         }
         return;
     case ENDTHEN:
         // IF THIS GETS EXECUTED, IT'S BECAUSE THE THEN CLAUSE WAS TRUE, SO SKIP UNTIL ENDCASE
-        while(*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDCASE)) rplSkipNext();
+        while(*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDCASE)) {
+            if(*IPtr==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
+            if(*IPtr==CMD_SEMI) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
+            rplSkipNext();
+        }
         return;
 
     case ENDCASE:
@@ -208,6 +227,9 @@ void LIB_HANDLER()
             if(*ScratchPointer3==MKOPCODE(LIBRARY_NUMBER,START)) ++depth;
             if(*ScratchPointer3==MKOPCODE(LIBRARY_NUMBER,NEXT)) --depth;
             if(*ScratchPointer3==MKOPCODE(LIBRARY_NUMBER,STEP)) --depth;
+            if(*ScratchPointer3==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { rplDropData(1); IPtr=ScratchPointer3-1; return; }  // MALFORMED, JUST EXIT AT THE SEMI
+            if(*ScratchPointer3==CMD_SEMI) { rplDropData(1); IPtr=ScratchPointer3-1; return; }   // MALFORMED, JUST EXIT AT THE SEMI
+
         }
 
         // CREATE A NEW LAM ENVIRONMENT FOR THIS FOR CONSTRUCT
@@ -251,6 +273,9 @@ void LIB_HANDLER()
             if(*ScratchPointer3==MKOPCODE(LIBRARY_NUMBER,START)) ++depth;
             if(*ScratchPointer3==MKOPCODE(LIBRARY_NUMBER,NEXT)) --depth;
             if(*ScratchPointer3==MKOPCODE(LIBRARY_NUMBER,STEP)) --depth;
+            if(*ScratchPointer3==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { rplDropData(1); IPtr=ScratchPointer3-1; return; }  // MALFORMED, JUST EXIT AT THE SEMI
+            if(*ScratchPointer3==CMD_SEMI) { rplDropData(1); IPtr=ScratchPointer3-1; return; }   // MALFORMED, JUST EXIT AT THE SEMI
+
         }
 
         // CREATE A NEW LAM ENVIRONMENT FOR THIS FOR CONSTRUCT
@@ -275,7 +300,10 @@ void LIB_HANDLER()
 
     {
         // INCREMENT THE COUNTER
-
+        if(*rplGetLAMn(0)!=IPtr) {
+            // MALFORMED FOR/NEXT LOOP
+            return;
+        }
         rplPushData(*rplGetLAMn(4));     // COUNTER;
         rplPushData((WORDPTR)one_bint);       // PUSH THE NUMBER ONE
 
@@ -323,7 +351,11 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-
+        // INCREMENT THE COUNTER
+        if(*rplGetLAMn(0)!=IPtr) {
+            // MALFORMED FOR/NEXT LOOP
+            return;
+        }
         rplPushData(*rplGetLAMn(4));     // COUNTER;
 
         // CALL THE OVERLOADED OPERATOR '+'
@@ -370,6 +402,9 @@ void LIB_HANDLER()
             ScratchPointer3=rplSkipOb(ScratchPointer3);
             if(*ScratchPointer3==MKOPCODE(LIBRARY_NUMBER,DO)) ++depth;
             if(*ScratchPointer3==MKOPCODE(LIBRARY_NUMBER,ENDDO)) --depth;
+            if(*ScratchPointer3==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { IPtr=ScratchPointer3-1; return; }  // MALFORMED, JUST EXIT AT THE SEMI
+            if(*ScratchPointer3==CMD_SEMI) { IPtr=ScratchPointer3-1; return; }   // MALFORMED, JUST EXIT AT THE SEMI
+
         }
 
         rplPushRet(ScratchPointer3);                    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
@@ -391,6 +426,10 @@ void LIB_HANDLER()
     {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(*rplGetLAMn(0)!=IPtr) {
+            // MALFORMED LOOP
             return;
         }
 
@@ -417,6 +456,9 @@ void LIB_HANDLER()
             ScratchPointer3=rplSkipOb(ScratchPointer3);
             if(*ScratchPointer3==MKOPCODE(LIBRARY_NUMBER,WHILE)) ++depth;
             if(*ScratchPointer3==MKOPCODE(LIBRARY_NUMBER,ENDWHILE)) --depth;
+            if(*ScratchPointer3==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { IPtr=ScratchPointer3-1; return; }  // MALFORMED, JUST EXIT AT THE SEMI
+            if(*ScratchPointer3==CMD_SEMI) { IPtr=ScratchPointer3-1; return; }   // MALFORMED, JUST EXIT AT THE SEMI
+
         }
 
         rplPushRet(ScratchPointer3);                    // PUT THE RETURN ADDRESS AT THE END OF THE LOOP
@@ -436,6 +478,10 @@ void LIB_HANDLER()
         }
 
         // BY DEFINITION, BINT 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
+        if(*rplGetLAMn(0)!=IPtr) {
+            // MALFORMED LOOP
+            return;
+        }
 
         WORDPTR result=rplPopData();
 
@@ -453,8 +499,10 @@ void LIB_HANDLER()
     }
     case ENDWHILE:
         // JUMP TO THE TOP RETURN STACK TO REPEAT THE LOOP
+        if(rplDepthRet()>0) {
         IPtr=rplPeekRet(1);
         CurOpcode=*IPtr;
+        }
      return;
 
     case IFERR:
@@ -467,6 +515,9 @@ void LIB_HANDLER()
         while(count || (*errhandler!=MKOPCODE(LIBRARY_NUMBER,THENERR))) {
             if(*errhandler==MKOPCODE(LIBRARY_NUMBER,IFERR)) ++count;
             if(*errhandler==MKOPCODE(LIBRARY_NUMBER,ENDERR)) --count;
+            if(*errhandler==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { IPtr=errhandler-1; return; }  // MALFORMED, JUST EXIT AT THE SEMI
+            if(*errhandler==CMD_SEMI) { IPtr=errhandler-1; return; }  // MALFORMED, JUST EXIT AT THE SEMI
+
             errhandler=rplSkipOb(errhandler);
         }
         }
@@ -486,6 +537,8 @@ void LIB_HANDLER()
         while(count || ( (*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDERR)) && (*IPtr!=MKOPCODE(LIBRARY_NUMBER,ELSEERR)))) {
             if(*IPtr==MKOPCODE(LIBRARY_NUMBER,IFERR)) ++count;
             if(*IPtr==MKOPCODE(LIBRARY_NUMBER,ENDERR)) --count;
+            if(*IPtr==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
+            if(*IPtr==CMD_SEMI) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
             rplSkipNext();
         }
         }
@@ -497,6 +550,8 @@ void LIB_HANDLER()
     while(count ||  (*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDERR)) ) {
         if(*IPtr==MKOPCODE(LIBRARY_NUMBER,IFERR)) ++count;
         if(*IPtr==MKOPCODE(LIBRARY_NUMBER,ENDERR)) --count;
+        if(*IPtr==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
+        if(*IPtr==CMD_SEMI) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
         rplSkipNext();
     }
     }
