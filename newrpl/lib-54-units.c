@@ -1688,6 +1688,10 @@ void LIB_HANDLER()
 
     case UBASE:
     {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
         if(!ISUNIT(*rplPeekData(1))) {
             rplError(ERR_UNITEXPECTED);
             return;

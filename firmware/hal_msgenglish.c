@@ -63,8 +63,6 @@ const MSGLIST const all_messages[]={
     { ERR_CANTOVERWRITEDIR, "Can't overwrite directory" },
 
     // INTEGER NUMBERS
-    { ERR_INTEGEREXPECTED, "Expected an integer" },
-    { ERR_INTEGERSNOTSUPPORTED, "Operation not supported on integers" },
 
     // REAL NUMBERS
 

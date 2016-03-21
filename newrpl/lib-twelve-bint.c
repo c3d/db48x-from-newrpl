@@ -35,6 +35,15 @@
 // ADD MORE OPCODES HERE
 
 
+#define ERROR_LIST \
+    ERR(INTEGEREXPECTED,0), \
+    ERR(INTEGERSNOTSUPPORTED,1)
+
+
+
+
+
+
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS \
             DECBINT,BINBINT,OCTBINT,HEXBINT, \
@@ -121,9 +130,15 @@ ROMOBJECT ten_bint[]=
     (WORD)MAKESINT(10)
 };
 
+
+INCLUDE_ROMOBJECT(LIB_MSGTABLE);
+
+
+
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
+    (WORDPTR)LIB_MSGTABLE,
     (WORDPTR)zero_bint,
     (WORDPTR)one_bint,
     (WORDPTR)two_bint,
@@ -1389,6 +1404,15 @@ void LIB_HANDLER()
         RetNum=ERR_NOTMINE;
         return;
 
+    case OPCODE_LIBMSG:
+      // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
+      // MUST RETURN A STRING OBJECT IN ObjectPTR
+      // AND RetNum=OK_CONTINUE;
+  {
+
+      libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+     return;
+  }
 
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;
