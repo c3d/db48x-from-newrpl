@@ -142,7 +142,9 @@ HEADERS  += \
     newrpl/romlibs.h
 
 
-RPL_OBJECTS = newrpl/rpl-objects/lib-54.nrpl
+RPL_OBJECTS = newrpl/rpl-objects/lib-54.nrpl \
+              newrpl/rpl-objects/lib-9.nrpl \
+              newrpl/rpl-objects/lib-10.nrpl
 
 
 

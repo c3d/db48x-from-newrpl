@@ -147,7 +147,7 @@ HEADERS  += mainwindow.h \
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-9.nrpl \
-                newrpl/rpl-objects/lib10.nrpl
+                newrpl/rpl-objects/lib-10.nrpl
 
 
 

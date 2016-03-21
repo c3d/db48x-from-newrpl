@@ -2656,7 +2656,7 @@ DECLARE_TRANSPCMDKEYHANDLER(updir,CMD_UPDIR)
 DECLARE_TRANSPCMDKEYHANDLER(home,CMD_HOME)
 
 DECLARE_MENUKEYHANDLER(unitmenu,MKMENUCODE(0,DOUNIT,0,0))
-
+DECLARE_MENUKEYHANDLER(prgmenu,MKMENUCODE(0,SECO,0,0))
 
 
 // **************************************************************************
@@ -3145,6 +3145,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
 
     // MENUS
     { KM_PRESS|KB_6|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(unitmenu) },
+    { KM_PRESS|KB_N|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(prgmenu) },
 
 
 
