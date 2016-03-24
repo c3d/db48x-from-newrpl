@@ -521,7 +521,7 @@ void LIB_HANDLER()
             if(!nLAMBase) nLAMBase=LAMs;
 
             IPtr=rplPopRet();   // GET THE CALLER ADDRESS
-            CurOpcode=*IPtr;    // SET THE WORD SO MAIN LOOP SKIPS THIS OBJECT, AND THE NEXT ONE IS EXECUTED
+            if(IPtr) CurOpcode=*IPtr;    // SET THE WORD SO MAIN LOOP SKIPS THIS OBJECT, AND THE NEXT ONE IS EXECUTED
         }
             return;
 
@@ -544,7 +544,7 @@ void LIB_HANDLER()
         rplCleanupLAMs(0);
 
         IPtr=rplPopRet();
-        CurOpcode=*IPtr;
+        if(IPtr) CurOpcode=*IPtr;
 
         return;
     }

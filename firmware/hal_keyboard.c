@@ -332,10 +332,11 @@ void numberKeyHandler(BINT keymsg)
 
 void uiCmdRun(WORD Opcode)
 {
-WORDPTR obj=rplAllocTempOb(1);
+WORDPTR obj=rplAllocTempOb(2);
 if(obj) {
 obj[0]=Opcode;
 obj[1]=CMD_EXITRPL;
+obj[2]=CMD_QSEMI;   // THIS IS FOR SAFETY REASONS
 rplSetEntryPoint(obj);
 if((Opcode==(CMD_OVR_XEQ)) || (Opcode==(CMD_OVR_EVAL)) || (Opcode==(CMD_OVR_EVAL1))) {
     // STORE THE OBJECT/OPCODE THAT MAY CAUSE AN EXCEPTION
@@ -362,10 +363,11 @@ else { if(rplRun()==NEEDS_CLEANUP) rplCleanup(); }
 
 BINT uiCmdRunTransparent(WORD Opcode,BINT nargs,BINT nresults)
 {
-WORDPTR obj=rplAllocTempOb(1);
+WORDPTR obj=rplAllocTempOb(2);
 if(obj) {
 obj[0]=Opcode;
 obj[1]=CMD_BKPOINT;
+obj[2]=CMD_QSEMI;   // THIS IS FOR SAFETY REASONS
 
 BINT rsave,lamsave,nlambase,retvalue;
 WORD exceptsave,errcodesave;

@@ -148,16 +148,10 @@ HEADERS  += mainwindow.h \
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-9.nrpl \
                 newrpl/rpl-objects/lib-10.nrpl \
-                newrpl/rpl-objects/lib-12.nrpl
-
-
-
-
-
-
-
-
-
+                newrpl/rpl-objects/lib-12.nrpl \
+                newrpl/rpl-objects/lib-20.nrpl \
+                newrpl/rpl-objects/lib-24.nrpl \
+                newrpl/rpl-objects/lib-28.nrpl
 
 
 INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include

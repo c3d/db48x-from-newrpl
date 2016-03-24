@@ -241,6 +241,7 @@ void rplRemoveLibrary(BINT number)
 
 // RETURNS 0 = FINISHED OK
 // 1 = SOME ERROR, MAY NEED CLEANUP
+// 2 = EXECUTION PAUSED DUE TO POWEROFF
 BINT rplRun(void)
 // TAKE THE NEXT WORD AND EXECUTE IT
 {
@@ -272,6 +273,7 @@ BINT rplRun(void)
         else {
             // THERE IS NO ERROR HANDLER --> UNTRAPPED ERROR
             if(Exceptions&EX_BKPOINT) rplSkipNext(); // PREPARE TO RESUME ON NEXT CALL
+            if(Exceptions&EX_POWEROFF) { rplSkipNext(); return 2; }
             return 1;      // END EXECUTION IMMEDIATELY IF AN UNHANDLED EXCEPTION IS THROWN
         }
     }
@@ -551,6 +553,8 @@ void rplWarmInit(void)
 void rplHotInit()
 {
     int count;
+
+
 
     IPtr=0;  // INSTRUCTION POINTER SHOULD BE SET LATER TO A VALID RUNSTREAM
     CurOpcode=0; // CURRENT OPCODE (WORD)

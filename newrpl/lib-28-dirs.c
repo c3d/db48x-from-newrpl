@@ -42,6 +42,10 @@
 //    ECMD(CMDNAME,"CMDNAME",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
+#define ERROR_LIST \
+    ERR(NONEMPTYDIRECTORY,0), \
+    ERR(DIRECTORYNOTFOUND,1), \
+    ERR(CANTOVERWRITEDIR,2)
 
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
@@ -87,9 +91,18 @@ ROMOBJECT home_opcode[]=
     (WORD)MKOPCODE(LIBRARY_NUMBER,HOME)
 };
 
+
+INCLUDE_ROMOBJECT(LIB_MSGTABLE);
+INCLUDE_ROMOBJECT(LIB_HELPTABLE);
+INCLUDE_ROMOBJECT(lib28_menu);
+
+
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
+    (WORDPTR)LIB_MSGTABLE,
+    (WORDPTR)LIB_HELPTABLE,
+    (WORDPTR)lib28_menu,
     (WORDPTR)dir_start_bint,
     (WORDPTR)dir_parent_bint,
     (WORDPTR)dir_end_bint,
@@ -339,7 +352,7 @@ void LIB_HANDLER()
 
             rplPushData(newobj);
 
-            rplCallOperator(CMD_MAP);
+            rplCallOperator(CMD_MAPINNERCOMP);
 
             if(Exceptions) {
                 if(DSTop>savestk) DSTop=savestk;
@@ -403,7 +416,7 @@ void LIB_HANDLER()
 
             rplPushData(newobj);
 
-            rplCallOperator(CMD_MAP);
+            rplCallOperator(CMD_MAPINNERCOMP);
 
             if(Exceptions) {
                 if(DSTop>savestk) DSTop=savestk;
@@ -461,6 +474,15 @@ void LIB_HANDLER()
 
         if(nitems==0) rplPushData((WORDPTR)empty_list);
         else {
+            // REVERSE THE ORDER IN THE STACK, AS HOME IS THE LAST ONE
+
+            BINT f;
+            WORDPTR obj;
+            for(f=1;f<=nitems/2;++f) {
+                obj=rplPeekData(f);
+                rplOverwriteData(f,rplPeekData(nitems+1-f));
+                rplOverwriteData(nitems+1-f,obj);
+            }
             rplNewBINTPush(nitems,DECBINT);
             rplCreateList();
         }
@@ -624,6 +646,35 @@ void LIB_HANDLER()
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         return;
 
+    case OPCODE_LIBMENU:
+        // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
+        // MUST RETURN A MENU LIST IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {\
+        if(MENUNUMBER(MenuCodeArg)>0) RetNum=ERR_NOTMINE;
+        // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
+        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+2];
+        RetNum=OK_CONTINUE;
+       return;
+    }
+
+    case OPCODE_LIBHELP:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN CmdHelp
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
+       return;
+    }
+    case OPCODE_LIBMSG:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+
+        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+       return;
+    }
 
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;

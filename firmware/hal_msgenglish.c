@@ -58,9 +58,6 @@ const MSGLIST const all_messages[]={
     { ERR_CIRCULARREFERENCE, "Circular reference" },
 
     // DIRECTORIES AND VARIABLES
-    { ERR_NONEMPTYDIRECTORY, "Non-empty directory" },
-    { ERR_DIRECTORYNOTFOUND, "Directory not found" },
-    { ERR_CANTOVERWRITEDIR, "Can't overwrite directory" },
 
     // INTEGER NUMBERS
 
@@ -73,8 +70,8 @@ const MSGLIST const all_messages[]={
 
 
     // STRINGS
-    { ERR_STRINGEXPECTED, "Expected a string" },
-    { ERR_INVALIDCODEPOINT, "Invalid Unicode code point" },
+//    { ERR_STRINGEXPECTED, "Expected a string" },
+//    { ERR_INVALIDCODEPOINT, "Invalid Unicode code point" },
 
     // UNITS
 //    { ERR_UNITEXPECTED, "Expected an object with units" },

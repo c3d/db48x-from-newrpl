@@ -1,0 +1,48 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib24_menu
+{
+  CHR NUM →STR STR→
+}
+
+@#name lib24_msgtable
+{
+##1,ERR_STRINGEXPECTED  "Expected a string"
+##1,ERR_INVALIDCODEPOINT "Invalid Unicode code point"
+}
+
+
+@#name lib24_cmdhelp
+{
+CHR
+"Convert single unicode
+code point to string
+I → S"
+NUM
+"Convert first character in string
+to unicode code point
+S → I"
+→STR
+"Convert any object to string
+(decompile)
+O → S"
+STR→
+"Convert any string to objects
+(compile)
+S → O"
+}

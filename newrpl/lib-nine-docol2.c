@@ -100,7 +100,7 @@ void LIB_HANDLER()
     case QSEMI:
         // POP THE RETURN ADDRESS
         IPtr=rplPopRet();   // GET THE CALLER ADDRESS
-        CurOpcode=*IPtr;    // SET THE WORD SO MAIN LOOP SKIPS THIS OBJECT, AND THE NEXT ONE IS EXECUTED
+        if(IPtr) CurOpcode=*IPtr;    // SET THE WORD SO MAIN LOOP SKIPS THIS OBJECT, AND THE NEXT ONE IS EXECUTED
         return;
 
 
@@ -339,7 +339,7 @@ void LIB_HANDLER()
 
         // JUMP TO THE TOP RETURN STACK, EITHER THE LOOP OR THE ABND WORD
         IPtr=rplPopRet();
-        CurOpcode=*IPtr;
+        if(IPtr) CurOpcode=*IPtr;
      return;
     }
 
@@ -390,7 +390,7 @@ void LIB_HANDLER()
 
         // JUMP TO THE TOP RETURN STACK, EITHER THE LOOP OR THE ABND WORD
         IPtr=rplPopRet();
-        CurOpcode=*IPtr;
+        if(IPtr) CurOpcode=*IPtr;
      return;
     }
 
@@ -446,7 +446,7 @@ void LIB_HANDLER()
 
         // JUMP TO THE TOP RETURN STACK, EITHER THE LOOP OR THE ABND WORD
         IPtr=rplPopRet();
-        CurOpcode=*IPtr;
+        if(IPtr) CurOpcode=*IPtr;
      return;
     }
     case WHILE:
@@ -491,7 +491,7 @@ void LIB_HANDLER()
             rplPopRet();
             // JUMP TO THE TOP RETURN STACK, EITHER THE LOOP OR THE ABND WORD
             IPtr=rplPopRet();
-            CurOpcode=*IPtr;
+            if(IPtr) CurOpcode=*IPtr;
         }
 
 

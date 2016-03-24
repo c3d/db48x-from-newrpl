@@ -560,6 +560,8 @@ void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 #define EX_BKPOINT          2
 #define EX_OUTOFMEM         4
 #define EX_ERRORCODE        8
+#define EX_POWEROFF        16
+
 // ADD OTHER EXCEPTIONS HERE
 
 
