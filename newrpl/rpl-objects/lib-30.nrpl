@@ -1,0 +1,71 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib30_menu
+{
+  RE IM ARG CONJ C→R R→C
+}
+
+@#name lib30_msgtable
+{
+##1,ERR_COMPLEXEXPECTED "Expected a complex number"
+##1,ERR_COMPLEXORREALEXPECTED "Expected a complex/real number"
+##1,ERR_COMPLEXNOTSUPPORTED "Operation not supported on complex"
+##1,ERR_NOTALLOWEDINCOMPLEX "Not allowed inside a complex number"
+}
+
+
+@#name lib30_cmdhelp
+{
+RE
+"Real part of a complex number
+
+Z → R"
+
+IM
+"Imaginary part of a complex number
+
+Z → R"
+
+ARG
+"Argument of a complex number
+
+Z → R"
+
+CONJ
+"Complex conjugate
+
+Z → Z"
+
+C→R
+"Split complex number into real and
+imaginary parts
+Z → R R"
+
+R→C
+"Assemble a complex from real and
+imaginary parts
+R R → Z"
+
+}
+
+
+
+
+
+
+

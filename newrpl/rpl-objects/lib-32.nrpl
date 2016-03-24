@@ -1,0 +1,33 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib32_menu
+{
+  ##1,CMD_LSTO LRCL
+}
+
+@#name lib32_cmdhelp
+{
+##1,CMD_LSTO
+"Store an object in a local variable
+
+O N → "
+LRCL
+"Get the contents of a local variable
+
+N → O"
+}

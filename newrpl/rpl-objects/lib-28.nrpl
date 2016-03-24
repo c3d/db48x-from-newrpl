@@ -17,7 +17,7 @@
 
 @#name lib28_menu
 {
-  STO RCL INCR DECR PURGE CRDIR PGDIR UPDIR HOME PATH
+  STO STO+ STO- STO* STO/ INCR DECR RCL PURGE { "" } CRDIR PGDIR UPDIR HOME PATH
 }
 
 @#name lib28_msgtable
@@ -39,6 +39,26 @@ RCL
 "Get content of global variable
 
 N → O"
+
+STO+
+"Add to stored object in global
+variable
+O N →"
+
+STO-
+"Subtract from stored object in
+global variable
+O N →"
+
+STO*
+"Multiply stored object in
+global variable
+O N →"
+
+STO/
+"Divide stored object in
+global variable
+O N →"
 
 INCR
 "Increase existing variable by 1

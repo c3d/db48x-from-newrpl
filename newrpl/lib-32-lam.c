@@ -30,8 +30,8 @@
 #define COMMAND_LIST \
     CMD(LSTO,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(LRCL,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ABND,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(NULLLAM,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(ABND,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(NULLLAM,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     ECMD(LAMEVALPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     ECMD(LAMEVALPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     ECMD(LAMEVALERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2))
@@ -122,16 +122,21 @@ ROMOBJECT nulllam_ident[]=
 };
 
 
+//INCLUDE_ROMOBJECT(LIB_MSGTABLE);
+INCLUDE_ROMOBJECT(LIB_HELPTABLE);
+INCLUDE_ROMOBJECT(lib32_menu);
 
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
+    (WORDPTR)nulllam_ident,
+    (WORDPTR)LIB_HELPTABLE,
+    (WORDPTR)lib32_menu,
     (WORDPTR)lameval_seco,
     (WORDPTR)abnd_prog,
     (WORDPTR)lam_baseseco_bint,
     (WORDPTR)lam_errhandler_bint,
-    (WORDPTR)nulllam_ident,
     0
 };
 
@@ -1305,6 +1310,36 @@ void LIB_HANDLER()
     case OPCODE_AUTOCOMPNEXT:
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         return;
+
+    case OPCODE_LIBMENU:
+        // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
+        // MUST RETURN A MENU LIST IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {\
+        if(MENUNUMBER(MenuCodeArg)>0) RetNum=ERR_NOTMINE;
+        // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
+        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+2];
+        RetNum=OK_CONTINUE;
+       return;
+    }
+
+    case OPCODE_LIBHELP:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN CmdHelp
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
+       return;
+    }
+    case OPCODE_LIBMSG:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+
+       RetNum=ERR_NOTMINE;
+       return;
+    }
 
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;

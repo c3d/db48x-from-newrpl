@@ -151,7 +151,9 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-12.nrpl \
                 newrpl/rpl-objects/lib-20.nrpl \
                 newrpl/rpl-objects/lib-24.nrpl \
-                newrpl/rpl-objects/lib-28.nrpl
+                newrpl/rpl-objects/lib-28.nrpl \
+                newrpl/rpl-objects/lib-30.nrpl \
+                newrpl/rpl-objects/lib-32.nrpl
 
 
 INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
@@ -174,6 +176,8 @@ rpl_compiler.input = RPL_OBJECTS
 rpl_compiler.variable_out = SOURCES
 
 QMAKE_EXTRA_COMPILERS += rpl_compiler
+
+DISTFILES += \
 
 
 

@@ -64,9 +64,6 @@ const MSGLIST const all_messages[]={
     // REAL NUMBERS
 
     // COMPLEX NUMBERS
-    { ERR_COMPLEXEXPECTED, "Expected a complex number" },
-    { ERR_COMPLEXORREALEXPECTED, "Expected a complex/real number" },
-    { ERR_COMPLEXNOTSUPPORTED, "Operation not supported on complex" },
 
 
     // STRINGS

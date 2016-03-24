@@ -30,6 +30,10 @@
 #define COMMAND_LIST \
     CMD(STO,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
     CMD(RCL,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOADD,"STO+",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOSUB,"STO-",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOMUL,"STO*",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STODIV,"STO/",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(INCR,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(DECR,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(PURGE,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
@@ -237,6 +241,197 @@ void LIB_HANDLER()
     }
         return;
 
+    case STOADD:
+        {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
+
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+
+        }
+
+        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+        WORDPTR *stksave=DSTop;
+
+        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
+        if(!var) var=rplFindGlobal(rplPeekData(1),1);
+        if(var) {
+                if(ISDIR(*var[1])) {
+                    rplError(ERR_CANTOVERWRITEDIR);
+                    return;
+                }
+
+            rplPushData(*(var+1));
+
+            rplPushData(rplPeekData(3));       // PUSH THE OBJECT TO ADD
+
+            // CALL THE OVERLOADED OPERATOR '+'
+
+            rplCallOvrOperator(CMD_OVR_ADD);
+
+            if(Exceptions) { DSTop=stksave; return; }
+
+            *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
+            rplDropData(3);
+        }
+        else {
+            rplError(ERR_UNDEFINEDVARIABLE);
+            return;
+        }
+
+        }
+        return;
+
+
+    case STOSUB:
+        {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
+
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+
+        }
+
+        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+        WORDPTR *stksave=DSTop;
+
+        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
+        if(!var) var=rplFindGlobal(rplPeekData(1),1);
+        if(var) {
+                if(ISDIR(*var[1])) {
+                    rplError(ERR_CANTOVERWRITEDIR);
+                    return;
+                }
+
+            rplPushData(*(var+1));
+
+            rplPushData(rplPeekData(3));       // PUSH THE OBJECT TO OPERATE
+
+            // CALL THE OVERLOADED OPERATOR '-'
+
+            rplCallOvrOperator(CMD_OVR_SUB);
+
+            if(Exceptions) { DSTop=stksave; return; }
+
+            *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
+            rplDropData(3);
+        }
+        else {
+            rplError(ERR_UNDEFINEDVARIABLE);
+            return;
+        }
+
+        }
+        return;
+
+
+    case STOMUL:
+        {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
+
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+
+        }
+
+        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+        WORDPTR *stksave=DSTop;
+
+        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
+        if(!var) var=rplFindGlobal(rplPeekData(1),1);
+        if(var) {
+                if(ISDIR(*var[1])) {
+                    rplError(ERR_CANTOVERWRITEDIR);
+                    return;
+                }
+
+            rplPushData(*(var+1));
+
+            rplPushData(rplPeekData(3));       // PUSH THE OBJECT TO OPERATE
+
+            // CALL THE OVERLOADED OPERATOR '*'
+
+            rplCallOvrOperator(CMD_OVR_MUL);
+
+            if(Exceptions) { DSTop=stksave; return; }
+
+            *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
+            rplDropData(3);
+        }
+        else {
+            rplError(ERR_UNDEFINEDVARIABLE);
+            return;
+        }
+
+        }
+        return;
+
+
+    case STODIV:
+        {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
+
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+
+        }
+
+        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+        WORDPTR *stksave=DSTop;
+
+        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
+        if(!var) var=rplFindGlobal(rplPeekData(1),1);
+        if(var) {
+                if(ISDIR(*var[1])) {
+                    rplError(ERR_CANTOVERWRITEDIR);
+                    return;
+               }
+
+            rplPushData(*(var+1));
+
+            rplPushData(rplPeekData(3));       // PUSH THE OBJECT TO OPERATE
+
+            // CALL THE OVERLOADED OPERATOR '/'
+
+            rplCallOvrOperator(CMD_OVR_DIV);
+
+            if(Exceptions) { DSTop=stksave; return; }
+
+            *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
+            rplDropData(3);
+        }
+        else {
+            rplError(ERR_UNDEFINEDVARIABLE);
+            return;
+        }
+
+        }
+        return;
+
     case INCR:
         {
         if(rplDepthData()<1) {
@@ -266,7 +461,7 @@ void LIB_HANDLER()
 
             // CALL THE OVERLOADED OPERATOR '+'
 
-            rplCallOvrOperator(OVR_ADD);
+            rplCallOvrOperator(CMD_OVR_ADD);
 
             if(Exceptions) return;
 
@@ -312,7 +507,7 @@ void LIB_HANDLER()
 
         // CALL THE OVERLOADED OPERATOR '+'
 
-        rplCallOvrOperator(OVR_SUB);
+        rplCallOvrOperator(CMD_OVR_SUB);
 
         if(Exceptions) return;
 
