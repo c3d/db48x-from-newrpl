@@ -348,7 +348,8 @@ WORDPTR *rplFindGlobal(WORDPTR nameobj,BINT scanparents);
 WORDPTR *rplFindVisibleGlobalByIndexInDir(BINT idx,WORDPTR *directory);
 WORDPTR *rplFindVisibleGlobalByIndex(BINT idx);
 // DIRECTORY SCANNING AND LOWER-LEVEL ACCESS
-WORDPTR *rplFindFirstInDir(WORDPTR dirhandle);
+WORDPTR *rplFindFirstInDir(WORDPTR *directory);
+WORDPTR *rplFindFirstByHandle(WORDPTR dirhandle);
 WORDPTR *rplFindNext(WORDPTR *direntry);
 BINT rplGetVarCountInDir(WORDPTR *directory);
 BINT rplGetVarCount();

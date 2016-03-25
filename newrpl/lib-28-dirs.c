@@ -34,6 +34,9 @@
     ECMD(STOSUB,"STO-",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     ECMD(STOMUL,"STO*",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     ECMD(STODIV,"STO/",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SINV,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SNEG,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SCONJ,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(INCR,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(DECR,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(PURGE,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
@@ -41,7 +44,10 @@
     CMD(PGDIR,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(UPDIR,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(HOME,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(PATH,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    CMD(PATH,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(VARS,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ALLVARS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+
 
 //    ECMD(CMDNAME,"CMDNAME",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
 
@@ -432,6 +438,140 @@ void LIB_HANDLER()
         }
         return;
 
+    case SINV:
+        {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
+
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+
+        }
+
+        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
+        if(!var) var=rplFindGlobal(rplPeekData(1),1);
+        if(var) {
+                if(ISDIR(*var[1])) {
+                    rplError(ERR_CANTOVERWRITEDIR);
+                    return;
+                }
+
+            rplPushData(*(var+1));
+
+            // CALL THE OVERLOADED OPERATOR 'INV'
+
+            rplCallOvrOperator(CMD_OVR_INV);
+
+            if(Exceptions) return;
+
+
+            *(var+1)=rplPeekData(1);      // STORE THE NEW VALUE
+            rplDropData(2);
+        }
+        else {
+            rplError(ERR_UNDEFINEDVARIABLE);
+            return;
+        }
+
+        }
+        return;
+
+    case SNEG:
+        {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
+
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+
+        }
+
+        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
+        if(!var) var=rplFindGlobal(rplPeekData(1),1);
+        if(var) {
+                if(ISDIR(*var[1])) {
+                    rplError(ERR_CANTOVERWRITEDIR);
+                    return;
+                }
+
+            rplPushData(*(var+1));
+
+            // CALL THE OVERLOADED OPERATOR
+
+            rplCallOvrOperator(CMD_OVR_NEG);
+
+            if(Exceptions) return;
+
+
+            *(var+1)=rplPeekData(1);      // STORE THE NEW VALUE
+            rplDropData(2);
+        }
+        else {
+            rplError(ERR_UNDEFINEDVARIABLE);
+            return;
+        }
+
+        }
+        return;
+
+    case SCONJ:
+        {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
+
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+
+        }
+
+        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
+        if(!var) var=rplFindGlobal(rplPeekData(1),1);
+        if(var) {
+                if(ISDIR(*var[1])) {
+                    rplError(ERR_CANTOVERWRITEDIR);
+                    return;
+                }
+
+            rplPushData(*(var+1));
+
+            // CALL THE COMMAND
+
+            rplCallOperator(CMD_CONJ);
+
+            if(Exceptions) return;
+
+
+            *(var+1)=rplPeekData(1);      // STORE THE NEW VALUE
+            rplDropData(2);
+        }
+        else {
+            rplError(ERR_UNDEFINEDVARIABLE);
+            return;
+        }
+
+        }
+        return;
+
+
+
     case INCR:
         {
         if(rplDepthData()<1) {
@@ -685,6 +825,52 @@ void LIB_HANDLER()
         return;
     }
 
+    case VARS:
+    {
+       WORDPTR *varptr=rplFindFirstInDir(CurrentDir);
+       WORDPTR *stksave=DSTop;
+       BINT nitems=0;
+
+       while(varptr) {
+           if(ISIDENT(*varptr[0]) && !ISHIDDENIDENT(*varptr[0])) { rplPushData(varptr[0]); ++nitems; }
+           varptr=rplFindNext(varptr);
+       }
+
+       if(nitems==0) rplPushData((WORDPTR)empty_list);
+       else {
+           rplNewBINTPush(nitems,DECBINT);
+           if(Exceptions) { DSTop=stksave; return; }
+           rplCreateList();
+           if(Exceptions) { DSTop=stksave; return; }
+       }
+
+
+      return;
+     }
+
+    case ALLVARS:
+    {
+       WORDPTR *varptr=rplFindFirstInDir(CurrentDir);
+       WORDPTR *stksave=DSTop;
+       BINT nitems=0;
+
+       while(varptr) {
+           rplPushData(varptr[0]);
+           ++nitems;
+           varptr=rplFindNext(varptr);
+       }
+
+       if(nitems==0) rplPushData((WORDPTR)empty_list);
+       else {
+           rplNewBINTPush(nitems,DECBINT);
+           if(Exceptions) { DSTop=stksave; return; }
+           rplCreateList();
+           if(Exceptions) { DSTop=stksave; return; }
+       }
+
+
+      return;
+     }
 
     // ADD MORE OPCODES HERE
 

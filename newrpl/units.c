@@ -1604,7 +1604,7 @@ WORDPTR *rplUnitFind(WORDPTR ident,BINT *siindex)
 
     if(unitdir_obj) {
         // FOUND UNITS DIRECTORY IN SETTINGS, SCAN IT TO FIND OUT IDENT
-        entry=rplFindFirstInDir(unitdir_obj);
+        entry=rplFindFirstByHandle(unitdir_obj);
         while(entry) {
             baseid=entry[0];
             baseunit=entry[1];
@@ -1670,7 +1670,7 @@ WORDPTR *rplUnitFindCustom(WORDPTR ident,BINT *siindex)
 
     if(unitdir_obj) {
         // FOUND UNITS DIRECTORY IN SETTINGS, SCAN IT TO FIND OUT IDENT
-        entry=rplFindFirstInDir(unitdir_obj);
+        entry=rplFindFirstByHandle(unitdir_obj);
         while(entry) {
             baseid=entry[0];
             baseunit=entry[1];

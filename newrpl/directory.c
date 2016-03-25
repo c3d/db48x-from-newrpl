@@ -521,12 +521,20 @@ WORDPTR *rplDeepCopyDir(WORDPTR *sourcedir)
 }
 
 
-
 // FIND FIRST ENTRY IN A DIRECTORY BY HANDLE
 // RETURN NULL IF INVALID OR EMPTY DIRECTORY
-WORDPTR *rplFindFirstInDir(WORDPTR dirhandle)
+WORDPTR *rplFindFirstByHandle(WORDPTR dirhandle)
 {
     WORDPTR *direntry=rplFindDirbyHandle(dirhandle);
+    if(!direntry) return 0;
+    if(*direntry[4]==DIR_END_MARKER) return 0;  // DIRECTORY WAS EMPTY
+    return direntry+4;  // FIRST ACTUAL VARIABLE IN THE DIRECTORY
+}
+// FIND FIRST ENTRY IN A DIRECTORY BY HANDLE
+// RETURN NULL IF INVALID OR EMPTY DIRECTORY
+WORDPTR *rplFindFirstInDir(WORDPTR *directory)
+{
+    WORDPTR *direntry=directory;
     if(!direntry) return 0;
     if(*direntry[4]==DIR_END_MARKER) return 0;  // DIRECTORY WAS EMPTY
     return direntry+4;  // FIRST ACTUAL VARIABLE IN THE DIRECTORY

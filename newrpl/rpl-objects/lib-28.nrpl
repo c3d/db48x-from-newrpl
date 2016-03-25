@@ -17,7 +17,7 @@
 
 @#name lib28_menu
 {
-  STO STO+ STO- STO* STO/ INCR DECR RCL PURGE { "" } CRDIR PGDIR UPDIR HOME PATH
+  STO RCL PURGE STO+ STO- STO* STO/ SINV SNEG SCONJ INCR DECR CRDIR PGDIR { "" } UPDIR HOME PATH VARS ALLVARS
 }
 
 @#name lib28_msgtable
@@ -60,6 +60,21 @@ STO/
 global variable
 O N →"
 
+SINV
+"Invert stored object in
+global variable
+O N →"
+
+SNEG
+"Negate stored object in
+global variable
+O N →"
+
+SCONJ
+"Complex conjugate of the object
+stored in global variable
+O N →"
+
 INCR
 "Increase existing variable by 1
 
@@ -99,5 +114,17 @@ PATH
 "Get the current directory path as a
 list of directory names
   → L"
+
+VARS
+"Get a list of names of all visible
+variables in the current dir
+  → L"
+
+ALLVARS
+"Get a list of names for all
+variables in the current dir
+  → L"
+
+
 
 }
