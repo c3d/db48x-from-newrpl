@@ -46,7 +46,9 @@
     CMD(HOME,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(PATH,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(VARS,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ALLVARS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+    CMD(ALLVARS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ORDER,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+
 
 
 //    ECMD(CMDNAME,"CMDNAME",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
@@ -871,6 +873,47 @@ void LIB_HANDLER()
 
       return;
      }
+
+
+     case ORDER:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISLIST(*rplPeekData(1))) {
+            rplError(ERR_LISTEXPECTED);
+            return;
+        }
+
+        WORDPTR nextname=rplPeekData(1)+1;
+        WORDPTR endoflist=rplSkipOb(rplPeekData(1));
+
+        WORDPTR *firstentry=rplFindFirstInDir(CurrentDir);
+        WORDPTR *foundentry;
+
+        while((*nextname!=CMD_ENDLIST)&&(nextname<endoflist))
+        {
+            foundentry=rplFindGlobal(nextname,0);
+            if(foundentry) {
+                WORDPTR name,val;
+                // BRING THIS ENTRY TO THE PROPER LOCATION
+                name=foundentry[0];
+                val=foundentry[1];
+                memmovew(firstentry+2,firstentry,(foundentry-firstentry)*(sizeof(void *)>>2));
+                firstentry[0]=name;
+                firstentry[1]=val;
+                firstentry+=2;
+            }
+
+            nextname=rplSkipOb(nextname);
+        }
+
+        // ALL VARIABLES SORTED
+        rplDropData(1);
+        return;
+    }
 
     // ADD MORE OPCODES HERE
 

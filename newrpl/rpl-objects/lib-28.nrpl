@@ -17,7 +17,7 @@
 
 @#name lib28_menu
 {
-  STO RCL PURGE STO+ STO- STO* STO/ SINV SNEG SCONJ INCR DECR CRDIR PGDIR { "" } UPDIR HOME PATH VARS ALLVARS
+  STO RCL PURGE STO+ STO- STO* STO/ SINV SNEG SCONJ INCR DECR CRDIR PGDIR { "" } HOME UPDIR PATH VARS ALLVARS ORDER
 }
 
 @#name lib28_msgtable
@@ -125,6 +125,9 @@ ALLVARS
 variables in the current dir
   → L"
 
-
+ORDER
+"Sort variables in the currrent dir
+in the order given in a list
+L → "
 
 }
