@@ -1007,7 +1007,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT i;
+        BINT i,j;
         BINT veclen=0;
 
         for(i=2;i<=nelem+1;++i) {
@@ -1035,9 +1035,9 @@ void LIB_HANDLER()
                 }
             }
             else {
-                if(! (ISNUMBERCPLX(*LastCompiledObject)
-                      || ISSYMBOLIC(*LastCompiledObject)
-                      || ISIDENT(*LastCompiledObject))) {
+                if(! (ISNUMBERCPLX(*rplPeekData(i))
+                      || ISSYMBOLIC(*rplPeekData(i))
+                      || ISIDENT(*rplPeekData(i)))) {
                     rplError(ERR_NOTALLOWEDINMATRIX);
                             return;
                 }
@@ -1052,15 +1052,218 @@ void LIB_HANDLER()
 
         // HERE WE HAVE ALL ELEMENTS PROPERLY VALIDATED
 
+        if(veclen) {
+            // EXPAND ANY VECTORS AND THEN COMPOSE THE MATRIX
+            WORDPTR *base=DSTop;
+            for(j=1;j<=veclen;++j) {
+            for(i=nelem+1;i>=2;i--) {
+                rplPushData(rplMatrixGet(base[-i],1,j));
+            }
+            }
+            WORDPTR newmat=rplMatrixCompose(veclen,nelem);
 
+            if(!newmat) { DSTop=base; return; }
+
+            DSTop=base-nelem;
+            rplOverwriteData(1,newmat);
+            return;
+        }
+
+        // THESE ARE SIMPLE ELEMENTS, MAKE A VECTOR
+
+        rplDropData(1);
+
+        WORDPTR newmat=rplMatrixCompose(0,nelem);
+
+        if(!newmat) { return; }
+
+        rplDropData(nelem-1);
+        rplOverwriteData(1,newmat);
+        return;
 
 
 
         }
     case TODIAG:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISMATRIX(*rplPeekData(1))) {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+
+        WORDPTR matrix=rplPeekData(1);
+        WORDPTR *matptr=DSTop-1;
+        BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+        BINT nrows=(rows)? rows:1;
+        BINT i;
+
+        if(nrows>cols) nrows=cols;
+
+        for(i=1;i<=nrows;++i) rplPushData(rplMatrixFastGet(*matptr,i,i));
+
+        matrix=rplMatrixCompose(0,nrows);
+        if(!matrix) { DSTop=matptr+1; return; }
+        rplDropData(nrows);
+        rplOverwriteData(1,matrix);
+
+        return;
+
+    }
     case FROMDIAG:
+        {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISMATRIX(*rplPeekData(2))) {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+        WORDPTR matrix=rplPeekData(2);
+        BINT drows=MATROWS(matrix[1]),dcols=MATCOLS(matrix[1]);
+
+        if(drows) {
+            rplError(ERR_VECTOREXPECTED);
+            return;
+        }
+
+        BINT64 rows,cols;
+        WORDPTR *Savestk=DSTop;
+
+        if(ISLIST(*rplPeekData(1))) {
+            rplExplodeList(rplPeekData(1));
+            BINT ndims=rplReadNumberAsBINT(rplPopData());
+            if((ndims<1) || (ndims>2)) {
+                DSTop=Savestk;
+                rplError(ERR_INVALIDDIMENSION);
+                return;
+            }
+
+            cols=rplReadNumberAsBINT(rplPopData());
+            if(Exceptions) {
+                DSTop=Savestk;
+                return;
+            }
+
+            if(ndims==2) {
+
+                rows=rplReadNumberAsBINT(rplPopData());
+                if(Exceptions) {
+                    DSTop=Savestk;
+                    return;
+                }
+
+
+
+            } else rows=0;
+
+
+            if( (rows<0)||(rows>65535)||(cols<1)||(cols>65535))  {
+                DSTop=Savestk;
+                rplError(ERR_INVALIDDIMENSION);
+                return;
+            }
+
+            }
+        else {
+            // IT HAS TO BE A NUMBER
+
+            cols=rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions) {
+                DSTop=Savestk;
+                return;
+            }
+
+            rows=0;
+
+            if((cols<1)||(cols>65535))  {
+                DSTop=Savestk;
+                rplError(ERR_INVALIDDIMENSION);
+                return;
+            }
+
+        }
+
+        // HERE WE HAVE PROPER ROWS AND COLUMNS
+        BINT elements=(rows)? rows*cols:cols;
+
+        BINT i;
+        WORDPTR *first=DSTop;
+        for(i=0;i<elements;++i) rplPushData((WORDPTR)zero_bint);
+
+        if(Exceptions) { DSTop=Savestk; return; }
+
+        matrix=rplPeekData(elements+2);    // READ AGAIN IN CASE IT MOVED
+
+        if(dcols>cols) dcols=cols;
+        if(dcols>rows) dcols=rows? rows:1;
+
+        for(i=1;i<=dcols;++i) {
+            *rplMatrixFastGetEx(first,cols,i,i)=rplMatrixFastGet(matrix,1,i);
+        }
+
+        WORDPTR newmat=rplMatrixCompose(rows,cols);
+
+        if(newmat) {
+            rplDropData(elements+1);
+            rplOverwriteData(1,newmat);
+        } else DSTop=Savestk;
+
+        return;
+
+       }
+
     case TOROW:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISMATRIX(*rplPeekData(1))) {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+
+        WORDPTR matrix=rplPeekData(1);
+        WORDPTR *matptr=DSTop-1;
+        WORDPTR elem;
+        BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+        BINT nrows=(rows)? rows:1;
+        BINT i,j;
+
+        if(!rows) {
+            // USE VECTORS AS VERTICAL COLUMNS
+            nrows=cols;
+            cols=1;
+        }
+
+        for(i=1;i<=nrows;++i) {
+        for(j=1;j<=cols;++j) rplPushData(rplMatrixFastGet(*matptr,i,j));
+        if(rows) {
+            elem=rplMatrixCompose(0,cols);
+            if(!elem) return;
+            rplDropData(cols);
+        } else elem=rplPopData();
+
+        rplPushData(*matptr);
+        rplOverwriteData(2,elem);
+        matptr=DSTop-1;
+        }
+
+        rplDropData(1);
+        rplNewBINTPush(nrows,DECBINT);
+
+        return;
+
+    }
+
     case ADDROW:
+
     case REMROW:
     case FROMROW:
     case TOV2:

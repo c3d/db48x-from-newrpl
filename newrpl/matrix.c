@@ -22,7 +22,7 @@
 
 WORDPTR rplMatrixGet(WORDPTR matrix,BINT row,BINT col)
 {
-    if(!ISMATRIX(matrix)) return 0;
+    if(!ISMATRIX(*matrix)) return 0;
     BINT rows=MATROWS(*(matrix+1)),cols=MATCOLS(*(matrix+1));
 
     if(!rows) {
