@@ -1263,10 +1263,368 @@ void LIB_HANDLER()
     }
 
     case ADDROW:
+    {
+        if(rplDepthData()<3) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISMATRIX(*rplPeekData(3))) {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+        if(!ISMATRIX(*rplPeekData(2)) && !ISNUMBER(*rplPeekData(2))) {
+            rplError(ERR_MATRIXORREALEXPECTED);
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_REALEXPECTED);
+            return;
+        }
+
+        BINT64 nelem=rplReadNumberAsBINT(rplPeekData(1));
+
+
+
+
+
+        WORDPTR matrix=rplPeekData(3);
+        BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+
+        WORDPTR *matptr=DSTop-3;
+
+        if( (nelem<1)||(nelem>cols+1)) {
+            rplError(ERR_INDEXOUTOFBOUNDS);
+            return;
+        }
+
+
+        if(!rows) {
+            // ADD ELEMENTS TO A VECTOR
+
+            // CHECK VALID TYPES FOR MATRIX ELEMENTS
+            if(!ISNUMBERCPLX(*rplPeekData(2)) && !ISSYMBOLIC(*rplPeekData(2))
+                  && !ISIDENT(*rplPeekData(2)))
+             {
+                rplError(ERR_NOTALLOWEDINMATRIX);
+                return;
+            }
+
+            WORDPTR *first=rplMatrixNewEx(1,cols+1);
+
+            if(!first) {
+                return;
+            }
+
+
+            BINT j;
+            WORDPTR *stkelem;
+            for(j=1;j<nelem;++j) {
+                stkelem=rplMatrixFastGetEx(first,cols+1,1,j);
+                *stkelem=rplMatrixFastGet(*matptr,1,j);
+            }
+
+            stkelem=rplMatrixFastGetEx(first,cols+1,1,j);
+            *stkelem=matptr[1]; // THE NEW ELEMENT MIGHT HAVE MOVED, SO GET IT FROM THE STACK
+            ++j;
+
+            for(;j<=cols+1;++j) {
+                stkelem=rplMatrixFastGetEx(first,cols+1,1,j);
+                *stkelem=rplMatrixFastGet(*matptr,1,j-1);
+            }
+
+            // MAKE A NEW VECTOR
+
+            WORDPTR newmat=rplMatrixCompose(0,cols+1);
+            if(!newmat) {
+                DSTop=matptr+3;
+                return;
+            }
+
+            rplDropData(cols+4);
+            rplPushData(newmat);
+            return;
+
+        }
+
+        // ADD A VECTOR OR A MATRIX TO A MATRIX
+
+        if(!ISMATRIX(*rplPeekData(2))) {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+
+
+
+        WORDPTR mat2=rplPeekData(2);
+        BINT rows2=MATROWS(mat2[1]),cols2=MATCOLS(mat2[1]);
+
+
+        // CHECK PROPER SIZE
+
+        if(!rows2) {
+            // MAKE IT A ROW VECTOR
+            rows2=1;
+        }
+
+        if(cols2!=cols) {
+            rplError(ERR_INVALIDDIMENSION);
+            return;
+        }
+
+        // ADD THE ROWS
+
+        WORDPTR *first=rplMatrixNewEx(rows+rows2,cols);
+
+        if(!first) {
+            return;
+        }
+
+
+        BINT i,j;
+        WORDPTR *stkelem;
+        for(i=1;i<nelem;++i) {
+            for(j=1;j<=cols;++j) {
+            stkelem=rplMatrixFastGetEx(first,cols,i,j);
+            *stkelem=rplMatrixFastGet(*matptr,i,j);
+            }
+        }
+
+        for(;i<nelem+rows2;++i) {
+            for(j=1;j<=cols;++j) {
+            stkelem=rplMatrixFastGetEx(first,cols,i,j);
+            *stkelem=rplMatrixFastGet(matptr[1],i-nelem+1,j);
+            }
+        }
+
+        for(;i<=rows+rows2;++i) {
+            for(j=1;j<=cols;++j) {
+            stkelem=rplMatrixFastGetEx(first,cols,i,j);
+            *stkelem=rplMatrixFastGet(*matptr,i-rows2,j);
+            }
+        }
+
+        // MAKE A NEW VECTOR
+
+        WORDPTR newmat=rplMatrixCompose(rows+rows2,cols);
+        if(!newmat) {
+            DSTop=matptr+3;
+            return;
+        }
+
+        rplDropData(cols*(rows+rows2)+3);
+        rplPushData(newmat);
+        return;
+    }
 
     case REMROW:
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISMATRIX(*rplPeekData(2))) {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+        BINT64 nrow=rplReadNumberAsBINT(rplPeekData(1));
+
+        WORDPTR matrix=rplPeekData(2);
+        BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+        BINT nrows=(rows)? rows:1;
+
+        WORDPTR *matptr=DSTop-2;
+
+        if(!rows) {
+            // MAKE IT A COLUMN VECTOR
+            nrows=cols;
+            cols=1;
+        }
+
+        if(nrows<=1) {
+            rplError(ERR_INVALIDDIMENSION);
+            return;
+        }
+
+
+        if( (nrow<1)||(nrow>nrows)) {
+            rplError(ERR_INDEXOUTOFBOUNDS);
+            return;
+        }
+
+        // MAKE THE NEW MATRIX WITHOUT ONE ROW
+
+        WORDPTR *first=rplMatrixNewEx(nrows-1,cols);
+
+        if(!first) {
+            return;
+        }
+
+
+        BINT i,j;
+        WORDPTR *stkelem;
+        for(i=1;i<nrow;++i) {
+            for(j=1;j<=cols;++j) {
+            stkelem=rplMatrixFastGetEx(first,cols,i,j);
+            *stkelem=rplMatrixFastGet(*matptr,i,j);
+            }
+        }
+
+        // SEPARATE THE ROW VECTOR/ELEMENT
+        for(j=1;j<=cols;++j) {
+        rplPushData(rplMatrixFastGet(*matptr,i,j));
+        }
+
+
+        for(;i<=nrows-1;++i) {
+            for(j=1;j<=cols;++j) {
+            stkelem=rplMatrixFastGetEx(first,cols,i,j);
+            *stkelem=rplMatrixFastGet(*matptr,i+1,j);
+            }
+        }
+
+
+        // MAKE THE VECTOR FROM THE ELEMENTS
+        WORDPTR newmat;
+
+        if(rows) {
+            newmat=rplMatrixCompose(0,cols);
+            if(!newmat) {
+                DSTop=matptr+2;
+                return;
+            }
+            rplDropData(cols);
+
+        } else newmat=rplPopData();
+
+        matptr[1]=newmat;   //  OVERWRITE THE FIRST ARGUMENT WITH THE VECTOR
+
+
+        // MAKE A NEW VECTOR/MATRIX
+        if(rows) newmat=rplMatrixCompose(nrows-1,cols);
+        else newmat=rplMatrixCompose(0,nrows-1);
+        if(!newmat) {
+            DSTop=matptr+2;
+            return;
+        }
+
+        rplDropData((nrows-1)*cols);
+
+        rplOverwriteData(2,newmat);
+
+        return;
+
+    }
+
     case FROMROW:
+    {
+    if(rplDepthData()<1) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+    if(!ISNUMBER(*rplPeekData(1))) {
+        rplError(ERR_INTEGEREXPECTED);
+        return;
+    }
+
+    BINT64 nelem=rplReadNumberAsBINT(rplPeekData(1));
+
+    if(rplDepthData()<nelem+1) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+
+    BINT i,j;
+    BINT veclen=0;
+
+    for(i=2;i<=nelem+1;++i) {
+        if(ISMATRIX(*rplPeekData(i))) {
+            WORDPTR matrix=rplPeekData(i);
+            BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+
+            if(rows) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+
+            if(veclen) {
+                if(cols!=veclen) {
+                    rplError(ERR_INVALIDDIMENSION);
+                    return;
+                }
+            } else {
+                if(i==2) veclen=cols;
+                else {
+                    // DON'T ALLOW MIX OF VECTOR/NUMBERS
+                    rplError(ERR_REALEXPECTED);
+                    return;
+                }
+            }
+        }
+        else {
+            if(! (ISNUMBERCPLX(*rplPeekData(i))
+                  || ISSYMBOLIC(*rplPeekData(i))
+                  || ISIDENT(*rplPeekData(i)))) {
+                rplError(ERR_NOTALLOWEDINMATRIX);
+                        return;
+            }
+
+            if(veclen) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+
+        }
+    }
+
+    // HERE WE HAVE ALL ELEMENTS PROPERLY VALIDATED
+
+    if(veclen) {
+        // EXPAND ANY VECTORS AND THEN COMPOSE THE MATRIX
+        WORDPTR *base=DSTop;
+        for(i=nelem+1;i>=2;i--) {
+        for(j=1;j<=veclen;++j) {
+            rplPushData(rplMatrixGet(base[-i],1,j));
+        }
+        }
+        WORDPTR newmat=rplMatrixCompose(nelem,veclen);
+
+        if(!newmat) { DSTop=base; return; }
+
+        DSTop=base-nelem;
+        rplOverwriteData(1,newmat);
+        return;
+    }
+
+    // THESE ARE SIMPLE ELEMENTS, MAKE A VECTOR
+
+    rplDropData(1);
+
+    WORDPTR newmat=rplMatrixCompose(0,nelem);
+
+    if(!newmat) { return; }
+
+    rplDropData(nelem-1);
+    rplOverwriteData(1,newmat);
+    return;
+
+
+
+    }
+
+
+
     case TOV2:
+
+
+
+
+
     case TOV3:
     case FROMV:
     case DOMATPRE:
