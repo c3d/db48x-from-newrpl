@@ -114,7 +114,13 @@ typedef struct {
 } NUMFORMAT;
 
 
-
+typedef union {
+    WORD word;
+    struct {
+    signed exp:16;
+    unsigned len:12,flags:4;
+    };
+} REAL_HEADER;
 
 
 

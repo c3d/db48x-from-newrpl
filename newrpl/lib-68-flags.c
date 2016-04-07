@@ -40,7 +40,12 @@
     CMD(MENUSWAP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(COPYCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(CUTCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    CMD(PASTECLIP,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2))
+    CMD(PASTECLIP,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DEG,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    CMD(GRAD,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RAD,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DMS,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2))
+
 
 // ADD MORE OPCODES HERE
 
@@ -134,6 +139,7 @@ const systemflag const flags_names[]= {
     { "DEG", { 17,18,0,0,0,0,0,0}  },
     { "RAD", {0x80|17,18,0,0,0,0,0,0} },
     { "GRAD", {17, 0X80|18,0,0,0,0,0,0} },
+    { "DMS", {0x80|17,0x80|18,0,0,0,0,0,0} },
     { "COMMENTS", {0x80|30,0,0,0,0,0,0,0} },
     { "ACTIVEMENU1", { 0x80|4,0,0,0,0,0,0,0} },
     { "ACTIVEMENU2", { 4, 0,0,0,0,0,0,0} },
@@ -1124,6 +1130,25 @@ void LIB_HANDLER()
         else rplPushData(object);
         return;
     }
+
+    case DEG:
+        rplClrSystemFlag(-17);
+        rplClrSystemFlag(-18);
+        return;
+    case RAD:
+        rplSetSystemFlag(-17);
+        rplClrSystemFlag(-18);
+        return;
+    case GRAD:
+        rplClrSystemFlag(-17);
+        rplSetSystemFlag(-18);
+        return;
+    case DMS:
+        rplSetSystemFlag(-17);
+        rplSetSystemFlag(-18);
+        return;
+
+
 
     // ADD MORE OPCODES HERE
 

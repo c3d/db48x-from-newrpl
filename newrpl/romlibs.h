@@ -21,6 +21,7 @@
     INCLUDELIB(28,lib-28-dirs.c) , \
     INCLUDELIB(30,lib-30-complex.c) , \
     INCLUDELIB(32,lib-32-lam.c) , \
+    INCLUDELIB(48,lib-48-angles.c), \
     INCLUDELIB(52,lib-52-matrix.c) , \
     INCLUDELIB(54,lib-54-units.c) , \
     INCLUDELIB(56,lib-56-symbolic.c) , \

@@ -44,9 +44,6 @@
     CMD(ATANH,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
     CMD(LOG,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
     CMD(ALOG,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
-    CMD(DEG,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    CMD(GRAD,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RAD,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
     ECMD(SQRT,"√",MKTOKENINFO(1,TITYPE_PREFIXOP,1,3)), \
     ECMD(PINUM,"π0",MKTOKENINFO(2,TITYPE_PREFIXOP,0,3))
 
@@ -1393,20 +1390,6 @@ void LIB_HANDLER()
 
 
     }
-
-
-    case DEG:
-        rplClrSystemFlag(-17);
-        rplClrSystemFlag(-18);
-        return;
-    case RAD:
-        rplSetSystemFlag(-17);
-        rplClrSystemFlag(-18);
-        return;
-    case GRAD:
-        rplClrSystemFlag(-17);
-        rplSetSystemFlag(-18);
-        return;
 
 
     // ADD MORE OPCODES HERE

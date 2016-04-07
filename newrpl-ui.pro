@@ -122,7 +122,8 @@ SOURCES += main.cpp\
     newrpl/lib-20-comments.c \
     firmware/sys/target_pc/flash.c \
     firmware/ui_softmenu.c \
-    firmware/ggl/ggl/ggl_fltinvert.c
+    firmware/ggl/ggl/ggl_fltinvert.c \
+    newrpl/lib-48-angles.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -153,7 +154,8 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-24.nrpl \
                 newrpl/rpl-objects/lib-28.nrpl \
                 newrpl/rpl-objects/lib-30.nrpl \
-                newrpl/rpl-objects/lib-32.nrpl
+                newrpl/rpl-objects/lib-32.nrpl \
+                newrpl/rpl-objects/lib-48.nrpl
 
 
 INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include

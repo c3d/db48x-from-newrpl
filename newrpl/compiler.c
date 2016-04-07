@@ -726,7 +726,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                 **(ValidateTop-1)=**(ValidateTop-1)+1; // POINTER TO THE WORD OF THE COMPOSITE, TEMPORARILY STORE THE NUMBER OF ARGUMENTS AS THE SIZE
                 break;
 
-                case ERR_INVALID:
+            case ERR_INVALID:
                 // GIVE A CHANCE TO THE LIBRARY TO SET ITS OWN ERROR CODE
                 if(!Exceptions) rplError(ERR_SYNTAXERROR);
                 LAMTop=LAMTopSaved;
@@ -758,7 +758,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
         validate=0;
     }
 
-    } while( (NextTokenStart<CompileStringEnd) && !Exceptions );
+    } while( (splittoken || (NextTokenStart<CompileStringEnd)) && !Exceptions );
 
  if(!Exceptions && addwrapper) {
      // JUST FINISHED THE STRING, NOW ADD THE END OF THE WRAPPER

@@ -12,6 +12,17 @@
 // INTERNAL TRANSCENDENTAL FUNCTIONS
 
 void decconst_PI(REAL *real);
+void decconst_2PI(REAL *real);
+void decconst_PI_2(REAL *real);
+void decconst_PI_4(REAL *real);
+void decconst_PI_200(REAL *real);
+void decconst_PI_180(REAL *real);
+void decconst_180_PI(REAL *real);
+void decconst_200_PI(REAL *real);
+void decconst_ln10(REAL *real);
+void decconst_ln10_2(REAL *real);
+void decconst_One(REAL *real);
+
 
 void hyp_exp(REAL *);
 void hyp_ln(REAL *);

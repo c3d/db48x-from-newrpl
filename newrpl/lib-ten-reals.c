@@ -64,13 +64,7 @@ const WORDPTR const ROMPTR_TABLE[]={
 };
 
 
-typedef union {
-    WORD word;
-    struct {
-    signed exp:16;
-    unsigned len:12,flags:4;
-    };
-} REAL_HEADER;
+
 /*
 const CONTEXT CompileContext = {
     .prec=REAL_PRECISION_MAX,

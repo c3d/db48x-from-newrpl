@@ -203,6 +203,14 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define DOSYMB      56      // SYMBOLIC OBJECT
 
+#define DOANGLE     48      // ANGLE TAGGED REALS
+#define ANGLEDEG     0
+#define ANGLERAD     1
+#define ANGLEGRAD    2
+#define ANGLEDMS     3
+
+
+
 #define DOMATRIX    52       // ARRAY OBJECT
 
 
@@ -226,6 +234,8 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define ISUNIT(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOUNIT))
 #define ISNUMBERORUNIT(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISUNIT(prolog))
+
+#define ISANGLE(prolog)   (ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOANGLE))
 
 #define ISSYMBOLIC(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOSYMB))
 #define ISMATRIX(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOMATRIX))
