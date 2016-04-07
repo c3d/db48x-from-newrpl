@@ -429,11 +429,12 @@ void rplCompileReal(REAL *num);
 // COMPLEX FUNCTIONS
 void rplRealPart(WORDPTR complex,REAL *real);
 void rplImaginaryPart(WORDPTR complex,REAL *imag);
+BINT rplPolarComplexMode(WORDPTR complex);
 void rplReadCNumberAsReal(WORDPTR complex,REAL *real);
 void rplReadCNumberAsImag(WORDPTR complex,REAL *imag);
-void rplNewComplexPush(REAL *real,REAL *imag);
-void rplRRegToComplexPush(BINT real,BINT imag);
-WORDPTR rplRRegToComplexInPlace(BINT real,BINT imag,WORDPTR dest);
+void rplNewComplexPush(REAL *real, REAL *imag, BINT angmode);
+void rplRRegToComplexPush(BINT real, BINT imag, BINT angmode);
+WORDPTR rplRRegToComplexInPlace(BINT real, BINT imag, WORDPTR dest, BINT angmode);
 
 
 

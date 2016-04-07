@@ -77,20 +77,32 @@ const WORDPTR const ROMPTR_TABLE[]={
 
 void rplRealPart(WORDPTR complex,REAL *real)
 {
-    rplReadNumberAsReal(++complex,real);
+    WORDPTR part=++complex;
+    if(ISANGLE(*part)) ++part;
+    rplReadNumberAsReal(part,real);
 }
 
 void rplImaginaryPart(WORDPTR complex,REAL *imag)
 {
-    rplReadNumberAsReal(rplSkipOb(++complex),imag);
+    WORDPTR part=rplSkipOb(++complex);
+    if(ISANGLE(*part)) ++part;
+    rplReadNumberAsReal(part,imag);
+}
+
+// RETURN -1 IF NOT POLAR, OTHERWISE RETURN THE ANGLE MODE
+BINT rplPolarComplexMode(WORDPTR complex)
+{
+    WORDPTR part=rplSkipOb(++complex);
+    if(ISANGLE(*part)) return LIBNUM(*part)&3;
+    return -1;
 }
 
 
 // GETS THE REAL PART OF ANY NUMBER: IF BINT OR REAL, GET THE NUMBER. IF COMPLEX, RETURN THE REAL PART.
 void rplReadCNumberAsReal(WORDPTR complex,REAL *real)
 {
-    if(ISCOMPLEX(*complex)) ++complex;
-    rplReadNumberAsReal(complex,real);
+    if(ISCOMPLEX(*complex)) rplRealPart(complex,real);
+    else rplReadNumberAsReal(complex,real);
 }
 
 void rplReadCNumberAsImag(WORDPTR complex,REAL *imag)
@@ -108,7 +120,7 @@ void rplReadCNumberAsImag(WORDPTR complex,REAL *imag)
 
 // CREATE COMPLEX NUMBER FROM 2 RREG'S AND PUSH IT ON THE STACK
 
-void rplNewComplexPush(REAL *real,REAL *imag)
+void rplNewComplexPush(REAL *real,REAL *imag,BINT angmode)
 {
     if(iszeroReal(imag)) {
         // IT'S A REAL NUMBER, THERE'S NO IMAGINARY PART
@@ -117,11 +129,13 @@ void rplNewComplexPush(REAL *real,REAL *imag)
     }
     BINT size=4+real->len+imag->len;
 
+    if(angmode!=ANGLENONE) ++size;
+
     ScratchPointer1=(WORDPTR)real->data;
     ScratchPointer2=(WORDPTR)imag->data;
 
     WORDPTR newobject=rplAllocTempOb(size);
-    WORDPTR parts;
+    WORDPTR parts,end;
     if(!newobject) {
         return;
     }
@@ -130,10 +144,11 @@ void rplNewComplexPush(REAL *real,REAL *imag)
     imag->data=(BINT *)ScratchPointer2;
 
     parts=rplNewRealInPlace(real,newobject+1);
-    parts=rplNewRealInPlace(imag,parts);
-    newobject[0]=MKPROLOG(LIBRARY_NUMBER,parts-newobject-1);
+    end=rplNewRealInPlace(imag,parts+((angmode!=ANGLENONE)? 1:0));
+    if(angmode!=ANGLENONE) parts[0]=MKPROLOG(DOANGLE+angmode,end-parts-1);
+    newobject[0]=MKPROLOG(LIBRARY_NUMBER,end-newobject-1);
 
-    rplTruncateLastObject(parts);
+    rplTruncateLastObject(end);
 
     rplPushData(newobject);
 
@@ -142,9 +157,9 @@ void rplNewComplexPush(REAL *real,REAL *imag)
 
 // CREATE COMPLEX NUMBER FROM 2 RREG'S AND PUSH IT ON THE STACK
 
-void rplRRegToComplexPush(BINT real,BINT imag)
+void rplRRegToComplexPush(BINT real,BINT imag,BINT angmode)
 {
-    rplNewComplexPush( &RReg[real],&RReg[imag]);
+    rplNewComplexPush( &RReg[real],&RReg[imag],angmode);
 }
 
 
@@ -157,18 +172,19 @@ void rplRRegToComplexPush(BINT real,BINT imag)
 // DOES NOT ALLOCATE MEMORY FROM THE SYSTEM
 // USED INTERNALLY FOR COMPOSITES
 
-WORDPTR rplRRegToComplexInPlace(BINT real,BINT imag,WORDPTR dest)
+WORDPTR rplRRegToComplexInPlace(BINT real,BINT imag,WORDPTR dest,BINT angmode)
 {
     if(iszeroReal(&RReg[imag])) {
         // IT'S A REAL NUMBER, THERE'S NO IMAGINARY PART
         return rplRRegToRealInPlace(real,dest);
     }
-    WORDPTR parts;
+    WORDPTR parts,end;
     parts=rplRRegToRealInPlace(real,dest+1);
-    parts=rplRRegToRealInPlace(imag,parts);
-    dest[0]=MKPROLOG(LIBRARY_NUMBER,parts-dest-1);
+    end=rplRRegToRealInPlace(imag,parts+((angmode!=ANGLENONE)? 1:0));
+    if(angmode!=ANGLENONE) parts[0]=MKPROLOG(DOANGLE+angmode,end-parts-1);
+    dest[0]=MKPROLOG(LIBRARY_NUMBER,end-dest-1);
 
-    return parts;
+    return end;
 }
 
 
@@ -254,7 +270,7 @@ void LIB_HANDLER()
             rplCheckResultAndError(&RReg[0]);
             rplCheckResultAndError(&RReg[1]);
 
-            rplRRegToComplexPush(0,1);
+            rplRRegToComplexPush(0,1,ANGLENONE);
             return;
 
         case OVR_SUB:
@@ -263,7 +279,7 @@ void LIB_HANDLER()
             rplCheckResultAndError(&RReg[0]);
             rplCheckResultAndError(&RReg[1]);
 
-            rplRRegToComplexPush(0,1);
+            rplRRegToComplexPush(0,1,ANGLENONE);
 
             return;
 
@@ -280,7 +296,7 @@ void LIB_HANDLER()
             finalize(&RReg[2]);
             rplCheckResultAndError(&RReg[0]);
             rplCheckResultAndError(&RReg[1]);
-            rplRRegToComplexPush(2,3);
+            rplRRegToComplexPush(2,3,ANGLENONE);
             return;
 
         case OVR_DIV:
@@ -311,7 +327,7 @@ void LIB_HANDLER()
             rplCheckResultAndError(&RReg[0]);
             rplCheckResultAndError(&RReg[1]);
 
-            rplRRegToComplexPush(0,1);
+            rplRRegToComplexPush(0,1,ANGLENONE);
 
             return;
 
@@ -393,7 +409,7 @@ void LIB_HANDLER()
                 mulReal(&RReg[1],&RReg[7],&RReg[8]);
 
 
-                rplRRegToComplexPush(0,1);
+                rplRRegToComplexPush(0,1,ANGLENONE);
                 return;
             }
 
@@ -431,7 +447,7 @@ void LIB_HANDLER()
 
             rplCheckResultAndError(&RReg[0]);
             rplCheckResultAndError(&RReg[1]);
-            rplRRegToComplexPush(0,1);
+            rplRRegToComplexPush(0,1,ANGLENONE);
 
             return;
         }
@@ -493,7 +509,7 @@ void LIB_HANDLER()
                 rplCheckResultAndError(&RReg[0]);
                 rplCheckResultAndError(&RReg[1]);
 
-                rplRRegToComplexPush(0,1);
+                rplRRegToComplexPush(0,1,ANGLENONE);
 
                 return;
 
@@ -501,7 +517,7 @@ void LIB_HANDLER()
             if(!iszeroReal(&Rarg1)) Rarg1.flags^=F_NEGATIVE;
             if(!iszeroReal(&Iarg1)) Iarg1.flags^=F_NEGATIVE;
 
-            rplNewComplexPush(&Rarg1,&Iarg1);
+            rplNewComplexPush(&Rarg1,&Iarg1,ANGLENONE);
 
             return;
         case OVR_ABS:
@@ -633,7 +649,7 @@ void LIB_HANDLER()
             if(!iszeroReal(&imag)) imag.flags^=F_NEGATIVE;
 
             rplDropData(1);
-            rplNewComplexPush(&real,&imag);
+            rplNewComplexPush(&real,&imag,ANGLENONE);
 
         return;
     }

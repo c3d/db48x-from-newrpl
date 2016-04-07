@@ -27,7 +27,23 @@
 // IN THE ECMD() FORM, THE ENUM SYMBOL AND THE
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
-//#define COMMAND_LIST
+#define COMMAND_LIST \
+    ECMD(TAGDEG,"→∡°",MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TAGRAD,"→∡r",MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TAGGRAD,"→∡g",MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TAGDMS,"→∡d",MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(ANGTODEG,"A→∡°",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(ANGTORAD,"A→∡r",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(ANGTOGRAD,"A→∡g",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(ANGTODMS,"A→∡d",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(ANGTO,"ANG→",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TORECT,"→RECT",MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TOPOLAR,"→POLAR",MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TOSPHER,"→SPHER",MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+
+
+
+
 #define ERROR_LIST \
         ERR(REALORANGLEEXPECTED,0)
 
@@ -583,6 +599,146 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
+
+    case TAGDEG:
+    {
+    // TAG A NUMBER
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(ISNUMBER(*rplPeekData(1))) {
+            WORDPTR newang=rplNewAngleFromNumber(rplPeekData(1),ANGLEDEG);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+            return;
+        }
+        rplError(ERR_REALEXPECTED);
+        return;
+
+    }
+    case TAGRAD:
+    {
+    // TAG A NUMBER
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(ISNUMBER(*rplPeekData(1))) {
+            WORDPTR newang=rplNewAngleFromNumber(rplPeekData(1),ANGLERAD);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+            return;
+        }
+        rplError(ERR_REALEXPECTED);
+        return;
+
+    }
+
+    case TAGGRAD:
+    {
+    // TAG A NUMBER
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(ISNUMBER(*rplPeekData(1))) {
+            WORDPTR newang=rplNewAngleFromNumber(rplPeekData(1),ANGLEGRAD);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+            return;
+        }
+        rplError(ERR_REALEXPECTED);
+        return;
+
+    }
+
+    case TAGDMS:
+    {
+    // TAG A NUMBER
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(ISNUMBER(*rplPeekData(1))) {
+            WORDPTR newang=rplNewAngleFromNumber(rplPeekData(1),ANGLEDMS);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+            return;
+        }
+        rplError(ERR_REALEXPECTED);
+        return;
+
+    }
+
+    case ANGTODEG:
+    {
+        // CONVERT ANGLE TO DEGREES
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(ISNUMBER(*rplPeekData(1))) {
+            REAL num;
+            rplReadNumberAsReal(rplPeekData(1),&num);
+            BINT angmode=rplTestSystemFlag(-17)|(rplTestSystemFlag(-18)<<1);
+            rplConvertAngle(&num,angmode,ANGLEDEG);
+
+            WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLEDEG);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+            return;
+        }
+        if(ISANGLE(*rplPeekData(1))) {
+            rplConvertAngleObj(rplPeekData(1),ANGLEDEG);
+
+            WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLEDEG);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+            return;
+        }
+
+
+        if(ISCOMPLEX(*rplPeekData(1))) {
+            BINT angmode=rplPolarComplexMode(rplPeekData(1));
+
+            if(angmode<0) return;   // NOTHING TO DO
+            if(angmode==ANGLEDEG) return; // ALREADY IN THE RIGHT SYSTEM
+
+            REAL rp,ip;
+            rplRealPart(rplPeekData(1),&rp);
+            rplImaginaryPart(rplPeekData(1),&ip);
+
+            rplConvertAngle(&ip,angmode,ANGLEDEG);
+
+            rplDropData(1);
+            rplNewComplexPush(&rp,&RReg[0],ANGLEDEG);
+
+            return;
+
+       }
+
+        rplError(ERR_REALEXPECTED);
+        return;
+
+
+    }
+    case ANGTORAD:
+    case ANGTOGRAD:
+    case ANGTODMS:
+    case ANGTO:
+    case TORECT:
+    case TOPOLAR:
+    case TOSPHER:
+
+
+
+    return;
+
+
+
+
+
     // STANDARIZED OPCODES:
     // --------------------
     // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
@@ -609,10 +765,8 @@ void LIB_HANDLER()
             return;
         }
 
-        if(utf8ncmp((char *)TokenStart,"∡",1)) {
-           RetNum=ERR_NOTMINE;
-           return;
-        }
+        if(!utf8ncmp((char *)TokenStart,"∡",1)) {
+
 
         // POINT TO THE LAST CHARACTER
         BINT tlen=TokenLen-1;
@@ -688,13 +842,20 @@ void LIB_HANDLER()
 
     }
 
+        // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
+        // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
+        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+     return;
+    }
+
     case OPCODE_DECOMPEDIT:
 
     case OPCODE_DECOMPILE:
         // DECOMPILE RECEIVES:
         // DecompileObject = Ptr to WORD of object to decompile
         // DecompStringEnd = Byte Ptr to end of current string. Write here with rplDecompAppendString(); rplDecompAppendChar();
-        {
+
+        if(ISPROLOG(*DecompileObject)) {
         rplDecompAppendString((BYTEPTR)"∡");
 
 
@@ -743,7 +904,7 @@ void LIB_HANDLER()
         }
         DecompStringEnd=(WORDPTR) formatReal(&realnum,(char *)string,Format,fmt.Locale);
 
-        }
+
 
         switch(LIBNUM(*DecompileObject)&3)
         {
@@ -763,6 +924,18 @@ void LIB_HANDLER()
 
         RetNum=OK_CONTINUE;
         return;
+        }
+
+
+        // STANDARD COMMAND HANDLING
+        // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
+        // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
+        libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        return;
+
+
+
+
 
 
     case OPCODE_VALIDATE:
@@ -920,8 +1093,8 @@ void LIB_HANDLER()
 
 
     case OPCODE_AUTOCOMPNEXT:
-        //libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
-        RetNum=ERR_NOTMINE;
+        libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
+        //RetNum=ERR_NOTMINE;
         return;
 
       case OPCODE_LIBMSG:

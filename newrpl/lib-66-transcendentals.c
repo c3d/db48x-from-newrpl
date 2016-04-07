@@ -1192,7 +1192,7 @@ void LIB_HANDLER()
 
             // DONE, RETURN THE COMPLEX ROOTS
             rplDropData(1);
-            rplNewComplexPush(&RReg[9],&RReg[0]);
+            rplNewComplexPush(&RReg[9],&RReg[0],ANGLENONE);
 
 
             return;
@@ -1243,7 +1243,7 @@ void LIB_HANDLER()
         rplDropData(1);
         if(iscplx) {
             rplZeroToRReg(1);
-            rplNewComplexPush(&RReg[1],&RReg[0]);
+            rplNewComplexPush(&RReg[1],&RReg[0],ANGLENONE);
         } else rplNewRealFromRRegPush(0);
         return;
 

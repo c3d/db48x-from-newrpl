@@ -204,6 +204,8 @@ void libFindMsg(BINT message,WORDPTR table);
 #define DOSYMB      56      // SYMBOLIC OBJECT
 
 #define DOANGLE     48      // ANGLE TAGGED REALS
+
+#define ANGLENONE    -1
 #define ANGLEDEG     0
 #define ANGLERAD     1
 #define ANGLEGRAD    2
