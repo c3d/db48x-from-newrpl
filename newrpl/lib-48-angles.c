@@ -36,7 +36,6 @@
     ECMD(ANGTORAD,"A→∡r",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     ECMD(ANGTOGRAD,"A→∡g",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     ECMD(ANGTODMS,"A→∡d",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(ANGTO,"ANG→",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     ECMD(TORECT,"→RECT",MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     ECMD(TOPOLAR,"→POLAR",MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     ECMD(TOSPHER,"→SPHER",MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
@@ -723,10 +722,166 @@ void LIB_HANDLER()
 
 
     }
+
     case ANGTORAD:
+    {
+        // CONVERT ANGLE TO DEGREES
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(ISNUMBER(*rplPeekData(1))) {
+            REAL num;
+            rplReadNumberAsReal(rplPeekData(1),&num);
+            BINT angmode=rplTestSystemFlag(-17)|(rplTestSystemFlag(-18)<<1);
+            rplConvertAngle(&num,angmode,ANGLERAD);
+
+            WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLERAD);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+            return;
+        }
+        if(ISANGLE(*rplPeekData(1))) {
+            rplConvertAngleObj(rplPeekData(1),ANGLERAD);
+
+            WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLERAD);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+            return;
+        }
+
+
+        if(ISCOMPLEX(*rplPeekData(1))) {
+            BINT angmode=rplPolarComplexMode(rplPeekData(1));
+
+            if(angmode<0) return;   // NOTHING TO DO
+            if(angmode==ANGLERAD) return; // ALREADY IN THE RIGHT SYSTEM
+
+            REAL rp,ip;
+            rplRealPart(rplPeekData(1),&rp);
+            rplImaginaryPart(rplPeekData(1),&ip);
+
+            rplConvertAngle(&ip,angmode,ANGLERAD);
+
+            rplDropData(1);
+            rplNewComplexPush(&rp,&RReg[0],ANGLERAD);
+
+            return;
+
+       }
+
+        rplError(ERR_REALEXPECTED);
+        return;
+
+
+    }
+
     case ANGTOGRAD:
+    {
+        // CONVERT ANGLE TO DEGREES
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(ISNUMBER(*rplPeekData(1))) {
+            REAL num;
+            rplReadNumberAsReal(rplPeekData(1),&num);
+            BINT angmode=rplTestSystemFlag(-17)|(rplTestSystemFlag(-18)<<1);
+            rplConvertAngle(&num,angmode,ANGLEGRAD);
+
+            WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLEGRAD);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+            return;
+        }
+        if(ISANGLE(*rplPeekData(1))) {
+            rplConvertAngleObj(rplPeekData(1),ANGLEGRAD);
+
+            WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLEGRAD);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+            return;
+        }
+
+
+        if(ISCOMPLEX(*rplPeekData(1))) {
+            BINT angmode=rplPolarComplexMode(rplPeekData(1));
+
+            if(angmode<0) return;   // NOTHING TO DO
+            if(angmode==ANGLEGRAD) return; // ALREADY IN THE RIGHT SYSTEM
+
+            REAL rp,ip;
+            rplRealPart(rplPeekData(1),&rp);
+            rplImaginaryPart(rplPeekData(1),&ip);
+
+            rplConvertAngle(&ip,angmode,ANGLEGRAD);
+
+            rplDropData(1);
+            rplNewComplexPush(&rp,&RReg[0],ANGLEGRAD);
+
+            return;
+
+       }
+
+        rplError(ERR_REALEXPECTED);
+        return;
+
+
+    }
+
     case ANGTODMS:
-    case ANGTO:
+    {
+        // CONVERT ANGLE TO DEGREES
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(ISNUMBER(*rplPeekData(1))) {
+            REAL num;
+            rplReadNumberAsReal(rplPeekData(1),&num);
+            BINT angmode=rplTestSystemFlag(-17)|(rplTestSystemFlag(-18)<<1);
+            rplConvertAngle(&num,angmode,ANGLEDMS);
+
+            WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLEDMS);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+            return;
+        }
+        if(ISANGLE(*rplPeekData(1))) {
+            rplConvertAngleObj(rplPeekData(1),ANGLEDMS);
+
+            WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLEDMS);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+            return;
+        }
+
+
+        if(ISCOMPLEX(*rplPeekData(1))) {
+            BINT angmode=rplPolarComplexMode(rplPeekData(1));
+
+            if(angmode<0) return;   // NOTHING TO DO
+            if(angmode==ANGLEDMS) return; // ALREADY IN THE RIGHT SYSTEM
+
+            REAL rp,ip;
+            rplRealPart(rplPeekData(1),&rp);
+            rplImaginaryPart(rplPeekData(1),&ip);
+
+            rplConvertAngle(&ip,angmode,ANGLEDMS);
+
+            rplDropData(1);
+            rplNewComplexPush(&rp,&RReg[0],ANGLEDMS);
+
+            return;
+
+       }
+
+        rplError(ERR_REALEXPECTED);
+        return;
+
+
+    }
+
     case TORECT:
     case TOPOLAR:
     case TOSPHER:

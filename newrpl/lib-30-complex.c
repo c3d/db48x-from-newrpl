@@ -736,10 +736,10 @@ void LIB_HANDLER()
         }
         // CHECK IF THE TOKEN IS THE CLOSING BRACKET
 
-        if(((char * )TokenStart)[TokenLen-1]==')')
+        if(*utf8nskip((char *)TokenStart,(char *)BlankStart,TokenLen-1)==')')
         {
             if(TokenLen>1) {
-                BlankStart=NextTokenStart=(WORDPTR)(((char * )TokenStart)+TokenLen-1);
+                BlankStart=NextTokenStart=(WORDPTR)utf8nskip((char *)TokenStart,(char *)BlankStart,TokenLen-1);
                 RetNum=ERR_NOTMINE_SPLITTOKEN;
                 return;
             }
@@ -862,7 +862,14 @@ void LIB_HANDLER()
 
         // VALIDATE RETURNS:
         // RetNum =  OK_CONTINUE IF THE OBJECT IS ACCEPTED, ERR_INVALID IF NOT.
-        if(ISNUMBER(*LastCompiledObject)) RetNum=OK_INCARGCOUNT;
+        if(ISNUMBER(*LastCompiledObject) || ISANGLE(*LastCompiledObject)) {
+            if( (OBJSIZE(CurrentConstruct)==0)&& ISANGLE(*LastCompiledObject)) {
+                // ANGLES ARE NOT ACCEPTABLE IN THE FIRST COMPONENT
+                rplError(ERR_NOTALLOWEDINCOMPLEX);
+                RetNum=ERR_INVALID;
+            }
+            else  RetNum=OK_INCARGCOUNT;
+        }
         else {
             rplError(ERR_NOTALLOWEDINCOMPLEX);
             RetNum=ERR_INVALID;
