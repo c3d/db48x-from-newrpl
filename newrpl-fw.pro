@@ -51,6 +51,7 @@ SOURCES +=\
     newrpl/lib-28-dirs.c \
     newrpl/lib-30-complex.c \
     newrpl/lib-32-lam.c \
+    newrpl/lib-48-angles.c \
     newrpl/lib-52-matrix.c \
     newrpl/lib-54-units.c \
     newrpl/lib-56-symbolic.c \
@@ -142,9 +143,16 @@ HEADERS  += \
     newrpl/romlibs.h
 
 
-RPL_OBJECTS = newrpl/rpl-objects/lib-54.nrpl \
-              newrpl/rpl-objects/lib-9.nrpl \
-              newrpl/rpl-objects/lib-10.nrpl
+RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
+                newrpl/rpl-objects/lib-9.nrpl \
+                newrpl/rpl-objects/lib-10.nrpl \
+                newrpl/rpl-objects/lib-12.nrpl \
+                newrpl/rpl-objects/lib-20.nrpl \
+                newrpl/rpl-objects/lib-24.nrpl \
+                newrpl/rpl-objects/lib-28.nrpl \
+                newrpl/rpl-objects/lib-30.nrpl \
+                newrpl/rpl-objects/lib-32.nrpl \
+                newrpl/rpl-objects/lib-48.nrpl
 
 
 
