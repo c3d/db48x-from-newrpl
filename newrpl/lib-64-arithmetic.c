@@ -42,7 +42,8 @@
     ECMD(ISPRIME,"ISPRIME?",MKTOKENINFO(8,TITYPE_FUNCTION,1,2)), \
     CMD(MANT,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(XPON,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
-    CMD(SIGN,MKTOKENINFO(4,TITYPE_FUNCTION,1,2))
+    CMD(SIGN,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    ECMD(PERCENT,"%",MKTOKENINFO(1,TITYPE_FUNCTION,2,2))
 
 
 // ADD MORE OPCODES HERE
@@ -757,7 +758,86 @@ void LIB_HANDLER()
         rplError(ERR_REALEXPECTED);
         return;
     }
+    case PERCENT:
+    {
 
+            if(rplDepthData()<2) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            WORDPTR arg=rplPeekData(2);
+
+            // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+            // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+            if(ISLIST(*arg)) {
+
+                BINT size1=rplObjSize(rplPeekData(1));
+                WORDPTR *savestk=DSTop;
+
+                WORDPTR newobj=rplAllocTempOb(2+size1);
+                if(!newobj) return;
+
+                // CREATE A PROGRAM AND RUN THE MAP COMMAND
+                newobj[0]=MKPROLOG(DOCOL,2+size1);
+                rplCopyObject(newobj+1,rplPeekData(1));
+                newobj[size1+1]=CurOpcode;
+                newobj[size1+2]=CMD_SEMI;
+
+                rplDropData(1);
+                rplPushData(newobj);
+
+                rplCallOperator(CMD_MAP);
+
+                if(Exceptions) {
+                    if(DSTop>savestk) DSTop=savestk;
+                }
+
+                // EXECUTION WILL CONTINUE AT MAP
+
+                return;
+            }
+
+
+
+            if(!ISNUMBER(*arg)) {
+                rplError(ERR_BADARGTYPE);
+                return;
+            }
+
+            WORDPTR pct=rplPeekData(1);
+
+            if(ISIDENT(*arg) || ISSYMBOLIC(*arg) || ISIDENT(*pct) || ISSYMBOLIC(*pct)) {
+                rplSymbApplyOperator(CurOpcode,2);
+                return;
+            }
+
+
+            if( !ISNUMBER(*arg) || !ISNUMBER(*pct)) {
+                rplError(ERR_BADARGTYPE);
+                return;
+            }
+
+           // DO IT ALL WITH REALS
+
+            REAL x,y,hundred;
+            rplReadNumberAsReal(arg,&y);
+            rplReadNumberAsReal(pct,&x);
+            mulReal(&RReg[7],&x,&y);
+
+            rplReadNumberAsReal((WORDPTR)hundred_bint,&hundred);
+
+            if(Exceptions) return;
+            divReal(&RReg[6],&RReg[7],&hundred);
+
+            finalize(&RReg[6]);
+
+            rplDropData(2);
+
+            rplNewRealFromRRegPush(6);
+
+            return;
+
+    }
 
         // ADD MORE OPCODES HERE
 
