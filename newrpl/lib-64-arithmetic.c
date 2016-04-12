@@ -587,13 +587,6 @@ void LIB_HANDLER()
                 return;
             }
 
-
-
-            if(!ISNUMBER(*arg)) {
-                rplError(ERR_BADARGTYPE);
-                return;
-            }
-
             WORDPTR mod=rplPeekData(1);
 
             if(ISIDENT(*arg) || ISSYMBOLIC(*arg) || ISIDENT(*mod) || ISSYMBOLIC(*mod)) {
@@ -765,75 +758,31 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
-            WORDPTR arg=rplPeekData(2);
-
-            // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
-            // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
-            if(ISLIST(*arg)) {
-
-                BINT size1=rplObjSize(rplPeekData(1));
-                WORDPTR *savestk=DSTop;
-
-                WORDPTR newobj=rplAllocTempOb(2+size1);
-                if(!newobj) return;
-
-                // CREATE A PROGRAM AND RUN THE MAP COMMAND
-                newobj[0]=MKPROLOG(DOCOL,2+size1);
-                rplCopyObject(newobj+1,rplPeekData(1));
-                newobj[size1+1]=CurOpcode;
-                newobj[size1+2]=CMD_SEMI;
-
-                rplDropData(1);
-                rplPushData(newobj);
-
-                rplCallOperator(CMD_MAP);
-
-                if(Exceptions) {
-                    if(DSTop>savestk) DSTop=savestk;
-                }
-
-                // EXECUTION WILL CONTINUE AT MAP
-
-                return;
-            }
-
-
-
-            if(!ISNUMBER(*arg)) {
-                rplError(ERR_BADARGTYPE);
-                return;
-            }
-
             WORDPTR pct=rplPeekData(1);
 
-            if(ISIDENT(*arg) || ISSYMBOLIC(*arg) || ISIDENT(*pct) || ISSYMBOLIC(*pct)) {
+            if(ISIDENT(*pct) || ISSYMBOLIC(*pct)) {
                 rplSymbApplyOperator(CurOpcode,2);
                 return;
             }
 
 
-            if( !ISNUMBER(*arg) || !ISNUMBER(*pct)) {
+            if(!ISNUMBER(*pct)) {
                 rplError(ERR_BADARGTYPE);
                 return;
             }
 
            // DO IT ALL WITH REALS
 
-            REAL x,y,hundred;
-            rplReadNumberAsReal(arg,&y);
+            REAL x;
             rplReadNumberAsReal(pct,&x);
-            mulReal(&RReg[7],&x,&y);
+            x.exp -= 2; // divide by 100
 
-            rplReadNumberAsReal((WORDPTR)hundred_bint,&hundred);
+            // replace level 1 value
+            WORDPTR newnumber=rplNewReal(&x);
+            if(!newnumber) return;
+            rplOverwriteData(1,newnumber);
 
-            if(Exceptions) return;
-            divReal(&RReg[6],&RReg[7],&hundred);
-
-            finalize(&RReg[6]);
-
-            rplDropData(2);
-
-            rplNewRealFromRRegPush(6);
+            rplCallOvrOperator(CMD_OVR_MUL);
 
             return;
 

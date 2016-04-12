@@ -130,11 +130,6 @@ ROMOBJECT ten_bint[]=
     (WORD)MAKESINT(10)
 };
 
-ROMOBJECT hundred_bint[]=
-{
-    (WORD)MAKESINT(100)
-};
-
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 
@@ -150,7 +145,6 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)three_bint,
     (WORDPTR)minusone_bint,
     (WORDPTR)ten_bint,
-    (WORDPTR)hundred_bint,
     0
 };
 
