@@ -43,7 +43,8 @@
     CMD(MANT,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(XPON,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(SIGN,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
-    ECMD(PERCENT,"%",MKTOKENINFO(1,TITYPE_FUNCTION,2,2))
+    ECMD(PERCENT,"%",MKTOKENINFO(1,TITYPE_FUNCTION,2,2)), \
+    ECMD(PERCENTCH,"%CH",MKTOKENINFO(3,TITYPE_FUNCTION,2,2))
 
 
 // ADD MORE OPCODES HERE
@@ -787,10 +788,51 @@ void LIB_HANDLER()
             return;
 
     }
+    case PERCENTCH:
+    {
+
+            if(rplDepthData()<2) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            WORDPTR old_val=rplPeekData(2);
+            WORDPTR new_val=rplPeekData(1);
+
+            if(ISIDENT(*old_val) || ISSYMBOLIC(*old_val) || ISIDENT(*new_val) || ISSYMBOLIC(*new_val)) {
+                rplSymbApplyOperator(CurOpcode,2);
+                return;
+            }
+
+
+            if(!ISNUMBER(*old_val) || !ISNUMBER(*new_val)) {
+                rplError(ERR_BADARGTYPE);
+                return;
+            }
+
+            // DO IT ALL WITH REALS
+            // calculate 100*(y-x)/x
+            // Same names as in the advanced user's reference manual
+            REAL x,y;
+            rplReadNumberAsReal(old_val,&x);
+            rplReadNumberAsReal(new_val,&y);
+            subReal(&RReg[1],&y,&x);
+            RReg[1].exp += 2; // multiply by 100
+            //reuse y
+            divReal(&RReg[0],&RReg[1],&x);
+
+            WORDPTR newnumber=rplNewReal(&RReg[0]);
+            if(!newnumber) return;
+            // drop one value and replace level 1 value
+            rplDropData(1);
+            rplOverwriteData(1,newnumber);
+
+            return;
+
+    }
 
         // ADD MORE OPCODES HERE
 
-   // STANDARIZED OPCODES:
+    // STANDARIZED OPCODES:
     // --------------------
     // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
 
