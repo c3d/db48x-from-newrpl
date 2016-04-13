@@ -92,9 +92,10 @@ void rplImaginaryPart(WORDPTR complex,REAL *imag)
 // RETURN -1 IF NOT POLAR, OTHERWISE RETURN THE ANGLE MODE
 BINT rplPolarComplexMode(WORDPTR complex)
 {
+    if(!ISCOMPLEX(complex)) return ANGLENONE;
     WORDPTR part=rplSkipOb(++complex);
     if(ISANGLE(*part)) return LIBNUM(*part)&3;
-    return -1;
+    return ANGLENONE;
 }
 
 
@@ -187,6 +188,61 @@ WORDPTR rplRRegToComplexInPlace(BINT real,BINT imag,WORDPTR dest,BINT angmode)
     return end;
 }
 
+// CONVERT TO CARTESIAN COORDINATES, RETURN RESULT IN RReg[0] AND RReg[1]
+
+void rplPolar2Rect(REAL *r,REAL *theta,BINT angmode)
+{
+    if(angmode==ANGLENONE) {
+        copyReal(&RReg[0],r);
+        copyReal(&RReg[1],theta);
+        return;
+    }
+
+    // GET RReg[6]=COS(THETA), RReg[7]=SIN(THETA), BOTH NOT FINALIZED
+    trig_sincos(theta,angmode);
+
+    normalize(&RReg[6]);
+    normalize(&RReg[7]);
+
+    mulReal(&RReg[0],r,&RReg[6]);
+    mulReal(&RReg[1],r,&RReg[7]);
+    return;
+
+}
+
+// CONVERT A COMPLEX NUMBER TO POLAR COORDINATES USING THE GIVEN ANGLE MODE
+// RESULT IS IN RReg[0]=r, RReg[1]=theta
+
+void rplRect2Polar(REAL *re,REAL *im,BINT angmode)
+{
+    if(angmode==ANGLENONE) {
+        copyReal(&RReg[0],re);
+        copyReal(&RReg[1],im);
+        return;
+    }
+
+    // GET THE HYPOT in RReg[0]
+    mulReal(&RReg[6],re,re);
+    mulReal(&RReg[7],im,im);
+    addReal(&RReg[5],&RReg[6],&RReg[7]);
+    hyp_sqrt(&RReg[5]);
+    finalize(&RReg[0]);
+
+    // MOVE IT TO A HIGHER REGISTER, AS ALL TRIG FUNCTIONS USE RRegs 0 TO 7
+    swapReal(&RReg[8],&RReg[0]);
+
+    // GET RReg[0]=theta
+    trig_atan2(im,re,angmode);
+    finalize(&RReg[0]);
+
+    swapReal(&RReg[1],&RReg[0]);
+    swapReal(&RReg[0],&RReg[8]);
+
+    return;
+}
+
+
+
 
 void LIB_HANDLER()
 {
@@ -209,6 +265,7 @@ void LIB_HANDLER()
 
         int nargs=OVR_GETNARGS(CurOpcode);
         REAL Rarg1,Iarg1,Rarg2,Iarg2;
+        BINT amode1,amode2;
 
         if(rplDepthData()<nargs) {
             rplError(ERR_BADARGCOUNT);
@@ -242,6 +299,7 @@ void LIB_HANDLER()
 
             rplReadCNumberAsReal(arg1,&Rarg1);
             rplReadCNumberAsImag(arg1,&Iarg1);
+            amode1=rplPolarComplexMode(arg1);
             rplDropData(1);
         }
         else {
@@ -255,8 +313,10 @@ void LIB_HANDLER()
 
             rplReadCNumberAsReal(arg1,&Rarg1);
             rplReadCNumberAsImag(arg1,&Iarg1);
+            amode1=rplPolarComplexMode(arg1);
             rplReadCNumberAsReal(arg2,&Rarg2);
             rplReadCNumberAsImag(arg2,&Iarg2);
+            amode2=rplPolarComplexMode(arg2);
 
             rplDropData(2);
         }
@@ -264,15 +324,40 @@ void LIB_HANDLER()
         switch(OPCODE(CurOpcode))
         {
         case OVR_ADD:
-            // ADD THE REAL PART FIRST
-            addReal(&RReg[0],&Rarg1,&Rarg2);
-            addReal(&RReg[1],&Iarg1,&Iarg2);
-            rplCheckResultAndError(&RReg[0]);
-            rplCheckResultAndError(&RReg[1]);
+        {
+            if(amode1==ANGLENONE) {
+                if(amode2==ANGLENONE) {
+                    // ADD THE REAL PART FIRST
+                    addReal(&RReg[0],&Rarg1,&Rarg2);
+                    addReal(&RReg[1],&Iarg1,&Iarg2);
+                    rplCheckResultAndError(&RReg[0]);
+                    rplCheckResultAndError(&RReg[1]);
 
-            rplRRegToComplexPush(0,1,ANGLENONE);
-            return;
+                    rplRRegToComplexPush(0,1,ANGLENONE);
+                    return;
+                }
+                // CONVERT BOTH ARGUMENTS TO CARTESIAN, THEN ADD
+                rplPolar2Rect(&Rarg2,&Iarg2,amode2);
+                addReal(&RReg[2],&Rarg1,&RReg[0]);
+                addReal(&RReg[3],&Iarg1,&RReg[1]);
 
+                // RESULT IN CARTESIAN IS OK
+                rplRRegToComplexPush(2,3,ANGLENONE);
+                return;
+
+
+            }
+
+            // CONVERT FIRST ARGUMENT TO CARTESIAN
+            rplPolar2Rect(&Rarg2,&Iarg2,amode2);
+
+
+
+
+
+
+
+        }
         case OVR_SUB:
             subReal(&RReg[0],&Rarg1,&Rarg2);
             subReal(&RReg[1],&Iarg1,&Iarg2);

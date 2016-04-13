@@ -120,7 +120,9 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/ui_softmenu.c \
     firmware/ggl/ggl/ggl_fltinvert.c \
     newrpl-comp.c \
-    newrpl/lib-4079-rpl2c.c
+    newrpl/lib-4079-rpl2c.c \
+    newrpl/lib-48-angles.c
+
 
 HEADERS  += firmware/include/ggl.h \
     target_pc.h \

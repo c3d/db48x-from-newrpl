@@ -412,7 +412,6 @@ void rplZeroToRReg(int num);
 void rplInfinityToRReg(int num);
 void rplNANToRReg(int num);
 void rplBINTToRReg(int num,BINT64 value);
-void rplSwapRReg(int reg1,int reg2);
 void rplReadReal(WORDPTR real,REAL *dec);
 void rplCopyRealToRReg(int num,WORDPTR real);
 WORDPTR rplNewReal(REAL *num);
@@ -442,6 +441,15 @@ WORDPTR rplRRegToComplexInPlace(BINT real, BINT imag, WORDPTR dest, BINT angmode
 void rplNumberToRReg(int num,WORDPTR number);
 BINT64 rplReadNumberAsBINT(WORDPTR number);
 void rplReadNumberAsReal(WORDPTR number,REAL*dec);
+
+
+// ANGLE FUNCTIONS
+WORDPTR rplNewAngleFromReal(REAL *number,BINT newmode);
+WORDPTR rplNewAngleFromNumber(WORDPTR numobj,BINT newmode);
+void rplConvertAngleObj(WORDPTR angleobj,BINT newmode);
+
+
+
 
 
 // UNIT FUNCTIONS
@@ -534,6 +542,14 @@ void rplMatrixBareiss();
 void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa);
 void rplMatrixInvert();
 void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
+
+
+// ANGULAR MODES
+#define ANGLENONE    -1
+#define ANGLEDEG     0
+#define ANGLERAD     1
+#define ANGLEGRAD    2
+#define ANGLEDMS     3
 
 
 // SYSTEM FLAGS

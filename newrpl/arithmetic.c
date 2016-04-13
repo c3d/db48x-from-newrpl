@@ -559,7 +559,7 @@ void nextprimeReal(BINT regnum,REAL *n)
     // TODO: MORE TESTING (FERMAT?)
     } while(i<3037000500LL);
 
-    if(regnum!=0) rplSwapRReg(regnum,0);
+    if(regnum!=0) swapReal(&RReg[regnum],&RReg[0]);
 }
 
 
