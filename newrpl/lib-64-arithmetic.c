@@ -43,7 +43,7 @@
     CMD(MANT,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(XPON,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(SIGN,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
-    CMD(RND,MKTOKENINFO(3,TITYPE_FUNCTION,1,2))
+    ECMD(PERCENT,"%",MKTOKENINFO(1,TITYPE_FUNCTION,2,2))
 
 
 // ADD MORE OPCODES HERE
@@ -587,13 +587,6 @@ void LIB_HANDLER()
                 return;
             }
 
-
-
-            if(!ISNUMBER(*arg)) {
-                rplError(ERR_BADARGTYPE);
-                return;
-            }
-
             WORDPTR mod=rplPeekData(1);
 
             if(ISIDENT(*arg) || ISSYMBOLIC(*arg) || ISIDENT(*mod) || ISSYMBOLIC(*mod)) {
@@ -909,21 +902,42 @@ void LIB_HANDLER()
         rplError(ERR_REALEXPECTED);
         return;
     }
+    case PERCENT:
+    {
+
+            if(rplDepthData()<2) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            WORDPTR pct=rplPeekData(1);
+
+            if(ISIDENT(*pct) || ISSYMBOLIC(*pct)) {
+                rplSymbApplyOperator(CurOpcode,2);
+                return;
+            }
 
 
-    case RND:
+            if(!ISNUMBER(*pct)) {
+                rplError(ERR_BADARGTYPE);
+                return;
+            }
 
+           // DO IT ALL WITH REALS
 
-        return;
+            REAL x;
+            rplReadNumberAsReal(pct,&x);
+            x.exp -= 2; // divide by 100
 
+            // replace level 1 value
+            WORDPTR newnumber=rplNewReal(&x);
+            if(!newnumber) return;
+            rplOverwriteData(1,newnumber);
 
+            rplCallOvrOperator(CMD_OVR_MUL);
 
+            return;
 
-
-
-
-
-
+    }
 
         // ADD MORE OPCODES HERE
 
