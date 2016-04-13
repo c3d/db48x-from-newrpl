@@ -42,7 +42,8 @@
     ECMD(ISPRIME,"ISPRIME?",MKTOKENINFO(8,TITYPE_FUNCTION,1,2)), \
     CMD(MANT,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(XPON,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
-    CMD(SIGN,MKTOKENINFO(4,TITYPE_FUNCTION,1,2))
+    CMD(SIGN,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(RND,MKTOKENINFO(3,TITYPE_FUNCTION,1,2))
 
 
 // ADD MORE OPCODES HERE
@@ -687,10 +688,46 @@ void LIB_HANDLER()
             return;
         }
 
-        if(!ISNUMBER(*rplPeekData(1))) {
+        WORDPTR arg=rplPeekData(1);
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
+        if(!ISNUMBER(*arg)) {
             rplError(ERR_REALEXPECTED);
             return;
         }
+
         REAL rnum;
         BINT digits;
         rplReadNumberAsReal(rplPopData(),&rnum);
@@ -710,7 +747,45 @@ void LIB_HANDLER()
             return;
         }
 
-        if(!ISNUMBER(*rplPeekData(1))) {
+        WORDPTR arg=rplPeekData(1);
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
+
+
+
+        if(!ISNUMBER(*arg)) {
             rplError(ERR_REALEXPECTED);
             return;
         }
@@ -732,8 +807,58 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISBINT(*rplPeekData(1))) {
-            BINT64 r=rplReadBINT(rplPeekData(1));
+
+        WORDPTR arg=rplPeekData(1);
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
+        if(ISUNIT(*arg)) {
+            WORDPTR *stkclean=DSTop;
+            BINT nlevels=rplUnitExplode(rplPeekData(1));
+            if(Exceptions) { DSTop=stkclean; return; }
+            rplOverwriteData(nlevels+1,rplPeekData(nlevels));
+
+            rplDropData(nlevels);         // POP EVERYTHING EXCEPT THE VALUE
+
+            arg=rplPeekData(1);
+            // FALL THROUGH TO INTEGERS AND REALS, THIS IS DELIBERATE
+        }
+
+
+
+        if(ISBINT(*arg)) {
+            BINT64 r=rplReadBINT(arg);
             if(r>0) rplOverwriteData(1,(WORDPTR)one_bint);
             else {
                 if(r<0) rplOverwriteData(1,(WORDPTR)minusone_bint);
@@ -742,7 +867,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISREAL(*rplPeekData(1))) {
+        if(ISREAL(*arg)) {
             REAL rnum;
             rplReadNumberAsReal(rplPeekData(1),&rnum);
 
@@ -754,9 +879,50 @@ void LIB_HANDLER()
             return;
         }
 
+        if(ISCOMPLEX(*arg)) {
+            REAL Rarg,Iarg;
+
+            rplRealPart(arg,&Rarg);
+            rplImaginaryPart(arg,&Iarg);
+
+            Context.precdigits+=8;
+            mulReal(&RReg[2],&Rarg,&Rarg);
+            mulReal(&RReg[3],&Iarg,&Iarg);
+            addReal(&RReg[0],&RReg[2],&RReg[3]);
+
+            Context.precdigits-=8;
+
+            hyp_sqrt(&RReg[0]);
+            finalize(&RReg[0]);
+
+            divReal(&RReg[1],&Rarg,&RReg[0]);
+            divReal(&RReg[2],&Iarg,&RReg[0]);
+
+
+            rplNewComplexPush(&RReg[1],&RReg[2],ANGLENONE);
+
+            return;
+
+        }
+
+
         rplError(ERR_REALEXPECTED);
         return;
     }
+
+
+    case RND:
+
+
+        return;
+
+
+
+
+
+
+
+
 
 
         // ADD MORE OPCODES HERE
