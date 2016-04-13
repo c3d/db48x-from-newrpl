@@ -38,6 +38,7 @@ void hyp_atanh(REAL *);
 void hyp_asinh(REAL *);
 void hyp_acosh(REAL *);
 
+void trig_convertangle(REAL *,BINT oldangmode,BINT newangmode);
 void trig_sincos(REAL *,BINT angmode);
 void trig_atan2(REAL *, REAL *, BINT angmode);
 void trig_asin(REAL *,BINT angmode);

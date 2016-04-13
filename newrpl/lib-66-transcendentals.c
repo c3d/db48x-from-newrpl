@@ -152,24 +152,16 @@ void LIB_HANDLER()
             return;
         }
 
+        angmode=ANGLEMODE(*arg);
+
+        if(angmode==ANGLENONE) angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
 
-        rplReadNumberAsReal(rplPeekData(1),&dec);
+        if(ISANGLE(*arg)) rplReadNumberAsReal(arg+1,&dec);
+        else rplReadNumberAsReal(arg,&dec);
+
         if(Exceptions) return;
 
-        // PRECONVERT ARGUMENT IF ITS IN ANYTHING OTHER THAN RADIANS
-
-        if(intdigitsReal(&dec)>MAX_USERPRECISION) {
-            rplError(ERR_NUMBERTOOBIG);
-            return;
-        }
-
-
-        if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
-            // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
-            if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
-            else angmode=1;
-        } else angmode=0;
 
         trig_sincos(&dec,angmode);
 
@@ -221,17 +213,15 @@ void LIB_HANDLER()
             return;
         }
 
+        angmode=ANGLEMODE(*arg);
+
+        if(angmode==ANGLENONE) angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
 
-        rplReadNumberAsReal(rplPeekData(1),&dec);
+        if(ISANGLE(*arg)) rplReadNumberAsReal(arg+1,&dec);
+        else rplReadNumberAsReal(arg,&dec);
+
         if(Exceptions) return;
-
-        if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
-            // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
-            if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
-            else angmode=1;
-        } else angmode=0;
-
 
         trig_sincos(&dec,angmode);
 
@@ -283,14 +273,15 @@ void LIB_HANDLER()
         }
 
 
-        rplReadNumberAsReal(rplPeekData(1),&dec);
-        if(Exceptions) return;
+        angmode=ANGLEMODE(*arg);
 
-        if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
-            // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
-            if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
-            else angmode=1;
-        } else angmode=0;
+        if(angmode==ANGLENONE) angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+
+        if(ISANGLE(*arg)) rplReadNumberAsReal(arg+1,&dec);
+        else rplReadNumberAsReal(arg,&dec);
+
+        if(Exceptions) return;
 
 
         trig_sincos(&dec,angmode);
@@ -367,21 +358,18 @@ void LIB_HANDLER()
         }
 
         BINT angmode;
-        if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
-            // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
-            if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
-            else angmode=1;
-        } else angmode=0;
-
-
+        angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
         y.flags^=signy;
         trig_asin(&y,angmode);
 
         finalize(&RReg[0]);
 
-        rplDropData(1);
-        rplNewRealFromRRegPush(0);       // RESULTING ANGLE
+
+        WORDPTR newangle=rplNewAngleFromReal(&RReg[0],angmode);
+        if(!newangle) return;
+
+        rplOverwriteData(1,newangle);
 
         return;
 
@@ -443,14 +431,7 @@ void LIB_HANDLER()
         }
 
         BINT angmode;
-        if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
-            // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
-            if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
-            else angmode=1;
-        } else angmode=0;
-
-
-
+        angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
         y.flags^=signy;
 
@@ -460,8 +441,10 @@ void LIB_HANDLER()
         truncReal(&RReg[0],&RReg[0],Context.precdigits+6);
         round_real(&RReg[0],Context.precdigits,0);
 
-        rplDropData(1);
-        rplNewRealFromRRegPush(0);       // RESULTING ANGLE
+        WORDPTR newangle=rplNewAngleFromReal(&RReg[0],angmode);
+        if(!newangle) return;
+
+        rplOverwriteData(1,newangle);
 
         return;
 
@@ -519,18 +502,15 @@ void LIB_HANDLER()
 
 
         BINT angmode;
-        if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
-            // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
-            if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
-            else angmode=1;
-        } else angmode=0;
-
+        angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
         trig_atan2(&y,&RReg[7],angmode);
         finalize(&RReg[0]);
 
-        rplDropData(1);
-        rplNewRealFromRRegPush(0);       // RESULTING ANGLE
+        WORDPTR newangle=rplNewAngleFromReal(&RReg[0],angmode);
+        if(!newangle) return;
+
+        rplOverwriteData(1,newangle);
 
         return;
 
@@ -584,19 +564,18 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
         BINT angmode;
-        if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
-            // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
-            if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
-            else angmode=1;
-        } else angmode=0;
-
+        angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
         trig_atan2(&y,&x,angmode);
 
         finalize(&RReg[0]);
 
-        rplDropData(2);
-        rplNewRealFromRRegPush(0);       // RESULTING ANGLE
+        WORDPTR newangle=rplNewAngleFromReal(&RReg[0],angmode);
+        if(!newangle) return;
+
+        rplOverwriteData(2,newangle);
+        rplDropData(1);
+
 
         return;
 
@@ -1182,7 +1161,7 @@ void LIB_HANDLER()
             hyp_sqrt(&RReg[7]);     // THIS IS THE REAL PART OF THE RESULT
 
             finalize(&RReg[0]);
-            rplSwapRReg(9,0);       // SAVE THIS RESULT
+            swapReal(&RReg[9],&RReg[0]);       // SAVE THIS RESULT
 
             hyp_sqrt(&RReg[8]);     // THIS IS THE IMAGINARY PART
 

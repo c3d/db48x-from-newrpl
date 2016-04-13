@@ -386,8 +386,6 @@ void LIB_HANDLER()
 
     if(ISBINARYOP(CurOpcode)) {
 
-        // TODO: IMPLEMENT BINARY OPERATORS
-
         switch(OPCODE(CurOpcode))
         {
         case OVR_ADD:
@@ -1620,13 +1618,63 @@ void LIB_HANDLER()
 
 
     case TOV2:
+    {
+    // PACK 2 VALUES INTO A VECTOR
 
+    // ALL ARGUMENT CHECKS ARE DONE IN rplMatrixCompose
 
+    WORDPTR newmat=rplMatrixCompose(0,2);
+    if(!newmat) return;
 
+    rplDropData(1);
+    rplOverwriteData(1,newmat);
 
+    return;
 
+    }
     case TOV3:
+    {
+    // PACK 3 VALUES INTO A VECTOR
+
+    // ALL ARGUMENT CHECKS ARE DONE IN rplMatrixCompose
+
+    WORDPTR newmat=rplMatrixCompose(0,3);
+    if(!newmat) return;
+
+    rplDropData(2);
+    rplOverwriteData(1,newmat);
+
+    return;
+
+    }
+
     case FROMV:
+    {
+    // EXPLODE A VECTOR INTO ITS COMPONENTS
+    if(rplDepthData()<1) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+
+    if(!ISMATRIX(*rplPeekData(1))) {
+        rplError(ERR_MATRIXEXPECTED);
+        return;
+    }
+    WORDPTR matrix=rplPeekData(1);
+    BINT rows=MATROWS(matrix[1]);
+
+    if( (rows!=0) && (rows!=1)) {
+        rplError(ERR_VECTOREXPECTED);
+        return;
+    }
+
+    WORDPTR *first=rplMatrixExplode();
+    // NOW REMOVE THE ORIGINAL MATRIX
+    memmovew(first-1,first,(DSTop-first)*(sizeof(void*)>>2));
+    rplDropData(1);
+    return;
+
+    }
     case DOMATPRE:
     {
 
@@ -2012,7 +2060,8 @@ void LIB_HANDLER()
 
         if(! (ISNUMBERCPLX(*LastCompiledObject)
               || ISSYMBOLIC(*LastCompiledObject)
-              || ISIDENT(*LastCompiledObject))) {
+              || ISIDENT(*LastCompiledObject)
+              || ISANGLE(*LastCompiledObject))) {
                 rplError(ERR_NOTALLOWEDINMATRIX);
                 RetNum=ERR_INVALID;
                 return;

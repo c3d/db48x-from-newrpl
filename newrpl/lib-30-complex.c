@@ -188,6 +188,61 @@ WORDPTR rplRRegToComplexInPlace(BINT real,BINT imag,WORDPTR dest,BINT angmode)
     return end;
 }
 
+// CONVERT TO CARTESIAN COORDINATES, RETURN RESULT IN RReg[0] AND RReg[1]
+
+void rplPolar2Rect(REAL *r,REAL *theta,BINT angmode)
+{
+    if(angmode==ANGLENONE) {
+        copyReal(&RReg[0],r);
+        copyReal(&RReg[1],theta);
+        return;
+    }
+
+    // GET RReg[6]=COS(THETA), RReg[7]=SIN(THETA), BOTH NOT FINALIZED
+    trig_sincos(theta,angmode);
+
+    normalize(&RReg[6]);
+    normalize(&RReg[7]);
+
+    mulReal(&RReg[0],r,&RReg[6]);
+    mulReal(&RReg[1],r,&RReg[7]);
+    return;
+
+}
+
+// CONVERT A COMPLEX NUMBER TO POLAR COORDINATES USING THE GIVEN ANGLE MODE
+// RESULT IS IN RReg[0]=r, RReg[1]=theta
+
+void rplRect2Polar(REAL *re,REAL *im,BINT angmode)
+{
+    if(angmode==ANGLENONE) {
+        copyReal(&RReg[0],re);
+        copyReal(&RReg[1],im);
+        return;
+    }
+
+    // GET THE HYPOT in RReg[0]
+    mulReal(&RReg[6],re,re);
+    mulReal(&RReg[7],im,im);
+    addReal(&RReg[5],&RReg[6],&RReg[7]);
+    hyp_sqrt(&RReg[5]);
+    finalize(&RReg[0]);
+
+    // MOVE IT TO A HIGHER REGISTER, AS ALL TRIG FUNCTIONS USE RRegs 0 TO 7
+    swapReal(&RReg[8],&RReg[0]);
+
+    // GET RReg[0]=theta
+    trig_atan2(im,re,angmode);
+    finalize(&RReg[0]);
+
+    swapReal(&RReg[1],&RReg[0]);
+    swapReal(&RReg[0],&RReg[8]);
+
+    return;
+}
+
+
+
 
 void LIB_HANDLER()
 {
@@ -281,11 +336,27 @@ void LIB_HANDLER()
                     rplRRegToComplexPush(0,1,ANGLENONE);
                     return;
                 }
-                // CONVERT ARGUMENT TO CARTESIAN, THEN ADD
-                trig_sincos();
+                // CONVERT BOTH ARGUMENTS TO CARTESIAN, THEN ADD
+                rplPolar2Rect(&Rarg2,&Iarg2,amode2);
+                addReal(&RReg[2],&Rarg1,&RReg[0]);
+                addReal(&RReg[3],&Iarg1,&RReg[1]);
+
+                // RESULT IN CARTESIAN IS OK
+                rplRRegToComplexPush(2,3,ANGLENONE);
+                return;
 
 
             }
+
+            // CONVERT FIRST ARGUMENT TO CARTESIAN
+            rplPolar2Rect(&Rarg2,&Iarg2,amode2);
+
+
+
+
+
+
+
         }
         case OVR_SUB:
             subReal(&RReg[0],&Rarg1,&Rarg2);

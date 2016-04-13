@@ -84,7 +84,7 @@ void rplConvertAngleObj(WORDPTR angleobj,BINT newmode)
 
     rplReadNumberAsReal(angleobj+1,&oldang);
 
-    rplConvertAngle(&oldang,oldmode,newmode);
+    trig_convertangle(&oldang,oldmode,newmode);
 }
 
 
@@ -169,7 +169,7 @@ void LIB_HANDLER()
                 // ARGUMENT CHECKS SHOULD NOT BE NECESSARY
 
                 // CONVERT TO CURRENT SYSTEM AND REMOVE THE TAG
-                BINT curmode=rplTestSystemFlag(-17)|(rplTestSystemFlag(-18)<<1);
+                BINT curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
                 rplConvertAngleObj(rplPeekData(1),curmode);
                 // NEW ANGLE IS IN RReg[0]
@@ -209,7 +209,7 @@ void LIB_HANDLER()
                 // ARGUMENT CHECKS SHOULD NOT BE NECESSARY
 
                 // CONVERT TO CURRENT SYSTEM AND REMOVE THE TAG
-                BINT curmode=rplTestSystemFlag(-17)|(rplTestSystemFlag(-18)<<1);
+                BINT curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
                 rplConvertAngleObj(rplPeekData(1),curmode);
                 // NEW ANGLE IS IN RReg[0]
@@ -280,7 +280,7 @@ void LIB_HANDLER()
                         rplConvertAngleObj(arg1,ANGLEDEG);
 
                         addReal(&RReg[6],&RReg[0],&RReg[7]);
-                        rplConvertAngle(&RReg[6],ANGLEDEG,ANGLEDMS);
+                        trig_convertangle(&RReg[6],ANGLEDEG,ANGLEDMS);
 
                         WORDPTR newang=rplNewAngleFromReal(&RReg[0],angmode);
 
@@ -318,7 +318,7 @@ void LIB_HANDLER()
                         rplConvertAngleObj(arg1,ANGLEDEG);
 
                         subReal(&RReg[6],&RReg[0],&RReg[7]);
-                        rplConvertAngle(&RReg[6],ANGLEDEG,ANGLEDMS);
+                        trig_convertangle(&RReg[6],ANGLEDEG,ANGLEDMS);
 
                         WORDPTR newang=rplNewAngleFromReal(&RReg[0],angmode);
 
@@ -333,7 +333,7 @@ void LIB_HANDLER()
                 // ALL OTHER OPERATORS SHOULD CONVERT TO CURRENT ANGLE SYSTEM AND REMOVE TAGS
                 // THEN PROCESS THE OPCODE NORMALLY.
 
-                BINT curmode=rplTestSystemFlag(-17)|(rplTestSystemFlag(-18)<<1);
+                BINT curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
                 if(ISANGLE(*arg1)) {
                     // CONVERT TO CURRENT SYSTEM AND REMOVE THE TAG
@@ -454,8 +454,8 @@ void LIB_HANDLER()
         if(ISNUMBER(*rplPeekData(1))) {
             REAL num;
             rplReadNumberAsReal(rplPeekData(1),&num);
-            BINT angmode=rplTestSystemFlag(-17)|(rplTestSystemFlag(-18)<<1);
-            rplConvertAngle(&num,angmode,ANGLEDEG);
+            BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+            trig_convertangle(&num,angmode,ANGLEDEG);
 
             WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLEDEG);
             if(!newang) return;
@@ -482,7 +482,7 @@ void LIB_HANDLER()
             rplRealPart(rplPeekData(1),&rp);
             rplImaginaryPart(rplPeekData(1),&ip);
 
-            rplConvertAngle(&ip,angmode,ANGLEDEG);
+            trig_convertangle(&ip,angmode,ANGLEDEG);
 
             rplDropData(1);
             rplNewComplexPush(&rp,&RReg[0],ANGLEDEG);
@@ -507,8 +507,8 @@ void LIB_HANDLER()
         if(ISNUMBER(*rplPeekData(1))) {
             REAL num;
             rplReadNumberAsReal(rplPeekData(1),&num);
-            BINT angmode=rplTestSystemFlag(-17)|(rplTestSystemFlag(-18)<<1);
-            rplConvertAngle(&num,angmode,ANGLERAD);
+            BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+            trig_convertangle(&num,angmode,ANGLERAD);
 
             WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLERAD);
             if(!newang) return;
@@ -535,7 +535,7 @@ void LIB_HANDLER()
             rplRealPart(rplPeekData(1),&rp);
             rplImaginaryPart(rplPeekData(1),&ip);
 
-            rplConvertAngle(&ip,angmode,ANGLERAD);
+            trig_convertangle(&ip,angmode,ANGLERAD);
 
             rplDropData(1);
             rplNewComplexPush(&rp,&RReg[0],ANGLERAD);
@@ -560,8 +560,8 @@ void LIB_HANDLER()
         if(ISNUMBER(*rplPeekData(1))) {
             REAL num;
             rplReadNumberAsReal(rplPeekData(1),&num);
-            BINT angmode=rplTestSystemFlag(-17)|(rplTestSystemFlag(-18)<<1);
-            rplConvertAngle(&num,angmode,ANGLEGRAD);
+            BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+            trig_convertangle(&num,angmode,ANGLEGRAD);
 
             WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLEGRAD);
             if(!newang) return;
@@ -588,7 +588,7 @@ void LIB_HANDLER()
             rplRealPart(rplPeekData(1),&rp);
             rplImaginaryPart(rplPeekData(1),&ip);
 
-            rplConvertAngle(&ip,angmode,ANGLEGRAD);
+            trig_convertangle(&ip,angmode,ANGLEGRAD);
 
             rplDropData(1);
             rplNewComplexPush(&rp,&RReg[0],ANGLEGRAD);
@@ -613,8 +613,8 @@ void LIB_HANDLER()
         if(ISNUMBER(*rplPeekData(1))) {
             REAL num;
             rplReadNumberAsReal(rplPeekData(1),&num);
-            BINT angmode=rplTestSystemFlag(-17)|(rplTestSystemFlag(-18)<<1);
-            rplConvertAngle(&num,angmode,ANGLEDMS);
+            BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+            trig_convertangle(&num,angmode,ANGLEDMS);
 
             WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLEDMS);
             if(!newang) return;
@@ -641,7 +641,7 @@ void LIB_HANDLER()
             rplRealPart(rplPeekData(1),&rp);
             rplImaginaryPart(rplPeekData(1),&ip);
 
-            rplConvertAngle(&ip,angmode,ANGLEDMS);
+            trig_convertangle(&ip,angmode,ANGLEDMS);
 
             rplDropData(1);
             rplNewComplexPush(&rp,&RReg[0],ANGLEDMS);
@@ -700,7 +700,7 @@ void LIB_HANDLER()
         // POINT TO THE LAST CHARACTER
         BINT tlen=TokenLen-1;
         BYTEPTR ptr=(BYTEPTR)utf8nskip((char *)TokenStart,(char *)BlankStart,tlen);
-        BINT angmode=rplTestSystemFlag(-17)|(rplTestSystemFlag(-18)<<1);
+        BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
         BYTEPTR strptr=(BYTEPTR)utf8skip((char *)TokenStart,(char *)BlankStart);
         BINT isapprox=0;
 
