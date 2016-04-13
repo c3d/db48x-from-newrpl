@@ -92,9 +92,10 @@ void rplImaginaryPart(WORDPTR complex,REAL *imag)
 // RETURN -1 IF NOT POLAR, OTHERWISE RETURN THE ANGLE MODE
 BINT rplPolarComplexMode(WORDPTR complex)
 {
+    if(!ISCOMPLEX(complex)) return ANGLENONE;
     WORDPTR part=rplSkipOb(++complex);
     if(ISANGLE(*part)) return LIBNUM(*part)&3;
-    return -1;
+    return ANGLENONE;
 }
 
 
@@ -209,6 +210,7 @@ void LIB_HANDLER()
 
         int nargs=OVR_GETNARGS(CurOpcode);
         REAL Rarg1,Iarg1,Rarg2,Iarg2;
+        BINT amode1,amode2;
 
         if(rplDepthData()<nargs) {
             rplError(ERR_BADARGCOUNT);
@@ -242,6 +244,7 @@ void LIB_HANDLER()
 
             rplReadCNumberAsReal(arg1,&Rarg1);
             rplReadCNumberAsImag(arg1,&Iarg1);
+            amode1=rplPolarComplexMode(arg1);
             rplDropData(1);
         }
         else {
@@ -255,8 +258,10 @@ void LIB_HANDLER()
 
             rplReadCNumberAsReal(arg1,&Rarg1);
             rplReadCNumberAsImag(arg1,&Iarg1);
+            amode1=rplPolarComplexMode(arg1);
             rplReadCNumberAsReal(arg2,&Rarg2);
             rplReadCNumberAsImag(arg2,&Iarg2);
+            amode2=rplPolarComplexMode(arg2);
 
             rplDropData(2);
         }
@@ -264,15 +269,24 @@ void LIB_HANDLER()
         switch(OPCODE(CurOpcode))
         {
         case OVR_ADD:
-            // ADD THE REAL PART FIRST
-            addReal(&RReg[0],&Rarg1,&Rarg2);
-            addReal(&RReg[1],&Iarg1,&Iarg2);
-            rplCheckResultAndError(&RReg[0]);
-            rplCheckResultAndError(&RReg[1]);
+        {
+            if(amode1==ANGLENONE) {
+                if(amode2==ANGLENONE) {
+                    // ADD THE REAL PART FIRST
+                    addReal(&RReg[0],&Rarg1,&Rarg2);
+                    addReal(&RReg[1],&Iarg1,&Iarg2);
+                    rplCheckResultAndError(&RReg[0]);
+                    rplCheckResultAndError(&RReg[1]);
 
-            rplRRegToComplexPush(0,1,ANGLENONE);
-            return;
+                    rplRRegToComplexPush(0,1,ANGLENONE);
+                    return;
+                }
+                // CONVERT ARGUMENT TO CARTESIAN, THEN ADD
+                trig_sincos();
 
+
+            }
+        }
         case OVR_SUB:
             subReal(&RReg[0],&Rarg1,&Rarg2);
             subReal(&RReg[1],&Iarg1,&Iarg2);
