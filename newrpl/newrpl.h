@@ -431,6 +431,7 @@ void rplImaginaryPart(WORDPTR complex,REAL *imag);
 BINT rplPolarComplexMode(WORDPTR complex);
 void rplReadCNumberAsReal(WORDPTR complex,REAL *real);
 void rplReadCNumberAsImag(WORDPTR complex,REAL *imag);
+WORDPTR rplNewComplex(REAL *real, REAL *imag, BINT angmode);
 void rplNewComplexPush(REAL *real, REAL *imag, BINT angmode);
 void rplRRegToComplexPush(BINT real, BINT imag, BINT angmode);
 WORDPTR rplRRegToComplexInPlace(BINT real, BINT imag, WORDPTR dest, BINT angmode);
