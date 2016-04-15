@@ -429,6 +429,7 @@ void rplCompileReal(REAL *num);
 void rplRealPart(WORDPTR complex,REAL *real);
 void rplImaginaryPart(WORDPTR complex,REAL *imag);
 BINT rplPolarComplexMode(WORDPTR complex);
+void rplReadCNumber(WORDPTR complex,REAL *real,REAL *imag, BINT *angmode);
 void rplReadCNumberAsReal(WORDPTR complex,REAL *real);
 void rplReadCNumberAsImag(WORDPTR complex,REAL *imag);
 WORDPTR rplNewComplex(REAL *real, REAL *imag, BINT angmode);
@@ -566,6 +567,7 @@ void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 #define FL_OVERFLOW       -25
 #define FL_INFINITE       -26
 #define FL_STRIPCOMMENTS  -30
+#define FL_COMPLEXMODE    -103
 
 
 

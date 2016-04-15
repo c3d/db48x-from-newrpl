@@ -79,7 +79,7 @@ const WORDPTR const ROMPTR_TABLE[]={
 // HIGHER LEVEL API USING ANGLE OBJECTS DIRECTLY
 void rplConvertAngleObj(WORDPTR angleobj,BINT newmode)
 {
-    BINT oldmode=LIBNUM(*angleobj)&3;
+    BINT oldmode=ANGLEMODE(*angleobj);
     REAL oldang;
 
     rplReadNumberAsReal(angleobj+1,&oldang);
@@ -190,7 +190,7 @@ void LIB_HANDLER()
                 rplPushData(rplPeekData(1)+1);  // EXTRACT THE NUMBER
                 rplCallOvrOperator(CurOpcode);  // DO THE THING ON THE NUMBER
 
-                WORDPTR newangle=rplNewAngleFromNumber(rplPeekData(1),LIBNUM(*rplPeekData(2))&3);
+                WORDPTR newangle=rplNewAngleFromNumber(rplPeekData(1),ANGLEMODE(*rplPeekData(2)));
                 rplDropData(1);
                 if(Exceptions) return;
 
@@ -257,7 +257,7 @@ void LIB_HANDLER()
 
                     // CONVERT 2ND ARGUMENT TO THE SYSTEM OF THE FIRST
 
-                    BINT angmode=LIBNUM(*arg1)&3;
+                    BINT angmode=ANGLEMODE(*arg1);
                     if(angmode!=ANGLEDMS) {
                         REAL arg1num;
 
@@ -295,7 +295,7 @@ void LIB_HANDLER()
 
                     // CONVERT 2ND ARGUMENT TO THE SYSTEM OF THE FIRST
 
-                    BINT angmode=LIBNUM(*arg1)&3;
+                    BINT angmode=ANGLEMODE(*arg1);
 
 
                     if(angmode!=ANGLEDMS) {
@@ -380,6 +380,37 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
+
+
+
         if(ISNUMBER(*rplPeekData(1))) {
             WORDPTR newang=rplNewAngleFromNumber(rplPeekData(1),ANGLEDEG);
             if(!newang) return;
@@ -397,6 +428,35 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
+
         if(ISNUMBER(*rplPeekData(1))) {
             WORDPTR newang=rplNewAngleFromNumber(rplPeekData(1),ANGLERAD);
             if(!newang) return;
@@ -415,6 +475,35 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
+
         if(ISNUMBER(*rplPeekData(1))) {
             WORDPTR newang=rplNewAngleFromNumber(rplPeekData(1),ANGLEGRAD);
             if(!newang) return;
@@ -433,6 +522,34 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
+
         if(ISNUMBER(*rplPeekData(1))) {
             WORDPTR newang=rplNewAngleFromNumber(rplPeekData(1),ANGLEDMS);
             if(!newang) return;
@@ -451,6 +568,37 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
+
+
+
+
         if(ISNUMBER(*rplPeekData(1))) {
             REAL num;
             rplReadNumberAsReal(rplPeekData(1),&num);
@@ -475,7 +623,7 @@ void LIB_HANDLER()
         if(ISCOMPLEX(*rplPeekData(1))) {
             BINT angmode=rplPolarComplexMode(rplPeekData(1));
 
-            if(angmode<0) return;   // NOTHING TO DO
+            if(angmode==ANGLENONE) return;   // NOTHING TO DO
             if(angmode==ANGLEDEG) return; // ALREADY IN THE RIGHT SYSTEM
 
             REAL rp,ip;
@@ -491,7 +639,71 @@ void LIB_HANDLER()
 
        }
 
-        rplError(ERR_REALEXPECTED);
+        if(ISMATRIX(*rplPeekData(1))) {
+
+            // CONVERT ALL ANGLES WITHIN A VECTOR
+
+            WORDPTR matrix=rplPeekData(1);
+            BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+
+            if(rows) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+
+            // EXPLODE ALL NUMBERS IN THE STACK
+
+            WORDPTR *first=rplMatrixExplode();
+            BINT f;
+
+            for(f=0;f<cols;++f)
+            {
+                // CONVERT ANY ANGLES TO THE PROPER SYSTEM
+                if(ISANGLE(*first[f])) {
+                    rplConvertAngleObj(first[f],ANGLEDEG);
+
+                    WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLEDEG);
+                    if(!newang) { DSTop=first; return; }
+                    first[f]=newang;    // REPLACE IT WITH THE NEW ANGLE
+                    continue;
+                }
+                if(ISCOMPLEX(*first[f])) {
+                    BINT angmode=rplPolarComplexMode(first[f]);
+
+                    if(angmode==ANGLENONE) continue;
+
+                    if(angmode==ANGLEDEG) continue; // ALREADY IN THE RIGHT SYSTEM
+
+                    REAL rp,ip;
+                    rplRealPart(first[f],&rp);
+                    rplImaginaryPart(first[f],&ip);
+
+                    trig_convertangle(&ip,angmode,ANGLEDEG);
+
+                    WORDPTR newobj=rplNewComplex(&rp,&RReg[0],ANGLEDEG);
+
+                    if(!newobj) { DSTop=first; return; }
+                    first[f]=newobj;    // REPLACE IT WITH THE NEW COMPLEX
+                    continue;
+
+                }
+            }
+
+            // NOW RECREATE THE MATRIX
+
+            WORDPTR newmat=rplMatrixCompose(rows,cols);
+            if(!newmat) { DSTop=first; return; }
+
+            DSTop=first;    // CLEAN UP THE STACK
+
+            rplOverwriteData(1,newmat);
+
+            return;
+
+        }
+
+
+
         return;
 
 
@@ -504,6 +716,35 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
+
+
         if(ISNUMBER(*rplPeekData(1))) {
             REAL num;
             rplReadNumberAsReal(rplPeekData(1),&num);
@@ -528,7 +769,7 @@ void LIB_HANDLER()
         if(ISCOMPLEX(*rplPeekData(1))) {
             BINT angmode=rplPolarComplexMode(rplPeekData(1));
 
-            if(angmode<0) return;   // NOTHING TO DO
+            if(angmode==ANGLENONE) return;   // NOTHING TO DO
             if(angmode==ANGLERAD) return; // ALREADY IN THE RIGHT SYSTEM
 
             REAL rp,ip;
@@ -544,7 +785,72 @@ void LIB_HANDLER()
 
        }
 
-        rplError(ERR_REALEXPECTED);
+
+        if(ISMATRIX(*rplPeekData(1))) {
+
+            // CONVERT ALL ANGLES WITHIN A VECTOR
+
+            WORDPTR matrix=rplPeekData(1);
+            BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+
+            if(rows) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+
+            // EXPLODE ALL NUMBERS IN THE STACK
+
+            WORDPTR *first=rplMatrixExplode();
+            BINT f;
+
+            for(f=0;f<cols;++f)
+            {
+                // CONVERT ANY ANGLES TO THE PROPER SYSTEM
+                if(ISANGLE(*first[f])) {
+                    rplConvertAngleObj(first[f],ANGLERAD);
+
+                    WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLERAD);
+                    if(!newang) { DSTop=first; return; }
+                    first[f]=newang;    // REPLACE IT WITH THE NEW ANGLE
+                    continue;
+                }
+                if(ISCOMPLEX(*first[f])) {
+                    BINT angmode=rplPolarComplexMode(first[f]);
+
+                    if(angmode==ANGLENONE) continue;
+
+                    if(angmode==ANGLERAD) continue; // ALREADY IN THE RIGHT SYSTEM
+
+                    REAL rp,ip;
+                    rplRealPart(first[f],&rp);
+                    rplImaginaryPart(first[f],&ip);
+
+                    trig_convertangle(&ip,angmode,ANGLERAD);
+
+                    WORDPTR newobj=rplNewComplex(&rp,&RReg[0],ANGLERAD);
+
+                    if(!newobj) { DSTop=first; return; }
+                    first[f]=newobj;    // REPLACE IT WITH THE NEW COMPLEX
+                    continue;
+
+                }
+            }
+
+            // NOW RECREATE THE MATRIX
+
+            WORDPTR newmat=rplMatrixCompose(rows,cols);
+            if(!newmat) { DSTop=first; return; }
+
+            DSTop=first;    // CLEAN UP THE STACK
+
+            rplOverwriteData(1,newmat);
+
+            return;
+
+        }
+
+
+
         return;
 
 
@@ -557,6 +863,36 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
+
+
         if(ISNUMBER(*rplPeekData(1))) {
             REAL num;
             rplReadNumberAsReal(rplPeekData(1),&num);
@@ -581,7 +917,7 @@ void LIB_HANDLER()
         if(ISCOMPLEX(*rplPeekData(1))) {
             BINT angmode=rplPolarComplexMode(rplPeekData(1));
 
-            if(angmode<0) return;   // NOTHING TO DO
+            if(angmode==ANGLENONE) return;   // NOTHING TO DO
             if(angmode==ANGLEGRAD) return; // ALREADY IN THE RIGHT SYSTEM
 
             REAL rp,ip;
@@ -597,7 +933,71 @@ void LIB_HANDLER()
 
        }
 
-        rplError(ERR_REALEXPECTED);
+        if(ISMATRIX(*rplPeekData(1))) {
+
+            // CONVERT ALL ANGLES WITHIN A VECTOR
+
+            WORDPTR matrix=rplPeekData(1);
+            BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+
+            if(rows) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+
+            // EXPLODE ALL NUMBERS IN THE STACK
+
+            WORDPTR *first=rplMatrixExplode();
+            BINT f;
+
+            for(f=0;f<cols;++f)
+            {
+                // CONVERT ANY ANGLES TO THE PROPER SYSTEM
+                if(ISANGLE(*first[f])) {
+                    rplConvertAngleObj(first[f],ANGLEGRAD);
+
+                    WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLEGRAD);
+                    if(!newang) { DSTop=first; return; }
+                    first[f]=newang;    // REPLACE IT WITH THE NEW ANGLE
+                    continue;
+                }
+                if(ISCOMPLEX(*first[f])) {
+                    BINT angmode=rplPolarComplexMode(first[f]);
+
+                    if(angmode==ANGLENONE) continue;
+
+                    if(angmode==ANGLEGRAD) continue; // ALREADY IN THE RIGHT SYSTEM
+
+                    REAL rp,ip;
+                    rplRealPart(first[f],&rp);
+                    rplImaginaryPart(first[f],&ip);
+
+                    trig_convertangle(&ip,angmode,ANGLEGRAD);
+
+                    WORDPTR newobj=rplNewComplex(&rp,&RReg[0],ANGLEGRAD);
+
+                    if(!newobj) { DSTop=first; return; }
+                    first[f]=newobj;    // REPLACE IT WITH THE NEW COMPLEX
+                    continue;
+
+                }
+            }
+
+            // NOW RECREATE THE MATRIX
+
+            WORDPTR newmat=rplMatrixCompose(rows,cols);
+            if(!newmat) { DSTop=first; return; }
+
+            DSTop=first;    // CLEAN UP THE STACK
+
+            rplOverwriteData(1,newmat);
+
+            return;
+
+        }
+
+
+
         return;
 
 
@@ -610,6 +1010,35 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
+
+
         if(ISNUMBER(*rplPeekData(1))) {
             REAL num;
             rplReadNumberAsReal(rplPeekData(1),&num);
@@ -634,7 +1063,7 @@ void LIB_HANDLER()
         if(ISCOMPLEX(*rplPeekData(1))) {
             BINT angmode=rplPolarComplexMode(rplPeekData(1));
 
-            if(angmode<0) return;   // NOTHING TO DO
+            if(angmode==ANGLENONE) return;   // NOTHING TO DO
             if(angmode==ANGLEDMS) return; // ALREADY IN THE RIGHT SYSTEM
 
             REAL rp,ip;
@@ -650,13 +1079,79 @@ void LIB_HANDLER()
 
        }
 
-        rplError(ERR_REALEXPECTED);
+        if(ISMATRIX(*rplPeekData(1))) {
+
+            // CONVERT ALL ANGLES WITHIN A VECTOR
+
+            WORDPTR matrix=rplPeekData(1);
+            BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+
+            if(rows) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+
+            // EXPLODE ALL NUMBERS IN THE STACK
+
+            WORDPTR *first=rplMatrixExplode();
+            BINT f;
+
+            for(f=0;f<cols;++f)
+            {
+                // CONVERT ANY ANGLES TO THE PROPER SYSTEM
+                if(ISANGLE(*first[f])) {
+                    rplConvertAngleObj(first[f],ANGLEDMS);
+
+                    WORDPTR newang=rplNewAngleFromReal(&RReg[0],ANGLEDMS);
+                    if(!newang) { DSTop=first; return; }
+                    first[f]=newang;    // REPLACE IT WITH THE NEW ANGLE
+                    continue;
+                }
+                if(ISCOMPLEX(*first[f])) {
+                    BINT angmode=rplPolarComplexMode(first[f]);
+
+                    if(angmode==ANGLENONE) continue;
+
+                    if(angmode==ANGLEDMS) continue; // ALREADY IN THE RIGHT SYSTEM
+
+                    REAL rp,ip;
+                    rplRealPart(first[f],&rp);
+                    rplImaginaryPart(first[f],&ip);
+
+                    trig_convertangle(&ip,angmode,ANGLEDMS);
+
+                    WORDPTR newobj=rplNewComplex(&rp,&RReg[0],ANGLEDMS);
+
+                    if(!newobj) { DSTop=first; return; }
+                    first[f]=newobj;    // REPLACE IT WITH THE NEW COMPLEX
+                    continue;
+
+                }
+            }
+
+            // NOW RECREATE THE MATRIX
+
+            WORDPTR newmat=rplMatrixCompose(rows,cols);
+            if(!newmat) { DSTop=first; return; }
+
+            DSTop=first;    // CLEAN UP THE STACK
+
+            rplOverwriteData(1,newmat);
+
+            return;
+
+        }
+
+
+
         return;
 
 
     }
 
     case TORECT:
+        // CONVERT EITHER A COMPLEX OR A VECTOR TO CARTESIAN COORDINATES
+
     case TOPOLAR:
     case TOSPHER:
 
@@ -835,7 +1330,7 @@ void LIB_HANDLER()
 
 
 
-        switch(LIBNUM(*DecompileObject)&3)
+        switch(ANGLEMODE(*DecompileObject))
         {
         case ANGLERAD:
             rplDecompAppendChar('r');

@@ -654,16 +654,59 @@ void LIB_HANDLER()
             if(op1type||op2type) {
 
                 if(op1type) {
+                    // INTEGER POWER OF A REAL NUMBER
+                    BINT isneg=op2&1;
+                    if(rop1.flags&F_NEGATIVE) rop1.flags^=F_NEGATIVE;
+                    else isneg=0;
+
                     rplBINTToRReg(1,op2);
-                    // TODO: IMPLEMENT REAL POWERS
                     powReal(&RReg[0],&rop1,&RReg[1]);
+
+                    if(isneg) RReg[0].flags|=F_NEGATIVE;
 
                 }
 
                 if(op2type) {
+
+                    if(op1<0) {
+                        // REAL POWER OF NEGATIVE INTEGER, RESULT IS IN GENERAL A COMPLEX NUMBER
+
+                        // NEGATIVE NUMBER RAISED TO A REAL POWER
+                        // a^n= ABS(a)^n * (cos(n*pi)+i*sin(n*pi))
+
+                        // USE DEG TO AVOID LOSS OF PRECISION WITH PI
+
+                        newRealFromBINT(&RReg[7],180);
+
+                        mulReal(&RReg[0],&rop2,&RReg[7]);
+                        divmodReal(&RReg[1],&RReg[9],&RReg[0],&RReg[7]);    // REDUCE TO FIRST CIRCLE
+
+                        if(!rplTestSystemFlag(FL_COMPLEXMODE) && !iszeroReal(&RReg[9])) {
+                            rplError(ERR_COMPLEXRESULT);
+                            return;
+                        }
+
+                        rplBINTToRReg(6,-op1);
+
+                        powReal(&RReg[8],&RReg[6],&rop2);    // ONLY RReg[9] IS PRESERVED
+
+                        BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                        trig_convertangle(&RReg[9],ANGLEDEG,angmode);
+
+                        rplCheckResultAndError(&RReg[8]);
+                        rplCheckResultAndError(&RReg[0]);
+                        // RETURN A POLAR COMPLEX
+                        rplNewComplexPush(&RReg[8],&RReg[0],angmode);
+
+                        return;
+
+
+                    }
+
                     rplBINTToRReg(1,op1);
-                    // TODO: IMPLEMENT REAL POWERS
                     powReal(&RReg[0],&RReg[1],&rop2);
+
                 }
                 rplNewRealFromRRegPush(0);
                 if(!Exceptions) rplCheckResultAndError(&RReg[0]);
@@ -673,11 +716,15 @@ void LIB_HANDLER()
 
 
             // INTEGER POWER, USE REALS TO DEAL WITH NEGATIVE POWERS AND OVERFLOW
+            BINT isneg= ((op1<0)? (op2&1):0);
+            if(op1<0) op1=-op1;
             rplBINTToRReg(1,op1);
             rplBINTToRReg(2,op2);
 
             // TODO: REAL POWERS
             powReal(&RReg[0],&RReg[1],&RReg[2]);
+
+            if(isneg) RReg[0].flags|=F_NEGATIVE;
 
             if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
                 BINT64 result=getBINT64Real(&RReg[0]);
@@ -691,43 +738,62 @@ void LIB_HANDLER()
 
         case OVR_XROOT:
         {
-        if(op1type||op2type) {
+        if(op1type) copyReal(&RReg[6],&rop1);
+        else rplBINTToRReg(6,op1);
+        if(op2type) copyReal(&RReg[7],&rop2);
+        else rplBINTToRReg(7,op2);
 
-            if(op1type) {
-                if(op2type) xrootReal(&RReg[0],&rop1,&rop2);
-                else {
-                rplBINTToRReg(1,op2);
-                xrootReal(&RReg[0],&rop1,&RReg[1]);
-                }
-            }
-            else {
-            if(op2type) {
-                rplBINTToRReg(1,op1);
-                xrootReal(&RReg[0],&RReg[1],&rop2);
-            }
-            }
-            rplNewRealFromRRegPush(0);
-            if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+        BINT isneg=RReg[6].flags&F_NEGATIVE;
+        if(RReg[6].flags&F_NEGATIVE) {
+            // RESULT IS LIKELY COMPLEX
+            // a^(1/n)= ABS(a)^(1/n) * (cos(pi/n)+i*sin(pi/n))
 
-            return;
+            // USE DEG TO AVOID LOSS OF PRECISION WITH PI
+
+            newRealFromBINT(&RReg[5],180);
+
+            divReal(&RReg[0],&RReg[5],&RReg[7]);
+            divmodReal(&RReg[1],&RReg[9],&RReg[0],&RReg[5]);    // REDUCE TO FIRST CIRCLE
+
+            if(!rplTestSystemFlag(FL_COMPLEXMODE) && !iszeroReal(&RReg[9])) {
+                rplError(ERR_COMPLEXRESULT);
+                return;
+            }
+            RReg[6].flags^=F_NEGATIVE;    // MAKE IT POSITIVE
+
+            // HERE WE LEFT THE NEW ANGLE IN RReg[9]
         }
 
 
-        // INTEGER POWER, USE REALS TO DEAL WITH NEGATIVE POWERS AND OVERFLOW
-        rplBINTToRReg(6,op1);
-        rplBINTToRReg(7,op2);
+        xrootReal(&RReg[8],&RReg[6],&RReg[7]);
 
-        // TODO: REAL POWERS
-        xrootReal(&RReg[0],&RReg[6],&RReg[7]);
-
-        if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
-            BINT64 result=getBINT64Real(&RReg[0]);
+        if(!isneg) {
+        if(isintegerReal(&RReg[8]) && inBINT64Range(&RReg[8])) {
+            BINT64 result=getBINT64Real(&RReg[8]);
             rplNewBINTPush(result,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
         }
-        else rplNewRealFromRRegPush(0);
-        if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+        else rplNewRealFromRRegPush(8);
+        if(!Exceptions) rplCheckResultAndError(&RReg[8]);
 
         return;
+        }
+
+        // RETURN A POLAR COMPLEX
+
+        BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+        trig_convertangle(&RReg[9],ANGLEDEG,angmode);
+
+        rplCheckResultAndError(&RReg[0]);
+        rplCheckResultAndError(&RReg[8]);
+
+        // RETURN A POLAR COMPLEX
+        rplNewComplexPush(&RReg[8],&RReg[0],angmode);
+
+        return;
+
+
+
         }
 
         case OVR_EQ:

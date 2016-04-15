@@ -94,7 +94,7 @@ BINT rplPolarComplexMode(WORDPTR complex)
 {
     if(!ISCOMPLEX(*complex)) return ANGLENONE;
     WORDPTR part=rplSkipOb(++complex);
-    if(ISANGLE(*part)) return LIBNUM(*part)&3;
+    if(ISANGLE(*part)) return ANGLEMODE(*part);
     return ANGLENONE;
 }
 
@@ -117,6 +117,37 @@ void rplReadCNumberAsImag(WORDPTR complex,REAL *imag)
         imag->len=1;
     }
 }
+
+void rplReadCNumber(WORDPTR complex,REAL *real,REAL *imag, BINT *angmode)
+{
+    if(ISCOMPLEX(*complex)) {
+        WORDPTR part=rplSkipOb(complex+1);
+        if(ISANGLE(*part)) {
+            *angmode=ANGLEMODE(*part);
+            rplReadNumberAsReal(part+1,imag);
+        }
+        else {
+            *angmode=ANGLENONE;
+            rplReadNumberAsReal(part,imag);
+        }
+        rplReadNumberAsReal(complex+1,real);
+        return;
+    }
+    // IT'S A REAL NUMBER
+
+    // SET IMAG TO ZERO
+    imag->data=(BINT *)zero_data;
+    imag->exp=0;
+    imag->flags=0;
+    imag->len=1;
+
+    *angmode=ANGLENONE;
+
+    rplReadNumberAsReal(complex,real);
+
+}
+
+
 
 
 // CREATE COMPLEX NUMBER FROM 2 RREG'S AND PUSH IT ON THE STACK
@@ -511,9 +542,18 @@ void LIB_HANDLER()
 
             // WORK DIRECTLY IN POLAR COORDINATES
 
-            trig_convertangle(&Iarg2,amode2,amode1);
-
-            addReal(&RReg[1],&Iarg1,&RReg[0]);
+            if(amode1!=ANGLEDMS) {
+                trig_convertangle(&Iarg2,amode2,amode1);
+                addReal(&RReg[1],&Iarg1,&RReg[0]);
+            } else {
+                // ADDING IN DMS NEEDS SPECIAL TREATMENT
+                trig_convertangle(&Iarg1,amode1,ANGLEDEG);
+                swapReal(&RReg[0],&RReg[6]);
+                trig_convertangle(&Iarg2,amode2,ANGLEDEG);
+                addReal(&RReg[7],&RReg[6],&RReg[0]);
+                trig_convertangle(&RReg[7],ANGLEDEG,amode1);
+                swapReal(&RReg[0],&RReg[1]);
+            }
             mulReal(&RReg[0],&Rarg1,&Rarg2);
 
             rplCheckResultAndError(&RReg[0]);
@@ -607,10 +647,22 @@ void LIB_HANDLER()
                 subReal(&RReg[1],&Iarg1,&RReg[7]);
             }
             else {
+                if(amode1!=ANGLEDMS) {
                 trig_convertangle(&Iarg2,amode2,amode1);
                 swapReal(&RReg[0],&RReg[7]);
                 divReal(&RReg[0],&Rarg1,&Rarg2);
                 subReal(&RReg[1],&Iarg1,&RReg[7]);
+                }
+                else {
+                    // SUBTRACTING IN DMS NEEDS SPECIAL TREATMENT
+                    trig_convertangle(&Iarg1,amode1,ANGLEDEG);
+                    swapReal(&RReg[0],&RReg[6]);
+                    trig_convertangle(&Iarg2,amode2,ANGLEDEG);
+                    subReal(&RReg[7],&RReg[6],&RReg[0]);
+                    trig_convertangle(&RReg[7],ANGLEDEG,amode1);
+                    swapReal(&RReg[0],&RReg[1]);
+                    divReal(&RReg[0],&Rarg1,&Rarg2);
+                }
             }
 
             rplCheckResultAndError(&RReg[0]);
@@ -743,7 +795,7 @@ void LIB_HANDLER()
             // RReg[9]=Theta'=a*Theta+b*ln(r)
 
             if(resmode==ANGLENONE) {
-                rplPolar2Rect(&RReg[8],&RReg[9],amode1);
+                rplPolar2Rect(&RReg[8],&RReg[9],ANGLERAD);
                 rplCheckResultAndError(&RReg[0]);
                 rplCheckResultAndError(&RReg[1]);
                 rplRRegToComplexPush(0,1,ANGLENONE);
@@ -988,12 +1040,14 @@ void LIB_HANDLER()
 
             trig_convertangle(&Iarg1,amode1,ANGLEDEG);
 
-            addReal(&RReg[1],&RReg[0],&RReg[6]);
+            addReal(&RReg[7],&RReg[0],&RReg[6]);
+
+            trig_convertangle(&RReg[7],ANGLEDEG,amode1);
 
             rplCheckResultAndError(&Rarg1);
-            rplCheckResultAndError(&RReg[1]);
+            rplCheckResultAndError(&RReg[0]);
 
-            rplNewComplexPush(&Rarg1,&RReg[1],amode1);
+            rplNewComplexPush(&Rarg1,&RReg[0],amode1);
 
             return;
 
@@ -1015,7 +1069,8 @@ void LIB_HANDLER()
                 return;
             }
 
-            rplNewRealPush(&Rarg1);
+            // AVOID CREATING AN OBJECT, JUST RETURN THE FIRST COMPONENT
+            rplOverwriteData(1,arg1+1);
 
             return;
 
@@ -1056,6 +1111,7 @@ void LIB_HANDLER()
     {
 
     case RE:
+    {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1065,13 +1121,39 @@ void LIB_HANDLER()
             return;
         }
         if(ISCOMPLEX(*rplPeekData(1))) {
+            BINT angmode=rplPolarComplexMode(rplPeekData(1));
+
+            if(angmode==ANGLENONE) {
+            // AVOID CREATING A NEW OBJECT
             WORDPTR real=rplPeekData(1)+1;
             rplOverwriteData(1,real);
+            return;
+            }
+
+            // POLAR COMPLEX NEEDS TO BE CONVERTED TO CARTESIAN
+
+            REAL re,im;
+
+            rplReadCNumber(rplPeekData(1),&re,&im,&angmode);
+
+            if(Exceptions) return;
+
+            rplPolar2Rect(&re,&im,angmode);
+
+            WORDPTR newreal=rplNewRealFromRReg(0);
+
+            if(!newreal) return;
+
+            rplOverwriteData(1,newreal);
+
+            return;
+
         }
         // IF IT IS A REAL NUMBER, THEN LEAVE THE REAL ON THE STACK
         return;
-
+    }
     case IM:
+    {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1081,14 +1163,41 @@ void LIB_HANDLER()
             return;
         }
         if(ISCOMPLEX(*rplPeekData(1))) {
+
+            BINT angmode=rplPolarComplexMode(rplPeekData(1));
+
+            if(angmode==ANGLENONE) {
+            // AVOID CREATING A NEW OBJECT
             WORDPTR imag=rplSkipOb(rplPeekData(1)+1);
             rplOverwriteData(1,imag);
-        } else {
+            return;
+            }
+
+            // POLAR COMPLEX NEEDS TO BE CONVERTED TO CARTESIAN
+
+            REAL re,im;
+
+            rplReadCNumber(rplPeekData(1),&re,&im,&angmode);
+
+            if(Exceptions) return;
+
+            rplPolar2Rect(&re,&im,angmode);
+
+            WORDPTR newreal=rplNewRealFromRReg(1);
+
+            if(!newreal) return;
+
+            rplOverwriteData(1,newreal);
+
+            return;
+
+        }
+
             // NON-COMPLEX NUMBERS HAVE IMAGINARY PART = 0
             rplDropData(1);
             rplPushData((WORDPTR)zero_bint);
-        }
-        return;
+            return;
+    }
     case ARG:
     {
         if(rplDepthData()<1) {
@@ -1099,23 +1208,75 @@ void LIB_HANDLER()
             rplError(ERR_COMPLEXORREALEXPECTED);
             return;
         }
+
+        if(ISCOMPLEX(*rplPeekData(1))) {
+
+            BINT angmode=rplPolarComplexMode(rplPeekData(1));
+
+            if(angmode!=ANGLENONE) {
+            // AVOID CREATING A NEW OBJECT
+                WORDPTR arg=rplSkipOb(rplPeekData(1)+1);
+                rplOverwriteData(1,arg);
+                return;
+            }
+
+            // IT'S A NORMAL COMPLEX, NEED TO COMPUTE THE ARGUMENT
+
             REAL real,imag;
 
-            rplReadCNumberAsReal(rplPeekData(1),&real);
-            rplReadCNumberAsImag(rplPeekData(1),&imag);
+            rplReadCNumber(rplPeekData(1),&real,&imag,&angmode);
 
-            BINT angmode;
-            if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
-                // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
-                if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
-                else angmode=1;
-            } else angmode=0;
+            if(Exceptions) return;
 
+            angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+            // COMPUTE THE ANGLE DIRECTLY FOR SPEED INSTEAD OF USING rplRect2Polar
             trig_atan2(&imag,&real,angmode);
             finalize(&RReg[0]);
 
-            rplDropData(1);
-            rplNewRealFromRRegPush(0);
+
+            // RETURN AN ANGLE IN THE CURRENT SYSTEM
+
+            WORDPTR newang=rplNewAngleFromReal(&RReg[0],angmode);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+
+            return;
+        }
+
+        // REAL NUMBERS HAVE ARGUMENT DEPENDING ON THE SIGN
+
+        REAL real;
+        rplReadNumberAsReal(rplPeekData(1),&real);
+
+        BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+        if(real.flags&F_NEGATIVE) {
+            switch(angmode)
+            {
+            case ANGLERAD:
+            {
+                REAL pi;
+              decconst_PI(&pi);
+              copyReal(&RReg[0],&pi);
+              finalize(&RReg[0]);   // ROUND PI TO THE CURRENT NUMBER OF DIGITS
+              break;
+            }
+            case ANGLEGRAD:
+                newRealFromBINT(&RReg[0],200);
+                break;
+            case ANGLEDEG:
+            case ANGLEDMS:
+            default:
+                newRealFromBINT(&RReg[0],180);
+                break;
+            }
+        }
+        else rplZeroToRReg(0);
+
+        WORDPTR newang=rplNewAngleFromReal(&RReg[0],angmode);
+        if(!newang) return;
+        rplOverwriteData(1,newang);
 
         return;
     }
@@ -1129,14 +1290,25 @@ void LIB_HANDLER()
             rplError(ERR_COMPLEXORREALEXPECTED);
             return;
         }
-            REAL real,imag;
 
-            rplReadCNumberAsReal(rplPeekData(1),&real);
-            rplReadCNumberAsImag(rplPeekData(1),&imag);
+        if(ISCOMPLEX(*rplPeekData(1))) {
+            REAL real,imag;
+            BINT angmode;
+
+            rplReadCNumber(rplPeekData(1),&real,&imag,&angmode);
+
+            // INVERT THE SIGN OF THE IMAGINARY PART OR THE ARGUMENT
             if(!iszeroReal(&imag)) imag.flags^=F_NEGATIVE;
 
-            rplDropData(1);
-            rplNewComplexPush(&real,&imag,ANGLENONE);
+            WORDPTR newcplx=rplNewComplex(&real,&imag,angmode);
+            if(!newcplx) return;
+
+            rplOverwriteData(1,newcplx);
+
+            return;
+        }
+
+        // REAL NUMBERS ARE JUST LEFT ON THE STACK
 
         return;
     }
@@ -1163,7 +1335,11 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        if(!ISNUMBER(*rplPeekData(1)) || !ISNUMBER(*rplPeekData(2))) {
+        if(!(ISNUMBER(*rplPeekData(1))||ISANGLE(*rplPeekData(1)))) {
+            rplError(ERR_REALORANGLEEXPECTED);
+            return;
+        }
+        if(!ISNUMBER(*rplPeekData(2))) {
             rplError(ERR_REALEXPECTED);
             return;
         }
