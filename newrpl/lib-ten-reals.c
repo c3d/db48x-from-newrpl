@@ -35,7 +35,8 @@
         ERR(NUMBERTOOBIG,4), \
         ERR(MATHDIVIDEBYZERO,5), \
         ERR(MATHOVERFLOW,6), \
-        ERR(MATHUNDERFLOW,7)
+        ERR(MATHUNDERFLOW,7), \
+        ERR(COMPLEXRESULT,8)
 
 
 
@@ -264,35 +265,6 @@ void rplCompileReal(REAL *num)
 }
 
 
-void rplSwapRReg(int reg1,int reg2)
-{
-    REAL a;
-    a.data=RReg[reg1].data;
-    a.exp=RReg[reg1].exp;
-    a.flags=RReg[reg1].flags;
-    a.len=RReg[reg1].len;
-
-    RReg[reg1].data=RReg[reg2].data;
-    RReg[reg1].exp=RReg[reg2].exp;
-    RReg[reg1].flags=RReg[reg2].flags;
-    RReg[reg1].len=RReg[reg2].len;
-
-    RReg[reg2].data=a.data;
-    RReg[reg2].exp=a.exp;
-    RReg[reg2].flags=a.flags;
-    RReg[reg2].len=a.len;
-}
-
-
-
-
-
-
-
-
-
-
-
 // CHECKS THE RESULT AND ISSUE ERRORS/EXCEPTIONS AS NEEDED
 void rplCheckResultAndError(REAL *real)
 {
@@ -398,6 +370,7 @@ void LIB_HANDLER()
             return;
 
         case OVR_POW:
+        {
             RReg[1].data[0]=5;
             RReg[1].exp=-1;
             RReg[1].len=1;
@@ -406,11 +379,78 @@ void LIB_HANDLER()
             if(eqReal(&Darg2,&RReg[1]))
                 // THIS IS A SQUARE ROOT
             {
+                if(Darg1.flags&F_NEGATIVE) {
+
+                    if(rplTestSystemFlag(FL_COMPLEXMODE)) {
+                    // COMPLEX RESULT!
+                    Darg1.flags^=F_NEGATIVE;
+                    hyp_sqrt(&Darg1);
+                    finalize(&RReg[0]);
+
+                    swapReal(&RReg[6],&RReg[0]);
+                    newRealFromBINT(&RReg[7],90);
+
+                    BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                    trig_convertangle(&RReg[7],ANGLEDEG,angmode);
+
+                    rplCheckResultAndError(&RReg[0]);
+                    rplCheckResultAndError(&RReg[6]);
+
+
+                    rplNewComplexPush(&RReg[6],&RReg[0],angmode);
+
+                    return;
+
+                    }
+                    else {
+                        rplError(ERR_COMPLEXRESULT);
+                        return;
+                    }
+
+
+                }
+
+
                 hyp_sqrt(&Darg1);
                 finalize(&RReg[0]);
             }
             else {
-                // TODO: CALL DECIMAL POWER FUNCTION
+                if(Darg1.flags&F_NEGATIVE) {
+
+
+                    // NEGATIVE NUMBER RAISED TO A REAL POWER
+                    // a^n= ABS(a)^n * (cos(n*pi)+i*sin(n*pi))
+
+                    // USE DEG TO AVOID LOSS OF PRECISION WITH PI
+
+                    newRealFromBINT(&RReg[7],180);
+
+                    mulReal(&RReg[0],&Darg2,&RReg[7]);
+                    divmodReal(&RReg[1],&RReg[9],&RReg[0],&RReg[7]);    // REDUCE TO FIRST CIRCLE
+
+                    if(!rplTestSystemFlag(FL_COMPLEXMODE) && !iszeroReal(&RReg[9])) {
+                        rplError(ERR_COMPLEXRESULT);
+                        return;
+                    }
+                    Darg1.flags^=F_NEGATIVE;    // MAKE IT POSITIVE
+
+                    powReal(&RReg[8],&Darg1,&Darg2);    // ONLY RReg[9] IS PRESERVED
+
+                    BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                    trig_convertangle(&RReg[9],ANGLEDEG,angmode);
+
+                    rplCheckResultAndError(&RReg[0]);
+                    rplCheckResultAndError(&RReg[8]);
+
+                    // RETURN A POLAR COMPLEX
+                    rplNewComplexPush(&RReg[8],&RReg[0],angmode);
+
+                    return;
+
+
+                }
 
                 powReal(&RReg[0],&Darg1,&Darg2);
 
@@ -420,6 +460,7 @@ void LIB_HANDLER()
             if(!Exceptions) rplCheckResultAndError(&RReg[0]);
 
             return;
+        }
 
         case OVR_XROOT:
             RReg[1].data[0]=2;
@@ -430,10 +471,77 @@ void LIB_HANDLER()
             if(eqReal(&Darg2,&RReg[1]))
                 // THIS IS A SQUARE ROOT
             {
+
+                if(Darg1.flags&F_NEGATIVE) {
+
+                    if(rplTestSystemFlag(FL_COMPLEXMODE)) {
+                    // COMPLEX RESULT!
+                    Darg1.flags^=F_NEGATIVE;
+                    hyp_sqrt(&Darg1);
+                    finalize(&RReg[0]);
+
+                    swapReal(&RReg[6],&RReg[0]);
+                    newRealFromBINT(&RReg[7],90);
+
+                    BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                    trig_convertangle(&RReg[7],ANGLEDEG,angmode);
+
+                    rplCheckResultAndError(&RReg[0]);
+                    rplCheckResultAndError(&RReg[6]);
+
+                    rplNewComplexPush(&RReg[6],&RReg[0],angmode);
+
+                    return;
+
+                    }
+                    else {
+                        rplError(ERR_COMPLEXRESULT);
+                        return;
+                    }
+
+                }
+
+
                 hyp_sqrt(&Darg1);
                 finalize(&RReg[0]);
             }
             else {
+                if(Darg1.flags&F_NEGATIVE) {
+
+
+                    // NEGATIVE NUMBER RAISED TO A REAL POWER
+                    // a^(1/n)= ABS(a)^(1/n) * (cos(pi/n)+i*sin(pi/n))
+
+                    // USE DEG TO AVOID LOSS OF PRECISION WITH PI
+
+                    newRealFromBINT(&RReg[7],180);
+
+                    divReal(&RReg[0],&RReg[7],&Darg2);
+                    divmodReal(&RReg[1],&RReg[9],&RReg[0],&RReg[7]);    // REDUCE TO FIRST CIRCLE
+
+                    if(!rplTestSystemFlag(FL_COMPLEXMODE) && !iszeroReal(&RReg[9])) {
+                        rplError(ERR_COMPLEXRESULT);
+                        return;
+                    }
+                    Darg1.flags^=F_NEGATIVE;    // MAKE IT POSITIVE
+
+                    xrootReal(&RReg[8],&Darg1,&Darg2);    // ONLY RReg[9] IS PRESERVED
+
+                    BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                    trig_convertangle(&RReg[9],ANGLEDEG,angmode);
+
+                    rplCheckResultAndError(&RReg[0]);
+                    rplCheckResultAndError(&RReg[8]);
+
+                    // RETURN A POLAR COMPLEX
+                    rplNewComplexPush(&RReg[8],&RReg[0],angmode);
+
+                    return;
+
+
+                }
 
 
 

@@ -151,7 +151,9 @@ for(k=1;k<=totalelements;++k) {
 obj=rplPeekData(k);
 if(! (ISNUMBERCPLX(*obj)
       || ISSYMBOLIC(*obj)
-      || ISIDENT(*obj))) {
+      || ISIDENT(*obj)
+      || ISANGLE(*obj)
+      )) {
     rplError(ERR_NOTALLOWEDINMATRIX);
     return 0;
     }

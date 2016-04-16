@@ -25,6 +25,7 @@
 ##1,ERR_MATHDIVIDEBYZERO "Divide by zero"
 ##1,ERR_MATHOVERFLOW "Overflow"
 ##1,ERR_MATHUNDERFLOW "Underflow"
+##1,ERR_COMPLEXRESULT "Complex result"
 }
 
 

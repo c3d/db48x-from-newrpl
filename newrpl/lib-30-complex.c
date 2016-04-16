@@ -92,9 +92,10 @@ void rplImaginaryPart(WORDPTR complex,REAL *imag)
 // RETURN -1 IF NOT POLAR, OTHERWISE RETURN THE ANGLE MODE
 BINT rplPolarComplexMode(WORDPTR complex)
 {
+    if(!ISCOMPLEX(*complex)) return ANGLENONE;
     WORDPTR part=rplSkipOb(++complex);
-    if(ISANGLE(*part)) return LIBNUM(*part)&3;
-    return -1;
+    if(ISANGLE(*part)) return ANGLEMODE(*part);
+    return ANGLENONE;
 }
 
 
@@ -117,15 +118,45 @@ void rplReadCNumberAsImag(WORDPTR complex,REAL *imag)
     }
 }
 
+void rplReadCNumber(WORDPTR complex,REAL *real,REAL *imag, BINT *angmode)
+{
+    if(ISCOMPLEX(*complex)) {
+        WORDPTR part=rplSkipOb(complex+1);
+        if(ISANGLE(*part)) {
+            *angmode=ANGLEMODE(*part);
+            rplReadNumberAsReal(part+1,imag);
+        }
+        else {
+            *angmode=ANGLENONE;
+            rplReadNumberAsReal(part,imag);
+        }
+        rplReadNumberAsReal(complex+1,real);
+        return;
+    }
+    // IT'S A REAL NUMBER
+
+    // SET IMAG TO ZERO
+    imag->data=(BINT *)zero_data;
+    imag->exp=0;
+    imag->flags=0;
+    imag->len=1;
+
+    *angmode=ANGLENONE;
+
+    rplReadNumberAsReal(complex,real);
+
+}
+
+
+
 
 // CREATE COMPLEX NUMBER FROM 2 RREG'S AND PUSH IT ON THE STACK
 
-void rplNewComplexPush(REAL *real,REAL *imag,BINT angmode)
+WORDPTR rplNewComplex(REAL *real,REAL *imag,BINT angmode)
 {
     if(iszeroReal(imag)) {
         // IT'S A REAL NUMBER, THERE'S NO IMAGINARY PART
-        rplNewRealPush(real);
-        return;
+        return rplNewReal(real);
     }
     BINT size=4+real->len+imag->len;
 
@@ -137,7 +168,7 @@ void rplNewComplexPush(REAL *real,REAL *imag,BINT angmode)
     WORDPTR newobject=rplAllocTempOb(size);
     WORDPTR parts,end;
     if(!newobject) {
-        return;
+        return 0;
     }
 
     real->data=(BINT *)ScratchPointer1;
@@ -150,11 +181,17 @@ void rplNewComplexPush(REAL *real,REAL *imag,BINT angmode)
 
     rplTruncateLastObject(end);
 
-    rplPushData(newobject);
+    return newobject;
 
 }
 
+void rplNewComplexPush(REAL *real,REAL *imag,BINT angmode)
+{
+    WORDPTR newobject=rplNewComplex(real,imag,angmode);
+    if(!newobject) return;
+    rplPushData(newobject);
 
+}
 // CREATE COMPLEX NUMBER FROM 2 RREG'S AND PUSH IT ON THE STACK
 
 void rplRRegToComplexPush(BINT real,BINT imag,BINT angmode)
@@ -187,6 +224,75 @@ WORDPTR rplRRegToComplexInPlace(BINT real,BINT imag,WORDPTR dest,BINT angmode)
     return end;
 }
 
+// CONVERT TO CARTESIAN COORDINATES, RETURN RESULT IN RReg[0] AND RReg[1]
+// USES ALL RREGS FROM 0 TO 7
+void rplPolar2Rect(REAL *r,REAL *theta,BINT angmode)
+{
+    if(angmode==ANGLENONE) {
+        copyReal(&RReg[0],r);
+        copyReal(&RReg[1],theta);
+        return;
+    }
+
+    // GET RReg[6]=COS(THETA), RReg[7]=SIN(THETA), BOTH NOT FINALIZED
+    trig_sincos(theta,angmode);
+
+    normalize(&RReg[6]);
+    normalize(&RReg[7]);
+
+    mulReal(&RReg[0],r,&RReg[6]);
+    mulReal(&RReg[1],r,&RReg[7]);
+    return;
+
+}
+
+// CONVERT A COMPLEX NUMBER TO POLAR COORDINATES USING THE GIVEN ANGLE MODE
+// RESULT IS IN RReg[0]=r, RReg[1]=theta
+
+// WARNING: INPUTS CAN'T BE IN RReg 6 OR 7
+
+void rplRect2Polar(REAL *re,REAL *im,BINT angmode)
+{
+    if(angmode==ANGLENONE) {
+        copyReal(&RReg[0],re);
+        copyReal(&RReg[1],im);
+        return;
+    }
+
+    // GET THE SQUARE OF LENGTH in RReg[8]
+    mulReal(&RReg[6],re,re);
+    mulReal(&RReg[7],im,im);
+    addReal(&RReg[8],&RReg[6],&RReg[7]);
+
+    // NOW USE THE ORIGINAL ARGUMENTS TO GET THE ANGLE
+    // GET RReg[0]=theta
+    trig_atan2(im,re,angmode);
+    finalize(&RReg[0]);
+
+    // MOVE IT TO A HIGHER REGISTER, AS ALL TRIG FUNCTIONS USE RRegs 0 TO 7
+    swapReal(&RReg[9],&RReg[0]);
+
+    // NOW DO THE SQUARE ROOT
+    hyp_sqrt(&RReg[8]);
+    finalize(&RReg[0]);
+
+    // AND BRING BACK THE ANGLE TO RReg 1
+    swapReal(&RReg[1],&RReg[9]);
+
+    return;
+}
+
+// RETURN 1 IF IT'S ZERO, OTHERWISE 0
+BINT rplIsZeroComplex(REAL *re,REAL *im,BINT angmode)
+{
+    if(angmode==ANGLENONE) {
+        if(iszeroReal(re)&&iszeroReal(im)) return 1;
+        return 0;
+    }
+    if(iszeroReal(re)) return 1;
+    return 0;
+}
+
 
 void LIB_HANDLER()
 {
@@ -209,6 +315,7 @@ void LIB_HANDLER()
 
         int nargs=OVR_GETNARGS(CurOpcode);
         REAL Rarg1,Iarg1,Rarg2,Iarg2;
+        BINT amode1,amode2;
 
         if(rplDepthData()<nargs) {
             rplError(ERR_BADARGCOUNT);
@@ -242,6 +349,7 @@ void LIB_HANDLER()
 
             rplReadCNumberAsReal(arg1,&Rarg1);
             rplReadCNumberAsImag(arg1,&Iarg1);
+            amode1=rplPolarComplexMode(arg1);
             rplDropData(1);
         }
         else {
@@ -255,8 +363,10 @@ void LIB_HANDLER()
 
             rplReadCNumberAsReal(arg1,&Rarg1);
             rplReadCNumberAsImag(arg1,&Iarg1);
+            amode1=rplPolarComplexMode(arg1);
             rplReadCNumberAsReal(arg2,&Rarg2);
             rplReadCNumberAsImag(arg2,&Iarg2);
+            amode2=rplPolarComplexMode(arg2);
 
             rplDropData(2);
         }
@@ -264,98 +374,323 @@ void LIB_HANDLER()
         switch(OPCODE(CurOpcode))
         {
         case OVR_ADD:
-            // ADD THE REAL PART FIRST
-            addReal(&RReg[0],&Rarg1,&Rarg2);
-            addReal(&RReg[1],&Iarg1,&Iarg2);
+        {
+            if(amode1==ANGLENONE) {
+                if(amode2==ANGLENONE) {
+                    // ADD THE REAL PART FIRST
+                    addReal(&RReg[0],&Rarg1,&Rarg2);
+                    addReal(&RReg[1],&Iarg1,&Iarg2);
+                    rplCheckResultAndError(&RReg[0]);
+                    rplCheckResultAndError(&RReg[1]);
+
+                    rplRRegToComplexPush(0,1,ANGLENONE);
+                    return;
+                }
+                // CONVERT BOTH ARGUMENTS TO CARTESIAN, THEN ADD
+                rplPolar2Rect(&Rarg2,&Iarg2,amode2);
+                addReal(&RReg[2],&Rarg1,&RReg[0]);
+                addReal(&RReg[3],&Iarg1,&RReg[1]);
+
+                rplCheckResultAndError(&RReg[2]);
+                rplCheckResultAndError(&RReg[3]);
+
+                // RESULT IN CARTESIAN IS OK
+                rplRRegToComplexPush(2,3,ANGLENONE);
+                return;
+
+
+            }
+
+            // CONVERT FIRST ARGUMENT TO CARTESIAN
+            rplPolar2Rect(&Rarg1,&Iarg1,amode1);
+            if(amode2!=ANGLENONE) {
+            // CONVERT SECOND ARGUMENT TO CARTESIAN
+            swapReal(&RReg[8],&RReg[0]);    // SAVE TO HIGHER REGISTERS
+            swapReal(&RReg[9],&RReg[1]);
+            
+            rplPolar2Rect(&Rarg2,&Iarg2,amode2);
+            
+            addReal(&RReg[3],&RReg[8],&RReg[0]);
+            addReal(&RReg[4],&RReg[9],&RReg[1]);
+            
+            }
+            else {
+                // ADD DIRECTLY
+                addReal(&RReg[3],&RReg[0],&Rarg2);
+                addReal(&RReg[4],&RReg[1],&Iarg2);
+                
+            }
+
+            // HERE WE HAVE THE RESULT IN CARTESIAN COORDINATES IN RReg 3 AND 4
+            
+            rplRect2Polar(&RReg[3],&RReg[4],amode1);
+
             rplCheckResultAndError(&RReg[0]);
             rplCheckResultAndError(&RReg[1]);
 
-            rplRRegToComplexPush(0,1,ANGLENONE);
+            rplRRegToComplexPush(0,1,amode1);
+
             return;
 
+        }
         case OVR_SUB:
-            subReal(&RReg[0],&Rarg1,&Rarg2);
-            subReal(&RReg[1],&Iarg1,&Iarg2);
+        {
+            if(amode1==ANGLENONE) {
+                if(amode2==ANGLENONE) {
+                    // ADD THE REAL PART FIRST
+                    subReal(&RReg[0],&Rarg1,&Rarg2);
+                    subReal(&RReg[1],&Iarg1,&Iarg2);
+                    rplCheckResultAndError(&RReg[0]);
+                    rplCheckResultAndError(&RReg[1]);
+
+                    rplRRegToComplexPush(0,1,ANGLENONE);
+                    return;
+                }
+                // CONVERT BOTH ARGUMENTS TO CARTESIAN, THEN ADD
+                rplPolar2Rect(&Rarg2,&Iarg2,amode2);
+                subReal(&RReg[2],&Rarg1,&RReg[0]);
+                subReal(&RReg[3],&Iarg1,&RReg[1]);
+
+                rplCheckResultAndError(&RReg[2]);
+                rplCheckResultAndError(&RReg[3]);
+
+                // RESULT IN CARTESIAN IS OK
+                rplRRegToComplexPush(2,3,ANGLENONE);
+                return;
+
+
+            }
+
+            // CONVERT FIRST ARGUMENT TO CARTESIAN
+            rplPolar2Rect(&Rarg1,&Iarg1,amode1);
+            if(amode2!=ANGLENONE) {
+            // CONVERT SECOND ARGUMENT TO CARTESIAN
+            swapReal(&RReg[8],&RReg[0]);    // SAVE TO HIGHER REGISTERS
+            swapReal(&RReg[9],&RReg[1]);
+
+            rplPolar2Rect(&Rarg2,&Iarg2,amode2);
+
+            subReal(&RReg[3],&RReg[8],&RReg[0]);
+            subReal(&RReg[4],&RReg[9],&RReg[1]);
+
+            }
+            else {
+                // ADD DIRECTLY
+                subReal(&RReg[3],&RReg[0],&Rarg2);
+                subReal(&RReg[4],&RReg[1],&Iarg2);
+
+            }
+
+            // HERE WE HAVE THE RESULT IN CARTESIAN COORDINATES IN RReg 3 AND 4
+
+            rplRect2Polar(&RReg[3],&RReg[4],amode1);
+
             rplCheckResultAndError(&RReg[0]);
             rplCheckResultAndError(&RReg[1]);
 
-            rplRRegToComplexPush(0,1,ANGLENONE);
+            rplRRegToComplexPush(0,1,amode1);
 
             return;
+
+        }
 
         case OVR_MUL:
+        {
+            if(amode1==ANGLENONE) {
+                // RESULT WIL BE IN CARTESIAN COORDINATES
+                if(amode2==ANGLENONE) {
+                    // WORK IN CARTESIAN COORDINATES
+                    Context.precdigits+=8;
+                    mulReal(&RReg[0],&Rarg1,&Rarg2);
+                    mulReal(&RReg[1],&Iarg1,&Iarg2);
+                    subReal(&RReg[2],&RReg[0],&RReg[1]);
+                    mulReal(&RReg[0],&Rarg1,&Iarg2);
+                    mulReal(&RReg[1],&Iarg1,&Rarg2);
+                    Context.precdigits-=8;
+                    addReal(&RReg[3],&RReg[0],&RReg[1]);
+                    finalize(&RReg[2]);
+                    rplCheckResultAndError(&RReg[0]);
+                    rplCheckResultAndError(&RReg[1]);
+                    rplRRegToComplexPush(2,3,ANGLENONE);
+                    return;
+                }
 
-            Context.precdigits+=8;
+                else {
+                    // CONVERT TO CARTESIAN COORDINATES
+                    rplPolar2Rect(&Rarg2,&Iarg2,amode2);
+
+                    // THEN DO IT ALL IN CARTESIAN
+                    swapReal(&RReg[8],&RReg[0]);
+                    swapReal(&RReg[9],&RReg[1]);
+
+                    Context.precdigits+=8;
+                    mulReal(&RReg[0],&Rarg1,&RReg[8]);
+                    mulReal(&RReg[1],&Iarg1,&RReg[9]);
+                    subReal(&RReg[2],&RReg[0],&RReg[1]);
+                    mulReal(&RReg[0],&Rarg1,&RReg[9]);
+                    mulReal(&RReg[1],&Iarg1,&RReg[8]);
+                    Context.precdigits-=8;
+                    addReal(&RReg[3],&RReg[0],&RReg[1]);
+                    finalize(&RReg[2]);
+                    rplCheckResultAndError(&RReg[0]);
+                    rplCheckResultAndError(&RReg[1]);
+                    rplRRegToComplexPush(2,3,ANGLENONE);
+                    return;
+
+                }
+            }
+
+            // WORK DIRECTLY IN POLAR COORDINATES
+
+            if(amode1!=ANGLEDMS) {
+                trig_convertangle(&Iarg2,amode2,amode1);
+                addReal(&RReg[1],&Iarg1,&RReg[0]);
+            } else {
+                // ADDING IN DMS NEEDS SPECIAL TREATMENT
+                trig_convertangle(&Iarg1,amode1,ANGLEDEG);
+                swapReal(&RReg[0],&RReg[6]);
+                trig_convertangle(&Iarg2,amode2,ANGLEDEG);
+                addReal(&RReg[7],&RReg[6],&RReg[0]);
+                trig_convertangle(&RReg[7],ANGLEDEG,amode1);
+                swapReal(&RReg[0],&RReg[1]);
+            }
             mulReal(&RReg[0],&Rarg1,&Rarg2);
-            mulReal(&RReg[1],&Iarg1,&Iarg2);
-            subReal(&RReg[2],&RReg[0],&RReg[1]);
-            mulReal(&RReg[0],&Rarg1,&Iarg2);
-            mulReal(&RReg[1],&Iarg1,&Rarg2);
-            Context.precdigits-=8;
-            addReal(&RReg[3],&RReg[0],&RReg[1]);
-            finalize(&RReg[2]);
+
             rplCheckResultAndError(&RReg[0]);
             rplCheckResultAndError(&RReg[1]);
-            rplRRegToComplexPush(2,3,ANGLENONE);
+            rplRRegToComplexPush(0,1,amode1);
             return;
 
+        }
         case OVR_DIV:
-
-            if(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2)) {
-                // HANDLE SPECIALS
+        {
+            // CHECK FOR DIVIDE BY ZERO
+            if(iszeroReal(&Rarg2)) {
+                if(amode2!=ANGLENONE) {
+                    rplError(ERR_MATHDIVIDEBYZERO);
+                    return;
+                }
+                else if(iszeroReal(&Iarg2)) {
                 rplError(ERR_MATHDIVIDEBYZERO);
                 return;
+                }
             }
-            // (a+b*i)/(c+d*i) = (a+b*i)*(c-d*i)/((c+d*i)*(c-d*i)) = (a*c+b*d)/(c^2+d^2) + (b*c-a*d)/(c^2+d^2)*i
-            Context.precdigits+=8;
-            mulReal(&RReg[0],&Rarg1,&Rarg2);
-            mulReal(&RReg[1],&Iarg1,&Iarg2);
-            addReal(&RReg[2],&RReg[0],&RReg[1]);
-            mulReal(&RReg[0],&Iarg1,&Rarg2);
-            mulReal(&RReg[1],&Rarg1,&Iarg2);
-            subReal(&RReg[3],&RReg[0],&RReg[1]);
-            mulReal(&RReg[0],&Rarg2,&Rarg2);
-            mulReal(&RReg[1],&Iarg2,&Iarg2);
-            addReal(&RReg[4],&RReg[0],&RReg[1]);
 
-            Context.precdigits-=8;
 
-            // TODO: CHECK FOR DIV BY ZERO AND ISSUE ERROR
-            divReal(&RReg[0],&RReg[2],&RReg[4]);
-            divReal(&RReg[1],&RReg[3],&RReg[4]);
+
+            if(amode1==ANGLENONE) {
+                if(amode2==ANGLENONE) {
+                    // (a+b*i)/(c+d*i) = (a+b*i)*(c-d*i)/((c+d*i)*(c-d*i)) = (a*c+b*d)/(c^2+d^2) + (b*c-a*d)/(c^2+d^2)*i
+                    Context.precdigits+=8;
+                    mulReal(&RReg[0],&Rarg1,&Rarg2);
+                    mulReal(&RReg[1],&Iarg1,&Iarg2);
+                    addReal(&RReg[2],&RReg[0],&RReg[1]);
+                    mulReal(&RReg[0],&Iarg1,&Rarg2);
+                    mulReal(&RReg[1],&Rarg1,&Iarg2);
+                    subReal(&RReg[3],&RReg[0],&RReg[1]);
+                    mulReal(&RReg[0],&Rarg2,&Rarg2);
+                    mulReal(&RReg[1],&Iarg2,&Iarg2);
+                    addReal(&RReg[4],&RReg[0],&RReg[1]);
+
+                    Context.precdigits-=8;
+
+                    // TODO: CHECK FOR DIV BY ZERO AND ISSUE ERROR
+                    divReal(&RReg[0],&RReg[2],&RReg[4]);
+                    divReal(&RReg[1],&RReg[3],&RReg[4]);
+
+                    rplCheckResultAndError(&RReg[0]);
+                    rplCheckResultAndError(&RReg[1]);
+
+                    rplRRegToComplexPush(0,1,ANGLENONE);
+
+                    return;
+                }
+                else {
+                    // CONVERT TO RECTANGULAR COORDINATES FIRST
+
+                    rplPolar2Rect(&Rarg2,&Iarg2,amode2);
+
+                    // (a+b*i)/(c+d*i) = (a+b*i)*(c-d*i)/((c+d*i)*(c-d*i)) = (a*c+b*d)/(c^2+d^2) + (b*c-a*d)/(c^2+d^2)*i
+                    Context.precdigits+=8;
+                    mulReal(&RReg[6],&Rarg1,&RReg[0]);
+                    mulReal(&RReg[7],&Iarg1,&RReg[1]);
+                    addReal(&RReg[2],&RReg[6],&RReg[7]);
+                    mulReal(&RReg[6],&Iarg1,&RReg[0]);
+                    mulReal(&RReg[7],&Rarg1,&RReg[1]);
+                    subReal(&RReg[3],&RReg[6],&RReg[7]);
+                    mulReal(&RReg[4],&Rarg2,&Rarg2);
+
+                    Context.precdigits-=8;
+
+                    // TODO: CHECK FOR DIV BY ZERO AND ISSUE ERROR
+                    divReal(&RReg[0],&RReg[2],&RReg[4]);
+                    divReal(&RReg[1],&RReg[3],&RReg[4]);
+
+                    rplCheckResultAndError(&RReg[0]);
+                    rplCheckResultAndError(&RReg[1]);
+
+                    rplRRegToComplexPush(0,1,ANGLENONE);
+
+                    return;
+
+
+                }
+                }
+
+            // RESULT WILL BE IN POLAR COORDINATES
+
+            if(amode2==ANGLENONE) {
+                rplRect2Polar(&Rarg2,&Iarg2,amode1);
+                swapReal(&RReg[0],&RReg[6]);
+                swapReal(&RReg[1],&RReg[7]);
+                divReal(&RReg[0],&Rarg1,&RReg[6]);
+                subReal(&RReg[1],&Iarg1,&RReg[7]);
+            }
+            else {
+                if(amode1!=ANGLEDMS) {
+                trig_convertangle(&Iarg2,amode2,amode1);
+                swapReal(&RReg[0],&RReg[7]);
+                divReal(&RReg[0],&Rarg1,&Rarg2);
+                subReal(&RReg[1],&Iarg1,&RReg[7]);
+                }
+                else {
+                    // SUBTRACTING IN DMS NEEDS SPECIAL TREATMENT
+                    trig_convertangle(&Iarg1,amode1,ANGLEDEG);
+                    swapReal(&RReg[0],&RReg[6]);
+                    trig_convertangle(&Iarg2,amode2,ANGLEDEG);
+                    subReal(&RReg[7],&RReg[6],&RReg[0]);
+                    trig_convertangle(&RReg[7],ANGLEDEG,amode1);
+                    swapReal(&RReg[0],&RReg[1]);
+                    divReal(&RReg[0],&Rarg1,&Rarg2);
+                }
+            }
 
             rplCheckResultAndError(&RReg[0]);
             rplCheckResultAndError(&RReg[1]);
 
-            rplRRegToComplexPush(0,1,ANGLENONE);
+            rplRRegToComplexPush(0,1,amode1);
 
             return;
+
+
+        }
 
         case OVR_POW:
         {
-            Context.precdigits+=8;
+            BINT resmode=amode1;
+            if(amode1==ANGLENONE) {
+                rplRect2Polar(&Rarg1,&Iarg1,ANGLERAD);
+                amode1=ANGLERAD;
+            }
+            else {
+                copyReal(&RReg[0],&Rarg1);
+                copyReal(&RReg[1],&Iarg1);
+            }
 
-            mulReal(&RReg[0],&Rarg1,&Rarg1);
-            mulReal(&RReg[1],&Iarg1,&Iarg1);
-            addReal(&RReg[2],&RReg[0],&RReg[1]);
-
-            Context.precdigits-=8;
-
-
-            hyp_sqrt(&RReg[2]);
-
-            normalize(&RReg[0]);
-            // RReg[8] = r
-            copyReal(&RReg[8],&RReg[0]);
-
-            trig_atan2(&Iarg1,&Rarg1,0);
-
-            // RReg[9]=Theta
-            copyReal(&RReg[9],&RReg[0]);
 
             // HERE WE HAVE 'Z' IN POLAR COORDINATES
 
-            if(iszeroReal(&Iarg2)) {
+            if( (amode2==ANGLENONE) && iszeroReal(&Iarg2)) {
                 // REAL POWER OF A COMPLEX NUMEBR
                 //Z^n= e^(ln(Z^n)) = e^(n*ln(Z)) = e^(n*[ln(r)+i*Theta)
                 //Z^n= e^(n*ln(r))*e^(i*Theta*n) = r^n * e(i*Theta*n)
@@ -364,7 +699,8 @@ void LIB_HANDLER()
                 if(iszeroReal(&Rarg2)) {
                     // Z^0 = 1, UNLESS Z=0
 
-                    if(iszeroReal(&Rarg1)&&iszeroReal(&Iarg1)) {
+                    if(iszeroReal(&RReg[0])) {
+                        // 0^0 is undefined
                         rplError(ERR_UNDEFINEDRESULT);
                         return;
                     }
@@ -374,31 +710,19 @@ void LIB_HANDLER()
 
                 }
 
-                hyp_ln(&RReg[8]);
-                normalize(&RReg[0]);
-                
-                Context.precdigits+=8;
+                // RReg[9]=Theta
+                swapReal(&RReg[9],&RReg[1]);
 
-                // RReg[8]=n*ln(r);
-                mulReal(&RReg[2],&RReg[0],&Rarg2);
-
-                Context.precdigits-=8;
-
-
-                hyp_exp(&RReg[2]);
-                normalize(&RReg[0]);
-
+                // NOTE: powReal USES ALL RREGS FROM 0 TO 8, ONLY 9 IS PRESERVED
                 // RReg[8]=r^n
-                copyReal(&RReg[8],&RReg[0]);
-
-                Context.precdigits+=8;
+                powReal(&RReg[8],&RReg[0],&Rarg2);
 
                 mulReal(&RReg[2],&Rarg2,&RReg[9]);
 
-                Context.precdigits-=8;
 
+                if(resmode==ANGLENONE) {
 
-                trig_sincos(&RReg[2],0);
+                trig_sincos(&RReg[2],amode1);
                 normalize(&RReg[6]);
                 normalize(&RReg[7]);
 
@@ -408,27 +732,56 @@ void LIB_HANDLER()
                 mulReal(&RReg[0],&RReg[6],&RReg[8]);
                 mulReal(&RReg[1],&RReg[7],&RReg[8]);
 
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[1]);
 
                 rplRRegToComplexPush(0,1,ANGLENONE);
                 return;
+                }
+
+                // PUT TOGETHER A POLAR COMPLEX NUMBER
+
+
+                rplCheckResultAndError(&RReg[8]);
+                rplCheckResultAndError(&RReg[2]);
+
+                rplRRegToComplexPush(8,2,resmode);
+                return;
+
+
             }
 
             // COMPLEX NUMBER TO COMPLEX POWER
 
             // Z^w = e^ ( [a*ln(r) - b*Theta] ) * (cos[[b*ln(r)+a*Theta]+ i * sin[b*ln(r)+a*Theta] )
-            // SO FAR WE HAVE RREG[8]=r, RREG[9]=Theta
+            // SO FAR WE HAVE RREG[0]=r, RREG[1]=Theta
+
+            swapReal(&RReg[0],&RReg[8]);
+            swapReal(&RReg[1],&RReg[9]);
+
+            if(amode1!=ANGLERAD) {
+            // ANGLES MUST BE IN RADIANS FOR THIS OPERATION
+            trig_convertangle(&RReg[9],amode1,ANGLERAD);
+            swapReal(&RReg[9],&RReg[0]);
+            }
 
             hyp_ln(&RReg[8]);
             normalize(&RReg[0]);
 
-            // RREG[0]=ln(r)
+            swapReal(&RReg[0],&RReg[8]);    // RReg[8]=ln(r), RReg[9]=Theta
+
+            // NOW WE NEED THE EXPONENT IN CARTESIAN COORDINATES
+            if(amode2!=ANGLENONE) rplPolar2Rect(&Rarg2,&Iarg2,amode2);
+            else { copyReal(&RReg[0],&Rarg2); copyReal(&RReg[1],&Iarg2); }
+            // RREG[0]=a, RReg[1]=b
+
             Context.precdigits+=8;
 
-            mulReal(&RReg[1],&RReg[0],&Rarg2); // RReg[1]=a*ln(r)
-            mulReal(&RReg[2],&RReg[0],&Iarg2); // RReg[2]=b*ln(r)
-            mulReal(&RReg[3],&RReg[9],&Rarg2); // RReg[3]=a*Theta
-            mulReal(&RReg[4],&RReg[9],&Iarg2); // RReg[3]=b*Theta
-            subReal(&RReg[8],&RReg[1],&RReg[4]);   // RReg[8]=a*ln(r)-b*Theta
+            mulReal(&RReg[7],&RReg[8],&RReg[0]); // RReg[7]=a*ln(r)
+            mulReal(&RReg[2],&RReg[8],&RReg[1]); // RReg[2]=b*ln(r)
+            mulReal(&RReg[3],&RReg[9],&RReg[0]); // RReg[3]=a*Theta
+            mulReal(&RReg[4],&RReg[9],&RReg[1]); // RReg[3]=b*Theta
+            subReal(&RReg[8],&RReg[7],&RReg[4]);   // RReg[8]=a*ln(r)-b*Theta
             addReal(&RReg[9],&RReg[2],&RReg[3]);   // RReg[9]=b*ln(r)+a*Theta
 
             Context.precdigits-=8;
@@ -436,29 +789,123 @@ void LIB_HANDLER()
             hyp_exp(&RReg[8]);
             normalize(&RReg[0]);
 
-            copyReal(&RReg[8],&RReg[0]);
+            swapReal(&RReg[8],&RReg[0]);
 
-            trig_sincos(&RReg[9],0);
-            normalize(&RReg[6]);
-            normalize(&RReg[7]);
+            // RReg[8]=r'=e^(a*ln(r)-b*Theta)
+            // RReg[9]=Theta'=a*Theta+b*ln(r)
 
-            mulReal(&RReg[0],&RReg[6],&RReg[8]);
-            mulReal(&RReg[1],&RReg[7],&RReg[8]);
+            if(resmode==ANGLENONE) {
+                rplPolar2Rect(&RReg[8],&RReg[9],ANGLERAD);
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[1]);
+                rplRRegToComplexPush(0,1,ANGLENONE);
 
+                return;
+            }
+
+            // RESULT IS IN POLAR COORDINATES
+
+            trig_convertangle(&RReg[9],ANGLERAD,resmode);
+
+            rplCheckResultAndError(&RReg[8]);
             rplCheckResultAndError(&RReg[0]);
-            rplCheckResultAndError(&RReg[1]);
-            rplRRegToComplexPush(0,1,ANGLENONE);
+            rplRRegToComplexPush(8,0,resmode);
 
             return;
         }
+
+        case OVR_SAME:
         case OVR_EQ:
-         if(!eqReal(&Rarg1,&Rarg2)||!eqReal(&Iarg1,&Iarg2)) rplPushData((WORDPTR)zero_bint);
-            else rplPushData((WORDPTR)one_bint);
+        {
+         // CHECK EQUALITY IN POLAR MODE TOO
+            if(amode1==ANGLENONE) {
+                if(amode2==ANGLENONE) {
+                    if(!eqReal(&Rarg1,&Rarg2)||!eqReal(&Iarg1,&Iarg2)) rplPushData((WORDPTR)zero_bint);
+                       else rplPushData((WORDPTR)one_bint);
+                    return;
+                }
+                rplPolar2Rect(&Rarg2,&Iarg2,amode2);
+
+                if(!eqReal(&Rarg1,&RReg[0])||!eqReal(&Iarg1,&RReg[1])) rplPushData((WORDPTR)zero_bint);
+                   else rplPushData((WORDPTR)one_bint);
+                return;
+            }
+
+
+            if(amode2==ANGLENONE) {
+                rplPolar2Rect(&Rarg1,&Iarg1,amode1);
+                if(!eqReal(&Rarg2,&RReg[0])||!eqReal(&Iarg2,&RReg[1])) rplPushData((WORDPTR)zero_bint);
+                   else rplPushData((WORDPTR)one_bint);
+                return;
+            }
+
+            // BOTH ARE POLAR, DO A POLAR COMPARISON
+
+            if(!eqReal(&Rarg1,&Rarg2)) { rplPushData((WORDPTR)zero_bint); return; }
+
+            if(iszeroReal(&Rarg1)) { rplPushData((WORDPTR)one_bint); return; }
+
+            // SAME MAGNITUDE, NOW COMPARE THE ANGLES
+
+            trig_convertangle(&Iarg1,amode1,ANGLEDEG);
+            newRealFromBINT(&RReg[7],180);
+            divmodReal(&RReg[6],&RReg[9],&RReg[0],&RReg[7]);    // RReg[9]=ANGLE REDUCED TO FIRST QUADRANT
+
+            trig_convertangle(&Iarg2,amode2,ANGLEDEG);
+            divmodReal(&RReg[6],&RReg[8],&RReg[0],&RReg[7]);    // RReg[8]=ANGLE REDUCED TO FIRST QUADRANT
+
+            if(!eqReal(&RReg[8],&RReg[9])) { rplPushData((WORDPTR)zero_bint); return; }
+
+            rplPushData((WORDPTR)one_bint);
+
             return;
+        }
         case OVR_NOTEQ:
-            if(!eqReal(&Rarg1,&Rarg2)||!eqReal(&Iarg1,&Iarg2)) rplPushData((WORDPTR)one_bint);
-               else rplPushData((WORDPTR)zero_bint);
-               return;
+        {
+         // CHECK EQUALITY IN POLAR MODE TOO
+            if(amode1==ANGLENONE) {
+                if(amode2==ANGLENONE) {
+                    if(!eqReal(&Rarg1,&Rarg2)||!eqReal(&Iarg1,&Iarg2)) rplPushData((WORDPTR)one_bint);
+                       else rplPushData((WORDPTR)zero_bint);
+                    return;
+                }
+                rplPolar2Rect(&Rarg2,&Iarg2,amode2);
+
+                if(!eqReal(&Rarg1,&RReg[0])||!eqReal(&Iarg1,&RReg[1])) rplPushData((WORDPTR)one_bint);
+                   else rplPushData((WORDPTR)zero_bint);
+                return;
+            }
+
+
+            if(amode2==ANGLENONE) {
+                rplPolar2Rect(&Rarg1,&Iarg1,amode1);
+                if(!eqReal(&Rarg2,&RReg[0])||!eqReal(&Iarg2,&RReg[1])) rplPushData((WORDPTR)one_bint);
+                   else rplPushData((WORDPTR)zero_bint);
+                return;
+            }
+
+            // BOTH ARE POLAR, DO A POLAR COMPARISON
+
+            if(!eqReal(&Rarg1,&Rarg2)) { rplPushData((WORDPTR)one_bint); return; }
+
+            if(iszeroReal(&Rarg1)) { rplPushData((WORDPTR)zero_bint); return; }
+
+
+            // SAME MAGNITUDE, NOW COMPARE THE ANGLES
+
+            trig_convertangle(&Iarg1,amode1,ANGLEDEG);
+            newRealFromBINT(&RReg[7],180);
+            divmodReal(&RReg[6],&RReg[9],&RReg[0],&RReg[7]);    // RReg[9]=ANGLE REDUCED TO FIRST QUADRANT
+
+            trig_convertangle(&Iarg2,amode2,ANGLEDEG);
+            divmodReal(&RReg[6],&RReg[8],&RReg[0],&RReg[7]);    // RReg[8]=ANGLE REDUCED TO FIRST QUADRANT
+
+            if(!eqReal(&RReg[8],&RReg[9])) { rplPushData((WORDPTR)one_bint); return; }
+
+            rplPushData((WORDPTR)zero_bint);
+
+            return;
+        }
 /*
         // COMPARISONS ARE NOT DEFINED FOR COMPLEX NUMBERS
         case OVR_LT:
@@ -469,32 +916,31 @@ void LIB_HANDLER()
 
 
 */
-        case OVR_SAME:
-            if(!eqReal(&Rarg1,&Rarg2)||!eqReal(&Iarg1,&Iarg2)) rplPushData((WORDPTR)zero_bint);
-               else rplPushData((WORDPTR)one_bint);
-               return;
         case OVR_AND:
-            if( (iszeroReal(&Rarg1)&&iszeroReal(&Iarg1))||(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2))) rplPushData((WORDPTR)zero_bint);
+            if( rplIsZeroComplex(&Rarg1,&Iarg1,amode1)|| rplIsZeroComplex(&Rarg2,&Iarg2,amode2)) rplPushData((WORDPTR)zero_bint);
             else rplPushData((WORDPTR)one_bint);
             return;
         case OVR_OR:
-            if( (iszeroReal(&Rarg1)&&iszeroReal(&Iarg1))&&(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2))) rplPushData((WORDPTR)zero_bint);
+            if( rplIsZeroComplex(&Rarg1,&Iarg1,amode1) && rplIsZeroComplex(&Rarg2,&Iarg2,amode2)) rplPushData((WORDPTR)zero_bint);
             else rplPushData((WORDPTR)one_bint);
             return;
         case OVR_XOR:
-            if( (iszeroReal(&Rarg1)&&iszeroReal(&Iarg1))&&(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2))) rplPushData((WORDPTR)zero_bint);
-            else {
-                if( !(iszeroReal(&Rarg1)&&iszeroReal(&Iarg1))&&!(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2))) rplPushData((WORDPTR)zero_bint);
-                else rplPushData((WORDPTR)one_bint);
-            }
+            {
+            BINT result=rplIsZeroComplex(&Rarg1,&Iarg1,amode1)^rplIsZeroComplex(&Rarg2,&Iarg2,amode2);
+            if(result) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
+            }
 
         case OVR_INV:
+        {
                 // 1/(a+b*i) = (a/(a^2+b^2) - b/(a^2/b^2) i
-                if( (iszeroReal(&Rarg1)&&iszeroReal(&Iarg1)) ) {
+                if( rplIsZeroComplex(&Rarg1,&Iarg1,amode1)) {
                     rplError(ERR_MATHDIVIDEBYZERO);
                     return;
                 }
+
+                if(amode1==ANGLENONE) {
 
                 Context.precdigits+=8;
 
@@ -512,15 +958,103 @@ void LIB_HANDLER()
                 rplRRegToComplexPush(0,1,ANGLENONE);
 
                 return;
+                }
 
+                // POLAR INVERSION
+
+                rplOneToRReg(6);
+                divReal(&RReg[0],&Rarg1,&RReg[6]);
+                if(!iszeroReal(&Iarg1)) Iarg1.flags^=F_NEGATIVE;
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&Iarg1);
+
+                rplNewComplexPush(&RReg[0],&Iarg1,amode1);
+                return;
+        }
         case OVR_NEG:
+        {
+            if(amode1==ANGLENONE) {
             if(!iszeroReal(&Rarg1)) Rarg1.flags^=F_NEGATIVE;
             if(!iszeroReal(&Iarg1)) Iarg1.flags^=F_NEGATIVE;
 
             rplNewComplexPush(&Rarg1,&Iarg1,ANGLENONE);
 
             return;
+            }
+
+            if(amode1==ANGLEDEG) {
+                newRealFromBINT(&RReg[6],180);
+                RReg[6].flags|=(~Iarg1.flags)&F_NEGATIVE;
+                if(iszeroReal(&Iarg1)) RReg[6].flags^=F_NEGATIVE;
+
+                addReal(&RReg[1],&Iarg1,&RReg[6]);
+
+                rplCheckResultAndError(&Rarg1);
+                rplCheckResultAndError(&RReg[1]);
+
+                rplNewComplexPush(&Rarg1,&RReg[1],amode1);
+
+                return;
+
+            }
+            if(amode1==ANGLEGRAD) {
+                newRealFromBINT(&RReg[6],200);
+                RReg[6].flags|=(~Iarg1.flags)&F_NEGATIVE;
+                if(iszeroReal(&Iarg1)) RReg[6].flags^=F_NEGATIVE;
+
+                addReal(&RReg[1],&Iarg1,&RReg[6]);
+
+                rplCheckResultAndError(&Rarg1);
+                rplCheckResultAndError(&RReg[1]);
+
+                rplNewComplexPush(&Rarg1,&RReg[1],amode1);
+
+                return;
+
+            }
+            if(amode1==ANGLERAD) {
+                REAL pi;
+                decconst_PI(&pi);
+
+                pi.flags|=(~Iarg1.flags)&F_NEGATIVE;
+                if(iszeroReal(&Iarg1)) pi.flags^=F_NEGATIVE;
+
+                addReal(&RReg[1],&Iarg1,&RReg[6]);
+
+                rplCheckResultAndError(&Rarg1);
+                rplCheckResultAndError(&RReg[1]);
+
+                rplNewComplexPush(&Rarg1,&RReg[1],amode1);
+
+                return;
+
+            }
+            // THE ONLY MODE LEFT IS DMS
+
+
+            newRealFromBINT(&RReg[6],180);
+            RReg[6].flags|=(~Iarg1.flags)&F_NEGATIVE;
+            if(iszeroReal(&Iarg1)) RReg[6].flags^=F_NEGATIVE;
+
+
+            trig_convertangle(&Iarg1,amode1,ANGLEDEG);
+
+            addReal(&RReg[7],&RReg[0],&RReg[6]);
+
+            trig_convertangle(&RReg[7],ANGLEDEG,amode1);
+
+            rplCheckResultAndError(&Rarg1);
+            rplCheckResultAndError(&RReg[0]);
+
+            rplNewComplexPush(&Rarg1,&RReg[0],amode1);
+
+            return;
+
+        }
         case OVR_ABS:
+        {
+            if(amode1==ANGLENONE) {
                 Context.precdigits+=8;
                 mulReal(&RReg[2],&Rarg1,&Rarg1);
                 mulReal(&RReg[3],&Iarg1,&Iarg1);
@@ -533,14 +1067,22 @@ void LIB_HANDLER()
 
                 rplNewRealFromRRegPush(0);
                 return;
-        case OVR_NOT:
-            if(iszeroReal(&Rarg1)&&iszeroReal(&Iarg1)) rplPushData((WORDPTR)one_bint);
-            else rplPushData((WORDPTR)zero_bint);
+            }
+
+            // AVOID CREATING AN OBJECT, JUST RETURN THE FIRST COMPONENT
+            rplOverwriteData(1,arg1+1);
+
             return;
 
 
+        }
+        case OVR_NOT:
+        {
+            if(rplIsZeroComplex(&Rarg1,&Iarg1,amode1)) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
+            return;
 
-
+        }
         case OVR_EVAL:
         case OVR_EVAL1:
         case OVR_XEQ:
@@ -569,6 +1111,7 @@ void LIB_HANDLER()
     {
 
     case RE:
+    {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -578,13 +1121,39 @@ void LIB_HANDLER()
             return;
         }
         if(ISCOMPLEX(*rplPeekData(1))) {
+            BINT angmode=rplPolarComplexMode(rplPeekData(1));
+
+            if(angmode==ANGLENONE) {
+            // AVOID CREATING A NEW OBJECT
             WORDPTR real=rplPeekData(1)+1;
             rplOverwriteData(1,real);
+            return;
+            }
+
+            // POLAR COMPLEX NEEDS TO BE CONVERTED TO CARTESIAN
+
+            REAL re,im;
+
+            rplReadCNumber(rplPeekData(1),&re,&im,&angmode);
+
+            if(Exceptions) return;
+
+            rplPolar2Rect(&re,&im,angmode);
+
+            WORDPTR newreal=rplNewRealFromRReg(0);
+
+            if(!newreal) return;
+
+            rplOverwriteData(1,newreal);
+
+            return;
+
         }
         // IF IT IS A REAL NUMBER, THEN LEAVE THE REAL ON THE STACK
         return;
-
+    }
     case IM:
+    {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -594,14 +1163,41 @@ void LIB_HANDLER()
             return;
         }
         if(ISCOMPLEX(*rplPeekData(1))) {
+
+            BINT angmode=rplPolarComplexMode(rplPeekData(1));
+
+            if(angmode==ANGLENONE) {
+            // AVOID CREATING A NEW OBJECT
             WORDPTR imag=rplSkipOb(rplPeekData(1)+1);
             rplOverwriteData(1,imag);
-        } else {
+            return;
+            }
+
+            // POLAR COMPLEX NEEDS TO BE CONVERTED TO CARTESIAN
+
+            REAL re,im;
+
+            rplReadCNumber(rplPeekData(1),&re,&im,&angmode);
+
+            if(Exceptions) return;
+
+            rplPolar2Rect(&re,&im,angmode);
+
+            WORDPTR newreal=rplNewRealFromRReg(1);
+
+            if(!newreal) return;
+
+            rplOverwriteData(1,newreal);
+
+            return;
+
+        }
+
             // NON-COMPLEX NUMBERS HAVE IMAGINARY PART = 0
             rplDropData(1);
             rplPushData((WORDPTR)zero_bint);
-        }
-        return;
+            return;
+    }
     case ARG:
     {
         if(rplDepthData()<1) {
@@ -612,23 +1208,75 @@ void LIB_HANDLER()
             rplError(ERR_COMPLEXORREALEXPECTED);
             return;
         }
+
+        if(ISCOMPLEX(*rplPeekData(1))) {
+
+            BINT angmode=rplPolarComplexMode(rplPeekData(1));
+
+            if(angmode!=ANGLENONE) {
+            // AVOID CREATING A NEW OBJECT
+                WORDPTR arg=rplSkipOb(rplPeekData(1)+1);
+                rplOverwriteData(1,arg);
+                return;
+            }
+
+            // IT'S A NORMAL COMPLEX, NEED TO COMPUTE THE ARGUMENT
+
             REAL real,imag;
 
-            rplReadCNumberAsReal(rplPeekData(1),&real);
-            rplReadCNumberAsImag(rplPeekData(1),&imag);
+            rplReadCNumber(rplPeekData(1),&real,&imag,&angmode);
 
-            BINT angmode;
-            if(!rplTestSystemFlag(FL_ANGLEMODE1)) {
-                // RADIANS MODE IS NOT SET, NEED TO PREPARE ARGUMENT
-                if(rplTestSystemFlag(FL_ANGLEMODE2)) angmode=2;
-                else angmode=1;
-            } else angmode=0;
+            if(Exceptions) return;
 
+            angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+            // COMPUTE THE ANGLE DIRECTLY FOR SPEED INSTEAD OF USING rplRect2Polar
             trig_atan2(&imag,&real,angmode);
             finalize(&RReg[0]);
 
-            rplDropData(1);
-            rplNewRealFromRRegPush(0);
+
+            // RETURN AN ANGLE IN THE CURRENT SYSTEM
+
+            WORDPTR newang=rplNewAngleFromReal(&RReg[0],angmode);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+
+            return;
+        }
+
+        // REAL NUMBERS HAVE ARGUMENT DEPENDING ON THE SIGN
+
+        REAL real;
+        rplReadNumberAsReal(rplPeekData(1),&real);
+
+        BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+        if(real.flags&F_NEGATIVE) {
+            switch(angmode)
+            {
+            case ANGLERAD:
+            {
+                REAL pi;
+              decconst_PI(&pi);
+              copyReal(&RReg[0],&pi);
+              finalize(&RReg[0]);   // ROUND PI TO THE CURRENT NUMBER OF DIGITS
+              break;
+            }
+            case ANGLEGRAD:
+                newRealFromBINT(&RReg[0],200);
+                break;
+            case ANGLEDEG:
+            case ANGLEDMS:
+            default:
+                newRealFromBINT(&RReg[0],180);
+                break;
+            }
+        }
+        else rplZeroToRReg(0);
+
+        WORDPTR newang=rplNewAngleFromReal(&RReg[0],angmode);
+        if(!newang) return;
+        rplOverwriteData(1,newang);
 
         return;
     }
@@ -642,14 +1290,25 @@ void LIB_HANDLER()
             rplError(ERR_COMPLEXORREALEXPECTED);
             return;
         }
-            REAL real,imag;
 
-            rplReadCNumberAsReal(rplPeekData(1),&real);
-            rplReadCNumberAsImag(rplPeekData(1),&imag);
+        if(ISCOMPLEX(*rplPeekData(1))) {
+            REAL real,imag;
+            BINT angmode;
+
+            rplReadCNumber(rplPeekData(1),&real,&imag,&angmode);
+
+            // INVERT THE SIGN OF THE IMAGINARY PART OR THE ARGUMENT
             if(!iszeroReal(&imag)) imag.flags^=F_NEGATIVE;
 
-            rplDropData(1);
-            rplNewComplexPush(&real,&imag,ANGLENONE);
+            WORDPTR newcplx=rplNewComplex(&real,&imag,angmode);
+            if(!newcplx) return;
+
+            rplOverwriteData(1,newcplx);
+
+            return;
+        }
+
+        // REAL NUMBERS ARE JUST LEFT ON THE STACK
 
         return;
     }
@@ -676,7 +1335,11 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        if(!ISNUMBER(*rplPeekData(1)) || !ISNUMBER(*rplPeekData(2))) {
+        if(!(ISNUMBER(*rplPeekData(1))||ISANGLE(*rplPeekData(1)))) {
+            rplError(ERR_REALORANGLEEXPECTED);
+            return;
+        }
+        if(!ISNUMBER(*rplPeekData(2))) {
             rplError(ERR_REALEXPECTED);
             return;
         }

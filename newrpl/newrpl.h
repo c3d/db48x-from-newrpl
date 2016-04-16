@@ -412,7 +412,6 @@ void rplZeroToRReg(int num);
 void rplInfinityToRReg(int num);
 void rplNANToRReg(int num);
 void rplBINTToRReg(int num,BINT64 value);
-void rplSwapRReg(int reg1,int reg2);
 void rplReadReal(WORDPTR real,REAL *dec);
 void rplCopyRealToRReg(int num,WORDPTR real);
 WORDPTR rplNewReal(REAL *num);
@@ -430,8 +429,10 @@ void rplCompileReal(REAL *num);
 void rplRealPart(WORDPTR complex,REAL *real);
 void rplImaginaryPart(WORDPTR complex,REAL *imag);
 BINT rplPolarComplexMode(WORDPTR complex);
+void rplReadCNumber(WORDPTR complex,REAL *real,REAL *imag, BINT *angmode);
 void rplReadCNumberAsReal(WORDPTR complex,REAL *real);
 void rplReadCNumberAsImag(WORDPTR complex,REAL *imag);
+WORDPTR rplNewComplex(REAL *real, REAL *imag, BINT angmode);
 void rplNewComplexPush(REAL *real, REAL *imag, BINT angmode);
 void rplRRegToComplexPush(BINT real, BINT imag, BINT angmode);
 WORDPTR rplRRegToComplexInPlace(BINT real, BINT imag, WORDPTR dest, BINT angmode);
@@ -442,6 +443,15 @@ WORDPTR rplRRegToComplexInPlace(BINT real, BINT imag, WORDPTR dest, BINT angmode
 void rplNumberToRReg(int num,WORDPTR number);
 BINT64 rplReadNumberAsBINT(WORDPTR number);
 void rplReadNumberAsReal(WORDPTR number,REAL*dec);
+
+
+// ANGLE FUNCTIONS
+WORDPTR rplNewAngleFromReal(REAL *number,BINT newmode);
+WORDPTR rplNewAngleFromNumber(WORDPTR numobj,BINT newmode);
+void rplConvertAngleObj(WORDPTR angleobj,BINT newmode);
+
+
+
 
 
 // UNIT FUNCTIONS
@@ -536,6 +546,14 @@ void rplMatrixInvert();
 void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 
 
+// ANGULAR MODES
+#define ANGLENONE    -1
+#define ANGLEDEG     0
+#define ANGLERAD     1
+#define ANGLEGRAD    2
+#define ANGLEDMS     3
+
+
 // SYSTEM FLAGS
 #define FL_ACTIVEMENU     -11
 #define FL_LASTMENU       -12
@@ -549,6 +567,7 @@ void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 #define FL_OVERFLOW       -25
 #define FL_INFINITE       -26
 #define FL_STRIPCOMMENTS  -30
+#define FL_COMPLEXMODE    -103
 
 
 

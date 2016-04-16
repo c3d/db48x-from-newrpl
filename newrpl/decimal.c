@@ -1609,6 +1609,27 @@ void copyReal(REAL *dest,REAL *src)
     copy_words(dest->data,src->data,src->len);
 }
 
+void swapReal(REAL *n1,REAL *n2)
+{
+    REAL tmp;
+    tmp.exp=n1->exp;
+    tmp.data=n1->data;
+    tmp.flags=n1->flags;
+    tmp.len=n1->len;
+
+    n1->exp=n2->exp;
+    n1->data=n2->data;
+    n1->flags=n2->flags;
+    n1->len=n2->len;
+
+    n2->exp=tmp.exp;
+    n2->data=tmp.data;
+    n2->flags=tmp.flags;
+    n2->len=tmp.len;
+}
+
+
+
 // ADDS 2 REAL NUMBERS AT FULL PRECISION
 // NUMBERS SHOULD BE NORMALIZED
 

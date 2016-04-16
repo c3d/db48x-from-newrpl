@@ -256,6 +256,10 @@ void newRealFromText(REAL *result, char *text, char *end, WORD chars);
 // COPY CONTENTS OF ONE REAL TO ANOTHER
 void copyReal(REAL *dest,REAL *src);
 
+// SWAP THE CONTENTS OF TWO REALS WITHOUT MOVING THE DATA
+void swapReal(REAL *n1,REAL *n2);
+
+
 // ADDITION OF 2 REALS
 // DEALS WITH SPECIALS AND FULLY FINALIZE THE ANSWER
 

@@ -205,11 +205,6 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define DOANGLE     48      // ANGLE TAGGED REALS
 
-#define ANGLENONE    -1
-#define ANGLEDEG     0
-#define ANGLERAD     1
-#define ANGLEGRAD    2
-#define ANGLEDMS     3
 
 
 
@@ -248,7 +243,7 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define ISCOMMENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOCOMMENT))
 
-
+#define ANGLEMODE(prolog) ( (ISANGLE(prolog)? (LIBNUM(prolog)&3):ANGLENONE) )
 
 // THIS IS TO CHECK IF AN OBJECT IS "FALSE", WHICH CAN BE THE BINT0 OR THE REAL0
 #define IS_FALSE(p)   ( (OPCODE(p)==0) && (((LIBNUM(p)+4)&~7)==OCTBINT))
