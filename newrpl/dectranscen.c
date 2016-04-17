@@ -96,6 +96,8 @@ static const BINT const Constant_200_PI[]={
 
 
 static const BINT const Constant_One[]={ 1 };
+static const BINT const Constant_180[]={ 180 };
+static const BINT const Constant_200[]={ 200 };
 
 // CONSTANTS IN ROM, SHOULD NOT BE USED AS DIVISOR UNLESS THEY ARE
 // LEFT JUSTIFIED
@@ -215,6 +217,22 @@ void decconst_One(REAL *real)
     real->flags=0;
     real->len=1;
 }
+
+void decconst_180(REAL *real)
+{
+    real->data=(BINT *)Constant_180;
+    real->exp=0;
+    real->flags=0;
+    real->len=1;
+}
+void decconst_200(REAL *real)
+{
+    real->data=(BINT *)Constant_200;
+    real->exp=0;
+    real->flags=0;
+    real->len=1;
+}
+
 
 
 #define Constant_K1_8 &(cordic_K_8_dict[249*256+48])
@@ -798,6 +816,48 @@ void trig_convertangle(REAL *oldang,BINT oldmode,BINT newmode)
 }
 
 
+// ENSURE AN ANGLE IS WITHIN -PI/+PI, USED FOR COMPLEX ARGUMENTS
+// USES RReg 0 AND 1 ONLY
+void trig_reduceangle(REAL *angle,BINT angmode)
+{
+REAL halfturn;
+
+// INITIALIZE CONSTANTS
+switch(angmode)
+{
+case ANGLERAD:
+    decconst_PI(&halfturn);
+    break;
+case ANGLEGRAD:
+    decconst_200(&halfturn);
+    break;
+case ANGLEDEG:
+case ANGLEDMS:
+default:
+    decconst_180(&halfturn);
+    break;
+}
+
+if(angle->flags&F_NEGATIVE) {
+    // HANDLE NEGATIVE ANGLES
+    halfturn.flags|=F_NEGATIVE;
+}
+
+    divmodReal(&RReg[1],&RReg[0],angle,&halfturn);
+        // HERE RReg[0] HAS THE ANGLE IN THE FIRST TURN
+
+    if(isoddReal(&RReg[1])) {
+        subReal(&RReg[1],&RReg[0],&halfturn);
+        swapReal(&RReg[0],&RReg[1]);
+    }
+
+// SPECIAL CASE: THE ABOVE RETURNS -180 FOR EXACTLY HALF TURN, MAKE IT 180 POSITIVE INSTEAD
+halfturn.flags|=F_NEGATIVE;
+if(eqReal(&RReg[0],&halfturn)) RReg[0].flags^=F_NEGATIVE;
+
+// RReg[0] HAS THE ANGLE PROPERLY REDUCED FROM -PI TO PI
+
+}
 
 
 

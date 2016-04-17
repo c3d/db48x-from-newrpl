@@ -3546,6 +3546,8 @@ finalize(result);
 void divmodReal(REAL *quotient,REAL *remainder,REAL *a,REAL *b)
 {
 
+
+
     if((a->flags|b->flags)&(F_INFINITY|F_NOTANUMBER)) {
         if( (a->flags|b->flags)&F_NOTANUMBER) {
             // THE RESULT IS NOT A NUMBER
@@ -3590,6 +3592,26 @@ void divmodReal(REAL *quotient,REAL *remainder,REAL *a,REAL *b)
         return;
     }
 
+// MAKE SURE WE ARE USING DIFFERENT STORAGE FOR INTERMEDIATE RESULTS
+
+    REAL c,*quot=quotient;
+    REAL d,*rem=remainder;
+
+    if( (quot->data==a->data)||(quot->data==b->data)) {
+        // STORE RESULT INTO ALTERNATIVE LOCATION TO PREVENT OVERWRITE
+        quot=&c;
+        quot->data=allocRegister();
+    }
+
+    if( (rem->data==a->data)||(rem->data==b->data)) {
+        // STORE RESULT INTO ALTERNATIVE LOCATION TO PREVENT OVERWRITE
+        rem=&d;
+        rem->data=allocRegister();
+    }
+
+
+
+
 // COMPUTE THE MINIMUM NUMBER OF WORDS TO OBTAIN INTEGER PART
 
 BINT ndigits=((a->len-1)<<3)+sig_digits(a->data[a->len-1])+a->exp-((b->len-1)<<3)-sig_digits(b->data[b->len-1])-b->exp;
@@ -3599,30 +3621,71 @@ if(ndigits>REAL_PRECISION_MAX) ndigits=REAL_PRECISION_MAX;
 
 if(ndigits<0) {
 // NUMERATOR IS SMALLER THAN DIVISOR, QUOTIENT IS ZERO
-quotient->data[0]=0;
-quotient->len=1;
-quotient->exp=1;
-quotient->flags=0;
+quot->data[0]=0;
+quot->len=1;
+quot->exp=1;
+quot->flags=0;
 }
 else {
-div_real(quotient,a,b,ndigits);
-normalize(quotient);
+div_real(quot,a,b,ndigits);
+normalize(quot);
 }
-if(quotient->exp<0) {
-BINT ndigits=sig_digits(quotient->data[quotient->len-1])+((quotient->len-1)<<3);
-if(ndigits+quotient->exp<0) {
+if(quot->exp<0) {
+BINT ndigits=sig_digits(quot->data[quot->len-1])+((quot->len-1)<<3);
+if(ndigits+quot->exp<0) {
     // RESULT OF DIVISION IS ZERO, RETURN a
-    if(remainder!=a) copyReal(remainder,a);
+    if(rem!=a) copyReal(rem,a);
+
+    if(quot!=quotient) {
+        // COPY THE RESULT TO THE ORIGINALLY REQUESTED LOCATION
+        freeRegister(quotient->data);
+        quotient->data=quot->data;
+        quotient->exp=quot->exp;
+        quotient->flags=quot->flags;
+        quotient->len=quot->len;
+    }
+
+    if(rem!=remainder) {
+        // COPY THE RESULT TO THE ORIGINALLY REQUESTED LOCATION
+        freeRegister(remainder->data);
+        remainder->data=rem->data;
+        remainder->exp=rem->exp;
+        remainder->flags=rem->flags;
+        remainder->len=rem->len;
+    }
+
     return;
 }
-round_real(quotient,ndigits+quotient->exp,1);
-if((a->flags&F_APPROX)||(b->flags&F_APPROX)) quotient->flags|=F_APPROX;
-else quotient->flags&=~F_APPROX;    // REMOVE THE APPROXIMATED FLAG AFTER TRUNCATION
+round_real(quot,ndigits+quot->exp,1);
+if((a->flags&F_APPROX)||(b->flags&F_APPROX)) quot->flags|=F_APPROX;
+else quot->flags&=~F_APPROX;    // REMOVE THE APPROXIMATED FLAG AFTER TRUNCATION
 }
-mul_real(remainder,quotient,b);
-normalize(remainder);
-sub_real(remainder,a,remainder);
-finalize(remainder);
+mul_real(rem,quot,b);
+normalize(rem);
+sub_real(rem,a,rem);
+finalize(rem);
+
+if(quot!=quotient) {
+    // COPY THE RESULT TO THE ORIGINALLY REQUESTED LOCATION
+    freeRegister(quotient->data);
+    quotient->data=quot->data;
+    quotient->exp=quot->exp;
+    quotient->flags=quot->flags;
+    quotient->len=quot->len;
+}
+
+if(rem!=remainder) {
+    // COPY THE RESULT TO THE ORIGINALLY REQUESTED LOCATION
+    freeRegister(remainder->data);
+    remainder->data=rem->data;
+    remainder->exp=rem->exp;
+    remainder->flags=rem->flags;
+    remainder->len=rem->len;
+}
+
+
+
+
 }
 
 
