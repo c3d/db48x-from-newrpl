@@ -911,33 +911,112 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+
             WORDPTR pct=rplPeekData(1);
+            WORDPTR arg1=rplPeekData(2);
 
             if(ISIDENT(*pct) || ISSYMBOLIC(*pct)) {
                 rplSymbApplyOperator(CurOpcode,2);
                 return;
             }
+            else if(ISLIST(*arg1) && ISLIST(*pct)) {
 
+                WORDPTR *savestk=DSTop;
+                WORDPTR newobj=rplAllocTempOb(2);
+                if(!newobj) return;
+                // CREATE A PROGRAM AND RUN THE MAP COMMAND
+                newobj[0]=MKPROLOG(DOCOL,2);
+                newobj[1]=CurOpcode;
+                newobj[2]=CMD_SEMI;
 
-            if(!ISNUMBER(*pct)) {
+                rplPushDataNoGrow((WORDPTR)two_bint);
+                rplPushData(newobj);
+
+                rplCallOperator(CMD_CMDDOLIST);
+
+                if(Exceptions) {
+                    if(DSTop>savestk) DSTop=savestk;
+                }
+
+                // EXECUTION WILL CONTINUE AT DOLIST
+
+                return;
+            }
+            else if(ISLIST(*arg1) && ISNUMBER(*pct)){
+
+                BINT size1=rplObjSize(rplPeekData(1));
+                WORDPTR *savestk=DSTop;
+
+                WORDPTR newobj=rplAllocTempOb(2+size1);
+                if(!newobj) return;
+
+                // CREATE A PROGRAM AND RUN THE MAP COMMAND
+                newobj[0]=MKPROLOG(DOCOL,2+size1);
+                rplCopyObject(newobj+1,rplPeekData(1));
+                newobj[size1+1]=CurOpcode;
+                newobj[size1+2]=CMD_SEMI;
+
+                rplDropData(1);
+                rplPushData(newobj);
+
+                rplCallOperator(CMD_MAP);
+
+                if(Exceptions) {
+                    if(DSTop>savestk) DSTop=savestk;
+                }
+
+                // EXECUTION WILL CONTINUE AT MAP
+
+                return;
+
+            }
+            else if(ISNUMBER(*arg1) && ISLIST(*pct)){
+
+                BINT size2=rplObjSize(rplPeekData(2));
+                WORDPTR *savestk=DSTop;
+
+                WORDPTR newobj=rplAllocTempOb(2+size2);
+                if(!newobj) return;
+
+                // CREATE A PROGRAM AND RUN THE MAP COMMAND
+                newobj[0]=MKPROLOG(DOCOL,2+size2);
+                rplCopyObject(newobj+1,rplPeekData(2));
+                newobj[size2+1]=CurOpcode;
+                newobj[size2+2]=CMD_SEMI;
+
+                //swap
+                rplOverwriteData(2,rplPeekData(1));
+
+                rplDropData(1);
+                rplPushData(newobj);
+
+                rplCallOperator(CMD_MAP);
+
+                if(Exceptions) {
+                    if(DSTop>savestk) DSTop=savestk;
+                }
+
+                // EXECUTION WILL CONTINUE AT MAP
+
+                return;
+
+            }
+            else if(ISNUMBER(*pct) && ISNUMBER(*arg1) ){
+                REAL x;
+                rplReadNumberAsReal(pct,&x);
+                x.exp -= 2; // divide by 100
+                // replace level 1 value
+                WORDPTR newnumber=rplNewReal(&x);
+                if(!newnumber) return;
+                rplOverwriteData(1,newnumber);
+                rplCallOvrOperator(CMD_OVR_MUL);
+                return;
+            }
+            else {
                 rplError(ERR_BADARGTYPE);
                 return;
             }
 
-           // DO IT ALL WITH REALS
-
-            REAL x;
-            rplReadNumberAsReal(pct,&x);
-            x.exp -= 2; // divide by 100
-
-            // replace level 1 value
-            WORDPTR newnumber=rplNewReal(&x);
-            if(!newnumber) return;
-            rplOverwriteData(1,newnumber);
-
-            rplCallOvrOperator(CMD_OVR_MUL);
-
-            return;
 
     }
     case PERCENTCH:
