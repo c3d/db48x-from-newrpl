@@ -915,11 +915,7 @@ void LIB_HANDLER()
             WORDPTR pct=rplPeekData(1);
             WORDPTR arg1=rplPeekData(2);
 
-            if(ISIDENT(*pct) || ISSYMBOLIC(*pct)) {
-                rplSymbApplyOperator(CurOpcode,2);
-                return;
-            }
-            else if(ISLIST(*arg1) && ISLIST(*pct)) {
+            if(ISLIST(*arg1) && ISLIST(*pct)) {
 
                 WORDPTR *savestk=DSTop;
                 WORDPTR newobj=rplAllocTempOb(2);
@@ -942,7 +938,7 @@ void LIB_HANDLER()
 
                 return;
             }
-            else if(ISLIST(*arg1) && ISNUMBER(*pct)){
+            else if(ISLIST(*arg1) && !ISLIST(*pct)){
 
                 BINT size1=rplObjSize(rplPeekData(1));
                 WORDPTR *savestk=DSTop;
@@ -970,7 +966,7 @@ void LIB_HANDLER()
                 return;
 
             }
-            else if(ISNUMBER(*arg1) && ISLIST(*pct)){
+            else if(!ISLIST(*arg1) && ISLIST(*pct)){
 
                 BINT size2=rplObjSize(rplPeekData(2));
                 WORDPTR *savestk=DSTop;
@@ -1000,6 +996,11 @@ void LIB_HANDLER()
 
                 return;
 
+            }
+            else if((ISIDENT(*pct) || ISSYMBOLIC(*pct)) ||
+            (ISIDENT(*arg1) || ISSYMBOLIC(*arg1))){
+                rplSymbApplyOperator(CurOpcode,2);
+                return;
             }
             else if(ISNUMBER(*pct) && ISNUMBER(*arg1) ){
                 REAL x;
