@@ -443,6 +443,7 @@ WORDPTR rplRRegToComplexInPlace(BINT real, BINT imag, WORDPTR dest, BINT angmode
 void rplNumberToRReg(int num,WORDPTR number);
 BINT64 rplReadNumberAsBINT(WORDPTR number);
 void rplReadNumberAsReal(WORDPTR number,REAL*dec);
+void rplLoadBINTAsReal(BINT64 number,REAL*dec);
 
 
 // ANGLE FUNCTIONS

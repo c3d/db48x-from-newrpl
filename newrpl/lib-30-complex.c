@@ -545,12 +545,17 @@ void LIB_HANDLER()
             if(amode1!=ANGLEDMS) {
                 trig_convertangle(&Iarg2,amode2,amode1);
                 addReal(&RReg[1],&Iarg1,&RReg[0]);
+                trig_reduceangle(&RReg[1],ANGLEDEG);
+                swapReal(&RReg[1],&RReg[0]);
+
             } else {
                 // ADDING IN DMS NEEDS SPECIAL TREATMENT
                 trig_convertangle(&Iarg1,amode1,ANGLEDEG);
                 swapReal(&RReg[0],&RReg[6]);
                 trig_convertangle(&Iarg2,amode2,ANGLEDEG);
                 addReal(&RReg[7],&RReg[6],&RReg[0]);
+                trig_reduceangle(&RReg[7],ANGLEDEG);
+                swapReal(&RReg[7],&RReg[0]);
                 trig_convertangle(&RReg[7],ANGLEDEG,amode1);
                 swapReal(&RReg[0],&RReg[1]);
             }
@@ -643,15 +648,17 @@ void LIB_HANDLER()
                 rplRect2Polar(&Rarg2,&Iarg2,amode1);
                 swapReal(&RReg[0],&RReg[6]);
                 swapReal(&RReg[1],&RReg[7]);
-                divReal(&RReg[0],&Rarg1,&RReg[6]);
+                divReal(&RReg[2],&Rarg1,&RReg[6]);
                 subReal(&RReg[1],&Iarg1,&RReg[7]);
+                trig_reduceangle(&RReg[1],amode1);
             }
             else {
                 if(amode1!=ANGLEDMS) {
                 trig_convertangle(&Iarg2,amode2,amode1);
                 swapReal(&RReg[0],&RReg[7]);
-                divReal(&RReg[0],&Rarg1,&Rarg2);
+                divReal(&RReg[2],&Rarg1,&Rarg2);
                 subReal(&RReg[1],&Iarg1,&RReg[7]);
+                trig_reduceangle(&RReg[1],amode1);
                 }
                 else {
                     // SUBTRACTING IN DMS NEEDS SPECIAL TREATMENT
@@ -659,16 +666,17 @@ void LIB_HANDLER()
                     swapReal(&RReg[0],&RReg[6]);
                     trig_convertangle(&Iarg2,amode2,ANGLEDEG);
                     subReal(&RReg[7],&RReg[6],&RReg[0]);
+                    trig_reduceangle(&RReg[7],amode1);
+                    swapReal(&RReg[0],&RReg[7]);
                     trig_convertangle(&RReg[7],ANGLEDEG,amode1);
-                    swapReal(&RReg[0],&RReg[1]);
-                    divReal(&RReg[0],&Rarg1,&Rarg2);
+                    divReal(&RReg[2],&Rarg1,&Rarg2);
                 }
             }
 
+            rplCheckResultAndError(&RReg[2]);
             rplCheckResultAndError(&RReg[0]);
-            rplCheckResultAndError(&RReg[1]);
 
-            rplRRegToComplexPush(0,1,amode1);
+            rplRRegToComplexPush(2,0,amode1);
 
             return;
 
