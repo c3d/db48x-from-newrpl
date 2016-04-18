@@ -907,97 +907,103 @@ void LIB_HANDLER()
     case PERCENT:
     {
 
-            if(rplDepthData()<2) {
-                rplError(ERR_BADARGCOUNT);
-                return;
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        WORDPTR pct=rplPeekData(1);
+        WORDPTR arg1=rplPeekData(2);
+
+        if(ISLIST(*arg1) && ISLIST(*pct)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushDataNoGrow((WORDPTR)two_bint);
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_CMDDOLIST);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
             }
 
-            WORDPTR pct=rplPeekData(1);
-            WORDPTR arg1=rplPeekData(2);
+            // EXECUTION WILL CONTINUE AT DOLIST
 
-            if(ISLIST(*arg1) && ISLIST(*pct)) {
+            return;
+        }
+        else if(ISLIST(*arg1) && !ISLIST(*pct)){
 
-                WORDPTR *savestk=DSTop;
-                WORDPTR newobj=rplAllocTempOb(2);
-                if(!newobj) return;
+            BINT size1=rplObjSize(rplPeekData(1));
+            WORDPTR *savestk=DSTop;
+
+            WORDPTR newobj=rplAllocTempOb(2+size1);
+            if(!newobj) return;
+
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2+size1);
+            rplCopyObject(newobj+1,rplPeekData(1));
+            newobj[size1+1]=CurOpcode;
+            newobj[size1+2]=CMD_SEMI;
+
+            rplDropData(1);
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+
+        }
+        else if(!ISLIST(*arg1) && ISLIST(*pct)){
+            BINT i;
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+
+            BINT count = rplListLength(pct);
+            if (count > 0) {
+                for (i=0; i < count; ++i) {
+                    rplPushData(arg1);
+                }
+                rplNewBINTPush(count,DECBINT);
+                rplCreateList();
+                // replace scalar by list: a -> { a a a .. }
+                rplOverwriteData(3,rplPeekData(1));
                 // CREATE A PROGRAM AND RUN THE MAP COMMAND
                 newobj[0]=MKPROLOG(DOCOL,2);
                 newobj[1]=CurOpcode;
                 newobj[2]=CMD_SEMI;
 
-                rplPushDataNoGrow((WORDPTR)two_bint);
+                rplOverwriteData(1, (WORDPTR)two_bint);
                 rplPushData(newobj);
 
                 rplCallOperator(CMD_CMDDOLIST);
 
                 if(Exceptions) {
                     if(DSTop>savestk) DSTop=savestk;
+                    return;
                 }
-
-                // EXECUTION WILL CONTINUE AT DOLIST
-
+            }
+            else {
+                rplError(ERR_BADARGTYPE);
                 return;
             }
-            else if(ISLIST(*arg1) && !ISLIST(*pct)){
+            return;
 
-                BINT size1=rplObjSize(rplPeekData(1));
-                WORDPTR *savestk=DSTop;
-
-                WORDPTR newobj=rplAllocTempOb(2+size1);
-                if(!newobj) return;
-
-                // CREATE A PROGRAM AND RUN THE MAP COMMAND
-                newobj[0]=MKPROLOG(DOCOL,2+size1);
-                rplCopyObject(newobj+1,rplPeekData(1));
-                newobj[size1+1]=CurOpcode;
-                newobj[size1+2]=CMD_SEMI;
-
-                rplDropData(1);
-                rplPushData(newobj);
-
-                rplCallOperator(CMD_MAP);
-
-                if(Exceptions) {
-                    if(DSTop>savestk) DSTop=savestk;
-                }
-
-                // EXECUTION WILL CONTINUE AT MAP
-
-                return;
-
-            }
-            else if(!ISLIST(*arg1) && ISLIST(*pct)){
-
-                BINT size2=rplObjSize(rplPeekData(2));
-                WORDPTR *savestk=DSTop;
-
-                WORDPTR newobj=rplAllocTempOb(2+size2);
-                if(!newobj) return;
-
-                // CREATE A PROGRAM AND RUN THE MAP COMMAND
-                newobj[0]=MKPROLOG(DOCOL,2+size2);
-                rplCopyObject(newobj+1,rplPeekData(2));
-                newobj[size2+1]=CurOpcode;
-                newobj[size2+2]=CMD_SEMI;
-
-                //swap
-                rplOverwriteData(2,rplPeekData(1));
-
-                rplDropData(1);
-                rplPushData(newobj);
-
-                rplCallOperator(CMD_MAP);
-
-                if(Exceptions) {
-                    if(DSTop>savestk) DSTop=savestk;
-                }
-
-                // EXECUTION WILL CONTINUE AT MAP
-
-                return;
-
-            }
-            else if((ISIDENT(*pct) || ISSYMBOLIC(*pct)) ||
+        }
+        else if((ISIDENT(*pct) || ISSYMBOLIC(*pct)) ||
             (ISIDENT(*arg1) || ISSYMBOLIC(*arg1))){
                 rplSymbApplyOperator(CurOpcode,2);
                 return;
