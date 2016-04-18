@@ -68,6 +68,104 @@
 const char const modulo_name[]="MOD";
 
 
+void binary_functions_list_handling(WORDPTR arg1, WORDPTR arg2)
+{
+    if(ISLIST(*arg1) && ISLIST(*arg2)) {
+
+        WORDPTR *savestk=DSTop;
+        WORDPTR newobj=rplAllocTempOb(2);
+        if(!newobj) return;
+        // CREATE A PROGRAM AND RUN THE DOLIST COMMAND
+        newobj[0]=MKPROLOG(DOCOL,2);
+        newobj[1]=CurOpcode;
+        newobj[2]=CMD_SEMI;
+
+        rplPushDataNoGrow((WORDPTR)two_bint);
+        rplPushData(newobj);
+
+        rplCallOperator(CMD_CMDDOLIST);
+
+        if(Exceptions) {
+            if(DSTop>savestk) DSTop=savestk;
+        }
+
+        // EXECUTION WILL CONTINUE AT DOLIST
+
+        return;
+    }
+    else if(ISLIST(*arg1) && !ISLIST(*arg2)){
+
+        BINT size1=rplObjSize(rplPeekData(1));
+        WORDPTR *savestk=DSTop;
+
+        WORDPTR newobj=rplAllocTempOb(2+size1);
+        if(!newobj) return;
+
+        // CREATE A PROGRAM AND RUN THE MAP COMMAND
+        newobj[0]=MKPROLOG(DOCOL,2+size1);
+        rplCopyObject(newobj+1,rplPeekData(1));
+        newobj[size1+1]=CurOpcode;
+        newobj[size1+2]=CMD_SEMI;
+
+        rplDropData(1);
+        rplPushData(newobj);
+
+        rplCallOperator(CMD_MAP);
+
+        if(Exceptions) {
+            if(DSTop>savestk) DSTop=savestk;
+        }
+
+        // EXECUTION WILL CONTINUE AT MAP
+
+        return;
+
+    }
+    else if(!ISLIST(*arg1) && ISLIST(*arg2)){
+        BINT i;
+        WORDPTR *savestk=DSTop;
+        WORDPTR newobj=rplAllocTempOb(2);
+        if(!newobj) return;
+
+        BINT count = rplListLength(arg2);
+        if (count > 0) {
+
+            // Create a list same size as arg2, set every value to arg1
+            for (i=0; i < count; ++i) {
+                rplPushData(arg1);
+            }
+            rplNewBINTPush(count,DECBINT);
+            rplCreateList();
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+                return;
+            }
+
+            // replace arg1 scalar by new list: arg1 -> { arg1 arg1 arg1 .. }
+            rplOverwriteData(3,rplPeekData(1));
+
+            // procede like the 2-list version above
+            // CREATE A PROGRAM AND RUN THE DOLIST COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplOverwriteData(1, (WORDPTR)two_bint);
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_CMDDOLIST);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+                return;
+            }
+        }
+        else {
+            rplError(ERR_BADARGTYPE);
+            return;
+        }
+    }
+}
 
 
 void LIB_HANDLER()
@@ -915,116 +1013,30 @@ void LIB_HANDLER()
         WORDPTR pct=rplPeekData(1);
         WORDPTR arg1=rplPeekData(2);
 
-        if(ISLIST(*arg1) && ISLIST(*pct)) {
-
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushDataNoGrow((WORDPTR)two_bint);
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_CMDDOLIST);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT DOLIST
-
+        if(ISLIST(*arg1) || ISLIST(*pct)){
+            binary_functions_list_handling(arg1,pct);
             return;
         }
-        else if(ISLIST(*arg1) && !ISLIST(*pct)){
-
-            BINT size1=rplObjSize(rplPeekData(1));
-            WORDPTR *savestk=DSTop;
-
-            WORDPTR newobj=rplAllocTempOb(2+size1);
-            if(!newobj) return;
-
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2+size1);
-            rplCopyObject(newobj+1,rplPeekData(1));
-            newobj[size1+1]=CurOpcode;
-            newobj[size1+2]=CMD_SEMI;
-
-            rplDropData(1);
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
-            return;
-
-        }
-        else if(!ISLIST(*arg1) && ISLIST(*pct)){
-            BINT i;
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-
-            BINT count = rplListLength(pct);
-            if (count > 0) {
-                for (i=0; i < count; ++i) {
-                    rplPushData(arg1);
-                }
-                rplNewBINTPush(count,DECBINT);
-                rplCreateList();
-                // replace scalar by list: a -> { a a a .. }
-                rplOverwriteData(3,rplPeekData(1));
-                // CREATE A PROGRAM AND RUN THE MAP COMMAND
-                newobj[0]=MKPROLOG(DOCOL,2);
-                newobj[1]=CurOpcode;
-                newobj[2]=CMD_SEMI;
-
-                rplOverwriteData(1, (WORDPTR)two_bint);
-                rplPushData(newobj);
-
-                rplCallOperator(CMD_CMDDOLIST);
-
-                if(Exceptions) {
-                    if(DSTop>savestk) DSTop=savestk;
-                    return;
-                }
-            }
-            else {
-                rplError(ERR_BADARGTYPE);
-                return;
-            }
-            return;
-
-        }
-        else if((ISIDENT(*pct) || ISSYMBOLIC(*pct)) ||
-            (ISIDENT(*arg1) || ISSYMBOLIC(*arg1))){
+        else if((ISIDENT(*pct) || ISSYMBOLIC(*pct)) || (ISIDENT(*arg1) || ISSYMBOLIC(*arg1))){
                 rplSymbApplyOperator(CurOpcode,2);
                 return;
-            }
-            else if(ISNUMBER(*pct) && ISNUMBER(*arg1) ){
-                REAL x;
-                rplReadNumberAsReal(pct,&x);
-                x.exp -= 2; // divide by 100
-                // replace level 1 value
-                WORDPTR newnumber=rplNewReal(&x);
-                if(!newnumber) return;
-                rplOverwriteData(1,newnumber);
-                rplCallOvrOperator(CMD_OVR_MUL);
-                return;
-            }
-            else {
-                rplError(ERR_BADARGTYPE);
-                return;
-            }
-
-
+        }
+        else if(ISNUMBER(*pct) && ISNUMBER(*arg1) ){
+            REAL x;
+            rplReadNumberAsReal(pct,&x);
+            x.exp -= 2; // divide by 100
+            // replace level 1 value
+            WORDPTR newnumber=rplNewReal(&x);
+            if(!newnumber) return;
+            rplOverwriteData(1,newnumber);
+            rplCallOvrOperator(CMD_OVR_MUL);
+            return;
+        }
+        else {
+            rplError(ERR_BADARGTYPE);
+            return;
+        }
+        return;
     }
     case PERCENTCH:
     {
@@ -1036,34 +1048,40 @@ void LIB_HANDLER()
             WORDPTR old_val=rplPeekData(2);
             WORDPTR new_val=rplPeekData(1);
 
-            if(ISIDENT(*old_val) || ISSYMBOLIC(*old_val) || ISIDENT(*new_val) || ISSYMBOLIC(*new_val)) {
-                rplSymbApplyOperator(CurOpcode,2);
+            if(ISLIST(*old_val) || ISLIST(*new_val)){
+                binary_functions_list_handling(old_val,new_val);
                 return;
             }
+            else if((ISIDENT(*new_val) || ISSYMBOLIC(*new_val)) || (ISIDENT(*old_val) || ISSYMBOLIC(*old_val))){
+                    rplSymbApplyOperator(CurOpcode,2);
+                    return;
+            }
+            else if(ISNUMBER(*new_val) && ISNUMBER(*old_val) ){
 
+                // DO IT ALL WITH REALS
+                // calculate 100*(y-x)/x
+                // Same names as in the advanced user's reference manual
+                REAL x,y;
+                rplReadNumberAsReal(old_val,&x);
+                rplReadNumberAsReal(new_val,&y);
+                subReal(&RReg[1],&y,&x); // delta
+                RReg[1].exp += 2; // multiply delta by 100
+                divReal(&RReg[0],&RReg[1],&x);
 
-            if(!ISNUMBER(*old_val) || !ISNUMBER(*new_val)) {
+                WORDPTR newnumber=rplNewReal(&RReg[0]);
+                if(!newnumber) return;
+                // drop one value and replace level 1 value
+                rplDropData(1);
+                rplOverwriteData(1,newnumber);
+
+                return;
+            }
+            else {
                 rplError(ERR_BADARGTYPE);
                 return;
             }
-
-            // DO IT ALL WITH REALS
-            // calculate 100*(y-x)/x
-            // Same names as in the advanced user's reference manual
-            REAL x,y;
-            rplReadNumberAsReal(old_val,&x);
-            rplReadNumberAsReal(new_val,&y);
-            subReal(&RReg[1],&y,&x); // delta
-            RReg[1].exp += 2; // multiply delta by 100
-            divReal(&RReg[0],&RReg[1],&x);
-
-            WORDPTR newnumber=rplNewReal(&RReg[0]);
-            if(!newnumber) return;
-            // drop one value and replace level 1 value
-            rplDropData(1);
-            rplOverwriteData(1,newnumber);
-
             return;
+
 
     }
     case PERCENTTOT:
@@ -1076,32 +1094,38 @@ void LIB_HANDLER()
             WORDPTR old_val=rplPeekData(2);
             WORDPTR new_val=rplPeekData(1);
 
-            if(ISIDENT(*old_val) || ISSYMBOLIC(*old_val) || ISIDENT(*new_val) || ISSYMBOLIC(*new_val)) {
-                rplSymbApplyOperator(CurOpcode,2);
+            if(ISLIST(*old_val) || ISLIST(*new_val)){
+                binary_functions_list_handling(old_val,new_val);
                 return;
             }
+            else if((ISIDENT(*new_val) || ISSYMBOLIC(*new_val)) || (ISIDENT(*old_val) || ISSYMBOLIC(*old_val))){
+                    rplSymbApplyOperator(CurOpcode,2);
+                    return;
+            }
+            else if(ISNUMBER(*new_val) && ISNUMBER(*old_val) ){
 
+                // DO IT ALL WITH REALS
+                // calculate 100*y/x
+                // Same names as in the advanced user's reference manual
+                REAL x,y;
+                rplReadNumberAsReal(old_val,&x);
+                rplReadNumberAsReal(new_val,&y);
+                y.exp += 2; // multiply by 100
+                divReal(&RReg[0],&y,&x);
 
-            if(!ISNUMBER(*old_val) || !ISNUMBER(*new_val)) {
+                WORDPTR newnumber=rplNewReal(&RReg[0]);
+                if(!newnumber) return;
+                // drop one value and replace level 1 value
+                rplDropData(1);
+                rplOverwriteData(1,newnumber);
+
+                return;
+
+            }
+            else {
                 rplError(ERR_BADARGTYPE);
                 return;
             }
-
-            // DO IT ALL WITH REALS
-            // calculate 100*y/x
-            // Same names as in the advanced user's reference manual
-            REAL x,y;
-            rplReadNumberAsReal(old_val,&x);
-            rplReadNumberAsReal(new_val,&y);
-            y.exp += 2; // multiply by 100
-            divReal(&RReg[0],&y,&x);
-
-            WORDPTR newnumber=rplNewReal(&RReg[0]);
-            if(!newnumber) return;
-            // drop one value and replace level 1 value
-            rplDropData(1);
-            rplOverwriteData(1,newnumber);
-
             return;
 
     }
