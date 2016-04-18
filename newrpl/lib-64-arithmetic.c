@@ -511,11 +511,11 @@ void LIB_HANDLER()
             if(!isintegerReal(&num)) {
                 rplError(ERR_INTEGEREXPECTED);
                 return;
-         }
+            }
         }
 
-            rplStoreSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)(modulo_name+3),arg);
-            rplDropData(1);
+        rplStoreSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)(modulo_name+3),arg);
+        rplDropData(1);
         return;
     }
 
@@ -533,11 +533,6 @@ void LIB_HANDLER()
                 binary_functions_list_handling(arg,exp);
                 return;
             }
-            else if((ISIDENT(*exp) || ISSYMBOLIC(*exp)) || (ISIDENT(*arg) || ISSYMBOLIC(*arg))){
-                    rplSymbApplyOperator(CurOpcode,2);
-                    return;
-            }
-
 
             if(!ISNUMBER(*arg)) {
                 rplError(ERR_BADARGTYPE);
