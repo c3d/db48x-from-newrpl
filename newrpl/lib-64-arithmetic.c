@@ -418,6 +418,7 @@ void LIB_HANDLER()
         }
         return;
     }
+
     case NEXTPRIME:
     {
 
@@ -491,9 +492,6 @@ void LIB_HANDLER()
         return;
     }
 
-
-
-
     case MODSTO:
     {
         if(rplDepthData()<1) {
@@ -524,41 +522,20 @@ void LIB_HANDLER()
     case POWMOD:
         {
 
-
             if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
             WORDPTR arg=rplPeekData(2);
+            WORDPTR exp=rplPeekData(1);
 
-            // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
-            // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
-            if(ISLIST(*arg)) {
-
-                BINT size1=rplObjSize(rplPeekData(1));
-                WORDPTR *savestk=DSTop;
-
-                WORDPTR newobj=rplAllocTempOb(2+size1);
-                if(!newobj) return;
-
-                // CREATE A PROGRAM AND RUN THE MAP COMMAND
-                newobj[0]=MKPROLOG(DOCOL,2+size1);
-                rplCopyObject(newobj+1,rplPeekData(1));
-                newobj[size1+1]=CurOpcode;
-                newobj[size1+2]=CMD_SEMI;
-
-                rplDropData(1);
-                rplPushData(newobj);
-
-                rplCallOperator(CMD_MAP);
-
-                if(Exceptions) {
-                    if(DSTop>savestk) DSTop=savestk;
-                }
-
-                // EXECUTION WILL CONTINUE AT MAP
-
+            if(ISLIST(*arg) || ISLIST(*exp)){
+                binary_functions_list_handling(arg,exp);
                 return;
+            }
+            else if((ISIDENT(*exp) || ISSYMBOLIC(*exp)) || (ISIDENT(*arg) || ISSYMBOLIC(*arg))){
+                    rplSymbApplyOperator(CurOpcode,2);
+                    return;
             }
 
 
@@ -567,7 +544,6 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR exp=rplPeekData(1);
             WORDPTR mod=rplGetSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)modulo_name+3);
             if(!mod) mod=(WORDPTR)zero_bint;
             if( !ISNUMBER(*exp) || !ISNUMBER(*mod)) {
@@ -647,7 +623,6 @@ void LIB_HANDLER()
 
     }
 
-
     case MOD:
     {
 
@@ -656,44 +631,16 @@ void LIB_HANDLER()
                 return;
             }
             WORDPTR arg=rplPeekData(2);
-
-            // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
-            // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
-            if(ISLIST(*arg)) {
-
-                BINT size1=rplObjSize(rplPeekData(1));
-                WORDPTR *savestk=DSTop;
-
-                WORDPTR newobj=rplAllocTempOb(2+size1);
-                if(!newobj) return;
-
-                // CREATE A PROGRAM AND RUN THE MAP COMMAND
-                newobj[0]=MKPROLOG(DOCOL,2+size1);
-                rplCopyObject(newobj+1,rplPeekData(1));
-                newobj[size1+1]=CurOpcode;
-                newobj[size1+2]=CMD_SEMI;
-
-                rplDropData(1);
-                rplPushData(newobj);
-
-                rplCallOperator(CMD_MAP);
-
-                if(Exceptions) {
-                    if(DSTop>savestk) DSTop=savestk;
-                }
-
-                // EXECUTION WILL CONTINUE AT MAP
-
-                return;
-            }
-
             WORDPTR mod=rplPeekData(1);
 
-            if(ISIDENT(*arg) || ISSYMBOLIC(*arg) || ISIDENT(*mod) || ISSYMBOLIC(*mod)) {
-                rplSymbApplyOperator(CurOpcode,2);
+            if(ISLIST(*arg) || ISLIST(*mod)){
+                binary_functions_list_handling(arg,mod);
                 return;
             }
-
+            else if((ISIDENT(*mod) || ISSYMBOLIC(*mod)) || (ISIDENT(*arg) || ISSYMBOLIC(*arg))){
+                    rplSymbApplyOperator(CurOpcode,2);
+                    return;
+            }
 
             if( !ISNUMBER(*arg) || !ISNUMBER(*mod)) {
                 rplError(ERR_BADARGTYPE);
