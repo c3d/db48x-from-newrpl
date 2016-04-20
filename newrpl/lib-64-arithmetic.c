@@ -45,7 +45,8 @@
     CMD(SIGN,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     ECMD(PERCENT,"%",MKTOKENINFO(1,TITYPE_FUNCTION,2,2)), \
     ECMD(PERCENTCH,"%CH",MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
-    ECMD(PERCENTTOT,"%T",MKTOKENINFO(2,TITYPE_FUNCTION,2,2))
+    ECMD(PERCENTTOT,"%T",MKTOKENINFO(2,TITYPE_FUNCTION,2,2)), \
+    CMD(GCD,MKTOKENINFO(3,TITYPE_FUNCTION,2,2))
 
 
 // ADD MORE OPCODES HERE
@@ -1033,6 +1034,137 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGTYPE);
                 return;
             }
+            return;
+
+    }
+
+    case GCD:
+    {
+
+            if(rplDepthData()<2) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            WORDPTR arg1=rplPeekData(2);
+            WORDPTR arg2=rplPeekData(1);
+
+            if(ISLIST(*arg1) || ISLIST(*arg2)){
+                binary_functions_list_handling(arg1,arg2);
+                return;
+            }
+            else if((ISIDENT(*arg1) || ISSYMBOLIC(*arg1)) || (ISIDENT(*arg2) || ISSYMBOLIC(*arg2))){
+                    rplSymbApplyOperator(CurOpcode,2);
+                    return;
+            }
+
+            if( !ISNUMBER(*arg1) || !ISNUMBER(*arg2)) {
+                rplError(ERR_BADARGTYPE);
+                return;
+            }
+
+            if(ISBINT(*arg1) && ISBINT(*arg2)) {
+
+                BINT64 a1=rplReadBINT(arg1);
+                BINT64 a2=rplReadBINT(arg2);
+                BINT64 r1,r2,r3,gcd;
+                if(a1 < 0) a1 = -a1;
+                if(a2 < 0) a2 = -a2;
+                if(a1 > a2){
+                    r1 = a1;
+                    r2 = a2;
+                }
+                else {
+                    r2 = a1;
+                    r1 = a2;
+                }
+                if (r2 == (BINT64)0) {
+                    rplError(ERR_MATHDIVIDEBYZERO);
+                }
+                // avoid swapping elements by loop unrolling
+                BINT notfinished = 1;
+                do {
+                    if(r2!=0){
+                        r3 = r1%r2;
+                    }
+                    else {
+                        gcd = r1;
+                        notfinished = 0;
+                        break;
+                    }
+                    if(r3!=0){
+                        r1 = r2%r3;
+                    }
+                    else {
+                        gcd = r2;
+                        notfinished = 0;
+                        break;
+                    }
+                    if(r1!=0){
+                        r2 = r3%r1;
+                    }
+                    else {
+                        gcd = r3;
+                        notfinished = 0;
+                        break;
+                    }
+                } while (notfinished);
+                rplDropData(2);
+                rplNewBINTPush(gcd,DECBINT);
+                return;
+            }
+            // THERE'S REALS INVOLVED, DO IT ALL WITH REALS
+
+            rplReadNumberAsReal(arg1,&RReg[1]);
+            rplReadNumberAsReal(arg2,&RReg[2]);
+            if(!isintegerReal(&RReg[1])) {
+                rplError(ERR_INTEGEREXPECTED);
+                return;
+            }
+            if(!isintegerReal(&RReg[2])) {
+                rplError(ERR_INTEGEREXPECTED);
+                return;
+            }
+
+            BINT igcd = 0;
+            if(RReg[1].flags&F_NEGATIVE) RReg[1].flags^=F_NEGATIVE;
+            if(RReg[2].flags&F_NEGATIVE) RReg[2].flags^=F_NEGATIVE;
+            if(gtReal(&RReg[2],&RReg[1])){
+                swapReal(&RReg[2],&RReg[1]);
+            }
+            if (iszeroReal(&RReg[2])) {
+                rplError(ERR_MATHDIVIDEBYZERO);
+            }
+            // avoid swapping elements by loop unrolling
+            BINT notfinished = 1;
+            do {
+                if(!iszeroReal(&RReg[2])){
+                    divmodReal(&RReg[0],&RReg[3],&RReg[1],&RReg[2]);
+                }
+                else {
+                    igcd = 1;
+                    notfinished = 0;
+                    break;
+                }
+                if(!iszeroReal(&RReg[3])){
+                    divmodReal(&RReg[0],&RReg[1],&RReg[2],&RReg[3]);
+                }
+                else {
+                    igcd = 2;
+                    notfinished = 0;
+                    break;
+                }
+                if(!iszeroReal(&RReg[1])){
+                    divmodReal(&RReg[0],&RReg[2],&RReg[3],&RReg[1]);
+                }
+                else {
+                    igcd = 3;
+                    notfinished = 0;
+                    break;
+                }
+            } while (notfinished);
+            rplDropData(2);
+            rplNewRealFromRRegPush(igcd);
+
             return;
 
     }
