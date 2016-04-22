@@ -152,11 +152,96 @@ void LIB_HANDLER()
             return;
         }
 
+
+        // SUPPORT FOR COMPLEX ARGUMENTS
+        if(ISCOMPLEX(*arg)) {
+
+            REAL re,im;
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            if(angmode!=ANGLENONE) {
+                // WE GOT A POLAR COMPLEX NUMBER
+                // CONVERT TO POLAR COORDINATES
+                trig_sincos(&im,angmode);
+
+                // RReg[6]= cos
+                // RReg[7]= sin
+                normalize(&RReg[6]);
+                normalize(&RReg[7]);
+
+                mulReal(&RReg[8],&RReg[6],&re);
+                mulReal(&RReg[9],&RReg[7],&re);
+
+            }
+            else {
+                copyReal(&RReg[8],&re);
+                copyReal(&RReg[9],&im);
+            }
+
+            // COMPUTE AS SIN(X+I*Y)=SIN(X)*COSH(Y)+COS(X)*SINH(Y)*i
+
+            trig_sincos(&RReg[8],ANGLERAD);
+
+            normalize(&RReg[6]);
+            normalize(&RReg[7]);
+
+            swapReal(&RReg[8],&RReg[6]);
+            swapReal(&RReg[9],&RReg[7]);
+
+            // NOW THE Y COMPONENT IS IN RReg[7]
+
+            hyp_sinhcosh(&RReg[7]);
+
+            // RReg[1]=cosh
+            // RReg[2]=sinh
+
+            normalize(&RReg[1]);
+            normalize(&RReg[2]);
+
+            mulReal(&RReg[3],&RReg[9],&RReg[1]);
+            mulReal(&RReg[4],&RReg[8],&RReg[2]);
+
+            // RETURN THE COMPLEX NUMBER
+
+            if(angmode!=ANGLENONE) {
+                // NEED TO RETURN A POLAR NUMBER
+
+                rplRect2Polar(&RReg[3],&RReg[4],angmode);
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[0],&RReg[1],angmode);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[1]);
+
+                return;
+
+            }
+
+            // RETURN A CARTESIAN COMPLEX
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[3],&RReg[4],angmode);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[3]);
+            rplCheckResultAndError(&RReg[4]);
+
+            return;
+
+
+
+        }
+
         angmode=ANGLEMODE(*arg);
 
         if(angmode==ANGLENONE) angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
 
+        // REAL  ARGUMENTS
         if(ISANGLE(*arg)) rplReadNumberAsReal(arg+1,&dec);
         else rplReadNumberAsReal(arg,&dec);
 
@@ -212,6 +297,94 @@ void LIB_HANDLER()
 
             return;
         }
+
+
+        // SUPPORT FOR COMPLEX ARGUMENTS
+        if(ISCOMPLEX(*arg)) {
+
+            REAL re,im;
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            if(angmode!=ANGLENONE) {
+                // WE GOT A POLAR COMPLEX NUMBER
+                // CONVERT TO POLAR COORDINATES
+                trig_sincos(&im,angmode);
+
+                // RReg[6]= cos
+                // RReg[7]= sin
+                normalize(&RReg[6]);
+                normalize(&RReg[7]);
+
+                mulReal(&RReg[8],&RReg[6],&re);
+                mulReal(&RReg[9],&RReg[7],&re);
+
+            }
+            else {
+                copyReal(&RReg[8],&re);
+                copyReal(&RReg[9],&im);
+            }
+
+            // COMPUTE AS SIN(X+I*Y)=COS(X)*COSH(Y)-SIN(X)*SINH(Y)*i
+
+            trig_sincos(&RReg[8],ANGLERAD);
+
+            normalize(&RReg[6]);
+            normalize(&RReg[7]);
+
+            swapReal(&RReg[9],&RReg[6]);        // RReg[9]=cos
+            swapReal(&RReg[8],&RReg[7]);        // RReg[8]=sin
+
+            // NOW THE Y COMPONENT IS IN RReg[6]
+
+            hyp_sinhcosh(&RReg[6]);
+
+            // RReg[1]=cosh
+            // RReg[2]=sinh
+
+            normalize(&RReg[1]);
+            normalize(&RReg[2]);
+
+            mulReal(&RReg[3],&RReg[9],&RReg[1]);
+            mulReal(&RReg[4],&RReg[8],&RReg[2]);
+
+            RReg[4].flags^=F_NEGATIVE;
+
+            // RETURN THE COMPLEX NUMBER
+
+            if(angmode!=ANGLENONE) {
+                // NEED TO RETURN A POLAR NUMBER
+
+                rplRect2Polar(&RReg[3],&RReg[4],angmode);
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[0],&RReg[1],angmode);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[1]);
+
+                return;
+
+            }
+
+            // RETURN A CARTESIAN COMPLEX
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[3],&RReg[4],angmode);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[3]);
+            rplCheckResultAndError(&RReg[4]);
+
+            return;
+
+
+
+        }
+
+
 
         angmode=ANGLEMODE(*arg);
 
@@ -271,6 +444,105 @@ void LIB_HANDLER()
 
             return;
         }
+
+
+        // SUPPORT FOR COMPLEX ARGUMENTS
+        if(ISCOMPLEX(*arg)) {
+
+            REAL re,im;
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            if(angmode!=ANGLENONE) {
+                // WE GOT A POLAR COMPLEX NUMBER
+                // CONVERT TO POLAR COORDINATES
+                trig_sincos(&im,angmode);
+
+                // RReg[6]= cos
+                // RReg[7]= sin
+                normalize(&RReg[6]);
+                normalize(&RReg[7]);
+
+                mulReal(&RReg[8],&RReg[6],&re);
+                mulReal(&RReg[9],&RReg[7],&re);
+
+            }
+            else {
+                copyReal(&RReg[8],&re);
+                copyReal(&RReg[9],&im);
+            }
+
+            // COMPUTE AS FOLLOWS:
+            // K = (COS(X)*COSH(Y))^2+(SIN(X)*SINH(Y))^2
+            // TAN(X+I*Y)=COS(X)*SIN(X)/K+SINH(Y)*COSH(Y)/K*i
+
+
+            trig_sincos(&RReg[8],ANGLERAD);
+
+            normalize(&RReg[6]);
+            normalize(&RReg[7]);
+
+            swapReal(&RReg[9],&RReg[6]);        // RReg[9]=cos
+            swapReal(&RReg[8],&RReg[7]);        // RReg[8]=sin
+
+            // NOW THE Y COMPONENT IS IN RReg[6]
+
+            hyp_sinhcosh(&RReg[6]);
+
+            // RReg[1]=cosh
+            // RReg[2]=sinh
+
+            normalize(&RReg[1]);
+            normalize(&RReg[2]);
+
+            // RReg[0]=K
+            mulReal(&RReg[5],&RReg[1],&RReg[9]);    // cosh*cos
+            mulReal(&RReg[4],&RReg[5],&RReg[5]);    // ^2
+            mulReal(&RReg[5],&RReg[2],&RReg[8]);    // sinh*sin
+            mulReal(&RReg[3],&RReg[5],&RReg[5]);    // ^2
+            addReal(&RReg[0],&RReg[3],&RReg[4]);  // K
+
+            mulReal(&RReg[5],&RReg[8],&RReg[9]);    // sin*cos
+            divReal(&RReg[3],&RReg[5],&RReg[0]);    // sin*cos/K
+            mulReal(&RReg[5],&RReg[1],&RReg[2]);    // sinh*cosh
+            divReal(&RReg[4],&RReg[5],&RReg[0]);    // sinh*cosh/K
+
+            // RETURN THE COMPLEX NUMBER
+
+            if(angmode!=ANGLENONE) {
+                // NEED TO RETURN A POLAR NUMBER
+
+                rplRect2Polar(&RReg[3],&RReg[4],angmode);
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[0],&RReg[1],angmode);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[1]);
+
+                return;
+
+            }
+
+            // RETURN A CARTESIAN COMPLEX
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[3],&RReg[4],angmode);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[3]);
+            rplCheckResultAndError(&RReg[4]);
+
+            return;
+
+
+
+        }
+
+
+
 
 
         angmode=ANGLEMODE(*arg);

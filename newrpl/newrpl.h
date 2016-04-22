@@ -436,6 +436,10 @@ WORDPTR rplNewComplex(REAL *real, REAL *imag, BINT angmode);
 void rplNewComplexPush(REAL *real, REAL *imag, BINT angmode);
 void rplRRegToComplexPush(BINT real, BINT imag, BINT angmode);
 WORDPTR rplRRegToComplexInPlace(BINT real, BINT imag, WORDPTR dest, BINT angmode);
+void rplRect2Polar(REAL *re,REAL *im,BINT angmode);
+void rplPolar2Rect(REAL *r,REAL *theta,BINT angmode);
+BINT rplIsZeroComplex(REAL *re,REAL *im,BINT angmode);
+
 
 
 

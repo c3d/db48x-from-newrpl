@@ -2047,16 +2047,13 @@ Context.precdigits+=8;
 // GET ANGLE MODULO LN(10)
 REAL ln10,ln10_2;
 BINT quotient;
-
-
+REAL zeropointone;
 
 // LOAD CONSTANT 0.1
-RReg[7].data[0]=1;
-RReg[7].exp=-1;
-RReg[7].flags=0;
-RReg[7].len=1;
+decconst_One(&zeropointone);
+zeropointone.exp=-1;
 
-if(ltReal(x0,&RReg[7])) {
+if(ltReal(x0,&zeropointone)) {
     // WE ARE DEALING WITH SMALL ANGLES
     quotient=0;
 
