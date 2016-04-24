@@ -46,7 +46,8 @@
     ECMD(PERCENT,"%",MKTOKENINFO(1,TITYPE_FUNCTION,2,2)), \
     ECMD(PERCENTCH,"%CH",MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
     ECMD(PERCENTTOT,"%T",MKTOKENINFO(2,TITYPE_FUNCTION,2,2)), \
-    CMD(GCD,MKTOKENINFO(3,TITYPE_FUNCTION,2,2))
+    CMD(GCD,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
+    CMD(LCM,MKTOKENINFO(3,TITYPE_FUNCTION,2,2))
 
 
 // ADD MORE OPCODES HERE
@@ -914,6 +915,7 @@ void LIB_HANDLER()
     }
 
     case GCD:
+    case LCM:
     {
 
             if(rplDepthData()<2) {
@@ -983,8 +985,21 @@ void LIB_HANDLER()
                         break;
                     }
                 } while (notfinished);
-                rplDropData(2);
-                rplNewBINTPush(gcd,DECBINT);
+                if (OPCODE(CurOpcode) == GCD) {
+                    rplDropData(2);
+                    rplNewBINTPush(gcd,DECBINT);
+                }
+                else {
+                    REAL x,y,rgcd;
+                    rplReadNumberAsReal(arg1,&x);
+                    rplReadNumberAsReal(arg2,&y);
+                    mulReal(&RReg[0],&x,&y);
+                    WORDPTR pgcd = rplNewBINT(gcd, DECBINT);
+                    rplReadNumberAsReal(pgcd, &rgcd);
+                    divReal(&RReg[4],&RReg[0],&rgcd);
+                    rplDropData(2);
+                    rplNewRealFromRRegPush(4);
+                }
                 return;
             }
             // THERE'S REALS INVOLVED, DO IT ALL WITH REALS
@@ -1037,8 +1052,21 @@ void LIB_HANDLER()
                     break;
                 }
             } while (notfinished);
-            rplDropData(2);
-            rplNewRealFromRRegPush(igcd);
+            if (OPCODE(CurOpcode) == GCD) {
+                rplDropData(2);
+                rplNewRealFromRRegPush(igcd);
+            }
+            else {
+                REAL x,y;
+                rplReadNumberAsReal(arg1,&x);
+                rplReadNumberAsReal(arg2,&y);
+                mulReal(&RReg[0],&x,&y);
+                divReal(&RReg[4],&RReg[0],&RReg[igcd]);
+                rplDropData(2);
+                rplNewRealFromRRegPush(4);
+            }
+
+
 
             return;
 
