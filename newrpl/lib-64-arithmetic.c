@@ -989,8 +989,8 @@ void LIB_HANDLER()
             }
             // THERE'S REALS INVOLVED, DO IT ALL WITH REALS
 
-            rplReadNumberAsReal(arg1,&RReg[1]);
-            rplReadNumberAsReal(arg2,&RReg[2]);
+            rplNumberToRReg(1, arg1);
+            rplNumberToRReg(2, arg2);
             if(!isintegerReal(&RReg[1])) {
                 rplError(ERR_INTEGEREXPECTED);
                 return;
