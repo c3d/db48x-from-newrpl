@@ -123,48 +123,34 @@ void binary_functions_list_handling(WORDPTR arg1, WORDPTR arg2)
 
     }
     else if(!ISLIST(*arg1) && ISLIST(*arg2)){
-        BINT i;
+
+        BINT size1=rplObjSize(rplPeekData(2));
         WORDPTR *savestk=DSTop;
-        WORDPTR newobj=rplAllocTempOb(2);
+
+        WORDPTR newobj=rplAllocTempOb(3+size1);
         if(!newobj) return;
 
-        BINT count = rplListLength(arg2);
-        if (count > 0) {
+        // CREATE A PROGRAM AND RUN THE MAP COMMAND
+        newobj[0]=MKPROLOG(DOCOL,3+size1);
+        rplCopyObject(newobj+1,rplPeekData(2));
+        newobj[size1+1]=CMD_SWAP;
+        newobj[size1+2]=CurOpcode;
+        newobj[size1+3]=CMD_SEMI;
 
-            // Create a list same size as arg2, set every value to arg1
-            for (i=0; i < count; ++i) {
-                rplPushData(arg1);
-            }
-            rplNewBINTPush(count,DECBINT);
-            rplCreateList();
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-                return;
-            }
+        rplOverwriteData(2,rplPeekData(1));
 
-            // replace arg1 scalar by new list: arg1 -> { arg1 arg1 arg1 .. }
-            rplOverwriteData(3,rplPeekData(1));
+        rplDropData(1);
+        rplPushData(newobj);
 
-            // procede like the 2-list version above
-            // CREATE A PROGRAM AND RUN THE DOLIST COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
+        rplCallOperator(CMD_MAP);
 
-            rplOverwriteData(1, (WORDPTR)two_bint);
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_CMDDOLIST);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-                return;
-            }
+        if(Exceptions) {
+            if(DSTop>savestk) DSTop=savestk;
         }
-        else {
-            rplError(ERR_BADARGTYPE);
-            return;
-        }
+
+        // EXECUTION WILL CONTINUE AT MAP
+
+        return;
     }
 }
 
