@@ -68,117 +68,6 @@
 
 const char const modulo_name[]="MOD";
 
-// List handling for funtions with 2 argument
-void binary_functions_list_handling(WORDPTR arg1, WORDPTR arg2)
-{
-    if(ISLIST(*arg1) && ISLIST(*arg2)) {
-
-        WORDPTR *savestk=DSTop;
-        WORDPTR newobj=rplAllocTempOb(2);
-        if(!newobj) return;
-        // CREATE A PROGRAM AND RUN THE DOLIST COMMAND
-        newobj[0]=MKPROLOG(DOCOL,2);
-        newobj[1]=CurOpcode;
-        newobj[2]=CMD_SEMI;
-
-        rplPushDataNoGrow((WORDPTR)two_bint);
-        rplPushData(newobj);
-
-        rplCallOperator(CMD_CMDDOLIST);
-
-        if(Exceptions) {
-            if(DSTop>savestk) DSTop=savestk;
-        }
-
-        // EXECUTION WILL CONTINUE AT DOLIST
-
-        return;
-    }
-    else if(ISLIST(*arg1) && !ISLIST(*arg2)){
-
-        BINT size1=rplObjSize(rplPeekData(1));
-        WORDPTR *savestk=DSTop;
-
-        WORDPTR newobj=rplAllocTempOb(2+size1);
-        if(!newobj) return;
-
-        // CREATE A PROGRAM AND RUN THE MAP COMMAND
-        newobj[0]=MKPROLOG(DOCOL,2+size1);
-        rplCopyObject(newobj+1,rplPeekData(1));
-        newobj[size1+1]=CurOpcode;
-        newobj[size1+2]=CMD_SEMI;
-
-        rplDropData(1);
-        rplPushData(newobj);
-
-        rplCallOperator(CMD_MAP);
-
-        if(Exceptions) {
-            if(DSTop>savestk) DSTop=savestk;
-        }
-
-        // EXECUTION WILL CONTINUE AT MAP
-
-        return;
-
-    }
-    else if(!ISLIST(*arg1) && ISLIST(*arg2)){
-
-        BINT size1=rplObjSize(rplPeekData(2));
-        WORDPTR *savestk=DSTop;
-
-        WORDPTR newobj=rplAllocTempOb(3+size1);
-        if(!newobj) return;
-
-        // CREATE A PROGRAM AND RUN THE MAP COMMAND
-        newobj[0]=MKPROLOG(DOCOL,3+size1);
-        rplCopyObject(newobj+1,rplPeekData(2));
-        newobj[size1+1]=CMD_SWAP;
-        newobj[size1+2]=CurOpcode;
-        newobj[size1+3]=CMD_SEMI;
-
-        rplOverwriteData(2,rplPeekData(1));
-
-        rplDropData(1);
-        rplPushData(newobj);
-
-        rplCallOperator(CMD_MAP);
-
-        if(Exceptions) {
-            if(DSTop>savestk) DSTop=savestk;
-        }
-
-        // EXECUTION WILL CONTINUE AT MAP
-
-        return;
-    }
-}
-
-// List handling for funtions with 1 argument
-void unary_functions_list_handling()
-{
-
-    WORDPTR *savestk=DSTop;
-    WORDPTR newobj=rplAllocTempOb(2);
-    if(!newobj) return;
-    // CREATE A PROGRAM AND RUN THE MAP COMMAND
-    newobj[0]=MKPROLOG(DOCOL,2);
-    newobj[1]=CurOpcode;
-    newobj[2]=CMD_SEMI;
-
-    rplPushData(newobj);
-
-    rplCallOperator(CMD_MAP);
-
-    if(Exceptions) {
-        if(DSTop>savestk) DSTop=savestk;
-    }
-
-    // EXECUTION WILL CONTINUE AT MAP
-
-    return;
-}
-
 
 void LIB_HANDLER()
 {
@@ -248,7 +137,7 @@ void LIB_HANDLER()
         WORDPTR arg=rplPeekData(1);
 
         if(ISLIST(*arg)) {
-            unary_functions_list_handling();
+            rplListUnaryDoCmd();
             return;
         }
 
@@ -272,7 +161,7 @@ void LIB_HANDLER()
         WORDPTR arg=rplPeekData(1);
 
         if(ISLIST(*arg)) {
-            unary_functions_list_handling();
+            rplListUnaryDoCmd();
             return;
         }
 
@@ -301,7 +190,7 @@ void LIB_HANDLER()
     WORDPTR arg=rplPeekData(1);
 
     if(ISLIST(*arg)) {
-        unary_functions_list_handling();
+        rplListUnaryDoCmd();
         return;
     }
 
@@ -325,7 +214,7 @@ void LIB_HANDLER()
     WORDPTR arg=rplPeekData(1);
 
     if(ISLIST(*arg)) {
-        unary_functions_list_handling();
+        rplListUnaryDoCmd();
         return;
     }
 
@@ -353,7 +242,7 @@ void LIB_HANDLER()
         WORDPTR arg=rplPeekData(1);
 
         if(ISLIST(*arg)) {
-            unary_functions_list_handling();
+            rplListUnaryDoCmd();
             return;
         }
 
@@ -409,7 +298,7 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
-            unary_functions_list_handling();
+            rplListUnaryDoCmd();
             return;
         }
 
@@ -553,7 +442,7 @@ void LIB_HANDLER()
             WORDPTR exp=rplPeekData(1);
 
             if(ISLIST(*arg) || ISLIST(*exp)){
-                binary_functions_list_handling(arg,exp);
+                rplListBinaryDoCmd(arg,exp);
                 return;
             }
 
@@ -652,7 +541,7 @@ void LIB_HANDLER()
             WORDPTR mod=rplPeekData(1);
 
             if(ISLIST(*arg) || ISLIST(*mod)){
-                binary_functions_list_handling(arg,mod);
+                rplListBinaryDoCmd(arg,mod);
                 return;
             }
             else if((ISIDENT(*mod) || ISSYMBOLIC(*mod)) || (ISIDENT(*arg) || ISSYMBOLIC(*arg))){
@@ -701,7 +590,7 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
 
         if(ISLIST(*arg)) {
-            unary_functions_list_handling();
+            rplListUnaryDoCmd();
             return;
         }
 
@@ -735,7 +624,7 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
 
         if(ISLIST(*arg)) {
-            unary_functions_list_handling();
+            rplListUnaryDoCmd();
             return;
         }
 
@@ -777,7 +666,7 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
 
         if(ISLIST(*arg)) {
-            unary_functions_list_handling();
+            rplListUnaryDoCmd();
             return;
         }
 
@@ -817,7 +706,7 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
 
         if(ISLIST(*arg)) {
-            unary_functions_list_handling();
+            rplListUnaryDoCmd();
             return;
         }
 
@@ -906,7 +795,7 @@ void LIB_HANDLER()
         WORDPTR arg1=rplPeekData(2);
 
         if(ISLIST(*arg1) || ISLIST(*pct)){
-            binary_functions_list_handling(arg1,pct);
+            rplListBinaryDoCmd(arg1,pct);
             return;
         }
         else if((ISIDENT(*pct) || ISSYMBOLIC(*pct)) || (ISIDENT(*arg1) || ISSYMBOLIC(*arg1))){
@@ -942,7 +831,7 @@ void LIB_HANDLER()
             WORDPTR new_val=rplPeekData(1);
 
             if(ISLIST(*old_val) || ISLIST(*new_val)){
-                binary_functions_list_handling(old_val,new_val);
+                rplListBinaryDoCmd(old_val,new_val);
                 return;
             }
             else if((ISIDENT(*new_val) || ISSYMBOLIC(*new_val)) || (ISIDENT(*old_val) || ISSYMBOLIC(*old_val))){
@@ -989,7 +878,7 @@ void LIB_HANDLER()
             WORDPTR new_val=rplPeekData(1);
 
             if(ISLIST(*old_val) || ISLIST(*new_val)){
-                binary_functions_list_handling(old_val,new_val);
+                rplListBinaryDoCmd(old_val,new_val);
                 return;
             }
             else if((ISIDENT(*new_val) || ISSYMBOLIC(*new_val)) || (ISIDENT(*old_val) || ISSYMBOLIC(*old_val))){
@@ -1035,7 +924,7 @@ void LIB_HANDLER()
             WORDPTR arg2=rplPeekData(1);
 
             if(ISLIST(*arg1) || ISLIST(*arg2)){
-                binary_functions_list_handling(arg1,arg2);
+                rplListBinaryDoCmd(arg1,arg2);
                 return;
             }
             else if((ISIDENT(*arg1) || ISSYMBOLIC(*arg1)) || (ISIDENT(*arg2) || ISSYMBOLIC(*arg2))){

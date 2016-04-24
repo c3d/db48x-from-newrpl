@@ -170,3 +170,114 @@ void rplCreateList()
     rplOverwriteData(1,list);
 }
 
+
+// List handling for funtions with 2 argument
+void rplListBinaryDoCmd(WORDPTR arg1, WORDPTR arg2)
+{
+    if(ISLIST(*arg1) && ISLIST(*arg2)) {
+
+        WORDPTR *savestk=DSTop;
+        WORDPTR newobj=rplAllocTempOb(2);
+        if(!newobj) return;
+        // CREATE A PROGRAM AND RUN THE DOLIST COMMAND
+        newobj[0]=MKPROLOG(DOCOL,2);
+        newobj[1]=CurOpcode;
+        newobj[2]=CMD_SEMI;
+
+        rplPushDataNoGrow((WORDPTR)two_bint);
+        rplPushData(newobj);
+
+        rplCallOperator(CMD_CMDDOLIST);
+
+        if(Exceptions) {
+            if(DSTop>savestk) DSTop=savestk;
+        }
+
+        // EXECUTION WILL CONTINUE AT DOLIST
+
+        return;
+    }
+    else if(ISLIST(*arg1) && !ISLIST(*arg2)){
+
+        BINT size1=rplObjSize(rplPeekData(1));
+        WORDPTR *savestk=DSTop;
+
+        WORDPTR newobj=rplAllocTempOb(2+size1);
+        if(!newobj) return;
+
+        // CREATE A PROGRAM AND RUN THE MAP COMMAND
+        newobj[0]=MKPROLOG(DOCOL,2+size1);
+        rplCopyObject(newobj+1,rplPeekData(1));
+        newobj[size1+1]=CurOpcode;
+        newobj[size1+2]=CMD_SEMI;
+
+        rplDropData(1);
+        rplPushData(newobj);
+
+        rplCallOperator(CMD_MAP);
+
+        if(Exceptions) {
+            if(DSTop>savestk) DSTop=savestk;
+        }
+
+        // EXECUTION WILL CONTINUE AT MAP
+
+        return;
+
+    }
+    else if(!ISLIST(*arg1) && ISLIST(*arg2)){
+
+        BINT size1=rplObjSize(rplPeekData(2));
+        WORDPTR *savestk=DSTop;
+
+        WORDPTR newobj=rplAllocTempOb(3+size1);
+        if(!newobj) return;
+
+        // CREATE A PROGRAM AND RUN THE MAP COMMAND
+        newobj[0]=MKPROLOG(DOCOL,3+size1);
+        rplCopyObject(newobj+1,rplPeekData(2));
+        newobj[size1+1]=CMD_SWAP;
+        newobj[size1+2]=CurOpcode;
+        newobj[size1+3]=CMD_SEMI;
+
+        rplOverwriteData(2,rplPeekData(1));
+
+        rplDropData(1);
+        rplPushData(newobj);
+
+        rplCallOperator(CMD_MAP);
+
+        if(Exceptions) {
+            if(DSTop>savestk) DSTop=savestk;
+        }
+
+        // EXECUTION WILL CONTINUE AT MAP
+
+        return;
+    }
+}
+
+// List handling for funtions with 1 argument
+void rplListUnaryDoCmd()
+{
+
+    WORDPTR *savestk=DSTop;
+    WORDPTR newobj=rplAllocTempOb(2);
+    if(!newobj) return;
+    // CREATE A PROGRAM AND RUN THE MAP COMMAND
+    newobj[0]=MKPROLOG(DOCOL,2);
+    newobj[1]=CurOpcode;
+    newobj[2]=CMD_SEMI;
+
+    rplPushData(newobj);
+
+    rplCallOperator(CMD_MAP);
+
+    if(Exceptions) {
+        if(DSTop>savestk) DSTop=savestk;
+    }
+
+    // EXECUTION WILL CONTINUE AT MAP
+
+    return;
+}
