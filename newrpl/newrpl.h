@@ -494,6 +494,8 @@ BINT rplExplodeList(WORDPTR composite);
 WORDPTR rplGetListElement(WORDPTR composite, BINT pos);
 WORDPTR rplGetListElementFlat(WORDPTR composite, BINT pos);
 BINT rplIsLastElementFlat(WORDPTR composite, BINT pos);
+void rplListUnaryDoCmd();
+void rplListBinaryDoCmd(WORDPTR arg1, WORDPTR arg2);
 
 // SYMBOLIC FUNCTIONS
 WORDPTR rplSymbUnwrap(WORDPTR symbolic);
