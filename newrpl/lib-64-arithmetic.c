@@ -578,6 +578,17 @@ void LIB_HANDLER()
                 rplReadNumberAsReal(arg,&a);
                 rplReadNumberAsReal(mod,&m);
 
+                if (OPCODE(CurOpcode) == IDIV2 || OPCODE(CurOpcode) == IQUOT) {
+                    if(!isintegerReal(&a)) {
+                        rplError(ERR_INTEGEREXPECTED);
+                        return;
+                    }
+                    if(!isintegerReal(&m)) {
+                        rplError(ERR_INTEGEREXPECTED);
+                        return;
+                    }
+                }
+
                 divmodReal(&RReg[7],&RReg[6],&a,&m);
 
                 rplDropData(2);
