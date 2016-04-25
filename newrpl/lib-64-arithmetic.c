@@ -49,7 +49,10 @@
     CMD(GCD,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
     CMD(LCM,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
     CMD(IDIV2,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
-    CMD(IQUOT,MKTOKENINFO(5,TITYPE_FUNCTION,2,2))
+    CMD(IQUOT,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
+    CMD(ADDTMOD,MKTOKENINFO(7,TITYPE_FUNCTION,2,2)), \
+    CMD(SUBTMOD,MKTOKENINFO(7,TITYPE_FUNCTION,2,2)), \
+    CMD(MULTMOD,MKTOKENINFO(7,TITYPE_FUNCTION,2,2))
 
 
 // ADD MORE OPCODES HERE
@@ -435,62 +438,81 @@ void LIB_HANDLER()
     }
 
     case POWMOD:
+    case ADDTMOD:
+    case SUBTMOD:
+    case MULTMOD:
         {
 
             if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
-            WORDPTR arg=rplPeekData(2);
-            WORDPTR exp=rplPeekData(1);
+            WORDPTR arg1=rplPeekData(2);
+            WORDPTR arg2=rplPeekData(1);
 
-            if(ISLIST(*arg) || ISLIST(*exp)){
-                rplListBinaryDoCmd(arg,exp);
+            if(ISLIST(*arg1) || ISLIST(*arg2)){
+                rplListBinaryDoCmd(arg1,arg2);
                 return;
             }
 
-            if(!ISNUMBER(*arg)) {
+            if(!ISNUMBER(*arg1)) {
                 rplError(ERR_BADARGTYPE);
                 return;
             }
 
             WORDPTR mod=rplGetSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)modulo_name+3);
             if(!mod) mod=(WORDPTR)zero_bint;
-            if( !ISNUMBER(*exp) || !ISNUMBER(*mod)) {
+            if( !ISNUMBER(*arg2) || !ISNUMBER(*mod)) {
                 rplError(ERR_BADARGTYPE);
                 return;
             }
 
-            if(ISBINT(*arg) && ISBINT(*exp) && ISBINT(*mod)) {
+            if(ISBINT(*arg1) && ISBINT(*arg2) && ISBINT(*mod)) {
 
-                BINT64 a=rplReadBINT(arg);
-                BINT64 e=rplReadBINT(exp);
+                BINT64 a1=rplReadBINT(arg1);
+                BINT64 a2=rplReadBINT(arg2);
                 BINT64 m=rplReadBINT(mod);
+                BINT64 r;
 
                 if(m<2147483648LL) {  // MAXIMUM MOD WE CAN USE WITH BINTS
 
-                a=powmodBINT(a,e,m);
+                    if (OPCODE(CurOpcode) == POWMOD) {
+                        r = powmodBINT(a1,a2,m);
+                    }
+                    else if (OPCODE(CurOpcode) == ADDTMOD) {
+                        r = (a1+a2)%m;
+                    }
+                    else if (OPCODE(CurOpcode) == SUBTMOD) {
+                        r = (a1-a2)%m;
+                    }
+                    else if (OPCODE(CurOpcode) == MULTMOD) {
+                        r = (a1*a2)%m;
+                    }
+                    else {
+                        rplError(ERR_INVALID);
+                        return;
+                    }
 
-                rplDropData(2);
+                    rplDropData(2);
 
-                rplNewBINTPush(a,DECBINT);
-                return;
+                    rplNewBINTPush(r,DECBINT);
+                    return;
                 }
 
             }
                 // THERE'S REALS INVOLVED, DO IT ALL WITH REALS
 
-                REAL a,e,m;
-                rplReadNumberAsReal(arg,&a);
-                rplReadNumberAsReal(exp,&e);
+                REAL a1,a2,m;
+                rplReadNumberAsReal(arg1,&a1);
+                rplReadNumberAsReal(arg2,&a2);
                 rplReadNumberAsReal(mod,&m);
 
-                if(!isintegerReal(&a)) {
+                if(!isintegerReal(&a1)) {
                     rplError(ERR_INTEGEREXPECTED);
                     return;
                 }
 
-                if(!isintegerReal(&e)) {
+                if(!isintegerReal(&a2)) {
                     rplError(ERR_INTEGEREXPECTED);
                     return;
                 }
@@ -502,8 +524,8 @@ void LIB_HANDLER()
 
                 BINT saveprec=Context.precdigits;
                 BINT moddigits=(intdigitsReal(&m)+7)&~7;
-                BINT numdigits=(intdigitsReal(&a)+7)&~7;
-                BINT expdigits=(intdigitsReal(&e)+7)&~7;
+                BINT numdigits=(intdigitsReal(&a1)+7)&~7;
+                BINT expdigits=(intdigitsReal(&a2)+7)&~7;
 
                 moddigits*=2;
                 moddigits=(moddigits>numdigits)? moddigits:numdigits;
@@ -519,7 +541,25 @@ void LIB_HANDLER()
 
                 Context.precdigits=moddigits;
 
-                powmodReal(&RReg[7],&a,&e,&m);
+                if (OPCODE(CurOpcode) == POWMOD) {
+                    powmodReal(&RReg[7],&a1,&a2,&m);
+                }
+                else if (OPCODE(CurOpcode) == ADDTMOD) {
+                    addReal(&RReg[0], &a1, &a2);
+                    divmodReal(&RReg[6],&RReg[7],&RReg[0],&m);
+                }
+                else if (OPCODE(CurOpcode) == SUBTMOD) {
+                    subReal(&RReg[0], &a1, &a2);
+                    divmodReal(&RReg[6],&RReg[7],&RReg[0],&m);
+                }
+                else if (OPCODE(CurOpcode) == MULTMOD) {
+                    mulReal(&RReg[0], &a1, &a2);
+                    divmodReal(&RReg[6],&RReg[7],&RReg[0],&m);
+                }
+                else {
+                    rplError(ERR_INVALID);
+                    return;
+                }
 
                 Context.precdigits=saveprec;
 
