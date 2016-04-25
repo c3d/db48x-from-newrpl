@@ -989,14 +989,16 @@ void LIB_HANDLER()
                     rplDropData(2);
                     rplNewBINTPush(gcd,DECBINT);
                 }
-                else {
+                else // LCM(a1,a2) = a1*a2/gcd(a1,a2)
+                {
                     REAL x,y,rgcd;
-                    rplReadNumberAsReal(arg1,&x);
-                    rplReadNumberAsReal(arg2,&y);
+                    rplLoadBINTAsReal(a1,&x);
+                    rplLoadBINTAsReal(a2,&y);
+                    rplLoadBINTAsReal(gcd,&rgcd);
                     mulReal(&RReg[0],&x,&y);
-                    WORDPTR pgcd = rplNewBINT(gcd, DECBINT);
-                    rplReadNumberAsReal(pgcd, &rgcd);
                     divReal(&RReg[4],&RReg[0],&rgcd);
+                    if((x.flags&F_APPROX)||(y.flags&F_APPROX)) RReg[4].flags|=F_APPROX;
+                    else RReg[4].flags&=~F_APPROX;    // REMOVE THE APPROXIMATED FLAG AFTER TRUNCATION
                     rplDropData(2);
                     rplNewRealFromRRegPush(4);
                 }
@@ -1056,12 +1058,15 @@ void LIB_HANDLER()
                 rplDropData(2);
                 rplNewRealFromRRegPush(igcd);
             }
-            else {
+            else // LCM(a1,a2) = a1*a2/gcd(a1,a2)
+            {
                 REAL x,y;
                 rplReadNumberAsReal(arg1,&x);
                 rplReadNumberAsReal(arg2,&y);
                 mulReal(&RReg[0],&x,&y);
                 divReal(&RReg[4],&RReg[0],&RReg[igcd]);
+                if((x.flags&F_APPROX)||(y.flags&F_APPROX)) RReg[4].flags|=F_APPROX;
+                else RReg[4].flags&=~F_APPROX;    // REMOVE THE APPROXIMATED FLAG AFTER TRUNCATION
                 rplDropData(2);
                 rplNewRealFromRRegPush(4);
             }
