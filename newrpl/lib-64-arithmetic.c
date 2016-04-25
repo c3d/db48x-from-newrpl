@@ -47,7 +47,8 @@
     ECMD(PERCENTCH,"%CH",MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
     ECMD(PERCENTTOT,"%T",MKTOKENINFO(2,TITYPE_FUNCTION,2,2)), \
     CMD(GCD,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
-    CMD(LCM,MKTOKENINFO(3,TITYPE_FUNCTION,2,2))
+    CMD(LCM,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
+    CMD(IDIV2,MKTOKENINFO(5,TITYPE_FUNCTION,2,2))
 
 
 // ADD MORE OPCODES HERE
@@ -532,6 +533,7 @@ void LIB_HANDLER()
     }
 
     case MOD:
+    case IDIV2:
     {
 
             if(rplDepthData()<2) {
@@ -560,6 +562,9 @@ void LIB_HANDLER()
                 BINT64 a=rplReadBINT(arg);
                 BINT64 m=rplReadBINT(mod);
                 rplDropData(2);
+                if (OPCODE(CurOpcode) == IDIV2) {
+                    rplNewBINTPush(a/m,DECBINT);
+                }
                 rplNewBINTPush(a%m,DECBINT);
                 return;
             }
@@ -573,6 +578,9 @@ void LIB_HANDLER()
 
                 rplDropData(2);
 
+                if (OPCODE(CurOpcode) == IDIV2) {
+                    rplNewRealFromRRegPush(7);
+                }
                 rplNewRealFromRRegPush(6);
 
             return;
