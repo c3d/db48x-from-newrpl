@@ -474,7 +474,7 @@ void LIB_HANDLER()
                 BINT64 m=rplReadBINT(mod);
                 BINT64 r;
 
-                if(m<2147483648LL) {  // MAXIMUM MOD WE CAN USE WITH BINTS
+                if((OPCODE(CurOpcode) != MULTMOD) && (m<2147483648LL)) {  // MAXIMUM MOD WE CAN USE WITH BINTS
 
                     if (OPCODE(CurOpcode) == POWMOD) {
                         r = powmodBINT(a1,a2,m);
