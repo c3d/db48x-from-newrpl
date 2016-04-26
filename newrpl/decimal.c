@@ -4431,7 +4431,7 @@ BINT64 getBINT64Real(REAL *n)
 
         // THE NUMBER HAS EXACTLY 10 DIGITS
         if(n->exp>=0) {
-            if(n->len>2) result=n->data[2]*1000000000000000LL;
+            if(n->len>2) result=n->data[2]*10000000000000000LL;
             else result=0;
             if(n->len>1) result+=n->data[1]*100000000LL;
             result+=n->data[0];
