@@ -34,6 +34,7 @@
     CMD(IP,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
     CMD(FP,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
     CMD(MODSTO,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(MODRCL,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(POWMOD,MKTOKENINFO(6,TITYPE_FUNCTION,2,2)), \
     CMD(MOD,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
     CMD(SQ,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
@@ -423,17 +424,42 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISREAL(*arg)) {
+        if(ISNUMBER(*arg)) {
             REAL num;
             rplReadNumberAsReal(arg,&num);
             if(!isintegerReal(&num)) {
                 rplError(ERR_INTEGEREXPECTED);
                 return;
             }
+            if(num.flags&F_NEGATIVE) num.flags^=F_NEGATIVE;
+            newRealFromBINT(&RReg[0],2);
+            if (ltReal(&num, &RReg[0])) {
+                newRealFromBINT(&num,2);
+            }
+            rplStoreSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)(modulo_name+3),rplNewReal(&num));
+            rplDropData(1);
+
         }
 
-        rplStoreSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)(modulo_name+3),arg);
-        rplDropData(1);
+        return;
+    }
+
+    case MODRCL:
+    {
+        WORDPTR mod=rplGetSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)modulo_name+3);
+        if(!mod) mod=(WORDPTR)zero_bint;
+        if(!ISNUMBER(*mod)) {
+            rplError(ERR_BADARGTYPE);
+            return;
+        }
+        if (ISBINT(*mod)) {
+            BINT64 m=rplReadBINT(mod);
+            rplNewBINTPush(m,DECBINT);
+            return;
+        }
+        REAL m;
+        rplReadNumberAsReal(mod,&m);
+        rplNewRealPush(&m);
         return;
     }
 
@@ -461,7 +487,7 @@ void LIB_HANDLER()
             }
 
             WORDPTR mod=rplGetSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)modulo_name+3);
-            if(!mod) mod=(WORDPTR)zero_bint;
+            if(!mod) mod=(WORDPTR)two_bint;
             if( !ISNUMBER(*arg2) || !ISNUMBER(*mod)) {
                 rplError(ERR_BADARGTYPE);
                 return;
@@ -491,6 +517,10 @@ void LIB_HANDLER()
                     else {
                         rplError(ERR_INVALID);
                         return;
+                    }
+
+                    if (r < 0) {
+                        r+=m;
                     }
 
                     rplDropData(2);
@@ -560,6 +590,9 @@ void LIB_HANDLER()
                     rplError(ERR_INVALID);
                     return;
                 }
+                if(RReg[7].flags&F_NEGATIVE) {
+                    addReal(&RReg[7],&RReg[7],&m);
+                }
 
                 Context.precdigits=saveprec;
 
@@ -603,12 +636,15 @@ void LIB_HANDLER()
 
                 BINT64 a=rplReadBINT(arg);
                 BINT64 m=rplReadBINT(mod);
+                BINT64 r,q;
+                r = (a%m + m)%m;
+                q = (a-r)/m;
                 rplDropData(2);
                 if (OPCODE(CurOpcode) == IDIV2 || OPCODE(CurOpcode) == IQUOT) {
-                    rplNewBINTPush(a/m,DECBINT);
+                    rplNewBINTPush(q,DECBINT);
                 }
                 if (OPCODE(CurOpcode) == IDIV2 || OPCODE(CurOpcode) == MOD) {
-                    rplNewBINTPush(a%m,DECBINT);
+                    rplNewBINTPush(r,DECBINT);
                 }
                 return;
             }
@@ -630,6 +666,12 @@ void LIB_HANDLER()
                 }
 
                 divmodReal(&RReg[7],&RReg[6],&a,&m);
+                // correct negative remainder
+                if(RReg[6].flags&F_NEGATIVE) {
+                    addReal(&RReg[6],&RReg[6],&m);
+                    newRealFromBINT(&RReg[0],1);
+                    subReal(&RReg[7],&RReg[7],&RReg[0]);
+                }
 
                 rplDropData(2);
 
