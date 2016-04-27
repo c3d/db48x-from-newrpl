@@ -969,9 +969,9 @@ void LIB_HANDLER()
                 }
 
                 // POLAR INVERSION
-
-                rplOneToRReg(6);
-                divReal(&RReg[0],&Rarg1,&RReg[6]);
+                REAL one;
+                decconst_One(&one);
+                divReal(&RReg[0],&one,&Rarg1);
                 if(!iszeroReal(&Iarg1)) Iarg1.flags^=F_NEGATIVE;
 
                 rplCheckResultAndError(&RReg[0]);

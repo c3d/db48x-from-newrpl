@@ -613,20 +613,167 @@ void LIB_HANDLER()
             return;
         }
 
+        if(ISCOMPLEX(*arg)) {
+
+            REAL re,im,one;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+
+            // COMPLEX ARGUMENT, SAME METHOD AS REAL ARGUMENT OUTSIDE DOMAIN
+            // COMPUTE FROM
+            //ASIN(Z)=-i*LN(i*Z+SQRT(1-Z^2))
+
+            // Z^2 = (re^2-im^2+2*i*re*im)
+            // 1-Z^2 = (1-re^2+im^2)-i*(2*re*im)
+            // BUT WE NEED IT IN POLAR FORM TO COMPUTE SQRT
+            // SQRT(r) = SQRT(SQRT( (1-re^2+im^2)^2 + 4*re^2*im^2 ))
+            // arg = atan2( 2*re*im , 1-re^2+im^2 )
+            // NOW ADD i*Z, SO WE NEED IT BACK IN CARTESIAN COORDINATES
+            // FINALLY, LN REQUIRES ARGUMENT IN POLAR COORDINATES AGAIN
+
+            decconst_One(&one);
+            mulReal(&RReg[0],&re,&re);
+            mulReal(&RReg[1],&im,&im);
+
+            subReal(&RReg[6],&one,&RReg[0]);
+            addReal(&RReg[8],&RReg[6],&RReg[1]);    // 1-re^2+im^2
+            mulReal(&RReg[5],&re,&im);
+            addReal(&RReg[9],&RReg[5],&RReg[5]);    // -2*re*im
+            RReg[9].flags^=F_NEGATIVE;
+
+            // CONVERT TO POLAR
+            trig_atan2(&RReg[9],&RReg[8],ANGLERAD);
+
+            normalize(&RReg[0]);
+
+            newRealFromBINT(&RReg[2],2);
+
+            divReal(&RReg[1],&RReg[0],&RReg[2]);    // ANGLE/2 TO GET THE SQUARE ROOT
+
+            mulReal(&RReg[2],&RReg[8],&RReg[8]);
+            mulReal(&RReg[3],&RReg[9],&RReg[9]);
+            addReal(&RReg[4],&RReg[2],&RReg[3]);    // r^2
+
+            swapReal(&RReg[1],&RReg[8]);        // SAVE THE ANGLE
+
+            hyp_sqrt(&RReg[4]);     // r
+            normalize(&RReg[0]);
+            hyp_sqrt(&RReg[0]);    // sqrt(r)
+            normalize(&RReg[0]);
+            swapReal(&RReg[0],&RReg[9]);    // SAVE SQRT(r)
+
+            trig_sincos(&RReg[8],ANGLERAD);
+
+            normalize(&RReg[6]);
+            normalize(&RReg[7]);
+            // RReg[6]= cos
+            // RReg[7]= sin
+
+            mulReal(&RReg[0],&RReg[9],&RReg[6]);    // REAL COMPONENT
+            mulReal(&RReg[1],&RReg[9],&RReg[7]);    // IMAG. COMPONENT
+
+            // NOW ADD i*Z = -im+i*re
+
+            subReal(&RReg[8],&RReg[0],&im);
+            addReal(&RReg[9],&RReg[1],&re);
+
+            // CONVERT TO POLAR TO COMPUTE THE LN()
+
+            trig_atan2(&RReg[9],&RReg[8],ANGLERAD);
+            normalize(&RReg[0]);
+
+            mulReal(&RReg[1],&RReg[8],&RReg[8]);
+            mulReal(&RReg[2],&RReg[9],&RReg[9]);
+            addReal(&RReg[4],&RReg[1],&RReg[2]);
+
+            swapReal(&RReg[0],&RReg[9]);    // KEEP THE ANGLE, THIS IS THE IMAGINARY PART OF THE LN()
+
+            hyp_sqrt(&RReg[4]);
+            normalize(&RReg[0]);
+
+            hyp_ln(&RReg[0]);
+
+            finalize(&RReg[0]);     // LN(r')
+
+            // RETURN A CARTESIAN COMPLEX
+
+            RReg[0].flags^=F_NEGATIVE;  // -i*ln(...)=
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[9],&RReg[0],ANGLENONE);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[0]);
+            rplCheckResultAndError(&RReg[9]);
+
+            return;
+
+
+
+        }
+
+        // REAL ARGUMENTS
 
         rplReadNumberAsReal(rplPeekData(1),&y);
 
         if(Exceptions) return;
         // WARNING: TRANSCENDENTAL FUNCTIONS OVERWRITE ALL RREGS. INITIAL ARGUMENTS ARE PASSED ON RREG 0, 1 AND 2, SO USING 7 IS SAFE.
-        rplOneToRReg(7);
+        REAL one;
+        decconst_One(&one);
         BINT signy=y.flags&F_NEGATIVE;
         y.flags^=signy;
 
-        if(gtReal(&y,&RReg[7])) {
-            // TODO: INCLUDE COMPLEX ARGUMENTS HERE
+        if(gtReal(&y,&one)) {
+            // REAL ARGUMENT, COMPLEX RESULT
+            if(!rplTestSystemFlag(FL_COMPLEXMODE)) {
             rplError(ERR_ARGOUTSIDEDOMAIN);
+            return;
+            }
+
+            // COMPUTE FROM
+            //ASIN(Z)=-i*LN(i*Z+SQRT(1-Z^2))
+
+            mulReal(&RReg[1],&y,&y);
+            subReal(&RReg[2],&RReg[1],&one);    // Z^2-1 = -(1-Z^2) SINCE WE KNOW IT'S NEGATIVE
+
+            hyp_sqrt(&RReg[2]);
+            normalize(&RReg[0]);
+
+            swapReal(&RReg[8],&RReg[0]);
+
+            trig_atan2(&y,&RReg[8],ANGLERAD);       // GET THE ARGUMENT IN RADIANS
+            finalize(&RReg[0]);
+
+            swapReal(&RReg[9],&RReg[0]);            // SAVE THE ANGLE FOR LATER
+
+            mulReal(&RReg[1],&y,&y);
+            mulReal(&RReg[2],&RReg[8],&RReg[8]);
+            addReal(&RReg[8],&RReg[1],&RReg[2]);
+
+            hyp_sqrt(&RReg[8]);                     // COMPUTE THE MAGNITUDE OF THE COMPLEX
+            normalize(&RReg[0]);
+            hyp_ln(&RReg[0]);                       // -i*ln(Z')=Theta-i*ln(r)
+            finalize(&RReg[0]);
+            RReg[0].flags^=F_NEGATIVE;
+
+
+            // RETURN A CARTESIAN COMPLEX
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[9],&RReg[0],ANGLENONE);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[0]);
+            rplCheckResultAndError(&RReg[9]);
 
             return;
+
+
+
         }
 
         BINT angmode;
