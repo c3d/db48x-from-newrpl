@@ -130,25 +130,7 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
-
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+            rplListUnaryDoCmd();
             return;
         }
 
@@ -277,23 +259,7 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
 
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
+           rplListUnaryDoCmd();
 
             return;
         }
@@ -424,23 +390,7 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
 
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
+            rplListUnaryDoCmd();
 
             return;
         }
@@ -591,25 +541,7 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
-
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+            rplListUnaryDoCmd();
             return;
         }
 
@@ -720,8 +652,7 @@ void LIB_HANDLER()
         rplReadNumberAsReal(rplPeekData(1),&y);
 
         if(Exceptions) return;
-        // WARNING: TRANSCENDENTAL FUNCTIONS OVERWRITE ALL RREGS. INITIAL ARGUMENTS ARE PASSED ON RREG 0, 1 AND 2, SO USING 7 IS SAFE.
-        REAL one;
+        REAL one,pi_2;
         decconst_One(&one);
         BINT signy=y.flags&F_NEGATIVE;
         y.flags^=signy;
@@ -732,6 +663,8 @@ void LIB_HANDLER()
             rplError(ERR_ARGOUTSIDEDOMAIN);
             return;
             }
+
+            y.flags^=signy;
 
             // COMPUTE FROM
             //ASIN(Z)=-i*LN(i*Z+SQRT(1-Z^2))
@@ -744,36 +677,34 @@ void LIB_HANDLER()
 
             swapReal(&RReg[8],&RReg[0]);
 
-            trig_atan2(&y,&RReg[8],ANGLERAD);       // GET THE ARGUMENT IN RADIANS
-            finalize(&RReg[0]);
+            // THE RESULT OF THE SQRT IS i*RReg[8], SO ADD i*Z
 
-            swapReal(&RReg[9],&RReg[0]);            // SAVE THE ANGLE FOR LATER
+            addReal(&RReg[9],&RReg[8],&y);
 
-            mulReal(&RReg[1],&y,&y);
-            mulReal(&RReg[2],&RReg[8],&RReg[8]);
-            addReal(&RReg[8],&RReg[1],&RReg[2]);
+            // FOR THE LN, WE HAVE THE MAGNITUDE IN RReg[9], THE ANGLE IS +/- PI/2
+            // DEPENDING ON THE SIGN
 
-            hyp_sqrt(&RReg[8]);                     // COMPUTE THE MAGNITUDE OF THE COMPLEX
-            normalize(&RReg[0]);
-            hyp_ln(&RReg[0]);                       // -i*ln(Z')=Theta-i*ln(r)
+            decconst_PI_2(&pi_2);
+            pi_2.flags=RReg[9].flags&F_NEGATIVE;
+            RReg[9].flags&=~F_NEGATIVE;         // MAKE SURE THE MAGNITUDE IS POSITIVE FOR LN()
+
+            hyp_ln(&RReg[9]);                       // -i*ln(Z')=Theta-i*ln(r)
             finalize(&RReg[0]);
             RReg[0].flags^=F_NEGATIVE;
 
+            copyReal(&RReg[1],&pi_2);
+            finalize(&RReg[1]); // ROUND PI/2 TO THE PROPER NUMBER OF DIGITS
 
             // RETURN A CARTESIAN COMPLEX
 
-            WORDPTR newcmplx=rplNewComplex(&RReg[9],&RReg[0],ANGLENONE);
+            WORDPTR newcmplx=rplNewComplex(&RReg[1],&RReg[0],ANGLENONE);
             if( (!newcmplx) || Exceptions) return;
 
             rplOverwriteData(1,newcmplx);
 
             rplCheckResultAndError(&RReg[0]);
-            rplCheckResultAndError(&RReg[9]);
 
             return;
-
-
-
         }
 
         BINT angmode;
@@ -812,39 +743,176 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
-
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+            rplListUnaryDoCmd();
             return;
         }
 
+        if(ISCOMPLEX(*arg)) {
+
+            REAL re,im,one;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+
+            // COMPLEX ARGUMENT, SAME METHOD AS REAL ARGUMENT OUTSIDE DOMAIN
+            // COMPUTE FROM
+            //ACOS(Z)=-i*LN(Z+i*SQRT(Z^2-1))
+
+            // Z^2 = (re^2-im^2+2*i*re*im)
+            // 1-Z^2 = (1-re^2+im^2)-i*(2*re*im)
+            // BUT WE NEED IT IN POLAR FORM TO COMPUTE SQRT
+            // SQRT(r) = SQRT(SQRT( (1-re^2+im^2)^2 + 4*re^2*im^2 ))
+            // arg = atan2( 2*re*im , 1-re^2+im^2 )
+            // NOW ADD i*Z, SO WE NEED IT BACK IN CARTESIAN COORDINATES
+            // FINALLY, LN REQUIRES ARGUMENT IN POLAR COORDINATES AGAIN
+
+            decconst_One(&one);
+            mulReal(&RReg[0],&re,&re);
+            mulReal(&RReg[1],&im,&im);
+
+            subReal(&RReg[6],&one,&RReg[0]);
+            addReal(&RReg[8],&RReg[6],&RReg[1]);    // 1-re^2+im^2
+            mulReal(&RReg[5],&re,&im);
+            addReal(&RReg[9],&RReg[5],&RReg[5]);    // -2*re*im
+            RReg[9].flags^=F_NEGATIVE;
+
+            // CONVERT TO POLAR
+            trig_atan2(&RReg[9],&RReg[8],ANGLERAD);
+
+            normalize(&RReg[0]);
+
+            newRealFromBINT(&RReg[2],2);
+
+            divReal(&RReg[1],&RReg[0],&RReg[2]);    // ANGLE/2 TO GET THE SQUARE ROOT
+
+            mulReal(&RReg[2],&RReg[8],&RReg[8]);
+            mulReal(&RReg[3],&RReg[9],&RReg[9]);
+            addReal(&RReg[4],&RReg[2],&RReg[3]);    // r^2
+
+            swapReal(&RReg[1],&RReg[8]);        // SAVE THE ANGLE
+
+            hyp_sqrt(&RReg[4]);     // r
+            normalize(&RReg[0]);
+            hyp_sqrt(&RReg[0]);    // sqrt(r)
+            normalize(&RReg[0]);
+            swapReal(&RReg[0],&RReg[9]);    // SAVE SQRT(r)
+
+            trig_sincos(&RReg[8],ANGLERAD);
+
+            normalize(&RReg[6]);
+            normalize(&RReg[7]);
+            // RReg[6]= cos
+            // RReg[7]= sin
+
+            mulReal(&RReg[0],&RReg[9],&RReg[6]);    // REAL COMPONENT
+            mulReal(&RReg[1],&RReg[9],&RReg[7]);    // IMAG. COMPONENT
+
+            // MULTIPLYING BY i
+            RReg[1].flags^=F_NEGATIVE;
+
+            // NOW ADD Z
+
+            addReal(&RReg[8],&RReg[1],&re);
+            addReal(&RReg[9],&RReg[0],&im);
+
+            // CONVERT TO POLAR TO COMPUTE THE LN()
+
+            trig_atan2(&RReg[9],&RReg[8],ANGLERAD);
+            normalize(&RReg[0]);
+
+            mulReal(&RReg[1],&RReg[8],&RReg[8]);
+            mulReal(&RReg[2],&RReg[9],&RReg[9]);
+            addReal(&RReg[4],&RReg[1],&RReg[2]);
+
+            swapReal(&RReg[0],&RReg[9]);    // KEEP THE ANGLE, THIS IS THE IMAGINARY PART OF THE LN()
+
+            hyp_sqrt(&RReg[4]);
+            normalize(&RReg[0]);
+
+            hyp_ln(&RReg[0]);
+
+            finalize(&RReg[0]);     // LN(r')
+
+            // RETURN A CARTESIAN COMPLEX
+
+            RReg[0].flags^=F_NEGATIVE;  // -i*ln(...)=
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[9],&RReg[0],ANGLENONE);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[0]);
+            rplCheckResultAndError(&RReg[9]);
+
+            return;
+
+
+
+        }
+
+        // REAL ARGUMENTS
 
         rplReadNumberAsReal(rplPeekData(1),&y);
 
         if(Exceptions) return;
-        // WARNING: TRANSCENDENTAL FUNCTIONS OVERWRITE ALL RREGS. INITIAL ARGUMENTS ARE PASSED ON RREG 0, 1 AND 2, SO USING 7 IS SAFE.
-        rplOneToRReg(7);
+        REAL one,pi;
+        decconst_One(&one);
         BINT signy=y.flags&F_NEGATIVE;
         y.flags^=signy;
-        if(gtReal(&y,&RReg[7])) {
-            // TODO: INCLUDE COMPLEX ARGUMENTS HERE
+
+        if(gtReal(&y,&one)) {
+            // REAL ARGUMENT, COMPLEX RESULT
+            if(!rplTestSystemFlag(FL_COMPLEXMODE)) {
             rplError(ERR_ARGOUTSIDEDOMAIN);
+            return;
+            }
+
+            y.flags^=signy;
+
+            // COMPUTE FROM
+            //ACOS(Z)=-i*LN(Z+i*SQRT(1-Z^2))
+
+            mulReal(&RReg[1],&y,&y);
+            subReal(&RReg[2],&RReg[1],&one);    // Z^2-1 WE KNOW IT'S POSITIVE SINCE ABS(Z)>1
+
+            hyp_sqrt(&RReg[2]);
+            normalize(&RReg[0]);
+
+            swapReal(&RReg[8],&RReg[0]);
+
+            // THE RESULT OF THE SQRT IS i*RReg[8]
+            // MULTIPLY i*i*RReg[8]=-RReg[8]
+
+            // NOW ADD Z:
+
+            subReal(&RReg[9],&y,&RReg[8]);
+
+            // FOR THE LN, WE HAVE THE MAGNITUDE IN RReg[9], THE ANGLE IS 0 OR PI
+            // DEPENDING ON THE SIGN
+
+            if(RReg[9].flags&F_NEGATIVE) {
+                decconst_PI(&pi);
+                RReg[9].flags&=~F_NEGATIVE;         // MAKE SURE THE MAGNITUDE IS POSITIVE FOR LN()
+                copyReal(&RReg[8],&pi);
+                finalize(&RReg[8]); // ROUND PI TO THE PROPER NUMBER OF DIGITS
+            }
+            else rplZeroToRReg(8);
+
+            hyp_ln(&RReg[9]);                       // -i*ln(Z')=Theta-i*ln(r)
+            finalize(&RReg[0]);
+            RReg[0].flags^=F_NEGATIVE;
+
+
+            // RETURN A CARTESIAN COMPLEX
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[8],&RReg[0],ANGLENONE);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[0]);
 
             return;
         }
@@ -853,12 +921,10 @@ void LIB_HANDLER()
         angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
         y.flags^=signy;
-
         trig_acos(&y,angmode);
-        normalize(&RReg[0]);
-        // FIRST ELIMINATE BAD DIGITS SO ACOS(1)=0 INSTEAD OF SMALL NUMBER
-        truncReal(&RReg[0],&RReg[0],Context.precdigits+6);
-        round_real(&RReg[0],Context.precdigits,0);
+
+        finalize(&RReg[0]);
+
 
         WORDPTR newangle=rplNewAngleFromReal(&RReg[0],angmode);
         if(!newangle) return;
@@ -868,6 +934,7 @@ void LIB_HANDLER()
         return;
 
     }
+
 
 
 
