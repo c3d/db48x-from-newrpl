@@ -227,10 +227,16 @@ void LIB_HANDLER()
         if(ISBINT(*arg)) return;
         rplReadNumberAsReal(rplPeekData(1),&rnum);
         if(Exceptions) return;
-        truncReal(&RReg[1],&rnum,0);
-        if(Exceptions) return;
+        if(isintegerReal(&rnum)) {
+            return;
+        }
+        ipReal(&RReg[2],&rnum,1);
+        if((rnum.flags&F_NEGATIVE)) {
+            RReg[2].data[0]++;
+            normalize(&RReg[2]);
+        }
         rplDropData(1);
-        rplNewRealFromRRegPush(1);
+        rplNewRealFromRRegPush(2);
         return;
         }
 
@@ -251,9 +257,11 @@ void LIB_HANDLER()
         REAL rnum;
         rplReadNumberAsReal(rplPeekData(1),&rnum);
         if(Exceptions) return;
-        fracReal(&RReg[1],&rnum);
+        if(isintegerReal(&rnum)) {
+            return;
+        }
         ipReal(&RReg[2],&rnum,1);
-        if(!iszeroReal(&RReg[1])) {
+        if(!(rnum.flags&F_NEGATIVE)) {
             RReg[2].data[0]++;
             normalize(&RReg[2]);
         }
