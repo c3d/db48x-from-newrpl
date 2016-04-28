@@ -75,6 +75,81 @@
 
 const char const modulo_name[]="MOD";
 
+#define MIN_SINT    -131072
+#define MAX_SINT    +131071
+#define MAX_BINT    +9223372036854775807LL
+#define MIN_BINT    (-9223372036854775807LL-1LL)
+
+// COUNT THE NUMBER OF BITS IN A POSITIVE INTEGER
+static int rpl_log2(BINT64 number,int bits)
+{
+    static const unsigned char log2_table[16]={0,1,2,2,3,3,3,3,4,4,4,4,4,4,4,4};
+    if(bits<=4) return log2_table[number];
+    bits>>=1;
+    if(number>>bits) return rpl_log2(number>>bits,bits)+bits;
+    return rpl_log2(number,bits);
+}
+
+inline __attribute__((always_inline)) BINT Add_BINT_is_Safe(BINT64 op1, BINT64 op2)
+{
+    BINT64 maxop2;
+    BINT64 minop2;
+
+    if(op1>0) {
+        maxop2=MAX_BINT-op1;
+        minop2=MIN_BINT;
+    }
+    else {
+        maxop2=MAX_BINT;
+        minop2=MIN_BINT-op1;
+    }
+
+    if( (op2>maxop2)||(op2<minop2)) {
+        return 0;
+    }
+    else {
+        return 1;
+    }
+
+}
+
+inline __attribute__((always_inline)) BINT Sub_BINT_is_Safe(BINT64 op1, BINT64 op2)
+{
+    BINT64 maxop2;
+    BINT64 minop2;
+
+    if(op1>0) {
+        maxop2=MAX_BINT-op1;
+        minop2=MIN_BINT;
+    }
+    else {
+        maxop2=MAX_BINT;
+        minop2=MIN_BINT-op1;
+    }
+
+    if( (-op2>maxop2)||(-op2<minop2)) {
+        return 0;
+    }
+    else {
+        return 1;
+    }
+
+}
+
+inline __attribute__((always_inline)) BINT Mul_BINT_is_Safe(BINT64 op1, BINT64 op2)
+{
+    if(op1<0) op1=-op1;
+    if(op2<0) op2=-op2;
+    if(op2>op1) { BINT64 tmp=op2; op2=op1; op1=tmp; }
+
+    if(!(op2>>32)) {
+        if(rpl_log2(op1,64)+rpl_log2(op2,32)<63) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 
 void LIB_HANDLER()
 {
@@ -423,21 +498,32 @@ void LIB_HANDLER()
             rplError(ERR_BADARGTYPE);
             return;
         }
+        else {
+            if (ISBINT(*arg)) {
+                BINT64 m=rplReadBINT(arg);
+                if (m < 0) m = -m;
+                if (m < 2) m = 2;
+                rplStoreSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)(modulo_name+3),rplNewBINT(m, DECBINT));
+                rplDropData(1);
 
-        if(ISNUMBER(*arg)) {
-            REAL num;
-            rplReadNumberAsReal(arg,&num);
-            if(!isintegerReal(&num)) {
-                rplError(ERR_INTEGEREXPECTED);
                 return;
             }
-            if(num.flags&F_NEGATIVE) num.flags^=F_NEGATIVE;
-            newRealFromBINT(&RReg[0],2);
-            if (ltReal(&num, &RReg[0])) {
-                newRealFromBINT(&num,2);
+            else {
+                REAL num;
+                rplReadNumberAsReal(arg,&num);
+                if(!isintegerReal(&num)) {
+                    rplError(ERR_INTEGEREXPECTED);
+                    return;
+                }
+                if(num.flags&F_NEGATIVE) num.flags^=F_NEGATIVE;
+                newRealFromBINT(&RReg[0],2);
+                if (ltReal(&num, &RReg[0])) {
+                    newRealFromBINT(&num,2);
+                }
+                rplStoreSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)(modulo_name+3),rplNewReal(&num));
+                rplDropData(1);
+                return;
             }
-            rplStoreSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)(modulo_name+3),rplNewReal(&num));
-            rplDropData(1);
 
         }
 
@@ -467,58 +553,58 @@ void LIB_HANDLER()
     case ADDTMOD:
     case SUBTMOD:
     case MULTMOD:
-        {
+    {
 
-            if(rplDepthData()<2) {
-                rplError(ERR_BADARGCOUNT);
-                return;
-            }
-            WORDPTR arg1=rplPeekData(2);
-            WORDPTR arg2=rplPeekData(1);
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR arg1=rplPeekData(2);
+        WORDPTR arg2=rplPeekData(1);
 
-            if(ISLIST(*arg1) || ISLIST(*arg2)){
-                rplListBinaryDoCmd(arg1,arg2);
-                return;
-            }
+        if(ISLIST(*arg1) || ISLIST(*arg2)){
+            rplListBinaryDoCmd(arg1,arg2);
+            return;
+        }
 
-            if(!ISNUMBER(*arg1)) {
-                rplError(ERR_BADARGTYPE);
-                return;
-            }
+        if(!ISNUMBER(*arg1)) {
+            rplError(ERR_BADARGTYPE);
+            return;
+        }
 
-            WORDPTR mod=rplGetSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)modulo_name+3);
-            if(!mod) mod=(WORDPTR)two_bint;
-            if( !ISNUMBER(*arg2) || !ISNUMBER(*mod)) {
-                rplError(ERR_BADARGTYPE);
-                return;
-            }
+        WORDPTR mod=rplGetSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)modulo_name+3);
+        if(!mod) mod=(WORDPTR)two_bint;
+        if( !ISNUMBER(*arg2) || !ISNUMBER(*mod)) {
+            rplError(ERR_BADARGTYPE);
+            return;
+        }
 
-            if(ISBINT(*arg1) && ISBINT(*arg2) && ISBINT(*mod)) {
+        if(ISBINT(*arg1) && ISBINT(*arg2) && ISBINT(*mod)) {
 
-                BINT64 a1=rplReadBINT(arg1);
-                BINT64 a2=rplReadBINT(arg2);
-                BINT64 m=rplReadBINT(mod);
-                BINT64 r;
+            BINT64 a1=rplReadBINT(arg1);
+            BINT64 a2=rplReadBINT(arg2);
+            BINT64 m=rplReadBINT(mod);
+            BINT64 r;
 
-                if((OPCODE(CurOpcode) != MULTMOD) && (m<2147483648LL)) {  // MAXIMUM MOD WE CAN USE WITH BINTS
+            if (m<2147483648LL) {
+                BINT isOK = 1;
+                if (OPCODE(CurOpcode) == POWMOD) {
+                    r = powmodBINT(a1,a2,m);
+                }
+                else if ((OPCODE(CurOpcode) == ADDTMOD) && Add_BINT_is_Safe(a1,a2)) {
+                    r = (a1+a2)%m;
+                }
+                else if ((OPCODE(CurOpcode) == SUBTMOD) && Sub_BINT_is_Safe(a1,a2)) {
+                    r = (a1-a2)%m;
+                }
+                else if ((OPCODE(CurOpcode) == MULTMOD) && Mul_BINT_is_Safe(a1,a2)) {
+                    r = (a1*a2)%m;
+                }
+                else {
+                    isOK = 0;
+                }
 
-                    if (OPCODE(CurOpcode) == POWMOD) {
-                        r = powmodBINT(a1,a2,m);
-                    }
-                    else if (OPCODE(CurOpcode) == ADDTMOD) {
-                        r = (a1+a2)%m;
-                    }
-                    else if (OPCODE(CurOpcode) == SUBTMOD) {
-                        r = (a1-a2)%m;
-                    }
-                    else if (OPCODE(CurOpcode) == MULTMOD) {
-                        r = (a1*a2)%m;
-                    }
-                    else {
-                        rplError(ERR_INVALID);
-                        return;
-                    }
-
+                if(isOK) {
                     if (r < 0) {
                         r+=m;
                     }
@@ -528,81 +614,81 @@ void LIB_HANDLER()
                     rplNewBINTPush(r,DECBINT);
                     return;
                 }
-
             }
-                // THERE'S REALS INVOLVED, DO IT ALL WITH REALS
+        }
 
-                REAL a1,a2,m;
-                rplReadNumberAsReal(arg1,&a1);
-                rplReadNumberAsReal(arg2,&a2);
-                rplReadNumberAsReal(mod,&m);
+        // FALL THROUGH
+        // THERE'S REALS INVOLVED, DO IT ALL WITH REALS
 
-                if(!isintegerReal(&a1)) {
-                    rplError(ERR_INTEGEREXPECTED);
-                    return;
-                }
+        REAL a1,a2,m;
+        rplReadNumberAsReal(arg1,&a1);
+        rplReadNumberAsReal(arg2,&a2);
+        rplReadNumberAsReal(mod,&m);
 
-                if(!isintegerReal(&a2)) {
-                    rplError(ERR_INTEGEREXPECTED);
-                    return;
-                }
-
-                if(!isintegerReal(&m)) {
-                    rplError(ERR_INTEGEREXPECTED);
-                    return;
-                }
-
-                BINT saveprec=Context.precdigits;
-                BINT moddigits=(intdigitsReal(&m)+7)&~7;
-                BINT numdigits=(intdigitsReal(&a1)+7)&~7;
-                BINT expdigits=(intdigitsReal(&a2)+7)&~7;
-
-                moddigits*=2;
-                moddigits=(moddigits>numdigits)? moddigits:numdigits;
-                moddigits=(moddigits>expdigits)? moddigits:expdigits;
-                moddigits=(moddigits>Context.precdigits)? moddigits:Context.precdigits;
-
-                if(moddigits>MAX_USERPRECISION) {
-                    rplError(ERR_NUMBERTOOBIG);
-                    return;
-                }
-
-                //   AUTOMATICALLY INCREASE PRECISION TEMPORARILY
-
-                Context.precdigits=moddigits;
-
-                if (OPCODE(CurOpcode) == POWMOD) {
-                    powmodReal(&RReg[7],&a1,&a2,&m);
-                }
-                else if (OPCODE(CurOpcode) == ADDTMOD) {
-                    addReal(&RReg[0], &a1, &a2);
-                    divmodReal(&RReg[6],&RReg[7],&RReg[0],&m);
-                }
-                else if (OPCODE(CurOpcode) == SUBTMOD) {
-                    subReal(&RReg[0], &a1, &a2);
-                    divmodReal(&RReg[6],&RReg[7],&RReg[0],&m);
-                }
-                else if (OPCODE(CurOpcode) == MULTMOD) {
-                    mulReal(&RReg[0], &a1, &a2);
-                    divmodReal(&RReg[6],&RReg[7],&RReg[0],&m);
-                }
-                else {
-                    rplError(ERR_INVALID);
-                    return;
-                }
-                if(RReg[7].flags&F_NEGATIVE) {
-                    addReal(&RReg[7],&RReg[7],&m);
-                }
-
-                Context.precdigits=saveprec;
-
-                rplDropData(2);
-
-                rplNewRealFromRRegPush(7);
-
-
-
+        if(!isintegerReal(&a1)) {
+            rplError(ERR_INTEGEREXPECTED);
             return;
+        }
+
+        if(!isintegerReal(&a2)) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+        if(!isintegerReal(&m)) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+        BINT saveprec=Context.precdigits;
+        BINT moddigits=(intdigitsReal(&m)+7)&~7;
+        BINT numdigits=(intdigitsReal(&a1)+7)&~7;
+        BINT expdigits=(intdigitsReal(&a2)+7)&~7;
+
+        moddigits*=2;
+        moddigits=(moddigits>numdigits)? moddigits:numdigits;
+        moddigits=(moddigits>expdigits)? moddigits:expdigits;
+        moddigits=(moddigits>Context.precdigits)? moddigits:Context.precdigits;
+
+        if(moddigits>MAX_USERPRECISION) {
+            rplError(ERR_NUMBERTOOBIG);
+            return;
+        }
+
+        //   AUTOMATICALLY INCREASE PRECISION TEMPORARILY
+
+        Context.precdigits=moddigits;
+
+        if (OPCODE(CurOpcode) == POWMOD) {
+            powmodReal(&RReg[7],&a1,&a2,&m);
+        }
+        else if (OPCODE(CurOpcode) == ADDTMOD) {
+            addReal(&RReg[0], &a1, &a2);
+            divmodReal(&RReg[6],&RReg[7],&RReg[0],&m);
+        }
+        else if (OPCODE(CurOpcode) == SUBTMOD) {
+            subReal(&RReg[0], &a1, &a2);
+            divmodReal(&RReg[6],&RReg[7],&RReg[0],&m);
+        }
+        else if (OPCODE(CurOpcode) == MULTMOD) {
+            mulReal(&RReg[0], &a1, &a2);
+            divmodReal(&RReg[6],&RReg[7],&RReg[0],&m);
+        }
+        else {
+            rplError(ERR_INVALID);
+            return;
+        }
+        if(RReg[7].flags&F_NEGATIVE) {
+            addReal(&RReg[7],&RReg[7],&m);
+        }
+
+        Context.precdigits=saveprec;
+
+        rplDropData(2);
+
+        rplNewRealFromRRegPush(7);
+
+        return;
 
     }
 
