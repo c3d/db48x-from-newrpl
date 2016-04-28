@@ -693,6 +693,7 @@ void LIB_HANDLER()
         Context.precdigits=saveprec;
 
         rplDropData(2);
+        rplCheckResultAndError(&RReg[7]);
 
         rplNewRealFromRRegPush(7);
 
@@ -731,6 +732,12 @@ void LIB_HANDLER()
                 BINT64 a=rplReadBINT(arg);
                 BINT64 m=rplReadBINT(mod);
                 BINT64 r,q;
+
+                if (m == (BINT64)0) {
+                    rplError(ERR_MATHDIVIDEBYZERO);
+                    return;
+                }
+
                 r = (a%m + m)%m;
                 q = (a-r)/m;
                 rplDropData(2);
@@ -759,6 +766,11 @@ void LIB_HANDLER()
                     }
                 }
 
+                if (iszeroReal(&m)) {
+                    rplError(ERR_MATHDIVIDEBYZERO);
+                    return;
+                }
+
                 divmodReal(&RReg[7],&RReg[6],&a,&m);
                 // correct negative remainder
                 if(RReg[6].flags&F_NEGATIVE) {
@@ -766,6 +778,8 @@ void LIB_HANDLER()
                     newRealFromBINT(&RReg[0],1);
                     subReal(&RReg[7],&RReg[7],&RReg[0]);
                 }
+                rplCheckResultAndError(&RReg[6]);
+                rplCheckResultAndError(&RReg[7]);
 
                 rplDropData(2);
 
@@ -1157,6 +1171,7 @@ void LIB_HANDLER()
                 }
                 if (r2 == (BINT64)0) {
                     rplError(ERR_MATHDIVIDEBYZERO);
+                    return;
                 }
                 // avoid swapping elements by loop unrolling
                 BINT notfinished = 1;
@@ -1217,6 +1232,8 @@ void LIB_HANDLER()
                 rplError(ERR_INTEGEREXPECTED);
                 return;
             }
+            rplCheckResultAndError(&RReg[1]);
+            rplCheckResultAndError(&RReg[2]);
 
             BINT igcd = 0;
             if(RReg[1].flags&F_NEGATIVE) RReg[1].flags^=F_NEGATIVE;
@@ -1226,6 +1243,7 @@ void LIB_HANDLER()
             }
             if (iszeroReal(&RReg[2])) {
                 rplError(ERR_MATHDIVIDEBYZERO);
+                return;
             }
             // avoid swapping elements by loop unrolling
             BINT notfinished = 1;
@@ -1255,6 +1273,9 @@ void LIB_HANDLER()
                     break;
                 }
             } while (notfinished);
+
+            rplCheckResultAndError(&RReg[igcd]);
+
             if (OPCODE(CurOpcode) == GCD) {
                 rplDropData(2);
                 rplNewRealFromRRegPush(igcd);
@@ -1268,6 +1289,7 @@ void LIB_HANDLER()
                 divReal(&RReg[4],&RReg[0],&RReg[igcd]);
                 if((x.flags&F_APPROX)||(y.flags&F_APPROX)) RReg[4].flags|=F_APPROX;
                 else RReg[4].flags&=~F_APPROX;    // REMOVE THE APPROXIMATED FLAG AFTER TRUNCATION
+                rplCheckResultAndError(&RReg[4]);
                 rplDropData(2);
                 rplNewRealFromRRegPush(4);
             }
