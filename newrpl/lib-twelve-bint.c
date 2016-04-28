@@ -395,10 +395,6 @@ static int rpl_log2(BINT64 number,int bits)
     return rpl_log2(number,bits);
 }
 
-
-
-
-
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
@@ -449,10 +445,26 @@ void LIB_HANDLER()
                 return;
             }
 
-            if(ISREAL(*arg1)) { rplReadReal(arg1,&rop1); op1type=1; op1app=rop1.flags&F_APPROX;}
-            else { op1=rplReadBINT(arg1); op1type=0; op1app=ISAPPROX(*arg1); }
-            if(ISREAL(*arg2)) { rplReadReal(arg2,&rop2); op2type=1; op1app=rop2.flags&F_APPROX;}
-            else { op2=rplReadBINT(arg2); op2type=0; op2app=ISAPPROX(*arg2); }
+            if(ISREAL(*arg1)) {
+                rplReadReal(arg1,&rop1);
+                op1type=1;
+                op1app=rop1.flags&F_APPROX;
+            }
+            else {
+                op1=rplReadBINT(arg1);
+                op1type=0;
+                op1app=ISAPPROX(*arg1);
+            }
+            if(ISREAL(*arg2)) {
+                rplReadReal(arg2,&rop2);
+                op2type=1;
+                op1app=rop2.flags&F_APPROX;
+            }
+            else {
+                op2=rplReadBINT(arg2);
+                op2type=0;
+                op2app=ISAPPROX(*arg2);
+            }
             rplDropData(2);
         }
 
