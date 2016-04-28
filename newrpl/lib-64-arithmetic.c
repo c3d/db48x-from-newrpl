@@ -755,6 +755,7 @@ void LIB_HANDLER()
                 rplReadNumberAsReal(arg,&a);
                 rplReadNumberAsReal(mod,&m);
 
+                BINT saveprec=Context.precdigits;
                 if (OPCODE(CurOpcode) == IDIV2 || OPCODE(CurOpcode) == IQUOT) {
                     if(!isintegerReal(&a)) {
                         rplError(ERR_INTEGEREXPECTED);
@@ -764,6 +765,21 @@ void LIB_HANDLER()
                         rplError(ERR_INTEGEREXPECTED);
                         return;
                     }
+                    BINT moddigits=(intdigitsReal(&m)+7)&~7;
+                    BINT argdigits=(intdigitsReal(&a)+7)&~7;
+
+                    moddigits*=2;
+                    moddigits=(moddigits>argdigits)? moddigits:argdigits;
+                    moddigits=(moddigits>Context.precdigits)? moddigits:Context.precdigits;
+
+                    if(moddigits>MAX_USERPRECISION) {
+                        rplError(ERR_NUMBERTOOBIG);
+                        return;
+                    }
+
+                    //   AUTOMATICALLY INCREASE PRECISION TEMPORARILY
+
+                    Context.precdigits=moddigits;
                 }
 
                 if (iszeroReal(&m)) {
@@ -778,6 +794,8 @@ void LIB_HANDLER()
                     newRealFromBINT(&RReg[0],1);
                     subReal(&RReg[7],&RReg[7],&RReg[0]);
                 }
+
+                Context.precdigits=saveprec;
 
                 rplDropData(2);
 
@@ -1224,6 +1242,7 @@ void LIB_HANDLER()
 
             rplNumberToRReg(1, arg1);
             rplNumberToRReg(2, arg2);
+
             if(!isintegerReal(&RReg[1])) {
                 rplError(ERR_INTEGEREXPECTED);
                 return;
@@ -1243,6 +1262,25 @@ void LIB_HANDLER()
                 rplError(ERR_MATHDIVIDEBYZERO);
                 return;
             }
+
+            BINT saveprec=Context.precdigits;
+
+            BINT arg1digits=(intdigitsReal(&RReg[1])+7)&~7;
+            BINT arg2digits=(intdigitsReal(&RReg[2])+7)&~7;
+
+            arg1digits*=2;
+            arg1digits=(arg1digits>arg2digits)? arg1digits:arg2digits;
+            arg1digits=(arg1digits>Context.precdigits)? arg1digits:Context.precdigits;
+
+            if(arg1digits>MAX_USERPRECISION) {
+                rplError(ERR_NUMBERTOOBIG);
+                return;
+            }
+
+            //   AUTOMATICALLY INCREASE PRECISION TEMPORARILY
+
+            Context.precdigits=arg1digits;
+
             // avoid swapping elements by loop unrolling
             BINT notfinished = 1;
             do {
@@ -1274,6 +1312,7 @@ void LIB_HANDLER()
 
 
             if (OPCODE(CurOpcode) == GCD) {
+                Context.precdigits=saveprec;
                 rplDropData(2);
                 rplNewRealFromRRegPush(igcd);
                 rplCheckResultAndError(&RReg[igcd]);
@@ -1287,6 +1326,7 @@ void LIB_HANDLER()
                 divReal(&RReg[4],&RReg[0],&RReg[igcd]);
                 if((x.flags&F_APPROX)||(y.flags&F_APPROX)) RReg[4].flags|=F_APPROX;
                 else RReg[4].flags&=~F_APPROX;    // REMOVE THE APPROXIMATED FLAG AFTER TRUNCATION
+                Context.precdigits=saveprec;
                 rplDropData(2);
                 rplNewRealFromRRegPush(4);
                 rplCheckResultAndError(&RReg[4]);
