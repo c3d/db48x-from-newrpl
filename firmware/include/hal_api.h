@@ -161,6 +161,7 @@ typedef struct {
     WORD ACSuggestion;  // CURRENT SUGGESTED OPCODE
 
     // VARIABLES FOR USER INTERFACE
+    int StkUndolevels,StkCurrentLevel;
     int KeyContext;
 } HALSCREEN;
 

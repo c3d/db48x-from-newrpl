@@ -365,6 +365,7 @@ BINT rplGetVisibleVarCount();
 WORDPTR rplGetGlobal(WORDPTR nameobj);
 WORDPTR *rplMakeNewDir();
 WORDPTR rplGetDirName(WORDPTR *dir);
+BINT rplGetFullPath(WORDPTR *dir,WORDPTR *buffer,BINT maxdepth);
 WORDPTR *rplGetDirfromGlobal(WORDPTR *var);
 WORDPTR *rplDeepCopyDir(WORDPTR *sourcedir);
 void rplWipeDir(WORDPTR *directory);

@@ -490,6 +490,35 @@ WORDPTR rplGetDirName(WORDPTR *dir)
     return 0;
 }
 
+// FILL A BUFFER WITH POINTERS TO THE NAME OBJECTS TO ALL PARENTS
+// FIRST POINTER IN THE BUFFER IS GIVEN DIR'S NAME, LAST POINTER IS HOME
+// OR THE NAME AT THE MAXIMUM REQUESTED DEPTH
+// buffer MUST BE PREALLOCATED AND CONTAIN SPACE FOR UP TO maxdepth POINTERS
+// RETURNS THE NUMBER OF POINTERS STORED IN buffer
+BINT rplGetFullPath(WORDPTR *dir,WORDPTR *buffer,BINT maxdepth)
+{
+    WORDPTR *parent,*pptr;
+    BINT nptrs=0;
+
+    while(dir && (nptrs<maxdepth)) {
+    parent=rplFindDirbyHandle(dir[3]);
+
+    if(!parent) return nptrs;
+    pptr=parent;
+    while(**pptr!=DIR_END_MARKER) {
+        if(*(pptr+1)==*(dir+1)) break;
+        pptr+=2;
+    }
+
+    if(**pptr!=DIR_END_MARKER) {
+        // FOUND THE NAME
+        buffer[nptrs]=*pptr;
+        ++nptrs;
+        dir=parent;
+    }
+    }
+    return nptrs;
+}
 
 
 // CREATE A COMPLETELY NEW COPY OF THE DIRECTORY
