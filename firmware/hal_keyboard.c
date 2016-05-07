@@ -61,7 +61,7 @@ BINT halWaitForKey()
 }
 
 
-
+/*
 // FOR TESTING ONLY
 
 const char * const keyNames[64]={
@@ -130,7 +130,7 @@ const char * const keyNames[64]={
     "RSHIFT",
     "ON"
 };
-
+*/
 
 // SYSTEM CONTEXT VARIABLE
 // STORES THE CONTEXT ID
@@ -334,6 +334,14 @@ void uiCmdRun(WORD Opcode)
 {
 WORDPTR obj=rplAllocTempOb(2);
 if(obj) {
+
+    // ENABLE UNDO
+    rplRemoveSnapshot(halScreen.StkUndolevels+1);
+    rplRemoveSnapshot(halScreen.StkUndolevels);
+    if(halScreen.StkCurrentLevel!=1) rplTakeSnapshot();
+    halScreen.StkCurrentLevel=0;
+
+
 obj[0]=Opcode;
 obj[1]=CMD_EXITRPL;
 obj[2]=CMD_QSEMI;   // THIS IS FOR SAFETY REASONS
@@ -444,9 +452,40 @@ return retvalue;
 return 0;
 }
 
+// RESTURE THE STACK TO WHAT IT WAS AT THE GIVEN LEVEL
+// LEVEL 1 = MOST IMMEDIATE ... LEVEL StkUndoLevel = OLDEST
+// SPECIAL CASE: LEVEL 0 = USER'S CURRENT STACK
+BINT uiRestoreUndoLevel(BINT level)
+{
+BINT nlevels=rplCountSnapshots();
+
+if(level<1) return halScreen.StkCurrentLevel;
+if(level>nlevels) level=nlevels;
+
+if(!halScreen.StkCurrentLevel) {
+    // WHEN CURRENT LEVEL IS ZERO, MEANS THE PREVIOUS ACTION WAS NOT A RESTORE
+    // WE NEED TO PRESERVE THE CURRENT STACK AS LEVEL 0
+    rplTakeSnapshot();
+    ++level;
+}
 
 
+// HERE LEVEL 1 = USER STACK, 2..(N+1) = N UNDO LEVELS PRESERVED
 
+rplRestoreSnapshot(level);
+return level;
+
+}
+
+void uiStackUndo()
+{
+    halScreen.StkCurrentLevel=uiRestoreUndoLevel(halScreen.StkCurrentLevel+1);
+}
+
+void uiStackRedo()
+{
+    halScreen.StkCurrentLevel=uiRestoreUndoLevel(halScreen.StkCurrentLevel-1);
+}
 
 
 // TYPICAL COMMAND KEY HANDLER.
@@ -701,7 +740,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     halShowErrorMsg();
                     Exceptions=0;
                 } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
-            halScreen.DirtyFlag|=STACK_DIRTY;
+            halScreen.DirtyFlag|=STACK_DIRTY|STAREA_DIRTY;
         }
 
     }
@@ -1523,7 +1562,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
             halShowErrorMsg();
             Exceptions=0;
         } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
-        halScreen.DirtyFlag|=STACK_DIRTY;
+        halScreen.DirtyFlag|=STACK_DIRTY|STAREA_DIRTY;
 }
 
 }
@@ -1616,14 +1655,26 @@ void  enterKeyHandler(BINT keymsg)
         if(halGetContext()&CONTEXT_STACK) {
             // PERFORM DUP ONLY IF THERE'S DATA ON THE STACK
             // DON'T ERROR IF STACK IS EMPTY
-            if(rplDepthData()>0) rplPushData(rplPeekData(1));
+            if(rplDepthData()>0) uiCmdRun(CMD_DUP);
             halScreen.DirtyFlag|=STACK_DIRTY;
         }
 
         }
     else{
+        // ENABLE UNDO
+        if(halScreen.StkCurrentLevel!=1) rplTakeSnapshot();
+        halScreen.StkCurrentLevel=0;
+
+
      if(endCmdLineAndCompile()) {
          halScreen.DirtyFlag|=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
+         rplRemoveSnapshot(halScreen.StkUndolevels+2);
+         rplRemoveSnapshot(halScreen.StkUndolevels+1);
+
+     }
+     else  {
+         // SOMETHING WENT WRONG DURING COMPILE, STACK DIDN'T CHANGE
+         rplRemoveSnapshot(1);
 
      }
 
@@ -1742,7 +1793,7 @@ void backspKeyHandler(BINT keymsg)
         if(halGetContext()&CONTEXT_STACK) {
             // PERFORM DROP ONLY IF THERE'S DATA ON THE STACK
             // DON'T ERROR IF STACK IS EMPTY
-            if(rplDepthData()>0) rplDropData(1);
+            if(rplDepthData()>0) uiCmdRun(CMD_DROP);
             halScreen.DirtyFlag|=STACK_DIRTY;
         }
 
@@ -1774,7 +1825,10 @@ void leftKeyHandler(BINT keymsg)
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
-            // TODO: WHAT TO DO WITH LEFT CURSOR??
+            // PERFORM UNDO IN THE STACK
+            uiStackUndo();
+            halScreen.DirtyFlag|=STACK_DIRTY|STAREA_DIRTY;
+            return;
 
         }
 
@@ -1792,9 +1846,10 @@ void rsleftKeyHandler(BINT keymsg)
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
-            // TODO: WHAT TO DO WITH RS-LEFT CURSOR??
-            // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
-
+            // REDO ACTION
+            uiStackRedo();
+            halScreen.DirtyFlag|=STACK_DIRTY|STAREA_DIRTY;
+            return;
         }
 
     }
@@ -1810,8 +1865,10 @@ void rsholdleftKeyHandler(BINT keymsg)
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
-            // TODO: WHAT TO DO WITH RS-LEFT CURSOR??
-            // THIS SHOULD SCROLL A LARGE OBJECT IN LEVEL 1
+            // REDO ACTION
+            uiStackRedo();
+            halScreen.DirtyFlag|=STACK_DIRTY|STAREA_DIRTY;
+            return;
 
         }
 
@@ -1853,9 +1910,7 @@ void rightKeyHandler(BINT keymsg)
         if(halGetContext()&CONTEXT_STACK) {
 
             if(rplDepthData()>1) {
-                WORDPTR ptr=rplPeekData(2);
-                rplOverwriteData(2,rplPeekData(1));
-                rplOverwriteData(1,ptr);
+                uiCmdRun(CMD_SWAP);
             halScreen.DirtyFlag|=STACK_DIRTY;
             }
 
@@ -3323,7 +3378,7 @@ int halProcessKey(BINT keymsg)
     if(!wasProcessed) wasProcessed=halDoDefaultKey(keymsg);
 
     // *************** DEBUG ONLY ************
-
+/*
     if(!wasProcessed && ((KM_MESSAGE(keymsg)==KM_PRESS)||(KM_MESSAGE(keymsg)==KM_LPRESS)||(KM_MESSAGE(keymsg)==KM_REPEAT))) {
 
     // ALL OTHER KEYS, JUST DISPLAY THE KEY NAME ON SCREEN
@@ -3383,7 +3438,7 @@ int halProcessKey(BINT keymsg)
 
     }
 
-
+*/
     // ONLY RETURN 1 WHEN THE OUTER LOOP IS SUPPOSED TO END
     return 0;
 }
