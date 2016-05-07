@@ -243,7 +243,7 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define ISCOMMENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOCOMMENT))
 
-#define ANGLEMODE(prolog) ( (ISANGLE(prolog)? (LIBNUM(prolog)&3):ANGLENONE) )
+#define ANGLEMODE(prolog) ( (ISANGLE(prolog)? (BINT)(LIBNUM(prolog)&3):(BINT)ANGLENONE) )
 
 // THIS IS TO CHECK IF AN OBJECT IS "FALSE", WHICH CAN BE THE BINT0 OR THE REAL0
 #define IS_FALSE(p)   ( (OPCODE(p)==0) && (((LIBNUM(p)+4)&~7)==OCTBINT))
