@@ -735,8 +735,8 @@ const WORD const system_unit_defs[]={
 
     // [922]='rpm' (revolutions per minute)
     MKPROLOG(DOUNIT,5),
-    MAKESINT(60),
-    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-1),MAKESINT(1),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m','i','n',0),MAKESINT(-1),MAKESINT(1),
 
     // [928]='sb' (stilb)
     MKPROLOG(DOUNIT,9),
