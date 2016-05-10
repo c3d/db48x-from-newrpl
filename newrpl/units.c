@@ -161,6 +161,10 @@ const WORD const system_unit_names[]={
 
     MKPROLOG(DOIDENT,1),TEXT2WORD('d','B',0,0),             // [294]='dB' (decibel)
 
+    MKPROLOG(DOIDENT,1),TEXT2WORD('t','r',0,0),             // [296]='tr' (one turn)
+
+
+
 };
 
 // SYSTEM UNIT DEFINITION TABLE: CONTAINS THE VALUES OF ALL SYSTEM DEFINED UNITS
@@ -744,10 +748,10 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-2),MAKESINT(1),
 
 
-    // [922]='rpm' (revolutions per minute)
-    MKPROLOG(DOUNIT,5),
-    MAKESINT(1),
-    MKPROLOG(DOIDENT,1),TEXT2WORD('m','i','n',0),MAKESINT(-1),MAKESINT(1),
+    // VOID - OPEN FOR REUSE (6 WORDS)
+    0,
+    0,
+    0,0,0,0,
 
     // [928]='sb' (stilb)
     MKPROLOG(DOUNIT,9),
@@ -898,7 +902,17 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DOREAL,2),MAKEREALFLAGS(-4,1,0),10550560,       // 1055.05600
     MKPROLOG(DOIDENT,1),TEXT2WORD('J',0,0,0),MAKESINT(1),MAKESINT(1),
 
+    //[1172] = tr (turn = 2*pi_r)
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(2),
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xcf,0x80,0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('r',0,0,0),MAKESINT(1),MAKESINT(1),
 
+    //[1182]='rpm' (revolutions per minute)
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('t','r',0,0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m','i','n',0),MAKESINT(-1),MAKESINT(1),
 
 };
 
@@ -939,7 +953,7 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[60],(WORDPTR)&system_unit_defs[173], // 'cu'=1/16_gal (US cup)
     (WORDPTR)&system_unit_names[62],(WORDPTR)&system_unit_defs[181], // '°'=pi/180_r
     (WORDPTR)&system_unit_names[64],(WORDPTR)&system_unit_defs[195], // 'd'=86400_s
-    (WORDPTR)&system_unit_names[294],(WORDPTR)&one_bint,             // 'dB'=1
+    (WORDPTR)&system_unit_names[294],(WORDPTR)&one_real,             // 'dB'=1 (non-dimensional)
     (WORDPTR)&system_unit_names[66],(WORDPTR)&system_unit_defs[201], // 'dyn'=1_g*cm/s^2
     (WORDPTR)&system_unit_names[68],(WORDPTR)&system_unit_defs[215], // 'erg'=1_g*cm^2/s^2
     (WORDPTR)&system_unit_names[70],(WORDPTR)&system_unit_defs[229], // 'eV'=1.6021766208e-19_J
@@ -1010,7 +1024,7 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[203],(WORDPTR)&system_unit_defs[798], // 'psi'=1_lbf/in^2
     (WORDPTR)&system_unit_names[205],(WORDPTR)&system_unit_defs[808], // 'pt'=1/8_gal
     (WORDPTR)&system_unit_names[207],(WORDPTR)&system_unit_defs[816], // 'qt'=1/4_gal
-    (WORDPTR)&system_unit_names[209],(WORDPTR)&one_bint,              // 'r'=1
+    (WORDPTR)&system_unit_names[209],(WORDPTR)&one_real,              // 'r'=1 (non-dimensional)
     (WORDPTR)&system_unit_names[211],(WORDPTR)&system_unit_defs[824], // 'R'=2.58e-4_C/kg
     (WORDPTR)&system_unit_names[213],(WORDPTR)&system_unit_defs[836], // '°R'=5/9_K
     (WORDPTR)&system_unit_names[215],(WORDPTR)&system_unit_defs[846], // 'Δ°R'=5/9_ΔK
@@ -1021,11 +1035,11 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[226],(WORDPTR)&system_unit_defs[888], // 'qtUK'=1/4_galUK
 
     (WORDPTR)&system_unit_names[228],(WORDPTR)&system_unit_defs[910], // 'rem'=0.01_m^2/s^2
-    (WORDPTR)&system_unit_names[230],(WORDPTR)&system_unit_defs[922], // 'rpm'=60_1/s
+    (WORDPTR)&system_unit_names[230],(WORDPTR)&system_unit_defs[1182], // 'rpm'=60_1/s
     (WORDPTR)&system_unit_names[232],(WORDPTR)&system_unit_defs[599], // 'S'=1_A/V
     (WORDPTR)&system_unit_names[234],(WORDPTR)&system_unit_defs[928], // 'sb'=10000_cd/m^2
     (WORDPTR)&system_unit_names[236],(WORDPTR)&system_unit_defs[938], // 'slug'=1_lb*s^2/ft*ga
-    (WORDPTR)&system_unit_names[238],(WORDPTR)&one_bint,              // 'sr'=1
+    (WORDPTR)&system_unit_names[238],(WORDPTR)&one_real,              // 'sr'=1 (non-dimensional)
     (WORDPTR)&system_unit_names[240],(WORDPTR)&system_unit_defs[956], // 'st'=1_m^3
     (WORDPTR)&system_unit_names[242],(WORDPTR)&system_unit_defs[962], // 'St'=0.0001_m^2/s
     (WORDPTR)&system_unit_names[244],(WORDPTR)&system_unit_defs[974], // 'Sv'=1_m^2/s^2
@@ -1036,6 +1050,8 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[255],(WORDPTR)&system_unit_defs[1018], // 'ton'=2000_lb
     (WORDPTR)&system_unit_names[257],(WORDPTR)&system_unit_defs[1024], // 'tonUK'=2240_lb
     (WORDPTR)&system_unit_names[260],(WORDPTR)&system_unit_defs[1154], // 'Torr'=1/760_atm
+    (WORDPTR)&system_unit_names[296],(WORDPTR)&system_unit_defs[1172], // 'tr'=2*pi_r
+
     (WORDPTR)&system_unit_names[262],(WORDPTR)&system_unit_defs[1030], // 'tsp'=1/6_ozfl
     (WORDPTR)&system_unit_names[264],(WORDPTR)&system_unit_defs[1040], // 'u'= 1.660539040E-27_kg
     (WORDPTR)&system_unit_names[266],(WORDPTR)&system_unit_defs[1049], // 'V'=1_kg*m^2/A/s^3
