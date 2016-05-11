@@ -228,6 +228,7 @@ void rplRemoveSnapshot(BINT numsnap);
 void rplRestoreSnapshot(BINT numsnap);
 void rplRevertToSnapshot(BINT numsnap);
 void rplTakeSnapshotN(BINT nargs);
+void rplTakeSnapshotHide(BINT nargs);
 void rplTakeSnapshotAndClear();
 BINT rplDepthSnapshot(BINT numsnap);
 WORDPTR rplPeekSnapshot(BINT numsnap,BINT level);

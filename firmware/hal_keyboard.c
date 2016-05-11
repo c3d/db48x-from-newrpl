@@ -363,6 +363,40 @@ else { if(rplRun()==NEEDS_CLEANUP) rplCleanup(); }
 }
 }
 
+void uiCmdRunHide(WORD Opcode,BINT narguments)
+{
+WORDPTR obj=rplAllocTempOb(2);
+if(obj) {
+
+    // ENABLE UNDO
+    rplRemoveSnapshot(halScreen.StkUndolevels+1);
+    rplRemoveSnapshot(halScreen.StkUndolevels);
+    if(halScreen.StkCurrentLevel!=1) rplTakeSnapshotHide(narguments);
+    halScreen.StkCurrentLevel=0;
+
+
+obj[0]=Opcode;
+obj[1]=CMD_EXITRPL;
+obj[2]=CMD_QSEMI;   // THIS IS FOR SAFETY REASONS
+rplSetEntryPoint(obj);
+if((Opcode==(CMD_OVR_XEQ)) || (Opcode==(CMD_OVR_EVAL)) || (Opcode==(CMD_OVR_EVAL1))) {
+    // STORE THE OBJECT/OPCODE THAT MAY CAUSE AN EXCEPTION
+    BINT depth=rplDepthData();
+    if(depth>0) rplPushRet(rplPeekData(1));
+    WORDPTR *rstksave=RSTop;
+    if(rplRun()==NEEDS_CLEANUP) {
+        // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
+        if(RSTop>rstksave) RSTop=rstksave;
+        // BLAME THE ERROR ON THE COMMAND WE CALLED
+        if( (depth>0) && (rplDepthRet()>=1)) rplBlameError(rplPopRet());
+    }
+    rplCleanup();
+}
+else { if(rplRun()==NEEDS_CLEANUP) rplCleanup(); }
+}
+}
+
+
 // EXECUTE THE OPCODE IN A PROTECTED "TRANSPARENT" ENVIRONMENT
 // THE USER STACK. RETURN STACK AND LAM ENVIRONMENTS ARE
 // ALL PRESERVED AND PROTECTED
@@ -655,6 +689,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                 WORDPTR action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
                 WORD Opcode=0;
+                BINT hideargument=1;
 
                 if(!action) return;
 
@@ -734,7 +769,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 }
                 }
 
-                if(Opcode) uiCmdRun(Opcode);
+                if(Opcode) uiCmdRunHide(Opcode,hideargument);
                 if(Exceptions) {
                     // TODO: SHOW ERROR MESSAGE
                     halShowErrorMsg();
@@ -775,6 +810,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
         WORDPTR action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
         WORD Opcode=0;
+        BINT hideargument=1;
 
         if(!action) return;
 
@@ -1355,6 +1391,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
 
                         Opcode=*action;
+                        hideargument=0;
                     }
                     break;
 
@@ -1468,9 +1505,11 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     menu=uiGetLibMenu(mcode);
                     item=uiGetMenuItem(mcode,menu,MENUPAGE(mcode)+varnum);
                     action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
-                    if(!ISPROLOG(*action)) Opcode=*action; // RUN COMMANDS DIRECTLY
-                    else Opcode=(CMD_OVR_XEQ);
-                    rplPushData(action);
+                    if(!ISPROLOG(*action)) { Opcode=*action; hideargument=0; }// RUN COMMANDS DIRECTLY
+                    else {
+                        Opcode=(CMD_OVR_XEQ);
+                        rplPushData(action);
+                    }
                 }
                 break;
 
@@ -1556,7 +1595,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
         }
         }
 
-        if(Opcode) uiCmdRun(Opcode);
+        if(Opcode) uiCmdRunHide(Opcode,hideargument);
         if(Exceptions) {
             // TODO: SHOW ERROR MESSAGE
             halShowErrorMsg();

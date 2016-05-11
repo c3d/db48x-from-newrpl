@@ -255,6 +255,38 @@ void rplTakeSnapshotN(BINT nargs)
     DSTop+=nargs;
     return;
 }
+
+// PUSH THE CURRENT STACK AS SNAPSHOT LEVEL1
+// AND COPY ALL ITEMS TO CURRENT STACK
+// THE SNAPSHOT WILL NOT CONTAIN THE FIRST nargs LEVEL OF THE STACK
+// USED TO HIDE TEMPORARY ARGUMENTS DURING UNDO OPERATIONS
+void rplTakeSnapshotHide(BINT nargs)
+{
+    WORDPTR *top=DSTop,*bottom=DStkBottom,hidefirst;
+    BINT levels=top-bottom;
+    if(levels<nargs) nargs=levels;
+    if(nargs<0) nargs=0;
+    // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
+    // THE SNAPSHOT BARRIER
+    rplExpandStack(levels);
+    if(Exceptions) {
+        // RETURN WITHOUT MAKING AN UNDO MARK
+        DSTop=top;
+        return;
+    }
+    hidefirst=DSTop[-nargs];
+    DSTop[-nargs]=NUMBER2PTR(levels-nargs);
+
+    // COPY TO NEW STACK
+    memmovew(DSTop-nargs+1,bottom,(levels-nargs)*(sizeof(void*)>>2));
+
+    DStkProtect+=levels-nargs+1;
+    DStkBottom+=levels-nargs+1;
+    DSTop+=levels-nargs+1;
+    DSTop[-nargs]=hidefirst;    // AND RESTORE THE DAMAGED WORD
+    return;
+}
+
 // PUSH THE CURRENT STACK AS SNAPSHOT LEVEL1
 // AND CLEAR THE CURRENT STACK
 
