@@ -91,6 +91,7 @@ INCLUDE_ROMOBJECT(unitmenu_14_angles);
 INCLUDE_ROMOBJECT(unitmenu_15_light);
 INCLUDE_ROMOBJECT(unitmenu_16_radiation);
 INCLUDE_ROMOBJECT(unitmenu_17_viscosity);
+INCLUDE_ROMOBJECT(unitmenu_18_acceleration);
 
 
 
@@ -121,6 +122,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)unitmenu_15_light,
     (WORDPTR)unitmenu_16_radiation,
     (WORDPTR)unitmenu_17_viscosity,
+    (WORDPTR)unitmenu_18_acceleration,
      0
 };
 

@@ -18,11 +18,12 @@
 @#name unitmenu_0_main
 {
   { { "Tools" 1 } ::  #03601000h TMENULST ; }
-  { { "Leng" 1 } ::   #03602000h TMENULST ; }
+  { { "Length" 1 } ::   #03602000h TMENULST ; }
   { { "Area" 1 } ::   #03603000h TMENULST ; }
   { { "Vol" 1 } ::    #03604000h TMENULST ; }
   { { "Time" 1 } ::   #03605000h TMENULST ; }
   { { "Speed" 1 } ::  #03606000h TMENULST ; }
+  { { "Accel" 1 } ::  #03612000h TMENULST ; }
   { { "Mass" 1 } ::   #03607000h TMENULST ; }
   { { "Force" 1 } ::  #03608000h TMENULST ; }
   { { "Energy" 1 } :: #03609000h TMENULST ; }
@@ -96,26 +97,44 @@ UPURGE
 @#name unitmenu_4_volume
 {
     1_m^3
-    1_st
     1_cm^3
+    1_ml
+    1_l
+    1_st
+
     1_yd^3
     1_ft^3
     1_in^3
-    1_l
-    1_galUK
-    1_galC
+    1_gal
     1_qt
+
     1_pt
-    1_ml
     1_cu
     1_ozfl
-    1_ozUK
     1_tbsp
     1_tsp
+
+    1_fbm
+    1_galUK
+    1_qtUK
+    1_ptUK
+    1_ozUK
+
+    1_galC
+    1_qtC
+    1_ptC
+    1_ozC
     1_bbl
+
     1_bu
     1_pk
-    1_fbm
+    1_buUK
+    1_pkUK
+    1_buC
+
+    1_buUK
+
+
 { { "Units" 1 } :: #03600000h TMENULST ; }
 }
 @#name unitmenu_5_time
@@ -137,7 +156,10 @@ UPURGE
     1_mph
     1_knot
     1_c
-    1_ga
+    1_r/s
+    1_rpm
+    1_tr/s
+
 { { "Units" 1 } :: #03600000h TMENULST ; }
 }
 @#name unitmenu_7_mass
@@ -156,6 +178,8 @@ UPURGE
     1_grain
     1_u
     1_mol
+    1_gmol
+    1_lbmol
 
 { { "Units" 1 } :: #03600000h TMENULST ; }
 }
@@ -187,7 +211,10 @@ UPURGE
 @#name unitmenu_10_power
 {
     1_W
+    1_kW
+    1_MW
     1_hp
+    1_lbf*ft/s
 
 { { "Units" 1 } :: #03600000h TMENULST ; }
 }
@@ -197,7 +224,7 @@ UPURGE
     1_atm
     1_bar
     1_psi
-    1_torr
+    1_Torr
     1_mmHg
     1_inHg
     1_inH2O
@@ -223,6 +250,7 @@ UPURGE
     1_C
     1_Ω
     1_F
+    1_A*h
     1_W
     1_Fdy
     1_H
@@ -238,6 +266,7 @@ UPURGE
     1_°
     1_r
     1_grad
+    1_tr
     1_arcmin
     1_arcs
     1_sr
@@ -273,8 +302,23 @@ UPURGE
 {
     1_P
     1_St
+    1_m^2/s
+    1_kg/(m*s)
 { { "Units" 1 } :: #03600000h TMENULST ; }
 }
+
+@#name unitmenu_18_acceleration
+{
+    1_m/s^2
+    1_cm/s^2
+    1_ft/s^2
+    1_ga
+    1_r/s^2
+
+{ { "Units" 1 } :: #03600000h TMENULST ; }
+}
+
+
 
 @#name lib54_msgtable
 {
