@@ -750,7 +750,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     if(ISIDENT(*action)) {
                         // JUST EVAL THE VARIABLE
                         rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=(CMD_OVR_EVAL);
+                        Opcode=(CMD_OVR_EVAL1);
                         break;
                     }
                     if(ISUNIT(*action)) {

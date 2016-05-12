@@ -159,7 +159,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
 
 
 # This might need to be adapted to each cross-compiler installation
-GCC_LIBDIR = /usr/local/lib/gcc/arm-none-eabi/5.2.0
+GCC_LIBDIR = /usr/lib/gcc/arm-none-eabi/4.8.2
 
 INCLUDEPATH += $$GCC_LIBDIR/include
 QMAKE_LIBDIR += $$GCC_LIBDIR
@@ -197,7 +197,7 @@ QMAKE_LFLAGS_SHAPP =
 QMAKE_LFLAGS_THREAD =
 QMAKE_LFLAGS = -T$$PWD/firmware/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
 
-QMAKE_POST_LINK = $$PWD/firmware/elf2rom $(TARGET)
+QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom $(TARGET)
 
 
 ## Additional RPL compiler, make sure it's in the PATH
