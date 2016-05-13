@@ -1726,7 +1726,7 @@ WORDPTR *rplUnitFind(WORDPTR ident,BINT *siindex)
     static const BYTE const unitdir_name[]="UNITS";
 
     WORDPTR unitdir_obj=rplGetSettingsbyName((BYTEPTR)unitdir_name,(BYTEPTR)unitdir_name+5);
-    WORDPTR baseid,baseunit;
+    WORDPTR baseid;
     BINT result;
     WORDPTR *entry;
 
@@ -1735,7 +1735,6 @@ WORDPTR *rplUnitFind(WORDPTR ident,BINT *siindex)
         entry=rplFindFirstByHandle(unitdir_obj);
         while(entry) {
             baseid=entry[0];
-            baseunit=entry[1];
 
             result=rplUnitCompare(ident,baseid);
             if(result) {
@@ -1757,7 +1756,6 @@ WORDPTR *rplUnitFind(WORDPTR ident,BINT *siindex)
     entry=(WORDPTR *)system_unit_dir;
     while(entry[0]) {
         baseid=entry[0];
-        baseunit=entry[1];
 
         result=rplUnitCompare(ident,baseid);
         if(result) {
@@ -1792,7 +1790,7 @@ WORDPTR *rplUnitFindCustom(WORDPTR ident,BINT *siindex)
     static const BYTE const unitdir_name[]="UNITS";
 
     WORDPTR unitdir_obj=rplGetSettingsbyName((BYTEPTR)unitdir_name,(BYTEPTR)unitdir_name+5);
-    WORDPTR baseid,baseunit;
+    WORDPTR baseid;
     BINT result;
     WORDPTR *entry;
 
@@ -1801,7 +1799,6 @@ WORDPTR *rplUnitFindCustom(WORDPTR ident,BINT *siindex)
         entry=rplFindFirstByHandle(unitdir_obj);
         while(entry) {
             baseid=entry[0];
-            baseunit=entry[1];
 
             result=rplUnitCompare(ident,baseid);
             if(result) {

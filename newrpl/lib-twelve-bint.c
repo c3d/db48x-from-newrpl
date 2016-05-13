@@ -413,7 +413,6 @@ void LIB_HANDLER()
         REAL rop1,rop2;
         int op1type=0,op2type=0;
         int op1app=0,op2app=0;
-        int status;
 
         // USE GC-SAFE POINTERS, NEVER LOCAL COPIES OF POINTERS INTO TEMPOB
 #define arg1 ScratchPointer1
@@ -830,7 +829,6 @@ void LIB_HANDLER()
         if(op1type||op2type) {
             if(op1type) {
                 // ROUND TO INTEGER
-                status=0;
                 rplBINTToRReg(0,op2);
                 int res=cmpReal(&rop1,&RReg[0]);
                 if(res) rplPushData((WORDPTR)zero_bint);
@@ -839,7 +837,6 @@ void LIB_HANDLER()
 
             if(op2type) {
                 // ROUND TO INTEGER
-                status=0;
                 rplBINTToRReg(0,op1);
                 int res=cmpReal(&RReg[0],&rop2);
                 if(res) rplPushData((WORDPTR)zero_bint);
@@ -858,7 +855,6 @@ void LIB_HANDLER()
         if(op1type||op2type) {
             if(op1type) {
                 // ROUND TO INTEGER
-                status=0;
                 rplBINTToRReg(0,op2);
                 int res=cmpReal(&rop1,&RReg[0]);
                 if(res) rplPushData((WORDPTR)one_bint);
@@ -868,7 +864,6 @@ void LIB_HANDLER()
 
             if(op2type) {
                 // ROUND TO INTEGER
-                status=0;
                 rplBINTToRReg(0,op1);
                 int res=cmpReal(&RReg[0],&rop2);
                 if(res) rplPushData((WORDPTR)one_bint);

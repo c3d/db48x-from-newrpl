@@ -293,7 +293,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 
     // ALL OTHER OBJECTS NEED TO BE DECOMPILED, EXCEPT THE STRING AND GROBS
 
-    BINT skipn,totaln;
+    BINT totaln;
     BYTEPTR string,endstring;
 
 
@@ -317,7 +317,6 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
     // HERE WE HAVE A STRING, DO SOME MORE POST-PROCESSING DEPENDING ON OBJECT
 
     string=(BYTEPTR) (opname+1);
-    skipn=0;
     totaln=rplStrLen(opname);
     endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
@@ -335,7 +334,6 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
     }
     else {
         string=(BYTEPTR) (ptr+1);
-        skipn=0;
         totaln=rplStrLen(ptr);
         endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(ptr),totaln);
     }

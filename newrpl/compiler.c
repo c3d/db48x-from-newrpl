@@ -312,7 +312,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     }
                     if(ISPROLOG((BINT)**ValidateTop)) {
                         // STORE THE SIZE OF THE COMPOSITE IN THE WORD
-                        **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | ((((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1);
+                        **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | (((WORD)((PTR2NUMBER)CompileEnd-(PTR2NUMBER)*ValidateTop)>>2)-1);
                         // PREPARE THE NEWLY CREATED OBJECT FOR VALIDATION BY ITS PARENT
                         CurrentConstruct=(BINT)((ValidateTop>ValidateBottom)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
                         ValidateHandler=rplGetLibHandler(LIBNUM(CurrentConstruct));
@@ -407,7 +407,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         return 0;
                     }
                     if(ISPROLOG((BINT)**ValidateTop)) {
-                        **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | ((((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1);    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
+                        **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | (((WORD)((PTR2NUMBER)CompileEnd-(PTR2NUMBER)*ValidateTop)>>2)-1);    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
                         // PREPARE THE NEWLY CREATED OBJECT FOR VALIDATION BY ITS PARENT
                         CurrentConstruct=(BINT)((ValidateTop>ValidateBottom)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
                         ValidateHandler=rplGetLibHandler(LIBNUM(CurrentConstruct));
@@ -740,7 +740,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                 }
                 if(ISPROLOG((BINT)**ValidateTop)) {
                     // STORE THE SIZE OF THE COMPOSITE IN THE WORD
-                    **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | ((((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1);
+                    **ValidateTop=(**ValidateTop ^ OBJSIZE(**ValidateTop)) | (((WORD)((PTR2NUMBER)CompileEnd-(PTR2NUMBER)*ValidateTop)>>2)-1);
                     // PREPARE THE NEWLY CREATED OBJECT FOR VALIDATION BY ITS PARENT
                     CurrentConstruct=(BINT)((ValidateTop>ValidateBottom)? **(ValidateTop-1):0);      // CARRIES THE WORD OF THE CURRENT CONSTRUCT/COMPOSITE
                     ValidateHandler=rplGetLibHandler(LIBNUM(CurrentConstruct));
@@ -769,7 +769,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
          LAMTop=LAMTopSaved;
          return 0;
      }
-     if(ISPROLOG((BINT)**ValidateTop)) **ValidateTop|= (((WORD)CompileEnd-(WORD)*ValidateTop)>>2)-1;    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
+     if(ISPROLOG((BINT)**ValidateTop)) **ValidateTop|= ((WORD)((PTR2NUMBER)CompileEnd-(PTR2NUMBER)*ValidateTop)>>2)-1;    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
      rplCompileAppend(CMD_EXITRPL);
  }
 
@@ -840,7 +840,7 @@ void rplDecompAppendChar(BYTE c)
     *((BYTEPTR)DecompStringEnd)=c;
     DecompStringEnd=(WORDPTR)(((BYTEPTR)DecompStringEnd)+1);
 
-    if(!(((BINT)DecompStringEnd)&3)) {
+    if(!(((PTR2NUMBER)DecompStringEnd)&3)) {
         if( ((WORDPTR)((((PTR2NUMBER)DecompStringEnd)+3)&~((PTR2NUMBER)3)))+TEMPOBSLACK>=TempObSize) {
             // ENLARGE TEMPOB AS NEEDED
             growTempOb((((((BYTEPTR)DecompStringEnd)+3-(BYTEPTR)TempOb))>>2)+TEMPOBSLACK);
@@ -1650,7 +1650,7 @@ end_of_expression:
 
     if(!(flags&DECOMP_EMBEDDED)) {
     // STORE THE SIZE OF THE STRING IN WORDS IN THE PROLOG
-    *(CompileEnd-1)=MKPROLOG(DOSTRING+((-(WORD)DecompStringEnd)&3),(((WORD)DecompStringEnd-(WORD)CompileEnd)+3)>>2);
+    *(CompileEnd-1)=MKPROLOG(DOSTRING+((-(PTR2NUMBER)DecompStringEnd)&3),((WORD)((PTR2NUMBER)DecompStringEnd-(PTR2NUMBER)CompileEnd)+3)>>2);
     CompileEnd=rplSkipOb(CompileEnd-1);
     }
 

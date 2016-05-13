@@ -326,7 +326,7 @@ void rplRestoreSnapshot(BINT numsnap)
     }
 
 
-        BINT levels=(BINT)*(prevptr-1);
+        BINT levels=(PTR2NUMBER)*(prevptr-1);
 
         rplExpandStack(levels-rplDepthData());
         if(Exceptions) {
@@ -368,7 +368,7 @@ BINT rplDepthSnapshot(BINT numsnap)
     }
 
 
-        return (BINT)*(prevptr-1);
+        return (PTR2NUMBER)*(prevptr-1);
 }
 
 // SAME AS rplPeekData() BUT IT CAN LOOK INTO SNAPSHOTS
@@ -390,7 +390,7 @@ WORDPTR rplPeekSnapshot(BINT numsnap,BINT level)
     }
 
 
-        BINT levels=(BINT)*(prevptr-1);
+        BINT levels=(PTR2NUMBER)*(prevptr-1);
 
         if( (level<1) || (level>levels)) return 0;  // DO NOT PEEK OUTSIDE THE CURRENT SNAPSHOT
 

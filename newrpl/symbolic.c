@@ -1970,10 +1970,10 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
 
             BINT nargs=OPCODE(**(stkptr-1))-1,redargs=0;
-            WORDPTR *argptr=stkptr-2,*savedstop;
+            WORDPTR *argptr=stkptr-2;
             BINT simplified=0,den_is_one=0,num_is_one=0,neg=0,approx=0;
 
-            savedstop=DSTop;
+
 
             for(f=0;f<nargs;++f) {
                 if(!ISNUMBERORUNIT(**argptr)) {
@@ -2758,7 +2758,7 @@ BINT rplSymbPopState(WORDPTR **savedstateptr,WORDPTR **ruleptr,WORDPTR **exprptr
     *LAMTop=(WORDPTR *)(*savedstateptr)[2];
     *listptr=(WORDPTR *)(*savedstateptr)[3];
     *endoflist=(WORDPTR *)(*savedstateptr)[4];
-    *orderless=(BINT)(*savedstateptr)[5];
+    *orderless=(PTR2NUMBER)(*savedstateptr)[5];
 
     return 1;
 }

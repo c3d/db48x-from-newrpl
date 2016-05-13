@@ -94,7 +94,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)IPtr)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)IPtr)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(16,12,a);
@@ -103,7 +103,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)RPLLastOpcode)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)RPLLastOpcode)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(16,18,a);
@@ -112,7 +112,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)TempObEnd)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)TempObEnd)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(16,24,a);
@@ -121,7 +121,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)TempObSize)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)TempObSize)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(16,30,a);
@@ -130,7 +130,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)TempBlocksEnd)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)TempBlocksEnd)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(16,36,a);
@@ -139,7 +139,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)TempBlocksSize)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)TempBlocksSize)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(16,42,a);
@@ -148,7 +148,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)RSTop)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)RSTop)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(16,48,a);
@@ -158,7 +158,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)RStkSize)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)RStkSize)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(16,54,a);
@@ -168,7 +168,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)DSTop)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)DSTop)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(16,60,a);
@@ -179,7 +179,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)DStkSize)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)DStkSize)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(80,12,a);
@@ -188,7 +188,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)DirsTop)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)DirsTop)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(80,18,a);
@@ -197,7 +197,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)DirSize)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)DirSize)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(80,24,a);
@@ -206,7 +206,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)LAMTop)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)LAMTop)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(80,30,a);
@@ -215,7 +215,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)LAMSize)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)LAMSize)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(80,36,a);
@@ -224,7 +224,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)Exceptions)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)Exceptions)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(80,42,a);
@@ -233,7 +233,7 @@ else {
         a[8]=0;
         for(j=7;j>=0;j--)
          {
-         a[7-j]=((((WORD)ErrorCode)>>(j<<2))&0xf)+48;
+         a[7-j]=((((PTR2NUMBER)ErrorCode)>>(j<<2))&0xf)+48;
           if(a[7-j]>'9') a[7-j]+=7;
          }
         __ex_print(80,48,a);
