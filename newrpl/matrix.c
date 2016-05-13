@@ -943,4 +943,25 @@ rplDropData(1);
 }
 
 
+// RETURN NON-ZERO IF A MATRIX IS A POLAR VECTOR
+// DOES NOT EXPLODE OR USE THE STACK
+// NO TYPE CHECK, MAKE SURE IT'S A MATRIX
+
+BINT rplMatrixIsPolar(WORDPTR matobj)
+{
+    // CHECK DIMENSIONS
+
+    BINT rowsa=MATROWS(*(matobj+1)),colsa=MATCOLS(*(matobj+1));
+    BINT k;
+    WORDPTR item;
+
+    if(!rowsa) return 0;    // NOT A VECTOR
+
+    for(k=0;k<colsa;++k) {
+        item=GETELEMENT(matobj,k);
+        if(ISANGLE(*item)) return 1;
+    }
+    return 0;
+
+}
 
