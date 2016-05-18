@@ -450,6 +450,7 @@ void rplNumberToRReg(int num,WORDPTR number);
 BINT64 rplReadNumberAsBINT(WORDPTR number);
 void rplReadNumberAsReal(WORDPTR number,REAL*dec);
 void rplLoadBINTAsReal(BINT64 number,REAL*dec);
+BINT rplIsNegative(WORDPTR objptr);
 
 
 // ANGLE FUNCTIONS
@@ -538,8 +539,6 @@ WORDPTR rplMatrixGet(WORDPTR matrix,BINT row,BINT col);
 WORDPTR rplMatrixFastGet(WORDPTR matrix,BINT row,BINT col);
 WORDPTR *rplMatrixFastGetEx(WORDPTR *first,BINT cols,BINT i,BINT j);
 WORDPTR *rplMatrixNewEx(BINT rows,BINT cols);
-
-
 void rplMatrixNorm();
 void rplMatrixNeg();
 void rplMatrixEval1();
@@ -553,6 +552,9 @@ void rplMatrixBareiss();
 void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa);
 void rplMatrixInvert();
 void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
+BINT rplMatrixIsPolar(WORDPTR matobj);
+void rplMatrixPolarToRectEx(WORDPTR *a,BINT rowsa,BINT colsa);
+void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BINT angmode);
 
 
 // ANGULAR MODES

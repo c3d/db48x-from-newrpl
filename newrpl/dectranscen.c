@@ -1382,7 +1382,7 @@ else {
 }
 
 if(negy) {
-    RReg[0].flags|=F_NEGATIVE;
+    RReg[0].flags^=F_NEGATIVE;
 }
 
 Context.precdigits-=8;

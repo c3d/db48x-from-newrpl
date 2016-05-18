@@ -279,11 +279,26 @@ void rplPushTrue()
 
 BINT rplIsFalse(WORDPTR objptr)
 {
+    if(ISANGLE(*objptr)) ++objptr;  // POINT TO THE NUMBER INSIDE THE ANGLE
+
     if(IS_FALSE(*objptr)) return 1;
+    if(ISBINT(*objptr)) {
+        if(rplReadBINT(objptr)==0) return 1;
+        return 0;
+    }
     if(ISREAL(*objptr)) {
         REAL dec;
         rplReadReal(objptr,&dec);
         if(iszeroReal(&dec)) return 1;
+        return 0;
+    }
+
+    if(ISCOMPLEX(*objptr)) {
+        REAL re,im;
+        BINT angmode;
+
+        rplReadCNumber(objptr,&re,&im,&angmode);
+        return rplIsZeroComplex(&re,&im,angmode);
     }
 
     return 0;
@@ -291,18 +306,37 @@ BINT rplIsFalse(WORDPTR objptr)
 
 BINT rplIsTrue(WORDPTR objptr)
 {
-    if(IS_FALSE(*objptr)) return 0;
-    if(ISREAL(*objptr)) {
-        REAL dec;
-        rplReadReal(objptr,&dec);
-        if(iszeroReal(&dec)) return 0;
-    }
-
-    return 1;
+    return rplIsFalse(objptr)^1;
 }
 
 
 
+BINT rplIsNegative(WORDPTR objptr)
+{
+    if(ISANGLE(*objptr)) ++objptr;  // POINT TO THE NUMBER INSIDE THE ANGLE
+
+    if(ISBINT(*objptr)) {
+        if(rplReadBINT(objptr)<0) return 1;
+        return 0;
+    }
+    if(ISREAL(*objptr)) {
+        REAL dec;
+        rplReadReal(objptr,&dec);
+        if(dec.flags&F_NEGATIVE) return 1;
+        return 0;
+    }
+
+    if(ISCOMPLEX(*objptr)) {
+        REAL re,im;
+        BINT angmode;
+
+        rplReadCNumber(objptr,&re,&im,&angmode);
+        if(re.flags&F_NEGATIVE) return 1;
+        return 0;
+    }
+
+    return 0;
+}
 
 
 

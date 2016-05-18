@@ -65,10 +65,21 @@
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 
+
+// OTHER ROMOBJECTS
+ROMOBJECT angle_180[]={
+    MKPROLOG(DOANGLE | ANGLEDEG,1),
+    MAKESINT(180)
+};
+
+
+
+
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
      (WORDPTR)LIB_MSGTABLE,
+     (WORDPTR)angle_180,
     0
 };
 
@@ -79,10 +90,12 @@ const WORDPTR const ROMPTR_TABLE[]={
 // HIGHER LEVEL API USING ANGLE OBJECTS DIRECTLY
 void rplConvertAngleObj(WORDPTR angleobj,BINT newmode)
 {
-    BINT oldmode=ANGLEMODE(*angleobj);
+    BINT oldmode;
     REAL oldang;
 
-    rplReadNumberAsReal(angleobj+1,&oldang);
+    if(ISANGLE(*angleobj)) { oldmode=ANGLEMODE(*angleobj); ++angleobj; }
+    else oldmode=ANGLERAD;
+    rplReadNumberAsReal(angleobj,&oldang);
 
     trig_convertangle(&oldang,oldmode,newmode);
 }
@@ -1151,10 +1164,219 @@ void LIB_HANDLER()
 
     case TORECT:
         // CONVERT EITHER A COMPLEX OR A VECTOR TO CARTESIAN COORDINATES
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+            rplListUnaryDoCmd();
+            return;
+        }
+
+        if(ISCOMPLEX(*rplPeekData(1))) {
+            BINT angmode=rplPolarComplexMode(rplPeekData(1));
+
+            if(angmode==ANGLENONE) return;   // NOTHING TO DO
+
+            REAL rp,ip;
+            rplReadCNumber(rplPeekData(1),&rp,&ip,&angmode);
+            rplPolar2Rect(&rp,&ip,angmode);
+            rplCheckResultAndError(&RReg[0]);
+            rplCheckResultAndError(&RReg[1]);
+
+            if(Exceptions) return;
+
+            rplDropData(1);
+            rplNewComplexPush(&RReg[0],&RReg[1],ANGLENONE);
+            return;
+       }
+
+        if(ISMATRIX(*rplPeekData(1))) {
+
+           // CONVERT TO RECTANGULAR
+
+            WORDPTR matrix=rplPeekData(1);
+            BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+
+            if(rows) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+
+            if(!rplMatrixIsPolar(matrix)) return; // NOTHING TO DO
+
+
+            // EXPLODE ALL NUMBERS IN THE STACK
+
+            WORDPTR *first=rplMatrixExplode();
+
+            rplMatrixPolarToRectEx(first-1,1,cols);
+            if(Exceptions) { DSTop=first; return; }
+
+            // NOW RECREATE THE MATRIX
+
+            WORDPTR newmat=rplMatrixCompose(rows,cols);
+            if(!newmat) { DSTop=first; return; }
+
+            DSTop=first;    // CLEAN UP THE STACK
+
+            rplOverwriteData(1,newmat);
+
+            return;
+
+        }
+
+
+        rplError(ERR_BADARGTYPE);
+        return;
+
+
+    }
 
     case TOPOLAR:
+
+        // CONVERT EITHER A COMPLEX OR A VECTOR TO POLAR COORDINATES
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+            rplListUnaryDoCmd();
+            return;
+        }
+
+        if(ISCOMPLEX(*rplPeekData(1))) {
+            BINT angmode=rplPolarComplexMode(rplPeekData(1));
+
+            if(angmode!=ANGLENONE) return;   // NOTHING TO DO
+
+            REAL rp,ip;
+            rplReadCNumber(rplPeekData(1),&rp,&ip,&angmode);
+
+            angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+            rplRect2Polar(&rp,&ip,angmode);
+            rplCheckResultAndError(&RReg[0]);
+            rplCheckResultAndError(&RReg[1]);
+
+            if(Exceptions) return;
+
+            rplDropData(1);
+            rplNewComplexPush(&RReg[0],&RReg[1],angmode);
+            return;
+       }
+
+        if(ISMATRIX(*rplPeekData(1))) {
+
+           // CONVERT TO POLAR (CYLINDRICAL)
+
+            WORDPTR matrix=rplPeekData(1);
+            BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+
+            if(rows) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+
+            if(rplMatrixIsPolar(matrix)) return; // NOTHING TO DO
+
+            BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+            // EXPLODE ALL NUMBERS IN THE STACK
+
+            WORDPTR *first=rplMatrixExplode();
+
+            rplMatrixRectToPolarEx(first-1,1,cols,1,angmode);
+            if(Exceptions) { DSTop=first; return; }
+
+            // NOW RECREATE THE MATRIX
+
+            WORDPTR newmat=rplMatrixCompose(rows,cols);
+            if(!newmat) { DSTop=first; return; }
+
+            DSTop=first;    // CLEAN UP THE STACK
+
+            rplOverwriteData(1,newmat);
+
+            return;
+
+        }
+
+
+        rplError(ERR_BADARGTYPE);
+        return;
+
+
+    }
+
+
+
     case TOSPHER:
 
+        // CONVERT EITHER A COMPLEX OR A VECTOR TO POLAR COORDINATES
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+            rplListUnaryDoCmd();
+            return;
+        }
+
+        if(ISMATRIX(*rplPeekData(1))) {
+
+           // CONVERT TO SPHERICAL COORDINATES
+
+            WORDPTR matrix=rplPeekData(1);
+            BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+
+            if(rows) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+
+            if(rplMatrixIsPolar(matrix)) return; // NOTHING TO DO
+
+            BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+            // EXPLODE ALL NUMBERS IN THE STACK
+
+            WORDPTR *first=rplMatrixExplode();
+
+            rplMatrixRectToPolarEx(first-1,1,cols,0xffffffff,angmode);
+            if(Exceptions) { DSTop=first; return; }
+
+            // NOW RECREATE THE MATRIX
+
+            WORDPTR newmat=rplMatrixCompose(rows,cols);
+            if(!newmat) { DSTop=first; return; }
+
+            DSTop=first;    // CLEAN UP THE STACK
+
+            rplOverwriteData(1,newmat);
+
+            return;
+
+        }
+
+
+        rplError(ERR_BADARGTYPE);
+        return;
+
+
+    }
 
 
     return;

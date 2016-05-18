@@ -415,6 +415,7 @@ extern const WORD ten_bint[];
 extern const WORD one_real[];
 extern const WORD empty_string[];
 extern const WORD empty_list[];
+extern const WORD angle_180[];
 
 // DEFINE ALL ERROR CODES
 #include "errorcodes.h"
