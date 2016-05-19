@@ -2230,22 +2230,22 @@ void chsKeyHandler(BINT keymsg)
     else{
         // ACTION INSIDE THE EDITOR
 
-        // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER, CHANGE THE SIGN OF THE NUMBER IN THE TEXT
         BYTEPTR startnum;
         BYTEPTR line=(BYTEPTR)(CmdLineCurrentLine+1);
 
+        // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER, CHANGE THE SIGN OF THE NUMBER IN THE TEXT
         startnum=uiFindNumberStart();
         if(!startnum) {
-            // SECOND CASE: IF TOKEN UNDER CURSOR IS EMPTY, IN 'D' MODE COMPILE OBJECT AND THEN EXECUTE NEG
             startnum=line+halScreen.CursorPosition;
             if(startnum>line) {
-            if(startnum[-1]=='+') { startnum[-1]='-'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
-            if(startnum[-1]=='-') { startnum[-1]='+'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
+            if(startnum[-1]=='+') { uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"-"); halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
+            if(startnum[-1]=='-') { uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"+"); halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
             if((startnum[-1]=='E')||(startnum[-1]=='e') ) { uiInsertCharacters((BYTEPTR)"-"); uiAutocompleteUpdate(); return; }
 
 
             }
 
+            // SECOND CASE: IF TOKEN UNDER CURSOR IS EMPTY, IN 'D' MODE COMPILE OBJECT AND THEN EXECUTE NEG
 
             if((halScreen.CursorState&0xff)=='D') {
             // COMPILE AND EXECUTE NEG
@@ -2281,14 +2281,17 @@ void chsKeyHandler(BINT keymsg)
         }
         else {
             // WE FOUND A NUMBER
-            if(startnum>line) {
-            if(startnum[-1]=='+') { startnum[-1]='-'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
-            if(startnum[-1]=='-') { startnum[-1]='+'; halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
-            }
-            // NEED TO INSERT A CHARACTER HERE
             BINT oldposition=halScreen.CursorPosition;
             uiMoveCursor(startnum-line);
-            uiInsertCharacters((BYTEPTR)"-");
+            BYTEPTR plusminus=(BYTEPTR)"-";
+
+            if(startnum>line) {
+            if(startnum[-1]=='+') { uiMoveCursor(startnum-line-1); uiRemoveCharacters(1); --oldposition; }
+            if(startnum[-1]=='-') { uiMoveCursor(startnum-line-1); uiRemoveCharacters(1); plusminus=(BYTEPTR)"+"; -- oldposition; }
+            }
+
+            // NEED TO INSERT A CHARACTER HERE
+            uiInsertCharacters(plusminus);
             uiMoveCursor(oldposition+1);
             uiEnsureCursorVisible();
             uiAutocompleteUpdate();

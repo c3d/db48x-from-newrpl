@@ -1058,7 +1058,10 @@ void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BI
 #define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
 
         for(i=rowsa;i>=1;--i) {
-            // COMPUTE THE TOTAL VECTOR LENGTH (SQUARED) UP TO HERE
+            // LEAVE THE COSINE SQUARE MULTIPLIER HERE, INITIALLY ONE
+            rplPushData((WORDPTR)one_bint);
+
+            // COMPUTE THE TOTAL VECTOR LENGTH (SQUARED)
             rplPushData((WORDPTR)zero_bint);
 
             for(k=1;k<=colsa;++k) {
@@ -1069,9 +1072,10 @@ void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BI
                 if(Exceptions) { DSTop=stacksave; return; }
             }
 
-            // HERE WE HAVE THE SQUARE OF THE VECTOR LENGTH
+            // HERE WE HAVE THE SQUARE OF THE VECTOR LENGTH AND COSINE MULTIPLIER IN THE STACK
 
 
+            BINT negcosine=0;
 
             for(j=colsa;j>=1;--j) {
 
@@ -1088,17 +1092,25 @@ void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BI
                         // AND LEAVE ALL OTHER VALUES AS THEY ARE 1/COS(0)=1
                     }
                     else {
-                        BINT negcosine;
                     rplPushData(STACKELEM(i,j));
-                    rplPushData(rplPeekData(2));
+                    rplPushData(rplPeekData(3));    // GET cos^2 MULTIPLIER
+                    rplPushData(rplPeekData(3));    // GET RN^2
+                    Context.precdigits+=8;
+                    rplCallOvrOperator(CMD_OVR_MUL);
                     rplCallOperator(CMD_SQRT);
+                    Context.precdigits-=8;
                     rplCallOvrOperator(CMD_OVR_DIV);
+                    if(negcosine) rplCallOvrOperator(CMD_OVR_NEG);
+
+
                     if(Exceptions) { DSTop=stacksave; return; }
                     // HERE WE HAVE x(n)/SQRT(x(1)^2 + ... x(n)^2) IN THE STACK
+
+
                     rplCallOperator(CMD_ASIN);
                     if(Exceptions) { DSTop=stacksave; return; }
                     // KEEP ANGLES FROM -90 TO +90 DEGREES, EXCEPT THE FIRST ONE
-                    if((j==2) && rplIsNegative(STACKELEM(i,1))) {
+                    if((j==2) && (rplIsNegative(STACKELEM(i,1))^rplIsNegative(rplPeekData(3)))) {
                             // FIRST ANGLE CAN BE FROM -180 TO +180
                             BINT negsine=rplIsNegative(rplPeekData(1));
                             rplPushData(rplPeekData(1));
@@ -1106,9 +1118,9 @@ void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BI
                             if(negsine) rplCallOvrOperator(CMD_OVR_NEG);
                             rplCallOvrOperator(CMD_OVR_SUB);
                             if(negsine) rplCallOvrOperator(CMD_OVR_NEG);
-                            negcosine=1;
+                            negcosine^=1;
 
-                    } else negcosine=0;
+                    }
 
 
 
@@ -1125,58 +1137,99 @@ void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BI
                     WORDPTR oldelem=STACKELEM(i,j);
                     STACKELEM(i,j)=rplPeekData(1);
 
+
+                    // COMPUTE THE COS^2 OF THE ANGLE = 1-SIN^2 = 1-xn^2/(Rn^2*cosmult^2)
+                    Context.precdigits+=8;
                     rplOverwriteData(1,oldelem);
                     rplPushData(rplPeekData(1));
+                    rplCallOvrOperator(CMD_OVR_MUL);    // xn^2
+                    rplPushData(rplPeekData(3));        // cosmult^2
+                    rplPushData(rplPeekData(3));        // Rn^2
                     rplCallOvrOperator(CMD_OVR_MUL);
-                    rplPushData(rplPeekData(2));
                     rplCallOvrOperator(CMD_OVR_DIV);
                     rplPushData(rplPeekData(1));
                     rplOverwriteData(2,(WORDPTR)&one_bint);
                     rplCallOvrOperator(CMD_OVR_SUB);
+
+
+
                     if(Exceptions) { DSTop=stacksave; return; }
-                    // HERE WE HAVE 1-(xn/Rn)^2 = COS^2(angle)
-                    if(rplIsFalse(rplPeekData(1))) {
+
+                    if(ISNUMBER(*rplPeekData(1))) {
+                        REAL r;
+
+                        rplReadNumberAsReal(rplPeekData(1),&r);
+                        BINT tmpdigits;
+                        if(iszeroReal(&r)) tmpdigits=0;
+                        else {
+                        r.exp+=Context.precdigits-8;    // MULTIPLY BY THE DESIRED PRECISION
+                        tmpdigits=intdigitsReal(&r);
+                        }
+                        if(tmpdigits<=0) {
+
                         // COS(angle)=0 THEREFORE ANGLE IS EITHER 90 OR 270 EXACT
                         // THE ONLY WAY IS IF ALL Xi PRIOR TO THIS ONE WERE ZERO
                         // THEREFORE PUT THE VECTOR LENGTH IN AT LEAST ONE OF THEM
 
-
                         rplOverwriteData(1,rplPeekData(2)); // DUP THE VECTOR LENGTH
+                        Context.precdigits-=8;
                         rplCallOperator(CMD_SQRT);
+                        Context.precdigits+=8;
                         STACKELEM(i,1)=rplPopData();
+                        // AND RESET THE cosmult TO 1 SINCE ALL VALUES ARE ZERO AND
+                        // THE FIRST VALUE DOESN'T NEED TO BE MODIFIED
+                        rplOverwriteData(2,(WORDPTR)one_bint);
+                        negcosine=0;
+                        }
+                        else {
+                            // UPDATE THE cosmult^2
+                            rplPushData(rplPeekData(3));
+                            rplCallOvrOperator(CMD_OVR_MUL);
+                            if(Exceptions) { DSTop=stacksave; return; }
+
+                            rplOverwriteData(2,rplPopData());   // UPDATED FOR THE NEXT ITEM
+
+
+                        }
                     }
                     else {
-                    rplCallOperator(CMD_SQRT);
-                    if(negcosine) rplCallOvrOperator(CMD_OVR_NEG);
-                    rplCallOvrOperator(CMD_OVR_INV);
+
+
+                    // UPDATE THE cosmult^2
+                    rplPushData(rplPeekData(3));
+                    rplCallOvrOperator(CMD_OVR_MUL);
                     if(Exceptions) { DSTop=stacksave; return; }
 
-                    // NOW MULTIPLY EVERY PREVIOUS VALUE BY 1/COS(angle)
+                    rplOverwriteData(2,rplPopData());   // UPDATED FOR THE NEXT ITEM
 
-                    if(Exceptions) { DSTop=stacksave; return; }
+                    }
 
-                    for(k=1;k<j;++k) {
-                        rplPushData(STACKELEM(i,k));
-                        rplPushData(rplPeekData(2));
-                        rplCallOvrOperator(CMD_OVR_MUL);
-                        if(Exceptions) { DSTop=stacksave; return; }
-                        STACKELEM(i,k)=rplPopData();
-                    }
-                    rplDropData(1);   // DROP THE 1/COS(angle) CONSTANT
-                    }
+
+                    Context.precdigits-=8;
                     }
 
                 }
                 else {
+                    // NOT AN ANGLE
                     // JUST SUBTRACT THE SQUARE OF THE ELEMENT FROM THE TOTAL
                     rplPushData(STACKELEM(i,j));
                     rplPushData(rplPeekData(1));
                     rplCallOvrOperator(CMD_OVR_MUL);
                     rplCallOvrOperator(CMD_OVR_SUB);
+
+                    // AND DIVIDE THE ELEMENT BY THE cosmult
+                    rplPushData(STACKELEM(i,j));
+                    Context.precdigits+=8;
+                    rplPushData(rplPeekData(3));    // GET cosmult^2
+                    rplCallOperator(CMD_SQRT);
+                    if(negcosine) rplCallOvrOperator(CMD_OVR_NEG);  // ADD THE SIGN
+                    Context.precdigits-=8;
+                    rplCallOvrOperator(CMD_OVR_DIV);
+                    STACKELEM(i,j)=rplPopData();
                 }
             }
-            // DONE, REMOVE THE VECTOR LENGTH
-            rplDropData(1);
+            // DONE, REMOVE THE VECTOR LENGTH AND COSINE MULTIPLIER
+            rplDropData(2);
         }
 
 #undef STACKELEM
