@@ -18,6 +18,9 @@
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  64
 
+#define ERROR_LIST \
+        ERR(ERR1,0), \
+        ERR(ERR2,1)
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -72,6 +75,18 @@
 // ************************************
 // *** END OF COMMON LIBRARY HEADER ***
 // ************************************
+INCLUDE_ROMOBJECT(LIB_MSGTABLE);
+INCLUDE_ROMOBJECT(LIB_HELPTABLE);
+INCLUDE_ROMOBJECT(lib64_menu);
+
+// EXTERNAL EXPORTED OBJECT TABLE
+// UP TO 64 OBJECTS ALLOWED, NO MORE
+const WORDPTR const ROMPTR_TABLE[]={
+    (WORDPTR)LIB_MSGTABLE,
+    (WORDPTR)LIB_HELPTABLE,
+     (WORDPTR)lib64_menu,
+        0
+};
 
 const char const modulo_name[]="MOD";
 
@@ -1448,6 +1463,35 @@ void LIB_HANDLER()
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         return;
 
+    case OPCODE_LIBMENU:
+        // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
+        // MUST RETURN A MENU LIST IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {\
+        if(MENUNUMBER(MenuCodeArg)>0) RetNum=ERR_NOTMINE;
+        // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
+        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+2];
+        RetNum=OK_CONTINUE;
+        return;
+    }
+
+    case OPCODE_LIBHELP:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN CmdHelp
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
+        return;
+    }
+
+//    case OPCODE_LIBMSG:
+//        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
+//        // MUST RETURN A STRING OBJECT IN ObjectPTR
+//        // AND RetNum=OK_CONTINUE;
+//    {
+//        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+//        return;
+//    }
 
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;
