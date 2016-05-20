@@ -243,7 +243,7 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define ISCOMMENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOCOMMENT))
 
-#define ANGLEMODE(prolog) ( (ISANGLE(prolog)? (LIBNUM(prolog)&3):ANGLENONE) )
+#define ANGLEMODE(prolog) ( (ISANGLE(prolog)? (BINT)(LIBNUM(prolog)&3):(BINT)ANGLENONE) )
 
 // THIS IS TO CHECK IF AN OBJECT IS "FALSE", WHICH CAN BE THE BINT0 OR THE REAL0
 #define IS_FALSE(p)   ( (OPCODE(p)==0) && (((LIBNUM(p)+4)&~7)==OCTBINT))
@@ -412,8 +412,10 @@ extern const WORD one_bint[];
 extern const WORD two_bint[];
 extern const WORD three_bint[];
 extern const WORD ten_bint[];
+extern const WORD one_real[];
 extern const WORD empty_string[];
 extern const WORD empty_list[];
+extern const WORD angle_180[];
 
 // DEFINE ALL ERROR CODES
 #include "errorcodes.h"

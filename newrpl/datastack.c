@@ -255,6 +255,38 @@ void rplTakeSnapshotN(BINT nargs)
     DSTop+=nargs;
     return;
 }
+
+// PUSH THE CURRENT STACK AS SNAPSHOT LEVEL1
+// AND COPY ALL ITEMS TO CURRENT STACK
+// THE SNAPSHOT WILL NOT CONTAIN THE FIRST nargs LEVEL OF THE STACK
+// USED TO HIDE TEMPORARY ARGUMENTS DURING UNDO OPERATIONS
+void rplTakeSnapshotHide(BINT nargs)
+{
+    WORDPTR *top=DSTop,*bottom=DStkBottom,hidefirst;
+    BINT levels=top-bottom;
+    if(levels<nargs) nargs=levels;
+    if(nargs<0) nargs=0;
+    // THIS IS NOT A POINTER, SO IT WILL CRASH IF AN APPLICATION TRIES TO BREAK
+    // THE SNAPSHOT BARRIER
+    rplExpandStack(levels);
+    if(Exceptions) {
+        // RETURN WITHOUT MAKING AN UNDO MARK
+        DSTop=top;
+        return;
+    }
+    hidefirst=DSTop[-nargs];
+    DSTop[-nargs]=NUMBER2PTR(levels-nargs);
+
+    // COPY TO NEW STACK
+    memmovew(DSTop-nargs+1,bottom,(levels-nargs)*(sizeof(void*)>>2));
+
+    DStkProtect+=levels-nargs+1;
+    DStkBottom+=levels-nargs+1;
+    DSTop+=levels-nargs+1;
+    DSTop[-nargs]=hidefirst;    // AND RESTORE THE DAMAGED WORD
+    return;
+}
+
 // PUSH THE CURRENT STACK AS SNAPSHOT LEVEL1
 // AND CLEAR THE CURRENT STACK
 
@@ -294,7 +326,7 @@ void rplRestoreSnapshot(BINT numsnap)
     }
 
 
-        BINT levels=(BINT)*(prevptr-1);
+        BINT levels=(PTR2NUMBER)*(prevptr-1);
 
         rplExpandStack(levels-rplDepthData());
         if(Exceptions) {
@@ -336,7 +368,7 @@ BINT rplDepthSnapshot(BINT numsnap)
     }
 
 
-        return (BINT)*(prevptr-1);
+        return (PTR2NUMBER)*(prevptr-1);
 }
 
 // SAME AS rplPeekData() BUT IT CAN LOOK INTO SNAPSHOTS
@@ -358,7 +390,7 @@ WORDPTR rplPeekSnapshot(BINT numsnap,BINT level)
     }
 
 
-        BINT levels=(BINT)*(prevptr-1);
+        BINT levels=(PTR2NUMBER)*(prevptr-1);
 
         if( (level<1) || (level>levels)) return 0;  // DO NOT PEEK OUTSIDE THE CURRENT SNAPSHOT
 

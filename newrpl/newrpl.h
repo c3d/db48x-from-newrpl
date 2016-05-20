@@ -29,10 +29,10 @@ typedef int64_t BINT64;
 typedef uint64_t UBINT64;
 #if defined(__LP64__) || defined(_WIN64)
 typedef uint64_t PTR2NUMBER;
-#define NUMBER2PTR(a) ((WORDPTR)((UBINT64)a))
+#define NUMBER2PTR(a) ((WORDPTR)((UBINT64)(a)))
 #else
 typedef uint32_t PTR2NUMBER;
-#define NUMBER2PTR(a) ((WORDPTR)a)
+#define NUMBER2PTR(a) ((WORDPTR)(a))
 #endif
 
 
@@ -228,6 +228,7 @@ void rplRemoveSnapshot(BINT numsnap);
 void rplRestoreSnapshot(BINT numsnap);
 void rplRevertToSnapshot(BINT numsnap);
 void rplTakeSnapshotN(BINT nargs);
+void rplTakeSnapshotHide(BINT nargs);
 void rplTakeSnapshotAndClear();
 BINT rplDepthSnapshot(BINT numsnap);
 WORDPTR rplPeekSnapshot(BINT numsnap,BINT level);
@@ -365,6 +366,7 @@ BINT rplGetVisibleVarCount();
 WORDPTR rplGetGlobal(WORDPTR nameobj);
 WORDPTR *rplMakeNewDir();
 WORDPTR rplGetDirName(WORDPTR *dir);
+BINT rplGetFullPath(WORDPTR *dir,WORDPTR *buffer,BINT maxdepth);
 WORDPTR *rplGetDirfromGlobal(WORDPTR *var);
 WORDPTR *rplDeepCopyDir(WORDPTR *sourcedir);
 void rplWipeDir(WORDPTR *directory);
@@ -448,6 +450,7 @@ void rplNumberToRReg(int num,WORDPTR number);
 BINT64 rplReadNumberAsBINT(WORDPTR number);
 void rplReadNumberAsReal(WORDPTR number,REAL*dec);
 void rplLoadBINTAsReal(BINT64 number,REAL*dec);
+BINT rplIsNegative(WORDPTR objptr);
 
 
 // ANGLE FUNCTIONS
@@ -536,8 +539,6 @@ WORDPTR rplMatrixGet(WORDPTR matrix,BINT row,BINT col);
 WORDPTR rplMatrixFastGet(WORDPTR matrix,BINT row,BINT col);
 WORDPTR *rplMatrixFastGetEx(WORDPTR *first,BINT cols,BINT i,BINT j);
 WORDPTR *rplMatrixNewEx(BINT rows,BINT cols);
-
-
 void rplMatrixNorm();
 void rplMatrixNeg();
 void rplMatrixEval1();
@@ -551,6 +552,9 @@ void rplMatrixBareiss();
 void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa);
 void rplMatrixInvert();
 void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
+BINT rplMatrixIsPolar(WORDPTR matobj);
+void rplMatrixPolarToRectEx(WORDPTR *a,BINT rowsa,BINT colsa);
+void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BINT angmode);
 
 
 // ANGULAR MODES

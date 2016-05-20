@@ -266,7 +266,8 @@ void rplRect2Polar(REAL *re,REAL *im,BINT angmode)
 
     // NOW USE THE ORIGINAL ARGUMENTS TO GET THE ANGLE
     // GET RReg[0]=theta
-    trig_atan2(im,re,angmode);
+    if(iszeroReal(&RReg[8])) rplZeroToRReg(0);
+    else trig_atan2(im,re,angmode);
     finalize(&RReg[0]);
 
     // MOVE IT TO A HIGHER REGISTER, AS ALL TRIG FUNCTIONS USE RRegs 0 TO 7

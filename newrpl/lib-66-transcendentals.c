@@ -552,6 +552,26 @@ void LIB_HANDLER()
 
             rplReadCNumber(arg,&re,&im,&angmode);
 
+            if(angmode!=ANGLENONE) {
+                // WE GOT A POLAR COMPLEX NUMBER
+                // CONVERT TO RECT. COORDINATES
+                trig_sincos(&im,angmode);
+
+                // RReg[6]= cos
+                // RReg[7]= sin
+                normalize(&RReg[6]);
+                normalize(&RReg[7]);
+
+                mulReal(&RReg[8],&RReg[6],&re);
+                mulReal(&RReg[9],&RReg[7],&re);
+
+                re.data=allocRegister();
+                im.data=allocRegister();
+
+                copyReal(&re,&RReg[8]);
+                copyReal(&im,&RReg[9]);
+
+            }
 
             // COMPLEX ARGUMENT, SAME METHOD AS REAL ARGUMENT OUTSIDE DOMAIN
             // COMPUTE FROM
@@ -629,9 +649,45 @@ void LIB_HANDLER()
 
             finalize(&RReg[0]);     // LN(r')
 
-            // RETURN A CARTESIAN COMPLEX
+            // GOT THE CARTESIAN COMPLEX RESULT
 
             RReg[0].flags^=F_NEGATIVE;  // -i*ln(...)=
+
+            if(angmode!=ANGLENONE) {
+                // RELEASE THE EXTRA ALLOCATED MEMORY
+                freeRegister(re.data);
+                freeRegister(im.data);
+
+                // RETURN A POLAR COMPLEX IN THE SAME ORIGINAL MODE
+
+                mulReal(&RReg[1],&RReg[0],&RReg[0]);
+                mulReal(&RReg[2],&RReg[9],&RReg[9]);
+                addReal(&RReg[3],&RReg[1],&RReg[2]);
+                swapReal(&RReg[0],&RReg[8]);            // PRESERVE THE REAL PART FOR THE ANGLE
+                hyp_sqrt(&RReg[3]);
+                finalize(&RReg[0]);
+
+                swapReal(&RReg[0],&RReg[8]);
+
+                trig_atan2(&RReg[9],&RReg[0],angmode);
+
+                finalize(&RReg[0]);
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[0],&RReg[8],angmode);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[8]);
+
+                return;
+
+
+            }
+
+
+            // RETURN A CARTESIAN COMPLEX
 
             WORDPTR newcmplx=rplNewComplex(&RReg[9],&RReg[0],ANGLENONE);
             if( (!newcmplx) || Exceptions) return;
@@ -754,10 +810,30 @@ void LIB_HANDLER()
 
             rplReadCNumber(arg,&re,&im,&angmode);
 
+            if(angmode!=ANGLENONE) {
+                // WE GOT A POLAR COMPLEX NUMBER
+                // CONVERT TO RECT. COORDINATES
+                trig_sincos(&im,angmode);
+
+                // RReg[6]= cos
+                // RReg[7]= sin
+                normalize(&RReg[6]);
+                normalize(&RReg[7]);
+
+                mulReal(&RReg[8],&RReg[6],&re);
+                mulReal(&RReg[9],&RReg[7],&re);
+
+                re.data=allocRegister();
+                im.data=allocRegister();
+
+                copyReal(&re,&RReg[8]);
+                copyReal(&im,&RReg[9]);
+
+            }
 
             // COMPLEX ARGUMENT, SAME METHOD AS REAL ARGUMENT OUTSIDE DOMAIN
             // COMPUTE FROM
-            //ACOS(Z)=-i*LN(Z+i*SQRT(Z^2-1))
+            //ACOS(Z)=-i*LN(Z+i*SQRT(1-Z^2))
 
             // Z^2 = (re^2-im^2+2*i*re*im)
             // 1-Z^2 = (1-re^2+im^2)-i*(2*re*im)
@@ -834,9 +910,48 @@ void LIB_HANDLER()
 
             finalize(&RReg[0]);     // LN(r')
 
-            // RETURN A CARTESIAN COMPLEX
 
             RReg[0].flags^=F_NEGATIVE;  // -i*ln(...)=
+
+
+            if(angmode!=ANGLENONE) {
+                // RELEASE THE EXTRA ALLOCATED MEMORY
+                freeRegister(re.data);
+                freeRegister(im.data);
+
+                // RETURN A POLAR COMPLEX IN THE SAME ORIGINAL MODE
+
+                mulReal(&RReg[1],&RReg[0],&RReg[0]);
+                mulReal(&RReg[2],&RReg[9],&RReg[9]);
+                addReal(&RReg[3],&RReg[1],&RReg[2]);
+                swapReal(&RReg[0],&RReg[8]);            // PRESERVE THE REAL PART FOR THE ANGLE
+                hyp_sqrt(&RReg[3]);
+                finalize(&RReg[0]);
+
+                swapReal(&RReg[0],&RReg[8]);
+
+                trig_atan2(&RReg[9],&RReg[0],angmode);
+
+                finalize(&RReg[0]);
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[0],&RReg[8],angmode);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[8]);
+
+                return;
+
+
+            }
+
+
+            // RETURN A CARTESIAN COMPLEX
+
+
+
 
             WORDPTR newcmplx=rplNewComplex(&RReg[9],&RReg[0],ANGLENONE);
             if( (!newcmplx) || Exceptions) return;
@@ -957,26 +1072,153 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
+            rplListUnaryDoCmd();
+            return;
+        }
 
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
 
-            rplPushData(newobj);
+        if(ISCOMPLEX(*arg)) {
+            // ATAN OF A COMPLEX NUMBER
+            REAL re,im,one;
+            BINT angmode;
 
-            rplCallOperator(CMD_MAP);
+            rplReadCNumber(arg,&re,&im,&angmode);
 
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
+            if(angmode!=ANGLENONE) {
+                // WE GOT A POLAR COMPLEX NUMBER
+                // CONVERT TO RECT. COORDINATES
+                trig_sincos(&im,angmode);
+
+                // RReg[6]= cos
+                // RReg[7]= sin
+                normalize(&RReg[6]);
+                normalize(&RReg[7]);
+
+                mulReal(&RReg[8],&RReg[6],&re);
+                mulReal(&RReg[9],&RReg[7],&re);
+
+                re.data=allocRegister();
+                im.data=allocRegister();
+
+                copyReal(&re,&RReg[8]);
+                copyReal(&im,&RReg[9]);
+
             }
 
-            // EXECUTION WILL CONTINUE AT MAP
+
+
+
+            decconst_One(&one);
+
+
+            // ATAN(Z)=1/2*i*(ln(1-i*Z)-ln(1+i*Z))
+            // = 1/2*i*ln( (1-i*Z)/(1+i*Z) )
+
+            // z'=1-i*Z = (1+im)-i*re
+            // Z'=1+i*Z = (1-im)+i*re
+            // z'/Z' = [(1+im)-i*re]*[(1-im)-i*re]/[ [(1-im)+i*re]*[(1-im)-i*re] ]
+            // Numerator = (1+im)*(1-im) - (1+im)*i*re - (1-im)*i*re + i^2*re^2
+            // (1 - im^2) - i*re*(1+im+1-im) - re^2
+            // = 1 - im^2 - 2*i*re - re^2
+            // = (1-im^2-re^2) - i*2*re
+            // Denominator = (1-im^2) - (i*re)^2
+            // = 1-im^2+re^2 (real number)
+            // RESULT:
+            // Re(1-i*Z)/(1+i*Z) = (1-im^2-re^2)/(1-im^2+re^2)
+            // Im(1-i*Z)/(1+i*Z) = -2*re/(1-im^2+re^2)
+
+
+            // WARNING, THERE COULD BE LOSS OF PRECISION HERE WHEN im^2+re^2 IS CLOSE TO ONE
+            mulReal(&RReg[0],&im,&im);
+            mulReal(&RReg[1],&re,&re);
+            subReal(&RReg[2],&one,&RReg[0]);    // 1-im^2
+            subReal(&RReg[3],&RReg[2],&RReg[1]); // 1-im^2-re^2
+            addReal(&RReg[4],&RReg[2],&RReg[1]); // 1-im^2+re^2
+            addReal(&RReg[5],&re,&re);           // 2*re
+            RReg[5].flags^=F_NEGATIVE;
+
+            divReal(&RReg[8],&RReg[3],&RReg[4]);    // Re((1-i*Z)/(1+i*Z))
+            divReal(&RReg[9],&RReg[5],&RReg[4]);    // Im((1-i*Z)/(1+i*Z))
+
+            // NOW TAKE THE LOGARITHM
+
+            //i*ln(Z)=i*(ln(r)+i*Theta)=-Theta+i*ln(r)
+
+            trig_atan2(&RReg[9],&RReg[8],ANGLERAD);
+            normalize(&RReg[0]);
+
+            mulReal(&RReg[1],&RReg[8],&RReg[8]);
+            mulReal(&RReg[2],&RReg[9],&RReg[9]);
+            addReal(&RReg[4],&RReg[1],&RReg[2]);
+
+            swapReal(&RReg[0],&RReg[9]);    // KEEP THE ANGLE, THIS IS THE IMAGINARY PART OF THE LN()
+
+            hyp_sqrt(&RReg[4]);
+            normalize(&RReg[0]);
+
+            hyp_ln(&RReg[0]);
+
+            finalize(&RReg[0]);     // LN(r)
+
+            // RETURN A CARTESIAN COMPLEX
+
+            RReg[9].flags^=F_NEGATIVE;  // i*ln(...)=
+
+            newRealFromBINT(&RReg[2],5);
+            RReg[2].exp--;          // 0.5
+
+            mulReal(&RReg[3],&RReg[0],&RReg[2]);    // IMAGINARY PART
+            swapReal(&RReg[3],&RReg[0]);
+            mulReal(&RReg[4],&RReg[9],&RReg[2]);    // REAL PART
+            swapReal(&RReg[9],&RReg[4]);
+
+            if(angmode!=ANGLENONE) {
+                // RELEASE THE EXTRA ALLOCATED MEMORY
+                freeRegister(re.data);
+                freeRegister(im.data);
+
+                // RETURN A POLAR COMPLEX IN THE SAME ORIGINAL MODE
+
+                mulReal(&RReg[1],&RReg[0],&RReg[0]);
+                mulReal(&RReg[2],&RReg[9],&RReg[9]);
+                addReal(&RReg[3],&RReg[1],&RReg[2]);
+                swapReal(&RReg[0],&RReg[8]);            // PRESERVE THE REAL PART FOR THE ANGLE
+                hyp_sqrt(&RReg[3]);
+                finalize(&RReg[0]);
+
+                swapReal(&RReg[0],&RReg[8]);
+
+                trig_atan2(&RReg[0],&RReg[9],angmode);
+
+                finalize(&RReg[0]);
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[8],&RReg[0],angmode);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[8]);
+
+                return;
+
+
+            }
+
+
+            // RETURN A CARTESIAN COMPLEX
+
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[9],&RReg[0],ANGLENONE);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[0]);
+            rplCheckResultAndError(&RReg[9]);
 
             return;
+
         }
 
 
@@ -1021,25 +1263,7 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg) || ISLIST(*arg2)) {
 
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushDataNoGrow((WORDPTR)two_bint);
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_CMDDOLIST);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT DOLIST
-
+            rplListBinaryDoCmd(arg,arg2);
             return;
         }
 
@@ -1084,27 +1308,74 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
-
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+            rplListUnaryDoCmd();
             return;
         }
+
+        if(ISCOMPLEX(*arg)) {
+            // LOGARITHM OF A COMPLEX NUMBER
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            if(angmode!=ANGLENONE) {
+                // ALREADY IN POLAR FORM
+
+                // ONLY ACCEPT THE ANGLE IN RADIANS
+                trig_convertangle(&im,angmode,ANGLERAD);
+
+                swapReal(&RReg[0],&RReg[9]);
+
+                hyp_ln(&re);
+                normalize(&RReg[0]);
+
+                // SINCE LN() MAPS FROM POLAR TO CARTESIAN PLANE, ALWAYS RETURN CARTESIAN COMPLEX
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[9],&RReg[0],ANGLENONE);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[9]);
+
+                return;
+
+
+            }
+
+            // CONVERT TO POLAR AND COMPUTE LN()
+
+            mulReal(&RReg[0],&re,&re);
+            mulReal(&RReg[1],&im,&im);
+            addReal(&RReg[2],&RReg[0],&RReg[1]);
+
+            hyp_sqrt(&RReg[2]);
+            normalize(&RReg[0]);
+            hyp_ln(&RReg[0]);
+            finalize(&RReg[0]);
+
+            swapReal(&RReg[8],&RReg[0]);        // SAVE ln(r) IN RReg[8]
+
+            trig_atan2(&im,&re,ANGLERAD);
+            finalize(&RReg[0]);
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[8],&RReg[0],ANGLENONE);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[8]);
+            rplCheckResultAndError(&RReg[0]);
+
+            return;
+
+
+        }
+
+
+
 
         rplReadNumberAsReal(rplPeekData(1),&x);
 
@@ -1122,8 +1393,39 @@ void LIB_HANDLER()
         }
 
         if(x.flags&F_NEGATIVE) {
-            // TODO: RETURN COMPLEX VALUE!
-            // FOR NOW JUST THROW AN EXCEPTION
+            if(rplTestSystemFlag(FL_COMPLEXMODE)) {
+                // RETURN THE COMPLEX RESULT
+
+                x.flags^=F_NEGATIVE;
+
+                // HANDLE SPECIAL VALUES
+                if(isinfiniteReal(&x)) {
+                   rplError(ERR_INFINITERESULT);
+                   return;
+                }
+
+
+                hyp_ln(&x);
+                finalize(&RReg[0]);
+
+                REAL pi;
+
+                decconst_PI(&pi);
+
+                copyReal(&RReg[1],&pi);
+
+                finalize(&RReg[1]);
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[0],&RReg[1],ANGLENONE);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[0]);
+
+                return;
+
+            }
             rplError(ERR_ARGOUTSIDEDOMAIN);
             return;
         }
@@ -1162,27 +1464,79 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
-
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+            rplListUnaryDoCmd();
             return;
         }
+
+
+        if(ISCOMPLEX(*arg)) {
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            if(angmode!=ANGLENONE) {
+                // IN POLAR FORM, CONVERT TO CARTESIAN
+
+                trig_sincos(&im,angmode);
+
+                // RReg[6]= cos
+                // RReg[7]= sin
+                normalize(&RReg[6]);
+                normalize(&RReg[7]);
+
+                mulReal(&RReg[8],&RReg[6],&re);
+                mulReal(&RReg[9],&RReg[7],&re);
+
+            }
+            else {
+                copyReal(&RReg[8],&re);
+                copyReal(&RReg[9],&im);
+            }
+
+
+            // e^(A+i*B)= e^A * e^(i*B)
+
+            hyp_exp(&RReg[8]);
+            normalize(&RReg[0]);
+
+            swapReal(&RReg[8],&RReg[0]);
+
+            if(angmode!=ANGLENONE) {
+
+                trig_convertangle(&RReg[9],ANGLERAD,angmode);
+
+                // AND RETURN THE POLAR COMPLEX
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[8],&RReg[0],angmode);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[8]);
+                rplCheckResultAndError(&RReg[0]);
+
+                return;
+
+            }
+
+            // AND RETURN THE POLAR COMPLEX
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[8],&RReg[9],ANGLERAD);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[8]);
+            rplCheckResultAndError(&RReg[9]);
+
+            return;
+
+
+
+        }
+
+
 
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
@@ -1227,26 +1581,143 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
+            rplListUnaryDoCmd();
+            return;
+        }
 
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
 
-            rplPushData(newobj);
+        if(ISCOMPLEX(*arg)) {
+            // SINH OF A COMPLEX NUMBER
 
-            rplCallOperator(CMD_MAP);
+            REAL re,im,one;
+            BINT angmode;
 
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            decconst_One(&one);
+
+            if(angmode!=ANGLENONE) {
+                // IN POLAR FORM, CONVERT TO CARTESIAN
+
+                trig_sincos(&im,angmode);
+
+                // RReg[6]= cos
+                // RReg[7]= sin
+                normalize(&RReg[6]);
+                normalize(&RReg[7]);
+
+                mulReal(&RReg[8],&RReg[6],&re);
+                mulReal(&RReg[9],&RReg[7],&re);
+
+            }
+            else {
+                copyReal(&RReg[8],&re);
+                copyReal(&RReg[9],&im);
             }
 
-            // EXECUTION WILL CONTINUE AT MAP
+            // SINH()=(e^2Z-1)/2e^Z
+            // e^2Z = (e^Z)^2
+            // (a+i*b)^2=a^2+2*a*i*b-b^2= (a^2-b^2) + (2*a*b)*i
+
+            // e^(A+i*B)= e^A * e^(i*B)
+
+            hyp_exp(&RReg[8]);
+            normalize(&RReg[0]);
+
+            swapReal(&RReg[8],&RReg[0]);
+
+            // CONVERT TO CARTESIAN TO DO THE SUBTRACTION
+
+            trig_sincos(&RReg[9],ANGLERAD);
+
+            // RReg[6]= cos
+            // RReg[7]= sin
+            normalize(&RReg[6]);
+            normalize(&RReg[7]);
+
+            mulReal(&RReg[0],&RReg[6],&RReg[8]);
+            mulReal(&RReg[1],&RReg[7],&RReg[8]);
+
+            swapReal(&RReg[0],&RReg[8]);
+            swapReal(&RReg[1],&RReg[9]);
+
+            // (e^Z)^2 -1 =
+            // (a+i*b)^2=a^2+2*a*i*b-b^2= (a^2-b^2) + (2*a*b)*i
+
+            mulReal(&RReg[0],&RReg[8],&RReg[8]);    // a^2
+            mulReal(&RReg[1],&RReg[9],&RReg[9]);    // b^2
+            subReal(&RReg[2],&RReg[0],&RReg[1]);
+            subReal(&RReg[3],&RReg[2],&one);        // (a^2-b^2-1)
+
+            mulReal(&RReg[4],&RReg[8],&RReg[9]);
+            addReal(&RReg[5],&RReg[4],&RReg[4]);    // (2*a*b)
+
+            // (a+i*b)/(c+i*d)=(a+i*b)*(c-i*d)/(c^2+d^2)
+            // (a*c+b*d) + i * (b*c-a*d) /(c^2+d^2)
+
+            addReal(&RReg[2],&RReg[0],&RReg[1]);    // a^2+b^2
+            addReal(&RReg[4],&RReg[2],&RReg[2]);    // 2*(a^2+b^2)
+
+            // COMPUTE REAL PART
+            mulReal(&RReg[0],&RReg[3],&RReg[8]);    // a*c
+            mulReal(&RReg[1],&RReg[5],&RReg[9]);    // d*b
+            addReal(&RReg[2],&RReg[0],&RReg[1]);    // a*c+b*d
+            divReal(&RReg[6],&RReg[2],&RReg[4]);    // /2*(a^2+B^2)=  REAL PART OF RESULT
+
+            // COMPUTE IMAG PART
+            mulReal(&RReg[0],&RReg[5],&RReg[8]);    // b*c
+            mulReal(&RReg[1],&RReg[3],&RReg[9]);    // a*d
+            subReal(&RReg[2],&RReg[0],&RReg[1]);    // b*c-a*d
+            divReal(&RReg[7],&RReg[2],&RReg[4]);    // /2*(a^2+B^2)=  IMAG PART OF RESULT
+
+            if(angmode!=ANGLENONE) {
+
+                // RETURN A POLAR COMPLEX IN THE SAME ORIGINAL MODE
+
+                swapReal(&RReg[6],&RReg[8]);
+                swapReal(&RReg[7],&RReg[9]);
+
+                mulReal(&RReg[1],&RReg[8],&RReg[8]);
+                mulReal(&RReg[2],&RReg[9],&RReg[9]);
+                addReal(&RReg[3],&RReg[1],&RReg[2]);
+                hyp_sqrt(&RReg[3]);
+                finalize(&RReg[0]);
+
+                swapReal(&RReg[0],&RReg[8]);
+
+                trig_atan2(&RReg[0],&RReg[9],angmode);
+
+                finalize(&RReg[0]);
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[8],&RReg[0],angmode);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[8]);
+
+                return;
+
+
+            }
+
+
+            // RETURN A CARTESIAN COMPLEX
+
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[6],&RReg[7],ANGLENONE);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[0]);
+            rplCheckResultAndError(&RReg[9]);
 
             return;
+
+
+
         }
 
         rplReadNumberAsReal(rplPeekData(1),&dec);
@@ -1279,27 +1750,146 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
-
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+            rplListUnaryDoCmd();
             return;
         }
+
+        if(ISCOMPLEX(*arg)) {
+            // SINH OF A COMPLEX NUMBER
+
+            REAL re,im,one;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            decconst_One(&one);
+
+            if(angmode!=ANGLENONE) {
+                // IN POLAR FORM, CONVERT TO CARTESIAN
+
+                trig_sincos(&im,angmode);
+
+                // RReg[6]= cos
+                // RReg[7]= sin
+                normalize(&RReg[6]);
+                normalize(&RReg[7]);
+
+                mulReal(&RReg[8],&RReg[6],&re);
+                mulReal(&RReg[9],&RReg[7],&re);
+
+            }
+            else {
+                copyReal(&RReg[8],&re);
+                copyReal(&RReg[9],&im);
+            }
+
+            // COSH()=(e^2Z+1)/2e^Z
+            // e^2Z = (e^Z)^2
+            // (a+i*b)^2=a^2+2*a*i*b-b^2= (a^2-b^2) + (2*a*b)*i
+
+            // e^(A+i*B)= e^A * e^(i*B)
+
+            hyp_exp(&RReg[8]);
+            normalize(&RReg[0]);
+
+            swapReal(&RReg[8],&RReg[0]);
+
+            // CONVERT TO CARTESIAN TO DO THE SUBTRACTION
+
+            trig_sincos(&RReg[9],ANGLERAD);
+
+            // RReg[6]= cos
+            // RReg[7]= sin
+            normalize(&RReg[6]);
+            normalize(&RReg[7]);
+
+            mulReal(&RReg[0],&RReg[6],&RReg[8]);
+            mulReal(&RReg[1],&RReg[7],&RReg[8]);
+
+            swapReal(&RReg[0],&RReg[8]);
+            swapReal(&RReg[1],&RReg[9]);
+
+            // (e^Z)^2 +1 =
+            // (a+i*b)^2=a^2+2*a*i*b-b^2= (a^2-b^2) + (2*a*b)*i
+
+            mulReal(&RReg[0],&RReg[8],&RReg[8]);    // a^2
+            mulReal(&RReg[1],&RReg[9],&RReg[9]);    // b^2
+            subReal(&RReg[2],&RReg[0],&RReg[1]);
+            addReal(&RReg[3],&RReg[2],&one);        // (a^2-b^2+1)
+
+            mulReal(&RReg[4],&RReg[8],&RReg[9]);
+            addReal(&RReg[5],&RReg[4],&RReg[4]);    // (2*a*b)
+
+            // (a+i*b)/(c+i*d)=(a+i*b)*(c-i*d)/(c^2+d^2)
+            // (a*c+b*d) + i * (b*c-a*d) /(c^2+d^2)
+
+            addReal(&RReg[2],&RReg[0],&RReg[1]);    // a^2+b^2
+            addReal(&RReg[4],&RReg[2],&RReg[2]);    // 2*(a^2+b^2)
+
+            // COMPUTE REAL PART
+            mulReal(&RReg[0],&RReg[3],&RReg[8]);    // a*c
+            mulReal(&RReg[1],&RReg[5],&RReg[9]);    // d*b
+            addReal(&RReg[2],&RReg[0],&RReg[1]);    // a*c+b*d
+            divReal(&RReg[6],&RReg[2],&RReg[4]);    // /2*(a^2+B^2)=  REAL PART OF RESULT
+
+            // COMPUTE IMAG PART
+            mulReal(&RReg[0],&RReg[5],&RReg[8]);    // b*c
+            mulReal(&RReg[1],&RReg[3],&RReg[9]);    // a*d
+            subReal(&RReg[2],&RReg[0],&RReg[1]);    // b*c-a*d
+            divReal(&RReg[7],&RReg[2],&RReg[4]);    // /2*(a^2+B^2)=  IMAG PART OF RESULT
+
+            if(angmode!=ANGLENONE) {
+
+                // RETURN A POLAR COMPLEX IN THE SAME ORIGINAL MODE
+
+                swapReal(&RReg[6],&RReg[8]);
+                swapReal(&RReg[7],&RReg[9]);
+
+                mulReal(&RReg[1],&RReg[8],&RReg[8]);
+                mulReal(&RReg[2],&RReg[9],&RReg[9]);
+                addReal(&RReg[3],&RReg[1],&RReg[2]);
+                hyp_sqrt(&RReg[3]);
+                finalize(&RReg[0]);
+
+                swapReal(&RReg[0],&RReg[8]);
+
+                trig_atan2(&RReg[0],&RReg[9],angmode);
+
+                finalize(&RReg[0]);
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[8],&RReg[0],angmode);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[8]);
+
+                return;
+
+
+            }
+
+
+            // RETURN A CARTESIAN COMPLEX
+
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[6],&RReg[7],ANGLENONE);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[0]);
+            rplCheckResultAndError(&RReg[9]);
+
+            return;
+
+
+
+        }
+
+
+
 
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
@@ -1330,27 +1920,132 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
-
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+            rplListUnaryDoCmd();
             return;
         }
+
+
+        if(ISCOMPLEX(*arg)) {
+            // TANH OF A COMPLEX NUMBER
+
+            REAL re,im,one;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            decconst_One(&one);
+
+            if(angmode!=ANGLENONE) {
+                // IN POLAR FORM, CONVERT TO CARTESIAN
+
+                trig_sincos(&im,angmode);
+
+                // RReg[6]= cos
+                // RReg[7]= sin
+                normalize(&RReg[6]);
+                normalize(&RReg[7]);
+
+                mulReal(&RReg[0],&RReg[6],&re);
+                mulReal(&RReg[1],&RReg[7],&re);
+                addReal(&RReg[8],&RReg[0],&RReg[0]);
+                addReal(&RReg[9],&RReg[1],&RReg[1]);
+
+            }
+            else {
+                addReal(&RReg[8],&re,&re);
+                addReal(&RReg[9],&im,&im);
+            }
+
+            // TANH()=(e^2Z-1)/(e^2Z+1)
+
+            hyp_exp(&RReg[8]);
+            normalize(&RReg[0]);
+
+            swapReal(&RReg[8],&RReg[0]);
+
+            // CONVERT TO CARTESIAN TO DO THE SUBTRACTION
+
+            trig_sincos(&RReg[9],ANGLERAD);
+
+            // RReg[6]= cos
+            // RReg[7]= sin
+            normalize(&RReg[6]);
+            normalize(&RReg[7]);
+
+            mulReal(&RReg[0],&RReg[6],&RReg[8]);
+            mulReal(&RReg[1],&RReg[7],&RReg[8]);
+
+            swapReal(&RReg[0],&RReg[8]);
+            swapReal(&RReg[1],&RReg[9]);
+
+            // (e^2Z)+1 and (e^2Z)-1
+
+            addReal(&RReg[0],&RReg[8],&one);        // c= REAL PART (DENOMINATOR)
+            subReal(&RReg[1],&RReg[8],&one);        // a= REAL PART (NUMERATOR)
+
+            // (a+i*b)/(c+i*b) = (a+i*b)*(c-i*b)/(c^2+b^2)
+            // = (a*c+b^2) + i* (b*c-b*a)
+            // = (a*c+b^2) + i*b*(c-a)
+
+            mulReal(&RReg[2],&RReg[0],&RReg[1]);    // a*c
+            mulReal(&RReg[3],&RReg[9],&RReg[9]);    // b^2
+            mulReal(&RReg[4],&RReg[0],&RReg[0]);    // c^2
+            subReal(&RReg[5],&RReg[0],&RReg[1]);    // c-a
+            mulReal(&RReg[7],&RReg[9],&RReg[5]);    // b*(c-a)
+            addReal(&RReg[6],&RReg[3],&RReg[2]);    // a*c+b^2
+            addReal(&RReg[5],&RReg[3],&RReg[4]);    // b^2+c^2
+            divReal(&RReg[8],&RReg[6],&RReg[5]);
+            divReal(&RReg[9],&RReg[7],&RReg[5]);
+
+            // HERE 8 AND 9 HAVE THE RESULT'S REAL AND IMAGINARY PARTS
+
+            if(angmode!=ANGLENONE) {
+
+                // RETURN A POLAR COMPLEX IN THE SAME ORIGINAL MODE
+
+                mulReal(&RReg[1],&RReg[8],&RReg[8]);
+                mulReal(&RReg[2],&RReg[9],&RReg[9]);
+                addReal(&RReg[3],&RReg[1],&RReg[2]);
+                hyp_sqrt(&RReg[3]);
+                finalize(&RReg[0]);
+
+                swapReal(&RReg[0],&RReg[8]);
+
+                trig_atan2(&RReg[0],&RReg[9],angmode);
+
+                finalize(&RReg[0]);
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[8],&RReg[0],angmode);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[8]);
+
+                return;
+
+
+            }
+
+
+            // RETURN A CARTESIAN COMPLEX
+
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[8],&RReg[9],ANGLENONE);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[8]);
+            rplCheckResultAndError(&RReg[9]);
+
+            return;
+
+
+
+        }
+
 
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;

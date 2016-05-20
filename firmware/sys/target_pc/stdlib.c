@@ -40,7 +40,7 @@ void *memcpyb(void *trg, const void *src, int n)
     #define ESIZE (int)sizeof(int)
     #define CSIZE (int)(4*ESIZE)
 
-    if (n >= CSIZE &&  ! ( ((unsigned)t8 & (ESIZE-1)) || ((unsigned)s8 & (ESIZE-1)) ) ) {
+    if (n >= CSIZE &&  ! ( ((PTR2NUMBER)t8 & (ESIZE-1)) || ((PTR2NUMBER)s8 & (ESIZE-1)) ) ) {
 
         // source & target properly aligned
         // use word copy...
@@ -160,7 +160,7 @@ void *memsetb(void *_dest,int value, int nbytes)
 
     int val2=value&0xff;
     val2|= (val2<<8) | (val2<<16) | (val2<<24);
-    while(nbytes>0 && (((int)destc)&3)) {
+    while(nbytes>0 && (((PTR2NUMBER)destc)&3)) {
         *destc = value;
         ++destc;
         nbytes--;

@@ -323,6 +323,8 @@ halSetNotification(N_DISKACCESS,0);
 
 // NOT NECESSARILY PART OF HALSCREEN, BUT INITIALIZE THE COMMAND LINE
 uiCloseCmdLine();
+halScreen.StkUndolevels=8;
+halScreen.StkCurrentLevel=0;
 
 }
 
@@ -678,8 +680,15 @@ void halRedrawStatus(DRAWSURFACE *scr)
     if(halScreen.Menu2) {
     int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     ggl_cliprect(scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+    BINT xc,yc;
+    xc=scr->clipx;
+    yc=scr->clipy;
+    scr->clipx=STATUSAREA_X;
+    scr->clipy=ytop;
 
 
+
+    // AUTOCOMPLETE
 
     if( halScreen.CmdLineState&CMDSTATE_ACACTIVE) {
         BYTEPTR namest;
@@ -707,8 +716,94 @@ void halRedrawStatus(DRAWSURFACE *scr)
         }
 
     }
+    else {
+    // SHOW CURRENT PATH ON SECOND LINE
+        BINT nnames,j,width,xst;
+        WORDPTR pathnames[8],lastword;
+        BYTEPTR start,end;
+        BINT y=ytop+halScreen.CmdLineFont->BitmapHeight;
+
+        nnames=rplGetFullPath(CurrentDir,pathnames,8);
+
+        // COMPUTE THE WIDTH OF ALL NAMES
+        width=0;
+        for(j=nnames-1;j>=0;--j) {
+            if(ISIDENT(*pathnames[j])) {
+                start=(BYTEPTR)(pathnames[j]+1);
+                lastword=rplSkipOb(pathnames[j])-1;
+                if(*lastword&0xff000000) {
+                    end=(BYTEPTR)(lastword+1);
+                    width+=StringWidthN( (char *)start,(char *)end,(UNIFONT *)halScreen.StAreaFont);
+                }
+                else width+=StringWidth( (char *)start,(UNIFONT *)halScreen.StAreaFont);
+
+            }
+        }
+        // ADD WIDTH OF SYMBOLS
+        width+=4*nnames;
+        if(width>SCREEN_WIDTH-STATUSAREA_X) xst=SCREEN_WIDTH-width;
+        else xst=STATUSAREA_X;
+
+        // NOW DRAW THE PATH
+        for(j=nnames-1;j>=0;--j) {
+            if(ISIDENT(*pathnames[j])) {
+                start=(BYTEPTR)(pathnames[j]+1);
+                lastword=rplSkipOb(pathnames[j])-1;
+                DrawTextBk(xst,y,"/",(UNIFONT *)halScreen.StAreaFont,0xf,0x0,scr);
+                xst=scr->x;
+                if(*lastword&0xff000000) {
+                    end=(BYTEPTR)(lastword+1);
+                    DrawTextBkN(xst,y,(char *)start,(char *)end,(UNIFONT *)halScreen.StAreaFont,0xf,0,scr);
+                }
+                else DrawTextBk(xst,y,(char *)start,(UNIFONT *)halScreen.StAreaFont,0xf,0,scr);
+
+                xst=scr->x;
+            }
 
 
+        }
+
+        if(width>SCREEN_WIDTH-STATUSAREA_X) {
+            // FADE THE TEXT OUT
+
+            scr->x=STATUSAREA_X;
+            ggl_filter(scr,2,halScreen.CmdLineFont->BitmapHeight,0xA,&ggl_fltlighten);
+            scr->x+=2;
+            ggl_filter(scr,2,halScreen.CmdLineFont->BitmapHeight,0x6,&ggl_fltlighten);
+            scr->x+=2;
+            ggl_filter(scr,2,halScreen.CmdLineFont->BitmapHeight,0x4,&ggl_fltlighten);
+
+        }
+
+
+
+    }
+
+    // ANGLE MODE INDICATOR
+
+    {
+    BINT anglemode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+    const char const *name[4]={
+        "∡°",
+        "∡r",
+        "∡g",
+        "∡d"
+    };
+
+    DrawTextBk(STATUSAREA_X+1,ytop+1,(char *)name[anglemode],(UNIFONT *)halScreen.StAreaFont,0xf,0x0,scr);
+    }
+
+    // COMPLEX MODE INDICATOR
+
+    if(rplTestSystemFlag(FL_COMPLEXMODE))     DrawTextBk(STATUSAREA_X+14,ytop+1,(char *)"C",(UNIFONT *)halScreen.StAreaFont,0xf,0x0,scr);
+
+
+
+    // ADD OTHER INDICATORS HERE
+
+
+    scr->clipx=xc;
+    scr->clipy=yc;
     }
 
     halScreen.DirtyFlag&=~STAREA_DIRTY;

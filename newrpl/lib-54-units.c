@@ -91,6 +91,7 @@ INCLUDE_ROMOBJECT(unitmenu_14_angles);
 INCLUDE_ROMOBJECT(unitmenu_15_light);
 INCLUDE_ROMOBJECT(unitmenu_16_radiation);
 INCLUDE_ROMOBJECT(unitmenu_17_viscosity);
+INCLUDE_ROMOBJECT(unitmenu_18_acceleration);
 
 
 
@@ -121,6 +122,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)unitmenu_15_light,
     (WORDPTR)unitmenu_16_radiation,
     (WORDPTR)unitmenu_17_viscosity,
+    (WORDPTR)unitmenu_18_acceleration,
      0
 };
 
@@ -1195,7 +1197,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nlevels1,nlevels2,swap=0;
+            BINT nlevels1,nlevels2;
             WORDPTR *stkclean=DSTop;
 
             BINT isspec1,isspec2;
@@ -1206,7 +1208,6 @@ void LIB_HANDLER()
                 REAL p;
                 rplReadReal(rplPeekData(2),&p);
                 if(iszeroReal(&p)) {
-                    swap=1;
                     WORDPTR tmp=rplPeekData(1);
                     rplOverwriteData(1,rplPeekData(2));
                     rplOverwriteData(2,tmp);
@@ -1219,7 +1220,6 @@ void LIB_HANDLER()
                 BINT64 num=rplReadBINT(rplPeekData(2));
 
                 if(num==0) {
-                    swap=1;
                     WORDPTR tmp=rplPeekData(1);
                     rplOverwriteData(1,rplPeekData(2));
                     rplOverwriteData(2,tmp);
@@ -1303,7 +1303,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT nlevels1,nlevels2,swap=0;
+            BINT nlevels1,nlevels2;
             WORDPTR *stkclean=DSTop;
 
             BINT isspec1,isspec2;
@@ -1314,7 +1314,6 @@ void LIB_HANDLER()
                 REAL p;
                 rplReadReal(rplPeekData(2),&p);
                 if(iszeroReal(&p)) {
-                    swap=1;
                     WORDPTR tmp=rplPeekData(1);
                     rplOverwriteData(1,rplPeekData(2));
                     rplOverwriteData(2,tmp);
@@ -1327,7 +1326,6 @@ void LIB_HANDLER()
                 BINT64 num=rplReadBINT(rplPeekData(2));
 
                 if(num==0) {
-                    swap=1;
                     WORDPTR tmp=rplPeekData(1);
                     rplOverwriteData(1,rplPeekData(2));
                     rplOverwriteData(2,tmp);

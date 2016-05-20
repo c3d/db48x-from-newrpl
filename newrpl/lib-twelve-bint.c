@@ -279,11 +279,26 @@ void rplPushTrue()
 
 BINT rplIsFalse(WORDPTR objptr)
 {
+    if(ISANGLE(*objptr)) ++objptr;  // POINT TO THE NUMBER INSIDE THE ANGLE
+
     if(IS_FALSE(*objptr)) return 1;
+    if(ISBINT(*objptr)) {
+        if(rplReadBINT(objptr)==0) return 1;
+        return 0;
+    }
     if(ISREAL(*objptr)) {
         REAL dec;
         rplReadReal(objptr,&dec);
         if(iszeroReal(&dec)) return 1;
+        return 0;
+    }
+
+    if(ISCOMPLEX(*objptr)) {
+        REAL re,im;
+        BINT angmode;
+
+        rplReadCNumber(objptr,&re,&im,&angmode);
+        return rplIsZeroComplex(&re,&im,angmode);
     }
 
     return 0;
@@ -291,18 +306,37 @@ BINT rplIsFalse(WORDPTR objptr)
 
 BINT rplIsTrue(WORDPTR objptr)
 {
-    if(IS_FALSE(*objptr)) return 0;
-    if(ISREAL(*objptr)) {
-        REAL dec;
-        rplReadReal(objptr,&dec);
-        if(iszeroReal(&dec)) return 0;
-    }
-
-    return 1;
+    return rplIsFalse(objptr)^1;
 }
 
 
 
+BINT rplIsNegative(WORDPTR objptr)
+{
+    if(ISANGLE(*objptr)) ++objptr;  // POINT TO THE NUMBER INSIDE THE ANGLE
+
+    if(ISBINT(*objptr)) {
+        if(rplReadBINT(objptr)<0) return 1;
+        return 0;
+    }
+    if(ISREAL(*objptr)) {
+        REAL dec;
+        rplReadReal(objptr,&dec);
+        if(dec.flags&F_NEGATIVE) return 1;
+        return 0;
+    }
+
+    if(ISCOMPLEX(*objptr)) {
+        REAL re,im;
+        BINT angmode;
+
+        rplReadCNumber(objptr,&re,&im,&angmode);
+        if(re.flags&F_NEGATIVE) return 1;
+        return 0;
+    }
+
+    return 0;
+}
 
 
 
@@ -413,7 +447,6 @@ void LIB_HANDLER()
         REAL rop1,rop2;
         int op1type=0,op2type=0;
         int op1app=0,op2app=0;
-        int status;
 
         // USE GC-SAFE POINTERS, NEVER LOCAL COPIES OF POINTERS INTO TEMPOB
 #define arg1 ScratchPointer1
@@ -830,7 +863,6 @@ void LIB_HANDLER()
         if(op1type||op2type) {
             if(op1type) {
                 // ROUND TO INTEGER
-                status=0;
                 rplBINTToRReg(0,op2);
                 int res=cmpReal(&rop1,&RReg[0]);
                 if(res) rplPushData((WORDPTR)zero_bint);
@@ -839,7 +871,6 @@ void LIB_HANDLER()
 
             if(op2type) {
                 // ROUND TO INTEGER
-                status=0;
                 rplBINTToRReg(0,op1);
                 int res=cmpReal(&RReg[0],&rop2);
                 if(res) rplPushData((WORDPTR)zero_bint);
@@ -858,7 +889,6 @@ void LIB_HANDLER()
         if(op1type||op2type) {
             if(op1type) {
                 // ROUND TO INTEGER
-                status=0;
                 rplBINTToRReg(0,op2);
                 int res=cmpReal(&rop1,&RReg[0]);
                 if(res) rplPushData((WORDPTR)one_bint);
@@ -868,7 +898,6 @@ void LIB_HANDLER()
 
             if(op2type) {
                 // ROUND TO INTEGER
-                status=0;
                 rplBINTToRReg(0,op1);
                 int res=cmpReal(&RReg[0],&rop2);
                 if(res) rplPushData((WORDPTR)one_bint);

@@ -54,6 +54,10 @@
 // *** END OF COMMON LIBRARY HEADER ***
 // ************************************
 
+ROMOBJECT one_real[]=
+{
+    (WORD)MKPROLOG(DOREAL,2),MAKEREALFLAGS(0,1,0),1
+};
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 
@@ -61,6 +65,7 @@ INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
      (WORDPTR)LIB_MSGTABLE,
+     (WORDPTR)one_real,
     0
 };
 

@@ -2960,8 +2960,7 @@ char *formatReal(REAL *number, char *buffer, BINT format, WORD chars)
 
 BINT formatlengthReal(REAL *number, BINT format)
 {
-    int totaldigits,integer,frac,realexp,leftzeros,sep_spacing;
-    int dotpos;
+    int totaldigits,integer,realexp,leftzeros,sep_spacing;
     int wantdigits=format&0xfff;
     int wantzeros;
     int totalcount;
@@ -3005,8 +3004,6 @@ BINT formatlengthReal(REAL *number, BINT format)
 
     integer=totaldigits+number->exp+realexp;
     wantdigits-=integer;
-    dotpos=integer;
-    frac=totaldigits-integer;
     leftzeros=0;
     wantzeros=0;
     }
@@ -3015,7 +3012,6 @@ BINT formatlengthReal(REAL *number, BINT format)
     integer= totaldigits+number->exp;
     if(integer<=0) {
         leftzeros=-integer+1;
-        dotpos=1;
         integer=0;
         if(format&FMT_CODE) {
          wantzeros=leftzeros;
@@ -3028,8 +3024,7 @@ BINT formatlengthReal(REAL *number, BINT format)
         else { wantzeros=leftzeros; wantdigits-=leftzeros-1; }
         }
     }
-    else { leftzeros=0; wantzeros=0; dotpos=integer; }
-    frac=totaldigits-integer;
+    else { leftzeros=0; wantzeros=0; }
 
     }
 

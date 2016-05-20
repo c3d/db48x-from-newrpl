@@ -260,7 +260,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
         BINT w=StringWidthN((char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.MenuFont),pos;
 
         if(w>=scr->clipx2-scr->clipx) pos=scr->clipx+1;
-        else pos=(scr->clipx2+scr->clipx-w)>>1;
+        else pos=(scr->clipx2+1+scr->clipx-w)>>1;
 
         if((flags&1) || (var && ISDIR(*var[1]))) {
             //ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(color));
@@ -293,7 +293,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 
     // ALL OTHER OBJECTS NEED TO BE DECOMPILED, EXCEPT THE STRING AND GROBS
 
-    BINT skipn,totaln;
+    BINT totaln;
     BYTEPTR string,endstring;
 
 
@@ -317,7 +317,6 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
     // HERE WE HAVE A STRING, DO SOME MORE POST-PROCESSING DEPENDING ON OBJECT
 
     string=(BYTEPTR) (opname+1);
-    skipn=0;
     totaln=rplStrLen(opname);
     endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
@@ -335,7 +334,6 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
     }
     else {
         string=(BYTEPTR) (ptr+1);
-        skipn=0;
         totaln=rplStrLen(ptr);
         endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(ptr),totaln);
     }
@@ -344,7 +342,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 
     BINT w=StringWidthN((char *)string,(char *)endstring,halScreen.MenuFont),pos;
     if(w>=scr->clipx2-scr->clipx) pos=scr->clipx+1;
-    else pos=(scr->clipx2+scr->clipx-w)>>1;
+    else pos=(scr->clipx2+1+scr->clipx-w)>>1;
 
     if(flags&1) {   // FOR NOW, flags & 1 INDICATES THE MENU IS TO BE DISPLAYED AS A DIRECTORY
         //ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(color));

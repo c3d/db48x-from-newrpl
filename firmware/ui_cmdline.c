@@ -388,10 +388,9 @@ halScreen.LineIsModified=1;
 // IF THE INSERTED TEXT HAD ANY NEWLINES, THE CURRENT COMMAND LINE HAS MULTIPLE LINES IN ONE
 BYTEPTR newstart=((BYTEPTR)CmdLineCurrentLine)+4+halScreen.CursorPosition;
 BYTEPTR newend=newstart+length;
-BYTEPTR lastnl;
 BINT nl=0;
 while(newstart!=newend) {
-    if(*newstart=='\n') { ++nl; lastnl=newstart+1; }
+    if(*newstart=='\n') ++nl;
     newstart=(BYTEPTR)utf8skip((char *)newstart,(char *)newend);
 }
 
