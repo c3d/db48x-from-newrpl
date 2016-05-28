@@ -43,6 +43,19 @@ WORDPTR rplMatrixGet(WORDPTR matrix,BINT row,BINT col)
 
 }
 
+// RETURN THE NUMBER OF COLUMNS IN THE MATRIX - NO SAFETY CHECKS
+BINT rplMatrixCols(WORDPTR matrix)
+{
+    return MATCOLS(*(matrix+1));
+}
+
+// RETURN THE NUMBER OF COLUMNS IN THE MATRIX - NO SAFETY CHECKS
+// ROWS=0 MEANS A VECTOR WITH cols ELEMENTS
+BINT rplMatrixRows(WORDPTR matrix)
+{
+    return MATROWS(*(matrix+1));
+}
+
 // GET A POINTER TO THE FIRST OBJECT WITHIN A MATRIX
 
 WORDPTR rplMatrixGetFirstObj(WORDPTR matrix)

@@ -46,9 +46,9 @@
     ECMD(DOMATPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     ECMD(DOMATPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     ECMD(DOMATERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    CMD(AUGMENT,MKTOKENINFO(7,TITYPE_FUNCTION,1,2)), \
+    /*CMD(AUGMENT,MKTOKENINFO(7,TITYPE_FUNCTION,1,2)),*/ \
     CMD(AXL,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
-    CMD(AXM,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
+    /*CMD(AXM,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)),*/ \
     CMD(BASIS,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
     CMD(CHOLESKY,MKTOKENINFO(8,TITYPE_FUNCTION,1,2)), \
     CMD(CNRM,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
@@ -1675,6 +1675,7 @@ void LIB_HANDLER()
     return;
 
     }
+
     case DOMATPRE:
     {
 
@@ -1787,6 +1788,154 @@ void LIB_HANDLER()
         ExceptionPointer=IPtr;
         return;
     }
+
+
+
+    case AXL:
+    {
+        // CONVERT MATRIX TO LIST AND VICE VERSA
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(ISMATRIX(*rplPeekData(1))) {
+            // MATRIX TO LIST
+
+            BINT cols,rows,i,j;
+            WORDPTR *mat=DSTop-1;
+            cols=rplMatrixCols(*mat);
+            rows=rplMatrixRows(*mat);
+
+            if(rows) {
+            for(i=1;i<=rows;++i)
+            {
+                for(j=1;j<=cols;++j)
+                {
+                    rplPushData(rplMatrixFastGet(*mat,i,j));
+                }
+                rplNewBINTPush(cols,DECBINT);
+                rplCreateList();
+                if(Exceptions) { DSTop=mat+1; return; }
+            }
+            rplNewBINTPush(rows,DECBINT);
+            rplCreateList();
+            if(Exceptions) { DSTop=mat+1; return; }
+            }
+            else {
+                for(j=1;j<=cols;++j)
+                {
+                    rplPushData(rplMatrixFastGet(*mat,1,j));
+                }
+                rplNewBINTPush(cols,DECBINT);
+                rplCreateList();
+                if(Exceptions) { DSTop=mat+1; return; }
+            }
+
+            rplOverwriteData(1,rplPopData());
+
+            return;
+        }
+
+        if(ISLIST(*rplPeekData(1))) {
+            // LIST TO MATRIX
+
+            BINT cols,rows,i,j,tmpcols;
+            WORDPTR *lst=DSTop-1,lstptr;
+            cols=0;
+            // DETERMINE IF DIMENSIONS ARE SUITABLE
+            rows=rplListLength(*lst);
+            if(rows<1) {
+                rplError(ERR_INVALIDDIMENSION);
+                return;
+            }
+
+            // WALK THE LIST
+            lstptr=(*lst)+1;
+            for(i=0;i<rows;++i,lstptr=rplSkipOb(lstptr)) {
+                if(ISLIST(*lstptr)) {
+                    tmpcols=rplListLength(lstptr);
+                    if(!cols) cols=tmpcols;
+                    if(cols!=tmpcols) {
+                        rplError(ERR_INVALIDDIMENSION);
+                        return;
+                    }
+                }
+                else {
+                    if(!cols) cols=-1;
+                    if(cols!=-1) {
+                        rplError(ERR_INVALIDDIMENSION);
+                        return;
+                    }
+                }
+
+            }
+
+            // SANITIZE THE RESULTS WE FOUND
+            if(cols==-1) {
+                // IT'S A VECTOR, NOT A MATRIX
+                cols=rows;
+                rows=0;
+            }
+
+            // HERE WE HAVE A PROPERLY FORMED LIST
+            if(rows) {
+            // PUSH ALL ELEMENTS IN THE STACK
+            for(i=0;i<rows;++i)
+            {
+                for(j=0;j<cols;++j) {
+                    rplPushData(rplGetListElementFlat(*lst,i*cols+j+1));
+                }
+            }
+            }
+            else {
+                for(j=1;j<=cols;++j) {
+                    rplPushData(rplGetListElementFlat(*lst,j));
+                }
+            }
+
+            WORDPTR mat=rplMatrixCompose(rows,cols);
+            if(Exceptions || (!mat)) {
+                DSTop=lst+1;
+                return;
+            }
+
+            // JUST DROP EVERYTHING AND REPLACE THE LIST WITH THE NEW MATRIX
+            DSTop=lst+1;
+            rplOverwriteData(1,mat);
+
+            return;
+
+        }
+
+        // ANY OTHER OBJECT TYPE IS NOT ALLOWED
+        rplError(ERR_BADARGTYPE);
+        return;
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

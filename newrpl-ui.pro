@@ -155,7 +155,8 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-28.nrpl \
                 newrpl/rpl-objects/lib-30.nrpl \
                 newrpl/rpl-objects/lib-32.nrpl \
-                newrpl/rpl-objects/lib-48.nrpl
+                newrpl/rpl-objects/lib-48.nrpl \
+                newrpl/rpl-objects/lib-64.nrpl
 
 
 INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include

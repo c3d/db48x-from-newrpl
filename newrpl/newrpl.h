@@ -535,6 +535,8 @@ WORDPTR rplCreateString(BYTEPTR text,BYTEPTR textend);
 WORDPTR rplMatrixCompose(BINT rows,BINT cols);
 WORDPTR *rplMatrixExplode();
 WORDPTR rplMatrixGetFirstObj(WORDPTR matrix);
+BINT rplMatrixCols(WORDPTR matrix);
+BINT rplMatrixRows(WORDPTR matrix);
 WORDPTR rplMatrixGet(WORDPTR matrix,BINT row,BINT col);
 WORDPTR rplMatrixFastGet(WORDPTR matrix,BINT row,BINT col);
 WORDPTR *rplMatrixFastGetEx(WORDPTR *first,BINT cols,BINT i,BINT j);

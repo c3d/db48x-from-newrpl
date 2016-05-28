@@ -1,0 +1,132 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib64_msgtable
+{
+##1,ERR_ERR1 "Error Message 1"
+##1,ERR_ERR2 "Error Message 2"
+}
+
+@#name lib64_menu
+{
+  FLOOR CEIL IP FP MODSTO MODRCL POWMOD MOD SQ NEXTPRIME ! ISPRIME? MANT XPON SIGN % %CH %T GCD LCM IDIV2 IQUOT ADDTMOD SUBTMOD MULTMOD
+}
+
+@#name lib64_cmdhelp
+{
+FLOOR
+"Returns the greatest integer that is
+less than or equal to the argument
+R → I"
+CEIL
+"Returns the smallest integer that is
+ greater than or equal to the argument
+R → I"
+IP
+"Returns the integer part
+of the argument
+R → I"
+FP
+"Returns the fractional part
+of the argument
+→ "
+MODSTO
+"Changes the modulo setting
+to the specified number
+O →"
+MODRCL
+"Returns the modulo setting
+
+→ O"
+POWMOD
+"raises the object to the exponent
+modulo the current modulus
+→ "
+MOD
+"modulo
+x-y*floor(x/y)
+O → O"
+SQ
+"square
+
+O → O"
+NEXTPRIME
+"next prime number larger
+than the integer
+I → I"
+!
+"Factorial
+
+I → I"
+ISPRIME?
+"Tests if a number is prime
+
+I → I"
+MANT
+"mantissa of the argument
+
+R → R"
+XPON
+"exponent of the argument
+
+R → I"
+SIGN
+"sign of a real number
+
+R → I"
+%
+"Percent
+x*y/100
+O O → R"
+%CH
+"Percent Change
+100*(y–x)/x
+O O → R"
+%T
+"Percent of Total
+100*y/x
+O O → R"
+GCD
+"greatest common divisor
+of two objects
+I I → I"
+LCM
+"least common multiple
+of two objects
+I I → I"
+IDIV2
+"returns the integer part of a/b,
+and the remainder r
+I I → I I"
+IQUOT
+"Returns the Euclidean quotient
+of two integers
+I I → I"
+ADDTMOD
+"Addition of two objects
+modulo the current modulus
+O O → O"
+SUBTMOD
+"Subtraction of two objects
+modulo the current modulus
+O O → O"
+MULTMOD
+"Multiplication of two objects
+modulo the current modulus
+O O → O"
+}
+
