@@ -1037,7 +1037,11 @@ void LIB_HANDLER()
 
         BINT64 Ai1,Ai2,Bi1,Bi2,A,B,k;
         REAL num;
+        BINT isneg;
         rplReadNumberAsReal(rplPeekData(1),&num);
+
+        isneg=num.flags&F_NEGATIVE;
+        num.flags&=~F_NEGATIVE;
 
         Ai1=0;
         Ai2=1;
@@ -1082,6 +1086,8 @@ void LIB_HANDLER()
         RReg[1].flags&=~F_APPROX;
         mulReal(&RReg[3],&RReg[1],&RReg[0]);
         addReal(&RReg[0],&RReg[2],&RReg[3]);
+
+        RReg[0].flags|=isneg;
 
         rplNewRealFromRRegPush(0);
         if(Exceptions) return;

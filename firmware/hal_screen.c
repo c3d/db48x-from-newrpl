@@ -1115,7 +1115,7 @@ void halShowErrorMsg()
 
         if(Exceptions!=EX_ERRORCODE) {
             BINT xstart=scr.clipx;
-            if(*ExceptionPointer!=0) {  // ONLY IF THERE'S A VALID COMMAND TO BLAME
+            if(ExceptionPointer!=0) {  // ONLY IF THERE'S A VALID COMMAND TO BLAME
             WORDPTR cmdname=halGetCommandName(ExceptionPointer);
             if(cmdname) {
             BYTEPTR start=(BYTEPTR)(cmdname+1);
@@ -1142,7 +1142,7 @@ void halShowErrorMsg()
         else {
             // TRY TO DECOMPILE THE OPCODE THAT CAUSED THE ERROR
             BINT xstart=scr.clipx;
-            if(*ExceptionPointer!=0) {  // ONLY IF THERE'S A VALID COMMAND TO BLAME
+            if(ExceptionPointer!=0) {  // ONLY IF THERE'S A VALID COMMAND TO BLAME
             WORDPTR cmdname=halGetCommandName(ExceptionPointer);
             if(cmdname) {
             BYTEPTR start=(BYTEPTR)(cmdname+1);

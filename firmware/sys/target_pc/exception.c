@@ -375,6 +375,7 @@ void __attribute__ ((noinline)) throw_exception(char * message, unsigned int opt
 
     if(value==__EX_RPLEXIT) {
         Exceptions|=EX_EXITRPL;
+        ExceptionPointer=IPtr;
         value=__EX_CONT;
     }
 
@@ -401,6 +402,7 @@ void __attribute__ ((noinline)) throw_dbgexception(char * message, unsigned int 
 
     if(value==__EX_RPLEXIT) {
         Exceptions|=EX_EXITRPL;
+        ExceptionPointer=IPtr;
         value=__EX_CONT;
     }
 

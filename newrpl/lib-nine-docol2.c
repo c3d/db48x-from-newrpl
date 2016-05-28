@@ -138,7 +138,7 @@ void LIB_HANDLER()
             // EXTRACT THE OBJECT INTO A GC-SAFE POINTER
             ScratchPointer1=rplPopData();
 
-            if(IS_FALSE(*ScratchPointer1)) {
+            if(rplIsFalse(ScratchPointer1)) {
                 // SKIP ALL OBJECTS UNTIL NEXT ELSE OR END
                 int count=0;
                 while( (count!=0) || ((*IPtr!=MKOPCODE(LIBRARY_NUMBER,ELSE))&&(*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDIF)))) {
@@ -180,7 +180,7 @@ void LIB_HANDLER()
             // EXTRACT OBJECT INTO A GC-SAFE POINTER
             ScratchPointer1=rplPopData();
 
-            if(IS_FALSE(*ScratchPointer1)) {
+            if(rplIsFalse(ScratchPointer1)) {
                 // SKIP ALL OBJECTS UNTIL ENDTHEN
                 while(*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDTHEN)) {
                     if(*IPtr==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
@@ -301,6 +301,8 @@ void LIB_HANDLER()
 
     {
         // INCREMENT THE COUNTER
+        if(nLAMBase==LAMTop) return;    // NO ENVIRONMENT
+
         if(*rplGetLAMn(0)!=IPtr) {
             // MALFORMED FOR/NEXT LOOP
             return;
@@ -326,12 +328,12 @@ void LIB_HANDLER()
         // CHECK IF COUNTER IS LESS THAN LIMIT
         // BY CALLING THE OVERLOADED OPERATOR <= (LTE) OR >= GTE
 
-        if(IS_FALSE(**rplGetLAMn(3))) rplCallOvrOperator(OVR_LTE);
+        if(rplIsFalse(*rplGetLAMn(3))) rplCallOvrOperator(OVR_LTE);
         else rplCallOvrOperator(OVR_GTE);
 
         WORDPTR result=rplPopData();
 
-        if(IS_FALSE(*result)) {
+        if(rplIsFalse(result)) {
             // EXIT THE LOOP BY DROPPING THE RETURN STACK
             rplPopRet();
         }
@@ -353,6 +355,8 @@ void LIB_HANDLER()
             return;
         }
         // INCREMENT THE COUNTER
+        if(nLAMBase==LAMTop) return;    // NO ENVIRONMENT
+
         if(*rplGetLAMn(0)!=IPtr) {
             // MALFORMED FOR/NEXT LOOP
             return;
@@ -377,12 +381,12 @@ void LIB_HANDLER()
         // CHECK IF COUNTER IS LESS THAN LIMIT
         // BY CALLING THE OVERLOADED OPERATOR <= (LTE)
 
-        if(IS_FALSE(**rplGetLAMn(3))) rplCallOvrOperator(OVR_LTE);
+        if(rplIsFalse(*rplGetLAMn(3))) rplCallOvrOperator(OVR_LTE);
         else rplCallOvrOperator(OVR_GTE);
 
         WORDPTR result=rplPopData();
 
-        if(IS_FALSE(*result)) {
+        if(rplIsFalse(result)) {
             // EXIT THE LOOP BY DROPPING THE RETURN STACK
             rplPopRet();
         }
@@ -429,6 +433,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        if(nLAMBase==LAMTop) return;    // NO ENVIRONMENT
+
         if(*rplGetLAMn(0)!=IPtr) {
             // MALFORMED LOOP
             return;
@@ -438,7 +444,7 @@ void LIB_HANDLER()
 
         WORDPTR result=rplPopData();
 
-        if(!IS_FALSE(*result)) {
+        if(!rplIsFalse(result)) {
             // EXIT THE LOOP BY DROPPING THE RETURN STACK
             rplPopRet();
         }
@@ -479,14 +485,15 @@ void LIB_HANDLER()
         }
 
         // BY DEFINITION, BINT 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
-        if(*rplGetLAMn(0)!=IPtr) {
+        if(nLAMBase==LAMTop) return;    // NO ENVIRONMENT
+        if(**rplGetLAMn(0)!=CMD_ENDWHILE) {
             // MALFORMED LOOP
             return;
         }
 
         WORDPTR result=rplPopData();
 
-        if(IS_FALSE(*result)) {
+        if(rplIsFalse(result)) {
             // EXIT THE LOOP BY DROPPING THE RETURN STACK
             rplPopRet();
             // JUMP TO THE TOP RETURN STACK, EITHER THE LOOP OR THE ABND WORD
