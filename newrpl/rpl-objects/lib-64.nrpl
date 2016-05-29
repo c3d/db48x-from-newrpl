@@ -23,11 +23,19 @@
 
 @#name lib64_menu
 {
-  FLOOR CEIL IP FP MODSTO MODRCL POWMOD MOD SQ NEXTPRIME ! ISPRIME? MANT XPON SIGN % %CH %T GCD LCM IDIV2 IQUOT ADDTMOD SUBTMOD MULTMOD
+  SETPREC GETPREC FLOOR CEIL IP FP MODSTO MODRCL POWMOD MOD SQ NEXTPRIME ! ISPRIME? MANT XPON SIGN % %CH %T GCD LCM IDIV2 IQUOT ADDTMOD SUBTMOD MULTMOD
 }
 
 @#name lib64_cmdhelp
 {
+SETPREC
+"Set Precision
+
+I → "
+GETPREC
+"Get current Precision
+
+→ I"
 FLOOR
 "Returns the greatest integer that is
 less than or equal to the argument
@@ -47,7 +55,7 @@ of the argument
 MODSTO
 "Changes the modulo setting
 to the specified number
-O →"
+I →"
 MODRCL
 "Returns the modulo setting
 
