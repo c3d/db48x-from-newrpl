@@ -31,6 +31,18 @@ typedef struct {
     unsigned int MapTable[];
 } UNIFONT;
 
+// COMPACT TIME STRUCTURE, SIMILAR TO STANDARD tm BUT USING ONLY 64 BITS.
+struct compact_tm {
+    unsigned tm_sec:6,          //seconds after the minute	0-60*
+             tm_min:6,          //minutes after the hour	0-59
+             tm_hour:5,         //hours since midnight	0-23
+             tm_mday:5,         //day of the month	1-31
+             tm_mon:4,          //months since January	0-11
+             tm_wday:3,         //days since Sunday	0-6
+             tm_isdst:1;
+    int      tm_year;         //int	years since 1900
+
+};
 
 
 typedef gglsurface DRAWSURFACE;
