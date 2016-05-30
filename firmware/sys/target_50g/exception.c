@@ -661,6 +661,7 @@ register unsigned int value asm("r0");
     if(value==__EX_RPLEXIT) {
         // RAISE AN RPL EXCEPTION AND ISSUE A CONTINUE
         Exceptions|=EX_EXITRPL;
+        ExceptionPointer=IPtr;
         value=__EX_CONT;
     }
 
