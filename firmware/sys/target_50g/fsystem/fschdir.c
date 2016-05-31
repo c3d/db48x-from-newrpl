@@ -22,21 +22,21 @@ error=FSInit();
 if(error!=FS_OK) return error;
 
 
-entry=(FS_FILE *) malloc(sizeof(FS_FILE));
+entry=(FS_FILE *) simpmallocb(sizeof(FS_FILE));
 if(entry==NULL) return FS_ERROR;
 
 // CLEAN ENTRY
-memset((void *)entry,0,sizeof(FS_FILE));
+memsetb((void *)entry,0,sizeof(FS_FILE));
 
 
 // CHECK IF CARD IS PRESENT
 
 error=FSVolumePresent(FSystem.Volumes[FSystem.CurrentVolume]);
-if(error!=FS_OK) { free(entry); return error; }
+if(error!=FS_OK) { simpfree(entry); return error; }
 
 
 error=FSFindFile(name,entry,TRUE);
-if((error!=FS_OK) && (error!=FS_OPENDIR)) { free(entry); return error; }
+if((error!=FS_OK) && (error!=FS_OPENDIR)) { simpfree(entry); return error; }
 
 if(error==FS_OK) {
 // NEWLY OPENED DIR
@@ -64,7 +64,7 @@ else {
 // USE AN ALREADY OPENED DIRECTORY
 old=entry;
 entry=entry->Dir;
-free(old);
+simpfree(old);
 if(!(entry->Attr&FSATTR_DIR)) return FS_NOTFOUND;
 fs=FSystem.Volumes[entry->Volume];
 }

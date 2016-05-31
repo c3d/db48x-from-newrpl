@@ -108,6 +108,16 @@ extern void WriteInt32(char *ptr,int value);
 extern unsigned int ReadInt16(char *ptr);
 extern void WriteInt16(char *ptr,int value);
 
+// ADD-ON MEMORY ALLOCATOR
+extern void init_simpalloc();
+extern unsigned int *simpmalloc(int words);
+extern char *simpmallocb(int bytes);
+extern void simpfree(void *voidptr);
+
+
+
+
+
 
 // DOS-TIME PROCESSING FUNCTION
 extern void FSGetDateTime(unsigned int *datetime,unsigned int *hundredths);

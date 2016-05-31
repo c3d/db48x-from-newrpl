@@ -21,7 +21,7 @@ return NULL;
 }
 
 if(file->Volume&(~3)) {
-//printf("Invalid volume at free()\n");
+//printf("Invalid volume at simpfree()\n");
 return NULL;
 }
 
@@ -41,16 +41,16 @@ FSFreeChain(file);
 
 // FREE READ/WRITE BUFFERS
 
-if(file->RdBuffer.Data) free(file->RdBuffer.Data);
-if(file->WrBuffer.Data) free(file->WrBuffer.Data);
+if(file->RdBuffer.Data) simpfree(file->RdBuffer.Data);
+if(file->WrBuffer.Data) simpfree(file->WrBuffer.Data);
 
 
 //printf("done\n");
 // FREE NAME
-if(file->Name) free(file->Name);
+if(file->Name) simpfree(file->Name);
 //printf("done free name\n");
 // FREE FS_FILE
-free(file);
+simpfree(file);
 //printf("done free file\n");
 return orig;
 }

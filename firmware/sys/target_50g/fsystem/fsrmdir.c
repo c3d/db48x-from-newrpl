@@ -8,6 +8,16 @@
 
 #include "fsyspriv.h"
 
+static int isdot(char *string)
+{
+    if((string[0]=='.')&&(string[1]==0)) return 1;
+    return 0;
+}
+static int isdotdot(char *string)
+{
+    if((string[0]=='.')&&(string[1]='.')&&(string[2]==0)) return 1;
+    return 0;
+}
 
 
 
@@ -24,7 +34,7 @@ if(error!=FS_OK) return error;
 while(error==FS_OK) {
 error=FSGetNextEntry(&entry,dir);
 if(error==FS_OK) {
-if(strcmp(entry.Name,".") && strcmp(entry.Name,"..")) {
+if(!isdot(entry.Name) && !isdotdot(entry.Name)) {
 FSReleaseEntry(&entry);
 FSClose(dir);
 return FS_USED;

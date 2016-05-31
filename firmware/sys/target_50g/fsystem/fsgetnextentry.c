@@ -39,9 +39,9 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	diroffset=dir->CurrentOffset-32;
 	// FOUND LAST ENTRY OF A NAME
 	nentries=buffer[0]&0x3f;
-	morebuff=(char *)malloc(32*nentries);
+	morebuff=(char *)simpmallocb(32*nentries);
 	if(morebuff==NULL) return FS_ERROR;
-	if(FSReadLL(morebuff,32*nentries,dir,fs)!=32*nentries) { free(morebuff); return FS_ERROR; }
+	if(FSReadLL(morebuff,32*nentries,dir,fs)!=32*nentries) { simpfree(morebuff); return FS_ERROR; }
 	
 	// VERIFY THAT ENTRIES ARE VALID
 	ptr=morebuff;
@@ -52,7 +52,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	if(order) {
 		// ENTRIES ARE ORPHANS, DISCARD AND CONTINUE SEARCHING
 		FSSeek(dir,-32*(order+1),FSSEEK_CUR);		// REWIND TO NEXT UNKNOWN ENTRY
-		free(morebuff);
+		simpfree(morebuff);
 		continue;
 	}
 	// VERIFY THAT SHORT ENTRY FOLLOWS LONG NAME
@@ -60,7 +60,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	if( ((ptr[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) || (*ptr==0) || (*ptr==0xe5)) {
 
 	// VALID SHORT ENTRY NOT FOUND
-	free(morebuff);
+	simpfree(morebuff);
 	if(*ptr==0) return FS_EOF;
 	if(*ptr!=0xe5) FSSeek(dir,-32,FSSEEK_CUR);		// REWIND LAST ENTRY
 	continue;
@@ -75,14 +75,14 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	
 	if(checksum!=buffer[13]) {
 	// FAILED CHECKSUM, SKIP ORPHANS AND CONTINUE
-	free(morebuff);
+	simpfree(morebuff);
 	FSSeek(dir,-32,FSSEEK_CUR);		// REWIND LAST ENTRY
 	continue;
 	}
 	// VALID ENTRY FOUND, FILL STRUCTURE AND RETURN
-	entry->Name=(char *)malloc(nentries*13+1);
+	entry->Name=(char *)simpmallocb(nentries*13+1);
 	if(entry->Name==NULL) {
-	free(morebuff);
+	simpfree(morebuff);
 	return FS_ERROR;
 	}
 	
@@ -95,8 +95,8 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	FSPackName(entry->Name+13*(order-1),buffer);
 	entry->Name[13*nentries]=0;		// FORCE NULL-TERMINATED STRING
 
-	memcpy(buffer,ptr,32);
-	free(morebuff);
+	memmoveb(buffer,ptr,32);
+	simpfree(morebuff);
 	
 	}
 	
@@ -104,7 +104,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	// IT'S A SHORT NAME ENTRY
 	diroffset=dir->CurrentOffset-32;
 	nentries=0;
-	entry->Name=(char *)malloc(13);
+	entry->Name=(char *)simpmallocb(13);
 	if(entry->Name==NULL) return FS_ERROR;
 	FSPackShortName(entry->Name,buffer);
 	}
@@ -125,7 +125,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	entry->DirEntryOffset=diroffset;
 	entry->DirEntryNum=nentries+1;
 	entry->Dir=dir;
-	memset((void *)&(entry->Chain),0,sizeof(FS_FRAGMENT)+sizeof(FS_BUFFER));
+	memsetb((void *)&(entry->Chain),0,sizeof(FS_FRAGMENT)+sizeof(FS_BUFFER));
 	return FS_OK;
 }
 	

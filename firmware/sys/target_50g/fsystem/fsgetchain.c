@@ -32,7 +32,7 @@ return FS_ERROR;
 if(fr->StartAddr!=0) return FS_OK;	// CHAIN ALREADY EXISTS, DO NOT REFRESH
 
 
-buffer=(char *)malloc(512);
+buffer=(char *)simpmallocb(512);
 if(!buffer) return FS_ERROR;
 
 
@@ -62,13 +62,13 @@ do {
 //printf("read=%08X\n",bufaddr);
 if(SDDRead(bufaddr,512,buffer,fs->Disk)!=512) {
 // FREE ENTIRE CHAIN
-free(buffer);
+simpfree(buffer);
 fr=orgfr->NextFragment;
 while(fr!=NULL)
 {
 temp=fr;
 fr=fr->NextFragment;
-free(temp);
+simpfree(temp);
 }
 orgfr->NextFragment=NULL;
 return FS_ERROR;
@@ -125,14 +125,14 @@ fr->EndAddr=FSCluster2Addr(firstcluster,fs)+ (1<<(fs->ClusterSize));
 //printf("end of frag\n");
 //keyb_getkeyM(1);
 if(!eoc) {
-if(! (fr->NextFragment=(FS_FRAGMENT *)malloc(sizeof(FS_FRAGMENT)))) {
+if(! (fr->NextFragment=(FS_FRAGMENT *)simpmallocb(sizeof(FS_FRAGMENT)))) {
 // FREE ENTIRE CHAIN
 fr=orgfr->NextFragment;
 while(fr!=NULL)
 {
 temp=fr;
 fr=fr->NextFragment;
-free(temp);
+simpfree(temp);
 }
 orgfr->NextFragment=NULL;
 return FS_ERROR;
@@ -144,6 +144,6 @@ firstcluster=fatentry;
 
 } while(!eoc);
 
-free(buffer);
+simpfree(buffer);
 return FS_OK;
 }

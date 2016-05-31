@@ -20,10 +20,10 @@ int f;
 int sectaddr,error;
 FS_CHAINBUFFER *ch;
 
-sector=(char *)malloc(1<<bl);
+sector=(char *)simpmallocb(1<<bl);
 if(!sector) return FS_ERROR;
 /*
-if(!SDDSetBlockLen(fs->Disk,bl)) { free(sector); return FS_ERROR; }
+if(!SDDSetBlockLen(fs->Disk,bl)) { simpfree(sector); return FS_ERROR; }
 */
 
 bl=(1<<bl)-1;		// CREATE BITMASK
@@ -38,7 +38,7 @@ if(ch->Entries[0].EntryValue&0x40000000) ++sectaddr;
 sectaddr&=~bl;
 
 error=SDDRead(sectaddr,bl+1,sector, fs->Disk);
-if(error!=bl+1) { free(sector); return FS_ERROR; }
+if(error!=bl+1) { simpfree(sector); return FS_ERROR; }
 
 FSPatchFATBlock(sector,bl+1,sectaddr,fs,TRUE);		// PATCH AND FLUSH ENTRIES
 
@@ -48,12 +48,12 @@ for(f=fs->NumFATS-1;f>=0;--f)
 
 error=SDDWrite(sectaddr+f*(fs->FATSize<<fs->SectorSize),bl+1,sector, fs->Disk);
 
-if(error!=bl+1) { free(sector); return FS_ERROR; }
+if(error!=bl+1) { simpfree(sector); return FS_ERROR; }
 }
 
 
 
 }
-free(sector);
+simpfree(sector);
 return FS_OK;
 }

@@ -9,10 +9,6 @@
 #include "fsyspriv.h"
 
 
-// USE NEWRPL DECIMAL LIBRARY FOR TEMPORARY MEMORY MANAGEMENT
-#define malloc(a) allocRegister()
-#define free(a) freeRegister((BINT *)(a))
-
 // CALCULATE FREE SPACE AND CACHE BIG EMPTY AREAS
 
 int FSCalcFreeSpace(FS_VOLUME *fs)
@@ -22,10 +18,10 @@ int cluster,fataddr,value,maxaddr=0;
 int freecount,freestart,freesize;
 int limit,f;
 
-buffer=(char *)malloc(1536);
+buffer=(char *)simpmallocb(1536);
 if(!buffer) return FS_ERROR;
 
-//if(!SDDSetBlockLen(fs->Disk,7)) { free(buffer); return FS_ERROR; }
+//if(!SDDSetBlockLen(fs->Disk,7)) { simpfree(buffer); return FS_ERROR; }
 
 cluster=0;
 fataddr=fs->FirstFATAddr;
@@ -53,7 +49,7 @@ fs->FreeAreaSize=0;
 do {
 
 if(SDDRead(fataddr,1536,buffer,fs->Disk)!=1536) {
-free(buffer);
+simpfree(buffer);
 return FS_ERROR;
 }
 
@@ -193,7 +189,7 @@ fataddr+=1536;
 
 if(freestart && (fs->FreeAreaSize<freesize)) { fs->NextFreeCluster=freestart; fs->FreeAreaSize=freesize; }
 
-free(buffer);
+simpfree(buffer);
 fs->FreeAreaSize<<=fs->ClusterSize;
 fs->FreeSpace=freecount<<fs->ClusterSize;
 return FS_OK;

@@ -21,7 +21,7 @@ while(fr!=NULL)
 {
 temp=fr;
 fr=fr->NextFragment;
-free(temp);
+simpfree(temp);
 }
 file->Chain.NextFragment=NULL;
 file->Chain.StartAddr=file->Chain.EndAddr=0;

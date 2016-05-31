@@ -45,10 +45,10 @@ FSFreeChain(&fs->RootDir);
 FSystem.Volumes[i]=NULL;
 //printf("done\n");
 card=fs->Disk;
-free(fs);
+simpfree(fs);
 }
 }
-if(card) free(card);
+if(card) simpfree(card);
 
 // CLOSE SD DEVICE
 SDPowerDown();

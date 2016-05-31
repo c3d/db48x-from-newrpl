@@ -77,7 +77,7 @@ addr+=clsize;
 }
 ch=ch2;
 ch2=ch2->NextFragment;
-free(ch);
+simpfree(ch);
 }
 
 

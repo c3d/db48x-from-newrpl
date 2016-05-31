@@ -16,7 +16,7 @@ void FSReleaseEntry(FS_FILE *file)
 {
 FSFreeChain(file);
 if(file->Name) {
-free(file->Name);
+simpfree(file->Name);
 file->Name=NULL;
 }
 }

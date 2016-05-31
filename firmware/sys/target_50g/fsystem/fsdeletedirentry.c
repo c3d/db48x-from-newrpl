@@ -17,7 +17,7 @@ int FSDeleteDirEntry(FS_FILE *file)
 char *buffer,*mainentry;
 int f,bytesread;
 
-buffer=(char *)malloc(32*(file->DirEntryNum+1));
+buffer=(char *)simpmallocb(32*(file->DirEntryNum+1));
 if(!buffer) return FS_ERROR;
 
 FSSeek(file->Dir,file->DirEntryOffset,FSSEEK_SET);
@@ -25,7 +25,7 @@ FSSeek(file->Dir,file->DirEntryOffset,FSSEEK_SET);
 bytesread=FSReadLL(buffer,file->DirEntryNum<<5,file->Dir,FSystem.Volumes[file->Volume]);
 if(bytesread<(file->DirEntryNum<<5))
 {
-free(buffer);
+simpfree(buffer);
 return FS_ERROR;
 }
 
@@ -42,11 +42,11 @@ FSSeek(file->Dir,file->DirEntryOffset,FSSEEK_SET);
 
 if(FSWriteLL(buffer,bytesread,file->Dir,FSystem.Volumes[file->Volume])!=bytesread)
 {
-free(buffer);
+simpfree(buffer);
 return FS_ERROR;
 }
 
-free(buffer);
+simpfree(buffer);
 return FS_OK;
 
 }

@@ -25,12 +25,12 @@ int temp,datasect,resvd,rootdir;
 //printf("block OK\n");
 
 
-memset((void *)fs,0,sizeof(FS_VOLUME));
+memsetb((void *)fs,0,sizeof(FS_VOLUME));
 
 fs->Disk=Disk;
 fs->VolNumber=VolNumber;
 
-TempData=(char *)malloc(512);
+TempData=(char *)simpmallocb(512);
 if(!TempData) return FALSE;
 
 TempData2=TempData+440;
@@ -39,19 +39,19 @@ TempData2=TempData+440;
 do {
 //printf("Vaddr=%08X\n",fs->VolumeAddr);
 //keyb_getkeyM(1);
-if(!SDDRead(fs->VolumeAddr,512,TempData,Disk)) { free(TempData); return FALSE;}
+if(!SDDRead(fs->VolumeAddr,512,TempData,Disk)) { simpfree(TempData); return FALSE;}
 //printf("Read1 OK\n");
 
 //if(!SDDRead(fs->VolumeAddr+440,18*4,TempData2,fs->Disk)) { return FALSE;}
 
 //printf("Read2 OK\n");
 
-if(TempData2[70]!=0x55 || TempData2[71]!=0xaa) { free(TempData); return FALSE;}		// NOT A BOOT/PARTITION SECTOR!
+if(TempData2[70]!=0x55 || TempData2[71]!=0xaa) { simpfree(TempData); return FALSE;}		// NOT A BOOT/PARTITION SECTOR!
 
 
 if((TempData[0]==0xeb || TempData[0]==0xe9)&&(TempData[21]==0xf8)) {
 
-if( (fs->VolumeAddr==0) && (VolNumber!=0) ) { free(TempData); return FALSE; }	// FAIL IF NO PARTITIONED CARD
+if( (fs->VolumeAddr==0) && (VolNumber!=0) ) { simpfree(TempData); return FALSE; }	// FAIL IF NO PARTITIONED CARD
 // PROCESS AS A BOOT SECTOR
 //printf("Boot Sector Found\n");
 break;
@@ -69,7 +69,7 @@ if(    TempData2[10+(VolNumber<<4)]!=1			// FAT 12
 	&& TempData2[10+(VolNumber<<4)]!=0xc		// FAT 32 LBA
 	&& TempData2[10+(VolNumber<<4)]!=0xe		// FAT 16 LBA
 	&& TempData2[10+(VolNumber<<4)]!=0xf)		// EXTENDED LBA
-	                                       { free(TempData); return FALSE;	}	// NOT A VALID FAT PARTITION
+	                                       { simpfree(TempData); return FALSE;	}	// NOT A VALID FAT PARTITION
 
 //printf("Found Valid filesystem %d\n",TempData2[10+(VolNumber<<4)]);
 
@@ -87,7 +87,7 @@ fs->SectorSize=ReadInt16((char *)TempData+11);
 if( fs->SectorSize!=512 &&
 	fs->SectorSize!=1024 &&
 	fs->SectorSize!=2048 &&
-	fs->SectorSize!=4096) 	{ free(TempData); return FALSE;}		// NOT A VALID SECTOR SIZE = BPB CORRUPTED OR NOT THERE
+	fs->SectorSize!=4096) 	{ simpfree(TempData); return FALSE;}		// NOT A VALID SECTOR SIZE = BPB CORRUPTED OR NOT THERE
 	
 	
 temp=9;
@@ -120,7 +120,7 @@ fs->FirstFATAddr=fs->VolumeAddr+ (resvd << (fs->SectorSize));
 fs->ClusterSize+=fs->SectorSize;
 
 // RESET ROOTDIR ENTRY
-memset((void *)&(fs->RootDir),0,sizeof(FS_FILE));
+memsetb((void *)&(fs->RootDir),0,sizeof(FS_FILE));
 fs->RootDir.Volume=fs->VolNumber;
 fs->RootDir.Mode=FSMODE_READ | FSMODE_MODIFY;
 fs->RootDir.Attr=FSATTR_DIR;
@@ -174,7 +174,7 @@ fs->NextFreeCluster=2;
 
 fs->InitFlags=1;
 
-free(TempData);
+simpfree(TempData);
 
 FSCalcFreeSpace(fs);
 

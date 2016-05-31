@@ -220,7 +220,10 @@ void main_virtual(unsigned int mode)
         halShowMsg("Memory Recovered");
     }
     }
-    //halStatusAreaPopup();
+
+    // INITIALIZE SD CARD SYSTEM MEMORY ALLOCATOR
+    init_simpalloc();
+
 
     halOuterLoop();
 

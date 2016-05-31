@@ -9,7 +9,16 @@
 #include "fsyspriv.h"
 
 
-
+static int isdot(char *string)
+{
+    if((string[0]=='.')&&(string[1]==0)) return 1;
+    return 0;
+}
+static int isdotdot(char *string)
+{
+    if((string[0]=='.')&&(string[1]='.')&&(string[2]==0)) return 1;
+    return 0;
+}
 
 
 // PARSE NAME, FIND FILE AND FILL THE ENTRY
@@ -67,14 +76,14 @@ if(ntype&2) {
 //printf("start crawl\n");
 while((ptrend=__fsfindchar(ptr,NULL,(char *)"/\\"))) {
 // EXTRACT DIRECTORY NAME
-memcpy(temp,ptr,ptrend-ptr);
+memmoveb(temp,ptr,ptrend-ptr);
 temp[ptrend-ptr]=0;
 //printf("CD %s\n",temp);
-if(!strcmp(temp,".")) {		// IGNORE REFERENCES TO CURRENT DIR
+if(isdot(temp)) {		// IGNORE REFERENCES TO CURRENT DIR
 ptr=ptrend+1;
 continue;
 }
-if(!strcmp(temp,"..")) {
+if(isdotdot(temp)) {
 newdir=dir;
 dir=dir->Dir;				// GET PARENT DIRECTORY WITHOUT SCANNING
 FSFreeFile(newdir);
@@ -110,14 +119,14 @@ newdir=newdir->Dir;
 
 if(!newdir) {
 // IF IT'S NOT OPEN YET, SCAN THE DIRECTORY
-newdir=(FS_FILE *)malloc(sizeof(FS_FILE));
+newdir=(FS_FILE *)simpmallocb(sizeof(FS_FILE));
 if(!newdir) {
 while(dir!=NULL) dir=FSFreeFile(dir);
 return FS_ERROR;
 }
 
 // CLEAN ENTRY
-memset((void *)newdir,0,sizeof(FS_FILE));
+memsetb((void *)newdir,0,sizeof(FS_FILE));
 
 error=FSFindEntry(temp,FSystem.CaseMode,newdir,dir);
 if(error!=FS_OK) {
@@ -156,11 +165,11 @@ ptr=ptrend+1;
 
 //printf("final name=%s\n",ptr);
 
-if(!strcmp(ptr,".")) {		// NAME IS CURRENT DIR
+if(isdot(ptr)) {		// NAME IS CURRENT DIR
 //printf("dot\n");
 ntype|=34;
 }
-else if(!strcmp(ptr,"..")) {
+else if(isdotdot(ptr)) {
 //printf("dotdot\n");
 newdir=dir;
 ntype|=34;
@@ -187,14 +196,14 @@ return FS_NOTFOUND;
 if(FSFileIsReferenced(dir,fs)) {
 // RETURN EXISTING DIRECTORY
 //printf("existing dir returned\n");
-memset((void *)entry,0,sizeof(FS_FILE));
+memsetb((void *)entry,0,sizeof(FS_FILE));
 entry->Dir=dir;
 return FS_OPENDIR;
 }
 // RETURN NEWLY CREATED DIRECTORY
 //printf("new dir returned\n");
-memcpy(entry,dir,sizeof(FS_FILE));
-free(dir);
+memmoveb(entry,dir,sizeof(FS_FILE));
+simpfree(dir);
 return FS_OK;
 }
 
@@ -216,7 +225,7 @@ newdir=newdir->Dir;
 
 if(newdir) {
 // FILE IS OPEN, RETURN CURRENT ENTRY
-memset((void *)entry,0,sizeof(FS_FILE));
+memsetb((void *)entry,0,sizeof(FS_FILE));
 // RETURN NOT FOUND IF FILE IS A DIRECTORY
 if(!dirsvalid && (newdir->Attr&FSATTR_DIR)) return FS_NOTFOUND;
 
@@ -236,8 +245,8 @@ return FS_ERROR;
 }
 
 if(!dirsvalid && (entry->Attr&FSATTR_DIR)) {
-free(entry->Name);
-memset((void *)entry,0,sizeof(FS_FILE));
+simpfree(entry->Name);
+memsetb((void *)entry,0,sizeof(FS_FILE));
 while(dir!=NULL) dir=FSFreeFile(dir);
 return FS_NOTFOUND;
 }

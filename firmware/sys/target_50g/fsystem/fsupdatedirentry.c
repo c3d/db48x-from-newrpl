@@ -20,14 +20,14 @@ int FSUpdateDirEntry(FS_FILE *file)
 char *buffer,*mainentry;
 
 
-buffer=(char *)malloc(32*file->DirEntryNum);
+buffer=(char *)simpmallocb(32*file->DirEntryNum);
 if(!buffer) return FS_ERROR;
 
 FSSeek(file->Dir,file->DirEntryOffset,FSSEEK_SET);
 
 if(FSReadLL(buffer,file->DirEntryNum<<5,file->Dir,FSystem.Volumes[file->Volume])!=file->DirEntryNum<<5)
 {
-free(buffer);
+simpfree(buffer);
 return FS_ERROR;
 }
 
@@ -47,11 +47,11 @@ FSSeek(file->Dir,file->DirEntryOffset,FSSEEK_SET);
 
 if(FSWriteLL(buffer,file->DirEntryNum<<5,file->Dir,FSystem.Volumes[file->Volume])!=file->DirEntryNum<<5)
 {
-free(buffer);
+simpfree(buffer);
 return FS_ERROR;
 }
 
-free(buffer);
+simpfree(buffer);
 return FS_OK;
 
 }

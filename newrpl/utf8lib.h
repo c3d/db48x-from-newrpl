@@ -72,6 +72,10 @@ unsigned int char2utf8(int codepoint);
 // len IS IN UNICODE CODE POINTS, NOT BYTES
 int utf8ncmp(const char *s1,const char *s2,int len);
 
+// UTF-8 COMPLIANT FORM OF strcmp.
+int utf8cmp(const char *s1,const char *s2);
+
+
 // SAME AS STRLEN BUT RETURNS THE LENGTH IN UNICODE CODEPOINTS OF
 // A NULL-TERMINATED STRING
 int utf8len(char *string);

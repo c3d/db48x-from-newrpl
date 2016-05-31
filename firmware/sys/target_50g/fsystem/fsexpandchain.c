@@ -83,7 +83,7 @@ else {
 //printf("new frag\n");
 // CREATE NEW FRAGMENT
 if(fr->StartAddr!=0) {
-newfr=(FS_FRAGMENT *)malloc(sizeof(FS_FRAGMENT));
+newfr=(FS_FRAGMENT *)simpmallocb(sizeof(FS_FRAGMENT));
 if(!newfr) return FS_ERROR;
 }
 else {

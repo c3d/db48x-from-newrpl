@@ -9,7 +9,11 @@
 #include "fsyspriv.h"
 
 
-
+static int stringchr(char *string,char a)
+{
+    while(*string) { if(*string==a) return 1; ++string; }
+    return 0;
+}
 
 
 
@@ -26,7 +30,7 @@ char *ext,*tmp,*orgname=name;
 
 ncase=ecase=flags=0;
 
-nlen=(int)strlen((char *)name)+1;
+nlen=(int)stringlen((char *)name)+1;
 
 // FIND EXTENSION
 ext=(char *)__fsfindcharrev(name,NULL,(char *)".");
@@ -40,7 +44,7 @@ while(*tmp=='.' || *tmp==' ') ++tmp;
 if(tmp!=name) {
 // STRIP LEADING DOTS OR SPACES
 flags|=3;	// MARK NAME WAS CONVERTED
-memmove(name,tmp,nlen-(int)(tmp-name));
+memmoveb(name,tmp,nlen-(int)(tmp-name));
 ext-=(int)(tmp-name);
 nlen-=(int)(tmp-name);
 tmp=name;
@@ -52,12 +56,12 @@ do {
 do {
 if(*tmp<=127) {		// >127 IS PERMITTED
 	if(*tmp<'A' || *tmp>'Z') {		// UPPERCASE LETTERS ARE PERMITTED
-		if(!strchr("0123456789$%'-_@~`!(){}^#&",*tmp)) {	// NUMBERS AND SYMBOLS PERMITTED
+        if(!stringchr("0123456789$%'-_@~`!(){}^#&",*tmp)) {	// NUMBERS AND SYMBOLS PERMITTED
 			// IT HAS TO BE AN ILLEGAL CHARACTER
 			if(*tmp==' ' || *tmp=='.') {
 				// REMOVE SPACES AND PERIODS
 				flags|=3; 
-				memmove(tmp,tmp+1,nlen-(int)(tmp-name));
+				memmoveb(tmp,tmp+1,nlen-(int)(tmp-name));
 				ext--;
 				nlen--;
 				continue;
@@ -93,7 +97,7 @@ if(tmp!=ext) {
 flags|=3;
 
 // COPY EXTENSION AFTER NAME
-memmove(tmp,ext,nlen-(int)(ext-name));
+memmoveb(tmp,ext,nlen-(int)(ext-name));
 nlen-=(int)(ext-tmp);
 ext-=(int)(ext-tmp);
 }
@@ -134,11 +138,11 @@ else {
 // EXPAND STRING
 if(ext<orgname+7-digits) tmp=ext;
 else tmp=orgname+7-digits;
-memmove(tmp+digits+1,ext,nlen-(int)(ext-orgname));
+memmoveb(tmp+digits+1,ext,nlen-(int)(ext-orgname));
 
 *tmp++='~';
 
-memset(tmp,48,digits);
+memsetb(tmp,48,digits);
 
 while(minnum>9999)
 {

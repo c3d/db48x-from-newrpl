@@ -8,13 +8,8 @@
 #include <newrpl.h>
 #include <ui.h>
 
-
 // TEMPORARY MEMORY ALLOCATION USES NEWRPL DECIMAL LIBRARY MEMORY MANAGER
-#define malloc(a) ((char *)allocRegister())
-#define free(a) freeRegister((BINT *)(a))
-
-
-#include "sddriver.h"
+#include "fsystem/fsyspriv.h"
 // SD MODULE
 
 #define EXTINT0 ((unsigned int *)(IO_REGS+0x88))
@@ -835,16 +830,16 @@ finalblock=startaddr+(blocks<<card->CurrentBLen);
 
 
 if(startaddr!=SDAddr) {
-startbuffer=malloc(blmask+1);
+startbuffer=simpmallocb(blmask+1);
 if(!startbuffer) return 0;
-if(SDDRead(startaddr,blmask+1,startbuffer,card)!=blmask+1) { free(startbuffer); return 0; }
+if(SDDRead(startaddr,blmask+1,startbuffer,card)!=blmask+1) { simpfree(startbuffer); return 0; }
 }
 
 if(endaddr!=finalblock) {
 if(blocks>1 || (!startbuffer)) {
-endbuffer=malloc(blmask+1);
-if(!endbuffer) { if(startbuffer) free(startbuffer); return 0; }
-if(SDDRead(finalblock-(blmask+1),1<<card->CurrentBLen,endbuffer,card)!=blmask+1) { free(endbuffer); if(startbuffer) free(startbuffer); return 0; }
+endbuffer=simpmallocb(blmask+1);
+if(!endbuffer) { if(startbuffer) simpfree(startbuffer); return 0; }
+if(SDDRead(finalblock-(blmask+1),1<<card->CurrentBLen,endbuffer,card)!=blmask+1) { simpfree(endbuffer); if(startbuffer) simpfree(startbuffer); return 0; }
 }
 else endbuffer=startbuffer;
 }
@@ -865,8 +860,8 @@ SDDResetFIFO();
 
 if(!SDSendCmdShortResp((blocks==1)? 24:25,startaddr,&status)) {
 //printf("failed read cmd\n");
-if(startbuffer) free(startbuffer);
-if(endbuffer && endbuffer!=startbuffer) free(endbuffer);
+if(startbuffer) simpfree(startbuffer);
+if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);
 return FALSE;
 }
 
@@ -908,8 +903,8 @@ while(!(*SDIFSTA&0x2000)) {
 if(!SDCardInserted()) {
 //printf("no card\n");
 SDDStop();
-if(startbuffer) free(startbuffer);
-if(endbuffer && endbuffer!=startbuffer) free(endbuffer);
+if(startbuffer) simpfree(startbuffer);
+if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);
 return FALSE;
 }
 status=*SDIDSTA;
@@ -922,8 +917,8 @@ if(status&0x20) {
 //printf("Timeout!\n");
 if(!SDSlowDown()) {
 //printf("Slowdown failed\n");
-if(startbuffer) free(startbuffer);
-if(endbuffer && endbuffer!=startbuffer) free(endbuffer);
+if(startbuffer) simpfree(startbuffer);
+if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);
 return FALSE;
 }
 while( (*SDIDSTA&0x3));
@@ -931,8 +926,8 @@ goto restartall;
 
 }
 *SDIDSTA=status&(~3);
-if(startbuffer) free(startbuffer);
-if(endbuffer && endbuffer!=startbuffer) free(endbuffer);
+if(startbuffer) simpfree(startbuffer);
+if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);
 return FALSE;
 }
 
@@ -960,8 +955,8 @@ while(!(*SDIFSTA&0x2000)) {
 if(!SDCardInserted()) {
 //printf("no card\n");
 SDDStop();
-if(startbuffer) free(startbuffer);
-if(endbuffer && endbuffer!=startbuffer) free(endbuffer);
+if(startbuffer) simpfree(startbuffer);
+if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);
 return FALSE;
 }
 status=*SDIDSTA;
@@ -974,8 +969,8 @@ if(status&0x20) {
 //printf("Timeout!\n");
 if(!SDSlowDown()) {
 //printf("Slowdown failed\n");
-if(startbuffer) free(startbuffer);
-if(endbuffer && endbuffer!=startbuffer) free(endbuffer);
+if(startbuffer) simpfree(startbuffer);
+if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);
 return FALSE;
 }
 while( (*SDIDSTA&0x3));
@@ -983,8 +978,8 @@ goto restartall;
 
 }
 *SDIDSTA=status&(~3);
-if(startbuffer) free(startbuffer);
-if(endbuffer && endbuffer!=startbuffer) free(endbuffer);
+if(startbuffer) simpfree(startbuffer);
+if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);
 return FALSE;
 }
 
@@ -1005,8 +1000,8 @@ startaddr+=4;
 
 
 
-if(startbuffer) free(startbuffer);
-if(endbuffer && endbuffer!=startbuffer) free(endbuffer);
+if(startbuffer) simpfree(startbuffer);
+if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);
 
 
 // WAIT UNTIL END OF TRANSMISSION

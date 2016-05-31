@@ -63,11 +63,11 @@ oldfile->FirstCluster=0;
 newfile->FileSize=oldfile->FileSize;
 oldfile->FileSize=0;
 
-memcpy((void *)&(newfile->Chain),(void *)&(oldfile->Chain),sizeof(FS_FRAGMENT));
-memset((void *)&(oldfile->Chain),0,sizeof(FS_FRAGMENT));
+memmoveb((void *)&(newfile->Chain),(void *)&(oldfile->Chain),sizeof(FS_FRAGMENT));
+memsetb((void *)&(oldfile->Chain),0,sizeof(FS_FRAGMENT));
 
-memset((void *)&(newfile->RdBuffer),0,sizeof(FS_BUFFER));
-memset((void *)&(newfile->WrBuffer),0,sizeof(FS_BUFFER));
+memsetb((void *)&(newfile->RdBuffer),0,sizeof(FS_BUFFER));
+memsetb((void *)&(newfile->WrBuffer),0,sizeof(FS_BUFFER));
 
 
 error=FSClose(newfile);

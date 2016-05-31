@@ -1145,9 +1145,12 @@ void set_stackall();
 void memcpyw(void *dest,const void *source,int nwords);
 void memmovew(void *dest,const void *source,int nwords);
 int stringlen(const char *s);
+char * stringcpy(char *t, const char *s);
 void *memcpyb(void *trg, const void *src, int n);
 void *memmoveb(void *_dest, const void *_source, int nbytes);
 void memsetw(void *dest,int value,int nwords);
+void *memsetb(void *dest,int value,int nbytes);
+
 
 // LOW-LEVEL HARDWARE DRIVERS - POWER
 void cpu_off_prepare();
@@ -1164,6 +1167,8 @@ void __keyb_waitrelease();
 // LOW-LEVEL HARDWARE DRIVERS - FLASH MEMORY
 void flash_CFIRead(unsigned short *ptr);
 
+// LOW-LEVEL MEMORY SUBALLOCATOR FOR FILE SYSTEM
+void init_simpalloc();
 
 
 

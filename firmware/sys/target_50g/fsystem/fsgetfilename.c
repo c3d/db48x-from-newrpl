@@ -27,14 +27,14 @@ int length=1;
 
 // COMPUTE STRING LENGTH
 
-if( !(flags&FSNAME_EMPTY) && (file->Name!=NULL)) length+=(int)strlen(file->Name);
+if( !(flags&FSNAME_EMPTY) && (file->Name!=NULL)) length+=(int)stringlen(file->Name);
 
 if(flags&FSNAME_HASPATH) {
 if(!(flags&FSNAME_ABSPATH)) enddir=FSystem.Volumes[file->Volume]->CurrentDir;
 dir=file->Dir;
 while(dir && (dir!=enddir))
 {
-if(dir->Name!=NULL) length+=(int)strlen(dir->Name)+1;
+if(dir->Name!=NULL) length+=(int)stringlen(dir->Name)+1;
 dir=dir->Dir;
 }
 if(dir==NULL) flags|=FSNAME_ABSPATH;	// FORCE ABSOLUTE PATH
@@ -48,7 +48,7 @@ if(flags&FSNAME_VOLHP) ++length;
 }
 
 // ALLOCATE THE STRING
-ptr=(char *)malloc(length);
+ptr=(char *)simpmallocb(length);
 if(!ptr) return NULL;
 
 // GENERATE NAME
@@ -74,8 +74,8 @@ while(dir && (dir!=enddir))
 {
 if(dir->Name!=NULL) {
 // MAKE ROOM
-memmove(partial+strlen(dir->Name)+1,partial,strlen(partial)+1);
-strcpy(partial,dir->Name);
+memmoveb(partial+stringlen(dir->Name)+1,partial,stringlen(partial)+1);
+stringcpy(partial,dir->Name);
 tmp=partial;
 while(*tmp!=0) ++tmp;
 *tmp='\\';
@@ -88,7 +88,7 @@ while(*partial) ++partial;
 
 if(!(flags&FSNAME_EMPTY))
 {
-if(file->Name!=NULL) strcpy(partial,file->Name);
+if(file->Name!=NULL) stringcpy(partial,file->Name);
 while(*partial) ++partial;
 }
 

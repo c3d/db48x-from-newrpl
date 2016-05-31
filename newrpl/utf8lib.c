@@ -500,6 +500,21 @@ int utf8ncmp(const char *s1,const char *s2,int len)
         return 0;
 }
 
+// SIMILAR TO strcmp BUT WITH UTF8 SUPPORT
+int utf8cmp(const char *s1,const char *s2)
+{
+            while (*s1 && *s2 )
+            {
+                if (utf82char((char *)s1,(char *)s1+4) != utf82char((char *)s2,(char *)s2+4)) break;
+                s1=utf8skip((char *)s1,(char *)s1+4);
+                s2=utf8skip((char *)s2,(char *)s2+4);
+            }
+
+            if ( (*s1==0) && (*s2==0) ) return 0;
+            if (*s1 == '\0') return -1;
+            if (*s2 == '\0' ) return 1;
+                return (utf82char((char *)s1,(char *)s1+4) - utf82char((char *)s2,(char *)s2+4));
+}
 
 // SAME AS STRLEN BUT RETURNS THE LENGTH IN UNICODE CODEPOINTS OF
 // A NULL-TERMINATED STRING

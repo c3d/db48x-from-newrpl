@@ -43,38 +43,38 @@ fs=FSystem.Volumes[dir->Volume];
 
 if(!fs) return FS_ERROR;
 
-newname=(char *)malloc(257);
+newname=(char *)simpmallocb(257);
 if(!newname) return FS_ERROR;
-shname=(char *)malloc(257);
-if(!shname) {free(newname); return FS_ERROR; }
-entryname=(char *)malloc(257);
-if(!entryname) { free(newname); free(shname); return FS_ERROR; }
+shname=(char *)simpmallocb(257);
+if(!shname) {simpfree(newname); return FS_ERROR; }
+entryname=(char *)simpmallocb(257);
+if(!entryname) { simpfree(newname); simpfree(shname); return FS_ERROR; }
 
 // INITIALIZE COUNTERS
 
-memset((void *)cr,0,sizeof(FS_FILECREATE));
+memsetb((void *)cr,0,sizeof(FS_FILECREATE));
 
 if(dir->Mode&FSMODE_NOGROW) cr->DirMaxEntries=dir->FileSize>>5;
 else cr->DirMaxEntries=65536;
 
 // DETERMINE LENGTH OF STRING
-namelen=(int)strlen((char *)name);
+namelen=(int)stringlen((char *)name);
 
 // SAFE OBTAIN NAME OF NEW FILE
 if(namelen>255) {
-	memcpy(newname,name,255);
+	memmoveb(newname,name,255);
 	newname[255]=0;		// TRUNCATE FILE NAME IF >255 CHARS
 }
-else strcpy((char *)newname,(char *)name);
+else stringcpy((char *)newname,(char *)name);
 
 // STRIP SEMICOLONS IF PRESENT
 if( FSystem.CaseMode==FSCASE_SENSHP || (FSystem.CaseMode==FSCASE_SENSHPTRUE)) FSStripSemi(newname);
 
-namelen=strlen((char *)newname);
+namelen=stringlen((char *)newname);
 
 // EXTRACT ROOT NAME TO CHECK FOR CONFLICTS
 
-strcpy(shname,newname);
+stringcpy(shname,newname);
 
 cr->NameFlags=FSConvert2ShortEntry(shname,0);
 
@@ -104,23 +104,23 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 //	printf("last entry\n");
 	// FOUND LAST ENTRY OF A NAME
 	nentries=buffer[0]&0x3f;
-	morebuff=(char *)malloc(32*nentries);
+	morebuff=(char *)simpmallocb(32*nentries);
 	if(morebuff==NULL) {
-		free(newname);
-		free(shname);
-		free(entryname);
-		if(cr->Entry) free(cr->Entry); 
+		simpfree(newname);
+		simpfree(shname);
+		simpfree(entryname);
+		if(cr->Entry) simpfree(cr->Entry); 
 		return FS_ERROR;
 	}
 	if( (nbytesread=FSReadLL(morebuff,32*nentries,dir,fs))!=32*nentries) { 
-		free(morebuff);
+		simpfree(morebuff);
 		if(nbytesread>0) cr->DirUsedEntries+=nbytesread>>5;
 
 		if(FSEof(dir)) break;
-		free(newname);
-		free(shname);
-		free(entryname);
-		if(cr->Entry) free(cr->Entry); 
+		simpfree(newname);
+		simpfree(shname);
+		simpfree(entryname);
+		if(cr->Entry) simpfree(cr->Entry); 
 		return FS_ERROR;
 	}
 	
@@ -143,7 +143,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 		// ENTRIES ARE ORPHANS, DISCARD AND CONTINUE SEARCHING
 		FSSeek(dir,-32*(order+1),FSSEEK_CUR);		// REWIND TO NEXT UNKNOWN ENTRY
 		cr->DirUsedEntries-=order+1;
-		free(morebuff);
+		simpfree(morebuff);
 		continue;
 	}
 	// VERIFY THAT SHORT ENTRY FOLLOWS LONG NAME
@@ -153,7 +153,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 //	keyb_getkeyM(1);
 
 	// VALID SHORT ENTRY NOT FOUND
-	free(morebuff);
+	simpfree(morebuff);
 	if(*ptr==0) { cr->DirUsedEntries--; break; }
 	if(*ptr!=0xe5) { FSSeek(dir,-32,FSSEEK_CUR);		// REWIND LAST ENTRY
 					cr->DirUsedEntries--;
@@ -175,7 +175,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	// FAILED CHECKSUM, SKIP ORPHANS AND CONTINUE
 //	printf("failed checksum\n");
 //	keyb_getkeyM(1);
-	free(morebuff);
+	simpfree(morebuff);
 	FSSeek(dir,-32,FSSEEK_CUR);		// REWIND LAST ENTRY
 	--cr->DirUsedEntries;
 	continue;
@@ -195,8 +195,8 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	FSPackName(entryname+13*(order-1),buffer);
 	entryname[13*nentries]=0;		// FORCE NULL-TERMINATED STRING
 
-	memcpy(buffer,ptr,32);		// COPY MAIN (SHORT) ENTRY TO buffer
-	free(morebuff);
+	memmoveb(buffer,ptr,32);		// COPY MAIN (SHORT) ENTRY TO buffer
+	simpfree(morebuff);
 	
 
 
@@ -217,25 +217,25 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 
 		if(!cr->FileExists) {		// DON'T CHECK FOR DUPLICATED FILES
 		cr->FileExists=TRUE;
-		cr->Entry=(FS_FILE *)malloc(sizeof(FS_FILE));
+		cr->Entry=(FS_FILE *)simpmallocb(sizeof(FS_FILE));
 
 		if(!cr->Entry) {
-		free(newname);
-		free(shname);
-		free(entryname);
+		simpfree(newname);
+		simpfree(shname);
+		simpfree(entryname);
 		return FS_ERROR;
 		}
 
-		cr->Entry->Name=(char *)malloc(strlen(entryname)+1);
+		cr->Entry->Name=(char *)simpmallocb(stringlen(entryname)+1);
 
 		if(!cr->Entry->Name) {
-		free(newname);
-		free(shname);
-		free(entryname);
+		simpfree(newname);
+		simpfree(shname);
+		simpfree(entryname);
 		return FS_ERROR;
 		}
 
-		strcpy(cr->Entry->Name,entryname);
+		stringcpy(cr->Entry->Name,entryname);
 		if(FSystem.CaseMode==FSCASE_SENSHP) FSStripSemi(cr->Entry->Name);
 
 		cr->Entry->Mode=0;
@@ -252,9 +252,9 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 		cr->Entry->DirEntryOffset=diroffset;
 		cr->Entry->DirEntryNum=nentries+1;
 		cr->Entry->Dir=dir;
-		memset((void *)&(cr->Entry->Chain),0,sizeof(FS_FRAGMENT));
-		memset((void *)&(cr->Entry->RdBuffer),0,sizeof(FS_BUFFER));
-		memset((void *)&(cr->Entry->WrBuffer),0,sizeof(FS_BUFFER));
+		memsetb((void *)&(cr->Entry->Chain),0,sizeof(FS_FRAGMENT));
+		memsetb((void *)&(cr->Entry->RdBuffer),0,sizeof(FS_BUFFER));
+		memsetb((void *)&(cr->Entry->WrBuffer),0,sizeof(FS_BUFFER));
 		}
 
 		}
@@ -319,25 +319,25 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 
 		if(!cr->FileExists) {		// DON'T CHECK FOR DUPLICATED FILES
 		cr->FileExists=TRUE;
-		cr->Entry=(FS_FILE *)malloc(sizeof(FS_FILE));
+		cr->Entry=(FS_FILE *)simpmallocb(sizeof(FS_FILE));
 
 		if(!cr->Entry) {
-		free(newname);
-		free(shname);
-		free(entryname);
+		simpfree(newname);
+		simpfree(shname);
+		simpfree(entryname);
 		return FS_ERROR;
 		}
 
-		cr->Entry->Name=(char *)malloc(strlen(shname)+1);
+		cr->Entry->Name=(char *)simpmallocb(stringlen(shname)+1);
 
 		if(!cr->Entry->Name) {
-		free(newname);
-		free(shname);
-		free(entryname);
+		simpfree(newname);
+		simpfree(shname);
+		simpfree(entryname);
 		return FS_ERROR;
 		}
 
-		strcpy(cr->Entry->Name,shname);
+		stringcpy(cr->Entry->Name,shname);
 		if(FSystem.CaseMode==FSCASE_SENSHP) FSStripSemi(cr->Entry->Name);
 
 		cr->Entry->Mode=0;
@@ -354,9 +354,9 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 		cr->Entry->DirEntryOffset=diroffset;
 		cr->Entry->DirEntryNum=1;
 		cr->Entry->Dir=dir;
-		memset((void *)&(cr->Entry->Chain),0,sizeof(FS_FRAGMENT));
-		memset((void *)&(cr->Entry->RdBuffer),0,sizeof(FS_BUFFER));
-		memset((void *)&(cr->Entry->WrBuffer),0,sizeof(FS_BUFFER));
+		memsetb((void *)&(cr->Entry->Chain),0,sizeof(FS_FRAGMENT));
+		memsetb((void *)&(cr->Entry->RdBuffer),0,sizeof(FS_BUFFER));
+		memsetb((void *)&(cr->Entry->WrBuffer),0,sizeof(FS_BUFFER));
 		}
 
 		}
@@ -404,13 +404,13 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 if(cr->NeedSemi) cr->NameFlags|=3; // FORCE LONG NAME W/SHORT NAME TAIL
 
 
-free(entryname);
-free(shname);
+simpfree(entryname);
+simpfree(shname);
 
 // ANALIZE WHETHER DIRECTORY NEEDS REPACKING
 
 if(cr->FileExists) {
-free(newname);
+simpfree(newname);
 	return FS_OK;	// DON'T REPACK IF FILE EXISTS, NO CREATION WILL BE DONE
 }
 // REPACK IF MORE THAN 100 ENTRIES TOTAL AND (BAD_ENTRIES>=VALID_ENTRIES)
@@ -422,7 +422,7 @@ if( ((cr->DirUsedEntries-cr->DirValidEntries>cr->DirValidEntries>>1) && (cr->Dir
 {
 int error=FSPackDir(dir);
 if(error!=FS_OK) {
-free(newname);
+simpfree(newname);
 return error;
 }
 // DONE WITH PACKING
@@ -433,23 +433,23 @@ cr->DirUsedEntries=cr->DirValidEntries;
 
 // CREATE ENTRY
 
-		cr->Entry=(FS_FILE *)malloc(sizeof(FS_FILE));
+		cr->Entry=(FS_FILE *)simpmallocb(sizeof(FS_FILE));
 
 		if(!cr->Entry) {
-		free(newname);
+		simpfree(newname);
 		return FS_ERROR;
 		}
 
-		cr->Entry->Name=(char *)malloc(strlen(newname)+1+cr->NeedSemi);
+		cr->Entry->Name=(char *)simpmallocb(stringlen(newname)+1+cr->NeedSemi);
 
 		if(!cr->Entry->Name) {
-		free(newname);
+		simpfree(newname);
 		return FS_ERROR;
 		}
 
-		strcpy((char *)cr->Entry->Name,(char *)newname);
+		stringcpy((char *)cr->Entry->Name,(char *)newname);
 
-		free(newname);
+		simpfree(newname);
 
 		// ADD SEMICOLONS
 
@@ -478,9 +478,9 @@ cr->DirUsedEntries=cr->DirValidEntries;
 		cr->Entry->CurrentOffset=0;
 		cr->Entry->DirEntryOffset=cr->DirUsedEntries<<5;	// DirEntryNum initialized later
 		cr->Entry->Dir=dir;
-		memset((void *)&(cr->Entry->Chain),0,sizeof(FS_FRAGMENT));
-		memset((void *)&(cr->Entry->RdBuffer),0,sizeof(FS_BUFFER));
-		memset((void *)&(cr->Entry->WrBuffer),0,sizeof(FS_BUFFER));
+		memsetb((void *)&(cr->Entry->Chain),0,sizeof(FS_FRAGMENT));
+		memsetb((void *)&(cr->Entry->RdBuffer),0,sizeof(FS_BUFFER));
+		memsetb((void *)&(cr->Entry->WrBuffer),0,sizeof(FS_BUFFER));
 
 		// OTHERWISE RETURN WITH ALL INFORMATION COLLECTED
 		

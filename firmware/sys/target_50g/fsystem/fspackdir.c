@@ -39,7 +39,7 @@ if(!fs) return FS_ERROR;
 
 for(bufsize=32768;bufsize>=1024;bufsize>>=1)
 {
-packbuf=(char *)malloc(bufsize);
+packbuf=(char *)simpmallocb(bufsize);
 if(packbuf) break;
 }
 
@@ -75,12 +75,12 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	FSSeek(dir,bufoffset,FSSEEK_SET);
 	if(FSWriteLL(packbuf,savesize,dir,fs)!=savesize) {
 	// THIS BETTER NOT HAPPEN, SEVERE DAMAGE TO DIRECTORY STRUCTURES
-	free(packbuf);
+	simpfree(packbuf);
 	return FS_ERROR;
 	
 	}
 	bufoffset+=savesize;
-	memmove(packbuf,packbuf+savesize,512);
+	memmoveb(packbuf,packbuf+savesize,512);
 	buffer-=savesize;
 	morebuff-=savesize;
 	FSSeek(dir,olddiroff,FSSEEK_SET);
@@ -158,12 +158,12 @@ if( (int)(buffer-packbuf)>bufsize-32) {
 	FSSeek(dir,bufoffset,FSSEEK_SET);
 	if(FSWriteLL(packbuf,savesize,dir,fs)!=savesize) {
 	// THIS BETTER NOT HAPPEN, SEVERE DAMAGE TO DIRECTORY STRUCTURES
-	free(packbuf);
+	simpfree(packbuf);
 	return FS_ERROR;
 	
 	}
 	bufoffset+=savesize;
-	memmove(packbuf,packbuf+savesize,512);
+	memmoveb(packbuf,packbuf+savesize,512);
 	buffer-=savesize;
 	FSSeek(dir,olddiroff,FSSEEK_SET);
 
@@ -185,7 +185,7 @@ if( (int)(buffer-packbuf)>bufsize-32) {
 	if(dir->FileSize<65536*32) dir->Mode&=~FSMODE_NOGROW;  // ALLOW DIRECTORY TO GROW
 	}
 	else {
-		free(packbuf);
+		simpfree(packbuf);
 		return FS_ERROR;
 	}
 	
@@ -199,7 +199,7 @@ if(buffer>packbuf) {
 // SAVE FINAL SECTORS
 
 // CLEAN UNUSED ENTRIES
-memset(buffer,0,bufsize-(int)(buffer-packbuf));
+memsetb(buffer,0,bufsize-(int)(buffer-packbuf));
 
 	int savesize=bufsize;
 	int written;
@@ -209,7 +209,7 @@ memset(buffer,0,bufsize-(int)(buffer-packbuf));
 	FSSeek(dir,bufoffset,FSSEEK_SET);
 	if((written=FSWriteLL(packbuf,savesize,dir,fs))!=savesize) {
 	// THIS BETTER NOT HAPPEN, SEVERE DAMAGE TO DIRECTORY STRUCTURES
-	free(packbuf);
+	simpfree(packbuf);
 	return (written<0)? written:FS_ERROR;
 	
 	}
@@ -219,7 +219,7 @@ memset(buffer,0,bufsize-(int)(buffer-packbuf));
 	
 	
 	// CLEAN ALL ENTRIES AFTER LAST ONE
-	memset(packbuf,0,bufsize);
+	memsetb(packbuf,0,bufsize);
 	
 	int savesize=dir->FileSize-bufoffset;
 	int written;
@@ -228,7 +228,7 @@ memset(buffer,0,bufsize-(int)(buffer-packbuf));
 	written=FSWriteLL(packbuf,bufsize,dir,fs);
 	if(written!=bufsize) {
 		// SEVERE DAMAGE TO FILE SYSTEM
-		free(packbuf);
+		simpfree(packbuf);
 		return (written<0)? written : FS_ERROR;
 	}
 	savesize-=bufsize;
@@ -237,13 +237,13 @@ memset(buffer,0,bufsize-(int)(buffer-packbuf));
 	if(savesize) {
 		if((written=FSWriteLL(packbuf,savesize,dir,fs))!=savesize) {
 			// BIG PROBLEM SEVERE DAMAGE TO THE FILE SYSTEM CAN HAPPEN
-			free(packbuf);
+			simpfree(packbuf);
 			return (written<0)? written:FS_ERROR;
 
 		}
 	}
 	
-	free(packbuf);
+	simpfree(packbuf);
 
 	// FLUSH FAT BUFFERS TO ENSURE DIR IS MODIFIED ON DISK
 

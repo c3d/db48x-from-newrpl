@@ -23,23 +23,23 @@ error=FSInit();
 if(error!=FS_OK) return error;
 
 
-entry=(FS_FILE *)malloc(sizeof(FS_FILE));
+entry=(FS_FILE *)simpmallocb(sizeof(FS_FILE));
 if(entry==NULL) return FS_ERROR;
 
 // CLEAN ENTRY
-memset((void *)entry,0,sizeof(FS_FILE));
+memsetb((void *)entry,0,sizeof(FS_FILE));
 
 
 // CHECK IF CARD IS PRESENT
 
 error=FSVolumePresent(FSystem.Volumes[FSystem.CurrentVolume]);
-if(error!=FS_OK) { free(entry); return error; }
+if(error!=FS_OK) { simpfree(entry); return error; }
 
 
 error=FSFindFile(name,entry,FALSE);
 
 if(error!=FS_OK) { 
-free(entry); return error;
+simpfree(entry); return error;
 }
 
 fs=FSystem.Volumes[entry->Volume];

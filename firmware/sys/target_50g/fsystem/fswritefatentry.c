@@ -54,7 +54,7 @@ ch=ch->Next;
 
 if(fs->NumCache>FS_MAXFATCACHE) if(FSFlushFATCache(fs)!=FS_OK) return FS_ERROR;
 
-ch=(FS_CHAINBUFFER *)malloc(sizeof(FS_CHAINBUFFER));
+ch=(FS_CHAINBUFFER *)simpmallocb(sizeof(FS_CHAINBUFFER));
 if(!ch) {
 if(fs->NumCache) {
 if(FSFlushFATCache(fs)!=FS_OK) return FS_ERROR;

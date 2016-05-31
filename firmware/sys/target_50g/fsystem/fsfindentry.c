@@ -42,7 +42,7 @@ if(!fs) return FS_ERROR;
 
 
 // DETERMINE LENGTH OF STRING
-namelen=(int)strlen((char *)name);
+namelen=(int)stringlen((char *)name);
 //printf("Search... %s\n",name);
 //printf("dir size=%d\n",dir->FileSize);
 //keyb_getkeyM(1);
@@ -62,11 +62,11 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 //	printf("last entry\n");
 	// FOUND LAST ENTRY OF A NAME
 	nentries=buffer[0]&0x3f;
-	morebuff=(char *)malloc(32*nentries);
+	morebuff=(char *)simpmallocb(32*nentries);
 	if(morebuff==NULL) { 
 		return FS_ERROR; }
 	if(FSReadLL(morebuff,32*nentries,dir,fs)!=32*nentries) { 
-		free(morebuff);
+		simpfree(morebuff);
 		if(FSEof(dir)) return FS_EOF; 
 		else return FS_ERROR; }
 	
@@ -86,7 +86,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 //		keyb_getkeyM(1);
 		// ENTRIES ARE ORPHANS, DISCARD AND CONTINUE SEARCHING
         FSSeek(dir,-32*(order+1),FSSEEK_CUR);		// REWIND TO NEXT UNKNOWN ENTRY
-		free(morebuff);
+		simpfree(morebuff);
 		continue;
 	}
 	// VERIFY THAT SHORT ENTRY FOLLOWS LONG NAME
@@ -96,7 +96,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 //	keyb_getkeyM(1);
 
 	// VALID SHORT ENTRY NOT FOUND
-	free(morebuff);
+	simpfree(morebuff);
 	if(*ptr==0) return FS_EOF;
     if(*ptr!=0xe5) FSSeek(dir,-32,FSSEEK_CUR);		// REWIND LAST ENTRY
 	continue;
@@ -116,16 +116,16 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	// FAILED CHECKSUM, SKIP ORPHANS AND CONTINUE
 //	printf("failed checksum\n");
 //	keyb_getkeyM(1);
-	free(morebuff);
+	simpfree(morebuff);
     FSSeek(dir,-32,FSSEEK_CUR);		// REWIND LAST ENTRY
 	continue;
 	}
 //	printf("All valid!!!\n");
 	
 	// VALID ENTRY FOUND, FILL STRUCTURE AND RETURN
-	entry->Name=(char *)malloc(nentries*13+1);
+	entry->Name=(char *)simpmallocb(nentries*13+1);
 	if(entry->Name==NULL) {
-	free(morebuff);
+	simpfree(morebuff);
 	return FS_ERROR;
 	}
 	
@@ -138,14 +138,14 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	FSPackName(entry->Name+13*(order-1),buffer);
 	entry->Name[13*nentries]=0;		// FORCE NULL-TERMINATED STRING
 
-	memcpy(buffer,ptr,32);		// COPY MAIN (SHORT) ENTRY TO buffer
-	free(morebuff);
+	memmoveb(buffer,ptr,32);		// COPY MAIN (SHORT) ENTRY TO buffer
+	simpfree(morebuff);
 	
 	//printf("Comparing=%s\n",entry->Name);
 	if(!FSNameCompare(entry->Name,name,caseflags)) {
 	// NOT THIS FILE, COMPARE SHORT FILENAME
 	if(namelen>12) {			// CANNOT BE A SHORT ENTRY
-	free(entry->Name);
+	simpfree(entry->Name);
 	continue;
 	}
 	// CHECK IF NAME IS GIVEN BY SHORT ENTRY
@@ -156,7 +156,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	// NOT THIS ENTRY
 	//printf("Not this one...\n");
 //	keyb_getkeyM(1);
-	free(entry->Name);
+	simpfree(entry->Name);
 	continue;
 	}
 	
@@ -170,7 +170,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	if(namelen>12) continue;			// CANNOT BE A SHORT NAME
 	diroffset=dir->CurrentOffset-32;
 	nentries=0;
-	entry->Name=(char *)malloc(13);
+	entry->Name=(char *)simpmallocb(13);
 	if(entry->Name==NULL)
 		return FS_ERROR;
 	
@@ -182,7 +182,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	//printf("Not this one...(short)\n");
 //	keyb_getkeyM(1);
 	
-	free(entry->Name);
+	simpfree(entry->Name);
 	continue;
 	
 	}
@@ -205,9 +205,9 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	entry->DirEntryOffset=diroffset;
 	entry->DirEntryNum=nentries+1;
 	entry->Dir=dir;
-	memset((void *)&(entry->Chain),0,sizeof(FS_FRAGMENT));
-	memset((void *)&(entry->RdBuffer),0,sizeof(FS_BUFFER));
-	memset((void *)&(entry->WrBuffer),0,sizeof(FS_BUFFER));
+	memsetb((void *)&(entry->Chain),0,sizeof(FS_FRAGMENT));
+	memsetb((void *)&(entry->RdBuffer),0,sizeof(FS_BUFFER));
+	memsetb((void *)&(entry->WrBuffer),0,sizeof(FS_BUFFER));
 	return FS_OK;
 }
 	

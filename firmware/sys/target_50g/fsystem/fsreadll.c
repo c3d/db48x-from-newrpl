@@ -24,7 +24,7 @@ if(file->CurrentOffset>=file->FileSize) { return 0; }
 // INITIALIZE READ BUFFER IF NEEDED
 if(!file->RdBuffer.Data) {
 // MALLOC ONE SECTOR READ BUFFER
-file->RdBuffer.Data=(char *)malloc(512);
+file->RdBuffer.Data=(char *)simpmallocb(512);
 if(!file->RdBuffer.Data) return 0; 	// NOT ENOUGH MEMORY FOR READ BUFFER, FAIL TO READ
 file->RdBuffer.Used=0;
 }
@@ -48,7 +48,7 @@ if(file->RdBuffer.Used) {
 			
 			bytescachedr=offsetdiff+nbytes;
 			//printf("End hit=%d\n",bytescachedr);
-			memcpy(buffer-offsetdiff,file->RdBuffer.Data,bytescachedr);
+			memmoveb(buffer-offsetdiff,file->RdBuffer.Data,bytescachedr);
 			nbytes-=bytescachedr;
 			}
 			else {	// READ BUFFER IS COMPLETELY WITHIN READ SECTION
@@ -61,14 +61,14 @@ if(file->RdBuffer.Used) {
 		if(offsetdiff<512) {	// READ SECTION START WITHIN BLOCK
 			if(offsetdiff+nbytes<=512) {	// READ SECTION COMPLETELY WITHIN READ BUFFER
 			//printf("total hit\n");
-			memcpy(buffer,file->RdBuffer.Data+offsetdiff,nbytes);
+			memmoveb(buffer,file->RdBuffer.Data+offsetdiff,nbytes);
 			file->CurrentOffset+=nbytes;
 			return nbytes;
 			}
 			else {		// READ SECTION BEGIN IN READ BUFFER
 			bytescachedl=512-offsetdiff;
 			//printf("start hit=%d\n",bytescachedl);
-			memcpy(buffer,file->RdBuffer.Data+offsetdiff,bytescachedl);
+			memmoveb(buffer,file->RdBuffer.Data+offsetdiff,bytescachedl);
 			file->CurrentOffset+=bytescachedl;
 			nbytes-=bytescachedl;
 			buffer+=bytescachedl;
@@ -191,7 +191,7 @@ file->RdBuffer.Used=1;
 	}
 }
 
-memcpy(buffer,file->RdBuffer.Data-readnow,nbytes);
+memmoveb(buffer,file->RdBuffer.Data-readnow,nbytes);
 
 
 totalcount+=nbytes;

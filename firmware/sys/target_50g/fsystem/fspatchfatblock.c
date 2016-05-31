@@ -133,7 +133,7 @@ else fs->FATCache=ch->Next;
 tmp=ch;
 ch=ch->Next;
 --fs->NumCache;
-free(tmp);
+simpfree(tmp);
 }
 else {
 prev=ch;

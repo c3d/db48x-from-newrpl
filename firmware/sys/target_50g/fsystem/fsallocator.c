@@ -1,15 +1,17 @@
-#define CHUNK_SIZE  ((2016/8)*2+3)
-#define MAX_CHUNKS  8
+/*
+* Copyright (c) 2014-2015, Claudio Lapilli and the newRPL Team
+* All rights reserved.
+* This file is released under the 3-clause BSD license.
+* See the file LICENSE.txt that shipped with this distribution.
+*/
+
+
+#include "fsyspriv.h"
+
+
+#define CHUNK_SIZE  REAL_REGISTER_STORAGE
+#define MAX_CHUNKS  TOTAL_REGISTERS-10  // 10 REGISTERS RESERVED FOR RReg STATIC MEMORY, OTHERS CAN BE ALLOCATED FOR FILE SYSTEM
 #define BLOCK_WORDS ((CHUNK_SIZE)>>5)
-// *** DEBUG ONY ***
-// STATIC CHUNKS OF MEMORY
-
-unsigned int st_chunks[MAX_CHUNKS][CHUNK_SIZE];
-int used_chunks=0;
-
-// *** END DEBUG ONLY
-
-
 
 struct {
     unsigned int *chunks[MAX_CHUNKS];
@@ -42,8 +44,8 @@ int need_chunk()
     for(f=0;f<MAX_CHUNKS;++f)
     {
         if(SimpAllocData.chunks[f]==0) {
-            SimpAllocData.chunks[f]=st_chunks[used_chunks];
-            ++used_chunks;
+            SimpAllocData.chunks[f]=allocRegister();
+            if(SimpAllocData.chunks[f]==0) return -1; // CAN'T ALLOCATE ANYY MORE CHUNKS
             break;
     }
     }
@@ -57,6 +59,7 @@ void release_chunk(int f)
 {
     // TODO: CONNECT THIS WITH ANOTHER ALLOCATOR TO RELEASE PAGES
     // FOR NOW JUST CLEANUP THE STATIC CHUNKS
+    freeRegister((BINT *)SimpAllocData.chunks[f]);
     SimpAllocData.chunks[f]=0;
     SimpAllocData.chunk_bmp[f]=~0;
     if(SimpAllocData.last_chunk==f) SimpAllocData.last_chunk=-1;
@@ -106,10 +109,11 @@ unsigned int *simpmalloc(int words)
 
 }
 
-void simpfree(unsigned int *ptr)
+void simpfree(void *voidptr)
 {
     int ch,blk;
     unsigned int mask;
+    unsigned int *ptr=voidptr;
 
     for(ch=0;ch<MAX_CHUNKS;++ch)
     {
@@ -131,4 +135,9 @@ void simpfree(unsigned int *ptr)
     // POINTER WASN'T WITHIN THE ALLOCATED POOL!
     // DO NOTHING.
 
+}
+
+char *simpmallocb(int bytes)
+{
+    return (char *)simpmalloc((bytes+3)>>2);
 }

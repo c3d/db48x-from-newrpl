@@ -18,24 +18,24 @@ int parentcluster;
 FS_FILE *newdir;
 char *buffer,*mainentry;
 
-buffer=(char *)malloc(512);
+buffer=(char *)simpmallocb(512);
 if(!buffer) return FS_ERROR;
 
 
 // CREATE THE FILE
 error=FSCreate(name,FSATTR_DIR,&newdir);
-if(error!=FS_OK) { free(buffer); return error; }
+if(error!=FS_OK) { simpfree(buffer); return error; }
 
 
 error=FSExpandChain(newdir,96);
-if(error!=FS_OK) { free(buffer); return error; }
+if(error!=FS_OK) { simpfree(buffer); return error; }
 
 newdir->FileSize=FSGetChainSize(&newdir->Chain);
 newdir->Mode=FSMODE_MODIFY | FSMODE_WRITE;
 mainentry=buffer;
 
 mainentry[0]='.';
-memset(mainentry+1,32,10);
+memsetb(mainentry+1,32,10);
 // write new properties
 mainentry[11]=FSATTR_DIR;
 mainentry[12]=0;
@@ -48,7 +48,7 @@ WriteInt16((char *)mainentry+26,newdir->FirstCluster);
 WriteInt32((char *)mainentry+28,0);
 
 mainentry+=32;
-memset(mainentry+2,32,9);
+memsetb(mainentry+2,32,9);
 mainentry[0]='.';
 mainentry[1]='.';
 // write new properties
@@ -68,19 +68,19 @@ WriteInt16((char *)mainentry+26,parentcluster);
 WriteInt32((char *)mainentry+28,0);
 
 mainentry+=32;
-memset(mainentry,0,448);
+memsetb(mainentry,0,448);
 
 error=FSWrite(buffer,512,newdir);
 
-if(error!=512) { free(buffer); FSClose(newdir); return error; }
+if(error!=512) { simpfree(buffer); FSClose(newdir); return error; }
 
-memset(buffer,0,64);
+memsetb(buffer,0,64);
 while(!FSEof(newdir)) {
 error=FSWrite(buffer,512,newdir);
-if(error!=512) { free(buffer); FSClose(newdir); return error; }
+if(error!=512) { simpfree(buffer); FSClose(newdir); return error; }
 }
 
-free(buffer);
+simpfree(buffer);
 return FSClose(newdir);
 
 
