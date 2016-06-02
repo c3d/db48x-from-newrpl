@@ -37,7 +37,7 @@
     CMD(IP,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
     CMD(FP,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
     CMD(MODSTO,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(MODRCL,MKTOKENINFO(6,TITYPE_NOTALLOWED,0,2)), \
+    CMD(MODRCL,MKTOKENINFO(6,TITYPE_FUNCTION,0,2)), \
     CMD(POWMOD,MKTOKENINFO(6,TITYPE_FUNCTION,2,2)), \
     CMD(MOD,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
     CMD(SQ,MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
@@ -84,8 +84,8 @@ INCLUDE_ROMOBJECT(lib64_menu);
 const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)LIB_MSGTABLE,
     (WORDPTR)LIB_HELPTABLE,
-     (WORDPTR)lib64_menu,
-        0
+    (WORDPTR)lib64_menu,
+    0
 };
 
 const char const modulo_name[]="MOD";
@@ -1468,10 +1468,13 @@ void LIB_HANDLER()
         // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
-    {\
-        if(MENUNUMBER(MenuCodeArg)>0) RetNum=ERR_NOTMINE;
+    {
+        if(MENUNUMBER(MenuCodeArg)>0) {
+            RetNum=ERR_NOTMINE;
+            return;
+        }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+2];
+        ObjectPTR=(WORDPTR)lib64_menu;
         RetNum=OK_CONTINUE;
         return;
     }

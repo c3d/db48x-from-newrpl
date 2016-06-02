@@ -2857,12 +2857,15 @@ void LIB_HANDLER()
         // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
-    {\
-        if(MENUNUMBER(MenuCodeArg)>17) RetNum=ERR_NOTMINE;
+    {
+        if(MENUNUMBER(MenuCodeArg)>17) {
+            RetNum=ERR_NOTMINE;
+            return;
+        }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
         ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+3];
         RetNum=OK_CONTINUE;
-       return;
+        return;
     }
 
     case OPCODE_LIBHELP:
