@@ -31,6 +31,18 @@ typedef struct {
     unsigned int MapTable[];
 } UNIFONT;
 
+// COMPACT TIME STRUCTURE, SIMILAR TO STANDARD tm BUT USING ONLY 64 BITS.
+struct compact_tm {
+    unsigned tm_sec:6,          //seconds after the minute	0-60*
+             tm_min:6,          //minutes after the hour	0-59
+             tm_hour:5,         //hours since midnight	0-23
+             tm_mday:5,         //day of the month	1-31
+             tm_mon:4,          //months since January	0-11
+             tm_wday:3,         //days since Sunday	0-6
+             tm_isdst:1;
+    int      tm_year;         //int	years since 1900
+
+};
 
 
 typedef gglsurface DRAWSURFACE;
@@ -1133,9 +1145,12 @@ void set_stackall();
 void memcpyw(void *dest,const void *source,int nwords);
 void memmovew(void *dest,const void *source,int nwords);
 int stringlen(const char *s);
+char * stringcpy(char *t, const char *s);
 void *memcpyb(void *trg, const void *src, int n);
 void *memmoveb(void *_dest, const void *_source, int nbytes);
 void memsetw(void *dest,int value,int nwords);
+void *memsetb(void *dest,int value,int nbytes);
+
 
 // LOW-LEVEL HARDWARE DRIVERS - POWER
 void cpu_off_prepare();
@@ -1152,6 +1167,8 @@ void __keyb_waitrelease();
 // LOW-LEVEL HARDWARE DRIVERS - FLASH MEMORY
 void flash_CFIRead(unsigned short *ptr);
 
+// LOW-LEVEL MEMORY SUBALLOCATOR FOR FILE SYSTEM
+void init_simpalloc();
 
 
 

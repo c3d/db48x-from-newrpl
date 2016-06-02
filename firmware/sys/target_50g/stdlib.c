@@ -224,7 +224,7 @@ int stringlen(const char *s)
     return c;
 }
 
-char * strcpy(char *t, const char *s)
+char * stringcpy(char *t, const char *s)
 {
     char *r = t;
     while(*s)

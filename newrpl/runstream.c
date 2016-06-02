@@ -581,8 +581,8 @@ void rplHotInit()
     while(*libptr) { rplInstallLibrary(*libptr); ++libptr; }
 
 
-    // INITIALIZE THE FLOATING POINT CONTEXT
-    initContext(32);
+    // RE-INITIALIZE THE FLOATING POINT CONTEXT BUT KEEP CURRENT PRECISION
+    initContext(Context.precdigits);
 
     // INITIALIZE THE REAL REGISTERS
     for(count=0;count<REAL_REGISTERS;++count)

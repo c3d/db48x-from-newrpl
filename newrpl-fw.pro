@@ -123,7 +123,82 @@ SOURCES +=\
     firmware/sys/Font7A.c \
     firmware/sys/Font8C.c \
     firmware/sys/Font8D.c \
-    firmware/hal_msgenglish.c
+    firmware/hal_msgenglish.c \
+    firmware/sys/target_50g/sddriver.c \
+    firmware/sys/target_50g/fsystem/fatconvert.c \
+    firmware/sys/target_50g/fsystem/fsattr.c \
+    firmware/sys/target_50g/fsystem/fscalcfreespace.c \
+    firmware/sys/target_50g/fsystem/fschattr.c \
+    firmware/sys/target_50g/fsystem/fschdir.c \
+    firmware/sys/target_50g/fsystem/fschmode.c \
+    firmware/sys/target_50g/fsystem/fsclose.c \
+    firmware/sys/target_50g/fsystem/fscloseanddelete.c \
+    firmware/sys/target_50g/fsystem/fsconvert2shortentry.c \
+    firmware/sys/target_50g/fsystem/fscreate.c \
+    firmware/sys/target_50g/fsystem/fsdelete.c \
+    firmware/sys/target_50g/fsystem/fsdeletedirentry.c \
+    firmware/sys/target_50g/fsystem/fseof.c \
+    firmware/sys/target_50g/fsystem/fsexpandchain.c \
+    firmware/sys/target_50g/fsystem/fsfileisopen.c \
+    firmware/sys/target_50g/fsystem/fsfileisreferenced.c \
+    firmware/sys/target_50g/fsystem/fsfilelength.c \
+    firmware/sys/target_50g/fsystem/fsfindchar.c \
+    firmware/sys/target_50g/fsystem/fsfindentry.c \
+    firmware/sys/target_50g/fsystem/fsfindfile.c \
+    firmware/sys/target_50g/fsystem/fsfindforcreation.c \
+    firmware/sys/target_50g/fsystem/fsflushbuffers.c \
+    firmware/sys/target_50g/fsystem/fsflushfatcache.c \
+    firmware/sys/target_50g/fsystem/fsfreechain.c \
+    firmware/sys/target_50g/fsystem/fsfreefile.c \
+    firmware/sys/target_50g/fsystem/fsgetaccessdate.c \
+    firmware/sys/target_50g/fsystem/fsgetchain.c \
+    firmware/sys/target_50g/fsystem/fsgetchainsize.c \
+    firmware/sys/target_50g/fsystem/fsgetcreattime.c \
+    firmware/sys/target_50g/fsystem/fsgetcurrentvolume.c \
+    firmware/sys/target_50g/fsystem/fsgetcwd.c \
+    firmware/sys/target_50g/fsystem/fsgetdatetime.c \
+    firmware/sys/target_50g/fsystem/fsgeterrormsg.c \
+    firmware/sys/target_50g/fsystem/fsgetfilename.c \
+    firmware/sys/target_50g/fsystem/fsgethandle.c \
+    firmware/sys/target_50g/fsystem/fsgetnametype.c \
+    firmware/sys/target_50g/fsystem/fsgetnextentry.c \
+    firmware/sys/target_50g/fsystem/fsgetvolumefree.c \
+    firmware/sys/target_50g/fsystem/fsgetvolumesize.c \
+    firmware/sys/target_50g/fsystem/fsgetwritetime.c \
+    firmware/sys/target_50g/fsystem/fsinit.c \
+    firmware/sys/target_50g/fsystem/fsmkdir.c \
+    firmware/sys/target_50g/fsystem/fsmountvolume.c \
+    firmware/sys/target_50g/fsystem/fsmovedopenfiles.c \
+    firmware/sys/target_50g/fsystem/fsnamecompare.c \
+    firmware/sys/target_50g/fsystem/fsopen.c \
+    firmware/sys/target_50g/fsystem/fsopendir.c \
+    firmware/sys/target_50g/fsystem/fspackdir.c \
+    firmware/sys/target_50g/fsystem/fspackname.c \
+    firmware/sys/target_50g/fsystem/fspatchfatblock.c \
+    firmware/sys/target_50g/fsystem/fsread.c \
+    firmware/sys/target_50g/fsystem/fsreadll.c \
+    firmware/sys/target_50g/fsystem/fsreleaseentry.c \
+    firmware/sys/target_50g/fsystem/fsrename.c \
+    firmware/sys/target_50g/fsystem/fsrestart.c \
+    firmware/sys/target_50g/fsystem/fsrmdir.c \
+    firmware/sys/target_50g/fsystem/fsseek.c \
+    firmware/sys/target_50g/fsystem/fssetcasemode.c \
+    firmware/sys/target_50g/fsystem/fssetcurrentvolume.c \
+    firmware/sys/target_50g/fsystem/fsshutdown.c \
+    firmware/sys/target_50g/fsystem/fssleep.c \
+    firmware/sys/target_50g/fsystem/fsstripsemi.c \
+    firmware/sys/target_50g/fsystem/fstell.c \
+    firmware/sys/target_50g/fsystem/fstruncatechain.c \
+    firmware/sys/target_50g/fsystem/fsupdatedirentry.c \
+    firmware/sys/target_50g/fsystem/fsvolumeinserted.c \
+    firmware/sys/target_50g/fsystem/fsvolumemounted.c \
+    firmware/sys/target_50g/fsystem/fsvolumepresent.c \
+    firmware/sys/target_50g/fsystem/fswrite.c \
+    firmware/sys/target_50g/fsystem/fswritefatentry.c \
+    firmware/sys/target_50g/fsystem/fswritell.c \
+    firmware/sys/target_50g/fsystem/fsystem.c \
+    firmware/sys/target_50g/fsystem/misalign.c \
+    firmware/sys/target_50g/fsystem/fsallocator.c
 
 HEADERS  += \
     firmware/include/ggl.h \
@@ -140,7 +215,10 @@ HEADERS  += \
     newrpl/common-macros.h \
     newrpl/lib-header.h \
     newrpl/include-all.h \
-    newrpl/romlibs.h
+    newrpl/romlibs.h \
+    firmware/sys/target_50g/sddriver.h \
+    firmware/sys/target_50g/fsystem/fsyspriv.h \
+    firmware/sys/target_50g/fsystem.h
 
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
@@ -152,7 +230,8 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-28.nrpl \
                 newrpl/rpl-objects/lib-30.nrpl \
                 newrpl/rpl-objects/lib-32.nrpl \
-                newrpl/rpl-objects/lib-48.nrpl
+                newrpl/rpl-objects/lib-48.nrpl \
+                newrpl/rpl-objects/lib-64.nrpl
 
 
 

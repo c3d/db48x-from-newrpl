@@ -96,7 +96,7 @@ const char const modulo_name[]="MOD";
 #define MIN_BINT    (-9223372036854775807LL-1LL)
 
 // COUNT THE NUMBER OF BITS IN A POSITIVE INTEGER
-static int rpl_log2(BINT64 number,int bits)
+int rpl_log2(BINT64 number,int bits)
 {
     static const unsigned char log2_table[16]={0,1,2,2,3,3,3,3,4,4,4,4,4,4,4,4};
     if(bits<=4) return log2_table[number];
