@@ -1,0 +1,36 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib74_menu
+{
+  SDINFO
+}
+
+@#name lib74_msgtable
+{
+##1,ERR_INVALIDFILESYSTEM "Invalid file system"
+}
+
+
+@#name lib74_cmdhelp
+{
+SDINFO
+"Get information about SD CARD
+
+I<part> → I<present> I<size> I<free>"
+
+}

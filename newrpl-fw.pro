@@ -198,7 +198,8 @@ SOURCES +=\
     firmware/sys/target_50g/fsystem/fswritell.c \
     firmware/sys/target_50g/fsystem/fsystem.c \
     firmware/sys/target_50g/fsystem/misalign.c \
-    firmware/sys/target_50g/fsystem/fsallocator.c
+    firmware/sys/target_50g/fsystem/fsallocator.c \
+    newrpl/lib-74-sdcard.c
 
 HEADERS  += \
     firmware/include/ggl.h \
@@ -231,7 +232,9 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-30.nrpl \
                 newrpl/rpl-objects/lib-32.nrpl \
                 newrpl/rpl-objects/lib-48.nrpl \
-                newrpl/rpl-objects/lib-64.nrpl
+                newrpl/rpl-objects/lib-64.nrpl \
+                newrpl/rpl-objects/lib-74.nrpl
+
 
 
 

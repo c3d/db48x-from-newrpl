@@ -1253,5 +1253,8 @@ void halInitKeyboard();
 #ifdef TARGET_PC
 #include <target_pc.h>
 
+#endif
 
+#ifdef TARGET_50G
+#include "../sys/target_50g/fsystem.h"
 #endif
