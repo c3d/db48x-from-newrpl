@@ -1345,7 +1345,7 @@ void LIB_HANDLER()
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+2];
+        ObjectPTR=(WORDPTR)lib9_menu;
         RetNum=OK_CONTINUE;
        return;
     }
