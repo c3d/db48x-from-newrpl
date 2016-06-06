@@ -27,12 +27,28 @@
 
 #define COMMAND_LIST \
     CMD(SDINFO,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SDMOUNT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+    CMD(SDRESET,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDSTO,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDRCL,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
 #define ERROR_LIST \
-ERR(INVALIDFILESYSTEM,0)
+    ERR(UNKNOWNFSERROR,0), \
+    ERR(ENDOFFILE,1), \
+    ERR(BADFILENAME,2), \
+    ERR(BADVOLUME,3), \
+    ERR(FILENOTFOUND,4), \
+    ERR(CANTWRITE,5), \
+    ERR(NOCARD,6), \
+    ERR(CARDCHANGED,7), \
+    ERR(MAXFILES,8), \
+    ERR(ALREADYOPEN,9), \
+    ERR(DISKFULL,10), \
+    ERR(ALREADYEXISTS,11), \
+    ERR(INVALIDHANDLE,12), \
+    ERR(IDENTORPATHEXPECTED,13), \
+    ERR(NOTANRPLFILE,14)
 
 
 
@@ -64,6 +80,40 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)lib74_menu,
     0
 };
+
+// CONVERT FILE SYSTEM ERROR MESSAGE INTO THIS LIBRARY ERRORS
+BINT rplFSError2Error(BINT err)
+{
+    switch(err) {
+    case FS_EOF:	    			// END OF FILE
+        return ERR_ENDOFFILE;
+    case FS_BADNAME:   			// INVALID FILE NAME
+        return ERR_BADFILENAME;
+    case FS_BADVOLUME: 			// INVALID DRIVE
+        return ERR_BADVOLUME;
+    case FS_NOTFOUND:  			// FILE NOT FOUND
+        return ERR_FILENOTFOUND;
+    case FS_CANTWRITE: 			// WRITE FAILED
+        return ERR_CANTWRITE;
+    case FS_NOCARD:    			// NO CARD INSERTED
+        return ERR_NOCARD;
+    case FS_CHANGED:    		// CARD HAS CHANGED
+        return ERR_CARDCHANGED;
+    case FS_MAXFILES:  			// MAXIMUM NUMBER OF FILES OPEN WAS EXCEEDED
+        return ERR_MAXFILES;
+    case FS_USED:      			// FILE/DIRECTORY IS BEING USED
+        return ERR_ALREADYOPEN;
+    case FS_DISKFULL:  		// DISK IS FULL
+        return ERR_DISKFULL;
+    case FS_EXIST:     		// FILE ALREADY EXISTS
+        return ERR_ALREADYEXISTS;
+    case FS_INVHANDLE: 		// HANDLE IS NOT VALID
+        return ERR_INVALIDHANDLE;
+    default:
+    case FS_ERROR:      		    // UNKNOWN ERROR (OR FUNCTION DOESN'T CARE)
+        return ERR_UNKNOWNFSERROR;
+    }
+}
 
 
 
@@ -109,11 +159,204 @@ void LIB_HANDLER()
             FSClose(dir);
             FSSleep();
         }
-        else         rplDropData(1);
+        else         {
+         rplError(rplFSError2Error(ismounted));
+        }
+            rplDropData(1);
 
         return;
 
     }
+    case SDRESET:
+    {
+        // REINIT FILE SYSTEM
+        int error=FSRestart();
+        if(error!=FS_OK) {
+            rplError(rplFSError2Error(error));
+        }
+        return;
+    }
+
+    case SDSTO:
+    {
+        // STORE AN OBJECT DIRECTLY INTO A FILE
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(1)) && !ISSTRING(*rplPeekData(1)) && !ISLIST(*rplPeekData(1))) {
+            rplError(ERR_IDENTORPATHEXPECTED);
+            return;
+        }
+
+        BYTEPTR path=(BYTEPTR)RReg[0].data;
+
+        // USE RReg[0] TO STORE THE FILE PATH
+
+        if(ISIDENT(*rplPeekData(1))) {
+            BINT pathlen=rplGetIdentLength(rplPeekData(1));
+            memmoveb(path,rplPeekData(1)+1,pathlen);
+            path[pathlen]=0;    // NULL TERMINATED STRING
+        } else
+            if(ISLIST(*rplPeekData(1))) {
+                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+
+
+
+            }
+            else if(ISSTRING(*rplPeekData(1))) {
+                // FULL PATH GIVEN
+                BINT pathlen=rplStrSize(rplPeekData(1));
+                memmoveb(path,rplPeekData(1)+1,pathlen);
+                path[pathlen]=0;    // NULL TERMINATED STRING
+
+            }
+            else {
+                // TODO: ACCEPT TAGGED NAMES WHEN TAGS EXIST
+                rplError(ERR_IDENTORPATHEXPECTED);
+                return;
+            }
+
+        // TRY TO OPEN THE FILE
+
+        FS_FILE *objfile;
+        const char const *fileprolog="NRPL";
+        int err;
+        err=FSOpen((char *)(RReg[0].data),FSMODE_WRITE,&objfile);
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+            }
+        BINT objlen=rplObjSize(rplPeekData(2));
+        if(FSWrite((char *)fileprolog,4,objfile)!=4) {
+            FSClose(objfile);
+            rplError(ERR_CANTWRITE);
+            return;
+        }
+        err=FSWrite((char *)rplPeekData(2),objlen*sizeof(WORD),objfile);
+        if(err!=objlen*sizeof(WORD)) {
+            FSClose(objfile);
+            rplError(ERR_CANTWRITE);
+            return;
+        }
+        FSClose(objfile);
+
+        rplDropData(2);
+
+        return;
+
+    }
+
+    case SDRCL:
+    {
+        // RCL AN OBJECT DIRECTLY FROM A FILE
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(1)) && !ISSTRING(*rplPeekData(1)) && !ISLIST(*rplPeekData(1))) {
+            rplError(ERR_IDENTORPATHEXPECTED);
+            return;
+        }
+
+        BYTEPTR path=(BYTEPTR)RReg[0].data;
+
+        // USE RReg[0] TO STORE THE FILE PATH
+
+        if(ISIDENT(*rplPeekData(1))) {
+            BINT pathlen=rplGetIdentLength(rplPeekData(1));
+            memmoveb(path,rplPeekData(1)+1,pathlen);
+            path[pathlen]=0;    // NULL TERMINATED STRING
+        } else
+            if(ISLIST(*rplPeekData(1))) {
+                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+
+
+
+            }
+            else if(ISSTRING(*rplPeekData(1))) {
+                // FULL PATH GIVEN
+                BINT pathlen=rplStrSize(rplPeekData(1));
+                memmoveb(path,rplPeekData(1)+1,pathlen);
+                path[pathlen]=0;    // NULL TERMINATED STRING
+
+            }
+            else {
+                // TODO: ACCEPT TAGGED NAMES WHEN TAGS EXIST
+                rplError(ERR_IDENTORPATHEXPECTED);
+                return;
+            }
+
+        // TRY TO OPEN THE FILE
+
+        FS_FILE *objfile;
+        const char const *fileprolog="NRPL";
+        int err;
+        err=FSOpen((char *)(RReg[0].data),FSMODE_READ,&objfile);
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+            }
+        BINT objlen=FSFileLength(objfile);
+        if(FSRead((char *)(RReg[0].data),4,objfile)!=4) {
+            FSClose(objfile);
+            rplError(ERR_NOTANRPLFILE);
+            return;
+        }
+        if((WORD)RReg[0].data[0]!=*((WORD *)fileprolog)) {
+            FSClose(objfile);
+            rplError(ERR_NOTANRPLFILE);
+            return;
+        }
+
+        // DROP THE NAME FROM THE STACK
+        rplDropData(1);
+
+        objlen-=4;
+        while(objlen>=4) {
+            if(FSRead((char *)(RReg[0].data),4,objfile)!=4) {
+                FSClose(objfile);
+                rplError(ERR_NOTANRPLFILE);
+                return;
+            }
+            BINT objsize=rplObjSize((WORDPTR)RReg[0].data);
+            if(objsize*sizeof(WORD)<objlen) {
+                FSClose(objfile);
+                rplError(ERR_NOTANRPLFILE);
+                return;
+            }
+            WORDPTR newobj=rplAllocTempOb(objsize-1);
+            if(!newobj) {
+                FSClose(objfile);
+                return;
+            }
+            newobj[0]=(WORD)RReg[0].data[0];
+            if(FSRead((char *)(newobj+1),(objsize-1)*sizeof(WORD),objfile)!=(objsize-1)*sizeof(WORD)) {
+                FSClose(objfile);
+                rplError(ERR_NOTANRPLFILE);
+                return;
+            }
+
+            // OBJECT WAS READ SUCCESSFULLY
+            // TODO: ASK THE LIBRARY TO VERIFY IF THE OBJECT IS VALID
+
+            rplPushData(newobj);
+
+
+            objlen-=objsize*sizeof(WORD);
+        }
+
+        // DONE READING ALL OBJECTS FROM THE FILE
+        FSClose(objfile);
+
+        // IF THERE ARE MULTIPLE OBJECTS, SHOULDN'T WE RETURN THE NUMBER?
+
+        return;
+
+    }
+
 
         // STANDARIZED OPCODES:
         // --------------------

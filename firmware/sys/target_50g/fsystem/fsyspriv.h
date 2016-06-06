@@ -101,7 +101,7 @@ FS_FILE *Entry;
  */
 extern int FSInit();
 
-
+extern void FSHardReset();
 
 extern unsigned int ReadInt32(char *ptr);
 extern void WriteInt32(char *ptr,int value);

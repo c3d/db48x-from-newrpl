@@ -8,30 +8,7 @@
 #include <newrpl.h>
 #include <libraries.h>
 #include <ui.h>
-
-
-
-//#include "fw_globals.c"
-//#include "sys/lcd.c"
-//#include "sys/cpu.c"
-//#include "sys/irq.c"
-//#include "sys/timer.c"
-//#include "sys/battery.c"
-//#include "sys/keyboard.c"
-//#include "sys/exception.c"
-//#include "sys/stdlib.c"
-
-//#include "sys/minifont.c"
-//#include "sys/font5.c"
-//#include "sys/font6.c"
-//#include "sys/font7.c"
-//#include "sys/font8.c"
-//#include "sys/graphics.c"
-
-//#include "hal_screen.c"
-//#include "hal_battery.c"
-//#include "hal_keyboard.c"
-//#include "hal_memory.c"
+#include "fsystem/fsyspriv.h"
 
 #define enter_mode(mode) call_swi(mode)
 
@@ -222,7 +199,7 @@ void main_virtual(unsigned int mode)
     }
 
     // INITIALIZE SD CARD SYSTEM MEMORY ALLOCATOR
-    init_simpalloc();
+    FSHardReset();
 
 
     halOuterLoop();

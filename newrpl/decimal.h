@@ -94,6 +94,7 @@ enum RealFlags {
     F_POSUNDERFLOW=256,      // RANGE CHECK TURNED TOO SMALL EXPONENT OF POSITIVE NUMBER INTO ZERO
 };
 
+#define F_UNDINFINITY (F_INFINITY|F_NOTANUMBER)     // UNDIRECTED COMPLEX INFINITY
 
 // *************************************************************************
 // ************* LOW LEVEL API FOR DECIMAL LIBRARY ************************
@@ -325,9 +326,11 @@ BINT iszeroReal(REAL *n);
 // TRUE=1 IF A NUMBER IS INFINITY, 0 OTHERWISE
 BINT isinfiniteReal(REAL *n);
 
+// TRUE=1 IF A NUMBER IS UNDIRECTED INFINITY, 0 OTHERWISE
+BINT isundinfiniteReal(REAL *n);
+
 // RETURN -1 IF NEGATIVE, 1 OTHERWISE
 BINT signofReal(REAL *n);
-
 
 // TRUE IF THE NUMBER HAS NO FRACTIONAL PART (IS AN INTEGER)
 BINT isintegerReal(REAL *n);

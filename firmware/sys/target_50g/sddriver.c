@@ -154,7 +154,8 @@ void SDPowerUp()
 int f;
 *SDICON=*SDICON | 1;
 
-for(f=0;f<100;++f) ;			// wait for 64 SDCLK
+tmr_delayus(200);       // MINIMUM 64 SDCLK
+//            for(f=0;f<100;++f) ;			// wait for 64 SDCLK
 
 }
 

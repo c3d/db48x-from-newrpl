@@ -12,7 +12,11 @@
 
 typedef void (*myfunctype)(void);
 
-
+void FSHardReset()
+{
+   memsetw(&FSystem,0,sizeof(FS_PUBLIC)>>2);
+   init_simpalloc();
+}
 
 int FSInit()
 {

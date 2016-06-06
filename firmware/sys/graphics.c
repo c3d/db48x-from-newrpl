@@ -419,6 +419,16 @@ void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURF
         if(cp==-1) { ++Text; continue; }
         if(cp=='\n' || cp=='\r') return;
 
+        // ADD SUPPORT FOR A COUPLE OF COMBINING MARKS
+        switch(cp) {
+        case 0x0305:        // COMBINING OVERLINE
+            // HERE WE HAVE w THE WIDTH FROM PREVIOUS CHARACTER
+            // drawsurf->x POINTS TO THE RIGHT OF THE CHARACTER
+            ggl_cliphline(&srf,drawsurf->y,drawsurf->x-w,drawsurf->x-2,ggl_mkcolor(color));
+            Text=utf8skip(Text,End);
+            continue;
+        }
+
         // GET THE INFORMATION FROM THE FONT
         rangeend=0;
         mapptr=Font->MapTable-1;
@@ -502,6 +512,16 @@ void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,int bk
         if(cp==-1) { ++Text; continue; }
 
         if(cp=='\n' || cp=='\r') return;
+
+        // ADD SUPPORT FOR A COUPLE OF COMBINING MARKS
+        switch(cp) {
+        case 0x0305:        // COMBINING OVERLINE
+            // HERE WE HAVE w THE WIDTH FROM PREVIOUS CHARACTER
+            // drawsurf->x POINTS TO THE RIGHT OF THE CHARACTER
+            ggl_cliphline(&srf,drawsurf->y,drawsurf->x-w,drawsurf->x-2,ggl_mkcolor(color));
+            Text=utf8skip(Text,End);
+            continue;
+        }
 
         // GET THE INFORMATION FROM THE FONT
         rangeend=0;

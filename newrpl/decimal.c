@@ -2271,9 +2271,29 @@ void newRealFromText(REAL *result,char *text,char *end,WORD chars)
     // HANDLE SPECIALS
     {
         const char *infinitystring="∞";
-        char *textptr=text,*ptr=(char *)infinitystring;
+        const char *undinfinitystring="∞̅";
+        char *textptr=text,*ptr=(char *)undinfinitystring;
         while(*ptr!=0) { if(*textptr!=*ptr) break; ++textptr; ++ptr; }
 
+        if(*ptr==0) {
+            // THERE WAS AN UNDEFINED INFINITY SIGN THERE
+            if(textptr!=end) {
+                // NOTHING SHOULD BE AFTER INFINITY
+                result->len=0;
+                result->exp=0;
+                result->flags=F_ERROR;
+                return;
+            }
+            result->data[0]=0;
+            result->len=1;
+            result->exp=0;
+            result->flags|=F_UNDINFINITY;
+            return;
+
+        }
+        textptr=text;
+        ptr=(char *)infinitystring;
+        while(*ptr!=0) { if(*textptr!=*ptr) break; ++textptr; ++ptr; }
         if(*ptr==0) {
             // THERE WAS AN INFINITY SIGN THERE
             if(textptr!=end) {
@@ -2290,6 +2310,7 @@ void newRealFromText(REAL *result,char *text,char *end,WORD chars)
             return;
 
         }
+
 
     }
 
@@ -2728,6 +2749,12 @@ char *formatReal(REAL *number, char *buffer, BINT format, WORD chars)
 
     // HANDLE SPECIALS FIRST
 
+    if(number->flags&F_UNDINFINITY==F_UNDINFINITY) {
+        const char *undinfinitystring="∞̅";
+        while(*undinfinitystring!=0) { buffer[idx++]=*undinfinitystring; ++undinfinitystring; }
+        return buffer+idx;
+    }
+
     if(number->flags&F_INFINITY) {
         if(number->flags&F_NEGATIVE) buffer[idx++]='-';
         else if(format&FMT_FORCESIGN) buffer[idx++]='+';
@@ -2966,6 +2993,11 @@ BINT formatlengthReal(REAL *number, BINT format)
     int totalcount;
     int idx=0;
 
+    if(number->flags&F_UNDINFINITY==F_UNDINFINITY) {
+        const char *undinfinitystring="∞̅";
+        while(*undinfinitystring!=0) { idx++; ++undinfinitystring; }
+        return idx;
+    }
 
     if(number->flags&F_INFINITY) {
         if(number->flags&F_NEGATIVE) idx++;
@@ -3368,6 +3400,43 @@ void addReal(REAL *result,REAL *a,REAL *b)
 {
 
     if((a->flags|b->flags)&(F_INFINITY|F_NOTANUMBER)) {
+        if(a->flags&F_UNDINFINITY==F_UNDINFINITY) {
+            if(b->flags&(F_INFINITY|F_NOTANUMBER))
+            {
+                // THE RESULT IS NOT A NUMBER
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_NOTANUMBER;
+                return;
+            }
+            // SINCE b IS A NUMBER, THE RESULT IS STILL UNDIRECTED INFINITY
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_UNDINFINITY;
+                return;
+            }
+
+        if(b->flags&F_UNDINFINITY==F_UNDINFINITY) {
+            if(b->flags&(F_INFINITY|F_NOTANUMBER))
+            {
+                // THE RESULT IS NOT A NUMBER
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_NOTANUMBER;
+                return;
+            }
+            // SINCE a IS A NUMBER, THE RESULT IS STILL UNDIRECTED INFINITY
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_UNDINFINITY;
+                return;
+
+        }
+
         if( (a->flags|b->flags)&F_NOTANUMBER) {
             // THE RESULT IS NOT A NUMBER
             result->data[0]=0;
@@ -3428,6 +3497,64 @@ void mulReal(REAL *result,REAL *a,REAL *b)
 {
 
     if((a->flags|b->flags)&(F_INFINITY|F_NOTANUMBER)) {
+
+        if(a->flags&F_UNDINFINITY==F_UNDINFINITY) {
+            if(b->flags&(F_INFINITY|F_NOTANUMBER)==F_NOTANUMBER)
+            {
+                // THE RESULT IS NOT A NUMBER
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_NOTANUMBER;
+                return;
+
+            }
+            if(!(b->flags&(F_INFINITY|F_NOTANUMBER)) && (b->len==1) && (b->data[0]==0)) {
+                // INF * 0 = NOT A NUMBER
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_NOTANUMBER;
+                return;
+
+            }
+            // IN ALL OTHER CASES, THIS IS UNDIRECTED INFINITY
+            result->data[0]=0;
+            result->exp=0;
+            result->len=1;
+            result->flags=F_UNDINFINITY;
+            return;
+        }
+
+        if(b->flags&F_UNDINFINITY==F_UNDINFINITY) {
+            if(a->flags&(F_INFINITY|F_NOTANUMBER)==F_NOTANUMBER)
+            {
+                // THE RESULT IS NOT A NUMBER
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_NOTANUMBER;
+                return;
+
+            }
+            if(!(a->flags&(F_INFINITY|F_NOTANUMBER)) && (a->len==1) && (a->data[0]==0)) {
+                // INF * 0 = NOT A NUMBER
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_NOTANUMBER;
+                return;
+
+            }
+            // IN ALL OTHER CASES, THIS IS UNDIRECTED INFINITY
+            result->data[0]=0;
+            result->exp=0;
+            result->len=1;
+            result->flags=F_UNDINFINITY;
+            return;
+        }
+
+
         if( (a->flags|b->flags)&F_NOTANUMBER) {
             // THE RESULT IS NOT A NUMBER
             result->data[0]=0;
@@ -3482,6 +3609,54 @@ void divReal(REAL *result,REAL *a,REAL *b)
 {
 
     if((a->flags|b->flags)&(F_INFINITY|F_NOTANUMBER)) {
+
+        if(a->flags&F_UNDINFINITY==F_UNDINFINITY) {
+            if(b->flags&(F_INFINITY|F_NOTANUMBER)) {
+                // THE RESULT IS NOT A NUMBER
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_NOTANUMBER;
+                return;
+            }
+            // b IS A NUMBER
+            if((b->len==1) && (b->data[0]==0)) {
+                // INF / 0 = NOT A NUMBER
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_NOTANUMBER;
+                return;
+            }
+            // ALL OTHER CASES THIS IS STILL UNDIRECTED INFINITY
+            result->data[0]=0;
+            result->exp=0;
+            result->len=1;
+            result->flags=F_UNDINFINITY;
+            return;
+        }
+
+        if(b->flags&F_UNDINFINITY==F_UNDINFINITY) {
+            if(a->flags&(F_INFINITY|F_NOTANUMBER)) {
+                // THE RESULT IS NOT A NUMBER
+                result->data[0]=0;
+                result->exp=0;
+                result->len=1;
+                result->flags=F_NOTANUMBER;
+                return;
+            }
+            // a IS A NUMBER, a/INF = 0
+
+            result->data[0]=0;
+            result->exp=0;
+            result->len=1;
+            result->flags=0;
+            return;
+        }
+
+
+
+
         if( (a->flags|b->flags)&F_NOTANUMBER) {
             // THE RESULT IS NOT A NUMBER
             result->data[0]=0;
@@ -3511,7 +3686,7 @@ void divReal(REAL *result,REAL *a,REAL *b)
             result->data[0]=0;
             result->exp=0;
             result->len=1;
-            result->flags=F_APPROX|F_NOTNORMALIZED;
+            result->flags=(a->flags^b->flags)&F_NEGATIVE;
             return;
         }
     }
@@ -3523,9 +3698,9 @@ void divReal(REAL *result,REAL *a,REAL *b)
         result->len=1;
         if((a->len==1) && (a->data[0]==0)) {
             // 0/0 = UNDEFINED
-            result->flags=((a->flags^b->flags)&F_NEGATIVE)|F_NOTANUMBER|F_APPROX;
+            result->flags=((a->flags^b->flags)&F_NEGATIVE)|F_NOTANUMBER;
         }
-        else result->flags=((a->flags^b->flags)&F_NEGATIVE)|F_INFINITY|F_APPROX;
+        else result->flags=((a->flags^b->flags)&F_NEGATIVE)|F_INFINITY;
         return;
     }
 
@@ -3544,6 +3719,54 @@ void divmodReal(REAL *quotient,REAL *remainder,REAL *a,REAL *b)
 
 
     if((a->flags|b->flags)&(F_INFINITY|F_NOTANUMBER)) {
+
+
+        if(a->flags&F_UNDINFINITY==F_UNDINFINITY) {
+            if(b->flags&(F_INFINITY|F_NOTANUMBER)) {
+                // THE RESULT IS NOT A NUMBER
+                quotient->data[0]=remainder->data[0]=0;
+                quotient->exp=remainder->exp=0;
+                quotient->len=remainder->len=1;
+                quotient->flags=remainder->flags=F_NOTANUMBER;
+                return;
+            }
+            // b IS A NUMBER
+            if((b->len==1) && (b->data[0]==0)) {
+                // INF / 0 = NOT A NUMBER
+                quotient->data[0]=remainder->data[0]=0;
+                quotient->exp=remainder->exp=0;
+                quotient->len=remainder->len=1;
+                quotient->flags=remainder->flags=F_NOTANUMBER;
+                return;
+            }
+            // ALL OTHER CASES THIS IS STILL UNDIRECTED INFINITY
+            quotient->data[0]=remainder->data[0]=0;
+            quotient->exp=remainder->exp=0;
+            quotient->len=remainder->len=1;
+            quotient->flags=remainder->flags=F_UNDINFINITY;
+            return;
+        }
+
+        if(b->flags&F_UNDINFINITY==F_UNDINFINITY) {
+            if(a->flags&(F_INFINITY|F_NOTANUMBER)) {
+                // THE RESULT IS NOT A NUMBER
+                quotient->data[0]=remainder->data[0]=0;
+                quotient->exp=remainder->exp=0;
+                quotient->len=remainder->len=1;
+                quotient->flags=remainder->flags=F_NOTANUMBER;
+                return;
+            }
+            // a IS A NUMBER, a/INF = 0
+
+            quotient->data[0]=remainder->data[0]=0;
+            quotient->exp=remainder->exp=0;
+            quotient->len=remainder->len=1;
+            quotient->flags=remainder->flags=a->flags&F_NEGATIVE;
+            return;
+        }
+
+
+
         if( (a->flags|b->flags)&F_NOTANUMBER) {
             // THE RESULT IS NOT A NUMBER
             quotient->data[0]=remainder->data[0]=0;
@@ -3565,7 +3788,7 @@ void divmodReal(REAL *quotient,REAL *remainder,REAL *a,REAL *b)
             quotient->data[0]=remainder->data[0]=0;
             quotient->exp=remainder->exp=0;
             quotient->len=remainder->len=1;
-            quotient->flags=remainder->flags=a->flags^(b->flags&F_NEGATIVE);
+            quotient->flags=remainder->flags=(a->flags^b->flags)&F_NEGATIVE;
             return;
         }
         if(b->flags&F_INFINITY) {
@@ -3573,7 +3796,7 @@ void divmodReal(REAL *quotient,REAL *remainder,REAL *a,REAL *b)
             quotient->data[0]=remainder->data[0]=0;
             quotient->exp=remainder->exp=0;
             quotient->len=remainder->len=1;
-            quotient->flags=remainder->flags=F_APPROX|F_NOTNORMALIZED;
+            quotient->flags=remainder->flags=0;
             return;
         }
     }
@@ -3583,7 +3806,7 @@ void divmodReal(REAL *quotient,REAL *remainder,REAL *a,REAL *b)
         quotient->data[0]=remainder->data[0]=0;
         quotient->exp=remainder->exp=0;
         quotient->len=remainder->len=1;
-        quotient->flags=remainder->flags=((a->flags^b->flags)&F_NEGATIVE)|F_INFINITY|F_APPROX;
+        quotient->flags=remainder->flags=((a->flags^b->flags)&F_NEGATIVE)|F_INFINITY;
         return;
     }
 
@@ -4093,6 +4316,13 @@ BINT isinfiniteReal(REAL *n)
     if(n->flags&F_INFINITY) return 1;
     return 0;
 }
+
+BINT isundinfiniteReal(REAL *n)
+{
+    if(n->flags&F_UNDINFINITY==F_UNDINFINITY) return 1;
+    return 0;
+}
+
 
 BINT signofReal(REAL *n)
 {

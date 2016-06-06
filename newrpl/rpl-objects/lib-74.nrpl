@@ -17,12 +17,26 @@
 
 @#name lib74_menu
 {
-  SDINFO
+  SDINFO SDSTO SDRCL
 }
 
 @#name lib74_msgtable
 {
-##1,ERR_INVALIDFILESYSTEM "Invalid file system"
+##1,ERR_UNKNOWNFSERROR "Unknown file system error"
+##1,ERR_ENDOFFILE "End of file"
+##1,ERR_BADFILENAME "Invalid file name"
+##1,ERR_BADVOLUME "Invalid volume number"
+##1,ERR_FILENOTFOUND "File not found"
+##1,ERR_CANTWRITE "Write error"
+##1,ERR_NOCARD "No card inserted"
+##1,ERR_CARDCHANGED "Card was changed"
+##1,ERR_MAXFILES "Too many open files"
+##1,ERR_ALREADYOPEN "File is already being used"
+##1,ERR_DISKFULL "Disk is full"
+##1,ERR_ALREADYEXISTS "File already exists"
+##1,ERR_INVALIDHANDLE "Invalid file handle"
+##1,ERR_IDENTORPATHEXPECTED "Ident or path expected"
+##1,ERR_NOTANRPLFILE "Invalid RPL file"
 }
 
 
@@ -32,5 +46,13 @@ SDINFO
 "Get information about SD CARD
 
 I<part> → I<present> I<size> I<free>"
+SDSTO
+"Store a variable on SD CARD
+
+O N → "
+SDRCL
+"Read a variable from SD CARD
+
+N → O ..."
 
 }
