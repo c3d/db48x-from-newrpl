@@ -1340,9 +1340,12 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {\
-        if(MENUNUMBER(MenuCodeArg)>0) RetNum=ERR_NOTMINE;
+        if(MENUNUMBER(MenuCodeArg)>0) {
+            RetNum=ERR_NOTMINE;
+            return;
+        }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+2];
+        ObjectPTR=(WORDPTR)lib9_menu;
         RetNum=OK_CONTINUE;
        return;
     }

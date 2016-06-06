@@ -23,110 +23,124 @@
 
 @#name lib64_menu
 {
-  FLOOR CEIL IP FP MODSTO MODRCL POWMOD MOD SQ NEXTPRIME ! ISPRIME? MANT XPON SIGN % %CH %T GCD LCM IDIV2 IQUOT ADDTMOD SUBTMOD MULTMOD
+  FLOOR CEIL IP FP !
+  MOD SQ  % %CH %T
+  MANT XPON SIGN SETPREC GETPREC
+  GCD LCM IDIV2 IQUOT { "" }
+  MODSTO MODRCL { "" } { "" } { "" }
+  ADDTMOD SUBTMOD MULTMOD POWMOD { "" }
+  NEXTPRIME ISPRIME?
 }
 
 @#name lib64_cmdhelp
 {
 FLOOR
-"Returns the greatest integer that is
-less than or equal to the argument
+"GREATEST INTEGER THAT IS LESS
+THAN OR EQUAL TO THE ARGUMENT
 R → I"
 CEIL
-"Returns the smallest integer that is
- greater than or equal to the argument
+"SMALLEST INTEGER THAT IS GREATER
+ THAN OR EQUAL TO THE ARGUMENT
 R → I"
 IP
-"Returns the integer part
-of the argument
+"INTEGER PART
+OF THE ARGUMENT
 R → I"
 FP
-"Returns the fractional part
-of the argument
+"FRACTIONAL PART
+OF THE ARGUMENT
 → "
-MODSTO
-"Changes the modulo setting
-to the specified number
-O →"
-MODRCL
-"Returns the modulo setting
+!
+"Factorial
 
-→ O"
-POWMOD
-"raises the object to the exponent
-modulo the current modulus
-→ "
+I → I"
 MOD
-"modulo
-x-y*floor(x/y)
+"MODULO
+X-Y*FLOOR(X/Y)
 O → O"
 SQ
 "square
 
 O → O"
-NEXTPRIME
-"next prime number larger
-than the integer
-I → I"
-!
-"Factorial
-
-I → I"
-ISPRIME?
-"Tests if a number is prime
-
-I → I"
+%
+"PERCENT
+X*Y/100
+O O → R"
+%CH
+"PERCENT CHANGE
+100*(Y–X)/X
+O O → R"
+%T
+"PERCENT OF TOTAL
+100*Y/X
+O O → R"
 MANT
-"mantissa of the argument
+"MANTISSA OF THE ARGUMENT
 
 R → R"
 XPON
-"exponent of the argument
+"EXPONENT OF THE ARGUMENT
 
 R → I"
 SIGN
-"sign of a real number
+"SIGN OF A REAL NUMBER
 
 R → I"
-%
-"Percent
-x*y/100
-O O → R"
-%CH
-"Percent Change
-100*(y–x)/x
-O O → R"
-%T
-"Percent of Total
-100*y/x
-O O → R"
+SETPREC
+"SET PRECISION
+
+I → "
+GETPREC
+"GET CURRENT PRECISION
+
+→ I"
 GCD
-"greatest common divisor
-of two objects
+"GREATEST COMMON DIVISOR
+OF TWO OBJECTS
 I I → I"
 LCM
-"least common multiple
-of two objects
+"LEAST COMMON MULTIPLE
+OF TWO OBJECTS
 I I → I"
 IDIV2
-"returns the integer part of a/b,
-and the remainder r
+"INTEGER PART OF A/B,
+AND THE REMAINDER R
 I I → I I"
 IQUOT
-"Returns the Euclidean quotient
-of two integers
+"RETURNS THE EUCLIDEAN QUOTIENT
+OF TWO INTEGERS
 I I → I"
+MODSTO
+"CHANGES THE MODULO SETTING
+TO THE SPECIFIED NUMBER
+I →"
+MODRCL
+"RETURNS THE MODULO SETTING
+
+→ O"
 ADDTMOD
-"Addition of two objects
-modulo the current modulus
+"ADDITION OF TWO OBJECTS
+MODULO THE CURRENT MODULUS
 O O → O"
 SUBTMOD
-"Subtraction of two objects
-modulo the current modulus
+"SUBTRACTION OF TWO OBJECTS
+MODULO THE CURRENT MODULUS
 O O → O"
 MULTMOD
-"Multiplication of two objects
-modulo the current modulus
+"MULTIPLICATION OF TWO OBJECTS
+MODULO THE CURRENT MODULUS
 O O → O"
+POWMOD
+"RAISES THE OBJECT TO THE EXPONENT
+MODULO THE CURRENT MODULUS
+O O → O"
+NEXTPRIME
+"NEXT PRIME NUMBER LARGER
+THAN THE INTEGER
+I → I"
+ISPRIME?
+"TESTS IF A NUMBER IS PRIME
+
+I → I"
 }
 
