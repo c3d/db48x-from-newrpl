@@ -2749,7 +2749,7 @@ char *formatReal(REAL *number, char *buffer, BINT format, WORD chars)
 
     // HANDLE SPECIALS FIRST
 
-    if(number->flags&F_UNDINFINITY==F_UNDINFINITY) {
+    if((number->flags&F_UNDINFINITY)==F_UNDINFINITY) {
         const char *undinfinitystring="∞̅";
         while(*undinfinitystring!=0) { buffer[idx++]=*undinfinitystring; ++undinfinitystring; }
         return buffer+idx;
@@ -2993,7 +2993,7 @@ BINT formatlengthReal(REAL *number, BINT format)
     int totalcount;
     int idx=0;
 
-    if(number->flags&F_UNDINFINITY==F_UNDINFINITY) {
+    if((number->flags&F_UNDINFINITY)==F_UNDINFINITY) {
         const char *undinfinitystring="∞̅";
         while(*undinfinitystring!=0) { idx++; ++undinfinitystring; }
         return idx;
@@ -3400,7 +3400,7 @@ void addReal(REAL *result,REAL *a,REAL *b)
 {
 
     if((a->flags|b->flags)&(F_INFINITY|F_NOTANUMBER)) {
-        if(a->flags&F_UNDINFINITY==F_UNDINFINITY) {
+        if((a->flags&F_UNDINFINITY)==F_UNDINFINITY) {
             if(b->flags&(F_INFINITY|F_NOTANUMBER))
             {
                 // THE RESULT IS NOT A NUMBER
@@ -3418,7 +3418,7 @@ void addReal(REAL *result,REAL *a,REAL *b)
                 return;
             }
 
-        if(b->flags&F_UNDINFINITY==F_UNDINFINITY) {
+        if((b->flags&F_UNDINFINITY)==F_UNDINFINITY) {
             if(b->flags&(F_INFINITY|F_NOTANUMBER))
             {
                 // THE RESULT IS NOT A NUMBER
@@ -3498,8 +3498,8 @@ void mulReal(REAL *result,REAL *a,REAL *b)
 
     if((a->flags|b->flags)&(F_INFINITY|F_NOTANUMBER)) {
 
-        if(a->flags&F_UNDINFINITY==F_UNDINFINITY) {
-            if(b->flags&(F_INFINITY|F_NOTANUMBER)==F_NOTANUMBER)
+        if((a->flags&F_UNDINFINITY)==F_UNDINFINITY) {
+            if((b->flags&(F_INFINITY|F_NOTANUMBER))==F_NOTANUMBER)
             {
                 // THE RESULT IS NOT A NUMBER
                 result->data[0]=0;
@@ -3526,8 +3526,8 @@ void mulReal(REAL *result,REAL *a,REAL *b)
             return;
         }
 
-        if(b->flags&F_UNDINFINITY==F_UNDINFINITY) {
-            if(a->flags&(F_INFINITY|F_NOTANUMBER)==F_NOTANUMBER)
+        if((b->flags&F_UNDINFINITY)==F_UNDINFINITY) {
+            if((a->flags&(F_INFINITY|F_NOTANUMBER))==F_NOTANUMBER)
             {
                 // THE RESULT IS NOT A NUMBER
                 result->data[0]=0;
@@ -3610,7 +3610,7 @@ void divReal(REAL *result,REAL *a,REAL *b)
 
     if((a->flags|b->flags)&(F_INFINITY|F_NOTANUMBER)) {
 
-        if(a->flags&F_UNDINFINITY==F_UNDINFINITY) {
+        if((a->flags&F_UNDINFINITY)==F_UNDINFINITY) {
             if(b->flags&(F_INFINITY|F_NOTANUMBER)) {
                 // THE RESULT IS NOT A NUMBER
                 result->data[0]=0;
@@ -3636,7 +3636,7 @@ void divReal(REAL *result,REAL *a,REAL *b)
             return;
         }
 
-        if(b->flags&F_UNDINFINITY==F_UNDINFINITY) {
+        if((b->flags&F_UNDINFINITY)==F_UNDINFINITY) {
             if(a->flags&(F_INFINITY|F_NOTANUMBER)) {
                 // THE RESULT IS NOT A NUMBER
                 result->data[0]=0;
@@ -3721,7 +3721,7 @@ void divmodReal(REAL *quotient,REAL *remainder,REAL *a,REAL *b)
     if((a->flags|b->flags)&(F_INFINITY|F_NOTANUMBER)) {
 
 
-        if(a->flags&F_UNDINFINITY==F_UNDINFINITY) {
+        if((a->flags&F_UNDINFINITY)==F_UNDINFINITY) {
             if(b->flags&(F_INFINITY|F_NOTANUMBER)) {
                 // THE RESULT IS NOT A NUMBER
                 quotient->data[0]=remainder->data[0]=0;
@@ -3747,7 +3747,7 @@ void divmodReal(REAL *quotient,REAL *remainder,REAL *a,REAL *b)
             return;
         }
 
-        if(b->flags&F_UNDINFINITY==F_UNDINFINITY) {
+        if((b->flags&F_UNDINFINITY)==F_UNDINFINITY) {
             if(a->flags&(F_INFINITY|F_NOTANUMBER)) {
                 // THE RESULT IS NOT A NUMBER
                 quotient->data[0]=remainder->data[0]=0;
@@ -4319,7 +4319,7 @@ BINT isinfiniteReal(REAL *n)
 
 BINT isundinfiniteReal(REAL *n)
 {
-    if(n->flags&F_UNDINFINITY==F_UNDINFINITY) return 1;
+    if((n->flags&F_UNDINFINITY)==F_UNDINFINITY) return 1;
     return 0;
 }
 
