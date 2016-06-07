@@ -448,12 +448,12 @@ void LIB_HANDLER()
         tokptr=(BYTEPTR)TokenStart;
         tokend=(BYTEPTR)BlankStart;
 
-        tokptr=(BYTEPTR)utf8skip((char *)tokptr,(char *)tokend);
+        tokptr=(BYTEPTR)utf8skipst((char *)tokptr,(char *)tokend);
         for(maxlen=0,len=1;tokptr<=tokend;++len) {
             if(!rplIsValidIdent((BYTEPTR)TokenStart,tokptr)) break;
             maxlen=len;
             if(tokptr==tokend) break;
-            tokptr=(BYTEPTR)utf8skip((char *)tokptr,(char *)tokend);
+            tokptr=(BYTEPTR)utf8skipst((char *)tokptr,(char *)tokend);
         }
         if(maxlen>0) RetNum=OK_TOKENINFO | MKTOKENINFO(maxlen,TITYPE_IDENT,0,1);
         else RetNum=ERR_NOTMINE;

@@ -270,7 +270,7 @@ void DrawTextBkN(int x,int y,char *Text,int nchars,UNIFONT *Font,int color,int b
 
 int StringWidthN(char *Text,char *End,UNIFONT *Font)
 {
-    int cp,startcp,rangeend,offset;
+    int cp,startcp,rangeend,offset,cpinfo;
     unsigned short *offtable;
     unsigned int *mapptr;
     int w,width=0;
@@ -283,8 +283,16 @@ int StringWidthN(char *Text,char *End,UNIFONT *Font)
 
         if(cp==-1) { ++Text; continue; }
 
-
         if(cp=='\n' || cp=='\r') return width;
+
+        cpinfo=getCPInfo(cp);
+
+        if(CCLASS(cpinfo)!=0) {
+        // ADD SUPPORT FOR COMBINERS
+            Text=utf8skip(Text,End);
+            continue;
+        }
+
 
         // GET THE INFORMATION FROM THE FONT
         rangeend=0;
@@ -319,7 +327,7 @@ int StringWidthN(char *Text,char *End,UNIFONT *Font)
 
 char *StringCoordToPointer(char *Text,char *End,UNIFONT *Font,int *xcoord)
 {
-    int cp,startcp,rangeend,offset;
+    int cp,startcp,rangeend,offset,cpinfo;
     unsigned short *offtable;
     unsigned int *mapptr;
     int w,width=0;
@@ -334,8 +342,15 @@ char *StringCoordToPointer(char *Text,char *End,UNIFONT *Font,int *xcoord)
 
         if(cp==-1) { ++Text; continue; }
 
-
         if(cp=='\n' || cp=='\r') { *xcoord=width; return Text; }
+
+        cpinfo=getCPInfo(cp);
+        if(CCLASS(cpinfo)!=0) {
+        // ADD SUPPORT FOR COMBINERS
+            Text=utf8skip(Text,End);
+            continue;
+        }
+
 
         // GET THE INFORMATION FROM THE FONT
         rangeend=0;
@@ -379,7 +394,7 @@ int StringWidth(char *Text,UNIFONT *Font)
 
 void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURFACE *drawsurf)
 {
-    int cp,startcp,rangeend,offset;
+    int cp,startcp,rangeend,offset,cpinfo;
     unsigned short *offtable;
     unsigned int *mapptr;
     char *fontbitmap;
@@ -393,7 +408,7 @@ void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURF
     fontbitmap=(char *)(((unsigned int *)Font)+Font->OffsetBitmap);
     offtable=(unsigned short *)(((unsigned int *)Font)+Font->OffsetTable);
 
-    int w,h;
+    int w,clipped=0,h;
     gglsurface srf;
     srf.addr=(int *)fontbitmap;
     srf.width=Font->BitmapWidth<<3;
@@ -411,7 +426,6 @@ void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURF
     drawsurf->y=y;
     drawsurf->x=x;
 
-
     while(Text<End) {
 
         cp=utf82char(Text,End);
@@ -419,12 +433,23 @@ void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURF
         if(cp==-1) { ++Text; continue; }
         if(cp=='\n' || cp=='\r') return;
 
+        cpinfo=getCPInfo(cp);
         // ADD SUPPORT FOR A COUPLE OF COMBINING MARKS
         switch(cp) {
         case 0x0305:        // COMBINING OVERLINE
-            // HERE WE HAVE w THE WIDTH FROM PREVIOUS CHARACTER
-            // drawsurf->x POINTS TO THE RIGHT OF THE CHARACTER
-            ggl_cliphline(&srf,drawsurf->y,drawsurf->x-w,drawsurf->x-2,ggl_mkcolor(color));
+            // HERE WE HAVE w THE WIDTH FROM PREVIOUS CHARACTER (POSSIBLY CLIPPED)
+            // clipped&0xff = NUMBER OF PIXELS CROPPED ON THE RIGHT OF THE CHARACTER
+            // clipped>>8 = NUMBER OF PIXELS CROPPED ON THE LEFT OF THE CHARACTER
+
+            // w+(clipped&0xff)+(clipped>>8) = ORIGINAL WIDTH OF THE CHARACTER
+            // drawsurf->x+(clipped&0xff) = POINTS TO THE RIGHT OF THE CHARACTER (POSSIBLY CLIPPED)
+
+            ggl_cliphline(drawsurf,drawsurf->y,drawsurf->x-w,drawsurf->x-2+(clipped&0xff),ggl_mkcolor(color));
+            break;
+        }
+
+        if(CCLASS(cpinfo)!=0) {
+        // ADD SUPPORT FOR COMBINERS
             Text=utf8skip(Text,End);
             continue;
         }
@@ -446,15 +471,17 @@ void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURF
 
     srf.x=w&0xfff;
     w>>=12;
+    clipped=0;
     if(w) {
     if(drawsurf->x>drawsurf->clipx2) return;
     if(drawsurf->x+w-1<drawsurf->clipx) { drawsurf->x+=w; Text=utf8skip(Text,End); continue; }
     if(drawsurf->x<drawsurf->clipx) {
             srf.x+=drawsurf->clipx-drawsurf->x;
             w-=drawsurf->clipx-drawsurf->x;
+            clipped|=(drawsurf->clipx-drawsurf->x)<<8;     // CLIPPED ON THE LEFT
             drawsurf->x=drawsurf->clipx;
     }
-    if(drawsurf->x+w-1>drawsurf->clipx2) w=drawsurf->clipx2-drawsurf->x+1;
+    if(drawsurf->x+w-1>drawsurf->clipx2) { clipped|=w-(drawsurf->clipx2-drawsurf->x+1); w=drawsurf->clipx2-drawsurf->x+1;  }  // CLIPPED ON THE RIGHT
 
     // MONOCHROME TO 16-GRAYS BLIT W/CONVERSION
     if((color&0xf)==0xf) ggl_monobitbltmask(drawsurf,&srf,w,h,0);
@@ -472,7 +499,7 @@ void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURF
 // UTF8 STRING
 void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,int bkcolor,DRAWSURFACE *drawsurf)
 {
-    int cp,startcp,rangeend,offset;
+    int cp,startcp,rangeend,offset,cpinfo;
     unsigned short *offtable;
     unsigned int *mapptr;
     char *fontbitmap;
@@ -486,7 +513,7 @@ void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,int bk
     fontbitmap=(char *)(((unsigned int *)Font)+Font->OffsetBitmap);
     offtable=(unsigned short *)(((unsigned int *)Font)+Font->OffsetTable);
 
-    int w,h;
+    int w,clipped=0,h;
     gglsurface srf;
     srf.addr=(int *)fontbitmap;
     srf.width=Font->BitmapWidth<<3;
@@ -513,12 +540,24 @@ void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,int bk
 
         if(cp=='\n' || cp=='\r') return;
 
+        cpinfo=getCPInfo(cp);
+
         // ADD SUPPORT FOR A COUPLE OF COMBINING MARKS
         switch(cp) {
         case 0x0305:        // COMBINING OVERLINE
-            // HERE WE HAVE w THE WIDTH FROM PREVIOUS CHARACTER
-            // drawsurf->x POINTS TO THE RIGHT OF THE CHARACTER
-            ggl_cliphline(&srf,drawsurf->y,drawsurf->x-w,drawsurf->x-2,ggl_mkcolor(color));
+            // HERE WE HAVE w THE WIDTH FROM PREVIOUS CHARACTER (POSSIBLY CLIPPED)
+            // clipped&0xff = NUMBER OF PIXELS CROPPED ON THE RIGHT OF THE CHARACTER
+            // clipped>>8 = NUMBER OF PIXELS CROPPED ON THE LEFT OF THE CHARACTER
+
+            // w+(clipped&0xff)+(clipped>>8) = ORIGINAL WIDTH OF THE CHARACTER
+            // drawsurf->x+(clipped&0xff) = POINTS TO THE RIGHT OF THE CHARACTER (POSSIBLY CLIPPED)
+
+            ggl_cliphline(drawsurf,drawsurf->y,drawsurf->x-w,drawsurf->x-2+(clipped&0xff),ggl_mkcolor(color));
+            break;
+        }
+
+        if(CCLASS(cpinfo)!=0) {
+        // ADD SUPPORT FOR COMBINERS
             Text=utf8skip(Text,End);
             continue;
         }
@@ -540,7 +579,7 @@ void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,int bk
 
     srf.x=w&0xfff;
     w>>=12;
-
+    clipped=0;
     if(w) {
 
     if(drawsurf->x>drawsurf->clipx2) return;
@@ -548,9 +587,10 @@ void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,int bk
     if(drawsurf->x<drawsurf->clipx) {
             srf.x+=drawsurf->clipx-drawsurf->x;
             w-=drawsurf->clipx-drawsurf->x;
+            clipped|=(drawsurf->clipx-drawsurf->x)<<8;     // CLIPPED ON THE LEFT
             drawsurf->x=drawsurf->clipx;
     }
-    if(drawsurf->x+w-1>drawsurf->clipx2) w=drawsurf->clipx2-drawsurf->x+1;
+    if(drawsurf->x+w-1>drawsurf->clipx2) { clipped|=w-(drawsurf->clipx2-drawsurf->x+1); w=drawsurf->clipx2-drawsurf->x+1;  }  // CLIPPED ON THE RIGHT
 
     ggl_rect(drawsurf,drawsurf->x,drawsurf->y,drawsurf->x+w-1,drawsurf->y+h-1,ggl_mkcolor(bkcolor&0xf));
     // MONOCHROME TO 16-GRAYS BLIT W/CONVERSION
@@ -587,7 +627,7 @@ void DrawText(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *drawsu
 // TRANSPARENT BACKGROUND
 void DrawTextMono(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *drawsurf)
 {
-    int cp,startcp,rangeend,offset;
+    int cp,startcp,rangeend,offset,cpinfo;
     unsigned short *offtable;
     unsigned int *mapptr;
     char *fontbitmap;
@@ -631,6 +671,15 @@ void DrawTextMono(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *dr
 
         if(cp==-1) { ++Text; continue; }
         if(cp=='\n' || cp=='\r') return;
+
+
+        cpinfo=getCPInfo(cp);
+
+        if(CCLASS(cpinfo)!=0) {
+        // ADD SUPPORT FOR COMBINERS
+            Text=utf8skip(Text,End);
+            continue;
+        }
 
         // GET THE INFORMATION FROM THE FONT
         rangeend=0;

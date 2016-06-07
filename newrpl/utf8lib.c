@@ -94,6 +94,64 @@ char *utf8skip(char *ptr, char *end)
     return ++ptr;
 }
 
+// SKIP BYTES UNTIL A STARTER CODEPOINT IS FOUND
+// USED TO ALIGN ARBITRARY POINTERS INTO THE UTF8 SEQUENCE
+char *utf8findst(char *ptr,char *end)
+{
+    if(end<=ptr) return ptr;
+    while(((*ptr&0xc0)==0x80) && (ptr<end)) ++ptr;
+    // GOT THE BEGINNING OF A UTF8 SEQUENCE
+    if(end<=ptr) return ptr;
+
+    int cp,cpinfo;
+
+    do {
+
+    cp=utf82char(ptr,end);
+    if(cp<0) return end;    // INVALID UTF8 SEQUENCE!
+    cpinfo=getCPInfo(cp);
+    if(CCLASS(cpinfo)==0) return ptr;   // FOUND A STARTER
+    // NOT A STARTER, SKIP IT
+    if(*ptr&0x80) {
+            ++ptr;
+            while(((*ptr&0xc0)==0x80)&& (ptr<end)) ++ptr;
+    }
+    else ++ptr;
+    } while(ptr<end);
+
+    return end;
+
+}
+
+// SAME AS SKIP, BUT ALSO SKIP OVER COMBINING MARKS
+// SKIP CODEPOINTS UNTIL A STARTER CODEPOINT IS FOUND
+char *utf8skipst(char *ptr,char *end)
+{
+    if(end<=ptr) return ptr;
+    int cp,cpinfo;
+
+    do {
+        // SKIP CODEPOINT
+        if(*ptr&0x80) {
+                ++ptr;
+                while(((*ptr&0xc0)==0x80)&& (ptr<end)) ++ptr;
+        }
+        else ++ptr;
+
+        if(end<=ptr) return ptr;
+
+    cp=utf82char(ptr,end);
+    if(cp<0) return end;    // INVALID UTF8 SEQUENCE!
+    cpinfo=getCPInfo(cp);
+    if(CCLASS(cpinfo)==0) return ptr;   // FOUND A STARTER
+    // NOT A STARTER, SKIP IT
+    } while(ptr<end);
+
+    return ptr;
+
+}
+
+
 // SKIP n CODE POINTS
 char *utf8nskip(char *ptr, char *end, int n)
 {
@@ -109,14 +167,39 @@ char *utf8nskip(char *ptr, char *end, int n)
     return ptr;
 }
 
-// SKIP A CODE POINT
+// SKIP A CODE POINT IN REVERSE
 char *utf8rskip(char *ptr, char *start)
 {
     if(start>=ptr) return ptr;
     --ptr;
     while(((*ptr&0xc0)==0x80)&& (ptr>start)) --ptr;
-    if((*ptr&0x80)&(ptr>start)) --ptr;
     return ptr;
+}
+
+// REVERSE SKIP CODEPOINTS UNTIL NEXT STARTER
+char *utf8rskipst(char *ptr,char *start)
+{
+
+    if(start>=ptr) return ptr;
+
+    char *prevptr;
+    int cp,cpinfo;
+
+    do {
+    // SKIP THE CODEPOINT
+    prevptr=ptr;
+    --ptr;
+    while(((*ptr&0xc0)==0x80)&& (ptr>start)) --ptr;
+
+    cp=utf82char(ptr,prevptr);
+    if(cp<0) return start;    // INVALID UTF8 SEQUENCE!
+    cpinfo=getCPInfo(cp);
+    if(CCLASS(cpinfo)==0) return ptr;   // FOUND A STARTER
+    // NOT A STARTER, SKIP IT
+    } while(ptr>start);
+    // REACHED THE START OF STRRING WITHOUT FINDING A STARTER!
+    return ptr;
+
 }
 
 
@@ -495,6 +578,22 @@ int utf8ncmp(const char *s1,const char *s2,int len)
 
                 return (utf82char((char *)s1,(char *)s1+4) - utf82char((char *)s2,(char *)s2+4));
             }
+
+            // CHECK IF LEFTOVER IS A NON-STARTER
+            if(*s1!='\0') {
+                if(CCLASS(getCPInfo(utf82char((char *)s1,(char *)s1+4)))!=0) {
+                    // NOT A STARTER, STRINGS ARE NOT EQUAL
+                    return 1;
+                }
+            }
+            if(*s2!='\0') {
+                if(CCLASS(getCPInfo(utf82char((char *)s2,(char *)s2+4)))!=0) {
+                    // NOT A STARTER, STRINGS ARE NOT EQUAL
+                    return -1;
+                }
+            }
+
+
         }
 
         return 0;

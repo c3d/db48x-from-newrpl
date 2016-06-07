@@ -200,9 +200,9 @@ void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds)
             --idx;
         }
         else {
-        // SKIP THE FIRST CHARACTER AND SHECK AGAIN
+        // SKIP THE FIRST CHARACTER AND CHECK AGAIN
             --len;
-            if((len>=(BINT)TokenLen) && (!utf8ncmp((char *)TokenStart,utf8skip((char *)libnames[idx],(char *)libnames[idx]+4),TokenLen)))
+            if((len>=(BINT)TokenLen) && (!utf8ncmp((char *)TokenStart,utf8skipst((char *)libnames[idx],(char *)libnames[idx]+4),TokenLen)))
             {
                 // WE HAVE THE NEXT MATCH
                 SuggestedOpcode=MKOPCODE(libnum,idx);

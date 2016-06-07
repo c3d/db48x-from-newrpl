@@ -721,8 +721,9 @@ if(offset<0) offset=0;
 halScreen.CursorState|=0x4000;
 
 // AVOID USING OFFSET THAT FALLS BETWEEN BYTES OF THE SAME CODEPOINT
-ptr2=ptr;
-while((ptr2-ptr<offset)&&(ptr2<ptr+len)) ptr2=(BYTEPTR)utf8skip((char *)ptr2,(char *)ptr+len);
+ptr2=(BYTEPTR)utf8findst((char *)ptr+offset,(char *)ptr+len);
+
+//while((ptr2-ptr<offset)&&(ptr2<ptr+len)) ptr2=(BYTEPTR)utf8skip((char *)ptr2,(char *)ptr+len);
 
 offset=ptr2-ptr;
 
@@ -763,7 +764,7 @@ void uiCursorLeft(BINT nchars)
     ptr2=ptr+halScreen.CursorPosition;
 
     while(nchars &&(ptr2>ptr)) {
-        ptr2=(BYTEPTR)utf8rskip((char *)ptr2,(char *)ptr);
+        ptr2=(BYTEPTR)utf8rskipst((char *)ptr2,(char *)ptr);
         --nchars;
     }
 
@@ -789,7 +790,7 @@ void uiCursorLeft(BINT nchars)
             ptr=(BYTEPTR )(CmdLineText+1);
             ptr2=ptr+offset;    // THIS IS THE BEGINNING OF THE CURRENT LINE
             while(nchars &&(ptr2>ptr)) {
-                ptr2=(BYTEPTR)utf8rskip((char *)ptr2,(char *)ptr);
+                ptr2=(BYTEPTR)utf8rskipst((char *)ptr2,(char *)ptr);
                 if(*ptr2=='\n') --halScreen.LineCurrent;
                 --nchars;
             }
@@ -856,7 +857,7 @@ void uiCursorRight(BINT nchars)
 
     // AVOID USING OFFSET THAT FALLS BETWEEN BYTES OF THE SAME CODEPOINT
     ptr2=ptr+halScreen.CursorPosition;
-    while(nchars &&(ptr2<ptr+len)) { ptr2=(BYTEPTR)utf8skip((char *)ptr2,(char *)ptr+len); --nchars; }
+    while(nchars &&(ptr2<ptr+len)) { ptr2=(BYTEPTR)utf8skipst((char *)ptr2,(char *)ptr+len); --nchars; }
 
     if(nchars) {
         // THERE'S MORE CHARACTERS LEFT!
@@ -884,7 +885,7 @@ void uiCursorRight(BINT nchars)
             ptr2=uiGetEndOfLine(ptr+offset,ptr+len);    // THIS IS THE END OF THE CURRENT LINE
             while(nchars &&(ptr2<ptr+len)) {
                 if(*ptr2=='\n') ++halScreen.LineCurrent;
-                ptr2=(BYTEPTR)utf8skip((char *)ptr2,(char *)ptr+len);
+                ptr2=(BYTEPTR)utf8skipst((char *)ptr2,(char *)ptr+len);
                 --nchars;
             }
 
@@ -1189,7 +1190,7 @@ void uiAutocompleteUpdate()
 
     BYTEPTR start=(BYTEPTR)(CmdLineCurrentLine+1);
     BYTEPTR end=start+halScreen.CursorPosition;
-    BYTEPTR ptr,tokptr=(BYTEPTR)utf8rskip((char *)end,(char *)start);
+    BYTEPTR ptr,tokptr=(BYTEPTR)utf8rskipst((char *)end,(char *)start);
     BINT char1,char2;
     // THESE ARE CHARACTERS THAT WOULD STOP A TOKEN SEARCH
     static const char const forbiddenChars[]="{}[]()#;:, \"\'_`@|«»";  // OUTSIDE OF ALG. MODE
@@ -1213,7 +1214,7 @@ void uiAutocompleteUpdate()
             // WE FOUND THE START OF THE TOKEN
             break;
         }
-        if(tokptr>start) tokptr=(BYTEPTR)utf8rskip((char *)tokptr,(char *)start);
+        if(tokptr>start) tokptr=(BYTEPTR)utf8rskipst((char *)tokptr,(char *)start);
         else --tokptr;
 
     }
@@ -1315,7 +1316,7 @@ void uiAutocompInsert()
 
     // MOVE THE CURSOR TO THE START OF THE TOKEN;
     BINT nchars=0;
-    while(tokstart!=tokend) { ++nchars; tokstart=(BYTEPTR)utf8skip((char *)tokstart,(char *)tokend); }
+    while(tokstart!=tokend) { ++nchars; tokstart=(BYTEPTR)utf8skipst((char *)tokstart,(char *)tokend); }
 
     uiCursorLeft(nchars);
     uiInsertCharactersN(namest,nameend);
