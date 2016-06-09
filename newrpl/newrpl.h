@@ -27,12 +27,12 @@ typedef int32_t BINT;
 typedef uint32_t UBINT;
 typedef int64_t BINT64;
 typedef uint64_t UBINT64;
-#if defined(__LP64__) || defined(_WIN64)
+#if (defined(__LP64__) || defined(_WIN64)) && !defined(TARGET_50G)
 typedef uint64_t PTR2NUMBER;
 #define NUMBER2PTR(a) ((WORDPTR)((UBINT64)(a)))
 #else
 typedef uint32_t PTR2NUMBER;
-#define NUMBER2PTR(a) ((WORDPTR)(a))
+#define NUMBER2PTR(a) ((WORDPTR)((WORD)(a)))
 #endif
 
 

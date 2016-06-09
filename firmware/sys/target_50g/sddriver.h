@@ -51,7 +51,7 @@
 
 
 typedef struct {
-int SystemFlags;			// 1=SDIO interface setup, 2=SDCard initialized, 4=Valid RCA obtained, 8=Bus configured OK
+int SysFlags;			// 1=SDIO interface setup, 2=SDCard initialized, 4=Valid RCA obtained, 8=Bus configured OK
 int Rca;
 int BusWidth;
 int MaxBlockLen;

@@ -9,6 +9,13 @@
 #include "libraries.h"
 #include "hal.h"
 
+// ******************************************
+// INCLUDE THIS FOR DEBUG ONLY - REMOVE WHEN DONE
+#include "../firmware/sys/target_50g/fsystem/fsyspriv.h"
+// ******************************************
+
+
+
 // *****************************
 // *** COMMON LIBRARY HEADER ***
 // *****************************
@@ -142,11 +149,12 @@ void LIB_HANDLER()
         if(ismounted==FS_OK) {
             rplDropData(1);
 
+            FSSetCurrentVolume(partnum);
 
             FS_FILE *dir;
 
             if(FSOpenDir("\\",&dir)!=FS_OK) {
-                rplError(ERR_INDEXOUTOFBOUNDS);
+                rplError(ERR_UNKNOWNFSERROR);
                 return;
             }
             FS_FILE entry;
@@ -157,9 +165,10 @@ void LIB_HANDLER()
             }
 
             FSClose(dir);
-            FSSleep();
-        }
+       }
         else         {
+         rplNewBINTPush((BINT64)FSystem.CurrentVolume,HEXBINT);
+
          rplError(rplFSError2Error(ismounted));
         }
             rplDropData(1);
@@ -172,6 +181,7 @@ void LIB_HANDLER()
         // REINIT FILE SYSTEM
         int error=FSRestart();
         if(error!=FS_OK) {
+            rplNewBINTPush((BINT64)FSystem.CurrentVolume,HEXBINT);
             rplError(rplFSError2Error(error));
         }
         return;
@@ -241,7 +251,6 @@ void LIB_HANDLER()
             return;
         }
         FSClose(objfile);
-
         rplDropData(2);
 
         return;

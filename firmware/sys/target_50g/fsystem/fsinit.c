@@ -31,7 +31,7 @@ if(dsk==NULL) return FS_ERROR;
 fs=(FS_VOLUME *)simpmallocb(sizeof(FS_VOLUME));
 if(fs==NULL) { simpfree(dsk); return FS_ERROR; }
 
-if(!SDCardInit(dsk)) { simpfree(fs); simpfree(dsk); return FS_NOCARD; }
+if(!SDCardInit(dsk)) { FSystem.CurrentVolume=dsk->SysFlags; simpfree(fs); simpfree(dsk); return FS_NOCARD; }
 // SELECT CARD
 if(!SDSelect(dsk->Rca)) { SDIOSetup(dsk,TRUE);  simpfree(fs); simpfree(dsk); return FS_ERROR; }
 

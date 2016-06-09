@@ -105,6 +105,7 @@ unsigned int *simpmalloc(int words)
     } while(ch>=0);
 
     // FAILED TO ALLOCATE!
+    throw_dbgexception("Failed to allocate",__EX_CONT);
     return 0;
 
 }
