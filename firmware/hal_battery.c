@@ -113,6 +113,11 @@ void busy_handler()
     // PREVENT HIGH SPEED UNDER LOW BATTERY CONDITION
     halSetNotification(N_HOURGLASS,0xf);
     halFlags|=HAL_HOURGLASS;
+    if(halFlags&HAL_NOCLOCKCHANGE) {
+        tmr_events[halBusyEvent].status|=2; // SET AUTORELOAD FUNCTION
+        // AND DO NOTHING
+        return;
+    }
     halBusyEvent=-1;
     if(halFlags&HAL_SLOWLOCK) return;
     cpu_setspeed(192000000);

@@ -20,6 +20,17 @@
 #define EXTINT0 ((unsigned int *)(IO_REGS+0x88))
 #define SRCPND ((volatile unsigned int *)(INT_REGS+0))
 
+
+
+
+
+
+
+
+
+
+
+
 int SDIOSetup(SD_CARD *card,int shutdown)
 {
 int f,k;
@@ -149,6 +160,7 @@ int SDGetClock()
 
 }
 
+
 void SDPowerDown()
 {
 *SDICON=*SDICON &0xfffffffe;
@@ -210,6 +222,7 @@ int SDSendCmd(int cmdnum,int arg,int cmdmsk,int mask)
 int volatile a;
 int trials;
 if(!SDCardInserted()) return FALSE;
+halFlags|=HAL_NOCLOCKCHANGE;
 
 for(trials=0;trials<100;++trials)
  {
@@ -224,6 +237,8 @@ for(trials=0;trials<100;++trials)
 	if(a&0x1000) continue;		// RETRY IF CRC FAILED
 if(a&0xa00) break;		// FINISH IF COMMAND DONE OR RESPONSE DONE
 }
+halFlags&=~HAL_NOCLOCKCHANGE;
+
 if(trials>=100) return FALSE;
 return TRUE;
 }
@@ -234,6 +249,7 @@ int SDSendACmd(int rca,int cmdnum,int arg,int cmdmsk,int mask)
 int volatile a;
 int trials;
 if(!SDCardInserted()) return FALSE;
+halFlags|=HAL_NOCLOCKCHANGE;
 
 for(trials=0;trials<100;++trials)
  {
@@ -260,6 +276,8 @@ for(trials=0;trials<100;++trials)
 if(a&0xa00) break;		// FINISH IF COMMAND DONE OR RESPONSE DONE
 }
 //printf("trials=%d\n",trials);
+halFlags&=~HAL_NOCLOCKCHANGE;
+
 if(trials>=100) { /*printf("A too many trials\n");*/ return FALSE; }
 return TRUE;
 }
@@ -522,6 +540,7 @@ endaddr=SDAddr+NumBytes;
 blocks=((endaddr+(1<<card->CurrentBLen)-1)>>card->CurrentBLen)-startaddr;
 startaddr<<=card->CurrentBLen;
 
+halFlags|=HAL_NOCLOCKCHANGE;
 
 //printf("DSTA=%04X\n",*SDIDSTA);
 //printf("FSTA=%04X\n",*SDIFSTA);
@@ -536,6 +555,7 @@ SDDResetFIFO();
 
 if(!SDSendCmdShortResp((blocks==1)? 17:18,startaddr,&status)) {
 //printf("failed read cmd\n");
+halFlags&=~HAL_NOCLOCKCHANGE;
 return FALSE;
 }
 //printf("Read=%08X\n",status);
@@ -577,6 +597,8 @@ while(!(*SDIFSTA&0x1000)) {
 if(!SDCardInserted()) {
 //printf("no card\n");
 SDDStop();
+halFlags&=~HAL_NOCLOCKCHANGE;
+
 return FALSE;
 }
 status=*SDIDSTA;
@@ -589,6 +611,8 @@ if(status&0x20) {
 //printf("Timeout!\n");
 if(!SDSlowDown()) {
 //printf("Slowdown failed\n");
+halFlags&=~HAL_NOCLOCKCHANGE;
+
 return FALSE;
 }
 while((*SDIFSTA&0x1000)) {
@@ -612,6 +636,9 @@ goto restartall;
 }
 
 *SDIDSTA=status&(~3);
+
+halFlags&=~HAL_NOCLOCKCHANGE;
+
 return FALSE;
 }
 //printf("loop %d\n",startaddr);
@@ -658,6 +685,8 @@ while(!(*SDIFSTA&0x1000)) {
 if(!SDCardInserted()) {
 //printf("no card\n");
 SDDStop();
+halFlags&=~HAL_NOCLOCKCHANGE;
+
 return FALSE;
 }
 status=*SDIDSTA;
@@ -668,6 +697,8 @@ if(status&0x20) {
 //printf("Timeout!\n");
 if(!SDSlowDown()) {
 //printf("Slowdown failed\n");
+    halFlags&=~HAL_NOCLOCKCHANGE;
+
 return FALSE;
 }
 while((*SDIFSTA&0x1000)) {
@@ -690,6 +721,8 @@ goto restartall;
 
 }
 *SDIDSTA=status&(~3);
+halFlags&=~HAL_NOCLOCKCHANGE;
+
 return FALSE;
 }
 } 
@@ -744,6 +777,8 @@ if( (*SDIDSTA&0x1fc)!=0x10) {
 //printf("Data Error!!!\n");
 *SDIDSTA=0x7fc;			// RESET ALL BITS
 //keyb_getkeyM(1);
+halFlags&=~HAL_NOCLOCKCHANGE;
+
 return FALSE;
 }
 
@@ -752,6 +787,7 @@ return FALSE;
 //printf("What??? %d==%d\n",startaddr-SDAddr,NumBytes);
 //keyb_getkeyM(1);
 //}
+halFlags&=~HAL_NOCLOCKCHANGE;
 
 return (startaddr-SDAddr);		// RETURN NUMBER OF BYTES RECEIVED
 }
@@ -761,14 +797,18 @@ return (startaddr-SDAddr);		// RETURN NUMBER OF BYTES RECEIVED
 int SDCardInit(SD_CARD * card)
 {
 unsigned  CSD[4];
+halFlags&=~HAL_NOCLOCKCHANGE;
 
 card->SysFlags=0;
 if(!SDInit(card)) {
+    halFlags&=~HAL_NOCLOCKCHANGE;
+
     return FALSE;
 }
 //printf("A");
 card->Rca=SDGetNewRCA((int *)card->CID);
-if(!card->Rca) { return FALSE; }
+if(!card->Rca) { halFlags&=~HAL_NOCLOCKCHANGE;
+ return FALSE; }
 //printf("B");
 //else printf("RCA ok\n");
 card->SysFlags|=4;				// MARK VALID RCA OBTAINED
@@ -780,7 +820,8 @@ SDSetClock(20000000);
 SDPowerUp();
 
 // GET CSD TO OBTAIN TOTAL SIZE OF CARD, SECTOR AND BLOCK LENGTH
-if(!SDSendCmdLongResp(9,card->Rca,(int *)CSD)) { return FALSE; }
+if(!SDSendCmdLongResp(9,card->Rca,(int *)CSD)) { halFlags&=~HAL_NOCLOCKCHANGE;
+ return FALSE; }
 //printf("C");
 //printf("CSD ok\n");
 card->CardSize=(((CSD[2]&0x3ff)<<2) | (CSD[1]>>30))  << (((CSD[1]>>15)&0x7)+1);
@@ -788,14 +829,17 @@ card->CardSize=(((CSD[2]&0x3ff)<<2) | (CSD[1]>>30))  << (((CSD[1]>>15)&0x7)+1);
 card->CurrentBLen=card->MaxBlockLen=((CSD[2]>>16)&0xf);
 card->WriteBlockLen=((CSD[0]>>22)&0xf);
 
-if(!SDSelect(card->Rca)) return FALSE;
+if(!SDSelect(card->Rca)) { halFlags&=~HAL_NOCLOCKCHANGE;
+return FALSE; }
 // REQUEST SCR REGISTER FOR BUS WIDTH
-if(!SDSendACmdLongResp(card->Rca,51,card->Rca,(int *)CSD)) {   return FALSE; }
+if(!SDSendACmdLongResp(card->Rca,51,card->Rca,(int *)CSD)) { halFlags&=~HAL_NOCLOCKCHANGE;
+  return FALSE; }
 
 card->BusWidth=0;
 if( (CSD[1]&0xf0000) == 0xf0000) {
 // ENABLE WIDE BUS SUPPORT
-if(!SDSendACmdShortResp(card->Rca,6,2,(int *)CSD)) { return FALSE; }
+if(!SDSendACmdShortResp(card->Rca,6,2,(int *)CSD)) { halFlags&=~HAL_NOCLOCKCHANGE;
+ return FALSE; }
 //printf("Wide bus selected\n");
 card->BusWidth=0x10000;
 }
@@ -806,6 +850,9 @@ SDDSetBlockLen(card,9);
 
 
 SDSelect(0);		// DESELECT CARD
+
+halFlags&=~HAL_NOCLOCKCHANGE;
+
 //printf("Initcard ok\n");
 return TRUE;
 }
@@ -844,19 +891,24 @@ blocks=((endaddr+blmask)>>card->CurrentBLen)-startaddr;
 startaddr<<=card->CurrentBLen;
 finalblock=startaddr+(blocks<<card->CurrentBLen);
 
+halFlags|=HAL_NOCLOCKCHANGE;
 
 
 if(startaddr!=SDAddr) {
 startbuffer=simpmallocb(blmask+1);
-if(!startbuffer) return 0;
-if(SDDRead(startaddr,blmask+1,startbuffer,card)!=blmask+1) { simpfree(startbuffer); return 0; }
+if(!startbuffer) { halFlags&=~HAL_NOCLOCKCHANGE;
+return 0; }
+if(SDDRead(startaddr,blmask+1,startbuffer,card)!=blmask+1) { simpfree(startbuffer); halFlags&=~HAL_NOCLOCKCHANGE;
+return 0; }
 }
 
 if(endaddr!=finalblock) {
 if(blocks>1 || (!startbuffer)) {
 endbuffer=simpmallocb(blmask+1);
-if(!endbuffer) { if(startbuffer) simpfree(startbuffer); return 0; }
-if(SDDRead(finalblock-(blmask+1),1<<card->CurrentBLen,endbuffer,card)!=blmask+1) { simpfree(endbuffer); if(startbuffer) simpfree(startbuffer); return 0; }
+if(!endbuffer) { if(startbuffer) simpfree(startbuffer); halFlags&=~HAL_NOCLOCKCHANGE;
+return 0; }
+if(SDDRead(finalblock-(blmask+1),1<<card->CurrentBLen,endbuffer,card)!=blmask+1) { simpfree(endbuffer); if(startbuffer) simpfree(startbuffer); halFlags&=~HAL_NOCLOCKCHANGE;
+return 0; }
 }
 else endbuffer=startbuffer;
 }
@@ -879,6 +931,8 @@ if(!SDSendCmdShortResp((blocks==1)? 24:25,startaddr,&status)) {
 //printf("failed read cmd\n");
 if(startbuffer) simpfree(startbuffer);
 if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);
+halFlags&=~HAL_NOCLOCKCHANGE;
+
 return FALSE;
 }
 
@@ -922,6 +976,8 @@ if(!SDCardInserted()) {
 SDDStop();
 if(startbuffer) simpfree(startbuffer);
 if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);
+halFlags&=~HAL_NOCLOCKCHANGE;
+
 return FALSE;
 }
 status=*SDIDSTA;
@@ -936,6 +992,7 @@ if(!SDSlowDown()) {
 //printf("Slowdown failed\n");
 if(startbuffer) simpfree(startbuffer);
 if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);
+halFlags&=~HAL_NOCLOCKCHANGE;
 return FALSE;
 }
 while( (*SDIDSTA&0x3));
@@ -945,6 +1002,7 @@ goto restartall;
 *SDIDSTA=status&(~3);
 if(startbuffer) simpfree(startbuffer);
 if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);
+halFlags&=~HAL_NOCLOCKCHANGE;
 return FALSE;
 }
 
@@ -974,6 +1032,8 @@ if(!SDCardInserted()) {
 SDDStop();
 if(startbuffer) simpfree(startbuffer);
 if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);
+halFlags&=~HAL_NOCLOCKCHANGE;
+
 return FALSE;
 }
 status=*SDIDSTA;
@@ -988,6 +1048,8 @@ if(!SDSlowDown()) {
 //printf("Slowdown failed\n");
 if(startbuffer) simpfree(startbuffer);
 if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);
+halFlags&=~HAL_NOCLOCKCHANGE;
+
 return FALSE;
 }
 while( (*SDIDSTA&0x3));
@@ -997,6 +1059,8 @@ goto restartall;
 *SDIDSTA=status&(~3);
 if(startbuffer) simpfree(startbuffer);
 if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);
+halFlags&=~HAL_NOCLOCKCHANGE;
+
 return FALSE;
 }
 
@@ -1032,6 +1096,8 @@ if(status&0x20) {
 //printf("Timeout!\n");
 if(!SDSlowDown()) {
 //printf("Slowdown failed\n");
+    halFlags&=~HAL_NOCLOCKCHANGE;
+
 return FALSE;
 }
 while( (*SDIDSTA&0x3));
@@ -1074,6 +1140,8 @@ while( !(status=*SDIDSTA&0x2C));
 *SDIDCON=0x4000;
 
 *SDIDSTA=0x7fc;			// RESET ALL BITS
+halFlags&=~HAL_NOCLOCKCHANGE;
+
 return NumBytes;		// RETURN NUMBER OF BYTES TRANSMITTED
 }
 

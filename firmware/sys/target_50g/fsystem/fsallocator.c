@@ -105,6 +105,11 @@ unsigned int *simpmalloc(int words)
     } while(ch>=0);
 
     // FAILED TO ALLOCATE!
+
+    // TODO: AGGRESIVELY TRY TO RELEASE MEMORY FROM OPEN FILES (READ BUFFERS)
+
+
+
     throw_dbgexception("Failed to allocate",__EX_CONT);
     return 0;
 

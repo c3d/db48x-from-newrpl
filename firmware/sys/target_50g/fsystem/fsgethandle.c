@@ -31,7 +31,7 @@ if(fs==NULL) return FS_INVHANDLE;
 
 for(f=0;f<FS_MAXOPENFILES;++f)
 {
-if(fs->Files[f]==file) return 3+f; 
+if(fs->Files[f]==file) return (3+f)+file->Volume*0x10000;
 
 }
 
@@ -41,9 +41,9 @@ return FS_INVHANDLE;
 
 int FSGetFileFromHandle(int handle,FS_FILE **file)
 {
-int k=handle-3;
+int k=(handle&0xffff)-3;
 if(k<0) return FS_INVHANDLE;
-FS_VOLUME *fs=FSystem.Volumes[FSystem.CurrentVolume];
+FS_VOLUME *fs=FSystem.Volumes[handle>>16];
 
 if(fs==NULL) return FS_INVHANDLE;
 
