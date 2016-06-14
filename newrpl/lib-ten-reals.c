@@ -746,6 +746,7 @@ void LIB_HANDLER()
 
         rplGetSystemNumberFormat(&fmt);
 
+
         sign=realnum.flags&F_NEGATIVE;
 
         realnum.flags^=sign;
@@ -763,7 +764,7 @@ void LIB_HANDLER()
 
         BYTEPTR string;
 
-        BINT len=formatlengthReal(&realnum,Format);
+        BINT len=formatlengthReal(&realnum,Format,fmt.Locale);
 
         // RESERVE THE MEMORY FIRST
         rplDecompAppendString2(0,len);

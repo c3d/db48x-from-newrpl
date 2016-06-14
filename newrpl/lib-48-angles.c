@@ -1516,6 +1516,7 @@ void LIB_HANDLER()
 
         rplGetSystemNumberFormat(&fmt);
 
+
         rplReadNumberAsReal(DecompileObject+1,&realnum);
 
         sign=realnum.flags&F_NEGATIVE;
@@ -1535,7 +1536,7 @@ void LIB_HANDLER()
 
         BYTEPTR string;
 
-        BINT len=formatlengthReal(&realnum,Format);
+        BINT len=formatlengthReal(&realnum,Format,fmt.Locale);
 
         // RESERVE THE MEMORY FIRST
         rplDecompAppendString2(0,len);

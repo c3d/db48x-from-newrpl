@@ -156,9 +156,9 @@ BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend)
     while(tok!=tokend)
     {
         ptr=(BYTEPTR )forbiddenChars;
-        char1=utf82char((char *)tok,(char *)tokend);
+        char1=utf82cp((char *)tok,(char *)tokend);
         do {
-        char2=utf82char((char *)ptr,(char *)ptr+4);
+        char2=utf82cp((char *)ptr,(char *)ptr+4);
         if(char1==char2) return 0;
         ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)ptr+4);
         } while(*ptr);

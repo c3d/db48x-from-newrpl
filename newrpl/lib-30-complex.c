@@ -1431,7 +1431,7 @@ void LIB_HANDLER()
             {
             BINT count=TokenLen;
             BYTEPTR ptr=(BYTEPTR)TokenStart;
-            WORD Locale=rplGetSystemLocale();
+            UBINT64 Locale=rplGetSystemLocale();
 
 
             // THERE'S 3 PLACES TO HAVE A COMMA
@@ -1439,21 +1439,21 @@ void LIB_HANDLER()
             // STARTING A TOKEN
             // IN THE MIDDLE WOULD BE PART OF A NUMBER
 
-            if(*ptr==ARG_SEP(Locale)) {
+            if((WORD)utf82cp((char *)ptr,(char *)BlankStart)==ARG_SEP(Locale)) {
                // STARTS WITH COMMA
-                    if(TokenLen>1)  NextTokenStart=(WORDPTR)(((char *)TokenStart)+1);
+                    if(TokenLen>1)  NextTokenStart=(WORDPTR)utf8skip((char *)ptr,(char *)BlankStart);
                     // WE DID NOT PRODUCE ANY OUTPUT, SO DON'T VALIDATE
                     RetNum=OK_CONTINUE_NOVALIDATE;
                     return;
             }
-            if(ptr[count-1]==ARG_SEP(Locale)) {
+            if((WORD)utf82cp(utf8rskip((char *)BlankStart,(char *)ptr),(char *)BlankStart)==ARG_SEP(Locale)) {
                 // ENDS WITH A COMMA, SPLIT THE TOKEN
-                BlankStart=NextTokenStart=(WORDPTR)(ptr+count-1);
+                BlankStart=NextTokenStart=(WORDPTR)utf8rskip((char *)BlankStart,(char *)ptr);
                 RetNum=ERR_NOTMINE_SPLITTOKEN;
                 return;
             }
 
-            while(count && (*ptr!=ARG_SEP(Locale))) { ++ptr; --count; }
+            while(count && ((WORD)utf82cp((char *)ptr,(char *)BlankStart)!=ARG_SEP(Locale))) { ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)BlankStart); --count; }
 
             if(count) {
 
@@ -1492,7 +1492,7 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
 
         if(ISPROLOG(*DecompileObject)) {
-            WORD Locale=rplGetSystemLocale();
+            UBINT64 Locale=rplGetSystemLocale();
 
             rplDecompAppendString((BYTEPTR)"(");
 
@@ -1502,7 +1502,7 @@ void LIB_HANDLER()
             LIBHANDLER libhan=rplGetLibHandler(LIBNUM(*DecompileObject));
             if(libhan) (*libhan)();
 
-            rplDecompAppendChar(ARG_SEP(Locale));
+            rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
 
             // POINT TO THE IMAGINARY PART
             DecompileObject=rplSkipOb(DecompileObject);

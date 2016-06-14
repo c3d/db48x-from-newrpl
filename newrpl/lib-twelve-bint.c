@@ -1162,7 +1162,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORD Locale=rplGetSystemLocale();
+        UBINT64 Locale=rplGetSystemLocale();
         // COMPILE A NUMBER TO A SINT OR A BINT, DEPENDING ON THE ACTUAL NUMERIC VALUE
         result=0;
         strptr=(BYTEPTR )TokenStart;
@@ -1194,8 +1194,9 @@ void LIB_HANDLER()
 
 
             for(count=0;count<argnum1;++count) {
-                digit=strptr[count];
-                if((base==10) && (digit==THOUSAND_SEP(Locale))) continue;
+                digit=utf82cp((char *)strptr+count,(char *)strptr+argnum1);
+                if(digit<0) continue;
+                if((base==10) && ((WORD)digit==THOUSAND_SEP(Locale))) continue;
                 if((digit>='0')&&(digit<='9')) digit-=48;
                 else if((digit>='a')&&(digit<='f')) digit-=87;
                 else if((digit>='A')&&(digit<='F')) digit-=55;
@@ -1294,7 +1295,7 @@ void LIB_HANDLER()
 
                 BYTEPTR string;
 
-                BINT len=formatlengthReal(&realnum,Format);
+                BINT len=formatlengthReal(&realnum,Format,fmt.Locale);
 
                 // RESERVE THE MEMORY FIRST
                 rplDecompAppendString2(0,len);

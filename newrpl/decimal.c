@@ -2234,7 +2234,7 @@ const int const pow10_8[8]={
 };
 
 
-void newRealFromText(REAL *result,char *text,char *end,WORD chars)
+void newRealFromText(REAL *result,char *text,char *end,UBINT64 chars)
 {
     int digits=0;
     int exp=0;
@@ -2318,7 +2318,8 @@ void newRealFromText(REAL *result,char *text,char *end,WORD chars)
 
 
     // GET DIGITS
-    while(--end>=text) {
+    while(end>text) {
+        end=utf8rskip(end,text);
 
     if(expdone==-1) {
         if( (*end!='e')&&(*end!='E')) {
@@ -2365,7 +2366,7 @@ void newRealFromText(REAL *result,char *text,char *end,WORD chars)
         continue;
     }
 
-    if(*end==DECIMAL_DOT(chars)) {
+    if((WORD)utf82cp(end,end+4)==DECIMAL_DOT(chars)) {
         if(dotdone) {
             result->len=0;
             result->exp=0;
@@ -2444,7 +2445,7 @@ void newRealFromText(REAL *result,char *text,char *end,WORD chars)
 
     }
 
-    if(*end==FRAC_SEP(chars)) {
+    if((WORD)utf82cp(end,end+4)==FRAC_SEP(chars)) {
         // ONLY ACCEPTED IF WITHIN THE FRACTIONAL PART
         if(dotdone) {
             result->len=0;
@@ -2456,7 +2457,7 @@ void newRealFromText(REAL *result,char *text,char *end,WORD chars)
         continue;
     }
 
-    if(*end==THOUSAND_SEP(chars)) {
+    if((WORD)utf82cp(end,end+4)==THOUSAND_SEP(chars)) {
         // ONLY ACCEPTED IN THE INTEGER PART
         // BUT WE DON'T KNOW SINCE WE ARE GOING BACKWARDS
         // JUST IGNORE THE CHARACTER
@@ -2464,7 +2465,6 @@ void newRealFromText(REAL *result,char *text,char *end,WORD chars)
         if(!expdone) expdone=1;
         continue;
     }
-
 
     result->len=0;
     result->exp=0;
@@ -2595,18 +2595,26 @@ void word2digits(BINT word,char *digits)
 // ADD ROUND THE LAST DIGIT OF A STRING
 // RETURN THE NUMBER OF DIGITS ADDED TO THE STREAM
 
-int round_in_string(char *start,char *end,int format,unsigned int chars,char rounddigit)
+int round_in_string(char *start,char *end,int format,UBINT64 chars,char rounddigit)
 {
     if(rounddigit<'5') return 0;
 
-    char *ptr=end-1;
+    int dotpos=-1;
+
+    char *ptr=utf8rskip(end,start);
     while(ptr>=start) {
-        if(*ptr==FRAC_SEP(chars)) { --ptr; continue; }
-        if(*ptr==THOUSAND_SEP(chars)) { --ptr; continue; }
-        if(*ptr==DECIMAL_DOT(chars)) { --ptr; continue; }
-        if( (*ptr=='-')||(*ptr=='+')) { ++ptr; break; }
-        if(*ptr=='9') *ptr='0';
-        else { ++(*ptr); return 0; }
+        WORD ucode=(WORD)utf82cp(ptr,end);
+        if(ucode==FRAC_SEP(chars)) { ptr=utf8rskip(ptr,start); continue; }
+        if(ucode==THOUSAND_SEP(chars)) { ptr=utf8rskip(ptr,start); continue; }
+        if(ucode==DECIMAL_DOT(chars)) { dotpos=ptr-start; ptr=utf8rskip(ptr,start); continue; }
+        if( (ucode=='-')||(ucode=='+')) { ++ptr; break; }
+        if(ucode=='9') *ptr='0';
+        else {
+            // IT HAS TO BE A DIGIT OTHER THAN 9
+            ++(*ptr);
+            return 0;
+        }
+        // THIS CAN ONLY HAPPEN IF THE NUMBER WAS 9
         --ptr;
     }
 
@@ -2614,10 +2622,9 @@ int round_in_string(char *start,char *end,int format,unsigned int chars,char rou
     // THERE WAS CARRY OUTSIDE OF THE EXISTING DIGITS, NEED TO
     // INSERT ONE DIGIT IN THE STREAM, AND POSSIBLY A SEPARATOR
 
-    int dotpos=0,adddigit=1,changeexp=0;
+    int adddigit=1,changeexp=0;
 
-    // FIND THE DECIMAL DOT POSITION
-    while( (start[dotpos]!=DECIMAL_DOT(chars)) && (start+dotpos<end)) ++dotpos;
+    if(dotpos==-1) dotpos=end-ptr;    // IF THERE WAS NO DOT, IT'S AN INTEGER
 
     int sep_spacing=SEP_SPACING(format);
     if(!sep_spacing) sep_spacing=3;
@@ -2626,14 +2633,18 @@ int round_in_string(char *start,char *end,int format,unsigned int chars,char rou
     if((format&FMT_NUMSEPARATOR)&&!(format&FMT_CODE)) {
         // COUNT HOW MANY DIGITS FROM ptr TO THE DOT
 
-        int pos=ptr-start;
-        if( ((dotpos-pos+1)%(sep_spacing+1)) == 0 ) {
+        if( (utf8nlen(ptr,ptr+dotpos)+1)%(sep_spacing+1) == 0 ) {
             // NEED TO INSERT AN ADDITIONAL SEPARATOR
-            char *p=end;
-            while(p!=ptr) { *p=*(p-1); --p; }
-            *ptr=THOUSAND_SEP(chars);
-            ++adddigit;
-            ++end;
+            WORD utfsep=cp2utf8(THOUSAND_SEP(chars));
+            int nbytes=0;
+            while(utfsep>>(nbytes*8)) ++nbytes;
+            char *p=end+nbytes-1;
+            while(p>=ptr+nbytes) { *p=*(p-nbytes); --p; }
+            p=ptr;
+            end+=nbytes;
+            adddigit+=nbytes;
+            while(nbytes) { *p++=utfsep&0xff; utfsep>>=8; --nbytes; }
+
         }
 
     }
@@ -2642,48 +2653,78 @@ int round_in_string(char *start,char *end,int format,unsigned int chars,char rou
 
         if(format&FMT_ENG) {
             if((format&FMT_NUMSEPARATOR)&&!(format&FMT_CODE)) {
-                if(adddigit==2) {
+                char *p=ptr;
+                int intdigits=0;
+                // COUNT NUMBER OF DIGITS IN THE INTEGER PART
+                while(p<start+dotpos) {
+                    if( (*p>='0')&&(*p<='9')) ++intdigits;
+                    ++p;
+                }
+
+                if(intdigits==3) {
+
                     // MOVE THE DECIMAL DOT 3 PLACES
+                    char *p=utf8skip(start+dotpos,end); // POINT AFTER THE DOT
+                    int diff=(p-start)-dotpos;
+                    // REMOVE THE OLD DECIMAL DOT
+                    while(p>=ptr+diff) { *p=*(p-diff); --p; }
+
+                    // ADD A NEW DOT
+                    WORD utfsep=cp2utf8(DECIMAL_DOT(chars));
+                    int nbytes=0;
+                    while(utfsep>>(nbytes*8)) ++nbytes;
+                    p=ptr;
+                    while(nbytes) { *p++=utfsep&0xff; utfsep>>=8; --nbytes; }
+
+                    // REMOVE ANY THOUSAND SEPARATOR BETWEEN THIS CODE AND THE OLD DOT
+
+                    while(p<start+dotpos) {
+                        if((WORD)utf82cp(p,end)==THOUSAND_SEP(chars)) {
+                            // REMOVE IT, MOVING THE ENTIRE STRING BACK
+                            char *p2=utf8skip(p,end);
+                            diff=p2-p;
+                            while(p<end) { *p=*(p+diff); ++p; }
+                            p=p2;
+                            end-=diff;
+                            dotpos-=diff;
+                        }
+                        else p=utf8skip(p,end);
+                    }
+
                     changeexp=3;
-                    start[dotpos-3]=DECIMAL_DOT(chars);
 
 
                     if(format&FMT_FRACSEPARATOR) {
-                        if(sep_spacing==3) start[dotpos+1]=FRAC_SEP(chars);
-                        else {
                             // MOVING THE DOT 3 PLACES MEANS ALL SEPARATORS NEED TO BE
                             // COMPLETELY REORGANIZED BASED ON THE NEW DOT POSITION
                             // THIS CAN ONLY HAPPEN IF ALL TRAILING NUMBERS ARE ZEROS
-                            char *p=start+dotpos-2;
-                            int fpos=1;
+
+                            // HERE ptr POINTS TO THE NEW DECIMAL DOT
+                            char *p=utf8skip(ptr,end);
+                            WORD utfsep=cp2utf8(FRAC_SEP(chars));
+                            int nbytes=0;
+                            while(utfsep>>(nbytes*8)) ++nbytes;
+
+                            int nzeros=0;
                             while(p!=end) {
-                                    if(fpos%(sep_spacing+1)==0) {
-                                        // NEED TO INSERT SEPARATOR
-                                        *p=FRAC_SEP(chars);
-                                    }
-                                    else *p='0';
+                                if(*p=='0') ++nzeros;
                                 ++p;
-                                ++fpos;
                             }
-                            // HERE NOT SURE IF WE REACHED THE END OR NOT
-                            if(*(p-1)==FRAC_SEP(chars)) {
-                            --adddigit;
-                            --end;
+                            p=utf8skip(ptr,end);
+                            int fpos;
+                            for(fpos=0;fpos<nzeros;++fpos) {
+                               if((fpos>0) &&(fpos%sep_spacing==0)) {
+                                        int c=nbytes;
+                                        WORD val=utfsep;
+                                        // INSERT A SEPARATOR
+                                        while(c) { *p++=(val&0xff); val>>=8; --c; }
+                                    }
+                                    *p++='0';
                             }
-
-
-
-
-                        }
+                            end=p;
 
                     }
-                    else {
-                        // MOVE THE STRING
-                        char *p=start+dotpos;
-                        while(p!=end) { *p=*(p+1); ++p; }
-                        --adddigit;
-                        --end;
-                    }
+
 
                 }
             }
@@ -2710,9 +2751,9 @@ int round_in_string(char *start,char *end,int format,unsigned int chars,char rou
             // EXPONENT VALUE WILL HAVE TO BE CORRECTED
             // IN MAIN FUNCTION
             if(!(format&FMT_ENG)) {
-                if(*ptr==THOUSAND_SEP(chars)) ++ptr;
-                if(*ptr==DECIMAL_DOT(chars)) ++ptr;
-                if(*ptr==FRAC_SEP(chars)) ++ptr;
+                if((WORD)utf82cp(ptr,end+adddigit-1)==THOUSAND_SEP(chars)) ptr=utf8skip(ptr,end+adddigit-1);
+                if((WORD)utf82cp(ptr,end+adddigit-1)==DECIMAL_DOT(chars)) ptr=utf8skip(ptr,end+adddigit-1);
+                if((WORD)utf82cp(ptr,end+adddigit-1)==FRAC_SEP(chars)) ptr=utf8skip(ptr,end+adddigit-1);
             }
             else {
                 // IN ENG MODE, MIGHT HAVE TO MOVE THE DECIMAL POINT 3
@@ -2727,9 +2768,9 @@ int round_in_string(char *start,char *end,int format,unsigned int chars,char rou
         prev=tmp;
         ++ptr;
     }
+    *ptr=prev;
 
-    if(tmp==FRAC_SEP(chars)) --adddigit;
-    *ptr=tmp;
+    if((WORD)utf82cp(utf8rskip(ptr,start),end+adddigit-1)==FRAC_SEP(chars)) --adddigit;
 
     return adddigit | (changeexp<<16);
 
@@ -2738,9 +2779,10 @@ int round_in_string(char *start,char *end,int format,unsigned int chars,char rou
 
 // RETURN A POINTER TO THE END OF THE STRING (NOT 0 TERMINATED)
 
-char *formatReal(REAL *number, char *buffer, BINT format, WORD chars)
+char *formatReal(REAL *number, char *buffer, BINT format, UBINT64 chars)
 {
     int totaldigits,integer,frac,realexp,leftzeros,sep_spacing;
+    int nbnumsep,nbfracsep;
     int dotpos;
     int wantdigits=format&0xfff;
     int wantzeros;
@@ -2822,10 +2864,23 @@ char *formatReal(REAL *number, char *buffer, BINT format, WORD chars)
 
     totalcount=integer+wantzeros+wantdigits;
 
+    // GET THE SIZE OF SEPARATORS
+    {
+        WORD utfsep=cp2utf8(THOUSAND_SEP(chars));
+        nbnumsep=0;
+        while(utfsep>>(nbnumsep*8)) ++nbnumsep;
+        utfsep=cp2utf8(FRAC_SEP(chars));
+        nbfracsep=0;
+        while(utfsep>>(nbfracsep*8)) ++nbfracsep;
+    }
+
+
+
     if((format&FMT_NUMSEPARATOR)&&!(format&FMT_CODE)) {
-        dotpos+=integer/sep_spacing;
-        if( (integer%sep_spacing)==0) --dotpos;
-        if(integer==0) ++dotpos;
+        int numsep=integer/sep_spacing;
+        if( (integer%sep_spacing)==0) --numsep;
+        if(integer==0) ++numsep;
+        dotpos+=numsep*nbnumsep;
     }
 
     // START OUTPUT
@@ -2845,9 +2900,16 @@ char *formatReal(REAL *number, char *buffer, BINT format, WORD chars)
 
         }
         // INSERT DOT AS NEEDED
-        if(idx==dotpos) buffer[idx++]=DECIMAL_DOT(chars);
+        if(idx==dotpos) {
+            WORD ucode=cp2utf8(DECIMAL_DOT(chars));
+            while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
+        }
         // INSERT SEPARATOR AS NEEDED
-        else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && ((idx-dotpos)%(sep_spacing+1) == 0 )) buffer[idx++]=FRAC_SEP(chars);
+        else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && ((idx-dotpos)%(sep_spacing+nbfracsep) == 0 )) {
+            WORD ucode=cp2utf8(FRAC_SEP(chars));
+            while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
+
+        }
         buffer[idx++]='0';
         ++countdigits;
         --leftzeros;
@@ -2884,9 +2946,15 @@ char *formatReal(REAL *number, char *buffer, BINT format, WORD chars)
 
             }
             // INSERT DOT AS NEEDED
-            if(idx==dotpos) buffer[idx++]=DECIMAL_DOT(chars);
+            if(idx==dotpos) {
+                WORD ucode=cp2utf8(DECIMAL_DOT(chars));
+                while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
+            }
             // INSERT SEPARATOR AS NEEDED
-            else if(!(format&FMT_CODE) && (format&FMT_NUMSEPARATOR) && digitcount && ( ((dotpos-idx)%(sep_spacing+1)) == 0 )) buffer[idx++]=THOUSAND_SEP(chars);
+            else if(!(format&FMT_CODE) && (format&FMT_NUMSEPARATOR) && digitcount && ( ((dotpos-idx)%(sep_spacing+nbnumsep)) == 0 )) {
+                WORD ucode=cp2utf8(THOUSAND_SEP(chars));
+                while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
+            }
 
             buffer[idx++]=worddigits[i];
             ++countdigits;
@@ -2920,9 +2988,16 @@ char *formatReal(REAL *number, char *buffer, BINT format, WORD chars)
 
             }
             // INSERT DOT AS NEEDED
-            if(idx==dotpos) buffer[idx++]=DECIMAL_DOT(chars);
+            if(idx==dotpos) {
+                WORD ucode=cp2utf8(DECIMAL_DOT(chars));
+                while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
+            }
             // INSERT SEPARATOR AS NEEDED
-            else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && (((idx-dotpos)%(sep_spacing+1)) == 0 )) buffer[idx++]=FRAC_SEP(chars);
+            else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && (((idx-dotpos)%(sep_spacing+nbfracsep)) == 0 ))
+            {
+                WORD ucode=cp2utf8(FRAC_SEP(chars));
+                while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
+            }
 
 
             buffer[idx++]=worddigits[i];
@@ -2937,9 +3012,16 @@ char *formatReal(REAL *number, char *buffer, BINT format, WORD chars)
         if(format&FMT_TRAILINGZEROS) {
             while(digitcount<wantdigits) {
                 // INSERT DOT AS NEEDED
-                if(idx==dotpos) buffer[idx++]=DECIMAL_DOT(chars);
+                if(idx==dotpos) {
+                    WORD ucode=cp2utf8(DECIMAL_DOT(chars));
+                    while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
+                }
                 // INSERT SEPARATOR AS NEEDED
-                else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && (((idx-dotpos)%(sep_spacing+1)) == 0 )) buffer[idx++]=FRAC_SEP(chars);
+                else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && (((idx-dotpos)%(sep_spacing+nbfracsep)) == 0 ))
+                {
+                    WORD ucode=cp2utf8(FRAC_SEP(chars));
+                    while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
+                }
 
                 buffer[idx++]='0';
                 ++countdigits;
@@ -2948,10 +3030,19 @@ char *formatReal(REAL *number, char *buffer, BINT format, WORD chars)
         } else {
             // NO TRAILING ZEROS, REMOVE ZEROS IF NUMBER WASN'T RIGHT-JUSTIFIED
             if(idx>dotpos) {
-                while( (buffer[idx-1]=='0')||(buffer[idx-1]==FRAC_SEP(chars))) { --idx; }
-                if(idx==dotpos+1) {
+                char *prevbuf;
+
+                WORD ucode;
+                do {
+                    prevbuf=utf8rskip(&buffer[idx],buffer);
+                  ucode=utf82cp(prevbuf,&buffer[idx]);
+                  if((ucode=='0')||(ucode==FRAC_SEP(chars))) { idx=prevbuf-buffer; }
+                  else break;
+                }
+                while(prevbuf>buffer);
+                if(prevbuf-buffer==dotpos) {
                     // ALSO REMOVE DECIMAL POINT
-                    --idx;
+                    idx=prevbuf-buffer;
                 }
             }
         }
@@ -2985,10 +3076,11 @@ char *formatReal(REAL *number, char *buffer, BINT format, WORD chars)
 
 
 
-BINT formatlengthReal(REAL *number, BINT format)
+BINT formatlengthReal(REAL *number, BINT format,UBINT64 locale)
 {
     int totaldigits,integer,realexp,leftzeros,sep_spacing;
     int wantdigits=format&0xfff;
+    int trailzeros;
     int wantzeros;
     int totalcount;
     int idx=0;
@@ -3038,6 +3130,7 @@ BINT formatlengthReal(REAL *number, BINT format)
     wantdigits-=integer;
     leftzeros=0;
     wantzeros=0;
+    trailzeros=0;
     }
     else {
     realexp=0;
@@ -3057,14 +3150,51 @@ BINT formatlengthReal(REAL *number, BINT format)
         }
     }
     else { leftzeros=0; wantzeros=0; }
+        trailzeros=wantdigits+integer-totaldigits;
+        if(trailzeros<0) trailzeros=0;
+        else {
+            wantdigits-=trailzeros;
+            if(!(format&FMT_TRAILINGZEROS)) trailzeros=0;
+        }
 
     }
 
-    totalcount=integer+wantzeros+wantdigits;
+    totalcount=integer+wantzeros+wantdigits+trailzeros;
+   if(format& (FMT_NUMSEPARATOR|FMT_FRACSEPARATOR) )  {
+       int nbnumsep,nbfracsep;
+       // GET THE SIZE OF SEPARATORS
+       {
+           WORD utfsep=cp2utf8(THOUSAND_SEP(locale));
+           nbnumsep=0;
+           while(utfsep>>(nbnumsep*8)) ++nbnumsep;
+           utfsep=cp2utf8(FRAC_SEP(locale));
+           nbfracsep=0;
+           while(utfsep>>(nbfracsep*8)) ++nbfracsep;
+       }
 
-    if(format& (FMT_NUMSEPARATOR|FMT_FRACSEPARATOR) )  totalcount+=(totalcount/sep_spacing)+1;
+        if(format&FMT_NUMSEPARATOR) {
+       int numsep=integer/sep_spacing;
+       if( (integer%sep_spacing)==0) --numsep;
+       if(integer==0) ++numsep;
+       totalcount+=numsep*nbnumsep;
+        }
 
-    totalcount+=2; // SIGN AND DECIMAL DOT
+       if(format&FMT_FRACSEPARATOR) {
+       int numfsep=(wantzeros+wantdigits)/sep_spacing;
+       if( ((wantzeros+wantdigits)%sep_spacing)==0) --numfsep;
+       if((wantzeros+wantdigits)==0) ++numfsep;
+       totalcount+=numfsep*nbfracsep;
+       }
+   }
+
+    totalcount+=1; // SIGN AND DECIMAL DOT
+    {
+        WORD utfdot=cp2utf8(DECIMAL_DOT(locale));
+        int nbdot=0;
+        while(utfdot>>(nbdot*8)) ++nbdot;
+        totalcount+=nbdot;
+    }
+
     if((number->flags&F_APPROX)&& (!(format&FMT_NOTRAILDOT)||(format&FMT_CODE))) totalcount++;   // TRAILING DOT
 
 
