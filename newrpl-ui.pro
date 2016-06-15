@@ -221,8 +221,8 @@ HEADERS  += mainwindow.h \
     newrpl/lib-header.h \
     newrpl/include-all.h \
     newrpl/romlibs.h \
-    firmware/sys/target_pc/fsystem.h \
-    firmware/sys/target_pc/sddriver.h \
+    firmware/sys/fsystem.h \
+    firmware/sys/sddriver.h \
     firmware/sys/fsystem/fsyspriv.h
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \

@@ -8,7 +8,7 @@
 #include <newrpl.h>
 #include <libraries.h>
 #include <ui.h>
-#include "fsystem/fsyspriv.h"
+#include "../fsystem/fsyspriv.h"
 
 #define enter_mode(mode) call_swi(mode)
 
