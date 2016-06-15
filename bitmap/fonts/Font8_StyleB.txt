@@ -1,5 +1,4 @@
-// Federico Marziali
-// Wolfgang Rautenberg 
+// This font is identical to Font8_styleA, but with larger numeric characters
 // Jean-Charles Bouget
 
 
@@ -188,11 +187,12 @@
 204
 205
 206
-207, 946 // Greek Small Letter Beta
+207 
 208
 209
 210
 211
+212
 213
 214
 215
@@ -203,7 +203,7 @@
 220
 221
 222
-223
+946 // Greek Small Letter Beta
 224
 225
 226
@@ -245,6 +245,7 @@
 950 //  Zeta 
 953 //  Iota
 954 //  Kappa
+956 //  Mu
 957 //  Nu 
 958 //  Xi
 962 //  Final Sigma 
@@ -282,5 +283,17 @@
 8328 //  8
 8329 //  9
 
+// Latin-1 Supplement
+223 // Small Leter Sharp S
+
+
+// Special characters used by the firmware
+1 //  cursor for lowercase letter mode
+2 //  cursor for Capital letter mode
+3 //  cursor for Programming mode
+4 //  cursor for Direct mode
+5 //  cursor for Algebraic mode
+6 //  cursor for Greek lowercase letter mode
+7 //  cursor for Greek capital letter mode
 
 
