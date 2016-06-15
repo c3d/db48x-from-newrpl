@@ -54,6 +54,81 @@ SOURCES += main.cpp\
     firmware/sys/target_pc/lcd.c \
     firmware/sys/target_pc/stdlib.c \
     firmware/sys/target_pc/timer.c \
+    firmware/sys/target_pc/sddriver.c \
+    firmware/sys/target_pc/fsystem/fatconvert.c \
+    firmware/sys/target_pc/fsystem/fsallocator.c \
+    firmware/sys/target_pc/fsystem/fsattr.c \
+    firmware/sys/target_pc/fsystem/fscalcfreespace.c \
+    firmware/sys/target_pc/fsystem/fschattr.c \
+    firmware/sys/target_pc/fsystem/fschdir.c \
+    firmware/sys/target_pc/fsystem/fschmode.c \
+    firmware/sys/target_pc/fsystem/fsclose.c \
+    firmware/sys/target_pc/fsystem/fscloseanddelete.c \
+    firmware/sys/target_pc/fsystem/fsconvert2shortentry.c \
+    firmware/sys/target_pc/fsystem/fscreate.c \
+    firmware/sys/target_pc/fsystem/fsdelete.c \
+    firmware/sys/target_pc/fsystem/fsdeletedirentry.c \
+    firmware/sys/target_pc/fsystem/fseof.c \
+    firmware/sys/target_pc/fsystem/fsexpandchain.c \
+    firmware/sys/target_pc/fsystem/fsfileisopen.c \
+    firmware/sys/target_pc/fsystem/fsfileisreferenced.c \
+    firmware/sys/target_pc/fsystem/fsfilelength.c \
+    firmware/sys/target_pc/fsystem/fsfindchar.c \
+    firmware/sys/target_pc/fsystem/fsfindentry.c \
+    firmware/sys/target_pc/fsystem/fsfindfile.c \
+    firmware/sys/target_pc/fsystem/fsfindforcreation.c \
+    firmware/sys/target_pc/fsystem/fsflushbuffers.c \
+    firmware/sys/target_pc/fsystem/fsflushfatcache.c \
+    firmware/sys/target_pc/fsystem/fsfreechain.c \
+    firmware/sys/target_pc/fsystem/fsfreefile.c \
+    firmware/sys/target_pc/fsystem/fsgetaccessdate.c \
+    firmware/sys/target_pc/fsystem/fsgetchain.c \
+    firmware/sys/target_pc/fsystem/fsgetchainsize.c \
+    firmware/sys/target_pc/fsystem/fsgetcreattime.c \
+    firmware/sys/target_pc/fsystem/fsgetcurrentvolume.c \
+    firmware/sys/target_pc/fsystem/fsgetcwd.c \
+    firmware/sys/target_pc/fsystem/fsgetdatetime.c \
+    firmware/sys/target_pc/fsystem/fsgeterrormsg.c \
+    firmware/sys/target_pc/fsystem/fsgetfilename.c \
+    firmware/sys/target_pc/fsystem/fsgethandle.c \
+    firmware/sys/target_pc/fsystem/fsgetnametype.c \
+    firmware/sys/target_pc/fsystem/fsgetnextentry.c \
+    firmware/sys/target_pc/fsystem/fsgetvolumefree.c \
+    firmware/sys/target_pc/fsystem/fsgetvolumesize.c \
+    firmware/sys/target_pc/fsystem/fsgetwritetime.c \
+    firmware/sys/target_pc/fsystem/fsinit.c \
+    firmware/sys/target_pc/fsystem/fsmkdir.c \
+    firmware/sys/target_pc/fsystem/fsmountvolume.c \
+    firmware/sys/target_pc/fsystem/fsmovedopenfiles.c \
+    firmware/sys/target_pc/fsystem/fsnamecompare.c \
+    firmware/sys/target_pc/fsystem/fsopen.c \
+    firmware/sys/target_pc/fsystem/fsopendir.c \
+    firmware/sys/target_pc/fsystem/fspackdir.c \
+    firmware/sys/target_pc/fsystem/fspackname.c \
+    firmware/sys/target_pc/fsystem/fspatchfatblock.c \
+    firmware/sys/target_pc/fsystem/fsread.c \
+    firmware/sys/target_pc/fsystem/fsreadll.c \
+    firmware/sys/target_pc/fsystem/fsreleaseentry.c \
+    firmware/sys/target_pc/fsystem/fsrename.c \
+    firmware/sys/target_pc/fsystem/fsrestart.c \
+    firmware/sys/target_pc/fsystem/fsrmdir.c \
+    firmware/sys/target_pc/fsystem/fsseek.c \
+    firmware/sys/target_pc/fsystem/fssetcasemode.c \
+    firmware/sys/target_pc/fsystem/fssetcurrentvolume.c \
+    firmware/sys/target_pc/fsystem/fsshutdown.c \
+    firmware/sys/target_pc/fsystem/fssleep.c \
+    firmware/sys/target_pc/fsystem/fsstripsemi.c \
+    firmware/sys/target_pc/fsystem/fstell.c \
+    firmware/sys/target_pc/fsystem/fstruncatechain.c \
+    firmware/sys/target_pc/fsystem/fsupdatedirentry.c \
+    firmware/sys/target_pc/fsystem/fsvolumeinserted.c \
+    firmware/sys/target_pc/fsystem/fsvolumemounted.c \
+    firmware/sys/target_pc/fsystem/fsvolumepresent.c \
+    firmware/sys/target_pc/fsystem/fswrite.c \
+    firmware/sys/target_pc/fsystem/fswritefatentry.c \
+    firmware/sys/target_pc/fsystem/fswritell.c \
+    firmware/sys/target_pc/fsystem/fsystem.c \
+    firmware/sys/target_pc/fsystem/misalign.c \
     firmware/hal_globals.c \
     newrpl/compiler.c \
     newrpl/datastack.c \
@@ -123,7 +198,8 @@ SOURCES += main.cpp\
     firmware/sys/target_pc/flash.c \
     firmware/ui_softmenu.c \
     firmware/ggl/ggl/ggl_fltinvert.c \
-    newrpl/lib-48-angles.c
+    newrpl/lib-48-angles.c \
+    newrpl/lib-74-sdcard.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -144,7 +220,10 @@ HEADERS  += mainwindow.h \
     newrpl/common-macros.h \
     newrpl/lib-header.h \
     newrpl/include-all.h \
-    newrpl/romlibs.h
+    newrpl/romlibs.h \
+    firmware/sys/target_pc/fsystem.h \
+    firmware/sys/target_pc/sddriver.h \
+    firmware/sys/target_pc/fsystem/fsyspriv.h
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-9.nrpl \
@@ -156,7 +235,8 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-30.nrpl \
                 newrpl/rpl-objects/lib-32.nrpl \
                 newrpl/rpl-objects/lib-48.nrpl \
-                newrpl/rpl-objects/lib-64.nrpl
+                newrpl/rpl-objects/lib-64.nrpl \
+                newrpl/rpl-objects/lib-74.nrpl
 
 
 INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include

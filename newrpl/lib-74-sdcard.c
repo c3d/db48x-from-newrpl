@@ -239,7 +239,7 @@ void LIB_HANDLER()
             return;
         }
         err=FSWrite((char *)rplPeekData(2),objlen*sizeof(WORD),objfile);
-        if(err!=objlen*sizeof(WORD)) {
+        if(err!=objlen*(BINT)sizeof(WORD)) {
             FSClose(objfile);
             rplError(ERR_CANTWRITE);
             return;
@@ -325,7 +325,7 @@ void LIB_HANDLER()
                 return;
             }
             BINT objsize=rplObjSize((WORDPTR)RReg[0].data);
-            if(objsize*sizeof(WORD)<objlen) {
+            if(objsize*(BINT)sizeof(WORD)<objlen) {
                 FSClose(objfile);
                 rplError(ERR_NOTANRPLFILE);
                 return;
@@ -336,7 +336,7 @@ void LIB_HANDLER()
                 return;
             }
             newobj[0]=(WORD)RReg[0].data[0];
-            if(FSRead((char *)(newobj+1),(objsize-1)*sizeof(WORD),objfile)!=(objsize-1)*sizeof(WORD)) {
+            if(FSRead((char *)(newobj+1),(objsize-1)*sizeof(WORD),objfile)!=(objsize-1)*(BINT)sizeof(WORD)) {
                 FSClose(objfile);
                 rplError(ERR_NOTANRPLFILE);
                 return;

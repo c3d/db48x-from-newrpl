@@ -52,7 +52,7 @@ const int lowestzerobit[16]={
 
 
 
-BINT *allocRegister()
+BINT * allocRegister()
 {
     WORD bmp=Context.alloc_bmp;
     int k;
@@ -60,7 +60,7 @@ BINT *allocRegister()
     for(k=0;k<8;++k) {
         if(lowestzerobit[bmp&0xf]>=0) {
             Context.alloc_bmp|=1<<((k<<2)+lowestzerobit[bmp&0xf]);
-            return Context.regdata+((k<<2)+lowestzerobit[bmp&0xf])*REAL_REGISTER_STORAGE;
+            return (BINT *)Context.regdata+((k<<2)+lowestzerobit[bmp&0xf])*REAL_REGISTER_STORAGE;
         }
         bmp>>=4;
     }
