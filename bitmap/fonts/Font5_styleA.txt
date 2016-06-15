@@ -281,4 +281,17 @@
 8329 //  9
 
 
+// Latin-1 Supplement
+223 // Small Leter Sharp S
+
+
+// Special characters used by the firmware
+1 //  cursor for lowercase letter mode
+2 //  cursor for Capital letter mode
+3 //  cursor for Programming mode
+4 //  cursor for Direct mode
+5 //  cursor for Algebraic mode
+
+// Other special characters
+0x2009	// Thin Space
 

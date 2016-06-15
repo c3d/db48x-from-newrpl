@@ -293,7 +293,7 @@
 3 //  cursor for Programming mode
 4 //  cursor for Direct mode
 5 //  cursor for Algebraic mode
-6 //  cursor for Greek lowercase letter mode
-7 //  cursor for Greek capital letter mode
 
+// Other special characters
+0x2009	// Thin Space
 
