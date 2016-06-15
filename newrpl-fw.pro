@@ -118,9 +118,14 @@ SOURCES +=\
     firmware/hal_screen.c \
     firmware/sys/graphics.c \
     firmware/sys/icons.c \
-    firmware/sys/Font6A.c \
+    firmware/sys/Font5A.c \
+    firmware/sys/Font5B.c \
     firmware/sys/Font5C.c \
+    firmware/sys/Font6A.c \
+    firmware/sys/Font6m.c \
     firmware/sys/Font7A.c \
+    firmware/sys/Font8A.c \
+    firmware/sys/Font8B.c \
     firmware/sys/Font8C.c \
     firmware/sys/Font8D.c \
     firmware/hal_msgenglish.c \

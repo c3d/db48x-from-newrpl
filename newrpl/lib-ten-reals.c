@@ -684,10 +684,10 @@ void LIB_HANDLER()
         BINT isapprox=0;
         BINT tlen=TokenLen;
 
-        WORD  locale=rplGetSystemLocale();
+        UBINT64  locale=rplGetSystemLocale();
 
 
-        newRealFromText(&RReg[0],(char *)strptr,utf8nskip((char *)strptr,(char *)BlankStart,tlen),(WORD)locale);
+        newRealFromText(&RReg[0],(char *)strptr,utf8nskip((char *)strptr,(char *)BlankStart,tlen),locale);
 
 
         if(RReg[0].flags&F_ERROR) {

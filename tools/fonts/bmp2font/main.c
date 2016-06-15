@@ -118,7 +118,7 @@ if(hdr.BitsPixel!=8 || hdr.Planes!=1) {
     return 0;
 }
 
-
+if(hdr.HeaderSize>40) fseek(han,hdr.HeaderSize-40,SEEK_CUR);
 
 fread(Palette,4,256,han);
 

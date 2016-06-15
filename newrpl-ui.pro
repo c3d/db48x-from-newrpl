@@ -165,13 +165,18 @@ SOURCES += main.cpp\
     firmware/ui_cmdline.c \
     newrpl/utf8lib.c \
     newrpl/utf8data.c \
+    firmware/sys/Font5A.c \
+    firmware/sys/Font5B.c \
     firmware/sys/Font5C.c \
     firmware/sys/Font6A.c \
-    firmware/sys/keybcommon.c \
+    firmware/sys/Font6m.c \
     firmware/sys/Font7A.c \
-    newrpl/matrix.c \
+    firmware/sys/Font8A.c \
+    firmware/sys/Font8B.c \
     firmware/sys/Font8C.c \
     firmware/sys/Font8D.c \
+    firmware/sys/keybcommon.c \
+    newrpl/matrix.c \
     newrpl/atan_1_8_comp.c \
     newrpl/atan_2_8_comp.c \
     newrpl/atan_5_8_comp.c \
