@@ -2497,6 +2497,118 @@ lcd_setcontrast(__lcd_contrast);
 }
 
 
+void onDotKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+// CYCLE BETWEEN VARIOUS OPTIONS
+    const char const *options[]={
+        "1000.000000","1,000.000000","1 000.000000","1000.000 000","1,000.000 000","1 000.000 000",
+        "1000,000000","1.000,000000","1 000,000000","1000,000 000","1.000,000 000","1 000,000 000"
+    };
+
+    NUMFORMAT fmt;
+    BINT option=0;
+    rplGetSystemNumberFormat(&fmt);
+    if(DECIMAL_DOT(fmt.Locale)==',') option+=6;
+    if(fmt.MiddleFmt&FMT_NUMSEPARATOR) {
+        if(THOUSAND_SEP(fmt.Locale)==',') option+=1;
+        if(THOUSAND_SEP(fmt.Locale)=='.') option+=1;
+        if(THOUSAND_SEP(fmt.Locale)==THIN_SPACE) option+=2;
+    }
+    if(fmt.MiddleFmt&FMT_FRACSEPARATOR) option+=3;
+
+
+    // CYCLE THROUGH ITEMS:
+    ++option;
+    if(option>11) option=0;
+
+
+DRAWSURFACE scr;
+ggl_initscr(&scr);
+int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+// CLEAR STATUS AREA
+ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+
+DrawTextBk(STATUSAREA_X,ytop,"Format:",halScreen.StAreaFont,0xf,0,&scr);
+DrawTextBk(STATUSAREA_X,ytop+halScreen.StAreaFont->BitmapHeight,(char *)options[option],halScreen.StAreaFont,0xf,0,&scr);
+
+halStatusAreaPopup();
+
+// CHANGE THE FORMAT TO THE SELECTED OPTION
+switch(option)
+{
+default:
+case 0:
+    fmt.MiddleFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
+    fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
+    break;
+case 1:
+    fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
+    fmt.MiddleFmt|=FMT_NUMSEPARATOR;
+    fmt.Locale=MAKELOCALE('.',',',THIN_SPACE,';');
+    break;
+case 2:
+    fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
+    fmt.MiddleFmt|=FMT_NUMSEPARATOR;
+    fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
+    break;
+case 3:
+    fmt.MiddleFmt&=~FMT_NUMSEPARATOR;
+    fmt.MiddleFmt|=FMT_FRACSEPARATOR;
+    fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
+    break;
+case 4:
+    fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+    fmt.Locale=MAKELOCALE('.',',',THIN_SPACE,';');
+    break;
+case 5:
+    fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+    fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
+    break;
+case 6:
+    fmt.MiddleFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
+    fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
+    break;
+case 7:
+    fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
+    fmt.MiddleFmt|=FMT_NUMSEPARATOR;
+    fmt.Locale=MAKELOCALE(',','.',THIN_SPACE,';');
+    break;
+case 8:
+    fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
+    fmt.MiddleFmt|=FMT_NUMSEPARATOR;
+    fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
+    break;
+case 9:
+    fmt.MiddleFmt&=~FMT_NUMSEPARATOR;
+    fmt.MiddleFmt|=FMT_FRACSEPARATOR;
+    fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
+    break;
+case 10:
+    fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+    fmt.Locale=MAKELOCALE(',','.',THIN_SPACE,';');
+    break;
+case 11:
+    fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+    fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
+    break;
+
+
+}
+
+rplSetSystemNumberFormat(&fmt);
+halScreen.DirtyFlag|=STACK_DIRTY;
+
+}
+
+
+
+
+
+
+
+
 
 
 void alphaKeyHandler(BINT keymsg)
@@ -3045,6 +3157,8 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
 
     { KM_PRESS|KB_ADD|SHIFT_ONHOLD, CONTEXT_ANY,&onPlusKeyHandler },
     { KM_PRESS|KB_SUB|SHIFT_ONHOLD, CONTEXT_ANY,&onMinusKeyHandler },
+
+    { KM_PRESS|KB_DOT|SHIFT_ONHOLD, CONTEXT_ANY,&onDotKeyHandler },
 
     { KM_PRESS|KB_0|SHIFT_LS, CONTEXT_ANY,&infinityKeyHandler },
     { KM_PRESS|KB_0|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&undinfinityKeyHandler },

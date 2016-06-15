@@ -108,13 +108,15 @@ typedef uint32_t PTR2NUMBER;
 
 // FORMATTING FOR NUMBERS
 typedef struct {
-    WORD Locale;
+    UBINT64 Locale;
     BINT SmallFmt;
     BINT MiddleFmt;
     BINT BigFmt;
     REAL SmallLimit;
     REAL BigLimit;
 } NUMFORMAT;
+
+
 
 
 typedef union {
@@ -203,6 +205,7 @@ void rplCompileRemoveWords(BINT nwords);
 // DECOMPILER FUNCTIONS
 WORDPTR rplDecompile(WORDPTR object, BINT flags);
 void rplDecompAppendChar(BYTE c);
+void rplDecompAppendUTF8(WORD utf8bytes);
 void rplDecompAppendString(BYTEPTR str);
 void rplDecompAppendString2(BYTEPTR str,BINT len);
 
@@ -266,7 +269,7 @@ BINT rplTestSystemFlag(BINT flag);
 BINT rplTestSystemFlagByName(BYTEPTR name, BYTEPTR nameend);
 BINT rplTestSystemFlagByIdent(WORDPTR ident);
 
-WORD rplGetSystemLocale();
+UBINT64 rplGetSystemLocale();
 void rplGetSystemNumberFormat(NUMFORMAT *fmt);
 void rplSetSystemNumberFormat(NUMFORMAT *fmt);
 

@@ -1201,9 +1201,9 @@ void uiAutocompleteUpdate()
 
     while(tokptr>=start) {
         ptr=(BYTEPTR )forbstring;
-        char1=utf82char((char *)tokptr,(char *)end);
+        char1=utf82cp((char *)tokptr,(char *)end);
         do {
-        char2=utf82char((char *)ptr,(char *)ptr+4);
+        char2=utf82cp((char *)ptr,(char *)ptr+4);
         if(char1==char2) {
             tokptr=(BYTEPTR)utf8skip((char *)tokptr,(char *)end);
             break;

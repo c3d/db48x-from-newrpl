@@ -53,7 +53,7 @@ unsigned int unicodeBuffer[MAX_UNICODE_CHARACTER_LEN];
 
 
 // DECODE A UTF8 CODE POINT AND RETURN ITS VALUE
-int utf82char(char * ptr, char *end)
+int utf82cp(char * ptr, char *end)
 {
     if(*ptr&0x80) {
         if((*ptr&0xe0)==0xc0) {
@@ -107,7 +107,7 @@ char *utf8findst(char *ptr,char *end)
 
     do {
 
-    cp=utf82char(ptr,end);
+    cp=utf82cp(ptr,end);
     if(cp<0) return end;    // INVALID UTF8 SEQUENCE!
     cpinfo=getCPInfo(cp);
     if(CCLASS(cpinfo)==0) return ptr;   // FOUND A STARTER
@@ -140,7 +140,7 @@ char *utf8skipst(char *ptr,char *end)
 
         if(end<=ptr) return ptr;
 
-    cp=utf82char(ptr,end);
+    cp=utf82cp(ptr,end);
     if(cp<0) return end;    // INVALID UTF8 SEQUENCE!
     cpinfo=getCPInfo(cp);
     if(CCLASS(cpinfo)==0) return ptr;   // FOUND A STARTER
@@ -191,7 +191,7 @@ char *utf8rskipst(char *ptr,char *start)
     --ptr;
     while(((*ptr&0xc0)==0x80)&& (ptr>start)) --ptr;
 
-    cp=utf82char(ptr,prevptr);
+    cp=utf82cp(ptr,prevptr);
     if(cp<0) return start;    // INVALID UTF8 SEQUENCE!
     cpinfo=getCPInfo(cp);
     if(CCLASS(cpinfo)==0) return ptr;   // FOUND A STARTER
@@ -205,7 +205,7 @@ char *utf8rskipst(char *ptr,char *start)
 
 // ENCODE A CHARACTER AND RETURN A NULL TERMINATED STRING,
 // OR A NON-TERMINATED 4-BYTE STRING
-unsigned int char2utf8(int codepoint)
+unsigned int cp2utf8(int codepoint)
 {
     if(codepoint<=0x7f) return codepoint;
     if(codepoint<=0x7ff) return (((codepoint&0x3f)|0x80)<<8)|((codepoint>>6)&0x1f)|0xc0;
@@ -500,7 +500,7 @@ int lastchar=0,flags;
 int len=end-string;
 flags=0;
 while(string<end) {
-        cp=utf82char(string,end);
+        cp=utf82cp(string,end);
         if(cp==0xffffffff) { unicodeBuffer[0]=0; return len; }
         cpinfo=getCPInfo(cp);
         qc=NFC_QC(cpinfo);
@@ -563,7 +563,7 @@ int utf8ncmp(const char *s1,const char *s2,int len)
         {
             while (len > 0 )
             {
-                if (utf82char((char *)s1,(char *)s1+4) != utf82char((char *)s2,(char *)s2+4)) break;
+                if (utf82cp((char *)s1,(char *)s1+4) != utf82cp((char *)s2,(char *)s2+4)) break;
                 if (*s1 == '\0') return 0;
 
                 s1=utf8skip((char *)s1,(char *)s1+4);
@@ -576,18 +576,18 @@ int utf8ncmp(const char *s1,const char *s2,int len)
                 if (*s1 == '\0') return -1;
                 if (*s2 == '\0' ) return 1;
 
-                return (utf82char((char *)s1,(char *)s1+4) - utf82char((char *)s2,(char *)s2+4));
+                return (utf82cp((char *)s1,(char *)s1+4) - utf82cp((char *)s2,(char *)s2+4));
             }
 
             // CHECK IF LEFTOVER IS A NON-STARTER
             if(*s1!='\0') {
-                if(CCLASS(getCPInfo(utf82char((char *)s1,(char *)s1+4)))!=0) {
+                if(CCLASS(getCPInfo(utf82cp((char *)s1,(char *)s1+4)))!=0) {
                     // NOT A STARTER, STRINGS ARE NOT EQUAL
                     return 1;
                 }
             }
             if(*s2!='\0') {
-                if(CCLASS(getCPInfo(utf82char((char *)s2,(char *)s2+4)))!=0) {
+                if(CCLASS(getCPInfo(utf82cp((char *)s2,(char *)s2+4)))!=0) {
                     // NOT A STARTER, STRINGS ARE NOT EQUAL
                     return -1;
                 }
@@ -604,7 +604,7 @@ int utf8cmp(const char *s1,const char *s2)
 {
             while (*s1 && *s2 )
             {
-                if (utf82char((char *)s1,(char *)s1+4) != utf82char((char *)s2,(char *)s2+4)) break;
+                if (utf82cp((char *)s1,(char *)s1+4) != utf82cp((char *)s2,(char *)s2+4)) break;
                 s1=utf8skip((char *)s1,(char *)s1+4);
                 s2=utf8skip((char *)s2,(char *)s2+4);
             }
@@ -612,7 +612,7 @@ int utf8cmp(const char *s1,const char *s2)
             if ( (*s1==0) && (*s2==0) ) return 0;
             if (*s1 == '\0') return -1;
             if (*s2 == '\0' ) return 1;
-                return (utf82char((char *)s1,(char *)s1+4) - utf82char((char *)s2,(char *)s2+4));
+                return (utf82cp((char *)s1,(char *)s1+4) - utf82cp((char *)s2,(char *)s2+4));
 }
 
 // SAME AS STRLEN BUT RETURNS THE LENGTH IN UNICODE CODEPOINTS OF

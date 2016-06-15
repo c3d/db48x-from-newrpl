@@ -210,7 +210,7 @@ void LIB_HANDLER()
         }
         BINT64 code=rplReadNumberAsBINT(rplPeekData(1));
 
-        WORD utfchar=char2utf8((UBINT)code);
+        WORD utfchar=cp2utf8((UBINT)code);
 
         if(utfchar==(WORD)-1) {
             rplError(ERR_INVALIDCODEPOINT);
@@ -245,7 +245,7 @@ void LIB_HANDLER()
         }
         BYTEPTR string=(BYTEPTR) (rplPeekData(1)+1);
 
-        BINT utfchar=utf82char((char *) string,(char *)(string+4));
+        BINT utfchar=utf82cp((char *) string,(char *)(string+4));
 
         rplNewBINTPush(utfchar,HEXBINT);
         if(Exceptions) return;

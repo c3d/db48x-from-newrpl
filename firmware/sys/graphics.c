@@ -279,7 +279,7 @@ int StringWidthN(char *Text,char *End,UNIFONT *Font)
 
     while(Text<End) {
 
-        cp=utf82char(Text,End);
+        cp=utf82cp(Text,End);
 
         if(cp==-1) { ++Text; continue; }
 
@@ -338,7 +338,7 @@ char *StringCoordToPointer(char *Text,char *End,UNIFONT *Font,int *xcoord)
 
     while(Text<End) {
 
-        cp=utf82char(Text,End);
+        cp=utf82cp(Text,End);
 
         if(cp==-1) { ++Text; continue; }
 
@@ -428,7 +428,7 @@ void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURF
 
     while(Text<End) {
 
-        cp=utf82char(Text,End);
+        cp=utf82cp(Text,End);
 
         if(cp==-1) { ++Text; continue; }
         if(cp=='\n' || cp=='\r') return;
@@ -534,7 +534,7 @@ void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,int bk
 
     while(Text<End) {
 
-        cp=utf82char(Text,End);
+        cp=utf82cp(Text,End);
 
         if(cp==-1) { ++Text; continue; }
 
@@ -667,7 +667,7 @@ void DrawTextMono(int x,int y,char *Text,UNIFONT *Font,int color,DRAWSURFACE *dr
 
     while(Text<End) {
 
-        cp=utf82char(Text,End);
+        cp=utf82cp(Text,End);
 
         if(cp==-1) { ++Text; continue; }
         if(cp=='\n' || cp=='\r') return;
