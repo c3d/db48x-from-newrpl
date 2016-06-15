@@ -13,7 +13,7 @@
 // COMMANDS WILL ACT AS IF THERE WAS NO CARD INSERTED
 
 
-#include "fsystem/fsyspriv.h"
+#include "../fsystem/fsyspriv.h"
 // SD MODULE
 
 

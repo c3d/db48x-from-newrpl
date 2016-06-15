@@ -14,7 +14,7 @@
 
 
 
-#include "fsystem/fsyspriv.h"
+#include "../fsystem/fsyspriv.h"
 // SD MODULE
 
 #define EXTINT0 ((unsigned int *)(IO_REGS+0x88))

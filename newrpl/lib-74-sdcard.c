@@ -9,10 +9,6 @@
 #include "libraries.h"
 #include "hal.h"
 
-// ******************************************
-// INCLUDE THIS FOR DEBUG ONLY - REMOVE WHEN DONE
-#include "../firmware/sys/target_50g/fsystem/fsyspriv.h"
-// ******************************************
 
 
 
@@ -84,6 +80,15 @@
 // ************************************
 // *** END OF COMMON LIBRARY HEADER ***
 // ************************************
+
+
+// ******************************************
+// INCLUDE THIS FOR DEBUG ONLY - REMOVE WHEN DONE
+#include "../firmware/sys/fsystem/fsyspriv.h"
+// ******************************************
+
+
+
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
