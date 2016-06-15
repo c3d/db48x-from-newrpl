@@ -1679,10 +1679,25 @@ void newlineKeyHandler(BINT keymsg)
 }
 
 
-void dotKeyHandler(BINT keymsg)
+void decimaldotKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
-    symbolKeyHandler(keymsg,(BYTEPTR)".",0);
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+        halSetContext(halGetContext()|CONTEXT_INEDITOR);
+        if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
+        else uiOpenCmdLine('D');
+        }
+
+        UBINT64 Locale=rplGetSystemLocale();
+
+        WORD ucode=cp2utf8(DECIMAL_DOT(Locale));
+        if(ucode&0xff000000) uiInsertCharactersN((BYTEPTR)&ucode,((BYTEPTR)&ucode)+4);
+        else uiInsertCharacters((BYTEPTR)&ucode);
+
+        uiAutocompleteUpdate();
+
+
 }
 
 void  enterKeyHandler(BINT keymsg)
@@ -2530,8 +2545,8 @@ int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
 // CLEAR STATUS AREA
 ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
-DrawTextBk(STATUSAREA_X,ytop,"Format:",halScreen.StAreaFont,0xf,0,&scr);
-DrawTextBk(STATUSAREA_X,ytop+halScreen.StAreaFont->BitmapHeight,(char *)options[option],halScreen.StAreaFont,0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1,"Format:",halScreen.StAreaFont,0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1+halScreen.StAreaFont->BitmapHeight,(char *)options[option],halScreen.StAreaFont,0xf,0,&scr);
 
 halStatusAreaPopup();
 
@@ -2740,6 +2755,8 @@ DECLARE_SYMBKEYHANDLER(semi,";",0)
 DECLARE_SYMBKEYHANDLER(colon,":",0)
 DECLARE_SYMBKEYHANDLER(infinity,"∞",1)
 DECLARE_SYMBKEYHANDLER(undinfinity,"∞̅",1)
+DECLARE_SYMBKEYHANDLER(dot,".",0)
+
 
 
 DECLARE_SYMBKEYHANDLER(question,"?",0)
@@ -2790,6 +2807,8 @@ void underscoreKeyHandler(BINT keymsg)
 }
 
 DECLARE_SYMBKEYHANDLER(spc," ",0)
+DECLARE_SYMBKEYHANDLER(thinspc," ",0)
+
 DECLARE_SYMBKEYHANDLER(hash,"#",0)
 DECLARE_SYMBKEYHANDLER(equal,"=",1)
 DECLARE_SYMBKEYHANDLER(notequal,"≠",1)
@@ -2901,7 +2920,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_8, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_9, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_0, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_DOT, CONTEXT_ANY,&dotKeyHandler },
+    { KM_PRESS|KB_DOT, CONTEXT_ANY,&decimaldotKeyHandler },
     { KM_PRESS|KB_1|SHIFT_ALPHAHOLD, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_2|SHIFT_ALPHAHOLD, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_3|SHIFT_ALPHAHOLD, CONTEXT_ANY,&numberKeyHandler },
@@ -2923,7 +2942,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_8|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_9|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_0|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_DOT|SHIFT_ALPHA, CONTEXT_ANY,&dotKeyHandler },
+    { KM_PRESS|KB_DOT|SHIFT_ALPHA, CONTEXT_ANY,&decimaldotKeyHandler },
 
     // BASIC ON AND SHIFTS
     { KM_KEYDN|KB_ON, CONTEXT_ANY,&cancelKeyHandler },
@@ -3122,8 +3141,8 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_REPEAT|KB_SPC, CONTEXT_ANY,&spcKeyHandler },
     { KM_PRESS|KB_SPC|SHIFT_ALPHA, CONTEXT_ANY,&spcKeyHandler },
     { KM_REPEAT|KB_SPC|SHIFT_ALPHA, CONTEXT_ANY,&spcKeyHandler },
-    { KM_PRESS|KB_SPC|SHIFT_ALPHAHOLD, CONTEXT_ANY,&spcKeyHandler },
-    { KM_REPEAT|KB_SPC|SHIFT_ALPHAHOLD, CONTEXT_ANY,&spcKeyHandler },
+    { KM_PRESS|KB_SPC|SHIFT_ALPHAHOLD, CONTEXT_ANY,&thinspcKeyHandler },
+    { KM_REPEAT|KB_SPC|SHIFT_ALPHAHOLD, CONTEXT_ANY,&thinspcKeyHandler },
     { KM_PRESS|KB_W, CONTEXT_ANY,&chsKeyHandler },
     { KM_PRESS|KB_V, CONTEXT_ANY,&eexKeyHandler },
     { KM_PRESS|KB_ADD|SHIFT_LS, CONTEXT_ANY,&curlyBracketKeyHandler },

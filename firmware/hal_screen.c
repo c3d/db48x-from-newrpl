@@ -1044,11 +1044,18 @@ void halErrorPopup()
 
 
 // DECOMPILE THE OPCODE NAME IF POSSIBLE
+const WORD const text_editor_string[]={
+    MAKESTRING(12),
+    TEXT2WORD('C','o','m','m'),
+    TEXT2WORD('a','n','d',' '),
+    TEXT2WORD('L','i','n','e')
+};
 
 WORDPTR halGetCommandName(WORDPTR NameObject)
 {
     WORD Opcode=*NameObject;
 
+    if(Opcode==0) return (WORDPTR)text_editor_string;
     if(ISPROLOG(Opcode)) {
         // ONLY ACCEPT IDENTS AND STRINGS AS COMMAND NAMES
         if(!ISSTRING(Opcode) && !ISIDENT(Opcode)) return 0;

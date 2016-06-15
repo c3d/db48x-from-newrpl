@@ -1195,7 +1195,7 @@ void LIB_HANDLER()
 
             for(count=0;count<argnum1;++count) {
                 digit=utf82cp((char *)strptr+count,(char *)strptr+argnum1);
-                if(digit<0) continue;
+                if(digit<0) { ++argnum1; continue; }
                 if((base==10) && ((WORD)digit==THOUSAND_SEP(Locale))) continue;
                 if((digit>='0')&&(digit<='9')) digit-=48;
                 else if((digit>='a')&&(digit<='f')) digit-=87;

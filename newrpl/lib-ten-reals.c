@@ -692,6 +692,17 @@ void LIB_HANDLER()
 
         if(RReg[0].flags&F_ERROR) {
             // THERE WAS SOME ERROR DURING THE CONVERSION, PROBABLY A SYNTAX ERROR
+            // THE EXPONENT IN THE REAL GIVES MORE ERROR INFO
+            // THE LEN GIVES POSITION OF ERROR
+
+            if(RReg[0].len>0) {
+                // THERE WAS AT LEAST SOME NUMBERS, TRY TO SPLIT THE TOKEN
+                if(!rplIsValidIdent(((BYTEPTR)TokenStart)+RReg[0].len,(BYTEPTR)BlankStart)) {
+                    RetNum=ERR_SYNTAX;
+                    return;
+                }
+            }
+
             RetNum=ERR_NOTMINE;
             return;
         }

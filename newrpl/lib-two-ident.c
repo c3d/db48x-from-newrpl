@@ -149,6 +149,10 @@ BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend)
     BYTEPTR ptr;
     BINT char1,char2;
     if(tokend<=tok) return 0;
+
+    // SKIP ANY INITIAL DOTS
+    while((tok!=tokend)&&(*tok=='.')) ++tok;
+
     // IDENT CANNOT START WITH A NUMBER
     if( (((char)*tok)>='0') && (((char)*tok)<='9')) return 0;
 

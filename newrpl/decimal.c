@@ -2248,7 +2248,7 @@ void newRealFromText(REAL *result,char *text,char *end,UBINT64 chars)
 
     if(end<=text) {
         result->len=0;
-        result->exp=0;
+        result->exp=RERR_EMPTYSTRING;
         result->flags=F_ERROR;
         return;
     }
@@ -2279,8 +2279,8 @@ void newRealFromText(REAL *result,char *text,char *end,UBINT64 chars)
             // THERE WAS AN UNDEFINED INFINITY SIGN THERE
             if(textptr!=end) {
                 // NOTHING SHOULD BE AFTER INFINITY
-                result->len=0;
-                result->exp=0;
+                result->len=textptr-text;
+                result->exp=RERR_EXTRACHARS;
                 result->flags=F_ERROR;
                 return;
             }
@@ -2298,8 +2298,8 @@ void newRealFromText(REAL *result,char *text,char *end,UBINT64 chars)
             // THERE WAS AN INFINITY SIGN THERE
             if(textptr!=end) {
                 // NOTHING SHOULD BE AFTER INFINITY
-                result->len=0;
-                result->exp=0;
+                result->len=textptr-text;
+                result->exp=RERR_EXTRACHARS;
                 result->flags=F_ERROR;
                 return;
             }
@@ -2323,16 +2323,16 @@ void newRealFromText(REAL *result,char *text,char *end,UBINT64 chars)
 
     if(expdone==-1) {
         if( (*end!='e')&&(*end!='E')) {
-            result->len=0;
-            result->exp=0;
+            result->len=end-text;
+            result->exp=RERR_BADEXPONENT;
             result->flags=F_ERROR;
             return;
         }
         else {
             if(!digits) {
                 // TEXT ENDS IN LETTER 'E', NO DIGITS AFTERWARDS
-            result->len=0;
-            result->exp=0;
+            result->len=end-text;
+            result->exp=RERR_BADEXPONENT;
             result->flags=F_ERROR;
             return;
             }
@@ -2368,8 +2368,8 @@ void newRealFromText(REAL *result,char *text,char *end,UBINT64 chars)
 
     if((WORD)utf82cp(end,end+4)==DECIMAL_DOT(chars)) {
         if(dotdone) {
-            result->len=0;
-            result->exp=0;
+            result->len=end-text;
+            result->exp=RERR_DOUBLEDOT;
             result->flags=F_ERROR;
             return;
         }
@@ -2378,8 +2378,8 @@ void newRealFromText(REAL *result,char *text,char *end,UBINT64 chars)
             // IN CASE DECIMAL_DOT IS '.'
             if(*end=='.') result->flags|=F_APPROX;
              else {
-            result->len=0;
-            result->exp=0;
+            result->len=end-text;
+            result->exp=RERR_NODIGITS;
             result->flags=F_ERROR;
             return;
             }
@@ -2399,8 +2399,8 @@ void newRealFromText(REAL *result,char *text,char *end,UBINT64 chars)
             continue;
         }
         else {
-            result->len=0;
-            result->exp=0;
+            result->len=end-text;
+            result->exp=RERR_BADSIGN;
             result->flags=F_ERROR;
             return;
         }
@@ -2411,8 +2411,8 @@ void newRealFromText(REAL *result,char *text,char *end,UBINT64 chars)
             continue;
         }
         else {
-            result->len=0;
-            result->exp=0;
+            result->len=end-text;
+            result->exp=RERR_BADSIGN;
             result->flags=F_ERROR;
             return;
         }
@@ -2421,16 +2421,16 @@ void newRealFromText(REAL *result,char *text,char *end,UBINT64 chars)
     if( (*end=='e')||(*end=='E')) {
 
         if(expdone) {
-        result->len=0;
-        result->exp=0;
+        result->len=end-text;
+        result->exp=RERR_BADEXPONENT;
         result->flags=F_ERROR;
         return;
         }
         else {
             if(!digits) {
                 // TEXT ENDS IN LETTER 'E', NO DIGITS AFTERWARDS
-            result->len=0;
-            result->exp=0;
+            result->len=end-text;
+            result->exp=RERR_BADEXPONENT;
             result->flags=F_ERROR;
             return;
             }
@@ -2448,10 +2448,13 @@ void newRealFromText(REAL *result,char *text,char *end,UBINT64 chars)
     if((WORD)utf82cp(end,end+4)==FRAC_SEP(chars)) {
         // ONLY ACCEPTED IF WITHIN THE FRACTIONAL PART
         if(dotdone) {
-            result->len=0;
-            result->exp=0;
+            if(FRAC_SEP(chars)!=THOUSAND_SEP(chars)) {
+            result->len=end-text;
+            result->exp=RERR_INVALIDCHAR;
             result->flags=F_ERROR;
             return;
+            }
+            // OTHERWISE IT'S A THOUSAND SEPARATOR
         }
         if(!expdone) expdone=1;
         continue;
@@ -2466,8 +2469,8 @@ void newRealFromText(REAL *result,char *text,char *end,UBINT64 chars)
         continue;
     }
 
-    result->len=0;
-    result->exp=0;
+    result->len=end-text;
+    result->exp=RERR_INVALIDCHAR;
     result->flags=F_ERROR;
     return;
 
@@ -2475,8 +2478,8 @@ void newRealFromText(REAL *result,char *text,char *end,UBINT64 chars)
 
     if(!digits) {
         // TEXT HAD NO NUMERIC DIGITS??
-    result->len=0;
-    result->exp=0;
+    result->len=end-text;
+    result->exp=RERR_NODIGITS;
     result->flags=F_ERROR;
     return;
     }
@@ -2905,7 +2908,7 @@ char *formatReal(REAL *number, char *buffer, BINT format, UBINT64 chars)
             while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
         }
         // INSERT SEPARATOR AS NEEDED
-        else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && ((idx-dotpos)%(sep_spacing+nbfracsep) == 0 )) {
+        else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && ((idx-dotpos+nbfracsep-1)%(sep_spacing+nbfracsep) == 0 )) {
             WORD ucode=cp2utf8(FRAC_SEP(chars));
             while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
 
@@ -2993,7 +2996,7 @@ char *formatReal(REAL *number, char *buffer, BINT format, UBINT64 chars)
                 while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
             }
             // INSERT SEPARATOR AS NEEDED
-            else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && (((idx-dotpos)%(sep_spacing+nbfracsep)) == 0 ))
+            else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && (((idx-dotpos+nbfracsep-1)%(sep_spacing+nbfracsep)) == 0 ))
             {
                 WORD ucode=cp2utf8(FRAC_SEP(chars));
                 while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
@@ -3017,7 +3020,7 @@ char *formatReal(REAL *number, char *buffer, BINT format, UBINT64 chars)
                     while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
                 }
                 // INSERT SEPARATOR AS NEEDED
-                else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && (((idx-dotpos)%(sep_spacing+nbfracsep)) == 0 ))
+                else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && (((idx-dotpos+nbfracsep-1)%(sep_spacing+nbfracsep)) == 0 ))
                 {
                     WORD ucode=cp2utf8(FRAC_SEP(chars));
                     while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }

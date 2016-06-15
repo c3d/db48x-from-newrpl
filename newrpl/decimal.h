@@ -94,6 +94,17 @@ enum RealFlags {
     F_POSUNDERFLOW=256,      // RANGE CHECK TURNED TOO SMALL EXPONENT OF POSITIVE NUMBER INTO ZERO
 };
 
+enum RealErrors {
+    RERR_EMPTYSTRING=1,
+    RERR_INVALIDCHAR,
+    RERR_EXTRACHARS,
+    RERR_BADEXPONENT,
+    RERR_NODIGITS,
+    RERR_BADSIGN,
+    RERR_DOUBLEDOT
+};
+
+
 #define F_UNDINFINITY (F_INFINITY|F_NOTANUMBER)     // UNDIRECTED COMPLEX INFINITY
 
 // *************************************************************************
