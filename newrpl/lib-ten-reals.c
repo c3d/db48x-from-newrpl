@@ -695,12 +695,10 @@ void LIB_HANDLER()
             // THE EXPONENT IN THE REAL GIVES MORE ERROR INFO
             // THE LEN GIVES POSITION OF ERROR
 
-            if(RReg[0].len>0) {
-                // THERE WAS AT LEAST SOME NUMBERS, TRY TO SPLIT THE TOKEN
-                if(!rplIsValidIdent(((BYTEPTR)TokenStart)+RReg[0].len,(BYTEPTR)BlankStart)) {
+            if(RReg[0].exp>3) {
+                // THERE WAS AT LEAST SOME NUMBERS
                     RetNum=ERR_SYNTAX;
                     return;
-                }
             }
 
             RetNum=ERR_NOTMINE;
