@@ -2465,6 +2465,9 @@ void onPlusKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
+    halStatusAreaPopup();
+
+
 // INCREASE CONTRAST
 DRAWSURFACE scr;
 ggl_initscr(&scr);
@@ -2478,7 +2481,6 @@ for(j=0;j<15;++j) {
     ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop,STATUSAREA_X+1+3*j+2,ytop+5,ggl_mkcolor(15-j));
 }
 
-halStatusAreaPopup();
 
 __lcd_contrast++;
 if(__lcd_contrast>0xf) __lcd_contrast=0xf;
@@ -2490,6 +2492,8 @@ lcd_setcontrast(__lcd_contrast);
 void onMinusKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
+
+    halStatusAreaPopup();
 
 // DECREASE CONTRAST
 DRAWSURFACE scr;
@@ -2504,7 +2508,6 @@ for(j=0;j<15;++j) {
     ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop,STATUSAREA_X+1+3*j+2,ytop+5,ggl_mkcolor(15-j));
 }
 
-halStatusAreaPopup();
 
 __lcd_contrast--;
 if(__lcd_contrast<0) __lcd_contrast=0;
@@ -2538,6 +2541,7 @@ void onDotKeyHandler(BINT keymsg)
     ++option;
     if(option>11) option=0;
 
+    halStatusAreaPopup();
 
 DRAWSURFACE scr;
 ggl_initscr(&scr);
@@ -2548,63 +2552,99 @@ ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 DrawTextBk(STATUSAREA_X+1,ytop+1,"Format:",halScreen.StAreaFont,0xf,0,&scr);
 DrawTextBk(STATUSAREA_X+1,ytop+1+halScreen.StAreaFont->BitmapHeight,(char *)options[option],halScreen.StAreaFont,0xf,0,&scr);
 
-halStatusAreaPopup();
 
 // CHANGE THE FORMAT TO THE SELECTED OPTION
 switch(option)
 {
 default:
 case 0:
+    fmt.BigFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
+    fmt.SmallFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
     fmt.MiddleFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
     fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
     break;
 case 1:
+    fmt.BigFmt&=~(FMT_FRACSEPARATOR);
+    fmt.BigFmt|=FMT_NUMSEPARATOR;
+    fmt.SmallFmt&=~(FMT_FRACSEPARATOR);
+    fmt.SmallFmt|=FMT_NUMSEPARATOR;
     fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
     fmt.MiddleFmt|=FMT_NUMSEPARATOR;
     fmt.Locale=MAKELOCALE('.',',',THIN_SPACE,';');
     break;
 case 2:
+    fmt.BigFmt&=~(FMT_FRACSEPARATOR);
+    fmt.BigFmt|=FMT_NUMSEPARATOR;
+    fmt.SmallFmt&=~(FMT_FRACSEPARATOR);
+    fmt.SmallFmt|=FMT_NUMSEPARATOR;
+
     fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
     fmt.MiddleFmt|=FMT_NUMSEPARATOR;
     fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
     break;
 case 3:
+    fmt.BigFmt&=~FMT_NUMSEPARATOR;
+    fmt.BigFmt|=FMT_FRACSEPARATOR;
+    fmt.SmallFmt&=~FMT_NUMSEPARATOR;
+    fmt.SmallFmt|=FMT_FRACSEPARATOR;
     fmt.MiddleFmt&=~FMT_NUMSEPARATOR;
     fmt.MiddleFmt|=FMT_FRACSEPARATOR;
     fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
     break;
 case 4:
+    fmt.BigFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+    fmt.SmallFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
     fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
     fmt.Locale=MAKELOCALE('.',',',THIN_SPACE,';');
     break;
 case 5:
+    fmt.BigFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+    fmt.SmallFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
     fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
     fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
     break;
 case 6:
+    fmt.BigFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
+    fmt.SmallFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
     fmt.MiddleFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
     fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
     break;
 case 7:
+    fmt.BigFmt&=~(FMT_FRACSEPARATOR);
+    fmt.BigFmt|=FMT_NUMSEPARATOR;
+    fmt.SmallFmt&=~(FMT_FRACSEPARATOR);
+    fmt.SmallFmt|=FMT_NUMSEPARATOR;
     fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
     fmt.MiddleFmt|=FMT_NUMSEPARATOR;
     fmt.Locale=MAKELOCALE(',','.',THIN_SPACE,';');
     break;
 case 8:
+    fmt.BigFmt&=~(FMT_FRACSEPARATOR);
+    fmt.BigFmt|=FMT_NUMSEPARATOR;
+    fmt.SmallFmt&=~(FMT_FRACSEPARATOR);
+    fmt.SmallFmt|=FMT_NUMSEPARATOR;
     fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
     fmt.MiddleFmt|=FMT_NUMSEPARATOR;
     fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
     break;
 case 9:
+    fmt.BigFmt&=~FMT_NUMSEPARATOR;
+    fmt.BigFmt|=FMT_FRACSEPARATOR;
+    fmt.SmallFmt&=~FMT_NUMSEPARATOR;
+    fmt.SmallFmt|=FMT_FRACSEPARATOR;
     fmt.MiddleFmt&=~FMT_NUMSEPARATOR;
     fmt.MiddleFmt|=FMT_FRACSEPARATOR;
     fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
     break;
 case 10:
+    fmt.BigFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+    fmt.SmallFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
     fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
     fmt.Locale=MAKELOCALE(',','.',THIN_SPACE,';');
     break;
 case 11:
+    fmt.BigFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+    fmt.SmallFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
     fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
     fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
     break;
@@ -2618,9 +2658,204 @@ halScreen.DirtyFlag|=STACK_DIRTY;
 }
 
 
+void onSpcKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+// CYCLE BETWEEN VARIOUS OPTIONS
+    const char const *options[]={
+        "STD","FIX","SCI","ENG"
+    };
+
+    NUMFORMAT fmt;
+    BINT option=0;
+    rplGetSystemNumberFormat(&fmt);
+
+    if(fmt.MiddleFmt&FMT_TRAILINGZEROS) option=1;
+    if(fmt.MiddleFmt&FMT_SCI) option=2;
+    if(fmt.MiddleFmt&FMT_ENG) option=3;
+
+
+    // CYCLE THROUGH ITEMS:
+    ++option;
+    if(option>3) option=0;
+
+    halStatusAreaPopup();
+
+DRAWSURFACE scr;
+ggl_initscr(&scr);
+int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+// CLEAR STATUS AREA
+ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+
+DrawTextBk(STATUSAREA_X+1,ytop+1,"Mode:",halScreen.StAreaFont,0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1+halScreen.StAreaFont->BitmapHeight,(char *)options[option],halScreen.StAreaFont,0xf,0,&scr);
+
+
+// CHANGE THE FORMAT TO THE SELECTED OPTION
+switch(option)
+{
+default:
+case 0:
+    fmt.MiddleFmt&=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITSMSK|FMT_USECAPITALS|FMT_NUMDIGITS|FMT_PREFEXPMSK;   // PRESERVE ALL THESE
+    break;
+case 1:
+    fmt.MiddleFmt&=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITSMSK|FMT_USECAPITALS|FMT_NUMDIGITS|FMT_PREFEXPMSK;   // PRESERVE ALL THESE
+    fmt.MiddleFmt|=FMT_TRAILINGZEROS;
+    break;
+case 2:
+    fmt.MiddleFmt&=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITSMSK|FMT_USECAPITALS|FMT_NUMDIGITS|FMT_PREFEXPMSK;   // PRESERVE ALL THESE
+    fmt.MiddleFmt|=FMT_SCI;
+    break;
+case 3:
+    fmt.MiddleFmt&=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITSMSK|FMT_USECAPITALS|FMT_NUMDIGITS|FMT_PREFEXPMSK;   // PRESERVE ALL THESE
+    fmt.MiddleFmt|=FMT_SCI|FMT_ENG;
+    break;
+}
+
+rplSetSystemNumberFormat(&fmt);
+halScreen.DirtyFlag|=STACK_DIRTY;
+
+}
+
+
+void onMulDivKeyHandler(BINT keymsg)
+{
+
+// CYCLE BETWEEN VARIOUS OPTIONS
+    const char const *options[]={
+        "Auto",
+        "  =  0",
+        "k = +3",
+        "M = +6",
+        "G = +9",
+        "T = +12",
+        "P = +15",
+        "E = +18",
+        "Z = +21",
+        "z = -21",
+        "a = -18",
+        "f = -15",
+        "p = -12",
+        "n = -9",
+        "µ = -6",
+        "m = -3"
+    };
+
+    NUMFORMAT fmt;
+    BINT option=0;
+    rplGetSystemNumberFormat(&fmt);
+
+    option=PREFERRED_EXPRAW(fmt.MiddleFmt);
+    if(option) {
+        option-=7;
+        if(option<=0) option+=15;
+    }
 
 
 
+    // CYCLE THROUGH ITEMS:
+    if(KM_KEY(keymsg)==KB_MUL) {
+        if(option!=9) --option;
+    }
+    else {
+        if(option!=8) ++option;
+    }
+    if(option<0) option=15;
+    if(option>15) option=0;
+
+
+    halStatusAreaPopup();
+
+DRAWSURFACE scr;
+ggl_initscr(&scr);
+int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+// CLEAR STATUS AREA
+ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+
+DrawTextBk(STATUSAREA_X+1,ytop+1,"ENG exponent:",halScreen.StAreaFont,0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1+halScreen.StAreaFont->BitmapHeight,(char *)options[option],halScreen.StAreaFont,0xf,0,&scr);
+
+
+if(option) option+=7;
+if(option>15) option-=15;
+
+    fmt.MiddleFmt&=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITSMSK|FMT_USECAPITALS|FMT_NUMDIGITS;   // PRESERVE ALL THESE
+    fmt.MiddleFmt|=FMT_SCI|FMT_ENG|FMT_PREFEREXPRAW(option);
+
+rplSetSystemNumberFormat(&fmt);
+halScreen.DirtyFlag|=STACK_DIRTY;
+
+}
+
+
+void onDigitKeyHandler(BINT keymsg)
+{
+    NUMFORMAT fmt;
+    BINT digits=0;
+    rplGetSystemNumberFormat(&fmt);
+
+    switch(KM_KEY(keymsg))
+    {
+    case KB_0:
+        digits=0;
+        break;
+    case KB_1:
+        digits=1;
+        break;
+    case KB_2:
+        digits=2;
+        break;
+    case KB_3:
+        digits=3;
+        break;
+    case KB_4:
+        digits=4;
+        break;
+    case KB_5:
+        digits=5;
+        break;
+    case KB_6:
+        digits=6;
+        break;
+    case KB_7:
+        digits=7;
+        break;
+    case KB_8:
+        digits=8;
+        break;
+    case KB_9:
+        digits=9;
+        break;
+    }
+
+
+    fmt.MiddleFmt&=~FMT_NUMDIGITS;
+    fmt.MiddleFmt|=digits;
+    fmt.BigFmt&=~FMT_NUMDIGITS;
+    fmt.BigFmt|=digits;
+    fmt.SmallFmt&=~FMT_NUMDIGITS;
+    fmt.SmallFmt|=digits;
+
+    digits+='0';
+
+
+    halStatusAreaPopup();
+
+DRAWSURFACE scr;
+ggl_initscr(&scr);
+int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+// CLEAR STATUS AREA
+ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+
+DrawTextBk(STATUSAREA_X+1,ytop+1,"Digits:",halScreen.StAreaFont,0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1+halScreen.StAreaFont->BitmapHeight,(char *)&digits,halScreen.StAreaFont,0xf,0,&scr);
+
+
+rplSetSystemNumberFormat(&fmt);
+halScreen.DirtyFlag|=STACK_DIRTY;
+
+}
 
 
 
@@ -3178,6 +3413,21 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_SUB|SHIFT_ONHOLD, CONTEXT_ANY,&onMinusKeyHandler },
 
     { KM_PRESS|KB_DOT|SHIFT_ONHOLD, CONTEXT_ANY,&onDotKeyHandler },
+    { KM_PRESS|KB_SPC|SHIFT_ONHOLD, CONTEXT_ANY,&onSpcKeyHandler },
+    { KM_PRESS|KB_MUL|SHIFT_ONHOLD, CONTEXT_ANY,&onMulDivKeyHandler },
+    { KM_PRESS|KB_Z|SHIFT_ONHOLD, CONTEXT_ANY,&onMulDivKeyHandler },
+
+    { KM_PRESS|KB_0|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+    { KM_PRESS|KB_1|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+    { KM_PRESS|KB_2|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+    { KM_PRESS|KB_3|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+    { KM_PRESS|KB_4|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+    { KM_PRESS|KB_5|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+    { KM_PRESS|KB_6|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+    { KM_PRESS|KB_7|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+    { KM_PRESS|KB_8|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+    { KM_PRESS|KB_9|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+
 
     { KM_PRESS|KB_0|SHIFT_LS, CONTEXT_ANY,&infinityKeyHandler },
     { KM_PRESS|KB_0|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&undinfinityKeyHandler },

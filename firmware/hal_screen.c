@@ -1021,6 +1021,7 @@ void halStatusAreaPopup()
 {
     if(halScreen.SAreaTimer) {
         tmr_eventkill(halScreen.SAreaTimer);
+        status_popup_handler();
         //tmr_eventpause(halScreen.SAreaTimer);
         //tmr_eventresume(halScreen.SAreaTimer);      // PAUSE/RESUME WILL RESTART THE 5 SECOND COUNT
         //return;
@@ -1034,6 +1035,7 @@ void halErrorPopup()
 {
     if(halScreen.SAreaTimer) {
         tmr_eventkill(halScreen.SAreaTimer);
+        status_popup_handler();
         //tmr_eventpause(halScreen.SAreaTimer);
         //tmr_eventresume(halScreen.SAreaTimer);      // PAUSE/RESUME WILL RESTART THE 3 SECOND COUNT
         //return;
@@ -1092,6 +1094,11 @@ void halShowErrorMsg()
 {
         int errbit;
         if(!Exceptions) return;
+
+        halErrorPopup();
+
+
+
         DRAWSURFACE scr;
         ggl_initscr(&scr);
 
@@ -1181,12 +1188,16 @@ void halShowErrorMsg()
 
 
 
-        halErrorPopup();
 
 }
 
 void halShowMsgN(char *Text,char *End)
 {
+
+
+    halErrorPopup();
+
+
         DRAWSURFACE scr;
         ggl_initscr(&scr);
 
@@ -1210,7 +1221,6 @@ void halShowMsgN(char *Text,char *End)
 
         DrawTextN(3,ytop+3,Text,End,halScreen.StAreaFont,0xf,&scr);
 
-        halErrorPopup();
 
 }
 

@@ -2829,22 +2829,20 @@ char *formatReal(REAL *number, char *buffer, BINT format, UBINT64 chars)
       realexp=-(totaldigits-1) - number->exp;
 
     if(format&FMT_ENG) {
-     // ADJUST EXPONENT
+        if(format&FMT_PREFEXPMSK) {
+            // FORCED EXPONENT
+            realexp=-PREFERRED_EXP(format);
+        }
+        else {
+        // AUTO ADJUST EXPONENT
         if(realexp<0) realexp+=(-realexp)%3;
         else if(realexp%3) realexp+=3-realexp%3;
+        }
     }
 
-
-    integer=totaldigits+number->exp+realexp;
-    wantdigits-=integer;
-    dotpos=integer;
-    frac=totaldigits-integer;
-    leftzeros=0;
-    wantzeros=0;
     }
-    else {
-    realexp=0;
-    integer= totaldigits+number->exp;
+    else realexp=0;
+    integer= totaldigits+number->exp+realexp;
     if(integer<=0) {
         leftzeros=-integer+1;
         dotpos=1;
@@ -2863,7 +2861,7 @@ char *formatReal(REAL *number, char *buffer, BINT format, UBINT64 chars)
     else { leftzeros=0; wantzeros=0; dotpos=integer; }
     frac=totaldigits-integer;
 
-    }
+
 
     totalcount=integer+wantzeros+wantdigits;
 
@@ -3057,7 +3055,7 @@ char *formatReal(REAL *number, char *buffer, BINT format, UBINT64 chars)
         // EXPONENT
 
         if(format&FMT_SCI) {
-        if(!((format&FMT_NOZEROEXP) && (realexp==0))) {
+        if(!((format&FMT_SUPRESSEXP) && ((realexp==0)||(format&FMT_PREFEXPMSK)))) {
         buffer[idx++]=EXP_LETTER(format);
         realexp=-realexp;
         if(realexp<0) { buffer[idx++]='-'; realexp=-realexp; }
@@ -3122,22 +3120,20 @@ BINT formatlengthReal(REAL *number, BINT format,UBINT64 locale)
     if(format&FMT_SCI) {
       realexp=-(totaldigits-1) - number->exp;
 
-    if(format&FMT_ENG) {
-     // ADJUST EXPONENT
-        if(realexp<0) realexp+=(-realexp)%3;
-        else if(realexp%3) realexp+=3-realexp%3;
+      if(format&FMT_ENG) {
+          if(format&FMT_PREFEXPMSK) {
+              // FORCED EXPONENT
+              realexp=-PREFERRED_EXP(format);
+          }
+          else {
+          // AUTO ADJUST EXPONENT
+          if(realexp<0) realexp+=(-realexp)%3;
+          else if(realexp%3) realexp+=3-realexp%3;
+          }
+      }
     }
-
-
-    integer=totaldigits+number->exp+realexp;
-    wantdigits-=integer;
-    leftzeros=0;
-    wantzeros=0;
-    trailzeros=0;
-    }
-    else {
-    realexp=0;
-    integer= totaldigits+number->exp;
+    else realexp=0;
+    integer= totaldigits+number->exp+realexp;
     if(integer<=0) {
         leftzeros=-integer+1;
         integer=0;
@@ -3160,7 +3156,7 @@ BINT formatlengthReal(REAL *number, BINT format,UBINT64 locale)
             if(!(format&FMT_TRAILINGZEROS)) trailzeros=0;
         }
 
-    }
+
 
     totalcount=integer+wantzeros+wantdigits+trailzeros;
    if(format& (FMT_NUMSEPARATOR|FMT_FRACSEPARATOR) )  {
@@ -3204,7 +3200,7 @@ BINT formatlengthReal(REAL *number, BINT format,UBINT64 locale)
     // EXPONENT
 
     if(format&FMT_SCI) {
-    if(!((format&FMT_NOZEROEXP) && (realexp==0))) {
+    if(!((format&FMT_SUPRESSEXP) && (realexp==0))) {
     if(realexp<0) totalcount+=sig_digits(-realexp)+2;
     else totalcount+=sig_digits(realexp)+2;     // DIGITS + SIGN + E LETTER
     }
