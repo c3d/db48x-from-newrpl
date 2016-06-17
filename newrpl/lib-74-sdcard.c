@@ -44,8 +44,10 @@
     CMD(SDREADTEXT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDWRITETEXT,MKTOKENINFO(11,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDREADLINE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SDSEEK,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SDFSIZE,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDSEEKSTA,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDSEEKEND,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDSEEKCUR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDFILESIZE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDEOF,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDOPENDIR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDNEXTFILE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
@@ -985,13 +987,197 @@ void LIB_HANDLER()
 
     }
 
-    case SDSEEK:
-    {
 
+    case SDREADLINE:
+    {
+        // READ ONE LINE OF TEXT FROM A FILE, RETURN THEM AS STRING OBJECT
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISBINT(*rplPeekData(1))) {
+            rplError(ERR_INVALIDHANDLE);
+            return;
+        }
+
+        BINT64 num=rplReadBINT(rplPeekData(1));
+
+        BINT bufsize=REAL_REGISTER_STORAGE*4,readblock;
+        BYTEPTR tmpbuf=(BYTEPTR)RReg[0].data,ptr;
+        BINT64 currentpos,bytecount;
+        if(Exceptions) return;
+
+        FS_FILE *handle;
+        BINT err=FSGetFileFromHandle(num,&handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        currentpos=FSTell(handle);
+        bytecount=0;
+
+        do {
+
+
+        err=FSRead((char *)tmpbuf,bufsize,handle);
+        if(err==0) {
+            rplError(ERR_ENDOFFILE);
+            return;
+        }
+
+        readblock=err;
+
+        ptr=tmpbuf;
+        while( (*ptr!='\n')&& readblock) { ++ptr; --readblock; }
+
+        if(readblock) {
+            // FOUND END OF LINE!
+            bytecount+=ptr+1-tmpbuf; // INCLUDE THE NEWLINE IN THE RETURNED STRING
+
+            break;
+
+        }
+
+        bytecount+=err;
+        // HERE WE NEED MORE CHARACTERS AND THE FILE HAS MORE DATA
+
+        } while(!FSEof(handle));
+
+
+        WORDPTR newstring=rplAllocTempOb((bytecount+3)>>2);
+        if(!newstring) {
+            return;
+        }
+
+        // NOW GO BACK AND READ THE WHOLE STRING DIRECTLY INTO THE OBJECT
+        err=FSSeek(handle,currentpos,FSSEEK_SET);
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+        err=FSRead((char *)(newstring+1),bytecount,handle);
+        if(err!=bytecount)
+        {
+            rplError(ERR_ENDOFFILE);
+            return;
+        }
+
+        // EVERYTHING WAS READ CORRECTLY
+        *newstring=MAKESTRING(bytecount);
+
+        rplDropData(1);
+        rplOverwriteData(1,newstring);
+
+       return;
 
     }
 
 
+    case SDSEEKCUR:
+    case SDSEEKEND:
+    case SDSEEKSTA:
+    {
+        // MOVE THE FILE POINTER TO THE GIVEN OFFSET.
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISBINT(*rplPeekData(1))) {
+            rplError(ERR_INVALIDHANDLE);
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(2))) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+        BINT seek_from=FSSEEK_CUR;
+        if(OPCODE(CurOpcode)==SDSEEKSTA) seek_from=FSSEEK_SET;
+        if(OPCODE(CurOpcode)==SDSEEKEND) seek_from=FSSEEK_END;
+
+        BINT64 num=rplReadBINT(rplPeekData(1));
+        BINT64 offset=rplReadNumberAsBINT(rplPeekData(2));
+        if(Exceptions) return;
+
+        FS_FILE *handle;
+        BINT err=FSGetFileFromHandle(num,&handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        FSSeek(handle,offset,seek_from);
+
+        return;
+    }
+
+    case SDFILESIZE:
+    {
+        // RETURN THE SIZE OF THE FILE IN BYTES
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISBINT(*rplPeekData(1))) {
+            rplError(ERR_INVALIDHANDLE);
+            return;
+        }
+
+        BINT64 num=rplReadBINT(rplPeekData(1));
+
+        FS_FILE *handle;
+        BINT err=FSGetFileFromHandle(num,&handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        BINT64 len=FSFileLength(handle);
+
+        rplDropData(1);
+        rplNewBINTPush(len,DECBINT);
+
+        return;
+    }
+
+
+    case SDEOF:
+
+    {
+        // RETURN THE SIZE OF THE FILE IN BYTES
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISBINT(*rplPeekData(1))) {
+            rplError(ERR_INVALIDHANDLE);
+            return;
+        }
+
+        BINT64 num=rplReadBINT(rplPeekData(1));
+
+        FS_FILE *handle;
+        BINT err=FSGetFileFromHandle(num,&handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        rplDropData(1);
+        if(FSEof(handle)) rplPushTrue();
+        else rplPushFalse();
+
+        return;
+    }
 
 
         // STANDARIZED OPCODES:
