@@ -2430,7 +2430,7 @@ void newRealFromText(REAL *result,char *text,char *end,UBINT64 chars)
             if(!digits) {
                 // TEXT ENDS IN LETTER 'E', NO DIGITS AFTERWARDS
             result->len=end-text;
-            result->exp=RERR_BADEXPONENT;
+            result->exp=RERR_NODIGITS;
             result->flags=F_ERROR;
             return;
             }

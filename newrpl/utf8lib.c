@@ -197,7 +197,7 @@ char *utf8rskipst(char *ptr,char *start)
     if(CCLASS(cpinfo)==0) return ptr;   // FOUND A STARTER
     // NOT A STARTER, SKIP IT
     } while(ptr>start);
-    // REACHED THE START OF STRRING WITHOUT FINDING A STARTER!
+    // REACHED THE START OF STRING WITHOUT FINDING A STARTER!
     return ptr;
 
 }

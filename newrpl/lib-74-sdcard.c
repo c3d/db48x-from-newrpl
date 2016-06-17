@@ -588,6 +588,190 @@ void LIB_HANDLER()
 
     }
 
+    case SDOPENWR:
+    {
+        // OPEN A FILE FOR WRITING, IF IT EXISTS IT WILL TRUNCATE THE FILE TO 0 BYTES
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(1)) && !ISSTRING(*rplPeekData(1)) && !ISLIST(*rplPeekData(1))) {
+            rplError(ERR_IDENTORPATHEXPECTED);
+            return;
+        }
+
+        BYTEPTR path=(BYTEPTR)RReg[0].data;
+
+        // USE RReg[0] TO STORE THE FILE PATH
+
+        if(ISIDENT(*rplPeekData(1))) {
+            BINT pathlen=rplGetIdentLength(rplPeekData(1));
+            memmoveb(path,rplPeekData(1)+1,pathlen);
+            path[pathlen]=0;    // NULL TERMINATED STRING
+        } else
+            if(ISLIST(*rplPeekData(1))) {
+                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+
+
+
+            }
+            else if(ISSTRING(*rplPeekData(1))) {
+                // FULL PATH GIVEN
+                BINT pathlen=rplStrSize(rplPeekData(1));
+                memmoveb(path,rplPeekData(1)+1,pathlen);
+                path[pathlen]=0;    // NULL TERMINATED STRING
+
+            }
+            else {
+                // TODO: ACCEPT TAGGED NAMES WHEN TAGS EXIST
+                rplError(ERR_IDENTORPATHEXPECTED);
+                return;
+            }
+
+        // OPEN THE FILE
+        FS_FILE *handle;
+        BINT err=FSOpen((char *)path,FSMODE_WRITE,&handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        rplDropData(1);
+
+       rplNewBINTPush(FSGetHandle(handle),HEXBINT);
+
+       return;
+
+
+
+    }
+
+    case SDOPENAPP:
+    {
+        // OPEN A FILE FOR APPEND
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(1)) && !ISSTRING(*rplPeekData(1)) && !ISLIST(*rplPeekData(1))) {
+            rplError(ERR_IDENTORPATHEXPECTED);
+            return;
+        }
+
+        BYTEPTR path=(BYTEPTR)RReg[0].data;
+
+        // USE RReg[0] TO STORE THE FILE PATH
+
+        if(ISIDENT(*rplPeekData(1))) {
+            BINT pathlen=rplGetIdentLength(rplPeekData(1));
+            memmoveb(path,rplPeekData(1)+1,pathlen);
+            path[pathlen]=0;    // NULL TERMINATED STRING
+        } else
+            if(ISLIST(*rplPeekData(1))) {
+                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+
+
+
+            }
+            else if(ISSTRING(*rplPeekData(1))) {
+                // FULL PATH GIVEN
+                BINT pathlen=rplStrSize(rplPeekData(1));
+                memmoveb(path,rplPeekData(1)+1,pathlen);
+                path[pathlen]=0;    // NULL TERMINATED STRING
+
+            }
+            else {
+                // TODO: ACCEPT TAGGED NAMES WHEN TAGS EXIST
+                rplError(ERR_IDENTORPATHEXPECTED);
+                return;
+            }
+
+        // OPEN THE FILE
+        FS_FILE *handle;
+        BINT err=FSOpen((char *)path,FSMODE_APPEND,&handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        rplDropData(1);
+
+       rplNewBINTPush(FSGetHandle(handle),HEXBINT);
+
+       return;
+
+
+
+    }
+
+    case SDOPENMOD:
+    {
+        // OPEN A FILE FOR MODIFY, IF IT EXISTS IT DOESN'T TRUNCATE THE FILE, USE LSEEK TO POSITION AND WRITE SPECIFIC RECORDS
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(1)) && !ISSTRING(*rplPeekData(1)) && !ISLIST(*rplPeekData(1))) {
+            rplError(ERR_IDENTORPATHEXPECTED);
+            return;
+        }
+
+        BYTEPTR path=(BYTEPTR)RReg[0].data;
+
+        // USE RReg[0] TO STORE THE FILE PATH
+
+        if(ISIDENT(*rplPeekData(1))) {
+            BINT pathlen=rplGetIdentLength(rplPeekData(1));
+            memmoveb(path,rplPeekData(1)+1,pathlen);
+            path[pathlen]=0;    // NULL TERMINATED STRING
+        } else
+            if(ISLIST(*rplPeekData(1))) {
+                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+
+
+
+            }
+            else if(ISSTRING(*rplPeekData(1))) {
+                // FULL PATH GIVEN
+                BINT pathlen=rplStrSize(rplPeekData(1));
+                memmoveb(path,rplPeekData(1)+1,pathlen);
+                path[pathlen]=0;    // NULL TERMINATED STRING
+
+            }
+            else {
+                // TODO: ACCEPT TAGGED NAMES WHEN TAGS EXIST
+                rplError(ERR_IDENTORPATHEXPECTED);
+                return;
+            }
+
+        // OPEN THE FILE
+        FS_FILE *handle;
+        BINT err=FSOpen((char *)path,FSMODE_MODIFY,&handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        rplDropData(1);
+
+       rplNewBINTPush(FSGetHandle(handle),HEXBINT);
+
+       return;
+
+
+
+    }
+
+
+
+
+
     case SDCLOSE:
     {
         // CLOSE A HANDLE
@@ -623,6 +807,128 @@ void LIB_HANDLER()
 
 
     }
+
+    case SDREADTEXT:
+    {
+        // READ THE GIVEN NUMBER OF UNICODE CHARACTERS FROM A FILE, RETURN THEM AS STRING OBJECT
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISBINT(*rplPeekData(1))) {
+            rplError(ERR_INVALIDHANDLE);
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(2))) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+        BINT64 num=rplReadBINT(rplPeekData(1));
+        BINT64 nchars=rplReadNumberAsBINT(rplPeekData(2));
+        BINT bufsize=REAL_REGISTER_STORAGE*4;
+        BYTEPTR tmpbuf=(BYTEPTR)RReg[0].data,endofstring;
+        BINT64 currentpos;
+        if(Exceptions) return;
+
+        FS_FILE *handle;
+        BINT err=FSGetFileFromHandle(num,&handle);
+        BINT f,readblock,charcount,bytecount,bufused;
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        currentpos=FSTell(handle);
+        charcount=bytecount=0;
+
+        bufused=0;
+
+        do {
+
+        readblock=(4*nchars>(bufsize-bufused))? (bufsize-bufused):4*nchars; // TRY TO READ IT ALL IN ONE BLOCK
+
+        err=FSRead((char *)(tmpbuf+bufused),readblock,handle);
+        if(err==0) {
+            rplError(ERR_ENDOFFILE);
+            return;
+        }
+
+        if(err!=readblock) readblock=err;
+
+        readblock+=bufused;
+
+        BYTEPTR lastgood,ptr;
+        lastgood=utf8rskipst((char *)tmpbuf+readblock,(char *)tmpbuf);  // FIND THE LAST GOOD UNICODE CODE POINT STARTER, MIGHT BE INCOMPLETE!
+
+        ptr=tmpbuf;
+        while((charcount<nchars)&&(ptr<lastgood)) {
+            ptr=utf8skipst((char *)ptr,(char *)lastgood);   // SKIP AND COUNT ONE CHARACTER
+            ++charcount;
+        }
+
+        bytecount+=ptr-tmpbuf;
+
+        if((charcount==nchars)||(FSEof(handle))) {
+
+            if(charcount<nchars) {
+                // THE LAST GOOD CHARACTER IS COMPLETE BECAUSE END OF FILE WAS REACHED AND NO COMBINERS WILL FOLLOW
+                bytecount+=(tmpbuf+readblock)-lastgood;
+                lastgood=tmpbuf+readblock;
+                ++charcount;
+            }
+
+            // WE HAVE THEM ALL!
+            WORDPTR newstring=rplAllocTempOb((bytecount+3)>>2);
+            if(!newstring) {
+                return;
+            }
+
+            // NOW GO BACK AND READ THE WHOLE STRING DIRECTLY INTO THE OBJECT
+            err=FSSeek(handle,currentpos,FSSEEK_SET);
+            if(err!=FS_OK) {
+                rplError(rplFSError2Error(err));
+                return;
+            }
+            err=FSRead((char *)(newstring+1),bytecount,handle);
+            if(err!=bytecount)
+            {
+                rplError(ERR_ENDOFFILE);
+                FSClose(handle);
+                return;
+            }
+
+            // EVERYTHING WAS READ CORRECTLY
+            *newstring=MAKESTRING(bytecount);
+
+            rplDropData(1);
+            rplOverwriteData(1,newstring);
+
+
+            return;
+
+
+        }
+
+        // HERE WE NEED MORE CHARACTERS AND THE FILE HAS MORE DATA
+
+        // MOVE THE SPARE BYTES TO THE START OF THE BUFFER
+        bufused=readblock-(lastgood-tmpbuf);
+        memmoveb(tmpbuf,lastgood,bufused);
+
+        } while(!FSEof(handle));
+
+        // THIS CAN'T EVER HAPPEN
+        rplError(ERR_ENDOFFILE);
+       return;
+
+
+
+    }
+
 
         // STANDARIZED OPCODES:
         // --------------------
