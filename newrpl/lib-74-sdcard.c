@@ -43,7 +43,12 @@
     CMD(SDCLOSE,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDREADTEXT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDWRITETEXT,MKTOKENINFO(11,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SDREADLINE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
+    CMD(SDREADLINE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDSEEK,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDFSIZE,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDEOF,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDOPENDIR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDNEXTFILE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -691,7 +696,7 @@ void LIB_HANDLER()
 
         // OPEN THE FILE
         FS_FILE *handle;
-        BINT err=FSOpen((char *)path,FSMODE_APPEND,&handle);
+        BINT err=FSOpen((char *)path,FSMODE_WRITE|FSMODE_APPEND,&handle);
 
         if(err!=FS_OK) {
             rplError(rplFSError2Error(err));
@@ -751,7 +756,7 @@ void LIB_HANDLER()
 
         // OPEN THE FILE
         FS_FILE *handle;
-        BINT err=FSOpen((char *)path,FSMODE_MODIFY,&handle);
+        BINT err=FSOpen((char *)path,FSMODE_WRITE|FSMODE_MODIFY,&handle);
 
         if(err!=FS_OK) {
             rplError(rplFSError2Error(err));
@@ -897,7 +902,6 @@ void LIB_HANDLER()
             if(err!=bytecount)
             {
                 rplError(ERR_ENDOFFILE);
-                FSClose(handle);
                 return;
             }
 
@@ -928,6 +932,66 @@ void LIB_HANDLER()
 
 
     }
+
+    case SDWRITETEXT:
+    {
+        // WRITE A STRING TO A FILE
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISBINT(*rplPeekData(1))) {
+            rplError(ERR_INVALIDHANDLE);
+            return;
+        }
+
+        if(!ISSTRING(*rplPeekData(2))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
+
+        BINT64 num=rplReadBINT(rplPeekData(1));
+        BYTEPTR stringstart=(BYTEPTR)(rplPeekData(2)+1);
+        BINT nbytes=rplStrSize(rplPeekData(2));
+
+        FS_FILE *handle;
+        BINT err=FSGetFileFromHandle(num,&handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        if(nbytes>0) {
+         err=FSWrite((char *)stringstart,nbytes,handle);
+
+         if(err<0) {
+          rplError(rplFSError2Error(err));
+          return;
+         }
+         if(err!=nbytes) {
+           rplError(ERR_CANTWRITE);
+           return;
+         }
+
+         }
+
+         //  DONE WRITING
+        rplDropData(2);
+
+
+            return;
+
+    }
+
+    case SDSEEK:
+    {
+
+
+    }
+
+
 
 
         // STANDARIZED OPCODES:
