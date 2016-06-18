@@ -2467,7 +2467,7 @@ void LIB_HANDLER()
 
         // BUT IGNORE IT IF THE SYMBOLIC START IS PRESENT
 
-        if(*ptr=='\'') {
+        if((*ptr=='\'')||(*ptr=='\"')) {
             RetNum=ERR_NOTMINE;
             return;
         }
