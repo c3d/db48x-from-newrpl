@@ -19,13 +19,14 @@ char *FSUnicode2OEM(char *dest,char *origin,int nchars)
 {
 int f;
 int val;
+unsigned int utf8val;
 for(f=0;f<nchars;++f)
 {
 val=ReadInt16((char *)origin);
+utf8val=cp2utf8(val);
 // ADD UNICODE -> CALCULATOR CONVERSION HERE
-if(val>0xff) val='_';		// replace UNKNOWN UNICODE CHARACTERS
-*dest=val;
-++dest;
+//if(val>0xff) val='_';		// replace UNKNOWN UNICODE CHARACTERS
+while(utf8val) { *dest++=utf8val&0xff; utf8val>>=8; }
 origin+=2;
 }
 return dest;
@@ -39,12 +40,16 @@ int val;
 val=0xffff;
 for(f=0;f<nchars;++f,dest+=2)
 {
-if(origin) val=origin[f];
+if(origin) {
+    val=utf82cp(origin,origin+4);
+    origin=utf8skip(origin,origin+4);
+    if(val>0xffff) val='_'; // FILTER ALL UNICODE CHARACTERS THAT DON'T FIT IN UCS-2
+}
 WriteInt16((char *)dest,val);
 if(!val) { val=0xffff; origin=NULL; }
 }
 
-return (origin)? (origin+f):NULL;
+return origin;
 }
 
 
