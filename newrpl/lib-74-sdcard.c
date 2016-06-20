@@ -47,6 +47,7 @@
     CMD(SDSEEKSTA,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDSEEKEND,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDSEEKCUR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDTELL,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDFILESIZE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDEOF,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDOPENDIR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
@@ -418,7 +419,7 @@ void LIB_HANDLER()
         BINT err=FSChdir((char *)path);
 
         if(err!=FS_OK) {
-            rplFSError2Error(err);
+            rplError(rplFSError2Error(err));
         }
         else rplDropData(1);
 
@@ -473,7 +474,7 @@ void LIB_HANDLER()
         BINT err=FSMkdir((char *)path);
 
         if(err!=FS_OK) {
-            rplFSError2Error(err);
+            rplError(rplFSError2Error(err));
         }
         else rplDropData(1);
 
@@ -527,7 +528,7 @@ void LIB_HANDLER()
         BINT err=FSRmdir((char *)path);
 
         if(err!=FS_OK) {
-            rplFSError2Error(err);
+            rplError(rplFSError2Error(err));
         }
         else rplDropData(1);
 
@@ -1116,6 +1117,37 @@ void LIB_HANDLER()
         return;
     }
 
+    case SDTELL:
+    {
+        // RETURN THE CURRENT OFFSET WITHIN THE FILE IN BYTES
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISBINT(*rplPeekData(1))) {
+            rplError(ERR_INVALIDHANDLE);
+            return;
+        }
+
+        BINT64 num=rplReadBINT(rplPeekData(1));
+
+        FS_FILE *handle;
+        BINT err=FSGetFileFromHandle(num,&handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        BINT64 pos=FSTell(handle);
+
+        rplDropData(1);
+        rplNewBINTPush(pos,DECBINT);
+
+        return;
+    }
+
     case SDFILESIZE:
     {
         // RETURN THE SIZE OF THE FILE IN BYTES
@@ -1179,6 +1211,172 @@ void LIB_HANDLER()
         return;
     }
 
+
+    case SDOPENDIR:
+    {
+        // OPEN A DIRECTORY FOR ENTRY SCANNING
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(1)) && !ISSTRING(*rplPeekData(1)) && !ISLIST(*rplPeekData(1))) {
+            rplError(ERR_IDENTORPATHEXPECTED);
+            return;
+        }
+
+        BYTEPTR path=(BYTEPTR)RReg[0].data;
+
+        // USE RReg[0] TO STORE THE FILE PATH
+
+        if(ISIDENT(*rplPeekData(1))) {
+            BINT pathlen=rplGetIdentLength(rplPeekData(1));
+            memmoveb(path,rplPeekData(1)+1,pathlen);
+            path[pathlen]=0;    // NULL TERMINATED STRING
+        } else
+            if(ISLIST(*rplPeekData(1))) {
+                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+
+
+
+            }
+            else if(ISSTRING(*rplPeekData(1))) {
+                // FULL PATH GIVEN
+                BINT pathlen=rplStrSize(rplPeekData(1));
+                memmoveb(path,rplPeekData(1)+1,pathlen);
+                path[pathlen]=0;    // NULL TERMINATED STRING
+
+            }
+            else {
+                // TODO: ACCEPT TAGGED NAMES WHEN TAGS EXIST
+                rplError(ERR_IDENTORPATHEXPECTED);
+                return;
+            }
+
+        // OPEN THE FILE
+        FS_FILE *handle;
+        BINT err=FSOpenDir((char *)path,&handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        rplDropData(1);
+
+       rplNewBINTPush(FSGetHandle(handle),HEXBINT);
+
+       return;
+
+
+
+    }
+
+
+    case SDNEXTFILE:
+    {
+        // GET NEXT FILE IN A DIRECTORY LISTING
+        // RETURN THE SIZE OF THE FILE IN BYTES
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISBINT(*rplPeekData(1))) {
+            rplError(ERR_INVALIDHANDLE);
+            return;
+        }
+
+        BINT64 num=rplReadBINT(rplPeekData(1));
+
+        FS_FILE *handle;
+        BINT err=FSGetFileFromHandle(num,&handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        rplDropData(1);
+
+        FS_FILE entry;
+
+        err=FSGetNextEntry(&entry,handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        // PUT THE DATA ON A LIST
+
+        WORDPTR *dsave=DSTop;
+        WORDPTR newobj=rplCreateString((BYTEPTR)entry.Name,(BYTEPTR)entry.Name+stringlen(entry.Name));
+        if(!newobj) {
+            DSTop=dsave;
+            FSReleaseEntry(&entry);
+            return;
+        }
+        rplPushData(newobj);
+
+        // PUT THE FILE ATTRIBUTES NEXT
+        BYTE attr_string[6];
+        attr_string[0]=(entry.Attr&FSATTR_RDONLY)? 'R':'_';
+        attr_string[1]=(entry.Attr&FSATTR_HIDDEN)? 'H':'_';
+        attr_string[2]=(entry.Attr&FSATTR_SYSTEM)? 'S':'_';
+        attr_string[3]=(entry.Attr&FSATTR_DIR)? 'D':'_';
+        attr_string[4]=(entry.Attr&FSATTR_VOLUME)? 'V':'_';
+        attr_string[5]=(entry.Attr&FSATTR_ARCHIVE)? 'A':'_';
+
+        newobj=rplCreateString(attr_string,attr_string+6);
+        if(!newobj) {
+            DSTop=dsave;
+            FSReleaseEntry(&entry);
+            return;
+        }
+        rplPushData(newobj);
+
+
+        // FILE SIZE
+        rplNewBINTPush(entry.FileSize,DECBINT);
+        if(Exceptions) {
+            DSTop=dsave;
+            FSReleaseEntry(&entry);
+            return;
+        }
+
+        // LAST MODIFIED DATE
+        struct compact_tm date;
+        FSGetAccessDate(&entry,&date);
+        rplBINTToRReg(0,date.tm_year+date.tm_mon*10000+date.tm_mday*1000000);
+        RReg[0].exp-=6;
+        rplNewRealFromRRegPush(0);
+        if(Exceptions) {
+            DSTop=dsave;
+            FSReleaseEntry(&entry);
+            return;
+        }
+
+        // LAST MODIFIED TIME
+
+        rplBINTToRReg(0,date.tm_sec+date.tm_min*100+date.tm_hour*10000);
+        RReg[0].exp-=4;
+        rplNewRealFromRRegPush(0);
+        if(Exceptions) {
+            DSTop=dsave;
+            FSReleaseEntry(&entry);
+            return;
+        }
+
+        // THAT'S ENOUGH DATA
+        FSReleaseEntry(&entry);
+
+
+        return;
+
+
+
+    }
 
         // STANDARIZED OPCODES:
         // --------------------
