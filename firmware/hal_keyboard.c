@@ -2688,7 +2688,7 @@ int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
 // CLEAR STATUS AREA
 ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
-DrawTextBk(STATUSAREA_X+1,ytop+1,"Mode:",halScreen.StAreaFont,0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1,"Display Mode:",halScreen.StAreaFont,0xf,0,&scr);
 DrawTextBk(STATUSAREA_X+1,ytop+1+halScreen.StAreaFont->BitmapHeight,(char *)options[option],halScreen.StAreaFont,0xf,0,&scr);
 
 
@@ -2852,11 +2852,55 @@ int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
 // CLEAR STATUS AREA
 ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
-DrawTextBk(STATUSAREA_X+1,ytop+1,"Digits:",halScreen.StAreaFont,0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1,"Display Digits:",halScreen.StAreaFont,0xf,0,&scr);
 DrawTextBk(STATUSAREA_X+1,ytop+1+halScreen.StAreaFont->BitmapHeight,(char *)&digits,halScreen.StAreaFont,0xf,0,&scr);
 
 
 rplSetSystemNumberFormat(&fmt);
+halScreen.DirtyFlag|=STACK_DIRTY;
+
+}
+
+
+
+void onUpDownKeyHandler(BINT keymsg)
+{
+BINT precision=Context.precdigits;
+
+    if(KM_KEY(keymsg)==KB_UP) precision+=8;
+    else precision-=8;
+
+    if(precision<8) precision=8;
+    if(precision>MAX_USERPRECISION) precision=MAX_USERPRECISION;
+
+
+    Context.precdigits=precision;
+
+    char digits_string[12];
+
+    stringcpy(digits_string,"0000 digits");
+
+    if(precision>=1000) { digits_string[0]=precision/1000+'0'; precision=precision%1000; }
+    else digits_string[0]=' ';
+    if(precision>=100) { digits_string[1]=precision/100+'0'; precision=precision%100; }
+    else digits_string[1]=' ';
+    if(precision>=10) { digits_string[2]=precision/10+'0'; precision=precision%10; }
+    else digits_string[2]=' ';
+    digits_string[3]=precision+'0';
+
+    halStatusAreaPopup();
+
+
+DRAWSURFACE scr;
+ggl_initscr(&scr);
+int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+// CLEAR STATUS AREA
+ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+
+DrawTextBk(STATUSAREA_X+1,ytop+1,"System precision:",halScreen.StAreaFont,0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1+halScreen.StAreaFont->BitmapHeight,digits_string,halScreen.StAreaFont,0xf,0,&scr);
+
+
 halScreen.DirtyFlag|=STACK_DIRTY;
 
 }
@@ -3420,6 +3464,12 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_SPC|SHIFT_ONHOLD, CONTEXT_ANY,&onSpcKeyHandler },
     { KM_PRESS|KB_MUL|SHIFT_ONHOLD, CONTEXT_ANY,&onMulDivKeyHandler },
     { KM_PRESS|KB_Z|SHIFT_ONHOLD, CONTEXT_ANY,&onMulDivKeyHandler },
+
+    { KM_PRESS|KB_UP|SHIFT_ONHOLD, CONTEXT_ANY,&onUpDownKeyHandler },
+    { KM_REPEAT|KB_UP|SHIFT_ONHOLD, CONTEXT_ANY,&onUpDownKeyHandler },
+    { KM_PRESS|KB_DN|SHIFT_ONHOLD, CONTEXT_ANY,&onUpDownKeyHandler },
+    { KM_REPEAT|KB_DN|SHIFT_ONHOLD, CONTEXT_ANY,&onUpDownKeyHandler },
+
 
     { KM_PRESS|KB_0|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
     { KM_PRESS|KB_1|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },

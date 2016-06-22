@@ -827,16 +827,27 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
         // SHOW OTHER LINES HERE EXCEPT THE CURRENT EDITED LINE
         BINT k;
         BINT totallines=rplStringCountLines(CmdLineText);
+        BINT startoff=-1;
+        BINT endoff;
+
         for(k=0;k<halScreen.NumLinesVisible;++k) {
         // UPDATE THE LINE
             if(halScreen.LineVisible+k<1) continue;
             if(halScreen.LineVisible+k>totallines) break;
 
-            if(halScreen.LineVisible+k==halScreen.LineCurrent) continue;
-            BINT startoff=rplStringGetLinePtr(CmdLineText,halScreen.LineVisible+k);
-            BINT endoff=rplStringGetLinePtr(CmdLineText,halScreen.LineVisible+k+1);
-            if(startoff<0) startoff=rplStrSize(CmdLineText);
-            if(endoff<0) endoff=rplStrSize(CmdLineText);
+            if(halScreen.LineVisible+k==halScreen.LineCurrent) {
+                if(startoff<0) continue;
+                startoff=endoff;
+                if(startoff<0) endoff=-1;
+                else endoff=rplStringGetNextLine(CmdLineText,startoff);
+                continue;
+            }
+            if(startoff<0) startoff=rplStringGetLinePtr(CmdLineText,halScreen.LineVisible+k);
+            else startoff=endoff;
+
+            if(startoff<0) endoff=-1;
+            else endoff=rplStringGetNextLine(CmdLineText,startoff);
+
             BYTEPTR string=(BYTEPTR)(CmdLineText+1)+startoff;
             BYTEPTR selst,selend;
             BYTEPTR strend=(BYTEPTR)(CmdLineText+1)+endoff;
@@ -855,15 +866,18 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
             xcoord=-halScreen.XVisible;
             if(selst>string) {
                 DrawTextBkN(xcoord,ytop+2+k*halScreen.CmdLineFont->BitmapHeight,(char *)string,(char *)selst,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
-                xcoord+=StringWidthN((char *)string,(char *)selst,(UNIFONT *)halScreen.CmdLineFont);
+                //xcoord+=StringWidthN((char *)string,(char *)selst,(UNIFONT *)halScreen.CmdLineFont);
+                xcoord=scr->x;
             }
             if(selend>selst) {
                 DrawTextBkN(xcoord,ytop+2+k*halScreen.CmdLineFont->BitmapHeight,(char *)selst,(char *)selend,(UNIFONT *)halScreen.CmdLineFont,0xf,0x6,scr);
-                xcoord+=StringWidthN((char *)selst,(char *)selend,(UNIFONT *)halScreen.CmdLineFont);
+                //xcoord+=StringWidthN((char *)selst,(char *)selend,(UNIFONT *)halScreen.CmdLineFont);
+                xcoord=scr->x;
             }
             if(strend>selend) {
                 DrawTextBkN(xcoord,ytop+2+k*halScreen.CmdLineFont->BitmapHeight,(char *)selend,(char *)strend,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
-                xcoord+=StringWidthN((char *)selend,(char *)strend,(UNIFONT *)halScreen.CmdLineFont);
+                //xcoord+=StringWidthN((char *)selend,(char *)strend,(UNIFONT *)halScreen.CmdLineFont);
+                xcoord=scr->x;
             }
             if(tail) {
                 ggl_cliprect(scr,xcoord,ytop+2+k*halScreen.CmdLineFont->BitmapHeight,xcoord+3,ytop+2+(k+1)*halScreen.CmdLineFont->BitmapHeight-1,0x66666666);
@@ -895,15 +909,18 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
         xcoord=-halScreen.XVisible;
         if(selst>string) {
             DrawTextBkN(xcoord,ytop+2+y,(char *)string,(char *)selst,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
-            xcoord+=StringWidthN((char *)string,(char *)selst,(UNIFONT *)halScreen.CmdLineFont);
+            //xcoord+=StringWidthN((char *)string,(char *)selst,(UNIFONT *)halScreen.CmdLineFont);
+            xcoord=scr->x;
         }
         if(selend>selst) {
             DrawTextBkN(xcoord,ytop+2+y,(char *)selst,(char *)selend,(UNIFONT *)halScreen.CmdLineFont,0xf,0x6,scr);
-            xcoord+=StringWidthN((char *)selst,(char *)selend,(UNIFONT *)halScreen.CmdLineFont);
+            //xcoord+=StringWidthN((char *)selst,(char *)selend,(UNIFONT *)halScreen.CmdLineFont);
+            xcoord=scr->x;
         }
         if(strend>selend) {
             DrawTextBkN(xcoord,ytop+2+y,(char *)selend,(char *)strend,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
-            xcoord+=StringWidthN((char *)selend,(char *)strend,(UNIFONT *)halScreen.CmdLineFont);
+            //xcoord+=StringWidthN((char *)selend,(char *)strend,(UNIFONT *)halScreen.CmdLineFont);
+            xcoord=scr->x;
         }
         if(tail) {
             ggl_cliprect(scr,xcoord,ytop+2+y,xcoord+3,ytop+2+y+halScreen.CmdLineFont->BitmapHeight-1,0x66666666);
@@ -947,15 +964,18 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
                 xcoord=-halScreen.XVisible;
                 if(selst>string) {
                     DrawTextBkN(xcoord,ytop+2+y,(char *)string,(char *)selst,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
-                    xcoord+=StringWidthN((char *)string,(char *)selst,(UNIFONT *)halScreen.CmdLineFont);
+                    //xcoord+=StringWidthN((char *)string,(char *)selst,(UNIFONT *)halScreen.CmdLineFont);
+                    xcoord=scr->x;
                 }
                 if(selend>selst) {
                     DrawTextBkN(xcoord,ytop+2+y,(char *)selst,(char *)selend,(UNIFONT *)halScreen.CmdLineFont,0xf,0x6,scr);
-                    xcoord+=StringWidthN((char *)selst,(char *)selend,(UNIFONT *)halScreen.CmdLineFont);
+                    //xcoord+=StringWidthN((char *)selst,(char *)selend,(UNIFONT *)halScreen.CmdLineFont);
+                    xcoord=scr->x;
                 }
                 if(strend>selend) {
                     DrawTextBkN(xcoord,ytop+2+y,(char *)selend,(char *)strend,(UNIFONT *)halScreen.CmdLineFont,0xf,0x0,scr);
-                    xcoord+=StringWidthN((char *)selend,(char *)strend,(UNIFONT *)halScreen.CmdLineFont);
+                    //xcoord+=StringWidthN((char *)selend,(char *)strend,(UNIFONT *)halScreen.CmdLineFont);
+                    xcoord=scr->x;
                 }
 
                 if(tail) {

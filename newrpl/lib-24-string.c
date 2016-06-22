@@ -148,6 +148,23 @@ BINT rplStringGetLinePtr(WORDPTR str,BINT line)
     return ptr-start;
 }
 
+BINT rplStringGetNextLine(WORDPTR str,BINT prevlineoff)
+{
+    if(!ISSTRING(*str)) return -1;
+    BYTEPTR start=(BYTEPTR) (str+1),ptr;
+    BINT len=STRLEN(*str);
+
+    ptr=start+prevlineoff;
+    while((ptr-start<len) && (*ptr!='\n')) ++ptr;
+
+    if(*ptr=='\n') ++ptr;
+
+    if(ptr-start>len) return -1;
+
+    return ptr-start;
+}
+
+
 BINT rplStringCountLines(WORDPTR str)
 {
     if(!ISSTRING(*str)) return -1;

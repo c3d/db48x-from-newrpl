@@ -532,6 +532,8 @@ void rplSetStringLength(WORDPTR string,BINT length);
 BINT rplStrLen(WORDPTR string);
 BINT rplStrSize(WORDPTR string);
 BINT rplStringGetLinePtr(WORDPTR str,BINT line);
+BINT rplStringGetNextLine(WORDPTR str,BINT prevlineoff);
+
 BINT rplStringCountLines(WORDPTR str);
 
 WORDPTR rplCreateString(BYTEPTR text,BYTEPTR textend);
