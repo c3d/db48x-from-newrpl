@@ -5,6 +5,6 @@ CONFIG -= qt
 
 SOURCES += main.c
 
-include(deployment.pri)
-qtcAddDeployment()
-
+install_bin.path = $$PWD/../../../tools-bin
+install_bin.files = $$OUT_PWD/bmp2font
+INSTALLS += install_bin

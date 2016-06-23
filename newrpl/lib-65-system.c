@@ -32,7 +32,9 @@
     CMD(TICKS,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(MEMCHECK,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(MEMFIX,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(READCFI,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+    CMD(READCFI,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(PEEK,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(POKE,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
 //    ECMD(CMDNAME,"CMDNAME",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
@@ -138,6 +140,64 @@ void LIB_HANDLER()
 
      return;
     }
+
+    case PEEK:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISBINT(*rplPeekData(1))) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+       BINT64 addr=rplReadBINT(rplPeekData(1));
+
+       if((addr<0)||(addr>0xffffffffLL)) {
+        rplError(ERR_ARGOUTSIDEDOMAIN);
+        return;
+       }
+
+       rplDropData(1);
+
+       rplNewBINTPush((BINT64) (*(NUMBER2PTR(addr&0xffffffff))),HEXBINT);
+
+       return;
+    }
+    case POKE:
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISBINT(*rplPeekData(1))) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+        if(!ISBINT(*rplPeekData(2))) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+       BINT64 addr=rplReadBINT(rplPeekData(2));
+       BINT64 value=rplReadBINT(rplPeekData(1));
+
+       if((addr<0)||(addr>0xffffffffLL)) {
+        rplError(ERR_ARGOUTSIDEDOMAIN);
+        return;
+       }
+
+
+       rplDropData(2);
+       WORDPTR ptr=NUMBER2PTR(addr&0xffffffff);
+       *ptr=(WORD)(value&0xffffffffLL);
+
+       return;
+    }
+
+
+
         /*
     case DONUM:
     {

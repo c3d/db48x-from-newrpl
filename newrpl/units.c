@@ -1591,7 +1591,7 @@ const char * const siprefix_text[]={
     "d",
     "c",
     "m",
-    "μ",
+    "µ",
     "n",
     "p",
     "f",

@@ -149,6 +149,17 @@ const systemflag const flags_names[]= {
 };
 
 
+
+
+
+
+
+
+
+
+
+
+
 BINT rplSetSystemFlag(BINT flag)
 {
     if(flag>-1 || flag<-128) return -1;
@@ -346,17 +357,31 @@ BINT rplTestSystemFlagByIdent(WORDPTR ident)
 
 
 // RETURN THE SYSTEM LOCALE WORD, CONTAINING THE CHARACTERS TO BE USED FOR NUMBERS
-WORD rplGetSystemLocale()
+UBINT64 rplGetSystemLocale()
 {
     WORDPTR systemlist=rplGetSettings((WORDPTR)numfmt_ident);
     if(systemlist) {
         if(ISLIST(*systemlist)) {
         WORDPTR localestring=rplGetListElement(systemlist,1);
-        if(localestring && (ISSTRING(*localestring))) return *(localestring+1);
+        // EXPAND THE STRING INTO FOUR UNICODE CODEPOINTS
+        if(localestring && (ISSTRING(*localestring))) {
+            UBINT64 result;
+            BYTEPTR locptr=(BYTEPTR)(localestring+1),locend=(BYTEPTR)rplSkipOb(localestring);
+            result=utf82cp((char *)locptr,(char *)locend);
+            locptr=(BYTEPTR)utf8skip((char *)locptr,(char *)locend);
+            result|=((UBINT64)(utf82cp((char *)locptr,(char *)locend)&0xffff))<<16;
+            locptr=(BYTEPTR)utf8skip((char *)locptr,(char *)locend);
+            result|=((UBINT64)(utf82cp((char *)locptr,(char *)locend)&0xffff))<<32;
+            locptr=(BYTEPTR)utf8skip((char *)locptr,(char *)locend);
+            result|=((UBINT64)(utf82cp((char *)locptr,(char *)locend)&0xffff))<<48;
+            locptr=(BYTEPTR)utf8skip((char *)locptr,(char *)locend);
+
+            return result;
+        }
         }
     }
     // INVALID FLAGS, JUST RETURN A DEFAULT SETTING
-    return ((WORD)'.') | (((WORD)' ')<<8) | (((WORD)' ')<<16) | (((WORD)',')<<24);
+    return SYSTEM_DEFAULT_LOCALE;
 
 }
 
@@ -371,17 +396,30 @@ void rplGetSystemNumberFormat(NUMFORMAT *fmt)
     if(systemlist) {
         if(ISLIST(*systemlist)) {
         WORDPTR localestring=rplGetListElement(systemlist,1);
-        if(localestring && (ISSTRING(*localestring))) fmt->Locale=*(localestring+1);
-        else fmt->Locale=((WORD)'.') | (((WORD)' ')<<8) | (((WORD)' ')<<16) | (((WORD)',')<<24);
+        if(localestring && (ISSTRING(*localestring))) {
+            UBINT64 result;
+            BYTEPTR locptr=(BYTEPTR)(localestring+1),locend=(BYTEPTR)rplSkipOb(localestring);
+            result=utf82cp((char *)locptr,(char *)locend);
+            locptr=(BYTEPTR)utf8skip((char *)locptr,(char *)locend);
+            result|=((UBINT64)(utf82cp((char *)locptr,(char *)locend)&0xffff))<<16;
+            locptr=(BYTEPTR)utf8skip((char *)locptr,(char *)locend);
+            result|=((UBINT64)(utf82cp((char *)locptr,(char *)locend)&0xffff))<<32;
+            locptr=(BYTEPTR)utf8skip((char *)locptr,(char *)locend);
+            result|=((UBINT64)(utf82cp((char *)locptr,(char *)locend)&0xffff))<<48;
+            locptr=(BYTEPTR)utf8skip((char *)locptr,(char *)locend);
+
+            fmt->Locale=result;
+        }
+        else fmt->Locale=SYSTEM_DEFAULT_LOCALE;
         WORDPTR nfmt=rplGetListElement(systemlist,2);
         if(nfmt && (ISBINT(*nfmt))) fmt->SmallFmt=(BINT)rplReadBINT(nfmt);
-        else fmt->SmallFmt=12|FMT_SCI|FMT_NOZEROEXP|FMT_USECAPITALS;
+        else fmt->SmallFmt=12|FMT_SCI|FMT_SUPRESSEXP|FMT_USECAPITALS;
         nfmt=rplGetListElement(systemlist,3);
         if(nfmt && (ISBINT(*nfmt))) fmt->MiddleFmt=(BINT)rplReadBINT(nfmt);
         else fmt->MiddleFmt=12|FMT_USECAPITALS;
         nfmt=rplGetListElement(systemlist,4);
         if(nfmt && (ISBINT(*nfmt))) fmt->BigFmt=(BINT)rplReadBINT(nfmt);
-        else fmt->BigFmt=12|FMT_SCI|FMT_NOZEROEXP|FMT_USECAPITALS;
+        else fmt->BigFmt=12|FMT_SCI|FMT_SUPRESSEXP|FMT_USECAPITALS;
         nfmt=rplGetListElement(systemlist,5);
         if(nfmt && (ISNUMBER(*nfmt))) rplReadNumberAsReal(nfmt,&(fmt->SmallLimit));
         else {
@@ -400,10 +438,10 @@ void rplGetSystemNumberFormat(NUMFORMAT *fmt)
     }
     }
 
-    fmt->Locale=((WORD)'.') | (((WORD)' ')<<8) | (((WORD)' ')<<16) | (((WORD)',')<<24);
-    fmt->SmallFmt=12|FMT_SCI|FMT_NOZEROEXP|FMT_USECAPITALS;
+    fmt->Locale=SYSTEM_DEFAULT_LOCALE;
+    fmt->SmallFmt=12|FMT_SCI|FMT_SUPRESSEXP|FMT_USECAPITALS;
     fmt->MiddleFmt=12|FMT_USECAPITALS;
-    fmt->BigFmt=12|FMT_SCI|FMT_NOZEROEXP|FMT_USECAPITALS;
+    fmt->BigFmt=12|FMT_SCI|FMT_SUPRESSEXP|FMT_USECAPITALS;
     rplReadNumberAsReal((WORDPTR)one_bint,&(fmt->SmallLimit));
     fmt->SmallLimit.exp=-12;
     rplReadNumberAsReal((WORDPTR)one_bint,&(fmt->BigLimit));
@@ -418,12 +456,33 @@ void rplSetSystemNumberFormat(NUMFORMAT *fmt)
     // CREATE THE LIST WITH THE NUMFORMAT
     WORDPTR *savestk=DSTop;
 
+    // MAKE THE LOCALE STRING
+
+    BYTEPTR locstr=(BYTEPTR)RReg[0].data;
+
+    WORD uchar;
+
+    uchar=cp2utf8((int)DECIMAL_DOT(fmt->Locale));
+    while(uchar) { *locstr++=uchar&0xff; uchar>>=8; }
+
+    uchar=cp2utf8((int)THOUSAND_SEP(fmt->Locale));
+    while(uchar) { *locstr++=uchar&0xff; uchar>>=8; }
+
+    uchar=cp2utf8((int)FRAC_SEP(fmt->Locale));
+    while(uchar) { *locstr++=uchar&0xff; uchar>>=8; }
+
+    uchar=cp2utf8((int)ARG_SEP(fmt->Locale));
+    while(uchar) { *locstr++=uchar&0xff; uchar>>=8; }
+
+
+    WORDPTR item=rplCreateString((BYTEPTR)RReg[0].data,locstr);
+    if(!item) return;
+
     // COPY TO RReg TO PROTECT FROM GARBAGE COLLECTION
     copyReal(&RReg[0],&(fmt->SmallLimit));
     copyReal(&RReg[1],&(fmt->BigLimit));
 
-    WORDPTR item=rplCreateString((BYTEPTR)&(fmt->Locale),((BYTEPTR)&(fmt->Locale))+4);
-    if(!item) return;
+
     rplPushData(item);
     rplNewBINTPush(fmt->SmallFmt,DECBINT);
     if(Exceptions) { DSTop=savestk; return; }

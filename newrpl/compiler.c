@@ -849,6 +849,25 @@ void rplDecompAppendChar(BYTE c)
 
 }
 
+void rplDecompAppendUTF8(WORD utf8bytes)
+{
+    while(utf8bytes) {
+    *((BYTEPTR)DecompStringEnd)=utf8bytes&0xff;
+    DecompStringEnd=(WORDPTR)(((BYTEPTR)DecompStringEnd)+1);
+    utf8bytes>>=8;
+    }
+
+    if(!(((PTR2NUMBER)DecompStringEnd)&3)) {
+        if( ((WORDPTR)((((PTR2NUMBER)DecompStringEnd)+3)&~((PTR2NUMBER)3)))+TEMPOBSLACK>=TempObSize) {
+            // ENLARGE TEMPOB AS NEEDED
+            growTempOb((((((BYTEPTR)DecompStringEnd)+3-(BYTEPTR)TempOb))>>2)+TEMPOBSLACK);
+        }
+    }
+
+}
+
+
+
 void rplDecompAppendString(BYTEPTR str)
 {
     BINT len=stringlen((char *)str);

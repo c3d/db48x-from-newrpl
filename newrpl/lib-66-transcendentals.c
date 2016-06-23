@@ -2387,6 +2387,11 @@ void LIB_HANDLER()
         }
 
         BINT iscplx=x.flags&F_NEGATIVE;
+        if(iscplx && !rplTestSystemFlag(FL_COMPLEXMODE)) {
+        rplError(ERR_ARGOUTSIDEDOMAIN);
+        return;
+        }
+
 
         x.flags&=~F_NEGATIVE;
 

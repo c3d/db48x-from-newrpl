@@ -684,14 +684,23 @@ void LIB_HANDLER()
         BINT isapprox=0;
         BINT tlen=TokenLen;
 
-        WORD  locale=rplGetSystemLocale();
+        UBINT64  locale=rplGetSystemLocale();
 
 
-        newRealFromText(&RReg[0],(char *)strptr,utf8nskip((char *)strptr,(char *)BlankStart,tlen),(WORD)locale);
+        newRealFromText(&RReg[0],(char *)strptr,utf8nskip((char *)strptr,(char *)BlankStart,tlen),locale);
 
 
         if(RReg[0].flags&F_ERROR) {
             // THERE WAS SOME ERROR DURING THE CONVERSION, PROBABLY A SYNTAX ERROR
+            // THE EXPONENT IN THE REAL GIVES MORE ERROR INFO
+            // THE LEN GIVES POSITION OF ERROR
+
+            if(RReg[0].exp>3) {
+                // THERE WAS AT LEAST SOME NUMBERS
+                    RetNum=ERR_SYNTAX;
+                    return;
+            }
+
             RetNum=ERR_NOTMINE;
             return;
         }
@@ -746,6 +755,7 @@ void LIB_HANDLER()
 
         rplGetSystemNumberFormat(&fmt);
 
+
         sign=realnum.flags&F_NEGATIVE;
 
         realnum.flags^=sign;
@@ -763,7 +773,7 @@ void LIB_HANDLER()
 
         BYTEPTR string;
 
-        BINT len=formatlengthReal(&realnum,Format);
+        BINT len=formatlengthReal(&realnum,Format,fmt.Locale);
 
         // RESERVE THE MEMORY FIRST
         rplDecompAppendString2(0,len);

@@ -695,6 +695,7 @@ extern int FSCreate(char *name,int attr,FS_FILE **fileptr);
  * \sa FSCreate FSClose FSGetNameType FS_FILE FSMODE_XXX constants
  */
 extern int FSOpen(char *name, int mode, FS_FILE **fileptr);
+
 /*!
  * \brief Close an open file.
  *

@@ -2467,7 +2467,7 @@ void LIB_HANDLER()
 
         // BUT IGNORE IT IF THE SYMBOLIC START IS PRESENT
 
-        if(*ptr=='\'') {
+        if((*ptr=='\'')||(*ptr=='\"')) {
             RetNum=ERR_NOTMINE;
             return;
         }
@@ -2574,7 +2574,7 @@ void LIB_HANDLER()
             BINT totalsize=rplObjSize(DecompileObject);
             BINT needmult=0;
             BINT Format=4 | ((CurOpcode==OPCODE_DECOMPEDIT)? FMT_CODE:0);  // SIMPLE FORMAT FOR ALL EXPONENTS, ONLY 4 DECIMAL PLACES IS ENOUGH
-            WORD Locale=rplGetSystemLocale();
+            UBINT64 Locale=rplGetSystemLocale();
 
             offset+=rplObjSize(DecompileObject+1);  // SKIP THE MAIN VALUE
 
@@ -2621,7 +2621,7 @@ void LIB_HANDLER()
 
                         BYTEPTR string;
 
-                        BINT len=formatlengthReal(&rnum,Format);
+                        BINT len=formatlengthReal(&rnum,Format,Locale);
 
                         // RESERVE THE MEMORY FIRST
                         rplDecompAppendString2(0,len);
@@ -2640,7 +2640,7 @@ void LIB_HANDLER()
                         rplDecompAppendChar('/');
 
 
-                        len=formatlengthReal(&rden,Format);
+                        len=formatlengthReal(&rden,Format,Locale);
 
                         // RESERVE THE MEMORY FIRST
                         rplDecompAppendString2(0,len);
@@ -2664,7 +2664,7 @@ void LIB_HANDLER()
 
                         BYTEPTR string;
 
-                        BINT len=formatlengthReal(&rnum,Format);
+                        BINT len=formatlengthReal(&rnum,Format,Locale);
 
                         // RESERVE THE MEMORY FIRST
                         rplDecompAppendString2(0,len);
