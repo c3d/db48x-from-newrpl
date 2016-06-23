@@ -2876,16 +2876,16 @@ BINT precision=Context.precdigits;
 
     Context.precdigits=precision;
 
-    char digits_string[12];
+    char digits_string[12],empty=' ';
 
     stringcpy(digits_string,"0000 digits");
 
-    if(precision>=1000) { digits_string[0]=precision/1000+'0'; precision=precision%1000; }
-    else digits_string[0]=' ';
-    if(precision>=100) { digits_string[1]=precision/100+'0'; precision=precision%100; }
-    else digits_string[1]=' ';
-    if(precision>=10) { digits_string[2]=precision/10+'0'; precision=precision%10; }
-    else digits_string[2]=' ';
+    if(precision>=1000) { digits_string[0]=precision/1000+'0'; precision=precision%1000; empty='0'; }
+    else digits_string[0]=empty;
+    if(precision>=100) { digits_string[1]=precision/100+'0'; precision=precision%100; empty='0'; }
+    else digits_string[1]=empty;
+    if(precision>=10) { digits_string[2]=precision/10+'0'; precision=precision%10; empty='0'; }
+    else digits_string[2]=empty;
     digits_string[3]=precision+'0';
 
     halStatusAreaPopup();
