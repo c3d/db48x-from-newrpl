@@ -117,7 +117,7 @@ void LIB_HANDLER()
             // NEED TO OBTAIN THE SIZE IN WORDS FIRST
             // GIVEN AS A HEX NUMBER
 
-            if(TokenLen!=(BYTEPTR)BlankStart-(BYTEPTR)TokenStart) {
+            if((BINT)TokenLen!=(BYTEPTR)BlankStart-(BYTEPTR)TokenStart) {
                 // THERE'S UNICODE CHARACTERS IN BETWEEN, THAT MAKES IT AN INVALID STRING
                 RetNum=ERR_SYNTAX;
                 return;
@@ -171,7 +171,7 @@ void LIB_HANDLER()
             *ScratchPointer4&=~0x00100000;
         }
 
-        while((CompileEnd-ScratchPointer4-1)<OBJSIZE(*ScratchPointer4))
+        while((CompileEnd-ScratchPointer4-1)<(BINT)OBJSIZE(*ScratchPointer4))
         {
             do {
                 if((*ptr>='0')&&(*ptr<='9')) dig=(*ptr+4);
@@ -230,7 +230,7 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
             // DECOMPILE FONT
 
-            rplDecompAppendString("FONTDATA ");
+            rplDecompAppendString((BYTEPTR)"FONTDATA ");
             BINT size=OBJSIZE(*DecompileObject);
             BINT k,zero=1,nibble;
             for(k=4;k>=0;--k) {
@@ -253,19 +253,19 @@ void LIB_HANDLER()
             // LAST PACKET HAS 2 LSB BITS TO COMPLETE THE 32-BIT WORDS
             // AND 4-BIT CHECKSUM. THE CHECKSUM IS THE SUM OF THE (16) 2-BIT PACKS IN THE WORD, MODULO 15
 
-            BYTEPTR encoder[7];
+            BYTE encoder[7];
 
             encoder[6]=0;
 
-            WORDPTR ptr=Decompileobject+1;
+            WORDPTR ptr=DecompileObject+1;
             BINT nwords=0;
 
             while(size) {
                 // ENCODE THE 6 CHARACTERS
                 int k;
                 BINT chksum=0;
-                for(k=0;k<5;++k) { encoder[k]=(*ptr>>(26-6*k))&0x3f; chksum+=encoder[k]&3+(encoder[f]>>2)&3+(encoder[k]>>4)&3; }
-                encoder[5]=*ptr&3;
+                for(k=0;k<5;++k) { encoder[k]=((*ptr)>>(26-6*k))&0x3f; chksum+=(encoder[k]&3)+((encoder[k]>>2)&3)+((encoder[k]>>4)&3); }
+                encoder[5]=(*ptr)&3;
                 chksum+=*ptr&3;
                 encoder[5]|=(chksum&0xf)<<2;
 

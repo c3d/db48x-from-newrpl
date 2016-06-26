@@ -1465,3 +1465,41 @@ WORDPTR uiExtractSelection()
 
     return newstr;
 }
+
+
+BINT uiDeleteSelection()
+{
+    if(!(halScreen.CmdLineState&CMDSTATE_OPEN)) return 0;
+
+    if(halScreen.SelStartLine<0) return 0;
+    if(halScreen.SelEndLine<0) return 0;
+
+    // COMMIT ANY CHANGES TO THE CURRENT LINE
+    if(halScreen.LineIsModified>0) uiModifyLine(0);
+    if(Exceptions) return 0;
+
+
+    BINT selst=rplStringGetLinePtr(CmdLineText,halScreen.SelStartLine)+halScreen.SelStart;
+    BINT selend=rplStringGetLinePtr(CmdLineText,halScreen.SelEndLine)+halScreen.SelEnd;
+    BINT cursorpos=rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent)+halScreen.CursorPosition;
+
+    if(selend<=selst) return 0;
+
+    uiSetCurrentLine(halScreen.SelStartLine);
+    uiMoveCursor(halScreen.SelStart);
+    uiRemoveCharacters(utf8nlen((char *)(CmdLineText+1)+selst,(char *)(CmdLineText+1)+selend));
+
+    // NOW MOVE BACK TO THE PREVIOUS CURSOR POSITION
+    if(cursorpos>selend) cursorpos-=selend-selst;
+    else if(cursorpos>selst) cursorpos=selst;
+
+    uiSetCurrentLine(uiGetLinebyOffset(cursorpos,0));
+
+    uiMoveCursor(cursorpos);
+
+    halScreen.SelEndLine=halScreen.SelStartLine=-1;
+    halScreen.SelEnd=halScreen.SelStart=0;
+
+    return 1;
+
+}

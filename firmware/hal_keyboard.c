@@ -1758,6 +1758,44 @@ void cancelKeyHandler(BINT keymsg)
 
 
 
+void cutclipKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()&CONTEXT_STACK) {
+            // ACTION WHEN IN THE STACK
+                uiCmdRunTransparent(CMD_CUTCLIP,1,1);
+                if(Exceptions) {
+                    // TODO: SHOW ERROR MESSAGE
+                    halShowErrorMsg();
+                    Exceptions=0;
+                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+            halScreen.DirtyFlag|=STACK_DIRTY;
+        }
+
+    }
+    else {
+        // ACTION INSIDE THE EDITOR
+            WORDPTR string=uiExtractSelection();
+
+            if(string) {
+                rplPushData(string);
+                uiCmdRunTransparent(CMD_CUTCLIP,1,0);
+            if(Exceptions) {
+                // TODO: SHOW ERROR MESSAGE
+                halShowErrorMsg();
+                Exceptions=0;
+            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+
+            uiDeleteSelection();
+        halScreen.DirtyFlag|=STACK_DIRTY;
+    }
+
+
+    }
+}
+
 void copyclipKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
@@ -1793,7 +1831,6 @@ void copyclipKeyHandler(BINT keymsg)
 
     }
 }
-
 
 void pasteclipKeyHandler(BINT keymsg)
 {
@@ -3261,6 +3298,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_RT|SHIFT_LS, CONTEXT_ANY,&lsrightKeyHandler },
     { KM_PRESS|KB_LF|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&copyclipKeyHandler },
     { KM_PRESS|KB_RT|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&pasteclipKeyHandler },
+    { KM_PRESS|KB_DN|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&cutclipKeyHandler },
     { KM_PRESS|KB_LF|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&lsleftKeyHandler },
     { KM_PRESS|KB_RT|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&lsrightKeyHandler },
     { KM_PRESS|KB_LF|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&copyclipKeyHandler },
