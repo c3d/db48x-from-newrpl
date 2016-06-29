@@ -30,7 +30,7 @@ int nentries;
 unsigned char checksum;
 unsigned char buffer[32],*morebuff;
 unsigned char *ptr;
-unsigned char shortn[13];
+unsigned char shortn[35];   // 3*11+'.'+ '\000' CHARACTERS
 
 
 if(!FSystem.Init) return FS_ERROR;
@@ -91,7 +91,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	}
 	// VERIFY THAT SHORT ENTRY FOLLOWS LONG NAME
 	
-	if( ((ptr[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) || (*ptr==0) || (*ptr==0xe5)) {
+    if( ((ptr[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) || (*ptr==0) || (*ptr==0xe5)) {
 //	printf("no valid shortname follows\n");
 //	keyb_getkeyM(1);
 
@@ -123,7 +123,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 //	printf("All valid!!!\n");
 	
 	// VALID ENTRY FOUND, FILL STRUCTURE AND RETURN
-	entry->Name=(char *)simpmallocb(nentries*13+1);
+    entry->Name=(char *)simpmallocb(nentries*13*3+1); // ALLOCATE 3-BYTES PER CHARACTER (MINIMUM FOR UCS-2 TO UTF-8 ENCODING)
 	if(entry->Name==NULL) {
 	simpfree(morebuff);
 	return FS_ERROR;
@@ -131,12 +131,13 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	
 	ptr-=11;
 	// REPACK LONG NAME
+    char *nameptr=entry->Name;
 	for(order=1;order<nentries;++order)
 	{
-    FSPackName(entry->Name+13*(order-1),(char *)ptr-(order<<5));
+    nameptr=FSPackName(nameptr,(char *)ptr-(order<<5));
 	}
-    FSPackName(entry->Name+13*(order-1),(char *)buffer);
-	entry->Name[13*nentries]=0;		// FORCE NULL-TERMINATED STRING
+    nameptr=FSPackName(nameptr,(char *)buffer);
+    *nameptr=0;		// FORCE NULL-TERMINATED STRING
 
 	memmoveb(buffer,ptr,32);		// COPY MAIN (SHORT) ENTRY TO buffer
 	simpfree(morebuff);
@@ -170,7 +171,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	if(namelen>12) continue;			// CANNOT BE A SHORT NAME
 	diroffset=dir->CurrentOffset-32;
 	nentries=0;
-	entry->Name=(char *)simpmallocb(13);
+    entry->Name=(char *)simpmallocb(35);
 	if(entry->Name==NULL)
 		return FS_ERROR;
 	

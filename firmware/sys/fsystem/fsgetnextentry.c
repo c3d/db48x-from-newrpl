@@ -80,7 +80,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	continue;
 	}
 	// VALID ENTRY FOUND, FILL STRUCTURE AND RETURN
-	entry->Name=(char *)simpmallocb(nentries*13+1);
+    entry->Name=(char *)simpmallocb(nentries*13*3+1);
 	if(entry->Name==NULL) {
 	simpfree(morebuff);
 	return FS_ERROR;
@@ -88,12 +88,13 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	
 	ptr-=11;
 	// REPACK LONG NAME
+    char *nameptr=entry->Name;
 	for(order=1;order<nentries;++order)
 	{
-    FSPackName(entry->Name+13*(order-1),(char *)ptr-(order<<5));
+    nameptr=FSPackName(nameptr,(char *)ptr-(order<<5));
 	}
-    FSPackName(entry->Name+13*(order-1),(char *)buffer);
-	entry->Name[13*nentries]=0;		// FORCE NULL-TERMINATED STRING
+    nameptr=FSPackName(nameptr,(char *)buffer);
+    *nameptr=0;		// FORCE NULL-TERMINATED STRING
 
 	memmoveb(buffer,ptr,32);
 	simpfree(morebuff);
@@ -104,7 +105,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	// IT'S A SHORT NAME ENTRY
 	diroffset=dir->CurrentOffset-32;
 	nentries=0;
-	entry->Name=(char *)simpmallocb(13);
+    entry->Name=(char *)simpmallocb(35);
 	if(entry->Name==NULL) return FS_ERROR;
     FSPackShortName(entry->Name,(char *)buffer);
 	}
