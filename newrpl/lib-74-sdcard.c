@@ -1347,8 +1347,8 @@ void LIB_HANDLER()
 
         // LAST MODIFIED DATE
         struct compact_tm date;
-        FSGetAccessDate(&entry,&date);
-        rplBINTToRReg(0,(BINT64)date.tm_year+(BINT64)date.tm_mon*10000+(BINT64)date.tm_mday*1000000);
+        FSGetWriteTime(&entry,&date);
+        rplBINTToRReg(0,(BINT64)date.tm_year+1900+(BINT64)(date.tm_mon+1)*10000+(BINT64)date.tm_mday*1000000);
         RReg[0].exp-=6;
         rplNewRealFromRRegPush(0);
         if(Exceptions) {

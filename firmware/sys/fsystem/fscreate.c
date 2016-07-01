@@ -154,7 +154,7 @@ FSConvert2ShortEntry(tname,(cr->NameFlags&1)? cr->ShortNum:0);
 int f;
 
 k=1;
-if(cr->NameFlags&2) k+=(stringlen((char *)file->Name)+12)/13;
+if(cr->NameFlags&2) k+=(utf8len((char *)file->Name)+12)/13;
 
 file->DirEntryNum=k;
 
@@ -215,13 +215,12 @@ if(cr->NameFlags&2) {
 	checksum= (((checksum<<7)&0x80) | ((checksum>>1)&0x7f)) + path[f];
 	}
 	
-	f=0;
 	g=k-1;
+    char *nameptr=file->Name;
 	//printf("long entries=%d\n",g);
 	while(g--) {
 	path-=32;
-	FSUnpackName(file->Name+13*f,path);
-	++f;
+    nameptr=FSUnpackName(nameptr,path);
 	path[13]=checksum;
 	path[11]=FSATTR_LONGNAME;
 	path[0]=f;

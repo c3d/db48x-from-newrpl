@@ -46,30 +46,6 @@ SOURCES +=\
     newrpl/errors.c \
     newrpl/gc.c \
     newrpl/lam.c \
-    newrpl/lib-20-comments.c \
-    newrpl/lib-24-string.c \
-    newrpl/lib-28-dirs.c \
-    newrpl/lib-30-complex.c \
-    newrpl/lib-32-lam.c \
-    newrpl/lib-48-angles.c \
-    newrpl/lib-52-matrix.c \
-    newrpl/lib-54-units.c \
-    newrpl/lib-56-symbolic.c \
-    newrpl/lib-62-lists.c \
-    newrpl/lib-64-arithmetic.c \
-    newrpl/lib-65-system.c \
-    newrpl/lib-66-transcendentals.c \
-    newrpl/lib-68-flags.c \
-    newrpl/lib-70-binary.c \
-    newrpl/lib-72-stack.c \
-    newrpl/lib-4080-localenv.c \
-    newrpl/lib-4090-overloaded.c \
-    newrpl/lib-common.c \
-    newrpl/lib-eight-docol.c \
-    newrpl/lib-nine-docol2.c \
-    newrpl/lib-ten-reals.c \
-    newrpl/lib-twelve-bint.c \
-    newrpl/lib-two-ident.c \
     newrpl/lists.c \
     newrpl/matrix.c \
     newrpl/units.c \
@@ -204,7 +180,32 @@ SOURCES +=\
     firmware/sys/fsystem/fsystem.c \
     firmware/sys/fsystem/misalign.c \
     firmware/sys/fsystem/fsallocator.c \
-    newrpl/lib-74-sdcard.c
+    newrpl/lib-4080-localenv.c \
+    newrpl/lib-4090-overloaded.c \
+    newrpl/lib-common.c \
+    newrpl/lib-two-ident.c \
+    newrpl/lib-eight-docol.c \
+    newrpl/lib-nine-docol2.c \
+    newrpl/lib-ten-reals.c \
+    newrpl/lib-twelve-bint.c \
+    newrpl/lib-20-comments.c \
+    newrpl/lib-24-string.c \
+    newrpl/lib-28-dirs.c \
+    newrpl/lib-30-complex.c \
+    newrpl/lib-32-lam.c \
+    newrpl/lib-48-angles.c \
+    newrpl/lib-52-matrix.c \
+    newrpl/lib-54-units.c \
+    newrpl/lib-56-symbolic.c \
+    newrpl/lib-62-lists.c \
+    newrpl/lib-64-arithmetic.c \
+    newrpl/lib-65-system.c \
+    newrpl/lib-66-transcendentals.c \
+    newrpl/lib-68-flags.c \
+    newrpl/lib-70-binary.c \
+    newrpl/lib-72-stack.c \
+    newrpl/lib-74-sdcard.c \
+    newrpl/lib-80-fonts.c
 
 HEADERS  += \
     firmware/include/ggl.h \

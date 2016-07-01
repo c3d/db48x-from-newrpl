@@ -173,7 +173,7 @@ extern int FSFlushFATCache(FS_VOLUME *fs);
 extern char *FSUnicode2OEM(char *dest,char *origin,int nchars);
 extern char *FSOEM2Unicode(char *origin,char *dest,int nchars);
 extern char *FSPackName(char *name,char *direntry);
-extern void FSUnpackName(char *name,char *direntry);
+extern char *FSUnpackName(char *name,char *direntry);
 extern void FSPackShortName(char *name,char *direntry);
 extern int FSConvert2ShortEntry(char *name,int minnum);
 extern int FSNameCompareRoot(char *name1,char *name2);

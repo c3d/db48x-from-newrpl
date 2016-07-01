@@ -32,10 +32,13 @@ unsigned int utf8val;
 for(f=0;f<nchars;++f)
 {
 val=ReadInt16((char *)origin);
+if(!val) *dest++=0;
+else {
 utf8val=cp2utf8(val);
 // ADD UNICODE -> CALCULATOR CONVERSION HERE
 //if(val>0xff) val='_';		// replace UNKNOWN UNICODE CHARACTERS
 while(utf8val) { *dest++=utf8val&0xff; utf8val>>=8; }
+}
 origin+=2;
 }
 return dest;
@@ -74,11 +77,11 @@ return FSUnicode2OEM(name,direntry+28,2);
 
 // PUT 13 CHARACTERS INTO A LONG DIRECTORY ENTRY
 // CONVERTING FROM UTF-8 TO UCS-2
-void FSUnpackName(char *name,char *direntry)
+char * FSUnpackName(char *name,char *direntry)
 {
 name=FSOEM2Unicode(name,direntry+1,5);
 name=FSOEM2Unicode(name,direntry+14,6);
-FSOEM2Unicode(name,direntry+28,2);
+return FSOEM2Unicode(name,direntry+28,2);
 }
 
 
