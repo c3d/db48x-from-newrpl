@@ -360,6 +360,7 @@ void rplNumberToRReg(int num,WORDPTR number)
 BINT64 rplReadNumberAsBINT(WORDPTR number)
 {
     BINT64 value;
+    if(ISANGLE(*number)) ++number;
     if(ISREAL(*number)) {
         REAL dec;
         rplReadReal(number,&dec);
@@ -386,6 +387,7 @@ BINT64 rplReadNumberAsBINT(WORDPTR number)
 
 void rplReadNumberAsReal(WORDPTR number,REAL*dec)
 {
+    if(ISANGLE(*number)) ++number;
     if(ISREAL(*number)) rplReadReal(number,dec);
     else if(ISBINT(*number))  {
         // PROVIDE STORAGE

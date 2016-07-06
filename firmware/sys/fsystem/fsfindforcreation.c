@@ -31,7 +31,7 @@ unsigned char checksum;
 int nbytesread;
 unsigned char buffer[32],*morebuff;
 unsigned char *ptr;
-unsigned char shortn[13];
+unsigned char shortn[35];
 unsigned char *shname;
 unsigned char *newname;
 unsigned char *entryname;
@@ -188,12 +188,13 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 
 	ptr-=11;
 	// REPACK LONG NAME
+    unsigned char *entrynameptr=entryname;
 	for(order=1;order<nentries;++order)
 	{
-    FSPackName((char *)entryname+13*(order-1),(char *)ptr-(order<<5));
+    entrynameptr=(unsigned char *)FSPackName((char *)entrynameptr,(char *)ptr-(order<<5));
 	}
-    FSPackName((char *)entryname+13*(order-1),(char *)buffer);
-	entryname[13*nentries]=0;		// FORCE NULL-TERMINATED STRING
+    entrynameptr=(unsigned char *)FSPackName((char *)entrynameptr,(char *)buffer);
+    *entrynameptr=0;		// FORCE NULL-TERMINATED STRING
 
 	memmoveb(buffer,ptr,32);		// COPY MAIN (SHORT) ENTRY TO buffer
 	simpfree(morebuff);

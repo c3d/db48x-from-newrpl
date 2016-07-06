@@ -19,7 +19,7 @@
 
 int FSNameCompare(char *name1,char *name2,int caseflags)
 {
-char *n1,*n2;
+unsigned char *n1,*n2;
 
 switch(caseflags) {
 case FSCASE_SENS:
@@ -34,18 +34,18 @@ return FALSE;
 case FSCASE_SENSHP:
 case FSCASE_SENSHPTRUE:
 // CASE-SENSITIVE W/SEMICOLON STRIPPING
-n1=name1;
-n2=name2;
+n1=(unsigned char *)name1;
+n2=(unsigned char *)name2;
 while(*n1!=0) ++n1;
 while(*n2!=0) ++n2;
 n1--;
 n2--;
-while( (n1>name1)&&(*n1==';') ) --n1;
-while( (n2>name2)&&(*n2==';') ) --n2;
-if( (int)(n2-name2)!=(int)(n1-name1)) return FALSE;		// FALSE IF STRINGS ARE NOT THE SAME LENGTH
+while( (n1>(unsigned char *)name1)&&(*n1==';') ) --n1;
+while( (n2>(unsigned char *)name2)&&(*n2==';') ) --n2;
+if( (int)(n2-(unsigned char *)name2)!=(int)(n1-(unsigned char *)name1)) return FALSE;		// FALSE IF STRINGS ARE NOT THE SAME LENGTH
 
 while(*n1==*n2) {
-if(n1==name1) return TRUE;
+if(n1==(unsigned char *)name1) return TRUE;
 --n1;
 --n2;
 }
@@ -63,18 +63,18 @@ return FALSE;
 
 case FSCASE_INSENSHP:
 // CASE-INSENSITIVE W/SEMICOLON STRIPPING
-n1=name1;
-n2=name2;
+n1=(unsigned char *)name1;
+n2=(unsigned char *)name2;
 while(*n1!=0) ++n1;
 while(*n2!=0) ++n2;
 n1--;
 n2--;
-while( (n1>name1)&&(*n1==';') ) --n1;
-while( (n2>name2)&&(*n2==';') ) --n2;
-if( (int)(n2-name2)!=(int)(n1-name1)) return FALSE;		// FALSE IF STRINGS ARE NOT THE SAME LENGTH
+while( (n1>(unsigned char *)name1)&&(*n1==';') ) --n1;
+while( (n2>(unsigned char *)name2)&&(*n2==';') ) --n2;
+if( (int)(n2-(unsigned char *)name2)!=(int)(n1-(unsigned char *)name1)) return FALSE;		// FALSE IF STRINGS ARE NOT THE SAME LENGTH
 
 while(__ICASE(*n1)==__ICASE(*n2)) {
-if(n1==name1) return TRUE;
+if(n1==(unsigned char *)name1) return TRUE;
 --n1;
 --n2;
 }

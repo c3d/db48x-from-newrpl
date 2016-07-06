@@ -837,13 +837,13 @@ void LIB_HANDLER()
         BINT64 num=rplReadBINT(rplPeekData(1));
         BINT64 nchars=rplReadNumberAsBINT(rplPeekData(2));
         BINT bufsize=REAL_REGISTER_STORAGE*4;
-        BYTEPTR tmpbuf=(BYTEPTR)RReg[0].data,endofstring;
+        BYTEPTR tmpbuf=(BYTEPTR)RReg[0].data;
         BINT64 currentpos;
         if(Exceptions) return;
 
         FS_FILE *handle;
         BINT err=FSGetFileFromHandle(num,&handle);
-        BINT f,readblock,charcount,bytecount,bufused;
+        BINT readblock,charcount,bytecount,bufused;
 
         if(err!=FS_OK) {
             rplError(rplFSError2Error(err));
@@ -870,11 +870,11 @@ void LIB_HANDLER()
         readblock+=bufused;
 
         BYTEPTR lastgood,ptr;
-        lastgood=utf8rskipst((char *)tmpbuf+readblock,(char *)tmpbuf);  // FIND THE LAST GOOD UNICODE CODE POINT STARTER, MIGHT BE INCOMPLETE!
+        lastgood=(BYTEPTR)utf8rskipst((char *)tmpbuf+readblock,(char *)tmpbuf);  // FIND THE LAST GOOD UNICODE CODE POINT STARTER, MIGHT BE INCOMPLETE!
 
         ptr=tmpbuf;
         while((charcount<nchars)&&(ptr<lastgood)) {
-            ptr=utf8skipst((char *)ptr,(char *)lastgood);   // SKIP AND COUNT ONE CHARACTER
+            ptr=(BYTEPTR)utf8skipst((char *)ptr,(char *)lastgood);   // SKIP AND COUNT ONE CHARACTER
             ++charcount;
         }
 
@@ -1347,8 +1347,8 @@ void LIB_HANDLER()
 
         // LAST MODIFIED DATE
         struct compact_tm date;
-        FSGetAccessDate(&entry,&date);
-        rplBINTToRReg(0,(BINT64)date.tm_year+(BINT64)date.tm_mon*10000+(BINT64)date.tm_mday*1000000);
+        FSGetWriteTime(&entry,&date);
+        rplBINTToRReg(0,(BINT64)date.tm_year+1900+(BINT64)(date.tm_mon+1)*10000+(BINT64)date.tm_mday*1000000);
         RReg[0].exp-=6;
         rplNewRealFromRRegPush(0);
         if(Exceptions) {

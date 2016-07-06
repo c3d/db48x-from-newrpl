@@ -16,6 +16,7 @@ static int stringchr(char *string,char a)
 }
 
 
+extern const int cp850toUnicode[128];
 
 // CONVERT A LONG NAME INTO SHORT NAME
 //        BIT 0=1 --> tname INCLUDES TRAILING ~1
@@ -85,8 +86,20 @@ if(*tmp<=127) {		// >127 IS PERMITTED
 	}
 }
 else {
-if((*tmp==0xe5) && (tmp==(unsigned char *)name)) *tmp=0x5;
+    // DECODE A UTF-8 CHARACTER AND CONVERT TO CP850
+    int cp=utf82cp((char *)tmp,(char *)tmp+4);
+    unsigned char *skiptmp=(unsigned char *)utf8skip((char *)tmp,(char *)tmp+4);
 
+    int k;
+    for(k=0;k<128;++k) { if(cp850toUnicode[k]==cp) { cp=128+k; break; } }
+
+    if(cp>0xff) *tmp='_';   // REPLACE ANY UNICODE CHARACTER OUTSIDE RANGE
+    else if((cp==0xe5) && (tmp==(unsigned char *)name)) *tmp=0x5;
+    else *tmp=cp;
+
+    memmoveb(tmp+1,skiptmp,nlen-(int)(skiptmp-(unsigned char *)name));
+    ext-=skiptmp-(tmp+1);
+    nlen-=skiptmp-(tmp+1);
 }
 ++tmp;
 } while( (tmp!=ext) && (tmp<(unsigned char *)name+nchars));

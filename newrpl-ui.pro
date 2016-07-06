@@ -204,7 +204,8 @@ SOURCES += main.cpp\
     firmware/ui_softmenu.c \
     firmware/ggl/ggl/ggl_fltinvert.c \
     newrpl/lib-48-angles.c \
-    newrpl/lib-74-sdcard.c
+    newrpl/lib-74-sdcard.c \
+    newrpl/lib-80-fonts.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \

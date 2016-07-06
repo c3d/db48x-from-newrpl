@@ -101,7 +101,7 @@ BYTEPTR uiAutocompStringEnd();
 void uiSetSelectionStart();
 void uiSetSelectionEnd();
 WORDPTR uiExtractSelection();
-
+BINT uiDeleteSelection();
 
 
 

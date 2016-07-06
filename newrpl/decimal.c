@@ -2618,7 +2618,7 @@ int round_in_string(char *start,char *end,int format,UBINT64 chars,char rounddig
             return 0;
         }
         // THIS CAN ONLY HAPPEN IF THE NUMBER WAS 9
-        --ptr;
+        ptr=utf8rskip(ptr,start);
     }
 
     if(ptr<start) ptr=start;

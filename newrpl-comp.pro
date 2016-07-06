@@ -197,7 +197,13 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     newrpl-comp.c \
     newrpl/lib-4079-rpl2c.c \
     newrpl/lib-48-angles.c \
-    newrpl/lib-74-sdcard.c
+    newrpl/lib-74-sdcard.c \
+    newrpl/lib-80-fonts.c \
+    firmware/sys/Font8B.c \
+    firmware/sys/Font8A.c \
+    firmware/sys/Font6m.c \
+    firmware/sys/Font5B.c \
+    firmware/sys/Font5A.c
 
 
 HEADERS  += firmware/include/ggl.h \

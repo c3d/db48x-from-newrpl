@@ -1758,6 +1758,44 @@ void cancelKeyHandler(BINT keymsg)
 
 
 
+void cutclipKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()&CONTEXT_STACK) {
+            // ACTION WHEN IN THE STACK
+                uiCmdRunTransparent(CMD_CUTCLIP,1,1);
+                if(Exceptions) {
+                    // TODO: SHOW ERROR MESSAGE
+                    halShowErrorMsg();
+                    Exceptions=0;
+                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+            halScreen.DirtyFlag|=STACK_DIRTY;
+        }
+
+    }
+    else {
+        // ACTION INSIDE THE EDITOR
+            WORDPTR string=uiExtractSelection();
+
+            if(string) {
+                rplPushData(string);
+                uiCmdRunTransparent(CMD_CUTCLIP,1,0);
+            if(Exceptions) {
+                // TODO: SHOW ERROR MESSAGE
+                halShowErrorMsg();
+                Exceptions=0;
+            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+
+            uiDeleteSelection();
+        halScreen.DirtyFlag|=STACK_DIRTY;
+    }
+
+
+    }
+}
+
 void copyclipKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
@@ -1793,7 +1831,6 @@ void copyclipKeyHandler(BINT keymsg)
 
     }
 }
-
 
 void pasteclipKeyHandler(BINT keymsg)
 {
@@ -2876,16 +2913,16 @@ BINT precision=Context.precdigits;
 
     Context.precdigits=precision;
 
-    char digits_string[12];
+    char digits_string[12],empty=' ';
 
     stringcpy(digits_string,"0000 digits");
 
-    if(precision>=1000) { digits_string[0]=precision/1000+'0'; precision=precision%1000; }
-    else digits_string[0]=' ';
-    if(precision>=100) { digits_string[1]=precision/100+'0'; precision=precision%100; }
-    else digits_string[1]=' ';
-    if(precision>=10) { digits_string[2]=precision/10+'0'; precision=precision%10; }
-    else digits_string[2]=' ';
+    if(precision>=1000) { digits_string[0]=precision/1000+'0'; precision=precision%1000; empty='0'; }
+    else digits_string[0]=empty;
+    if(precision>=100) { digits_string[1]=precision/100+'0'; precision=precision%100; empty='0'; }
+    else digits_string[1]=empty;
+    if(precision>=10) { digits_string[2]=precision/10+'0'; precision=precision%10; empty='0'; }
+    else digits_string[2]=empty;
     digits_string[3]=precision+'0';
 
     halStatusAreaPopup();
@@ -2905,7 +2942,14 @@ halScreen.DirtyFlag|=STACK_DIRTY;
 
 }
 
+// SHOW/HIDE THE SECOND MENU WHEN PRESSED
+void onVarKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+    if(halScreen.Menu2) halSetMenu2Height(0);  // HIDE THE MENU
+    else halSetMenu2Height(MENU2_HEIGHT);
 
+}
 
 
 
@@ -3170,6 +3214,9 @@ DECLARE_CMDKEYHANDLER(arg,CMD_ARG,"ARG",1)
 DECLARE_TRANSPCMDKEYHANDLER(updir,CMD_UPDIR)
 DECLARE_TRANSPCMDKEYHANDLER(home,CMD_HOME)
 
+DECLARE_TRANSPCMDKEYHANDLER(menuswap,CMD_MENUSWAP)
+
+
 DECLARE_MENUKEYHANDLER(unitmenu,MKMENUCODE(0,DOUNIT,0,0))
 DECLARE_MENUKEYHANDLER(prgmenu,MKMENUCODE(0,SECO,0,0))
 
@@ -3251,6 +3298,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_RT|SHIFT_LS, CONTEXT_ANY,&lsrightKeyHandler },
     { KM_PRESS|KB_LF|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&copyclipKeyHandler },
     { KM_PRESS|KB_RT|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&pasteclipKeyHandler },
+    { KM_PRESS|KB_DN|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&cutclipKeyHandler },
     { KM_PRESS|KB_LF|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&lsleftKeyHandler },
     { KM_PRESS|KB_RT|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&lsrightKeyHandler },
     { KM_PRESS|KB_LF|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&copyclipKeyHandler },
@@ -3482,6 +3530,11 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_8|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
     { KM_PRESS|KB_9|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
 
+    { KM_LPRESS|KB_J|SHIFT_ONHOLD, CONTEXT_ANY,&onVarKeyHandler },
+    { KM_PRESS|KB_J|SHIFT_ONHOLD, CONTEXT_ANY,KEYHANDLER_NAME(menuswap) },
+
+
+
 
     { KM_PRESS|KB_0|SHIFT_LS, CONTEXT_ANY,&infinityKeyHandler },
     { KM_PRESS|KB_0|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&undinfinityKeyHandler },
@@ -3629,6 +3682,8 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_3|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
     { KM_PRESS|KB_3|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
     { KM_PRESS|KB_3|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
+    { KM_PRESS|KB_3|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
+
     { KM_PRESS|KB_3|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(question) },
     { KM_PRESS|KB_4|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(euro) },
     { KM_PRESS|KB_4|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(dollar) },
