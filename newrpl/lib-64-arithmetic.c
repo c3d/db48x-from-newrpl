@@ -57,7 +57,8 @@
     CMD(ADDTMOD,MKTOKENINFO(7,TITYPE_FUNCTION,2,2)), \
     CMD(SUBTMOD,MKTOKENINFO(7,TITYPE_FUNCTION,2,2)), \
     CMD(MULTMOD,MKTOKENINFO(7,TITYPE_FUNCTION,2,2)), \
-    CMD(PEVAL,MKTOKENINFO(5,TITYPE_FUNCTION,2,2))
+    CMD(PEVAL,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
+    CMD(PCOEF,MKTOKENINFO(5,TITYPE_FUNCTION,1,2))
 
 
 // ADD MORE OPCODES HERE
@@ -1407,6 +1408,89 @@ void LIB_HANDLER()
                 // drop one value and replace level 1 value
                 rplDropData(1);
                 rplOverwriteData(1,newnumber);
+
+                return;
+
+            }
+            else {
+                rplError(ERR_BADARGTYPE);
+                return;
+            }
+            return;
+
+    }
+
+    case PCOEF:
+    {
+
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+
+            WORDPTR vect_val=rplPeekData(1);
+
+            if(ISMATRIX(*vect_val)){
+
+                BINT rows=MATROWS(vect_val[1]),cols=MATCOLS(vect_val[1]);
+
+                if(rows) {
+                    rplError(ERR_VECTOREXPECTED);
+                    return;
+                }
+                BINT f,icoef,j;
+
+                for(f=1;f<=cols;++f) {
+                    WORDPTR entry=rplMatrixFastGet(vect_val,1,f);
+                    if(!ISNUMBER(*entry)) {
+                        rplError(ERR_VECTOROFNUMBERSEXPECTED);
+                        return;
+                    }
+                }
+                // DO IT ALL WITH REALS
+
+                WORDPTR *Firstelem=DSTop;
+
+                rplPushData((WORDPTR)one_bint);
+                if(Exceptions) {
+                    DSTop=Firstelem;
+                    return;
+                }
+
+                for(icoef=1;icoef<=cols;++icoef){
+                    WORDPTR ai=rplMatrixFastGet(vect_val,1,icoef);
+                    rplNumberToRReg(0,ai);
+                    RReg[0].flags^=F_NEGATIVE;
+                    rplPushData((WORDPTR)zero_bint);
+                    for (j=1; j<=icoef; ++j){
+                        if (j==1){
+                            rplNumberToRReg(1, *(Firstelem+j-1));
+                        }
+                        else {
+                            copyReal(&RReg[1], &RReg[2]);
+                        }
+                        rplNumberToRReg(2, *(Firstelem+j));
+
+                        mulReal(&RReg[3],&RReg[0],&RReg[1]);
+                        addReal(&RReg[4],&RReg[3],&RReg[2]);
+                        WORDPTR newnumber=rplNewReal(&RReg[4]);
+                        if(!newnumber) {
+                            DSTop=Firstelem;
+                            return;
+                        }
+                        *(Firstelem+j)=newnumber;
+                    }
+                    if(Exceptions) {
+                        DSTop=Firstelem;
+                        return;
+                    }
+                }
+
+                WORDPTR pcoefs=rplMatrixCompose(0,cols+1);
+                if(!pcoefs) return;
+                rplDropData(cols+1);
+                rplOverwriteData(1,pcoefs);
+
 
                 return;
 

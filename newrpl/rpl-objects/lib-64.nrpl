@@ -30,7 +30,7 @@
   MODSTO MODRCL { "" } { "" } { "" }
   ADDTMOD SUBTMOD MULTMOD POWMOD { "" }
   NEXTPRIME ISPRIME? { "" } { "" } { "" }
-  PEVAL
+  PEVAL PCOEF
 }
 
 @#name lib64_cmdhelp
@@ -144,7 +144,12 @@ ISPRIME?
 
 I → I"
 PEVAL
-"EVALUATE POLYNOME
+"EVALUATE POLYNOMIAL
+
 V R → R"
+PCOEF
+"POLYNOMIAL COEFS
+FROM ROOTS
+V → V"
 }
 
