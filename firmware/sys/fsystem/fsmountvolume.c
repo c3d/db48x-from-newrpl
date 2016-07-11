@@ -30,7 +30,7 @@ memsetb((void *)fs,0,sizeof(FS_VOLUME));
 fs->Disk=Disk;
 fs->VolNumber=VolNumber;
 
-TempData=(unsigned char *)simpmallocb(512);
+TempData=simpmallocb(512);
 if(!TempData) return FALSE;
 
 TempData2=TempData+440;
@@ -39,7 +39,7 @@ TempData2=TempData+440;
 do {
 //printf("Vaddr=%08X\n",fs->VolumeAddr);
 //keyb_getkeyM(1);
-if(!SDDRead(fs->VolumeAddr,512,(char *)TempData,Disk)) { simpfree(TempData); return FALSE;}
+if(!SDDRead(fs->VolumeAddr,512,TempData,Disk)) { simpfree(TempData); return FALSE;}
 //printf("Read1 OK\n");
 
 //if(!SDDRead(fs->VolumeAddr+440,18*4,TempData2,fs->Disk)) { return FALSE;}
@@ -73,7 +73,7 @@ if(    TempData2[10+(VolNumber<<4)]!=1			// FAT 12
 
 //printf("Found Valid filesystem %d\n",TempData2[10+(VolNumber<<4)]);
 
-fs->VolumeAddr+=ReadInt32((char *)TempData2+14+(VolNumber<<4)) << 9;		// HARD-CODED FOR 512-byte SECTORS, SD CARD SectorSize NOT RELIABLE
+fs->VolumeAddr+=ReadInt32(TempData2+14+(VolNumber<<4)) << 9;		// HARD-CODED FOR 512-byte SECTORS, SD CARD SectorSize NOT RELIABLE
 
 } while(1);
 
@@ -83,7 +83,7 @@ fs->VolumeAddr+=ReadInt32((char *)TempData2+14+(VolNumber<<4)) << 9;		// HARD-CO
 // APPARENT BOOT SIGNATURE FOUND
 // PROCESS BPB
 
-fs->SectorSize=ReadInt16((char *)TempData+11);
+fs->SectorSize=ReadInt16(TempData+11);
 if( fs->SectorSize!=512 &&
 	fs->SectorSize!=1024 &&
 	fs->SectorSize!=2048 &&
@@ -100,13 +100,13 @@ temp=TempData[13];
 while(temp>1) { ++fs->ClusterSize; temp>>=1; }			// CONVERT INTO POWER OF 2
 
 fs->NumFATS=TempData[16];
-fs->TotalSectors= ReadInt16((char *)TempData+19);
-if(!fs->TotalSectors) fs->TotalSectors= ReadInt32((char *)TempData+32);
-fs->FATSize= ReadInt16((char *)TempData+22);
-if(!fs->FATSize) fs->FATSize= ReadInt32((char *)TempData+36);
+fs->TotalSectors= ReadInt16(TempData+19);
+if(!fs->TotalSectors) fs->TotalSectors= ReadInt32(TempData+32);
+fs->FATSize= ReadInt16(TempData+22);
+if(!fs->FATSize) fs->FATSize= ReadInt32(TempData+36);
 
-resvd=ReadInt16((char *)TempData+14);		// GET RESERVED SECTORS
-rootdir=((ReadInt16((char *)TempData+17)<<5) + (1<<fs->SectorSize) -1) >> fs->SectorSize;  // CALCULATE ROOT DIR SIZE
+resvd=ReadInt16(TempData+14);		// GET RESERVED SECTORS
+rootdir=((ReadInt16(TempData+17)<<5) + (1<<fs->SectorSize) -1) >> fs->SectorSize;  // CALCULATE ROOT DIR SIZE
 
 datasect=(resvd + (fs->NumFATS*fs->FATSize) + rootdir);
 fs->Cluster0Addr=fs->VolumeAddr+ ( (datasect- (2<<fs->ClusterSize)) << (fs->SectorSize));
@@ -141,7 +141,7 @@ fs->FirstFATAddr+= ((temp&0xf)*fs->FATSize) << (fs->SectorSize);
 
 // ROOTDIR FOR FAT32 INIT HERE
 
-fs->RootDir.FirstCluster=ReadInt32((char *)TempData+44);
+fs->RootDir.FirstCluster=ReadInt32(TempData+44);
 if(!FSGetChain(fs->RootDir.FirstCluster,&(fs->RootDir.Chain),fs)) return FALSE;
 fs->RootDir.FileSize=FSGetChainSize(&(fs->RootDir.Chain));
 

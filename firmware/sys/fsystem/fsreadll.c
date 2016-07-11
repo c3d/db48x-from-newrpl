@@ -12,7 +12,7 @@
 
 // LOW-LEVEL READ FROM FILE'S CURRENT POSITION
 
-int FSReadLL(char *buffer,int nbytes,FS_FILE *file,FS_VOLUME *fs)
+int FSReadLL(unsigned char *buffer,int nbytes,FS_FILE *file,FS_VOLUME *fs)
 {
 int currentaddr,bytesread,totalcount,bytescachedl,bytescachedr;
 FS_FRAGMENT *fr;
@@ -24,7 +24,7 @@ if(file->CurrentOffset>=file->FileSize) { return 0; }
 // INITIALIZE READ BUFFER IF NEEDED
 if(!file->RdBuffer.Data) {
 // MALLOC ONE SECTOR READ BUFFER
-file->RdBuffer.Data=(char *)simpmallocb(512);
+file->RdBuffer.Data=simpmallocb(512);
 if(!file->RdBuffer.Data) return 0; 	// NOT ENOUGH MEMORY FOR READ BUFFER, FAIL TO READ
 file->RdBuffer.Used=0;
 }
@@ -178,7 +178,7 @@ while (currentaddr>=fr->EndAddr) {
 	currentaddr+=fr->StartAddr;
 	
 }
-bytesread=SDDRead(currentaddr,512,(char *)file->RdBuffer.Data, fs->Disk);
+bytesread=SDDRead(currentaddr,512,file->RdBuffer.Data, fs->Disk);
 
 if(bytesread!=512) { 
 file->RdBuffer.Used=0;

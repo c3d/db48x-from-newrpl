@@ -51,7 +51,8 @@
     CMD(SDFILESIZE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDEOF,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDOPENDIR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SDNEXTFILE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
+    CMD(SDNEXTFILE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDTEST,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -246,12 +247,12 @@ void LIB_HANDLER()
             return;
             }
         BINT objlen=rplObjSize(rplPeekData(2));
-        if(FSWrite((char *)fileprolog,4,objfile)!=4) {
+        if(FSWrite((unsigned char *)fileprolog,4,objfile)!=4) {
             FSClose(objfile);
             rplError(ERR_CANTWRITE);
             return;
         }
-        err=FSWrite((char *)rplPeekData(2),objlen*sizeof(WORD),objfile);
+        err=FSWrite((unsigned char *)rplPeekData(2),objlen*sizeof(WORD),objfile);
         if(err!=objlen*(BINT)sizeof(WORD)) {
             FSClose(objfile);
             rplError(ERR_CANTWRITE);
@@ -316,7 +317,7 @@ void LIB_HANDLER()
             return;
             }
         BINT objlen=FSFileLength(objfile);
-        if(FSRead((char *)(RReg[0].data),4,objfile)!=4) {
+        if(FSRead((unsigned char *)(RReg[0].data),4,objfile)!=4) {
             FSClose(objfile);
             rplError(ERR_NOTANRPLFILE);
             return;
@@ -332,7 +333,7 @@ void LIB_HANDLER()
 
         objlen-=4;
         while(objlen>=4) {
-            if(FSRead((char *)(RReg[0].data),4,objfile)!=4) {
+            if(FSRead((unsigned char *)(RReg[0].data),4,objfile)!=4) {
                 FSClose(objfile);
                 rplError(ERR_NOTANRPLFILE);
                 return;
@@ -349,7 +350,7 @@ void LIB_HANDLER()
                 return;
             }
             newobj[0]=(WORD)RReg[0].data[0];
-            if(FSRead((char *)(newobj+1),(objsize-1)*sizeof(WORD),objfile)!=(objsize-1)*(BINT)sizeof(WORD)) {
+            if(FSRead((unsigned char *)(newobj+1),(objsize-1)*sizeof(WORD),objfile)!=(objsize-1)*(BINT)sizeof(WORD)) {
                 FSClose(objfile);
                 rplError(ERR_NOTANRPLFILE);
                 return;
@@ -859,7 +860,7 @@ void LIB_HANDLER()
 
         readblock=(4*nchars>(bufsize-bufused))? (bufsize-bufused):4*nchars; // TRY TO READ IT ALL IN ONE BLOCK
 
-        err=FSRead((char *)(tmpbuf+bufused),readblock,handle);
+        err=FSRead((tmpbuf+bufused),readblock,handle);
         if(err==0) {
             rplError(ERR_ENDOFFILE);
             return;
@@ -901,7 +902,7 @@ void LIB_HANDLER()
                 rplError(rplFSError2Error(err));
                 return;
             }
-            err=FSRead((char *)(newstring+1),bytecount,handle);
+            err=FSRead((unsigned char *)(newstring+1),bytecount,handle);
             if(err!=bytecount)
             {
                 rplError(ERR_ENDOFFILE);
@@ -967,7 +968,7 @@ void LIB_HANDLER()
         }
 
         if(nbytes>0) {
-         err=FSWrite((char *)stringstart,nbytes,handle);
+         err=FSWrite(stringstart,nbytes,handle);
 
          if(err<0) {
           rplError(rplFSError2Error(err));
@@ -1023,7 +1024,7 @@ void LIB_HANDLER()
         do {
 
 
-        err=FSRead((char *)tmpbuf,bufsize,handle);
+        err=FSRead(tmpbuf,bufsize,handle);
         if(err==0) {
             rplError(ERR_ENDOFFILE);
             return;
@@ -1059,7 +1060,7 @@ void LIB_HANDLER()
             rplError(rplFSError2Error(err));
             return;
         }
-        err=FSRead((char *)(newstring+1),bytecount,handle);
+        err=FSRead((unsigned char *)(newstring+1),bytecount,handle);
         if(err!=bytecount)
         {
             rplError(ERR_ENDOFFILE);
@@ -1375,6 +1376,18 @@ void LIB_HANDLER()
         return;
 
 
+
+    }
+
+    case SDTEST:
+    {
+     // DEBUGGING ONLY
+
+        char string[100];
+        stringcpy(string,".X");
+        int k=FSConvert2ShortEntry(string,1000);
+
+        return;
 
     }
 

@@ -49,6 +49,10 @@ private slots:
 
     void on_actionNew_triggered();
 
+    void on_actionInsert_SD_Card_Image_triggered();
+
+    void on_actionEject_SD_Card_Image_triggered();
+
 public slots:
     void domaintimer();
 private:

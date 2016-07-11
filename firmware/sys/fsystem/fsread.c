@@ -13,7 +13,7 @@
 
 
 
-int FSRead(char *buffer,int nbytes,FS_FILE *file)
+int FSRead(unsigned char *buffer,int nbytes,FS_FILE *file)
 {
 FS_VOLUME *fs;
 int vol=0;

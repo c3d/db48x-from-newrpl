@@ -31,7 +31,7 @@ int val;
 unsigned int utf8val;
 for(f=0;f<nchars;++f)
 {
-val=ReadInt16((char *)origin);
+val=ReadInt16((unsigned char *)origin);
 if(!val) *dest++=0;
 else {
 utf8val=cp2utf8(val);
@@ -57,7 +57,7 @@ if(origin) {
     origin=utf8skip(origin,origin+4);
     if(val>0xffff) val='_'; // FILTER ALL UNICODE CHARACTERS THAT DON'T FIT IN UCS-2
 }
-WriteInt16((char *)dest,val);
+WriteInt16((unsigned char *)dest,val);
 if(!val) { val=0xffff; origin=NULL; }
 }
 

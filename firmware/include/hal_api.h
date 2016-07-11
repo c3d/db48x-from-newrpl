@@ -1177,6 +1177,15 @@ void flash_CFIRead(unsigned short *ptr);
 // LOW-LEVEL MEMORY SUBALLOCATOR FOR FILE SYSTEM
 void init_simpalloc();
 
+// LOW-LEVEL DRIVER FOR REAL TIME CLOCK
+int rtc_getday();
+int rtc_getmon();
+int rtc_getyear();
+int rtc_getsec();
+int rtc_getmin();
+int rtc_gethour();
+void rtc_setdate(int day,int month,int year);
+void rtc_settime(int hour,int min,int sec);
 
 
 

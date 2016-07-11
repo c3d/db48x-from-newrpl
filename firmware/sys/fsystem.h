@@ -332,7 +332,7 @@ FS_FRAGMENT *NextFragment;
 };
 
 struct __buffer {
-char *Data;
+unsigned char *Data;
 int Offset,Used;
 };
 
@@ -778,7 +778,7 @@ extern int FSTell(FS_FILE *file);
  *
  * \sa FSSeek FSWrite
  */
-extern int FSRead(char *buffer,int nbytes,FS_FILE *file);
+extern int FSRead(unsigned char *buffer,int nbytes,FS_FILE *file);
 /*!
  * \brief Write data to a file.
  *
@@ -797,7 +797,7 @@ extern int FSRead(char *buffer,int nbytes,FS_FILE *file);
  *
  * \sa FSSeek FSRead
  */
-extern int FSWrite(char *buffer,int nbytes,FS_FILE *file);
+extern int FSWrite(unsigned char *buffer,int nbytes,FS_FILE *file);
 /*!
  * \brief Detect end-of-file condition.
  *

@@ -14,10 +14,10 @@
 
 int FSDeleteDirEntry(FS_FILE *file)
 {
-char *buffer,*mainentry;
+unsigned char *buffer,*mainentry;
 int f,bytesread;
 
-buffer=(char *)simpmallocb(32*(file->DirEntryNum+1));
+buffer=simpmallocb(32*(file->DirEntryNum+1));
 if(!buffer) return FS_ERROR;
 
 FSSeek(file->Dir,file->DirEntryOffset,FSSEEK_SET);

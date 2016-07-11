@@ -13,12 +13,12 @@
 
 int FSCalcFreeSpace(FS_VOLUME *fs)
 {
-char *buffer;
+unsigned char *buffer;
 int fataddr,value,maxaddr=0;
 int freecount,freestart,freesize;
 int limit,f;
 
-buffer=(char *)simpmallocb(1536);
+buffer=simpmallocb(1536);
 if(!buffer) return FS_ERROR;
 
 //if(!SDDSetBlockLen(fs->Disk,7)) { simpfree(buffer); return FS_ERROR; }

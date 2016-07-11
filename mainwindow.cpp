@@ -29,7 +29,10 @@ extern "C" int rplBackup(void (*writefunc)(unsigned int));
 extern "C" int rplRestoreBackup(unsigned int (*readfunc)());
 extern "C" int rplRestoreBackupMessedup(unsigned int (*readfunc)());    // DEBUG ONLY
 
-
+extern int __sd_inserted;
+extern int __sd_nsectors;             // TOTAL SIZE OF SD CARD IN 512-BYTE SECTORS
+extern int __sd_RCA;
+extern unsigned char *__sd_buffer;    // BUFFER WITH THE ENTIRE CONTENTS OF THE SD CARD
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -45,11 +48,17 @@ MainWindow::MainWindow(QWidget *parent) :
     maintmr=new QTimer(this);
     connect(maintmr,SIGNAL(timeout()),this,SLOT(domaintimer()));
     __memmap_intact=0;
+    __sd_inserted=0;
+    __sd_RCA=0;
+    __sd_nsectors=0;
+    __sd_buffer=NULL;
+    ui->actionEject_SD_Card_Image->setEnabled(false);
+    ui->actionInsert_SD_Card_Image->setEnabled(true);
+
     rpl.start();
     maintmr->start(1);
     screentmr->start(50);
     setWindowTitle("newRPL - [Unnamed]");
-
 
 }
 
@@ -313,6 +322,9 @@ void MainWindow::on_actionExit_triggered()
     while(rpl.isRunning());
     }
 
+    // CLEANUP
+    if(__sd_buffer!=NULL) { free(__sd_buffer); }
+
 }
 
 void MainWindow::WriteWord(unsigned int word)
@@ -544,9 +556,66 @@ void MainWindow::on_actionNew_triggered()
     // RESTART RPL ENGINE
     __pc_terminate=0;
     __pckeymatrix=0;
+
     rpl.start();
     maintmr->start(1);
     screentmr->start(50);
 
+
+}
+
+void MainWindow::on_actionInsert_SD_Card_Image_triggered()
+{
+    QString fname=QFileDialog::getOpenFileName(this,"Open SD Card Image",QString(),"*.img");
+    if(!fname.isEmpty()) {
+        QFile file(fname);
+
+        if(!file.open(QIODevice::ReadOnly)) {
+            QMessageBox a(QMessageBox::Warning,"Error while opening","Cannot open file "+ fname,QMessageBox::Ok,this);
+            a.exec();
+            return;
+        }
+
+        __sd_inserted=0;
+        __sd_RCA=0;
+        __sd_nsectors=0;
+        if(__sd_buffer!=NULL) free(__sd_buffer);
+
+
+        // FILE IS OPEN AND READY FOR READING
+        __sd_buffer=(unsigned char *)malloc(file.size());
+        if(__sd_buffer==NULL) {
+            QMessageBox a(QMessageBox::Warning,"Error while opening","Not enough memory to read SD Image",QMessageBox::Ok,this);
+            a.exec();
+            return;
+        }
+
+        if(file.read((char *)__sd_buffer,file.size())!=file.size()) {
+            QMessageBox a(QMessageBox::Warning,"Error while opening","Can't read SD Image",QMessageBox::Ok,this);
+            a.exec();
+            return;
+        }
+
+        __sd_nsectors=file.size()/512;
+        __sd_inserted=1;
+        file.close();
+
+        ui->actionEject_SD_Card_Image->setEnabled(true);
+        ui->actionInsert_SD_Card_Image->setEnabled(false);
+        return;
+    }
+
+    // NOTHING TO MOUNT, KEEP THE PREVIOUS STATUS
+
+}
+
+void MainWindow::on_actionEject_SD_Card_Image_triggered()
+{
+        __sd_inserted=0;
+        __sd_RCA=0;
+        __sd_nsectors=0;
+        if(__sd_buffer!=NULL) { free(__sd_buffer); __sd_buffer=NULL; }
+        ui->actionEject_SD_Card_Image->setEnabled(false);
+        ui->actionInsert_SD_Card_Image->setEnabled(true);
 
 }

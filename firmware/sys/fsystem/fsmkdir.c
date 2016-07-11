@@ -16,9 +16,9 @@ int FSMkdir(char *name)
 int error;
 int parentcluster;
 FS_FILE *newdir;
-char *buffer,*mainentry;
+unsigned char *buffer,*mainentry;
 
-buffer=(char *)simpmallocb(512);
+buffer=simpmallocb(512);
 if(!buffer) return FS_ERROR;
 
 
@@ -40,12 +40,12 @@ memsetb(mainentry+1,32,10);
 mainentry[11]=FSATTR_DIR;
 mainentry[12]=0;
 mainentry[13]=newdir->CrtTmTenth;
-WriteInt32((char *)mainentry+14,newdir->CreatTimeDate);
-WriteInt16((char *)mainentry+18,newdir->LastAccDate);
-WriteInt16((char *)mainentry+20,newdir->FirstCluster>>16);
-WriteInt32((char *)mainentry+22,newdir->WriteTimeDate);
-WriteInt16((char *)mainentry+26,newdir->FirstCluster);
-WriteInt32((char *)mainentry+28,0);
+WriteInt32(mainentry+14,newdir->CreatTimeDate);
+WriteInt16(mainentry+18,newdir->LastAccDate);
+WriteInt16(mainentry+20,newdir->FirstCluster>>16);
+WriteInt32(mainentry+22,newdir->WriteTimeDate);
+WriteInt16(mainentry+26,newdir->FirstCluster);
+WriteInt32(mainentry+28,0);
 
 mainentry+=32;
 memsetb(mainentry+2,32,9);
@@ -55,17 +55,17 @@ mainentry[1]='.';
 mainentry[11]=FSATTR_DIR;
 mainentry[12]=0;
 mainentry[13]=newdir->CrtTmTenth;
-WriteInt32((char *)mainentry+14,newdir->CreatTimeDate);
-WriteInt16((char *)mainentry+18,newdir->LastAccDate);
+WriteInt32(mainentry+14,newdir->CreatTimeDate);
+WriteInt16(mainentry+18,newdir->LastAccDate);
 
 if(newdir->Dir->Dir!=NULL) parentcluster=newdir->Dir->FirstCluster;
 else parentcluster=0;	// MARK ROOT DIR AS CLUSTER 0 EVEN FOR FAT32
 
 
-WriteInt16((char *)mainentry+20,parentcluster>>16);
-WriteInt32((char *)mainentry+22,newdir->WriteTimeDate);
-WriteInt16((char *)mainentry+26,parentcluster);
-WriteInt32((char *)mainentry+28,0);
+WriteInt16(mainentry+20,parentcluster>>16);
+WriteInt32(mainentry+22,newdir->WriteTimeDate);
+WriteInt16(mainentry+26,parentcluster);
+WriteInt32(mainentry+28,0);
 
 mainentry+=32;
 memsetb(mainentry,0,448);

@@ -48,7 +48,7 @@ namelen=(int)stringlen((char *)name);
 //keyb_getkeyM(1);
 FSSeek(dir,0,FSSEEK_SET);
 
-while((checksum=FSReadLL((char *)buffer,32,dir,fs))==32)
+while((checksum=FSReadLL(buffer,32,dir,fs))==32)
 {
 //printf("x");
 if(buffer[0]==0) return FS_EOF;
@@ -62,10 +62,10 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 //	printf("last entry\n");
 	// FOUND LAST ENTRY OF A NAME
 	nentries=buffer[0]&0x3f;
-    morebuff=(unsigned char *)simpmallocb(32*nentries);
+    morebuff=simpmallocb(32*nentries);
 	if(morebuff==NULL) { 
 		return FS_ERROR; }
-    if(FSReadLL((char *)morebuff,32*nentries,dir,fs)!=32*nentries) {
+    if(FSReadLL(morebuff,32*nentries,dir,fs)!=32*nentries) {
 		simpfree(morebuff);
 		if(FSEof(dir)) return FS_EOF; 
 		else return FS_ERROR; }
@@ -197,11 +197,11 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	entry->Attr=buffer[11];
 	entry->NTRes=buffer[12];
 	entry->CrtTmTenth=buffer[13];
-	entry->LastAccDate=ReadInt16((char *)buffer+18);
-	entry->CreatTimeDate=ReadInt32((char *)buffer+14);
-	entry->WriteTimeDate=ReadInt32((char *)buffer+22);
+	entry->LastAccDate=ReadInt16(buffer+18);
+	entry->CreatTimeDate=ReadInt32(buffer+14);
+	entry->WriteTimeDate=ReadInt32(buffer+22);
 	entry->FirstCluster=buffer[26]+(buffer[27]<<8)+(buffer[20]<<16)+(buffer[21]<<24);
-	entry->FileSize=ReadInt32((char *)buffer+28);
+	entry->FileSize=ReadInt32(buffer+28);
 	entry->CurrentOffset=0;
 	entry->DirEntryOffset=diroffset;
 	entry->DirEntryNum=nentries+1;

@@ -15,12 +15,12 @@
 
 int FSCreate(char *name,int attr,FS_FILE **fileptr)
 {
-char *nptr;
+unsigned char *nptr;
 FS_FILE *dir,*file;
 FS_FILECREATE *cr;
 FS_VOLUME *fs;
-char *path=NULL;
-char tname[257];
+unsigned char *path=NULL;
+unsigned char tname[257];
 int error,k,g;
 unsigned int csize;
 int ntype;
@@ -40,23 +40,23 @@ if(ntype<0) return FS_BADNAME;
 
 if((ntype&FSNAME_ENDSLASH) || (ntype&FSNAME_EMPTY)) return FS_BADNAME;
 
-nptr=name;
+nptr=(unsigned char *)name;
 // OBTAIN DIRECTORY
 if(ntype&(FSNAME_HASPATH|FSNAME_HASVOL)) {
-nptr=(char *)__fsfindcharrev(name,NULL,(char *)"/\\:");
+nptr=(unsigned char *)__fsfindcharrev(name,NULL,(char *)"/\\:");
 
 // nptr CAN'T BE NULL HERE, SO NO NEED TO CHECK
-path=(char *)simpmallocb((int)(nptr-name)+2);
+path=simpmallocb((int)(nptr-(unsigned char *)name)+2);
 if(!path) return FS_ERROR;
 // EXTRACT DRIVE/PATH
-memmoveb(path,name,(int) (nptr-name+1));
-path[(int)(nptr-name)+1]=0;
+memmoveb(path,name,(int) (nptr-(unsigned char *)name+1));
+path[(int)(nptr-(unsigned char *)name)+1]=0;
 ++nptr;
 //printf("path=%s\n",path);
 dir=(FS_FILE *)simpmallocb(sizeof(FS_FILE));
 if(!dir) { simpfree(path); return FS_ERROR; }
 
-error=FSFindFile(path,dir,TRUE);
+error=FSFindFile((char *)path,dir,TRUE);
 if(error!=FS_OK)
 {
 if(error==FS_OPENDIR) {
@@ -117,7 +117,7 @@ return FS_ERROR;
 
 
 //printf("find entry\n");
-error=FSFindForCreation(nptr,cr,dir);
+error=FSFindForCreation((char *)nptr,cr,dir);
 
 if(error!=FS_OK) {
 simpfree(cr);
@@ -146,8 +146,8 @@ if(!(cr->NameFlags&2)) file->NTRes=cr->NameFlags&(~3);		// SAVE RESERVED CASE IN
 
 // DETERMINE A VALID NON-CONFLICTING SHORT NAME ENTRY
 
-stringcpy(tname,file->Name);
-FSConvert2ShortEntry(tname,(cr->NameFlags&1)? cr->ShortNum:0);
+stringcpy((char *)tname,file->Name);
+FSConvert2ShortEntry((char *)tname,(cr->NameFlags&1)? cr->ShortNum:0);
 
 
 // WRITE DIRECTORY INFORMATION
@@ -160,7 +160,7 @@ file->DirEntryNum=k;
 
 //printf("k=%d\n",k);
 
-nptr=(char *)simpmallocb((k+1)<<5);		// ALLOCATE DIRECTORY ENTRIES
+nptr=simpmallocb((k+1)<<5);		// ALLOCATE DIRECTORY ENTRIES
 if(!nptr) {
 simpfree(cr);
 FSFreeFile(file);
@@ -197,12 +197,12 @@ path[g+8]=tname[f+g];
 path[11]=file->Attr;
 path[12]=file->NTRes;
 path[13]=file->CrtTmTenth;
-WriteInt32((char *)path+14,file->CreatTimeDate);
-WriteInt16((char *)path+18,file->LastAccDate);
-WriteInt16((char *)path+20,file->FirstCluster>>16);
-WriteInt32((char *)path+22,file->WriteTimeDate);
-WriteInt16((char *)path+26,file->FirstCluster);
-if(!(file->Attr&FSATTR_DIR)) WriteInt32((char *)path+28,file->FileSize);
+WriteInt32(path+14,file->CreatTimeDate);
+WriteInt16(path+18,file->LastAccDate);
+WriteInt16(path+20,file->FirstCluster>>16);
+WriteInt32(path+22,file->WriteTimeDate);
+WriteInt16(path+26,file->FirstCluster);
+if(!(file->Attr&FSATTR_DIR)) WriteInt32(path+28,file->FileSize);
 
 // CREATE LONG FILE NAME ENTRIES
 
@@ -220,7 +220,7 @@ if(cr->NameFlags&2) {
 	//printf("long entries=%d\n",g);
 	while(g--) {
 	path-=32;
-    nameptr=FSUnpackName(nameptr,path);
+    nameptr=FSUnpackName(nameptr,(char *)path);
 	path[13]=checksum;
 	path[11]=FSATTR_LONGNAME;
 	path[0]=f;
@@ -256,7 +256,7 @@ dir->FileSize=FSGetChainSize(&dir->Chain);
 if(csize!=dir->FileSize) {
 // DIRECTORY IS NOW LARGER
 // CLEAN THE NEW CLUSTER
-nptr=(char *)simpmallocb(512);
+nptr=simpmallocb(512);
 if(nptr) {
 // DON'T CARE IF ERROR, ONLY MINOR PROBLEMS TO THE O.S.
 memsetb(nptr,0,512);

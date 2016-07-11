@@ -14,13 +14,13 @@
 
 int FSFlushFATCache(FS_VOLUME *fs)
 {
-char * sector;
+unsigned char * sector;
 int bl=fs->Disk->CurrentBLen; //fs->Disk->WriteBlockLen;
 int f;
 int sectaddr,error;
 FS_CHAINBUFFER *ch;
 
-sector=(char *)simpmallocb(1<<bl);
+sector=simpmallocb(1<<bl);
 if(!sector) return FS_ERROR;
 /*
 if(!SDDSetBlockLen(fs->Disk,bl)) { simpfree(sector); return FS_ERROR; }

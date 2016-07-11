@@ -43,11 +43,11 @@ fs=FSystem.Volumes[dir->Volume];
 
 if(!fs) return FS_ERROR;
 
-newname=(unsigned char *)simpmallocb(257);
+newname=simpmallocb(257);
 if(!newname) return FS_ERROR;
-shname=(unsigned char *)simpmallocb(257);
+shname=simpmallocb(257);
 if(!shname) {simpfree(newname); return FS_ERROR; }
-entryname=(unsigned char *)simpmallocb(257);
+entryname=simpmallocb(257);
 if(!entryname) { simpfree(newname); simpfree(shname); return FS_ERROR; }
 
 // INITIALIZE COUNTERS
@@ -89,7 +89,7 @@ if(cr->NameFlags&1) cr->ShortNum=1;			// MINIMUM NUMBER NEEDED =1
 //keyb_getkeyM(1);
 FSSeek(dir,0,FSSEEK_SET);
 
-while((nbytesread=FSReadLL((char *)buffer,32,dir,fs))==32)
+while((nbytesread=FSReadLL(buffer,32,dir,fs))==32)
 {
 //printf("x");
 if(buffer[0]==0) break;
@@ -104,7 +104,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 //	printf("last entry\n");
 	// FOUND LAST ENTRY OF A NAME
 	nentries=buffer[0]&0x3f;
-    morebuff=(unsigned char *)simpmallocb(32*nentries);
+    morebuff=simpmallocb(32*nentries);
 	if(morebuff==NULL) {
 		simpfree(newname);
 		simpfree(shname);
@@ -112,7 +112,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 		if(cr->Entry) simpfree(cr->Entry); 
 		return FS_ERROR;
 	}
-    if( (nbytesread=FSReadLL((char *)morebuff,32*nentries,dir,fs))!=32*nentries) {
+    if( (nbytesread=FSReadLL(morebuff,32*nentries,dir,fs))!=32*nentries) {
 		simpfree(morebuff);
 		if(nbytesread>0) cr->DirUsedEntries+=nbytesread>>5;
 
@@ -227,7 +227,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 		return FS_ERROR;
 		}
 
-        cr->Entry->Name=simpmallocb(stringlen((char *)entryname)+1);
+        cr->Entry->Name=(char *)simpmallocb(stringlen((char *)entryname)+1);
 
 		if(!cr->Entry->Name) {
 		simpfree(newname);
@@ -244,11 +244,11 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 		cr->Entry->Attr=buffer[11];
 		cr->Entry->NTRes=buffer[12];
 		cr->Entry->CrtTmTenth=buffer[13];
-		cr->Entry->LastAccDate=ReadInt16((char *)buffer+18);
-		cr->Entry->CreatTimeDate=ReadInt32((char *)buffer+14);
-		cr->Entry->WriteTimeDate=ReadInt32((char *)buffer+22);
+		cr->Entry->LastAccDate=ReadInt16(buffer+18);
+		cr->Entry->CreatTimeDate=ReadInt32(buffer+14);
+		cr->Entry->WriteTimeDate=ReadInt32(buffer+22);
 		cr->Entry->FirstCluster=buffer[26]+(buffer[27]<<8)+(buffer[20]<<16)+(buffer[21]<<24);
-		cr->Entry->FileSize=ReadInt32((char *)buffer+28);
+		cr->Entry->FileSize=ReadInt32(buffer+28);
 		cr->Entry->CurrentOffset=0;
 		cr->Entry->DirEntryOffset=diroffset;
 		cr->Entry->DirEntryNum=nentries+1;
@@ -346,11 +346,11 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 		cr->Entry->Attr=buffer[11];
 		cr->Entry->NTRes=buffer[12];
 		cr->Entry->CrtTmTenth=buffer[13];
-		cr->Entry->LastAccDate=ReadInt16((char *)buffer+18);
-		cr->Entry->CreatTimeDate=ReadInt32((char *)buffer+14);
-		cr->Entry->WriteTimeDate=ReadInt32((char *)buffer+22);
+		cr->Entry->LastAccDate=ReadInt16(buffer+18);
+		cr->Entry->CreatTimeDate=ReadInt32(buffer+14);
+		cr->Entry->WriteTimeDate=ReadInt32(buffer+22);
 		cr->Entry->FirstCluster=buffer[26]+(buffer[27]<<8)+(buffer[20]<<16)+(buffer[21]<<24);
-		cr->Entry->FileSize=ReadInt32((char *)buffer+28);
+		cr->Entry->FileSize=ReadInt32(buffer+28);
 		cr->Entry->CurrentOffset=0;
 		cr->Entry->DirEntryOffset=diroffset;
 		cr->Entry->DirEntryNum=1;

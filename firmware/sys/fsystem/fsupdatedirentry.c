@@ -17,10 +17,10 @@
 
 int FSUpdateDirEntry(FS_FILE *file)
 {
-char *buffer,*mainentry;
+unsigned char *buffer,*mainentry;
 
 
-buffer=(char *)simpmallocb(32*file->DirEntryNum);
+buffer=simpmallocb(32*file->DirEntryNum);
 if(!buffer) return FS_ERROR;
 
 FSSeek(file->Dir,file->DirEntryOffset,FSSEEK_SET);
@@ -36,12 +36,12 @@ mainentry=buffer+32*(file->DirEntryNum-1);
 mainentry[11]=file->Attr;
 //mainentry[12]=file->NTRes;
 mainentry[13]=file->CrtTmTenth;
-WriteInt32((char *)mainentry+14,file->CreatTimeDate);
-WriteInt16((char *)mainentry+18,file->LastAccDate);
-WriteInt16((char *)mainentry+20,file->FirstCluster>>16);
-WriteInt16((char *)mainentry+26,file->FirstCluster);
-WriteInt32((char *)mainentry+28,(file->Attr&FSATTR_DIR)? 0:file->FileSize);
-WriteInt32((char *)mainentry+22,file->WriteTimeDate);
+WriteInt32(mainentry+14,file->CreatTimeDate);
+WriteInt16(mainentry+18,file->LastAccDate);
+WriteInt16(mainentry+20,file->FirstCluster>>16);
+WriteInt16(mainentry+26,file->FirstCluster);
+WriteInt32(mainentry+28,(file->Attr&FSATTR_DIR)? 0:file->FileSize);
+WriteInt32(mainentry+22,file->WriteTimeDate);
 
 FSSeek(file->Dir,file->DirEntryOffset,FSSEEK_SET);
 

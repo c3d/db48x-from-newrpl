@@ -30,7 +30,7 @@
      <x>0</x>
      <y>0</y>
      <width>659</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -45,7 +45,16 @@
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
+   <widget class="QMenu" name="menuSD_Card">
+    <property name="title">
+     <string>SD Card</string>
+    </property>
+    <addaction name="actionInsert_SD_Card_Image"/>
+    <addaction name="separator"/>
+    <addaction name="actionEject_SD_Card_Image"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuSD_Card"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -79,6 +88,16 @@
   <action name="actionSaveAs">
    <property name="text">
     <string>SaveAs</string>
+   </property>
+  </action>
+  <action name="actionInsert_SD_Card_Image">
+   <property name="text">
+    <string>Insert SD Card Image...</string>
+   </property>
+  </action>
+  <action name="actionEject_SD_Card_Image">
+   <property name="text">
+    <string>Eject SD Card Image...</string>
    </property>
   </action>
  </widget>

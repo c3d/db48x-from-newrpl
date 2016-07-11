@@ -39,7 +39,7 @@ if(!fs) return FS_ERROR;
 
 for(bufsize=32768;bufsize>=1024;bufsize>>=1)
 {
-packbuf=(unsigned char *)simpmallocb(bufsize);
+packbuf=simpmallocb(bufsize);
 if(packbuf) break;
 }
 
@@ -52,7 +52,7 @@ buffer=packbuf;
 
 FSSeek(dir,0,FSSEEK_SET);
 
-while((checksum=FSReadLL((char *)buffer,32,dir,fs))==32)
+while((checksum=FSReadLL(buffer,32,dir,fs))==32)
 {
 
 if(buffer[0]==0) break;
@@ -73,7 +73,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	int savesize=bufsize-512;
 	int olddiroff=dir->CurrentOffset;
 	FSSeek(dir,bufoffset,FSSEEK_SET);
-    if(FSWriteLL((char *)packbuf,savesize,dir,fs)!=savesize) {
+    if(FSWriteLL(packbuf,savesize,dir,fs)!=savesize) {
 	// THIS BETTER NOT HAPPEN, SEVERE DAMAGE TO DIRECTORY STRUCTURES
 	simpfree(packbuf);
 	return FS_ERROR;
@@ -86,7 +86,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	FSSeek(dir,olddiroff,FSSEEK_SET);
 
 	}
-    if(FSReadLL((char *)morebuff,32*nentries,dir,fs)!=32*nentries) break; // ASSUME END-OF-FILE
+    if(FSReadLL(morebuff,32*nentries,dir,fs)!=32*nentries) break; // ASSUME END-OF-FILE
 	
 	// VERIFY THAT ENTRIES ARE VALID
 	ptr=morebuff;
@@ -156,7 +156,7 @@ if( (unsigned int)(buffer-packbuf)>bufsize-32) {
 	int savesize=bufsize-512;
 	int olddiroff=dir->CurrentOffset;
 	FSSeek(dir,bufoffset,FSSEEK_SET);
-    if(FSWriteLL((char *)packbuf,savesize,dir,fs)!=savesize) {
+    if(FSWriteLL(packbuf,savesize,dir,fs)!=savesize) {
 	// THIS BETTER NOT HAPPEN, SEVERE DAMAGE TO DIRECTORY STRUCTURES
 	simpfree(packbuf);
 	return FS_ERROR;
@@ -207,7 +207,7 @@ memsetb(buffer,0,bufsize-(int)(buffer-packbuf));
 	if(dir->FileSize<bufoffset+bufsize) savesize=dir->FileSize-bufoffset;
 	
 	FSSeek(dir,bufoffset,FSSEEK_SET);
-    if((written=FSWriteLL((char *)packbuf,savesize,dir,fs))!=savesize) {
+    if((written=FSWriteLL(packbuf,savesize,dir,fs))!=savesize) {
 	// THIS BETTER NOT HAPPEN, SEVERE DAMAGE TO DIRECTORY STRUCTURES
 	simpfree(packbuf);
 	return (written<0)? written:FS_ERROR;
@@ -225,7 +225,7 @@ memsetb(buffer,0,bufsize-(int)(buffer-packbuf));
 	int written;
 	
 	while(savesize>bufsize) {
-    written=FSWriteLL((char *)packbuf,bufsize,dir,fs);
+    written=FSWriteLL(packbuf,bufsize,dir,fs);
     if((unsigned int)written!=bufsize) {
 		// SEVERE DAMAGE TO FILE SYSTEM
 		simpfree(packbuf);
@@ -235,7 +235,7 @@ memsetb(buffer,0,bufsize-(int)(buffer-packbuf));
 	}
 	
 	if(savesize) {
-        if((written=FSWriteLL((char *)packbuf,savesize,dir,fs))!=(int)savesize) {
+        if((written=FSWriteLL(packbuf,savesize,dir,fs))!=(int)savesize) {
 			// BIG PROBLEM SEVERE DAMAGE TO THE FILE SYSTEM CAN HAPPEN
 			simpfree(packbuf);
 			return (written<0)? written:FS_ERROR;

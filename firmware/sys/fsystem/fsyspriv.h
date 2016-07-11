@@ -103,15 +103,15 @@ extern int FSInit();
 
 extern void FSHardReset();
 
-extern unsigned int ReadInt32(char *ptr);
-extern void WriteInt32(char *ptr,int value);
-extern unsigned int ReadInt16(char *ptr);
-extern void WriteInt16(char *ptr,int value);
+extern unsigned int ReadInt32(unsigned char *ptr);
+extern void WriteInt32(unsigned char *ptr,unsigned int value);
+extern unsigned int ReadInt16(unsigned char *ptr);
+extern void WriteInt16(unsigned char *ptr,unsigned int value);
 
 // ADD-ON MEMORY ALLOCATOR
 extern void init_simpalloc();
 extern unsigned int *simpmalloc(int words);
-extern char *simpmallocb(int bytes);
+extern unsigned char *simpmallocb(int bytes);
 extern void simpfree(void *voidptr);
 
 
@@ -139,8 +139,8 @@ extern int FSFindForCreation(char *name,FS_FILECREATE *cr,FS_FILE *dir);
 
 
 // FILE FUNCTIONS
-extern int FSReadLL(char *buffer,int nbytes,FS_FILE *file,FS_VOLUME *fs);
-extern int FSWriteLL(char *buffer,int nbytes,FS_FILE *file,FS_VOLUME *fs);
+extern int FSReadLL(unsigned char *buffer,int nbytes,FS_FILE *file,FS_VOLUME *fs);
+extern int FSWriteLL(unsigned char *buffer,int nbytes,FS_FILE *file,FS_VOLUME *fs);
 extern int FSFileIsReferenced(FS_FILE *file,FS_VOLUME *fs);
 extern int FSFileIsOpen(FS_FILE *file,FS_VOLUME *fs);
 extern FS_FILE *FSFreeFile(FS_FILE *file);
@@ -164,7 +164,7 @@ extern void FSFreeChain(FS_FILE *file);
 extern int FSExpandChain(FS_FILE *file,int newtotalsize);
 extern int FSTruncateChain(FS_FILE *file, int newsize);
 
-extern void FSPatchFATBlock(char *buffer,int size,int addr,FS_VOLUME *fs,int flush);
+extern void FSPatchFATBlock(unsigned char *buffer,int size,int addr,FS_VOLUME *fs,int flush);
 extern int FSWriteFATEntry(unsigned int cluster, int value, FS_VOLUME *fs);
 extern int FSFlushFATCache(FS_VOLUME *fs);
 

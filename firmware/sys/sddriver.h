@@ -88,7 +88,7 @@ void SDDResetFIFO();
 int SDDStop();
 int SDDSetBlockLen(SD_CARD *card,int bitlen);
 int SDDInTransfer(SD_CARD *card);
-int SDDRead(int SDAddr,int NumBytes,char *buffer, SD_CARD *card);
+int SDDRead(int SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card);
 int SDCardInit(SD_CARD * card);
-int SDDWrite(int SDAddr,int NumBytes,char *buffer, SD_CARD *card);
+int SDDWrite(int SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card);
 

@@ -13,7 +13,7 @@
 
 // WRITE DATA TO A FILE
 
-int FSWrite(char *buffer,int nbytes,FS_FILE *file)
+int FSWrite(unsigned char *buffer,int nbytes,FS_FILE *file)
 {
 
 

@@ -16,7 +16,7 @@
 // PATCH A BLOCK THAT CORRESPONDS TO THE FAT WITH THE CACHED FAT ENTRIES
 // BLOCK ADDRESS IS EXPECTED TO BE WORD-ALIGNED, SIZE IS WORD-MULTIPLE
 
-void FSPatchFATBlock(char *buffer,int size,int addr,FS_VOLUME *fs,int flush)
+void FSPatchFATBlock(unsigned char *buffer,int size,int addr,FS_VOLUME *fs,int flush)
 {
 FS_CHAINBUFFER *ch,*prev,*tmp;
 int f,claddr;
@@ -35,8 +35,8 @@ for(f=0;f<ch->Used;++f)
 claddr=ch->Entries[f].Cluster+(ch->Entries[f].Cluster>>1)+fs->FirstFATAddr-addr;
 if(claddr>=0 && claddr<=size-2) {
 // ENTRY IS FULLY WITHIN BLOCK
-if(ch->Entries[f].Cluster&1) WriteInt16((char *)buffer+claddr,(ReadInt16((char *)buffer+claddr)&0xf) | (ch->Entries[f].EntryValue<<4));
-else WriteInt16((char *)buffer+claddr,(ReadInt16((char *)buffer+claddr)&0xf000) | (ch->Entries[f].EntryValue&0xfff));
+if(ch->Entries[f].Cluster&1) WriteInt16(buffer+claddr,(ReadInt16(buffer+claddr)&0xf) | (ch->Entries[f].EntryValue<<4));
+else WriteInt16(buffer+claddr,(ReadInt16(buffer+claddr)&0xf000) | (ch->Entries[f].EntryValue&0xfff));
 if(flush) ch->Entries[f].EntryValue|=0xc0000000;		// MARK AS FULLY WRITTEN
 }
 else {

@@ -143,7 +143,7 @@ void simpfree(void *voidptr)
 
 }
 
-char *simpmallocb(int bytes)
+unsigned char *simpmallocb(int bytes)
 {
-    return (char *)simpmalloc((bytes+3)>>2);
+    return (unsigned char *)simpmalloc((bytes+3)>>2);
 }

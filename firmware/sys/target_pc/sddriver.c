@@ -14,13 +14,24 @@
 
 
 #include "../fsystem/fsyspriv.h"
+
+
+
 // SD MODULE
 
+
+// GLOBAL VARIABLES     FOR SD CARD EMULATION
+
+#include <stdio.h>
+volatile int __sd_inserted;
+volatile int __sd_nsectors;             // TOTAL SIZE OF SD CARD IN 512-BYTE SECTORS
+volatile int __sd_RCA;
+volatile unsigned char *__sd_buffer;    // BUFFER WITH THE ENTIRE CONTENTS OF THE SD CARD
 
 
 int SDCardInserted()
 {
-return FALSE;
+return __sd_inserted;
 }
 
 
@@ -31,8 +42,8 @@ return FALSE;
 int SDInit(SD_CARD *card)
 {
     UNUSED_ARGUMENT(card);
-return TRUE;
-
+    if(__sd_inserted) return TRUE;
+    return FALSE;
 }
 
 int SDIOSetup(SD_CARD *card,int shutdown)
@@ -53,7 +64,7 @@ void SDPowerUp()
 
 int SDSelect(int RCA)
 {
-    UNUSED_ARGUMENT(RCA);
+    if(RCA==__sd_RCA) return TRUE;
     return 0;
 }
 
@@ -62,13 +73,17 @@ int SDSelect(int RCA)
 // READS WORDS DIRECTLY INTO BUFFER
 // AT THE CURRENT BLOCK LENGTH
 // CARD MUST BE SELECTED
-int SDDRead(int SDAddr,int NumBytes,char *buffer, SD_CARD *card)
+int SDDRead(int SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
 {
     UNUSED_ARGUMENT(card);
     UNUSED_ARGUMENT(SDAddr);
     UNUSED_ARGUMENT(NumBytes);
     UNUSED_ARGUMENT(buffer);
-
+    if(__sd_inserted && __sd_RCA) {
+    // NO ARGUMENT CHECKS!
+    memmoveb(buffer,(unsigned char *)__sd_buffer+SDAddr,NumBytes);
+    return NumBytes;
+    }
     return FALSE;
 }
 
@@ -77,6 +92,20 @@ int SDDRead(int SDAddr,int NumBytes,char *buffer, SD_CARD *card)
 int SDCardInit(SD_CARD * card)
 {
     UNUSED_ARGUMENT(card);
+    if(__sd_inserted) {
+    card->SysFlags=15;			// 1=SDIO interface setup, 2=SDCard initialized, 4=Valid RCA obtained, 8=Bus configured OK
+    card->Rca=__sd_RCA=0x10;
+    card->BusWidth=4;
+    card->MaxBlockLen=9;
+    card->WriteBlockLen=9;
+    card->CurrentBLen=9;
+    card->CardSize=__sd_nsectors;
+    card->CID[0]=0;
+    card->CID[1]=0;
+    card->CID[2]=0;
+    card->CID[3]=0;
+    return TRUE;
+    }
 
     return FALSE;
 }
@@ -84,13 +113,18 @@ int SDCardInit(SD_CARD * card)
 // WRITE BYTES AT SPECIFIC ADDRESS
 // AT THE CURRENT BLOCK LENGTH
 // CARD MUST BE SELECTED
-int SDDWrite(int SDAddr,int NumBytes,char *buffer, SD_CARD *card)
+int SDDWrite(int SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
 {
     UNUSED_ARGUMENT(card);
     UNUSED_ARGUMENT(SDAddr);
     UNUSED_ARGUMENT(NumBytes);
     UNUSED_ARGUMENT(buffer);
 
+    if(__sd_inserted && __sd_RCA) {
+    // NO ARGUMENT CHECKS!
+    memmoveb((unsigned char *)__sd_buffer+SDAddr,buffer,NumBytes);
+    return NumBytes;
+    }
 
     return FALSE;
 

@@ -11,7 +11,7 @@
 
 // LOW-LEVEL WRITE FUNCTION
 
-int FSWriteLL(char *buffer,int nbytes,FS_FILE *file,FS_VOLUME *fs)
+int FSWriteLL(unsigned char *buffer,int nbytes,FS_FILE *file,FS_VOLUME *fs)
 {
 int currentaddr,bytesread,totalcount,error;
 FS_FRAGMENT *fr;
