@@ -216,6 +216,7 @@ if(cr->NameFlags&2) {
 	}
 	
 	g=k-1;
+    f=1;
     char *nameptr=file->Name;
 	//printf("long entries=%d\n",g);
 	while(g--) {
@@ -223,7 +224,7 @@ if(cr->NameFlags&2) {
     nameptr=FSUnpackName(nameptr,(char *)path);
 	path[13]=checksum;
 	path[11]=FSATTR_LONGNAME;
-	path[0]=f;
+    path[0]=f++;
 	}
 	//printf("All entries processed\n");
 	path[0]|=0x40;
