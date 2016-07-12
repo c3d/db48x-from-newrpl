@@ -16,7 +16,7 @@ static int isdot(char *string)
 }
 static int isdotdot(char *string)
 {
-    if((string[0]=='.')&&(string[1]='.')&&(string[2]==0)) return 1;
+    if((string[0]=='.')&&(string[1]=='.')&&(string[2]==0)) return 1;
     return 0;
 }
 
