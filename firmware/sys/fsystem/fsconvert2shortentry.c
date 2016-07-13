@@ -33,15 +33,18 @@ ncase=ecase=flags=0;
 
 nlen=(int)stringlen((char *)name)+1;
 
-// FIND EXTENSION
-ext=(unsigned char *)__fsfindcharrev(name,NULL,(char *)".");
-
-if(!ext) ext=(unsigned char *)name+nlen-1;		// POINT TO END-OF-STRING
 
 // 1ST STAGE, ANALYZE NAME
 tmp=(unsigned char *)name;
 
 while((*tmp=='.') || (*tmp==' ')) ++tmp;
+
+// FIND EXTENSION
+ext=(unsigned char *)__fsfindcharrev(tmp,NULL,(char *)".");
+
+if(!ext) ext=(unsigned char *)name+nlen-1;		// POINT TO END-OF-STRING
+
+
 if(tmp!=(unsigned char *)name) {
 // STRIP LEADING DOTS OR SPACES
 flags|=3;	// MARK NAME WAS CONVERTED
@@ -74,6 +77,12 @@ if(*tmp<=127) {		// >127 IS PERMITTED
 				else flags|=2;
 			}
 			else {
+                if(*tmp==0) {
+                // END OF THE NAME
+                // PAD WITH SPACES UNTIL THE END
+                while(tmp<(unsigned char *)name+nchars) { *tmp++=' '; }
+                break;
+                }
 				// ANY OTHER CHARACTER IS INVALID
 				*tmp='_';
 				flags|=3;
