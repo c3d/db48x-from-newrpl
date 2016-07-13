@@ -21,6 +21,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
     QTimer *screentmr,*maintmr;
+    QFile sdcard;
     QString currentfile;
     RPLThread rpl;
 

@@ -71,16 +71,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    maintmr->stop();
-    screentmr->stop();
-    if(rpl.isRunning()) {
-
-    __pc_terminate=1;
-    __pckeymatrix^=(1ULL<<63);
-    __keyb_update();
-
-    while(rpl.isRunning());
-    }
+    on_actionExit_triggered();
 
     event->accept();
 
@@ -322,8 +313,8 @@ void MainWindow::on_actionExit_triggered()
     while(rpl.isRunning());
     }
 
-    // CLEANUP
-    if(__sd_buffer!=NULL) { free(__sd_buffer); }
+    // CLEANUP SD CARD EMULATION
+    if(__sd_inserted) on_actionEject_SD_Card_Image_triggered();
 
 }
 
@@ -568,9 +559,9 @@ void MainWindow::on_actionInsert_SD_Card_Image_triggered()
 {
     QString fname=QFileDialog::getOpenFileName(this,"Open SD Card Image",QString(),"*.img");
     if(!fname.isEmpty()) {
-        QFile file(fname);
+        sdcard.setFileName(fname);
 
-        if(!file.open(QIODevice::ReadOnly)) {
+        if(!sdcard.open(QIODevice::ReadOnly)) {
             QMessageBox a(QMessageBox::Warning,"Error while opening","Cannot open file "+ fname,QMessageBox::Ok,this);
             a.exec();
             return;
@@ -583,22 +574,22 @@ void MainWindow::on_actionInsert_SD_Card_Image_triggered()
 
 
         // FILE IS OPEN AND READY FOR READING
-        __sd_buffer=(unsigned char *)malloc(file.size());
+        __sd_buffer=(unsigned char *)malloc(sdcard.size());
         if(__sd_buffer==NULL) {
             QMessageBox a(QMessageBox::Warning,"Error while opening","Not enough memory to read SD Image",QMessageBox::Ok,this);
             a.exec();
             return;
         }
 
-        if(file.read((char *)__sd_buffer,file.size())!=file.size()) {
+        if(sdcard.read((char *)__sd_buffer,sdcard.size())!=sdcard.size()) {
             QMessageBox a(QMessageBox::Warning,"Error while opening","Can't read SD Image",QMessageBox::Ok,this);
             a.exec();
             return;
         }
 
-        __sd_nsectors=file.size()/512;
+        __sd_nsectors=sdcard.size()/512;
         __sd_inserted=1;
-        file.close();
+        sdcard.close();
 
         ui->actionEject_SD_Card_Image->setEnabled(true);
         ui->actionInsert_SD_Card_Image->setEnabled(false);
@@ -611,6 +602,17 @@ void MainWindow::on_actionInsert_SD_Card_Image_triggered()
 
 void MainWindow::on_actionEject_SD_Card_Image_triggered()
 {
+        if(__sd_inserted) {
+            // SAVE THE CONTENTS BACK BEFORE EJECTING
+            if(!sdcard.open(QIODevice::WriteOnly)) {
+                QMessageBox a(QMessageBox::Warning,"Error while saving SD Card contents","Cannot open file "+ sdcard.fileName(),QMessageBox::Ok,this);
+                a.exec();
+            }
+            else {
+                sdcard.write((char *)__sd_buffer,(qint64)__sd_nsectors*512LL);
+                sdcard.close();
+            }
+        }
         __sd_inserted=0;
         __sd_RCA=0;
         __sd_nsectors=0;

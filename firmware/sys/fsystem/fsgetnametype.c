@@ -16,6 +16,8 @@
 // 8 == File ends in slash
 // 16== Drive is HP style
 // 32== Name is empty
+// 64== Name is single dot
+// 128==Name is double dot
 // BITS 16-31 = DEPTH OF PATH (0=CURRENT DIR OR ROOT)
 // NEGATIVE RESULT ==> INVALID FILENAME 
 
@@ -77,6 +79,21 @@ partial=ptr+1;
 }
 
 if(*partial==0) flags|=32;		// NAME IS EMPTY
+
+// SPECIAL NAMES: DETECT NAME=DOT, DOUBLE DOT, OR ONLY CONTAINS DOTS AND SPACES
+if(partial[0]=='.') {
+    if(partial[1]==0) flags|=64;
+    if(partial[1]=='.') {
+        if(partial[2]==0) flags|=128;
+        else {
+            unsigned char *tmp=(unsigned char *)partial+2;
+        while((*tmp=='.')||(*tmp==' ')) ++tmp;
+        if(*tmp==0) return -1;  // INVALID NAME CONTAINS ONLY DOTS AND SPACES
+        }
+    }
+}
+
+
 return flags | (depth<<16);
 
 }

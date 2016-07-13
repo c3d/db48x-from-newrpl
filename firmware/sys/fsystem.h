@@ -298,6 +298,24 @@
  *
  */
 #define FSNAME_EMPTY    32		// 32== Name is empty
+
+/*!
+ * \brief Name constant: File name is the single dot
+ *
+ * Examples: "C:\mydir\."
+ *
+ */
+#define FSNAME_DOT     64
+
+/*!
+ * \brief Name constant: File name is the double dot
+ *
+ * Examples: "C:\mydir\.."
+ *
+ */
+#define FSNAME_DOTDOT     128
+
+
 /*!
  * \brief Name constant: Invalid filename
  *

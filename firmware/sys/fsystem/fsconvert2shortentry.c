@@ -34,13 +34,14 @@ ncase=ecase=flags=0;
 nlen=(int)stringlen((char *)name)+1;
 
 
-// 1ST STAGE, ANALYZE NAME
+// 1ST STAGE, ANALYZ123E NAME
 tmp=(unsigned char *)name;
 
 while((*tmp=='.') || (*tmp==' ')) ++tmp;
 
+if(*tmp==0) return 0;   // INVALID NAME IS EITHER ALL DOTS OR ALL SPACES
 // FIND EXTENSION
-ext=(unsigned char *)__fsfindcharrev(tmp,NULL,(char *)".");
+ext=(unsigned char *)__fsfindcharrev((char *)tmp,NULL,(char *)".");
 
 if(!ext) ext=(unsigned char *)name+nlen-1;		// POINT TO END-OF-STRING
 
@@ -77,12 +78,6 @@ if(*tmp<=127) {		// >127 IS PERMITTED
 				else flags|=2;
 			}
 			else {
-                if(*tmp==0) {
-                // END OF THE NAME
-                // PAD WITH SPACES UNTIL THE END
-                while(tmp<(unsigned char *)name+nchars) { *tmp++=' '; }
-                break;
-                }
 				// ANY OTHER CHARACTER IS INVALID
 				*tmp='_';
 				flags|=3;

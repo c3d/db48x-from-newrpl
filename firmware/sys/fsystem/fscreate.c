@@ -37,6 +37,7 @@ ntype=FSGetNameType(name);
 //printf("ntype=%02X\n",ntype);
 
 if(ntype<0) return FS_BADNAME;
+if(ntype& (FSNAME_DOT|FSNAME_DOTDOT)) return FS_BADNAME;
 
 if((ntype&FSNAME_ENDSLASH) || (ntype&FSNAME_EMPTY)) return FS_BADNAME;
 
