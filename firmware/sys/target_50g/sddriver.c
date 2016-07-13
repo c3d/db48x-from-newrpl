@@ -528,7 +528,7 @@ return 1;
 // READS WORDS DIRECTLY INTO BUFFER
 // AT THE CURRENT BLOCK LENGTH
 // CARD MUST BE SELECTED
-int SDDRead(int SDAddr,int NumBytes,char *buffer, SD_CARD *card)
+int SDDRead(int SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
 {
 
 int blocks,endaddr,startaddr;
@@ -876,7 +876,7 @@ return TRUE;
 // WRITE BYTES AT SPECIFIC ADDRESS
 // AT THE CURRENT BLOCK LENGTH
 // CARD MUST BE SELECTED
-int SDDWrite(int SDAddr,int NumBytes,char *buffer, SD_CARD *card)
+int SDDWrite(int SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
 {
 
 int blocks,endaddr,startaddr,finalblock;

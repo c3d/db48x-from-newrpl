@@ -224,9 +224,9 @@ HEADERS  += \
     newrpl/lib-header.h \
     newrpl/include-all.h \
     newrpl/romlibs.h \
-    firmware/sys/target_50g/sddriver.h \
+    firmware/sys/sddriver.h \
     firmware/sys/fsystem/fsyspriv.h \
-    firmware/sys/target_50g/fsystem.h
+    firmware/include/fsystem.h
 
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \

@@ -51,8 +51,7 @@
     CMD(SDFILESIZE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDEOF,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDOPENDIR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SDNEXTFILE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SDTEST,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+    CMD(SDNEXTFILE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -1379,17 +1378,6 @@ void LIB_HANDLER()
 
     }
 
-    case SDTEST:
-    {
-     // DEBUGGING ONLY
-
-        char string[100];
-        stringcpy(string,".X");
-        int k=FSConvert2ShortEntry(string,1000);
-
-        return;
-
-    }
 
         // STANDARIZED OPCODES:
         // --------------------

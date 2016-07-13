@@ -228,7 +228,7 @@ HEADERS  += mainwindow.h \
     newrpl/lib-header.h \
     newrpl/include-all.h \
     newrpl/romlibs.h \
-    firmware/sys/fsystem.h \
+    firmware/include/fsystem.h \
     firmware/sys/sddriver.h \
     firmware/sys/fsystem/fsyspriv.h
 
