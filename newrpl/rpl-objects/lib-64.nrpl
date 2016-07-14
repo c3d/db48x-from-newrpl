@@ -17,7 +17,7 @@
 
 @#name lib64_msgtable
 {
-##1,ERR_ERR1 "Error Message 1"
+##1,ERR_VECTOROFNUMBERSEXPECTED "Vector of Numbers expected"
 ##1,ERR_ERR2 "Error Message 2"
 }
 
@@ -29,7 +29,8 @@
   GCD LCM IDIV2 IQUOT { "" }
   MODSTO MODRCL { "" } { "" } { "" }
   ADDTMOD SUBTMOD MULTMOD POWMOD { "" }
-  NEXTPRIME ISPRIME?
+  NEXTPRIME ISPRIME? { "" } { "" } { "" }
+  PEVAL PCOEF
 }
 
 @#name lib64_cmdhelp
@@ -142,5 +143,13 @@ ISPRIME?
 "TESTS IF A NUMBER IS PRIME
 
 I → I"
+PEVAL
+"EVALUATE POLYNOMIAL
+
+V R → R"
+PCOEF
+"POLYNOMIAL COEFS
+FROM ROOTS
+V → V"
 }
 
