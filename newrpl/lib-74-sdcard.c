@@ -34,7 +34,8 @@
     CMD(SDSTO,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDRCL,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDCHDIR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SDMKDIR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDUPDIR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDCRDIR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDPGDIR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDPURGE,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDOPENRD,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
@@ -52,7 +53,13 @@
     CMD(SDFILESIZE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDEOF,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDOPENDIR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SDNEXTFILE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
+    CMD(SDNEXTFILE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDNEXTDIR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDNEXTENTRY,MKTOKENINFO(11,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDMOVE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDCOPY,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDPATH,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+
 
 
 // ADD MORE OPCODES HERE
@@ -471,8 +478,21 @@ void LIB_HANDLER()
 
     }
 
+    case SDUPDIR:
+    {
+        // TRY TO CHANGE CURRENT DIR
 
-    case SDMKDIR:
+        BINT err=FSChdir("..");
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+        }
+
+        return;
+
+    }
+
+    case SDCRDIR:
     {
         // CREATE A NEW DIRECTORY
         if(rplDepthData()<1) {
@@ -1240,6 +1260,8 @@ void LIB_HANDLER()
 
         FSSeek(handle,offset,seek_from);
 
+        rplDropData(2);
+
         return;
     }
 
@@ -1387,7 +1409,7 @@ void LIB_HANDLER()
         FS_FILE *handle;
         BINT err=FSOpenDir((char *)path,&handle);
 
-        if(err!=FS_OK) {
+        if( (err!=FS_OK)&&(err!=FS_OPENDIR)) {
             rplError(rplFSError2Error(err));
             return;
         }
@@ -1406,7 +1428,124 @@ void LIB_HANDLER()
     case SDNEXTFILE:
     {
         // GET NEXT FILE IN A DIRECTORY LISTING
-        // RETURN THE SIZE OF THE FILE IN BYTES
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISBINT(*rplPeekData(1))) {
+            rplError(ERR_INVALIDHANDLE);
+            return;
+        }
+
+        BINT64 num=rplReadBINT(rplPeekData(1));
+
+        FS_FILE *handle;
+        BINT err=FSGetFileFromHandle(num,&handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        rplDropData(1);
+
+        FS_FILE entry;
+
+        do {
+        err=FSGetNextEntry(&entry,handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        // DON'T ACCEPT THE . AND .. ENTRIES
+        if(entry.Name[0]=='.') {
+            if(entry.Name[1]==0) { FSReleaseEntry(&entry); continue; }
+            if((entry.Name[1]=='.') && entry.Name[2]==0) { FSReleaseEntry(&entry); continue; }
+        }
+        // DON'T ACCEPT ANY DIRECTORIES OR SPECIAL FILES
+        if(entry.Attr&(FSATTR_HIDDEN|FSATTR_DIR|FSATTR_SYSTEM|FSATTR_VOLUME)) { FSReleaseEntry(&entry); continue; }
+
+        break;
+
+        } while(1);
+
+        // PUT THE DATA ON A LIST
+
+        WORDPTR *dsave=DSTop;
+        WORDPTR newobj=rplCreateString((BYTEPTR)entry.Name,(BYTEPTR)entry.Name+stringlen(entry.Name));
+        if(!newobj) {
+            DSTop=dsave;
+            FSReleaseEntry(&entry);
+            return;
+        }
+        rplPushData(newobj);
+
+        // PUT THE FILE ATTRIBUTES NEXT
+        BYTE attr_string[6];
+        attr_string[0]=(entry.Attr&FSATTR_RDONLY)? 'R':'_';
+        attr_string[1]=(entry.Attr&FSATTR_HIDDEN)? 'H':'_';
+        attr_string[2]=(entry.Attr&FSATTR_SYSTEM)? 'S':'_';
+        attr_string[3]=(entry.Attr&FSATTR_DIR)? 'D':'_';
+        attr_string[4]=(entry.Attr&FSATTR_VOLUME)? 'V':'_';
+        attr_string[5]=(entry.Attr&FSATTR_ARCHIVE)? 'A':'_';
+
+        newobj=rplCreateString(attr_string,attr_string+6);
+        if(!newobj) {
+            DSTop=dsave;
+            FSReleaseEntry(&entry);
+            return;
+        }
+        rplPushData(newobj);
+
+
+        // FILE SIZE
+        rplNewBINTPush(entry.FileSize,DECBINT);
+        if(Exceptions) {
+            DSTop=dsave;
+            FSReleaseEntry(&entry);
+            return;
+        }
+
+        // LAST MODIFIED DATE
+        struct compact_tm date;
+        FSGetWriteTime(&entry,&date);
+        rplBINTToRReg(0,(BINT64)date.tm_year+1900+(BINT64)(date.tm_mon+1)*10000+(BINT64)date.tm_mday*1000000);
+        RReg[0].exp-=6;
+        rplNewRealFromRRegPush(0);
+        if(Exceptions) {
+            DSTop=dsave;
+            FSReleaseEntry(&entry);
+            return;
+        }
+
+        // LAST MODIFIED TIME
+
+        rplBINTToRReg(0,(BINT64)date.tm_sec+(BINT64)date.tm_min*100+(BINT64)date.tm_hour*10000);
+        RReg[0].exp-=4;
+        rplNewRealFromRRegPush(0);
+        if(Exceptions) {
+            DSTop=dsave;
+            FSReleaseEntry(&entry);
+            return;
+        }
+
+        // THAT'S ENOUGH DATA
+        FSReleaseEntry(&entry);
+
+
+        return;
+
+
+
+    }
+
+    case SDNEXTENTRY:
+    {
+        // GET NEXT ENTRY IN A DIRECTORY LISTING
+        // INCLUDE ALL SPECIAL AND HIDDEN FILES
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1506,6 +1645,387 @@ void LIB_HANDLER()
 
 
 
+    }
+    case SDNEXTDIR:
+    {
+        // GET NEXT DIRECTORY IN A DIRECTORY LISTING
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISBINT(*rplPeekData(1))) {
+            rplError(ERR_INVALIDHANDLE);
+            return;
+        }
+
+        BINT64 num=rplReadBINT(rplPeekData(1));
+
+        FS_FILE *handle;
+        BINT err=FSGetFileFromHandle(num,&handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        rplDropData(1);
+
+        FS_FILE entry;
+
+
+
+        do {
+        err=FSGetNextEntry(&entry,handle);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        // DON'T ACCEPT THE . AND .. ENTRIES
+        if(entry.Name[0]=='.') {
+            if(entry.Name[1]==0) { FSReleaseEntry(&entry); continue; }
+            if((entry.Name[1]=='.') && entry.Name[2]==0) { FSReleaseEntry(&entry); continue; }
+        }
+        // DON'T ACCEPT ANY SPECIAL FILES OR SPECIAL DIRECTORIES
+        if(entry.Attr&(FSATTR_HIDDEN|FSATTR_SYSTEM|FSATTR_VOLUME)) { FSReleaseEntry(&entry); continue; }
+
+        // DON'T ACCEPT FILES THAT ARE NOT DIRECTORIES
+        if(!(entry.Attr&FSATTR_DIR)) { FSReleaseEntry(&entry); continue; }
+
+        break;
+
+        } while(1);
+
+        // PUT THE DATA ON A LIST
+
+        WORDPTR *dsave=DSTop;
+        WORDPTR newobj=rplCreateString((BYTEPTR)entry.Name,(BYTEPTR)entry.Name+stringlen(entry.Name));
+        if(!newobj) {
+            DSTop=dsave;
+            FSReleaseEntry(&entry);
+            return;
+        }
+        rplPushData(newobj);
+
+        // PUT THE FILE ATTRIBUTES NEXT
+        BYTE attr_string[6];
+        attr_string[0]=(entry.Attr&FSATTR_RDONLY)? 'R':'_';
+        attr_string[1]=(entry.Attr&FSATTR_HIDDEN)? 'H':'_';
+        attr_string[2]=(entry.Attr&FSATTR_SYSTEM)? 'S':'_';
+        attr_string[3]=(entry.Attr&FSATTR_DIR)? 'D':'_';
+        attr_string[4]=(entry.Attr&FSATTR_VOLUME)? 'V':'_';
+        attr_string[5]=(entry.Attr&FSATTR_ARCHIVE)? 'A':'_';
+
+        newobj=rplCreateString(attr_string,attr_string+6);
+        if(!newobj) {
+            DSTop=dsave;
+            FSReleaseEntry(&entry);
+            return;
+        }
+        rplPushData(newobj);
+
+
+        // FILE SIZE
+        rplNewBINTPush(entry.FileSize,DECBINT);
+        if(Exceptions) {
+            DSTop=dsave;
+            FSReleaseEntry(&entry);
+            return;
+        }
+
+        // LAST MODIFIED DATE
+        struct compact_tm date;
+        FSGetWriteTime(&entry,&date);
+        rplBINTToRReg(0,(BINT64)date.tm_year+1900+(BINT64)(date.tm_mon+1)*10000+(BINT64)date.tm_mday*1000000);
+        RReg[0].exp-=6;
+        rplNewRealFromRRegPush(0);
+        if(Exceptions) {
+            DSTop=dsave;
+            FSReleaseEntry(&entry);
+            return;
+        }
+
+        // LAST MODIFIED TIME
+
+        rplBINTToRReg(0,(BINT64)date.tm_sec+(BINT64)date.tm_min*100+(BINT64)date.tm_hour*10000);
+        RReg[0].exp-=4;
+        rplNewRealFromRRegPush(0);
+        if(Exceptions) {
+            DSTop=dsave;
+            FSReleaseEntry(&entry);
+            return;
+        }
+
+        // THAT'S ENOUGH DATA
+        FSReleaseEntry(&entry);
+
+
+        return;
+
+
+
+    }
+
+    case SDCOPY:
+    {
+        // COPY A FILE
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(1)) && !ISSTRING(*rplPeekData(1)) && !ISLIST(*rplPeekData(1))) {
+            rplError(ERR_IDENTORPATHEXPECTED);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(2)) && !ISSTRING(*rplPeekData(2)) && !ISLIST(*rplPeekData(2))) {
+            rplError(ERR_IDENTORPATHEXPECTED);
+            return;
+        }
+
+        BYTEPTR pathfrom=(BYTEPTR)RReg[0].data;
+        BYTEPTR pathto=(BYTEPTR)RReg[1].data;
+
+        if(ISIDENT(*rplPeekData(1))) {
+            BINT pathlen=rplGetIdentLength(rplPeekData(1));
+            memmoveb(pathto,rplPeekData(1)+1,pathlen);
+            pathto[pathlen]=0;    // NULL TERMINATED STRING
+        } else
+            if(ISLIST(*rplPeekData(1))) {
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(pathto,rplPeekData(1))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
+
+
+
+            }
+            else if(ISSTRING(*rplPeekData(1))) {
+                // FULL PATH GIVEN
+                BINT pathlen=rplStrSize(rplPeekData(1));
+                memmoveb(pathto,rplPeekData(1)+1,pathlen);
+                pathto[pathlen]=0;    // NULL TERMINATED STRING
+
+            }
+            else {
+                // TODO: ACCEPT TAGGED NAMES WHEN TAGS EXIST
+                rplError(ERR_IDENTORPATHEXPECTED);
+                return;
+            }
+
+        if(ISIDENT(*rplPeekData(2))) {
+            BINT pathlen=rplGetIdentLength(rplPeekData(2));
+            memmoveb(pathfrom,rplPeekData(2)+1,pathlen);
+            pathfrom[pathlen]=0;    // NULL TERMINATED STRING
+        } else
+            if(ISLIST(*rplPeekData(2))) {
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(pathfrom,rplPeekData(2))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
+
+
+
+            }
+            else if(ISSTRING(*rplPeekData(2))) {
+                // FULL PATH GIVEN
+                BINT pathlen=rplStrSize(rplPeekData(2));
+                memmoveb(pathfrom,rplPeekData(2)+1,pathlen);
+                pathfrom[pathlen]=0;    // NULL TERMINATED STRING
+
+            }
+            else {
+                // TODO: ACCEPT TAGGED NAMES WHEN TAGS EXIST
+                rplError(ERR_IDENTORPATHEXPECTED);
+                return;
+            }
+
+
+        // FINALLY, COPY THE FILE
+        FS_FILE *handleto,*handlefrom;
+        BINT err=FSOpen((char *)pathto,FSMODE_WRITE,&handleto);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        err=FSOpen((char *)pathfrom,FSMODE_READ,&handlefrom);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        // JUST READ AND WRITE, USE REAL NUMBERS AS STORAGE
+
+        BINT nbytes=FSFileLength(handlefrom);
+
+        // WARNING: THIS ASSUMES REAL_REGISTER_STORAGE > 1024 BYTES
+        // MAKE SURE THIS IS TRUE!
+
+#if (REAL_REGISTER_STORAGE < 256)
+#error This part of the code relies on at least 1024 bytes of storage per register.
+#endif
+        // IF WE HAD A LARGER BUFFER THIS COULD BE FASTER
+        while(nbytes>1024) {
+            FSRead(pathto,1024,handlefrom);
+            err=FSWrite(pathto,1024,handleto);
+            if(err!=1024) {
+            if(err<=0) rplError(rplFSError2Error(err));
+            else rplError(ERR_CANTWRITE);
+            FSClose(handleto);
+            FSClose(handlefrom);
+            return;
+            }
+            nbytes-=1024;
+        }
+
+        if(nbytes) {
+            FSRead(pathto,nbytes,handlefrom);
+            err=FSWrite(pathto,nbytes,handleto);
+            if(err!=nbytes) {
+            if(err<=0) rplError(rplFSError2Error(err));
+            else rplError(ERR_CANTWRITE);
+            FSClose(handleto);
+            FSClose(handlefrom);
+            return;
+            }
+        }
+
+        FSClose(handleto);
+        FSClose(handlefrom);
+
+        rplDropData(2);
+
+        return;
+    }
+
+    case SDMOVE:
+    {
+        // MOVE/RENAME A FILE
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(1)) && !ISSTRING(*rplPeekData(1)) && !ISLIST(*rplPeekData(1))) {
+            rplError(ERR_IDENTORPATHEXPECTED);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(2)) && !ISSTRING(*rplPeekData(2)) && !ISLIST(*rplPeekData(2))) {
+            rplError(ERR_IDENTORPATHEXPECTED);
+            return;
+        }
+
+        BYTEPTR pathfrom=(BYTEPTR)RReg[0].data;
+        BYTEPTR pathto=(BYTEPTR)RReg[1].data;
+
+        if(ISIDENT(*rplPeekData(1))) {
+            BINT pathlen=rplGetIdentLength(rplPeekData(1));
+            memmoveb(pathto,rplPeekData(1)+1,pathlen);
+            pathto[pathlen]=0;    // NULL TERMINATED STRING
+        } else
+            if(ISLIST(*rplPeekData(1))) {
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(pathto,rplPeekData(1))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
+
+
+
+            }
+            else if(ISSTRING(*rplPeekData(1))) {
+                // FULL PATH GIVEN
+                BINT pathlen=rplStrSize(rplPeekData(1));
+                memmoveb(pathto,rplPeekData(1)+1,pathlen);
+                pathto[pathlen]=0;    // NULL TERMINATED STRING
+
+            }
+            else {
+                // TODO: ACCEPT TAGGED NAMES WHEN TAGS EXIST
+                rplError(ERR_IDENTORPATHEXPECTED);
+                return;
+            }
+
+        if(ISIDENT(*rplPeekData(2))) {
+            BINT pathlen=rplGetIdentLength(rplPeekData(2));
+            memmoveb(pathfrom,rplPeekData(2)+1,pathlen);
+            pathfrom[pathlen]=0;    // NULL TERMINATED STRING
+        } else
+            if(ISLIST(*rplPeekData(2))) {
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(pathfrom,rplPeekData(2))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
+
+
+
+            }
+            else if(ISSTRING(*rplPeekData(2))) {
+                // FULL PATH GIVEN
+                BINT pathlen=rplStrSize(rplPeekData(2));
+                memmoveb(pathfrom,rplPeekData(2)+1,pathlen);
+                pathfrom[pathlen]=0;    // NULL TERMINATED STRING
+
+            }
+            else {
+                // TODO: ACCEPT TAGGED NAMES WHEN TAGS EXIST
+                rplError(ERR_IDENTORPATHEXPECTED);
+                return;
+            }
+
+
+        // FINALLY, MOVE THE FILE
+        BINT err=FSRename((char *)pathfrom,(char *)pathto);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+        }
+
+        rplDropData(2);
+
+        return;
+    }
+
+
+case SDPATH:
+    {
+        // RETURN THE CURRENT WORK DIRECTORY
+        BINT cvol=FSGetCurrentVolume();
+
+        if(cvol<0) {
+            rplError(rplFSError2Error(cvol));
+            return;
+        }
+
+        BYTEPTR path=(BYTEPTR)FSGetcwd(cvol),endpath;
+        if(!path) {
+            rplError(ERR_UNKNOWNFSERROR);
+            return;
+        }
+        endpath=path;
+        while(*endpath) ++endpath;
+        WORDPTR newstring=rplCreateString(path,endpath);
+
+        if(!newstring) return;
+
+        rplPushData(newstring);
+
+        // VERY IMPORTANT TO RELEASE THE MEMORY
+        // ALLOCATED BY THE FILE SYSTEM FOR THE PATH!
+        simpfree(path);
+
+        return;
     }
 
 

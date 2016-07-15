@@ -210,14 +210,15 @@ return FS_OK;
 
 
 // CHECK TO SEE IF THIS FILE IS ALREADY OPEN OR REFERENCED
-for(f=0;f<FS_MAXOPENFILES;++f)
+for(f=0;f<=FS_MAXOPENFILES;++f)
 {
+    if(f==FS_MAXOPENFILES) newdir=fs->CurrentDir;
 // CHECK IF THIS FILE IS OR CONTAINS THE PATH WE NEED
-newdir=fs->Files[f];
+    else newdir=fs->Files[f];
 while(newdir) {
 if(newdir->Dir==dir) {
 // CHECK FOR SAME PARENT DIR AND SAME NAME
-if((newdir->Name!=NULL) && FSNameCompare(ptr,newdir->Name,FSystem.CaseMode)) { f=FS_MAXOPENFILES; break; }
+if((newdir->Name!=NULL) && FSNameCompare(ptr,newdir->Name,FSystem.CaseMode)) { f=FS_MAXOPENFILES+1; break; }
 }
 newdir=newdir->Dir;
 }

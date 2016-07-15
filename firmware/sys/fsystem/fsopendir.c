@@ -80,21 +80,21 @@ fs=FSystem.Volumes[entry->Volume];
 
 
 
+int k;
 
-
-for(error=0;error<FS_MAXOPENFILES;++error)
+for(k=0;k<FS_MAXOPENFILES;++error)
 {
-if(fs->Files[error]==NULL) break;
+if(fs->Files[k]==NULL) break;
 }
 
-if(error==FS_MAXOPENFILES) {
+if(k==FS_MAXOPENFILES) {
 while(entry!=NULL) entry=FSFreeFile(entry);
 return FS_MAXFILES; 
 }
 
 
-fs->Files[error]=entry;
+fs->Files[k]=entry;
 *fileptr=entry;
 entry->CurrentOffset=0;
-return FS_OK;
+return error;
 }

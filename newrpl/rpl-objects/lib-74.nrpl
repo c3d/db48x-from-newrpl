@@ -17,7 +17,51 @@
 
 @#name lib74_menu
 {
-  SDINFO SDSTO SDRCL
+SDSTO
+SDRCL
+SDPURGE
+SDMOVE
+SDCOPY
+
+@ MENU PAGE
+SDCHDIR
+SDUPDIR
+SDPATH
+SDCRDIR
+SDPGDIR
+
+@ MENU PAGE
+
+SDOPENRD
+SDOPENWR
+SDOPENAPP
+SDOPENMOD
+SDOPENDIR
+
+@ MENU PAGE
+
+SDSEEKSTA
+SDSEEKCUR
+SDSEEKEND
+SDTELL
+SDEOF
+
+@MENU PAGE
+
+SDREADTEXT
+SDWRITETEXT
+SDREADLINE
+SDFILESIZE
+SDCLOSE
+
+@ MENU PAGE
+
+SDNEXTFILE
+SDNEXTDIR
+SDNEXTENTRY
+SDSETPART
+SDRESET
+
 }
 
 @#name lib74_msgtable
@@ -42,10 +86,6 @@
 
 @#name lib74_cmdhelp
 {
-SDINFO
-"Get information about SD CARD
-
-I<part> → I<present> I<size> I<free>"
 SDSTO
 "Store a variable on SD CARD
 
@@ -54,5 +94,142 @@ SDRCL
 "Read a variable from SD CARD
 
 N → O ..."
+SDPURGE
+"Delete a file on SD CARD
+
+N → "
+SDCHDIR
+"Change current directory
+
+N → "
+SDUPDIR
+"Change current directory to
+immediate parent
+N → "
+
+SDPATH
+"Get current directory
+
+ → S"
+
+
+@ MENU PAGE
+
+SDCRDIR
+"Create a new directory inside
+current directory
+N → "
+SDPGDIR
+"Delete an empty directory
+
+N → "
+SDOPENDIR
+"Open a directory for scanning,
+returns a file handle
+N → I "
+SDCLOSE
+"Close a file handle
+
+I<handle> → "
+
+@ MENU PAGE
+SDOPENRD
+"Open a file for read-only
+Returns a file handle
+N → I "
+SDOPENWR
+"Open a file for writing
+Returns a file handle
+N → I "
+SDOPENAPP
+"Open a file for append
+Returns a file handle
+N → I "
+SDOPENMOD
+"Open a file for modify
+Returns a file handle
+N → I "
+
+
+@ MENU PAGE
+
+SDSEEKSTA
+"Move current position to given
+offset from start of file
+I<offset> I<hanlde> → "
+SDSEEKCUR
+"Move current position to given
+offset from current position
+I<offset> I<hanlde> → "
+SDSEEKEND
+"Move current position to given
+offset from end of file
+I<offset> I<hanlde> → "
+SDTELL
+"Get the current position
+from start of file
+I<handle>  → I "
+SDEOF
+"Return true if the end of file
+was reached during last operation
+I<handle> → I<t/f> "
+
+@MENU PAGE
+
+SDREADTEXT
+"Read the requested number of
+Unicode characters
+I<nchars> I<handle> → S "
+SDWRITETEXT
+"Write the given string to a
+file
+S I<handle> → "
+SDREADLINE
+"Read the next line in the file
+
+I<handle> → S "
+SDFILESIZE
+"Get the size of an open file
+
+I<handle> → I<size> "
+
+
+SDNEXTFILE
+"Get the next file in a directory
+Returns name,attr,size,date,time
+I<handle> → S S R R R"
+SDNEXTDIR
+"Get the next directory in a directory
+Returns name,attr,size,date,time
+I<handle> → S S R R R"
+SDNEXTFILE
+"Get the next entry in a directory
+Returns name,attr,size,date,time
+I<handle> → S S R R R"
+
+
+
+
+
+
+
+@ MENU PAGE
+
+SDSETPART
+"Select active partition to use
+(0-3)
+I → "
+SDRESET
+"Hard reset SD card and file system.
+
+ → "
+SDCOPY
+"Copy a file to another
+
+N N → "
+SDMOVE
+"Move or rename a file
+
+N N → "
 
 }

@@ -29,6 +29,8 @@ FS_FILE entry;
 
 error=FSOpenDir(name,&dir);
 
+if(error==FS_OPENDIR) { FSClose(dir); return FS_USED; }
+
 if(error!=FS_OK) return error;
 
 while(error==FS_OK) {
