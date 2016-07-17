@@ -19,7 +19,7 @@
 #define LIBRARY_NUMBER  64
 
 #define ERROR_LIST \
-        ERR(ERR1,0), \
+        ERR(VECTOROFNUMBERSEXPECTED,0), \
         ERR(ERR2,1)
 
 // LIST OF COMMANDS EXPORTED,
@@ -56,7 +56,9 @@
     CMD(IQUOT,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
     CMD(ADDTMOD,MKTOKENINFO(7,TITYPE_FUNCTION,2,2)), \
     CMD(SUBTMOD,MKTOKENINFO(7,TITYPE_FUNCTION,2,2)), \
-    CMD(MULTMOD,MKTOKENINFO(7,TITYPE_FUNCTION,2,2))
+    CMD(MULTMOD,MKTOKENINFO(7,TITYPE_FUNCTION,2,2)), \
+    CMD(PEVAL,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
+    CMD(PCOEF,MKTOKENINFO(5,TITYPE_FUNCTION,1,2))
 
 
 // ADD MORE OPCODES HERE
@@ -1353,6 +1355,154 @@ void LIB_HANDLER()
 
     }
 
+    case PEVAL:
+    {
+
+            if(rplDepthData()<2) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            WORDPTR vect_val=rplPeekData(2);
+            WORDPTR real_val=rplPeekData(1);
+
+            /*
+            if(ISLIST(*real_val)) {
+                rplListBinaryDoCmd(real_val,vect_val);
+                return;
+            }
+            else if((ISIDENT(*vect_val) || ISSYMBOLIC(*vect_val)) || (ISIDENT(*real_val) || ISSYMBOLIC(*real_val))){
+                    rplSymbApplyOperator(CurOpcode,2);
+                    return;
+            }
+            else */ if(ISMATRIX(*vect_val) && ISNUMBER(*real_val) ){
+
+                BINT rows=MATROWS(vect_val[1]),cols=MATCOLS(vect_val[1]);
+
+                if(rows) {
+                    rplError(ERR_VECTOREXPECTED);
+                    return;
+                }
+                BINT f;
+
+                for(f=0;f<cols;++f) {
+                    WORDPTR entry=rplMatrixFastGet(vect_val,1,f+1);
+                    if(!ISNUMBER(*entry)) {
+                        rplError(ERR_VECTOROFNUMBERSEXPECTED);
+                        return;
+                    }
+                }
+                // DO IT ALL WITH REALS
+                // use Horner scheme
+                rplNumberToRReg(0,real_val);
+                rplNumberToRReg(1,(WORDPTR)zero_bint);
+
+                for(f=0;f<cols;++f) {
+                    WORDPTR entry=rplMatrixFastGet(vect_val,1,f+1);
+                    rplNumberToRReg(3,entry);
+                    mulReal(&RReg[2], &RReg[1], &RReg[0]);
+                    addReal(&RReg[1], &RReg[2], &RReg[3]);
+                }
+
+                WORDPTR newnumber=rplNewReal(&RReg[1]);
+                if(!newnumber) return;
+                // drop one value and replace level 1 value
+                rplDropData(1);
+                rplOverwriteData(1,newnumber);
+
+                return;
+
+            }
+            else {
+                rplError(ERR_BADARGTYPE);
+                return;
+            }
+            return;
+
+    }
+
+    case PCOEF:
+    {
+
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+
+            WORDPTR vect_val=rplPeekData(1);
+
+            if(ISMATRIX(*vect_val)){
+
+                BINT rows=MATROWS(vect_val[1]),cols=MATCOLS(vect_val[1]);
+
+                if(rows) {
+                    rplError(ERR_VECTOREXPECTED);
+                    return;
+                }
+                BINT f,icoef,j;
+
+                for(f=1;f<=cols;++f) {
+                    WORDPTR entry=rplMatrixFastGet(vect_val,1,f);
+                    if(!ISNUMBER(*entry)) {
+                        rplError(ERR_VECTOROFNUMBERSEXPECTED);
+                        return;
+                    }
+                }
+                // DO IT ALL WITH REALS
+
+                WORDPTR *Firstelem=DSTop;
+
+                rplPushData((WORDPTR)one_bint);
+                if(Exceptions) {
+                    DSTop=Firstelem;
+                    return;
+                }
+
+                for(icoef=1;icoef<=cols;++icoef){
+                    WORDPTR ai=rplMatrixFastGet(vect_val,1,icoef);
+                    rplNumberToRReg(0,ai);
+                    RReg[0].flags^=F_NEGATIVE;
+                    rplPushData((WORDPTR)zero_bint);
+                    for (j=1; j<=icoef; ++j){
+                        if (j==1){
+                            rplNumberToRReg(1, *(Firstelem+j-1));
+                        }
+                        else {
+                            copyReal(&RReg[1], &RReg[2]);
+                        }
+                        rplNumberToRReg(2, *(Firstelem+j));
+
+                        mulReal(&RReg[3],&RReg[0],&RReg[1]);
+                        addReal(&RReg[4],&RReg[3],&RReg[2]);
+                        WORDPTR newnumber=rplNewReal(&RReg[4]);
+                        if(!newnumber) {
+                            DSTop=Firstelem;
+                            return;
+                        }
+                        *(Firstelem+j)=newnumber;
+                    }
+                    if(Exceptions) {
+                        DSTop=Firstelem;
+                        return;
+                    }
+                }
+
+                WORDPTR pcoefs=rplMatrixCompose(0,cols+1);
+                if(!pcoefs) return;
+                rplDropData(cols+1);
+                rplOverwriteData(1,pcoefs);
+
+
+                return;
+
+            }
+            else {
+                rplError(ERR_BADARGTYPE);
+                return;
+            }
+            return;
+
+    }
+
         // ADD MORE OPCODES HERE
 
     // STANDARIZED OPCODES:
@@ -1488,14 +1638,14 @@ void LIB_HANDLER()
         return;
     }
 
-//    case OPCODE_LIBMSG:
-//        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
-//        // MUST RETURN A STRING OBJECT IN ObjectPTR
-//        // AND RetNum=OK_CONTINUE;
-//    {
-//        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
-//        return;
-//    }
+    case OPCODE_LIBMSG:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+        return;
+    }
 
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;
