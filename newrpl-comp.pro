@@ -203,7 +203,8 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/sys/Font8A.c \
     firmware/sys/Font6m.c \
     firmware/sys/Font5B.c \
-    firmware/sys/Font5A.c
+    firmware/sys/Font5A.c \
+    firmware/sys/target_pc/rtc.c
 
 
 HEADERS  += firmware/include/ggl.h \
@@ -223,7 +224,7 @@ HEADERS  += firmware/include/ggl.h \
     newrpl/lib-header.h \
     newrpl/include-all.h \
     newrpl/romlibs.h \
-    firmware/sys/fsystem.h \
+    firmware/include/fsystem.h \
     firmware/sys/sddriver.h \
     firmware/sys/fsystem/fsyspriv.h
 

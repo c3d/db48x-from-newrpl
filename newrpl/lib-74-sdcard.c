@@ -36,6 +36,7 @@
     CMD(SDCHDIR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDMKDIR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDPGDIR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDPURGE,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDOPENRD,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDOPENWR,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDOPENAPP,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
@@ -52,6 +53,7 @@
     CMD(SDEOF,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDOPENDIR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDNEXTFILE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
+
 
 // ADD MORE OPCODES HERE
 
@@ -146,7 +148,42 @@ BINT rplFSError2Error(BINT err)
     }
 }
 
+BINT rplPathFromList(BYTEPTR path,WORDPTR list)
+{
+    WORDPTR ptr=list+1;
+    WORDPTR eol=rplSkipOb(list);
+    int off=0;
 
+    while((*ptr!=CMD_ENDLIST)&&(ptr<eol))
+    {
+        if(*ptr==CMD_HOME) {
+            off=0;
+            ++ptr;
+        }
+        if(ptr!=list+1) {
+            path[off]='/';
+            ++off;
+        }
+        BINT len;
+        if(ISSTRING(*ptr)) len=rplStrSize(ptr);
+         else {
+            if(ISIDENT(*ptr)) len=rplGetIdentLength(ptr);
+            else {
+                // INVALID OBJECT
+                path[0]=0;
+                return 0;
+            }
+        }
+        BYTEPTR strptr=(BYTEPTR) (ptr+1);
+        memcpyb(path+off,strptr,len);
+        off+=len;
+        ptr=rplSkipOb(ptr);
+    }
+
+    path[off]=0;
+
+    return off;
+}
 
 void LIB_HANDLER()
 {
@@ -217,10 +254,11 @@ void LIB_HANDLER()
             path[pathlen]=0;    // NULL TERMINATED STRING
         } else
             if(ISLIST(*rplPeekData(1))) {
-                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
-
-
-
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(path,rplPeekData(1))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
             }
             else if(ISSTRING(*rplPeekData(1))) {
                 // FULL PATH GIVEN
@@ -287,9 +325,11 @@ void LIB_HANDLER()
             path[pathlen]=0;    // NULL TERMINATED STRING
         } else
             if(ISLIST(*rplPeekData(1))) {
-                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
-
-
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(path,rplPeekData(1))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
 
             }
             else if(ISSTRING(*rplPeekData(1))) {
@@ -396,7 +436,11 @@ void LIB_HANDLER()
             path[pathlen]=0;    // NULL TERMINATED STRING
         } else
             if(ISLIST(*rplPeekData(1))) {
-                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(path,rplPeekData(1))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
 
 
 
@@ -451,7 +495,11 @@ void LIB_HANDLER()
             path[pathlen]=0;    // NULL TERMINATED STRING
         } else
             if(ISLIST(*rplPeekData(1))) {
-                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(path,rplPeekData(1))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
 
 
 
@@ -505,7 +553,11 @@ void LIB_HANDLER()
             path[pathlen]=0;    // NULL TERMINATED STRING
         } else
             if(ISLIST(*rplPeekData(1))) {
-                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(path,rplPeekData(1))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
 
 
 
@@ -526,6 +578,64 @@ void LIB_HANDLER()
         // TRY TO DELETE CURRENT DIR
 
         BINT err=FSRmdir((char *)path);
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+        }
+        else rplDropData(1);
+
+        return;
+
+    }
+
+    case SDPURGE:
+    {
+        // DELETE A FILE
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(1)) && !ISSTRING(*rplPeekData(1)) && !ISLIST(*rplPeekData(1))) {
+            rplError(ERR_IDENTORPATHEXPECTED);
+            return;
+        }
+
+        BYTEPTR path=(BYTEPTR)RReg[0].data;
+
+        // USE RReg[0] TO STORE THE FILE PATH
+
+        if(ISIDENT(*rplPeekData(1))) {
+            BINT pathlen=rplGetIdentLength(rplPeekData(1));
+            memmoveb(path,rplPeekData(1)+1,pathlen);
+            path[pathlen]=0;    // NULL TERMINATED STRING
+        } else
+            if(ISLIST(*rplPeekData(1))) {
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(path,rplPeekData(1))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
+
+
+
+            }
+            else if(ISSTRING(*rplPeekData(1))) {
+                // FULL PATH GIVEN
+                BINT pathlen=rplStrSize(rplPeekData(1));
+                memmoveb(path,rplPeekData(1)+1,pathlen);
+                path[pathlen]=0;    // NULL TERMINATED STRING
+
+            }
+            else {
+                // TODO: ACCEPT TAGGED NAMES WHEN TAGS EXIST
+                rplError(ERR_IDENTORPATHEXPECTED);
+                return;
+            }
+
+        // TRY TO DELETE CURRENT DIR
+
+        BINT err=FSDelete((char *)path);
 
         if(err!=FS_OK) {
             rplError(rplFSError2Error(err));
@@ -559,7 +669,11 @@ void LIB_HANDLER()
             path[pathlen]=0;    // NULL TERMINATED STRING
         } else
             if(ISLIST(*rplPeekData(1))) {
-                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(path,rplPeekData(1))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
 
 
 
@@ -619,7 +733,11 @@ void LIB_HANDLER()
             path[pathlen]=0;    // NULL TERMINATED STRING
         } else
             if(ISLIST(*rplPeekData(1))) {
-                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(path,rplPeekData(1))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
 
 
 
@@ -679,7 +797,11 @@ void LIB_HANDLER()
             path[pathlen]=0;    // NULL TERMINATED STRING
         } else
             if(ISLIST(*rplPeekData(1))) {
-                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(path,rplPeekData(1))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
 
 
 
@@ -739,7 +861,11 @@ void LIB_HANDLER()
             path[pathlen]=0;    // NULL TERMINATED STRING
         } else
             if(ISLIST(*rplPeekData(1))) {
-                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(path,rplPeekData(1))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
 
 
 
@@ -1235,7 +1361,11 @@ void LIB_HANDLER()
             path[pathlen]=0;    // NULL TERMINATED STRING
         } else
             if(ISLIST(*rplPeekData(1))) {
-                // TODO: MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(path,rplPeekData(1))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
 
 
 
