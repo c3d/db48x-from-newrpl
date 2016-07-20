@@ -1913,7 +1913,11 @@ void acc_real_int(REAL *result,BINT number,BINT exponent)
     BINT wordshift=exponent-result->exp,smallshift;
     if(wordshift<0) {
         // NEED TO MOVE THE WHOLE NUMBER TO ADD THIS
-        if((-wordshift)&7) { smallshift=8-((-wordshift)&7); wordshift=(-wordshift+1)>>3; }
+        if((-wordshift)&7) { smallshift=8-((-wordshift)&7); wordshift=((-wordshift)>>3)+1; }
+        else {
+            smallshift=0;
+            wordshift= (-wordshift)>>3;
+        }
         if(result->len+wordshift>(Context.precdigits>>3)+2) return;
         copy_words(result->data+wordshift,result->data,result->len);
         zero_words(result->data,wordshift);

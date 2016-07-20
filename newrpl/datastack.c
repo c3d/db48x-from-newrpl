@@ -189,6 +189,8 @@ void rplRemoveSnapshot(BINT numsnap)
     WORDPTR *snapptr=DStkBottom;
     WORDPTR *prevptr;
 
+    if(numsnap<1) return;
+
     while((snapptr>DStk)&&(numsnap>0)) {
         prevptr=snapptr;
         snapptr-=((PTR2NUMBER)*(snapptr-1))+1;
@@ -314,6 +316,8 @@ void rplRestoreSnapshot(BINT numsnap)
     WORDPTR *snapptr=DStkBottom;
     WORDPTR *prevptr;
 
+    if(numsnap<1) return;
+
     while((snapptr>DStk)&&(numsnap>0)) {
         prevptr=snapptr;
         snapptr-=((PTR2NUMBER)*(snapptr-1))+1;
@@ -356,6 +360,8 @@ BINT rplDepthSnapshot(BINT numsnap)
     WORDPTR *snapptr=DStkBottom;
     WORDPTR *prevptr;
 
+    if(numsnap<1) return 0;
+
     while((snapptr>DStk)&&(numsnap>0)) {
         prevptr=snapptr;
         snapptr-=((PTR2NUMBER)*(snapptr-1))+1;
@@ -377,6 +383,8 @@ WORDPTR rplPeekSnapshot(BINT numsnap,BINT level)
 {
     WORDPTR *snapptr=DStkBottom;
     WORDPTR *prevptr;
+
+    if(numsnap<1) return 0;
 
     while((snapptr>DStk)&&(numsnap>0)) {
         prevptr=snapptr;

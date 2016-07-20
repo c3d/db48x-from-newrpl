@@ -162,7 +162,7 @@ void DrawTextN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,DRAWSURF
     fontbitmap=(char *)(((unsigned int *)Font)+Font->OffsetBitmap);
     offtable=(unsigned short *)(((unsigned int *)Font)+Font->OffsetTable);
 
-    int w,clipped=0,h;
+    int w=0,clipped=0,h;
     gglsurface srf;
     srf.addr=(int *)fontbitmap;
     srf.width=Font->BitmapWidth<<3;
@@ -269,7 +269,7 @@ void DrawTextBkN(int x,int y,char *Text,char *End,UNIFONT *Font,int color,int bk
     fontbitmap=(char *)(((unsigned int *)Font)+Font->OffsetBitmap);
     offtable=(unsigned short *)(((unsigned int *)Font)+Font->OffsetTable);
 
-    int w,clipped=0,h;
+    int w=0,clipped=0,h;
     gglsurface srf;
     srf.addr=(int *)fontbitmap;
     srf.width=Font->BitmapWidth<<3;

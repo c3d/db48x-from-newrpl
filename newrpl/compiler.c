@@ -172,7 +172,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
     CompileEnd=TempObEnd;
 
     // START COMPILATION LOOP
-    BINT force_libnum,splittoken,validate,infixmode;
+    BINT force_libnum,splittoken,validate=0,infixmode;
     BINT probe_libnum=0,probe_tokeninfo=0,previous_tokeninfo;
     LIBHANDLER handler,ValidateHandler;
     BINT libcnt,libnum;
@@ -944,9 +944,9 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
 {
     LIBHANDLER han;
     BINT infixmode=0;
-    UBINT savecstruct,savedecompmode;
-    BINT validtop,validbottom;
-    WORDPTR *SavedRSTop;
+    UBINT savecstruct=0,savedecompmode=0;
+    BINT validtop=0,validbottom=0;
+    WORDPTR *SavedRSTop=0;
     if(flags&DECOMP_EMBEDDED) {
         SavedRSTop=RSTop;
         savecstruct=CurrentConstruct;
