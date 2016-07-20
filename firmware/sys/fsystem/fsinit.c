@@ -68,4 +68,14 @@ FSystem.Init=1;
 return FS_OK;
 }
 
+int FSIsInit()
+{
+    if(FSystem.Init) return 1;
+    return 0;
+}
 
+int FSCardInserted()
+{
+    if(SDCardInserted()) return 1;
+    else return 0;
+}

@@ -1092,5 +1092,8 @@ extern int FSGetHandle(FS_FILE *file);
  */
 extern int FSGetFileFromHandle(int handle,FS_FILE **fileptr);
 
+extern int FSIsInit();
+extern int FSCardInserted();
+
 
 #endif

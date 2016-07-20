@@ -798,6 +798,25 @@ void halRedrawStatus(DRAWSURFACE *scr)
     if(rplTestSystemFlag(FL_COMPLEXMODE))     DrawTextBk(STATUSAREA_X+14,ytop+1,(char *)"C",(UNIFONT *)halScreen.StAreaFont,0xf,0x0,scr);
 
 
+    // SD CARD INSERTED INDICATOR
+    {
+        char txt[4];
+        int color;
+        txt[0]='S';
+        txt[1]='D';
+        txt[2]=' ';
+        txt[3]=0;
+        if(FSCardInserted()) color=6;
+        else color=0;
+        if(FSIsInit()) {
+            if(FSVolumeMounted(FSGetCurrentVolume())) color=0xf;
+            if(!FSCardInserted()) { txt[2]='?'; color=6; }
+        }
+
+        if(color) DrawTextBk(STATUSAREA_X+53,ytop+1,txt,(UNIFONT *)halScreen.StAreaFont,color,0x0,scr);
+
+
+    }
 
     // ADD OTHER INDICATORS HERE
 

@@ -100,6 +100,8 @@ FS_FILE *Entry;
  * \sa FSShutdown FSRestart
  */
 extern int FSInit();
+extern int FSIsInit();
+extern int FSCardInserted();
 
 extern void FSHardReset();
 
