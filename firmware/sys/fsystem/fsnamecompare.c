@@ -159,6 +159,25 @@ while(*shentry && *newname) {
 
 if(*shentry==0 && *newname==0) return 0; // IDENTICAL ROOTS, NO NUMBER
 
+if(*shentry=='~' && *newname==0) {
+    // ROOTS MATCH, GET NUMBER
+
+    ++shentry;
+    while(*shentry>='0' && *shentry<='9') {
+        number*=10;
+        number+=*shentry-48;
+        ++shentry;
+    }
+
+    if(number) return number;
+    return 0;
+
+    }
+
+
+
+
+
 return -1;
 }
 

@@ -206,13 +206,16 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 
 
 	// FIRST CHECK IF ENTRY IS THE FILE WE SEARCH FOR
-	
-	
-		// CHECK IF LONG NAME MATCHES
-        if(FSNameCompare((char *)entryname,(char *)newname,(FSystem.CaseMode==FSCASE_SENS)? FSCASE_INSENS:FSystem.CaseMode) ||
-		// CHECK IF SHORT NAME MATCHES
-        FSNameCompare((char *)shortn,(char *)newname,(FSystem.CaseMode==FSCASE_SENS)? FSCASE_INSENS:FSystem.CaseMode))
+    // compare =
+        // 0: NO MATCH
+        // 1 = LONG NAME MATCHES
+        // 2 = SHORT NAME MATCHES
+        // 3 = LONG AND SHORT NAME MATCH
+    int compare=FSNameCompare((char *)entryname,(char *)newname,(FSystem.CaseMode==FSCASE_SENS)? FSCASE_INSENS:FSystem.CaseMode) |
+                (FSNameCompare((char *)shortn,(char *)newname,(FSystem.CaseMode==FSCASE_SENS)? FSCASE_INSENS:FSystem.CaseMode)<<1);
 
+
+            if(compare&1)
 		{		// FILE EXISTS
 
 
@@ -394,7 +397,7 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	// CHECK FOR POSSIBLE ROOT/NUMBER CONFLICT
 			{
                 int rootn=FSNameCompareRoot((char *)shortn,(char *)shname);
-				if(cr->ShortNum<rootn) cr->ShortNum=rootn+1;
+                if(cr->ShortNum<=rootn) cr->ShortNum=rootn+1;
 			}
 
 		}

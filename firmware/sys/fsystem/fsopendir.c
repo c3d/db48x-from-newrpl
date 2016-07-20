@@ -82,7 +82,7 @@ fs=FSystem.Volumes[entry->Volume];
 
 int k;
 
-for(k=0;k<FS_MAXOPENFILES;++error)
+for(k=0;k<FS_MAXOPENFILES;++k)
 {
 if(fs->Files[k]==NULL) break;
 }

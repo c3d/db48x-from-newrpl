@@ -27,19 +27,24 @@ int FSConvert2ShortEntry(char *name,int minnum)
 {
 int ncase,ecase,noext,flags;
 int nlen,nchars;
-unsigned char *ext,*tmp,*orgname=(unsigned char *)name;
+unsigned char *ext,*tmp,*orgname=(unsigned char *)name,*ptr;
 
 ncase=ecase=flags=0;
 
-nlen=(int)stringlen((char *)name)+1;
-
-
-// 1ST STAGE, ANALYZ123E NAME
+// 1ST STAGE, ANALYZE NAME
 tmp=(unsigned char *)name;
 
 while((*tmp=='.') || (*tmp==' ')) ++tmp;
 
 if(*tmp==0) return 0;   // INVALID NAME IS EITHER ALL DOTS OR ALL SPACES
+
+ptr=tmp;
+// STRIP ALL ENDING SEMICOLONS, THEY DON'T ALTER THE SHORT NAME
+while(*ptr!=0) ++ptr;
+while(ptr>tmp) { if(ptr[-1]==';') --ptr; else break; }
+*ptr=0;
+nlen=ptr-tmp+1;
+
 // FIND EXTENSION
 ext=(unsigned char *)__fsfindcharrev((char *)tmp,NULL,(char *)".");
 
