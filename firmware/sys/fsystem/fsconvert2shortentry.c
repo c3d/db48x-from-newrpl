@@ -25,7 +25,7 @@ extern const int cp850toUnicode[128];
 
 int FSConvert2ShortEntry(char *name,int minnum)
 {
-int ncase,ecase,flags;
+int ncase,ecase,noext,flags;
 int nlen,nchars;
 unsigned char *ext,*tmp,*orgname=(unsigned char *)name;
 
@@ -43,8 +43,8 @@ if(*tmp==0) return 0;   // INVALID NAME IS EITHER ALL DOTS OR ALL SPACES
 // FIND EXTENSION
 ext=(unsigned char *)__fsfindcharrev((char *)tmp,NULL,(char *)".");
 
-if(!ext) ext=(unsigned char *)name+nlen-1;		// POINT TO END-OF-STRING
-
+if(!ext) { noext=1; ext=(unsigned char *)name+nlen-1; }		// POINT TO END-OF-STRING
+else noext=0;
 
 if(tmp!=(unsigned char *)name) {
 // STRIP LEADING DOTS OR SPACES
@@ -131,6 +131,11 @@ continue;
 
 
 } while(tmp<ext);
+
+if(noext) {
+    ncase=ecase;
+    ecase=0;
+}
 
 if(flags&1 || minnum>0) {
 // ADD TAIL IF REQUIRED
