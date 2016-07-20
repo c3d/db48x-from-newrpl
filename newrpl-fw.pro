@@ -248,7 +248,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
 
 
 # This might need to be adapted to each cross-compiler installation
-GCC_LIBDIR = /usr/lib/gcc/arm-none-eabi/4.8.2
+GCC_LIBDIR = /usr/lib/gcc/arm-none-eabi/4.9.3
 
 INCLUDEPATH += $$GCC_LIBDIR/include
 QMAKE_LIBDIR += $$GCC_LIBDIR

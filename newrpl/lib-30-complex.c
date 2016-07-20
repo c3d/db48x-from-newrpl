@@ -316,7 +316,7 @@ void LIB_HANDLER()
 
         int nargs=OVR_GETNARGS(CurOpcode);
         REAL Rarg1,Iarg1,Rarg2,Iarg2;
-        BINT amode1,amode2;
+        BINT amode1,amode2=ANGLENONE;
 
         if(rplDepthData()<nargs) {
             rplError(ERR_BADARGCOUNT);

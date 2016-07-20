@@ -360,7 +360,7 @@ void rplSymbRuleMatch()
 {
     // MATCH A RULE IN THE CURRENT SYMBOLIC, DOES NOT MATCH RECURSIVELY INSIDE THE SYMBOLIC
 
-    WORDPTR ruleleft,ruleright,objptr;
+    WORDPTR ruleleft /*,ruleright*/ ,objptr;
 
     ruleleft=rplSymbUnwrap(rplPeekData(1));
     if(!ruleleft) {
@@ -377,7 +377,7 @@ void rplSymbRuleMatch()
         return;
     }
     ++ruleleft;
-    ruleright=rplSkipOb(ruleleft);
+    // ruleright=rplSkipOb(ruleleft);   // DISABLED TO SQUELCH COMPILER WARNING. THIS CODE IS OBSOLETE AND SHOULD BE REMOVED EVENTUALLY
 
     objptr=rplSymbUnwrap(rplPeekData(2));
 
@@ -645,7 +645,7 @@ WORDPTR rplSymbReplace(WORDPTR mainobj,WORDPTR arg,WORDPTR newarg)
 
 BINT rplSymbExplode(WORDPTR object)
 {
-    BINT count=0,countops=0,nargs;
+    BINT count=0,countops=0,nargs=0;
 
     WORDPTR ptr,end,numbers;
     WORDPTR *sptr;

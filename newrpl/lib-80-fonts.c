@@ -157,7 +157,7 @@ void LIB_HANDLER()
         BYTEPTR ptr=(BYTEPTR)TokenStart;
 
         WORD value=0;
-        WORD checksum;
+        WORD checksum=0;
         BINT ndigits=0;
         BINT dig;
 
@@ -179,6 +179,11 @@ void LIB_HANDLER()
                 else if((*ptr>='a')&&(*ptr<='z')) dig=(*ptr-71);
                 else if(*ptr=='+') dig=62;
                 else if(*ptr=='/') dig=63;
+                else {
+                    // INVALID CHARACTER!
+                    RetNum=ERR_SYNTAX;
+                    return;
+                }
 
             // STILL NEED MORE WORDS, KEEP COMPILING
             if(ndigits==5) {
