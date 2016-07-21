@@ -17,10 +17,11 @@
 
 
 // EXPAND A CLUSTER CHAIN TO CONTAIN AT LEAST newtotalsize BYTES
-int FSExpandChain(FS_FILE *file,int newtotalsize)
+int FSExpandChain(FS_FILE *file,unsigned int newtotalsize)
 {
-int size=0,needed,taken;
-int fixcluster;
+int needed,taken;
+unsigned int size=0;
+unsigned int fixcluster;
 FS_FRAGMENT *fr=&file->Chain;
 FS_FRAGMENT *newfr;
 FS_VOLUME *fs=FSystem.Volumes[file->Volume];
@@ -43,10 +44,10 @@ if(fr->StartAddr!=0) { size+=fr->EndAddr-fr->StartAddr;
 
 
 // NUMBER OF NEW CLUSTERS TO ALLOCATE
-needed=((newtotalsize-size)+ (1<<fs->ClusterSize) -1 )>>fs->ClusterSize;
+needed=(((uint64_t)newtotalsize-(((uint64_t)size)<<9))+ (1<<fs->ClusterSize) -1 )>>fs->ClusterSize;
 if(needed<=0) return FS_OK;		// NO NEED TO ADD CLUSTERS TO THE CHAIN
 
-needed<<=fs->ClusterSize;
+needed<<=(fs->ClusterSize-9);
 //printf("needed=%d\n",needed);
 if(fs->FreeSpace<needed) 
 return FS_DISKFULL;
@@ -74,7 +75,7 @@ fr->EndAddr+=taken;
 while(fixcluster!=fr->EndAddr)
 {
 FSWriteFATEntry(FSAddr2Cluster(fixcluster,fs)-1,FSAddr2Cluster(fixcluster,fs),fs);
-fixcluster+=1<<fs->ClusterSize;
+fixcluster+=1<<(fs->ClusterSize-9);
 }
 FSWriteFATEntry(FSAddr2Cluster(fixcluster,fs)-1,0xfffffff,fs);		// END-OF-CHAIN MARKER
 //printf("st=%08X, e=%08X\n",fr->StartAddr,fr->EndAddr);
@@ -101,11 +102,11 @@ FSWriteFATEntry(FSAddr2Cluster(fr->EndAddr,fs)-1,FSAddr2Cluster(newfr->StartAddr
 }
 fr=newfr;
 //printf("st=%08X, e=%08X\n",fr->StartAddr,fr->EndAddr);
-fixcluster=fr->StartAddr+(1<<fs->ClusterSize);
+fixcluster=fr->StartAddr+(1<<(fs->ClusterSize-9));
 while(fixcluster!=fr->EndAddr)
 {
 FSWriteFATEntry(FSAddr2Cluster(fixcluster,fs)-1,FSAddr2Cluster(fixcluster,fs),fs);
-fixcluster+=1<<fs->ClusterSize;
+fixcluster+=1<<(fs->ClusterSize-9);
 }
 FSWriteFATEntry(FSAddr2Cluster(fixcluster,fs)-1,0xfffffff,fs);		// END-OF-CHAIN MARKER
 

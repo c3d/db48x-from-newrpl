@@ -32,7 +32,7 @@ case 1:
 while(ch) {
 for(f=0;f<ch->Used;++f)
 {
-claddr=ch->Entries[f].Cluster+(ch->Entries[f].Cluster>>1)+fs->FirstFATAddr-addr;
+claddr=ch->Entries[f].Cluster+(ch->Entries[f].Cluster>>1)-addr;
 if(claddr>=0 && claddr<=size-2) {
 // ENTRY IS FULLY WITHIN BLOCK
 if(ch->Entries[f].Cluster&1) WriteInt16(buffer+claddr,(ReadInt16(buffer+claddr)&0xf) | (ch->Entries[f].EntryValue<<4));
@@ -71,7 +71,7 @@ ptr=(unsigned short int *)buffer;
 while(ch) {
 for(f=0;f<ch->Used;++f)
 {
-claddr=(ch->Entries[f].Cluster<<1)+fs->FirstFATAddr-addr;
+claddr=(ch->Entries[f].Cluster<<1)-addr;
 if(claddr>=0 && claddr<=size-2) {
 // ENTRY IS FULLY WITHIN BLOCK
 ptr[claddr>>1]=ch->Entries[f].EntryValue;
@@ -91,7 +91,7 @@ ptr32=(unsigned int *)buffer;
 while(ch) {
 for(f=0;f<ch->Used;++f)
 {
-claddr=(ch->Entries[f].Cluster<<2)+fs->FirstFATAddr-addr;
+claddr=(ch->Entries[f].Cluster<<2)-addr;
 if(claddr>=0 && claddr<=size-4) {
 // ENTRY IS FULLY WITHIN BLOCK
 ptr32[claddr>>2]=(ptr32[claddr>>2]&0xf0000000)| (ch->Entries[f].EntryValue&0xfffffff);

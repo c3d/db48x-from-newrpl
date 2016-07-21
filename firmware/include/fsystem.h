@@ -345,13 +345,14 @@ typedef struct __file FS_FILE;
 
 
 struct __frag {
-int StartAddr,EndAddr;
+unsigned int StartAddr,EndAddr;
 FS_FRAGMENT *NextFragment;
 };
 
 struct __buffer {
 unsigned char *Data;
-int Offset,Used;
+unsigned int Offset;
+int Used;
 };
 
 

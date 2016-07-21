@@ -14,7 +14,7 @@
 
 unsigned int FSAddr2Cluster(unsigned int addr,FS_VOLUME *fs)
 {
-return  (addr-fs->Cluster0Addr)>>(fs->ClusterSize);
+return  (addr-fs->Cluster0Addr)>>(fs->ClusterSize-9);
 }
 
 unsigned int FSCluster2FATEntry(unsigned int cluster,FS_VOLUME *fs)
@@ -22,11 +22,11 @@ unsigned int FSCluster2FATEntry(unsigned int cluster,FS_VOLUME *fs)
 switch(fs->FATType)
 {
 case 1:	// FAT12
-return cluster+(cluster>>1)+fs->FirstFATAddr;
+return cluster+(cluster>>1);
 case 3:	// FAT 32
 cluster<<=1;
 case 2:
-return (cluster<<1)+fs->FirstFATAddr;
+return (cluster<<1);
 }
 return 0;
 }
@@ -38,13 +38,12 @@ return FSCluster2FATEntry(FSAddr2Cluster(addr,fs),fs);
 
 unsigned int FSCluster2Addr(unsigned int cluster,FS_VOLUME *fs)
 {
-return (cluster<<fs->ClusterSize)+fs->Cluster0Addr;
+return (cluster<<(fs->ClusterSize-9))+fs->Cluster0Addr;
 }
 
 
 unsigned int FSFATEntry2Cluster(unsigned int addr,FS_VOLUME *fs)
 {
-addr-=fs->FirstFATAddr;
 switch(fs->FATType)
 {
 case 1:	// FAT12

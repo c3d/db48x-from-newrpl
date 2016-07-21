@@ -14,7 +14,8 @@
 
 int FSReadLL(unsigned char *buffer,int nbytes,FS_FILE *file,FS_VOLUME *fs)
 {
-int currentaddr,bytesread,totalcount,bytescachedl,bytescachedr;
+int bytesread,totalcount,bytescachedl,bytescachedr;
+uint64_t currentaddr;
 FS_FRAGMENT *fr;
 
 // RETURN IF EOF
@@ -88,19 +89,19 @@ if(file->RdBuffer.Used) {
 
 
 fr=&file->Chain;
-currentaddr=fr->StartAddr+file->CurrentOffset;
+currentaddr=(((uint64_t)fr->StartAddr)<<9)+file->CurrentOffset;
 
 // FIND STARTING ADDRESS
-while (currentaddr>=fr->EndAddr) {
+while (currentaddr>=(((uint64_t)fr->EndAddr)<<9)) {
 
-	currentaddr-=fr->EndAddr;
+    currentaddr-=((uint64_t)fr->EndAddr)<<9;
 	
 	fr=fr->NextFragment;
 	if(fr==NULL) {
 			// MALFORMED CLUSTER CHAIN!!! CLUSTER CHAIN IS SHORTER THAN FileSize
 			return 0;
 	}
-	currentaddr+=fr->StartAddr;
+    currentaddr+=((uint64_t)fr->StartAddr)<<9;
 	
 }
 
@@ -123,13 +124,13 @@ return totalcount;
 }
 */
 
-while(nbytes+currentaddr>fr->EndAddr) {
+while(nbytes+currentaddr>(((uint64_t)fr->EndAddr)<<9)) {
 
 
-bytesread=SDDRead(currentaddr,fr->EndAddr-currentaddr,buffer, fs->Disk);
+bytesread=SDDRead(currentaddr,(((uint64_t)fr->EndAddr)<<9)-currentaddr,buffer, fs->Disk);
 totalcount+=bytesread;
 file->CurrentOffset+=bytesread;
-if(bytesread!=fr->EndAddr-currentaddr) {
+if(bytesread!=(((uint64_t)fr->EndAddr)<<9)-currentaddr) {
 // ERROR READING LAST BLOCK, RETURN WHAT WAS READ SO FAR
 return totalcount;
 }
@@ -139,7 +140,7 @@ fr=fr->NextFragment;
 			// MALFORMED CLUSTER CHAIN!!! CLUSTER CHAIN IS SHORTER THAN FileSize
 			return totalcount;
 	}
-currentaddr=fr->StartAddr;
+currentaddr=((uint64_t)fr->StartAddr)<<9;
 buffer+=bytesread;
 }
 
@@ -166,16 +167,16 @@ if( (!file->RdBuffer.Used) || (file->CurrentOffset+readnow!=(unsigned int)file->
 	if(file->CurrentOffset<file->FileSize) {		// CHECK IF ANY MORE BYTES TO CACHE
 
 // UPDATE FRAGMENT AS NEEDED
-while (currentaddr>=fr->EndAddr) {
+while (currentaddr>=(((uint64_t)fr->EndAddr)<<9)) {
 
-	currentaddr-=fr->EndAddr;
+    currentaddr-=(((uint64_t)fr->EndAddr)<<9);
 	
 	fr=fr->NextFragment;
 	if(fr==NULL) {
 			// CURRENTADDR POINTING EXACTLY AT END-OF-FILE, NOTHING TO READ
 			return 0;
 	}
-	currentaddr+=fr->StartAddr;
+    currentaddr+=(((uint64_t)fr->StartAddr)<<9);
 	
 }
 bytesread=SDDRead(currentaddr,512,file->RdBuffer.Data, fs->Disk);

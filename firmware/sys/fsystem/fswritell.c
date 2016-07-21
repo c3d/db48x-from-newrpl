@@ -13,7 +13,8 @@
 
 int FSWriteLL(unsigned char *buffer,int nbytes,FS_FILE *file,FS_VOLUME *fs)
 {
-int currentaddr,bytesread,totalcount,error;
+int bytesread,totalcount,error;
+uint64_t currentaddr;
 FS_FRAGMENT *fr;
 
 
@@ -28,14 +29,14 @@ return error;
 }
 
 fr=&file->Chain;
-currentaddr=fr->StartAddr+file->CurrentOffset;
+currentaddr=(((uint64_t)fr->StartAddr)<<9)+file->CurrentOffset;
 
 // FIND STARTING ADDRESS
-while (currentaddr>=fr->EndAddr) {
-	currentaddr-=fr->EndAddr;
+while (currentaddr>=(((uint64_t)fr->EndAddr)<<9)) {
+    currentaddr-=((uint64_t)fr->EndAddr)<<9;
 	fr=fr->NextFragment;
 	if(fr==NULL) return FS_ERROR;
-	currentaddr+=fr->StartAddr;
+    currentaddr+=((uint64_t)fr->StartAddr)<<9;
 }
 
 
@@ -53,17 +54,17 @@ if(file->RdBuffer.Used) file->RdBuffer.Used=0;
 //return FS_ERROR;
 //}
 
-while(nbytes+currentaddr>fr->EndAddr) {
+while(nbytes+currentaddr>((uint64_t)fr->EndAddr<<9)) {
 
 
-bytesread=SDDWrite(currentaddr,fr->EndAddr-currentaddr,buffer, fs->Disk);
+bytesread=SDDWrite(currentaddr,(((uint64_t)fr->EndAddr)<<9)-currentaddr,buffer, fs->Disk);
 
 totalcount+=bytesread;
 file->CurrentOffset+=bytesread;
 // ADJUST FILE SIZE, GROW BUT DON'T TRUNCATE
 if(file->CurrentOffset>file->FileSize) file->FileSize=file->CurrentOffset;
 
-if(bytesread!=fr->EndAddr-currentaddr) {
+if(bytesread!=(((uint64_t)fr->EndAddr)<<9)-currentaddr) {
 // ERROR WRITING LAST BLOCK, RETURN WHAT WAS READ SO FAR
 
 return totalcount;
@@ -74,7 +75,7 @@ fr=fr->NextFragment;
 			// MALFORMED CLUSTER CHAIN!!! CLUSTER CHAIN IS SHORTER THAN FileSize
 			return totalcount;
 	}
-currentaddr=fr->StartAddr;
+currentaddr=((uint64_t)fr->StartAddr)<<9;
 buffer+=bytesread;
 }
 

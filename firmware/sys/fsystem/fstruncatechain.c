@@ -12,7 +12,7 @@
 
 // REDUCE FAT CHAIN IF NOT NEEDED
 
-int FSTruncateChain(FS_FILE *file, int newsize)
+int FSTruncateChain(FS_FILE *file, unsigned int newsize)
 {
 FS_FRAGMENT *ch,*ch2;
 int clsize,size=0,addr,fullsize;

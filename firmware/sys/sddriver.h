@@ -51,13 +51,13 @@
 
 
 typedef struct {
-int SysFlags;			// 1=SDIO interface setup, 2=SDCard initialized, 4=Valid RCA obtained, 8=Bus configured OK
+int SysFlags;			// 1=SDIO interface setup, 2=SDCard initialized, 4=Valid RCA obtained, 8=Bus configured OK, 16=SDHC/SDXC card
 int Rca;
 int BusWidth;
 int MaxBlockLen;
 int WriteBlockLen;
 int CurrentBLen;
-int CardSize;
+unsigned int CardSize;
 unsigned int CID[4];
 } SD_CARD;
 
@@ -88,7 +88,7 @@ void SDDResetFIFO();
 int SDDStop();
 int SDDSetBlockLen(SD_CARD *card,int bitlen);
 int SDDInTransfer(SD_CARD *card);
-int SDDRead(int SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card);
+int SDDRead(uint64_t SDAddr, int NumBytes, unsigned char *buffer, SD_CARD *card);
 int SDCardInit(SD_CARD * card);
-int SDDWrite(int SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card);
+int SDDWrite(uint64_t SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card);
 

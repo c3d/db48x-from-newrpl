@@ -402,18 +402,26 @@ return FALSE;
 // STORE CID OF THE CARD ON _CID (int[4]) AND RETURN NEW RCA
 int SDGetNewRCA(int *_CID)
 {
-unsigned int CID[4],rca;
+unsigned int CID[4],rca,sd2;
 int counter,k;
 
 for(k=0;k<WAIT_LIMIT;++k) {
 
+    sd2=0;
+
     if(!SDSendCmdNoResp(0,0)) { continue; }
+
+    if(SDSendCmdShortResp(8,0x1aa,&rca)) {
+        // CARD IS SD 2.0 COMPLIANT!
+        if(rca==0x1aa) sd2=1;
+    }
+
     counter=0;
 do {
 //printf("Reset ok\n");
 if(!SDSendCmdShortResp(55,0,(int *)CID)) { ++counter; continue; }
 //printf("cmd55 ok\n");
-if(!SDSendCmdShortResp(41,0x00ff8000,(int *)CID)) { ++counter; continue; }
+if(!SDSendCmdShortResp(41, (sd2? 0x40ff8000:0x00ff8000),(int *)CID)) { ++counter; continue; }
 counter=-1;
 //printf("cmd41 ok\n");
 }
@@ -429,12 +437,20 @@ if(k==WAIT_LIMIT) {
 
 //printf("Cmd41 loop ok\n");
 
+// CHECK IF THE CARD ACKNOWLEDGED SDHC BIT
+if(sd2 && (CID[0]&0x40000000)) {
+    // THIS IS AN SDHC CARD
+    sd2=2;
+}
+
+
 if(!SDSendCmdLongResp(2,0,_CID)) { return FALSE; }
 //printf("CID ok\n");
 if(!SDSendCmdShortResp(3,0,(int *)CID)) { return FALSE; }
 //printf("RCA ok\n");
 
 rca=CID[0]&0xffff0000;
+if(sd2==2) rca|=1;  // MARK THAT THIS IS AN SDHC CARD!
 return rca;
 }
 
@@ -528,10 +544,11 @@ return 1;
 // READS WORDS DIRECTLY INTO BUFFER
 // AT THE CURRENT BLOCK LENGTH
 // CARD MUST BE SELECTED
-int SDDRead(int SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
+int SDDRead(uint64_t SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
 {
 
-int blocks,endaddr,startaddr;
+int blocks;
+uint64_t endaddr,startaddr;
 int status;
 unsigned int word;
 restartall:
@@ -553,7 +570,7 @@ SDDResetFIFO();
 *SDIDCON=0xa2000 | blocks  | card->BusWidth;
 //printf("blocks=%d\n",blocks);
 
-if(!SDSendCmdShortResp((blocks==1)? 17:18,startaddr,&status)) {
+if(!SDSendCmdShortResp((blocks==1)? 17:18,((card->SysFlags&16)? startaddr>>9:startaddr),&status)) {
 //printf("failed read cmd\n");
 halFlags&=~HAL_NOCLOCKCHANGE;
 return FALSE;
@@ -813,6 +830,7 @@ if(!card->Rca) { halFlags&=~HAL_NOCLOCKCHANGE;
 //else printf("RCA ok\n");
 card->SysFlags|=4;				// MARK VALID RCA OBTAINED
 
+if(card->Rca&1) { card->SysFlags|=16; card->Rca&=~1; }
 
 // SWITCH TO HIGH SPEED MODE
 SDPowerDown();
@@ -824,10 +842,28 @@ if(!SDSendCmdLongResp(9,card->Rca,(int *)CSD)) { halFlags&=~HAL_NOCLOCKCHANGE;
  return FALSE; }
 //printf("C");
 //printf("CSD ok\n");
-card->CardSize=(((CSD[2]&0x3ff)<<2) | (CSD[1]>>30))  << (((CSD[1]>>15)&0x7)+1);
 
-card->CurrentBLen=card->MaxBlockLen=((CSD[2]>>16)&0xf);
-card->WriteBlockLen=((CSD[0]>>22)&0xf);
+// CHECK IF CSD IS VERSION 2.0
+switch(CSD[3]&0xc0000000)
+{
+case 0:
+    // CSD 1.0
+    card->CardSize=((((CSD[2]&0x3ff)<<2) | (CSD[1]>>30))+1)  << (((CSD[1]>>15)&0x7)+2);
+    card->CurrentBLen=card->MaxBlockLen=((CSD[2]>>16)&0xf);
+    card->WriteBlockLen=((CSD[0]>>22)&0xf);
+    card->CardSize*=1<<(card->MaxBlockLen-9);       // IN 512 BYTE SECTORS
+    break;
+case 0x40000000:
+    // CSD 2.0
+    card->CurrentBLen=card->MaxBlockLen=9;
+    card->WriteBlockLen=9;
+    card->CardSize=(((CSD[1]>>16)| ((CSD[2]&0x3f)<<16))+1) * 1024;  // IN 512 BYTE SECTORS
+    card->SysFlags|=16; // THIS IS AN SDHC OR SDXC CARD
+    break;
+}
+
+
+
 
 if(!SDSelect(card->Rca)) { halFlags&=~HAL_NOCLOCKCHANGE;
 return FALSE; }
@@ -846,7 +882,9 @@ card->BusWidth=0x10000;
 
 
 card->SysFlags|=8;			// SysFlags==0xf --> CARD WAS FULLY INITIALIZED WITH NO PROBLEMS
-SDDSetBlockLen(card,9);
+
+
+SDDSetBlockLen(card,9); // FORCE CARD BLOCK LEN TO 512 BYTE SECTORS
 
 
 SDSelect(0);		// DESELECT CARD
@@ -876,10 +914,11 @@ return TRUE;
 // WRITE BYTES AT SPECIFIC ADDRESS
 // AT THE CURRENT BLOCK LENGTH
 // CARD MUST BE SELECTED
-int SDDWrite(int SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
+int SDDWrite(uint64_t SDAddr, int NumBytes, unsigned char *buffer, SD_CARD *card)
 {
 
-int blocks,endaddr,startaddr,finalblock;
+int blocks;
+uint64_t endaddr,startaddr,finalblock;
 int status,blmask;
 char *startbuffer=NULL,*endbuffer=NULL;
 
@@ -927,7 +966,7 @@ SDDResetFIFO();
 *SDIDCON=0x23000 | blocks  | card->BusWidth;
 //printf("blocks=%d\n",blocks);
 
-if(!SDSendCmdShortResp((blocks==1)? 24:25,startaddr,&status)) {
+if(!SDSendCmdShortResp((blocks==1)? 24:25,(int)((card->SysFlags&16)? (startaddr>>9):startaddr),&status)) {
 //printf("failed read cmd\n");
 if(startbuffer) simpfree(startbuffer);
 if(endbuffer && endbuffer!=startbuffer) simpfree(endbuffer);

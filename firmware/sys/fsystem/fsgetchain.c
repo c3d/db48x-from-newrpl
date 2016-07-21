@@ -60,7 +60,7 @@ addr&=511;
 do {
 
 //printf("read=%08X\n",bufaddr);
-if(SDDRead(bufaddr,512,buffer,fs->Disk)!=512) {
+if(SDDRead((((uint64_t)fs->FirstFATAddr)<<9)+bufaddr,512,buffer,fs->Disk)!=512) {
 // FREE ENTIRE CHAIN
 simpfree(buffer);
 fr=orgfr->NextFragment;
@@ -121,7 +121,7 @@ bufaddr+=512;
 } while(anotherblock && !eoc);
 
 // END OF A FRAGMENT WAS FOUND
-fr->EndAddr=FSCluster2Addr(firstcluster,fs)+ (1<<(fs->ClusterSize));
+fr->EndAddr=FSCluster2Addr(firstcluster,fs)+ (1<<(fs->ClusterSize-9));
 //printf("end of frag\n");
 //keyb_getkeyM(1);
 if(!eoc) {

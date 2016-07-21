@@ -37,7 +37,7 @@ if(ch->Entries[0].EntryValue&0x40000000) ++sectaddr;
 }
 sectaddr&=~bl;
 
-error=SDDRead(sectaddr,bl+1,sector, fs->Disk);
+error=SDDRead((((uint64_t)fs->FirstFATAddr)<<9)+sectaddr,bl+1,sector, fs->Disk);
 if(error!=bl+1) { simpfree(sector); return FS_ERROR; }
 
 FSPatchFATBlock(sector,bl+1,sectaddr,fs,TRUE);		// PATCH AND FLUSH ENTRIES
@@ -46,7 +46,7 @@ FSPatchFATBlock(sector,bl+1,sectaddr,fs,TRUE);		// PATCH AND FLUSH ENTRIES
 for(f=fs->NumFATS-1;f>=0;--f)
 {
 
-error=SDDWrite(sectaddr+f*(fs->FATSize<<fs->SectorSize),bl+1,sector, fs->Disk);
+error=SDDWrite((((uint64_t)fs->FirstFATAddr)<<9)+sectaddr+f*(fs->FATSize<<fs->SectorSize),bl+1,sector, fs->Disk);
 
 if(error!=bl+1) { simpfree(sector); return FS_ERROR; }
 }
