@@ -39,7 +39,7 @@ TempData2=TempData+440;
 do {
 //printf("Vaddr=%08X\n",fs->VolumeAddr);
 //keyb_getkeyM(1);
-if(!SDDRead(fs->VolumeAddr,512,TempData,Disk)) { simpfree(TempData); return FALSE;}
+if(!SDDRead((((uint64_t)fs->VolumeAddr)<<9),512,TempData,Disk)) { simpfree(TempData); return FALSE;}
 //printf("Read1 OK\n");
 
 //if(!SDDRead(fs->VolumeAddr+440,18*4,TempData2,fs->Disk)) { return FALSE;}
@@ -73,7 +73,7 @@ if(    TempData2[10+(VolNumber<<4)]!=1			// FAT 12
 
 //printf("Found Valid filesystem %d\n",TempData2[10+(VolNumber<<4)]);
 
-fs->VolumeAddr+=ReadInt32(TempData2+14+(VolNumber<<4)) << 9;		// HARD-CODED FOR 512-byte SECTORS, SD CARD SectorSize NOT RELIABLE
+fs->VolumeAddr+=ReadInt32(TempData2+14+(VolNumber<<4));		// HARD-CODED FOR 512-byte SECTORS, SD CARD SectorSize NOT RELIABLE
 
 } while(1);
 
@@ -109,12 +109,12 @@ resvd=ReadInt16(TempData+14);		// GET RESERVED SECTORS
 rootdir=((ReadInt16(TempData+17)<<5) + (1<<fs->SectorSize) -1) >> fs->SectorSize;  // CALCULATE ROOT DIR SIZE
 
 datasect=(resvd + (fs->NumFATS*fs->FATSize) + rootdir);
-fs->Cluster0Addr=fs->VolumeAddr+ ( (datasect- (2<<fs->ClusterSize)) << (fs->SectorSize));
+fs->Cluster0Addr=fs->VolumeAddr+ ( (datasect- (2<<fs->ClusterSize)) << (fs->SectorSize-9));
 
 datasect=fs->TotalSectors-datasect;
 fs->TotalClusters=datasect >> fs->ClusterSize;
 
-fs->FirstFATAddr=fs->VolumeAddr+ (resvd << (fs->SectorSize));
+fs->FirstFATAddr=fs->VolumeAddr+ (resvd << (fs->SectorSize-9));
 
 // FINAL CLUSTERSIZE IS IN BYTES
 fs->ClusterSize+=fs->SectorSize;
@@ -134,7 +134,7 @@ temp=TempData[40];				// GET BITS 0-7 OF EXTENDED FLAGS
 if(temp&0x80) {
 // USE ONLY ACTIVE FAT IF MIRRORING IS DISABLED
 fs->NumFATS=1;
-fs->FirstFATAddr+= ((temp&0xf)*fs->FATSize) << (fs->SectorSize);
+fs->FirstFATAddr+= ((temp&0xf)*fs->FATSize) << (fs->SectorSize-9);
 }
 
 
@@ -160,8 +160,8 @@ else {
 	// ADD COMMON FAT12/FAT16 INIT HERE
 
 
-	fs->RootDir.Chain.StartAddr= fs->FirstFATAddr + ((fs->NumFATS*fs->FATSize)<<(fs->SectorSize));
-	fs->RootDir.Chain.EndAddr=fs->RootDir.Chain.StartAddr+(rootdir<<fs->SectorSize);
+    fs->RootDir.Chain.StartAddr= fs->FirstFATAddr + ((fs->NumFATS*fs->FATSize)<<(fs->SectorSize-9));
+    fs->RootDir.Chain.EndAddr=fs->RootDir.Chain.StartAddr+(rootdir<<(fs->SectorSize-9));
 	fs->RootDir.Chain.NextFragment=NULL;
 	fs->RootDir.FileSize=rootdir<<fs->SectorSize;
 	fs->RootDir.Mode|=FSMODE_NOGROW;

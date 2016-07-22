@@ -810,6 +810,7 @@ void halRedrawStatus(DRAWSURFACE *scr)
         else color=0;
         if(FSIsInit()) {
             if(FSVolumeMounted(FSGetCurrentVolume())) color=0xf;
+            if(FSCardIsSDHC()) { txt[0]='H'; txt[1]='C'; }
             if(!FSCardInserted()) { txt[2]='?'; color=6; }
         }
 

@@ -1138,7 +1138,7 @@ void LIB_HANDLER()
     case SDREADLINE:
     {
         // READ ONE LINE OF TEXT FROM A FILE, RETURN THEM AS STRING OBJECT
-        if(rplDepthData()<2) {
+        if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -1215,7 +1215,6 @@ void LIB_HANDLER()
         // EVERYTHING WAS READ CORRECTLY
         *newstring=MAKESTRING(bytecount);
 
-        rplDropData(1);
         rplOverwriteData(1,newstring);
 
        return;

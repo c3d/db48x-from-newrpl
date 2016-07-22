@@ -73,7 +73,7 @@ int SDSelect(int RCA)
 // READS WORDS DIRECTLY INTO BUFFER
 // AT THE CURRENT BLOCK LENGTH
 // CARD MUST BE SELECTED
-int SDDRead(int SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
+int SDDRead(uint64_t SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
 {
     UNUSED_ARGUMENT(card);
     UNUSED_ARGUMENT(SDAddr);
@@ -93,7 +93,7 @@ int SDCardInit(SD_CARD * card)
 {
     UNUSED_ARGUMENT(card);
     if(__sd_inserted) {
-    card->SysFlags=15;			// 1=SDIO interface setup, 2=SDCard initialized, 4=Valid RCA obtained, 8=Bus configured OK
+    card->SysFlags=31;			// 1=SDIO interface setup, 2=SDCard initialized, 4=Valid RCA obtained, 8=Bus configured OK, 16=SDHC
     card->Rca=__sd_RCA=0x10;
     card->BusWidth=4;
     card->MaxBlockLen=9;
@@ -113,7 +113,7 @@ int SDCardInit(SD_CARD * card)
 // WRITE BYTES AT SPECIFIC ADDRESS
 // AT THE CURRENT BLOCK LENGTH
 // CARD MUST BE SELECTED
-int SDDWrite(int SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
+int SDDWrite(uint64_t SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
 {
     UNUSED_ARGUMENT(card);
     UNUSED_ARGUMENT(SDAddr);

@@ -14,8 +14,10 @@
 int FSCalcFreeSpace(FS_VOLUME *fs)
 {
 unsigned char *buffer;
-int fataddr,value,maxaddr=0;
-int freecount,freestart,freesize;
+unsigned int fataddr;
+int value;
+unsigned int maxaddr=0;
+unsigned int freecount,freestart,freesize;
 int limit,f;
 
 buffer=simpmallocb(1536);
@@ -23,7 +25,7 @@ if(!buffer) return FS_ERROR;
 
 //if(!SDDSetBlockLen(fs->Disk,7)) { simpfree(buffer); return FS_ERROR; }
 
-fataddr=fs->FirstFATAddr;
+fataddr=0;
 switch(fs->FATType)
 {
 case 1:
@@ -47,7 +49,7 @@ fs->FreeAreaSize=0;
 
 do {
 
-if(SDDRead(fataddr,1536,buffer,fs->Disk)!=1536) {
+if(SDDRead((((uint64_t)fs->FirstFATAddr)<<9)+fataddr,1536,buffer,fs->Disk)!=1536) {
 simpfree(buffer);
 return FS_ERROR;
 }
@@ -189,8 +191,8 @@ fataddr+=1536;
 if(freestart && (fs->FreeAreaSize<freesize)) { fs->NextFreeCluster=freestart; fs->FreeAreaSize=freesize; }
 
 simpfree(buffer);
-fs->FreeAreaSize<<=fs->ClusterSize;
-fs->FreeSpace=freecount<<fs->ClusterSize;
+fs->FreeAreaSize<<=fs->ClusterSize-9;
+fs->FreeSpace=freecount<<(fs->ClusterSize-9);
 return FS_OK;
 
 }

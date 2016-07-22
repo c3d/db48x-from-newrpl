@@ -49,7 +49,7 @@ if(needed<=0) return FS_OK;		// NO NEED TO ADD CLUSTERS TO THE CHAIN
 
 needed<<=(fs->ClusterSize-9);
 //printf("needed=%d\n",needed);
-if(fs->FreeSpace<needed) 
+if(fs->FreeSpace<(unsigned int)needed)
 return FS_DISKFULL;
 
 do {
@@ -60,7 +60,7 @@ if(FSCalcFreeSpace(fs)!=FS_OK) return FS_ERROR;
 
 }
 
-if(fs->FreeAreaSize>needed) taken=needed;
+if(fs->FreeAreaSize>(unsigned int)needed) taken=needed;
 else taken=fs->FreeAreaSize;
 
 //printf("taken=%d\n",taken);

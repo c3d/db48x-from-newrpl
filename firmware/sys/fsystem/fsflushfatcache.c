@@ -17,7 +17,8 @@ int FSFlushFATCache(FS_VOLUME *fs)
 unsigned char * sector;
 int bl=fs->Disk->CurrentBLen; //fs->Disk->WriteBlockLen;
 int f;
-int sectaddr,error;
+unsigned int sectaddr;
+int error;
 FS_CHAINBUFFER *ch;
 
 sector=simpmallocb(1<<bl);
@@ -31,7 +32,7 @@ bl=(1<<bl)-1;		// CREATE BITMASK
 while((ch=fs->FATCache))
 {
 sectaddr=FSCluster2FATEntry(ch->Entries[0].Cluster,fs);
-if((sectaddr&bl)==bl) {
+if((sectaddr&bl)==(unsigned int)bl) {
 // ENTRY IS PARTIALLY WITHIN BLOCKS - ONLY FAT12
 if(ch->Entries[0].EntryValue&0x40000000) ++sectaddr;
 }

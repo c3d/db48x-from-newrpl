@@ -15,7 +15,7 @@
 int FSTruncateChain(FS_FILE *file, unsigned int newsize)
 {
 FS_FRAGMENT *ch,*ch2;
-int clsize,size=0,addr,fullsize;
+unsigned int clsize,size=0,addr,fullsize;
 FS_VOLUME *fs=FSystem.Volumes[file->Volume];
 
 ch=&file->Chain;
@@ -31,7 +31,10 @@ fullsize=FSGetChainSize(ch);
 
 if(newsize>=fullsize) return FS_OK;
 
-++clsize;
+clsize=(clsize+1)>>9;
+
+newsize>>=9;
+fullsize>>=9;
 
 while(ch) {
 size+=ch->EndAddr-ch->StartAddr;

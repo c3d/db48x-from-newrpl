@@ -64,7 +64,7 @@ file->CurrentOffset+=bytesread;
 // ADJUST FILE SIZE, GROW BUT DON'T TRUNCATE
 if(file->CurrentOffset>file->FileSize) file->FileSize=file->CurrentOffset;
 
-if(bytesread!=(((uint64_t)fr->EndAddr)<<9)-currentaddr) {
+if((uint64_t)bytesread!=(((uint64_t)fr->EndAddr)<<9)-currentaddr) {
 // ERROR WRITING LAST BLOCK, RETURN WHAT WAS READ SO FAR
 
 return totalcount;

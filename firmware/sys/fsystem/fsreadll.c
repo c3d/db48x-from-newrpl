@@ -130,7 +130,7 @@ while(nbytes+currentaddr>(((uint64_t)fr->EndAddr)<<9)) {
 bytesread=SDDRead(currentaddr,(((uint64_t)fr->EndAddr)<<9)-currentaddr,buffer, fs->Disk);
 totalcount+=bytesread;
 file->CurrentOffset+=bytesread;
-if(bytesread!=(((uint64_t)fr->EndAddr)<<9)-currentaddr) {
+if((uint64_t)bytesread!=(((uint64_t)fr->EndAddr)<<9)-currentaddr) {
 // ERROR READING LAST BLOCK, RETURN WHAT WAS READ SO FAR
 return totalcount;
 }

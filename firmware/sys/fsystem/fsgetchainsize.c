@@ -13,12 +13,12 @@
 
 // GET CLUSTER CHAIN SIZE
 
-int FSGetChainSize(FS_FRAGMENT *fr)
+unsigned int FSGetChainSize(FS_FRAGMENT *fr)
 {
 int size=0;
 while(fr!=NULL) {
 size+=fr->EndAddr-fr->StartAddr;
 fr=fr->NextFragment;
 }
-return size;
+return size<<9;
 }

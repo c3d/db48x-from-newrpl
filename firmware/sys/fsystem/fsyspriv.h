@@ -161,7 +161,7 @@ extern unsigned int FSFATEntry2Addr(unsigned int addr,FS_VOLUME *fs);
 
 
 extern int FSGetChain(int firstcluster,FS_FRAGMENT *fr,FS_VOLUME *fs);
-extern int FSGetChainSize(FS_FRAGMENT *fr);
+extern unsigned int FSGetChainSize(FS_FRAGMENT *fr);
 extern void FSFreeChain(FS_FILE *file);
 extern int FSExpandChain(FS_FILE *file,unsigned int newtotalsize);
 extern int FSTruncateChain(FS_FILE *file, unsigned int newsize);

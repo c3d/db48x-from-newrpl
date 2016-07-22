@@ -79,3 +79,10 @@ int FSCardInserted()
     if(SDCardInserted()) return 1;
     else return 0;
 }
+
+int FSCardIsSDHC()
+{
+    if(!FSystem.Init) return 0;
+    if(FSystem.Volumes[FSystem.CurrentVolume]->Disk->SysFlags&16) return 1;
+    return 0;
+}

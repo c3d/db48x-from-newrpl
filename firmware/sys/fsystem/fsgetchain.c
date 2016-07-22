@@ -23,7 +23,7 @@ fr->NextFragment=NULL;
 return FS_OK;
 }
 
-if(firstcluster<2 || firstcluster>fs->TotalClusters+1) {
+if((firstcluster<2) || ((unsigned int)firstcluster>fs->TotalClusters+1)) {
 fr->StartAddr=fr->EndAddr=0;
 fr->NextFragment=NULL;
 return FS_ERROR;

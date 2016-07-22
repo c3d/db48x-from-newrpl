@@ -546,7 +546,7 @@ extern int FSGetCurrentVolume();
 /*!
  * \brief Get the total size of a volume
  *
- * Get volume total size, in bytes.
+ * Get volume total size, in 512 byte sectors.
  * 
  * \param Volnumber Number of the volume (0-3)
  * \return Total size of the volume in bytes. If error, one of the FS_XXX constants (<=0).
@@ -559,7 +559,7 @@ extern int FSGetVolumeSize(int Volnumber);
  * Get volume total free space, in bytes.
  * 
  * \param Volnumber Number of the volume (0-3)
- * \return Free space of the volume in bytes, If error, one of the FS_XXX constants (<=0).
+ * \return Free space of the volume in 512 byte sectors, If error, one of the FS_XXX constants (<=0).
  * \sa FSGetVolumeSize
  */
 extern int FSGetVolumeFree(int Volnumber);
@@ -1095,6 +1095,6 @@ extern int FSGetFileFromHandle(int handle,FS_FILE **fileptr);
 
 extern int FSIsInit();
 extern int FSCardInserted();
-
+extern int FSCardIsSDHC();
 
 #endif

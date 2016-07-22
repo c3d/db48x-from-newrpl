@@ -15,6 +15,6 @@ int error=FSInit();
 if(error!=FS_OK) return error;
 
 if(FSystem.Volumes[Volnumber]==NULL) return 0;
-return FSystem.Volumes[Volnumber]->TotalSectors << FSystem.Volumes[Volnumber]->SectorSize;
+return FSystem.Volumes[Volnumber]->TotalSectors;
 
 }
