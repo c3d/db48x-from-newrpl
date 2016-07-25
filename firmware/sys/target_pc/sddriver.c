@@ -73,7 +73,7 @@ int SDSelect(int RCA)
 // READS WORDS DIRECTLY INTO BUFFER
 // AT THE CURRENT BLOCK LENGTH
 // CARD MUST BE SELECTED
-int SDDRead(int SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
+int SDDRead(uint64_t SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
 {
     UNUSED_ARGUMENT(card);
     UNUSED_ARGUMENT(SDAddr);
@@ -113,12 +113,20 @@ int SDCardInit(SD_CARD * card)
 // WRITE BYTES AT SPECIFIC ADDRESS
 // AT THE CURRENT BLOCK LENGTH
 // CARD MUST BE SELECTED
-int SDDWrite(int SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
+int SDDWrite(uint64_t SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
 {
     UNUSED_ARGUMENT(card);
     UNUSED_ARGUMENT(SDAddr);
     UNUSED_ARGUMENT(NumBytes);
     UNUSED_ARGUMENT(buffer);
+
+    // DEBUG ONLY
+    if(SDAddr>((uint64_t)__sd_nsectors<<9))
+        return 0;
+
+    if(SDAddr+NumBytes>((uint64_t)__sd_nsectors<<9))
+        return 0;
+
 
     if(__sd_inserted && __sd_RCA) {
     // NO ARGUMENT CHECKS!

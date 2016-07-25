@@ -160,8 +160,8 @@ else {
 	// ADD COMMON FAT12/FAT16 INIT HERE
 
 
-	fs->RootDir.Chain.StartAddr= fs->FirstFATAddr + ((fs->NumFATS*fs->FATSize)<<(fs->SectorSize));
-	fs->RootDir.Chain.EndAddr=fs->RootDir.Chain.StartAddr+(rootdir<<fs->SectorSize);
+    fs->RootDir.Chain.StartAddr= fs->FirstFATAddr + ((fs->NumFATS*fs->FATSize)<<(fs->SectorSize-9));
+    fs->RootDir.Chain.EndAddr=fs->RootDir.Chain.StartAddr+(rootdir<<fs->SectorSize-9);
 	fs->RootDir.Chain.NextFragment=NULL;
 	fs->RootDir.FileSize=rootdir<<fs->SectorSize;
 	fs->RootDir.Mode|=FSMODE_NOGROW;
