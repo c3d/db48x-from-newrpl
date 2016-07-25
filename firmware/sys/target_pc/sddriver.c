@@ -120,6 +120,14 @@ int SDDWrite(uint64_t SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card)
     UNUSED_ARGUMENT(NumBytes);
     UNUSED_ARGUMENT(buffer);
 
+    // DEBUG ONLY
+    if(SDAddr>((uint64_t)__sd_nsectors<<9))
+        return 0;
+
+    if(SDAddr+NumBytes>((uint64_t)__sd_nsectors<<9))
+        return 0;
+
+
     if(__sd_inserted && __sd_RCA) {
     // NO ARGUMENT CHECKS!
     memmoveb((unsigned char *)__sd_buffer+SDAddr,buffer,NumBytes);
