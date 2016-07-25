@@ -160,7 +160,7 @@ BINT rplBackup(void (*writefunc)(unsigned int))
     BINT writeoff=0;
 
     // FIRST, WRITE SIGNATURE TO THE FILE
-    writefunc( TEXT2WORD('N','R','P','L'));
+    writefunc( TEXT2WORD('N','R','P','B'));
     writeoff++;
     // WRITE ALL 10 SECTIONS START OFFSET
     // END OFFSET IS THE START OF THE SECTION IMMEDIATELY AFTER
@@ -275,7 +275,7 @@ BINT rplRestoreBackup(WORD (*readfunc)())
     data=readfunc();
     ++offset;
 
-    if(data!=TEXT2WORD('N','R','P','L')) return 0;
+    if(data!=TEXT2WORD('N','R','P','B')) return 0;
 
     // READ ALL 10 SECTIONS
     for(k=0;k<10;++k)
@@ -412,7 +412,7 @@ BINT rplRestoreBackupMessedup(WORD (*readfunc)())
     data=readfunc();
     ++offset;
 
-    if(data!=TEXT2WORD('N','R','P','L')) return 0;
+    if(data!=TEXT2WORD('N','R','P','B')) return 0;
 
     // READ ALL 10 SECTIONS
     for(k=0;k<10;++k)
