@@ -58,7 +58,8 @@
     CMD(SDNEXTENTRY,MKTOKENINFO(11,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDMOVE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDCOPY,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SDPATH,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+    CMD(SDPATH,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDFREE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
 
 
 
@@ -2027,6 +2028,26 @@ case SDPATH:
         return;
     }
 
+    case SDFREE:
+        {
+            // RETURN THE FREE SPACE IN BYTES IN THE CURRENT PARTITION
+            BINT cvol=FSGetCurrentVolume();
+
+            if(cvol<0) {
+                rplError(rplFSError2Error(cvol));
+                return;
+            }
+
+            BINT64 size=FSGetVolumeFree(cvol);
+            if(size<0) {
+                rplError(rplFSError2Error(size));
+                return;
+            }
+
+            rplNewBINTPush(size*512,DECBINT);
+
+            return;
+        }
 
         // STANDARIZED OPCODES:
         // --------------------

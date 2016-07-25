@@ -292,7 +292,7 @@ void libFindMsg(BINT message,WORDPTR table);
 // SPECIAL TYPE DEFINITION FOR RPL OBJECTS STORED IN ROM
 #define ROMOBJECT const WORD const __ROMOBJECT__
 
-#define MKROMPTRID(lib,idx,off) MKOPCODE(LIB_ROMPTR+(((lib)>>8)&0xf), ((((lib)&0xFF)<<11)|(((idx)<<5)&0x3f)|(((off)&0x1f))) )
+#define MKROMPTRID(lib,idx,off) MKOPCODE(LIB_ROMPTR+(((lib)>>8)&0xf), ((((lib)&0xFF)<<11)|(((idx)&0x3f)<<5)|(((off)&0x1f))) )
 #define ROMPTRID_IDX(id) ((BINT)((id)>>5)&0x3f)
 #define ROMPTRID_OFF(id) ((id)&0x1f)
 #define ROMPTRID_LIB(id) ((((id)>>12)&0xf00)|(((id)>>11)&0xff))

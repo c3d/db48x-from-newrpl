@@ -60,7 +60,7 @@ SDNEXTFILE
 SDNEXTDIR
 SDNEXTENTRY
 SDSETPART
-SDRESET
+SDFREE
 
 }
 
@@ -231,5 +231,10 @@ SDMOVE
 "Move or rename a file
 
 N N → "
+
+SDFREE
+"Get free space in active partition.
+
+ → I "
 
 }

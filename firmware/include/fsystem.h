@@ -556,7 +556,7 @@ extern int FSGetVolumeSize(int Volnumber);
 /*!
  * \brief Get the free space on a volume
  *
- * Get volume total free space, in bytes.
+ * Get volume total free space, in 512-byte sectors.
  * 
  * \param Volnumber Number of the volume (0-3)
  * \return Free space of the volume in 512 byte sectors, If error, one of the FS_XXX constants (<=0).
