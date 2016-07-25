@@ -418,7 +418,7 @@ void MainWindow::on_actionOpen_triggered()
         // PERFORM RESTORE PROCEDURE
         myMainWindow=this;
         fileptr=&file;
-        int result=rplRestoreBackupMessedup(&read_data);
+        int result=rplRestoreBackup(&read_data);
 
         file.close();
 

@@ -140,6 +140,14 @@ BINT rplBackup(void (*writefunc)(unsigned int))
     offset+=sections[k].nitems;
     ++k;
 
+    // SYSTEM POINTERS
+    sections[k].start=(WORDPTR)GC_PTRUpdate;
+    sections[k].nitems=MAX_GC_PTRUPDATE;
+    sections[k].offwords=offset;
+
+    offset+=sections[k].nitems;
+    ++k;
+
 
     // FILL ALL OTHER SECTIONS
     for(;k<10;++k) {
@@ -211,6 +219,30 @@ BINT rplBackup(void (*writefunc)(unsigned int))
         ++writeoff;
     }
 
+    // DUMP SYSTEM POINTERS
+    for(k=0;k<sections[4].nitems;++k) {
+        ptr=GC_PTRUpdate[k];
+        if( (ptr>=TempOb) && (ptr<=TempObSize) ) {
+            // VALID POINTER INTO TEMPOB, CONVERT INTO FILE OFFSET
+            writefunc( (BINT)(ptr-TempOb)+ sections[1].offwords);
+        } else {
+            // IF THE OBJECT IS NOT IN TEMPOB IS IN ROM
+
+            // CONVERT TO ROMPTR ID
+
+            WORD id=rplConvertToRomptrID(ptr);
+
+            if(!id) {
+                // INVALID POINTER! THESE ARE NORMAL IN THIS ARE, NO BIG DEAL
+                // REPLACE WITH zero_bint FOR GOOD MEASURES
+                id=rplConvertToRomptrID((WORDPTR)zero_bint);
+            }
+            writefunc(id);
+        }
+        ++writeoff;
+    }
+
+
     return 1;
 
 }
@@ -259,6 +291,7 @@ BINT rplRestoreBackup(WORD (*readfunc)())
     sections[1].start=TempOb;
     sections[2].start=TempOb+sections[1].nitems;
     sections[3].start=(WORDPTR)Directories;
+    sections[4].start=(WORDPTR)GC_PTRUpdate;
 
 
     // TODO: ADD OTHER SECTIONS HERE (STACKS, ETC)
@@ -334,6 +367,24 @@ BINT rplRestoreBackup(WORD (*readfunc)())
     }
 
     DirsTop=Directories+sections[3].nitems;
+
+    // HERE'S THE START OF SYSTEM POINTERS
+
+    for(k=0;k<sections[4].nitems;++k)
+    {
+        data=readfunc();
+        if(ISROMPTRID(data)) GC_PTRUpdate[k]=rplConvertIDToPTR(data);
+        else {
+            if((k==1)||(k==2)) {
+                // EXTRA CHECKS FOR TempObEnd and TempObSize
+             if(GC_PTRUpdate[k]!=TempOb+(data-sections[1].offwords)) ++errors;
+            }
+
+                GC_PTRUpdate[k]=TempOb+(data-sections[1].offwords);
+        }
+        ++offset;
+    }
+
 
     // TODO: MORE SECTIONS OR OTHER CLEANUP HERE
 

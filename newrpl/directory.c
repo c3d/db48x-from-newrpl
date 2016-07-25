@@ -232,6 +232,7 @@ WORDPTR *rplMakeNewDir()
 // GET THE ADDRESS OF THE PARENT DIRECTORY
 WORDPTR *rplGetParentDir(WORDPTR *directory)
 {
+    if(!directory) return 0;
     return rplFindDirbyHandle(directory[3]);
 }
 
@@ -242,6 +243,8 @@ WORDPTR *rplFindGlobalbyName(BYTEPTR name,BYTEPTR nameend,BINT scanparents)
 {
     WORDPTR *direntry=CurrentDir+4;
     WORDPTR parentdir;
+
+    if(!CurrentDir) return 0;
 
     do {
     parentdir=*(direntry-3);
@@ -260,6 +263,7 @@ WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name,BYTEPTR nameend,WORDPTR *parent,B
     WORDPTR *direntry=parent+4;
     WORDPTR parentdir;
 
+    if(!parent) return 0;
     do {
     parentdir=*(direntry-3);
     while(direntry<DirsTop) {
@@ -276,6 +280,8 @@ WORDPTR *rplFindGlobalInDir(WORDPTR nameobj,WORDPTR *parent,BINT scanparents)
 {
     WORDPTR *direntry=parent;
     WORDPTR parentdir;
+
+    if(!parent) return 0;
 
     do {
     parentdir=*(direntry+3);
