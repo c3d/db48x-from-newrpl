@@ -2465,13 +2465,68 @@ void LIB_HANDLER()
         if(gtReal(&RReg[0],&x)) {
             if(rplTestSystemFlag(FL_COMPLEXMODE)) {
                 // RETURN THE COMPLEX RESULT
+                //ACOSH(x)=LN(x+SQRT(1+x)*SQRT(x-1))
 
                 addReal(&RReg[1],&RReg[0],&x);
                 subReal(&RReg[2],&x,&RReg[0]);
+                BINT i=0;
+                if(RReg[1].flags&F_NEGATIVE) ++i;
+                if(RReg[2].flags&F_NEGATIVE) ++i;
+
+                mulReal(&RReg[3],&RReg[1],&RReg[2]);
+                RReg[3].flags&=~F_NEGATIVE; // MAKE SURE IT'S POSITIVE
+
+                hyp_sqrt(&RReg[3]);
+                normalize(&RReg[0]);
+                switch(i)
+                {
+
+                case 1:
+                    // LN() OF THE COMPLEX NUMBER X+i*SQRT(1-X^2) = ACOS(X)
+
+                    // USE REAL PART = 0 AND IMAGINARY PART = ACOS(X)
+
+                    trig_acos(&x,ANGLERAD);
+                    finalize(&RReg[0]);
+
+                    swapReal(&RReg[9],&RReg[0]);
+                    rplZeroToRReg(8);
+
+                    break;
+                case 2:
+                    RReg[0].flags|=F_NEGATIVE;
+                    // FALL THROUGH
+                default:
+                case 0:
+                    addReal(&RReg[8],&x,&RReg[0]);
+
+                    // LN OF A NEGATIVE REAL NUMBER
+                    RReg[8].flags&=~F_NEGATIVE;
+                    hyp_ln(&RReg[8]);
+
+                    finalize(&RReg[0]);
+                    swapReal(&RReg[0],&RReg[8]);
+                    REAL pi;
+                    decconst_PI(&pi);
+
+                    copyReal(&RReg[9],&pi);
+                    finalize(&RReg[9]);         // TRUNCATE PI TO THE GIVEN PRECISION?
+
+                    break;
+                }
+
+                // RETURN THE CARTESIAN COMPLEX
 
 
+                WORDPTR newcmplx=rplNewComplex(&RReg[8],&RReg[9],ANGLENONE);
+                if( (!newcmplx) || Exceptions) return;
 
+                rplOverwriteData(1,newcmplx);
 
+                rplCheckResultAndError(&RReg[8]);
+                rplCheckResultAndError(&RReg[9]);
+
+                return;
 
             }
             // TODO: EXPAND THIS TO RETURN COMPLEX VALUES
