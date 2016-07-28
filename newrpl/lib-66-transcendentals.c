@@ -2082,27 +2082,166 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
-
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+            rplListUnaryDoCmd();
             return;
         }
+
+
+        if(ISCOMPLEX(*arg)) {
+
+            REAL re,im,one;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            if(angmode!=ANGLENONE) {
+                // WE GOT A POLAR COMPLEX NUMBER
+                // CONVERT TO RECT. COORDINATES
+                trig_sincos(&im,angmode);
+
+                // RReg[6]= cos
+                // RReg[7]= sin
+                normalize(&RReg[6]);
+                normalize(&RReg[7]);
+
+                mulReal(&RReg[8],&RReg[6],&re);
+                mulReal(&RReg[9],&RReg[7],&re);
+
+                re.data=allocRegister();
+                im.data=allocRegister();
+
+                copyReal(&re,&RReg[8]);
+                copyReal(&im,&RReg[9]);
+
+            }
+
+            // COMPLEX ARGUMENT, SAME METHOD AS REAL ARGUMENT OUTSIDE DOMAIN
+            // COMPUTE FROM
+            //ASINH(Z)=LN(Z+SQRT(1+Z^2))
+
+            // Z^2 = (re^2-im^2+2*i*re*im)
+            // 1+Z^2 = (1+re^2+im^2)+i*(2*re*im)
+            // BUT WE NEED IT IN POLAR FORM TO COMPUTE SQRT
+            // SQRT(r) = SQRT(SQRT( (1+re^2+im^2)^2 + 4*re^2*im^2 ))
+            // arg = atan2( 2*re*im , 1+re^2+im^2 )
+            // NOW ADD Z, SO WE NEED IT BACK IN CARTESIAN COORDINATES
+            // FINALLY, LN REQUIRES ARGUMENT IN POLAR COORDINATES AGAIN
+
+            decconst_One(&one);
+            mulReal(&RReg[0],&re,&re);
+            mulReal(&RReg[1],&im,&im);
+
+            addReal(&RReg[6],&one,&RReg[0]);
+            addReal(&RReg[8],&RReg[6],&RReg[1]);    // 1+re^2+im^2
+            mulReal(&RReg[5],&re,&im);
+            addReal(&RReg[9],&RReg[5],&RReg[5]);    // 2*re*im
+
+            // CONVERT TO POLAR
+            trig_atan2(&RReg[9],&RReg[8],ANGLERAD);
+
+            normalize(&RReg[0]);
+
+            newRealFromBINT(&RReg[2],2);
+
+            divReal(&RReg[1],&RReg[0],&RReg[2]);    // ANGLE/2 TO GET THE SQUARE ROOT
+
+            mulReal(&RReg[2],&RReg[8],&RReg[8]);
+            mulReal(&RReg[3],&RReg[9],&RReg[9]);
+            addReal(&RReg[4],&RReg[2],&RReg[3]);    // r^2
+
+            swapReal(&RReg[1],&RReg[8]);        // SAVE THE ANGLE
+
+            hyp_sqrt(&RReg[4]);     // r
+            normalize(&RReg[0]);
+            hyp_sqrt(&RReg[0]);    // sqrt(r)
+            normalize(&RReg[0]);
+            swapReal(&RReg[0],&RReg[9]);    // SAVE SQRT(r)
+
+            trig_sincos(&RReg[8],ANGLERAD);
+
+            normalize(&RReg[6]);
+            normalize(&RReg[7]);
+            // RReg[6]= cos
+            // RReg[7]= sin
+
+            mulReal(&RReg[0],&RReg[9],&RReg[6]);    // REAL COMPONENT
+            mulReal(&RReg[1],&RReg[9],&RReg[7]);    // IMAG. COMPONENT
+
+            // NOW ADD Z = re+i*im
+
+            addReal(&RReg[8],&RReg[0],&re);
+            addReal(&RReg[9],&RReg[1],&im);
+
+            // CONVERT TO POLAR TO COMPUTE THE LN()
+
+            trig_atan2(&RReg[9],&RReg[8],ANGLERAD);
+            normalize(&RReg[0]);
+
+            mulReal(&RReg[1],&RReg[8],&RReg[8]);
+            mulReal(&RReg[2],&RReg[9],&RReg[9]);
+            addReal(&RReg[4],&RReg[1],&RReg[2]);
+
+            swapReal(&RReg[0],&RReg[9]);    // KEEP THE ANGLE, THIS IS THE IMAGINARY PART OF THE LN()
+
+            hyp_sqrt(&RReg[4]);
+            normalize(&RReg[0]);
+
+            hyp_ln(&RReg[0]);
+
+            finalize(&RReg[0]);     // LN(r')
+
+            // GOT THE CARTESIAN COMPLEX RESULT
+
+            if(angmode!=ANGLENONE) {
+                // RELEASE THE EXTRA ALLOCATED MEMORY
+                freeRegister(re.data);
+                freeRegister(im.data);
+
+                // RETURN A POLAR COMPLEX IN THE SAME ORIGINAL MODE
+
+                mulReal(&RReg[1],&RReg[0],&RReg[0]);
+                mulReal(&RReg[2],&RReg[9],&RReg[9]);
+                addReal(&RReg[3],&RReg[1],&RReg[2]);
+                swapReal(&RReg[0],&RReg[8]);            // PRESERVE THE REAL PART FOR THE ANGLE
+                hyp_sqrt(&RReg[3]);
+                finalize(&RReg[0]);
+
+                swapReal(&RReg[0],&RReg[8]);
+
+                trig_atan2(&RReg[9],&RReg[0],angmode);
+
+                finalize(&RReg[0]);
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[8],&RReg[0],angmode);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[8]);
+
+                return;
+
+
+            }
+
+
+            // RETURN A CARTESIAN COMPLEX
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[0],&RReg[9],ANGLENONE);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[0]);
+            rplCheckResultAndError(&RReg[9]);
+
+            return;
+
+
+
+        }
+
 
 
         rplReadNumberAsReal(rplPeekData(1),&x);
@@ -2140,27 +2279,182 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
-
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+            rplListUnaryDoCmd();
             return;
         }
+
+        if(ISCOMPLEX(*arg)) {
+
+            REAL re,im,one;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            if(angmode!=ANGLENONE) {
+                // WE GOT A POLAR COMPLEX NUMBER
+                // CONVERT TO RECT. COORDINATES
+                trig_sincos(&im,angmode);
+
+                // RReg[6]= cos
+                // RReg[7]= sin
+                normalize(&RReg[6]);
+                normalize(&RReg[7]);
+
+                mulReal(&RReg[8],&RReg[6],&re);
+                mulReal(&RReg[9],&RReg[7],&re);
+
+                re.data=allocRegister();
+                im.data=allocRegister();
+
+                copyReal(&re,&RReg[8]);
+                copyReal(&im,&RReg[9]);
+
+            }
+
+            // COMPLEX ARGUMENT, SAME METHOD AS REAL ARGUMENT OUTSIDE DOMAIN
+            // COMPUTE FROM
+            //ACOSH(Z)=LN(Z+SQRT(1+Z)*SQRT(Z-1))
+
+            // Z^2 = (re^2-im^2+2*i*re*im)
+            // 1-Z^2 = (1-re^2+im^2)-i*(2*re*im)
+            // BUT WE NEED IT IN POLAR FORM TO COMPUTE SQRT
+            // SQRT(r) = SQRT(SQRT( (1-re^2+im^2)^2 + 4*re^2*im^2 ))
+            // arg = atan2( 2*re*im , 1-re^2+im^2 )
+            // NOW ADD i*Z, SO WE NEED IT BACK IN CARTESIAN COORDINATES
+            // FINALLY, LN REQUIRES ARGUMENT IN POLAR COORDINATES AGAIN
+
+            decconst_One(&one);
+            addReal(&RReg[9],&re,&one);
+
+            // CONVERT TO POLAR
+            trig_atan2(&im,&RReg[9],ANGLERAD); // atan(im/(re+1))
+
+            normalize(&RReg[0]);
+
+            swapReal(&RReg[8],&RReg[0]);
+
+            subReal(&RReg[9],&re,&one);
+
+            // CONVERT TO POLAR
+            trig_atan2(&im,&RReg[9],ANGLERAD);  // atan(im/(re-1))
+
+            normalize(&RReg[0]);
+
+            addReal(&RReg[1],&RReg[8],&RReg[0]);
+
+            newRealFromBINT(&RReg[2],2);
+
+            divReal(&RReg[9],&RReg[1],&RReg[2]);    // (ANG1+ANG2)/2 TO GET THE SQUARE ROOT
+
+            addReal(&RReg[0],&re,&one);
+            mulReal(&RReg[1],&RReg[0],&RReg[0]);
+            mulReal(&RReg[2],&im,&im);
+            addReal(&RReg[3],&RReg[1],&RReg[2]);    // (re+1)^2+im^2
+
+            subReal(&RReg[0],&re,&one);
+            mulReal(&RReg[1],&RReg[0],&RReg[0]);
+            addReal(&RReg[4],&RReg[1],&RReg[2]);    // (re-1)^2+im^2
+
+            mulReal(&RReg[5],&RReg[3],&RReg[4]);    // r1^2*r2^2
+
+            hyp_sqrt(&RReg[4]);     // r1*r2=sqrt(r1^2*r2^2)
+            normalize(&RReg[0]);
+            hyp_sqrt(&RReg[0]);    // sqrt(r1*r2)
+            normalize(&RReg[0]);
+            swapReal(&RReg[0],&RReg[8]);    // HERE (RReg[8],RReg[9]) = SQRT(Z+1)*SQRT(Z-1)
+
+            trig_sincos(&RReg[9],ANGLERAD);
+
+            normalize(&RReg[6]);
+            normalize(&RReg[7]);
+            // RReg[6]= cos
+            // RReg[7]= sin
+
+            mulReal(&RReg[0],&RReg[8],&RReg[6]);    // REAL COMPONENT
+            mulReal(&RReg[1],&RReg[8],&RReg[7]);    // IMAG. COMPONENT
+
+            // NOW ADD Z
+
+            addReal(&RReg[8],&RReg[1],&re);
+            addReal(&RReg[9],&RReg[0],&im);
+
+            // CONVERT TO POLAR TO COMPUTE THE LN()
+
+            trig_atan2(&RReg[9],&RReg[8],ANGLERAD);
+            normalize(&RReg[0]);
+
+            mulReal(&RReg[1],&RReg[8],&RReg[8]);
+            mulReal(&RReg[2],&RReg[9],&RReg[9]);
+            addReal(&RReg[4],&RReg[1],&RReg[2]);
+
+            swapReal(&RReg[0],&RReg[9]);    // KEEP THE ANGLE, THIS IS THE IMAGINARY PART OF THE LN()
+
+            hyp_sqrt(&RReg[4]);
+            normalize(&RReg[0]);
+
+            hyp_ln(&RReg[0]);
+
+            finalize(&RReg[0]);     // LN(r')
+
+
+
+            if(angmode!=ANGLENONE) {
+                // RELEASE THE EXTRA ALLOCATED MEMORY
+                freeRegister(re.data);
+                freeRegister(im.data);
+
+                // RETURN A POLAR COMPLEX IN THE SAME ORIGINAL MODE
+
+                mulReal(&RReg[1],&RReg[0],&RReg[0]);
+                mulReal(&RReg[2],&RReg[9],&RReg[9]);
+                addReal(&RReg[3],&RReg[1],&RReg[2]);
+                swapReal(&RReg[0],&RReg[8]);            // PRESERVE THE REAL PART FOR THE ANGLE
+                hyp_sqrt(&RReg[3]);
+                finalize(&RReg[0]);
+
+                swapReal(&RReg[0],&RReg[8]);
+
+                trig_atan2(&RReg[9],&RReg[0],angmode);
+
+                finalize(&RReg[0]);
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[0],&RReg[8],angmode);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[8]);
+
+                return;
+
+
+            }
+
+
+            // RETURN A CARTESIAN COMPLEX
+
+
+
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[0],&RReg[9],ANGLENONE);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[0]);
+            rplCheckResultAndError(&RReg[9]);
+
+            return;
+
+
+
+        }
+
+
+
+
+
 
         rplReadNumberAsReal(rplPeekData(1),&x);
 
@@ -2169,6 +2463,17 @@ void LIB_HANDLER()
         rplOneToRReg(0);
 
         if(gtReal(&RReg[0],&x)) {
+            if(rplTestSystemFlag(FL_COMPLEXMODE)) {
+                // RETURN THE COMPLEX RESULT
+
+                addReal(&RReg[1],&RReg[0],&x);
+                subReal(&RReg[2],&x,&RReg[0]);
+
+
+
+
+
+            }
             // TODO: EXPAND THIS TO RETURN COMPLEX VALUES
             rplError(ERR_ARGOUTSIDEDOMAIN);
            return;

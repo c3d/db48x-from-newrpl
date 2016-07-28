@@ -99,6 +99,9 @@ else {
     int cp=utf82cp((char *)tmp,(char *)tmp+4);
     unsigned char *skiptmp=(unsigned char *)utf8skip((char *)tmp,(char *)tmp+4);
 
+    // MAKE SURE WE INCLUDE A LONG NAME, THE SHORT ONE MIGHT NOT MATCH DUE TO CP CONVERSION
+    flags|=2;
+
     int k;
     for(k=0;k<128;++k) { if(cp850toUnicode[k]==cp) { cp=128+k; break; } }
 
