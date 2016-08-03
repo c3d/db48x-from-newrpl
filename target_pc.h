@@ -19,6 +19,10 @@ char ExceptionScreen[8192];
 #undef MEM_PHYS_EXSCREEN
 #define MEM_PHYS_EXSCREEN ExceptionScreen
 
+#undef DEFAULT_AUTOOFFTIME
+#define DEFAULT_AUTOOFFTIME 0   // NO AUTO OFF ON A PC!
+
+
 
 #undef __SYSTEM_GLOBAL__
 #define __SYSTEM_GLOBAL__

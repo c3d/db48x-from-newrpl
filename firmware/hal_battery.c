@@ -127,7 +127,7 @@ void busy_handler()
 void halInitBusyHandler()
 {
     cpu_setspeed(6000000);
-    halFlags=SET_AUTOOFFTIME(3);        // DEFAULT TO 2 MINUTES
+    halFlags=(halFlags&HAL_AUTOOFFTIME)|SET_AUTOOFFTIME(DEFAULT_AUTOOFFTIME);        // DEFAULT TO 2 MINUTES
     halBusyEvent=tmr_eventcreate(&busy_handler,500,0);
 }
 
