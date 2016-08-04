@@ -2357,7 +2357,7 @@ void LIB_HANDLER()
 
             mulReal(&RReg[5],&RReg[3],&RReg[4]);    // r1^2*r2^2
 
-            hyp_sqrt(&RReg[4]);     // r1*r2=sqrt(r1^2*r2^2)
+            hyp_sqrt(&RReg[5]);     // r1*r2=sqrt(r1^2*r2^2)
             normalize(&RReg[0]);
             hyp_sqrt(&RReg[0]);    // sqrt(r1*r2)
             normalize(&RReg[0]);
@@ -2375,8 +2375,8 @@ void LIB_HANDLER()
 
             // NOW ADD Z
 
-            addReal(&RReg[8],&RReg[1],&re);
-            addReal(&RReg[9],&RReg[0],&im);
+            addReal(&RReg[8],&RReg[0],&re);
+            addReal(&RReg[9],&RReg[1],&im);
 
             // CONVERT TO POLAR TO COMPUTE THE LN()
 

@@ -1162,18 +1162,23 @@ for(exponent=startindex;exponent<startindex+digits;++exponent)
 
 // angmode = one of ANGLERAD, ANGLEDEG, ANGLEGRAD or ANGLEDMS constants
 
-void trig_atan2(REAL *y0,REAL *x0, BINT angmode)
+void trig_atan2(REAL *_y0,REAL *_x0, BINT angmode)
 {
 // THE ONLY REQUIREMENT IS THAT y0 <= x0
 int startexp,correction;
-int negx=x0->flags&F_NEGATIVE;
-int negy=y0->flags&F_NEGATIVE;
 int swap=0;
+REAL x0,y0;
+
+cloneReal(&x0,_x0);    // CREATE WRITE-ENABLED CLONES
+cloneReal(&y0,_y0);    // CREATE WRITE-ENABLED CLONES
+
+int negx=x0.flags&F_NEGATIVE;
+int negy=y0.flags&F_NEGATIVE;
 
 
 // HANDLE SOME SPECIAL CASES FIRST
-if(iszeroReal(x0) || isinfiniteReal(y0)) {
-    if(iszeroReal(y0)) {
+if(iszeroReal(&x0) || isinfiniteReal(&y0)) {
+    if(iszeroReal(&y0)) {
         // IT'S UNDEFINED, BUT MOST CALCULATORS DEFINE atan2(0,0)=0
         RReg[0].data[0]=0;
         RReg[0].len=1;
@@ -1193,20 +1198,20 @@ if(iszeroReal(x0) || isinfiniteReal(y0)) {
                 RReg[0].data[0]=90;
                 RReg[0].len=1;
                 RReg[0].exp=0;
-                RReg[0].flags=(y0->flags&(F_NEGATIVE|F_APPROX))|(x0->flags&F_APPROX);
+                RReg[0].flags=(y0.flags&(F_NEGATIVE|F_APPROX))|(x0.flags&F_APPROX);
             }
             else {
                 RReg[0].data[0]=100;
                 RReg[0].len=1;
                 RReg[0].exp=0;
-                RReg[0].flags=(y0->flags&(F_NEGATIVE|F_APPROX))|(x0->flags&F_APPROX);
+                RReg[0].flags=(y0.flags&(F_NEGATIVE|F_APPROX))|(x0.flags&F_APPROX);
             }
     }
     return;
 
 }
 
-if(iszeroReal(y0) || isinfiniteReal(x0)) {
+if(iszeroReal(&y0) || isinfiniteReal(&x0)) {
     // x0 IS NOT ZERO PER PREVIOUS CHECK
     // RETURN 0 OR PI DEPENDING ON SIGNS
     if(negx) {
@@ -1221,13 +1226,13 @@ if(iszeroReal(y0) || isinfiniteReal(x0)) {
                     RReg[0].data[0]=180;
                     RReg[0].len=1;
                     RReg[0].exp=0;
-                    RReg[0].flags=(y0->flags&F_APPROX)|(x0->flags&F_APPROX);
+                    RReg[0].flags=(y0.flags&F_APPROX)|(x0.flags&F_APPROX);
                 }
                 else {
                     RReg[0].data[0]=200;
                     RReg[0].len=1;
                     RReg[0].exp=0;
-                    RReg[0].flags=(y0->flags&F_APPROX)|(x0->flags&F_APPROX);
+                    RReg[0].flags=(y0.flags&F_APPROX)|(x0.flags&F_APPROX);
                 }
         }
 
@@ -1238,7 +1243,7 @@ if(iszeroReal(y0) || isinfiniteReal(x0)) {
         RReg[0].data[0]=0;
         RReg[0].len=1;
         RReg[0].exp=0;
-        RReg[0].flags=(y0->flags&F_APPROX)|(x0->flags&F_APPROX);
+        RReg[0].flags=(y0.flags&F_APPROX)|(x0.flags&F_APPROX);
     }
 
     return;
@@ -1250,18 +1255,18 @@ if(iszeroReal(y0) || isinfiniteReal(x0)) {
 Context.precdigits+=8;
 
 
-x0->flags^=negx;
-y0->flags^=negy;
+x0.flags^=negx;
+y0.flags^=negy;
 
 
-    if(gtReal(y0,x0)) {
+    if(gtReal(&y0,&x0)) {
         // NEED TO COMPUTE ATAN(X/Y) AND THEN CONVERT
-        copyReal(&RReg[1],y0);
-        copyReal(&RReg[2],x0);
+        copyReal(&RReg[1],&y0);
+        copyReal(&RReg[2],&x0);
         swap=1;
     } else {
-        copyReal(&RReg[1],x0);
-        copyReal(&RReg[2],y0);
+        copyReal(&RReg[1],&x0);
+        copyReal(&RReg[2],&y0);
     }
 
     correction=-RReg[1].exp-((RReg[1].len-1)<<3)-sig_digits(RReg[1].data[RReg[1].len-1]);
@@ -2431,18 +2436,19 @@ for(exponent=startexp;exponent<startexp+digits;++exponent)
 
 // CALCULATES ATANH(x0), AND RETURNS IT IN RREG[0]
 
-void hyp_atanh(REAL *x0)
+void hyp_atanh(REAL *_x0)
 {
-// THE ONLY REQUIREMENT IS THAT y0 <= x0
-int negx=x0->flags&F_NEGATIVE;
+int negx=_x0->flags&F_NEGATIVE;
 int startexp;
-REAL one;
+REAL one,x0;
 
-x0->flags^=negx;
+cloneReal(&x0,_x0); // MAKE A WRITABLE COPY
+
+x0.flags^=negx;
 // ALWAYS: NEED TO WORK ON PRECISION MULTIPLE OF 9
 Context.precdigits+=8;
 
-startexp=-x0->exp-((x0->len-1)<<3)-sig_digits(x0->data[x0->len-1]);
+startexp=-x0.exp-((x0.len-1)<<3)-sig_digits(x0.data[x0.len-1]);
 
 if(startexp<1) {
 
@@ -2451,13 +2457,13 @@ decconst_One(&one);
 
 // CRITERIA FOR REPETITION OF INITIAL STEP
 // REQUIRED IN ORDER TO INCREASE THE RANGE OF CONVERGENCE
-sub_real(&RReg[3],&one,x0);
+sub_real(&RReg[3],&one,&x0);
 normalize(&RReg[3]);
 startexp=(RReg[3].exp+((RReg[3].len-1)<<3)+sig_digits(RReg[3].data[RReg[3].len-1]))*2;
 
 }
 
-    copyReal(&RReg[2],x0);
+    copyReal(&RReg[2],&x0);
 
     RReg[1].len=1;
     RReg[1].data[0]=1;

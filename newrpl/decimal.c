@@ -1609,6 +1609,16 @@ void copyReal(REAL *dest,REAL *src)
     copy_words(dest->data,src->data,src->len);
 }
 
+// CLONES THE REAL STRUCTURE, BUT POINTS TO THE SAME DATA
+void cloneReal(REAL *dest,REAL *src)
+{
+    dest->exp=src->exp;
+    dest->flags=src->flags;
+    dest->len=src->len;
+    dest->data=src->data;
+}
+
+
 void swapReal(REAL *n1,REAL *n2)
 {
     REAL tmp;
