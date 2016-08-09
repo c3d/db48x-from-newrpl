@@ -3478,12 +3478,12 @@ void setPrecision(BINT prec) {
 BINT getPrecision() { return Context.precdigits; }
 
 // MAKE A REAL OUT OF AN INTEGER
-void newRealFromBINT(REAL *result,BINT number)
+void newRealFromBINT(REAL *result,BINT number,BINT exp10)
 {
     if(number<0) { result->flags=F_NEGATIVE; number=-number; }
     else result->flags=0;
 
-    result->exp=0;
+    result->exp=exp10;
 
     if(number<100000000) {
         result->data[0]=number;
@@ -3498,12 +3498,12 @@ void newRealFromBINT(REAL *result,BINT number)
 }
 
 // MAKE A REAL OUT OF A 64-BIT INTEGER
-void newRealFromBINT64(REAL *result,BINT64 number)
+void newRealFromBINT64(REAL *result, BINT64 number, BINT exp10)
 {
     if(number<0) { result->flags=F_NEGATIVE; number=-number; }
     else result->flags=0;
 
-    result->exp=0;
+    result->exp=exp10;
 
     if(number<100000000) {
         // SINGLE WORD CASE

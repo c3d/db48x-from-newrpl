@@ -392,7 +392,7 @@ void rplReadNumberAsReal(WORDPTR number,REAL*dec)
     else if(ISBINT(*number))  {
         // PROVIDE STORAGE
         dec->data=RDigits+BINT2RealIdx*BINT_REGISTER_STORAGE;
-        newRealFromBINT64(dec,rplReadBINT(number));
+        newRealFromBINT64(dec,rplReadBINT(number),0);
         if(ISAPPROX(*number)) dec->flags|=F_APPROX;
         ++BINT2RealIdx;
         if(BINT2RealIdx>=BINT2REAL) BINT2RealIdx=0;
@@ -414,7 +414,7 @@ void rplLoadBINTAsReal(BINT64 number,REAL*dec)
 {
         // PROVIDE STORAGE
         dec->data=RDigits+BINT2RealIdx*BINT_REGISTER_STORAGE;
-        newRealFromBINT64(dec,number);
+        newRealFromBINT64(dec,number,0);
         ++BINT2RealIdx;
         if(BINT2RealIdx>=BINT2REAL) BINT2RealIdx=0;
 }
@@ -676,6 +676,10 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op2);
 
                     divReal(&RReg[0],&rop1,&RReg[1]);
+
+                    if(rplTestSystemFlag(FL_COMPLEXMODE)) {
+                        if(op2==0 && !iszeroReal(&rop1)) RReg[0].flags|=F_UNDINFINITY;
+                    }
                     if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
                 }
@@ -685,6 +689,12 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
 
                     divReal(&RReg[0],&RReg[1],&rop2);
+
+                    if(rplTestSystemFlag(FL_COMPLEXMODE)) {
+                        if(iszeroReal(&rop2) && op1!=0) RReg[0].flags|=F_UNDINFINITY;
+                    }
+
+
                     if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
                 }
@@ -698,6 +708,10 @@ void LIB_HANDLER()
             rplBINTToRReg(2,op2);
 
             divReal(&RReg[0],&RReg[1],&RReg[2]);
+
+            if(rplTestSystemFlag(FL_COMPLEXMODE)) {
+                if(op2==0 && op1!=0) RReg[0].flags|=F_UNDINFINITY;
+            }
 
             if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
@@ -740,7 +754,7 @@ void LIB_HANDLER()
 
                         // USE DEG TO AVOID LOSS OF PRECISION WITH PI
 
-                        newRealFromBINT(&RReg[7],180);
+                        newRealFromBINT(&RReg[7],180,0);
 
                         mulReal(&RReg[0],&rop2,&RReg[7]);
                         divmodReal(&RReg[1],&RReg[9],&RReg[0],&RReg[7]);    // REDUCE TO FIRST CIRCLE
@@ -785,7 +799,7 @@ void LIB_HANDLER()
             rplBINTToRReg(1,op1);
             rplBINTToRReg(2,op2);
 
-            // TODO: REAL POWERS
+
             powReal(&RReg[0],&RReg[1],&RReg[2]);
 
             if(isneg) RReg[0].flags|=F_NEGATIVE;
@@ -814,7 +828,7 @@ void LIB_HANDLER()
 
             // USE DEG TO AVOID LOSS OF PRECISION WITH PI
 
-            newRealFromBINT(&RReg[5],180);
+            newRealFromBINT(&RReg[5],180,0);
 
             divReal(&RReg[0],&RReg[5],&RReg[7]);
             divmodReal(&RReg[1],&RReg[9],&RReg[0],&RReg[5]);    // REDUCE TO FIRST CIRCLE

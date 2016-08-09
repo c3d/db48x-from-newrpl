@@ -113,6 +113,15 @@ void rplInfinityToRReg(int num)
     RReg[num].data[0]=0;
 }
 
+void rplUndInfinityToRReg(int num)
+{
+    RReg[num].exp=0;
+    RReg[num].flags=F_UNDINFINITY;
+    RReg[num].len=1;
+    RReg[num].data[0]=0;
+}
+
+
 void rplNANToRReg(int num)
 {
     RReg[num].exp=0;
@@ -124,7 +133,7 @@ void rplNANToRReg(int num)
 
 void rplBINTToRReg(int num,BINT64 value)
 {
-    newRealFromBINT64(&RReg[num],value);
+    newRealFromBINT64(&RReg[num],value,0);
 }
 
 
@@ -273,6 +282,9 @@ void rplCompileReal(REAL *num)
 // CHECKS THE RESULT AND ISSUE ERRORS/EXCEPTIONS AS NEEDED
 void rplCheckResultAndError(REAL *real)
 {
+    if(real->flags&F_NOTANUMBER) {
+        rplError(ERR_UNDEFINEDRESULT);
+    }
     if(real->flags&F_INFINITY) {
         if(!rplTestSystemFlag(FL_INIFINITEERROR)) rplError(ERR_INFINITERESULT);
         else rplSetSystemFlag(FL_INFINITE);
@@ -288,9 +300,6 @@ void rplCheckResultAndError(REAL *real)
     if(real->flags&F_POSUNDERFLOW) {
         if(!rplTestSystemFlag(FL_UNDERFLOWERROR)) rplError(ERR_MATHUNDERFLOW);
         else rplSetSystemFlag(FL_POSUNDERFLOW);
-    }
-    if(real->flags&F_NOTANUMBER) {
-        rplError(ERR_UNDEFINEDRESULT);
     }
 
 }
@@ -369,6 +378,10 @@ void LIB_HANDLER()
 
         case OVR_DIV:
             divReal(&RReg[0],&Darg1,&Darg2);
+            if(rplTestSystemFlag(FL_COMPLEXMODE)) {
+                if(iszeroReal(&Darg2) && !iszeroReal(&Darg1)) RReg[0].flags|=F_UNDINFINITY;
+            }
+
             rplNewRealFromRRegPush(0);
             if(!Exceptions) rplCheckResultAndError(&RReg[0]);
 
@@ -393,7 +406,7 @@ void LIB_HANDLER()
                     finalize(&RReg[0]);
 
                     swapReal(&RReg[6],&RReg[0]);
-                    newRealFromBINT(&RReg[7],90);
+                    newRealFromBINT(&RReg[7],90,0);
 
                     BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
@@ -429,7 +442,7 @@ void LIB_HANDLER()
 
                     // USE DEG TO AVOID LOSS OF PRECISION WITH PI
 
-                    newRealFromBINT(&RReg[7],180);
+                    newRealFromBINT(&RReg[7],180,0);
 
                     mulReal(&RReg[0],&Darg2,&RReg[7]);
                     divmodReal(&RReg[1],&RReg[9],&RReg[0],&RReg[7]);    // REDUCE TO FIRST CIRCLE
@@ -486,7 +499,7 @@ void LIB_HANDLER()
                     finalize(&RReg[0]);
 
                     swapReal(&RReg[6],&RReg[0]);
-                    newRealFromBINT(&RReg[7],90);
+                    newRealFromBINT(&RReg[7],90,0);
 
                     BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
@@ -520,7 +533,7 @@ void LIB_HANDLER()
 
                     // USE DEG TO AVOID LOSS OF PRECISION WITH PI
 
-                    newRealFromBINT(&RReg[7],180);
+                    newRealFromBINT(&RReg[7],180,0);
 
                     divReal(&RReg[0],&RReg[7],&Darg2);
                     divmodReal(&RReg[1],&RReg[9],&RReg[0],&RReg[7]);    // REDUCE TO FIRST CIRCLE

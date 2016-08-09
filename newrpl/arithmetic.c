@@ -23,10 +23,10 @@ BINT64 factorialBINT(BINT n)
     if(k>n) return result;
 
     Context.precdigits+=8;
-    newRealFromBINT64(&RReg[0],result);
+    newRealFromBINT64(&RReg[0],result,0);
 
     for(;k<=n;++k) {
-            newRealFromBINT(&RReg[1],k);
+            newRealFromBINT(&RReg[1],k,0);
             mulReal(&RReg[0],&RReg[0],&RReg[1]);
             if(RReg[0].flags&(F_INFINITY|F_NOTANUMBER|F_OVERFLOW|F_ERROR)) {
                 rplError(ERR_NUMBERTOOBIG);
@@ -458,7 +458,7 @@ BINT isprimeReal(REAL *n)
 
     // MAKE POSITIVE
     n->flags&=~F_NEGATIVE;
-    newRealFromBINT(&RReg[2],30);
+    newRealFromBINT(&RReg[2],30,0);
 
     divmodReal(&RReg[0],&RReg[1],n,&RReg[2]);
 
@@ -470,7 +470,7 @@ BINT isprimeReal(REAL *n)
     BINT64 i=7;
 
     while(i<3037000500LL) {
-        newRealFromBINT64(&RReg[2],i);
+        newRealFromBINT64(&RReg[2],i,0);
         divmodReal(&RReg[0],&RReg[1],n,&RReg[2]);
         if(iszeroReal(&RReg[1])) return 0;
 
@@ -498,7 +498,7 @@ void nextprimeReal(BINT regnum,REAL *n)
         BINT64 nbint=getBINT64Real(n);
         BINT64 next=nextprimeBINT(nbint);
         if(next>0) {
-            newRealFromBINT64(&RReg[regnum],next);
+            newRealFromBINT64(&RReg[regnum],next,0);
             return;
         }
         // TESTED ALL INTEGERS UP TO 2^63, CONTINUE WITH LARGER ONES???
@@ -512,7 +512,7 @@ void nextprimeReal(BINT regnum,REAL *n)
     }
     else copyReal(&RReg[0],n);
 
-    newRealFromBINT(&RReg[2],30);
+    newRealFromBINT(&RReg[2],30,0);
 
     BINT64 i;
 
@@ -537,7 +537,7 @@ void nextprimeReal(BINT regnum,REAL *n)
     i=7;
 
     while(i<3037000500LL) {
-        newRealFromBINT64(&RReg[4],i);
+        newRealFromBINT64(&RReg[4],i,0);
         divmodReal(&RReg[3],&RReg[1],&RReg[0],&RReg[4]);
         if(iszeroReal(&RReg[1])) {
             // NOT PRIME, NEXT
@@ -600,7 +600,10 @@ BINT64 powmodBINT(BINT64 a, BINT64 b, BINT64 mod)
 
 void powmodReal(REAL *result,REAL *a,REAL *b,REAL *mod)
 {
-    if(iszeroReal(b)) return newRealFromBINT(result,1);  // SPECIAL CASE: 0^0 IS NOT CONSIDERED HERE, USER MUST CHECK ARGUMENTS AND RAISE ERROR
+    if(iszeroReal(b)) {
+        newRealFromBINT(result,1,0);  // SPECIAL CASE: 0^0 IS NOT CONSIDERED HERE, USER MUST CHECK ARGUMENTS AND RAISE ERROR
+        return;
+    }
 
 
     // STORE NUMBER 1

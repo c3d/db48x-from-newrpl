@@ -541,9 +541,9 @@ void LIB_HANDLER()
                     return;
                 }
                 if(num.flags&F_NEGATIVE) num.flags^=F_NEGATIVE;
-                newRealFromBINT(&RReg[0],2);
+                newRealFromBINT(&RReg[0],2,0);
                 if (ltReal(&num, &RReg[0])) {
-                    newRealFromBINT(&num,2);
+                    newRealFromBINT(&num,2,0);
                 }
                 rplStoreSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)(modulo_name+3),rplNewReal(&num));
                 rplDropData(1);
@@ -808,7 +808,7 @@ void LIB_HANDLER()
                 // correct negative remainder
                 if(RReg[6].flags&F_NEGATIVE) {
                     addReal(&RReg[6],&RReg[6],&m);
-                    newRealFromBINT(&RReg[0],1);
+                    newRealFromBINT(&RReg[0],1,0);
                     subReal(&RReg[7],&RReg[7],&RReg[0]);
                 }
 

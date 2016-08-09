@@ -381,10 +381,11 @@ void LIB_HANDLER()
                     // ADD THE REAL PART FIRST
                     addReal(&RReg[0],&Rarg1,&Rarg2);
                     addReal(&RReg[1],&Iarg1,&Iarg2);
+                    rplRRegToComplexPush(0,1,ANGLENONE);
+
                     rplCheckResultAndError(&RReg[0]);
                     rplCheckResultAndError(&RReg[1]);
 
-                    rplRRegToComplexPush(0,1,ANGLENONE);
                     return;
                 }
                 // CONVERT BOTH ARGUMENTS TO CARTESIAN, THEN ADD
@@ -392,11 +393,11 @@ void LIB_HANDLER()
                 addReal(&RReg[2],&Rarg1,&RReg[0]);
                 addReal(&RReg[3],&Iarg1,&RReg[1]);
 
+                // RESULT IN CARTESIAN IS OK
+                rplRRegToComplexPush(2,3,ANGLENONE);
                 rplCheckResultAndError(&RReg[2]);
                 rplCheckResultAndError(&RReg[3]);
 
-                // RESULT IN CARTESIAN IS OK
-                rplRRegToComplexPush(2,3,ANGLENONE);
                 return;
 
 
@@ -426,10 +427,10 @@ void LIB_HANDLER()
             
             rplRect2Polar(&RReg[3],&RReg[4],amode1);
 
+            rplRRegToComplexPush(0,1,amode1);
             rplCheckResultAndError(&RReg[0]);
             rplCheckResultAndError(&RReg[1]);
 
-            rplRRegToComplexPush(0,1,amode1);
 
             return;
 
@@ -441,10 +442,10 @@ void LIB_HANDLER()
                     // ADD THE REAL PART FIRST
                     subReal(&RReg[0],&Rarg1,&Rarg2);
                     subReal(&RReg[1],&Iarg1,&Iarg2);
+                    rplRRegToComplexPush(0,1,ANGLENONE);
                     rplCheckResultAndError(&RReg[0]);
                     rplCheckResultAndError(&RReg[1]);
 
-                    rplRRegToComplexPush(0,1,ANGLENONE);
                     return;
                 }
                 // CONVERT BOTH ARGUMENTS TO CARTESIAN, THEN ADD
@@ -452,11 +453,11 @@ void LIB_HANDLER()
                 subReal(&RReg[2],&Rarg1,&RReg[0]);
                 subReal(&RReg[3],&Iarg1,&RReg[1]);
 
+                // RESULT IN CARTESIAN IS OK
+                rplRRegToComplexPush(2,3,ANGLENONE);
                 rplCheckResultAndError(&RReg[2]);
                 rplCheckResultAndError(&RReg[3]);
 
-                // RESULT IN CARTESIAN IS OK
-                rplRRegToComplexPush(2,3,ANGLENONE);
                 return;
 
 
@@ -486,10 +487,10 @@ void LIB_HANDLER()
 
             rplRect2Polar(&RReg[3],&RReg[4],amode1);
 
+            rplRRegToComplexPush(0,1,amode1);
             rplCheckResultAndError(&RReg[0]);
             rplCheckResultAndError(&RReg[1]);
 
-            rplRRegToComplexPush(0,1,amode1);
 
             return;
 
@@ -510,9 +511,9 @@ void LIB_HANDLER()
                     Context.precdigits-=8;
                     addReal(&RReg[3],&RReg[0],&RReg[1]);
                     finalize(&RReg[2]);
+                    rplRRegToComplexPush(2,3,ANGLENONE);
                     rplCheckResultAndError(&RReg[0]);
                     rplCheckResultAndError(&RReg[1]);
-                    rplRRegToComplexPush(2,3,ANGLENONE);
                     return;
                 }
 
@@ -533,9 +534,10 @@ void LIB_HANDLER()
                     Context.precdigits-=8;
                     addReal(&RReg[3],&RReg[0],&RReg[1]);
                     finalize(&RReg[2]);
+                    rplRRegToComplexPush(2,3,ANGLENONE);
+
                     rplCheckResultAndError(&RReg[0]);
                     rplCheckResultAndError(&RReg[1]);
-                    rplRRegToComplexPush(2,3,ANGLENONE);
                     return;
 
                 }
@@ -562,9 +564,9 @@ void LIB_HANDLER()
             }
             mulReal(&RReg[0],&Rarg1,&Rarg2);
 
+            rplRRegToComplexPush(0,1,amode1);
             rplCheckResultAndError(&RReg[0]);
             rplCheckResultAndError(&RReg[1]);
-            rplRRegToComplexPush(0,1,amode1);
             return;
 
         }
@@ -573,11 +575,66 @@ void LIB_HANDLER()
             // CHECK FOR DIVIDE BY ZERO
             if(iszeroReal(&Rarg2)) {
                 if(amode2!=ANGLENONE) {
-                    rplError(ERR_MATHDIVIDEBYZERO);
+                    // Z/(DIRECTED ZERO) = DIRECTED INFINITY
+
+                    if(amode1==ANGLENONE) {
+                        // CONVERT TO POLAR IN THE SAME SYSTEM AS THE ZERO
+                        rplRect2Polar(&Rarg1,&Iarg1,amode2);
+                        swapReal(&RReg[0],&RReg[8]);
+                        swapReal(&RReg[1],&RReg[9]);
+                        cloneReal(&Rarg1,&RReg[8]);
+                        cloneReal(&Iarg1,&RReg[9]);
+                        amode1=amode2;
+                    }
+
+                    if(amode1!=ANGLEDMS) {
+                    trig_convertangle(&Iarg2,amode2,amode1);
+                    swapReal(&RReg[0],&RReg[7]);
+                    divReal(&RReg[2],&Rarg1,&Rarg2);
+                    subReal(&RReg[1],&Iarg1,&RReg[7]);
+                    trig_reduceangle(&RReg[1],amode1);
+                    }
+                    else {
+                        // SUBTRACTING IN DMS NEEDS SPECIAL TREATMENT
+                        trig_convertangle(&Iarg1,amode1,ANGLEDEG);
+                        swapReal(&RReg[0],&RReg[6]);
+                        trig_convertangle(&Iarg2,amode2,ANGLEDEG);
+                        subReal(&RReg[7],&RReg[6],&RReg[0]);
+                        trig_reduceangle(&RReg[7],amode1);
+                        swapReal(&RReg[0],&RReg[7]);
+                        trig_convertangle(&RReg[7],ANGLEDEG,amode1);
+                        divReal(&RReg[2],&Rarg1,&Rarg2);
+                    }
+
+                    // HERE RReg[0]=ARGUMENT
+                    // RReg[2]=INFINITE MAGNITUDE
+
+                    if((RReg[2].flags&(F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW|F_ERROR))
+                        || (RReg[0].flags&(F_INFINITY|F_NOTANUMBER|F_NEGUNDERFLOW|F_POSUNDERFLOW|F_OVERFLOW|F_ERROR)))
+                    {
+                        // IT'S UNDEFINED
+                        rplNANToRReg(1);
+                        rplNewRealFromRRegPush(1);
+                        rplCheckResultAndError(&RReg[1]);
+                        return;
+                    }
+
+                    // EVEN IF MAGNITUDE IS INFINITE, IT'S A DIRECTED INFINITY
+                    rplRRegToComplexPush(2,0,amode1);
+
+                    rplCheckResultAndError(&RReg[2]);
+                    rplCheckResultAndError(&RReg[0]);
+
                     return;
                 }
                 else if(iszeroReal(&Iarg2)) {
-                rplError(ERR_MATHDIVIDEBYZERO);
+                // Z/0 = UNDIRECTED INFINITY
+
+                rplUndInfinityToRReg(0);
+                rplNewRealFromRRegPush(0);
+
+                rplCheckResultAndError(&RReg[0]);
+
                 return;
                 }
             }
@@ -604,10 +661,10 @@ void LIB_HANDLER()
                     divReal(&RReg[0],&RReg[2],&RReg[4]);
                     divReal(&RReg[1],&RReg[3],&RReg[4]);
 
+                    rplRRegToComplexPush(0,1,ANGLENONE);
                     rplCheckResultAndError(&RReg[0]);
                     rplCheckResultAndError(&RReg[1]);
 
-                    rplRRegToComplexPush(0,1,ANGLENONE);
 
                     return;
                 }
@@ -628,14 +685,14 @@ void LIB_HANDLER()
 
                     Context.precdigits-=8;
 
-                    // TODO: CHECK FOR DIV BY ZERO AND ISSUE ERROR
                     divReal(&RReg[0],&RReg[2],&RReg[4]);
                     divReal(&RReg[1],&RReg[3],&RReg[4]);
+
+                    rplRRegToComplexPush(0,1,ANGLENONE);
 
                     rplCheckResultAndError(&RReg[0]);
                     rplCheckResultAndError(&RReg[1]);
 
-                    rplRRegToComplexPush(0,1,ANGLENONE);
 
                     return;
 
@@ -674,10 +731,10 @@ void LIB_HANDLER()
                 }
             }
 
+            rplRRegToComplexPush(2,0,amode1);
             rplCheckResultAndError(&RReg[2]);
             rplCheckResultAndError(&RReg[0]);
 
-            rplRRegToComplexPush(2,0,amode1);
 
             return;
 
@@ -741,20 +798,20 @@ void LIB_HANDLER()
                 mulReal(&RReg[0],&RReg[6],&RReg[8]);
                 mulReal(&RReg[1],&RReg[7],&RReg[8]);
 
+                rplRRegToComplexPush(0,1,ANGLENONE);
                 rplCheckResultAndError(&RReg[0]);
                 rplCheckResultAndError(&RReg[1]);
 
-                rplRRegToComplexPush(0,1,ANGLENONE);
                 return;
                 }
 
                 // PUT TOGETHER A POLAR COMPLEX NUMBER
 
+                rplRRegToComplexPush(8,2,resmode);
 
                 rplCheckResultAndError(&RReg[8]);
                 rplCheckResultAndError(&RReg[2]);
 
-                rplRRegToComplexPush(8,2,resmode);
                 return;
 
 
@@ -805,9 +862,10 @@ void LIB_HANDLER()
 
             if(resmode==ANGLENONE) {
                 rplPolar2Rect(&RReg[8],&RReg[9],ANGLERAD);
+                rplRRegToComplexPush(0,1,ANGLENONE);
+
                 rplCheckResultAndError(&RReg[0]);
                 rplCheckResultAndError(&RReg[1]);
-                rplRRegToComplexPush(0,1,ANGLENONE);
 
                 return;
             }
@@ -815,10 +873,10 @@ void LIB_HANDLER()
             // RESULT IS IN POLAR COORDINATES
 
             trig_convertangle(&RReg[9],ANGLERAD,resmode);
+            rplRRegToComplexPush(8,0,resmode);
 
             rplCheckResultAndError(&RReg[8]);
             rplCheckResultAndError(&RReg[0]);
-            rplRRegToComplexPush(8,0,resmode);
 
             return;
         }
@@ -857,7 +915,7 @@ void LIB_HANDLER()
             // SAME MAGNITUDE, NOW COMPARE THE ANGLES
 
             trig_convertangle(&Iarg1,amode1,ANGLEDEG);
-            newRealFromBINT(&RReg[7],180);
+            newRealFromBINT(&RReg[7],180,0);
             divmodReal(&RReg[6],&RReg[9],&RReg[0],&RReg[7]);    // RReg[9]=ANGLE REDUCED TO FIRST QUADRANT
 
             trig_convertangle(&Iarg2,amode2,ANGLEDEG);
@@ -903,7 +961,7 @@ void LIB_HANDLER()
             // SAME MAGNITUDE, NOW COMPARE THE ANGLES
 
             trig_convertangle(&Iarg1,amode1,ANGLEDEG);
-            newRealFromBINT(&RReg[7],180);
+            newRealFromBINT(&RReg[7],180,0);
             divmodReal(&RReg[6],&RReg[9],&RReg[0],&RReg[7]);    // RReg[9]=ANGLE REDUCED TO FIRST QUADRANT
 
             trig_convertangle(&Iarg2,amode2,ANGLEDEG);
@@ -961,10 +1019,11 @@ void LIB_HANDLER()
                 divReal(&RReg[0],&Rarg1,&RReg[4]);
                 divReal(&RReg[1],&Iarg1,&RReg[4]);
                 RReg[1].flags^=F_NEGATIVE;
+                rplRRegToComplexPush(0,1,ANGLENONE);
+
                 rplCheckResultAndError(&RReg[0]);
                 rplCheckResultAndError(&RReg[1]);
 
-                rplRRegToComplexPush(0,1,ANGLENONE);
 
                 return;
                 }
@@ -975,10 +1034,10 @@ void LIB_HANDLER()
                 divReal(&RReg[0],&one,&Rarg1);
                 if(!iszeroReal(&Iarg1)) Iarg1.flags^=F_NEGATIVE;
 
+                rplNewComplexPush(&RReg[0],&Iarg1,amode1);
                 rplCheckResultAndError(&RReg[0]);
                 rplCheckResultAndError(&Iarg1);
 
-                rplNewComplexPush(&RReg[0],&Iarg1,amode1);
                 return;
         }
         case OVR_NEG:
@@ -993,31 +1052,31 @@ void LIB_HANDLER()
             }
 
             if(amode1==ANGLEDEG) {
-                newRealFromBINT(&RReg[6],180);
+                newRealFromBINT(&RReg[6],180,0);
                 RReg[6].flags|=(~Iarg1.flags)&F_NEGATIVE;
                 if(iszeroReal(&Iarg1)) RReg[6].flags^=F_NEGATIVE;
 
                 addReal(&RReg[1],&Iarg1,&RReg[6]);
 
+                rplNewComplexPush(&Rarg1,&RReg[1],amode1);
                 rplCheckResultAndError(&Rarg1);
                 rplCheckResultAndError(&RReg[1]);
 
-                rplNewComplexPush(&Rarg1,&RReg[1],amode1);
 
                 return;
 
             }
             if(amode1==ANGLEGRAD) {
-                newRealFromBINT(&RReg[6],200);
+                newRealFromBINT(&RReg[6],200,0);
                 RReg[6].flags|=(~Iarg1.flags)&F_NEGATIVE;
                 if(iszeroReal(&Iarg1)) RReg[6].flags^=F_NEGATIVE;
 
                 addReal(&RReg[1],&Iarg1,&RReg[6]);
 
+                rplNewComplexPush(&Rarg1,&RReg[1],amode1);
                 rplCheckResultAndError(&Rarg1);
                 rplCheckResultAndError(&RReg[1]);
 
-                rplNewComplexPush(&Rarg1,&RReg[1],amode1);
 
                 return;
 
@@ -1031,10 +1090,10 @@ void LIB_HANDLER()
 
                 addReal(&RReg[1],&Iarg1,&RReg[6]);
 
+                rplNewComplexPush(&Rarg1,&RReg[1],amode1);
                 rplCheckResultAndError(&Rarg1);
                 rplCheckResultAndError(&RReg[1]);
 
-                rplNewComplexPush(&Rarg1,&RReg[1],amode1);
 
                 return;
 
@@ -1042,7 +1101,7 @@ void LIB_HANDLER()
             // THE ONLY MODE LEFT IS DMS
 
 
-            newRealFromBINT(&RReg[6],180);
+            newRealFromBINT(&RReg[6],180,0);
             RReg[6].flags|=(~Iarg1.flags)&F_NEGATIVE;
             if(iszeroReal(&Iarg1)) RReg[6].flags^=F_NEGATIVE;
 
@@ -1053,10 +1112,10 @@ void LIB_HANDLER()
 
             trig_convertangle(&RReg[7],ANGLEDEG,amode1);
 
+            rplNewComplexPush(&Rarg1,&RReg[0],amode1);
             rplCheckResultAndError(&Rarg1);
             rplCheckResultAndError(&RReg[0]);
 
-            rplNewComplexPush(&Rarg1,&RReg[0],amode1);
 
             return;
 
@@ -1272,12 +1331,12 @@ void LIB_HANDLER()
               break;
             }
             case ANGLEGRAD:
-                newRealFromBINT(&RReg[0],200);
+                newRealFromBINT(&RReg[0],200,0);
                 break;
             case ANGLEDEG:
             case ANGLEDMS:
             default:
-                newRealFromBINT(&RReg[0],180);
+                newRealFromBINT(&RReg[0],180,0);
                 break;
             }
         }

@@ -919,7 +919,7 @@ void trig_sincos(REAL *angle, BINT angmode)
              modulo=200;
         }
 
-        newRealFromBINT(&RReg[2],modulo);
+        newRealFromBINT(&RReg[2],modulo,0);
 
         // GET ANGLE MODULO HALF-TURN
         divmodReal(&RReg[1],&RReg[0],angle,&RReg[2]);
@@ -2541,7 +2541,7 @@ RReg[0].flags=0;
 CORDIC_Hyp_Vectoring_unrolled((Context.precdigits>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+8:Context.precdigits,startexp);
 
 // ADD BACK THE EXPONENT AS LN(A)=EXP*LN(10)+LN(A')
-newRealFromBINT(&RReg[4],adjustexp);
+newRealFromBINT(&RReg[4],adjustexp,0);
 mul_real(&RReg[4],&RReg[4],&ln10);
 normalize(&RReg[4]);
 add_real(&RReg[3],&RReg[0],&RReg[0]);
@@ -2610,7 +2610,7 @@ add_real(&RReg[3],&RReg[0],&RReg[0]);
 normalize(&RReg[3]);
 div_real(&RReg[4],&RReg[3],&ln10,Context.precdigits);
 normalize(&RReg[4]);
-newRealFromBINT(&RReg[3],adjustexp);
+newRealFromBINT(&RReg[3],adjustexp,0);
 add_real(&RReg[0],&RReg[3],&RReg[4]);
 
 Context.precdigits-=8;
@@ -2679,7 +2679,7 @@ CORDIC_Hyp_Vectoring_unrolled((Context.precdigits>REAL_PRECISION_MAX)? REAL_PREC
 decconst_Kh1(&Kh1);
 
 // ADD BACK THE EXPONENT AS sqrt(A)= 2*sqrt(xin^2-yin^2) * Kh1 * 10^(exponent/2)
-newRealFromBINT(&RReg[3],5);
+newRealFromBINT(&RReg[3],5,0);
 normalize(&RReg[1]);
 mul_real(&RReg[4],&RReg[3],&RReg[1]);
 RReg[4].exp--;

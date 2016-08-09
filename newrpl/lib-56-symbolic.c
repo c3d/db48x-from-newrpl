@@ -1081,8 +1081,8 @@ void LIB_HANDLER()
         } while(1);
 
 
-        newRealFromBINT64(&RReg[0],B);
-        newRealFromBINT64(&RReg[2],A);
+        newRealFromBINT64(&RReg[0],B,0);
+        newRealFromBINT64(&RReg[2],A,0);
         RReg[1].flags&=~F_APPROX;
         mulReal(&RReg[3],&RReg[1],&RReg[0]);
         addReal(&RReg[0],&RReg[2],&RReg[3]);

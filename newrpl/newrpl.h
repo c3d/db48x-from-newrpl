@@ -418,6 +418,7 @@ BINT rplIsTrue(WORDPTR objptr);
 void rplOneToRReg(int num);
 void rplZeroToRReg(int num);
 void rplInfinityToRReg(int num);
+void rplUndInfinityToRReg(int num);
 void rplNANToRReg(int num);
 void rplBINTToRReg(int num,BINT64 value);
 void rplReadReal(WORDPTR real,REAL *dec);

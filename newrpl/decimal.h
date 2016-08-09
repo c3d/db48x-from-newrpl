@@ -254,10 +254,10 @@ void setPrecision(BINT prec);
 BINT getPrecision();
 
 // MAKE A REAL NUMBER FROM AN INTEGER
-void newRealFromBINT(REAL *result,BINT number);
+void newRealFromBINT(REAL *result, BINT number, BINT exp10);
 
 // MAKE A REAL NUMBER FROM A 64-BIT INTEGER
-void newRealFromBINT64(REAL *result,BINT64 number);
+void newRealFromBINT64(REAL *result,BINT64 number,BINT exp10);
 
 // CONVERT TEXT TO A REAL NUMBER
 // IT IS UTF8 COMPLIANT, WILL RETURN ERROR IF THERE'S

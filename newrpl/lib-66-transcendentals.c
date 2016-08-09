@@ -600,9 +600,9 @@ void LIB_HANDLER()
 
             normalize(&RReg[0]);
 
-            newRealFromBINT(&RReg[2],2);
+            newRealFromBINT(&RReg[2],5,-1);
 
-            divReal(&RReg[1],&RReg[0],&RReg[2]);    // ANGLE/2 TO GET THE SQUARE ROOT
+            mulReal(&RReg[1],&RReg[0],&RReg[2]);    // ANGLE/2 TO GET THE SQUARE ROOT
 
             mulReal(&RReg[2],&RReg[8],&RReg[8]);
             mulReal(&RReg[3],&RReg[9],&RReg[9]);
@@ -858,9 +858,9 @@ void LIB_HANDLER()
 
             normalize(&RReg[0]);
 
-            newRealFromBINT(&RReg[2],2);
+            newRealFromBINT(&RReg[2],5,-1);
 
-            divReal(&RReg[1],&RReg[0],&RReg[2]);    // ANGLE/2 TO GET THE SQUARE ROOT
+            mulReal(&RReg[1],&RReg[0],&RReg[2]);    // ANGLE/2 TO GET THE SQUARE ROOT
 
             mulReal(&RReg[2],&RReg[8],&RReg[8]);
             mulReal(&RReg[3],&RReg[9],&RReg[9]);
@@ -1164,8 +1164,7 @@ void LIB_HANDLER()
 
             RReg[9].flags^=F_NEGATIVE;  // i*ln(...)=
 
-            newRealFromBINT(&RReg[2],5);
-            RReg[2].exp--;          // 0.5
+            newRealFromBINT(&RReg[2],5,-1);
 
             mulReal(&RReg[3],&RReg[0],&RReg[2]);    // IMAGINARY PART
             swapReal(&RReg[3],&RReg[0]);
@@ -2141,9 +2140,9 @@ void LIB_HANDLER()
 
             normalize(&RReg[0]);
 
-            newRealFromBINT(&RReg[2],2);
+            newRealFromBINT(&RReg[2],5,-1);
 
-            divReal(&RReg[1],&RReg[0],&RReg[2]);    // ANGLE/2 TO GET THE SQUARE ROOT
+            mulReal(&RReg[1],&RReg[0],&RReg[2]);    // ANGLE/2 TO GET THE SQUARE ROOT
 
             mulReal(&RReg[2],&RReg[8],&RReg[8]);
             mulReal(&RReg[3],&RReg[9],&RReg[9]);
@@ -2342,9 +2341,9 @@ void LIB_HANDLER()
 
             addReal(&RReg[1],&RReg[8],&RReg[0]);
 
-            newRealFromBINT(&RReg[2],2);
+            newRealFromBINT(&RReg[2],5,-1);
 
-            divReal(&RReg[9],&RReg[1],&RReg[2]);    // (ANG1+ANG2)/2 TO GET THE SQUARE ROOT
+            mulReal(&RReg[9],&RReg[1],&RReg[2]);    // (ANG1+ANG2)/2 TO GET THE SQUARE ROOT
 
             addReal(&RReg[0],&re,&one);
             mulReal(&RReg[1],&RReg[0],&RReg[0]);
@@ -2632,8 +2631,7 @@ void LIB_HANDLER()
 
             finalize(&RReg[0]);     // LN(r')
 
-            newRealFromBINT(&RReg[1],5);
-            RReg[1].exp--;         // LOAD RReg[1]=0.5
+            newRealFromBINT(&RReg[1],5,-1);
 
             mulReal(&RReg[8],&RReg[1],&RReg[0]);        // 1/2* LN(...)
             mulReal(&RReg[2],&RReg[1],&RReg[9]);
@@ -2718,22 +2716,67 @@ void LIB_HANDLER()
 
                 // ATANH(x)= 1/2*LN( (1+X)/(1-X) )
 
+                addReal(&RReg[1],&RReg[0],&x);
+                subReal(&RReg[2],&RReg[0],&x);
+                divReal(&RReg[8],&RReg[1],&RReg[2]);
+
                 // LN OF A NEGATIVE REAL
+
+
+                    RReg[8].flags&=~F_NEGATIVE;
+
+                    // HANDLE SPECIAL VALUES
+                    if(isinfiniteReal(&RReg[8])) {
+                       rplError(ERR_INFINITERESULT);
+                       return;
+                    }
+
+
+                    hyp_ln(&RReg[8]);
+                    normalize(&RReg[0]);
+
+                    newRealFromBINT(&RReg[1],5,-1);
+
+                    mulReal(&RReg[8],&RReg[0],&RReg[1]);
+
+                    REAL pi;
+
+                    decconst_PI_2(&pi);
+
+                    copyReal(&RReg[1],&pi);
+
+                    if(signx&F_NEGATIVE) RReg[8].flags^=F_NEGATIVE;
+                    else RReg[1].flags^=F_NEGATIVE;
+
+                    finalize(&RReg[1]);
+
+                    WORDPTR newcmplx=rplNewComplex(&RReg[8],&RReg[1],ANGLENONE);
+                    if( (!newcmplx) || Exceptions) return;
+
+                    rplOverwriteData(1,newcmplx);
+
+                    rplCheckResultAndError(&RReg[8]);
+
+                    return;
+
+                }
+                rplError(ERR_ARGOUTSIDEDOMAIN);
+                return;
+
+
+
+
 
             }
 
-            rplError(ERR_ARGOUTSIDEDOMAIN);
-
-            return;
-        }
         if(ismorethan1==0)
         {
-            // TODO: IMPLEMENT INFINITY FLAGS TO THROW EXCEPTION ON INFINITY
             rplInfinityToRReg(0);
             if(signx&F_NEGATIVE) RReg[0].flags|=F_NEGATIVE;
 
             rplDropData(1);
             rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
             return;
         }
 
@@ -2743,6 +2786,8 @@ void LIB_HANDLER()
 
         rplDropData(1);
         rplNewRealFromRRegPush(0);
+        rplCheckResultAndError(&RReg[0]);
+
         return;
 
     }
