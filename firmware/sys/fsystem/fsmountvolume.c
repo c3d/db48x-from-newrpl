@@ -170,13 +170,14 @@ else {
 
 // FINAL STAGE
 fs->CurrentDir=&fs->RootDir;
-fs->NextFreeCluster=2;
-
+fs->NextFreeCluster=FSCluster2Addr(2,fs);
+fs->FreeAreaSize=0;
+fs->FreeSpace=0;
 fs->InitFlags=1;
 
 simpfree(TempData);
 
-FSCalcFreeSpace(fs);
+//FSCalcFreeSpace(fs);
 
 return TRUE;
 }

@@ -165,6 +165,8 @@ extern unsigned int FSGetChainSize(FS_FRAGMENT *fr);
 extern void FSFreeChain(FS_FILE *file);
 extern int FSExpandChain(FS_FILE *file,unsigned int newtotalsize);
 extern int FSTruncateChain(FS_FILE *file, unsigned int newsize);
+extern int FSScanFreeSpace(FS_VOLUME *fs,unsigned int nextfreecluster);
+
 
 extern void FSPatchFATBlock(unsigned char *buffer,int size,int addr,FS_VOLUME *fs,int flush);
 extern int FSWriteFATEntry(unsigned int cluster, int value, FS_VOLUME *fs);

@@ -84,7 +84,7 @@ simpfree(ch);
 }
 
 
-fs->FreeSpace-=newsize-fullsize;
+if(fs->InitFlags&2) fs->FreeSpace-=newsize-fullsize;
 return FS_OK;
 
 }
