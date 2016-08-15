@@ -575,6 +575,16 @@ void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BI
 #define ANGLEGRAD    2
 #define ANGLEDMS     3
 
+// COMPLEX NUMBER CLASSES
+#define CPLX_NORMAL     0
+#define CPLX_ZERO       1
+#define CPLX_NAN        2
+#define CPLX_INF        4
+#define CPLX_UNDINF     8
+#define CPLX_POLAR     16
+#define CPLX_MALFORMED 32
+
+
 
 // SYSTEM FLAGS
 #define FL_ACTIVEMENU     -11

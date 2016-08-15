@@ -4467,6 +4467,19 @@ BINT isundinfiniteReal(REAL *n)
     return 0;
 }
 
+BINT isNANReal(REAL *n)
+{
+    if(n->flags&F_NOTANUMBER) return 1;
+    return 0;
+}
+
+BINT isNANorinfiniteReal(REAL *n)
+{
+    if(n->flags&F_UNDINFINITY) return 1;
+    return 0;
+}
+
+
 
 BINT signofReal(REAL *n)
 {

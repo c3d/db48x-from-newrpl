@@ -98,6 +98,70 @@ BINT rplPolarComplexMode(WORDPTR complex)
     return ANGLENONE;
 }
 
+BINT rplComplexClass(WORDPTR complex)
+{
+    if(!ISCOMPLEX(*complex)) {
+        if(ISBINT(*complex)) {
+            // CAN ONLY BE ZERO
+            BINT64 n=rplReadBINT(complex);
+            if(n==0) return CPLX_ZERO;
+            return CPLX_NORMAL;
+        }
+        if(ISREAL(*complex)) {
+            REAL r;
+            rplReadReal(complex,&r);
+            if(iszeroReal(&r)) return CPLX_ZERO;
+            switch(r.flags&F_UNDINFINITY)
+            {
+            case F_UNDINFINITY:
+                return CPLX_UNDINF;
+            case F_INFINITY:
+                return CPLX_INF;
+            case F_NOTANUMBER:
+                return CPLX_NAN;
+            }
+
+            return CPLX_NORMAL;
+        }
+        return CPLX_NAN;
+
+    }
+
+    BINT cclass=0;
+    WORDPTR re,im;
+    re=++complex;
+    im=rplSkipOb(re);
+
+    if(ISANGLE(*im)) { cclass|=CPLX_POLAR; ++im; }
+
+    REAL r,i;
+
+    rplReadNumberAsReal(re,&r);
+    rplReadNumberAsReal(im,&i);
+
+    if(i.flags&F_NOTANUMBER) return CPLX_NAN;
+
+
+    switch(r.flags&F_UNDINFINITY)
+    {
+    case F_UNDINFINITY:
+        return CPLX_UNDINF;
+    case F_INFINITY:
+        cclass|=CPLX_INF;
+    case F_NOTANUMBER:
+        return CPLX_NAN;
+    }
+
+    if(i.flags&F_INFINITY) {
+        if(cclass&CPLX_POLAR) return CPLX_NAN;
+        if(cclass&CPLX_INF) return CPLX_UNDINF;
+        // MALFORMED COMPLEX WITH BAD IMAGINARY PART, BUT IT'S DIRECTED INFINITY
+        cclass|=CPLX_MALFORMED;
+    }
+    return cclass;
+
+}
+
 
 // GETS THE REAL PART OF ANY NUMBER: IF BINT OR REAL, GET THE NUMBER. IF COMPLEX, RETURN THE REAL PART.
 void rplReadCNumberAsReal(WORDPTR complex,REAL *real)
@@ -499,9 +563,179 @@ void LIB_HANDLER()
         case OVR_MUL:
         {
             if(amode1==ANGLENONE) {
-                // RESULT WIL BE IN CARTESIAN COORDINATES
+                // RESULT WILL BE IN CARTESIAN COORDINATES
                 if(amode2==ANGLENONE) {
                     // WORK IN CARTESIAN COORDINATES
+                    if(isinfiniteReal(&Rarg1)) {
+
+                        if(isundinfiniteReal(&Rarg1) || isinfiniteReal(&Iarg1)) {
+                         // UNDEFINED INFINITY OR ANOTHER MALFORMED COMPLEX
+                         // TREAT (Inf,Inf) = UndInf
+
+                            if(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2)) {
+                                // UNDINF * 0 = UNDEFINED
+                                rplNANToRReg(0);
+                                rplNewRealFromRRegPush(0);
+                                rplCheckResultAndError(&RReg[0]);
+                                return;
+                            }
+
+                            // UNDINF * ANYTHING ELSE = UNDINF
+
+                            rplUndInfinityToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        }
+
+                        // TREAT AS REAL +/-INFINITY SINCE DIRECTED INFINITY IS ALWAYS IN POLAR FORM
+
+                        // HANDLE SPECIAL CASES
+                        if(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2)) {
+                            // INFINITE * 0 = UNDEFINED
+                            rplNANToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        }
+
+                        if(isinfiniteReal(&Rarg2)) {
+                            if(isundinfiniteReal(&Rarg2) || isinfiniteReal(&Iarg2)) {
+                                // MALFORMED COMPLEX
+                                // TREAT AS UNDIRECTED INFINITY
+
+                                // UNDINF * INF = UNDINF
+                                rplUndInfinityToRReg(0);
+                                rplNewRealFromRRegPush(0);
+                                rplCheckResultAndError(&RReg[0]);
+                                return;
+                            }
+                            // TREAT AS REAL INFINITY
+
+                            // INF * INF = INF
+                            rplInfinityToRReg(0);
+                            RReg[0].flags|=(Rarg1.flags^Rarg2.flags)&F_NEGATIVE;
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+
+                        }
+
+                        // INF * (A,B) = DIRECTED INFINITY
+
+
+                        // CONVERT TO POLAR AND RETURN DIRECTED INFINITY
+
+                        // Z = r1*r2 * e^(i*(Theta1+Theta2)) = Inf * e^i*(Theta1+Theta2)
+
+                        amode2=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                        trig_atan2(&Iarg2,&Rarg2,amode2);
+                        finalize(&RReg[0]);
+
+
+                        // HERE RReg[0] = RESULTING ANGLE
+                        // RETURN DIRECTED INFINITY
+
+                        rplNewComplexPush(&Rarg1,&RReg[0],amode2);
+
+                        rplCheckResultAndError(&RReg[0]);
+                        rplCheckResultAndError(&Rarg1);
+                        return;
+
+
+
+                        }
+
+                    else if(isinfiniteReal(&Rarg2)) {
+
+                        if(isundinfiniteReal(&Rarg2) || isinfiniteReal(&Iarg2)) {
+                         // UNDEFINED INFINITY OR ANOTHER MALFORMED COMPLEX
+                         // TREAT (Inf,Inf) = UndInf
+
+                            if(iszeroReal(&Rarg1)&&iszeroReal(&Iarg1)) {
+                                // UNDINF * 0 = UNDEFINED
+                                rplNANToRReg(0);
+                                rplNewRealFromRRegPush(0);
+                                rplCheckResultAndError(&RReg[0]);
+                                return;
+                            }
+
+                            // UNDINF * ANYTHING ELSE = UNDINF
+
+                            rplUndInfinityToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        }
+
+                        // IT'S A MALFORMED NUMBER, INFINITE COMPLEX
+                        // SHOULD ALWAYS BE POLAR
+                        // IN ANY CASE, TREAT AS REAL +/-INFINITY
+
+                        // HANDLE SPECIAL CASES
+                        if(iszeroReal(&Rarg1)&&iszeroReal(&Iarg1)) {
+                            // INFINITE * 0 = UNDEFINED
+                            rplNANToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        }
+
+                        if(isinfiniteReal(&Rarg1)) {
+                            if(isinfiniteReal(&Iarg1)) {
+                                // MALFORMED COMPLEX
+                                // TREAT AS UNDIRECTED INFINITY
+
+                                // UNDINF * INF = UNDINF
+                                rplUndInfinityToRReg(0);
+                                rplNewRealFromRRegPush(0);
+                                rplCheckResultAndError(&RReg[0]);
+                                return;
+                            }
+                            // TREAT AS REAL INFINITY
+                            // INF * INF = +/-INF
+
+                            rplInfinityToRReg(0);
+                            RReg[0].flags|=(Rarg1.flags^Rarg2.flags)&F_NEGATIVE;
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+
+
+                        }
+
+                        // INF * (A,B) = DIRECTED INFINITY
+
+
+                        // CONVERT TO POLAR AND RETURN DIRECTED INFINITY
+
+                        // Z = r1*r2 * e^(i*(Theta1+Theta2)) = Inf * e^i*(Theta1+Theta2)
+
+                        amode2=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                        trig_atan2(&Iarg1,&Rarg1,amode2);
+                        finalize(&RReg[0]);
+
+
+                        // HERE RReg[0] = RESULTING ANGLE
+                        // RETURN DIRECTED INFINITY
+
+                        rplNewComplexPush(&Rarg2,&RReg[0],amode2);
+
+                        rplCheckResultAndError(&RReg[0]);
+                        rplCheckResultAndError(&Rarg2);
+                        return;
+
+
+
+
+                        }
+
+
+
+                    // FINALLY, DO THE NORMAL MULTIPLICATION
+
                     Context.precdigits+=8;
                     mulReal(&RReg[0],&Rarg1,&Rarg2);
                     mulReal(&RReg[1],&Iarg1,&Iarg2);
@@ -518,6 +752,85 @@ void LIB_HANDLER()
                 }
 
                 else {
+                        // Rarg2 IS A POLAR COMPLEX
+                    if(isinfiniteReal(&Rarg2)) {
+                        // IF IT'S A POLAR INFINITY, DON'T TRY TO WORK IN CARTESIAN COORDINATES
+
+                        if(isNANorinfiniteReal(&Iarg2)) {
+                            // MALFORMED POLAR COMPLEX NUMBER
+                            rplNANToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+
+                        }
+
+                        // HANDLE SPECIAL CASES WHEN FIRST ARGUMENT IS INFINITY TOO
+                        if(isinfiniteReal(&Rarg1)) {
+
+                            if(isundinfiniteReal(&Rarg1) || isinfiniteReal(&Iarg1)) {
+                             // UNDEFINED INFINITY OR ANOTHER MALFORMED COMPLEX
+                             // TREAT (Inf,Inf) = UndInf
+
+
+                                // UNDINF * ANYTHING ELSE = UNDINF
+
+                                rplUndInfinityToRReg(0);
+                                rplNewRealFromRRegPush(0);
+                                rplCheckResultAndError(&RReg[0]);
+                                return;
+                            }
+
+                            // FIRST ARGUMENT IS REAL +/-INFINITY
+
+                            // SECOND ARGUMENT IS DIRECTED INFINITY
+
+
+                            // CONVERT TO POLAR AND RETURN DIRECTED INFINITY
+
+
+                            }
+
+
+                        // CONVERT TO POLAR AND RETURN DIRECTED INFINITY
+
+                        // Z = r1*r2 * e^(i*(Theta1+Theta2)) = Inf * e^i*(Theta1+Theta2)
+
+                        trig_atan2(&Iarg1,&Rarg1,amode2);
+
+                        normalize(&RReg[0]);
+                        swapReal(&RReg[8],&RReg[0]);
+
+                        // ADD ANGLES, BE CAREFUL WITH THE DMS MODE
+                        if(amode2==ANGLEDMS) {
+                            // ADDING IN DMS NEEDS SPECIAL TREATMENT
+                            trig_convertangle(&RReg[8],amode2,ANGLEDEG);
+                            swapReal(&RReg[0],&RReg[6]);
+                            trig_convertangle(&Iarg2,amode2,ANGLEDEG);
+                            addReal(&RReg[7],&RReg[6],&RReg[0]);
+                            trig_reduceangle(&RReg[7],ANGLEDEG);
+                            swapReal(&RReg[7],&RReg[0]);
+                            trig_convertangle(&RReg[7],ANGLEDEG,amode2);
+                        }
+                        else {
+                            addReal(&RReg[7],&RReg[8],&Iarg2);
+                            trig_reduceangle(&RReg[7],amode2);
+                        }
+
+                        // HERE RReg[0] = RESULTING ANGLE
+                        // RETURN DIRECTED INFINITY
+
+                        rplNewComplexPush(&Rarg2,&RReg[0],amode2);
+
+                        rplCheckResultAndError(&RReg[0]);
+                        rplCheckResultAndError(&Rarg2);
+                        return;
+
+                    }
+
+
+
+
                     // CONVERT TO CARTESIAN COORDINATES
                     rplPolar2Rect(&Rarg2,&Iarg2,amode2);
 
@@ -548,7 +861,7 @@ void LIB_HANDLER()
             if(amode1!=ANGLEDMS) {
                 trig_convertangle(&Iarg2,amode2,amode1);
                 addReal(&RReg[1],&Iarg1,&RReg[0]);
-                trig_reduceangle(&RReg[1],ANGLEDEG);
+                trig_reduceangle(&RReg[1],amode1);
                 swapReal(&RReg[1],&RReg[0]);
 
             } else {
@@ -563,6 +876,28 @@ void LIB_HANDLER()
                 swapReal(&RReg[0],&RReg[1]);
             }
             mulReal(&RReg[0],&Rarg1,&Rarg2);
+
+            // CHECK FOR UNDINF/NAN MAGNITUDE
+                if(isundinfiniteReal(&RReg[0])||isNANReal(&RReg[0])) {
+                    // RETURN WHATEVER IT IS IN RREG
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                }
+            // CHECK FOR UNDIF/NAN ANGLE
+            if(isNANorinfiniteReal(&RReg[1])) {
+
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+                }
+
+
+
+
+
+
 
             rplRRegToComplexPush(0,1,amode1);
             rplCheckResultAndError(&RReg[0]);
