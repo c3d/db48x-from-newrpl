@@ -96,6 +96,8 @@ static const BINT const Constant_200_PI[]={
 
 
 static const BINT const Constant_One[]={ 1 };
+static const BINT const Constant_90[]={ 90 };
+static const BINT const Constant_100[]={ 100 };
 static const BINT const Constant_180[]={ 180 };
 static const BINT const Constant_200[]={ 200 };
 
@@ -213,6 +215,20 @@ void decconst_ln10_2(REAL *real)
 void decconst_One(REAL *real)
 {
     real->data=(BINT *)Constant_One;
+    real->exp=0;
+    real->flags=0;
+    real->len=1;
+}
+void decconst_90(REAL *real)
+{
+    real->data=(BINT *)Constant_90;
+    real->exp=0;
+    real->flags=0;
+    real->len=1;
+}
+void decconst_100(REAL *real)
+{
+    real->data=(BINT *)Constant_100;
     real->exp=0;
     real->flags=0;
     real->len=1;
@@ -694,12 +710,12 @@ void trig_convertangle(REAL *oldang,BINT oldmode,BINT newmode)
         return;
     case (ANGLEGRAD<<2)|ANGLEDMS:
     {
-        RReg[2].data[0]=9;
-        RReg[2].exp=-1;
-        RReg[2].len=1;
-        RReg[2].flags=0;
+        RReg[1].data[0]=9;
+        RReg[1].exp=-1;
+        RReg[1].len=1;
+        RReg[1].flags=0;
 
-        mulReal(&RReg[3],oldang,&RReg[2]);
+        mulReal(&RReg[3],oldang,&RReg[1]);
 
         // RReg[2]= T = ANG - FP(ANG)*0.4
         fracReal(&RReg[1],&RReg[3]);
@@ -817,10 +833,16 @@ void trig_convertangle(REAL *oldang,BINT oldmode,BINT newmode)
 
 
 // ENSURE AN ANGLE IS WITHIN -PI/+PI, USED FOR COMPLEX ARGUMENTS
-// USES RReg 0 AND 1 ONLY
+// USES RReg 0 TO 3 ONLY, ARGUMENT CAN BE RReg[2] BUT NOT RReg[0 TO 3]
 void trig_reduceangle(REAL *angle,BINT angmode)
 {
-REAL halfturn;
+REAL halfturn,*modangle;
+
+if(angmode==ANGLEDMS) {
+    trig_convertangle(angle,ANGLEDMS,ANGLEDEG);
+    swapReal(&RReg[0],&RReg[2]);
+    modangle=&RReg[2];
+} else modangle=angle;
 
 // INITIALIZE CONSTANTS
 switch(angmode)
@@ -832,7 +854,7 @@ case ANGLEGRAD:
     decconst_200(&halfturn);
     break;
 case ANGLEDEG:
-case ANGLEDMS:
+case ANGLEDMS:      // DMS IS NOT SUPPORTED HERE, FALL THROUGH THE DEFAULT CASE
 default:
     decconst_180(&halfturn);
     break;
@@ -843,7 +865,7 @@ if(angle->flags&F_NEGATIVE) {
     halfturn.flags|=F_NEGATIVE;
 }
 
-    divmodReal(&RReg[1],&RReg[0],angle,&halfturn);
+    divmodReal(&RReg[1],&RReg[0],modangle,&halfturn);
         // HERE RReg[0] HAS THE ANGLE IN THE FIRST TURN
 
     if(isoddReal(&RReg[1])) {
@@ -856,6 +878,10 @@ halfturn.flags|=F_NEGATIVE;
 if(eqReal(&RReg[0],&halfturn)) RReg[0].flags^=F_NEGATIVE;
 
 // RReg[0] HAS THE ANGLE PROPERLY REDUCED FROM -PI TO PI
+if(angmode==ANGLEDMS) {
+    swapReal(&RReg[2],&Reg[0]);
+    trig_convertangle(&RReg[2],ANGLEDEG,ANGLEDMS);
+}
 
 }
 

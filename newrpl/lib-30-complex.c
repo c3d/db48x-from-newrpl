@@ -148,6 +148,7 @@ BINT rplComplexClass(WORDPTR complex)
         return CPLX_UNDINF;
     case F_INFINITY:
         cclass|=CPLX_INF;
+        break;
     case F_NOTANUMBER:
         return CPLX_NAN;
     }
@@ -156,8 +157,9 @@ BINT rplComplexClass(WORDPTR complex)
         if(cclass&CPLX_POLAR) return CPLX_NAN;
         if(cclass&CPLX_INF) return CPLX_UNDINF;
         // MALFORMED COMPLEX WITH BAD IMAGINARY PART, BUT IT'S DIRECTED INFINITY
-        cclass|=CPLX_MALFORMED;
+        return CPLX_INF|CPLX_MALFORMED;
     }
+
     return cclass;
 
 }
@@ -380,7 +382,7 @@ void LIB_HANDLER()
 
         int nargs=OVR_GETNARGS(CurOpcode);
         REAL Rarg1,Iarg1,Rarg2,Iarg2;
-        BINT amode1,amode2=ANGLENONE;
+        BINT amode1,amode2=ANGLENONE,cclass1,cclass2=CPLX_NORMAL;
 
         if(rplDepthData()<nargs) {
             rplError(ERR_BADARGCOUNT);
@@ -414,6 +416,7 @@ void LIB_HANDLER()
 
             rplReadCNumberAsReal(arg1,&Rarg1);
             rplReadCNumberAsImag(arg1,&Iarg1);
+            cclass1=rplComplexClass(arg1);
             amode1=rplPolarComplexMode(arg1);
             rplDropData(1);
         }
@@ -429,17 +432,468 @@ void LIB_HANDLER()
             rplReadCNumberAsReal(arg1,&Rarg1);
             rplReadCNumberAsImag(arg1,&Iarg1);
             amode1=rplPolarComplexMode(arg1);
+            cclass1=rplComplexClass(arg1);
+
             rplReadCNumberAsReal(arg2,&Rarg2);
             rplReadCNumberAsImag(arg2,&Iarg2);
             amode2=rplPolarComplexMode(arg2);
+            cclass2=rplComplexClass(arg2);
 
             rplDropData(2);
         }
 
         switch(OPCODE(CurOpcode))
         {
+        case OVR_SUB:
+          {
+            if(cclass2&CPLX_POLAR) {
+                REAL pi;
+                // ADD 180 DEGREES
+                switch(amode2)
+                {
+                case ANGLEDEG:
+                    decconst_180(&pi);
+                    break;
+                case ANGLEDMS:
+                    decconst_180(&pi);
+                    pi.flags|=Iarg2.flags&F_NEGATIVE;
+                    break;
+                case ANGLEGRAD:
+                    decconst_200(&pi);
+                    break;
+                case ANGLERAD:
+                    decconst_PI(&pi);
+                    break;
+                }
+                addReal(&RReg[8],&Iarg2,&pi);
+                cloneReal(&Iarg2,&RReg[8]);
+                // NO NEED FOR REDUCTION TO +/-PI HERE
+                }
+            else {
+             Rarg2.flags^=F_NEGATIVE;
+             Iarg2.flags^=F_NEGATIVE;
+            }
+              // DELIBERATE FALL THROUGH ADDITION CASE
+          }
         case OVR_ADD:
         {
+
+
+            if( ((cclass1|cclass2)&~CPLX_POLAR)!=CPLX_NORMAL) {
+                //  WE HAVE SOME SPECIALS HERE!
+
+                switch(cclass1)
+                {
+                case CPLX_ZERO:
+                    // 0 +/- ANYTHING = ANYTHING
+                    rplPushData(arg2);
+                    if(OPCODE(CurOpcode)==OVR_SUB) rplCallOvrOperator(CMD_OVR_NEG);
+                    else {
+                    rplCheckResultAndError(&Rarg2);
+                    rplCheckResultAndError(&Iarg2);
+                    }
+                    return;
+                case CPLX_UNDINF:
+                {
+                    switch(cclass2)
+                    {
+                    case CPLX_NORMAL:
+                    case CPLX_ZERO:
+                    case CPLX_NORMAL|CPLX_POLAR:
+                    // UNDINF +/- NORMAL = UNDINF
+                        rplUndInfinityToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                    case CPLX_INF:
+                    case CPLX_INF|CPLX_MALFORMED:
+                    case CPLX_INF|CPLX_POLAR:
+                    case CPLX_UNDINF:
+                    default:
+                        // UNDINF +/- ANY OTHER INFINITY = NAN
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+
+                    }
+                }
+                case CPLX_INF:
+                {
+                    switch(cclass2)
+                    {
+                    case CPLX_NORMAL:
+                    case CPLX_ZERO:
+                    case CPLX_NORMAL|CPLX_POLAR:
+                        // Inf +/- finite = ANYTHING
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+                    case CPLX_INF:
+                        // Inf+Inf = Inf, -Inf-Inf = -Inf
+                        if((Rarg1.flags^Rarg2.flags)&F_NEGATIVE) {
+                            // ADDING INFINITES OF OPPOSITE SIGNS IS UNDETERMINED
+                            rplNANToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        }
+                        // BOTH HAVE SAME SIGN, SO RETURN THE FIRST ARGUMENT
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+                    case CPLX_INF|CPLX_POLAR:
+                    {
+                        // ADDITION ONLY MAKES SENSE IF THEIR DIRECTIONS MATCH
+                        // OTHERWISE IT'S UNDEFINED
+                        BINT right_direction=0;
+
+                        if(Rarg1.flags&F_NEGATIVE) {
+                            // CHECK IF THE POLAR IS GOING IN THE PI DIRECTION
+
+                            switch(amode2)
+                            {
+                            case ANGLEDMS:
+                            case ANGLEDEG:
+                            {
+                                REAL a_180;
+                                decconst_180(&a_180);
+                                Iarg2.flags&=~F_NEGATIVE;   // 180 or -180 IS THE SAME DIRECTION
+                                if(eqReal(&Iarg2,&a_180)) right_direction=1;
+                                break;
+                            }
+                            case ANGLEGRAD:
+                            {
+                                REAL a_200;
+                                decconst_200(&a_200);
+                                Iarg2.flags&=~F_NEGATIVE;   // 180 or -180 IS THE SAME DIRECTION
+                                if(eqReal(&Iarg2,&a_200)) right_direction=1;
+                                break;
+                            }
+                            case ANGLERAD:
+                            default:
+                                // DIRECTION CAN NEVER BE EXACTLY PI, SO IT ALWAYS FAILS
+                                break;
+
+                            }
+                        }
+                        else {
+                            if(iszeroReal(&Iarg2)) right_direction=1;
+                        }
+
+                        if(right_direction) {
+                            // BOTH HAVE SAME SIGN, SO RETURN THE FIRST ARGUMENT
+                            rplPushData(arg1);
+                            rplCheckResultAndError(&Rarg1);
+                            rplCheckResultAndError(&Iarg1);
+                            return;
+                        }
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                    }
+
+                    case CPLX_INF|CPLX_MALFORMED:   // PERP. DIRECTIONS
+                    case CPLX_NAN:
+                    case CPLX_UNDINF:
+                    default:
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+
+                    }
+
+
+
+                }
+                case CPLX_INF|CPLX_POLAR:
+                {
+                    switch(cclass2)
+                    {
+                    case CPLX_NORMAL:
+                    case CPLX_ZERO:
+                    case CPLX_NORMAL|CPLX_POLAR:
+                        // Inf +/- finite = ANYTHING
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+                    case CPLX_INF:
+                    {
+                        // ADDITION ONLY MAKES SENSE IF THEIR DIRECTIONS MATCH
+                        // OTHERWISE IT'S UNDEFINED
+                        BINT right_direction=0;
+
+                        // CHECK IF THE POLAR IS GOING IN THE PI DIRECTION
+                        if(Rarg2.flags&F_NEGATIVE) {
+
+                        switch(amode1)
+                        {
+                        case ANGLEDMS:
+                        case ANGLEDEG:
+                        {
+                            REAL a_180;
+                            decconst_180(&a_180);
+                            Iarg1.flags&=~F_NEGATIVE;   // 180 or -180 IS THE SAME DIRECTION
+                            if(eqReal(&Iarg1,&a_180)) right_direction=1;
+                            break;
+                        }
+                        case ANGLEGRAD:
+                        {
+                            REAL a_200;
+                            decconst_200(&a_200);
+                            Iarg1.flags&=~F_NEGATIVE;   // 180 or -180 IS THE SAME DIRECTION
+                            if(eqReal(&Iarg1,&a_200)) right_direction=1;
+                            break;
+                        }
+                        case ANGLERAD:
+                        default:
+                            // DIRECTION CAN NEVER BE EXACTLY PI, SO IT ALWAYS FAILS
+                            break;
+
+                        }
+                    }
+                    else {
+                        if(iszeroReal(&Iarg1)) right_direction=1;
+                    }
+
+                    if(right_direction) {
+                        // BOTH HAVE SAME SIGN, SO RETURN THE FIRST ARGUMENT
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+                    }
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                    }
+                    case CPLX_INF|CPLX_POLAR:
+                    {
+                        // ADDITION ONLY MAKES SENSE IF THEIR DIRECTIONS MATCH
+                        // OTHERWISE IT'S UNDEFINED
+
+                        trig_convertangle(&Iarg2,amode2,amode1);
+                        finalize(&RReg[0]);
+
+                        if(eqReal(&Iarg1,&RReg[0])) {
+                            // BOTH HAVE SAME DIRECTION, SO RETURN THE FIRST ARGUMENT
+                            rplPushData(arg1);
+                            rplCheckResultAndError(&Rarg1);
+                            rplCheckResultAndError(&Iarg1);
+                            return;
+                        }
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                    }
+                    case CPLX_INF|CPLX_MALFORMED:
+                    {
+                        // ADDITION ONLY MAKES SENSE IF THEIR DIRECTIONS MATCH
+                        // OTHERWISE IT'S UNDEFINED
+                        BINT right_direction=0;
+
+                        switch(amode1)
+                        {
+                        case ANGLEDMS:
+                        case ANGLEDEG:
+                        {
+                            REAL a_90;
+                            decconst_90(&a_90);
+                            a_90.flags|=Iarg2.flags&F_NEGATIVE; // GET THE DIRECTION +/-i
+                            if(eqReal(&Iarg1,&a_90)) right_direction=1;
+                            break;
+                        }
+                        case ANGLEGRAD:
+                        {
+                            REAL a_100;
+                            decconst_100(&a_100);
+                            a_100.flags|=Iarg2.flags&F_NEGATIVE; // GET THE DIRECTION +/-i
+                            if(eqReal(&Iarg1,&a_100)) right_direction=1;
+                            break;
+                        }
+                        case ANGLERAD:
+                        default:
+                            // DIRECTION CAN NEVER BE EXACTLY +/-PI/2, SO IT ALWAYS FAILS
+                            break;
+
+                        }
+
+                    if(right_direction) {
+                        // BOTH HAVE SAME SIGN, SO RETURN THE FIRST ARGUMENT
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+                    }
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                    }
+
+                    case CPLX_NAN:
+                    case CPLX_UNDINF:
+                    default:
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+
+                    }
+                }
+                case CPLX_INF|CPLX_MALFORMED:
+                {
+                    switch(cclass2)
+                    {
+                    case CPLX_NORMAL:
+                    case CPLX_ZERO:
+                    case CPLX_NORMAL|CPLX_POLAR:
+                        // Inf +/- finite = ANYTHING
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+                    case CPLX_INF|CPLX_MALFORMED:
+                        // Inf+Inf = Inf, -Inf-Inf = -Inf
+                        if((Iarg1.flags^Iarg2.flags)&F_NEGATIVE) {
+                            // ADDING INFINITES OF OPPOSITE SIGNS IS UNDETERMINED
+                            rplNANToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        }
+                        // BOTH HAVE SAME SIGN, SO RETURN THE FIRST ARGUMENT
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+                    case CPLX_INF|CPLX_POLAR:
+                    {
+                        // ADDITION ONLY MAKES SENSE IF THEIR DIRECTIONS MATCH
+                        // OTHERWISE IT'S UNDEFINED
+                        BINT right_direction=0;
+
+                        switch(amode2)
+                        {
+                        case ANGLEDMS:
+                        case ANGLEDEG:
+                        {
+                            REAL a_90;
+                            decconst_90(&a_90);
+                            a_90.flags|=Iarg1.flags&F_NEGATIVE; // GET THE DIRECTION +/-i
+                            if(eqReal(&Iarg2,&a_90)) right_direction=1;
+                            break;
+                        }
+                        case ANGLEGRAD:
+                        {
+                            REAL a_100;
+                            decconst_100(&a_100);
+                            a_100.flags|=Iarg1.flags&F_NEGATIVE; // GET THE DIRECTION +/-i
+                            if(eqReal(&Iarg2,&a_100)) right_direction=1;
+                            break;
+                        }
+                        case ANGLERAD:
+                        default:
+                            // DIRECTION CAN NEVER BE EXACTLY +/-PI/2, SO IT ALWAYS FAILS
+                            break;
+
+                        }
+
+                    if(right_direction) {
+                        // BOTH HAVE SAME SIGN, SO RETURN THE FIRST ARGUMENT
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+                    }
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                    }
+                    case CPLX_INF:   // PERP. DIRECTIONS
+                    case CPLX_NAN:
+                    case CPLX_UNDINF:
+                    default:
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+
+                    }
+
+
+
+                }
+
+                case CPLX_NORMAL:
+                case CPLX_NORMAL|CPLX_POLAR:
+                {
+                    switch(cclass2)
+                    {
+                    case CPLX_ZERO:
+                        // FINITE +/- 0 = FINITE
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+
+                    case CPLX_INF:
+                    case CPLX_INF|CPLX_POLAR:
+                    case CPLX_INF|CPLX_MALFORMED:
+
+                    // FINITE +/- INFINITY = INFINITY
+                        rplPushData(arg2);
+                        if(OPCODE(CurOpcode)==OVR_SUB) rplCallOvrOperator(CMD_OVR_NEG);
+                        else {
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        }
+                        return;
+
+                    case CPLX_UNDINF:
+                        // FINITE +/- UNDINF = UNDINF
+                        rplUndInfinityToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+
+                    case CPLX_NAN:
+
+                    default:
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+
+                    }
+
+
+
+                }
+
+                default:
+                case CPLX_NAN:
+                    // NAN +/- ANYTHING = NAN
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+
+                }
+
+
+            } // END OF SPECIALS HANDLING
+
+
+
             if(amode1==ANGLENONE) {
                 if(amode2==ANGLENONE) {
                     // ADD THE REAL PART FIRST
@@ -467,20 +921,26 @@ void LIB_HANDLER()
 
             }
 
-            // CONVERT FIRST ARGUMENT TO CARTESIAN
-            rplPolar2Rect(&Rarg1,&Iarg1,amode1);
             if(amode2!=ANGLENONE) {
-            // CONVERT SECOND ARGUMENT TO CARTESIAN
-            swapReal(&RReg[8],&RReg[0]);    // SAVE TO HIGHER REGISTERS
-            swapReal(&RReg[9],&RReg[1]);
-            
-            rplPolar2Rect(&Rarg2,&Iarg2,amode2);
-            
-            addReal(&RReg[3],&RReg[8],&RReg[0]);
-            addReal(&RReg[4],&RReg[9],&RReg[1]);
-            
+                // CONVERT SECOND ARGUMENT TO CARTESIAN
+
+                // WARNING: Iarg2 COULD BE RReg[8] WHEN SUBTRACTING
+                rplPolar2Rect(&Rarg2,&Iarg2,amode2);
+
+                swapReal(&RReg[8],&RReg[0]);    // SAVE TO HIGHER REGISTERS
+                swapReal(&RReg[9],&RReg[1]);
+
+                // CONVERT FIRST ARGUMENT TO CARTESIAN
+                rplPolar2Rect(&Rarg1,&Iarg1,amode1);
+
+                addReal(&RReg[3],&RReg[8],&RReg[0]);
+                addReal(&RReg[4],&RReg[9],&RReg[1]);
+
             }
             else {
+                // CONVERT FIRST ARGUMENT TO CARTESIAN
+                rplPolar2Rect(&Rarg1,&Iarg1,amode1);
+
                 // ADD DIRECTLY
                 addReal(&RReg[3],&RReg[0],&Rarg2);
                 addReal(&RReg[4],&RReg[1],&Iarg2);
@@ -499,138 +959,86 @@ void LIB_HANDLER()
             return;
 
         }
-        case OVR_SUB:
-        {
-            if(amode1==ANGLENONE) {
-                if(amode2==ANGLENONE) {
-                    // ADD THE REAL PART FIRST
-                    subReal(&RReg[0],&Rarg1,&Rarg2);
-                    subReal(&RReg[1],&Iarg1,&Iarg2);
-                    rplRRegToComplexPush(0,1,ANGLENONE);
-                    rplCheckResultAndError(&RReg[0]);
-                    rplCheckResultAndError(&RReg[1]);
 
-                    return;
-                }
-                // CONVERT BOTH ARGUMENTS TO CARTESIAN, THEN ADD
-                rplPolar2Rect(&Rarg2,&Iarg2,amode2);
-                subReal(&RReg[2],&Rarg1,&RReg[0]);
-                subReal(&RReg[3],&Iarg1,&RReg[1]);
-
-                // RESULT IN CARTESIAN IS OK
-                rplRRegToComplexPush(2,3,ANGLENONE);
-                rplCheckResultAndError(&RReg[2]);
-                rplCheckResultAndError(&RReg[3]);
-
-                return;
-
-
-            }
-
-            // CONVERT FIRST ARGUMENT TO CARTESIAN
-            rplPolar2Rect(&Rarg1,&Iarg1,amode1);
-            if(amode2!=ANGLENONE) {
-            // CONVERT SECOND ARGUMENT TO CARTESIAN
-            swapReal(&RReg[8],&RReg[0]);    // SAVE TO HIGHER REGISTERS
-            swapReal(&RReg[9],&RReg[1]);
-
-            rplPolar2Rect(&Rarg2,&Iarg2,amode2);
-
-            subReal(&RReg[3],&RReg[8],&RReg[0]);
-            subReal(&RReg[4],&RReg[9],&RReg[1]);
-
-            }
-            else {
-                // ADD DIRECTLY
-                subReal(&RReg[3],&RReg[0],&Rarg2);
-                subReal(&RReg[4],&RReg[1],&Iarg2);
-
-            }
-
-            // HERE WE HAVE THE RESULT IN CARTESIAN COORDINATES IN RReg 3 AND 4
-
-            rplRect2Polar(&RReg[3],&RReg[4],amode1);
-
-            rplRRegToComplexPush(0,1,amode1);
-            rplCheckResultAndError(&RReg[0]);
-            rplCheckResultAndError(&RReg[1]);
-
-
-            return;
-
-        }
 
         case OVR_MUL:
         {
-            if(amode1==ANGLENONE) {
-                // RESULT WILL BE IN CARTESIAN COORDINATES
-                if(amode2==ANGLENONE) {
-                    // WORK IN CARTESIAN COORDINATES
-                    if(isinfiniteReal(&Rarg1)) {
 
-                        if(isundinfiniteReal(&Rarg1) || isinfiniteReal(&Iarg1)) {
-                         // UNDEFINED INFINITY OR ANOTHER MALFORMED COMPLEX
-                         // TREAT (Inf,Inf) = UndInf
 
-                            if(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2)) {
-                                // UNDINF * 0 = UNDEFINED
-                                rplNANToRReg(0);
-                                rplNewRealFromRRegPush(0);
-                                rplCheckResultAndError(&RReg[0]);
-                                return;
-                            }
+            if( ((cclass1|cclass2)&~CPLX_POLAR)!=CPLX_NORMAL) {
+                //  WE HAVE SOME SPECIALS HERE!
 
-                            // UNDINF * ANYTHING ELSE = UNDINF
+                switch(cclass1)
+                {
+                case CPLX_ZERO:
+                    // 0 * FINITE = 0, OTHERWISE UNDEFINED
+                    switch(cclass2)
+                    {
+                    case CPLX_ZERO:
+                    case CPLX_NORMAL:
+                    case CPLX_NORMAL|CPLX_POLAR:
+                        rplPushData(zero_bint);
+                        return;
+                    case CPLX_INF:
+                    case CPLX_INF|CPLX_POLAR:
+                    case CPLX_INF|CPLX_MALFORMED:
+                    case CPLX_UNDINF:
+                    case CPLX_NAN:
+                    default:
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                    }
+                case CPLX_UNDINF:
+                {
+                    switch(cclass2)
+                    {
+                    case CPLX_NORMAL:
+                    case CPLX_NORMAL|CPLX_POLAR:
+                    case CPLX_INF:
+                    case CPLX_INF|CPLX_MALFORMED:
+                    case CPLX_INF|CPLX_POLAR:
+                    case CPLX_UNDINF:
 
-                            rplUndInfinityToRReg(0);
-                            rplNewRealFromRRegPush(0);
-                            rplCheckResultAndError(&RReg[0]);
-                            return;
-                        }
+                    // UNDINF +/- NORMAL = UNDINF
+                        rplUndInfinityToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                    case CPLX_ZERO:
+                    case CPLX_NAN:
+                    default:
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
 
-                        // TREAT AS REAL +/-INFINITY SINCE DIRECTED INFINITY IS ALWAYS IN POLAR FORM
+                    }
+                }
+                case CPLX_INF:
+                {
+                    switch(cclass2)
+                    {
+                    case CPLX_NORMAL:
+                    {
+                        BINT resmode;
 
-                        // HANDLE SPECIAL CASES
-                        if(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2)) {
-                            // INFINITE * 0 = UNDEFINED
-                            rplNANToRReg(0);
-                            rplNewRealFromRRegPush(0);
-                            rplCheckResultAndError(&RReg[0]);
-                            return;
-                        }
+                        if(amode1!=ANGLENONE) resmode=amode1;
+                        else if(amode2!=ANGLENONE) resmode=amode2;
+                        else resmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
-                        if(isinfiniteReal(&Rarg2)) {
-                            if(isundinfiniteReal(&Rarg2) || isinfiniteReal(&Iarg2)) {
-                                // MALFORMED COMPLEX
-                                // TREAT AS UNDIRECTED INFINITY
-
-                                // UNDINF * INF = UNDINF
-                                rplUndInfinityToRReg(0);
-                                rplNewRealFromRRegPush(0);
-                                rplCheckResultAndError(&RReg[0]);
-                                return;
-                            }
-                            // TREAT AS REAL INFINITY
-
-                            // INF * INF = INF
-                            rplInfinityToRReg(0);
-                            RReg[0].flags|=(Rarg1.flags^Rarg2.flags)&F_NEGATIVE;
-                            rplNewRealFromRRegPush(0);
-                            rplCheckResultAndError(&RReg[0]);
-                            return;
-
-                        }
 
                         // INF * (A,B) = DIRECTED INFINITY
-
-
                         // CONVERT TO POLAR AND RETURN DIRECTED INFINITY
-
                         // Z = r1*r2 * e^(i*(Theta1+Theta2)) = Inf * e^i*(Theta1+Theta2)
 
-                        amode2=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
-
-                        trig_atan2(&Iarg2,&Rarg2,amode2);
+                        if(Rarg1.flags&F_NEGATIVE) {
+                            // -Inf --> INVERT DIRECTION
+                            Iarg2.flags^=F_NEGATIVE;
+                            Rarg2.flags^=F_NEGATIVE;
+                        }
+                        trig_atan2(&Iarg2,&Rarg2,resmode);
                         finalize(&RReg[0]);
 
 
@@ -642,84 +1050,94 @@ void LIB_HANDLER()
                         rplCheckResultAndError(&RReg[0]);
                         rplCheckResultAndError(&Rarg1);
                         return;
+                    }
 
 
 
-                        }
+                    case CPLX_NORMAL|CPLX_POLAR:
+                       {
+                        // Inf * r*e^i*Theta
 
-                    else if(isinfiniteReal(&Rarg2)) {
-
-                        if(isundinfiniteReal(&Rarg2) || isinfiniteReal(&Iarg2)) {
-                         // UNDEFINED INFINITY OR ANOTHER MALFORMED COMPLEX
-                         // TREAT (Inf,Inf) = UndInf
-
-                            if(iszeroReal(&Rarg1)&&iszeroReal(&Iarg1)) {
-                                // UNDINF * 0 = UNDEFINED
-                                rplNANToRReg(0);
-                                rplNewRealFromRRegPush(0);
-                                rplCheckResultAndError(&RReg[0]);
-                                return;
-                            }
-
-                            // UNDINF * ANYTHING ELSE = UNDINF
-
-                            rplUndInfinityToRReg(0);
-                            rplNewRealFromRRegPush(0);
-                            rplCheckResultAndError(&RReg[0]);
-                            return;
-                        }
-
-                        // IT'S A MALFORMED NUMBER, INFINITE COMPLEX
-                        // SHOULD ALWAYS BE POLAR
-                        // IN ANY CASE, TREAT AS REAL +/-INFINITY
-
-                        // HANDLE SPECIAL CASES
-                        if(iszeroReal(&Rarg1)&&iszeroReal(&Iarg1)) {
-                            // INFINITE * 0 = UNDEFINED
-                            rplNANToRReg(0);
-                            rplNewRealFromRRegPush(0);
-                            rplCheckResultAndError(&RReg[0]);
-                            return;
-                        }
-
-                        if(isinfiniteReal(&Rarg1)) {
-                            if(isinfiniteReal(&Iarg1)) {
-                                // MALFORMED COMPLEX
-                                // TREAT AS UNDIRECTED INFINITY
-
-                                // UNDINF * INF = UNDINF
-                                rplUndInfinityToRReg(0);
-                                rplNewRealFromRRegPush(0);
-                                rplCheckResultAndError(&RReg[0]);
-                                return;
-                            }
-                            // TREAT AS REAL INFINITY
-                            // INF * INF = +/-INF
-
-                            rplInfinityToRReg(0);
-                            RReg[0].flags|=(Rarg1.flags^Rarg2.flags)&F_NEGATIVE;
-                            rplNewRealFromRRegPush(0);
-                            rplCheckResultAndError(&RReg[0]);
-                            return;
-
-
-                        }
-
-                        // INF * (A,B) = DIRECTED INFINITY
-
-
-                        // CONVERT TO POLAR AND RETURN DIRECTED INFINITY
-
-                        // Z = r1*r2 * e^(i*(Theta1+Theta2)) = Inf * e^i*(Theta1+Theta2)
-
-                        amode2=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
-
-                        trig_atan2(&Iarg1,&Rarg1,amode2);
-                        finalize(&RReg[0]);
-
-
-                        // HERE RReg[0] = RESULTING ANGLE
                         // RETURN DIRECTED INFINITY
+
+                        if(Rarg1.flags&F_NEGATIVE) {
+                            // ADD pi TO THE ANGLE
+                            REAL pi;
+                            // ADD 180 DEGREES
+                            switch(amode2)
+                            {
+                            case ANGLEDEG:
+                                decconst_180(&pi);
+                                break;
+                            case ANGLEDMS:
+                                decconst_180(&pi);
+                                pi.flags|=Iarg2.flags&F_NEGATIVE;
+                                break;
+                            case ANGLEGRAD:
+                                decconst_200(&pi);
+                                break;
+                            case ANGLERAD:
+                                decconst_PI(&pi);
+                                break;
+                            }
+                            addReal(&RReg[9],&Iarg2,&pi);
+                            // NEED REDUCTION TO +/-PI HERE
+                            trig_reduceangle(&RReg[9],amode2);
+                        }
+                        else copyReal(&RReg[0],&Iarg2);
+
+                        Rarg1.flags&=~F_NEGATIVE;   // MAKE SURE INFINITY IS POSITIVE
+                        rplNewComplexPush(&Rarg1,&RReg[0],amode2);
+
+                        rplCheckResultAndError(&RReg[0]);
+                        rplCheckResultAndError(&Rarg1);
+                        return;
+
+                    }
+
+
+                    case CPLX_INF:
+                    {
+                        BINT sign=(Rarg1.flags^Rarg2.flags)&F_NEGATIVE;
+
+                        Rarg1.flags=(Rarg1.flags&~F_NEGATIVE)|sign;
+                        rplNewRealPush(&Rarg1);
+                        rplCheckResultAndError(&Rarg1);
+                        return;
+                    }
+
+
+                    case CPLX_INF|CPLX_POLAR:
+                    {
+                        // Inf * Inf *e^i*Theta
+
+                        // RETURN DIRECTED INFINITY
+
+                        if(Rarg1.flags&F_NEGATIVE) {
+                            // ADD pi TO THE ANGLE
+                            REAL pi;
+                            // ADD 180 DEGREES
+                            switch(amode2)
+                            {
+                            case ANGLEDEG:
+                                decconst_180(&pi);
+                                break;
+                            case ANGLEDMS:
+                                decconst_180(&pi);
+                                pi.flags|=Iarg2.flags&F_NEGATIVE;
+                                break;
+                            case ANGLEGRAD:
+                                decconst_200(&pi);
+                                break;
+                            case ANGLERAD:
+                                decconst_PI(&pi);
+                                break;
+                            }
+                            addReal(&RReg[9],&Iarg2,&pi);
+                            // NEED REDUCTION TO +/-PI HERE
+                            trig_reduceangle(&RReg[9],amode2);
+                        }
+                        else copyReal(&RReg[0],&Iarg2);
 
                         rplNewComplexPush(&Rarg2,&RReg[0],amode2);
 
@@ -727,32 +1145,523 @@ void LIB_HANDLER()
                         rplCheckResultAndError(&Rarg2);
                         return;
 
+                    }
 
 
+                    case CPLX_UNDINF:
+                        // UNDINF * INF = UNDINF
+                            rplUndInfinityToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+
+
+
+                    case CPLX_INF|CPLX_MALFORMED:
+                    {
+                        // Inf * i * Inf = i* Inf
+
+
+                        // RETURN DIRECTED INFINITY
+                        REAL pi2;
+                        BINT amode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+                        switch(amode)
+                        {
+                        case ANGLEDEG:
+                        case ANGLEDMS:
+                            decconst_90(&pi2);
+                            break;
+                        case ANGLEGRAD:
+                            decconst_100(&pi2);
+                            break;
+                        case ANGLERAD:
+                            decconst_PI_2(&pi2);
+                            break;
+                        }
+                        pi2.flags|=(Rarg1.flags^Iarg2.flags)&F_NEGATIVE;
+
+                        Rarg1.flags&=F_NEGATIVE;
+
+                        rplNewComplexPush(&Rarg1,&pi2,amode);
+
+                        rplCheckResultAndError(&Rarg1);
+                        return;
+
+
+
+                    }
+
+                    case CPLX_ZERO:
+                    case CPLX_NAN:
+                    default:
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+
+                    }
+
+
+
+                }
+
+                    // *** DONE UP TO HERE ***
+
+
+                case CPLX_INF|CPLX_POLAR:
+                {
+                    switch(cclass2)
+                    {
+                    case CPLX_NORMAL:
+                    case CPLX_ZERO:
+                    case CPLX_NORMAL|CPLX_POLAR:
+                        // Inf +/- finite = ANYTHING
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+                    case CPLX_INF:
+                    {
+                        // ADDITION ONLY MAKES SENSE IF THEIR DIRECTIONS MATCH
+                        // OTHERWISE IT'S UNDEFINED
+                        BINT right_direction=0;
+
+                        // CHECK IF THE POLAR IS GOING IN THE PI DIRECTION
+                        if(Rarg2.flags&F_NEGATIVE) {
+
+                        switch(amode1)
+                        {
+                        case ANGLEDMS:
+                        case ANGLEDEG:
+                        {
+                            REAL a_180;
+                            decconst_180(&a_180);
+                            Iarg1.flags&=~F_NEGATIVE;   // 180 or -180 IS THE SAME DIRECTION
+                            if(eqReal(&Iarg1,&a_180)) right_direction=1;
+                            break;
+                        }
+                        case ANGLEGRAD:
+                        {
+                            REAL a_200;
+                            decconst_200(&a_200);
+                            Iarg1.flags&=~F_NEGATIVE;   // 180 or -180 IS THE SAME DIRECTION
+                            if(eqReal(&Iarg1,&a_200)) right_direction=1;
+                            break;
+                        }
+                        case ANGLERAD:
+                        default:
+                            // DIRECTION CAN NEVER BE EXACTLY PI, SO IT ALWAYS FAILS
+                            break;
+
+                        }
+                    }
+                    else {
+                        if(iszeroReal(&Iarg1)) right_direction=1;
+                    }
+
+                    if(right_direction) {
+                        // BOTH HAVE SAME SIGN, SO RETURN THE FIRST ARGUMENT
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+                    }
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                    }
+                    case CPLX_INF|CPLX_POLAR:
+                    {
+                        // ADDITION ONLY MAKES SENSE IF THEIR DIRECTIONS MATCH
+                        // OTHERWISE IT'S UNDEFINED
+
+                        trig_convertangle(&Iarg2,amode2,amode1);
+                        finalize(&RReg[0]);
+
+                        if(eqReal(&Iarg1,&RReg[0])) {
+                            // BOTH HAVE SAME DIRECTION, SO RETURN THE FIRST ARGUMENT
+                            rplPushData(arg1);
+                            rplCheckResultAndError(&Rarg1);
+                            rplCheckResultAndError(&Iarg1);
+                            return;
+                        }
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                    }
+                    case CPLX_INF|CPLX_MALFORMED:
+                    {
+                        // ADDITION ONLY MAKES SENSE IF THEIR DIRECTIONS MATCH
+                        // OTHERWISE IT'S UNDEFINED
+                        BINT right_direction=0;
+
+                        switch(amode1)
+                        {
+                        case ANGLEDMS:
+                        case ANGLEDEG:
+                        {
+                            REAL a_90;
+                            decconst_90(&a_90);
+                            a_90.flags|=Iarg2.flags&F_NEGATIVE; // GET THE DIRECTION +/-i
+                            if(eqReal(&Iarg1,&a_90)) right_direction=1;
+                            break;
+                        }
+                        case ANGLEGRAD:
+                        {
+                            REAL a_100;
+                            decconst_100(&a_100);
+                            a_100.flags|=Iarg2.flags&F_NEGATIVE; // GET THE DIRECTION +/-i
+                            if(eqReal(&Iarg1,&a_100)) right_direction=1;
+                            break;
+                        }
+                        case ANGLERAD:
+                        default:
+                            // DIRECTION CAN NEVER BE EXACTLY +/-PI/2, SO IT ALWAYS FAILS
+                            break;
 
                         }
 
-
-
-                    // FINALLY, DO THE NORMAL MULTIPLICATION
-
-                    Context.precdigits+=8;
-                    mulReal(&RReg[0],&Rarg1,&Rarg2);
-                    mulReal(&RReg[1],&Iarg1,&Iarg2);
-                    subReal(&RReg[2],&RReg[0],&RReg[1]);
-                    mulReal(&RReg[0],&Rarg1,&Iarg2);
-                    mulReal(&RReg[1],&Iarg1,&Rarg2);
-                    Context.precdigits-=8;
-                    addReal(&RReg[3],&RReg[0],&RReg[1]);
-                    finalize(&RReg[2]);
-                    rplRRegToComplexPush(2,3,ANGLENONE);
+                    if(right_direction) {
+                        // BOTH HAVE SAME SIGN, SO RETURN THE FIRST ARGUMENT
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+                    }
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
                     rplCheckResultAndError(&RReg[0]);
-                    rplCheckResultAndError(&RReg[1]);
+                    return;
+                    }
+
+                    case CPLX_NAN:
+                    case CPLX_UNDINF:
+                    default:
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+
+                    }
+                }
+                case CPLX_INF|CPLX_MALFORMED:
+                {
+                    switch(cclass2)
+                    {
+                    case CPLX_NORMAL:
+                    case CPLX_ZERO:
+                    case CPLX_NORMAL|CPLX_POLAR:
+                        // Inf +/- finite = ANYTHING
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+                    case CPLX_INF|CPLX_MALFORMED:
+                        // Inf+Inf = Inf, -Inf-Inf = -Inf
+                        if((Iarg1.flags^Iarg2.flags)&F_NEGATIVE) {
+                            // ADDING INFINITES OF OPPOSITE SIGNS IS UNDETERMINED
+                            rplNANToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        }
+                        // BOTH HAVE SAME SIGN, SO RETURN THE FIRST ARGUMENT
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+                    case CPLX_INF|CPLX_POLAR:
+                    {
+                        // ADDITION ONLY MAKES SENSE IF THEIR DIRECTIONS MATCH
+                        // OTHERWISE IT'S UNDEFINED
+                        BINT right_direction=0;
+
+                        switch(amode2)
+                        {
+                        case ANGLEDMS:
+                        case ANGLEDEG:
+                        {
+                            REAL a_90;
+                            decconst_90(&a_90);
+                            a_90.flags|=Iarg1.flags&F_NEGATIVE; // GET THE DIRECTION +/-i
+                            if(eqReal(&Iarg2,&a_90)) right_direction=1;
+                            break;
+                        }
+                        case ANGLEGRAD:
+                        {
+                            REAL a_100;
+                            decconst_100(&a_100);
+                            a_100.flags|=Iarg1.flags&F_NEGATIVE; // GET THE DIRECTION +/-i
+                            if(eqReal(&Iarg2,&a_100)) right_direction=1;
+                            break;
+                        }
+                        case ANGLERAD:
+                        default:
+                            // DIRECTION CAN NEVER BE EXACTLY +/-PI/2, SO IT ALWAYS FAILS
+                            break;
+
+                        }
+
+                    if(right_direction) {
+                        // BOTH HAVE SAME SIGN, SO RETURN THE FIRST ARGUMENT
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+                    }
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                    }
+                    case CPLX_INF:   // PERP. DIRECTIONS
+                    case CPLX_NAN:
+                    case CPLX_UNDINF:
+                    default:
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+
+                    }
+
+
+
+                }
+
+                case CPLX_NORMAL:
+                case CPLX_NORMAL|CPLX_POLAR:
+                {
+                    switch(cclass2)
+                    {
+                    case CPLX_ZERO:
+                        // FINITE +/- 0 = FINITE
+                        rplPushData(arg1);
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        return;
+
+                    case CPLX_INF:
+                    case CPLX_INF|CPLX_POLAR:
+                    case CPLX_INF|CPLX_MALFORMED:
+
+                    // FINITE +/- INFINITY = INFINITY
+                        rplPushData(arg2);
+                        if(OPCODE(CurOpcode)==OVR_SUB) rplCallOvrOperator(CMD_OVR_NEG);
+                        else {
+                        rplCheckResultAndError(&Rarg1);
+                        rplCheckResultAndError(&Iarg1);
+                        }
+                        return;
+
+                    case CPLX_UNDINF:
+                        // FINITE +/- UNDINF = UNDINF
+                        rplUndInfinityToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+
+                    case CPLX_NAN:
+
+                    default:
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+
+                    }
+
+
+
+                }
+
+                default:
+                case CPLX_NAN:
+                    // NAN +/- ANYTHING = NAN
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+
+                }
+
+
+            } // END OF SPECIALS HANDLING
+
+
+            /*
+            // OLD SPECIALS HANDLING HERE - OBSOLETE
+            if(cclass1==CPLX_) {
+
+                if(isundinfiniteReal(&Rarg1) || isinfiniteReal(&Iarg1)) {
+                    // UNDEFINED INFINITY OR ANOTHER MALFORMED COMPLEX
+                    // TREAT (Inf,Inf) = UndInf
+
+                    if(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2)) {
+                        // UNDINF * 0 = UNDEFINED
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                    }
+
+                    // UNDINF * ANYTHING ELSE = UNDINF
+
+                    rplUndInfinityToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
                     return;
                 }
 
-                else {
-                        // Rarg2 IS A POLAR COMPLEX
+                // TREAT AS REAL +/-INFINITY SINCE DIRECTED INFINITY IS ALWAYS IN POLAR FORM
+
+                // HANDLE SPECIAL CASES
+                if(iszeroReal(&Rarg2)&&iszeroReal(&Iarg2)) {
+                    // INFINITE * 0 = UNDEFINED
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                }
+
+                if(isinfiniteReal(&Rarg2)) {
+                    if(isundinfiniteReal(&Rarg2) || isinfiniteReal(&Iarg2)) {
+                        // MALFORMED COMPLEX
+                        // TREAT AS UNDIRECTED INFINITY
+
+                        // UNDINF * INF = UNDINF
+                        rplUndInfinityToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                    }
+                    // TREAT AS REAL INFINITY
+
+                    // INF * INF = INF
+                    rplInfinityToRReg(0);
+                    RReg[0].flags|=(Rarg1.flags^Rarg2.flags)&F_NEGATIVE;
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+
+                }
+
+                // INF * (A,B) = DIRECTED INFINITY
+
+
+                // CONVERT TO POLAR AND RETURN DIRECTED INFINITY
+
+                // Z = r1*r2 * e^(i*(Theta1+Theta2)) = Inf * e^i*(Theta1+Theta2)
+
+                amode2=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                trig_atan2(&Iarg2,&Rarg2,amode2);
+                finalize(&RReg[0]);
+
+
+                // HERE RReg[0] = RESULTING ANGLE
+                // RETURN DIRECTED INFINITY
+
+                rplNewComplexPush(&Rarg1,&RReg[0],amode2);
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&Rarg1);
+                return;
+
+
+
+            }
+
+
+            // SPECIALS HANDLING FOR SECOND ARGUMENT
+            else if(isinfiniteReal(&Rarg2)) {
+
+                if(isundinfiniteReal(&Rarg2) || isinfiniteReal(&Iarg2)) {
+                    // UNDEFINED INFINITY OR ANOTHER MALFORMED COMPLEX
+                    // TREAT (Inf,Inf) = UndInf
+
+                    if(iszeroReal(&Rarg1)&&iszeroReal(&Iarg1)) {
+                        // UNDINF * 0 = UNDEFINED
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                    }
+
+                    // UNDINF * ANYTHING ELSE = UNDINF
+
+                    rplUndInfinityToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                }
+
+                // IT'S A MALFORMED NUMBER, INFINITE COMPLEX
+                // SHOULD ALWAYS BE POLAR
+                // IN ANY CASE, TREAT AS REAL +/-INFINITY
+
+                // HANDLE SPECIAL CASES
+                if(iszeroReal(&Rarg1)&&iszeroReal(&Iarg1)) {
+                    // INFINITE * 0 = UNDEFINED
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                }
+
+                if(isinfiniteReal(&Rarg1)) {
+                    if(isinfiniteReal(&Iarg1)) {
+                        // MALFORMED COMPLEX
+                        // TREAT AS UNDIRECTED INFINITY
+
+                        // UNDINF * INF = UNDINF
+                        rplUndInfinityToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                    }
+                    // TREAT AS REAL INFINITY
+                    // INF * INF = +/-INF
+
+                    rplInfinityToRReg(0);
+                    RReg[0].flags|=(Rarg1.flags^Rarg2.flags)&F_NEGATIVE;
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+
+
+                }
+
+                // INF * (A,B) = DIRECTED INFINITY
+
+
+                // CONVERT TO POLAR AND RETURN DIRECTED INFINITY
+
+                // Z = r1*r2 * e^(i*(Theta1+Theta2)) = Inf * e^i*(Theta1+Theta2)
+
+                amode2=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                trig_atan2(&Iarg1,&Rarg1,amode2);
+                finalize(&RReg[0]);
+
+
+                // HERE RReg[0] = RESULTING ANGLE
+                // RETURN DIRECTED INFINITY
+
+                rplNewComplexPush(&Rarg2,&RReg[0],amode2);
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&Rarg2);
+                return;
+
+
+
+
+            }
+
+                    // Rarg2 IS A POLAR COMPLEX
                     if(isinfiniteReal(&Rarg2)) {
                         // IF IT'S A POLAR INFINITY, DON'T TRY TO WORK IN CARTESIAN COORDINATES
 
@@ -769,8 +1678,8 @@ void LIB_HANDLER()
                         if(isinfiniteReal(&Rarg1)) {
 
                             if(isundinfiniteReal(&Rarg1) || isinfiniteReal(&Iarg1)) {
-                             // UNDEFINED INFINITY OR ANOTHER MALFORMED COMPLEX
-                             // TREAT (Inf,Inf) = UndInf
+                                // UNDEFINED INFINITY OR ANOTHER MALFORMED COMPLEX
+                                // TREAT (Inf,Inf) = UndInf
 
 
                                 // UNDINF * ANYTHING ELSE = UNDINF
@@ -789,7 +1698,7 @@ void LIB_HANDLER()
                             // CONVERT TO POLAR AND RETURN DIRECTED INFINITY
 
 
-                            }
+                        }
 
 
                         // CONVERT TO POLAR AND RETURN DIRECTED INFINITY
@@ -827,6 +1736,36 @@ void LIB_HANDLER()
                         return;
 
                     }
+
+            */
+
+
+
+
+
+            if(amode1==ANGLENONE) {
+                // RESULT WILL BE IN CARTESIAN COORDINATES
+                if(amode2==ANGLENONE) {
+                    // WORK IN CARTESIAN COORDINATES
+
+                    // FINALLY, DO THE NORMAL MULTIPLICATION
+
+                    Context.precdigits+=8;
+                    mulReal(&RReg[0],&Rarg1,&Rarg2);
+                    mulReal(&RReg[1],&Iarg1,&Iarg2);
+                    subReal(&RReg[2],&RReg[0],&RReg[1]);
+                    mulReal(&RReg[0],&Rarg1,&Iarg2);
+                    mulReal(&RReg[1],&Iarg1,&Rarg2);
+                    Context.precdigits-=8;
+                    addReal(&RReg[3],&RReg[0],&RReg[1]);
+                    finalize(&RReg[2]);
+                    rplRRegToComplexPush(2,3,ANGLENONE);
+                    rplCheckResultAndError(&RReg[0]);
+                    rplCheckResultAndError(&RReg[1]);
+                    return;
+                }
+
+                else {
 
 
 
@@ -878,12 +1817,12 @@ void LIB_HANDLER()
             mulReal(&RReg[0],&Rarg1,&Rarg2);
 
             // CHECK FOR UNDINF/NAN MAGNITUDE
-                if(isundinfiniteReal(&RReg[0])||isNANReal(&RReg[0])) {
-                    // RETURN WHATEVER IT IS IN RREG
-                    rplNewRealFromRRegPush(0);
-                    rplCheckResultAndError(&RReg[0]);
-                    return;
-                }
+            if(isundinfiniteReal(&RReg[0])||isNANReal(&RReg[0])) {
+                // RETURN WHATEVER IT IS IN RREG
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            }
             // CHECK FOR UNDIF/NAN ANGLE
             if(isNANorinfiniteReal(&RReg[1])) {
 
@@ -891,7 +1830,7 @@ void LIB_HANDLER()
                 rplNewRealFromRRegPush(0);
                 rplCheckResultAndError(&RReg[0]);
                 return;
-                }
+            }
 
 
 
