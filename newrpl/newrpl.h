@@ -422,6 +422,8 @@ void rplUndInfinityToRReg(int num);
 void rplNANToRReg(int num);
 void rplBINTToRReg(int num,BINT64 value);
 void rplReadReal(WORDPTR real,REAL *dec);
+BINT rplReadRealFlags(WORDPTR object);
+BINT rplIsNumberZero(WORDPTR obj);
 void rplCopyRealToRReg(int num,WORDPTR real);
 WORDPTR rplNewReal(REAL *num);
 WORDPTR rplNewRealInPlace(REAL *num,WORDPTR addr);

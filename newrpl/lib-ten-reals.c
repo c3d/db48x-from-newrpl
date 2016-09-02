@@ -150,6 +150,35 @@ dec->exp=head->exp;
 dec->flags|=head->flags;
 }
 
+// RETURN A REAL NUMBER OBJECT FLAGS WITHOUT READING THE NUMBER
+BINT rplReadRealFlags(WORDPTR object)
+{
+    if(!ISREAL(*object)) return 0;
+
+    REAL_HEADER *head=(REAL_HEADER *)(object+1);
+    return (BINT)head->flags;
+
+}
+
+// CHECK IF AN OBJECT IS THE NUMBER ZERO
+BINT rplIsNumberZero(WORDPTR obj)
+{
+  if(ISBINT(*obj)) {
+      if(ISPROLOG(*obj)) {
+          BINT64 *ptr=(BINT64 *)(obj+1);
+          return (*ptr==0)? 1:0;
+      }
+      return (OPCODE(*obj)==0)? 1:0;
+  }
+  if(ISREAL(*obj)) {
+      REAL_HEADER *head=(REAL_HEADER *)(obj+1);
+      BINT *data=(BINT *) (obj+2);
+      if((head->len==1)&&( (head->flags&F_UNDINFINITY)==0)&&(*data==0)) return 1;
+  }
+  return 0;
+
+}
+
 // EXTRACT A CALCULATOR REAL INTO A RREG REGISTER
 void rplCopyRealToRReg(int num,WORDPTR real)
 {

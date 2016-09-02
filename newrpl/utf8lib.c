@@ -167,6 +167,38 @@ char *utf8nskip(char *ptr, char *end, int n)
     return ptr;
 }
 
+// SKIP n STARTERS AND THEIR COMBINING MARKS
+char *utf8nskipst(char *ptr,char *end,int n)
+{
+    if(end<=ptr) return ptr;
+    int cp,cpinfo;
+
+    while(n>0) {
+    do {
+        // SKIP CODEPOINT
+        if(*ptr&0x80) {
+                ++ptr;
+                while(((*ptr&0xc0)==0x80)&& (ptr<end)) ++ptr;
+        }
+        else ++ptr;
+
+        if(end<=ptr) return ptr;
+
+    cp=utf82cp(ptr,end);
+    if(cp<0) return end;    // INVALID UTF8 SEQUENCE!
+    cpinfo=getCPInfo(cp);
+    if(CCLASS(cpinfo)==0) return ptr;   // FOUND A STARTER
+    // NOT A STARTER, SKIP IT
+    } while(ptr<end);
+    --n;
+    }
+
+    return ptr;
+
+}
+
+
+
 // SKIP A CODE POINT IN REVERSE
 char *utf8rskip(char *ptr, char *start)
 {

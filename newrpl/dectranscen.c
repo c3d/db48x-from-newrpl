@@ -879,7 +879,7 @@ if(eqReal(&RReg[0],&halfturn)) RReg[0].flags^=F_NEGATIVE;
 
 // RReg[0] HAS THE ANGLE PROPERLY REDUCED FROM -PI TO PI
 if(angmode==ANGLEDMS) {
-    swapReal(&RReg[2],&Reg[0]);
+    swapReal(&RReg[2],&RReg[0]);
     trig_convertangle(&RReg[2],ANGLEDEG,ANGLEDMS);
 }
 
@@ -889,7 +889,7 @@ if(angmode==ANGLEDMS) {
 
 
 
-// CALCULATE RReg[0]=cos(angle) and RReg[1]=sin(angle) BOTH WITH 8 DIGITS MORE THAN CURRENT SYSTEM PRECISION (ABOUT 6 OF THEM ARE GOOD DIGITS, ROUNDING IS NEEDED)
+// CALCULATE RReg[6]=cos(angle) and RReg[7]=sin(angle) BOTH WITH 8 DIGITS MORE THAN CURRENT SYSTEM PRECISION (ABOUT 6 OF THEM ARE GOOD DIGITS, ROUNDING IS NEEDED)
 // angmode = one of ANGLERAD, ANGLEDEG, ANGLEGRAD or ANGLEDMS constants
 void trig_sincos(REAL *angle, BINT angmode)
 {
