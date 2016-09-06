@@ -37,7 +37,7 @@ fs=FSystem.Volumes[dir->Volume];
 
 if(!fs) return FS_ERROR;
 
-for(bufsize=32768;bufsize>=1024;bufsize>>=1)
+for(bufsize=1024;bufsize>=1024;bufsize>>=1)
 {
 packbuf=simpmallocb(bufsize);
 if(packbuf) break;
