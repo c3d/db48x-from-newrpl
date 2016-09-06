@@ -87,10 +87,18 @@ while(dir!=NULL) dir=FSFreeFile(dir);
 return FS_BADNAME; 
 }
 // dir HERE IS THE DIRECTORY WHERE FILE WILL BE CREATED
-// CHECK IF DISK HAS AVAILABLE FILES TO OPEN
 fs=FSystem.Volumes[dir->Volume];
 
+// CHECK IF DISK WAS MOUNTED READ ONLY
+if(fs->InitFlags&VOLFLAG_READONLY) {
+    while(dir!=NULL) dir=FSFreeFile(dir);
+    //printf("free returned ok\n");
+    return FS_CANTWRITE;
+}
 
+
+
+// CHECK IF DISK HAS AVAILABLE FILES TO OPEN
 for(error=0;error<FS_MAXOPENFILES;++error)
 {
 if(fs->Files[error]==NULL) break;

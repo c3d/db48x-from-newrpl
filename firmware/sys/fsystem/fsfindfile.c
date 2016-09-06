@@ -150,8 +150,11 @@ return FS_ERROR;
 }
 
 newdir->FileSize=FSGetChainSize(&newdir->Chain);
-newdir->Mode=FSMODE_WRITE | FSMODE_MODIFY | FSMODE_READ;
+if(fs->InitFlags&VOLFLAG_READONLY) newdir->Mode=FSMODE_READ | FSMODE_NOGROW;
+else {
+    newdir->Mode=FSMODE_WRITE | FSMODE_MODIFY | FSMODE_READ;
 if(newdir->FileSize>=65536*32) newdir->Mode|=FSMODE_NOGROW;
+}
 // DO NEXT DIR
 dir=newdir;
 ptr=ptrend+1;

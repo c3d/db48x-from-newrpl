@@ -64,6 +64,7 @@ unsigned int CID[4];
 
 int SDIOSetup(SD_CARD *card,int shutdown);
 int SDCardInserted();
+int SDCardWriteProtect();
 int GetPCLK();
 int SDSetFastPCLK();
 void SDRestorePCLK(int original);

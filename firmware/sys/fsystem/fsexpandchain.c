@@ -49,7 +49,7 @@ if(needed<=0) return FS_OK;		// NO NEED TO ADD CLUSTERS TO THE CHAIN
 
 needed<<=(fs->ClusterSize-9);
 //printf("needed=%d\n",needed);
-if((fs->InitFlags&2)&&(fs->FreeSpace<(unsigned int)needed)) return FS_DISKFULL;
+if((fs->InitFlags&VOLFLAG_FREESPACEVALID)&&(fs->FreeSpace<(unsigned int)needed)) return FS_DISKFULL;
 
 do {
 
@@ -113,7 +113,7 @@ FSWriteFATEntry(FSAddr2Cluster(fixcluster,fs)-1,0xfffffff,fs);		// END-OF-CHAIN 
 
 fs->NextFreeCluster+=taken;
 fs->FreeAreaSize-=taken;
-if(fs->InitFlags&2) fs->FreeSpace-=taken;
+if(fs->InitFlags&VOLFLAG_FREESPACEVALID) fs->FreeSpace-=taken;
 needed-=taken;
 
 

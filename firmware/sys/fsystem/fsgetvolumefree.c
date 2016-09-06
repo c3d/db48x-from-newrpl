@@ -15,7 +15,7 @@ int error=FSInit();
 if(error!=FS_OK) return error;
 
 if(FSystem.Volumes[Volnumber]==NULL) return 0;
-if(!(FSystem.Volumes[Volnumber]->InitFlags&2)) FSCalcFreeSpace(FSystem.Volumes[Volnumber]);
+if(!(FSystem.Volumes[Volnumber]->InitFlags&VOLFLAG_FREESPACEVALID)) FSCalcFreeSpace(FSystem.Volumes[Volnumber]);
 return FSystem.Volumes[Volnumber]->FreeSpace;
 
 }

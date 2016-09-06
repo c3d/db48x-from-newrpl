@@ -31,7 +31,7 @@ error=FSExpandChain(newdir,96);
 if(error!=FS_OK) { simpfree(buffer); return error; }
 
 newdir->FileSize=FSGetChainSize(&newdir->Chain);
-newdir->Mode=FSMODE_MODIFY | FSMODE_WRITE;
+newdir->Mode=(FSystem.Volumes[newdir->Volume]->InitFlags&VOLFLAG_READONLY)? (FSMODE_READ|FSMODE_NOGROW):(FSMODE_MODIFY | FSMODE_WRITE);
 mainentry=buffer;
 
 mainentry[0]='.';

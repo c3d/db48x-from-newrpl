@@ -192,7 +192,7 @@ if(freestart && (fs->FreeAreaSize<freesize)) { fs->NextFreeCluster=freestart; fs
 simpfree(buffer);
 fs->FreeAreaSize<<=fs->ClusterSize-9;
 fs->FreeSpace=freecount<<(fs->ClusterSize-9);
-fs->InitFlags|=2;
+fs->InitFlags|=VOLFLAG_FREESPACEVALID;
 return FS_OK;
 
 }

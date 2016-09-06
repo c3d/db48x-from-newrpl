@@ -25,6 +25,9 @@
 
 #define FSCASE_INSENSHP 4			// CASE INSENSITIVE
 
+#define VOLFLAG_MOUNTED 1
+#define VOLFLAG_FREESPACEVALID 2
+#define VOLFLAG_READONLY 4
 
 
 struct __chainbuffer;

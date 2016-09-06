@@ -122,7 +122,7 @@ fs->ClusterSize+=fs->SectorSize;
 // RESET ROOTDIR ENTRY
 memsetb((void *)&(fs->RootDir),0,sizeof(FS_FILE));
 fs->RootDir.Volume=fs->VolNumber;
-fs->RootDir.Mode=FSMODE_READ | FSMODE_MODIFY;
+fs->RootDir.Mode=FSMODE_READ | FSMODE_WRITE | FSMODE_MODIFY;
 fs->RootDir.Attr=FSATTR_DIR;
 
 
@@ -173,7 +173,11 @@ fs->CurrentDir=&fs->RootDir;
 fs->NextFreeCluster=FSCluster2Addr(2,fs);
 fs->FreeAreaSize=0;
 fs->FreeSpace=0;
-fs->InitFlags=1;
+fs->InitFlags=VOLFLAG_MOUNTED;
+if(SDCardWriteProtect(fs->Disk)) {
+    fs->InitFlags|=VOLFLAG_READONLY;
+    fs->RootDir.Mode=FSMODE_READ | FSMODE_NOGROW;
+}
 
 simpfree(TempData);
 

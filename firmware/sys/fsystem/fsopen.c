@@ -105,6 +105,11 @@ if( (entry->Attr&FSATTR_RDONLY) && (mode&FSMODE_WRITE)) {	// CANT OPEN READ ONLY
 while(entry!=NULL) entry=FSFreeFile(entry);
 return FS_CANTWRITE;
 }
+if( (fs->InitFlags&VOLFLAG_READONLY) && (mode&FSMODE_WRITE)) {	// CANT OPEN FILES FOR WRITE ON READ ONLY VOLUME
+// CLEANUP PROCEDURE
+while(entry!=NULL) entry=FSFreeFile(entry);
+return FS_CANTWRITE;
+}
 
 // GET FILE CLUSTER CHAIN
 error=FSGetChain(entry->FirstCluster,&entry->Chain,fs);
