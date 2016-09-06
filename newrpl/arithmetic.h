@@ -22,6 +22,8 @@ void decconst_200_PI(REAL *real);
 void decconst_ln10(REAL *real);
 void decconst_ln10_2(REAL *real);
 void decconst_One(REAL *real);
+void decconst_90(REAL *real);
+void decconst_100(REAL *real);
 void decconst_180(REAL *real);
 void decconst_200(REAL *real);
 

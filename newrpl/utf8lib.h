@@ -67,6 +67,10 @@ char *utf8findst(char *ptr,char *end);
 // RETURNS THE INCREASED POINTER, OR PTR AT THE END OF STRING
 char *utf8nskip(char *ptr,char *end,int n);
 
+// SKIP N CHARACTERS (SINGLE OR MULTIPLE CODE POINTS) IN A UTF-8 ENCODED STRING
+// RETURNS THE INCREASED POINTER, OR PTR AT THE END OF STRING
+char *utf8nskipst(char *ptr,char *end,int n);
+
 // REVERSE SKIP A SINGLE CODE POINT IN A UTF-8 ENCODED STRING
 // RETURNS THE DECREASED POINTER, OR PTR AT THE START OF STRING
 char *utf8rskip(char *ptr,char *start);

@@ -422,6 +422,8 @@ void rplUndInfinityToRReg(int num);
 void rplNANToRReg(int num);
 void rplBINTToRReg(int num,BINT64 value);
 void rplReadReal(WORDPTR real,REAL *dec);
+BINT rplReadRealFlags(WORDPTR object);
+BINT rplIsNumberZero(WORDPTR obj);
 void rplCopyRealToRReg(int num,WORDPTR real);
 WORDPTR rplNewReal(REAL *num);
 WORDPTR rplNewRealInPlace(REAL *num,WORDPTR addr);
@@ -574,6 +576,16 @@ void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BI
 #define ANGLERAD     1
 #define ANGLEGRAD    2
 #define ANGLEDMS     3
+
+// COMPLEX NUMBER CLASSES
+#define CPLX_NORMAL     0
+#define CPLX_ZERO       1
+#define CPLX_NAN        2
+#define CPLX_INF        4
+#define CPLX_UNDINF     8
+#define CPLX_POLAR     16
+#define CPLX_MALFORMED 32
+
 
 
 // SYSTEM FLAGS
