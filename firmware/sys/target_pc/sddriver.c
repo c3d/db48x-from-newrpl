@@ -34,6 +34,10 @@ int SDCardInserted()
 return __sd_inserted;
 }
 
+int SDCardWriteProtected()
+{
+    return 0;
+}
 
 // FULLY INITIALIZE THE SDCARD INTERFACE
 // RETURNS TRUE IF THERE IS A CARD

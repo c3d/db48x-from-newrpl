@@ -29,6 +29,7 @@ memsetb((void *)fs,0,sizeof(FS_VOLUME));
 
 fs->Disk=Disk;
 fs->VolNumber=VolNumber;
+fs->InitFlags=0;
 
 TempData=simpmallocb(512);
 if(!TempData) return FALSE;
@@ -145,6 +146,34 @@ fs->RootDir.FirstCluster=ReadInt32(TempData+44);
 if(!FSGetChain(fs->RootDir.FirstCluster,&(fs->RootDir.Chain),fs)) return FALSE;
 fs->RootDir.FileSize=FSGetChainSize(&(fs->RootDir.Chain));
 
+// READ CLUSTER HINT FOR FAT32
+
+int fsinfo = ReadInt16(TempData+48);    // GET LOCATION OF FSINFO SECTOR
+
+// READ THE FSINFO SECTOR
+if(!SDDRead((((uint64_t)fs->VolumeAddr)<<9)+512*fsinfo,512,TempData,Disk)) { simpfree(TempData); return FALSE;}
+
+// CHECK SIGNATURE
+if((ReadInt32(TempData)==0x41615252)&&(ReadInt32(TempData+484)==0x61417272)) {
+
+    fs->FreeSpace=ReadInt32(TempData+488);
+    if(fs->FreeSpace==0xffffffff) fs->FreeSpace=0;
+    else {
+        fs->InitFlags|=VOLFLAG_FREESPACEVALID;
+        fs->FreeSpace<<=fs->ClusterSize-9;
+    }
+    fs->NextFreeCluster=ReadInt32(TempData+492);
+    if(fs->NextFreeCluster!=0xffffffff) {
+        fs->NextFreeCluster=FSCluster2Addr(fs->NextFreeCluster,fs);
+        fs->InitFlags|=VOLFLAG_UPDATEHINT;
+    } else fs->NextFreeCluster=FSCluster2Addr(2,fs);
+    fs->FreeAreaSize=0;
+}
+else {
+    fs->NextFreeCluster=FSCluster2Addr(2,fs);
+    fs->FreeAreaSize=0;
+    fs->FreeSpace=0;
+}
 
 
 }
@@ -166,15 +195,16 @@ else {
 	fs->RootDir.FileSize=rootdir<<fs->SectorSize;
 	fs->RootDir.Mode|=FSMODE_NOGROW;
 
+    fs->NextFreeCluster=FSCluster2Addr(2,fs);
+    fs->FreeAreaSize=0;
+    fs->FreeSpace=0;
+
 }
 
 // FINAL STAGE
 fs->CurrentDir=&fs->RootDir;
-fs->NextFreeCluster=FSCluster2Addr(2,fs);
-fs->FreeAreaSize=0;
-fs->FreeSpace=0;
-fs->InitFlags=VOLFLAG_MOUNTED;
-if(SDCardWriteProtect(fs->Disk)) {
+fs->InitFlags|=VOLFLAG_MOUNTED;
+if(SDCardWriteProtected()) {
     fs->InitFlags|=VOLFLAG_READONLY;
     fs->RootDir.Mode=FSMODE_READ | FSMODE_NOGROW;
 }

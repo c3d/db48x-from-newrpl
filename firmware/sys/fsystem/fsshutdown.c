@@ -33,6 +33,16 @@ FSClose(fs->Files[j]);
 }
 }
 
+// ALL DATA WAS WRITTEN TO VOLUME
+
+// TODO: MARK CLEAN UNMOUNT IF NEEDED
+
+// FLUSH ANY PENDING ITEMS IN THE CACHE
+FSFlushFATCache(fs);
+
+// TODO: UPDATE FSINFO HINTS FOR FAT32
+
+
 // DELETE CURRENTDIR IF ANY
 //printf("Freeing current Dir\n");
 if(fs->CurrentDir!=&(fs->RootDir)) {

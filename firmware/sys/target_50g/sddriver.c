@@ -103,7 +103,7 @@ int SDCardInserted()
 return (*GPF(DAT))&8;
 }
 
-int SDCardWriteProtect()
+int SDCardWriteProtected()
 {
 return (*GPD(DAT))&8;
 }
