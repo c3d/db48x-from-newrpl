@@ -452,6 +452,9 @@ FS_BUFFER RdBuffer,WrBuffer;
  * \sa FSRestart
  */
 extern int FSShutdown();
+// SAME AS ABOVE, BUT USED WHEN THERE'S NO CARD PRESENT
+extern int FSShutdownNoCard();
+
 
 /*!
  * \brief Shutdown and reinitialize the file system.
@@ -1094,6 +1097,9 @@ extern int FSGetHandle(FS_FILE *file);
 extern int FSGetFileFromHandle(int handle,FS_FILE **fileptr);
 
 extern int FSIsInit();
+extern int FSIsDirty();
+extern void FSFlushAll();
+
 extern int FSCardInserted();
 extern int FSCardIsSDHC();
 

@@ -28,6 +28,8 @@ extern "C" void __keyb_update();
 extern "C" int rplBackup(void (*writefunc)(unsigned int));
 extern "C" int rplRestoreBackup(unsigned int (*readfunc)());
 extern "C" int rplRestoreBackupMessedup(unsigned int (*readfunc)());    // DEBUG ONLY
+extern "C" void __SD_irqeventinsert();
+
 
 extern int __sd_inserted;
 extern int __sd_nsectors;             // TOTAL SIZE OF SD CARD IN 512-BYTE SECTORS
@@ -590,6 +592,10 @@ void MainWindow::on_actionInsert_SD_Card_Image_triggered()
         __sd_nsectors=sdcard.size()/512;
         __sd_inserted=1;
         sdcard.close();
+        // SIMULATE AN IRQ
+        __SD_irqeventinsert();
+
+
 
         ui->actionEject_SD_Card_Image->setEnabled(true);
         ui->actionInsert_SD_Card_Image->setEnabled(false);
@@ -617,6 +623,11 @@ void MainWindow::on_actionEject_SD_Card_Image_triggered()
         __sd_RCA=0;
         __sd_nsectors=0;
         if(__sd_buffer!=NULL) { free(__sd_buffer); __sd_buffer=NULL; }
+
+        // SIMULATE AN IRQ
+        __SD_irqeventinsert();
+
+
         ui->actionEject_SD_Card_Image->setEnabled(false);
         ui->actionInsert_SD_Card_Image->setEnabled(true);
 

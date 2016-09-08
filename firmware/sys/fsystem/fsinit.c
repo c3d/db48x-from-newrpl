@@ -16,6 +16,7 @@ void FSHardReset()
 {
    memsetw(&FSystem,0,sizeof(FS_PUBLIC)>>2);
    init_simpalloc();
+   SDIOSetup(NULL,0);
 }
 
 int FSInit()
@@ -84,5 +85,27 @@ int FSCardIsSDHC()
 {
     if(!FSystem.Init) return 0;
     if(FSystem.Volumes[FSystem.CurrentVolume]->Disk->SysFlags&16) return 1;
+    return 0;
+}
+
+int FSIsDirty()
+{
+    if(!FSystem.Init) return 0;
+
+    int vol;
+
+    for(vol=0;vol<4;++vol)
+    {
+        if(FSystem.Volumes[vol]) {
+            if(FSystem.Volumes[vol]->NumCache) return 1;    // VOLUME NEEDS TO UPDATE THE FAT
+            if((FSystem.Volumes[vol]->InitFlags&(VOLFLAG_UPDATEHINT|VOLFLAG_HINTDIRTY))==(VOLFLAG_UPDATEHINT|VOLFLAG_HINTDIRTY)) return 1; // VOLUME NEEDS TO UPDATE ITS HINTS
+            int f;
+            for(f=0;f<FS_MAXOPENFILES;++f) {
+                if(FSystem.Volumes[vol]->Files[f]!=NULL) {
+                    if(FSystem.Volumes[vol]->Files[f]->Mode&FSMODE_WRITE) return 1;  // VOLUME HAS OPEN FILES FOR WRITING
+                }
+            }
+        }
+    }
     return 0;
 }

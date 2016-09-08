@@ -16,15 +16,14 @@
 
 BINT halWaitForKey()
 {
-    int keymsg;
-    BINT64 offcounter;
+    int keymsg,wokeup;
 
     if(!(halFlags&HAL_FASTMODE) && (halBusyEvent>=0)) {
     tmr_eventkill(halBusyEvent);
     halBusyEvent=-1;
     }
 
-    offcounter=halTicks();
+    wokeup=0;
     do {
 
 
@@ -41,16 +40,12 @@ BINT halWaitForKey()
     halFlags&=~HAL_HOURGLASS;
     }
 
-    if(halFlags&HAL_AUTOOFFTIME) {
-    BINT64 autoofftime=15000000 << (GET_AUTOOFFTIME(halFlags));
-    if(halTicks()-offcounter >=autoofftime) {
-        halEnterPowerOff();
-        return 0;
-    }
-    }
+    if(wokeup) return 0;   // ALLOW SCREEN REFRESH REQUESTED BY OTHER IRQ'S
+
 
     // LAST: GO INTO "WAIT FOR INTERRUPT"
     cpu_waitforinterrupt();
+    wokeup=1;
     }
     } while(!keymsg);
 
@@ -3843,6 +3838,8 @@ int halProcessKey(BINT keymsg)
 {
     int wasProcessed;
 
+    if(!keymsg) return 0;
+
     if(KM_MESSAGE(keymsg)==KM_SHIFT) {
         // THERE WAS A CHANGE IN SHIFT PLANE, UPDATE ANNUNCIATORS
         if(KM_SHIFTPLANE(keymsg)&SHIFT_LS) {
@@ -3985,9 +3982,12 @@ int halProcessKey(BINT keymsg)
 
 void halOuterLoop()
 {
-    int keymsg;
+    int keymsg,isidle,jobdone;
+    BINT64 offcounter;
+
     DRAWSURFACE scr;
     ggl_initscr(&scr);
+    jobdone=isidle=0;
     do {
         halRedrawAll(&scr);
         if(halExitOuterLoop()) break;
@@ -3996,6 +3996,39 @@ void halOuterLoop()
             Exceptions=0;
         }
         keymsg=halWaitForKey();
+
+        if(!keymsg) {
+            // SOMETHING OTHER THAN A KEY WOKE UP THE CPU
+
+
+            if(!isidle) offcounter=halTicks();
+
+            // FLUSH FILE SYSTEM CACHES WHEN IDLING FOR MORE THAN 3 SECONDS
+            if(!(jobdone&1) && FSIsInit()) {
+
+            if(halTicks()-offcounter >=3000000) {
+                if(FSIsDirty()) { FSFlushAll(); halUpdateStatus(); }
+                jobdone|=1;
+            }
+
+            }
+
+
+            // AUTO-OFF WHEN IDLING
+            if(halFlags&HAL_AUTOOFFTIME) {
+            BINT64 autoofftime=15000000 << (GET_AUTOOFFTIME(halFlags));
+            if(halTicks()-offcounter >=autoofftime) {
+                halEnterPowerOff();
+            }
+            }
+
+            // DO OTHER IDLE PROCESSING HERE
+
+
+            isidle=1;
+        } else { jobdone=isidle=0; }
+
+
         halSetBusyHandler();
     } while(!halProcessKey(keymsg));
 

@@ -622,6 +622,7 @@ void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BI
 #define EX_OUTOFMEM         4
 #define EX_ERRORCODE        8
 #define EX_POWEROFF        16
+#define EX_DIRTYFS         32
 
 // ADD OTHER EXCEPTIONS HERE
 

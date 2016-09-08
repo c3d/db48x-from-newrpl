@@ -29,6 +29,45 @@ volatile int __sd_RCA;
 volatile unsigned char *__sd_buffer;    // BUFFER WITH THE ENTIRE CONTENTS OF THE SD CARD
 
 
+// IRQ HANDLER FOR CARD INSERTION/REMOVAL
+void __SD_irqeventinsert()
+{
+    halUpdateStatus();
+
+   if(!__sd_inserted) {
+        // CARD WAS JUST REMOVED
+
+       // TODO: CHECK FOR DIRTY FILE SYSTEM, WARN USER
+       // THROW AN EXCEPTION IF A CARD IS REMOVED WITH A DIRTY FS
+       if(FSIsDirty()) Exceptions|=EX_DIRTYFS;
+       else FSShutdownNoCard();
+
+   }
+   else {
+        // CARD WAS JUST INSERTED
+
+       if(FSIsInit()) {
+        // CHECK IF FILE SYSTEM WAS DIRTY
+        int error;
+        error=FSVolumePresent(FSystem.Volumes[FSystem.CurrentVolume]);
+
+        if(error!=FS_OK) FSShutdownNoCard();  // FORCE UNMOUNT OLD FILE SYSTEMS
+
+       }
+        // NOTHING TO DO, JUST SET TO TRIGGER ON REMOVAL
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
 int SDCardInserted()
 {
 return __sd_inserted;

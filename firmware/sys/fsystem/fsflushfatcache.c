@@ -58,3 +58,40 @@ if(error!=bl+1) { simpfree(sector); return FS_ERROR; }
 simpfree(sector);
 return FS_OK;
 }
+
+void FSFreeFATCache(FS_VOLUME *fs)
+{
+FS_CHAINBUFFER *ch;
+
+while((ch=fs->FATCache))
+{
+    fs->FATCache=ch->Next;
+    simpfree(ch);
+}
+}
+
+void FSFlushAll()
+{
+    if(!FSystem.Init) return;
+
+    int vol;
+    for(vol=0;vol<4;++vol)
+    {
+        if(FSystem.Volumes[vol]) {
+            // FLUSH ALL FAT CACHES
+            FSFlushFATCache(FSystem.Volumes[vol]);
+            int k;
+            // UPDATE ALL OPEN FILES TO REFLECT THEIR WRITE STATE
+            for(k=0;k<FS_MAXOPENFILES;++k) {
+                if(FSystem.Volumes[vol]->Files[k]) {
+                    // UPDATE THE FILE ONLY IF OPEN FOR WRITING
+                    if(FSystem.Volumes[vol]->Files[k]->Mode&FSMODE_WRITE) FSFlushBuffers(FSystem.Volumes[vol]->Files[k]);
+                }
+            }
+            // UPDATE NEXT FREE CLUSTER HINT AND FREE SPACE
+            FSUpdateHints(FSystem.Volumes[vol]);
+
+            }
+
+    }
+}

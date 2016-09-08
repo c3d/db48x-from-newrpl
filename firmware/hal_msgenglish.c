@@ -33,6 +33,7 @@ const MSGLIST const all_messages[]={
     { ERR_BKPOINTEXCEPTION, "Breakpoint reached" },
     { ERR_OUTOFMEMORYEXCEPTION, "Out of memory" },
     { ERR_USERBREAK, "User BREAK" },
+    { ERR_DIRTYFILESYSTEM, "Re-insert same SD Card" },
 
     { ERR_SYNTAXERROR, "Syntax error" },
     { ERR_INVALIDTOKEN, "Invalid word" },

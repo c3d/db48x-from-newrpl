@@ -148,10 +148,12 @@ fs->RootDir.FileSize=FSGetChainSize(&(fs->RootDir.Chain));
 
 // READ CLUSTER HINT FOR FAT32
 
-int fsinfo = ReadInt16(TempData+48);    // GET LOCATION OF FSINFO SECTOR
-
+unsigned int fsinfo = ReadInt16(TempData+48);    // GET LOCATION OF FSINFO SECTOR
+if(fsinfo<1 || fsinfo >= fs->TotalSectors) fs->FSInfoAddr=0;
+else {
+fs->FSInfoAddr=fs->VolumeAddr+fsinfo;
 // READ THE FSINFO SECTOR
-if(!SDDRead((((uint64_t)fs->VolumeAddr)<<9)+512*fsinfo,512,TempData,Disk)) { simpfree(TempData); return FALSE;}
+if(!SDDRead((((uint64_t)fs->FSInfoAddr)<<9),512,TempData,Disk)) { simpfree(TempData); return FALSE;}
 
 // CHECK SIGNATURE
 if((ReadInt32(TempData)==0x41615252)&&(ReadInt32(TempData+484)==0x61417272)) {
@@ -174,7 +176,7 @@ else {
     fs->FreeAreaSize=0;
     fs->FreeSpace=0;
 }
-
+}
 
 }
 else {
@@ -198,6 +200,7 @@ else {
     fs->NextFreeCluster=FSCluster2Addr(2,fs);
     fs->FreeAreaSize=0;
     fs->FreeSpace=0;
+    fs->FSInfoAddr=0;
 
 }
 
@@ -214,4 +217,51 @@ simpfree(TempData);
 //FSCalcFreeSpace(fs);
 
 return TRUE;
+}
+
+// UPDATE HINTS AS NEEDED AND MARK AS CLEAN
+int FSUpdateHints(FS_VOLUME *fs)
+{
+    unsigned char *TempData;
+    int err,written=0;
+
+    if(!(fs->InitFlags&VOLFLAG_HINTDIRTY)) return FS_OK;
+
+    if(!fs->FSInfoAddr) { fs->InitFlags&=~VOLFLAG_HINTDIRTY; return FS_OK; }
+
+    err=FSVolumePresent(fs);
+    if(err!=FS_OK) return err;
+
+    TempData=simpmallocb(512);
+    if(!TempData) return FS_ERROR;
+
+    // READ THE FSINFO SECTOR
+    if(!SDDRead((((uint64_t)fs->FSInfoAddr)<<9),512,TempData,fs->Disk)) { simpfree(TempData); return FS_ERROR; }
+
+    // UPDATE THE LAST USED CLUSTER AND FREE SPACE COUNT
+    if(fs->InitFlags&VOLFLAG_FREESPACEVALID) {
+        unsigned int fspace=fs->FreeSpace>>(fs->ClusterSize-9);
+        if(fspace!=ReadInt32(TempData+488)) {
+        WriteInt32(TempData+488,fspace);
+        ++written;
+    }
+    }
+
+    if(fs->InitFlags&VOLFLAG_UPDATEHINT) {
+        unsigned int nextcluster=FSAddr2Cluster(fs->NextFreeCluster,fs);
+
+        if(nextcluster!=ReadInt32(TempData+492)) {
+            WriteInt32(TempData+492,nextcluster);
+            ++written;
+        }
+    }
+
+    if(!written) { fs->InitFlags&=~VOLFLAG_HINTDIRTY; simpfree(TempData); return FS_OK; }
+
+    if(!SDDWrite((((uint64_t)fs->FSInfoAddr)<<9),512,TempData,fs->Disk)) { simpfree(TempData); return FS_ERROR; }
+
+    // HERE THE VOLUME IS CLEAN AND HINTS WERE UPDATED
+
+    fs->InitFlags&=~VOLFLAG_HINTDIRTY;
+    return FS_OK;
 }

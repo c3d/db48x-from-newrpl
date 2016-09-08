@@ -28,7 +28,8 @@
 #define VOLFLAG_MOUNTED 1
 #define VOLFLAG_FREESPACEVALID 2
 #define VOLFLAG_READONLY 4
-#define VOLFLAG_UPDATEHINT 8
+#define VOLFLAG_UPDATEHINT  8
+#define VOLFLAG_HINTDIRTY  16
 
 
 struct __chainbuffer;
@@ -60,6 +61,7 @@ unsigned int FirstFATAddr;
 int FATSize;
 int FATType;
 unsigned int Cluster0Addr;
+unsigned int FSInfoAddr;
 unsigned int NextFreeCluster,FreeAreaSize;
 unsigned int FreeSpace;
 FS_FILE RootDir;
@@ -133,6 +135,8 @@ extern void FSGetDateTime(unsigned int *datetime,unsigned int *hundredths);
 extern int FSMountVolume(SD_CARD *Disk,FS_VOLUME *fs, int VolNumber);
 extern int FSVolumePresent(FS_VOLUME *fs);
 extern int FSCalcFreeSpace(FS_VOLUME *fs);
+extern int FSUpdateHints(FS_VOLUME *fs);
+
 
 
 // DIRECTORY FUNCTIONS
@@ -175,6 +179,8 @@ extern int FSScanFreeSpace(FS_VOLUME *fs,unsigned int nextfreecluster);
 extern void FSPatchFATBlock(unsigned char *buffer,int size,int addr,FS_VOLUME *fs,int flush);
 extern int FSWriteFATEntry(unsigned int cluster, int value, FS_VOLUME *fs);
 extern int FSFlushFATCache(FS_VOLUME *fs);
+extern void FSFreeFATCache(FS_VOLUME *fs);
+
 
 
 // NAME PROCESSING FUNCTIONS

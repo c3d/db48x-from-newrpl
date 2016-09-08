@@ -812,9 +812,13 @@ void halRedrawStatus(DRAWSURFACE *scr)
             if(FSVolumeMounted(FSGetCurrentVolume())) color=0xf;
             if(FSCardIsSDHC()) { txt[0]='H'; txt[1]='C'; }
             if(!FSCardInserted()) { txt[2]='?'; color=6; }
+            if(FSIsDirty()) color=-1;
         }
 
-        if(color) DrawTextBk(STATUSAREA_X+53,ytop+1,txt,(UNIFONT *)halScreen.StAreaFont,color,0x0,scr);
+        if(color) {
+            if(color==-1) DrawTextBk(STATUSAREA_X+53,ytop+1,txt,(UNIFONT *)halScreen.StAreaFont,0,0xf,scr);
+            else DrawTextBk(STATUSAREA_X+53,ytop+1,txt,(UNIFONT *)halScreen.StAreaFont,color,0x0,scr);
+        }
 
 
     }
@@ -1044,6 +1048,15 @@ void halRedrawAll(DRAWSURFACE *scr)
     if(halScreen.DirtyFlag&STAREA_DIRTY) halRedrawStatus(scr);
     }
 }
+
+
+// MARK STATUS AREA FOR IMMEDIATE UPDATE
+void halUpdateStatus()
+{
+    halScreen.DirtyFlag|=STAREA_DIRTY;
+}
+
+
 
 void status_popup_handler()
 {

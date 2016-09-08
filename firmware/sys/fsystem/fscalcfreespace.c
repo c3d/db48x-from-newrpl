@@ -204,14 +204,18 @@ return FS_OK;
 int FSScanFreeSpace(FS_VOLUME *fs,unsigned int nextfreecluster)
 {
 unsigned char *buffer;
-unsigned int fataddr,startfataddr;
+unsigned int fataddr,startfataddr,initialnextfree;
 int value;
 unsigned int maxaddr=0;
 unsigned int freecount,freestart,freesize;
 int limit,f;
 
+
+
 buffer=simpmallocb(1536);
 if(!buffer) return FS_ERROR;
+
+initialnextfree=fs->NextFreeCluster;
 
 switch(fs->FATType)
 {
@@ -394,6 +398,9 @@ if(freestart && (fs->FreeAreaSize<freesize)) { fs->NextFreeCluster=freestart; fs
 
 simpfree(buffer);
 fs->FreeAreaSize<<=fs->ClusterSize-9;
+
+if(fs->NextFreeCluster!=initialnextfree) fs->InitFlags|=VOLFLAG_HINTDIRTY;
+
 return FS_OK;
 
 }

@@ -680,8 +680,15 @@ void halReset()
 void halEnterPowerOff()
 {
     // TODO: ADD RPL ENGINE CLEANUP HERE BEFORE RESET
+
+    // FILE SYSTEM SHUTDOWN
+
+    FSShutdown();
+
     // PUT THE CPU IN A KNOWN SLOW SPEED
-    cpu_setspeed(48000000);
+    cpu_setspeed(6000000);
+
+
 
     // WAIT FOR ALL KEYS TO BE RELEASED
     __keyb_waitrelease();

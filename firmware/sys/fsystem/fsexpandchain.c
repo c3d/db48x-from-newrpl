@@ -114,6 +114,7 @@ FSWriteFATEntry(FSAddr2Cluster(fixcluster,fs)-1,0xfffffff,fs);		// END-OF-CHAIN 
 fs->NextFreeCluster+=taken;
 fs->FreeAreaSize-=taken;
 if(fs->InitFlags&VOLFLAG_FREESPACEVALID) fs->FreeSpace-=taken;
+fs->InitFlags|=VOLFLAG_HINTDIRTY;
 needed-=taken;
 
 

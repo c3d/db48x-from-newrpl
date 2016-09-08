@@ -417,7 +417,7 @@ void throw_dbgexception(char * message, unsigned int options);
 \liINT_UART2= [15]
 \li\liINT_TIMER4=[14]
 \liINT_TIMER3=[13]
-\liINT_TIMER2=[12] [Used for ound routines, do not use]
+\liINT_TIMER2=[12] [Used for sound routines, do not use]
 \liINT_TIMER1=[11] [Used for timed events, do not use]
 \liINT_TIMER0=[10] [Used for system timer, do not use]
 \liINT_WDT  = [9]
@@ -426,7 +426,7 @@ void throw_dbgexception(char * message, unsigned int options);
 \liReserved = [6] Not used
 \liEINT8_23 = [5] [Used for keyboard routines, do not use]
 \liEINT4_7  = [4] [Used for keyboard routines, do not use]
-\liEINT3    = [3]
+\liEINT3    = [3] [Used for SD Card insertion detect, do not use]
 \liEINT2    = [2]
 \liEINT1    = [1]
 \liEINT0    = [0] [Used for exception handler, do not use]
@@ -453,7 +453,8 @@ void __irq_addhook(int service_number,__interrupt__ serv_routine);
 
 void __irq_releasehook(int service_number);
 
-
+void __irq_mask(int service_number);
+void __irq_unmask(int service_number);
 
 
 #endif 
@@ -1234,6 +1235,7 @@ void halSetCmdLineHeight(int h);
 void halStatusAreaPopup();
 void halRedrawAll(DRAWSURFACE *scr);
 void halRedrawCmdLine(DRAWSURFACE *scr);
+void halUpdateStatus();
 void halSetStackHeight(int h);
 void halSetFormHeight(int h);
 void halSetMenu1Height(int h);

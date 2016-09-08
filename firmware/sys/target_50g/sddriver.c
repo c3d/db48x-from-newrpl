@@ -21,7 +21,40 @@
 #define SRCPND ((volatile unsigned int *)(INT_REGS+0))
 
 
+// IRQ HANDLER FOR CARD INSERTION/REMOVAL
+void __SD_irqeventinsert()
+{
+    halUpdateStatus();
 
+   if(((*EXTINT0)&0x7000)==0x2000) {
+        // CARD WAS JUST REMOVED
+
+       // SET TO TRIGGER ON INSERTION
+       *EXTINT0=((*EXTINT0)&(~0x7000))| (0x4000);
+
+       // TODO: CHECK FOR DIRTY FILE SYSTEM, WARN USER
+       if(FSIsDirty()) Exceptions|=EX_DIRTYFS;
+       else FSShutdownNoCard();
+
+   }
+   else {
+        // CARD WAS JUST INSERTED
+
+        // NOTHING TO DO, JUST SET TO TRIGGER ON REMOVAL
+       *EXTINT0=((*EXTINT0)&(~0x7000))| (0x2000);
+
+       if(FSIsInit()) {
+        // CHECK IF FILE SYSTEM WAS DIRTY
+        int error;
+        error=FSVolumePresent(FSystem.Volumes[FSystem.CurrentVolume]);
+
+        if(error!=FS_OK) FSShutdown();  // UNMOUNT OLD FILE SYSTEMS
+
+       }
+
+
+    }
+}
 
 
 
@@ -42,6 +75,22 @@ if(!shutdown) {
 *GPF(CON)=*GPF(CON)& (~0xc0);
 // DISABLE PULLUP
 *GPF(PULLUP)=*GPF(PULLUP)|8;
+// SET WRITE PROTECT DETECTION PIN TO INPUT AND DISABLE PULLUPS
+*GPD(CON)=*GPD(CON)&~0xc0;
+*GPD(PULLUP)=*GPD(PULLUP)|0x8;
+
+*SRCPND=8;    // CLEAR ANY PENDING INTERRUPT REQUESTS
+
+f=*GPF(DAT)&8;	// READ CURRENT VALUE, CARD INSERTED?
+
+if(f) *EXTINT0=((*EXTINT0)&(~0x7000))| (0x2000);	// SET TO TRIGGER INTERRUPT ON PROPER EDGE
+else *EXTINT0=((*EXTINT0)&(~0x7000))| (0x4000);
+
+__irq_addhook(3,&__SD_irqeventinsert);  // INSTALL IRQ HANDLER
+
+*GPF(CON)=(*GPF(CON)& (~0xc0)) | (0X80);	// SET PIN FUNCTION TO EINT3
+
+__irq_unmask(3);                            // ENABLE INTERRUPT ON THIS PIN
 
 *HWREG(CLKREG,0xc)=*HWREG(CLKREG,0xc)|0x200; 	// ENABLE CLOCK TO SD INTERFACE
 
@@ -50,7 +99,7 @@ if(!shutdown) {
 // ENABLE PIN FUNCTION FOR SDCMD AND SDDAT LINES
 *GPE(CON)=((*GPE(CON))&0x003ffc00)|0x002aa800;
 
-card->SysFlags|=1;
+if(card) card->SysFlags|=1;
 return TRUE;
 }
 else {
@@ -59,9 +108,11 @@ else {
 	// DISABLE PULLUP
 	*GPF(PULLUP)=*GPF(PULLUP)|8;
 
-	f=*GPF(DAT)&8;	// READ CURRENT VALUE
+    f=*GPF(DAT)&8;	// READ CURRENT VALUE, CARD INSERTED?
 	*EXTINT0=((*EXTINT0)&(~0x7000))| (f<<9);	// SET TO TRIGGER INTERRUPT ON VALUE
 
+
+    // THIS IS OBSOLETE - SET THE SRCPND BIT SO THE CALCULATOR OS DETECTS A CARD CHANGE
 	*GPF(CON)=(*GPF(CON)& (~0xc0)) | (0X80);	// SET PIN FUNCTION TO EINT3
 
 	for(k=0;k<1000;++k)
@@ -91,7 +142,7 @@ else {
 
 
 
-card->SysFlags&=~1;
+if(card) card->SysFlags&=~1;
 return FALSE;
 }
 
@@ -105,7 +156,7 @@ return (*GPF(DAT))&8;
 
 int SDCardWriteProtected()
 {
-return (*GPD(DAT))&8;
+return ((*GPD(DAT))&8)? 0:1;
 }
 
 
