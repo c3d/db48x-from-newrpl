@@ -306,7 +306,7 @@ halScreen.Menu1=MENU1_HEIGHT;
 halScreen.Menu2=MENU2_HEIGHT;
 halScreen.Stack=1;
 halSetFormHeight(0);
-halScreen.DirtyFlag=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
+halScreen.DirtyFlag=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
 halScreen.SAreaTimer=0;
 halScreen.CursorTimer=-1;
 halScreen.KeyContext=CONTEXT_STACK;
