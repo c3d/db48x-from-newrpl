@@ -812,12 +812,17 @@ void halRedrawStatus(DRAWSURFACE *scr)
             if(FSVolumeMounted(FSGetCurrentVolume())) color=0xf;
             if(FSCardIsSDHC()) { txt[0]='H'; txt[1]='C'; }
             if(!FSCardInserted()) { txt[2]='?'; color=6; }
-            if(FSIsDirty()) color=-1;
+            int k=FSIsDirty();
+            if(k==1) color=-1;  // 1 =  DIRTY FS NEEDS FLUSH
+            if(k==2) color=-2;  // 2 =  FS IS FLUSHED BUT THERE'S OPEN FILES
         }
 
         if(color) {
             if(color==-1) DrawTextBk(STATUSAREA_X+53,ytop+1,txt,(UNIFONT *)halScreen.StAreaFont,0,0xf,scr);
-            else DrawTextBk(STATUSAREA_X+53,ytop+1,txt,(UNIFONT *)halScreen.StAreaFont,color,0x0,scr);
+            else {
+                if(color==-2) DrawTextBk(STATUSAREA_X+53,ytop+1,txt,(UNIFONT *)halScreen.StAreaFont,0,0x6,scr);
+                else DrawTextBk(STATUSAREA_X+53,ytop+1,txt,(UNIFONT *)halScreen.StAreaFont,color,0x0,scr);
+            }
         }
 
 

@@ -106,7 +106,7 @@ int FSIsDirty()
             int f;
             for(f=0;f<FS_MAXOPENFILES;++f) {
                 if(FSystem.Volumes[vol]->Files[f]!=NULL) {
-                    if(FSystem.Volumes[vol]->Files[f]->Mode&FSMODE_WRITE) return 1;  // VOLUME HAS OPEN FILES FOR WRITING
+                    if(FSystem.Volumes[vol]->Files[f]->Mode&FSMODE_WRITE) return 2;  // VOLUME HAS OPEN FILES FOR WRITING
                 }
             }
         }
