@@ -143,7 +143,18 @@ return FALSE;
 
 int SDCardInserted()
 {
-return (*GPF(DAT))&8;
+int prev=*GPF(CON);
+
+    // SET GPF3 AS INPUT
+    *GPF(CON)=*GPF(CON)& (~0xc0);
+    *GPF(PULLUP)=*GPF(PULLUP)|8;
+
+    int result= (*GPF(DAT))&8;
+
+    *GPF(CON)=prev; // RESTORE PREVIOUS FUNCTION
+
+    return result;
+
 }
 
 int SDCardWriteProtected()

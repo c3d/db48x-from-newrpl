@@ -12,11 +12,15 @@
 
 typedef void (*myfunctype)(void);
 
+
+
+// HARD RESET USED ONLY DURING POWER ON SEQUENCE
 void FSHardReset()
 {
    memsetw(&FSystem,0,sizeof(FS_PUBLIC)>>2);
    init_simpalloc();
-   SDIOSetup(NULL,0);
+   SDIOSetup(NULL,0);   // INITIALIZE PINS AND CARD DETECTION INTERRUPTS
+   if(!SDCardInserted()) SDIOSetup(NULL,1); // POWER OFF SD CONTROLLER IF NO CARD INSERTED
 }
 
 int FSInit()
