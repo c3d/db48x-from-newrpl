@@ -187,7 +187,7 @@ char *utf8nskipst(char *ptr,char *end,int n)
     cp=utf82cp(ptr,end);
     if(cp<0) return end;    // INVALID UTF8 SEQUENCE!
     cpinfo=getCPInfo(cp);
-    if(CCLASS(cpinfo)==0) return ptr;   // FOUND A STARTER
+    if(CCLASS(cpinfo)==0) break;   // FOUND A STARTER
     // NOT A STARTER, SKIP IT
     } while(ptr<end);
     --n;
