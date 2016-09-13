@@ -38,7 +38,7 @@ mainentry[11]=file->Attr;
 mainentry[13]=file->CrtTmTenth;
 WriteInt32(mainentry+14,file->CreatTimeDate);
 WriteInt16(mainentry+18,file->LastAccDate);
-WriteInt16(mainentry+20,file->FirstCluster>>16);
+if(FSystem.Volumes[file->Volume]->FATType==3) WriteInt16(mainentry+20,file->FirstCluster>>16);
 WriteInt16(mainentry+26,file->FirstCluster);
 WriteInt32(mainentry+28,(file->Attr&FSATTR_DIR)? 0:file->FileSize);
 WriteInt32(mainentry+22,file->WriteTimeDate);

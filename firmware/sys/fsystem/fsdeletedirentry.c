@@ -34,6 +34,11 @@ mainentry=buffer;
 
 for(f=0;f<file->DirEntryNum;++f,mainentry+=32)
 {
+if( (mainentry[11]&FSATTR_LONGMASK)!=FSATTR_LONGNAME) {
+    // PRESERVE FIRST LETTER ON ALL NON-LFN ENTRIES
+    mainentry[0xd]=mainentry[0];
+    mainentry[0xe]=0;
+}
 mainentry[0]=0xe5;
 }
 

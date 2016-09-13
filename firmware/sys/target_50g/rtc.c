@@ -12,7 +12,7 @@
 
 int __getRTCvalue(int offset)
 {
-unsigned char a=*((unsigned char *)RTC_REGS+offset);
+unsigned char a=*((volatile unsigned char *)RTC_REGS+offset);
 return ((a&0xf0)>>1) + ((a&0xf0)>>3) + (a&0xf);
 }
 

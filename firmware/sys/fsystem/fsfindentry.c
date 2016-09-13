@@ -56,6 +56,13 @@ if(buffer[0]==0xe5) continue;	// DELETED ENTRY, USE NEXT ENTRY
 if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 
 //	printf("LFN entry found\n");
+    if((fs->FATType!=3)&&(((buffer[0x1a]|buffer[0x1b])!=0)||((buffer[0x1c]|buffer[0x1d]|buffer[0x1e]|buffer[0x1f])==0)))
+     {
+      // THIS IS NOT A VALID LFN ENTRY, POSSIBLY USED BY OTHER OS'S
+      // JUST IGNORE IT
+        continue;
+      }
+
 	// TREAT AS LONG FILENAME
 	if(!(buffer[0]&0X40)) continue;		// ORPHAN ENTRY, SKIP
 	diroffset=dir->CurrentOffset-32;
@@ -200,7 +207,8 @@ if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
 	entry->LastAccDate=ReadInt16(buffer+18);
 	entry->CreatTimeDate=ReadInt32(buffer+14);
 	entry->WriteTimeDate=ReadInt32(buffer+22);
-	entry->FirstCluster=buffer[26]+(buffer[27]<<8)+(buffer[20]<<16)+(buffer[21]<<24);
+    entry->FirstCluster=buffer[26]+(buffer[27]<<8);
+    if(fs->FATType==3) entry->FirstCluster|=(buffer[20]<<16)+(buffer[21]<<24);
 	entry->FileSize=ReadInt32(buffer+28);
 	entry->CurrentOffset=0;
 	entry->DirEntryOffset=diroffset;

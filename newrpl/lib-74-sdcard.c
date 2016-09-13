@@ -1512,25 +1512,31 @@ void LIB_HANDLER()
         // LAST MODIFIED DATE
         struct compact_tm date;
         FSGetWriteTime(&entry,&date);
-        rplBINTToRReg(0,(BINT64)date.tm_year+1900+(BINT64)(date.tm_mon+1)*10000+(BINT64)date.tm_mday*1000000);
-        RReg[0].exp-=6;
-        rplNewRealFromRRegPush(0);
-        if(Exceptions) {
-            DSTop=dsave;
-            FSReleaseEntry(&entry);
-            return;
+        if(date.tm_mday!=0) {   // DAY IS 1-BASED, THEREFORE DAY=0 MEANS DATE/TIME NOT SET
+            rplBINTToRReg(0,(BINT64)date.tm_year+1900+(BINT64)(date.tm_mon+1)*10000+(BINT64)date.tm_mday*1000000);
+            RReg[0].exp-=6;
+            rplNewRealFromRRegPush(0);
+            if(Exceptions) {
+                DSTop=dsave;
+                FSReleaseEntry(&entry);
+                return;
+            }
+            // LAST MODIFIED TIME
+            rplBINTToRReg(0,(BINT64)date.tm_sec+(BINT64)date.tm_min*100+(BINT64)date.tm_hour*10000);
+            RReg[0].exp-=4;
+            rplNewRealFromRRegPush(0);
+            if(Exceptions) {
+                DSTop=dsave;
+                FSReleaseEntry(&entry);
+                return;
+            }
+
+        } else {
+            rplPushFalse();
+            rplPushFalse();
         }
 
-        // LAST MODIFIED TIME
 
-        rplBINTToRReg(0,(BINT64)date.tm_sec+(BINT64)date.tm_min*100+(BINT64)date.tm_hour*10000);
-        RReg[0].exp-=4;
-        rplNewRealFromRRegPush(0);
-        if(Exceptions) {
-            DSTop=dsave;
-            FSReleaseEntry(&entry);
-            return;
-        }
 
         // THAT'S ENOUGH DATA
         FSReleaseEntry(&entry);

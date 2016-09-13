@@ -57,7 +57,11 @@ while((checksum=FSReadLL(buffer,32,dir,fs))==32)
 
 if(buffer[0]==0) break;
 if(buffer[0]==0xe5) continue;	// DELETED ENTRY, USE NEXT ENTRY
-if( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) {
+if( ( (buffer[11]&FSATTR_LONGMASK) == FSATTR_LONGNAME) &&
+
+    ((fs->FATType==3)||(((buffer[0x1a]|buffer[0x1b])==0)&&((buffer[0x1c]|buffer[0x1d]|buffer[0x1e]|buffer[0x1f])!=0)))
+        )
+     {
 
 //	printf("LFN entry found\n");
 	// TREAT AS LONG FILENAME
