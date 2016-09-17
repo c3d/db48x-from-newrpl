@@ -71,22 +71,6 @@ const WORDPTR const ROMPTR_TABLE[]={
 
 
 
-/*
-const CONTEXT CompileContext = {
-    .prec=REAL_PRECISION_MAX,
-    .emax=REAL_EXPONENT_MAX,
-    .emin=REAL_EXPONENT_MIN,
-    .traps=0,
-    .status=0,
-    .newtrap=0,
-    .round=MPD_ROUND_HALF_EVEN,
-    .clamp=MPD_CLAMP_DEFAULT,
-    .allcr=0
-
-};
-*/
-
-
 // SET THE REGISTER TO THE NUMBER 0NE
 void rplOneToRReg(int num)
 {
@@ -629,6 +613,12 @@ void LIB_HANDLER()
             else rplPushData((WORDPTR)zero_bint);
             return;
         case OVR_SAME:
+            if((Darg1.flags|Darg2.flags)&F_UNDINFINITY) {
+                // HANDLE SPECIALS
+                if( (Darg1.flags&(F_NEGATIVE|F_UNDINFINITY))==(Darg2.flags&(F_NEGATIVE|F_UNDINFINITY))) rplPushData((WORDPTR)one_bint);
+                else rplPushData((WORDPTR)zero_bint);
+                return;
+            }
             if(eqReal(&Darg1,&Darg2)) rplPushData((WORDPTR)zero_bint);
             else rplPushData((WORDPTR)one_bint);
             return;
@@ -641,19 +631,23 @@ void LIB_HANDLER()
             else rplPushData((WORDPTR)one_bint);
             return;
         case OVR_CMP:
+            if((Darg1.flags|Darg2.flags)&F_NOTANUMBER) {
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            }
             rplNewSINTPush(cmpReal(&Darg1,&Darg2),DECBINT);
             return;
-
-
-
-
-
-
-
-
         case OVR_INV:
+            if(iszeroReal(&Darg1)) {
+            if(rplTestSystemFlag(FL_COMPLEXMODE)) rplUndInfinityToRReg(0);
+            else rplInfinityToRReg(0);
+            }
+            else {
             rplOneToRReg(1);
             divReal(&RReg[0],&RReg[1],&Darg1);
+            }
             rplNewRealFromRRegPush(0);
             if(!Exceptions) rplCheckResultAndError(&RReg[0]);
 
@@ -661,8 +655,9 @@ void LIB_HANDLER()
         case OVR_NEG:
         case OVR_UMINUS:
         {
-            if((Darg1.flags&(F_INFINITY|F_NOTANUMBER)) || !(Darg1.len==1 && Darg1.data[0]==0)) Darg1.flags^=F_NEGATIVE;
+            if((((Darg1.flags&(F_UNDINFINITY))!=F_UNDINFINITY)&&((Darg1.flags&(F_UNDINFINITY))!=F_NOTANUMBER))   || !(Darg1.len==1 && Darg1.data[0]==0)) Darg1.flags^=F_NEGATIVE;
             rplNewRealPush(&Darg1);
+            if(!Exceptions) rplCheckResultAndError(&Darg1);
         }
             return;
         case OVR_EVAL:
@@ -673,6 +668,7 @@ void LIB_HANDLER()
             rplPushData(arg1);
             return;
         case OVR_ABS:
+            if(isundinfiniteReal(&Darg1)) Darg1.flags&=~F_NOTANUMBER;   // TURN IT INTO NORMAL INFINITY
             Darg1.flags&=~F_NEGATIVE;
             rplNewRealPush(&Darg1);
             return;

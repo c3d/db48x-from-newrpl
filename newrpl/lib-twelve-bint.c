@@ -1096,11 +1096,16 @@ void LIB_HANDLER()
 
         case OVR_INV:
             // INVERSE WILL ALWAYS BE A REAL, SINCE 1/N == 0 FOR ALL N>1 IN STRICT INTEGER MATH, ORIGINAL UserRPL DOES NOT SUPPORT INVERSE OF INTEGERS
+
+            if(op1==0) {
+                if(rplTestSystemFlag(FL_COMPLEXMODE)) rplUndInfinityToRReg(2);
+                else rplInfinityToRReg(2);
+            }
+            else {
             rplOneToRReg(0);
             rplBINTToRReg(1,op1);
-
             divReal(&RReg[2],&RReg[0],&RReg[1]);
-
+            }
 
             rplNewRealFromRRegPush(2);
             if(!Exceptions) rplCheckResultAndError(&RReg[2]);
