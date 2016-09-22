@@ -206,7 +206,8 @@ SOURCES +=\
     newrpl/lib-72-stack.c \
     newrpl/lib-74-sdcard.c \
     newrpl/lib-80-fonts.c \
-    firmware/sys/target_50g/rtc.c
+    firmware/sys/target_50g/rtc.c \
+    firmware/hal_clock.c
 
 HEADERS  += \
     firmware/include/ggl.h \

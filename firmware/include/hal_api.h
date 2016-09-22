@@ -1183,11 +1183,12 @@ void init_simpalloc();
 int rtc_getday();
 int rtc_getmon();
 int rtc_getyear();
+int rtc_getdow();
 int rtc_getsec();
 int rtc_getmin();
 int rtc_gethour();
-void rtc_setdate(int day,int month,int year);
-void rtc_settime(int hour,int min,int sec);
+int rtc_setdate(int day,int month,int year);
+int rtc_settime(int hour,int min,int sec);
 
 
 
@@ -1223,6 +1224,11 @@ void halEnterPowerOff();
 // TIMER FUNCTIONS
 BINT64 halTicks();
 
+// CLOCK AND ALARM FUNCTIONS
+void halSetSystemDate(int d,int m,int y);
+void halGetSystemDate(int *d,int *m,int *y,int *dow);
+void halSetSystemTime(int hr,int min,int sec);
+void halGetSystemTime(int *hr,int *min,int *sec);
 
 
 // SCREEN FUNCTIONS

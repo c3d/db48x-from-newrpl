@@ -24,7 +24,7 @@ else {
     dt->tm_hour=0;
     dt->tm_mday=0;
     dt->tm_mon=0;
-    dt->tm_year=0;
+    dt->tm_year=80;
 }
 dt->tm_wday=0;
 //dt->tm_yday=0;

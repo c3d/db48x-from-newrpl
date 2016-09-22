@@ -440,6 +440,7 @@ void rplCompileReal(REAL *num);
 void rplRealPart(WORDPTR complex,REAL *real);
 void rplImaginaryPart(WORDPTR complex,REAL *imag);
 BINT rplPolarComplexMode(WORDPTR complex);
+BINT rplComplexClass(WORDPTR complex);
 void rplReadCNumber(WORDPTR complex,REAL *real,REAL *imag, BINT *angmode);
 void rplReadCNumberAsReal(WORDPTR complex,REAL *real);
 void rplReadCNumberAsImag(WORDPTR complex,REAL *imag);
@@ -601,6 +602,8 @@ void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BI
 #define FL_OVERFLOW       -25
 #define FL_INFINITE       -26
 #define FL_STRIPCOMMENTS  -30
+#define FL_TIMEFORMAT     -41
+#define FL_DATEFORMAT     -42
 #define FL_COMPLEXMODE    -103
 
 

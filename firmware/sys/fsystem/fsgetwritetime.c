@@ -24,7 +24,7 @@ else {
     dt->tm_hour=0;
     dt->tm_mday=0;
     dt->tm_mon=0;		// month from 0 to 11
-    dt->tm_year=0;	// COUNT YEARS FROM 1900 INSTEAD OF 1980
+    dt->tm_year=80;	// COUNT YEARS FROM 1900 INSTEAD OF 1980
 }
 dt->tm_wday=0;
 //dt->tm_yday=0;

@@ -601,12 +601,12 @@ void rplHotInit()
 
     // VERIFY IF SETTINGS AND ROOT DIRECTORY ARE PROPERLY SET
 
-    WORDPTR *settings=rplFindGlobal((WORDPTR)dotsettings_ident,0);
+    WORDPTR *settings=rplFindGlobalInDir((WORDPTR)dotsettings_ident,Directories,0);
     WORDPTR *flags;
     if(settings) SettingsDir=settings[1];
     else {
         // CREATE A NEW SETTINGS DIRECTORY
-        SettingsDir=(WORDPTR)rplCreateNewDir((WORDPTR)dotsettings_ident,CurrentDir);
+        SettingsDir=(WORDPTR)rplCreateNewDir((WORDPTR)dotsettings_ident,Directories);
     }
 
     flags=rplFindGlobalInDir((WORDPTR)flags_ident,rplFindDirbyHandle(SettingsDir),0);

@@ -101,6 +101,10 @@ BINT rplPolarComplexMode(WORDPTR complex)
 BINT rplComplexClass(WORDPTR complex)
 {
     if(!ISCOMPLEX(*complex)) {
+        if(ISANGLE(*complex)) {
+            // TREAT ANGLES LIKE RAW NUMBERS
+            ++complex;
+        }
         if(ISBINT(*complex)) {
             // CAN ONLY BE ZERO
             if(rplIsNumberZero(complex)) return CPLX_ZERO;

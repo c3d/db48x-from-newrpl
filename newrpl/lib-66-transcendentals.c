@@ -134,6 +134,36 @@ void LIB_HANDLER()
             return;
         }
 
+        // HANDLE SPECIALS
+        BINT cclass=rplComplexClass(*arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
+        }
+
+
+
 
         // SUPPORT FOR COMPLEX ARGUMENTS
         if(ISCOMPLEX(*arg)) {
@@ -265,6 +295,35 @@ void LIB_HANDLER()
         }
 
 
+        // HANDLE SPECIALS
+        BINT cclass=rplComplexClass(*arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
+        }
+
+
         // SUPPORT FOR COMPLEX ARGUMENTS
         if(ISCOMPLEX(*arg)) {
 
@@ -393,6 +452,35 @@ void LIB_HANDLER()
             rplListUnaryDoCmd();
 
             return;
+        }
+
+
+        // HANDLE SPECIALS
+        BINT cclass=rplComplexClass(*arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
         }
 
 
@@ -544,6 +632,39 @@ void LIB_HANDLER()
             rplListUnaryDoCmd();
             return;
         }
+
+
+        // HANDLE SPECIALS
+        BINT cclass=rplComplexClass(*arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
+        }
+
+
+
+
 
         if(ISCOMPLEX(*arg)) {
 
@@ -802,6 +923,36 @@ void LIB_HANDLER()
             rplListUnaryDoCmd();
             return;
         }
+
+
+        // HANDLE SPECIALS
+        BINT cclass=rplComplexClass(*arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
+        }
+
 
         if(ISCOMPLEX(*arg)) {
 
@@ -1076,6 +1227,94 @@ void LIB_HANDLER()
             return;
         }
 
+        // HANDLE SPECIALS
+        BINT cclass=rplComplexClass(*arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        {
+            REAL re,im,pi2;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            BINT angmode;
+            angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+            switch(angmode) {
+            case ANGLEDEG:
+            case ANGLEDMS:
+                decconst_90(&pi2);
+                break;
+            case ANGLEGRAD:
+                decconst_100(&pi2);
+                break;
+            case ANGLERAD:
+            default:
+                decconst_PI_2(&pi2);
+                break;
+            }
+
+            pi2.flags|=(re.flags&F_NEGATIVE);
+
+            WORDPTR newang=rplNewAngleFromReal(&pi2,angmode);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+
+        }
+        case CPLX_INF|CPLX_MALFORMED:
+        {
+            REAL re,im,pi2;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            BINT angmode;
+            angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+            switch(angmode) {
+            case ANGLEDEG:
+            case ANGLEDMS:
+                decconst_90(&pi2);
+                break;
+            case ANGLEGRAD:
+                decconst_100(&pi2);
+                break;
+            case ANGLERAD:
+            default:
+                decconst_PI_2(&pi2);
+                break;
+            }
+
+            pi2.flags|=(im.flags&F_NEGATIVE);
+
+            WORDPTR newang=rplNewAngleFromReal(&pi2,angmode);
+            if(!newang) return;
+            rplOverwriteData(1,newang);
+
+        }
+            break;
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
+        }
 
         if(ISCOMPLEX(*arg)) {
             // ATAN OF A COMPLEX NUMBER
@@ -1239,6 +1478,8 @@ void LIB_HANDLER()
 
         rplOverwriteData(1,newangle);
 
+        rplCheckResultAndError(&RReg[1]);
+
         return;
 
     }
@@ -1285,7 +1526,7 @@ void LIB_HANDLER()
         rplOverwriteData(2,newangle);
         rplDropData(1);
 
-
+        rplCheckResultAndError(&RReg[0]);
         return;
 
     }
@@ -1386,8 +1627,7 @@ void LIB_HANDLER()
             RReg[0].flags|=F_NEGATIVE;
             rplDropData(1);
             rplNewRealFromRRegPush(0);
-            // TODO: IMPLEMENT FLAGS TO AVOID THROWING AN ERROR
-            rplError(ERR_INFINITERESULT);
+            rplCheckResultAndError(&RReg[0]);
             return;
         }
 
@@ -1431,9 +1671,16 @@ void LIB_HANDLER()
 
         // HANDLE SPECIAL VALUES
         if(isinfiniteReal(&x)) {
-           rplError(ERR_INFINITERESULT);
+
+           if(rplTestSystemFlag(FL_INIFINITEERROR)) rplError(ERR_INFINITERESULT);
            return;
         }
+        if(isNANReal(&x)) {
+
+           rplError(ERR_UNDEFINEDRESULT);
+           return;
+        }
+
 
 
         hyp_ln(&x);

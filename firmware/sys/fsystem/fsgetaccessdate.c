@@ -17,7 +17,7 @@ dt->tm_hour=0;
 if(file->LastAccDate==0) {
     dt->tm_mday=0;
     dt->tm_mon=0;
-    dt->tm_year=0;
+    dt->tm_year=80;
 }
 else {
 dt->tm_mday=(file->LastAccDate)&31;

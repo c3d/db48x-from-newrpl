@@ -143,6 +143,12 @@ const systemflag const flags_names[]= {
     { "COMMENTS", {0x80|30,0,0,0,0,0,0,0} },
     { "ACTIVEMENU1", { 0x80|4,0,0,0,0,0,0,0} },
     { "ACTIVEMENU2", { 4, 0,0,0,0,0,0,0} },
+    { "DATEDMY" , { 0X80|42,0,0,0,0,0,0,0} },
+    { "DATEMDY" , { 42,0,0,0,0,0,0,0} },
+    { "TIME12" , { 41,0,0,0,0,0,0,0} },
+    { "TIME24" , { 0x80|41,0,0,0,0,0,0,0} },
+
+
 
 // TODO: ADD MORE FLAG NAMES HERE
     { NULL , {0,0,0,0,0,0,0,0} }

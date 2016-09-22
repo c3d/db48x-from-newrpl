@@ -1203,6 +1203,13 @@ int negy=y0.flags&F_NEGATIVE;
 
 
 // HANDLE SOME SPECIAL CASES FIRST
+
+if(isNANReal(&x0) || isNANReal(&y0) || (isinfiniteReal(&x0)&&isinfiniteReal(&y0))) {
+    // UNDEFINED RESULT
+    rplNANToRReg(0);
+    return;
+}
+
 if(iszeroReal(&x0) || isinfiniteReal(&y0)) {
     if(iszeroReal(&y0)) {
         // IT'S UNDEFINED, BUT MOST CALCULATORS DEFINE atan2(0,0)=0
