@@ -230,6 +230,7 @@ maxaddr=(fs->TotalClusters+2)<<1;
 fataddr=nextfreecluster<<1;
 break;
 case 3:
+default:
 maxaddr=(fs->TotalClusters+2)<<2;
 fataddr=nextfreecluster<<2;
 break;

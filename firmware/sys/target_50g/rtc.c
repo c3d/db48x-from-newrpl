@@ -21,7 +21,7 @@ void __setRTCvalue(int offset,int value)
     int bcd=value/10;
     bcd=(bcd<<4)+(value-bcd*10);
 
-    unsigned char a=*((volatile unsigned char *)RTC_REGS+offset);
+    volatile unsigned char *a=((volatile unsigned char *)RTC_REGS+offset);
     *a=bcd;
 }
 
@@ -112,7 +112,7 @@ int rtc_setdate(int day,int month,int year)
     }
 
     int dow=(
-                d+ (((month>2)? (month-2):(month+10))*26-2)/10
+                day + (((month>2)? (month-2):(month+10))*26-2)/10
                 + (year-2000) + ((year-2000)>>2)
                 + (((month>2)? (year-2000):(year-2001))>>2) - (((month>2)? (year-2000):(year-2001))<<1)
                 ) % 7;  // DAY OF WEEK, 0 = SUNDAY ... 6=SATURDAY

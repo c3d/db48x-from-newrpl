@@ -31,7 +31,14 @@
     CMD(CHR,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
     CMD(NUM,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
     ECMD(TOSTR,"→STR",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(FROMSTR,"STR→",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    ECMD(FROMSTR,"STR→",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SREV,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(NTOKENS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(NTHTOKEN,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(NTHTOKENPOS,MKTOKENINFO(11,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TRIM,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RTRIM,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+
 
 // ADD MORE OPCODES HERE
 
@@ -221,6 +228,17 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        BINT nitems;
+        WORDPTR list,firstitem;
+
+        if(ISLIST(*rplPeekData(1))) {
+            list=rplPeekData(1);
+            // CONVERT A LIST OF UNICODE CODE POINTS INTO UTF8 STRING
+            nitems=rplListLengthFlat(list);
+            firstitem=;
+        } else
+
+
         if(!ISNUMBER(*rplPeekData(1))) {
             rplError(ERR_INTEGEREXPECTED);
             return;

@@ -87,19 +87,20 @@ int rtc_gethour()
 
 }
 
-void rtc_setdate(int day,int month,int year)
+int rtc_setdate(int day,int month,int year)
 {
     UNUSED_ARGUMENT(day);
     UNUSED_ARGUMENT(month);
     UNUSED_ARGUMENT(year);
 //  DO NOTHING, DON'T ALLOW TO CHANGE THE RTC ON A PC
+    return 0;
 }
 
-void rtc_settime(int hour,int min,int sec)
+int rtc_settime(int hour,int min,int sec)
 {
     UNUSED_ARGUMENT(hour);
     UNUSED_ARGUMENT(min);
     UNUSED_ARGUMENT(sec);
     //  DO NOTHING, DON'T ALLOW TO CHANGE THE RTC ON A PC
-
+    return 0;
 }
