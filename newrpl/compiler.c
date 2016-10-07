@@ -659,7 +659,13 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                         }
                         else {
 
-                        // IN INFIX MODE, USE RStk AS THE OPERATOR STACK, STARTING AT ValidateTop
+                            // FLUSH OTHER OPERATORS ACCORDING TO PRECEDENCE
+                            // BUT NOT FOR PREFIX OPERATORS, SINCE THE ARGUMENT WASN'T INPUT YET TO THE STREAM
+                        if(TI_TYPE(probe_tokeninfo)!=TITYPE_PREFIXOP) {
+
+
+                            // IN INFIX MODE, USE RStk AS THE OPERATOR STACK, STARTING AT ValidateTop
+
                         while(InfixOpTop>(WORDPTR)ValidateTop){
                             if((BINT)TI_PRECEDENCE(*(InfixOpTop-1))<TI_PRECEDENCE(probe_tokeninfo)) {
                             // POP OPERATORS OFF THE STACK AND APPLY TO OBJECTS
@@ -685,6 +691,8 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                                 }
                                 else break;
                             }
+                        }
+
                         }
                         // PUSH THE NEW OPERATOR
                         if(RStkSize<=(InfixOpTop+1-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);

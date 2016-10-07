@@ -37,7 +37,7 @@
     CMD(NTHTOKEN,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(NTHTOKENPOS,MKTOKENINFO(11,TITYPE_NOTALLOWED,1,2)), \
     CMD(TRIM,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RTRIM,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RTRIM,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
 
 
 // ADD MORE OPCODES HERE
@@ -120,7 +120,7 @@ BINT rplStrSize(WORDPTR string)
 
 
 
-// FIX THE PROLOG OF A STRING TO MATCH THE DESIRED LENGTH IN CHARACTERS
+// FIX THE PROLOG OF A STRING TO MATCH THE DESIRED LENGTH IN BYTES
 // LOW-LEVEL FUNCTION, DOES NOT ACTUALLY RESIZE THE OBJECT
 void rplSetStringLength(WORDPTR string,BINT length)
 {
@@ -229,38 +229,68 @@ void LIB_HANDLER()
             return;
         }
         BINT nitems;
-        WORDPTR list,firstitem;
+        WORDPTR list,item;
 
         if(ISLIST(*rplPeekData(1))) {
             list=rplPeekData(1);
             // CONVERT A LIST OF UNICODE CODE POINTS INTO UTF8 STRING
             nitems=rplListLengthFlat(list);
-            firstitem=;
-        } else
-
+            item=rplGetListElementFlat(list,1);
+        } else {
 
         if(!ISNUMBER(*rplPeekData(1))) {
-            rplError(ERR_INTEGEREXPECTED);
+            rplError(ERR_BADARGTYPE);
             return;
         }
-        BINT64 code=rplReadNumberAsBINT(rplPeekData(1));
+        nitems=1;
+        item=rplPeekData(1);
+        }
 
-        WORD utfchar=cp2utf8((UBINT)code);
+        WORDPTR newstring=rplAllocTempOb(nitems);   // ALLOCATE 4 BYTES PER CHARACTER, TRUNCATE THE OBJECT LATER
+        if(!newstring)
+            return;
+
+        BYTEPTR strptr=(BYTEPTR) (newstring+1);    // START OF NEW STRING AFTER THE PROLOG
+
+        BINT64 ucode;
+        WORD utfchar;
+        BINT len;
+
+        while(nitems--) {
+
+        ucode=rplReadNumberAsBINT(item);
+        if(Exceptions) {
+            rplTruncateLastObject(newstring);       // COMPLETELY REMOVE THE OBJECT
+            return;
+        }
+
+
+        utfchar=cp2utf8((UBINT)ucode);
 
         if(utfchar==(WORD)-1) {
             rplError(ERR_INVALIDCODEPOINT);
+            rplTruncateLastObject(newstring);       // COMPLETELY REMOVE THE OBJECT
             return;
         }
 
-        BINT len= (utfchar&0xffff0000)? ((utfchar&0xff000000)? 4:3) : ((utfchar&0xff00)? 2:1);
+        len= (utfchar&0xffff0000)? ((utfchar&0xff000000)? 4:3) : ((utfchar&0xff00)? 2:1);
+        while(len--) { *strptr=utfchar&0xff; ++strptr; utfchar>>=8; }
 
-        WORDPTR newobj=rplAllocTempOb(1);
-        if(!newobj) return;
+        if(nitems) {
+            item=rplGetNextListElementFlat(list,item);
+            if(!item) break;
+        }
+        }
 
-        rplSetStringLength(newobj,len);
-        newobj[1]=utfchar;
+        // DONE ENCODING UTF-8 STRING
 
-        rplOverwriteData(1,newobj);
+        len = strptr- (BYTEPTR)(newstring+1);
+        rplSetStringLength(newstring,len);
+
+        // TRIM UNUSED MEMORY
+        rplTruncateLastObject(rplSkipOb(newstring));
+
+        rplOverwriteData(1,newstring);
         return;
     }
     case NUM:
