@@ -1238,7 +1238,6 @@ void LIB_HANDLER()
 
             rplReadCNumber(arg,&re,&im,&angmode);
 
-            BINT angmode;
             angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
             switch(angmode) {
@@ -1269,7 +1268,6 @@ void LIB_HANDLER()
 
             rplReadCNumber(arg,&re,&im,&angmode);
 
-            BINT angmode;
             angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
             switch(angmode) {
