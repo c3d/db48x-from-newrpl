@@ -44,7 +44,7 @@
     CMD(ATANH,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
     CMD(LOG,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
     CMD(ALOG,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
-    ECMD(SQRT,"√",MKTOKENINFO(1,TITYPE_PREFIXOP,1,3)), \
+    ECMD(SQRT,"√",MKTOKENINFO(1,TITYPE_PREFIXOP,1,4)), \
     ECMD(PINUM,"π0",MKTOKENINFO(2,TITYPE_PREFIXOP,0,3))
 
 // ADD MORE OPCODES HERE
@@ -135,11 +135,12 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass=rplComplexClass(*arg);
+        BINT cclass=rplComplexClass(arg);
         switch(cclass)
         {
         case CPLX_INF:
         case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_INF|CPLX_POLAR:
         case CPLX_UNDINF:
             rplDropData(1);
             rplNANToRReg(0);
@@ -296,11 +297,12 @@ void LIB_HANDLER()
 
 
         // HANDLE SPECIALS
-        BINT cclass=rplComplexClass(*arg);
+        BINT cclass=rplComplexClass(arg);
         switch(cclass)
         {
         case CPLX_INF:
         case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_INF|CPLX_POLAR:
         case CPLX_UNDINF:
             rplDropData(1);
             rplNANToRReg(0);
@@ -456,11 +458,12 @@ void LIB_HANDLER()
 
 
         // HANDLE SPECIALS
-        BINT cclass=rplComplexClass(*arg);
+        BINT cclass=rplComplexClass(arg);
         switch(cclass)
         {
         case CPLX_INF:
         case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_INF|CPLX_POLAR:
         case CPLX_UNDINF:
             rplDropData(1);
             rplNANToRReg(0);
@@ -635,11 +638,12 @@ void LIB_HANDLER()
 
 
         // HANDLE SPECIALS
-        BINT cclass=rplComplexClass(*arg);
+        BINT cclass=rplComplexClass(arg);
         switch(cclass)
         {
         case CPLX_INF:
         case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_INF|CPLX_POLAR:
         case CPLX_UNDINF:
             rplDropData(1);
             rplNANToRReg(0);
@@ -926,11 +930,13 @@ void LIB_HANDLER()
 
 
         // HANDLE SPECIALS
-        BINT cclass=rplComplexClass(*arg);
+        BINT cclass=rplComplexClass(arg);
         switch(cclass)
         {
         case CPLX_INF:
         case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_INF|CPLX_POLAR:
+
         case CPLX_UNDINF:
             rplDropData(1);
             rplNANToRReg(0);
@@ -1228,7 +1234,7 @@ void LIB_HANDLER()
         }
 
         // HANDLE SPECIALS
-        BINT cclass=rplComplexClass(*arg);
+        BINT cclass=rplComplexClass(arg);
         switch(cclass)
         {
         case CPLX_INF:
@@ -1550,6 +1556,45 @@ void LIB_HANDLER()
             return;
         }
 
+
+
+        // HANDLE SPECIALS
+        BINT cclass=rplComplexClass(arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_INF|CPLX_POLAR:
+        {
+            rplDropData(1);
+            rplInfinityToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        }
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
+        }
+
+
         if(ISCOMPLEX(*arg)) {
             // LOGARITHM OF A COMPLEX NUMBER
             REAL re,im;
@@ -1711,6 +1756,56 @@ void LIB_HANDLER()
             rplListUnaryDoCmd();
             return;
         }
+
+
+
+        // HANDLE SPECIALS
+        BINT cclass=rplComplexClass(arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        {
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            if(re.flags&F_NEGATIVE) {
+                rplOverwriteData(1,(WORDPTR)zero_bint);
+            }
+            else {
+            rplDropData(1);
+            rplInfinityToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        }
+        case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
+        }
+
+
+
 
 
         if(ISCOMPLEX(*arg)) {

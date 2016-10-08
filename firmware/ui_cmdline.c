@@ -146,7 +146,7 @@ void uiEnsureCursorVisible()
     }
 
     // SCROLL RIGHT AS NEEDED
-    if(halScreen.CursorX>halScreen.XVisible+SCREEN_WIDTH-8) {
+    if(halScreen.CursorX>(halScreen.XVisible+SCREEN_WIDTH-8)) {
         halScreen.XVisible=halScreen.CursorX-(SCREEN_WIDTH-8);
         scrolled=1;
     }

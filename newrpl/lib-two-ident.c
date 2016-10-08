@@ -446,7 +446,7 @@ void LIB_HANDLER()
         return;
     case OPCODE_PROBETOKEN:
     {
-        BYTEPTR tokptr,tokend;
+        BYTEPTR tokptr,tokend,lastgood;
         BINT maxlen,len;
 
         tokptr=(BYTEPTR)TokenStart;
@@ -456,10 +456,11 @@ void LIB_HANDLER()
         for(maxlen=0,len=1;tokptr<=tokend;++len) {
             if(!rplIsValidIdent((BYTEPTR)TokenStart,tokptr)) break;
             maxlen=len;
+            lastgood=tokptr;
             if(tokptr==tokend) break;
             tokptr=(BYTEPTR)utf8skipst((char *)tokptr,(char *)tokend);
         }
-        if(maxlen>0) RetNum=OK_TOKENINFO | MKTOKENINFO(maxlen,TITYPE_IDENT,0,1);
+        if(maxlen>0) RetNum=OK_TOKENINFO | MKTOKENINFO(utf8nlen((char *)TokenStart,(char *)lastgood),TITYPE_IDENT,0,1);
         else RetNum=ERR_NOTMINE;
         return;
     }

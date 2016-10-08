@@ -103,6 +103,25 @@ WORDPTR rplGetListElement(WORDPTR composite, BINT pos)
     return ptr;
 }
 
+
+// GET NEXT ELEMENT FROM A "FLAT" VIEW OF THE LIST
+
+WORDPTR rplGetNextListElementFlat(WORDPTR composite, WORDPTR elem)
+{
+    WORDPTR ptr=elem;
+    WORDPTR end=composite+OBJSIZE(*composite);  // POINT TO THE END MARKER
+    while(ptr<end) {
+        ptr=rplSkipOb(ptr);
+        if(ISLIST(*ptr)) ++ptr;
+        if(*ptr!=MKOPCODE(DOLIST,ENDLIST)) break;
+    }
+    if(ptr==end) return 0;
+    return ptr;
+}
+
+
+
+
 // RETURNS FALSE (0) IF THE ELEMENT IS NOT AT THE END OF A SUBLIST IN A "FLAT" LIST
 // OTHERWISE RETURNS THE POSITION OF THE FIRST ELEMENT IN THE LIST THAT CONTAINS THE OBJECT
 

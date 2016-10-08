@@ -506,6 +506,7 @@ void rplCreateList();
 BINT rplExplodeList(WORDPTR composite);
 WORDPTR rplGetListElement(WORDPTR composite, BINT pos);
 WORDPTR rplGetListElementFlat(WORDPTR composite, BINT pos);
+WORDPTR rplGetNextListElementFlat(WORDPTR composite, WORDPTR elem);
 BINT rplIsLastElementFlat(WORDPTR composite, BINT pos);
 void rplListUnaryDoCmd();
 void rplListBinaryDoCmd(WORDPTR arg1, WORDPTR arg2);
