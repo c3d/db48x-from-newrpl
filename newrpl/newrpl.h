@@ -171,6 +171,7 @@ WORD rplObjSize(WORDPTR ip);
 
 // LOW-LEVEL MEMORY MANAGEMENT
 
+BINT rplGetFreeMemory();
 WORDPTR rplAllocTempOb(WORD size);
 void rplTruncateLastObject(WORDPTR newend);
 void rplResizeLastObject(WORD additionalsize);

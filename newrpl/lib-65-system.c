@@ -9,7 +9,7 @@
 #include "libraries.h"
 #include "hal.h"
 
-#include <stdio.h>
+//#include <stdio.h>
 
 // *****************************
 // *** COMMON LIBRARY HEADER ***
@@ -36,6 +36,7 @@
     CMD(DDAYS,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
     CMD(TIME,MKTOKENINFO(4,TITYPE_FUNCTION,0,2)), \
     ECMD(SETTIME,"→TIME",MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(MEM,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
     CMD(MEMCHECK,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(MEMFIX,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(READCFI,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
@@ -61,7 +62,20 @@
 // ************************************
 
 
+// RETURN RPL'S FREE RAM MEMORY IN BYTES
+BINT rplGetFreeMemory()
+{
+    BINT mem = halGetFreePages() << 12;
 
+    mem += (1024 - ((DSTop - DStk) & 0x3ff)) << 2;
+    mem += (1024 - ((RSTop - RStk) & 0x3ff)) << 2;
+    mem += (1024 - ((LAMs - LAMTop) & 0x3ff)) << 2;
+    mem += (1024 - ((DirsTop - Directories) & 0x3ff)) << 2;
+    mem += (1024 - ((TempBlocksEnd - TempBlocks) & 0x3ff)) << 2;
+    mem += (1024 - ((TempObEnd - TempOb) & 0x3ff)) << 2;
+
+    return mem;
+}
 
 void LIB_HANDLER()
 {
@@ -104,6 +118,145 @@ void LIB_HANDLER()
     {
         BINT64 ticks=halTicks();
         rplNewBINTPush(ticks,DECBINT);
+        return;
+    }
+    case DATE:
+    {
+        BINT _date;
+        REAL date;
+        int d, m, y, dow;
+
+        halGetSystemDate(&d, &m, &y, &dow);
+
+        _date = y;
+        switch (rplTestSystemFlag(FL_DATEFORMAT))
+        {
+        case 0:
+            _date += d * 10000;
+            _date += m * 1000000;
+            break;
+        case 1:
+            _date += m * 10000;
+            _date += d * 1000000;
+            break;
+        default:
+            rplError(ERR_SYSTEMFLAGSINVALID);
+            return;
+        }
+
+        initReal(&date);
+        newRealFromBINT(&date, _date, -6);
+        rplNewRealPush(&date);
+        destroyReal(&date);
+
+        return;
+    }
+    case SETDATE:
+    {
+        BINT d, m, y, tmp;
+        WORDPTR arg;
+
+        if (rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        arg = rplPeekData(1);
+
+        if(!ISREAL(*arg)) {
+            rplError(ERR_BADARGTYPE);
+            return;
+        }
+
+        rplCopyRealToRReg(0, arg);
+        m = getBINTReal(&RReg[0]);
+
+        fracReal(&RReg[1], &RReg[0]);
+        rplBINTToRReg(2, 100);
+        mulReal(&RReg[0], &RReg[1], &RReg[2]);
+        d = getBINTReal(&RReg[0]);
+
+        fracReal(&RReg[1], &RReg[0]);
+        rplBINTToRReg(0, 10000);
+        mulReal(&RReg[2], &RReg[0], &RReg[1]);
+        y = getBINTReal(&RReg[2]);
+
+        switch (rplTestSystemFlag(FL_DATEFORMAT))
+        {
+        case 1:
+            tmp = m;
+            m = d;
+            d = tmp;
+            break;
+        case -2:
+            rplError(ERR_SYSTEMFLAGSINVALID);
+            return;
+        }
+
+        halSetSystemDate(d, m, y);
+        rplDropData(1);
+
+        return;
+    }
+    case TIME:
+    {
+        BINT _time;
+        REAL time;
+        int hr, mn, sec;
+
+        halGetSystemTime(&hr, &mn, &sec);
+
+        _time = sec;
+        _time += mn * 100;
+        _time += hr * 10000;
+
+        initReal(&time);
+        newRealFromBINT(&time, _time, -4);
+        rplNewRealPush(&time);
+        destroyReal(&time);
+
+        return;
+    }
+    case SETTIME:
+    {
+        BINT hr, mn, sec;
+        WORDPTR arg;
+
+        if (rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        arg = rplPeekData(1);
+
+        if(!ISREAL(*arg)) {
+            rplError(ERR_BADARGTYPE);
+            return;
+        }
+
+        rplCopyRealToRReg(0, arg);
+        hr = getBINTReal(&RReg[0]);
+
+        fracReal(&RReg[1], &RReg[0]);
+        rplBINTToRReg(2, 100);
+        mulReal(&RReg[0], &RReg[1], &RReg[2]);
+        mn = getBINTReal(&RReg[0]);
+
+        fracReal(&RReg[1], &RReg[0]);
+        rplBINTToRReg(0, 100);
+        mulReal(&RReg[2], &RReg[0], &RReg[1]);
+        sec = getBINTReal(&RReg[2]);
+
+        halSetSystemTime(hr, mn, sec);
+        rplDropData(1);
+
+        return;
+    }
+    case MEM:
+    {
+        rplGCollect();
+        rplNewBINTPush((BINT64)rplGetFreeMemory(), DECBINT);
+
         return;
     }
     case MEMCHECK:
