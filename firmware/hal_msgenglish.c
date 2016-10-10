@@ -44,7 +44,7 @@ const MSGLIST const all_messages[]={
     { ERR_INVALIDOPCODE, "Invalid opcode" },
     { ERR_MISSINGLIBRARY, "Missing library" },
     { ERR_INTERNALEMPTYSTACK, "Empty data stack (internal)" },
-    { ERR_INTERNALEMPTYRETSTACK, "Emtpy return stack (internal)" },
+    { ERR_INTERNALEMPTYRETSTACK, "Empty return stack (internal)" },
     { ERR_BADSTACKINDEX, "Stack index out of bounds" },
     { ERR_MISPLACEDEND, "Misplaced END statement" },
     { ERR_ENDWITHOUTSTART, "Block ends without matching start" },
