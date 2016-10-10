@@ -783,7 +783,7 @@ void halRedrawStatus(DRAWSURFACE *scr)
 
     {
     BINT anglemode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
-    const char const *name[4]={
+    const char * const name[4]={
         "∡°",
         "∡r",
         "∡g",

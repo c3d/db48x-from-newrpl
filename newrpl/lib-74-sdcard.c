@@ -284,7 +284,7 @@ void LIB_HANDLER()
         // TRY TO OPEN THE FILE
 
         FS_FILE *objfile;
-        const char const *fileprolog="NRPL";
+        const char * const fileprolog="NRPL";
         int err;
         err=FSOpen((char *)(RReg[0].data),FSMODE_WRITE,&objfile);
         if(err!=FS_OK) {
@@ -356,7 +356,7 @@ void LIB_HANDLER()
         // TRY TO OPEN THE FILE
 
         FS_FILE *objfile;
-        const char const *fileprolog="NRPL";
+        const char * const fileprolog="NRPL";
         int err;
         err=FSOpen((char *)(RReg[0].data),FSMODE_READ,&objfile);
         if(err!=FS_OK) {

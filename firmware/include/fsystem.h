@@ -958,7 +958,7 @@ extern void FSStripSemi(char *name);
  * \return Pointer to a static string.
  * \sa Error codes (constants)
  */
-extern char *FSGetErrorMsg(int errornum);
+extern const char *FSGetErrorMsg(int errornum);
 
 /*!
  * \brief Change file access mode

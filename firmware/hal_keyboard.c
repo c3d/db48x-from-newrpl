@@ -2552,7 +2552,7 @@ void onDotKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
 // CYCLE BETWEEN VARIOUS OPTIONS
-    const char const *options[]={
+    const char * const options[]={
         "1000.000000","1,000.000000","1 000.000000","1000.000 000","1,000.000 000","1 000.000 000",
         "1000,000000","1.000,000000","1 000,000000","1000,000 000","1.000,000 000","1 000,000 000"
     };
@@ -2695,7 +2695,7 @@ void onSpcKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
 // CYCLE BETWEEN VARIOUS OPTIONS
-    const char const *options[]={
+    const char * const options[]={
         "STD","FIX","SCI","ENG"
     };
 
@@ -2757,7 +2757,7 @@ void onMulDivKeyHandler(BINT keymsg)
 {
 
 // CYCLE BETWEEN VARIOUS OPTIONS
-    const char const *options[]={
+    const char * const options[]={
         "Auto",
         "  =  0",
         "k = +3",

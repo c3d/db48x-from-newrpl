@@ -9,7 +9,7 @@
 #include "fsyspriv.h"
 #define __READ_ONLY__    __attribute__ ((section(".rodata"))) 
 
-char * const FSErrorMsgArray[] = {
+const char * const FSErrorMsgArray[] = {
 "Invalid error",
 // FS_OK
 "OK",
@@ -43,7 +43,7 @@ char * const FSErrorMsgArray[] = {
 
 
 // RETURN ERROR MESSAGE
-char *FSGetErrorMsg(int errornum)
+const char *FSGetErrorMsg(int errornum)
 {
 if(errornum>1 || errornum<-11) errornum=2;
 return FSErrorMsgArray[2-errornum];

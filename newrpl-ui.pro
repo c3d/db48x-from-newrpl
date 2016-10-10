@@ -255,7 +255,7 @@ FORMS    += mainwindow.ui
 RESOURCES += \
     annunciators.qrc
 
-QMAKE_CFLAGS += -Wno-duplicate-decl-specifier
+#QMAKE_CFLAGS += -Wno-duplicate-decl-specifier
 
 
 
