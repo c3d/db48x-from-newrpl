@@ -181,6 +181,11 @@ void LIB_HANDLER()
         mulReal(&RReg[2], &RReg[0], &RReg[1]);
         y = getBINTReal(&RReg[2]);
 
+        if (!y) {
+            BINT tmp2, tmp3;
+            halGetSystemDate(&tmp, &tmp2, &y, &tmp3);
+        }
+
         switch (rplTestSystemFlag(FL_DATEFORMAT))
         {
         case 1:
