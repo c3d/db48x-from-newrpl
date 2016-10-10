@@ -50,6 +50,20 @@ int rtc_getyear()
 
 }
 
+int rtc_getdow()
+{
+    time_t now;
+    struct tm *timest;
+
+    time(&now);
+    timest=localtime(&now);
+
+    if(timest==NULL) return 0;
+    else return (timest->tm_wday==0)? 7:timest->tm_wday;
+
+}
+
+
 int rtc_getsec()
 {
     time_t now;

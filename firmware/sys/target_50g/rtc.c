@@ -144,9 +144,11 @@ int rtc_settime(int hour,int min,int sec)
     if(min<0 || min>59) return 0;
     if(sec<0 || sec>59) return 0;
 
+    do {
     __setRTCHour(hour);
     __setRTCMin(min);
     __setRTCSec(sec);
+    } while(! ((__getRTCHour()==hour) && (__getRTCMin()==min) && (__getRTCSec()==sec)));
 
     return 1;
 }

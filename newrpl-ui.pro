@@ -206,7 +206,8 @@ SOURCES += main.cpp\
     newrpl/lib-48-angles.c \
     newrpl/lib-74-sdcard.c \
     newrpl/lib-80-fonts.c \
-    firmware/sys/target_pc/rtc.c
+    firmware/sys/target_pc/rtc.c \
+    firmware/hal_clock.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
