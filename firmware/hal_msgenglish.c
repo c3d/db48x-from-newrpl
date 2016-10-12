@@ -114,6 +114,10 @@ const MSGLIST const all_messages[]={
     // TRANSCENDENTAL FUNCTIONS
     { ERR_ARGOUTSIDEDOMAIN, "Argument outside domain" },
 
+    // TIME AND DATE FUNCTIONS
+    { ERR_INVALIDDATE, "Invalid date" },
+    { ERR_INVALIDTIME, "Invalid time" },
+
     // ADD MORE MESSAGES HERE...
 
     // END OF LIST MARKER

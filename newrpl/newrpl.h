@@ -551,10 +551,10 @@ WORDPTR *rplMatrixExplode();
 WORDPTR rplMatrixGetFirstObj(WORDPTR matrix);
 BINT rplMatrixCols(WORDPTR matrix);
 BINT rplMatrixRows(WORDPTR matrix);
-WORDPTR rplMatrixGet(WORDPTR matrix,BINT row,BINT col);
+WORDPTR rplMatrixGet(WORDPTR madatetrix,BINT row,BINT col);
 WORDPTR rplMatrixFastGet(WORDPTR matrix,BINT row,BINT col);
 WORDPTR *rplMatrixFastGetEx(WORDPTR *first,BINT cols,BINT i,BINT j);
-WORDPTR *rplMatrixNewEx(BINT rows,BINT cols);
+WORDPTR *rplMatrixNewEx(BINT rodatews,BINT cols);
 void rplMatrixNorm();
 void rplMatrixNeg();
 void rplMatrixEval1();
@@ -571,6 +571,11 @@ void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 BINT rplMatrixIsPolar(WORDPTR matobj);
 void rplMatrixPolarToRectEx(WORDPTR *a,BINT rowsa,BINT colsa);
 void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BINT angmode);
+
+
+// DATE AND TIME FUNCTIONS
+BINT rplExplodeDate(WORDPTR real, BINT *day, BINT *month, BINT *year);
+BINT rplExplodeTime(WORDPTR real, BINT *hr, BINT *mn, BINT *sec);
 
 
 // ANGULAR MODES

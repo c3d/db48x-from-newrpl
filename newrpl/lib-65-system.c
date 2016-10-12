@@ -80,34 +80,55 @@ BINT rplGetFreeMemory()
     return mem;
 }
 
-// EXPLODE A REAL REPRESENTING A DATE INTO BINTS
-// ACCORDING TO THE SYSTEM DATE FORMAT FLAG.
-// USES RREG 0
-void explode_date(BINT *day, BINT *month, BINT *year, REAL *date)
+// EXPLODE A REAL REPRESENTING A DATE INTO BINTS.
+// DATE HAS THE FORM MM.DDYYYY OR DD.MMYYYY ,
+// DEPENDING ON THE STATE OF THE FLAG 'FL_DATEFORMAT'.
+// RETURN 1 IF AN INVALID DATE IS GIVEN, 0 OTHERWISE.
+BINT rplExplodeDate(WORDPTR real, BINT *day, BINT *month, BINT *year)
 {
-    rplReadNumberAsReal((WORDPTR)date, &RReg[0]);
-    RReg[0].exp += 6;
+    REAL date;
 
-    if (inBINTRange(&RReg[0])) {
-        *year = getBINTReal(&RReg[0]);
-        *month = *year / 1000000;
-        *year -= *month * 1000000;
-        *day = *year / 10000;
-        *year -= *day * 10000;
+    rplReadReal(real, &date);
+    date.exp += 6;
 
-        if (rplTestSystemFlag(FL_DATEFORMAT)) {
-            BINT swap = *month;
-            *month = *day;
-            *day = swap;
-        }
+    if (!inBINTRange(&date) || isNANorinfiniteReal(&date) || (date.flags & F_NEGATIVE))
+        return 1;
+
+    *year = getBINTReal(&date);
+    *month = *year / 1000000;
+    *year -= *month * 1000000;
+    *day = *year / 10000;
+    *year -= *day * 10000;
+
+    if (rplTestSystemFlag(FL_DATEFORMAT)) {
+        BINT swap = *month;
+        *month = *day;
+        *day = swap;
     }
 
-    return;
+    // VERIFY A VALID DATE IS GIVEN
+    if (*day<1 || *day>31) return 1;
+    if (*month<1 || *month>12) return 1;
+
+    // NOW CHECK FOR PROPER DAY OF THE MONTH
+
+    if (((*month==4) || (*month==6) ||
+         (*month==9) || (*month==11)) && (*day>30))
+            return 1;
+
+    if (*month == 2) {
+        // LEAP YEAR ?
+        if (!(*year & 3))
+            if (*day > 29) return 1;
+        else
+            if (*day > 28) return 1;
+    }
+
+    return 0;
 }
 /*
 // BUILD A REAL REPRESENTING A DATE FROM BINTS
 // ACCORDING TO THE SYSTEM DATE FORMAT FLAG
-// USES RREG 0
 void build_date(BINT d, BINT m, BINT y, REAL *date)
 {
     BINT _date;
@@ -125,22 +146,30 @@ void build_date(BINT d, BINT m, BINT y, REAL *date)
 }
 */
 
-// EXPLODE A REAL REPRESENTING A TIME IN HH.MMSS FORM, INTO BINTS
-// USES RREG 0
-void explode_time(BINT *hr, BINT *mn, BINT *sec, REAL *time)
+// EXPLODE A REAL REPRESENTING A TIME INTO BINTS.
+// TIME HAS THE FORM 'H.MMSS' WHERE H IS ZERO OR MORE DIGITS.
+// RETURN 1 IF AN INVALID TIME IS GIVEN, 0 OTHERWISE.
+BINT rplExplodeTime(WORDPTR real, BINT *hr, BINT *mn, BINT *sec)
 {
-    rplReadNumberAsReal((WORDPTR)time, &RReg[0]);
-    RReg[0].exp += 4;
+    REAL time;
 
-    if (inBINTRange(&RReg[0])) {
-        *sec = getBINTReal(&RReg[0]);
-        *hr = *sec / 10000;
-        *sec -= *hr * 10000;
-        *mn = *sec / 100;
-        *sec -= *mn * 100;
-    }
+    rplReadReal(real, &time);
+    time.exp += 4;
 
-    return;
+    if (!inBINTRange(&time) || isNANorinfiniteReal(&time) || (time.flags & F_NEGATIVE))
+        return 1;
+
+    *sec = getBINTReal(&time);
+    *hr = *sec / 10000;
+    *sec -= *hr * 10000;
+    *mn = *sec / 100;
+    *sec -= *mn * 100;
+
+    // VERIFY A VALID TIME IS GIVEN
+    if (*mn > 59) return 1;
+    if (*sec > 59) return 1;
+
+    return 0;
 }
 
 void LIB_HANDLER()
@@ -218,22 +247,31 @@ void LIB_HANDLER()
 
         arg_date = rplPeekData(1);
 
-        if(!ISREAL(*arg_date)) {
+        if (!ISREAL(*arg_date)) {
             rplError(ERR_BADARGTYPE);
             return;
         }
 
-        explode_date(&day, &month, &year, (REAL *)arg_date);
+        if (rplExplodeDate(arg_date, &day, &month, &year)) {
+            rplError(ERR_INVALIDDATE);
+            return;
+        }
 
         if (!year) {
             BINT tmp, tmp2, tmp3;
             halGetSystemDate(&tmp, &tmp2, &year, &tmp3);
         }
 
-        if (rplTestSystemFlag(FL_DATEFORMAT)) {
-            BINT swap = month;
-            month = day;
-            day = swap;
+        // CHECK FOR DATES SILENTLY REJECTED
+        if ((year>1991) && (year<2000)) {
+            rplDropData(1);
+            return;
+        }
+
+        // CHECK THE RANGE OF ALLOWABLE DATES
+        if ((year<2000) || (year>2090)) {
+            rplError(ERR_INVALIDDATE);
+            return;
         }
 
         halSetSystemDate(day, month, year);
@@ -259,8 +297,9 @@ void LIB_HANDLER()
             return;
         }
 
-        date_explode(&day, &month, &year, (REAL *)arg_date);
+        rpl_ExplodeDate(arg_date, &day, &month, &year);
 
+        //  roundReal()
         // NEED 'RND' COMMAND TO KEEP COMPATIBILITY
         // FOR NOW, WE TRUNCATE THE NUMBER OF DAYS
         days = getBINTReal((REAL *)arg_days);
@@ -288,18 +327,30 @@ void LIB_HANDLER()
     case SETTIME:
     {
         BINT hr, mn, sec;
+        WORDPTR arg_time;
 
         if (rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
 
-        if(!ISREAL(*rplPeekData(1))) {
+        arg_time = rplPeekData(1);
+
+        if (!ISREAL(*arg_time)) {
             rplError(ERR_BADARGTYPE);
             return;
         }
 
-        explode_time(&hr, &mn, &sec, (REAL *)rplPeekData(1));
+        if (rplExplodeTime(arg_time, &hr, &mn, &sec)) {
+            rplError(ERR_INVALIDTIME);
+            return;
+        }
+
+        if (hr > 23) {
+            rplError(ERR_INVALIDTIME);
+            return;
+        }
+
         halSetSystemTime(hr, mn, sec);
         rplDropData(1);
 
