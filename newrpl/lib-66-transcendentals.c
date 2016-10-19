@@ -1588,6 +1588,16 @@ void LIB_HANDLER()
             }
             return;
         case CPLX_ZERO:
+            {
+                // RETURN -INFINITY AND SET OVERFLOW
+                rplInfinityToRReg(0);
+                RReg[0].flags|=F_NEGATIVE;
+                rplDropData(1);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            }
+
         case CPLX_NORMAL:
         case CPLX_NORMAL|CPLX_POLAR:
         default:
@@ -1664,28 +1674,12 @@ void LIB_HANDLER()
 
         if(Exceptions) return;
 
-        if(iszeroReal(&x)) {
-            // RETURN -INFINITY AND SET OVERFLOW
-            rplInfinityToRReg(0);
-            RReg[0].flags|=F_NEGATIVE;
-            rplDropData(1);
-            rplNewRealFromRRegPush(0);
-            rplCheckResultAndError(&RReg[0]);
-            return;
-        }
 
         if(x.flags&F_NEGATIVE) {
             if(rplTestSystemFlag(FL_COMPLEXMODE)) {
                 // RETURN THE COMPLEX RESULT
 
                 x.flags^=F_NEGATIVE;
-
-                // HANDLE SPECIAL VALUES
-                if(isinfiniteReal(&x)) {
-                   rplError(ERR_INFINITERESULT);
-                   return;
-                }
-
 
                 hyp_ln(&x);
                 finalize(&RReg[0]);
@@ -1711,20 +1705,6 @@ void LIB_HANDLER()
             rplError(ERR_ARGOUTSIDEDOMAIN);
             return;
         }
-
-        // HANDLE SPECIAL VALUES
-        if(isinfiniteReal(&x)) {
-
-           if(rplTestSystemFlag(FL_INIFINITEERROR)) rplError(ERR_INFINITERESULT);
-           return;
-        }
-        if(isNANReal(&x)) {
-
-           rplError(ERR_UNDEFINEDRESULT);
-           return;
-        }
-
-
 
         hyp_ln(&x);
         finalize(&RReg[0]);
@@ -1782,6 +1762,7 @@ void LIB_HANDLER()
             return;
         }
         case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_INF|CPLX_POLAR:
         case CPLX_UNDINF:
             rplDropData(1);
             rplNANToRReg(0);
@@ -1880,19 +1861,6 @@ void LIB_HANDLER()
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
-        // HANDLE SPECIAL VALUES
-        if(isinfiniteReal(&dec)) {
-           if(dec.flags&F_NEGATIVE) {
-               // e^-Inf = 0
-               rplDropData(1);
-               rplNewBINTPush(0,DECBINT|((dec.flags&F_APPROX)? APPROX_BIT:0));
-               return;
-           }
-           rplError(ERR_INFINITERESULT);
-           return;
-        }
-
-
         hyp_exp(&dec);
 
         finalize(&RReg[0]);
@@ -1924,6 +1892,112 @@ void LIB_HANDLER()
             return;
         }
 
+        // HANDLE SPECIALS
+        BINT cclass=rplComplexClass(arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        {
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            rplDropData(1);
+            rplInfinityToRReg(0);
+            RReg[0].flags|=re.flags&F_NEGATIVE;
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        }
+
+        case CPLX_INF|CPLX_POLAR:
+        {
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            if(iszeroReal(&im)) {
+                // SINH(Inf) = Inf
+                rplDropData(1);
+                rplInfinityToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            }
+            REAL pi;
+            switch(angmode) {
+            case ANGLEDEG:
+            case ANGLEDMS:
+                decconst_180(&pi);
+                break;
+            case ANGLEGRAD:
+                decconst_200(&pi);
+                break;
+            case ANGLERAD:
+            default:
+                // NO NUMBER CAN BE EXACTLY EQUAL TO PI OR PI/2, THEREFORE IT'S UNDINF
+                rplDropData(1);
+                rplUndInfinityToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            }
+
+            im.flags&=~F_NEGATIVE;
+
+            if(eqReal(&im,&pi)) {
+                // SINH(-Inf)=-Inf
+                rplDropData(1);
+                rplInfinityToRReg(0);
+                RReg[0].flags|=F_NEGATIVE;
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            }
+
+            addReal(&RReg[0],&im,&im);
+
+            if(eqReal(&RReg[0],&pi)) {
+                // SINH(+/-i*Inf)=NaN
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            }
+
+            // SINH(Z*Inf) = UndInf
+            rplDropData(1);
+            rplUndInfinityToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+
+        }
+        case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
+        }
 
         if(ISCOMPLEX(*arg)) {
             // SINH OF A COMPLEX NUMBER
@@ -2093,8 +2167,112 @@ void LIB_HANDLER()
             return;
         }
 
+
+        // HANDLE SPECIALS
+        BINT cclass=rplComplexClass(arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        {
+            // COSH(+/-Inf)= +Inf
+            rplDropData(1);
+            rplInfinityToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        }
+
+        case CPLX_INF|CPLX_POLAR:
+        {
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            if(iszeroReal(&im)) {
+                // COSH(Inf) = Inf
+                rplDropData(1);
+                rplInfinityToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            }
+            REAL pi;
+            switch(angmode) {
+            case ANGLEDEG:
+            case ANGLEDMS:
+                decconst_180(&pi);
+                break;
+            case ANGLEGRAD:
+                decconst_200(&pi);
+                break;
+            case ANGLERAD:
+            default:
+                // NO NUMBER CAN BE EXACTLY EQUAL TO PI OR PI/2, THEREFORE IT'S UNDINF
+                rplDropData(1);
+                rplUndInfinityToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            }
+
+            im.flags&=~F_NEGATIVE;
+
+            if(eqReal(&im,&pi)) {
+                // COSH(-Inf)=+Inf
+                rplDropData(1);
+                rplInfinityToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            }
+
+            addReal(&RReg[0],&im,&im);
+
+            if(eqReal(&RReg[0],&pi)) {
+                // COSH(+/-i*Inf)=NaN
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            }
+
+            // COSH(Z*Inf) = UndInf
+            rplDropData(1);
+            rplUndInfinityToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+
+        }
+        case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
+        }
+
+
+
         if(ISCOMPLEX(*arg)) {
-            // SINH OF A COMPLEX NUMBER
+            // COSH OF A COMPLEX NUMBER
 
             REAL re,im,one;
             BINT angmode;
@@ -2264,6 +2442,93 @@ void LIB_HANDLER()
         }
 
 
+        // HANDLE SPECIALS
+        BINT cclass=rplComplexClass(arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        {
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            // TANH(+/-Inf)=+/- 1
+            rplDropData(1);
+            if(re.flags&F_NEGATIVE) rplNewBINTPush(-1,DECBINT);
+            else rplPushData((WORDPTR)one_bint);
+            return;
+        }
+
+        case CPLX_INF|CPLX_POLAR:
+        {
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            REAL pi2;
+            switch(angmode) {
+            case ANGLEDEG:
+            case ANGLEDMS:
+                decconst_90(&pi2);
+                break;
+            case ANGLEGRAD:
+                decconst_100(&pi2);
+                break;
+            case ANGLERAD:
+            default:
+                decconst_PI_2(&pi2);
+            }
+
+            im.flags&=~F_NEGATIVE;
+
+            switch(cmpReal(&im,&pi2))
+            {
+            case 1: // ARG(Z)> PI/2
+                rplDropData(1);
+                rplNewBINTPush(-1,DECBINT);
+                return;
+            case -1:
+                rplOverwriteData(1,(WORDPTR)one_bint);
+                return;
+            default:
+            case 0: // ARG(Z)== PI/2
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+
+
+            }
+
+        }
+        case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
+        }
+
+
+
         if(ISCOMPLEX(*arg)) {
             // TANH OF A COMPLEX NUMBER
 
@@ -2425,6 +2690,99 @@ void LIB_HANDLER()
             return;
         }
 
+        // HANDLE SPECIALS
+        BINT cclass=rplComplexClass(arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        {
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            // ASINH(+/-Inf)=+/- Inf
+            rplDropData(1);
+            rplInfinityToRReg(0);
+            RReg[0].flags|=re.flags&F_NEGATIVE;
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        }
+
+        case CPLX_INF|CPLX_POLAR:
+        {
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            REAL pi2;
+            switch(angmode) {
+            case ANGLEDEG:
+            case ANGLEDMS:
+                decconst_90(&pi2);
+                break;
+            case ANGLEGRAD:
+                decconst_100(&pi2);
+                break;
+            case ANGLERAD:
+            default:
+                decconst_PI_2(&pi2);
+            }
+
+            im.flags&=~F_NEGATIVE;
+
+            switch(cmpReal(&im,&pi2))
+            {
+            case 1: // ARG(Z)> PI/2
+                rplDropData(1);
+                rplInfinityToRReg(0);
+                RReg[0].flags|=F_NEGATIVE;
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            case -1:
+                rplDropData(1);
+                rplInfinityToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            default:
+            case 0: // ARG(Z)== PI/2
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+
+
+            }
+
+        }
+        case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
+        }
+
 
         if(ISCOMPLEX(*arg)) {
 
@@ -2459,10 +2817,10 @@ void LIB_HANDLER()
             //ASINH(Z)=LN(Z+SQRT(1+Z^2))
 
             // Z^2 = (re^2-im^2+2*i*re*im)
-            // 1+Z^2 = (1+re^2+im^2)+i*(2*re*im)
+            // 1+Z^2 = (1+re^2-im^2)+i*(2*re*im)
             // BUT WE NEED IT IN POLAR FORM TO COMPUTE SQRT
-            // SQRT(r) = SQRT(SQRT( (1+re^2+im^2)^2 + 4*re^2*im^2 ))
-            // arg = atan2( 2*re*im , 1+re^2+im^2 )
+            // SQRT(r) = SQRT(SQRT( (1+re^2-im^2)^2 + 4*re^2*im^2 ))
+            // arg = atan2( 2*re*im , 1+re^2-im^2 )
             // NOW ADD Z, SO WE NEED IT BACK IN CARTESIAN COORDINATES
             // FINALLY, LN REQUIRES ARGUMENT IN POLAR COORDINATES AGAIN
 
@@ -2471,7 +2829,7 @@ void LIB_HANDLER()
             mulReal(&RReg[1],&im,&im);
 
             addReal(&RReg[6],&one,&RReg[0]);
-            addReal(&RReg[8],&RReg[6],&RReg[1]);    // 1+re^2+im^2
+            subReal(&RReg[8],&RReg[6],&RReg[1]);    // 1+re^2-im^2
             mulReal(&RReg[5],&re,&im);
             addReal(&RReg[9],&RReg[5],&RReg[5]);    // 2*re*im
 
@@ -2621,6 +2979,46 @@ void LIB_HANDLER()
             rplListUnaryDoCmd();
             return;
         }
+
+
+        BINT cclass=rplComplexClass(arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        case CPLX_INF|CPLX_POLAR:
+        case CPLX_INF|CPLX_MALFORMED:
+        {
+            rplDropData(1);
+            rplInfinityToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        }
+
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
+        }
+
+
+
 
         if(ISCOMPLEX(*arg)) {
 
@@ -2902,6 +3300,116 @@ void LIB_HANDLER()
             rplListUnaryDoCmd();
             return;
         }
+
+
+        BINT cclass=rplComplexClass(arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        {
+            REAL pi2;
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            decconst_PI_2(&pi2);
+
+            copyReal(&RReg[0],&pi2);
+            finalize(&RReg[0]); // TRIM EXCESS DIGITS
+            RReg[0].flags|=(~re.flags)&F_NEGATIVE;
+            rplZeroToRReg(1);
+            rplDropData(1);
+            rplNewComplexPush(&RReg[1],&RReg[0],ANGLENONE);
+            if(!rplTestSystemFlag(FL_COMPLEXMODE)) {
+                if(!Exceptions) rplError(ERR_COMPLEXRESULT);
+            }
+            return;
+        }
+
+
+        case CPLX_INF|CPLX_MALFORMED:
+        {
+            REAL pi2;
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            decconst_PI_2(&pi2);
+
+            copyReal(&RReg[0],&pi2);
+            finalize(&RReg[0]); // TRIM EXCESS DIGITS
+            RReg[0].flags|=im.flags&F_NEGATIVE;
+            rplZeroToRReg(1);
+            rplDropData(1);
+            rplNewComplexPush(&RReg[1],&RReg[0],ANGLENONE);
+            if(!rplTestSystemFlag(FL_COMPLEXMODE)) {
+                if(!Exceptions) rplError(ERR_COMPLEXRESULT);
+            }
+            return;
+        }
+
+
+        case CPLX_INF|CPLX_POLAR:
+
+        {
+            REAL pi2;
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            switch(angmode) {
+            case ANGLEDEG:
+            case ANGLEDMS:
+                decconst_90(&pi2);
+                break;
+            case ANGLEGRAD:
+                decconst_100(&pi2);
+                break;
+            case ANGLERAD:
+            default:
+                decconst_PI_2(&pi2);
+            }
+
+            copyReal(&RReg[0],&pi2);
+            finalize(&RReg[0]); // TRIM EXCESS DIGITS
+            im.flags&=~F_NEGATIVE;
+
+            if(cmpReal(&im,&pi2)>=0) RReg[0].flags|=F_NEGATIVE;
+
+            rplZeroToRReg(1);
+            rplDropData(1);
+            rplNewComplexPush(&RReg[1],&RReg[0],ANGLENONE);
+            if(!rplTestSystemFlag(FL_COMPLEXMODE)) {
+                if(!Exceptions) rplError(ERR_COMPLEXRESULT);
+            }
+            return;
+        }
+
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
+        }
+
 
 
         if(ISCOMPLEX(*arg)) {
