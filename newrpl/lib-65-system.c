@@ -65,16 +65,82 @@
 // RETURN RPL'S FREE RAM MEMORY IN BYTES
 BINT rplGetFreeMemory()
 {
-    BINT mem = halGetFreePages() << 12;
+    BINT mem = 0;
 
-    mem += (1024 - ((DSTop - DStk) & 0x3ff)) << 2;
-    mem += (1024 - ((RSTop - RStk) & 0x3ff)) << 2;
-    mem += (1024 - ((LAMs - LAMTop) & 0x3ff)) << 2;
-    mem += (1024 - ((DirsTop - Directories) & 0x3ff)) << 2;
-    mem += (1024 - ((TempBlocksEnd - TempBlocks) & 0x3ff)) << 2;
-    mem += (1024 - ((TempObEnd - TempOb) & 0x3ff)) << 2;
+    mem += (DSTop - DStk) & 0x3ff;
+    mem += (RSTop - RStk) & 0x3ff;
+    mem += (LAMs - LAMTop) & 0x3ff;
+    mem += (DirsTop - Directories) & 0x3ff;
+    mem += (TempBlocksEnd - TempBlocks) & 0x3ff;
+    mem += (TempObEnd - TempOb) & 0x3ff;
+
+    mem = ((6 * 1024) - mem) << 2;
+    mem += halGetFreePages() << 12;
 
     return mem;
+}
+
+// EXPLODE A REAL REPRESENTING A DATE INTO BINTS
+// ACCORDING TO THE SYSTEM DATE FORMAT FLAG.
+// USES RREG 0
+void explode_date(BINT *day, BINT *month, BINT *year, REAL *date)
+{
+    rplReadNumberAsReal((WORDPTR)date, &RReg[0]);
+    RReg[0].exp += 6;
+
+    if (inBINTRange(&RReg[0])) {
+        *year = getBINTReal(&RReg[0]);
+        *month = *year / 1000000;
+        *year -= *month * 1000000;
+        *day = *year / 10000;
+        *year -= *day * 10000;
+
+        if (rplTestSystemFlag(FL_DATEFORMAT)) {
+            BINT swap = *month;
+            *month = *day;
+            *day = swap;
+        }
+    }
+
+    return;
+}
+/*
+// BUILD A REAL REPRESENTING A DATE FROM BINTS
+// ACCORDING TO THE SYSTEM DATE FORMAT FLAG
+// USES RREG 0
+void build_date(BINT d, BINT m, BINT y, REAL *date)
+{
+    BINT _date;
+
+    _date = y;
+    if (rplTestSystemFlag(FL_DATEFORMAT)) {
+        _date += m * 10000;
+        _date += d * 1000000;
+    } else {
+        _date += d * 10000;
+        _date += m * 1000000;
+    }
+
+    return;
+}
+*/
+
+// EXPLODE A REAL REPRESENTING A TIME IN HH.MMSS FORM, INTO BINTS
+// USES RREG 0
+void explode_time(BINT *hr, BINT *mn, BINT *sec, REAL *time)
+{
+    rplReadNumberAsReal((WORDPTR)time, &RReg[0]);
+    RReg[0].exp += 4;
+
+    if (inBINTRange(&RReg[0])) {
+        *sec = getBINTReal(&RReg[0]);
+        *hr = *sec / 10000;
+        *sec -= *hr * 10000;
+        *mn = *sec / 100;
+        *sec -= *mn * 100;
+    }
+
+    return;
 }
 
 void LIB_HANDLER()
@@ -122,131 +188,118 @@ void LIB_HANDLER()
     }
     case DATE:
     {
-        BINT _date;
-        REAL date;
-        int d, m, y, dow;
+        BINT date, day, month, year, tmp;
 
-        halGetSystemDate(&d, &m, &y, &dow);
+        halGetSystemDate(&day, &month, &year, &tmp);
 
-        _date = y;
-        switch (rplTestSystemFlag(FL_DATEFORMAT))
-        {
-        case 0:
-            _date += d * 10000;
-            _date += m * 1000000;
-            break;
-        case 1:
-            _date += m * 10000;
-            _date += d * 1000000;
-            break;
-        default:
-            rplError(ERR_SYSTEMFLAGSINVALID);
-            return;
+        date = year;
+        if (rplTestSystemFlag(FL_DATEFORMAT)) {
+            tmp = month;
+            month = day;
+            day = tmp;
         }
+        date += day * 10000;
+        date += month * 1000000;
 
-        initReal(&date);
-        newRealFromBINT(&date, _date, -6);
-        rplNewRealPush(&date);
-        destroyReal(&date);
+        newRealFromBINT(&RReg[0], date, -6);
+        rplNewRealPush(&RReg[0]);
 
         return;
     }
     case SETDATE:
     {
-        BINT d, m, y, tmp;
-        WORDPTR arg;
+        BINT day, month, year;
+        WORDPTR arg_date;
 
-        if (rplDepthData()<1) {
+        if (rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
 
-        arg = rplPeekData(1);
+        arg_date = rplPeekData(1);
 
-        if(!ISREAL(*arg)) {
+        if(!ISREAL(*arg_date)) {
             rplError(ERR_BADARGTYPE);
             return;
         }
 
-        rplCopyRealToRReg(0, arg);
-        m = getBINTReal(&RReg[0]);
+        explode_date(&day, &month, &year, (REAL *)arg_date);
 
-        fracReal(&RReg[1], &RReg[0]);
-        rplBINTToRReg(2, 100);
-        mulReal(&RReg[0], &RReg[1], &RReg[2]);
-        d = getBINTReal(&RReg[0]);
-
-        fracReal(&RReg[1], &RReg[0]);
-        rplBINTToRReg(0, 10000);
-        mulReal(&RReg[2], &RReg[0], &RReg[1]);
-        y = getBINTReal(&RReg[2]);
-
-        switch (rplTestSystemFlag(FL_DATEFORMAT))
-        {
-        case 1:
-            tmp = m;
-            m = d;
-            d = tmp;
-            break;
-        case -2:
-            rplError(ERR_SYSTEMFLAGSINVALID);
-            return;
+        if (!year) {
+            BINT tmp, tmp2, tmp3;
+            halGetSystemDate(&tmp, &tmp2, &year, &tmp3);
         }
 
-        halSetSystemDate(d, m, y);
+        if (rplTestSystemFlag(FL_DATEFORMAT)) {
+            BINT swap = month;
+            month = day;
+            day = swap;
+        }
+
+        halSetSystemDate(day, month, year);
         rplDropData(1);
 
         return;
-    }
+    }/*
+    case DATEADD:
+    {
+        WORDPTR arg_date, arg_days;
+        BINT day, month, year, days;
+
+        if (rplDepthData() < 2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        arg_days = rplPeekData(1);
+        arg_date = rplPeekData(2);
+
+        if(!ISREAL(*arg_days) || !ISREAL(*arg_date)) {
+            rplError(ERR_BADARGTYPE);
+            return;
+        }
+
+        date_explode(&day, &month, &year, (REAL *)arg_date);
+
+        // NEED 'RND' COMMAND TO KEEP COMPATIBILITY
+        // FOR NOW, WE TRUNCATE THE NUMBER OF DAYS
+        days = getBINTReal((REAL *)arg_days);
+
+        // 2:Date 1:%
+        // RND
+        // DATE+
+        return;
+    }*/
     case TIME:
     {
-        BINT _time;
-        REAL time;
-        int hr, mn, sec;
+        BINT time, hr, mn, sec;
 
         halGetSystemTime(&hr, &mn, &sec);
 
-        _time = sec;
-        _time += mn * 100;
-        _time += hr * 10000;
+        time = sec;
+        time += mn * 100;
+        time += hr * 10000;
 
-        initReal(&time);
-        newRealFromBINT(&time, _time, -4);
-        rplNewRealPush(&time);
-        destroyReal(&time);
+        newRealFromBINT(&RReg[0], time, -4);
+        rplNewRealPush(&RReg[0]);
 
         return;
     }
     case SETTIME:
     {
         BINT hr, mn, sec;
-        WORDPTR arg;
 
-        if (rplDepthData()<1) {
+        if (rplDepthData() < 1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
 
-        arg = rplPeekData(1);
-
-        if(!ISREAL(*arg)) {
+        if(!ISREAL(*rplPeekData(1))) {
             rplError(ERR_BADARGTYPE);
             return;
         }
 
-        rplCopyRealToRReg(0, arg);
-        hr = getBINTReal(&RReg[0]);
-
-        fracReal(&RReg[1], &RReg[0]);
-        rplBINTToRReg(2, 100);
-        mulReal(&RReg[0], &RReg[1], &RReg[2]);
-        mn = getBINTReal(&RReg[0]);
-
-        fracReal(&RReg[1], &RReg[0]);
-        rplBINTToRReg(0, 100);
-        mulReal(&RReg[2], &RReg[0], &RReg[1]);
-        sec = getBINTReal(&RReg[2]);
-
+        explode_time(&hr, &mn, &sec, (REAL *)rplPeekData(1));
         halSetSystemTime(hr, mn, sec);
         rplDropData(1);
 
@@ -537,8 +590,6 @@ void LIB_HANDLER()
     rplError(ERR_INVALIDOPCODE);
 
     return;
-
-
 }
 
 
