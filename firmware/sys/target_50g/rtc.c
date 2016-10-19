@@ -120,17 +120,13 @@ int rtc_setdate(int day,int month,int year)
     if(dow==0) dow=7;   // CONVERT TO 1=MONDAY ... 7=SUNDAY
 
 
-    do {
+    __setRTCDay(1); // TO PREVENT ROLLOVER AT MIDNIGHT
     // WE HAVE A VALID DATE
     __setRTCYear(year-2000);
     __setRTCMon(month);
+    __setRTCDow(dow);
     __setRTCDay(day);
 
-    __setRTCDow(dow);
-
-    // CHECK FOR ROLLOVER AT MIDNIGHT
-
-    } while(! ((__getRTCYear()==year-2000) && (__getRTCMon()==month) && (__getRTCDay()==day)));
 
 
     return 1;
@@ -144,11 +140,10 @@ int rtc_settime(int hour,int min,int sec)
     if(min<0 || min>59) return 0;
     if(sec<0 || sec>59) return 0;
 
-    do {
+    __setRTCSec(1); // TO PREVENT ROLLOVER
     __setRTCHour(hour);
     __setRTCMin(min);
     __setRTCSec(sec);
-    } while(! ((__getRTCHour()==hour) && (__getRTCMin()==min) && (__getRTCSec()==sec)));
 
     return 1;
 }
