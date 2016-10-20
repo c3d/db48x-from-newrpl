@@ -128,7 +128,6 @@ typedef union {
 } REAL_HEADER;
 
 
-
 // ERROR MANAGEMENT FUNCTIONS
 void decTrapHandler(BINT error);
 void rplSetExceptionHandler(WORDPTR Handler);
@@ -574,8 +573,16 @@ void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BI
 
 
 // DATE AND TIME FUNCTIONS
-BINT rplExplodeDate(WORDPTR real, BINT *day, BINT *month, BINT *year);
-BINT rplExplodeTime(WORDPTR real, BINT *hr, BINT *mn, BINT *sec);
+BINT rplReadRealAsDate(REAL *date);
+BINT rplReadRealAsDateNoCk(REAL *date);
+BINT rplReadDateAsReal(BINT date, REAL *real);
+BINT rplIsValidDate(BINT date);
+BINT rplDateToDays(BINT date);
+BINT rplDaysToDate(BINT days);
+BINT rplReadRealAsTime(REAL *time);
+BINT rplReadTimeAsReal(BINT time, REAL *real);
+void rplDecimalToHMS(REAL *dec, REAL *hms);
+void rplHMSToDecimal(REAL *hms, REAL *dec);
 
 
 // ANGULAR MODES
