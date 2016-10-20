@@ -98,6 +98,8 @@ UBINT ArgNum1,ArgNum2,ArgNum3,RetNum;
 #define DecompMode ArgNum1
 
 #define BlankLen ArgNum2
+#define DecompHints ArgNum2
+
 #define CurrentConstruct ArgNum3
 #define SuggestedOpcode  ArgNum3
 #define ObjectID   ArgNum3

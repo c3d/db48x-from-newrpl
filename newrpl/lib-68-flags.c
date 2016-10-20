@@ -93,7 +93,7 @@ ROMOBJECT numfmt_ident[]= {
 ROMOBJECT menu1_ident[]= {
         MKPROLOG(DOIDENT,2),
         TEXT2WORD('M','e','n','u'),
-        TEXT2WORD('l',0,0,0)
+        TEXT2WORD('1',0,0,0)
 };
 
 ROMOBJECT menu2_ident[]= {
