@@ -58,7 +58,8 @@
     CMD(SUBTMOD,MKTOKENINFO(7,TITYPE_FUNCTION,2,2)), \
     CMD(MULTMOD,MKTOKENINFO(7,TITYPE_FUNCTION,2,2)), \
     CMD(PEVAL,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
-    CMD(PCOEF,MKTOKENINFO(5,TITYPE_FUNCTION,1,2))
+    CMD(PCOEF,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
+    CMD(IEGCD,MKTOKENINFO(5,TITYPE_FUNCTION,2,2))
 
 
 // ADD MORE OPCODES HERE
@@ -1166,6 +1167,7 @@ void LIB_HANDLER()
 
     case GCD:
     case LCM:
+    case IEGCD:
     {
 
             if(rplDepthData()<2) {
@@ -1194,8 +1196,18 @@ void LIB_HANDLER()
                 BINT64 a1=rplReadBINT(arg1);
                 BINT64 a2=rplReadBINT(arg2);
                 BINT64 r1,r2,r3,gcd;
-                if(a1 < 0) a1 = -a1;
-                if(a2 < 0) a2 = -a2;
+                BINT64 q,s1,s2,s3,t1,t2,t3,s,t;
+                BINT extended = (OPCODE(CurOpcode) == IEGCD);
+                BINT chs1 = 0;
+                BINT chs2 = 0;
+                if(a1 < 0) {
+                    a1 = -a1;
+                    chs1 = 1;
+                }
+                if(a2 < 0) {
+                    a2 = -a2;
+                    chs2 = 1;
+                }
                 if(a1 > a2){
                     r1 = a1;
                     r2 = a2;
@@ -1210,35 +1222,102 @@ void LIB_HANDLER()
                 }
                 // avoid swapping elements by loop unrolling
                 BINT notfinished = 1;
+                if (extended) {
+                    s1 = 1;
+                    s2 = 0;
+                    t1 = 0;
+                    t2 = 1;
+                }
                 do {
                     if(r2!=0){
                         r3 = r1%r2;
+                        if(extended){
+                            //remainder = (dividend%divisor + divisor)%divisor;  // also for negative numbers
+                            //quotient = (dividend-remainder)/divisor;
+                            q = (r1-r3)/r2;
+                            s3 = s1 - q*s2;
+                            t3 = t1 - q*t2;
+                        }
                     }
                     else {
                         gcd = r1;
                         notfinished = 0;
+                        if(extended){
+                            s = s1;
+                            t = t1;
+                        }
                         break;
                     }
                     if(r3!=0){
                         r1 = r2%r3;
+                        if(extended){
+                            q = (r2-r1)/r3;
+                            s1 = s2 - q*s3;
+                            t1 = t2 - q*t3;
+                        }
                     }
                     else {
                         gcd = r2;
                         notfinished = 0;
+                        if(extended){
+                            s = s2;
+                            t = t2;
+                        }
                         break;
                     }
                     if(r1!=0){
                         r2 = r3%r1;
+                        if(extended){
+                            q = (r3-r2)/r1;
+                            s2 = s3 - q*s1;
+                            t2 = t3 - q*t1;
+                        }
                     }
                     else {
                         gcd = r3;
                         notfinished = 0;
+                        if(extended){
+                            s = s3;
+                            t = t3;
+                        }
                         break;
                     }
                 } while (notfinished);
                 if (OPCODE(CurOpcode) == GCD) {
                     rplDropData(2);
                     rplNewBINTPush(gcd,DECBINT);
+                }
+                else if (OPCODE(CurOpcode) == IEGCD) {
+                    rplDropData(2);
+                    rplNewBINTPush(gcd,DECBINT);
+                    if(a1 > a2){
+                        if (chs1) {
+                            rplNewBINTPush(-s,DECBINT);
+                        }
+                        else {
+                            rplNewBINTPush(s,DECBINT);
+                        }
+                        if (chs2) {
+                            rplNewBINTPush(-t,DECBINT);
+                        }
+                        else {
+                            rplNewBINTPush(t,DECBINT);
+                        }
+                    }
+                    else {
+                        if (chs1) {
+                            rplNewBINTPush(-t,DECBINT);
+                        }
+                        else {
+                            rplNewBINTPush(t,DECBINT);
+                        }
+                        if (chs2) {
+                            rplNewBINTPush(-s,DECBINT);
+                        }
+                        else {
+                            rplNewBINTPush(s,DECBINT);
+                        }
+                    }
                 }
                 else // LCM(a1,a2) = a1*a2/gcd(a1,a2)
                 {
