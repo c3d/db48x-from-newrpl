@@ -1191,15 +1191,16 @@ void LIB_HANDLER()
                 return;
             }
 
+            BINT extended = (OPCODE(CurOpcode) == IEGCD);
+            BINT chs1 = 0;
+            BINT chs2 = 0;
+            BINT swapped = 0;
             if(ISBINT(*arg1) && ISBINT(*arg2)) {
 
                 BINT64 a1=rplReadBINT(arg1);
                 BINT64 a2=rplReadBINT(arg2);
                 BINT64 r1,r2,r3,gcd;
                 BINT64 q,s1,s2,s3,t1,t2,t3,s,t;
-                BINT extended = (OPCODE(CurOpcode) == IEGCD);
-                BINT chs1 = 0;
-                BINT chs2 = 0;
                 if(a1 < 0) {
                     a1 = -a1;
                     chs1 = 1;
@@ -1215,6 +1216,7 @@ void LIB_HANDLER()
                 else {
                     r2 = a1;
                     r1 = a2;
+                    swapped = 1;
                 }
                 if (r2 == (BINT64)0) {
                     rplError(ERR_MATHDIVIDEBYZERO);
@@ -1290,7 +1292,7 @@ void LIB_HANDLER()
                 else if (OPCODE(CurOpcode) == IEGCD) {
                     rplDropData(2);
                     rplNewBINTPush(gcd,DECBINT);
-                    if(a1 > a2){
+                    if(!swapped){
                         if (chs1) {
                             rplNewBINTPush(-s,DECBINT);
                         }
@@ -1348,11 +1350,17 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT igcd = 0;
-            if(RReg[1].flags&F_NEGATIVE) RReg[1].flags^=F_NEGATIVE;
-            if(RReg[2].flags&F_NEGATIVE) RReg[2].flags^=F_NEGATIVE;
-            if(gtReal(&RReg[2],&RReg[1])){
+            if(RReg[1].flags&F_NEGATIVE) {
+                RReg[1].flags^=F_NEGATIVE;
+                chs1 = 1;
+            }
+            if(RReg[2].flags&F_NEGATIVE) {
+                RReg[2].flags^=F_NEGATIVE;
+                chs2 = 1;
+            }
+            if(gtReal(&RReg[2],&RReg[1])) {
                 swapReal(&RReg[2],&RReg[1]);
+                swapped = 1;
             }
             if (iszeroReal(&RReg[2])) {
                 rplError(ERR_MATHDIVIDEBYZERO);
@@ -1379,39 +1387,134 @@ void LIB_HANDLER()
 
             // avoid swapping elements by loop unrolling
             BINT notfinished = 1;
+            const BINT q=0,r1=1,r2=2,r3=3,s1=4,s2=5,s3=6,t1=7,t2=8,t3=9;
+            BINT igcd,s,t;
+            REAL tmp;
+            if (extended) {
+                newRealFromBINT(&RReg[s1],1,0);
+                newRealFromBINT(&RReg[s2],0,0);
+                newRealFromBINT(&RReg[t1],0,0);
+                newRealFromBINT(&RReg[t2],1,0);
+                tmp.data=allocRegister();
+            }
             do {
-                if(!iszeroReal(&RReg[2])){
-                    divmodReal(&RReg[0],&RReg[3],&RReg[1],&RReg[2]);
+                if(!iszeroReal(&RReg[r2])){
+                    divmodReal(&RReg[q],&RReg[r3],&RReg[r1],&RReg[r2]);
+                    if(extended){
+                        mulReal(&tmp,&RReg[q],&RReg[s2]);
+                        subReal(&RReg[s3],&RReg[s1],&tmp);
+                        mulReal(&tmp,&RReg[q],&RReg[t2]);
+                        subReal(&RReg[t3],&RReg[t1],&tmp);
+                        //s3 = s1 - q*s2;
+                        //t3 = t1 - q*t2;
+                    }
                 }
                 else {
-                    igcd = 1;
+                    igcd = r1;
                     notfinished = 0;
+                    if(extended){
+                        s = s1;
+                        t = t1;
+                    }
                     break;
                 }
-                if(!iszeroReal(&RReg[3])){
-                    divmodReal(&RReg[0],&RReg[1],&RReg[2],&RReg[3]);
+                if(!iszeroReal(&RReg[r3])){
+                    divmodReal(&RReg[q],&RReg[r1],&RReg[r2],&RReg[r3]);
+                    if(extended){
+                        mulReal(&tmp,&RReg[q],&RReg[s3]);
+                        subReal(&RReg[s1],&RReg[s2],&tmp);
+                        mulReal(&tmp,&RReg[q],&RReg[t3]);
+                        subReal(&RReg[t1],&RReg[t2],&tmp);
+                        //s1 = s2 - q*s3;
+                        //t1 = t2 - q*t3;
+                    }
                 }
                 else {
-                    igcd = 2;
+                    igcd = r2;
                     notfinished = 0;
+                    if(extended){
+                        s = s2;
+                        t = t2;
+                    }
                     break;
                 }
-                if(!iszeroReal(&RReg[1])){
-                    divmodReal(&RReg[0],&RReg[2],&RReg[3],&RReg[1]);
+                if(!iszeroReal(&RReg[r1])){
+                    divmodReal(&RReg[q],&RReg[r2],&RReg[r3],&RReg[r1]);
+                    if(extended){
+                        mulReal(&tmp,&RReg[q],&RReg[s1]);
+                        subReal(&RReg[s2],&RReg[s3],&tmp);
+                        mulReal(&tmp,&RReg[q],&RReg[t1]);
+                        subReal(&RReg[t2],&RReg[t3],&tmp);
+                        //s2 = s3 - q*s1;
+                        //t2 = t3 - q*t1;
+                    }
                 }
                 else {
-                    igcd = 3;
+                    igcd = r3;
                     notfinished = 0;
+                    if(extended){
+                        s = s3;
+                        t = t3;
+                    }
                     break;
                 }
             } while (notfinished);
 
+            if (extended) {
+                freeRegister(tmp.data);
+            }
 
             if (OPCODE(CurOpcode) == GCD) {
                 Context.precdigits=saveprec;
                 rplDropData(2);
                 rplNewRealFromRRegPush(igcd);
                 rplCheckResultAndError(&RReg[igcd]);
+            }
+            else if (OPCODE(CurOpcode) == IEGCD) {
+                Context.precdigits=saveprec;
+                rplDropData(2);
+                rplNewRealFromRRegPush(igcd);
+                rplCheckResultAndError(&RReg[igcd]);
+                if(!swapped){
+                    if (chs1) {
+                        RReg[s].flags^=F_NEGATIVE;
+                        rplNewRealFromRRegPush(s);
+                        rplCheckResultAndError(&RReg[s]);
+                    }
+                    else {
+                        rplNewRealFromRRegPush(s);
+                        rplCheckResultAndError(&RReg[s]);
+                    }
+                    if (chs2) {
+                        RReg[t].flags^=F_NEGATIVE;
+                        rplNewRealFromRRegPush(t);
+                        rplCheckResultAndError(&RReg[t]);
+                    }
+                    else {
+                        rplNewRealFromRRegPush(t);
+                        rplCheckResultAndError(&RReg[t]);
+                    }
+                }
+                else {
+                    if (chs1) {
+                        RReg[t].flags^=F_NEGATIVE;
+                        rplNewRealFromRRegPush(t);
+                        rplCheckResultAndError(&RReg[t]);
+                    }
+                    else {
+                        rplNewRealFromRRegPush(t);
+                        rplCheckResultAndError(&RReg[t]);
+                    }
+                    if (chs2) {
+                        RReg[s].flags^=F_NEGATIVE;
+                        rplNewRealFromRRegPush(s);
+                        rplCheckResultAndError(&RReg[s]);
+                    }
+                    else {
+                        rplNewRealFromRRegPush(s);
+                        rplCheckResultAndError(&RReg[s]);
+                    }
+                }
             }
             else // LCM(a1,a2) = a1*a2/gcd(a1,a2)
             {
