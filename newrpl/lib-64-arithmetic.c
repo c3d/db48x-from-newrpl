@@ -20,7 +20,7 @@
 
 #define ERROR_LIST \
         ERR(VECTOROFNUMBERSEXPECTED,0), \
-        ERR(ERR2,1)
+        ERR(IABCUV_NO_SOLUTION,1)
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -59,7 +59,8 @@
     CMD(MULTMOD,MKTOKENINFO(7,TITYPE_FUNCTION,2,2)), \
     CMD(PEVAL,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
     CMD(PCOEF,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
-    CMD(IEGCD,MKTOKENINFO(5,TITYPE_FUNCTION,2,2))
+    CMD(IEGCD,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
+    CMD(IABCUV,MKTOKENINFO(6,TITYPE_FUNCTION,2,2))
 
 
 // ADD MORE OPCODES HERE
@@ -1685,6 +1686,111 @@ void LIB_HANDLER()
 
     }
 
+    case IABCUV:
+    {
+        if(rplDepthData()<3) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR arg0=rplPeekData(3);
+        WORDPTR arg1=rplPeekData(2);
+        WORDPTR arg2=rplPeekData(1);
+
+//        if(ISLIST(*arg1) || ISLIST(*arg2)){
+//            rplListBinaryDoCmd(arg1,arg2);
+//            return;
+//        }
+//        else
+        if((ISIDENT(*arg0) || ISSYMBOLIC(*arg0)) || (ISIDENT(*arg1) || ISSYMBOLIC(*arg1)) || (ISIDENT(*arg2) || ISSYMBOLIC(*arg2))){
+                rplSymbApplyOperator(CurOpcode,3);
+                return;
+        }
+
+        if( !ISNUMBER(*arg0) ||  !ISNUMBER(*arg1) || !ISNUMBER(*arg2)) {
+            rplError(ERR_BADARGTYPE);
+            return;
+        }
+
+        WORDPTR *savestk=DSTop; // Drop arguments in case of error
+
+        // Stack: A B C
+        rplPushData(rplPeekData(3));
+        rplPushData(rplPeekData(3));
+        // Stack: A B C A B
+
+        rplCallOperator(MKOPCODE(LIBRARY_NUMBER,IEGCD));
+        if(Exceptions) {
+            if(DSTop>savestk) DSTop=savestk;
+            return;
+        }
+
+        // Stack: A B C GCD(A,B) S T
+        //        6 5 4   3      2 1
+
+        // check for Solution Condition: C MOD GCD(A,B) = 0
+        WORDPTR wp_c=rplPeekData(4);
+        WORDPTR wp_gcd_ab=rplPeekData(3);
+        WORDPTR wp_s=rplPeekData(2);
+        WORDPTR wp_t=rplPeekData(1);
+        if(ISBINT(*wp_s) && ISBINT(*wp_t) && ISBINT(*wp_c) && ISBINT(*wp_gcd_ab)) {
+
+            BINT64 c=rplReadBINT(wp_c);
+            BINT64 gcd=rplReadBINT(wp_gcd_ab);
+            BINT64 r = (c%gcd + gcd)%gcd;
+            if (r == 0) {
+                BINT64 q = (c-r)/gcd;
+                BINT64 s = rplReadBINT(wp_s);
+                BINT64 t = rplReadBINT(wp_t);
+                s*=q;
+                t*=q;
+                rplDropData(6);
+                rplNewBINTPush(s,DECBINT);
+                rplNewBINTPush(t,DECBINT);
+            }
+            else {
+                // ERROR: no soluton
+                rplDropData(6);
+                rplError(ERR_IABCUV_NO_SOLUTION);
+                //DSTop=savestk;
+                return;
+            }
+
+        }
+
+        // THERE'S REALS INVOLVED, DO IT ALL WITH REALS
+        rplNumberToRReg(1, wp_gcd_ab);
+        rplNumberToRReg(2, wp_c);
+
+        if(!isintegerReal(&RReg[2])) {
+            if(DSTop>savestk) DSTop=savestk;
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+        //           Q         R    =    A   /    B
+        divmodReal(&RReg[4],&RReg[3],&RReg[2],&RReg[1]);
+        if(iszeroReal(&RReg[3])) {
+            rplNumberToRReg(6, wp_s);
+            rplNumberToRReg(5, wp_t);
+
+            mulReal(&RReg[2],&RReg[4],&RReg[6]);
+            mulReal(&RReg[1],&RReg[4],&RReg[5]);
+
+            rplDropData(6);
+            rplNewRealFromRRegPush(2);
+            rplNewRealFromRRegPush(1);
+            rplCheckResultAndError(&RReg[2]);
+            rplCheckResultAndError(&RReg[1]);
+        }
+        else {
+            // ERROR: no soluton
+            rplDropData(6);
+            rplError(ERR_IABCUV_NO_SOLUTION);
+            //DSTop=savestk; return;
+            return;
+        }
+        return;
+    }
         // ADD MORE OPCODES HERE
 
     // STANDARIZED OPCODES:
