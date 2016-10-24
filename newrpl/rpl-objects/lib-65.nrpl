@@ -1,0 +1,117 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@ @#name versobj "newRPL alpha0.4.01"
+@ @#name copyobj "(c) Claudio Lapilli"
+
+
+@#name lib65_menu
+{
+  TICKS CLKADJ DATE →DATE DATE+
+  DDAYS TIME →TIME TSTR →HMS
+  HMS→ HMS+ HMS- MEM MEMCHECK
+  MEMFIX READCFI PEEK POKE
+}
+
+@#name lib65_msgtable
+{
+##1,ERR_INVALIDDATE "Invalid date"
+##1,ERR_INVALIDTIME "Invalid time"
+##1,ERR_BADARGVALUE "Bad argument value"
+}
+
+
+@#name lib65_cmdhelp
+{
+TICKS
+"Returns the system time in
+microseconds
+ → I"
+
+CLKADJ
+"Adjusts the system time by x
+clock ticks
+I →"
+
+DATE
+"Returns the system date
+
+ → R"
+
+→DATE
+"Sets the system date
+
+R →"
+
+DATE+
+"Add a number of days in level 1
+to a date in level 2
+R I → R"
+
+DDAYS
+"Returns the number of days
+between two dates
+R R → I"
+
+TIME
+"Returns the system time in the
+form HH.MMSS
+ → R"
+
+→TIME
+"Sets the system time
+
+R →"
+
+TSTR
+"Returns a string derived from
+the date and time
+ → S"
+
+→HMS
+"Converts a real representing
+hours to HH.MMSS format
+R → R"
+
+HMS→
+"Converts a real in HH.MMSS
+format to its decimal form
+R → R"
+
+HMS+
+"Add two real numbers in
+HH.MMSS format
+R R → R"
+
+HMS-
+"Subtract two real numbers in
+HH.MMSS format
+R R → R"
+
+MEM
+"Returns the number of bytes of
+available RAM
+ → I"
+
+}
+
+
+
+
+
+
+

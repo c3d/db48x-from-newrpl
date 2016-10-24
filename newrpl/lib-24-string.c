@@ -244,6 +244,7 @@ void LIB_HANDLER()
         }
         nitems=1;
         item=rplPeekData(1);
+        list=0;
         }
 
         WORDPTR newstring=rplAllocTempOb(nitems);   // ALLOCATE 4 BYTES PER CHARACTER, TRUNCATE THE OBJECT LATER
