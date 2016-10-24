@@ -1192,7 +1192,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT extended = (OPCODE(CurOpcode) == IEGCD);
+            BINT isIEGCD = (OPCODE(CurOpcode) == IEGCD);
             BINT chs1 = 0;
             BINT chs2 = 0;
             BINT swapped = 0;
@@ -1225,7 +1225,7 @@ void LIB_HANDLER()
                 }
                 // avoid swapping elements by loop unrolling
                 BINT notfinished = 1;
-                if (extended) {
+                if (isIEGCD) {
                     s1 = 1;
                     s2 = 0;
                     t1 = 0;
@@ -1234,7 +1234,7 @@ void LIB_HANDLER()
                 do {
                     if(r2!=0){
                         r3 = r1%r2;
-                        if(extended){
+                        if(isIEGCD){
                             //remainder = (dividend%divisor + divisor)%divisor;  // also for negative numbers
                             //quotient = (dividend-remainder)/divisor;
                             q = (r1-r3)/r2;
@@ -1245,7 +1245,7 @@ void LIB_HANDLER()
                     else {
                         gcd = r1;
                         notfinished = 0;
-                        if(extended){
+                        if(isIEGCD){
                             s = s1;
                             t = t1;
                         }
@@ -1253,7 +1253,7 @@ void LIB_HANDLER()
                     }
                     if(r3!=0){
                         r1 = r2%r3;
-                        if(extended){
+                        if(isIEGCD){
                             q = (r2-r1)/r3;
                             s1 = s2 - q*s3;
                             t1 = t2 - q*t3;
@@ -1262,7 +1262,7 @@ void LIB_HANDLER()
                     else {
                         gcd = r2;
                         notfinished = 0;
-                        if(extended){
+                        if(isIEGCD){
                             s = s2;
                             t = t2;
                         }
@@ -1270,7 +1270,7 @@ void LIB_HANDLER()
                     }
                     if(r1!=0){
                         r2 = r3%r1;
-                        if(extended){
+                        if(isIEGCD){
                             q = (r3-r2)/r1;
                             s2 = s3 - q*s1;
                             t2 = t3 - q*t1;
@@ -1279,7 +1279,7 @@ void LIB_HANDLER()
                     else {
                         gcd = r3;
                         notfinished = 0;
-                        if(extended){
+                        if(isIEGCD){
                             s = s3;
                             t = t3;
                         }
@@ -1290,7 +1290,7 @@ void LIB_HANDLER()
                     rplDropData(2);
                     rplNewBINTPush(gcd,DECBINT);
                 }
-                else if (OPCODE(CurOpcode) == IEGCD) {
+                else if (isIEGCD) {
                     rplDropData(2);
                     rplNewBINTPush(gcd,DECBINT);
                     if(!swapped){
@@ -1389,9 +1389,9 @@ void LIB_HANDLER()
             // avoid swapping elements by loop unrolling
             BINT notfinished = 1;
             const BINT q=0,r1=1,r2=2,r3=3,s1=4,s2=5,s3=6,t1=7,t2=8,t3=9;
-            BINT igcd,s,t;
+            BINT igcd,s=0,t=0;
             REAL tmp;
-            if (extended) {
+            if (isIEGCD) {
                 newRealFromBINT(&RReg[s1],1,0);
                 newRealFromBINT(&RReg[s2],0,0);
                 newRealFromBINT(&RReg[t1],0,0);
@@ -1401,7 +1401,7 @@ void LIB_HANDLER()
             do {
                 if(!iszeroReal(&RReg[r2])){
                     divmodReal(&RReg[q],&RReg[r3],&RReg[r1],&RReg[r2]);
-                    if(extended){
+                    if(isIEGCD){
                         mulReal(&tmp,&RReg[q],&RReg[s2]);
                         subReal(&RReg[s3],&RReg[s1],&tmp);
                         mulReal(&tmp,&RReg[q],&RReg[t2]);
@@ -1413,7 +1413,7 @@ void LIB_HANDLER()
                 else {
                     igcd = r1;
                     notfinished = 0;
-                    if(extended){
+                    if(isIEGCD){
                         s = s1;
                         t = t1;
                     }
@@ -1421,7 +1421,7 @@ void LIB_HANDLER()
                 }
                 if(!iszeroReal(&RReg[r3])){
                     divmodReal(&RReg[q],&RReg[r1],&RReg[r2],&RReg[r3]);
-                    if(extended){
+                    if(isIEGCD){
                         mulReal(&tmp,&RReg[q],&RReg[s3]);
                         subReal(&RReg[s1],&RReg[s2],&tmp);
                         mulReal(&tmp,&RReg[q],&RReg[t3]);
@@ -1433,7 +1433,7 @@ void LIB_HANDLER()
                 else {
                     igcd = r2;
                     notfinished = 0;
-                    if(extended){
+                    if(isIEGCD){
                         s = s2;
                         t = t2;
                     }
@@ -1441,7 +1441,7 @@ void LIB_HANDLER()
                 }
                 if(!iszeroReal(&RReg[r1])){
                     divmodReal(&RReg[q],&RReg[r2],&RReg[r3],&RReg[r1]);
-                    if(extended){
+                    if(isIEGCD){
                         mulReal(&tmp,&RReg[q],&RReg[s1]);
                         subReal(&RReg[s2],&RReg[s3],&tmp);
                         mulReal(&tmp,&RReg[q],&RReg[t1]);
@@ -1453,7 +1453,7 @@ void LIB_HANDLER()
                 else {
                     igcd = r3;
                     notfinished = 0;
-                    if(extended){
+                    if(isIEGCD){
                         s = s3;
                         t = t3;
                     }
@@ -1461,7 +1461,7 @@ void LIB_HANDLER()
                 }
             } while (notfinished);
 
-            if (extended) {
+            if (isIEGCD) {
                 freeRegister(tmp.data);
             }
 
@@ -1471,7 +1471,7 @@ void LIB_HANDLER()
                 rplNewRealFromRRegPush(igcd);
                 rplCheckResultAndError(&RReg[igcd]);
             }
-            else if (OPCODE(CurOpcode) == IEGCD) {
+            else if (isIEGCD) {
                 Context.precdigits=saveprec;
                 rplDropData(2);
                 rplNewRealFromRRegPush(igcd);
