@@ -241,6 +241,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-32.nrpl \
                 newrpl/rpl-objects/lib-48.nrpl \
                 newrpl/rpl-objects/lib-64.nrpl \
+                newrpl/rpl-objects/lib-65.nrpl \
                 newrpl/rpl-objects/lib-74.nrpl
 
 
@@ -264,7 +265,8 @@ LIBS += -lgcc
 FORMS    +=
 
 DISTFILES += \
-    firmware/ld.script
+    firmware/ld.script \
+    newrpl/rpl-objects/lib-65.nrpl
 
 RESOURCES +=
 
