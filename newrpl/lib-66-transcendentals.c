@@ -3661,139 +3661,375 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
-
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+            rplListUnaryDoCmd();
             return;
         }
 
 
+        BINT cclass=rplComplexClass(arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        {
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
 
 
-        if(ISCOMPLEX(*arg)) {
-        rplReadCNumberAsReal(arg,&x);
-        rplReadCNumberAsImag(arg,&y);
 
-        // HANDLE SPECIAL VALUES
-        if(isinfiniteReal(&y)) {
-           rplError(ERR_INFINITERESULT);
-           return;
-        }
-        // HANDLE SPECIAL VALUES
-        if(isinfiniteReal(&x)) {
-           rplError(ERR_INFINITERESULT);
-           return;
-        }
+            if(re.flags&F_NEGATIVE) {
 
-            
-        if(!iszeroReal(&y)) {
-            mulReal(&RReg[0],&x,&x);
-            mulReal(&RReg[1],&y,&y);
-            addReal(&RReg[7],&RReg[0],&RReg[1]);
-            
-            hyp_sqrt(&RReg[7]);     // RReg[0]=sqrt(x^2+y^2);
-            normalize(&RReg[0]);
-            addReal(&RReg[1],&RReg[0],&x);
-            subReal(&RReg[2],&RReg[0],&x);  // ONLY POW AND XROOT USE REGISTER 8, SO THIS IS SAFE
+               REAL pi2;
+            angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
-            RReg[0].exp=-1;
-            RReg[0].len=1;
-            RReg[0].flags=0;
-            RReg[0].data[0]=5;
+            switch(angmode) {
+            case ANGLEDEG:
+            case ANGLEDMS:
+                decconst_90(&pi2);
+                break;
+            case ANGLEGRAD:
+                decconst_100(&pi2);
+                break;
+            case ANGLERAD:
+            default:
+                decconst_PI_2(&pi2);
+            }
 
-            mulReal(&RReg[7],&RReg[1],&RReg[0]);
-            mulReal(&RReg[8],&RReg[2],&RReg[0]);
-
-            hyp_sqrt(&RReg[7]);     // THIS IS THE REAL PART OF THE RESULT
-
-            finalize(&RReg[0]);
-            swapReal(&RReg[9],&RReg[0]);       // SAVE THIS RESULT
-
-            hyp_sqrt(&RReg[8]);     // THIS IS THE IMAGINARY PART
-
-            finalize(&RReg[0]);
-
-            RReg[0].flags|=y.flags&F_NEGATIVE;
-
-            // DONE, RETURN THE COMPLEX ROOTS
+            // RETURN POLAR INFINITY
+            rplInfinityToRReg(1);
             rplDropData(1);
-            rplNewComplexPush(&RReg[9],&RReg[0],ANGLENONE);
+            rplNewComplexPush(&RReg[1],&pi2,angmode);
 
-
+            if(!rplTestSystemFlag(FL_COMPLEXMODE)) {
+                if(!Exceptions) rplError(ERR_COMPLEXRESULT);
+            }
+            rplCheckResultAndError(&RReg[1]);
             return;
+            }
 
-            
-
+            // JUST RETURN INFINITY
+            rplInfinityToRReg(1);
+            rplDropData(1);
+            rplNewRealPush(&RReg[1]);
+            rplCheckResultAndError(&RReg[1]);
+            return;
         }
-            
+
+
+        case CPLX_INF|CPLX_MALFORMED:
+        {
+            REAL re,im;
+            BINT angmode;
+            REAL pi4;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+
+            angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+            switch(angmode) {
+            case ANGLEDEG:
+            case ANGLEDMS:
+                decconst_45(&pi4);
+                break;
+            case ANGLEGRAD:
+                decconst_50(&pi4);
+                break;
+            case ANGLERAD:
+            default:
+                decconst_PI_4(&pi4);
+            }
+
+            if(im.flags&F_NEGATIVE) {
+                // PI/4-PI = -3/4 PI
+                addReal(&RReg[0],&pi4,&pi4);
+                addReal(&RReg[1],&RReg[0],&pi4);
+                RReg[1].flags|=F_NEGATIVE;
+            }
+            else {
+                copyReal(&RReg[1],&pi4);
+                finalize(&RReg[1]);
+            }
+
+            // RETURN POLAR INFINITY
+            rplInfinityToRReg(0);
+            rplDropData(1);
+            rplNewComplexPush(&RReg[0],&pi4,angmode);
+
+            if(!rplTestSystemFlag(FL_COMPLEXMODE)) {
+                if(!Exceptions) rplError(ERR_COMPLEXRESULT);
+            }
+            rplCheckResultAndError(&RReg[0]);
+            return;
         }
-        else {
 
-            if(!ISNUMBER(*arg)) {
-                // ALL OTHER OBJECT TYPES DO
-                // obj ^ 0.5
 
-                RReg[0].data[0]=5;
-                RReg[0].exp=-1;
-                RReg[0].flags=0;
-                RReg[0].len=1;
+        case CPLX_INF|CPLX_POLAR:
 
+        {
+            REAL pi;
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            switch(angmode) {
+            case ANGLEDEG:
+            case ANGLEDMS:
+                decconst_180(&pi);
+                break;
+            case ANGLEGRAD:
+                decconst_200(&pi);
+                break;
+            case ANGLERAD:
+            default:
+                decconst_PI(&pi);
+            }
+
+            // COMPUTE NEW DIRECTION
+            if(angmode!=ANGLEDMS) {
+
+                // DIVIDE BY TWO = * 5/10
+                rplBINTToRReg(0,5);
+                mulReal(&RReg[1],&im,&RReg[0]);
+                RReg[1].exp--;
+
+            } else {
+                BINT isodddeg,isoddmin;
+
+                isodddeg=isoddReal(&im);
+                im.exp+=2;
+                isoddmin=isoddReal(&im);
+                im.exp-=2;
+
+                // DIVIDE BY TWO = * 5/10
+                rplBINTToRReg(0,5);
+                mulReal(&RReg[1],&im,&RReg[0]);
+                RReg[1].exp--;
+
+
+                if(isodddeg) {
+                rplBINTToRReg(0,2);
+                RReg[0].exp--;
+                subReal(&RReg[2],&RReg[1],&RReg[0]);
+                swapReal(&RReg[2],&RReg[1]);
+                }
+                if(isoddmin) {
+                    rplBINTToRReg(0,2);
+                    RReg[0].exp-=3;
+                    subReal(&RReg[2],&RReg[1],&RReg[0]);
+                    swapReal(&RReg[2],&RReg[1]);
+                }
+
+            }
+
+            // HERE WE HAVE THE NEW DIRECTION
+
+            rplInfinityToRReg(0);
+            rplDropData(1);
+            rplNewComplexPush(&RReg[0],&RReg[1],angmode);
+            if(!rplTestSystemFlag(FL_COMPLEXMODE)) {
+                if(!Exceptions) rplError(ERR_COMPLEXRESULT);
+            }
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        }
+
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+        default:
+        {
+                if(!ISNUMBER(*arg)) {
+                    // ALL OTHER OBJECT TYPES DO
+                    // obj ^ 0.5
+
+                    RReg[0].data[0]=5;
+                    RReg[0].exp=-1;
+                    RReg[0].flags=0;
+                    RReg[0].len=1;
+
+                    rplNewRealFromRRegPush(0);
+
+                    rplCallOvrOperator(CMD_OVR_POW);
+
+                    return;
+                }
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
                 rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        }
+        case CPLX_ZERO:
+        {
+         rplDropData(1);
+         rplPushData((WORDPTR)zero_bint);
+         return;
+        }
+        case CPLX_NORMAL:
+        {
 
-                rplCallOvrOperator(CMD_OVR_POW);
+            if(ISCOMPLEX(*arg)) {
+            rplReadCNumberAsReal(arg,&x);
+            rplReadCNumberAsImag(arg,&y);
 
+            if(!iszeroReal(&y)) {
+                mulReal(&RReg[0],&x,&x);
+                mulReal(&RReg[1],&y,&y);
+                addReal(&RReg[7],&RReg[0],&RReg[1]);
+
+                hyp_sqrt(&RReg[7]);     // RReg[0]=sqrt(x^2+y^2);
+                normalize(&RReg[0]);
+                addReal(&RReg[1],&RReg[0],&x);
+                subReal(&RReg[2],&RReg[0],&x);  // ONLY POW AND XROOT USE REGISTER 8, SO THIS IS SAFE
+
+                RReg[0].exp=-1;
+                RReg[0].len=1;
+                RReg[0].flags=0;
+                RReg[0].data[0]=5;
+
+                mulReal(&RReg[7],&RReg[1],&RReg[0]);
+                mulReal(&RReg[8],&RReg[2],&RReg[0]);
+
+                hyp_sqrt(&RReg[7]);     // THIS IS THE REAL PART OF THE RESULT
+
+                finalize(&RReg[0]);
+                swapReal(&RReg[9],&RReg[0]);       // SAVE THIS RESULT
+
+                hyp_sqrt(&RReg[8]);     // THIS IS THE IMAGINARY PART
+
+                finalize(&RReg[0]);
+
+                RReg[0].flags|=y.flags&F_NEGATIVE;
+
+                // DONE, RETURN THE COMPLEX ROOTS
+                rplDropData(1);
+                rplNewComplexPush(&RReg[9],&RReg[0],ANGLENONE);
+                if(!rplTestSystemFlag(FL_COMPLEXMODE)) rplError(ERR_COMPLEXRESULT);
                 return;
+
+            }
+
+            }
+            else {
+
+            rplReadNumberAsReal(rplPeekData(1),&x);
+
+            if(Exceptions) return;
+            }
+
+            BINT iscplx=x.flags&F_NEGATIVE;
+            if(iscplx && !rplTestSystemFlag(FL_COMPLEXMODE)) {
+            rplError(ERR_ARGOUTSIDEDOMAIN);
+            return;
             }
 
 
-        rplReadNumberAsReal(rplPeekData(1),&x);
+            x.flags&=~F_NEGATIVE;
 
-        if(Exceptions) return;
+            hyp_sqrt(&x);
+            finalize(&RReg[0]);
+
+            rplDropData(1);
+            if(iscplx) {
+                rplZeroToRReg(1);
+                rplNewComplexPush(&RReg[1],&RReg[0],ANGLENONE);
+            } else rplNewRealFromRRegPush(0);
+            return;
+
+
+         }
+        case CPLX_NORMAL|CPLX_POLAR:
+        {
+            REAL pi;
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            switch(angmode) {
+            case ANGLEDEG:
+            case ANGLEDMS:
+                decconst_180(&pi);
+                break;
+            case ANGLEGRAD:
+                decconst_200(&pi);
+                break;
+            case ANGLERAD:
+            default:
+                decconst_PI(&pi);
+            }
+
+            // COMPUTE NEW DIRECTION
+            if(angmode!=ANGLEDMS) {
+
+                // DIVIDE BY TWO = * 5/10
+                rplBINTToRReg(0,5);
+                mulReal(&RReg[1],&im,&RReg[0]);
+                RReg[1].exp--;
+
+            } else {
+                BINT isodddeg,isoddmin;
+
+                isodddeg=isoddReal(&im);
+                im.exp+=2;
+                isoddmin=isoddReal(&im);
+                im.exp-=2;
+
+                // DIVIDE BY TWO
+                RReg[0].data[0]=5;
+                RReg[0].len=1;
+                RReg[0].flags=0;
+                RReg[0].exp=-1;
+
+                mulReal(&RReg[8],&im,&RReg[0]);
+
+                if(isodddeg) {
+                RReg[0].data[0]=2;
+                RReg[0].exp=-1;
+                subReal(&RReg[2],&RReg[8],&RReg[0]);
+                swapReal(&RReg[2],&RReg[8]);
+                }
+                if(isoddmin) {
+                    RReg[0].data[0]=2;
+                    RReg[0].exp=-3;
+                    subReal(&RReg[2],&RReg[8],&RReg[0]);
+                    swapReal(&RReg[2],&RReg[8]);
+                }
+
+            }
+
+            // HERE WE HAVE THE NEW DIRECTION IN RReg[8]
+
+            hyp_sqrt(&re);
+            finalize(&RReg[0]);
+
+            rplDropData(1);
+            rplNewComplexPush(&RReg[0],&RReg[8],angmode);
+            if(!rplTestSystemFlag(FL_COMPLEXMODE)) {
+                if(!Exceptions) rplError(ERR_COMPLEXRESULT);
+            }
+            rplCheckResultAndError(&RReg[0]);
+            return;
         }
 
-        BINT iscplx=x.flags&F_NEGATIVE;
-        if(iscplx && !rplTestSystemFlag(FL_COMPLEXMODE)) {
-        rplError(ERR_ARGOUTSIDEDOMAIN);
+
+
+        }
+
+
+        // UNREACHABLE CODE
         return;
-        }
-
-
-        x.flags&=~F_NEGATIVE;
-
-        // HANDLE SPECIAL VALUES
-        if(isinfiniteReal(&x)) {
-           rplError(ERR_INFINITERESULT);
-           return;
-        }
-
-
-        hyp_sqrt(&x);
-        finalize(&RReg[0]);
-
-        rplDropData(1);
-        if(iscplx) {
-            rplZeroToRReg(1);
-            rplNewComplexPush(&RReg[1],&RReg[0],ANGLENONE);
-        } else rplNewRealFromRRegPush(0);
-        return;
-
     }
+
 
 
     case LOG:
@@ -3813,56 +4049,164 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
-
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+            rplListUnaryDoCmd();
             return;
         }
+
+
+
+        // HANDLE SPECIALS
+        BINT cclass=rplComplexClass(arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_INF|CPLX_POLAR:
+        {
+            rplDropData(1);
+            rplInfinityToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        }
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+            {
+                // RETURN -INFINITY AND SET OVERFLOW
+                rplInfinityToRReg(0);
+                RReg[0].flags|=F_NEGATIVE;
+                rplDropData(1);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            }
+
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
+        }
+
+
+        if(ISCOMPLEX(*arg)) {
+            // LOGARITHM OF A COMPLEX NUMBER
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            if(angmode!=ANGLENONE) {
+                // ALREADY IN POLAR FORM
+
+                // ONLY ACCEPT THE ANGLE IN RADIANS
+                trig_convertangle(&im,angmode,ANGLERAD);
+
+                REAL ln10;
+                decconst_ln10(&ln10);
+                divReal(&RReg[9],&RReg[0],&ln10);
+
+                hyp_log(&re);
+                normalize(&RReg[0]);
+
+                // SINCE LN() MAPS FROM POLAR TO CARTESIAN PLANE, ALWAYS RETURN CARTESIAN COMPLEX
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[9],&RReg[0],ANGLENONE);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[0]);
+                rplCheckResultAndError(&RReg[9]);
+
+                return;
+
+
+            }
+
+            // CONVERT TO POLAR AND COMPUTE LN()
+
+            mulReal(&RReg[0],&re,&re);
+            mulReal(&RReg[1],&im,&im);
+            addReal(&RReg[2],&RReg[0],&RReg[1]);
+
+            hyp_sqrt(&RReg[2]);
+            normalize(&RReg[0]);
+            hyp_log(&RReg[0]);
+            finalize(&RReg[0]);
+
+            swapReal(&RReg[8],&RReg[0]);        // SAVE log(r) IN RReg[8]
+
+            trig_atan2(&im,&re,ANGLERAD);
+            normalize(&RReg[0]);
+            REAL ln10;
+            decconst_ln10(&ln10);
+            divReal(&RReg[9],&RReg[0],&ln10);
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[8],&RReg[9],ANGLENONE);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[8]);
+            rplCheckResultAndError(&RReg[0]);
+
+            return;
+
+
+        }
+
+
+
 
         rplReadNumberAsReal(rplPeekData(1),&x);
 
         if(Exceptions) return;
 
-        if(iszeroReal(&x)) {
-            // RETURN -INFINITY AND SET OVERFLOW
-            // TODO: IMPLEMENT FLAGS TO AVOID THROWING AN ERROR
-            rplInfinityToRReg(0);
-            RReg[0].flags|=F_NEGATIVE;
-            rplDropData(1);
-            rplNewRealFromRRegPush(0);
-            rplError(ERR_INFINITERESULT);
-            return;
-        }
 
         if(x.flags&F_NEGATIVE) {
-            // TODO: RETURN COMPLEX VALUE!
-            // FOR NOW JUST THROW AN EXCEPTION
+            if(rplTestSystemFlag(FL_COMPLEXMODE)) {
+                // RETURN THE COMPLEX RESULT
+
+                x.flags^=F_NEGATIVE;
+
+                hyp_log(&x);
+                finalize(&RReg[0]);
+
+                REAL pi,ln10;
+
+
+                decconst_PI(&pi);
+                decconst_ln10(&ln10);
+
+                divReal(&RReg[1],&pi,&ln10);
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[0],&RReg[1],ANGLENONE);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[0]);
+
+                return;
+
+            }
             rplError(ERR_ARGOUTSIDEDOMAIN);
             return;
         }
-
-        // HANDLE SPECIAL VALUES
-        if(isinfiniteReal(&x)) {
-           rplError(ERR_INFINITERESULT);
-           return;
-        }
-
 
         hyp_log(&x);
         finalize(&RReg[0]);
@@ -3871,11 +4215,13 @@ void LIB_HANDLER()
         rplNewRealFromRRegPush(0);
         return;
 
+
+
     }
 
     case ALOG:
     {
-        REAL dec,ten;
+        REAL dec;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -3891,47 +4237,156 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
-
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+            rplListUnaryDoCmd();
             return;
         }
 
-        rplReadNumberAsReal(rplPeekData(1),&dec);
 
-        // HANDLE SPECIAL VALUES
-        if(isinfiniteReal(&dec)) {
-           rplError(ERR_INFINITERESULT);
-           return;
+
+        // HANDLE SPECIALS
+        BINT cclass=rplComplexClass(arg);
+        switch(cclass)
+        {
+        case CPLX_INF:
+        {
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            if(re.flags&F_NEGATIVE) {
+                rplOverwriteData(1,(WORDPTR)zero_bint);
+            }
+            else {
+            rplDropData(1);
+            rplInfinityToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        }
+        case CPLX_INF|CPLX_MALFORMED:
+        case CPLX_INF|CPLX_POLAR:
+        case CPLX_UNDINF:
+            rplDropData(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        case CPLX_NAN:
+            if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
+            else {
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+            }
+            return;
+        case CPLX_ZERO:
+        case CPLX_NORMAL:
+        case CPLX_NORMAL|CPLX_POLAR:
+        default:
+            break;
         }
 
 
 
-        rplReadNumberAsReal((WORDPTR)ten_bint,&ten);
 
+
+        if(ISCOMPLEX(*arg)) {
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            if(angmode!=ANGLENONE) {
+                // IN POLAR FORM, CONVERT TO CARTESIAN
+
+                trig_sincos(&im,angmode);
+
+                // RReg[6]= cos
+                // RReg[7]= sin
+                normalize(&RReg[6]);
+                normalize(&RReg[7]);
+
+                mulReal(&RReg[8],&RReg[6],&re);
+                mulReal(&RReg[9],&RReg[7],&re);
+
+            }
+            else {
+                copyReal(&RReg[8],&re);
+                copyReal(&RReg[9],&im);
+            }
+
+            // MULTIPLY BY ln(10)
+            REAL ln10;
+            decconst_ln10(&ln10);
+
+            mulReal(&RReg[0],&RReg[8],&ln10);
+            swapReal(&RReg[8],&RReg[0]);
+
+            mulReal(&RReg[0],&RReg[9],&ln10);
+            swapReal(&RReg[9],&RReg[0]);
+
+            // JUST REGULAR EXP FROM NOW ON
+
+            // e^(A+i*B)= e^A * e^(i*B)
+
+            hyp_exp(&RReg[8]);
+            normalize(&RReg[0]);
+
+            swapReal(&RReg[8],&RReg[0]);
+
+            if(angmode!=ANGLENONE) {
+
+                trig_convertangle(&RReg[9],ANGLERAD,angmode);
+
+                // AND RETURN THE POLAR COMPLEX
+
+                WORDPTR newcmplx=rplNewComplex(&RReg[8],&RReg[0],angmode);
+                if( (!newcmplx) || Exceptions) return;
+
+                rplOverwriteData(1,newcmplx);
+
+                rplCheckResultAndError(&RReg[8]);
+                rplCheckResultAndError(&RReg[0]);
+
+                return;
+
+            }
+
+            // AND RETURN THE POLAR COMPLEX
+
+            WORDPTR newcmplx=rplNewComplex(&RReg[8],&RReg[9],ANGLERAD);
+            if( (!newcmplx) || Exceptions) return;
+
+            rplOverwriteData(1,newcmplx);
+
+            rplCheckResultAndError(&RReg[8]);
+            rplCheckResultAndError(&RReg[9]);
+
+            return;
+
+
+
+        }
+
+
+
+        rplReadNumberAsReal(arg,&dec);
         if(Exceptions) return;
-        powReal(&RReg[0],&ten,&dec);
+
+            RReg[4].data[0]=10;
+            RReg[4].exp=0;
+            RReg[4].len=1;
+            RReg[4].flags=0;
+
+        hyp_pow(&RReg[4],&dec);
 
         finalize(&RReg[0]);
 
         rplDropData(1);
-        rplNewRealFromRRegPush(0);
+        rplNewRealFromRRegPush(0);       // EXP
         return;
 
 

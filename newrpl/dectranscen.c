@@ -96,8 +96,11 @@ static const BINT const Constant_200_PI[]={
 
 
 static const BINT const Constant_One[]={ 1 };
+static const BINT const Constant_45[]={ 45 };
+static const BINT const Constant_50[]={ 50 };
 static const BINT const Constant_90[]={ 90 };
 static const BINT const Constant_100[]={ 100 };
+
 static const BINT const Constant_180[]={ 180 };
 static const BINT const Constant_200[]={ 200 };
 
@@ -226,6 +229,16 @@ void decconst_90(REAL *real)
     real->flags=0;
     real->len=1;
 }
+
+void decconst_45(REAL *real)
+{
+    real->data=(BINT *)Constant_45;
+    real->exp=0;
+    real->flags=0;
+    real->len=1;
+}
+
+
 void decconst_100(REAL *real)
 {
     real->data=(BINT *)Constant_100;
@@ -233,6 +246,14 @@ void decconst_100(REAL *real)
     real->flags=0;
     real->len=1;
 }
+void decconst_50(REAL *real)
+{
+    real->data=(BINT *)Constant_50;
+    real->exp=0;
+    real->flags=0;
+    real->len=1;
+}
+
 
 void decconst_180(REAL *real)
 {
