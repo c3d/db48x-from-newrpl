@@ -64,7 +64,9 @@
     CMD(IABCUV,MKTOKENINFO(6,TITYPE_FUNCTION,2,2)), \
     CMD(TCHEBYCHEFF,MKTOKENINFO(11,TITYPE_FUNCTION,1,2)), \
     CMD(LEGENDRE,MKTOKENINFO(8,TITYPE_FUNCTION,1,2)), \
-    CMD(HERMITE,MKTOKENINFO(7,TITYPE_FUNCTION,1,2))
+    CMD(HERMITE,MKTOKENINFO(7,TITYPE_FUNCTION,1,2)), \
+    CMD(TCHEBYCHEFF2,MKTOKENINFO(12,TITYPE_FUNCTION,1,2)), \
+    CMD(HERMITE2,MKTOKENINFO(8,TITYPE_FUNCTION,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -1796,8 +1798,10 @@ void LIB_HANDLER()
     }
 
     case TCHEBYCHEFF:
+    case TCHEBYCHEFF2:
     case LEGENDRE:
     case HERMITE:
+    case HERMITE2:
     {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1870,10 +1874,12 @@ void LIB_HANDLER()
             switch (OPCODE(CurOpcode)) {
             case TCHEBYCHEFF:
             case LEGENDRE:
+            case HERMITE2:
                 rplPushData((WORDPTR)(one_bint));
                 rplPushData((WORDPTR)(zero_bint));
                 break;
             case HERMITE:
+            case TCHEBYCHEFF2:
                 rplPushData((WORDPTR)(two_bint));
                 rplPushData((WORDPTR)(zero_bint));
                 break;
@@ -1908,10 +1914,12 @@ void LIB_HANDLER()
             switch (OPCODE(CurOpcode)) {
             case TCHEBYCHEFF:
             case LEGENDRE:
+            case HERMITE2:
                 rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint));
                 rplOverwriteData(oth*(n+1)+2,(WORDPTR)(one_bint));
                 break;
             case HERMITE:
+            case TCHEBYCHEFF2:
                 rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint));
                 rplOverwriteData(oth*(n+1)+2,(WORDPTR)(two_bint));
                 break;
@@ -1938,6 +1946,7 @@ void LIB_HANDLER()
                     }
                     switch (OPCODE(CurOpcode)) {
                     case TCHEBYCHEFF:
+                    case TCHEBYCHEFF2:
                         mulReal(&RReg[3], &RReg[2], &RReg[1]); // 2*x*current
                         subReal(&RReg[4], &RReg[3], &RReg[0]); // 2*x*current - previous
                         break;
@@ -1951,6 +1960,10 @@ void LIB_HANDLER()
                         mulReal(&RReg[3], &RReg[5], &RReg[0]); // n*previous
                         subReal(&RReg[0], &RReg[1], &RReg[3]); // x*current - n*previous
                         mulReal(&RReg[4], &RReg[0], &RReg[2]); // 2*x*current - 2*n*previous
+                        break;
+                    case HERMITE2:
+                        mulReal(&RReg[3], &RReg[5], &RReg[0]); // n*previous
+                        subReal(&RReg[4], &RReg[1], &RReg[3]); // x*current - n*previous
                         break;
                     }
 
