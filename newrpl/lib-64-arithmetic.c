@@ -1850,6 +1850,9 @@ void LIB_HANDLER()
         }
 
         rplDropData(1);
+
+        WORDPTR *savestk=DSTop; // Drop arguments in case of error
+
         if (n == 0) {
             rplPushData((WORDPTR)(one_bint));
             int elements = 1;
@@ -1857,6 +1860,9 @@ void LIB_HANDLER()
             if(newmat) {
                 rplDropData(elements);
                 rplPushData(newmat);
+            }
+            if(!newmat || Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
             }
             return;
         }
@@ -1871,14 +1877,15 @@ void LIB_HANDLER()
                 rplPushData((WORDPTR)(two_bint));
                 rplPushData((WORDPTR)(zero_bint));
                 break;
-//            default:
-//                break;
             }
             int elements = 2;
             WORDPTR newmat=rplMatrixCompose(0,elements);
             if(newmat) {
                 rplDropData(elements);
                 rplPushData(newmat);
+            }
+            if(!newmat || Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
             }
             return;
         }
@@ -1908,11 +1915,7 @@ void LIB_HANDLER()
                 rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint));
                 rplOverwriteData(oth*(n+1)+2,(WORDPTR)(two_bint));
                 break;
-//            default:
-//                break;
             }
-//            rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint)); // [ ... 0 0 1]
-//            rplOverwriteData(oth*(n+1)+2,(WORDPTR)(one_bint)); // [ ... 0 1 0]
 
             // recrsive formula
             rplNumberToRReg(2, (WORDPTR)(two_bint));
@@ -1953,7 +1956,10 @@ void LIB_HANDLER()
 
                     rplCheckResultAndError(&RReg[4]); // next
                     WORDPTR newnumber=rplNewReal(&RReg[4]);
-                    if(!newnumber) return;
+                    if(!newnumber || Exceptions) {
+                        if(DSTop>savestk) DSTop=savestk;
+                        return;
+                    }
                     rplOverwriteData(cur*(n+1)+j+1,newnumber);
 
                 }
@@ -1965,6 +1971,10 @@ void LIB_HANDLER()
             if(newmat) {
                 rplDropData(elements);
                 rplPushData(newmat);
+            }
+            else {
+                if(DSTop>savestk) DSTop=savestk;
+                return;
             }
 
         }
