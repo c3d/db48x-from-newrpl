@@ -62,8 +62,9 @@
     CMD(PCOEF,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
     CMD(IEGCD,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
     CMD(IABCUV,MKTOKENINFO(6,TITYPE_FUNCTION,2,2)), \
-    CMD(TCHEBYCHEFF,MKTOKENINFO(11,TITYPE_FUNCTION,1,2))
-
+    CMD(TCHEBYCHEFF,MKTOKENINFO(11,TITYPE_FUNCTION,1,2)), \
+    CMD(LEGENDRE,MKTOKENINFO(8,TITYPE_FUNCTION,1,2)), \
+    CMD(HERMITE,MKTOKENINFO(7,TITYPE_FUNCTION,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -1795,6 +1796,8 @@ void LIB_HANDLER()
     }
 
     case TCHEBYCHEFF:
+    case LEGENDRE:
+    case HERMITE:
     {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1851,7 +1854,6 @@ void LIB_HANDLER()
             rplPushData((WORDPTR)(one_bint));
             int elements = 1;
             WORDPTR newmat=rplMatrixCompose(0,elements);
-
             if(newmat) {
                 rplDropData(elements);
                 rplPushData(newmat);
@@ -1859,11 +1861,21 @@ void LIB_HANDLER()
             return;
         }
         else if (n == 1) {
-            rplPushData((WORDPTR)(one_bint));
-            rplPushData((WORDPTR)(zero_bint));
+            switch (OPCODE(CurOpcode)) {
+            case TCHEBYCHEFF:
+            case LEGENDRE:
+                rplPushData((WORDPTR)(one_bint));
+                rplPushData((WORDPTR)(zero_bint));
+                break;
+            case HERMITE:
+                rplPushData((WORDPTR)(two_bint));
+                rplPushData((WORDPTR)(zero_bint));
+                break;
+//            default:
+//                break;
+            }
             int elements = 2;
             WORDPTR newmat=rplMatrixCompose(0,elements);
-
             if(newmat) {
                 rplDropData(elements);
                 rplPushData(newmat);
@@ -1886,34 +1898,65 @@ void LIB_HANDLER()
             if  (!evenodd) cur = 1 - cur;
             int oth = 1 - cur;
             // todo populate n=0 and n=1
-            rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint)); // [ ... 0 0 1]
-            rplOverwriteData(oth*(n+1)+2,(WORDPTR)(one_bint)); // [ ... 0 1 0]
+            switch (OPCODE(CurOpcode)) {
+            case TCHEBYCHEFF:
+            case LEGENDRE:
+                rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint));
+                rplOverwriteData(oth*(n+1)+2,(WORDPTR)(one_bint));
+                break;
+            case HERMITE:
+                rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint));
+                rplOverwriteData(oth*(n+1)+2,(WORDPTR)(two_bint));
+                break;
+//            default:
+//                break;
+            }
+//            rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint)); // [ ... 0 0 1]
+//            rplOverwriteData(oth*(n+1)+2,(WORDPTR)(one_bint)); // [ ... 0 1 0]
 
             // recrsive formula
-            for (int i = 2; i < n+1; ++i) {
+            rplNumberToRReg(2, (WORDPTR)(two_bint));
+            for (int i = 2; i < n+1; ++i) {         // i=n+1
+                rplLoadBINTAsReal(i-1, &RReg[5]);   // n
+                rplLoadBINTAsReal(2*i-1, &RReg[6]); // 2n+1
+                rplLoadBINTAsReal(i, &RReg[7]);     // n+1
+
                 // switch via i mod 2
                 int cur = i%2;
                 if  (!evenodd) cur = 1 - cur;
                 int oth = 1-cur;
-                for (int j = i; j > 0; --j) {
-                    rplNumberToRReg(0, rplPeekData(cur*(n+1)+j+1));
-                    rplNumberToRReg(1, rplPeekData(oth*(n+1)+j));
-                    rplNumberToRReg(2, (WORDPTR)(two_bint));
-                    mulReal(&RReg[3], &RReg[1], &RReg[2]);
-                    subReal(&RReg[4], &RReg[3], &RReg[0]);
-                    rplCheckResultAndError(&RReg[4]);
+                for (int j = i; j >= 0; --j) {
+                    rplNumberToRReg(0, rplPeekData(cur*(n+1)+j+1)); //previous
+                    if (j > 0) {
+                        rplNumberToRReg(1, rplPeekData(oth*(n+1)+j)); // x*current (=shift left)
+                    }
+                    else {
+                        rplNumberToRReg(1, (WORDPTR)(zero_bint)); // the last is zero
+                    }
+                    switch (OPCODE(CurOpcode)) {
+                    case TCHEBYCHEFF:
+                        mulReal(&RReg[3], &RReg[2], &RReg[1]); // 2*x*current
+                        subReal(&RReg[4], &RReg[3], &RReg[0]); // 2*x*current - previous
+                        break;
+                    case LEGENDRE:
+                        mulReal(&RReg[3], &RReg[5], &RReg[0]); // n*previous
+                        mulReal(&RReg[0], &RReg[6], &RReg[1]); // (2n+1)*x*current
+                        subReal(&RReg[1], &RReg[0], &RReg[3]); // (2n+1)*x*current - n*previous
+                        divReal(&RReg[4], &RReg[1], &RReg[7]); // 2*x*current - 2*n*previous
+                        break;
+                    case HERMITE:
+                        mulReal(&RReg[3], &RReg[5], &RReg[0]); // n*previous
+                        subReal(&RReg[0], &RReg[1], &RReg[3]); // x*current - n*previous
+                        mulReal(&RReg[4], &RReg[0], &RReg[2]); // 2*x*current - 2*n*previous
+                        break;
+                    }
 
+                    rplCheckResultAndError(&RReg[4]); // next
                     WORDPTR newnumber=rplNewReal(&RReg[4]);
                     if(!newnumber) return;
                     rplOverwriteData(cur*(n+1)+j+1,newnumber);
 
                 }
-                // set lowest
-                rplNumberToRReg(0, rplPeekData(cur*(n+1)+1));
-                RReg[0].flags^=F_NEGATIVE;
-                WORDPTR newnumber=rplNewReal(&RReg[0]);
-                if(!newnumber) return;
-                rplOverwriteData(cur*(n+1)+1,newnumber);
             }
             int elements = n+1;
             rplDropData(elements);
