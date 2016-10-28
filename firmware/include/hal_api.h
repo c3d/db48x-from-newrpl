@@ -44,6 +44,34 @@ struct compact_tm {
 
 };
 
+#ifndef NEWRPL_H
+
+// COMPACT TIME STRUCTURE - 32 BITS.
+struct time {
+    unsigned sec    : 6,    // seconds after the minute	0-59
+             min    : 6,    // minutes after the hour	0-59
+             hour   : 5,    // hours since midnight     0-23
+             isdst  : 1,    // daylight saving time flag
+                    : 14;   // to pad up to 32 bits
+};
+
+// COMPACT DATE STRUCTURE - 32 BITS.
+struct date {
+    unsigned mday   : 5,    // day of the month     1-31
+             mon    : 4,    // months since January	1-12
+             wday   : 3,    // days since Monday	1-7
+             year   : 14,   // years                1582-9999
+                    : 6;    // to pad up to 32 bits
+};
+
+#define TIME_MAXSEC  ((1 <<  6) - 1)
+#define TIME_MAXMIN  ((1 <<  6) - 1)
+#define TIME_MAXHOUR ((1 <<  5) - 1)
+#define DATE_MAXDAY  ((1 <<  5) - 1)
+#define DATE_MAXMON  ((1 <<  4) - 1)
+#define DATE_MAXYEAR ((1 << 14) - 1)
+
+#endif
 
 typedef gglsurface DRAWSURFACE;
 
@@ -1180,18 +1208,14 @@ void flash_CFIRead(unsigned short *ptr);
 void init_simpalloc();
 
 // LOW-LEVEL DRIVER FOR REAL TIME CLOCK
-int rtc_getday();
-int rtc_getmon();
-int rtc_getyear();
-int rtc_getdow();
-int rtc_getsec();
-int rtc_getmin();
-int rtc_gethour();
-int rtc_setdate(int day,int month,int year);
-int rtc_settime(int hour,int min,int sec);
-
-
-
+void rtc_getdatetime(struct date *dt, struct time *tm);
+int rtc_setdatetime(struct date dt, struct time tm);
+struct date rtc_getdate();
+struct time rtc_gettime();
+int rtc_settime(struct time tm);
+int rtc_setdate(struct date dt);
+void rtc_getalarm(struct date *dt, struct time *tm, int *enabled);
+int rtc_setalarm(struct date dt, struct time tm, int enabled);
 
 
 
@@ -1225,11 +1249,12 @@ void halEnterPowerOff();
 BINT64 halTicks();
 
 // CLOCK AND ALARM FUNCTIONS
-void halSetSystemDate(int d,int m,int y);
-void halGetSystemDate(int *d,int *m,int *y,int *dow);
-void halSetSystemTime(int hr,int min,int sec);
-void halGetSystemTime(int *hr,int *min,int *sec);
-
+struct date halGetSystemDate();
+int halSetSystemDate(struct date dt);
+struct time halGetSystemTime();
+int halSetSystemTime(struct time tm);
+void halGetSystemAlarm(struct date *dt, struct time *tm, int *enabled);
+int halSetSystemAlarm(struct date dt, struct time tm, int enabled);
 
 // SCREEN FUNCTIONS
 void halInitScreen();
