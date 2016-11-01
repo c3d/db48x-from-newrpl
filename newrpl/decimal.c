@@ -4865,7 +4865,8 @@ BINT isoddReal(REAL *r)
 
         trim>>=3;
 
-        digits=shift_split(r->data[trim],smallshift)>>32;
+        if(trim>=r->len) digits=0;
+        else digits=shift_split(r->data[trim],smallshift)>>32;
 
 
         if(digits&1) return 1;

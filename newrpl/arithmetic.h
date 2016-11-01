@@ -24,6 +24,8 @@ void decconst_ln10_2(REAL *real);
 void decconst_One(REAL *real);
 void decconst_90(REAL *real);
 void decconst_100(REAL *real);
+void decconst_45(REAL *real);
+void decconst_50(REAL *real);
 void decconst_180(REAL *real);
 void decconst_200(REAL *real);
 
@@ -32,6 +34,7 @@ void hyp_exp(REAL *);
 void hyp_ln(REAL *);
 void hyp_log(REAL *);
 void hyp_alog(REAL *);
+void hyp_pow(REAL *x,REAL *a);
 
 void powReal(REAL *result,REAL *x,REAL *a);
 void xrootReal(REAL *result,REAL *x,REAL *a);

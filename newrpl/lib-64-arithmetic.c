@@ -20,7 +20,8 @@
 
 #define ERROR_LIST \
         ERR(VECTOROFNUMBERSEXPECTED,0), \
-        ERR(ERR2,1)
+        ERR(IABCUV_NO_SOLUTION,1), \
+        ERR(POSITIVE_INTEGER_EXPECTED,2)
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -58,8 +59,14 @@
     CMD(SUBTMOD,MKTOKENINFO(7,TITYPE_FUNCTION,2,2)), \
     CMD(MULTMOD,MKTOKENINFO(7,TITYPE_FUNCTION,2,2)), \
     CMD(PEVAL,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
-    CMD(PCOEF,MKTOKENINFO(5,TITYPE_FUNCTION,1,2))
-
+    CMD(PCOEF,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
+    CMD(IEGCD,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
+    CMD(IABCUV,MKTOKENINFO(6,TITYPE_FUNCTION,2,2)), \
+    CMD(TCHEBYCHEFF,MKTOKENINFO(11,TITYPE_FUNCTION,1,2)), \
+    CMD(LEGENDRE,MKTOKENINFO(8,TITYPE_FUNCTION,1,2)), \
+    CMD(HERMITE,MKTOKENINFO(7,TITYPE_FUNCTION,1,2)), \
+    CMD(TCHEBYCHEFF2,MKTOKENINFO(12,TITYPE_FUNCTION,1,2)), \
+    CMD(HERMITE2,MKTOKENINFO(8,TITYPE_FUNCTION,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -1166,6 +1173,7 @@ void LIB_HANDLER()
 
     case GCD:
     case LCM:
+    case IEGCD:
     {
 
             if(rplDepthData()<2) {
@@ -1189,13 +1197,24 @@ void LIB_HANDLER()
                 return;
             }
 
+            BINT isIEGCD = (OPCODE(CurOpcode) == IEGCD);
+            BINT chs1 = 0;
+            BINT chs2 = 0;
+            BINT swapped = 0;
             if(ISBINT(*arg1) && ISBINT(*arg2)) {
 
                 BINT64 a1=rplReadBINT(arg1);
                 BINT64 a2=rplReadBINT(arg2);
                 BINT64 r1,r2,r3,gcd;
-                if(a1 < 0) a1 = -a1;
-                if(a2 < 0) a2 = -a2;
+                BINT64 q,s1,s2,s3,t1,t2,t3,s,t;
+                if(a1 < 0) {
+                    a1 = -a1;
+                    chs1 = 1;
+                }
+                if(a2 < 0) {
+                    a2 = -a2;
+                    chs2 = 1;
+                }
                 if(a1 > a2){
                     r1 = a1;
                     r2 = a2;
@@ -1203,6 +1222,7 @@ void LIB_HANDLER()
                 else {
                     r2 = a1;
                     r1 = a2;
+                    swapped = 1;
                 }
                 if (r2 == (BINT64)0) {
                     rplError(ERR_MATHDIVIDEBYZERO);
@@ -1210,35 +1230,102 @@ void LIB_HANDLER()
                 }
                 // avoid swapping elements by loop unrolling
                 BINT notfinished = 1;
+                if (isIEGCD) {
+                    s1 = 1;
+                    s2 = 0;
+                    t1 = 0;
+                    t2 = 1;
+                }
                 do {
                     if(r2!=0){
                         r3 = r1%r2;
+                        if(isIEGCD){
+                            //remainder = (dividend%divisor + divisor)%divisor;  // also for negative numbers
+                            //quotient = (dividend-remainder)/divisor;
+                            q = (r1-r3)/r2;
+                            s3 = s1 - q*s2;
+                            t3 = t1 - q*t2;
+                        }
                     }
                     else {
                         gcd = r1;
                         notfinished = 0;
+                        if(isIEGCD){
+                            s = s1;
+                            t = t1;
+                        }
                         break;
                     }
                     if(r3!=0){
                         r1 = r2%r3;
+                        if(isIEGCD){
+                            q = (r2-r1)/r3;
+                            s1 = s2 - q*s3;
+                            t1 = t2 - q*t3;
+                        }
                     }
                     else {
                         gcd = r2;
                         notfinished = 0;
+                        if(isIEGCD){
+                            s = s2;
+                            t = t2;
+                        }
                         break;
                     }
                     if(r1!=0){
                         r2 = r3%r1;
+                        if(isIEGCD){
+                            q = (r3-r2)/r1;
+                            s2 = s3 - q*s1;
+                            t2 = t3 - q*t1;
+                        }
                     }
                     else {
                         gcd = r3;
                         notfinished = 0;
+                        if(isIEGCD){
+                            s = s3;
+                            t = t3;
+                        }
                         break;
                     }
                 } while (notfinished);
                 if (OPCODE(CurOpcode) == GCD) {
                     rplDropData(2);
                     rplNewBINTPush(gcd,DECBINT);
+                }
+                else if (isIEGCD) {
+                    rplDropData(2);
+                    rplNewBINTPush(gcd,DECBINT);
+                    if(!swapped){
+                        if (chs1) {
+                            rplNewBINTPush(-s,DECBINT);
+                        }
+                        else {
+                            rplNewBINTPush(s,DECBINT);
+                        }
+                        if (chs2) {
+                            rplNewBINTPush(-t,DECBINT);
+                        }
+                        else {
+                            rplNewBINTPush(t,DECBINT);
+                        }
+                    }
+                    else {
+                        if (chs1) {
+                            rplNewBINTPush(-t,DECBINT);
+                        }
+                        else {
+                            rplNewBINTPush(t,DECBINT);
+                        }
+                        if (chs2) {
+                            rplNewBINTPush(-s,DECBINT);
+                        }
+                        else {
+                            rplNewBINTPush(s,DECBINT);
+                        }
+                    }
                 }
                 else // LCM(a1,a2) = a1*a2/gcd(a1,a2)
                 {
@@ -1269,11 +1356,17 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT igcd = 0;
-            if(RReg[1].flags&F_NEGATIVE) RReg[1].flags^=F_NEGATIVE;
-            if(RReg[2].flags&F_NEGATIVE) RReg[2].flags^=F_NEGATIVE;
-            if(gtReal(&RReg[2],&RReg[1])){
+            if(RReg[1].flags&F_NEGATIVE) {
+                RReg[1].flags^=F_NEGATIVE;
+                chs1 = 1;
+            }
+            if(RReg[2].flags&F_NEGATIVE) {
+                RReg[2].flags^=F_NEGATIVE;
+                chs2 = 1;
+            }
+            if(gtReal(&RReg[2],&RReg[1])) {
                 swapReal(&RReg[2],&RReg[1]);
+                swapped = 1;
             }
             if (iszeroReal(&RReg[2])) {
                 rplError(ERR_MATHDIVIDEBYZERO);
@@ -1300,39 +1393,134 @@ void LIB_HANDLER()
 
             // avoid swapping elements by loop unrolling
             BINT notfinished = 1;
+            const BINT q=0,r1=1,r2=2,r3=3,s1=4,s2=5,s3=6,t1=7,t2=8,t3=9;
+            BINT igcd,s=0,t=0;
+            REAL tmp;
+            if (isIEGCD) {
+                newRealFromBINT(&RReg[s1],1,0);
+                newRealFromBINT(&RReg[s2],0,0);
+                newRealFromBINT(&RReg[t1],0,0);
+                newRealFromBINT(&RReg[t2],1,0);
+                tmp.data=allocRegister();
+            }
             do {
-                if(!iszeroReal(&RReg[2])){
-                    divmodReal(&RReg[0],&RReg[3],&RReg[1],&RReg[2]);
+                if(!iszeroReal(&RReg[r2])){
+                    divmodReal(&RReg[q],&RReg[r3],&RReg[r1],&RReg[r2]);
+                    if(isIEGCD){
+                        mulReal(&tmp,&RReg[q],&RReg[s2]);
+                        subReal(&RReg[s3],&RReg[s1],&tmp);
+                        mulReal(&tmp,&RReg[q],&RReg[t2]);
+                        subReal(&RReg[t3],&RReg[t1],&tmp);
+                        //s3 = s1 - q*s2;
+                        //t3 = t1 - q*t2;
+                    }
                 }
                 else {
-                    igcd = 1;
+                    igcd = r1;
                     notfinished = 0;
+                    if(isIEGCD){
+                        s = s1;
+                        t = t1;
+                    }
                     break;
                 }
-                if(!iszeroReal(&RReg[3])){
-                    divmodReal(&RReg[0],&RReg[1],&RReg[2],&RReg[3]);
+                if(!iszeroReal(&RReg[r3])){
+                    divmodReal(&RReg[q],&RReg[r1],&RReg[r2],&RReg[r3]);
+                    if(isIEGCD){
+                        mulReal(&tmp,&RReg[q],&RReg[s3]);
+                        subReal(&RReg[s1],&RReg[s2],&tmp);
+                        mulReal(&tmp,&RReg[q],&RReg[t3]);
+                        subReal(&RReg[t1],&RReg[t2],&tmp);
+                        //s1 = s2 - q*s3;
+                        //t1 = t2 - q*t3;
+                    }
                 }
                 else {
-                    igcd = 2;
+                    igcd = r2;
                     notfinished = 0;
+                    if(isIEGCD){
+                        s = s2;
+                        t = t2;
+                    }
                     break;
                 }
-                if(!iszeroReal(&RReg[1])){
-                    divmodReal(&RReg[0],&RReg[2],&RReg[3],&RReg[1]);
+                if(!iszeroReal(&RReg[r1])){
+                    divmodReal(&RReg[q],&RReg[r2],&RReg[r3],&RReg[r1]);
+                    if(isIEGCD){
+                        mulReal(&tmp,&RReg[q],&RReg[s1]);
+                        subReal(&RReg[s2],&RReg[s3],&tmp);
+                        mulReal(&tmp,&RReg[q],&RReg[t1]);
+                        subReal(&RReg[t2],&RReg[t3],&tmp);
+                        //s2 = s3 - q*s1;
+                        //t2 = t3 - q*t1;
+                    }
                 }
                 else {
-                    igcd = 3;
+                    igcd = r3;
                     notfinished = 0;
+                    if(isIEGCD){
+                        s = s3;
+                        t = t3;
+                    }
                     break;
                 }
             } while (notfinished);
 
+            if (isIEGCD) {
+                freeRegister(tmp.data);
+            }
 
             if (OPCODE(CurOpcode) == GCD) {
                 Context.precdigits=saveprec;
                 rplDropData(2);
                 rplNewRealFromRRegPush(igcd);
                 rplCheckResultAndError(&RReg[igcd]);
+            }
+            else if (isIEGCD) {
+                Context.precdigits=saveprec;
+                rplDropData(2);
+                rplNewRealFromRRegPush(igcd);
+                rplCheckResultAndError(&RReg[igcd]);
+                if(!swapped){
+                    if (chs1) {
+                        RReg[s].flags^=F_NEGATIVE;
+                        rplNewRealFromRRegPush(s);
+                        rplCheckResultAndError(&RReg[s]);
+                    }
+                    else {
+                        rplNewRealFromRRegPush(s);
+                        rplCheckResultAndError(&RReg[s]);
+                    }
+                    if (chs2) {
+                        RReg[t].flags^=F_NEGATIVE;
+                        rplNewRealFromRRegPush(t);
+                        rplCheckResultAndError(&RReg[t]);
+                    }
+                    else {
+                        rplNewRealFromRRegPush(t);
+                        rplCheckResultAndError(&RReg[t]);
+                    }
+                }
+                else {
+                    if (chs1) {
+                        RReg[t].flags^=F_NEGATIVE;
+                        rplNewRealFromRRegPush(t);
+                        rplCheckResultAndError(&RReg[t]);
+                    }
+                    else {
+                        rplNewRealFromRRegPush(t);
+                        rplCheckResultAndError(&RReg[t]);
+                    }
+                    if (chs2) {
+                        RReg[s].flags^=F_NEGATIVE;
+                        rplNewRealFromRRegPush(s);
+                        rplCheckResultAndError(&RReg[s]);
+                    }
+                    else {
+                        rplNewRealFromRRegPush(s);
+                        rplCheckResultAndError(&RReg[s]);
+                    }
+                }
             }
             else // LCM(a1,a2) = a1*a2/gcd(a1,a2)
             {
@@ -1502,6 +1690,312 @@ void LIB_HANDLER()
             return;
 
     }
+
+    case IABCUV:
+    {
+        if(rplDepthData()<3) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR arg0=rplPeekData(3);
+        WORDPTR arg1=rplPeekData(2);
+        WORDPTR arg2=rplPeekData(1);
+
+//        if(ISLIST(*arg1) || ISLIST(*arg2)){
+//            rplListBinaryDoCmd(arg1,arg2);
+//            return;
+//        }
+//        else
+        if((ISIDENT(*arg0) || ISSYMBOLIC(*arg0)) || (ISIDENT(*arg1) || ISSYMBOLIC(*arg1)) || (ISIDENT(*arg2) || ISSYMBOLIC(*arg2))){
+                rplSymbApplyOperator(CurOpcode,3);
+                return;
+        }
+
+        if( !ISNUMBER(*arg0) ||  !ISNUMBER(*arg1) || !ISNUMBER(*arg2)) {
+            rplError(ERR_BADARGTYPE);
+            return;
+        }
+
+        WORDPTR *savestk=DSTop; // Drop arguments in case of error
+
+        // Stack: A B C
+        rplPushData(rplPeekData(3));
+        rplPushData(rplPeekData(3));
+        // Stack: A B C A B
+
+        rplCallOperator(MKOPCODE(LIBRARY_NUMBER,IEGCD));
+        if(Exceptions) {
+            if(DSTop>savestk) DSTop=savestk;
+            return;
+        }
+
+        // Stack: A B C GCD(A,B) S T
+        //        6 5 4   3      2 1
+
+        // check for Solution Condition: C MOD GCD(A,B) = 0
+        WORDPTR wp_c=rplPeekData(4);
+        WORDPTR wp_gcd_ab=rplPeekData(3);
+        WORDPTR wp_s=rplPeekData(2);
+        WORDPTR wp_t=rplPeekData(1);
+        if(ISBINT(*wp_s) && ISBINT(*wp_t) && ISBINT(*wp_c) && ISBINT(*wp_gcd_ab)) {
+
+            BINT64 c=rplReadBINT(wp_c);
+            BINT64 gcd=rplReadBINT(wp_gcd_ab);
+            BINT64 r = (c%gcd + gcd)%gcd;
+            if (r == 0) {
+                BINT64 q = (c-r)/gcd;
+                BINT64 s = rplReadBINT(wp_s);
+                BINT64 t = rplReadBINT(wp_t);
+                s*=q;
+                t*=q;
+                rplDropData(6);
+                rplNewBINTPush(s,DECBINT);
+                rplNewBINTPush(t,DECBINT);
+            }
+            else {
+                // ERROR: no soluton
+                rplDropData(6);
+                rplError(ERR_IABCUV_NO_SOLUTION);
+                //DSTop=savestk;
+                return;
+            }
+
+        }
+
+        // THERE'S REALS INVOLVED, DO IT ALL WITH REALS
+        rplNumberToRReg(1, wp_gcd_ab);
+        rplNumberToRReg(2, wp_c);
+
+        if(!isintegerReal(&RReg[2])) {
+            if(DSTop>savestk) DSTop=savestk;
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+        //           Q         R    =    A   /    B
+        divmodReal(&RReg[4],&RReg[3],&RReg[2],&RReg[1]);
+        if(iszeroReal(&RReg[3])) {
+            rplNumberToRReg(6, wp_s);
+            rplNumberToRReg(5, wp_t);
+
+            mulReal(&RReg[2],&RReg[4],&RReg[6]);
+            mulReal(&RReg[1],&RReg[4],&RReg[5]);
+
+            rplDropData(6);
+            rplNewRealFromRRegPush(2);
+            rplNewRealFromRRegPush(1);
+            rplCheckResultAndError(&RReg[2]);
+            rplCheckResultAndError(&RReg[1]);
+        }
+        else {
+            // ERROR: no soluton
+            rplDropData(6);
+            rplError(ERR_IABCUV_NO_SOLUTION);
+            //DSTop=savestk; return;
+            return;
+        }
+        return;
+    }
+
+    case TCHEBYCHEFF:
+    case TCHEBYCHEFF2:
+    case LEGENDRE:
+    case HERMITE:
+    case HERMITE2:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        WORDPTR arg=rplPeekData(1);
+
+        if(ISLIST(*arg)) {
+            rplListUnaryDoCmd();
+            return;
+        }
+
+        if(ISSYMBOLIC(*arg)||ISIDENT(*arg)) {
+         rplSymbApplyOperator(CurOpcode,1);
+         return;
+        }
+
+        if(!ISNUMBER(*arg)) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+        REAL rnum;
+        rplReadNumberAsReal(arg,&rnum);
+        if(!isintegerReal(&rnum)) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+        if(rnum.flags&F_NEGATIVE) {
+            rplError(ERR_POSITIVE_INTEGER_EXPECTED);
+            //rplError(ERR_ARGOUTSIDEDOMAIN);
+            return;
+        }
+        if(!inBINTRange(&rnum)) {
+            rplError(ERR_NUMBERTOOBIG);
+            return;
+        }
+
+        BINT n=(BINT)rplReadNumberAsBINT(arg);
+        /*
+        if (n < 0) {
+            rplError(ERR_POSITIVE_INTEGER_EXPECTED);
+            return;
+        }
+        else */
+        if (n > 65534) { // vector size limit
+            rplError(ERR_NUMBERTOOBIG);
+            return;
+        }
+
+        rplDropData(1);
+
+        WORDPTR *savestk=DSTop; // Drop arguments in case of error
+
+        if (n == 0) {
+            rplPushData((WORDPTR)(one_bint));
+            int elements = 1;
+            WORDPTR newmat=rplMatrixCompose(0,elements);
+            if(newmat) {
+                rplDropData(elements);
+                rplPushData(newmat);
+            }
+            if(!newmat || Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+            return;
+        }
+        else if (n == 1) {
+            switch (OPCODE(CurOpcode)) {
+            case TCHEBYCHEFF:
+            case LEGENDRE:
+            case HERMITE2:
+                rplPushData((WORDPTR)(one_bint));
+                rplPushData((WORDPTR)(zero_bint));
+                break;
+            case HERMITE:
+            case TCHEBYCHEFF2:
+                rplPushData((WORDPTR)(two_bint));
+                rplPushData((WORDPTR)(zero_bint));
+                break;
+            }
+            int elements = 2;
+            WORDPTR newmat=rplMatrixCompose(0,elements);
+            if(newmat) {
+                rplDropData(elements);
+                rplPushData(newmat);
+            }
+            if(!newmat || Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+            return;
+        }
+        else {
+            // reserve space for 2 vectors of length n+1
+            for (int i = 0; i < 2; ++i)
+            {
+                // polynomial has n+1 elements
+                for (int j = 0; j <= n; ++j) {
+                    rplPushData((WORDPTR)(zero_bint));
+                }
+            }
+
+            int evenodd = n%2;
+            int ii = 0;
+            int cur = ii%2;
+            if  (!evenodd) cur = 1 - cur;
+            int oth = 1 - cur;
+            // todo populate n=0 and n=1
+            switch (OPCODE(CurOpcode)) {
+            case TCHEBYCHEFF:
+            case LEGENDRE:
+            case HERMITE2:
+                rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint));
+                rplOverwriteData(oth*(n+1)+2,(WORDPTR)(one_bint));
+                break;
+            case HERMITE:
+            case TCHEBYCHEFF2:
+                rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint));
+                rplOverwriteData(oth*(n+1)+2,(WORDPTR)(two_bint));
+                break;
+            }
+
+            // recrsive formula
+            rplNumberToRReg(2, (WORDPTR)(two_bint));
+            for (int i = 2; i < n+1; ++i) {         // i=n+1
+                rplLoadBINTAsReal(i-1, &RReg[5]);   // n
+                rplLoadBINTAsReal(2*i-1, &RReg[6]); // 2n+1
+                rplLoadBINTAsReal(i, &RReg[7]);     // n+1
+
+                // switch via i mod 2
+                int cur = i%2;
+                if  (!evenodd) cur = 1 - cur;
+                int oth = 1-cur;
+                for (int j = i; j >= 0; --j) {
+                    rplNumberToRReg(0, rplPeekData(cur*(n+1)+j+1)); //previous
+                    if (j > 0) {
+                        rplNumberToRReg(1, rplPeekData(oth*(n+1)+j)); // x*current (=shift left)
+                    }
+                    else {
+                        rplNumberToRReg(1, (WORDPTR)(zero_bint)); // the last is zero
+                    }
+                    switch (OPCODE(CurOpcode)) {
+                    case TCHEBYCHEFF:
+                    case TCHEBYCHEFF2:
+                        mulReal(&RReg[3], &RReg[2], &RReg[1]); // 2*x*current
+                        subReal(&RReg[4], &RReg[3], &RReg[0]); // 2*x*current - previous
+                        break;
+                    case LEGENDRE:
+                        mulReal(&RReg[3], &RReg[5], &RReg[0]); // n*previous
+                        mulReal(&RReg[0], &RReg[6], &RReg[1]); // (2n+1)*x*current
+                        subReal(&RReg[1], &RReg[0], &RReg[3]); // (2n+1)*x*current - n*previous
+                        divReal(&RReg[4], &RReg[1], &RReg[7]); // 2*x*current - 2*n*previous
+                        break;
+                    case HERMITE:
+                        mulReal(&RReg[3], &RReg[5], &RReg[0]); // n*previous
+                        subReal(&RReg[0], &RReg[1], &RReg[3]); // x*current - n*previous
+                        mulReal(&RReg[4], &RReg[0], &RReg[2]); // 2*x*current - 2*n*previous
+                        break;
+                    case HERMITE2:
+                        mulReal(&RReg[3], &RReg[5], &RReg[0]); // n*previous
+                        subReal(&RReg[4], &RReg[1], &RReg[3]); // x*current - n*previous
+                        break;
+                    }
+
+                    rplCheckResultAndError(&RReg[4]); // next
+                    WORDPTR newnumber=rplNewReal(&RReg[4]);
+                    if(!newnumber || Exceptions) {
+                        if(DSTop>savestk) DSTop=savestk;
+                        return;
+                    }
+                    rplOverwriteData(cur*(n+1)+j+1,newnumber);
+
+                }
+            }
+            int elements = n+1;
+            rplDropData(elements);
+            WORDPTR newmat=rplMatrixCompose(0,elements);
+
+            if(newmat) {
+                rplDropData(elements);
+                rplPushData(newmat);
+            }
+            else {
+                if(DSTop>savestk) DSTop=savestk;
+                return;
+            }
+
+        }
+        return;
+    }
+
+
+
 
         // ADD MORE OPCODES HERE
 

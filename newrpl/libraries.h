@@ -417,6 +417,28 @@ extern const WORD empty_string[];
 extern const WORD empty_list[];
 extern const WORD angle_180[];
 
+// DATE AND TIME MACROS
+#define ISLEAPYEAR(y) ((!((y) & 3) && ((y) % 100)) || !((y) % 400))
+#define GETDAY(date)   ((date) & 0xFF)
+#define GETMONTH(date) (((date) & 0xFF00) >> 8)
+#define GETYEAR(date)  (((date) & 0xFFFF0000) >> 16)
+#define DAY(day)     (day & 0xFF)
+#define MONTH(month) ((month & 0xFF) << 8)
+#define YEAR(year)   ((year & 0xFFFF) << 16)
+#define SETDAY(date, day)     ((date) |= DAY(day))
+#define SETMONTH(date, month) ((date) |= MONTH(month))
+#define SETYEAR(date, year)   ((date) |= YEAR(year))
+
+#define GETSEC(time)  ((time) & 0xFF)
+#define GETMIN(time)  (((time) & 0xFF00) >> 8)
+#define GETHOUR(date) (((time) & 0xFF0000) >> 16)
+#define SEC(sec)   (sec & 0xFF)
+#define MIN(min)   ((min & 0xFF) << 8)
+#define HOUR(hour) ((hour & 0xFF) << 16)
+#define SETSEC(time, sec)   ((time) |= SEC(sec))
+#define SETMIN(time, min)   ((time) |= MIN(min))
+#define SETHOUR(time, hour) ((time) |= HOUR(hour))
+
 // DEFINE ALL ERROR CODES
 #include "errorcodes.h"
 
