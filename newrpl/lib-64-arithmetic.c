@@ -1903,11 +1903,11 @@ void LIB_HANDLER()
                 return;
             }
 
-            BINT i=0;
+            BINT i=0, j=0;
             for (i = 0; i < 2; ++i)
             {
                 // polynomial has n+1 elements
-                for (int j = 0; j <= n; ++j) {
+                for (j = 0; j <= n; ++j) {
                     rplPushData((WORDPTR)(zero_bint)); // fill with ZERO
                 }
             }
@@ -1934,7 +1934,7 @@ void LIB_HANDLER()
 
             // recrsive formula
             rplNumberToRReg(2, (WORDPTR)(two_bint));
-            for (int i = 2; i < n+1; ++i) {         // i=n+1
+            for (i = 2; i < n+1; ++i) {         // i=n+1
                 rplLoadBINTAsReal(i-1, &RReg[5]);   // n
                 rplLoadBINTAsReal(2*i-1, &RReg[6]); // 2n+1
                 rplLoadBINTAsReal(i, &RReg[7]);     // n+1
@@ -1943,7 +1943,7 @@ void LIB_HANDLER()
                 int cur = i%2;
                 if  (!evenodd) cur = 1 - cur;
                 int oth = 1-cur;
-                for (int j = i; j >= 0; --j) {
+                for (j = i; j >= 0; --j) {
                     rplNumberToRReg(0, rplPeekData(cur*(n+1)+j+1)); //previous
                     if (j > 0) {
                         rplNumberToRReg(1, rplPeekData(oth*(n+1)+j)); // x*current (=shift left)
