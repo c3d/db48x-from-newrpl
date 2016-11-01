@@ -1220,7 +1220,10 @@ void rtc_getalarm(struct date *dt, struct time *tm, int *enabled);
 int rtc_setalarm(struct date dt, struct time tm, int enabled);
 void rtc_gettick(int *freq, int *enabled);
 int rtc_settick(int freq, int enabled);
-
+void __rtc_suspend();
+void __rtc_resume();
+void __rtc_reset();
+void __rtc_setup();
 
 
 // HIGHER LEVEL MEMORY MANAGEMENT
@@ -1259,6 +1262,7 @@ struct time halGetSystemTime();
 int halSetSystemTime(struct time tm);
 void halGetSystemAlarm(struct date *dt, struct time *tm, int *enabled);
 int halSetSystemAlarm(struct date dt, struct time tm, int enabled);
+void halDoAlarmEvent();
 
 // SCREEN FUNCTIONS
 void halInitScreen();

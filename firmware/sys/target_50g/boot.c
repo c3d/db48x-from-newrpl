@@ -689,6 +689,8 @@ void halEnterPowerOff()
 
     FSShutdown();
 
+    __rtc_suspend();
+
     // PUT THE CPU IN A KNOWN SLOW SPEED
     cpu_setspeed(6000000);
 
