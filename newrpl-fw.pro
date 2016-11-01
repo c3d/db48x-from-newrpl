@@ -240,6 +240,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-30.nrpl \
                 newrpl/rpl-objects/lib-32.nrpl \
                 newrpl/rpl-objects/lib-48.nrpl \
+                newrpl/rpl-objects/lib-62.nrpl \
                 newrpl/rpl-objects/lib-64.nrpl \
                 newrpl/rpl-objects/lib-74.nrpl
 

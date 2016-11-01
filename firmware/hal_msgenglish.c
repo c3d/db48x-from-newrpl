@@ -81,10 +81,10 @@ const MSGLIST const all_messages[]={
 
 
     // LISTS
-    { ERR_LISTEXPECTED, "Expected a list" },
-    { ERR_INDEXOUTOFBOUNDS, "Index out of bounds" },
-    { ERR_EMPTYLIST, "List is empty" },
-    { ERR_INVALIDLISTSIZE, "Invalid list size" },
+//    { ERR_LISTEXPECTED, "Expected a list" },
+//    { ERR_INDEXOUTOFBOUNDS, "Index out of bounds" },
+//    { ERR_EMPTYLIST, "List is empty" },
+//    { ERR_INVALIDLISTSIZE, "Invalid list size" },
 
     // SYMBOLICS
     { ERR_SYMBOLICEXPECTED, "Expected a symbolic" },
