@@ -1897,11 +1897,18 @@ void LIB_HANDLER()
         }
         else {
             // reserve space for 2 vectors of length n+1
-            for (int i = 0; i < 2; ++i)
+            rplExpandStack(2*(n+1));
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+                return;
+            }
+
+            BINT i=0;
+            for (i = 0; i < 2; ++i)
             {
                 // polynomial has n+1 elements
                 for (int j = 0; j <= n; ++j) {
-                    rplPushData((WORDPTR)(zero_bint));
+                    rplPushData((WORDPTR)(zero_bint)); // fill with ZERO
                 }
             }
 
@@ -1915,13 +1922,13 @@ void LIB_HANDLER()
             case TCHEBYCHEFF:
             case LEGENDRE:
             case HERMITE2:
-                rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint));
-                rplOverwriteData(oth*(n+1)+2,(WORDPTR)(one_bint));
+                rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint)); //n=0
+                rplOverwriteData(oth*(n+1)+2,(WORDPTR)(one_bint)); //n=1
                 break;
             case HERMITE:
             case TCHEBYCHEFF2:
-                rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint));
-                rplOverwriteData(oth*(n+1)+2,(WORDPTR)(two_bint));
+                rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint)); //n=0
+                rplOverwriteData(oth*(n+1)+2,(WORDPTR)(two_bint)); //n=1
                 break;
             }
 
@@ -1973,13 +1980,14 @@ void LIB_HANDLER()
                         if(DSTop>savestk) DSTop=savestk;
                         return;
                     }
-                    rplOverwriteData(cur*(n+1)+j+1,newnumber);
+                    rplOverwriteData(cur*(n+1)+j+1,newnumber); // set value
 
                 }
             }
+            // we are done. next create vector
             int elements = n+1;
-            rplDropData(elements);
-            WORDPTR newmat=rplMatrixCompose(0,elements);
+            rplDropData(elements); // drop the 2nd exploded vector from n=previous
+            WORDPTR newmat=rplMatrixCompose(0,elements); //create vector from stack
 
             if(newmat) {
                 rplDropData(elements);
