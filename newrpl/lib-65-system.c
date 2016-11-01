@@ -42,6 +42,7 @@
     CMD(DDAYS,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
     CMD(TIME,MKTOKENINFO(4,TITYPE_FUNCTION,0,2)), \
     CMD(TSTR,MKTOKENINFO(4,TITYPE_NOTALLOWED,2,2)), \
+    CMD(ACK,MKTOKENINFO(3,TITYPE_NOTALLOWED,0,2)), \
     CMD(MEM,MKTOKENINFO(3,TITYPE_NOTALLOWED,0,2)), \
     CMD(VERSION,MKTOKENINFO(7,TITYPE_NOTALLOWED,0,2)), \
     CMD(MEMCHECK,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
@@ -49,7 +50,8 @@
     CMD(READCFI,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(PEEK,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(POKE,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ALRM,MKTOKENINFO(4,TITYPE_NOTALLOWED,0,2))
+    CMD(ALRM,MKTOKENINFO(4,TITYPE_NOTALLOWED,0,2)), \
+    CMD(TICK,MKTOKENINFO(4,TITYPE_NOTALLOWED,0,2))
 //    ECMD(CMDNAME,"CMDNAME",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
@@ -307,7 +309,7 @@ BINT rplReadRealAsTime(REAL *time, struct time *tm)
 // REAL HAS THE FORM 'HH.MMSS' IN THE 24H FORMAT.
 // RETURN 0 ON SUCCESS OR
 // RETURN 1 IF AN INVALID TIME IS GIVEN.
-BINT rplReadTimeAsReal(struct time tm, REAL *real)
+BINT rplReadTimeAsReal(struct time tm, REAL *time)
 {
     BINT b_time;
 
@@ -320,7 +322,7 @@ BINT rplReadTimeAsReal(struct time tm, REAL *real)
     b_time += tm.min * 100;
     b_time += tm.hour * 10000;
 
-    newRealFromBINT(real, b_time, -4);
+    newRealFromBINT(time, b_time, -4);
 
     return 0;
 }
@@ -842,26 +844,47 @@ void LIB_HANDLER()
         rplPushData(copyobj);
         return;
     }*/
+    case ACK: // ONLY FOR TESTS
+    {
+        halSetNotification(N_CONNECTION, 0);
+
+        return;
+    }
+    case TICK: // ONLY FOR TESTS
+    {
+        int freq, enabled;
+
+        rtc_gettick(&freq, &enabled);
+
+        if (enabled) {
+            rtc_settick(0, 0);
+            halSetNotification(N_CONNECTION,0);
+        } else {
+            rtc_settick(2, 1);
+        }
+
+        return;
+    }
     case ALRM: // ONLY FOR TESTS
     {
         struct date dt;
         struct time tm;
         unsigned char alrm;
         unsigned char con;
-        int enabled;
+        int enabled = 0;
 
         alrm = (*((volatile unsigned char *)(RTC_REGS + 0x50)));
         con = (*((volatile unsigned char *)(RTC_REGS + 0x40)));
         rplNewBINTPush((BINT64)alrm,BINBINT);
         rplNewBINTPush((BINT64)con,BINBINT);
 
-        dt.mday = 1;
-        dt.mon = 2;
-        dt.year = 2003;
-        tm.hour = 12;
-        tm.min = 35;
-        tm.sec = 48;
-        enabled = 0;
+        dt = halGetSystemDate();
+        tm = halGetSystemTime();
+
+        if (tm.sec < 50) {
+            tm.sec += 10;
+            enabled = 1;
+        }
 
         if (!halSetSystemAlarm(dt, tm, enabled)) {
             rplError(ERR_BADARGVALUE);

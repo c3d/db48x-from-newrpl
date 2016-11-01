@@ -282,7 +282,7 @@ QMAKE_CFLAGS_SHLIB =
 QMAKE_CFLAGS_MT =
 QMAKE_CFLAGS_MT_DBG =
 QMAKE_CFLAGS_THREAD =
-QMAKE_CFLAGS = -std=gnu11 -mtune=arm920t -mcpu=arm920t -mlittle-endian -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -Os -pipe -mthumb-interwork -nostdinc
+QMAKE_CFLAGS = -mtune=arm920t -mcpu=arm920t -mlittle-endian -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -Os -pipe -mthumb-interwork -nostdinc
 QMAKE_CFLAGS_APP =
 
 QMAKE_LFLAGS_DEBUG =

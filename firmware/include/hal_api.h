@@ -124,7 +124,9 @@ enum halFlagsEnum {
     HAL_AUTOOFFTIME1=8,
     HAL_AUTOOFFTIME2=16,
     HAL_AUTOOFFTIME3=32,
-    HAL_NOCLOCKCHANGE=64
+    HAL_NOCLOCKCHANGE=64,
+    HAL_ALARMEVENT=128,
+    HAL_DOALARM=256
     // ADD MORE BITS HERE
 
 };
@@ -1216,6 +1218,8 @@ int rtc_settime(struct time tm);
 int rtc_setdate(struct date dt);
 void rtc_getalarm(struct date *dt, struct time *tm, int *enabled);
 int rtc_setalarm(struct date dt, struct time tm, int enabled);
+void rtc_gettick(int *freq, int *enabled);
+int rtc_settick(int freq, int enabled);
 
 
 

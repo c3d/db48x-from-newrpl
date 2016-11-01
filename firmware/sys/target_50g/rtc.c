@@ -211,7 +211,7 @@ void rtc_getalarm(struct date *dt, struct time *tm, int *enabled)
 
     __rtc_check_device();
 
-    alrm.byte = __getALMEn();
+    alrm.byte = __getRTCAlm();
 
     *enabled = alrm.almen;
 
@@ -284,6 +284,22 @@ int rtc_setalarm(struct date dt, struct time tm, int enabled)
     return 1;
 }
 
+void rtc_gettick(int *freq, int *enabled)
+{
+    union ticnt tick;
+
+    tick.byte = __getRTCTic();
+
+    if (tick.count)
+        *freq = 128 / (tick.count + 1);
+    else
+        *freq = 0;
+
+    *enabled = tick.enable;
+
+    return;
+}
+
 // SET PERIODIC INTERRUPT
 int rtc_settick(int freq, int enabled)
 {
@@ -331,11 +347,38 @@ int rtc_setrnd_tm(int bound, int enabled)
 void __rtc_tickirq()
 {
     __rtc_check_device();
+
+    halSetNotification(N_CONNECTION,0xf^halGetNotification(N_CONNECTION));
+
+    return;
 }
 
 void __rtc_alrmirq()
 {
+    union rtcalm alrm;
+
     __rtc_check_device();
+
+//    halFlags |= HAL_ALARMEVENT; // Replaced by N_CONNECTION for tests
+    halFlags |= HAL_DOALARM;
+    halSetNotification(N_CONNECTION,0xf);
+
+    alrm.byte = __getRTCAlm();
+    alrm.almen = 0;
+    __setRTCAlm(alrm.byte);
+
+    return;
+}
+
+void __rtc_setup()
+{
+    __irq_addhook(INT_RTC, (__interrupt__)&__rtc_alrmirq);
+    __irq_addhook(INT_TICK, (__interrupt__)&__rtc_tickirq);
+
+    __irq_unmask(INT_RTC);
+    __irq_unmask(INT_TICK);
+
+    return;
 }
 
 void __rtc_reset()
@@ -363,18 +406,13 @@ void __rtc_reset()
 
     __rtc_disable_wr();
 
-    __irq_addhook(INT_RTC, (__interrupt__)&__rtc_alrmirq);
-    __irq_addhook(INT_TICK, (__interrupt__)&__rtc_tickirq);
-
-    __irq_unmask(INT_RTC);
-    __irq_unmask(INT_TICK);
-
     return;
 }
 
 void __rtc_suspend()
 {
     __rtc_disable_wr();
+
     // Save Tick
 
     return;
@@ -382,10 +420,43 @@ void __rtc_suspend()
 
 void __rtc_resume()
 {
-    __rtc_check_device();
+    struct date  rtc_dt, alrm_dt;
+    struct time  rtc_tm, alrm_tm;
+    int          enabled;
+
+    rtc_getdatetime(&rtc_dt, &rtc_tm);
     __rtc_disable_wr();
 
     // Restaure Tick
+
+    // ! S3C2410 BUG !
+    // WE NEED TO CHECK IF WAKE-UP IS DUE TO AN ALARM EVENT.
+
+    rtc_getalarm(&alrm_dt, &alrm_tm, &enabled);
+    if (enabled) {
+        if (alrm_dt.year > 0)
+            if (alrm_dt.year != rtc_dt.year)
+                return;
+        if (alrm_dt.mon > 0)
+            if (alrm_dt.mon != rtc_dt.mon)
+                return;
+        if (alrm_dt.mday > 0)
+            if (alrm_dt.mday != rtc_dt.mday)
+                return;
+        if (alrm_tm.hour < 24)
+            if (alrm_tm.hour != rtc_tm.hour)
+                return;
+        if (alrm_tm.min < 60)
+            if (alrm_tm.min != rtc_tm.min)
+                return;
+        if (alrm_tm.sec < 60)
+            if (alrm_tm.sec != rtc_tm.sec)
+                return;
+
+        __rtc_alrmirq();
+    }
+
+    // INSERT NOTHING HERE
 
     return;
 }

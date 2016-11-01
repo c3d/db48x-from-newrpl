@@ -604,7 +604,7 @@ BINT rplIsValidDate(struct date dt);
 BINT rplDateToDays(struct date dt);
 struct date rplDaysToDate(BINT days);
 BINT rplReadRealAsTime(REAL *time, struct time *tm);
-BINT rplReadTimeAsReal(struct time tm, REAL *real);
+BINT rplReadTimeAsReal(struct time tm, REAL *time);
 void rplDecimalToHMS(REAL *dec, REAL *hms);
 void rplHMSToDecimal(REAL *hms, REAL *dec);
 

@@ -49,3 +49,24 @@ int halSetSystemAlarm(struct date dt, struct time tm, int enabled)
 {
     return rtc_setalarm(dt, tm, enabled);
 }
+
+void halAnnounceAlarm()
+{/*
+    halFlags |= HAL_ALARMEVENT;
+    halSetNotification(N_LOWBATTERY,0xf);
+*/
+    return;
+}
+
+void halDoAlarmEvent()
+{
+    // APPOINTMENT ALARM
+    halShowMsg("Alarm Event");
+
+    // CONTROL ALARM
+
+
+    halFlags &= ~HAL_DOALARM;
+
+    return;
+}

@@ -93,7 +93,7 @@ union rtcrst {
 
 #define __getRTCCon()   (*RTCREG(RTCCON))
 #define __getRTCTic()   (*RTCREG(TICNT))
-#define __getALMEn()    (*RTCREG(RTCALM))
+#define __getRTCAlm()   (*RTCREG(RTCALM))
 #define __getRTCRst()   (*RTCREG(RTCRST))
 
 #define __getALMSec()   __getRTCVal(ALMSEC)
