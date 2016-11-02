@@ -29,6 +29,7 @@ SOURCES +=\
     firmware/sys/target_50g/timer.c \
     firmware/sys/target_50g/mem.c \
     firmware/sys/target_50g/flash.c \
+    firmware/sys/target_50g/rtc.c \
     newrpl/decimal.c \
     newrpl/sysvars.c \
     newrpl/dectranscen.c \
@@ -90,6 +91,7 @@ SOURCES +=\
     firmware/ui_cmdline.c \
     firmware/ui_softmenu.c \
     firmware/hal_battery.c \
+    firmware/hal_clock.c \
     firmware/hal_keyboard.c \
     firmware/hal_screen.c \
     firmware/sys/graphics.c \
@@ -205,9 +207,7 @@ SOURCES +=\
     newrpl/lib-70-binary.c \
     newrpl/lib-72-stack.c \
     newrpl/lib-74-sdcard.c \
-    newrpl/lib-80-fonts.c \
-    firmware/sys/target_50g/rtc.c \
-    firmware/hal_clock.c
+    newrpl/lib-80-fonts.c
 
 HEADERS  += \
     firmware/include/ggl.h \
@@ -225,6 +225,7 @@ HEADERS  += \
     newrpl/lib-header.h \
     newrpl/include-all.h \
     newrpl/romlibs.h \
+    firmware/sys/rtc.h \
     firmware/sys/sddriver.h \
     firmware/sys/fsystem/fsyspriv.h \
     firmware/include/fsystem.h
