@@ -1761,8 +1761,53 @@ void LIB_HANDLER()
             }
             return;
         }
-        case CPLX_INF|CPLX_MALFORMED:
         case CPLX_INF|CPLX_POLAR:
+        {
+            REAL re,im;
+            BINT angmode;
+
+            rplReadCNumber(arg,&re,&im,&angmode);
+
+            REAL pi2;
+            switch(angmode) {
+            case ANGLEDEG:
+            case ANGLEDMS:
+                decconst_90(&pi2);
+                break;
+            case ANGLEGRAD:
+                decconst_100(&pi2);
+                break;
+            case ANGLERAD:
+            default:
+                decconst_PI_2(&pi2);
+            }
+
+            im.flags&=~F_NEGATIVE;
+
+            switch(cmpReal(&im,&pi2))
+            {
+            case 1: // ARG(Z)> PI/2
+                rplOverwriteData(1,(WORDPTR)zero_bint);
+                return;
+            case -1:
+                rplDropData(1);
+                rplUndInfinityToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            default:
+            case 0: // ARG(Z)== PI/2
+                rplDropData(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+            }
+
+
+        }
+
+        case CPLX_INF|CPLX_MALFORMED:
         case CPLX_UNDINF:
             rplDropData(1);
             rplNANToRReg(0);
