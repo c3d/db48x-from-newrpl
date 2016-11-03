@@ -1,0 +1,191 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+@ Library 68 has reserved special menu 0 for Custom Menu 1
+@ Library 68 has reserved special menu 1 for Custom Menu 2
+
+@#name sysmenu_2_main
+{
+  { { "Vars" 1 } ::   #00040000h TMENULST ; }
+  { { "Prog" 1 } ::   #04403000h TMENULST ; }
+  { { "Math" 1 } ::   #04404000h TMENULST ; }
+  { { "Symb" 1 } ::   #04405000h TMENULST ; }
+  { { "Units" 1 } ::  #03600000h TMENULST ; }
+  { { "Time" 1 } ::   #04100000h TMENULST ; }
+  { { "System" 1 } :: #04406000h TMENULST ; }
+}
+
+@#name sysmenu_3_prog
+{
+{ { "Code" 1 } ::   #00900000h TMENULST ; }
+{ { "Stack" 1 } ::   #04800000h TMENULST ; }
+{ { "Global" 1 } ::  #01c00000h TMENULST ; }
+{ { "Local" 1 } ::  #02000000h TMENULST ; }
+{ { "Text" 1 } ::   #02400000h TMENULST ; }
+{ { "Real" 1 } ::  #04000000h TMENULST ; }
+{ { "Base" 1 } ::   #04605000h TMENULST ; }
+{ { "Cplx" 1 } ::   #01e00000h TMENULST ; }
+{ { "Angles" 1 } ::   #03000000h TMENULST ; }
+{ { "Matrix" 1 } ::  #03400000h TMENULST ; }
+{ { "List" 1 } ::  #03e00000h TMENULST ; }
+{ { "Flag" 1 } ::   #04407000h TMENULST ; }
+{ { "Menu" 1 } ::   #04408000h TMENULST ; }
+{ { "Clip" 1 } ::   #04409000h TMENULST ; }
+{ { "Comments" 1 } ::  #01400000h TMENULST ; }
+}
+
+@#name sysmenu_4_math
+{
+{ { "Real" 1 } ::  #04000000h TMENULST ; }
+{ { "Trig" 1 } ::  #04200000h TMENULST ; }
+{ { "Hyp" 1 } ::  #04201000h TMENULST ; }
+{ { "Log" 1 } ::  #04202000h TMENULST ; }
+}
+
+@#name sysmenu_5_symb
+{
+{ { "Back" 1 } ::  #04402000h TMENULST ; }
+}
+
+@#name sysmenu_6_system
+{
+{ { "SD" 1 } ::   #04A00000h TMENULST ; }
+{ { "Settings" 1 } ::   #0440A000h TMENULST ; }
+{ { "Menu" 1 } ::   #04408000h TMENULST ; }
+{ { "Clip" 1 } ::   #04409000h TMENULST ; }
+{ { "Mem" 1 } ::   #04101000h TMENULST ; }
+}
+
+@#name sysmenu_7_flags
+{
+SF CF SF? CF? FC?C FS?C
+}
+
+@#name sysmenu_8_menu
+{
+TMENU TMENULST TMENUOTHR MENUSWAP
+}
+
+@#name sysmenu_9_clipboard
+{
+COPYCLIP CUTCLIP PASTECLIP
+}
+
+@#name sysmenu_10_settings
+{
+SETPREC GETPREC SETLOCALE SETNUMFORMAT DEG GRAD RAD DMS
+}
+
+
+@#name lib68_cmdhelp
+{
+
+SETLOCALE
+"Set separators to a 4-char
+string: <Dec><Thou><Frac><Arg>
+S →"
+
+SETNUMFORMAT
+"Change number format
+(not yet implemented)
+S →"
+
+SF
+"Set flag by number or name
+
+<I or N> →"
+
+CF
+"Clear flag by number or name
+
+<I or N> →"
+
+FC?
+"Test if flag is clear
+
+<I or N> → I<1 or 0>"
+
+FS?
+"Test if flag is set
+
+<I or N> → I<1 or 0>"
+
+FC?C
+"Test if flag is clear
+then clear it
+<I or N> → I<1 or 0>"
+
+FS?C
+"Test if flag is set
+then clear it
+<I or N> → I<1 or 0>"
+
+TMENU
+"Change menu to a list,
+variable content or code
+<I or N or L> → "
+
+TMENULST
+"Change menu that was
+last used
+<I or N or L> → "
+
+TMENUOTHR
+"Change menu that was
+not last used
+<I or N or L> → "
+
+MENUSWAP
+"Swap soft menus
+
+ → "
+
+COPYCLIP
+"Copy object to the
+clipboard
+O → O "
+
+CUTCLIP
+"Move object to the
+clipboard
+O → "
+
+PASTECLIP
+"Push clipboard content
+to the stack
+ → O "
+
+DEG
+"Set angle flags to Degrees.
+
+ → "
+
+GRAD
+"Set angle flags to Gon (Grads).
+
+ → "
+
+RAD
+"Set angle flags to Radians.
+
+ → "
+
+DMS
+"Set angle flags to Degrees,
+Minutes and Seconds.
+ → "
+
+}

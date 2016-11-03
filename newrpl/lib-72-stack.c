@@ -91,6 +91,29 @@ void LIB_HANDLER()
         return;
     }
 
+    // LIBRARIES THAT DEFINE ONLY COMMANDS STILL HAVE TO RESPOND TO A FEW OVERLOADABLE OPERATORS
+    if(LIBNUM(CurOpcode)==LIB_OVERLOADABLE) {
+        // ONLY RESPOND TO EVAL, EVAL1 AND XEQ FOR THE COMMANDS DEFINED HERE
+        // IN CASE OF COMMANDS TREATED AS OBJECTS (WHEN EMBEDDED IN LISTS)
+        if( (OPCODE(CurOpcode)==OVR_EVAL)||
+                (OPCODE(CurOpcode)==OVR_EVAL1)||
+                (OPCODE(CurOpcode)==OVR_XEQ) )
+        {
+            // EXECUTE THE COMMAND BY CHANGING THE CURRENT OPCODE
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+
+            WORD saveOpcode=CurOpcode;
+            CurOpcode=*rplPopData();
+            // RECURSIVE CALL
+            LIB_HANDLER();
+            CurOpcode=saveOpcode;
+            return;
+        }
+    }
+
     switch(OPCODE(CurOpcode))
     {
     case GARBAGE:
