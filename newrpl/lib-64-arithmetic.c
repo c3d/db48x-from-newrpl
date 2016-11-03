@@ -1579,7 +1579,22 @@ void LIB_HANDLER()
                         return;
                     }
                 }
+
                 // DO IT ALL WITH REALS
+
+                BINT saveprec=Context.precdigits;
+
+                BINT argdigits=(cols+7)&~7;
+
+                if(argdigits>MAX_USERPRECISION) {
+                    argdigits=MAX_USERPRECISION;
+                }
+
+                argdigits=(argdigits>Context.precdigits)? argdigits:Context.precdigits;
+                //   AUTOMATICALLY INCREASE PRECISION TEMPORARILY
+
+                Context.precdigits=argdigits;
+
                 // use Horner scheme
                 rplNumberToRReg(0,real_val);
                 rplNumberToRReg(1,(WORDPTR)zero_bint);
@@ -1591,6 +1606,7 @@ void LIB_HANDLER()
                     addReal(&RReg[1], &RReg[2], &RReg[3]);
                 }
 
+                Context.precdigits=saveprec;
                 WORDPTR newnumber=rplNewReal(&RReg[1]);
                 if(!newnumber) return;
                 // drop one value and replace level 1 value
@@ -1637,11 +1653,25 @@ void LIB_HANDLER()
                 }
                 // DO IT ALL WITH REALS
 
+                BINT saveprec=Context.precdigits;
+
+                BINT argdigits=(cols+7)&~7;
+
+                if(argdigits>MAX_USERPRECISION) {
+                    argdigits=MAX_USERPRECISION;
+                }
+
+                argdigits=(argdigits>Context.precdigits)? argdigits:Context.precdigits;
+                //   AUTOMATICALLY INCREASE PRECISION TEMPORARILY
+
+                Context.precdigits=argdigits;
+
                 WORDPTR *Firstelem=DSTop;
 
                 rplPushData((WORDPTR)one_bint);
                 if(Exceptions) {
                     DSTop=Firstelem;
+                    Context.precdigits=saveprec;
                     return;
                 }
 
@@ -1664,16 +1694,19 @@ void LIB_HANDLER()
                         WORDPTR newnumber=rplNewReal(&RReg[4]);
                         if(!newnumber) {
                             DSTop=Firstelem;
+                            Context.precdigits=saveprec;
                             return;
                         }
                         *(Firstelem+j)=newnumber;
                     }
                     if(Exceptions) {
                         DSTop=Firstelem;
+                        Context.precdigits=saveprec;
                         return;
                     }
                 }
 
+                Context.precdigits=saveprec;
                 WORDPTR pcoefs=rplMatrixCompose(0,cols+1);
                 if(!pcoefs) return;
                 rplDropData(cols+1);
@@ -1903,6 +1936,20 @@ void LIB_HANDLER()
                 return;
             }
 
+            BINT saveprec=Context.precdigits;
+
+            BINT argdigits=(n+7)&~7;
+
+            if(argdigits>MAX_USERPRECISION) {
+                argdigits=MAX_USERPRECISION;
+            }
+
+            argdigits=(argdigits>Context.precdigits)? argdigits:Context.precdigits;
+            //   AUTOMATICALLY INCREASE PRECISION TEMPORARILY
+
+            Context.precdigits=argdigits;
+
+
             BINT i=0, j=0;
             for (i = 0; i < 2; ++i)
             {
@@ -1978,6 +2025,7 @@ void LIB_HANDLER()
                     WORDPTR newnumber=rplNewReal(&RReg[4]);
                     if(!newnumber || Exceptions) {
                         if(DSTop>savestk) DSTop=savestk;
+                        Context.precdigits=saveprec;
                         return;
                     }
                     rplOverwriteData(cur*(n+1)+j+1,newnumber); // set value
@@ -1987,6 +2035,7 @@ void LIB_HANDLER()
             // we are done. next create vector
             int elements = n+1;
             rplDropData(elements); // drop the 2nd exploded vector from n=previous
+            Context.precdigits=saveprec;
             WORDPTR newmat=rplMatrixCompose(0,elements); //create vector from stack
 
             if(newmat) {
