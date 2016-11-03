@@ -19,7 +19,7 @@
 
 @#name sysmenu_2_main
 {
-  { { "Vars" 1 } ::   #00040000h TMENULST ; }
+  { { "Vars" 1 } { ::   #00040000h TMENULST ; ::   #00040000h TMENUOTHR ; } }
   { { "Prog" 1 } ::   #04403000h TMENULST ; }
   { { "Math" 1 } ::   #04404000h TMENULST ; }
   { { "Symb" 1 } ::   #04405000h TMENULST ; }

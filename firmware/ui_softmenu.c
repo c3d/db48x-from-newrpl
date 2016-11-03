@@ -128,6 +128,7 @@ WORDPTR uiGetMenuItemAction(WORDPTR item,BINT shift)
 
     if(!ISLIST(*item)) return item;
 
+    int nactions=rplListLength(item);
 
     int index;
     switch(KM_SHIFTPLANE(shift))
@@ -136,15 +137,24 @@ WORDPTR uiGetMenuItemAction(WORDPTR item,BINT shift)
         index=0;
         break;
     case SHIFT_LS:
+        if(nactions<2) { index=0; break; }
         index=1;
         break;
     case SHIFT_RS:
+        if(nactions<2) { index=0; break; }
+        if(nactions<3) { index=1; break; }  // SINGLE-SHIFT SPEC
         index=2;
         break;
     case SHIFT_LS|SHIFT_LSHOLD:
+        if(nactions<2) { index=0; break; }
+        if(nactions<3) { index=1; break; }  // SINGLE-SHIFT SPEC
+        if(nactions<4) { index=1; break; }  // LS-HOLD = LS IF NOT GIVEN
         index=3;
         break;
     case SHIFT_RS|SHIFT_RSHOLD:
+        if(nactions<2) { index=0; break; }
+        if(nactions<3) { index=1; break; }  // SINGLE-SHIFT SPEC
+        if(nactions<5) { index=2; break; }  // LS-HOLD = LS IF NOT GIVEN
         index=4;
         break;
     default:
