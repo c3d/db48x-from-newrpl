@@ -66,7 +66,8 @@
     CMD(LEGENDRE,MKTOKENINFO(8,TITYPE_FUNCTION,1,2)), \
     CMD(HERMITE,MKTOKENINFO(7,TITYPE_FUNCTION,1,2)), \
     CMD(TCHEBYCHEFF2,MKTOKENINFO(12,TITYPE_FUNCTION,1,2)), \
-    CMD(HERMITE2,MKTOKENINFO(8,TITYPE_FUNCTION,1,2))
+    CMD(HERMITE2,MKTOKENINFO(8,TITYPE_FUNCTION,1,2)), \
+    CMD(DIV2,MKTOKENINFO(4,TITYPE_FUNCTION,2,2))
 
 // ADD MORE OPCODES HERE
 
@@ -2051,7 +2052,142 @@ void LIB_HANDLER()
         return;
     }
 
+    case DIV2:
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
 
+        WORDPTR dividend=rplPeekData(2);
+        WORDPTR divisor=rplPeekData(1);
+
+        // POLYNOMIAL DIVISION
+        if(ISMATRIX(*dividend) && ISMATRIX(*divisor)) {
+            BINT rows_num=MATROWS(dividend[1]),cols_num=MATCOLS(dividend[1]);
+            BINT rows_denom=MATROWS(divisor[1]),cols_denom=MATCOLS(divisor[1]);
+            // Check for vector only
+            if(rows_num || rows_denom) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+
+            // only numbers allowed
+            BINT f;
+            for(f=0;f<cols_num;++f) {
+                WORDPTR entry=rplMatrixFastGet(dividend,1,f+1);
+                if(!ISNUMBER(*entry)) {
+                    rplError(ERR_VECTOROFNUMBERSEXPECTED);
+                    return;
+                }
+            }
+            for(f=0;f<cols_denom;++f) {
+                WORDPTR entry=rplMatrixFastGet(divisor,1,f+1);
+                if(!ISNUMBER(*entry)) {
+                    rplError(ERR_VECTOROFNUMBERSEXPECTED);
+                    return;
+                }
+            }
+
+            // Eliminate leading zeros to get the real order
+            BINT can_reduce_num = 0, can_reduce_denom = 0;
+            for(f=0;f<cols_num;++f) {
+                WORDPTR entry=rplMatrixFastGet(dividend,1,f+1);
+                rplReadNumberAsReal(entry,&RReg[0]);
+                if (iszeroReal(&RReg[0])) {
+                    ++can_reduce_num;
+                } else { break; }
+            }
+            for(f=0;f<cols_denom;++f) {
+                WORDPTR entry=rplMatrixFastGet(divisor,1,f+1);
+                rplReadNumberAsReal(entry,&RReg[0]);
+                if (iszeroReal(&RReg[0])) {
+                    ++can_reduce_denom;
+                } else { break; }
+            }
+            if (can_reduce_num > 0) {
+                for(f=can_reduce_num;f<cols_num;++f) {
+                    WORDPTR entry=rplMatrixFastGet(dividend,1,f+1);
+                    rplPushData(entry); }
+                BINT elements = cols_num-can_reduce_num;
+                WORDPTR newmat=rplMatrixCompose(0,elements);
+                if(newmat) {
+                    rplDropData(elements);
+                    rplOverwriteData(2,newmat);
+                }
+            }
+            if (can_reduce_denom > 0) {
+                for(f=can_reduce_denom;f<cols_denom;++f) {
+                    WORDPTR entry=rplMatrixFastGet(divisor,1,f+1);
+                    rplPushData(entry); }
+                BINT elements = cols_denom-can_reduce_denom;
+                WORDPTR newmat=rplMatrixCompose(0,elements);
+                if(newmat) {
+                    rplDropData(elements);
+                    rplOverwriteData(1,newmat);
+                }
+            }
+
+            // now we do have removed all leading zeroes
+            WORDPTR *pdividend=(DSTop-2);
+            WORDPTR *pdivisor=(DSTop-1);
+            cols_num=MATCOLS((*pdividend)[1]);
+            cols_denom=MATCOLS((*pdivisor)[1]);
+
+            if (cols_num < cols_denom) {
+                rplPushData((WORDPTR)(zero_bint));
+                BINT elements = 1;
+                WORDPTR newmat=rplMatrixCompose(0,elements);
+                if(newmat) {
+                    rplDropData(elements);
+                    rplOverwriteData(1,rplPeekData(2));
+                    rplOverwriteData(2,newmat);
+                }
+            } else {
+                // copy dividend
+                for(f=0;f<cols_num;++f) {
+                    WORDPTR entry=rplMatrixFastGet(*pdividend,1,f+1);
+                    rplPushData(entry); }
+                WORDPTR normalizer = rplMatrixFastGet(*pdivisor,1,1); // divisor[0]
+                rplNumberToRReg(0, normalizer);
+                for (int f = 0; f < cols_num-cols_denom+1; ++f) {
+                    rplNumberToRReg(1,rplPeekData(cols_num-f)); // out[i]
+                    divReal(&RReg[2], &RReg[1], &RReg[0]);
+                    WORDPTR newnumber=rplNewReal(&RReg[2]);
+                    if(!newnumber || Exceptions) { return; }
+                    rplOverwriteData(cols_num-f, newnumber); //out[i] /= normalizer
+                   if (!iszeroReal(&RReg[2])) {             // coef = RReg[2]
+                        BINT j;
+                        for (int j = 1; j < cols_denom; ++j) {
+                            WORDPTR divj = rplMatrixFastGet(*pdivisor,1,j+1); // divisor[j]
+                            rplNumberToRReg(1, divj);
+                            mulReal(&RReg[1], &RReg[1], &RReg[2]);
+                            rplNumberToRReg(3,rplPeekData(cols_num-f-j)); // out[i]
+                            subReal(&RReg[3], &RReg[3], &RReg[1]);
+                            WORDPTR newnumber=rplNewReal(&RReg[3]);
+                            if(!newnumber || Exceptions) {
+                                return;
+                            }
+                            rplOverwriteData(cols_num-f-j, newnumber);
+                        }
+                    }
+                }
+                BINT elements_remainder = cols_denom-1;
+                WORDPTR remainder=rplMatrixCompose(0,elements_remainder);
+                if(remainder) {
+                    rplDropData(elements_remainder);
+                    BINT elements_quotient = cols_num-cols_denom+1;
+                    WORDPTR quotient=rplMatrixCompose(0,elements_quotient);
+                    if(quotient) {
+                        rplDropData(elements_quotient);
+                        rplOverwriteData(2,quotient);
+                        rplOverwriteData(1,remainder);
+                    }
+                }
+            }
+        }
+        return;
+    }
 
 
         // ADD MORE OPCODES HERE
