@@ -76,7 +76,7 @@ SF CF SF? CF? FC?C FS?C
 
 @#name sysmenu_8_menu
 {
-TMENU TMENULST TMENUOTHR MENUSWAP
+TMENU RCLMENU MENUSWAP TMENULST RCLMENULST TMENUOTHR RCLMENUOTHR
 }
 
 @#name sysmenu_9_clipboard
@@ -138,6 +138,7 @@ TMENU
 variable content or code
 <I or N or L> → "
 
+
 TMENULST
 "Change menu that was
 last used
@@ -147,6 +148,22 @@ TMENUOTHR
 "Change menu that was
 not last used
 <I or N or L> → "
+
+
+RCLMENU
+"Get the active menu
+
+ → <I or N or L>"
+
+RCLMENULST
+"Get the menu that was
+last used
+ → <I or N or L>"
+
+RCLMENUOTHR
+"Get the menu that was
+not last used
+ → <I or N or L>"
 
 MENUSWAP
 "Swap soft menus

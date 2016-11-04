@@ -39,6 +39,9 @@
     CMD(TMENULST,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)),\
     CMD(TMENUOTHR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)),\
     CMD(MENUSWAP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RCLMENU,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)),\
+    CMD(RCLMENULST,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)),\
+    CMD(RCLMENUOTHR,MKTOKENINFO(11,TITYPE_NOTALLOWED,1,2)),\
     CMD(COPYCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(CUTCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(PASTECLIP,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
@@ -1192,6 +1195,47 @@ void LIB_HANDLER()
 
       return;
     }
+
+    case RCLMENU:
+    case RCLMENULST:
+    case RCLMENUOTHR:
+    {
+        BINT menu;
+
+        if(CurOpcode!=CMD_RCLMENU) {
+        menu=rplGetLastMenu();
+        if(CurOpcode==CMD_RCLMENUOTHR) {
+            // USE THE OTHER MENU
+            if(menu==1) menu=2;
+            else menu=1;
+        }
+        }
+        else menu=rplGetActiveMenu();
+
+
+        WORD mcode=rplGetMenuCode(menu);
+
+        if((MENULIBRARY(mcode)==LIBRARY_NUMBER)&&(MENUNUMBER(mcode)<2)) {
+            // SPECIAL CUSTOM MENUS, RCL FROM THE SETTINGS DIRECTORY
+            WORDPTR msetting;
+            if(menu==1)  msetting=rplGetSettings((WORDPTR)menu1_ident);
+            else if(menu==2) msetting=rplGetSettings((WORDPTR)menu2_ident);
+            else msetting=0;
+
+            if(!msetting) msetting=(WORDPTR)empty_list; // IF MENU CONTENT CAN'T BE DETERMINED, RETURN AN EMPTY CUSTOM MENU
+
+            rplPushData(msetting);
+            return;
+        }
+
+        // NOTHING CUSTOM, JUST RETURN THE MENU CODE
+
+        rplNewBINTPush((BINT64)mcode,HEXBINT);
+        return;
+
+    }
+
+
 
     case MENUSWAP:
     {
