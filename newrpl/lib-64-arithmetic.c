@@ -67,7 +67,9 @@
     CMD(HERMITE,MKTOKENINFO(7,TITYPE_FUNCTION,1,2)), \
     CMD(TCHEBYCHEFF2,MKTOKENINFO(12,TITYPE_FUNCTION,1,2)), \
     CMD(HERMITE2,MKTOKENINFO(8,TITYPE_FUNCTION,1,2)), \
-    CMD(DIV2,MKTOKENINFO(4,TITYPE_FUNCTION,2,2))
+    CMD(DIV2,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
+    CMD(PDER,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(PINT,MKTOKENINFO(4,TITYPE_FUNCTION,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -2102,14 +2104,14 @@ void LIB_HANDLER()
             BINT can_reduce_num = 0, can_reduce_denom = 0;
             for(f=0;f<cols_num;++f) {
                 WORDPTR entry=rplMatrixFastGet(dividend,1,f+1);
-                rplReadNumberAsReal(entry,&RReg[0]);
+                rplNumberToRReg(0, entry);
                 if (iszeroReal(&RReg[0])) {
                     ++can_reduce_num;
                 } else { break; }
             }
             for(f=0;f<cols_denom;++f) {
                 WORDPTR entry=rplMatrixFastGet(divisor,1,f+1);
-                rplReadNumberAsReal(entry,&RReg[0]);
+                rplNumberToRReg(0, entry);
                 if (iszeroReal(&RReg[0])) {
                     ++can_reduce_denom;
                 } else { break; }
@@ -2180,7 +2182,7 @@ void LIB_HANDLER()
                     rplPushData(entry); }
                 WORDPTR normalizer = rplMatrixFastGet(*pdivisor,1,1); // divisor[0]
                 rplNumberToRReg(0, normalizer);
-                for (int f = 0; f < cols_num-cols_denom+1; ++f) {
+                for (f = 0; f < cols_num-cols_denom+1; ++f) {
                     rplNumberToRReg(1,rplPeekData(cols_num-f)); // out[i]
                     divReal(&RReg[2], &RReg[1], &RReg[0]);
                     WORDPTR newnumber=rplNewReal(&RReg[2]);
@@ -2192,7 +2194,7 @@ void LIB_HANDLER()
                     rplOverwriteData(cols_num-f, newnumber); //out[i] /= normalizer
                    if (!iszeroReal(&RReg[2])) {             // coef = RReg[2]
                         BINT j;
-                        for (int j = 1; j < cols_denom; ++j) {
+                        for (j = 1; j < cols_denom; ++j) {
                             WORDPTR divj = rplMatrixFastGet(*pdivisor,1,j+1); // divisor[j]
                             rplNumberToRReg(1, divj);
                             mulReal(&RReg[1], &RReg[1], &RReg[2]);
@@ -2239,6 +2241,149 @@ void LIB_HANDLER()
         }
         return;
     }
+
+    case PDER:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        WORDPTR poly=rplPeekData(1);
+
+        if(ISMATRIX(*poly)){
+
+            BINT rows=MATROWS(poly[1]),cols=MATCOLS(poly[1]);
+
+            if(rows) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+            BINT f;
+
+            for(f=1;f<=cols;++f) {
+                WORDPTR entry=rplMatrixFastGet(poly,1,f);
+                if(!ISNUMBER(*entry)) {
+                    rplError(ERR_VECTOROFNUMBERSEXPECTED);
+                    return;
+                }
+            }
+            // DO IT ALL WITH REALS
+            WORDPTR *savestk=DSTop; // Drop arguments in case of error
+
+            BINT can_reduce = 0;
+            for(f=0;f<cols;++f) {
+                WORDPTR entry=rplMatrixFastGet(poly,1,f+1);
+                rplNumberToRReg(0, entry);
+                if (iszeroReal(&RReg[0])) {
+                    ++can_reduce;
+                } else { break; }
+            }
+
+            // copy trimmed polynomial and do derive
+            const BINT order=cols-can_reduce-1;
+            BINT iorder;
+            for(f=can_reduce, iorder=order;f<cols-1;++f,--iorder) {
+                WORDPTR entry=rplMatrixFastGet(poly,1,f+1);
+                rplNumberToRReg(1, entry);
+                rplBINTToRReg(0,iorder);
+                mulReal(&RReg[2], &RReg[1], &RReg[0]);
+                WORDPTR newnumber=rplNewReal(&RReg[2]);
+                if(!newnumber || Exceptions) {
+                    if(DSTop>savestk) DSTop=savestk;
+                    return;
+                }
+                rplPushData(newnumber);
+            }
+            WORDPTR pder=rplMatrixCompose(0,order);
+            if(!pder || Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+                return;
+            }
+            rplDropData(order+1);
+            rplOverwriteData(1,pder);
+
+
+        }
+        else {
+            rplError(ERR_VECTOREXPECTED);
+        }
+        return;
+    }
+
+
+    case PINT:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        WORDPTR poly=rplPeekData(1);
+
+        if(ISMATRIX(*poly)){
+
+            BINT rows=MATROWS(poly[1]),cols=MATCOLS(poly[1]);
+
+            if(rows) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+            BINT f;
+
+            for(f=1;f<=cols;++f) {
+                WORDPTR entry=rplMatrixFastGet(poly,1,f);
+                if(!ISNUMBER(*entry)) {
+                    rplError(ERR_VECTOROFNUMBERSEXPECTED);
+                    return;
+                }
+            }
+            // DO IT ALL WITH REALS
+            WORDPTR *savestk=DSTop; // Drop arguments in case of error
+
+            BINT can_reduce = 0;
+            for(f=0;f<cols;++f) {
+                WORDPTR entry=rplMatrixFastGet(poly,1,f+1);
+                rplNumberToRReg(0, entry);
+                if (iszeroReal(&RReg[0])) {
+                    ++can_reduce;
+                } else { break; }
+            }
+
+            // copy trimmed polynomial and do derive
+            const BINT order=cols-can_reduce-1;
+            BINT iorder;
+            for(f=can_reduce, iorder=order+1;f<cols;++f,--iorder) {
+                WORDPTR entry=rplMatrixFastGet(poly,1,f+1);
+                rplNumberToRReg(1, entry);
+                rplBINTToRReg(0,iorder);
+                divReal(&RReg[2], &RReg[1], &RReg[0]);
+                WORDPTR newnumber=rplNewReal(&RReg[2]);
+                if(!newnumber || Exceptions) {
+                    if(DSTop>savestk) DSTop=savestk;
+                    return;
+                }
+                rplPushData(newnumber);
+            }
+            rplPushData((WORDPTR)(zero_bint));
+            WORDPTR pint=rplMatrixCompose(0,order+2);
+            if(!pint || Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+                return;
+            }
+            rplDropData(order+2);
+            rplOverwriteData(1,pint);
+
+
+        }
+        else {
+            rplError(ERR_VECTOREXPECTED);
+        }
+        return;
+    }
+
+
+
 
 
         // ADD MORE OPCODES HERE
