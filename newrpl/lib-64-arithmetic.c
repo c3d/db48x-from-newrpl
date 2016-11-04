@@ -2165,6 +2165,15 @@ void LIB_HANDLER()
                     rplOverwriteData(2,newmat);
                 }
             } else {
+                BINT saveprec=Context.precdigits;
+                BINT argdigits=saveprec+(2*cols_denom+7)&~7;
+                if(argdigits>MAX_USERPRECISION) {
+                    argdigits=MAX_USERPRECISION;
+                }
+                argdigits=(argdigits>Context.precdigits)? argdigits:Context.precdigits;
+                //   AUTOMATICALLY INCREASE PRECISION TEMPORARILY
+                Context.precdigits=argdigits;
+
                 // copy dividend
                 for(f=0;f<cols_num;++f) {
                     WORDPTR entry=rplMatrixFastGet(*pdividend,1,f+1);
@@ -2177,6 +2186,7 @@ void LIB_HANDLER()
                     WORDPTR newnumber=rplNewReal(&RReg[2]);
                     if(!newnumber || Exceptions) {
                         if(DSTop>savestk) DSTop=savestk;
+                        Context.precdigits=saveprec;
                         return;
                     }
                     rplOverwriteData(cols_num-f, newnumber); //out[i] /= normalizer
@@ -2191,6 +2201,7 @@ void LIB_HANDLER()
                             WORDPTR newnumber=rplNewReal(&RReg[3]);
                             if(!newnumber || Exceptions) {
                                 if(DSTop>savestk) DSTop=savestk;
+                                Context.precdigits=saveprec;
                                 return;
                             }
                             rplOverwriteData(cols_num-f-j, newnumber);
@@ -2210,13 +2221,16 @@ void LIB_HANDLER()
                     }
                     else {
                         if(DSTop>savestk) DSTop=savestk;
+                        Context.precdigits=saveprec;
                         return;
                     }
                 }
                 else {
                     if(DSTop>savestk) DSTop=savestk;
+                    Context.precdigits=saveprec;
                     return;
                 }
+                Context.precdigits=saveprec;
             }
         }
         else {
