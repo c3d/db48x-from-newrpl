@@ -2059,8 +2059,14 @@ void LIB_HANDLER()
             return;
         }
 
+        WORDPTR *savestk=DSTop; // Drop arguments in case of error
+
         WORDPTR dividend=rplPeekData(2);
         WORDPTR divisor=rplPeekData(1);
+
+        // DUP2
+        rplPushData(dividend);
+        rplPushData(divisor);
 
         // POLYNOMIAL DIVISION
         if(ISMATRIX(*dividend) && ISMATRIX(*divisor)) {
@@ -2068,6 +2074,7 @@ void LIB_HANDLER()
             BINT rows_denom=MATROWS(divisor[1]),cols_denom=MATCOLS(divisor[1]);
             // Check for vector only
             if(rows_num || rows_denom) {
+                if(DSTop>savestk) DSTop=savestk;
                 rplError(ERR_VECTOREXPECTED);
                 return;
             }
@@ -2077,6 +2084,7 @@ void LIB_HANDLER()
             for(f=0;f<cols_num;++f) {
                 WORDPTR entry=rplMatrixFastGet(dividend,1,f+1);
                 if(!ISNUMBER(*entry)) {
+                    if(DSTop>savestk) DSTop=savestk;
                     rplError(ERR_VECTOROFNUMBERSEXPECTED);
                     return;
                 }
@@ -2084,6 +2092,7 @@ void LIB_HANDLER()
             for(f=0;f<cols_denom;++f) {
                 WORDPTR entry=rplMatrixFastGet(divisor,1,f+1);
                 if(!ISNUMBER(*entry)) {
+                    if(DSTop>savestk) DSTop=savestk;
                     rplError(ERR_VECTOROFNUMBERSEXPECTED);
                     return;
                 }
@@ -2105,6 +2114,12 @@ void LIB_HANDLER()
                     ++can_reduce_denom;
                 } else { break; }
             }
+
+            if (Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+                return;
+            }
+
             if (can_reduce_num > 0) {
                 for(f=can_reduce_num;f<cols_num;++f) {
                     WORDPTR entry=rplMatrixFastGet(dividend,1,f+1);
@@ -2126,6 +2141,12 @@ void LIB_HANDLER()
                     rplDropData(elements);
                     rplOverwriteData(1,newmat);
                 }
+            }
+
+
+            if (Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+                return;
             }
 
             // now we do have removed all leading zeroes
@@ -2154,7 +2175,10 @@ void LIB_HANDLER()
                     rplNumberToRReg(1,rplPeekData(cols_num-f)); // out[i]
                     divReal(&RReg[2], &RReg[1], &RReg[0]);
                     WORDPTR newnumber=rplNewReal(&RReg[2]);
-                    if(!newnumber || Exceptions) { return; }
+                    if(!newnumber || Exceptions) {
+                        if(DSTop>savestk) DSTop=savestk;
+                        return;
+                    }
                     rplOverwriteData(cols_num-f, newnumber); //out[i] /= normalizer
                    if (!iszeroReal(&RReg[2])) {             // coef = RReg[2]
                         BINT j;
@@ -2166,6 +2190,7 @@ void LIB_HANDLER()
                             subReal(&RReg[3], &RReg[3], &RReg[1]);
                             WORDPTR newnumber=rplNewReal(&RReg[3]);
                             if(!newnumber || Exceptions) {
+                                if(DSTop>savestk) DSTop=savestk;
                                 return;
                             }
                             rplOverwriteData(cols_num-f-j, newnumber);
@@ -2179,12 +2204,24 @@ void LIB_HANDLER()
                     BINT elements_quotient = cols_num-cols_denom+1;
                     WORDPTR quotient=rplMatrixCompose(0,elements_quotient);
                     if(quotient) {
-                        rplDropData(elements_quotient);
+                        rplDropData(elements_quotient+2);
                         rplOverwriteData(2,quotient);
                         rplOverwriteData(1,remainder);
                     }
+                    else {
+                        if(DSTop>savestk) DSTop=savestk;
+                        return;
+                    }
+                }
+                else {
+                    if(DSTop>savestk) DSTop=savestk;
+                    return;
                 }
             }
+        }
+        else {
+            if(DSTop>savestk) DSTop=savestk;
+            rplError(ERR_VECTOROFNUMBERSEXPECTED);
         }
         return;
     }
