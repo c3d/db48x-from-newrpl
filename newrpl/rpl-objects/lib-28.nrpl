@@ -17,7 +17,7 @@
 
 @#name lib28_menu
 {
-  STO RCL PURGE STO+ STO- STO* STO/ SINV SNEG SCONJ INCR DECR CRDIR PGDIR { "" } HOME UPDIR PATH VARS ALLVARS ORDER
+  STO RCL PURGE STO+ STO- STO* STO/ SINV SNEG SCONJ INCR DECR CRDIR PGDIR { "" } HOME UPDIR PATH VARS ALLVARS ORDER QUOTEID UNQUOTEID HIDEVAR UNHIDEVAR
 }
 
 @#name lib28_msgtable
@@ -129,5 +129,25 @@ ORDER
 "Sort variables in the currrent dir
 in the order given in a list
 L → "
+
+UNQUOTEID
+"Mark an ident as unquoted
+
+N → N<unquoted> "
+
+QUOTEID
+"Mark an ident as quoted
+
+N → N<quoted> "
+
+HIDEVAR
+"Hide a variable in a
+directory
+N → "
+
+UNHIDEVAR
+"Make a variable visible
+in a directory
+N → "
 
 }

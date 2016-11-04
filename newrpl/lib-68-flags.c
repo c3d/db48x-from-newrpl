@@ -166,17 +166,17 @@ const systemflag const flags_names[]= {
     // EACH OF THE 8 CHARS CONTAINS: BITS 0-6:= FLAG NUMBER (1-127),
     // BIT 7= VALUE (ON/OFF) TO USE WITH SET FLAG, ASSUMED ALWAYS 0 FOR CLEAR FLAG.
 
-    { "DEG", { 17,18,0,0,0,0,0,0}  },
-    { "RAD", {0x80|17,18,0,0,0,0,0,0} },
-    { "GRAD", {17, 0X80|18,0,0,0,0,0,0} },
-    { "DMS", {0x80|17,0x80|18,0,0,0,0,0,0} },
-    { "COMMENTS", {0x80|30,0,0,0,0,0,0,0} },
-    { "ACTIVEMENU1", { 0x80|4,0,0,0,0,0,0,0} },
-    { "ACTIVEMENU2", { 4, 0,0,0,0,0,0,0} },
-    { "DATEDMY" , { 0X80|42,0,0,0,0,0,0,0} },
-    { "DATEMDY" , { 42,0,0,0,0,0,0,0} },
-    { "TIME12" , { 41,0,0,0,0,0,0,0} },
-    { "TIME24" , { 0x80|41,0,0,0,0,0,0,0} },
+    { "DEG", { (-FL_ANGLEMODE1),(-FL_ANGLEMODE2),0,0,0,0,0,0}  },
+    { "RAD", {0x80|(-FL_ANGLEMODE1),(-FL_ANGLEMODE2),0,0,0,0,0,0} },
+    { "GRAD", {(-FL_ANGLEMODE1), 0X80|(-FL_ANGLEMODE2),0,0,0,0,0,0} },
+    { "DMS", {0x80|(-FL_ANGLEMODE1),0x80|(-FL_ANGLEMODE2),0,0,0,0,0,0} },
+    { "COMMENTS", {0x80|(-FL_STRIPCOMMENTS),0,0,0,0,0,0,0} },
+    { "ACTIVEMENU1", { 0x80|(-FL_ACTIVEMENU),0,0,0,0,0,0,0} },
+    { "ACTIVEMENU2", { (-FL_ACTIVEMENU), 0,0,0,0,0,0,0} },
+    { "DATEDMY" , { 0X80|(-FL_DATEFORMAT),0,0,0,0,0,0,0} },
+    { "DATEMDY" , { (-FL_DATEFORMAT),0,0,0,0,0,0,0} },
+    { "TIME12" , { (-FL_TIMEFORMAT),0,0,0,0,0,0,0} },
+    { "TIME24" , { 0x80|(-FL_TIMEFORMAT),0,0,0,0,0,0,0} },
 
 
 

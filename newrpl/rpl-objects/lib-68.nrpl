@@ -90,6 +90,19 @@ SETPREC GETPREC SETLOCALE SETNUMFORMAT DEG GRAD RAD DMS
 }
 
 
+@#name sysmenu_11_namedflags
+{
+{ "DEG" :: DEG ; }
+{ "RAD" :: RAD ; }
+{ "GRAD" :: GRAD ; }
+}
+
+
+
+
+
+
+
 @#name lib68_cmdhelp
 {
 
