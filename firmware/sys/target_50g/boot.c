@@ -198,6 +198,9 @@ void main_virtual(unsigned int mode)
     }
     }
 
+    if (halGetNotification(N_CONNECTION))
+        halShowMsg("Alarm Event");
+
     // INITIALIZE SD CARD SYSTEM MEMORY ALLOCATOR
     FSHardReset();
 
@@ -265,12 +268,13 @@ void startup(int prevstate)
 
         // ADD ANY OTHER INITIALIZATION HERE
 
+        __rtc_resume();
 
     } else {
         // FROM RESET OR WARMSTART, CLEAN VARIABLES
-
-    clear_globals();    // CLEAR TO ZERO ALL NON-PERSISTENT GLOBALS
-    __lcd_contrast=7;
+        __rtc_reset();
+        clear_globals();    // CLEAR TO ZERO ALL NON-PERSISTENT GLOBALS
+        __lcd_contrast=7;
     }
 
     __exception_install();  // INITIALIZE IRQ AND EXCEPTION HANDLING
@@ -279,7 +283,7 @@ void startup(int prevstate)
 
     tmr_setup();
     __keyb_init();
-
+    __rtc_setup();
     // ADD MORE HARDWARE INITIALIZATION HERE
 
     // ...
@@ -684,6 +688,8 @@ void halEnterPowerOff()
     // FILE SYSTEM SHUTDOWN
 
     FSShutdown();
+
+    __rtc_suspend();
 
     // PUT THE CPU IN A KNOWN SLOW SPEED
     cpu_setspeed(6000000);

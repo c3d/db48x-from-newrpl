@@ -1579,7 +1579,22 @@ void LIB_HANDLER()
                         return;
                     }
                 }
+
                 // DO IT ALL WITH REALS
+
+                BINT saveprec=Context.precdigits;
+
+                BINT argdigits=(cols+7)&~7;
+
+                if(argdigits>MAX_USERPRECISION) {
+                    argdigits=MAX_USERPRECISION;
+                }
+
+                argdigits=(argdigits>Context.precdigits)? argdigits:Context.precdigits;
+                //   AUTOMATICALLY INCREASE PRECISION TEMPORARILY
+
+                Context.precdigits=argdigits;
+
                 // use Horner scheme
                 rplNumberToRReg(0,real_val);
                 rplNumberToRReg(1,(WORDPTR)zero_bint);
@@ -1591,6 +1606,7 @@ void LIB_HANDLER()
                     addReal(&RReg[1], &RReg[2], &RReg[3]);
                 }
 
+                Context.precdigits=saveprec;
                 WORDPTR newnumber=rplNewReal(&RReg[1]);
                 if(!newnumber) return;
                 // drop one value and replace level 1 value
@@ -1637,11 +1653,25 @@ void LIB_HANDLER()
                 }
                 // DO IT ALL WITH REALS
 
+                BINT saveprec=Context.precdigits;
+
+                BINT argdigits=(cols+7)&~7;
+
+                if(argdigits>MAX_USERPRECISION) {
+                    argdigits=MAX_USERPRECISION;
+                }
+
+                argdigits=(argdigits>Context.precdigits)? argdigits:Context.precdigits;
+                //   AUTOMATICALLY INCREASE PRECISION TEMPORARILY
+
+                Context.precdigits=argdigits;
+
                 WORDPTR *Firstelem=DSTop;
 
                 rplPushData((WORDPTR)one_bint);
                 if(Exceptions) {
                     DSTop=Firstelem;
+                    Context.precdigits=saveprec;
                     return;
                 }
 
@@ -1664,16 +1694,19 @@ void LIB_HANDLER()
                         WORDPTR newnumber=rplNewReal(&RReg[4]);
                         if(!newnumber) {
                             DSTop=Firstelem;
+                            Context.precdigits=saveprec;
                             return;
                         }
                         *(Firstelem+j)=newnumber;
                     }
                     if(Exceptions) {
                         DSTop=Firstelem;
+                        Context.precdigits=saveprec;
                         return;
                     }
                 }
 
+                Context.precdigits=saveprec;
                 WORDPTR pcoefs=rplMatrixCompose(0,cols+1);
                 if(!pcoefs) return;
                 rplDropData(cols+1);
@@ -1897,11 +1930,32 @@ void LIB_HANDLER()
         }
         else {
             // reserve space for 2 vectors of length n+1
-            for (int i = 0; i < 2; ++i)
+            rplExpandStack(2*(n+1));
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+                return;
+            }
+
+            BINT saveprec=Context.precdigits;
+
+            BINT argdigits=(n+7)&~7;
+
+            if(argdigits>MAX_USERPRECISION) {
+                argdigits=MAX_USERPRECISION;
+            }
+
+            argdigits=(argdigits>Context.precdigits)? argdigits:Context.precdigits;
+            //   AUTOMATICALLY INCREASE PRECISION TEMPORARILY
+
+            Context.precdigits=argdigits;
+
+
+            BINT i=0, j=0;
+            for (i = 0; i < 2; ++i)
             {
                 // polynomial has n+1 elements
-                for (int j = 0; j <= n; ++j) {
-                    rplPushData((WORDPTR)(zero_bint));
+                for (j = 0; j <= n; ++j) {
+                    rplPushData((WORDPTR)(zero_bint)); // fill with ZERO
                 }
             }
 
@@ -1915,19 +1969,19 @@ void LIB_HANDLER()
             case TCHEBYCHEFF:
             case LEGENDRE:
             case HERMITE2:
-                rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint));
-                rplOverwriteData(oth*(n+1)+2,(WORDPTR)(one_bint));
+                rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint)); //n=0
+                rplOverwriteData(oth*(n+1)+2,(WORDPTR)(one_bint)); //n=1
                 break;
             case HERMITE:
             case TCHEBYCHEFF2:
-                rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint));
-                rplOverwriteData(oth*(n+1)+2,(WORDPTR)(two_bint));
+                rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint)); //n=0
+                rplOverwriteData(oth*(n+1)+2,(WORDPTR)(two_bint)); //n=1
                 break;
             }
 
             // recrsive formula
             rplNumberToRReg(2, (WORDPTR)(two_bint));
-            for (int i = 2; i < n+1; ++i) {         // i=n+1
+            for (i = 2; i < n+1; ++i) {         // i=n+1
                 rplLoadBINTAsReal(i-1, &RReg[5]);   // n
                 rplLoadBINTAsReal(2*i-1, &RReg[6]); // 2n+1
                 rplLoadBINTAsReal(i, &RReg[7]);     // n+1
@@ -1936,7 +1990,7 @@ void LIB_HANDLER()
                 int cur = i%2;
                 if  (!evenodd) cur = 1 - cur;
                 int oth = 1-cur;
-                for (int j = i; j >= 0; --j) {
+                for (j = i; j >= 0; --j) {
                     rplNumberToRReg(0, rplPeekData(cur*(n+1)+j+1)); //previous
                     if (j > 0) {
                         rplNumberToRReg(1, rplPeekData(oth*(n+1)+j)); // x*current (=shift left)
@@ -1971,15 +2025,18 @@ void LIB_HANDLER()
                     WORDPTR newnumber=rplNewReal(&RReg[4]);
                     if(!newnumber || Exceptions) {
                         if(DSTop>savestk) DSTop=savestk;
+                        Context.precdigits=saveprec;
                         return;
                     }
-                    rplOverwriteData(cur*(n+1)+j+1,newnumber);
+                    rplOverwriteData(cur*(n+1)+j+1,newnumber); // set value
 
                 }
             }
+            // we are done. next create vector
             int elements = n+1;
-            rplDropData(elements);
-            WORDPTR newmat=rplMatrixCompose(0,elements);
+            rplDropData(elements); // drop the 2nd exploded vector from n=previous
+            Context.precdigits=saveprec;
+            WORDPTR newmat=rplMatrixCompose(0,elements); //create vector from stack
 
             if(newmat) {
                 rplDropData(elements);

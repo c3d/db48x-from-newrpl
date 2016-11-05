@@ -4268,6 +4268,1283 @@ void LIB_HANDLER()
             }
 
             case CPLX_INF|CPLX_MALFORMED:
+             {
+                switch(cclass2)
+                {
+                case CPLX_NORMAL:
+                {
+                    // (i*Inf)^Z HAS MULTIPLE CASES
+                    // Re(Z)>0 && Im(Z)!=0 --> UndInf
+                    // Re(Z)>0 && Im(Z)==0 --> Directed Infinity
+                    // Re(Z)<0 --> 0
+                    // Re(Z)==0 --> NaN
+
+                    if(iszeroReal(&Rarg2)) {
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                    }
+
+                    if(Rarg2.flags&F_NEGATIVE) {
+                        rplPushData((WORDPTR)zero_bint);
+                        return;
+                    }
+
+                    if(iszeroReal(&Iarg2)) {
+                        // (Inf*e^i*Theta)^N = e^(N*ln(Inf*e^i*Theta))
+                        // = e^(N*(ln(Inf)+i*Theta))
+                        // = Inf * e^(i*N*Theta)
+
+                        // DIRECTED INFINITY
+                        REAL pi2;
+
+                        decconst_90(&pi2);
+
+                        mulReal(&RReg[4],&Rarg2,&pi2);  // PI/2*N
+
+                        trig_reduceangle(&RReg[4],ANGLEDEG);
+
+                        BINT resmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                        swapReal(&RReg[0],&RReg[4]);
+                        trig_convertangle(&RReg[4],ANGLEDEG,resmode);
+
+                        rplInfinityToRReg(1);
+
+                        rplRRegToComplexPush(1,0,resmode);
+
+                        rplCheckResultAndError(&RReg[1]);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                    }
+
+                    // ALL OTHER CASES IT'S UNDINF
+                    rplUndInfinityToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+
+                }
+                case CPLX_NORMAL|CPLX_POLAR:
+                {
+                    // +/-Inf^Z HAS MULTIPLE CASES
+                    // Arg(Z)==0 --> Directed Infinity
+                    // Arg(Z)<PI/2 --> UndInf
+                    // Arg(Z)==PI/2 --> NaN
+                    // Arg(Z)==-PI/2 --> NaN
+                    // Arg(Z)>PI/2 --> 0
+
+                    if(!iszeroReal(&Iarg2)) {
+
+                        Iarg2.flags&=~F_NEGATIVE;   // SIGN OF ANGLE DOESN'T MATTER
+
+                        REAL pi2;
+                        switch(amode2)
+                        {
+                        case ANGLEDEG:
+                        case ANGLEDMS:
+                            decconst_90(&pi2);
+                            break;
+                        case ANGLEGRAD:
+                            decconst_100(&pi2);
+                            break;
+                        case ANGLERAD:
+                            decconst_PI_2(&pi2);
+                            break;
+                        }
+
+
+                        switch(cmpReal(&Iarg2,&pi2)) {
+                        case -1:
+                            // Arg(Z)<pi/2
+                            rplUndInfinityToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        case  1:
+                            // Arg(Z)>pi/2
+                            rplPushData((WORDPTR)zero_bint);
+                            return;
+                        case 0:
+                        default:
+                            rplNANToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        }
+
+                    }
+
+                    // (Inf*e^i*Theta)^N = e^(N*ln(Inf*e^i*Theta))
+                    // = e^(N*(ln(Inf)+i*Theta))
+                    // = Inf * e^(i*N*Theta)
+
+                    // DIRECTED INFINITY
+
+                    REAL pi2;
+                    decconst_90(&pi2);
+
+                    mulReal(&RReg[4],&Rarg2,&pi2);
+
+                    trig_reduceangle(&RReg[4],ANGLEDEG);
+
+                    BINT resmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                    swapReal(&RReg[0],&RReg[4]);
+                    trig_convertangle(&RReg[4],ANGLEDEG,resmode);
+
+                    rplInfinityToRReg(1);
+
+                    rplRRegToComplexPush(1,0,resmode);
+
+                    rplCheckResultAndError(&RReg[1]);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                }
+                case CPLX_INF:
+                {
+                    // +/-Inf ^ Inf = UndInf
+                    // +/-Inf ^ -Inf = 0
+                    if(Rarg2.flags&F_NEGATIVE) {
+                        rplPushData((WORDPTR)zero_bint);
+                        return;
+                    }
+                    rplUndInfinityToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                }
+                case CPLX_INF|CPLX_POLAR:
+                {
+                    // +/-Inf^Z HAS MULTIPLE CASES
+                    // Arg(Z)==0 --> UndInf
+                    // Arg(Z)<PI/2 --> UndInf
+                    // Arg(Z)==PI/2 --> NaN
+                    // Arg(Z)==-PI/2 --> NaN
+                    // Arg(Z)>PI/2 --> 0
+
+
+                        Iarg2.flags&=~F_NEGATIVE;   // SIGN OF ANGLE DOESN'T MATTER
+
+                        REAL pi2;
+                        switch(amode2)
+                        {
+                        case ANGLEDEG:
+                        case ANGLEDMS:
+                            decconst_90(&pi2);
+                            break;
+                        case ANGLEGRAD:
+                            decconst_100(&pi2);
+                            break;
+                        case ANGLERAD:
+                            decconst_PI_2(&pi2);
+                            break;
+                        }
+
+
+                        switch(cmpReal(&Iarg2,&pi2)) {
+                        case -1:
+                            // Arg(Z)<pi/2
+                            rplUndInfinityToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        case  1:
+                            // Arg(Z)>pi/2
+                            rplPushData((WORDPTR)zero_bint);
+                            return;
+                        case 0:
+                        default:
+                            rplNANToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        }
+
+
+             }
+                case CPLX_ZERO:
+                case CPLX_INF|CPLX_MALFORMED:
+                case CPLX_UNDINF:
+                case CPLX_NAN:
+                default:
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                }
+            }
+
+
+            case CPLX_UNDINF:
+            case CPLX_NAN:
+            default:
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+
+            }
+
+            return;
+        }
+
+        case OVR_XROOT:
+        {
+            switch(cclass1)
+            {
+
+            case CPLX_ZERO:
+            {
+                switch(cclass2)
+                {
+                case CPLX_NORMAL:
+                case CPLX_NORMAL|CPLX_POLAR:
+                    rplPushData((WORDPTR)zero_bint);
+                    return;
+
+                case CPLX_INF|CPLX_MALFORMED:
+                case CPLX_INF|CPLX_POLAR:
+                case CPLX_INF:
+                {
+                    // 0^0 = UNDEFINED
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                return;
+                }
+                case CPLX_UNDINF:
+                case CPLX_ZERO:
+                case CPLX_NAN:
+                default:
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                }
+            }
+
+
+            case CPLX_NORMAL:
+            {
+                switch(cclass2)
+                {
+                case CPLX_ZERO:
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+
+
+                case CPLX_NORMAL:
+                {
+                  if(iszeroReal(&Iarg2)) {
+                      // COMPLEX NUMBER RAISED TO A REAL POWER
+
+                      //Z^1/n= e^(ln(Z^1/n)) = e^(1/n*ln(Z)) = e^(1/n*[ln(r)+i*Theta)
+                      //Z^1/n= e^(1/n*ln(r))*e^(i*Theta/n) = r^1/n * e(i*Theta/n)
+                      //Z^1/n= r^1/n * cos(Theta*1/n) + i* r^1/n * sin(Theta/n)
+
+                      rplRect2Polar(&Rarg1,&Iarg1,ANGLERAD);
+
+                      // RReg[9]=Theta
+                      swapReal(&RReg[9],&RReg[1]);
+
+                      // NOTE: xrootReal USES ALL RREGS FROM 0 TO 8, ONLY 9 IS PRESERVED
+                      // RReg[8]=r^1/n
+                      xrootReal(&RReg[8],&RReg[0],&Rarg2);
+
+                      divReal(&RReg[2],&RReg[9],&Rarg2);
+
+                      trig_sincos(&RReg[2],ANGLERAD);
+                      normalize(&RReg[6]);
+                      normalize(&RReg[7]);
+
+                      // RESULT IS RReg[6]=cos(Theta/n) AND RReg[7]=sin(Theta/n)
+
+                      // RReg[0]=r^1/n*cos(Theta/n)
+                      mulReal(&RReg[0],&RReg[6],&RReg[8]);
+                      mulReal(&RReg[1],&RReg[7],&RReg[8]);
+
+                      rplRRegToComplexPush(0,1,ANGLENONE);
+                      rplCheckResultAndError(&RReg[0]);
+                      rplCheckResultAndError(&RReg[1]);
+
+                      return;
+                      }
+
+                  // COMPLEX NUMBER RAISED TO COMPLEX POWER
+
+                  // (a,b)^(c,d) with (c,d)=1/(c',d')=(c'-i*d')/(c'^2+d'^2)
+                  // e^ (c,d)* ln(a,b)
+                  // e^ [ c*ln(r)-d*Theta , c*Theta+d*ln(r) ]
+                  // e^ [ ln(R)+i*Gamma ]
+                  // R*e^i*Gamma = (R*cos(Gamma),R*sin(Gamma))
+
+                  rplRect2Polar(&Rarg1,&Iarg1,ANGLERAD);
+
+                  // HERE WE HAVE r=RReg[0], Theta=RReg[1]
+
+                  swapReal(&RReg[0],&RReg[8]);
+                  swapReal(&RReg[1],&RReg[9]);
+
+                  hyp_ln(&RReg[8]);
+                  normalize(&RReg[0]);
+
+                  swapReal(&RReg[0],&RReg[8]);    // RReg[8]=ln(r), RReg[9]=Theta
+
+                  Context.precdigits+=8;
+
+                  // COMPUTE 1/(c',d'):
+                  mulReal(&RReg[2],&Rarg2,&Rarg2);
+                  mulReal(&RReg[3],&Iarg2,&Iarg2);
+                  addReal(&RReg[4],&RReg[2],&RReg[3]);
+                  divReal(&RReg[0],&Rarg2,&RReg[4]);
+                  divReal(&RReg[1],&Iarg2,&RReg[4]);
+                  RReg[1].flags^=F_NEGATIVE;
+                  // RREG[0]=c, RReg[1]=d
+
+
+                  mulReal(&RReg[7],&RReg[8],&RReg[0]); // RReg[7]=c*ln(r)
+                  mulReal(&RReg[2],&RReg[8],&RReg[1]); // RReg[2]=d*ln(r)
+                  mulReal(&RReg[3],&RReg[9],&RReg[0]); // RReg[3]=c*Theta
+                  mulReal(&RReg[4],&RReg[9],&RReg[1]); // RReg[3]=d*Theta
+                  subReal(&RReg[8],&RReg[7],&RReg[4]);   // RReg[8]=c*ln(r)-d*Theta
+                  addReal(&RReg[9],&RReg[2],&RReg[3]);   // RReg[9]=d*ln(r)+c*Theta
+
+                  Context.precdigits-=8;
+
+                  hyp_exp(&RReg[8]);
+                  normalize(&RReg[0]);
+
+                  swapReal(&RReg[8],&RReg[0]);
+
+                  // RReg[8]=r'=e^(a*ln(r)-b*Theta)
+                  // RReg[9]=Theta'=a*Theta+b*ln(r)
+
+                  rplPolar2Rect(&RReg[8],&RReg[9],ANGLERAD);
+                  rplRRegToComplexPush(0,1,ANGLENONE);
+
+                  rplCheckResultAndError(&RReg[0]);
+                  rplCheckResultAndError(&RReg[1]);
+                  return;
+
+
+                 }
+
+                case CPLX_NORMAL|CPLX_POLAR:
+                {
+                  if(iszeroReal(&Iarg2)) {
+                      // COMPLEX NUMBER RAISED TO A REAL POWER
+
+                      //Z^1/n= e^(ln(Z^1/n)) = e^(1/n*ln(Z)) = e^(1/n*[ln(r)+i*Theta)
+                      //Z^1/n= e^(1/n*ln(r))*e^(i*Theta/n) = r^1/n * e(i*Theta/n)
+                      //Z^1/n= r^1/n * cos(Theta/n) + i* r^1/n * sin(Theta/n)
+
+                      rplRect2Polar(&Rarg1,&Iarg1,ANGLERAD);
+
+                      // RReg[9]=Theta
+                      swapReal(&RReg[9],&RReg[1]);
+
+                      // NOTE: xrootReal USES ALL RREGS FROM 0 TO 8, ONLY 9 IS PRESERVED
+                      // RReg[8]=r^1/n
+                      xrootReal(&RReg[8],&RReg[0],&Rarg2);
+
+                      divReal(&RReg[2],&RReg[9],&Rarg2);
+
+                      trig_sincos(&RReg[2],ANGLERAD);
+                      normalize(&RReg[6]);
+                      normalize(&RReg[7]);
+
+                      // RESULT IS RReg[6]=cos(Theta/n) AND RReg[7]=sin(Theta/n)
+
+                      // RReg[0]=r^1/n*cos(Theta/n)
+                      mulReal(&RReg[0],&RReg[6],&RReg[8]);
+                      mulReal(&RReg[1],&RReg[7],&RReg[8]);
+
+                      rplRRegToComplexPush(0,1,ANGLENONE);
+                      rplCheckResultAndError(&RReg[0]);
+                      rplCheckResultAndError(&RReg[1]);
+
+                      return;
+                      }
+
+                  // COMPLEX NUMBER RAISED TO COMPLEX POWER
+
+                  // (a,b)^(1/q*e^-i*G)
+                  // e^ 1/q*e^-iG * ln(a,b)
+                  // e^ [ (1/q*ln(r),1/q*Theta) * (cos(-G),sin(-G)) ]
+                  // e^ [ 1/q*ln(r)*cos(-G)-1/q*Theta*sin(-G) , 1/q*ln(r)*sin(-G)+1/q*Theta*cos(-G) ]
+                  // R*e^i*Gamma = (R*cos(Gamma),R*sin(Gamma))
+
+                  rplRect2Polar(&Rarg1,&Iarg1,ANGLERAD);
+
+                  // HERE WE HAVE r=RReg[0], Theta=RReg[1]
+
+                  swapReal(&RReg[0],&RReg[8]);
+                  swapReal(&RReg[1],&RReg[9]);
+
+                  hyp_ln(&RReg[8]);
+                  normalize(&RReg[0]);
+
+                  swapReal(&RReg[0],&RReg[8]);    // RReg[8]=ln(r), RReg[9]=Theta
+
+                  // NOW WE NEED THE EXPONENT IN CARTESIAN COORDINATES
+                  trig_sincos(&Iarg2,amode2);
+
+                 normalize(&RReg[6]); // cos(G)=cos(-G)
+                 normalize(&RReg[7]); // sin(G)
+                 RReg[7].flags^=F_NEGATIVE; // sin(-G)=-sin(G)
+
+
+                  Context.precdigits+=8;
+
+                  divReal(&RReg[0],&RReg[8],&Rarg2);   // ln(r)/q
+                  divReal(&RReg[1],&RReg[9],&Rarg2);   // Theta/q
+                  mulReal(&RReg[2],&RReg[0],&RReg[6]); // RReg[2]=ln(r)/q*cos(-G)
+                  mulReal(&RReg[3],&RReg[0],&RReg[7]); // RReg[3]=ln(r)/q*sin(-G)
+                  mulReal(&RReg[4],&RReg[1],&RReg[6]); // RReg[4]=1/q*Theta*cos(-G)
+                  mulReal(&RReg[5],&RReg[1],&RReg[7]); // RReg[5]=1/q*Theta*sin(-G)
+                  subReal(&RReg[8],&RReg[2],&RReg[5]);   // RReg[8]=ln(r)/q*cos(-G)-1/q*Theta*sin(-G)
+                  addReal(&RReg[9],&RReg[3],&RReg[4]);   // RReg[9]=ln(r)/q*sin(-G)+1/q*Theta*cos(-G)
+
+                  Context.precdigits-=8;
+
+                  hyp_exp(&RReg[8]);
+                  normalize(&RReg[0]);
+
+                  swapReal(&RReg[8],&RReg[0]);
+
+                  // RReg[8]=r'
+                  // RReg[9]=Theta' in RADS
+
+                  rplPolar2Rect(&RReg[8],&RReg[9],ANGLERAD);
+                  rplRRegToComplexPush(0,1,ANGLENONE);
+
+                  rplCheckResultAndError(&RReg[0]);
+                  rplCheckResultAndError(&RReg[1]);
+                  return;
+
+
+                 }
+
+
+                case CPLX_INF:
+                case CPLX_INF|CPLX_POLAR:
+                case CPLX_INF|CPLX_MALFORMED:
+                case CPLX_UNDINF:
+                {
+                    // Z^(1/Inf) = Z^0 = 1
+                    rplPushData((WORDPTR)one_bint);
+                    return;
+                }
+
+
+                case CPLX_NAN:
+                default:
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                }
+            }
+
+
+
+            case CPLX_NORMAL|CPLX_POLAR:
+            {
+                switch(cclass2)
+                {
+                case CPLX_ZERO:
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+
+                case CPLX_NORMAL:
+                {
+                  if(iszeroReal(&Iarg2)) {
+                      // COMPLEX NUMBER RAISED TO A REAL POWER
+
+                      //Z^1/n= e^(ln(Z^1/n)) = e^(1/n*ln(Z)) = e^(1/n*[ln(r)+i*Theta)
+                      //Z^1/n= e^(1/n*ln(r))*e^(i*Theta/n) = r^1/n * e(i*Theta1/n)
+                      //Z^1/n= r^1/n * cos(Theta/n) + i* r^1/n * sin(Theta/n)
+
+                      trig_convertangle(&Iarg1,amode1,ANGLERAD);
+
+                      // RReg[9]=Theta
+                      swapReal(&RReg[9],&RReg[0]);
+
+                      // NOTE: xrootReal USES ALL RREGS FROM 0 TO 8, ONLY 9 IS PRESERVED
+                      // RReg[8]=r^n
+                      xrootReal(&RReg[8],&Rarg1,&Rarg2);
+
+                      divReal(&RReg[4],&RReg[9],&Rarg2);
+
+                      //trig_reduceangle(&RReg[4],ANGLERAD);
+
+                      //swapReal(&RReg[0],&RReg[4]);
+                      trig_convertangle(&RReg[4],ANGLERAD,amode1);
+
+                      rplRRegToComplexPush(8,0,amode1);
+                      rplCheckResultAndError(&RReg[8]);
+                      rplCheckResultAndError(&RReg[0]);
+
+                      return;
+                      }
+
+                  // COMPLEX NUMBER RAISED TO COMPLEX POWER
+
+                  // (r*e^iTheta)^1/(c,d)
+                  // e^ (c,d)* ln(r*e^iTheta)
+                  // e^ [ c*ln(r)-d*Theta , c*Theta+d*ln(r) ]
+                  // e^ [ ln(R)+i*Gamma ]
+                  // R*e^i*Gamma = (R*cos(Gamma),R*sin(Gamma))
+
+                  trig_convertangle(&Iarg1,amode1,ANGLERAD);
+                  swapReal(&RReg[0],&RReg[9]);
+                  hyp_ln(&Rarg1);
+                  normalize(&RReg[0]);
+
+                  swapReal(&RReg[0],&RReg[8]);    // RReg[8]=ln(r), RReg[9]=Theta
+
+
+                  Context.precdigits+=8;
+
+                  // COMPUTE 1/(c',d'):
+                  mulReal(&RReg[2],&Rarg2,&Rarg2);
+                  mulReal(&RReg[3],&Iarg2,&Iarg2);
+                  addReal(&RReg[4],&RReg[2],&RReg[3]);
+                  divReal(&RReg[0],&Rarg2,&RReg[4]);
+                  divReal(&RReg[1],&Iarg2,&RReg[4]);
+                  RReg[1].flags^=F_NEGATIVE;
+                  // RREG[0]=c, RReg[1]=d
+
+
+                  mulReal(&RReg[7],&RReg[8],&RReg[0]); // RReg[7]=c*ln(r)
+                  mulReal(&RReg[2],&RReg[8],&RReg[1]); // RReg[2]=d*ln(r)
+                  mulReal(&RReg[3],&RReg[9],&RReg[0]); // RReg[3]=c*Theta
+                  mulReal(&RReg[4],&RReg[9],&RReg[1]); // RReg[3]=d*Theta
+                  subReal(&RReg[8],&RReg[7],&RReg[4]);   // RReg[8]=c*ln(r)-d*Theta
+                  addReal(&RReg[9],&RReg[2],&RReg[3]);   // RReg[9]=d*ln(r)+c*Theta
+
+
+                  Context.precdigits-=8;
+
+                  hyp_exp(&RReg[8]);
+                  normalize(&RReg[0]);
+
+                  swapReal(&RReg[8],&RReg[0]);
+
+                  // RReg[8]=r'=e^(a*ln(r)-b*Theta)
+                  // RReg[9]=Theta'=a*Theta+b*ln(r)
+
+                  trig_reduceangle(&RReg[9],ANGLERAD);
+
+                  swapReal(&RReg[0],&RReg[4]);
+                  trig_convertangle(&RReg[4],ANGLERAD,amode1);
+
+
+
+                  rplRRegToComplexPush(8,0,amode1);
+
+                  rplCheckResultAndError(&RReg[8]);
+                  rplCheckResultAndError(&RReg[0]);
+                  return;
+
+
+                 }
+
+
+
+                case CPLX_NORMAL|CPLX_POLAR:
+                {
+                  if(iszeroReal(&Iarg2)) {
+                      // COMPLEX NUMBER RAISED TO A REAL POWER
+
+                      //Z^1/n= e^(ln(Z^1/n)) = e^(1/n*ln(Z)) = e^(1/n*[ln(r)+i*Theta)
+                      //Z^1/n= e^(1/n*ln(r))*e^(i*Theta/n) = r^1/n * e(i*Theta/n)
+                      //Z^1/n= r^1/n * cos(Theta/n) + i* r^1/n * sin(Theta/n)
+
+                      trig_convertangle(&Iarg1,amode1,ANGLERAD);
+
+                      // RReg[9]=Theta
+                      swapReal(&RReg[9],&RReg[0]);
+
+                      // NOTE: xrootReal USES ALL RREGS FROM 0 TO 8, ONLY 9 IS PRESERVED
+                      // RReg[8]=r^1/n
+                      xrootReal(&RReg[8],&Rarg2,&Rarg1);
+
+                      divReal(&RReg[4],&RReg[9],&Rarg2);
+
+                      trig_convertangle(&RReg[4],ANGLERAD,amode1);
+
+                      rplRRegToComplexPush(8,0,amode1);
+                      rplCheckResultAndError(&RReg[8]);
+                      rplCheckResultAndError(&RReg[0]);
+
+                      return;
+                      }
+
+                  // COMPLEX NUMBER RAISED TO COMPLEX POWER
+                  // LET q=1/r', G=-Gamma
+                  // e^ q*e^iG * ln(r*e^iTheta)
+                  // e^ [ (q*ln(r),q*Theta) * (cos(G),sin(G)) ]
+                  // e^ [ q*ln(r)*cos(G)-q*Theta*sin(G) , q*ln(r)*sin(G)+q*Theta*cos(G) ]
+                  // R*e^i*Gamma = (R*cos(Gamma),R*sin(Gamma))
+
+                  trig_convertangle(&Iarg1,amode1,ANGLERAD);
+                  swapReal(&RReg[0],&RReg[9]);
+                  hyp_ln(&Rarg1);
+                  normalize(&RReg[0]);
+
+                  swapReal(&RReg[0],&RReg[8]);    // RReg[8]=ln(r), RReg[9]=Theta
+
+                  // NOW WE NEED THE EXPONENT IN CARTESIAN COORDINATES
+                  // NOW WE NEED THE EXPONENT IN CARTESIAN COORDINATES
+
+                  Iarg2.flags^=F_NEGATIVE;
+                  trig_sincos(&Iarg2,amode2);
+
+                 normalize(&RReg[6]); // cos(G)
+                 normalize(&RReg[7]); // sin(G)
+
+
+                  Context.precdigits+=8;
+
+                  divReal(&RReg[0],&RReg[8],&Rarg2);   // ln(r)*q
+                  divReal(&RReg[1],&RReg[9],&Rarg2);   // q*Theta
+                  mulReal(&RReg[2],&RReg[0],&RReg[6]); // RReg[2]=ln(r)*q*cos(G)
+                  mulReal(&RReg[3],&RReg[0],&RReg[7]); // RReg[3]=ln(r)*q*sin(G)
+                  mulReal(&RReg[4],&RReg[1],&RReg[6]); // RReg[4]=q*Theta*cos(G)
+                  mulReal(&RReg[5],&RReg[1],&RReg[7]); // RReg[5]=q*Theta*sin(G)
+                  subReal(&RReg[8],&RReg[2],&RReg[5]);   // RReg[8]=ln(r)*q*cos(G)-q*Theta*sin(G)
+                  addReal(&RReg[9],&RReg[3],&RReg[4]);   // RReg[9]=ln(r)*q*sin(G)+q*Theta*cos(G)
+
+                  Context.precdigits-=8;
+
+                  hyp_exp(&RReg[8]);
+                  normalize(&RReg[0]);
+
+                  swapReal(&RReg[8],&RReg[0]);
+
+                  // RReg[8]=R=e^(ln(R))
+                  // RReg[9]=Theta'
+
+                  trig_reduceangle(&RReg[9],ANGLERAD);
+
+                  swapReal(&RReg[0],&RReg[4]);
+                  trig_convertangle(&RReg[4],ANGLERAD,amode1);
+
+                  rplRRegToComplexPush(8,0,amode1);
+
+                  rplCheckResultAndError(&RReg[8]);
+                  rplCheckResultAndError(&RReg[0]);
+                  return;
+
+
+
+
+                 }
+
+
+                case CPLX_INF:
+                case CPLX_INF|CPLX_POLAR:
+                case CPLX_INF|CPLX_MALFORMED:
+                case CPLX_UNDINF:
+                {
+                    // Z^(1/Inf) = Z^0 = 1
+                    rplPushData((WORDPTR)one_bint);
+                    return;
+                }
+
+
+
+                case CPLX_NAN:
+                default:
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                }
+
+            }
+
+
+            case CPLX_INF:
+            {
+                switch(cclass2)
+                {
+                case CPLX_NORMAL:
+                {
+                    // Inf^1/Z = Inf^(1/(a+b*i) = Inf^[ 1/(a^2+b^2) * (a-i*b) ]
+                    // THE TERM 1/(a^2+b^2) DOESN'T CHANGE THE SIGN OF Re(Z)
+                    // SINCE THE SIGN OF THE IMAGINARY PART DOESN'T MATTER,
+                    // ONLY IF IT'S ZERO OR NOT, RESULTS:
+                    // Inf^(1/Z) == Inf^(Z) EXCEPT FOR Z = POSITIVE REAL NUMBER
+
+                    // +/-Inf^Z HAS MULTIPLE CASES
+                    // Re(Z)>0 && Im(Z)!=0 --> UndInf
+                    // Re(Z)>0 && Im(Z)==0 --> Directed Infinity
+                    // Re(Z)<0 --> 0
+                    // Re(Z)==0 --> NaN
+
+                    if(iszeroReal(&Rarg2)) {
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                    }
+
+                    if(Rarg2.flags&F_NEGATIVE) {
+                        rplPushData((WORDPTR)zero_bint);
+                        return;
+                    }
+
+                    if(iszeroReal(&Iarg2)) {
+                        // ((+/-)Inf)^1/N = e^(1/N*ln(+/-Inf))
+                        // = e^(1/N*(ln(Inf)+i*k*pi)) where k=0 for +Inf, k=1 for -Inf
+                        // = Inf * e^(i*k*pi/N)
+
+                        if(!(Rarg1.flags&F_NEGATIVE)) {
+                            rplInfinityToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        }
+
+
+                        if(isintegerReal(&Rarg2)) {
+
+                            if(isoddReal(&Rarg2)) {
+                                rplPushData(arg1);  // RETURN THE SAME INFINITY
+                                rplCheckResultAndError(&Rarg1);
+                                return;
+                            }
+                            // RETURN ALWAYS POSITIVE INFINITY
+                            rplInfinityToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        }
+
+                        // FRACTIONAL EXPONENTS NEED DIRECTED INFINITY
+                        REAL pi;
+
+                        decconst_180(&pi);
+
+                        divReal(&RReg[4],&pi,&Rarg2);
+
+                        trig_reduceangle(&RReg[4],ANGLEDEG);
+
+                        swapReal(&RReg[4],&RReg[0]);
+
+                        BINT resmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                        trig_convertangle(&RReg[4],ANGLEDEG,resmode);
+
+                        rplInfinityToRReg(1);
+
+                        rplRRegToComplexPush(1,0,resmode);
+
+                        rplCheckResultAndError(&RReg[1]);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                    }
+
+                    // ALL OTHER CASES IT'S UNDINF
+                    rplUndInfinityToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+
+                }
+
+
+                case CPLX_NORMAL|CPLX_POLAR:
+                {
+                    // Int^1/Z = Inf^(1/(a+b*i) = Inf^[ 1/(a^2+b^2) * (a-i*b) ]
+                    // THE TERM 1/(a^2+b^2) DOESN'T CHANGE THE SIGN OF Re(Z)
+                    // SINCE THE SIGN OF THE IMAGINARY PART DOESN'T MATTER,
+                    // ONLY IF IT'S ZERO OR NOT, RESULTS:
+                    // Inf^(1/Z) == Inf^(Z) EXCEPT FOR Z = POSITIVE REAL NUMBER
+
+                    // +/-Inf^Z HAS MULTIPLE CASES
+                    // Arg(Z)==0 --> Directed Infinity
+                    // Arg(Z)<PI/2 --> UndInf
+                    // Arg(Z)==PI/2 --> NaN
+                    // Arg(Z)==-PI/2 --> NaN
+                    // Arg(Z)>PI/2 --> 0
+
+                    if(!iszeroReal(&Iarg2)) {
+
+                        Iarg2.flags&=~F_NEGATIVE;   // SIGN OF ANGLE DOESN'T MATTER
+
+                        REAL pi2;
+                        switch(amode2)
+                        {
+                        case ANGLEDEG:
+                        case ANGLEDMS:
+                            decconst_90(&pi2);
+                            break;
+                        case ANGLEGRAD:
+                            decconst_100(&pi2);
+                            break;
+                        case ANGLERAD:
+                            decconst_PI_2(&pi2);
+                            break;
+                        }
+
+
+                        switch(cmpReal(&Iarg2,&pi2)) {
+                        case -1:
+                            // Arg(Z)<pi/2
+                            rplUndInfinityToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        case  1:
+                            // Arg(Z)>pi/2
+                            rplPushData((WORDPTR)zero_bint);
+                            return;
+                        case 0:
+                        default:
+                            rplNANToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        }
+
+                    }
+
+                    // ((+/-)Inf)^1/N = e^(1/N*ln(+/-Inf))
+                    // = e^(1/N*(ln(Inf)+i*k*pi)) where k=0 for +Inf, k=1 for -Inf
+                    // = Inf * e^(i*k*pi/N)
+
+                    if(!(Rarg1.flags&F_NEGATIVE)) {
+                            rplInfinityToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                    }
+
+
+                    if(isintegerReal(&Rarg2)) {
+
+                            if(isoddReal(&Rarg2)) {
+                                rplPushData(arg1);  // RETURN THE SAME INFINITY
+                                rplCheckResultAndError(&Rarg1);
+                                return;
+                            }
+                            // RETURN ALWAYS POSITIVE INFINITY
+                            rplInfinityToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                    }
+
+                        // FRACTIONAL EXPONENTS NEED DIRECTED INFINITY
+                        REAL pi;
+
+                        decconst_180(&pi);
+
+                        divReal(&RReg[4],&pi,&Rarg2);
+
+                        trig_reduceangle(&RReg[4],ANGLEDEG);
+
+                        swapReal(&RReg[4],&RReg[0]);
+
+                        trig_convertangle(&RReg[4],ANGLEDEG,amode2);
+
+                        rplInfinityToRReg(1);
+
+                        rplRRegToComplexPush(1,0,amode2);
+
+                        rplCheckResultAndError(&RReg[1]);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                }
+
+
+                case CPLX_INF:
+                case CPLX_INF|CPLX_MALFORMED:
+                case CPLX_INF|CPLX_POLAR:
+                case CPLX_ZERO:
+                case CPLX_UNDINF:
+                case CPLX_NAN:
+                default:
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                }
+            }
+
+
+            case CPLX_INF|CPLX_POLAR:
+            {
+                switch(cclass2)
+                {
+                case CPLX_NORMAL:
+                {
+                    // (Inf*e^i*Theta)^1/Z HAS MULTIPLE CASES
+                    // Re(Z)>0 && Im(Z)!=0 --> UndInf
+                    // Re(Z)>0 && Im(Z)==0 --> Directed Infinity with angle
+                    // Re(Z)<0 --> 0
+                    // Re(Z)==0 --> NaN
+
+                    if(iszeroReal(&Rarg2)) {
+                        rplNANToRReg(0);
+                        rplNewRealFromRRegPush(0);
+                        rplCheckResultAndError(&RReg[0]);
+                        return;
+                    }
+
+                    if(Rarg2.flags&F_NEGATIVE) {
+                        rplPushData((WORDPTR)zero_bint);
+                        return;
+                    }
+
+                    if(iszeroReal(&Iarg2)) {
+                        // (Inf*e^i*Theta)^1/N = e^(1/N*ln(Inf*e^i*Theta))
+                        // = e^(1/N*(ln(Inf)+i*Theta))
+                        // = Inf * e^(i*Theta/N)
+
+                        // DIRECTED INFINITY
+
+                        if(amode1==ANGLEDMS) {
+                            trig_convertangle(&Iarg1,ANGLEDMS,ANGLEDEG);
+                            divReal(&RReg[4],&RReg[0],&Rarg2);
+                        } else divReal(&RReg[4],&Iarg1,&Rarg2);
+
+                        if(amode1==ANGLEDMS) {
+                        trig_convertangle(&RReg[4],ANGLEDEG,amode1);
+                        swapReal(&RReg[4],&RReg[0]);
+                        }
+
+                        rplInfinityToRReg(1);
+
+                        rplRRegToComplexPush(1,4,amode1);
+
+                        rplCheckResultAndError(&RReg[1]);
+                        rplCheckResultAndError(&RReg[4]);
+                        return;
+                    }
+
+                    // ALL OTHER CASES IT'S UNDINF
+                    rplUndInfinityToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+
+                }
+
+
+
+                case CPLX_NORMAL|CPLX_POLAR:
+                {
+                    // (Inf*e^i*Theta)^1/Z HAS MULTIPLE CASES
+                    // Arg(Z)==0 --> Directed Infinity
+                    // Arg(Z)<PI/2 --> UndInf
+                    // Arg(Z)==PI/2 --> NaN
+                    // Arg(Z)==-PI/2 --> NaN
+                    // Arg(Z)>PI/2 --> 0
+
+                    if(!iszeroReal(&Iarg2)) {
+
+                        Iarg2.flags&=~F_NEGATIVE;   // SIGN OF ANGLE DOESN'T MATTER
+
+                        REAL pi2;
+                        switch(amode2)
+                        {
+                        case ANGLEDEG:
+                        case ANGLEDMS:
+                            decconst_90(&pi2);
+                            break;
+                        case ANGLEGRAD:
+                            decconst_100(&pi2);
+                            break;
+                        case ANGLERAD:
+                            decconst_PI_2(&pi2);
+                            break;
+                        }
+
+
+                        switch(cmpReal(&Iarg2,&pi2)) {
+                        case -1:
+                            // Arg(Z)<pi/2
+                            rplUndInfinityToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        case  1:
+                            // Arg(Z)>pi/2
+                            rplPushData((WORDPTR)zero_bint);
+                            return;
+                        case 0:
+                        default:
+                            rplNANToRReg(0);
+                            rplNewRealFromRRegPush(0);
+                            rplCheckResultAndError(&RReg[0]);
+                            return;
+                        }
+
+                    }
+
+                    // (Inf*e^i*Theta)^1/N = e^(1/N*ln(Inf*e^i*Theta))
+                    // = e^(1/N*(ln(Inf)+i*Theta))
+                    // = Inf * e^(i*Theta/N)
+
+                    // DIRECTED INFINITY
+
+                    if(amode1==ANGLEDMS) {
+                        trig_convertangle(&Iarg1,ANGLEDMS,ANGLEDEG);
+                        divReal(&RReg[4],&RReg[0],&Rarg2);
+                    } else divReal(&RReg[4],&Iarg1,&Rarg2);
+
+                    if(amode1==ANGLEDMS) {
+                    trig_convertangle(&RReg[4],ANGLEDEG,amode1);
+                    swapReal(&RReg[4],&RReg[0]);
+                    }
+
+                    rplInfinityToRReg(1);
+
+                    rplRRegToComplexPush(1,4,amode1);
+
+                    rplCheckResultAndError(&RReg[1]);
+                    rplCheckResultAndError(&RReg[4]);
+                    return;
+                }
+
+
+                case CPLX_INF:
+                case CPLX_INF|CPLX_MALFORMED:
+                case CPLX_INF|CPLX_POLAR:
+                case CPLX_ZERO:
+                case CPLX_UNDINF:
+                case CPLX_NAN:
+                default:
+                    rplNANToRReg(0);
+                    rplNewRealFromRRegPush(0);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                }
+            }
+
+            case CPLX_INF|CPLX_MALFORMED:
+            {
+               switch(cclass2)
+               {
+               case CPLX_NORMAL:
+               {
+                   // (i*Inf)^1/Z HAS MULTIPLE CASES
+                   // Re(Z)>0 && Im(Z)!=0 --> UndInf
+                   // Re(Z)>0 && Im(Z)==0 --> Directed Infinity
+                   // Re(Z)<0 --> 0
+                   // Re(Z)==0 --> NaN
+
+                   if(iszeroReal(&Rarg2)) {
+                       rplNANToRReg(0);
+                       rplNewRealFromRRegPush(0);
+                       rplCheckResultAndError(&RReg[0]);
+                       return;
+                   }
+
+                   if(Rarg2.flags&F_NEGATIVE) {
+                       rplPushData((WORDPTR)zero_bint);
+                       return;
+                   }
+
+                   if(iszeroReal(&Iarg2)) {
+                       // (Inf*e^i*Theta)^1/N = e^(1/N*ln(Inf*e^i*Theta))
+                       // = e^(1/N*(ln(Inf)+i*Theta))
+                       // = Inf * e^(i/N*Theta)
+
+                       // DIRECTED INFINITY
+                       REAL pi2;
+
+                       decconst_90(&pi2);
+
+                       divReal(&RReg[4],&pi2,&Rarg2);  // PI/2/N
+
+                       trig_reduceangle(&RReg[4],ANGLEDEG);
+
+                       BINT resmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                       swapReal(&RReg[0],&RReg[4]);
+                       trig_convertangle(&RReg[4],ANGLEDEG,resmode);
+
+                       rplInfinityToRReg(1);
+
+                       rplRRegToComplexPush(1,0,resmode);
+
+                       rplCheckResultAndError(&RReg[1]);
+                       rplCheckResultAndError(&RReg[0]);
+                       return;
+                   }
+
+                   // ALL OTHER CASES IT'S UNDINF
+                   rplUndInfinityToRReg(0);
+                   rplNewRealFromRRegPush(0);
+                   rplCheckResultAndError(&RReg[0]);
+                   return;
+
+               }
+               case CPLX_NORMAL|CPLX_POLAR:
+               {
+                   // +/-Inf^Z HAS MULTIPLE CASES
+                   // Arg(Z)==0 --> Directed Infinity
+                   // Arg(Z)<PI/2 --> UndInf
+                   // Arg(Z)==PI/2 --> NaN
+                   // Arg(Z)==-PI/2 --> NaN
+                   // Arg(Z)>PI/2 --> 0
+
+                   if(!iszeroReal(&Iarg2)) {
+
+                       Iarg2.flags&=~F_NEGATIVE;   // SIGN OF ANGLE DOESN'T MATTER
+
+                       REAL pi2;
+                       switch(amode2)
+                       {
+                       case ANGLEDEG:
+                       case ANGLEDMS:
+                           decconst_90(&pi2);
+                           break;
+                       case ANGLEGRAD:
+                           decconst_100(&pi2);
+                           break;
+                       case ANGLERAD:
+                           decconst_PI_2(&pi2);
+                           break;
+                       }
+
+
+                       switch(cmpReal(&Iarg2,&pi2)) {
+                       case -1:
+                           // Arg(Z)<pi/2
+                           rplUndInfinityToRReg(0);
+                           rplNewRealFromRRegPush(0);
+                           rplCheckResultAndError(&RReg[0]);
+                           return;
+                       case  1:
+                           // Arg(Z)>pi/2
+                           rplPushData((WORDPTR)zero_bint);
+                           return;
+                       case 0:
+                       default:
+                           rplNANToRReg(0);
+                           rplNewRealFromRRegPush(0);
+                           rplCheckResultAndError(&RReg[0]);
+                           return;
+                       }
+
+                   }
+
+                   // (Inf*e^i*Theta)^N = e^(N*ln(Inf*e^i*Theta))
+                   // = e^(N*(ln(Inf)+i*Theta))
+                   // = Inf * e^(i*N*Theta)
+
+                   // DIRECTED INFINITY
+
+                   REAL pi2;
+                   decconst_90(&pi2);
+
+                   divReal(&RReg[4],&pi2,&Rarg2);
+
+                   trig_reduceangle(&RReg[4],ANGLEDEG);
+
+                   BINT resmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                   swapReal(&RReg[0],&RReg[4]);
+                   trig_convertangle(&RReg[4],ANGLEDEG,resmode);
+
+                   rplInfinityToRReg(1);
+
+                   rplRRegToComplexPush(1,0,resmode);
+
+                   rplCheckResultAndError(&RReg[1]);
+                   rplCheckResultAndError(&RReg[0]);
+                   return;
+               }
+               case CPLX_INF:
+               {
+                   // +/-Inf ^ Inf = UndInf
+                   // +/-Inf ^ -Inf = 0
+                   if(Rarg2.flags&F_NEGATIVE) {
+                       rplPushData((WORDPTR)zero_bint);
+                       return;
+                   }
+                   rplUndInfinityToRReg(0);
+                   rplNewRealFromRRegPush(0);
+                   rplCheckResultAndError(&RReg[0]);
+                   return;
+               }
+               case CPLX_INF|CPLX_POLAR:
+               {
+                   // +/-Inf^Z HAS MULTIPLE CASES
+                   // Arg(Z)==0 --> UndInf
+                   // Arg(Z)<PI/2 --> UndInf
+                   // Arg(Z)==PI/2 --> NaN
+                   // Arg(Z)==-PI/2 --> NaN
+                   // Arg(Z)>PI/2 --> 0
+
+
+                       Iarg2.flags&=~F_NEGATIVE;   // SIGN OF ANGLE DOESN'T MATTER
+
+                       REAL pi2;
+                       switch(amode2)
+                       {
+                       case ANGLEDEG:
+                       case ANGLEDMS:
+                           decconst_90(&pi2);
+                           break;
+                       case ANGLEGRAD:
+                           decconst_100(&pi2);
+                           break;
+                       case ANGLERAD:
+                           decconst_PI_2(&pi2);
+                           break;
+                       }
+
+
+                       switch(cmpReal(&Iarg2,&pi2)) {
+                       case -1:
+                           // Arg(Z)<pi/2
+                           rplUndInfinityToRReg(0);
+                           rplNewRealFromRRegPush(0);
+                           rplCheckResultAndError(&RReg[0]);
+                           return;
+                       case  1:
+                           // Arg(Z)>pi/2
+                           rplPushData((WORDPTR)zero_bint);
+                           return;
+                       case 0:
+                       default:
+                           rplNANToRReg(0);
+                           rplNewRealFromRRegPush(0);
+                           rplCheckResultAndError(&RReg[0]);
+                           return;
+                       }
+
+
+            }
+               case CPLX_ZERO:
+               case CPLX_INF|CPLX_MALFORMED:
+               case CPLX_UNDINF:
+               case CPLX_NAN:
+               default:
+                   rplNANToRReg(0);
+                   rplNewRealFromRRegPush(0);
+                   rplCheckResultAndError(&RReg[0]);
+                   return;
+               }
+           }
+
+
+
+
             case CPLX_UNDINF:
             case CPLX_NAN:
             default:

@@ -13,7 +13,7 @@ void battery_handler()
 {
 
     bat_read();
-    halSetNotification(N_CONNECTION,0xf^halGetNotification(N_CONNECTION));
+//    halSetNotification(N_CONNECTION,0xf^halGetNotification(N_CONNECTION));
 
     /*
     gglsurface scr;

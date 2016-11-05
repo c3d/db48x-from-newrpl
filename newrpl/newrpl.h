@@ -35,8 +35,6 @@ typedef uint32_t PTR2NUMBER;
 #define NUMBER2PTR(a) ((WORDPTR)((WORD)(a)))
 #endif
 
-
-
 #ifdef __cplusplus
 "C" {
 #endif
@@ -127,6 +125,31 @@ typedef union {
     };
 } REAL_HEADER;
 
+
+// COMPACT TIME STRUCTURE - 32 BITS.
+struct time {
+    unsigned sec    : 6,    // seconds after the minute	0-59
+             min    : 6,    // minutes after the hour	0-59
+             hour   : 5,    // hours since midnight     0-23
+             isdst  : 1,    // daylight saving time flag
+                    : 14;   // to pad up to 32 bits
+};
+
+// COMPACT DATE STRUCTURE - 32 BITS.
+struct date {
+    unsigned mday   : 5,    // day of the month     1-31
+             mon    : 4,    // months since January	1-12
+             wday   : 3,    // days since Monday	1-7
+             year   : 14,   // years                1582-9999
+                    : 6;    // to pad up to 32 bits
+};
+
+#define TIME_MAXSEC  ((1 <<  6) - 1)
+#define TIME_MAXMIN  ((1 <<  6) - 1)
+#define TIME_MAXHOUR ((1 <<  5) - 1)
+#define DATE_MAXDAY  ((1 <<  5) - 1)
+#define DATE_MAXMON  ((1 <<  4) - 1)
+#define DATE_MAXYEAR ((1 << 14) - 1)
 
 // ERROR MANAGEMENT FUNCTIONS
 void decTrapHandler(BINT error);
@@ -344,6 +367,9 @@ BINT rplLAMCount(WORDPTR *LAMEnvironment);
 // GLOBAL VARIABLES AND DIRECTORY FUNCTIONS
 void growDirs(WORD newtotalsize);
 WORDPTR rplMakeIdentQuoted(WORDPTR ident);
+WORDPTR rplMakeIdentUnquoted(WORDPTR ident);
+WORDPTR rplMakeIdentHidden(WORDPTR ident);
+WORDPTR rplMakeIdentVisible(WORDPTR ident);
 void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir);
 void rplCreateGlobal(WORDPTR nameobj,WORDPTR value);
 void rplPurgeGlobal(WORDPTR nameobj);
@@ -573,14 +599,15 @@ void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BI
 
 
 // DATE AND TIME FUNCTIONS
-BINT rplReadRealAsDate(REAL *date);
-BINT rplReadRealAsDateNoCk(REAL *date);
-BINT rplReadDateAsReal(BINT date, REAL *real);
-BINT rplIsValidDate(BINT date);
-BINT rplDateToDays(BINT date);
-BINT rplDaysToDate(BINT days);
-BINT rplReadRealAsTime(REAL *time);
-BINT rplReadTimeAsReal(BINT time, REAL *real);
+BINT rplReadRealAsDate(REAL *date, struct date *dt);
+BINT rplReadRealAsDateNoCk(REAL *date, struct date *dt);
+BINT rplReadDateAsReal(struct date dt, REAL *date);
+BINT rplGetMonthDays(BINT month, BINT year);
+BINT rplIsValidDate(struct date dt);
+BINT rplDateToDays(struct date dt);
+struct date rplDaysToDate(BINT days);
+BINT rplReadRealAsTime(REAL *time, struct time *tm);
+BINT rplReadTimeAsReal(struct time tm, REAL *time);
 void rplDecimalToHMS(REAL *dec, REAL *hms);
 void rplHMSToDecimal(REAL *hms, REAL *dec);
 

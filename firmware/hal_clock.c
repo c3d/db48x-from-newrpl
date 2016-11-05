@@ -10,50 +10,63 @@
 
 #include <ui.h>
 
-void halSetSystemDate(int d,int m,int y)
+
+void halGetSystemDateTime(struct date *dt, struct time *tm)
 {
-    rtc_setdate(d,m,y);
+    rtc_getdatetime(dt, tm);
+
+    return;
 }
 
-void halGetSystemDate(int *d,int *m,int *y,int *dow)
+struct date halGetSystemDate()
 {
-    int _d,_m,_y;
-
-    do {
-        _y=rtc_getyear();
-        _m=rtc_getmon();
-        _d=rtc_getday();
-    } while( (_m!=rtc_getmon()) || (_y!=rtc_getyear()) );
-
-    if(d) *d=_d;
-    if(m) *m=_m;
-    if(y) *y=_y;
-    if(dow) *dow=rtc_getdow();
-
-
+    return rtc_getdate();
 }
 
-// MUST BE IN 24-HR FORMAT
-void halSetSystemTime(int hr,int min,int sec)
+int halSetSystemDate(struct date dt)
 {
-    rtc_settime(hr,min,sec);
+    return rtc_setdate(dt);
 }
 
-void halGetSystemTime(int *hr,int *min,int *sec)
+struct time halGetSystemTime()
 {
-   int h,m,s;
-
-   // MAKE SURE READINGS ARE CONSISTENT
-   do {
-   h=rtc_gethour();
-   m=rtc_getmin();
-   s=rtc_getsec();
-   } while( (m!=rtc_getmin()) || (h!=rtc_gethour()));
-
-   if(hr) *hr=h;
-   if(min) *min=m;
-   if(sec) *sec=s;
-
+    return rtc_gettime();
 }
 
-// TODO: ADD ALARM FUNCTIONS HERE
+int halSetSystemTime(struct time tm)
+{
+    return rtc_settime(tm);
+}
+
+void halGetSystemAlarm(struct date *dt, struct time *tm, int *enabled)
+{
+    rtc_getalarm(dt, tm, enabled);
+
+    return;
+}
+
+int halSetSystemAlarm(struct date dt, struct time tm, int enabled)
+{
+    return rtc_setalarm(dt, tm, enabled);
+}
+
+void halAnnounceAlarm()
+{/*
+    halFlags |= HAL_ALARMEVENT;
+    halSetNotification(N_LOWBATTERY,0xf);
+*/
+    return;
+}
+
+void halDoAlarmEvent()
+{
+    // APPOINTMENT ALARM
+    halShowMsg("Alarm Event");
+
+    // CONTROL ALARM
+
+
+    halFlags &= ~HAL_DOALARM;
+
+    return;
+}

@@ -11,7 +11,7 @@
 
 #include <time.h>
 
-int rtc_getday()
+void rtc_getdatetime(struct date *dt, struct time *tm)
 {
     time_t now;
     struct tm *timest;
@@ -19,102 +19,122 @@ int rtc_getday()
     time(&now);
     timest=localtime(&now);
 
-    if(timest==NULL) return 0;
-    else return timest->tm_mday;
+    if(timest==NULL) return;
 
+    if(dt) {
+        dt->mday=timest->tm_mday;
+        dt->mon=timest->tm_mon;
+        dt->wday=timest->tm_wday;
+        dt->year=timest->tm_year;
+    }
+    if(tm) {
+        tm->hour=timest->tm_hour;
+        tm->isdst=timest->tm_isdst;
+        tm->min=timest->tm_min;
+        tm->sec=timest->tm_sec;
+    }
+
+
+    return;
 }
 
-int rtc_getmon()
+int rtc_setdatetime(struct date dt, struct time tm)
 {
-    time_t now;
-    struct tm *timest;
-
-    time(&now);
-    timest=localtime(&now);
-
-    if(timest==NULL) return 0;
-    else return timest->tm_mon+1;
-
-}
-
-int rtc_getyear()
-{
-    time_t now;
-    struct tm *timest;
-
-    time(&now);
-    timest=localtime(&now);
-
-    if(timest==NULL) return 0;
-    else return timest->tm_year+1900;
-
-}
-
-int rtc_getdow()
-{
-    time_t now;
-    struct tm *timest;
-
-    time(&now);
-    timest=localtime(&now);
-
-    if(timest==NULL) return 0;
-    else return (timest->tm_wday==0)? 7:timest->tm_wday;
-
-}
-
-
-int rtc_getsec()
-{
-    time_t now;
-    struct tm *timest;
-
-    time(&now);
-    timest=localtime(&now);
-
-    if(timest==NULL) return 0;
-    else return timest->tm_sec;
-
-}
-int rtc_getmin()
-{
-    time_t now;
-    struct tm *timest;
-
-    time(&now);
-    timest=localtime(&now);
-
-    if(timest==NULL) return 0;
-    else return timest->tm_min;
-
-}
-int rtc_gethour()
-{
-    time_t now;
-    struct tm *timest;
-
-    time(&now);
-    timest=localtime(&now);
-
-    if(timest==NULL) return 0;
-    else return timest->tm_hour;
-
-}
-
-int rtc_setdate(int day,int month,int year)
-{
-    UNUSED_ARGUMENT(day);
-    UNUSED_ARGUMENT(month);
-    UNUSED_ARGUMENT(year);
-//  DO NOTHING, DON'T ALLOW TO CHANGE THE RTC ON A PC
+    UNUSED_ARGUMENT(dt);
+    UNUSED_ARGUMENT(tm);
+    //  DO NOTHING, DON'T ALLOW TO CHANGE THE RTC ON A PC
     return 0;
+
 }
 
-int rtc_settime(int hour,int min,int sec)
+struct date rtc_getdate()
 {
-    UNUSED_ARGUMENT(hour);
-    UNUSED_ARGUMENT(min);
-    UNUSED_ARGUMENT(sec);
+    struct date dt={0,0,0,0};
+    time_t now;
+    struct tm *timest;
+
+    time(&now);
+    timest=localtime(&now);
+
+    if(timest==NULL) return dt;
+
+        dt.mday=timest->tm_mday;
+        dt.mon=timest->tm_mon;
+        dt.wday=timest->tm_wday;
+        dt.year=timest->tm_year;
+
+        return dt;
+}
+
+int rtc_setdate(struct date dt)
+{
+    UNUSED_ARGUMENT(dt);
     //  DO NOTHING, DON'T ALLOW TO CHANGE THE RTC ON A PC
     return 0;
 }
+
+struct time rtc_gettime()
+{
+    struct time tm={0,0,0,0};
+    time_t now;
+    struct tm *timest;
+
+    time(&now);
+    timest=localtime(&now);
+
+    if(timest==NULL) return tm;
+
+    tm.hour=timest->tm_hour;
+    tm.isdst=timest->tm_isdst;
+    tm.min=timest->tm_min;
+    tm.sec=timest->tm_sec;
+
+    return tm;
+}
+
+int rtc_settime(struct time tm)
+{
+    UNUSED_ARGUMENT(tm);
+    //  DO NOTHING, DON'T ALLOW TO CHANGE THE RTC ON A PC
+    return 0;
+}
+
+void rtc_getalarm(struct date *dt, struct time *tm, int *enabled)
+{
+    UNUSED_ARGUMENT(dt);
+    UNUSED_ARGUMENT(tm);
+
+
+    if(enabled) *enabled=0;
+    return;
+}
+
+// SET ALARM INTERRUPT
+int rtc_setalarm(struct date dt, struct time tm, int enabled)
+{
+
+    UNUSED_ARGUMENT(dt);
+    UNUSED_ARGUMENT(tm);
+    UNUSED_ARGUMENT(enabled);
+
+    // DON'T ALLOW ALARMS IN THE SIMULATOR
+    return 0;
+}
+
+void rtc_gettick(int *freq, int *enabled)
+{
+ UNUSED_ARGUMENT(freq);
+ // CAN'T GET RTC TICKS ON THE SIMULATOR
+ if(enabled) *enabled=0;
+ return;
+}
+
+// SET PERIODIC INTERRUPT
+int rtc_settick(int freq, int enabled)
+{
+    UNUSED_ARGUMENT(freq);
+    UNUSED_ARGUMENT(enabled);
+    // CAN'T SET RTC TICKS ON THE SIMULATOR
+    return 0;
+}
+

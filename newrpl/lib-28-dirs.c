@@ -47,7 +47,12 @@
     CMD(PATH,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(VARS,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(ALLVARS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ORDER,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+    CMD(ORDER,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(QUOTEID,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(UNQUOTEID,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(HIDEVAR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(UNHIDEVAR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2))
+
 
 
 
@@ -913,6 +918,116 @@ void LIB_HANDLER()
         // ALL VARIABLES SORTED
         rplDropData(1);
         return;
+    }
+
+
+
+
+    case QUOTEID:
+    {
+    if(rplDepthData()<1) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+    if(!ISIDENT(*rplPeekData(1))) {
+        rplError(ERR_IDENTEXPECTED);
+        return;
+    }
+
+    WORDPTR ident=rplMakeIdentQuoted(rplPeekData(1));
+
+    if(!ident) return;  // SOME ERROR OCCURRED
+
+    rplOverwriteData(1,ident);
+
+    return;
+
+    }
+    case UNQUOTEID:
+    {
+    if(rplDepthData()<1) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+    if(!ISIDENT(*rplPeekData(1))) {
+        rplError(ERR_IDENTEXPECTED);
+        return;
+    }
+
+    WORDPTR ident=rplMakeIdentUnquoted(rplPeekData(1));
+
+    if(!ident) return;  // SOME ERROR OCCURRED
+
+    rplOverwriteData(1,ident);
+
+    return;
+
+    }
+
+    case HIDEVAR:
+        {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        // ONLY ACCEPT IDENTS AS KEYS
+
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+
+        }
+
+        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
+        if(!var) var=rplFindGlobal(rplPeekData(1),1);
+        if(var) {
+            WORDPTR ident=rplMakeIdentHidden(var[0]);
+            if(!ident) return;
+            if(ident!=var[0]) var[0]=ident;
+            rplDropData(1);
+            return;
+        }
+        else {
+            rplError(ERR_UNDEFINEDVARIABLE);
+            return;
+        }
+
+    }
+
+
+
+    case UNHIDEVAR:
+    {
+    if(rplDepthData()<1) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+    // ONLY ACCEPT IDENTS AS KEYS
+
+    if(!ISIDENT(*rplPeekData(1))) {
+        rplError(ERR_IDENTEXPECTED);
+        return;
+
+    }
+
+    // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+    WORDPTR *var=rplFindLAM(rplPeekData(1),1);
+    if(!var) var=rplFindGlobal(rplPeekData(1),1);
+    if(var) {
+        WORDPTR ident=rplMakeIdentVisible(var[0]);
+        if(!ident) return;
+        if(ident!=var[0]) var[0]=ident;
+        rplDropData(1);
+        return;
+    }
+    else {
+        rplError(ERR_UNDEFINEDVARIABLE);
+        return;
+    }
+
     }
 
     // ADD MORE OPCODES HERE

@@ -64,7 +64,8 @@
 
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
-
+INCLUDE_ROMOBJECT(LIB_HELPTABLE);
+INCLUDE_ROMOBJECT(lib48_menu);
 
 // OTHER ROMOBJECTS
 ROMOBJECT angle_180[]={
@@ -79,6 +80,8 @@ ROMOBJECT angle_180[]={
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
      (WORDPTR)LIB_MSGTABLE,
+    (WORDPTR)LIB_HELPTABLE,
+    (WORDPTR)lib48_menu,
      (WORDPTR)angle_180,
     0
 };
@@ -175,6 +178,27 @@ void LIB_HANDLER()
             return;
         }
         if(nargs==1) {
+
+            if(!ISPROLOG(*rplPeekData(1))) {
+                        // COMMAND AS ARGUMENT
+                        if( (OPCODE(CurOpcode)==OVR_EVAL)||
+                                (OPCODE(CurOpcode)==OVR_EVAL1)||
+                                (OPCODE(CurOpcode)==OVR_XEQ) )
+                        {
+
+                            WORD saveOpcode=CurOpcode;
+                            CurOpcode=*rplPopData();
+                            // RECURSIVE CALL
+                            LIB_HANDLER();
+                            CurOpcode=saveOpcode;
+                            return;
+                        }
+                        else {
+                            rplError(ERR_INVALIDOPCODE);
+                            return;
+                        }
+                    }
+
             switch(OPCODE(CurOpcode))
             {
             case OVR_INV:
@@ -1743,6 +1767,29 @@ void LIB_HANDLER()
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         //RetNum=ERR_NOTMINE;
         return;
+
+    case OPCODE_LIBMENU:
+        // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
+        // MUST RETURN A MENU LIST IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        if(MENUNUMBER(MenuCodeArg)>0) {
+            RetNum=ERR_NOTMINE;
+            return;
+        }
+        ObjectPTR=(WORDPTR)lib48_menu;
+        RetNum=OK_CONTINUE;
+        return;
+    }
+
+    case OPCODE_LIBHELP:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN CmdHelp
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
+       return;
+    }
 
       case OPCODE_LIBMSG:
         // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError

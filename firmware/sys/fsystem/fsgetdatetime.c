@@ -9,22 +9,14 @@
 #include "fsyspriv.h"
 
 
-
 void FSGetDateTime(unsigned int *datetime,unsigned int *hundredths)
 {
-int min,sec,hour,day,mon,year,flag=0;
+    struct date dt;
+    struct time tm;
 
-do {
-year=rtc_getyear();
-mon=rtc_getmon();
-day=rtc_getday();
-hour=rtc_gethour();
-min=rtc_getmin();
-sec=rtc_getsec();
-if(!sec) flag=~flag;
-} while(flag);
-year-=1980;		// FIX FROM 1980 TO 2079
-*datetime=(sec>>1)|(min<<5)|(hour<<11)|(day<<16)|(mon<<21)|(year<<25);
-*hundredths=(sec&1)? 100:0;
-return;
+    rtc_getdatetime(&dt, &tm);
+    dt.year-=1980;		// FIX FROM 1980 TO 2079
+    *datetime=(tm.sec>>1)|(tm.min<<5)|(tm.hour<<11)|(dt.mday<<16)|(dt.mon<<21)|(dt.year<<25);
+    *hundredths=(tm.sec&1)? 100:0;
+    return;
 }
