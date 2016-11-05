@@ -2247,6 +2247,7 @@ void LIB_HANDLER()
         return;
     }
 
+    case PINT:
     case PDER:
     {
         if(rplDepthData()<1) {
@@ -2285,14 +2286,27 @@ void LIB_HANDLER()
                 } else { break; }
             }
 
-            // copy trimmed polynomial and do derive
+            // copy trimmed polynomial and do operation
             const BINT degree=cols-can_reduce-1;
-            BINT idegree;
-            for(f=can_reduce, idegree=degree;f<cols-1;++f,--idegree) {
+            BINT idegree, endcol, nout;
+            if (OPCODE(CurOpcode) == PDER) {
+                idegree = degree;
+                endcol = cols-1;
+                nout = degree;
+            } else {
+                idegree = degree+1;
+                endcol = cols;
+                nout = degree+2;
+            }
+            for(f=can_reduce;f<endcol;++f,--idegree) {
                 WORDPTR entry=rplMatrixFastGet(poly,1,f+1);
                 rplNumberToRReg(1, entry);
                 rplBINTToRReg(0,idegree);
-                mulReal(&RReg[2], &RReg[1], &RReg[0]);
+                if (OPCODE(CurOpcode) == PDER) {
+                    mulReal(&RReg[2], &RReg[1], &RReg[0]);
+                } else {
+                    divReal(&RReg[2], &RReg[1], &RReg[0]);
+                }
                 WORDPTR newnumber=rplNewReal(&RReg[2]);
                 if(!newnumber || Exceptions) {
                     if(DSTop>savestk) DSTop=savestk;
@@ -2300,85 +2314,16 @@ void LIB_HANDLER()
                 }
                 rplPushData(newnumber);
             }
-            WORDPTR pder=rplMatrixCompose(0,degree);
-            if(!pder || Exceptions) {
+            if (OPCODE(CurOpcode) == PINT) {
+                rplPushData((WORDPTR)(zero_bint));
+            }
+            WORDPTR pout=rplMatrixCompose(0,nout);
+            if(!pout || Exceptions) {
                 if(DSTop>savestk) DSTop=savestk;
                 return;
             }
-            rplDropData(degree+1);
-            rplOverwriteData(1,pder);
-
-
-        }
-        else {
-            rplError(ERR_VECTOREXPECTED);
-        }
-        return;
-    }
-
-    case PINT:
-    {
-        if(rplDepthData()<1) {
-            rplError(ERR_BADARGCOUNT);
-            return;
-        }
-
-        WORDPTR poly=rplPeekData(1);
-
-        if(ISMATRIX(*poly)){
-
-            BINT rows=MATROWS(poly[1]),cols=MATCOLS(poly[1]);
-
-            if(rows) {
-                rplError(ERR_VECTOREXPECTED);
-                return;
-            }
-            BINT f;
-
-            for(f=1;f<=cols;++f) {
-                WORDPTR entry=rplMatrixFastGet(poly,1,f);
-                if(!ISNUMBER(*entry)) {
-                    rplError(ERR_VECTOROFNUMBERSEXPECTED);
-                    return;
-                }
-            }
-            // DO IT ALL WITH REALS
-            WORDPTR *savestk=DSTop; // Drop arguments in case of error
-
-            BINT can_reduce = 0;
-            for(f=0;f<cols;++f) {
-                WORDPTR entry=rplMatrixFastGet(poly,1,f+1);
-                rplNumberToRReg(0, entry);
-                if (iszeroReal(&RReg[0])) {
-                    ++can_reduce;
-                } else { break; }
-            }
-
-            // copy trimmed polynomial and do integration
-            const BINT degree=cols-can_reduce-1;
-            BINT idegree;
-            for(f=can_reduce, idegree=degree+1;f<cols;++f,--idegree) {
-                WORDPTR entry=rplMatrixFastGet(poly,1,f+1);
-                rplNumberToRReg(1, entry);
-                rplBINTToRReg(0,idegree);
-                divReal(&RReg[2], &RReg[1], &RReg[0]);
-                WORDPTR newnumber=rplNewReal(&RReg[2]);
-                if(!newnumber || Exceptions) {
-                    if(DSTop>savestk) DSTop=savestk;
-                    return;
-                }
-                rplPushData(newnumber);
-            }
-            rplPushData((WORDPTR)(zero_bint));
-            WORDPTR pint=rplMatrixCompose(0,degree+2);
-            if(!pint || Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-                return;
-            }
-            rplDropData(degree+2);
-            rplOverwriteData(1,pint);
-
-
+            rplDropData(nout);
+            rplOverwriteData(1,pout);
         }
         else {
             rplError(ERR_VECTOREXPECTED);
