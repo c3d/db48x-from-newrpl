@@ -68,8 +68,12 @@
     CMD(TCHEBYCHEFF2,MKTOKENINFO(12,TITYPE_FUNCTION,1,2)), \
     CMD(HERMITE2,MKTOKENINFO(8,TITYPE_FUNCTION,1,2)), \
     CMD(DIV2,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
+    CMD(PDIV2,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
     CMD(PDER,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
-    CMD(PINT,MKTOKENINFO(4,TITYPE_FUNCTION,1,2))
+    CMD(PINT,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(PMUL,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
+    CMD(PADD,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
+    CMD(PSUB,MKTOKENINFO(4,TITYPE_FUNCTION,2,2))
 
 // ADD MORE OPCODES HERE
 
@@ -2054,6 +2058,7 @@ void LIB_HANDLER()
         return;
     }
 
+    case PDIV2:
     case DIV2:
     {
         if(rplDepthData()<2) {
@@ -2281,12 +2286,12 @@ void LIB_HANDLER()
             }
 
             // copy trimmed polynomial and do derive
-            const BINT order=cols-can_reduce-1;
-            BINT iorder;
-            for(f=can_reduce, iorder=order;f<cols-1;++f,--iorder) {
+            const BINT degree=cols-can_reduce-1;
+            BINT idegree;
+            for(f=can_reduce, idegree=degree;f<cols-1;++f,--idegree) {
                 WORDPTR entry=rplMatrixFastGet(poly,1,f+1);
                 rplNumberToRReg(1, entry);
-                rplBINTToRReg(0,iorder);
+                rplBINTToRReg(0,idegree);
                 mulReal(&RReg[2], &RReg[1], &RReg[0]);
                 WORDPTR newnumber=rplNewReal(&RReg[2]);
                 if(!newnumber || Exceptions) {
@@ -2295,12 +2300,12 @@ void LIB_HANDLER()
                 }
                 rplPushData(newnumber);
             }
-            WORDPTR pder=rplMatrixCompose(0,order);
+            WORDPTR pder=rplMatrixCompose(0,degree);
             if(!pder || Exceptions) {
                 if(DSTop>savestk) DSTop=savestk;
                 return;
             }
-            rplDropData(order+1);
+            rplDropData(degree+1);
             rplOverwriteData(1,pder);
 
 
@@ -2310,7 +2315,6 @@ void LIB_HANDLER()
         }
         return;
     }
-
 
     case PINT:
     {
@@ -2350,13 +2354,13 @@ void LIB_HANDLER()
                 } else { break; }
             }
 
-            // copy trimmed polynomial and do derive
-            const BINT order=cols-can_reduce-1;
-            BINT iorder;
-            for(f=can_reduce, iorder=order+1;f<cols;++f,--iorder) {
+            // copy trimmed polynomial and do integration
+            const BINT degree=cols-can_reduce-1;
+            BINT idegree;
+            for(f=can_reduce, idegree=degree+1;f<cols;++f,--idegree) {
                 WORDPTR entry=rplMatrixFastGet(poly,1,f+1);
                 rplNumberToRReg(1, entry);
-                rplBINTToRReg(0,iorder);
+                rplBINTToRReg(0,idegree);
                 divReal(&RReg[2], &RReg[1], &RReg[0]);
                 WORDPTR newnumber=rplNewReal(&RReg[2]);
                 if(!newnumber || Exceptions) {
@@ -2366,12 +2370,12 @@ void LIB_HANDLER()
                 rplPushData(newnumber);
             }
             rplPushData((WORDPTR)(zero_bint));
-            WORDPTR pint=rplMatrixCompose(0,order+2);
+            WORDPTR pint=rplMatrixCompose(0,degree+2);
             if(!pint || Exceptions) {
                 if(DSTop>savestk) DSTop=savestk;
                 return;
             }
-            rplDropData(order+2);
+            rplDropData(degree+2);
             rplOverwriteData(1,pint);
 
 
@@ -2381,6 +2385,117 @@ void LIB_HANDLER()
         }
         return;
     }
+
+    case PADD:
+    case PSUB:
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        WORDPTR arg1=rplPeekData(2);
+        WORDPTR arg2=rplPeekData(1);
+
+        // POLYNOMIAL DIVISION
+        if(ISMATRIX(*arg1) && ISMATRIX(*arg2)) {
+            BINT rows1=MATROWS(arg1[1]),cols1=MATCOLS(arg1[1]);
+            BINT rows2=MATROWS(arg2[1]),cols2=MATCOLS(arg2[1]);
+            // Check for vector only
+            if(rows1 || rows2) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+
+            // only numbers allowed
+            BINT f;
+            for(f=0;f<cols1;++f) {
+                WORDPTR entry=rplMatrixFastGet(arg1,1,f+1);
+                if(!ISNUMBER(*entry)) {
+                    rplError(ERR_VECTOROFNUMBERSEXPECTED);
+                    return;
+                }
+            }
+            for(f=0;f<cols2;++f) {
+                WORDPTR entry=rplMatrixFastGet(arg2,1,f+1);
+                if(!ISNUMBER(*entry)) {
+                    rplError(ERR_VECTOROFNUMBERSEXPECTED);
+                    return;
+                }
+            }
+
+            // Eliminate leading zeros to get the real degree
+            BINT can_reduce_a1 = 0, can_reduce_a2 = 0;
+            for(f=0;f<cols1;++f) {
+                WORDPTR entry=rplMatrixFastGet(arg1,1,f+1);
+                rplNumberToRReg(0, entry);
+                if (iszeroReal(&RReg[0])) {
+                    ++can_reduce_a1;
+                } else { break; }
+            }
+            for(f=0;f<cols2;++f) {
+                WORDPTR entry=rplMatrixFastGet(arg2,1,f+1);
+                rplNumberToRReg(0, entry);
+                if (iszeroReal(&RReg[0])) {
+                    ++can_reduce_a2;
+                } else { break; }
+            }
+
+            if (Exceptions) {
+                return;
+            }
+
+            BINT nelem1 = cols1-can_reduce_a1; // degree1 = nelem1 -1;
+            BINT nelem2 = cols2-can_reduce_a2; // degree2 = nelem2 -1;
+
+            BINT nelem3 = nelem1 > nelem2 ? nelem1 : nelem2; // degree = max(degree1, degree2)
+
+            WORDPTR *savestk=DSTop; // Drop arguments in case of error
+
+            for (f  = 0; f < nelem3; ++f) {
+                BINT i1 = cols1-nelem3+f;
+                BINT i2 = cols2-nelem3+f;
+                if (i1 < can_reduce_a1) {
+                    rplBINTToRReg(1,0);
+                } else {
+                    WORDPTR entry=rplMatrixFastGet(arg1,1,i1+1);
+                    rplNumberToRReg(1, entry);
+                }
+                if (i2 < can_reduce_a2) {
+                    rplBINTToRReg(2,0);
+                } else {
+                    WORDPTR entry=rplMatrixFastGet(arg2,1,i2+1);
+                    rplNumberToRReg(2, entry);
+                }
+                if (OPCODE(CurOpcode) == PADD) {
+                    addReal(&RReg[0], &RReg[1], &RReg[2]);
+                } else {
+                    subReal(&RReg[0], &RReg[1], &RReg[2]);
+                }
+                WORDPTR newnumber=rplNewReal(&RReg[0]);
+                if(!newnumber || Exceptions) {
+                    if(DSTop>savestk) DSTop=savestk;
+                    return;
+                }
+                rplPushData(newnumber);
+            }
+            WORDPTR poly=rplMatrixCompose(0,nelem3);
+            if(!poly || Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+                return;
+            }
+            rplDropData(nelem3+1);
+            rplOverwriteData(1,poly);
+
+        }
+        else {
+            rplError(ERR_VECTOROFNUMBERSEXPECTED);
+        }
+        return;
+    }
+
+
+
 
 
 
