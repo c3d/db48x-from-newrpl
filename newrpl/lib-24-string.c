@@ -28,8 +28,8 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(CHR,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    CMD(NUM,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TOUTF,"→UTF8",MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(FROMUTF,"UTF8→",MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
     ECMD(TOSTR,"→STR",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     ECMD(FROMSTR,"STR→",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(SREV,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
@@ -209,6 +209,45 @@ WORDPTR rplCreateString(BYTEPTR text,BYTEPTR textend)
     return 0;
 }
 
+// SKIP ANY SEPARATOR CHARACTERS AT start. ANY CHARACTER IN sepstart/end
+// IS CONSIDERED A SEPARATOR AND WILL BE SKIPPED
+BYTEPTR rplSkipSep(BYTEPTR start,BYTEPTR end,BYTEPTR sepstart,BYTEPTR sepend)
+{
+    BYTEPTR sepptr,sepnext,ptr;
+
+    while(start!=end) {
+        sepptr=sepstart;
+        while(sepptr!=sepend) {
+            sepnext=utf8skipst(sepptr,sepend);
+            ptr=start;
+            while(sepptr!=sepnext) {
+                if(*ptr!=*sepptr) break;
+                ++ptr;
+                ++sepptr;
+            }
+            if(sepptr==sepnext) break; // THERE WAS A MATCH!
+            // NO MATCH, KEEP GOING
+            }
+            if(sepptr==sepend) return start; // THERE WAS NO MATCH
+
+            // CHARACTER WAS A SEPARATOR, KEEP GOING
+            start=ptr;
+        }
+
+    // ALL WERE SEPARATORS
+
+    return start;
+}
+
+
+
+
+
+
+
+
+
+
 
 void LIB_HANDLER()
 {
@@ -222,7 +261,7 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
-    case CHR:
+    case TOUTF:
     {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -294,7 +333,7 @@ void LIB_HANDLER()
         rplOverwriteData(1,newstring);
         return;
     }
-    case NUM:
+    case FROMUTF:
     {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -305,16 +344,25 @@ void LIB_HANDLER()
             return;
         }
 
-        if(rplStrLen(rplPeekData(1))<1) {
-            rplOverwriteData(1,(WORDPTR)zero_bint);
-            return;
-        }
-        BYTEPTR string=(BYTEPTR) (rplPeekData(1)+1);
+        WORDPTR strobj=rplPeekData(1);
+        ScratchPointer1=(strobj+1);
+        ScratchPointer2=(WORDPTR)(((BYTEPTR)ScratchPointer1)+STRLEN(*strobj));
 
-        BINT utfchar=utf82cp((char *) string,(char *)(string+4));
+        BINT utfchar,count=0;
 
+        while(ScratchPointer1<ScratchPointer2) {
+
+        utfchar=utf82cp((char *) ScratchPointer1,(char *)ScratchPointer2);
         rplNewBINTPush(utfchar,HEXBINT);
+        ++count;
         if(Exceptions) return;
+
+        ScratchPointer1=(WORDPTR)utf8skip((char *)ScratchPointer1,(char *)ScratchPointer2);
+        }
+
+        rplNewBINTPush(count,DECBINT);
+        rplCreateList();
+
         rplOverwriteData(2,rplPeekData(1));
         rplDropData(1);
         return;
@@ -359,6 +407,46 @@ void LIB_HANDLER()
         return;
     }
 
+    case SREV:
+    {
+        // REVERSE A UTF-8 STRING
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISSTRING(*rplPeekData(1))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
+
+        WORDPTR newobj=rplAllocTempOb(OBJSIZE(*rplPeekData(1)));
+        if(!newobj) return;
+
+        WORDPTR oldobj=rplPeekData(1);
+
+        newobj[0]=oldobj[0];        // BOTH STRINGS WILL BE THE EXACT SAME SIZE
+
+        BYTEPTR newptr,oldptr,endptr;
+        oldptr=(BYTEPTR)(oldobj+1);     // START OF STRING
+        endptr=oldptr+STRLEN(*oldobj);
+
+        newptr=(BYTEPTR)(newobj+1);
+        newptr+=STRLEN(*oldobj);        // END OF STRING
+
+        BINT nbytes;
+        while(oldptr!=endptr)
+        {
+            nbytes=(BYTEPTR)utf8skipst((char *)oldptr,(char *)endptr)-oldptr;
+            newptr-=nbytes;
+            memcpyb(newptr,oldptr,nbytes);
+            oldptr+=nbytes;
+        }
+
+        rplOverwriteData(1,newobj);
+
+        return;
+
+    }
 
     // ADD MORE OPCODES HERE
 

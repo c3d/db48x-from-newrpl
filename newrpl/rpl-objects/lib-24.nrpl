@@ -17,7 +17,7 @@
 
 @#name lib24_menu
 {
-  CHR NUM →STR STR→
+   →STR STR→ →UTF8 UTF8→
 }
 
 @#name lib24_msgtable
@@ -29,13 +29,13 @@
 
 @#name lib24_cmdhelp
 {
-CHR
-"Convert single unicode
-code point to string
-I → S"
-NUM
-"Convert first character in string
-to unicode code point
+→UTF8
+"Encode a single CP or
+a list of CP to a string
+I or L → S"
+UTF8→
+"Convert string to unicode
+code point list
 S → I"
 →STR
 "Convert any object to string
