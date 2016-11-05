@@ -2179,7 +2179,19 @@ void LIB_HANDLER()
                     }
                 }
                 BINT elements_remainder = (cols2-leading_zeroes_arg2)-1;
-                WORDPTR remainder=rplMatrixCompose(0,elements_remainder);
+                BINT leading_zeroes_remainder = 0;
+                for (f = 0; f < elements_remainder; ++f) {
+                    WORDPTR entry=rplPeekData(elements_remainder-f);
+                    rplNumberToRReg(0, entry);
+                    if (iszeroReal(&RReg[0])) {
+                        ++leading_zeroes_remainder;
+                    } else { break; }
+                }
+                BINT nrem = elements_remainder-leading_zeroes_remainder;
+                if (nrem < 1) {
+                   nrem=1;
+                }
+                WORDPTR remainder=rplMatrixCompose(0,nrem);
                 if(remainder) {
                     rplDropData(elements_remainder);
                     BINT elements_quotient = (cols1-leading_zeroes_arg1)-(cols2-leading_zeroes_arg2)+1;
@@ -2387,7 +2399,19 @@ void LIB_HANDLER()
                 }
                 rplPushData(newnumber);
             }
-            WORDPTR poly=rplMatrixCompose(0,nelem3);
+            BINT leading_zeroes_pout = 0;
+            for (f = 0; f < nelem3; ++f) {
+                WORDPTR entry=rplPeekData(nelem3-f);
+                rplNumberToRReg(0, entry);
+                if (iszeroReal(&RReg[0])) {
+                    ++leading_zeroes_pout;
+                } else { break; }
+            }
+            BINT nout = nelem3-leading_zeroes_pout;
+            if (nout < 1) {
+               nout=1;
+            }
+            WORDPTR poly=rplMatrixCompose(0,nout);
             if(!poly || Exceptions) {
                 if(DSTop>savestk) DSTop=savestk;
                 return;
