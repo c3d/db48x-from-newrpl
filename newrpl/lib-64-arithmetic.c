@@ -2068,19 +2068,15 @@ void LIB_HANDLER()
 
         WORDPTR *savestk=DSTop; // Drop arguments in case of error
 
-        WORDPTR dividend=rplPeekData(2);
-        WORDPTR divisor=rplPeekData(1);
+        WORDPTR arg1=rplPeekData(2);
+        WORDPTR arg2=rplPeekData(1);
 
-        // DUP2
-        rplPushData(dividend);
-        rplPushData(divisor);
-
-        // POLYNOMIAL DIVISION
-        if(ISMATRIX(*dividend) && ISMATRIX(*divisor)) {
-            BINT rows_num=MATROWS(dividend[1]),cols_num=MATCOLS(dividend[1]);
-            BINT rows_denom=MATROWS(divisor[1]),cols_denom=MATCOLS(divisor[1]);
+        // POLYNOMIAL DIVISION arg1/arg2 = quot , remainder
+        if(ISMATRIX(*arg1) && ISMATRIX(*arg2)) {
+            BINT rows1=MATROWS(arg1[1]),cols1=MATCOLS(arg1[1]);
+            BINT rows2=MATROWS(arg2[1]),cols2=MATCOLS(arg2[1]);
             // Check for vector only
-            if(rows_num || rows_denom) {
+            if(rows1 || rows2) {
                 if(DSTop>savestk) DSTop=savestk;
                 rplError(ERR_VECTOREXPECTED);
                 return;
@@ -2088,16 +2084,16 @@ void LIB_HANDLER()
 
             // only numbers allowed
             BINT f;
-            for(f=0;f<cols_num;++f) {
-                WORDPTR entry=rplMatrixFastGet(dividend,1,f+1);
+            for(f=0;f<cols1;++f) {
+                WORDPTR entry=rplMatrixFastGet(arg1,1,f+1);
                 if(!ISNUMBER(*entry)) {
                     if(DSTop>savestk) DSTop=savestk;
                     rplError(ERR_VECTOROFNUMBERSEXPECTED);
                     return;
                 }
             }
-            for(f=0;f<cols_denom;++f) {
-                WORDPTR entry=rplMatrixFastGet(divisor,1,f+1);
+            for(f=0;f<cols2;++f) {
+                WORDPTR entry=rplMatrixFastGet(arg2,1,f+1);
                 if(!ISNUMBER(*entry)) {
                     if(DSTop>savestk) DSTop=savestk;
                     rplError(ERR_VECTOROFNUMBERSEXPECTED);
@@ -2106,19 +2102,19 @@ void LIB_HANDLER()
             }
 
             // Eliminate leading zeros to get the real order
-            BINT can_reduce_num = 0, can_reduce_denom = 0;
-            for(f=0;f<cols_num;++f) {
-                WORDPTR entry=rplMatrixFastGet(dividend,1,f+1);
+            BINT leading_zeroes_arg1 = 0, leading_zeroes_arg2 = 0;
+            for(f=0;f<cols1;++f) {
+                WORDPTR entry=rplMatrixFastGet(arg1,1,f+1);
                 rplNumberToRReg(0, entry);
                 if (iszeroReal(&RReg[0])) {
-                    ++can_reduce_num;
+                    ++leading_zeroes_arg1;
                 } else { break; }
             }
-            for(f=0;f<cols_denom;++f) {
-                WORDPTR entry=rplMatrixFastGet(divisor,1,f+1);
+            for(f=0;f<cols2;++f) {
+                WORDPTR entry=rplMatrixFastGet(arg2,1,f+1);
                 rplNumberToRReg(0, entry);
                 if (iszeroReal(&RReg[0])) {
-                    ++can_reduce_denom;
+                    ++leading_zeroes_arg2;
                 } else { break; }
             }
 
@@ -2127,42 +2123,8 @@ void LIB_HANDLER()
                 return;
             }
 
-            if (can_reduce_num > 0) {
-                for(f=can_reduce_num;f<cols_num;++f) {
-                    WORDPTR entry=rplMatrixFastGet(dividend,1,f+1);
-                    rplPushData(entry); }
-                BINT elements = cols_num-can_reduce_num;
-                WORDPTR newmat=rplMatrixCompose(0,elements);
-                if(newmat) {
-                    rplDropData(elements);
-                    rplOverwriteData(2,newmat);
-                }
-            }
-            if (can_reduce_denom > 0) {
-                for(f=can_reduce_denom;f<cols_denom;++f) {
-                    WORDPTR entry=rplMatrixFastGet(divisor,1,f+1);
-                    rplPushData(entry); }
-                BINT elements = cols_denom-can_reduce_denom;
-                WORDPTR newmat=rplMatrixCompose(0,elements);
-                if(newmat) {
-                    rplDropData(elements);
-                    rplOverwriteData(1,newmat);
-                }
-            }
-
-
-            if (Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-                return;
-            }
-
-            // now we do have removed all leading zeroes
-            WORDPTR *pdividend=(DSTop-2);
-            WORDPTR *pdivisor=(DSTop-1);
-            cols_num=MATCOLS((*pdividend)[1]);
-            cols_denom=MATCOLS((*pdivisor)[1]);
-
-            if (cols_num < cols_denom) {
+            // now we know all leading zeroes
+            if ((cols1-leading_zeroes_arg1) < (cols2-leading_zeroes_arg2)) {
                 rplPushData((WORDPTR)(zero_bint));
                 BINT elements = 1;
                 WORDPTR newmat=rplMatrixCompose(0,elements);
@@ -2173,7 +2135,7 @@ void LIB_HANDLER()
                 }
             } else {
                 BINT saveprec=Context.precdigits;
-                BINT argdigits=saveprec+(2*cols_denom+7)&~7;
+                BINT argdigits=saveprec+(2*cols2+7)&~7;
                 if(argdigits>MAX_USERPRECISION) {
                     argdigits=MAX_USERPRECISION;
                 }
@@ -2182,13 +2144,14 @@ void LIB_HANDLER()
                 Context.precdigits=argdigits;
 
                 // copy dividend
-                for(f=0;f<cols_num;++f) {
-                    WORDPTR entry=rplMatrixFastGet(*pdividend,1,f+1);
-                    rplPushData(entry); }
-                WORDPTR normalizer = rplMatrixFastGet(*pdivisor,1,1); // divisor[0]
+                for(f=leading_zeroes_arg1;f<cols1;++f) {
+                    WORDPTR entry=rplMatrixFastGet(arg1,1,f+1);
+                    rplPushData(entry);
+                }
+                WORDPTR normalizer = rplMatrixFastGet(arg2,1,leading_zeroes_arg2+1); // divisor[0]
                 rplNumberToRReg(0, normalizer);
-                for (f = 0; f < cols_num-cols_denom+1; ++f) {
-                    rplNumberToRReg(1,rplPeekData(cols_num-f)); // out[i]
+                for (f = 0; f < (cols1-leading_zeroes_arg1)-(cols2-leading_zeroes_arg2)+1; ++f) {
+                    rplNumberToRReg(1,rplPeekData((cols1-leading_zeroes_arg1)-f)); // out[i]
                     divReal(&RReg[2], &RReg[1], &RReg[0]);
                     WORDPTR newnumber=rplNewReal(&RReg[2]);
                     if(!newnumber || Exceptions) {
@@ -2196,14 +2159,14 @@ void LIB_HANDLER()
                         Context.precdigits=saveprec;
                         return;
                     }
-                    rplOverwriteData(cols_num-f, newnumber); //out[i] /= normalizer
+                    rplOverwriteData((cols1-leading_zeroes_arg1)-f, newnumber); //out[i] /= normalizer
                    if (!iszeroReal(&RReg[2])) {             // coef = RReg[2]
                         BINT j;
-                        for (j = 1; j < cols_denom; ++j) {
-                            WORDPTR divj = rplMatrixFastGet(*pdivisor,1,j+1); // divisor[j]
+                        for (j =leading_zeroes_arg2+1; j < cols2; ++j) {
+                            WORDPTR divj = rplMatrixFastGet(arg2,1,j+1); // divisor[j]
                             rplNumberToRReg(1, divj);
                             mulReal(&RReg[1], &RReg[1], &RReg[2]);
-                            rplNumberToRReg(3,rplPeekData(cols_num-f-j)); // out[i]
+                            rplNumberToRReg(3,rplPeekData((cols1-leading_zeroes_arg1)-f-(j-leading_zeroes_arg2))); // out[i]
                             subReal(&RReg[3], &RReg[3], &RReg[1]);
                             WORDPTR newnumber=rplNewReal(&RReg[3]);
                             if(!newnumber || Exceptions) {
@@ -2211,18 +2174,18 @@ void LIB_HANDLER()
                                 Context.precdigits=saveprec;
                                 return;
                             }
-                            rplOverwriteData(cols_num-f-j, newnumber);
+                            rplOverwriteData((cols1-leading_zeroes_arg1)-f-(j-leading_zeroes_arg2), newnumber);
                         }
                     }
                 }
-                BINT elements_remainder = cols_denom-1;
+                BINT elements_remainder = (cols2-leading_zeroes_arg2)-1;
                 WORDPTR remainder=rplMatrixCompose(0,elements_remainder);
                 if(remainder) {
                     rplDropData(elements_remainder);
-                    BINT elements_quotient = cols_num-cols_denom+1;
+                    BINT elements_quotient = (cols1-leading_zeroes_arg1)-(cols2-leading_zeroes_arg2)+1;
                     WORDPTR quotient=rplMatrixCompose(0,elements_quotient);
                     if(quotient) {
-                        rplDropData(elements_quotient+2);
+                        rplDropData(elements_quotient);
                         rplOverwriteData(2,quotient);
                         rplOverwriteData(1,remainder);
                     }
