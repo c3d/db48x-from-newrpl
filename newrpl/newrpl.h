@@ -367,6 +367,9 @@ BINT rplLAMCount(WORDPTR *LAMEnvironment);
 // GLOBAL VARIABLES AND DIRECTORY FUNCTIONS
 void growDirs(WORD newtotalsize);
 WORDPTR rplMakeIdentQuoted(WORDPTR ident);
+WORDPTR rplMakeIdentUnquoted(WORDPTR ident);
+WORDPTR rplMakeIdentHidden(WORDPTR ident);
+WORDPTR rplMakeIdentVisible(WORDPTR ident);
 void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir);
 void rplCreateGlobal(WORDPTR nameobj,WORDPTR value);
 void rplPurgeGlobal(WORDPTR nameobj);

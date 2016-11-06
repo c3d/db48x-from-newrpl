@@ -72,19 +72,62 @@ void shrinkDirs(WORD newtotalsize)
 // MAY CAUSE GARBAGE COLLECTION
 WORDPTR rplMakeIdentQuoted(WORDPTR ident)
 {
-    if(!ISHIDDENIDENT(*ident)) return ident;
+    if(ISQUOTEDIDENT(*ident)) return ident;
 
     ident=rplMakeNewCopy(ident);
 
     //  CHANGE FROM A IDENTEVAL TO A REGULAR IDENT
-    ident[0]-=MKOPCODE(DOIDENTEVAL-DOIDENT,0);
+    if(ident) ident[0]&=~MKOPCODE(UNQUOTED_BIT,0);
 
     return ident;
 
 }
 
+// CHECK IF AN IDENT IS UNQUOTED, IF NOT THEN
+// CREATE A NEW UNQUOTED OBJECT AND RETURN IT
+// MAY CAUSE GARBAGE COLLECTION
+WORDPTR rplMakeIdentUnquoted(WORDPTR ident)
+{
+    if(ISUNQUOTEDIDENT(*ident)) return ident;
+
+    ident=rplMakeNewCopy(ident);
+
+    //  CHANGE FROM A IDENTEVAL TO A REGULAR IDENT
+    if(ident) ident[0]|=MKOPCODE(UNQUOTED_BIT,0);
+
+    return ident;
 
 
+}
+
+
+WORDPTR rplMakeIdentHidden(WORDPTR ident)
+{
+    if(ISHIDDENIDENT(*ident)) return ident;
+
+    ident=rplMakeNewCopy(ident);
+
+    //  CHANGE FROM A IDENTEVAL TO A REGULAR IDENT
+    if(ident) ident[0]|=MKOPCODE(HIDDEN_BIT,0);
+
+    return ident;
+
+}
+
+// CHECK IF AN IDENT IS UNQUOTED, IF NOT THEN
+// CREATE A NEW UNQUOTED OBJECT AND RETURN IT
+// MAY CAUSE GARBAGE COLLECTION
+WORDPTR rplMakeIdentVisible(WORDPTR ident)
+{
+    if(!ISHIDDENIDENT(*ident)) return ident;
+
+    ident=rplMakeNewCopy(ident);
+
+    //  CHANGE FROM A IDENTEVAL TO A REGULAR IDENT
+    if(ident) ident[0]&=~MKOPCODE(HIDDEN_BIT,0);
+
+    return ident;
+}
 
 
 

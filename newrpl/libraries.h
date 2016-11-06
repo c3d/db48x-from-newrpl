@@ -154,7 +154,7 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define APPROX_BIT    1
 #define UNQUOTED_BIT  2
-#define HIDDEN_BIT    2
+#define HIDDEN_BIT    4
 #define REALASSUME_BIT 4
 #define ACCEPTPREFIX_BIT 4
 // BIT 8 FOR FUTURE USE

@@ -13,10 +13,86 @@
 @ O = Any object
 @ P = Program
 @ A = Algebraic object (symbolic)
+@ ∡ = Angle object
 
 @#name lib48_msgtable
 {
 ##1,ERR_REALORANGLEEXPECTED  "Expected an angle or real"
 }
 
+@#name lib48_menu
+{
+→∡°
+→∡r
+→∡g
+→∡d
+A→∡°
+A→∡r
+A→∡g
+A→∡d
+→RECT
+→POLAR
+→SPHER
+}
 
+
+@#name lib48_cmdhelp
+{
+
+→∡°
+"Create an angle in degrees
+from a number
+R → ∡ "
+
+→∡r
+"Create an angle in radians
+from a number
+R → ∡ "
+
+→∡g
+"Create an angle in gons (grads)
+from a number
+R → ∡ "
+
+→∡d
+"Create an angle in deg/min/sec
+from a number
+R → ∡ "
+
+A→∡°
+"Convert angles to degrees
+
+<∡ or C or V> → ∡° "
+
+A→∡r
+"Convert angles to radians
+
+<∡ or C or V> → ∡r "
+
+A→∡g
+"Convert angles to gons (grads)
+
+<∡ or C or V> → ∡g "
+
+A→∡d
+"Convert angles to deg/min/sec
+
+<∡ or C or V> → ∡d "
+
+
+→RECT
+"Convert a polar complex or
+vector to rectangular coords.
+<V or C> → <V or C> "
+
+→POLAR
+"Convert a complex or
+vector to polar coords.
+<V or C> → <V or C> "
+
+→SPHER
+"Convert a vector to
+spherical coords.
+<V or C> → <V or C> "
+
+}

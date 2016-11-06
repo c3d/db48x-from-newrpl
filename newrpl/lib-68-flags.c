@@ -36,8 +36,12 @@
     ECMD(FCTESTCLEAR,"FC?C",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     ECMD(FSTESTCLEAR,"FS?C",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(TMENU,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)),\
-    CMD(TMENULST,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)),\
+    CMD(TMENULST,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)),\
+    CMD(TMENUOTHR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)),\
     CMD(MENUSWAP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RCLMENU,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)),\
+    CMD(RCLMENULST,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)),\
+    CMD(RCLMENUOTHR,MKTOKENINFO(11,TITYPE_NOTALLOWED,1,2)),\
     CMD(COPYCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(CUTCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(PASTECLIP,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
@@ -63,6 +67,20 @@
 // ************************************
 // *** END OF COMMON LIBRARY HEADER ***
 // ************************************
+
+
+
+INCLUDE_ROMOBJECT(LIB_HELPTABLE);
+INCLUDE_ROMOBJECT(sysmenu_2_main);
+INCLUDE_ROMOBJECT(sysmenu_3_prog);
+INCLUDE_ROMOBJECT(sysmenu_4_math);
+INCLUDE_ROMOBJECT(sysmenu_5_symb);
+INCLUDE_ROMOBJECT(sysmenu_6_system);
+INCLUDE_ROMOBJECT(sysmenu_7_flags);
+INCLUDE_ROMOBJECT(sysmenu_8_menu);
+INCLUDE_ROMOBJECT(sysmenu_9_clipboard);
+INCLUDE_ROMOBJECT(sysmenu_10_settings);
+
 
 
 ROMOBJECT dotsettings_ident[]= {
@@ -113,6 +131,18 @@ ROMOBJECT clipbd_ident[] = {
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
+    (WORDPTR)LIB_HELPTABLE,
+
+    (WORDPTR)sysmenu_2_main,
+    (WORDPTR)sysmenu_3_prog,
+    (WORDPTR)sysmenu_4_math,
+    (WORDPTR)sysmenu_5_symb,
+    (WORDPTR)sysmenu_6_system,
+    (WORDPTR)sysmenu_7_flags,
+    (WORDPTR)sysmenu_8_menu,
+    (WORDPTR)sysmenu_9_clipboard,
+    (WORDPTR)sysmenu_10_settings,
+
     (WORDPTR)dotsettings_ident,
     (WORDPTR)flags_ident,
     (WORDPTR)locale_ident,
@@ -136,17 +166,17 @@ const systemflag const flags_names[]= {
     // EACH OF THE 8 CHARS CONTAINS: BITS 0-6:= FLAG NUMBER (1-127),
     // BIT 7= VALUE (ON/OFF) TO USE WITH SET FLAG, ASSUMED ALWAYS 0 FOR CLEAR FLAG.
 
-    { "DEG", { 17,18,0,0,0,0,0,0}  },
-    { "RAD", {0x80|17,18,0,0,0,0,0,0} },
-    { "GRAD", {17, 0X80|18,0,0,0,0,0,0} },
-    { "DMS", {0x80|17,0x80|18,0,0,0,0,0,0} },
-    { "COMMENTS", {0x80|30,0,0,0,0,0,0,0} },
-    { "ACTIVEMENU1", { 0x80|4,0,0,0,0,0,0,0} },
-    { "ACTIVEMENU2", { 4, 0,0,0,0,0,0,0} },
-    { "DATEDMY" , { 0X80|42,0,0,0,0,0,0,0} },
-    { "DATEMDY" , { 42,0,0,0,0,0,0,0} },
-    { "TIME12" , { 41,0,0,0,0,0,0,0} },
-    { "TIME24" , { 0x80|41,0,0,0,0,0,0,0} },
+    { "DEG", { (-FL_ANGLEMODE1),(-FL_ANGLEMODE2),0,0,0,0,0,0}  },
+    { "RAD", {0x80|(-FL_ANGLEMODE1),(-FL_ANGLEMODE2),0,0,0,0,0,0} },
+    { "GRAD", {(-FL_ANGLEMODE1), 0X80|(-FL_ANGLEMODE2),0,0,0,0,0,0} },
+    { "DMS", {0x80|(-FL_ANGLEMODE1),0x80|(-FL_ANGLEMODE2),0,0,0,0,0,0} },
+    { "COMMENTS", {0x80|(-FL_STRIPCOMMENTS),0,0,0,0,0,0,0} },
+    { "ACTIVEMENU1", { 0x80|(-FL_ACTIVEMENU),0,0,0,0,0,0,0} },
+    { "ACTIVEMENU2", { (-FL_ACTIVEMENU), 0,0,0,0,0,0,0} },
+    { "DATEDMY" , { 0X80|(-FL_DATEFORMAT),0,0,0,0,0,0,0} },
+    { "DATEMDY" , { (-FL_DATEFORMAT),0,0,0,0,0,0,0} },
+    { "TIME12" , { (-FL_TIMEFORMAT),0,0,0,0,0,0,0} },
+    { "TIME24" , { 0x80|(-FL_TIMEFORMAT),0,0,0,0,0,0,0} },
 
 
 
@@ -657,6 +687,31 @@ void LIB_HANDLER()
         return;
     }
 
+    // LIBRARIES THAT DEFINE ONLY COMMANDS STILL HAVE TO RESPOND TO A FEW OVERLOADABLE OPERATORS
+    if(LIBNUM(CurOpcode)==LIB_OVERLOADABLE) {
+        // ONLY RESPOND TO EVAL, EVAL1 AND XEQ FOR THE COMMANDS DEFINED HERE
+        // IN CASE OF COMMANDS TREATED AS OBJECTS (WHEN EMBEDDED IN LISTS)
+        if( (OPCODE(CurOpcode)==OVR_EVAL)||
+                (OPCODE(CurOpcode)==OVR_EVAL1)||
+                (OPCODE(CurOpcode)==OVR_XEQ) )
+        {
+            // EXECUTE THE COMMAND BY CHANGING THE CURRENT OPCODE
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+
+            WORD saveOpcode=CurOpcode;
+            CurOpcode=*rplPopData();
+            // RECURSIVE CALL
+            LIB_HANDLER();
+            CurOpcode=saveOpcode;
+            return;
+        }
+    }
+
+
+
     switch(OPCODE(CurOpcode))
     {
     case SETLOCALE:
@@ -1063,6 +1118,7 @@ void LIB_HANDLER()
 
 
     case TMENULST:
+    case TMENUOTHR:
      {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1070,6 +1126,11 @@ void LIB_HANDLER()
         }
         WORDPTR arg=rplPeekData(1);
         BINT menu=rplGetLastMenu();
+        if(CurOpcode==CMD_TMENUOTHR) {
+            // USE THE OTHER MENU
+            if(menu==1) menu=2;
+            else menu=1;
+        }
 
         if(ISIDENT(*arg)) {
 
@@ -1135,14 +1196,55 @@ void LIB_HANDLER()
       return;
     }
 
+    case RCLMENU:
+    case RCLMENULST:
+    case RCLMENUOTHR:
+    {
+        BINT menu;
+
+        if(CurOpcode!=CMD_RCLMENU) {
+        menu=rplGetLastMenu();
+        if(CurOpcode==CMD_RCLMENUOTHR) {
+            // USE THE OTHER MENU
+            if(menu==1) menu=2;
+            else menu=1;
+        }
+        }
+        else menu=rplGetActiveMenu();
+
+
+        WORD mcode=rplGetMenuCode(menu);
+
+        if((MENULIBRARY(mcode)==LIBRARY_NUMBER)&&(MENUNUMBER(mcode)<2)) {
+            // SPECIAL CUSTOM MENUS, RCL FROM THE SETTINGS DIRECTORY
+            WORDPTR msetting;
+            if(menu==1)  msetting=rplGetSettings((WORDPTR)menu1_ident);
+            else if(menu==2) msetting=rplGetSettings((WORDPTR)menu2_ident);
+            else msetting=0;
+
+            if(!msetting) msetting=(WORDPTR)empty_list; // IF MENU CONTENT CAN'T BE DETERMINED, RETURN AN EMPTY CUSTOM MENU
+
+            rplPushData(msetting);
+            return;
+        }
+
+        // NOTHING CUSTOM, JUST RETURN THE MENU CODE
+
+        rplNewBINTPush((BINT64)mcode,HEXBINT);
+        return;
+
+    }
+
+
+
     case MENUSWAP:
     {
         // JUST SWAP MENUS 1 AND 2
         WORD m1code=rplGetMenuCode(1);
         WORD m2code=rplGetMenuCode(2);
 
-        if(MENULIBRARY(m2code)==LIBRARY_NUMBER) m2code=MKMENUCODE(0,LIBRARY_NUMBER,MENUNUMBER(m2code)^1,MENUPAGE(m2code));  // ALTERNATE MENU'S 1 AND 2
-        if(MENULIBRARY(m1code)==LIBRARY_NUMBER) m1code=MKMENUCODE(0,LIBRARY_NUMBER,MENUNUMBER(m1code)^1,MENUPAGE(m1code));  // ALTERNATE MENU'S 1 AND 2
+        if((MENULIBRARY(m2code)==LIBRARY_NUMBER)&&(MENUNUMBER(m2code)<2)) m2code=MKMENUCODE(0,LIBRARY_NUMBER,MENUNUMBER(m2code)^1,MENUPAGE(m2code));  // ALTERNATE MENU'S 1 AND 2
+        if((MENULIBRARY(m1code)==LIBRARY_NUMBER)&&(MENUNUMBER(m1code)<2)) m1code=MKMENUCODE(0,LIBRARY_NUMBER,MENUNUMBER(m1code)^1,MENUPAGE(m1code));  // ALTERNATE MENU'S 1 AND 2
 
 
         rplSetMenuCode(1,m2code);
@@ -1342,7 +1444,8 @@ void LIB_HANDLER()
         break;
 
     default:
-        menuobj=0;
+        if((MENUNUMBER(MenuCodeArg)<=10)&&(MENUNUMBER(MenuCodeArg)>1)) menuobj=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)-1];
+        else menuobj=0;
     }
     if(!menuobj) ObjectPTR=(WORDPTR)empty_list;
     else ObjectPTR=menuobj;
@@ -1360,6 +1463,18 @@ void LIB_HANDLER()
     RetNum=OK_CONTINUE;
     return;
     }
+
+    case OPCODE_LIBHELP:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN CmdHelp
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
+       return;
+    }
+
+
+
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;
         RetNum=OK_CONTINUE;

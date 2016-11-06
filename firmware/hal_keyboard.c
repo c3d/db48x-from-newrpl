@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014-2015, Claudio Lapilli and the newRPL Team
  * All rights reserved.
  * This file is released under the 3-clause BSD license.
@@ -3213,7 +3213,9 @@ DECLARE_TRANSPCMDKEYHANDLER(menuswap,CMD_MENUSWAP)
 
 
 DECLARE_MENUKEYHANDLER(unitmenu,MKMENUCODE(0,DOUNIT,0,0))
-DECLARE_MENUKEYHANDLER(prgmenu,MKMENUCODE(0,SECO,0,0))
+DECLARE_MENUKEYHANDLER(prgmenu,MKMENUCODE(0,68,3,0))
+DECLARE_MENUKEYHANDLER(varsmenu,MKMENUCODE(1,0,0,0))
+DECLARE_MENUKEYHANDLER(mainmenu,MKMENUCODE(0,68,2,0))
 
 
 // **************************************************************************
@@ -3736,8 +3738,8 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     // MENUS
     { KM_PRESS|KB_6|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(unitmenu) },
     { KM_PRESS|KB_N|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(prgmenu) },
-
-
+    { KM_PRESS|KB_N|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(varsmenu) },
+    { KM_PRESS|KB_P,CONTEXT_ANY, KEYHANDLER_NAME(mainmenu) },
 
     { 0 , 0 , 0 }
 };

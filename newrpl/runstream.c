@@ -429,7 +429,7 @@ void rplInit(void)
     SystemFlags[6]=0;                   // FLAGS 96-127 ARE IN SystemFlags[6]
 
     SystemFlags[7]=MKPROLOG(HEXBINT,2);
-    SystemFlags[8]=0;                   // MenuCode1 IS IN SystemFlags[8]
+    SystemFlags[8]=MKMENUCODE(0,68,2,0);  // MenuCode1 IS IN SystemFlags[8] AND INITIALIZED TO THE MAIN MENU
     SystemFlags[9]=MKMENUCODE(1,0,0,0); // MenuCode2 IS IN SystemFlags[9] AND INITIALIZED TO VARS
 
                                         // FUTURE EXPANSION: ADD MORE FLAGS HERE
@@ -534,7 +534,7 @@ void rplWarmInit(void)
         SystemFlags[6]=0;                   // FLAGS 96-127 ARE IN SystemFlags[6]
 
         SystemFlags[7]=MKPROLOG(HEXBINT,2);
-        SystemFlags[8]=0;                   // MenuCode1 IS IN SystemFlags[8]
+        SystemFlags[8]=MKMENUCODE(0,68,2,0);  // MenuCode1 IS IN SystemFlags[8] AND INITIALIZED TO THE MAIN MENU
         SystemFlags[9]=MKMENUCODE(1,0,0,0); // MenuCode2 IS IN SystemFlags[9], INITIALIZED TO VARS
                                             // FUTURE EXPANSION: ADD MORE FLAGS HERE
         SystemFlags[10]=CMD_ENDLIST;         // CLOSE THE LIST
@@ -626,7 +626,7 @@ void rplHotInit()
         SystemFlags[6]=0;                   // FLAGS 96-127 ARE IN SystemFlags[6]
 
         SystemFlags[7]=MKPROLOG(HEXBINT,2);
-        SystemFlags[8]=0;                   // MenuCode1 IS IN SystemFlags[8]
+        SystemFlags[8]=MKMENUCODE(0,68,2,0);  // MenuCode1 IS IN SystemFlags[8] AND INITIALIZED TO THE MAIN MENU
         SystemFlags[9]=MKMENUCODE(1,0,0,0); // MenuCode2 IS IN SystemFlags[9], INITIALIZED TO VARS
                                             // FUTURE EXPANSION: ADD MORE FLAGS HERE
         SystemFlags[10]=CMD_ENDLIST;         // CLOSE THE LIST
