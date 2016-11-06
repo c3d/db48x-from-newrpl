@@ -2135,7 +2135,7 @@ void LIB_HANDLER()
                 }
             } else {
                 BINT saveprec=Context.precdigits;
-                BINT argdigits=saveprec+(2*cols2+7)&~7;
+                BINT argdigits=(saveprec+2*cols2+7)&~7;
                 if(argdigits>MAX_USERPRECISION) {
                     argdigits=MAX_USERPRECISION;
                 }
