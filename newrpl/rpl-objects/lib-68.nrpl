@@ -14,18 +14,30 @@
 @ P = Program
 @ A = Algebraic object (symbolic)
 
+
+@#name lib68_msgtable
+{
+##1,ERR_SYSTEMFLAGSINVALID "System flags corrupted"
+##1,ERR_INVALIDFLAGNUMBER "Invalid flag number"
+##1,ERR_INVALIDFLAGNAME "Invalid flag name"
+##1,ERR_IDENTORINTEGEREXPECTED "Ident or integer expected"
+##1,ERR_INVALIDLOCALESTRING "Invalid locale string"
+##1,ERR_INVALIDMENUDEFINITION "Invalid menu definition"
+##1,ERR_EMPTYCLIPBOARD "Empty clipboard"
+}
+
+
 @ Library 68 has reserved special menu 0 for Custom Menu 1
 @ Library 68 has reserved special menu 1 for Custom Menu 2
 
 @#name sysmenu_2_main
 {
-  { { "Vars" 1 } { ::   #00040000h TMENULST ; ::   #00040000h TMENUOTHR ; } }
-  { { "Prog" 1 } ::   #04403000h TMENULST ; }
   { { "Math" 1 } ::   #04404000h TMENULST ; }
   { { "Symb" 1 } ::   #04405000h TMENULST ; }
   { { "Units" 1 } ::  #03600000h TMENULST ; }
-  { { "Time" 1 } ::   #04100000h TMENULST ; }
+  { { "Prog" 1 } ::   #04403000h TMENULST ; }
   { { "System" 1 } :: #04406000h TMENULST ; }
+  { { "Vars" 1 } { ::   #00040000h TMENULST ; ::   #00040000h TMENUOTHR ; } }
 }
 
 @#name sysmenu_3_prog
@@ -62,8 +74,9 @@
 
 @#name sysmenu_6_system
 {
-{ { "SD" 1 } ::   #04A00000h TMENULST ; }
 { { "Settings" 1 } ::   #0440A000h TMENULST ; }
+{ { "Time" 1 } ::   #04100000h TMENULST ; }
+{ { "SDCard" 1 } ::   #04A00000h TMENULST ; }
 { { "Menu" 1 } ::   #04408000h TMENULST ; }
 { { "Clip" 1 } ::   #04409000h TMENULST ; }
 { { "Mem" 1 } ::   #04101000h TMENULST ; }
@@ -137,6 +150,23 @@ when set"
   ::  ##1,MAKESINT(FL_ACTIVEMENU) IF DUP FS? THEN CF ELSE SF END ; @ ACTION: NO SHIFTS
   "Changes currently active
 menu (1 or 2)"
+}
+
+@ "DATE FORMAT" FLAG TOGGLE
+{
+  :: ##1,MAKESINT(FL_DATEFORMAT) IF FS? THEN "D.MY" ELSE "M.DY" END ;
+  ::  ##1,MAKESINT(FL_DATEFORMAT) IF DUP FS? THEN CF ELSE SF END ; @ ACTION: NO SHIFTS
+  "Date format:
+DD.MMYYYY or MM.DDYYYY
+   (set)        (clear)"
+}
+
+@ "TIME FORMAT" FLAG TOGGLE
+{
+  :: ##1,MAKESINT(FL_TIMEFORMAT) IF FS? THEN "24HRS" ELSE "12HRS" END ;
+  ::  ##1,MAKESINT(FL_TIMEFORMAT) IF DUP FS? THEN CF ELSE SF END ; @ ACTION: NO SHIFTS
+  "Time format:
+24-hours or 12-hours"
 }
 
 }

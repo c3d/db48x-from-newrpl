@@ -1,0 +1,150 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib62_msgtable
+{
+##1,ERR_LISTEXPECTED "Expected a list"
+##1,ERR_INDEXOUTOFBOUNDS "Index out of bounds"
+##1,ERR_EMPTYLIST "Empty list"
+##1,ERR_INVALIDLISTSIZE "Invalid list size"
+}
+
+
+@#name lib62_menu
+{
+→LIST
+LIST→
+DOLIST
+DOSUBS
+MAP
+MAPLIST→
+STREAM
+ΔLIST
+ΣLIST
+ΠLIST
+PUT
+PUTI
+GET
+GETI
+HEAD
+TAIL
+ADD
+SORT
+REVLIST
+}
+
+
+
+
+
+
+
+@#name lib62_cmdhelp
+{
+
+→LIST
+"Create a list from N
+elements in the stack
+O1 ... ON N → L"
+
+LIST→
+"Explode a list into
+its components
+L → O1 ... ON N "
+
+DOLIST
+"Run a program taking N args,
+1 element from each list
+L1 .. LN N P → L "
+DOSUBS
+"Run a program taking N args,
+N consecutive elements from list
+L N P → L "
+MAP
+"Run a program taking 1 arg,
+recursing through all elements
+L P → L "
+
+MAPLIST→
+"Like MAP but doesn't
+pack resulting list
+L P → O1 ... ON "
+
+STREAM
+"Run a program taking 2 args,
+cumulative through all elements
+L P → L "
+
+ΔLIST
+"Difference between consec.
+elements in list
+L → L "
+ΣLIST
+"Total sum of all
+elements in list
+L → O "
+
+ΠLIST
+"Total product of all
+elements in list
+L → O "
+
+PUT
+"Replace element at
+given position
+L <I or L> O → L "
+
+PUTI
+"Replace element at pos,
+increment index
+L <I or L> O → L <I or L>"
+
+GET
+"Obtain element at
+given position
+L <I or L> → O "
+
+GETI
+"Obtain element at pos,
+increment index
+L <I or L> → L <I or L> O "
+
+HEAD
+"Return first element
+
+L → O "
+
+TAIL
+"Remove first element
+
+L → L "
+
+ADD
+"Append new element
+to list
+<L or O> <O or L> → L "
+
+SORT
+"Sort a list in ascending
+order
+L → L "
+REVLIST
+"Reverse the order
+
+L → L "
+
+}
