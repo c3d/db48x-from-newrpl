@@ -449,7 +449,7 @@ else rplCleanup();
 if(rplDepthData()>nresults) {
     BINT f;
     BINT depth=rplDepthData(),offset=depth-nresults;
-    for(f=depth;f>depth-nresults;++f) {
+    for(f=depth;f>depth-nresults;--f) {
         rplOverwriteData(f,rplPeekData(f-offset));
     }
     rplDropData(offset);

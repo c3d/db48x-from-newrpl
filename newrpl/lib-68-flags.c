@@ -80,6 +80,7 @@ INCLUDE_ROMOBJECT(sysmenu_7_flags);
 INCLUDE_ROMOBJECT(sysmenu_8_menu);
 INCLUDE_ROMOBJECT(sysmenu_9_clipboard);
 INCLUDE_ROMOBJECT(sysmenu_10_settings);
+INCLUDE_ROMOBJECT(sysmenu_11_namedflags);
 
 
 
@@ -142,6 +143,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)sysmenu_8_menu,
     (WORDPTR)sysmenu_9_clipboard,
     (WORDPTR)sysmenu_10_settings,
+    (WORDPTR)sysmenu_11_namedflags,
 
     (WORDPTR)dotsettings_ident,
     (WORDPTR)flags_ident,
@@ -1444,7 +1446,7 @@ void LIB_HANDLER()
         break;
 
     default:
-        if((MENUNUMBER(MenuCodeArg)<=10)&&(MENUNUMBER(MenuCodeArg)>1)) menuobj=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)-1];
+        if((MENUNUMBER(MenuCodeArg)<=11)&&(MENUNUMBER(MenuCodeArg)>1)) menuobj=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)-1];
         else menuobj=0;
     }
     if(!menuobj) ObjectPTR=(WORDPTR)empty_list;
