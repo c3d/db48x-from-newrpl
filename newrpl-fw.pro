@@ -268,8 +268,7 @@ LIBS += -lgcc
 FORMS    +=
 
 DISTFILES += \
-    firmware/ld.script \
-    newrpl/rpl-objects/lib-65.nrpl
+    firmware/ld.script
 
 RESOURCES +=
 

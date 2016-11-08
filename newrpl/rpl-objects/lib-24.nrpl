@@ -17,7 +17,9 @@
 
 @#name lib24_menu
 {
-   →STR STR→ →UTF8 UTF8→
+   →STR STR→ →UTF8 UTF8→ SREV
+   NTOKENS NTHTOKEN NTHTOKENPOS TRIM RTRIM
+   STRLEN STRLENCP
 }
 
 @#name lib24_msgtable
@@ -45,4 +47,45 @@ STR→
 "Convert any string to objects
 (compile)
 S → O"
+SREV
+"Reverse the order of the
+characters in string
+S → S "
+NTOKENS
+"Count number of tokens
+
+S<text> S<sep> → I "
+
+NTHTOKEN
+"Extract the nth token
+in a string (1 = first)
+S<text> S<sep> → S "
+
+NTHTOKENPOS
+"Position of the nth token
+in a string (1 = first)
+S<text> S<sep> → I "
+
+TRIM
+"Remove separators at
+end of string
+S<text> S<sep> → S "
+
+RTRIM
+"Remove separators at
+start of string
+S<text> S<sep> → S "
+
+STRLEN
+"Length of string in
+characters
+S → I "
+
+STRLENCP
+"Number of Unicode
+Code Points in string
+S → I "
+
+
+
 }

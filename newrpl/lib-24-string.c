@@ -37,7 +37,9 @@
     CMD(NTHTOKEN,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(NTHTOKENPOS,MKTOKENINFO(11,TITYPE_NOTALLOWED,1,2)), \
     CMD(TRIM,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RTRIM,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+    CMD(RTRIM,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(SSTRLEN,"STRLEN",MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STRLENCP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
 
 
 // ADD MORE OPCODES HERE
@@ -99,7 +101,7 @@ const WORDPTR const ROMPTR_TABLE[]={
 
 
 
-// COMPUTE THE STRING LENGTH IN CHARACTERS
+// COMPUTE THE STRING LENGTH IN CODE POINTS
 BINT rplStrLen(WORDPTR string)
 {
     if(ISSTRING(*string))  {
@@ -644,8 +646,147 @@ void LIB_HANDLER()
     }
 
      case TRIM:
+    {
+        // ELIMINATE ANY SEPARATORS AT THE END OF STRING
+
+        // STRING STRINGSEP -> STRING
+
+           if(rplDepthData()<2) {
+               rplError(ERR_BADARGCOUNT);
+               return;
+           }
+           if(!ISSTRING(*rplPeekData(2)) || !ISSTRING(*rplPeekData(1))) {
+               rplError(ERR_STRINGEXPECTED);
+               return;
+           }
+
+           BYTEPTR strstart,strend;
+           BYTEPTR sepstart,sepend;
+
+           strstart=(BYTEPTR) (rplPeekData(2)+1);
+           strend=strstart+STRLEN(*rplPeekData(2));
+
+           sepstart=(BYTEPTR) (rplPeekData(1)+1);
+           sepend=sepstart+STRLEN(*rplPeekData(1));
+
+           BYTEPTR lastsep=0,nextsep;
+
+           while((strstart!=strend)) {
+               lastsep=strstart;
+               strstart=rplSkipSep(strstart,strend,sepstart,sepend);
+               if(strstart==strend) break;  // STRING ENDS IN BLANKS
+               nextsep=rplNextSep(strstart,strend,sepstart,sepend);
+               if(nextsep==strend) { lastsep=strend; break; } // STRING DOESN'T END IN BLANKS
+               strstart=nextsep;
+               }
+
+           if( !lastsep ||(lastsep==strend)) {
+               rplDropData(1);
+               return;    // NOTHING TO TRIM
+           }
+
+           BYTEPTR ptr=(BYTEPTR) (rplPeekData(2)+1);
+
+           WORDPTR newstr=rplCreateString(ptr,lastsep);
+           if(!newstr) return;
+
+           rplDropData(1);
+           rplOverwriteData(1,newstr);
+           return;
+
+    }
+
      case RTRIM:
+    {
+        // ELIMINATE ANY SEPARATORS AT THE START OF STRING
+
+        // STRING STRINGSEP -> STRING
+
+           if(rplDepthData()<2) {
+               rplError(ERR_BADARGCOUNT);
+               return;
+           }
+           if(!ISSTRING(*rplPeekData(2)) || !ISSTRING(*rplPeekData(1))) {
+               rplError(ERR_STRINGEXPECTED);
+               return;
+           }
+
+           BYTEPTR strstart,strend;
+           BYTEPTR sepstart,sepend;
+
+           strstart=(BYTEPTR) (rplPeekData(2)+1);
+           strend=strstart+STRLEN(*rplPeekData(2));
+
+           sepstart=(BYTEPTR) (rplPeekData(1)+1);
+           sepend=sepstart+STRLEN(*rplPeekData(1));
+
+           BYTEPTR firsttok;
+
+               firsttok=rplSkipSep(strstart,strend,sepstart,sepend);
+
+           if(firsttok==strstart) {
+               rplDropData(1);
+               return;    // NOTHING TO TRIM
+           }
+
+           WORDPTR newstr=rplCreateString(firsttok,strend);
+           if(!newstr) return;
+
+           rplDropData(1);
+           rplOverwriteData(1,newstr);
+           return;
+
+    }
+    case SSTRLEN:
+    {
+        // COMPUTE STRING LENGTH IN CHARACTERS
+
+           if(rplDepthData()<1) {
+               rplError(ERR_BADARGCOUNT);
+               return;
+           }
+           if(!ISSTRING(*rplPeekData(1))) {
+               rplError(ERR_STRINGEXPECTED);
+               return;
+           }
+
+           BYTEPTR strstart,strend;
+
+           strstart=(BYTEPTR) (rplPeekData(1)+1);
+           strend=strstart+STRLEN(*rplPeekData(1));
+
+           BINT count=0;
+
+           while(strstart!=strend) {
+               ++count;
+               strstart=(BYTEPTR)utf8skipst((char *)strstart,(char *)strend);
+           }
+
+           rplDropData(1);
+           rplNewBINTPush(count,DECBINT);
+
         return;
+    }
+    case STRLENCP:
+    {
+        // COMPUTE STRING LENGTH IN CODE POINTS
+
+           if(rplDepthData()<1) {
+               rplError(ERR_BADARGCOUNT);
+               return;
+           }
+           if(!ISSTRING(*rplPeekData(1))) {
+               rplError(ERR_STRINGEXPECTED);
+               return;
+           }
+
+           WORDPTR string=rplPeekData(1);
+           rplDropData(1);
+           rplNewBINTPush(rplStrLen(string),DECBINT);
+
+        return;
+
+    }
 
     // ADD MORE OPCODES HERE
 
