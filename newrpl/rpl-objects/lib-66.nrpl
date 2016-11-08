@@ -1,0 +1,131 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib66_msgtable
+{
+##1,ERR_ARGOUTSIDEDOMAIN "Argument outside domain"
+}
+
+
+@#name lib66_main
+{
+  { { "Trig" 1 } ::   #04201000h TMENULST ; }
+  { { "Hyp" 1 } ::   #04202000h TMENULST ; }
+  { { "Log" 1 } ::  #04203000h TMENULST ; }
+}
+
+@#name lib66_trig
+{
+SIN COS TAN { "" :: ; } { { "Angles" 1 } ::  #03000000h TMENULST ; }
+ASIN ACOS ATAN ATAN2
+}
+
+@#name lib66_hyp
+{
+SINH COSH TANH ASINH ACOSH ATANH
+}
+
+@#name lib66_log
+{
+LN EXP LOG ALOG
+}
+
+
+
+
+
+@#name lib66_cmdhelp
+{
+SIN
+"Sine function
+
+<A or R or Z> → <R or Z>"
+
+COS
+"Cosine function
+
+<A or R or Z> → <R or Z>"
+TAN
+"Tangent function
+
+<A or R or Z> → <R or Z>"
+ASIN
+"Arc Sine function
+
+<R or Z> → A"
+ACOS
+"Arc Cosine function
+
+<R or Z> → A"
+ATAN
+"Arc Tangent function
+
+<R or Z> → A"
+ATAN2
+"Arc Tangent based on
+ATAN(Y/X)
+Y<R or Z> X<R or Z> → A"
+
+SINH
+"Hyperbolic Sine function
+
+<A or R or Z> → <R or Z>"
+COSH
+"Hyperbolic Cosine function
+
+<A or R or Z> → <R or Z>"
+TANH
+"Hyperbolic Tangent function
+
+<A or R or Z> → <R or Z>"
+
+ASINH
+"Hyperbolic Arc Sine
+function
+<R or Z> → <R or Z>"
+
+ACOSH
+"Hyperbolic Arc Cosine
+function
+<R or Z> → <R or Z>"
+
+ATANH
+"Hyperbolic Arc Tangent
+function
+<R or Z> → <R or Z>"
+
+LN
+"Natural logarithm
+function
+<R or Z> → <R or Z>"
+
+EXP
+"Inverse Natural log
+function
+<R or Z> → <R or Z>"
+
+LOG
+"Base 10 logarithm
+function
+<R or Z> → <R or Z>"
+
+ALOG
+"Inverse base 10 log
+function
+<R or Z> → <R or Z>"
+
+}
