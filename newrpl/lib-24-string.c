@@ -191,13 +191,17 @@ BINT rplStringCountLines(WORDPTR str)
 
 // CREATE A NEW STRING OBEJCT AND RETURN ITS ADDRESS
 // RETURNS NULL IF ANY ERRORS
+// USES SCRATCHPOINTER1 IN CASE text IS IN TEMPOB
 WORDPTR rplCreateString(BYTEPTR text,BYTEPTR textend)
 {
     BINT lenbytes=textend-text;
     BINT len=(lenbytes+3)>>2;
     if(lenbytes<0) return 0;
+    ScratchPointer1=(WORDPTR) text;
     WORDPTR newstring=rplAllocTempOb(len);
     if(newstring) {
+        text=(BYTEPTR)ScratchPointer1;
+        textend=text+lenbytes;
         BYTEPTR ptr=(BYTEPTR) (newstring+1);
         while(text!=textend) *ptr++=*text++;
         while(((PTR2NUMBER)ptr)&3) *ptr++=0;
@@ -218,15 +222,16 @@ BYTEPTR rplSkipSep(BYTEPTR start,BYTEPTR end,BYTEPTR sepstart,BYTEPTR sepend)
     while(start!=end) {
         sepptr=sepstart;
         while(sepptr!=sepend) {
-            sepnext=utf8skipst(sepptr,sepend);
+            sepnext=(BYTEPTR)utf8skipst((char *)sepptr,(char *)sepend);
             ptr=start;
             while(sepptr!=sepnext) {
                 if(*ptr!=*sepptr) break;
                 ++ptr;
                 ++sepptr;
             }
-            if(sepptr==sepnext) break; // THERE WAS A MATCH!
+            if(sepptr==sepnext) { sepptr=sepstart; break; } // THERE WAS A MATCH!
             // NO MATCH, KEEP GOING
+            sepptr=sepnext;
             }
             if(sepptr==sepend) return start; // THERE WAS NO MATCH
 
@@ -239,11 +244,55 @@ BYTEPTR rplSkipSep(BYTEPTR start,BYTEPTR end,BYTEPTR sepstart,BYTEPTR sepend)
     return start;
 }
 
+// SKIP ANY NON-SEPARATOR CHARACTERS AT start. ANY CHARACTER IN sepstart/end
+// IS CONSIDERED A SEPARATOR AND WILL STOP THE SEARCH
+BYTEPTR rplNextSep(BYTEPTR start,BYTEPTR end,BYTEPTR sepstart,BYTEPTR sepend)
+{
+    BYTEPTR sepptr,sepnext,ptr;
+
+    while(start!=end) {
+        sepptr=sepstart;
+        while(sepptr!=sepend) {
+            sepnext=(BYTEPTR)utf8skipst((char *)sepptr,(char *)sepend);
+            ptr=start;
+            while(sepptr!=sepnext) {
+                if(*ptr!=*sepptr) break;
+                ++ptr;
+                ++sepptr;
+            }
+            if(sepptr==sepnext) return start; // THERE WAS A MATCH!
+            // NO MATCH, KEEP GOING
+            sepptr=sepnext;
+            }
+            // THERE WAS NO MATCH
+
+            // KEEP GOING
+            start=(BYTEPTR)utf8skipst((char *)start,(char *)end);
+        }
+
+    // THERE WERE NO SEPARATORS UNTIL THE END
+
+    return start;
+}
 
 
 
 
+BINT rplCountTokens(BYTEPTR start,BYTEPTR end,BYTEPTR sepstart,BYTEPTR sepend)
+{
+    BINT count=0;
 
+    BYTEPTR token=rplSkipSep(start,end,sepstart,sepend);
+    BYTEPTR nextblank;
+
+    while(token!=end) {
+        nextblank=rplNextSep(token,end,sepstart,sepend);
+        ++count;
+        if(nextblank==end) break;
+        token=rplSkipSep(nextblank,end,sepstart,sepend);
+    }
+    return count;
+}
 
 
 
@@ -447,6 +496,156 @@ void LIB_HANDLER()
         return;
 
     }
+
+
+     case NTOKENS:
+    {
+     // STRING SEPSTRING -> n
+       if(rplDepthData()<2) {
+           rplError(ERR_BADARGCOUNT);
+           return;
+       }
+       if(!ISSTRING(*rplPeekData(1)) || !ISSTRING(*rplPeekData(2))) {
+           rplError(ERR_STRINGEXPECTED);
+           return;
+       }
+
+       BYTEPTR strstart,strend;
+       BYTEPTR sepstart,sepend;
+
+       strstart=(BYTEPTR) (rplPeekData(2)+1);
+       strend=strstart+STRLEN(*rplPeekData(2));
+
+       sepstart=(BYTEPTR) (rplPeekData(1)+1);
+       sepend=sepstart+STRLEN(*rplPeekData(1));
+
+       BINT count=rplCountTokens(strstart,strend,sepstart,sepend);
+
+       rplDropData(2);
+
+       rplNewBINTPush(count,DECBINT);
+
+       return;
+
+    }
+     case NTHTOKEN:
+    {
+     // EXTRACT THE NTH TOKEN IN THE STRING
+
+     // STRING STRINGSEP N -> STRING
+
+        if(rplDepthData()<3) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISSTRING(*rplPeekData(3)) || !ISSTRING(*rplPeekData(2))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+
+        BYTEPTR strstart,strend;
+        BYTEPTR sepstart,sepend;
+
+        strstart=(BYTEPTR) (rplPeekData(3)+1);
+        strend=strstart+STRLEN(*rplPeekData(3));
+
+        sepstart=(BYTEPTR) (rplPeekData(2)+1);
+        sepend=sepstart+STRLEN(*rplPeekData(2));
+
+        BINT n=rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions) return;
+
+        if(n<1) {
+            strstart=strend;    // RETURN EMPTY TOKEN
+        }
+        while((n>0)&&(strstart!=strend)) {
+            strstart=rplSkipSep(strstart,strend,sepstart,sepend);
+            --n;
+            if(n<=0) break;
+            strstart=rplNextSep(strstart,strend,sepstart,sepend);
+        }
+
+        rplDropData(3);
+        WORDPTR newstring=rplCreateString(strstart,rplNextSep(strstart,strend,sepstart,sepend));
+        if(!newstring) return;
+
+        rplPushData(newstring);
+
+        return;
+
+    }
+     case NTHTOKENPOS:
+    {
+     // EXTRACT THE NTH TOKEN IN THE STRING
+
+     // STRING STRINGSEP N -> POS
+
+        if(rplDepthData()<3) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISSTRING(*rplPeekData(3)) || !ISSTRING(*rplPeekData(2))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+
+        BYTEPTR strstart,strend;
+        BYTEPTR sepstart,sepend;
+
+        strstart=(BYTEPTR) (rplPeekData(3)+1);
+        strend=strstart+STRLEN(*rplPeekData(3));
+
+        sepstart=(BYTEPTR) (rplPeekData(2)+1);
+        sepend=sepstart+STRLEN(*rplPeekData(2));
+
+        BINT n=rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions) return;
+
+        if(n<1) {
+            strstart=strend;    // RETURN EMPTY TOKEN
+        }
+        while((n>0)&&(strstart!=strend)) {
+            strstart=rplSkipSep(strstart,strend,sepstart,sepend);
+            --n;
+            if(n<=0) break;
+            strstart=rplNextSep(strstart,strend,sepstart,sepend);
+        }
+
+        // WE HAVE THE TOKEN, COMPUTE THE POSITION
+        BINT pos;
+
+        if(strstart==strend) pos=-1;
+        else {
+
+        pos=1;
+        BYTEPTR ptr=(BYTEPTR) (rplPeekData(3)+1);
+        while(ptr!=strstart) {
+            ptr=(BYTEPTR)utf8skipst((char *)ptr,(char *)strend);
+            ++pos;
+        }
+
+
+        }
+
+        rplDropData(3);
+        rplNewBINTPush(pos,DECBINT);
+        return;
+
+    }
+
+     case TRIM:
+     case RTRIM:
+        return;
 
     // ADD MORE OPCODES HERE
 
