@@ -18,6 +18,14 @@
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  68
 
+#define ERROR_LIST \
+    ERR(SYSTEMFLAGSINVALID,0), \
+    ERR(INVALIDFLAGNUMBER,1), \
+    ERR(INVALIDFLAGNAME,2), \
+    ERR(IDENTORINTEGEREXPECTED,3), \
+    ERR(INVALIDLOCALESTRING,4), \
+    ERR(INVALIDMENUDEFINITION,5), \
+    ERR(EMPTYCLIPBOARD,6)
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -70,7 +78,9 @@
 
 
 
+INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
+
 INCLUDE_ROMOBJECT(sysmenu_2_main);
 INCLUDE_ROMOBJECT(sysmenu_3_prog);
 INCLUDE_ROMOBJECT(sysmenu_4_math);
@@ -80,6 +90,7 @@ INCLUDE_ROMOBJECT(sysmenu_7_flags);
 INCLUDE_ROMOBJECT(sysmenu_8_menu);
 INCLUDE_ROMOBJECT(sysmenu_9_clipboard);
 INCLUDE_ROMOBJECT(sysmenu_10_settings);
+INCLUDE_ROMOBJECT(sysmenu_11_namedflags);
 
 
 
@@ -131,6 +142,7 @@ ROMOBJECT clipbd_ident[] = {
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
+    (WORDPTR)LIB_MSGTABLE,
     (WORDPTR)LIB_HELPTABLE,
 
     (WORDPTR)sysmenu_2_main,
@@ -142,6 +154,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)sysmenu_8_menu,
     (WORDPTR)sysmenu_9_clipboard,
     (WORDPTR)sysmenu_10_settings,
+    (WORDPTR)sysmenu_11_namedflags,
 
     (WORDPTR)dotsettings_ident,
     (WORDPTR)flags_ident,
@@ -1444,7 +1457,7 @@ void LIB_HANDLER()
         break;
 
     default:
-        if((MENUNUMBER(MenuCodeArg)<=10)&&(MENUNUMBER(MenuCodeArg)>1)) menuobj=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)-1];
+        if((MENUNUMBER(MenuCodeArg)<=11)&&(MENUNUMBER(MenuCodeArg)>1)) menuobj=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)];
         else menuobj=0;
     }
     if(!menuobj) ObjectPTR=(WORDPTR)empty_list;

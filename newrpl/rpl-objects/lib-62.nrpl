@@ -15,86 +15,36 @@
 @ A = Algebraic object (symbolic)
 
 
-@#name lib62_menu
-{
-  →LIST LIST→ DOLIST DOSUBS MAP
-  MAPLIST→ STREAM ΔLIST ΣLIST ΠLIST
-  PUT PUTI GET GETI HEAD TAIL ADD SORT REVLIST
-}
-
 @#name lib62_msgtable
 {
-##1,ERR_LISTEXPECTED  "Expected a list"
+##1,ERR_LISTEXPECTED "Expected a list"
 ##1,ERR_INDEXOUTOFBOUNDS "Index out of bounds"
-##1,ERR_EMPTYLIST "List is empty"
+##1,ERR_EMPTYLIST "Empty list"
 ##1,ERR_INVALIDLISTSIZE "Invalid list size"
 }
 
 
-@#name lib62_cmdhelp
+@#name lib62_menu
 {
 →LIST
-"Pack objects into a list
-
-On ... O1 I → L"
-
 LIST→
-"Explode a list on the stack
-
-L → On ... O1 I"
-
 DOLIST
-"Run a program on list elements
-Takes one element from each list.
-L1 ... Ln I P → L"
-
 DOSUBS
-"Run a program on list elements
-Takes I elements each step.
-L I P → L"
-
 MAP
-"Run a program on list elements
-Recursively runs on list of lists.
-L P → L"
-
 MAPLIST→
-"Run a program on list elements
-Equivalent to MAP LIST→
-L P → O1 ... On"
-
-STREAM ΔLIST ΣLIST ΠLIST
-PUT PUTI GET GETI HEAD TAIL ADD SORT REVLIST
-RE
-"Real part of a complex number
-
-Z → R"
-
-IM
-"Imaginary part of a complex number
-
-Z → R"
-
-ARG
-"Argument of a complex number
-
-Z → R"
-
-CONJ
-"Complex conjugate
-
-Z → Z"
-
-C→R
-"Split complex number into real and
-imaginary parts
-Z → R R"
-
-R→C
-"Assemble a complex from real and
-imaginary parts
-R R → Z"
-
+STREAM
+ΔLIST
+ΣLIST
+ΠLIST
+PUT
+PUTI
+GET
+GETI
+HEAD
+TAIL
+ADD
+SORT
+REVLIST
 }
 
 
@@ -103,3 +53,98 @@ R R → Z"
 
 
 
+@#name lib62_cmdhelp
+{
+
+→LIST
+"Create a list from N
+elements in the stack
+O1 ... ON N → L"
+
+LIST→
+"Explode a list into
+its components
+L → O1 ... ON N "
+
+DOLIST
+"Run a program taking N args,
+1 element from each list
+L1 .. LN N P → L "
+DOSUBS
+"Run a program taking N args,
+N consecutive elements from list
+L N P → L "
+MAP
+"Run a program taking 1 arg,
+recursing through all elements
+L P → L "
+
+MAPLIST→
+"Like MAP but doesn't
+pack resulting list
+L P → O1 ... ON "
+
+STREAM
+"Run a program taking 2 args,
+cumulative through all elements
+L P → L "
+
+ΔLIST
+"Difference between consec.
+elements in list
+L → L "
+ΣLIST
+"Total sum of all
+elements in list
+L → O "
+
+ΠLIST
+"Total product of all
+elements in list
+L → O "
+
+PUT
+"Replace element at
+given position
+L <I or L> O → L "
+
+PUTI
+"Replace element at pos,
+increment index
+L <I or L> O → L <I or L>"
+
+GET
+"Obtain element at
+given position
+L <I or L> → O "
+
+GETI
+"Obtain element at pos,
+increment index
+L <I or L> → L <I or L> O "
+
+HEAD
+"Return first element
+
+L → O "
+
+TAIL
+"Remove first element
+
+L → L "
+
+ADD
+"Append new element
+to list
+<L or O> <O or L> → L "
+
+SORT
+"Sort a list in ascending
+order
+L → L "
+REVLIST
+"Reverse the order
+
+L → L "
+
+}

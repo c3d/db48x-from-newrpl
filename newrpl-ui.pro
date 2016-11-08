@@ -243,6 +243,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-30.nrpl \
                 newrpl/rpl-objects/lib-32.nrpl \
                 newrpl/rpl-objects/lib-48.nrpl \
+                newrpl/rpl-objects/lib-62.nrpl \
                 newrpl/rpl-objects/lib-64.nrpl \
                 newrpl/rpl-objects/lib-65.nrpl \
                 newrpl/rpl-objects/lib-68.nrpl \
@@ -269,6 +270,7 @@ rpl_compiler.input = RPL_OBJECTS
 rpl_compiler.variable_out = SOURCES
 
 QMAKE_EXTRA_COMPILERS += rpl_compiler
+
 
 
 
