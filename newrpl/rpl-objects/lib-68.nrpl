@@ -46,7 +46,7 @@
 { { "Stack" 1 } ::   #04800000h TMENULST ; }
 { { "Global" 1 } ::  #01c00000h TMENULST ; }
 { { "Local" 1 } ::  #02000000h TMENULST ; }
-{ { "Text" 1 } ::   #02400000h TMENULST ; }
+{ { "Text" 1 } ::   #01800000h TMENULST ; }
 { { "Real" 1 } ::  #04000000h TMENULST ; }
 { { "Base" 1 } ::   #04605000h TMENULST ; }
 { { "Cplx" 1 } ::   #01e00000h TMENULST ; }

@@ -32,7 +32,13 @@
     CMD(BKPOINT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(XEQSECO,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     ECMD(SEMI,";",MKTOKENINFO(1,TITYPE_NOTALLOWED,1,2)), \
-    CMD(EVAL1NEXT,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2))
+    CMD(EVAL1NEXT,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DOERR,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ERRN,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ERRM,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ERR0,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+
+
 
 // ADD MORE OPCODES HERE
 
@@ -51,6 +57,17 @@
 // *** END OF COMMON LIBRARY HEADER ***
 // ************************************
 
+ROMOBJECT errormsg_ident[]={
+    MKPROLOG(DOIDENT,2),
+    TEXT2WORD('E','r','r','o'),
+    TEXT2WORD('r','M','s','g')
+};
+
+// EXTERNAL EXPORTED OBJECT TABLE
+// UP TO 64 OBJECTS ALLOWED, NO MORE
+const WORDPTR const ROMPTR_TABLE[]={
+    (WORDPTR)errormsg_ident
+};
 
 void LIB_HANDLER()
 {
@@ -101,6 +118,149 @@ void LIB_HANDLER()
         }
         // SINCE IPtr POINTS TO THE NEXT OBJECT, IT WILL BE SKIPPED
         return;
+
+    case DOERR:
+        // THROW AN ERROR BY EITHER A STRING OR ERROR CODE
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(ISNUMBER(*rplPeekData(1))) {
+            BINT64 errorcode=rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions) return;
+            if((errorcode<0)||(errorcode>=0x7ffff)) {
+                rplError(ERR_BADERRORCODE);
+                return;
+            }
+
+            // DO MORE CHECKS ON THE ERROR CODE
+
+            // TRY TO GET A MESSAGE FROM A LIBRARY
+            LIBHANDLER han=rplGetLibHandler(LIBFROMMSG(errorcode));
+            if(!han) {
+                rplError(ERR_BADERRORCODE);
+                return;
+            }
+            WORD SavedOpcode=CurOpcode;
+            BINT SavedException=Exceptions;
+            BINT SavedErrorCode=ErrorCode;
+
+            Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE LIBRARY TO RUN
+            CurOpcode=MKOPCODE(LIBFROMMSG(errorcode),OPCODE_LIBMSG);
+            LibError=MAKESINT(errorcode);
+            RetNum=-1;
+            (*han)();
+
+            Exceptions=SavedException;
+            ErrorCode=SavedErrorCode;
+            CurOpcode=SavedOpcode;
+
+            if(RetNum!=OK_CONTINUE) {
+                rplError(ERR_BADERRORCODE);
+                return;
+            }
+
+            rplDropData(1);
+            rplError(MAKESINT(errorcode));
+            rplBlameUserCommand();
+            return;
+        }
+
+        if(ISSTRING(*rplPeekData(1)))
+        {
+          rplStoreSettings((WORDPTR)errormsg_ident,rplPeekData(1));
+          if(!Exceptions)
+          {
+              rplDropData(1);
+              rplError(MAKEMSG(LIBRARY_NUMBER,0));
+              rplBlameUserCommand();
+          }
+          return;
+        }
+
+        rplError(ERR_BADERRORCODE);
+        return;
+
+
+
+    }
+
+    case ERRN:
+    {
+        // GET THE PREVIOUS ERROR CODE
+        BINT msgcode;
+        if(TrappedExceptions==EX_ERRORCODE) msgcode=TrappedErrorCode;
+        else {
+            msgcode=0;
+            if(TrappedExceptions) {
+            int errbit;
+            for(errbit=0;errbit<8;++errbit) if(TrappedExceptions&(1<<errbit)) { msgcode=MAKEMSG(0,TrappedExceptions); break; }
+            if(!msgcode) msgcode=ERR_UNKNOWNEXCEPTION;
+            }
+        }
+
+        rplNewSINTPush(msgcode,HEXBINT);
+        return;
+
+    }
+
+    case ERRM:
+    {
+        // GET THE PREVIOUS ERROR CODE
+        BINT msgcode;
+        WORDPTR string=0;
+        if(TrappedExceptions==EX_ERRORCODE) msgcode=TrappedErrorCode;
+        else {
+            int errbit;
+            msgcode=0;
+            for(errbit=0;errbit<8;++errbit) if(Exceptions&(1<<errbit)) { msgcode=MAKEMSG(0,TrappedExceptions); break; }
+            if(!msgcode) msgcode=ERR_UNKNOWNEXCEPTION;
+        }
+
+
+        // TRY TO GET A MESSAGE FROM A LIBRARY
+        LIBHANDLER han=rplGetLibHandler(LIBFROMMSG(msgcode));
+        if(!han) {
+            string=(WORDPTR)empty_string;
+        }
+        else {
+        WORD SavedOpcode=CurOpcode;
+        BINT SavedException=Exceptions;
+        BINT SavedErrorCode=ErrorCode;
+
+        Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE LIBRARY TO RUN
+        CurOpcode=MKOPCODE(LIBFROMMSG(msgcode),OPCODE_LIBMSG);
+        LibError=msgcode;
+        RetNum=-1;
+        (*han)();
+
+        Exceptions=SavedException;
+        ErrorCode=SavedErrorCode;
+        CurOpcode=SavedOpcode;
+
+        if(RetNum!=OK_CONTINUE) string=(WORDPTR)empty_string;
+        else string=ObjectPTR;
+        }
+
+        rplPushData(string);
+
+        return;
+
+    }
+
+    case ERR0:
+    {
+        // CLEAR ALL ERROR CODES
+        TrappedExceptions=0;
+        TrappedErrorCode=0;
+        ErrorCode=0;
+        Exceptions=0;
+        return;
+    }
+
+
 
     // ADD MORE OPCODES HERE
     case OVR_EVAL:
@@ -251,7 +411,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        RetNum=ERR_NOTMINE;
+        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -259,7 +419,7 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        RetNum=ERR_NOTMINE;
+        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID);
         return;
 
     case OPCODE_CHECKOBJ:
@@ -291,6 +451,19 @@ void LIB_HANDLER()
     case OPCODE_AUTOCOMPNEXT:
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         return;
+
+    case OPCODE_LIBMSG:
+      // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
+      // MUST RETURN A STRING OBJECT IN ObjectPTR
+      // AND RetNum=OK_CONTINUE;
+      {
+        // RETURN A CUSTOM MESSAGE STORED IN SETTINGS
+        WORDPTR string=rplGetSettings((WORDPTR)errormsg_ident);
+        if(!string) string=(WORDPTR)empty_string;
+        ObjectPTR=string;
+        RetNum=OK_CONTINUE;
+        return;
+      }
 
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;

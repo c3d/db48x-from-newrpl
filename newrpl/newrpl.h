@@ -646,7 +646,7 @@ void rplHMSToDecimal(REAL *hms, REAL *dec);
 #define FL_TIMEFORMAT     -41
 #define FL_DATEFORMAT     -42
 #define FL_COMPLEXMODE    -103
-
+#define FL_INERRORHANDLER   -4
 
 
 
