@@ -291,6 +291,7 @@ BINT rplRun(void)
 // USED WHEN rplRun RETURNS NON-ZERO
 void rplCleanup()
 {
+    if(ErrorHandler) ErrorHandler=0;
     rplClearRStk(); // CLEAR THE RETURN STACK
     rplClearLAMs(); // CLEAR ALL LOCAL VARIABLES
 }

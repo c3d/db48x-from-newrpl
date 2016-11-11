@@ -10,7 +10,7 @@ CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
-DEFINES += TARGET_PC NO_RPL_OBJECTS
+DEFINES += TARGET_PC NO_RPL_OBJECTS "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
 SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/ggl/ggl/ggl_bitbltoper.c \

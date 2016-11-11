@@ -9,7 +9,7 @@ TARGET = newrplfw.elf
 TEMPLATE = app
 CONFIG = static ordered
 
-DEFINES += TARGET_50G NDEBUG
+DEFINES += TARGET_50G NDEBUG "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
 
 # DO NOT ALTER THE ORDER OF THESE MODULES

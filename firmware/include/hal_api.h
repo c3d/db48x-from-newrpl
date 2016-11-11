@@ -1233,7 +1233,7 @@ int halGetFreePages();
 int halGetTotalPages();
 int halCheckMemoryMap();
 int halCountUsedPages(int zone);
-void halCheckRplMemory();
+int halCheckRplMemory();
 void halInitMemoryMap();
 
 // HIGHER LEVEL GLOBAL VARIABLES

@@ -6,6 +6,7 @@
  */
 
 #include "newrpl.h"
+#include "libraries.h"
 
 // THIS IS THE TRAP THAT HANDLES REAL NUMBER EXCEPTIONS AND CONVERTS THEM
 // TO RPL KERNEL EXCEPTIONS
@@ -72,7 +73,12 @@ void rplCatchException()
     IPtr=ErrorHandler-1;    // MAKE SURE THE FIRST OBJECT AT THE ERROR HANDLER IS NOT SKIPPED
     CurOpcode=0;
 
-    rplRemoveExceptionHandler();
+    if(ISPROLOG(*ErrorHandler) && (LIBNUM(*ErrorHandler)==DOCOL)) {
+        // SPECIAL LOW-LEVEL ERROR HANDLER
+        // DO NOT CLEANUP ANYTHING OR REMOVE THE HANDLER
+
+
+    } else rplRemoveExceptionHandler();
 
 }
 

@@ -10,6 +10,10 @@
 #include <ui.h>
 #include "../fsystem/fsyspriv.h"
 
+
+
+
+
 #define enter_mode(mode) call_swi(mode)
 
 void switch_mode(int mode) __attribute__ ((naked));
@@ -171,6 +175,12 @@ void main_virtual(unsigned int mode)
     ggl_rect(&scr,0,0,SCREEN_WIDTH-1,SCREEN_HEIGHT-1,0);
 
     if(!mode) {
+        // CHECK FOR MAGIC KEY COMBINATION
+        if(keyb_getmatrixEX()&((1ULL<<(KB_ALPHA-1))|(1ULL<<(KB_RSHIFT-1))))
+        {
+            throw_exception("Wipeout requested", __EX_WIPEOUT | __EX_RESET );
+        }
+
 
     // CAREFUL: THESE TWO ERASE THE WHOLE RAM, SHOULD ONLY BE CALLED AFTER TTRM
     if(!halCheckMemoryMap()) {
@@ -179,7 +189,15 @@ void main_virtual(unsigned int mode)
     rplInit();
     wascleared=1;
     }
-    else rplWarmInit();
+    else {
+        if(!halCheckRplMemory()) {
+            // WIPEOUT MEMORY
+        halInitMemoryMap();
+        rplInit();
+        wascleared=1;
+        }
+        else rplWarmInit();
+    }
 
     } else {
         rplHotInit();

@@ -11,7 +11,7 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 TARGET = newrpl-ui
 TEMPLATE = app
 
-DEFINES += TARGET_PC
+DEFINES += TARGET_PC "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
 SOURCES += main.cpp\
         mainwindow.cpp \
