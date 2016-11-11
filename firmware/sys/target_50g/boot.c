@@ -176,7 +176,7 @@ void main_virtual(unsigned int mode)
 
     if(!mode) {
         // CHECK FOR MAGIC KEY COMBINATION
-        if(keyb_getmatrixEX()&((1ULL<<(KB_ALPHA-1))|(1ULL<<(KB_RSHIFT-1))))
+        if(keyb_isAnyKeyPressed())
         {
             throw_exception("Wipeout requested", __EX_WIPEOUT | __EX_RESET );
         }
