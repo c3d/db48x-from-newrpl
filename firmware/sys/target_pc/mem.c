@@ -168,17 +168,30 @@ int halCountUsedPages(int zone)
 
 // CHECK THE MEMORY MAP AGAINST RPL SYSTEM VARIABLES
 // CHECK CONSISTENCY OF RPL CORE MEMORY
-
-void halCheckRplMemory()
+int halCheckRplMemory()
 {
-    if(TempObEnd>=TempObSize)  throw_dbgexception("TempObEnd>=TempObSize",__EX_CONT);
+    // VERIFY MAIN RPL POINTERS
+    if(TempObEnd>=TempObSize)  return 0;
+    if((int)(TempObSize-TempOb)!=halCountUsedPages(MEM_AREA_TEMPOB)<<10) return 0;
 
-    if((int)(TempObSize-TempOb)!=halCountUsedPages(MEM_AREA_TEMPOB)<<10) throw_dbgexception("TempObSize!=MMU size",__EX_CONT);
-    if(TempBlocksSize!=halCountUsedPages(MEM_AREA_TEMPBLOCKS)<<10) throw_dbgexception("TempBlocksSize!=MMU size",__EX_CONT);
-    if(RStkSize!=halCountUsedPages(MEM_AREA_RSTK)<<10) throw_dbgexception("RStkSize!=MMU size",__EX_CONT);
-    if(DStkSize!=halCountUsedPages(MEM_AREA_DSTK)<<10) throw_dbgexception("DStkSize!=MMU size",__EX_CONT);
-    if(LAMSize!=halCountUsedPages(MEM_AREA_LAM)<<10) throw_dbgexception("LAMSize!=MMU size",__EX_CONT);
-    if(DirSize!=halCountUsedPages(MEM_AREA_DIR)<<10) throw_dbgexception("DirSize!=MMU size",__EX_CONT);
 
+    if(TempBlocksSize!=halCountUsedPages(MEM_AREA_TEMPBLOCKS)<<10) return 0;
+    if(TempBlocksEnd>=TempBlocks+TempBlocksSize) return 0;
+
+    if(RStkSize!=halCountUsedPages(MEM_AREA_RSTK)<<10) return 0;
+    if(RSTop>=RStk+RStkSize) return 0;
+
+    if(DStkSize!=halCountUsedPages(MEM_AREA_DSTK)<<10) return 0;
+    if(DSTop>=DStk+DStkSize) return 0;
+
+    if(LAMSize!=halCountUsedPages(MEM_AREA_LAM)<<10) return 0;
+    if(LAMTop>=LAMs+LAMSize) return 0;
+
+    if(DirSize!=halCountUsedPages(MEM_AREA_DIR)<<10) return 0;
+    if(DirsTop>=Directories+DirSize) return 0;
+
+    // ALL MEMORY POINTERS SEEM TO BE VALID
+    return 1;
 }
+
 
