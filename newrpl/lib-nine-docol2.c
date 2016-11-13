@@ -1347,6 +1347,7 @@ void LIB_HANDLER()
             case ENDWHILE:
             case ENDERR:
             case THENCASE:
+            case THENERR:
                 repeat=1;
                 break;
             default:
