@@ -1332,9 +1332,32 @@ void LIB_HANDLER()
 
 
     case OPCODE_AUTOCOMPNEXT:
+    {
+        BINT repeat;
+        do {
+        repeat=0;
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
-        return;
+        if(RetNum==OK_CONTINUE) {
+            // THERE WAS A MATCH, CHECK IF IT WAS ONE OF THE END...
+            switch(OPCODE(SuggestedOpcode))
+            {
+            case ENDCASE:
+            case ENDTHEN:
+            case ENDDO:
+            case ENDWHILE:
+            case ENDERR:
+            case THENCASE:
+            case THENERR:
+                repeat=1;
+                break;
+            default:
+                break;
+            }
 
+        }
+        } while(repeat);
+        return;
+    }
     case OPCODE_LIBMENU:
         // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
         // MUST RETURN A MENU LIST IN ObjectPTR
