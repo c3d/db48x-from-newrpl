@@ -15,17 +15,23 @@
 @ A = Algebraic object (symbolic)
 
 
-@ @#name versobj "newRPL alpha0.4.01"
-@ @#name copyobj "(c) Claudio Lapilli"
-
-
-@#name lib65_menu
+@#name lib65_menu_0_time
 {
-  TICKS CLKADJ DATE →DATE DATE+
-  DDAYS TIME →TIME TSTR →HMS
-  HMS→ HMS+ HMS- MEM ACK MEMCHECK
-  MEMFIX READCFI PEEK POKE
+  DATE →DATE TIME →TIME { { "Alarms" 1 } :: #04102000h TMENULST ; }
+  DATE+ DDAYS TICKS CLKADJ TSTR
+  →HMS HMS→ HMS+ HMS-
 }
+
+@#name lib65_menu_1_memory
+{
+  MEM BYTES PEEK POKE
+}
+
+@#name lib65_menu_2_alarms
+{
+  ACK ACKALL STOALARM RCLALARM DELALARM FINDALARM
+}
+
 
 @#name lib65_msgtable
 {
@@ -106,6 +112,16 @@ MEM
 "Returns the number of bytes of
 available RAM
  → I"
+
+PEEK
+"Reads 8 bytes from the specified
+address in memory.
+I → I"
+
+POKE
+"Writes 8 bytes in level 1
+to the memory address in level 2
+I I →"
 
 }
 

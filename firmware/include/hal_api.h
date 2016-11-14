@@ -124,9 +124,7 @@ enum halFlagsEnum {
     HAL_AUTOOFFTIME1=8,
     HAL_AUTOOFFTIME2=16,
     HAL_AUTOOFFTIME3=32,
-    HAL_NOCLOCKCHANGE=64,
-    HAL_ALARMEVENT=128,
-    HAL_DOALARM=256
+    HAL_NOCLOCKCHANGE=64
     // ADD MORE BITS HERE
 
 };
@@ -1218,12 +1216,11 @@ int rtc_settime(struct time tm);
 int rtc_setdate(struct date dt);
 void rtc_getalarm(struct date *dt, struct time *tm, int *enabled);
 int rtc_setalarm(struct date dt, struct time tm, int enabled);
-void rtc_gettick(int *freq, int *enabled);
-int rtc_settick(int freq, int enabled);
-void __rtc_suspend();
-void __rtc_resume();
+int rtc_chkalrm();
+void rtc_setaie(int enabled);
+void __rtc_poweron();
+void __rtc_poweroff();
 void __rtc_reset();
-void __rtc_setup();
 
 
 // HIGHER LEVEL MEMORY MANAGEMENT
@@ -1262,7 +1259,8 @@ struct time halGetSystemTime();
 int halSetSystemTime(struct time tm);
 void halGetSystemAlarm(struct date *dt, struct time *tm, int *enabled);
 int halSetSystemAlarm(struct date dt, struct time tm, int enabled);
-void halDoAlarmEvent();
+void halDisableSystemAlarm();
+void halTriggerAlarm();
 
 // SCREEN FUNCTIONS
 void halInitScreen();

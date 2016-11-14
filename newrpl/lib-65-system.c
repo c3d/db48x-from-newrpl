@@ -43,15 +43,20 @@
     CMD(TIME,MKTOKENINFO(4,TITYPE_FUNCTION,0,2)), \
     CMD(TSTR,MKTOKENINFO(4,TITYPE_NOTALLOWED,2,2)), \
     CMD(ACK,MKTOKENINFO(3,TITYPE_NOTALLOWED,0,2)), \
-    CMD(MEM,MKTOKENINFO(3,TITYPE_NOTALLOWED,0,2)), \
+    CMD(ACKALL,MKTOKENINFO(6,TITYPE_NOTALLOWED,0,2)), \
+    CMD(RCLALARM,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STOALARM,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DELALARM,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FINDALARM,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(VERSION,MKTOKENINFO(7,TITYPE_NOTALLOWED,0,2)), \
+    CMD(MEM,MKTOKENINFO(3,TITYPE_NOTALLOWED,0,2)), \
+    CMD(BYTES,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(PEEK,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(POKE,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(MEMCHECK,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(MEMFIX,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(READCFI,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(PEEK,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(POKE,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ALRM,MKTOKENINFO(4,TITYPE_NOTALLOWED,0,2)), \
-    CMD(TICK,MKTOKENINFO(4,TITYPE_NOTALLOWED,0,2))
+    CMD(ALRM,MKTOKENINFO(4,TITYPE_NOTALLOWED,0,2))
 //    ECMD(CMDNAME,"CMDNAME",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
@@ -79,18 +84,18 @@ ERR(BADARGVALUE,2)
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
-INCLUDE_ROMOBJECT(lib65_menu);
-//INCLUDE_ROMOBJECT(versobj);
-//INCLUDE_ROMOBJECT(copyobj);
+INCLUDE_ROMOBJECT(lib65_menu_0_time);
+INCLUDE_ROMOBJECT(lib65_menu_1_memory);
+INCLUDE_ROMOBJECT(lib65_menu_2_alarms);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)LIB_MSGTABLE,
     (WORDPTR)LIB_HELPTABLE,
-    (WORDPTR)lib65_menu,
-//    (WORDPTR)versobj,
-//    (WORDPTR)copyobj,
+    (WORDPTR)lib65_menu_0_time,
+    (WORDPTR)lib65_menu_1_memory,
+    (WORDPTR)lib65_menu_2_alarms,
     0
 };
 
@@ -831,6 +836,17 @@ void LIB_HANDLER()
 
         return;
     }
+    case ACK: // ONLY FOR TESTS
+    {
+
+        return;
+    }
+    case ALRM: // ONLY FOR TESTS
+    {
+
+
+        return;
+    }
     case MEM:
     {
         rplGCollect();
@@ -844,115 +860,6 @@ void LIB_HANDLER()
         rplPushData(copyobj);
         return;
     }*/
-    case ACK: // ONLY FOR TESTS
-    {
-        halSetNotification(N_CONNECTION, 0);
-
-        return;
-    }
-    case TICK: // ONLY FOR TESTS
-    {
-        int freq, enabled;
-
-        rtc_gettick(&freq, &enabled);
-
-        if (enabled) {
-            rtc_settick(0, 0);
-            halSetNotification(N_CONNECTION,0);
-        } else {
-            rtc_settick(2, 1);
-        }
-
-        return;
-    }
-    case ALRM: // ONLY FOR TESTS
-    {
-        struct date dt;
-        struct time tm;
-        unsigned char alrm;
-        unsigned char con;
-        int enabled = 0;
-
-        alrm = (*((volatile unsigned char *)(RTC_REGS + 0x50)));
-        con = (*((volatile unsigned char *)(RTC_REGS + 0x40)));
-        rplNewBINTPush((BINT64)alrm,BINBINT);
-        rplNewBINTPush((BINT64)con,BINBINT);
-
-        dt = halGetSystemDate();
-        tm = halGetSystemTime();
-
-        if (tm.sec < 50) {
-            tm.sec += 10;
-            enabled = 1;
-        }
-
-        if (!halSetSystemAlarm(dt, tm, enabled)) {
-            rplError(ERR_BADARGVALUE);
-            return;
-        }
-
-        halGetSystemAlarm(&dt, &tm, &enabled);
-
-        if (rplReadDateAsReal(dt, &RReg[0])) {
-            rplError(ERR_INVALIDDATE);
-            return;
-        }
-        rplNewRealFromRRegPush(0);
-
-        if (rplReadTimeAsReal(tm, &RReg[0])) {
-            rplError(ERR_INVALIDTIME);
-            return;
-        }
-        rplNewRealFromRRegPush(0);
-
-        alrm = (*((volatile unsigned char *)(RTC_REGS + 0x50)));
-        con = (*((volatile unsigned char *)(RTC_REGS + 0x40)));
-        rplNewBINTPush((BINT64)alrm,BINBINT);
-        rplNewBINTPush((BINT64)con,BINBINT);
-
-        return;
-    }
-    case MEMCHECK:
-    {
-        // SYSTEM SANITY CHECK
-
-        if(rplVerifyDStack(0)) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
-        if(rplVerifyRStack()) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
-        if(rplVerifyTempOb(0)) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
-        if(rplVerifyDirectories(0)) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
-
-        return;
-
-    }
-    case MEMFIX:
-    {
-        if(rplVerifyDStack(0)) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
-        if(rplVerifyRStack()) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
-        if(rplVerifyTempOb(1)) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
-        if(rplVerifyDirectories(0)) rplPushDataNoGrow((WORDPTR)one_bint);
-        else rplPushDataNoGrow((WORDPTR)zero_bint);
-        return;
-    }
-    case READCFI:
-    {
-        unsigned short buffer[100];
-
-        flash_CFIRead(buffer);
-
-        WORDPTR newobj=rplCreateString((BYTEPTR)buffer,(BYTEPTR)buffer+6);
-
-        rplPushData(newobj);
-
-     return;
-    }
-
     case PEEK:
     {
         if(rplDepthData()<1) {
@@ -1008,6 +915,46 @@ void LIB_HANDLER()
        return;
     }
 
+    case MEMCHECK:
+    {
+        // SYSTEM SANITY CHECK
+
+        if(rplVerifyDStack(0)) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
+        if(rplVerifyRStack()) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
+        if(rplVerifyTempOb(0)) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
+        if(rplVerifyDirectories(0)) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
+
+        return;
+
+    }
+    case MEMFIX:
+    {
+        if(rplVerifyDStack(0)) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
+        if(rplVerifyRStack()) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
+        if(rplVerifyTempOb(1)) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
+        if(rplVerifyDirectories(0)) rplPushDataNoGrow((WORDPTR)one_bint);
+        else rplPushDataNoGrow((WORDPTR)zero_bint);
+        return;
+    }
+    case READCFI:
+    {
+        unsigned short buffer[100];
+
+        flash_CFIRead(buffer);
+
+        WORDPTR newobj=rplCreateString((BYTEPTR)buffer,(BYTEPTR)buffer+6);
+
+        rplPushData(newobj);
+
+     return;
+    }
 
 
         /*
@@ -1172,11 +1119,11 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg)>0) {
+        if(MENUNUMBER(MenuCodeArg)>2) {
             RetNum=ERR_NOTMINE;
             return;
         }
-        ObjectPTR=(WORDPTR)lib65_menu;
+        ObjectPTR=(WORDPTR)ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
         RetNum=OK_CONTINUE;
         return;
     }

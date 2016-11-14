@@ -216,9 +216,6 @@ void main_virtual(unsigned int mode)
     }
     }
 
-    if (halGetNotification(N_CONNECTION))
-        halShowMsg("Alarm Event");
-
     // INITIALIZE SD CARD SYSTEM MEMORY ALLOCATOR
     FSHardReset();
 
@@ -286,7 +283,7 @@ void startup(int prevstate)
 
         // ADD ANY OTHER INITIALIZATION HERE
 
-        __rtc_resume();
+        __rtc_poweron();
 
     } else {
         // FROM RESET OR WARMSTART, CLEAN VARIABLES
@@ -301,7 +298,6 @@ void startup(int prevstate)
 
     tmr_setup();
     __keyb_init();
-    __rtc_setup();
     // ADD MORE HARDWARE INITIALIZATION HERE
 
     // ...
@@ -707,7 +703,7 @@ void halEnterPowerOff()
 
     FSShutdown();
 
-    __rtc_suspend();
+    __rtc_poweroff();
 
     // PUT THE CPU IN A KNOWN SLOW SPEED
     cpu_setspeed(6000000);

@@ -4006,9 +4006,6 @@ void halOuterLoop()
             Exceptions=0;
         }
 
-        if (halFlags & HAL_DOALARM)
-            halDoAlarmEvent();
-
         keymsg=halWaitForKey();
 
         if(!keymsg) {
