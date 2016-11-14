@@ -597,8 +597,8 @@ void halRedrawMenu2(DRAWSURFACE *scr)
 //    ggl_clipvline(scr,87,ytop,ybottom,0);
 //    ggl_clipvline(scr,109,ytop,ybottom,0);
     //ggl_cliphline(scr,ytop,0,SCREEN_WIDTH-1,ggl_mkcolor(0x8));
-    ggl_cliphline(scr,ytop+MENU2_HEIGHT/2-1,0,STATUSAREA_X-1,ggl_mkcolor(0x8));
-    ggl_cliphline(scr,ybottom,0,STATUSAREA_X-1,ggl_mkcolor(0x8));
+    ggl_cliphline(scr,ytop+MENU2_HEIGHT/2-1,0,STATUSAREA_X-2,ggl_mkcolor(0x8));
+    ggl_cliphline(scr,ybottom,0,STATUSAREA_X-2,ggl_mkcolor(0x8));
 
     // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
 
@@ -1096,6 +1096,7 @@ void halCancelPopup()
         tmr_eventkill(halScreen.SAreaTimer);
         // MARK DIRTY BUT DON'T REDRAW YET
         halScreen.DirtyFlag|=STAREA_DIRTY|MENU2_DIRTY;
+        halScreen.SAreaTimer=0;
     }
 
 }

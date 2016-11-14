@@ -639,7 +639,6 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
     if(KM_MESSAGE(keymsg)==KM_LPRESS) {
         // ENTER MENU HELP MODE
         // KILL ANY PENDING POPUPS
-        halCancelPopup();
         halScreen.HelpMode=(menunum<<16)|varnum;
         halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
         return;
@@ -647,6 +646,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
     if(KM_MESSAGE(keymsg)==KM_KEYUP) {
        if(halScreen.HelpMode) {
+            halCancelPopup();
             halScreen.HelpMode=0;
             halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
         }
