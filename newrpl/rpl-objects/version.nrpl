@@ -1,0 +1,5 @@
+@#name newrpl_version
+::
+  "newRPL 0.8Alpha-Build " ##1,MAKESINT(NEWRPL_BUILDNUM) +
+  "(c) 2016 The newRPL Team"
+;

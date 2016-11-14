@@ -87,6 +87,7 @@ INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib65_menu_0_time);
 INCLUDE_ROMOBJECT(lib65_menu_1_memory);
 INCLUDE_ROMOBJECT(lib65_menu_2_alarms);
+INCLUDE_ROMOBJECT(newrpl_version);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
@@ -96,6 +97,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)lib65_menu_0_time,
     (WORDPTR)lib65_menu_1_memory,
     (WORDPTR)lib65_menu_2_alarms,
+    (WORDPTR)newrpl_version,
     0
 };
 
@@ -853,13 +855,7 @@ void LIB_HANDLER()
         rplNewBINTPush((BINT64)rplGetFreeMemory(), DECBINT);
 
         return;
-    }/*
-    case VERSION:
-    {
-        rplPushData(versobj);
-        rplPushData(copyobj);
-        return;
-    }*/
+    }
     case PEEK:
     {
         if(rplDepthData()<1) {
@@ -914,7 +910,12 @@ void LIB_HANDLER()
 
        return;
     }
-
+    case VERSION:
+    {
+        rplPushData((WORDPTR)newrpl_version);
+        rplCallOvrOperator(CMD_OVR_EVAL);
+        return;
+    }
     case MEMCHECK:
     {
         // SYSTEM SANITY CHECK
