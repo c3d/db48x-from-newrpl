@@ -505,13 +505,14 @@ void halRedrawMenu1(DRAWSURFACE *scr)
     ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine;
     ybottom=ytop+halScreen.Menu1-1;
     // DRAW BACKGROUND
-    ggl_cliprect(scr,0,ytop+1,SCREEN_WIDTH-1,ybottom,ggl_mkcolor(0xf));
+    ggl_cliprect(scr,0,ytop+1,SCREEN_WIDTH-1,ybottom-1,ggl_mkcolor(0xf));
     ggl_cliphline(scr,ytop,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
-    ggl_clipvline(scr,21,ytop,ybottom,0);
-    ggl_clipvline(scr,43,ytop,ybottom,0);
-    ggl_clipvline(scr,65,ytop,ybottom,0);
-    ggl_clipvline(scr,87,ytop,ybottom,0);
-    ggl_clipvline(scr,109,ytop,ybottom,0);
+    ggl_cliphline(scr,ybottom,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
+    //ggl_clipvline(scr,21,ytop,ybottom,0);
+    //ggl_clipvline(scr,43,ytop,ybottom,0);
+    //ggl_clipvline(scr,65,ytop,ybottom,0);
+    //ggl_clipvline(scr,87,ytop,ybottom,0);
+    //ggl_clipvline(scr,109,ytop,ybottom,0);
 
 
     // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
@@ -535,7 +536,7 @@ void halRedrawMenu1(DRAWSURFACE *scr)
     // FIRST ROW
 
     scr->clipy=ytop+1;
-    scr->clipy2=ytop+6;
+    scr->clipy2=ytop+MENU1_HEIGHT-2;
 
     for(k=0;k<5;++k) {
     scr->clipx=22*k;
@@ -553,7 +554,7 @@ void halRedrawMenu1(DRAWSURFACE *scr)
         uiDrawMenuItem(item,0,scr);
     } else {
      if(nitems>6) {
-         DrawText(scr->clipx+1,scr->clipy,"NXT...",halScreen.MenuFont,0,scr);
+         DrawText(scr->clipx+1,scr->clipy+1,"NXT...",halScreen.MenuFont,0,scr);
      }
     }
 
@@ -589,14 +590,15 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     ybottom=ytop+halScreen.Menu2-1;
     // DRAW BACKGROUND
-    ggl_cliprect(scr,0,ytop+1,STATUSAREA_X-2,ybottom,0);
-    ggl_clipvline(scr,21,ytop+1,ybottom,ggl_mkcolor(0x8));
-    ggl_clipvline(scr,43,ytop+1,ybottom,ggl_mkcolor(0x8));
-    ggl_clipvline(scr,STATUSAREA_X-1,ytop+1,ybottom,ggl_mkcolor(0x8));
+    ggl_cliprect(scr,0,ytop+1,STATUSAREA_X-1,ybottom,0);
+    //ggl_clipvline(scr,21,ytop+1,ybottom,ggl_mkcolor(0x8));
+    //ggl_clipvline(scr,43,ytop+1,ybottom,ggl_mkcolor(0x8));
+    //ggl_clipvline(scr,STATUSAREA_X-1,ytop+1,ybottom,ggl_mkcolor(0x8));
 //    ggl_clipvline(scr,87,ytop,ybottom,0);
 //    ggl_clipvline(scr,109,ytop,ybottom,0);
-    ggl_cliphline(scr,ytop,0,STATUSAREA_X-1,ggl_mkcolor(0x8));
-    ggl_cliphline(scr,ytop+7,0,STATUSAREA_X-2,ggl_mkcolor(0x8));
+    //ggl_cliphline(scr,ytop,0,SCREEN_WIDTH-1,ggl_mkcolor(0x8));
+    ggl_cliphline(scr,ytop+MENU2_HEIGHT/2-1,0,STATUSAREA_X-1,ggl_mkcolor(0x8));
+    ggl_cliphline(scr,ybottom,0,STATUSAREA_X-1,ggl_mkcolor(0x8));
 
     // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
 
@@ -618,8 +620,8 @@ void halRedrawMenu2(DRAWSURFACE *scr)
 
     // FIRST ROW
 
-    scr->clipy=ytop+1;
-    scr->clipy2=ytop+6;
+    scr->clipy=ytop;
+    scr->clipy2=ytop+MENU2_HEIGHT/2-2;
 
     for(k=0;k<3;++k) {
     scr->clipx=22*k;
@@ -630,8 +632,8 @@ void halRedrawMenu2(DRAWSURFACE *scr)
 
     // SECOND ROW
 
-    scr->clipy=ytop+8;
-    scr->clipy2=ybottom;
+    scr->clipy=ytop+MENU2_HEIGHT/2;
+    scr->clipy2=ybottom-1;
 
     for(k=0;k<2;++k) {
     scr->clipx=22*k;
@@ -649,7 +651,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
         uiDrawMenuItem(item,0xf,scr);
     } else {
      if(nitems>6) {
-         DrawText(scr->clipx+1,scr->clipy,"NXT...",halScreen.MenuFont,0xf,scr);
+         DrawText(scr->clipx+1,scr->clipy+1,"NXT...",halScreen.MenuFont,0xf,scr);
      }
     }
 
