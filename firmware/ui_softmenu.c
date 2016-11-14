@@ -274,7 +274,12 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 
         if((flags&1) || (var && ISDIR(*var[1]))) {
             //ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(color));
-            ggl_cliphline(scr,scr->clipy,scr->clipx,scr->clipx+3,ggl_mkcolor(color));
+            //ggl_cliphline(scr,scr->clipy,scr->clipx,scr->clipx+3,ggl_mkcolor(color));
+            //DrawTextN(pos+1,scr->clipy+1,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.MenuFont,(color)? 0x4:0xa,scr);
+            ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor( (color)? 0X6:0x8));
+            ggl_cliphline(scr,scr->clipy2-1,scr->clipx,scr->clipx2,ggl_mkcolor( (color)? 0X4:0xA));
+            ggl_cliphline(scr,scr->clipy2-2,scr->clipx,scr->clipx2,ggl_mkcolor( (color)? 0X2:0xC));
+
         }
 
         DrawTextN(pos,scr->clipy+1,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.MenuFont,color,scr);
@@ -283,11 +288,11 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
         if(w>=scr->clipx2-scr->clipx) {
             scr->x=scr->clipx2;
             scr->y=scr->clipy;
-            ggl_filter(scr,1,scr->clipy2-scr->clipy+1,0xA,(color)? &ggl_fltlighten:&ggl_fltdarken);
+            ggl_filter(scr,1,scr->clipy2-scr->clipy+1,(color)? 0xf4:0x0c,&ggl_fltreplace);
             scr->x--;
-            ggl_filter(scr,1,scr->clipy2-scr->clipy+1,0x6,(color)? &ggl_fltlighten:&ggl_fltdarken);
+            ggl_filter(scr,1,scr->clipy2-scr->clipy+1,(color)? 0xf6:0x0a,&ggl_fltreplace);
             scr->x--;
-            ggl_filter(scr,1,scr->clipy2-scr->clipy+1,0x4,(color)? &ggl_fltlighten:&ggl_fltdarken);
+            ggl_filter(scr,1,scr->clipy2-scr->clipy+1,(color)? 0xfa:0x06,&ggl_fltreplace);
 
         }
 
@@ -356,7 +361,13 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 
     if(flags&1) {   // FOR NOW, flags & 1 INDICATES THE MENU IS TO BE DISPLAYED AS A DIRECTORY
         //ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(color));
-        ggl_cliphline(scr,scr->clipy,scr->clipx,scr->clipx+3,ggl_mkcolor(color));
+        //ggl_cliphline(scr,scr->clipy,scr->clipx,scr->clipx+3,ggl_mkcolor(color));
+        //DrawTextN(pos+1,scr->clipy+1,(char *)string,(char *)endstring,halScreen.MenuFont,(color)? 0x4:0xa,scr);
+
+        ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor( (color)? 0X6:0x8));
+        ggl_cliphline(scr,scr->clipy2-1,scr->clipx,scr->clipx2,ggl_mkcolor( (color)? 0X4:0xA));
+        ggl_cliphline(scr,scr->clipy2-2,scr->clipx,scr->clipx2,ggl_mkcolor( (color)? 0X2:0xC));
+
     }
 
 
@@ -366,11 +377,11 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
     if(w>=scr->clipx2-scr->clipx) {
         scr->x=scr->clipx2;
         scr->y=scr->clipy;
-        ggl_filter(scr,1,scr->clipy2-scr->clipy+1,0xA,(color)? &ggl_fltlighten:&ggl_fltdarken);
+        ggl_filter(scr,1,scr->clipy2-scr->clipy+1,(color)? 0xf4:0x0c,&ggl_fltreplace);
         scr->x--;
-        ggl_filter(scr,1,scr->clipy2-scr->clipy+1,0x6,(color)? &ggl_fltlighten:&ggl_fltdarken);
+        ggl_filter(scr,1,scr->clipy2-scr->clipy+1,(color)? 0xf6:0x0a,&ggl_fltreplace);
         scr->x--;
-        ggl_filter(scr,1,scr->clipy2-scr->clipy+1,0x4,(color)? &ggl_fltlighten:&ggl_fltdarken);
+        ggl_filter(scr,1,scr->clipy2-scr->clipy+1,(color)? 0xfa:0x06,&ggl_fltreplace);
 
     }
 

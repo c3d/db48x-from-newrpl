@@ -178,7 +178,7 @@ void main_virtual(unsigned int mode)
         // CHECK FOR MAGIC KEY COMBINATION
         if(keyb_isAnyKeyPressed())
         {
-            throw_exception("Wipeout requested", __EX_WIPEOUT | __EX_RESET );
+            throw_exception("Wipeout requested", __EX_WARM | __EX_WIPEOUT | __EX_EXIT );
         }
 
 

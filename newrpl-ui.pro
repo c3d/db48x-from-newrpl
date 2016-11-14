@@ -207,7 +207,8 @@ SOURCES += main.cpp\
     newrpl/lib-74-sdcard.c \
     newrpl/lib-80-fonts.c \
     firmware/sys/target_pc/rtc.c \
-    firmware/hal_clock.c
+    firmware/hal_clock.c \
+    firmware/ggl/ggl/ggl_fltreplace.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \

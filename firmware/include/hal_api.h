@@ -1272,6 +1272,7 @@ void halShowErrorMsg();
 void halShowMsg(char *Text);
 void halSetCmdLineHeight(int h);
 void halStatusAreaPopup();
+void halCancelPopup();
 void halRedrawAll(DRAWSURFACE *scr);
 void halRedrawCmdLine(DRAWSURFACE *scr);
 void halUpdateStatus();

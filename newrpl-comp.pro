@@ -205,7 +205,8 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/sys/Font5B.c \
     firmware/sys/Font5A.c \
     firmware/sys/target_pc/rtc.c \
-    firmware/hal_clock.c
+    firmware/hal_clock.c \
+    firmware/ggl/ggl/ggl_fltreplace.c
 
 
 HEADERS  += firmware/include/ggl.h \

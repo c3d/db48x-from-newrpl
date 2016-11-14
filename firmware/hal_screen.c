@@ -590,7 +590,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     ybottom=ytop+halScreen.Menu2-1;
     // DRAW BACKGROUND
-    ggl_cliprect(scr,0,ytop+1,STATUSAREA_X-1,ybottom,0);
+    ggl_cliprect(scr,0,ytop,STATUSAREA_X-1,ybottom,0);
     //ggl_clipvline(scr,21,ytop+1,ybottom,ggl_mkcolor(0x8));
     //ggl_clipvline(scr,43,ytop+1,ybottom,ggl_mkcolor(0x8));
     //ggl_clipvline(scr,STATUSAREA_X-1,ytop+1,ybottom,ggl_mkcolor(0x8));
@@ -1087,6 +1087,17 @@ void halStatusAreaPopup()
         //return;
     }
     halScreen.SAreaTimer=tmr_eventcreate(&status_popup_handler,3000,0);
+}
+
+
+void halCancelPopup()
+{
+    if(halScreen.SAreaTimer) {
+        tmr_eventkill(halScreen.SAreaTimer);
+        // MARK DIRTY BUT DON'T REDRAW YET
+        halScreen.DirtyFlag|=STAREA_DIRTY|MENU2_DIRTY;
+    }
+
 }
 
 // WILL KEEP THE STATUS AREA AS-IS FOR 5 SECONDS, THEN REDRAW IT
