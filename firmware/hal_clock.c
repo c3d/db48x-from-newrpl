@@ -8,6 +8,7 @@
 
 // CLOCK AND ALARM MANAGEMENT - HIGHER LEVEL API
 
+#include <newrpl.h>
 #include <ui.h>
 
 
@@ -49,24 +50,23 @@ int halSetSystemAlarm(struct date dt, struct time tm, int enabled)
 {
     return rtc_setalarm(dt, tm, enabled);
 }
-
-void halAnnounceAlarm()
-{/*
-    halFlags |= HAL_ALARMEVENT;
-    halSetNotification(N_LOWBATTERY,0xf);
+/*
+int halCheckAlarm()
+{
+    return rtc_chkalrm();
+}
 */
+void halDisableSystemAlarm()
+{
+    //rtc_setaie(0);
+
     return;
 }
 
-void halDoAlarmEvent()
+void halTriggerAlarm()
 {
-    // APPOINTMENT ALARM
-    halShowMsg("Alarm Event");
-
-    // CONTROL ALARM
-
-
-    halFlags &= ~HAL_DOALARM;
-
-    return;
+    //rtc_setaie(0);
+    //halSetNotification(N_ALARM, 0xf);
+    //halSetNotification(N_CONNECTION, 0xf);
+    //rplTriggerAlarm();
 }

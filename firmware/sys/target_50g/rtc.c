@@ -11,6 +11,9 @@
 #include "../rtc.h"
 
 
+static volatile int __rtc_almint __SYSTEM_GLOBAL__;
+
+
 // ENSURE RTCCON IS CORRECTLY SET
 static void __rtc_check_device()
 {
@@ -25,30 +28,18 @@ static void __rtc_check_device()
     return;
 }
 
-// ENABLE WRITE ACCESS TO THE BCD REGISTERS
-static void __rtc_enable_wr()
+// CONTROL WRITE ACCESS TO THE BCD REGISTERS
+static void __rtc_setwrite(int enabled)
 {
     union rtccon rtc;
     rtc.byte = __getRTCCon();
 
-    if (!rtc.rtcen) {
-        rtc.rtcen = 1;
+    if (rtc.rtcen != enabled) {
+        rtc.rtcen = enabled ? 1 : 0;
         __setRTCCon(rtc.byte);
     }
 
     __rtc_check_device();
-
-    return;
-}
-
-// DISABLE WRITE ACCESS TO THE BCD REGISTERS
-static void __rtc_disable_wr()
-{
-    union rtccon rtc;
-    rtc.byte = __getRTCCon();
-
-    rtc.rtcen = 0;
-    __setRTCCon(rtc.byte);
 
     return;
 }
@@ -149,7 +140,7 @@ int rtc_setdate(struct date dt)
     if (dow == 0) dow = 7; // CONVERT TO 1 = MONDAY ... 7 = SUNDAY
 
     dt.year -= 2000;
-    __rtc_enable_wr();
+    __rtc_setwrite(1);
 
 retry_set_date:
     __setRTCDay(dt.mday);
@@ -163,7 +154,7 @@ retry_set_date:
         goto retry_set_date;
     }
 
-    __rtc_disable_wr();
+    __rtc_setwrite(0);
 
     return 1;
 }
@@ -191,16 +182,22 @@ retry_get_time:
 
 int rtc_settime(struct time tm)
 {
+    union rtccon rtc;
+
     if (!__rtc_is_valid_tm(tm)) return 0;
 
-    __rtc_enable_wr();
+    rtc.byte = __getRTCCon();
+    rtc.clkrst = 1;
+    rtc.rtcen = 1;
+    __setRTCCon(rtc.byte);
 
-    __setRTCSec(1); // TO PREVENT ROLLOVER
+    __setRTCSec(tm.sec);
     __setRTCMin(tm.min);
     __setRTCHour(tm.hour);
-    __setRTCSec(tm.sec);
 
-    __rtc_disable_wr();
+    rtc.clkrst = 0;
+    rtc.rtcen = 0;
+    __setRTCCon(rtc.byte);
 
     return 1;
 }
@@ -277,13 +274,40 @@ int rtc_setalarm(struct date dt, struct time tm, int enabled)
         __setALMYear(dt.year - 2000);
     }
 
-    alrm.almen = enabled;
+    alrm.almen = enabled ? 1 : 0;
 
     __setRTCAlm(alrm.byte);
 
     return 1;
 }
 
+int rtc_chkalrm()
+{
+    if (*HWREG(INT_REGS, SRCPND) & (1 << INT_RTC)) {
+        *HWREG(INT_REGS, SRCPND) = (1 << INT_RTC);
+        return 1;
+    }
+
+    if (__rtc_almint) {
+        __rtc_almint = 0;
+        return 1;
+    }
+
+    return 0;
+}
+
+void rtc_setaie(int enabled)
+{
+    union rtcalm alrm;
+
+    alrm.byte = __getRTCAlm();
+    alrm.almen = enabled ? 1 : 0;
+    __setRTCAlm(alrm.byte);
+
+    return;
+}
+// UNCOMMENT IF NEEDED
+/*
 void rtc_gettick(int *freq, int *enabled)
 {
     union ticnt tick;
@@ -299,7 +323,7 @@ void rtc_gettick(int *freq, int *enabled)
 
     return;
 }
-
+*/
 // SET PERIODIC INTERRUPT
 int rtc_settick(int freq, int enabled)
 {
@@ -311,7 +335,7 @@ int rtc_settick(int freq, int enabled)
     if (freq != 0)
         tick.count = (128 / freq)-1;
 
-    tick.enable = enabled;
+    tick.enable = enabled ? 1 : 0;
 
     __setRTCTic(tick.byte);
 
@@ -336,7 +360,7 @@ int rtc_setrnd_tm(int bound, int enabled)
     }
 
     rnd_tm.seccr  = bound;
-    rnd_tm.srsten = enabled;
+    rnd_tm.srsten = enabled ? 1 : 0;
 
     __setRTCRst(rnd_tm.byte);
 
@@ -344,32 +368,74 @@ int rtc_setrnd_tm(int bound, int enabled)
 }
 
 // IRQ HANDLERS
+// UNCOMMENT IF NEEDED
+/*void __rtc_alrmirq()
+{
+    __rtc_almint = 1;
+
+    return;
+}
+
 void __rtc_tickirq()
 {
-    __rtc_check_device();
-
-    halSetNotification(N_CONNECTION,0xf^halGetNotification(N_CONNECTION));
 
     return;
 }
-
-void __rtc_alrmirq()
+*/
+void __rtc_poweron()
 {
-    union rtcalm alrm;
+    struct date  rtc_dt, alrm_dt;
+    struct time  rtc_tm, alrm_tm;
+    int          enabled;
 
-    __rtc_check_device();
+    // TODO if needed : Restaure Tick
 
-//    halFlags |= HAL_ALARMEVENT; // Replaced by N_CONNECTION for tests
-    halFlags |= HAL_DOALARM;
-    halSetNotification(N_CONNECTION,0xf);
+    // ! S3C2410 BUG !
+    // ON ALARM WAKE-UP, SRCPND IS NOT SET,
+    // SO WE NEED TO CHECK ALARM DATE AND TIME.
 
-    alrm.byte = __getRTCAlm();
-    alrm.almen = 0;
-    __setRTCAlm(alrm.byte);
+    rtc_getalarm(&alrm_dt, &alrm_tm, &enabled);
+    rtc_getdatetime(&rtc_dt, &rtc_tm);
+
+    if (enabled) {
+        if (alrm_dt.year > 0)
+            if (alrm_dt.year != rtc_dt.year)
+                return;
+        if (alrm_dt.mon > 0)
+            if (alrm_dt.mon != rtc_dt.mon)
+                return;
+        if (alrm_dt.mday > 0)
+            if (alrm_dt.mday != rtc_dt.mday)
+                return;
+        if (alrm_tm.hour < 24)
+            if (alrm_tm.hour != rtc_tm.hour)
+                return;
+        if (alrm_tm.min < 60)
+            if (alrm_tm.min != rtc_tm.min)
+                return;
+        if (alrm_tm.sec < 60)
+            if (alrm_tm.sec != (rtc_tm.sec))
+                return;
+
+        __rtc_almint = 1;
+        return;
+    }
+
+    __rtc_almint = 0;
 
     return;
 }
 
+void __rtc_poweroff()
+{
+    __rtc_setwrite(0);
+
+    // TODO if needed : Save Tick
+
+    return;
+}
+// UNCOMMENT IF NEEDED
+/*
 void __rtc_setup()
 {
     __irq_addhook(INT_RTC, (__interrupt__)&__rtc_alrmirq);
@@ -380,7 +446,7 @@ void __rtc_setup()
 
     return;
 }
-
+*/
 void __rtc_reset()
 {
     struct date  dt;
@@ -404,59 +470,9 @@ void __rtc_reset()
         rtc_setdatetime(dt, tm);
     }
 
-    __rtc_disable_wr();
+    __rtc_setwrite(0);
 
-    return;
-}
-
-void __rtc_suspend()
-{
-    __rtc_disable_wr();
-
-    // Save Tick
-
-    return;
-}
-
-void __rtc_resume()
-{
-    struct date  rtc_dt, alrm_dt;
-    struct time  rtc_tm, alrm_tm;
-    int          enabled;
-
-    rtc_getdatetime(&rtc_dt, &rtc_tm);
-    __rtc_disable_wr();
-
-    // Restaure Tick
-
-    // ! S3C2410 BUG !
-    // WE NEED TO CHECK IF WAKE-UP IS DUE TO AN ALARM EVENT.
-
-    rtc_getalarm(&alrm_dt, &alrm_tm, &enabled);
-    if (enabled) {
-        if (alrm_dt.year > 0)
-            if (alrm_dt.year != rtc_dt.year)
-                return;
-        if (alrm_dt.mon > 0)
-            if (alrm_dt.mon != rtc_dt.mon)
-                return;
-        if (alrm_dt.mday > 0)
-            if (alrm_dt.mday != rtc_dt.mday)
-                return;
-        if (alrm_tm.hour < 24)
-            if (alrm_tm.hour != rtc_tm.hour)
-                return;
-        if (alrm_tm.min < 60)
-            if (alrm_tm.min != rtc_tm.min)
-                return;
-        if (alrm_tm.sec < 60)
-            if (alrm_tm.sec != rtc_tm.sec)
-                return;
-
-        __rtc_alrmirq();
-    }
-
-    // INSERT NOTHING HERE
+    __rtc_almint = 0;
 
     return;
 }
