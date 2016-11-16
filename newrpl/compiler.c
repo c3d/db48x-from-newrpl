@@ -818,7 +818,7 @@ enum {
     INFIX_OFF=0,
     INFIX_STARTSYMBOLIC,
     INFIX_STARTEXPRESSION,
-    INFIX_FUNCNAME,
+    INFIX_CUSTOMFUNCARG,
     INFIX_FUNCARGUMENT,
     INFIX_PREFIXOP,
     INFIX_PREFIXARG,
@@ -1189,7 +1189,7 @@ end_of_expression:
                 InfixOpTop+=2;
 
                 // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
-                if( (InfixOpTop-6)>=(WORDPTR)RSTop) {
+                if( (InfixOpTop-6)>=(WORDPTR)ValidateTop) {
                     // THERE'S AN OPERATOR IN THE STACK
                     if(ISPROLOG(*(InfixOpTop-6))) {
                         // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
@@ -1206,7 +1206,7 @@ end_of_expression:
                                 else
                                 if(*(InfixOpTop-6)==(CMD_OVR_POW)) {
                                     // ALWAYS PARENTHESIZE THE ARGUMENTS OF POWER
-                                    if(TI_TYPE(*(InfixOpTop-1))!=TITYPE_FUNCTION)
+                                    if((TI_TYPE(*(InfixOpTop-1))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-1))!=TITYPE_CUSTOMFUNC))
                                         rplDecompAppendChar('(');
 
                                 }
@@ -1224,7 +1224,7 @@ end_of_expression:
                         }
                         else
                         if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(RetNum)) {
-                            if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS!
+                            if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC))   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS!
                                 rplDecompAppendChar('(');
                         }
                         }
@@ -1277,6 +1277,45 @@ end_of_expression:
                     ++DecompileObject;
                     infixmode=INFIX_PREFIXARG;
                     break;
+
+                case TITYPE_CUSTOMFUNC:
+                {
+                    // DECOMPILE THE FUNCTION NAME NOW, THEN ADD PARENTHESIS FOR THE LIST
+                    WORDPTR argList=DecompileObject+1;
+                    WORDPTR EndofExpression = rplSkipOb(*(signed int *)(InfixOpTop-4)+EndOfObject);
+
+                    // FIND THE LAST ARGUMENT
+                    while(rplSkipOb(argList)<EndofExpression) argList=rplSkipOb(argList);
+
+                   // THE NEXT ELEMENT IS THE LAST, WHICH CONTAINS THE NAME
+                    rplPushRet(DecompileObject);
+                    DecompileObject=argList;
+                    CurOpcode=MKOPCODE(LIBNUM(*argList),(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
+                    DecompMode=infixmode;
+                    handler=rplGetLibHandler(LIBNUM(*argList));
+
+                    RetNum=-1;
+                    if(handler) {
+                        // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
+                        WORDPTR *tmpRSTop=RSTop;
+                        RSTop=(WORDPTR *)InfixOpTop;
+
+                        (*handler)();
+                        RSTop=tmpRSTop;
+                    }
+                    DecompileObject=rplPopRet();    // RESTORE THE NEXT OBJECT
+                    // IGNORE THE RESULT OF DECOMPILATION
+                    if(RetNum!=OK_CONTINUE) {
+                        rplDecompAppendString((BYTEPTR)"##INVALID##");
+                    }
+                    rplDecompAppendChar('(');
+                    ++DecompileObject;
+                    infixmode=INFIX_CUSTOMFUNCARG;
+                    break;
+
+
+
+                }
 
                 case TITYPE_FUNCTION:
                 default:
@@ -1501,7 +1540,7 @@ end_of_expression:
             // WE KNOW THIS IS THE LAST ARGUMENT
                 // POP EXPRESSION FROM THE STACK
             // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
-            if( (InfixOpTop-6)>=(WORDPTR)RSTop) {
+            if( (InfixOpTop-6)>=(WORDPTR)ValidateTop) {
                 // THERE'S AN OPERATOR IN THE STACK
                 if(ISPROLOG(*(InfixOpTop-6))) {
                     // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
@@ -1518,7 +1557,7 @@ end_of_expression:
                             else
                             if(*(InfixOpTop-6)==(CMD_OVR_POW)) {
                                 // ALWAYS PARENTHESIZE THE ARGUMENTS OF POWER
-                                if(TI_TYPE(*(InfixOpTop-1))!=TITYPE_FUNCTION)
+                                if((TI_TYPE(*(InfixOpTop-1))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-1))!=TITYPE_CUSTOMFUNC))
                                     rplDecompAppendChar(')');
 
                             }
@@ -1534,7 +1573,7 @@ end_of_expression:
                           }
                         }
                     if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(*(InfixOpTop-1))) {
-                        if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS
+                        if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC)) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS
                         rplDecompAppendChar(')');
                     }
                     }
@@ -1577,7 +1616,7 @@ end_of_expression:
             }
 
             // CHECK PRECEDENCE TO SEE IF WE NEED PARENTHESIS
-            if( (InfixOpTop-6)>=(WORDPTR)RSTop) {
+            if( (InfixOpTop-6)>=(WORDPTR)ValidateTop) {
                 // THERE'S AN OPERATOR IN THE STACK
                 if(ISPROLOG(*(InfixOpTop-6))) {
                     // THIS IS AN EXPRESSION START WITHOUT ANY OPERATORS
@@ -1593,7 +1632,7 @@ end_of_expression:
                     }
 
                     if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(*(InfixOpTop-1))) {
-                        if(TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS
+                        if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC)) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS
                         rplDecompAppendChar(')');
                     }
                 }
@@ -1609,6 +1648,36 @@ end_of_expression:
 
         }
         break;
+
+        case INFIX_CUSTOMFUNCARG:
+        {
+            // CHECK IF THIS IS THE LAST ARGUMENT
+            WORDPTR EndofExpression = rplSkipOb(*(signed int *)(InfixOpTop-4)+EndOfObject);
+
+            if(rplSkipOb(DecompileObject)==EndofExpression) {
+                rplDecompAppendChar(')');
+                // END OF THIS EXPRESSION
+                // POP EXPRESSION FROM THE STACK
+                InfixOpTop-=4;
+                // RESTORE PREVIOUS EXPRESSION STATE
+                infixmode=InfixOpTop[1];
+                DecompileObject=rplSkipOb(*(signed int *)InfixOpTop+EndOfObject);
+                if(!infixmode) rplDecompAppendChar('\'');
+
+                goto end_of_expression;
+            }
+            else {
+                // IF NOT, KEEP PROCESSING ARGUMENTS
+                UBINT64 Locale=rplGetSystemLocale();
+
+                rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
+            }
+
+
+
+
+        break;
+        }
 
         case INFIX_FUNCARGUMENT:
         {
@@ -1629,7 +1698,9 @@ end_of_expression:
             }
             else {
                 // IF NOT, KEEP PROCESSING ARGUMENTS
-                rplDecompAppendChar(',');   // TODO: CHANGE THIS TO ; WHEN USING ',' AS DECIMAL POINT!
+                UBINT64 Locale=rplGetSystemLocale();
+
+                rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
             }
 
 
@@ -1654,7 +1725,9 @@ end_of_expression:
             }
             else {
                 // IF NOT, KEEP PROCESSING A LIST OF EXPRESSIONS (???)
-                rplDecompAppendChar(',');   // TODO: CHANGE THIS TO ; WHEN USING ',' AS DECIMAL POINT!
+                UBINT64 Locale=rplGetSystemLocale();
+
+                rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
             }
             break;
         }

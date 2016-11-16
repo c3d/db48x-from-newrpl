@@ -739,7 +739,7 @@ void LIB_HANDLER()
      return;
      }
 
-     BINT slen=rplStrSize(rplPeekData(1));
+     BINT slen=rplStrLen(rplPeekData(1));
 
      if(slen!=4) {
          rplError(ERR_INVALIDLOCALESTRING);
@@ -748,9 +748,58 @@ void LIB_HANDLER()
 
      rplGetSystemNumberFormat(&fmt);
 
-     fmt.Locale=*(rplPopData()+1);
+     // EXTRACT ALL 4 CODE POINTS
+     BYTEPTR locstring,strend;
+     strend= (BYTEPTR)(rplPeekData(1)+1)+rplStrSize(rplPeekData(1));
+     locstring=(BYTEPTR)(rplPeekData(1)+1);
+     UBINT64 newlocale;
+
+     BINT cp=utf82cp((char *)locstring,(char *)strend);
+
+     if(cp<0) {
+         rplError(ERR_INVALIDLOCALESTRING);
+         return;
+     }
+
+     newlocale=cp;
+
+     locstring=(BYTEPTR)utf8skipst((char *)locstring,(char *)strend);
+
+     cp=utf82cp((char *)locstring,(char *)strend);
+
+          if(cp<0) {
+              rplError(ERR_INVALIDLOCALESTRING);
+              return;
+          }
+
+     newlocale|=(((UBINT64)cp)<<16);
+
+     locstring=(BYTEPTR)utf8skipst((char *)locstring,(char *)strend);
+
+     cp=utf82cp((char *)locstring,(char *)strend);
+
+          if(cp<0) {
+              rplError(ERR_INVALIDLOCALESTRING);
+              return;
+          }
+
+     newlocale|=(((UBINT64)cp)<<32);
+
+     locstring=(BYTEPTR)utf8skipst((char *)locstring,(char *)strend);
+
+     cp=utf82cp((char *)locstring,(char *)strend);
+
+          if(cp<0) {
+              rplError(ERR_INVALIDLOCALESTRING);
+              return;
+          }
+
+     newlocale|=(((UBINT64)cp)<<48);
+
+     fmt.Locale=newlocale;
 
      rplSetSystemNumberFormat(&fmt);
+     rplDropData(1);
      return;
 
     }
