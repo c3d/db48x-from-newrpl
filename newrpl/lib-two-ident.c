@@ -141,14 +141,18 @@ WORDPTR rplCreateIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
 }
 
 // THESE ARE THE ONLY CHARACTERS THAT ARE FORBIDDEN IN AN IDENTIFIER
+// ALSO FORBIDDEN IS THE ARGUMENT SEPARATOR IF NOT INCLUDED IN THIS LIST
 const char const forbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@|√«»≤≥≠∡";
-
 
 BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend)
 {
     BYTEPTR ptr;
     BINT char1,char2;
+    BINT argsep;
+
     if(tokend<=tok) return 0;
+
+    argsep=ARG_SEP(rplGetSystemLocale());
 
     // SKIP ANY INITIAL DOTS
     while((tok!=tokend)&&(*tok=='.')) ++tok;
@@ -166,6 +170,9 @@ BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend)
         if(char1==char2) return 0;
         ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)ptr+4);
         } while(*ptr);
+
+        if(char1==argsep) return 0; // DON'T ALLOW THE ARGUMENT SEPARATOR
+
         tok=(BYTEPTR)utf8skip((char *)tok,(char *)tokend);
     }
     return 1;
@@ -279,7 +286,7 @@ void LIB_HANDLER()
                 if(rplIsValidIdent(splitpoint,(BYTEPTR)BlankStart)) {
                     // CONFIRMED IMPLICIT MULTIPLICATION
                     // TRY TO COMPILE AS NUMBER IDENT *
-                    WORD  locale=rplGetSystemLocale();
+                    UBINT64 locale=rplGetSystemLocale();
                     newRealFromText(&RReg[0],(char *)tok,(char *)splitpoint,locale);
                     if(RReg[0].flags&F_ERROR) {
                         RetNum=ERR_SYNTAX;

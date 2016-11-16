@@ -1757,7 +1757,7 @@ void LIB_HANDLER()
             BINT groupoff[8];
             BINT groupexp[8];
             BINT groupidx=0;
-            WORD Locale=rplGetSystemLocale();
+            UBINT64 Locale=rplGetSystemLocale();
             BINT toklen;
             BINT tokstart=1;
 

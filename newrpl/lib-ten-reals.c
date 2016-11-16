@@ -873,30 +873,31 @@ void LIB_HANDLER()
             MODE_EXPSIGN,
             MODE_EXP
         };
-        WORD Locale=rplGetSystemLocale();
+        NUMFORMAT nformat;
+        rplGetSystemNumberFormat(&nformat);
         BINT mode=MODE_IP;
-        BYTE num;
+        WORD num;
         int f,exitfor=0;
         BYTEPTR ptr=(BYTEPTR)TokenStart;
 
-        for(f=0;f<(int)TokenLen;++f,++ptr) {
-            num=*ptr;
+        for(f=0;f<(int)TokenLen;++f,ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)ptr+4)) {
+            num=utf82cp((char *)ptr,(char *)ptr+4);
             switch(mode)
             {
             case MODE_IP:
-                if(num==DECIMAL_DOT(Locale)) { mode=MODE_FP; break; }
-                //if(num==THOUSAND_SEP(Locale)) { break; }
-                if((f!=0) && (num=='e' || num=='E' || num==EXP_LETTER(Locale))) { mode=MODE_EXPSIGN; break; }
+                if(num==DECIMAL_DOT(nformat.Locale)) { mode=MODE_FP; break; }
+                if(num==THOUSAND_SEP(nformat.Locale)) { break; }
+                if((f!=0) && (num=='e' || num=='E' || num==EXP_LETTER(nformat.MiddleFmt))) { mode=MODE_EXPSIGN; break; }
                 if(num<'0' || num>'9') { exitfor=1; break; }
                 break;
             case MODE_FP:
-                //if(num==FRAC_SEP(Locale)) { break; }
+                if(num==FRAC_SEP(nformat.Locale)) { break; }
                 if(num=='.') { mode=MODE_EXPLETTER; break; }
-                if(num=='e' || num=='E' || num==EXP_LETTER(Locale)) { mode=MODE_EXPSIGN; break; }
+                if(num=='e' || num=='E' || num==EXP_LETTER(nformat.MiddleFmt)) { mode=MODE_EXPSIGN; break; }
                 if(num<'0' || num>'9') { exitfor=1; break; }
                 break;
             case MODE_EXPLETTER:
-                if(num=='e' || num=='E' || num==EXP_LETTER(Locale)) { mode=MODE_EXPSIGN; break; }
+                if(num=='e' || num=='E' || num==EXP_LETTER(nformat.MiddleFmt)) { mode=MODE_EXPSIGN; break; }
                 exitfor=1;
                 break;
             case MODE_EXPSIGN:

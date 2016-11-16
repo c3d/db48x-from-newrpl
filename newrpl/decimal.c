@@ -2800,7 +2800,7 @@ int round_in_string(char *start,char *end,int format,UBINT64 chars,char rounddig
 char *formatReal(REAL *number, char *buffer, BINT format, UBINT64 chars)
 {
     int totaldigits,integer,frac,realexp,leftzeros,sep_spacing;
-    int nbnumsep,nbfracsep;
+    int nbnumsep,nbfracsep,nbdot;
     int dotpos;
     int wantdigits=format&0xfff;
     int wantzeros;
@@ -2888,6 +2888,10 @@ char *formatReal(REAL *number, char *buffer, BINT format, UBINT64 chars)
         utfsep=cp2utf8(FRAC_SEP(chars));
         nbfracsep=0;
         while(utfsep>>(nbfracsep*8)) ++nbfracsep;
+        utfsep=cp2utf8(DECIMAL_DOT(chars));
+        nbdot=0;
+        while(utfsep>>(nbdot*8)) ++nbdot;
+
     }
 
 
@@ -2921,7 +2925,7 @@ char *formatReal(REAL *number, char *buffer, BINT format, UBINT64 chars)
             while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
         }
         // INSERT SEPARATOR AS NEEDED
-        else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && ((idx-dotpos+nbfracsep-1)%(sep_spacing+nbfracsep) == 0 )) {
+        else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && ((idx-dotpos+nbfracsep-nbdot)%(sep_spacing+nbfracsep) == 0 )) {
             WORD ucode=cp2utf8(FRAC_SEP(chars));
             while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
 
@@ -3009,7 +3013,7 @@ char *formatReal(REAL *number, char *buffer, BINT format, UBINT64 chars)
                 while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
             }
             // INSERT SEPARATOR AS NEEDED
-            else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && (((idx-dotpos+nbfracsep-1)%(sep_spacing+nbfracsep)) == 0 ))
+            else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && (((idx-dotpos+nbfracsep-nbdot)%(sep_spacing+nbfracsep)) == 0 ))
             {
                 WORD ucode=cp2utf8(FRAC_SEP(chars));
                 while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
@@ -3033,7 +3037,7 @@ char *formatReal(REAL *number, char *buffer, BINT format, UBINT64 chars)
                     while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }
                 }
                 // INSERT SEPARATOR AS NEEDED
-                else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && (((idx-dotpos+nbfracsep-1)%(sep_spacing+nbfracsep)) == 0 ))
+                else if(!(format&FMT_CODE) && (format&FMT_FRACSEPARATOR) && (((idx-dotpos+nbfracsep-nbdot)%(sep_spacing+nbfracsep)) == 0 ))
                 {
                     WORD ucode=cp2utf8(FRAC_SEP(chars));
                     while(ucode) { buffer[idx++]=ucode&0xff; ucode>>=8; }

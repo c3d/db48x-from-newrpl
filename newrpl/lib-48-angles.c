@@ -1452,10 +1452,10 @@ void LIB_HANDLER()
             if((*ptr=='r')||(*ptr=='R')) { angmode=ANGLERAD; --tlen; }
 
 
-            WORD  locale=rplGetSystemLocale();
+            UBINT64 locale=rplGetSystemLocale();
 
 
-            newRealFromText(&RReg[0],(char *)strptr,utf8nskip((char *)strptr,(char *)BlankStart,tlen),(WORD)locale);
+            newRealFromText(&RReg[0],(char *)strptr,utf8nskip((char *)strptr,(char *)BlankStart,tlen),locale);
 
 
             if(RReg[0].flags&F_ERROR) {
@@ -1642,7 +1642,6 @@ void LIB_HANDLER()
             RetNum=ERR_NOTMINE;
             return;
         }
-
         enum {
             MODE_IP=0,
             MODE_FP,
@@ -1650,37 +1649,36 @@ void LIB_HANDLER()
             MODE_EXPSIGN,
             MODE_EXP
         };
-        WORD Locale=rplGetSystemLocale();
+        NUMFORMAT nformat;
+        rplGetSystemNumberFormat(&nformat);
         BINT mode=MODE_IP;
-        BYTE num,tlen=TokenLen;
+        WORD num;
         int f,exitfor=0;
         BYTEPTR ptr=(BYTEPTR)TokenStart;
 
-        if(utf8ncmp((char *)ptr,"∡",1)) {
-            RetNum=ERR_NOTMINE;
-            return;
-        }
-        ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)BlankStart);
-        tlen--;
-
-        for(f=0;f<(int)tlen;++f,++ptr) {
-            num=*ptr;
+        for(f=0;f<(int)TokenLen;++f,ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)ptr+4)) {
+            num=utf82cp((char *)ptr,(char *)ptr+4);
             switch(mode)
             {
             case MODE_IP:
-                if(num==DECIMAL_DOT(Locale)) { mode=MODE_FP; break; }
-                //if(num==THOUSAND_SEP(Locale)) { break; }
-                if((f!=0) && (num=='e' || num=='E' || num==EXP_LETTER(Locale))) { mode=MODE_EXPSIGN; break; }
+                if(f==0) {
+                    if(num==0x2221) break;
+                    exitfor=1;
+                    break;
+                }
+                if(num==DECIMAL_DOT(nformat.Locale)) { mode=MODE_FP; break; }
+                if(num==THOUSAND_SEP(nformat.Locale)) { break; }
+                if((f!=0) && (num=='e' || num=='E' || num==EXP_LETTER(nformat.MiddleFmt))) { mode=MODE_EXPSIGN; break; }
                 if(num<'0' || num>'9') { exitfor=1; break; }
                 break;
             case MODE_FP:
-                //if(num==FRAC_SEP(Locale)) { break; }
+                if(num==FRAC_SEP(nformat.Locale)) { break; }
                 if(num=='.') { mode=MODE_EXPLETTER; break; }
-                if(num=='e' || num=='E' || num==EXP_LETTER(Locale)) { mode=MODE_EXPSIGN; break; }
+                if(num=='e' || num=='E' || num==EXP_LETTER(nformat.MiddleFmt)) { mode=MODE_EXPSIGN; break; }
                 if(num<'0' || num>'9') { exitfor=1; break; }
                 break;
             case MODE_EXPLETTER:
-                if(num=='e' || num=='E' || num==EXP_LETTER(Locale)) { mode=MODE_EXPSIGN; break; }
+                if(num=='e' || num=='E' || num==EXP_LETTER(nformat.MiddleFmt)) { mode=MODE_EXPSIGN; break; }
                 exitfor=1;
                 break;
             case MODE_EXPSIGN:
@@ -1695,20 +1693,22 @@ void LIB_HANDLER()
             if(exitfor) break;
         }
 
+
+
         if(mode==MODE_EXPSIGN) --f;
         if(f==0) RetNum=ERR_NOTMINE;
 
         else {
-            if(f<(int)tlen) {
+            if(f<(int)TokenLen) {
                 if(num=='.') { ++f; ++ptr; num=*ptr; }
-                if(f<(int)tlen) {
+                if(f<(int)TokenLen) {
                     if(!utf8ncmp((char *)ptr,"°",1)) ++f;
                     else
                         if((num=='d')||(num=='D')||(num=='g')||(num=='G')||(num=='r')||(num=='R')) ++f;
                 }
             }
 
-            RetNum=OK_TOKENINFO | MKTOKENINFO(f+1,TITYPE_REAL,0,1);
+            RetNum=OK_TOKENINFO | MKTOKENINFO(f,TITYPE_REAL,0,1);
         }
 
         return;
