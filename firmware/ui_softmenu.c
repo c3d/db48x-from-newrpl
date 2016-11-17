@@ -278,10 +278,10 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
             //DrawTextN(pos+1,scr->clipy+1,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.MenuFont,(color)? 0x4:0xa,scr);
 
             // FIRST LETTER GRAY BACKGROUND
-            ggl_clipvline(scr,pos,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x6));
-            ggl_clipvline(scr,pos+1,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x6));
-            ggl_clipvline(scr,pos+2,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x6));
-            ggl_clipvline(scr,pos+3,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x6));
+            ggl_clipvline(scr,pos,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x8));
+            ggl_clipvline(scr,pos+1,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x8));
+            ggl_clipvline(scr,pos+2,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x8));
+            ggl_clipvline(scr,pos+3,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x8));
 
             // LOWER 2 LINES GRAY
             //ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor( (color)? 0X4:0x6));
@@ -377,10 +377,10 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
         //DrawTextN(pos+1,scr->clipy+1,(char *)string,(char *)endstring,halScreen.MenuFont,(color)? 0x4:0xa,scr);
 
         // FIRST LETTER GRAY BACKGROUND
-        ggl_clipvline(scr,pos,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x6));
-        ggl_clipvline(scr,pos+1,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x6));
-        ggl_clipvline(scr,pos+2,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x6));
-        ggl_clipvline(scr,pos+3,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x6));
+        ggl_clipvline(scr,pos,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x8));
+        ggl_clipvline(scr,pos+1,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x8));
+        ggl_clipvline(scr,pos+2,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x8));
+        ggl_clipvline(scr,pos+3,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x8));
 
         // LOWER 2 LINES GRAY
         //ggl_cliphline(scr,scr->clipy2,scr->clipx,scr->clipx2,ggl_mkcolor( (color)? 0X4:0x6));
