@@ -7,9 +7,7 @@
 
 #include <ui.h>
 
-unsigned int __battery __SYSTEM_GLOBAL__;
-
-#define HWREG(base,off) ( (volatile unsigned int *) (((int)base+(int)off)))
+WORD __battery __SYSTEM_GLOBAL__;
 
 // SETUP ADC CONVERTERS TO READ BATTERY VOLTAGE
 void bat_setup()

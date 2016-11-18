@@ -43,6 +43,7 @@ GETI
 HEAD
 TAIL
 ADD
+ADDROT
 SORT
 REVLIST
 }
@@ -137,6 +138,11 @@ ADD
 "Append new element
 to list
 <L or O> <O or L> → L "
+
+ADDROT
+"Append an object to list
+and trim list to N elem.
+L O I → L "
 
 SORT
 "Sort a list in ascending

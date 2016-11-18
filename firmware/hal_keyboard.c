@@ -3001,13 +3001,43 @@ void changemenuKeyHandler(BINT keymsg,WORD menucode)
     WORDPTR numobject=rplNewBINT(menucode,HEXBINT);
 
     if(!numobject || Exceptions) return;
+    BINT menu=rplGetActiveMenu();
 
-    rplChangeMenu(numobject);
+    rplSaveMenuHistory(menu);
+    rplChangeMenu(menu,numobject);
 
-    if(rplGetActiveMenu()==1) halScreen.DirtyFlag|=MENU1_DIRTY;
+    if(menu==1) halScreen.DirtyFlag|=MENU1_DIRTY;
     else halScreen.DirtyFlag|=MENU2_DIRTY;
 
 }
+
+void backmenuKeyHandler(BINT keymsg,WORD menu)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(menu<1 || menu>2) return;
+
+    WORDPTR oldmenu=rplPopMenuHistory(menu);
+    if(oldmenu) {
+        rplChangeMenu(menu,oldmenu);
+
+    if(menu==1) halScreen.DirtyFlag|=MENU1_DIRTY;
+    else halScreen.DirtyFlag|=MENU2_DIRTY;
+    }
+
+}
+
+
+void backmenu1KeyHandler(BINT keymsg)
+{
+backmenuKeyHandler(keymsg,1);
+}
+
+void backmenu2KeyHandler(BINT keymsg)
+{
+backmenuKeyHandler(keymsg,2);
+}
+
 
 #define DECLARE_TRANSPCMDKEYHANDLER(name,opcode) void name##KeyHandler(BINT keymsg) \
                                                              { \
@@ -3744,12 +3774,15 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     // MENUS
     { KM_PRESS|KB_6|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(unitmenu) },
     { KM_PRESS|KB_N|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(prgmenu) },
-    { KM_PRESS|KB_N|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(varsmenu) },
     { KM_PRESS|KB_P,CONTEXT_ANY, KEYHANDLER_NAME(mainmenu) },
     { KM_PRESS|KB_1|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(arithmenu) },
     { KM_PRESS|KB_1|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(cplxmenu) },
     { KM_PRESS|KB_9|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(timemenu) },
     { KM_PRESS|KB_3|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(basemenu) },
+    { KM_PRESS|KB_M|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(backmenu1) },
+    { KM_PRESS|KB_M|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(backmenu1) },
+    { KM_PRESS|KB_M|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(backmenu2) },
+    { KM_PRESS|KB_M|SHIFT_RS|SHIFT_RSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(backmenu2) },
 
     { 0 , 0 , 0 }
 };

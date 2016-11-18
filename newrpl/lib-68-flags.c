@@ -47,6 +47,9 @@
     CMD(TMENULST,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)),\
     CMD(TMENUOTHR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)),\
     CMD(MENUSWAP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(MENUBK,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(MENUBKLST,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(MENUBKOTHR,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(RCLMENU,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)),\
     CMD(RCLMENULST,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)),\
     CMD(RCLMENUOTHR,MKTOKENINFO(11,TITYPE_NOTALLOWED,1,2)),\
@@ -125,10 +128,30 @@ ROMOBJECT menu1_ident[]= {
         TEXT2WORD('1',0,0,0)
 };
 
+ROMOBJECT menu1hist_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('M','e','n','u'),
+        TEXT2WORD('1','H','s','t')
+};
+
 ROMOBJECT menu2_ident[]= {
         MKPROLOG(DOIDENT,2),
         TEXT2WORD('M','e','n','u'),
         TEXT2WORD('2',0,0,0)
+};
+
+ROMOBJECT menu2hist_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('M','e','n','u'),
+        TEXT2WORD('2','H','s','t')
+};
+
+ROMOBJECT menuhistory_ident[]= {
+        MKPROLOG(DOIDENT,3),
+        TEXT2WORD('M','e','n','u'),
+        TEXT2WORD('H','L','e','v'),
+        TEXT2WORD('e','l','s',0),
+
 };
 
 ROMOBJECT clipbd_ident[] = {
@@ -163,7 +186,9 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)menu1_ident,
     (WORDPTR)menu2_ident,
     (WORDPTR)clipbd_ident,
-
+    (WORDPTR)menu1hist_ident,
+    (WORDPTR)menu2hist_ident,
+    (WORDPTR)menuhistory_ident,
     0
 };
 
@@ -618,33 +643,89 @@ if(a==1) return 2;
 return 1;
 }
 
+// PUSH THE CURRENT MENU INTO THE MENU HISTORY
+// CAN TRIGGER GC AND USES ScratchPointers 1 thru 3
+void rplSaveMenuHistory(BINT menu)
+{
+    WORD oldmcode=rplGetMenuCode(menu);
+
+    // STORE THE OLD MENU IN THE HISTORY
+    WORDPTR msetting;
+
+    if((MENULIBRARY(oldmcode)==LIBRARY_NUMBER)&&(MENUNUMBER(oldmcode)<2)) {
+        // SPECIAL CUSTOM MENUS, RCL FROM THE SETTINGS DIRECTORY
+        if(menu==1)  msetting=rplGetSettings((WORDPTR)menu1_ident);
+        else if(menu==2) msetting=rplGetSettings((WORDPTR)menu2_ident);
+        else msetting=0;
+
+        if(!msetting) msetting=(WORDPTR)empty_list; // IF MENU CONTENT CAN'T BE DETERMINED, RETURN AN EMPTY CUSTOM MENU
+    }
+    else {
+    // NOTHING CUSTOM, JUST RETURN THE MENU CODE
+    // THIS CAN TRIGGER A GC!
+    msetting=rplNewBINT((BINT64)oldmcode,HEXBINT);
+    }
+
+    if(!msetting) return;
+
+    // HERE msetting HAS EITHER THE OBJECT OR CODE TO STORE IN THE HISTORY
+
+    WORDPTR oldlist=rplGetSettings((menu==1)? (WORDPTR)menu1hist_ident:(WORDPTR)menu2hist_ident);
+    if(!oldlist) oldlist=(WORDPTR)empty_list;
+    WORDPTR levels=rplGetSettings((WORDPTR)menuhistory_ident);
+    if(!levels) levels=(WORDPTR)one_bint;
+
+    BINT64 nlevels=rplReadNumberAsBINT(levels);
+
+    // THIS CAN TRIGGER A GC!
+    WORDPTR newlist=rplListAddRot(oldlist,msetting,nlevels);
+
+    if(!newlist) return;
+
+    rplStoreSettings((menu==1)? (WORDPTR)menu1hist_ident:(WORDPTR)menu2hist_ident,newlist);
+
+    return;
+}
+
+// RCL AND REMOVE FROM HISTORY THE LAST ITEM IN THE LIST
+
+WORDPTR rplPopMenuHistory(BINT menu)
+{
+    WORDPTR list=rplGetSettings((menu==1)? (WORDPTR)menu1hist_ident:(WORDPTR)menu2hist_ident);
+    if(!list) return 0;
+
+    BINT nelem=rplExplodeList2(list);
+    if(nelem<1) return 0;
+
+    ScratchPointer1=rplPopData();
+
+    list=rplCreateListN(nelem-1);
+    if(!list) list=(WORDPTR)empty_list;
+
+    rplStoreSettings((menu==1)? (WORDPTR)menu1hist_ident:(WORDPTR)menu2hist_ident,list);
+
+    return ScratchPointer1;
+
+}
+
+
+
+
+
+
+
+
+
+
+
 // REPLACE THE ACTIVE MENU WITH THE GIVEN OBJECT
 // THIS DOES THE SAME JOB AS TMENU, BUT CAN BE CALLED
 // FROM OTHER LIBRARIES. MAY TRIGGER GC WHEN STORING
 // IN SETTINGS DIRECTORY
-void rplChangeMenu(WORDPTR newmenu)
+void rplChangeMenu(BINT menu,WORDPTR newmenu)
 {
-       BINT menu=rplGetActiveMenu();
 
-       if(ISIDENT(*newmenu)) {
-
-           // RCL THE VARIABLE AND LEAVE CONTENTS ON THE STACK
-
-           WORDPTR *var=rplFindLAM(newmenu,1);
-           if(!var) var=rplFindGlobal(newmenu,1);
-
-           if(!var) {
-              rplError(ERR_UNDEFINEDVARIABLE);
-              return;
-           }
-
-           // REPLACE THE IDENT WITH ITS CONTENTS
-           newmenu=var[1];
-
-           // AND CONTINUE EXCECUTION
-       }
-
-       if(ISLIST(*newmenu)) {
+       if(ISLIST(*newmenu)||ISIDENT(*newmenu)) {
            // CUSTOM MENU
 
           WORD mcode=MKMENUCODE(0,LIBRARY_NUMBER,menu-1,0);
@@ -1112,68 +1193,12 @@ void LIB_HANDLER()
         WORDPTR arg=rplPeekData(1);
         BINT menu=rplGetActiveMenu();
 
-        if(ISIDENT(*arg)) {
+        rplSaveMenuHistory(menu);
+        rplChangeMenu(menu,arg);
 
-            // CUSTOM MENU
-
-           WORD mcode=MKMENUCODE(0,LIBRARY_NUMBER,menu-1,0);
-
-           rplSetMenuCode(menu,mcode);
-
-           // STORE THE IDENT IN .Settings AS CURRENT MENU
-           if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,arg);
-           else rplStoreSettings((WORDPTR)menu1_ident,arg);
-
-           rplDropData(1);
-          return;
-
-            // AND CONTINUE EXCECUTION
-        }
-
-        if(ISLIST(*arg)) {
-            // CUSTOM MENU
-
-           WORD mcode=MKMENUCODE(0,LIBRARY_NUMBER,menu-1,0);
-
-           rplSetMenuCode(menu,mcode);
-
-           // STORE THE LIST IN .Settings AS CURRENT MENU
-           if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,arg);
-           else rplStoreSettings((WORDPTR)menu1_ident,arg);
-
-           rplDropData(1);
-          return;
-        }
-
-
-
-        if(ISBINT(*arg)) {
-            // IT'S A PREDEFINED MENU CODE
-            BINT64 num=rplReadBINT(arg);
-
-            if((num<0)||(num>0xffffffff)) {
-                // JUST SET IT TO ZERO
-                rplSetMenuCode(menu,0);
-                // STORE THE LIST IN .Settings AS CURRENT MENU
-                if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,(WORDPTR)zero_bint);
-                else rplStoreSettings((WORDPTR)menu1_ident,(WORDPTR)zero_bint);
-
-            }
-            else {
-            // WE HAVE A VALID MENU NUMBER
-
-            rplSetMenuCode(menu,num);
-            // STORE THE LIST IN .Settings AS CURRENT MENU
-            if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,arg);
-            else rplStoreSettings((WORDPTR)menu1_ident,arg);
-
-            }
-
+        if(!Exceptions) {
             rplDropData(1);
-            return;
         }
-
-        rplError(ERR_BADARGTYPE);
 
       return;
     }
@@ -1194,66 +1219,12 @@ void LIB_HANDLER()
             else menu=1;
         }
 
-        if(ISIDENT(*arg)) {
+        rplSaveMenuHistory(menu);
+        rplChangeMenu(menu,arg);
 
-            // CUSTOM MENU
-
-           WORD mcode=MKMENUCODE(0,LIBRARY_NUMBER,menu-1,0);
-
-           rplSetMenuCode(menu,mcode);
-
-           // STORE THE IDENT IN .Settings AS CURRENT MENU
-           if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,arg);
-           else rplStoreSettings((WORDPTR)menu1_ident,arg);
-
-           rplDropData(1);
-          return;
-        }
-
-        if(ISLIST(*arg)) {
-            // CUSTOM MENU
-
-           WORD mcode=MKMENUCODE(0,LIBRARY_NUMBER,menu-1,0);
-
-           rplSetMenuCode(menu,mcode);
-
-           // STORE THE LIST IN .Settings AS CURRENT MENU
-           if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,arg);
-           else rplStoreSettings((WORDPTR)menu1_ident,arg);
-
-           rplDropData(1);
-          return;
-        }
-
-
-
-        if(ISBINT(*arg)) {
-            // IT'S A PREDEFINED MENU CODE
-            BINT64 num=rplReadBINT(arg);
-
-            if((num<0)||(num>0xffffffff)) {
-                // JUST SET IT TO ZERO
-                rplSetMenuCode(menu,0);
-                // STORE THE LIST IN .Settings AS CURRENT MENU
-                if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,(WORDPTR)zero_bint);
-                else rplStoreSettings((WORDPTR)menu1_ident,(WORDPTR)zero_bint);
-
-            }
-            else {
-            // WE HAVE A VALID MENU NUMBER
-
-            rplSetMenuCode(menu,num);
-            // STORE THE LIST IN .Settings AS CURRENT MENU
-            if(menu==2) rplStoreSettings((WORDPTR)menu2_ident,arg);
-            else rplStoreSettings((WORDPTR)menu1_ident,arg);
-
-            }
-
+        if(!Exceptions) {
             rplDropData(1);
-            return;
         }
-
-        rplError(ERR_BADARGTYPE);
 
       return;
     }
@@ -1320,6 +1291,34 @@ void LIB_HANDLER()
         if(m1setting) rplStoreSettings((WORDPTR)menu2_ident,m1setting);
         if(m2setting) rplStoreSettings((WORDPTR)menu1_ident,m2setting);
 
+        m1setting=rplGetSettings((WORDPTR)menu1hist_ident);
+        m2setting=rplGetSettings((WORDPTR)menu2hist_ident);
+
+        if(m1setting) rplStoreSettings((WORDPTR)menu2hist_ident,m1setting);
+        if(m2setting) rplStoreSettings((WORDPTR)menu1hist_ident,m2setting);
+
+        return;
+    }
+
+    case MENUBK:
+    case MENUBKLST:
+    case MENUBKOTHR:
+    {
+        BINT menu;
+
+        if(CurOpcode!=CMD_MENUBK) {
+        menu=rplGetLastMenu();
+        if(CurOpcode==CMD_MENUBKOTHR) {
+            // USE THE OTHER MENU
+            if(menu==1) menu=2;
+            else menu=1;
+        }
+        }
+        else menu=rplGetActiveMenu();
+
+        WORDPTR menuobj=rplPopMenuHistory(menu);
+
+        if(menuobj) rplChangeMenu(menu,menuobj);
 
         return;
     }

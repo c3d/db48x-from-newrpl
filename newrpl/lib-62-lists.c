@@ -81,8 +81,8 @@
     CMD(TAIL,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(ADD,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
     CMD(SORT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(REVLIST,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
-
+    CMD(REVLIST,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ADDROT,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
 // ADD MORE OPCODES HERE
 
 #define ERROR_LIST \
@@ -2709,6 +2709,40 @@ void LIB_HANDLER()
         // PUSH IT ON THE STACK
         rplOverwriteData(2,newlist);
         rplDropData(1);
+
+        return;
+
+    }
+
+    case ADDROT:
+        // APPEND AN ELEMENT TO A LIST AND ROTATE IT
+        // LIST ELEM NITEMS -> { Obj ... ObjN ELEM }
+        // THE NEW LIST DROPS ELEMENTS TO BE NITEMS MAX.
+     {
+        if(rplDepthData()<3) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISLIST(*rplPeekData(3))) {
+            rplError(ERR_LISTEXPECTED);
+            return;
+        }
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+        BINT64 nitems=rplReadNumberAsBINT(rplPeekData(1));
+        if(nitems<1) {
+            rplError(ERR_POSITIVE_INTEGER_EXPECTED);
+            return;
+        }
+
+        WORDPTR newlist=rplListAddRot(rplPeekData(3),rplPeekData(2),nitems);
+        if(!newlist) return;
+        rplDropData(2);
+        rplOverwriteData(1,newlist);
 
         return;
 

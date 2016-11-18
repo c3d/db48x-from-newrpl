@@ -4,9 +4,10 @@
  * This file is released under the 3-clause BSD license.
  * See the file LICENSE.txt that shipped with this distribution.
  */
+#include <ui.h>
 
 
-unsigned int __battery;
+WORD __battery;
 
 
 void bat_read()

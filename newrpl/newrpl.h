@@ -306,9 +306,13 @@ void rplSetMenuCode(BINT menunumber,WORD menucode);
 WORD rplGetMenuCode(BINT menunumber);
 void rplSetActiveMenu(BINT menunumber);
 BINT rplGetActiveMenu();
-void rplChangeMenu(WORDPTR newmenu);
+void rplChangeMenu(BINT menu, WORDPTR newmenu);
 void rplSetLastMenu(BINT menunumber);
 BINT rplGetLastMenu();
+WORDPTR rplPopMenuHistory(BINT menu);
+void rplSaveMenuHistory(BINT menu);
+
+
 
 
 // SYSTEM AUTOCOMPLETE
@@ -534,13 +538,18 @@ WORDPTR *rplUnitFindCustom(WORDPTR ident,BINT *siindex);
 BINT rplListLength(WORDPTR composite);
 BINT rplListLengthFlat(WORDPTR composite);
 void rplCreateList();
+WORDPTR rplCreateListN(BINT num);
 BINT rplExplodeList(WORDPTR composite);
+BINT rplExplodeList2(WORDPTR composite);
 WORDPTR rplGetListElement(WORDPTR composite, BINT pos);
 WORDPTR rplGetListElementFlat(WORDPTR composite, BINT pos);
 WORDPTR rplGetNextListElementFlat(WORDPTR composite, WORDPTR elem);
 BINT rplIsLastElementFlat(WORDPTR composite, BINT pos);
 void rplListUnaryDoCmd();
 void rplListBinaryDoCmd(WORDPTR arg1, WORDPTR arg2);
+WORDPTR rplListAddRot(WORDPTR list,WORDPTR object,BINT nmax);
+
+
 
 // SYMBOLIC FUNCTIONS
 WORDPTR rplSymbUnwrap(WORDPTR symbolic);

@@ -29,6 +29,25 @@ BINT rplExplodeList(WORDPTR composite)
     return count;
 }
 
+
+// EXPAND A COMPOSITE IN THE STACK
+// DOESN'T PUSH THE NUMBER OF ELEMENTS, JUST RETURNS IT
+// USES 2 SCRATCH POINTERS
+
+BINT rplExplodeList2(WORDPTR composite)
+{
+    BINT count=0;
+    ScratchPointer1=composite+1;
+    ScratchPointer2=composite+OBJSIZE(*composite);  // POINT TO THE END MARKER
+    while(ScratchPointer1<ScratchPointer2) {
+        rplPushData(ScratchPointer1);
+        ScratchPointer1=rplSkipOb(ScratchPointer1);
+        ++count;
+    }
+    return count;
+}
+
+
 BINT rplListLength(WORDPTR composite)
 {
     BINT count=0;
@@ -155,7 +174,7 @@ BINT rplIsLastElementFlat(WORDPTR composite, BINT pos)
 
 
 // CREATE A NEW LIST. STACK LEVEL 1 = NUMBER OF ELEMENTS, LEVELS 2.. N+1 = OBJECTS
-// USES 1 SCRATCH POINTER
+
 void rplCreateList()
 {
     // NO ARGUMENT CHECKING
@@ -188,6 +207,37 @@ void rplCreateList()
     rplDropData(num);
     rplOverwriteData(1,list);
 }
+
+
+// CREATE A NEW LIST. STACK LEVEL 2.. N = OBJECTS
+WORDPTR rplCreateListN(BINT num)
+{
+    // NO ARGUMENT CHECKING
+    BINT size=1;    // 1 WORD FOR THE END MARKER
+    BINT count;
+    for(count=1;count<=num;++count) {
+        size+=rplObjSize(rplPeekData(count));
+    }
+
+    // ALLOCATE MEMORY
+    WORDPTR list=rplAllocTempOb(size);
+    if(!list) {
+        return 0;
+    }
+
+    // CONSTRUCT THE OBJECT
+    WORDPTR objptr=list+1;
+    *list=MKPROLOG(DOLIST,size);
+    for(count=num;count>0;--count) {
+        rplCopyObject(objptr,rplPeekData(count));
+        objptr+=rplObjSize(objptr);
+    }
+    *objptr=MKOPCODE(DOLIST,ENDLIST);
+
+    rplDropData(num);
+    return list;
+}
+
 
 
 // List handling for funtions with 2 argument
@@ -299,4 +349,28 @@ void rplListUnaryDoCmd()
     // EXECUTION WILL CONTINUE AT MAP
 
     return;
+}
+
+// APPEND AN ITEM TO THE END OF THE LIST, DROP THE FIRST
+// ELEMENT IF NEEDED TO KEEP THE LIST AT N ELEMENTS MAX.
+// USES ScratchPointers 1 THRU 3
+WORDPTR rplListAddRot(WORDPTR list,WORDPTR object,BINT nmax)
+{
+    BINT nitems;
+    WORDPTR *savestk=DSTop;
+
+    ScratchPointer3=object;
+    nitems=rplExplodeList2(list);
+    if(Exceptions) { DSTop=savestk; return 0; }
+
+    int k,offset=nitems-(nmax-1);
+
+    if(offset>0) {
+        for(k=nmax-1;k>0;--k) rplOverwriteData(k+offset,rplPeekData(k));
+        rplDropData(offset);
+    }
+    rplPushData(ScratchPointer3);
+    WORDPTR newlist=rplCreateListN( (offset>0)? nmax : (nitems+1) );
+    if(Exceptions) { DSTop=savestk; return 0; }
+    return newlist;
 }
