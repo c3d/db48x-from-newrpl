@@ -15,7 +15,6 @@
 @ A = Algebraic object (symbolic)
 
 
-
 @#name lib65_menu_0_time
 {
   DATE →DATE TIME →TIME { { "Alarms" 1 } :: #04102000h TMENULST ; }
@@ -25,7 +24,7 @@
 
 @#name lib65_menu_1_memory
 {
-  MEM BYTES PEEK POKE
+  MEM BYTES PEEK POKE VERSION
 }
 
 @#name lib65_menu_2_alarms
