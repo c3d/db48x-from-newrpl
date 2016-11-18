@@ -673,7 +673,7 @@ void rplSaveMenuHistory(BINT menu)
     WORDPTR oldlist=rplGetSettings((menu==1)? (WORDPTR)menu1hist_ident:(WORDPTR)menu2hist_ident);
     if(!oldlist) oldlist=(WORDPTR)empty_list;
     WORDPTR levels=rplGetSettings((WORDPTR)menuhistory_ident);
-    if(!levels) levels=(WORDPTR)one_bint;
+    if(!levels) levels=(WORDPTR)ten_bint;
 
     BINT64 nlevels=rplReadNumberAsBINT(levels);
 
