@@ -274,6 +274,9 @@ rpl_compiler.variable_out = SOURCES
 
 QMAKE_EXTRA_COMPILERS += rpl_compiler
 
+DISTFILES += \
+    newrpl/rpl-objects/lib-70.nrpl
+
 
 
 

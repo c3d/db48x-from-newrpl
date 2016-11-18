@@ -1,0 +1,117 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@  @#name lib70_msgtable
+@{
+@ NO MESSAGES IN THIS LIBRARY!
+@}
+
+
+@#name lib70menu_main
+{
+BADD BSUB BMUL BDIV { "" :: ; }
+BLSL BLSR BASR BRL BRR
+BOR BAND BXOR BNOT { "" :: ; }
+STWS RCWS
+}
+
+@#name lib70_cmdhelp
+{
+
+BADD
+"Add two N-bit integers
+
+I1 I2 → (I1+I2) "
+
+BSUB
+"Subtract two N-bit integers
+
+I1 I2 → (I1-I2) "
+
+BMUL
+"Multiply two N-bit integers
+
+I1 I2 → (I1*I2) "
+
+BDIV
+"Divide two N-bit integers
+
+I1 I2 → (I1/I2) "
+
+BLSL
+"Shift left (N-bit int)
+
+I1 I2 → (I1 << I2) "
+
+
+BLSR
+"Logical shift right
+(unsigned N-bit integer)
+I1 I2 → (I1 >> I2) "
+
+BASR
+"Arithmetic shift right
+(signed N-bit integer)
+I1 I2 → (I1 >> I2) "
+
+BRL
+"Rotate left
+(unsigned N-bit integer)
+I1 I2 → (I1 <Rot< I2) "
+
+BRR
+"Rotate right
+(unsigned N-bit integer)
+I1 I2 → (I1 <Rot< I2) "
+
+
+BOR
+"Bitwise OR
+(N-bit integer)
+I1 I2 → (I1 | I2) "
+
+
+BAND
+"Bitwise AND
+(N-bit integer)
+I1 I2 → (I1 & I2) "
+
+BXOR
+"Bitwise XOR
+(N-bit integer)
+I1 I2 → (I1 XOR I2) "
+
+BNOT
+"Bitwise NOT
+(N-bit integer)
+I1 → ~I1 "
+
+STWS
+"Store current word size
+(N-bits + 1 bit sign)
+I<N> → "
+
+RCWS
+"Get current word size
+(N-bits + 1 bit sign)
+ → I<N>"
+
+}
+
+
+
+
