@@ -62,6 +62,7 @@
 @#name sysmenu_4_math
 {
 { { "Real" 1 } ::  #04000000h TMENULST ; }
+{ { "Base" 1 } ::  #04600000h TMENULST ; }
 { { "Trig" 1 } ::  #04201000h TMENULST ; }
 { { "Hyp" 1 } ::  #04202000h TMENULST ; }
 { { "Log" 1 } ::  #04203000h TMENULST ; }
