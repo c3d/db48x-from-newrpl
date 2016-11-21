@@ -48,7 +48,7 @@
 { { "Local" 1 } ::  #02000000h TMENULST ; }
 { { "Text" 1 } ::   #01800000h TMENULST ; }
 { { "Real" 1 } ::  #04000000h TMENULST ; }
-{ { "Base" 1 } ::   #04605000h TMENULST ; }
+{ { "Base" 1 } ::   #04600000h TMENULST ; }
 { { "Cplx" 1 } ::   #01e00000h TMENULST ; }
 { { "Angles" 1 } ::   #03000000h TMENULST ; }
 { { "Matrix" 1 } ::  #03400000h TMENULST ; }

@@ -1,0 +1,141 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib72_msgtable
+{
+ ##1,ERR_BADSTACKINDEX "Stack index out of bounds"
+}
+
+
+@#name lib72menu_main
+{
+CLEAR DEPTH DROP DROP2 DROPN
+DUP DUP2 DUPDUP DUPN NDUPN
+SWAP NIP OVER ROLL ROLLD
+ROT UNROT PICK PICK3 UNPICK
+}
+
+@#name lib72_cmdhelp
+{
+
+CLEAR
+"Clear the stack
+
+... → "
+
+DEPTH
+"Get stack depth
+
+O1 ... ON → I<N>"
+
+DROP
+"Remove object at level 1
+
+O → "
+
+DROP2
+"Remove objects at level 1
+and level 2
+O O → "
+
+DROPN
+"Remove N objects from stack
+
+O1 ... O<N> I<N> → "
+
+DUP
+"Duplicate object at level 1
+
+O → O O "
+
+DUP2
+"Duplicate objects at levels 1
+and level 2
+O1 O2 → O1 O2 O1 O2 "
+
+DUPDUP
+"Duplicate object at level 1
+twice
+O → O O O "
+
+
+DUPN
+"Duplicate objects at N levels
+
+O1...O<N> I<N>→ O1...O<N> O1...O<N> "
+
+NDUPN
+"Duplicate object at level 2
+N times, and return N
+O I<N>→ O O ... O I<N> "
+
+SWAP
+"Swap levels 1 and 2
+
+O1 O2 → O2 O1 "
+
+NIP
+"Remove object at level 2
+
+O1 O2 → O2 "
+
+OVER
+"Copy object at level 2
+
+O1 O2 → O1 O2 O1 "
+
+ROLL
+"Move level N to level 1
+
+O1...O<N> I<N> → O2...O<N> O1 "
+
+ROLLD
+"Move level 2 to level N
+
+O2...O<N> O1 I<N> → O1...O<N> "
+
+ROT
+"Move level 3 to level 1
+
+O1 O2 O3 → O2 O3 O1 "
+
+UNROT
+"Move level 1 to level 3
+
+O1 O2 O3 → O3 O1 O2 "
+
+PICK
+"Copy level N to level 1
+
+O1...O<N> I<N> → O1...O<N> O1 "
+
+
+PICK3
+"Copy object at level 3
+
+O1 O2 O3 → O1 O2 O3 O1 "
+
+UNPICK
+"Overwrite level N with level 2
+
+O1...O<N> O I<N> → O O2...O<N> "
+
+}
+
+
+
+
