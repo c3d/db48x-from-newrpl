@@ -33,6 +33,7 @@
     INCLUDELIB(70,lib-70-binary.c) , \
     INCLUDELIB(72,lib-72-stack.c) , \
     INCLUDELIB(74,lib-74-sdcard.c) , \
+    INCLUDELIB(76,lib-76-ui.c) , \
     INCLUDELIB(80,lib-80-fonts.c) , \
     INCLUDELIB(4080,lib-4080-localenv.c) , \
     INCLUDELIB(4090,lib-4090-overloaded.c)

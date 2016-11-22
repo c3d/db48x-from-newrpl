@@ -207,6 +207,7 @@ SOURCES +=\
     newrpl/lib-70-binary.c \
     newrpl/lib-72-stack.c \
     newrpl/lib-74-sdcard.c \
+    newrpl/lib-76-ui.c \
     newrpl/lib-80-fonts.c \
     firmware/ggl/ggl/ggl_fltreplace.c
 
@@ -250,6 +251,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-70.nrpl \
                 newrpl/rpl-objects/lib-72.nrpl \
                 newrpl/rpl-objects/lib-74.nrpl \
+                newrpl/rpl-objects/lib-76.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 

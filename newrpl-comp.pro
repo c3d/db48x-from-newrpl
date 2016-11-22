@@ -206,7 +206,9 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/sys/Font5A.c \
     firmware/sys/target_pc/rtc.c \
     firmware/hal_clock.c \
-    firmware/ggl/ggl/ggl_fltreplace.c
+    firmware/ggl/ggl/ggl_fltreplace.c \
+    newrpl/lib-76-ui.c \
+
 
 
 HEADERS  += firmware/include/ggl.h \

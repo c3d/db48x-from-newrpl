@@ -1,0 +1,69 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib76_msgtable
+{
+##1,ERR_EMPTYCLIPBOARD "Empty clipboard"
+}
+
+@ MENU NUMBER 0
+@#name lib76menu_main
+{
+  { { "Clip" 1 } { ::   #04c01000h TMENULST ; ::   #04c01000h TMENUOTHR ; } }
+  { { "CmdLine" 1 } { ::   #04c02000h TMENULST ; ::   #04c02000h TMENUOTHR ; } }
+  { { "Keyb" 1 } { ::   #04c03000h TMENULST ; ::   #04c03000h TMENUOTHR ; } }
+
+}
+
+@ MENU NUMBER 1
+@#name lib76menu_clip
+{
+COPYCLIP CUTCLIP PASTECLIP
+}
+
+
+@ MENU NUMBER 2
+@#name lib76menu_cmdline
+{
+}
+
+@ MENU NUMBER 3
+@#name lib76menu_keyb
+{
+}
+
+
+
+
+@#name lib76_cmdhelp
+{
+COPYCLIP
+"Copy object to the
+clipboard
+O → O "
+
+CUTCLIP
+"Move object to the
+clipboard
+O → "
+
+PASTECLIP
+"Push clipboard content
+to the stack
+ → O "
+
+}

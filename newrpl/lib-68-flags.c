@@ -24,8 +24,7 @@
     ERR(INVALIDFLAGNAME,2), \
     ERR(IDENTORINTEGEREXPECTED,3), \
     ERR(INVALIDLOCALESTRING,4), \
-    ERR(INVALIDMENUDEFINITION,5), \
-    ERR(EMPTYCLIPBOARD,6)
+    ERR(INVALIDMENUDEFINITION,5)
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -53,9 +52,6 @@
     CMD(RCLMENU,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)),\
     CMD(RCLMENULST,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)),\
     CMD(RCLMENUOTHR,MKTOKENINFO(11,TITYPE_NOTALLOWED,1,2)),\
-    CMD(COPYCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CUTCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    CMD(PASTECLIP,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(DEG,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
     CMD(GRAD,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(RAD,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
@@ -154,12 +150,6 @@ ROMOBJECT menuhistory_ident[]= {
 
 };
 
-ROMOBJECT clipbd_ident[] = {
-        MKPROLOG(DOIDENT,2),
-        TEXT2WORD('C','l','i','p'),
-        TEXT2WORD('B','d',0,0)
-
-};
 
 
 // EXTERNAL EXPORTED OBJECT TABLE
@@ -185,7 +175,6 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)numfmt_ident,
     (WORDPTR)menu1_ident,
     (WORDPTR)menu2_ident,
-    (WORDPTR)clipbd_ident,
     (WORDPTR)menu1hist_ident,
     (WORDPTR)menu2hist_ident,
     (WORDPTR)menuhistory_ident,
@@ -1323,41 +1312,6 @@ void LIB_HANDLER()
         return;
     }
 
-    case COPYCLIP:
-    {
-        // STORE LEVEL 1 INTO .Settings/Clipbd
-        if(rplDepthData()<1) {
-            rplError(ERR_BADARGCOUNT);
-            return;
-        }
-
-        rplStoreSettings((WORDPTR)clipbd_ident,rplPeekData(1));
-
-        return;
-
-    }
-    case CUTCLIP:
-    {
-        // STORE LEVEL 1 INTO .Settings/Clipbd
-        if(rplDepthData()<1) {
-            rplError(ERR_BADARGCOUNT);
-            return;
-        }
-
-        rplStoreSettings((WORDPTR)clipbd_ident,rplPopData());
-
-        return;
-
-    }
-
-    case PASTECLIP:
-    {
-        WORDPTR object=rplGetSettings((WORDPTR)clipbd_ident);
-
-        if(!object) rplError(ERR_EMPTYCLIPBOARD);
-        else rplPushData(object);
-        return;
-    }
 
     case DEG:
         rplClrSystemFlag(-17);

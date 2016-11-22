@@ -208,7 +208,8 @@ SOURCES += main.cpp\
     newrpl/lib-80-fonts.c \
     firmware/sys/target_pc/rtc.c \
     firmware/hal_clock.c \
-    firmware/ggl/ggl/ggl_fltreplace.c
+    firmware/ggl/ggl/ggl_fltreplace.c \
+    newrpl/lib-76-ui.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -252,6 +253,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-70.nrpl \
                 newrpl/rpl-objects/lib-72.nrpl \
                 newrpl/rpl-objects/lib-74.nrpl \
+                newrpl/rpl-objects/lib-76.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 
@@ -275,6 +277,7 @@ rpl_compiler.input = RPL_OBJECTS
 rpl_compiler.variable_out = SOURCES
 
 QMAKE_EXTRA_COMPILERS += rpl_compiler
+
 
 
 
