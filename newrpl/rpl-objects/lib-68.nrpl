@@ -168,6 +168,14 @@ DD.MMYYYY or MM.DDYYYY
 24-hours or 12-hours"
 }
 
+@ "BEEP" FLAG TOGGLE
+{
+  :: ##1,MAKESINT(FL_ERRORBEEP) IF FS? THEN "BEEP" ELSE "■BEEP" END ;
+  :: ##1,MAKESINT(FL_ERRORBEEP) IF DUP FS? THEN CF ELSE SF END ; @ ACTION: NO SHIFTS
+  "Error and BEEP command:
+sound disabled when set"
+}
+
 }
 
 

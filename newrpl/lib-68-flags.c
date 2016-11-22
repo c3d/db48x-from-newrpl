@@ -204,6 +204,12 @@ const systemflag const flags_names[]= {
     { "DATEMDY" , { (-FL_DATEFORMAT),0,0,0,0,0,0,0} },
     { "TIME12" , { (-FL_TIMEFORMAT),0,0,0,0,0,0,0} },
     { "TIME24" , { 0x80|(-FL_TIMEFORMAT),0,0,0,0,0,0,0} },
+    { "BEEPON" , { (-FL_ERRORBEEP),0,0,0,0,0,0,0} },
+    { "BEEPOFF" , { 0x80|(-FL_ERRORBEEP),0,0,0,0,0,0,0} },
+    { "ALMBEEPON" , { (-FL_ALARMBEEP),0,0,0,0,0,0,0} },
+    { "ALMBEEPOFF" , { 0x80|(-FL_ALARMBEEP),0,0,0,0,0,0,0} },
+    { "SAVEALM" , { 0x80|(-FL_SAVACKALRM),0,0,0,0,0,0,0} },
+    { "RESCALM" , { (-FL_RESRPTALRM),0,0,0,0,0,0,0} },
 
 
 
@@ -409,7 +415,7 @@ BINT rplSetSystemFlagByIdent(WORDPTR ident)
 BINT rplClrSystemFlagByIdent(WORDPTR ident)
 {
     BYTEPTR text=(BYTEPTR)(ident+1);
-    return rplSetSystemFlagByName(text,text+rplGetIdentLength(ident));
+    return rplClrSystemFlagByName(text,text+rplGetIdentLength(ident));
 }
 
 BINT rplTestSystemFlagByIdent(WORDPTR ident)
