@@ -54,6 +54,8 @@ private slots:
 
     void on_actionEject_SD_Card_Image_triggered();
 
+    void on_actionPower_ON_triggered();
+
 public slots:
     void domaintimer();
 private:

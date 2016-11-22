@@ -30,13 +30,14 @@
      <x>0</x>
      <y>0</y>
      <width>659</width>
-     <height>22</height>
+     <height>25</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionPower_ON"/>
     <addaction name="actionNew"/>
     <addaction name="separator"/>
     <addaction name="actionOpen"/>
@@ -98,6 +99,11 @@
   <action name="actionEject_SD_Card_Image">
    <property name="text">
     <string>Eject SD Card Image...</string>
+   </property>
+  </action>
+  <action name="actionPower_ON">
+   <property name="text">
+    <string>Power ON</string>
    </property>
   </action>
  </widget>

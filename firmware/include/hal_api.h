@@ -1247,6 +1247,8 @@ void halSetBusyHandler();
 void halInitBusyHandler();
 void halEnterPowerOff();
 
+void halPreparePowerOff();
+void halWakeUp();
 
 
 // TIMER FUNCTIONS

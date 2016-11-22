@@ -215,6 +215,10 @@ void main_virtual(unsigned int mode)
         halShowMsg("Memory Recovered");
     }
     }
+    else {
+        // RESTORE OTHER SYSTEM STATUS FROM POWER OFF
+        halWakeUp();
+    }
 
     // INITIALIZE SD CARD SYSTEM MEMORY ALLOCATOR
     FSHardReset();

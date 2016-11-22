@@ -632,3 +632,32 @@ void MainWindow::on_actionEject_SD_Card_Image_triggered()
         ui->actionInsert_SD_Card_Image->setEnabled(true);
 
 }
+
+void MainWindow::on_actionPower_ON_triggered()
+{
+
+    // STOP RPL ENGINE
+    maintmr->stop();
+    screentmr->stop();
+    if(rpl.isRunning()) {
+        __pc_terminate=1;
+        __pckeymatrix^=(1ULL<<63);
+        __keyb_update();
+    while(rpl.isRunning());
+    }
+
+    if(__pc_terminate==2) {
+        // IT WAS POWERED OFF
+        __memmap_intact=2;
+    }
+    else __memmap_intact=1;
+
+    // RESTART RPL ENGINE
+    __pc_terminate=0;
+    __pckeymatrix=0;
+
+    rpl.start();
+    maintmr->start(1);
+    screentmr->start(50);
+
+}

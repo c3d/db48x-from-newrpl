@@ -8,6 +8,7 @@
 
 #include <newrpl.h>
 #include <ui.h>
+#include "../fsystem/fsyspriv.h"
 
 
 
@@ -40,7 +41,7 @@ void main_virtual()
 
 
     gglsurface scr;
-    int wascleared=0;
+    int wascleared=0,mode;
     bat_setup();
 
     // MONITOR BATTERY VOLTAGE TWICE PER SECOND
@@ -52,28 +53,69 @@ void main_virtual()
     ggl_rect(&scr,0,0,SCREEN_WIDTH-1,SCREEN_HEIGHT-1,ggl_mkcolor(4));
 
     // CAREFUL: THESE TWO ERASE THE WHOLE RAM, SHOULD ONLY BE CALLED AFTER TTRM
+    mode=(halCheckMemoryMap()==2)? 1:0; // mode!=0 ONLY WHEN WAKING UP FROM POWEROFF
+
+    if(!mode) {
+        // CHECK FOR MAGIC KEY COMBINATION
+        if(keyb_isAnyKeyPressed())
+        {
+            throw_exception("Wipeout requested", __EX_WARM | __EX_WIPEOUT | __EX_EXIT );
+        }
+
+
+    // CAREFUL: THESE TWO ERASE THE WHOLE RAM, SHOULD ONLY BE CALLED AFTER TTRM
     if(!halCheckMemoryMap()) {
         // WIPEOUT MEMORY
     halInitMemoryMap();
     rplInit();
     wascleared=1;
     }
-    else rplWarmInit();
+    else {
+        if(!halCheckRplMemory()) {
+            // WIPEOUT MEMORY
+        halInitMemoryMap();
+        rplInit();
+        wascleared=1;
+        }
+        else rplWarmInit();
+    }
+
+    } else {
+        rplHotInit();
+    }
+
 
     halInitScreen();
     halInitKeyboard();
     halInitBusyHandler();
     halRedrawAll(&scr);
 
+    if(!mode) {
     if(wascleared) halShowMsg("Memory Cleared");
-    else halShowMsg("Memory Recovered");
-    halStatusAreaPopup();
+    else {
+        halShowMsg("Memory Recovered");
+    }
+    }
+    else {
+        // RESTORE OTHER SYSTEM STATUS FROM POWER OFF
+        halWakeUp();
+    }
+
+    // INITIALIZE SD CARD SYSTEM MEMORY ALLOCATOR
+    FSHardReset();
+
 
     halOuterLoop();
 
+    // RETURNED MEANS WE MUST SHUT DOWN
+
     tmr_eventkill(event);
+    // KILL ALL OTHER PENDING EVENTS TOO
+    int k;
+    for(k=0;k<5;++k) tmr_eventkill(k);
+
     //   CLEAR SCREEN
-    ggl_rect(&scr,0,0,SCREEN_WIDTH-1,SCREEN_HEIGHT-1,0x12345678);
+    ggl_rect(&scr,0,0,SCREEN_WIDTH,SCREEN_HEIGHT-1,0x11111111);
 
 }
 
@@ -160,7 +202,7 @@ void halEnterPowerOff()
 {
     // TODO: NOT IDEAL, BUT INDICATE WE WANT TO EXIT THE APPLICATION
 
-    __pc_terminate=1;
+    __pc_terminate=2;
 }
 
 int halExitOuterLoop()

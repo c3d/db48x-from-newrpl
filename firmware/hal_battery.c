@@ -145,3 +145,17 @@ BINT64 halTicks()
 {
     return (BINT64)tmr_ticks2us(0,tmr_ticks());
 }
+
+
+
+// DO ANY PREPARATIONS BEFORE ENTERING POWER OFF STATE
+void halPreparePowerOff()
+{
+
+}
+
+// DO ANY PREPARATIONS BEFORE WAKEUP FROM POWEROFF
+void halWakeUp()
+{
+
+}

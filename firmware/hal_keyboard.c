@@ -1739,6 +1739,7 @@ void cancelKeyHandler(BINT keymsg)
 
     if(halGetNotification(N_RIGHTSHIFT)) {
       // SHIFT-ON MEANS POWER OFF!
+       halPreparePowerOff();
        halEnterPowerOff();
        return;
 
@@ -4064,6 +4065,7 @@ void halOuterLoop()
             if(halFlags&HAL_AUTOOFFTIME) {
             BINT64 autoofftime=15000000 << (GET_AUTOOFFTIME(halFlags));
             if(halTicks()-offcounter >=autoofftime) {
+                halPreparePowerOff();
                 halEnterPowerOff();
             }
             }
