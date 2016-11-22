@@ -660,6 +660,116 @@ void LIB_HANDLER()
     }
 
 
+
+    case BRL:
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+
+            return;
+        }
+        BINT64 num1,num2;
+        BINT base;
+        if(ISNUMBER(*rplPeekData(1))) {
+            num2=rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions) return;
+        }
+        else {
+            rplError(ERR_INTEGEREXPECTED);
+
+            return;
+        }
+        if(ISNUMBER(*rplPeekData(2))) {
+            num1=rplReadNumberAsBINT(rplPeekData(2));
+            if(Exceptions) return;
+            base=LIBNUM(*rplPeekData(2));
+        }
+        else {
+            rplError(ERR_INTEGEREXPECTED);
+
+            return;
+        }
+        if(!ISLIST(*SystemFlags)) {
+            // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
+            rplError(ERR_SYSTEMFLAGSINVALID);
+
+            return;
+        }
+        //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
+        WORDPTR low64=SystemFlags+2;
+        BINT wsize=(low64[0]>>4)&0x3f;
+
+        num2%=wsize;
+        if(num2<0) num2+=wsize;
+
+        BINT64 left,right;
+
+        left=(num1<<num2)&((1LL<<wsize)-1);
+        right=(num1>>(wsize-num2))&((1LL<<(wsize-num2))-1);
+
+        num1=left|right;
+
+
+        rplDropData(2);
+        rplNewBINTPush(num1,base);
+        return;
+    }
+
+    case BRR:
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+
+            return;
+        }
+        BINT64 num1,num2;
+        BINT base;
+        if(ISNUMBER(*rplPeekData(1))) {
+            num2=rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions) return;
+        }
+        else {
+            rplError(ERR_INTEGEREXPECTED);
+
+            return;
+        }
+        if(ISNUMBER(*rplPeekData(2))) {
+            num1=rplReadNumberAsBINT(rplPeekData(2));
+            if(Exceptions) return;
+            base=LIBNUM(*rplPeekData(2));
+        }
+        else {
+            rplError(ERR_INTEGEREXPECTED);
+
+            return;
+        }
+        if(!ISLIST(*SystemFlags)) {
+            // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
+            rplError(ERR_SYSTEMFLAGSINVALID);
+
+            return;
+        }
+        //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
+        WORDPTR low64=SystemFlags+2;
+        BINT wsize=(low64[0]>>4)&0x3f;
+
+        num2%=wsize;
+        if(num2<0) num2+=wsize;
+
+        BINT64 left,right;
+
+        left=(num1<<(wsize-num2))&((1LL<<wsize)-1);
+        right=(num1>>num2)&((1LL<<(wsize-num2))-1);
+
+        num1=left|right;
+
+
+        rplDropData(2);
+        rplNewBINTPush(num1,base);
+        return;
+    }
+
+
     case BNOT:
     {
         if(rplDepthData()<1) {
