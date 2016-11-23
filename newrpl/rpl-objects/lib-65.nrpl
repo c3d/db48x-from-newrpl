@@ -24,7 +24,8 @@
 
 @#name lib65_menu_1_memory
 {
-  MEM BYTES PEEK POKE VERSION
+  MEM BYTES NEWOB GARBAGE VERSION
+  PEEK POKE
 }
 
 @#name lib65_menu_2_alarms

@@ -660,6 +660,10 @@ void rplHMSToDecimal(REAL *hms, REAL *dec);
 #define FL_STRIPCOMMENTS  -30
 #define FL_TIMEFORMAT     -41
 #define FL_DATEFORMAT     -42
+#define FL_RESRPTALRM     -43
+#define FL_SAVACKALRM     -44
+#define FL_ERRORBEEP      -56
+#define FL_ALARMBEEP      -57
 #define FL_COMPLEXMODE    -103
 #define FL_INERRORHANDLER   -4
 
