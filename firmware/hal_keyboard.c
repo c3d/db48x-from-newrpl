@@ -2944,8 +2944,14 @@ halScreen.DirtyFlag|=STACK_DIRTY;
 void onVarKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
-    if(halScreen.Menu2) halSetMenu2Height(0);  // HIDE THE MENU
-    else halSetMenu2Height(MENU2_HEIGHT);
+    if(halScreen.Menu2) {
+        halSetMenu2Height(0);  // HIDE THE MENU
+        rplSetSystemFlag(FL_HIDEMENU2);
+    }
+    else {
+        halSetMenu2Height(MENU2_HEIGHT);
+        rplClrSystemFlag(FL_HIDEMENU2);
+    }
 
 }
 

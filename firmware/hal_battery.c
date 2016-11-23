@@ -172,12 +172,18 @@ void halPreparePowerOff()
 void halWakeUp()
 {
 
+// RESTORE THE COMMAND LINE
 WORDPTR saved=rplGetSettings((WORDPTR)savedcmdline_ident);
 if(saved) {
     if(halRestoreCmdLine(saved))  halSetContext(halGetContext()|CONTEXT_INEDITOR);
     rplPurgeSettings((WORDPTR)savedcmdline_ident);
     halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;  // UPDATE STATUS AREA AND MENUS
 }
+
+// RESTORE THE MENU2 HIDDEN STATUS
+
+if(rplTestSystemFlag(FL_HIDEMENU2)) halSetMenu2Height(0);
+else halSetMenu2Height(MENU2_HEIGHT);
 
 // TODO: ADD OTHER WAKEUP PROCEDURES
 

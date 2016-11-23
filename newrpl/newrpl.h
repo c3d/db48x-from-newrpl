@@ -648,6 +648,7 @@ void rplHMSToDecimal(REAL *hms, REAL *dec);
 // SYSTEM FLAGS
 #define FL_ACTIVEMENU     -11
 #define FL_LASTMENU       -12
+#define FL_HIDEMENU2      -13
 #define FL_ANGLEMODE1     -17
 #define FL_ANGLEMODE2     -18
 #define FL_UNDERFLOWERROR -20
