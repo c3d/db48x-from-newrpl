@@ -417,6 +417,7 @@ extern const WORD one_real[];
 extern const WORD empty_string[];
 extern const WORD empty_list[];
 extern const WORD angle_180[];
+extern const WORD savedcmdline_ident[];
 
 // DATE AND TIME MACRO
 #define ISLEAPYEAR(y) ((!((y) & 3) && ((y) % 100)) || !((y) % 400))

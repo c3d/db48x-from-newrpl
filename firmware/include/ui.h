@@ -65,6 +65,10 @@ extern const MSGLIST all_messages[];
 
 // COMMAND LINE
 
+WORDPTR halSaveCmdLine();
+BINT halRestoreCmdLine(WORDPTR data);
+
+
 BINT ui_visibleline,ui_nlines;
 BINT ui_currentline,ui_prevline;
 BINT ui_islinemodified;

@@ -1674,11 +1674,17 @@ BINT halRestoreCmdLine(WORDPTR data)
     halScreen.ACTokenStart=rplReadNumberAsBINT(ptr);
 
 
+    halScreen.LineIsModified=-1;    // LINE IS EXISTING BUT NEEDS TO BE EXTRACTED
+
+
+
     // START THE TIMER
     halScreen.CursorTimer=tmr_eventcreate(&__uicursorupdate,700,1);
 
     // UNLOCK CURSOR
     halScreen.CursorState&=~0xc000;
+
+    uiMoveCursor(halScreen.CursorPosition);
 
     halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
 

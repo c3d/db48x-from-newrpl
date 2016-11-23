@@ -780,3 +780,29 @@ WORDPTR rplGetSettingsbyName(BYTEPTR name,BYTEPTR nameend)
     return 0;
 }
 
+// PURGE A SINGLE VARIABLE
+
+void rplPurgeSettings(WORDPTR nameobj)
+{
+    if(!ISDIR(*SettingsDir)) return;
+    WORDPTR *var=rplFindGlobalInDir(nameobj,rplFindDirbyHandle(SettingsDir),0);
+
+    if(!var) {
+        return;
+    }
+
+    if(ISPROLOG(**(var+1)) && (LIBNUM(**(var+1))==DODIR)) {
+        // TRYING TO PURGE AN ENTIRE DIRECTORY
+
+        WORD dirsize=*(*(var+1)+1);
+
+        // NEED TO USE PGDIR FOR THAT
+        if(dirsize) {
+            rplError(ERR_NONEMPTYDIRECTORY);
+            return;
+        }
+
+    }
+
+    rplPurgeForced(var);
+}

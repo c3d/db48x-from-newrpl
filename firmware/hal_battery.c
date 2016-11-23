@@ -7,6 +7,8 @@
 
 
 // POWER AND BATTERY MANAGEMENT
+#include <newrpl.h>
+#include "libraries.h"
 #include <ui.h>
 
 void battery_handler()
@@ -152,10 +154,31 @@ BINT64 halTicks()
 void halPreparePowerOff()
 {
 
+    // SAVE THE COMMAND LINE STATE
+
+    WORDPTR saved;
+    if(halScreen.CmdLineState&CMDSTATE_OPEN) {
+        saved=halSaveCmdLine();
+        if(!saved) saved=(WORDPTR)empty_list;
+    } else saved=(WORDPTR)empty_list;
+
+    rplStoreSettings((WORDPTR)savedcmdline_ident,saved);
+
+    // TODO: ADD OTHER POWEROF PROCEDURES
+
 }
 
 // DO ANY PREPARATIONS BEFORE WAKEUP FROM POWEROFF
 void halWakeUp()
 {
+
+WORDPTR saved=rplGetSettings((WORDPTR)savedcmdline_ident);
+if(saved) {
+    if(halRestoreCmdLine(saved))  halSetContext(halGetContext()|CONTEXT_INEDITOR);
+    rplPurgeSettings((WORDPTR)savedcmdline_ident);
+    halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;  // UPDATE STATUS AREA AND MENUS
+}
+
+// TODO: ADD OTHER WAKEUP PROCEDURES
 
 }

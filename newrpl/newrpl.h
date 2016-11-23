@@ -414,6 +414,7 @@ void rplWipeDir(WORDPTR *directory);
 void rplPurgeForced(WORDPTR *var);
 
 // FUNCTIONS SPECIFIC FOR THE .Settings DIRECTORY
+void rplPurgeSettings(WORDPTR nameobj);
 void rplStoreSettings(WORDPTR nameobject,WORDPTR object);
 void rplStoreSettingsbyName(BYTEPTR name, BYTEPTR nameend, WORDPTR object);
 WORDPTR rplGetSettings(WORDPTR nameobject);

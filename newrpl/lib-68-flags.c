@@ -150,7 +150,13 @@ ROMOBJECT menuhistory_ident[]= {
 
 };
 
+ROMOBJECT savedcmdline_ident[]= {
+        MKPROLOG(DOIDENT,3),
+        TEXT2WORD('S','a','v','e'),
+        TEXT2WORD('d','C','m','d'),
+        TEXT2WORD('L','i','n','e'),
 
+};
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
@@ -178,6 +184,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)menu1hist_ident,
     (WORDPTR)menu2hist_ident,
     (WORDPTR)menuhistory_ident,
+    (WORDPTR)savedcmdline_ident,
     0
 };
 
