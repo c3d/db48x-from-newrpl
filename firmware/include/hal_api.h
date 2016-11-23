@@ -1020,6 +1020,10 @@ void keyb_setalphalock(int single_alpha_lock);
  */
 void keyb_setshiftplane(int leftshift,int rightshift,int alpha,int alphalock);
 
+// OTHER LOWER LEVEL KEYBOARD FUNCTIONS
+int keyb_anymsg();
+void keyb_flush();
+void keyb_flushnowait();
 
 
 

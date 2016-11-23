@@ -161,6 +161,11 @@ void keyb_flush()
     __kused=__kcurrent;
 }
 
+// FLUSH KEYBOARD BUFFER WITHOUT WAITING
+void keyb_flushnowait()
+{
+    __kused=__kcurrent;
+}
 
 
 // ANALYZE CHANGES IN THE KEYBOARD STATUS AND POST MESSAGES ACCORDINGLY
