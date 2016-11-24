@@ -93,14 +93,24 @@
 // ************************************
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
-INCLUDE_ROMOBJECT(lib64_menu);
+INCLUDE_ROMOBJECT(lib64_menu_0_main);
+INCLUDE_ROMOBJECT(lib64_menu_1_real);
+INCLUDE_ROMOBJECT(lib64_menu_2_integer);
+INCLUDE_ROMOBJECT(lib64_menu_3_module);
+INCLUDE_ROMOBJECT(lib64_menu_4_polynomial);
+INCLUDE_ROMOBJECT(lib64_menu_5_poly_fcn);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)LIB_MSGTABLE,
     (WORDPTR)LIB_HELPTABLE,
-    (WORDPTR)lib64_menu,
+    (WORDPTR)lib64_menu_0_main,
+    (WORDPTR)lib64_menu_1_real,
+    (WORDPTR)lib64_menu_2_integer,
+    (WORDPTR)lib64_menu_3_module,
+    (WORDPTR)lib64_menu_4_polynomial,
+    (WORDPTR)lib64_menu_5_poly_fcn,
     0
 };
 
@@ -2655,12 +2665,12 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg)>0) {
+        if(MENUNUMBER(MenuCodeArg)>5) {
             RetNum=ERR_NOTMINE;
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR=(WORDPTR)lib64_menu;
+        ObjectPTR=(WORDPTR)ROMPTR_TABLE[MENUNUMBER(MenuCodeArg) + 2];
         RetNum=OK_CONTINUE;
         return;
     }

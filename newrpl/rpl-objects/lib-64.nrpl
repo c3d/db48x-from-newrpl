@@ -22,18 +22,43 @@
 ##1,ERR_POSITIVE_INTEGER_EXPECTED "Integer >= 0 expected"
 }
 
-@#name lib64_menu
+@#name lib64_menu_0_main
 {
-  FLOOR CEIL IP FP !
-  MOD SQ  % %CH %T
+{ { "Real" 1 } { ::   #04001000h TMENULST ; ::   #04001000h TMENUOTHR ; } }
+{ { "Integer" 1 } { ::   #04002000h TMENULST ; ::   #04002000h TMENUOTHR ; } }
+{ { "Modules" 1 } { ::   #04003000h TMENULST ; ::   #04003000h TMENUOTHR ; } }
+{ { "Polynomial" 1 } { ::   #04004000h TMENULST ; ::   #04004000h TMENUOTHR ; } }
+{ { "PolyFCN" 1 } { ::   #04005000h TMENULST ; ::   #04005000h TMENUOTHR ; } }
+}
+
+@#name lib64_menu_1_real
+{
+  FLOOR CEIL IP FP MOD
+  SQ  % %CH %T { "" }
   MANT XPON SIGN SETPREC GETPREC
-  GCD LCM IDIV2 IQUOT { "" }
+}
+
+@#name lib64_menu_2_integer
+{
+  ! GCD LCM IDIV2 IQUOT
   IEGCD IABCUV { "" } { "" } { "" }
+  NEXTPRIME ISPRIME? { "" } { "" } { "" }
+}
+
+@#name lib64_menu_3_module
+{
   MODSTO MODRCL { "" } { "" } { "" }
   ADDTMOD SUBTMOD MULTMOD POWMOD { "" }
-  NEXTPRIME ISPRIME? { "" } { "" } { "" }
+}
+
+@#name lib64_menu_4_polynomial
+{
   PEVAL PCOEF DIV2 PDER PINT
   PDIV2 PMUL PADD PSUB { "" }
+}
+
+@#name lib64_menu_5_poly_fcn
+{
   TCHEBYCHEFF LEGENDRE HERMITE TCHEBYCHEFF2 HERMITE2
 }
 
