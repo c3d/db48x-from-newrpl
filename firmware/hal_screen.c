@@ -1102,8 +1102,9 @@ void halCancelPopup()
         // MARK DIRTY BUT DON'T REDRAW YET
         halScreen.DirtyFlag|=STAREA_DIRTY|MENU2_DIRTY;
         halScreen.SAreaTimer=0;
-        if(rplTestSystemFlag(FL_HIDEMENU2)) halSetMenu2Height(0);
     }
+    if(rplTestSystemFlag(FL_HIDEMENU2)) halSetMenu2Height(0);
+
 
 }
 
