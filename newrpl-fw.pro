@@ -209,7 +209,8 @@ SOURCES +=\
     newrpl/lib-74-sdcard.c \
     newrpl/lib-76-ui.c \
     newrpl/lib-80-fonts.c \
-    firmware/ggl/ggl/ggl_fltreplace.c
+    firmware/ggl/ggl/ggl_fltreplace.c \
+    firmware/hal_alarm.c
 
 HEADERS  += \
     firmware/include/ggl.h \

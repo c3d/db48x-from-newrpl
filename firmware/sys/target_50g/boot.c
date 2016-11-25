@@ -212,6 +212,14 @@ void main_virtual(unsigned int mode)
     if(!mode) {
     if(wascleared) halShowMsg("Memory Cleared");
     else {
+
+        // SCAN AND UPDATE ALARMS AFTER A WARMSTART
+        rplUpdateAlarms();
+        if (rplCheckAlarms())
+            halSetNotification(N_CONNECTION, 0xf);
+        else
+            halSetNotification(N_CONNECTION, 0x0);
+
         halShowMsg("Memory Recovered");
     }
     }
@@ -285,9 +293,9 @@ void startup(int prevstate)
         // WOKE UP FROM POWEROFF
         // DON'T CLEAR ANYTHING
 
-        // ADD ANY OTHER INITIALIZATION HERE
-
         __rtc_poweron();
+
+        // ADD ANY OTHER INITIALIZATION HERE
 
     } else {
         // FROM RESET OR WARMSTART, CLEAN VARIABLES

@@ -15,7 +15,7 @@ void battery_handler()
 {
 
     bat_read();
-    halSetNotification(N_CONNECTION,0xf^halGetNotification(N_CONNECTION));
+    //halSetNotification(N_CONNECTION,0xf^halGetNotification(N_CONNECTION));
 
     /*
     gglsurface scr;
@@ -188,6 +188,11 @@ else halSetMenu2Height(MENU2_HEIGHT);
 // FLUSH THE ON-KEY KEYPRESS FROM THE KEYBOARD BUFFER BEFORE ENTERING THE OUTER LOOP
 // THIS CAN CANCEL AN EXISTING COMMAND LINE
 keyb_flushnowait();
+
+if (rplCheckAlarms())
+    halSetNotification(N_CONNECTION, 0xf);
+else
+    halSetNotification(N_CONNECTION, 0x0);
 
 // TODO: ADD OTHER WAKEUP PROCEDURES
 

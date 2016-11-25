@@ -208,6 +208,7 @@ SOURCES += main.cpp\
     newrpl/lib-80-fonts.c \
     firmware/sys/target_pc/rtc.c \
     firmware/hal_clock.c \
+    firmware/hal_alarm.c \
     firmware/ggl/ggl/ggl_fltreplace.c \
     newrpl/lib-76-ui.c
 
