@@ -138,3 +138,16 @@ int rtc_settick(int freq, int enabled)
     return 0;
 }
 
+void rtc_setaie(int enabled)
+{
+    UNUSED_ARGUMENT(enabled);
+
+    // DON'T ALLOW ALARMS IN THE SIMULATOR
+    return;
+}
+
+int rtc_chkalrm()
+{
+    // DON'T ALLOW ALARMS IN THE SIMULATOR
+    return 0;
+}

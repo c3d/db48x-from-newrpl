@@ -25,7 +25,14 @@ void halSetNotification(enum halNotification type,int color)
     }
     else {
         // TODO: DRAW CUSTOM ICONS INTO THE STATUS AREA FOR ALL OTHER ANNUNCIATORS
+        DRAWSURFACE scr;
+        int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
 
+        switch (type) {
+        case N_ALARM:
+            DrawTextBk(STATUSAREA_X+43,ytop+1,(char *)"(!)",(UNIFONT *)halScreen.StAreaFont,color,0x0,&scr);
+            break;
+        }
     }
 }
 

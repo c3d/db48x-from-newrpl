@@ -124,7 +124,8 @@ enum halFlagsEnum {
     HAL_AUTOOFFTIME1=8,
     HAL_AUTOOFFTIME2=16,
     HAL_AUTOOFFTIME3=32,
-    HAL_NOCLOCKCHANGE=64
+    HAL_NOCLOCKCHANGE=64,
+    HAL_SKIPNEXTALARM=128
     // ADD MORE BITS HERE
 
 };
@@ -152,7 +153,8 @@ enum halNotification {
     N_ALPHA,
     N_LOWBATTERY,
     N_HOURGLASS,
-    N_DISKACCESS
+    N_DISKACCESS,
+    N_ALARM
 };
 
 #define FORM_DIRTY 1
@@ -1258,15 +1260,20 @@ void halWakeUp();
 // TIMER FUNCTIONS
 BINT64 halTicks();
 
-// CLOCK AND ALARM FUNCTIONS
+// SOTWARE ALARM FUNCTIONS
+void halTriggerAlarm();
+
+// HARDWARE CLOCK AND ALARM FUNCTIONS
 struct date halGetSystemDate();
 int halSetSystemDate(struct date dt);
 struct time halGetSystemTime();
 int halSetSystemTime(struct time tm);
 void halGetSystemAlarm(struct date *dt, struct time *tm, int *enabled);
 int halSetSystemAlarm(struct date dt, struct time tm, int enabled);
+void halGetSystemDateTime(struct date *dt, struct time *tm);
 void halDisableSystemAlarm();
-void halTriggerAlarm();
+int halCheckSystemAlarm();
+
 
 // SCREEN FUNCTIONS
 void halInitScreen();

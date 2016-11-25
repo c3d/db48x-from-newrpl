@@ -15,9 +15,12 @@
 @ A = Algebraic object (symbolic)
 
 
+@#name alarms_ident
+'Alarms'
+
 @#name lib65_menu_0_time
 {
-  DATE →DATE TIME →TIME { { "Alarms" 1 } :: #04102000h TMENULST ; }
+  DATE →DATE TIME →TIME { { "Alarms" 1 } :: #04102000h TMENULST DOALARM ; }
   DATE+ DDAYS TICKS CLKADJ TSTR
   →HMS HMS→ HMS+ HMS-
 }
@@ -38,7 +41,11 @@
 {
 ##1,ERR_INVALIDDATE "Invalid date"
 ##1,ERR_INVALIDTIME "Invalid time"
+##1,ERR_BADALARMNUM "Nonexistent alarm"
+##1,ERR_INVALIDRPT  "Invalid repeat"
 ##1,ERR_BADARGVALUE "Bad argument value"
+##1,ERR_PASTDUEALRM "Warning: past due alarm"
+##1,ERR_ALARMSKIPPED "Alarm skipped"
 }
 
 
@@ -109,6 +116,36 @@ HMS-
 HH.MMSS format
 R R → R"
 
+ACK
+"Acknowledges the oldest
+past-due alarm
+ →"
+
+ACKALL
+"Acknowledges all past-due alarms
+
+ →"
+
+STOALARM
+"Stores an alarm in the system
+alarm list and returns its index
+<R or L> → I"
+
+RCLALARM
+"Recalls the alarm specified
+by its index
+I → L"
+
+DELALARM
+"Deletes the alarm specified
+by its index
+I →"
+
+FINDALARM
+"Returns the alarm index of the
+first alarm due
+R → I"
+
 MEM
 "Returns the number of bytes of
 available RAM
@@ -125,10 +162,3 @@ to the memory address in level 2
 I I →"
 
 }
-
-
-
-
-
-
-

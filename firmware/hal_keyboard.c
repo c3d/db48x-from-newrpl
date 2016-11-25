@@ -1754,8 +1754,6 @@ void cancelKeyHandler(BINT keymsg)
 
 
 
-
-
 void cutclipKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
@@ -2955,7 +2953,13 @@ void onVarKeyHandler(BINT keymsg)
 
 }
 
+void onBKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
 
+    halFlags |= HAL_SKIPNEXTALARM;
+
+}
 
 void alphaKeyHandler(BINT keymsg)
 {
@@ -3572,7 +3576,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
 
     { KM_LPRESS|KB_J|SHIFT_ONHOLD, CONTEXT_ANY,&onVarKeyHandler },
     { KM_PRESS|KB_J|SHIFT_ONHOLD, CONTEXT_ANY,KEYHANDLER_NAME(menuswap) },
-
+    { KM_PRESS|KB_B|SHIFT_ONHOLD, CONTEXT_ANY,&onBKeyHandler },
 
 
 
@@ -4076,14 +4080,24 @@ void halOuterLoop()
             }
             }
 
+
             // DO OTHER IDLE PROCESSING HERE
 
 
             isidle=1;
-        } else { jobdone=isidle=0; }
 
+            halSetBusyHandler();
 
-        halSetBusyHandler();
+            if (halCheckSystemAlarm()) {
+                jobdone=isidle=0;
+                halTriggerAlarm();
+            }
+
+        } else {
+            jobdone=isidle=0;
+            halSetBusyHandler();
+        }
+
     } while(!halProcessKey(keymsg));
 
 }

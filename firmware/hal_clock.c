@@ -6,7 +6,7 @@
  */
 
 
-// CLOCK AND ALARM MANAGEMENT - HIGHER LEVEL API
+// HARDWARE CLOCK AND ALARM MANAGEMENT - HIGHER LEVEL API
 
 #include <newrpl.h>
 #include <ui.h>
@@ -26,7 +26,11 @@ struct date halGetSystemDate()
 
 int halSetSystemDate(struct date dt)
 {
-    return rtc_setdate(dt);
+    int ret = rtc_setdate(dt);
+
+    rplUpdateAlarms();
+
+    return ret;
 }
 
 struct time halGetSystemTime()
@@ -36,7 +40,11 @@ struct time halGetSystemTime()
 
 int halSetSystemTime(struct time tm)
 {
-    return rtc_settime(tm);
+    int ret = rtc_settime(tm);
+
+    rplUpdateAlarms();
+
+    return ret;
 }
 
 void halGetSystemAlarm(struct date *dt, struct time *tm, int *enabled)
@@ -50,23 +58,16 @@ int halSetSystemAlarm(struct date dt, struct time tm, int enabled)
 {
     return rtc_setalarm(dt, tm, enabled);
 }
-/*
-int halCheckAlarm()
+
+
+int halCheckSystemAlarm()
 {
     return rtc_chkalrm();
 }
-*/
+
 void halDisableSystemAlarm()
 {
-    //rtc_setaie(0);
+    rtc_setaie(0);
 
     return;
-}
-
-void halTriggerAlarm()
-{
-    //rtc_setaie(0);
-    //halSetNotification(N_ALARM, 0xf);
-    //halSetNotification(N_CONNECTION, 0xf);
-    //rplTriggerAlarm();
 }

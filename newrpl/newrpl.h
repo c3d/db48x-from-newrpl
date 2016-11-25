@@ -156,6 +156,15 @@ struct date {
 #define DATE_MAXMON  ((1 <<  4) - 1)
 #define DATE_MAXYEAR ((1 << 14) - 1)
 
+// USER ALARM STRUCTURE
+struct alarm {
+    struct date dt;
+    struct time tm;
+    WORDPTR     obj;
+    UBINT       rpt;        // repeat interval (seconds)
+};
+
+
 // ERROR MANAGEMENT FUNCTIONS
 void decTrapHandler(BINT error);
 void rplSetExceptionHandler(WORDPTR Handler);
@@ -619,12 +628,28 @@ BINT rplReadRealAsDateNoCk(REAL *date, struct date *dt);
 BINT rplReadDateAsReal(struct date dt, REAL *date);
 BINT rplGetMonthDays(BINT month, BINT year);
 BINT rplIsValidDate(struct date dt);
-BINT rplDateToDays(struct date dt);
-struct date rplDaysToDate(BINT days);
 BINT rplReadRealAsTime(REAL *time, struct time *tm);
 BINT rplReadTimeAsReal(struct time tm, REAL *time);
+BINT rplDateToDays(struct date dt);
+struct date rplDaysToDate(BINT days);
+BINT64 rplDateToSeconds(struct date dt, struct time tm);
+void rplSecondsToDate(BINT64 sec, struct date *dt, struct time *tm);
 void rplDecimalToHMS(REAL *dec, REAL *hms);
 void rplHMSToDecimal(REAL *hms, REAL *dec);
+
+
+// ALARM FUNCTIONS
+BINT rplReadAlarm(WORDPTR obj, struct alarm *alrm);
+void rplPushAlarm(struct alarm *alrm);
+BINT rplAddAlarm(struct alarm *alrm);
+BINT rplGetAlarm(BINT id, struct alarm *alrm);
+BINT rplDelAlarm(BINT id);
+BINT rplCheckAlarms();
+BINT rplTriggerAlarm();
+void rplUpdateAlarms();
+
+
+
 
 
 // ANGULAR MODES
