@@ -1281,6 +1281,7 @@ void halSetNotification(enum halNotification type,int color);
 int halGetNotification(enum halNotification type);
 void halShowErrorMsg();
 void halShowMsg(char *Text);
+void halShowMsgN(char *Text,char *End);
 void halSetCmdLineHeight(int h);
 void halStatusAreaPopup();
 void halCancelPopup();

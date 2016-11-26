@@ -647,6 +647,7 @@ BINT rplDelAlarm(BINT id);
 BINT rplCheckAlarms();
 BINT rplTriggerAlarm();
 void rplUpdateAlarms();
+void rplSkipNextAlarm();
 
 
 

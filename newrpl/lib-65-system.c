@@ -615,9 +615,9 @@ static BINT AddSysAlarm(struct _alarm *alrm)
 
     // MAINTAIN IDS CONSISTENCY
     if (id <= *first_due_id)
-        *first_due_id++;
+        (*first_due_id)++;
     if (id <= *past_due_id)
-        *past_due_id++;
+        (*past_due_id)++;
 
     return id;
 }
@@ -680,11 +680,11 @@ static BINT DelSysAlarm(BINT id)
 
     // MAINTAIN IDS CONSISTENCY
     if (id < *first_due_id)
-        *first_due_id--;
+        (*first_due_id)--;
     else if (id == *first_due_id)
         *first_due_id = (id > nalarms) ? nalarms : id;
     if (id < *past_due_id)
-        *past_due_id--;
+        (*past_due_id)--;
     else if (id == *past_due_id)
         *past_due_id = (id > nalarms) ? nalarms : id;
 
@@ -913,9 +913,10 @@ static void ScanAlarms()
 static BINT AckSequence(struct _alarm *alrm)
 {
     BINT i, ack;
-    BYTEPTR msg_start, msg_end;
+    char    *msg_start,
+            *msg_end;
 
-    msg_start = (BYTEPTR)(alrm->obj + 1);
+    msg_start = (char *)(alrm->obj + 1);
     msg_end = msg_start + rplStrSize(alrm->obj);
     halShowMsgN(msg_start, msg_end);
 
@@ -1002,11 +1003,11 @@ BINT rplTriggerAlarm()
 static void WarnAlarm()
 {
     WORDPTR msg;
-    BYTEPTR msg_start,
-            msg_end;
+    char    *msg_start,
+            *msg_end;
 
     msg = uiGetLibMsg(ERR_PASTDUEALRM);
-    msg_start = (BYTEPTR)(msg + 1);
+    msg_start = (char *)(msg + 1);
     msg_end = msg_start + rplStrSize(msg);
 
     halShowMsgN(msg_start, msg_end);
@@ -1073,16 +1074,17 @@ void rplSkipNextAlarm()
     struct _alarm first_due;
     BINT    id;
     WORDPTR msg;
-    BYTEPTR msg_start,
-            msg_end;
+    char    *msg_start,
+            *msg_end;
 
-    if (id = GetFirstDue(&first_due)) {
+    id = GetFirstDue(&first_due);
+    if (id) {
         first_due.data.dis = 1;
         ReplaceSysAlarm(id, &first_due);
         ScanFirstDue();
 
         msg = uiGetLibMsg(ERR_ALARMSKIPPED);
-        msg_start = (BYTEPTR)(msg + 1);
+        msg_start = (char *)(msg + 1);
         msg_end = msg_start + rplStrSize(msg);
 
         halShowMsgN(msg_start, msg_end);
@@ -1920,7 +1922,8 @@ void LIB_HANDLER()
     case DOALARM:
     {
         BINT id;
-        BYTEPTR msg_start, msg_end;
+        char *msg_start,
+             *msg_end;
         struct _alarm alrm;
 
         id = GetFirstPastDueId();
@@ -1932,7 +1935,7 @@ void LIB_HANDLER()
 
         rplNewBINTPush(id, DECBINT);
 
-        msg_start = (BYTEPTR)(alrm.obj + 1);
+        msg_start = (char *)(alrm.obj + 1);
         msg_end = msg_start + rplStrSize(alrm.obj);
         halShowMsgN(msg_start, msg_end);
 
