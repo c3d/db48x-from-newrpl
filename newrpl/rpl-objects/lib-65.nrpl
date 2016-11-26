@@ -45,7 +45,8 @@
 ##1,ERR_INVALIDRPT  "Invalid repeat"
 ##1,ERR_BADARGVALUE "Bad argument value"
 ##1,ERR_PASTDUEALRM "Warning: past due alarm"
-##1,ERR_ALARMSKIPPED "Alarm skipped"
+##1,ERR_ALRMSKIPPED "Alarm skipped"
+##1,ERR_ALRMCORRUPT "Alarms list corrupted"
 }
 
 

@@ -71,7 +71,8 @@ ERR(BADALARMNUM,2), \
 ERR(INVALIDRPT,3), \
 ERR(BADARGVALUE,4), \
 ERR(PASTDUEALRM,5), \
-ERR(ALARMSKIPPED,6)
+ERR(ALRMSKIPPED,6), \
+ERR(ALRMCORRUPT,7)
 
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
@@ -112,8 +113,7 @@ const WORDPTR const ROMPTR_TABLE[]={
 };
 
 
-
-// ALARM DATA STRUCTURE - 96 BITS - 12 BYTES.
+// SYSTEM ALARM STRUCTURE
 // ALARM CAN BE IN 5 DIFFERENT STATES:
 // 1-PENDING ALARM (ALARM DUE):
 //   0x0 - ann=ack=dis=0
@@ -125,7 +125,8 @@ const WORDPTR const ROMPTR_TABLE[]={
 //   0X3 - ack=ann=1 ; dis=0
 // 5-DISABLED ALARM:
 //   dis=1
-struct _alarm_data {
+struct _alarm {
+    WORDPTR obj;
     UBINT   rpt;            // repeat interval (seconds)
     union  {
     BYTE    flags;          // Represents all alarm flags.
@@ -145,12 +146,6 @@ struct _alarm_data {
 #define PAST_ALM     0x2
 #define PAST_CTLALM  0x3
 #define DISABLED_ALM 0x4
-
-// SYSTEM ALARM STRUCTURE
-struct _alarm {
-    struct _alarm_data data;
-    WORDPTR  obj;
-};
 
 
 // RETURN THE NUMBER OF BYTES OF AVAILABLE RAM.
@@ -521,97 +516,168 @@ static BINT64 GetSysTime()
     return rplDateToSeconds(dt, tm);
 }
 
+// RETURN 0 ON ERROR
+static WORDPTR InitAlarms()
+{
+    rplNewBINTPush(0xffffffff, DECBINT);
+    if (Exceptions)
+        return 0;
+    rplPeekData(1)[1] = 0;
+    rplPeekData(1)[2] = 0;
+    rplNewBINTPush(1, DECBINT);
+    if (Exceptions) {
+        rplDropData(1);
+        return 0;
+    }
+    rplCreateList();
+    if (Exceptions) {
+        rplDropData(2);
+        return 0;
+    }
+    alarms = rplPeekData(1);
+    rplDropData(1);
+    rplStoreSettings((WORDPTR)alarms_ident, alarms);
+
+    return alarms;
+}
+
+static WORDPTR ResetAlarms()
+{
+    alarms = InitAlarms();
+
+    rplError(ERR_ALRMCORRUPT);
+    halSetNotification(N_CONNECTION, 0x0);
+
+    return alarms;
+}
+
+// RETURN NULL ON ERROR
 static WORDPTR GetAlarms()
 {
     alarms = rplGetSettings((WORDPTR)alarms_ident);
 
     if (!alarms) {
-        rplNewBINTPush(0xffffffff, DECBINT);
-        rplPeekData(1)[1] = 0;
-        rplPeekData(1)[2] = 0;
-        rplNewBINTPush(1, DECBINT);
-        rplCreateList();
-        alarms = rplPeekData(1);
-        rplStoreSettings((WORDPTR)alarms_ident, alarms);
-        rplDropData(1);
-        alarms = rplGetSettings((WORDPTR)alarms_ident);
+        alarms = InitAlarms();
+    } else {
+        if (!ISLIST(*alarms))
+            alarms = ResetAlarms();
+        if (rplListLength(alarms) < 1)
+            alarms = ResetAlarms();
     }
 
     return alarms;
 }
 
-static void PurgeAlarms()
-{
-    WORDPTR *p_alarms;
-
-    p_alarms = rplFindGlobalInDir((WORDPTR)alarms_ident,
-                                 rplFindDirbyHandle(SettingsDir), 0);
-    if(p_alarms)
-        rplPurgeForced(p_alarms);
-
-    return;
-}
 
 // SYSTEM ALARMS INTERFACE
 
-static void ReadSysAlarm(WORDPTR list, struct _alarm *alrm)
+// RETURN 1 ON SUCCESS
+// RETURN 0 IF list ISN'T AN ALARM
+static BINT ReadSysAlarm(WORDPTR list, struct _alarm *alrm)
 {
     WORDPTR str;
 
+    if (!ISLIST(*list))
+        return 0;
+    if (rplListLength(list) != 2)
+        return 0;
     str = rplGetListElement(list, 1);
-    alrm->data = *(struct _alarm_data *)(str + 1);
+    if (!ISSTRING(*str))
+        return 0;
+    if (rplStrSize(str) != 12)
+        return 0;
+
+    alrm->rpt = *(UBINT *)(str + 1);
+    *(UBINT64 *)(&alrm->rpt + 1) = *(UBINT64 *)(str + 2);
     alrm->obj = rplGetListElement(list, 2);
 
-    return;
+    return 1;
 }
 
 static void PushSysAlarm(struct _alarm *alrm)
 {
-    WORDPTR str;
+    WORDPTR str,
+            *Stacksave = DSTop;
 
-    str = rplCreateString((BYTEPTR) &alrm->data,
-                          ((BYTEPTR) &alrm->data) + sizeof(struct _alarm));
+    str = rplCreateString((BYTEPTR) &alrm->rpt,
+                          ((BYTEPTR) &alrm->rpt)
+                          + sizeof(struct _alarm) - sizeof(WORDPTR));
     if (!str) return;
 
     rplPushData(str);
     rplPushData(alrm->obj);
     rplNewBINTPush(2, DECBINT);
+    if (Exceptions) {
+        DSTop = Stacksave;
+        return;
+    }
     rplCreateList();
+    if (Exceptions) {
+        DSTop = Stacksave;
+        return;
+    }
 
     return;
 }
 
 // RETURN ALARM INDEX
+// RETURN 0 ON ERROR
 // CALLER MUST CALL ScanAlarms
 static BINT AddSysAlarm(struct _alarm *alrm)
 {
     BINT    id, nalarms, *first_due_id, *past_due_id;
-    WORDPTR alarms_ids;
+    WORDPTR alarm_ids,
+            *Stacksave = DSTop;
     struct _alarm tmp;
 
     alarms = GetAlarms();
-    nalarms = rplExplodeList2(alarms);
+    if (!alarms)
+        return 0;
 
+    nalarms = rplExplodeList2(alarms);
     PushSysAlarm(alrm);
+    if ((nalarms < 1) || Exceptions) {
+        DSTop = Stacksave;
+        return 0;
+    }
 
     // TODO : Replace this O(n) search algorithm
     for (id = 1; id < nalarms; id++) {
-        ReadSysAlarm(rplPeekData(nalarms - id + 1), &tmp);
-        if (alrm->data.date < tmp.data.date)
+        if (!ReadSysAlarm(rplPeekData(nalarms - id + 1), &tmp)) {
+            DSTop = Stacksave;
+            return 0;
+        }
+        if (alrm->date < tmp.date)
             break;
     }
 
     rplNewBINTPush((nalarms - id) + 1, DECBINT);
+    if (Exceptions) {
+        DSTop = Stacksave;
+        return 0;
+    }
     rplCallOperator(CMD_ROLLD);
     rplNewBINTPush(nalarms + 1, DECBINT);
+    if (Exceptions) {
+        DSTop = Stacksave;
+        return 0;
+    }
     rplCreateList();
+    if (Exceptions) {
+        DSTop = Stacksave;
+        return 0;
+    }
     alarms = rplPeekData(1);
     rplStoreSettings((WORDPTR)alarms_ident, alarms);
     rplDropData(1);
 
-    alarms_ids = rplGetListElement(alarms, 1);
-    first_due_id = (BINT *)(alarms_ids + 1);
-    past_due_id  = (BINT *)(alarms_ids + 2);
+    alarm_ids = rplGetListElement(alarms, 1);
+    if (!ISBINT(*alarm_ids) || OBJSIZE(*alarm_ids) != 2) {
+        ResetAlarms();
+        return 0;
+    }
+    first_due_id = (BINT *)(alarm_ids + 1);
+    past_due_id  = (BINT *)(alarm_ids + 2);
 
     // MAINTAIN IDS CONSISTENCY
     if (id <= *first_due_id)
@@ -630,7 +696,7 @@ static BINT GetSysAlarm(BINT id, struct _alarm *alrm)
     if (id < 1)
         return 0;
 
-    alarms = rplGetSettings((WORDPTR)alarms_ident);
+    alarms = GetAlarms();
     if (!alarms)
         return 0;
 
@@ -638,7 +704,10 @@ static BINT GetSysAlarm(BINT id, struct _alarm *alrm)
     if (id > nalarms)
         return 0;
 
-    ReadSysAlarm(rplGetListElement(alarms, id + 1), alrm);
+    if (!ReadSysAlarm(rplGetListElement(alarms, id + 1), alrm)) {
+        ResetAlarms();
+        return 0;
+    }
 
     return 1;
 }
@@ -647,36 +716,53 @@ static BINT GetSysAlarm(BINT id, struct _alarm *alrm)
 // CALLER MUST CALL ScanAlarms
 static BINT DelSysAlarm(BINT id)
 {
-    WORDPTR alarms_ids;
+    WORDPTR alarm_ids,
+            *Stacksave = DSTop;
     BINT    nalarms, *first_due_id, *past_due_id;
 
     if (id < 1)
         return 0;
 
-    alarms = rplGetSettings((WORDPTR)alarms_ident);
+    alarms = GetAlarms();
     if (!alarms)
         return 0;
 
-    nalarms = rplListLength(alarms) - 1;
-    if (id > nalarms)
+    nalarms = rplExplodeList2(alarms) - 1;
+    if ((id > nalarms) || Exceptions) {
+        DSTop = Stacksave;
         return 0;
-
-    rplExplodeList2(alarms);
+    }
 
     rplNewBINTPush((nalarms - id) + 1, DECBINT);
+    if (Exceptions) {
+        DSTop = Stacksave;
+        return 0;
+    }
     rplCallOperator(CMD_ROLL);
     rplDropData(1);
     nalarms--;
 
     rplNewBINTPush(nalarms + 1, DECBINT);
+    if (Exceptions) {
+        DSTop = Stacksave;
+        return 0;
+    }
     rplCreateList();
+    if (Exceptions) {
+        DSTop = Stacksave;
+        return 0;
+    }
     alarms = rplPeekData(1);
     rplStoreSettings((WORDPTR)alarms_ident, alarms);
     rplDropData(1);
 
-    alarms_ids = rplGetListElement(alarms, 1);
-    first_due_id = (BINT *)(alarms_ids + 1);
-    past_due_id  = (BINT *)(alarms_ids + 2);
+    alarm_ids = rplGetListElement(alarms, 1);
+    if (!ISBINT(*alarm_ids) || OBJSIZE(*alarm_ids) != 2) {
+        ResetAlarms();
+        return 0;
+    }
+    first_due_id = (BINT *)(alarm_ids + 1);
+    past_due_id  = (BINT *)(alarm_ids + 2);
 
     // MAINTAIN IDS CONSISTENCY
     if (id < *first_due_id)
@@ -699,7 +785,7 @@ static BINT FindNextAlarm(BINT64 sec, struct _alarm *alrm)
     BINT id = 0;
 
     while (GetSysAlarm(++id, alrm)) {
-        if (alrm->data.date >= sec)
+        if (alrm->date >= sec)
             return id;
     }
 
@@ -707,43 +793,52 @@ static BINT FindNextAlarm(BINT64 sec, struct _alarm *alrm)
 }
 
 // RETURN NEW ALARM ID
+// RETURN 0 ON ERROR
 // CALLER MUST CALL ScanAlarms
 static BINT UpdateSysAlarm(BINT id, struct _alarm *alrm)
 {
     ScratchPointer2 = alrm->obj;
-    DelSysAlarm(id);
+    if (!DelSysAlarm(id))
+        return 0;
     return AddSysAlarm(alrm);
 }
 
 // REPLACE ALARM OF INDEX id WITH alrm
 // DO NOT SORT ALARMS !!!
 // CALLER MUST CALL ScanAlarms
-// RETURN 0 IF NONEXISTENT ALARM
+// RETURN 0 IF NONEXISTENT ALARM OR ON ERROR
 static BINT ReplaceSysAlarm(BINT id, struct _alarm *alrm)
 {
-    WORDPTR alrms;
+    WORDPTR *Stacksave = DSTop;;
     BINT nalarms;
 
     if (id < 1)
         return 0;
 
-    alrms = GetAlarms();
-    if (!alrms)
+    alarms = GetAlarms();
+    if (!alarms)
         return 0;
 
-    nalarms = rplExplodeList(alrms) - 1;
-    if (id > nalarms) {
-        rplDropData(nalarms + 2);
+    nalarms = rplExplodeList(alarms) - 1;
+    if ((id > nalarms) || Exceptions) {
+        DSTop = Stacksave;
         return 0;
     }
 
-    PurgeAlarms();
-
     PushSysAlarm(alrm);
+    if (Exceptions) {
+        DSTop = Stacksave;
+        return 0;
+    }
+
     rplOverwriteData((nalarms - id) + 3, rplPeekData(1));
     rplDropData(1);
 
     rplCreateList();
+    if (Exceptions) {
+        DSTop = Stacksave;
+        return 0;
+    }
     rplStoreSettings((WORDPTR)alarms_ident, rplPeekData(1));
     rplDropData(1);
 
@@ -754,11 +849,15 @@ static BINT GetFirstDueId()
 {
     WORDPTR alarm_ids;
 
-    alarms = rplGetSettings((WORDPTR)alarms_ident);
+    alarms = GetAlarms();
     if (!alarms)
         return 0;
 
     alarm_ids = rplGetListElement(alarms, 1);
+    if (!ISBINT(*alarm_ids) || OBJSIZE(*alarm_ids) != 2) {
+        ResetAlarms();
+        return 0;
+    }
 
     return *(BINT *)(alarm_ids + 1);
 }
@@ -768,7 +867,14 @@ static void SetFirstDueId(BINT id)
     WORDPTR alarm_ids;
 
     alarms = GetAlarms();
+    if (!alarms)
+            return;
+
     alarm_ids = rplGetListElement(alarms, 1);
+    if (!ISBINT(*alarm_ids) || OBJSIZE(*alarm_ids) != 2) {
+        ResetAlarms();
+        return;
+    }
     *(BINT *)(alarm_ids + 1) = id;
 
     return;
@@ -781,7 +887,7 @@ static BINT GetFirstDue(struct _alarm *first_due)
     if (!id) id++;
 
     while (GetSysAlarm(id, first_due)) {
-        if (first_due->data.flags == DUE_ALM) {
+        if (first_due->flags == DUE_ALM) {
             SetFirstDueId(id);
             return id;
         }
@@ -796,11 +902,15 @@ static BINT GetFirstPastDueId()
 {
     WORDPTR alarm_ids;
 
-    alarms = rplGetSettings((WORDPTR)alarms_ident);
+    alarms = GetAlarms();
     if (!alarms)
         return 0;
 
     alarm_ids = rplGetListElement(alarms, 1);
+    if (!ISBINT(*alarm_ids) || OBJSIZE(*alarm_ids) != 2) {
+        ResetAlarms();
+        return 0;
+    }
 
     return *(BINT *)(alarm_ids + 2);
 }
@@ -810,8 +920,14 @@ static void SetFirstPastDueId(BINT id)
     WORDPTR alarm_ids;
 
     alarms = GetAlarms();
-    alarm_ids = rplGetListElement(alarms, 1);
+    if (!alarms)
+            return;
 
+    alarm_ids = rplGetListElement(alarms, 1);
+    if (!ISBINT(*alarm_ids) || OBJSIZE(*alarm_ids) != 2) {
+        ResetAlarms();
+        return;
+    }
     *(BINT *)(alarm_ids + 2) = id;
 
     return;
@@ -824,7 +940,7 @@ static BINT GetFirstPastDue(struct _alarm *first_past_due)
     if (!id) id++;
 
     while (GetSysAlarm(id, first_past_due)) {
-        if (first_past_due->data.flags == PASTDUE_ALM) {
+        if (first_past_due->flags == PASTDUE_ALM) {
             SetFirstPastDueId(id);
             return id;
         }
@@ -850,15 +966,15 @@ static BINT RescheduleAlarm(BINT id, struct _alarm *alrm)
         alrm = &stored;
     }
 
-    if (!alrm->data.rpt)
+    if (!alrm->rpt)
         return 0;
 
-    if (!alrm->data.ack && rplTestSystemFlag(FL_RESRPTALRM))
+    if (!alrm->ack && rplTestSystemFlag(FL_RESRPTALRM))
         return 0;
 
-    alrm->data.flags = DUE_ALM;
+    alrm->flags = DUE_ALM;
 
-    alrm->data.date += (((GetSysTime() - alrm->data.date) / alrm->data.rpt) + 1) * alrm->data.rpt;
+    alrm->date += (((GetSysTime() - alrm->date) / alrm->rpt) + 1) * alrm->rpt;
 
 
     return UpdateSysAlarm(id, alrm);
@@ -875,7 +991,7 @@ static void ScheduleAlarm(BINT id)
         return;
     }
 
-    rplSecondsToDate(alrm.data.date, &dt, &tm);
+    rplSecondsToDate(alrm.date, &dt, &tm);
     halSetSystemAlarm(dt, tm, 1);
 
     return;
@@ -936,23 +1052,24 @@ static BINT AckSequence(struct _alarm *alrm)
     return ack;
 }
 
-static BINT DoAlarm(BINT id)
+static void DoAlarm(BINT id)
 {
     struct _alarm alrm;
     BINT new_id;
+    WORDPTR *Stacksave = DSTop;
 
     if (!GetSysAlarm(id, &alrm))
-        return 0;
+        return;
 
     if (ISSTRING(*alrm.obj)) {
 
         // APPOINTMENT ALARM
 
-        alrm.data.ann = 1;
+        alrm.ann = 1;
 
         if (AckSequence(&alrm)) {
-            alrm.data.ack = 1;
-            alrm.data.ann = 0;
+            alrm.ack = 1;
+            alrm.ann = 0;
 
             if (!RescheduleAlarm(id, &alrm)) {
                 if (rplTestSystemFlag(FL_SAVACKALRM))
@@ -969,8 +1086,8 @@ static BINT DoAlarm(BINT id)
 
         // CONTROL ALARM
 
-        alrm.data.ack = 1;
-        alrm.data.ann = 1;
+        alrm.ack = 1;
+        alrm.ann = 1;
 
         new_id = RescheduleAlarm(id, &alrm);
         if (!new_id)
@@ -978,11 +1095,15 @@ static BINT DoAlarm(BINT id)
 
         rplNewBINTPush(new_id, DECBINT);
         rplPushData(alrm.obj);
+        if (Exceptions) {
+            DSTop = Stacksave;
+            return;
+        }
         uiCmdRun(CMD_OVR_EVAL);
 
     }
 
-    return 1;
+    return;
 }
 
 // RETURN 1 IF THERE IS A PAST DUE ALARM
@@ -992,7 +1113,7 @@ BINT rplTriggerAlarm()
 
     do {
         DoAlarm(GetFirstDueId());
-    } while (GetFirstDue(&first_due) && first_due.data.date <= GetSysTime());
+    } while (GetFirstDue(&first_due) && first_due.date <= GetSysTime());
 
     ScheduleAlarm(GetFirstDueId());
     ScanPastDue();
@@ -1029,8 +1150,7 @@ BINT rplCheckAlarms()
     // MISSED ALARM ?
     if (GetFirstDueId()) {
         start_tm = GetSysTime() - ((halTicks() / 100000) + 1);
-        GetFirstDue(&first_due);
-        if (first_due.data.date < start_tm)
+        if ((GetFirstDue(&first_due)) && (first_due.date < start_tm))
             rplTriggerAlarm();
     }
 
@@ -1045,9 +1165,9 @@ void rplUpdateAlarms()
 
     now = GetSysTime();
 
-    while (GetSysAlarm(++id, &alrm) && (alrm.data.date <= now)) {
-        if (alrm.data.flags == DUE_ALM) {
-            alrm.data.flags = DISABLED_ALM;
+    while (GetSysAlarm(++id, &alrm) && (alrm.date <= now)) {
+        if (alrm.flags == DUE_ALM) {
+            alrm.flags = DISABLED_ALM;
             ReplaceSysAlarm(id, &alrm);
         }
     }
@@ -1056,7 +1176,7 @@ void rplUpdateAlarms()
         SetFirstDueId(id);
 
         while (GetSysAlarm(id, &alrm)) {
-            alrm.data.flags = DUE_ALM;
+            alrm.flags = DUE_ALM;
             ReplaceSysAlarm(id++, &alrm);
         }
     } else {
@@ -1079,11 +1199,11 @@ void rplSkipNextAlarm()
 
     id = GetFirstDue(&first_due);
     if (id) {
-        first_due.data.dis = 1;
+        first_due.dis = 1;
         ReplaceSysAlarm(id, &first_due);
         ScanFirstDue();
 
-        msg = uiGetLibMsg(ERR_ALARMSKIPPED);
+        msg = uiGetLibMsg(ERR_ALRMSKIPPED);
         msg_start = (char *)(msg + 1);
         msg_end = msg_start + rplStrSize(msg);
 
@@ -1097,8 +1217,8 @@ void rplSkipNextAlarm()
 
 static void SysToUsrAlarm(struct _alarm *s_alrm, struct alarm *alrm)
 {
-    rplSecondsToDate(s_alrm->data.date, &alrm->dt, &alrm->tm);
-    alrm->rpt = s_alrm->data.rpt;
+    rplSecondsToDate(s_alrm->date, &alrm->dt, &alrm->tm);
+    alrm->rpt = s_alrm->rpt;
     alrm->obj = s_alrm->obj;
 
     return;
@@ -1107,9 +1227,9 @@ static void SysToUsrAlarm(struct _alarm *s_alrm, struct alarm *alrm)
 static void UsrToSysAlarm(struct alarm *alrm, struct _alarm *s_alrm)
 {
     s_alrm->obj = alrm->obj;
-    s_alrm->data.date = rplDateToSeconds(alrm->dt, alrm->tm);
-    s_alrm->data.rpt = alrm->rpt;
-    s_alrm->data.flags = 0;
+    s_alrm->date = rplDateToSeconds(alrm->dt, alrm->tm);
+    s_alrm->rpt = alrm->rpt;
+    s_alrm->flags = 0;
 
     return;
 }
@@ -1125,10 +1245,10 @@ BINT rplAddAlarm(struct alarm *alrm)
 
     UsrToSysAlarm(alrm, &s_alrm);
 
-    if (s_alrm.data.date > GetSysTime())
-        s_alrm.data.flags = DUE_ALM;
+    if (s_alrm.date > GetSysTime())
+        s_alrm.flags = DUE_ALM;
     else
-        s_alrm.data.flags = DISABLED_ALM;
+        s_alrm.flags = DISABLED_ALM;
 
     if (s_alrm.obj == NULL) {
         s_alrm.obj = rplCreateString(0 ,0);
@@ -1160,7 +1280,7 @@ BINT rplGetAlarm(BINT id, struct alarm *alrm)
 BINT rplDelAlarm(BINT id)
 {
     if (!id) {
-        PurgeAlarms();
+        InitAlarms();
         return 1;
     }
 
@@ -1291,6 +1411,8 @@ BINT rplReadAlarm(WORDPTR obj, struct alarm *alrm)
 // USES RREG 0
 void rplPushAlarm(struct alarm *alrm)
 {
+    WORDPTR *Stacksave = DSTop;
+
     rplReadDateAsReal(alrm->dt, &RReg[0]);
     rplNewRealFromRRegPush(0);
 
@@ -1302,6 +1424,11 @@ void rplPushAlarm(struct alarm *alrm)
     rplNewBINTPush(alrm->rpt, DECBINT);
 
     rplNewBINTPush(4, DECBINT);
+
+    if (Exceptions) {
+        DSTop = Stacksave;
+        return;
+    }
     rplCreateList();
 
     return;
@@ -1730,17 +1857,18 @@ void LIB_HANDLER()
         struct _alarm past_due;
         BINT past_due_id;
 
-        if (!(past_due_id = GetFirstPastDue(&past_due)))
+        past_due_id = GetFirstPastDue(&past_due);
+        if (!past_due_id)
             return;
 
-        if (past_due.data.rpt) {
+        if (past_due.rpt) {
             RescheduleAlarm(past_due_id, &past_due);
             ScanAlarms();
             return;
         }
 
         if (rplTestSystemFlag(FL_SAVACKALRM)) {
-            past_due.data.flags = PAST_ALM;
+            past_due.flags = PAST_ALM;
             ReplaceSysAlarm(past_due_id, &past_due);
             ScanPastDue();
             return;
