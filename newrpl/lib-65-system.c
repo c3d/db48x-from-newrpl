@@ -187,21 +187,21 @@ BINT rplGetMonthDays(BINT month, BINT year)
 // REAL HAS THE FORM MM.DDYYYY OR DD.MMYYYY ,
 // DEPENDING ON THE STATE OF THE FLAG 'FL_DATEFORMAT'.
 // THE RANGE OF ALLOWABLE DATES IS OCTOBER 15, 1582, TO DECEMBER 31, 9999.
-// RETURN 0 ON SUCCESS OR
-// RETURN 1 IF AN INVALID DATE IS GIVEN
+// RETURN 1 ON SUCCESS OR
+// RETURN 0 IF AN INVALID DATE IS GIVEN
 BINT rplReadRealAsDate(REAL *date, struct date *dt)
 {
-    if (rplReadRealAsDateNoCk(date, dt)) return 1;
-    if (!rplIsValidDate(*dt)) return 1;
+    if (!rplReadRealAsDateNoCk(date, dt)) return 0;
+    if (!rplIsValidDate(*dt)) return 0;
 
-    return 0;
+    return 1;
 }
 
 // READ A REAL AS A DATE WITHOUT PERFORMING DATE VALIDITY CHECK.
 // REAL HAS THE FORM MM.DDYYYY OR DD.MMYYYY ,
 // DEPENDING ON THE STATE OF THE FLAG 'FL_DATEFORMAT'.
-// RETURN 0 ON SUCCESS OR
-// RETURN 1 IF REAL IS OUT OF RANGE.
+// RETURN 1 ON SUCCESS OR
+// RETURN 0 IF REAL IS OUT OF RANGE.
 BINT rplReadRealAsDateNoCk(REAL *date, struct date *dt)
 {
     REAL r_date;
@@ -212,7 +212,7 @@ BINT rplReadRealAsDateNoCk(REAL *date, struct date *dt)
 
     if (!inBINTRange(&r_date) || isNANorinfiniteReal(&r_date)
         || (r_date.flags & F_NEGATIVE))
-            return 1;
+            return 0;
 
     year  = getBINTReal(&r_date);
     month = year  / 1000000;
@@ -227,28 +227,28 @@ BINT rplReadRealAsDateNoCk(REAL *date, struct date *dt)
     }
 
     // CHECK VALUES RANGE
-    if (day   > DATE_MAXDAY)  return 1;
-    if (month > DATE_MAXMON)  return 1;
-    if (year  > DATE_MAXYEAR) return 1;
+    if (day   > DATE_MAXDAY)  return 0;
+    if (month > DATE_MAXMON)  return 0;
+    if (year  > DATE_MAXYEAR) return 0;
 
     dt->mday = day;
     dt->mon  = month;
     dt->year = year;
 
-    return 0;
+    return 1;
 }
 
 // READ A DATE AS A REAL.
 // REAL HAS THE FORM MM.DDYYYY OR DD.MMYYYY ,
 // DEPENDING ON THE STATE OF THE FLAG 'FL_DATEFORMAT'.
 // THE RANGE OF ALLOWABLE DATES IS OCTOBER 15, 1582, TO DECEMBER 31, 9999.
-// RETURN 0 ON SUCCESS OR
-// RETURN 1 IF AN INVALID DATE IS GIVEN.
+// RETURN 1 ON SUCCESS OR
+// RETURN 0 IF AN INVALID DATE IS GIVEN.
 BINT rplReadDateAsReal(struct date dt, REAL *date)
 {
     BINT b_date;
 
-    if (!rplIsValidDate(dt)) return 1;
+    if (!rplIsValidDate(dt)) return 0;
 
     b_date = dt.year;
     if (rplTestSystemFlag(FL_DATEFORMAT)) {
@@ -261,7 +261,7 @@ BINT rplReadDateAsReal(struct date dt, REAL *date)
 
     newRealFromBINT(date, b_date, -6);
 
-    return 0;
+    return 1;
 }
 
 // CHECK DATE IS CONFORM TO THE GREGORIAN CALENDAR.
@@ -283,8 +283,8 @@ BINT rplIsValidDate(struct date dt)
 
 // READ A REAL AS A TIME.
 // REAL HAS THE FORM 'HH.MMSS' IN THE 24H FORMAT.
-// RETURN 0 ON SUCCESS OR
-// RETURN 1 IF AN INVALID TIME IS GIVEN.
+// RETURN 1 ON SUCCESS OR
+// RETURN 0 IF AN INVALID TIME IS GIVEN.
 BINT rplReadRealAsTime(REAL *time, struct time *tm)
 {
     REAL r_time;
@@ -295,7 +295,7 @@ BINT rplReadRealAsTime(REAL *time, struct time *tm)
 
     if (!inBINTRange(&r_time) || isNANorinfiniteReal(&r_time)
         || (r_time.flags & F_NEGATIVE))
-            return -1;
+            return 0;
 
     sec = getBINTReal(&r_time);
     hour = sec / 10000;
@@ -304,29 +304,29 @@ BINT rplReadRealAsTime(REAL *time, struct time *tm)
     sec -= min * 100;
 
     // VERIFY A VALID TIME IS GIVEN
-    if (min  > 59) return 1;
-    if (sec  > 59) return 1;
-    if (hour > 23) return 1;
+    if (min  > 59) return 0;
+    if (sec  > 59) return 0;
+    if (hour > 23) return 0;
 
     tm->hour = hour;
     tm->min  = min;
     tm->sec  = sec;
 
-    return 0;
+    return 1;
 }
 
 // READ A TIME AS A REAL.
 // REAL HAS THE FORM 'HH.MMSS' IN THE 24H FORMAT.
-// RETURN 0 ON SUCCESS OR
-// RETURN 1 IF AN INVALID TIME IS GIVEN.
+// RETURN 1 ON SUCCESS OR
+// RETURN 0 IF AN INVALID TIME IS GIVEN.
 BINT rplReadTimeAsReal(struct time tm, REAL *time)
 {
     BINT b_time;
 
     // VERIFY A VALID TIME IS GIVEN
-    if (tm.min  > 59) return 1;
-    if (tm.sec  > 59) return 1;
-    if (tm.hour > 23) return 1;
+    if (tm.min  > 59) return 0;
+    if (tm.sec  > 59) return 0;
+    if (tm.hour > 23) return 0;
 
     b_time  = tm.sec;
     b_time += tm.min * 100;
@@ -334,7 +334,7 @@ BINT rplReadTimeAsReal(struct time tm, REAL *time)
 
     newRealFromBINT(time, b_time, -4);
 
-    return 0;
+    return 1;
 }
 
 // CONVERT DATE TO DAY NUMBER.
@@ -1225,7 +1225,7 @@ BINT rplReadAlarm(WORDPTR obj, struct alarm *alrm)
     }
 
     rplReadNumberAsReal(alarm_tm, &r_tm);
-    if (rplReadRealAsTime(&r_tm, &alrm->tm)) {
+    if (!rplReadRealAsTime(&r_tm, &alrm->tm)) {
         rplError(ERR_INVALIDTIME);
         return 0;
     }
@@ -1243,7 +1243,7 @@ BINT rplReadAlarm(WORDPTR obj, struct alarm *alrm)
         }
 
         rplReadNumberAsReal(alarm_dt, &r_dt);
-        if (rplReadRealAsDateNoCk(&r_dt, &alrm->dt)) {
+        if (!rplReadRealAsDateNoCk(&r_dt, &alrm->dt)) {
             rplError(ERR_INVALIDDATE);
             return 0;
         }
@@ -1376,7 +1376,7 @@ void LIB_HANDLER()
         }
 
         rplReadReal(arg_date, &r_date);
-        if (rplReadRealAsDateNoCk(&r_date, &dt)) {
+        if (!rplReadRealAsDateNoCk(&r_date, &dt)) {
             rplError(ERR_INVALIDDATE);
             return;
         }
@@ -1436,7 +1436,7 @@ void LIB_HANDLER()
         }
 
         rplReadReal(arg_date, &r_date);
-        if (rplReadRealAsDate(&r_date, &dt)) {
+        if (!rplReadRealAsDate(&r_date, &dt)) {
             rplError(ERR_INVALIDDATE);
             return;
         }
@@ -1488,7 +1488,7 @@ void LIB_HANDLER()
         }
 
         rplReadReal(arg_date1, &r_date);
-        if (rplReadRealAsDate(&r_date, &dt)) {
+        if (!rplReadRealAsDate(&r_date, &dt)) {
             rplError(ERR_INVALIDDATE);
             return;
         }
@@ -1496,7 +1496,7 @@ void LIB_HANDLER()
         ddays = rplDateToDays(dt);
 
         rplReadReal(arg_date2, &r_date);
-        if (rplReadRealAsDate(&r_date, &dt)) {
+        if (!rplReadRealAsDate(&r_date, &dt)) {
             rplError(ERR_INVALIDDATE);
             return;
         }
@@ -1535,7 +1535,7 @@ void LIB_HANDLER()
         }
 
         rplReadNumberAsReal(arg_time, &r_time);
-        if (rplReadRealAsTime(&r_time, &tm)) {
+        if (!rplReadRealAsTime(&r_time, &tm)) {
             rplError(ERR_INVALIDTIME);
             return;
         }
@@ -1882,7 +1882,7 @@ void LIB_HANDLER()
             }
 
             rplReadNumberAsReal(arg_tm, &r_tm);
-            if (rplReadRealAsTime(&r_tm, &tm)) {
+            if (!rplReadRealAsTime(&r_tm, &tm)) {
                 rplError(ERR_INVALIDTIME);
                 return;
             }
@@ -1896,7 +1896,7 @@ void LIB_HANDLER()
         }
 
         rplReadReal(arg_dt, &r_dt);
-        if (rplReadRealAsDateNoCk(&r_dt, &dt)) {
+        if (!rplReadRealAsDateNoCk(&r_dt, &dt)) {
             rplError(ERR_INVALIDDATE);
             return;
         }
