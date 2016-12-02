@@ -156,14 +156,38 @@ struct date {
 #define DATE_MAXMON  ((1 <<  4) - 1)
 #define DATE_MAXYEAR ((1 << 14) - 1)
 
-// USER ALARM STRUCTURE
+// ALARM STRUCTURE
+// AN ALARM CAN BE IN 5 DIFFERENT STATES:
+// 1-PENDING ALARM (ALARM DUE):
+//   0x0 - ann=0 & ack=0 & dis=0
+// 2-PAST DUE ALARM:
+//   0x1 - ann=1 & ack=0 & dis=0
+// 3-PAST ALARM ACKNOWLEDGED:
+//   0x2 - ann=0 & ack=1 & dis=0
+// 4-PAST CONTROL ALARM:
+//   0X3 - ann=1 & ack=1 & dis=0
+// 5-DISABLED ALARM:
+//   0x? - ann=? & ack=? & dis=1
 struct alarm {
-    struct date dt;
-    struct time tm;
-    WORDPTR     obj;
-    UBINT       rpt;        // repeat interval (seconds)
+    BINT64   time;          // alarm time (elapsed seconds since 10/15/1582)
+    UBINT    rpt;           // repeat interval (seconds)
+    WORDPTR  obj;
+    union  {
+    BYTE     flags;         // Represents all alarm flags.
+    struct {
+    unsigned ann     : 1,   // announced alarm?       Y:1 N:0
+             ack     : 1,   // acknowledged alarm?    Y:1 N:0
+             dis     : 1,   // disabled alarm?        Y:1 N:0
+                     : 5;   // to pad up to 8 bits
+    };
+    };
 };
 
+#define DUE_ALM      0x0
+#define PASTDUE_ALM  0x1
+#define PAST_ALM     0x2
+#define PAST_CTLALM  0x3
+#define DISABLED_ALM 0x4
 
 // ERROR MANAGEMENT FUNCTIONS
 void decTrapHandler(BINT error);
