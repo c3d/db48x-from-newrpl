@@ -178,8 +178,9 @@ void rplClearErrors();
 void rplBlameUserCommand();
 void rplBlameError(WORDPTR command);
 
-
+#define CLEAN_RUN       0
 #define NEEDS_CLEANUP   1
+#define CODE_HALTED     2
 
 // ENVIRONMENT FUNCTIONS IN RUNSTREAM.C
 void rplInit();
@@ -708,7 +709,7 @@ void rplSkipNextAlarm();
 // DEFINED EXCEPTIONS
 
 #define EX_EXITRPL          1
-#define EX_BKPOINT          2
+#define EX_HALT             2
 #define EX_OUTOFMEM         4
 #define EX_ERRORCODE        8
 #define EX_POWEROFF        16

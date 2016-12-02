@@ -69,16 +69,26 @@ void rplCatchException()
 
     Exceptions=0;                   // RESET THE EXCEPTIONS TO ALLOW HANDLER TO RUN
 
-    // SET INSTRUCTION POINTER AND CONTINUE EXECUTION AT THE ERROR HANDLER
-    IPtr=ErrorHandler-1;    // MAKE SURE THE FIRST OBJECT AT THE ERROR HANDLER IS NOT SKIPPED
-    CurOpcode=0;
 
     if(ISPROLOG(*ErrorHandler) && (LIBNUM(*ErrorHandler)==DOCOL)) {
-        // SPECIAL LOW-LEVEL ERROR HANDLER
+        // SPECIAL LOW-LEVEL TRANSPARENT ERROR HANDLER
         // DO NOT CLEANUP ANYTHING OR REMOVE THE HANDLER
+        rplPushRet(IPtr);   // PUSH THE OFFENDING OPCODE TO RESUME AFTER THE ERROR HANDLER FINISHED
+        rplSetExceptionHandler((WORDPTR)error_reenter_seco);
+        // TRANSPARENT ERROR HANDLERS MUST ENSURE ALL STACK, RSTACK AND LOCALS ARE LEFT INTACT
+        rplPushRet((WORDPTR)exiterror_seco);       // UPON NORMAL RETURN
 
+        IPtr=ErrorHandler;  // SKIP THE PROLOG OF THE SECO, SO THAT SEMI RETURNS DIRECTLY TO exiterror_seco
+        CurOpcode=0;
 
-    } else rplRemoveExceptionHandler();
+    } else {
+        rplRemoveExceptionHandler();
+        // SET INSTRUCTION POINTER AND CONTINUE EXECUTION AT THE ERROR HANDLER
+        IPtr=ErrorHandler-1;    // MAKE SURE THE FIRST OBJECT AT THE ERROR HANDLER IS NOT SKIPPED
+        CurOpcode=0;
+
+    }
+
 
 }
 

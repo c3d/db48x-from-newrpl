@@ -429,7 +429,7 @@ rplSetEntryPoint(obj);
 rplRun();
 
 // DISCARD ANY ERRORS DURING EXECUTION,  IDEALLY IT HIT THE BREAKPOINT
-if(Exceptions!=EX_BKPOINT) {
+if(Exceptions!=EX_HALT) {
     // THERE WAS SOME OTHER ERROR DURING EXECUTION, DISCARD ALL OUTPUT FROM THE FAILED PROGRAM
     rplClearData();
 }
@@ -4081,22 +4081,23 @@ void halOuterLoop()
             }
 
 
-            // DO OTHER IDLE PROCESSING HERE
-
-
-            isidle=1;
-
-            halSetBusyHandler();
-
             if (halCheckSystemAlarm()) {
                 jobdone=isidle=0;
                 halTriggerAlarm();
             }
 
-        } else {
-            jobdone=isidle=0;
-            halSetBusyHandler();
-        }
+            // DO OTHER IDLE PROCESSING HERE
+
+
+            isidle=1;
+
+        } else { jobdone=isidle=0; }
+
+
+        halSetBusyHandler();
+
+
+
 
     } while(!halProcessKey(keymsg));
 

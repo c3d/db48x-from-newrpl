@@ -240,7 +240,7 @@ LIBS += -L/usr/local/lib
 DISTFILES +=
 
 
-QMAKE_CFLAGS += -Wno-duplicate-decl-specifier
+#QMAKE_CFLAGS += -Wno-duplicate-decl-specifier
 
 
 
