@@ -255,25 +255,28 @@ BINT rplRun(void)
     else {
         rplError(ERR_MISSINGLIBRARY);
         // INVALID OPCODE = END OF EXECUTION (CANNOT BE TRAPPED BY HANDLER)
-        return 1;
+        return NEEDS_CLEANUP;
     }
     if(Exceptions) {
+
+        // HARD EXCEPTIONS FIRST, DO NOT ALLOW ERROR HANDLERS TO CATCH THESE ONES
         if(Exceptions&EX_EXITRPL) {
             Exceptions=0;
             rplClearRStk(); // CLEAR THE RETURN STACK
             rplClearLAMs(); // CLEAR ALL LOCAL VARIABLES
             ErrorHandler=0;
-            return 0; // DON'T ALLOW HANDLER TO TRAP THIS EXCEPTION
+            return CLEAN_RUN; // DON'T ALLOW HANDLER TO TRAP THIS EXCEPTION
         }
+        if(Exceptions&EX_HALT) { rplSkipNext(); return CODE_HALTED; } // PREPARE TO RESUME ON NEXT CALL
+        if(Exceptions&EX_POWEROFF) { rplSkipNext(); return CODE_HALTED; } // PREPARE AUTORESUME
+
         if(ErrorHandler) {
             // ERROR WAS TRAPPED BY A HANDLER
             rplCatchException();
         }
         else {
             // THERE IS NO ERROR HANDLER --> UNTRAPPED ERROR
-            if(Exceptions&EX_BKPOINT) rplSkipNext(); // PREPARE TO RESUME ON NEXT CALL
-            if(Exceptions&EX_POWEROFF) { rplSkipNext(); return 2; }
-            return 1;      // END EXECUTION IMMEDIATELY IF AN UNHANDLED EXCEPTION IS THROWN
+            return NEEDS_CLEANUP;      // END EXECUTION IMMEDIATELY IF AN UNHANDLED EXCEPTION IS THROWN
         }
     }
 
