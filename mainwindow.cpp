@@ -661,3 +661,8 @@ void MainWindow::on_actionPower_ON_triggered()
     screentmr->start(50);
 
 }
+
+void MainWindow::on_actionSimulate_Alarm_triggered()
+{
+
+}

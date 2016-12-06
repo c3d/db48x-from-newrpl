@@ -33,13 +33,14 @@
     CMD(XEQSECO,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     ECMD(SEMI,";",MKTOKENINFO(1,TITYPE_NOTALLOWED,1,2)), \
     CMD(EVAL1NEXT,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(ERROR_EXIT,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     ECMD(ERROR_REENTER,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     CMD(RESUME,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(DOERR,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(ERRN,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(ERRM,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ERR0,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    CMD(ERR0,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(HALT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+
 
 
 
@@ -66,10 +67,6 @@ ROMOBJECT errormsg_ident[]={
     TEXT2WORD('r','M','s','g')
 };
 
-ROMOBJECT error_exit_seco[]={
-    CMD_XEQSECO,
-    CMD_ERROR_EXIT
-};
 
 
 ROMOBJECT error_reenter_seco[]={
@@ -82,7 +79,6 @@ ROMOBJECT error_reenter_seco[]={
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)errormsg_ident,
-    (WORDPTR)error_exit_seco,
     (WORDPTR)error_reenter_seco,
     0
 };
@@ -104,6 +100,10 @@ void LIB_HANDLER()
         rplException(EX_EXITRPL);
         return;
     case BKPOINT:
+        // TODO: IMPLEMENT CONDITIONAL BREAKPOINTS
+        // FOR NOW BEHAVE SAME AS HALT
+        // DELIBERATE FALL-THROUGH
+    case HALT:
         rplException(EX_HALT);
         return;
     case XEQSECO:
@@ -135,37 +135,6 @@ void LIB_HANDLER()
         // SINCE IPtr POINTS TO THE NEXT OBJECT, IT WILL BE SKIPPED
         return;
 
-    case ERROR_EXIT:
-        // THIS IS CALLED ONLY WHEN INSIDE AN ERROR HANDLER TO CLEANUP AND EXIT
-        // JUST LIKE A NORMAL ERROR HANDLER WOULD
-        // THE RETURN STACK CAN NEVER BE EMPTY (CHECK THAT) AND IT SHOULD HAVE:
-        // ON NORMAL RETURN FROM AN ERROR HANDLER:
-        // 1: RETURN ADDRESS TO CONTINUE ERROR HANDLER
-        // 2: ... SAVED ERROR HANDLER ...
-        // 6: IPtr TO RESUME
-        // 7: ... 8: DATA STACK PROTECTION
-        // 9: ... SAVED USER ERROR HANDLER
-    {
-        if(rplDepthRet()<12) {
-            // THIS OPCODE WAS NOT CALLED FROM WITHIN AN ERROR HANDLER, JUST DO EXITRPL
-            rplException(EX_EXITRPL);
-            return;
-        }
-        if(ErrorHandler!=(WORDPTR)error_reenter_seco) {
-            // NOT WITHIN AN ERROR HANDLER
-            rplException(EX_EXITRPL);
-            return;
-        }
-            IPtr=rplPopRet();   // GET THE CALLER ADDRESS
-            if(IPtr) CurOpcode=*IPtr;    // SET THE WORD SO MAIN LOOP SKIPS THIS OBJECT, AND THE NEXT ONE IS EXECUTED
-
-            rplRemoveExceptionHandler();    // REMOVE THE REENTRANT EXCEPTION HANDLER
-            rplPopRet();                    // REMOVE RESUME ADDRESS
-            rplUnprotectData();             // REMOVE STACK PROTECTION
-            rplRemoveExceptionHandler();    //  REMOVE ORIGINAL USER ERROR HANDLER
-            return; // AND CONTINUE EXECUTION AS IF SEMI WAS EXECUTED
-    }
-
     case ERROR_REENTER:
         // THIS IS CALLED ONLY WHEN A SPECIAL ERROR THROWS AN ERROR, TO CLEANUP AND EXIT
         // JUST LIKE A NORMAL ERROR HANDLER WOULD
@@ -181,6 +150,8 @@ void LIB_HANDLER()
             return;
         }
 
+            rplRemoveExceptionHandler();    //  REMOVE SECOND RE-ENTER HANDLER
+            rplRemoveExceptionHandler();    //  REMOVE ORIGINAL RE-ENTER ERROR HANDLER
             rplPopRet();                    // REMOVE RESUME ADDRESS
             DSTop=rplUnprotectData();       // CLEANUP STACK FROM ANYTHING THE FAILING ERROR HANDLER DID
             rplRemoveExceptionHandler();    //  REMOVE ORIGINAL USER ERROR HANDLER
@@ -196,24 +167,19 @@ void LIB_HANDLER()
         // JUST LIKE A NORMAL ERROR HANDLER WOULD
         // THE RETURN STACK CAN NEVER BE EMPTY (CHECK THAT) AND IT SHOULD HAVE:
         // ON NORMAL RETURN FROM AN ERROR HANDLER:
-        // 1: exit_error_seco
-        // 2: RETURN ADDRESS TO CONTINUE ERROR HANDLER
-        // 3: ... SAVED ERROR HANDLER ...
-        // 7: IPtr TO RESUME
-        // 8: ... 9: DATA STACK PROTECTION
-        // 10: ... SAVED USER ERROR HANDLER
+        // 1: ... SAVED ERROR HANDLER ...
+        // 5: IPtr TO RESUME
+        // 6: ... 7: DATA STACK PROTECTION
+        // 8: ... SAVED USER ERROR HANDLER
     {
-        if(rplDepthRet()<13) {
+        if(rplDepthRet()<11) {
             // THIS OPCODE WAS NOT CALLED FROM WITHIN AN ERROR HANDLER, JUST DO NOP
             return;
         }
-        if((rplPeekRet(1)!=(WORDPTR)error_exit_seco) || (ErrorHandler!=(WORDPTR)error_reenter_seco)) {
+        if(ErrorHandler!=(WORDPTR)error_reenter_seco) {
             // NOT WITHIN AN ERROR HANDLER, DO NOTHING
             return;
         }
-
-            rplPopRet();        // DON'T NEED exit_error_seco
-            rplPopRet();        // DROP THE CALLER ADDRESS TO EXIT THE ERROR HANDLER
 
             rplRemoveExceptionHandler();    // REMOVE THE REENTRANT EXCEPTION HANDLER
             IPtr=rplPopRet();                    // RESUME AT THIS ADDRESS
@@ -364,8 +330,6 @@ void LIB_HANDLER()
         Exceptions=0;
         return;
     }
-
-
 
     // ADD MORE OPCODES HERE
     case OVR_EVAL:

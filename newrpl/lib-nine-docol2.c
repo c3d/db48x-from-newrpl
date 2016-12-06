@@ -553,9 +553,20 @@ void LIB_HANDLER()
         }
         return;
     case ELSEERR:
-        // THIS WOULD ONLY BE EXECUTED AT THE END OF AN ERROR TRAP. SKIP TO THE ENDERR MARKER
     {
-        int count=0;
+        if(ErrorHandler!=(WORDPTR)error_reenter_seco) {
+            // NOT WITHIN AN ERROR HANDLER, DO NOTHING
+            return;
+        }
+
+        // AT THE END OF THE ERROR HANDLER, DO SOME CLEANUP
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
+
+        // SKIP TO THE ENDERR MARKER
+       int count=0;
     while(count ||  (*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDERR)) ) {
         if(*IPtr==MKOPCODE(LIBRARY_NUMBER,IFERR)) ++count;
         if(*IPtr==MKOPCODE(LIBRARY_NUMBER,ENDERR)) --count;
@@ -567,10 +578,20 @@ void LIB_HANDLER()
 
         return;
     case ENDERR:
-        // THIS IS ONLY EXECUTED WHEN EXITING AN ERROR HANDLER
-        // THERE'S NOTHING ELSE TO DO
-        return;
+    {
+        if(ErrorHandler!=(WORDPTR)error_reenter_seco) {
+            // NOT WITHIN AN ERROR HANDLER, OR AFTER AN ELSEERR STATEMENT, DO NOTHING
+            return;
+        }
 
+        // AT THE END OF THE ERROR HANDLER, DO SOME CLEANUP
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
+
+        return;
+    }
 
 
     // STANDARIZED OPCODES:

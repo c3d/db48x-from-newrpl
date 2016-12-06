@@ -54,8 +54,15 @@
     <addaction name="separator"/>
     <addaction name="actionEject_SD_Card_Image"/>
    </widget>
+   <widget class="QMenu" name="menuHardware">
+    <property name="title">
+     <string>Hardware</string>
+    </property>
+    <addaction name="actionSimulate_Alarm"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSD_Card"/>
+   <addaction name="menuHardware"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -104,6 +111,11 @@
   <action name="actionPower_ON">
    <property name="text">
     <string>Power ON</string>
+   </property>
+  </action>
+  <action name="actionSimulate_Alarm">
+   <property name="text">
+    <string>Simulate Alarm</string>
    </property>
   </action>
  </widget>
