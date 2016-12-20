@@ -738,6 +738,7 @@ void rplSkipNextAlarm();
 #define EX_ERRORCODE        8
 #define EX_POWEROFF        16
 #define EX_DIRTYFS         32
+#define EX_AUTORESUME      64
 
 // ADD OTHER EXCEPTIONS HERE
 

@@ -33,12 +33,14 @@
     CMD(XEQSECO,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     ECMD(SEMI,";",MKTOKENINFO(1,TITYPE_NOTALLOWED,1,2)), \
     CMD(EVAL1NEXT,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(ERROR_EXIT,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(ERROR_REENTER,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     CMD(RESUME,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(DOERR,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(ERRN,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(ERRM,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ERR0,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    CMD(ERR0,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(HALT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+
 
 
 
@@ -65,15 +67,20 @@ ROMOBJECT errormsg_ident[]={
     TEXT2WORD('r','M','s','g')
 };
 
-ROMOBJECT exiterror_seco[]={
-    CMD_ERROR_EXIT
+
+
+ROMOBJECT error_reenter_seco[]={
+    CMD_XEQSECO,
+    CMD_ERROR_REENTER
 };
 
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
-    (WORDPTR)errormsg_ident
+    (WORDPTR)errormsg_ident,
+    (WORDPTR)error_reenter_seco,
+    0
 };
 
 void LIB_HANDLER()
@@ -93,21 +100,23 @@ void LIB_HANDLER()
         rplException(EX_EXITRPL);
         return;
     case BKPOINT:
+        // TODO: IMPLEMENT CONDITIONAL BREAKPOINTS
+        // FOR NOW BEHAVE SAME AS HALT
+        // DELIBERATE FALL-THROUGH
+    case HALT:
         rplException(EX_HALT);
         return;
     case XEQSECO:
         // IF THE NEXT OBJECT IN THE SECONDARY
         // IS A SECONDARY, IT EVALUATES IT INSTEAD OF PUSHING IT ON THE STACK
         ++IPtr;
-        CurOpcode=*IPtr;
-        if(ISPROLOG(CurOpcode)&& (LIBNUM(CurOpcode)==SECO)) {
+        if(ISPROLOG(*IPtr)&& (LIBNUM(*IPtr)==SECO)) {
             CurOpcode=MKPROLOG(SECO,0); // MAKE IT SKIP INSIDE THE SECONDARY
             rplPushRet(IPtr);
             return;
         }
         // HAVE NO EFFECT ON ANY OTHER OBJECTS
         --IPtr;
-        CurOpcode=*IPtr;
         return;
 
     case SEMI:
@@ -126,97 +135,60 @@ void LIB_HANDLER()
         // SINCE IPtr POINTS TO THE NEXT OBJECT, IT WILL BE SKIPPED
         return;
 
-    case ERROR_EXIT:
-        // THIS IS CALLED ONLY WHEN INSIDE AN ERROR HANDLER TO CLEANUP AND EXIT
+    case ERROR_REENTER:
+        // THIS IS CALLED ONLY WHEN A SPECIAL ERROR THROWS AN ERROR, TO CLEANUP AND EXIT
         // JUST LIKE A NORMAL ERROR HANDLER WOULD
         // THE RETURN STACK CAN NEVER BE EMPTY (CHECK THAT) AND IT SHOULD HAVE:
         // ON NORMAL RETURN FROM AN ERROR HANDLER:
-        // 1: ... SPECIAL ERROR HANDLER ... 4: IPtr TO RESUME 5: ... OLD ERROR HANDLER
+        // 1: IPtr TO RESUME
+        // 2: ... 3: DATA STACK PROTECTION
+        // 4: ... SAVED USER ERROR HANDLER
     {
-        if(rplDepthRet()<5) {
+        if(rplDepthRet()<7) {
             // THIS OPCODE WAS NOT CALLED FROM WITHIN AN ERROR HANDLER, JUST DO EXITRPL
             rplException(EX_EXITRPL);
             return;
         }
-        if(ErrorHandler!=(WORDPTR)error_reenter_seco) {
-            // NOT WITHIN AN ERROR HANDLER
-            rplException(EX_EXITRPL);
-            return;
-        }
-            rplRemoveExceptionHandler();    // REMOVE THE REENTRANT EXCEPTION HANDLER
 
-            IPtr=rplPopRet();   // GET THE CALLER ADDRESS
-            if(IPtr) CurOpcode=*IPtr;    // SET THE WORD SO MAIN LOOP SKIPS THIS OBJECT, AND THE NEXT ONE IS EXECUTED
-
-            rplRemoveExceptionHandler();
+            rplRemoveExceptionHandler();    //  REMOVE SECOND RE-ENTER HANDLER
+            rplRemoveExceptionHandler();    //  REMOVE ORIGINAL RE-ENTER ERROR HANDLER
+            rplPopRet();                    // REMOVE RESUME ADDRESS
+            DSTop=rplUnprotectData();       // CLEANUP STACK FROM ANYTHING THE FAILING ERROR HANDLER DID
+            rplRemoveExceptionHandler();    //  REMOVE ORIGINAL USER ERROR HANDLER
+            // THROW THE ERROR TO THE PREVIOUS ERROR HANDLER, AS THIS ONE COULDN'T HANDLE IT
+            if(TrappedExceptions==EX_ERRORCODE) rplError(TrappedErrorCode);
+            else rplException(TrappedExceptions);
             return; // AND CONTINUE EXECUTION AS IF SEMI WAS EXECUTED
-
-        }
-        if((rplDepthRet()<11)||(rplPeekRet(5)!=(WORDPTR)errorexit_seco)) {
-            // THIS OPCODE WAS NOT CALLED AS AN ERROR WITHIN AN ERROR HANDLER, JUST DO EXITRPL
-            rplException(EX_EXITRPL);
-            return;
-        }
-
-        // ERROR IN THE ERROR HANDLER?
-        rplRemoveExceptionHandler();    // REMOVE THE ERROR HANDLER WITHIN THE ERROR HANDLER
-        rplPopRet();    // REMOVE THE errorexit HANDLER
-        rplPopRet();    // REMOVE THE RESUME ADDRESS
-        rplRemoveExceptionHandler();    // REMOVE THE OLD EXCEPTION HANDLER
-
-        // AND DO SEMI, WHICH WILL PUT IPtr TO EXECUTE THE ENDERR WORD
-        IPtr=rplPopRet();   // GET THE CALLER ADDRESS
-        if(IPtr) CurOpcode=*IPtr;    // SET THE WORD SO MAIN LOOP SKIPS THIS OBJECT, AND THE NEXT ONE IS EXECUTED
-
-        return;
     }
+
 
     case RESUME:
-        // THIS IS CALLED ONLY WHEN INSIDE AN ERROR HANDLER TO "RESUME" THE ORIGINAL CODE
-        // JUST AFTER THE OPCODE THAT CAUSED THE EXCEPTION
+        // THIS IS CALLED FROM WITHIN A SPECIAL ERROR HANDLER, TO RESUME EXECUTION WHERE IT STOPPED
+        // JUST LIKE A NORMAL ERROR HANDLER WOULD
         // THE RETURN STACK CAN NEVER BE EMPTY (CHECK THAT) AND IT SHOULD HAVE:
         // ON NORMAL RETURN FROM AN ERROR HANDLER:
-        // 1: errorexit_seco, 2: IPtr, 3: ... OLD ERROR HANDLER ...
-
-
+        // 1: ... SAVED ERROR HANDLER ...
+        // 5: IPtr TO RESUME
+        // 6: ... 7: DATA STACK PROTECTION
+        // 8: ... SAVED USER ERROR HANDLER
     {
-        if(rplDepthRet()<7) {
-            // THIS OPCODE WAS NOT CALLED FROM WITHIN AN ERORR HANDLER, JUST DO EXITRPL
-            rplException(EX_EXITRPL);
+        if(rplDepthRet()<11) {
+            // THIS OPCODE WAS NOT CALLED FROM WITHIN AN ERROR HANDLER, JUST DO NOP
             return;
         }
-        if(rplPeekRet(1)==(WORDPTR)errorexit_seco) {
-            // THIS OPCODE WAS CALLED AS A NORMAL RETURN FROM AN ERROR HANDLER
-            rplPopRet();    // REMOVE THE errorexit HANDLER
-            rplPopRet();    // REMOVE THE RESUME ADDRESS
-            rplRemoveExceptionHandler();    // REMOVE THE OLD EXCEPTION HANDLER
-
-            IPtr=rplPopRet();   // GET THE CALLER ADDRESS
-            if(IPtr) CurOpcode=*IPtr;    // SET THE WORD SO MAIN LOOP SKIPS THIS OBJECT, AND THE NEXT ONE IS EXECUTED
-            return; // AND CONTINUE EXECUTION AS IF SEMI WAS EXECUTED
-
-        }
-        if((rplDepthRet()<11)||(rplPeekRet(5)!=(WORDPTR)errorexit_seco)) {
-            // THIS OPCODE WAS NOT CALLED AS AN ERROR WITHIN AN ERROR HANDLER, JUST DO EXITRPL
-            rplException(EX_EXITRPL);
+        if(ErrorHandler!=(WORDPTR)error_reenter_seco) {
+            // NOT WITHIN AN ERROR HANDLER, DO NOTHING
             return;
         }
 
-        // ERROR IN THE ERROR HANDLER?
-        rplRemoveExceptionHandler();    // REMOVE THE ERROR HANDLER WITHIN THE ERROR HANDLER
-        rplPopRet();    // REMOVE THE errorexit HANDLER
-        rplPopRet();    // REMOVE THE RESUME ADDRESS
-        rplRemoveExceptionHandler();    // REMOVE THE OLD EXCEPTION HANDLER
+            rplRemoveExceptionHandler();    // REMOVE THE REENTRANT EXCEPTION HANDLER
+            IPtr=rplPopRet();                    // RESUME AT THIS ADDRESS
+            CurOpcode=*IPtr;                     // MAKE SURE THE OFFENDING OBJECT IS SKIPPED
+            DSTop=rplUnprotectData();       // CLEANUP STACK FROM ANYTHING THE ERROR HANDLER DID
+            // rplRemoveExceptionHandler();    // LEAVE THE ORIGINAL USER ERROR HANDLER ACTIVE TO TRAP MORE ERRORS
 
-        // AND DO SEMI, WHICH WILL PUT IPtr TO EXECUTE THE ENDERR WORD
-        IPtr=rplPopRet();   // GET THE CALLER ADDRESS
-        if(IPtr) CurOpcode=*IPtr;    // SET THE WORD SO MAIN LOOP SKIPS THIS OBJECT, AND THE NEXT ONE IS EXECUTED
-
-        return;
+            return; // AND RESUME EXECUTION LIKE NOTHING HAPPENED!
     }
-
-
-
 
     case DOERR:
         // THROW AN ERROR BY EITHER A STRING OR ERROR CODE
@@ -358,8 +330,6 @@ void LIB_HANDLER()
         Exceptions=0;
         return;
     }
-
-
 
     // ADD MORE OPCODES HERE
     case OVR_EVAL:

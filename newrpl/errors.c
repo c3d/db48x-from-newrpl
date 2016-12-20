@@ -70,25 +70,13 @@ void rplCatchException()
     Exceptions=0;                   // RESET THE EXCEPTIONS TO ALLOW HANDLER TO RUN
 
 
-    if(ISPROLOG(*ErrorHandler) && (LIBNUM(*ErrorHandler)==DOCOL)) {
-        // SPECIAL LOW-LEVEL TRANSPARENT ERROR HANDLER
-        // DO NOT CLEANUP ANYTHING OR REMOVE THE HANDLER
+    // DO NOT CLEANUP ANYTHING OR REMOVE THE HANDLER
+        rplProtectData();   // PROTECT THE USER DATA STACK WITHIN THE ERROR HANDLER
         rplPushRet(IPtr);   // PUSH THE OFFENDING OPCODE TO RESUME AFTER THE ERROR HANDLER FINISHED
         rplSetExceptionHandler((WORDPTR)error_reenter_seco);
-        // TRANSPARENT ERROR HANDLERS MUST ENSURE ALL STACK, RSTACK AND LOCALS ARE LEFT INTACT
-        rplPushRet((WORDPTR)exiterror_seco);       // UPON NORMAL RETURN
 
-        IPtr=ErrorHandler;  // SKIP THE PROLOG OF THE SECO, SO THAT SEMI RETURNS DIRECTLY TO exiterror_seco
+        IPtr=rplPeekRet(4)-1; /*=ErrorHandler (original)*/;
         CurOpcode=0;
-
-    } else {
-        rplRemoveExceptionHandler();
-        // SET INSTRUCTION POINTER AND CONTINUE EXECUTION AT THE ERROR HANDLER
-        IPtr=ErrorHandler-1;    // MAKE SURE THE FIRST OBJECT AT THE ERROR HANDLER IS NOT SKIPPED
-        CurOpcode=0;
-
-    }
-
 
 }
 
@@ -98,6 +86,13 @@ void rplException(WORD exception)
     Exceptions|=exception;
     ExceptionPointer=IPtr;
 }
+
+// RAISE A HARDWARE RPL EXCEPTION
+void rplHardException(WORD exception)
+{
+    HWExceptions|=exception;
+}
+
 
 // RAISE A LIBRARY ERROR EXCEPTION
 // AND SET THE ERROR CODE TO THE GIVEN OPCODE

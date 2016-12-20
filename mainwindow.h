@@ -56,6 +56,8 @@ private slots:
 
     void on_actionPower_ON_triggered();
 
+    void on_actionSimulate_Alarm_triggered();
+
 public slots:
     void domaintimer();
 private:

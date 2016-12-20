@@ -28,6 +28,7 @@
 @#name lib9_msgtable
 {
 ##1,ERR_PROGRAMEXPECTED  "Expected an program"
+##1,ERR_ERRHANDLERREENTERED "Error handler reentered"
 }
 
 

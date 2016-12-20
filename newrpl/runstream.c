@@ -257,7 +257,10 @@ BINT rplRun(void)
         // INVALID OPCODE = END OF EXECUTION (CANNOT BE TRAPPED BY HANDLER)
         return NEEDS_CLEANUP;
     }
+    Exceptions|=HWExceptions;   // COPY HARDWARE EXCEPTIONS INTO EXCEPTIONS AT THIS POINT TO AVOID
+                                // STOPPING IN THE MIDDLE OF A COMMAND
     if(Exceptions) {
+        if(HWExceptions) HWExceptions=0;    // CLEAR ANY HARDWARE EXCEPTIONS
 
         // HARD EXCEPTIONS FIRST, DO NOT ALLOW ERROR HANDLERS TO CATCH THESE ONES
         if(Exceptions&EX_EXITRPL) {
@@ -383,7 +386,7 @@ void rplInit(void)
     DStkSize=0;    // TOTAL SIZE OF DATA STACK
     RStkSize=0;    // TOTAL SIZE OF RETURN STACK
     LAMSize=0;
-    Exceptions=0;   // NO EXCEPTIONS RAISED
+    HWExceptions=Exceptions=0;   // NO EXCEPTIONS RAISED
     ExceptionPointer=0;
 
     rplClearLibraries();
@@ -473,7 +476,7 @@ void rplWarmInit(void)
     IPtr=0;  // INSTRUCTION POINTER SHOULD BE SET LATER TO A VALID RUNSTREAM
     CurOpcode=0; // CURRENT OPCODE (WORD)
 
-    Exceptions=0;   // NO EXCEPTIONS RAISED
+    HWExceptions=Exceptions=0;   // NO EXCEPTIONS RAISED
     ExceptionPointer=0;
 
     RSTop=RStk; // CLEAR RETURN STACK
@@ -562,7 +565,7 @@ void rplHotInit()
     IPtr=0;  // INSTRUCTION POINTER SHOULD BE SET LATER TO A VALID RUNSTREAM
     CurOpcode=0; // CURRENT OPCODE (WORD)
 
-    Exceptions=0;   // NO EXCEPTIONS RAISED
+    HWExceptions=Exceptions=0;   // NO EXCEPTIONS RAISED
     ExceptionPointer=0;
 
     RSTop=RStk; // CLEAR RETURN STACK
