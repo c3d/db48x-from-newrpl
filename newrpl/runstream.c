@@ -299,6 +299,7 @@ void rplCleanup()
     if(ErrorHandler) ErrorHandler=0;
     rplClearRStk(); // CLEAR THE RETURN STACK
     rplClearLAMs(); // CLEAR ALL LOCAL VARIABLES
+    HaltedIPtr=0;
 }
 
 
@@ -380,6 +381,7 @@ void rplInit(void)
     TempBlocksEnd=0;
 
     IPtr=0;  // INSTRUCTION POINTER SHOULD BE SET LATER TO A VALID RUNSTREAM
+    HaltedIPtr=0;
     CurOpcode=0; // CURRENT OPCODE (WORD)
     TempObSize=0;    // TOTAL SIZE OF TEMPOB
     TempBlocksSize=0;
@@ -474,6 +476,7 @@ void rplWarmInit(void)
     int count;
 
     IPtr=0;  // INSTRUCTION POINTER SHOULD BE SET LATER TO A VALID RUNSTREAM
+    HaltedIPtr=0;
     CurOpcode=0; // CURRENT OPCODE (WORD)
 
     HWExceptions=Exceptions=0;   // NO EXCEPTIONS RAISED
@@ -563,6 +566,7 @@ void rplHotInit()
 
 
     IPtr=0;  // INSTRUCTION POINTER SHOULD BE SET LATER TO A VALID RUNSTREAM
+    // KEEP THE HALTED POINTER AS-IS, USE THEM TO KEEP RUNNING AFTER POWEROFF
     CurOpcode=0; // CURRENT OPCODE (WORD)
 
     HWExceptions=Exceptions=0;   // NO EXCEPTIONS RAISED

@@ -43,11 +43,13 @@ WORDPTR GC_PTRUpdate[MAX_GC_PTRUPDATE];
 #define CmdLineText         GC_PTRUpdate[13]
 #define CmdLineCurrentLine  GC_PTRUpdate[14]
 #define CmdLineUndoList     GC_PTRUpdate[15]
-#define ScratchPointer1     GC_PTRUpdate[16]
-#define ScratchPointer2     GC_PTRUpdate[17]
-#define ScratchPointer3     GC_PTRUpdate[18]
-#define ScratchPointer4     GC_PTRUpdate[19]
-#define ScratchPointer5     GC_PTRUpdate[20]
+#define HaltedIPtr          GC_PTRUpdate[16]
+#define BlameCmd            GC_PTRUpdate[17]
+#define ScratchPointer1     GC_PTRUpdate[18]
+#define ScratchPointer2     GC_PTRUpdate[19]
+#define ScratchPointer3     GC_PTRUpdate[20]
+#define ScratchPointer4     GC_PTRUpdate[21]
+#define ScratchPointer5     GC_PTRUpdate[22]
 
 
 // THE POINTERS [12] TO [15] ARE AVAILABLE FOR LIBRARIES TO USE
@@ -70,12 +72,15 @@ WORD CurOpcode; // CURRENT OPCODE (WORD)
 WORD HWExceptions, Exceptions, TrappedExceptions;  // FLAGS FOR CURRENT EXCEPTIONS
 WORD ErrorCode, TrappedErrorCode;
 WORDPTR *RSTop; // TOP OF THE RETURN STACK
+WORDPTR *HaltedRSTop; // TOP OF THE RETURN STACK OF HALTED PROGRAM
 WORDPTR *DSTop; // TOP OF THE DATA STACK
 WORDPTR *ValidateBottom; // TEMPORARY DATA AFTER OR IN THE RETURN STACK USED DURING COMPILATION
 WORDPTR *ValidateTop; // TEMPORARY DATA AFTER OR IN THE RETURN STACK USED DURING COMPILATION
 WORDPTR *TempBlocksEnd;  // POINTER TO END OF TEMPBLOCKS
 WORDPTR *LAMTop; // TOP OF THE LAM STACK
 WORDPTR *nLAMBase;  // START OF THE LAST LAM ENVIRONMENT
+WORDPTR *HaltedLAMTop; // TOP OF THE LAM STACK
+WORDPTR *HaltednLAMBase;  // START OF THE LAST LAM ENVIRONMENT
 WORDPTR *LAMTopSaved;   // SAVED VALUE OF LAMTOP USED DURING COMPILATION
 WORDPTR *ErrornLAMBase;  // SAVED BASE OF LAM ENVIRONMENT AT ERROR HANDLER
 WORDPTR *ErrorLAMTop;   // SAVED VALUE OF LAMTOP AT ERROR HANDLER

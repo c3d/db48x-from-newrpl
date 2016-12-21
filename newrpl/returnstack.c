@@ -73,6 +73,15 @@ if(RStkSize<=RSTop-RStk+RSTKSLACK) growRStk((WORD)(RSTop-RStk+RSTKSLACK+1024));
 if(Exceptions) return;
 }
 
+// PUSH WITHOUT GROWING THE STACK - USE CAREFULLY, USES THE GUARANTEED SLACK ONLY
+void rplPushRetNoGrow(WORDPTR p)
+{
+// PUSH FIRST (USE THE GUARANTEED SLACK)
+*RSTop++=p;
+
+}
+
+
 WORDPTR rplPopRet()
 {
     if(RSTop<=RStk) {
@@ -80,6 +89,16 @@ WORDPTR rplPopRet()
         return 0;
     }
     return *(--RSTop);
+}
+
+void rplDropRet(int nlevels)
+{
+    if(RSTop<RStk+nlevels) {
+        rplError(ERR_INTERNALEMPTYRETSTACK);
+        return;
+    }
+    RSTop-=nlevels;
+
 }
 
 // LOW LEVEL VERSION FOR USE IN LIBRARIES

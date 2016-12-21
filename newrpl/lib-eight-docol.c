@@ -39,7 +39,13 @@
     CMD(ERRN,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(ERRM,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(ERR0,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(HALT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    CMD(HALT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(ENDOFCODE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CONT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SST,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(SSTIN,"SST↓",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(KILL,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+
 
 
 
@@ -99,13 +105,92 @@ void LIB_HANDLER()
     case EXITRPL:
         rplException(EX_EXITRPL);
         return;
-    case BKPOINT:
-        // TODO: IMPLEMENT CONDITIONAL BREAKPOINTS
-        // FOR NOW BEHAVE SAME AS HALT
-        // DELIBERATE FALL-THROUGH
-    case HALT:
+
+    case ENDOFCODE:
+    {
+        // SAME AS HALT BUT DON'T AFFECT THE HALTED PROGRAM
         rplException(EX_HALT);
         return;
+
+    }
+    case BKPOINT:
+    {
+        // TODO: IMPLEMENT CONDITIONAL BREAKPOINTS
+        // FOR NOW BEHAVE SAME AS HALT
+        HaltedIPtr=IPtr+1;    // SAVE CODE LOCATION AFTER HALT
+        HaltedRSTop=RSTop;  // SAVE RETURN STACK POINTER
+        HaltednLAMBase=nLAMBase;
+        HaltedLAMTop=LAMTop;
+        rplException(EX_HALT);
+        return;
+    }
+    case HALT:
+    {
+        if(HaltedIPtr) {
+            return; // CAN'T HALT WITHIN AN ALREADY HALTED PROGRAM!
+        }
+        HaltedIPtr=IPtr+1;    // SAVE CODE LOCATION AFTER HALT
+        HaltedRSTop=RSTop;  // SAVE RETURN STACK POINTER
+        HaltednLAMBase=nLAMBase;
+        HaltedLAMTop=LAMTop;
+        rplException(EX_HALT);
+        return;
+    }
+
+    case CONT:
+    {
+        if(!HaltedIPtr) return;
+        // CONTINUE HALTED EXECUTION
+        if(RSTop>=HaltedRSTop) {
+            IPtr=HaltedIPtr-1;
+            RSTop=HaltedRSTop;
+            if(LAMTop>=HaltedLAMTop) LAMTop=HaltedLAMTop;
+            if(nLAMBase>=HaltednLAMBase) nLAMBase=HaltednLAMBase;
+            HaltedIPtr=0;
+        }
+        // CurOpcode IS A COMMAND, SO THE HALT INSTRUCTION WILL BE SKIPPED
+        return;
+    }
+    case SST:
+    {
+        // SINGLE STEP A HALTED PROGRAM
+        if(!HaltedIPtr) return;
+        if(ISPROLOG(*HaltedIPtr)) {
+            // DO XEQ ON OBJECTS
+            rplPushData(HaltedIPtr);
+            rplCallOvrOperator(CMD_OVR_XEQ);
+        }
+        else {
+            // THIS IS A COMMAND, CALL THE LIBRARY DIRECTLY
+            rplCallOperator(*HaltedIPtr);
+        }
+
+        return;
+    }
+
+    case SSTIN:
+    {
+        // TODO: ENTER INTO OTHER SECONDARIES, FOR NOW JUST THE SAME AS SST
+        // SINGLE STEP A HALTED PROGRAM
+        if(!HaltedIPtr) return;
+        if(ISPROLOG(*HaltedIPtr)) {
+            // DO XEQ ON OBJECTS
+            rplPushData(HaltedIPtr);
+            rplCallOvrOperator(CMD_OVR_XEQ);
+        }
+        else {
+            // THIS IS A COMMAND, CALL THE LIBRARY DIRECTLY
+            rplCallOperator(*HaltedIPtr);
+        }
+
+        return;
+    }
+
+    case KILL:
+    {   // KILL THE HALTED PROGRAM
+        HaltedIPtr=0;
+        return;
+    }
     case XEQSECO:
         // IF THE NEXT OBJECT IN THE SECONDARY
         // IS A SECONDARY, IT EVALUATES IT INSTEAD OF PUSHING IT ON THE STACK

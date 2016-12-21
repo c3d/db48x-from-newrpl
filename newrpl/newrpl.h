@@ -89,7 +89,7 @@ typedef uint32_t PTR2NUMBER;
 #define MAXSYSHILIBS 16
 #define MAXLIBNUMBER 4095
 // NUMBER OF SCRATCH POINTERS
-#define MAX_GC_PTRUPDATE 21
+#define MAX_GC_PTRUPDATE 23
 
 
 // MINIMUM GUARANTEED STACK LEVELS FOR MEMORY ALLOCATION
@@ -313,7 +313,9 @@ WORDPTR rplPeekSnapshot(BINT numsnap,BINT level);
 // RETURN STACK FUNCTIONS IN RETURNSTACK.C
 
 void rplPushRet(WORDPTR p);
+void rplPushRetNoGrow(WORDPTR p);
 WORDPTR rplPopRet();
+void rplDropRet(int nlevels);
 void growRStk(WORD newsize);
 WORDPTR rplPeekRet(int level);
 void rplClearRStk();
