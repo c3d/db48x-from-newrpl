@@ -50,6 +50,13 @@ WORDPTR GC_PTRUpdate[MAX_GC_PTRUPDATE];
 #define ScratchPointer3     GC_PTRUpdate[20]
 #define ScratchPointer4     GC_PTRUpdate[21]
 #define ScratchPointer5     GC_PTRUpdate[22]
+#define BreakPt1Pointer     GC_PTRUpdate[23]    // CODE BREAKPOINT LOCATION
+#define BreakPt1Arg         GC_PTRUpdate[24]    // CODE BREAKPOINT ARGUMENT
+#define BreakPt2Pointer     GC_PTRUpdate[25]    // CODE BREAKPOINT LOCATION
+#define BreakPt2Arg         GC_PTRUpdate[26]    // CODE BREAKPOINT ARGUMENT
+#define BreakPt3Pointer     GC_PTRUpdate[27]    // CODE BREAKPOINT LOCATION
+#define BreakPt3Arg         GC_PTRUpdate[28]    // CODE BREAKPOINT ARGUMENT
+
 
 
 // THE POINTERS [12] TO [15] ARE AVAILABLE FOR LIBRARIES TO USE
@@ -70,6 +77,7 @@ WORDPTR *LAMs;          // BASE OF LOCAL VARIABLES STORAGE
 // OTHER VARIABLES THAT ARE NOT AFFECTED BY GC
 WORD CurOpcode; // CURRENT OPCODE (WORD)
 WORD HWExceptions, Exceptions, TrappedExceptions;  // FLAGS FOR CURRENT EXCEPTIONS
+WORD BreakPtFlags;                                 // FLAGS FOR HARDWARE BREAK POINTS
 WORD ErrorCode, TrappedErrorCode;
 WORDPTR *RSTop; // TOP OF THE RETURN STACK
 WORDPTR *HaltedRSTop; // TOP OF THE RETURN STACK OF HALTED PROGRAM
