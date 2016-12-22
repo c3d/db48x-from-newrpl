@@ -39,7 +39,15 @@
     CMD(ERRN,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(ERRM,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(ERR0,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(HALT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    CMD(HALT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(ENDOFCODE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CONT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SST,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(SSTIN,"SST↓",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(KILL,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SETBKPOINT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CLRBKPOINT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
+
 
 
 
@@ -74,12 +82,25 @@ ROMOBJECT error_reenter_seco[]={
     CMD_ERROR_REENTER
 };
 
+ROMOBJECT bkpoint_seco[]={
+    MKPROLOG(DOCOL,8),
+    CMD_IF,
+    CMD_OVR_XEQ,
+    CMD_OVR_NOT,
+    CMD_THEN,
+    CMD_CONT,
+    CMD_ENDIF,
+    CMD_ENDOFCODE,
+    CMD_SEMI
+};
+
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)errormsg_ident,
     (WORDPTR)error_reenter_seco,
+    (WORDPTR)bkpoint_seco,
     0
 };
 
@@ -99,13 +120,92 @@ void LIB_HANDLER()
     case EXITRPL:
         rplException(EX_EXITRPL);
         return;
-    case BKPOINT:
-        // TODO: IMPLEMENT CONDITIONAL BREAKPOINTS
-        // FOR NOW BEHAVE SAME AS HALT
-        // DELIBERATE FALL-THROUGH
-    case HALT:
+
+    case ENDOFCODE:
+    {
+        // SAME AS HALT BUT DON'T AFFECT THE HALTED PROGRAM
         rplException(EX_HALT);
         return;
+
+    }
+    case BKPOINT:
+    {
+        // TODO: IMPLEMENT CONDITIONAL BREAKPOINTS
+        // FOR NOW BEHAVE SAME AS HALT
+        HaltedIPtr=IPtr+1;    // SAVE CODE LOCATION AFTER HALT
+        HaltedRSTop=RSTop;  // SAVE RETURN STACK POINTER
+        HaltednLAMBase=nLAMBase;
+        HaltedLAMTop=LAMTop;
+        rplException(EX_HALT);
+        return;
+    }
+    case HALT:
+    {
+        if(HaltedIPtr) {
+            return; // CAN'T HALT WITHIN AN ALREADY HALTED PROGRAM!
+        }
+        HaltedIPtr=IPtr+1;    // SAVE CODE LOCATION AFTER HALT
+        HaltedRSTop=RSTop;  // SAVE RETURN STACK POINTER
+        HaltednLAMBase=nLAMBase;
+        HaltedLAMTop=LAMTop;
+        rplException(EX_HALT);
+        return;
+    }
+
+    case CONT:
+    {
+        if(!HaltedIPtr) return;
+        // CONTINUE HALTED EXECUTION
+        if(RSTop>=HaltedRSTop) {
+            IPtr=HaltedIPtr-1;
+            RSTop=HaltedRSTop;
+            if(LAMTop>=HaltedLAMTop) LAMTop=HaltedLAMTop;
+            if(nLAMBase>=HaltednLAMBase) nLAMBase=HaltednLAMBase;
+            HaltedIPtr=0;
+        }
+        // CurOpcode IS A COMMAND, SO THE HALT INSTRUCTION WILL BE SKIPPED
+        return;
+    }
+    case SST:
+    {
+        // SINGLE STEP A HALTED PROGRAM
+        if(!HaltedIPtr) return;
+        if(ISPROLOG(*HaltedIPtr)) {
+            // DO XEQ ON OBJECTS
+            rplPushData(HaltedIPtr);
+            rplCallOvrOperator(CMD_OVR_XEQ);
+        }
+        else {
+            // THIS IS A COMMAND, CALL THE LIBRARY DIRECTLY
+            rplCallOperator(*HaltedIPtr);
+        }
+
+        return;
+    }
+
+    case SSTIN:
+    {
+        // TODO: ENTER INTO OTHER SECONDARIES, FOR NOW JUST THE SAME AS SST
+        // SINGLE STEP A HALTED PROGRAM
+        if(!HaltedIPtr) return;
+        if(ISPROLOG(*HaltedIPtr)) {
+            // DO XEQ ON OBJECTS
+            rplPushData(HaltedIPtr);
+            rplCallOvrOperator(CMD_OVR_XEQ);
+        }
+        else {
+            // THIS IS A COMMAND, CALL THE LIBRARY DIRECTLY
+            rplCallOperator(*HaltedIPtr);
+        }
+
+        return;
+    }
+
+    case KILL:
+    {   // KILL THE HALTED PROGRAM
+        HaltedIPtr=0;
+        return;
+    }
     case XEQSECO:
         // IF THE NEXT OBJECT IN THE SECONDARY
         // IS A SECONDARY, IT EVALUATES IT INSTEAD OF PUSHING IT ON THE STACK
@@ -331,7 +431,117 @@ void LIB_HANDLER()
         return;
     }
 
-    // ADD MORE OPCODES HERE
+
+    case SETBKPOINT:
+    {
+        // SET A BREAKPOINT ANYWHERE IN A BLOCK OF CODE
+        // << ... CODE ... >> OFFSET [ << ... CONDITION ... >> ]
+        // OFFSET IS THE NUMBER OF OBJECTS TO SKIP FROM START OF CODE
+        // 1 == FIRST WORD INSIDE SECONDARY, 0 == ANYWHERE WITHIN SECONDARY
+        // BREAKPOINT WILL TRIGGER IF INSTRUCTION POINTER IS AT OR INSIDE THE WORD/OBJECT AT OFFSET.
+        // << ... CONDITION ... >> IS AN OPTIONAL ARGUMENT WITH A PROGRAM
+        // THAT LEAVES 1 OR 0 (TRUE/FALSE) IN THE STACK. MUST MAKE NO OTHER CHANGES!
+        // BREAKPOINT WILL TRIGGER IF CONDITION IS TRUE.
+
+        WORDPTR code,offset,condition;
+
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(ISPROGRAM(*rplPeekData(2))) {
+            code=rplPeekData(2);
+            offset=rplPeekData(1);
+            condition=0;
+
+        } else {
+            code=rplPeekData(3);
+            offset=rplPeekData(2);
+            condition=rplPeekData(1);
+        }
+
+        if(!ISPROGRAM(*code)) {
+            rplError(ERR_PROGRAMEXPECTED);
+            return;
+        }
+        if(!ISNUMBER(*offset)) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+        if(condition) {
+            if(!ISPROGRAM(*condition)) {
+                rplError(ERR_PROGRAMEXPECTED);
+                return;
+            }
+        }
+
+        BINT64 off=rplReadNumberAsBINT(offset);
+
+        if(off<0) {
+            rplError(ERR_POSITIVE_INTEGER_EXPECTED);
+            return;
+        }
+
+        WORDPTR ptr=code+1;
+        --off;
+        while(off) {
+            ptr=rplSkipOb(ptr);
+            if(ptr>=rplSkipOb(code)) {
+                // OUT OF BOUNDS, JUST TRIGGER ON THE ENTIRE SECONDARY
+                ptr=code;
+                break;
+            }
+        }
+
+        // HERE WE HAVE THE LOCATION OF THE BREAKPOINT
+
+        BreakPt1Arg=condition;
+        BreakPt1Pointer=ptr;
+
+        BINT flags=BKPT_ENABLED|BKPT_LOCATION;
+        if(condition) flags|=BKPT_COND;
+
+        SET_BKPOINTFLAG(0,flags);
+
+        if(condition) rplDropData(3);
+        else rplDropData(2);
+
+        HWExceptions|=EX_HWBKPOINT;
+
+        return;
+
+    }
+    case CLRBKPOINT:
+    {
+        // REMOVE THE BREAK POINT
+
+        SET_BKPOINTFLAG(0,0);
+        BreakPt1Arg=0;
+        BreakPt1Pointer=0;
+
+        HWExceptions&=~EX_HWBKPOINT;
+
+        return;
+
+    }
+
+        // ADD MORE OPCODES HERE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     case OVR_EVAL:
     case OVR_EVAL1:
         // EXECUTE THE OBJECT

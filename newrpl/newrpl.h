@@ -89,7 +89,7 @@ typedef uint32_t PTR2NUMBER;
 #define MAXSYSHILIBS 16
 #define MAXLIBNUMBER 4095
 // NUMBER OF SCRATCH POINTERS
-#define MAX_GC_PTRUPDATE 21
+#define MAX_GC_PTRUPDATE 29
 
 
 // MINIMUM GUARANTEED STACK LEVELS FOR MEMORY ALLOCATION
@@ -313,7 +313,9 @@ WORDPTR rplPeekSnapshot(BINT numsnap,BINT level);
 // RETURN STACK FUNCTIONS IN RETURNSTACK.C
 
 void rplPushRet(WORDPTR p);
+void rplPushRetNoGrow(WORDPTR p);
 WORDPTR rplPopRet();
+void rplDropRet(int nlevels);
 void growRStk(WORD newsize);
 WORDPTR rplPeekRet(int level);
 void rplClearRStk();
@@ -734,13 +736,27 @@ void rplSkipNextAlarm();
 
 #define EX_EXITRPL          1
 #define EX_HALT             2
-#define EX_OUTOFMEM         4
-#define EX_ERRORCODE        8
-#define EX_POWEROFF        16
-#define EX_DIRTYFS         32
-#define EX_AUTORESUME      64
+#define EX_HWHALT           4
+#define EX_OUTOFMEM         8
+#define EX_ERRORCODE       16
+#define EX_POWEROFF        32
+#define EX_DIRTYFS         64
+#define EX_AUTORESUME     128
+#define EX_HWBKPOINT      256
+#define EX_TIMER          512
+#define EX_ALARM          1024
+
 
 // ADD OTHER EXCEPTIONS HERE
+
+// BREAKPOINT FLAGS
+
+#define BKPT_ENABLED    1
+#define BKPT_LOCATION   2 // TRIGGER ONLY WHEN IPtr==BreakPtArg
+#define BKPT_COND       4 // XEQ RPL OBJECT AT BreakPtArg, IF IT RETURNS TRUE THEN TRIGGER
+#define SET_BKPOINTFLAG(n,flags) BreakPtFlags=(BreakPtFlags & ~(0xff<<(8*((n)))))|( ((flags)&0xff)<<(8*((n))))
+#define GET_BKPOINTFLAG(n) ((BreakPtFlags>>(8*((n))))&0xff)
+
 
 
 #ifdef __cplusplus

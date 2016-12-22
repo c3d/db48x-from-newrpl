@@ -227,7 +227,73 @@ BINT endCmdLineAndCompile()
             rplSetEntryPoint(newobject);
 
             // RUN AND CLEANUP PROPERLY
-            if(rplRun()==NEEDS_CLEANUP) rplCleanup();
+            BINT rstksave=RSTop-RStk,lamsave=LAMTop-LAMs,nlambase=nLAMBase-LAMs;
+            BINT result=rplRun();
+
+
+            switch(result)
+            {
+            case CLEAN_RUN:
+            {
+                // SOMEBODY CALLED EXITRPL EXPLICITLY
+                // EVERYTHING WAS COMPLETELY CLEANED UP AND RESET
+                halFlags&=~HAL_HALTED;
+                break;
+            }
+            case NEEDS_CLEANUP:
+            {
+                // UNTRAPPED ERROR
+                // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
+                if(RSTop>=RStk+rstksave) {
+                    RSTop=RStk+rstksave;
+                }
+                else { rplCleanup(); halFlags&=~HAL_HALTED; }
+                if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
+                if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
+                break;
+            }
+
+
+            case CODE_HALTED:
+            {
+                // UNTRAPPED ERROR
+                // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
+                if(RSTop>RStk+rstksave)
+                {
+                    // THE CODE HALTED SOMEWHERE INSIDE!
+                    halFlags|=HAL_HALTED;
+                }
+                else {
+                    if(RSTop<RStk+rstksave) {
+
+                        // THIS CAN ONLY HAPPEN IF SOMEHOW
+                        // THE CODE ESCAPED FROM THE SECONDARY
+                        // WE CREATED, THIS CAN HAPPEN WHEN USING 'CONT'
+                        // INSIDE A SECONDARY AND IT'S NOT NECESSARILY BAD
+                        if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
+                        if(HaltedIPtr) halFlags|=HAL_HALTED;
+                        else halFlags&=~HAL_HALTED;
+
+                    }
+                    else {
+                        // RETURN STACK WAS INTACT, RESTORE THE REST
+                        if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
+                        if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
+
+                        // DON'T ALTER THE INSTRUCTION POINTER OF THE HALTED PROGRAM
+                        if(CurOpcode==CMD_ENDOFCODE) rplClearErrors();
+                        if(HaltedIPtr) halFlags|=HAL_HALTED;
+                        else halFlags&=~HAL_HALTED;
+
+                    }
+                }
+
+
+                break;
+            }
+
+            }
+
 
             if(Exceptions) {
                 // TODO: SHOW ERROR MESSAGE
@@ -327,7 +393,7 @@ void numberKeyHandler(BINT keymsg)
 
 void uiCmdRun(WORD Opcode)
 {
-WORDPTR obj=rplAllocTempOb(2);
+    WORDPTR obj=rplAllocTempOb(2);
 if(obj) {
 
     // ENABLE UNDO
@@ -338,29 +404,89 @@ if(obj) {
 
 
 obj[0]=Opcode;
-obj[1]=CMD_EXITRPL;
+obj[1]=CMD_ENDOFCODE;
 obj[2]=CMD_QSEMI;   // THIS IS FOR SAFETY REASONS
 rplSetEntryPoint(obj);
-if((Opcode==(CMD_OVR_XEQ)) || (Opcode==(CMD_OVR_EVAL)) || (Opcode==(CMD_OVR_EVAL1))) {
+BINT iseval=(Opcode==(CMD_OVR_XEQ)) || (Opcode==(CMD_OVR_EVAL)) || (Opcode==(CMD_OVR_EVAL1));
+
+if(iseval) {
     // STORE THE OBJECT/OPCODE THAT MAY CAUSE AN EXCEPTION
-    BINT depth=rplDepthData();
-    if(depth>0) rplPushRet(rplPeekData(1));
-    WORDPTR *rstksave=RSTop;
-    if(rplRun()==NEEDS_CLEANUP) {
-        // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
-        if(RSTop>rstksave) RSTop=rstksave;
-        // BLAME THE ERROR ON THE COMMAND WE CALLED
-        if( (depth>0) && (rplDepthRet()>=1)) rplBlameError(rplPopRet());
+    if(rplDepthData()>0) BlameCmd=rplPeekData(1);
+    else BlameCmd=0;
+} else BlameCmd=0;
+    BINT rstksave=RSTop-RStk,lamsave=LAMTop-LAMs,nlambase=nLAMBase-LAMs;
+    BINT result=rplRun();
+    switch(result)
+    {
+
+    case CLEAN_RUN:
+    {
+        // SOMEBODY CALLED EXITRPL EXPLICITLY
+        // EVERYTHING WAS COMPLETELY CLEANED UP AND RESET
+        halFlags&=~HAL_HALTED;
+        break;
     }
-    rplCleanup();
+    case NEEDS_CLEANUP:
+    {
+        // UNTRAPPED ERROR
+        // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
+        if(RSTop>=RStk+rstksave) {
+            RSTop=RStk+rstksave;
+            // BLAME THE ERROR ON THE COMMAND WE CALLED
+            if(BlameCmd!=0) rplBlameError(BlameCmd);
+        }
+        else { rplCleanup(); halFlags&=~HAL_HALTED; }
+        if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
+        if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
+        break;
+    }
+
+
+    case CODE_HALTED:
+    {
+        // UNTRAPPED ERROR
+        // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
+        if(RSTop>RStk+rstksave)
+        {
+            // THE CODE HALTED SOMEWHERE INSIDE!
+            halFlags|=HAL_HALTED;
+        }
+        else {
+            if(RSTop<RStk+rstksave) {
+                // THIS CAN ONLY HAPPEN IF SOMEHOW
+                // THE CODE ESCAPED FROM THE SECONDARY
+                // WE CREATED, THIS CAN HAPPEN WHEN USING 'CONT'
+                // INSIDE A SECONDARY AND IT'S NOT NECESSARILY BAD
+                if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
+                if(HaltedIPtr) halFlags|=HAL_HALTED;
+                else halFlags&=~HAL_HALTED;
+
+            }
+            else {
+                // RETURN STACK WAS INTACT, RESTORE THE REST
+                if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
+                if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
+
+                    // DON'T ALTER THE INSTRUCTION POINTER OF THE HALTED PROGRAM
+                    rplClearErrors();
+                    if(HaltedIPtr) halFlags|=HAL_HALTED;
+                    else halFlags&=~HAL_HALTED;
+
+            }
+        }
+
+
+        break;
+    }
+    }
+
 }
-else { if(rplRun()==NEEDS_CLEANUP) rplCleanup(); }
-}
+
 }
 
 void uiCmdRunHide(WORD Opcode,BINT narguments)
 {
-WORDPTR obj=rplAllocTempOb(2);
+    WORDPTR obj=rplAllocTempOb(2);
 if(obj) {
 
     // ENABLE UNDO
@@ -371,24 +497,84 @@ if(obj) {
 
 
 obj[0]=Opcode;
-obj[1]=CMD_EXITRPL;
+obj[1]=CMD_ENDOFCODE;
 obj[2]=CMD_QSEMI;   // THIS IS FOR SAFETY REASONS
 rplSetEntryPoint(obj);
-if((Opcode==(CMD_OVR_XEQ)) || (Opcode==(CMD_OVR_EVAL)) || (Opcode==(CMD_OVR_EVAL1))) {
+BINT iseval=(Opcode==(CMD_OVR_XEQ)) || (Opcode==(CMD_OVR_EVAL)) || (Opcode==(CMD_OVR_EVAL1));
+
+if(iseval) {
     // STORE THE OBJECT/OPCODE THAT MAY CAUSE AN EXCEPTION
-    BINT depth=rplDepthData();
-    if(depth>0) rplPushRet(rplPeekData(1));
-    WORDPTR *rstksave=RSTop;
-    if(rplRun()==NEEDS_CLEANUP) {
-        // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
-        if(RSTop>rstksave) RSTop=rstksave;
-        // BLAME THE ERROR ON THE COMMAND WE CALLED
-        if( (depth>0) && (rplDepthRet()>=1)) rplBlameError(rplPopRet());
+    if(rplDepthData()>0) BlameCmd=rplPeekData(1);
+    else BlameCmd=0;
+} else BlameCmd=0;
+    BINT rstksave=RSTop-RStk,lamsave=LAMTop-LAMs,nlambase=nLAMBase-LAMs;
+    BINT result=rplRun();
+    switch(result)
+    {
+
+    case CLEAN_RUN:
+    {
+        // SOMEBODY CALLED EXITRPL EXPLICITLY
+        // EVERYTHING WAS COMPLETELY CLEANED UP AND RESET
+        halFlags&=~HAL_HALTED;
+        break;
     }
-    rplCleanup();
+    case NEEDS_CLEANUP:
+    {
+        // UNTRAPPED ERROR
+        // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
+        if(RSTop>=RStk+rstksave) {
+            RSTop=RStk+rstksave;
+            // BLAME THE ERROR ON THE COMMAND WE CALLED
+            if(BlameCmd!=0) rplBlameError(BlameCmd);
+        }
+        else { rplCleanup(); halFlags&=~HAL_HALTED; }
+        if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
+        if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
+        break;
+    }
+
+
+    case CODE_HALTED:
+    {
+        // UNTRAPPED ERROR
+        // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
+        if(RSTop>RStk+rstksave)
+        {
+            // THE CODE HALTED SOMEWHERE INSIDE!
+            halFlags|=HAL_HALTED;
+        }
+        else {
+            if(RSTop<RStk+rstksave) {
+                // THIS CAN ONLY HAPPEN IF SOMEHOW
+                // THE CODE ESCAPED FROM THE SECONDARY
+                // WE CREATED, THIS CAN HAPPEN WHEN USING 'CONT'
+                // INSIDE A SECONDARY AND IT'S NOT NECESSARILY BAD
+                if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
+                if(HaltedIPtr) halFlags|=HAL_HALTED;
+                else halFlags&=~HAL_HALTED;
+
+            }
+            else {
+                // RETURN STACK WAS INTACT, RESTORE THE REST
+                if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
+                if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
+
+                    // DON'T ALTER THE INSTRUCTION POINTER OF THE HALTED PROGRAM
+                    rplClearErrors();
+                    if(HaltedIPtr) halFlags|=HAL_HALTED;
+                    else halFlags&=~HAL_HALTED;
+
+            }
+        }
+
+
+        break;
+    }
+    }
+
 }
-else { if(rplRun()==NEEDS_CLEANUP) rplCleanup(); }
-}
+
 }
 
 
@@ -403,7 +589,7 @@ BINT uiCmdRunTransparent(WORD Opcode,BINT nargs,BINT nresults)
 WORDPTR obj=rplAllocTempOb(2);
 if(obj) {
 obj[0]=Opcode;
-obj[1]=CMD_BKPOINT;
+obj[1]=CMD_ENDOFCODE;
 obj[2]=CMD_QSEMI;   // THIS IS FOR SAFETY REASONS
 
 BINT rsave,lamsave,nlambase,retvalue;
@@ -537,7 +723,7 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
                     // TODO: SHOW ERROR MESSAGE
                     halShowErrorMsg();
                     Exceptions=0;
-                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
             halScreen.DirtyFlag|=STACK_DIRTY;
 
 
@@ -558,7 +744,7 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
                     // TODO: SHOW ERROR MESSAGE
                     halShowErrorMsg();
                     Exceptions=0;
-                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
             halScreen.DirtyFlag|=STACK_DIRTY;
                 }
             break;
@@ -583,7 +769,7 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
                             // TODO: SHOW ERROR MESSAGE
                             halShowErrorMsg();
                             Exceptions=0;
-                        } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+                        } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
                         halScreen.DirtyFlag|=STACK_DIRTY;
                     }
                     break;

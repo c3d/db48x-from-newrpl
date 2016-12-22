@@ -778,7 +778,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
          return 0;
      }
      if(ISPROLOG((BINT)**ValidateTop)) **ValidateTop|= ((WORD)((PTR2NUMBER)CompileEnd-(PTR2NUMBER)*ValidateTop)>>2)-1;    // STORE THE SIZE OF THE COMPOSITE IN THE WORD
-     rplCompileAppend(CMD_EXITRPL);
+     rplCompileAppend(CMD_ENDOFCODE);
  }
 
 

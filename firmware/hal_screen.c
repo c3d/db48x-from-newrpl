@@ -798,6 +798,9 @@ void halRedrawStatus(DRAWSURFACE *scr)
 
     if(rplTestSystemFlag(FL_COMPLEXMODE))     DrawTextBk(STATUSAREA_X+14,ytop+1,(char *)"C",(UNIFONT *)halScreen.StAreaFont,0xf,0x0,scr);
 
+    // HALTED PROGRAM INDICATOR
+
+    if(halFlags&HAL_HALTED) DrawTextBk(STATUSAREA_X+20,ytop+1,(char *)"H",(UNIFONT *)halScreen.StAreaFont,0xf,0x0,scr);
 
     // SD CARD INSERTED INDICATOR
     {
