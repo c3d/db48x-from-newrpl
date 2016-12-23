@@ -743,8 +743,9 @@ void rplSkipNextAlarm();
 #define EX_DIRTYFS         64
 #define EX_AUTORESUME     128
 #define EX_HWBKPOINT      256
-#define EX_TIMER          512
-#define EX_ALARM          1024
+#define EX_HWBKPTSKIP     512
+#define EX_TIMER          1024
+#define EX_ALARM          2048
 
 
 // ADD OTHER EXCEPTIONS HERE
