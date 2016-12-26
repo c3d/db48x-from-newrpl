@@ -263,13 +263,15 @@ BINT rplRun(void)
         if(HWExceptions) HWExceptions&=EX_HWBKPOINT;    // CLEAR ANY EXCEPTIONS EXCEPT CHECK FOR BREAKPOINTS
 
         if(Exceptions&EX_HWBKPOINT) {
-            if(!HaltedIPtr && (Exceptions==EX_HWBKPOINT)) {   // MAKE SURE WE DON'T HALT ALREADY HALTED CODE OR INTERFERE WITH OTHER EXCEPTIONS
+            if(!HaltedIPtr && !(Exceptions&~(EX_HWBKPOINT|EX_HWBKPTSKIP))) {   // MAKE SURE WE DON'T HALT ALREADY HALTED CODE OR INTERFERE WITH OTHER EXCEPTIONS
                 // CHECK FOR BREAKPOINT TRIGGERS!
                 if(GET_BKPOINTFLAG(0)&BKPT_ENABLED) {
                     int trigger=0;
                     if(GET_BKPOINTFLAG(0)&BKPT_LOCATION) {
-                        if((IPtr>=BreakPt1Pointer)&&(IPtr<rplSkipOb(BreakPt1Pointer))) trigger=1;
-                        else trigger=0;
+                        WORDPTR nextopcode=IPtr+1+((ISPROLOG(CurOpcode))? OBJSIZE(CurOpcode):0);
+                        if((nextopcode>=BreakPt1Pointer)&&(nextopcode<rplSkipOb(BreakPt1Pointer))) {
+                            if(!(Exceptions&EX_HWBKPTSKIP)) trigger=1;
+                        }
                     } else trigger=1;
 
                     if(trigger) {
@@ -312,7 +314,7 @@ BINT rplRun(void)
             } else {
                 // CHECK IF WE ARE DONE WITH THE BREAKPOINT CONDITION ROUTINE
                 // WARNING!!!: DO NOT MODIFY bkpoint_seco WITHOUT FIXING THIS!!
-                if(IPtr==bkpoint_seco+7) {
+                if(IPtr==bkpoint_seco+11) {
                     // WE REACHED THE END OF CODE STATEMENT, THEREFORE THE BREAKPOINT WAS TRIGGERED
 
                     // JUST STAY HALTED AND ISSUE A BREAKPOINT
@@ -320,7 +322,7 @@ BINT rplRun(void)
                 }
 
             }
-            Exceptions&=~EX_HWBKPOINT;
+            Exceptions&=~(EX_HWBKPOINT|EX_HWBKPTSKIP);
             if(!Exceptions) {
                 IPtr+=1+((ISPROLOG(CurOpcode))? OBJSIZE(CurOpcode):0);
                 continue;

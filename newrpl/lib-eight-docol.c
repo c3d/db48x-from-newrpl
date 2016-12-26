@@ -83,10 +83,14 @@ ROMOBJECT error_reenter_seco[]={
 };
 
 ROMOBJECT bkpoint_seco[]={
-    MKPROLOG(DOCOL,8),
-    CMD_IF,
+    MKPROLOG(DOCOL,12),
+    CMD_IFERR,
     CMD_OVR_XEQ,
     CMD_OVR_NOT,
+    CMD_THENERR,
+    MAKESINT(1),
+    CMD_ENDERR,
+    CMD_IF,
     CMD_THEN,
     CMD_CONT,
     CMD_ENDIF,
@@ -162,6 +166,7 @@ void LIB_HANDLER()
             if(LAMTop>=HaltedLAMTop) LAMTop=HaltedLAMTop;
             if(nLAMBase>=HaltednLAMBase) nLAMBase=HaltednLAMBase;
             HaltedIPtr=0;
+            if(HWExceptions&EX_HWBKPOINT) HWExceptions|=EX_HWBKPTSKIP;  // SKIP ONE SO AT LEAST IT EXECUTES ONE OPCODE
         }
         // CurOpcode IS A COMMAND, SO THE HALT INSTRUCTION WILL BE SKIPPED
         return;
@@ -486,7 +491,7 @@ void LIB_HANDLER()
 
         WORDPTR ptr=code+1;
         --off;
-        while(off) {
+        while(off--) {
             ptr=rplSkipOb(ptr);
             if(ptr>=rplSkipOb(code)) {
                 // OUT OF BOUNDS, JUST TRIGGER ON THE ENTIRE SECONDARY
