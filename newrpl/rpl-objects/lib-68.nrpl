@@ -23,6 +23,8 @@
 ##1,ERR_IDENTORINTEGEREXPECTED "Ident or integer expected"
 ##1,ERR_INVALIDLOCALESTRING "Invalid locale string"
 ##1,ERR_INVALIDMENUDEFINITION "Invalid menu definition"
+##1,ERR_INVALIDKEYNAME "Invalid key name"
+##1,ERR_INVALIDKEYDEFINITION "Invalid key definition"
 }
 
 
@@ -77,6 +79,7 @@
 { { "Time" 1 } { ::   #04100000h TMENULST ; ::   #04100000h TMENUOTHR ; } }
 { { "SDCard" 1 } { ::   #04a00000h TMENULST ; ::   #04a00000h TMENUOTHR ; } }
 { { "Menu" 1 } { ::   #04408000h TMENULST ; ::   #04408000h TMENUOTHR ; } }
+{ { "Keys" 1 } { ::   #0440c000h TMENULST ; ::   #0440c000h TMENUOTHR ; } }
 { { "Clip" 1 } { ::   #04c01000h TMENULST ; ::   #04c01000h TMENUOTHR ; } }
 { { "Mem" 1 } { ::   #04101000h TMENULST ; ::   #04101000h TMENUOTHR ; } }
 }
@@ -98,7 +101,7 @@ COPYCLIP CUTCLIP PASTECLIP
 
 @#name sysmenu_10_settings
 {
-{ { "Flags" 1 } ::   #0440B000h TMENULST ; }
+{ { "Flags" 1 } { ::   #0440b000h TMENULST ; ::   #0440b000h TMENUOTHR ; } }
 SETPREC GETPREC SETLOCALE SETNUMFORMAT DEG GRAD RAD DMS
 }
 
@@ -179,9 +182,17 @@ sound disabled when set"
 }
 
 
-
-
-
+@#name sysmenu_12_keys
+{
+ASNKEY DELKEY RCLKEYS STOKEYS
+@ CUSTOM KEYS FLAG TOGGLE
+{
+  :: ##1,MAKESINT(FL_NOCUSTOMKEYS) IF FC? THEN "DISABLED" ELSE "■DISABLED" END ;
+  :: ##1,MAKESINT(FL_NOCUSTOMKEYS) IF DUP FS? THEN CF ELSE SF END ; @ ACTION: NO SHIFTS
+  "Disable custom keys:
+Custom keys disabled when set"
+}
+}
 
 
 @#name lib68_cmdhelp
@@ -298,5 +309,26 @@ DMS
 "Set angle flags to Degrees,
 Minutes and Seconds.
  → "
+
+ASNKEY
+"Assign custom key. Key name
+given as a string.
+O S I → "
+
+DELKEY
+"Delete custom key assignment.
+
+S → "
+
+RCLKEYS
+"Get all keys definition.
+
+→ L "
+
+STOKEYS
+"Store all keys definition.
+
+L → "
+
 
 }

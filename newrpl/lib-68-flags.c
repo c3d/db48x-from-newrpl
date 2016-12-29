@@ -24,7 +24,9 @@
     ERR(INVALIDFLAGNAME,2), \
     ERR(IDENTORINTEGEREXPECTED,3), \
     ERR(INVALIDLOCALESTRING,4), \
-    ERR(INVALIDMENUDEFINITION,5)
+    ERR(INVALIDMENUDEFINITION,5), \
+    ERR(INVALIDKEYNAME,6), \
+    ERR(INVALIDKEYDEFINITION,7)
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -55,7 +57,12 @@
     CMD(DEG,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
     CMD(GRAD,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(RAD,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    CMD(DMS,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2))
+    CMD(DMS,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ASNKEY,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DELKEY,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STOKEYS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RCLKEYS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+
 
 
 // ADD MORE OPCODES HERE
@@ -90,6 +97,7 @@ INCLUDE_ROMOBJECT(sysmenu_8_menu);
 INCLUDE_ROMOBJECT(sysmenu_9_clipboard);
 INCLUDE_ROMOBJECT(sysmenu_10_settings);
 INCLUDE_ROMOBJECT(sysmenu_11_namedflags);
+INCLUDE_ROMOBJECT(sysmenu_12_keys);
 
 
 
@@ -158,6 +166,12 @@ ROMOBJECT savedcmdline_ident[]= {
 
 };
 
+ROMOBJECT customkey_ident[]= {
+    MKPROLOG(DOIDENT,2),
+    TEXT2WORD('.','C','s','t'),
+    TEXT2WORD('K','e','y','s')
+};
+
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
@@ -174,6 +188,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)sysmenu_9_clipboard,
     (WORDPTR)sysmenu_10_settings,
     (WORDPTR)sysmenu_11_namedflags,
+    (WORDPTR)sysmenu_12_keys,
 
     (WORDPTR)dotsettings_ident,
     (WORDPTR)flags_ident,
@@ -185,6 +200,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)menu2hist_ident,
     (WORDPTR)menuhistory_ident,
     (WORDPTR)savedcmdline_ident,
+    (WORDPTR)customkey_ident,
     0
 };
 
@@ -774,6 +790,222 @@ void rplChangeMenu(BINT menu,WORDPTR newmenu)
 }
 
 
+// CONVERT A KEY NAME GIVEN BY A STRING INTO A KEY MESSAGE
+// RETURN 0 ON INVALID KEY
+/*
+"keyname" is a string with the key name:
+Format:
+"KEY.SHIFT.MODIFIER"
+KEY = "A thru Z, 0 thru 9, * - + . or UP/DN/LF/RT, BK for backspace, EN for enter
+SHIFT = L, LH,R, RH,A, AH,OH (L=left shift, LH=left shift hold, A=Alpha, OH=On-hold). Notice that On can only be defined with a hold plane.
+MODIFIER = P,R,L (P=key down, R=key released, L=long press, no modifier means the standard KM_PRESS event)
+
+Examples:
+"7.L" = Left-shift 7
+"7.LH" = Left-shift-hold 7
+"7..P" = Action executed on key-down event for unshifted key number 7
+"7..R" = Action executed on key-up event
+*/
+
+// WARNING!! THESE TABLES COULD BE HARDWARE-DEPENDANT
+// IT WORKS FOR MOST CALCULATORS AS LONG AS THE CONSTANTS IN
+// hal_api.h ARE CORRECT.
+
+const BYTE const keytable[]={
+    'B','K',KB_BKS,
+    'E','N',KB_ENT,
+    'U','P',KB_UP,
+    'D','N',KB_DN,
+    'L','F',KB_LF,
+    'R','T',KB_RT,
+    'S','P',KB_SPC,
+    'D','T',KB_DOT,
+    '0',0,KB_0,
+    '1',0,KB_1,
+    '2',0,KB_2,
+    '3',0,KB_3,
+    '4',0,KB_4,
+    '5',0,KB_5,
+    '6',0,KB_6,
+    '7',0,KB_7,
+    '8',0,KB_8,
+    '9',0,KB_9,
+    'A',0,KB_A,
+    'B',0,KB_B,
+    'C',0,KB_C,
+    'D',0,KB_D,
+    'E',0,KB_E,
+    'F',0,KB_F,
+    'G',0,KB_G,
+    'H',0,KB_H,
+    'I',0,KB_I,
+    'J',0,KB_J,
+    'K',0,KB_K,
+    'L',0,KB_L,
+    'M',0,KB_M,
+    'N',0,KB_N,
+    'O',0,KB_O,
+    'P',0,KB_P,
+    'Q',0,KB_Q,
+    'R',0,KB_R,
+    'S',0,KB_S,
+    'T',0,KB_T,
+    'U',0,KB_U,
+    'V',0,KB_V,
+    'W',0,KB_W,
+    'X',0,KB_X,
+    'Y',0,KB_Y,
+    'Z',0,KB_Z,
+    '.',0,KB_DOT,
+    '/',0,KB_DIV,
+    '*',0,KB_MUL,
+    '+',0,KB_ADD,
+    '-',0,KB_SUB,
+    0,0,0
+};
+
+const BYTE const modiftable[]={
+    'L',0,SHIFT_LS>>4,
+    'R',0,SHIFT_RS>>4,
+    'A',0,SHIFT_ALPHA>>4,
+    'L','H',SHIFT_LSHOLD>>4,
+    'R','H',SHIFT_RSHOLD>>4,
+    'A','H',SHIFT_ALPHAHOLD>>4,
+    'O','H',SHIFT_ONHOLD>>4,
+    0,0,0
+};
+
+BINT rplKeyName2Msg(WORDPTR keyname)
+{
+    BYTEPTR ptr,tblptr;
+    BINT key,shifts,msg,len;
+
+    if(!ISSTRING(*keyname)) return 0;
+
+    ptr=(BYTEPTR) (keyname+1);
+    len=rplStrSize(keyname);
+
+    // IDENTIFY KEY NAME FIRST
+    key=0;
+
+    if((len<2)||((len>=2)&&(ptr[1]=='.'))) {
+        // SINGLE-LETTER DEFINITION
+        key=ptr[0];
+        ++ptr;
+        if(len>=2) { ++ptr; len-=2; }
+        else --len;
+
+    } else {
+        // TRY SPECIAL 2-LETTER KEY NAME
+        if((len<3)||((len>=3)&&(ptr[2]=='.'))) {
+            // TWO-LETTER DEFINITION
+            key=ptr[0]+256*ptr[1];
+            ptr+=2;
+            if(len>=3) { ++ptr; len-=3; }
+            else len-=2;
+    }
+    }
+
+    tblptr=(BYTEPTR)keytable;
+
+    while(*tblptr) {
+        if((tblptr[0]==(key&0xff))&&(tblptr[1]==((key>>8)&0xff))) {
+            key=tblptr[2];
+            break;
+        }
+        tblptr+=3;
+    }
+
+    if(!(*tblptr)) return 0;
+
+    // HERE WE HAVE THE KEY CODE
+
+    // LOOK FOR MODIFIERS
+
+    shifts=0;
+    if(len>0) {
+
+    if(ptr[0]=='.') ++ptr;
+    else if((len<2)||((len>=2)&&(ptr[1]=='.'))) {
+        // SINGLE-LETTER DEFINITION
+        shifts=ptr[0];
+        ++ptr;
+        if(len>=2) { ++ptr; len-=2; }
+        else --len;
+
+    } else {
+        // 2-LETTER MODIFIER
+        if((len<3)||((len>=3)&&(ptr[2]=='.'))) {
+            // TWO-LETTER DEFINITION
+            shifts=ptr[0]+256*ptr[1];
+            ptr+=2;
+            if(len>=3) { ++ptr; len-=3; }
+            else len-=2;
+    }
+    }
+
+    if(shifts) {
+
+    tblptr=(BYTEPTR)modiftable;
+
+    while(*tblptr) {
+        if((tblptr[0]==(shifts&0xff))&&(tblptr[1]==((shifts>>8)&0xff))) {
+            shifts=tblptr[2];
+            break;
+        }
+        tblptr+=3;
+    }
+
+    if(!(*tblptr)) return 0;
+
+    shifts<<=4;
+    }
+    }
+    // FINALLY, LOOK FOR MESSAGE
+
+
+    msg=0;
+    if(len>0) {
+    switch(ptr[0])
+    {
+    case 'D':
+        msg=KM_KEYDN;
+        break;
+    case 'U':
+        msg=KM_KEYUP;
+        break;
+    case 'L':
+        msg=KM_LPRESS;
+        break;
+    case 'P':
+        msg=KM_PRESS;
+        break;
+    case 'R':
+        msg=KM_REPEAT;
+        break;
+    case 'T':
+        msg=KM_LREPEAT;
+        break;
+    default:
+       return 0;    // INVALID KEY MESSAGE
+
+    }
+
+    }
+
+    // ASSEMBLE THE RESPONSE AND RETURN
+
+    return msg|shifts|key;
+
+
+}
+
+
+
+
+
+
+
 
 void LIB_HANDLER()
 {
@@ -1344,6 +1576,204 @@ void LIB_HANDLER()
         return;
 
 
+    case ASNKEY:
+    {
+        // ASSIGN A CUSTOM KEY DEFINITION
+        if(rplDepthData()<3) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_POSITIVE_INTEGER_EXPECTED);
+            return;
+        }
+        if(!ISSTRING(*rplPeekData(2))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
+
+        BINT keycode=rplKeyName2Msg(rplPeekData(2));
+
+        if(!keycode) {
+            rplError(ERR_INVALIDKEYNAME);
+            return;
+        }
+
+        BINT context=rplReadNumberAsBINT(rplPeekData(1));
+        if(context<0) {
+            rplError(ERR_POSITIVE_INTEGER_EXPECTED);
+            return;
+        }
+
+        rplDropData(2);
+        rplNewBINTPush(keycode,HEXBINT);
+        rplNewBINTPush(context,HEXBINT);
+        if(Exceptions) return;
+
+        rplPushData(rplPeekData(3));        // STACK HAS NOW PROPER ORDER: { KEYCODE CONTEXT ACTION }
+
+        WORDPTR keylist=rplGetSettings((WORDPTR)customkey_ident);
+
+        if(!keylist) {
+            // NEED TO CREATE A LIST FROM SCRATCH
+            keylist=rplCreateListN(3);
+            if(!keylist) return;
+        }
+        else {
+            // ADD 3 MORE ITEMS TO THE EXISTING LIST
+            BINT n=rplExplodeList2(keylist);
+            keylist=rplCreateListN(n+3);
+            if(Exceptions) return;
+        }
+
+        rplDropData(1);
+
+
+        rplStoreSettings((WORDPTR)customkey_ident,keylist);
+        return;
+
+    }
+
+    case DELKEY:
+    {
+        // REMOVE A CUSTOM KEY DEFINITION
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISSTRING(*rplPeekData(1))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
+
+        BINT keycode=rplKeyName2Msg(rplPeekData(1));
+
+        if(!keycode) {
+            rplError(ERR_INVALIDKEYNAME);
+            return;
+        }
+
+        rplDropData(1);
+
+        WORDPTR keylist=rplGetSettings((WORDPTR)customkey_ident);
+
+        if(!keylist) return;
+
+        // SCAN THE LIST
+
+        WORDPTR ptr=keylist+1;
+        WORDPTR endlist=rplSkipOb(keylist);
+
+        while(ptr<endlist) {
+         if(ISNUMBER(*ptr)) {
+         BINT code=rplReadNumberAsBINT(ptr);
+         if(keycode==code) break;
+         }
+         ptr=rplSkipOb(ptr);    // SKIP KEYCODE
+         if(ptr>=endlist) break;
+         ptr=rplSkipOb(ptr);    // SKIP CONTEXT
+         if(ptr>=endlist) break;
+         ptr=rplSkipOb(ptr);    // SKIP ACTION
+        }
+
+        // HERE WE HAVE THE PTR INTO THE LIST
+        if(ptr<endlist) {
+            // COMPUTE SIZE OF NEW LIST
+            WORDPTR endptr=rplSkipOb(ptr);
+            if(endptr<endlist) endptr=rplSkipOb(endptr);
+            if(endptr<endlist) endptr=rplSkipOb(endptr);
+
+            // NOW MOVE THE MEMORY BETWEEN ptr AND endptr
+
+            BINT offstart=ptr-keylist,offend=endptr-keylist;
+
+            rplPushData(keylist);   // PROTECT FROM GC
+            WORDPTR newlist=rplAllocTempOb(OBJSIZE(*keylist)-(offend-offstart));
+            if(!newlist) return;
+            keylist=rplPopData();
+            memmovew(newlist+1,keylist+1,offstart-1);
+            memmovew(newlist+offstart,keylist+offend,OBJSIZE(*keylist)-offend+1);
+            // NOW WRITE A NEW PROLOG
+            *newlist=MKPROLOG(DOLIST,OBJSIZE(*keylist)-(offend-offstart));
+            // AND STORE THE NEW LIST
+            rplStoreSettings((WORDPTR)customkey_ident,newlist);
+
+           }
+
+
+        return;
+
+    }
+
+
+    case RCLKEYS:
+    {
+        // GET THE ENTIRE LIST OF KEY ASSIGNMENTS
+        WORDPTR keylist=rplGetSettings((WORDPTR)customkey_ident);
+
+        if(!keylist) keylist=(WORDPTR)empty_list;
+
+        rplPushData(keylist);
+        return;
+    }
+
+
+    case STOKEYS:
+    {
+        // STORE THE ENTIRE LIST OF KEY ASSIGNMENTS
+        // REMOVE A CUSTOM KEY DEFINITION
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISLIST(*rplPeekData(1))) {
+            rplError(ERR_LISTEXPECTED);
+            return;
+        }
+
+        // VERIFY THAT THE LIST IS VALID
+        // OTHERWISE IT CAN HAVE CATASTROPHIC CONSEQUENCES
+        WORDPTR ptr=rplPeekData(1)+1;
+        WORDPTR endlist=rplSkipOb(ptr-1);
+        while(ptr<endlist)
+        {
+            if(*ptr==CMD_ENDLIST) break;
+            if(!ISNUMBER(*ptr)) {
+                rplError(ERR_INVALIDKEYDEFINITION);
+                return;
+            }
+            ptr=rplSkipOb(ptr);
+            if(*ptr==CMD_ENDLIST) {
+                rplError(ERR_INVALIDKEYDEFINITION);
+                return;
+            }
+            if(!ISNUMBER(*ptr)) {
+                rplError(ERR_INVALIDKEYDEFINITION);
+                return;
+            }
+            ptr=rplSkipOb(ptr);
+            if(*ptr==CMD_ENDLIST) {
+                rplError(ERR_INVALIDKEYDEFINITION);
+                return;
+            }
+            ptr=rplSkipOb(ptr);
+        }
+
+        // HERE THE LIST IS VALID
+        // AND STORE THE NEW LIST
+        rplStoreSettings((WORDPTR)customkey_ident,rplPeekData(1));
+        rplDropData(1);
+        return;
+
+    }
+
+
+
+
+
 
     // ADD MORE OPCODES HERE
 
@@ -1472,7 +1902,7 @@ void LIB_HANDLER()
         break;
 
     default:
-        if((MENUNUMBER(MenuCodeArg)<=11)&&(MENUNUMBER(MenuCodeArg)>1)) menuobj=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)];
+        if((MENUNUMBER(MenuCodeArg)<=12)&&(MENUNUMBER(MenuCodeArg)>1)) menuobj=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)];
         else menuobj=0;
     }
     if(!menuobj) ObjectPTR=(WORDPTR)empty_list;

@@ -1588,7 +1588,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     // GET THE SYMBOLIC TOKEN INFORMATION
                     if(han) {
                         WORD savecurOpcode=CurOpcode;
-
+                        DecompileObject=action;
                         CurOpcode=MKOPCODE(LIBNUM(*action),OPCODE_GETINFO);
                         (*han)();
 
@@ -1706,7 +1706,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 // GET THE SYMBOLIC TOKEN INFORMATION
                 if(han) {
                     WORD savecurOpcode=CurOpcode;
-
+                    DecompileObject=action;
                     CurOpcode=MKOPCODE(LIBNUM(*action),OPCODE_GETINFO);
                     (*han)();
 
@@ -3236,6 +3236,522 @@ backmenuKeyHandler(keymsg,2);
 }
 
 
+// CUSTOM KEY DEFINITIONS - LOWER LEVEL HANDLER
+void customKeyHandler(BINT keymsg,WORDPTR action)
+{
+
+    if(!action) return;
+    BINT inlist=0;
+    // COMMANDS CAN BE PUT INSIDE LISTS
+    if(ISLIST(*action)) {
+        action=rplGetListElement(action,1);
+        if(!action) return;
+        if(*action==CMD_ENDLIST) return;    // EMPTY LIST!
+        inlist=1;
+    }
+
+
+    // DEFAULT MESSAGE
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+            // ACTION WHEN IN THE STACK OR SUBCONTEXTS OTHER THAN THE EDITOR
+                WORD Opcode=0;
+                BINT hideargument=1;
+
+
+                    // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
+
+                    if(ISIDENT(*action)) {
+                        // JUST EVAL THE VARIABLE
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=(CMD_OVR_EVAL1);
+                    }
+                    else if( (!ISPROLOG(*action)) && (!ISBINT(*action))) {
+                         // THIS IS AN OPCODE, EXECUTE DIRECTLY
+                         Opcode=*action;
+                         hideargument=0;
+                        }
+                   else if(ISSTRING(*action) && inlist) {
+                            // A STRING TO INSERT INTO THE EDITOR
+                            // OPEN AN EDITOR AND INSERT THE STRING
+                            halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+                            halSetContext(halGetContext()|CONTEXT_INEDITOR);
+                            if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
+                            else uiOpenCmdLine('D');
+
+                            uiInsertCharactersN((BYTEPTR) (action+1),(BYTEPTR) (action+1)+rplStrSize(action));
+                            uiAutocompleteUpdate();
+
+                        }
+                    else {
+                    // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
+                    rplPushData(action);
+                    Opcode=(CMD_OVR_XEQ);
+                    }
+
+
+                if(Opcode) uiCmdRunHide(Opcode,hideargument);
+                if(Exceptions) {
+                    // TODO: SHOW ERROR MESSAGE
+                    halShowErrorMsg();
+                    Exceptions=0;
+                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+            halScreen.DirtyFlag|=STACK_DIRTY|STAREA_DIRTY;
+
+    }
+    else {
+        // ACTION INSIDE THE EDITOR
+        WORD Opcode=0;
+        BINT hideargument=1;
+
+        if(!action) return;
+
+            // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
+
+            if(ISIDENT(*action)&& inlist) {
+                switch(halScreen.CursorState&0xff)
+                {
+                case 'D':
+                {
+                    // HANDLE DIRECTORIES IN A SPECIAL WAY: DON'T CLOSE THE COMMAND LINE
+                    WORDPTR *var=rplFindGlobal(action,1);
+                    if(var) {
+                        if(ISDIR(*(var[1]))) {
+                            // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
+                            rplPushData(action);    // PUSH THE NAME ON THE STACK
+                            Opcode=(CMD_OVR_EVAL);
+                            break;
+                        }
+                    }
+                    rplPushRet(action);
+                    BINT result=endCmdLineAndCompile();
+                    action=rplPopRet();
+                    if(result) {
+                        // USER IS TRYING TO EVAL THE VARIABLE
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=(CMD_OVR_EVAL);
+                    }
+                    break;
+                }
+                case 'A':
+                {
+                    WORDPTR *var=rplFindGlobal(action,1);
+                    if(var) {
+                        if(ISDIR(*(var[1]))) {
+                            // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
+                            rplPushData(action);    // PUSH THE NAME ON THE STACK
+                            Opcode=(CMD_OVR_EVAL);
+                            break;
+                        }
+                    }
+
+                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                    BINT SavedException=Exceptions;
+                    BINT SavedErrorCode=ErrorCode;
+
+                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    Exceptions=SavedException;
+                    ErrorCode=SavedErrorCode;
+
+                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                    BYTEPTR string=(BYTEPTR) (opname+1);
+                    BINT totaln=rplStrLen(opname);
+                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+
+                    // REMOVE THE TICK MARKS IN ALG MODE
+                    if((totaln>2)&&(string[0]=='\'')) {
+                        ++string;
+                        --endstring;
+                    }
+
+                    uiInsertCharactersN(string,endstring);
+                    uiAutocompleteUpdate();
+
+                    break;
+                }
+
+                case 'P':
+                {
+                    WORDPTR *var=rplFindGlobal(action,1);
+                    if(var) {
+                        if(ISDIR(*(var[1]))) {
+                            // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
+                            rplPushData(action);    // PUSH THE NAME ON THE STACK
+                            Opcode=(CMD_OVR_EVAL);
+                            break;
+                        }
+                    }
+
+                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                    BINT SavedException=Exceptions;
+                    BINT SavedErrorCode=ErrorCode;
+
+                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    Exceptions=SavedException;
+                    ErrorCode=SavedErrorCode;
+
+                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                    BYTEPTR string=(BYTEPTR) (opname+1);
+                    BINT totaln=rplStrLen(opname);
+                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+
+                    // REMOVE THE TICK MARKS IN ALG MODE
+                    if((totaln>2)&&(string[0]=='\'')) {
+                        ++string;
+                        --endstring;
+                    }
+
+                    uiSeparateToken();
+                    uiInsertCharactersN(string,endstring);
+                    uiSeparateToken();
+                    uiAutocompleteUpdate();
+
+                    break;
+                }
+                }
+            }
+            else if(ISUNIT(*action)) {
+                switch(halScreen.CursorState&0xff)
+                {
+                case 'D':
+                {
+                    rplPushRet(action);
+                    BINT result=endCmdLineAndCompile();
+                    action=rplPopRet();
+                    if(result) {
+                        // USER IS TRYING TO APPLY THE UNIT
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=(CMD_OVR_MUL);
+                    }
+                    break;
+                }
+                case 'A':
+                {
+
+                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                    BINT SavedException=Exceptions;
+                    BINT SavedErrorCode=ErrorCode;
+
+                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    Exceptions=SavedException;
+                    ErrorCode=SavedErrorCode;
+
+                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                    BYTEPTR string=(BYTEPTR) (opname+1);
+                    BINT totaln=rplStrLen(opname);
+                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+
+                    if( (totaln>2)&&(string[0]=='1')&&(string[1]=='_')) string+=2;
+
+                    uiInsertCharactersN(string,endstring);
+                    uiAutocompleteUpdate();
+
+                    break;
+                }
+
+                case 'P':
+                {
+
+                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                    BINT SavedException=Exceptions;
+                    BINT SavedErrorCode=ErrorCode;
+
+                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    Exceptions=SavedException;
+                    ErrorCode=SavedErrorCode;
+
+                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                    BYTEPTR string=(BYTEPTR) (opname+1);
+                    BINT totaln=rplStrLen(opname);
+                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+
+                    uiSeparateToken();
+                    uiInsertCharactersN(string,endstring);
+                    uiSeparateToken();
+                    uiInsertCharacters((BYTEPTR)"*");
+                    uiSeparateToken();
+                    uiAutocompleteUpdate();
+
+                    break;
+                }
+
+                }
+            }
+            else if(!ISPROLOG(*action)) {
+                // THIS IS A COMMAND, DECOMPILE AND INSERT NAME
+                switch(halScreen.CursorState&0xff)
+                {
+                case 'D':
+                {
+                    rplPushRet(action);
+                    BINT result=endCmdLineAndCompile();
+                    action=rplPopRet();
+                    if(result) {
+                        Opcode=*action;
+                        hideargument=0;
+                    }
+                    break;
+                }
+                case 'A':
+                {
+
+                    WORD tokeninfo=0;
+                    LIBHANDLER han=rplGetLibHandler(LIBNUM(*action));
+
+
+                    // GET THE SYMBOLIC TOKEN INFORMATION
+                    if(han) {
+                        WORD savecurOpcode=CurOpcode;
+                        DecompileObject=action;
+                        CurOpcode=MKOPCODE(LIBNUM(*action),OPCODE_GETINFO);
+                        (*han)();
+
+                        if(RetNum>OK_TOKENINFO) tokeninfo=RetNum;
+
+                        CurOpcode=savecurOpcode;
+                    }
+
+
+                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                    BINT SavedException=Exceptions;
+                    BINT SavedErrorCode=ErrorCode;
+
+                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    Exceptions=SavedException;
+                    ErrorCode=SavedErrorCode;
+
+                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                    BYTEPTR string=(BYTEPTR) (opname+1);
+                    BINT totaln=rplStrLen(opname);
+                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+
+                    uiInsertCharactersN(string,endstring);
+                    if(TI_TYPE(tokeninfo)==TITYPE_FUNCTION) {
+                        uiInsertCharacters((BYTEPTR)"()");
+                        uiCursorLeft(1);
+                    }
+                    uiAutocompleteUpdate();
+
+                    break;
+                }
+
+                case 'P':
+                {
+
+                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                    BINT SavedException=Exceptions;
+                    BINT SavedErrorCode=ErrorCode;
+
+                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    Exceptions=SavedException;
+                    ErrorCode=SavedErrorCode;
+
+                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                    BYTEPTR string=(BYTEPTR) (opname+1);
+                    BINT totaln=rplStrLen(opname);
+                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+
+                    uiSeparateToken();
+                    uiInsertCharactersN(string,endstring);
+                    uiSeparateToken();
+                    uiAutocompleteUpdate();
+
+                    break;
+                }
+
+                }
+
+
+
+
+            }
+            else if(ISPROGRAM(*action)) {
+                if(!ISSECO(*action)) {
+                    // IT'S A DOCOL PROGRAM, EXECUTE TRANSPARENTLY
+                    rplPushData(action);    // PUSH THE NAME ON THE STACK
+                    Opcode=CMD_OVR_XEQ;
+                }
+                else {
+                    rplPushRet(action);
+                    BINT result=endCmdLineAndCompile();
+                    action=rplPopRet();
+                    if(result) {
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=CMD_OVR_XEQ;
+                    }
+                }
+            }
+            else if(ISSTRING(*action)) {
+                BYTEPTR string=(BYTEPTR) (action+1);
+                BINT totaln=rplStrLen(action);
+                BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(action),totaln);
+
+                if(!inlist) {
+                    // ADD THE QUOTES IN D OR P MODE
+                    if(((halScreen.CursorState&0xff)=='P')||((halScreen.CursorState&0xff)=='D')) {
+                        uiSeparateToken();
+                        uiInsertCharacters((BYTEPTR)"\"");
+                    }
+                }
+                uiInsertCharactersN(string,endstring);
+                if(!inlist && (((halScreen.CursorState&0xff)=='P')||((halScreen.CursorState&0xff)=='D')))  {
+                    uiInsertCharacters((BYTEPTR)"\"");
+                    uiSeparateToken();
+                }
+                uiAutocompleteUpdate();
+                }
+            else {
+            // ALL OTHER OBJECTS AND COMMANDS
+            switch(halScreen.CursorState&0xff)
+            {
+            case 'D':
+            {
+                rplPushRet(action);
+                BINT result=endCmdLineAndCompile();
+                action=rplPopRet();
+                if(result) {
+                    if(!ISPROLOG(*action)) { Opcode=*action; hideargument=0; }// RUN COMMANDS DIRECTLY
+                    else {
+                        Opcode=(CMD_OVR_XEQ);
+                        rplPushData(action);
+                    }
+                }
+                break;
+            }
+            case 'A':
+            {
+
+                WORD tokeninfo=0;
+                LIBHANDLER han=rplGetLibHandler(LIBNUM(*action));
+
+
+                // GET THE SYMBOLIC TOKEN INFORMATION
+                if(han) {
+                    WORD savecurOpcode=CurOpcode;
+                    DecompileObject=action;
+                    CurOpcode=MKOPCODE(LIBNUM(*action),OPCODE_GETINFO);
+                    (*han)();
+
+                    if(RetNum>OK_TOKENINFO) tokeninfo=RetNum;
+
+                    CurOpcode=savecurOpcode;
+                }
+
+
+                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                BINT SavedException=Exceptions;
+                BINT SavedErrorCode=ErrorCode;
+
+                Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                Exceptions=SavedException;
+                ErrorCode=SavedErrorCode;
+
+                if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                BYTEPTR string=(BYTEPTR) (opname+1);
+                BINT totaln=rplStrLen(opname);
+                BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+
+                uiInsertCharactersN(string,endstring);
+                if(TI_TYPE(tokeninfo)==TITYPE_FUNCTION) {
+                    uiInsertCharacters((BYTEPTR)"()");
+                    uiCursorLeft(1);
+                }
+                uiAutocompleteUpdate();
+
+                break;
+            }
+
+            case 'P':
+            {
+
+                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                BINT SavedException=Exceptions;
+                BINT SavedErrorCode=ErrorCode;
+
+                Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                Exceptions=SavedException;
+                ErrorCode=SavedErrorCode;
+
+                if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                BYTEPTR string=(BYTEPTR) (opname+1);
+                BINT totaln=rplStrLen(opname);
+                BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+
+                uiSeparateToken();
+                uiInsertCharactersN(string,endstring);
+                uiSeparateToken();
+                uiAutocompleteUpdate();
+
+                break;
+            }
+
+            }
+
+
+
+        }
+
+        if(Opcode) uiCmdRunHide(Opcode,hideargument);
+        if(Exceptions) {
+            // TODO: SHOW ERROR MESSAGE
+            halShowErrorMsg();
+            Exceptions=0;
+        } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+        halScreen.DirtyFlag|=STACK_DIRTY|STAREA_DIRTY;
+}
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #define DECLARE_TRANSPCMDKEYHANDLER(name,opcode) void name##KeyHandler(BINT keymsg) \
                                                              { \
                                                              UNUSED_ARGUMENT(keymsg); \
@@ -3999,23 +4515,117 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
 // IF THE TABLE HAS NO MATCH, THE DEFAULT ACTION HANDLER IS CALLED.
 // CUSTOM KEY LIST IS STORED IN Settings
 
+// [ACTION] CAN BE:
+// A PROGRAM: A NORMAL SECONDARY WILL BE EXECUTED USING uiCmdRun()
+//            A :: ; SECONDARY WILL BE EXECUTED USING uiCmdRunTransparent()
+// A LIST IN THE FORM { [COMMAND] }: THE COMMAND WILL BE EXECUTED USING cmdKeyHandler()
+// A LIST IN THE FORM { [STRING] }:
+
+
+
 int halDoCustomKey(BINT keymsg)
 {
+    if(rplTestSystemFlag(FL_NOCUSTOMKEYS)) return 0;    // DON'T USE CUSTOM KEYS IF DISABLED PER FLAG
+
+
     // TODO: READ THE KEYBOARD TABLE FROM THE Settings DIRECTORY AND DO IT
-    UNUSED_ARGUMENT(keymsg);
+    WORDPTR keytable;
+
+    keytable=rplGetSettings((WORDPTR)customkey_ident);
+
+    if(!keytable) return 0; // NO CUSTOM KEY DEFINED
+
+    if(!ISLIST(*keytable)) return 0;    // INVALID KEY DEFINITION
+
+    WORDPTR ptr=keytable+1,endoftable=rplSkipOb(keytable),action=0;
+    BINT msg,ctx;
+
+    while(ptr<endoftable)
+    {
+    msg=rplReadNumberAsBINT(ptr);
+    if(Exceptions) {
+       // CLEAR ALL ERRORS AND KEEP GOING
+       rplClearErrors();
+       return 0;
+    }
+    ptr=rplSkipOb(ptr);
+    if(ptr>=endoftable) return 0;
+    ctx=rplReadNumberAsBINT(ptr);
+    if(Exceptions) {
+       // CLEAR ALL ERRORS AND KEEP GOING
+       rplClearErrors();
+       return 0;
+    }
+    ptr=rplSkipOb(ptr);
+    if(ptr>=endoftable) return 0;
+
+    if(msg==keymsg) {
+        if(ctx==0) { action=ptr; break; }
+        if(!(ctx&0x1f)) {
+            if( ctx==(halScreen.KeyContext&~0x1f)) { action=ptr; break; }
+        }
+        else {
+            if(ctx==halScreen.KeyContext) { action=ptr; break; }
+        }
+    }
+    ptr=rplSkipOb(ptr);
+    }
+
+    if(action) {
+        // EXECUTE THE REQUESTED ACTION
+        customKeyHandler(keymsg,action);
+        return 1;
+    }
 
     return 0;
-
 }
 
 // RETURN TRUE/FALSE IF A CUSTOM HANDLER EXISTS
 int halCustomKeyExists(BINT keymsg)
 {
-    // TODO: READ THE KEYBOARD TABLE FROM THE Settings DIRECTORY AND DO IT
-    UNUSED_ARGUMENT(keymsg);
+    WORDPTR keytable;
 
+    keytable=rplGetSettings((WORDPTR)customkey_ident);
+
+    if(!keytable) return 0; // NO CUSTOM KEY DEFINED
+
+    if(!ISLIST(*keytable)) return 0;    // INVALID KEY DEFINITION
+
+    WORDPTR ptr=keytable+1,endoftable=rplSkipOb(keytable);
+    BINT msg,ctx;
+
+    while(ptr<endoftable)
+    {
+    msg=rplReadNumberAsBINT(ptr);
+    if(Exceptions) {
+       // CLEAR ALL ERRORS AND KEEP GOING
+       rplClearErrors();
+       return 0;
+    }
+    ptr=rplSkipOb(ptr);
+    if(ptr>=endoftable) return 0;
+    ctx=rplReadNumberAsBINT(ptr);
+    if(Exceptions) {
+       // CLEAR ALL ERRORS AND KEEP GOING
+       rplClearErrors();
+       return 0;
+    }
+    if(msg==keymsg) {
+        if(ctx==0) return 1;
+        if(!(ctx&0x1f)) {
+            if( ctx==(halScreen.KeyContext&~0x1f)) return 1;
+        }
+        else {
+            if(ctx==halScreen.KeyContext) return 1;
+        }
+    }
+    ptr=rplSkipOb(ptr);
+    if(ptr>=endoftable) return 0;
+    ptr=rplSkipOb(ptr);
+    }
+
+    //   SCANNED ENTIRE TABLE, NO LUCK
     return 0;
-
 }
 
 
