@@ -719,7 +719,7 @@ void rplSkipNextAlarm();
 #define FL_ERRORBEEP      -56
 #define FL_ALARMBEEP      -57
 #define FL_COMPLEXMODE    -103
-#define FL_INERRORHANDLER   -4
+#define FL_NOCUSTOMKEYS   -4
 
 
 
