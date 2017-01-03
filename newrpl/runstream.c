@@ -364,6 +364,11 @@ BINT rplRun(void)
         }
         else {
             // THERE IS NO ERROR HANDLER --> UNTRAPPED ERROR
+            // SAVE THE EXCEPTIONS FOR ERRN AND ERRM
+            TrappedExceptions=Exceptions;   // THE ERROR HANDLER CAN KNOW THE EXCEPTIONS BY LOOKING AT THIS VARIABLE
+                                            // ExceptionPointer STILL POINTS TO THE WORD THAT CAUSED THE EXCEPTION
+            TrappedErrorCode=ErrorCode;
+
             return NEEDS_CLEANUP;      // END EXECUTION IMMEDIATELY IF AN UNHANDLED EXCEPTION IS THROWN
         }
     }
