@@ -2083,10 +2083,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        BINT size=rplObjSize(rplPeekData(1));
-        WORDPTR newobj=rplAllocTempOb(size-1);
+        WORDPTR newobj=rplMakeNewCopy(rplPeekData(1));
         if(!newobj) return;
-        rplCopyObject(newobj,rplPeekData(1));
         rplOverwriteData(1,newobj);
         return;
      }

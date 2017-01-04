@@ -17,7 +17,12 @@
 
 @#name lib28_menu
 {
-  STO RCL PURGE STO+ STO- STO* STO/ SINV SNEG SCONJ INCR DECR CRDIR PGDIR { "" } HOME UPDIR PATH VARS ALLVARS ORDER QUOTEID UNQUOTEID HIDEVAR UNHIDEVAR
+  STO RCL PURGE STO+ STO-
+  STO* STO/ SINV SNEG SCONJ
+  INCR DECR CRDIR PGDIR CLVAR
+  HOME UPDIR PATH VARS ALLVARS
+  ORDER QUOTEID UNQUOTEID HIDEVAR UNHIDEVAR
+  LOCKVAR UNLOCKVAR
 }
 
 @#name lib28_msgtable
@@ -25,6 +30,7 @@
 ##1,ERR_NONEMPTYDIRECTORY "Non-empty directory"
 ##1,ERR_DIRECTORYNOTFOUND "Directory not found"
 ##1,ERR_CANTOVERWRITEDIR "Can't overwrite directory"
+##1,ERR_READONLYVARIABLE "Read only variable"
 }
 
 
@@ -147,6 +153,21 @@ N → "
 
 UNHIDEVAR
 "Make a variable visible
+in a directory
+N → "
+
+CLVAR
+"Purge all unlocked vars in current
+dir except non-empty dirs
+ → "
+
+LOCKVAR
+"Make a variable read-only
+in a directory
+N → "
+
+UNLOCKVAR
+"Make a variable writeable
 in a directory
 N → "
 

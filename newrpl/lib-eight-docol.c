@@ -46,7 +46,8 @@
     ECMD(SSTIN,"SST↓",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(KILL,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(SETBKPOINT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CLRBKPOINT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
+    CMD(CLRBKPOINT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DBUG,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
 
 
 
@@ -129,6 +130,10 @@ void LIB_HANDLER()
     {
         // SAME AS HALT BUT DON'T AFFECT THE HALTED PROGRAM
         rplException(EX_HALT);
+
+        // ONCE IT'S HALTED, DISABLE SINGLE STEP MODE
+        rplDisableSingleStep();
+
         return;
 
     }
@@ -141,6 +146,9 @@ void LIB_HANDLER()
         HaltednLAMBase=nLAMBase;
         HaltedLAMTop=LAMTop;
         rplException(EX_HALT);
+        // ONCE IT'S HALTED, DISABLE SINGLE STEP MODE
+        rplDisableSingleStep();
+
         return;
     }
     case HALT:
@@ -153,12 +161,19 @@ void LIB_HANDLER()
         HaltednLAMBase=nLAMBase;
         HaltedLAMTop=LAMTop;
         rplException(EX_HALT);
+        // ONCE IT'S HALTED, DISABLE SINGLE STEP MODE
+        rplDisableSingleStep();
+
         return;
     }
 
     case CONT:
     {
         if(!HaltedIPtr) return;
+
+        // UN-PAUSE ALL HARDWARE BREAKPOINTS. THIS IS NEEDED FOR breakpt_seco ONLY.
+        BreakPtFlags&=~BKPT_ALLPAUSED;
+
         // CONTINUE HALTED EXECUTION
         if(RSTop>=HaltedRSTop) {
             IPtr=HaltedIPtr-1;
@@ -171,39 +186,64 @@ void LIB_HANDLER()
         // CurOpcode IS A COMMAND, SO THE HALT INSTRUCTION WILL BE SKIPPED
         return;
     }
-    case SST:
-    {
-        // SINGLE STEP A HALTED PROGRAM
-        if(!HaltedIPtr) return;
-        if(ISPROLOG(*HaltedIPtr)) {
-            // DO XEQ ON OBJECTS
-            rplPushData(HaltedIPtr);
-            rplCallOvrOperator(CMD_OVR_XEQ);
-        }
-        else {
-            // THIS IS A COMMAND, CALL THE LIBRARY DIRECTLY
-            rplCallOperator(*HaltedIPtr);
-        }
-
-        return;
-    }
-
     case SSTIN:
     {
-        // TODO: ENTER INTO OTHER SECONDARIES, FOR NOW JUST THE SAME AS SST
         // SINGLE STEP A HALTED PROGRAM
         if(!HaltedIPtr) return;
-        if(ISPROLOG(*HaltedIPtr)) {
-            // DO XEQ ON OBJECTS
-            rplPushData(HaltedIPtr);
-            rplCallOvrOperator(CMD_OVR_XEQ);
-        }
-        else {
-            // THIS IS A COMMAND, CALL THE LIBRARY DIRECTLY
-            rplCallOperator(*HaltedIPtr);
-        }
 
+        rplEnableSingleStep();
+
+        // AND THIS IS THE SAME AS "CONT" FROM HERE ON
+        BreakPtFlags&=~BKPT_ALLPAUSED;
+
+        HWExceptions|=EX_HWBKPOINT;
+
+        // CONTINUE HALTED EXECUTION
+        if(RSTop>=HaltedRSTop) {
+            IPtr=HaltedIPtr-1;
+            RSTop=HaltedRSTop;
+            if(LAMTop>=HaltedLAMTop) LAMTop=HaltedLAMTop;
+            if(nLAMBase>=HaltednLAMBase) nLAMBase=HaltednLAMBase;
+            HaltedIPtr=0;
+            if(HWExceptions&EX_HWBKPOINT) HWExceptions|=EX_HWBKPTSKIP;  // SKIP ONE SO AT LEAST IT EXECUTES ONE OPCODE
+        }
+        // CurOpcode IS A COMMAND, SO THE HALT INSTRUCTION WILL BE SKIPPED
         return;
+
+    }
+
+    case SST:
+    {
+        // SINGLE STEP A HALTED PROGRAM BUT SKIP OVER INNER CODE
+        if(!HaltedIPtr) return;
+
+
+        if(ISPROGRAM(*HaltedIPtr) || ISIDENT(*HaltedIPtr) || (*HaltedIPtr==CMD_OVR_EVAL)||(*HaltedIPtr==CMD_OVR_XEQ)||(*HaltedIPtr==CMD_OVR_EVAL1)) {
+                // SKIP OVER TO THE END OF THE CODE
+                // USE THE SINGLE STEP WITH A SPECIFIC LOCATION SO IT ONLY STOPS AFTER THE CODE FINISHED
+                SET_BKPOINTFLAG(2,BKPT_LOCATION|BKPT_ENABLED);
+                BreakPt3Arg=0;
+                BreakPt3Pointer=rplSkipOb(HaltedIPtr);
+        }
+        else rplEnableSingleStep();
+
+        // AND THIS IS THE SAME AS "CONT" FROM HERE ON
+        BreakPtFlags&=~BKPT_ALLPAUSED;
+
+        HWExceptions|=EX_HWBKPOINT;
+
+        // CONTINUE HALTED EXECUTION
+        if(RSTop>=HaltedRSTop) {
+            IPtr=HaltedIPtr-1;
+            RSTop=HaltedRSTop;
+            if(LAMTop>=HaltedLAMTop) LAMTop=HaltedLAMTop;
+            if(nLAMBase>=HaltednLAMBase) nLAMBase=HaltednLAMBase;
+            HaltedIPtr=0;
+            if(HWExceptions&EX_HWBKPOINT) HWExceptions|=EX_HWBKPTSKIP;  // SKIP ONE SO AT LEAST IT EXECUTES ONE OPCODE
+        }
+        // CurOpcode IS A COMMAND, SO THE HALT INSTRUCTION WILL BE SKIPPED
+        return;
+
     }
 
     case KILL:
@@ -211,6 +251,37 @@ void LIB_HANDLER()
         HaltedIPtr=0;
         return;
     }
+
+
+    case DBUG:
+    {
+
+        if(HaltedIPtr) return;      // DO NOTHING IF A PROGRAM IS ALREADY BEING DEBUGGED
+
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISPROGRAM(*rplPeekData(1))) {
+            rplError(ERR_PROGRAMEXPECTED);
+            return;
+        }
+
+        // AND XEQ  AND IMMEDIATELY HALT THE SECONDARY
+
+        rplPushRet(IPtr);       // PUSH CURRENT POINTER AS THE RETURN ADDRESS.
+        HaltedIPtr=rplPopData()+1;      // SET NEW IPTR TO THE PROGRAM, TO BE EXECUTED
+        HaltedRSTop=RSTop;  // SAVE RETURN STACK POINTER
+        HaltednLAMBase=nLAMBase;
+        HaltedLAMTop=LAMTop;
+        rplException(EX_HALT);
+        // ONCE IT'S HALTED, DISABLE SINGLE STEP MODE
+        rplDisableSingleStep();
+
+        return;
+    }
+
     case XEQSECO:
         // IF THE NEXT OBJECT IN THE SECONDARY
         // IS A SECONDARY, IT EVALUATES IT INSTEAD OF PUSHING IT ON THE STACK
