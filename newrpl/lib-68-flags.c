@@ -61,7 +61,8 @@
     CMD(ASNKEY,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(DELKEY,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(STOKEYS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RCLKEYS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+    CMD(RCLKEYS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TYPE,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
 
 
 
@@ -1770,11 +1771,39 @@ void LIB_HANDLER()
 
     }
 
+ case TYPE:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        LIBHANDLER han=rplGetLibHandler(LIBNUM(*rplPeekData(1)));
 
 
+        // GET THE SYMBOLIC TOKEN INFORMATION
+        if(han) {
+            WORD savecurOpcode=CurOpcode;
+            ObjectPTR=rplPeekData(1);
+            CurOpcode=MKOPCODE(LIBNUM(*ObjectPTR),OPCODE_GETINFO);
+            (*han)();
 
+            CurOpcode=savecurOpcode;
 
+            if(RetNum>OK_TOKENINFO) {
+               rplDropData(1);
+               if(TypeInfo%100) {
+                   newRealFromBINT64(&RReg[0],TypeInfo,-2);
 
+                   rplNewRealFromRRegPush(0);
+               } else rplNewBINTPush(TypeInfo/100,DECBINT);
+               return;
+            }
+        }
+        rplOverwriteData(1,(WORDPTR)zero_bint);
+
+        return;
+    }
     // ADD MORE OPCODES HERE
 
    // STANDARIZED OPCODES:
@@ -1852,7 +1881,27 @@ void LIB_HANDLER()
 
 
     case OPCODE_GETINFO:
-        libGetInfo2(*DecompileObject,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+        // THIS OPCODE RECEIVES A POINTER TO AN RPL COMMAND OR OBJECT IN ObjectPTR
+        // NEEDS TO RETURN INFORMATION ABOUT THE TYPE:
+        // IN RetNum: RETURN THE MKTOKENINFO() DATA FOR THE SYMBOLIC COMPILER AND CAS
+        // IN DecompHints: RETURN SOME HINTS FOR THE DECOMPILER TO DO CODE BEAUTIFICATION (TO BE DETERMINED)
+        // IN TypeInfo: RETURN TYPE INFORMATION FOR THE TYPE COMMAND
+        //             TypeInfo: TTTTFF WHERE TTTT = MAIN TYPE * 100 (NORMALLY THE MAIN LIBRARY NUMBER)
+        //                                FF = 2 DECIMAL DIGITS FOR THE SUBTYPE OR FLAGS (VARIES DEPENDING ON LIBRARY)
+        //             THE TYPE COMMAND WILL RETURN A REAL NUMBER TypeInfo/100
+        // FOR NUMBERS: TYPE=10 (REALS), SUBTYPES = .01 = APPROX., .02 = INTEGER, .03 = APPROX. INTEGER
+        // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
+
+        if(ISPROLOG(*ObjectPTR)) {
+        TypeInfo=LIBRARY_NUMBER*100;
+        DecompHints=0;
+        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NOTALLOWED,0,1);
+        }
+        else {
+            TypeInfo=0;     // ALL COMMANDS ARE TYPE 0
+            DecompHints=0;
+            libGetInfo2(*ObjectPTR,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+        }
         return;
 
     case OPCODE_GETROMID:

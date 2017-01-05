@@ -119,6 +119,8 @@ UBINT ArgNum1,ArgNum2,ArgNum3,RetNum;
 #define MenuCodeArg ArgNum3
 #define CmdHelp     ArgNum3
 #define LibError    ArgNum3
+#define TypeInfo    ArgNum3
+
 
 LIBHANDLER LowLibRegistry[MAXLOWLIBS];
 LIBHANDLER SysHiLibRegistry[MAXSYSHILIBS];
