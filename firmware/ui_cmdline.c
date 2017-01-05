@@ -99,9 +99,10 @@ void uiSetCmdLineText(WORDPTR text)
     if(Exceptions) {
         throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
         // CLEAN UP AND RETURN
-        CmdLineText=(WORDPTR)empty_string;
-        CmdLineCurrentLine=(WORDPTR)empty_string;
-        CmdLineUndoList=(WORDPTR)empty_list;
+        uiOpenCmdLine(0);
+        //CmdLineText=(WORDPTR)empty_string;
+        //CmdLineCurrentLine=(WORDPTR)empty_string;
+        //CmdLineUndoList=(WORDPTR)empty_list;
         return;
     }
 
@@ -258,9 +259,10 @@ void uiSetCurrentLine(BINT line)
         if(Exceptions) {
             throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
             // CLEAN UP AND RETURN
-            CmdLineText=(WORDPTR)empty_string;
-            CmdLineCurrentLine=(WORDPTR)empty_string;
-            CmdLineUndoList=(WORDPTR)empty_list;
+            uiOpenCmdLine(0);
+            //CmdLineText=(WORDPTR)empty_string;
+            //CmdLineCurrentLine=(WORDPTR)empty_string;
+            //CmdLineUndoList=(WORDPTR)empty_list;
             return;
         }
 
@@ -313,9 +315,11 @@ uiExtractLine(halScreen.LineCurrent);
 if(Exceptions) {
     throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
     // CLEAN UP AND RETURN
-    CmdLineText=(WORDPTR)empty_string;
-    CmdLineCurrentLine=(WORDPTR)empty_string;
-    CmdLineUndoList=(WORDPTR)empty_list;
+    uiOpenCmdLine(0);
+    //CmdLineText=(WORDPTR)empty_string;
+    //CmdLineCurrentLine=(WORDPTR)empty_string;
+    //CmdLineUndoList=(WORDPTR)empty_list;
+
     return;
 }
 
@@ -329,9 +333,10 @@ if(CmdLineCurrentLine==(WORDPTR)empty_string) {
     if(!newobj) {
         throw_dbgexception("No memory to insert text",__EX_CONT|__EX_WARM|__EX_RESET);
         // CLEAN UP AND RETURN
-        CmdLineText=(WORDPTR)empty_string;
-        CmdLineCurrentLine=(WORDPTR)empty_string;
-        CmdLineUndoList=(WORDPTR)empty_list;
+        uiOpenCmdLine(0);
+        //CmdLineText=(WORDPTR)empty_string;
+        //CmdLineCurrentLine=(WORDPTR)empty_string;
+        //CmdLineUndoList=(WORDPTR)empty_list;
         return;
     }
 
@@ -351,9 +356,10 @@ else {
         if(!newobj) {
             throw_dbgexception("No memory to insert text",__EX_CONT|__EX_WARM|__EX_RESET);
             // CLEAN UP AND RETURN
-            CmdLineText=(WORDPTR)empty_string;
-            CmdLineCurrentLine=(WORDPTR)empty_string;
-            CmdLineUndoList=(WORDPTR)empty_list;
+            uiOpenCmdLine(0);
+            //CmdLineText=(WORDPTR)empty_string;
+            //CmdLineCurrentLine=(WORDPTR)empty_string;
+            //CmdLineUndoList=(WORDPTR)empty_list;
             return;
         }
         rplCopyObject(newobj,CmdLineCurrentLine);
@@ -364,9 +370,10 @@ else {
 if(Exceptions) {
     throw_dbgexception("No memory to insert text",__EX_CONT|__EX_WARM|__EX_RESET);
     // CLEAN UP AND RETURN
-    CmdLineText=(WORDPTR)empty_string;
-    CmdLineCurrentLine=(WORDPTR)empty_string;
-    CmdLineUndoList=(WORDPTR)empty_list;
+    uiOpenCmdLine(0);
+    //CmdLineText=(WORDPTR)empty_string;
+    //CmdLineCurrentLine=(WORDPTR)empty_string;
+    //CmdLineUndoList=(WORDPTR)empty_list;
     return;
 }
 
@@ -482,9 +489,10 @@ if(rplSkipOb(CmdLineCurrentLine)!=TempObEnd) {
         if(!newobj) {
             throw_dbgexception("No memory to insert text",__EX_CONT|__EX_WARM|__EX_RESET);
             // CLEAN UP AND RETURN
-            CmdLineText=(WORDPTR)empty_string;
-            CmdLineCurrentLine=(WORDPTR)empty_string;
-            CmdLineUndoList=(WORDPTR)empty_list;
+            uiOpenCmdLine(0);
+            //CmdLineText=(WORDPTR)empty_string;
+            //CmdLineCurrentLine=(WORDPTR)empty_string;
+            //CmdLineUndoList=(WORDPTR)empty_list;
             return;
         }
         rplCopyObject(newobj,CmdLineCurrentLine);
@@ -577,9 +585,10 @@ void uiSeparateToken()
     if(Exceptions) {
         throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
         // CLEAN UP AND RETURN
-        CmdLineText=(WORDPTR)empty_string;
-        CmdLineCurrentLine=(WORDPTR)empty_string;
-        CmdLineUndoList=(WORDPTR)empty_list;
+        uiOpenCmdLine(0);
+        //CmdLineText=(WORDPTR)empty_string;
+        //CmdLineCurrentLine=(WORDPTR)empty_string;
+        //CmdLineUndoList=(WORDPTR)empty_list;
         return;
     }
 
@@ -606,9 +615,10 @@ void uiModifyLine(int dontaddnewline)
     if(Exceptions) {
         throw_dbgexception("No memory to insert text",__EX_CONT|__EX_WARM|__EX_RESET);
         // CLEAN UP AND RETURN
-        CmdLineText=(WORDPTR)empty_string;
-        CmdLineCurrentLine=(WORDPTR)empty_string;
-        CmdLineUndoList=(WORDPTR)empty_list;
+        uiOpenCmdLine(0);
+        //CmdLineText=(WORDPTR)empty_string;
+        //CmdLineCurrentLine=(WORDPTR)empty_string;
+        //CmdLineUndoList=(WORDPTR)empty_list;
         return;
     }
     BYTEPTR src=(BYTEPTR)(CmdLineText+1),dest=(BYTEPTR)(newobj+1);
@@ -672,9 +682,10 @@ void uiExtractLine(BINT line)
     if(Exceptions) {
         throw_dbgexception("No memory to insert text",__EX_CONT|__EX_WARM|__EX_RESET);
         // CLEAN UP AND RETURN
-        CmdLineText=(WORDPTR)empty_string;
-        CmdLineCurrentLine=(WORDPTR)empty_string;
-        CmdLineUndoList=(WORDPTR)empty_list;
+        uiOpenCmdLine(0);
+        //CmdLineText=(WORDPTR)empty_string;
+        //CmdLineCurrentLine=(WORDPTR)empty_string;
+        //CmdLineUndoList=(WORDPTR)empty_list;
         return;
     }
 
@@ -704,9 +715,10 @@ if(halScreen.LineIsModified<0) {
     if(Exceptions) {
         throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
         // CLEAN UP AND RETURN
-        CmdLineText=(WORDPTR)empty_string;
-        CmdLineCurrentLine=(WORDPTR)empty_string;
-        CmdLineUndoList=(WORDPTR)empty_list;
+        uiOpenCmdLine(0);
+        //CmdLineText=(WORDPTR)empty_string;
+        //CmdLineCurrentLine=(WORDPTR)empty_string;
+        //CmdLineUndoList=(WORDPTR)empty_list;
         return;
     }
 
@@ -751,9 +763,10 @@ void uiCursorLeft(BINT nchars)
         if(Exceptions) {
             throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
             // CLEAN UP AND RETURN
-            CmdLineText=(WORDPTR)empty_string;
-            CmdLineCurrentLine=(WORDPTR)empty_string;
-            CmdLineUndoList=(WORDPTR)empty_list;
+            uiOpenCmdLine(0);
+            //CmdLineText=(WORDPTR)empty_string;
+            //CmdLineCurrentLine=(WORDPTR)empty_string;
+            //CmdLineUndoList=(WORDPTR)empty_list;
             return;
         }
 
@@ -804,9 +817,10 @@ void uiCursorLeft(BINT nchars)
             if(Exceptions) {
                 throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
                 // CLEAN UP AND RETURN
-                CmdLineText=(WORDPTR)empty_string;
-                CmdLineCurrentLine=(WORDPTR)empty_string;
-                CmdLineUndoList=(WORDPTR)empty_list;
+                uiOpenCmdLine(0);
+                //CmdLineText=(WORDPTR)empty_string;
+                //CmdLineCurrentLine=(WORDPTR)empty_string;
+                //CmdLineUndoList=(WORDPTR)empty_list;
                 return;
             }
 
@@ -843,9 +857,10 @@ void uiCursorRight(BINT nchars)
         if(Exceptions) {
             throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
             // CLEAN UP AND RETURN
-            CmdLineText=(WORDPTR)empty_string;
-            CmdLineCurrentLine=(WORDPTR)empty_string;
-            CmdLineUndoList=(WORDPTR)empty_list;
+            uiOpenCmdLine(0);
+            //CmdLineText=(WORDPTR)empty_string;
+            //CmdLineCurrentLine=(WORDPTR)empty_string;
+            //CmdLineUndoList=(WORDPTR)empty_list;
             return;
         }
 
@@ -898,9 +913,10 @@ void uiCursorRight(BINT nchars)
             if(Exceptions) {
                 throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
                 // CLEAN UP AND RETURN
-                CmdLineText=(WORDPTR)empty_string;
-                CmdLineCurrentLine=(WORDPTR)empty_string;
-                CmdLineUndoList=(WORDPTR)empty_list;
+                uiOpenCmdLine(0);
+                //CmdLineText=(WORDPTR)empty_string;
+                //CmdLineCurrentLine=(WORDPTR)empty_string;
+                //CmdLineUndoList=(WORDPTR)empty_list;
                 return;
             }
 
@@ -990,9 +1006,10 @@ void uiCursorPageRight()
     if(Exceptions) {
         throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
         // CLEAN UP AND RETURN
-        CmdLineText=(WORDPTR)empty_string;
-        CmdLineCurrentLine=(WORDPTR)empty_string;
-        CmdLineUndoList=(WORDPTR)empty_list;
+        uiOpenCmdLine(0);
+        //CmdLineText=(WORDPTR)empty_string;
+        //CmdLineCurrentLine=(WORDPTR)empty_string;
+        //CmdLineUndoList=(WORDPTR)empty_list;
         return;
     }
     }
@@ -1026,9 +1043,11 @@ void uiCursorPageLeft()
     if(Exceptions) {
         throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
         // CLEAN UP AND RETURN
-        CmdLineText=(WORDPTR)empty_string;
-        CmdLineCurrentLine=(WORDPTR)empty_string;
-        CmdLineUndoList=(WORDPTR)empty_list;
+        uiOpenCmdLine(0);
+
+        //CmdLineText=(WORDPTR)empty_string;
+        //CmdLineCurrentLine=(WORDPTR)empty_string;
+        //CmdLineUndoList=(WORDPTR)empty_list;
         return;
     }
     }
@@ -1084,9 +1103,11 @@ BYTEPTR uiFindNumberStart()
         if(Exceptions) {
             throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
             // CLEAN UP AND RETURN
-            CmdLineText=(WORDPTR)empty_string;
-            CmdLineCurrentLine=(WORDPTR)empty_string;
-            CmdLineUndoList=(WORDPTR)empty_list;
+            uiOpenCmdLine(0);
+
+            //CmdLineText=(WORDPTR)empty_string;
+            //CmdLineCurrentLine=(WORDPTR)empty_string;
+            //CmdLineUndoList=(WORDPTR)empty_list;
             return NULL;
         }
 
@@ -1178,10 +1199,12 @@ void uiAutocompleteUpdate()
 
         if(Exceptions) {
             throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+
             // CLEAN UP AND RETURN
-            CmdLineText=(WORDPTR)empty_string;
-            CmdLineCurrentLine=(WORDPTR)empty_string;
-            CmdLineUndoList=(WORDPTR)empty_list;
+            uiOpenCmdLine(0);
+            //CmdLineText=(WORDPTR)empty_string;
+            //CmdLineCurrentLine=(WORDPTR)empty_string;
+            //CmdLineUndoList=(WORDPTR)empty_list;
             return;
         }
 
@@ -1244,9 +1267,11 @@ void uiAutocompNext()
         if(Exceptions) {
             throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
             // CLEAN UP AND RETURN
-            CmdLineText=(WORDPTR)empty_string;
-            CmdLineCurrentLine=(WORDPTR)empty_string;
-            CmdLineUndoList=(WORDPTR)empty_list;
+            uiOpenCmdLine(0);
+
+            //CmdLineText=(WORDPTR)empty_string;
+            //CmdLineCurrentLine=(WORDPTR)empty_string;
+            //CmdLineUndoList=(WORDPTR)empty_list;
             return;
         }
 
@@ -1275,9 +1300,11 @@ void uiAutocompPrev()
         if(Exceptions) {
             throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
             // CLEAN UP AND RETURN
-            CmdLineText=(WORDPTR)empty_string;
-            CmdLineCurrentLine=(WORDPTR)empty_string;
-            CmdLineUndoList=(WORDPTR)empty_list;
+            uiOpenCmdLine(0);
+
+            //CmdLineText=(WORDPTR)empty_string;
+            //CmdLineCurrentLine=(WORDPTR)empty_string;
+            //CmdLineUndoList=(WORDPTR)empty_list;
             return;
         }
 
@@ -1337,9 +1364,10 @@ BYTEPTR uiAutocompStringStart()
         if(Exceptions) {
             throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
             // CLEAN UP AND RETURN
-            CmdLineText=(WORDPTR)empty_string;
-            CmdLineCurrentLine=(WORDPTR)empty_string;
-            CmdLineUndoList=(WORDPTR)empty_list;
+            uiOpenCmdLine(0);
+            //CmdLineText=(WORDPTR)empty_string;
+            //CmdLineCurrentLine=(WORDPTR)empty_string;
+            //CmdLineUndoList=(WORDPTR)empty_list;
             return NULL;
         }
 
@@ -1359,9 +1387,10 @@ BYTEPTR uiAutocompStringEnd()
         if(Exceptions) {
             throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
             // CLEAN UP AND RETURN
-            CmdLineText=(WORDPTR)empty_string;
-            CmdLineCurrentLine=(WORDPTR)empty_string;
-            CmdLineUndoList=(WORDPTR)empty_list;
+            uiOpenCmdLine(0);
+            //CmdLineText=(WORDPTR)empty_string;
+            //CmdLineCurrentLine=(WORDPTR)empty_string;
+            //CmdLineUndoList=(WORDPTR)empty_list;
             return NULL;
         }
 
@@ -1381,9 +1410,10 @@ BYTEPTR uiAutocompStringTokEnd()
         if(Exceptions) {
             throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
             // CLEAN UP AND RETURN
-            CmdLineText=(WORDPTR)empty_string;
-            CmdLineCurrentLine=(WORDPTR)empty_string;
-            CmdLineUndoList=(WORDPTR)empty_list;
+            uiOpenCmdLine(0);
+            //CmdLineText=(WORDPTR)empty_string;
+            //CmdLineCurrentLine=(WORDPTR)empty_string;
+            //CmdLineUndoList=(WORDPTR)empty_list;
             return NULL;
         }
 

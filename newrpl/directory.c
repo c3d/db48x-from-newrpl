@@ -65,8 +65,6 @@ void shrinkDirs(WORD newtotalsize)
 
 
 
-
-
 // CHECK IF AN IDENT IS QUOTED, IF NOT THEN
 // CREATE A NEW QUOTED OBJECT AND RETURN IT
 // MAY CAUSE GARBAGE COLLECTION
@@ -130,6 +128,33 @@ WORDPTR rplMakeIdentVisible(WORDPTR ident)
 }
 
 
+WORDPTR rplMakeIdentReadOnly(WORDPTR ident)
+{
+    if(ISLOCKEDIDENT(*ident)) return ident;
+
+    ident=rplMakeNewCopy(ident);
+
+    //  CHANGE FROM A IDENTEVAL TO A REGULAR IDENT
+    if(ident) ident[0]|=MKOPCODE(READONLY_BIT,0);
+
+    return ident;
+
+}
+
+// CHECK IF AN IDENT IS LOCKED, IF NOT THEN
+// CREATE A NEW UNLOCKED OBJECT AND RETURN IT
+// MAY CAUSE GARBAGE COLLECTION
+WORDPTR rplMakeIdentWriteable(WORDPTR ident)
+{
+    if(!ISLOCKEDIDENT(*ident)) return ident;
+
+    ident=rplMakeNewCopy(ident);
+
+    //  CHANGE FROM A IDENTEVAL TO A REGULAR IDENT
+    if(ident) ident[0]&=~MKOPCODE(READONLY_BIT,0);
+
+    return ident;
+}
 
 
 
@@ -516,6 +541,8 @@ void rplPurgeGlobal(WORDPTR nameobj)
 
     }
 
+    if(ISLOCKEDIDENT(**var)) { rplError(ERR_READONLYVARIABLE); return; }
+
     rplPurgeForced(var);
 }
 
@@ -805,4 +832,42 @@ void rplPurgeSettings(WORDPTR nameobj)
     }
 
     rplPurgeForced(var);
+}
+
+
+// RETURN TRUE IF A VARIABLE IS VISIBLE IN A DIRECTORY
+BINT rplIsVarVisible(WORDPTR *var)
+{
+    if(ISHIDDENIDENT(**var)) return 1;
+    return 0;
+}
+// RETURN TRUE IF A VARIABLE IS LOCKED IN A DIRECTORY
+BINT rplIsVarReadOnly(WORDPTR *var)
+{
+    if(ISLOCKEDIDENT(**var)) return 1;
+    return 0;
+}
+
+// RETURN TRUE IF A VARIABLE IS IS A DIRECTORY
+BINT rplIsVarDirectory(WORDPTR *var)
+{
+    if(ISPROLOG(**(var+1)) && (LIBNUM(**(var+1))==DODIR)) return 1;
+    return 0;
+}
+
+// RETURN TRUE IF A VARIABLE IS IS AN EMPTY DIRECTORY
+BINT rplIsVarEmptyDir(WORDPTR *var)
+{
+    if(ISPROLOG(**(var+1)) && (LIBNUM(**(var+1))==DODIR)) {
+        WORD dirsize=*(*(var+1)+1);
+        WORDPTR *emptydir=rplFindDirbyHandle(*(var+1));
+
+        if(dirsize) {
+            // EITHER DIRECTORY IS FULL OR THIS IS AN ORPHAN HANDLER
+            if(!emptydir) return 1;  // DIRECTORY IS AN ORPHAN DIR, CONSIDER IT EMPTY
+            return 0;
+        }
+        else return 1;
+    }
+    return 0;
 }

@@ -1228,8 +1228,18 @@ void halShowErrorMsg()
             {
             if(Exceptions&(1<<errbit)) {
                 ecode=MAKEMSG(0,errbit);
-                BYTEPTR message=halGetMessage(ecode);
-                DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)message,halScreen.StAreaFont,0xf,&scr);
+                WORDPTR message=uiGetLibMsg(ecode);
+                if(message) {
+                BYTEPTR msgstart=(BYTEPTR)(message+1);
+                BYTEPTR msgend=msgstart+rplStrSize(message);
+
+                DrawTextN(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)msgstart,(char *)msgend,halScreen.StAreaFont,0xf,&scr);
+                }
+                else {
+                    BYTEPTR message2=halGetMessage(ecode);
+                    DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)message2,halScreen.StAreaFont,0xf,&scr);
+
+                }
                 break;
             }
             }

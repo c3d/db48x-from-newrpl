@@ -210,7 +210,8 @@ SOURCES += main.cpp\
     firmware/hal_clock.c \
     firmware/hal_alarm.c \
     firmware/ggl/ggl/ggl_fltreplace.c \
-    newrpl/lib-76-ui.c
+    newrpl/lib-76-ui.c \
+    newrpl/lib-zero-messages.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -255,6 +256,8 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-72.nrpl \
                 newrpl/rpl-objects/lib-74.nrpl \
                 newrpl/rpl-objects/lib-76.nrpl \
+                newrpl/rpl-objects/lib-0.nrpl \
+                newrpl/rpl-objects/lib-8.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 
@@ -278,16 +281,6 @@ rpl_compiler.input = RPL_OBJECTS
 rpl_compiler.variable_out = SOURCES
 
 QMAKE_EXTRA_COMPILERS += rpl_compiler
-
-
-
-
-
-
-
-
-
-
 
 
 

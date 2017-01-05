@@ -209,6 +209,7 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/hal_alarm.c \
     firmware/ggl/ggl/ggl_fltreplace.c \
     newrpl/lib-76-ui.c \
+    newrpl/lib-zero-messages.c \
 
 
 

@@ -1,0 +1,103 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib8_menu_debug
+{
+    DBUG SST SST↓ KILL CONT
+    HALT SETBKPOINT CLRBKPOINT EXITRPL
+}
+
+@#name lib8_menu_error
+{
+    DOERR RESUME ERRN ERRM ERR0
+}
+
+
+@#name lib8_cmdhelp
+{
+DBUG
+"Run and halt a program
+at the first command
+P → "
+SST
+"Single-step halted program
+
+ → "
+
+SST↓
+"Single-step halted program,
+entering into subroutines
+ → "
+
+KILL
+"Force-terminate halted
+program
+ → "
+
+CONT
+"Continue running halted
+program
+ → "
+
+HALT
+"Halt execution at this
+location within program
+ → "
+
+SETBKPOINT
+"Set a breakpoint at given offset
+inside program. Optional condition.
+P I<off> [P<cond>] → "
+
+CLRBKPOINT
+"Remove existing breakpoint
+
+ → "
+
+EXITRPL
+"Force-terminate running
+program at this point
+ → "
+
+DOERR
+"Throw a system error or
+custom error
+I or S → <error!>"
+
+RESUME
+"Exit an error handler
+and resume execution
+ → "
+
+ERRN
+"Get the error code
+of the last error
+ → I "
+
+ERRM
+"Get the error message
+of the last error
+ → S "
+
+ERR0
+"Clear last error
+
+ → "
+
+
+
+}

@@ -213,6 +213,8 @@ void rplHotInit();
 void rplSetEntryPoint(WORDPTR ip);
 BINT rplRun();
 void rplCleanup();
+void rplDisableSingleStep();
+void rplEnableSingleStep();
 
 // LIBRARY MANAGEMENT
 BINT rplInstallLibrary(LIBHANDLER handler);
@@ -415,6 +417,10 @@ WORDPTR rplMakeIdentQuoted(WORDPTR ident);
 WORDPTR rplMakeIdentUnquoted(WORDPTR ident);
 WORDPTR rplMakeIdentHidden(WORDPTR ident);
 WORDPTR rplMakeIdentVisible(WORDPTR ident);
+WORDPTR rplMakeIdentReadOnly(WORDPTR ident);
+WORDPTR rplMakeIdentWriteable(WORDPTR ident);
+
+
 void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir);
 void rplCreateGlobal(WORDPTR nameobj,WORDPTR value);
 void rplPurgeGlobal(WORDPTR nameobj);
@@ -439,6 +445,11 @@ BINT rplGetVarCountInDir(WORDPTR *directory);
 BINT rplGetVarCount();
 BINT rplGetVisibleVarCountInDir(WORDPTR *directory);
 BINT rplGetVisibleVarCount();
+BINT rplIsVarVisible(WORDPTR *var);
+BINT rplIsVarReadOnly(WORDPTR *var);
+BINT rplIsVarDirectory(WORDPTR *var);
+BINT rplIsVarEmptyDir(WORDPTR *var);
+
 
 WORDPTR rplGetGlobal(WORDPTR nameobj);
 WORDPTR *rplMakeNewDir();
@@ -755,6 +766,8 @@ void rplSkipNextAlarm();
 #define BKPT_ENABLED    1
 #define BKPT_LOCATION   2 // TRIGGER ONLY WHEN IPtr==BreakPtArg
 #define BKPT_COND       4 // XEQ RPL OBJECT AT BreakPtArg, IF IT RETURNS TRUE THEN TRIGGER
+#define BKPT_PAUSED     8 // DO NOT TRIGGER BREAKPOINT WHILE PAUSED. INTERNAL USE DURING CONDITION EXECUTION
+#define BKPT_ALLPAUSED 0x08080808 // INTERNAL USE MASK
 #define SET_BKPOINTFLAG(n,flags) BreakPtFlags=(BreakPtFlags & ~(0xff<<(8*((n)))))|( ((flags)&0xff)<<(8*((n))))
 #define GET_BKPOINTFLAG(n) ((BreakPtFlags>>(8*((n))))&0xff)
 

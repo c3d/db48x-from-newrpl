@@ -11,6 +11,7 @@
 
 // LIST WITH ALL LIBRARIES TO BE INCLUDED IN ROM
 #define ROM_LIST \
+    INCLUDELIB(0,lib-zero-messages.c) , \
     INCLUDELIB(2,lib-two-ident.c) , \
     INCLUDELIB(8,lib-eight-docol.c) , \
     INCLUDELIB(9,lib-nine-docol2.c) , \

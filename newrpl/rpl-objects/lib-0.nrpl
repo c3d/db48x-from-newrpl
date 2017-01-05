@@ -1,0 +1,46 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib0_msgtable
+{
+##1,ERR_EXITRPLEXCEPTION "Aborting RPL engine"
+##1,ERR_BKPOINTEXCEPTION "Breakpoint reached"
+##1,ERR_SYSTEMHALTED  "System Halted"
+##1,ERR_OUTOFMEMORYEXCEPTION "Out of memory"
+##1,ERR_DIRTYFILESYSTEM  "Re-insert same SD Card"
+
+##1,ERR_SYNTAXERROR  "Syntax error"
+##1,ERR_INVALIDTOKEN  "Invalid word"
+##1,ERR_MALFORMEDOBJECT  "Malformed/corrupted object"
+##1,ERR_NOTALLOWEDINSYMBOLICS  "Not allowed in symbolics"
+##1,ERR_INVALIDOPERATORINSYMBOLIC  "Invalid operator in symbolic"
+##1,ERR_UNRECOGNIZEDOBJECT  "Unrecognized object"
+##1,ERR_INVALIDOPCODE  "Invalid opcode"
+##1,ERR_MISSINGLIBRARY  "Missing library"
+##1,ERR_INTERNALEMPTYSTACK  "Empty data stack (internal)"
+##1,ERR_INTERNALEMPTYRETSTACK  "Empty return stack (internal)"
+##1,ERR_MISPLACEDEND  "Misplaced END statement"
+##1,ERR_ENDWITHOUTSTART  "Block ends without matching start"
+##1,ERR_STARTWITHOUTEND  "Block starts but never ends"
+##1,ERR_MISSINGBRACKET  "Missing bracket"
+##1,ERR_BADARGCOUNT  "Bad argument count"
+##1,ERR_BADARGTYPE  "Bad argument type"
+##1,ERR_BADERRORCODE  "Invalid error code"
+##1,ERR_UNKNOWNEXCEPTION "Unknown exception"
+}
+
+

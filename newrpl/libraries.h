@@ -158,7 +158,8 @@ void libFindMsg(BINT message,WORDPTR table);
 #define HIDDEN_BIT    4
 #define REALASSUME_BIT 4
 #define ACCEPTPREFIX_BIT 4
-// BIT 8 FOR FUTURE USE
+#define READONLY_BIT  8
+
 
 // SOME BASIC OBJECT TYPES HERE NEEDED FOR COMPILER
 #define SECO          9
@@ -219,6 +220,7 @@ void libFindMsg(BINT message,WORDPTR table);
 #define ISQUOTEDIDENT(prolog) ( ISIDENT(prolog) && !(LIBNUM(prolog)&UNQUOTED_BIT) )
 #define ISUNQUOTEDIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&UNQUOTED_BIT) )
 #define ISHIDDENIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&HIDDEN_BIT) )
+#define ISLOCKEDIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&READONLY_BIT) )
 #define ISREALIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&REALASSUME_BIT))
 #define ISBINT(prolog) ( ((OPCODE(prolog)<0x400000) || ISPROLOG(prolog)) && (((LIBNUM(prolog)&~APPROX_BIT)>=BINBINT) && ((LIBNUM(prolog)&~APPROX_BIT)<=HEXBINT)))
 #define ISLIST(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIST))

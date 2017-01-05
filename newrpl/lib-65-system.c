@@ -1320,6 +1320,44 @@ rtn:
     return;
 }
 
+// COMPUTE STANDARD CRC-32 OF THE OBJECT
+BINT64 rplObjChecksum(WORDPTR object)
+{
+    BYTEPTR ptr=(BYTEPTR)object;
+    BYTEPTR end=(BYTEPTR)rplSkipOb(object);
+    int k;
+
+    UBINT crc=0xffffffff,tmpcrc;
+
+    while(ptr!=end) {
+        // SLOW METHOD BUT DOESN'T REQUIRE A TABLE
+        tmpcrc=(crc ^ (*ptr)) & 0xff;
+        for(k=0;k<8;++k)
+        {
+            if (tmpcrc&1) tmpcrc= 0xEDB88320^(tmpcrc>>1);
+            else tmpcrc>>=1;
+        }
+        crc=tmpcrc^(crc>>8);
+        ++ptr;
+    }
+    return crc^0xffffffff;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
@@ -1969,6 +2007,20 @@ void LIB_HANDLER()
 
         return;
     }
+
+    case BYTES:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        BINT size=rplObjSize(rplPeekData(1));
+        BINT64 cksum=rplObjChecksum(rplPeekData(1));
+        rplDropData(1);
+        rplNewBINTPush(cksum,HEXBINT);
+        rplNewBINTPush(size*sizeof(WORD),DECBINT);
+        return;
+     }
     case PEEK:
     {
         if(rplDepthData()<1) {
@@ -2023,6 +2075,20 @@ void LIB_HANDLER()
 
        return;
     }
+
+    case NEWOB:
+        // MAKE A NEW COPY OF THE POINTED OBJECT
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR newobj=rplMakeNewCopy(rplPeekData(1));
+        if(!newobj) return;
+        rplOverwriteData(1,newobj);
+        return;
+     }
+
     case VERSION:
     {
         rplPushData((WORDPTR)newrpl_version);

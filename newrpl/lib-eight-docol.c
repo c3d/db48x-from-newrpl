@@ -29,8 +29,8 @@
 
 #define COMMAND_LIST \
     CMD(EXITRPL,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BKPOINT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(XEQSECO,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(BKPOINT,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(XEQSECO,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     ECMD(SEMI,";",MKTOKENINFO(1,TITYPE_NOTALLOWED,1,2)), \
     CMD(EVAL1NEXT,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     ECMD(ERROR_REENTER,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
@@ -46,7 +46,8 @@
     ECMD(SSTIN,"SST↓",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(KILL,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(SETBKPOINT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CLRBKPOINT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
+    CMD(CLRBKPOINT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DBUG,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
 
 
 
@@ -99,9 +100,18 @@ ROMOBJECT bkpoint_seco[]={
 };
 
 
+
+INCLUDE_ROMOBJECT(LIB_HELPTABLE);
+INCLUDE_ROMOBJECT(lib8_menu_debug);
+INCLUDE_ROMOBJECT(lib8_menu_error);
+
+
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
+    (WORDPTR)LIB_HELPTABLE,
+    (WORDPTR)lib8_menu_debug,
+    (WORDPTR)lib8_menu_error,
     (WORDPTR)errormsg_ident,
     (WORDPTR)error_reenter_seco,
     (WORDPTR)bkpoint_seco,
@@ -129,6 +139,10 @@ void LIB_HANDLER()
     {
         // SAME AS HALT BUT DON'T AFFECT THE HALTED PROGRAM
         rplException(EX_HALT);
+
+        // ONCE IT'S HALTED, DISABLE SINGLE STEP MODE
+        rplDisableSingleStep();
+
         return;
 
     }
@@ -141,6 +155,9 @@ void LIB_HANDLER()
         HaltednLAMBase=nLAMBase;
         HaltedLAMTop=LAMTop;
         rplException(EX_HALT);
+        // ONCE IT'S HALTED, DISABLE SINGLE STEP MODE
+        rplDisableSingleStep();
+
         return;
     }
     case HALT:
@@ -153,12 +170,19 @@ void LIB_HANDLER()
         HaltednLAMBase=nLAMBase;
         HaltedLAMTop=LAMTop;
         rplException(EX_HALT);
+        // ONCE IT'S HALTED, DISABLE SINGLE STEP MODE
+        rplDisableSingleStep();
+
         return;
     }
 
     case CONT:
     {
         if(!HaltedIPtr) return;
+
+        // UN-PAUSE ALL HARDWARE BREAKPOINTS. THIS IS NEEDED FOR breakpt_seco ONLY.
+        BreakPtFlags&=~BKPT_ALLPAUSED;
+
         // CONTINUE HALTED EXECUTION
         if(RSTop>=HaltedRSTop) {
             IPtr=HaltedIPtr-1;
@@ -171,46 +195,115 @@ void LIB_HANDLER()
         // CurOpcode IS A COMMAND, SO THE HALT INSTRUCTION WILL BE SKIPPED
         return;
     }
-    case SST:
-    {
-        // SINGLE STEP A HALTED PROGRAM
-        if(!HaltedIPtr) return;
-        if(ISPROLOG(*HaltedIPtr)) {
-            // DO XEQ ON OBJECTS
-            rplPushData(HaltedIPtr);
-            rplCallOvrOperator(CMD_OVR_XEQ);
-        }
-        else {
-            // THIS IS A COMMAND, CALL THE LIBRARY DIRECTLY
-            rplCallOperator(*HaltedIPtr);
-        }
-
-        return;
-    }
-
     case SSTIN:
     {
-        // TODO: ENTER INTO OTHER SECONDARIES, FOR NOW JUST THE SAME AS SST
         // SINGLE STEP A HALTED PROGRAM
         if(!HaltedIPtr) return;
-        if(ISPROLOG(*HaltedIPtr)) {
-            // DO XEQ ON OBJECTS
-            rplPushData(HaltedIPtr);
-            rplCallOvrOperator(CMD_OVR_XEQ);
-        }
-        else {
-            // THIS IS A COMMAND, CALL THE LIBRARY DIRECTLY
-            rplCallOperator(*HaltedIPtr);
-        }
 
+        rplEnableSingleStep();
+
+        // AND THIS IS THE SAME AS "CONT" FROM HERE ON
+        BreakPtFlags&=~BKPT_ALLPAUSED;
+
+        HWExceptions|=EX_HWBKPOINT;
+
+        // CONTINUE HALTED EXECUTION
+        if(RSTop>=HaltedRSTop) {
+            IPtr=HaltedIPtr-1;
+            RSTop=HaltedRSTop;
+            if(LAMTop>=HaltedLAMTop) LAMTop=HaltedLAMTop;
+            if(nLAMBase>=HaltednLAMBase) nLAMBase=HaltednLAMBase;
+            HaltedIPtr=0;
+            if(HWExceptions&EX_HWBKPOINT) HWExceptions|=EX_HWBKPTSKIP;  // SKIP ONE SO AT LEAST IT EXECUTES ONE OPCODE
+        }
+        // CurOpcode IS A COMMAND, SO THE HALT INSTRUCTION WILL BE SKIPPED
         return;
+
+    }
+
+    case SST:
+    {
+        // SINGLE STEP A HALTED PROGRAM BUT SKIP OVER INNER CODE
+        if(!HaltedIPtr) return;
+
+
+        if(ISPROGRAM(*HaltedIPtr) || ISIDENT(*HaltedIPtr) || (*HaltedIPtr==CMD_OVR_EVAL)||(*HaltedIPtr==CMD_OVR_XEQ)||(*HaltedIPtr==CMD_OVR_EVAL1)) {
+                // SKIP OVER TO THE END OF THE CODE
+                // USE THE SINGLE STEP WITH A SPECIFIC LOCATION SO IT ONLY STOPS AFTER THE CODE FINISHED
+                SET_BKPOINTFLAG(2,BKPT_LOCATION|BKPT_ENABLED);
+                BreakPt3Arg=0;
+                BreakPt3Pointer=rplSkipOb(HaltedIPtr);
+        }
+        else rplEnableSingleStep();
+
+        // AND THIS IS THE SAME AS "CONT" FROM HERE ON
+        BreakPtFlags&=~BKPT_ALLPAUSED;
+
+        HWExceptions|=EX_HWBKPOINT;
+
+        // CONTINUE HALTED EXECUTION
+        if(RSTop>=HaltedRSTop) {
+            IPtr=HaltedIPtr-1;
+            RSTop=HaltedRSTop;
+            if(LAMTop>=HaltedLAMTop) LAMTop=HaltedLAMTop;
+            if(nLAMBase>=HaltednLAMBase) nLAMBase=HaltednLAMBase;
+            HaltedIPtr=0;
+            if(HWExceptions&EX_HWBKPOINT) HWExceptions|=EX_HWBKPTSKIP;  // SKIP ONE SO AT LEAST IT EXECUTES ONE OPCODE
+        }
+        // CurOpcode IS A COMMAND, SO THE HALT INSTRUCTION WILL BE SKIPPED
+        return;
+
     }
 
     case KILL:
     {   // KILL THE HALTED PROGRAM
+        if(!HaltedIPtr) return;
         HaltedIPtr=0;
+        if(RSTop>HaltedRSTop) {
+            // REMOVE ALL INFORMATION LEFT BY THE HALTED PROGRAM, KEEP THE CURRENT ONE
+            memmovew(RStk,HaltedRSTop,(RSTop-HaltedRSTop)*(sizeof(WORDPTR *)/sizeof(WORD)));
+            RSTop-=HaltedRSTop-RStk;
+        } else RSTop=RStk;
+        if(LAMTop>HaltedLAMTop) {
+            // REMOVE ALL INFORMATION LEFT BY THE HALTED PROGRAM, KEEP THE CURRENT ONE
+            memmovew(LAMs,HaltedLAMTop,(LAMTop-HaltedLAMTop)*(sizeof(WORDPTR *)/sizeof(WORD)));
+            LAMTop-=HaltedLAMTop-LAMs;
+            nLAMBase-=HaltedLAMTop-LAMs;
+        } else LAMTop=nLAMBase=LAMs;
+
         return;
     }
+
+
+    case DBUG:
+    {
+
+        if(HaltedIPtr) return;      // DO NOTHING IF A PROGRAM IS ALREADY BEING DEBUGGED
+
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISPROGRAM(*rplPeekData(1))) {
+            rplError(ERR_PROGRAMEXPECTED);
+            return;
+        }
+
+        // AND XEQ  AND IMMEDIATELY HALT THE SECONDARY
+
+        rplPushRet(IPtr);       // PUSH CURRENT POINTER AS THE RETURN ADDRESS.
+        HaltedIPtr=rplPopData()+1;      // SET NEW IPTR TO THE PROGRAM, TO BE EXECUTED
+        HaltedRSTop=RSTop;  // SAVE RETURN STACK POINTER
+        HaltednLAMBase=nLAMBase;
+        HaltedLAMTop=LAMTop;
+        rplException(EX_HALT);
+        // ONCE IT'S HALTED, DISABLE SINGLE STEP MODE
+        rplDisableSingleStep();
+
+        return;
+    }
+
     case XEQSECO:
         // IF THE NEXT OBJECT IN THE SECONDARY
         // IS A SECONDARY, IT EVALUATES IT INSTEAD OF PUSHING IT ON THE STACK
@@ -372,7 +465,7 @@ void LIB_HANDLER()
             msgcode=0;
             if(TrappedExceptions) {
             int errbit;
-            for(errbit=0;errbit<8;++errbit) if(TrappedExceptions&(1<<errbit)) { msgcode=MAKEMSG(0,TrappedExceptions); break; }
+            for(errbit=0;errbit<8;++errbit) if(TrappedExceptions&(1<<errbit)) { msgcode=MAKEMSG(0,1<<errbit); break; }
             if(!msgcode) msgcode=ERR_UNKNOWNEXCEPTION;
             }
         }
@@ -552,7 +645,36 @@ void LIB_HANDLER()
         // EXECUTE THE OBJECT
     case OVR_XEQ:
         // ALSO EXECUTE THE OBJECT
-        if(!ISPROLOG(*rplPeekData(1))) return;
+        if(!ISPROLOG(*rplPeekData(1))) {
+            switch(*rplPeekData(1))
+            {
+            case CMD_EXITRPL:
+            case CMD_BKPOINT:
+            case CMD_XEQSECO:
+            case CMD_SEMI:
+            case CMD_EVAL1NEXT:
+            case CMD_ERROR_REENTER:
+            case CMD_RESUME:
+            case CMD_HALT:
+            case CMD_ENDOFCODE:
+            {   // THESE COMMANDS CANNOT BE EVALUATED AS OBJECTS, NEED TO BE IN A RUNSTREAM
+                rplDropData(1);
+                return;
+            }
+            default:
+            {   // EXECUTE THE COMMAND BY CALLING THE HANDLER DIRECTLY
+                WORD saveOpcode=CurOpcode;
+                CurOpcode=*rplPopData();
+                // RECURSIVE CALL
+                LIB_HANDLER();
+                CurOpcode=saveOpcode;
+                return;
+            }
+
+            }
+
+
+        }
         rplPushRet(IPtr);       // PUSH CURRENT POINTER AS THE RETURN ADDRESS.
         IPtr=rplPopData();      // SET NEW IPTR TO THE PROGRAM, TO BE EXECUTED
         CurOpcode=MKPROLOG(LIBRARY_NUMBER,0); // ALTER THE SIZE OF THE SECONDARY TO ZERO WORDS, SO THE NEXT EXECUTED INSTRUCTION WILL BE THE FIRST IN THIS SECONDARY
@@ -756,6 +878,29 @@ void LIB_HANDLER()
     case OPCODE_AUTOCOMPNEXT:
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         return;
+
+    case OPCODE_LIBMENU:
+        // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
+        // MUST RETURN A MENU LIST IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        if(MENUNUMBER(MenuCodeArg)>1) {
+            RetNum=ERR_NOTMINE;
+            return;
+        }
+        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+1];
+        RetNum=OK_CONTINUE;
+       return;
+    }
+
+    case OPCODE_LIBHELP:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN CmdHelp
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
+       return;
+    }
 
     case OPCODE_LIBMSG:
       // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError

@@ -182,6 +182,7 @@ SOURCES +=\
     firmware/sys/fsystem/fsystem.c \
     firmware/sys/fsystem/misalign.c \
     firmware/sys/fsystem/fsallocator.c \
+    newrpl/lib-zero-messages.c \
     newrpl/lib-4080-localenv.c \
     newrpl/lib-4090-overloaded.c \
     newrpl/lib-common.c \
@@ -234,7 +235,9 @@ HEADERS  += \
     firmware/include/fsystem.h
 
 
-RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
+RPL_OBJECTS =   newrpl/rpl-objects/lib-0.nrpl \
+                newrpl/rpl-objects/lib-8.nrpl \
+                newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-9.nrpl \
                 newrpl/rpl-objects/lib-10.nrpl \
                 newrpl/rpl-objects/lib-12.nrpl \

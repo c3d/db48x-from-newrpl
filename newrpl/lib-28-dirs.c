@@ -51,7 +51,10 @@
     CMD(QUOTEID,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(UNQUOTEID,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(HIDEVAR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(UNHIDEVAR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2))
+    CMD(UNHIDEVAR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CLVAR,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(LOCKVAR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(UNLOCKVAR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2))
 
 
 
@@ -62,7 +65,8 @@
 #define ERROR_LIST \
     ERR(NONEMPTYDIRECTORY,0), \
     ERR(DIRECTORYNOTFOUND,1), \
-    ERR(CANTOVERWRITEDIR,2)
+    ERR(CANTOVERWRITEDIR,2), \
+    ERR(READONLYVARIABLE,3)
 
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
@@ -171,6 +175,10 @@ void LIB_HANDLER()
                 rplError(ERR_CANTOVERWRITEDIR);
                 return;
             }
+            if(ISLOCKEDIDENT(*val[0])) {
+                rplError(ERR_READONLYVARIABLE);
+                return;
+            }
             val[1]=rplPeekData(2);
             rplDropData(2);
         }
@@ -182,6 +190,11 @@ void LIB_HANDLER()
                     rplError(ERR_CANTOVERWRITEDIR);
                     return;
                 }
+                if(ISLOCKEDIDENT(*val[0])) {
+                    rplError(ERR_READONLYVARIABLE);
+                    return;
+                }
+
             }
             // HANDLE SPECIAL CASE OF STORING DIRECTORY OBJECTS
             WORDPTR obj=rplPeekData(2);
@@ -279,6 +292,11 @@ void LIB_HANDLER()
                     rplError(ERR_CANTOVERWRITEDIR);
                     return;
                 }
+                if(ISLOCKEDIDENT(*var[0])) {
+                    rplError(ERR_READONLYVARIABLE);
+                    return;
+                }
+
 
             rplPushData(*(var+1));
 
@@ -325,6 +343,10 @@ void LIB_HANDLER()
         if(var) {
                 if(ISDIR(*var[1])) {
                     rplError(ERR_CANTOVERWRITEDIR);
+                    return;
+                }
+                if(ISLOCKEDIDENT(*var[0])) {
+                    rplError(ERR_READONLYVARIABLE);
                     return;
                 }
 
@@ -375,6 +397,10 @@ void LIB_HANDLER()
                     rplError(ERR_CANTOVERWRITEDIR);
                     return;
                 }
+                if(ISLOCKEDIDENT(*var[0])) {
+                    rplError(ERR_READONLYVARIABLE);
+                    return;
+                }
 
             rplPushData(*(var+1));
 
@@ -423,6 +449,10 @@ void LIB_HANDLER()
                     rplError(ERR_CANTOVERWRITEDIR);
                     return;
                }
+                if(ISLOCKEDIDENT(*var[0])) {
+                    rplError(ERR_READONLYVARIABLE);
+                    return;
+                }
 
             rplPushData(*(var+1));
 
@@ -466,6 +496,10 @@ void LIB_HANDLER()
         if(var) {
                 if(ISDIR(*var[1])) {
                     rplError(ERR_CANTOVERWRITEDIR);
+                    return;
+                }
+                if(ISLOCKEDIDENT(*var[0])) {
+                    rplError(ERR_READONLYVARIABLE);
                     return;
                 }
 
@@ -512,6 +546,10 @@ void LIB_HANDLER()
                     rplError(ERR_CANTOVERWRITEDIR);
                     return;
                 }
+                if(ISLOCKEDIDENT(*var[0])) {
+                    rplError(ERR_READONLYVARIABLE);
+                    return;
+                }
 
             rplPushData(*(var+1));
 
@@ -554,6 +592,10 @@ void LIB_HANDLER()
         if(var) {
                 if(ISDIR(*var[1])) {
                     rplError(ERR_CANTOVERWRITEDIR);
+                    return;
+                }
+                if(ISLOCKEDIDENT(*var[0])) {
+                    rplError(ERR_READONLYVARIABLE);
                     return;
                 }
 
@@ -602,6 +644,10 @@ void LIB_HANDLER()
                     rplError(ERR_CANTOVERWRITEDIR);
                     return;
                 }
+                if(ISLOCKEDIDENT(*var[0])) {
+                    rplError(ERR_READONLYVARIABLE);
+                    return;
+                }
 
             rplOverwriteData(1,*(var+1));
             rplPushData((WORDPTR)one_bint);       // PUSH THE NUMBER ONE
@@ -645,6 +691,10 @@ void LIB_HANDLER()
     if(var) {
         if(ISDIR(*var[1])) {
             rplError(ERR_CANTOVERWRITEDIR);
+            return;
+        }
+        if(ISLOCKEDIDENT(*var[0])) {
+            rplError(ERR_READONLYVARIABLE);
             return;
         }
 
@@ -1031,6 +1081,99 @@ void LIB_HANDLER()
     }
 
     // ADD MORE OPCODES HERE
+
+
+    case CLVAR:
+    {
+        // PURGE ALL VARIABLES AND EMPTY SUBDIRECTORIES IN CURRENT DIR
+
+        WORDPTR *var;
+
+        BINT idx=0;
+
+        while((var=rplFindGlobalByIndexInDir(idx,CurrentDir)))
+        {
+            // PURGE THE VARIABLE UNLESS IT'S EITHER LOCKED OR
+            // IT'S A NON-EMPTY DIRECTORY
+            if(rplIsVarReadOnly(var) || (rplIsVarDirectory(var)&&!rplIsVarEmptyDir(var))) ++idx;
+            else rplPurgeForced(var);
+            if(Exceptions) return;
+        }
+
+        return;
+
+    }
+
+    case LOCKVAR:
+    {
+    if(rplDepthData()<1) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+    // ONLY ACCEPT IDENTS AS KEYS
+
+    if(!ISIDENT(*rplPeekData(1))) {
+        rplError(ERR_IDENTEXPECTED);
+        return;
+
+    }
+
+    // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+    WORDPTR *var=rplFindLAM(rplPeekData(1),1);
+    if(!var) var=rplFindGlobal(rplPeekData(1),1);
+    if(var) {
+        WORDPTR ident=rplMakeIdentReadOnly(var[0]);
+        if(!ident) return;
+        if(ident!=var[0]) var[0]=ident;
+        rplDropData(1);
+        return;
+    }
+    else {
+        rplError(ERR_UNDEFINEDVARIABLE);
+        return;
+    }
+
+    }
+
+case UNLOCKVAR:
+    {
+    if(rplDepthData()<1) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+    // ONLY ACCEPT IDENTS AS KEYS
+
+    if(!ISIDENT(*rplPeekData(1))) {
+        rplError(ERR_IDENTEXPECTED);
+        return;
+
+    }
+
+    // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+    WORDPTR *var=rplFindLAM(rplPeekData(1),1);
+    if(!var) var=rplFindGlobal(rplPeekData(1),1);
+    if(var) {
+        WORDPTR ident=rplMakeIdentWriteable(var[0]);
+        if(!ident) return;
+        if(ident!=var[0]) var[0]=ident;
+        rplDropData(1);
+        return;
+    }
+    else {
+        rplError(ERR_UNDEFINEDVARIABLE);
+        return;
+    }
+
+    }
+
+
+
+
+
+
+
 
     case OVR_EVAL:
     case OVR_EVAL1:
