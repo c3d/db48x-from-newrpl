@@ -43,7 +43,9 @@
 
 @#name sysmenu_3_prog
 {
-{ { "Code" 1 } { ::   #00900000h TMENULST ; ::   #00900000h TMENUOTHR ; } }
+{ { "Flow" 1 } { ::   #00900000h TMENULST ; ::   #00900000h TMENUOTHR ; } }
+{ { "Debug" 1 } { ::   #00800000h TMENULST ; ::   #00800000h TMENUOTHR ; } }
+{ { "Error" 1 } { ::   #00801000h TMENULST ; ::   #00801000h TMENUOTHR ; } }
 { { "Stack" 1 } { ::   #04800000h TMENULST ; ::   #04800000h TMENUOTHR ; } }
 { { "Global" 1 } { ::   #01c00000h TMENULST ; ::   #01c00000h TMENUOTHR ; } }
 { { "Local" 1 } { ::   #02000000h TMENULST ; ::   #02000000h TMENUOTHR ; } }

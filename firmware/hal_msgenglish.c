@@ -28,31 +28,6 @@ const MSGLIST const all_messages[]={
     // PROGRAM EXECUTION ERRORS
     //{ ERR_PROGRAMEXPECTED, "Expected a program" },
 
-    // COMPILER/DECOMPILER AND GENERAL CORE ERRORS
-    { ERR_EXITRPLEXCEPTION, "Aborting RPL engine" },
-    { ERR_BKPOINTEXCEPTION, "Breakpoint reached" },
-    { ERR_OUTOFMEMORYEXCEPTION, "Out of memory" },
-    { ERR_USERBREAK, "User BREAK" },
-    { ERR_DIRTYFILESYSTEM, "Re-insert same SD Card" },
-
-    { ERR_SYNTAXERROR, "Syntax error" },
-    { ERR_INVALIDTOKEN, "Invalid word" },
-    { ERR_MALFORMEDOBJECT, "Malformed/corrupted object" },
-    { ERR_NOTALLOWEDINSYMBOLICS, "Not allowed in symbolics" },
-    { ERR_INVALIDOPERATORINSYMBOLIC, "Invalid operator in symbolic" },
-    { ERR_UNRECOGNIZEDOBJECT, "Unrecognized object" },
-    { ERR_INVALIDOPCODE, "Invalid opcode" },
-    { ERR_MISSINGLIBRARY, "Missing library" },
-    { ERR_INTERNALEMPTYSTACK, "Empty data stack (internal)" },
-    { ERR_INTERNALEMPTYRETSTACK, "Empty return stack (internal)" },
-    { ERR_BADSTACKINDEX, "Stack index out of bounds" },
-    { ERR_MISPLACEDEND, "Misplaced END statement" },
-    { ERR_ENDWITHOUTSTART, "Block ends without matching start" },
-    { ERR_STARTWITHOUTEND, "Block starts but never ends" },
-    { ERR_MISSINGBRACKET, "Missing bracket" },
-    { ERR_BADARGCOUNT, "Bad argument count" },
-    { ERR_BADARGTYPE, "Bad argument type" },
-
     // IDENTIFIERS AND VARIABLES
     { ERR_IDENTEXPECTED, "Expected an identifier" },
     { ERR_UNDEFINEDVARIABLE, "Undefined variable" },
@@ -102,18 +77,6 @@ const MSGLIST const all_messages[]={
     { ERR_VECTOREXPECTED, "Expected a vector" },
     { ERR_MISPLACEDBRACKETS, "Misplaced brackets" },
 
-    // FLAGS
-    { ERR_SYSTEMFLAGSINVALID, "System flags corrupt/invalid." },
-    { ERR_INVALIDFLAGNUMBER, "Invalid flag number" },
-    { ERR_INVALIDFLAGNAME, "Invalid flag name" },
-    { ERR_IDENTORINTEGEREXPECTED, "Expected identifier or integer" },
-    { ERR_INVALIDLOCALESTRING, "Invalid Locale string" },
-    { ERR_INVALIDMENUDEFINITION, "Invalid menu definition" },
-    { ERR_EMPTYCLIPBOARD, "Empty clipboard" },
-
-    // TRANSCENDENTAL FUNCTIONS
-    { ERR_ARGOUTSIDEDOMAIN, "Argument outside domain" },
-
     // ADD MORE MESSAGES HERE...
 
     // END OF LIST MARKER
@@ -128,8 +91,6 @@ const MSGLIST const all_messages[]={
 
 const MSGLIST const all_cmdhelp[]={
     // BASIC UNKNOWN ERROR MESSAGE
-    { CMD_EXITRPL, "EXITRPL: End RPL execution.\nPanic exit, should not be used.\n → [end exec.]"},
-    { CMD_BKPOINT, "BREAKPOINT: Pause RPL execution\nand enter interactive debugger.\n → [pause exec.]"},
 
     // ADD MORE MESSAGES HERE...
 

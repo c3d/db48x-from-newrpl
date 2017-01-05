@@ -133,7 +133,7 @@ BINT rplInstallLibrary(LIBHANDLER handler)
     CurOpcode=savedOpcode;
     if(RetNum==OK_CONTINUE) {
     listnumbers=(HALFWORD *)LibraryList;
-    while(*listnumbers) {
+    while((*listnumbers)||(listnumbers==(HALFWORD *)LibraryList)) {
 
     if(*listnumbers<MAXLOWLIBS) {
         if(LowLibRegistry[*listnumbers]) {
