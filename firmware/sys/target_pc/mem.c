@@ -133,8 +133,11 @@ int __last_used_byte;
 void halInitMemoryMap()
 {
 __dstk_used=__rstk_used=__dir_used=__lam_used=__tempob_used=__tempblk_used=0;
-}
+// MAKE DSTK MEMORY DIRTY WITH KNOWN STATE
+memsetw(__dstk_memory,0xbaadf00d,DSTK_SIZE*sizeof(WORDPTR)/sizeof(WORD));
+memsetw(__tempob_memory,0xbaadf00d,TEMPOB_SIZE);
 
+}
 
 // RETURN TRUE IF MEMORY MAPS ARE INTACT, ZERO IF THEY ARE BAD OR INEXISTENT
 int halCheckMemoryMap()
