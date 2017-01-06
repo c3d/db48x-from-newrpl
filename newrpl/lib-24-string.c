@@ -120,6 +120,35 @@ BINT rplStrSize(WORDPTR string)
 }
 
 
+// COMPARE 2 STRINGS
+BINT rplStringCompare(WORDPTR str1,WORDPTR str2)
+{
+    if(str1==str2) return 1;
+
+    BINT nwords;
+    BINT padding=LIBNUM(*str1)&3;
+
+    nwords=OBJSIZE(*str1);
+
+    while(nwords) {
+         if(*str1!=*str2) return 0;
+         ++str1;
+         ++str2;
+         --nwords;
+     }
+
+    // HERE str1 AND str2 ARE POINTING TO THE FINAL WORD, MASK ANY UNUSED BYTES
+
+
+    // PADDING HAS THE NUMBER OF BYTES UNUSED IN THE LAST WORD
+    WORD mask=(1LL<<(8*(4-padding)))-1LL;
+
+    if( (*str1^*str2)&mask ) return 0;
+
+    return 1;
+
+
+}
 
 
 // FIX THE PROLOG OF A STRING TO MATCH THE DESIRED LENGTH IN BYTES
@@ -862,7 +891,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(rplCompareObjects(rplPeekData(1),rplPeekData(2))) rplOverwriteData(2,(WORDPTR)one_bint);
+        if(rplStringCompare(rplPeekData(1),rplPeekData(2))) rplOverwriteData(2,(WORDPTR)one_bint);
         else rplOverwriteData(2,(WORDPTR)zero_bint);
         rplDropData(1);
         return;

@@ -631,7 +631,7 @@ BINT rplStringGetLinePtr(WORDPTR str,BINT line);
 BINT rplStringGetNextLine(WORDPTR str,BINT prevlineoff);
 
 BINT rplStringCountLines(WORDPTR str);
-
+BINT rplStringCompare(WORDPTR str1, WORDPTR str2);
 WORDPTR rplCreateString(BYTEPTR text,BYTEPTR textend);
 
 

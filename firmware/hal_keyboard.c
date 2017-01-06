@@ -55,6 +55,68 @@ BINT halWaitForKey()
 
 }
 
+// DO-NOTHING HANDLER
+void timeouthandler()
+{
+    halFlags|=HAL_TIMEOUT;
+}
+
+BINT halWaitForKeyTimeout(BINT timeoutms)
+{
+    int keymsg,wokeup;
+
+    if(!(halFlags&HAL_FASTMODE) && (halBusyEvent>=0)) {
+    tmr_eventkill(halBusyEvent);
+    halBusyEvent=-1;
+    }
+
+    wokeup=0;
+
+    // START A TIMER TO PROVIDE PROPER TIMEOUT
+    // USE timeoutms <=0 TO CONTINUE WAITING FOR A PREVIOUSLY SCHEDULED TIMEOUT
+    // IN CASE OTHER EVENT WAKES UP THE CPU
+    if(timeoutms>0) {
+        halFlags&=~HAL_TIMEOUT;
+        tmr_eventcreate(&timeouthandler,timeoutms,0);
+    }
+
+    do {
+
+
+    keymsg=keyb_getmsg();
+
+    if(!keymsg) {
+    // FIRST: ENTER LOW SPEED MODE
+    if(halFlags&HAL_FASTMODE) {
+    cpu_setspeed(6000000);
+    halFlags&=~HAL_FASTMODE;
+    }
+    if(halFlags&HAL_HOURGLASS) {
+    halSetNotification(N_HOURGLASS,0);
+    halFlags&=~HAL_HOURGLASS;
+    }
+
+    if(wokeup)
+    {
+        if(halFlags&HAL_TIMEOUT) {
+            halFlags&=~HAL_TIMEOUT;
+            return -1;
+        }
+        return 0;   // ALLOW SCREEN REFRESH REQUESTED BY OTHER IRQ'S
+    }
+
+    // LAST: GO INTO "WAIT FOR INTERRUPT"
+    cpu_waitforinterrupt();
+    wokeup=1;
+    }
+    } while(!keymsg);
+
+
+
+    return keymsg;
+
+}
+
 
 /*
 // FOR TESTING ONLY
@@ -4686,7 +4748,7 @@ int halDefaultKeyExists(BINT keymsg)
 
 
 
-int halProcessKey(BINT keymsg)
+int halProcessKey(BINT keymsg, int (*dokey)(BINT))
 {
     int wasProcessed;
 
@@ -4739,7 +4801,10 @@ int halProcessKey(BINT keymsg)
         else {
             // ANY OTHER MESSAGE SHOULD CAUSE THE EXECUTION OF THE OLD KEY FIRST, THEN THE NEW ONE
 
-            wasProcessed=halDoCustomKey(halLongKeyPending);
+            if(dokey) wasProcessed=(*dokey)(halLongKeyPending);
+            else wasProcessed=0;
+
+            if(!wasProcessed) wasProcessed=halDoCustomKey(halLongKeyPending);
 
             if(!wasProcessed) wasProcessed=halDoDefaultKey(halLongKeyPending);
 
@@ -4759,8 +4824,10 @@ int halProcessKey(BINT keymsg)
     }
 
 
+    if(dokey) wasProcessed=(*dokey)(keymsg);
+    else wasProcessed=0;
 
-    wasProcessed=halDoCustomKey(keymsg);
+    if(!wasProcessed) wasProcessed=halDoCustomKey(keymsg);
 
     if(!wasProcessed) wasProcessed=halDoDefaultKey(keymsg);
 
@@ -4827,12 +4894,13 @@ int halProcessKey(BINT keymsg)
 
 */
     // ONLY RETURN 1 WHEN THE OUTER LOOP IS SUPPOSED TO END
-    return 0;
+    if(wasProcessed<0) return 1;
+    else return 0;
 }
 
 // THIS FUNCTION RETURNS WHEN THE FORM CLOSES, OR THE USER EXITS WITH THE ON KEY
 
-void halOuterLoop()
+void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
 {
     int keymsg,isidle,jobdone;
     BINT64 offcounter;
@@ -4842,13 +4910,17 @@ void halOuterLoop()
     jobdone=isidle=0;
     do {
         halRedrawAll(&scr);
-        if(halExitOuterLoop()) break;
+        if(!(flags&OL_NOEXIT) && halExitOuterLoop()) break;
         if(Exceptions) {
             halShowErrorMsg();
             Exceptions=0;
         }
 
-        keymsg=halWaitForKey();
+        keymsg=halWaitForKeyTimeout(timeoutms);
+        timeoutms=0;
+
+        if(keymsg<0) break; // TIMED OUT
+
 
         if(!keymsg) {
             // SOMETHING OTHER THAN A KEY WOKE UP THE CPU
@@ -4857,7 +4929,7 @@ void halOuterLoop()
             if(!isidle) offcounter=halTicks();
 
             // FLUSH FILE SYSTEM CACHES WHEN IDLING FOR MORE THAN 3 SECONDS
-            if(!(jobdone&1) && FSIsInit()) {
+            if(!(flags&OL_NOSDFLUSH) && !(jobdone&1) && FSIsInit()) {
 
             if(halTicks()-offcounter >=3000000) {
                 if(FSIsDirty()) { FSFlushAll(); halUpdateStatus(); }
@@ -4868,7 +4940,7 @@ void halOuterLoop()
 
 
             // AUTO-OFF WHEN IDLING
-            if(halFlags&HAL_AUTOOFFTIME) {
+            if(!(flags&OL_NOAUTOOFF) && (halFlags&HAL_AUTOOFFTIME)) {
             BINT64 autoofftime=15000000 << (GET_AUTOOFFTIME(halFlags));
             if(halTicks()-offcounter >=autoofftime) {
                 halPreparePowerOff();
@@ -4877,9 +4949,11 @@ void halOuterLoop()
             }
 
 
-            if (halCheckSystemAlarm()) {
+            if(!(flags&OL_NOALARM)) {
+            if(halCheckSystemAlarm()) {
                 jobdone=isidle=0;
                 halTriggerAlarm();
+            }
             }
 
             // DO OTHER IDLE PROCESSING HERE
@@ -4895,7 +4969,7 @@ void halOuterLoop()
 
 
 
-    } while(!halProcessKey(keymsg));
+    } while(!halProcessKey(keymsg,dokey));
 
 }
 
@@ -4904,3 +4978,6 @@ void halInitKeyboard()
 {
     keyb_setalphalock(1);
 }
+
+
+

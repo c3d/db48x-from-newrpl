@@ -33,7 +33,8 @@
 #define COMMAND_LIST \
     CMD(COPYCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(CUTCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    CMD(PASTECLIP,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2))
+    CMD(PASTECLIP,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(WAIT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -82,6 +83,38 @@ const WORDPTR const ROMPTR_TABLE[]={
 
     0
 };
+
+
+//  PROCESS KEYS FOR THE WAIT COMMAND (ON CAN INTERRUPT THE WAIT)
+int waitProcess(BINT keymsg)
+{
+    if(keymsg==(KM_KEYDN|KB_ON)) { RetNum=0; return -1; }   // TERMINATE LOOP
+    return 1;   // RETURN AS IF ALL OTHER KEYS WERE PROCESSED, TO BLOCK DEFAULT HANDLERS FROM RUNNING
+}
+
+// ONLY BREAK ON PRESS AND LPRESS MESSAGES
+// LEAVES THE KEYMSG IN ObjectPTR
+int waitKeyProcess(BINT keymsg)
+{
+    switch(KM_MESSAGE(keymsg))
+    {
+    case KM_PRESS:
+    case KM_LPRESS:
+    case KM_REPEAT:
+    case KM_LREPEAT:
+        // CAPTURE THE KEY MESSAGE
+        RetNum=keymsg;
+        return -1;
+    case KM_KEYDN:
+        if(keymsg==(KM_KEYDN|KB_ON)) { RetNum=KM_PRESS|KB_ON; return -1; }
+    default:
+        return 1;
+    }
+}
+
+
+
+
 
 
 
@@ -156,7 +189,38 @@ void LIB_HANDLER()
     }
 
 
+    case WAIT:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
 
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_REALEXPECTED);
+            return;
+        }
+
+        REAL timeout;
+        rplReadNumberAsReal(rplPeekData(1),&timeout);
+        timeout.exp+=3;    // CONVERT FROM SECONDS TO MILLISECONDS
+        BINT64 mstimeout=getBINT64Real(&timeout);
+
+        BINT keymsg;
+
+        if(mstimeout) halOuterLoop(mstimeout,&waitProcess,OL_NOEXIT|OL_NOAUTOOFF);
+        else halOuterLoop(0,&waitKeyProcess,OL_NOEXIT|OL_NOAUTOOFF);
+
+        keymsg=RetNum;
+
+        // PUSH THE KEY MESSAGE
+
+        rplDropData(1);
+        rplNewBINTPush(keymsg,HEXBINT);
+
+        return;
+
+    }
 
 
         // STANDARIZED OPCODES:

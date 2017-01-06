@@ -126,7 +126,8 @@ enum halFlagsEnum {
     HAL_AUTOOFFTIME3=32,
     HAL_NOCLOCKCHANGE=64,
     HAL_SKIPNEXTALARM=128,
-    HAL_HALTED=256
+    HAL_HALTED=256,
+    HAL_TIMEOUT=512
     // ADD MORE BITS HERE
 
 };
@@ -1303,13 +1304,26 @@ BINT halGetContext();
 void halSetContext(BINT KeyContext);
 
 
+// OUTER LOOP FLAGS
+#define OL_NOEXIT 1
+#define OL_NOAUTOOFF 2
+#define OL_NOALARM   4
+#define OL_NOSDFLUSH 8
+
+
+
+
+
 // OUTER LOOP
-void halOuterLoop();
+void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags);
 //  IF THIS FUNCTION RETURNS TRUE, TERMINATE THE OUTER LOOP
 int halExitOuterLoop();
 
 // KEYBOARD FUNCTIONS
 void halInitKeyboard();
+BINT halWaitForKey();
+BINT halWaitForKeyTimeout(BINT timeoutms);
+
 
 
 

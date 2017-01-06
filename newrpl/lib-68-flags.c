@@ -62,7 +62,9 @@
     CMD(DELKEY,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(STOKEYS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(RCLKEYS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(TYPE,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    CMD(TYPE,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TYPEE,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+
 
 
 
@@ -1792,11 +1794,7 @@ void LIB_HANDLER()
 
             if(RetNum>OK_TOKENINFO) {
                rplDropData(1);
-               if(TypeInfo%100) {
-                   newRealFromBINT64(&RReg[0],TypeInfo,-2);
-
-                   rplNewRealFromRRegPush(0);
-               } else rplNewBINTPush(TypeInfo/100,DECBINT);
+               rplNewBINTPush(TypeInfo/100,DECBINT);
                return;
             }
         }
@@ -1804,6 +1802,41 @@ void LIB_HANDLER()
 
         return;
     }
+
+    case TYPEE:
+       {
+           if(rplDepthData()<1) {
+               rplError(ERR_BADARGCOUNT);
+               return;
+           }
+
+           LIBHANDLER han=rplGetLibHandler(LIBNUM(*rplPeekData(1)));
+
+
+           // GET THE SYMBOLIC TOKEN INFORMATION
+           if(han) {
+               WORD savecurOpcode=CurOpcode;
+               ObjectPTR=rplPeekData(1);
+               CurOpcode=MKOPCODE(LIBNUM(*ObjectPTR),OPCODE_GETINFO);
+               (*han)();
+
+               CurOpcode=savecurOpcode;
+
+               if(RetNum>OK_TOKENINFO) {
+                  rplDropData(1);
+                  if(TypeInfo%100) {
+                      newRealFromBINT64(&RReg[0],TypeInfo,-2);
+
+                      rplNewRealFromRRegPush(0);
+                  } else rplNewBINTPush(TypeInfo/100,DECBINT);
+                  return;
+               }
+           }
+           rplOverwriteData(1,(WORDPTR)zero_bint);
+
+           return;
+       }
+
     // ADD MORE OPCODES HERE
 
    // STANDARIZED OPCODES:

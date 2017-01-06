@@ -105,7 +105,7 @@ void main_virtual()
     FSHardReset();
 
 
-    halOuterLoop();
+    halOuterLoop(0,0,0);
 
     // RETURNED MEANS WE MUST SHUT DOWN
 

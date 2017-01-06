@@ -332,5 +332,15 @@ STOKEYS
 
 L → "
 
+TYPE
+"Get type of an object
+
+O → I"
+
+TYPEE
+"Get extended type information
+from an object
+O → R"
+
 
 }
