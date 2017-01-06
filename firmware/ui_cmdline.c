@@ -329,7 +329,7 @@ if(Exceptions) {
 if(CmdLineCurrentLine==(WORDPTR)empty_string) {
 
 
-    WORDPTR newobj=rplAllocTempOb(lenwords);
+    WORDPTR newobj=rplAllocTempObLowMem(lenwords);
     if(!newobj) {
         throw_dbgexception("No memory to insert text",__EX_CONT|__EX_WARM|__EX_RESET);
         // CLEAN UP AND RETURN
@@ -352,7 +352,7 @@ else {
         // NOT AT THE END OF TEMPOB
         // MAKE A COPY OF THE OBJECT AT THE END
 
-        WORDPTR newobj=rplAllocTempOb(lenwords);
+        WORDPTR newobj=rplAllocTempObLowMem(lenwords);
         if(!newobj) {
             throw_dbgexception("No memory to insert text",__EX_CONT|__EX_WARM|__EX_RESET);
             // CLEAN UP AND RETURN
@@ -485,7 +485,7 @@ if(Exceptions)    return;
 if(rplSkipOb(CmdLineCurrentLine)!=TempObEnd) {
         // NOT AT THE END OF TEMPOB
         // MAKE A COPY OF THE OBJECT AT THE END
-        WORDPTR newobj=rplAllocTempOb(OBJSIZE(*CmdLineCurrentLine));
+        WORDPTR newobj=rplAllocTempObLowMem(OBJSIZE(*CmdLineCurrentLine));
         if(!newobj) {
             throw_dbgexception("No memory to insert text",__EX_CONT|__EX_WARM|__EX_RESET);
             // CLEAN UP AND RETURN
@@ -610,7 +610,7 @@ void uiModifyLine(int dontaddnewline)
     BINT newsize;
 
     // GET A NEW OBJECT WITH ROOM FOR THE ENTIRE TEXT
-    newobj=rplAllocTempOb( (rplStrSize(CmdLineText)+rplStrSize(CmdLineCurrentLine)+1+ 3)>>2);
+    newobj=rplAllocTempObLowMem( (rplStrSize(CmdLineText)+rplStrSize(CmdLineCurrentLine)+1+ 3)>>2);
 
     if(Exceptions) {
         throw_dbgexception("No memory to insert text",__EX_CONT|__EX_WARM|__EX_RESET);
@@ -677,7 +677,7 @@ void uiExtractLine(BINT line)
     }
 
 
-    newobj=rplAllocTempOb( ((endline-startline)+ 3)>>2);
+    newobj=rplAllocTempObLowMem( ((endline-startline)+ 3)>>2);
 
     if(Exceptions) {
         throw_dbgexception("No memory to insert text",__EX_CONT|__EX_WARM|__EX_RESET);

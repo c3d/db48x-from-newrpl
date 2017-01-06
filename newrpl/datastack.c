@@ -224,6 +224,7 @@ void rplTakeSnapshot()
     if(Exceptions) {
         // RETURN WITHOUT MAKING AN UNDO MARK
         DSTop=top;
+        if(Exceptions==EX_OUTOFMEM) Exceptions=0;   // CLEAR OUT OF MEMORY ERROR
         return;
     }
 
@@ -248,6 +249,8 @@ void rplTakeSnapshotN(BINT nargs)
     if(Exceptions) {
         // RETURN WITHOUT MAKING AN UNDO MARK
         DSTop=top;
+        if(Exceptions==EX_OUTOFMEM) Exceptions=0;   // CLEAR OUT OF MEMORY ERROR
+
         return;
     }
 
@@ -274,6 +277,8 @@ void rplTakeSnapshotHide(BINT nargs)
     if(Exceptions) {
         // RETURN WITHOUT MAKING AN UNDO MARK
         DSTop=top;
+        if(Exceptions==EX_OUTOFMEM) Exceptions=0;   // CLEAR OUT OF MEMORY ERROR
+
         return;
     }
     hidefirst=DSTop[-nargs];
@@ -334,6 +339,7 @@ void rplRestoreSnapshot(BINT numsnap)
 
         rplExpandStack(levels-rplDepthData());
         if(Exceptions) {
+            if(Exceptions==EX_OUTOFMEM) Exceptions=0;   // CLEAR OUT OF MEMORY ERROR
             return;
         }
 

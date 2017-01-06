@@ -17,6 +17,26 @@ WORDPTR rplAllocTempOb(WORD size)
 {
     // SIMPLY ADD A NEW BLOCK AT END OF CHAIN
 
+    if( TempObEnd+size+1+TEMPOBLARGESLACK>TempObSize) {
+        // ENLARGE TEMPOB AS NEEDED
+        growTempOb((BINT)(TempObEnd-TempOb)+size+1+TEMPOBLARGESLACK);
+        if(Exceptions) return 0;
+    }
+
+    rplAddTempBlock(TempObEnd);
+    if(Exceptions) return 0;
+
+    WORDPTR ptr=TempObEnd;
+    TempObEnd+=size+1;
+    return ptr;
+}
+
+
+// SAME BUT FOR MORE CRITICAL TASK THAT NEED TO WORK ON LOW-MEM CONDITIONS
+WORDPTR rplAllocTempObLowMem(WORD size)
+{
+    // SIMPLY ADD A NEW BLOCK AT END OF CHAIN
+
     if( TempObEnd+size+1+TEMPOBSLACK>TempObSize) {
         // ENLARGE TEMPOB AS NEEDED
         growTempOb((BINT)(TempObEnd-TempOb)+size+1+TEMPOBSLACK);
@@ -30,7 +50,6 @@ WORDPTR rplAllocTempOb(WORD size)
     TempObEnd+=size+1;
     return ptr;
 }
-
 
 // TRUNCATES A RECENTLY ALLOCATED BLOCK AT THE END OF TEMPOB
 // IT HAS TO BE THE LAST BLOCK ALLOCATED WITH ALLOCTEMPOB

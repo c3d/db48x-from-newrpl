@@ -393,7 +393,7 @@ void numberKeyHandler(BINT keymsg)
 
 void uiCmdRun(WORD Opcode)
 {
-    WORDPTR obj=rplAllocTempOb(2);
+    WORDPTR obj=rplAllocTempObLowMem(2);
 if(obj) {
 
     // ENABLE UNDO
@@ -486,7 +486,7 @@ if(iseval) {
 
 void uiCmdRunHide(WORD Opcode,BINT narguments)
 {
-    WORDPTR obj=rplAllocTempOb(2);
+    WORDPTR obj=rplAllocTempObLowMem(2);
 if(obj) {
 
     // ENABLE UNDO
@@ -586,7 +586,7 @@ if(iseval) {
 
 BINT uiCmdRunTransparent(WORD Opcode,BINT nargs,BINT nresults)
 {
-WORDPTR obj=rplAllocTempOb(2);
+WORDPTR obj=rplAllocTempObLowMem(2);
 if(obj) {
 obj[0]=Opcode;
 obj[1]=CMD_ENDOFCODE;
