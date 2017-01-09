@@ -15,6 +15,16 @@
 @ A = Algebraic object (symbolic)
 
 
+
+@#name lib32_msgtable
+{
+##1,ERR_IDENTEXPECTED "Identifier expected"
+##1,ERR_UNDEFINEDVARIABLE "Undefined variable"
+##1,ERR_CIRCULARREFERENCE "Circular reference"
+
+}
+
+
 @#name lib32_menu
 {
   ##1,CMD_LSTO LRCL

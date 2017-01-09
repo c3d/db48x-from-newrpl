@@ -29,9 +29,9 @@ const MSGLIST const all_messages[]={
     //{ ERR_PROGRAMEXPECTED, "Expected a program" },
 
     // IDENTIFIERS AND VARIABLES
-    { ERR_IDENTEXPECTED, "Expected an identifier" },
-    { ERR_UNDEFINEDVARIABLE, "Undefined variable" },
-    { ERR_CIRCULARREFERENCE, "Circular reference" },
+    //{ ERR_IDENTEXPECTED, "Expected an identifier" },
+    //{ ERR_UNDEFINEDVARIABLE, "Undefined variable" },
+    //{ ERR_CIRCULARREFERENCE, "Circular reference" },
 
     // DIRECTORIES AND VARIABLES
 
