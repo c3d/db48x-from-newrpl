@@ -51,6 +51,10 @@
 
 // ADD MORE OPCODES HERE
 
+#define ERROR_LIST \
+    ERR(SYMBOLICEXPECTED,0), \
+    ERR(NOTAVALIDRULE,1), \
+    ERR(INVALIDUSERDEFINEDFUNCTION,2)
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
@@ -96,12 +100,20 @@ ROMOBJECT symbnum_seco[]={
     CMD_SEMI
 };
 
+INCLUDE_ROMOBJECT(LIB_MSGTABLE);
+INCLUDE_ROMOBJECT(LIB_HELPTABLE);
+INCLUDE_ROMOBJECT(lib56_menu);
+
+
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)symbeval_seco,
     (WORDPTR)symbeval1_seco,
+    (WORDPTR)LIB_MSGTABLE,
+    (WORDPTR)LIB_HELPTABLE,
+    (WORDPTR)lib56_menu,
     0
 };
 
@@ -1341,6 +1353,40 @@ void LIB_HANDLER()
     case OPCODE_AUTOCOMPNEXT:
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         return;
+
+    case OPCODE_LIBMENU:
+        // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
+        // MUST RETURN A MENU LIST IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        if(MENUNUMBER(MenuCodeArg)>0) {
+            RetNum=ERR_NOTMINE;
+            return;
+        }
+        // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
+        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+4];
+        RetNum=OK_CONTINUE;
+        return;
+    }
+
+    case OPCODE_LIBHELP:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN CmdHelp
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
+       return;
+    }
+    case OPCODE_LIBMSG:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+
+        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+       return;
+    }
+
 
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;

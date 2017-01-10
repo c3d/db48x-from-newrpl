@@ -73,8 +73,8 @@ void compShowErrorMsg(char *inputfile,char *mainbuffer,FILE *stream)
             {
             if(Exceptions&(1<<errbit)) {
                 ecode=MAKEMSG(0,errbit);
-                BYTEPTR message=halGetMessage(ecode);
-                fwrite((char *)message,1,strlen((char *)message),stream);
+                WORDPTR message=uiGetLibMsg(ecode);
+                fwrite((char *)(message+1),1,rplStrSize(message),stream);
                 break;
             }
             }
@@ -92,8 +92,8 @@ void compShowErrorMsg(char *inputfile,char *mainbuffer,FILE *stream)
             }
             fprintf(stream," error: ");
             // TODO: GET NEW TRANSLATABLE MESSAGES
-            BYTEPTR message=halGetMessage(ErrorCode);
-            fwrite((char *)message,1,strlen((char *)message),stream);
+            WORDPTR message=uiGetLibMsg(ErrorCode);
+            fwrite((char *)(message+1),1,rplStrSize(message),stream);
         }
     fprintf(stream,"\n");
 }

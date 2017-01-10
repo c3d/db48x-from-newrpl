@@ -1157,18 +1157,6 @@ WORDPTR halGetCommandName(WORDPTR NameObject)
 }
 
 
-// RETRIEVES A NULL-TERMINATED MESSAGE BASED ON MESSAGE CODE
-BYTEPTR halGetMessage(WORD errorcode)
-{
-    MSGLIST *ptr=(MSGLIST *)all_messages;
-    while(ptr->code) {
-        if(ptr->code==errorcode) return (BYTEPTR)ptr->text;
-        ptr++;
-    }
-    // MESSAGE 0 IS THE UNKNOWN ERROR MESSAGE
-    return (BYTEPTR)all_messages[0].text;
-}
-
 // DISPLAY AN ERROR BOX FOR 5 SECONDS WITH AN ERROR MESSAGE
 // USES ERROR CODE FROM SYSTEM Exceptions
 void halShowErrorMsg()
@@ -1229,16 +1217,12 @@ void halShowErrorMsg()
             if(Exceptions&(1<<errbit)) {
                 ecode=MAKEMSG(0,errbit);
                 WORDPTR message=uiGetLibMsg(ecode);
+                if(!message) message=uiGetLibMsg(ERR_UNKNOWNEXCEPTION);
                 if(message) {
                 BYTEPTR msgstart=(BYTEPTR)(message+1);
                 BYTEPTR msgend=msgstart+rplStrSize(message);
 
                 DrawTextN(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)msgstart,(char *)msgend,halScreen.StAreaFont,0xf,&scr);
-                }
-                else {
-                    BYTEPTR message2=halGetMessage(ecode);
-                    DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)message2,halScreen.StAreaFont,0xf,&scr);
-
                 }
                 break;
             }
@@ -1262,16 +1246,12 @@ void halShowErrorMsg()
             // GET NEW TRANSLATABLE MESSAGES
             
             WORDPTR message=uiGetLibMsg(ErrorCode);
+            if(!message) message=uiGetLibMsg(ERR_UNKNOWNEXCEPTION);
             if(message) {
             BYTEPTR msgstart=(BYTEPTR)(message+1);
             BYTEPTR msgend=msgstart+rplStrSize(message);
             
             DrawTextN(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)msgstart,(char *)msgend,halScreen.StAreaFont,0xf,&scr);
-            }
-            else {
-                BYTEPTR message2=halGetMessage(ErrorCode);
-                DrawText(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)message2,halScreen.StAreaFont,0xf,&scr);
-
             }
 
         }

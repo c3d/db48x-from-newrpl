@@ -1297,7 +1297,6 @@ void halSetMenu2Height(int h);
 
 // ERROR REPORTING AND MESSAGES
 WORDPTR halGetCommandName(WORDPTR NameObject);
-BYTEPTR halGetMessage(WORD errorcode);
 
 // HIGHER LEVEL UI
 BINT halGetContext();

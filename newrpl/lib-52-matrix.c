@@ -103,6 +103,20 @@
 
 // ADD MORE OPCODES HERE
 
+
+#define ERROR_LIST \
+    ERR(MATRIXEXPECTED,0), \
+    ERR(INVALIDDIMENSION,1), \
+    ERR(NOTALLOWEDINMATRIX,2), \
+    ERR(INCOMPATIBLEDIMENSION,3), \
+    ERR(MATRIXORREALEXPECTED,4), \
+    ERR(SQUAREMATRIXONLY,5), \
+    ERR(VECTOREXPECTED,6), \
+    ERR(MISPLACEDBRACKETS,7)
+
+
+
+
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
 
@@ -118,7 +132,7 @@
 // ************************************
 
 
-const WORD const matrixeval_seco[]={
+ROMOBJECT matrixeval_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,DOMATPRE),     // PREPARE EACH ELEMENT
     (CMD_OVR_EVAL),    // DO THE EVAL
@@ -127,7 +141,7 @@ const WORD const matrixeval_seco[]={
     CMD_SEMI
 };
 
-const WORD const matrixeval1_seco[]={
+ROMOBJECT matrixeval1_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,DOMATPRE),     // PREPARE EACH ELEMENT
     (CMD_OVR_EVAL1),    // DO THE EVAL
@@ -136,7 +150,7 @@ const WORD const matrixeval1_seco[]={
     CMD_SEMI
 };
 
-const WORD const matrixtonum_seco[]={
+ROMOBJECT matrixtonum_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,DOMATPRE),     // PREPARE EACH ELEMENT
     (CMD_OVR_NUM),    // DO THE EVAL
@@ -147,8 +161,24 @@ const WORD const matrixtonum_seco[]={
 
 
 
+INCLUDE_ROMOBJECT(LIB_MSGTABLE);
+INCLUDE_ROMOBJECT(LIB_HELPTABLE);
+INCLUDE_ROMOBJECT(lib52_menu);
 
 
+// EXTERNAL EXPORTED OBJECT TABLE
+// UP TO 64 OBJECTS ALLOWED, NO MORE
+const WORDPTR const ROMPTR_TABLE[]={
+     (WORDPTR)LIB_MSGTABLE,
+    (WORDPTR)LIB_HELPTABLE,
+    (WORDPTR)matrixeval_seco,
+   (WORDPTR)matrixeval1_seco,
+   (WORDPTR)matrixtonum_seco,
+
+    (WORDPTR)lib52_menu,
+    // ADD MORE MENUS HERE
+    0
+};
 
 
 
@@ -2313,7 +2343,7 @@ void LIB_HANDLER()
         // LIBBRARY RETURNS: ObjectID=new ID, RetNum=OK_CONTINUE
         // OR RetNum=ERR_NOTMINE IF THE OBJECT IS NOT RECOGNIZED
 
-        RetNum=ERR_NOTMINE;
+        libGetRomptrID(LIBRARY_NUMBER,(WORDPTR *)ROMPTR_TABLE,ObjectPTR);
         return;
     case OPCODE_ROMID2PTR:
         // THIS OPCODE GETS A UNIQUE ID AND MUST RETURN A POINTER TO THE OBJECT IN ROM
@@ -2321,8 +2351,9 @@ void LIB_HANDLER()
         // LIBRARY RETURNS: ObjectPTR = POINTER TO THE OBJECT, AND RetNum=OK_CONTINUE
         // OR RetNum= ERR_NOTMINE;
 
-        RetNum=ERR_NOTMINE;
+        libGetPTRFromID((WORDPTR *)ROMPTR_TABLE,ObjectID);
         return;
+
 
     case OPCODE_CHECKOBJ:
         // THIS OPCODE RECEIVES A POINTER TO AN OBJECT FROM THIS LIBRARY AND MUST
@@ -2340,6 +2371,42 @@ void LIB_HANDLER()
     case OPCODE_AUTOCOMPNEXT:
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         return;
+
+    case OPCODE_LIBMENU:
+        // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
+        // MUST RETURN A MENU LIST IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        if(MENUNUMBER(MenuCodeArg)>0) {
+            RetNum=ERR_NOTMINE;
+            return;
+        }
+        // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
+        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+5];
+        RetNum=OK_CONTINUE;
+        return;
+    }
+
+    case OPCODE_LIBHELP:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN CmdHelp
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
+       return;
+    }
+    case OPCODE_LIBMSG:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+
+        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+       return;
+    }
+
+
+
 
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;

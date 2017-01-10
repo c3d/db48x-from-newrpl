@@ -1,0 +1,55 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib56_menu
+{
+AUTOSIMPLIFY
+RULEMATCH
+RULEAPPLY
+→Q
+
+}
+
+
+@#name lib56_msgtable
+{
+##1,ERR_SYMBOLICEXPECTED "Expected a symbolic"
+##1,ERR_NOTAVALIDRULE "Not a valid rule"
+##1,ERR_INVALIDUSERDEFINEDFUNCTION "Invalid user-defined function"
+}
+
+
+@#name lib56_cmdhelp
+{
+AUTOSIMPLIFY
+"Help not available yet
+
+ → "
+RULEMATCH
+"Help not available yet
+
+ → "
+RULEAPPLY
+"Help not available yet
+
+ → "
+→Q
+"Help not available yet
+
+ → "
+
+}

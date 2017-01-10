@@ -1,0 +1,466 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+@ TODO: ORGANIZE THESE MENUS BETTER
+
+@#name lib52_menu
+{
+→ARRY
+ARRY→
+→COL
+COL+
+COL-
+COL→
+→DIAG
+DIAG→
+→ROW
+ROW+
+ROW-
+ROW→
+→V2
+→V3
+V→
+AUGMENT
+AXL
+AXM
+BASIS
+CHOLESKY
+CNRM
+CON
+COND
+CROSS
+CSWP
+DET
+DIAGMAP
+DOT
+EGV
+EGVL
+GRAMSCHMIDT
+HADAMARD
+HILBERT
+IBASIS
+IDN
+IMAGE
+ISOM
+JORDAN
+KER
+LQ
+LSQ
+LU
+MAD
+MKISOM
+PMINI
+QR
+RANK
+RANM
+RCI
+RCIJ
+RDM
+REF
+RNRM
+RREF
+RREFMOD
+RSD
+RSWP
+SCHUR
+SNRM
+SRAD
+SVD
+SVL
+SYLVESTER
+TRACE
+TRAN
+TRN
+VANDERMONDE
+}
+
+
+@#name lib52_msgtable
+{
+##1,ERR_MATRIXEXPECTED  "Expected a matrix"
+##1,ERR_INVALIDDIMENSION  "Invalid dimensions"
+##1,ERR_NOTALLOWEDINMATRIX  "Not allowed in matrix"
+##1,ERR_INCOMPATIBLEDIMENSION  "Incompatible dimensions"
+##1,ERR_MATRIXORREALEXPECTED  "Matrix or number expected"
+##1,ERR_SQUAREMATRIXONLY  "Matrix must be square"
+##1,ERR_VECTOREXPECTED  "Expected a vector"
+##1,ERR_MISPLACEDBRACKETS  "Misplaced brackets"
+}
+
+
+@#name lib52_cmdhelp
+{
+→ARRY
+"Help not available yet
+
+ → "
+
+ARRY→
+"Help not available yet
+
+ → "
+
+→COL
+"Help not available yet
+
+ → "
+
+COL+
+"Help not available yet
+
+ → "
+
+COL-
+"Help not available yet
+
+ → "
+
+COL→
+"Help not available yet
+
+ → "
+
+→DIAG
+"Help not available yet
+
+ → "
+
+DIAG→
+"Help not available yet
+
+ → "
+
+→ROW
+"Help not available yet
+
+ → "
+
+ROW+
+"Help not available yet
+
+ → "
+
+ROW-
+"Help not available yet
+
+ → "
+
+ROW→
+"Help not available yet
+
+ → "
+
+→V2
+"Help not available yet
+
+ → "
+
+→V3
+"Help not available yet
+
+ → "
+
+V→
+"Help not available yet
+
+ → "
+
+AUGMENT
+"Help not available yet
+
+ → "
+
+AXL
+"Help not available yet
+
+ → "
+
+AXM
+"Help not available yet
+
+ → "
+
+BASIS
+"Help not available yet
+
+ → "
+
+CHOLESKY
+"Help not available yet
+
+ → "
+
+CNRM
+"Help not available yet
+
+ → "
+
+CON
+"Help not available yet
+
+ → "
+
+COND
+"Help not available yet
+
+ → "
+
+CROSS
+"Help not available yet
+
+ → "
+
+CSWP
+"Help not available yet
+
+ → "
+
+DET
+"Help not available yet
+
+ → "
+
+DIAGMAP
+"Help not available yet
+
+ → "
+
+DOT
+"Help not available yet
+
+ → "
+
+EGV
+"Help not available yet
+
+ → "
+
+EGVL
+"Help not available yet
+
+ → "
+
+GRAMSCHMIDT
+"Help not available yet
+
+ → "
+
+HADAMARD
+"Help not available yet
+
+ → "
+
+HILBERT
+"Help not available yet
+
+ → "
+
+IBASIS
+"Help not available yet
+
+ → "
+
+IDN
+"Help not available yet
+
+ → "
+
+IMAGE
+"Help not available yet
+
+ → "
+
+ISOM
+"Help not available yet
+
+ → "
+
+JORDAN
+"Help not available yet
+
+ → "
+
+KER
+"Help not available yet
+
+ → "
+
+"Help not available yet
+
+ → "
+
+LQ
+"Help not available yet
+
+ → "
+
+LSQ
+"Help not available yet
+
+ → "
+
+LU
+"Help not available yet
+
+ → "
+
+MAD
+"Help not available yet
+
+ → "
+
+MKISOM
+"Help not available yet
+
+ → "
+
+PMINI
+"Help not available yet
+
+ → "
+
+QR
+"Help not available yet
+
+ → "
+
+RANK
+"Help not available yet
+
+ → "
+
+"Help not available yet
+
+ → "
+
+RANM
+"Help not available yet
+
+ → "
+
+RCI
+"Help not available yet
+
+ → "
+
+"Help not available yet
+
+ → "
+
+"Help not available yet
+
+ → "
+
+RCIJ
+"Help not available yet
+
+ → "
+
+RDM
+"Help not available yet
+
+ → "
+
+REF
+"Help not available yet
+
+ → "
+
+RNRM
+"Help not available yet
+
+ → "
+
+RREF
+"Help not available yet
+
+ → "
+
+RREFMOD
+"Help not available yet
+
+ → "
+
+RSD
+"Help not available yet
+
+ → "
+
+RSWP
+"Help not available yet
+
+ → "
+
+SCHUR
+"Help not available yet
+
+ → "
+
+SNRM
+"Help not available yet
+
+ → "
+
+SRAD
+"Help not available yet
+
+ → "
+
+SVD
+"Help not available yet
+
+ → "
+
+SVL
+"Help not available yet
+
+ → "
+
+SYLVESTER
+"Help not available yet
+
+ → "
+
+"Help not available yet
+
+ → "
+
+"Help not available yet
+
+ → "
+
+TRACE
+"Help not available yet
+
+ → "
+
+TRAN
+"Help not available yet
+
+ → "
+
+TRN
+"Help not available yet
+
+ → "
+
+VANDERMONDE
+"Help not available yet
+
+ → "
+
+
+}

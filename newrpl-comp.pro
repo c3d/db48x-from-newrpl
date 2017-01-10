@@ -182,7 +182,6 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     newrpl/sanity.c \
     newrpl/lib-32-lam.c \
     newrpl/lib-65-system.c \
-    firmware/hal_msgenglish.c \
     newrpl/units.c \
     newrpl/lib-62-lists.c \
     newrpl/lib-56-symbolic.c \
@@ -223,7 +222,6 @@ HEADERS  += firmware/include/ggl.h \
     newrpl/sysvars.h \
     newrpl/utf8lib.h \
     newrpl/decimal.h \
-    newrpl/errorcodes.h \
     newrpl/arithmetic.h \
     newrpl/cmdcodes.h \
     newrpl/common-macros.h \

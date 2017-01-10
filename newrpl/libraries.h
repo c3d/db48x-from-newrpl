@@ -429,10 +429,6 @@ extern const WORD error_reenter_seco[];
 #define ISLEAPYEAR(y) ((!((y) & 3) && ((y) % 100)) || !((y) % 400))
 
 
-// DEFINE ALL ERROR CODES
-#include "errorcodes.h"
-
-
 
 // THESE ARE SPECIAL OPCODES
 // THE LOWER 16 BITS ARE THE NUMBER OF LAMS TO CREATE, OR THE INDEX OF LAM NUMBER TO STO/RCL

@@ -232,7 +232,7 @@ void main_virtual(unsigned int mode)
     FSHardReset();
 
 
-    halOuterLoop();
+    halOuterLoop(0,0,0);
 
     tmr_eventkill(event);
     //   CLEAR SCREEN

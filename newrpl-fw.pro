@@ -106,7 +106,6 @@ SOURCES +=\
     firmware/sys/Font8B.c \
     firmware/sys/Font8C.c \
     firmware/sys/Font8D.c \
-    firmware/hal_msgenglish.c \
     firmware/sys/target_50g/sddriver.c \
     firmware/sys/fsystem/fatconvert.c \
     firmware/sys/fsystem/fsattr.c \
@@ -222,7 +221,6 @@ HEADERS  += \
     newrpl/newrpl.h \
     newrpl/sysvars.h \
     newrpl/decimal.h \
-    newrpl/errorcodes.h \
     newrpl/arithmetic.h \
     newrpl/cmdcodes.h \
     newrpl/common-macros.h \
@@ -247,6 +245,8 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-0.nrpl \
                 newrpl/rpl-objects/lib-30.nrpl \
                 newrpl/rpl-objects/lib-32.nrpl \
                 newrpl/rpl-objects/lib-48.nrpl \
+                newrpl/rpl-objects/lib-52.nrpl \
+                newrpl/rpl-objects/lib-56.nrpl \
                 newrpl/rpl-objects/lib-62.nrpl \
                 newrpl/rpl-objects/lib-64.nrpl \
                 newrpl/rpl-objects/lib-65.nrpl \

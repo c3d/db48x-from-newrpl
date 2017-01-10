@@ -191,7 +191,6 @@ SOURCES += main.cpp\
     newrpl/sanity.c \
     newrpl/lib-32-lam.c \
     newrpl/lib-65-system.c \
-    firmware/hal_msgenglish.c \
     newrpl/units.c \
     newrpl/lib-62-lists.c \
     newrpl/lib-56-symbolic.c \
@@ -226,7 +225,6 @@ HEADERS  += mainwindow.h \
     rplthread.h \
     newrpl/utf8lib.h \
     newrpl/decimal.h \
-    newrpl/errorcodes.h \
     newrpl/arithmetic.h \
     newrpl/cmdcodes.h \
     newrpl/common-macros.h \
@@ -258,6 +256,8 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-76.nrpl \
                 newrpl/rpl-objects/lib-0.nrpl \
                 newrpl/rpl-objects/lib-8.nrpl \
+                newrpl/rpl-objects/lib-52.nrpl \
+                newrpl/rpl-objects/lib-56.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 
