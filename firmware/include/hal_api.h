@@ -127,7 +127,8 @@ enum halFlagsEnum {
     HAL_NOCLOCKCHANGE=64,
     HAL_SKIPNEXTALARM=128,
     HAL_HALTED=256,
-    HAL_TIMEOUT=512
+    HAL_TIMEOUT=512,
+    HAL_AUTORESUME=1024
     // ADD MORE BITS HERE
 
 };
@@ -1304,10 +1305,14 @@ void halSetContext(BINT KeyContext);
 
 
 // OUTER LOOP FLAGS
-#define OL_NOEXIT 1
-#define OL_NOAUTOOFF 2
-#define OL_NOALARM   4
-#define OL_NOSDFLUSH 8
+#define OL_NOEXIT 1         // DON'T POLL EXTERNAL EXIT FUNCTION DURING OUTER POL
+#define OL_NOAUTOOFF 2      // DON'T ALLOW AUTO-OFF FEATURE WHILE WAITING
+#define OL_NOALARM   4      // DON'T ALLOW EXECUTION OF ALARMS AND TIMERS
+#define OL_NOSDFLUSH 8      // DON'T FLUSH SD CACHES AFTER 3 SECONDS
+#define OL_LONGPRESS 16     // DETECT LONG PRESS MESSAGE ON ALL KEYS
+#define OL_NOCUSTOMKEYS 32  // DON'T DO USER-DEFINED ACTIONS
+#define OL_NODEFAULTKEYS 64 // DON'T DO DEFAUL KEY ACTIONS
+
 
 
 
@@ -1322,6 +1327,7 @@ int halExitOuterLoop();
 void halInitKeyboard();
 BINT halWaitForKey();
 BINT halWaitForKeyTimeout(BINT timeoutms);
+void halPostKeyboardMessage(BINT keymsg);
 
 
 

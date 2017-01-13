@@ -118,77 +118,6 @@ BINT halWaitForKeyTimeout(BINT timeoutms)
 }
 
 
-/*
-// FOR TESTING ONLY
-
-const char * const keyNames[64]={
-    "[NONE]",
-    "<-",
-    "TAN",
-    "DIV",
-    "MUL",
-    "SUB",
-    "ADD",
-    "ENTER",
-    "[NONE]",
-    "SYMB",
-    "COS",  // 10
-    "1/X",
-    "9",
-    "6",
-    "3",
-    "SPC",
-    "[NONE]",
-    "''",
-    "SIN",
-    "X",
-    "8",    // 20
-    "5",
-    "2",
-    ".",
-    "[NONE]",
-    "EVAL",
-    "SQRT",
-    "+/-",
-    "7",
-    "4",
-    "1",    // 30
-    "0",
-    "[NONE]",
-    "HIST",
-    "Y^X",
-    "EEX",
-    "[NONE]",
-    "[NONE]",
-    "[NONE]",
-    "[NONE]",
-    "[NONE]",   // 40
-    "F1",
-    "F2",
-    "F3",
-    "F4",
-    "F5",
-    "F6",
-    "APP",
-    "[NONE]",
-    "UP",
-    "LEFT",     // 50
-    "DOWN",
-    "RIGHT",
-    "MODE",
-    "TOOL",
-    "VAR",
-    "[NONE]",
-    "STO",
-    "NXT",
-    "[NONE]",
-    "ALPHA",    // 60
-    "LSHIFT",
-    "RSHIFT",
-    "ON"
-};
-*/
-
 // SYSTEM CONTEXT VARIABLE
 // STORES THE CONTEXT ID
 // ID=0 MEANS ANY CONTEXT
@@ -299,7 +228,7 @@ BINT endCmdLineAndCompile()
             {
                 // SOMEBODY CALLED EXITRPL EXPLICITLY
                 // EVERYTHING WAS COMPLETELY CLEANED UP AND RESET
-                halFlags&=~HAL_HALTED;
+                halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
                 break;
             }
             case NEEDS_CLEANUP:
@@ -309,7 +238,7 @@ BINT endCmdLineAndCompile()
                 if(RSTop>=RStk+rstksave) {
                     RSTop=RStk+rstksave;
                 }
-                else { rplCleanup(); halFlags&=~HAL_HALTED; }
+                else { rplCleanup(); halFlags&=~(HAL_HALTED|HAL_AUTORESUME); }
                 if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
                 if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
                 break;
@@ -324,6 +253,10 @@ BINT endCmdLineAndCompile()
                 {
                     // THE CODE HALTED SOMEWHERE INSIDE!
                     halFlags|=HAL_HALTED;
+                    if(Exceptions&EX_AUTORESUME) {
+                        halFlags|=HAL_AUTORESUME;
+                        Exceptions=0;
+                    }
                 }
                 else {
                     if(RSTop<RStk+rstksave) {
@@ -333,8 +266,14 @@ BINT endCmdLineAndCompile()
                         // WE CREATED, THIS CAN HAPPEN WHEN USING 'CONT'
                         // INSIDE A SECONDARY AND IT'S NOT NECESSARILY BAD
                         if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
-                        if(HaltedIPtr) halFlags|=HAL_HALTED;
-                        else halFlags&=~HAL_HALTED;
+                        if(HaltedIPtr) {
+                            halFlags|=HAL_HALTED;
+                            if(Exceptions&EX_AUTORESUME) {
+                                halFlags|=HAL_AUTORESUME;
+                                Exceptions=0;
+                            }
+                        }
+                        else halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
 
                     }
                     else {
@@ -344,8 +283,14 @@ BINT endCmdLineAndCompile()
 
                         // DON'T ALTER THE INSTRUCTION POINTER OF THE HALTED PROGRAM
                         if(CurOpcode==CMD_ENDOFCODE) rplClearErrors();
-                        if(HaltedIPtr) halFlags|=HAL_HALTED;
-                        else halFlags&=~HAL_HALTED;
+                        if(HaltedIPtr) {
+                            halFlags|=HAL_HALTED;
+                            if(Exceptions&EX_AUTORESUME) {
+                                halFlags|=HAL_AUTORESUME;
+                                Exceptions=0;
+                            }
+                        }
+                        else halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
 
                     }
                 }
@@ -485,7 +430,7 @@ if(iseval) {
     {
         // SOMEBODY CALLED EXITRPL EXPLICITLY
         // EVERYTHING WAS COMPLETELY CLEANED UP AND RESET
-        halFlags&=~HAL_HALTED;
+        halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
         break;
     }
     case NEEDS_CLEANUP:
@@ -497,7 +442,7 @@ if(iseval) {
             // BLAME THE ERROR ON THE COMMAND WE CALLED
             if(BlameCmd!=0) rplBlameError(BlameCmd);
         }
-        else { rplCleanup(); halFlags&=~HAL_HALTED; }
+        else { rplCleanup(); halFlags&=~(HAL_HALTED|HAL_AUTORESUME); }
         if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
         if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
         break;
@@ -512,6 +457,10 @@ if(iseval) {
         {
             // THE CODE HALTED SOMEWHERE INSIDE!
             halFlags|=HAL_HALTED;
+            if(Exceptions&EX_AUTORESUME) {
+                halFlags|=HAL_AUTORESUME;
+                Exceptions=0;
+            }
         }
         else {
             if(RSTop<RStk+rstksave) {
@@ -520,8 +469,14 @@ if(iseval) {
                 // WE CREATED, THIS CAN HAPPEN WHEN USING 'CONT'
                 // INSIDE A SECONDARY AND IT'S NOT NECESSARILY BAD
                 if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
-                if(HaltedIPtr) halFlags|=HAL_HALTED;
-                else halFlags&=~HAL_HALTED;
+                if(HaltedIPtr) {
+                    halFlags|=HAL_HALTED;
+                    if(Exceptions&EX_AUTORESUME) {
+                        halFlags|=HAL_AUTORESUME;
+                        Exceptions=0;
+                    }
+                }
+                else halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
 
             }
             else {
@@ -531,8 +486,14 @@ if(iseval) {
 
                     // DON'T ALTER THE INSTRUCTION POINTER OF THE HALTED PROGRAM
                     rplClearErrors();
-                    if(HaltedIPtr) halFlags|=HAL_HALTED;
-                    else halFlags&=~HAL_HALTED;
+                    if(HaltedIPtr) {
+                        halFlags|=HAL_HALTED;
+                        if(Exceptions&EX_AUTORESUME) {
+                            halFlags|=HAL_AUTORESUME;
+                            Exceptions=0;
+                        }
+                    }
+                    else halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
 
             }
         }
@@ -578,7 +539,7 @@ if(iseval) {
     {
         // SOMEBODY CALLED EXITRPL EXPLICITLY
         // EVERYTHING WAS COMPLETELY CLEANED UP AND RESET
-        halFlags&=~HAL_HALTED;
+        halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
         break;
     }
     case NEEDS_CLEANUP:
@@ -590,7 +551,7 @@ if(iseval) {
             // BLAME THE ERROR ON THE COMMAND WE CALLED
             if(BlameCmd!=0) rplBlameError(BlameCmd);
         }
-        else { rplCleanup(); halFlags&=~HAL_HALTED; }
+        else { rplCleanup(); halFlags&=~(HAL_HALTED|HAL_AUTORESUME); }
         if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
         if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
         break;
@@ -605,6 +566,11 @@ if(iseval) {
         {
             // THE CODE HALTED SOMEWHERE INSIDE!
             halFlags|=HAL_HALTED;
+            if(Exceptions&EX_AUTORESUME) {
+                halFlags|=HAL_AUTORESUME;
+                Exceptions=0;
+            }
+
         }
         else {
             if(RSTop<RStk+rstksave) {
@@ -613,8 +579,14 @@ if(iseval) {
                 // WE CREATED, THIS CAN HAPPEN WHEN USING 'CONT'
                 // INSIDE A SECONDARY AND IT'S NOT NECESSARILY BAD
                 if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
-                if(HaltedIPtr) halFlags|=HAL_HALTED;
-                else halFlags&=~HAL_HALTED;
+                if(HaltedIPtr) {
+                    halFlags|=HAL_HALTED;
+                    if(Exceptions&EX_AUTORESUME) {
+                        halFlags|=HAL_AUTORESUME;
+                        Exceptions=0;
+                    }
+                }
+                else halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
 
             }
             else {
@@ -624,8 +596,14 @@ if(iseval) {
 
                     // DON'T ALTER THE INSTRUCTION POINTER OF THE HALTED PROGRAM
                     rplClearErrors();
-                    if(HaltedIPtr) halFlags|=HAL_HALTED;
-                    else halFlags&=~HAL_HALTED;
+                    if(HaltedIPtr) {
+                        halFlags|=HAL_HALTED;
+                        if(Exceptions&EX_AUTORESUME) {
+                            halFlags|=HAL_AUTORESUME;
+                            Exceptions=0;
+                        }
+                    }
+                    else halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
 
             }
         }
@@ -4748,7 +4726,7 @@ int halDefaultKeyExists(BINT keymsg)
 
 
 
-int halProcessKey(BINT keymsg, int (*dokey)(BINT))
+int halProcessKey(BINT keymsg, int (*dokey)(BINT),BINT flags)
 {
     int wasProcessed;
 
@@ -4801,14 +4779,17 @@ int halProcessKey(BINT keymsg, int (*dokey)(BINT))
         else {
             // ANY OTHER MESSAGE SHOULD CAUSE THE EXECUTION OF THE OLD KEY FIRST, THEN THE NEW ONE
 
-            if(dokey) wasProcessed=(*dokey)(halLongKeyPending);
+            BINT tmp=halLongKeyPending;
+            halLongKeyPending=0;     // THIS CLEANUP IS ONLY NEEDED IN CASE THE KEY HANDLER CALLS A KEYBOARD LOOP
+
+            if(dokey) wasProcessed=(*dokey)(tmp);
             else wasProcessed=0;
 
-            if(!wasProcessed) wasProcessed=halDoCustomKey(halLongKeyPending);
+            if(!(flags&OL_NOCUSTOMKEYS)) if(!wasProcessed) wasProcessed=halDoCustomKey(tmp);
+            if(!(flags&OL_NODEFAULTKEYS)) if(!wasProcessed) wasProcessed=halDoDefaultKey(tmp);
 
-            if(!wasProcessed) wasProcessed=halDoDefaultKey(halLongKeyPending);
 
-            halLongKeyPending=0;
+            if(wasProcessed<0) return 1;        // DON'T EXECUTE THE NEW KEY IF THIS ONE WANTS TO END THE LOOP
         }
 
     }
@@ -4817,19 +4798,24 @@ int halProcessKey(BINT keymsg, int (*dokey)(BINT))
     // AND IF SO, DELAY EXECUTION
 
     if(KM_MESSAGE(keymsg)==KM_PRESS) {
+        if(flags&OL_LONGPRESS) {
+            // ALL KEYS WAIT FOR A LONG PRESS EVENT
+            halLongKeyPending=keymsg;
+            return 0;
+        } else {
+            // ONLY KEYS THAT HAVE LONG PRESS DEFINITION WILL WAIT, OTHERWISE EXECUTE IMMEDIATELY
         BINT longmsg=KM_LPRESS | KM_SHIFTEDKEY(keymsg);
 
         if(halCustomKeyExists(longmsg)) { halLongKeyPending=keymsg; return 0; }
         if(halDefaultKeyExists(longmsg)) { halLongKeyPending=keymsg; return 0; }
+        }
     }
 
 
     if(dokey) wasProcessed=(*dokey)(keymsg);
     else wasProcessed=0;
-
-    if(!wasProcessed) wasProcessed=halDoCustomKey(keymsg);
-
-    if(!wasProcessed) wasProcessed=halDoDefaultKey(keymsg);
+    if(!(flags&OL_NOCUSTOMKEYS)) if(!wasProcessed) wasProcessed=halDoCustomKey(keymsg);
+    if(!(flags&OL_NODEFAULTKEYS)) if(!wasProcessed) wasProcessed=halDoDefaultKey(keymsg);
 
     // *************** DEBUG ONLY ************
 /*
@@ -4934,6 +4920,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
             if(halTicks()-offcounter >=3000000) {
                 if(FSIsDirty()) { FSFlushAll(); halUpdateStatus(); }
                 jobdone|=1;
+                isidle=0;
             }
 
             }
@@ -4959,17 +4946,20 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
             // DO OTHER IDLE PROCESSING HERE
 
 
-            isidle=1;
+            isidle++;
+            if(isidle>10) isidle=1;     //  COUNT UP TO TEN IDLE CYCLES
 
         } else { jobdone=isidle=0; }
 
 
         halSetBusyHandler();
 
+        if((isidle==10) && (halFlags&HAL_AUTORESUME)) {
+            uiCmdRun(CMD_CONT);   // AUTOMATICALLY CONTINUE EXECUTION AFTER 10 IDLE CYCLES
+            halScreen.DirtyFlag|=CMDLINE_ALLDIRTY|STACK_DIRTY|STAREA_DIRTY|MENU1_DIRTY|MENU2_DIRTY|FORM_DIRTY;
+        }
 
-
-
-    } while(!halProcessKey(keymsg,dokey));
+    } while(!halProcessKey(keymsg,dokey,flags));
 
 }
 
@@ -4980,4 +4970,32 @@ void halInitKeyboard()
 }
 
 
+// API USED BY RPL PROGRAMS TO INSERT KEY SEQUENCES TO THE KEYBOARD
 
+void halPostKeyboardMessage(BINT keymsg)
+{
+    //  POST A COMPLETE KEY SEQUENCE TO PREVENT PROBLEMS.
+
+    switch(KM_MESSAGE(keymsg))
+    {
+    case KM_PRESS:
+    {
+        keyb_postmsg(KM_KEYDN | (keymsg^(KM_MESSAGE(keymsg))));
+        keyb_postmsg(keymsg);
+        keyb_postmsg(KM_KEYUP | (keymsg^(KM_MESSAGE(keymsg))));
+        break;
+
+    }
+    case KM_LPRESS:
+    {
+        keyb_postmsg(KM_KEYDN | (keymsg^(KM_MESSAGE(keymsg))));
+        keyb_postmsg(KM_PRESS | (keymsg^(KM_MESSAGE(keymsg))));
+        keyb_postmsg(keymsg);
+        keyb_postmsg(KM_KEYUP | (keymsg^(KM_MESSAGE(keymsg))));
+        break;
+    }
+    default:
+        keyb_postmsg(keymsg);
+    }
+
+}

@@ -34,7 +34,8 @@
     CMD(COPYCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(CUTCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(PASTECLIP,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(WAIT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    CMD(WAIT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(KEYEVAL,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -208,19 +209,58 @@ void LIB_HANDLER()
 
         BINT keymsg;
 
-        if(mstimeout) halOuterLoop(mstimeout,&waitProcess,OL_NOEXIT|OL_NOAUTOOFF);
-        else halOuterLoop(0,&waitKeyProcess,OL_NOEXIT|OL_NOAUTOOFF);
+        if(mstimeout) halOuterLoop(mstimeout,&waitProcess,OL_NOEXIT|OL_NOAUTOOFF|OL_NOCUSTOMKEYS|OL_NODEFAULTKEYS);
+        else halOuterLoop(0,&waitKeyProcess,OL_NOEXIT|OL_NOAUTOOFF|OL_NODEFAULTKEYS|OL_NOCUSTOMKEYS|OL_LONGPRESS);
 
         keymsg=RetNum;
 
         // PUSH THE KEY MESSAGE
 
+        WORDPTR keyname=rplMsg2KeyName(keymsg);
+        if(!keyname) return;
+        rplOverwriteData(1,keyname);
+        return;
+
+    }
+
+    case KEYEVAL:
+    {
+        // REMOVE A CUSTOM KEY DEFINITION
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISSTRING(*rplPeekData(1))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
+
+        BINT keycode=rplKeyName2Msg(rplPeekData(1));
+
+        if(!keycode) {
+            rplError(ERR_INVALIDKEYNAME);
+            return;
+        }
+
         rplDropData(1);
-        rplNewBINTPush(keymsg,HEXBINT);
+
+        // EVALUATE A KEY THAT MAY CALL AN RPL PROGRAM FROM WITHIN RPL??
+        // THIS IS POTENTIALLY DANGEROUS, AS MOST KEY DEFINITIONS ARE MEANT TO RUN FROM THE MAIN OUTER LOOP
+
+        // POST KEYBOARD MESSAGES AS NEEDED, RETURN TO OUTER POL WITH HALT/AUTORESUME
+        // AND LET IT ALL WORK.
+
+        halPostKeyboardMessage(keycode);
+
+        rplCallOperator(CMD_AUTOBKPOINT);
 
         return;
 
     }
+
+
+
 
 
         // STANDARIZED OPCODES:

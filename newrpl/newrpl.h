@@ -690,6 +690,9 @@ BINT rplTriggerAlarm();
 void rplUpdateAlarms();
 void rplSkipNextAlarm();
 
+// KEYBOARD FUNCTIONS
+WORDPTR rplMsg2KeyName(BINT keymsg);
+BINT rplKeyName2Msg(WORDPTR keyname);
 
 
 

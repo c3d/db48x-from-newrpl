@@ -29,7 +29,7 @@
 
 #define COMMAND_LIST \
     CMD(EXITRPL,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(BKPOINT,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(AUTOBKPOINT,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     ECMD(XEQSECO,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     ECMD(SEMI,";",MKTOKENINFO(1,TITYPE_NOTALLOWED,1,2)), \
     CMD(EVAL1NEXT,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
@@ -146,15 +146,16 @@ void LIB_HANDLER()
         return;
 
     }
-    case BKPOINT:
+    case AUTOBKPOINT:
     {
-        // TODO: IMPLEMENT CONDITIONAL BREAKPOINTS
-        // FOR NOW BEHAVE SAME AS HALT
+        if(HaltedIPtr) {
+            return; // CAN'T HALT WITHIN AN ALREADY HALTED PROGRAM!
+        }
         HaltedIPtr=IPtr+1;    // SAVE CODE LOCATION AFTER HALT
         HaltedRSTop=RSTop;  // SAVE RETURN STACK POINTER
         HaltednLAMBase=nLAMBase;
         HaltedLAMTop=LAMTop;
-        rplException(EX_HALT);
+        rplException(EX_HALT|EX_AUTORESUME);
         // ONCE IT'S HALTED, DISABLE SINGLE STEP MODE
         rplDisableSingleStep();
 
@@ -649,7 +650,7 @@ void LIB_HANDLER()
             switch(*rplPeekData(1))
             {
             case CMD_EXITRPL:
-            case CMD_BKPOINT:
+            case CMD_AUTOBKPOINT:
             case CMD_XEQSECO:
             case CMD_SEMI:
             case CMD_EVAL1NEXT:

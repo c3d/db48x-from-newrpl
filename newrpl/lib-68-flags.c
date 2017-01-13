@@ -815,6 +815,7 @@ Examples:
 // hal_api.h ARE CORRECT.
 
 const BYTE const keytable[]={
+    'O','N',KB_ON,
     'B','K',KB_BKS,
     'E','N',KB_ENT,
     'U','P',KB_UP,
@@ -868,14 +869,18 @@ const BYTE const keytable[]={
 };
 
 const BYTE const modiftable[]={
-    'L',0,SHIFT_LS>>4,
-    'R',0,SHIFT_RS>>4,
-    'A',0,SHIFT_ALPHA>>4,
-    'L','H',SHIFT_LSHOLD>>4,
-    'R','H',SHIFT_RSHOLD>>4,
-    'A','H',SHIFT_ALPHAHOLD>>4,
-    'O','H',SHIFT_ONHOLD>>4,
-    0,0,0
+    'A','L','H',(SHIFT_ALPHA|SHIFT_LSHOLD)>>4,
+    'A','R','H',(SHIFT_ALPHA|SHIFT_RSHOLD)>>4,
+    'L','H',0,SHIFT_LSHOLD>>4,
+    'R','H',0,SHIFT_RSHOLD>>4,
+    'A','L',0,(SHIFT_LS|SHIFT_ALPHA)>>4,
+    'A','R',0,(SHIFT_RS|SHIFT_ALPHA)>>4,
+    'A','H',0,SHIFT_ALPHAHOLD>>4,
+    'O','H',0,SHIFT_ONHOLD>>4,
+    'L',0,0,SHIFT_LS>>4,
+    'R',0,0,SHIFT_RS>>4,
+    'A',0,0,SHIFT_ALPHA>>4,
+    0,0,0,0
 };
 
 BINT rplKeyName2Msg(WORDPTR keyname)
@@ -945,6 +950,18 @@ BINT rplKeyName2Msg(WORDPTR keyname)
             if(len>=3) { ++ptr; len-=3; }
             else len-=2;
     }
+        else {
+            // 3-LETTER MODIFIER
+            if((len<4)||((len>=4)&&(ptr[3]=='.'))) {
+                // THREE-LETTER DEFINITION
+                shifts=ptr[0]+256*ptr[1]+65536*ptr[2];
+                ptr+=3;
+                if(len>=4) { ++ptr; len-=4; }
+                else len-=3;
+
+            }
+
+        }
     }
 
     if(shifts) {
@@ -952,11 +969,11 @@ BINT rplKeyName2Msg(WORDPTR keyname)
     tblptr=(BYTEPTR)modiftable;
 
     while(*tblptr) {
-        if((tblptr[0]==(shifts&0xff))&&(tblptr[1]==((shifts>>8)&0xff))) {
-            shifts=tblptr[2];
+        if((tblptr[0]==(shifts&0xff))&&(tblptr[1]==((shifts>>8)&0xff))&&(tblptr[2]==((shifts>>16)&0xff))) {
+            shifts=tblptr[3];
             break;
         }
-        tblptr+=3;
+        tblptr+=4;
     }
 
     if(!(*tblptr)) return 0;
@@ -1004,8 +1021,88 @@ BINT rplKeyName2Msg(WORDPTR keyname)
 }
 
 
+// CREATE A STRING OBJECT FROM A KEYBOARD MESSAGE
+
+WORDPTR rplMsg2KeyName(BINT keymsg)
+{
+
+    BYTEPTR tblptr=(BYTEPTR)keytable,keyptr;
+    BYTE keytext[8];
+
+    keyptr=keytext;
+
+    while(*tblptr) {
+        if(tblptr[2]==(KEYVALUE(keymsg))) {
+            *keyptr++=tblptr[0];
+            if(tblptr[1]) *keyptr++=tblptr[1];
+            break;
+        }
+        tblptr+=3;
+    }
+    if(!*tblptr) {
+        rplError(ERR_INVALIDKEYNAME);
+        return 0;
+    }
 
 
+    if(KEYSHIFT(keymsg)) {
+        *keyptr++='.';
+
+        tblptr=(BYTEPTR)modiftable;
+
+        while(*tblptr) {
+        if(tblptr[3]==(KEYSHIFT(keymsg)>>4)) {
+            *keyptr++=tblptr[0];
+            if(tblptr[1]) *keyptr++=tblptr[1];
+            if(tblptr[2]) *keyptr++=tblptr[2];
+            break;
+        }
+        tblptr+=4;
+    }
+    if(!*tblptr) {
+        rplError(ERR_INVALIDKEYNAME);
+        return 0;
+    }
+
+    }
+
+
+    if(KM_MESSAGE(keymsg)!=KM_PRESS) {
+
+        if(!KEYSHIFT(keymsg)) *keyptr++='.';
+
+        *keyptr++='.';
+
+        switch(KM_MESSAGE(keymsg))
+        {
+        case KM_LPRESS:
+            *keyptr++='L';
+            break;
+        case KM_KEYUP:
+            *keyptr++='U';
+            break;
+        case KM_KEYDN:
+            *keyptr++='D';
+            break;
+        case KM_REPEAT:
+            *keyptr++='R';
+            break;
+        case KM_LREPEAT:
+            *keyptr++='T';
+            break;
+        default:
+            // ANY OTHER VALUES ARE ILLEGAL
+            rplError(ERR_INVALIDKEYNAME);
+            return 0;
+        }
+
+    }
+
+    // NOW BUILD A STRING OBJECT AND RETURN
+
+    return rplCreateString(keytext,keyptr);
+
+}
 
 
 
