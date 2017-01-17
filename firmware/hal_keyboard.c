@@ -4969,19 +4969,23 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
 
             // DO OTHER IDLE PROCESSING HERE
 
+            if(halFlags&HAL_AUTORESUME) {
+                halSetBusyHandler();
+                jobdone=isidle=0;
+                uiCmdRun(CMD_CONT);   // AUTOMATICALLY CONTINUE EXECUTION AFTER 10 IDLE CYCLES
+                halScreen.DirtyFlag|=CMDLINE_ALLDIRTY|STACK_DIRTY|STAREA_DIRTY|MENU1_DIRTY|MENU2_DIRTY|FORM_DIRTY;
+                continue;
+            }
 
-            isidle++;
-            if(isidle>10) isidle=1;     //  COUNT UP TO TEN IDLE CYCLES
+            isidle=1;
+
+
 
         } else { jobdone=isidle=0; }
 
 
         halSetBusyHandler();
 
-        if((isidle==10) && (halFlags&HAL_AUTORESUME)) {
-            uiCmdRun(CMD_CONT);   // AUTOMATICALLY CONTINUE EXECUTION AFTER 10 IDLE CYCLES
-            halScreen.DirtyFlag|=CMDLINE_ALLDIRTY|STACK_DIRTY|STAREA_DIRTY|MENU1_DIRTY|MENU2_DIRTY|FORM_DIRTY;
-        }
 
     } while(!halProcessKey(keymsg,dokey,flags));
 
