@@ -166,6 +166,11 @@ void halPreparePowerOff()
 
     // TODO: ADD OTHER POWEROF PROCEDURES
 
+    saved=rplNewBINT(halFlags,DECBINT);
+    if(!saved) saved=(WORDPTR)zero_bint;
+    rplStoreSettings((WORDPTR)savedflags_ident,saved);
+
+
 }
 
 // DO ANY PREPARATIONS BEFORE WAKEUP FROM POWEROFF
@@ -179,6 +184,17 @@ if(saved) {
     rplPurgeSettings((WORDPTR)savedcmdline_ident);
     halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;  // UPDATE STATUS AREA AND MENUS
 }
+
+// RESTORE THE FLAGS
+
+saved=rplGetSettings((WORDPTR)savedflags_ident);
+if(saved) {
+    BINT tmpflags=rplReadBINT(saved);
+    BINT flagmask=(HAL_FASTMODE|HAL_HOURGLASS|HAL_SLOWLOCK|HAL_SKIPNEXTALARM); // SOME FLAGS SHOULD NOT BE PRESERVED
+    halFlags=(tmpflags&(~flagmask)) | (halFlags&flagmask);
+}
+rplPurgeSettings((WORDPTR)savedflags_ident);
+
 
 // RESTORE THE MENU2 HIDDEN STATUS
 

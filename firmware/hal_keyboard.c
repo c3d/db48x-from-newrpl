@@ -253,6 +253,7 @@ BINT endCmdLineAndCompile()
                 {
                     // THE CODE HALTED SOMEWHERE INSIDE!
                     halFlags|=HAL_HALTED;
+                    if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
                     if(Exceptions&EX_AUTORESUME) {
                         halFlags|=HAL_AUTORESUME;
                         Exceptions=0;
@@ -268,6 +269,7 @@ BINT endCmdLineAndCompile()
                         if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
                         if(HaltedIPtr) {
                             halFlags|=HAL_HALTED;
+                            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
                             if(Exceptions&EX_AUTORESUME) {
                                 halFlags|=HAL_AUTORESUME;
                                 Exceptions=0;
@@ -285,6 +287,8 @@ BINT endCmdLineAndCompile()
                         if(CurOpcode==CMD_ENDOFCODE) rplClearErrors();
                         if(HaltedIPtr) {
                             halFlags|=HAL_HALTED;
+                            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+
                             if(Exceptions&EX_AUTORESUME) {
                                 halFlags|=HAL_AUTORESUME;
                                 Exceptions=0;
@@ -457,6 +461,8 @@ if(iseval) {
         {
             // THE CODE HALTED SOMEWHERE INSIDE!
             halFlags|=HAL_HALTED;
+            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+
             if(Exceptions&EX_AUTORESUME) {
                 halFlags|=HAL_AUTORESUME;
                 Exceptions=0;
@@ -471,6 +477,8 @@ if(iseval) {
                 if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
                 if(HaltedIPtr) {
                     halFlags|=HAL_HALTED;
+                    if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+
                     if(Exceptions&EX_AUTORESUME) {
                         halFlags|=HAL_AUTORESUME;
                         Exceptions=0;
@@ -488,6 +496,8 @@ if(iseval) {
                     rplClearErrors();
                     if(HaltedIPtr) {
                         halFlags|=HAL_HALTED;
+                        if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+
                         if(Exceptions&EX_AUTORESUME) {
                             halFlags|=HAL_AUTORESUME;
                             Exceptions=0;
@@ -566,6 +576,8 @@ if(iseval) {
         {
             // THE CODE HALTED SOMEWHERE INSIDE!
             halFlags|=HAL_HALTED;
+            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+
             if(Exceptions&EX_AUTORESUME) {
                 halFlags|=HAL_AUTORESUME;
                 Exceptions=0;
@@ -581,6 +593,8 @@ if(iseval) {
                 if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
                 if(HaltedIPtr) {
                     halFlags|=HAL_HALTED;
+                    if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+
                     if(Exceptions&EX_AUTORESUME) {
                         halFlags|=HAL_AUTORESUME;
                         Exceptions=0;
@@ -598,6 +612,8 @@ if(iseval) {
                     rplClearErrors();
                     if(HaltedIPtr) {
                         halFlags|=HAL_HALTED;
+                        if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+
                         if(Exceptions&EX_AUTORESUME) {
                             halFlags|=HAL_AUTORESUME;
                             Exceptions=0;
@@ -4897,6 +4913,14 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
     do {
         halRedrawAll(&scr);
         if(!(flags&OL_NOEXIT) && halExitOuterLoop()) break;
+        if(halFlags&HAL_POWEROFF)
+        {
+            halFlags&=~HAL_POWEROFF;
+            halPreparePowerOff();
+            halEnterPowerOff();
+            return;
+        }
+
         if(Exceptions) {
             halShowErrorMsg();
             Exceptions=0;
