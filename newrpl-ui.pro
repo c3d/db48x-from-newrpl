@@ -204,13 +204,16 @@ SOURCES += main.cpp\
     firmware/ggl/ggl/ggl_fltinvert.c \
     newrpl/lib-48-angles.c \
     newrpl/lib-74-sdcard.c \
-    newrpl/lib-80-fonts.c \
     firmware/sys/target_pc/rtc.c \
     firmware/hal_clock.c \
     firmware/hal_alarm.c \
     firmware/ggl/ggl/ggl_fltreplace.c \
     newrpl/lib-76-ui.c \
-    newrpl/lib-zero-messages.c
+    newrpl/lib-zero-messages.c \
+    firmware/ui_forms.c \
+    firmware/ui_render.c \
+    newrpl/lib-80-bitmaps.c \
+    newrpl/lib-78-fonts.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -258,6 +261,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-8.nrpl \
                 newrpl/rpl-objects/lib-52.nrpl \
                 newrpl/rpl-objects/lib-56.nrpl \
+                newrpl/rpl-objects/lib-80.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 
@@ -281,6 +285,8 @@ rpl_compiler.input = RPL_OBJECTS
 rpl_compiler.variable_out = SOURCES
 
 QMAKE_EXTRA_COMPILERS += rpl_compiler
+
+
 
 
 

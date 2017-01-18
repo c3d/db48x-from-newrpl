@@ -547,6 +547,8 @@ BINT64 rplReadNumberAsBINT(WORDPTR number);
 void rplReadNumberAsReal(WORDPTR number,REAL*dec);
 void rplLoadBINTAsReal(BINT64 number,REAL*dec);
 BINT rplIsNegative(WORDPTR objptr);
+BINT rplIntToString(BINT64 number,BINT base,BYTEPTR buffer,BYTEPTR endbuffer);
+
 
 
 // ANGLE FUNCTIONS
@@ -776,6 +778,17 @@ BINT rplKeyName2Msg(WORDPTR keyname);
 #define BKPT_ALLPAUSED 0x08080808 // INTERNAL USE MASK
 #define SET_BKPOINTFLAG(n,flags) BreakPtFlags=(BreakPtFlags & ~(0xff<<(8*((n)))))|( ((flags)&0xff)<<(8*((n))))
 #define GET_BKPOINTFLAG(n) ((BreakPtFlags>>(8*((n))))&0xff)
+
+
+
+
+// GARBAGE COLLECTOR STATUS FLAGS
+
+#define GC_IN_PROGRESS 1
+#define GC_COMPLETED   2
+#define GC_ERROR       4
+
+
 
 
 

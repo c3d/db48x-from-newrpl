@@ -31,3 +31,17 @@ int doff,soff,line;
     }
 }
 
+void ggl_bitbltclip(gglsurface *dest,gglsurface *src,int width, int height)
+{
+    if(dest->x>dest->clipx2) return;
+    if(dest->y>dest->clipy2) return;
+    if(dest->x+width<dest->clipx) return;
+    if(dest->y+height<dest->clipy) return;
+    if(dest->x<dest->clipx) dest->x=dest->clipx;
+    if(dest->x+width>dest->clipx2) width=dest->clipx2-dest->x+1;
+    if(dest->y<dest->clipy) dest->y=dest->clipy;
+    if(dest->y+height>dest->clipy2) height=dest->clipy2-dest->y+1;
+
+    ggl_bitblt(dest,src,width,height);
+
+}

@@ -229,6 +229,21 @@ void halInt2String(int num,char *str)
     *ptr=0;
 }
 
+
+void halRedrawForm(DRAWSURFACE *scr)
+{
+
+    if(halScreen.Form==0) {
+        halScreen.DirtyFlag&=~FORM_DIRTY;
+        return;
+    }
+
+    // REDRAW THE CONTENTS OF THE CURRENT FORM
+
+    uiUpdateForm(scr);
+
+}
+
 void halRedrawStack(DRAWSURFACE *scr)
 {
     if(halScreen.Stack==0) {
@@ -1039,6 +1054,7 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
 
 void halForceRedrawAll(DRAWSURFACE *scr)
 {
+    halRedrawForm(scr);
     halRedrawStack(scr);
     halRedrawCmdLine(scr);
     halRedrawMenu1(scr);
@@ -1048,6 +1064,7 @@ void halForceRedrawAll(DRAWSURFACE *scr)
 
 void halRedrawAll(DRAWSURFACE *scr)
 {
+    if(halScreen.DirtyFlag&FORM_DIRTY) halRedrawForm(scr);
     if(halScreen.DirtyFlag&STACK_DIRTY) halRedrawStack(scr);
     if(halScreen.DirtyFlag&CMDLINE_ALLDIRTY) halRedrawCmdLine(scr);
     if(halScreen.DirtyFlag&MENU1_DIRTY) halRedrawMenu1(scr);

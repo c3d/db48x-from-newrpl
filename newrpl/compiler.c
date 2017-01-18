@@ -768,6 +768,14 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
     } while( (splittoken || (NextTokenStart<CompileStringEnd)) && !Exceptions );
 
+    if(force_libnum>=0) {
+        rplError(ERR_STARTWITHOUTEND);
+        LAMTop=LAMTopSaved;
+        return 0;
+
+    }
+
+
  if(!Exceptions && addwrapper) {
      // JUST FINISHED THE STRING, NOW ADD THE END OF THE WRAPPER
      rplCompileAppend(CMD_SEMI);
@@ -791,6 +799,8 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
         rplError(ERR_STARTWITHOUTEND);
     }
     }
+
+
  }
 
      LAMTop=LAMTopSaved; // RESTORE LAM ENVIRONMENT BEFORE RETURN

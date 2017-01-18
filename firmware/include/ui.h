@@ -53,16 +53,6 @@ typedef uint32_t PTR2NUMBER;
 #endif
 
 
-// ERROR MESSAGES
-
-typedef struct {
-    const WORD code;
-    const char *text;
-} MSGLIST;
-
-extern const MSGLIST all_messages[];
-
-
 // COMMAND LINE
 
 WORDPTR halSaveCmdLine();
@@ -143,7 +133,6 @@ WORDPTR uiGetLibMsg(WORD MsgCode);
 // RPL CODE EXECUTION FROM UI
 void uiCmdRun(WORD Opcode);
 BINT uiCmdRunTransparent(WORD Opcode,BINT nargs,BINT nresults);
-
 
 
 

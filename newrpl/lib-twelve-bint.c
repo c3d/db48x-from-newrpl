@@ -431,6 +431,117 @@ static int rpl_log2(BINT64 number,int bits)
     return rpl_log2(number,bits);
 }
 
+
+// CONVERT TO STRING AND RETURN THE NUMBER OF BYTES OUTPUT
+BINT rplIntToString(BINT64 number,BINT base,BYTEPTR buffer,BYTEPTR endbuffer)
+{
+
+    base-=DOBINT;
+
+    if(base==2) {
+        // THIS IS A BASE-10 NUMBER
+        // CONVERT TO STRING
+
+        REAL realnum;
+
+        BINT sign;
+
+        NUMFORMAT fmt;
+
+        rplGetSystemNumberFormat(&fmt);
+
+        rplLoadBINTAsReal(number,&realnum);
+
+        sign=realnum.flags&F_NEGATIVE;
+
+        realnum.flags^=sign;
+
+
+        realnum.flags^=sign;
+
+
+        // ESTIMATE THE MAXIMUM STRING LENGTH AND RESERVE THE MEMORY
+
+        BYTEPTR string;
+
+        BINT len=formatlengthReal(&realnum,0,fmt.Locale);
+
+        if(len+1>endbuffer-buffer) return 0;
+
+        // NOW USE IT
+        string=(BYTEPTR)buffer;
+        return (BYTEPTR)formatReal(&realnum,(char *)string,0,fmt.Locale)-string;
+
+
+    }
+    else {
+    // THIS IS A BINARY, OCTAL OR HEXA NUMBER
+    // base HAS THE NUMBER OF BITS PER DIGIT
+        BYTEPTR ptr=buffer;
+        UBINT64 unumber;
+        BINT digit,neg;
+
+        if(number<0) {
+            *ptr++='-';
+            if(ptr>=endbuffer) return 0;
+            unumber=-number;
+        } else unumber=number;
+
+    *ptr++='#';
+    if(ptr>=endbuffer) return 0;
+
+    if(base>=3) digit=60;
+    else digit=62;
+
+    neg=(1<<base)-1;    // CREATE A MASK TO ISOLATE THE DIGIT
+
+    // SKIP ALL LEADING ZEROS
+    while(digit>0) {
+        if( (unumber>>digit)&neg ) break;
+        digit-=base;
+    }
+    // NOW DECOMPILE THE NUMBER
+    while(digit>=0) {
+        *ptr++=alldigits[(unumber>>digit)&neg];
+        if(ptr>=endbuffer) return 0;
+        digit-=base;
+    }
+
+    // ADD BASE CHARACTER
+    if(base==1) *ptr++='b';
+    if(base==3) *ptr++='o';
+    if(base==4) *ptr++='h';
+
+    return ptr-buffer;
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {

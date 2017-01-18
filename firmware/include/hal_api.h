@@ -77,36 +77,6 @@ typedef gglsurface DRAWSURFACE;
 
 
 
-struct editData {
-DRAWSURFACE drawsurf;
-int posx,posy;			// POSITION OF THE CONTROL IN PARENT COORDINATES
-int sizex,sizey;		// SIZE OF THE CONTROL (AND THE DRAWING SURFACE)
-int ncx,ncy,ncwidth,ncheight;	// NON-CLIENT AREA VIEW POSITION
-int viewx,viewy;					// SCROLL POSITION OF CLIENT AREA VIEW
-int vieww,viewh;
-int scrollh,scrollv;
-
-BYTEPTR *Text;
-int CursorPos,CursorLine;
-int SelStart,SelEnd;
-UNIFONT *Font;
-int Color,BkColor,SelColor;
-int DispLines;
-int TotalLines;
-int ViewLine;
-int EditMin,EditMax;
-unsigned int State;
-int Cursorx,Cursory,Targetx;
-gglsurface cursorbk;
-tmr_t lastblink;
-int InputMode;
-int StyleFlags;
-};
-
-struct editUpdate {
-    int clipx,clipy,clipx2,clipy2; // CLIPPING RECTANGLE WITHIN THAT SURFACE
-};
-
 
 enum keyContext {
     IN_STACK=0,
@@ -129,7 +99,8 @@ enum halFlagsEnum {
     HAL_HALTED=256,
     HAL_TIMEOUT=512,
     HAL_AUTORESUME=1024,
-    HAL_POWEROFF=2048
+    HAL_FASTAUTORESUME=2048,
+    HAL_POWEROFF=4096
     // ADD MORE BITS HERE
 
 };
@@ -176,6 +147,9 @@ enum halNotification {
 #define MENU2_HEIGHT 16
 #define MENU1_HEIGHT  9
 
+// NUMBER OF ENTRIES IN THE RENDER CACHE
+
+#define MAX_RENDERCACHE_ENTRIES 32
 
 
 
@@ -370,7 +344,11 @@ enum {
 #define SCREEN_WIDTH 131
 #define SCREEN_HEIGHT 80
 #define STATUSAREA_X  66
-// MAIN EXCEPTION HANDLER
+
+// DEFAULT COLOR MODE OF THE SYSTEM
+
+#define DEFAULTBITSPERPIXEL 4
+
 
 
 // MAIN EXCEPTION PROCESSOR
@@ -1329,6 +1307,28 @@ void halInitKeyboard();
 BINT halWaitForKey();
 BINT halWaitForKeyTimeout(BINT timeoutms);
 void halPostKeyboardMessage(BINT keymsg);
+
+
+// RENDER CACHE EXTERNAL DATA
+extern WORDPTR halCacheContents[2*MAX_RENDERCACHE_ENTRIES];
+extern WORD halCacheEntry;
+
+// RENDER
+
+void uiClearRenderCache();
+void uiAddCacheEntry(WORDPTR object,WORDPTR bitmap);
+WORDPTR uiFindCacheEntry(WORDPTR object);
+void uiDrawObject(WORDPTR object,DRAWSURFACE *scr,UNIFONT *font);
+
+
+
+
+
+
+
+
+
+
 
 
 

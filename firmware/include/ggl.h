@@ -118,6 +118,8 @@ void ggl_ovlblt(gglsurface *dest,gglsurface *src,int width, int height); // copy
 #define ggl_bitbltmask(dest,src,width,height,tcol)  ggl_bitbltoper(dest,src,width,height,tcol,&ggl_opmask)
 #define ggl_monobitbltmask(dest,src,width,height,tcol)  ggl_monobitbltoper(dest,src,width,height,tcol,&ggl_opmask)
 
+void ggl_bitbltclip(gglsurface *dest,gglsurface *src,int width, int height); // copy a rectangular region, clipped within dest
+
 
 // rectangle scrolling routines
 // dest contains the surface to scroll, and width and height define the rectangle

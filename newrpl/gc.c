@@ -124,6 +124,8 @@ void rplGCollect()
     WORDPTR EndOfUsedMem,*EndOfRStk;
     int CompileBlock=0;
 
+    GCFlags=GC_IN_PROGRESS;
+
     // FOR DEBUG ONLY, VERIFY THAT AL TEMPBLOCKS ARE VALID
     //CheckTempBlocks();
 
@@ -223,6 +225,8 @@ void rplGCollect()
 
             //halCheckMemoryMap();
             //halCheckRplMemory();
+
+            GCFlags=GC_COMPLETED;
 
             return;
         }

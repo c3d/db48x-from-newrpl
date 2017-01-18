@@ -228,7 +228,7 @@ BINT endCmdLineAndCompile()
             {
                 // SOMEBODY CALLED EXITRPL EXPLICITLY
                 // EVERYTHING WAS COMPLETELY CLEANED UP AND RESET
-                halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
+                halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
                 break;
             }
             case NEEDS_CLEANUP:
@@ -238,7 +238,7 @@ BINT endCmdLineAndCompile()
                 if(RSTop>=RStk+rstksave) {
                     RSTop=RStk+rstksave;
                 }
-                else { rplCleanup(); halFlags&=~(HAL_HALTED|HAL_AUTORESUME); }
+                else { rplCleanup(); halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME); }
                 if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
                 if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
                 break;
@@ -253,7 +253,7 @@ BINT endCmdLineAndCompile()
                 {
                     // THE CODE HALTED SOMEWHERE INSIDE!
                     halFlags|=HAL_HALTED;
-                    if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+                    if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
                     if(Exceptions&EX_AUTORESUME) {
                         halFlags|=HAL_AUTORESUME;
                         Exceptions=0;
@@ -269,13 +269,13 @@ BINT endCmdLineAndCompile()
                         if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
                         if(HaltedIPtr) {
                             halFlags|=HAL_HALTED;
-                            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+                            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
                             if(Exceptions&EX_AUTORESUME) {
                                 halFlags|=HAL_AUTORESUME;
                                 Exceptions=0;
                             }
                         }
-                        else halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
+                        else halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
 
                     }
                     else {
@@ -287,14 +287,14 @@ BINT endCmdLineAndCompile()
                         if(CurOpcode==CMD_ENDOFCODE) rplClearErrors();
                         if(HaltedIPtr) {
                             halFlags|=HAL_HALTED;
-                            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+                            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
 
                             if(Exceptions&EX_AUTORESUME) {
                                 halFlags|=HAL_AUTORESUME;
                                 Exceptions=0;
                             }
                         }
-                        else halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
+                        else halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
 
                     }
                 }
@@ -434,7 +434,7 @@ if(iseval) {
     {
         // SOMEBODY CALLED EXITRPL EXPLICITLY
         // EVERYTHING WAS COMPLETELY CLEANED UP AND RESET
-        halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
+        halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
         break;
     }
     case NEEDS_CLEANUP:
@@ -446,7 +446,7 @@ if(iseval) {
             // BLAME THE ERROR ON THE COMMAND WE CALLED
             if(BlameCmd!=0) rplBlameError(BlameCmd);
         }
-        else { rplCleanup(); halFlags&=~(HAL_HALTED|HAL_AUTORESUME); }
+        else { rplCleanup(); halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME); }
         if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
         if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
         break;
@@ -461,7 +461,7 @@ if(iseval) {
         {
             // THE CODE HALTED SOMEWHERE INSIDE!
             halFlags|=HAL_HALTED;
-            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
 
             if(Exceptions&EX_AUTORESUME) {
                 halFlags|=HAL_AUTORESUME;
@@ -477,14 +477,14 @@ if(iseval) {
                 if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
                 if(HaltedIPtr) {
                     halFlags|=HAL_HALTED;
-                    if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+                    if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
 
                     if(Exceptions&EX_AUTORESUME) {
                         halFlags|=HAL_AUTORESUME;
                         Exceptions=0;
                     }
                 }
-                else halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
+                else halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
 
             }
             else {
@@ -496,14 +496,14 @@ if(iseval) {
                     rplClearErrors();
                     if(HaltedIPtr) {
                         halFlags|=HAL_HALTED;
-                        if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+                        if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
 
                         if(Exceptions&EX_AUTORESUME) {
                             halFlags|=HAL_AUTORESUME;
                             Exceptions=0;
                         }
                     }
-                    else halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
+                    else halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
 
             }
         }
@@ -549,7 +549,7 @@ if(iseval) {
     {
         // SOMEBODY CALLED EXITRPL EXPLICITLY
         // EVERYTHING WAS COMPLETELY CLEANED UP AND RESET
-        halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
+        halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
         break;
     }
     case NEEDS_CLEANUP:
@@ -561,7 +561,7 @@ if(iseval) {
             // BLAME THE ERROR ON THE COMMAND WE CALLED
             if(BlameCmd!=0) rplBlameError(BlameCmd);
         }
-        else { rplCleanup(); halFlags&=~(HAL_HALTED|HAL_AUTORESUME); }
+        else { rplCleanup(); halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME); }
         if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
         if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
         break;
@@ -576,7 +576,7 @@ if(iseval) {
         {
             // THE CODE HALTED SOMEWHERE INSIDE!
             halFlags|=HAL_HALTED;
-            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
 
             if(Exceptions&EX_AUTORESUME) {
                 halFlags|=HAL_AUTORESUME;
@@ -593,14 +593,14 @@ if(iseval) {
                 if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
                 if(HaltedIPtr) {
                     halFlags|=HAL_HALTED;
-                    if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+                    if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
 
                     if(Exceptions&EX_AUTORESUME) {
                         halFlags|=HAL_AUTORESUME;
                         Exceptions=0;
                     }
                 }
-                else halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
+                else halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
 
             }
             else {
@@ -612,14 +612,14 @@ if(iseval) {
                     rplClearErrors();
                     if(HaltedIPtr) {
                         halFlags|=HAL_HALTED;
-                        if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF;
+                        if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
 
                         if(Exceptions&EX_AUTORESUME) {
                             halFlags|=HAL_AUTORESUME;
                             Exceptions=0;
                         }
                     }
-                    else halFlags&=~(HAL_HALTED|HAL_AUTORESUME);
+                    else halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
 
             }
         }
@@ -4920,6 +4920,16 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
             halEnterPowerOff();
             return;
         }
+
+        if(halFlags&HAL_FASTAUTORESUME) {
+            halSetBusyHandler();
+            jobdone=isidle=0;
+            halFlags&=~HAL_FASTAUTORESUME;
+            uiCmdRun(CMD_CONT);   // AUTOMATICALLY CONTINUE EXECUTION BEFORE PROCESSING ANY KEYS
+            halScreen.DirtyFlag|=CMDLINE_ALLDIRTY|STACK_DIRTY|STAREA_DIRTY|MENU1_DIRTY|MENU2_DIRTY|FORM_DIRTY;
+            continue;
+        }
+
 
         if(Exceptions) {
             halShowErrorMsg();

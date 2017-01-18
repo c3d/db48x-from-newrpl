@@ -27,14 +27,29 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(SETSTKFONT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)) \
+    ECMD(TOSYSBITMAP,"→SYSBITMAP",MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
+
+#define ERROR_LIST \
+    ERR(BITMAPEXPECTED,0), \
+    ERR(UNSUPPORTEDBITMAP,1), \
+    ERR(INVALIDCHECKSUM,2), \
+    ERR(UNEXPECTEDENDOFDATA,3)
 
 
 
 // ADD MORE OPCODES HERE
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
-#define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
+#define LIBRARY_ASSIGNED_NUMBERS \
+    LIBRARY_NUMBER, \
+    LIBRARY_NUMBER+1, \
+    LIBRARY_NUMBER+2, \
+    LIBRARY_NUMBER+3, \
+    LIBRARY_NUMBER+4, \
+    LIBRARY_NUMBER+5, \
+    LIBRARY_NUMBER+6, \
+    LIBRARY_NUMBER+7
+
 
 
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
@@ -48,26 +63,32 @@
 // ************************************
 
 
-
-// THIS LIBRARY DEPENDS ON THE FONTS INSTALLED IN THE FIRMWARE
-// SO IT'S NOT HARDWARE-INDEPENDENT.
+INCLUDE_ROMOBJECT(LIB_MSGTABLE);
+INCLUDE_ROMOBJECT(LIB_HELPTABLE);
+INCLUDE_ROMOBJECT(lib80_menu);
 
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
-    (WORDPTR)Font_5A,
-    (WORDPTR)Font_5B,
-    (WORDPTR)Font_5C,
-    (WORDPTR)Font_6A,
-    (WORDPTR)Font_6m,
-    (WORDPTR)Font_7A,
-    (WORDPTR)Font_8A,
-    (WORDPTR)Font_8B,
-    (WORDPTR)Font_8C,
-    (WORDPTR)Font_8D,
-    0
+    (WORDPTR)LIB_MSGTABLE,
+    (WORDPTR)LIB_HELPTABLE,
+    (WORDPTR)lib80_menu
+
 };
+
+const char * const bitmap_modes[]={
+    "MONO",
+    "16GR",
+    "256G",
+    "64KC",
+    "ARGB",
+    "OTHR",
+    "INVA",
+    "INVA"
+};
+
+
 
 
 
@@ -95,8 +116,8 @@ void LIB_HANDLER()
 
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
-
-        if((TokenLen==8) && (!utf8ncmp((char *)TokenStart,"FONTDATA",8))) {
+    {
+        if((TokenLen==10) && (!utf8ncmp((char *)TokenStart,"BITMAPDATA",7))) {
 
             ScratchPointer4=CompileEnd;
             rplCompileAppend(MKPROLOG(LIBRARY_NUMBER,0));
@@ -108,50 +129,112 @@ void LIB_HANDLER()
             // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
             // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
 
-        RetNum=ERR_NOTMINE;
-        //libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
      return;
+    }
     case OPCODE_COMPILECONT:
     {
-        if(OBJSIZE(*ScratchPointer4)==0) {
-            // NEED TO OBTAIN THE SIZE IN WORDS FIRST
-            // GIVEN AS A HEX NUMBER
+        if((LIBNUM(*ScratchPointer4)&~7)!=LIBRARY_NUMBER) {
+            // SOMETHING BAD HAPPENED, THERE'S NO BMPDATA HEADER
+            RetNum=ERR_SYNTAX;
+            return;
+        }
 
-            if((BINT)TokenLen!=(BYTEPTR)BlankStart-(BYTEPTR)TokenStart) {
+        if(!(*ScratchPointer4&0x10000)) {
+            // NEED TO INPUT THE BITMAP TYPE IN 4-LETTERS: MONO,16GR,256G,64KC,ARGB,OTHR
+            if(((BINT)TokenLen!=(BYTEPTR)BlankStart-(BYTEPTR)TokenStart)||(TokenLen!=4)) {
                 // THERE'S UNICODE CHARACTERS IN BETWEEN, THAT MAKES IT AN INVALID STRING
+                // OR THERE'S NOT 4 CHARACTERS
+                rplError(ERR_UNSUPPORTEDBITMAP);
                 RetNum=ERR_SYNTAX;
                 return;
             }
-
-            BYTEPTR ptr=(BYTEPTR)TokenStart;
-            WORD value=0;
-            BINT digit;
-            while(ptr<(BYTEPTR)BlankStart) {
-                if((*ptr>='0')&&(*ptr<='9')) digit=*ptr-'0';
-                else if((*ptr>='A')&&(*ptr<='F')) digit=*ptr-'A';
-                    else if((*ptr>='a')&&(*ptr<='f')) digit=*ptr-'a';
-                    else {
-                    RetNum=ERR_SYNTAX;
-                    return;
-                    }
-                value<<=4;
-                value|=digit;
-                ++ptr;
-            }
-
-            // WE GOT THE PAYLOAD SIZE IN WORDS
-            if(value>0x3ffff) {
-                RetNum=ERR_INVALID;
+            if(!utf8ncmp((char *)TokenStart,"MONO",4)) *ScratchPointer4|=BITMAP_RAWMONO|0x10000;
+            else if(!utf8ncmp((char *)TokenStart,"16GR",4)) *ScratchPointer4|=BITMAP_RAW16G|0x10000;
+            else if(!utf8ncmp((char *)TokenStart,"256G",4)) *ScratchPointer4|=BITMAP_RAW256G|0x10000;
+            else if(!utf8ncmp((char *)TokenStart,"64KC",4)) *ScratchPointer4|=BITMAP_RAW64KC|0x10000;
+            else if(!utf8ncmp((char *)TokenStart,"ARGB",4)) *ScratchPointer4|=BITMAP_RAWARGB|0x10000;
+            else if(!utf8ncmp((char *)TokenStart,"OTHR",4)) *ScratchPointer4|=BITMAP_EXTERNAL|0x10000;
+            else {
+                rplError(ERR_UNSUPPORTEDBITMAP);
+                RetNum=ERR_SYNTAX;
                 return;
             }
-
-            *ScratchPointer4=MKPROLOG(LIBRARY_NUMBER,value);
             RetNum=OK_NEEDMORE;
             return;
-
         }
 
+            // HERE WE ALREADY HAVE THE TYPE OF BITMAP
+
+
+
+       if(!(*ScratchPointer4&0x20000)) {
+                // NEED TO CAPTURE THE WIDTH AND HEIGHT AS INTEGERS
+                WORD value=0;
+                BINT digit;
+                BYTEPTR ptr=(BYTEPTR)TokenStart;
+
+                while(ptr<(BYTEPTR)BlankStart) {
+                    if((*ptr>='0')&&(*ptr<='9')) digit=*ptr-'0';
+                    else {
+                        RetNum=ERR_SYNTAX;
+                        return;
+                        }
+                    value*=10;
+                    value+=digit;
+                    ++ptr;
+                }
+
+               rplCompileAppend(value);
+
+               // IF THERE WERE 2 NUMBERS ALREADY, THEN MARK THE SIZE AS DONE
+               if(CompileEnd-ScratchPointer4>=3) *ScratchPointer4|=0x20000;
+               RetNum=OK_NEEDMORE;
+               return;
+       }
+
+
+       // HERE WE ALREADY HAVE THE BITMAP TYPE, WIDTH AND HEIGHT
+
+
         // WE HAVE A SIZE
+       WORD totalsize;
+
+       if((*ScratchPointer4&0xff)==BITMAP_EXTERNAL) {
+        // THE SIZE IS IN THE FIRST WORD, GET A MINIMAL OF 1 WORDS
+        totalsize=CompileEnd-ScratchPointer4-3;
+        if(LIBNUM(*ScratchPointer4)&1) totalsize-=2;
+        if(totalsize>=1) {
+            // WE ALREADY RECOVERED THE SIZE OF THE OBJECT
+            totalsize=ScratchPointer4[3];
+        }
+        else totalsize=0xffffffff;
+       }
+       else {
+        totalsize=ScratchPointer4[1]*ScratchPointer4[2];
+        switch(*ScratchPointer4&0xff)
+        {
+        case BITMAP_RAWMONO:
+        break;
+        case BITMAP_RAW16G:
+            totalsize*=4;
+            break;
+        case BITMAP_RAW256G:
+            totalsize*=8;
+            break;
+        case BITMAP_RAW64KC:
+            totalsize*=16;
+            break;
+        case BITMAP_RAWARGB:
+        default:
+            totalsize*=32;
+            break;
+        }
+        totalsize+=31;
+        totalsize>>=5;
+       }
+
+
         // DO WE NEED ANY MORE DATA?
 
         BYTEPTR ptr=(BYTEPTR)TokenStart;
@@ -171,9 +254,7 @@ void LIB_HANDLER()
             *ScratchPointer4&=~0x00100000;
         }
 
-        while((CompileEnd-ScratchPointer4-1)<(BINT)OBJSIZE(*ScratchPointer4))
-        {
-            do {
+       do {
                 if((*ptr>='0')&&(*ptr<='9')) dig=(*ptr+4);
                 else if((*ptr>='A')&&(*ptr<='Z')) dig=(*ptr-65);
                 else if((*ptr>='a')&&(*ptr<='z')) dig=(*ptr-71);
@@ -188,11 +269,10 @@ void LIB_HANDLER()
             // STILL NEED MORE WORDS, KEEP COMPILING
             if(ndigits==5) {
                 value<<=2;
-
-
                 value|=dig&3;
                 checksum+=dig&3;
                 if((checksum&0xf)!=((dig>>2)&0xf)) {
+                    rplError(ERR_INVALIDCHECKSUM);
                     RetNum=ERR_INVALID;
                     return;
                 }
@@ -210,18 +290,28 @@ void LIB_HANDLER()
             }
             ++ptr;
             } while(ptr!=(BYTEPTR)BlankStart);
+
             if(ndigits) {
                 // INCOMPLETE WORD, PREPARE FOR RESUME ON NEXT TOKEN
                 rplCompileAppend(value);
                 rplCompileAppend(ndigits | (checksum<<16));
                 *ScratchPointer4|=0x00100000;
             }
+           else {
+                if((CompileEnd-ScratchPointer4-3)==totalsize) {
+                    //   DONE!  FIX THE PROLOG WITH THE RIGHT LIBRARY NUMBER AND SIZE
+                    *ScratchPointer4=MKPROLOG(DOBITMAP+(*ScratchPointer4&0xff),totalsize+2);
+                    RetNum=OK_CONTINUE;
+                    return;
+                }
+                RetNum=ERR_SYNTAX;
+                return;
+            }
 
-
-        }
-
-        RetNum=OK_CONTINUE;
+        // END OF TOKEN, NEED MORE!
+        RetNum=OK_NEEDMORE;
         return;
+
      }
     case OPCODE_DECOMPEDIT:
 
@@ -233,23 +323,30 @@ void LIB_HANDLER()
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
         if(ISPROLOG(*DecompileObject)) {
-            // DECOMPILE FONT
+            // DECOMPILE BITMAP
 
-            rplDecompAppendString((BYTEPTR)"FONTDATA ");
-            BINT size=OBJSIZE(*DecompileObject);
-            BINT k,zero=1,nibble;
-            for(k=4;k>=0;--k) {
-                nibble= (size>>(k*4))&0xf;
-                if(!zero || nibble) {
-                    nibble+=48;
-                    if(nibble>=58) nibble+=7;
-                    rplDecompAppendChar(nibble);
-                    zero=0;
-                }
-            }
+            rplDecompAppendString((BYTEPTR)"BITMAPDATA ");
+
+            // TYPE
+            rplDecompAppendString((BYTEPTR)bitmap_modes[LIBNUM(*DecompileObject)&7]);
 
             rplDecompAppendChar(' ');
 
+            // SIZE
+            BYTE buffer[50];
+            BINT len=rplIntToString((BINT64)DecompileObject[1],DECBINT,buffer,buffer+50);
+
+            rplDecompAppendString2(buffer,len);
+
+            rplDecompAppendChar(' ');
+
+            len=rplIntToString((BINT64)DecompileObject[2],DECBINT,buffer,buffer+50);
+
+            rplDecompAppendString2(buffer,len);
+
+            rplDecompAppendChar(' ');
+
+            BINT size=OBJSIZE(*DecompileObject)-2;
 
             // OUTPUT THE DATA BY WORDS, WITH FOLLOWING ENCODING:
             // 32-BIT WORDS GO ENCODED IN 6 TEXT CHARACTERS
@@ -258,11 +355,13 @@ void LIB_HANDLER()
             // LAST PACKET HAS 2 LSB BITS TO COMPLETE THE 32-BIT WORDS
             // AND 4-BIT CHECKSUM. THE CHECKSUM IS THE SUM OF THE (16) 2-BIT PACKS IN THE WORD, MODULO 15
 
+
+
             BYTE encoder[7];
 
             encoder[6]=0;
 
-            WORDPTR ptr=DecompileObject+1;
+            WORDPTR ptr=DecompileObject+3;
             BINT nwords=0;
 
             while(size) {
@@ -400,6 +499,36 @@ void LIB_HANDLER()
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         return;
 
+    case OPCODE_LIBMENU:
+        // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
+        // MUST RETURN A MENU LIST IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        if(MENUNUMBER(MenuCodeArg)>0) { RetNum=ERR_NOTMINE; return; }
+        // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
+        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+2];
+        RetNum=OK_CONTINUE;
+       return;
+    }
+
+    case OPCODE_LIBHELP:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN CmdHelp
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
+       return;
+    }
+    case OPCODE_LIBMSG:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+
+        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+       return;
+    }
+
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;
         RetNum=OK_CONTINUE;
@@ -425,3 +554,4 @@ void LIB_HANDLER()
 
 
 #endif
+
