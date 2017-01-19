@@ -280,8 +280,10 @@ void halRedrawStack(DRAWSURFACE *scr)
 
       if(level<=depth) {
       // DRAW THE OBJECT
-
-
+        scr->x=xright+1;
+        scr->y=ytop;
+        uiDrawObject(rplPeekData(level),scr,levelfnt);
+        /*
       // TODO: CHANGE DECOMPILE INTO PROPER DISPLAY FUNCTION
       string=rplDecompile(rplPeekData(level),0);
 
@@ -300,6 +302,8 @@ void halRedrawStack(DRAWSURFACE *scr)
       else {
           DrawText(SCREEN_WIDTH-44,ytop,"~~Unknown~~",levelfnt,15,scr);
       }
+       */
+
        }
         y=ytop;
         ++level;

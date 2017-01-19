@@ -67,3 +67,9 @@ to the stack
  → O "
 
 }
+
+
+@ OTHER TRANSLATABLE GUI OBJECTS HERE
+
+@#name invalid_string
+"~INVALID~"

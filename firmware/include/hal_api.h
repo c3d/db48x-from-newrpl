@@ -348,7 +348,7 @@ enum {
 // DEFAULT COLOR MODE OF THE SYSTEM
 
 #define DEFAULTBITSPERPIXEL 4
-
+#define DEFAULTBITMAPMODE   1       // SAME AS BITMAP_RAW16G
 
 
 // MAIN EXCEPTION PROCESSOR
@@ -1319,6 +1319,7 @@ void uiClearRenderCache();
 void uiAddCacheEntry(WORDPTR object,WORDPTR bitmap);
 WORDPTR uiFindCacheEntry(WORDPTR object);
 void uiDrawObject(WORDPTR object,DRAWSURFACE *scr,UNIFONT *font);
+WORDPTR uiRenderObject(WORDPTR object,UNIFONT *font);
 
 
 

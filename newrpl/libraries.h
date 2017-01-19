@@ -258,6 +258,12 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define ISCOMMENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOCOMMENT))
 
+#define ISBITMAP(prolog)   (ISPROLOG(prolog) && ((LIBNUM(prolog)&~7)==DOBITMAP))
+
+
+
+
+
 #define ANGLEMODE(prolog) ( (ISANGLE(prolog)? (BINT)(LIBNUM(prolog)&3):(BINT)ANGLENONE) )
 
 // THIS IS TO CHECK IF AN OBJECT IS "FALSE", WHICH CAN BE THE BINT0 OR THE REAL0
@@ -435,6 +441,8 @@ extern const WORD savedcmdline_ident[];
 extern const WORD customkey_ident[];
 extern const WORD savedflags_ident[];
 extern const WORD error_reenter_seco[];
+extern const WORD invalid_string[];
+
 
 
 

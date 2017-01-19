@@ -72,7 +72,7 @@ WORDPTR uiAllocNewBitmap(BINT width, BINT height)
 
     WORDPTR newobj=rplAllocTempOb(bits+2);
     if(!newobj) return 0;
-    newobj[0]=MKPROLOG(DOBITMAP,bits+2);
+    newobj[0]=MKPROLOG(DOBITMAP+DEFAULTBITMAPMODE,bits+2);
     newobj[1]=width;
     newobj[2]=height;
 
@@ -83,7 +83,7 @@ WORDPTR uiAllocNewBitmap(BINT width, BINT height)
 
 
 
-// RENDER AN OBJECT TO THE GIVEN DRAWSURFACE
+// RENDER AN OBJECT TO THE GIVEN DRAWSURFACE, USE CACHE IF POSSIBLE
 
 void uiDrawObject(WORDPTR object,DRAWSURFACE *scr,UNIFONT *font)
 {
@@ -92,25 +92,72 @@ void uiDrawObject(WORDPTR object,DRAWSURFACE *scr,UNIFONT *font)
 
     WORDPTR bmp=uiFindCacheEntry(object);
 
-    if(!bmp) {
-        // OBJECT WAS NOT IN CACHE, RENDER IT AND ADD IT TO CACHE
+    if(!bmp) bmp=uiRenderObject(object,font);
 
+    if(bmp) {
+        // COPY IT TO DESTINATION
+           DRAWSURFACE tsurf;
+
+           tsurf.addr=(int *)(bmp+3);
+           tsurf.width=bmp[1];
+           tsurf.clipx=0;
+           tsurf.clipx2=bmp[1]-1;
+           tsurf.clipy=0;
+           tsurf.clipy2=bmp[2]-1;
+           tsurf.x=0;
+           tsurf.y=0;
+
+           ggl_bitbltclip(scr,&tsurf,bmp[1],bmp[2]);
+
+           return;
+    }
+
+        // DRAW DIRECTLY, DON'T CACHE SOMETHING WE COULDN'T RENDER
+
+    WORDPTR string=(WORDPTR)invalid_string;
+
+    // NOW PRINT THE STRING OBJECT
+        BINT nchars=rplStrSize(string);
+        BYTEPTR charptr=(BYTEPTR) (string+1);
+
+        DrawTextN(scr->x,scr->y,(char *)charptr,(char *)charptr+nchars,font,15,scr);
+
+}
+
+
+// RENDER AN OBJECT TO A BITMAP, USE CACHE IF POSSIBLE
+
+WORDPTR uiRenderObject(WORDPTR object,UNIFONT *font)
+{
+
+    // FIRST, CHECK IF THE OBJECT IS IN THE CACHE
+
+    WORDPTR bmp=uiFindCacheEntry(object);
+
+    if(bmp) return bmp;
+
+
+    // OBJECT WAS NOT IN CACHE, RENDER IT AND ADD IT TO CACHE
 
         // TODO: CHANGE DECOMPILE INTO PROPER DISPLAY FUNCTION
         WORDPTR string;
         string=rplDecompile(object,0);
 
-    if(string) {
+    if(!string) string=(WORDPTR)invalid_string;
+
     // NOW PRINT THE STRING OBJECT
         BINT nchars=rplStrSize(string);
         BYTEPTR charptr=(BYTEPTR) (string+1);
         BINT numwidth=StringWidthN((char *)charptr,(char *)charptr+nchars,font);
         WORDPTR newbmp=uiAllocNewBitmap(numwidth,font->BitmapHeight);
         if(newbmp) {
+                // CLEAR THE BITMAP FIRST
+                memsetw(newbmp+3,0,OBJSIZE(*newbmp)-2);
+
                 // DRAW TO CACHE FIRST, THEN BITBLT TO SCREEN
                 DRAWSURFACE tsurf;
 
-                tsurf.addr=newbmp+3;
+                tsurf.addr=(int *) (newbmp+3);
                 tsurf.width=numwidth;
                 tsurf.clipx=0;
                 tsurf.clipx2=numwidth-1;
@@ -118,43 +165,19 @@ void uiDrawObject(WORDPTR object,DRAWSURFACE *scr,UNIFONT *font)
                 tsurf.clipy2=font->BitmapHeight-1;
                 tsurf.x=0;
                 tsurf.y=0;
+
                 DrawTextN(0,0,(char *)charptr,(char *)charptr+nchars,font,15,&tsurf);
-
-                // COPY TO DESTINATION
-
-                ggl_bitbltclip(scr,&tsurf,numwidth,font->BitmapHeight);
 
                 // AND ADD TO CACHE
 
                 uiAddCacheEntry(object,newbmp);
 
+                return newbmp;
+
         }
         else {
             // CAN'T CACHE, DRAW DIRECTLY
-        DrawTextN(scr->x,scr->y,(char *)charptr,(char *)charptr+nchars,font,15,scr);
+            return 0;
         }
-    }
-    else {
-        // DRAW DIRECTLY, DON'T CACHE SOMETHING WE COULDN'T RENDER
-        DrawText(scr->x,scr->y,"~~Unknown~~",font,15,scr);
-    }
-
-     }
-    else {
-     // OBJECT WAS IN THE CACHE, JUST COPY IT TO DESTINATION
-        DRAWSURFACE tsurf;
-
-        tsurf.addr=bmp+3;
-        tsurf.width=bmp[1];
-        tsurf.clipx=0;
-        tsurf.clipx2=bmp[1]-1;
-        tsurf.clipy=0;
-        tsurf.clipy2=bmp[2]-1;
-        tsurf.x=0;
-        tsurf.y=0;
-
-        ggl_bitbltclip(scr,&tsurf,bmp[1],bmp[2]);
-
-    }
 
 }

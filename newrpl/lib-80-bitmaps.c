@@ -7,7 +7,7 @@
 
 #include "newrpl.h"
 #include "libraries.h"
-#include "hal.h"
+#include "ui.h"
 
 // *****************************
 // *** COMMON LIBRARY HEADER ***
@@ -88,8 +88,204 @@ const char * const bitmap_modes[]={
     "INVA"
 };
 
+// CONVERT RGB 0-255 TO GRAY 0-255 PER BT.709 HDTV FORMULA FOR LUMINANCE
+
+#define LUMINANCE(r,g,b) ((((r)*55+(g)*183+(b)*18)+128)>>8)
+#define RGB5TO8(comp) (((BINT)(comp)*2106)>>8)
+#define RGB6TO8(comp) (((BINT)(comp)*1036)>>8)
 
 
+// CONVERT A BITMAP FROM ANY FORMAT INTO THE DEFAULT DISPLAY FORMAT
+
+WORDPTR rplBmpToDisplay(WORDPTR bitmap)
+{
+    if(!ISBITMAP(*bitmap)) {
+        rplError(ERR_BITMAPEXPECTED);
+        return 0;
+    }
+
+
+    BINT type=LIBNUM(*bitmap)&7;
+
+    if(type==DEFAULTBITMAPMODE) return bitmap;  // NO CONVERSION NEEEDED
+
+    BINT width=(BINT)bitmap[1];
+    BINT height=(BINT)bitmap[2];
+
+    BINT totalsize=(width*height*DEFAULTBITSPERPIXEL)+31;
+
+    totalsize>>=5;  // BITMAP SIZE IN WORDS
+
+
+    WORDPTR newbmp=rplAllocTempOb(totalsize+2);
+    if(!newbmp) return 0;
+
+    BINT npixels=width*height;
+
+
+
+    // THIS IS FOR THE 50G HARDWARE, BUT FUTURE-PROOF FOR 16-BIT COLOR DISPLAYS AS WELL
+
+#if DEFAULTBITMAPMODE == BITMAP_RAW16G
+    switch(type)
+    {
+    case BITMAP_RAWMONO:
+
+    {
+        BYTEPTR destptr,srcptr;
+
+        BINT mask=1,destmask;
+        BINT pixel;
+
+        srcptr=(BYTEPTR)(bitmap+3);
+        destptr=(BYTEPTR)(newbmp+3);
+
+    while(npixels) {
+
+        // READ A PIXEL FROM SOURCE
+        pixel=*srcptr&mask;
+        // CONVERT TO PROPER FORMAT
+        if(pixel) pixel=0xf; else pixel=0;
+
+        // WRITE TO DESTINATION
+        if(!destmask) *destptr=(BYTE)pixel;
+        else *destptr|=(BYTE)(pixel<<4);
+
+        //INCREASE SOURCE POINTER
+        mask<<=1;
+        if(mask>128) { ++srcptr; mask>>=8; }
+
+        // INCREASE DEST PTR
+        destmask^=1;
+        if(!destmask) ++destptr;
+
+        --npixels;
+    }
+    break;
+
+
+    }
+
+    case BITMAP_RAW16G:
+    break;
+    case BITMAP_RAW256G:
+
+    {
+
+        BYTEPTR destptr,srcptr;
+
+        BINT destmask=0;
+        BINT pixel;
+
+        srcptr=(BYTEPTR)(bitmap+3);
+        destptr=(BYTEPTR)(newbmp+3);
+
+    while(npixels) {
+
+        // READ A PIXEL FROM SOURCE
+        pixel=*srcptr;
+        // CONVERT TO PROPER FORMAT
+        pixel=((255-pixel)+128)>>4;
+
+        // WRITE TO DESTINATION
+        if(!destmask) *destptr=(BYTE)pixel;
+        else *destptr|=(BYTE)(pixel<<4);
+
+        //INCREASE SOURCE POINTER
+        ++srcptr;
+
+        // INCREASE DEST PTR
+        destmask^=1;
+        if(!destmask) ++destptr;
+
+        --npixels;
+    }
+    break;
+    }
+    case BITMAP_RAW64KC:
+
+    {
+
+        BYTEPTR destptr,srcptr;
+
+        BINT destmask=0;
+        BINT pixel;
+
+        srcptr=(BYTEPTR)(bitmap+3);
+        destptr=(BYTEPTR)(newbmp+3);
+
+    while(npixels) {
+
+        // READ A PIXEL FROM SOURCE
+        pixel=srcptr[0]+256*srcptr[1];
+
+        // CONVERT TO PROPER FORMAT
+        pixel=LUMINANCE(RGB5TO8(pixel>>11),RGB6TO8((pixel>>5)&0x3f),RGB5TO8(pixel&0x1f));
+        pixel=((255-pixel)+128)>>4;
+
+        // WRITE TO DESTINATION
+        if(!destmask) *destptr=(BYTE)pixel;
+        else *destptr|=(BYTE)(pixel<<4);
+
+        //INCREASE SOURCE POINTER
+        srcptr+=2;
+
+        // INCREASE DEST PTR
+        destmask^=1;
+        if(!destmask) ++destptr;
+
+        --npixels;
+    }
+    break;
+    }
+
+    case BITMAP_RAWARGB:
+
+    {
+
+        BYTEPTR destptr,srcptr;
+
+        BINT destmask=0;
+        BINT pixel;
+
+        srcptr=(BYTEPTR)(bitmap+3);
+        destptr=(BYTEPTR)(newbmp+3);
+
+    while(npixels) {
+
+        // READ A PIXEL FROM SOURCE
+        //pixel=srcptr[0]+256*srcptr[1];
+
+        // CONVERT TO PROPER FORMAT
+        pixel=LUMINANCE(srcptr[2],srcptr[1],srcptr[0]);
+        pixel=((255-pixel)+128)>>4;
+
+        // WRITE TO DESTINATION
+        if(!destmask) *destptr=(BYTE)pixel;
+        else *destptr|=(BYTE)(pixel<<4);
+
+        //INCREASE SOURCE POINTER
+        srcptr+=4;
+
+        // INCREASE DEST PTR
+        destmask^=1;
+        if(!destmask) ++destptr;
+
+        --npixels;
+    }
+    break;
+    }
+
+
+
+    }
+#endif
+
+    // ALL PIXELS CONVERTED
+
+    return newbmp;
+
+}
 
 
 void LIB_HANDLER()

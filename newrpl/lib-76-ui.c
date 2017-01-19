@@ -60,6 +60,8 @@ INCLUDE_ROMOBJECT(lib76menu_main);
 INCLUDE_ROMOBJECT(lib76menu_clip);
 INCLUDE_ROMOBJECT(lib76menu_keyb);
 
+INCLUDE_ROMOBJECT(invalid_string);
+
 
 ROMOBJECT clipbd_ident[] = {
         MKPROLOG(DOIDENT,2),
@@ -81,6 +83,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)lib76menu_keyb,
 
     (WORDPTR)clipbd_ident,
+    (WORDPTR)invalid_string,
 
     0
 };
