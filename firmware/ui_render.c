@@ -181,3 +181,35 @@ WORDPTR uiRenderObject(WORDPTR object,UNIFONT *font)
         }
 
 }
+
+
+// DRAW A BITMAP INTO THE SURFACE. MUST BE SYSTEM-DEFAULT BITMAP
+void uiDrawBitmap(WORDPTR bmp,DRAWSURFACE *scr)
+{
+    if(bmp) {
+    // COPY IT TO DESTINATION
+       DRAWSURFACE tsurf;
+
+       tsurf.addr=(int *)(bmp+3);
+       tsurf.width=bmp[1];
+       tsurf.clipx=0;
+       tsurf.clipx2=bmp[1]-1;
+       tsurf.clipy=0;
+       tsurf.clipy2=bmp[2]-1;
+       tsurf.x=0;
+       tsurf.y=0;
+
+       ggl_bitbltclip(scr,&tsurf,bmp[1],bmp[2]);
+    }
+    else {
+        // DRAW DIRECTLY, SOMETHING WE COULDN'T RENDER
+
+    WORDPTR string=(WORDPTR)invalid_string;
+
+    // NOW PRINT THE STRING OBJECT
+        BINT nchars=rplStrSize(string);
+        BYTEPTR charptr=(BYTEPTR) (string+1);
+
+        DrawTextN(scr->x,scr->y,(char *)charptr,(char *)charptr+nchars,halScreen.StackFont,15,scr);
+    }
+}

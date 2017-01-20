@@ -226,6 +226,9 @@ void halInt2String(int num,char *str)
     } while(num!=0);
 
     if(firstdigit) *ptr++='0';
+    else {
+        while(pow10idx<19) { *ptr++='0'; ++pow10idx; }
+    }
     *ptr=0;
 }
 
@@ -250,66 +253,177 @@ void halRedrawStack(DRAWSURFACE *scr)
         halScreen.DirtyFlag&=~STACK_DIRTY;
         return;
     }
+
+  int oldclipx,oldclipx2,oldclipy,oldclipy2;
   int ystart=halScreen.Form,yend=ystart+halScreen.Stack;
   int depth=rplDepthData(),level=1;
-  int objheight,ytop,y,numwidth,xright,xobj;
+  int objheight,ytop,y,numwidth,xright;
+  BINT width,height;
   char num[16];
-  WORDPTR string;
-  BINT nchars;
-  BYTEPTR charptr;
   UNIFONT *levelfnt;
+  WORDPTR object;
+
+  oldclipx=scr->clipx;
+  oldclipy=scr->clipy;
+  oldclipx2=scr->clipx2;
+  oldclipy2=scr->clipy2;
 
 
-  y=yend;
+  if(halScreen.KeyContext&CONTEXT_INTSTACK) {
+
+      // ENSURE THE STACK POINTER IS COMPLETELY INSIDE THE SCREEN
+
+      if(halScreen.StkVisibleLvl<0) {
+          // NEED TO RECOMPUTE THIS
+      int k=halScreen.StkPointer;
+      int objh,stkheight=0;
+
+      if(k==1) levelfnt=halScreen.Stack1Font;
+      else levelfnt=halScreen.StackFont;
+        object=uiRenderObject(rplPeekData(k),levelfnt);
+        // GET THE SIZE OF THE OBJECT
+
+        if(!object) objh=levelfnt->BitmapHeight;
+        else objh=object[2];
+
+        int ypref=ystart+(yend-ystart)/4+objh/2;
+        if(ypref>yend) ypref=yend-objh;
+        if(ypref<ystart) ypref=ystart;
+
+      for(;k>0;--k) {
+          if(k==1) levelfnt=halScreen.Stack1Font;
+          else levelfnt=halScreen.StackFont;
+            object=uiRenderObject(rplPeekData(k),levelfnt);
+            // GET THE SIZE OF THE OBJECT
+
+            if(!object) stkheight+=levelfnt->BitmapHeight;
+            else stkheight+=object[2];
+
+            if(ypref+stkheight>yend) {
+                y=ypref+stkheight;
+                halScreen.StkVisibleLvl=k;
+                halScreen.StkVisibleOffset=yend-y;
+                break;
+            }
+
+      }
+      if(!k) { halScreen.StkVisibleLvl=1; halScreen.StkVisibleOffset=0; }
+
+
+
+       }
+
+      xright=12;
+  }
+  else xright=6;
+
+  level=halScreen.StkVisibleLvl;
+  y=yend-halScreen.StkVisibleOffset;
+
+  if(depth>=10) xright+=6;
+  if(depth>=100) xright+=6;
+  if(depth>=1000) xright+=6;
+  if(depth>=10000) xright+=6;
+
+  ggl_cliprect(scr,scr->clipx,ystart,scr->clipx2,yend-1,0);  // CLEAR RECTANGLE
+  ggl_clipvline(scr,xright,ystart,yend-1,ggl_mkcolor(0x8));
 
   while(y>ystart) {
       if(level==1) levelfnt=halScreen.Stack1Font;
       else levelfnt=halScreen.StackFont;
-      // DRAW THE NUMBER
-      if(level<=depth) objheight=halGetDispObjectHeight(rplPeekData(level),levelfnt);
-      else {
-          objheight=levelfnt->BitmapHeight;
-      }
-      ytop=y-objheight;
-      halInt2String(level,num);
-      numwidth=StringWidth(num,levelfnt);
-      xright=numwidth>12? numwidth:12;
-      ggl_cliprect(scr,scr->clipx,ytop,scr->clipx2,y-1,0);  // CLEAR RECTANGLE
-      DrawText(xright-numwidth,ytop,num,levelfnt,0xf,scr);
-      ggl_clipvline(scr,xright,ytop,y-1,ggl_mkcolor(0x8));
+
+      // GET OBJECT SIZE
 
       if(level<=depth) {
       // DRAW THE OBJECT
         scr->x=xright+1;
         scr->y=ytop;
-        uiDrawObject(rplPeekData(level),scr,levelfnt);
-        /*
-      // TODO: CHANGE DECOMPILE INTO PROPER DISPLAY FUNCTION
-      string=rplDecompile(rplPeekData(level),0);
+        object=uiRenderObject(rplPeekData(level),levelfnt);
+        // GET THE SIZE OF THE OBJECT
 
-      if(string) {
-      // NOW PRINT THE STRING OBJECT
-          nchars=rplStrSize(string);
-          charptr=(BYTEPTR) (string+1);
-          numwidth=StringWidthN((char *)charptr,(char *)charptr+nchars,levelfnt);
-          xobj=SCREEN_WIDTH-numwidth;
-          if(xobj<=xright) {
-              xobj=xright+1;
-              // TODO: OBJECT WILL BE TRUNCATED ON THE RIGHT
-          }
-          DrawTextN(xobj,ytop,(char *)charptr,(char *)charptr+nchars,levelfnt,15,scr);
-      }
-      else {
-          DrawText(SCREEN_WIDTH-44,ytop,"~~Unknown~~",levelfnt,15,scr);
-      }
-       */
+        if(!object) {
+            // DRAW DIRECTLY, DON'T CACHE SOMETHING WE COULDN'T RENDER
 
-       }
+        WORDPTR string=(WORDPTR)invalid_string;
+
+        // NOW SIZE THE STRING OBJECT
+            BINT nchars=rplStrSize(string);
+            BYTEPTR charptr=(BYTEPTR) (string+1);
+
+            width=StringWidthN((char *)charptr,(char *)charptr+nchars,levelfnt);
+            height=levelfnt->BitmapHeight;
+        }
+        else {
+          width=(BINT)object[1];
+          height=(BINT)object[2];
+        }
+
+
+        objheight=height;
+        if(objheight>4*levelfnt->BitmapHeight) objheight=4*levelfnt->BitmapHeight;      // MAXIMUM HEIGHT FOR A STACK ITEM IS 4 LINES, AFTER THAT CLIP IT
+
+       } else {
+          object=0;
+          objheight=levelfnt->BitmapHeight;
+      }
+
+
+      ytop=y-objheight;
+
+      // SET CLIPPING REGION
+
+      scr->clipx=0;
+      scr->clipx2=SCREEN_WIDTH-1;
+      scr->clipy=(ytop<0)? 0:ytop;
+      scr->clipy2=(y>yend)? yend-1:y-1;
+
+
+      // DRAW THE NUMBER
+      halInt2String(level,num);
+      numwidth=StringWidth(num,levelfnt);
+
+      DrawText(xright-numwidth,ytop,num,levelfnt,0xf,scr);
+
+      if(level<=depth) {
+
+      if(halScreen.KeyContext&CONTEXT_INTSTACK) {
+          // HIGHLIGHT SELECTED ITEMS
+        if((level>=halScreen.StkSelStart)&&(level<=halScreen.StkSelEnd)) ggl_cliprect(scr,0,ytop,xright-1,y-1,0x6);
+         // DRAW THE POINTER
+        if(level==halScreen.StkPointer)    DrawText(0,ytop,"▶",levelfnt,0xf,scr);
+        }
+
+
+
+
+      // DO PROPER LAYOUT
+
+      BINT x=SCREEN_WIDTH-width;  // RIGHT-JUSTIFY ITEMS
+      if(x<xright+1) x=xright+1;  // UNLESS IT DOESN'T FIT, THEN LEFT JUSTIFY
+
+      // DISPLAY THE ITEM
+
+      scr->clipx=xright+1;
+
+      scr->x=x;
+      scr->y=ytop;
+
+      uiDrawBitmap(object,scr);
+
+      }
+
         y=ytop;
         ++level;
   }
 
-    halScreen.DirtyFlag&=~STACK_DIRTY;
+
+
+  scr->clipx=oldclipx;
+  scr->clipx2=oldclipx2;
+  scr->clipy=oldclipy;
+  scr->clipy2=oldclipy2;
+
+  halScreen.DirtyFlag&=~STACK_DIRTY;
 }
 
 
@@ -343,6 +457,9 @@ halSetNotification(N_DISKACCESS,0);
 uiCloseCmdLine();
 halScreen.StkUndolevels=8;
 halScreen.StkCurrentLevel=0;
+
+halScreen.StkVisibleLvl=1;
+halScreen.StkVisibleOffset=0;
 
 }
 

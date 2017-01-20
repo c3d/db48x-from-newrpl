@@ -1991,6 +1991,14 @@ void cancelKeyHandler(BINT keymsg)
         // END THE COMMAND LINE
      endCmdLine();
    }
+
+    if((halGetContext()&CONTEXT_INTSTACK)) {
+        // END INTERACTIVE STACK
+        halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
+        halScreen.DirtyFlag|=STACK_DIRTY;
+   }
+
+
 }
 
 
@@ -2360,6 +2368,16 @@ void downKeyHandler(BINT keymsg)
                 }
 
             }
+
+        if(halGetContext()&CONTEXT_INTSTACK) {
+            if(halScreen.StkPointer>1) {
+                --halScreen.StkPointer;
+                halScreen.StkVisibleLvl=-1;
+                halScreen.DirtyFlag|=STACK_DIRTY;
+            }
+            return;
+        }
+
         // TODO: ADD OTHER CONTEXTS HERE
     }
 
@@ -2379,7 +2397,18 @@ void rsholddownKeyHandler(BINT keymsg)
         if(halGetContext()&CONTEXT_STACK) {
             // TODO: ??
             }
+        if(halGetContext()&CONTEXT_INTSTACK) {
+            if(halScreen.StkPointer>1) {
+                halScreen.StkPointer=halScreen.StkVisibleLvl-1;
+                if(halScreen.StkPointer<1) halScreen.StkPointer=1;
+                halScreen.StkVisibleLvl=-1;
+                halScreen.DirtyFlag|=STACK_DIRTY;
+            }
+            return;
+        }
         // TODO: ADD OTHER CONTEXTS HERE
+
+
     }
 
     else {
@@ -2397,6 +2426,16 @@ void rsdownKeyHandler(BINT keymsg)
         if(halGetContext()&CONTEXT_STACK) {
             // TODO: ??
             }
+        if(halGetContext()&CONTEXT_INTSTACK) {
+            if(halScreen.StkPointer>1) {
+                halScreen.StkPointer=1;
+                halScreen.StkVisibleLvl=1;
+                halScreen.StkVisibleOffset=0;
+                halScreen.DirtyFlag|=STACK_DIRTY;
+            }
+            return;
+        }
+
         // TODO: ADD OTHER CONTEXTS HERE
     }
 
@@ -2431,8 +2470,27 @@ void upKeyHandler(BINT keymsg)
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
-            // TODO: START INTERACTIVE STACK MANIPULATION HERE
+            // START INTERACTIVE STACK MANIPULATION HERE
+
+            if(rplDepthData()>0) {
+            halSetContext((halGetContext()&~CONTEXT_STACK)|CONTEXT_INTSTACK);
+
+            halScreen.StkPointer=1;
+            halScreen.StkSelStart=halScreen.StkSelEnd=-1;
+            halScreen.StkVisibleLvl=1;
+            halScreen.StkVisibleOffset=0;
+            halScreen.DirtyFlag|=STACK_DIRTY;
             }
+            return;
+            }
+        if(halGetContext()&CONTEXT_INTSTACK) {
+            if(halScreen.StkPointer<rplDepthData()) {
+                ++halScreen.StkPointer;
+                halScreen.StkVisibleLvl=-1;
+                halScreen.DirtyFlag|=STACK_DIRTY;
+            }
+            return;
+        }
         // TODO: ADD OTHER CONTEXTS HERE
     }
 
@@ -2452,6 +2510,16 @@ void rsholdupKeyHandler(BINT keymsg)
         if(halGetContext()&CONTEXT_STACK) {
             // TODO: START INTERACTIVE STACK MANIPULATION HERE
             }
+        if(halGetContext()&CONTEXT_INTSTACK) {
+            if(halScreen.StkPointer<rplDepthData()) {
+                halScreen.StkPointer+=5;
+                if(halScreen.StkPointer>=rplDepthData()) halScreen.StkPointer=rplDepthData();
+                halScreen.StkVisibleLvl=-1;
+                halScreen.DirtyFlag|=STACK_DIRTY;
+            }
+            return;
+        }
+
         // TODO: ADD OTHER CONTEXTS HERE
     }
 
@@ -2470,6 +2538,15 @@ void rsupKeyHandler(BINT keymsg)
         if(halGetContext()&CONTEXT_STACK) {
             // TODO: START INTERACTIVE STACK MANIPULATION HERE
             }
+        if(halGetContext()&CONTEXT_INTSTACK) {
+            if(halScreen.StkPointer!=rplDepthData()) {
+                halScreen.StkPointer=rplDepthData();
+                halScreen.StkVisibleLvl=-1;
+                halScreen.DirtyFlag|=STACK_DIRTY;
+            }
+            return;
+        }
+
         // TODO: ADD OTHER CONTEXTS HERE
     }
 

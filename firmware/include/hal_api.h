@@ -185,6 +185,13 @@ typedef struct {
     // VARIABLES FOR USER INTERFACE
     int StkUndolevels,StkCurrentLevel;
     int KeyContext;
+
+    // INTERACTIVE STACK VARIABLES
+    int StkPointer,StkVisibleLvl,StkSelStart,StkSelEnd;
+    int StkVisibleOffset;
+
+
+
 } HALSCREEN;
 
 
@@ -1320,6 +1327,7 @@ void uiAddCacheEntry(WORDPTR object,WORDPTR bitmap);
 WORDPTR uiFindCacheEntry(WORDPTR object);
 void uiDrawObject(WORDPTR object,DRAWSURFACE *scr,UNIFONT *font);
 WORDPTR uiRenderObject(WORDPTR object,UNIFONT *font);
+void uiDrawBitmap(WORDPTR bmp,DRAWSURFACE *scr);
 
 
 
