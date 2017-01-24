@@ -510,9 +510,7 @@ void LIB_HANDLER()
                   || ISSYMBOLIC(*b)
                   || ISIDENT(*b))) {
                 // MATRIX DIV BY SCALAR
-                rplCallOvrOperator((CMD_OVR_INV));
-                if(Exceptions) return;
-                rplMatrixMulScalar();
+                rplMatrixDivScalar();
 
                 return;
             }

@@ -471,6 +471,16 @@ void LIB_HANDLER()
     case OVR_ADD:
         // ADDITION IS A SPECIAL CASE, NEEDS TO KEEP ARGUMENTS FLAT
     {
+
+        // ALLOW LIST PROCESSING AND MATRIX PROCESSING FIRST
+        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))){
+            rplListBinaryDoCmd(rplPeekData(2),rplPeekData(1));
+            return;
+        }
+
+
+
+
         // FIRST, CHECK THAT ARGUMENTS ARE ACCEPTABLE FOR SYMBOLIC OPERATION
         if( (!rplIsAllowedInSymb(rplPeekData(2))) || (!rplIsAllowedInSymb(rplPeekData(1))))
         {
@@ -611,9 +621,17 @@ void LIB_HANDLER()
         {
         // BINARY OPERATORS
 
+
+        // ALLOW LIST PROCESSING AND MATRIX PROCESSING FIRST
+        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))){
+            rplListBinaryDoCmd(rplPeekData(2),rplPeekData(1));
+            return;
+        }
+
         // FIRST, CHECK THAT ARGUMENTS ARE ACCEPTABLE FOR SYMBOLIC OPERATION
         WORDPTR arg1=rplPeekData(2);
         WORDPTR arg2=rplPeekData(1);
+
         if( (!rplIsAllowedInSymb(arg1)) || (!rplIsAllowedInSymb(arg2)))
         {
             rplError(ERR_NOTALLOWEDINSYMBOLICS);
@@ -709,7 +727,14 @@ void LIB_HANDLER()
         return;
     }
     case SYMBEVAL1ERR:
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
+
         // JUST CLEANUP AND EXIT
+
         DSTop=rplUnprotectData();
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
@@ -824,6 +849,12 @@ void LIB_HANDLER()
         return;
     }
     case SYMBEVALERR:
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
+
         // JUST CLEANUP AND EXIT
         DSTop=rplUnprotectData();
         rplCleanupLAMs(0);
@@ -939,6 +970,12 @@ void LIB_HANDLER()
         return;
     }
     case SYMBNUMERR:
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
+
         // JUST CLEANUP AND EXIT
         DSTop=rplUnprotectData();
         rplCleanupLAMs(0);

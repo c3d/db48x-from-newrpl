@@ -356,6 +356,57 @@ rplOverwriteData(2,newmat);
 rplDropData(1);
 }
 
+void rplMatrixDivScalar()
+{
+WORDPTR *Savestk,*a,*b;
+// DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
+// AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
+Savestk=DSTop;
+a=DSTop-2;
+b=DSTop-1;
+
+// MAKE SURE THAT b IS THE SCALAR VALUE, a IS THE MATRIX
+
+if(!ISMATRIX(**a)) {
+    WORDPTR *tmp=a;
+    a=b;
+    b=tmp;
+}
+
+// CHECK DIMENSIONS
+
+BINT rowsa=MATROWS(*(*a+1)),colsa=MATCOLS(*(*a+1));
+
+BINT totalelements=(rowsa)? rowsa*colsa:colsa;
+
+BINT j;
+
+// DO THE ELEMENT-BY-ELEMENT OPERATION
+
+for(j=0;j<totalelements;++j) {
+ rplPushData(GETELEMENT(*a,j));
+ rplPushData(*b);
+ rplCallOvrOperator((CMD_OVR_DIV));
+ if(Exceptions) {
+     DSTop=Savestk;
+     return;
+ }
+ if(ISSYMBOLIC(*rplPeekData(1))) {
+     rplSymbAutoSimplify();
+     if(Exceptions) {
+         DSTop=Savestk;
+         return;
+     }
+ }
+
+}
+
+WORDPTR newmat=rplMatrixCompose(rowsa,colsa);
+DSTop=Savestk;
+if(!newmat) return;
+rplOverwriteData(2,newmat);
+rplDropData(1);
+}
 
 // APPLY UNARY OPERATOR THAT WORKS ELEMENT-BY-ELEMENT (NEG, EVAL, ->NUM, ETC)
 void rplMatrixUnary(WORD Opcode)

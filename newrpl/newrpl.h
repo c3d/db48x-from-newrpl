@@ -656,6 +656,7 @@ void rplMatrixAdd();
 void rplMatrixSub();
 void rplMatrixMul();
 void rplMatrixMulScalar();
+void rplMatrixDivScalar();
 void rplMatrixBareiss();
 void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa);
 void rplMatrixInvert();
