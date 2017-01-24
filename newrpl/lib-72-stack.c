@@ -561,6 +561,16 @@ void LIB_HANDLER()
        return;
     }
 
+    case OPCODE_LIBMSG:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+
+        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+       return;
+    }
+
 
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;

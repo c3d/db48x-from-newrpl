@@ -1067,6 +1067,12 @@ void LIB_HANDLER()
     }
 
     case DOLISTERR:
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
+
         // JUST CLEANUP AND EXIT
         DSTop=rplUnprotectData();
         rplCleanupLAMs(0);
@@ -1290,6 +1296,12 @@ void LIB_HANDLER()
     }
 
     case DOSUBSERR:
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
+
         // JUST CLEANUP AND EXIT
         DSTop=rplUnprotectData();
         rplCleanupLAMs(0);
@@ -1510,6 +1522,12 @@ void LIB_HANDLER()
         return;
     }
     case MAPERR:
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
+
         // JUST CLEANUP AND EXIT
         DSTop=rplUnprotectData();
         rplCleanupLAMs(0);
@@ -1720,6 +1738,13 @@ void LIB_HANDLER()
         return;
     }
     case EVALERR:
+
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
+
         // JUST CLEANUP AND EXIT
         DSTop=rplUnprotectData();
         rplCleanupLAMs(0);
@@ -1844,7 +1869,7 @@ void LIB_HANDLER()
 
         rplPushData(*rplGetLAMn(1));
 
-        if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP); return; }
+        if(Exceptions) { rplRemoveExceptionHandler(); DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP); return; }
 
         // AND EXECUTION WILL CONTINUE AT EVAL
 
@@ -1862,10 +1887,20 @@ void LIB_HANDLER()
         return;
     }
     case STREAMERR:
+
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
+
         // JUST CLEANUP AND EXIT
         DSTop=rplUnprotectData();
         rplCleanupLAMs(0);
+
         IPtr=rplPopRet();
+
+        // AND THROW THE EXCEPTIONS TO THE UPPER HANDLER
         Exceptions=TrappedExceptions;
         ErrorCode=TrappedErrorCode;
         ExceptionPointer=IPtr;
@@ -2007,6 +2042,11 @@ void LIB_HANDLER()
         return;
     }
     case UNARYERR:
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
         // JUST CLEANUP AND EXIT
         DSTop=rplUnprotectData();
         rplCleanupLAMs(0);
@@ -2168,6 +2208,11 @@ void LIB_HANDLER()
         return;
     }
     case BINARYERR:
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
         // JUST CLEANUP AND EXIT
         DSTop=rplUnprotectData();
         rplCleanupLAMs(0);
@@ -2342,6 +2387,11 @@ void LIB_HANDLER()
         return;
     }
     case TESTERR:
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
         // JUST CLEANUP AND EXIT
         DSTop=rplUnprotectData();
         rplCleanupLAMs(0);
@@ -2498,6 +2548,11 @@ void LIB_HANDLER()
         return;
     }
     case OPLISTERR:
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
         // JUST CLEANUP AND EXIT
         DSTop=rplUnprotectData();
         rplCleanupLAMs(0);
@@ -2657,6 +2712,11 @@ void LIB_HANDLER()
         return;
     }
     case DELTAERR:
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
         // JUST CLEANUP AND EXIT
         DSTop=rplUnprotectData();
         rplCleanupLAMs(0);

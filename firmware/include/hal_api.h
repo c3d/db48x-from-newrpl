@@ -188,7 +188,7 @@ typedef struct {
 
     // INTERACTIVE STACK VARIABLES
     int StkPointer,StkVisibleLvl,StkSelStart,StkSelEnd;
-    int StkVisibleOffset;
+    int StkVisibleOffset,StkSelStatus;
 
 
 

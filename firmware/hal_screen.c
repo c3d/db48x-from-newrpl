@@ -378,6 +378,38 @@ void halRedrawStack(DRAWSURFACE *scr)
       scr->clipy2=(y>yend)? yend-1:y-1;
 
 
+
+      if(halScreen.KeyContext&CONTEXT_INTSTACK) {
+          // HIGHLIGHT SELECTED ITEMS
+          switch(halScreen.StkSelStatus)
+          {
+          default:
+          case 0:
+              // NOTHING SELECTED YET
+              break;
+          case 1:
+              // START WAS SELECTED, PAINT ALL LEVELS BETWEEN START AND CURRENT POSITION
+           if(halScreen.StkSelStart>halScreen.StkPointer) {
+               if((level>=halScreen.StkPointer)&&(level<=halScreen.StkSelStart)) ggl_cliprect(scr,0,ytop,xright-1,y-1,0x44444444);
+               if(level==halScreen.StkSelStart)    DrawText(2,ytop,"▶",levelfnt,0xf,scr);
+           }
+           else {
+               if((level>=halScreen.StkSelStart)&&(level<=halScreen.StkPointer)) ggl_cliprect(scr,0,ytop,xright-1,y-1,0x44444444);
+               if(level==halScreen.StkSelStart)    DrawText(2,ytop,"▶",levelfnt,0xf,scr);
+           }
+           break;
+          case 2:
+              // BOTH START AND END SELECTED
+              if((level>=halScreen.StkSelStart)&&(level<=halScreen.StkSelEnd)) ggl_cliprect(scr,0,ytop,xright-1,y-1,0x44444444);
+              if(level==halScreen.StkSelStart)    DrawText(2,ytop,"▶",levelfnt,0xf,scr);
+              if(level==halScreen.StkSelEnd)    DrawText(2,ytop,"▶",levelfnt,0xf,scr);
+              break;
+          }
+
+         // DRAW THE POINTER
+        if(level==halScreen.StkPointer)    DrawText(0,ytop,"▶",levelfnt,0xf,scr);
+        }
+
       // DRAW THE NUMBER
       halInt2String(level,num);
       numwidth=StringWidth(num,levelfnt);
@@ -386,12 +418,6 @@ void halRedrawStack(DRAWSURFACE *scr)
 
       if(level<=depth) {
 
-      if(halScreen.KeyContext&CONTEXT_INTSTACK) {
-          // HIGHLIGHT SELECTED ITEMS
-        if((level>=halScreen.StkSelStart)&&(level<=halScreen.StkSelEnd)) ggl_cliprect(scr,0,ytop,xright-1,y-1,0x6);
-         // DRAW THE POINTER
-        if(level==halScreen.StkPointer)    DrawText(0,ytop,"▶",levelfnt,0xf,scr);
-        }
 
 
 

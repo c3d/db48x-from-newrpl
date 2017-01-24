@@ -358,6 +358,8 @@ void endCmdLine()
 void numberKeyHandler(BINT keymsg)
 {
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
+
         halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
@@ -1854,6 +1856,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 void symbolKeyHandler(BINT keymsg,BYTEPTR symbol,BINT separate)
 {
 if(!(halGetContext()&CONTEXT_INEDITOR)) {
+    if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
     halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
     halSetContext(halGetContext()|CONTEXT_INEDITOR);
     if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
@@ -1872,6 +1875,8 @@ if(!(halGetContext()&CONTEXT_INEDITOR)) {
 void alphasymbolKeyHandler(BINT keymsg,BYTEPTR Lsymbol,BYTEPTR Csymbol)
 {
 if(!(halGetContext()&CONTEXT_INEDITOR)) {
+    if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
+
     halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
     halSetContext(halGetContext()|CONTEXT_INEDITOR);
     if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
@@ -1900,6 +1905,8 @@ void VarMenuKeyHandler(BINT keymsg)
 void newlineKeyHandler(BINT keymsg)
 {
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
+
         halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
@@ -1922,6 +1929,8 @@ void decimaldotKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
+
         halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
@@ -1951,6 +1960,13 @@ void  enterKeyHandler(BINT keymsg)
             if(rplDepthData()>0) uiCmdRun(CMD_DUP);
             halScreen.DirtyFlag|=STACK_DIRTY;
         }
+
+        if(halGetContext()&CONTEXT_INTSTACK) {
+            // COPY THE ELEMENT TO LEVEL ONE (PICK)
+            rplPushData(rplPeekData(halScreen.StkPointer));
+            halScreen.DirtyFlag|=STACK_DIRTY;
+        }
+
 
         }
     else{
@@ -1995,6 +2011,9 @@ void cancelKeyHandler(BINT keymsg)
     if((halGetContext()&CONTEXT_INTSTACK)) {
         // END INTERACTIVE STACK
         halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
+        halScreen.StkVisibleLvl=1;
+        halScreen.StkVisibleOffset=0;
+        halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
         halScreen.DirtyFlag|=STACK_DIRTY;
    }
 
@@ -2134,6 +2153,130 @@ void backspKeyHandler(BINT keymsg)
             halScreen.DirtyFlag|=STACK_DIRTY;
         }
 
+        if(halGetContext()&CONTEXT_INTSTACK) {
+        // SELECTION MODE
+        switch(halScreen.StkSelStatus)
+        {
+        case 0:
+            // NOTHING SELECTED YET, DROP CURRENT ELEMENT
+            if(rplDepthData()==1) {
+                // DROP THE OBJECT AND END THE INTERACTIVE STACK
+                rplDropData(1);
+
+                // END INTERACTIVE STACK
+                halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
+                halScreen.StkVisibleLvl=1;
+                halScreen.StkVisibleOffset=0;
+                halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
+                halScreen.DirtyFlag|=STACK_DIRTY;
+
+                return;
+            }
+
+            if(halScreen.StkPointer==1) rplDropData(1);
+            else {
+                memmovew(DSTop-halScreen.StkPointer,DSTop-halScreen.StkPointer+1,(halScreen.StkPointer-1)*sizeof(WORDPTR)/sizeof(WORD));
+                --DSTop;
+                if(halScreen.StkPointer>rplDepthData()) halScreen.StkPointer=rplDepthData();
+            }
+            halScreen.StkVisibleLvl=-1;
+            halScreen.DirtyFlag|=STACK_DIRTY;
+
+            break;
+        case 1:
+            // START WAS SELECTED, DELETE EVERYTHING HIGHLIGHTED
+
+            if(halScreen.StkPointer>halScreen.StkSelStart) {
+                if(rplDepthData()==halScreen.StkPointer-halScreen.StkSelStart+1) {
+                    // COMPLETELY CLEAR THE STACK AND END INTERACTIVE MODE
+                    rplClearData();
+
+                    // END INTERACTIVE STACK
+                    halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
+                    halScreen.StkVisibleLvl=1;
+                    halScreen.StkVisibleOffset=0;
+                    halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
+                    halScreen.DirtyFlag|=STACK_DIRTY;
+
+                    return;
+
+
+                }
+
+                memmovew(DSTop-halScreen.StkPointer,DSTop-halScreen.StkSelStart+1,(halScreen.StkSelStart-1)*sizeof(WORDPTR)/sizeof(WORD));
+                BINT count=halScreen.StkPointer-halScreen.StkSelStart+1;
+                halScreen.StkPointer-=count;
+                if(halScreen.StkPointer<1) halScreen.StkPointer=1;
+                halScreen.StkSelStatus=0;
+                halScreen.StkVisibleLvl=-1;
+                DSTop-=count;
+
+
+            }
+            else {
+                if(rplDepthData()==halScreen.StkPointer-halScreen.StkSelStart+1) {
+                    // COMPLETELY CLEAR THE STACK AND END INTERACTIVE MODE
+                    rplClearData();
+
+                    // END INTERACTIVE STACK
+                    halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
+                    halScreen.StkVisibleLvl=1;
+                    halScreen.StkVisibleOffset=0;
+                    halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
+                    halScreen.DirtyFlag|=STACK_DIRTY;
+
+                    return;
+
+
+                }
+
+                memmovew(DSTop-halScreen.StkSelStart,DSTop-halScreen.StkPointer+1,(halScreen.StkPointer-1)*sizeof(WORDPTR)/sizeof(WORD));
+                DSTop-=halScreen.StkSelStart-halScreen.StkPointer+1;
+                if(halScreen.StkPointer>rplDepthData()) halScreen.StkPointer=rplDepthData();
+                halScreen.StkSelStatus=0;
+                halScreen.StkVisibleLvl=-1;
+
+            }
+
+            halScreen.DirtyFlag|=STACK_DIRTY;
+            break;
+        case 2:
+        {
+            // BOTH START AND END SELECTED, REPLACE SELECTION WITH NEW ITEM
+            if(rplDepthData()==halScreen.StkSelEnd-halScreen.StkSelStart+1) {
+                // COMPLETELY CLEAR THE STACK AND END INTERACTIVE MODE
+                rplClearData();
+
+                // END INTERACTIVE STACK
+                halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
+                halScreen.StkVisibleLvl=1;
+                halScreen.StkVisibleOffset=0;
+                halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
+                halScreen.DirtyFlag|=STACK_DIRTY;
+
+                return;
+
+
+            }
+
+            memmovew(DSTop-halScreen.StkSelEnd,DSTop-halScreen.StkSelStart+1,(halScreen.StkSelStart-1)*sizeof(WORDPTR)/sizeof(WORD));
+            BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
+            DSTop-=count;
+            if(halScreen.StkPointer>halScreen.StkSelEnd) halScreen.StkPointer-=count;
+            else if(halScreen.StkPointer>=halScreen.StkSelStart) halScreen.StkPointer=halScreen.StkSelStart-1;
+            if(halScreen.StkPointer<1) halScreen.StkPointer=1;
+            halScreen.StkSelStatus=0;
+            halScreen.StkVisibleLvl=-1;
+
+            halScreen.DirtyFlag|=STACK_DIRTY;
+            break;
+        }
+        }
+
+
+        }
+
+
     }
     else{
         // REMOVE CHARACTERS FROM THE COMMAND LINE
@@ -2168,6 +2311,114 @@ void leftKeyHandler(BINT keymsg)
             return;
 
         }
+        if(halGetContext()&CONTEXT_INTSTACK) {
+        switch(halScreen.StkSelStatus)
+        {
+        case 0:
+            // NO ITEM SELECTED, ROT WITH LEVEL 1
+            if(rplDepthData()>=halScreen.StkPointer) {
+                WORDPTR *stptr,*endptr,*cptr;
+                WORDPTR item;
+                    stptr=DSTop-halScreen.StkPointer;
+                    endptr=DSTop-1;
+
+                    cptr=stptr;
+
+                    item=*cptr;
+
+                    while(cptr!=endptr) { cptr[0]=cptr[1]; ++cptr; }
+                    *cptr=item;
+            }
+            break;
+
+        case 1:
+        {
+            // ONE ITEM SELECTED, ROT THE WHOLE BLOCK BETWEEN POINTER AND SELSTART
+            WORDPTR *stptr,*endptr;
+
+            if(halScreen.StkPointer>halScreen.StkSelStart) {
+                endptr=DSTop-halScreen.StkSelStart;
+                stptr=DSTop-halScreen.StkPointer;
+            }
+            else {
+                stptr=DSTop-halScreen.StkSelStart;
+                endptr=DSTop-halScreen.StkPointer;
+            }
+
+                // NOW ROT BETWEEN THEM
+                WORDPTR *cptr=stptr;
+                WORDPTR item=*stptr;
+                while(cptr!=endptr) { cptr[0]=cptr[1]; ++cptr; }
+                *cptr=item;
+            break;
+        }
+        case 2:
+            // START AND END SELECTED, COPY THE BLOCK TO THE CURSOR
+        {
+            if(halScreen.StkPointer>halScreen.StkSelEnd) {
+                    // MAKE HOLE
+                    BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
+
+                    rplExpandStack(count);
+                    if(Exceptions) return;
+
+                    memmovew(DSTop-halScreen.StkPointer+count,DSTop-halScreen.StkPointer,halScreen.StkPointer*sizeof(WORDPTR)/sizeof(WORD));
+
+                    // AND COPY THE SELECTION
+                    memmovew(DSTop-halScreen.StkPointer,DSTop-halScreen.StkSelEnd+count,count*sizeof(WORDPTR)/sizeof(WORD));
+
+                    DSTop+=count;
+                    halScreen.StkPointer+=count;
+                    halScreen.StkVisibleLvl=-1;
+
+                    break;
+
+            }
+            if(halScreen.StkPointer<halScreen.StkSelStart) {
+
+                // MAKE HOLE
+                BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
+
+                rplExpandStack(count);
+                if(Exceptions) return;
+
+                memmovew(DSTop-halScreen.StkPointer+count,DSTop-halScreen.StkPointer,halScreen.StkPointer*sizeof(WORDPTR)/sizeof(WORD));
+
+                // AND COPY THE SELECTION
+                memmovew(DSTop-halScreen.StkPointer,DSTop-halScreen.StkSelEnd,count*sizeof(WORDPTR)/sizeof(WORD));
+
+                DSTop+=count;
+                halScreen.StkPointer+=count;
+                halScreen.StkSelStart+=count;
+                halScreen.StkSelEnd+=count;
+                halScreen.StkVisibleLvl=-1;
+
+                break;
+            }
+
+            // WHEN THE POINTER IS WITHIN THE BLOCK JUST ROT THE BLOCK
+            WORDPTR *stptr,*endptr,*cptr;
+            WORDPTR item;
+                endptr=DSTop-halScreen.StkSelStart;
+                stptr=DSTop-halScreen.StkSelEnd;
+
+                cptr=stptr;
+
+                item=*cptr;
+
+                while(cptr!=endptr) { cptr[0]=cptr[1]; ++cptr; }
+                *cptr=item;
+
+                break;
+
+        }
+
+        }
+        halScreen.DirtyFlag|=STACK_DIRTY;
+        return;
+
+    }
+
 
     }
     else{
@@ -2252,7 +2503,120 @@ void rightKeyHandler(BINT keymsg)
             }
 
         }
+        if(halGetContext()&CONTEXT_INTSTACK) {
+        switch(halScreen.StkSelStatus)
+        {
+        case 0:
+            // NO ITEM SELECTED, JUST SWAP WITH OBJECT ABOVE IF PRESENT
+            if(rplDepthData()>halScreen.StkPointer) {
+                WORDPTR *currstkptr=DSTop-halScreen.StkPointer;
+                WORDPTR tmp=*currstkptr;
+                *currstkptr=currstkptr[-1];
+                currstkptr[-1]=tmp;
+            }
+            break;
 
+        case 1:
+        {
+            // ONE ITEM SELECTED, UNROT THE WHOLE BLOCK BETWEEN POINTER AND SELSTART
+            WORDPTR *stptr,*endptr;
+
+            if(halScreen.StkPointer>halScreen.StkSelStart) {
+                stptr=DSTop-halScreen.StkSelStart;
+                endptr=DSTop-halScreen.StkPointer;
+            }
+            else {
+                endptr=DSTop-halScreen.StkSelStart;
+                stptr=DSTop-halScreen.StkPointer;
+            }
+
+                // NOW UNROT BETWEEN THEM
+                WORDPTR *cptr=stptr;
+                WORDPTR item=*stptr;
+                while(cptr!=endptr) { cptr[0]=cptr[-1]; --cptr; }
+                *cptr=item;
+            break;
+        }
+        case 2:
+            // START AND END SELECTED, MOVE THE BLOCK TO THE CURSOR
+        {
+            if(halScreen.StkPointer>halScreen.StkSelEnd) {
+                WORDPTR *stptr,*endptr,*cptr;
+                WORDPTR item;
+                    stptr=DSTop-halScreen.StkSelStart;
+                    endptr=DSTop-halScreen.StkPointer;
+
+                    // DO UNROT UNTIL THE ENTIRE BLOCK MOVED
+                BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
+
+                    while(count--)
+                    {
+                    cptr=stptr;
+
+                    item=*cptr;
+
+                    while(cptr!=endptr) { cptr[0]=cptr[-1]; --cptr; }
+                    *cptr=item;
+                    }
+
+                    count=halScreen.StkSelEnd-halScreen.StkSelStart;
+                    halScreen.StkSelEnd=halScreen.StkPointer;
+                    halScreen.StkSelStart=halScreen.StkPointer-count;
+
+                    break;
+
+            }
+            if(halScreen.StkPointer<halScreen.StkSelStart) {
+
+                WORDPTR *stptr,*endptr,*cptr;
+                WORDPTR item;
+                    stptr=DSTop-halScreen.StkSelEnd;
+                    endptr=DSTop-halScreen.StkPointer-1;
+
+                    // DO ROT UNTIL THE ENTIRE BLOCK MOVED
+                    BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
+                    while(count--)
+                    {
+                    cptr=stptr;
+
+                    item=*cptr;
+
+                    while(cptr!=endptr) { cptr[0]=cptr[1]; ++cptr; }
+                    *cptr=item;
+                    }
+
+                    count=halScreen.StkSelEnd-halScreen.StkSelStart;
+                    halScreen.StkSelStart=halScreen.StkPointer+1;
+                    halScreen.StkSelEnd=halScreen.StkPointer+1+count;
+                    halScreen.StkPointer+=count+1;
+                    halScreen.StkVisibleLvl=-1;
+
+
+                break;
+            }
+
+            // WHEN THE POINTER IS WITHIN THE BLOCK JUST UNROT THE BLOCK
+            WORDPTR *stptr,*endptr,*cptr;
+            WORDPTR item;
+                stptr=DSTop-halScreen.StkSelStart;
+                endptr=DSTop-halScreen.StkSelEnd;
+
+                cptr=stptr;
+
+                item=*cptr;
+
+                while(cptr!=endptr) { cptr[0]=cptr[-1]; --cptr; }
+                *cptr=item;
+
+                break;
+
+        }
+
+        }
+        halScreen.DirtyFlag|=STACK_DIRTY;
+        return;
+
+    }
     }
     else{
         uiCursorRight(1);
@@ -2480,6 +2844,7 @@ void upKeyHandler(BINT keymsg)
             halScreen.StkVisibleLvl=1;
             halScreen.StkVisibleOffset=0;
             halScreen.DirtyFlag|=STACK_DIRTY;
+            halScreen.StkSelStatus=0;
             }
             return;
             }
@@ -2591,6 +2956,37 @@ void chsKeyHandler(BINT keymsg)
                     Exceptions=0;
                 }
             halScreen.DirtyFlag|=STACK_DIRTY;
+        }
+        if(halGetContext()&CONTEXT_INTSTACK) {
+        // SELECTION MODE
+        switch(halScreen.StkSelStatus)
+        {
+        case 0:
+            // NOTHING SELECTED YET
+            halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkPointer;
+            halScreen.StkSelStatus+=2;
+            halScreen.DirtyFlag|=STACK_DIRTY;
+            break;
+        case 1:
+            // START WAS SELECTED
+            if(halScreen.StkSelStart>halScreen.StkPointer) {
+                halScreen.StkSelEnd=halScreen.StkSelStart;
+                halScreen.StkSelStart=halScreen.StkPointer;
+            }
+            else {
+            halScreen.StkSelEnd=halScreen.StkPointer;
+            }
+            ++halScreen.StkSelStatus;
+            halScreen.DirtyFlag|=STACK_DIRTY;
+            break;
+        case 2:
+            // BOTH START AND END SELECTED, REPLACE SELECTION WITH NEW ITEM
+            halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkPointer;
+            halScreen.DirtyFlag|=STACK_DIRTY;
+            break;
+        }
+
+
         }
 
     }
@@ -2743,6 +3139,8 @@ void eexKeyHandler(BINT keymsg)
 void bracketKeyHandler(BINT keymsg,BYTEPTR string)
 {
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
+
         halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
@@ -4006,7 +4404,50 @@ void underscoreKeyHandler(BINT keymsg)
     }
 }
 
-DECLARE_SYMBKEYHANDLER(spc," ",0)
+
+void spcKeyHandler(BINT keymsg)
+{
+    if(halGetContext()&CONTEXT_INTSTACK) {
+
+        // SELECTION MODE
+        switch(halScreen.StkSelStatus)
+        {
+        case 0:
+            // NOTHING SELECTED YET
+            halScreen.StkSelStart=halScreen.StkPointer;
+            ++halScreen.StkSelStatus;
+            halScreen.DirtyFlag|=STACK_DIRTY;
+            break;
+        case 1:
+            // START WAS SELECTED
+            if(halScreen.StkSelStart>halScreen.StkPointer) {
+                halScreen.StkSelEnd=halScreen.StkSelStart;
+                halScreen.StkSelStart=halScreen.StkPointer;
+            }
+            else {
+            halScreen.StkSelEnd=halScreen.StkPointer;
+            }
+            ++halScreen.StkSelStatus;
+            halScreen.DirtyFlag|=STACK_DIRTY;
+            break;
+        case 2:
+            // BOTH START AND END SELECTED, JUST CLEAR THE SELECTION
+            halScreen.StkSelStatus=0;
+            halScreen.DirtyFlag|=STACK_DIRTY;
+            break;
+        }
+
+
+        return;
+
+    }
+
+
+    symbolKeyHandler(keymsg,(BYTEPTR)" ",0);
+
+}
+
+
 DECLARE_SYMBKEYHANDLER(thinspc," ",0)
 
 DECLARE_SYMBKEYHANDLER(hash,"#",0)

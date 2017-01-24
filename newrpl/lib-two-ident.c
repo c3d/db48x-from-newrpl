@@ -376,7 +376,7 @@ void LIB_HANDLER()
         // DOCOL'S ARE OK AND ALWAYS COMPILED AS GETLAMS
         WORDPTR *scanenv=ValidateTop-1;
 
-        while(scanenv>=RSTop) {
+        while(scanenv>=ValidateBottom) {
             if( (LIBNUM(**scanenv)==SECO)&& (ISPROLOG(**scanenv))) {
                     // FOUND INNERMOST SECONDARY
                     if(*scanenv>*(nLAMBase+1)) {
