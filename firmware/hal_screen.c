@@ -277,6 +277,8 @@ void halRedrawStack(DRAWSURFACE *scr)
           // NEED TO RECOMPUTE THIS
       int k=halScreen.StkPointer;
       int objh,stkheight=0;
+      if(k<1) k=1;
+      if(k>depth) k=depth;
 
       if(k==1) levelfnt=halScreen.Stack1Font;
       else levelfnt=halScreen.StackFont;
@@ -407,7 +409,9 @@ void halRedrawStack(DRAWSURFACE *scr)
           }
 
          // DRAW THE POINTER
-        if(level==halScreen.StkPointer)    DrawText(0,ytop,"▶",levelfnt,0xf,scr);
+        if((level<=depth) && (level==halScreen.StkPointer))    DrawText(0,ytop,"▶",levelfnt,0xf,scr);
+        else if( (level==1) && (halScreen.StkPointer==0)) DrawText(0,ytop+levelfnt->BitmapHeight/2,"▶",levelfnt,0xf,scr);
+        else if( (level==depth) && (halScreen.StkPointer>depth)) DrawText(0,ytop-levelfnt->BitmapHeight/2+1,"▶",levelfnt,0xf,scr);
         }
 
       // DRAW THE NUMBER
