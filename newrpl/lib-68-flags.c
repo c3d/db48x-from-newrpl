@@ -728,7 +728,7 @@ WORDPTR rplPopMenuHistory(BINT menu)
 
     ScratchPointer1=rplPopData();
 
-    list=rplCreateListN(nelem-1);
+    list=rplCreateListN(nelem-1,1,1);
     if(!list) list=(WORDPTR)empty_list;
 
     rplStoreSettings((menu==1)? (WORDPTR)menu1hist_ident:(WORDPTR)menu2hist_ident,list);
@@ -1725,13 +1725,13 @@ void LIB_HANDLER()
 
         if(!keylist) {
             // NEED TO CREATE A LIST FROM SCRATCH
-            keylist=rplCreateListN(3);
+            keylist=rplCreateListN(3,1,1);
             if(!keylist) return;
         }
         else {
             // ADD 3 MORE ITEMS TO THE EXISTING LIST
             BINT n=rplExplodeList2(keylist);
-            keylist=rplCreateListN(n+3);
+            keylist=rplCreateListN(n+3,1,1);
             if(Exceptions) return;
         }
 

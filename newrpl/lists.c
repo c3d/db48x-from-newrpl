@@ -209,8 +209,8 @@ void rplCreateList()
 }
 
 
-// CREATE A NEW LIST. STACK LEVEL 2.. N = OBJECTS
-WORDPTR rplCreateListN(BINT num)
+// CREATE A NEW LIST. STACK LEVEL A.. N+A = OBJECTS
+WORDPTR rplCreateListN(BINT num,BINT level,BINT remove)
 {
     // NO ARGUMENT CHECKING
     BINT size=1;    // 1 WORD FOR THE END MARKER
@@ -234,7 +234,8 @@ WORDPTR rplCreateListN(BINT num)
     }
     *objptr=MKOPCODE(DOLIST,ENDLIST);
 
-    rplDropData(num);
+    if(remove) rplRemoveAtData(level,num);
+
     return list;
 }
 
@@ -370,7 +371,7 @@ WORDPTR rplListAddRot(WORDPTR list,WORDPTR object,BINT nmax)
         rplDropData(offset);
     }
     rplPushData(ScratchPointer3);
-    WORDPTR newlist=rplCreateListN( (offset>0)? nmax : (nitems+1) );
+    WORDPTR newlist=rplCreateListN( ((offset>0)? nmax : (nitems+1)) ,1,1);
     if(Exceptions) { DSTop=savestk; return 0; }
     return newlist;
 }

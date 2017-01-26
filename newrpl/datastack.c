@@ -115,6 +115,17 @@ void rplDropData(int n)
     DSTop-=n;
 }
 
+// REMOVE num LEVELS FROM level TO level+num-1 FROM THE STACK
+void rplRemoveAtData(BINT level,BINT num)
+{
+    if(DSTop-DStkProtect<level+num){
+        rplError(ERR_INTERNALEMPTYSTACK);
+        return;
+    }
+memmovew(DSTop-level-num+1,DSTop-level+1,(level-1)*sizeof(WORDPTR)/sizeof(WORD));
+DSTop-=num;
+}
+
 // THIS IS FOR LIBRARY USE ONLY, SO DON'T RAISE AN EXCEPTION, JUST RETURN AN NULL POINTER
 // LEVELS = 1 ... DEPTH. DON'T CHECK FOR NEGATIVE NUMBERS!
 

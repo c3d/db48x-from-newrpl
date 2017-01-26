@@ -1617,7 +1617,7 @@ WORDPTR halSaveCmdLine()
     if(Exceptions) { DSTop=savestk; return 0; }
 
 
-    WORDPTR list=rplCreateListN(16);
+    WORDPTR list=rplCreateListN(16,1,1);
     if(!list || Exceptions) { DSTop=savestk; return 0; }
 
 

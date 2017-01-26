@@ -2039,6 +2039,73 @@ void cutclipKeyHandler(BINT keymsg)
                     Exceptions=0;
                 } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
             halScreen.DirtyFlag|=STACK_DIRTY;
+            return;
+        }
+        if(halGetContext()&CONTEXT_INTSTACK) {
+            BINT selst,selend;
+            switch(halScreen.StkSelStatus)
+            {
+            case 0: // NO ITEMS SELECTED
+                if( (halScreen.StkPointer<1)||(halScreen.StkPointer>rplDepthData())) return;
+                selst=selend=halScreen.StkPointer;
+                break;
+            case 1: // 1 ITEM SELECTED, SELECT ALL ITEMS BETWEEN POINTER AND SELSTART
+                if(halScreen.StkPointer>halScreen.StkSelStart) {
+                    selst=halScreen.StkSelStart;
+                    selend=(halScreen.StkPointer<rplDepthData())? halScreen.StkPointer:rplDepthData();
+                }
+                else {
+                    selend=halScreen.StkSelStart;
+                    selst=(halScreen.StkPointer<1)? 1:halScreen.StkPointer;
+                }
+                break;
+            case 2: // BOTH START AND END SELECTED
+                selst=halScreen.StkSelStart;
+                selend=halScreen.StkSelEnd;
+                break;
+            default:
+                return;
+            }
+
+            // PUT ALL OBJECTS IN A LIST
+
+            if(selend-selst==0) {
+                // SINGLE OBJECT, JUST PUT IN THE CLIPBOARD
+                rplPushData(rplPeekData(selst));
+                uiCmdRunTransparent(CMD_CUTCLIP,1,1);
+                if(Exceptions) {
+                    // TODO: SHOW ERROR MESSAGE
+                    halShowErrorMsg();
+                    Exceptions=0;
+                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+                halScreen.DirtyFlag|=STACK_DIRTY;
+                 return;
+
+            }
+
+            WORDPTR newlist=rplCreateListN(selend-selst+1,selst,0);
+            if((!newlist)||Exceptions) return;
+
+            rplPushData(newlist);
+            uiCmdRunTransparent(CMD_CUTCLIP,1,1);
+            if(Exceptions) {
+                // TODO: SHOW ERROR MESSAGE
+                halShowErrorMsg();
+                Exceptions=0;
+            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+        halScreen.DirtyFlag|=STACK_DIRTY;
+
+        rplRemoveAtData(selst,selend-selst+1);
+
+        // DISABLE SELECTION STATUS
+        halScreen.StkSelStatus=0;
+        if(halScreen.StkPointer>selend) halScreen.StkPointer-=selend-selst+1;
+        else if(halScreen.StkPointer>=selst) halScreen.StkPointer=(selst>1)? (selst-1):1;
+
+
+        return;
+
+
         }
 
     }
@@ -2078,6 +2145,68 @@ void copyclipKeyHandler(BINT keymsg)
                 } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
             halScreen.DirtyFlag|=STACK_DIRTY;
         }
+        if(halGetContext()&CONTEXT_INTSTACK) {
+            BINT selst,selend;
+            switch(halScreen.StkSelStatus)
+            {
+            case 0: // NO ITEMS SELECTED
+                if( (halScreen.StkPointer<1)||(halScreen.StkPointer>rplDepthData())) return;
+                selst=selend=halScreen.StkPointer;
+                break;
+            case 1: // 1 ITEM SELECTED, SELECT ALL ITEMS BETWEEN POINTER AND SELSTART
+                if(halScreen.StkPointer>halScreen.StkSelStart) {
+                    selst=halScreen.StkSelStart;
+                    selend=(halScreen.StkPointer<rplDepthData())? halScreen.StkPointer:rplDepthData();
+                }
+                else {
+                    selend=halScreen.StkSelStart;
+                    selst=(halScreen.StkPointer<1)? 1:halScreen.StkPointer;
+                }
+                break;
+            case 2: // BOTH START AND END SELECTED
+                selst=halScreen.StkSelStart;
+                selend=halScreen.StkSelEnd;
+                break;
+            default:
+                return;
+            }
+
+            // PUT ALL OBJECTS IN A LIST
+
+            if(selend-selst==0) {
+                // SINGLE OBJECT, JUST PUT IN THE CLIPBOARD
+                rplPushData(rplPeekData(selst));
+                uiCmdRunTransparent(CMD_COPYCLIP,1,1);
+                if(Exceptions) {
+                    // TODO: SHOW ERROR MESSAGE
+                    halShowErrorMsg();
+                    Exceptions=0;
+                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+                halScreen.DirtyFlag|=STACK_DIRTY;
+                 return;
+
+            }
+
+            WORDPTR newlist=rplCreateListN(selend-selst+1,selst,0);
+            if((!newlist)||Exceptions) return;
+
+            rplPushData(newlist);
+            uiCmdRunTransparent(CMD_COPYCLIP,1,1);
+            rplDropData(1);
+
+            if(Exceptions) {
+                // TODO: SHOW ERROR MESSAGE
+                halShowErrorMsg();
+                Exceptions=0;
+            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+        halScreen.DirtyFlag|=STACK_DIRTY;
+
+
+        return;
+
+
+        }
+
 
     }
     else {
@@ -2113,6 +2242,35 @@ void pasteclipKeyHandler(BINT keymsg)
                 } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
             halScreen.DirtyFlag|=STACK_DIRTY;
         }
+
+        if(halGetContext()&CONTEXT_INTSTACK) {
+            BINT depth=rplDepthData();
+            BINT clevel=(halScreen.StkPointer>depth)? depth:halScreen.StkPointer;
+            BINT nitems=uiCmdRunTransparent(CMD_PASTECLIP,0,1);
+            if(Exceptions) {
+                halShowErrorMsg();
+                Exceptions=0;
+                return;
+            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+           halScreen.DirtyFlag|=STACK_DIRTY;
+
+           // NOW MOVE THE NEW OBJECT TO THE CURRENT LEVEL
+
+           rplExpandStack(nitems);
+
+           if(Exceptions) {
+               halShowErrorMsg();
+               Exceptions=0;
+               return;
+           }
+
+            // MAKE ROOM
+           memmovew(DSTop-clevel,DSTop-clevel-nitems, (clevel+nitems)*sizeof(WORDPTR)/sizeof(WORD));
+            // MOVE THE OBJECTS
+           memmovew(DSTop-clevel-nitems,DSTop,nitems*sizeof(WORDPTR)/sizeof(WORD));
+
+        }
+
 
     }
     else {
