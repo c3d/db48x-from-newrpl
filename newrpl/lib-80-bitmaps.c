@@ -73,8 +73,9 @@ INCLUDE_ROMOBJECT(lib80_menu);
 const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)LIB_MSGTABLE,
     (WORDPTR)LIB_HELPTABLE,
-    (WORDPTR)lib80_menu
+    (WORDPTR)lib80_menu,
 
+    0
 };
 
 const char * const bitmap_modes[]={
