@@ -208,9 +208,12 @@ SOURCES +=\
     newrpl/lib-72-stack.c \
     newrpl/lib-74-sdcard.c \
     newrpl/lib-76-ui.c \
-    newrpl/lib-80-fonts.c \
+    newrpl/lib-78-fonts.c \
+    newrpl/lib-80-bitmaps.c \
     firmware/ggl/ggl/ggl_fltreplace.c \
-    firmware/hal_alarm.c
+    firmware/hal_alarm.c \
+    firmware/ui_render.c \
+    firmware/ui_forms.c
 
 HEADERS  += \
     firmware/include/ggl.h \
@@ -256,6 +259,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-0.nrpl \
                 newrpl/rpl-objects/lib-72.nrpl \
                 newrpl/rpl-objects/lib-74.nrpl \
                 newrpl/rpl-objects/lib-76.nrpl \
+                newrpl/rpl-objects/lib-80.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 
