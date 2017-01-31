@@ -1963,10 +1963,12 @@ void  enterKeyHandler(BINT keymsg)
 
         if(halGetContext()&CONTEXT_INTSTACK) {
             // COPY THE ELEMENT TO LEVEL ONE (PICK)
+            if((halScreen.StkPointer>0) && (halScreen.StkPointer<=rplDepthData())) {
             rplPushData(rplPeekData(halScreen.StkPointer));
             ++halScreen.StkPointer;
             halScreen.StkVisibleLvl=-1;
             halScreen.DirtyFlag|=STACK_DIRTY;
+            }
         }
 
 
@@ -2079,12 +2081,32 @@ void cutclipKeyHandler(BINT keymsg)
                     Exceptions=0;
                 } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
                 halScreen.DirtyFlag|=STACK_DIRTY;
+                rplRemoveAtData(selst,1);
+
+                if(rplDepthData()<1) {
+                    // END INTERACTIVE STACK
+                    halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
+                    halScreen.StkVisibleLvl=1;
+                    halScreen.StkVisibleOffset=0;
+                    halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
+
+                }
+                else {
+
+                halScreen.StkVisibleLvl=-1;
+                halScreen.StkSelStatus=0;
+                if(halScreen.StkPointer>selend) halScreen.StkPointer--;
+                else if(halScreen.StkPointer>=selst) halScreen.StkPointer=(selst>1)? (selst-1):1;
+
+                }
+
                  return;
 
             }
 
             WORDPTR newlist=rplCreateListN(selend-selst+1,selst,0);
             if((!newlist)||Exceptions) return;
+            rplListAutoExpand(newlist);
 
             rplPushData(newlist);
             uiCmdRunTransparent(CMD_CUTCLIP,1,1);
@@ -2097,12 +2119,23 @@ void cutclipKeyHandler(BINT keymsg)
 
         rplRemoveAtData(selst,selend-selst+1);
 
+        if(rplDepthData()<1) {
+            // END INTERACTIVE STACK
+            halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
+            halScreen.StkVisibleLvl=1;
+            halScreen.StkVisibleOffset=0;
+            halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
+
+        }
+        else {
+
+
         // DISABLE SELECTION STATUS
         halScreen.StkSelStatus=0;
         if(halScreen.StkPointer>selend) halScreen.StkPointer-=selend-selst+1;
         else if(halScreen.StkPointer>=selst) halScreen.StkPointer=(selst>1)? (selst-1):1;
 
-
+        }
         return;
 
 
@@ -2190,6 +2223,9 @@ void copyclipKeyHandler(BINT keymsg)
             WORDPTR newlist=rplCreateListN(selend-selst+1,selst,0);
             if((!newlist)||Exceptions) return;
 
+            // MAKE NEW LIST AUTOEXPAND ON PASTE
+            rplListAutoExpand(newlist);
+
             rplPushData(newlist);
             uiCmdRunTransparent(CMD_COPYCLIP,1,1);
             rplDropData(1);
@@ -2235,7 +2271,7 @@ void pasteclipKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-                uiCmdRunTransparent(CMD_PASTECLIP,0,1);
+                uiCmdRun(CMD_PASTECLIP);
                 if(Exceptions) {
                     halShowErrorMsg();
                     Exceptions=0;
@@ -2246,7 +2282,9 @@ void pasteclipKeyHandler(BINT keymsg)
         if(halGetContext()&CONTEXT_INTSTACK) {
             BINT depth=rplDepthData();
             BINT clevel=(halScreen.StkPointer>depth)? depth:halScreen.StkPointer;
-            BINT nitems=uiCmdRunTransparent(CMD_PASTECLIP,0,1);
+
+            uiCmdRun(CMD_PASTECLIP);
+            BINT nitems=rplDepthData()-depth;
             if(Exceptions) {
                 halShowErrorMsg();
                 Exceptions=0;
@@ -2269,14 +2307,26 @@ void pasteclipKeyHandler(BINT keymsg)
             // MOVE THE OBJECTS
            memmovew(DSTop-clevel-nitems,DSTop,nitems*sizeof(WORDPTR)/sizeof(WORD));
 
+           if(halScreen.StkSelStatus) {
+           if(halScreen.StkSelStart>clevel) halScreen.StkSelStart+=nitems;
+           if(halScreen.StkSelEnd>clevel) halScreen.StkSelEnd+=nitems;
+           }
+           halScreen.StkPointer++;
+
+           halScreen.StkVisibleLvl=-1;
+
+
         }
 
 
     }
     else {
         // ACTION INSIDE THE EDITOR
-                if(uiCmdRunTransparent(CMD_PASTECLIP,0,1)==1) {
-                    WORDPTR object=rplPopData(1);
+                BINT depth=rplDepthData();
+                uiCmdRun(CMD_PASTECLIP);
+                BINT nitems=rplDepthData()-depth;
+                while(nitems>=1) {
+                    WORDPTR object=rplPeekData(nitems);
                     if(!ISSTRING(*object)) {
                         object=rplDecompile(object,DECOMP_EDIT);
                         if(!object || Exceptions) {
@@ -2287,9 +2337,9 @@ void pasteclipKeyHandler(BINT keymsg)
                         if(((halScreen.CursorState&0xff)=='P')||((halScreen.CursorState&0xff)=='D')) uiSeparateToken();
                     }
 
-
+                    rplRemoveAtData(nitems,1);
                     uiInsertCharactersN((BYTEPTR)(object+1),(BYTEPTR)(object+1)+rplStrSize(object));
-
+                    --nitems;
                 }
 
 
@@ -2319,7 +2369,8 @@ void backspKeyHandler(BINT keymsg)
         {
         case 0:
             // NOTHING SELECTED YET, DROP CURRENT ELEMENT
-            if(rplDepthData()==1) {
+            if(halScreen.StkPointer>rplDepthData()) break;
+           if(rplDepthData()==1) {
                 // DROP THE OBJECT AND END THE INTERACTIVE STACK
                 rplDropData(1);
 
@@ -2335,8 +2386,7 @@ void backspKeyHandler(BINT keymsg)
             if(halScreen.StkPointer<=0) return;
             if(halScreen.StkPointer==1) rplDropData(1);
             else {
-                memmovew(DSTop-halScreen.StkPointer,DSTop-halScreen.StkPointer+1,(halScreen.StkPointer-1)*sizeof(WORDPTR)/sizeof(WORD));
-                --DSTop;
+                rplRemoveAtData(halScreen.StkPointer,1);
                 if(halScreen.StkPointer>rplDepthData()) halScreen.StkPointer=rplDepthData();
             }
             halScreen.StkVisibleLvl=-1;
@@ -2347,7 +2397,8 @@ void backspKeyHandler(BINT keymsg)
             // START WAS SELECTED, DELETE EVERYTHING HIGHLIGHTED
 
             if(halScreen.StkPointer>halScreen.StkSelStart) {
-                if(rplDepthData()==halScreen.StkPointer-halScreen.StkSelStart+1) {
+                BINT count=((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer)-halScreen.StkSelStart+1;
+                if(rplDepthData()<=count) {
                     // COMPLETELY CLEAR THE STACK AND END INTERACTIVE MODE
                     rplClearData();
 
@@ -2362,14 +2413,11 @@ void backspKeyHandler(BINT keymsg)
 
 
                 }
-
-                memmovew(DSTop-halScreen.StkPointer,DSTop-halScreen.StkSelStart+1,(halScreen.StkSelStart-1)*sizeof(WORDPTR)/sizeof(WORD));
-                BINT count=halScreen.StkPointer-halScreen.StkSelStart+1;
+                rplRemoveAtData(halScreen.StkSelStart,count);
                 halScreen.StkPointer-=count;
                 if(halScreen.StkPointer<1) halScreen.StkPointer=1;
                 halScreen.StkSelStatus=0;
                 halScreen.StkVisibleLvl=-1;
-                DSTop-=count;
 
 
             }
@@ -2395,8 +2443,7 @@ void backspKeyHandler(BINT keymsg)
                     rplDropData(halScreen.StkSelStart);
                 }
                 else {
-                memmovew(DSTop-halScreen.StkSelStart,DSTop-halScreen.StkPointer+1,(halScreen.StkPointer-1)*sizeof(WORDPTR)/sizeof(WORD));
-                DSTop-=halScreen.StkSelStart-halScreen.StkPointer+1;
+                rplRemoveAtData(halScreen.StkPointer,halScreen.StkSelStart-halScreen.StkPointer+1);
                 }
                 if(halScreen.StkPointer>rplDepthData()) halScreen.StkPointer=rplDepthData();
                 halScreen.StkSelStatus=0;
@@ -2408,7 +2455,7 @@ void backspKeyHandler(BINT keymsg)
             break;
         case 2:
         {
-            // BOTH START AND END SELECTED, REPLACE SELECTION WITH NEW ITEM
+            // BOTH START AND END SELECTED, DELETE SELECTED ITEMS
             if(rplDepthData()==halScreen.StkSelEnd-halScreen.StkSelStart+1) {
                 // COMPLETELY CLEAR THE STACK AND END INTERACTIVE MODE
                 rplClearData();
@@ -2425,12 +2472,11 @@ void backspKeyHandler(BINT keymsg)
 
             }
 
-            memmovew(DSTop-halScreen.StkSelEnd,DSTop-halScreen.StkSelStart+1,(halScreen.StkSelStart-1)*sizeof(WORDPTR)/sizeof(WORD));
             BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
-            DSTop-=count;
+            rplRemoveAtData(halScreen.StkSelStart,count);
             if(halScreen.StkPointer>halScreen.StkSelEnd) halScreen.StkPointer-=count;
-            else if(halScreen.StkPointer>=halScreen.StkSelStart) halScreen.StkPointer=halScreen.StkSelStart-1;
-            if(halScreen.StkPointer<1) halScreen.StkPointer=1;
+            else if(halScreen.StkPointer>=halScreen.StkSelStart) halScreen.StkPointer=halScreen.StkSelStart;
+            if(halScreen.StkPointer>rplDepthData()) halScreen.StkPointer=rplDepthData();
             halScreen.StkSelStatus=0;
             halScreen.StkVisibleLvl=-1;
 

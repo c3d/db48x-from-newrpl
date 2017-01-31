@@ -188,7 +188,20 @@ void LIB_HANDLER()
         WORDPTR object=rplGetSettings((WORDPTR)clipbd_ident);
 
         if(!object) rplError(ERR_EMPTYCLIPBOARD);
-        else rplPushData(object);
+        else {
+            if(ISAUTOEXPLIST(*object)) {
+                BINT nitems=rplListLength(object);
+                rplExpandStack(nitems);
+                if(Exceptions) return;
+                WORDPTR ptr=object+1;
+
+                while(nitems--) { rplPushData(ptr); ptr=rplSkipOb(ptr); }
+
+
+            }
+            else rplPushData(object);
+
+        }
         return;
     }
 
@@ -416,6 +429,15 @@ void LIB_HANDLER()
        return;
     }
 
+    case OPCODE_LIBMSG:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+
+        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+       return;
+    }
 
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;

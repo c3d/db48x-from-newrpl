@@ -215,7 +215,7 @@ WORDPTR rplCreateListN(BINT num,BINT level,BINT remove)
     // NO ARGUMENT CHECKING
     BINT size=1;    // 1 WORD FOR THE END MARKER
     BINT count;
-    for(count=1;count<=num;++count) {
+    for(count=level;count<level+num;++count) {
         size+=rplObjSize(rplPeekData(count));
     }
 
@@ -229,7 +229,7 @@ WORDPTR rplCreateListN(BINT num,BINT level,BINT remove)
     WORDPTR objptr=list+1;
     *list=MKPROLOG(DOLIST,size);
     for(count=num;count>0;--count) {
-        rplCopyObject(objptr,rplPeekData(count));
+        rplCopyObject(objptr,rplPeekData(level+count-1));
         objptr+=rplObjSize(objptr);
     }
     *objptr=MKOPCODE(DOLIST,ENDLIST);
@@ -239,6 +239,12 @@ WORDPTR rplCreateListN(BINT num,BINT level,BINT remove)
     return list;
 }
 
+// SET THE AUTO EXPAND BIT ON A LIST
+void rplListAutoExpand(WORDPTR list)
+{
+    if(!ISLIST(*list)) return;
+    *list|=MKPROLOG(1,0);
+}
 
 
 // List handling for funtions with 2 argument

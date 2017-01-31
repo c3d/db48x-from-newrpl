@@ -593,6 +593,7 @@ BINT rplListLength(WORDPTR composite);
 BINT rplListLengthFlat(WORDPTR composite);
 void rplCreateList();
 WORDPTR rplCreateListN(BINT num, BINT level, BINT remove);
+void rplListAutoExpand(WORDPTR list);
 BINT rplExplodeList(WORDPTR composite);
 BINT rplExplodeList2(WORDPTR composite);
 WORDPTR rplGetListElement(WORDPTR composite, BINT pos);

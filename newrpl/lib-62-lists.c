@@ -92,7 +92,7 @@ ERR(EMPTYLIST,2), \
 ERR(INVALIDLISTSIZE,3)
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
-#define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
+#define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER, LIBRARY_NUMBER+1
 
 
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
@@ -2875,9 +2875,13 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
 
         if(ISPROLOG(*DecompileObject)) {
-            rplDecompAppendString((BYTEPTR)"{");
+            if(!ISAUTOEXPLIST(*DecompileObject)) rplDecompAppendString((BYTEPTR)"{");
             RetNum=OK_STARTCONSTRUCT;
             return;
+        }
+
+        if(*DecompileObject==CMD_ENDLIST) {
+            if(!ISAUTOEXPLIST(CurrentConstruct)) rplDecompAppendString((BYTEPTR)"}");
         }
 
 

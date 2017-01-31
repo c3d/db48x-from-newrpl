@@ -118,7 +118,7 @@ void rplDropData(int n)
 // REMOVE num LEVELS FROM level TO level+num-1 FROM THE STACK
 void rplRemoveAtData(BINT level,BINT num)
 {
-    if(DSTop-DStkProtect<level+num){
+    if(DSTop-DStkProtect<level+num-1){
         rplError(ERR_INTERNALEMPTYSTACK);
         return;
     }
