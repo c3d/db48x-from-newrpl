@@ -71,7 +71,7 @@
 // ************************************
 
 ROMOBJECT symbeval_seco[]={
-    MKPROLOG(DOCOL,5),
+    MKPROLOG(DOCOL,6),
     MKOPCODE(LIBRARY_NUMBER,SYMBEVALPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_EVAL),    // DO THE EVAL
     MKOPCODE(LIBRARY_NUMBER,SYMBEVALPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
@@ -81,7 +81,7 @@ ROMOBJECT symbeval_seco[]={
 };
 
 ROMOBJECT symbeval1_seco[]={
-    MKPROLOG(DOCOL,5),
+    MKPROLOG(DOCOL,6),
     MKOPCODE(LIBRARY_NUMBER,SYMBEVAL1PRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
     (CMD_OVR_EVAL1),    // DO THE EVAL
     MKOPCODE(LIBRARY_NUMBER,SYMBEVAL1POST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
@@ -91,12 +91,13 @@ ROMOBJECT symbeval1_seco[]={
 };
 
 ROMOBJECT symbnum_seco[]={
-    MKPROLOG(DOCOL,5),
+    MKPROLOG(DOCOL,7),
     MKOPCODE(LIBRARY_NUMBER,SYMBNUMPRE),     // PREPARE FOR CUSTOM PROGRAM EVAL
-    (CMD_OVR_NUM),    // DO THE EVAL
+    (CMD_OVR_NUM),    // DO NUM
     MKOPCODE(LIBRARY_NUMBER,SYMBNUMPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
     MKOPCODE(LIBRARY_NUMBER,SYMBNUMERR),     // ERROR HANDLER
-    MKOPCODE(LIBRARY_NUMBER,AUTOSIMPLIFY),   // SIMPLIFY BEFORE RETURN
+    (CMD_OVR_EVAL),    // DO EVAL ON OPERATORS
+    MKOPCODE(LIBRARY_NUMBER,SYMBNUMPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
     CMD_SEMI
 };
 
@@ -184,6 +185,8 @@ void LIB_HANDLER()
         CurOpcode=(CMD_OVR_UMINUS);
         case OVR_INV:
         case OVR_NOT:
+        case OVR_UMINUS:
+        case OVR_UPLUS:
     {
      // UNARY OPERATION ON A SYMBOLIC
 
@@ -414,7 +417,7 @@ void LIB_HANDLER()
     {
         // THIS ->NUM IS NOT INSIDE A RECURSIVE LOOP
         // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER ->NUM
-        rplPushRet((WORDPTR)symbnum_seco+4);
+        rplPushRet((WORDPTR)symbnum_seco+6);
     }
     IPtr=(WORDPTR) symbnum_seco;
     CurOpcode=(CMD_OVR_NUM);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
@@ -471,14 +474,20 @@ void LIB_HANDLER()
     case OVR_ADD:
         // ADDITION IS A SPECIAL CASE, NEEDS TO KEEP ARGUMENTS FLAT
     {
+        WORDPTR arg1=rplPeekData(2);
+        WORDPTR arg2=rplPeekData(1);
+
 
         // ALLOW LIST PROCESSING AND MATRIX PROCESSING FIRST
-        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))){
-            rplListBinaryDoCmd(rplPeekData(2),rplPeekData(1));
+        if(ISLIST(*arg1) || ISLIST(*arg2)){
+            rplListBinaryDoCmd(arg1,arg2);
             return;
         }
 
-
+        if(ISMATRIX(*arg1)||ISMATRIX(*arg2)) {
+           rplMatrixAdd();
+           return;
+        }
 
 
         // FIRST, CHECK THAT ARGUMENTS ARE ACCEPTABLE FOR SYMBOLIC OPERATION
@@ -491,7 +500,6 @@ void LIB_HANDLER()
 
         BINT initdepth=rplDepthData();
         BINT argtype=0;
-        WORDPTR arg1=rplPeekData(2);
 
         if(ISSYMBOLIC(*arg1) && rplSymbMainOperator(arg1)==(CMD_OVR_ADD)) {
             // EXPLODE ALL ARGUMENTS ON THE STACK
@@ -511,7 +519,7 @@ void LIB_HANDLER()
             argtype|=1;
         } else { if(ISSYMBOLIC(*arg1)||ISIDENT(*arg1)) argtype|=4; rplPushData(arg1); }
 
-        WORDPTR arg2=rplPeekData(rplDepthData()-initdepth+1);
+        arg2=rplPeekData(rplDepthData()-initdepth+1);
 
         // EXPLODE THE SECOND ARGUMENT EXACTLY THE SAME
         if(ISSYMBOLIC(*arg2) && rplSymbMainOperator(arg2)==(CMD_OVR_ADD)) {
@@ -622,15 +630,27 @@ void LIB_HANDLER()
         // BINARY OPERATORS
 
 
-        // ALLOW LIST PROCESSING AND MATRIX PROCESSING FIRST
-        if(ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))){
-            rplListBinaryDoCmd(rplPeekData(2),rplPeekData(1));
-            return;
-        }
 
         // FIRST, CHECK THAT ARGUMENTS ARE ACCEPTABLE FOR SYMBOLIC OPERATION
         WORDPTR arg1=rplPeekData(2);
         WORDPTR arg2=rplPeekData(1);
+
+        // ALLOW LIST PROCESSING AND MATRIX PROCESSING FIRST
+        if(ISLIST(*arg1) || ISLIST(*arg2)){
+            rplListBinaryDoCmd(arg1,arg2);
+            return;
+        }
+
+        if(ISMATRIX(*arg1)||ISMATRIX(*arg2)) {
+           // PASS IT DIRECTLY TO HANDLER OF MATRIX OBJECT
+           LIBHANDLER han=rplGetLibHandler(DOMATRIX);
+           if(han) (*han)();
+           else rplError(ERR_MISSINGLIBRARY);
+           return;
+        }
+
+
+
 
         if( (!rplIsAllowedInSymb(arg1)) || (!rplIsAllowedInSymb(arg2)))
         {
@@ -769,14 +789,16 @@ void LIB_HANDLER()
         WORDPTR nextobj=*rplGetLAMn(3);
         WORDPTR endoflist=*rplGetLAMn(2);
 
-        if(nextobj==endoflist) {
+        if(nextobj>=endoflist) {
             // THE LAST ARGUMENT WAS ALREADY PROCESSED, IF THERE IS AN OPERATOR WE NEED TO APPLY IT
 
             WORDPTR Opcodeptr=*rplGetLAMn(1);
             WORD Opcode=(Opcodeptr==zero_bint)? 0:*Opcodeptr;
 
 
-            WORDPTR *prevDStk = rplUnprotectData();
+            WORDPTR *prevDStk;
+            if(Opcodeptr==zero_bint) prevDStk = rplUnprotectData();
+            else prevDStk=DStkProtect;
             BINT newdepth=(BINT)(DSTop-prevDStk);
 
 
@@ -787,6 +809,7 @@ void LIB_HANDLER()
                         // AN IDENT, OTHERWISE THE RESULT IS INVALID
                         if(!ISIDENT(*rplPeekData(1))) {
                             // IT SHOULD ACTUALLY RETURN SOMETHING LIKE "INVALID USER FUNCTION"
+                            DSTop=rplUnprotectData();
                             rplCleanupLAMs(0);
                             IPtr=rplPopRet();
                             rplError(ERR_INVALIDUSERDEFINEDFUNCTION);
@@ -794,6 +817,26 @@ void LIB_HANDLER()
                             return;
                         }
                     }
+
+                    // PUSH THE OPERATOR IN THE STACK AND EVAL IT. THIS SHOULD APPLY THE OPERATOR IF THE RESULT IS SYMBOLIC
+                    // OTHERWISE IT WILL CALCULATE IT
+
+                    // DO SYMBOLIC WRAP ON ALL OBJECTS THAT ARE NOT MATRICES OR LISTS
+                    rplSymbWrapN(newdepth);
+
+
+                    rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
+
+                    rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
+                    // PUSH THE NEXT OBJECT IN THE STACK
+                    rplPushData(Opcodeptr);
+
+                    // AND EXECUTION WILL CONTINUE AT EVAL
+
+                    return;
+
+
+                    /*
                     rplSymbApplyOperator(Opcode,newdepth);
                     newdepth=(BINT)(DSTop-prevDStk);
                     if(Exceptions) {
@@ -803,6 +846,7 @@ void LIB_HANDLER()
                     CurOpcode=(CMD_OVR_EVAL);
                     return;
                     }
+                    */
 
                 }
             }
@@ -841,7 +885,10 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR DURING EVALUATION
 
-        rplPutLAMn(3,rplSkipOb(*rplGetLAMn(3)));    // MOVE TO THE NEXT OBJECT IN THE LIST
+        WORDPTR nextobj=*rplGetLAMn(3);
+        WORDPTR endoflist=*rplGetLAMn(2);
+
+        if(nextobj<endoflist) rplPutLAMn(3,rplSkipOb(nextobj));    // MOVE TO THE NEXT OBJECT IN THE LIST
 
 
         IPtr=(WORDPTR) symbeval_seco;   // CONTINUE THE LOOP
@@ -874,14 +921,16 @@ void LIB_HANDLER()
         WORDPTR nextobj=*rplGetLAMn(3);
         WORDPTR endoflist=*rplGetLAMn(2);
 
-        if(nextobj==endoflist) {
+        if(nextobj>=endoflist) {
             // THE LAST ARGUMENT WAS ALREADY PROCESSED, IF THERE IS AN OPERATOR WE NEED TO APPLY IT
 
             WORDPTR Opcodeptr=*rplGetLAMn(1);
             WORD Opcode=(Opcodeptr==zero_bint)? 0:*Opcodeptr;
 
 
-            WORDPTR *prevDStk = rplUnprotectData();
+            WORDPTR *prevDStk;
+            if(Opcodeptr==zero_bint) prevDStk = rplUnprotectData();
+            else prevDStk=DStkProtect;
             BINT newdepth=(BINT)(DSTop-prevDStk);
 
 
@@ -892,6 +941,7 @@ void LIB_HANDLER()
                         // AN IDENT, OTHERWISE THE RESULT IS INVALID
                         if(!ISIDENT(*rplPeekData(1))) {
                             // IT SHOULD ACTUALLY RETURN SOMETHING LIKE "INVALID USER FUNCTION"
+                            DSTop=rplUnprotectData();
                             rplCleanupLAMs(0);
                             IPtr=rplPopRet();
                             rplError(ERR_INVALIDUSERDEFINEDFUNCTION);
@@ -899,8 +949,22 @@ void LIB_HANDLER()
                             return;
                         }
                     }
+
+                    // PUSH THE OPERATOR IN THE STACK AND EVAL IT. THIS SHOULD APPLY THE OPERATOR IF THE RESULT IS SYMBOLIC
+                    // OTHERWISE IT WILL CALCULATE IT
+
+                    rplSetExceptionHandler(IPtr+5); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
+
+                    rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
+                    // PUSH THE NEXT OBJECT IN THE STACK
+                    rplPushData(Opcodeptr);
+
+                    IPtr+=3;  // AND EXECUTION WILL CONTINUE AT EVAL
+
+                    return;
+
                     // DO THE OPERATION
-                    WORDPTR *savedstop=DSTop;
+                    /*WORDPTR *savedstop=DSTop;
                     rplCallOperator(Opcode);
                     newdepth=(BINT)(DSTop-prevDStk);
                     if(Exceptions) {
@@ -911,6 +975,7 @@ void LIB_HANDLER()
                     CurOpcode=(CMD_OVR_NUM);
                     return;
                     }
+                    */
 
                 }
             }
@@ -932,7 +997,7 @@ void LIB_HANDLER()
 
         }
 
-        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
+        rplSetExceptionHandler(IPtr+5); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
 
 
         // PUSH THE NEXT OBJECT IN THE STACK
@@ -962,7 +1027,7 @@ void LIB_HANDLER()
             }
         }
 
-        rplPutLAMn(3,nextobj);    // MOVE TO THE NEXT OBJECT IN THE LIST
+        if(nextobj<=endoflist) rplPutLAMn(3,nextobj);    // MOVE TO THE NEXT OBJECT IN THE LIST
 
 
         IPtr=(WORDPTR) symbnum_seco;   // CONTINUE THE LOOP

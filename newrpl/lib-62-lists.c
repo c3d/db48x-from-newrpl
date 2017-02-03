@@ -1422,8 +1422,8 @@ void LIB_HANDLER()
 
                     BINT newdepth=(BINT)(DSTop-prevDStk);
 
-                    rplNewBINTPush(newdepth,DECBINT);
-                    if(Exceptions) {
+                    WORDPTR newlist=rplCreateListN(newdepth,1,1);
+                    if(Exceptions || !newlist) {
                         DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
                         rplCleanupLAMs(0);
                         IPtr=rplPopRet();
@@ -1431,17 +1431,8 @@ void LIB_HANDLER()
                         return;
                     }
 
-                    rplCreateList();
-                    if(Exceptions) {
-                        DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
-                        rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
-                        return;
-                    }
-
-                    rplOverwriteData(3,rplPeekData(1));
-                    rplDropData(2);
+                    rplOverwriteData(2,newlist);
+                    rplDropData(1);
 
                     rplCleanupLAMs(0);
                     IPtr=rplPopRet();
@@ -1653,12 +1644,16 @@ void LIB_HANDLER()
                     BINT newdepth=(BINT)(DSTop-prevDStk);
 
 
-                    while(newdepth>0) {
-                        rplOverwriteData(newdepth+1,rplPeekData(newdepth));
-                        --newdepth;
+                    WORDPTR newlist=rplCreateListN(newdepth,1,1);
+                    if(Exceptions || !newlist) {
+                        DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+                        rplCleanupLAMs(0);
+                        IPtr=rplPopRet();
+                        CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
+                        return;
                     }
-                    rplDropData(1);
 
+                    rplOverwriteData(1,newlist);
                     rplCleanupLAMs(0);
                     IPtr=rplPopRet();
                     CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
@@ -2873,7 +2868,6 @@ void LIB_HANDLER()
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
-
         if(ISPROLOG(*DecompileObject)) {
             if(!ISAUTOEXPLIST(*DecompileObject)) rplDecompAppendString((BYTEPTR)"{");
             RetNum=OK_STARTCONSTRUCT;
@@ -2882,6 +2876,8 @@ void LIB_HANDLER()
 
         if(*DecompileObject==CMD_ENDLIST) {
             if(!ISAUTOEXPLIST(CurrentConstruct)) rplDecompAppendString((BYTEPTR)"}");
+            RetNum=OK_ENDCONSTRUCT;
+            return;
         }
 
 
@@ -2941,7 +2937,7 @@ void LIB_HANDLER()
         if(ISPROLOG(*ObjectPTR)) {
         TypeInfo=LIBRARY_NUMBER*100;
         DecompHints=0;
-        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NOTALLOWED,0,1);
+        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_LIST,0,1);
         }
         else {
             TypeInfo=0;     // ALL COMMANDS ARE TYPE 0

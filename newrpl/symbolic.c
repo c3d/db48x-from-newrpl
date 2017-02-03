@@ -78,7 +78,7 @@ WORD rplSymbMainOperator(WORDPTR symbolic)
     WORDPTR endptr=rplSkipOb(symbolic);
     while( (ISSYMBOLIC(*(symbolic+1))) && ((symbolic+1)<endptr)) ++symbolic;
     if(symbolic+1>=endptr) return 0;
-    if(!ISPROLOG(*(symbolic+1))) return *(symbolic+1);
+    if(!ISPROLOG(*(symbolic+1)) && !ISBINT(*(symbolic+1))) return *(symbolic+1);
     return 0;
 }
 
@@ -89,7 +89,7 @@ WORDPTR rplSymbMainOperatorPTR(WORDPTR symbolic)
     WORDPTR endptr=rplSkipOb(symbolic);
     while( (ISSYMBOLIC(*(symbolic+1))) && ((symbolic+1)<endptr)) ++symbolic;
     if(symbolic+1>=endptr) return 0;
-    if(!ISPROLOG(*(symbolic+1))) return (symbolic+1);
+    if(!ISPROLOG(*(symbolic+1)) && !ISBINT(*(symbolic+1))) return (symbolic+1);
     return 0;
 }
 
@@ -125,6 +125,29 @@ BINT rplIsAllowedInSymb(WORDPTR object)
 
     if(RetNum>OK_TOKENINFO) {
         if(TI_TYPE(RetNum)==TITYPE_NOTALLOWED) return 0;
+        if(TI_TYPE(RetNum)==TITYPE_LIST) {
+         // RECURSIVELY VERIFY THAT ALL ELEMENTS IN THE LIST ARE ALLOWED IN A SYMBOLIC!
+         BINT nitems=rplListLengthFlat(object);
+         WORDPTR objflat=rplGetListElementFlat(object,1);
+         while(nitems--) {
+             CurOpcode=MKOPCODE(LIBNUM(*objflat),OPCODE_GETINFO);
+             DecompileObject=objflat;
+             RetNum=0;
+             LIBHANDLER han=rplGetLibHandler(LIBNUM(*objflat));
+             if(han) (*han)();
+             if(RetNum>OK_TOKENINFO) { if(TI_TYPE(RetNum)==TITYPE_NOTALLOWED) return 0; }
+             else return 0;
+
+         objflat=rplGetNextListElementFlat(object,objflat);
+         }
+        // IF WE MADE IT HERE, ALL ITEMS ARE ACCEPTABLE
+        CurOpcode=savedopcode;
+
+        }
+
+
+
+
         return 1;
     }
     return 0;
@@ -156,25 +179,10 @@ void rplSymbApplyOperator(WORD Opcode,BINT nargs)
         obj=rplPeekData(f);
         if(ISSYMBOLIC(*obj)) obj=rplSymbUnwrap(obj);
         else {
-            // CHECK IF IT'S ALLOWED IN SYMBOLICS
-            LIBHANDLER han=rplGetLibHandler(LIBNUM(*obj));
-            WORD savedopc=CurOpcode;
-            CurOpcode=MKOPCODE(LIBNUM(*obj),OPCODE_GETINFO);
-            DecompileObject=obj;
-            RetNum=0;
-            if(han) (*han)();
-            CurOpcode=savedopc;
-            if(RetNum>OK_TOKENINFO) {
-                if(TI_TYPE(RetNum)==TITYPE_NOTALLOWED) {
+                if(!rplIsAllowedInSymb(obj)) {
                     rplError(ERR_NOTALLOWEDINSYMBOLICS);
                     return;
                 }
-            }
-            else {
-                rplError(ERR_NOTALLOWEDINSYMBOLICS);
-                return;
-            }
-
         }
         rplCopyObject(ptr,obj);
         // REPLACE QUOTED IDENT WITH UNQUOTED ONES FOR SYMBOLIC OBJECTS
@@ -185,6 +193,163 @@ void rplSymbApplyOperator(WORD Opcode,BINT nargs)
     rplDropData(nargs-1);
     rplOverwriteData(1,newobject);
 }
+
+
+// ADD SYMBOLIC WRAP TO AN OBJECT (NO CHECKS, EXCEPT IT WILL PROCESS LISTS AND MATRICES
+WORDPTR rplSymbWrap(WORDPTR obj)
+{
+    if(ISSYMBOLIC(*obj)) return obj;
+    if(!ISPROLOG(*obj) && !ISBINT(*obj)) return obj;
+
+    WORDPTR firstobj,endobj,ptr,destptr;
+    BINT wrapcount;
+
+    if(ISMATRIX(*obj)) {
+        firstobj=rplMatrixGetFirstObj(obj);
+        endobj=rplSkipOb(obj);
+
+        wrapcount=0;
+
+        // FIRST PASS, DETERMINE HOW MANY WRAPS ARE NEEDED
+        ptr=firstobj;
+        while(ptr!=endobj) {
+            if(!ISSYMBOLIC(*ptr)) ++wrapcount;
+            ptr=rplSkipOb(ptr);
+        }
+
+        ScratchPointer1=obj;
+        WORDPTR newobj=rplAllocTempOb(rplObjSize(obj)+wrapcount-1);
+        if(!newobj) return obj;
+
+        // RELOAD ALL POINTERS DUE TO POSSIBLE GC
+        firstobj=ScratchPointer1+(firstobj-obj);
+        endobj=ScratchPointer1+(endobj-obj);
+        obj=ScratchPointer1;
+
+        memmovew(newobj,obj,firstobj-obj);  // COPY MATRIX DATA AND HASH TABLES
+        newobj[0]+=wrapcount;  // FIX THE OBJECT SIZE
+        ptr=firstobj;
+        destptr=newobj+(firstobj-obj);
+
+        while(ptr!=endobj) {
+            BINT size=rplObjSize(ptr);
+            if(!ISSYMBOLIC(*ptr)) {
+                destptr[0]=MKPROLOG(DOSYMB,size);
+                ++destptr;
+
+                // PATCH ALL HASH TABLE OFFSETS
+                BINT tablesize=firstobj-obj-2;
+                WORDPTR tableptr=newobj+2;
+                BINT k;
+                for(k=0;k<tablesize;++k) {
+                    if(tableptr[k]>=destptr-newobj) tableptr[k]++;
+                }
+
+            }
+            memmovew(destptr,ptr,size);
+            ptr+=size;
+            destptr+=size;
+        }
+
+        return newobj;
+
+    }
+
+    if(ISLIST(*obj)) {
+        firstobj=obj+1;
+        endobj=rplSkipOb(obj);
+
+        wrapcount=0;
+
+        // FIRST PASS, DETERMINE HOW MANY WRAPS ARE NEEDED
+        ptr=firstobj;
+        while(ptr!=endobj) {
+            if(ISLIST(*ptr)) { ++ptr; continue; }
+            if(!ISPROLOG(*ptr) && !ISBINT(*ptr)) { ++ptr; continue; }
+            if(ISMATRIX(*ptr)) { ptr=rplSkipOb(ptr); continue; }
+            if(!ISSYMBOLIC(*ptr)) ++wrapcount;
+            ptr=rplSkipOb(ptr);
+        }
+
+        ScratchPointer1=obj;
+        WORDPTR newobj=rplAllocTempOb(rplObjSize(obj)+wrapcount-1);
+        if(!newobj) return obj;
+
+        // RELOAD ALL POINTERS DUE TO POSSIBLE GC
+        firstobj=ScratchPointer1+(firstobj-obj);
+        endobj=ScratchPointer1+(endobj-obj);
+        obj=ScratchPointer1;
+
+        newobj[0]=obj[0];   // COPY LIST PROLOG
+        newobj[0]+=wrapcount;  // FIX THE OBJECT SIZE
+        ptr=firstobj;
+        destptr=newobj+1;
+
+        while(ptr!=endobj) {
+            BINT size=rplObjSize(ptr);
+
+            if(ISLIST(*ptr)) {
+                destptr[0]=ptr[0]+wrapcount;
+                ++destptr;
+                ++ptr;
+                continue;
+            }
+            if(!ISPROLOG(*ptr) && !ISBINT(*ptr)) {
+                *destptr=*ptr;
+                ++destptr;
+                ++ptr;
+                continue;
+            }
+            if(!ISSYMBOLIC(*ptr) && !ISMATRIX(*ptr)) {
+                destptr[0]=MKPROLOG(DOSYMB,size);
+                ++destptr;
+                --wrapcount;
+            }
+            memmovew(destptr,ptr,size);
+            ptr+=size;
+            destptr+=size;
+        }
+
+        return newobj;
+
+
+    }
+
+    // ALL OTHER OBJECTS ARE ATOMIC, ADD A SYMBOLIC WRAP
+
+
+    BINT size=rplObjSize(obj);
+
+    WORDPTR newobject=rplAllocTempOb(size);
+    if(!newobject) return obj;
+
+    newobject[0]=MKPROLOG(DOSYMB,size);
+    ptr=newobject+1;
+    memmovew(ptr,obj,size);
+    // REPLACE QUOTED IDENT WITH UNQUOTED ONES FOR SYMBOLIC OBJECTS
+    if(ISIDENT(*ptr)) *ptr=SETLIBNUMBIT(*ptr,UNQUOTED_BIT);
+
+    return newobject;
+
+    }
+
+
+//  ANALYZE 'nargs' ITEMS ON THE STACK AND WRAP THEM INTO A SYMBOLIC OBJECT
+// WHENEVER POSSIBLE (MOSTLY FOR NUMBERS)
+// NO ARGUMENT CHECKS!
+void rplSymbWrapN(BINT nargs)
+{
+    BINT f;
+    WORDPTR obj;
+    for(f=1;f<=nargs;++f) {
+        obj=rplPeekData(f);
+        rplOverwriteData(f,rplSymbWrap(obj));
+    }
+}
+
+
+
+
 
 
 // CHANGE THE SYMBOLIC TO CANONICAL FORM.

@@ -427,9 +427,41 @@ void LIB_HANDLER()
             }
             WORDPTR a=rplPeekData(2),b=rplPeekData(1);
 
-            if(!ISMATRIX(*a) || !ISMATRIX(*b)) {
-                rplError(ERR_MATRIXEXPECTED);
-                return;
+            if(!ISMATRIX(*a))
+            {
+                // CHECK DIMENSIONS OF MATRIX B
+                // OPERATION IS VALID IF B IS A SCALAR
+                if(ISMATRIX(*b)){
+                    BINT rows=rplMatrixRows(b);
+                    BINT cols=rplMatrixCols(b);
+                    if( (rows<2)&&(cols==1)) {
+                        // OPERATION IS SCALAR, ACCEPT IT
+                        WORDPTR scalar=rplMatrixGet(b,1,1);
+                        rplOverwriteData(1,scalar);
+                        rplCallOvrOperator(CurOpcode);
+                        return;
+                    }
+                }
+                    rplError(ERR_INCOMPATIBLEDIMENSION);
+                    return;
+            }
+            if(!ISMATRIX(*b))
+            {
+                // CHECK DIMENSIONS OF MATRIX A
+                // OPERATION IS VALID IF A IS A SCALAR
+                if(ISMATRIX(*a)){
+                    BINT rows=rplMatrixRows(a);
+                    BINT cols=rplMatrixCols(a);
+                    if( (rows<2)&&(cols==1)) {
+                        // OPERATION IS SCALAR, ACCEPT IT
+                        WORDPTR scalar=rplMatrixGet(a,1,1);
+                        rplOverwriteData(2,scalar);
+                        rplCallOvrOperator(CurOpcode);
+                        return;
+                    }
+                }
+                    rplError(ERR_INCOMPATIBLEDIMENSION);
+                    return;
             }
 
             rplMatrixAdd();
@@ -443,9 +475,41 @@ void LIB_HANDLER()
             }
             WORDPTR a=rplPeekData(2),b=rplPeekData(1);
 
-            if(!ISMATRIX(*a) || !ISMATRIX(*b)) {
-                rplError(ERR_MATRIXEXPECTED);
-                return;
+            if(!ISMATRIX(*a))
+            {
+                // CHECK DIMENSIONS OF MATRIX B
+                // OPERATION IS VALID IF B IS A SCALAR
+                if(ISMATRIX(*b)){
+                    BINT rows=rplMatrixRows(b);
+                    BINT cols=rplMatrixCols(b);
+                    if( (rows<2)&&(cols==1)) {
+                        // OPERATION IS SCALAR, ACCEPT IT
+                        WORDPTR scalar=rplMatrixGet(b,1,1);
+                        rplOverwriteData(1,scalar);
+                        rplCallOvrOperator(CurOpcode);
+                        return;
+                    }
+                }
+                    rplError(ERR_INCOMPATIBLEDIMENSION);
+                    return;
+            }
+            if(!ISMATRIX(*b))
+            {
+                // CHECK DIMENSIONS OF MATRIX A
+                // OPERATION IS VALID IF A IS A SCALAR
+                if(ISMATRIX(*a)){
+                    BINT rows=rplMatrixRows(a);
+                    BINT cols=rplMatrixCols(a);
+                    if( (rows<2)&&(cols==1)) {
+                        // OPERATION IS SCALAR, ACCEPT IT
+                        WORDPTR scalar=rplMatrixGet(a,1,1);
+                        rplOverwriteData(2,scalar);
+                        rplCallOvrOperator(CurOpcode);
+                        return;
+                    }
+                }
+                    rplError(ERR_INCOMPATIBLEDIMENSION);
+                    return;
             }
 
             rplMatrixSub();
@@ -540,6 +604,7 @@ void LIB_HANDLER()
             }
 
             WORDPTR a=rplPeekData(2),b=rplPeekData(1);
+            BINT neg=0;
 
             // ONLY MATRIX RAISED TO NUMERIC POWER IS SUPPORTED
             if(!ISMATRIX(*a))
@@ -547,6 +612,14 @@ void LIB_HANDLER()
                 rplError(ERR_MATRIXEXPECTED);
                 return;
             }
+
+            while(ISSYMBOLIC(*b)) {
+                b=rplSymbUnwrap(b);
+                ++b;    // POINT TO EITHER THE SINGLE OBJECT INSIDE THE SYMBOLIC OR THE OPCODE
+                if((*b==CMD_OVR_UMINUS)||(*b==CMD_OVR_NEG)) { neg^=1; ++b; }
+
+            }
+
             if( !ISNUMBER(*b)) {
                 rplError(ERR_INTEGEREXPECTED);
                 return;
@@ -571,6 +644,7 @@ void LIB_HANDLER()
                 // TODO: CHECK FOR INTEGER RANGE AND ISSUE "Integer too large" ERROR
                 BINT64 exp=rplReadNumberAsBINT(b);
                 if(Exceptions) return;
+                if(neg) exp=-exp;
                 rplPopData();
                 if(exp<0) {
                  rplMatrixInvert();
@@ -2323,7 +2397,7 @@ void LIB_HANDLER()
         if(ISPROLOG(*ObjectPTR)) {
         TypeInfo=LIBRARY_NUMBER*100;
         DecompHints=0;
-        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NOTALLOWED,0,1);
+        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_MATRIX,0,1);
         }
         else {
             TypeInfo=0;     // ALL COMMANDS ARE TYPE 0

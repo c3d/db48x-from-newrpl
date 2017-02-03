@@ -608,6 +608,8 @@ WORDPTR rplListAddRot(WORDPTR list,WORDPTR object,BINT nmax);
 
 // SYMBOLIC FUNCTIONS
 WORDPTR rplSymbUnwrap(WORDPTR symbolic);
+WORDPTR rplSymbWrap(WORDPTR obj);
+void rplSymbWrapN(BINT nargs);
 WORD rplSymbMainOperator(WORDPTR symbolic);
 WORDPTR rplSymbMainOperatorPTR(WORDPTR symbolic);
 BINT rplIsAllowedInSymb(WORDPTR object);
