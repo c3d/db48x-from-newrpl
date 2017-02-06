@@ -2564,68 +2564,82 @@ void leftKeyHandler(BINT keymsg)
                 *cptr=item;
             break;
         }
+
         case 2:
-            // START AND END SELECTED, COPY THE BLOCK TO THE CURSOR
+            // START AND END SELECTED, MOVE THE BLOCK TO THE CURSOR
         {
             if(halScreen.StkPointer>halScreen.StkSelEnd) {
-                    // MAKE HOLE
-                    BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
-                    BINT stkptr=halScreen.StkPointer;
-                    if(halScreen.StkPointer>rplDepthData()) stkptr=rplDepthData();
+                WORDPTR *stptr,*endptr,*cptr;
+                WORDPTR item;
+                    stptr=DSTop-halScreen.StkSelStart;
+                    endptr=DSTop-((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer);
 
-                    rplExpandStack(count);
-                    if(Exceptions) return;
+                    // DO UNROT UNTIL THE ENTIRE BLOCK MOVED
+                BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
 
-                    memmovew(DSTop-stkptr+count,DSTop-stkptr,stkptr*sizeof(WORDPTR)/sizeof(WORD));
+                    while(count--)
+                    {
+                    cptr=stptr;
 
-                    // AND COPY THE SELECTION
-                    memmovew(DSTop-stkptr,DSTop-halScreen.StkSelEnd+count,count*sizeof(WORDPTR)/sizeof(WORD));
+                    item=*cptr;
 
-                    DSTop+=count;
-                    halScreen.StkPointer+=count;
-                    halScreen.StkVisibleLvl=-1;
+                    while(cptr>endptr) { cptr[0]=cptr[-1]; --cptr; }
+                    *cptr=item;
+                    }
+
+                    count=halScreen.StkSelEnd-halScreen.StkSelStart;
+                    halScreen.StkSelEnd=((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer);
+                    halScreen.StkSelStart=halScreen.StkSelEnd-count;
 
                     break;
 
             }
             if(halScreen.StkPointer<halScreen.StkSelStart) {
 
-                // MAKE HOLE
-                BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
+                WORDPTR *stptr,*endptr,*cptr;
+                WORDPTR item;
+                    stptr=DSTop-halScreen.StkSelEnd;
+                    endptr=DSTop-halScreen.StkPointer-1;
 
-                rplExpandStack(count);
-                if(Exceptions) return;
+                    // DO ROT UNTIL THE ENTIRE BLOCK MOVED
+                    BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
+                    while(count--)
+                    {
+                    cptr=stptr;
 
-                memmovew(DSTop-halScreen.StkPointer+count,DSTop-halScreen.StkPointer,halScreen.StkPointer*sizeof(WORDPTR)/sizeof(WORD));
+                    item=*cptr;
 
-                // AND COPY THE SELECTION
-                memmovew(DSTop-halScreen.StkPointer,DSTop-halScreen.StkSelEnd,count*sizeof(WORDPTR)/sizeof(WORD));
+                    while(cptr<endptr) { cptr[0]=cptr[1]; ++cptr; }
+                    *cptr=item;
+                    }
 
-                DSTop+=count;
-                halScreen.StkPointer+=count;
-                halScreen.StkSelStart+=count;
-                halScreen.StkSelEnd+=count;
-                halScreen.StkVisibleLvl=-1;
+                    count=halScreen.StkSelEnd-halScreen.StkSelStart;
+                    halScreen.StkSelStart=halScreen.StkPointer+1;
+                    halScreen.StkSelEnd=halScreen.StkPointer+1+count;
+                    halScreen.StkPointer+=count+1;
+                    halScreen.StkVisibleLvl=-1;
+
 
                 break;
             }
 
-            // WHEN THE POINTER IS WITHIN THE BLOCK JUST ROT THE BLOCK
+            // WHEN THE POINTER IS WITHIN THE BLOCK JUST UNROT THE BLOCK
             WORDPTR *stptr,*endptr,*cptr;
             WORDPTR item;
-                endptr=DSTop-halScreen.StkSelStart;
-                stptr=DSTop-halScreen.StkSelEnd;
+                stptr=DSTop-halScreen.StkSelStart;
+                endptr=DSTop-halScreen.StkSelEnd;
 
                 cptr=stptr;
 
                 item=*cptr;
 
-                while(cptr<endptr) { cptr[0]=cptr[1]; ++cptr; }
+                while(cptr>endptr) { cptr[0]=cptr[-1]; --cptr; }
                 *cptr=item;
 
                 break;
 
         }
+
 
         }
         halScreen.DirtyFlag|=STACK_DIRTY;
@@ -2759,80 +2773,72 @@ void rightKeyHandler(BINT keymsg)
                 *cptr=item;
             break;
         }
+
         case 2:
-            // START AND END SELECTED, MOVE THE BLOCK TO THE CURSOR
+            // START AND END SELECTED, COPY THE BLOCK TO THE CURSOR
         {
             if(halScreen.StkPointer>halScreen.StkSelEnd) {
-                WORDPTR *stptr,*endptr,*cptr;
-                WORDPTR item;
-                    stptr=DSTop-halScreen.StkSelStart;
-                    endptr=DSTop-((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer);
+                    // MAKE HOLE
+                    BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
+                    BINT stkptr=halScreen.StkPointer;
+                    if(halScreen.StkPointer>rplDepthData()) stkptr=rplDepthData();
 
-                    // DO UNROT UNTIL THE ENTIRE BLOCK MOVED
-                BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
+                    rplExpandStack(count);
+                    if(Exceptions) return;
 
-                    while(count--)
-                    {
-                    cptr=stptr;
+                    memmovew(DSTop-stkptr+count,DSTop-stkptr,stkptr*sizeof(WORDPTR)/sizeof(WORD));
 
-                    item=*cptr;
+                    // AND COPY THE SELECTION
+                    memmovew(DSTop-stkptr,DSTop-halScreen.StkSelEnd+count,count*sizeof(WORDPTR)/sizeof(WORD));
 
-                    while(cptr>endptr) { cptr[0]=cptr[-1]; --cptr; }
-                    *cptr=item;
-                    }
-
-                    count=halScreen.StkSelEnd-halScreen.StkSelStart;
-                    halScreen.StkSelEnd=((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer);
-                    halScreen.StkSelStart=halScreen.StkSelEnd-count;
+                    DSTop+=count;
+                    halScreen.StkPointer+=count;
+                    halScreen.StkVisibleLvl=-1;
 
                     break;
 
             }
             if(halScreen.StkPointer<halScreen.StkSelStart) {
 
-                WORDPTR *stptr,*endptr,*cptr;
-                WORDPTR item;
-                    stptr=DSTop-halScreen.StkSelEnd;
-                    endptr=DSTop-halScreen.StkPointer-1;
+                // MAKE HOLE
+                BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
 
-                    // DO ROT UNTIL THE ENTIRE BLOCK MOVED
-                    BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
-                    while(count--)
-                    {
-                    cptr=stptr;
+                rplExpandStack(count);
+                if(Exceptions) return;
 
-                    item=*cptr;
+                memmovew(DSTop-halScreen.StkPointer+count,DSTop-halScreen.StkPointer,halScreen.StkPointer*sizeof(WORDPTR)/sizeof(WORD));
 
-                    while(cptr<endptr) { cptr[0]=cptr[1]; ++cptr; }
-                    *cptr=item;
-                    }
+                // AND COPY THE SELECTION
+                memmovew(DSTop-halScreen.StkPointer,DSTop-halScreen.StkSelEnd,count*sizeof(WORDPTR)/sizeof(WORD));
 
-                    count=halScreen.StkSelEnd-halScreen.StkSelStart;
-                    halScreen.StkSelStart=halScreen.StkPointer+1;
-                    halScreen.StkSelEnd=halScreen.StkPointer+1+count;
-                    halScreen.StkPointer+=count+1;
-                    halScreen.StkVisibleLvl=-1;
-
+                DSTop+=count;
+                halScreen.StkPointer+=count;
+                halScreen.StkSelStart+=count;
+                halScreen.StkSelEnd+=count;
+                halScreen.StkVisibleLvl=-1;
 
                 break;
             }
 
-            // WHEN THE POINTER IS WITHIN THE BLOCK JUST UNROT THE BLOCK
+            // WHEN THE POINTER IS WITHIN THE BLOCK JUST ROT THE BLOCK
             WORDPTR *stptr,*endptr,*cptr;
             WORDPTR item;
-                stptr=DSTop-halScreen.StkSelStart;
-                endptr=DSTop-halScreen.StkSelEnd;
+                endptr=DSTop-halScreen.StkSelStart;
+                stptr=DSTop-halScreen.StkSelEnd;
 
                 cptr=stptr;
 
                 item=*cptr;
 
-                while(cptr>endptr) { cptr[0]=cptr[-1]; --cptr; }
+                while(cptr<endptr) { cptr[0]=cptr[1]; ++cptr; }
                 *cptr=item;
 
                 break;
 
         }
+
+
+
 
         }
         halScreen.DirtyFlag|=STACK_DIRTY;

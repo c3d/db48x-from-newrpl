@@ -827,7 +827,14 @@ void LIB_HANDLER()
 
                     rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
 
-                    rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
+
+
+                    if((Opcode==CMD_OVR_MUL)||(Opcode==CMD_OVR_ADD)) {
+                        // CHECK FOR FLATTENED LIST, APPLY MORE THAN ONCE IF MORE THAN 2 ARGUMENTS
+                        if(newdepth<=2) rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
+                    }
+                    else  rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
+
                     // PUSH THE NEXT OBJECT IN THE STACK
                     rplPushData(Opcodeptr);
 
@@ -953,9 +960,13 @@ void LIB_HANDLER()
                     // PUSH THE OPERATOR IN THE STACK AND EVAL IT. THIS SHOULD APPLY THE OPERATOR IF THE RESULT IS SYMBOLIC
                     // OTHERWISE IT WILL CALCULATE IT
 
-                    rplSetExceptionHandler(IPtr+5); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
+                    rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
 
-                    rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
+                    if((Opcode==CMD_OVR_MUL)||(Opcode==CMD_OVR_ADD)) {
+                        // CHECK FOR FLATTENED LIST, APPLY MORE THAN ONCE IF MORE THAN 2 ARGUMENTS
+                        if(newdepth<=2) rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
+                    }
+                    else  rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
                     // PUSH THE NEXT OBJECT IN THE STACK
                     rplPushData(Opcodeptr);
 
@@ -997,7 +1008,7 @@ void LIB_HANDLER()
 
         }
 
-        rplSetExceptionHandler(IPtr+5); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
+        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
 
 
         // PUSH THE NEXT OBJECT IN THE STACK

@@ -164,7 +164,10 @@ void rplSymbApplyOperator(WORD Opcode,BINT nargs)
     BINT size=0;
     for(f=1;f<=nargs;++f) {
         obj=rplPeekData(f);
-        if(ISSYMBOLIC(*obj)) obj=rplSymbUnwrap(obj);
+        if(ISSYMBOLIC(*obj)) {
+            obj=rplSymbUnwrap(obj);
+            if(ISPROLOG(obj[1]) || ISBINT(obj[1])) ++obj;   // POINT TO THE SINGLE OBJECT WITHIN THE SYMBOLIC WRAPPER
+        }
         size+=rplObjSize(obj);
     }
     size+=1;
@@ -177,7 +180,10 @@ void rplSymbApplyOperator(WORD Opcode,BINT nargs)
     ptr=newobject+2;
     for(f=nargs;f>0;--f) {
         obj=rplPeekData(f);
-        if(ISSYMBOLIC(*obj)) obj=rplSymbUnwrap(obj);
+        if(ISSYMBOLIC(*obj)) {
+            obj=rplSymbUnwrap(obj);
+            if(ISPROLOG(obj[1]) || ISBINT(obj[1])) ++obj;   // POINT TO THE SINGLE OBJECT WITHIN THE SYMBOLIC WRAPPER
+        }
         else {
                 if(!rplIsAllowedInSymb(obj)) {
                     rplError(ERR_NOTALLOWEDINSYMBOLICS);
@@ -900,6 +906,10 @@ WORDPTR rplSymbImplode(WORDPTR *exprstart)
             ++f;
         }
         else {
+            if(f==0) {
+                // FIRST OBJECT NEEDS A SYMBOLIC WRAPPER EVEN WITHOUT AN OPCODE
+                *newptr++=MKPROLOG(DOSYMB,rplObjSize(object));
+            }
             // COPY THE OBJECT
             WORDPTR endobj=rplSkipOb(object);
             while(object!=endobj) *newptr++=*object++;
