@@ -686,23 +686,51 @@ void LIB_HANDLER()
             WORDPTR Opcodeptr=*rplGetLAMn(1);
             WORD Opcode=(Opcodeptr==zero_bint)? 0:*Opcodeptr;
 
-            WORDPTR *prevDStk = rplUnprotectData();
+            WORDPTR *prevDStk;
+            if(Opcodeptr==zero_bint) prevDStk = rplUnprotectData();
+            else prevDStk=DStkProtect;
             BINT newdepth=(BINT)(DSTop-prevDStk);
 
-
             if(Opcode) {
-                if(Opcode!=(CMD_OVR_FUNCEVAL)) {
-                    rplSymbApplyOperator(Opcode,newdepth);
-                    newdepth=(BINT)(DSTop-prevDStk);
-                    if(Exceptions) {
-                    rplCleanupLAMs(0);
-                    IPtr=rplPopRet();
-                    ExceptionPointer=IPtr;
-                    CurOpcode=(CMD_OVR_EVAL1);
-                    return;
-                    }
+                    if( (newdepth!=1) || (Opcode!=(CMD_OVR_FUNCEVAL))) {
+                        if(Opcode==(CMD_OVR_FUNCEVAL)) {
+                            // DO MINIMAL TYPE CHECKING, LAST ARGUMENT HAS TO BE
+                            // AN IDENT, OTHERWISE THE RESULT IS INVALID
+                            if(!ISIDENT(*rplPeekData(1))) {
+                                // IT SHOULD ACTUALLY RETURN SOMETHING LIKE "INVALID USER FUNCTION"
+                                DSTop=rplUnprotectData();
+                                rplCleanupLAMs(0);
+                                IPtr=rplPopRet();
+                                rplError(ERR_INVALIDUSERDEFINEDFUNCTION);
+                                CurOpcode=(CMD_OVR_EVAL1);
+                                return;
+                            }
+                        }
+                        // DO SYMBOLIC WRAP ON ALL OBJECTS THAT ARE NOT MATRICES OR LISTS
+                        else rplSymbWrapN(1,newdepth);
 
-                }
+                        // PUSH THE OPERATOR IN THE STACK AND EVAL IT. THIS SHOULD APPLY THE OPERATOR IF THE RESULT IS SYMBOLIC
+                        // OTHERWISE IT WILL CALCULATE IT
+
+
+
+                        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
+
+
+
+                        if((Opcode==CMD_OVR_MUL)||(Opcode==CMD_OVR_ADD)) {
+                            // CHECK FOR FLATTENED LIST, APPLY MORE THAN ONCE IF MORE THAN 2 ARGUMENTS
+                            if(newdepth<=2) rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
+                        }
+                        else  rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
+
+                        // PUSH THE NEXT OBJECT IN THE STACK
+                        rplPushData(Opcodeptr);
+
+                        // AND EXECUTION WILL CONTINUE AT EVAL1
+
+                        return;
+                    }
             }
             if(newdepth!=1) {
                 rplCleanupLAMs(0);
@@ -739,7 +767,10 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR DURING EVALUATION
 
-        rplPutLAMn(3,rplSkipOb(*rplGetLAMn(3)));    // MOVE TO THE NEXT OBJECT IN THE LIST
+        WORDPTR nextobj=*rplGetLAMn(3);
+        WORDPTR endoflist=*rplGetLAMn(2);
+
+        if(nextobj<endoflist) rplPutLAMn(3,rplSkipOb(nextobj));    // MOVE TO THE NEXT OBJECT IN THE LIST
 
 
         IPtr=(WORDPTR) symbeval1_seco;   // CONTINUE THE LOOP
@@ -817,12 +848,12 @@ void LIB_HANDLER()
                             return;
                         }
                     }
+                    // DO SYMBOLIC WRAP ON ALL OBJECTS THAT ARE NOT MATRICES OR LISTS
+                    else rplSymbWrapN(1,newdepth);
 
                     // PUSH THE OPERATOR IN THE STACK AND EVAL IT. THIS SHOULD APPLY THE OPERATOR IF THE RESULT IS SYMBOLIC
                     // OTHERWISE IT WILL CALCULATE IT
 
-                    // DO SYMBOLIC WRAP ON ALL OBJECTS THAT ARE NOT MATRICES OR LISTS
-                    rplSymbWrapN(newdepth);
 
 
                     rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD

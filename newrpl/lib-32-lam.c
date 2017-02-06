@@ -244,6 +244,54 @@ void LIB_HANDLER()
             }
                 return;
 
+            case OVR_FUNCEVAL:
+            {
+                // SAME AS EVAL, BUT FAILS IF VARIABLE DOESN'T EXIST WITH UNDEFINED FUNCTION
+                // RCL WHATEVER IS STORED IN THE LAM AND THEN EVAL ITS CONTENTS
+                // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
+                {
+                    WORDPTR *val=rplFindLAM(rplPeekData(1),1);
+                    if(!val) {
+                        val=rplFindGlobal(rplPeekData(1),1);
+                        if(!val) {
+                            rplError(ERR_INVALIDUSERDEFINEDFUNCTION);
+                            return;
+                        }
+                    }
+
+                    if(rplCheckCircularReference((WORDPTR)symbeval_seco+2,*(val+1),4)) {
+                        rplError(ERR_CIRCULARREFERENCE);
+                        return;
+                    }
+
+                    // CREATE A NEW LAM ENVIRONMENT IDENTICAL TO THE ONE USED TO EVAL SYMBOLICS
+                    // FOR CIRCULAR REFERENCE CHECK
+                    rplCreateLAMEnvironment((WORDPTR)symbeval_seco+2);
+
+                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 1 = 0 (DUMMY)
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 2 = 0 (DUMMY)
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 3 = 0 (DUMMY)
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                    rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 4 = MAIN VARIABLE NAME, FOR CIRCULAR REFERENCE CHECK
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+
+                    rplOverwriteData(1,*(val+1));    // REPLACE THE FIRST LEVEL WITH THE VALUE
+
+                    rplPushRet(IPtr);
+                    IPtr=(WORDPTR) lameval_seco;
+                    CurOpcode=(CMD_OVR_EVAL);
+                }
+                    return;
+
+
+
+             }
             case OVR_EVAL:
             // RCL WHATEVER IS STORED IN THE LAM AND THEN EVAL ITS CONTENTS
             // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER

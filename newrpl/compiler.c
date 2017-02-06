@@ -1293,7 +1293,7 @@ end_of_expression:
                     // DECOMPILE THE FUNCTION NAME NOW, THEN ADD PARENTHESIS FOR THE LIST
                     WORDPTR argList=DecompileObject+1;
                     WORDPTR EndofExpression = rplSkipOb(*(signed int *)(InfixOpTop-4)+EndOfObject);
-
+                    WORDPTR firstobj=argList;
                     // FIND THE LAST ARGUMENT
                     while(rplSkipOb(argList)<EndofExpression) argList=rplSkipOb(argList);
 
@@ -1320,6 +1320,26 @@ end_of_expression:
                     }
                     rplDecompAppendChar('(');
                     ++DecompileObject;
+
+
+                    if(argList==firstobj) {
+                        // SPECIAL CASE OF FUNCTION WITHOUT ANY ARGUMENTS
+                        rplDecompAppendChar(')');
+                        // END OF THIS EXPRESSION
+                        // POP EXPRESSION FROM THE STACK
+                        InfixOpTop-=4;
+                        // RESTORE PREVIOUS EXPRESSION STATE
+                        infixmode=InfixOpTop[1];
+                        DecompileObject=rplSkipOb(*(signed int *)InfixOpTop+EndOfObject);
+                        if(!infixmode) rplDecompAppendChar('\'');
+
+                        goto end_of_expression;
+
+
+
+                    }
+
+
                     infixmode=INFIX_CUSTOMFUNCARG;
                     break;
 
@@ -1664,7 +1684,7 @@ end_of_expression:
             // CHECK IF THIS IS THE LAST ARGUMENT
             WORDPTR EndofExpression = rplSkipOb(*(signed int *)(InfixOpTop-4)+EndOfObject);
 
-            if(rplSkipOb(DecompileObject)==EndofExpression) {
+            if((DecompileObject>=EndofExpression) || (rplSkipOb(DecompileObject)==EndofExpression)) {
                 rplDecompAppendChar(')');
                 // END OF THIS EXPRESSION
                 // POP EXPRESSION FROM THE STACK

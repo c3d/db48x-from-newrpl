@@ -343,13 +343,13 @@ WORDPTR rplSymbWrap(WORDPTR obj)
 //  ANALYZE 'nargs' ITEMS ON THE STACK AND WRAP THEM INTO A SYMBOLIC OBJECT
 // WHENEVER POSSIBLE (MOSTLY FOR NUMBERS)
 // NO ARGUMENT CHECKS!
-void rplSymbWrapN(BINT nargs)
+void rplSymbWrapN(BINT level,BINT nargs)
 {
     BINT f;
     WORDPTR obj;
     for(f=1;f<=nargs;++f) {
-        obj=rplPeekData(f);
-        rplOverwriteData(f,rplSymbWrap(obj));
+        obj=rplPeekData(f+level);
+        rplOverwriteData(f+level,rplSymbWrap(obj));
     }
 }
 
