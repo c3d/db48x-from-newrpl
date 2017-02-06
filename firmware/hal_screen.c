@@ -338,8 +338,6 @@ void halRedrawStack(DRAWSURFACE *scr)
 
       if(level<=depth) {
       // DRAW THE OBJECT
-        scr->x=xright+1;
-        scr->y=ytop;
         object=uiRenderObject(rplPeekData(level),levelfnt);
         // GET THE SIZE OF THE OBJECT
 
@@ -367,10 +365,13 @@ void halRedrawStack(DRAWSURFACE *scr)
        } else {
           object=0;
           objheight=levelfnt->BitmapHeight;
+          width=0;
       }
 
 
       ytop=y-objheight;
+      scr->x=xright+1;
+      scr->y=ytop;
 
       // SET CLIPPING REGION
 

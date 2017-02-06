@@ -193,7 +193,10 @@ void LIB_HANDLER()
      WORDPTR object=rplPeekData(1);
          if(rplSymbMainOperator(object)==CurOpcode) {
              // THIS SYMBOLIC ALREADY HAS THE OPERATOR, REMOVE IT!
-             rplOverwriteData(1,rplSymbUnwrap(object)+2);
+             WORDPTR arg=rplSymbUnwrap(object)+2;
+
+             if(!ISSYMBOLIC(*arg)) arg=rplSymbWrap(arg);    // WRAP IT AS SYMBOLIC
+             rplOverwriteData(1,arg);
              return;
          }
 
@@ -203,16 +206,21 @@ void LIB_HANDLER()
 
          return;
      }
+     if(ISSYMBOLIC(*object)) {
+         if(ISPROLOG(object[1]) || ISBINT(object[1])) ++object;   // POINT TO THE SINGLE OBJECT WITHIN THE SYMBOLIC WRAPPER
+     }
+
      BINT size=rplObjSize(object);
      // NEED TO WRAP AND ADD THE OPERATOR
      size+=2;
 
+     ScratchPointer1=object;
     WORDPTR newobject=rplAllocTempOb(size-1);
     if(!newobject) return;
 
     newobject[0]=MKPROLOG(DOSYMB,size-1);
     newobject[1]=MKOPCODE(LIB_OVERLOADABLE,OPCODE(CurOpcode));
-    object=rplSymbUnwrap(rplPeekData(1));  // READ AGAIN, GC MIGHT'VE MOVED THE OBJECT
+    object=ScratchPointer1; // RESTORE AS IT MIGHT'VE MOVED DURING GC
 
     WORDPTR endptr=rplSkipOb(object);
     WORDPTR ptr=newobject+2;

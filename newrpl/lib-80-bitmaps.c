@@ -135,7 +135,7 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
     {
         BYTEPTR destptr,srcptr;
 
-        BINT mask=1,destmask;
+        BINT mask=1,destmask=0;
         BINT pixel;
 
         srcptr=(BYTEPTR)(bitmap+3);

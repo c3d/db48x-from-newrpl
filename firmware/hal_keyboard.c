@@ -5667,7 +5667,7 @@ int halProcessKey(BINT keymsg, int (*dokey)(BINT),BINT flags)
 
 void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
 {
-    int keymsg,isidle,jobdone;
+    int keymsg=0,isidle,jobdone;
     BINT64 offcounter;
 
     DRAWSURFACE scr;

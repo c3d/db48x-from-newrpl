@@ -347,7 +347,7 @@ void rplSymbWrapN(BINT level,BINT nargs)
 {
     BINT f;
     WORDPTR obj;
-    for(f=1;f<=nargs;++f) {
+    for(f=0;f<nargs;++f) {
         obj=rplPeekData(f+level);
         rplOverwriteData(f+level,rplSymbWrap(obj));
     }

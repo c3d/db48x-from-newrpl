@@ -12,6 +12,7 @@
 void uiRepaintForm(DRAWSURFACE *scr)
 {
     // REPAINT VISIBLE PART OF A FORM
+    UNUSED_ARGUMENT(scr);
 
 }
 
@@ -19,6 +20,7 @@ void uiRepaintForm(DRAWSURFACE *scr)
 void uiUpdateForm(WORDPTR form)
 {
     // UPDATE CONTENTS OF A FORM
+    UNUSED_ARGUMENT(form);
 }
 
 
