@@ -190,7 +190,12 @@ void LIB_HANDLER()
     {
      // UNARY OPERATION ON A SYMBOLIC
 
+
+
      WORDPTR object=rplPeekData(1);
+
+
+
          if(rplSymbMainOperator(object)==CurOpcode) {
              // THIS SYMBOLIC ALREADY HAS THE OPERATOR, REMOVE IT!
              WORDPTR arg=rplSymbUnwrap(object)+2;
@@ -1255,10 +1260,13 @@ void LIB_HANDLER()
 
         rplNewRealFromRRegPush(0);
         if(Exceptions) return;
+
+        if(B!=1) {
         rplNewBINTPush(B,DECBINT);
         if(Exceptions) { rplDropData(1); return; }
         rplSymbApplyOperator(CMD_OVR_DIV,2);
         if(Exceptions) return;
+        }
         rplOverwriteData(2,rplPeekData(1));
         rplDropData(1);
 
