@@ -608,7 +608,7 @@ void halRedrawHelp(DRAWSURFACE *scr)
 
         }
 
-
+        if(ISSTRING(*helptext)) {
 
         BINT ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine;
         BINT ybot=ytop+halScreen.Menu1+halScreen.Menu2-1;
@@ -620,6 +620,8 @@ void halRedrawHelp(DRAWSURFACE *scr)
         ggl_cliphline(scr,ytop,0,SCREEN_WIDTH-1,0xf4f4f4f4);
 
 
+
+
         // SHOW MESSAGE'S FIRST 3 LINES ONLY
         BINT currentline=0,nextline;
         BYTEPTR basetext=(BYTEPTR) (helptext+1);
@@ -628,9 +630,23 @@ void halRedrawHelp(DRAWSURFACE *scr)
         if(nextline<0) {
             nextline=rplStrSize(helptext);
         }
-        DrawTextN(3,ytop+2+k*halScreen.StAreaFont->BitmapHeight,(char *)basetext+currentline,(char *)basetext+nextline,halScreen.StAreaFont,0xf,scr);
+        DrawTextN(3,ytop+2+(k+1)*halScreen.StAreaFont->BitmapHeight,(char *)basetext+currentline,(char *)basetext+nextline,halScreen.StAreaFont,0xf,scr);
 
         currentline=nextline;
+        }
+
+        // FINALLY, SHOW THE NAME OF THE ITEM
+       BINT oldclipy=scr->clipy,oldclipy2=scr->clipy2;
+
+       scr->clipy=ytop+1;
+       scr->clipy2=ytop+1+halScreen.MenuFont->BitmapHeight;
+
+        uiDrawMenuItem(item,0xf,scr);
+
+        scr->clipy=oldclipy;
+        scr->clipy2=oldclipy2;
+
+        return;
         }
 
 

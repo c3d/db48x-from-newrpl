@@ -34,7 +34,9 @@
     CMD(CONVERT,MKTOKENINFO(7,TITYPE_NOTALLOWED,2,2)), \
     CMD(UFACT,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
     ECMD(TOUNIT,"→UNIT",MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
-    ECMD(SYMBTOUNIT,"_[",MKTOKENINFO(2,TITYPE_BINARYOP_LEFT,2,2))
+    ECMD(SYMBTOUNIT,"_[",MKTOKENINFO(2,TITYPE_BINARYOP_LEFT,2,2)), \
+    CMD(ULIST,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+
 
 // ADD MORE OPCODES HERE
 
@@ -1712,6 +1714,60 @@ void LIB_HANDLER()
         rplOverwriteData(1,newunit);
 
         return;
+    }
+
+
+
+    case ULIST:
+    {
+        //  GET THE UNITS DIRECTORY
+
+        WORDPTR unitdir_obj=rplGetSettings((WORDPTR)unitdir_ident);
+
+        if(!unitdir_obj) {
+        rplPushData((WORDPTR)empty_list);
+        return;
+        }
+
+        WORDPTR *entry;
+        WORDPTR *savestk=DSTop;
+        BINT count=0;
+        // FOUND UNITS DIRECTORY IN SETTINGS, SCAN IT TO FIND OUT ALL IDENTS
+        entry=rplFindFirstByHandle(unitdir_obj);
+        while(entry) {
+
+            // CREATE AN EXPLODED UNIT IN THE STACK FOR THE MENU
+            // (n): VALUE
+            // (n-1): IDENTIFIER
+            // (n-2): NUMERATOR
+            // (n-3): DENOMINATOR
+            rplPushData((WORDPTR)one_bint);
+
+            rplPushData(entry[0]);
+
+            rplPushData((WORDPTR)one_bint);
+            rplPushData((WORDPTR)one_bint);
+
+            WORDPTR newunit=rplUnitAssemble(4);
+            if(Exceptions || (!newunit)) { DSTop=savestk; return; }
+            rplOverwriteData(4,newunit);
+            rplDropData(3);
+            ++count;
+            entry=rplFindNext(entry);
+        }
+
+        WORDPTR list;
+        if(count) list=rplCreateListN(count,1,1);
+        else list=(WORDPTR)empty_list;
+        if(Exceptions || (!list)) {
+            DSTop=savestk;
+            return;
+        }
+
+        rplPushData(list);
+
+        return;
+
     }
 
         // STANDARIZED OPCODES:
