@@ -661,6 +661,7 @@ void LIB_HANDLER()
                 object=TempObEnd;   // START OF COMPILATION
             } else {
                 object=*(ValidateTop-1);    // GET LATEST CONSTRUCT
+                ++object;                   // AND SKIP THE PROLOG / ENTRY WORD
 
                 // CHECK FOR CONDITIONAL VARIABLE CREATION!
                 WORDPTR *construct=ValidateTop-1;
@@ -675,7 +676,25 @@ void LIB_HANDLER()
                     }
                     --construct;
                 }
-                ++object;                   // AND SKIP THE PROLOG / ENTRY WORD
+
+                // CHECK FOR PREVIOUS LAM TRACKING DISABLE MARKERS
+                if(!notrack) {
+
+                    WORDPTR *env=nLAMBase;
+                    do {
+                        if(env<LAMTopSaved) break;
+                        if(env[1]==(WORDPTR)lameval_seco) {
+                        // FOUND THE MARKER, STOP TRACKING VARIABLES THIS COMPILE SESSION
+                            notrack=1;
+                            break;
+                        }
+                        env=rplGetNextLAMEnv(env);
+                    } while(env);
+
+
+                }
+
+
             }
 
             if(object<CompileEnd) {
@@ -707,6 +726,10 @@ void LIB_HANDLER()
                         rplCreateLAMEnvironment(*(ValidateTop-1));
                     }
                     rplCreateLAM(prevobject,prevobject);
+                    }
+                    else {
+                        // CREATE A BARRIER TO PREVENT ANY MORE PUTLAM/GETLAM REFERENCES BEYOND THIS POINT
+                        rplCreateLAMEnvironment((WORDPTR)lameval_seco);     // CREATE A NEW ENVIRONMENT OWNED BY A DOCOL SECONDARY
                     }
                     RetNum=OK_CONTINUE;
                     return;
@@ -761,6 +784,10 @@ void LIB_HANDLER()
                             }
                             rplCreateLAM(prevobject,prevobject);
 
+                            }
+                            else {
+                                // CREATE A BARRIER TO PREVENT ANY MORE PUTLAM/GETLAM REFERENCES BEYOND THIS POINT
+                                rplCreateLAMEnvironment((WORDPTR)lameval_seco);     // CREATE A NEW ENVIRONMENT OWNED BY A DOCOL SECONDARY
                             }
                             RetNum=OK_CONTINUE;
                             return;
