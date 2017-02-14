@@ -655,11 +655,26 @@ void LIB_HANDLER()
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
             WORDPTR object,prevobject;
-            if(ValidateTop<=RSTop) {
+            BINT notrack=0;
+            if(ValidateTop<=ValidateBottom) {
                 // THERE'S NO ENVIRONMENT
                 object=TempObEnd;   // START OF COMPILATION
             } else {
                 object=*(ValidateTop-1);    // GET LATEST CONSTRUCT
+
+                // CHECK FOR CONDITIONAL VARIABLE CREATION!
+                WORDPTR *construct=ValidateTop-1;
+                while(construct>=ValidateBottom) {
+                    if((**construct==CMD_THEN)||(**construct==CMD_ELSE)
+                            ||(**construct==CMD_THENERR)||(**construct==CMD_ELSEERR)
+                            ||(**construct==CMD_THENCASE)||(**construct==CMD_REPEAT) )
+                    {
+                        // DON'T TRACK LAMS THAT COULD BE CONDITIONALLY CREATED
+                        notrack=1;
+                        break;
+                    }
+                    --construct;
+                }
                 ++object;                   // AND SKIP THE PROLOG / ENTRY WORD
             }
 
@@ -685,13 +700,14 @@ void LIB_HANDLER()
                     rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
 
                     // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
-
+                    if(!notrack) {
                     // DO WE NEED A NEW ENVIRONMENT?
 
                     if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
                         rplCreateLAMEnvironment(*(ValidateTop-1));
                     }
                     rplCreateLAM(prevobject,prevobject);
+                    }
                     RetNum=OK_CONTINUE;
                     return;
                 }
@@ -729,21 +745,23 @@ void LIB_HANDLER()
                 // THIS IS TO FORCE ALL LAMS IN A SECO TO BE COMPILED AS IDENTS
                 // INSTEAD OF PUTLAMS
 
-                // LAMS ACROSS DOCOL'S ARE OK AND ALWAYS COMPILED AS PUTLAMS
+                // LAMS ACROSS DOCOL'S ARE OK AND ALWAYS COMPILED AS PUTLAMS WHEN USING STO, CREATE NEW ONE WHEN USING LSTO
                 WORDPTR *scanenv=ValidateTop-1;
 
-                while(scanenv>=RSTop) {
-                    if( (LIBNUM(**scanenv)==SECO)&& (ISPROLOG(**scanenv))) {
+                while(scanenv>=ValidateBottom) {
+                    if( ((LIBNUM(**scanenv)==DOCOL)||(LIBNUM(**scanenv)==SECO))&& (ISPROLOG(**scanenv))) {
                             // FOUND INNERMOST SECONDARY
                             if(*scanenv>*(nLAMBase+1)) {
                                 // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
                             rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
+
+                            if(!notrack) {
                             if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
                                 rplCreateLAMEnvironment(*(ValidateTop-1));
                             }
                             rplCreateLAM(prevobject,prevobject);
 
-
+                            }
                             RetNum=OK_CONTINUE;
                             return;
                             }
@@ -796,7 +814,7 @@ void LIB_HANDLER()
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
             WORDPTR object,prevobject;
-            if(ValidateTop<=RSTop) {
+            if(ValidateTop<=ValidateBottom) {
                 // THERE'S NO ENVIRONMENT
                 object=TempObEnd;   // START OF COMPILATION
             } else {
@@ -864,7 +882,7 @@ void LIB_HANDLER()
                 // LAMS ACROSS DOCOL'S ARE OK AND ALWAYS COMPILED AS GETLAMS
                 WORDPTR *scanenv=ValidateTop-1;
 
-                while(scanenv>=RSTop) {
+                while(scanenv>=ValidateBottom) {
                     if( (LIBNUM(**scanenv)==SECO)&& (ISPROLOG(**scanenv))) {
                             // FOUND INNERMOST SECONDARY
                             if(*scanenv>*(nLAMBase+1)) {
@@ -1005,7 +1023,7 @@ void LIB_HANDLER()
                     do {
                         if(LAMptr>env) break;
                         prolog=**(env+1);   // GET THE PROLOG OF THE SECONDARY
-                        if(ISPROLOG(prolog) && LIBNUM(prolog)==SECO) {
+                        if(ISPROLOG(prolog) && ((LIBNUM(prolog)==SECO)||(LIBNUM(prolog)==DOCOL))) {
                         // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
                         // SO WE CREATE A NEW ONE
                             if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
@@ -1256,7 +1274,7 @@ void LIB_HANDLER()
             if(lastword<0x1000000) rplDecompAppendString((BYTEPTR)(name+1));
             else rplDecompAppendString2( ((BYTEPTR)(name+1)),len);
 
-            rplDecompAppendString((BYTEPTR)"\' LSTO");
+            rplDecompAppendString((BYTEPTR)"\' STO");
             RetNum=OK_CONTINUE;
             return;
         }

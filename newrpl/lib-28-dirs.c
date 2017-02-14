@@ -1221,6 +1221,250 @@ case UNLOCKVAR:
         // RetNum =  enum CompileErrors
 
 
+        // LSTO NEEDS SPECIAL CONSIDERATION TO CREATE LAMS AT COMPILE TIME
+
+        if((TokenLen==3) && (!utf8ncmp((char *)TokenStart,"STO",3)))
+        {
+
+            // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
+
+            // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
+            WORDPTR object,prevobject;
+            if(ValidateTop<=ValidateBottom) {
+                // THERE'S NO ENVIRONMENT
+                object=TempObEnd;   // START OF COMPILATION
+            } else {
+                object=*(ValidateTop-1);    // GET LATEST CONSTRUCT
+                ++object;                   // AND SKIP THE PROLOG / ENTRY WORD
+            }
+
+            if(object<CompileEnd) {
+            do {
+                prevobject=object;
+                object=rplSkipOb(object);
+            } while(object<CompileEnd);
+
+            // HERE PREVOBJECT CONTAINS THE LAST OBJECT THAT WAS COMPILED
+
+            if(ISIDENT(*prevobject)) {
+                // WE HAVE A HARD-CODED IDENT, CHECK IF IT EXISTS ALREADY
+
+                // CHECK IF IT'S AN EXISTING LAM, COMPILE TO A PUTLAM OPCODE IF POSSIBLE
+
+                WORDPTR *LAMptr=rplFindLAM(prevobject,1);
+
+
+                if(LAMptr<LAMTopSaved) {
+                    // THIS IS NOT A VALID LAM, LEAVE AS IDENT
+
+                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,STO));
+
+                    RetNum=OK_CONTINUE;
+                    return;
+                }
+
+                if(LAMptr<nLAMBase) {
+                    // THIS IS A LAM FROM AN UPPER CONSTRUCT
+                    // WE CAN USE PUTLAM ONLY INSIDE LOOPS, NEVER ACROSS SECONDARIES
+
+                    WORDPTR *env=nLAMBase;
+                    WORD prolog;
+                    do {
+                        if(LAMptr>env) break;
+                        prolog=**(env+1);   // GET THE PROLOG OF THE SECONDARY
+                        if(ISPROLOG(prolog) && LIBNUM(prolog)==SECO) {
+                        // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
+                        rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,STO));
+
+                        RetNum=OK_CONTINUE;
+                        return;
+                        }
+                        env=rplGetNextLAMEnv(env);
+                    } while(env);
+
+
+
+                }
+
+
+                // SPECIAL CASE: WHEN A SECO DOESN'T HAVE ANY LOCALS YET
+                // BUT LAMS FROM THE PREVIOUS SECO SHOULDN'T BE COMPILED TO GETLAMS
+
+                // SCAN ALL CURRENT CONSTRUCTS TO FIND THE INNERMOST SECONDARY
+                // THEN VERIFY IF THAT SECONDARY IS THE CURRENT LAM ENVIRONMENT
+
+                // THIS IS TO FORCE ALL LAMS IN A SECO TO BE COMPILED AS IDENTS
+                // INSTEAD OF PUTLAMS
+
+                // LAMS ACROSS DOCOL'S ARE OK AND ALWAYS COMPILED AS PUTLAMS WHEN USING STO, CREATE NEW ONE WHEN USING LSTO
+                WORDPTR *scanenv=ValidateTop-1;
+
+                while(scanenv>=ValidateBottom) {
+                    if( ((LIBNUM(**scanenv)==SECO))&& (ISPROLOG(**scanenv))) {
+                            // FOUND INNERMOST SECONDARY
+                            if(*scanenv>*(nLAMBase+1)) {
+                                // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
+                            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,STO));
+                            RetNum=OK_CONTINUE;
+                            return;
+                            }
+                            break;
+
+                    }
+                    --scanenv;
+                }
+
+
+                // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS PUTLAM
+                BINT Offset=((BINT)(LAMptr-nLAMBase))>>1;
+
+                // ONLY USE PUTLAM IF OFFSET IS WITHIN RANGE
+                if(Offset<=32767 && Offset>=-32768) {
+                CompileEnd=prevobject;
+                rplCompileAppend(MKOPCODE(DOIDENT,PUTLAMN+(Offset&0xffff)));
+                }
+                else {
+                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,STO));
+                }
+
+                RetNum=OK_CONTINUE;
+                return;
+            }
+
+            }
+
+
+            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,STO));
+            RetNum=OK_CONTINUE;
+            return;
+        }
+
+
+        if((TokenLen==3) && (!utf8ncmp((char *)TokenStart,"RCL",3)))
+        {
+
+            // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
+
+            // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
+            WORDPTR object,prevobject;
+            if(ValidateTop<=ValidateBottom) {
+                // THERE'S NO ENVIRONMENT
+                object=TempObEnd;   // START OF COMPILATION
+            } else {
+                object=*(ValidateTop-1);    // GET LATEST CONSTRUCT
+                ++object;                   // AND SKIP THE PROLOG / ENTRY WORD
+            }
+
+            if(object<CompileEnd) {
+            do {
+                prevobject=object;
+                object=rplSkipOb(object);
+            } while(object<CompileEnd);
+
+            // HERE PREVOBJECT CONTAINS THE LAST OBJECT THAT WAS COMPILED
+
+            if(ISIDENT(*prevobject)) {
+                // WE HAVE A HARD-CODED IDENT, CHECK IF IT EXISTS ALREADY
+
+                // CHECK IF IT'S AN EXISTING LAM, COMPILE TO A GETLAM OPCODE IF POSSIBLE
+
+                WORDPTR *LAMptr=rplFindLAM(prevobject,1);
+
+
+                if(LAMptr<LAMTopSaved) {
+                    // THIS IS NOT A VALID LAM, LEAVE AS IDENT
+
+                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,RCL));
+                    RetNum=OK_CONTINUE;
+                    return;
+                }
+
+                if(LAMptr<nLAMBase) {
+                    // THIS IS A LAM FROM AN UPPER CONSTRUCT
+                    // WE CAN USE GETLAM ONLY INSIDE LOOPS, NEVER ACROSS SECONDARIES
+
+                    WORDPTR *env=nLAMBase;
+                    WORD prolog;
+                    do {
+                        if(LAMptr>env) break;
+                        prolog=**(env+1);   // GET THE PROLOG OF THE SECONDARY
+                        if(ISPROLOG(prolog) && LIBNUM(prolog)==SECO) {
+                        // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
+                        rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,RCL));
+
+                        RetNum=OK_CONTINUE;
+                        return;
+                        }
+                        env=rplGetNextLAMEnv(env);
+                    } while(env);
+
+
+
+                }
+
+
+                // SPECIAL CASE: WHEN A SECO DOESN'T HAVE ANY LOCALS YET
+                // BUT LAMS FROM THE PREVIOUS SECO SHOULDN'T BE COMPILED TO GETLAMS
+
+                // SCAN ALL CURRENT CONSTRUCTS TO FIND THE INNERMOST SECONDARY
+                // THEN VERIFY IF THAT SECONDARY IS THE CURRENT LAM ENVIRONMENT
+
+                // THIS IS TO FORCE ALL LAMS IN A SECO TO BE COMPILED AS IDENTS
+                // INSTEAD OF GETLAMS
+
+                // LAMS ACROSS DOCOL'S ARE OK AND ALWAYS COMPILED AS GETLAMS
+                WORDPTR *scanenv=ValidateTop-1;
+
+                while(scanenv>=ValidateBottom) {
+                    if( (LIBNUM(**scanenv)==SECO)&& (ISPROLOG(**scanenv))) {
+                            // FOUND INNERMOST SECONDARY
+                            if(*scanenv>*(nLAMBase+1)) {
+                                // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
+                            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,RCL));
+                            RetNum=OK_CONTINUE;
+                            return;
+                            }
+                            break;
+
+                    }
+                    --scanenv;
+                }
+
+                // IT'S A KNOWN LOCAL VARIABLE, COMPILE AS GETLAM
+                BINT Offset=((BINT)(LAMptr-nLAMBase))>>1;
+
+                if(Offset<=32767 && Offset>=-32768) {
+                CompileEnd=prevobject;
+                rplCompileAppend(MKOPCODE(DOIDENT,GETLAMN+(Offset&0xffff)));
+                }
+                else {
+                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,RCL));
+                }
+                RetNum=OK_CONTINUE;
+                return;
+            }
+
+
+            }
+
+
+            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,RCL));
+            RetNum=OK_CONTINUE;
+            return;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
             // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
             // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
 

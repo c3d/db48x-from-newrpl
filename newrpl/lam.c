@@ -363,7 +363,7 @@ BINT rplNeedNewLAMEnvCompiler()
     WORDPTR *rsptr=ValidateTop-1;
     WORDPTR seco=0;
 
-    while(rsptr>=RSTop) {
+    while(rsptr>=ValidateBottom) {
         if(ISPROLOG(**rsptr) && ((LIBNUM(**rsptr)==SECO)||(LIBNUM(**rsptr)==DOCOL)))
         {
             seco=*rsptr;

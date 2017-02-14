@@ -46,6 +46,7 @@ UFACT
 →UNIT
 UDEFINE
 UPURGE
+ULIST
 { { "Units" 1 } :: #03600000h TMENULST ; }
 }
 
@@ -369,4 +370,8 @@ U<unit1> U<factor> → U_<unit1*factor>"
 
 R U → R*U"
 
+ULIST
+"Get a list of all custom
+defined units
+ → L "
 }
