@@ -98,6 +98,8 @@ VANDERMONDE
 ##1,ERR_SQUAREMATRIXONLY  "Matrix must be square"
 ##1,ERR_VECTOREXPECTED  "Expected a vector"
 ##1,ERR_MISPLACEDBRACKETS  "Misplaced brackets"
+##1,ERR_MALFORMEDMATRIX  "Malformed Matrix"
+
 }
 
 

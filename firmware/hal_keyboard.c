@@ -4692,6 +4692,224 @@ void spcKeyHandler(BINT keymsg)
 
 }
 
+// INTERACTIVE STACK ONLY
+void tolistKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    switch(halScreen.StkSelStatus)
+    {
+    case 0:
+        // NO ITEM SELECTED, MAKE A ONE-ELEMENT LIST
+        if((rplDepthData()>=halScreen.StkPointer)&&(halScreen.StkPointer>0)) {
+
+                WORDPTR newlist=rplCreateListN(1,halScreen.StkPointer,0);
+                if(!newlist || Exceptions) { rplBlameError(0); return; }
+                rplOverwriteData(halScreen.StkPointer,newlist);
+
+        }
+        break;
+
+    case 1:
+    {
+        // MAKE A LIST BETWEEN SELSTART AND STKPOINTER
+        BINT endlvl,stlvl;
+
+        if(halScreen.StkPointer>halScreen.StkSelStart) {
+            stlvl=halScreen.StkSelStart;
+            endlvl=(halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer;
+        }
+        else {
+            endlvl=halScreen.StkSelStart;
+            stlvl=(halScreen.StkPointer>0)? halScreen.StkPointer:1;
+        }
+
+        // MAKE A LIST
+        WORDPTR newlist=rplCreateListN(endlvl-stlvl+1,stlvl,0);
+        if(!newlist || Exceptions) { rplBlameError(0); return; }
+        rplOverwriteData(stlvl,newlist);
+        if(endlvl-stlvl>0) rplRemoveAtData(stlvl+1,endlvl-stlvl);
+        // AND END THE SELECTION
+        halScreen.StkPointer=stlvl;
+        halScreen.StkVisibleLvl=-1;
+        halScreen.StkSelStatus=0;
+
+        break;
+    }
+
+    case 2:
+        // START AND END SELECTED, MOVE THE BLOCK INTO A LIST AT CURSOR
+    {
+        // MAKE A LIST BETWEEN SELSTART AND SELEND
+        BINT endlvl,stlvl;
+        endlvl=halScreen.StkSelEnd;
+        stlvl=halScreen.StkSelStart;
+
+        // MAKE A LIST
+        WORDPTR newlist=rplCreateListN(endlvl-stlvl+1,stlvl,0);
+        if(!newlist || Exceptions) { rplBlameError(0); return; }
+
+        if(halScreen.StkPointer>endlvl) {
+            BINT lstlvl=(halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer;
+            // MAKE ROOM
+            memmovew(DSTop-lstlvl+1,DSTop-lstlvl,(lstlvl-endlvl)*sizeof(WORDPTR)/sizeof(WORD));
+            // INSERT THE LIST
+            rplOverwriteData(lstlvl,newlist);
+            // REMOVE THE ORIGINAL ITEMS
+            if(endlvl>stlvl) rplRemoveAtData(stlvl,endlvl-stlvl);
+
+            halScreen.StkPointer-=(endlvl-stlvl);
+        }
+        else if(halScreen.StkPointer<stlvl) {
+            BINT lstlvl;
+            if(halScreen.StkPointer>0) {
+                lstlvl=halScreen.StkPointer;
+            // MAKE ROOM, USE STACK SLACK TEMPORARILY
+            memmovew(DSTop,DSTop-1,lstlvl*sizeof(WORDPTR)/sizeof(WORD));
+            // INSERT THE LIST
+            rplOverwriteData(lstlvl,newlist);
+
+            ++DSTop;
+            }
+            else rplPushData(newlist);
+            // REMOVE THE ORIGINAL ITEMS
+            if(endlvl>=stlvl) rplRemoveAtData(stlvl+1,endlvl-stlvl+1);
+
+        }
+        else {
+         // POINTER IS WITHIN THE BLOCK
+            rplOverwriteData(endlvl,newlist);
+            // REMOVE THE ORIGINAL ITEMS
+            if(endlvl>stlvl) rplRemoveAtData(stlvl,endlvl-stlvl);
+
+            halScreen.StkPointer=stlvl;
+
+        }
+
+
+        // AND END THE SELECTION
+        halScreen.StkVisibleLvl=-1;
+        halScreen.StkSelStatus=0;
+
+            break;
+
+    }
+
+
+    }
+    halScreen.DirtyFlag|=STACK_DIRTY;
+    return;
+}
+
+void tomatKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    switch(halScreen.StkSelStatus)
+    {
+    case 0:
+        // NO ITEM SELECTED, MAKE A ONE-ELEMENT MATRIX
+        if((rplDepthData()>=halScreen.StkPointer)&&(halScreen.StkPointer>0)) {
+
+                WORDPTR newmat=rplMatrixFlexComposeN(halScreen.StkPointer,1);    // MAKE A SINGLE ELEMENT VECTOR
+                if(!newmat || Exceptions) { rplBlameError(0); return; }
+                rplOverwriteData(halScreen.StkPointer,newmat);
+
+
+        }
+        break;
+
+    case 1:
+    {
+        // MAKE A LIST BETWEEN SELSTART AND STKPOINTER
+        BINT endlvl,stlvl;
+
+        if(halScreen.StkPointer>halScreen.StkSelStart) {
+            stlvl=halScreen.StkSelStart;
+            endlvl=(halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer;
+        }
+        else {
+            endlvl=halScreen.StkSelStart;
+            stlvl=(halScreen.StkPointer>0)? halScreen.StkPointer:1;
+        }
+
+        // MAKE A LIST
+        WORDPTR newmat=rplMatrixFlexComposeN(stlvl,endlvl-stlvl+1);
+        if(!newmat || Exceptions) { rplBlameError(0); return; }
+        rplOverwriteData(stlvl,newmat);
+        if(endlvl-stlvl>0) rplRemoveAtData(stlvl+1,endlvl-stlvl);
+        // AND END THE SELECTION
+        halScreen.StkPointer=stlvl;
+        halScreen.StkVisibleLvl=-1;
+        halScreen.StkSelStatus=0;
+
+        break;
+    }
+
+    case 2:
+        // START AND END SELECTED, MOVE THE BLOCK INTO A LIST AT CURSOR
+    {
+        // MAKE A LIST BETWEEN SELSTART AND SELEND
+        BINT endlvl,stlvl;
+        endlvl=halScreen.StkSelEnd;
+        stlvl=halScreen.StkSelStart;
+
+        // MAKE A LIST
+        WORDPTR newmat=rplMatrixFlexComposeN(stlvl,endlvl-stlvl+1);
+        if(!newmat || Exceptions) { rplBlameError(0); return; }
+
+        if(halScreen.StkPointer>endlvl) {
+            BINT lstlvl=(halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer;
+            // MAKE ROOM
+            memmovew(DSTop-lstlvl+1,DSTop-lstlvl,(lstlvl-endlvl)*sizeof(WORDPTR)/sizeof(WORD));
+            // INSERT THE LIST
+            rplOverwriteData(lstlvl,newmat);
+            // REMOVE THE ORIGINAL ITEMS
+            if(endlvl>stlvl) rplRemoveAtData(stlvl,endlvl-stlvl);
+
+            halScreen.StkPointer-=(endlvl-stlvl);
+        }
+        else if(halScreen.StkPointer<stlvl) {
+            BINT lstlvl;
+            if(halScreen.StkPointer>0) {
+                lstlvl=halScreen.StkPointer;
+            // MAKE ROOM, USE STACK SLACK TEMPORARILY
+            memmovew(DSTop,DSTop-1,lstlvl*sizeof(WORDPTR)/sizeof(WORD));
+            // INSERT THE LIST
+            rplOverwriteData(lstlvl,newmat);
+
+            ++DSTop;
+            }
+            else rplPushData(newmat);
+            // REMOVE THE ORIGINAL ITEMS
+            if(endlvl>=stlvl) rplRemoveAtData(stlvl+1,endlvl-stlvl+1);
+
+        }
+        else {
+         // POINTER IS WITHIN THE BLOCK
+            rplOverwriteData(endlvl,newmat);
+            // REMOVE THE ORIGINAL ITEMS
+            if(endlvl>stlvl) rplRemoveAtData(stlvl,endlvl-stlvl);
+
+            halScreen.StkPointer=stlvl;
+
+        }
+
+
+        // AND END THE SELECTION
+        halScreen.StkVisibleLvl=-1;
+        halScreen.StkSelStatus=0;
+
+            break;
+
+    }
+
+
+    }
+    halScreen.DirtyFlag|=STACK_DIRTY;
+    return;
+}
+
 
 DECLARE_SYMBKEYHANDLER(thinspc," ",0)
 
@@ -4868,6 +5086,12 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_RT|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&lsrightKeyHandler },
     { KM_PRESS|KB_LF|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&copyclipKeyHandler },
     { KM_PRESS|KB_RT|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&pasteclipKeyHandler },
+
+    // INTERACTIVE STACK OVERRIDES
+    { KM_PRESS|KB_ADD, CONTEXT_ANY|CONTEXT_INTSTACK,&tolistKeyHandler },
+    { KM_PRESS|KB_MUL, CONTEXT_ANY|CONTEXT_INTSTACK,&tomatKeyHandler },
+
+
 
 
     // CURSOR MOVEMENT KEYS
