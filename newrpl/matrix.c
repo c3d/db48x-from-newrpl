@@ -136,17 +136,19 @@ WORDPTR *rplMatrixExplode()
     return matrix+1;
 }
 
-// COMPOSES A NEW MATRIX OBJECT FROM OBJECTS IN THE STACK
-// OBJECTS MUST BE IN ROW-ORDER
+// COMPOSES A NEW MATRIX OBJECT FROM OBJECTS IN THE STACK STARTING AT level
+// OBJECTS MUST BE IN ROW-ORDER, level IS THE LAST OBJECT IN THE MATRIX (LOWEST NUMBER)
 // RETURNS 0 IF ERROR, AND SETS Exceptions AND ExceptionPtr.
 // CREATES A VECTOR IF ROWS == 0, OTHERWISE A MATRIX
 
-WORDPTR rplMatrixCompose(BINT rows,BINT cols)
+
+
+WORDPTR rplMatrixComposeN(BINT level,BINT rows,BINT cols)
 {
 BINT totalelements=(rows)? rows*cols:cols;
 
 // CHECK IF ENOUGH ELEMENTS IN THE STACK
-if(rplDepthData()<totalelements) {
+if(rplDepthData()<level+totalelements-1) {
     rplError(ERR_BADARGCOUNT);
     return 0;
 }
@@ -160,7 +162,7 @@ if((rows<0) || (rows>65535) || (cols<1) || (cols>65535)) {
 BINT k,j,totalsize=0;
 WORDPTR obj;
 
-for(k=1;k<=totalelements;++k) {
+for(k=level;k<level+totalelements;++k) {
 obj=rplPeekData(k);
 if(! (ISNUMBERCPLX(*obj)
       || ISSYMBOLIC(*obj)
@@ -180,8 +182,8 @@ if(!matrix) return 0;
 
 // FINALLY, ASSEMBLE THE OBJECT
 for(k=0;k<totalelements;++k) {
-    obj=rplPeekData(totalelements-k);
-    for(j=0;j<k;++j) if(rplCompareObjects(obj,rplPeekData(totalelements-j))) break;
+    obj=rplPeekData(level-1+totalelements-k);
+    for(j=0;j<k;++j) if(rplCompareObjects(obj,rplPeekData(level-1+totalelements-j))) break;
     if(j!=k) {
             // ADD THE ORIGINAL OBJECT
             matrix[2+k]=matrix[2+j];
@@ -202,6 +204,11 @@ matrix[1]=MATMKSIZE(rows,cols);
 
 return matrix;
 
+}
+
+WORDPTR rplMatrixCompose(BINT rows,BINT cols)
+{
+    return rplMatrixComposeN(1,rows,cols);
 }
 
 
@@ -1298,5 +1305,166 @@ void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BI
 
 #undef STACKELEM
 
+
+}
+
+
+// SIMILAR TO rplMatrixComposeN BUT USING FLEXIBLE ELEMENTS IN THE STACK
+// ELEMENTS CAN BE LOOSE ITEMS OR VECTORS
+// IF ANY ELEMENT IS A VECTOR, THE VECTOR LENGTH BECOMES THE NUMBER OF COLUMNS
+// ANY LOOSE ELEMENTS WILL FILL THE MATRIX BY ROWS
+// ANY VECTOR ELEMENTS CAN ONLY HAPPEN AT THE FIRST ELEMENT IN A ROW
+// IF AN ELEMENT IS A MATRIX, IT IS EQUIVALENT TO MULTIPLE ROWS
+// ALL VECTORS AND MATRICES MUST HAVE THE SAME NUMBER OF COLUMNS
+
+
+WORDPTR rplMatrixFlexComposeN(BINT level,BINT totalelements)
+{
+    BINT rows,cols;
+
+    rows=-1;
+    cols=-1;
+
+// CHECK IF ENOUGH ELEMENTS IN THE STACK
+if(rplDepthData()<level+totalelements-1) {
+    rplError(ERR_BADARGCOUNT);
+    return 0;
+}
+
+
+//   CHECK VALIDITY OF ALL ELEMENTS
+BINT k,j,totalsize=0,nelem=0;
+WORDPTR obj;
+
+for(k=level;k<level+totalelements;++k) {
+obj=rplPeekData(k);
+if(ISMATRIX(*obj)) {
+    // GET THE NUMBER OF COLUMNS
+    BINT mcols=rplMatrixCols(obj);
+    BINT mrows=rplMatrixRows(obj);
+
+    if(cols==-1) {
+        // DEFINE THE NUMBER OF COLUMNS FOR THE ENTIRE MATRIX
+        cols=mcols;
+    }
+    else {
+        // MAKE SURE THE NUMBER OF COLUMNS MATCH
+        if(cols!=mcols) {
+            rplError(ERR_INVALIDDIMENSION);
+            return 0;
+        }
+
+
+    }
+
+    // MAKE SURE THE VECTOR IS IN THE RIGHT POSITION
+    if(nelem%mcols) {
+        rplError(ERR_MALFORMEDMATRIX);
+        return 0;
+    }
+
+    nelem+= (mrows? mrows*mcols:mcols);
+    totalsize+=rplSkipOb(obj)-rplMatrixGetFirstObj(obj);    // ONLY COUNT NON-REPEATED OBJECTS
+
+    continue;
+}
+if(! (ISNUMBERCPLX(*obj)
+      || ISSYMBOLIC(*obj)
+      || ISIDENT(*obj)
+      || ISANGLE(*obj)
+      )) {
+    rplError(ERR_NOTALLOWEDINMATRIX);
+    return 0;
+    }
+totalsize+=rplObjSize(obj);
+++nelem;
+}
+
+// HERE WE SHOULD KNOW THE NUMBER OF COLUMNS ALREADY
+
+if(cols==-1) {
+    // ALL LOOSE ITEMS, CREATE A VECTOR
+    cols=nelem;
+    rows=0;
+}
+else {
+    // CHECK WE HAVE ENOUGH ELEMENTS
+    if(nelem%cols) {
+        rplError(ERR_MALFORMEDMATRIX);
+        return 0;
+    }
+    // AND COMPUTE FINAL SIZE
+    rows=nelem/cols;
+
+}
+
+// HERE WE HAVE A SIZE, AND EVERY OBJECT IS VERIFIED TO BE ALLOWED IN A MATRIX
+// DO A FEW MORE CHECKS:
+if((rows<0) || (rows>65535) || (cols<1) || (cols>65535)) {
+    rplError(ERR_INVALIDDIMENSION);
+    return 0;
+}
+
+WORDPTR matrix=rplAllocTempOb(totalsize+1+(rows? rows*cols:cols));
+WORDPTR newobj=matrix+2+(rows? rows*cols:cols);  // POINT TO THE NEXT OBJECT TO STORE
+WORDPTR firstobj=newobj,ptr;
+
+if(!matrix) return 0;
+
+// FINALLY, ASSEMBLE THE OBJECT
+nelem=0;
+for(k=0;k<totalelements;++k) {
+    obj=rplPeekData(level-1+totalelements-k);
+    if(ISMATRIX(*obj)) {
+        // INSERT ALL ELEMENTS IN THE MATRIX
+        BINT i;
+        BINT mrows=rplMatrixRows(obj);
+        BINT offsetfix=(newobj-matrix)-(rplMatrixGetFirstObj(obj)-obj);
+        if(!mrows) ++mrows;
+        for(i=0;i<mrows;++i) {
+        for(j=0;j<cols;++j)
+        {
+            // FIX THE OFFSETS
+            matrix[2+nelem+i*cols+j]=obj[2+i*cols+j]+offsetfix;
+        }
+        }
+
+        // TODO: COMPARE ONE BY ONE AND FIX OFFSETS
+        // INSERT ALL OBJECTS
+        BINT objsize=rplSkipOb(obj)-rplMatrixGetFirstObj(obj);
+        memmovew(newobj,rplMatrixGetFirstObj(obj),objsize);
+        newobj+=objsize;
+        nelem+=mrows*cols;
+    }
+    else {
+    // INSERT SINGLE OBJECT
+    // CHECK FOR DUPLICATES
+        ptr=firstobj;
+        while(ptr!=newobj) {
+            if(rplCompareObjects(obj,ptr)) break;
+            ptr=rplSkipOb(ptr);
+        }
+
+    if(ptr!=newobj) {
+            // ADD THE ORIGINAL OBJECT
+            matrix[2+nelem]=ptr-matrix;
+        }
+        else {
+            // ADD A NEW OBJECT
+            matrix[2+nelem]=newobj-matrix;
+            rplCopyObject(newobj,obj);
+            newobj=rplSkipOb(newobj);
+        }
+    ++nelem;
+    }
+}
+
+
+rplTruncateLastObject(newobj);
+
+matrix[0]=MKPROLOG(DOMATRIX,newobj-matrix-1);
+matrix[1]=MATMKSIZE(rows,cols);
+
+return matrix;
 
 }
