@@ -88,7 +88,7 @@
 
 @#name sysmenu_7_flags
 {
-SF CF SF? CF? FC?C FS?C
+SF CF FS? FC? FC?C FS?C
 }
 
 @#name sysmenu_8_menu
