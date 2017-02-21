@@ -4911,6 +4911,371 @@ void tomatKeyHandler(BINT keymsg)
 }
 
 
+// INTERACTIVE STACK ONLY
+void tocplxKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    switch(halScreen.StkSelStatus)
+    {
+    case 0:
+        // NO ITEM SELECTED, DO NOTHING
+        break;
+
+    case 1:
+    {
+        // MAKE A LIST BETWEEN SELSTART AND STKPOINTER
+        BINT endlvl,stlvl;
+
+        if(halScreen.StkPointer>halScreen.StkSelStart) {
+            stlvl=halScreen.StkSelStart;
+            endlvl=(halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer;
+        }
+        else {
+            endlvl=halScreen.StkSelStart;
+            stlvl=(halScreen.StkPointer>0)? halScreen.StkPointer:1;
+        }
+
+        if(endlvl-stlvl!=1) break;  // DO-NOTHING IF MORE THAN 2 ITEMS ARE SELECTED
+
+        WORDPTR real,imag;
+        BINT angmode;
+        real=rplPeekData(endlvl);
+        imag=rplPeekData(stlvl);
+        if(!ISNUMBER(*real)) { rplError(ERR_NOTALLOWEDINCOMPLEX); rplBlameError(0); break; }
+        angmode=ANGLEMODE(*imag);
+        if(!(ISNUMBER(*imag)||ISANGLE(*imag))) {
+            rplError(ERR_NOTALLOWEDINCOMPLEX);
+            rplBlameError(0);
+            break;
+        }
+
+        REAL re,im;
+
+        rplReadNumberAsReal(real,&re);
+        rplReadNumberAsReal(imag,&im);
+
+        WORDPTR newcplx=rplNewComplex(&re,&im,angmode);
+
+        // MAKE THE COMPLEX NUMBER
+        if(!newcplx || Exceptions) { rplBlameError(0); return; }
+
+        rplOverwriteData(stlvl,newcplx);
+        if(endlvl-stlvl>0) rplRemoveAtData(stlvl+1,endlvl-stlvl);
+        // AND END THE SELECTION
+        halScreen.StkPointer=stlvl;
+        halScreen.StkVisibleLvl=-1;
+        halScreen.StkSelStatus=0;
+
+        break;
+    }
+
+    case 2:
+        // START AND END SELECTED, MOVE THE BLOCK INTO A LIST AT CURSOR
+    {
+        // MAKE A LIST BETWEEN SELSTART AND SELEND
+        BINT endlvl,stlvl;
+        endlvl=halScreen.StkSelEnd;
+        stlvl=halScreen.StkSelStart;
+
+        if(endlvl-stlvl!=1) break;  // DO-NOTHING IF MORE THAN 2 ITEMS ARE SELECTED
+
+        WORDPTR real,imag;
+        BINT angmode;
+        real=rplPeekData(endlvl);
+        imag=rplPeekData(stlvl);
+        if(!ISNUMBER(*real)) { rplError(ERR_NOTALLOWEDINCOMPLEX); rplBlameError(0); break; }
+        angmode=ANGLEMODE(*imag);
+        if(!(ISNUMBER(*imag)||ISANGLE(*imag))) {
+            rplError(ERR_NOTALLOWEDINCOMPLEX);
+            rplBlameError(0);
+            break;
+        }
+
+        REAL re,im;
+
+        rplReadNumberAsReal(real,&re);
+        rplReadNumberAsReal(imag,&im);
+
+        WORDPTR newcplx=rplNewComplex(&re,&im,angmode);
+
+        // MAKE THE COMPLEX NUMBER
+        if(!newcplx || Exceptions) { rplBlameError(0); return; }
+
+        if(halScreen.StkPointer>endlvl) {
+            BINT lstlvl=(halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer;
+            // MAKE ROOM
+            memmovew(DSTop-lstlvl+1,DSTop-lstlvl,(lstlvl-endlvl)*sizeof(WORDPTR)/sizeof(WORD));
+            // INSERT THE LIST
+            rplOverwriteData(lstlvl,newcplx);
+            // REMOVE THE ORIGINAL ITEMS
+            if(endlvl>stlvl) rplRemoveAtData(stlvl,endlvl-stlvl);
+
+            halScreen.StkPointer-=(endlvl-stlvl);
+        }
+        else if(halScreen.StkPointer<stlvl) {
+            BINT lstlvl;
+            if(halScreen.StkPointer>0) {
+                lstlvl=halScreen.StkPointer;
+            // MAKE ROOM, USE STACK SLACK TEMPORARILY
+            memmovew(DSTop,DSTop-1,lstlvl*sizeof(WORDPTR)/sizeof(WORD));
+            // INSERT THE LIST
+            rplOverwriteData(lstlvl,newcplx);
+
+            ++DSTop;
+            }
+            else rplPushData(newcplx);
+            // REMOVE THE ORIGINAL ITEMS
+            if(endlvl>=stlvl) rplRemoveAtData(stlvl+1,endlvl-stlvl+1);
+
+        }
+        else {
+         // POINTER IS WITHIN THE BLOCK
+            rplOverwriteData(endlvl,newcplx);
+            // REMOVE THE ORIGINAL ITEMS
+            if(endlvl>stlvl) rplRemoveAtData(stlvl,endlvl-stlvl);
+
+            halScreen.StkPointer=stlvl;
+
+        }
+
+
+        // AND END THE SELECTION
+        halScreen.StkVisibleLvl=-1;
+        halScreen.StkSelStatus=0;
+
+            break;
+
+    }
+
+
+    }
+    halScreen.DirtyFlag|=STACK_DIRTY;
+    return;
+}
+
+
+void explodeKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    BINT endlvl,stlvl;
+
+    endlvl=stlvl=-1;
+
+    switch(halScreen.StkSelStatus)
+    {
+    case 0:
+        // NO ITEM SELECTED, EXPLODE ITEM AT CURSOR
+        if((rplDepthData()>=halScreen.StkPointer)&&(halScreen.StkPointer>0)) {
+
+                WORDPTR obj=rplPeekData(halScreen.StkPointer);
+
+                if(ISMATRIX(*obj)||ISLIST(*obj)||ISCOMPLEX(*obj))  stlvl=endlvl=halScreen.StkPointer;
+        }
+        break;
+    case 1:
+        if(halScreen.StkPointer>halScreen.StkSelStart) {
+            stlvl=halScreen.StkSelStart;
+            endlvl=(halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer;
+        }
+        else {
+            endlvl=halScreen.StkSelStart;
+            stlvl=(halScreen.StkPointer>0)? halScreen.StkPointer:1;
+        }
+
+        break;
+    case 2:
+            endlvl=halScreen.StkSelEnd;
+            stlvl=halScreen.StkSelStart;
+        break;
+    }
+
+    if(endlvl<0) return;    // NOTHING TO DO
+
+
+        BINT c,totalelem=0;
+
+        for(c=endlvl;c>=stlvl;--c) {
+
+        // EXPLODE ALL SELECTED ITEMS
+        WORDPTR obj=rplPeekData(c);
+        BINT nelem;
+
+        if(ISMATRIX(*obj)) {
+            nelem=rplMatrixRows(obj);
+            if(!nelem) nelem=rplMatrixCols(obj);
+        } else if(ISLIST(*obj)) {
+            nelem=rplListLength(obj);
+        } else if(ISCOMPLEX(*obj)) nelem=2;
+        else {
+            // NOTHING TO EXPLODE
+            ++totalelem;
+            continue;
+        }
+
+        totalelem+=nelem;
+
+        rplExpandStack(nelem);
+        if(Exceptions) { rplBlameError(0); return; }
+
+        // MAKE ROOM IN THE STACK TO START EXPLODING
+        memmovew(DSTop-c+nelem,DSTop-c+1,(c-1)*sizeof(WORDPTR)/sizeof(WORD));
+
+        // NOW EXPLODE THE MAIN OBJECT IN-PLACE
+        WORDPTR *ptr=DSTop-c;
+
+        obj=*ptr;   // READ AGAIN AS THERE MIGHT'VE BEEN A GC DURING EXPANDSTACK
+
+        if(ISMATRIX(*obj)) {
+            BINT rows=rplMatrixRows(obj);
+            if(!rows) {
+                // EXPAND BY ELEMENTS
+                BINT k;
+                for(k=1;k<=nelem;++k) *ptr++=rplMatrixFastGet(obj,1,k);
+            } else {
+                // TODO: EXPAND BY ROWS - MUCH MORE DIFFICULT THAN LISTS AS IT REQUIRES CREATING NEW MATRIX OBJECTS FOR THE ROWS
+
+                // COMPUTE SIZE OF INDIVIDUAL ROWS
+                BINT cols=rplMatrixCols(obj);
+                BINT totalsize=(2+cols)*rows;   // ACCOUNT FOR PROLOG+SIZE+OFFSET TABLE OF ALL ROWS
+
+                BINT i,j,k;
+
+                for(i=1;i<=rows;++i) {
+                    for(j=1;j<=cols;++j) {
+                        for(k=1;k<j;++k) if(rplMatrixFastGet(obj,i,j)==rplMatrixFastGet(obj,i,k)) break;
+                        if(k==j) totalsize+= rplObjSize(rplMatrixFastGet(obj,i,j)); // ONLY COUNT NON-REPEATED OBJECTS
+                    }
+                }
+
+                // HERE WE HAVE TOTAL SIZE OF ALL ROWS TO BE EXPANDED
+                // ALLOCATE ONE BIG BLOCK OF MEMORY FOR ALL ROWS
+
+                WORDPTR newrows=rplAllocTempOb(totalsize-1);
+                if(!newrows) {
+                    // CLOSE THE STACK BACK BEFORE RETURNING
+                    memmovew(DSTop-c+1,DSTop-c+nelem,(c-1)*sizeof(WORDPTR)/sizeof(WORD));
+                    rplBlameError(0);
+                    return;
+                }
+
+
+                obj=*ptr;   // READ AGAIN AS THERE MIGHT'VE BEEN A GC DURING ALLOCATION
+
+                WORDPTR rptr=newrows,objptr;
+
+                for(i=1;i<=rows;++i) {
+                    rptr[1]=MATMKSIZE(0,cols);
+                    objptr=rptr+2+cols;         // POINT TO THE LOCATION OF THE NEXT OBJECT TO BE STORED
+                    for(j=1;j<=cols;++j) {
+                        for(k=1;k<j;++k) if(rplMatrixFastGet(obj,i,j)==rplMatrixFastGet(obj,i,k)) break;
+                        if(k==j) {
+                            rplCopyObject(objptr,rplMatrixFastGet(obj,i,j)); // ADD A NEW OBJECT
+                            rptr[1+j]=objptr-rptr;
+                            objptr=rplSkipOb(objptr);
+                        }
+                        else rptr[1+j]=rptr[1+k];   // REUSE THE OBJECT
+                    }
+                    // DONE WITH THE ROW, FIX THE SIZE
+                    rptr[0]=MKPROLOG(DOMATRIX,objptr-rptr-1);
+                    rptr=objptr;
+                }
+
+
+                // NOW EXPAND IT ON THE STACK LIKE A LIST
+
+                rptr=newrows;
+                for(i=0;i<rows;++i) { *ptr++=rptr; rptr=rplSkipOb(rptr); }
+
+
+            }
+
+
+
+        } else if(ISLIST(*obj)) {
+            BINT k;
+            WORDPTR item=obj+1;
+            for(k=0;k<nelem;++k) { *ptr++=item; item=rplSkipOb(item); }
+        } else if(ISCOMPLEX(*obj)) {
+            *ptr++=obj+1;
+            *ptr++=rplSkipOb(obj+1);
+        }
+
+        DSTop+=nelem-1;
+        if(halScreen.StkPointer>c) halScreen.StkPointer+=nelem-1;
+        endlvl+=nelem-1;
+        }
+
+        // DONE EXPLODING, ADJUST POINTERS TO SELECT EVERYTHING
+        halScreen.StkSelStart=stlvl;
+        halScreen.StkSelEnd=endlvl;
+
+        // SPECIAL CASE: WHEN BLOCK IS SELECTED AND POINTER IS OUTSIDE THE BLOCK, MOVE EXPLODED ITEMS TO THE NEW LOCATION
+        if(halScreen.StkSelStatus==2) {
+        if(halScreen.StkPointer>halScreen.StkSelEnd) {
+            WORDPTR *stptr,*endptr,*cptr;
+            WORDPTR item;
+                stptr=DSTop-halScreen.StkSelStart;
+                endptr=DSTop-((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer);
+
+                // DO UNROT UNTIL THE ENTIRE BLOCK MOVED
+            BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
+
+                while(count--)
+                {
+                cptr=stptr;
+
+                item=*cptr;
+
+                while(cptr>endptr) { cptr[0]=cptr[-1]; --cptr; }
+                *cptr=item;
+                }
+
+                count=halScreen.StkSelEnd-halScreen.StkSelStart;
+                halScreen.StkSelEnd=((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer);
+                halScreen.StkSelStart=halScreen.StkSelEnd-count;
+
+
+        } else if(halScreen.StkPointer<halScreen.StkSelStart) {
+
+            WORDPTR *stptr,*endptr,*cptr;
+            WORDPTR item;
+                stptr=DSTop-halScreen.StkSelEnd;
+                endptr=DSTop-halScreen.StkPointer-1;
+
+                // DO ROT UNTIL THE ENTIRE BLOCK MOVED
+                BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
+                while(count--)
+                {
+                cptr=stptr;
+
+                item=*cptr;
+
+                while(cptr<endptr) { cptr[0]=cptr[1]; ++cptr; }
+                *cptr=item;
+                }
+
+                count=halScreen.StkSelEnd-halScreen.StkSelStart;
+                halScreen.StkSelStart=halScreen.StkPointer+1;
+                halScreen.StkSelEnd=halScreen.StkPointer+1+count;
+                halScreen.StkPointer+=count+1;
+                halScreen.StkVisibleLvl=-1;
+
+
+        }
+        }
+
+
+        if(stlvl==endlvl) halScreen.StkSelStatus=0; else halScreen.StkSelStatus=2;
+        halScreen.StkPointer=halScreen.StkSelEnd;
+        halScreen.StkVisibleLvl=-1;
+
+    halScreen.DirtyFlag|=STACK_DIRTY;
+    return;
+}
+
+
 DECLARE_SYMBKEYHANDLER(thinspc," ",0)
 
 DECLARE_SYMBKEYHANDLER(hash,"#",0)
@@ -5090,6 +5455,8 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     // INTERACTIVE STACK OVERRIDES
     { KM_PRESS|KB_ADD, CONTEXT_ANY|CONTEXT_INTSTACK,&tolistKeyHandler },
     { KM_PRESS|KB_MUL, CONTEXT_ANY|CONTEXT_INTSTACK,&tomatKeyHandler },
+    { KM_PRESS|KB_SUB, CONTEXT_ANY|CONTEXT_INTSTACK,&tocplxKeyHandler },
+    { KM_PRESS|KB_DIV, CONTEXT_ANY|CONTEXT_INTSTACK,&explodeKeyHandler },
 
 
 
