@@ -985,6 +985,32 @@ void halRedrawStatus(DRAWSURFACE *scr)
 
     if(halFlags&HAL_HALTED) DrawTextBk(STATUSAREA_X+20,ytop+1,(char *)"H",(UNIFONT *)halScreen.StAreaFont,0xf,0x0,scr);
 
+
+    // FIRST 6 USER FLAGS
+
+    {
+        UBINT64 *flags=rplGetUserFlagsLow();
+        if(flags) {
+            UBINT color=0x66666666;
+            if(*flags&4) color|=0xff0000;
+            if(*flags&2) color|=0x00ff00;
+            if(*flags&1) color|=0x0000ff;
+            ggl_rect(scr,STATUSAREA_X+30,ytop+1,STATUSAREA_X+30+5,ytop+2,color);
+
+            color=0x66666666;
+            if(*flags&32) color|=0xff0000;
+            if(*flags&16) color|=0x00ff00;
+            if(*flags&8)  color|=0x0000ff;
+            ggl_rect(scr,STATUSAREA_X+30,ytop+4,STATUSAREA_X+30+5,ytop+5,color);
+
+
+        }
+
+    }
+
+
+
+
     // SD CARD INSERTED INDICATOR
     {
         char txt[4];
