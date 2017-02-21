@@ -90,9 +90,7 @@ void uiDrawObject(WORDPTR object,DRAWSURFACE *scr,UNIFONT *font)
 
     // FIRST, CHECK IF THE OBJECT IS IN THE CACHE
 
-    WORDPTR bmp=uiFindCacheEntry(object);
-
-    if(!bmp) bmp=uiRenderObject(object,font);
+    WORDPTR bmp=uiRenderObject(object,font);
 
     if(bmp) {
         // COPY IT TO DESTINATION
@@ -146,11 +144,21 @@ WORDPTR uiRenderObject(WORDPTR object,UNIFONT *font)
     if(!string) string=(WORDPTR)invalid_string;
 
     // NOW PRINT THE STRING OBJECT
+
         BINT nchars=rplStrSize(string);
         BYTEPTR charptr=(BYTEPTR) (string+1);
         BINT numwidth=StringWidthN((char *)charptr,(char *)charptr+nchars,font);
+
+        ScratchPointer1=string;
+
         WORDPTR newbmp=uiAllocNewBitmap(numwidth,font->BitmapHeight);
         if(newbmp) {
+
+                // RELOAD ALL POINTERS IN CASE THERE WAS A GC
+                string=ScratchPointer1;
+                charptr=(BYTEPTR) (string+1);
+
+
                 // CLEAR THE BITMAP FIRST
                 memsetw(newbmp+3,0,OBJSIZE(*newbmp)-2);
 
