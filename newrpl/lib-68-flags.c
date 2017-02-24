@@ -115,6 +115,11 @@ ROMOBJECT flags_ident[]= {
         TEXT2WORD('F','l','a','g'),
         TEXT2WORD('s',0,0,0)
 };
+ROMOBJECT userflags_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('U','F','l','a'),
+        TEXT2WORD('g','s',0,0)
+};
 
 ROMOBJECT locale_ident[]= {
         MKPROLOG(DOIDENT,2),
@@ -212,6 +217,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)savedcmdline_ident,
     (WORDPTR)customkey_ident,
     (WORDPTR)savedflags_ident,
+    (WORDPTR)userflags_ident,
     0
 };
 
@@ -253,14 +259,115 @@ const systemflag const flags_names[]= {
 
 
 
+BINT rplSetUserFlag(BINT flag)
+{
+    if(flag<1 || flag>128) return -1;
+
+    WORDPTR UserFlags=rplGetSettings((WORDPTR)userflags_ident);
+    UBINT64 low64,hi64;
+
+    if(!UserFlags) low64=hi64=0;
+    else {
+    if(!ISLIST(*UserFlags)) low64=hi64=0;
+    else {
+    low64=*((UBINT64 *)(UserFlags+2));
+    hi64=*((UBINT64 *)(UserFlags+5));
+    }
+    }
+
+    if(flag<65) low64|=(1ULL << (flag-1));
+    else hi64|=(1ULL << (flag-65));
+
+    // UNLIKE SYSTEM FLAGS, THESE ARE NOT SELF-MODIFYING OBJECTS
 
 
+    UserFlags=rplAllocTempOb(7);
+    if(!UserFlags) return -2;
+    UserFlags[0]=MKPROLOG(DOLIST,7);
+    UserFlags[1]=MKPROLOG(HEXBINT,2);
+    UserFlags[2]=(WORD)low64;
+    UserFlags[3]=(WORD)(low64>>32);
+    UserFlags[4]=MKPROLOG(HEXBINT,2);
+    UserFlags[5]=(WORD)hi64;
+    UserFlags[6]=(WORD)(hi64>>32);
+    UserFlags[7]=CMD_ENDLIST;
+
+    rplStoreSettings((WORDPTR)userflags_ident,UserFlags);
+
+    return 0;
+}
 
 
+BINT rplClrUserFlag(BINT flag)
+{
+    if(flag<1 || flag>128) return -1;
+
+    WORDPTR UserFlags=rplGetSettings((WORDPTR)userflags_ident);
+    UBINT64 low64,hi64;
+
+    if(!UserFlags) low64=hi64=0;
+    else {
+    if(!ISLIST(*UserFlags)) low64=hi64=0;
+    else {
+    low64=*((UBINT64 *)(UserFlags+2));
+    hi64=*((UBINT64 *)(UserFlags+5));
+    }
+    }
+
+    if(flag<65) low64&=~(1ULL << (flag-1));
+    else hi64&=~(1ULL << (flag-65));
+
+    // UNLIKE SYSTEM FLAGS, THESE ARE NOT SELF-MODIFYING OBJECTS
 
 
+    UserFlags=rplAllocTempOb(7);
+    if(!UserFlags) return -2;
+    UserFlags[0]=MKPROLOG(DOLIST,7);
+    UserFlags[1]=MKPROLOG(HEXBINT,2);
+    UserFlags[2]=(WORD)low64;
+    UserFlags[3]=(WORD)(low64>>32);
+    UserFlags[4]=MKPROLOG(HEXBINT,2);
+    UserFlags[5]=(WORD)hi64;
+    UserFlags[6]=(WORD)(hi64>>32);
+    UserFlags[7]=CMD_ENDLIST;
+
+    rplStoreSettings((WORDPTR)userflags_ident,UserFlags);
+
+    return 0;
+}
+
+// RETURNS 1 IF FLAG IS SET, 0 OTHERWISE
+// RETURN -1 IF THE NUMBER IS NOT VALID
+// RETURN  0 IF SYSTEM FLAGS ARE CORRUPTED, INVALID OR NONEXISTENT
+
+BINT rplTestUserFlag(BINT flag)
+{
+    if(flag<1 || flag>128) return -1;
+
+    WORDPTR UserFlags=rplGetSettings((WORDPTR)userflags_ident);
+    UBINT64 low64,hi64;
+
+    if(!UserFlags) low64=hi64=0;
+    else {
+    if(!ISLIST(*UserFlags)) low64=hi64=0;
+    else {
+    low64=*((UBINT64 *)(UserFlags+2));
+    hi64=*((UBINT64 *)(UserFlags+5));
+    }
+    }
+
+    if(flag<65) return (low64&(1ULL << (flag-1)))? 1:0;
+    else return (hi64&(1ULL << (flag-65)))? 1:0;
+}
 
 
+UBINT64 *rplGetUserFlagsLow()
+{
+    WORDPTR UserFlags=rplGetSettings((WORDPTR)userflags_ident);
+    if(!UserFlags) return NULL;
+    if(!ISLIST(*UserFlags)) return NULL;
+    return (UBINT64 *)(UserFlags+2);
+}
 
 
 BINT rplSetSystemFlag(BINT flag)
@@ -277,6 +384,9 @@ BINT rplSetSystemFlag(BINT flag)
 
     return 0;
 }
+
+
+
 
 BINT rplClrSystemFlag(BINT flag)
 {
@@ -1234,7 +1344,7 @@ void LIB_HANDLER()
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
             BINT64 flag=rplReadNumberAsBINT(rplPeekData(1));
-
+            if(flag<0) {
             switch(rplClrSystemFlag(flag))
             {
                    case -1:
@@ -1245,6 +1355,20 @@ void LIB_HANDLER()
                    return;
                    default:
                    rplDropData(1);
+            }
+            }
+            else {
+                switch(rplClrUserFlag(flag))
+                {
+                       case -1:
+                       rplError(ERR_INVALIDFLAGNUMBER);
+                       return;
+                       case -2:
+                       return;
+                       default:
+                       rplDropData(1);
+                }
+
             }
                 return;
         }
@@ -1278,7 +1402,7 @@ void LIB_HANDLER()
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
             BINT64 flag=rplReadNumberAsBINT(rplPeekData(1));
-
+            if(flag<0) {
             switch(rplSetSystemFlag(flag))
             {
                    case -1:
@@ -1289,6 +1413,19 @@ void LIB_HANDLER()
                    return;
                    default:
                    rplDropData(1);
+            }
+            }
+            else {
+                switch(rplSetUserFlag(flag))
+                {
+                       case -1:
+                       rplError(ERR_INVALIDFLAGNUMBER);
+                       return;
+                       case -2:
+                       return;
+                       default:
+                       rplDropData(1);
+                }
             }
                 return;
         }
@@ -1324,7 +1461,7 @@ void LIB_HANDLER()
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
             BINT64 flag=rplReadNumberAsBINT(rplPeekData(1));
-
+            if(flag<0) {
             switch(test=rplTestSystemFlag(flag))
             {
                    case -1:
@@ -1335,6 +1472,17 @@ void LIB_HANDLER()
                    return;
                    default:
                    rplDropData(1);
+            }
+            }
+            else {
+                switch(test=rplTestUserFlag(flag))
+                {
+                       case -1:
+                       rplError(ERR_INVALIDFLAGNUMBER);
+                       return;
+                       default:
+                       rplDropData(1);
+                }
             }
             if(test) rplPushData((WORDPTR)zero_bint);
             else rplPushData((WORDPTR)one_bint);
@@ -1375,7 +1523,7 @@ void LIB_HANDLER()
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
             BINT64 flag=rplReadNumberAsBINT(rplPeekData(1));
-
+            if(flag<0) {
             switch(test=rplTestSystemFlag(flag))
             {
                    case -1:
@@ -1387,6 +1535,18 @@ void LIB_HANDLER()
                    default:
                    rplDropData(1);
             }
+            }
+            else {
+                switch(test=rplTestUserFlag(flag))
+                {
+                       case -1:
+                       rplError(ERR_INVALIDFLAGNUMBER);
+                       return;
+                       default:
+                       rplDropData(1);
+                }
+            }
+
             if(test) rplPushData((WORDPTR)one_bint);
             else rplPushData((WORDPTR)zero_bint);
             return;
@@ -1427,7 +1587,7 @@ void LIB_HANDLER()
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
             BINT64 flag=rplReadNumberAsBINT(rplPeekData(1));
-
+            if(flag<0) {
             switch(test=rplTestSystemFlag(flag))
             {
                    case -1:
@@ -1440,6 +1600,20 @@ void LIB_HANDLER()
                    rplDropData(1);
             }
             rplClrSystemFlag(flag);
+            }
+                else {
+                    switch(test=rplTestUserFlag(flag))
+                    {
+                           case -1:
+                           rplError(ERR_INVALIDFLAGNUMBER);
+                           return;
+                           default:
+                           rplDropData(1);
+                    }
+                    rplClrUserFlag(flag);
+                }
+
+
             if(test) rplPushData((WORDPTR)zero_bint);
             else rplPushData((WORDPTR)one_bint);
             return;
@@ -1482,7 +1656,7 @@ void LIB_HANDLER()
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
             BINT64 flag=rplReadNumberAsBINT(rplPeekData(1));
-
+            if(flag<0) {
             switch(test=rplTestSystemFlag(flag))
             {
                    case -1:
@@ -1495,6 +1669,19 @@ void LIB_HANDLER()
                    rplDropData(1);
             }
             rplClrSystemFlag(flag);
+            }
+            else {
+                switch(test=rplTestUserFlag(flag))
+                {
+                       case -1:
+                       rplError(ERR_INVALIDFLAGNUMBER);
+                       return;
+                       default:
+                       rplDropData(1);
+                }
+                rplClrUserFlag(flag);
+            }
+
             if(test) rplPushData((WORDPTR)one_bint);
             else rplPushData((WORDPTR)zero_bint);
             return;

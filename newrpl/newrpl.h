@@ -339,6 +339,14 @@ BINT rplTestSystemFlag(BINT flag);
 BINT rplTestSystemFlagByName(BYTEPTR name, BYTEPTR nameend);
 BINT rplTestSystemFlagByIdent(WORDPTR ident);
 
+// USER FLAGS
+BINT rplSetUserFlag(BINT flag);
+BINT rplClrUserFlag(BINT flag);
+BINT rplTestUserFlag(BINT flag);
+UBINT64 *rplGetUserFlagsLow();
+
+
+
 UBINT64 rplGetSystemLocale();
 void rplGetSystemNumberFormat(NUMFORMAT *fmt);
 void rplSetSystemNumberFormat(NUMFORMAT *fmt);

@@ -329,8 +329,7 @@ void LIB_HANDLER()
         // CHECK IF COUNTER IS LESS THAN LIMIT
         // BY CALLING THE OVERLOADED OPERATOR <= (LTE) OR >= GTE
 
-        if(rplIsFalse(*rplGetLAMn(3))) rplCallOvrOperator(OVR_LTE);
-        else rplCallOvrOperator(OVR_GTE);
+        rplCallOvrOperator(OVR_LTE);
 
         WORDPTR result=rplPopData();
 
