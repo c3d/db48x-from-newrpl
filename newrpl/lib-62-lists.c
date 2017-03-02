@@ -2790,7 +2790,7 @@ void LIB_HANDLER()
 
         BINT64 nitems=rplReadNumberAsBINT(rplPeekData(1));
         if(nitems<1) {
-            rplError(ERR_POSITIVE_INTEGER_EXPECTED);
+            rplError(ERR_POSITIVEINTEGEREXPECTED);
             return;
         }
 

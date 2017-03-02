@@ -37,6 +37,7 @@
     INCLUDELIB(76,lib-76-ui.c) , \
     INCLUDELIB(78,lib-78-fonts.c) , \
     INCLUDELIB(80,lib-80-bitmaps.c) , \
+    INCLUDELIB(88,lib-88-plot.c) , \
     INCLUDELIB(4080,lib-4080-localenv.c) , \
     INCLUDELIB(4090,lib-4090-overloaded.c)
 

@@ -579,7 +579,7 @@ void LIB_HANDLER()
         BINT64 off=rplReadNumberAsBINT(offset);
 
         if(off<0) {
-            rplError(ERR_POSITIVE_INTEGER_EXPECTED);
+            rplError(ERR_POSITIVEINTEGEREXPECTED);
             return;
         }
 

@@ -16,7 +16,7 @@
 
 
 // REPLACE THE NUMBER
-#define LIBRARY_NUMBER  80
+#define LIBRARY_NUMBER  88
 
 
 // LIST OF COMMANDS EXPORTED,
@@ -27,29 +27,46 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    ECMD(TOSYSBITMAP,"→SYSBITMAP",MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
+    CMD(BEGINPLOT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ENDPLOT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STROKECOL,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STROKETYPE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FILLCOL,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FILLTYPE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DOFILL,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DOSTROKE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(MOVETO,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(LINETO,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CIRCLE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RECTANG,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CTLNODE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CURVE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BGROUP,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EGROUP,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DOGROUP,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BASEPT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TRANSLATE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(ROTATE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SCALE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(CLEARTRANSF,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SETFONT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TEXTHEIGHT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TEXTOUT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
+
+// ADD MORE PLOT COMMANDS HERE
+
 
 #define ERROR_LIST \
-    ERR(BITMAPEXPECTED,0), \
-    ERR(UNSUPPORTEDBITMAP,1), \
-    ERR(INVALIDCHECKSUM,2), \
-    ERR(UNEXPECTEDENDOFDATA,3)
+    ERR(INVALIDPLOTCOMMAND,0), \
+    ERR(INVALIDPLOTSIZE,1), \
+    ERR(NOCURRENTPLOT,2)
 
 
 
 // ADD MORE OPCODES HERE
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
-#define LIBRARY_ASSIGNED_NUMBERS \
-    LIBRARY_NUMBER, \
-    LIBRARY_NUMBER+1, \
-    LIBRARY_NUMBER+2, \
-    LIBRARY_NUMBER+3, \
-    LIBRARY_NUMBER+4, \
-    LIBRARY_NUMBER+5, \
-    LIBRARY_NUMBER+6, \
-    LIBRARY_NUMBER+7
-
+#define LIBRARY_ASSIGNED_NUMBERS  LIBRARY_NUMBER,LIBRARY_NUMBER+1,LIBRARY_NUMBER+2,LIBRARY_NUMBER+3
 
 
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
@@ -65,7 +82,17 @@
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
-INCLUDE_ROMOBJECT(lib80_menu);
+INCLUDE_ROMOBJECT(lib88_menu);
+
+
+
+ROMOBJECT cplot_ident[]= {
+        MKPROLOG(DOIDENT,1),
+        TEXT2WORD('C','P','l','t')
+};
+
+
+
 
 
 // EXTERNAL EXPORTED OBJECT TABLE
@@ -73,220 +100,131 @@ INCLUDE_ROMOBJECT(lib80_menu);
 const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)LIB_MSGTABLE,
     (WORDPTR)LIB_HELPTABLE,
-    (WORDPTR)lib80_menu,
+    (WORDPTR)lib88_menu,
+    (WORDPTR)cplot_ident,
 
     0
 };
 
-const char * const bitmap_modes[]={
-    "MONO",
-    "16GR",
-    "256G",
-    "64KC",
-    "ARGB",
-    "OTHR",
-    "INVA",
-    "INVA"
-};
-
-// CONVERT RGB 0-255 TO GRAY 0-255 PER BT.709 HDTV FORMULA FOR LUMINANCE
-
-#define LUMINANCE(r,g,b) ((((r)*55+(g)*183+(b)*18)+128)>>8)
-#define RGB5TO8(comp) (((BINT)(comp)*2106)>>8)
-#define RGB6TO8(comp) (((BINT)(comp)*1036)>>8)
 
 
-// CONVERT A BITMAP FROM ANY FORMAT INTO THE DEFAULT DISPLAY FORMAT
+// GET THE LENGTH OF A PLOT OBJECT FROM ITS PROLOG
+#define PLTLEN(prolog) ((OBJSIZE(prolog)<<2)-(LIBNUM(prolog)&3))
 
-WORDPTR rplBmpToDisplay(WORDPTR bitmap)
+
+
+
+
+
+
+
+
+// GET THE POINTER TO CPlt, BUT COPY IT TO THE END OF TEMPOB TO APPEND
+
+WORDPTR rplCPlotGetPtr()
 {
-    if(!ISBITMAP(*bitmap)) {
-        rplError(ERR_BITMAPEXPECTED);
-        return 0;
+    WORDPTR *var=rplFindLAM((WORDPTR)cplot_ident,1);
+    if(!var) return 0;
+    if(rplSkipOb(var[1])==TempObEnd) return var[1];
+
+    WORDPTR newobj=rplMakeNewCopy(var[1]);  // MAKE A NEW COPY THAT WE CAN STRETCH AND MODIFY
+    if(!newobj) return 0;
+    var[1]=newobj;          // REPLACE WITH A NEW COPY AT END OF TEMPOB
+    return newobj;
+}
+
+
+#define GETBYTE(n,pos) ((BYTE)((((UBINT64)n)>>((pos)<<3))&0xff))
+
+
+
+// APPEND A NUMBER TO THE CURRENT PLOT
+void rplCPlotNumber(BINT64 num)
+{
+    WORDPTR obj=rplCPlotGetPtr();
+    if(!obj) return;
+
+    // PACK THE NUMBER INTO A UBINT64 (UP TO 5 BYTES USED
+    BINT used=0;
+    BYTE bpack[8];
+    BINT sign;
+
+    if(num<0) { sign=8; num=-num; }
+    else sign=0;
+
+    while(num) {
+        bpack[used]=num&0xff;
+        ++used;
+        num>>=8;
     }
 
-
-    BINT type=LIBNUM(*bitmap)&7;
-
-    if(type==DEFAULTBITMAPMODE) return bitmap;  // NO CONVERSION NEEEDED
-
-    BINT width=(BINT)bitmap[1];
-    BINT height=(BINT)bitmap[2];
-
-    BINT totalsize=(width*height*DEFAULTBITSPERPIXEL)+31;
-
-    totalsize>>=5;  // BITMAP SIZE IN WORDS
-
-
-    WORDPTR newbmp=rplAllocTempOb(totalsize+2);
-    if(!newbmp) return 0;
-
-    BINT npixels=width*height;
-
-
-
-    // THIS IS FOR THE 50G HARDWARE, BUT FUTURE-PROOF FOR 16-BIT COLOR DISPLAYS AS WELL
-
-#if DEFAULTBITMAPMODE == BITMAP_RAW16G
-    switch(type)
-    {
-    case BITMAP_RAWMONO:
-
-    {
-        BYTEPTR destptr,srcptr;
-
-        BINT mask=1,destmask=0;
-        BINT pixel;
-
-        srcptr=(BYTEPTR)(bitmap+3);
-        destptr=(BYTEPTR)(newbmp+3);
-
-    while(npixels) {
-
-        // READ A PIXEL FROM SOURCE
-        pixel=*srcptr&mask;
-        // CONVERT TO PROPER FORMAT
-        if(pixel) pixel=0xf; else pixel=0;
-
-        // WRITE TO DESTINATION
-        if(!destmask) *destptr=(BYTE)pixel;
-        else *destptr|=(BYTE)(pixel<<4);
-
-        //INCREASE SOURCE POINTER
-        mask<<=1;
-        if(mask>128) { ++srcptr; mask>>=8; }
-
-        // INCREASE DEST PTR
-        destmask^=1;
-        if(!destmask) ++destptr;
-
-        --npixels;
-    }
-    break;
-
-
+    if(!used) { bpack[0]=0; used=1; }
+    if(bpack[used-1]>0xf) { bpack[used]=0; ++used; }
+    if(used>5) {
+        // NUMBER TOO BIG
+        rplError(ERR_NUMBERTOOBIG);
+        return;
     }
 
-    case BITMAP_RAW16G:
-    break;
-    case BITMAP_RAW256G:
+    bpack[used-1]|=((used-1)|sign)<<4;  // STARTER BYTE
 
-    {
 
-        BYTEPTR destptr,srcptr;
+    // NEED TO STORE 'used' BYTES
+    BYTEPTR ptr=((BYTEPTR) (obj+1))+PLTLEN(*obj);  // POINT TO THE NEXT BYTE
+    BYTEPTR end=(BYTEPTR)(obj+1+OBJSIZE(*obj));
 
-        BINT destmask=0;
-        BINT pixel;
-
-        srcptr=(BYTEPTR)(bitmap+3);
-        destptr=(BYTEPTR)(newbmp+3);
-
-    while(npixels) {
-
-        // READ A PIXEL FROM SOURCE
-        pixel=*srcptr;
-        // CONVERT TO PROPER FORMAT
-        pixel=((255-pixel)+128)>>4;
-
-        // WRITE TO DESTINATION
-        if(!destmask) *destptr=(BYTE)pixel;
-        else *destptr|=(BYTE)(pixel<<4);
-
-        //INCREASE SOURCE POINTER
-        ++srcptr;
-
-        // INCREASE DEST PTR
-        destmask^=1;
-        if(!destmask) ++destptr;
-
-        --npixels;
-    }
-    break;
-    }
-    case BITMAP_RAW64KC:
-
-    {
-
-        BYTEPTR destptr,srcptr;
-
-        BINT destmask=0;
-        BINT pixel;
-
-        srcptr=(BYTEPTR)(bitmap+3);
-        destptr=(BYTEPTR)(newbmp+3);
-
-    while(npixels) {
-
-        // READ A PIXEL FROM SOURCE
-        pixel=srcptr[0]+256*srcptr[1];
-
-        // CONVERT TO PROPER FORMAT
-        pixel=LUMINANCE(RGB5TO8(pixel>>11),RGB6TO8((pixel>>5)&0x3f),RGB5TO8(pixel&0x1f));
-        pixel=((255-pixel)+128)>>4;
-
-        // WRITE TO DESTINATION
-        if(!destmask) *destptr=(BYTE)pixel;
-        else *destptr|=(BYTE)(pixel<<4);
-
-        //INCREASE SOURCE POINTER
-        srcptr+=2;
-
-        // INCREASE DEST PTR
-        destmask^=1;
-        if(!destmask) ++destptr;
-
-        --npixels;
-    }
-    break;
+    // HERE ptr POINTS TO THE FIRST AVAILABLE BYTE IN THE OBJECT
+    BINT needwords=(ptr+used+3-end)/4;
+    if(needwords>0) {
+        rplResizeLastObject(needwords);
+        if(Exceptions) return;
+        end+=needwords<<2;
     }
 
-    case BITMAP_RAWARGB:
+    // COPY THE FIRST BYTE MODIFIED:
 
-    {
+    do {
+        --used;
+        *ptr++=bpack[used];
+    } while(used>0);
 
-        BYTEPTR destptr,srcptr;
-
-        BINT destmask=0;
-        BINT pixel;
-
-        srcptr=(BYTEPTR)(bitmap+3);
-        destptr=(BYTEPTR)(newbmp+3);
-
-    while(npixels) {
-
-        // READ A PIXEL FROM SOURCE
-        //pixel=srcptr[0]+256*srcptr[1];
-
-        // CONVERT TO PROPER FORMAT
-        pixel=LUMINANCE(srcptr[2],srcptr[1],srcptr[0]);
-        pixel=((255-pixel)+128)>>4;
-
-        // WRITE TO DESTINATION
-        if(!destmask) *destptr=(BYTE)pixel;
-        else *destptr|=(BYTE)(pixel<<4);
-
-        //INCREASE SOURCE POINTER
-        srcptr+=4;
-
-        // INCREASE DEST PTR
-        destmask^=1;
-        if(!destmask) ++destptr;
-
-        --npixels;
-    }
-    break;
-    }
-
-
-
-    }
-#endif
-
-    // ALL PIXELS CONVERTED
-
-    return newbmp;
+    // UPDATE THE PROLOG
+    *obj=MKPROLOG(DOPLOT+((end-ptr)&3),((WORDPTR)end)-(obj+1));
 
 }
+
+// APPEND A COMMAND TO THE CURRENT PLOT
+void rplCPlotCmd(BINT cmd)
+{
+    WORDPTR obj=rplCPlotGetPtr();
+    if(!obj) return;
+
+    // NEED TO STORE 1 BYTE
+    BYTEPTR ptr=((BYTEPTR) (obj+1))+PLTLEN(*obj);  // POINT TO THE NEXT BYTE
+    BYTEPTR end=(BYTEPTR)(obj+1+OBJSIZE(*obj));
+
+    // HERE ptr POINTS TO THE FIRST AVAILABLE BYTE IN THE OBJECT
+
+    if(ptr>=end) {
+        rplResizeLastObject(1);
+        end+=4;
+        if(Exceptions) return;
+    }
+
+    // COPY THE COMMAND
+
+    *ptr++=(BYTE)(cmd&0xff);
+
+    // UPDATE THE PROLOG
+    *obj=MKPROLOG(DOPLOT+((end-ptr)&3),((WORDPTR)end)-(obj+1));
+
+
+    return;
+}
+
+
+
+
 
 
 void LIB_HANDLER()
@@ -299,6 +237,73 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
+
+    case BEGINPLOT:
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(1)) || !ISNUMBER(*rplPeekData(2))) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+        BINT64 width,height;
+
+        width=rplReadNumberAsBINT(rplPeekData(2));
+        if(Exceptions) return;
+
+        height=rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions) return;
+
+        if( (width<1) || (height<1)) {
+            rplError(ERR_POSITIVEINTEGEREXPECTED);
+            return;
+        }
+
+        // START A NEW EMPTY PLOT OBJECT AND STORE IT IN LOCAL VARIABLE CPlt
+        WORDPTR newobj=rplAllocTempOb(0);
+        if(!newobj) return;
+        newobj[0]=MKPROLOG(DOPLOT,0);
+
+        rplOverwriteData(2,(WORDPTR)newobj);
+        rplOverwriteData(1,(WORDPTR)cplot_ident);
+        rplCallOperator(CMD_LSTO);
+
+        if(Exceptions) return;
+
+        // NOW SET THE PLOT SIZE, THIS IS MANDATORY
+        rplCPlotNumber(width);
+        if(Exceptions) return;
+
+        rplCPlotNumber(height);
+        if(Exceptions) return;
+
+        rplCPlotCmd(PLT_SETSIZE);
+        return;
+
+    }
+
+    case ENDPLOT:
+    {
+        // PUSH THE CURRENT PLOT OBJECT TO THE STACK
+        WORDPTR val=rplGetLAM((WORDPTR)cplot_ident);
+        if(val) rplPushData(val);
+        else rplError(ERR_NOCURRENTPLOT);
+        return;
+    }
+
+
+
+
+
+
+
+
+
+
         // STANDARIZED OPCODES:
         // --------------------
         // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
@@ -314,7 +319,7 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
     {
-        if((TokenLen==10) && (!utf8ncmp((char *)TokenStart,"BITMAPDATA",10))) {
+        if((TokenLen==8) && (!utf8ncmp((char *)TokenStart,"PLOTDATA",8))) {
 
             ScratchPointer4=CompileEnd;
             rplCompileAppend(MKPROLOG(LIBRARY_NUMBER,0));
@@ -331,105 +336,11 @@ void LIB_HANDLER()
     }
     case OPCODE_COMPILECONT:
     {
-        if((LIBNUM(*ScratchPointer4)&~7)!=LIBRARY_NUMBER) {
-            // SOMETHING BAD HAPPENED, THERE'S NO BMPDATA HEADER
+        if((LIBNUM(*ScratchPointer4)&~1)!=LIBRARY_NUMBER) {
+            // SOMETHING BAD HAPPENED, THERE'S NO PLOTDATA HEADER
             RetNum=ERR_SYNTAX;
             return;
         }
-
-        if(!(*ScratchPointer4&0x10000)) {
-            // NEED TO INPUT THE BITMAP TYPE IN 4-LETTERS: MONO,16GR,256G,64KC,ARGB,OTHR
-            if(((BINT)TokenLen!=(BYTEPTR)BlankStart-(BYTEPTR)TokenStart)||(TokenLen!=4)) {
-                // THERE'S UNICODE CHARACTERS IN BETWEEN, THAT MAKES IT AN INVALID STRING
-                // OR THERE'S NOT 4 CHARACTERS
-                rplError(ERR_UNSUPPORTEDBITMAP);
-                RetNum=ERR_SYNTAX;
-                return;
-            }
-            if(!utf8ncmp((char *)TokenStart,"MONO",4)) *ScratchPointer4|=BITMAP_RAWMONO|0x10000;
-            else if(!utf8ncmp((char *)TokenStart,"16GR",4)) *ScratchPointer4|=BITMAP_RAW16G|0x10000;
-            else if(!utf8ncmp((char *)TokenStart,"256G",4)) *ScratchPointer4|=BITMAP_RAW256G|0x10000;
-            else if(!utf8ncmp((char *)TokenStart,"64KC",4)) *ScratchPointer4|=BITMAP_RAW64KC|0x10000;
-            else if(!utf8ncmp((char *)TokenStart,"ARGB",4)) *ScratchPointer4|=BITMAP_RAWARGB|0x10000;
-            else if(!utf8ncmp((char *)TokenStart,"OTHR",4)) *ScratchPointer4|=BITMAP_EXTERNAL|0x10000;
-            else {
-                rplError(ERR_UNSUPPORTEDBITMAP);
-                RetNum=ERR_SYNTAX;
-                return;
-            }
-            RetNum=OK_NEEDMORE;
-            return;
-        }
-
-            // HERE WE ALREADY HAVE THE TYPE OF BITMAP
-
-
-
-       if(!(*ScratchPointer4&0x20000)) {
-                // NEED TO CAPTURE THE WIDTH AND HEIGHT AS INTEGERS
-                WORD value=0;
-                BINT digit;
-                BYTEPTR ptr=(BYTEPTR)TokenStart;
-
-                while(ptr<(BYTEPTR)BlankStart) {
-                    if((*ptr>='0')&&(*ptr<='9')) digit=*ptr-'0';
-                    else {
-                        RetNum=ERR_SYNTAX;
-                        return;
-                        }
-                    value*=10;
-                    value+=digit;
-                    ++ptr;
-                }
-
-               rplCompileAppend(value);
-
-               // IF THERE WERE 2 NUMBERS ALREADY, THEN MARK THE SIZE AS DONE
-               if(CompileEnd-ScratchPointer4>=3) *ScratchPointer4|=0x20000;
-               RetNum=OK_NEEDMORE;
-               return;
-       }
-
-
-       // HERE WE ALREADY HAVE THE BITMAP TYPE, WIDTH AND HEIGHT
-
-
-        // WE HAVE A SIZE
-       WORD totalsize;
-
-       if((*ScratchPointer4&0xff)==BITMAP_EXTERNAL) {
-        // THE SIZE IS IN THE FIRST WORD, GET A MINIMAL OF 1 WORDS
-        totalsize=CompileEnd-ScratchPointer4-3;
-        if(LIBNUM(*ScratchPointer4)&1) totalsize-=2;
-        if(totalsize>=1) {
-            // WE ALREADY RECOVERED THE SIZE OF THE OBJECT
-            totalsize=ScratchPointer4[3];
-        }
-        else totalsize=0xffffffff;
-       }
-       else {
-        totalsize=ScratchPointer4[1]*ScratchPointer4[2];
-        switch(*ScratchPointer4&0xff)
-        {
-        case BITMAP_RAWMONO:
-        break;
-        case BITMAP_RAW16G:
-            totalsize*=4;
-            break;
-        case BITMAP_RAW256G:
-            totalsize*=8;
-            break;
-        case BITMAP_RAW64KC:
-            totalsize*=16;
-            break;
-        case BITMAP_RAWARGB:
-        default:
-            totalsize*=32;
-            break;
-        }
-        totalsize+=31;
-        totalsize>>=5;
-       }
 
 
         // DO WE NEED ANY MORE DATA?
@@ -450,6 +361,15 @@ void LIB_HANDLER()
             value=*CompileEnd;
             *ScratchPointer4&=~0x00100000;
         }
+        else {
+            if((TokenLen==7) && (!utf8ncmp((char *)TokenStart,"ENDPLOT",7))) {
+               //   DONE!  FIX THE PROLOG WITH THE RIGHT LIBRARY NUMBER AND SIZE
+                        *ScratchPointer4=MKPROLOG(DOPLOT,CompileEnd-ScratchPointer4-1);
+                        RetNum=OK_CONTINUE;
+                        return;
+            }
+        }
+
 
        do {
                 if((*ptr>='0')&&(*ptr<='9')) dig=(*ptr+4);
@@ -494,16 +414,7 @@ void LIB_HANDLER()
                 rplCompileAppend(ndigits | (checksum<<16));
                 *ScratchPointer4|=0x00100000;
             }
-           else {
-                if((CompileEnd-ScratchPointer4-3)==totalsize) {
-                    //   DONE!  FIX THE PROLOG WITH THE RIGHT LIBRARY NUMBER AND SIZE
-                    *ScratchPointer4=MKPROLOG(DOBITMAP+(*ScratchPointer4&0xff),totalsize+2);
-                    RetNum=OK_CONTINUE;
-                    return;
-                }
-                RetNum=ERR_SYNTAX;
-                return;
-            }
+
 
         // END OF TOKEN, NEED MORE!
         RetNum=OK_NEEDMORE;
@@ -522,28 +433,10 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
             // DECOMPILE BITMAP
 
-            rplDecompAppendString((BYTEPTR)"BITMAPDATA ");
+            rplDecompAppendString((BYTEPTR)"PLOTDATA ");
 
-            // TYPE
-            rplDecompAppendString((BYTEPTR)bitmap_modes[LIBNUM(*DecompileObject)&7]);
 
-            rplDecompAppendChar(' ');
-
-            // SIZE
-            BYTE buffer[50];
-            BINT len=rplIntToString((BINT64)DecompileObject[1],DECBINT,buffer,buffer+50);
-
-            rplDecompAppendString2(buffer,len);
-
-            rplDecompAppendChar(' ');
-
-            len=rplIntToString((BINT64)DecompileObject[2],DECBINT,buffer,buffer+50);
-
-            rplDecompAppendString2(buffer,len);
-
-            rplDecompAppendChar(' ');
-
-            BINT size=OBJSIZE(*DecompileObject)-2;
+            BINT size=OBJSIZE(*DecompileObject);
 
             // OUTPUT THE DATA BY WORDS, WITH FOLLOWING ENCODING:
             // 32-BIT WORDS GO ENCODED IN 6 TEXT CHARACTERS
@@ -558,7 +451,7 @@ void LIB_HANDLER()
 
             encoder[6]=0;
 
-            WORDPTR ptr=DecompileObject+3;
+            WORDPTR ptr=DecompileObject+1;
             BINT nwords=0;
 
             while(size) {
@@ -592,6 +485,8 @@ void LIB_HANDLER()
                 --size;
 
             }
+
+            rplDecompAppendString((BYTEPTR)" ENDPLOT");
 
             RetNum=OK_CONTINUE;
             return;
@@ -751,4 +646,5 @@ void LIB_HANDLER()
 
 
 #endif
+
 

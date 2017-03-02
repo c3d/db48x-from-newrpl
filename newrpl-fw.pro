@@ -210,6 +210,7 @@ SOURCES +=\
     newrpl/lib-76-ui.c \
     newrpl/lib-78-fonts.c \
     newrpl/lib-80-bitmaps.c \
+    newrpl/lib-88-plot.c \
     firmware/ggl/ggl/ggl_fltreplace.c \
     firmware/hal_alarm.c \
     firmware/ui_render.c \
@@ -260,6 +261,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-0.nrpl \
                 newrpl/rpl-objects/lib-74.nrpl \
                 newrpl/rpl-objects/lib-76.nrpl \
                 newrpl/rpl-objects/lib-80.nrpl \
+                newrpl/rpl-objects/lib-88.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 

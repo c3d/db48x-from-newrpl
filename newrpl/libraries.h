@@ -213,7 +213,7 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define DOFONT      78      // FONT OBJECT
 
-#define DOBITMAP    80      // BITMAPS
+#define DOBITMAP    80      // BITMAPS 80-87
 
 
 // BITMAP TYPES TO ADD TO DOBITMAP
@@ -226,6 +226,7 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define DOBITMAP_DEFAULT (DOBITMAP+BITMAP_RAW16G)
 
+#define DOPLOT      88  // PLOT OBJECT
 
 
 // USEFUL MACROS FOR TYPE IDENTIFICATION

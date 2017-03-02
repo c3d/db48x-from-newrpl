@@ -225,16 +225,27 @@ void LIB_HANDLER()
 
         BINT keymsg;
 
-        if(mstimeout) halOuterLoop(mstimeout,&waitProcess,OL_NOEXIT|OL_NOAUTOOFF|OL_NOCUSTOMKEYS|OL_NODEFAULTKEYS);
-        else halOuterLoop(0,&waitKeyProcess,OL_NOEXIT|OL_NOAUTOOFF|OL_NODEFAULTKEYS|OL_NOCUSTOMKEYS|OL_LONGPRESS);
+        RetNum=0;
+
+        if(mstimeout>0) {
+            halOuterLoop(mstimeout,&waitProcess,OL_NOEXIT|OL_NOAUTOOFF|OL_NOCUSTOMKEYS|OL_NODEFAULTKEYS);
+            rplDropData(1);
+        }
+        else  {
+           if(mstimeout<0) mstimeout=-mstimeout;
+               halOuterLoop(mstimeout,&waitKeyProcess,OL_NOEXIT|OL_NOAUTOOFF|OL_NODEFAULTKEYS|OL_NOCUSTOMKEYS|OL_LONGPRESS);
 
         keymsg=RetNum;
 
+        if(keymsg) {
         // PUSH THE KEY MESSAGE
 
         WORDPTR keyname=rplMsg2KeyName(keymsg);
         if(!keyname) return;
         rplOverwriteData(1,keyname);
+        }
+        else rplOverwriteData(1,(WORDPTR)empty_string);
+        }
         return;
 
     }

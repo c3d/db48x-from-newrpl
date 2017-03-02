@@ -19,7 +19,7 @@
 {
 ##1,ERR_VECTOROFNUMBERSEXPECTED "Vector of Numbers expected"
 ##1,ERR_IABCUV_NO_SOLUTION "No Solution In Ring"
-##1,ERR_POSITIVE_INTEGER_EXPECTED "Integer >= 0 expected"
+##1,ERR_POSITIVEINTEGEREXPECTED "Integer >= 0 expected"
 }
 
 @#name lib64_menu_0_main

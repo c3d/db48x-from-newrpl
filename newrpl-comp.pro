@@ -211,7 +211,8 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     newrpl/lib-78-fonts.c \
     newrpl/lib-80-bitmaps.c \
     firmware/ui_forms.c \
-    firmware/ui_render.c
+    firmware/ui_render.c \
+    newrpl/lib-88-plot.c
 
 
 

@@ -1,0 +1,45 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+@ B = Bitmap
+@ P = Plot object
+
+
+@#name lib88_msgtable
+{
+ ##1,ERR_INVALIDPLOTCOMMAND "Invalid PLOT primitive"
+ ##1,ERR_INVALIDPLOTSIZE "Invalid PLOT size"
+ ##1,ERR_NOCURRENTPLOT "No current PLOT object"
+}
+
+
+@#name lib88_menu
+{
+BEGINPLOT
+}
+
+@#name lib88_cmdhelp
+{
+
+BEGINPLOT
+"Start creating a plot
+of given size
+I<width> I<height> → "
+
+}
+
+
+
+

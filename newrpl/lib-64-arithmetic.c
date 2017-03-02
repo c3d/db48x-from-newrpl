@@ -21,7 +21,7 @@
 #define ERROR_LIST \
         ERR(VECTOROFNUMBERSEXPECTED,0), \
         ERR(IABCUV_NO_SOLUTION,1), \
-        ERR(POSITIVE_INTEGER_EXPECTED,2)
+        ERR(POSITIVEINTEGEREXPECTED,2)
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -1882,7 +1882,7 @@ void LIB_HANDLER()
             return;
         }
         if(rnum.flags&F_NEGATIVE) {
-            rplError(ERR_POSITIVE_INTEGER_EXPECTED);
+            rplError(ERR_POSITIVEINTEGEREXPECTED);
             //rplError(ERR_ARGOUTSIDEDOMAIN);
             return;
         }
@@ -1894,7 +1894,7 @@ void LIB_HANDLER()
         BINT n=(BINT)rplReadNumberAsBINT(arg);
         /*
         if (n < 0) {
-            rplError(ERR_POSITIVE_INTEGER_EXPECTED);
+            rplError(ERR_POSITIVEINTEGEREXPECTED);
             return;
         }
         else */

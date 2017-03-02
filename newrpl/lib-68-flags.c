@@ -934,6 +934,7 @@ Examples:
 
 const BYTE const keytable[]={
     'O','N',KB_ON,
+    'A','L',KB_ALPHA,
     'B','K',KB_BKS,
     'E','N',KB_ENT,
     'U','P',KB_UP,
@@ -1880,7 +1881,7 @@ void LIB_HANDLER()
         }
 
         if(!ISNUMBER(*rplPeekData(1))) {
-            rplError(ERR_POSITIVE_INTEGER_EXPECTED);
+            rplError(ERR_POSITIVEINTEGEREXPECTED);
             return;
         }
         if(!ISSTRING(*rplPeekData(2))) {
@@ -1897,7 +1898,7 @@ void LIB_HANDLER()
 
         BINT context=rplReadNumberAsBINT(rplPeekData(1));
         if(context<0) {
-            rplError(ERR_POSITIVE_INTEGER_EXPECTED);
+            rplError(ERR_POSITIVEINTEGEREXPECTED);
             return;
         }
 

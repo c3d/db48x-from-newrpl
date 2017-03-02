@@ -77,7 +77,7 @@ BINT halWaitForKeyTimeout(BINT timeoutms)
     // IN CASE OTHER EVENT WAKES UP THE CPU
     if(timeoutms>0) {
         halFlags&=~HAL_TIMEOUT;
-        tmr_eventcreate(&timeouthandler,timeoutms,0);
+        halTimeoutEvent=tmr_eventcreate(&timeouthandler,timeoutms,0);
     }
 
     do {
@@ -6264,6 +6264,8 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
     DRAWSURFACE scr;
     ggl_initscr(&scr);
     jobdone=isidle=0;
+    halTimeoutEvent=-1;
+
     do {
         halRedrawAll(&scr);
         if(!(flags&OL_NOEXIT) && halExitOuterLoop()) break;
@@ -6293,7 +6295,13 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
         keymsg=halWaitForKeyTimeout(timeoutms);
         timeoutms=0;
 
-        if(keymsg<0) break; // TIMED OUT
+        if(keymsg<0) {
+            // TIMED OUT!
+            if(halTimeoutEvent>=0) tmr_eventkill(halTimeoutEvent);
+            halTimeoutEvent=-1;
+            halFlags&=~HAL_TIMEOUT;
+            break;  // JUST EXIT THE POL
+        }
 
 
         if(!keymsg) {
@@ -6353,6 +6361,10 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
 
     } while(!halProcessKey(keymsg,dokey,flags));
 
+    // MAKE SURE WE CLEANUP THE EVENT TIMER BEFORE WE EXIT SO IT DOESN'T TRIGGER INSIDE A PARENT POL
+    if(halTimeoutEvent>=0) tmr_eventkill(halTimeoutEvent);
+    halTimeoutEvent=-1;
+    halFlags&=~HAL_TIMEOUT;
 }
 
 

@@ -1232,7 +1232,7 @@ void halInitMemoryMap();
 
 
 BINT halFlags;
-HEVENT halBusyEvent;
+HEVENT halBusyEvent,halTimeoutEvent;
 BINT halLongKeyPending;
 
 // HIGHER LEVEL HAL FUNCTIONS

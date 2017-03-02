@@ -805,8 +805,59 @@ BINT rplKeyName2Msg(WORDPTR keyname);
 #define GC_ERROR       4
 
 
-
-
+// PLOTTING ENGINE COMMANDS
+//'w' SETCANVAS: X Y ->
+#define PLT_SETSIZE 'w'
+//'k' STROKECOLOR: C ->
+#define PLT_STROKECOL 'k'
+//'e' STROKETYPE: T ->
+#define PLT_STROKETYPE 'e'
+//'i' FILLCOLOR: C ->
+#define PLT_FILLCOL 'i'
+//'j' FILLTYPE: T ->
+#define PLT_FILLTYPE 'j'
+//'m' MOVETO: X Y ->
+#define PLT_MOVETO  'm'
+//'l' LINETO: X Y ->
+#define PLT_LINETO  'l'
+//'c' CIRCLE: R ->
+#define PLT_CIRCLE  'c'
+//'r' RECTANGLE: X Y ->
+#define PLT_RECTANG 'r'
+//'n' CONTROLNODE: X Y ->
+#define PLT_CTLNODE 'n'
+//'p' CURVE: X Y ->
+#define PLT_CURVE   'p'
+//'f' FILL
+#define PLT_FILL    'f'
+//'g' STROKE
+#define PLT_STROKE  'g'
+//'h' STROKE&FILL
+#define PLT_STROKEFILL 'h'
+//'{' BEGINGROUP
+#define PLT_BGROUP  '{'
+//'}' ENDGROUP
+#define PLT_EGROUP  '}'
+// 'b' BASE POINT: X Y ->
+#define PLT_BASEPT  'b'
+//'t' TRANSLATE: X Y ->
+#define PLT_TRANS   't'
+//'q' ROTATE: ANG ->
+#define PLT_ROTATE  'q'
+//'s' SCALE: SX SY ->
+#define PLT_SCALE   's'
+//'u' CLRTRANSFORM
+#define PLT_CLRTRANSFORM    'u'
+//'a' REPEATGROUP
+#define PLT_DOGROUP 'a'
+//'v' SETFONT: F ->
+#define PLT_TXTFONT 'v'
+//'x' TEXTHEIGHT: H ->
+#define PLT_TXTHEIGHT   'x'
+//'o' TEXTOUT: S ->
+#define PLT_TXTOUT  'o'
+//'~' ENDOFPLOT
+#define PLT_ENDOFPLOT '~'
 
 #ifdef __cplusplus
 }
