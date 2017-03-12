@@ -144,7 +144,7 @@ void rplCPlotNumber(BINT64 num)
     WORDPTR obj=rplCPlotGetPtr();
     if(!obj) return;
 
-    // PACK THE NUMBER INTO A UBINT64 (UP TO 5 BYTES USED
+    // PACK THE NUMBER INTO A UBINT64 (UP TO 5 BYTES USED)
     BINT used=0;
     BYTE bpack[8];
     BINT sign;
@@ -182,11 +182,14 @@ void rplCPlotNumber(BINT64 num)
     }
 
     // COPY THE FIRST BYTE MODIFIED:
-
-    do {
-        --used;
-        *ptr++=bpack[used];
-    } while(used>0);
+    --used;
+    *ptr++=bpack[used];
+    BINT k;
+    // THE REST OF THE NUMBER IS STORED IN LITTLE ENDIAN FORMAT
+    for(k=0;k<used;++k)
+    {
+        *ptr++=bpack[k];
+    }
 
     // UPDATE THE PROLOG
     *obj=MKPROLOG(DOPLOT+((end-ptr)&3),((WORDPTR)end)-(obj+1));
@@ -223,7 +226,90 @@ void rplCPlotCmd(BINT cmd)
 }
 
 
+// SKIP TO THE NEXT OBJECT (NUMBER OR OPCODE)
+// NO ARGUMENT CHECKS
+BYTEPTR rplPlotSkip(BYTEPTR ptr)
+{
+    switch(*ptr>>4)
+    {
+    case 1:
+    case 9:
+        // 1-BYTE FOLLOWS
+        return ptr+2;
+    case 2:
+    case 10:
+        // 2-BYTE FOLLOWS
+        return ptr+3;
+    case 3:
+    case 11:
+        // 3-BYTE FOLLOWS
+        return ptr+4;
+    case 4:
+    case 12:
+        // 4-BYTE FOLLOWS
+        return ptr+5;
+    case 5:
+        // STRING FOLLOWS, NEED TO READ 20-BIT LENGTH
+    {
+        BINT len=((*ptr&0xf)<<16)|(ptr[2]<<8)|(ptr[1]);
+        return ptr+3+len;
+    }
+    case 6:
+    default:
+    case 0:
+    case 8:
+        // NO OTHER BYTES
+        return ptr+1;
+    }
+}
 
+
+// DECODE A NUMBER INSIDE A PLOT OBJECT
+
+BINT64 rplPlotNumber2BINT(BYTEPTR ptr)
+{
+
+switch(*ptr>>4)
+{
+case 0:
+    // NO OTHER BYTES
+    return ptr[0]&0xf;
+case 8:
+    return -((BINT)ptr[0]&0xf);
+
+case 1:
+    // 1-BYTE FOLLOWS
+    return ((((BINT)ptr[0]&0xf)<<8)|((BINT)ptr[1]));
+case 9:
+    // 1-BYTE FOLLOWS
+    return -((((BINT)ptr[0]&0xf)<<8)|((BINT)ptr[1]));
+case 2:
+case 5:
+    // 2-BYTE FOLLOWS
+    return ((((BINT)ptr[0]&0xf)<<16)|((BINT)ptr[1])|(((BINT)ptr[2])<<8));
+case 10:
+    // 2-BYTE FOLLOWS
+    return -((((BINT)ptr[0]&0xf)<<16)|((BINT)ptr[1])|(((BINT)ptr[2])<<8));
+case 3:
+    // 3-BYTE FOLLOWS
+    return ((((BINT)ptr[0]&0xf)<<24)|((BINT)ptr[1])|(((BINT)ptr[2])<<8)|(((BINT)ptr[3])<<16));
+
+case 11:
+    // 3-BYTE FOLLOWS
+    return -((((BINT)ptr[0]&0xf)<<24)|((BINT)ptr[1])|(((BINT)ptr[2])<<8)|(((BINT)ptr[3])<<16));
+case 4:
+    // 4-BYTE FOLLOWS
+    return ((((BINT64)ptr[0]&0xf)<<32)|((BINT64)ptr[1])|(((BINT64)ptr[2])<<8)|(((BINT64)ptr[3])<<16)|(((BINT64)ptr[4])<<24));
+case 12:
+    // 4-BYTE FOLLOWS
+    return -((((BINT64)ptr[0]&0xf)<<32)|((BINT64)ptr[1])|(((BINT64)ptr[2])<<8)|(((BINT64)ptr[3])<<16)|(((BINT64)ptr[4])<<24));
+case 6:
+default:
+    // NO OTHER BYTES
+    return 0;
+}
+
+}
 
 
 
@@ -336,90 +422,463 @@ void LIB_HANDLER()
     }
     case OPCODE_COMPILECONT:
     {
-        if((LIBNUM(*ScratchPointer4)&~1)!=LIBRARY_NUMBER) {
+        if((LIBNUM(*ScratchPointer4)&~7)!=LIBRARY_NUMBER) {
             // SOMETHING BAD HAPPENED, THERE'S NO PLOTDATA HEADER
             RetNum=ERR_SYNTAX;
             return;
         }
 
+        union {
+            WORD word;
+            BYTE bytes[4];
+        } temp;
 
-        // DO WE NEED ANY MORE DATA?
-
-        BYTEPTR ptr=(BYTEPTR)TokenStart;
-
-        WORD value=0;
-        WORD checksum=0;
-        BINT ndigits=0;
-        BINT dig;
-
-        if(LIBNUM(*ScratchPointer4)&1) {
-            // CONTINUE WHERE WE LEFT OFF
+        BINT count=(4-(LIBNUM(*ScratchPointer4)&3))&3; // GET NUMBER OF BYTES ALREADY WRITTEN IN LAST WORD
+        BINT stringmode=LIBNUM(*ScratchPointer4)&4;     // ARE WE COMPILING A STRING?
+        if(count) {
             --CompileEnd;
-            ndigits=(*CompileEnd)&0xffff;
-            checksum=(*CompileEnd)>>16;
-            --CompileEnd;
-            value=*CompileEnd;
-            *ScratchPointer4&=~0x00100000;
+            temp.word=*CompileEnd;  // GET LAST WORD
+        }
+        BYTEPTR ptr=(BYTEPTR) TokenStart;
+
+        if(stringmode) {
+            BINT addedbytes=0;
+            // COMPILE IT JUST LIKE A STRING
+            do {
+            while(count<4) {
+                if(ptr==(BYTEPTR)NextTokenStart) {
+                 // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
+
+                    // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
+                    if(count) rplCompileAppend(temp.word);
+                    *ScratchPointer4=MKPROLOG(DOPLOT+4+((4-count)&3),(WORD)(CompileEnd-ScratchPointer4)-1);
+                    RetNum=OK_NEEDMORE;
+
+                    BYTEPTR nptr=(BYTEPTR)ScratchPointer3;  // RESTORE SAVED STRING START LOCATION
+
+
+                    // PATCH THE STRING LENGTH SO FAR
+                    addedbytes+=rplPlotNumber2BINT(nptr);   // ADD THE NEW BYTES TO THE ORIGINAL SIZE
+
+                    if(addedbytes>=0x100000) {
+                        // STRING IS TOO BIG!
+                        RetNum=ERR_SYNTAX;
+                        return;
+                    }
+
+                    // AND UPDATE THE NUMBER
+                    nptr[0]=((addedbytes>>16)&0xf)|0x50;
+                    nptr[2]=(addedbytes>>8)&0xff;
+                    nptr[1]=(addedbytes)&0xff;
+
+                    return;
+                }
+
+                if(*ptr=='\"') {
+                    // END OF STRING!
+                    ++ptr;
+                    // WE HAVE REACHED THE END OF THE STRING
+                    stringmode=0;
+
+                    // UPDATE THE STRING SIZE AT START OF STRING
+                    BYTEPTR nptr=(BYTEPTR)ScratchPointer3;  // RESTORE SAVED STRING START LOCATION
+
+                    if(nptr+3>(BYTEPTR)CompileEnd) {
+                        // SPECIAL CASE WHERE STRING IS SHORT AND INITIAL COUNT
+                        // WASN'T STORED YET
+                        // JUST STORE IT TEMPORARILY TO READ THE NUMBER PROPERLY
+                        // USES TEMPOB GUARANTEED SLACK
+                        *CompileEnd=temp.word;
+                    }
+
+
+                    addedbytes+=rplPlotNumber2BINT(nptr);   // ADD THE NEW BYTES TO THE ORIGINAL SIZE
+
+                    if(addedbytes>=0x100000) {
+                        // STRING IS TOO BIG!
+                        RetNum=ERR_SYNTAX;
+                        return;
+                    }
+
+                    // AND UPDATE THE NUMBER
+                    nptr[0]=((addedbytes>>16)&0xf)|0x50;
+                    nptr[2]=(addedbytes>>8)&0xff;
+                    nptr[1]=(addedbytes)&0xff;
+
+
+                    if(nptr+3>(BYTEPTR)CompileEnd) {
+                        // SPECIAL CASE WHERE STRING IS SHORT AND INITIAL COUNT
+                        // WASN'T STORED YET
+                        temp.word=*CompileEnd;
+                    }
+
+
+                    // CONTINUE COMPILING
+                    break;
+                }
+
+                if(count==0) temp.word=0;
+                temp.bytes[count]=*ptr;
+                ++addedbytes;
+                ++count;
+                ++ptr;
+
+
+                }
+                if(count==4) {
+                //  WE HAVE A COMPLETE WORD HERE
+                ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                rplCompileAppend(temp.word);
+                ptr=(BYTEPTR)ScratchPointer1;
+
+                count=0;
+                }
+                else break;
+
+
+            } while(1);     // DANGEROUS! BUT WE WILL RETURN FROM THE CHECK WITHIN THE INNER LOOP;
+
+
         }
         else {
-            if((TokenLen==7) && (!utf8ncmp((char *)TokenStart,"ENDPLOT",7))) {
-               //   DONE!  FIX THE PROLOG WITH THE RIGHT LIBRARY NUMBER AND SIZE
-                        *ScratchPointer4=MKPROLOG(DOPLOT,CompileEnd-ScratchPointer4-1);
-                        RetNum=OK_CONTINUE;
-                        return;
-            }
+
+        if((TokenLen==7) && (!utf8ncmp((char *)TokenStart,"ENDPLOT",7))) {
+            // ADD THE ENDPLOT COMMAND '~'
+            if(count==0) temp.word=0;
+            temp.bytes[count]='~';
+            ++count;
+            //  WE HAVE A COMPLETE WORD HERE
+            rplCompileAppend(temp.word);
+
+            *ScratchPointer4=MKPROLOG(DOPLOT+((4-count)&3),(WORD)(CompileEnd-ScratchPointer4)-1);
+            RetNum=OK_CONTINUE;
+            return;
+
         }
 
+        }
 
-       do {
-                if((*ptr>='0')&&(*ptr<='9')) dig=(*ptr+4);
-                else if((*ptr>='A')&&(*ptr<='Z')) dig=(*ptr-65);
-                else if((*ptr>='a')&&(*ptr<='z')) dig=(*ptr-71);
-                else if(*ptr=='+') dig=62;
-                else if(*ptr=='/') dig=63;
-                else {
-                    // INVALID CHARACTER!
+        BINT64 Locale=rplGetSystemLocale();
+        BINT ucode;
+        BINT isnum=0;
+        BINT64 number;
+
+        do {
+        while(count<4) {
+            if(ptr>=(BYTEPTR)BlankStart) {
+             // WE ARE AT THE END OF THE TOKEN, WE NEED MORE
+
+                if(isnum) {
+                                        // END THE NUMBER
+                                        // COMPILE ITS BYTES
+                                        // PACK THE NUMBER INTO A UBINT64 (UP TO 5 BYTES USED)
+                                        BINT used=0;
+                                        BYTE bpack[8];
+                                        BINT sign;
+
+                                        if(isnum<0) sign=8;
+                                        else sign=0;
+
+                                        while(number) {
+                                            bpack[used]=number&0xff;
+                                            ++used;
+                                            number>>=8;
+                                        }
+
+                                        if(!used) { bpack[0]=0; used=1; }
+                                        if(bpack[used-1]>0xf) { bpack[used]=0; ++used; }
+                                        if(used>5) {
+                                            // NUMBER TOO BIG
+                                            rplError(ERR_NUMBERTOOBIG);
+                                            RetNum=ERR_SYNTAX;
+                                            return;
+                                        }
+
+                                        bpack[used-1]|=((used-1)|sign)<<4;  // STARTER BYTE
+
+
+                                        if(count==0) temp.word=0;
+                                        --used;
+                                        temp.bytes[count]=bpack[used];
+                                        ++count;
+                                        BINT k;
+                                        for(k=0;k<used;++k) {
+                                        if(count>3) {
+                                            ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                                            rplCompileAppend(temp.word);
+                                            ptr=(BYTEPTR)ScratchPointer1;
+                                            temp.word=0;
+                                            count=0;
+                                        }
+                                        temp.bytes[count]=bpack[k];
+                                        ++count;
+                                        }
+
+                                        isnum=0;
+
+                }
+                // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
+                if(count) rplCompileAppend(temp.word);
+                *ScratchPointer4=MKPROLOG(DOPLOT+((4-count)&3),(WORD)(CompileEnd-ScratchPointer4)-1);
+                RetNum=OK_NEEDMORE;
+                return;
+            }
+
+            ucode=utf82cp((char *)ptr,(char *)BlankStart);
+
+
+            if(isnum==0) {
+            if(ucode=='+') {
+                // START A NUMBER
+                isnum=1;
+                number=0;
+            }
+            else if(ucode=='-') {
+                // START A NUMBER
+                isnum=-1;
+                number=0;
+            }
+            else if((ucode>='0')&&(ucode<='9')) {
+                // START A NUMBER
+                isnum=1;
+                number=ucode-'0';
+            }
+            else if((WORD)ucode==ARG_SEP(Locale)) {
+
+                // SKIP ARGUMENT SEPARATORS
+            }
+            else if((ucode>=0x60)&&(ucode<=0x7f)) {
+                // IT'S A PRIMITIVE
+                if(count==0) temp.word=0;
+                temp.bytes[count]=ucode;
+                ++count;
+
+            }
+            else if(ucode=='\"') {
+                // START A STRING COMPILE
+                stringmode=1;
+                ScratchPointer3=(WORDPTR)(((BYTEPTR)CompileEnd)+count); // POINT TO THE COMPILED START OF STRING
+
+                if(count==0) temp.word=0;
+                temp.bytes[count]=0x50;
+                ++count;
+                if(count==4) {
+                //  WE HAVE A COMPLETE WORD HERE
+                ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                rplCompileAppend(temp.word);
+                ptr=(BYTEPTR)ScratchPointer1;
+
+                count=0;
+                temp.word=0;
+                }
+                temp.bytes[count]=0;
+                ++count;
+                if(count==4) {
+                //  WE HAVE A COMPLETE WORD HERE
+                ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                rplCompileAppend(temp.word);
+                ptr=(BYTEPTR)ScratchPointer1;
+
+                count=0;
+                temp.word=0;
+                }
+                temp.bytes[count]=0;
+                ++count;
+                if(count==4) {
+                //  WE HAVE A COMPLETE WORD HERE
+                ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                rplCompileAppend(temp.word);
+                ptr=(BYTEPTR)ScratchPointer1;
+
+                count=0;
+                temp.word=0;
+                }
+
+
+
+                ++ptr;
+
+
+                            BINT addedbytes=0;
+                            // COMPILE IT JUST LIKE A STRING
+                            do {
+                            while(count<4) {
+                                if(ptr==(BYTEPTR)NextTokenStart) {
+                                 // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
+
+                                    // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
+                                    if(count) rplCompileAppend(temp.word);
+                                    *ScratchPointer4=MKPROLOG(DOPLOT+4+((4-count)&3),(WORD)(CompileEnd-ScratchPointer4)-1);
+                                    RetNum=OK_NEEDMORE;
+
+                                    // UPDATE THE STRING SIZE AT START OF STRING
+                                    BYTEPTR nptr=(BYTEPTR)ScratchPointer3;  // RESTORE SAVED STRING START LOCATION
+
+                                    addedbytes+=rplPlotNumber2BINT(nptr);   // ADD THE NEW BYTES TO THE ORIGINAL SIZE
+
+                                    if(addedbytes>=0x100000) {
+                                        // STRING IS TOO BIG!
+                                        RetNum=ERR_SYNTAX;
+                                        return;
+                                    }
+
+                                    // AND UPDATE THE NUMBER
+                                    nptr[0]=0x50|((addedbytes>>16)&0xf);
+                                    nptr[2]=(addedbytes>>8)&0xff;
+                                    nptr[1]=(addedbytes)&0xff;
+
+
+                                    return;
+                                }
+
+                                if(*ptr=='\"') {
+                                    // END OF STRING!
+                                    ++ptr;
+                                    // WE HAVE REACHED THE END OF THE STRING
+                                    stringmode=0;
+
+                                    // UPDATE THE STRING SIZE AT START OF STRING
+                                    BYTEPTR nptr=(BYTEPTR)ScratchPointer3;  // RESTORE SAVED STRING START LOCATION
+
+                                    if(nptr+3>(BYTEPTR)CompileEnd) {
+                                        // SPECIAL CASE WHERE STRING IS SHORT AND INITIAL COUNT
+                                        // WASN'T STORED YET
+                                        // JUST STORE IT TEMPORARILY TO READ THE NUMBER PROPERLY
+                                        // USES TEMPOB GUARANTEED SLACK
+                                        *CompileEnd=temp.word;
+                                    }
+
+                                    addedbytes+=rplPlotNumber2BINT(nptr);   // ADD THE NEW BYTES TO THE ORIGINAL SIZE
+
+                                    if(addedbytes>=0x100000) {
+                                        // STRING IS TOO BIG!
+                                        RetNum=ERR_SYNTAX;
+                                        return;
+                                    }
+
+                                    // AND UPDATE THE NUMBER
+                                    nptr[0]=0x50|((addedbytes>>16)&0xf);
+                                    nptr[2]=(addedbytes>>8)&0xff;
+                                    nptr[1]=(addedbytes)&0xff;
+
+
+                                    if(nptr+3>(BYTEPTR)CompileEnd) {
+                                        // SPECIAL CASE WHERE STRING IS SHORT AND INITIAL COUNT
+                                        // WASN'T STORED YET
+                                        temp.word=*CompileEnd;
+                                    }
+
+                                    // CONTINUE COMPILING
+                                    break;
+                                }
+
+                                if(count==0) temp.word=0;
+                                temp.bytes[count]=*ptr;
+                                ++addedbytes;
+                                ++count;
+                                ++ptr;
+
+
+                                }
+                                if(count==4) {
+                                //  WE HAVE A COMPLETE WORD HERE
+                                ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                                rplCompileAppend(temp.word);
+                                ptr=(BYTEPTR)ScratchPointer1;
+
+                                count=0;
+                                }
+                                else break;
+
+
+                            } while(1);     // DANGEROUS! BUT WE WILL RETURN FROM THE CHECK WITHIN THE INNER LOOP;
+
+
+
+            }
+            else {
+                // SYNTAX ERROR
+                RetNum=ERR_SYNTAX;
+                return;
+            }
+
+            }
+            else {
+               // WITHIN A NUMBER ONLY NUMBERS ARE ACCEPTED
+                if((ucode>='0')&&(ucode<='9')) {
+                                // ADD ANOTHER DIGIT
+                                number=number*10+(ucode-'0');
+                            }
+                else if((WORD)ucode==ARG_SEP(Locale)) {
+
+                    // END THE NUMBER
+                    // COMPILE ITS BYTES
+                    // PACK THE NUMBER INTO A UBINT64 (UP TO 5 BYTES USED)
+                    BINT used=0;
+                    BYTE bpack[8];
+                    BINT sign;
+
+                    if(isnum<0) sign=8;
+                    else sign=0;
+
+                    while(number) {
+                        bpack[used]=number&0xff;
+                        ++used;
+                        number>>=8;
+                    }
+
+                    if(!used) { bpack[0]=0; used=1; }
+                    if(bpack[used-1]>0xf) { bpack[used]=0; ++used; }
+                    if(used>5) {
+                        // NUMBER TOO BIG
+                        rplError(ERR_NUMBERTOOBIG);
+                        RetNum=ERR_SYNTAX;
+                        return;
+                    }
+
+                    bpack[used-1]|=((used-1)|sign)<<4;  // STARTER BYTE
+
+
+                    if(count==0) temp.word=0;
+                    --used;
+                    temp.bytes[count]=bpack[used];
+                    ++count;
+                    BINT k;
+                    for(k=0;k<used;++k) {
+                    if(count>3) {
+                        ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                        rplCompileAppend(temp.word);
+                        ptr=(BYTEPTR)ScratchPointer1;
+                        temp.word=0;
+                        count=0;
+                    }
+                    temp.bytes[count]=bpack[k];
+                    ++count;
+                    }
+
+                    isnum=0;
+
+                } else {
                     RetNum=ERR_SYNTAX;
                     return;
                 }
 
-            // STILL NEED MORE WORDS, KEEP COMPILING
-            if(ndigits==5) {
-                value<<=2;
-                value|=dig&3;
-                checksum+=dig&3;
-                if((checksum&0xf)!=((dig>>2)&0xf)) {
-                    rplError(ERR_INVALIDCHECKSUM);
-                    RetNum=ERR_INVALID;
-                    return;
-                }
-                // CHECKSUM PASSED, IT'S A VALID WORD
-                rplCompileAppend(value);
-                value=0;
-                ndigits=0;
-                checksum=0;
-            }
-            else {
-            value<<=6;
-            value|=dig;
-            checksum+=(dig&3)+((dig>>2)&3)+((dig>>4)&3);
-            ++ndigits;
-            }
-            ++ptr;
-            } while(ptr!=(BYTEPTR)BlankStart);
-
-            if(ndigits) {
-                // INCOMPLETE WORD, PREPARE FOR RESUME ON NEXT TOKEN
-                rplCompileAppend(value);
-                rplCompileAppend(ndigits | (checksum<<16));
-                *ScratchPointer4|=0x00100000;
             }
 
+            ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)BlankStart);
+            continue;
 
-        // END OF TOKEN, NEED MORE!
-        RetNum=OK_NEEDMORE;
-        return;
+            }
+            //  WE HAVE A COMPLETE WORD HERE
+            ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+            rplCompileAppend(temp.word);
+            ptr=(BYTEPTR)ScratchPointer1;
 
+            count=0;
+
+
+        } while(1);     // DANGEROUS! BUT WE WILL RETURN FROM THE CHECK WITHIN THE INNER LOOP;
+        //  THIS IS UNREACHABLE CODE HERE
      }
     case OPCODE_DECOMPEDIT:
 
@@ -431,60 +890,68 @@ void LIB_HANDLER()
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
         if(ISPROLOG(*DecompileObject)) {
-            // DECOMPILE BITMAP
+            // DECOMPILE PLOT OBJECT
 
             rplDecompAppendString((BYTEPTR)"PLOTDATA ");
 
-
-            BINT size=OBJSIZE(*DecompileObject);
-
-            // OUTPUT THE DATA BY WORDS, WITH FOLLOWING ENCODING:
-            // 32-BIT WORDS GO ENCODED IN 6 TEXT CHARACTERS
-            // EACH CHARACTER CARRIES 6-BITS IN BASE64 ENCONDING
-            // MOST SIGNIFICANT 6-BIT PACKET GOES FIRST
-            // LAST PACKET HAS 2 LSB BITS TO COMPLETE THE 32-BIT WORDS
-            // AND 4-BIT CHECKSUM. THE CHECKSUM IS THE SUM OF THE (16) 2-BIT PACKS IN THE WORD, MODULO 15
+            BINT64 Locale=rplGetSystemLocale();
+            BYTEPTR ptr=(BYTEPTR)(DecompileObject+1);
+            BYTEPTR end=ptr+PLTLEN(*DecompileObject);
+            BINT needscomma=0;
 
 
+            while(ptr<end) {
 
-            BYTE encoder[7];
+                if((*ptr>=0x60) && (*ptr<=0x7f)) {
 
-            encoder[6]=0;
+                    if(*ptr=='~') {
+                        break;
+                    }
 
-            WORDPTR ptr=DecompileObject+1;
-            BINT nwords=0;
 
-            while(size) {
-                // ENCODE THE 6 CHARACTERS
-                int k;
-                BINT chksum=0;
-                for(k=0;k<5;++k) { encoder[k]=((*ptr)>>(26-6*k))&0x3f; chksum+=(encoder[k]&3)+((encoder[k]>>2)&3)+((encoder[k]>>4)&3); }
-                encoder[5]=(*ptr)&3;
-                chksum+=*ptr&3;
-                encoder[5]|=(chksum&0xf)<<2;
+                    BINT off=ptr-(BYTEPTR)DecompileObject;
+                    if(needscomma) rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
+                    else needscomma=1;
+                    rplDecompAppendChar(*ptr);
+                    ptr=((BYTEPTR)DecompileObject)+off;
+                }
+                else if(((*ptr>>4)&7)<0x5) {
+                    // IT'S A NUMBER
+                    BINT64 num=rplPlotNumber2BINT(ptr);
 
-                // NOW CONVERT TO BASE64
-                for(k=0;k<6;++k)
-                {
-                    if(encoder[k]<26) encoder[k]+=65;
-                    else if(encoder[k]<52) encoder[k]+=71;
-                    else if(encoder[k]<62) encoder[k]-=4;
-                    else if(encoder[k]==62) encoder[k]='+';
-                    else encoder[k]='/';
+                    // NOW OUTPUT THE NUMBER IN DECIMAL
+
+                    BYTE tmpbuffer[12]; // 2^36 USES 10 DIGITS + SIGN MAX.
+
+                    BINT nbytes=rplIntToString(num,DECBINT,tmpbuffer,tmpbuffer+12);
+
+                    BINT off=ptr-(BYTEPTR)DecompileObject;
+                    if(needscomma) rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
+                    else needscomma=1;
+                    rplDecompAppendString2(tmpbuffer,nbytes);
+
+                    ptr=((BYTEPTR)DecompileObject)+off;
+
+                }
+                else if((*ptr>>4)==0x5){
+                    // OUTPUT A STRING
+                    BINT64 len=rplPlotNumber2BINT(ptr);
+
+                    BINT off=ptr-(BYTEPTR)DecompileObject;
+                    if(needscomma) rplDecompAppendUTF8(cp2utf8(ARG_SEP(Locale)));
+                    else needscomma=1;
+                    rplDecompAppendChar('\"');
+                    rplDecompAppendString2(ptr+3,len);
+                    rplDecompAppendChar('\"');
+                    ptr=((BYTEPTR)DecompileObject)+off;
+
                 }
 
-                rplDecompAppendString(encoder);
-                if(Exceptions) {
-                    RetNum=ERR_INVALID;
-                    return;
-                }
 
-                ++nwords;
-                if(nwords==8) { rplDecompAppendChar(' '); nwords=0; }
-
-                --size;
+                ptr=rplPlotSkip(ptr);
 
             }
+
 
             rplDecompAppendString((BYTEPTR)" ENDPLOT");
 
