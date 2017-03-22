@@ -28,6 +28,7 @@
 
 #define COMMAND_LIST \
     CMD(BEGINPLOT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EDITPLOT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
     CMD(ENDPLOT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
     CMD(STROKECOL,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
     CMD(STROKETYPE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
@@ -57,9 +58,10 @@
 
 
 #define ERROR_LIST \
-    ERR(INVALIDPLOTCOMMAND,0), \
-    ERR(INVALIDPLOTSIZE,1), \
-    ERR(NOCURRENTPLOT,2)
+    ERR(PLOTEXPECTED,0), \
+    ERR(INVALIDPLOTCOMMAND,2), \
+    ERR(INVALIDPLOTSIZE,2), \
+    ERR(NOCURRENTPLOT,3)
 
 
 
@@ -371,6 +373,30 @@ void LIB_HANDLER()
         return;
 
     }
+
+    case EDITPLOT:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISPLOT(*rplPeekData(1)) ) {
+            rplError(ERR_PLOTEXPECTED);
+            return;
+        }
+
+        rplPushData((WORDPTR)cplot_ident);
+        rplCallOperator(CMD_LSTO);
+
+        if(Exceptions) return;
+
+
+        // PLOT OBJECT IS READY FOR APPEND
+        return;
+
+    }
+
 
     case ENDPLOT:
     {

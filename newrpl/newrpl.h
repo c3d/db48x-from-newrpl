@@ -734,9 +734,14 @@ BINT rplKeyName2Msg(WORDPTR keyname);
 
 
 // SYSTEM FLAGS
+#define FL_NOCUSTOMKEYS   -4
+// WORDSIZE = FLAGS -5 TO -10 INCLUSIVE
 #define FL_ACTIVEMENU     -11
 #define FL_LASTMENU       -12
 #define FL_HIDEMENU2      -13
+
+#define FL_MENU1WHITE     -15
+#define FL_MENU2WHITE     -16
 #define FL_ANGLEMODE1     -17
 #define FL_ANGLEMODE2     -18
 #define FL_UNDERFLOWERROR -20
@@ -754,8 +759,6 @@ BINT rplKeyName2Msg(WORDPTR keyname);
 #define FL_ERRORBEEP      -56
 #define FL_ALARMBEEP      -57
 #define FL_COMPLEXMODE    -103
-#define FL_NOCUSTOMKEYS   -4
-
 
 
 

@@ -264,6 +264,7 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define ISBITMAP(prolog)   (ISPROLOG(prolog) && ((LIBNUM(prolog)&~7)==DOBITMAP))
 
+#define ISPLOT(prolog)   (ISPROLOG(prolog) && ((LIBNUM(prolog)&~7)==DOPLOT))
 
 
 

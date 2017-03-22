@@ -679,7 +679,8 @@ void halRedrawMenu1(DRAWSURFACE *scr)
         return;
     }
 
-// TODO: EVERYTHING, SHOW EMPTY MENU FOR NOW
+    int mcolor= (rplTestSystemFlag(FL_MENU1WHITE)? 0xf:0);
+
     int ytop,ybottom;
     int oldclipx,oldclipx2,oldclipy,oldclipy2;
 
@@ -687,14 +688,9 @@ void halRedrawMenu1(DRAWSURFACE *scr)
     ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine;
     ybottom=ytop+halScreen.Menu1-1;
     // DRAW BACKGROUND
-    ggl_cliprect(scr,0,ytop+1,SCREEN_WIDTH-1,ybottom-1,ggl_mkcolor(0xf));
+    ggl_cliprect(scr,0,ytop+1,SCREEN_WIDTH-1,ybottom-1,ggl_mkcolor(mcolor^0xf));
     ggl_cliphline(scr,ytop,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
     ggl_cliphline(scr,ybottom,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
-    //ggl_clipvline(scr,21,ytop,ybottom,0);
-    //ggl_clipvline(scr,43,ytop,ybottom,0);
-    //ggl_clipvline(scr,65,ytop,ybottom,0);
-    //ggl_clipvline(scr,87,ytop,ybottom,0);
-    //ggl_clipvline(scr,109,ytop,ybottom,0);
 
 
     // DRAW VARS OF THE CURRENT DIRECTORY IN THIS MENU
@@ -724,7 +720,7 @@ void halRedrawMenu1(DRAWSURFACE *scr)
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
     item=uiGetMenuItem(m1code,MenuObj,k+MENUPAGE(m1code));
-    uiDrawMenuItem(item,0,scr);
+    uiDrawMenuItem(item,mcolor,scr);
     }
 
     // NOW DO THE NXT KEY
@@ -733,10 +729,10 @@ void halRedrawMenu1(DRAWSURFACE *scr)
 
     if(nitems==6) {
         item=uiGetMenuItem(m1code,MenuObj,5);
-        uiDrawMenuItem(item,0,scr);
+        uiDrawMenuItem(item,mcolor,scr);
     } else {
      if(nitems>6) {
-         DrawText(scr->clipx+1,scr->clipy+1,"NXT...",halScreen.MenuFont,0,scr);
+         DrawText(scr->clipx+1,scr->clipy+1,"NXT...",halScreen.MenuFont,mcolor,scr);
      }
     }
 
@@ -766,13 +762,16 @@ void halRedrawMenu2(DRAWSURFACE *scr)
         return;
     }
 
+
+    int mcolor= (rplTestSystemFlag(FL_MENU2WHITE)? 0xf:0);
+
     int ytop,ybottom;
     int oldclipx,oldclipx2,oldclipy,oldclipy2;
 
     ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
     ybottom=ytop+halScreen.Menu2-1;
     // DRAW BACKGROUND
-    ggl_cliprect(scr,0,ytop,STATUSAREA_X-1,ybottom,0);
+    ggl_cliprect(scr,0,ytop,STATUSAREA_X-1,ybottom,ggl_mkcolor(mcolor^0xf));
     //ggl_clipvline(scr,21,ytop+1,ybottom,ggl_mkcolor(0x8));
     //ggl_clipvline(scr,43,ytop+1,ybottom,ggl_mkcolor(0x8));
     //ggl_clipvline(scr,STATUSAREA_X-1,ytop+1,ybottom,ggl_mkcolor(0x8));
@@ -809,7 +808,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
     item=uiGetMenuItem(m2code,MenuObj,k+MENUPAGE(m2code));
-    uiDrawMenuItem(item,0xf,scr);
+    uiDrawMenuItem(item,mcolor,scr);
     }
 
     // SECOND ROW
@@ -821,7 +820,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     scr->clipx=22*k;
     scr->clipx2=22*k+20;
     item=uiGetMenuItem(m2code,MenuObj,k+3+MENUPAGE(m2code));
-    uiDrawMenuItem(item,0xf,scr);
+    uiDrawMenuItem(item,mcolor,scr);
     }
 
     // NOW DO THE NXT KEY
@@ -830,10 +829,10 @@ void halRedrawMenu2(DRAWSURFACE *scr)
 
     if(nitems==6) {
         item=uiGetMenuItem(m2code,MenuObj,5);
-        uiDrawMenuItem(item,0xf,scr);
+        uiDrawMenuItem(item,mcolor,scr);
     } else {
      if(nitems>6) {
-         DrawText(scr->clipx+1,scr->clipy+1,"NXT...",halScreen.MenuFont,0xf,scr);
+         DrawText(scr->clipx+1,scr->clipy+1,"NXT...",halScreen.MenuFont,mcolor,scr);
      }
     }
 
@@ -1393,13 +1392,12 @@ void halShowErrorMsg()
 
         BINT ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
         // CLEAR MENU2 AND STATUS AREA
-        ggl_cliprect(&scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.StAreaFont->BitmapHeight-1,ggl_mkcolor(6));
-        ggl_cliprect(&scr,0,ytop+halScreen.StAreaFont->BitmapHeight,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+        ggl_cliprect(&scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
         // DO SOME DECORATIVE ELEMENTS
-        //ggl_cliphline(&scr,ytop,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
-        ggl_cliphline(&scr,ytop+halScreen.Menu2-1,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
-        ggl_clipvline(&scr,0,ytop+halScreen.StAreaFont->BitmapHeight,ytop+halScreen.Menu2-2,ggl_mkcolor(6));
-        ggl_clipvline(&scr,SCREEN_WIDTH-1,ytop+1,ytop+halScreen.Menu2-2,ggl_mkcolor(6));
+        ggl_cliphline(&scr,ytop+halScreen.StAreaFont->BitmapHeight+1,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
+        //ggl_cliphline(&scr,ytop+halScreen.Menu2-1,0,SCREEN_WIDTH-1,ggl_mkcolor(8));
+        ggl_cliprect(&scr,0,ytop,4,ytop+halScreen.Menu2-1,ggl_mkcolor(8));
+
 
         scr.clipx=1;
         scr.clipx2=SCREEN_WIDTH-2;
@@ -1416,11 +1414,11 @@ void halShowErrorMsg()
             BYTEPTR end=start+rplStrSize(cmdname);
 
             xstart+=StringWidthN((char *)start,(char *)end,halScreen.StAreaFont);
-            DrawTextN(scr.clipx,scr.clipy,(char *)start,(char *)end,halScreen.StAreaFont,0xf,&scr);
+            DrawTextN(scr.clipx+6,scr.clipy+1,(char *)start,(char *)end,halScreen.StAreaFont,0xf,&scr);
             xstart+=4;
             }
             }
-            DrawText(xstart,scr.clipy,"Exception:",halScreen.StAreaFont,0xf,&scr);
+            DrawText(xstart,scr.clipy+1,"Exception:",halScreen.StAreaFont,0xf,&scr);
 
             BINT ecode;
             for(errbit=0;errbit<8;++errbit)     // THERE'S ONLY A FEW EXCEPTIONS IN THE NEW ERROR MODEL
@@ -1433,7 +1431,7 @@ void halShowErrorMsg()
                 BYTEPTR msgstart=(BYTEPTR)(message+1);
                 BYTEPTR msgend=msgstart+rplStrSize(message);
 
-                DrawTextN(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)msgstart,(char *)msgend,halScreen.StAreaFont,0xf,&scr);
+                DrawTextN(scr.clipx+6,scr.clipy+3+halScreen.StAreaFont->BitmapHeight,(char *)msgstart,(char *)msgend,halScreen.StAreaFont,0xf,&scr);
                 }
                 break;
             }
@@ -1441,7 +1439,7 @@ void halShowErrorMsg()
         }
         else {
             // TRY TO DECOMPILE THE OPCODE THAT CAUSED THE ERROR
-            BINT xstart=scr.clipx;
+            BINT xstart=scr.clipx+6;
             if(ExceptionPointer!=0) {  // ONLY IF THERE'S A VALID COMMAND TO BLAME
             WORDPTR cmdname=halGetCommandName(ExceptionPointer);
             if(cmdname) {
@@ -1449,11 +1447,11 @@ void halShowErrorMsg()
             BYTEPTR end=start+rplStrSize(cmdname);
 
             xstart+=StringWidthN((char *)start,(char *)end,halScreen.StAreaFont);
-            DrawTextN(scr.clipx,scr.clipy,(char *)start,(char *)end,halScreen.StAreaFont,0xf,&scr);
+            DrawTextN(scr.clipx+6,scr.clipy+1,(char *)start,(char *)end,halScreen.StAreaFont,0xf,&scr);
             xstart+=4;
             }
             }
-            DrawText(xstart,scr.clipy,"Error:",halScreen.StAreaFont,0xf,&scr);
+            DrawText(xstart,scr.clipy+1,"Error:",halScreen.StAreaFont,0xf,&scr);
             // GET NEW TRANSLATABLE MESSAGES
             
             WORDPTR message=uiGetLibMsg(ErrorCode);
@@ -1462,7 +1460,7 @@ void halShowErrorMsg()
             BYTEPTR msgstart=(BYTEPTR)(message+1);
             BYTEPTR msgend=msgstart+rplStrSize(message);
             
-            DrawTextN(scr.clipx,scr.clipy+halScreen.StAreaFont->BitmapHeight,(char *)msgstart,(char *)msgend,halScreen.StAreaFont,0xf,&scr);
+            DrawTextN(scr.clipx+6,scr.clipy+3+halScreen.StAreaFont->BitmapHeight,(char *)msgstart,(char *)msgend,halScreen.StAreaFont,0xf,&scr);
             }
 
         }
