@@ -214,7 +214,9 @@ SOURCES += main.cpp\
     firmware/ui_render.c \
     newrpl/lib-80-bitmaps.c \
     newrpl/lib-78-fonts.c \
-    newrpl/lib-88-plot.c
+    newrpl/lib-88-plot.c \
+    newrpl/lib-96-render2grob.c \
+    newrpl/fastmath.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -237,7 +239,8 @@ HEADERS  += mainwindow.h \
     newrpl/romlibs.h \
     firmware/include/fsystem.h \
     firmware/sys/sddriver.h \
-    firmware/sys/fsystem/fsyspriv.h
+    firmware/sys/fsystem/fsyspriv.h \
+    newrpl/fastmath.h
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-9.nrpl \

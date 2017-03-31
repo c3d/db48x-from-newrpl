@@ -1,5 +1,6 @@
+
 /*
- * Copyright (c) 2016, Claudio Lapilli and the newRPL Team
+ * Copyright (c) 2017, Claudio Lapilli and the newRPL Team
  * All rights reserved.
  * This file is released under the 3-clause BSD license.
  * See the file LICENSE.txt that shipped with this distribution.
@@ -16,7 +17,7 @@
 
 
 // REPLACE THE NUMBER
-#define LIBRARY_NUMBER  88
+#define LIBRARY_NUMBER  96
 
 
 // LIST OF COMMANDS EXPORTED,
@@ -27,40 +28,6 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(BEGINPLOT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(EDITPLOT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ENDPLOT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(STROKECOL,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(STROKETYPE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FILLCOL,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FILLTYPE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FILL,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(STROKE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(FILLSTROKE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(MOVETO,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(LINETO,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CIRCLE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RECTANG,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CTLNODE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CURVE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BGROUP,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(EGROUP,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(DOGROUP,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BASEPT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(TRANSLATE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ROTATE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SCALE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CLEARTRANSF,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SETFONT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(TEXTHEIGHT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(TEXTOUT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(INITRENDER,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(DORENDER,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CTRVIEW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(ROTVIEW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SCLVIEW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(VIEWPORT,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    CMD(VIEWALL,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
 
 
 // ADD MORE PLOT COMMANDS HERE
@@ -77,14 +44,7 @@
 // ADD MORE OPCODES HERE
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
-#define LIBRARY_ASSIGNED_NUMBERS  LIBRARY_NUMBER, \
-                                LIBRARY_NUMBER+1, \
-                                LIBRARY_NUMBER+2, \
-                                LIBRARY_NUMBER+3, \
-                                LIBRARY_NUMBER+4, \
-                                LIBRARY_NUMBER+5, \
-                                LIBRARY_NUMBER+6, \
-                                LIBRARY_NUMBER+7
+#define LIBRARY_ASSIGNED_NUMBERS  LIBRARY_NUMBER
 
 
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
@@ -871,97 +831,8 @@ void LIB_HANDLER()
 // TODO: ADD MORE GRAPHICS PRIMITIVES HERE
 
 
-        // ********************** RENDERER COMMANDS
-
-    case INITRENDER:
-    {
-     // TAKES INTEGER NUMBER SPECIFYING THE LIBRARY NUMBER TO USE FOR DRAWING
-
-     if(rplDepthData()<1) {
-         rplError(ERR_BADARGCOUNT);
-         return;
-     }
-
-     if(ISNUMBER(*rplPeekData(1))) {
-         BINT64 libnum=rplReadNumberAsBINT(rplPeekData(1));
-
-         if( (libnum<0) || (libnum>4095)) {
-             rplError(ERR_INVALIDLIBNUMBER);
-             return;
-         }
-         LIBHANDLER renderer=rplGetLibHandler(libnum);
-
-         if(!renderer) {
-             rplError(ERR_INVALIDLIBNUMBER);
-             return;
-         }
-
-         CurOpcode=CMD_PLTRESET;
-
-         (*renderer)();
-
-         if(Exceptions) {
-             rplClearErrors();
-             rplError(ERR_INVALIDRENDERER);
-             return;
-         }
-
-     }
-     else {
-         // TODO: ACCEPT MORE HUMAN READABLE RENDERER IDENTIFIERS, LIKE 'SVG', 'GROB' ETC.
-     }
-
-       // THE OBJECT CONTAINS RENDERER STATUS (LIBRARY DEPENDENT) AND/OR THE PARTIAL DRAWING
-
-       // INITIALIZE A LIST WITH RENDERER STATUS, WHICH NEEDS TO BE LEFT ON THE STACK UNTIL DONE (EVERY CALL MUST HAVE IT)
-       // RENDERER STATUS IS A LIST WITH FIXED-SIZE 64-BIT INTEGERS CONTAINING:
-       /*
-        * {
-        * WIDTH HEIGHT (TARGET CANVAS SIZE)
-        * A11 A12 A13  (GLOBAL TRANSFORMATION MATRIX [ [ rot11 rot12 Tx ] [rot21 rot22 Ty ] [ 0 0 1 ] ] ONLY THE TOP 2 ROWS ARE STORED )
-        * A21 A22 A23  (INITIALLY THIS IS [[ 1 0 0 ] [ 0 1 0 ] [ 0 0 1 ]])
-        * A11 A12 A13  (CURRENT TRANSFORMATION MATRIX [ [ rot11 rot12 Tx ] [rot21 rot22 Ty ] [ 0 0 1 ] ] ONLY THE TOP 2 ROWS ARE STORED )
-        * A21 A22 A23  (INITIALLY THIS IS [[ 1 0 0 ] [ 0 1 0 ] [ 0 0 1 ]])
-        * TARGET_OBJECT (INITIALLY AN EMPTY STRING, THE RENDERING LIBRARY WILL RETURN AN OBJECT OF THE PROPER TYPE AND SIZE AFTER PLT_SETSIZE IS CALLED)
-        * }
-        */
-       WORDPTR rstatus=rplAllocTempOb(14*3+1+1); // 14 BINT64 + 1 WORDS FOR THE STRING + 1 FOR ENDLIST
-       if(!rstatus) return;
-       rstatus[0]=MKPROLOG(DOLIST,14*3+1+1);
-
-       // CREATE THE 14 BINT64'S
-
-       int k;
-       for(k=0;k<14;++k)
-       {
-       rstatus[k*3+1]=MKPROLOG(DECBINT,2);
-       rstatus[k*3+2]=0;
-       rstatus[k*3+3]=0;
-       }
-
-       // WIDTH=1 PIXEL
-       rstatus[2]=1;
-       // HEIGHT=1 PIXEL
-       rstatus[5]=1;
-       // A11=1 (FPINT)
-       rstatus[2+3*2]=1<<24;
-       // A22=1 (FPINT)
-       rstatus[2+3*6]=1<<24;
-       // A11=1 (FPINT)
-       rstatus[2+3*8]=1<<24;
-       // A22=1 (FPINT)
-       rstatus[2+3*12]=1<<24;
-
-       rstatus[25]=MAKESTRING(0);   // EMPTY STRING
-       rstatus[26]=CMD_ENDLIST;
-
-       rplOverwriteData(1,rstatus);
-
-        return;
-     }
 
 
-    }
 
 
 

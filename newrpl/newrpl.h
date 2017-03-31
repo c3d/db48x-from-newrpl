@@ -40,6 +40,9 @@ typedef uint32_t PTR2NUMBER;
 #define NUMBER2PTR(a) ((WORDPTR)((WORD)(a)))
 #endif
 
+
+
+
 #ifdef __cplusplus
 "C" {
 #endif
@@ -78,6 +81,9 @@ typedef uint32_t PTR2NUMBER;
 #include "decimal.h"
 #endif
 
+#ifndef FASTMATH_H
+#include "fastmath.h"
+#endif
 
 
 
@@ -627,6 +633,8 @@ void rplSymbRuleApply();
 BINT rplSymbIsRule(WORDPTR ptr);
 void rplSymbAutoSimplify();
 WORDPTR rplSymbNumericReduce(WORDPTR object);
+BINT rplSymbIsNumeric(WORDPTR ptr);
+
 
 
 // INTERNAL SYMBOLIC API, FOR USE BY OTHER LIBRARIES
@@ -807,6 +815,11 @@ BINT rplKeyName2Msg(WORDPTR keyname);
 #define GC_COMPLETED   2
 #define GC_ERROR       4
 
+// START OF PLOTTING COMMANDS ON A RENDER LIBRARY
+#define CMD_PLTBASE     0x4000
+
+// RESET THE ENGINE PRIOR TO START A NEW JOB
+#define CMD_PLTRESET    0x4001
 
 // PLOTTING ENGINE COMMANDS
 //'w' SETCANVAS: X Y ->
@@ -823,6 +836,8 @@ BINT rplKeyName2Msg(WORDPTR keyname);
 #define PLT_MOVETO  'm'
 //'l' LINETO: X Y ->
 #define PLT_LINETO  'l'
+//'z' LINECLOSE: ->
+#define PLT_LCLOSE  'z'
 //'c' CIRCLE: R ->
 #define PLT_CIRCLE  'c'
 //'r' RECTANGLE: X Y ->
@@ -835,8 +850,8 @@ BINT rplKeyName2Msg(WORDPTR keyname);
 #define PLT_FILL    'f'
 //'g' STROKE
 #define PLT_STROKE  'g'
-//'h' STROKE&FILL
-#define PLT_STROKEFILL 'h'
+//'h' FILL&STROKE
+#define PLT_FILLSTROKE 'h'
 //'{' BEGINGROUP
 #define PLT_BGROUP  '{'
 //'}' ENDGROUP

@@ -73,7 +73,9 @@
     CMD(PINT,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(PMUL,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
     CMD(PADD,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
-    CMD(PSUB,MKTOKENINFO(4,TITYPE_FUNCTION,2,2))
+    CMD(PSUB,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
+    ECMD(IPPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2))
+
 
 // ADD MORE OPCODES HERE
 
@@ -100,6 +102,39 @@ INCLUDE_ROMOBJECT(lib64_menu_3_module);
 INCLUDE_ROMOBJECT(lib64_menu_4_polynomial);
 INCLUDE_ROMOBJECT(lib64_menu_5_poly_fcn);
 
+
+// INTERNAL RPL CODE FOR IP ON SYMBOLICS
+
+ROMOBJECT ipsymbolic_seco[]={
+    MKPROLOG(DOCOL,3),
+    (CMD_OVR_NUM),    // DO ->NUM ON THE NUMERIC SYMBOLIC
+    MKOPCODE(LIBRARY_NUMBER,IPPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    CMD_SEMI
+};
+
+ROMOBJECT fpsymbolic_seco[]={
+    MKPROLOG(DOCOL,6),
+    (CMD_DUP),
+    (CMD_OVR_NUM),    // DO ->NUM ON THE NUMERIC SYMBOLIC
+    MKOPCODE(LIBRARY_NUMBER,IPPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    (CMD_OVR_SUB),
+    (CMD_AUTOSIMPLIFY),   // SIMPLIFY BEFORE RETURN
+    CMD_SEMI
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
@@ -111,6 +146,8 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)lib64_menu_3_module,
     (WORDPTR)lib64_menu_4_polynomial,
     (WORDPTR)lib64_menu_5_poly_fcn,
+    (WORDPTR)ipsymbolic_seco,
+    (WORDPTR)fpsymbolic_seco,
     0
 };
 
@@ -326,14 +363,56 @@ void LIB_HANDLER()
     }
 
     if(ISBINT(*arg)) return;
+
+    if(ISSYMBOLIC(*arg)) {
+        // CHECK IF THE EXPRESSION IS NUMERIC
+        if(rplSymbIsNumeric(arg)) {
+            // COMPUTE THE EXPRESSION AND TAKE THE INTEGER PART, BUT DO IT IN RPL
+            rplPushRet(IPtr);
+            IPtr=(WORDPTR) ipsymbolic_seco;
+            CurOpcode=(CMD_OVR_NUM);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+            return;
+        }
+        rplSymbApplyOperator(CurOpcode,1);
+        return;
+    }
+
+
     REAL rnum;
     rplReadNumberAsReal(arg,&rnum);
     if(Exceptions) return;
+
+
+
     ipReal(&RReg[1],&rnum,1);
     rplDropData(1);
     rplNewRealFromRRegPush(1);
     return;
     }
+
+case IPPOST:
+    {
+    // EXPECTS A REAL ON THE STACK
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        REAL num;
+
+        rplReadNumberAsReal(rplPeekData(1),&num);
+        if(Exceptions) return;
+
+        ipReal(&RReg[0],&num,1);
+        WORDPTR newnum;
+        if(inBINT64Range(&RReg[0])) newnum=rplNewBINT(getBINT64Real(&RReg[0]),DECBINT);
+        else newnum=rplNewRealFromRReg(0);
+
+        if(Exceptions) return;
+        rplOverwriteData(1,newnum);
+
+        return;
+     }
 
     case FP:
     {
@@ -349,11 +428,28 @@ void LIB_HANDLER()
         return;
     }
 
+
+    if(ISSYMBOLIC(*arg)) {
+        // CHECK IF THE EXPRESSION IS NUMERIC
+        if(rplSymbIsNumeric(arg)) {
+            // COMPUTE THE EXPRESSION AND TAKE THE FRACTION PART, BUT DO IT IN RPL
+            rplPushRet(IPtr);
+            IPtr=(WORDPTR) fpsymbolic_seco;
+            CurOpcode=(CMD_OVR_NUM);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+            return;
+        }
+        rplSymbApplyOperator(CurOpcode,1);
+        return;
+    }
+
+
     if(ISBINT(*arg)) {
         rplDropData(1);
         rplPushData((WORDPTR)zero_bint);
         return;
     }
+
+
     REAL rnum;
     rplReadNumberAsReal(arg,&rnum);
     if(Exceptions) return;
@@ -362,6 +458,7 @@ void LIB_HANDLER()
     rplNewRealFromRRegPush(1);
     return;
     }
+
 
     case FACTORIAL:
     {

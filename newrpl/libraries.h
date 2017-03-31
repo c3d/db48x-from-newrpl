@@ -284,7 +284,7 @@ void libFindMsg(BINT message,WORDPTR table);
 #define MAKEMSG(lib,num) MKOPCODE(DECBINT, (((lib)&0xfff)<<7) | ((num)&0x7f))
 #define LIBFROMMSG(msg) (((msg)>>7)&0xfff)
 // CONVENIENCE MACRO TO ENCODE THE PROLOG OF STRINGS
-#define MAKESTRING(length) MKPROLOG(DOSTRING+((4-((length)&3))&3),((length)+3)>>2)
+#define MAKESTRING(length) MKPROLOG(DOSTRING+(~(4-((length)&3))&3),((length)+3)>>2)
 
 
 // CONVENIENCE MACRO TO GET SIZE OF A MATRIX

@@ -3295,3 +3295,23 @@ if(rplSymbMainOperator(ptr)==CMD_RULESEPARATOR) return 1;
 return 0;
 }
 
+// RETURN 1 IF THE GIVEN SYMBOLIC IS ONLY NUMERIC
+// RETURN 0 IF THE GIVEN SYMBOLIC HAS ANY VARIABLES OR CALLS A CUSTOM USER FUNCTION
+BINT rplSymbIsNumeric(WORDPTR ptr)
+{
+WORDPTR endofobj=rplSkipOb(ptr);
+
+if(ISNUMBERCPLX(*ptr)) return 1;
+
+while(ptr<endofobj) {
+    if(ISSYMBOLIC(*ptr)) ptr=rplSymbUnwrap(ptr);
+    if(ISIDENT(*ptr)) return 0;
+    if(*ptr==CMD_OVR_FUNCEVAL) return 0;
+
+    ptr=rplSkipOb(ptr);
+
+}
+
+return 1;
+
+}
