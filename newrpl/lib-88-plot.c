@@ -56,7 +56,7 @@
     CMD(TEXTOUT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
     CMD(INITRENDER,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
     CMD(DORENDER,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(CTRVIEW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(PANVIEW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(ROTVIEW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(SCLVIEW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(VIEWPORT,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
@@ -70,7 +70,10 @@
     ERR(PLOTEXPECTED,0), \
     ERR(INVALIDPLOTCOMMAND,2), \
     ERR(INVALIDPLOTSIZE,2), \
-    ERR(NOCURRENTPLOT,3)
+    ERR(NOCURRENTPLOT,3), \
+    ERR(INVALIDRENDERSTATUS,4), \
+    ERR(INVALIDRENDERER,5), \
+    ERR(INVALIDPLOTARGS,6)
 
 
 
@@ -328,6 +331,129 @@ default:
 }
 
 }
+
+
+
+void rplRenderClrGTransf(WORDPTR rstatus)
+{
+
+    *GA11PTR(rstatus)=1LL;
+    *GA12PTR(rstatus)=0LL;
+    *GA13PTR(rstatus)=0LL;
+    *GA21PTR(rstatus)=0LL;
+    *GA22PTR(rstatus)=1LL;
+    *GA23PTR(rstatus)=0LL;
+
+}
+
+void rplRenderClrLTransf(WORDPTR rstatus)
+{
+
+    *A11PTR(rstatus)=1LL;
+    *A12PTR(rstatus)=0LL;
+    *A13PTR(rstatus)=0LL;
+    *A21PTR(rstatus)=0LL;
+    *A22PTR(rstatus)=1LL;
+    *A23PTR(rstatus)=0LL;
+
+}
+
+
+void rplRenderGTranslate(WORDPTR rstatus,BINT64 tx,BINT64 ty)
+{
+
+    *GA13PTR(rstatus)+=tx;
+    *GA23PTR(rstatus)+=ty;
+
+}
+
+
+void rplRenderGScale(WORDPTR rstatus,BINT64 scale)
+{
+    *GA11PTR(rstatus)=mulFPINT(*GA11PTR(rstatus),scale);
+    *GA12PTR(rstatus)=mulFPINT(*GA12PTR(rstatus),scale);
+    *GA13PTR(rstatus)=mulFPINT(*GA13PTR(rstatus),scale);
+    *GA21PTR(rstatus)=mulFPINT(*GA21PTR(rstatus),scale);
+    *GA22PTR(rstatus)=mulFPINT(*GA22PTR(rstatus),scale);
+    *GA23PTR(rstatus)=mulFPINT(*GA23PTR(rstatus),scale);
+
+}
+
+
+void rplRenderLTranslate(WORDPTR rstatus,BINT64 tx,BINT64 ty)
+{
+
+    *A13PTR(rstatus)+=tx;
+    *A23PTR(rstatus)+=ty;
+
+}
+
+
+void rplRenderSetSize(WORDPTR rstatus,BINT64 w,BINT64 h)
+{
+
+    *WIDTHPTR(rstatus)=w;
+    *HEIGHTPTR(rstatus)=h;
+
+}
+
+void rplRenderSetCPoint(WORDPTR rstatus,BINT64 x,BINT64 y)
+{
+
+    *CXPTR(rstatus)=x;
+    *CYPTR(rstatus)=y;
+
+}
+
+
+void rplRenderSetBPoint(WORDPTR rstatus,BINT64 x,BINT64 y)
+{
+
+    *BXPTR(rstatus)=x;
+    *BYPTR(rstatus)=y;
+
+}
+
+
+
+
+
+// MAKE THE CURRENT PLOT FIT THE GIVEN AREA IN ITS VIEW
+void rplRenderViewport(WORDPTR rstatus,BINT64 x,BINT64 y,BINT64 x2,BINT64 y2)
+{
+    BINT64 scalex=divFPINT(*WIDTHPTR(rstatus),(x2-x));
+    BINT64 scaley=divFPINT(*HEIGHTPTR(rstatus),(y2-y));
+
+    if(scalex<0) scalex=-scalex;
+    if(scaley<0) scaley=-scaley;
+
+    if(scalex>scaley) scalex=scaley;
+
+    // HERE SCALEX HAS THE SCALE
+
+    BINT64 cx=(x+x2)/2;
+    BINT64 cy=(y+y2)/2;
+
+    cx=divFPINT(*WIDTHPTR(rstatus)/2,scalex)-cx;
+    cy=divFPINT(*HEIGHTPTR(rstatus)/2,scalex)-cy;
+
+    rplRenderGTranslate(rstatus,cx,cy);
+    rplRenderGScale(rstatus,scalex);
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -876,27 +1002,28 @@ void LIB_HANDLER()
     case INITRENDER:
     {
      // TAKES INTEGER NUMBER SPECIFYING THE LIBRARY NUMBER TO USE FOR DRAWING
+     // WIDTH AND HEIGHT OF THE TARGET GRAPHIC
 
-     if(rplDepthData()<1) {
+     if(rplDepthData()<3) {
          rplError(ERR_BADARGCOUNT);
          return;
      }
-
-     if(ISNUMBER(*rplPeekData(1))) {
-         BINT64 libnum=rplReadNumberAsBINT(rplPeekData(1));
+     BINT64 libnum;
+     if(ISNUMBER(*rplPeekData(3))) {
+         libnum=rplReadNumberAsBINT(rplPeekData(3));
 
          if( (libnum<0) || (libnum>4095)) {
-             rplError(ERR_INVALIDLIBNUMBER);
+             rplError(ERR_INVALIDRENDERER);
              return;
          }
          LIBHANDLER renderer=rplGetLibHandler(libnum);
 
          if(!renderer) {
-             rplError(ERR_INVALIDLIBNUMBER);
+             rplError(ERR_INVALIDRENDERER);
              return;
          }
 
-         CurOpcode=CMD_PLTRESET;
+         CurOpcode=MKOPCODE(libnum,CMD_PLTRESET);
 
          (*renderer)();
 
@@ -909,59 +1036,363 @@ void LIB_HANDLER()
      }
      else {
          // TODO: ACCEPT MORE HUMAN READABLE RENDERER IDENTIFIERS, LIKE 'SVG', 'GROB' ETC.
+         rplError(ERR_INVALIDRENDERER);
+         return;
      }
 
-       // THE OBJECT CONTAINS RENDERER STATUS (LIBRARY DEPENDENT) AND/OR THE PARTIAL DRAWING
+
+     BINT64 w,h;
+
+     w=rplReadNumberAsBINT(rplPeekData(2));
+     if(Exceptions) {
+         rplError(ERR_INTEGEREXPECTED);
+         return;
+     }
+
+     if(w<1) w=1;
+
+     h=rplReadNumberAsBINT(rplPeekData(1));
+     if(Exceptions) {
+         rplError(ERR_INTEGEREXPECTED);
+         return;
+     }
+     if(h<1) h=1;
+
+
+       // THE OBJECT CONTAINS RENDERER STATUS (LIBRARY DEPENDENT) AND/OR THE PARTIAL DRAWING. THIS IS A SELF-MODIFYING OBJECT
 
        // INITIALIZE A LIST WITH RENDERER STATUS, WHICH NEEDS TO BE LEFT ON THE STACK UNTIL DONE (EVERY CALL MUST HAVE IT)
-       // RENDERER STATUS IS A LIST WITH FIXED-SIZE 64-BIT INTEGERS CONTAINING:
-       /*
-        * {
-        * WIDTH HEIGHT (TARGET CANVAS SIZE)
-        * A11 A12 A13  (GLOBAL TRANSFORMATION MATRIX [ [ rot11 rot12 Tx ] [rot21 rot22 Ty ] [ 0 0 1 ] ] ONLY THE TOP 2 ROWS ARE STORED )
-        * A21 A22 A23  (INITIALLY THIS IS [[ 1 0 0 ] [ 0 1 0 ] [ 0 0 1 ]])
-        * A11 A12 A13  (CURRENT TRANSFORMATION MATRIX [ [ rot11 rot12 Tx ] [rot21 rot22 Ty ] [ 0 0 1 ] ] ONLY THE TOP 2 ROWS ARE STORED )
-        * A21 A22 A23  (INITIALLY THIS IS [[ 1 0 0 ] [ 0 1 0 ] [ 0 0 1 ]])
-        * TARGET_OBJECT (INITIALLY AN EMPTY STRING, THE RENDERING LIBRARY WILL RETURN AN OBJECT OF THE PROPER TYPE AND SIZE AFTER PLT_SETSIZE IS CALLED)
-        * }
-        */
-       WORDPTR rstatus=rplAllocTempOb(14*3+1+1); // 14 BINT64 + 1 WORDS FOR THE STRING + 1 FOR ENDLIST
+     // RENDERER STATUS IS A LIST WITH FIXED-SIZE 64-BIT INTEGERS CONTAINING:
+     /*
+      * {
+      * WIDTH HEIGHT (TARGET CANVAS SIZE)
+      * A11 A12 A13  (GLOBAL TRANSFORMATION MATRIX [ [ rot11 rot12 Tx ] [rot21 rot22 Ty ] [ 0 0 1 ] ] ONLY THE TOP 2 ROWS ARE STORED )
+      * A21 A22 A23  (INITIALLY THIS IS [[ 1 0 0 ] [ 0 1 0 ] [ 0 0 1 ]])
+      * A11 A12 A13  (CURRENT TRANSFORMATION MATRIX [ [ rot11 rot12 Tx ] [rot21 rot22 Ty ] [ 0 0 1 ] ] ONLY THE TOP 2 ROWS ARE STORED )
+      * A21 A22 A23  (INITIALLY THIS IS [[ 1 0 0 ] [ 0 1 0 ] [ 0 0 1 ]])
+      * CX CY        (CURRENT X,Y POINT)
+      * BX BY        (BASE X,Y POINT FOR ROTATIONS, ETC.)
+      * ARG1 ARG2    (ARGUMENTS FOR COMMANDS)
+      * LIBRENDER    (RENDER LIBRARY NUMBER)
+      * TARGET_OBJECT (INITIALLY AN EMPTY STRING, THE RENDERING LIBRARY WILL RETURN AN OBJECT OF THE PROPER TYPE AND SIZE AFTER PLT_SETSIZE IS CALLED)
+      * PERSIST_OBJECT (RENDERING LIBRARY CUSTOM OBJECT WITH PERSISTENT DATA, THIS IS OPAQUE TO THE RENDERING CORE, EACH RENDERER KNOWS WHAT IS STORED HERE)
+      * }
+      *
+      * NOTES ABOUT RENDERER STATUS: RENDERING LIBRARY CAN MODIFY TARGET_OBJECT AND/OR PERSIST_OBJECT SIZE AT ANY TIME
+      * SO THE POINTER TO THIS STRUCTURE MUST BE ASSUMED TO MOVE IN MEMORY.
+      *
+      *
+      */
+      WORDPTR rstatus=rplAllocTempOb(RSTATUS_SIZE*3+2+1); // 14 BINT64 + 1 WORDS FOR THE STRING + 1 WORD FOR PERSIST_OBJECT (ANOTHER EMPTY STRING) + 1 FOR ENDLIST
        if(!rstatus) return;
-       rstatus[0]=MKPROLOG(DOLIST,14*3+1+1);
+       rstatus[0]=MKPROLOG(DOLIST,RSTATUS_SIZE*3+2+1);
 
-       // CREATE THE 14 BINT64'S
+       // CREATE THE BINT64'S
 
        int k;
-       for(k=0;k<14;++k)
+       for(k=0;k<RSTATUS_SIZE;++k)
        {
        rstatus[k*3+1]=MKPROLOG(DECBINT,2);
        rstatus[k*3+2]=0;
        rstatus[k*3+3]=0;
        }
 
-       // WIDTH=1 PIXEL
-       rstatus[2]=1;
-       // HEIGHT=1 PIXEL
-       rstatus[5]=1;
-       // A11=1 (FPINT)
-       rstatus[2+3*2]=1<<24;
-       // A22=1 (FPINT)
-       rstatus[2+3*6]=1<<24;
-       // A11=1 (FPINT)
-       rstatus[2+3*8]=1<<24;
-       // A22=1 (FPINT)
-       rstatus[2+3*12]=1<<24;
+       *ROBJPTR(rstatus)=MAKESTRING(0);   // EMPTY STRING
+       *PERSISTPTR(rstatus)=MAKESTRING(0);   // EMPTY STRING
 
-       rstatus[25]=MAKESTRING(0);   // EMPTY STRING
-       rstatus[26]=CMD_ENDLIST;
+       rstatus[RSTATUS_SIZE*3+2+1]=CMD_ENDLIST;
 
+       // INITIALIZE PARAMETERS
+       rplRenderClrGTransf(rstatus);
+       rplRenderClrLTransf(rstatus);
+       rplRenderSetSize(rstatus,w<<24,h<<24);
+       rplRenderSetCPoint(rstatus,0,0);
+       rplRenderSetBPoint(rstatus,0,0);
+       *RLIBPTR(rstatus)=libnum;
+
+       rplDropData(2);
        rplOverwriteData(1,rstatus);
 
+       // NOW CALL THE RENDERER TO INITIALIZE ITS OWN OBJECT FOR THE PROPER SIZE
+
+       LIBHANDLER renderer=rplGetLibHandler(libnum);
+
+       if(!renderer) {
+           rplError(ERR_INVALIDRENDERER);
+           return;
+       }
+
+       CurOpcode=MKOPCODE(libnum,CMD_PLTBASE+PLT_SETSIZE);
+
+       (*renderer)();
+
+       if(Exceptions) return;
+
+       // NOW REPLACE THE OBJECT IN THE LIST
+       WORDPTR newlist=rplAllocTempOb(RSTATUS_SIZE*3+1+rplObjSize(rplPeekData(1)));
+       if(!newlist) return;
+       memmovew(newlist+1,rstatus+1,RSTATUS_SIZE*3);
+       rplCopyObject(newlist+RSTATUS_SIZE*3+1,rplPeekData(1));
+       newlist[1+RSTATUS_SIZE*3+rplObjSize(rplPeekData(1))]=CMD_ENDLIST;
+       rstatus[0]=MKPROLOG(DOLIST,1+RSTATUS_SIZE*3+rplObjSize(rplPeekData(1)));
+
+        rplDropData(1);
+        rplOverwriteData(1,newlist);
         return;
+
      }
 
 
+    case DORENDER:
+    {
+    //  PERFORM A RENDERING USING A CUSTOM LIBRARY
+    // SCANS THE OBJECT, PERFORMS ALL THE TRANSFORMATIONS, THEN PASS THE FINAL PIXEL COORDINATES TO THE LIBRARY
+
+    // NEEDS OBJECT FROM INITRENDER ON LEVEL 2, AND PLOT OBJECT ON LEVEL 1
+
+
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISLIST(*rplPeekData(2))) {
+                rplError(ERR_INVALIDRENDERER);
+                return;
+            }
+        WORDPTR rstatus=rplPeekData(2);
+
+
+        if(!ISPLOT(*rplPeekData(1))) {
+            rplError(ERR_PLOTEXPECTED);
+            return;
+        }
+
+        WORDPTR plotobj=rplPeekData(1);
+        BYTEPTR ptr=(BYTEPTR)(plotobj+1);
+        BYTEPTR end=ptr+PLTLEN(*plotobj);
+
+        BINT argn=0;
+        LIBHANDLER rhandler=rplGetLibHandler(*RLIBPTR(rstatus));
+
+        if(!rhandler) {
+            rplError(ERR_INVALIDRENDERER);
+            return;
+        }
+
+        while(ptr<end) {
+
+            if((*ptr>=0x60) && (*ptr<=0x7f)) {
+
+                if(*ptr=='~') {
+                    break;
+                }
+
+
+                // IT'S A RENDER COMMAND
+
+                // TODO: CONVERT ARGUMENTS TO CANVAS COORDINATES BEFORE CALLING THE
+                //       RENDERER, ALSO CHECK FOR ARGUMENT COUNT
+
+                switch(*ptr)
+                {
+
+                // COMMANDS THAT REQUIRE NO CONVERSION
+
+                //'k' STROKECOLOR: C ->
+                case PLT_STROKECOL:
+                //'e' STROKETYPE: T ->
+                case PLT_STROKETYPE:
+                //'i' FILLCOLOR: C ->
+                case PLT_FILLCOL:
+                //'j' FILLTYPE: T ->
+                case PLT_FILLTYPE:
+                //'z' LINECLOSE: ->
+                case PLT_LCLOSE:
+                //'f' FILL
+                case PLT_FILL:
+                //'g' STROKE
+                case PLT_STROKE:
+                //'h' FILL&STROKE
+                case PLT_FILLSTROKE:
+                //'{' BEGINGROUP
+                case PLT_BGROUP:
+                //'}' ENDGROUP
+                case PLT_EGROUP:
+                //'q' ROTATE: ANG ->
+                case PLT_ROTATE:
+                //'s' SCALE: SX SY ->
+                case PLT_SCALE:
+                //'u' CLRTRANSFORM
+                case PLT_CLRTRANSFORM:
+                //'a' REPEATGROUP
+                case PLT_DOGROUP:
+                //'v' SETFONT: F ->
+                case PLT_TXTFONT:
+                //'o' TEXTOUT: S ->
+                case PLT_TXTOUT:
+                //'~' ENDOFPLOT
+                case PLT_ENDOFPLOT:
+
+                break;
+
+                // COMMANDS THAT TAKE A DISTANCE AS ARGUMENT (SCALE ONLY)
+                //'c' CIRCLE: R ->
+                case PLT_CIRCLE:
+                //'x' TEXTHEIGHT: H ->
+                case PLT_TXTHEIGHT:
+
+                // TODO: MULTIPLY BY THE SCALE
+
+                break;
+
+
+                // COMMANDS THAT TAKE A DELTAX/DELTAY (SCALE ONLY)
+                //'w' SETCANVAS: X Y ->
+                case PLT_SETSIZE:
+                // NOT EVEN SURE THE RENDERER NEEDS TO KNOW THE SIZE OF THE ORIGINAL PLOT?
+
+                break;
+
+
+                // COMMANDS THAT TAKE A POINT AS AN ARGUMENT (FULL COORD. CONVERSION)
+                //'m' MOVETO: X Y ->
+                case PLT_MOVETO:
+                //'l' LINETO: X Y ->
+                case PLT_LINETO:
+                //'r' RECTANGLE: X Y ->
+                case PLT_RECTANG:
+                //'n' CONTROLNODE: X Y ->
+                case PLT_CTLNODE:
+                //'p' CURVE: X Y ->
+                case PLT_CURVE:
+                // 'b' BASE POINT: X Y ->
+                case PLT_BASEPT:
+                //'t' TRANSLATE: X Y ->
+                case PLT_TRANS:
+
+                break;
+
+                }
+
+
+                CurOpcode=MKOPCODE(*RLIBPTR(rstatus),CMD_PLTBASE+*ptr);
+                (*rhandler)();
+
+                if(Exceptions) return;
+                argn=0;
+
+            }
+            else if(((*ptr>>4)&7)<0x5) {
+                // IT'S A NUMBER
+                BINT64 num=rplPlotNumber2BINT(ptr);
+
+                // NOW PUT THE NUMBER
+                if(argn==0) *ARG1PTR(rstatus)=num;
+                else if(argn==1) *ARG2PTR(rstatus)=num;
+                     else {
+                     rplError(ERR_INVALIDPLOTARGS);
+                     return;
+                    }
+                ++argn;
+
+            }
+            else if((*ptr>>4)==0x5) {
+                // OUTPUT A STRING
+                BINT64 len=rplPlotNumber2BINT(ptr);
+
+                //  TODO: FIGURE OUT HOW TO PASS THE STRING POINTER!
+                //rplDecompAppendString2(ptr+3,len);
+
+            }
+
+
+            ptr=rplPlotSkip(ptr);
+
+        }
+
+        // DONE RENDERING!
+
+        rplDropData(1);
+        rplOverwriteData(1,(WORDPTR)ROBJPTR(rstatus));
+
+        return;
     }
+
+    case PANVIEW:
+    {
+        // MOVES THE VIEWPORT
+        if(rplDepthData()<3) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISLIST(*rplPeekData(3))) {
+                rplError(ERR_INVALIDRENDERER);
+                return;
+            }
+        WORDPTR rstatus=rplPeekData(3);
+
+
+        BINT64 deltax,deltay;
+
+        deltax=rplReadNumberAsBINT(rplPeekData(2));
+        if(Exceptions) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+        deltay=rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+        rplDropData(2);
+        rplRenderGTranslate(rstatus,deltax<<24,deltay<<24);
+
+        return;
+
+    }
+
+
+case SCLVIEW:
+    {
+        // APPLY A RELATIVE SCALE TO THE VIEWPORT
+
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISLIST(*rplPeekData(2))) {
+                rplError(ERR_INVALIDRENDERER);
+                return;
+            }
+        WORDPTR rstatus=rplPeekData(2);
+
+
+        BINT64 scfactor;
+
+        scfactor=rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+        rplRenderGScale(rstatus,scfactor);
+        rplDropData(1);
+
+        return;
+
+    }
+
+
+
+
+
+
+
 
 
 

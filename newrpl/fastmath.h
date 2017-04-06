@@ -23,5 +23,14 @@ union FPUNION {
 };
 
 
+extern FPINT mulFPINT(FPINT a,FPINT b);
+
+extern FPINT divFPINT(FPINT a,FPINT b);
+
+
+
+
+
+
 #endif // FASTMATH_H
 

@@ -96,6 +96,19 @@ const char * const bitmap_modes[]={
 #define RGB6TO8(comp) (((BINT)(comp)*1036)>>8)
 
 
+typedef struct {
+    // ADD OTHER INFO HERE
+
+    BINT npoints;
+    BINT64 points[1];   // THIS POINTER HAS TO BE THE LAST
+
+} BMP_RENDERSTATE;
+
+
+#define RENDERSTATE_SIZE(npoints) (sizeof(BMP_RENDERSTATE)+2*npoints*sizeof(BINT64))
+
+
+
 // CONVERT A BITMAP FROM ANY FORMAT INTO THE DEFAULT DISPLAY FORMAT
 
 WORDPTR rplBmpToDisplay(WORDPTR bitmap)
@@ -289,6 +302,57 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap)
 }
 
 
+// CREATE A BITMAP OF THE REQUESTED SIZE AND TYPE
+
+WORDPTR rplBmpCreate(BINT type,BINT width,BINT height,BINT clear)
+{
+    BINT bitspixel;
+
+    switch(type)
+    {
+    case BITMAP_RAWMONO:
+        bitspixel=1;
+        break;
+    case BITMAP_RAW16G:
+        bitspixel=4;
+        break;
+    case BITMAP_RAW256G:
+        bitspixel=8;
+        break;
+    case BITMAP_RAW64KC:
+        bitspixel=16;
+        break;
+    case BITMAP_RAWARGB:
+        bitspixel=32;
+        break;
+    default:
+        rplError(ERR_UNSUPPORTEDBITMAP);
+        return 0;
+    }
+
+    BINT totalsize=(width*height*bitspixel)+31;
+
+    totalsize>>=5;  // BITMAP SIZE IN WORDS
+
+
+    WORDPTR newbmp=rplAllocTempOb(totalsize+2);
+    if(!newbmp) return 0;
+
+    newbmp[0]=MKPROLOG(DOBITMAP+type,totalsize+2);
+    newbmp[1]=width;
+    newbmp[2]=height;
+    if(clear) memsetw(newbmp+3,0,totalsize);  // CLEAR THE BITMAP
+
+    return newbmp;
+
+}
+
+
+
+
+
+
+
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
@@ -296,6 +360,105 @@ void LIB_HANDLER()
         rplPushData(IPtr);
         return;
     }
+
+
+    if( (OPCODE(CurOpcode)>CMD_PLTBASE) && (OPCODE(CurOpcode)<MIN_OVERLOAD_OPCODE))
+    {
+            // SAME LIBRARY CAN WORK AS A RENDERER FOR PLOTS
+    switch(OPCODE(CurOpcode))
+    {
+
+    case CMD_PLTRESET:
+    {
+        // RESET ENGINE, NOTHING TO DO IN THIS CASE
+        return;
+    }
+    case CMD_PLTBASE+PLT_SETSIZE:
+    {
+        // USE THE INFORMATION IN THE RENDERER STATUS, NOT ARGUMENTS
+        WORDPTR rstatus=rplPeekData(1);
+
+        // NO CHECKS, RENDERER HAS TO BE CALLED WITH PROPER ARGUMENTS
+        BINT64 w=*WIDTHPTR(rstatus);
+        BINT64 h=*HEIGHTPTR(rstatus);
+
+        BINT bitmaptype=LIBNUM(CurOpcode)-LIBRARY_NUMBER;
+
+
+        // CREATE A GROB THE RIGHT SIZE INSIDE rstatus AND APPEND A RENDER STATUS STRUCTURE
+
+        BINT wordsneeded=ROBJPTR(rstatus)-rstatus;  // INCLUDES AN EXTRA WORD FOR CMD_ENDLIST
+        wordsneeded+=RENDERSTATE_SIZE(0)+1;
+
+        BINT bitspixel;
+
+        switch(type)
+        {
+        case BITMAP_RAWMONO:
+            bitspixel=1;
+            break;
+        case BITMAP_RAW16G:
+            bitspixel=4;
+            break;
+        case BITMAP_RAW256G:
+            bitspixel=8;
+            break;
+        case BITMAP_RAW64KC:
+            bitspixel=16;
+            break;
+        case BITMAP_RAWARGB:
+            bitspixel=32;
+            break;
+        default:
+            rplError(ERR_UNSUPPORTEDBITMAP);
+            return 0;
+        }
+
+        BINT totalsize=(w*h*bitspixel)+31;
+
+        totalsize>>=5;  // BITMAP SIZE IN WORDS
+
+        wordsneeded+=totalsize+3;
+
+
+
+        WORDPTR newrst=rplAllocTempOb(wordsneeded),ptr;
+
+        if(!newrst) return;
+
+        memmovew(newrst,rstatus,ROBJPTR(rstatus)-rstatus);
+        ptr=ROBJPTR(newrst);
+        ptr[0]=MKPROLOG(DOBITMAP+bitmaptype,totalsize+2);
+        ptr[1]=w;
+        ptr[2]=h;
+        memsetw(ptr+3,0,totalsize);     // CLEAR NEW BITMAP BACKGROUND
+        ptr=PERSISTPTR(newrst);
+        ptr[0]=MKPROLOG(DOLIBDATA,RENDERSTATE_SIZE(0));
+        memsetw(ptr+1,0,RENDERSTATE_SIZE(0));
+        ptr=rplSkipOb(ptr);
+        ptr[0]=CMD_ENDLIST;
+
+        rplOverwriteData(1,newrst);
+
+        return;
+
+    }
+
+
+    case CMD_PLTBASE+PLT_MOVETO:
+    {
+
+
+    }
+    }
+        // RETURN QUIETLY ON UNKNOWN OPERATIONS, JUST DO NOTHING.
+        return;
+    }
+
+
+
+
+
 
     switch(OPCODE(CurOpcode))
     {

@@ -19,8 +19,8 @@
 
 
 
-FPINT addFPINT(FPINT a,FPINT b) { return a+b; }
-FPINT subFPINT(FPINT a,FPINT b) { return a-b; }
+//FPINT addFPINT(FPINT a,FPINT b) { return a+b; }
+//FPINT subFPINT(FPINT a,FPINT b) { return a-b; }
 
 // MULTIPLY TWO FP NUMBERS
 FPINT mulFPINT(FPINT a,FPINT b)
@@ -89,7 +89,7 @@ FPINT divFPINT(FPINT a,FPINT b)
 UBINT64 sincosFPINT(FPINT angle)
 {
     BINT negsin=0,negcos=0;
-    if(angle<0) { negsin=1 angle=-angle; }
+    if(angle<0) { negsin=1; angle=-angle; }
     angle&=0x1ffffff; // REDUCE TO FIRST TURN
     if(angle>=0x1800000) { angle=0x2000000-angle; negsin^=1; }
     else if(angle>=0x1000000) { angle-=0x1000000; negsin^=1; negcos^=1; }
@@ -104,7 +104,7 @@ UBINT64 sincosFPINT(FPINT angle)
 
     ang2=CMULT(angle,angle);
     C1=CMULT(ang2,CMULT(ang2,CMULT(-61297037LL,ang2)+769880445LL)-3746706455LL)+3037000500LL;
-    C2=CMULT(CMULT(CMULT(-231543704,ang2)+1959187590,ang2)-4770292713),angle;
+    C2=CMULT(CMULT(CMULT(-231543704,ang2)+1959187590,ang2)-4770292713,angle);
 
     BINT sin,cos;
 

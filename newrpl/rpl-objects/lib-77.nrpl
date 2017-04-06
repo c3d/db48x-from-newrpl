@@ -1,0 +1,43 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+@ B = Bitmap
+@ P = Plot object
+
+
+@#name lib77_msgtable
+{
+ ##1,ERR_INVALIDSIZE "Invalid size"
+}
+
+
+@#name lib77_menu
+{
+MKLIBDATA
+}
+
+@#name lib77_cmdhelp
+{
+
+MKLIBDATA
+"Create a LIBDATA object
+of given size in bytes
+I<bytes> → "
+
+}
+
+
+
+

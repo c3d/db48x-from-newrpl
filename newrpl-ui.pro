@@ -215,8 +215,8 @@ SOURCES += main.cpp\
     newrpl/lib-80-bitmaps.c \
     newrpl/lib-78-fonts.c \
     newrpl/lib-88-plot.c \
-    newrpl/lib-96-render2grob.c \
-    newrpl/fastmath.c
+    newrpl/fastmath.c \
+    newrpl/lib-77-libdata.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -265,6 +265,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-8.nrpl \
                 newrpl/rpl-objects/lib-52.nrpl \
                 newrpl/rpl-objects/lib-56.nrpl \
+                newrpl/rpl-objects/lib-77.nrpl \
                 newrpl/rpl-objects/lib-80.nrpl \
                 newrpl/rpl-objects/lib-88.nrpl \
                 newrpl/rpl-objects/version.nrpl
@@ -290,8 +291,5 @@ rpl_compiler.input = RPL_OBJECTS
 rpl_compiler.variable_out = SOURCES
 
 QMAKE_EXTRA_COMPILERS += rpl_compiler
-
-
-
 
 

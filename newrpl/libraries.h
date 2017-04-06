@@ -211,6 +211,8 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define DOMATRIX    52       // ARRAY OBJECT
 
+#define DOLIBDATA   77      // ARBITRARY BINARY DATA (LIBRARY DATA)
+
 #define DOFONT      78      // FONT OBJECT
 
 #define DOBITMAP    80      // BITMAPS 80-87
@@ -284,7 +286,7 @@ void libFindMsg(BINT message,WORDPTR table);
 #define MAKEMSG(lib,num) MKOPCODE(DECBINT, (((lib)&0xfff)<<7) | ((num)&0x7f))
 #define LIBFROMMSG(msg) (((msg)>>7)&0xfff)
 // CONVENIENCE MACRO TO ENCODE THE PROLOG OF STRINGS
-#define MAKESTRING(length) MKPROLOG(DOSTRING+(~(4-((length)&3))&3),((length)+3)>>2)
+#define MAKESTRING(length) MKPROLOG(DOSTRING+((4-((length)&3))&3),((length)+3)>>2)
 
 
 // CONVENIENCE MACRO TO GET SIZE OF A MATRIX
@@ -464,9 +466,67 @@ extern const WORD invalid_string[];
 #define PUTLAMN        0x10000   // SPECIAL OPCODE TO STO THE CONTENT OF A LAM
 
 
+
+
+
 // DEFINE ALL COMMAND OPCODES (CMD_nnn), EXTRACTED DIRECTLY FROM EACH LIBRARY
 #include "cmdcodes.h"
 
+
+// *************************************************************************************************************
+// RENDERER CORE FUNCTIONS HERE
+// *************************************************************************************************************
+// RENDERER STATUS IS A LIST WITH FIXED-SIZE 64-BIT INTEGERS CONTAINING:
+/*
+ * {
+ * WIDTH HEIGHT (TARGET CANVAS SIZE)
+ * A11 A12 A13  (GLOBAL TRANSFORMATION MATRIX [ [ rot11 rot12 Tx ] [rot21 rot22 Ty ] [ 0 0 1 ] ] ONLY THE TOP 2 ROWS ARE STORED )
+ * A21 A22 A23  (INITIALLY THIS IS [[ 1 0 0 ] [ 0 1 0 ] [ 0 0 1 ]])
+ * A11 A12 A13  (CURRENT TRANSFORMATION MATRIX [ [ rot11 rot12 Tx ] [rot21 rot22 Ty ] [ 0 0 1 ] ] ONLY THE TOP 2 ROWS ARE STORED )
+ * A21 A22 A23  (INITIALLY THIS IS [[ 1 0 0 ] [ 0 1 0 ] [ 0 0 1 ]])
+ * CX CY        (CURRENT X,Y POINT)
+ * BX BY        (BASE X,Y POINT FOR ROTATIONS, ETC.)
+ * ARG1 ARG2    (ARGUMENTS FOR COMMANDS)
+ * LIBRENDER    (RENDER LIBRARY NUMBER)
+ * TARGET_OBJECT (INITIALLY AN EMPTY STRING, THE RENDERING LIBRARY WILL RETURN AN OBJECT OF THE PROPER TYPE AND SIZE AFTER PLT_SETSIZE IS CALLED)
+ * PERSIST_OBJECT (RENDERING LIBRARY CUSTOM OBJECT WITH PERSISTENT DATA, THIS IS OPAQUE TO THE RENDERING CORE, EACH RENDERER KNOW WHAT IS STORED HERE)
+ * }
+ *
+ * NOTES ABOUT RENDERER STATUS: RENDERING LIBRARY CAN MODIFY TARGET_OBJECT AND/OR PERSIST_OBJECT SIZE AT ANY TIME
+ * SO THE POINTER TO THIS STRUCTURE MUST BE ASSUMED TO MOVE IN MEMORY.
+ *
+ *
+ */
+
+#define RSTATUS_SIZE 21
+
+
+#define WIDTHPTR(rstatus)  ((BINT64 *)&(rstatus[2]))
+#define HEIGHTPTR(rstatus) ((BINT64 *)&(rstatus[2+3*1]))
+#define GA11PTR(rstatus) ((BINT64 *)&(rstatus[2+3*2]))
+#define GA12PTR(rstatus) ((BINT64 *)&(rstatus[2+3*3]))
+#define GA13PTR(rstatus) ((BINT64 *)&(rstatus[2+3*4]))
+#define GA21PTR(rstatus) ((BINT64 *)&(rstatus[2+3*5]))
+#define GA22PTR(rstatus) ((BINT64 *)&(rstatus[2+3*6]))
+#define GA23PTR(rstatus) ((BINT64 *)&(rstatus[2+3*7]))
+
+#define A11PTR(rstatus) ((BINT64 *)&(rstatus[2+3*8]))
+#define A12PTR(rstatus) ((BINT64 *)&(rstatus[2+3*9]))
+#define A13PTR(rstatus) ((BINT64 *)&(rstatus[2+3*10]))
+#define A21PTR(rstatus) ((BINT64 *)&(rstatus[2+3*11]))
+#define A22PTR(rstatus) ((BINT64 *)&(rstatus[2+3*12]))
+#define A23PTR(rstatus) ((BINT64 *)&(rstatus[2+3*13]))
+
+#define CXPTR(rstatus) ((BINT64 *)&(rstatus[2+3*14]))
+#define CYPTR(rstatus) ((BINT64 *)&(rstatus[2+3*15]))
+#define BXPTR(rstatus) ((BINT64 *)&(rstatus[2+3*16]))
+#define BYPTR(rstatus) ((BINT64 *)&(rstatus[2+3*17]))
+#define ARG1PTR(rstatus) ((BINT64 *)&(rstatus[2+3*18]))
+#define ARG2PTR(rstatus) ((BINT64 *)&(rstatus[2+3*19]))
+
+#define RLIBPTR(rstatus) ((BINT64 *)&(rstatus[2+3*20]))
+#define ROBJPTR(rstatus) ((WORDPTR)&(rstatus[1+3*21]))
+#define PERSISTPTR(rstatus) ((WORDPTR)rplSkipOb(ROBJPTR(rstatus)))
 
 
 #endif // LIBRARIES_H
