@@ -292,6 +292,7 @@ void LIB_HANDLER()
 
                 ++nwords;
                 if(nwords==8) { rplDecompAppendChar(' '); nwords=0; }
+                ++ptr;
 
                 --size;
 

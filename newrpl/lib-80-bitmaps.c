@@ -96,16 +96,26 @@ const char * const bitmap_modes[]={
 #define RGB6TO8(comp) (((BINT)(comp)*1036)>>8)
 
 
+#define TYPE_STARTPOINT 0
+#define TYPE_LINE 1
+#define TYPE_CTLPT 2
+#define TYPE_CURVE 3
+
 typedef struct {
     // ADD OTHER INFO HERE
+    DRAWSURFACE srf;
 
-    BINT npoints;
-    BINT64 points[1];   // THIS POINTER HAS TO BE THE LAST
+    BINT npoints,ptalloc;
+    struct {
+        BINT64 x,y;   // THIS POINTER HAS TO BE THE LAST
+        BINT type;
+    } points[1];
+
 
 } BMP_RENDERSTATE;
 
 
-#define RENDERSTATE_SIZE(npoints) (sizeof(BMP_RENDERSTATE)+2*npoints*sizeof(BINT64))
+#define RENDERSTATE_SIZE(npoints) ((sizeof(BMP_RENDERSTATE)+(npoints-1)*sizeof(((BMP_RENDERSTATE *)0)->points))>>2)
 
 
 
@@ -347,10 +357,68 @@ WORDPTR rplBmpCreate(BINT type,BINT width,BINT height,BINT clear)
 
 }
 
+// QUICKLY RETRIEVE THE RENDERER STATUS BEFORE EACH COMMAND IS PROCESSED
+// RECEIVES rstatus LIST IN STACK LEVEL 2
+void rplBMPRenderUdateState(WORDPTR *rstatusptr,BMP_RENDERSTATE **renderstptr)
+{
+    WORDPTR rstatus=rplPeekData(2);
+    BMP_RENDERSTATE *renderst;
 
+    *rstatusptr=rstatus;            // UPDATE rstatus LIST
+    renderst=(BMP_RENDERSTATE *) (PERSISTPTR(rstatus)+1);
+    *renderstptr=renderst;          // UPDATE render STATUS STRUCTURE
 
+    renderst->srf.addr=(BINT *)(ROBJPTR(rstatus)+3); // UPDATE BITMAP ADDRESS IN CASE IT MOVED!
 
+}
 
+// ALLOCATE MORE SPACE FOR PATH POINTS IN THE BMP_RENDERSTATE STRUCTURE
+// UPDATE STACK LEVELS 1 AND 2 AS NEEDED IF THINGS MOVE
+void rplBMPRenderAllocPoint(WORDPTR *rstatusptr,BMP_RENDERSTATE **renderstptr,BINT npoints)
+{
+    WORDPTR rstatus=*rstatusptr;
+    BMP_RENDERSTATE *renderst=*renderstptr;
+
+    if(renderst->ptalloc>=renderst->npoints+npoints) return;    // NO NEED TO ALLOCATE MORE MEMORY
+
+    BINT need=renderst->npoints+npoints;
+
+    need=(need+7)/8;    // ALLOCATE IN BLOCKS OF 8 POINTS FOR SPEED
+
+    BINT wordsneed=need*sizeof(renderst->points)*2;   // TOTAL WORDS NEEDED AT THE STRUCTURE
+
+    wordsneed+=rplObjSize(rstatus)-1-sizeof(renderst->points)/4*renderst->ptalloc;
+
+    WORDPTR newobj=rplAllocTempOb(wordsneed);
+    if(!newobj) return;
+
+    rstatus=rplPeekData(2); // RELOAD IN CASE IT MOVED
+
+    memmovew(newobj,rstatus,OBJSIZE(*rstatus));
+
+    // STRETCH THE LIBDATA OBJECT
+    WORDPTR libdata=PERSISTPTR(newobj);
+    *libdata=MKPROLOG(DOLIBDATA, RENDERSTATE_SIZE(need*8));
+    renderst=(BMP_RENDERSTATE *) (libdata+1);
+    libdata=rplSkipOb(libdata);
+    *libdata=CMD_ENDLIST;
+
+    // STRETCH THE CONTAINER LIST OBJECT
+    *newobj=MKPROLOG(DOLIST,libdata-newobj);
+
+    // UPDATE ALLOCATION COUNT
+    renderst->ptalloc=need*8;
+
+    // UPDATE POINTERS
+    *rstatusptr=newobj;            // UPDATE rstatus LIST
+    *renderstptr=renderst;          // UPDATE render STATUS STRUCTURE
+
+    renderst->srf.addr=(BINT *) (ROBJPTR(rstatus)+3); // UPDATE BITMAP ADDRESS IN CASE IT MOVED!
+
+    rplOverwriteData(2,newobj);
+
+    return;
+}
 
 
 void LIB_HANDLER()
@@ -365,22 +433,28 @@ void LIB_HANDLER()
     if( (OPCODE(CurOpcode)>CMD_PLTBASE) && (OPCODE(CurOpcode)<MIN_OVERLOAD_OPCODE))
     {
             // SAME LIBRARY CAN WORK AS A RENDERER FOR PLOTS
+
+            // PLOT RENDERER RECIEVES ON STACK LEVEL 1 = CURRENT PLOT OBJECT BEING PROCESSED
+            // STACK LEVEL 2 = RENDERING STATUS LIST OBJECT
+            // PLOT RENDERER MUST NOT LEAVE ANYTHING ON THE STACK OR REMOVE ANY PARAMETERS
+
     switch(OPCODE(CurOpcode))
     {
 
     case CMD_PLTRESET:
     {
         // RESET ENGINE, NOTHING TO DO IN THIS CASE
+        // THE ABSENCE OF INVALID OPCODE ERROR IS USED TO DETECT A VALID RENDERER
         return;
     }
-    case CMD_PLTBASE+PLT_SETSIZE:
+    case CMD_PLTRENDERSIZE:
     {
         // USE THE INFORMATION IN THE RENDERER STATUS, NOT ARGUMENTS
-        WORDPTR rstatus=rplPeekData(1);
+        WORDPTR rstatus=rplPeekData(2);
 
         // NO CHECKS, RENDERER HAS TO BE CALLED WITH PROPER ARGUMENTS
-        BINT64 w=*WIDTHPTR(rstatus);
-        BINT64 h=*HEIGHTPTR(rstatus);
+        BINT64 w=(*WIDTHPTR(rstatus))>>24;
+        BINT64 h=(*HEIGHTPTR(rstatus))>>24;
 
         BINT bitmaptype=LIBNUM(CurOpcode)-LIBRARY_NUMBER;
 
@@ -388,11 +462,11 @@ void LIB_HANDLER()
         // CREATE A GROB THE RIGHT SIZE INSIDE rstatus AND APPEND A RENDER STATUS STRUCTURE
 
         BINT wordsneeded=ROBJPTR(rstatus)-rstatus;  // INCLUDES AN EXTRA WORD FOR CMD_ENDLIST
-        wordsneeded+=RENDERSTATE_SIZE(0)+1;
+        wordsneeded+=RENDERSTATE_SIZE(1)+1;
 
         BINT bitspixel;
 
-        switch(type)
+        switch(bitmaptype)
         {
         case BITMAP_RAWMONO:
             bitspixel=1;
@@ -411,7 +485,7 @@ void LIB_HANDLER()
             break;
         default:
             rplError(ERR_UNSUPPORTEDBITMAP);
-            return 0;
+            return;
         }
 
         BINT totalsize=(w*h*bitspixel)+31;
@@ -433,10 +507,27 @@ void LIB_HANDLER()
         ptr[2]=h;
         memsetw(ptr+3,0,totalsize);     // CLEAR NEW BITMAP BACKGROUND
         ptr=PERSISTPTR(newrst);
-        ptr[0]=MKPROLOG(DOLIBDATA,RENDERSTATE_SIZE(0));
-        memsetw(ptr+1,0,RENDERSTATE_SIZE(0));
+        ptr[0]=MKPROLOG(DOLIBDATA,RENDERSTATE_SIZE(1));
+
+        // INITIALIZE THE RENDERING STRUCTURE
+        BMP_RENDERSTATE *renderst=(BMP_RENDERSTATE *)(ptr+1);
+
+        // INITIALIZE THE RENDERING INTERNAL STATUS
+        renderst->ptalloc=1;
+        renderst->npoints=0;
+        renderst->srf.clipx=0;
+        renderst->srf.clipx2=w-1;
+        renderst->srf.clipy=0;
+        renderst->srf.clipy2=h-1;
+        renderst->srf.addr=(BINT *)(ROBJPTR(rstatus)+3);
+        renderst->srf.width=w;
+        renderst->srf.x=0;
+        renderst->srf.y=0;
+
         ptr=rplSkipOb(ptr);
-        ptr[0]=CMD_ENDLIST;
+        ptr[0]=CMD_ENDLIST;     // CLOSE THE LIST
+
+        newrst[0]=MKPROLOG(DOLIST,wordsneeded);
 
         rplOverwriteData(1,newrst);
 
@@ -447,9 +538,66 @@ void LIB_HANDLER()
 
     case CMD_PLTBASE+PLT_MOVETO:
     {
+        // UPDATE RENDER STATUS
+        WORDPTR rstatus;
+        BMP_RENDERSTATE *renderst;
+        rplBMPRenderUdateState(&rstatus,&renderst);
+
+        renderst->npoints=0;    // END ANY PREVIOUS PATH
+
+        *CXPTR(rstatus)=*ARG1PTR(rstatus);
+        *CYPTR(rstatus)=*ARG2PTR(rstatus);
+        return;
+
+    }
+    case CMD_PLTBASE+PLT_LINETO:
+    {
+        // UPDATE RENDER STATUS
+        WORDPTR rstatus;
+        BMP_RENDERSTATE *renderst;
+        rplBMPRenderUdateState(&rstatus,&renderst);
+
+        if(renderst->npoints<1) {
+            // ADD THE STARTING POINT, STORAGE IS GUARANTEED TO EXIST!
+
+            renderst->points[0].type=TYPE_STARTPOINT; // STARTING POINT
+            renderst->points[0].x=*CXPTR(rstatus);
+            renderst->points[0].y=*CYPTR(rstatus);
+            renderst->npoints=1;
+        }
+
+        rplBMPRenderAllocPoint(&rstatus,&renderst,1);
+        if(Exceptions) return;  // RETURN IF OUT OF MEMORY
+
+        renderst->points[renderst->npoints].type=TYPE_LINE; // STARTING POINT
+        renderst->points[renderst->npoints].x=*ARG1PTR(rstatus);
+        renderst->points[renderst->npoints].y=*ARG2PTR(rstatus);
+        renderst->npoints++;
+
+        return;
+
+    }
+
+    case CMD_PLTBASE+PLT_STROKE:
+    {
+        // UPDATE RENDER STATUS
+        WORDPTR rstatus;
+        BMP_RENDERSTATE *renderst;
+        rplBMPRenderUdateState(&rstatus,&renderst);
+        // DRAW THE PERIMETER OF THE PATH
+
+        // TODO: ACTUALLY DRAW THE LINE TO THE BITMAP
+        // USING A REAL SCAN-LINE RENDERER
+        BINT k;
+        for(k=0;k<renderst->npoints;++k) {
+            ggl_cliphline(&(renderst->srf),renderst->points[k].y>>24,renderst->points[k].x,renderst->points[k].x,0xf);
+        }
+
+        return;
 
 
     }
+
     }
         // RETURN QUIETLY ON UNKNOWN OPERATIONS, JUST DO NOTHING.
         return;
@@ -664,7 +812,7 @@ void LIB_HANDLER()
                     RetNum=OK_CONTINUE;
                     return;
                 }
-                RetNum=ERR_SYNTAX;
+                RetNum=OK_NEEDMORE;
                 return;
             }
 
@@ -752,6 +900,7 @@ void LIB_HANDLER()
                 ++nwords;
                 if(nwords==8) { rplDecompAppendChar(' '); nwords=0; }
 
+                ++ptr;
                 --size;
 
             }

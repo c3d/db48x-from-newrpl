@@ -1110,8 +1110,9 @@ void LIB_HANDLER()
        rplRenderSetBPoint(rstatus,0,0);
        *RLIBPTR(rstatus)=libnum;
 
-       rplDropData(2);
-       rplOverwriteData(1,rstatus);
+       rplDropData(1);
+       rplOverwriteData(2,rstatus);
+       rplOverwriteData(1,(WORDPTR)zero_bint);  // LEAVE A
 
        // NOW CALL THE RENDERER TO INITIALIZE ITS OWN OBJECT FOR THE PROPER SIZE
 
@@ -1122,23 +1123,12 @@ void LIB_HANDLER()
            return;
        }
 
-       CurOpcode=MKOPCODE(libnum,CMD_PLTBASE+PLT_SETSIZE);
+       CurOpcode=MKOPCODE(libnum,CMD_PLTRENDERSIZE);
 
        (*renderer)();
 
-       if(Exceptions) return;
-
-       // NOW REPLACE THE OBJECT IN THE LIST
-       WORDPTR newlist=rplAllocTempOb(RSTATUS_SIZE*3+1+rplObjSize(rplPeekData(1)));
-       if(!newlist) return;
-       memmovew(newlist+1,rstatus+1,RSTATUS_SIZE*3);
-       rplCopyObject(newlist+RSTATUS_SIZE*3+1,rplPeekData(1));
-       newlist[1+RSTATUS_SIZE*3+rplObjSize(rplPeekData(1))]=CMD_ENDLIST;
-       rstatus[0]=MKPROLOG(DOLIST,1+RSTATUS_SIZE*3+rplObjSize(rplPeekData(1)));
-
-        rplDropData(1);
-        rplOverwriteData(1,newlist);
-        return;
+       // HERE THE RENDERER UPDATED THE rstatus LIST ON THE STACK TO INCLUDE THE BITMAP AND A CUSTOM STATUS OBJECT
+       return;
 
      }
 
@@ -1277,10 +1267,19 @@ void LIB_HANDLER()
 
 
                 CurOpcode=MKOPCODE(*RLIBPTR(rstatus),CMD_PLTBASE+*ptr);
+
+
+                BINT ptroff=ptr-(BYTEPTR)plotobj;
+
                 (*rhandler)();
 
                 if(Exceptions) return;
                 argn=0;
+                // RESTORE ALL POINTERS IN CASE THEY MOVED DURING GC
+                plotobj=rplPeekData(1);
+                rstatus=rplPeekData(2);
+                ptr=((BYTEPTR)plotobj)+ptroff;
+                end=(BYTEPTR)(plotobj+1)+PLTLEN(*plotobj);
 
             }
             else if(((*ptr>>4)&7)<0x5) {
@@ -1313,7 +1312,7 @@ void LIB_HANDLER()
 
         // DONE RENDERING!
 
-        rplDropData(1);
+        rplDropData(2);
         rplOverwriteData(1,(WORDPTR)ROBJPTR(rstatus));
 
         return;
