@@ -666,3 +666,17 @@ void MainWindow::on_actionSimulate_Alarm_triggered()
 {
 
 }
+
+void MainWindow::on_actionTake_Screenshot_triggered()
+{
+    QString fname=QFileDialog::getSaveFileName(this,"Save screenshot as...",QString(),"*.png");
+     if(!fname.isEmpty()) {
+
+    QRectF r=ui->EmuScreen->sceneRect();
+    QImage image(r.width()*4,r.height()*4,QImage::Format_ARGB32);
+    QPainter painter(&image);
+    painter.setRenderHint(QPainter::Antialiasing);
+    ui->EmuScreen->scene()->render(&painter);
+    image.save(fname);
+     }
+}

@@ -8,6 +8,8 @@
 #include "newrpl.h"
 #include "libraries.h"
 #include "ui.h"
+#include "render.h"
+
 
 // *****************************
 // *** COMMON LIBRARY HEADER ***
@@ -101,15 +103,12 @@ const char * const bitmap_modes[]={
 #define TYPE_CTLPT 2
 #define TYPE_CURVE 3
 
+
 typedef struct {
     // ADD OTHER INFO HERE
     DRAWSURFACE srf;
-
     BINT npoints,ptalloc;
-    struct {
-        BINT64 x,y;   // THIS POINTER HAS TO BE THE LAST
-        BINT type;
-    } points[1];
+    CURVEPT points[1];
 
 
 } BMP_RENDERSTATE;

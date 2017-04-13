@@ -114,7 +114,7 @@ QEmuScreen::QEmuScreen(QWidget *parent) :
     Annunciators[5]->setOpacity(1.0);
 
     setScene(&scr);
-    setSceneRect(0,-10,screen_width,screen_height+10);
+    setSceneRect(0,-5,screen_width,screen_height+5);
     centerOn(qreal(screen_width)/2,qreal(screen_height)/2);
     scale(4.0,4.0);
 

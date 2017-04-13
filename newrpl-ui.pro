@@ -216,7 +216,8 @@ SOURCES += main.cpp\
     newrpl/lib-78-fonts.c \
     newrpl/lib-88-plot.c \
     newrpl/fastmath.c \
-    newrpl/lib-77-libdata.c
+    newrpl/lib-77-libdata.c \
+    newrpl/render.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -240,7 +241,8 @@ HEADERS  += mainwindow.h \
     firmware/include/fsystem.h \
     firmware/sys/sddriver.h \
     firmware/sys/fsystem/fsyspriv.h \
-    newrpl/fastmath.h
+    newrpl/fastmath.h \
+    newrpl/render.h
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-9.nrpl \
@@ -291,5 +293,7 @@ rpl_compiler.input = RPL_OBJECTS
 rpl_compiler.variable_out = SOURCES
 
 QMAKE_EXTRA_COMPILERS += rpl_compiler
+
+DISTFILES +=
 
 

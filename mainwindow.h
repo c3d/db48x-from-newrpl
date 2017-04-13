@@ -58,6 +58,8 @@ private slots:
 
     void on_actionSimulate_Alarm_triggered();
 
+    void on_actionTake_Screenshot_triggered();
+
 public slots:
     void domaintimer();
 private:
