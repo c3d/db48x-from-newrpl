@@ -15,7 +15,11 @@ typedef struct {
     BINT type;
 } CURVEPT;
 
-
+#define TYPE_STARTPOINT 0
+#define TYPE_LINE 1
+#define TYPE_CTLPT 2
+#define TYPE_CURVE 3
+#define TYPE_CLOSEEND 4
 
 
 

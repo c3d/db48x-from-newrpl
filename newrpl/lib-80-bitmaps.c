@@ -98,10 +98,7 @@ const char * const bitmap_modes[]={
 #define RGB6TO8(comp) (((BINT)(comp)*1036)>>8)
 
 
-#define TYPE_STARTPOINT 0
-#define TYPE_LINE 1
-#define TYPE_CTLPT 2
-#define TYPE_CURVE 3
+
 
 
 typedef struct {

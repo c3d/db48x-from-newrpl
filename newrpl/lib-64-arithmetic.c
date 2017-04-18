@@ -74,7 +74,11 @@
     CMD(PMUL,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
     CMD(PADD,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
     CMD(PSUB,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
-    ECMD(IPPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2))
+    ECMD(IPPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
+    CMD(MIN,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
+    CMD(MAX,MKTOKENINFO(3,TITYPE_FUNCTION,2,2))
+
+
 
 
 // ADD MORE OPCODES HERE
@@ -2642,9 +2646,94 @@ case IPPOST:
     }
 
 
+    case MIN:
+    {
+        // COMPARE ANY 2 OBJECTS AND KEEP THE SMALLEST
+
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(ISLIST(*rplPeekData(2))||ISLIST(*rplPeekData(1))) {
+            // THIS IS A COMPOSITE, NEED TO RUN AN RPL LOOP
+            rplListBinaryDoCmd(rplPeekData(2),rplPeekData(1));
+            return;
+        }
+
+        if(ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(2)) || ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(1)))
+        {
+            rplSymbApplyOperator(CurOpcode,2);
+            return;
+        }
 
 
+        WORDPTR *saveStk=DSTop;
 
+        rplPushData(rplPeekData(2));
+        rplPushData(rplPeekData(2));
+
+        rplCallOvrOperator(CMD_OVR_LTE);
+        if(Exceptions) {
+            // CLEANUP THE STACK BEFORE RETURNING
+            DSTop=saveStk;
+            return;
+        }
+
+        if(rplIsFalse(rplPeekData(1))) {
+            // KEEP THE SECOND OBJECT
+            rplOverwriteData(3,rplPeekData(2));
+        }
+
+        rplDropData(2);
+
+        return;
+    }
+
+
+    case MAX:
+    {
+        // COMPARE ANY 2 OBJECTS AND KEEP THE SMALLEST
+
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(ISLIST(*rplPeekData(2))||ISLIST(*rplPeekData(1))) {
+            // THIS IS A COMPOSITE, NEED TO RUN AN RPL LOOP
+            rplListBinaryDoCmd(rplPeekData(2),rplPeekData(1));
+            return;
+        }
+
+        if(ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(2)) || ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(1)))
+        {
+            rplSymbApplyOperator(CurOpcode,2);
+            return;
+        }
+
+
+        WORDPTR *saveStk=DSTop;
+
+        rplPushData(rplPeekData(2));
+        rplPushData(rplPeekData(2));
+
+        rplCallOvrOperator(CMD_OVR_GTE);
+        if(Exceptions) {
+            // CLEANUP THE STACK BEFORE RETURNING
+            DSTop=saveStk;
+            return;
+        }
+
+        if(rplIsFalse(rplPeekData(1))) {
+            // KEEP THE SECOND OBJECT
+            rplOverwriteData(3,rplPeekData(2));
+        }
+
+        rplDropData(2);
+
+        return;
+    }
 
         // ADD MORE OPCODES HERE
 

@@ -207,12 +207,16 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/hal_alarm.c \
     firmware/ggl/ggl/ggl_fltreplace.c \
     newrpl/lib-76-ui.c \
+    newrpl/lib-77-libdata.c \
     newrpl/lib-zero-messages.c \
     newrpl/lib-78-fonts.c \
     newrpl/lib-80-bitmaps.c \
     firmware/ui_forms.c \
     firmware/ui_render.c \
-    newrpl/lib-88-plot.c
+    newrpl/lib-88-plot.c \
+    newrpl/fastmath.c \
+    newrpl/render.c
+
 
 
 
@@ -236,7 +240,10 @@ HEADERS  += firmware/include/ggl.h \
     newrpl/romlibs.h \
     firmware/include/fsystem.h \
     firmware/sys/sddriver.h \
-    firmware/sys/fsystem/fsyspriv.h
+    firmware/sys/fsystem/fsyspriv.h \
+    newrpl/fastmath.h \
+    newrpl/render.h
+
 
 INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
 

@@ -208,13 +208,17 @@ SOURCES +=\
     newrpl/lib-72-stack.c \
     newrpl/lib-74-sdcard.c \
     newrpl/lib-76-ui.c \
+    newrpl/lib-77-libdata.c \
     newrpl/lib-78-fonts.c \
     newrpl/lib-80-bitmaps.c \
     newrpl/lib-88-plot.c \
     firmware/ggl/ggl/ggl_fltreplace.c \
     firmware/hal_alarm.c \
     firmware/ui_render.c \
-    firmware/ui_forms.c
+    firmware/ui_forms.c \
+    newrpl/fastmath.c \
+    newrpl/render.c
+
 
 HEADERS  += \
     firmware/include/ggl.h \
@@ -234,12 +238,12 @@ HEADERS  += \
     firmware/sys/rtc.h \
     firmware/sys/sddriver.h \
     firmware/sys/fsystem/fsyspriv.h \
-    firmware/include/fsystem.h
+    firmware/include/fsystem.h \
+    newrpl/fastmath.h \
+    newrpl/render.h
 
 
-RPL_OBJECTS =   newrpl/rpl-objects/lib-0.nrpl \
-                newrpl/rpl-objects/lib-8.nrpl \
-                newrpl/rpl-objects/lib-54.nrpl \
+RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-9.nrpl \
                 newrpl/rpl-objects/lib-10.nrpl \
                 newrpl/rpl-objects/lib-12.nrpl \
@@ -249,8 +253,6 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-0.nrpl \
                 newrpl/rpl-objects/lib-30.nrpl \
                 newrpl/rpl-objects/lib-32.nrpl \
                 newrpl/rpl-objects/lib-48.nrpl \
-                newrpl/rpl-objects/lib-52.nrpl \
-                newrpl/rpl-objects/lib-56.nrpl \
                 newrpl/rpl-objects/lib-62.nrpl \
                 newrpl/rpl-objects/lib-64.nrpl \
                 newrpl/rpl-objects/lib-65.nrpl \
@@ -260,10 +262,14 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-0.nrpl \
                 newrpl/rpl-objects/lib-72.nrpl \
                 newrpl/rpl-objects/lib-74.nrpl \
                 newrpl/rpl-objects/lib-76.nrpl \
+                newrpl/rpl-objects/lib-0.nrpl \
+                newrpl/rpl-objects/lib-8.nrpl \
+                newrpl/rpl-objects/lib-52.nrpl \
+                newrpl/rpl-objects/lib-56.nrpl \
+                newrpl/rpl-objects/lib-77.nrpl \
                 newrpl/rpl-objects/lib-80.nrpl \
                 newrpl/rpl-objects/lib-88.nrpl \
                 newrpl/rpl-objects/version.nrpl
-
 
 
 
