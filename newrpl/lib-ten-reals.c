@@ -619,8 +619,8 @@ void LIB_HANDLER()
                 else rplPushData((WORDPTR)zero_bint);
                 return;
             }
-            if(eqReal(&Darg1,&Darg2)) rplPushData((WORDPTR)zero_bint);
-            else rplPushData((WORDPTR)one_bint);
+            if(eqReal(&Darg1,&Darg2)) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
         case OVR_AND:
             if(iszeroReal(&Darg1)||iszeroReal(&Darg2)) rplPushData((WORDPTR)zero_bint);
