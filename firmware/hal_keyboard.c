@@ -409,12 +409,16 @@ void uiCmdRun(WORD Opcode)
     WORDPTR obj=rplAllocTempObLowMem(2);
 if(obj) {
 
+
     // ENABLE UNDO
+    // PRESERVE obj IN CASE OF GC
+    ScratchPointer1=obj;
+
     rplRemoveSnapshot(halScreen.StkUndolevels+1);
     rplRemoveSnapshot(halScreen.StkUndolevels);
     if(halScreen.StkCurrentLevel!=1) rplTakeSnapshot();
     halScreen.StkCurrentLevel=0;
-
+    obj=ScratchPointer1;
 
 obj[0]=Opcode;
 obj[1]=CMD_ENDOFCODE;
@@ -524,11 +528,13 @@ void uiCmdRunHide(WORD Opcode,BINT narguments)
     WORDPTR obj=rplAllocTempObLowMem(2);
 if(obj) {
 
+    ScratchPointer1=obj;
     // ENABLE UNDO
     rplRemoveSnapshot(halScreen.StkUndolevels+1);
     rplRemoveSnapshot(halScreen.StkUndolevels);
     if(halScreen.StkCurrentLevel!=1) rplTakeSnapshotHide(narguments);
     halScreen.StkCurrentLevel=0;
+    obj=ScratchPointer1;
 
 
 obj[0]=Opcode;
@@ -660,8 +666,9 @@ errcodesave=ErrorCode;
 rplSetExceptionHandler(0);  // SAVE CURRENT EXCEPTION HANDLERS
 rplPushRet(IPtr);   // SAVE THE CURRENT INSTRUCTION POINTER
 
+ScratchPointer1=obj;
 rplTakeSnapshotN(nargs);  // RUN THE COMMAND WITH A PROTECTED STACK WITH nargs ARGUMENTS ONLY
-
+obj=ScratchPointer1;
 rsave=RSTop-RStk;        // PROTECT THE RETURN STACK
 lamsave=LAMTop-LAMs;     // PROTECT LAM ENVIRONMENTS
 nlambase=nLAMBase-LAMs;
