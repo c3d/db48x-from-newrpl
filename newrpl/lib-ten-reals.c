@@ -588,8 +588,8 @@ void LIB_HANDLER()
 
         case OVR_EQ:
 
-            if(eqReal(&Darg1,&Darg2)) rplPushData((WORDPTR)zero_bint);
-            else rplPushData((WORDPTR)one_bint);
+            if(eqReal(&Darg1,&Darg2)) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
             return;
 
         case OVR_NOTEQ:
