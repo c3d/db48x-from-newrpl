@@ -35,7 +35,8 @@
     CMD(CUTCLIP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(PASTECLIP,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(WAIT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(KEYEVAL,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+    CMD(KEYEVAL,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(KEY,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -288,6 +289,30 @@ void LIB_HANDLER()
 
 
 
+    case KEY:
+    {
+
+        keymatrix key=keyb_getmatrix();
+
+
+        if(!key) {
+            rplPushData((WORDPTR)zero_bint);
+            return;
+        }
+
+        BINT knum=0;
+
+        while(!(key&1)) { ++knum; key>>=1; }
+
+        WORDPTR kn=rplMsg2KeyName(KM_PRESS|knum);
+
+        if(!kn) return;
+        rplPushData(kn);
+        rplPushData((WORDPTR)one_bint);
+
+        return;
+
+    }
 
 
         // STANDARIZED OPCODES:

@@ -935,6 +935,8 @@ Examples:
 const BYTE const keytable[]={
     'O','N',KB_ON,
     'A','L',KB_ALPHA,
+    'L','S',KB_LSHIFT,
+    'R','S',KB_RSHIFT,
     'B','K',KB_BKS,
     'E','N',KB_ENT,
     'U','P',KB_UP,

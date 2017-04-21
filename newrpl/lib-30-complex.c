@@ -2795,7 +2795,7 @@ void LIB_HANDLER()
                 switch(cclass2)
                 {
                 case CPLX_ZERO:
-                    rplPushData((WORDPTR)zero_bint);
+                    rplPushData((WORDPTR)one_bint);
                     return;
 
 
@@ -3276,7 +3276,7 @@ void LIB_HANDLER()
                 switch(cclass2)
                 {
                 case CPLX_ZERO:
-                    rplPushData((WORDPTR)zero_bint);
+                    rplPushData((WORDPTR)one_bint);
                     return;
 
                 case CPLX_NORMAL:

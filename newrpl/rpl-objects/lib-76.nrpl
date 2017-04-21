@@ -44,6 +44,7 @@ COPYCLIP CUTCLIP PASTECLIP
 @ MENU NUMBER 3
 @#name lib76menu_keyb
 {
+WAIT KEY KEYEVAL
 }
 
 
@@ -66,6 +67,20 @@ PASTECLIP
 to the stack
  → O "
 
+WAIT
+"Wait some time or for a
+key press.
+R<time> → [S<keyname>]"
+
+KEYEVAL
+"Do the action of a key
+as if user pressed it.
+S<keyname> → "
+
+KEY
+"Get instantaneous key
+status.
+→ S<keyname> 1 (or just 0)"
 }
 
 
