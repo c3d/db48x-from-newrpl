@@ -273,6 +273,7 @@ void rplCompileRemoveWords(BINT nwords);
 
 #define DECOMP_EMBEDDED     1
 #define DECOMP_EDIT         2
+#define DECOMP_NOHINTS      4
 
 
 // DECOMPILER FUNCTIONS

@@ -46,6 +46,31 @@
 extern const LIBHANDLER ROMLibs[];
 
 
+//   HINTS FOR THE DECOMPILER
+
+#define HINT_NLAFTER 1
+#define HINT_ADDINDENTAFTER 2
+#define HINT_SUBINDENTAFTER 4
+#define HINT_NLBEFORE (1<<8)
+#define HINT_ADDINDENTBEFORE (2<<8)
+#define HINT_SUBINDENTBEFORE (4<<8)
+
+#define HINT_ALLAFTER  0xff
+#define HINT_ALLBEFORE 0xff00
+
+#define INDENT_SIZE     2
+
+
+
+
+
+
+
+
+
+
+
+
 // USEFUL MACROS
 
 #define MKOPCODE(lib,op) (WORD)((((lib)&0xFFF)<<20)|((op)&0x7FFFF))

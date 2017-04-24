@@ -828,6 +828,7 @@ void LIB_HANDLER()
         else {
             TypeInfo=0;     // ALL COMMANDS ARE TYPE 0
             DecompHints=0;
+
             libGetInfo2(*ObjectPTR,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
         }
         return;

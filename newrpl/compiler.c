@@ -961,8 +961,8 @@ void rplDecompAppendString2(BYTEPTR str,BINT len)
 WORDPTR rplDecompile(WORDPTR object,BINT flags)
 {
     LIBHANDLER han;
-    BINT infixmode=0;
-    UBINT savecstruct=0,savedecompmode=0;
+    BINT infixmode=0,column,indent=0;
+    UBINT savecstruct=0,savedecompmode=0,dhints;
     BINT validtop=0,validbottom=0;
     WORDPTR *SavedRSTop=0;
     if(flags&DECOMP_EMBEDDED) {
@@ -1017,11 +1017,46 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
     // CALL LIBRARY HANDLER TO DECOMPILE
     han=rplGetLibHandler(LIBNUM(*DecompileObject));
 
+    CurOpcode=MKOPCODE(0,OPCODE_GETINFO);
+    DecompMode=infixmode;
+
+    if(!han) {
+        RetNum=ERR_INVALID;
+    } else {
+        // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
+        WORDPTR *tmpRSTop=RSTop;
+        if(infixmode) RSTop=(WORDPTR *)InfixOpTop;
+        else RSTop=(WORDPTR *)ValidateTop;
+        (*han)();
+        RSTop=tmpRSTop;
+    }
+
+    // HERE WE HAVE INFORMATION ABOUT THE TOKEN WITH DECOMPILER HINTS
+    // IN DecompHints AND TypeInfo
+    dhints=DecompHints;
+
+
+
+    if(Exceptions) break;
+
+    // CHECK FOR HINTS BEFORE
+    if(!infixmode && !(flags&DECOMP_NOHINTS) && (dhints&HINT_ALLBEFORE)) {
+        if(dhints&HINT_ADDINDENTBEFORE) indent+=2;
+        if(dhints&HINT_SUBINDENTBEFORE) indent-=2;
+        if(dhints&HINT_NLBEFORE) {
+            rplDecompAppendChar('\n');
+            int k;
+            for(k=0;k<indent;++k) rplDecompAppendChar(' '); // APPLY INDENT
+    }
+    }
+
+
+
+    // NOW ACTUALLY DECOMPILE THE OBJECT
+
     CurOpcode=MKOPCODE(0,(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
     if(ValidateTop>ValidateBottom) CurrentConstruct=**(ValidateTop-1);
     else CurrentConstruct=0;
-    DecompMode=infixmode;
-
     if(!han) {
         RetNum=ERR_INVALID;
     } else {
@@ -1771,6 +1806,21 @@ end_of_expression:
 
     }
     else {
+
+    if(!(flags&DECOMP_NOHINTS) && (dhints&HINT_ALLAFTER)) {
+        // TODO: APPLY FORMATTING AFTER THE OBJECT
+        if(dhints&HINT_ADDINDENTAFTER) indent+=2;
+        if(dhints&HINT_SUBINDENTAFTER) indent-=2;
+        if(dhints&HINT_NLAFTER) {
+            rplDecompAppendChar('\n');
+            int k;
+            for(k=0;k<indent;++k) rplDecompAppendChar(' '); // APPLY INDENT
+    }
+
+
+    }
+
+
     if(DecompileObject<EndOfObject) rplDecompAppendChar(' ');
     if(Exceptions) break;
     }

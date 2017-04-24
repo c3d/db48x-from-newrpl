@@ -1311,12 +1311,33 @@ void LIB_HANDLER()
 
         if(ISPROLOG(*ObjectPTR)) {
         TypeInfo=LIBRARY_NUMBER*100;
-        DecompHints=0;
+        DecompHints=HINT_NLAFTER|HINT_ADDINDENTAFTER;
         RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NOTALLOWED,0,1);
         }
         else {
             TypeInfo=0;     // ALL COMMANDS ARE TYPE 0
-            DecompHints=0;
+            switch(OPCODE(*ObjectPTR))
+            {
+            case THEN:
+            case THENERR:
+            case THENCASE:
+                DecompHints=HINT_NLAFTER|HINT_ADDINDENTAFTER;
+            break;
+            case ENDIF:
+            case ENDCASE:
+            case ENDERR:
+            case QSEMI:
+                DecompHints=HINT_NLBEFORE|HINT_SUBINDENTBEFORE|HINT_NLAFTER;
+                break;
+            case ELSE:
+            case ELSEERR:
+
+                DecompHints=HINT_NLBEFORE|HINT_SUBINDENTBEFORE|HINT_NLAFTER|HINT_ADDINDENTAFTER;
+                break;
+            default:
+                DecompHints=0;
+
+            }
             libGetInfo2(*ObjectPTR,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
         }
         return;
