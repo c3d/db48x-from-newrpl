@@ -153,12 +153,12 @@ available RAM
  → I"
 
 PEEK
-"Reads 8 bytes from the specified
+"Reads 4 bytes from the specified
 address in memory.
 I → I"
 
 POKE
-"Writes 8 bytes in level 1
+"Writes 4 bytes in level 1
 to the memory address in level 2
 I I →"
 
