@@ -9,12 +9,7 @@
 #include <newrpl.h>
 #include <ui.h>
 #include <libraries.h>
-/*
- * Copyright (c) 2014-2015, Claudio Lapilli and the newRPL Team
- * All rights reserved.
- * This file is released under the 3-clause BSD license.
- * See the file LICENSE.txt that shipped with this distribution.
- */
+
 
 
 // COMMAND LINE API
@@ -79,13 +74,21 @@ BINT uiGetCmdLineState()
 }
 
 // SET THE COMMAND LINE TO A GIVEN STRING OBJECT
-void uiSetCmdLineText(WORDPTR text)
+// RETURN THE TOTAL NUMBER OF LINES OF TEXT
+BINT uiSetCmdLineText(WORDPTR text)
 {
     CmdLineText=text;
     CmdLineCurrentLine=(WORDPTR)empty_string;
     CmdLineUndoList=(WORDPTR)empty_list;
     halScreen.LineIsModified=-1;
 
+    BYTEPTR newstart=((BYTEPTR)CmdLineText)+4;
+    BYTEPTR newend=newstart+rplStrSize(CmdLineText);
+    BINT nl=1;
+    while(newstart!=newend) {
+        if(*newstart=='\n') ++nl;
+        ++newstart;
+    }
 
     // SET CURSOR AT END OF TEXT
     BINT end=rplStrSize(CmdLineText);
@@ -109,13 +112,17 @@ void uiSetCmdLineText(WORDPTR text)
         //CmdLineText=(WORDPTR)empty_string;
         //CmdLineCurrentLine=(WORDPTR)empty_string;
         //CmdLineUndoList=(WORDPTR)empty_list;
-        return;
+        return 0;
     }
 
 
     uiEnsureCursorVisible();
 
     halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
+
+
+    return nl;
+
 }
 
 WORDPTR uiGetCmdLineText()
@@ -192,6 +199,7 @@ void uiOpenCmdLine(BINT mode)
     halScreen.CursorX=0;
     halScreen.CursorPosition=0;
     halScreen.CmdLineState=CMDSTATE_OPEN;
+    halScreen.CmdLineIndent=0;
     halScreen.SelEndLine=halScreen.SelStartLine=-1;
     halScreen.SelStart=halScreen.SelEnd=0;
 
@@ -294,16 +302,17 @@ void uiSetCurrentLine(BINT line)
 
 
 // MAIN FUNCTION TO INSERT TEXT AT THE CURRENT CURSOR OFFSET
-void uiInsertCharacters(BYTEPTR string)
+// RETURNS THE NUMBER OF LINES ADDED TO THE TEXT (IF ANY)
+BINT uiInsertCharacters(BYTEPTR string)
 {
 BYTEPTR end=string+stringlen((char *)string);
 
-uiInsertCharactersN(string,end);
+return uiInsertCharactersN(string,end);
 }
 
-void uiInsertCharactersN(BYTEPTR string,BYTEPTR endstring)
+BINT uiInsertCharactersN(BYTEPTR string,BYTEPTR endstring)
 {
-if(endstring<=string) return;
+if(endstring<=string) return 0;
 
 // LOCK CURSOR
 halScreen.CursorState|=0x4000;
@@ -326,7 +335,7 @@ if(Exceptions) {
     //CmdLineCurrentLine=(WORDPTR)empty_string;
     //CmdLineUndoList=(WORDPTR)empty_list;
 
-    return;
+    return 0;
 }
 
 }
@@ -343,7 +352,7 @@ if(CmdLineCurrentLine==(WORDPTR)empty_string) {
         //CmdLineText=(WORDPTR)empty_string;
         //CmdLineCurrentLine=(WORDPTR)empty_string;
         //CmdLineUndoList=(WORDPTR)empty_list;
-        return;
+        return 0;
     }
 
     CmdLineCurrentLine=newobj;
@@ -366,7 +375,7 @@ else {
             //CmdLineText=(WORDPTR)empty_string;
             //CmdLineCurrentLine=(WORDPTR)empty_string;
             //CmdLineUndoList=(WORDPTR)empty_list;
-            return;
+            return 0;
         }
         rplCopyObject(newobj,CmdLineCurrentLine);
         CmdLineCurrentLine=newobj;
@@ -380,7 +389,7 @@ if(Exceptions) {
     //CmdLineText=(WORDPTR)empty_string;
     //CmdLineCurrentLine=(WORDPTR)empty_string;
     //CmdLineUndoList=(WORDPTR)empty_list;
-    return;
+    return 0;
 }
 
 // FINALLY, WE HAVE THE ORIGINAL LINE AT THE END OF TEMPOB, AND ENOUGH MEMORY ALLOCATED TO MAKE THE MOVE
@@ -412,7 +421,7 @@ if(nl)  {
     // FIRST, UPDATE THE CURRENT TEXT WITH THE NEW LINE
         uiModifyLine(0);
 
-        if(Exceptions)  return;
+        if(Exceptions)  return 0;
 
     BINT newoff=rplStringGetLinePtr(CmdLineText,halScreen.LineCurrent);
     BINT oldoff=halScreen.CursorPosition;
@@ -465,7 +474,7 @@ halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
 uiEnsureCursorVisible();
 // UNLOCK CURSOR
 halScreen.CursorState&=~0xc000;
-
+return nl;
 }
 
 
@@ -705,11 +714,39 @@ void uiExtractLine(BINT line)
 
     CmdLineCurrentLine=newobj;
 
-    halScreen.LineIsModified=0;
 
 }
 
+BINT uiGetIndentLevel(BINT *isemptyline)
+{
+    // GET THE CURRENT INDENT LEVEL OF THE CURRENT LINE
+    if(halScreen.LineIsModified<0) {
+        uiExtractLine(halScreen.LineCurrent);
 
+        if(Exceptions) {
+            throw_dbgexception("No memory for command line",__EX_CONT|__EX_WARM|__EX_RESET);
+            // CLEAN UP AND RETURN
+            uiOpenCmdLine(0);
+            //CmdLineText=(WORDPTR)empty_string;
+            //CmdLineCurrentLine=(WORDPTR)empty_string;
+            //CmdLineUndoList=(WORDPTR)empty_list;
+            return 0;
+        }
+
+        }
+
+    BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1),end=ptr+rplStrSize(CmdLineCurrentLine);
+    BINT level=0;
+    while((ptr<end)&&(*ptr==' ')) { ++level; ++ptr; }
+
+    if(isemptyline) {
+        if(ptr==end) *isemptyline=1;
+        else *isemptyline=0;
+
+    }
+    return level;
+
+}
 
 
 // MOVE THE CURSOR TO THE GIVEN OFFSET WITHIN THE STRING
@@ -1178,6 +1215,8 @@ void uiStretchCmdLine(BINT addition)
 
     if(halScreen.CmdLineState&CMDSTATE_FULLSCREEN) return;
 
+    BINT oldlvis=halScreen.NumLinesVisible;
+
     halScreen.NumLinesVisible+=addition;
     if(halScreen.NumLinesVisible<1) halScreen.NumLinesVisible=1;
 
@@ -1189,7 +1228,12 @@ void uiStretchCmdLine(BINT addition)
         if(halScreen.NumLinesVisible<1) halScreen.NumLinesVisible=1;
     }
 
+    // TRY TO KEEP THE CURSOR WHERE IT IS
+    if(halScreen.NumLinesVisible>oldlvis) {
+        halScreen.LineVisible-=halScreen.NumLinesVisible-oldlvis;
+        if(halScreen.LineVisible<1) halScreen.LineVisible=1;
 
+    }
 
 }
 
@@ -1336,7 +1380,7 @@ void uiAutocompInsert()
     BYTEPTR tokstart=uiAutocompStringStart();
     BYTEPTR tokend=uiAutocompStringEnd();
 
-    WORDPTR cmdname=rplDecompile(&halScreen.ACSuggestion,0);
+    WORDPTR cmdname=rplDecompile(&halScreen.ACSuggestion,DECOMP_NOHINTS);
     BYTEPTR namest=(BYTEPTR)(cmdname+1);
     BYTEPTR nameend=namest+rplStrSize(cmdname);
 

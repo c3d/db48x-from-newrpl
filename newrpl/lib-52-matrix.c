@@ -2272,7 +2272,7 @@ void LIB_HANDLER()
                 {
                     BINT offset=*(DecompileObject+2+i*cols+j);
 
-                    rplDecompile(DecompileObject+offset,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? DECOMP_EDIT:0));    // RUN EMBEDDED
+                    rplDecompile(DecompileObject+offset,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? (DECOMP_EDIT|DECOMP_NOHINTS):DECOMP_NOHINTS));    // RUN EMBEDDED
                  if(Exceptions) { RetNum=ERR_INVALID; return; }
                  rplDecompAppendChar(' ');
                 }

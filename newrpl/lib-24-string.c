@@ -830,13 +830,13 @@ void LIB_HANDLER()
         ScratchPointer2=rplPeekData(1);
 
         if(!ISSTRING(*ScratchPointer1)) {
-        WORDPTR string=rplDecompile(ScratchPointer1,0);
+        WORDPTR string=rplDecompile(ScratchPointer1,DECOMP_NOHINTS);
         if(!string) { ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
         ScratchPointer1=string;
         }
 
         if(!ISSTRING(*ScratchPointer2)) {
-        WORDPTR string=rplDecompile(ScratchPointer2,0);
+        WORDPTR string=rplDecompile(ScratchPointer2,DECOMP_NOHINTS);
         if(!string) { ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
         ScratchPointer2=string;
         }

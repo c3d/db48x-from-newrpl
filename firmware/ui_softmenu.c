@@ -335,7 +335,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 
     Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-    WORDPTR opname=rplDecompile(ptr,0);
+    WORDPTR opname=rplDecompile(ptr,DECOMP_NOHINTS);
     Exceptions=SavedException;
     ErrorCode=SavedErrorCode;
 

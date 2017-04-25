@@ -164,7 +164,13 @@ void halSetCmdLineHeight(int h)
             }
             else {
                 // STACK AND FORMS ARE AT MINIMUM
-                if(total>SCREEN_HEIGHT) halScreen.CmdLine=previous;
+                if(total>SCREEN_HEIGHT) {
+                    halScreen.CmdLine=SCREEN_HEIGHT-(halScreen.Form+halScreen.Stack+halScreen.Menu1+halScreen.Menu2);
+                    halScreen.CmdLine/=halScreen.CmdLineFont->BitmapHeight;
+                    if(halScreen.CmdLine<1) halScreen.CmdLine=1;
+                    halScreen.CmdLine*=halScreen.CmdLineFont->BitmapHeight;
+                    halScreen.CmdLine+=2;
+                }
                 else {
                 // ENLARGE STACK
                     if(halScreen.Stack>0) {
@@ -552,7 +558,7 @@ void halRedrawHelp(DRAWSURFACE *scr)
 
             Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
             // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-            WORDPTR objdecomp=rplDecompile(var[1],0);
+            WORDPTR objdecomp=rplDecompile(var[1],DECOMP_NOHINTS);
             Exceptions=SavedException;
             ErrorCode=SavedErrorCode;
 
@@ -883,7 +889,7 @@ void halRedrawStatus(DRAWSURFACE *scr)
         // BUT ONLY IF THERE WERE NO ERRORS
         BINT y=ytop+halScreen.CmdLineFont->BitmapHeight;
         // FOR NOW JUST DISPLAY THE SELECTED TOKEN
-        WORDPTR cmdname=rplDecompile(&halScreen.ACSuggestion,0);
+        WORDPTR cmdname=rplDecompile(&halScreen.ACSuggestion,DECOMP_NOHINTS);
         if( (!cmdname) || Exceptions) {
             // JUST IGNORE, CLEAR EXCEPTIONS AND RETURN;
             Exceptions=0;
@@ -1359,7 +1365,7 @@ WORDPTR halGetCommandName(WORDPTR NameObject)
 
     Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-    WORDPTR opname=rplDecompile(NameObject,0);
+    WORDPTR opname=rplDecompile(NameObject,DECOMP_NOHINTS);
     Exceptions=SavedException;
     ErrorCode=SavedErrorCode;
 

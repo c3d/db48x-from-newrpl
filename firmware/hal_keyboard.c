@@ -1124,7 +1124,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                     Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
                     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT|DECOMP_NOHINTS);
                     Exceptions=SavedException;
                     ErrorCode=SavedErrorCode;
 
@@ -1219,7 +1219,8 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         if(string) {
 
                         uiSeparateToken();
-                        uiInsertCharactersN(string,endstring);
+                        BINT nlines=uiInsertCharactersN(string,endstring);
+                        if(nlines) uiStretchCmdLine(nlines);
                         uiSeparateToken();
                         uiAutocompleteUpdate();
                         }
@@ -1269,7 +1270,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                         Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
                         // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                        WORDPTR opname=rplDecompile(var[1],DECOMP_EDIT);
+                        WORDPTR opname=rplDecompile(var[1],DECOMP_EDIT|DECOMP_NOHINTS);
                         Exceptions=SavedException;
                         ErrorCode=SavedErrorCode;
 
@@ -1288,7 +1289,9 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         }
 
                         if(string) {
-                        uiInsertCharactersN(string,endstring);
+                        BINT nlines=uiInsertCharactersN(string,endstring);
+                        if(nlines) uiStretchCmdLine(nlines);
+
                         uiAutocompleteUpdate();
                         }
                         }
@@ -1344,7 +1347,9 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         }
                         if(string) {
                         uiSeparateToken();
-                        uiInsertCharactersN(string,endstring);
+                        BINT nlines=uiInsertCharactersN(string,endstring);
+                        if(nlines) uiStretchCmdLine(nlines);
+
                         uiSeparateToken();
                         uiAutocompleteUpdate();
                         }
@@ -1657,7 +1662,9 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         CurOpcode=MKOPCODE(LIBNUM(*action),OPCODE_GETINFO);
                         (*han)();
 
-                        if(RetNum>OK_TOKENINFO) tokeninfo=RetNum;
+                        if(RetNum>OK_TOKENINFO) {
+                            tokeninfo=RetNum;
+                        }
 
                         CurOpcode=savecurOpcode;
                     }
@@ -1669,7 +1676,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                     Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
                     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT|DECOMP_NOHINTS);
                     Exceptions=SavedException;
                     ErrorCode=SavedErrorCode;
 
@@ -1679,7 +1686,9 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     BINT totaln=rplStrLen(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
-                    uiInsertCharactersN(string,endstring);
+                    BINT nlines=uiInsertCharactersN(string,endstring);
+                    if(nlines) uiStretchCmdLine(nlines);
+
                     if(TI_TYPE(tokeninfo)==TITYPE_FUNCTION) {
                         uiInsertCharacters((BYTEPTR)"()");
                         uiCursorLeft(1);
@@ -1692,13 +1701,34 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 case 'P':
                 {
 
+                    BINT dhints=0;
+                    LIBHANDLER han=rplGetLibHandler(LIBNUM(*action));
+
+
+                    // GET THE SYMBOLIC TOKEN INFORMATION
+                    if(han) {
+                        WORD savecurOpcode=CurOpcode;
+                        DecompileObject=action;
+                        CurOpcode=MKOPCODE(LIBNUM(*action),OPCODE_GETINFO);
+                        (*han)();
+
+                        if(RetNum>OK_TOKENINFO) {
+                            dhints=DecompHints;
+                        }
+
+                        CurOpcode=savecurOpcode;
+                    }
+
+
+
+
                     // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
                     BINT SavedException=Exceptions;
                     BINT SavedErrorCode=ErrorCode;
 
                     Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
                     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT|DECOMP_NOHINTS);
                     Exceptions=SavedException;
                     ErrorCode=SavedErrorCode;
 
@@ -1708,8 +1738,58 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     BINT totaln=rplStrLen(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
+                    BINT nlines=0;
+
+                    if(dhints&HINT_ALLBEFORE) {
+                        if(dhints&HINT_ADDINDENTBEFORE) halScreen.CmdLineIndent+=2;
+                        if(dhints&HINT_SUBINDENTBEFORE) halScreen.CmdLineIndent-=2;
+
+                        if(dhints&HINT_NLBEFORE) {
+                            BINT isempty;
+                            BINT nlvl=uiGetIndentLevel(&isempty);
+                            // IF THE LINE IS EMPTY DON'T ADD A NEW LINE
+                            if(isempty) {
+                                if(dhints&HINT_ADDINDENTBEFORE) uiInsertCharacters((BYTEPTR)"  ");
+                                if(dhints&HINT_SUBINDENTBEFORE) {
+                                if(nlvl>2) nlvl=2;
+                                uiCursorLeft(nlvl);
+                                uiRemoveCharacters(nlvl);
+                                }
+                           }
+                            else {
+                            uiInsertCharacters((BYTEPTR)"\n");
+
+                            ++nlines;
+                            int k;
+                            for(k=0;k<nlvl+halScreen.CmdLineIndent;++k) uiInsertCharacters((BYTEPTR)" "); // APPLY INDENT
+                            halScreen.CmdLineIndent=0;
+                            }
+                    }
+                    }
+
+
                     uiSeparateToken();
-                    uiInsertCharactersN(string,endstring);
+                    nlines+=uiInsertCharactersN(string,endstring);
+
+                    if(dhints&HINT_ALLAFTER) {
+                        if(dhints&HINT_ADDINDENTAFTER) halScreen.CmdLineIndent+=2;
+                        if(dhints&HINT_SUBINDENTAFTER) halScreen.CmdLineIndent-=2;
+                        if(dhints&HINT_NLAFTER) {
+                            BINT isepmty;
+                            BINT nlvl=uiGetIndentLevel(0);
+
+                            uiInsertCharacters((BYTEPTR)"\n");
+
+                            ++nlines;
+                            int k;
+                            for(k=0;k<nlvl+halScreen.CmdLineIndent;++k) uiInsertCharacters((BYTEPTR)" "); // APPLY INDENT
+                            halScreen.CmdLineIndent=0;
+                        }
+                    }
+
+
+                    if(nlines) uiStretchCmdLine(nlines);
+
                     uiSeparateToken();
                     uiAutocompleteUpdate();
 
@@ -1787,7 +1867,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                 Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
                 // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                WORDPTR opname=rplDecompile(action,DECOMP_EDIT|DECOMP_NOHINTS);
                 Exceptions=SavedException;
                 ErrorCode=SavedErrorCode;
 
@@ -1827,7 +1907,9 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                 uiSeparateToken();
-                uiInsertCharactersN(string,endstring);
+                BINT nlines=uiInsertCharactersN(string,endstring);
+                if(nlines) uiStretchCmdLine(nlines);
+
                 uiSeparateToken();
                 uiAutocompleteUpdate();
 
@@ -1923,9 +2005,13 @@ void newlineKeyHandler(BINT keymsg)
 
     // INCREASE THE HEIGHT ON-SCREEN UP TO THE MAXIMUM
     uiStretchCmdLine(1);
+    BINT ilvl=uiGetIndentLevel(0);
 
     // ADD A NEW LINE
     uiInsertCharacters((BYTEPTR)"\n");
+    int k;
+    for(k=0;k<ilvl+halScreen.CmdLineIndent;++k) uiInsertCharacters((BYTEPTR)" ");
+    halScreen.CmdLineIndent=0;
 
     uiAutocompleteUpdate();
 
@@ -2657,7 +2743,10 @@ void leftKeyHandler(BINT keymsg)
 
     }
     else{
+        BINT line=halScreen.LineCurrent;
         uiCursorLeft(1);
+        if(line!=halScreen.LineCurrent) halScreen.CmdLineIndent=0;
+
         uiAutocompleteUpdate();
     }
 }
@@ -2854,7 +2943,10 @@ void rightKeyHandler(BINT keymsg)
     }
     }
     else{
+        BINT line=halScreen.LineCurrent;
         uiCursorRight(1);
+        if(line!=halScreen.LineCurrent) halScreen.CmdLineIndent=0;
+
         uiAutocompleteUpdate();
     }
 }
@@ -2961,7 +3053,14 @@ void downKeyHandler(BINT keymsg)
                 halSetContext(halGetContext()|CONTEXT_INEDITOR);
                 if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
                 else uiOpenCmdLine(cursorstart);
-                uiSetCmdLineText(text);
+                BINT lines=uiSetCmdLineText(text);
+                if(lines>1) {
+                    uiStretchCmdLine(lines-1);
+                    halScreen.LineVisible=1;
+                    uiEnsureCursorVisible();
+                }
+
+
                 uiSetCmdLineState(uiGetCmdLineState()|CMDSTATE_OVERWRITE);
                 return;
                 }
@@ -2983,6 +3082,7 @@ void downKeyHandler(BINT keymsg)
     else {
         // GO DOWN ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorDown(1);
+        halScreen.CmdLineIndent=0;
         uiAutocompleteUpdate();
     }
 }
@@ -3013,6 +3113,8 @@ void rsholddownKeyHandler(BINT keymsg)
     else {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorPageDown();
+        halScreen.CmdLineIndent=0;
+
         uiAutocompleteUpdate();
     }
 }
@@ -3041,6 +3143,8 @@ void rsdownKeyHandler(BINT keymsg)
     else {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorEndOfText();
+        halScreen.CmdLineIndent=0;
+
         uiAutocompleteUpdate();
     }
 }
@@ -3106,6 +3210,7 @@ void upKeyHandler(BINT keymsg)
     else {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorUp(1);
+        halScreen.CmdLineIndent=0;
         uiAutocompleteUpdate();
     }
 }
@@ -3135,6 +3240,7 @@ void rsholdupKeyHandler(BINT keymsg)
     else {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorPageUp();
+        halScreen.CmdLineIndent=0;
         uiAutocompleteUpdate();
     }
 }
@@ -3162,6 +3268,8 @@ void rsupKeyHandler(BINT keymsg)
     else {
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorStartOfText();
+        halScreen.CmdLineIndent=0;
+
         uiAutocompleteUpdate();
     }
 }
@@ -3399,7 +3507,7 @@ void bracketKeyHandler(BINT keymsg,BYTEPTR string)
 
     BYTEPTR end=string+stringlen((char *)string);
     uiInsertCharactersN(string,end);
-    uiCursorLeft(utf8nlen((char *)string,(char *)end)>>1);
+    uiCursorLeft(utf8nlenst((char *)string,(char *)end)>>1);
     uiAutocompleteUpdate();
 
 }
@@ -4058,7 +4166,9 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
                             if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
                             else uiOpenCmdLine('D');
 
-                            uiInsertCharactersN((BYTEPTR) (action+1),(BYTEPTR) (action+1)+rplStrSize(action));
+                            BINT nlines=uiInsertCharactersN((BYTEPTR) (action+1),(BYTEPTR) (action+1)+rplStrSize(action));
+                            if(nlines) uiStretchCmdLine(nlines);
+
                             uiAutocompleteUpdate();
 
                         }
@@ -4188,6 +4298,8 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
 
                     uiSeparateToken();
                     uiInsertCharactersN(string,endstring);
+
+
                     uiSeparateToken();
                     uiAutocompleteUpdate();
 
@@ -4232,6 +4344,8 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
                     if( (totaln>2)&&(string[0]=='1')&&(string[1]=='_')) string+=2;
 
                     uiInsertCharactersN(string,endstring);
+
+
                     uiAutocompleteUpdate();
 
                     break;
@@ -4309,7 +4423,7 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
 
                     Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
                     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT|DECOMP_NOHINTS);
                     Exceptions=SavedException;
                     ErrorCode=SavedErrorCode;
 
@@ -4349,7 +4463,9 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     uiSeparateToken();
-                    uiInsertCharactersN(string,endstring);
+                    BINT nlines=uiInsertCharactersN(string,endstring);
+                    if(nlines) uiStretchCmdLine(nlines);
+
                     uiSeparateToken();
                     uiAutocompleteUpdate();
 
@@ -4441,7 +4557,7 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
 
                 Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
                 // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                WORDPTR opname=rplDecompile(action,DECOMP_EDIT|DECOMP_NOHINTS);
                 Exceptions=SavedException;
                 ErrorCode=SavedErrorCode;
 
@@ -4481,7 +4597,9 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
                 BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                 uiSeparateToken();
-                uiInsertCharactersN(string,endstring);
+                BINT nlines=uiInsertCharactersN(string,endstring);
+                if(nlines) uiStretchCmdLine(nlines);
+
                 uiSeparateToken();
                 uiAutocompleteUpdate();
 

@@ -2612,7 +2612,7 @@ void LIB_HANDLER()
 
             // DO AN EMBEDDED DECOMPILATION OF THE VALUE OBJECT
             if(addnumber) {
-                rplDecompile(DecompileObject+1,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? DECOMP_EDIT:0));    // RUN EMBEDDED
+                rplDecompile(DecompileObject+1,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? (DECOMP_EDIT|DECOMP_NOHINTS):DECOMP_NOHINTS));    // RUN EMBEDDED
                 if(Exceptions) { RetNum=ERR_INVALID; return; }
             }
 

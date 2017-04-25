@@ -1166,7 +1166,7 @@ void LIB_HANDLER()
 
             if(ISSYMBOLIC(alg)&&(eval1==CMD_OVR_EVAL1)&&(semi==CMD_QSEMI)) {
                 // THIS IS AN ALGEBRAIC CONSTRUCT
-                rplDecompile(DecompileObject+1,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? DECOMP_EDIT:0));
+                rplDecompile(DecompileObject+1,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? (DECOMP_EDIT|DECOMP_NOHINTS):DECOMP_NOHINTS));
                 DecompileObject+=3+OBJSIZE(alg);    // SKIP UNTIL END OF SECO
             }
             else             rplDecompAppendString((BYTEPTR)"«");

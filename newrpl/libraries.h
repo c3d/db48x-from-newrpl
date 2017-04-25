@@ -54,6 +54,7 @@ extern const LIBHANDLER ROMLibs[];
 #define HINT_NLBEFORE (1<<8)
 #define HINT_ADDINDENTBEFORE (2<<8)
 #define HINT_SUBINDENTBEFORE (4<<8)
+//#define HINT_REBASEINDENT   0x10000
 
 #define HINT_ALLAFTER  0xff
 #define HINT_ALLBEFORE 0xff00

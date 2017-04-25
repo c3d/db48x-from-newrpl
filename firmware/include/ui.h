@@ -74,11 +74,11 @@ void uiModifyLine(int dontaddnewline);
 void uiExtractLine(BINT line);
 BYTEPTR uiFindNumberStart();
 WORDPTR uiGetCmdLineText();
-void uiSetCmdLineText(WORDPTR text);
+BINT uiSetCmdLineText(WORDPTR text);
 void uiOpenCmdLine(BINT mode);
 void uiCloseCmdLine();
-void uiInsertCharacters(BYTEPTR string);
-void uiInsertCharactersN(BYTEPTR string,BYTEPTR end);
+BINT uiInsertCharacters(BYTEPTR string);
+BINT uiInsertCharactersN(BYTEPTR string,BYTEPTR end);
 void uiRemoveCharacters(BINT length);
 
 void uiStretchCmdLine(BINT addition);
@@ -97,6 +97,7 @@ void uiSetSelectionEnd();
 WORDPTR uiExtractSelection();
 BINT uiDeleteSelection();
 
+BINT uiGetIndentLevel(BINT *isemptyline);
 
 
 void uiSeparateToken();

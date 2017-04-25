@@ -961,7 +961,7 @@ void rplDecompAppendString2(BYTEPTR str,BINT len)
 WORDPTR rplDecompile(WORDPTR object,BINT flags)
 {
     LIBHANDLER han;
-    BINT infixmode=0,column,indent=0;
+    BINT infixmode=0,indent=0,lastnewline=0;
     UBINT savecstruct=0,savedecompmode=0,dhints;
     BINT validtop=0,validbottom=0;
     WORDPTR *SavedRSTop=0;
@@ -1040,17 +1040,58 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
     if(Exceptions) break;
 
     // CHECK FOR HINTS BEFORE
+/*
+    if(!infixmode && !(flags&DECOMP_NOHINTS) && (dhints&HINT_REBASEINDENT)) {
+        // START THE IDENT FROM THE CURRENT POSITION IN THE LINE
+
+        // BACKTRACK THE TEXT TO FIND THE START OF LINE AND COUNT THE NUMBER OF CHARACTERS
+
+        BYTEPTR dstring=(BYTEPTR)CompileEnd;
+        BYTEPTR end=(BYTEPTR)DecompStringEnd;
+        BYTEPTR ptr=end-1;
+        while( (ptr>dstring)&&(*ptr!='\n')) --ptr;
+
+        if(*ptr=='\n') ++ptr;
+
+        BINT nchars=utf8nlenst(ptr,end);
+
+        indent=nchars;
+
+
+
+    }
+    */
+
     if(!infixmode && !(flags&DECOMP_NOHINTS) && (dhints&HINT_ALLBEFORE)) {
+        if(lastnewline) {
+            //  WE ALREADY ADDED A NEWLINE PER HINT
+            // CHECK IF WE NEED MORE OR LESS INDENT
+            if(dhints&HINT_ADDINDENTBEFORE) {
+                indent+=2;
+                rplDecompAppendChar(' '); // APPLY INDENT
+                rplDecompAppendChar(' ');
+            }
+            if(dhints&HINT_SUBINDENTBEFORE) {
+               // WE NEED TO REDUCE THE INDENT
+               if(indent>=2) DecompStringEnd=(WORDPTR)(((BYTEPTR)DecompStringEnd)-2);
+               indent-=2;
+
+            }
+
+
+        }
+        else {
         if(dhints&HINT_ADDINDENTBEFORE) indent+=2;
         if(dhints&HINT_SUBINDENTBEFORE) indent-=2;
         if(dhints&HINT_NLBEFORE) {
             rplDecompAppendChar('\n');
             int k;
             for(k=0;k<indent;++k) rplDecompAppendChar(' '); // APPLY INDENT
-    }
+        }
+        }
     }
 
-
+    lastnewline=0;
 
     // NOW ACTUALLY DECOMPILE THE OBJECT
 
@@ -1812,16 +1853,16 @@ end_of_expression:
         if(dhints&HINT_ADDINDENTAFTER) indent+=2;
         if(dhints&HINT_SUBINDENTAFTER) indent-=2;
         if(dhints&HINT_NLAFTER) {
+            lastnewline=1;
             rplDecompAppendChar('\n');
             int k;
             for(k=0;k<indent;++k) rplDecompAppendChar(' '); // APPLY INDENT
-    }
+        }
+        else if(DecompileObject<EndOfObject) rplDecompAppendChar(' ');
 
 
     }
-
-
-    if(DecompileObject<EndOfObject) rplDecompAppendChar(' ');
+    else if(DecompileObject<EndOfObject) rplDecompAppendChar(' ');
     if(Exceptions) break;
     }
     }

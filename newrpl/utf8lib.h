@@ -102,7 +102,9 @@ int utf8len(char *string);
 // SAME AS STRLEN BUT RETURNS THE LENGTH IN UNICODE CODEPOINTS OF
 // A STRING GIVEN BY START AND END
 int utf8nlen(char *string,char *end);
-
+// SAME AS STRLEN BUT RETURNS THE LENGTH IN UNICODE CODEPOINTS OF
+// A STRING GIVEN BY START AND END
+int utf8nlenst(char *string, char *end);
 
 
 

@@ -142,7 +142,7 @@ WORDPTR uiRenderObject(WORDPTR object,UNIFONT *font)
 
         // TODO: CHANGE DECOMPILE INTO PROPER DISPLAY FUNCTION
         WORDPTR string;
-        string=rplDecompile(object,0);
+        string=rplDecompile(object,DECOMP_NOHINTS);
 
     if(!string) string=(WORDPTR)invalid_string;
 

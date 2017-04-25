@@ -664,18 +664,24 @@ int utf8len(char *string)
     return count;
 }
 
-// RETURNS THE LENGTH IN UNICODE CODEPOINTS
+// RETURNS THE LENGTH IN UNICODE CODEPOINTS, SKIPPING NON-STARTER CHARACTERS
+
+int utf8nlenst(char *string, char *end)
+{
+    int count=0;
+    while(string<end) {
+        ++count;
+        string=utf8skipst(string,end);
+    }
+    return count;
+}
 
 int utf8nlen(char *string, char *end)
 {
     int count=0;
     while(string<end) {
         ++count;
-        if(*string&0x80) {
-                ++string;
-                while(((*string&0xc0)==0x80)&& (string<end)) ++string;
-            }
-        else ++string;
+        string=utf8skip(string,end);
     }
     return count;
 }
