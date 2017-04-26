@@ -1318,17 +1318,25 @@ void LIB_HANDLER()
             TypeInfo=0;     // ALL COMMANDS ARE TYPE 0
             switch(OPCODE(*ObjectPTR))
             {
-            case DO:
-                DecompHints=HINT_ADDINDENTAFTER|HINT_NLAFTER;
+            case FOR:
+                DecompHints=HINT_ADDINDENTAFTER;
                 break;
+            case DO:
+                DecompHints=HINT_NLBEFORE|HINT_NLAFTER|HINT_ADDINDENTAFTER;
+                break;
+            case CASE:
             case REPEAT:
             case THEN:
             case THENERR:
             case THENCASE:
+            case START:
                 DecompHints=HINT_NLAFTER|HINT_ADDINDENTAFTER;
             break;
+            case UNTIL:
+                DecompHints=HINT_NLBEFORE|HINT_SUBINDENTBEFORE;
+                break;
             case ENDDO:
-                DecompHints=HINT_SUBINDENTAFTER|HINT_NLAFTER;
+                DecompHints=HINT_NLAFTER;
                 break;
             case ENDIF:
             case ENDWHILE:
@@ -1336,6 +1344,8 @@ void LIB_HANDLER()
             case ENDCASE:
             case ENDERR:
             case QSEMI:
+            case NEXT:
+            case STEP:
                 DecompHints=HINT_NLBEFORE|HINT_SUBINDENTBEFORE|HINT_NLAFTER;
                 break;
             case ELSE:

@@ -2249,6 +2249,8 @@ void LIB_HANDLER()
         // DecompileObject = Ptr to WORD of object to decompile
         // DecompStringEnd = Ptr to the end of decompile string
 
+        // DecompMode = infix mode in lower 16 bits, decompiler flags in upper 16 bits, including maximum width
+
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
 
@@ -2266,7 +2268,12 @@ void LIB_HANDLER()
 
             for(i=0;i<rows;++i)
             {
-                if(doublebracket) rplDecompAppendString((BYTEPTR)"[ ");
+                if(doublebracket) {
+                    rplDecompDoHintsWidth(HINT_NLAFTER | ((i==0)? HINT_ADDINDENTAFTER:0));
+
+                    rplDecompAppendString((BYTEPTR)"[ ");
+
+                }
                 if(Exceptions) { RetNum=ERR_INVALID; return; }
                 for(j=0;j<cols;++j)
                 {
@@ -2274,11 +2281,14 @@ void LIB_HANDLER()
 
                     rplDecompile(DecompileObject+offset,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? (DECOMP_EDIT|DECOMP_NOHINTS):DECOMP_NOHINTS));    // RUN EMBEDDED
                  if(Exceptions) { RetNum=ERR_INVALID; return; }
-                 rplDecompAppendChar(' ');
+
+                 if(!rplDecompDoHintsWidth(0)) rplDecompAppendChar(' ');
                 }
                 if(doublebracket) rplDecompAppendString((BYTEPTR)"] ");
                 if(Exceptions) { RetNum=ERR_INVALID; return; }
             }
+
+            if(doublebracket) rplDecompDoHintsWidth(HINT_NLAFTER|HINT_SUBINDENTAFTER);
 
             rplDecompAppendChar(']');
             if(Exceptions) { RetNum=ERR_INVALID; return; }

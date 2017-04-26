@@ -961,7 +961,7 @@ void rplDecompAppendString2(BYTEPTR str,BINT len)
 WORDPTR rplDecompile(WORDPTR object,BINT flags)
 {
     LIBHANDLER han;
-    BINT infixmode=0,indent=0,lastnewline=0;
+    BINT infixmode=0,indent=0,lastnewline=0,lastnloffset=0,maxwidth;
     UBINT savecstruct=0,savedecompmode=0,dhints;
     BINT validtop=0,validbottom=0;
     WORDPTR *SavedRSTop=0;
@@ -985,8 +985,13 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
         if(RStkSize<=(RSTop+RSTKSLACK-RStk)) growRStk(RSTop-RStk+RSTKSLACK);
         if(Exceptions) return 0;
 
+        flags|=DECOMP_NOHINTS;  // FORCE NO HINTS ON EMBEDDED DECOMPILATION
+
     }
     else DecompileObject=object;
+
+    maxwidth=DECOMP_GETMAXWIDTH(flags);
+    if(!maxwidth) { maxwidth=DEFAULT_DECOMP_WIDTH; flags|=DECOMP_MAXWIDTH(DEFAULT_DECOMP_WIDTH); }
 
 
 
@@ -1018,7 +1023,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
     han=rplGetLibHandler(LIBNUM(*DecompileObject));
 
     CurOpcode=MKOPCODE(0,OPCODE_GETINFO);
-    DecompMode=infixmode;
+    DecompMode=infixmode|(flags<<16);
 
     if(!han) {
         RetNum=ERR_INVALID;
@@ -1241,7 +1246,7 @@ end_of_expression:
                 if(handler) {
 
                  CurOpcode=MKOPCODE(LIBNUM(*DecompileObject),OPCODE_GETINFO);
-                 DecompMode=infixmode;
+                 DecompMode=infixmode|(flags<<16);
 
                  // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
                  WORDPTR *tmpRSTop=RSTop;
@@ -1336,7 +1341,7 @@ end_of_expression:
                     // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
                     WORDPTR *tmpRSTop=RSTop;
                     RSTop=(WORDPTR *)InfixOpTop;
-                    DecompMode=infixmode;
+                    DecompMode=infixmode|(flags<<16);
 
                     (*handler)();
                     RSTop=tmpRSTop;
@@ -1377,7 +1382,7 @@ end_of_expression:
                     rplPushRet(DecompileObject);
                     DecompileObject=argList;
                     CurOpcode=MKOPCODE(LIBNUM(*argList),(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
-                    DecompMode=infixmode;
+                    DecompMode=infixmode|(flags<<16);
                     handler=rplGetLibHandler(LIBNUM(*argList));
 
                     RetNum=-1;
@@ -1427,7 +1432,7 @@ end_of_expression:
                 default:
                     // DECOMPILE THE OPERATOR NOW, THEN ADD PARENTHESIS FOR THE LIST
                     CurOpcode=MKOPCODE(LIBNUM(*DecompileObject),(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
-                    DecompMode=infixmode;
+                    DecompMode=infixmode|(flags<<16);
 
                     RetNum=-1;
                     if(handler) {
@@ -1499,7 +1504,7 @@ end_of_expression:
             BINT libnum=LIBNUM(Operator);
             DecompileObject=&Operator;
             CurOpcode=MKOPCODE(libnum,(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
-            DecompMode=infixmode;
+            DecompMode=infixmode|(flags<<16);
 
             handler=rplGetLibHandler(libnum);
             RetNum=-1;
@@ -1578,7 +1583,7 @@ end_of_expression:
             BINT libnum=LIBNUM(Operator);
             DecompileObject=&Operator;
             CurOpcode=MKOPCODE(libnum,(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
-            DecompMode=infixmode;
+            DecompMode=infixmode|(flags<<16);
 
             handler=rplGetLibHandler(libnum);
             RetNum=-1;
@@ -1702,7 +1707,7 @@ end_of_expression:
             SavedDecompObject=DecompileObject;
             DecompileObject=InfixOpTop-2;
             CurOpcode=MKOPCODE(libnum,(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
-            DecompMode=infixmode;
+            DecompMode=infixmode|(flags<<16);
 
             handler=rplGetLibHandler(libnum);
             RetNum=-1;
@@ -1848,6 +1853,22 @@ end_of_expression:
     }
     else {
 
+        // UPDATE LAST NEWLINE
+
+        BYTEPTR start=(((BYTEPTR)CompileEnd)+lastnloffset),ptr=(BYTEPTR)DecompStringEnd;
+
+        do {
+            --ptr;
+            if(*ptr=='\n') break;
+        } while(ptr>start);
+
+        lastnloffset=ptr-((BYTEPTR)CompileEnd);
+        if(*ptr=='\n') ++lastnloffset;
+
+        // CHECK IF MAXIMUM WIDTH EXCEEDED, THEN ADD A NEW LINE
+        if(((BYTEPTR)DecompStringEnd)-(((BYTEPTR)CompileEnd)+lastnloffset)>maxwidth) dhints|=HINT_NLAFTER;
+
+
     if(!(flags&DECOMP_NOHINTS) && (dhints&HINT_ALLAFTER)) {
         // TODO: APPLY FORMATTING AFTER THE OBJECT
         if(dhints&HINT_ADDINDENTAFTER) indent+=2;
@@ -1863,6 +1884,13 @@ end_of_expression:
 
     }
     else if(DecompileObject<EndOfObject) rplDecompAppendChar(' ');
+
+
+
+
+
+
+
     if(Exceptions) break;
     }
     }
@@ -1928,3 +1956,58 @@ end_of_expression:
 
 }
 
+// APPLY ANY HINTS DURING DECOMPILATION
+// THIS IS DONE AUTOMATICALLY FOR ATOMIC OBJECTS
+// THIS FUNCTION IS ONLY TO BE CALLED FROM COMPOSITE OBJECTS
+// THAT DECOMPILE INNER OBJECTS USING EMBEDDED SESSIONS
+// AFTER EACH EMBEDDED SESSION OBJECT
+// ALSO CHECKS FOR MAXIMUM WIDTH AND INSERTS A NEWLINE AND INDENTATION AS NEEDED
+// EXPECTS DecompMode TO BE SET AND VALID
+// CALL THIS FUNCTION ONLY FROM A OPCODE_DECOMP OR OPCODE_DECOMPEDIT HANDLER.
+
+// RETURNS 1 IF A NEWLINE WAS ADDED TO THE STREAM (NO SEPARATOR NEEDED), 0 IF NOTHING WAS DONE
+BINT rplDecompDoHintsWidth(BINT dhints)
+{
+    BINT flags=DecompMode>>16;
+    BINT infixmode=DecompMode&0xffff;
+
+    if( !infixmode && !(flags&DECOMP_NOHINTS) ) {
+        BINT indent;
+
+
+        BYTEPTR start=(BYTEPTR)CompileEnd,ptr=(BYTEPTR)DecompStringEnd;
+
+        do {
+            --ptr;
+            if(*ptr=='\n') break;
+        } while(ptr>start);
+
+        if(*ptr=='\n') ++ptr;
+
+        // CHECK IF MAXIMUM WIDTH EXCEEDED, THEN ADD A NEW LINE
+        if(((BYTEPTR)DecompStringEnd)-ptr>DECOMP_GETMAXWIDTH(flags)) dhints|=HINT_NLAFTER;
+
+        if(dhints&HINT_ALLAFTER) {
+        indent=0;
+        // TODO: APPLY FORMATTING AFTER THE OBJECT
+        if(dhints&HINT_ADDINDENTAFTER) indent+=2;
+        if(dhints&HINT_SUBINDENTAFTER) indent-=2;
+        if(dhints&HINT_NLAFTER) {
+
+
+
+            // DETERMINE THE INDENT OF THE CURRENT LINE
+
+            while( (ptr<(BYTEPTR)DecompStringEnd)&&(*ptr==' ')) { ++indent; ++ptr; }
+
+            rplDecompAppendChar('\n');
+            int k;
+            for(k=0;k<indent;++k) rplDecompAppendChar(' '); // APPLY INDENT
+
+            return 1;
+        }
+        }
+
+    }
+    return 0;
+}

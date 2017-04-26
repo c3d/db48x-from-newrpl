@@ -2581,7 +2581,7 @@ void LIB_HANDLER()
         // DECOMPILE RECEIVES:
         // DecompileObject = Ptr to prolog of object to decompile
         // DecompStringEnd = Ptr to the end of decompile string
-        // DecompMode = infix mode number, 0 = RPL mode
+        // DecompMode = infix mode number, 0 = RPL mode, upper 16 bits are the original decompiler flags
 
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
@@ -2600,7 +2600,7 @@ void LIB_HANDLER()
             if( (decstring[-2]!='_') || (decstring[-1]!='[')) {
 
             // ALSO, IF NOT IN SYMBOLIC MODE, CHECK IF THE NEXT OBJECT IS THE SYMBTOUNIT COMMAND
-            if(!DecompMode) {
+            if(!(DecompMode&0xffff)) {
                 WORDPTR nextobj=rplSkipOb(DecompileObject);
                 if(nextobj<EndOfObject) {
                     if(*nextobj==MKOPCODE(LIBRARY_NUMBER,SYMBTOUNIT)) {
@@ -2620,7 +2620,7 @@ void LIB_HANDLER()
             rplDecompAppendChar('_');
 
             // NO NEED TO USE BRACKETS UNLESS IT'S A SYMBOLIC
-            if(DecompMode) rplDecompAppendChar('[');
+            if(DecompMode&0xffff) rplDecompAppendChar('[');
             else closebracket=0;
 
 
@@ -2762,7 +2762,7 @@ void LIB_HANDLER()
         // MANUALLY DECOMPILE THE OPERATOR _ WHEN NOT IN SYMBOLIC MODE
 
         if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,SYMBTOUNIT)) {
-            if(!DecompMode) {
+            if(!(DecompMode&0xffff)) {
                // THE UNIT ITSELF ELIMINATED THE NUMBER, SO DON'T INCLUDE ANY OUTPUT
                //rplDecompAppendString("→UNIT");
                // NEED TO REMOVE THE LAST SPACE TO PREVENT A DOUBLE SPACE

@@ -274,6 +274,10 @@ void rplCompileRemoveWords(BINT nwords);
 #define DECOMP_EMBEDDED     1
 #define DECOMP_EDIT         2
 #define DECOMP_NOHINTS      4
+#define DECOMP_MAXWIDTH(n) ((n)<<4)
+#define DECOMP_GETMAXWIDTH(f) (((f)>>4)&0xfff)
+
+#define DEFAULT_DECOMP_WIDTH 20
 
 
 // DECOMPILER FUNCTIONS
@@ -282,6 +286,8 @@ void rplDecompAppendChar(BYTE c);
 void rplDecompAppendUTF8(WORD utf8bytes);
 void rplDecompAppendString(BYTEPTR str);
 void rplDecompAppendString2(BYTEPTR str,BINT len);
+BINT rplDecompDoHintsWidth(BINT dhints);
+
 
 
 
@@ -768,7 +774,7 @@ BINT rplKeyName2Msg(WORDPTR keyname);
 #define FL_ERRORBEEP      -56
 #define FL_ALARMBEEP      -57
 #define FL_COMPLEXMODE    -103
-
+#define FL_AUTOINDENT     -59
 
 
 

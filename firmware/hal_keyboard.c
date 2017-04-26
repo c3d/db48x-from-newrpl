@@ -1702,6 +1702,9 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 {
 
                     BINT dhints=0;
+
+                    if(!rplTestSystemFlag(FL_AUTOINDENT)) {
+
                     LIBHANDLER han=rplGetLibHandler(LIBNUM(*action));
 
 
@@ -1717,6 +1720,8 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         }
 
                         CurOpcode=savecurOpcode;
+                    }
+
                     }
 
 
@@ -5478,6 +5483,8 @@ DECLARE_CMDKEYHANDLER(purge,CMD_PURGE,"PURGE",-1)
 DECLARE_CMDKEYHANDLER(abs,CMD_OVR_ABS,"ABS",1)
 DECLARE_CMDKEYHANDLER(arg,CMD_ARG,"ARG",1)
 
+DECLARE_CMDKEYHANDLER(convert,CMD_CONVERT,"CONVERT",-1)
+
 DECLARE_TRANSPCMDKEYHANDLER(updir,CMD_UPDIR)
 DECLARE_TRANSPCMDKEYHANDLER(home,CMD_HOME)
 
@@ -5891,6 +5898,9 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
 
 
     { KM_PRESS|KB_X, CONTEXT_ANY,KEYHANDLER_NAME(keyx) },
+
+    { KM_PRESS|KB_6|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(convert) },
+    { KM_PRESS|KB_6|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(convert) },
 
 
     // LETTERS

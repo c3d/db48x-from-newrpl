@@ -250,8 +250,8 @@ const systemflag const flags_names[]= {
     { "ALMBEEPOFF" , { 0x80|(-FL_ALARMBEEP),0,0,0,0,0,0,0} },
     { "SAVEALM" , { 0x80|(-FL_SAVACKALRM),0,0,0,0,0,0,0} },
     { "RESCALM" , { (-FL_RESRPTALRM),0,0,0,0,0,0,0} },
-
-
+    { "AUTOINDENT" , { (-FL_AUTOINDENT),0,0,0,0,0,0,0} },
+    { "NOINDENT" , { 0x80|(-FL_AUTOINDENT),0,0,0,0,0,0,0} },
 
 // TODO: ADD MORE FLAG NAMES HERE
     { NULL , {0,0,0,0,0,0,0,0} }

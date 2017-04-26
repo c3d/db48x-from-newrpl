@@ -736,6 +736,7 @@ BINT uiGetIndentLevel(BINT *isemptyline)
         }
 
     BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1),end=ptr+rplStrSize(CmdLineCurrentLine);
+    if(end>ptr+halScreen.CursorPosition) end=ptr+halScreen.CursorPosition;
     BINT level=0;
     while((ptr<end)&&(*ptr==' ')) { ++level; ++ptr; }
 
