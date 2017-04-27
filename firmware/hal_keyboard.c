@@ -40,7 +40,7 @@ BINT halWaitForKey()
     halFlags&=~HAL_HOURGLASS;
     }
 
-    if(wokeup) return 0;   // ALLOW SCREEN REFRESH REQUESTED BY OTHER IRQ'S
+    if(!keyb_wasupdated() && wokeup) return 0;   // ALLOW SCREEN REFRESH REQUESTED BY OTHER IRQ'S
 
 
     // LAST: GO INTO "WAIT FOR INTERRUPT"

@@ -110,7 +110,7 @@ int __keyb_getkey(int wait)
 #define KF_RUNNING   1
 #define KF_ALPHALOCK 2
 #define KF_NOREPEAT  4
-
+#define KF_UPDATED   8
 
 void __keyb_postmsg(unsigned int msg)
 {
@@ -167,6 +167,16 @@ void keyb_flushnowait()
     __kused=__kcurrent;
 }
 
+// RETURN TRUE IF AN UPDATE HAPPENED
+// USED TO DETECT IF AN INTERRUPT WAS DUE TO THE KEYBOARD
+int keyb_wasupdated()
+{
+    int k=__keyflags&KF_UPDATED;
+
+    __keyflags^=k;
+    return k;
+}
+
 
 // ANALYZE CHANGES IN THE KEYBOARD STATUS AND POST MESSAGES ACCORDINGLY
 #define ALPHALOCK   (SHIFT_ALPHA<<17)
@@ -183,6 +193,7 @@ void __keyb_update()
 
     keymatrix a,b;
 
+    __keyflags|=KF_UPDATED;
 doupdate:
 
     a=__keyb_getmatrix();

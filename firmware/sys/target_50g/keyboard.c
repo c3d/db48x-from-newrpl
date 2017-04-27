@@ -168,6 +168,7 @@ void __keyb_waitrelease()
 #define KF_RUNNING   1
 #define KF_ALPHALOCK 2
 #define KF_NOREPEAT  4
+#define KF_UPDATED   8
 
 
 
@@ -274,7 +275,7 @@ __irq_releasehook(0);
 // RESTORE IO PORT CONFIGURATION
 *GPGCON=keysave[0];
 *GPFCON=keysave[1];
-__keyflags&=~1;
+__keyflags&=~KF_RUNNING;
 }
 
 

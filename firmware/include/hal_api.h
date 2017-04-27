@@ -1018,6 +1018,7 @@ void keyb_setshiftplane(int leftshift,int rightshift,int alpha,int alphalock);
 int keyb_anymsg();
 void keyb_flush();
 void keyb_flushnowait();
+int keyb_wasupdated();
 
 
 
