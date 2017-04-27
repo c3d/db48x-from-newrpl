@@ -142,7 +142,6 @@ void halSetMenu2Height(int h)
 void halSetCmdLineHeight(int h)
 {
     int total;
-    int previous=halScreen.CmdLine;
     if(h<0) h=0;
     halScreen.CmdLine=h;
     total=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1+halScreen.Menu2;

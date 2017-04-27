@@ -1780,7 +1780,6 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         if(dhints&HINT_ADDINDENTAFTER) halScreen.CmdLineIndent+=2;
                         if(dhints&HINT_SUBINDENTAFTER) halScreen.CmdLineIndent-=2;
                         if(dhints&HINT_NLAFTER) {
-                            BINT isepmty;
                             BINT nlvl=uiGetIndentLevel(0);
 
                             uiInsertCharacters((BYTEPTR)"\n");
@@ -2308,6 +2307,7 @@ void copyclipKeyHandler(BINT keymsg)
                 // SINGLE OBJECT, JUST PUT IN THE CLIPBOARD
                 rplPushData(rplPeekData(selst));
                 uiCmdRunTransparent(CMD_COPYCLIP,1,1);
+                rplDropData(1);
                 if(Exceptions) {
                     // TODO: SHOW ERROR MESSAGE
                     halShowErrorMsg();
