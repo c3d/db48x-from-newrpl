@@ -1061,8 +1061,9 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
     if(halScreen.CmdLine) {
     int ytop=halScreen.Form+halScreen.Stack;
     if((halScreen.DirtyFlag&CMDLINE_ALLDIRTY)==CMDLINE_ALLDIRTY) {
-        ggl_cliprect(scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.CmdLine-1,0);
+        //ggl_cliprect(scr,0,ytop,SCREEN_WIDTH-1,ytop+halScreen.CmdLine-1,0);
         ggl_cliphline(scr,ytop,0,SCREEN_WIDTH-1,0xf0f0f0f0);
+        ggl_cliphline(scr,ytop+1,0,SCREEN_WIDTH-1,0);
     }
 
     BINT y=(halScreen.LineCurrent-halScreen.LineVisible)*halScreen.CmdLineFont->BitmapHeight;
