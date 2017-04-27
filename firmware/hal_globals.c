@@ -18,6 +18,8 @@ HALSCREEN halScreen __SYSTEM_GLOBAL__;
 
 // CPU SPEED HIGH LEVEL
 BINT halFlags __SYSTEM_GLOBAL__;
+void (*halProcesses[3])(void) __SYSTEM_GLOBAL__;
+
 HEVENT halBusyEvent __SYSTEM_GLOBAL__;
 
 

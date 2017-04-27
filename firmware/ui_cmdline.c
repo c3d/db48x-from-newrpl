@@ -1244,6 +1244,7 @@ void uiAutocompleteUpdate()
 {
     // LOOK AT THE TEXT TO THE LEFT OF THE CURSOR FOR A TOKEN
     // THEN START A NEW SEARCH
+    if(!(halScreen.CmdLineState&CMDSTATE_OPEN)) return;
 
     if(halScreen.LineIsModified<0) {
         uiExtractLine(halScreen.LineCurrent);

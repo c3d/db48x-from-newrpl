@@ -2752,7 +2752,7 @@ void leftKeyHandler(BINT keymsg)
         uiCursorLeft(1);
         if(line!=halScreen.LineCurrent) halScreen.CmdLineIndent=0;
 
-        uiAutocompleteUpdate();
+        halDeferProcess(&uiAutocompleteUpdate);
     }
 }
 
@@ -2952,7 +2952,7 @@ void rightKeyHandler(BINT keymsg)
         uiCursorRight(1);
         if(line!=halScreen.LineCurrent) halScreen.CmdLineIndent=0;
 
-        uiAutocompleteUpdate();
+        halDeferProcess(&uiAutocompleteUpdate);
     }
 }
 
@@ -3088,7 +3088,7 @@ void downKeyHandler(BINT keymsg)
         // GO DOWN ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorDown(1);
         halScreen.CmdLineIndent=0;
-        uiAutocompleteUpdate();
+        halDeferProcess(&uiAutocompleteUpdate);
     }
 }
 
@@ -3120,7 +3120,7 @@ void rsholddownKeyHandler(BINT keymsg)
         uiCursorPageDown();
         halScreen.CmdLineIndent=0;
 
-        uiAutocompleteUpdate();
+        halDeferProcess(&uiAutocompleteUpdate);
     }
 }
 
@@ -3216,7 +3216,8 @@ void upKeyHandler(BINT keymsg)
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorUp(1);
         halScreen.CmdLineIndent=0;
-        uiAutocompleteUpdate();
+        halDeferProcess(&uiAutocompleteUpdate);
+
     }
 }
 
@@ -3246,7 +3247,8 @@ void rsholdupKeyHandler(BINT keymsg)
         // GO UP ONE LINE IN MULTILINE TEXT EDITOR
         uiCursorPageUp();
         halScreen.CmdLineIndent=0;
-        uiAutocompleteUpdate();
+        halDeferProcess(&uiAutocompleteUpdate);
+
     }
 }
 
@@ -6389,6 +6391,33 @@ int halProcessKey(BINT keymsg, int (*dokey)(BINT),BINT flags)
     else return 0;
 }
 
+
+// SET A PROCESS TO BE EXECUTED AS SOON AS THERE'S NO MORE KEY PRESSES
+void halDeferProcess(void (*function)(void))
+{
+    int k;
+    for(k=0;k<3;++k) {
+        if(halProcesses[k]==0) halProcesses[k]=function; break;
+    }
+}
+
+// PERFORM ALL DEFERRED PROCESSES
+void halDoDeferredProcess()
+{
+    int k;
+    for(k=0;k<3;++k) {
+        if(halProcesses[k]!=0) {
+            void (*func)()=halProcesses[k];
+            halProcesses[k]=0;
+            (*func)();
+        }
+    }
+
+}
+
+
+
+
 // THIS FUNCTION RETURNS WHEN THE FORM CLOSES, OR THE USER EXITS WITH THE ON KEY
 
 void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
@@ -6442,6 +6471,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
         if(!keymsg) {
             // SOMETHING OTHER THAN A KEY WOKE UP THE CPU
 
+            halDoDeferredProcess();
 
             if(!isidle) offcounter=halTicks();
 

@@ -191,6 +191,8 @@ typedef struct {
     int StkPointer,StkVisibleLvl,StkSelStart,StkSelEnd;
     int StkVisibleOffset,StkSelStatus;
 
+    // DEFERRED IDLE PROCESSES
+    void (*Processes[3])(void);
 
 
 } HALSCREEN;
@@ -1233,6 +1235,7 @@ void halInitMemoryMap();
 
 
 BINT halFlags;
+void (*halProcesses[3])(void);
 HEVENT halBusyEvent,halTimeoutEvent;
 BINT halLongKeyPending;
 
@@ -1315,6 +1318,10 @@ void halInitKeyboard();
 BINT halWaitForKey();
 BINT halWaitForKeyTimeout(BINT timeoutms);
 void halPostKeyboardMessage(BINT keymsg);
+
+// IDLE PROCESSES
+void halDeferProcess(void (*function)(void));
+
 
 
 // RENDER CACHE EXTERNAL DATA

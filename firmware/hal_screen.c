@@ -468,6 +468,7 @@ void halRedrawStack(DRAWSURFACE *scr)
 void halInitScreen()
 {
 halFlags=0;
+halProcesses[0]=halProcesses[1]=halProcesses[2]=0;
 halScreen.HelpMode=0;
 halScreen.CmdLine=0;
 halScreen.Menu1=MENU1_HEIGHT;
@@ -1517,3 +1518,4 @@ void halShowMsg(char *Text)
 
     halShowMsgN(Text,End);
 }
+
