@@ -217,7 +217,8 @@ SOURCES += main.cpp\
     newrpl/lib-88-plot.c \
     newrpl/fastmath.c \
     newrpl/lib-77-libdata.c \
-    newrpl/render.c
+    newrpl/render.c \
+    newrpl/lib-96-composites.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -270,6 +271,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-77.nrpl \
                 newrpl/rpl-objects/lib-80.nrpl \
                 newrpl/rpl-objects/lib-88.nrpl \
+                newrpl/rpl-objects/lib-96.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 
@@ -294,6 +296,5 @@ rpl_compiler.variable_out = SOURCES
 
 QMAKE_EXTRA_COMPILERS += rpl_compiler
 
-DISTFILES +=
 
 

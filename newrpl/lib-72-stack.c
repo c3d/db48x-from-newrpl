@@ -51,7 +51,10 @@
     CMD(ROT,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
     CMD(SWAP,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(UNPICK,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(UNROT,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+    CMD(UNROT,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(IFT,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    CMD(IFTE,MKTOKENINFO(4,TITYPE_FUNCTION,3,2))
+
 
 // ADD MORE OPCODES HERE
 
@@ -80,6 +83,41 @@ ROMOBJECT unprotect_seco[]={
     CMD_SEMI
 };
 
+
+ROMOBJECT ift_seco[]={
+    MKPROLOG(DOCOL,9),
+    (CMD_OVER),
+    (CMD_OVR_NUM),    // DO NUM
+    (CMD_IF),
+    (CMD_THEN),
+    (CMD_SWAP),
+    (CMD_DROP),
+    (CMD_OVR_XEQ),    // DO XEQ, IT WILL RUN IF CODE, DO NOTHING OTHERWISE
+    (CMD_ENDIF),
+    CMD_SEMI
+};
+
+
+ROMOBJECT ifte_seco[]={
+    MKPROLOG(DOCOL,14),
+    (CMD_PICK3),
+    (CMD_OVR_NUM),    // DO NUM
+    (CMD_IF),
+    (CMD_THEN),
+    (CMD_DROP),
+    (CMD_SWAP),
+    (CMD_DROP),
+    (CMD_OVR_XEQ),    // DO XEQ, IT WILL RUN IF CODE, DO NOTHING OTHERWISE
+    (CMD_ELSE),
+    (CMD_UNROT),
+    (CMD_DROP2),
+    (CMD_OVR_XEQ),    // DO XEQ, IT WILL RUN IF CODE, DO NOTHING OTHERWISE
+    (CMD_ENDIF),
+    CMD_SEMI
+};
+
+
+
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
@@ -87,6 +125,8 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)LIB_HELPTABLE,
     (WORDPTR)lib72menu_main,
     (WORDPTR)unprotect_seco,
+    (WORDPTR)ift_seco,
+    (WORDPTR)ifte_seco,
     0
 };
 
@@ -410,6 +450,80 @@ void LIB_HANDLER()
         else DStkProtect=DStkBottom;
         return;
     }
+
+
+
+    case IFT:
+     {
+         if(rplDepthData()<2) {
+             rplError(ERR_BADARGCOUNT);
+             return;
+         }
+
+         if(ISIDENT(*rplPeekData(2))||ISSYMBOLIC(*rplPeekData(2)))
+         {
+             // TRY INDIRECT EXECUTION BY DOING ->NUM ON THE ARGUMENT FIRST
+             rplPushRet(IPtr);
+             IPtr=(WORDPTR) ift_seco;
+             return;
+         }
+
+             // DIRECT EXECUTION
+
+             if(rplIsFalse(rplPeekData(2))) {
+                 rplDropData(2);
+                 return;
+             }
+
+             rplOverwriteData(2,rplPeekData(1));
+             rplDropData(1);
+             rplCallOvrOperator(CMD_OVR_XEQ);
+             return;
+
+     }
+
+
+     case IFTE:
+     {
+         if(rplDepthData()<3) {
+             rplError(ERR_BADARGCOUNT);
+             return;
+         }
+
+         if(ISIDENT(*rplPeekData(3))||ISSYMBOLIC(*rplPeekData(3)))
+         {
+             // TRY INDIRECT EXECUTION BY DOING ->NUM ON THE ARGUMENT FIRST
+             rplPushRet(IPtr);
+             IPtr=(WORDPTR) ifte_seco;
+             return;
+         }
+
+             // DIRECT EXECUTION
+
+             if(rplIsFalse(rplPeekData(3))) rplOverwriteData(3,rplPeekData(1));
+             else rplOverwriteData(3,rplPeekData(2));
+             rplDropData(2);
+             rplCallOvrOperator(CMD_OVR_XEQ);
+             return;
+
+     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         // STANDARIZED OPCODES:
         // --------------------

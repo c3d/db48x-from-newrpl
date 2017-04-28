@@ -104,36 +104,6 @@ L → O "
 elements in list
 L → O "
 
-PUT
-"Replace element at
-given position
-L <I or L> O → L "
-
-PUTI
-"Replace element at pos,
-increment index
-L <I or L> O → L <I or L>"
-
-GET
-"Obtain element at
-given position
-L <I or L> → O "
-
-GETI
-"Obtain element at pos,
-increment index
-L <I or L> → L <I or L> O "
-
-HEAD
-"Return first element
-
-L → O "
-
-TAIL
-"Remove first element
-
-L → L "
-
 ADD
 "Append new element
 to list

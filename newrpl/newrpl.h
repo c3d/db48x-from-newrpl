@@ -669,6 +669,9 @@ WORDPTR rplMatrixCompose(BINT rows,BINT cols);
 WORDPTR rplMatrixComposeN(BINT level,BINT rows,BINT cols);
 WORDPTR rplMatrixFlexComposeN(BINT level,BINT totalelements);
 
+BINT rplMatrixIsAllowed(WORDPTR object);
+
+
 WORDPTR *rplMatrixExplode();
 WORDPTR rplMatrixGetFirstObj(WORDPTR matrix);
 BINT rplMatrixCols(WORDPTR matrix);
@@ -775,6 +778,7 @@ BINT rplKeyName2Msg(WORDPTR keyname);
 #define FL_ALARMBEEP      -57
 #define FL_COMPLEXMODE    -103
 #define FL_AUTOINDENT     -59
+#define FL_INDEXWRAP      -64
 
 
 

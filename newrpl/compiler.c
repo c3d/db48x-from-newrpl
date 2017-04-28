@@ -258,13 +258,6 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
                 if(RetNum>=OK_TOKENINFO) {
                     // PROCESS THE INFORMATION ABOUT THE TOKEN
-                    if(TI_TYPE(RetNum)==TITYPE_NOTALLOWED) {
-                        // THIS TOKEN IS NOT ALLOWED IN SYMBOLICS
-
-                        rplError(ERR_NOTALLOWEDINSYMBOLICS);
-                        LAMTop=LAMTopSaved;
-                        return 0;
-                    }
                     if(TI_LENGTH(RetNum)>TI_LENGTH(probe_tokeninfo)) {
                         probe_libnum=libnum;
                         probe_tokeninfo=RetNum;
@@ -451,10 +444,21 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
            if(libcnt>EXIT_LOOP) {
                if(infixmode) {
                 // FINISHED PROBING FOR TOKENS
+
                 if(probe_libnum<0) {
                     rplError(ERR_INVALIDTOKEN);
                 }
                 else {
+
+                    if(TI_TYPE(probe_tokeninfo)==TITYPE_NOTALLOWED) {
+                        // THIS TOKEN IS NOT ALLOWED IN SYMBOLICS
+                        rplError(ERR_NOTALLOWEDINSYMBOLICS);
+                        LAMTop=LAMTopSaved;
+                        return 0;
+                    }
+
+
+
                 // GOT THE NEXT TOKEN IN THE STREAM
                     // COMPILE THE TOKEN
 

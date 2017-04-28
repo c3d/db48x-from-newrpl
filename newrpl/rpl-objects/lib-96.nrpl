@@ -1,0 +1,67 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib96_msgtable
+{
+ ##1,ERR_COMPOSITEEXPECTED "Expected a composite object"
+ ##1,ERR_INVALIDPOSITION "Invalid position"
+}
+
+
+@#name lib96menu_main
+{
+PUT PUTI GET GETI HEAD TAIL REPL OBJ→ POS SUB
+}
+
+@#name lib96_cmdhelp
+{
+
+PUT
+"Replace element at
+given position
+O<L|M> O<I|L> O → [L|M] "
+
+PUTI
+"Replace element at pos,
+increment index
+O<L|M> O<I|L> O → [L|M] O<I|L>"
+
+GET
+"Obtain element at
+given position
+L <I or L> → O "
+
+GETI
+"Obtain element at pos,
+increment index
+L <I or L> → L <I or L> O "
+
+HEAD
+"Return first element
+
+L → O "
+
+TAIL
+"Remove first element
+
+L → L "
+
+}
+
+
+
+

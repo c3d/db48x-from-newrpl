@@ -1468,3 +1468,16 @@ matrix[1]=MATMKSIZE(rows,cols);
 return matrix;
 
 }
+
+
+BINT rplMatrixIsAllowed(WORDPTR object)
+{
+    if(! (ISNUMBERCPLX(*object)
+          || ISSYMBOLIC(*object)
+          || ISIDENT(*object)
+          || ISANGLE(*object))) {
+           return 0;
+        }
+    return 1;
+
+}

@@ -44,8 +44,9 @@
     CMD(AUTOSIMPLIFY,MKTOKENINFO(12,TITYPE_NOTALLOWED,1,2)), \
     CMD(RULEMATCH,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(RULEAPPLY,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TOFRACTION,"→Q",MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
-    CMD(TEST,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    ECMD(TOFRACTION,"→Q",MKTOKENINFO(2,TITYPE_FUNCTION,1,2))
+
+//    CMD(TEST,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
 
 //    ECMD(CMDNAME,"CMDNAME",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
 
@@ -100,6 +101,9 @@ ROMOBJECT symbnum_seco[]={
     MKOPCODE(LIBRARY_NUMBER,SYMBNUMPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
     CMD_SEMI
 };
+
+
+
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
@@ -1273,28 +1277,9 @@ void LIB_HANDLER()
         return;
     }
 
-    case TEST:
-    {
-    // THIS IS FOR DEBUG ONLY
-        if(rplDepthData()<1) {
-                rplError(ERR_BADARGCOUNT);
-            return;
-        }
 
-        if(!ISSYMBOLIC(*rplPeekData(1))) {
-            rplError(ERR_SYMBOLICEXPECTED);
 
-            return;
-        }
 
-        WORDPTR newobj=(WORDPTR)rplSymbCanonicalForm(rplPeekData(1));
-        if(newobj) rplOverwriteData(1,newobj);
-
-        newobj=(WORDPTR)rplSymbNumericReduce(rplPeekData(1));
-
-        if(newobj) rplPushData(newobj);
-        return;
-    }
 
     // STANDARIZED OPCODES:
     // --------------------
@@ -1431,7 +1416,7 @@ void LIB_HANDLER()
             RetNum= OK_ENDCONSTRUCT_INFIX;
             return;
         }
-
+/*
         if(*((char *)TokenStart)=='(') {
             RetNum= OK_TOKENINFO | MKTOKENINFO(1,TITYPE_OPENBRACKET,0,31);
             return;
@@ -1441,21 +1426,21 @@ void LIB_HANDLER()
             RetNum= OK_TOKENINFO | MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31);
             return;
         }
-
+*/
         if((WORD)utf82cp((char *)TokenStart,(char *)BlankStart)==ARG_SEP(Locale)) {
             RetNum= OK_TOKENINFO | MKTOKENINFO(1,TITYPE_COMMA,0,31);
             return;
         }
-
+/*
         if( !utf8ncmp((char *)TokenStart,":→",2) ) {
             RetNum= OK_TOKENINFO | MKTOKENINFO(2,TITYPE_BINARYOP_LEFT,2,14);
             return;
         }
+*/
 
-        RetNum = ERR_NOTMINE;
+        libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+
         return;
-
-
         }
 
     case OPCODE_GETINFO:
