@@ -161,6 +161,7 @@ WORDPTR *rplFindLAMbyName(BYTEPTR name, BINT len, BINT scanparents)
 while(ltop>stop) {
     ltop-=2;
     if(rplCompareIDENTByName(*ltop,name,name+len)) return ltop;
+    if(**ltop==LAM_PRIVATEVAR) return 0;
 }
 return 0;
 }
@@ -173,6 +174,7 @@ WORDPTR *rplFindLAM(WORDPTR nameobj,BINT scanparents)
 while(ltop>stop) {
     ltop-=2;
     if(rplCompareIDENT(nameobj,*ltop)) return ltop;
+    if(**ltop==LAM_PRIVATEVAR) return 0;
 }
 return 0;
 }
@@ -185,6 +187,7 @@ WORDPTR rplGetLAM(WORDPTR nameobj)
 while(ltop>LAMs) {
     ltop-=2;
     if(rplCompareIDENT(nameobj,*ltop)) return *(ltop+1);
+    if(**ltop==LAM_PRIVATEVAR) return 0;
 }
 return 0;
 }
@@ -245,7 +248,7 @@ void rplCleanupLAMs(WORDPTR currentseco)
     WORDPTR *ltop=LAMTop;
 while(ltop>LAMs) {
     ltop-=2;
-    if(**ltop==LAM_BASESECO) {
+    if(**ltop==LAM_ENVOWNER) {
             if(((*(ltop+1))==currentseco)||(currentseco==0)) {
                 LAMTop=ltop;
                 nLAMBase=rplGetNextLAMEnv(LAMTop);
@@ -269,12 +272,11 @@ WORDPTR *rplGetNextLAMEnv(WORDPTR *startpoint)
 {
 while(startpoint>LAMs) {
     startpoint-=2;
-    if(**startpoint==LAM_BASESECO) return startpoint;
+    if(**startpoint==LAM_ENVOWNER) return startpoint;
     }
 // NOT FOUND, RETURN NULL
 return 0;
 }
-
 
 
 // DETERMINE WHETHER A NEW ENVIRONMENT IS NEEDED TO CREATE A LOCAL

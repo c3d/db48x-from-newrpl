@@ -323,8 +323,9 @@ void libFindMsg(BINT message,WORDPTR table);
 
 
 // CONSTANTS FOR LAM ENVIRONMENTS
-#define LAM_BASESECO     MAKESINT(0x10000)
-#define LAM_ERRHANDLER   MAKESINT(0x10001)
+#define LAM_ENVOWNER     MAKESINT(0x10000)
+#define LAM_PRIVATEVAR   MAKESINT(0x10001)
+#define LAM_NOPRIVATEVAR MAKESINT(0x10002)
 
 #define DIR_START_MARKER  MAKESINT(0x20000)
 #define DIR_END_MARKER    MAKESINT(0x20001)
@@ -458,7 +459,6 @@ void libFindMsg(BINT message,WORDPTR table);
 
 extern const WORD abnd_prog[];
 extern const WORD lam_baseseco_bint[];
-extern const WORD lam_errhandler_bint[];
 extern const WORD nulllam_ident[];
 extern const WORD minusone_bint[];
 extern const WORD zero_bint[];

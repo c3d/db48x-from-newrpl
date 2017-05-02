@@ -34,7 +34,9 @@
     ECMD(NULLLAM,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     ECMD(LAMEVALPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     ECMD(LAMEVALPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(LAMEVALERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2))
+    ECMD(LAMEVALERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
+    CMD(HIDELOCALS,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(UNHIDELOCALS,MKTOKENINFO(12,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -110,14 +112,15 @@ ROMOBJECT abnd_prog[]=
 // INTERNAL SINT OBJECTS
 ROMOBJECT lam_baseseco_bint[]=
 {
-    (WORD)LAM_BASESECO
+    (WORD)LAM_ENVOWNER
 };
 
-// INTERNAL SINT OBJECTS
-ROMOBJECT lam_errhandler_bint[]=
+ROMOBJECT lam_privatevar_bint[]=
 {
-    (WORD)LAM_ERRHANDLER
+    (WORD)LAM_PRIVATEVAR,
+    (WORD)LAM_NOPRIVATEVAR
 };
+
 
 // INTERNAL NULLLAM IDENT OBJECTS
 ROMOBJECT nulllam_ident[]=
@@ -140,7 +143,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)lameval_seco,
     (WORDPTR)abnd_prog,
     (WORDPTR)lam_baseseco_bint,
-    (WORDPTR)lam_errhandler_bint,
+    (WORDPTR)lam_privatevar_bint,
     (WORDPTR)LIB_MSGTABLE,
     0
 };
@@ -620,6 +623,41 @@ void LIB_HANDLER()
     // ADD MORE OPCODES HERE
 
 
+    case HIDELOCALS:
+    {
+        // HIDE ALL LOCAL VARIABLES AFTER THIS POINT FROM ANY CHILD PROCESSES
+        // STORE CONTENT INSIDE A LAM VARIABLE, CREATE A NEW VARIABLE IF NEEDED
+
+        BINT neednewenv=rplNeedNewLAMEnv();
+
+            // LAM WAS NOT FOUND, CREATE A NEW ONE
+            if(neednewenv) {
+                // A NEW LAM ENVIRONMENT NEEDS TO BE CREATED
+                rplCreateLAMEnvironment(rplPeekRet(1));
+                // AND PUSH THE AUTOMATIC CLEANUP ROUTINE
+                rplPushRet((WORDPTR)abnd_prog);
+            }
+                // CREATE A NEW NEW VARIABLE WITHIN THE CURRENT ENVIRONMENT
+                // THAT WILL STOP ALL SEARCHES
+                rplCreateLAM((WORDPTR)lam_privatevar_bint,(WORDPTR)one_bint);
+    return;
+    }
+
+
+    case UNHIDELOCALS:
+        {
+        // REMOVE PROTECTION FOR LOCAL VARIABLES HIDDEN WITH HIDELOCALS
+            BINT neednewenv=rplNeedNewLAMEnv();
+
+                // LAM WAS NOT FOUND, CREATE A NEW ONE
+                if(neednewenv) {
+                    return; // CANNOT REMOVE PROTECTION FOR PARENT SECONDARIES
+                }
+
+                WORDPTR *var=rplFindLAM((WORDPTR)lam_privatevar_bint,0);
+                if(var) *var=(WORDPTR)lam_privatevar_bint+1;
+        return;
+        }
 
 
 
@@ -829,6 +867,80 @@ void LIB_HANDLER()
 
 
             rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
+            RetNum=OK_CONTINUE;
+            return;
+        }
+
+        // HIDELOCALS NEEDS SPECIAL CONSIDERATION TO CREATE LAMS AT COMPILE TIME, OR TRACING WILL BE OFF BY 1
+
+        if((TokenLen==10) && (!utf8ncmp((char *)TokenStart,"HIDELOCALS",4)))
+        {
+
+            // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
+            WORDPTR object,prevobject;
+            BINT notrack=0;
+            if(ValidateTop<=ValidateBottom) {
+                // THERE'S NO ENVIRONMENT
+                object=TempObEnd;   // START OF COMPILATION
+            } else {
+                object=*(ValidateTop-1);    // GET LATEST CONSTRUCT
+                ++object;                   // AND SKIP THE PROLOG / ENTRY WORD
+
+                // CHECK FOR CONDITIONAL VARIABLE CREATION!
+                WORDPTR *construct=ValidateTop-1;
+                while(construct>=ValidateBottom) {
+                    if((**construct==CMD_THEN)||(**construct==CMD_ELSE)
+                            ||(**construct==CMD_THENERR)||(**construct==CMD_ELSEERR)
+                            ||(**construct==CMD_THENCASE)||(**construct==CMD_REPEAT) )
+                    {
+                        // DON'T TRACK LAMS THAT COULD BE CONDITIONALLY CREATED
+                        notrack=1;
+                        break;
+                    }
+                    --construct;
+                }
+
+                // CHECK FOR PREVIOUS LAM TRACKING DISABLE MARKERS
+                if(!notrack) {
+
+                    WORDPTR *env=nLAMBase;
+                    do {
+                        if(env<LAMTopSaved) break;
+                        if(env[1]==(WORDPTR)lameval_seco) {
+                        // FOUND THE MARKER, STOP TRACKING VARIABLES THIS COMPILE SESSION
+                            notrack=1;
+                            break;
+                        }
+                        env=rplGetNextLAMEnv(env);
+                    } while(env);
+
+
+                }
+
+
+            }
+
+            if(object<CompileEnd) {
+
+
+            // WE HAVE A HARD-CODED IDENT, CHECK IF IT EXISTS ALREADY
+
+                // CHECK IF IT'S AN EXISTING LAM, COMPILE TO A PUTLAM OPCODE IF POSSIBLE
+
+                    // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
+                    if(!notrack) {
+                    // DO WE NEED A NEW ENVIRONMENT?
+
+                    if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
+                        rplCreateLAMEnvironment(*(ValidateTop-1));
+                    }
+                    rplCreateLAM((WORDPTR)lam_privatevar_bint,(WORDPTR)lam_privatevar_bint);
+                    }
+
+                  }
+
+
+            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,HIDELOCALS));
             RetNum=OK_CONTINUE;
             return;
         }
