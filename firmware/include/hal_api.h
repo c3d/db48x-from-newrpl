@@ -1362,10 +1362,17 @@ void uiDrawBitmap(WORDPTR bmp,DRAWSURFACE *scr);
 #define __ROMLINK__  __attribute__((section (".romlink")))
 
 
-// REDEFINE SOME CONSTANTS FOR THE PC EMULATOR TARGET
+// REDEFINE SOME CONSTANTS FOR THE VARIOUS TARGETS
 #ifdef TARGET_PC
 #include <target_pc.h>
+#endif
 
+#ifdef TARGET_39GS
+#include <target_39gs.h>
+#endif
+
+#ifdef TARGET_40GS
+#include <target_40gs.h>
 #endif
 
 #include <fsystem.h>

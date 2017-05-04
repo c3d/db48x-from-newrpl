@@ -223,7 +223,6 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.h \
     qemuscreen.h \
     firmware/include/ggl.h \
-    target_pc.h \
     firmware/include/ui.h \
     firmware/include/hal_api.h \
     newrpl/hal.h \
@@ -243,7 +242,8 @@ HEADERS  += mainwindow.h \
     firmware/sys/sddriver.h \
     firmware/sys/fsystem/fsyspriv.h \
     newrpl/fastmath.h \
-    newrpl/render.h
+    newrpl/render.h \
+    firmware/include/target_pc.h
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-9.nrpl \
