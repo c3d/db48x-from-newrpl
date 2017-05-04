@@ -228,9 +228,15 @@ enum {
 #define CMDSTATE_ACUPDATE   0x4000
 
 
-//! Type definition for interrupt handler functions
+// Type definition for interrupt handler functions
 
 typedef void (*__interrupt__)(void);
+
+
+// Firmware preamble string
+
+#define PREAMBLE_STRING "KINPOUPDATEIMAGE"
+
 
 
 // THIS ENUM MUST BE DUPLICATED EXACTLY IN hal.h OF THE NEWRPL-BASE PROJECT
