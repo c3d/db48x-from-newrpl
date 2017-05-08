@@ -6,7 +6,11 @@
  */
 
 
-#include <stdint.h>
+#include <ui.h>
+
+#ifndef CONFIG_LIGHT_MATH_TABLES
+
+
 
 
 // COMPRESSED TABLE FOR atan_1_8
@@ -3865,3 +3869,4 @@ const uint8_t const atan_1_8_stream[22250]= {
 
 };
 
+#endif

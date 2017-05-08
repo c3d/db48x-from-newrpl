@@ -5,8 +5,11 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
+#include <ui.h>
 
-#include <stdint.h>
+#ifndef CONFIG_LIGHT_MATH_TABLES
+
+
 
 
 // COMPRESSED TABLE FOR atan_5_8
@@ -4065,3 +4068,4 @@ const uint8_t const atan_5_8_stream[24032]= {
 235, 4
 };
 
+#endif

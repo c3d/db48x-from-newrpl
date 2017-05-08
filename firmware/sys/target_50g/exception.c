@@ -416,47 +416,47 @@ else {
 if(options&__EX_CONT) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 		// DRAW BUTTON 1
-        __ex_print(0,12*6,"Cont");
+        __ex_print(0,(SCREEN_HEIGHT-8),"Cont");
 		//pnewb[70*5]|=0x10000;
-		for(f=0;f<8;++f) pnewb[71*5+5*f]|=0x20000;
-		pnewb[78*5]|=0x3ffff;
-		pnewb[79*5]|=0x3fffc;
+        for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+5*f]|=0x20000;
+        pnewb[(SCREEN_HEIGHT-2)*5]|=0x3ffff;
+        pnewb[(SCREEN_HEIGHT-1)*5]|=0x3fffc;
 }
 
 if(options&(__EX_EXIT|__EX_RPLEXIT)) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 
 		// DRAW BUTTON 2
-        __ex_print(5*4,12*6,"Exit");
-		for(f=0;f<8;++f) pnewb[71*5+1+5*f]|=0x20;
-		pnewb[78*5]|=0xfff80000;
-		pnewb[78*5+1]|=0x3f;
-		pnewb[79*5]|=0xffe00000;
-		pnewb[79*5+1]|=0x3f;
+        __ex_print(5*4,(SCREEN_HEIGHT-8),"Exit");
+        for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+1+5*f]|=0x20;
+        pnewb[(SCREEN_HEIGHT-2)*5]|=0xfff80000;
+        pnewb[(SCREEN_HEIGHT-2)*5+1]|=0x3f;
+        pnewb[(SCREEN_HEIGHT-1)*5]|=0xffe00000;
+        pnewb[(SCREEN_HEIGHT-1)*5+1]|=0x3f;
 }
 
 if(options&__EX_WARM) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 
 		// DRAW BUTTON 3
-        if(options&__EX_WIPEOUT) __ex_print(11*4,12*6,"*Clear Mem*");
-            else __ex_print(11*4,12*6,"*Warmstart*");
-		for(f=0;f<8;++f) pnewb[71*5+2+5*f]|=0x2000000;
-		pnewb[78*5+2]|=0x3ffffff;
-		pnewb[78*5+1]|=0xfffff000;
-		pnewb[79*5+2]|=0x3ffffff;
-		pnewb[79*5+1]|=0xffffc000;
+        if(options&__EX_WIPEOUT) __ex_print(11*4,(SCREEN_HEIGHT-8),"*Clear Mem*");
+            else __ex_print(11*4,(SCREEN_HEIGHT-8),"*Warmstart*");
+        for(f=0;f<8;++f) pnewb[(SCREEN_HEIGHT-9)*5+2+5*f]|=0x2000000;
+        pnewb[(SCREEN_HEIGHT-2)*5+2]|=0x3ffffff;
+        pnewb[(SCREEN_HEIGHT-2)*5+1]|=0xfffff000;
+        pnewb[(SCREEN_HEIGHT-1)*5+2]|=0x3ffffff;
+        pnewb[(SCREEN_HEIGHT-1)*5+1]|=0xffffc000;
 }
 
 if(options&__EX_RESET) {
         int *pnewb=(int *)MEM_PHYS_EXSCREEN;
 		// DRAW BUTTON 4
-        __ex_print(23*4,12*6,"**Reset**");
-		for(f=0;f<9;++f) pnewb[71*5+4+5*f]|=0x1;
-		pnewb[78*5+3]|=0xffffffff;
-		pnewb[78*5+2]|=0xf0000000;
-		pnewb[79*5+3]|=0xffffffff;
-		pnewb[79*5+2]|=0xc0000000;
+        __ex_print(23*4,(SCREEN_HEIGHT-8),"**Reset**");
+        for(f=0;f<9;++f) pnewb[(SCREEN_HEIGHT-9)*5+4+5*f]|=0x1;
+        pnewb[(SCREEN_HEIGHT-2)*5+3]|=0xffffffff;
+        pnewb[(SCREEN_HEIGHT-2)*5+2]|=0xf0000000;
+        pnewb[(SCREEN_HEIGHT-1)*5+3]|=0xffffffff;
+        pnewb[(SCREEN_HEIGHT-1)*5+2]|=0xc0000000;
 }
 		
 // WARMSTART AND RESET REQUIRE SIMULTANEOUS SHIFT OR ALPHA KEYPRESS

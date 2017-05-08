@@ -5,8 +5,12 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
+#include <ui.h>
 
-#include <stdint.h>
+
+#ifndef CONFIG_LIGHT_MATH_TABLES
+
+
 
 
 // COMPRESSED TABLE FOR cordic_K_8
@@ -7889,3 +7893,4 @@ const uint8_t const cordic_K_8_stream[13506]= {
 248, 251, 15, 48, 249, 251
 };
 
+#endif

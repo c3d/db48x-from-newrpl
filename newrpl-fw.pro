@@ -212,12 +212,21 @@ SOURCES +=\
     newrpl/lib-78-fonts.c \
     newrpl/lib-80-bitmaps.c \
     newrpl/lib-88-plot.c \
+    newrpl/lib-96-composites.c \
     firmware/ggl/ggl/ggl_fltreplace.c \
     firmware/hal_alarm.c \
     firmware/ui_render.c \
     firmware/ui_forms.c \
     newrpl/fastmath.c \
-    newrpl/render.c
+    newrpl/render.c \
+    newrpl/atan_1_8_light.c \
+    newrpl/atan_2_8_light.c \
+    newrpl/atan_5_8_light.c \
+    newrpl/atanh_1_8_light.c \
+    newrpl/atanh_2_8_light.c \
+    newrpl/atanh_5_8_light.c \
+    newrpl/cordic_kh_8_light.c \
+    newrpl/cordic_K_8_light.c
 
 
 HEADERS  += \
@@ -269,6 +278,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-77.nrpl \
                 newrpl/rpl-objects/lib-80.nrpl \
                 newrpl/rpl-objects/lib-88.nrpl \
+                newrpl/rpl-objects/lib-96.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 

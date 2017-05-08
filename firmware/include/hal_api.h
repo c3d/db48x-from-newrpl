@@ -228,9 +228,15 @@ enum {
 #define CMDSTATE_ACUPDATE   0x4000
 
 
-//! Type definition for interrupt handler functions
+// Type definition for interrupt handler functions
 
 typedef void (*__interrupt__)(void);
+
+
+// Firmware preamble string
+
+#define PREAMBLE_STRING "KINPOUPDATEIMAGE"
+
 
 
 // THIS ENUM MUST BE DUPLICATED EXACTLY IN hal.h OF THE NEWRPL-BASE PROJECT
@@ -1362,10 +1368,17 @@ void uiDrawBitmap(WORDPTR bmp,DRAWSURFACE *scr);
 #define __ROMLINK__  __attribute__((section (".romlink")))
 
 
-// REDEFINE SOME CONSTANTS FOR THE PC EMULATOR TARGET
+// REDEFINE SOME CONSTANTS FOR THE VARIOUS TARGETS
 #ifdef TARGET_PC
 #include <target_pc.h>
+#endif
 
+#ifdef TARGET_39GS
+#include <target_39gs.h>
+#endif
+
+#ifdef TARGET_40GS
+#include <target_40gs.h>
 #endif
 
 #include <fsystem.h>

@@ -12,7 +12,7 @@ int halGetFreePages()
 {
     int *mmutable=(int *)MEM_REVERSEMMU;
     int count=0;
-    while(mmutable<(int *)(MEM_REVERSEMMU+0x200)) { if(*mmutable==0) ++count; ++mmutable; }
+    while(mmutable<(int *)(MEM_REVERSEMMU+halGetTotalPages()*4)) { if(*mmutable==0) ++count; ++mmutable; }
     return count;
 }
 int halGetTotalPages()

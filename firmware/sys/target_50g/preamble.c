@@ -5,8 +5,13 @@
  * See the file LICENSE.txt that shipped with this distribution.
  */
 
+
+#include <ui.h>
+
+
 char kinpo_preamble[16] __attribute__( (section (".preamble")))
-={'K','I','N','P','O','U','P','D','A','T','E','I','M','A','G','E'} ;
+= PREAMBLE_STRING;
+
 unsigned int filler[2] __attribute__( (section (".preamble"))) = { 0,0 };
 
 extern void startup(int);
