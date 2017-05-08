@@ -1299,12 +1299,10 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
 
                     }
-                    uiSeparateToken();
-                    uiInsertCharacters((BYTEPTR)"'");
+
+                    // JUST INSERT THE NAME IN ALGEBRAIC MODE
+
                     uiInsertCharactersN((BYTEPTR)(action+1),(BYTEPTR)(action+1)+rplGetIdentLength(action));
-                    uiInsertCharacters((BYTEPTR)"' RCL");
-                    uiSeparateToken();
-                    uiAutocompleteUpdate();
                     break;
 
                 case 'P':

@@ -298,7 +298,10 @@ void LIB_HANDLER()
                     }
                     else rplCompileReal(&RReg[0]);
                     tok=((BYTEPTR)TokenStart)+splitoff;
-                }
+                } else {
+                    RetNum=ERR_SYNTAX;
+                    return;
+                       }
 
 
             } else {

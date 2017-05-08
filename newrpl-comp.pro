@@ -215,7 +215,8 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/ui_render.c \
     newrpl/lib-88-plot.c \
     newrpl/fastmath.c \
-    newrpl/render.c
+    newrpl/render.c \
+    newrpl/lib-96-composites.c
 
 
 

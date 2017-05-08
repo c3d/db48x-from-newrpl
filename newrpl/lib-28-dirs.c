@@ -1020,6 +1020,14 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+
+        if(ISLIST(*rplPeekData(1))) {
+            rplListUnaryDoCmd();
+            return;
+        }
+
+
         // ONLY ACCEPT IDENTS AS KEYS
 
         if(!ISIDENT(*rplPeekData(1))) {
@@ -1054,6 +1062,13 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    if(ISLIST(*rplPeekData(1))) {
+        rplListUnaryDoCmd();
+        return;
+    }
+
+
+
     // ONLY ACCEPT IDENTS AS KEYS
 
     if(!ISIDENT(*rplPeekData(1))) {
@@ -1110,6 +1125,12 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+
+    if(ISLIST(*rplPeekData(1))) {
+        rplListUnaryDoCmd();
+        return;
+    }
+
     // ONLY ACCEPT IDENTS AS KEYS
 
     if(!ISIDENT(*rplPeekData(1))) {
@@ -1142,6 +1163,13 @@ case UNLOCKVAR:
         rplError(ERR_BADARGCOUNT);
         return;
     }
+
+
+    if(ISLIST(*rplPeekData(1))) {
+        rplListUnaryDoCmd();
+        return;
+    }
+
     // ONLY ACCEPT IDENTS AS KEYS
 
     if(!ISIDENT(*rplPeekData(1))) {
@@ -1483,7 +1511,7 @@ case UNLOCKVAR:
 
         if(ISPROLOG(*DecompileObject)) {
             rplDecompAppendString2((BYTEPTR)"DIRObject",9);
-
+            RetNum=OK_CONTINUE;
             return;
 
         }
