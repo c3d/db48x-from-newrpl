@@ -1,0 +1,26 @@
+/*
+ * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
+ * All rights reserved.
+ * This file is released under the 3-clause BSD license.
+ * See the file LICENSE.txt that shipped with this distribution.
+ */
+
+#include "newrpl.h"
+
+// EXTERNAL RPL MACHINE REGISTERS
+
+
+
+// MEMORY REGIONS. EACH MEMORY REGION CAN GROW INDEPENDENTLY
+// GROWTH MAY TRIGGER A GC IF INSUFFICIENT MEMORY.
+
+// MULTIPRECISION LIBRARY CONTEXT
+// INCLUDES STORAGE FOR REAL REGISTERS
+CONTEXT Context;
+
+// TEMPORARY SCRATCH MEMORY FOR DIGITS
+BINT RDigits[EXTRA_STORAGE];
+// PREALLOCATED STATIC REAL NUMBER REGISTERS FOR TEMPORARY STORAGE
+REAL RReg[REAL_REGISTERS];
+
+
