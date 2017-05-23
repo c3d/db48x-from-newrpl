@@ -649,6 +649,12 @@ void LIB_HANDLER()
         rplOverwriteData(nitems+1,rplPeekData(nitems+2-position));
         rplDropData(nitems);
 
+        if(position==nitems) {
+            // INDEX MUST WRAP
+            position=0;
+            rplSetSystemFlag(FL_INDEXWRAP);
+        }
+
         rplNewBINTPush(position+1,DECBINT);
         rplOverwriteData(2,rplPopData());
     }
