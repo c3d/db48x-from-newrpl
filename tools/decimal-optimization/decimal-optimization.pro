@@ -36,7 +36,8 @@ SOURCES += main.c \
     utf8data.c \
     utf8lib.c \
     bin-integers.c \
-    atan_bintable.c
+    atan_bintable.c \
+    K_bintable.c
 
 DISTFILES +=
 

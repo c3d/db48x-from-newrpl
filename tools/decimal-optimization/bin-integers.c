@@ -521,7 +521,7 @@ for(k=0;k<nwords;++k)
 // CONVERT DECIMAL TO BINARY NUMBER, RETURN NUMBER OF WORDS NEEDED
 void bIntegerfromReal(REAL *res,REAL *number)
 {
- int nwords=(number->len*1741647)>>21;   // (len*8)*ln(10)/ln(2)/32;
+ int nwords=((WORD)((number->len<<3)+number->exp)*217706U)>>21;   // (len*8+exp)*ln(10)/ln(2)/32;
 
  int k;
 
@@ -542,6 +542,8 @@ void bIntegerfromReal(REAL *res,REAL *number)
  for(k=0;k<number->exp;++k) {
      bbintmulshortinplace(res->data,10,nwords);
  }
+
+ while((res->data[nwords-1]==0)&&(nwords>1)) --nwords;
 
  res->len=nwords;
  res->exp=0;
