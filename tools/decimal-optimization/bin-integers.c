@@ -170,7 +170,7 @@ void bIntegerAddShift(REAL *res,REAL *a,REAL *b,int bshift)
             WORDPTR aptr=(WORDPTR)a->data,bptr=(WORDPTR)bs.data,resptr=(WORDPTR)res->data;
 
             BINT64 rr=0;
-            while(bwords) {
+            while(bwords>0) {
                 rr+=(BINT64)(*bptr>>bshift)-(BINT64)*aptr+(BINT64)((((UBINT64)bptr[1])<<(32-bshift))&0xffffffff);
                 *resptr=(WORD)rr;
                 ++resptr;
@@ -179,7 +179,7 @@ void bIntegerAddShift(REAL *res,REAL *a,REAL *b,int bshift)
                 rr>>=32;
                 --bwords;
             }
-            while(xwords) {
+            while(xwords>0) {
                 rr+=(BINT64)(*bptr>>bshift)+(BINT64)((((UBINT64)bptr[1])<<(32-bshift))&0xffffffff);
                 *resptr=(WORD)rr;
                 ++resptr;
@@ -200,8 +200,9 @@ void bIntegerAddShift(REAL *res,REAL *a,REAL *b,int bshift)
         }
 
         // HERE IS GUARANTEED THAT a IS LARGER THAN bs
-        BINT xwords=a->len-bslen,bwords=bs.len-1;
+        BINT xwords=a->len-bs.len,bwords=bs.len-1;
         WORDPTR aptr=(WORDPTR)a->data,bptr=(WORDPTR)bs.data,resptr=(WORDPTR)res->data;
+
 
         BINT64 rr=0;
         while(bwords>0) {
@@ -214,14 +215,15 @@ void bIntegerAddShift(REAL *res,REAL *a,REAL *b,int bshift)
             rr>>=32;
         }
         // LAST LOOP IS UNROLLED TO AVOID BRINGING BITS FROM THE TOP OF bs
-        rr+=(BINT64)*aptr-(BINT64)(*bptr>>bshift);
+        if(xwords<0) rr-=(BINT64)(*bptr>>bshift);
+            else rr+=(BINT64)*aptr-(BINT64)(*bptr>>bshift);
         *resptr=(WORD)rr;
         ++resptr;
         ++aptr;
         ++bptr;
         rr>>=32;
 
-        while(xwords) {
+        while(xwords>0) {
             rr+=(BINT64)*aptr;
             *resptr=(WORD)rr;
             ++resptr;
@@ -248,7 +250,7 @@ void bIntegerAddShift(REAL *res,REAL *a,REAL *b,int bshift)
         WORDPTR aptr=(WORDPTR)a->data,bptr=(WORDPTR)bs.data,resptr=(WORDPTR)res->data;
 
         UBINT64 rr=0;
-        while(bwords) {
+        while(bwords>0) {
             rr+=(BINT64)(*bptr>>bshift)+(BINT64)*aptr+(BINT64)((((UBINT64)bptr[1])<<(32-bshift))&0xffffffff);
             *resptr=(WORD)rr;
             ++resptr;
@@ -257,7 +259,7 @@ void bIntegerAddShift(REAL *res,REAL *a,REAL *b,int bshift)
             rr>>=32;
             --bwords;
         }
-        while(xwords) {
+        while(xwords>1) {
             rr+=(BINT64)(*bptr>>bshift)+(BINT64)((((UBINT64)bptr[1])<<(32-bshift))&0xffffffff);
             *resptr=(WORD)rr;
             ++resptr;
@@ -265,6 +267,15 @@ void bIntegerAddShift(REAL *res,REAL *a,REAL *b,int bshift)
             --xwords;
             rr>>=32;
         }
+        if(xwords>0) {
+            rr+=(BINT64)(*bptr>>bshift);
+            if(rr) {
+            *resptr=(WORD)rr;
+            ++resptr;
+            rr>>=32;
+            }
+        }
+
         rr&=(1LL<<(32-bshift))-1;
         if(rr) *resptr++=(WORD)rr;
 
@@ -295,7 +306,7 @@ void bIntegerAddShift(REAL *res,REAL *a,REAL *b,int bshift)
     ++bptr;
     rr>>=32;
 
-    while(xwords) {
+    while(xwords>0) {
         rr+=(BINT64)*aptr;
         *resptr=(WORD)rr;
         ++resptr;
@@ -522,8 +533,10 @@ for(k=0;k<nwords;++k)
 void bIntegerfromReal(REAL *res,REAL *number)
 {
  int nwords=((WORD)((number->len<<3)+number->exp)*217706U)>>21;   // (len*8+exp)*ln(10)/ln(2)/32;
-
+ WORDPTR resdata=res->data;
  int k;
+
+ if(resdata==number->data) resdata=allocRegister();
 
  ++nwords;  // ONE EXTRA JUST IN CASE
 
@@ -534,21 +547,25 @@ void bIntegerfromReal(REAL *res,REAL *number)
  for(k=0;k<number->len;++k) {
 
      // NO ACCUMULATE!
-     bbintmulshortinplace(res->data,100000000,k);
-     bbintaddshort(res->data,res->data,number->data[number->len-(k+1)],k+1);
+     bbintmulshortinplace(resdata,100000000,k);
+     bbintaddshort(resdata,resdata,number->data[number->len-(k+1)],k+1);
 
  }
 
  for(k=0;k<number->exp;++k) {
-     bbintmulshortinplace(res->data,10,nwords);
+     bbintmulshortinplace(resdata,10,nwords);
  }
 
- while((res->data[nwords-1]==0)&&(nwords>1)) --nwords;
+ while((resdata[nwords-1]==0)&&(nwords>1)) --nwords;
+
+ if(resdata!=res->data) {
+     freeRegister(res->data);
+     res->data=resdata;
+ }
 
  res->len=nwords;
  res->exp=0;
  res->flags=0;
-return nwords;
 
 }
 
