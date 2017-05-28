@@ -37,7 +37,9 @@ SOURCES += main.c \
     utf8lib.c \
     bin-integers.c \
     atan_bintable.c \
-    K_bintable.c
+    K_bintable.c \
+    bintranscen.c \
+    two_exp_bintable.c
 
 DISTFILES +=
 
@@ -46,5 +48,6 @@ HEADERS += \
     newrpl.h \
     sysvars.h \
     ui.h \
-    utf8lib.h
+    utf8lib.h \
+    bindecimal.h
 

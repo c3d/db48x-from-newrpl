@@ -1,23 +1,18 @@
 #include <stdio.h>
 #include <newrpl.h>
 
+
+#include <bindecimal.h>
+
 #define MAX_WORDS 256
 #define TOTAL_BREGISTERS 10
 
-void bIntegerAdd(REAL *res,REAL *a,REAL *b);
-void bIntegerAddShift(REAL *res,REAL *a,REAL *b,int bshift);
-void bIntegerMul(REAL *res,REAL *a,REAL *b,int FPShift);
-void bIntegerfromReal(REAL *res,REAL *number);
-void RealfrombInteger(REAL *res,REAL *integer);
+#define MACROZeroToRReg(n) { RReg[n].data[0]=0; RReg[n].exp=0; RReg[n].flags=0; RReg[n].len=1; }
+#define MACROOneToRReg(n) { RReg[n].data[0]=1; RReg[n].exp=0; RReg[n].flags=0; RReg[n].len=1; }
+#define MACRONANToRReg(n) { RReg[n].data[0]=0; RReg[n].exp=0; RReg[n].flags=F_NOTANUMBER; RReg[n].len=1; }
 
 
-WORD bbintadd(WORD *res,WORD *a,WORD *b,int nwords);
-WORD bbintacc(WORD *res,WORD *a,int nwords);
-WORD bbintmulshortacc(WORD *res,WORD *a,WORD b,int nwords);
-WORD bbintmullong(WORD *res,WORD *a,WORD *b,int nwords);
-WORD bbintaccshiftright(WORD *res,WORD *a,int shift,int nwords);
-void bbintneg(WORD*res,WORD *a,int nwords);
-WORD bbintacc2n(WORD *res,int shift,int nwords);
+
 
 
 WORD BRegData[MAX_WORDS*2*TOTAL_BREGISTERS];
@@ -25,14 +20,12 @@ WORD BRegData[MAX_WORDS*2*TOTAL_BREGISTERS];
 REAL BReg[TOTAL_BREGISTERS];
 
 
-#define CORDIC_TABLESIZE    6720/2
-#define CORDIC_TABLEWORDS    210
+
 
 WORD atanbin_table[MAX_WORDS*CORDIC_TABLESIZE];
 
 
-extern const uint32_t const atan_binary[3360*210];
-extern const uint32_t const K_binary[3360*210];
+
 
 
 int generate_atantable(void)
@@ -41,7 +34,7 @@ int generate_atantable(void)
     // INITIALIZE REGISTERS STORAGE
 
     int k,j;
-    BINT extranumber[REAL_REGISTER_STORAGE];
+    BINT extranumber[REAL_REGISTER_STORAGE*2];
 
 
 
@@ -58,9 +51,10 @@ int generate_atantable(void)
 
 
 
-    REAL one,two_6720;
+    REAL one,two_6720,two_6688;
 
     two_6720.data=extranumber;
+    two_6688.data=extranumber+REAL_REGISTER_STORAGE;
 
     decconst_One(&one);
 
@@ -72,6 +66,9 @@ int generate_atantable(void)
     // COMPUTE THE CONSTANT 2^6720
     powReal(&two_6720,&RReg[1],&RReg[0]);
 
+    newRealFromBINT(&RReg[1],2,0);
+    newRealFromBINT(&RReg[0],6688,0);
+    powReal(&two_6688,&RReg[1],&RReg[0]);
 
     Context.precdigits=2016;
 
@@ -86,20 +83,68 @@ int generate_atantable(void)
     // START FROM 2^0 = 1
     newRealFromBINT(&RReg[8],1,0);
 
-
+    int shift_table[CORDIC_TABLESIZE];
+    int shift=0;
 
     for(k=0;k<CORDIC_TABLESIZE;++k)
     {
+        // COMPUTE ATAN FROM SERIES X-X^3/3+X^5/5-X^7/7 USING HORNER
+        if(k>0) {
+        Context.precdigits=2024;
+        MACROOneToRReg(2);
+
+        int nterms=1+CORDIC_MAXSYSEXP/k;
+        if(!(nterms&1)) ++nterms;
+
+        newRealFromBINT(&RReg[1],nterms,0);
+        divReal(&RReg[0],&RReg[2],&RReg[1]);
+
+        mulReal(&RReg[4],&RReg[8],&RReg[8]);    // X^2
+
+
+
+        for(j=nterms-2;j>0;j-=2)
+        {
+            mulReal(&RReg[1],&RReg[0],&RReg[4]);    // R(j-1)*x^2
+            newRealFromBINT(&RReg[5],j,0);
+            divReal(&RReg[3],&RReg[2],&RReg[5]);    // 1/j
+            if(j&2) RReg[3].flags|=F_NEGATIVE;
+            addReal(&RReg[0],&RReg[1],&RReg[3]);    // R(j)=R(j-1)*x^2 (+/-) 1/j
+        }
+
+        mulReal(&RReg[0],&RReg[0],&RReg[8]);    // R(j)*=x
+
+        }
+
+        else {
         trig_atan2(&RReg[8],&one,ANGLERAD);
 
         // HERE RREG[0] HAS THE RESULT WITH EXTRA DIGITS
         normalize(&RReg[0]);
+        }
+
 
         Context.precdigits=2024;
         // CONVERT TO AN INTEGER
         mulReal(&RReg[1],&RReg[0],&two_6720);
         roundReal(&RReg[1],&RReg[1],0);
         ipReal(&RReg[2],&RReg[1],1);    // TAKE INTEGER PART AND JUSTIFY THE DIGITS
+
+        if(ltReal(&RReg[1],&two_6688)) {
+        newRealFromBINT64(&RReg[3],4294967296L,0);
+        mul_real(&RReg[1],&two_6720,&RReg[3]);   // INCREASE THE SHIFT by 32 bits
+        normalize(&RReg[1]);
+        shift+=32;
+        copyReal(&two_6720,&RReg[1]);
+
+        // CONVERT TO AN INTEGER AGAIN WITH THE NEW SHIFT
+        mulReal(&RReg[1],&RReg[0],&two_6720);
+        roundReal(&RReg[1],&RReg[1],0);
+        ipReal(&RReg[2],&RReg[1],1);    // TAKE INTEGER PART AND JUSTIFY THE DIGITS
+
+        }
+
+        shift_table[k]=shift;
 
         Context.precdigits=2016;
 
@@ -141,6 +186,19 @@ int generate_atantable(void)
     // BINARY CORDIC TABLE READY
     printf("\n\n};\n\n");
 
+
+    // OUTPUT SHIFT TABLE
+/*
+    // NO NEED FOR A SHIFT TABLE, USE shift=INDEX>>5;
+    printf("const uint32_t const atan_shift[%d]= {\n",CORDIC_TABLESIZE);
+
+    for(k=0;k<CORDIC_TABLESIZE;++k)
+    {
+        printf("%d%c%c",shift_table[k],(k==CORDIC_TABLESIZE-1)? ' ':',' , (((k&31)==0)&&(k>0))? '\n':' ');
+    }
+
+    printf("\n};\n\n\n");
+*/
     return 0;
 }
 
@@ -198,21 +256,24 @@ int generate_Ktable(void)
     // START FROM 1
     newRealFromBINT(&RReg[8],1,0);
 
-    // 1/2^(2*K) FOR K=0
-    newRealFromBINT(&RReg[9],1,0);
+    Context.precdigits=2024;
+
+    // 2^(2*K) FOR K=CORDIC_TABLESIZE-1
+    newRealFromBINT(&RReg[0],2,0);
+    newRealFromBINT(&RReg[1],(CORDIC_TABLESIZE-1)*2,0);
+    powReal(&RReg[9],&RReg[0],&RReg[1]);
 
 
-    for(k=0;k<CORDIC_TABLESIZE;++k)
+    for(k=CORDIC_TABLESIZE-1;k>=0;--k)
     {
 
         Context.precdigits=2024;
 
-        mulReal(&RReg[3],&RReg[8],&RReg[9]);    // Prod*2^(-2k)
-        addReal(&RReg[8],&RReg[8],&RReg[3]);    // Prod+Prod*2^(-2k)= Prod*(1+2^(-2k))
+        divReal(&RReg[3],&RReg[8],&RReg[9]);    // Prod/2^(2k)
+        addReal(&RReg[8],&RReg[8],&RReg[3]);    // Prod+Prod/2^(2k)= Prod*(1+2^(-2k))
 
-        newRealFromBINT(&RReg[0],25,-2);    // 0.25 = 2^(-2)
-        mulReal(&RReg[9],&RReg[9],&RReg[0]);    // (1/2)^(2*k)*(1/2)^(-2) = (1/2)^(2*(k+1))
-
+        newRealFromBINT(&RReg[0],25,-2);
+        mulReal(&RReg[9],&RReg[9],&RReg[0]);    // 0.25*(2)^(2*k) = 2^-2 * (2)^(2*(k-1)) = 2^(2*k-2) = 2^ 2*(k-1)
 
         Context.precdigits=2016;
 
@@ -242,7 +303,7 @@ int generate_Ktable(void)
 
         // AND STORE ALL 210 WORDS
 
-        printf("/* Product(1/sqrt(1+2^-2k)) with k=1...%d */\n",k);
+        printf("/* Product(1/sqrt(1+2^-2k)) with k=%d...3359 */\n",k);
 
         for(j=0;j<BReg[0].len;++j) {
             atanbin_table[k*MAX_WORDS+j]=BReg[0].data[j];
@@ -264,6 +325,99 @@ int generate_Ktable(void)
 }
 
 
+// GENERATE A TABLE WITH THE CONSTANT 2^K, FOR K=1... 6720 STEP 32
+
+void generate_two_k()
+{
+
+
+
+    // INITIALIZE REGISTERS STORAGE
+
+    int k,j;
+    BINT extranumber[REAL_REGISTER_STORAGE];
+
+
+
+    initContext(2016);
+
+    for(k=0;k<REAL_REGISTERS;++k) {
+        RReg[k].data=allocRegister();
+        newRealFromBINT(&RReg[k],0,0);
+    }
+
+    for(k=0;k<TOTAL_BREGISTERS;++k) {
+        BReg[k].data=(BINT *)&(BRegData[k*MAX_WORDS*2]);
+    }
+
+
+
+int two_k_lentable[211];
+int two_k_offtable[211];
+
+printf("#include <stdint.h>\n\n\n\n// Start of 2^(32*k) table generator!\n\n\n");
+
+
+printf("const uint32_t const two_exp_binary[]= {\n");
+
+two_k_offtable[0]=0;
+
+Context.precdigits=2024;
+
+
+for(k=1;k<=CORDIC_TABLEWORDS;++k)
+{
+
+
+    newRealFromBINT(&RReg[2],2,0);
+    newRealFromBINT(&RReg[1],k*32,0);
+    powReal(&RReg[0],&RReg[2],&RReg[1]);
+
+    // AND STORE ALL 210 WORDS
+
+    printf("\n/* 2^%d */\n",k*32);
+
+    for(j=0;j<RReg[0].len;++j) {
+        atanbin_table[k*MAX_WORDS+j]=RReg[0].data[j];
+        printf("%uU%c",atanbin_table[k*MAX_WORDS+j],( (j==RReg[0].len-1)&&(k==CORDIC_TABLEWORDS))? ' ':',');
+        if(j>0 && ((j%21)==20)) printf("\n");
+    }
+    two_k_lentable[k-1]=RReg[0].len;
+    two_k_offtable[k]=two_k_offtable[k-1]+RReg[0].len;
+
+}
+
+// BINARY CORDIC TABLE READY
+printf("\n\n};\n\n");
+
+// OUTPUT THE LENGTH AND OFFSET TABLE
+
+
+printf("const uint32_t const two_exp_offset[]= {\n");
+
+for(j=0;j<CORDIC_TABLEWORDS;++j) {
+    printf("%uU%c",two_k_offtable[j]|(two_k_lentable[j]<<16), (j==CORDIC_TABLEWORDS-1)? ' ':',');
+    if(j>0 && ((j%8)==7)) printf("\n");
+}
+
+printf("\n\n};\n\n");
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -274,7 +428,10 @@ int main()
 
     //generate_atantable();
     //generate_Ktable();
-    //return;
+    //generate_two_k();
+
+
+    //return 0;
 
 
     // INITIALIZE REGISTERS STORAGE
@@ -296,6 +453,36 @@ int main()
     }
 
 
+// TEST OF NEW DROP-IN bintrig_sincos
+
+
+
+    newRealFromBINT(&RReg[0],3,-1);     // 0.3
+
+    bintrig_sincos(&RReg[0],ANGLERAD);
+
+    swapReal(&RReg[6],&RReg[8]);
+    swapReal(&RReg[7],&RReg[9]);
+
+    finalize(&RReg[8]);
+    finalize(&RReg[9]);
+
+    newRealFromBINT(&RReg[0],3,-1); // ANGLE 0.3 RADIANS
+
+    trig_sincos(&RReg[0],ANGLERAD);
+
+    finalize(&RReg[6]);
+    finalize(&RReg[7]);
+
+    subReal(&RReg[0],&RReg[6],&RReg[8]);
+    subReal(&RReg[1],&RReg[7],&RReg[9]);
+  return 0;
+
+
+
+    return 0;
+
+// Original tests
 
     REAL one,two_6720;
 
@@ -316,7 +503,7 @@ int main()
 
     // TEST OF A SIMPLE CORDIC LOOP
 
-    newRealFromBINT(&RReg[0],3,-1); // ANGLE 0.3 RADIANS
+    newRealFromBINT(&RReg[0],3,-500); // ANGLE 0.3 RADIANS
 
     mulReal(&RReg[1],&RReg[0],&two_6720);
     roundReal(&RReg[1],&RReg[1],0);
@@ -434,7 +621,7 @@ int main()
     divReal(&RReg[8],&RReg[3],&two_6720);
     divReal(&RReg[9],&RReg[4],&two_6720);
 
-      newRealFromBINT(&RReg[0],3,-1); // ANGLE 0.3 RADIANS
+      newRealFromBINT(&RReg[0],3,-500); // ANGLE 0.3 RADIANS
 
       trig_sincos(&RReg[0],ANGLERAD);
 
