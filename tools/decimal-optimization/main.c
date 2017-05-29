@@ -94,6 +94,7 @@ int generate_atantable(void)
         MACROOneToRReg(2);
 
         int nterms=1+CORDIC_MAXSYSEXP/k;
+        if(nterms<5) nterms=5;
         if(!(nterms&1)) ++nterms;
 
         newRealFromBINT(&RReg[1],nterms,0);
@@ -352,8 +353,8 @@ void generate_two_k()
 
 
 
-int two_k_lentable[211];
-int two_k_offtable[211];
+int two_k_lentable[316];
+int two_k_offtable[316];
 
 printf("#include <stdint.h>\n\n\n\n// Start of 2^(32*k) table generator!\n\n\n");
 
@@ -362,10 +363,10 @@ printf("const uint32_t const two_exp_binary[]= {\n");
 
 two_k_offtable[0]=0;
 
-Context.precdigits=2024;
+Context.precdigits=4000;
 
 
-for(k=1;k<=CORDIC_TABLEWORDS;++k)
+for(k=1;k<=(CORDIC_MAXSYSEXP+CORDIC_MAXSYSEXP/2)/32;++k)
 {
 
 
@@ -379,7 +380,7 @@ for(k=1;k<=CORDIC_TABLEWORDS;++k)
 
     for(j=0;j<RReg[0].len;++j) {
         atanbin_table[k*MAX_WORDS+j]=RReg[0].data[j];
-        printf("%uU%c",atanbin_table[k*MAX_WORDS+j],( (j==RReg[0].len-1)&&(k==CORDIC_TABLEWORDS))? ' ':',');
+        printf("%uU%c",atanbin_table[k*MAX_WORDS+j],( (j==RReg[0].len-1)&&(k==(CORDIC_MAXSYSEXP+CORDIC_MAXSYSEXP/2)/32))? ' ':',');
         if(j>0 && ((j%21)==20)) printf("\n");
     }
     two_k_lentable[k-1]=RReg[0].len;
@@ -395,8 +396,8 @@ printf("\n\n};\n\n");
 
 printf("const uint32_t const two_exp_offset[]= {\n");
 
-for(j=0;j<CORDIC_TABLEWORDS;++j) {
-    printf("%uU%c",two_k_offtable[j]|(two_k_lentable[j]<<16), (j==CORDIC_TABLEWORDS-1)? ' ':',');
+for(j=0;j<(CORDIC_MAXSYSEXP+CORDIC_MAXSYSEXP/2)/32;++j) {
+    printf("%uU%c",two_k_offtable[j]|(two_k_lentable[j]<<16), (j==(CORDIC_MAXSYSEXP+CORDIC_MAXSYSEXP/2)/32-1)? ' ':',');
     if(j>0 && ((j%8)==7)) printf("\n");
 }
 
@@ -457,7 +458,7 @@ int main()
 
 
 
-    newRealFromBINT(&RReg[0],3,-1);     // 0.3
+    newRealFromBINT(&RReg[0],3,-500);     // 0.3
 
     bintrig_sincos(&RReg[0],ANGLERAD);
 
@@ -467,7 +468,7 @@ int main()
     finalize(&RReg[8]);
     finalize(&RReg[9]);
 
-    newRealFromBINT(&RReg[0],3,-1); // ANGLE 0.3 RADIANS
+    newRealFromBINT(&RReg[0],3,-500); // ANGLE 0.3 RADIANS
 
     trig_sincos(&RReg[0],ANGLERAD);
 
