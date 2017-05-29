@@ -20,12 +20,14 @@ static void binatan_table(int exponent,int sysexp,REAL *real)
     // WARNING: 0<=exponent<= digits, THIS FUNCTION DOES NOT CHECK FOR ARGUMENT RANGE
 
     if(exponent>=CORDIC_MAXSYSEXP/2) {
-        int pos=sysexp-exponent;
-        int words=pos>>5;
+
+        int pos=CORDIC_MAXSYSEXP-sysexp;
+        int words=(pos)>>5;
+        zero_words(real->data,CORDIC_TABLEWORDS-words);
+        real->len=CORDIC_TABLEWORDS-words;
+        if(exponent&31) real->data[CORDIC_TABLEWORDS-words-1]=1LL<<(32-(exponent&31));
+        else { real->data[CORDIC_TABLEWORDS-words]=1; ++real->len; }
         real->exp=0;
-        zero_words(real->data,words);
-        real->data[words]=(BINT)(WORD)(1U<<(pos&31));
-        real->len=words+1;
         real->flags=0;
         return;
     }
@@ -122,7 +124,7 @@ ynext=&RReg[7];
 }
 
 digits=((digits)*217706)>>17; // CONVERT TO BASE-2 ITERATIONS
-
+digits&=~1; // GUARANTEE AN EVEN NUMBER OF ITERATIONS
 for(exponent=startindex;exponent<startindex+digits;++exponent)
 {
 
@@ -145,8 +147,15 @@ for(exponent=startindex;exponent<startindex+digits;++exponent)
 
     if(!(z->flags&F_NEGATIVE)) {
         RReg[4].flags=F_NEGATIVE;
-        bIntegerAddShift(znext,z,&RReg[4],(exponent&~31));
-    } else bIntegerAddShift(znext,z,&RReg[4],(exponent&~31));
+        bIntegerAdd(znext,z,&RReg[4]);
+    } else bIntegerAdd(znext,z,&RReg[4]);
+
+
+    if( (exponent&31)==31) {
+        copy_words(znext->data+1,znext->data,znext->len);
+        znext->data[0]=0;
+        znext->len++;
+    }
 
     // WE FINISHED ONE STEP
     // SWAP THE POINTERS TO AVOID COPYING THE NUMBERS
@@ -167,13 +176,13 @@ for(exponent=startindex;exponent<startindex+digits;++exponent)
 
 // FINAL ROTATION BY RESIDUAL ANGLE
 // Xn=X-Y*tan(Ang)=X-Y*Ang
-// Yn=Y+X*tan(Ang)=Y-X*Ang
+// Yn=Y+X*tan(Ang)=Y+X*Ang
 
-bIntegerMul(ynext,y,z,sysexp);
-bIntegerMul(xnext,x,z,sysexp);
+bIntegerMul(ynext,y,z,sysexp+((exponent>>5)-(startindex>>5))*32);
+bIntegerMul(znext,x,z,sysexp+((exponent>>5)-(startindex>>5))*32);
 ynext->flags^=F_NEGATIVE;
-bIntegerAdd(x,x,ynext);
-bIntegerAdd(y,y,xnext);
+bIntegerAdd(xnext,x,ynext);
+bIntegerAdd(ynext,y,znext);
 
 // THE FINAL RESULTS ARE ALWAYS IN RREG[6] AND RREG[7]
 
@@ -348,13 +357,16 @@ void bintrig_sincos(REAL *angle, BINT angmode)
     // USE RReg[0]=z; RReg[1]=x; RReg[2]=y;
 
     // DETERMINE NUMBER OF BINARY WORDS WE NEED TO USE
-    int sysexp=((startexp+Context.precdigits+8)*217706)>>16;
+    int sysexp=((Context.precdigits+8)*217706)>>16;
     sysexp+=31;
     sysexp&=~31;
     if(sysexp>CORDIC_MAXSYSEXP) sysexp=CORDIC_MAXSYSEXP;
+    int binstartexp=(startexp*217706)>>16;
+
+    binstartexp&=~31;
 
     // CONVERSION CONSTANT TO INTEGER
-    decconst_2Sysexp(&two_sysexp,sysexp);
+    decconst_2Sysexp(&two_sysexp,sysexp+binstartexp);
 
     // CONVERT z TO BINARY
     mulReal(&RReg[1],&RReg[0],&two_sysexp);
@@ -377,11 +389,18 @@ void bintrig_sincos(REAL *angle, BINT angmode)
 
     Context.precdigits=savedprec+8;
 
-    binCORDIC_Rotational((Context.precdigits>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+8:Context.precdigits,(startexp*217706)>>16,sysexp);
+
+
+
+
+
+
+    binCORDIC_Rotational((Context.precdigits>REAL_PRECISION_MAX)? REAL_PRECISION_MAX+8:Context.precdigits,binstartexp,sysexp);
 
     // HERE WE HAVE
     // USE RReg[5]=angle_error; RReg[6]=cos(z) RReg[7]=sin(z);
-    binconst_K_table(startexp,sysexp,&RReg[4]);
+    binconst_K_table(binstartexp,sysexp,&RReg[4]);
+    decconst_2Sysexp(&two_sysexp,sysexp);
 
     // PUT THE cos(z) IN RReg[6]
     if(swap) {
