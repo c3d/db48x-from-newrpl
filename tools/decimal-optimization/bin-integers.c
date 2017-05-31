@@ -130,6 +130,16 @@ void bIntegerAddShift(REAL *res,REAL *a,REAL *b,int bshift)
 
     bshift&=31;
 
+    if(bs.len<=0) {
+        // NUMBERS DON'T OVERLAP
+        if(res==a) return;
+        copy_words(res->data,a->data,a->len);
+        res->flags=a->flags;
+        res->len=a->len;
+        res->exp=0;
+        return;
+    }
+
     resflag=a->flags&F_NEGATIVE;
 
     if((a->flags&F_NEGATIVE)!=(b->flags&F_NEGATIVE))
@@ -179,14 +189,21 @@ void bIntegerAddShift(REAL *res,REAL *a,REAL *b,int bshift)
                 rr>>=32;
                 --bwords;
             }
-            while(xwords>0) {
+            while(xwords>1) {
                 rr+=(BINT64)(*bptr>>bshift)+(BINT64)((((UBINT64)bptr[1])<<(32-bshift))&0xffffffff);
                 *resptr=(WORD)rr;
                 ++resptr;
                 ++bptr;
                 --xwords;
                 rr>>=32;
-
+            }
+            if(xwords>0) {
+                rr+=(BINT64)(*bptr>>bshift);
+                if(rr) {
+                *resptr=(WORD)rr;
+                ++resptr;
+                rr>>=32;
+                }
             }
             rr&=(1LL<<(32-bshift))-1;
             if(rr) *resptr++=(WORD)rr;

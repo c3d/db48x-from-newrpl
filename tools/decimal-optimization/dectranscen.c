@@ -1027,6 +1027,20 @@ void trig_sincos(REAL *angle, BINT angmode)
 
     // HERE RReg[0] HAS THE REMAINDER THAT WE NEED TO WORK WITH
 
+
+    // CHECK FOR SPECIAL CASES
+
+    if(iszeroReal(&RReg[0])) {
+        // EXACT MULTIPLE OF PI, IN RADIANS THIS CAN ONLY HAPPEN IF THE ARGUMENT IS ACTUALLY ZERO
+        MACROZeroToRReg(7);
+        MACROOneToRReg(6);
+        if(isoddReal(&RReg[1])) RReg[6].flags|=F_NEGATIVE;
+        // RESTORE PREVIOUS PRECISION
+        Context.precdigits=savedprec;
+
+        return;
+    }
+
     // IF THE RESULT OF THE DIVISION IS ODD, THEN WE ARE IN THE OTHER HALF OF THE CIRCLE
     if(isoddReal(&RReg[1])) { negcos=negsin=1; }
 

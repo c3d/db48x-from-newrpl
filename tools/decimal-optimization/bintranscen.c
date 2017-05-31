@@ -123,21 +123,21 @@ xnext=&RReg[6];
 ynext=&RReg[7];
 }
 
-digits=((digits)*217706)>>17; // CONVERT TO BASE-2 ITERATIONS
+digits=((digits+16)*217706)>>17; // CONVERT TO BASE-2 ITERATIONS
 digits&=~1; // GUARANTEE AN EVEN NUMBER OF ITERATIONS
 for(exponent=startindex;exponent<startindex+digits;++exponent)
 {
 
     if(!(z->flags&F_NEGATIVE)) {
         y->flags^=F_NEGATIVE;
-        bIntegerAddShift(xnext,x,y,exponent);
+        bIntegerAddShift(xnext,x,y,exponent+startindex);
         y->flags^=F_NEGATIVE;
-        bIntegerAddShift(ynext,y,x,exponent);
+        bIntegerAddShift(ynext,y,x,exponent-startindex);
     }
     else {
-        bIntegerAddShift(xnext,x,y,exponent);
+        bIntegerAddShift(xnext,x,y,exponent+startindex);
         x->flags^=F_NEGATIVE;
-        bIntegerAddShift(ynext,y,x,exponent);
+        bIntegerAddShift(ynext,y,x,exponent-startindex);
         x->flags^=F_NEGATIVE;
     }
 
@@ -173,19 +173,75 @@ for(exponent=startindex;exponent<startindex+digits;++exponent)
 }
 
 
+if(startindex) {
+    for(;exponent<2*(startindex+digits);++exponent)
+    {
 
+        if(!(z->flags&F_NEGATIVE)) {
+            y->flags^=F_NEGATIVE;
+            bIntegerAddShift(xnext,x,y,exponent+startindex);
+            y->flags^=F_NEGATIVE;
+            bIntegerAddShift(ynext,y,x,exponent-startindex);
+        }
+        else {
+            bIntegerAddShift(xnext,x,y,exponent+startindex);
+            x->flags^=F_NEGATIVE;
+            bIntegerAddShift(ynext,y,x,exponent-startindex);
+            x->flags^=F_NEGATIVE;
+        }
+
+
+        binatan_table(exponent,sysexp,&RReg[4]);    // RReg[4]=atan(2^(-exp));
+
+
+        if(!(z->flags&F_NEGATIVE)) {
+            RReg[4].flags=F_NEGATIVE;
+            bIntegerAdd(znext,z,&RReg[4]);
+        } else bIntegerAdd(znext,z,&RReg[4]);
+
+
+        if( (exponent&31)==31) {
+            copy_words(znext->data+1,znext->data,znext->len);
+            znext->data[0]=0;
+            znext->len++;
+        }
+
+        // WE FINISHED ONE STEP
+        // SWAP THE POINTERS TO AVOID COPYING THE NUMBERS
+        tmp=znext;
+        znext=z;
+        z=tmp;
+
+        tmp=xnext;
+        xnext=x;
+        x=tmp;
+
+        tmp=ynext;
+        ynext=y;
+        y=tmp;
+    }
+
+    if(x!=&RReg[6]) {
+        swapReal(xnext,x);
+        swapReal(ynext,y);
+    }
+
+
+}
+
+else {
 // FINAL ROTATION BY RESIDUAL ANGLE
 // Xn=X-Y*tan(Ang)=X-Y*Ang
 // Yn=Y+X*tan(Ang)=Y+X*Ang
 
-bIntegerMul(ynext,y,z,sysexp+((exponent>>5)-(startindex>>5))*32);
-bIntegerMul(znext,x,z,sysexp+((exponent>>5)-(startindex>>5))*32);
+bIntegerMul(ynext,y,z,sysexp+((exponent>>5))*32);
+bIntegerMul(znext,x,z,sysexp+((exponent>>5))*32);
 ynext->flags^=F_NEGATIVE;
 bIntegerAdd(xnext,x,ynext);
 bIntegerAdd(ynext,y,znext);
 
 // THE FINAL RESULTS ARE ALWAYS IN RREG[6] AND RREG[7]
-
+}
 
 }
 
@@ -295,6 +351,20 @@ void bintrig_sincos(REAL *angle, BINT angmode)
 
     // HERE RReg[0] HAS THE REMAINDER THAT WE NEED TO WORK WITH
 
+
+    // CHECK FOR SPECIAL CASES
+
+    if(iszeroReal(&RReg[0])) {
+        // EXACT MULTIPLE OF PI, IN RADIANS THIS CAN ONLY HAPPEN IF THE ARGUMENT IS ACTUALLY ZERO
+        MACROZeroToRReg(7);
+        MACROOneToRReg(6);
+        if(isoddReal(&RReg[1])) RReg[6].flags|=F_NEGATIVE;
+        // RESTORE PREVIOUS PRECISION
+        Context.precdigits=savedprec;
+
+        return;
+    }
+
     // IF THE RESULT OF THE DIVISION IS ODD, THEN WE ARE IN THE OTHER HALF OF THE CIRCLE
     if(isoddReal(&RReg[1])) { negcos=negsin=1; }
 
@@ -369,7 +439,8 @@ void bintrig_sincos(REAL *angle, BINT angmode)
     decconst_2Sysexp(&two_sysexp,sysexp+binstartexp);
 
     // CONVERT z TO BINARY
-    mulReal(&RReg[1],&RReg[0],&two_sysexp);
+    mul_real(&RReg[1],&RReg[0],&two_sysexp);
+    normalize(&RReg[1]);
     roundReal(&RReg[1],&RReg[1],0);
     ipReal(&RReg[1],&RReg[1],1);    // TAKE INTEGER PART AND JUSTIFY THE DIGITS
     bIntegerfromReal(&RReg[0],&RReg[1]);
@@ -400,28 +471,18 @@ void bintrig_sincos(REAL *angle, BINT angmode)
     // HERE WE HAVE
     // USE RReg[5]=angle_error; RReg[6]=cos(z) RReg[7]=sin(z);
     binconst_K_table(binstartexp,sysexp,&RReg[4]);
-    decconst_2Sysexp(&two_sysexp,sysexp);
 
-    // PUT THE cos(z) IN RReg[6]
-    if(swap) {
-        bIntegerMul(&RReg[1],&RReg[6],&RReg[4],sysexp);
-        RealfrombInteger(&RReg[5],&RReg[1]);
-        divReal(&RReg[6],&RReg[5],&two_sysexp);
-        bIntegerMul(&RReg[1],&RReg[7],&RReg[4],sysexp);
-        RealfrombInteger(&RReg[5],&RReg[1]);
-        divReal(&RReg[7],&RReg[5],&two_sysexp);
+    bIntegerMul(&RReg[1],&RReg[7],&RReg[4],sysexp);
+    RealfrombInteger(&RReg[5],&RReg[1]);
+    divReal(&RReg[7],&RReg[5],&two_sysexp);
 
-    }
-    else {
-        bIntegerMul(&RReg[1],&RReg[7],&RReg[4],sysexp);
-        RealfrombInteger(&RReg[5],&RReg[1]);
-        divReal(&RReg[7],&RReg[5],&two_sysexp);
-        bIntegerMul(&RReg[1],&RReg[6],&RReg[4],sysexp);
-        RealfrombInteger(&RReg[5],&RReg[1]);
-        divReal(&RReg[6],&RReg[5],&two_sysexp);
-    }
+    if(binstartexp) decconst_2Sysexp(&two_sysexp,sysexp);
 
+    bIntegerMul(&RReg[1],&RReg[6],&RReg[4],sysexp);
+    RealfrombInteger(&RReg[5],&RReg[1]);
+    divReal(&RReg[6],&RReg[5],&two_sysexp);
 
+    if(swap) swapReal(&RReg[6],&RReg[7]);
 
     // RESTORE PREVIOUS PRECISION
     Context.precdigits=savedprec;

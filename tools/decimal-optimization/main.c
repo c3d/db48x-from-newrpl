@@ -70,7 +70,7 @@ int generate_atantable(void)
     newRealFromBINT(&RReg[0],6688,0);
     powReal(&two_6688,&RReg[1],&RReg[0]);
 
-    Context.precdigits=2016;
+    Context.precdigits=2536;
 
 
 
@@ -90,12 +90,13 @@ int generate_atantable(void)
     {
         // COMPUTE ATAN FROM SERIES X-X^3/3+X^5/5-X^7/7 USING HORNER
         if(k>0) {
-        Context.precdigits=2024;
+        Context.precdigits=2536;
         MACROOneToRReg(2);
 
         int nterms=1+CORDIC_MAXSYSEXP/k;
         if(nterms<5) nterms=5;
         if(!(nterms&1)) ++nterms;
+        //nterms+=50;  // MAKE SURE WE HAVE ENOUGH
 
         newRealFromBINT(&RReg[1],nterms,0);
         divReal(&RReg[0],&RReg[2],&RReg[1]);
@@ -125,7 +126,7 @@ int generate_atantable(void)
         }
 
 
-        Context.precdigits=2024;
+        Context.precdigits=2536;
         // CONVERT TO AN INTEGER
         mulReal(&RReg[1],&RReg[0],&two_6720);
         roundReal(&RReg[1],&RReg[1],0);
@@ -153,6 +154,10 @@ int generate_atantable(void)
 
         bIntegerfromReal(&BReg[0],&RReg[2]);
 
+        // CHEAT FOR k==0
+        if(k==0) BReg[0].data[0]=2751691783U;   // WE DON'T HAVE SUFFICIENT PRECISION TO COMPUTE THIS FIRST ONE ACCURATELY
+
+
         while(BReg[0].data[BReg[0].len-1]==0) --BReg[0].len;
 
         if(BReg[0].len>CORDIC_TABLEWORDS) {
@@ -176,6 +181,7 @@ int generate_atantable(void)
         }
 
 
+        Context.precdigits=2536;
 
 
         // HALF THE ANGLE AND GO AGAIN
@@ -257,7 +263,7 @@ int generate_Ktable(void)
     // START FROM 1
     newRealFromBINT(&RReg[8],1,0);
 
-    Context.precdigits=2024;
+    Context.precdigits=2536;
 
     // 2^(2*K) FOR K=CORDIC_TABLESIZE-1
     newRealFromBINT(&RReg[0],2,0);
@@ -268,7 +274,7 @@ int generate_Ktable(void)
     for(k=CORDIC_TABLESIZE-1;k>=0;--k)
     {
 
-        Context.precdigits=2024;
+        Context.precdigits=2536;
 
         divReal(&RReg[3],&RReg[8],&RReg[9]);    // Prod/2^(2k)
         addReal(&RReg[8],&RReg[8],&RReg[3]);    // Prod+Prod/2^(2k)= Prod*(1+2^(-2k))
@@ -276,20 +282,26 @@ int generate_Ktable(void)
         newRealFromBINT(&RReg[0],25,-2);
         mulReal(&RReg[9],&RReg[9],&RReg[0]);    // 0.25*(2)^(2*k) = 2^-2 * (2)^(2*(k-1)) = 2^(2*k-2) = 2^ 2*(k-1)
 
-        Context.precdigits=2016;
+        // FIND THE SQUARE ROOT OF RReg[8] BY NEWTON RAPHSON
 
-        hyp_sqrt(&RReg[8]);
+        newRealFromBINT(&RReg[3],5,-1);  // 0.5
+        copyReal(&RReg[1],&RReg[8]);
+        copyReal(&RReg[0],&RReg[8]);
+
+        do {
+        divReal(&RReg[2],&RReg[8],&RReg[1]);    // R/x
+        addReal(&RReg[4],&RReg[1],&RReg[2]);    // (x+R/x)
+        mulReal(&RReg[0],&RReg[3],&RReg[4]);    // 1/2*(x+R/x)
+        swapReal(&RReg[0],&RReg[1]);
+        } while(!eqReal(&RReg[0],&RReg[1]));
+
 
         // HERE RREG[0] HAS THE RESULT WITH EXTRA DIGITS
-        Context.precdigits=2024;
-        finalize(&RReg[0]);
 
         // CONVERT TO AN INTEGER
         divReal(&RReg[1],&two_6720,&RReg[0]);
         roundReal(&RReg[1],&RReg[1],0);
         ipReal(&RReg[2],&RReg[1],1);    // TAKE INTEGER PART AND JUSTIFY THE DIGITS
-
-        Context.precdigits=2016;
 
         // THEN CONVERT TO BINARY FORM
 
@@ -442,7 +454,7 @@ int main()
 
 
 
-    initContext(2016);
+    initContext(2000);
 
     for(k=0;k<REAL_REGISTERS;++k) {
         RReg[k].data=allocRegister();
@@ -456,9 +468,10 @@ int main()
 
 // TEST OF NEW DROP-IN bintrig_sincos
 
+    for(k=28;k<100;++k) {
 
 
-    newRealFromBINT(&RReg[0],3,-500);     // 0.3
+    newRealFromBINT(&RReg[0],k*137,-k);     // 0.3
 
     bintrig_sincos(&RReg[0],ANGLERAD);
 
@@ -468,7 +481,7 @@ int main()
     finalize(&RReg[8]);
     finalize(&RReg[9]);
 
-    newRealFromBINT(&RReg[0],3,-500); // ANGLE 0.3 RADIANS
+    newRealFromBINT(&RReg[0],k*137,-k); // ANGLE 0.3 RADIANS
 
     trig_sincos(&RReg[0],ANGLERAD);
 
@@ -477,6 +490,15 @@ int main()
 
     subReal(&RReg[0],&RReg[6],&RReg[8]);
     subReal(&RReg[1],&RReg[7],&RReg[9]);
+
+    if(!iszeroReal(&RReg[0])) {
+        printf("Error in cos(x), k=%d\n",k);
+    }
+    if(!iszeroReal(&RReg[1])) {
+        printf("Error in sin(x), k=%d\n",k);
+    }
+
+    }
   return 0;
 
 
