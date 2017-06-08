@@ -93,7 +93,7 @@ void decconst_2Sysexp(REAL *real,int sysexp)
 
 static void binCORDIC_Rotational(int digits,int startindex,int sysexp)
 {
-int exponent;
+int exponent,zoffset;
 
 REAL *x,*y,*z,*tmp;
 REAL *xnext,*ynext,*znext;
@@ -101,60 +101,58 @@ REAL *xnext,*ynext,*znext;
 // USE RReg[0]=z; RReg[1]=x; RReg[2]=y;
 // THE INITIAL VALUES MUST'VE BEEN SET
 
-if(startindex&1) {
-    // MOVE THE REGISTERS TO PRODUCE CONSISTENT OUTPUT ON RReg[1] AND RReg[2]
-    z=&RReg[5];
-    x=&RReg[6];
-    y=&RReg[7];
-    znext=&RReg[0];
-    xnext=&RReg[1];
-    ynext=&RReg[2];
-
-    copyReal(z,znext);
-    copyReal(x,xnext);
-    copyReal(y,ynext);
-}
-else {
 z=&RReg[0];
 x=&RReg[1];
 y=&RReg[2];
 znext=&RReg[5];
 xnext=&RReg[6];
 ynext=&RReg[7];
-}
 
 digits=((digits+16)*217706)>>17; // CONVERT TO BASE-2 ITERATIONS
 digits&=~1; // GUARANTEE AN EVEN NUMBER OF ITERATIONS
+zoffset=(startindex+31)>>5;
+copy_words(znext->data,z->data,zoffset);    // MAKE SURE THE DIGITS ARE COPIED THROUGH
+
 for(exponent=startindex;exponent<startindex+digits;++exponent)
 {
 
     if(!(z->flags&F_NEGATIVE)) {
         y->flags^=F_NEGATIVE;
-        bIntegerAddShift(xnext,x,y,exponent+startindex);
+        bIntegerAddShift(xnext,x,y,2*exponent-1);
+        bIntegerAdd(y,y,y);     // SHIFT LEFT
         y->flags^=F_NEGATIVE;
-        bIntegerAddShift(ynext,y,x,exponent-startindex);
+        bIntegerAdd(ynext,y,x);
     }
     else {
-        bIntegerAddShift(xnext,x,y,exponent+startindex);
+        bIntegerAddShift(xnext,x,y,2*exponent-1);
         x->flags^=F_NEGATIVE;
-        bIntegerAddShift(ynext,y,x,exponent-startindex);
+        bIntegerAdd(y,y,y);     // SHIFT LEFT
+        bIntegerAdd(ynext,y,x);
         x->flags^=F_NEGATIVE;
     }
 
 
     binatan_table(exponent,sysexp,&RReg[4]);    // RReg[4]=atan(2^(-exp));
 
+    znext->data+=zoffset;
+    z->data+=zoffset;
+    z->len-=zoffset;
 
     if(!(z->flags&F_NEGATIVE)) {
         RReg[4].flags=F_NEGATIVE;
         bIntegerAdd(znext,z,&RReg[4]);
     } else bIntegerAdd(znext,z,&RReg[4]);
 
+    z->data-=zoffset;
+    znext->data-=zoffset;
+    znext->len+=zoffset;
 
     if( (exponent&31)==31) {
+        if(!zoffset) {
         copy_words(znext->data+1,znext->data,znext->len);
         znext->data[0]=0;
         znext->len++;
+        } else zoffset--;
     }
 
     // WE FINISHED ONE STEP
@@ -173,75 +171,20 @@ for(exponent=startindex;exponent<startindex+digits;++exponent)
 }
 
 
-if(startindex) {
-    for(;exponent<2*(startindex+digits);++exponent)
-    {
-
-        if(!(z->flags&F_NEGATIVE)) {
-            y->flags^=F_NEGATIVE;
-            bIntegerAddShift(xnext,x,y,exponent+startindex);
-            y->flags^=F_NEGATIVE;
-            bIntegerAddShift(ynext,y,x,exponent-startindex);
-        }
-        else {
-            bIntegerAddShift(xnext,x,y,exponent+startindex);
-            x->flags^=F_NEGATIVE;
-            bIntegerAddShift(ynext,y,x,exponent-startindex);
-            x->flags^=F_NEGATIVE;
-        }
-
-
-        binatan_table(exponent,sysexp,&RReg[4]);    // RReg[4]=atan(2^(-exp));
-
-
-        if(!(z->flags&F_NEGATIVE)) {
-            RReg[4].flags=F_NEGATIVE;
-            bIntegerAdd(znext,z,&RReg[4]);
-        } else bIntegerAdd(znext,z,&RReg[4]);
-
-
-        if( (exponent&31)==31) {
-            copy_words(znext->data+1,znext->data,znext->len);
-            znext->data[0]=0;
-            znext->len++;
-        }
-
-        // WE FINISHED ONE STEP
-        // SWAP THE POINTERS TO AVOID COPYING THE NUMBERS
-        tmp=znext;
-        znext=z;
-        z=tmp;
-
-        tmp=xnext;
-        xnext=x;
-        x=tmp;
-
-        tmp=ynext;
-        ynext=y;
-        y=tmp;
-    }
-
-    if(x!=&RReg[6]) {
-        swapReal(xnext,x);
-        swapReal(ynext,y);
-    }
-
-
-}
-
-else {
 // FINAL ROTATION BY RESIDUAL ANGLE
 // Xn=X-Y*tan(Ang)=X-Y*Ang
 // Yn=Y+X*tan(Ang)=Y+X*Ang
+znext->data[0]=0;
+znext->len=1;
+bIntegerAddShift(y,znext,y,(digits-1)-((startindex+31)&~31)); // SHIFT BACK
 
-bIntegerMul(ynext,y,z,sysexp+((exponent>>5))*32);
-bIntegerMul(znext,x,z,sysexp+((exponent>>5))*32);
+bIntegerMul(ynext,y,z,sysexp+((exponent>>5)-(startindex>>5))*32);
+bIntegerMul(znext,x,z,sysexp+((exponent>>5)-(startindex>>5))*32-((startindex+31)&~31));
 ynext->flags^=F_NEGATIVE;
-bIntegerAdd(xnext,x,ynext);
+bIntegerAddShift(xnext,x,ynext,((startindex+31)&~31));
 bIntegerAdd(ynext,y,znext);
 
 // THE FINAL RESULTS ARE ALWAYS IN RREG[6] AND RREG[7]
-}
 
 }
 
@@ -432,11 +375,10 @@ void bintrig_sincos(REAL *angle, BINT angmode)
     sysexp&=~31;
     if(sysexp>CORDIC_MAXSYSEXP) sysexp=CORDIC_MAXSYSEXP;
     int binstartexp=(startexp*217706)>>16;
-
-    binstartexp&=~31;
+    int binoffset=(binstartexp+31)&~31;
 
     // CONVERSION CONSTANT TO INTEGER
-    decconst_2Sysexp(&two_sysexp,sysexp+binstartexp);
+    decconst_2Sysexp(&two_sysexp,sysexp+binoffset);
 
     // CONVERT z TO BINARY
     mul_real(&RReg[1],&RReg[0],&two_sysexp);
