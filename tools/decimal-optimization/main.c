@@ -465,13 +465,24 @@ int main()
         BReg[k].data=(BINT *)&(BRegData[k*MAX_WORDS*2]);
     }
 
+// ***************************************************************
+// CONVERT TABLES FOR 2016 DIGITS INTO SMALLER TABLES AND COMPRESS
+
+   main_compressor();
+
+   return 0;
+
+
+
+
+
 
 // TEST OF NEW DROP-IN bintrig_sincos
 
-    for(k=28;k<100;++k) {
+    for(k=0;k<100;++k) {
 
 
-    newRealFromBINT(&RReg[0],k*137,-k);     // 0.3
+    newRealFromBINT(&RReg[0],k*715,-k);     // 0.3
 
     bintrig_sincos(&RReg[0],ANGLERAD);
 
@@ -481,7 +492,7 @@ int main()
     finalize(&RReg[8]);
     finalize(&RReg[9]);
 
-    newRealFromBINT(&RReg[0],k*137,-k); // ANGLE 0.3 RADIANS
+    newRealFromBINT(&RReg[0],k*715,-k); // ANGLE 0.3 RADIANS
 
     trig_sincos(&RReg[0],ANGLERAD);
 

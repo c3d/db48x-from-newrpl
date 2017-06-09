@@ -316,7 +316,7 @@ void decconst_Kh1(REAL *real)
 
 // EXTRACT A NUMBER FROM A COMPRESSED STREAM
 
-static void decompress_number(uint8_t *stream, uint32_t *dictionary, uint32_t *data, uint32_t nwords)
+void decompress_number(uint8_t *stream, uint32_t *dictionary, uint32_t *data, uint32_t nwords)
 {
     int _index, repeat,len,len2,idx,skip;
     uint32_t *enddata=data+nwords;
@@ -359,7 +359,7 @@ static void decompress_number(uint8_t *stream, uint32_t *dictionary, uint32_t *d
 // THIS FUNCTION RELIES ON TABLES BEING GENERATED FOR THE SAME REAL_PRECISION_MAX NUMBER OF DIGITS
 
 
-static void const_K_table(int startindex,REAL *real)
+void const_K_table(int startindex,REAL *real)
 {
 
     // WARNING: 0<=startindex, THIS FUNCTION DOES NOT CHECK FOR ARGUMENT RANGE
@@ -391,7 +391,7 @@ static void const_K_table(int startindex,REAL *real)
 // THIS FUNCTION RELIES ON TABLES BEING GENERATED FOR THE SAME REAL_PRECISION_MAX NUMBER OF DIGITS
 
 
-static void const_Kh_table(int startindex,REAL *real)
+void const_Kh_table(int startindex,REAL *real)
 {
 
     // WARNING: 1<=startindex, THIS FUNCTION DOES NOT CHECK FOR ARGUMENT RANGE
@@ -426,7 +426,7 @@ static void const_Kh_table(int startindex,REAL *real)
 
 // THIS FUNCTION RELIES ON TABLES BEING GENERATED FOR THE SAME REAL_PRECISION_MAX NUMBER OF DIGITS
 
-static void atan_1_table(int exponent,REAL *real)
+void atan_1_table(int exponent,REAL *real)
 {
 
     // WARNING: 0<=exponent<= digits, THIS FUNCTION DOES NOT CHECK FOR ARGUMENT RANGE
@@ -459,7 +459,7 @@ static void atan_1_table(int exponent,REAL *real)
 // THIS FUNCTION RELIES ON TABLES BEING GENERATED FOR THE SAME REAL_PRECISION_MAX NUMBER OF DIGITS
 
 
-static void atan_2_table(int exponent,REAL *real)
+void atan_2_table(int exponent,REAL *real)
 {
 
     // WARNING: 1<=exponent<= digits, THIS FUNCTION DOES NOT CHECK FOR ARGUMENT RANGE
@@ -485,7 +485,7 @@ static void atan_2_table(int exponent,REAL *real)
 
 }
 
-static void atan_5_table(int exponent,REAL *real)
+void atan_5_table(int exponent,REAL *real)
 {
 
     // WARNING: 1<=exponent<= digits, THIS FUNCTION DOES NOT CHECK FOR ARGUMENT RANGE
@@ -521,7 +521,7 @@ static void atan_5_table(int exponent,REAL *real)
 typedef void (*hypfuncptr)(int,REAL *);
 
 
-static void CORDIC_Rotational(int digits,int startindex)
+void CORDIC_Rotational(int digits,int startindex)
 {
 const int const sequence[4]={5,2,2,1};
 const hypfuncptr const functions[4]={atan_5_table,atan_2_table,atan_2_table,atan_1_table};
@@ -1159,7 +1159,7 @@ void trig_sincos(REAL *angle, BINT angmode)
 // TAKES INITIAL PARAMETERS IN RREG[0], RREG[1] AND RREG[2]
 // RETURNS RESULTS IN RREG[5], RREG[6], RREG[7]
 
-static void CORDIC_Vectoring(int digits,int startindex)
+void CORDIC_Vectoring(int digits,int startindex)
 {
 const int const sequence[4]={5,2,2,1};
 const hypfuncptr const functions[4]={atan_5_table,atan_2_table,atan_2_table,atan_1_table};
@@ -1644,7 +1644,7 @@ void trig_acos(REAL *x,BINT angmode)
 
 // THIS FUNCTION RELIES ON TABLES BEING GENERATED FOR THE SAME REAL_PRECISION_MAX NUMBER OF DIGITS
 
-static void atanh_1_table(int exponent,REAL *real)
+void atanh_1_table(int exponent,REAL *real)
 {
 
     // WARNING: 0<=exponent<= digits, THIS FUNCTION DOES NOT CHECK FOR ARGUMENT RANGE
@@ -1677,7 +1677,7 @@ static void atanh_1_table(int exponent,REAL *real)
 // THIS FUNCTION RELIES ON TABLES BEING GENERATED FOR THE SAME REAL_PRECISION_MAX NUMBER OF DIGITS
 
 
-static void atanh_2_table(int exponent,REAL *real)
+void atanh_2_table(int exponent,REAL *real)
 {
 
     // WARNING: 1<=exponent<= digits, THIS FUNCTION DOES NOT CHECK FOR ARGUMENT RANGE
@@ -1704,7 +1704,7 @@ static void atanh_2_table(int exponent,REAL *real)
 
 }
 
-static void atanh_5_table(int exponent,REAL *real)
+void atanh_5_table(int exponent,REAL *real)
 {
 
     // WARNING: 1<=exponent<= digits, THIS FUNCTION DOES NOT CHECK FOR ARGUMENT RANGE
@@ -1739,7 +1739,7 @@ static void atanh_5_table(int exponent,REAL *real)
 
 //void (*functions[4])(int,REAL *)={atanh_5_table,atanh_2_table,atanh_2_table,atanh_1_table};
 
-static void CORDIC_Hyp_Rotational_unrolled(int digits,int startexp)
+void CORDIC_Hyp_Rotational_unrolled(int digits,int startexp)
 {
 int exponent;
 int tmpexp,tmpflags;
@@ -1899,7 +1899,7 @@ normalize(xnext);
 
 // SPECIAL VERSION WITH HALF THE OPERATIONS FOR EXP() FUNCTION
 
-static void CORDIC_Hyp_Rotational_exp(int digits,int startexp)
+void CORDIC_Hyp_Rotational_exp(int digits,int startexp)
 {
 int exponent;
 REAL *x,*z;
@@ -2250,7 +2250,7 @@ Context.precdigits-=8;
 
 // HYPERBOLIC CORDIC FUNCTION IN VECTORING MODE
 
-static void CORDIC_Hyp_Vectoring_unrolled(int digits,int startexp)
+void CORDIC_Hyp_Vectoring_unrolled(int digits,int startexp)
 {
 int exponent;
 BINT tmpexp,tmpflags;

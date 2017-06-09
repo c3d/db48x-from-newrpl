@@ -39,7 +39,8 @@ SOURCES += main.c \
     atan_bintable.c \
     K_bintable.c \
     bintranscen.c \
-    two_exp_bintable.c
+    two_exp_bintable.c \
+    compressor.c
 
 DISTFILES +=
 
