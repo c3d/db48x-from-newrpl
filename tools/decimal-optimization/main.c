@@ -1006,9 +1006,18 @@ int main()
 // ***************************************************************
 // CONVERT TABLES FOR 2016 DIGITS INTO SMALLER TABLES AND COMPRESS
 
-   main_compressor();
+//   main_compressor();
 
-   return 0;
+//   return 0;
+
+
+
+
+
+
+
+
+
     REAL constpi180;
 
 
@@ -1029,8 +1038,7 @@ int main()
 
 
 
-#define TEST_DIGITS 100
-
+#define TEST_DIGITS 2000
     Context.precdigits=TEST_DIGITS;
 
 //  TEST SINE THROUGH POWERS

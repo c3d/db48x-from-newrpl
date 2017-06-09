@@ -93,7 +93,7 @@ void decconst_2Sysexp(REAL *real,int sysexp)
 
 static void binCORDIC_Rotational(int digits,int startindex,int sysexp)
 {
-
+int exponent;
 REAL *x,*y,*z,*tmp;
 REAL *xnext,*ynext,*znext;
 
