@@ -93,7 +93,6 @@ void decconst_2Sysexp(REAL *real,int sysexp)
 
 static void binCORDIC_Rotational(int digits,int startindex,int sysexp)
 {
-int exponent;
 
 REAL *x,*y,*z,*tmp;
 REAL *xnext,*ynext,*znext;
@@ -166,7 +165,6 @@ bIntegerAdd(xnext,x,ynext);
 bIntegerAdd(ynext,y,znext);
 
 // THE FINAL RESULTS ARE ALWAYS IN RREG[6] AND RREG[7]
-//}
 
 }
 
@@ -358,10 +356,7 @@ void bintrig_sincos(REAL *angle, BINT angmode)
     if(sysexp>CORDIC_MAXSYSEXP) sysexp=CORDIC_MAXSYSEXP;
     int binstartexp=(startexp*217706)>>16;
 
-    binstartexp&=~31;
-
     // CONVERSION CONSTANT TO INTEGER
-    decconst_2Sysexp(&two_sysexp,sysexp+binstartexp);
 
     // CONVERT z TO BINARY
     mul_real(&RReg[1],&RReg[0],&two_sysexp);

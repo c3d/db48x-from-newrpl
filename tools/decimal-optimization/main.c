@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <newrpl.h>
 
-
+#include <time.h>
 #include <bindecimal.h>
 
 #define MAX_WORDS 256
@@ -420,10 +420,548 @@ printf("\n\n};\n\n");
 }
 
 
+// GIVEN COS(X) IN RReg[0], RETURN COS(10x) IN RReg[0]
+// USES RReg[0] THROUGH RReg[3]
+
+// COS(10X)=512*Z^10-1280*Z^8+1120*Z^6-400*Z^4+50*Z^2-1
+// WITH Z=COS(X)
+
+void cos10x()
+{
+    mulReal(&RReg[1],&RReg[0],&RReg[0]);   // X^2
+
+    RReg[2].flags=0;
+    RReg[2].data[0]=512;
+    RReg[2].exp=0;
+    RReg[2].len=1;          // CONSTANTS FOR POLYNOMIAL
+
+    mulReal(&RReg[0],&RReg[1],&RReg[2]);
+    RReg[2].data[0]=1280;
+    subReal(&RReg[3],&RReg[0],&RReg[2]);
+
+    mulReal(&RReg[0],&RReg[1],&RReg[3]);
+    RReg[2].data[0]=1120;
+    addReal(&RReg[3],&RReg[0],&RReg[2]);
+
+    mulReal(&RReg[0],&RReg[1],&RReg[3]);
+    RReg[2].data[0]=400;
+    subReal(&RReg[3],&RReg[0],&RReg[2]);
+
+    mulReal(&RReg[0],&RReg[1],&RReg[3]);
+    RReg[2].data[0]=50;
+    addReal(&RReg[3],&RReg[0],&RReg[2]);
+
+    mulReal(&RReg[0],&RReg[1],&RReg[3]);
+    RReg[2].data[0]=1;
+    subReal(&RReg[0],&RReg[0],&RReg[2]);
+
+}
+
+// SAME BUT RECEIVES COS(X)-1 FOR INCREASED PRECISION
+void cos10x_prec()
+{
+    mulReal(&RReg[1],&RReg[0],&RReg[0]);   // X^2
+    add_real_mul(&RReg[1],&RReg[1],&RReg[0],2); // 2*X+X^2
+
+    RReg[2].flags=0;
+    RReg[2].data[0]=512;
+    RReg[2].exp=0;
+    RReg[2].len=1;          // CONSTANTS FOR POLYNOMIAL
+
+    mulReal(&RReg[0],&RReg[1],&RReg[2]);
+    RReg[2].data[0]=768;
+    subReal(&RReg[3],&RReg[0],&RReg[2]);
+
+    mulReal(&RReg[4],&RReg[1],&RReg[3]);
+    addReal(&RReg[0],&RReg[4],&RReg[3]);
+    RReg[2].data[0]=1120;
+    addReal(&RReg[3],&RReg[0],&RReg[2]);
+
+    mulReal(&RReg[4],&RReg[1],&RReg[3]);
+    addReal(&RReg[0],&RReg[4],&RReg[3]);
+    RReg[2].data[0]=400;
+    subReal(&RReg[3],&RReg[0],&RReg[2]);
+
+    mulReal(&RReg[4],&RReg[1],&RReg[3]);
+    addReal(&RReg[0],&RReg[4],&RReg[3]);
+    RReg[2].data[0]=50;
+    addReal(&RReg[3],&RReg[0],&RReg[2]);
+
+    mulReal(&RReg[4],&RReg[1],&RReg[3]);
+    addReal(&RReg[0],&RReg[4],&RReg[3]);
+    RReg[2].data[0]=1;
+    subReal(&RReg[0],&RReg[0],&RReg[2]);
+
+}
 
 
 
 
+// COMPUTE COS(X) FOR X<1E-5
+// GIVEN X IN RReg[0]
+// RETURNS COS(X) IN RReg[0]
+
+void cospower()
+{
+int k;
+int orgexp,digits;
+int needdigits=Context.precdigits;
+int correction;
+int chebyshev_iter=0;
+
+while( (16*chebyshev_iter*chebyshev_iter) < needdigits) chebyshev_iter+=2;
+
+orgexp=RReg[0].exp;
+RReg[0].exp=0;
+digits=intdigitsReal(&RReg[0]);
+
+correction=orgexp+digits+chebyshev_iter;
+
+if(correction>0) {
+    Context.precdigits=needdigits+((3*chebyshev_iter+15)&~7); // GET NECESSARY DIGITS TO PRESERVE VALUE
+    RReg[0].exp=-digits-chebyshev_iter;
+    if(Context.precdigits<needdigits) Context.precdigits=needdigits+8;
+}
+else {
+    RReg[0].exp=orgexp;
+    Context.precdigits+=16;
+}
+
+
+RReg[2].flags=F_NEGATIVE;
+RReg[2].exp=0;
+RReg[2].len=1;          // FACTORIAL
+
+
+mulReal(&RReg[3],&RReg[0],&RReg[0]);   // X^2
+RReg[0].flags=0;
+RReg[0].exp=0;
+RReg[0].len=1;
+RReg[0].data[0]=1;      // FIRST TERM
+
+RReg[4].flags=0;
+RReg[4].exp=0;
+RReg[4].len=1;
+RReg[4].data[0]=0;      // ACCUMULATOR
+
+// DO AS MANY TERMS AS NEEDED
+for(k=2;k<=REAL_PRECISION_MAX/2;k+=2)
+{
+    mulReal(&RReg[1],&RReg[0],&RReg[3]); // TERM*X^2
+    //normalize(&RReg[1]);
+    RReg[2].data[0]=k*(k-1);
+    divReal(&RReg[0],&RReg[1],&RReg[2]); // NEWTERM= TERM*X^2/(k*(k-1)) = X^K/K!
+    // HERE WE HAVE THE NEW TERM OF THE SERIES IN RReg[0]
+    addReal(&RReg[5],&RReg[4],&RReg[0]);
+
+    if(eqReal(&RReg[4],&RReg[5])) break;
+    swapReal(&RReg[4],&RReg[5]);
+}
+
+
+//printf("COS: total iterations=%d, correction=%d, need_prec=%d, actual prec=%d\n",k,correction,(-RReg[4].exp+7)&~7,Context.precdigits);
+
+if(correction>0) {
+
+
+RReg[2].data[0]=1;
+RReg[2].flags=0;
+
+addReal(&RReg[0],&RReg[4],&RReg[2]);
+
+for(k=0;k<correction;++k) cos10x();
+}
+else {
+    RReg[2].data[0]=1;
+    RReg[2].flags=0;
+
+    addReal(&RReg[0],&RReg[4],&RReg[2]);
+}
+
+
+Context.precdigits=needdigits;
+
+}
+
+
+void trig_cospower(REAL *angle, BINT angmode)
+{
+    int negsin,negcos,startexp;
+    REAL pi,pi2,pi4;
+    BINT savedprec;
+
+    negcos=negsin=0;
+
+    savedprec=Context.precdigits;
+    Context.precdigits=(2*savedprec+8 > REAL_PRECISION_MAX)? REAL_PRECISION_MAX:(2*savedprec+8);
+    if(angle->exp>savedprec) {
+        // THIS IS A VERY LARGE ANGLE, NEED TO INCREASE THE PRECISION
+        // TO GET AN ACCURATE RESULT ON THE MODULO
+        BINT minprec=((savedprec+intdigitsReal(angle))+7)&(~7);
+        if(minprec>REAL_PRECISION_MAX) {
+            // TODO: ISSUE AN ERROR
+            // FOR NOW JUST LEAVE IT WITH PARTIAL LOSS OF PRECISION
+            minprec=REAL_PRECISION_MAX;
+        }
+        Context.precdigits=minprec;
+    }
+
+    decconst_PI(&pi);
+    decconst_PI_2(&pi2);
+    decconst_PI_4(&pi4);
+
+    if(angmode==ANGLERAD) {
+        // ANGLE IS IN RADIANS, NO NEED FOR CONVERSION
+        copyReal(&RReg[0],angle);
+        // GET ANGLE MODULO PI
+        divmodReal(&RReg[1],&RReg[0],angle,&pi);
+    }
+    else {
+        REAL convfactor;
+        BINT modulo;
+        if(angmode==ANGLEDMS) {
+            // CONVERT TO DEGREES FIRST, SO THAT THERE'S EXACT VALUES AT 90, ETC.
+            trig_convertangle(angle,ANGLEDMS,ANGLEDEG);
+
+            swapReal(&RReg[0],&RReg[7]);
+            angle=&RReg[7];
+
+            angmode=ANGLEDEG;   // PLAIN DEGREES FROM NOW ON
+        }
+        if(angmode==ANGLEDEG) {
+            // DEGREES
+             decconst_PI_180(&convfactor);
+             modulo=180;
+        } else {
+            // GRADS
+             decconst_PI_200(&convfactor);
+             modulo=200;
+        }
+
+        newRealFromBINT(&RReg[2],modulo,0);
+
+        // GET ANGLE MODULO HALF-TURN
+        divmodReal(&RReg[1],&RReg[0],angle,&RReg[2]);
+
+        // CHECK FOR SPECIAL CASES: 1 FULL TURN AND HALF TURN
+
+        if(iszeroReal(&RReg[0])) {
+            // EXACT MULTIPLE OF PI, RETURN EXACT VALUES
+            MACROOneToRReg(0);
+            if(isoddReal(&RReg[1])) RReg[0].flags|=F_NEGATIVE;
+            // RESTORE PREVIOUS PRECISION
+            Context.precdigits=savedprec;
+
+            return;
+        }
+        RReg[2].data[0]>>=1; // 90 OR 100 DEGREES
+        RReg[2].flags|=RReg[0].flags&F_NEGATIVE;
+
+        if(eqReal(&RReg[0],&RReg[2])) {
+            // EXACT PI/2 OR 3/2PI, RETURN EXACT VALUES
+            MACROZeroToRReg(0);
+            // RESTORE PREVIOUS PRECISION
+            Context.precdigits=savedprec;
+
+
+            return;
+        }
+
+
+
+
+
+        // CONVERT TO RADIANS
+        mulReal(&RReg[0],&RReg[0],&convfactor);
+
+
+    }
+
+
+    // HERE RReg[0] HAS THE REMAINDER THAT WE NEED TO WORK WITH
+
+
+    // CHECK FOR SPECIAL CASES
+
+    if(iszeroReal(&RReg[0])) {
+        // EXACT MULTIPLE OF PI, IN RADIANS THIS CAN ONLY HAPPEN IF THE ARGUMENT IS ACTUALLY ZERO
+        MACROOneToRReg(0);
+        if(isoddReal(&RReg[1])) RReg[0].flags|=F_NEGATIVE;
+        // RESTORE PREVIOUS PRECISION
+        Context.precdigits=savedprec;
+
+        return;
+    }
+
+    // IF THE RESULT OF THE DIVISION IS ODD, THEN WE ARE IN THE OTHER HALF OF THE CIRCLE
+    if(isoddReal(&RReg[1])) { negcos=negsin=1; }
+
+    if(RReg[0].flags&F_NEGATIVE) { negsin^=1; RReg[0].flags&=~F_NEGATIVE; }
+
+    if(gtReal(&RReg[0],&pi2)) {
+        negcos^=1;
+        sub_real(&RReg[0],&pi,&RReg[0]);
+    }
+    /*
+    if(gtReal(&RReg[0],&pi4)) {
+        swap^=1;
+        sub_real(&RReg[0],&pi2,&RReg[0]);
+    }
+    */
+    normalize(&RReg[0]);
+
+    Context.precdigits=savedprec;
+
+    cospower();
+
+
+    if(negcos) RReg[0].flags|=F_NEGATIVE;
+
+}
+
+
+// GIVEN SIN(X) IN RReg[0], RETURN SIN(5x) IN RReg[0]
+// USES RReg[0] THROUGH RReg[3]
+
+// SIN(5X)=16*Z^5-20*Z^3+5*Z
+// Z=SIN(X)
+
+
+void sin5x()
+{
+    mulReal(&RReg[1],&RReg[0],&RReg[0]);   // X^2
+
+    RReg[2].flags=0;
+    RReg[2].data[0]=16;
+    RReg[2].exp=0;
+    RReg[2].len=1;          // CONSTANTS FOR POLYNOMIAL
+
+    mulReal(&RReg[4],&RReg[1],&RReg[2]);
+    RReg[2].data[0]=20;
+    subReal(&RReg[3],&RReg[4],&RReg[2]);
+
+    mulReal(&RReg[4],&RReg[1],&RReg[3]);
+    RReg[2].data[0]=5;
+    addReal(&RReg[3],&RReg[4],&RReg[2]);
+
+    mulReal(&RReg[4],&RReg[0],&RReg[3]);
+
+    swapReal(&RReg[0],&RReg[4]);
+
+}
+
+
+// COMPUTE SIN(X)
+// GIVEN X IN RReg[0]
+// RETURNS SIN(X) IN RReg[0]
+
+void sinpower()
+{
+int k;
+int orgexp,digits;
+int needdigits=Context.precdigits;
+int correction;
+int chebyshev_iter=0;
+
+orgexp=RReg[0].exp;
+
+while( (16*chebyshev_iter*chebyshev_iter) < needdigits) chebyshev_iter+=2;
+
+RReg[0].exp=0;
+digits=intdigitsReal(&RReg[0]);
+
+correction=orgexp+digits+chebyshev_iter;
+
+if(correction>0) {
+    Context.precdigits=needdigits+((3*chebyshev_iter+15)&~7); // GET NECESSARY DIGITS TO PRESERVE VALUE
+    RReg[0].exp=-digits-chebyshev_iter;
+
+    if(Context.precdigits<needdigits) Context.precdigits=needdigits+8;
+
+    // MULTIPLY BY 2^correction
+    newRealFromBINT(&RReg[1],1<<correction,0);
+    mulReal(&RReg[0],&RReg[0],&RReg[1]);
+
+}
+else {
+    RReg[0].exp=orgexp;
+    Context.precdigits+=16;
+}
+
+
+RReg[2].flags=F_NEGATIVE;
+RReg[2].exp=0;
+RReg[2].len=1;          // FACTORIAL
+
+
+mulReal(&RReg[3],&RReg[0],&RReg[0]);   // X^2
+
+//  FIRST TERM IN RReg[0] IS X
+
+copyReal(&RReg[4],&RReg[0]); // ACCUMULATOR
+
+// DO AS MANY TERMS AS NEEDED
+for(k=3;k<=REAL_PRECISION_MAX/2;k+=2)
+{
+    mulReal(&RReg[1],&RReg[0],&RReg[3]); // TERM*X^2
+    //normalize(&RReg[1]);
+    RReg[2].data[0]=k*(k-1);
+    divReal(&RReg[0],&RReg[1],&RReg[2]); // NEWTERM= TERM*X^2/(k*(k-1)) = X^K/K!
+    // HERE WE HAVE THE NEW TERM OF THE SERIES IN RReg[0]
+    addReal(&RReg[5],&RReg[4],&RReg[0]);
+
+    if(eqReal(&RReg[4],&RReg[5])) break;
+    swapReal(&RReg[4],&RReg[5]);
+}
+
+
+//printf("SIN: total iterations=%d, correction=%d, need_prec=%d, actual prec=%d\n",k,correction,(-RReg[4].exp+7)&~7,Context.precdigits);
+
+swapReal(&RReg[0],&RReg[4]);
+if(correction>0) {
+for(k=0;k<correction;++k) sin5x();
+}
+
+Context.precdigits=needdigits;
+
+}
+
+
+void trig_sinpower(REAL *angle, BINT angmode)
+{
+    int negsin,negcos,swap,startexp;
+    REAL pi,pi2,pi4;
+    BINT savedprec;
+
+    negcos=negsin=swap=0;
+
+    savedprec=Context.precdigits;
+    Context.precdigits=(2*savedprec+8 > REAL_PRECISION_MAX)? REAL_PRECISION_MAX:(2*savedprec+8);
+    if(angle->exp>savedprec) {
+        // THIS IS A VERY LARGE ANGLE, NEED TO INCREASE THE PRECISION
+        // TO GET AN ACCURATE RESULT ON THE MODULO
+        BINT minprec=((savedprec+intdigitsReal(angle))+7)&(~7);
+        if(minprec>REAL_PRECISION_MAX) {
+            // TODO: ISSUE AN ERROR
+            // FOR NOW JUST LEAVE IT WITH PARTIAL LOSS OF PRECISION
+            minprec=REAL_PRECISION_MAX;
+        }
+        Context.precdigits=minprec;
+    }
+
+    decconst_PI(&pi);
+    decconst_PI_2(&pi2);
+    decconst_PI_4(&pi4);
+
+    if(angmode==ANGLERAD) {
+        // ANGLE IS IN RADIANS, NO NEED FOR CONVERSION
+        copyReal(&RReg[0],angle);
+        // GET ANGLE MODULO PI
+        divmodReal(&RReg[1],&RReg[0],angle,&pi);
+    }
+    else {
+        REAL convfactor;
+        BINT modulo;
+        if(angmode==ANGLEDMS) {
+            // CONVERT TO DEGREES FIRST, SO THAT THERE'S EXACT VALUES AT 90, ETC.
+            trig_convertangle(angle,ANGLEDMS,ANGLEDEG);
+
+            swapReal(&RReg[0],&RReg[7]);
+            angle=&RReg[7];
+
+            angmode=ANGLEDEG;   // PLAIN DEGREES FROM NOW ON
+        }
+        if(angmode==ANGLEDEG) {
+            // DEGREES
+             decconst_PI_180(&convfactor);
+             modulo=180;
+        } else {
+            // GRADS
+             decconst_PI_200(&convfactor);
+             modulo=200;
+        }
+
+        newRealFromBINT(&RReg[2],modulo,0);
+
+        // GET ANGLE MODULO HALF-TURN
+        divmodReal(&RReg[1],&RReg[0],angle,&RReg[2]);
+
+        // CHECK FOR SPECIAL CASES: 1 FULL TURN AND HALF TURN
+
+        if(iszeroReal(&RReg[0])) {
+            // EXACT MULTIPLE OF PI, RETURN EXACT VALUES
+            MACROZeroToRReg(0);
+            // RESTORE PREVIOUS PRECISION
+            Context.precdigits=savedprec;
+
+            return;
+        }
+        RReg[2].data[0]>>=1; // 90 OR 100 DEGREES
+        RReg[2].flags|=RReg[0].flags&F_NEGATIVE;
+
+        if(eqReal(&RReg[0],&RReg[2])) {
+            // EXACT PI/2 OR 3/2PI, RETURN EXACT VALUES
+            MACROOneToRReg(0);
+            if(isoddReal(&RReg[1])) RReg[0].flags|=F_NEGATIVE;
+            // RESTORE PREVIOUS PRECISION
+            Context.precdigits=savedprec;
+
+
+            return;
+        }
+
+
+
+
+
+        // CONVERT TO RADIANS
+        mulReal(&RReg[0],&RReg[0],&convfactor);
+
+        normalize(&RReg[0]);
+
+    }
+
+
+    // HERE RReg[0] HAS THE REMAINDER THAT WE NEED TO WORK WITH
+
+
+    // CHECK FOR SPECIAL CASES
+
+    if(iszeroReal(&RReg[0])) {
+        // EXACT MULTIPLE OF PI, IN RADIANS THIS CAN ONLY HAPPEN IF THE ARGUMENT IS ACTUALLY ZERO
+        MACROZeroToRReg(0);
+        // RESTORE PREVIOUS PRECISION
+        Context.precdigits=savedprec;
+
+        return;
+    }
+
+    // IF THE RESULT OF THE DIVISION IS ODD, THEN WE ARE IN THE OTHER HALF OF THE CIRCLE
+    if(isoddReal(&RReg[1])) { negcos=negsin=1; }
+
+    if(RReg[0].flags&F_NEGATIVE) { negsin^=1; RReg[0].flags&=~F_NEGATIVE; }
+
+    if(gtReal(&RReg[0],&pi2)) {
+        sub_real(&RReg[0],&pi,&RReg[0]);
+        normalize(&RReg[0]);
+    }
+
+    if(gtReal(&RReg[0],&pi4)) {
+        swap^=1;
+        sub_real(&RReg[0],&pi2,&RReg[0]);
+        normalize(&RReg[0]);
+
+    }
+
+
+    Context.precdigits=savedprec;
+
+    if(swap) cospower(); else sinpower();
+
+
+    if(negsin) RReg[0].flags|=F_NEGATIVE;
+
+}
 
 
 
@@ -471,6 +1009,279 @@ int main()
    main_compressor();
 
    return 0;
+    REAL constpi180;
+
+
+    decconst_PI_180(&constpi180);
+
+
+
+
+    clock_t start,end;
+
+
+    // ************************************************************************************
+    // SINE TEST
+
+
+    start=clock();
+
+
+
+
+#define TEST_DIGITS 100
+
+    Context.precdigits=TEST_DIGITS;
+
+//  TEST SINE THROUGH POWERS
+    for(k=0;k<100;++k) {
+
+
+    newRealFromBINT(&RReg[1],k,0);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
+
+
+    trig_sinpower(&RReg[0],ANGLERAD);
+
+    swapReal(&RReg[0],&RReg[8]);
+
+    newRealFromBINT(&RReg[1],k,0);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
+
+    trig_sincos(&RReg[0],ANGLERAD);
+
+    finalize(&RReg[7]);
+    finalize(&RReg[8]);
+
+    subReal(&RReg[0],&RReg[7],&RReg[8]);
+
+    if(!iszeroReal(&RReg[0])) {
+        printf("Error in sin(x), k=%d\n",k);
+    }
+
+
+    }
+
+    end=clock();
+
+    printf("Done first run in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
+
+    start=clock();
+
+
+//  TEST SINE THROUGH POWERS
+    for(k=0;k<100;++k) {
+
+
+    newRealFromBINT(&RReg[1],k,0);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
+
+
+    trig_sinpower(&RReg[0],ANGLERAD);
+
+    /*
+
+    swapReal(&RReg[0],&RReg[8]);
+
+    newRealFromBINT(&RReg[1],5*k,-1);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
+
+    trig_sincos(&RReg[0],ANGLERAD);
+
+    finalize(&RReg[6]);
+    finalize(&RReg[8]);
+
+    subReal(&RReg[0],&RReg[6],&RReg[8]);
+
+    if(!iszeroReal(&RReg[0])) {
+        printf("Error in cos(x), k=%d\n",k);
+    }
+    */
+
+    }
+
+    end=clock();
+
+    printf("Done second run in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
+
+
+    start=clock();
+
+
+//  TEST SINE THROUGH POWERS
+    for(k=0;k<100;++k) {
+
+    newRealFromBINT(&RReg[1],k,0);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
+
+
+    //cospower();
+    trig_sincos(&RReg[0],ANGLERAD);
+
+    /*
+
+    swapReal(&RReg[0],&RReg[8]);
+
+    newRealFromBINT(&RReg[1],5*k,-1);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
+
+    trig_sincos(&RReg[0],ANGLERAD);
+
+    finalize(&RReg[6]);
+    finalize(&RReg[8]);
+
+    subReal(&RReg[0],&RReg[6],&RReg[8]);
+
+    if(!iszeroReal(&RReg[0])) {
+        printf("Error in cos(x), k=%d\n",k);
+    }
+    */
+
+    }
+
+    end=clock();
+
+    printf("Done trig_sincos in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
+
+// END OF SINE TEST
+// ********************************************************************************************
+return 0;
+
+
+    // ************************************************************************************
+    // COSINE TEST
+
+
+    start=clock();
+
+
+
+
+#define TEST_DIGITS 100
+
+    Context.precdigits=TEST_DIGITS;
+
+//  TEST COSINE THROUGH POWERS
+    for(k=0;k<100;++k) {
+
+
+    newRealFromBINT(&RReg[1],k,0);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
+
+
+    trig_cospower(&RReg[0],ANGLERAD);
+    //trig_sincos(&RReg[0],ANGLERAD);
+
+    swapReal(&RReg[0],&RReg[8]);
+
+    newRealFromBINT(&RReg[1],k,0);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
+
+    trig_sincos(&RReg[0],ANGLERAD);
+
+    finalize(&RReg[6]);
+    finalize(&RReg[8]);
+
+    subReal(&RReg[0],&RReg[6],&RReg[8]);
+
+    if(!iszeroReal(&RReg[0])) {
+        printf("Error in cos(x), k=%d\n",k);
+    }
+
+
+    }
+
+    end=clock();
+
+    printf("Done first run in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
+
+    start=clock();
+
+
+//  TEST COSINE THROUGH POWERS
+    for(k=0;k<100;++k) {
+
+
+    newRealFromBINT(&RReg[1],k,0);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
+
+
+    cospower();
+    //trig_sincos(&RReg[0],ANGLERAD);
+
+    /*
+
+    swapReal(&RReg[0],&RReg[8]);
+
+    newRealFromBINT(&RReg[1],5*k,-1);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
+
+    trig_sincos(&RReg[0],ANGLERAD);
+
+    finalize(&RReg[6]);
+    finalize(&RReg[8]);
+
+    subReal(&RReg[0],&RReg[6],&RReg[8]);
+
+    if(!iszeroReal(&RReg[0])) {
+        printf("Error in cos(x), k=%d\n",k);
+    }
+    */
+
+    }
+
+    end=clock();
+
+    printf("Done second run in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
+
+
+    start=clock();
+
+
+//  TEST COSINE THROUGH POWERS
+    for(k=0;k<100;++k) {
+
+    newRealFromBINT(&RReg[1],k,0);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
+
+
+    //cospower();
+    trig_sincos(&RReg[0],ANGLERAD);
+
+    /*
+
+    swapReal(&RReg[0],&RReg[8]);
+
+    newRealFromBINT(&RReg[1],5*k,-1);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
+
+    trig_sincos(&RReg[0],ANGLERAD);
+
+    finalize(&RReg[6]);
+    finalize(&RReg[8]);
+
+    subReal(&RReg[0],&RReg[6],&RReg[8]);
+
+    if(!iszeroReal(&RReg[0])) {
+        printf("Error in cos(x), k=%d\n",k);
+    }
+    */
+
+    }
+
+    end=clock();
+
+    printf("Done trig_sincos in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
+
+// END OF COSINE TEST
+// ********************************************************************************************
+
+
+
+    return 0;
+
+
+   return 0;
 
 
 
@@ -510,7 +1321,7 @@ int main()
     }
 
     }
-  return 0;
+    return 0;
 
 
 
