@@ -964,8 +964,53 @@ void trig_sinpower(REAL *angle, BINT angmode)
 }
 
 
+// COMPUTE SQUARE ROOT OF RReg[0] USING POWER SERIES
+// RESULT IS RReg[0]=SQRT(RReg[0]), RReg[1]=1/SQRT(RReg[0]
 
+void psqrt()
+{
+int orgexp=RReg[0].exp;
+int ndigits;
+RReg[0].exp=0;
+ndigits=intdigitsReal(&RReg[0]);
 
+RReg[0].exp=-ndigits;       // MAKE THE NUMBER BE IN THE RANGE 0.1 ... 0.99
+
+// FIRST APPROXIMATION, START WITH x=2
+RReg[1].data[0]=2;
+RReg[1].exp=0;
+RReg[1].flags=0;
+RReg[1].len=1;
+
+RReg[2].exp=0;
+RReg[2].flags=0;
+RReg[2].len=1;
+
+// Halley's method
+
+do {
+mulReal(&RReg[3],&RReg[1],&RReg[1]);
+mulReal(&RReg[4],&RReg[3],&RReg[0]);    // RReg[4]=yn=S*xn^2
+
+RReg[4].flags^=F_NEGATIVE;
+RReg[2].data[0]=10;
+RReg[2].exp=0;
+add_real_mul(&RReg[3],&RReg[1],&RReg[4],3); // (10-3*yn)
+normalize(&RReg[3]);
+mulReal(&RReg[5],&RReg[4],&RReg[3]);        // -yn*(10-3*yn)
+RReg[2].data[0]=15;
+addReal(&RReg[4],&RReg[2],&RReg[5]);        // 15-yn*(10-3*yn)
+mulReal(&RReg[3],&RReg[4],&RReg[1]);        // xn*(15-yn*(10-3*yn))
+RReg[2].data[0]=125;
+RReg[2].exp=-3;
+mulReal(&RReg[4],&RReg[2],&RReg[3]);        // x(n+1)=0.125*xn*(15-yn*(10-3*yn))
+swapReal(&RReg[4],&RReg[1]);
+} while(!eqReal(&RReg[4],&RReg[1]));
+
+// HERE RReg[1] HAS THE RESULT OF 1/SQRT(X)
+mulReal(&RReg[0],&RReg[1],&RReg[0]);
+// HERE RReg[0]=X*1/SQRT(X) = SQRT(X)
+}
 
 
 
@@ -1011,10 +1056,15 @@ int main()
 //   return 0;
 
 
+//   TEST NEW SQUARE ROOT ALGORITHM
 
 
+    newRealFromBINT(&RReg[0],2,0);
+
+    psqrt();
 
 
+    return 0;
 
 
 
