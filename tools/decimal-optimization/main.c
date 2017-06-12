@@ -964,6 +964,7 @@ void trig_sinpower(REAL *angle, BINT angmode)
 }
 
 
+
 // COMPUTE SQUARE ROOT OF RReg[0] USING POWER SERIES
 // RESULT IS RReg[0]=SQRT(RReg[0]), RReg[1]=1/SQRT(RReg[0]
 
@@ -971,31 +972,83 @@ void psqrt()
 {
 int orgexp=RReg[0].exp;
 int ndigits;
+
+
+// HANDLE SPECIAL CASE OF 0 (1/SQRT(0) IS INFINITY)
+if(iszeroReal(&RReg[0])) {
+    RReg[1].data[0]=0;
+    RReg[1].exp=0;
+    RReg[1].len=1;
+    RReg[1].flags=F_INFINITY;
+
+    // RReg[0] IS ALREADY ZERO
+
+    return;
+
+}
+
+
 RReg[0].exp=0;
 ndigits=intdigitsReal(&RReg[0]);
 
 RReg[0].exp=-ndigits;       // MAKE THE NUMBER BE IN THE RANGE 0.1 ... 0.99
+int mantexp=ndigits+orgexp;
 
-// FIRST APPROXIMATION, START WITH x=2
-RReg[1].data[0]=2;
-RReg[1].exp=0;
+
 RReg[1].flags=0;
 RReg[1].len=1;
+
+if(mantexp&1) {
+    RReg[0].exp++;
+    mantexp--;
+    // NOW IT'S IN RANGE 1..9.9, SO INITIAL APPROXIMATION SHOULD BE AROUND 0.63
+    RReg[1].data[0]=5;
+    RReg[1].exp=-1;
+    if(gtReal(&RReg[0],&RReg[1])) {
+        // FIRST APPROXIMATION, START WITH x=0.33
+        RReg[1].data[0]=33;
+    }
+    else {
+        // FIRST APPROXIMATION, START WITH x=0.63
+        RReg[1].data[0]=63;
+    }
+    RReg[1].exp=-2;
+}
+else {
+    RReg[1].data[0]=5;
+    RReg[1].exp=-1;
+    if(gtReal(&RReg[0],&RReg[1])) {
+        // FIRST APPROXIMATION, START WITH x=1
+        RReg[1].data[0]=1;
+    }
+    else {
+        // FIRST APPROXIMATION, START WITH x=2
+        RReg[1].data[0]=2;
+    }
+    RReg[1].exp=0;
+}
+
+
+
 
 RReg[2].exp=0;
 RReg[2].flags=0;
 RReg[2].len=1;
+int savedprec=Context.precdigits;
 
 // Halley's method
+Context.precdigits=(Context.precdigits+15)&~7;
+//int iters=0;
 
 do {
+//    ++iters;
 mulReal(&RReg[3],&RReg[1],&RReg[1]);
 mulReal(&RReg[4],&RReg[3],&RReg[0]);    // RReg[4]=yn=S*xn^2
 
 RReg[4].flags^=F_NEGATIVE;
 RReg[2].data[0]=10;
 RReg[2].exp=0;
-add_real_mul(&RReg[3],&RReg[1],&RReg[4],3); // (10-3*yn)
+add_real_mul(&RReg[3],&RReg[2],&RReg[4],3); // (10-3*yn)
 normalize(&RReg[3]);
 mulReal(&RReg[5],&RReg[4],&RReg[3]);        // -yn*(10-3*yn)
 RReg[2].data[0]=15;
@@ -1005,11 +1058,22 @@ RReg[2].data[0]=125;
 RReg[2].exp=-3;
 mulReal(&RReg[4],&RReg[2],&RReg[3]);        // x(n+1)=0.125*xn*(15-yn*(10-3*yn))
 swapReal(&RReg[4],&RReg[1]);
-} while(!eqReal(&RReg[4],&RReg[1]));
+subReal(&RReg[3],&RReg[4],&RReg[1]);
+} while((RReg[3].len>1)||(RReg[1].exp>-Context.precdigits-4));
 
+//printf("iters=%d\n",iters);
 // HERE RReg[1] HAS THE RESULT OF 1/SQRT(X)
 mulReal(&RReg[0],&RReg[1],&RReg[0]);
 // HERE RReg[0]=X*1/SQRT(X) = SQRT(X)
+
+// CORRECT THE NUMBER BY THE EXPONENT
+RReg[0].exp+=mantexp/2;
+RReg[1].exp-=mantexp/2;
+
+
+
+
+Context.precdigits=savedprec;
 }
 
 
@@ -1055,14 +1119,37 @@ int main()
 
 //   return 0;
 
+   clock_t start,end;
 
+#define TEST_DIGITS 2000
+    Context.precdigits=TEST_DIGITS;
 //   TEST NEW SQUARE ROOT ALGORITHM
 
+    for(k=0;k<100;++k) {
 
-    newRealFromBINT(&RReg[0],2,0);
+    newRealFromBINT(&RReg[0],k*11428,-5);
 
     psqrt();
+/*
+    swapReal(&RReg[0],&RReg[8]);
 
+    newRealFromBINT(&RReg[0],k*11428,-5);
+    hyp_sqrt(&RReg[0]);
+
+    finalize(&RReg[0]);
+    finalize(&RReg[8]);
+
+    subReal(&RReg[1],&RReg[0],&RReg[8]);
+
+    if(!iszeroReal(&RReg[1])) {
+        printf("Error in sqrt(x), k=%d\n",k);
+    }
+*/
+    }
+
+    end=clock();
+
+    printf("Done first run in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
 
     return 0;
 
@@ -1076,7 +1163,7 @@ int main()
 
 
 
-    clock_t start,end;
+
 
 
     // ************************************************************************************
