@@ -10,6 +10,7 @@
 #define MACROZeroToRReg(n) { RReg[n].data[0]=0; RReg[n].exp=0; RReg[n].flags=0; RReg[n].len=1; }
 #define MACROOneToRReg(n) { RReg[n].data[0]=1; RReg[n].exp=0; RReg[n].flags=0; RReg[n].len=1; }
 #define MACRONANToRReg(n) { RReg[n].data[0]=0; RReg[n].exp=0; RReg[n].flags=F_NOTANUMBER; RReg[n].len=1; }
+#define MACROInfToRReg(n) { RReg[n].data[0]=0; RReg[n].exp=0; RReg[n].flags=F_INFINITY; RReg[n].len=1; }
 
 
 
@@ -1003,7 +1004,7 @@ if(mantexp&1) {
     mantexp--;
     // NOW IT'S IN RANGE 1..9.9, SO INITIAL APPROXIMATION SHOULD BE AROUND 0.63
     RReg[1].data[0]=5;
-    RReg[1].exp=-1;
+    RReg[1].exp=0;
     if(gtReal(&RReg[0],&RReg[1])) {
         // FIRST APPROXIMATION, START WITH x=0.33
         RReg[1].data[0]=33;
@@ -1039,7 +1040,7 @@ int savedprec=Context.precdigits;
 // Halley's method
 Context.precdigits=(Context.precdigits+15)&~7;
 //int iters=0;
-
+int goodexp,gooddigits=0;
 do {
 //    ++iters;
 mulReal(&RReg[3],&RReg[1],&RReg[1]);
@@ -1059,7 +1060,13 @@ RReg[2].exp=-3;
 mulReal(&RReg[4],&RReg[2],&RReg[3]);        // x(n+1)=0.125*xn*(15-yn*(10-3*yn))
 swapReal(&RReg[4],&RReg[1]);
 subReal(&RReg[3],&RReg[4],&RReg[1]);
-} while((RReg[3].len>1)||(RReg[1].exp>-Context.precdigits-4));
+if(RReg[3].len>1) continue;
+if(RReg[3].data[0]==0) break;
+goodexp=RReg[3].exp+sig_digits(RReg[3].data[0]);
+gooddigits=intdigitsReal(&RReg[1])-RReg[1].exp;
+gooddigits-=goodexp-RReg[1].exp;
+
+} while(gooddigits<=savedprec);
 
 //printf("iters=%d\n",iters);
 // HERE RReg[1] HAS THE RESULT OF 1/SQRT(X)
@@ -1075,6 +1082,216 @@ RReg[1].exp-=mantexp/2;
 
 Context.precdigits=savedprec;
 }
+
+
+
+
+
+
+
+
+
+void trig_tanpower(REAL *angle, BINT angmode)
+{
+    int negsin,negcos,invert,startexp;
+    REAL pi,pi2,pi4;
+    BINT savedprec;
+
+
+    // COMPUTE TANGENT BY COMPUTING FIRST COS(2*X)
+
+
+    negcos=negsin=invert=0;
+
+    savedprec=Context.precdigits;
+    Context.precdigits=(2*savedprec+8 > REAL_PRECISION_MAX)? REAL_PRECISION_MAX:(2*savedprec+8);
+    if(angle->exp>savedprec) {
+        // THIS IS A VERY LARGE ANGLE, NEED TO INCREASE THE PRECISION
+        // TO GET AN ACCURATE RESULT ON THE MODULO
+        BINT minprec=((savedprec+intdigitsReal(angle))+7)&(~7);
+        if(minprec>REAL_PRECISION_MAX) {
+            // TODO: ISSUE AN ERROR
+            // FOR NOW JUST LEAVE IT WITH PARTIAL LOSS OF PRECISION
+            minprec=REAL_PRECISION_MAX;
+        }
+        Context.precdigits=minprec;
+    }
+
+    decconst_PI(&pi);
+    decconst_PI_2(&pi2);
+    decconst_PI_4(&pi4);
+
+    addReal(&RReg[1],angle,angle);  // DOUBLE THE ANGLE
+
+    if(angmode==ANGLERAD) {
+        // ANGLE IS IN RADIANS, NO NEED FOR CONVERSION
+        // GET ANGLE MODULO PI
+        divmodReal(&RReg[1],&RReg[0],&RReg[1],&pi);
+    }
+    else {
+        REAL convfactor;
+        BINT modulo;
+        if(angmode==ANGLEDMS) {
+            // CONVERT TO DEGREES FIRST, SO THAT THERE'S EXACT VALUES AT 90, ETC.
+            trig_convertangle(&RReg[1],ANGLEDMS,ANGLEDEG);
+
+            swapReal(&RReg[0],&RReg[7]);
+            angle=&RReg[7];
+
+            angmode=ANGLEDEG;   // PLAIN DEGREES FROM NOW ON
+        }
+        if(angmode==ANGLEDEG) {
+            // DEGREES
+             decconst_PI_180(&convfactor);
+             modulo=180;
+        } else {
+            // GRADS
+             decconst_PI_200(&convfactor);
+             modulo=200;
+        }
+
+        newRealFromBINT(&RReg[2],modulo,0);
+
+        // GET ANGLE MODULO HALF-TURN
+        divmodReal(&RReg[1],&RReg[0],angle,&RReg[2]);
+
+        // CHECK FOR SPECIAL CASES: 1 FULL TURN AND HALF TURN
+
+        if(iszeroReal(&RReg[0])) {
+            // EXACT MULTIPLE OF PI, RETURN EXACT VALUES
+            MACROZeroToRReg(0);
+            // RESTORE PREVIOUS PRECISION
+            Context.precdigits=savedprec;
+
+            return;
+        }
+        RReg[2].data[0]>>=1; // 90 OR 100 DEGREES
+        RReg[2].flags|=RReg[0].flags&F_NEGATIVE;
+
+        if(eqReal(&RReg[0],&RReg[2])) {
+            // EXACT PI/2 OR 3/2PI, RETURN EXACT VALUES
+            MACROInfToRReg(0);
+            if(isoddReal(&RReg[1])) RReg[0].flags|=F_NEGATIVE;
+            // RESTORE PREVIOUS PRECISION
+            Context.precdigits=savedprec;
+
+
+            return;
+        }
+
+
+
+
+
+        // CONVERT TO RADIANS
+        mulReal(&RReg[0],&RReg[0],&convfactor);
+
+
+    }
+
+
+    // HERE RReg[0] HAS THE REMAINDER THAT WE NEED TO WORK WITH
+
+
+    // CHECK FOR SPECIAL CASES
+
+    if(iszeroReal(&RReg[0])) {
+        // EXACT MULTIPLE OF PI, IN RADIANS THIS CAN ONLY HAPPEN IF THE ARGUMENT IS ACTUALLY ZERO
+        MACROZeroToRReg(0);
+        // RESTORE PREVIOUS PRECISION
+        Context.precdigits=savedprec;
+
+        return;
+    }
+
+    // IF THE RESULT OF THE DIVISION IS ODD, THEN WE ARE IN THE OTHER HALF OF THE CIRCLE
+    if(isoddReal(&RReg[1])) { invert=negcos=negsin=1; }
+
+    if(RReg[0].flags&F_NEGATIVE) { negsin^=1; RReg[0].flags&=~F_NEGATIVE; }
+
+    if(gtReal(&RReg[0],&pi2)) {
+        negcos^=1;
+        sub_real(&RReg[0],&pi,&RReg[0]);
+
+        normalize(&RReg[0]);
+
+
+    }
+    if(gtReal(&RReg[0],&pi4)) {
+        sub_real(&RReg[0],&pi2,&RReg[0]);
+
+        normalize(&RReg[0]);
+
+        Context.precdigits=savedprec;
+
+        sinpower();
+
+
+    } else {
+
+        int startexp=-RReg[0].exp-((RReg[0].len-1)<<3)-sig_digits(RReg[0].data[RReg[0].len-1])+1;
+
+
+        Context.precdigits=savedprec;
+
+        if(startexp<savedprec) cospower();
+        else {
+            // VERY SMALL ANGLES, RETURN TAN(X/2)=2/X OR X/2 DEPENDING ON QUADRANT
+
+            Context.precdigits+=16;
+            if(invert) {
+                RReg[1].data[0]=2;
+                RReg[1].exp=0;
+                RReg[1].flags=0;
+                RReg[1].len=1;
+                divReal(&RReg[0],&RReg[1],&RReg[0]);
+            }
+            else {
+                RReg[1].data[0]=5;
+                RReg[1].exp=-1;
+                RReg[1].flags=0;
+                RReg[1].len=1;
+                mulReal(&RReg[0],&RReg[1],&RReg[0]);
+            }
+            Context.precdigits=savedprec;
+            //if(negcos) RReg[0].flags|=F_NEGATIVE; // SINCE TAN(X/2)=SIN(X)/(1+COS(X)), ONLY THE SIGN OF SINE IS IMPORTANT
+            if(negsin) RReg[0].flags^=F_NEGATIVE;
+            return;
+
+        }
+
+    }
+
+    if(negcos) RReg[0].flags|=F_NEGATIVE;
+
+
+    Context.precdigits+=16;
+
+    MACROOneToRReg(1);
+
+    subReal(&RReg[2],&RReg[1],&RReg[0]);
+    addReal(&RReg[3],&RReg[1],&RReg[0]);
+
+    divReal(&RReg[0],&RReg[2],&RReg[3]);
+
+    Context.precdigits=savedprec;
+
+    psqrt();
+
+    if(negsin) RReg[0].flags|=F_NEGATIVE;
+
+
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1123,6 +1340,91 @@ int main()
 
 #define TEST_DIGITS 2000
     Context.precdigits=TEST_DIGITS;
+
+
+    REAL constpi180;
+
+
+    decconst_PI_180(&constpi180);
+
+
+
+
+
+
+
+    // ************************************************************************************
+    // TANGENT TEST
+
+
+    start=clock();
+
+
+
+
+#define TEST_DIGITS 500
+    Context.precdigits=TEST_DIGITS;
+
+//  TEST TANGENT THROUGH POWERS
+    for(k=00;k<100;++k) {
+
+
+    newRealFromBINT(&RReg[1],k,0);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
+
+
+    trig_tanpower(&RReg[0],ANGLERAD);
+/*
+    swapReal(&RReg[0],&RReg[8]);
+
+    newRealFromBINT(&RReg[1],k,0);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
+
+    trig_sincos(&RReg[0],ANGLERAD);
+
+    Context.precdigits+=8;
+    finalize(&RReg[6]);
+    finalize(&RReg[7]);
+    divReal(&RReg[7],&RReg[7],&RReg[6]);
+
+    Context.precdigits-=8;
+
+    finalize(&RReg[7]);
+    finalize(&RReg[8]);
+
+    subReal(&RReg[0],&RReg[7],&RReg[8]);
+
+    if(!iszeroReal(&RReg[0])) {
+        printf("Error in tan(x), k=%d\n",k);
+    }
+*/
+
+    }
+
+    end=clock();
+
+    printf("Done first run in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    return 0;
+
 //   TEST NEW SQUARE ROOT ALGORITHM
 
     for(k=0;k<100;++k) {
@@ -1152,17 +1454,6 @@ int main()
     printf("Done first run in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
 
     return 0;
-
-
-
-    REAL constpi180;
-
-
-    decconst_PI_180(&constpi180);
-
-
-
-
 
 
 
