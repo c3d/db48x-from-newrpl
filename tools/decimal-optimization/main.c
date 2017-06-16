@@ -1285,9 +1285,106 @@ void trig_tanpower(REAL *angle, BINT angmode)
 
 
 
+// CALCULATE ATAN(X) USING POWER SERIES
+// ARGUMENT IN RReg[0]
+
+void atanpower()
+{
+    int neg,invert;
+    int savedprec=Context.precdigits;
+    int k;
+    // ARGUMENT REDUCTION
+    MACROOneToRReg(1);
+
+    Context.precdigits+=16;
+
+    if(RReg[0].flags&F_NEGATIVE) { neg=1; RReg[0].flags^=F_NEGATIVE; }
+    else neg=0;
+
+    // MAKE ANGLE SMALLER TO IMPROVE CONVERGENCE SPEED
+
+    // USE THE IDENTITY ATAN(X) = 2 TAN(X/2)/(1-TAN(X/2)^2)
+    // APPLY TWICE AND WORK WITH X/4 OR 4/X
+
+    if(gtReal(&RReg[0],&RReg[1])) {
+        addReal(&RReg[2],&RReg[0],&RReg[0]);
+        addReal(&RReg[0],&RReg[2],&RReg[2]);    // 1/4X
+        invert=1;
+        divReal(&RReg[0],&RReg[1],&RReg[0]);    // INVERT THE ARGUMENT
+    } else {
+        invert=0;
+        RReg[1].data[0]=25;
+        RReg[1].exp=-2;
+
+        mulReal(&RReg[2],&RReg[0],&RReg[1]);
+        swapReal(&RReg[2],&RReg[0]);
+    }
+
+    // HERE 0<=X<=0.25
+
+    // USE SERIES
+
+    RReg[2].flags=F_NEGATIVE;
+    RReg[2].exp=0;
+    RReg[2].len=1;          // VARIOUS SMALL CONSTANTS GO HERE
 
 
+    mulReal(&RReg[3],&RReg[0],&RReg[0]);   // X^2
 
+    //  FIRST TERM IN RReg[0] IS X TO ACCUMULATE
+
+    copyReal(&RReg[4],&RReg[0]); // ACCUMULATOR
+
+    // DO AS MANY TERMS AS NEEDED
+    for(k=3;k<=REAL_PRECISION_MAX/2;k+=2)
+    {
+        mulReal(&RReg[1],&RReg[0],&RReg[3]); // TERM*X^2
+
+        RReg[2].data[0]=k;
+        divReal(&RReg[0],&RReg[1],&RReg[2]); // NEWTERM= TERM*X^2/(K))=X^K/K
+        RReg[2].flags^=F_NEGATIVE;
+        swapReal(&RReg[0],&RReg[1]);
+        // HERE WE HAVE THE NEW TERM OF THE SERIES IN RReg[0]
+        addReal(&RReg[5],&RReg[4],&RReg[1]);
+
+        if(eqReal(&RReg[4],&RReg[5])) break;
+        swapReal(&RReg[4],&RReg[5]);
+    }
+
+    // WE HAVE CONVERGENCE
+
+    printf("atan iters=%d\n",(k-3)/2);
+
+    // NOW APPLY THE IDENTITY BACKWARDS
+    // ATAN(X) = 2 ATAN(X/2)/(1-ATAN(X/2)^2)
+    MACROOneToRReg(3);
+
+    mulReal(&RReg[1],&RReg[4],&RReg[4]);    // ATAN(X/4)^2
+    subReal(&RReg[2],&RReg[3],&RReg[1]);    // 1-ATAN(X/4)^2
+    divReal(&RReg[1],&RReg[4],&RReg[2]);    // ATAN(X/4)/(1-ATAN(X/4)^2
+    addReal(&RReg[4],&RReg[1],&RReg[1]);    // ATAN(X/2)=2*...
+
+    // AND ONE MORE TIME...
+
+    mulReal(&RReg[1],&RReg[4],&RReg[4]);    // ATAN(X/2)^2
+    subReal(&RReg[2],&RReg[3],&RReg[1]);    // 1-ATAN(X/2)^2
+    divReal(&RReg[1],&RReg[4],&RReg[2]);    // ATAN(X/2)/(1-ATAN(X/2)^2
+    addReal(&RReg[4],&RReg[1],&RReg[1]);    // ATAN(X)=2*...
+
+
+    if(invert) {
+        REAL pi_2;
+        decconst_PI_2(&pi_2);
+        subReal(&RReg[0],&pi_2,&RReg[4]);
+
+    }
+    else swapReal(&RReg[4],&RReg[0]);
+
+    if(neg) RReg[0].flags^=F_NEGATIVE;
+
+    Context.precdigits=savedprec;
+
+}
 
 
 
@@ -1348,6 +1445,57 @@ int main()
     decconst_PI_180(&constpi180);
 
 
+
+
+    // ************************************************************************************
+    // ARCTANGENT TEST
+
+
+    start=clock();
+
+
+
+
+#define TEST_DIGITS 32
+    Context.precdigits=TEST_DIGITS;
+
+
+//  TEST ATAN THROUGH POWERS
+    for(k=00;k<100;++k) {
+
+
+    newRealFromBINT(&RReg[0],k,-1);
+
+
+    atanpower();
+
+    swapReal(&RReg[0],&RReg[8]);
+
+    newRealFromBINT(&RReg[0],k,-1);
+    MACROOneToRReg(1);
+
+    trig_atan2(&RReg[0],&RReg[1],ANGLERAD);
+
+    finalize(&RReg[0]);
+    finalize(&RReg[8]);
+
+    swapReal(&RReg[0],&RReg[7]);
+    subReal(&RReg[0],&RReg[7],&RReg[8]);
+
+    if(!iszeroReal(&RReg[0])) {
+        printf("Error in atan(x), k=%d\n",k);
+    }
+
+
+    }
+
+    end=clock();
+
+    printf("Done first run in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
+
+
+
+    return;
 
 
 
