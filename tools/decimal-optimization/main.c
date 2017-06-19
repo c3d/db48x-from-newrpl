@@ -1513,7 +1513,7 @@ int main()
     newRealFromBINT(&RReg[0],k,-1);
 
 
-    atanpower();
+//    atanpower();
 
     swapReal(&RReg[0],&RReg[8]);
 
@@ -1556,7 +1556,7 @@ int main()
 
 
 
-#define TEST_DIGITS 500
+#define TEST_DIGITS 2000
     Context.precdigits=TEST_DIGITS;
 
 //  TEST TANGENT THROUGH POWERS
