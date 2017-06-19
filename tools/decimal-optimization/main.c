@@ -1290,7 +1290,7 @@ void trig_tanpower(REAL *angle, BINT angmode)
 
 void atanpower()
 {
-    int neg,invert;
+    int neg,invert,pass;
     int savedprec=Context.precdigits;
     int k;
     // ARGUMENT REDUCTION
@@ -1303,26 +1303,62 @@ void atanpower()
 
     // MAKE ANGLE SMALLER TO IMPROVE CONVERGENCE SPEED
 
-    // USE THE IDENTITY ATAN(X) = 2 TAN(X/2)/(1-TAN(X/2)^2)
+    // USE THE IDENTITY ATAN(X) = 1/2 ATAN(2X/(1-X^2))
     // APPLY TWICE AND WORK WITH X/4 OR 4/X
 
     if(gtReal(&RReg[0],&RReg[1])) {
-        addReal(&RReg[2],&RReg[0],&RReg[0]);
-        addReal(&RReg[0],&RReg[2],&RReg[2]);    // 1/4X
         invert=1;
         divReal(&RReg[0],&RReg[1],&RReg[0]);    // INVERT THE ARGUMENT
     } else {
         invert=0;
-        RReg[1].data[0]=25;
-        RReg[1].exp=-2;
-
-        mulReal(&RReg[2],&RReg[0],&RReg[1]);
-        swapReal(&RReg[2],&RReg[0]);
     }
 
-    // HERE 0<=X<=0.25
+    // HERE 0<=X<=1
 
-    // USE SERIES
+    // y=2x/(1-x^2)
+
+    RReg[2].data[0]=57;
+    RReg[2].exp=-2;
+    RReg[2].len=1;
+    RReg[2].flags=0;
+
+    if(gtReal(&RReg[0],&RReg[2])) {
+        // When x>0.57 use: atan(x)=pi/4-atan(1/y)/2 with only 1 pass
+
+        pass=1;
+
+        mulReal(&RReg[3],&RReg[0],&RReg[0]);    // X^2
+        subReal(&RReg[2],&RReg[1],&RReg[3]);    // 1-X^2
+        addReal(&RReg[3],&RReg[0],&RReg[0]);    // 2X
+        divReal(&RReg[0],&RReg[2],&RReg[3]);    // (1-X^2)/2X = 1/Y
+
+   } else {
+     RReg[2].data[0]=42;
+     if(gtReal(&RReg[0],&RReg[2])) {
+         // When x>0.42 and x<0.57 use: atan(x)=pi/8+atan(-1/y)/4 with 2 passes
+
+         pass=2;
+
+         mulReal(&RReg[3],&RReg[0],&RReg[0]);    // X^2
+         subReal(&RReg[2],&RReg[1],&RReg[3]);    // 1-X^2
+         addReal(&RReg[3],&RReg[0],&RReg[0]);    // 2X
+         divReal(&RReg[0],&RReg[3],&RReg[2]);    // 2X/(1-x^2) = Y
+
+         mulReal(&RReg[3],&RReg[0],&RReg[0]);    // X^2
+         subReal(&RReg[2],&RReg[1],&RReg[3]);    // 1-X^2
+         addReal(&RReg[3],&RReg[0],&RReg[0]);    // 2X
+         divReal(&RReg[0],&RReg[2],&RReg[3]);    // (1-X^2)/2X = 1/Y
+
+         RReg[0].flags^=F_NEGATIVE; // -1/Y
+
+     } else {
+         // LESS THAN 0.42, JUST USE THE NUMBER AS-IS
+         pass=0;
+
+     }
+
+
+    }
 
     RReg[2].flags=F_NEGATIVE;
     RReg[2].exp=0;
@@ -1336,7 +1372,7 @@ void atanpower()
     copyReal(&RReg[4],&RReg[0]); // ACCUMULATOR
 
     // DO AS MANY TERMS AS NEEDED
-    for(k=3;k<=REAL_PRECISION_MAX/2;k+=2)
+    for(k=3;1;k+=2)
     {
         mulReal(&RReg[1],&RReg[0],&RReg[3]); // TERM*X^2
 
@@ -1355,28 +1391,38 @@ void atanpower()
 
     printf("atan iters=%d\n",(k-3)/2);
 
-    // NOW APPLY THE IDENTITY BACKWARDS
-    // ATAN(X) = 2 ATAN(X/2)/(1-ATAN(X/2)^2)
-    MACROOneToRReg(3);
 
-    mulReal(&RReg[1],&RReg[4],&RReg[4]);    // ATAN(X/4)^2
-    subReal(&RReg[2],&RReg[3],&RReg[1]);    // 1-ATAN(X/4)^2
-    divReal(&RReg[1],&RReg[4],&RReg[2]);    // ATAN(X/4)/(1-ATAN(X/4)^2
-    addReal(&RReg[4],&RReg[1],&RReg[1]);    // ATAN(X/2)=2*...
+    REAL pi_2;
+    decconst_PI_2(&pi_2);
 
-    // AND ONE MORE TIME...
 
-    mulReal(&RReg[1],&RReg[4],&RReg[4]);    // ATAN(X/2)^2
-    subReal(&RReg[2],&RReg[3],&RReg[1]);    // 1-ATAN(X/2)^2
-    divReal(&RReg[1],&RReg[4],&RReg[2]);    // ATAN(X/2)/(1-ATAN(X/2)^2
-    addReal(&RReg[4],&RReg[1],&RReg[1]);    // ATAN(X)=2*...
-
+    switch(pass)
+    {
+    default:
+    case 0:
+        break;
+    case 1:
+        // When x>0.57 use: atan(x)=pi/4-atan(1/y)/2 with only 1 pass
+        subReal(&RReg[2],&pi_2,&RReg[4]);
+        RReg[1].data[0]=5;
+        RReg[1].exp=-1;
+        RReg[1].flags=0;
+        RReg[1].len=1;
+        mulReal(&RReg[4],&RReg[2],&RReg[1]);
+        break;
+    case 2:
+        // When x>0.42 and x<0.57 use: atan(x)=pi/8+atan(-1/y)/4 with 2 passes
+        addReal(&RReg[2],&pi_2,&RReg[4]);
+        RReg[1].data[0]=25;
+        RReg[1].exp=-2;
+        RReg[1].flags=0;
+        RReg[1].len=1;
+        mulReal(&RReg[4],&RReg[2],&RReg[1]);
+        break;
+    }
 
     if(invert) {
-        REAL pi_2;
-        decconst_PI_2(&pi_2);
         subReal(&RReg[0],&pi_2,&RReg[4]);
-
     }
     else swapReal(&RReg[4],&RReg[0]);
 
@@ -1456,7 +1502,7 @@ int main()
 
 
 
-#define TEST_DIGITS 32
+#define TEST_DIGITS 2000
     Context.precdigits=TEST_DIGITS;
 
 
