@@ -12,7 +12,7 @@
 #define MACRONANToRReg(n) { RReg[n].data[0]=0; RReg[n].exp=0; RReg[n].flags=F_NOTANUMBER; RReg[n].len=1; }
 #define MACROInfToRReg(n) { RReg[n].data[0]=0; RReg[n].exp=0; RReg[n].flags=F_INFINITY; RReg[n].len=1; }
 
-
+#define ATAN_TABLES_LEN (2016/8)
 
 
 
@@ -1283,6 +1283,9 @@ void trig_tanpower(REAL *angle, BINT angmode)
 
 }
 
+extern BINT atan_lltable[9*2016/8];
+extern BINT atan_ltable[9*2016/8];
+
 
 
 // CALCULATE ATAN(X) USING POWER SERIES
@@ -1315,50 +1318,42 @@ void atanpower()
 
     // HERE 0<=X<=1
 
-    // y=2x/(1-x^2)
+    // FIRST PASS - USE IDENTITY ATAN(X)=ATAN(X')+ATAN(DELTA)
+    // WITH X' = ANY APPROXIMATION TO X
+    // AND DELTA = (X-X')/(1+X*X')
+    BINT digit;
+    BINT *atan_xtable[ATAN_TABLES_LEN>>5];
+    int npasses=Context.precdigits>>8;
+    if(npasses<2) npasses=2;
 
-    RReg[2].data[0]=57;
-    RReg[2].exp=-2;
-    RReg[2].len=1;
-    RReg[2].flags=0;
+    printf("passes=%d  ",npasses);
+    for(pass=1;pass<=npasses;++pass)
+    {
 
-    if(gtReal(&RReg[0],&RReg[2])) {
-        // When x>0.57 use: atan(x)=pi/4-atan(1/y)/2 with only 1 pass
+    atan_xtable[pass-1]=0;
 
-        pass=1;
+    RReg[0].exp+=pass;
+    digit=getBINTReal(&RReg[0]);
 
-        mulReal(&RReg[3],&RReg[0],&RReg[0]);    // X^2
-        subReal(&RReg[2],&RReg[1],&RReg[3]);    // 1-X^2
-        addReal(&RReg[3],&RReg[0],&RReg[0]);    // 2X
-        divReal(&RReg[0],&RReg[2],&RReg[3]);    // (1-X^2)/2X = 1/Y
+    RReg[0].exp-=pass;
 
-   } else {
-     RReg[2].data[0]=42;
-     if(gtReal(&RReg[0],&RReg[2])) {
-         // When x>0.42 and x<0.57 use: atan(x)=pi/8+atan(-1/y)/4 with 2 passes
+    RReg[1].data[0]=digit;
+    if(digit) {
+        RReg[1].exp=-pass;
+        // DEBUG ONLY, UNCOMMENT THIS WHEN ALL 7 TABLES ARE FINISHED
+        atan_xtable[pass-1]=atan_ltable+/*(9*ATAN_TABLES_LEN)*(pass-1)*/+ATAN_TABLES_LEN*(digit-1);
+        // COMPUTE DELTA
 
-         pass=2;
-
-         mulReal(&RReg[3],&RReg[0],&RReg[0]);    // X^2
-         subReal(&RReg[2],&RReg[1],&RReg[3]);    // 1-X^2
-         addReal(&RReg[3],&RReg[0],&RReg[0]);    // 2X
-         divReal(&RReg[0],&RReg[3],&RReg[2]);    // 2X/(1-x^2) = Y
-
-         mulReal(&RReg[3],&RReg[0],&RReg[0]);    // X^2
-         subReal(&RReg[2],&RReg[1],&RReg[3]);    // 1-X^2
-         addReal(&RReg[3],&RReg[0],&RReg[0]);    // 2X
-         divReal(&RReg[0],&RReg[2],&RReg[3]);    // (1-X^2)/2X = 1/Y
-
-         RReg[0].flags^=F_NEGATIVE; // -1/Y
-
-     } else {
-         // LESS THAN 0.42, JUST USE THE NUMBER AS-IS
-         pass=0;
-
-     }
-
+        subReal(&RReg[2],&RReg[0],&RReg[1]);
+        mulReal(&RReg[3],&RReg[0],&RReg[1]);
+        RReg[1].data[0]=1;
+        RReg[1].exp=0;
+        addReal(&RReg[4],&RReg[1],&RReg[3]);
+        divReal(&RReg[0],&RReg[2],&RReg[4]);    // DELTA = (X-X')/(1+X*X')
+    }
 
     }
+
 
     RReg[2].flags=F_NEGATIVE;
     RReg[2].exp=0;
@@ -1395,31 +1390,21 @@ void atanpower()
     REAL pi_2;
     decconst_PI_2(&pi_2);
 
+//  ADD THE KNOWN VALUES AS NEEDED
 
-    switch(pass)
+    BINT needwords=(Context.precdigits+7)/8;
+    REAL atan_val;
+    atan_val.flags=0;
+    for(pass=1;pass<=npasses;++pass)
     {
-    default:
-    case 0:
-        break;
-    case 1:
-        // When x>0.57 use: atan(x)=pi/4-atan(1/y)/2 with only 1 pass
-        subReal(&RReg[2],&pi_2,&RReg[4]);
-        RReg[1].data[0]=5;
-        RReg[1].exp=-1;
-        RReg[1].flags=0;
-        RReg[1].len=1;
-        mulReal(&RReg[4],&RReg[2],&RReg[1]);
-        break;
-    case 2:
-        // When x>0.42 and x<0.57 use: atan(x)=pi/8+atan(-1/y)/4 with 2 passes
-        addReal(&RReg[2],&pi_2,&RReg[4]);
-        RReg[1].data[0]=25;
-        RReg[1].exp=-2;
-        RReg[1].flags=0;
-        RReg[1].len=1;
-        mulReal(&RReg[4],&RReg[2],&RReg[1]);
-        break;
+    if(atan_xtable[pass-1]) {
+       atan_val.data=atan_xtable[pass-1]+(ATAN_TABLES_LEN-needwords);
+       atan_val.exp=-(needwords*8)-(pass-1);
+       atan_val.len=needwords;
+       addReal(&RReg[4],&RReg[4],&atan_val);
     }
+    }
+
 
     if(invert) {
         subReal(&RReg[0],&pi_2,&RReg[4]);
@@ -1507,30 +1492,13 @@ int main()
 
 
 //  TEST ATAN THROUGH POWERS
-    for(k=00;k<100;++k) {
+    for(k=0;k<100;++k) {
 
 
-    newRealFromBINT(&RReg[0],k,-1);
+    newRealFromBINT(&RReg[1],k*137,0);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
 
-
-//    atanpower();
-
-    swapReal(&RReg[0],&RReg[8]);
-
-    newRealFromBINT(&RReg[0],k,-1);
-    MACROOneToRReg(1);
-
-    trig_atan2(&RReg[0],&RReg[1],ANGLERAD);
-
-    finalize(&RReg[0]);
-    finalize(&RReg[8]);
-
-    swapReal(&RReg[0],&RReg[7]);
-    subReal(&RReg[0],&RReg[7],&RReg[8]);
-
-    if(!iszeroReal(&RReg[0])) {
-        printf("Error in atan(x), k=%d\n",k);
-    }
+    atanpower();
 
 
     }
@@ -1539,6 +1507,26 @@ int main()
 
     printf("Done first run in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
 
+    start=clock();
+
+    //  TEST ATAN THROUGH POWERS
+        for(k=0;k<100;++k) {
+
+
+            newRealFromBINT(&RReg[1],k*137,0);
+            mulReal(&RReg[0],&RReg[1],&constpi180);
+        MACROOneToRReg(1);
+
+        trig_atan2(&RReg[0],&RReg[1],ANGLERAD);
+
+        finalize(&RReg[0]);
+
+
+        }
+
+        end=clock();
+
+        printf("Done trig_atan run in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
 
 
     return;
