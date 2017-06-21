@@ -1326,10 +1326,6 @@ void atanpower()
     int npasses=Context.precdigits>>8;
     if(npasses<2) npasses=2;
 
-    // ONLY TO GENERATE THE TABLES!
-    npasses=0;
-
-
     //printf("passes=%d  ",npasses);
     for(pass=1;pass<=npasses;++pass)
     {
@@ -1344,8 +1340,7 @@ void atanpower()
     RReg[1].data[0]=digit;
     if(digit) {
         RReg[1].exp=-pass;
-        // DEBUG ONLY, UNCOMMENT THIS WHEN ALL 7 TABLES ARE FINISHED
-        atan_xtable[pass-1]=atan_ltable+/*(9*ATAN_TABLES_LEN)*(pass-1)*/+ATAN_TABLES_LEN*(digit-1);
+        atan_xtable[pass-1]=atan_ltable+(9*ATAN_TABLES_LEN)*(pass-1)+ATAN_TABLES_LEN*(digit-1);
         // COMPUTE DELTA
 
         subReal(&RReg[2],&RReg[0],&RReg[1]);
@@ -1477,6 +1472,9 @@ for(j=1;j<=7;++j)
 
 
 
+
+
+
 int main()
 {
 
@@ -1533,9 +1531,9 @@ int main()
     // ARCTANGENT TEST
 
 
-    generate_atanlighttables();
+    //generate_atanlighttables();
 
-    return 0;
+    //return 0;
 
     start=clock();
 
@@ -1550,10 +1548,38 @@ int main()
     for(k=0;k<100;++k) {
 
 
-    newRealFromBINT(&RReg[1],k*137,0);
+    newRealFromBINT(&RReg[1],k*137,-1);
     mulReal(&RReg[0],&RReg[1],&constpi180);
 
     atanpower();
+
+    /*
+
+    swapReal(&RReg[0],&RReg[8]);
+
+    newRealFromBINT(&RReg[1],k*137,-1);
+    mulReal(&RReg[3],&RReg[1],&constpi180);
+    MACROOneToRReg(4);
+
+    trig_atan2(&RReg[3],&RReg[4],ANGLERAD);
+
+    normalize(&RReg[0]);
+
+    subReal(&RReg[1],&RReg[0],&RReg[8]);
+
+    int orgexp=RReg[8].exp,digits,diffdigits;
+
+    RReg[8].exp=0;
+    digits=intdigitsReal(&RReg[8]);
+    RReg[8].exp=orgexp;
+
+    RReg[1].exp-=orgexp;
+    diffdigits=intdigitsReal(&RReg[1]);
+    ipReal(&RReg[2],&RReg[1],0);
+    if(iszeroReal(&RReg[2])) diffdigits=0;
+    else printf("k=%d, good digits=%d\n",k,digits-diffdigits);
+
+    */
 
 
     }
@@ -1568,11 +1594,12 @@ int main()
         for(k=0;k<100;++k) {
 
 
-            newRealFromBINT(&RReg[1],k*137,0);
-            mulReal(&RReg[0],&RReg[1],&constpi180);
-        MACROOneToRReg(1);
+            newRealFromBINT(&RReg[1],k*137,-1);
+            mulReal(&RReg[3],&RReg[1],&constpi180);
+            MACROOneToRReg(4);
 
-        trig_atan2(&RReg[0],&RReg[1],ANGLERAD);
+            trig_atan2(&RReg[3],&RReg[4],ANGLERAD);
+
 
         finalize(&RReg[0]);
 
