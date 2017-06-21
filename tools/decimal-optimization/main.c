@@ -1326,7 +1326,11 @@ void atanpower()
     int npasses=Context.precdigits>>8;
     if(npasses<2) npasses=2;
 
-    printf("passes=%d  ",npasses);
+    // ONLY TO GENERATE THE TABLES!
+    npasses=0;
+
+
+    //printf("passes=%d  ",npasses);
     for(pass=1;pass<=npasses;++pass)
     {
 
@@ -1384,7 +1388,7 @@ void atanpower()
 
     // WE HAVE CONVERGENCE
 
-    printf("atan iters=%d\n",(k-3)/2);
+    //printf("atan iters=%d\n",(k-3)/2);
 
 
     REAL pi_2;
@@ -1418,6 +1422,53 @@ void atanpower()
 }
 
 
+// GENERATE THE TABLES FOR THE NEW POWER ATAN()
+// TABLE HAS 7 GROUPS OF 9 VALUES
+// STARTS WITH ATAN(0.1)...ATAN(0.9)
+// THEN ATAN(0.01)...ATAN(0.09
+// AND SO ON, UP TO 10^-7
+void generate_atanlighttables()
+{
+int j,k;
+
+Context.precdigits=ATAN_TABLES_LEN*8;
+
+for(j=1;j<=7;++j)
+{
+    for(k=1;k<=9;++k)
+    {
+    RReg[0].flags=0;
+    RReg[0].exp=-j;
+    RReg[0].len=1;
+    RReg[0].data[0]=k;
+
+    atanpower();
+
+    // NOW STRAIGHTEN THE EXPONENT
+    RReg[0].exp+=(ATAN_TABLES_LEN*8)+(j-1);
+
+    roundReal(&RReg[0],&RReg[0],0);
+
+    int_justify(&RReg[0]);
+    finalize(&RReg[0]);
+
+    if(RReg[0].len!=ATAN_TABLES_LEN) {
+        printf("Bad length!!!");
+    }
+
+    printf("\n// ATAN(%d*10^-%d) *****************\n",k,j);
+
+    int s;
+    for(s=0;s<RReg[0].len;++s)
+    printf("%d%c%c",RReg[0].data[s],((j==7)&&(k==9)&&(s==RReg[0].len-1))? ' ':',' , ((s!=0)&&(s%10==0))? '\n':' ');
+    }
+}
+
+
+
+
+
+}
 
 
 
@@ -1481,6 +1532,10 @@ int main()
     // ************************************************************************************
     // ARCTANGENT TEST
 
+
+    generate_atanlighttables();
+
+    return 0;
 
     start=clock();
 
