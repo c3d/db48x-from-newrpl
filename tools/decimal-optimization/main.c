@@ -1283,7 +1283,7 @@ void trig_tanpower(REAL *angle, BINT angmode)
 
 }
 
-extern BINT atan_lltable[9*2016/8];
+//extern BINT atan_lltable[9*2016/8];
 extern BINT atan_ltable[9*2016/8];
 
 
@@ -1466,11 +1466,327 @@ for(j=1;j<=7;++j)
 }
 
 
+// COMPUTE ASIN(X) WITH X ON RReg[0]
+// USING POWER SERIES
+
+
+void asinhpower()
+{
+
+    int k;
+
+    Context.precdigits+=16;
+
+    // POWER SERIES LIMITED TO ABS(X)<1
+
+    RReg[2].flags=F_NEGATIVE;
+    RReg[2].exp=0;
+    RReg[2].len=1;          // SMALL NUMERATOR CONSTANTS
+
+    RReg[6].flags=0;
+    RReg[6].exp=0;
+    RReg[6].len=1;          // SMALL DENOMINATOR CONSTANTS
+
+
+    mulReal(&RReg[3],&RReg[0],&RReg[0]);   // X^2
+
+    //  FIRST TERM IN RReg[0] IS X TO ACCUMULATE
+
+    copyReal(&RReg[4],&RReg[0]); // ACCUMULATOR
+
+    // DO AS MANY TERMS AS NEEDED
+
+    // NEWTERM=OLDTERM*X^2*(k-2)*(k-2)/k/(k-1)
+
+    for(k=3;1;k+=2)
+    {
+        mulReal(&RReg[1],&RReg[0],&RReg[3]); // TERM*X^2
+
+        RReg[2].data[0]=(k-2)*(k-2);    // LIMITED TO k<10000
+        RReg[6].data[0]=k*(k-1);    // LIMITED TO k<10000
+
+        divReal(&RReg[7],&RReg[2],&RReg[6]);
+        mulReal(&RReg[0],&RReg[7],&RReg[1]);    // NEWTERM=OLDTERM*X^2*(k-2)*(k-2)/k/(k-1)
+        // HERE WE HAVE THE NEW TERM OF THE SERIES IN RReg[0]
+        addReal(&RReg[5],&RReg[4],&RReg[0]);
+
+        if(eqReal(&RReg[4],&RReg[5])) break;
+        swapReal(&RReg[4],&RReg[5]);
+
+        if(k>9900) { printf("Max iteration limit exceeded: "); break; }
+    }
+
+    printf("iters=%d\n",(k-3)/2);
+
+    // CONVERGENCE!
+
+    swapReal(&RReg[0],&RReg[4]);
+
+    Context.precdigits-=16;
+
+}
+
+#define LNTABLE_ENTRIES     16
+#define LNTABLE_LEN         (2016/8)
+extern BINT ln_ltable[LNTABLE_ENTRIES*LNTABLE_LEN];
+
+
+void lnpower()
+{
+    int orgexp,digits,correction;
+    int adjustment_const[LNTABLE_ENTRIES];
+    int k;
+    Context.precdigits+=16;
+
+
+    MACROOneToRReg(1);
+
+    // SEE HOW CLOSE WE ARE TO 1
+    subReal(&RReg[2],&RReg[0],&RReg[1]);
+
+
+
+
+    orgexp=RReg[2].exp;
+    RReg[2].exp=0;
+    digits=intdigitsReal(&RReg[2]);
+
+
+
+
+    if(orgexp>-digits-LNTABLE_ENTRIES) {
+        orgexp=RReg[0].exp;
+        RReg[0].exp=0;
+        digits=intdigitsReal(&RReg[0]);
+        // NEED TO CORRECT THE EXPONENT
+        RReg[0].exp=-digits;
+        correction=orgexp+digits;
+
+        // START CORRECTION BY CONSTANTS 1+N*10^-(K+1)
+
+
+        REAL clone;
+
+        k=0;
+
+        // FIRST CONSTANT IS 1.26, THEN (1+11*10^-(K+2))
+        adjustment_const[k]=0;
+        do {
+        cloneReal(&clone,&RReg[0]);
+        clone.exp-=2;
+
+        add_real_mul(&RReg[2],&RReg[0],&clone,26);  // A*=( 1+ 0.26 ) = A + A*10^(-2) * 26
+        finalize(&RReg[2]);
+        if(ltReal(&RReg[2],&RReg[1])) {
+        swapReal(&RReg[0],&RReg[2]);
+        ++adjustment_const[k];
+        } else break;
+        } while(1);     //  while A<1.0
+
+        // FROM NOW ON CONSTANTS ARE MORE UNIFORM
+
+
+        for(k=1;k<LNTABLE_ENTRIES;++k)
+        {
+            adjustment_const[k]=0;
+            do {
+            cloneReal(&clone,&RReg[0]);
+            clone.exp-=k+2;
+            add_real_mul(&RReg[2],&RReg[0],&clone,11);  // A*=( 1+ 11*10^-(K+2) ) = A + A*10^(-K+2) * 11
+            finalize(&RReg[2]);
+            if(ltReal(&RReg[2],&RReg[1])) {
+            swapReal(&RReg[0],&RReg[2]);
+            ++adjustment_const[k];
+            } else break;
+            } while(1);     //  while A<1.0
+
+        }
+
+        // HERE WE HAVE A MUCH CLOSER TO 1.0 BUT STILL A<1.0
+        // AND A COUNT OF HOW MANY TIMES EACH MULTIPLIER WAS ADDED
+
+
+    } else {
+        // IS CLOSE ENOUGH TO 1 TO USE THE SERIES DIRECTLY
+        for(k=0;k<LNTABLE_ENTRIES;++k) adjustment_const[k]=0;
+        correction=0;
+    }
+
+    // USE THE POWER SERIES LN(X)=(X-1)-(X-1)^2/2+(X-1)^3/3-...
+
+    subReal(&RReg[2],&RReg[0],&RReg[1]);
+    swapReal(&RReg[2],&RReg[0]);
+
+
+    RReg[2].flags=F_NEGATIVE;
+    RReg[2].exp=0;
+    RReg[2].len=1;          // SMALL NUMERATOR CONSTANTS
+
+    copyReal(&RReg[3],&RReg[0]);   // (X-1)
+
+    //  FIRST TERM IN RReg[0] IS X-1 TO ACCUMULATE
+
+    copyReal(&RReg[4],&RReg[0]); // ACCUMULATOR
+
+    // DO AS MANY TERMS AS NEEDED
+
+    // NEWTERM=OLDTERM*X/k
+
+    for(k=2;1;k++)
+    {
+        mulReal(&RReg[1],&RReg[0],&RReg[3]); // TERM*X
+
+        RReg[2].data[0]=k;
+
+        divReal(&RReg[6],&RReg[1],&RReg[2]); // NEWTERM=OLDTERM*X/K
+        swapReal(&RReg[0],&RReg[1]);
+        // HERE WE HAVE THE NEW TERM OF THE SERIES IN RReg[5], and X^k IN RReg[0]
+        addReal(&RReg[5],&RReg[4],&RReg[6]);
+        RReg[2].flags^=F_NEGATIVE;
+        if(eqReal(&RReg[4],&RReg[5])) break;
+        swapReal(&RReg[4],&RReg[5]);
+
+        if(k>9900) { printf("Max iteration limit exceeded: "); break; }
+    }
+
+    printf("iters=%d\n",k-2);
+
+    // CONVERGENCE!
+
+    // ACCUMULATE CORRECTIONS BY ALL THE DIFFERENT CONSTANTS
+
+    if(correction) {
+       REAL ln10;
+
+       decconst_ln10(&ln10);
+
+       RReg[2].flags=0;
+       RReg[2].exp=0;
+       RReg[2].len=1;
+       RReg[2].data[0]=correction;
+
+       mulReal(&RReg[1],&RReg[2],&ln10);
+       addReal(&RReg[0],&RReg[1],&RReg[4]);
+
+    } else     swapReal(&RReg[0],&RReg[4]);
 
 
 
 
 
+
+    BINT needwords=(Context.precdigits+7)/8;
+    // ALL OTHER CONSTANTS FROM TABLE
+    REAL lnconstant;
+
+    for(k=0;k<LNTABLE_ENTRIES;++k)
+    {
+        if(adjustment_const[k]!=0) {
+       lnconstant.data=ln_ltable+k*LNTABLE_LEN+LNTABLE_LEN-needwords;
+       lnconstant.exp=-needwords*8-k;
+       lnconstant.flags=F_NEGATIVE;     // THE CONSTANT IS POSITIVE, ADD THE SIGN HERE SO IT SUBTRACTS THE LN()
+       lnconstant.len=needwords;
+
+       add_real_mul(&RReg[1],&RReg[0],&lnconstant,adjustment_const[k]);
+
+       normalize(&RReg[1]);
+       swapReal(&RReg[0],&RReg[1]);
+        }
+    }
+
+
+    Context.precdigits-=16;
+
+}
+
+
+void ln1p()
+{
+int k;
+    Context.precdigits+=16;
+    // USE THE POWER SERIES LN(X+1)=X-X^2/2+X^3/3-...
+
+    RReg[2].flags=F_NEGATIVE;
+    RReg[2].exp=0;
+    RReg[2].len=1;          // SMALL NUMERATOR CONSTANTS
+
+    copyReal(&RReg[3],&RReg[0]);   // (X)
+
+    //  FIRST TERM IN RReg[0] IS X TO ACCUMULATE
+
+    copyReal(&RReg[4],&RReg[0]); // ACCUMULATOR
+
+    // DO AS MANY TERMS AS NEEDED
+
+    // NEWTERM=OLDTERM*X/k
+
+    for(k=2;1;k++)
+    {
+        mulReal(&RReg[1],&RReg[0],&RReg[3]); // TERM*X
+
+        RReg[2].data[0]=k;
+
+        divReal(&RReg[6],&RReg[1],&RReg[2]); // NEWTERM=OLDTERM*X/K
+        swapReal(&RReg[0],&RReg[1]);
+        // HERE WE HAVE THE NEW TERM OF THE SERIES IN RReg[5], and X^k IN RReg[0]
+        addReal(&RReg[5],&RReg[4],&RReg[6]);
+        RReg[2].flags^=F_NEGATIVE;
+        if(eqReal(&RReg[4],&RReg[5])) break;
+        swapReal(&RReg[4],&RReg[5]);
+
+        if(k>9900) { printf("Max iteration limit exceeded: "); break; }
+    }
+
+    printf("iters=%d\n",k-2);
+
+    // CONVERGENCE!
+
+    swapReal(&RReg[0],&RReg[4]);
+
+    Context.precdigits-=16;
+}
+
+
+
+// GENERATE THE TABLES FOR THE NEW POWER LN()
+// TABLE HAS 16 CONSTANTS
+// STARTS WITH LN(1.26)
+// THEN LN(1+1.1*10^-K)
+// AND SO ON, UP TO 10^-15
+void generate_lnlighttables()
+{
+int j,k;
+
+Context.precdigits=LNTABLE_LEN*8;
+
+    for(k=0;k<LNTABLE_ENTRIES;++k)
+    {
+    RReg[0].flags=0;
+    RReg[0].exp=-(k+2);
+    RReg[0].len=1;
+    RReg[0].data[0]=(k==0)? 26:11;
+
+    ln1p();
+
+    // NOW STRAIGHTEN THE EXPONENT
+    RReg[0].exp+=(ATAN_TABLES_LEN*8)+k;
+
+    roundReal(&RReg[0],&RReg[0],0);
+
+    int_justify(&RReg[0]);
+    finalize(&RReg[0]);
+
+    if(RReg[0].len!=LNTABLE_LEN) {
+        printf("Bad length!!!");
+    }
+
+    printf("\n// LN(1+%d*10^-%d) *****************\n",(k==0)? 26:11,k+2);
+
+    int s;
+    for(s=0;s<RReg[0].len;++s)
+    printf("%d%c%c",RReg[0].data[s],((k==LNTABLE_ENTRIES-1)&&(s==RReg[0].len-1))? ' ':',' , ((s!=0)&&(s%10==0))? '\n':' ');
+    }
+}
 
 
 
@@ -1525,6 +1841,87 @@ int main()
     decconst_PI_180(&constpi180);
 
 
+
+    // ************************************************************************************
+    // LN TEST
+
+
+    start=clock();
+
+
+
+
+#define TEST_DIGITS 32
+    Context.precdigits=TEST_DIGITS;
+
+
+//  TEST ASINH THROUGH POWERS
+    for(k=1;k<100;++k) {
+
+
+    //MACROOneToRReg(2);
+    newRealFromBINT(&RReg[1],k,0);
+    mulReal(&RReg[0],&RReg[1],&constpi180);
+
+    lnpower();
+    finalize(&RReg[0]);
+    printf("k=0.%02d --",k);
+
+    /*
+
+    swapReal(&RReg[0],&RReg[8]);
+
+    newRealFromBINT(&RReg[1],k*137,-1);
+    mulReal(&RReg[3],&RReg[1],&constpi180);
+    MACROOneToRReg(4);
+
+    trig_atan2(&RReg[3],&RReg[4],ANGLERAD);
+
+    normalize(&RReg[0]);
+
+    subReal(&RReg[1],&RReg[0],&RReg[8]);
+
+    int orgexp=RReg[8].exp,digits,diffdigits;
+
+    RReg[8].exp=0;
+    digits=intdigitsReal(&RReg[8]);
+    RReg[8].exp=orgexp;
+
+    RReg[1].exp-=orgexp;
+    diffdigits=intdigitsReal(&RReg[1]);
+    ipReal(&RReg[2],&RReg[1],0);
+    if(iszeroReal(&RReg[2])) diffdigits=0;
+    else printf("k=%d, good digits=%d\n",k,digits-diffdigits);
+
+    */
+
+
+    }
+
+    end=clock();
+
+    printf("Done first run in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
+
+    start=clock();
+    //  TEST LN THROUGH POWERS
+        for(k=1;k<100;++k) {
+
+
+        //MACROOneToRReg(2);
+        newRealFromBINT(&RReg[1],k,0);
+        mulReal(&RReg[0],&RReg[1],&constpi180);
+
+        hyp_ln(&RReg[0]);
+
+        normalize(&RReg[0]);
+
+        }
+
+        end=clock();
+
+        printf("Done hyp_ln() run in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
+
+    return 0;
 
 
     // ************************************************************************************

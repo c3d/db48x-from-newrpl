@@ -1853,7 +1853,7 @@ void add_real_mul(REAL *r,REAL *a,REAL *b,BINT mult)
     result->data[totalwords]=0;
 
     int skipbwords=trimwords-apos-wordshift;
-    if(skipbwords<0) {
+    if(skipbwords<=0) {
         wordshift-=trimwords;
         skipbwords=0; }
     if(apos+wordshift+b->len>-1) {
