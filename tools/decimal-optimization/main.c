@@ -1646,10 +1646,10 @@ void lnpower()
         if(eqReal(&RReg[4],&RReg[5])) break;
         swapReal(&RReg[4],&RReg[5]);
 
-        if(k>9900) { printf("Max iteration limit exceeded: "); break; }
+        //if(k>9900) { printf("Max iteration limit exceeded: "); break; }
     }
 
-    printf("iters=%d\n",k-2);
+    //printf("iters=%d\n",k-2);
 
     // CONVERGENCE!
 
@@ -1734,10 +1734,10 @@ int k;
         if(eqReal(&RReg[4],&RReg[5])) break;
         swapReal(&RReg[4],&RReg[5]);
 
-        if(k>9900) { printf("Max iteration limit exceeded: "); break; }
+        //if(k>9900) { printf("Max iteration limit exceeded: "); break; }
     }
 
-    printf("iters=%d\n",k-2);
+    //printf("iters=%d\n",k-2);
 
     // CONVERGENCE!
 
@@ -1745,6 +1745,11 @@ int k;
 
     Context.precdigits-=16;
 }
+
+
+
+
+
 
 
 
@@ -1788,6 +1793,147 @@ Context.precdigits=LNTABLE_LEN*8;
     }
 }
 
+
+
+
+// COMPUTE EXPONENTIAL OF ANY NUMBER WITHOUT USING TABLES
+#define EXP_CONDITIONING    16
+
+void exppower()
+{
+
+
+    // CONCEPT: IF LN(X)=LN(A)+N*LN(10)
+    // THEN X=m+N*LN(10) EXP(X) = EXP(m)*10^N
+    // WHERE N=IP(X/LN(10)) AND m IS THE REMAINDER
+
+    int k,isneg;
+    // RANGE REDUCTION TO +/- LN(10)/2
+
+    // MAKE POSITIVE
+    isneg=RReg[0].flags&F_NEGATIVE;
+    RReg[0].flags&=~F_NEGATIVE;
+
+    Context.precdigits+=16;
+    // GET ANGLE MODULO LN(10)
+    REAL ln10,ln10_2;
+
+    decconst_ln10(&ln10);
+    decconst_ln10_2(&ln10_2);
+
+    if(iszeroReal(&RReg[0])) {
+        // e^0=1
+        RReg[0].data[0]=1;
+        RReg[0].exp=0;
+        RReg[0].flags=RReg[0].flags&F_APPROX;
+        RReg[0].len=1;
+
+        Context.precdigits-=16;
+
+        return;
+
+    }
+
+    divmodReal(&RReg[1],&RReg[2],&RReg[0],&ln10);
+
+    // HERE RReg[2] HAS THE REMAINDER THAT WE NEED TO WORK WITH
+
+    // THE QUOTIENT NEEDS TO BE ADDED TO THE EXPONENT, SO IT SHOULD BE +/-30000
+    // MAKE SURE THE INTEGER IS ALIGNED AND RIGHT-JUSTIFIED
+    if(!inBINTRange(&RReg[1])) {
+        // TODO: RAISE OVERFLOW ERROR!
+        RReg[0].len=1;
+        RReg[0].data[0]=0;
+        RReg[0].exp=0;
+        if(isneg) RReg[0].flags=0;       // exp(-INF) = 0
+            else RReg[0].flags=F_INFINITY;   // exp(INF) = INF
+        return;
+    }
+    BINT quotient=getBINTReal(&RReg[1]);
+    if( (quotient>30000) || (quotient<-30000)) {
+        // TODO: RAISE OVERFLOW ERROR!
+        RReg[0].len=1;
+        RReg[0].data[0]=0;
+        RReg[0].exp=0;
+        if(isneg) RReg[0].flags=0;       // exp(-INF) = 0
+            else RReg[0].flags=F_INFINITY;   // exp(INF) = INF
+        return;
+    }
+
+    if(gtReal(&RReg[2],&ln10_2)) {
+        // IS OUTSIDE THE RANGE OF CONVERGENCE
+        // SUBTRACT ONE MORE ln(10)
+        sub_real(&RReg[0],&RReg[2],&ln10);
+        normalize(&RReg[0]);
+        // AND ADD IT TO THE EXPONENT CORRECTION
+        ++quotient;
+    } else swapReal(&RReg[0],&RReg[2]);
+
+
+    // SPEEDUP WITH POWERS OF 2
+    //newRealFromBINT64(&RReg[2],1LL<<EXP_CONDITIONING,0);
+    //divReal(&RReg[1],&RReg[0],&RReg[2]);
+    //swapReal(&RReg[1],&RReg[0]);
+
+    RReg[0].exp-=EXP_CONDITIONING;  // SPEEDUP THE POWER SERIES WITH POWERS OF TEN
+
+    RReg[2].flags=0;
+    RReg[2].exp=0;
+    RReg[2].len=1;          // FACTORIAL
+    RReg[2].data[0]=1;
+
+    copyReal(&RReg[3],&RReg[0]);   // X
+
+    //  FIRST TERM IN RReg[0] IS X
+
+    addReal(&RReg[4],&RReg[2],&RReg[0]); // ACCUMULATOR STARTS FROM 1+X
+
+    // DO AS MANY TERMS AS NEEDED
+    for(k=2;1;k++)
+    {
+        mulReal(&RReg[1],&RReg[0],&RReg[3]); // TERM*X
+        RReg[2].data[0]=k;
+        divReal(&RReg[0],&RReg[1],&RReg[2]); // NEWTERM= TERM*X/k = X^K/K!
+        // HERE WE HAVE THE NEW TERM OF THE SERIES IN RReg[0]
+        addReal(&RReg[5],&RReg[4],&RReg[0]);
+
+        if(eqReal(&RReg[4],&RReg[5])) break;
+        swapReal(&RReg[4],&RReg[5]);
+    }
+
+    //printf("iters=%d\n",k);
+
+    // CONVERGED!
+
+    // NOW APPLY THE EXPONENT BACK
+
+    RReg[4].exp+=quotient;
+
+    RReg[2].data[0]=1;
+    RReg[2].exp=EXP_CONDITIONING;
+    powReal(&RReg[1],&RReg[4],&RReg[2]);
+
+    /*
+    for(k=0;k<EXP_CONDITIONING;++k)
+    {
+        mulReal(&RReg[1],&RReg[4],&RReg[4]);
+        swapReal(&RReg[1],&RReg[4]);
+    }
+
+    swapReal(&RReg[1],&RReg[4]);
+    */
+
+
+    if(isneg) {
+        RReg[2].data[0]=1;
+        RReg[2].exp=0;
+        divReal(&RReg[0],&RReg[2],&RReg[1]);    // EXP(-X)=1/EXP(X)
+    } else swapReal(&RReg[1],&RReg[4]);
+
+
+    Context.precdigits-=16;
+
+    }
 
 
 
@@ -1843,6 +1989,58 @@ int main()
 
 
     // ************************************************************************************
+    // EXP TEST
+
+
+    start=clock();
+
+
+
+
+#define TEST_DIGITS 2000
+    Context.precdigits=TEST_DIGITS;
+
+
+//  TEST
+    for(k=1;k<100;++k) {
+
+
+    //MACROOneToRReg(2);
+    newRealFromBINT(&RReg[0],k,-1);
+    RReg[0].flags=F_NEGATIVE;
+    //mulReal(&RReg[0],&RReg[1],&constpi180);
+
+    exppower();
+    finalize(&RReg[0]);
+    //printf("k=0.%02d --",k);
+
+   }
+    end=clock();
+
+    printf("Done first run in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
+
+    start=clock();
+    //  TEST LN THROUGH POWERS
+        for(k=1;k<100;++k) {
+
+
+        newRealFromBINT(&RReg[0],k,-1);
+        RReg[0].flags=F_NEGATIVE;
+        hyp_exp(&RReg[0]);
+
+        normalize(&RReg[0]);
+
+        }
+
+        end=clock();
+
+        printf("Done hyp_exp() run in %.6lf\n",((double)end-(double)start)/CLOCKS_PER_SEC);
+
+
+    return;
+
+
+    // ************************************************************************************
     // LN TEST
 
 
@@ -1851,7 +2049,7 @@ int main()
 
 
 
-#define TEST_DIGITS 32
+#define TEST_DIGITS 2000
     Context.precdigits=TEST_DIGITS;
 
 
