@@ -42,7 +42,8 @@ SOURCES += main.c \
     two_exp_bintable.c \
     compressor.c \
     atan_ltables.c \
-    ln_ltables.c
+    ln_ltables.c \
+    lighttranscend.c
 
 DISTFILES +=
 

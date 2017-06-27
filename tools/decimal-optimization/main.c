@@ -1774,7 +1774,7 @@ Context.precdigits=LNTABLE_LEN*8;
     ln1p();
 
     // NOW STRAIGHTEN THE EXPONENT
-    RReg[0].exp+=(ATAN_TABLES_LEN*8)+k;
+    RReg[0].exp+=(LNTABLE_LEN*8)+k;
 
     roundReal(&RReg[0],&RReg[0],0);
 
