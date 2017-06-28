@@ -4771,6 +4771,7 @@ BINT getBINTReal(REAL *n)
 
         // THIS SHOULDN'T HAPPEN, USER SHOULD CHECK IF WITHIN RANGE OF A BINT BEFORE CALLING
         if(digits>10) return 0;
+        if(digits<=0) return 0;
 
         // THE NUMBER HAS EXACTLY 19 DIGITS
         if(n->exp>=0) {
@@ -4814,6 +4815,8 @@ BINT64 getBINT64Real(REAL *n)
 
         // THIS SHOULDN'T HAPPEN, USER SHOULD CHECK IF WITHIN RANGE OF A BINT BEFORE CALLING
         if(digits>19) return 0;
+        if(digits<=0) return 0;
+
 
         // THE NUMBER HAS EXACTLY 10 DIGITS
         if(n->exp>=0) {

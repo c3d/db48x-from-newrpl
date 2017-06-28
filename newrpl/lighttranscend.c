@@ -1228,19 +1228,19 @@ void XXtrig_tan(REAL *angle, BINT angmode)
     XXdecconst_PI_2(&pi2);
     XXdecconst_PI_4(&pi4);
 
-    addReal(&RReg[1],angle,angle);  // DOUBLE THE ANGLE
 
     if(angmode==ANGLERAD) {
         // ANGLE IS IN RADIANS, NO NEED FOR CONVERSION
         // GET ANGLE MODULO PI
-        divmodReal(&RReg[1],&RReg[0],&RReg[1],&pi);
+        addReal(&RReg[2],angle,angle);  // DOUBLE THE ANGLE
+        divmodReal(&RReg[1],&RReg[0],&RReg[2],&pi);
     }
     else {
         REAL convfactor;
         BINT modulo;
         if(angmode==ANGLEDMS) {
             // CONVERT TO DEGREES FIRST, SO THAT THERE'S EXACT VALUES AT 90, ETC.
-            XXtrig_convertangle(&RReg[1],ANGLEDMS,ANGLEDEG);
+            XXtrig_convertangle(angle,ANGLEDMS,ANGLEDEG);
 
             swapReal(&RReg[0],&RReg[7]);
             angle=&RReg[7];
@@ -1287,11 +1287,14 @@ void XXtrig_tan(REAL *angle, BINT angmode)
         }
 
 
-
-
+        // DOUBLE THE ANGLE
+        addReal(&RReg[1],angle,angle);
 
         // CONVERT TO RADIANS
-        mulReal(&RReg[0],&RReg[0],&convfactor);
+        mulReal(&RReg[2],&RReg[1],&convfactor);
+
+        // AND DO ONE MORE ROUND OF REDUCTION
+        divmodReal(&RReg[1],&RReg[0],&RReg[2],&pi);
 
 
     }
@@ -1415,11 +1418,26 @@ static void atanpower()
     // USE THE IDENTITY ATAN(X) = 1/2 ATAN(2X/(1-X^2))
     // APPLY TWICE AND WORK WITH X/4 OR 4/X
 
-    if(gtReal(&RReg[0],&RReg[1])) {
+    switch(cmpReal(&RReg[0],&RReg[1]))
+    {
+    case 1: // >1
         invert=1;
         divReal(&RReg[0],&RReg[1],&RReg[0]);    // INVERT THE ARGUMENT
-    } else {
+        break;
+    case -1:    // <1
         invert=0;
+        break;
+    case 0: // == 1
+    {
+        REAL pi_4;
+        decconst_PI_4(&pi_4);
+        copyReal(&RReg[0],&pi_4);
+        Context.precdigits=savedprec;
+        return;
+    }
+    default:
+        MACRONANToRReg(0);
+        return;
     }
 
     // HERE 0<=X<=1
@@ -1893,7 +1911,7 @@ void pexp()
     isneg=RReg[0].flags&F_NEGATIVE;
     RReg[0].flags&=~F_NEGATIVE;
 
-    Context.precdigits+=16;
+    Context.precdigits+=24;
     // GET ANGLE MODULO LN(10)
     REAL ln10,ln10_2;
 
@@ -1907,7 +1925,7 @@ void pexp()
         RReg[0].flags=RReg[0].flags&F_APPROX;
         RReg[0].len=1;
 
-        Context.precdigits-=16;
+        Context.precdigits-=24;
 
         return;
 
@@ -1926,6 +1944,7 @@ void pexp()
         RReg[0].exp=0;
         if(isneg) RReg[0].flags=0;       // exp(-INF) = 0
             else RReg[0].flags=F_INFINITY;   // exp(INF) = INF
+        Context.precdigits-=24;
         return;
     }
     BINT quotient=getBINTReal(&RReg[1]);
@@ -1936,6 +1955,7 @@ void pexp()
         RReg[0].exp=0;
         if(isneg) RReg[0].flags=0;       // exp(-INF) = 0
             else RReg[0].flags=F_INFINITY;   // exp(INF) = INF
+        Context.precdigits-=24;
         return;
     }
 
@@ -1986,11 +2006,13 @@ void pexp()
 
     // NOW APPLY THE EXPONENT BACK
 
-    RReg[4].exp+=quotient;
 
     RReg[2].data[0]=1;
     RReg[2].exp=EXP_CONDITIONING;
     powReal(&RReg[1],&RReg[4],&RReg[2]);
+
+    RReg[1].exp+=quotient;
+
 
     /*
     for(k=0;k<EXP_CONDITIONING;++k)
@@ -2007,10 +2029,10 @@ void pexp()
         RReg[2].data[0]=1;
         RReg[2].exp=0;
         divReal(&RReg[0],&RReg[2],&RReg[1]);    // EXP(-X)=1/EXP(X)
-    } else swapReal(&RReg[1],&RReg[4]);
+    } else swapReal(&RReg[1],&RReg[0]);
 
 
-    Context.precdigits-=16;
+    Context.precdigits-=24;
 
     }
 
@@ -2041,7 +2063,7 @@ void pln()
         RReg[0].flags&=F_APPROX;
         RReg[0].len=1;
 
-        Context.precdigits-=8;
+        Context.precdigits-=16;
         return;
     }
 

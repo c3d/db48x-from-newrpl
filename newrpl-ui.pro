@@ -218,7 +218,10 @@ SOURCES += main.cpp\
     newrpl/fastmath.c \
     newrpl/lib-77-libdata.c \
     newrpl/render.c \
-    newrpl/lib-96-composites.c
+    newrpl/lib-96-composites.c \
+    newrpl/atan_ltables.c \
+    newrpl/lighttranscend.c \
+    newrpl/ln_ltables.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \

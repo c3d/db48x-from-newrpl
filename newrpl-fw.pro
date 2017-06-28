@@ -226,7 +226,10 @@ SOURCES +=\
     newrpl/atanh_2_8_light.c \
     newrpl/atanh_5_8_light.c \
     newrpl/cordic_kh_8_light.c \
-    newrpl/cordic_K_8_light.c
+    newrpl/cordic_K_8_light.c \
+    newrpl/atan_ltables.c \
+    newrpl/lighttranscend.c \
+    newrpl/ln_ltables.c
 
 
 HEADERS  += \

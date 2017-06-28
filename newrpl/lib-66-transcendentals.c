@@ -4797,11 +4797,11 @@ void LIB_HANDLER()
 
         if(Exceptions) return;
 
-        trig_sincos(&dec,angmode);
+        XXtrig_cos(&dec,angmode);
 
-        finalize(&RReg[6]);
+        finalize(&RReg[0]);
         rplDropData(1);
-        rplNewRealFromRRegPush(6);       // COS
+        rplNewRealFromRRegPush(0);       // COS
         return;
 
     }
@@ -4971,7 +4971,8 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
 
-        trig_sincos(&dec,angmode);
+        XXtrig_tan(&dec,angmode);
+        /*
         normalize(&RReg[6]);
         normalize(&RReg[7]);
         if(iszeroReal(&RReg[6])) {
@@ -4981,9 +4982,12 @@ void LIB_HANDLER()
         else {
             divReal(&RReg[2],&RReg[7],&RReg[6]);
         }
+        */
+
+        finalize(&RReg[0]);
 
         rplDropData(1);
-        rplNewRealFromRRegPush(2);       // SIN/COS
+        rplNewRealFromRRegPush(0);
 
         return;
 
@@ -5266,7 +5270,7 @@ void LIB_HANDLER()
         angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
         y.flags^=signy;
-        trig_asin(&y,angmode);
+        XXtrig_asin(&y,angmode);
 
         finalize(&RReg[0]);
 
@@ -5567,7 +5571,7 @@ void LIB_HANDLER()
         angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
         y.flags^=signy;
-        trig_acos(&y,angmode);
+        XXtrig_acos(&y,angmode);
 
         finalize(&RReg[0]);
 
@@ -5848,7 +5852,7 @@ void LIB_HANDLER()
         BINT angmode;
         angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
-        trig_atan2(&y,&RReg[7],angmode);
+        XXtrig_atan2(&y,&RReg[7],angmode);
         finalize(&RReg[0]);
 
         WORDPTR newangle=rplNewAngleFromReal(&RReg[0],angmode);
@@ -5856,7 +5860,7 @@ void LIB_HANDLER()
 
         rplOverwriteData(1,newangle);
 
-        rplCheckResultAndError(&RReg[1]);
+        rplCheckResultAndError(&RReg[0]);
 
         return;
 
@@ -5894,7 +5898,7 @@ void LIB_HANDLER()
         BINT angmode;
         angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
-        trig_atan2(&y,&x,angmode);
+        XXtrig_atan2(&y,&x,angmode);
 
         finalize(&RReg[0]);
 
@@ -6080,7 +6084,8 @@ void LIB_HANDLER()
             return;
         }
 
-        hyp_ln(&x);
+        copyReal(&RReg[0],&x);
+        pln();
         finalize(&RReg[0]);
 
         rplDropData(1);
@@ -6280,7 +6285,8 @@ void LIB_HANDLER()
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
-        hyp_exp(&dec);
+        copyReal(&RReg[0],&dec);
+        pexp();
 
         finalize(&RReg[0]);
 
@@ -6555,12 +6561,12 @@ void LIB_HANDLER()
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
-        hyp_sinhcosh(&dec);
+        XXhyp_sinh(&dec);
 
-        finalize(&RReg[2]);
+        finalize(&RReg[0]);
 
         rplDropData(1);
-        rplNewRealFromRRegPush(2);       // SINH
+        rplNewRealFromRRegPush(0);       // SINH
         return;
 
     }
@@ -6830,11 +6836,11 @@ void LIB_HANDLER()
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
-        hyp_sinhcosh(&dec);
-        finalize(&RReg[1]);
+        XXhyp_cosh(&dec);
+        finalize(&RReg[0]);
 
         rplDropData(1);
-        rplNewRealFromRRegPush(1);       // COSH
+        rplNewRealFromRRegPush(0);       // COSH
         return;
 
     }
@@ -7073,14 +7079,17 @@ void LIB_HANDLER()
         rplReadNumberAsReal(rplPeekData(1),&dec);
         if(Exceptions) return;
 
-        hyp_sinhcosh(&dec);
+        XXhyp_tanh(&dec);
 
+        /*
         normalize(&RReg[2]);
         normalize(&RReg[1]);
 
         // TANH=SINH/COSH
         divReal(&RReg[0],&RReg[2],&RReg[1]);
+        */
 
+        finalize(&RReg[0]);
         rplDropData(1);
         rplNewRealFromRRegPush(0);       // TANH
         return;
@@ -7364,7 +7373,7 @@ void LIB_HANDLER()
 
         if(Exceptions) return;
 
-        hyp_asinh(&x);
+        XXhyp_asinh(&x);
 
         finalize(&RReg[0]);
 
@@ -7690,7 +7699,7 @@ void LIB_HANDLER()
            return;
         }
 
-        hyp_acosh(&x);
+        XXhyp_acosh(&x);
         finalize(&RReg[0]);
 
         rplDropData(1);
@@ -8047,7 +8056,7 @@ void LIB_HANDLER()
             return;
         }
 
-        hyp_atanh(&x);
+        XXhyp_atanh(&x);
 
         finalize(&RReg[0]);
 
@@ -8354,7 +8363,8 @@ void LIB_HANDLER()
 
             x.flags&=~F_NEGATIVE;
 
-            hyp_sqrt(&x);
+            copyReal(&RReg[0],&x);
+            XXpsqrt();
             finalize(&RReg[0]);
 
             rplDropData(1);
@@ -8427,8 +8437,8 @@ void LIB_HANDLER()
             }
 
             // HERE WE HAVE THE NEW DIRECTION IN RReg[8]
-
-            hyp_sqrt(&re);
+            copyReal(&RReg[0],&re);
+            XXpsqrt();
             finalize(&RReg[0]);
 
             rplDropData(1);
