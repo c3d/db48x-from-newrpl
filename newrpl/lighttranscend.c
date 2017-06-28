@@ -42,7 +42,6 @@
 #define ATAN_TABLES_LEN     (2016/8)
 #define ATAN_TABLES_PASSES  7
 
-#define EXP_CONDITIONING    16
 
 
 
@@ -1891,7 +1890,27 @@ void XXtrig_acos(REAL *x,BINT angmode)
 
 
 
-
+static const BINT64 const powof10[19]={
+    1000000000000000000LL,
+    100000000000000000LL,
+    10000000000000000LL,
+    1000000000000000LL,
+    100000000000000LL,
+    10000000000000LL,
+    1000000000000LL,
+    100000000000LL,
+    10000000000LL,
+    1000000000LL,
+    100000000LL,
+    10000000LL,
+    1000000LL,
+    100000LL,
+    10000LL,
+    1000LL,
+    100LL,
+    10LL,
+    1LL
+};
 
 // COMPUTE EXPONENTIAL OF ANY NUMBER WITHOUT USING TABLES
 // USES RREG 0 THRU 5
@@ -1970,11 +1989,18 @@ void pexp()
 
 
     // SPEEDUP WITH POWERS OF 2
-    //newRealFromBINT64(&RReg[2],1LL<<EXP_CONDITIONING,0);
-    //divReal(&RReg[1],&RReg[0],&RReg[2]);
-    //swapReal(&RReg[1],&RReg[0]);
+    int exp_conditioning=(Context.precdigits)>>5;
+    if(exp_conditioning>62) exp_conditioning=62;
 
-    RReg[0].exp-=EXP_CONDITIONING;  // SPEEDUP THE POWER SERIES WITH POWERS OF TEN
+    if(exp_conditioning) {
+    newRealFromBINT64(&RReg[2],1LL<<exp_conditioning,0);
+    divReal(&RReg[1],&RReg[0],&RReg[2]);
+    swapReal(&RReg[1],&RReg[0]);
+    }
+
+    // SPEEDUP WITH POWERS OF 10
+    //int exp_conditioning=Context.precdigits>>7;
+    //RReg[0].exp-=exp_conditioning;  // SPEEDUP THE POWER SERIES WITH POWERS OF TEN
 
     RReg[2].flags=0;
     RReg[2].exp=0;
@@ -2006,30 +2032,53 @@ void pexp()
 
     // NOW APPLY THE EXPONENT BACK
 
-
-    RReg[2].data[0]=1;
-    RReg[2].exp=EXP_CONDITIONING;
-    powReal(&RReg[1],&RReg[4],&RReg[2]);
-
-    RReg[1].exp+=quotient;
-
-
     /*
-    for(k=0;k<EXP_CONDITIONING;++k)
+
+    //RReg[2].data[0]=1;
+    //RReg[2].exp=exp_conditioning;
+    //powReal(&RReg[1],&RReg[4],&RReg[2]);
+
+    // UNROLL HYP_POW RIGHT HERE
+
+    // THIS IS THE CURRENT TERM IN  RREG[4]
+    if(exp_conditioning) {
+    BINT64 exponent=powof10[18-exp_conditioning];
+    MACROOneToRReg(0);
+    while(exponent) {
+        if(exponent&1) {
+            mul_real(&RReg[3],&RReg[0],&RReg[4]);  // RESULT*=TERM;
+            finalize(&RReg[3]);
+            swapReal(&RReg[3],&RReg[0]);
+        }
+        mul_real(&RReg[3],&RReg[4],&RReg[4]);    // TERM*=TERM;
+        finalize(&RReg[3]);
+        swapReal(&RReg[3],&RReg[4]);
+        exponent>>=1;
+    }
+    } else swapReal(&RReg[0],&RReg[4]);
+
+    */
+
+    // POWERS OF 2 CONDITIONING
+    for(k=0;k<exp_conditioning;++k)
     {
         mulReal(&RReg[1],&RReg[4],&RReg[4]);
         swapReal(&RReg[1],&RReg[4]);
     }
 
-    swapReal(&RReg[1],&RReg[4]);
-    */
+    swapReal(&RReg[0],&RReg[4]);
+
+    RReg[0].exp+=quotient;
+
+
 
 
     if(isneg) {
         RReg[2].data[0]=1;
         RReg[2].exp=0;
-        divReal(&RReg[0],&RReg[2],&RReg[1]);    // EXP(-X)=1/EXP(X)
-    } else swapReal(&RReg[1],&RReg[0]);
+        divReal(&RReg[1],&RReg[2],&RReg[0]);    // EXP(-X)=1/EXP(X)
+        swapReal(&RReg[1],&RReg[0]);
+    }
 
 
     Context.precdigits-=24;
