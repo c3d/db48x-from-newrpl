@@ -181,7 +181,7 @@ void carry_correct_pos(BINT *start,BINT nwords)
     word=*start+carry;
 
     carry=carry_table[word>>26];
-    word-=(BINT)carry_table_mult[word>>26];
+    word-=carry*100000000; //(BINT)carry_table_mult[word>>26];
     // HERE word IS WITHIN +/-1E8
     if(word>=100000000) { word-=100000000; ++carry; }
     *start=word;
