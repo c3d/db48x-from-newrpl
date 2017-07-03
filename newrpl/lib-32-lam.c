@@ -877,7 +877,7 @@ void LIB_HANDLER()
         {
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
-            WORDPTR object,prevobject;
+            WORDPTR object;
             BINT notrack=0;
             if(ValidateTop<=ValidateBottom) {
                 // THERE'S NO ENVIRONMENT

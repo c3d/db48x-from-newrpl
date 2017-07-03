@@ -31,17 +31,11 @@ SOURCES +=\
     firmware/sys/target_50g/flash.c \
     firmware/sys/target_50g/rtc.c \
     newrpl/decimal.c \
+    newrpl/lighttranscend.c \
+    newrpl/atan_ltables.c \
+    newrpl/ln_ltables.c \
     newrpl/sysvars.c \
-    newrpl/dectranscen.c \
-    newrpl/atan_1_8_comp.c \
-    newrpl/atan_2_8_comp.c \
-    newrpl/atan_5_8_comp.c \
-    newrpl/atanh_1_8_comp.c \
-    newrpl/atanh_2_8_comp.c \
-    newrpl/atanh_5_8_comp.c \
     newrpl/compiler.c \
-    newrpl/cordic_K_8_comp.c \
-    newrpl/cordic_Kh_8_comp.c \
     newrpl/datastack.c \
     newrpl/directory.c \
     newrpl/errors.c \
@@ -219,17 +213,6 @@ SOURCES +=\
     firmware/ui_forms.c \
     newrpl/fastmath.c \
     newrpl/render.c \
-    newrpl/atan_1_8_light.c \
-    newrpl/atan_2_8_light.c \
-    newrpl/atan_5_8_light.c \
-    newrpl/atanh_1_8_light.c \
-    newrpl/atanh_2_8_light.c \
-    newrpl/atanh_5_8_light.c \
-    newrpl/cordic_kh_8_light.c \
-    newrpl/cordic_K_8_light.c \
-    newrpl/atan_ltables.c \
-    newrpl/lighttranscend.c \
-    newrpl/ln_ltables.c
 
 
 HEADERS  += \

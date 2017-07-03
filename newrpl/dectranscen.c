@@ -2088,7 +2088,7 @@ Context.precdigits-=8;
 }
 
 
-// CALCULATES SINH(x0) AND COSH(x0), AND RETURNS THEM IN RREG[1] AND RREG[2]
+// CALCULATES SINH(x0) AND COSH(x0), AND RETURNS THEM IN RREG[0] AND RREG[1]
 
 void hyp_sinhcosh(REAL *x0)
 {
@@ -2202,19 +2202,19 @@ CORDIC_Hyp_Rotational_unrolled((Context.precdigits>REAL_PRECISION_MAX)? REAL_PRE
 
 const_Kh_table(startexp,&RReg[3]);
 
-mul_real(&RReg[1],&RReg[6],&RReg[3]);
-mul_real(&RReg[2],&RReg[7],&RReg[3]);
+mul_real(&RReg[0],&RReg[6],&RReg[3]);
+mul_real(&RReg[1],&RReg[7],&RReg[3]);
 
 // ADJUST RESULT BY N
+RReg[0].exp+=quotient;
 RReg[1].exp+=quotient;
-RReg[2].exp+=quotient;
 
 // AND ADJUST THE SIGN FOR SINH
-RReg[2].flags^=isneg;
+RReg[1].flags^=isneg;
 
 Context.precdigits-=8;
 
-// RETURNED RESULTS IN RREG[1] AND RREG[2]
+// RETURNED RESULTS IN RREG[0] AND RREG[1]
 // THEY ARE NOT NORMALIZED/FINALIZED!
 
 }

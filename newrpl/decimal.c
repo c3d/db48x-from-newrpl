@@ -87,14 +87,40 @@ void freeRegister(BINT *data)
 
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const unsigned char const carry_table[64]={
-    0,1,2,2,3,4,4,5,6,6,7,
-    8,8,9,10,10,11,12,12,13,14,
-    14,15,16,16,17,18,18,19,20,20,
-    21,22,22,23,24,24,25,26,26,27,
-    28,28,29,30,30,31,32,32,33,34,
-    34,35,36,36,37,38,38,39,40,40,
-    41,42,42
+    0,0,1,2,2,3,4,4,5,6,6,
+    7,8,8,9,10,10,11,12,12,13,
+    14,14,15,16,16,17,18,18,19,20,
+    20,21,22,22,23,24,24,25,26,26,
+    27,28,28,29,30,30,31,32,32,33,
+    34,34,35,36,36,37,38,38,39,40,
+    40,41,42
+};
+const UBINT const carry_table_mult[64]={
+    0U,0U,100000000U,200000000U,200000000U,300000000U,400000000U,400000000U,500000000U,600000000U,600000000U,
+    700000000U,800000000U,800000000U,900000000U,1000000000U,1000000000U,1100000000U,1200000000U,1200000000U,1300000000U,
+    1400000000U,1400000000U,1500000000U,1600000000U,1600000000U,1700000000U,1800000000U,1800000000U,1900000000U,2000000000U,
+    2000000000U,2100000000U,2200000000U,2200000000U,2300000000U,2400000000U,2400000000U,2500000000U,2600000000U,2600000000U,
+    2700000000U,2800000000U,2800000000U,2900000000U,3000000000U,3000000000U,3100000000U,3200000000U,3200000000U,3300000000U,
+    3400000000U,3400000000U,3500000000U,3600000000U,3600000000U,3700000000U,3800000000U,3800000000U,3900000000U,4000000000U,
+    4000000000U,4100000000U,4200000000U
 };
 // NEW FORMAT USES 8-DIGIT WITH -1E8 TO 1E8 RANGE
 
@@ -137,6 +163,27 @@ void carry_correct(BINT *start,BINT nwords)
     // HERE word IS WITHIN +/-1E8
     if(word<0) { word+=100000000; --carry; }
     else if(word>=100000000) { word-=100000000; ++carry; }
+    *start=word;
+    ++start;
+    }
+
+    *start+=carry;
+
+}
+
+
+// SAME AS carry_correct() BUT ASSUMES ALL WORDS ARE POSITIVE, THIS IS TRUE DURING MULTIPLICATION
+void carry_correct_pos(BINT *start,BINT nwords)
+{
+    BINT *end=start+nwords-1;
+    BINT carry=0,word;
+    while(start<end) {
+    word=*start+carry;
+
+    carry=carry_table[word>>26];
+    word-=(BINT)carry_table_mult[word>>26];
+    // HERE word IS WITHIN +/-1E8
+    if(word>=100000000) { word-=100000000; ++carry; }
     *start=word;
     ++start;
     }
@@ -202,12 +249,12 @@ void normalize(REAL *number)
 
     if(word<0) {
     if(word<=-200000000) {
-        carry=-carry_table[(-word)>>26];
+        carry=-carry_table[(-word)>>26]-1;
         word-=carry*100000000;
     } else {
     if(word<=-100000000) {
-        carry=-1;
-        word+=100000000;
+        carry=-2;
+        word+=200000000;
     } else carry=0;
     }
     }
@@ -442,7 +489,7 @@ void finalize(REAL *number)
 
 // ADD A 64-BIT INTEGER TO A LONG NUMBER AT start
 
- void add_single64(BINT *start,BINT64 number)
+void add_single64(BINT *start,BINT64 number)
 {
     UWORD tmp;
     BINT lo,hi;
@@ -459,13 +506,13 @@ void finalize(REAL *number)
 */
 
 
-        if(((tmp.w32[1]<<6)|(tmp.w32[0]>>26))) {
+//        if(((tmp.w32[1]<<6)|(tmp.w32[0]>>26))) {
         hi=(((tmp.w32[1]<<6)|(tmp.w32[0]>>26))*2882303762ULL)>>32;
         lo=tmp.w+hi*4194967296U;
-        } else {
-        hi=0;
-        lo=tmp.w32[0];
-        }
+//        } else {
+//        hi=0;
+//        lo=tmp.w32[0];
+//        }
 /*
         // DEBUG ONLY - JUST DOUBLE CHECK
         UBINT64 test=-((UBINT64)lo+((UBINT64)hi*100000000ULL));
@@ -491,13 +538,13 @@ void finalize(REAL *number)
 */
 
 
-        if(((tmp.w32[1]<<6)|(tmp.w32[0]>>26))) {
+//        if(((tmp.w32[1]<<6)|(tmp.w32[0]>>26))) {
         hi=(((tmp.w32[1]<<6)|(tmp.w32[0]>>26))*2882303762ULL)>>32;
         lo=tmp.w+hi*4194967296U;
-        } else {
-        hi=0;
-        lo=tmp.w32[0];
-        }
+//        } else {
+//        hi=0;
+//        lo=tmp.w32[0];
+//        }
 /*
         // DEBUG ONLY - JUST DOUBLE CHECK
         UBINT64 test=((UBINT64)lo+((UBINT64)hi*100000000ULL));
@@ -520,12 +567,30 @@ void finalize(REAL *number)
  void add_karatsuba(BINT *start,BINT *a,BINT *b)
 {
     BINT64 hi,lo,mid;
+    UWORD tmp1,tmp2,tmp3;
+    BINT lo32_1,hi32_1,lo32_2,hi32_2,lo32_3,hi32_3;
+
     lo=a[0]*(BINT64)b[0];
     hi=a[1]*(BINT64)b[1];
     mid=(a[1]+a[0])*(BINT64)(b[0]+b[1])-hi-lo;
-    add_single64(start,lo);
-    add_single64(start+1,mid);
-    add_single64(start+2,hi);
+
+
+    // UNROLLED add_single64()
+    // NUMBER IS GUARANTEED TO BE POSITIVE
+        tmp1.w=lo;
+        tmp2.w=mid;
+        tmp3.w=hi;
+        hi32_1=(((tmp1.w32[1]<<6)|(tmp1.w32[0]>>26))*2882303762ULL)>>32;
+        hi32_2=(((tmp2.w32[1]<<6)|(tmp2.w32[0]>>26))*2882303762ULL)>>32;
+        hi32_3=(((tmp3.w32[1]<<6)|(tmp3.w32[0]>>26))*2882303762ULL)>>32;
+        lo32_1=tmp1.w+hi32_1*4194967296U;
+        lo32_2=tmp2.w+hi32_2*4194967296U;
+        lo32_3=tmp3.w+hi32_3*4194967296U;
+        start[0]+=lo32_1;
+        start[1]+=lo32_2+hi32_1;
+        start[2]+=lo32_3+hi32_2;
+        start[3]+=hi32_3;
+
 }
 
 
@@ -1978,6 +2043,9 @@ void acc_real_int(REAL *result,BINT number,BINT exponent)
 void mul_real(REAL *r,REAL *a,REAL *b)
 {
     REAL c,*result=r;
+    BINT64 hi,lo,mid;
+    UWORD tmp1,tmp2,tmp3;
+    BINT lo32_1,hi32_1,lo32_2,hi32_2,lo32_3,hi32_3;
 
     if( (result->data==a->data)||(result->data==b->data)) {
         // STORE RESULT INTO ALTERNATIVE LOCATION TO PREVENT OVERWRITE
@@ -2010,15 +2078,51 @@ void mul_real(REAL *r,REAL *a,REAL *b)
     while(i<b->len-1) {
         j=0;
         while(j<a->len-1) {
-            add_karatsuba(result->data+i+j,a->data+j,b->data+i);
+
+            //add_karatsuba(result->data+i+j,a->data+j,b->data+i);
+            // INLINED add_karatsuba
+
+            lo=a->data[j]*(BINT64)b->data[i];
+            hi=a->data[j+1]*(BINT64)b->data[i+1];
+            mid=(a->data[j+1]+a->data[j])*(BINT64)(b->data[i]+b->data[i+1])-hi-lo;
+
+            // UNROLLED add_single64()
+            // NUMBER IS GUARANTEED TO BE POSITIVE
+                tmp1.w=lo;
+                tmp2.w=mid;
+                tmp3.w=hi;
+                hi32_1=(((tmp1.w32[1]<<6)|(tmp1.w32[0]>>26))*2882303762ULL)>>32;
+                hi32_2=(((tmp2.w32[1]<<6)|(tmp2.w32[0]>>26))*2882303762ULL)>>32;
+                hi32_3=(((tmp3.w32[1]<<6)|(tmp3.w32[0]>>26))*2882303762ULL)>>32;
+                lo32_1=tmp1.w+hi32_1*4194967296U;
+                lo32_2=tmp2.w+hi32_2*4194967296U;
+                lo32_3=tmp3.w+hi32_3*4194967296U;
+                result->data[i+j]+=lo32_1;
+                result->data[i+j+1]+=lo32_2+hi32_1;
+                result->data[i+j+2]+=lo32_3+hi32_2;
+                result->data[i+j+3]+=hi32_3;
+
             j+=2;
         }
         if(j<a->len) {
-            add_single64(result->data+i+j,a->data[j]*(UBINT64)b->data[i]);
-            add_single64(result->data+i+1+j,a->data[j]*(UBINT64)b->data[i+1]);
+            //add_single64(result->data+i+j,a->data[j]*(UBINT64)b->data[i]);
+            //add_single64(result->data+i+1+j,a->data[j]*(UBINT64)b->data[i+1]);
+
+            // UNROLLED add_single64()
+            // NUMBER IS GUARANTEED TO BE POSITIVE
+                tmp1.w=a->data[j]*(UBINT64)b->data[i];
+                tmp2.w=a->data[j]*(UBINT64)b->data[i+1];
+                hi32_1=(((tmp1.w32[1]<<6)|(tmp1.w32[0]>>26))*2882303762ULL)>>32;
+                hi32_2=(((tmp2.w32[1]<<6)|(tmp2.w32[0]>>26))*2882303762ULL)>>32;
+                lo32_1=tmp1.w+hi32_1*4194967296U;
+                lo32_2=tmp2.w+hi32_2*4194967296U;
+                result->data[i+j]+=lo32_1;
+                result->data[i+j+1]+=lo32_2+hi32_1;
+                result->data[i+j+2]+=hi32_2;
+
         }
 
-        if(!(i&7)) carry_correct(result->data,result->len);
+        if((i!=0)&&!(i&7)) carry_correct_pos(result->data+i-8,a->len+9);
         i+=2;
     }
 
@@ -2027,10 +2131,19 @@ void mul_real(REAL *r,REAL *a,REAL *b)
     while(i<b->len) {
         j=0;
         while(j<a->len) {
-            add_single64(result->data+i+j,a->data[j]*(UBINT64)b->data[i]);
+            //add_single64(result->data+i+j,a->data[j]*(UBINT64)b->data[i]);
+
+            // UNROLLED add_single64()
+            // NUMBER IS GUARANTEED TO BE POSITIVE
+                tmp1.w=a->data[j]*(UBINT64)b->data[i];
+                hi32_1=(((tmp1.w32[1]<<6)|(tmp1.w32[0]>>26))*2882303762ULL)>>32;
+                lo32_1=tmp1.w+hi32_1*4194967296U;
+                result->data[i+j]+=lo32_1;
+                result->data[i+j+1]+=hi32_1;
+
             ++j;
         }
-        if(!(i&7)) carry_correct(result->data,result->len);
+        if((i!=0)&&!(i&7)) carry_correct_pos(result->data+i-8,a->len+9);
         ++i;
     }
 
