@@ -13,22 +13,7 @@
 
 // DECIMAL TRANSCENDENTAL FUNCTIONS
 
-// DEBUG ONLY
-
-// ELIMINATE ALL XX IN THIS FILE, ONLY ADDED TO AVOID CONFLICT WITH ORIGINAL TRANSCENDENTAL FUNCTIONS
-#define powReal XXpowReal
-#define xrootReal XXxrootReal
-#define psqrt XXpsqrt
-
-
-
-
-
-
-
-
 #include <newrpl.h>
-
 
 
 #define MACROZeroToRReg(n) { RReg[n].data[0]=0; RReg[n].exp=0; RReg[n].flags=0; RReg[n].len=1; }
@@ -42,7 +27,6 @@
 #define ATAN_TABLES_LEN     (2016/8)
 #define ATAN_TABLES_PASSES  7
 
-#define EXP_CONDITIONING    16
 
 
 
@@ -102,7 +86,7 @@ static const BINT const Constant_200[]={ 200 };
 
 // CONSTANTS IN ROM
 // LEFT JUSTIFIED
-void XXdecconst_2PI(REAL *real)
+void decconst_2PI(REAL *real)
 {
     int nwords=253-((Context.precdigits+7)>>2);
     if(nwords<0) nwords=0;
@@ -112,7 +96,7 @@ void XXdecconst_2PI(REAL *real)
     real->len=253-nwords;
 }
 
-void XXdecconst_PI(REAL *real)
+void decconst_PI(REAL *real)
 {
     int nwords=253-((Context.precdigits+7)>>2);
     if(nwords<0) nwords=0;
@@ -123,7 +107,7 @@ void XXdecconst_PI(REAL *real)
 
 }
 
-void XXdecconst_PI_2(REAL *real)
+void decconst_PI_2(REAL *real)
 {
     int nwords=253-((Context.precdigits+7)>>2);
     if(nwords<0) nwords=0;
@@ -134,7 +118,7 @@ void XXdecconst_PI_2(REAL *real)
     real->len=253-nwords;
 }
 
-void XXdecconst_PI_200(REAL *real)
+void decconst_PI_200(REAL *real)
 {
     int nwords=253-((Context.precdigits+7)>>2);
     if(nwords<0) nwords=0;
@@ -145,7 +129,7 @@ void XXdecconst_PI_200(REAL *real)
     real->len=253-nwords;
 }
 
-void XXdecconst_PI_4(REAL *real)
+void decconst_PI_4(REAL *real)
 {
     int nwords=253-((Context.precdigits+7)>>2);
     if(nwords<0) nwords=0;
@@ -155,7 +139,7 @@ void XXdecconst_PI_4(REAL *real)
     real->len=253-nwords;
 }
 
-void XXdecconst_PI_180(REAL *real)
+void decconst_PI_180(REAL *real)
 {
     int nwords=253-((Context.precdigits+7)>>2);
     if(nwords<0) nwords=0;
@@ -166,7 +150,7 @@ void XXdecconst_PI_180(REAL *real)
     real->len=253-nwords;
 }
 
-void XXdecconst_180_PI(REAL *real)
+void decconst_180_PI(REAL *real)
 {
     int nwords=253-((Context.precdigits+7)>>2);
     if(nwords<0) nwords=0;
@@ -177,7 +161,7 @@ void XXdecconst_180_PI(REAL *real)
     real->len=253-nwords;
 }
 
-void XXdecconst_200_PI(REAL *real)
+void decconst_200_PI(REAL *real)
 {
     int nwords=253-((Context.precdigits+7)>>2);
     if(nwords<0) nwords=0;
@@ -189,7 +173,7 @@ void XXdecconst_200_PI(REAL *real)
 }
 
 
-void XXdecconst_ln10(REAL *real)
+void decconst_ln10(REAL *real)
 {
     int nwords=253-((Context.precdigits+7)>>2);
     if(nwords<0) nwords=0;
@@ -200,7 +184,7 @@ void XXdecconst_ln10(REAL *real)
     real->len=253-nwords;
 }
 
-void XXdecconst_ln10_2(REAL *real)
+void decconst_ln10_2(REAL *real)
 {
     int nwords=253-((Context.precdigits+7)>>2);
     if(nwords<0) nwords=0;
@@ -211,14 +195,14 @@ void XXdecconst_ln10_2(REAL *real)
     real->len=253-nwords;
 }
 
-void XXdecconst_One(REAL *real)
+void decconst_One(REAL *real)
 {
     real->data=(BINT *)Constant_One;
     real->exp=0;
     real->flags=0;
     real->len=1;
 }
-void XXdecconst_90(REAL *real)
+void decconst_90(REAL *real)
 {
     real->data=(BINT *)Constant_90;
     real->exp=0;
@@ -226,7 +210,7 @@ void XXdecconst_90(REAL *real)
     real->len=1;
 }
 
-void XXdecconst_45(REAL *real)
+void decconst_45(REAL *real)
 {
     real->data=(BINT *)Constant_45;
     real->exp=0;
@@ -235,14 +219,14 @@ void XXdecconst_45(REAL *real)
 }
 
 
-void XXdecconst_100(REAL *real)
+void decconst_100(REAL *real)
 {
     real->data=(BINT *)Constant_100;
     real->exp=0;
     real->flags=0;
     real->len=1;
 }
-void XXdecconst_50(REAL *real)
+void decconst_50(REAL *real)
 {
     real->data=(BINT *)Constant_50;
     real->exp=0;
@@ -251,14 +235,14 @@ void XXdecconst_50(REAL *real)
 }
 
 
-void XXdecconst_180(REAL *real)
+void decconst_180(REAL *real)
 {
     real->data=(BINT *)Constant_180;
     real->exp=0;
     real->flags=0;
     real->len=1;
 }
-void XXdecconst_200(REAL *real)
+void decconst_200(REAL *real)
 {
     real->data=(BINT *)Constant_200;
     real->exp=0;
@@ -268,10 +252,145 @@ void XXdecconst_200(REAL *real)
 
 
 
+
+
+
+// COMPUTE SQUARE ROOT OF RReg[0] USING POWER SERIES
+// RESULT IS RReg[0]=SQRT(RReg[0]), RReg[1]=1/SQRT(RReg[0]
+
+// USES RREG 0 THRU 5
+
+void psqrt()
+{
+int orgexp=RReg[0].exp;
+int ndigits;
+
+
+// HANDLE SPECIAL CASE OF 0 (1/SQRT(0) IS INFINITY)
+if(iszeroReal(&RReg[0])) {
+    RReg[1].data[0]=0;
+    RReg[1].exp=0;
+    RReg[1].len=1;
+    RReg[1].flags=F_INFINITY;
+
+    // RReg[0] IS ALREADY ZERO
+
+    return;
+
+}
+
+
+RReg[0].exp=0;
+ndigits=intdigitsReal(&RReg[0]);
+
+RReg[0].exp=-ndigits;       // MAKE THE NUMBER BE IN THE RANGE 0.1 ... 0.99
+int mantexp=ndigits+orgexp;
+
+
+RReg[1].flags=0;
+RReg[1].len=1;
+
+if(mantexp&1) {
+    RReg[0].exp++;
+    mantexp--;
+    // NOW IT'S IN RANGE 1..9.9, SO INITIAL APPROXIMATION SHOULD BE AROUND 0.63
+    RReg[1].data[0]=5;
+    RReg[1].exp=0;
+    if(gtReal(&RReg[0],&RReg[1])) {
+        // FIRST APPROXIMATION, START WITH x=0.33
+        RReg[1].data[0]=33;
+    }
+    else {
+        // FIRST APPROXIMATION, START WITH x=0.63
+        RReg[1].data[0]=63;
+    }
+    RReg[1].exp=-2;
+}
+else {
+    RReg[1].data[0]=5;
+    RReg[1].exp=-1;
+    if(gtReal(&RReg[0],&RReg[1])) {
+        // FIRST APPROXIMATION, START WITH x=1
+        RReg[1].data[0]=1;
+    }
+    else {
+        // FIRST APPROXIMATION, START WITH x=2
+        RReg[1].data[0]=2;
+    }
+    RReg[1].exp=0;
+}
+
+
+
+
+RReg[2].exp=0;
+RReg[2].flags=0;
+RReg[2].len=1;
+int savedprec=Context.precdigits;
+
+// Halley's method
+Context.precdigits=(Context.precdigits+15)&~7;
+int iters=0;
+int goodexp,gooddigits=0;
+do {
+    ++iters;
+mulReal(&RReg[3],&RReg[1],&RReg[1]);
+mulReal(&RReg[4],&RReg[3],&RReg[0]);    // RReg[4]=yn=S*xn^2
+
+RReg[4].flags^=F_NEGATIVE;
+RReg[2].data[0]=10;
+RReg[2].exp=0;
+add_real_mul(&RReg[3],&RReg[2],&RReg[4],3); // (10-3*yn)
+normalize(&RReg[3]);
+mulReal(&RReg[5],&RReg[4],&RReg[3]);        // -yn*(10-3*yn)
+RReg[2].data[0]=15;
+addReal(&RReg[4],&RReg[2],&RReg[5]);        // 15-yn*(10-3*yn)
+mulReal(&RReg[3],&RReg[4],&RReg[1]);        // xn*(15-yn*(10-3*yn))
+RReg[2].data[0]=125;
+RReg[2].exp=-3;
+mulReal(&RReg[4],&RReg[2],&RReg[3]);        // x(n+1)=0.125*xn*(15-yn*(10-3*yn))
+swapReal(&RReg[4],&RReg[1]);
+subReal(&RReg[3],&RReg[4],&RReg[1]);
+if(RReg[3].len>1) continue;
+if(RReg[3].data[0]==0) break;
+goodexp=RReg[3].exp+sig_digits(RReg[3].data[0]);
+gooddigits=intdigitsReal(&RReg[1])-RReg[1].exp;
+gooddigits-=goodexp-RReg[1].exp;
+
+} while(gooddigits<=savedprec);
+
+//printf("iters=%d\n",iters);
+// HERE RReg[1] HAS THE RESULT OF 1/SQRT(X)
+mulReal(&RReg[0],&RReg[1],&RReg[0]);
+// HERE RReg[0]=X*1/SQRT(X) = SQRT(X)
+
+// CORRECT THE NUMBER BY THE EXPONENT
+RReg[0].exp+=mantexp/2;
+RReg[1].exp-=mantexp/2;
+
+
+
+
+Context.precdigits=savedprec;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // RETURN THE CONVERTED ANGLE IN RReg[0], NORMALIZED
 // USES RREG 0 TO 3
 
-void XXtrig_convertangle(REAL *oldang,BINT oldmode,BINT newmode)
+void trig_convertangle(REAL *oldang,BINT oldmode,BINT newmode)
     {
 
     REAL convfactor;
@@ -283,7 +402,7 @@ void XXtrig_convertangle(REAL *oldang,BINT oldmode,BINT newmode)
         copyReal(&RReg[0],oldang);
         return;
     case (ANGLEDEG<<2)|ANGLERAD:
-        XXdecconst_PI_180(&convfactor);
+        decconst_PI_180(&convfactor);
         break;
     case (ANGLEDEG<<2)|ANGLEGRAD:
     {
@@ -318,19 +437,19 @@ void XXtrig_convertangle(REAL *oldang,BINT oldmode,BINT newmode)
 
     // FROM RADIANS TO OTHER MODES
     case (ANGLERAD<<2)|ANGLEDEG:
-        XXdecconst_180_PI(&convfactor);
+        decconst_180_PI(&convfactor);
         break;
     case (ANGLERAD<<2)|ANGLERAD:
         copyReal(&RReg[0],oldang);
         return;
 
     case (ANGLERAD<<2)|ANGLEGRAD:
-        XXdecconst_200_PI(&convfactor);
+        decconst_200_PI(&convfactor);
         break;
 
     case (ANGLERAD<<2)|ANGLEDMS:
     {
-        XXdecconst_180_PI(&convfactor);
+        decconst_180_PI(&convfactor);
 
         mulReal(&RReg[3],oldang,&convfactor);
 
@@ -363,7 +482,7 @@ void XXtrig_convertangle(REAL *oldang,BINT oldmode,BINT newmode)
         return;
     }
     case (ANGLEGRAD<<2)|ANGLERAD:
-        XXdecconst_PI_200(&convfactor);
+        decconst_PI_200(&convfactor);
         break;
     case (ANGLEGRAD<<2)|ANGLEGRAD:
         copyReal(&RReg[0],oldang);
@@ -440,7 +559,7 @@ void XXtrig_convertangle(REAL *oldang,BINT oldmode,BINT newmode)
             divReal(&RReg[1],&RReg[1],&RReg[3]);
             addReal(&RReg[3],&RReg[2],&RReg[1]);
 
-            XXdecconst_PI_180(&convfactor);
+            decconst_PI_180(&convfactor);
 
             mulReal(&RReg[0],&RReg[3],&convfactor);
 
@@ -494,12 +613,12 @@ void XXtrig_convertangle(REAL *oldang,BINT oldmode,BINT newmode)
 
 // ENSURE AN ANGLE IS WITHIN -PI/+PI, USED FOR COMPLEX ARGUMENTS
 // USES RReg 0 TO 3 ONLY, ARGUMENT CAN BE RReg[2] BUT NOT RReg[0 TO 3]
-void XXtrig_reduceangle(REAL *angle,BINT angmode)
+void trig_reduceangle(REAL *angle,BINT angmode)
 {
 REAL halfturn,*modangle;
 
 if(angmode==ANGLEDMS) {
-    XXtrig_convertangle(angle,ANGLEDMS,ANGLEDEG);
+    trig_convertangle(angle,ANGLEDMS,ANGLEDEG);
     swapReal(&RReg[0],&RReg[2]);
     modangle=&RReg[2];
 } else modangle=angle;
@@ -508,15 +627,15 @@ if(angmode==ANGLEDMS) {
 switch(angmode)
 {
 case ANGLERAD:
-    XXdecconst_PI(&halfturn);
+    decconst_PI(&halfturn);
     break;
 case ANGLEGRAD:
-    XXdecconst_200(&halfturn);
+    decconst_200(&halfturn);
     break;
 case ANGLEDEG:
 case ANGLEDMS:      // DMS IS NOT SUPPORTED HERE, FALL THROUGH THE DEFAULT CASE
 default:
-    XXdecconst_180(&halfturn);
+    decconst_180(&halfturn);
     break;
 }
 
@@ -540,7 +659,7 @@ if(eqReal(&RReg[0],&halfturn)) RReg[0].flags^=F_NEGATIVE;
 // RReg[0] HAS THE ANGLE PROPERLY REDUCED FROM -PI TO PI
 if(angmode==ANGLEDMS) {
     swapReal(&RReg[2],&RReg[0]);
-    XXtrig_convertangle(&RReg[2],ANGLEDEG,ANGLEDMS);
+    trig_convertangle(&RReg[2],ANGLEDEG,ANGLEDMS);
 }
 
 }
@@ -789,7 +908,7 @@ Context.precdigits=needdigits;
 
 
 
-void XXtrig_sin(REAL *angle, BINT angmode)
+void trig_sin(REAL *angle, BINT angmode)
 {
     int negsin,swap;
     REAL pi,pi2,pi4;
@@ -811,9 +930,9 @@ void XXtrig_sin(REAL *angle, BINT angmode)
         Context.precdigits=minprec;
     }
 
-    XXdecconst_PI(&pi);
-    XXdecconst_PI_2(&pi2);
-    XXdecconst_PI_4(&pi4);
+    decconst_PI(&pi);
+    decconst_PI_2(&pi2);
+    decconst_PI_4(&pi4);
 
     if(angmode==ANGLERAD) {
         // ANGLE IS IN RADIANS, NO NEED FOR CONVERSION
@@ -826,7 +945,7 @@ void XXtrig_sin(REAL *angle, BINT angmode)
         BINT modulo;
         if(angmode==ANGLEDMS) {
             // CONVERT TO DEGREES FIRST, SO THAT THERE'S EXACT VALUES AT 90, ETC.
-            XXtrig_convertangle(angle,ANGLEDMS,ANGLEDEG);
+            trig_convertangle(angle,ANGLEDMS,ANGLEDEG);
 
             swapReal(&RReg[0],&RReg[7]);
             angle=&RReg[7];
@@ -835,11 +954,11 @@ void XXtrig_sin(REAL *angle, BINT angmode)
         }
         if(angmode==ANGLEDEG) {
             // DEGREES
-             XXdecconst_PI_180(&convfactor);
+             decconst_PI_180(&convfactor);
              modulo=180;
         } else {
             // GRADS
-             XXdecconst_PI_200(&convfactor);
+             decconst_PI_200(&convfactor);
              modulo=200;
         }
 
@@ -933,7 +1052,7 @@ void XXtrig_sin(REAL *angle, BINT angmode)
 
 
 
-void XXtrig_cos(REAL *angle, BINT angmode)
+void trig_cos(REAL *angle, BINT angmode)
 {
     int negsin,negcos,swap;
     REAL pi,pi2,pi4;
@@ -955,9 +1074,9 @@ void XXtrig_cos(REAL *angle, BINT angmode)
         Context.precdigits=minprec;
     }
 
-    XXdecconst_PI(&pi);
-    XXdecconst_PI_2(&pi2);
-    XXdecconst_PI_4(&pi4);
+    decconst_PI(&pi);
+    decconst_PI_2(&pi2);
+    decconst_PI_4(&pi4);
 
     if(angmode==ANGLERAD) {
         // ANGLE IS IN RADIANS, NO NEED FOR CONVERSION
@@ -970,7 +1089,7 @@ void XXtrig_cos(REAL *angle, BINT angmode)
         BINT modulo;
         if(angmode==ANGLEDMS) {
             // CONVERT TO DEGREES FIRST, SO THAT THERE'S EXACT VALUES AT 90, ETC.
-            XXtrig_convertangle(angle,ANGLEDMS,ANGLEDEG);
+            trig_convertangle(angle,ANGLEDMS,ANGLEDEG);
 
             swapReal(&RReg[0],&RReg[7]);
             angle=&RReg[7];
@@ -979,11 +1098,11 @@ void XXtrig_cos(REAL *angle, BINT angmode)
         }
         if(angmode==ANGLEDEG) {
             // DEGREES
-             XXdecconst_PI_180(&convfactor);
+             decconst_PI_180(&convfactor);
              modulo=180;
         } else {
             // GRADS
-             XXdecconst_PI_200(&convfactor);
+             decconst_PI_200(&convfactor);
              modulo=200;
         }
 
@@ -1071,123 +1190,158 @@ void XXtrig_cos(REAL *angle, BINT angmode)
 }
 
 
-// COMPUTE SQUARE ROOT OF RReg[0] USING POWER SERIES
-// RESULT IS RReg[0]=SQRT(RReg[0]), RReg[1]=1/SQRT(RReg[0]
+// RETURNS COS() IN RREG[6] AND SIN() IN RREG[7]
 
-// USES RREG 0 THRU 5
-
-void psqrt()
+void trig_sincos(REAL *angle, BINT angmode)
 {
-int orgexp=RReg[0].exp;
-int ndigits;
+    int negsin,negcos,swap;
+    REAL pi,pi2,pi4;
+    BINT savedprec;
 
+    swap=negcos=negsin=0;
 
-// HANDLE SPECIAL CASE OF 0 (1/SQRT(0) IS INFINITY)
-if(iszeroReal(&RReg[0])) {
-    RReg[1].data[0]=0;
-    RReg[1].exp=0;
-    RReg[1].len=1;
-    RReg[1].flags=F_INFINITY;
+    savedprec=Context.precdigits;
+    Context.precdigits=(2*savedprec+8 > REAL_PRECISION_MAX)? REAL_PRECISION_MAX:(2*savedprec+8);
+    if(angle->exp>savedprec) {
+        // THIS IS A VERY LARGE ANGLE, NEED TO INCREASE THE PRECISION
+        // TO GET AN ACCURATE RESULT ON THE MODULO
+        BINT minprec=((savedprec+intdigitsReal(angle))+7)&(~7);
+        if(minprec>REAL_PRECISION_MAX) {
+            // TODO: ISSUE AN ERROR
+            // FOR NOW JUST LEAVE IT WITH PARTIAL LOSS OF PRECISION
+            minprec=REAL_PRECISION_MAX;
+        }
+        Context.precdigits=minprec;
+    }
 
-    // RReg[0] IS ALREADY ZERO
+    decconst_PI(&pi);
+    decconst_PI_2(&pi2);
+    decconst_PI_4(&pi4);
 
-    return;
-
-}
-
-
-RReg[0].exp=0;
-ndigits=intdigitsReal(&RReg[0]);
-
-RReg[0].exp=-ndigits;       // MAKE THE NUMBER BE IN THE RANGE 0.1 ... 0.99
-int mantexp=ndigits+orgexp;
-
-
-RReg[1].flags=0;
-RReg[1].len=1;
-
-if(mantexp&1) {
-    RReg[0].exp++;
-    mantexp--;
-    // NOW IT'S IN RANGE 1..9.9, SO INITIAL APPROXIMATION SHOULD BE AROUND 0.63
-    RReg[1].data[0]=5;
-    RReg[1].exp=0;
-    if(gtReal(&RReg[0],&RReg[1])) {
-        // FIRST APPROXIMATION, START WITH x=0.33
-        RReg[1].data[0]=33;
+    if(angmode==ANGLERAD) {
+        // ANGLE IS IN RADIANS, NO NEED FOR CONVERSION
+        copyReal(&RReg[0],angle);
+        // GET ANGLE MODULO PI
+        divmodReal(&RReg[1],&RReg[0],angle,&pi);
     }
     else {
-        // FIRST APPROXIMATION, START WITH x=0.63
-        RReg[1].data[0]=63;
+        REAL convfactor;
+        BINT modulo;
+        if(angmode==ANGLEDMS) {
+            // CONVERT TO DEGREES FIRST, SO THAT THERE'S EXACT VALUES AT 90, ETC.
+            trig_convertangle(angle,ANGLEDMS,ANGLEDEG);
+
+            swapReal(&RReg[0],&RReg[7]);
+            angle=&RReg[7];
+
+            angmode=ANGLEDEG;   // PLAIN DEGREES FROM NOW ON
+        }
+        if(angmode==ANGLEDEG) {
+            // DEGREES
+             decconst_PI_180(&convfactor);
+             modulo=180;
+        } else {
+            // GRADS
+             decconst_PI_200(&convfactor);
+             modulo=200;
+        }
+
+        newRealFromBINT(&RReg[2],modulo,0);
+
+        // GET ANGLE MODULO HALF-TURN
+        divmodReal(&RReg[1],&RReg[0],angle,&RReg[2]);
+
+        // CHECK FOR SPECIAL CASES: 1 FULL TURN AND HALF TURN
+
+        if(iszeroReal(&RReg[0])) {
+            // EXACT MULTIPLE OF PI, RETURN EXACT VALUES
+            MACROOneToRReg(6);
+            if(isoddReal(&RReg[1])) RReg[6].flags|=F_NEGATIVE;
+            MACROZeroToRReg(7);
+            // RESTORE PREVIOUS PRECISION
+            Context.precdigits=savedprec;
+
+            return;
+        }
+        RReg[2].data[0]>>=1; // 90 OR 100 DEGREES
+        RReg[2].flags|=RReg[0].flags&F_NEGATIVE;
+
+        if(eqReal(&RReg[0],&RReg[2])) {
+            // EXACT PI/2 OR 3/2PI, RETURN EXACT VALUES
+            MACROZeroToRReg(6);
+            MACROOneToRReg(7);
+            RReg[7].flags|=RReg[2].flags&F_NEGATIVE;
+            // RESTORE PREVIOUS PRECISION
+            Context.precdigits=savedprec;
+
+
+            return;
+        }
+
+
+
+
+
+        // CONVERT TO RADIANS
+        mulReal(&RReg[0],&RReg[0],&convfactor);
+
+
     }
-    RReg[1].exp=-2;
-}
-else {
-    RReg[1].data[0]=5;
-    RReg[1].exp=-1;
-    if(gtReal(&RReg[0],&RReg[1])) {
-        // FIRST APPROXIMATION, START WITH x=1
-        RReg[1].data[0]=1;
+
+
+    // HERE RReg[0] HAS THE REMAINDER THAT WE NEED TO WORK WITH
+
+
+    // CHECK FOR SPECIAL CASES
+
+    if(iszeroReal(&RReg[0])) {
+        // EXACT MULTIPLE OF PI, IN RADIANS THIS CAN ONLY HAPPEN IF THE ARGUMENT IS ACTUALLY ZERO
+        MACROOneToRReg(6);
+        if(isoddReal(&RReg[1])) RReg[6].flags|=F_NEGATIVE;
+        MACROZeroToRReg(7);
+        // RESTORE PREVIOUS PRECISION
+        Context.precdigits=savedprec;
+
+        return;
     }
-    else {
-        // FIRST APPROXIMATION, START WITH x=2
-        RReg[1].data[0]=2;
+
+    // IF THE RESULT OF THE DIVISION IS ODD, THEN WE ARE IN THE OTHER HALF OF THE CIRCLE
+    if(isoddReal(&RReg[1])) { negcos=negsin=1; }
+
+   if(RReg[0].flags&F_NEGATIVE) { negsin^=1; RReg[0].flags&=~F_NEGATIVE; }
+
+    if(gtReal(&RReg[0],&pi2)) {
+        negcos^=1;
+        sub_real(&RReg[0],&pi,&RReg[0]);
+        normalize(&RReg[0]);
     }
-    RReg[1].exp=0;
-}
+    if(gtReal(&RReg[0],&pi4)) {
+        swap^=1;
+        sub_real(&RReg[0],&pi2,&RReg[0]);
+        normalize(&RReg[0]);
+
+    }
 
 
+    Context.precdigits=savedprec;
+
+    if(swap) sinpower(); else cospower();
+
+    swapReal(&RReg[0],&RReg[6]);
+    MACROOneToRReg(3);
+    mul_real(&RReg[2],&RReg[6],&RReg[6]);
+    normalize(&RReg[2]);
+    subReal(&RReg[0],&RReg[3],&RReg[2]);
+
+    psqrt();
+    swapReal(&RReg[0],&RReg[7]);
+
+    Context.precdigits=savedprec;
+
+    if(negcos) RReg[6].flags|=F_NEGATIVE;
+    if(negsin) RReg[7].flags|=F_NEGATIVE;
 
 
-RReg[2].exp=0;
-RReg[2].flags=0;
-RReg[2].len=1;
-int savedprec=Context.precdigits;
-
-// Halley's method
-Context.precdigits=(Context.precdigits+15)&~7;
-//int iters=0;
-int goodexp,gooddigits=0;
-do {
-//    ++iters;
-mulReal(&RReg[3],&RReg[1],&RReg[1]);
-mulReal(&RReg[4],&RReg[3],&RReg[0]);    // RReg[4]=yn=S*xn^2
-
-RReg[4].flags^=F_NEGATIVE;
-RReg[2].data[0]=10;
-RReg[2].exp=0;
-add_real_mul(&RReg[3],&RReg[2],&RReg[4],3); // (10-3*yn)
-normalize(&RReg[3]);
-mulReal(&RReg[5],&RReg[4],&RReg[3]);        // -yn*(10-3*yn)
-RReg[2].data[0]=15;
-addReal(&RReg[4],&RReg[2],&RReg[5]);        // 15-yn*(10-3*yn)
-mulReal(&RReg[3],&RReg[4],&RReg[1]);        // xn*(15-yn*(10-3*yn))
-RReg[2].data[0]=125;
-RReg[2].exp=-3;
-mulReal(&RReg[4],&RReg[2],&RReg[3]);        // x(n+1)=0.125*xn*(15-yn*(10-3*yn))
-swapReal(&RReg[4],&RReg[1]);
-subReal(&RReg[3],&RReg[4],&RReg[1]);
-if(RReg[3].len>1) continue;
-if(RReg[3].data[0]==0) break;
-goodexp=RReg[3].exp+sig_digits(RReg[3].data[0]);
-gooddigits=intdigitsReal(&RReg[1])-RReg[1].exp;
-gooddigits-=goodexp-RReg[1].exp;
-
-} while(gooddigits<=savedprec);
-
-//printf("iters=%d\n",iters);
-// HERE RReg[1] HAS THE RESULT OF 1/SQRT(X)
-mulReal(&RReg[0],&RReg[1],&RReg[0]);
-// HERE RReg[0]=X*1/SQRT(X) = SQRT(X)
-
-// CORRECT THE NUMBER BY THE EXPONENT
-RReg[0].exp+=mantexp/2;
-RReg[1].exp-=mantexp/2;
-
-
-
-
-Context.precdigits=savedprec;
 }
 
 
@@ -1198,7 +1352,7 @@ Context.precdigits=savedprec;
 
 
 
-void XXtrig_tan(REAL *angle, BINT angmode)
+void trig_tan(REAL *angle, BINT angmode)
 {
     int negsin,negcos,invert;
     REAL pi,pi2,pi4;
@@ -1224,23 +1378,23 @@ void XXtrig_tan(REAL *angle, BINT angmode)
         Context.precdigits=minprec;
     }
 
-    XXdecconst_PI(&pi);
-    XXdecconst_PI_2(&pi2);
-    XXdecconst_PI_4(&pi4);
+    decconst_PI(&pi);
+    decconst_PI_2(&pi2);
+    decconst_PI_4(&pi4);
 
-    addReal(&RReg[1],angle,angle);  // DOUBLE THE ANGLE
 
     if(angmode==ANGLERAD) {
         // ANGLE IS IN RADIANS, NO NEED FOR CONVERSION
         // GET ANGLE MODULO PI
-        divmodReal(&RReg[1],&RReg[0],&RReg[1],&pi);
+        addReal(&RReg[2],angle,angle);  // DOUBLE THE ANGLE
+        divmodReal(&RReg[1],&RReg[0],&RReg[2],&pi);
     }
     else {
         REAL convfactor;
         BINT modulo;
         if(angmode==ANGLEDMS) {
             // CONVERT TO DEGREES FIRST, SO THAT THERE'S EXACT VALUES AT 90, ETC.
-            XXtrig_convertangle(&RReg[1],ANGLEDMS,ANGLEDEG);
+            trig_convertangle(angle,ANGLEDMS,ANGLEDEG);
 
             swapReal(&RReg[0],&RReg[7]);
             angle=&RReg[7];
@@ -1249,11 +1403,11 @@ void XXtrig_tan(REAL *angle, BINT angmode)
         }
         if(angmode==ANGLEDEG) {
             // DEGREES
-             XXdecconst_PI_180(&convfactor);
+             decconst_PI_180(&convfactor);
              modulo=180;
         } else {
             // GRADS
-             XXdecconst_PI_200(&convfactor);
+             decconst_PI_200(&convfactor);
              modulo=200;
         }
 
@@ -1287,11 +1441,14 @@ void XXtrig_tan(REAL *angle, BINT angmode)
         }
 
 
-
-
+        // DOUBLE THE ANGLE
+        addReal(&RReg[1],angle,angle);
 
         // CONVERT TO RADIANS
-        mulReal(&RReg[0],&RReg[0],&convfactor);
+        mulReal(&RReg[2],&RReg[1],&convfactor);
+
+        // AND DO ONE MORE ROUND OF REDUCTION
+        divmodReal(&RReg[1],&RReg[0],&RReg[2],&pi);
 
 
     }
@@ -1415,11 +1572,26 @@ static void atanpower()
     // USE THE IDENTITY ATAN(X) = 1/2 ATAN(2X/(1-X^2))
     // APPLY TWICE AND WORK WITH X/4 OR 4/X
 
-    if(gtReal(&RReg[0],&RReg[1])) {
+    switch(cmpReal(&RReg[0],&RReg[1]))
+    {
+    case 1: // >1
         invert=1;
         divReal(&RReg[0],&RReg[1],&RReg[0]);    // INVERT THE ARGUMENT
-    } else {
+        break;
+    case -1:    // <1
         invert=0;
+        break;
+    case 0: // == 1
+    {
+        REAL pi_4;
+        decconst_PI_4(&pi_4);
+        copyReal(&RReg[0],&pi_4);
+        Context.precdigits=savedprec;
+        return;
+    }
+    default:
+        MACRONANToRReg(0);
+        return;
     }
 
     // HERE 0<=X<=1
@@ -1493,7 +1665,7 @@ static void atanpower()
 
 
     REAL pi_2;
-    XXdecconst_PI_2(&pi_2);
+    decconst_PI_2(&pi_2);
 
 //  ADD THE KNOWN VALUES AS NEEDED
 
@@ -1537,7 +1709,7 @@ static void atanpower()
 
 // angmode = one of ANGLERAD, ANGLEDEG, ANGLEGRAD or ANGLEDMS constants
 
-void XXtrig_atan2(REAL *_y0,REAL *_x0, BINT angmode)
+void trig_atan2(REAL *_y0,REAL *_x0, BINT angmode)
 {
 REAL x0,y0;
 
@@ -1568,7 +1740,7 @@ if(iszeroReal(&x0) || isinfiniteReal(&y0)) {
     // RETURN +/- PI/2 DEPENDING ON SIGNS
     if(angmode==ANGLERAD) {
     REAL pi;
-    XXdecconst_PI_2(&pi);
+    decconst_PI_2(&pi);
     copyReal(&RReg[0],&pi);
     RReg[0].flags=negy;
     RReg[0].flags|=F_APPROX;    // PI/2 IS ALWAYS APPROXIMATED
@@ -1596,7 +1768,7 @@ if(iszeroReal(&y0) || isinfiniteReal(&x0)) {
     if(negx) {
         if(angmode==ANGLERAD) {
         REAL pi;
-        XXdecconst_PI(&pi);
+        decconst_PI(&pi);
         copyReal(&RReg[0],&pi);
         RReg[0].flags=negy;
         RReg[0].flags|=F_APPROX;    // PI IS ALWAYS APPROXIMATED
@@ -1650,7 +1822,7 @@ swapReal(&RReg[0],&RReg[5]);
 if(negx) {
     if(angmode==ANGLERAD) {
     REAL pi;
-    XXdecconst_PI(&pi);
+    decconst_PI(&pi);
     // RESULT = PI - ANGLE
     sub_real(&RReg[0],&pi,&RReg[5]);
     } else {
@@ -1664,11 +1836,11 @@ if(negx) {
         pi.flags=0;
         if((angmode==ANGLEDEG)||(angmode==ANGLEDMS)) {
             pidata=180;
-            XXdecconst_180_PI(&convfactor);
+            decconst_180_PI(&convfactor);
         }
         else {
             pidata=200;
-            XXdecconst_200_PI(&convfactor);
+            decconst_200_PI(&convfactor);
         }
         mul_real(&RReg[4],&RReg[5],&convfactor);
         normalize(&RReg[4]);
@@ -1676,7 +1848,7 @@ if(negx) {
 
         if(angmode==ANGLEDMS) {
             swapReal(&RReg[0],&RReg[4]);
-            XXtrig_convertangle(&RReg[4],ANGLEDEG,ANGLEDMS);
+            trig_convertangle(&RReg[4],ANGLEDEG,ANGLEDMS);
         }
 
 
@@ -1689,16 +1861,16 @@ else {
         REAL convfactor;
 
         if((angmode==ANGLEDEG)||(angmode==ANGLEDMS)) {
-            XXdecconst_180_PI(&convfactor);
+            decconst_180_PI(&convfactor);
         }
         else {
-            XXdecconst_200_PI(&convfactor);
+            decconst_200_PI(&convfactor);
         }
         mul_real(&RReg[0],&RReg[5],&convfactor);
 
         if(angmode==ANGLEDMS) {
             swapReal(&RReg[0],&RReg[4]);
-            XXtrig_convertangle(&RReg[4],ANGLEDEG,ANGLEDMS);
+            trig_convertangle(&RReg[4],ANGLEDEG,ANGLEDMS);
         }
 
 
@@ -1721,10 +1893,10 @@ Context.precdigits-=8;
 // COMPUTE ASIN(Y) = ATAN2(Y,SQRT(1-Y^2))
 // angmode = one of ANGLERAD, ANGLEDEG, ANGLEGRAD or ANGLEDMS constants
 
-void XXtrig_asin(REAL *x, BINT angmode)
+void trig_asin(REAL *x, BINT angmode)
 {
     REAL one;
-    XXdecconst_One(&one);
+    decconst_One(&one);
 
 
     one.flags|=x->flags&F_NEGATIVE;
@@ -1743,7 +1915,7 @@ void XXtrig_asin(REAL *x, BINT angmode)
                 // X==+/-1, RETURN PI/2, 90 OR 100
                 if(angmode==ANGLERAD) {
                 REAL pi;
-                XXdecconst_PI_2(&pi);
+                decconst_PI_2(&pi);
                 copyReal(&RReg[0],&pi);
                 RReg[0].flags=x->flags&F_NEGATIVE;
                 RReg[0].flags|=F_APPROX;    // PI/2 IS ALWAYS APPROXIMATED
@@ -1776,16 +1948,16 @@ void XXtrig_asin(REAL *x, BINT angmode)
 
     psqrt(); // cos = sqrt(1-sin^2)
 
-    XXtrig_atan2(x,&RReg[0],angmode);
+    trig_atan2(x,&RReg[0],angmode);
 }
 
 // COMPUTE ACOS(X) = ATAN2(SQRT(1-X^2),X)
 // angmode = one of ANGLERAD, ANGLEDEG, ANGLEGRAD or ANGLEDMS constants
 
-void XXtrig_acos(REAL *x,BINT angmode)
+void trig_acos(REAL *x,BINT angmode)
 {
     REAL one;
-    XXdecconst_One(&one);
+    decconst_One(&one);
 
     one.flags|=x->flags&F_NEGATIVE;
 
@@ -1794,7 +1966,7 @@ void XXtrig_acos(REAL *x,BINT angmode)
                 // X==-1, RETURN PI, 180 OR 200
                 if(angmode==ANGLERAD) {
                 REAL pi;
-                XXdecconst_PI(&pi);
+                decconst_PI(&pi);
                 copyReal(&RReg[0],&pi);
                 RReg[0].flags|=F_APPROX;    // PI IS ALWAYS APPROXIMATED
                 } else {
@@ -1828,7 +2000,7 @@ void XXtrig_acos(REAL *x,BINT angmode)
                 // X==0, RETURN PI/2, 90 OR 100
                 if(angmode==ANGLERAD) {
                 REAL pi;
-                XXdecconst_PI_2(&pi);
+                decconst_PI_2(&pi);
                 copyReal(&RReg[0],&pi);
                 RReg[0].flags|=F_APPROX;    // PI/2 IS ALWAYS APPROXIMATED
                 } else {
@@ -1859,7 +2031,7 @@ void XXtrig_acos(REAL *x,BINT angmode)
 
     psqrt(); // cos = sqrt(1-sin^2)
 
-    XXtrig_atan2(&RReg[0],x,angmode);
+    trig_atan2(&RReg[0],x,angmode);
 }
 
 
@@ -1873,7 +2045,27 @@ void XXtrig_acos(REAL *x,BINT angmode)
 
 
 
-
+static const BINT64 const powof10[19]={
+    1000000000000000000LL,
+    100000000000000000LL,
+    10000000000000000LL,
+    1000000000000000LL,
+    100000000000000LL,
+    10000000000000LL,
+    1000000000000LL,
+    100000000000LL,
+    10000000000LL,
+    1000000000LL,
+    100000000LL,
+    10000000LL,
+    1000000LL,
+    100000LL,
+    10000LL,
+    1000LL,
+    100LL,
+    10LL,
+    1LL
+};
 
 // COMPUTE EXPONENTIAL OF ANY NUMBER WITHOUT USING TABLES
 // USES RREG 0 THRU 5
@@ -1893,12 +2085,12 @@ void pexp()
     isneg=RReg[0].flags&F_NEGATIVE;
     RReg[0].flags&=~F_NEGATIVE;
 
-    Context.precdigits+=16;
+    Context.precdigits+=24;
     // GET ANGLE MODULO LN(10)
     REAL ln10,ln10_2;
 
-    XXdecconst_ln10(&ln10);
-    XXdecconst_ln10_2(&ln10_2);
+    decconst_ln10(&ln10);
+    decconst_ln10_2(&ln10_2);
 
     if(iszeroReal(&RReg[0])) {
         // e^0=1
@@ -1907,7 +2099,7 @@ void pexp()
         RReg[0].flags=RReg[0].flags&F_APPROX;
         RReg[0].len=1;
 
-        Context.precdigits-=16;
+        Context.precdigits-=24;
 
         return;
 
@@ -1926,6 +2118,7 @@ void pexp()
         RReg[0].exp=0;
         if(isneg) RReg[0].flags=0;       // exp(-INF) = 0
             else RReg[0].flags=F_INFINITY;   // exp(INF) = INF
+        Context.precdigits-=24;
         return;
     }
     BINT quotient=getBINTReal(&RReg[1]);
@@ -1936,6 +2129,7 @@ void pexp()
         RReg[0].exp=0;
         if(isneg) RReg[0].flags=0;       // exp(-INF) = 0
             else RReg[0].flags=F_INFINITY;   // exp(INF) = INF
+        Context.precdigits-=24;
         return;
     }
 
@@ -1950,11 +2144,18 @@ void pexp()
 
 
     // SPEEDUP WITH POWERS OF 2
-    //newRealFromBINT64(&RReg[2],1LL<<EXP_CONDITIONING,0);
-    //divReal(&RReg[1],&RReg[0],&RReg[2]);
-    //swapReal(&RReg[1],&RReg[0]);
+    int exp_conditioning=(Context.precdigits)>>5;
+    if(exp_conditioning>62) exp_conditioning=62;
 
-    RReg[0].exp-=EXP_CONDITIONING;  // SPEEDUP THE POWER SERIES WITH POWERS OF TEN
+    if(exp_conditioning) {
+    newRealFromBINT64(&RReg[2],1LL<<exp_conditioning,0);
+    divReal(&RReg[1],&RReg[0],&RReg[2]);
+    swapReal(&RReg[1],&RReg[0]);
+    }
+
+    // SPEEDUP WITH POWERS OF 10
+    //int exp_conditioning=Context.precdigits>>7;
+    //RReg[0].exp-=exp_conditioning;  // SPEEDUP THE POWER SERIES WITH POWERS OF TEN
 
     RReg[2].flags=0;
     RReg[2].exp=0;
@@ -1986,31 +2187,56 @@ void pexp()
 
     // NOW APPLY THE EXPONENT BACK
 
-    RReg[4].exp+=quotient;
-
-    RReg[2].data[0]=1;
-    RReg[2].exp=EXP_CONDITIONING;
-    powReal(&RReg[1],&RReg[4],&RReg[2]);
-
     /*
-    for(k=0;k<EXP_CONDITIONING;++k)
+
+    //RReg[2].data[0]=1;
+    //RReg[2].exp=exp_conditioning;
+    //powReal(&RReg[1],&RReg[4],&RReg[2]);
+
+    // UNROLL HYP_POW RIGHT HERE
+
+    // THIS IS THE CURRENT TERM IN  RREG[4]
+    if(exp_conditioning) {
+    BINT64 exponent=powof10[18-exp_conditioning];
+    MACROOneToRReg(0);
+    while(exponent) {
+        if(exponent&1) {
+            mul_real(&RReg[3],&RReg[0],&RReg[4]);  // RESULT*=TERM;
+            finalize(&RReg[3]);
+            swapReal(&RReg[3],&RReg[0]);
+        }
+        mul_real(&RReg[3],&RReg[4],&RReg[4]);    // TERM*=TERM;
+        finalize(&RReg[3]);
+        swapReal(&RReg[3],&RReg[4]);
+        exponent>>=1;
+    }
+    } else swapReal(&RReg[0],&RReg[4]);
+
+    */
+
+    // POWERS OF 2 CONDITIONING
+    for(k=0;k<exp_conditioning;++k)
     {
         mulReal(&RReg[1],&RReg[4],&RReg[4]);
         swapReal(&RReg[1],&RReg[4]);
     }
 
-    swapReal(&RReg[1],&RReg[4]);
-    */
+    swapReal(&RReg[0],&RReg[4]);
+
+    RReg[0].exp+=quotient;
+
+
 
 
     if(isneg) {
         RReg[2].data[0]=1;
         RReg[2].exp=0;
-        divReal(&RReg[0],&RReg[2],&RReg[1]);    // EXP(-X)=1/EXP(X)
-    } else swapReal(&RReg[1],&RReg[4]);
+        divReal(&RReg[1],&RReg[2],&RReg[0]);    // EXP(-X)=1/EXP(X)
+        swapReal(&RReg[1],&RReg[0]);
+    }
 
 
-    Context.precdigits-=16;
+    Context.precdigits-=24;
 
     }
 
@@ -2041,7 +2267,7 @@ void pln()
         RReg[0].flags&=F_APPROX;
         RReg[0].len=1;
 
-        Context.precdigits-=8;
+        Context.precdigits-=16;
         return;
     }
 
@@ -2158,7 +2384,7 @@ void pln()
     if(correction) {
        REAL ln10;
 
-       XXdecconst_ln10(&ln10);
+       decconst_ln10(&ln10);
 
        RReg[2].flags=0;
        RReg[2].exp=0;
@@ -2250,7 +2476,7 @@ int k;
 
 
 
-void XXhyp_sinh(REAL *x0)
+void hyp_sinh(REAL *x0)
 {
 
     if(x0!=&RReg[0]) copyReal(&RReg[0],x0);
@@ -2262,7 +2488,7 @@ void XXhyp_sinh(REAL *x0)
 
     REAL One;
 
-    XXdecconst_One(&One);
+    decconst_One(&One);
 
     mulReal(&RReg[1],&RReg[0],&RReg[0]);    // EXP(2X)=EXP(X)*EXP(X)
     subReal(&RReg[2],&RReg[1],&One);        // EXP(2X)-1
@@ -2274,7 +2500,7 @@ void XXhyp_sinh(REAL *x0)
 
 }
 
-void XXhyp_cosh(REAL *x0)
+void hyp_cosh(REAL *x0)
 {
 
     if(x0!=&RReg[0]) copyReal(&RReg[0],x0);
@@ -2286,7 +2512,7 @@ void XXhyp_cosh(REAL *x0)
 
     REAL One;
 
-    XXdecconst_One(&One);
+    decconst_One(&One);
 
     mulReal(&RReg[1],&RReg[0],&RReg[0]);    // EXP(2X)=EXP(X)*EXP(X)
     addReal(&RReg[2],&RReg[1],&One);        // EXP(2X)+1
@@ -2298,7 +2524,7 @@ void XXhyp_cosh(REAL *x0)
 
 }
 
-void XXhyp_tanh(REAL *x0)
+void hyp_sinhcosh(REAL *x0)
 {
 
     if(x0!=&RReg[0]) copyReal(&RReg[0],x0);
@@ -2310,7 +2536,38 @@ void XXhyp_tanh(REAL *x0)
 
     REAL One;
 
-    XXdecconst_One(&One);
+    decconst_One(&One);
+
+    mulReal(&RReg[1],&RReg[0],&RReg[0]);    // EXP(2X)=EXP(X)*EXP(X)
+    subReal(&RReg[2],&RReg[1],&One);        // EXP(2X)-1
+    addReal(&RReg[4],&RReg[1],&One);        // EXP(2X)+1
+    addReal(&RReg[3],&RReg[0],&RReg[0]);    // 2*EXP(X)
+
+    divReal(&RReg[1],&RReg[2],&RReg[3]);    // RReg[1]=SINH = (EXP(2X)-1) / (2EXP(X))
+    divReal(&RReg[0],&RReg[4],&RReg[3]);    // RReg[0]=COSH = (EXP(2X)+1) / (2EXP(X))
+
+    Context.precdigits-=8;
+
+}
+
+
+
+
+
+
+void hyp_tanh(REAL *x0)
+{
+
+    if(x0!=&RReg[0]) copyReal(&RReg[0],x0);
+
+    // COMPUTE EXP(X)
+    pexp();
+
+    Context.precdigits+=8;
+
+    REAL One;
+
+    decconst_One(&One);
 
     mulReal(&RReg[1],&RReg[0],&RReg[0]);    // EXP(2X)=EXP(X)*EXP(X)
     subReal(&RReg[2],&RReg[1],&One);        // EXP(2X)-1
@@ -2330,12 +2587,12 @@ void XXhyp_tanh(REAL *x0)
 
 // CALCULATES ATANH(x0), AND RETURNS IT IN RREG[0]
 
-void XXhyp_atanh(REAL *_x0)
+void hyp_atanh(REAL *_x0)
 {
 
 REAL one;
 
-XXdecconst_One(&one);
+decconst_One(&one);
 
 Context.precdigits+=8;
 
@@ -2363,10 +2620,10 @@ Context.precdigits-=8;
 
 // IF X IS AN RREG, **MUST** BE >=RREG[6]
 
-void XXhyp_asinh(REAL *x)
+void hyp_asinh(REAL *x)
 {
     REAL one;
-    XXdecconst_One(&one);
+    decconst_One(&one);
 
     Context.precdigits+=8;
 
@@ -2396,10 +2653,10 @@ void XXhyp_asinh(REAL *x)
 // IF X IS AN RREG, **MUST** BE >=RREG[6]
 
 
-void XXhyp_acosh(REAL *x)
+void hyp_acosh(REAL *x)
 {
     REAL one;
-    XXdecconst_One(&one);
+    decconst_One(&one);
 
     Context.precdigits+=8;
 
@@ -2435,7 +2692,7 @@ void XXhyp_acosh(REAL *x)
 // RETURNS THE RESULT IN RReg[0]
 // USES RREG UP TO 7
 
-void XXhyp_pow(REAL *x,REAL *a)
+void hyp_pow(REAL *x,REAL *a)
 {
 
     if(isintegerReal(a)&& inBINT64Range(a)) {
@@ -2446,7 +2703,7 @@ void XXhyp_pow(REAL *x,REAL *a)
         if(exponent<0) { invert=1; exponent=-exponent; }
         else invert=0;
         copyReal(&RReg[1],x);   // THIS IS THE CURRENT TERM
-        XXdecconst_One(&One); // THIS IS THE RESULT
+        decconst_One(&One); // THIS IS THE RESULT
         copyReal(&RReg[0],&One);
         Context.precdigits+=8;
         while(exponent) {
@@ -2491,7 +2748,7 @@ void XXhyp_pow(REAL *x,REAL *a)
 // RETURNS THE RESULT IN RReg[0]
 // USES RREG UP TO 7
 
-void XXhyp_xroot(REAL *x,REAL *a)
+void hyp_xroot(REAL *x,REAL *a)
 {
 
     copyReal(&RReg[7],a);
@@ -2510,6 +2767,77 @@ void XXhyp_xroot(REAL *x,REAL *a)
 
 }
 
+
+// RETURNS THE RESULT IN RReg[0]
+// USES RREG UP TO 5
+
+void hyp_exp(REAL *x)
+{
+
+    if(x!=&RReg[0]) copyReal(&RReg[0],x);
+
+    pexp();
+
+    // RESULT IS IN RReg[0]
+
+}
+
+// RETURNS THE RESULT IN RReg[0]
+// USES RREG UP TO 6
+
+
+void hyp_ln(REAL *x)
+{
+
+    if(x!=&RReg[0]) copyReal(&RReg[0],x);
+
+    pln();
+
+    // RESULT IS IN RReg[0]
+
+}
+
+
+// RETURNS THE RESULT IN RReg[0]
+// USES RREG UP TO 6
+
+
+void hyp_log(REAL *x)
+{
+
+    if(x!=&RReg[0]) copyReal(&RReg[0],x);
+
+    pln();
+
+    swapReal(&RReg[0],&RReg[1]);
+    Context.precdigits+=8;
+
+    REAL ln10;
+
+    decconst_ln10(&ln10);
+
+    divReal(&RReg[0],&RReg[1],&ln10);
+    // RESULT IS IN RReg[0]
+
+    Context.precdigits-=8;
+
+}
+
+
+// RETURNS THE RESULT IN RReg[0]
+// USES RREG UP TO 6
+
+
+void hyp_sqrt(REAL *x)
+{
+
+    if(x!=&RReg[0]) copyReal(&RReg[0],x);
+
+    psqrt();
+
+    // RESULT IS IN RReg[0]
+
+}
 
 
 
@@ -2606,7 +2934,7 @@ void powReal(REAL *result,REAL *x,REAL *a)
     BINT approx=(x->flags|a->flags)&F_APPROX;
     // COMPUTE THE ACTUAL POWER
 
-    XXhyp_pow(x,a);
+    hyp_pow(x,a);
 
     finalize(&RReg[0]);
 
@@ -2731,7 +3059,7 @@ void xrootReal(REAL *result,REAL *x,REAL *a)
 
     // COMPUTE THE ACTUAL POWER
 
-    XXhyp_xroot(x,a);
+    hyp_xroot(x,a);
 
     finalize(&RReg[0]);
 

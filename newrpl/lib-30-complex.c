@@ -952,7 +952,7 @@ void LIB_HANDLER()
 
                         mulReal(&RReg[0],&Rarg1,&RReg[6]);
                         addReal(&RReg[8],&RReg[0],&Rarg2);
-                        mulReal(&RReg[0],&Iarg1,&RReg[7]);
+                        mulReal(&RReg[0],&Rarg1,&RReg[7]);
                         addReal(&RReg[9],&Iarg2,&RReg[0]);
 
                         // NOW BACK TO POLAR

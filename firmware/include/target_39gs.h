@@ -27,7 +27,6 @@
 
 // CONFIGURATION OPTIONS
 
-#define CONFIG_LIGHT_MATH_TABLES  1
 #define CONFIG_NO_SDCARD          1
 
 

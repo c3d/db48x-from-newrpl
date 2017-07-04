@@ -177,16 +177,7 @@ SOURCES += main.cpp\
     firmware/sys/Font8D.c \
     firmware/sys/keybcommon.c \
     newrpl/matrix.c \
-    newrpl/atan_1_8_comp.c \
-    newrpl/atan_2_8_comp.c \
-    newrpl/atan_5_8_comp.c \
-    newrpl/atanh_1_8_comp.c \
-    newrpl/atanh_2_8_comp.c \
-    newrpl/atanh_5_8_comp.c \
-    newrpl/cordic_K_8_comp.c \
-    newrpl/cordic_Kh_8_comp.c \
     newrpl/decimal.c \
-    newrpl/dectranscen.c \
     newrpl/backup.c \
     newrpl/sanity.c \
     newrpl/lib-32-lam.c \
@@ -218,7 +209,10 @@ SOURCES += main.cpp\
     newrpl/fastmath.c \
     newrpl/lib-77-libdata.c \
     newrpl/render.c \
-    newrpl/lib-96-composites.c
+    newrpl/lib-96-composites.c \
+    newrpl/atan_ltables.c \
+    newrpl/lighttranscend.c \
+    newrpl/ln_ltables.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
