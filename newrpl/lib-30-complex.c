@@ -1000,7 +1000,7 @@ void LIB_HANDLER()
                         normalize(&RReg[7]);
 
                         mulReal(&RReg[0],&Rarg1,&RReg[6]);
-                        mulReal(&RReg[1],&Iarg1,&RReg[7]);
+                        mulReal(&RReg[1],&Rarg1,&RReg[7]);
                         addReal(&RReg[6],&RReg[0],&RReg[8]);
                         addReal(&RReg[7],&RReg[1],&RReg[9]);
 
