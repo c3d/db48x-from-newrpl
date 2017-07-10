@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <newrpl.h>
 
 #include <time.h>
@@ -11,7 +10,7 @@
 #define MACROInfToRReg(n) { RReg[n].data[0]=0; RReg[n].exp=0; RReg[n].flags=F_INFINITY; RReg[n].len=1; }
 
 
-
+/*
 int main()
 {
 
@@ -61,3 +60,4 @@ int main()
     return 0;
 
 }
+*/
