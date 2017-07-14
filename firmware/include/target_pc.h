@@ -10,8 +10,8 @@
 #define TARGET_PC_H
 
 
-char PhysicalScreen[8192];
-char ExceptionScreen[8192];
+extern char PhysicalScreen[8192];
+extern char ExceptionScreen[8192];
 
 #undef MEM_PHYS_SCREEN
 #define MEM_PHYS_SCREEN PhysicalScreen
@@ -22,7 +22,7 @@ char ExceptionScreen[8192];
 #undef DEFAULT_AUTOOFFTIME
 #define DEFAULT_AUTOOFFTIME 0   // NO AUTO OFF ON A PC!
 
-
+#undef __ENABLE_ARM_ASSEMBLY__ // THIS TARGET IS NOT ARM
 
 #undef __SYSTEM_GLOBAL__
 #define __SYSTEM_GLOBAL__

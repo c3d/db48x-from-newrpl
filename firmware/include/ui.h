@@ -51,7 +51,9 @@ typedef uint32_t PTR2NUMBER;
 #ifndef _HAL_API_H
 #include <hal_api.h>
 #endif
-
+#ifndef FIRMWARE_H
+#include <firmware.h>
+#endif
 
 // COMMAND LINE
 

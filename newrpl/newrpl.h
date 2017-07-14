@@ -9,6 +9,11 @@
 #define NEWRPL_H
 
 #include <stdint.h>
+
+#ifndef FIRMWARE_H
+#include <firmware.h>
+#endif
+
 #ifndef UTF8LIB_H
 #include "utf8lib.h"
 #endif
