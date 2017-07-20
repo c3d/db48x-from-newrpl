@@ -708,7 +708,7 @@ void uiExtractLine(BINT line)
     newobj[(endline-startline)>>2]=0;
 
     // COPY LINE TO NEW OBJECT
-    memmoveb(newobj+1,startline,endline-startline);
+    memmoveb(newobj+1,(BYTEPTR)(CmdLineText+1)+(startline-text),endline-startline);
 
     rplSetStringLength(newobj,endline-startline);
 

@@ -39,6 +39,7 @@
 #ifdef __ENABLE_ARM_ASSEMBLY__
 extern void mul_real_arm(BINT *rdata,BINT *adata,BINT *bdata,UBINT len);
 extern BINT carry_correct_arm(BINT *start,BINT *dest, BINT *end,char *carry_table);
+extern void add_long_mul_shift_arm(BINT *result,BINT *n1start,BINT nwords,BINT shift_mul);
 #endif
 
 

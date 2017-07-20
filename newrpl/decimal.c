@@ -244,6 +244,8 @@ void normalize(REAL *number)
 #ifdef __ENABLE_ARM_ASSEMBLY__
 
     carry=carry_correct_arm(start,dest,end,(char *)carry_table);
+    dest+=end-start+1;
+    start=end;
 
 #else
 
@@ -1800,7 +1802,13 @@ void add_real(REAL *r,REAL *a,REAL *b)
         // ADD ONLY IF NUMBERS OVERLAP
     if(smallshift) {
         if((a->flags^b->flags)&F_NEGATIVE)     sub_long_mul_shift(result->data+totalwords-alen+wordshift+skipbwords,b->data+skipbwords,b->len-skipbwords,smallshift,1);
-        else add_long_mul_shift(result->data+totalwords-alen+wordshift+skipbwords,b->data+skipbwords,b->len-skipbwords,smallshift,1);
+        else {
+#ifdef __ENABLE_ARM_ASSEMBLY__
+            add_long_mul_shift_arm(result->data+totalwords-alen+wordshift+skipbwords,b->data+skipbwords,b->len-skipbwords,(smallshift<<16)|1);
+#else
+            add_long_mul_shift(result->data+totalwords-alen+wordshift+skipbwords,b->data+skipbwords,b->len-skipbwords,smallshift,1);
+#endif
+        }
     }
     else {
     if((a->flags^b->flags)&F_NEGATIVE)     sub_long(result->data+totalwords-alen+wordshift+skipbwords,b->data+skipbwords,b->len-skipbwords);
@@ -1930,7 +1938,13 @@ void add_real_mul(REAL *r,REAL *a,REAL *b,BINT mult)
     if(apos+wordshift+b->len>-1) {
         // ADD ONLY IF NUMBERS OVERLAP
     if((a->flags^b->flags)&F_NEGATIVE)     sub_long_mul_shift(result->data+apos+wordshift,b->data+skipbwords,b->len-skipbwords,smallshift,mult);
-    else add_long_mul_shift(result->data+apos+wordshift,b->data+skipbwords,b->len-skipbwords,smallshift,mult);
+    else {
+#ifdef __ENABLE_ARM_ASSEMBLY__
+        add_long_mul_shift_arm(result->data+apos+wordshift,b->data+skipbwords,b->len-skipbwords,(smallshift<<16)|mult);
+#else
+        add_long_mul_shift(result->data+apos+wordshift,b->data+skipbwords,b->len-skipbwords,smallshift,mult);
+#endif
+    }
 
     }
     // NO CARRY CORRECTION
