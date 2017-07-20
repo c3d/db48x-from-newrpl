@@ -477,3 +477,197 @@ void add_long_mul_shift_arm(BINT *result,BINT *n1start,BINT nwords,BINT shift_mu
     asm volatile("bx lr");
 
 }
+
+
+void sub_long_mul_shift_arm(BINT *result,BINT *n1start,BINT nwords,BINT shift_mul) __attribute__ ((naked));
+void sub_long_mul_shift_arm(BINT *result,BINT *n1start,BINT nwords,BINT shift_mul)
+{
+
+    //  r0 = result
+    //  r1 = n1start
+    //  r2 = nwords
+    //  r3 = (shift<<16) | mul
+
+    asm volatile ("push {r4,r5,r6,r7,r8,r9,r10,r11,r12,r14}");
+
+/*
+    BINT K1,K2;
+    BINT hi,lo,hi2,lo2,hi3,lo3;
+
+    K1=shiftmul_K1[((mul-1)<<3)+shift];
+    K2=shiftmul_K2[((mul-1)<<3)+shift];
+*/
+    asm volatile("mov r4,r3,lsr #16");
+    asm volatile("sub r3,r3,r4,lsl #16");
+    asm volatile("sub r3,r3,#1");
+    asm volatile("add r6,r4,r3,lsl #3");
+
+    // THE NEXT 2 LINES ARE VOODOO TO MAKE GCC PUT THE ADDRESS IN R3
+    register char *shiftptr asm("r3");
+    asm volatile ("" : "=r" (shiftptr) : "0" (shiftmul_K1));
+
+    // R4 = K1
+    asm volatile ("ldr r4,[r3,r6,lsl #2]");
+
+    // R5 = K2
+    asm volatile ("" : "=r" (shiftptr) : "0" (shiftmul_K2));
+    asm volatile ("ldr r5,[r3,r6,lsl #2]");
+
+
+
+    // while(nwords>=3) {
+
+        asm volatile("cmp r2,#2");
+        asm volatile("ble .ssingleloop");
+
+        asm volatile(".smultiloop:");
+
+
+
+        //hi=(n1start[0] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
+        //hi2=(n1start[1] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
+        //hi3=(n1start[2] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
+
+    asm volatile("ldmia r1!,{r6,r7,r8}");
+    asm volatile("umull r9,r10,r6,r4");
+    asm volatile("umull r11,r12,r7,r4");
+    asm volatile("umull r3,r14,r8,r4");
+    asm volatile("mul r6,r5,r6");
+    asm volatile("mul r7,r5,r7");
+    asm volatile("mul r8,r5,r8");
+    asm volatile("lsr r9,r9,#24");
+    asm volatile("lsr r11,r11,#24");
+    asm volatile("lsr r3,r3,#24");
+    asm volatile("orr r9,r9,r10,lsl #8");       // R9 = hi
+    asm volatile("orr r11,r11,r12,lsl #8");     // R11 = hi2
+    asm volatile("orr r3,r3,r14,lsl #8");       // R3 = hi3
+    asm volatile("mov r14,#0xfa000000");        // R14 = -100000000
+    asm volatile("orr r14,#0xa1000");        // R14 = -100000000
+    asm volatile("orr r14,#0xf00");        // R14 = -100000000
+    asm volatile("mla r6,r9,r14,r6");
+    asm volatile("mla r7,r11,r14,r7");
+    asm volatile("mla r8,r3,r14,r8");
+//        lo=n1start[0]*K2-hi*100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
+//        lo2=n1start[1]*K2-hi2*100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
+//        lo3=n1start[2]*K2-hi3*100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
+
+    // HERE WE HAVE R6,R7,R8 =lo,lo2,lo3
+    // R9, R11, R3 = hi,hi2,hi3
+
+    // R10,R12,R14 = FREE FOR USE
+
+//        result[0]+=lo;
+//        result[1]+=hi+lo2;
+//        result[2]+=hi2+lo3;
+//        result[3]+=hi3;
+
+    asm volatile("add r7,r7,r9");
+    asm volatile("add r8,r8,r11");
+
+    // NOW R9 AND R11 ARE FREE
+
+    asm volatile("ldmia r0,{r9,r10,r11,r12}");
+    asm volatile("rsb r6,r6,r9");
+    asm volatile("rsb r7,r7,r10");
+    asm volatile("rsb r8,r8,r11");
+    asm volatile("rsb r9,r3,r12");
+    asm volatile("stmia r0!,{r6,r7,r8,r9}");
+
+    asm volatile("sub r2,r2,#3");
+    asm volatile("sub r0,r0,#4");
+
+    asm volatile("cmp r2,#2");
+    asm volatile("bgt .smultiloop");
+
+    asm volatile(".ssingleloop:");
+
+    asm volatile("mov r14,#0xfa000000");        // R14 = -100000000
+    asm volatile("orr r14,#0xa1000");        // R14 = -100000000
+    asm volatile("orr r14,#0xf00");        // R14 = -100000000
+
+
+    asm volatile("cmp r2,#1");
+    asm volatile("blt .snomorewords");
+    asm volatile("beq .sonesingleword");
+
+    asm volatile(".stwowords:");
+
+/*    if(nwords==2) {
+
+        hi=(n1start[0] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
+        hi2=(n1start[1] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
+
+        lo=n1start[0]*K2-hi*100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
+        lo2=n1start[1]*K2-hi2*100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
+
+        result[0]+=lo;
+        result[1]+=hi+lo2;
+        result[2]+=hi2;
+*/
+
+    asm volatile("ldmia r1!,{r6,r7}");
+    asm volatile("umull r9,r10,r6,r4");
+    asm volatile("umull r11,r12,r7,r4");
+    asm volatile("mul r6,r5,r6");
+    asm volatile("mul r7,r5,r7");
+    asm volatile("lsr r9,r9,#24");
+    asm volatile("lsr r11,r11,#24");
+    asm volatile("orr r9,r9,r10,lsl #8");       // R9 = hi
+    asm volatile("orr r11,r11,r12,lsl #8");     // R11 = hi2
+    asm volatile("mla r6,r9,r14,r6");
+    asm volatile("mla r7,r11,r14,r7");
+//        lo=n1start[0]*K2-hi*100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
+//        lo2=n1start[1]*K2-hi2*100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
+
+    // HERE WE HAVE R6,R7 =lo,lo2
+    // R9, R11 = hi,hi2
+
+    // R10,R12,R14 = FREE FOR USE
+
+//        result[0]+=lo;
+//        result[1]+=hi+lo2;
+//        result[2]+=hi2;
+
+    asm volatile("add r7,r7,r9");
+
+    // NOW R9 AND R11 ARE FREE
+
+    asm volatile("ldmia r0,{r9,r10,r12}");
+    asm volatile("rsb r6,r6,r9");
+    asm volatile("rsb r7,r7,r10");
+    asm volatile("rsb r11,r11,r12");
+    asm volatile("stmia r0!,{r6,r7,r11}");
+
+    asm volatile ("pop {r4,r5,r6,r7,r8,r9,r10,r11,r12,r14}");
+    asm volatile("bx lr");
+
+//       return;
+
+    asm volatile(".sonesingleword:");
+
+    asm volatile("ldr r6,[r1]");
+    asm volatile("umull r9,r10,r6,r4");
+    asm volatile("mul r6,r5,r6");
+    asm volatile("lsr r9,r9,#24");
+    asm volatile("orr r9,r9,r10,lsl #8");       // R9 = hi
+    asm volatile("mla r6,r9,r14,r6");           // R6 = lo
+
+
+    //  hi=(n1start[0] *(BINT64)K1)>>24;    // 64-bit MULTIPLICATION
+
+   //  lo=n1start[0]*K2-hi*100000000;  // 32-BIT MULTIPLICATION WITH OVERFLOW
+
+   asm volatile("ldmia r0,{r7,r8}");
+    asm volatile("sub r7,r7,r6");
+    asm volatile("sub r8,r8,r9");
+    asm volatile("stmia r0!,{r7,r8}");
+
+//        result[0]+=lo;
+//        result[1]+=hi;
+
+    asm volatile(".snomorewords:");
+    asm volatile ("pop {r4,r5,r6,r7,r8,r9,r10,r11,r12,r14}");
+    asm volatile("bx lr");
+
+}
+
