@@ -1271,6 +1271,7 @@ void trig_sincos(REAL *angle, BINT angmode)
             MACROZeroToRReg(6);
             MACROOneToRReg(7);
             RReg[7].flags|=RReg[2].flags&F_NEGATIVE;
+            if(isoddReal(&RReg[1])) RReg[7].flags^=F_NEGATIVE;
             // RESTORE PREVIOUS PRECISION
             Context.precdigits=savedprec;
 

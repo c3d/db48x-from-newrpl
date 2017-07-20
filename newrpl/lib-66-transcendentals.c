@@ -285,12 +285,12 @@ void LIB_HANDLER()
         if(Exceptions) return;
 
 
-        trig_sincos(&dec,angmode);
+        trig_sin(&dec,angmode);
 
-        finalize(&RReg[7]);
+        finalize(&RReg[0]);
 
         rplDropData(1);
-        rplNewRealFromRRegPush(7);       // SIN
+        rplNewRealFromRRegPush(0);       // SIN
         return;
 
     }
@@ -447,11 +447,11 @@ void LIB_HANDLER()
 
         if(Exceptions) return;
 
-        trig_sincos(&dec,angmode);
+        trig_cos(&dec,angmode);
 
-        finalize(&RReg[6]);
+        finalize(&RReg[0]);
         rplDropData(1);
-        rplNewRealFromRRegPush(6);       // COS
+        rplNewRealFromRRegPush(0);       // COS
         return;
 
     }
