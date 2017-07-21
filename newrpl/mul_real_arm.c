@@ -206,6 +206,21 @@ BINT carry_correct_arm(BINT *start,BINT *dest, BINT *end,char *carry_table)
     asm volatile("orr r9,r9,#0x210000");
     asm volatile("orr r9,r9,#0x5600");        // R9=22*1E8
 
+    // IMPROVEMENT, SKIP WORDS UNTIL WE ACTUALLY NEED CARRY CORRECTION
+    asm volatile(".skipccloop:");
+    asm volatile("cmp r0,r2");
+    asm volatile("bge .Lendccloop");
+    asm volatile("ldr r6,[r0],#4");
+    asm volatile("cmp r6,#0");
+    asm volatile("sublt r0,r0,#4");
+    asm volatile("blt .Lccloop");       // STOP SKIPPING IF WORD IS NEGATIVE
+    asm volatile("cmp r6,r7");
+    asm volatile("subge r0,r0,#4");
+    asm volatile("bge .Lccloop");       // STOP SKIPPING IF WORD IS NEGATIVE
+    asm volatile("str r6,[r1],#4");
+    asm volatile("b .skipccloop");
+
+
     // while(start<end) { -- PROCESS TWO WORDS AT ONCE
     asm volatile("cmp r0,r2");
 
