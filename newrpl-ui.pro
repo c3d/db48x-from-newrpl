@@ -237,7 +237,8 @@ HEADERS  += mainwindow.h \
     firmware/sys/fsystem/fsyspriv.h \
     newrpl/fastmath.h \
     newrpl/render.h \
-    firmware/include/target_pc.h
+    firmware/include/target_pc.h \
+    firmware/include/firmware.h
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-9.nrpl \

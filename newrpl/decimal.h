@@ -36,7 +36,12 @@
 #define PROTECT_WRITE_AREA(ptr,len) { if( ((ptr)<Context.regdata) || ((((WORDPTR)ptr)+(len))>=(WORDPTR)Context.regdata+REAL_REGISTER_STORAGE*TOTAL_REGISTERS)) { printf("PANIC EXIT-BAD WRITE\n"); exit(-1); } }
 #endif
 
-
+#ifdef __ENABLE_ARM_ASSEMBLY__
+extern void mul_real_arm(BINT *rdata,BINT *adata,BINT *bdata,UBINT len);
+extern BINT carry_correct_arm(BINT *start,BINT *dest, BINT *end,char *carry_table);
+extern void add_long_mul_shift_arm(BINT *result,BINT *n1start,BINT nwords,BINT shift_mul);
+extern void sub_long_mul_shift_arm(BINT *result,BINT *n1start,BINT nwords,BINT shift_mul);
+#endif
 
 
 /*

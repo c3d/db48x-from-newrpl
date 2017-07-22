@@ -213,6 +213,7 @@ SOURCES +=\
     firmware/ui_forms.c \
     newrpl/fastmath.c \
     newrpl/render.c \
+    newrpl/mul_real_arm.c
 
 
 HEADERS  += \
@@ -235,7 +236,8 @@ HEADERS  += \
     firmware/sys/fsystem/fsyspriv.h \
     firmware/include/fsystem.h \
     newrpl/fastmath.h \
-    newrpl/render.h
+    newrpl/render.h \
+    firmware/include/firmware.h
 
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
@@ -302,13 +304,13 @@ QMAKE_CFLAGS_SHLIB =
 QMAKE_CFLAGS_MT =
 QMAKE_CFLAGS_MT_DBG =
 QMAKE_CFLAGS_THREAD =
-QMAKE_CFLAGS = -mtune=arm920t -mcpu=arm920t -mlittle-endian -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -O2 -pipe -mthumb-interwork -nostdinc
+QMAKE_CFLAGS = -g -mtune=arm920t -mcpu=arm920t -mlittle-endian -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -O2 -pipe -mthumb-interwork -nostdinc
 QMAKE_CFLAGS_APP =
 
 QMAKE_LFLAGS_DEBUG =
 QMAKE_LFLAGS_SHAPP =
 QMAKE_LFLAGS_THREAD =
-QMAKE_LFLAGS = -T$$PWD/firmware/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
+QMAKE_LFLAGS = -g -T$$PWD/firmware/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR
 
 QMAKE_POST_LINK = $$PWD/tools-bin/elf2rom $(TARGET)
 
