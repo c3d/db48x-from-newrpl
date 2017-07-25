@@ -170,10 +170,11 @@ void LIB_HANDLER()
                     return;
                 }
                 if(!ISLIST(*listelem)) {
+                    if(position!=1) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
-                }
-                listelem=rplGetListElement(listelem,position);
+                    }
+                } else listelem=rplGetListElement(listelem,position);
                 if(!listelem) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -188,7 +189,8 @@ void LIB_HANDLER()
 
             for(;k>=1;--k) {
 
-                posobj=rplGetListElement(rplPeekData(2),k);
+                if(!ISLIST(*rplPeekData(2))) posobj=rplPeekData(2);
+                else posobj=rplGetListElement(rplPeekData(2),k);
                 if(!posobj) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -201,14 +203,17 @@ void LIB_HANDLER()
                 }
 
                 if(!ISLIST(*listelem)) {
+                    if(position!=1) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
-                }
-                newobj=rplListReplace(listelem,position,newobj);
+                    }
+                    // KEEP THE PREVIOUS OBJECT
+                } else newobj=rplListReplace(listelem,position,newobj);
                 if(!newobj) {
                     if(!Exceptions) rplError(ERR_INVALIDPOSITION);
                     return;
                 }
+
 
                 // NOW GET THE PARENT LIST
                     int j;
@@ -227,7 +232,12 @@ void LIB_HANDLER()
                         return;
                     }
 
-                    listelem=rplGetListElement(listelem,position);
+                    if(ISLIST(*listelem)) listelem=rplGetListElement(listelem,position);
+                    else if(position!=1) {
+                        DSTop=stksave;
+                        rplError(ERR_INVALIDPOSITION);
+                        return;
+                    }
                     if(!listelem) {
                         DSTop=stksave;
                         rplError(ERR_INVALIDPOSITION);
@@ -235,18 +245,13 @@ void LIB_HANDLER()
                     }
                     }
 
+
             }
 
-            // HERE newobj = NEW LIST WITH OBEJCT REPLACED
+            // HERE newobj = NEW LIST WITH OBJECT REPLACED
 
-
-            rplOverwriteData(3,newobj);
-
-            rplDropData(2);
-
-            if(var) {
-                *(var+1)=rplPopData();
-            }
+            if(var) { *(var+1)=newobj; rplDropData(3); }
+            else { rplOverwriteData(3,newobj);  rplDropData(2); }
 
             return;
             }
@@ -394,72 +399,161 @@ void LIB_HANDLER()
 
 
             if(ISLIST(*comp)) {
-            BINT islist=0;
+
             WORDPTR *stksave=DSTop;
-            WORDPTR posobj;
+            WORDPTR posobj,listelem;
+            BINT ndims,k,position;
             if(ISLIST(*rplPeekData(2))) {
-                islist=1;
-                if(rplListLengthFlat(rplPeekData(2))!=1) {
-                    rplError(ERR_INVALIDPOSITION);
-                    return;
-                }
-                posobj=rplGetListElementFlat(rplPeekData(2),1);
+                ndims=rplListLength(rplPeekData(2));
+            }
+            else ndims=1;
+
+            // EXTRACT ELEMENTS IN ALL DIMS BUT THE LAST
+            listelem=comp;
+
+            for(k=1;k<ndims;++k)
+            {
+                posobj=rplGetListElement(rplPeekData(2),k);
                 if(!posobj) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-            }
-            else posobj=rplPeekData(2);
+                position=rplReadNumberAsBINT(posobj);
 
-            BINT position=rplReadNumberAsBINT(posobj);
-
-            if(Exceptions) {
-                rplError(ERR_INVALIDPOSITION);
-                return;
-            }
-
-            BINT nitems=rplExplodeList(comp);
-            if(Exceptions) { DSTop=stksave; return; }
-
-            if(position<1 || position>nitems) {
-                DSTop=stksave;
-                rplError(ERR_INDEXOUTOFBOUNDS);
-                return;
-            }
-            rplOverwriteData(nitems+2-position,rplPeekData(nitems+2));
-
-            rplCreateList();
-            if(Exceptions) {
-                DSTop=stksave;
-                return;
+                if(Exceptions) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
+                if(!ISLIST(*listelem)) {
+                    if(position!=1) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                    }
+                } else listelem=rplGetListElement(listelem,position);
+                if(!listelem) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
             }
 
-            if(position==nitems) {
-                // INDEX MUST WRAP
-                position=0;
-                rplSetSystemFlag(FL_INDEXWRAP);
+            // HERE k==ndims= LAST DIMENSION
+            // listelem = LAST LIST
+
+            WORDPTR newobj=rplPeekData(1); // OBJECT TO REPLACE
+            ScratchPointer3=comp;
+
+            for(;k>=1;--k) {
+
+                if(!ISLIST(*rplPeekData(2))) posobj=rplPeekData(2);
+                else posobj=rplGetListElement(rplPeekData(2),k);
+                if(!posobj) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
+                position=rplReadNumberAsBINT(posobj);
+
+                if(Exceptions) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
+
+                if(!ISLIST(*listelem)) {
+                    if(position!=1) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                    }
+                    // KEEP THE PREVIOUS OBJECT
+                } else newobj=rplListReplace(listelem,position,newobj);
+                if(!newobj) {
+                    if(!Exceptions) rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
+
+
+                // NOW GET THE PARENT LIST
+                    int j;
+                    listelem=ScratchPointer3;
+                    for(j=1;j<k-1;++j) {
+
+                    posobj=rplGetListElement(rplPeekData(2),j);
+                    if(!posobj) {
+                        rplError(ERR_INVALIDPOSITION);
+                        return;
+                    }
+                    position=rplReadNumberAsBINT(posobj);
+
+                    if(Exceptions) {
+                        rplError(ERR_INVALIDPOSITION);
+                        return;
+                    }
+
+                    if(ISLIST(*listelem)) listelem=rplGetListElement(listelem,position);
+                    else if(position!=1) {
+                        DSTop=stksave;
+                        rplError(ERR_INVALIDPOSITION);
+                        return;
+                    }
+                    if(!listelem) {
+                        DSTop=stksave;
+                        rplError(ERR_INVALIDPOSITION);
+                        return;
+                    }
+                    }
+
+
             }
 
-            rplNewBINTPush(position+1,DECBINT);
-            if(islist) rplCreateListN(1,1,1);
-            if(Exceptions) {
-                DSTop=stksave;
-                return;
+            // HERE newobj = NEW LIST WITH OBJECT REPLACED
+
+            if(var) *(var+1)=newobj;
+            else rplOverwriteData(3,newobj);
+
+
+            // UPDATE THE INDEX, NOW AT LEVEL 1
+
+            if(ISLIST(*rplPeekData(2))) rplExplodeList2(rplPeekData(2));
+            else rplPushData(rplPeekData(2));
+
+            BINT carry=1,llen,tpos;
+            for(k=1;(k<=ndims)&&carry;++k)
+                {
+                    position=rplReadNumberAsBINT(rplPeekData(k))+carry; // INCREASE POSITION
+
+                // NOW GET THE PARENT LIST
+                    int j;
+                    listelem=ScratchPointer3;
+                    for(j=1;j<ndims-(k-1);++j) {
+
+                    tpos=rplReadNumberAsBINT(rplPeekData(ndims-(j-1)));
+                    if(ISLIST(*listelem)) listelem=rplGetListElement(listelem,tpos);
+                    }
+
+                    if(ISLIST(*listelem)) llen=rplListLength(listelem);
+                    else llen=1;
+                    if(position>llen) { position=1; carry=1; }
+                    else carry=0;
+
+                    WORDPTR newnum=rplNewBINT(position,DECBINT);
+                    if(!newnum) {
+                        DSTop=stksave;
+                        return;
+                    }
+
+                    rplOverwriteData(k,newnum);
+
+
             }
 
+            if(carry) rplSetSystemFlag(FL_INDEXWRAP);
+            else rplClrSystemFlag(FL_INDEXWRAP);
 
-            rplOverwriteData(5,rplPeekData(2));
-            rplOverwriteData(4,rplPeekData(1));
-            rplDropData(3);
+            if(ISLIST(*rplPeekData(2+ndims))) newobj=rplCreateListN(ndims,1,1);
+            else newobj=rplPopData();
 
-            if(var) {
-                *(var+1)=rplPeekData(2);
-                rplOverwriteData(2,rplPeekData(1));
-                rplDropData(1);
-            }
+            // HERE newobj HAS THE UPDATED INDEX
+            rplOverwriteData(2,newobj);
 
-
-
+            rplDropData(1);
 
             return;
             }
@@ -572,6 +666,7 @@ void LIB_HANDLER()
                     posrow=1;
                     ++poscol;
                     if(poscol>cols) { poscol=posrow=1; rplSetSystemFlag(FL_INDEXWRAP); }
+                    else rplClrSystemFlag(FL_INDEXWRAP);
                 }
 
                 if(nelem!=2) rplNewBINTPush((posrow-1)*cols+poscol,DECBINT);
@@ -610,51 +705,182 @@ void LIB_HANDLER()
     }
 
     case GET:
+
     {
         // CHECK ARGUMENTS
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        WORDPTR list=rplPeekData(2);
-        WORDPTR *var=0;
-        if(ISIDENT(*list)) {
-            var=rplFindLAM(list,1);
-            if(!var) {
-                var=rplFindGlobal(list,1);
-                if(!var) {
-                    rplError(ERR_LISTEXPECTED);
 
+            WORDPTR comp=rplPeekData(2);
+            WORDPTR *var=0;
+            if(ISIDENT(*comp)) {
+                var=rplFindLAM(comp,1);
+                if(!var) {
+                    var=rplFindGlobal(comp,1);
+                    if(!var) {
+                        rplError(ERR_COMPOSITEEXPECTED);
+                        return;
+                    }
+
+                }
+                comp=*(var+1);
+            }
+
+
+            // CHECK AND DISPATCH
+
+
+
+
+            if(ISLIST(*comp)) {
+
+            WORDPTR *stksave=DSTop;
+            WORDPTR posobj,listelem;
+            BINT ndims,k,position;
+            if(ISLIST(*rplPeekData(1))) {
+                ndims=rplListLength(rplPeekData(1));
+            }
+            else ndims=1;
+
+            // EXTRACT ELEMENTS IN ALL DIMS BUT THE LAST
+            listelem=comp;
+
+            for(k=1;k<=ndims;++k)
+            {
+                if(!ISLIST(*rplPeekData(1))) posobj=rplPeekData(1);
+                    else posobj=rplGetListElement(rplPeekData(1),k);
+                if(!posobj) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
+                position=rplReadNumberAsBINT(posobj);
+
+                if(Exceptions) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
+                if(!ISLIST(*listelem)) {
+                    if(position!=1) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                    }
+                } else listelem=rplGetListElement(listelem,position);
+                if(!listelem) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
+            }
+
+
+            // listelem = GOT ELEMENT
+
+            if(var) { *(var+1)=listelem; rplDropData(2); }
+            else { rplOverwriteData(2,listelem);  rplDropData(1); }
+
+            return;
+            }
+
+            if(ISMATRIX(*comp)) {
+                // DO IT FOR VECTORS AND MATRICES
+                WORDPTR *stksave=DSTop;
+                WORDPTR posobj;
+                BINT rows,cols,ndims;
+                BINT posrow,poscol;
+                rows=rplMatrixRows(comp);
+                cols=rplMatrixCols(comp);
+
+                if(!rows) {
+                    // THIS IS A VECTOR
+                    ndims=1;
+                    rows=1;
+                } else ndims=2; // IT'S A 2D MATRIX
+
+
+                // CHECK IF WE HAVE THE RIGHT POSITION
+                if(ISLIST(*rplPeekData(1))) {
+                    BINT nelem=rplListLengthFlat(rplPeekData(1));
+
+                    if( (nelem!=ndims) && !( (ndims==2)&&(nelem==1))) {
+                        rplError(ERR_INVALIDPOSITION);
+                        return;
+                    }
+                    posobj=rplGetListElementFlat(rplPeekData(1),1);
+                    if(!posobj) {
+                        rplError(ERR_INVALIDPOSITION);
+                        return;
+                    }
+                    posrow=rplReadNumberAsBINT(posobj);
+                    if(Exceptions) {
+                        rplError(ERR_INVALIDPOSITION);
+                        return;
+                    }
+
+                    if(nelem==2) {
+                      // READ THE SECOND COORDINATE (COLUMN)
+                      posobj=rplGetListElementFlat(rplPeekData(1),2);
+                      if(!posobj) {
+                          rplError(ERR_INVALIDPOSITION);
+                          return;
+                      }
+                      poscol=rplReadNumberAsBINT(posobj);
+                      if(Exceptions) {
+                          rplError(ERR_INVALIDPOSITION);
+                          return;
+                      }
+
+                    } else {
+                        if(ndims==2) {
+                            // BREAK THE SINGLE POSITION IN TERMS OF ROW AND COLUMN
+                            poscol=((posrow-1)%cols)+1;
+                            posrow=((posrow-1)/cols)+1;
+                        } else { poscol=posrow; posrow=1; }
+                    }
+                }
+                else {
+                    posobj=rplPeekData(1);
+                    posrow=rplReadNumberAsBINT(posobj);
+                    if(Exceptions) {
+                        rplError(ERR_INVALIDPOSITION);
+                        return;
+                    }
+
+                    if(ndims==2) {
+                        // BREAK THE SINGLE POSITION IN TERMS OF ROW AND COLUMN
+                        poscol=((posrow-1)%cols)+1;
+                        posrow=((posrow-1)/cols)+1;
+                    } else { poscol=posrow; posrow=1; }
+                }
+
+                // CHECK IF THE POSITION IS WITHIN THE MATRIX
+
+                if( (posrow<1) || (posrow>rows) || (poscol<1) || (poscol>cols)) {
+                    rplError(ERR_INDEXOUTOFBOUNDS);
                     return;
                 }
 
+                WORDPTR item=rplMatrixGet(comp,posrow,poscol);
+                if(!item) {
+                    rplError(ERR_INDEXOUTOFBOUNDS);
+                    return;
+                }
+
+                if(var) {
+                    *(var+1)=item;
+                    rplDropData(2);
+                } else {
+                    rplOverwriteData(2,item);
+                    rplDropData(1);
+                }
+
+            return;
             }
-            list=*(var+1);
-        }
-        if(!ISLIST(*list)) {
-            rplError(ERR_LISTEXPECTED);
+
+            rplError(ERR_COMPOSITEEXPECTED);
 
             return;
-        }
-
-        if(!ISNUMBER(*rplPeekData(1))) {
-            rplError(ERR_REALEXPECTED);
-            return;
-        }
-
-        BINT nitems=rplExplodeList(list);
-        BINT position=rplReadNumberAsBINT(rplPeekData(nitems+2));
-        if(Exceptions) return;
-        if(position<1 || position>nitems) {
-            rplDropData(nitems+1);
-            rplError(ERR_INDEXOUTOFBOUNDS);
-            return;
-        }
-        rplOverwriteData(nitems+3,rplPeekData(nitems+2-position));
-        rplDropData(nitems+2);
-
     }
-        return;
 
 
 
