@@ -146,45 +146,103 @@ void LIB_HANDLER()
             if(ISLIST(*comp)) {
 
             WORDPTR *stksave=DSTop;
-            WORDPTR posobj;
+            WORDPTR posobj,listelem;
+            BINT ndims,k,position;
             if(ISLIST(*rplPeekData(2))) {
-                if(rplListLengthFlat(rplPeekData(2))!=1) {
-                    rplError(ERR_INVALIDPOSITION);
-                    return;
-                }
-                posobj=rplGetListElementFlat(rplPeekData(2),1);
+                ndims=rplListLength(rplPeekData(2));
+            }
+            else ndims=1;
+
+            // EXTRACT ELEMENTS IN ALL DIMS BUT THE LAST
+            listelem=comp;
+
+            for(k=1;k<ndims;++k)
+            {
+                posobj=rplGetListElement(rplPeekData(2),k);
                 if(!posobj) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
-            }
-            else posobj=rplPeekData(2);
+                position=rplReadNumberAsBINT(posobj);
 
-            BINT position=rplReadNumberAsBINT(posobj);
-
-            if(Exceptions) {
-                rplError(ERR_INVALIDPOSITION);
-                return;
-            }
-
-            BINT nitems=rplExplodeList(comp);
-            if(Exceptions) { DSTop=stksave; return; }
-
-            if(position<1 || position>nitems) {
-                DSTop=stksave;
-                rplError(ERR_INDEXOUTOFBOUNDS);
-                return;
-            }
-            rplOverwriteData(nitems+2-position,rplPeekData(nitems+2));
-
-            rplCreateList();
-            if(Exceptions) {
-                DSTop=stksave;
-                return;
+                if(Exceptions) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
+                if(!ISLIST(*listelem)) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
+                listelem=rplGetListElement(listelem,position);
+                if(!listelem) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
             }
 
-            rplOverwriteData(4,rplPeekData(1));
-            rplDropData(3);
+            // HERE k==ndims= LAST DIMENSION
+            // listelem = LAST LIST
+
+            WORDPTR newobj=rplPeekData(1); // OBJECT TO REPLACE
+            ScratchPointer3=comp;
+
+            for(;k>=1;--k) {
+
+                posobj=rplGetListElement(rplPeekData(2),k);
+                if(!posobj) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
+                position=rplReadNumberAsBINT(posobj);
+
+                if(Exceptions) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
+
+                if(!ISLIST(*listelem)) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
+                newobj=rplListReplace(listelem,position,newobj);
+                if(!newobj) {
+                    if(!Exceptions) rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
+
+                // NOW GET THE PARENT LIST
+                    int j;
+                    listelem=ScratchPointer3;
+                    for(j=1;j<k-1;++j) {
+
+                    posobj=rplGetListElement(rplPeekData(2),j);
+                    if(!posobj) {
+                        rplError(ERR_INVALIDPOSITION);
+                        return;
+                    }
+                    position=rplReadNumberAsBINT(posobj);
+
+                    if(Exceptions) {
+                        rplError(ERR_INVALIDPOSITION);
+                        return;
+                    }
+
+                    listelem=rplGetListElement(listelem,position);
+                    if(!listelem) {
+                        DSTop=stksave;
+                        rplError(ERR_INVALIDPOSITION);
+                        return;
+                    }
+                    }
+
+            }
+
+            // HERE newobj = NEW LIST WITH OBEJCT REPLACED
+
+
+            rplOverwriteData(3,newobj);
+
+            rplDropData(2);
 
             if(var) {
                 *(var+1)=rplPopData();
