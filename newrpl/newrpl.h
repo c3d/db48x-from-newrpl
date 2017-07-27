@@ -629,6 +629,7 @@ BINT rplIsLastElementFlat(WORDPTR composite, BINT pos);
 void rplListUnaryDoCmd();
 void rplListBinaryDoCmd(WORDPTR arg1, WORDPTR arg2);
 WORDPTR rplListAddRot(WORDPTR list,WORDPTR object,BINT nmax);
+WORDPTR rplListReplace(WORDPTR list,BINT position,WORDPTR object);
 
 
 

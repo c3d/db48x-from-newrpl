@@ -111,6 +111,7 @@ WORDPTR rplGetListElementFlat(WORDPTR composite, BINT pos)
 
 WORDPTR rplGetListElement(WORDPTR composite, BINT pos)
 {
+    if(pos<1) return 0;
     BINT count=1;
     WORDPTR ptr=composite+1;
     WORDPTR end=composite+OBJSIZE(*composite);  // POINT TO THE END MARKER
@@ -380,4 +381,25 @@ WORDPTR rplListAddRot(WORDPTR list,WORDPTR object,BINT nmax)
     WORDPTR newlist=rplCreateListN( ((offset>0)? nmax : (nitems+1)) ,1,1);
     if(Exceptions) { DSTop=savestk; return 0; }
     return newlist;
+}
+
+// CREATE A NEW LIST REPLACING THE OBJECT AT position WITH THE GIVEN object
+// RETURNS POINTER TO NEW LIST, CAN TRIGGER GC.
+// USES SCRATCHPOINTERS 1 AND 2
+WORDPTR rplListReplace(WORDPTR list,BINT position,WORDPTR object)
+{
+BINT newobjsize=rplObjSize(object);
+WORDPTR oldobject=rplGetListElement(list,position);
+if(!oldobject) return 0; // INVALID INDEX?
+BINT oldobjsize=rplObjSize(oldobject);
+BINT oldobjoffset=oldobject-list;
+ScratchPointer1=list;
+ScratchPointer2=object;
+WORDPTR newlist=rplAllocTempOb(OBJSIZE(*list)+newobjsize-oldobjsize);
+if(!newlist) return 0;
+*newlist=MKPROLOG(DOLIST,OBJSIZE(*list)+newobjsize-oldobjsize);
+memmovew(newlist+1,ScratchPointer1+1,oldobjoffset-1);
+memmovew(newlist+oldobjoffset,ScratchPointer2,newobjsize);
+memmovew(newlist+oldobjoffset+newobjsize,ScratchPointer1+oldobjoffset+oldobjsize,OBJSIZE(*ScratchPointer1)-(oldobjoffset+oldobjsize-1));
+return newlist;
 }
