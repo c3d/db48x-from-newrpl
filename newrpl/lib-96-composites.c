@@ -38,8 +38,8 @@
     CMD(GETI,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(HEAD,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(TAIL,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(REPL,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     ECMD(OBJDECOMP,"OBJ→",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(REPL,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(POS,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
     CMD(SUB,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2))
 
@@ -1226,6 +1226,96 @@ void LIB_HANDLER()
 
         return;
     }
+
+
+    case OBJDECOMP:
+    {
+        // EXPLODE ANY COMPOSITE INTO COMPONENTS
+        // CHECK ARGUMENTS
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR comp=rplPeekData(1);
+
+
+        if(ISCOMPLEX(*comp)) {
+            rplCallOperator(CMD_CPLX2REAL);
+            return;
+        }
+
+        if(ISLIST(*comp)) {
+            rplCallOperator(CMD_INNERCOMP);
+            return;
+        }
+
+        if(ISMATRIX(*comp)) {
+            rplCallOperator(CMD_ARRAYDECOMP);
+            return;
+        }
+
+        if(ISSTRING(*comp)) {
+            rplCallOperator(CMD_FROMSTR);
+            return;
+        }
+
+        if(ISUNIT(*comp)) {
+            // SPLIT VALUE AND UNIT
+
+            BINT nitems=rplUnitExplode(comp);
+            rplOverwriteData(nitems+1,rplPeekData(nitems)); // REPLACE ORIGINAL UNIT WITH THE VALUE
+            rplOverwriteData(nitems,(WORDPTR)one_bint); //  CHANGE VALUE TO 1
+            WORDPTR newunit=rplUnitAssemble(nitems);
+            rplDropData(nitems);
+            if(!newunit) return;
+            rplPushData(newunit);
+            return;
+        }
+
+        if(ISSYMBOLIC(*comp)) {
+            // SPLIT MAIN OPERATION INTO:
+            // ARG1 ... ARGN
+            // N
+            // OPERATOR (PUSHED IN THE STACK AS OBJECT)
+            WORDPTR *savestk=DSTop;
+            BINT nitems=rplSymbExplodeOneLevel(comp);
+            if(nitems>1) {
+
+                if(*rplPeekData(1)==CMD_OVR_FUNCEVAL) {
+                    --nitems;
+                    WORDPTR number=rplNewSINT(nitems-2,DECBINT);
+                    if(Exceptions || (!number)) { DSTop=savestk; return; }
+
+                    // MAKE IT COMPATIBLE BY SHOWING THE IDENT AS THE OPERATOR
+                    rplDropData(1);
+                    rplOverwriteData(1,rplPeekData(2)); // MAKE THE IDENT OF THE FUNCTION CALL THE OPERATOR
+                    rplOverwriteData(2,number);
+                }
+            }
+            rplRemoveAtData(nitems+1,1);
+
+            return;
+
+
+        }
+
+
+        // TODO: ADD TAG OBJECTS HERE (NOT YET IMPLEMENTED)
+
+
+        rplError(ERR_COMPOSITEEXPECTED);
+
+        return;
+    }
+
+
+
+
+
+
+
+
+
 
 
         // STANDARIZED OPCODES:

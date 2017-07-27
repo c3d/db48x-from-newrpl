@@ -866,6 +866,38 @@ BINT rplSymbExplode(WORDPTR object)
 
 }
 
+
+// EXPLODE A SYMBOLIC IN THE STACK IN REVERSE (LEVEL 1 CONTAINS THE FIRST OBJECT, LEVEL 2 THE SECOND, ETC.)
+// BUT ONLY EXPLODE THE OUTERMOST OPERATOR, KEEPING ITS ARGUMENTS UNEXPLODED
+// USES ScratchPointer1 THRU 3 FOR GC PROTECTION
+// RETURN THE NUMBER OF OBJECTS THAT ARE ON THE STACK
+
+BINT rplSymbExplodeOneLevel(WORDPTR object)
+{
+    BINT count=0,countops=0;
+
+    ScratchPointer1=rplSymbUnwrap(object)+1;
+    ScratchPointer2=rplSkipOb(object);
+
+    while(ScratchPointer1<ScratchPointer2) {
+        if(! (ISPROLOG(*ScratchPointer1) || ISBINT(*ScratchPointer1))) { ScratchPointer3=ScratchPointer1; ++countops; }
+        else {
+            rplPushData(ScratchPointer1);
+            ++count;
+        }
+        ScratchPointer1=rplSkipOb(ScratchPointer1);
+    }
+
+    if(countops) {
+        rplNewSINTPush(count,DECBINT);
+        rplPushData(ScratchPointer3);
+        ++countops;
+    }
+    return count+countops;
+
+}
+
+
 // REASSEMBLE A SYMBOLIC THAT WAS EXPLODED IN THE STACK
 // DOES NOT CHECK FOR VALIDITY OF THE SYMBOLIC!
 

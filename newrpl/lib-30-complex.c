@@ -6589,7 +6589,7 @@ void LIB_HANDLER()
             return;
         }
         ScratchPointer1=rplPeekData(1);
-        rplPushData(ScratchPointer1+1);
+        rplOverwriteData(1,ScratchPointer1+1);
         rplPushData(rplSkipOb(ScratchPointer1+1));
     return;
 
