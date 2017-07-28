@@ -649,12 +649,12 @@ WORDPTR rplSymbNumericReduce(WORDPTR object);
 BINT rplSymbIsNumeric(WORDPTR ptr);
 
 
-
 // INTERNAL SYMBOLIC API, FOR USE BY OTHER LIBRARIES
 BINT rplCheckCircularReference(WORDPTR env_owner,WORDPTR object,BINT lamnum);
 BINT rplFractionSimplify();
 BINT rplFractionAdd();
 WORDPTR rplSymbCanonicalForm(WORDPTR object);
+BINT rplSymbExplodeOneLevel(WORDPTR object);
 
 
 // STRINGS
