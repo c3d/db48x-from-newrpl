@@ -1131,7 +1131,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLen(opname);
+                    BINT totaln=rplStrLenCp(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     uiSeparateToken();
@@ -1210,7 +1210,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         ErrorCode=SavedErrorCode;
 
                         if(opname) {
-                        BINT totaln=rplStrLen(opname);
+                        BINT totaln=rplStrLenCp(opname);
                         string=(BYTEPTR) (opname+1);
                         endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
                         }
@@ -1276,7 +1276,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                         if(opname) {
                         string=(BYTEPTR) (opname+1);
-                        BINT totaln=rplStrLen(opname);
+                        BINT totaln=rplStrLenCp(opname);
                         endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                         // IN ALGEBRAIC MODE, REMOVE THE TICK MARKS AND INSERT WITHOUT SEPARATION
@@ -1337,7 +1337,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                         if(opname) {
                         string=(BYTEPTR) (opname+1);
-                        BINT totaln=rplStrLen(opname);
+                        BINT totaln=rplStrLenCp(opname);
                         endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                         }
@@ -1400,7 +1400,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLen(opname);
+                    BINT totaln=rplStrLenCp(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     uiSeparateToken();
@@ -1495,7 +1495,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLen(opname);
+                    BINT totaln=rplStrLenCp(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     // REMOVE THE TICK MARKS IN ALG MODE
@@ -1535,7 +1535,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLen(opname);
+                    BINT totaln=rplStrLenCp(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     // REMOVE THE TICK MARKS IN ALG MODE
@@ -1587,7 +1587,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLen(opname);
+                    BINT totaln=rplStrLenCp(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     if( (totaln>2)&&(string[0]=='1')&&(string[1]=='_')) string+=2;
@@ -1614,7 +1614,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLen(opname);
+                    BINT totaln=rplStrLenCp(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     uiSeparateToken();
@@ -1681,7 +1681,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLen(opname);
+                    BINT totaln=rplStrLenCp(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     BINT nlines=uiInsertCharactersN(string,endstring);
@@ -1738,7 +1738,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLen(opname);
+                    BINT totaln=rplStrLenCp(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     BINT nlines=0;
@@ -1876,7 +1876,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 BYTEPTR string=(BYTEPTR) (opname+1);
-                BINT totaln=rplStrLen(opname);
+                BINT totaln=rplStrLenCp(opname);
                 BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                 uiInsertCharactersN(string,endstring);
@@ -1905,7 +1905,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 BYTEPTR string=(BYTEPTR) (opname+1);
-                BINT totaln=rplStrLen(opname);
+                BINT totaln=rplStrLenCp(opname);
                 BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                 uiSeparateToken();
@@ -4252,7 +4252,7 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
                     if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLen(opname);
+                    BINT totaln=rplStrLenCp(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     // REMOVE THE TICK MARKS IN ALG MODE
@@ -4292,7 +4292,7 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
                     if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLen(opname);
+                    BINT totaln=rplStrLenCp(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     // REMOVE THE TICK MARKS IN ALG MODE
@@ -4343,7 +4343,7 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
                     if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLen(opname);
+                    BINT totaln=rplStrLenCp(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     if( (totaln>2)&&(string[0]=='1')&&(string[1]=='_')) string+=2;
@@ -4372,7 +4372,7 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
                     if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLen(opname);
+                    BINT totaln=rplStrLenCp(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     uiSeparateToken();
@@ -4435,7 +4435,7 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
                     if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLen(opname);
+                    BINT totaln=rplStrLenCp(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     uiInsertCharactersN(string,endstring);
@@ -4464,7 +4464,7 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
                     if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                     BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLen(opname);
+                    BINT totaln=rplStrLenCp(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                     uiSeparateToken();
@@ -4501,7 +4501,7 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
             }
             else if(ISSTRING(*action)) {
                 BYTEPTR string=(BYTEPTR) (action+1);
-                BINT totaln=rplStrLen(action);
+                BINT totaln=rplStrLenCp(action);
                 BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(action),totaln);
 
                 if(!inlist) {
@@ -4569,7 +4569,7 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
                 if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 BYTEPTR string=(BYTEPTR) (opname+1);
-                BINT totaln=rplStrLen(opname);
+                BINT totaln=rplStrLenCp(opname);
                 BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                 uiInsertCharactersN(string,endstring);
@@ -4598,7 +4598,7 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
                 if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
                 BYTEPTR string=(BYTEPTR) (opname+1);
-                BINT totaln=rplStrLen(opname);
+                BINT totaln=rplStrLenCp(opname);
                 BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
                 uiSeparateToken();

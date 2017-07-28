@@ -28,8 +28,8 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    ECMD(TOUTF,"→UTF8",MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(FROMUTF,"UTF8→",MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TOUTF,"→UTF8",MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(FROMUTF,"UTF8→",MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     ECMD(TOSTR,"→STR",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     ECMD(FROMSTR,"STR→",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(SREV,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
@@ -39,7 +39,8 @@
     CMD(TRIM,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(RTRIM,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     ECMD(SSTRLEN,"STRLEN",MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(STRLENCP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
+    CMD(STRLENCP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TONFC,"→NFC",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
 
 
 // ADD MORE OPCODES HERE
@@ -103,7 +104,7 @@ const WORDPTR const ROMPTR_TABLE[]={
 
 
 // COMPUTE THE STRING LENGTH IN CODE POINTS
-BINT rplStrLen(WORDPTR string)
+BINT rplStrLenCp(WORDPTR string)
 {
     if(ISSTRING(*string))  {
         BINT len=STRLEN(*string);
@@ -112,6 +113,18 @@ BINT rplStrLen(WORDPTR string)
     }
     return 0;
 }
+
+// COMPUTE THE STRING LENGTH IN CODE POINTS
+BINT rplStrLen(WORDPTR string)
+{
+    if(ISSTRING(*string))  {
+        BINT len=STRLEN(*string);
+        BYTEPTR start=(BYTEPTR)(string+1);
+        return utf8nlenst((char *)start,(char *)(start+len));
+    }
+    return 0;
+}
+
 
 // COMPUTE THE STRING LENGTH IN BYTES
 BINT rplStrSize(WORDPTR string)
@@ -244,6 +257,26 @@ WORDPTR rplCreateString(BYTEPTR text,BYTEPTR textend)
     }
     return 0;
 }
+
+// CREATE A NEW STRING OBEJCT BY SIZE AND RETURN ITS ADDRESS
+// RETURNS NULL IF ANY ERRORS
+// MAY TRIGGER A GC
+WORDPTR rplCreateStringBySize(BINT lenbytes)
+{
+    BINT len=(lenbytes+3)>>2;
+    if(lenbytes<0) return 0;
+    WORDPTR newstring=rplAllocTempOb(len);
+    if(newstring) {
+
+        rplSetStringLength(newstring,lenbytes);
+
+        return newstring;
+    }
+    return 0;
+}
+
+
+
 
 // SKIP ANY SEPARATOR CHARACTERS AT start. ANY CHARACTER IN sepstart/end
 // IS CONSIDERED A SEPARATOR AND WILL BE SKIPPED
@@ -780,23 +813,13 @@ void LIB_HANDLER()
                return;
            }
 
-           BYTEPTR strstart,strend;
-
-           strstart=(BYTEPTR) (rplPeekData(1)+1);
-           strend=strstart+STRLEN(*rplPeekData(1));
-
-           BINT count=0;
-
-           while(strstart!=strend) {
-               ++count;
-               strstart=(BYTEPTR)utf8skipst((char *)strstart,(char *)strend);
-           }
-
+           WORDPTR string=rplPeekData(1);
            rplDropData(1);
-           rplNewBINTPush(count,DECBINT);
+           rplNewBINTPush(rplStrLen(string),DECBINT);
 
         return;
     }
+
     case STRLENCP:
     {
         // COMPUTE STRING LENGTH IN CODE POINTS
@@ -812,11 +835,73 @@ void LIB_HANDLER()
 
            WORDPTR string=rplPeekData(1);
            rplDropData(1);
-           rplNewBINTPush(rplStrLen(string),DECBINT);
+           rplNewBINTPush(rplStrLenCp(string),DECBINT);
 
         return;
 
     }
+
+
+    case TONFC:
+    {
+        // NORMALIZE ANY STRING BY NFC
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISSTRING(*rplPeekData(1))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
+
+        WORDPTR newstring=rplCreateStringBySize(4); // NEW STRING AT THE END OF TEMPOB
+        if(!newstring) return;
+        BYTEPTR start=(BYTEPTR) (rplPeekData(1)+1);
+        BYTEPTR end=start+rplStrSize(rplPeekData(1));
+        BYTEPTR nstrptr;
+        BINT totalsize=4,size=0;
+        BINT nbytes,k;
+        nstrptr=(BYTEPTR) (newstring+1);
+
+        while(start<end)
+        {
+            nbytes=utf82NFC((char *)start,(char *)end);
+            k=0;
+            while(unicodeBuffer[k]!=0) {
+
+                UBINT cp=cp2utf8(unicodeBuffer[k]);
+
+
+                while(cp&0xff) {
+
+
+                if(size==totalsize) {
+                ScratchPointer1=newstring;
+                ScratchPointer2=(WORDPTR)start;
+                ScratchPointer3=(WORDPTR)end;
+                rplResizeLastObject(1);
+                totalsize+=4;
+                newstring=ScratchPointer1;
+                start=(BYTEPTR)ScratchPointer2;
+                end=(BYTEPTR)ScratchPointer3;
+                nstrptr=(BYTEPTR) (newstring+1);
+                }
+
+                nstrptr[size]=cp&0xff;
+                cp>>=8;
+                ++size;
+                }
+                ++k;
+           }
+           start+=nbytes;
+
+        }
+
+        rplSetStringLength(newstring,size);
+        rplOverwriteData(1,newstring);
+
+      return;
+     }
 
     // ADD MORE OPCODES HERE
 

@@ -1275,7 +1275,7 @@ void LIB_HANDLER()
      return;
      }
 
-     BINT slen=rplStrLen(rplPeekData(1));
+     BINT slen=rplStrLenCp(rplPeekData(1));
 
      if(slen!=4) {
          rplError(ERR_INVALIDLOCALESTRING);

@@ -344,7 +344,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
     // HERE WE HAVE A STRING, DO SOME MORE POST-PROCESSING DEPENDING ON OBJECT
 
     string=(BYTEPTR) (opname+1);
-    totaln=rplStrLen(opname);
+    totaln=rplStrLenCp(opname);
     endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
     if(ISUNIT(ptrprolog)) {
@@ -361,7 +361,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
     }
     else {
         string=(BYTEPTR) (ptr+1);
-        totaln=rplStrLen(ptr);
+        totaln=rplStrLenCp(ptr);
         endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(ptr),totaln);
     }
 
