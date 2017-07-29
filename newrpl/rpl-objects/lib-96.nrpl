@@ -33,32 +33,42 @@ PUT PUTI GET GETI HEAD TAIL REPL OBJ→ POS SUB
 PUT
 "Replace element at
 given position
-O<L|M> O<I|L> O → [L|M] "
+<L|M> <I|L> O → <L|M> "
 
 PUTI
 "Replace element at pos,
 increment index
-O<L|M> O<I|L> O → [L|M] O<I|L>"
+<L|M> <I|L> O → <L|M> <I|L>"
 
 GET
 "Obtain element at
 given position
-L <I or L> → O "
+<L|M> <I|L> → O "
 
 GETI
 "Obtain element at pos,
 increment index
-L <I or L> → L <I or L> O "
+<L|M> <I|L> → <L|M> <I|L> O "
 
 HEAD
 "Return first element
 
-L → O "
+<L|S> → <O|S> "
 
 TAIL
 "Remove first element
 
-L → L "
+<L|S> → <L|S> "
+
+REPL
+"Replace multiple elem
+at position
+<L|M|S> <I|L> O → <L|M|S>"
+
+OBJ→
+"Split into components
+
+<Z|A|L|M|U> → O1...On"
 
 }
 

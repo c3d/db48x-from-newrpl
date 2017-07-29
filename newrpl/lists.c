@@ -403,3 +403,37 @@ memmovew(newlist+oldobjoffset,ScratchPointer2,newobjsize);
 memmovew(newlist+oldobjoffset+newobjsize,ScratchPointer1+oldobjoffset+oldobjsize,OBJSIZE(*ScratchPointer1)-(oldobjoffset+oldobjsize-1));
 return newlist;
 }
+
+// CREATE A NEW LIST REPLACING MULTIPLE OBJECTS AT position WITH THE GIVEN object (IF A LIST, IT'S EXPLODED ON REPLACEMENT)
+// RETURNS POINTER TO NEW LIST, CAN TRIGGER GC.
+// USES SCRATCHPOINTERS 1 AND 2
+WORDPTR rplListReplaceMulti(WORDPTR list,BINT position,WORDPTR object)
+{
+BINT numnewobj,llen,endpos;
+BINT newobjsize,oldobjsize,oldobjoffset;
+WORDPTR oldobject;
+
+newobjsize=rplObjSize(object);
+
+if(ISLIST(*object)) { numnewobj=rplListLength(object); newobjsize-=2; ++object; }
+else numnewobj=1;
+
+endpos=position+numnewobj;
+llen=rplListLength(list);
+if(endpos>llen) endpos=llen+1;
+
+
+oldobject=rplGetListElement(list,position);
+if(!oldobject) return 0; // INVALID INDEX?
+oldobjsize=(endpos==llen+1)? (OBJSIZE(*list)-(oldobject-list)) : (rplGetListElement(list,endpos)-oldobject);
+oldobjoffset=oldobject-list;
+ScratchPointer1=list;
+ScratchPointer2=object;
+WORDPTR newlist=rplAllocTempOb(OBJSIZE(*list)+newobjsize-oldobjsize);
+if(!newlist) return 0;
+*newlist=MKPROLOG(DOLIST,OBJSIZE(*list)+newobjsize-oldobjsize);
+memmovew(newlist+1,ScratchPointer1+1,oldobjoffset-1);
+memmovew(newlist+oldobjoffset,ScratchPointer2,newobjsize);
+memmovew(newlist+oldobjoffset+newobjsize,ScratchPointer1+oldobjoffset+oldobjsize,OBJSIZE(*ScratchPointer1)-(oldobjoffset+oldobjsize-1));
+return newlist;
+}

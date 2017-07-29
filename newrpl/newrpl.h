@@ -630,6 +630,7 @@ void rplListUnaryDoCmd();
 void rplListBinaryDoCmd(WORDPTR arg1, WORDPTR arg2);
 WORDPTR rplListAddRot(WORDPTR list,WORDPTR object,BINT nmax);
 WORDPTR rplListReplace(WORDPTR list,BINT position,WORDPTR object);
+WORDPTR rplListReplaceMulti(WORDPTR list,BINT position,WORDPTR object);
 
 
 
@@ -661,6 +662,7 @@ BINT rplSymbExplodeOneLevel(WORDPTR object);
 // RPL STRING OBJECT
 void rplSetStringLength(WORDPTR string,BINT length);
 BINT rplStrLen(WORDPTR string);
+BINT rplStrLenCp(WORDPTR string);
 BINT rplStrSize(WORDPTR string);
 BINT rplStringGetLinePtr(WORDPTR str,BINT line);
 BINT rplStringGetNextLine(WORDPTR str,BINT prevlineoff);
@@ -668,6 +670,7 @@ BINT rplStringGetNextLine(WORDPTR str,BINT prevlineoff);
 BINT rplStringCountLines(WORDPTR str);
 BINT rplStringCompare(WORDPTR str1, WORDPTR str2);
 WORDPTR rplCreateString(BYTEPTR text,BYTEPTR textend);
+WORDPTR rplCreateStringBySize(BINT lenbytes);
 
 
 // MATRIX

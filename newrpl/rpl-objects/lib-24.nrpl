@@ -19,7 +19,7 @@
 {
    →STR STR→ →UTF8 UTF8→ SREV
    NTOKENS NTHTOKEN NTHTOKENPOS TRIM RTRIM
-   STRLEN STRLENCP
+   STRLEN STRLENCP →NFC
 }
 
 @#name lib24_msgtable
@@ -87,6 +87,9 @@ STRLENCP
 Code Points in string
 S → I "
 
-
+→NFC
+"Ensure a string meets
+Unicode NFC normalization
+S → S"
 
 }

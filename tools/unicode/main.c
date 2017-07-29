@@ -1599,7 +1599,7 @@ void savePackedData(char * filename)
 
     fprintf(handle,"const unsigned int const packed_doubleData[]= { ");
 
-    for(f=0;f<used_doubleData;++f) {
+    for(f=0;f<2*used_doubleData;++f) {
         if(f%10==0) fprintf(handle,"\n");
         fprintf(handle,"0x%X",packed_doubleData[f]);
         totalbytes+=4;
