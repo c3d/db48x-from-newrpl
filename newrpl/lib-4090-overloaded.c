@@ -163,6 +163,17 @@ void rplCallOvrOperator(WORD op)
             // IF IT'S AN OPCODE, EXECUTE IT
             rplCallOvrOperator(*rplPopData());
             return;
+            case OVR_SAME:
+
+                // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
+                   if(*rplPeekData(2)==*rplPeekData(1)) {
+                            rplDropData(2);
+                            rplPushTrue();
+                        } else {
+                            rplDropData(2);
+                            rplPushFalse();
+                        }
+                        return;
             default:
                 rplError(ERR_INVALIDOPCODE);
                 return;

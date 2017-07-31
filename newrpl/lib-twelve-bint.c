@@ -268,12 +268,12 @@ BINT64 rplReadBINT(WORDPTR ptr)
 
 void rplPushFalse()
 {
-    rplPushData((WORDPTR)zero_bint);
+    rplPushDataNoGrow((WORDPTR)zero_bint);
 }
 
 void rplPushTrue()
 {
-    rplPushData((WORDPTR)one_bint);
+    rplPushDataNoGrow((WORDPTR)one_bint);
 
 }
 

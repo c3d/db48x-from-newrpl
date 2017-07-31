@@ -627,13 +627,76 @@ void LIB_HANDLER()
     }
 
         break;
+
+        case OVR_SAME:
+        {
+        // IMMEDIATELY RETURN TRUE/FALSE BY COMPARISON OF OBJECTS
+
+        WORDPTR arg1=rplPeekData(2);
+        WORDPTR arg2=rplPeekData(1);
+
+
+        // ALLOW LIST PROCESSING AND MATRIX PROCESSING FIRST
+        if(ISLIST(*arg1) || ISLIST(*arg2)) {
+            rplListBinaryDoCmd(arg1,arg2);
+            return;
+        }
+
+        if(ISMATRIX(*arg1)||ISMATRIX(*arg2)) {
+           // PASS IT DIRECTLY TO HANDLER OF MATRIX OBJECT
+           LIBHANDLER han=rplGetLibHandler(DOMATRIX);
+           if(han) (*han)();
+           else rplError(ERR_MISSINGLIBRARY);
+           return;
+        }
+
+        ScratchPointer1=arg1;
+        ScratchPointer2=arg2;
+        ScratchPointer3=rplSkipOb(arg1);
+        ScratchPointer4=rplSkipOb(arg2);
+
+        WORDPTR *stksave=DSTop;
+        BINT same=1;
+        while(same && (ScratchPointer1<ScratchPointer3) && (ScratchPointer2<ScratchPointer4)) {
+            while(ISSYMBOLIC(*ScratchPointer1)) ++ScratchPointer1;
+            while(ISSYMBOLIC(*ScratchPointer2)) ++ScratchPointer2;
+
+            if(ISPROLOG(*ScratchPointer1) || ISBINT(*ScratchPointer1)) {
+                // COMPARE OBJECTS BY USING THE SAME OPERATOR
+            rplPushDataNoGrow(ScratchPointer1);
+            rplPushDataNoGrow(ScratchPointer2);
+
+            rplCallOvrOperator(CMD_OVR_SAME);
+
+            if(Exceptions) {
+                DSTop=stksave;
+                return;
+            }
+
+            if(rplIsFalse(rplPopData())) same=0;
+
+            } else {
+                // COMPARE COMMANDS BY USING DIRECT COMPARISON
+                if(*ScratchPointer1!=*ScratchPointer2) same=0;
+            }
+
+            ScratchPointer1=rplSkipOb(ScratchPointer1);
+            ScratchPointer2=rplSkipOb(ScratchPointer2);
+        }
+
+        rplDropData(2);
+        if(same && (ScratchPointer1==ScratchPointer3) && (ScratchPointer2==ScratchPointer4)) rplPushTrue();
+        else rplPushFalse();
+
+        return;
+        }
+
         case OVR_EQ:
         case OVR_NOTEQ:
         case OVR_LT:
         case OVR_GT:
         case OVR_LTE:
         case OVR_GTE:
-        case OVR_SAME:
         case OVR_AND:
         case OVR_OR:
         case OVR_XOR:

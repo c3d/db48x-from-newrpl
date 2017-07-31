@@ -1228,8 +1228,33 @@ case UNLOCKVAR:
         return;
     }
         return;
-    case OVR_NUM:
-        // DO NOTHING
+    case OVR_SAME:
+
+        // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
+            if(!ISPROLOG(*rplPeekData(2))|| !ISPROLOG(*rplPeekData(1))) {
+                if(*rplPeekData(2)==*rplPeekData(1)) {
+                    rplDropData(2);
+                    rplPushTrue();
+                } else {
+                    rplDropData(2);
+                    rplPushFalse();
+                }
+                return;
+
+            }
+            else {
+                rplError(ERR_INVALIDOPCODE);
+                return;
+            }
+
+            // DIRECTORY OBJECTS ARE THE SAME ONLY IF THEY POINT TO THE SAME DIRECTORY, HENCE THEY ARE THE SAME HANDLE
+            if(rplPeekData(2)==rplPeekData(1)) {
+                rplDropData(2);
+                rplPushTrue();
+            } else {
+                rplDropData(2);
+                rplPushFalse();
+            }
         return;
 
     // STANDARIZED OPCODES:

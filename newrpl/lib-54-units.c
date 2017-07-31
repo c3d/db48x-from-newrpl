@@ -1188,6 +1188,22 @@ void LIB_HANDLER()
         }
 
         case OVR_SAME:
+        {
+            // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
+                if(!ISPROLOG(*rplPeekData(2))|| !ISPROLOG(*rplPeekData(1))) {
+                    if(*rplPeekData(2)==*rplPeekData(1)) {
+                        rplDropData(2);
+                        rplPushTrue();
+                    } else {
+                        rplDropData(2);
+                        rplPushFalse();
+                    }
+                    return;
+
+                }
+          // DELIBERATE FALL THROUGH TO THE 'EQ' OPERATOR
+
+         }
         case OVR_EQ:
             // COMPARISON OPERATIONS REQUIRE UNIT CONSISTENCY
             // FIRST, DO A SUBTRACTION

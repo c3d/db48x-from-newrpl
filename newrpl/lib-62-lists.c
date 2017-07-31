@@ -104,6 +104,7 @@ ERR(INVALIDLISTSIZE,3)
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib62_menu);
+INCLUDE_ROMOBJECT(lib62_menu_2);
 
 
 ROMOBJECT dolist_seco[]={
@@ -222,7 +223,6 @@ ROMOBJECT empty_list[]={
 const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)LIB_MSGTABLE,
     (WORDPTR)LIB_HELPTABLE,
-    (WORDPTR)lib62_menu,
     (WORDPTR)dolist_seco,
     (WORDPTR)dosubs_seco,
     (WORDPTR)map_seco,
@@ -235,6 +235,8 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)oplist_seco,
     (WORDPTR)deltalist_seco,
     (WORDPTR)empty_list,
+    (WORDPTR)lib62_menu,
+    (WORDPTR)lib62_menu_2,
 
     0
 };
@@ -350,14 +352,35 @@ void LIB_HANDLER()
     }
 
     if(ISBINARYOP(CurOpcode)) {
-        // ALL BINARY OPERATORS PASS THEIR OPERATIONS DIRECTLY TO EACH ELEMENT
-
+          // ALL BINARY OPERATORS PASS THEIR OPERATIONS DIRECTLY TO EACH ELEMENT
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
 
         if((!ISLIST(*rplPeekData(1)))  && (!ISLIST(*rplPeekData(2)))) {
+
+
+            if(!ISPROLOG(*rplPeekData(2)) || !ISPROLOG(*rplPeekData(1))) {
+                // COMMANDS AS OBJECTS, RESPOND TO THE "SAME" OPERATOR ONLY
+                if(OPCODE(CurOpcode)==OVR_SAME) {
+                    if(*rplPeekData(2)==*rplPeekData(1)) {
+                        rplDropData(2);
+                        rplPushTrue();
+                    } else {
+                        rplDropData(2);
+                        rplPushFalse();
+                    }
+
+                }
+                else {
+                    rplError(ERR_INVALIDOPCODE);
+                    return;
+                }
+            }
+
+
+
             rplError(ERR_LISTEXPECTED);
             return;
         }
@@ -2707,14 +2730,11 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg)>0) {
-            RetNum=ERR_NOTMINE;
-            return;
-        }
+        if(MENUNUMBER(MenuCodeArg)>1) { RetNum=ERR_NOTMINE; return; }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR=(WORDPTR)lib62_menu;
+        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+14];
         RetNum=OK_CONTINUE;
-        return;
+       return;
     }
 
     case OPCODE_LIBHELP:

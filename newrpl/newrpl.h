@@ -694,6 +694,7 @@ void rplMatrixNeg();
 void rplMatrixEval1();
 void rplMatrixEval();
 void rplMatrixToNum();
+void rplMatrixSame();
 void rplMatrixAdd();
 void rplMatrixSub();
 void rplMatrixMul();
@@ -704,6 +705,7 @@ void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa);
 void rplMatrixInvert();
 void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 BINT rplMatrixIsPolar(WORDPTR matobj);
+BINT rplIsZeroMatrix(WORDPTR object);
 void rplMatrixPolarToRectEx(WORDPTR *a,BINT rowsa,BINT colsa);
 void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BINT angmode);
 

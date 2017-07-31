@@ -24,7 +24,7 @@
 
 @#name lib96menu_main
 {
-PUT PUTI GET GETI HEAD TAIL REPL OBJ→ POS SUB
+PUT PUTI GET GETI SIZE HEAD TAIL OBJ→ REPL POS POSREV NPOS NPOSREV SUB
 }
 
 @#name lib96_cmdhelp
@@ -60,15 +60,46 @@ TAIL
 
 <L|S> → <L|S> "
 
-REPL
-"Replace multiple elem
-at position
-<L|M|S> <I|L> O → <L|M|S>"
 
 OBJ→
 "Split into components
 
 <Z|A|L|M|U> → O1...On"
+
+REPL
+"Replace multiple elem
+at position
+<L|M|S> <I|L> O → <L|M|S>"
+
+POS
+"Find position of object
+
+<L|S> <O|S> → I"
+
+NPOS
+"Find position of object
+starting from <pos>
+<L|S> <pos> <O|S> → I"
+
+POSREV
+"Find position of object
+(reverse search)
+<L|S> <O|S> → I"
+
+NPOSREV
+"Find position of object
+(from <pos> towards 1)
+<L|S> <pos> <O|S> → I"
+
+SUB
+"Get subset of object
+
+<L|M|S> p1 p2 → <L|M|S>"
+
+SIZE
+"Get number of components
+or dimension
+O → I"
 
 }
 

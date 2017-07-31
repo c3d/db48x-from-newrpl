@@ -114,7 +114,7 @@ BINT rplStrLenCp(WORDPTR string)
     return 0;
 }
 
-// COMPUTE THE STRING LENGTH IN CODE POINTS
+// COMPUTE THE STRING LENGTH IN CHARACTERS
 BINT rplStrLen(WORDPTR string)
 {
     if(ISSTRING(*string))  {
@@ -964,6 +964,31 @@ void LIB_HANDLER()
         return;
 
     case OVR_SAME:
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
+            if(!ISPROLOG(*rplPeekData(2))|| !ISPROLOG(*rplPeekData(1))) {
+                if(*rplPeekData(2)==*rplPeekData(1)) {
+                    rplDropData(2);
+                    rplPushTrue();
+                } else {
+                    rplDropData(2);
+                    rplPushFalse();
+                }
+                return;
+
+            }
+            else {
+                rplError(ERR_INVALIDOPCODE);
+                return;
+            }
+
+        // DELIBERATED FALL-THROUGH TO OVR_EQ WHEN THERE'S NO COMMANDS INVOLVED
+
+    }
     case OVR_EQ:
 
         if(rplDepthData()<2) {
