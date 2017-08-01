@@ -729,7 +729,7 @@ case IPPOST:
         WORDPTR arg2=rplPeekData(1);
 
         if(ISLIST(*arg1) || ISLIST(*arg2)){
-            rplListBinaryDoCmd(arg1,arg2);
+            rplListBinaryDoCmd();
             return;
         }
 
@@ -872,7 +872,7 @@ case IPPOST:
             WORDPTR mod=rplPeekData(1);
 
             if(ISLIST(*arg) || ISLIST(*mod)){
-                rplListBinaryDoCmd(arg,mod);
+                rplListBinaryDoCmd();
                 return;
             }
             else if((ISIDENT(*mod) || ISSYMBOLIC(*mod)) || (ISIDENT(*arg) || ISSYMBOLIC(*arg))){
@@ -1187,7 +1187,7 @@ case IPPOST:
         WORDPTR arg1=rplPeekData(2);
 
         if(ISLIST(*arg1) || ISLIST(*pct)){
-            rplListBinaryDoCmd(arg1,pct);
+            rplListBinaryDoCmd();
             return;
         }
         else if((ISIDENT(*pct) || ISSYMBOLIC(*pct)) || (ISIDENT(*arg1) || ISSYMBOLIC(*arg1))){
@@ -1223,7 +1223,7 @@ case IPPOST:
             WORDPTR new_val=rplPeekData(1);
 
             if(ISLIST(*old_val) || ISLIST(*new_val)){
-                rplListBinaryDoCmd(old_val,new_val);
+                rplListBinaryDoCmd();
                 return;
             }
             else if((ISIDENT(*new_val) || ISSYMBOLIC(*new_val)) || (ISIDENT(*old_val) || ISSYMBOLIC(*old_val))){
@@ -1270,7 +1270,7 @@ case IPPOST:
             WORDPTR new_val=rplPeekData(1);
 
             if(ISLIST(*old_val) || ISLIST(*new_val)){
-                rplListBinaryDoCmd(old_val,new_val);
+                rplListBinaryDoCmd();
                 return;
             }
             else if((ISIDENT(*new_val) || ISSYMBOLIC(*new_val)) || (ISIDENT(*old_val) || ISSYMBOLIC(*old_val))){
@@ -1318,7 +1318,7 @@ case IPPOST:
             WORDPTR arg2=rplPeekData(1);
 
             if(ISLIST(*arg1) || ISLIST(*arg2)){
-                rplListBinaryDoCmd(arg1,arg2);
+                rplListBinaryDoCmd();
                 return;
             }
             else if((ISIDENT(*arg1) || ISSYMBOLIC(*arg1)) || (ISIDENT(*arg2) || ISSYMBOLIC(*arg2))){
@@ -1689,7 +1689,7 @@ case IPPOST:
 
             /*
             if(ISLIST(*real_val)) {
-                rplListBinaryDoCmd(real_val,vect_val);
+                rplListBinaryDoCmd();
                 return;
             }
             else if((ISIDENT(*vect_val) || ISSYMBOLIC(*vect_val)) || (ISIDENT(*real_val) || ISSYMBOLIC(*real_val))){
@@ -1869,7 +1869,7 @@ case IPPOST:
         WORDPTR arg2=rplPeekData(1);
 
 //        if(ISLIST(*arg1) || ISLIST(*arg2)){
-//            rplListBinaryDoCmd(arg1,arg2);
+//            rplListBinaryDoCmd();
 //            return;
 //        }
 //        else
@@ -2673,7 +2673,7 @@ case IPPOST:
 
         if(ISLIST(*rplPeekData(2))||ISLIST(*rplPeekData(1))) {
             // THIS IS A COMPOSITE, NEED TO RUN AN RPL LOOP
-            rplListBinaryDoCmd(rplPeekData(2),rplPeekData(1));
+            rplListBinaryDoCmd();
             return;
         }
 
@@ -2718,7 +2718,7 @@ case IPPOST:
 
         if(ISLIST(*rplPeekData(2))||ISLIST(*rplPeekData(1))) {
             // THIS IS A COMPOSITE, NEED TO RUN AN RPL LOOP
-            rplListBinaryDoCmd(rplPeekData(2),rplPeekData(1));
+            rplListBinaryDoCmd();
             return;
         }
 

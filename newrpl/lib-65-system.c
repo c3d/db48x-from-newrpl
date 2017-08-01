@@ -1499,7 +1499,7 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if (ISLIST(*arg_days) || ISLIST(*arg_date)) {
-            rplListBinaryDoCmd(arg_days, arg_date);
+            rplListBinaryDoCmd();
             return;
         }
 
@@ -1551,7 +1551,7 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if (ISLIST(*arg_date1) || ISLIST(*arg_date2)) {
-            rplListBinaryDoCmd(arg_date1, arg_date2);
+            rplListBinaryDoCmd();
             return;
         }
 
@@ -1722,7 +1722,7 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if (ISLIST(*arg_hms1) || ISLIST(*arg_hms2)) {
-            rplListBinaryDoCmd(arg_hms1, arg_hms2);
+            rplListBinaryDoCmd();
             return;
         }
 
@@ -1767,7 +1767,7 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if (ISLIST(*arg_hms1) || ISLIST(*arg_hms2)) {
-            rplListBinaryDoCmd(arg_hms1, arg_hms2);
+            rplListBinaryDoCmd();
             return;
         }
 

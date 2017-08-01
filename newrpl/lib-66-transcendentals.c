@@ -1540,7 +1540,7 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg) || ISLIST(*arg2)) {
 
-            rplListBinaryDoCmd(arg,arg2);
+            rplListBinaryDoCmd();
             return;
         }
 

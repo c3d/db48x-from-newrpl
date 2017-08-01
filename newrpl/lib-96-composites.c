@@ -1716,6 +1716,12 @@ void LIB_HANDLER()
 
             if(ISSTRING(*rplPeekData(2))) {
 
+                // PARALLEL PROCESS (ONLY FOR STRINGS)
+                if(ISLIST(*rplPeekData(1))) {
+                    rplListBinaryDoCmd();
+                    return;
+                }
+
                 if(!ISSTRING(*rplPeekData(1))) {
                     rplError(ERR_STRINGEXPECTED);
                     return;
@@ -1785,6 +1791,7 @@ void LIB_HANDLER()
                 BINT itemoff;
                 WORDPTR *savestk=DSTop;
 
+
                 if(!ISNUMBER(*rplPeekData(2))) {
                     rplError(ERR_INVALIDPOSITION);
                     return;
@@ -1826,6 +1833,14 @@ void LIB_HANDLER()
 
             if(ISSTRING(*rplPeekData(3))) {
 
+
+
+                if(ISLIST(*rplPeekData(2))||ISLIST(*rplPeekData(1))) {
+                    rplListMultiArgDoCmd(3);
+                    return;
+                }
+
+
                 if(!ISSTRING(*rplPeekData(1))) {
                     rplError(ERR_STRINGEXPECTED);
                     return;
@@ -1833,6 +1848,7 @@ void LIB_HANDLER()
 
                 BINT len1,len2,pos,maxpos;
                 BYTEPTR str1,str2;
+
 
                 if(!ISNUMBER(*rplPeekData(2))) {
                     rplError(ERR_INVALIDPOSITION);
@@ -1868,7 +1884,7 @@ void LIB_HANDLER()
                 {
                     if(utf8ncmp((char *)str1,(char *)str2,len2)==0) {
                         // IT'S A MATCH
-                        rplDropData(2);
+                        rplDropData(3);
                         rplNewBINTPush(pos,DECBINT);
                         return;
                     }
@@ -1935,6 +1951,12 @@ void LIB_HANDLER()
             }
 
             if(ISSTRING(*rplPeekData(2))) {
+
+                if(ISLIST(*rplPeekData(1)))
+                {
+                    rplListBinaryDoCmd();
+                    return;
+                }
 
                 if(!ISSTRING(*rplPeekData(1))) {
                     rplError(ERR_STRINGEXPECTED);
@@ -2043,6 +2065,10 @@ void LIB_HANDLER()
 
             if(ISSTRING(*rplPeekData(3))) {
 
+                if(ISLIST(*rplPeekData(2))||ISLIST(*rplPeekData(1))) {
+                    rplListMultiArgDoCmd(3);
+                    return;
+                }
                 if(!ISSTRING(*rplPeekData(1))) {
                     rplError(ERR_STRINGEXPECTED);
                     return;
@@ -2177,6 +2203,11 @@ void LIB_HANDLER()
 
                     BINT len1,pos,pos2;
                     BYTEPTR str1,str2,end;
+
+                    if(ISLIST(*rplPeekData(2))||ISLIST(*rplPeekData(1))) {
+                        rplListMultiArgDoCmd(3);
+                        return;
+                    }
 
                     if(!ISNUMBER(*rplPeekData(2))||!ISNUMBER(*rplPeekData(1))) {
                         rplError(ERR_INVALIDPOSITION);
