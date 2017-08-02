@@ -301,7 +301,7 @@ void startup(int prevstate)
         // FROM RESET OR WARMSTART, CLEAN VARIABLES
         __rtc_reset();
         clear_globals();    // CLEAR TO ZERO ALL NON-PERSISTENT GLOBALS
-        __lcd_contrast=7;
+        __lcd_contrast=8;
     }
 
     __exception_install();  // INITIALIZE IRQ AND EXCEPTION HANDLING

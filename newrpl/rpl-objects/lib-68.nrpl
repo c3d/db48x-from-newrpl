@@ -25,6 +25,7 @@
 ##1,ERR_INVALIDMENUDEFINITION "Invalid menu definition"
 ##1,ERR_INVALIDKEYNAME "Invalid key name"
 ##1,ERR_INVALIDKEYDEFINITION "Invalid key definition"
+##1,ERR_INVALIDNUMFORMAT "Invalid number format"
 }
 
 
@@ -108,7 +109,7 @@ COPYCLIP CUTCLIP PASTECLIP
 @#name sysmenu_10_settings
 {
 { { "Flags" 1 } { ::   #0440b000h TMENULST ; ::   #0440b000h TMENUOTHR ; } }
-SETPREC GETPREC SETLOCALE SETNUMFORMAT DEG GRAD RAD DMS
+SETPREC SETNFMT SETLOCALE GETPREC GETNFMT GETLOCALE DEG GRAD RAD DMS
 }
 
 
@@ -209,10 +210,19 @@ SETLOCALE
 string: <Dec><Thou><Frac><Arg>
 S →"
 
-SETNUMFORMAT
+SETNFMT
 "Change number format
-(not yet implemented)
-S →"
+
+<R|S|L> →"
+
+GETLOCALE
+"Get separators
+ → S "
+
+GETNFMT
+"Get current number
+format
+ → L"
 
 SF
 "Set flag by number or name
