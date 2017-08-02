@@ -66,7 +66,9 @@
     CMD(TYPE,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(TYPEE,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(GETLOCALE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(GETNFMT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+    CMD(GETNFMT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RCLF,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STOF,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
 
 
 
@@ -2635,10 +2637,72 @@ void LIB_HANDLER()
     }
 
 
+    case RCLF:
+    {
+            if(!ISLIST(*SystemFlags)) {
+                rplError(ERR_SYSTEMFLAGSINVALID);
+                return;
+            }
+            // MAKE A NON-SELF-MODIFYING COPY OF THE SYSTEM FLAGS
+            WORDPTR newlist = rplMakeNewCopy(SystemFlags);
+            if(!newlist) return;
+            rplPushData(newlist);
+            return;
+    }
 
 
+    case STOF:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
 
+        if(!ISLIST(*rplPeekData(1))) {
+            rplError(ERR_LISTEXPECTED);
+            return;
+        }
 
+        if(!ISLIST(*SystemFlags)) {
+            // TRY TO RECOVER INSTEAD OF ERROR
+            rplResetSystemFlags();
+            if(!SystemFlags) {
+                rplError(ERR_SYSTEMFLAGSINVALID);
+                return;
+            }
+            rplStoreSettings((WORDPTR)flags_ident,SystemFlags);
+        }
+
+        BINT nitems=rplListLength(rplPeekData(1));
+        if(nitems!=5) {
+            rplError(ERR_SYSTEMFLAGSINVALID);
+            return;
+        }
+
+        // ALL BINTS
+        BINT k;
+        for(k=1;k<=5;++k) {
+            if(!ISBINT(*rplGetListElement(rplPeekData(1),k))) {
+                rplError(ERR_SYSTEMFLAGSINVALID);
+                return;
+            }
+        }
+
+        // IT ALL CHECKS OUT, DO THE MAGIC:
+
+        UBINT64 value;
+        WORDPTR nptr=SystemFlags+2; // DATA OF THE FIRST 64-BIT INTEGER
+        UBINT64 *uptr;
+        for(k=1;k<=5;++k) {
+            value=rplReadBINT(rplGetListElement(rplPeekData(1),k));
+            uptr=(UBINT64 *)nptr;
+            *uptr=value;
+            nptr+=3;
+        }
+        rplDropData(1);
+        return;
+
+    }
 
 
 

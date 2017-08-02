@@ -228,6 +228,7 @@ BINT rplRun();
 void rplCleanup();
 void rplDisableSingleStep();
 void rplEnableSingleStep();
+void rplResetSystemFlags();
 
 // LIBRARY MANAGEMENT
 BINT rplInstallLibrary(LIBHANDLER handler);

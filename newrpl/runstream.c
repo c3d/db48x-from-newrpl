@@ -565,6 +565,41 @@ void rplCopyObject(WORDPTR dest, WORDPTR src)
 }
 
 
+// INITIALIZE SYSTEM FLAGS TO DEFAULT VALUE
+void rplResetSystemFlags()
+{
+    // CREATE AN EMPTY LIST OF SYSTEM FLAGS
+    SystemFlags=rplAllocTempOb(16);  // FOR NOW: 128 SYSTEM FLAGS IN 2 BINTS WITH 64 BITS EACH
+
+    if(!SystemFlags) return;
+
+    // 128 SYSTEM FLAGS
+    SystemFlags[0]=MKPROLOG(DOLIST,16);  // PUT ALL SYSTEM FLAGS ON A LIST
+    SystemFlags[1]=MKPROLOG(HEXBINT,2); // USE A BINT PROLOG
+    SystemFlags[2]=(63<<4)|(1<<29);             // FLAGS 0-31 ARE IN SystemFlags[2], DEFAULTS: WORDSIZE=63, DEG, COMMENTS=ON
+    SystemFlags[3]=0;                   // FLAGS 32-63 ARE IN SystemFlags[3]
+    SystemFlags[4]=MKPROLOG(HEXBINT,2);
+    SystemFlags[5]=0;                   // FLAGS 64-95 ARE IN SystemFlags[5]
+    SystemFlags[6]=0;                   // FLAGS 96-127 ARE IN SystemFlags[6]
+
+    SystemFlags[7]=MKPROLOG(HEXBINT,2);
+    SystemFlags[8]=MKMENUCODE(0,68,2,0);  // MenuCode1 IS IN SystemFlags[8] AND INITIALIZED TO THE MAIN MENU
+    SystemFlags[9]=MKMENUCODE(1,0,0,0); // MenuCode2 IS IN SystemFlags[9] AND INITIALIZED TO VARS
+
+    // 128 USER FLAGS
+    SystemFlags[10]=MKPROLOG(HEXBINT,2);
+    SystemFlags[11]=0;
+    SystemFlags[12]=0;
+    SystemFlags[13]=MKPROLOG(HEXBINT,2);
+    SystemFlags[14]=0;
+    SystemFlags[15]=0;
+
+    // FUTURE EXPANSION: ADD MORE FLAGS HERE
+
+    SystemFlags[16]=CMD_ENDLIST;         // CLOSE THE LIST
+
+}
+
 // INITIALIZE THE RPL MACHINE
 void rplInit(void)
 {
@@ -626,28 +661,7 @@ void rplInit(void)
     // INITIALIZE THE SETTINGS DIRECTORY
     SettingsDir=(WORDPTR)rplCreateNewDir((WORDPTR)dotsettings_ident,HomeDir);
 
-    // CREATE AN EMPTY LIST OF SYSTEM FLAGS
-    SystemFlags=rplAllocTempOb(10);  // FOR NOW: 128 SYSTEM FLAGS IN 2 BINTS WITH 64 BITS EACH
-
-    if(!SystemFlags) return;
-
-    SystemFlags[0]=MKPROLOG(DOLIST,10);  // PUT ALL SYSTEM FLAGS ON A LIST
-    SystemFlags[1]=MKPROLOG(HEXBINT,2); // USE A BINT PROLOG
-    SystemFlags[2]=(63<<4)|(1<<29);             // FLAGS 0-31 ARE IN SystemFlags[2], DEFAULTS: WORDSIZE=63, DEG, COMMENTS=ON
-    SystemFlags[3]=0;                   // FLAGS 32-63 ARE IN SystemFlags[3]
-    SystemFlags[4]=MKPROLOG(HEXBINT,2);
-    SystemFlags[5]=0;                   // FLAGS 64-95 ARE IN SystemFlags[5]
-    SystemFlags[6]=0;                   // FLAGS 96-127 ARE IN SystemFlags[6]
-
-    SystemFlags[7]=MKPROLOG(HEXBINT,2);
-    SystemFlags[8]=MKMENUCODE(0,68,2,0);  // MenuCode1 IS IN SystemFlags[8] AND INITIALIZED TO THE MAIN MENU
-    SystemFlags[9]=MKMENUCODE(1,0,0,0); // MenuCode2 IS IN SystemFlags[9] AND INITIALIZED TO VARS
-
-                                        // FUTURE EXPANSION: ADD MORE FLAGS HERE
-
-
-    SystemFlags[10]=CMD_ENDLIST;         // CLOSE THE LIST
-
+    rplResetSystemFlags();
 
     rplStoreSettings((WORDPTR)flags_ident,SystemFlags);
 
@@ -733,25 +747,7 @@ void rplWarmInit(void)
     flags=rplFindGlobalInDir((WORDPTR)flags_ident,rplFindDirbyHandle(SettingsDir),0);
     if(flags && ISLIST(*flags[1]) && (OBJSIZE(*flags[1])>=10)) SystemFlags=flags[1];
     else {
-        // CREATE AN EMPTY LIST OF SYSTEM FLAGS
-        SystemFlags=rplAllocTempOb(10);  // FOR NOW: 128 SYSTEM FLAGS IN 2 BINTS WITH 64 BITS EACH
-
-        if(!SystemFlags) return;
-
-        SystemFlags[0]=MKPROLOG(DOLIST,10);  // PUT ALL SYSTEM FLAGS ON A LIST
-        SystemFlags[1]=MKPROLOG(HEXBINT,2); // USE A BINT PROLOG
-        SystemFlags[2]=(63<<4)|(1<<29);             // FLAGS 0-31 ARE IN SystemFlags[2], DEFAULTS: WORDSIZE=63, DEG, COMMENTS=ON, 7*8=56 UNDO LEVELS
-        SystemFlags[3]=0;                   // FLAGS 32-63 ARE IN SystemFlags[3]
-        SystemFlags[4]=MKPROLOG(HEXBINT,2);
-        SystemFlags[5]=0;                   // FLAGS 64-95 ARE IN SystemFlags[5]
-        SystemFlags[6]=0;                   // FLAGS 96-127 ARE IN SystemFlags[6]
-
-        SystemFlags[7]=MKPROLOG(HEXBINT,2);
-        SystemFlags[8]=MKMENUCODE(0,68,2,0);  // MenuCode1 IS IN SystemFlags[8] AND INITIALIZED TO THE MAIN MENU
-        SystemFlags[9]=MKMENUCODE(1,0,0,0); // MenuCode2 IS IN SystemFlags[9], INITIALIZED TO VARS
-                                            // FUTURE EXPANSION: ADD MORE FLAGS HERE
-        SystemFlags[10]=CMD_ENDLIST;         // CLOSE THE LIST
-
+        rplResetSystemFlags();
 
         rplStoreSettings((WORDPTR)flags_ident,SystemFlags);
 
@@ -827,26 +823,7 @@ void rplHotInit()
     flags=rplFindGlobalInDir((WORDPTR)flags_ident,rplFindDirbyHandle(SettingsDir),0);
     if(flags && ISLIST(*flags[1]) && (OBJSIZE(*flags[1])>=10)) SystemFlags=flags[1];
     else {
-        // CREATE AN EMPTY LIST OF SYSTEM FLAGS
-        SystemFlags=rplAllocTempOb(10);  // FOR NOW: 128 SYSTEM FLAGS IN 2 BINTS WITH 64 BITS EACH
-
-        if(!SystemFlags) return;
-
-        SystemFlags[0]=MKPROLOG(DOLIST,10);  // PUT ALL SYSTEM FLAGS ON A LIST
-        SystemFlags[1]=MKPROLOG(HEXBINT,2); // USE A BINT PROLOG
-        SystemFlags[2]=(63<<4)|(1<<29);             // FLAGS 0-31 ARE IN SystemFlags[2], DEFAULTS: WORDSIZE=63, DEG, COMMENTS=ON, 7*8=56 UNDO LEVELS
-        SystemFlags[3]=0;                   // FLAGS 32-63 ARE IN SystemFlags[3]
-        SystemFlags[4]=MKPROLOG(HEXBINT,2);
-        SystemFlags[5]=0;                   // FLAGS 64-95 ARE IN SystemFlags[5]
-        SystemFlags[6]=0;                   // FLAGS 96-127 ARE IN SystemFlags[6]
-
-        SystemFlags[7]=MKPROLOG(HEXBINT,2);
-        SystemFlags[8]=MKMENUCODE(0,68,2,0);  // MenuCode1 IS IN SystemFlags[8] AND INITIALIZED TO THE MAIN MENU
-        SystemFlags[9]=MKMENUCODE(1,0,0,0); // MenuCode2 IS IN SystemFlags[9], INITIALIZED TO VARS
-                                            // FUTURE EXPANSION: ADD MORE FLAGS HERE
-        SystemFlags[10]=CMD_ENDLIST;         // CLOSE THE LIST
-
-
+        rplResetSystemFlags();
         rplStoreSettings((WORDPTR)flags_ident,SystemFlags);
 
     }

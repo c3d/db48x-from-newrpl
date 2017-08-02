@@ -1,6 +1,11 @@
 #ifndef FIRMWARE_H
 #define FIRMWARE_H
 
+// Firmware preamble string
+
+#define PREAMBLE_STRING "KINPOUPDATEIMAGE"
+
+
 #define DEFAULT_AUTOOFFTIME 3
 
 
