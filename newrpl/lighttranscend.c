@@ -2241,6 +2241,49 @@ void pexp()
 
     }
 
+// SAME THING BUT FOR EXP(X)-1
+void pexpm()
+{
+
+    int k;
+
+    Context.precdigits+=24;
+
+    RReg[2].flags=0;
+    RReg[2].exp=0;
+    RReg[2].len=1;          // FACTORIAL
+    RReg[2].data[0]=1;
+
+    copyReal(&RReg[3],&RReg[0]);   // X
+
+    //  FIRST TERM IN RReg[0] IS X
+
+    copyReal(&RReg[4],&RReg[0]); // ACCUMULATOR STARTS FROM X
+
+    // DO AS MANY TERMS AS NEEDED
+    for(k=2;1;k++)
+    {
+        mulReal(&RReg[1],&RReg[0],&RReg[3]); // TERM*X
+        RReg[2].data[0]=k;
+        divReal(&RReg[0],&RReg[1],&RReg[2]); // NEWTERM= TERM*X/k = X^K/K!
+        // HERE WE HAVE THE NEW TERM OF THE SERIES IN RReg[0]
+        addReal(&RReg[5],&RReg[4],&RReg[0]);
+
+        if(eqReal(&RReg[4],&RReg[5])) break;
+        swapReal(&RReg[4],&RReg[5]);
+    }
+
+    //printf("iters=%d\n",k);
+
+    // CONVERGED!
+
+    Context.precdigits-=24;
+
+    swapReal(&RReg[0],&RReg[4]);
+    normalize(&RReg[0]);
+
+}
+
 
 
 
@@ -2427,7 +2470,7 @@ void pln()
 }
 
 // LN(X+1)
-void pln1p()
+void plnp1()
 {
 int k;
     Context.precdigits+=16;
@@ -2784,6 +2827,32 @@ void hyp_exp(REAL *x)
 }
 
 // RETURNS THE RESULT IN RReg[0]
+// USES RREG UP TO 5
+
+void hyp_expm(REAL *x)
+{
+
+    if(x!=&RReg[0]) copyReal(&RReg[0],x);
+
+    // USE FASTER VERSION FOR LARGE NUMBERS
+    if(intdigitsReal(x)>-4) {
+        pexp();
+        REAL one;
+        swapReal(&RReg[0],&RReg[1]);
+        decconst_One(&one);
+        sub_real(&RReg[0],&RReg[1],&one);
+        normalize(&RReg[0]);
+    }
+    else pexpm();
+
+    // RESULT IS IN RReg[0]
+
+}
+
+
+
+
+// RETURNS THE RESULT IN RReg[0]
 // USES RREG UP TO 6
 
 
@@ -2798,7 +2867,27 @@ void hyp_ln(REAL *x)
 
 }
 
+// SAME BUT DOES ln(x+1) WHEN X IS CLOSE TO ZERO
+void hyp_lnp1(REAL *x)
+{
 
+    if(x!=&RReg[0]) copyReal(&RReg[0],x);
+
+    // USE FASTER VERSION FOR LARGE NUMBERS
+    if(intdigitsReal(x)>-4) {
+        REAL one;
+        swapReal(&RReg[0],&RReg[1]);
+        decconst_One(&one);
+        add_real(&RReg[0],&RReg[1],&one);
+        normalize(&RReg[0]);
+        pln();
+
+    }
+    else plnp1();
+
+    // RESULT IS IN RReg[0]
+
+}
 // RETURNS THE RESULT IN RReg[0]
 // USES RREG UP TO 6
 
