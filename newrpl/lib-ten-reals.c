@@ -811,10 +811,17 @@ void LIB_HANDLER()
 
         BYTEPTR string;
 
+
         BINT len=formatlengthReal(&realnum,Format,fmt.Locale);
+
+
+        // realnum DATA MIGHT MOVE DUE TO GC, NEEDS TO BE PROTECTED
+        ScratchPointer1=realnum.data;
 
         // RESERVE THE MEMORY FIRST
         rplDecompAppendString2(0,len);
+
+        realnum.data=ScratchPointer1;
 
         // NOW USE IT
         string=(BYTEPTR)DecompStringEnd;
@@ -825,6 +832,12 @@ void LIB_HANDLER()
             return;
         }
         DecompStringEnd=(WORDPTR) formatReal(&realnum,(char *)string,Format,fmt.Locale);
+
+        // TODO: REMOVE THIS BEFORE FINAL RELEASE!
+        if((BYTEPTR)DecompStringEnd-string>len) {
+            throw_dbgexception("Bad number length!",__EX_CONT);
+        }
+
 
         RetNum=OK_CONTINUE;
 

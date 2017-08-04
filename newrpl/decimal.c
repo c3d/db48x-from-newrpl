@@ -3326,6 +3326,7 @@ BINT formatlengthReal(REAL *number, BINT format,UBINT64 locale)
         if(trailzeros<0) trailzeros=0;
         else {
             wantdigits-=trailzeros;
+            if(wantdigits<0) wantdigits=0;
             if(!(format&FMT_TRAILINGZEROS)) trailzeros=0;
         }
 
