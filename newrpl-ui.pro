@@ -212,7 +212,9 @@ SOURCES += main.cpp\
     newrpl/lib-96-composites.c \
     newrpl/atan_ltables.c \
     newrpl/lighttranscend.c \
-    newrpl/ln_ltables.c
+    newrpl/ln_ltables.c \
+    interaction.cpp \
+    interaction_rpl.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \

@@ -60,6 +60,16 @@ private slots:
 
     void on_actionTake_Screenshot_triggered();
 
+    void on_actionCopy_Level_1_triggered();
+
+    void on_actionPaste_to_Level_1_triggered();
+
+    void on_actionCut_Level_1_triggered();
+
+    void on_actionSave_Level_1_As_triggered();
+
+    void on_actionOpen_file_to_Level_1_triggered();
+
 public slots:
     void domaintimer();
 private:

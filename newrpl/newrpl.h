@@ -49,7 +49,7 @@ typedef uint32_t PTR2NUMBER;
 
 
 #ifdef __cplusplus
-"C" {
+extern "C" {
 #endif
 
 // CONSTANTS THAT CONTROL THE MAIN RPL ENGINE

@@ -23,6 +23,8 @@ MainWindow *myMainWindow;
 extern unsigned long long __pckeymatrix;
 extern int __pc_terminate;
 extern int __memmap_intact;
+extern volatile int __cpu_idle;
+
 extern "C" void __keyb_update();
 // BACKUP/RESTORE
 extern "C" int rplBackup(void (*writefunc)(unsigned int));
@@ -679,4 +681,91 @@ void MainWindow::on_actionTake_Screenshot_triggered()
     ui->EmuScreen->scene()->render(&painter);
     image.save(fname);
      }
+}
+
+
+extern void Stack2Clipboard(int level,int dropit);
+extern void Clipboard2Stack();
+extern int SaveRPLObject(QString& filename,int level);
+int LoadRPLObject(QString& filename);
+
+
+void MainWindow::on_actionCopy_Level_1_triggered()
+{
+    if(!rpl.isRunning()) return;    // DO NOTHING
+
+    while(!__cpu_idle)     QThread::msleep(1);  // BLOCK UNTIL RPL IS IDLE
+
+    __cpu_idle=2;       // BLOCK REQUEST
+
+    // NOW WORK ON THE RPL ENGINE WHILE THE THREAD IS BLOCKED
+    Stack2Clipboard(1,0);
+
+    __cpu_idle=0;   // LET GO THE SIMULATOR
+}
+
+void MainWindow::on_actionPaste_to_Level_1_triggered()
+{
+    if(!rpl.isRunning()) return;    // DO NOTHING
+
+    while(!__cpu_idle)     QThread::msleep(1);  // BLOCK UNTIL RPL IS IDLE
+
+    __cpu_idle=2;       // BLOCK REQUEST
+
+    // NOW WORK ON THE RPL ENGINE WHILE THE THREAD IS BLOCKED
+    Clipboard2Stack();
+
+    __cpu_idle=0;   // LET GO THE SIMULATOR
+
+}
+
+void MainWindow::on_actionCut_Level_1_triggered()
+{
+    if(!rpl.isRunning()) return;    // DO NOTHING
+
+    while(!__cpu_idle)     QThread::msleep(1);  // BLOCK UNTIL RPL IS IDLE
+
+    __cpu_idle=2;       // BLOCK REQUEST
+
+    // NOW WORK ON THE RPL ENGINE WHILE THE THREAD IS BLOCKED
+    Stack2Clipboard(1,1);
+
+    __cpu_idle=0;   // LET GO THE SIMULATOR
+}
+
+void MainWindow::on_actionSave_Level_1_As_triggered()
+{
+    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpl");
+
+    if(!fname.isEmpty()) {
+        // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
+
+        if(!fname.endsWith(".nrpl")) fname+=".nrpl";
+    }
+
+    if(!SaveRPLObject(fname,1)) {
+            QMessageBox a(QMessageBox::Warning,"Error while saving","Cannot write to file "+ fname,QMessageBox::Ok,this);
+            a.exec();
+            return;
+    }
+}
+
+void MainWindow::on_actionOpen_file_to_Level_1_triggered()
+{
+    QString fname=QFileDialog::getOpenFileName(this,"Select File Name",QString(),"*.nrpl");
+    if(!rpl.isRunning()) return;    // DO NOTHING
+
+    while(!__cpu_idle)     QThread::msleep(1);  // BLOCK UNTIL RPL IS IDLE
+
+    __cpu_idle=2;       // BLOCK REQUEST
+
+    // NOW WORK ON THE RPL ENGINE WHILE THE THREAD IS BLOCKED
+    if(!LoadRPLObject(fname)) {
+            QMessageBox a(QMessageBox::Warning,"Error while saving","Cannot write to file "+ fname,QMessageBox::Ok,this);
+            a.exec();
+            return;
+    }
+
+    __cpu_idle=0;   // LET GO THE SIMULATOR
+
 }

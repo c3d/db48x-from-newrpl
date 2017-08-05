@@ -10,6 +10,7 @@
 
 unsigned int cpu_state;
 unsigned int __saveint;
+volatile unsigned int __cpu_idle;
 
 enum {
     CPU_INTMASKED=1,
@@ -74,7 +75,13 @@ void cpu_waitforinterrupt()
 // BLOCK THREAD UNTIL AN INTERRUPT HAS OCCURRED
 
 // ON THE PC, JUST YIELD FOR 1 MSECOND
+
+// BLOCK SO OTHER THREAD CAN DO WORK ON RPL
+while(__cpu_idle==2) thread_yield();
+
+__cpu_idle=1;
 thread_yield();
+if(__cpu_idle==1) __cpu_idle=0;
 }
 
 // ACQUIRE A LOCK AND RETURN PREVIOUS VALUE
