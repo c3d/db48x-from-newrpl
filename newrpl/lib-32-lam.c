@@ -419,11 +419,25 @@ void LIB_HANDLER()
 
     if(ISBINARYOP(CurOpcode)) {
 
+
+        switch(OPCODE(CurOpcode))
+        {
+        case OVR_SAME:
+        {
+         BINT same=rplCompareIDENT(rplPeekData(1),rplPeekData(2));
+         rplDropData(2);
+         if(same) rplPushTrue(); else rplPushFalse();
+         return;
+        }
+        default:
+        {
         // PASS AL OTHER OPERATORS DIRECTLY AS A SYMBOLIC OBJECT
             LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
             (*symblib)();
             return;
         }
+        }
+    }
 
 
     }

@@ -460,6 +460,7 @@ enum FORMAT_BITS {
 
 };
 
+#define FMT_DIGITS(a) ((a)&0xfff)
 #define FMT_GROUPDIGITS(a) (((a)&0xf)<<27)
 #define SEP_SPACING(a) (((a)>>27)&0xf)
 #define EXP_LETTER(a) (((a)&FMT_USECAPITALS)? 'E':'e')

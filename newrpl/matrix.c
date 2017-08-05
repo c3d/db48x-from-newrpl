@@ -310,7 +310,6 @@ void rplMatrixAdd() { rplMatrixBinary((CMD_OVR_ADD)); }
 void rplMatrixSub() { rplMatrixBinary((CMD_OVR_SUB)); }
 
 
-
 void rplMatrixMulScalar()
 {
 WORDPTR *Savestk,*a,*b;
@@ -1479,5 +1478,85 @@ BINT rplMatrixIsAllowed(WORDPTR object)
            return 0;
         }
     return 1;
+
+}
+
+// PUSHES TRUE ON THE STACK IF ALL ELEMENTS IN A MATRIX AT LEVEL 1 ARE ZERO
+
+BINT rplIsZeroMatrix(WORDPTR object)
+{
+    WORDPTR *Savestk,*a;
+    // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
+    // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
+    Savestk=DSTop;
+    rplPushData(object);
+    a=DSTop-1;
+
+    // a IS THE MATRIX
+
+    // CHECK DIMENSIONS
+
+    BINT rowsa=MATROWS(*(*a+1)),colsa=MATCOLS(*(*a+1));
+
+    BINT totalelements=(rowsa)? rowsa*colsa:colsa;
+
+    BINT j;
+
+    // DO THE ELEMENT-BY-ELEMENT OPERATION
+
+    for(j=0;j<totalelements;++j) {
+
+     rplPushData(GETELEMENT(*a,j));
+     if(ISANGLE(*rplPeekData(1))) {
+         // IGNORE ANGLES IN POLAR MATRICES
+         // SINCE THEY DON'T CHANGE THE MAGNITUDE
+         rplDropData(1);
+         continue;
+     }
+     rplPushData((WORDPTR)zero_bint);
+     rplCallOvrOperator(CMD_OVR_EQ);
+     if(Exceptions) {
+         DSTop=Savestk;
+         return 0;
+     }
+     if(ISSYMBOLIC(*rplPeekData(1))) {
+         rplSymbAutoSimplify();
+         if(Exceptions) {
+             DSTop=Savestk;
+             return 0;
+         }
+     }
+
+     if(rplIsFalse(rplPopData())) {
+         DSTop=Savestk;
+         return 0;
+     }
+
+    }
+
+    // ALL ELEMENTS WERE ZERO
+    DSTop=Savestk;
+    return 1;
+
+}
+
+
+void rplMatrixSame() {
+
+    rplMatrixBinary((CMD_OVR_SAME));
+
+    if(Exceptions) return;
+
+    rplMatrixUnary(CMD_OVR_NOT);
+    if(Exceptions) return;
+
+    if(rplIsZeroMatrix(rplPeekData(1))) {
+        rplDropData(1);
+        rplPushTrue();
+    }
+    else {
+        rplDropData(1);
+        rplPushFalse();
+    }
 
 }

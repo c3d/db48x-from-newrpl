@@ -228,6 +228,7 @@ BINT rplRun();
 void rplCleanup();
 void rplDisableSingleStep();
 void rplEnableSingleStep();
+void rplResetSystemFlags();
 
 // LIBRARY MANAGEMENT
 BINT rplInstallLibrary(LIBHANDLER handler);
@@ -627,7 +628,8 @@ WORDPTR rplGetListElementFlat(WORDPTR composite, BINT pos);
 WORDPTR rplGetNextListElementFlat(WORDPTR composite, WORDPTR elem);
 BINT rplIsLastElementFlat(WORDPTR composite, BINT pos);
 void rplListUnaryDoCmd();
-void rplListBinaryDoCmd(WORDPTR arg1, WORDPTR arg2);
+void rplListBinaryDoCmd();
+void rplListMultiArgDoCmd(BINT nargs);
 WORDPTR rplListAddRot(WORDPTR list,WORDPTR object,BINT nmax);
 WORDPTR rplListReplace(WORDPTR list,BINT position,WORDPTR object);
 WORDPTR rplListReplaceMulti(WORDPTR list,BINT position,WORDPTR object);
@@ -694,6 +696,7 @@ void rplMatrixNeg();
 void rplMatrixEval1();
 void rplMatrixEval();
 void rplMatrixToNum();
+void rplMatrixSame();
 void rplMatrixAdd();
 void rplMatrixSub();
 void rplMatrixMul();
@@ -704,6 +707,7 @@ void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa);
 void rplMatrixInvert();
 void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 BINT rplMatrixIsPolar(WORDPTR matobj);
+BINT rplIsZeroMatrix(WORDPTR object);
 void rplMatrixPolarToRectEx(WORDPTR *a,BINT rowsa,BINT colsa);
 void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BINT angmode);
 

@@ -26,7 +26,8 @@
     ERR(INVALIDLOCALESTRING,4), \
     ERR(INVALIDMENUDEFINITION,5), \
     ERR(INVALIDKEYNAME,6), \
-    ERR(INVALIDKEYDEFINITION,7)
+    ERR(INVALIDKEYDEFINITION,7), \
+    ERR(INVALIDNUMFORMAT,8)
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -37,7 +38,7 @@
 
 #define COMMAND_LIST \
     CMD(SETLOCALE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SETNUMFORMAT,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SETNFMT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(SF,MKTOKENINFO(2,TITYPE_NOTALLOWED,1,2)), \
     CMD(CF,MKTOKENINFO(2,TITYPE_NOTALLOWED,1,2)), \
     ECMD(FCTEST,"FC?",MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
@@ -63,7 +64,11 @@
     CMD(STOKEYS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(RCLKEYS,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(TYPE,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(TYPEE,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+    CMD(TYPEE,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(GETLOCALE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(GETNFMT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RCLF,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STOF,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
 
 
 
@@ -669,9 +674,14 @@ void rplSetSystemNumberFormat(NUMFORMAT *fmt)
     // CREATE THE LIST WITH THE NUMFORMAT
     WORDPTR *savestk=DSTop;
 
+    // COPY TO RReg TO PROTECT FROM GARBAGE COLLECTION
+    copyReal(&RReg[0],&(fmt->SmallLimit));
+    copyReal(&RReg[1],&(fmt->BigLimit));
+
     // MAKE THE LOCALE STRING
 
-    BYTEPTR locstr=(BYTEPTR)RReg[0].data;
+    BYTE locbase[16];   // 4 BYTES PER UNICODE CHARACTER MAXIMUM
+    BYTEPTR locstr=locbase;
 
     WORD uchar;
 
@@ -688,13 +698,8 @@ void rplSetSystemNumberFormat(NUMFORMAT *fmt)
     while(uchar) { *locstr++=uchar&0xff; uchar>>=8; }
 
 
-    WORDPTR item=rplCreateString((BYTEPTR)RReg[0].data,locstr);
+    WORDPTR item=rplCreateString(locbase,locstr);
     if(!item) return;
-
-    // COPY TO RReg TO PROTECT FROM GARBAGE COLLECTION
-    copyReal(&RReg[0],&(fmt->SmallLimit));
-    copyReal(&RReg[1],&(fmt->BigLimit));
-
 
     rplPushData(item);
     rplNewBINTPush(fmt->SmallFmt,DECBINT);
@@ -707,17 +712,326 @@ void rplSetSystemNumberFormat(NUMFORMAT *fmt)
     if(Exceptions) { DSTop=savestk; return; }
     rplNewRealFromRRegPush(1);
     if(Exceptions) { DSTop=savestk; return; }
-    rplNewSINTPush(6,DECBINT);
-    rplCreateList();
+    WORDPTR newlist=rplCreateListN(6,1,1);
     if(Exceptions) { DSTop=savestk; return; }
 
-    rplStoreSettings((WORDPTR)numfmt_ident,rplPeekData(1));
+    rplStoreSettings((WORDPTR)numfmt_ident,newlist);
 
     DSTop=savestk;
     return;
 
 }
 
+#define MAXFMTLEN (1+3+2+6+1+2+2+1+1)
+
+// CREATE A STRING OBJECT REPRESENTING ALL POSSIBLE OPTIONS IN fmtbits
+// RETURNS NULL ON NOT ENOUGH MEMORY ONLY
+WORDPTR rplNumFormat2String(BINT fmtbits)
+{
+    // STRING FORMAT:
+
+    // "#" = NO DECIMAL DIGITS AFTER THE DOT, NO TRAILING DOT IF APPROXIMATED
+    // "#.###" = STANDARD FORMAT WITH UP TO 3 DIGITS AFTER DECIMAL DOT
+    // "#.250#" = SAME WITH 250 DIGITS
+    // "#.A#" = ALL AVAILABLE DIGITS AFTER THE DOT
+    // "#.000" OR "#.##0" = 3 DIGITS, ADD TRAILING ZEROS
+    // "#.250#0" = 250 DIGITS, ADD TRAILING ZEROS
+    // "#.###E" = 4 SIGNIFICANT FIGURES TOTAL, SCI NOTATION WITH CAPITAL 'E'
+    // "#.249#0E" = 250 TOTAL SIGNIFICANT FIGURES, SCI NOTATION, ADD TRAILING ZEROS
+    // "+#" = FORCE + SIGN ON NUMBER
+    // "#.###E+" = FORCE + SIGN ON EXPONENT
+    // "#.###E+#" = ENGINEERING MODE WITH FORCED SIGN AND NO PREFERRED EXPONENT
+    // "#.###E-12" = ENGINEERING MODE WITH PREFERRED EXPONENT 10^-12
+    // "+S#.250#0S.E" = FORCE PLUS, SEPARATOR EVERY 3 DIGITS (BY DEFAULT) ON INTEGER PART, 250 DECIMAL FIGURES, TRAILING ZEROS, SEPARATOR FRACTIONAL PART, USE TRAILING DOT
+    // "+#.####S4." = FORCE PLUS, 4 DECIMAL DIGITS, SEPARATOR EVERY 4 DIGITS ON FRACTIONAL PART, APPEND TRAILING DOT WHEN APPROXIMATED NUMBER.
+    // NOTE THAT USING Sn, n DIGITS MUST BE THE SAME ON INTEGER AND FRACTIONAL PART, DIFFERENT GROUPING IS NOT SUPPORTED.
+    // "#.###E*3" = ENGINEERING MODE, 4 TOTAL DIGITS, PREFERRED EXPONENT OF 3, * = SUPPRESS EXPONENT (FOR USER TO APPEND UNIT, ETC.)
+    // "#.###E*" = SCI MODE, 4 TOTAL DIGITS, * = SUPPRESS EXPONENT ONLY WHEN EXPONENT IS 0 (1.234 INSTEAD OF 1.234E0)
+    // "#.###E*#" = ENGINEERING MODE, 4 TOTAL DIGITS, NO PREFERRED EXPONENT, SUPRESS EXPONENT ONLY WHEN 0
+
+
+    BYTE str[MAXFMTLEN];
+    BINT ndigits=FMT_DIGITS(fmtbits);
+    BINT offset=0;
+
+    // FORCE SIGN BIT
+    if(fmtbits&FMT_FORCESIGN) str[offset++]='+';
+    // SEPARATOR ON INTEGER PART
+    if(fmtbits&FMT_NUMSEPARATOR) {
+        BINT sepspacing=SEP_SPACING(fmtbits);
+        str[offset++]='S';
+        if( (sepspacing!=0) && (sepspacing!=3)) {
+            if(sepspacing>=10) { str[offset++]='1'; sepspacing-=10; }
+            str[offset++]=sepspacing+'0';
+        }
+    }
+    str[offset++]='#';
+
+    // NUMBER OF DIGITS
+    //if( (ndigits>0)&&(ndigits<0xfff)&&(fmtbits&(FMT_SCI|FMT_ENG))) --ndigits;    // INCLUDE THE DIGIT BEFORE THE DECIMAL DOT IN THE TOTAL COUNT
+    if(ndigits!=0) {
+        str[offset++]='.';
+        if(ndigits<=6) {
+            BINT k;
+            for(k=1;k<ndigits;++k) str[offset++]='#';
+            str[offset++]=(fmtbits&FMT_TRAILINGZEROS)? '0':'#';
+        }
+        else {
+            // SPELL OUT THE NUMBER OF DIGITS
+            if(ndigits<0xfff) {
+                if(ndigits>=1000) { str[offset++]='0'+ndigits/1000; ndigits=ndigits%1000; }
+                if(ndigits>=100) { str[offset++]='0'+ndigits/100; ndigits=ndigits%100; }
+                if(ndigits>=10) { str[offset++]='0'+ndigits/10; ndigits=ndigits%10; }
+                str[offset++]='0'+ndigits;
+                str[offset++]='#';
+                if(fmtbits&FMT_TRAILINGZEROS) str[offset++]='0';
+            }
+            else {
+             // SPECIFY ALL DIGITS
+                str[offset++]='A';
+                str[offset++]='#';
+            }
+
+            }
+
+      // FRACTIONAL SEPARATOR
+      if(fmtbits&FMT_FRACSEPARATOR) {
+       str[offset++]='S';
+       BINT sepspacing=SEP_SPACING(fmtbits);
+       if(!(fmtbits&FMT_NUMSEPARATOR) && (sepspacing!=0) && (sepspacing!=3)) {
+        // NEED TO INCLUDE THE SEPARATOR SPACING HERE
+           if(sepspacing>=10) { str[offset++]='1'; sepspacing-=10; }
+           str[offset++]=sepspacing+'0';
+       }
+
+      }
+
+    }
+
+
+    // USE TRAILING DOT?
+    if(!(fmtbits&FMT_NOTRAILDOT))  str[offset++]='.';
+
+    // SCI OR ENG MODE?
+
+    if(fmtbits&(FMT_SCI|FMT_ENG)) {
+        str[offset++]=(fmtbits&FMT_USECAPITALS)? 'E':'e';
+        if(fmtbits&FMT_SUPRESSEXP) str[offset++]='*';
+        if(fmtbits&FMT_EXPSIGN) str[offset++]='+';
+        if(fmtbits&FMT_ENG) {
+            BINT pref=PREFERRED_EXP(fmtbits);
+            if(pref==-24) str[offset++]='#';    // NO PREFERRED EXPONENT
+            else {
+            if(pref<0) { str[offset++]='-'; pref=-pref; }
+            if(pref>=20) { str[offset++]='2'; pref-=20; }
+            if(pref>=10) { str[offset++]='1'; pref-=10; }
+            str[offset++]='0'+pref;
+            }
+
+            }
+        }
+
+
+
+    // STRING IS READY
+
+    return rplCreateString(str,str+offset);
+
+}
+
+
+// CONVERT A STRING BACK INTO NUMBER FORMAT
+// RETURN -1 IF INVALID STRING, DOESN'T THROW ANY ERRORS
+
+BINT rplNumFormatFromString(WORDPTR string)
+{
+    BYTEPTR str=(BYTEPTR) (string+1);
+    BYTEPTR end=str+rplStrSize(string);
+
+    BINT fmt=FMT_NOTRAILDOT|FMT_USECAPITALS;
+
+    // FORCE SIGN?
+    if(*str=='+') { fmt|=FMT_FORCESIGN; ++str; }
+
+    if(str>=end) return -1; // INCOMPLETE DEFINITION
+
+    if(*str=='S') {
+        BINT sepspacing=0;
+        ++str;
+        if(str>=end) return -1; // INCOMPLETE DEFINITION
+        if( (*str>='0')&&(*str<='9')) { sepspacing=*str-'0'; ++str; }
+        if(str>=end) return -1; // INCOMPLETE DEFINITION
+        if( (*str>='0')&&(*str<='9')) { sepspacing=sepspacing*10+(*str-'0'); ++str; }
+        if(str>=end) return -1; // INCOMPLETE DEFINITION
+
+        if((sepspacing<1)||(sepspacing>15)) sepspacing=3;
+
+        fmt|=FMT_GROUPDIGITS(sepspacing);
+        fmt|=FMT_NUMSEPARATOR;
+    }
+
+    if(*str!='#') return -1;
+
+    ++str;
+
+    if(str>=end) return fmt; // COMPLETE DEFINITION
+
+    if(*str=='.') {
+        ++str;
+        if(str==end) { fmt^=FMT_NOTRAILDOT; return fmt; }
+    }
+
+
+    // NUMBER OF FIGURES
+
+    BINT ndig=0,isnumeric=0;
+    while(str<end) {
+        if(isnumeric) {
+            if( (*str>='0')&&(*str<='9')) { ndig*=10; ndig+=*str-'0'; ++str; continue; }
+            if(*str=='#') { ++str; break; }
+            return -1;
+        }
+        else {
+            if(*str=='A') {
+                if(ndig!=0) return -1;  // INVALID STRING
+                ndig=0xfff;
+                ++str;
+                continue;
+            }
+            if(*str=='#') {
+                if(ndig==0xfff) { ++str; break; }
+                ++ndig;
+                ++str;
+                continue;
+            }
+            if(*str=='0') {
+                if(ndig==0xfff) return -1;
+                ++ndig;
+                ++str;
+                continue;
+            }
+            if((*str>'0')&&(*str<='9')) {
+                if(ndig) return -1;
+                isnumeric=1;
+                continue;   // DO NOT INCREASE str, SO THE DIGIT IS CAUGHT AGAIN
+            }
+            if(ndig==0xfff) return -1;
+            if(*str=='S') break;
+            if(*str=='.') break;
+            if(*str=='E') break;
+            if(*str=='e') break;
+            return -1;
+        }
+    }
+
+    // HERE WE HAVE A NUMBER OF DIGITS, THERE COULD BE AN ADDITIONAL ZERO
+
+    if((str<end) && (*str=='0')) {
+        if((!isnumeric) &&(ndig!=0xfff)) ++ndig;
+
+        fmt|=FMT_TRAILINGZEROS;
+        ++str;
+    } else {
+        // NO ADDITIONAL ZERO, CHECK IF THE PREVIOUS ONE WAS A ZERO
+        if(str[-1]=='0') {
+            fmt|=FMT_TRAILINGZEROS;
+            ++str;
+        }
+    }
+
+    if(ndig==0xfff) fmt&=~FMT_TRAILINGZEROS;    // TRAILING ZEROS NOT ALLOWED WHEN USING ALL AVAILABLE DIGITS!
+    fmt|=FMT_DIGITS(ndig);
+
+    if(str==end) return fmt;    // DONE, NO EXPONENT
+
+    // FRACTIONAL SEPARATOR?
+    if(*str=='S') {
+        BINT sepspacing=0;
+        ++str;
+        if(str>=end) return fmt;
+        if( (*str>='0')&&(*str<='9')) { sepspacing=*str-'0'; ++str; }
+        if(str<end) {
+        if( (*str>='0')&&(*str<='9')) { sepspacing=sepspacing*10+(*str-'0'); ++str; }
+        }
+        if((sepspacing<1)||(sepspacing>15)) sepspacing=3;
+
+        if(fmt&FMT_NUMSEPARATOR) {
+            if(sepspacing!=SEP_SPACING(fmt)) {
+                // INVALID, SPACING MUST BE THE SAME ON BOTH INTEGER AND FRACTIONAL PARTS
+                return -1;
+            }
+        } else fmt|=FMT_GROUPDIGITS(sepspacing);
+        fmt|=FMT_FRACSEPARATOR;
+    }
+
+
+    // ONLY ACCEPTABLE CHARACTERS HERE ARE THE EXPONENT LETTER OR THE TRAILING DOT
+
+    if(str==end) return fmt;    // DONE, NO EXPONENT
+
+    if(*str=='.') {
+        ++str;
+        fmt^=FMT_NOTRAILDOT;
+    }
+
+    if(str==end) return fmt;    // DONE, NO EXPONENT
+
+    // ONLY ACCEPTABLE CHARACTERS HERE ARE THE EXPONENT LETTER
+    if(*str=='E') {
+        ++str;
+        fmt|=FMT_SCI;
+    }
+    else if(*str=='e') {
+        ++str;
+        fmt&=~FMT_USECAPITALS;
+        fmt|=FMT_SCI;
+    }
+    else return -1; // INVALID FORMAT
+
+    if(str==end) return fmt;    // DONE, NO EXPONENT
+
+    if(*str=='*') { ++str; fmt|=FMT_SUPRESSEXP; }
+
+    if(str==end) return fmt;    // DONE, NO EXPONENT
+
+    if(*str=='+') { ++str; fmt|=FMT_EXPSIGN; }
+
+    if(str==end) return fmt;    // DONE, NO EXPONENT
+
+    if(*str=='#') {
+        fmt|=FMT_ENG; // ENGINEERING MODE, NO PREFERRED EXPONENT
+        ++str;
+        if(str!=end) return -1;     // THIS IS SUPPOSED TO BE THE END!
+    }
+    else {
+    // GET A PREFERRED EXPONENT
+        BINT isneg,prefexp;
+        if(*str=='-') {
+            isneg=1;
+            ++str;
+            if(str==end) return -1;
+        } else isneg=0;
+
+        if( (*str>='0')&&(*str<='9')) { prefexp=*str-'0'; ++str; }
+        else return -1;
+        if(str<end) {
+        if( (*str>='0')&&(*str<='9')) { prefexp=prefexp*10+(*str-'0'); ++str; }
+        }
+
+        if(str!=end) return -1; // THIS IS THE LAST ITEM
+
+        if(prefexp%3) return -1;    // MUST BE A MULTIPLE OF 3
+        if(prefexp>21) return -1;   // AND IN THE RANGE +21/-21
+
+        if(isneg) prefexp=-prefexp;
+
+        fmt|=FMT_ENG|FMT_PREFEREXPONENT(prefexp);
+
+    }
+
+    return fmt;
+
+}
 
 
 // ONLY VALID menunumbers ARE 1 AND 2
@@ -1257,6 +1571,22 @@ void LIB_HANDLER()
             CurOpcode=saveOpcode;
             return;
         }
+        // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
+            if(OPCODE(CurOpcode)==OVR_SAME) {
+                if(*rplPeekData(2)==*rplPeekData(1)) {
+                    rplDropData(2);
+                    rplPushTrue();
+                } else {
+                    rplDropData(2);
+                    rplPushFalse();
+                }
+
+            }
+            else {
+                rplError(ERR_INVALIDOPCODE);
+                return;
+            }
+
     }
 
 
@@ -1339,6 +1669,105 @@ void LIB_HANDLER()
      return;
 
     }
+
+    case SETNFMT:
+    {
+        // SET THE SYSTEM NUMBER FORMAT
+        // ACCEPT EITHER A SINGLE STRING OR A LIST AS FOLLOWS:
+        // FORMAT_STRING --> REPLACE NUMBER FORMAT FOR ALL NUMBERS (BIG, SMALL AND NORMAL)
+        // { FORMAT_STRING } --> REPLACE NUMBER FORMAT FOR "NORMAL" NUMBERS ONLY
+        // { CUTOFF_LIMIT FORMAT_STRING } --> IF CUTOFF LIMIT<1 THEN IT WILL REPLACE ONLY SMALL NUMBER FORMAT, IF >1 IT REPLACES BIG NUMBER FORMAT
+        // { CUTOFF_LIMIT FORMAT_STRING CUTOFF_LIMIT FORMAT_STRING } --> REPLACE BIG OR SMALL FORMATS OR BOTH, BUT NOT THE DEFAULT ONE
+        // { DEFAULT_FORMAT_STRING SMALL_CUTOFF SMALL_FORMAT_STRING BIGNUM_CUTOFF BIGNUM_FORMAT_STRING } --> REPLACE ALL 3 FORMATS
+
+        // IF REAL NUMBERS ARE OMITTED, THE DEFAULT CUTOFF VALUES OF 1E12 AND 1E-12 WILL BE USED
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        NUMFORMAT f;
+        rplGetSystemNumberFormat(&f);   // GET CURRENT NUMBER FORMAT, TO OVERWRITE
+
+        WORDPTR item;
+        BINT nitems;
+        BINT format;
+        REAL num;
+        BINT hasnumber;
+
+       item=rplPeekData(1);
+       if(ISLIST(*item)) {
+            nitems=rplListLength(item);
+            item++;
+            hasnumber=0;
+        }
+        else { nitems=1; hasnumber=-1; }
+
+        while(nitems>0) {
+            if(ISNUMBER(*item)) {
+                rplReadNumberAsReal(item,&num);
+                rplOneToRReg(2);
+                if(gteReal(&num,&RReg[0])) {
+                    cloneReal(&f.BigLimit,&num);
+                    hasnumber=2;
+                }
+                else {
+                    cloneReal(&f.SmallLimit,&num);
+                    hasnumber=1;
+                }
+            }
+            else {
+                if(ISSTRING(*item)) {
+                    format=rplNumFormatFromString(item);
+                    if(format<0) {
+                        rplError(ERR_INVALIDNUMFORMAT);
+                        return;
+                    }
+
+                    switch(hasnumber)
+                    {
+
+                    case -1: // SINGLE STRING FOR ALL FORMATS
+                        f.BigFmt=f.MiddleFmt=f.SmallFmt=format;
+                        break;
+                    case 0: // FIRST STRING, NO NUMBERS BEFORE
+                    case 5: // STRING HAS NO NUMBER PRECEDING, BIG FORMAT WAS ALREADY SET, SO LOOP BACK TO NORMAL FORMAT
+                    default:
+                        f.MiddleFmt=format;
+                        hasnumber=3;
+                        break;
+                    case 1: // STRING HAS A SMALL NUMBER PRECEDING
+                    case 3: // STRING HAS NO NUMBER PRECEDING, MIDDLE FORMAT WAS ALREADY SET
+                        f.SmallFmt=format;
+                        hasnumber=4;
+                        break;
+                    case 2: // STRING HAS A BIG NUMBER PRECEDING
+                    case 4: // STRING HAS NO NUMBER PRECEDING, SMALL FORMAT WAS ALREADY SET
+                        f.BigFmt=format;
+                        hasnumber=5;
+                        break;
+                    }
+
+                }
+                else {
+                    rplError(ERR_INVALIDNUMFORMAT);
+                    return;
+                }
+
+        }
+        --nitems;
+        item=rplSkipOb(item);
+    }
+
+    rplSetSystemNumberFormat(&f);
+    rplDropData(1);
+
+    return;
+    }
+
+
+
+
     case CF:
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -2131,6 +2560,154 @@ void LIB_HANDLER()
 
            return;
        }
+
+
+    case GETLOCALE:
+    {
+        // GET LOCALE STRING
+
+        UBINT64 loc;
+
+        loc=rplGetSystemLocale();
+
+        // MAKE THE LOCALE STRING
+
+        BYTE locbase[16];   // 4 BYTES PER UNICODE CHARACTER MAXIMUM
+        BYTEPTR locstr=locbase;
+
+        WORD uchar;
+
+        uchar=cp2utf8((int)DECIMAL_DOT(loc));
+        while(uchar) { *locstr++=uchar&0xff; uchar>>=8; }
+
+        uchar=cp2utf8((int)THOUSAND_SEP(loc));
+        while(uchar) { *locstr++=uchar&0xff; uchar>>=8; }
+
+        uchar=cp2utf8((int)FRAC_SEP(loc));
+        while(uchar) { *locstr++=uchar&0xff; uchar>>=8; }
+
+        uchar=cp2utf8((int)ARG_SEP(loc));
+        while(uchar) { *locstr++=uchar&0xff; uchar>>=8; }
+
+
+        WORDPTR item=rplCreateString(locbase,locstr);
+        if(!item) return;
+
+        rplPushData(item);
+
+        return;
+    }
+    case GETNFMT:
+    {
+        // GET SYSTEM NUMBER FORMAT IN USER-READABLE FORMAT
+        NUMFORMAT f;
+
+        rplGetSystemNumberFormat(&f);
+
+        // COPY REALS TO REGISTERS IN CASE OF GC
+        copyReal(&RReg[0],&f.SmallLimit);
+        copyReal(&RReg[1],&f.BigLimit);
+
+        WORDPTR *savestk=DSTop;
+
+        WORDPTR obj;
+
+        obj=rplNumFormat2String(f.MiddleFmt);
+        if(!obj) { DSTop=savestk; return; }
+        rplPushData(obj);
+
+        rplNewRealFromRRegPush(0);
+        if(Exceptions) { DSTop=savestk; return; }
+        obj=rplNumFormat2String(f.SmallFmt);
+        if(!obj) { DSTop=savestk; return; }
+        rplPushData(obj);
+
+        rplNewRealFromRRegPush(1);
+        if(Exceptions) { DSTop=savestk; return; }
+        obj=rplNumFormat2String(f.BigFmt);
+        if(!obj) { DSTop=savestk; return; }
+        rplPushData(obj);
+
+        obj=rplCreateListN(5,1,1);
+        if(!obj) { DSTop=savestk; return; }
+
+        rplPushData(obj);
+        return;
+
+    }
+
+
+    case RCLF:
+    {
+            if(!ISLIST(*SystemFlags)) {
+                rplError(ERR_SYSTEMFLAGSINVALID);
+                return;
+            }
+            // MAKE A NON-SELF-MODIFYING COPY OF THE SYSTEM FLAGS
+            WORDPTR newlist = rplMakeNewCopy(SystemFlags);
+            if(!newlist) return;
+            rplPushData(newlist);
+            return;
+    }
+
+
+    case STOF:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISLIST(*rplPeekData(1))) {
+            rplError(ERR_LISTEXPECTED);
+            return;
+        }
+
+        if(!ISLIST(*SystemFlags)) {
+            // TRY TO RECOVER INSTEAD OF ERROR
+            rplResetSystemFlags();
+            if(!SystemFlags) {
+                rplError(ERR_SYSTEMFLAGSINVALID);
+                return;
+            }
+            rplStoreSettings((WORDPTR)flags_ident,SystemFlags);
+        }
+
+        BINT nitems=rplListLength(rplPeekData(1));
+        if(nitems!=5) {
+            rplError(ERR_SYSTEMFLAGSINVALID);
+            return;
+        }
+
+        // ALL BINTS
+        BINT k;
+        for(k=1;k<=5;++k) {
+            if(!ISBINT(*rplGetListElement(rplPeekData(1),k))) {
+                rplError(ERR_SYSTEMFLAGSINVALID);
+                return;
+            }
+        }
+
+        // IT ALL CHECKS OUT, DO THE MAGIC:
+
+        UBINT64 value;
+        WORDPTR nptr=SystemFlags+2; // DATA OF THE FIRST 64-BIT INTEGER
+        UBINT64 *uptr;
+        for(k=1;k<=5;++k) {
+            value=rplReadBINT(rplGetListElement(rplPeekData(1),k));
+            uptr=(UBINT64 *)nptr;
+            *uptr=value;
+            nptr+=3;
+        }
+        rplDropData(1);
+        return;
+
+    }
+
+
+
+
+
 
     // ADD MORE OPCODES HERE
 

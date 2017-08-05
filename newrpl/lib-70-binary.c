@@ -103,6 +103,22 @@ void LIB_HANDLER()
             CurOpcode=saveOpcode;
             return;
         }
+        // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
+            if(OPCODE(CurOpcode)==OVR_SAME) {
+                if(*rplPeekData(2)==*rplPeekData(1)) {
+                    rplDropData(2);
+                    rplPushTrue();
+                } else {
+                    rplDropData(2);
+                    rplPushFalse();
+                }
+
+            }
+            else {
+                rplError(ERR_INVALIDOPCODE);
+                return;
+            }
+
     }
 
     switch(OPCODE(CurOpcode))

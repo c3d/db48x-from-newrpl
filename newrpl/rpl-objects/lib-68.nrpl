@@ -25,6 +25,7 @@
 ##1,ERR_INVALIDMENUDEFINITION "Invalid menu definition"
 ##1,ERR_INVALIDKEYNAME "Invalid key name"
 ##1,ERR_INVALIDKEYDEFINITION "Invalid key definition"
+##1,ERR_INVALIDNUMFORMAT "Invalid number format"
 }
 
 
@@ -56,6 +57,7 @@
 { { "Angles" 1 } { ::   #03000000h TMENULST ; ::   #03000000h TMENUOTHR ; } }
 { { "Matrix" 1 } { ::   #03400000h TMENULST ; ::   #03400000h TMENUOTHR ; } }
 { { "List" 1 } { ::   #03e00000h TMENULST ; ::   #03e00000h TMENUOTHR ; } }
+{ { "Comp" 1 } { ::   #06000000h TMENULST ; ::   #06000000h TMENUOTHR ; } }
 { { "Flag" 1 } { ::   #04407000h TMENULST ; ::   #04407000h TMENUOTHR ; } }
 { { "Menu" 1 } { ::   #04408000h TMENULST ; ::   #04408000h TMENUOTHR ; } }
 { { "Clip" 1 } { ::   #04c01000h TMENULST ; ::   #04c01000h TMENUOTHR ; } }
@@ -69,6 +71,9 @@
 { { "Trig" 1 } { ::   #04201000h TMENULST ; ::   #04201000h TMENUOTHR ; } }
 { { "Hyp" 1 } { ::   #04202000h TMENULST ; ::   #04202000h TMENUOTHR ; } }
 { { "Log" 1 } { ::   #04203000h TMENULST ; ::   #04203000h TMENUOTHR ; } }
+{ { "List" 1 } { ::  #03e01000h TMENULST ; ::   #03e01000h TMENUOTHR ; } }
+{ { "Matrix" 1 } { ::  #03401000h TMENULST ; ::   #03401000h TMENUOTHR ; } }
+
 }
 
 @#name sysmenu_5_symb
@@ -104,7 +109,7 @@ COPYCLIP CUTCLIP PASTECLIP
 @#name sysmenu_10_settings
 {
 { { "Flags" 1 } { ::   #0440b000h TMENULST ; ::   #0440b000h TMENUOTHR ; } }
-SETPREC GETPREC SETLOCALE SETNUMFORMAT DEG GRAD RAD DMS
+SETPREC SETNFMT SETLOCALE GETPREC GETNFMT GETLOCALE DEG GRAD RAD DMS
 }
 
 
@@ -205,10 +210,19 @@ SETLOCALE
 string: <Dec><Thou><Frac><Arg>
 S →"
 
-SETNUMFORMAT
+SETNFMT
 "Change number format
-(not yet implemented)
-S →"
+
+<R|S|L> →"
+
+GETLOCALE
+"Get separators
+ → S "
+
+GETNFMT
+"Get current number
+format
+ → L"
 
 SF
 "Set flag by number or name

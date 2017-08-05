@@ -629,12 +629,14 @@ void LIB_HANDLER()
         // ADD MORE OPCODES HERE
 
 
-
-
-
-
-
-
+    case OVR_SAME:
+    // COMPARE PROGRAMS AS PLAIN OBJECTS, THIS INCLUDES SIMPLE COMMANDS IN THIS LIBRARY
+        {
+         BINT same=rplCompareObjects(rplPeekData(1),rplPeekData(2));
+         rplDropData(2);
+         if(same) rplPushTrue(); else rplPushFalse();
+         return;
+        }
 
 
 

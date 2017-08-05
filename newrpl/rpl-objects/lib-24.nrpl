@@ -19,7 +19,7 @@
 {
    →STR STR→ →UTF8 UTF8→ SREV
    NTOKENS NTHTOKEN NTHTOKENPOS TRIM RTRIM
-   STRLEN STRLENCP →NFC
+   STRLEN STRLENCP →NFC SREPL
 }
 
 @#name lib24_msgtable
@@ -91,5 +91,11 @@ S → I "
 "Ensure a string meets
 Unicode NFC normalization
 S → S"
+
+SREPL
+"Replace text in a string
+and return repl. count.
+S S<find> S<repl> → S I"
+
 
 }

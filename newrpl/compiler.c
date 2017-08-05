@@ -1899,7 +1899,26 @@ end_of_expression:
     }
     }
 
+
     // DONE, HERE WE HAVE THE STRING FINISHED
+
+    // REMOVE END NEWLINE AND INDENT IF PRESENT
+        if(lastnewline && !Exceptions) {
+            BYTEPTR start=(((BYTEPTR)CompileEnd)+lastnloffset),ptr=(BYTEPTR)DecompStringEnd;
+            do {
+                --ptr;
+                if(*ptr=='\n') break;
+                if(*ptr!=' ') break;
+            } while(ptr>start);
+
+            if(*ptr=='\n') DecompStringEnd=(WORDPTR)ptr;
+        }
+
+
+
+
+
+
 
     if(!(flags&DECOMP_EMBEDDED)) {
     // STORE THE SIZE OF THE STRING IN WORDS IN THE PROLOG

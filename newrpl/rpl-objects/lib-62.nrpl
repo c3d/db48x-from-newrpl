@@ -48,8 +48,15 @@ HEAD
 TAIL
 }
 
-
-
+@LIST MENU SHOWN INSIDE THE Math PART OF THE MAIN MENU
+@#name lib62_menu_2
+{
+ΔLIST
+ΣLIST
+ΠLIST
+SORT
+REVLIST
+}
 
 
 

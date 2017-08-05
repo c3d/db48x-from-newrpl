@@ -431,6 +431,20 @@ void LIB_HANDLER()
             arg2=rplPeekData(1);
 
             if(!ISNUMBERCPLX(*arg1) || !ISNUMBERCPLX(*arg2)) {
+
+                // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
+                    if( (OPCODE(CurOpcode)==OVR_SAME) &&(!ISPROLOG(*arg1)|| !ISPROLOG(*arg2))) {
+                        if(*rplPeekData(2)==*rplPeekData(1)) {
+                            rplDropData(2);
+                            rplPushTrue();
+                        } else {
+                            rplDropData(2);
+                            rplPushFalse();
+                        }
+                        return;
+
+                    }
+
                 rplError(ERR_COMPLEXORREALEXPECTED);
                 return;
             }

@@ -249,9 +249,9 @@ void rplListAutoExpand(WORDPTR list)
 
 
 // List handling for funtions with 2 argument
-void rplListBinaryDoCmd(WORDPTR arg1, WORDPTR arg2)
+void rplListBinaryDoCmd()
 {
-    if(ISLIST(*arg1) && ISLIST(*arg2)) {
+    if(ISLIST(*rplPeekData(2)) && ISLIST(*rplPeekData(1))) {
 
         WORDPTR *savestk=DSTop;
         WORDPTR newobj=rplAllocTempOb(2);
@@ -274,7 +274,7 @@ void rplListBinaryDoCmd(WORDPTR arg1, WORDPTR arg2)
 
         return;
     }
-    else if(ISLIST(*arg1) && !ISLIST(*arg2)){
+    else if(ISLIST(*rplPeekData(2)) && !ISLIST(*rplPeekData(1))){
 
         BINT size1=rplObjSize(rplPeekData(1));
         WORDPTR *savestk=DSTop;
@@ -302,7 +302,7 @@ void rplListBinaryDoCmd(WORDPTR arg1, WORDPTR arg2)
         return;
 
     }
-    else if(!ISLIST(*arg1) && ISLIST(*arg2)){
+    else if(!ISLIST(*rplPeekData(2)) && ISLIST(*rplPeekData(1))){
 
         BINT size1=rplObjSize(rplPeekData(2));
         WORDPTR *savestk=DSTop;
@@ -436,4 +436,95 @@ memmovew(newlist+1,ScratchPointer1+1,oldobjoffset-1);
 memmovew(newlist+oldobjoffset,ScratchPointer2,newobjsize);
 memmovew(newlist+oldobjoffset+newobjsize,ScratchPointer1+oldobjoffset+oldobjsize,OBJSIZE(*ScratchPointer1)-(oldobjoffset+oldobjsize-1));
 return newlist;
+}
+
+
+// List handling for funtions with many arguments, only one of them can be a list
+
+void rplListMultiArgDoCmd(BINT nargs)
+{
+    BINT k;
+    for(k=nargs;k>=1;--k) {
+
+    if(ISLIST(*rplPeekData(k))) {
+
+            BINT j;
+            BINT size1=0;
+
+            // GET THE SIZE OF ALL OTHER ARGUMENTS
+            for(j=1;j<=nargs;++j) {
+            if(j!=k) size1+=rplObjSize(rplPeekData(j));
+            }
+
+        WORDPTR *savestk=DSTop;
+
+        WORDPTR newobj=rplAllocTempOb(7+6+size1),newcmd;
+
+        if(!newobj) return;
+
+        // CREATE A PROGRAM AND RUN THE MAP COMMAND
+        newobj[0]=MKPROLOG(DOCOL,6+size1);
+
+            // COPY ALL OTHER ARGUMENTS
+            BINT offset=1;
+            for(j=nargs;j>=1;--j) {
+            if(j!=k) {
+            rplCopyObject(newobj+offset,rplPeekData(j));
+            offset+=rplObjSize(rplPeekData(j));
+            }
+            }
+            // NOW MAKE SURE THE ARGUMENTS ARE IN THE PROPER ORDER
+            if(k!=nargs) {
+            newobj[offset]=MAKESINT(nargs);
+            ++offset;
+            newobj[offset]=CMD_ROLL;
+            ++offset;
+            if(k!=1) {
+            newobj[offset]=MAKESINT(k);
+            ++offset;
+            newobj[offset]=CMD_ROLLD;
+            ++offset;
+            }
+            }
+            // AND DO THE OPERATION
+            newobj[offset]=CurOpcode;
+            ++offset;
+            newobj[offset]=CMD_SEMI;
+            ++offset;
+
+            newcmd=newobj+offset;
+            // ANOTHER SECONDARY THAT DOES MAP THEN CLEANS UP THE STACK
+            newobj[offset]=MKPROLOG(SECO,6);
+            ++offset;
+            newobj[offset]=CMD_MAP;
+            ++offset;
+            newobj[offset]=MAKESINT(nargs+1);
+            ++offset;
+            newobj[offset]=CMD_ROLLD;
+            ++offset;
+            newobj[offset]=MAKESINT(nargs);
+            ++offset;
+            newobj[offset]=CMD_DROPN;
+            ++offset;
+            newobj[offset]=CMD_SEMI;
+            ++offset;
+
+        rplPushDataNoGrow(rplPeekData(k));
+        rplPushDataNoGrow(newobj);
+        rplPushData(newcmd);
+        rplCallOvrOperator(CMD_OVR_XEQ);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+                return;
+            }
+
+        // EXECUTION WILL CONTINUE AT MAP
+
+        return;
+
+    }
+
+    }
+
 }

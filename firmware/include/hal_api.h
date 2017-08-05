@@ -233,10 +233,6 @@ enum {
 typedef void (*__interrupt__)(void);
 
 
-// Firmware preamble string
-
-#define PREAMBLE_STRING "KINPOUPDATEIMAGE"
-
 
 
 // THIS ENUM MUST BE DUPLICATED EXACTLY IN hal.h OF THE NEWRPL-BASE PROJECT

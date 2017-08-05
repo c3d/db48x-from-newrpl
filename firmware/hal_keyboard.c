@@ -3765,6 +3765,7 @@ case 11:
 }
 
 rplSetSystemNumberFormat(&fmt);
+uiClearRenderCache();
 halScreen.DirtyFlag|=STACK_DIRTY;
 
 }
@@ -3828,6 +3829,7 @@ case 3:
 }
 
 rplSetSystemNumberFormat(&fmt);
+uiClearRenderCache();
 halScreen.DirtyFlag|=STACK_DIRTY;
 
 }
@@ -3900,6 +3902,7 @@ if(option>15) option-=15;
 
 
 rplSetSystemNumberFormat(&fmt);
+uiClearRenderCache();
 halScreen.DirtyFlag|=STACK_DIRTY;
 
 }
@@ -3947,11 +3950,11 @@ void onDigitKeyHandler(BINT keymsg)
 
 
     fmt.MiddleFmt&=~FMT_NUMDIGITS;
-    fmt.MiddleFmt|=digits;
+    fmt.MiddleFmt|=FMT_DIGITS(digits);
     fmt.BigFmt&=~FMT_NUMDIGITS;
-    fmt.BigFmt|=digits;
+    fmt.BigFmt|=FMT_DIGITS(digits);
     fmt.SmallFmt&=~FMT_NUMDIGITS;
-    fmt.SmallFmt|=digits;
+    fmt.SmallFmt|=FMT_DIGITS(digits);
 
     digits+='0';
 
@@ -3969,6 +3972,7 @@ DrawTextBk(STATUSAREA_X+1,ytop+1+halScreen.StAreaFont->BitmapHeight,(char *)&dig
 
 
 rplSetSystemNumberFormat(&fmt);
+uiClearRenderCache();
 halScreen.DirtyFlag|=STACK_DIRTY;
 
 }

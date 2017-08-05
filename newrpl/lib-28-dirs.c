@@ -54,7 +54,10 @@
     CMD(UNHIDEVAR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(CLVAR,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(LOCKVAR,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(UNLOCKVAR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2))
+    CMD(UNLOCKVAR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RENAME,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TVARS,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TVARSE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
 
 
 
@@ -1198,10 +1201,210 @@ case UNLOCKVAR:
 
 
 
+    case RENAME:
+    {
+        // RENAME A LAM OR GLOBAL VARIABLE
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        // ONLY ACCEPT IDENTS AS KEYS
+
+        if(!ISIDENT(*rplPeekData(1))||!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+
+        WORDPTR *val=rplFindLAM(rplPeekData(2),0);  // DON'T ALLOW TO RENAME IN UPPER ENVIRONMENTS
 
 
 
+        if(val) {
+            if(ISLOCKEDIDENT(*val[0])) {
+                rplError(ERR_READONLYVARIABLE);
+                return;
+            }
+            val[0]=rplPeekData(1);
+            rplDropData(2);
+        }
+        else {
+            // LAM WAS NOT FOUND, TRY A GLOBAL
+            val=rplFindGlobal(rplPeekData(2),0);
+            if(val) {
+                if(ISLOCKEDIDENT(*val[0])) {
+                    rplError(ERR_READONLYVARIABLE);
+                    return;
+                }
+                val[0]=rplPeekData(1);
+                rplDropData(2);
+            }
+            else {
+                rplError(ERR_UNDEFINEDVARIABLE);
+                return;
+            }
+        }
+    }
+    return;
 
+
+case TVARS:
+    {
+    if(rplDepthData()<1) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+
+    BINT nitems;
+    WORDPTR first,itemptr;
+    if(!ISLIST(*rplPeekData(1))) { nitems=1; first=rplPeekData(1); }
+    else {
+        nitems=rplListLength(rplPeekData(1));
+        first=rplPeekData(1)+1;
+    }
+    // SCAN CURRENT DIRECTORY FOR VARIABLES
+
+    BINT nvars=rplGetVisibleVarCount();
+    WORDPTR *savestk=DSTop;
+    BINT k,j,totalcount=0;
+    WORDPTR *var;
+
+    for(k=0;k<nvars;++k)
+    {
+        var=rplFindVisibleGlobalByIndex(k);
+
+        LIBHANDLER han=rplGetLibHandler(LIBNUM(*var[1]));
+
+        // GET THE SYMBOLIC TOKEN INFORMATION
+        if(han) {
+            WORD savecurOpcode=CurOpcode;
+            ObjectPTR=var[1];
+            CurOpcode=MKOPCODE(LIBNUM(*ObjectPTR),OPCODE_GETINFO);
+            (*han)();
+
+            CurOpcode=savecurOpcode;
+
+            if(RetNum>OK_TOKENINFO) {
+
+                BINT type=TypeInfo/100;
+
+                // SCAN ENTIRE LIST
+
+                itemptr=first;
+                for(j=0;j<nitems;++j,itemptr=rplSkipOb(itemptr)) {
+                    BINT64 ltype=rplReadNumberAsBINT(itemptr);
+                    if(Exceptions) {
+                        DSTop=savestk;
+                        return;
+                    }
+                    if(type==ltype) {
+                        // SAVE REGISTERS
+                        ScratchPointer1=first;
+                        ScratchPointer2=itemptr;
+                        rplPushData(var[0]);
+                        ++totalcount;
+                        first=ScratchPointer1;
+                        itemptr=ScratchPointer2;
+                        break;
+                    }
+
+                }
+
+            }
+        }
+
+    }
+
+    WORDPTR newlist=rplCreateListN(totalcount,1,1);
+    if(!newlist) {
+        DSTop=savestk;
+        return;
+    }
+    rplOverwriteData(1,newlist);
+
+    return;
+    }
+
+case TVARSE:
+        {
+        // SAME AS TVARS BUT USE EXTENDED TYPE INFORMATION
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        BINT nitems;
+        WORDPTR first,itemptr;
+        if(!ISLIST(*rplPeekData(1))) { nitems=1; first=rplPeekData(1); }
+        else {
+            nitems=rplListLength(rplPeekData(1));
+            first=rplPeekData(1)+1;
+        }
+        // SCAN CURRENT DIRECTORY FOR VARIABLES
+
+        BINT nvars=rplGetVisibleVarCount();
+        WORDPTR *savestk=DSTop;
+        BINT k,j,totalcount=0;
+        WORDPTR *var;
+
+        for(k=0;k<nvars;++k)
+        {
+            var=rplFindVisibleGlobalByIndex(k);
+
+            LIBHANDLER han=rplGetLibHandler(LIBNUM(*var[1]));
+
+            // GET THE SYMBOLIC TOKEN INFORMATION
+            if(han) {
+                WORD savecurOpcode=CurOpcode;
+                ObjectPTR=var[1];
+                CurOpcode=MKOPCODE(LIBNUM(*ObjectPTR),OPCODE_GETINFO);
+                (*han)();
+
+                CurOpcode=savecurOpcode;
+
+                if(RetNum>OK_TOKENINFO) {
+
+                    BINT type=TypeInfo;
+
+                    // SCAN ENTIRE LIST
+
+                    itemptr=first;
+                    for(j=0;j<nitems;++j,itemptr=rplSkipOb(itemptr)) {
+                        REAL rtype;
+                        rplReadNumberAsReal(itemptr,&rtype);
+                        if(Exceptions) {
+                            DSTop=savestk;
+                            return;
+                        }
+                        rtype.exp+=2;
+                        BINT ltype=getBINTReal(&rtype);
+
+                        if(type==ltype) {
+                            // SAVE REGISTERS
+                            ScratchPointer1=first;
+                            ScratchPointer2=itemptr;
+                            rplPushData(var[0]);
+                            ++totalcount;
+                            first=ScratchPointer1;
+                            itemptr=ScratchPointer2;
+                            break;
+                        }
+
+                    }
+
+                }
+            }
+
+        }
+
+        WORDPTR newlist=rplCreateListN(totalcount,1,1);
+        if(!newlist) {
+            DSTop=savestk;
+            return;
+        }
+        rplOverwriteData(1,newlist);
+
+        return;
+        }
 
     case OVR_EVAL:
     case OVR_EVAL1:
@@ -1228,8 +1431,33 @@ case UNLOCKVAR:
         return;
     }
         return;
-    case OVR_NUM:
-        // DO NOTHING
+    case OVR_SAME:
+
+        // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
+            if(!ISPROLOG(*rplPeekData(2))|| !ISPROLOG(*rplPeekData(1))) {
+                if(*rplPeekData(2)==*rplPeekData(1)) {
+                    rplDropData(2);
+                    rplPushTrue();
+                } else {
+                    rplDropData(2);
+                    rplPushFalse();
+                }
+                return;
+
+            }
+            else {
+                rplError(ERR_INVALIDOPCODE);
+                return;
+            }
+
+            // DIRECTORY OBJECTS ARE THE SAME ONLY IF THEY POINT TO THE SAME DIRECTORY, HENCE THEY ARE THE SAME HANDLE
+            if(rplPeekData(2)==rplPeekData(1)) {
+                rplDropData(2);
+                rplPushTrue();
+            } else {
+                rplDropData(2);
+                rplPushFalse();
+            }
         return;
 
     // STANDARIZED OPCODES:

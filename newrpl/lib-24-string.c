@@ -40,7 +40,8 @@
     CMD(RTRIM,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     ECMD(SSTRLEN,"STRLEN",MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(STRLENCP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(TONFC,"→NFC",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    ECMD(TONFC,"→NFC",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SREPL,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
 
 
 // ADD MORE OPCODES HERE
@@ -114,7 +115,7 @@ BINT rplStrLenCp(WORDPTR string)
     return 0;
 }
 
-// COMPUTE THE STRING LENGTH IN CODE POINTS
+// COMPUTE THE STRING LENGTH IN CHARACTERS
 BINT rplStrLen(WORDPTR string)
 {
     if(ISSTRING(*string))  {
@@ -905,6 +906,126 @@ void LIB_HANDLER()
 
     // ADD MORE OPCODES HERE
 
+     case SREPL:
+    {
+        // MULTIPLE FIND AND REPLACE
+        if(rplDepthData()<3) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+            if(ISLIST(*rplPeekData(3))||ISLIST(*rplPeekData(2))||ISLIST(*rplPeekData(1))) {
+                rplListMultiArgDoCmd(3);
+                return;
+            }
+
+
+            if(!ISSTRING(*rplPeekData(3)) || !ISSTRING(*rplPeekData(2)) || !ISSTRING(*rplPeekData(1)) ) {
+                rplError(ERR_STRINGEXPECTED);
+                return;
+            }
+
+            BINT lenstr1,lenfind,lenfindcp,pos,maxpos,sizestr1,sizefind,sizerepl;
+            BYTEPTR str1,find,repl,end1;
+
+
+            pos=1;
+
+
+            repl=(BYTEPTR)(rplPeekData(1)+1);
+            find=(BYTEPTR)(rplPeekData(2)+1);
+            str1=(BYTEPTR)(rplPeekData(3)+1);
+            lenstr1=rplStrLen(rplPeekData(3));
+            lenfind=rplStrLen(rplPeekData(2));
+            lenfindcp=rplStrLenCp(rplPeekData(2));
+            sizestr1=rplStrSize(rplPeekData(3));
+            sizefind=rplStrSize(rplPeekData(2));
+            sizerepl=rplStrSize(rplPeekData(1));
+            end1=str1+sizestr1;
+
+            if(lenfind>lenstr1) {
+                // WILL NEVER FIND A LONGER STRING INSIDE A SHORT ONE
+                rplDropData(2);
+                rplPushData((WORDPTR)zero_bint);
+                return;
+            }
+
+            maxpos=lenstr1-lenfind+1;
+
+            WORDPTR newstring=rplCreateStringBySize(1);
+            BINT newsize=0,rcount=0;
+            BYTEPTR nextchar=str1;
+
+            // DO SEARCH AND REPLACE
+
+            for(;pos<=maxpos;++pos)
+            {
+                if(utf8ncmp((char *)nextchar,(char *)find,lenfindcp)==0) {
+                    // FOUND A MATCH, COPY THE STRING SO FAR AND THE REPLACEMENT
+                    BINT newsize2=newsize+(nextchar-str1)+sizerepl;
+                    if( ((newsize2+3)>>2)>((newsize+3)>>2) ) {
+                        BINT endoff=end1-str1;
+                        ScratchPointer1=(WORDPTR)str1;
+                        ScratchPointer2=(WORDPTR)find;
+                        ScratchPointer3=(WORDPTR)repl;
+                        ScratchPointer4=newstring;
+                        rplResizeLastObject(((newsize2+3)>>2)-((newsize+3)>>2) );
+                        if(Exceptions) return;
+                        str1=(BYTEPTR)ScratchPointer1;
+                        find=(BYTEPTR)ScratchPointer2;
+                        repl=(BYTEPTR)ScratchPointer3;
+                        newstring=ScratchPointer4;
+                        end1=str1+endoff;
+                    }
+
+                    memmoveb(((BYTEPTR)(newstring+1))+newsize,str1,nextchar-str1);
+                    memmoveb(((BYTEPTR)(newstring+1))+newsize+(nextchar-str1),repl,sizerepl);
+
+                    newsize=newsize2;
+
+                    nextchar+=sizefind;
+                    str1=nextchar;
+                    pos+=lenfind-1;
+                    ++rcount;
+                }
+                else {
+                nextchar=(BYTEPTR)utf8skipst((char *)nextchar,(char *)end1);
+                }
+
+            }
+
+            // NOT FOUND
+            // FOUND A MATCH, COPY THE STRING SO FAR AND THE REPLACEMENT
+            BINT newsize2=newsize+(end1-str1);
+            if( ((newsize2+3)>>2)>((newsize+3)>>2) ) {
+                BINT endoff=end1-str1;
+                ScratchPointer1=(WORDPTR)str1;
+                ScratchPointer2=(WORDPTR)find;
+                ScratchPointer3=(WORDPTR)repl;
+                ScratchPointer4=newstring;
+                rplResizeLastObject(((newsize2+3)>>2)-((newsize+3)>>2) );
+                if(Exceptions) return;
+                str1=(BYTEPTR)ScratchPointer1;
+                find=(BYTEPTR)ScratchPointer2;
+                repl=(BYTEPTR)ScratchPointer3;
+                newstring=ScratchPointer4;
+                end1=str1+endoff;
+            }
+
+            if(rcount) {
+            memmoveb(((BYTEPTR)(newstring+1))+newsize,str1,end1-str1);
+            rplSetStringLength(newstring,newsize2);
+            rplDropData(3);
+            rplPushDataNoGrow(newstring);
+            rplNewBINTPush(rcount,DECBINT);
+            return;
+            }
+            rplDropData(2);
+            rplPushData((WORDPTR)zero_bint);
+            return;
+     }
+
+
     case OVR_ADD:
         // APPEND TWO STRINGS
     {
@@ -964,6 +1085,31 @@ void LIB_HANDLER()
         return;
 
     case OVR_SAME:
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
+            if(!ISPROLOG(*rplPeekData(2))|| !ISPROLOG(*rplPeekData(1))) {
+                if(*rplPeekData(2)==*rplPeekData(1)) {
+                    rplDropData(2);
+                    rplPushTrue();
+                } else {
+                    rplDropData(2);
+                    rplPushFalse();
+                }
+                return;
+
+            }
+            else {
+                rplError(ERR_INVALIDOPCODE);
+                return;
+            }
+
+        // DELIBERATED FALL-THROUGH TO OVR_EQ WHEN THERE'S NO COMMANDS INVOLVED
+
+    }
     case OVR_EQ:
 
         if(rplDepthData()<2) {
