@@ -1098,7 +1098,10 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
 
             BYTEPTR string=(BYTEPTR)(CmdLineText+1)+startoff;
             BYTEPTR selst,selend;
-            BYTEPTR strend=(BYTEPTR)(CmdLineText+1)+endoff;
+            BYTEPTR strend;
+
+            if((startoff>=0) && (endoff<0)) strend=(BYTEPTR)(CmdLineText+1)+rplStrSize(CmdLineText);
+            else strend=(BYTEPTR)(CmdLineText+1)+endoff;
             BINT xcoord,tail;
 
             selst=selend=strend;
