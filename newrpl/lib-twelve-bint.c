@@ -1266,7 +1266,7 @@ void LIB_HANDLER()
 
     BINT64 result;
     UBINT64 uresult;
-    BYTEPTR strptr;
+    BYTEPTR strptr,strend;
     int base,libbase,digit,count,neg,argnum1;
     char basechr;
 
@@ -1298,6 +1298,7 @@ void LIB_HANDLER()
         // COMPILE A NUMBER TO A SINT OR A BINT, DEPENDING ON THE ACTUAL NUMERIC VALUE
         result=0;
         strptr=(BYTEPTR )TokenStart;
+        strend=(BYTEPTR)BlankStart;
         base=10;
         libbase=DECBINT;
         neg=0;
@@ -1306,28 +1307,35 @@ void LIB_HANDLER()
         if(*strptr=='-') { neg=1; ++strptr; --argnum1; }
         else if(*strptr=='+') { neg=0; ++strptr; --argnum1; }
 
+        if(argnum1<=0) { RetNum=ERR_NOTMINE; return; }
+
         if(*strptr=='#') {
             ++strptr;
             --argnum1;
-            // THIS IS A NUMBER WITH A BASE
-            basechr=strptr[argnum1-1];
+            if(argnum1<=0) { RetNum=ERR_NOTMINE; return; }
 
-            if( (basechr=='d') || (basechr=='D')) { --argnum1; }
-            if( (basechr=='h') || (basechr=='H')) { base=16; libbase=HEXBINT; --argnum1; }
-            if( (basechr=='o') || (basechr=='O')) { base=8; libbase=OCTBINT; --argnum1; }
-            if( (basechr=='b') || (basechr=='B')) { base=2; libbase=BINBINT; --argnum1; }
+            // THIS IS A NUMBER WITH A BASE
+            basechr=strend[-1];
+
+            if( (basechr=='d') || (basechr=='D')) { --argnum1; --strend; }
+            if( (basechr=='h') || (basechr=='H')) { base=16; libbase=HEXBINT; --argnum1; --strend; }
+            if( (basechr=='o') || (basechr=='O')) { base=8; libbase=OCTBINT; --argnum1; --strend; }
+            if( (basechr=='b') || (basechr=='B')) { base=2; libbase=BINBINT; --argnum1; --strend; }
         }
 
-        if(strptr[argnum1-1]=='.') {
+        if(argnum1<=0) { RetNum=ERR_NOTMINE; return; }
+
+        if(strend[-1]=='.') {
          // NUMBERS ENDING IN A DOT ARE APPROXIMATED
             libbase|=APPROX_BIT;
             --argnum1;
+            --strend;
         }
 
-
             for(count=0;count<argnum1;++count) {
-                digit=utf82cp((char *)strptr+count,(char *)strptr+argnum1);
-                if(digit<0) { ++argnum1; continue; }
+                digit=utf82cp((char *)strptr,(char *)strend);
+                strptr=(BYTEPTR)utf8skipst((char *)strptr,(char *)strend);
+                if(digit<0) { RetNum=ERR_NOTMINE; return; }
                 if((base==10) && ((WORD)digit==THOUSAND_SEP(Locale))) continue;
                 if((digit>='0')&&(digit<='9')) digit-=48;
                 else if((digit>='a')&&(digit<='f')) digit-=87;

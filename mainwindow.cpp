@@ -311,6 +311,7 @@ void MainWindow::on_actionExit_triggered()
     maintmr->stop();
     screentmr->stop();
     if(rpl.isRunning()) {
+        __cpu_idle=0;
         __pc_terminate=1;
         __pckeymatrix^=(1ULL<<63);
         __keyb_update();
@@ -370,6 +371,7 @@ void MainWindow::on_actionSave_triggered()
         maintmr->stop();
         screentmr->stop();
         if(rpl.isRunning()) {
+            __cpu_idle=0;
             __pc_terminate=1;
             __pckeymatrix^=(1ULL<<63);
             __keyb_update();
@@ -413,6 +415,7 @@ void MainWindow::on_actionOpen_triggered()
         maintmr->stop();
         screentmr->stop();
         if(rpl.isRunning()) {
+            __cpu_idle=0;
             __pc_terminate=1;
             __pckeymatrix^=(1ULL<<63);
             __keyb_update();
@@ -506,6 +509,7 @@ void MainWindow::on_actionSaveAs_triggered()
         maintmr->stop();
         screentmr->stop();
         if(rpl.isRunning()) {
+            __cpu_idle=0;
             __pc_terminate=1;
             __pckeymatrix^=(1ULL<<63);
             __keyb_update();
@@ -538,6 +542,7 @@ void MainWindow::on_actionNew_triggered()
     maintmr->stop();
     screentmr->stop();
     if(rpl.isRunning()) {
+        __cpu_idle=0;
         __pc_terminate=1;
         __pckeymatrix^=(1ULL<<63);
         __keyb_update();
@@ -642,6 +647,7 @@ void MainWindow::on_actionPower_ON_triggered()
     maintmr->stop();
     screentmr->stop();
     if(rpl.isRunning()) {
+        __cpu_idle=0;
         __pc_terminate=1;
         __pckeymatrix^=(1ULL<<63);
         __keyb_update();
@@ -761,7 +767,7 @@ void MainWindow::on_actionOpen_file_to_Level_1_triggered()
 
     // NOW WORK ON THE RPL ENGINE WHILE THE THREAD IS BLOCKED
     if(!LoadRPLObject(fname)) {
-            QMessageBox a(QMessageBox::Warning,"Error while saving","Cannot write to file "+ fname,QMessageBox::Ok,this);
+            QMessageBox a(QMessageBox::Warning,"Error while opening","Cannot read file. Corrupted data?\n"+ fname,QMessageBox::Ok,this);
             a.exec();
             return;
     }

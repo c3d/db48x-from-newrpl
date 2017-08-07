@@ -932,16 +932,13 @@ void LIB_HANDLER()
             pos=1;
 
 
-            repl=(BYTEPTR)(rplPeekData(1)+1);
-            find=(BYTEPTR)(rplPeekData(2)+1);
-            str1=(BYTEPTR)(rplPeekData(3)+1);
+
             lenstr1=rplStrLen(rplPeekData(3));
             lenfind=rplStrLen(rplPeekData(2));
             lenfindcp=rplStrLenCp(rplPeekData(2));
             sizestr1=rplStrSize(rplPeekData(3));
             sizefind=rplStrSize(rplPeekData(2));
             sizerepl=rplStrSize(rplPeekData(1));
-            end1=str1+sizestr1;
 
             if(lenfind>lenstr1) {
                 // WILL NEVER FIND A LONGER STRING INSIDE A SHORT ONE
@@ -954,6 +951,11 @@ void LIB_HANDLER()
 
             WORDPTR newstring=rplCreateStringBySize(1);
             BINT newsize=0,rcount=0;
+
+            repl=(BYTEPTR)(rplPeekData(1)+1);
+            find=(BYTEPTR)(rplPeekData(2)+1);
+            str1=(BYTEPTR)(rplPeekData(3)+1);
+            end1=str1+sizestr1;
             BYTEPTR nextchar=str1;
 
             // DO SEARCH AND REPLACE
@@ -1125,6 +1127,24 @@ void LIB_HANDLER()
 
         if(rplStringCompare(rplPeekData(1),rplPeekData(2))) rplOverwriteData(2,(WORDPTR)one_bint);
         else rplOverwriteData(2,(WORDPTR)zero_bint);
+        rplDropData(1);
+        return;
+
+    case OVR_NOTEQ:
+
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if( (!ISSTRING(*rplPeekData(2))) || (!ISSTRING(*rplPeekData(1)))) {
+            rplOverwriteData(2,(WORDPTR)one_bint);
+            rplDropData(1);
+            return;
+        }
+
+        if(rplStringCompare(rplPeekData(1),rplPeekData(2))) rplOverwriteData(2,(WORDPTR)zero_bint);
+        else rplOverwriteData(2,(WORDPTR)one_bint);
         rplDropData(1);
         return;
 
