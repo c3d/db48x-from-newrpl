@@ -68,7 +68,10 @@
     CMD(GETLOCALE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(GETNFMT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(RCLF,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(STOF,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    CMD(STOF,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(VTYPE,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(VTYPEE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+
 
 
 
@@ -2705,7 +2708,112 @@ void LIB_HANDLER()
     }
 
 
+    case VTYPE:
+       {
+           if(rplDepthData()<1) {
+               rplError(ERR_BADARGCOUNT);
+               return;
+           }
 
+
+           if(ISLIST(*rplPeekData(1))) {
+               rplListUnaryDoCmd();
+               return;
+           }
+
+           if(!ISIDENT(*rplPeekData(1))) {
+               rplError(ERR_IDENTEXPECTED);
+               return;
+           }
+
+           // FIND THE VARIABLE
+           WORDPTR *var=rplFindLAM(rplPeekData(1),1);
+           if(!var)  {
+               // NO LAM, TRY A GLOBAL
+               var=rplFindGlobal(rplPeekData(1),1);
+               if(!var) {
+                   rplError(ERR_UNDEFINEDVARIABLE);
+               return;
+               }
+           }
+
+
+           LIBHANDLER han=rplGetLibHandler(LIBNUM(*var[1]));
+
+
+           // GET THE SYMBOLIC TOKEN INFORMATION
+           if(han) {
+               WORD savecurOpcode=CurOpcode;
+               ObjectPTR=var[1];
+               CurOpcode=MKOPCODE(LIBNUM(*ObjectPTR),OPCODE_GETINFO);
+               (*han)();
+
+               CurOpcode=savecurOpcode;
+
+               if(RetNum>OK_TOKENINFO) {
+                  rplDropData(1);
+                  rplNewBINTPush(TypeInfo/100,DECBINT);
+                  return;
+               }
+           }
+           rplOverwriteData(1,(WORDPTR)zero_bint);
+
+           return;
+       }
+
+       case VTYPEE:
+          {
+              if(rplDepthData()<1) {
+                  rplError(ERR_BADARGCOUNT);
+                  return;
+              }
+              if(ISLIST(*rplPeekData(1))) {
+                  rplListUnaryDoCmd();
+                  return;
+              }
+
+              if(!ISIDENT(*rplPeekData(1))) {
+                  rplError(ERR_IDENTEXPECTED);
+                  return;
+              }
+
+              // FIND THE VARIABLE
+              WORDPTR *var=rplFindLAM(rplPeekData(1),1);
+              if(!var)  {
+                  // NO LAM, TRY A GLOBAL
+                  var=rplFindGlobal(rplPeekData(1),1);
+                  if(!var) {
+                      rplError(ERR_UNDEFINEDVARIABLE);
+                  return;
+                  }
+              }
+
+
+              LIBHANDLER han=rplGetLibHandler(LIBNUM(*var[1]));
+
+              // GET THE SYMBOLIC TOKEN INFORMATION
+              if(han) {
+                  WORD savecurOpcode=CurOpcode;
+                  ObjectPTR=var[1];
+                  CurOpcode=MKOPCODE(LIBNUM(*ObjectPTR),OPCODE_GETINFO);
+                  (*han)();
+
+                  CurOpcode=savecurOpcode;
+
+                  if(RetNum>OK_TOKENINFO) {
+                     rplDropData(1);
+                     if(TypeInfo%100) {
+                         newRealFromBINT64(&RReg[0],TypeInfo,-2);
+
+                         rplNewRealFromRRegPush(0);
+                     } else rplNewBINTPush(TypeInfo/100,DECBINT);
+                     return;
+                  }
+              }
+              rplOverwriteData(1,(WORDPTR)zero_bint);
+
+              return;
+          }
 
 
 

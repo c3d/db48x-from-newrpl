@@ -76,7 +76,9 @@
     CMD(PSUB,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
     ECMD(IPPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     CMD(MIN,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
-    CMD(MAX,MKTOKENINFO(3,TITYPE_FUNCTION,2,2))
+    CMD(MAX,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
+    CMD(RND,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
+    CMD(TRNC,MKTOKENINFO(4,TITYPE_FUNCTION,2,2))
 
 
 
@@ -2750,6 +2752,268 @@ case IPPOST:
 
         return;
     }
+
+
+    case RND:
+    case TRNC:
+    {
+    if(rplDepthData()<2) {
+        rplError(ERR_BADARGCOUNT);
+
+        return;
+    }
+    WORDPTR arg=rplPeekData(2);
+    WORDPTR ndig=rplPeekData(1);
+
+    if(ISLIST(*arg)||ISLIST(*ndig)) {
+        rplListBinaryDoCmd();
+        return;
+    }
+
+    if(ISIDENT(*arg) || ISSYMBOLIC(*arg) || ISIDENT(*ndig) || ISSYMBOLIC(*ndig) ) {
+        rplSymbApplyOperator(CurOpcode,2);
+        return;
+    }
+
+    if(!ISNUMBER(*ndig)) {
+        rplError(ERR_INTEGEREXPECTED);
+        return;
+    }
+
+
+    WORDPTR *savestk=DSTop;
+    BINT64 nd=rplReadNumberAsBINT(ndig),isunit=0,unitlevels=0;
+    if(Exceptions) return;
+
+    if(ISUNIT(*arg)) {
+        unitlevels=rplUnitExplode(arg);
+        if(Exceptions) { DSTop=savestk; return; }
+        rplPushData(rplPeekData(unitlevels));
+        rplPushData(rplPeekData(1));
+        arg=rplPeekData(1);
+        isunit=1;
+    }
+
+
+    if(ISNUMBER(*arg)) {
+        REAL r;
+        rplReadNumberAsReal(arg,&r);
+        if(Exceptions) return;
+
+        if(OPCODE(CurOpcode)==RND) roundReal(&RReg[0],&r,nd);
+        else truncReal(&RReg[0],&r,nd);
+
+        WORDPTR newresult;
+
+        if(isintegerReal(&RReg[0])) {
+        if(inBINT64Range(&RReg[0])) {
+            BINT64 res=getBINT64Real(&RReg[0]);
+            newresult=rplNewBINT(res,DECBINT);
+        }
+        else newresult=rplNewRealFromRReg(0);
+        } else newresult=rplNewRealFromRReg(0);
+
+        if(!newresult) return;
+        rplDropData(1);
+        rplOverwriteData(1,newresult);
+
+
+    } else if(ISCOMPLEX(*arg)) {
+        REAL Rarg,Iarg;
+        BINT cclass=rplComplexClass(arg);
+        rplReadCNumberAsReal(arg,&Rarg);
+        rplReadCNumberAsImag(arg,&Iarg);
+
+        switch(cclass) {
+
+
+        case CPLX_NORMAL:
+        {
+            // ROUND REAL AND IMAGINARY PARTS INDEPENDENTLY
+            if(OPCODE(CurOpcode)==RND) {
+                roundReal(&RReg[0],&Rarg,nd);
+                roundReal(&RReg[1],&Iarg,nd);
+            }
+            else {
+                truncReal(&RReg[0],&Rarg,nd);
+                truncReal(&RReg[1],&Iarg,nd);
+            }
+            WORDPTR newresult=rplNewComplex(&RReg[0],&RReg[1],ANGLENONE);
+            if(!newresult) return;
+
+            rplDropData(1);
+            rplOverwriteData(1,newresult);
+            break;
+        }
+        case CPLX_POLAR:
+        {
+         // ONLY ROUND THE MAGNITUDE, LEAVE THE ANGLE AS IS
+            if(OPCODE(CurOpcode)==RND) {
+                roundReal(&RReg[0],&Rarg,nd);
+            }
+            else {
+                truncReal(&RReg[0],&Rarg,nd);
+            }
+            WORDPTR newresult=rplNewComplex(&RReg[0],&Iarg,rplPolarComplexMode(arg));
+            if(!newresult) return;
+
+            rplDropData(1);
+            rplOverwriteData(1,newresult);
+            break;
+
+        }
+        default:
+        case CPLX_INF:
+        case CPLX_MALFORMED:
+        case CPLX_NAN:
+        case CPLX_UNDINF:
+        case CPLX_ZERO:
+            return; // NOTHING TO ROUND
+
+        }
+
+
+    } else if(ISMATRIX(*arg)) {
+        // ROUND EVERY ELEMENT IN THE MATRIX, AND APPLY THE OPERATOR TO EVERY SYMBOLIC ELEMENT IN THE MATRIX
+        WORDPTR *a;
+        // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
+        // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
+        a=DSTop-2;
+
+        // a IS THE MATRIX
+
+        // CHECK DIMENSIONS
+
+        BINT rowsa=MATROWS(*(*a+1)),colsa=MATCOLS(*(*a+1));
+
+        BINT totalelements=(rowsa)? rowsa*colsa:colsa;
+
+        BINT j;
+
+        // DO THE ELEMENT-BY-ELEMENT OPERATION
+
+        for(j=1;j<=totalelements;++j) {
+         rplPushData(rplMatrixFastGet(*a,1,j));
+         WORDPTR arg=rplPeekData(1);
+             if(ISIDENT(*arg) || ISSYMBOLIC(*arg) || ISIDENT(*ndig) || ISSYMBOLIC(*ndig) ) {
+                 rplPushData(a[1]);
+                 rplSymbApplyOperator(CurOpcode,2);
+                 if(Exceptions) { DSTop=savestk; return; }
+                 continue;
+             }
+
+             if(ISNUMBER(*arg)) {
+                 REAL r;
+                 rplReadNumberAsReal(arg,&r);
+                 if(Exceptions) { DSTop=savestk; return; }
+
+                 if(OPCODE(CurOpcode)==RND) roundReal(&RReg[0],&r,nd);
+                 else truncReal(&RReg[0],&r,nd);
+
+                 WORDPTR newresult;
+
+                 if(isintegerReal(&RReg[0])) {
+                 if(inBINT64Range(&RReg[0])) {
+                     BINT64 res=getBINT64Real(&RReg[0]);
+                     newresult=rplNewBINT(res,DECBINT);
+                 }
+                 else newresult=rplNewRealFromRReg(0);
+                 } else newresult=rplNewRealFromRReg(0);
+
+                 if(!newresult) { DSTop=savestk; return; }
+                 rplOverwriteData(1,newresult);
+                 continue;
+             }
+
+             if(ISCOMPLEX(*arg)) {
+                 REAL Rarg,Iarg;
+                 BINT cclass=rplComplexClass(arg);
+                 rplReadCNumberAsReal(arg,&Rarg);
+                 rplReadCNumberAsImag(arg,&Iarg);
+
+                 switch(cclass) {
+
+
+                 case CPLX_NORMAL:
+                 {
+                     // ROUND REAL AND IMAGINARY PARTS INDEPENDENTLY
+                     if(OPCODE(CurOpcode)==RND) {
+                         roundReal(&RReg[0],&Rarg,nd);
+                         roundReal(&RReg[1],&Iarg,nd);
+                     }
+                     else {
+                         truncReal(&RReg[0],&Rarg,nd);
+                         truncReal(&RReg[1],&Iarg,nd);
+                     }
+                     WORDPTR newresult=rplNewComplex(&RReg[0],&RReg[1],ANGLENONE);
+                     if(!newresult) { DSTop=savestk; return; }
+
+                     rplOverwriteData(1,newresult);
+                     break;
+                 }
+                 case CPLX_POLAR:
+                 {
+                  // ONLY ROUND THE MAGNITUDE, LEAVE THE ANGLE AS IS
+                     if(OPCODE(CurOpcode)==RND) {
+                         roundReal(&RReg[0],&Rarg,nd);
+                     }
+                     else {
+                         truncReal(&RReg[0],&Rarg,nd);
+                     }
+                     WORDPTR newresult=rplNewComplex(&RReg[0],&Iarg,rplPolarComplexMode(arg));
+                     if(!newresult) { DSTop=savestk; return; }
+
+                     rplOverwriteData(1,newresult);
+                     break;
+
+                 }
+                 default:
+                 case CPLX_INF:
+                 case CPLX_MALFORMED:
+                 case CPLX_NAN:
+                 case CPLX_UNDINF:
+                 case CPLX_ZERO:
+                     break; // NOTHING TO ROUND
+
+                 }
+
+                continue;
+             }
+
+
+         }
+
+        WORDPTR newmat=rplMatrixCompose(rowsa,colsa);
+        DSTop=a+2;
+        if(!newmat) return;
+        rplOverwriteData(2,newmat);
+        rplDropData(1);
+    }
+    else {
+    rplError(ERR_BADARGTYPE);
+    return;
+    }
+
+    if(isunit) {
+        rplOverwriteData(unitlevels+1,rplPeekData(1));
+        rplDropData(1);
+        WORDPTR newunit=rplUnitAssemble(unitlevels);
+        if(!newunit) { DSTop=savestk; return; }
+        rplDropData(unitlevels+1);
+        rplOverwriteData(1,newunit);
+
+    }
+
+
+    return;
+    }
+
+
+
+
+
+
+
 
         // ADD MORE OPCODES HERE
 
