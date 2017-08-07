@@ -47,7 +47,9 @@
     CMD(KILL,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(SETBKPOINT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
     CMD(CLRBKPOINT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(DBUG,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    CMD(DBUG,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BLAMEERR,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+
 
 
 
@@ -626,6 +628,84 @@ void LIB_HANDLER()
 
     }
 
+    case BLAMEERR:
+        // THROW AN ERROR BY EITHER A STRING OR ERROR CODE
+        // AND BLAME A CERTAIN PROGRAM BY STRING OR IDENT
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+
+        if(ISNUMBER(*rplPeekData(1))) {
+            BINT64 errorcode=rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions) return;
+            if((errorcode<0)||(errorcode>=0x7ffff)) {
+                rplError(ERR_BADERRORCODE);
+                return;
+            }
+
+            // DO MORE CHECKS ON THE ERROR CODE
+
+            // TRY TO GET A MESSAGE FROM A LIBRARY
+            LIBHANDLER han=rplGetLibHandler(LIBFROMMSG(errorcode));
+            if(!han) {
+                rplError(ERR_BADERRORCODE);
+                return;
+            }
+            WORD SavedOpcode=CurOpcode;
+            BINT SavedException=Exceptions;
+            BINT SavedErrorCode=ErrorCode;
+
+            Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE LIBRARY TO RUN
+            CurOpcode=MKOPCODE(LIBFROMMSG(errorcode),OPCODE_LIBMSG);
+            LibError=MAKESINT(errorcode);
+            RetNum=-1;
+            (*han)();
+
+            Exceptions=SavedException;
+            ErrorCode=SavedErrorCode;
+            CurOpcode=SavedOpcode;
+
+            if(RetNum!=OK_CONTINUE) {
+                rplError(ERR_BADERRORCODE);
+                return;
+            }
+
+            rplDropData(1);
+
+            WORDPTR blame=rplPopData();
+            if(!ISSTRING(*blame) && !ISIDENT(*blame)) blame=0;
+
+            rplError(MAKESINT(errorcode));
+            BlameCmd=0; // REMOVE THE GUI PROVIDED NAME TO BLAME
+            if(blame) rplBlameError(blame); else rplBlameUserCommand();
+            return;
+        }
+
+        if(ISSTRING(*rplPeekData(1)))
+        {
+          rplStoreSettings((WORDPTR)errormsg_ident,rplPeekData(1));
+          if(!Exceptions)
+          {
+              rplDropData(1);
+              WORDPTR blame=rplPopData();
+              if(!ISSTRING(*blame) && !ISIDENT(*blame)) blame=0;
+
+              rplError(MAKEMSG(LIBRARY_NUMBER,0));
+              BlameCmd=0; // REMOVE THE GUI PROVIDED NAME TO BLAME
+              if(blame) rplBlameError(blame); else rplBlameUserCommand();
+          }
+          return;
+        }
+
+        rplError(ERR_BADERRORCODE);
+        return;
+
+
+
+    }
         // ADD MORE OPCODES HERE
 
 

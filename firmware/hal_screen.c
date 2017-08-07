@@ -1361,7 +1361,8 @@ WORDPTR halGetCommandName(WORDPTR NameObject)
     if(Opcode==0) return (WORDPTR)text_editor_string;
     if(ISPROLOG(Opcode)) {
         // ONLY ACCEPT IDENTS AND STRINGS AS COMMAND NAMES
-        if(!ISSTRING(Opcode) && !ISIDENT(Opcode)) return 0;
+        if(ISSTRING(Opcode)) return NameObject;
+        if(!ISIDENT(Opcode)) return 0;
     }
 
     BINT SavedException=Exceptions;

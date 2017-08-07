@@ -53,7 +53,10 @@
     CMD(UNPICK,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(UNROT,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(IFT,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    CMD(IFTE,MKTOKENINFO(4,TITYPE_FUNCTION,3,2))
+    CMD(IFTE,MKTOKENINFO(4,TITYPE_FUNCTION,3,2)), \
+    CMD(SPUSH,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SPOP,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDROP,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
 
 
 // ADD MORE OPCODES HERE
@@ -525,9 +528,22 @@ void LIB_HANDLER()
      }
 
 
-
-
-
+    case SPUSH:
+    {
+     // PUSH CURRENT STACK TO UNDO STACK
+     rplTakeSnapshot();
+     return;
+    }
+    case SPOP:
+    {
+     rplRevertToSnapshot(1);
+     return;
+    }
+    case SDROP:
+    {
+     rplRemoveSnapshot(1);
+     return;
+    }
 
 
 
