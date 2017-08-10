@@ -106,6 +106,7 @@ INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib62_menu);
 INCLUDE_ROMOBJECT(lib62_menu_2);
+INCLUDE_ROMOBJECT(cmd_SEQ);
 
 
 ROMOBJECT dolist_seco[]={
@@ -238,7 +239,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)empty_list,
     (WORDPTR)lib62_menu,
     (WORDPTR)lib62_menu_2,
-
+    (WORDPTR)cmd_SEQ,
     0
 };
 
@@ -2539,10 +2540,22 @@ void LIB_HANDLER()
 
     case SEQ:
     {
-         // TODO:
-
-
-
+     if(rplDepthData()<5) {
+         rplError(ERR_BADARGCOUNT);
+         return;
+     }
+     if(!ISSYMBOLIC(*rplPeekData(5)) && !ISIDENT(*rplPeekData(5)) && !ISPROGRAM(*rplPeekData(5))) {
+         rplError(ERR_BADARGTYPE);
+         return;
+     }
+     if(!ISIDENT(*rplPeekData(4))) {
+         rplError(ERR_IDENTEXPECTED);
+         return;
+     }
+     // RUN THE RPL CODE IMPLEMENTING THE COMMAND
+     rplPushRet(IPtr);
+     IPtr=(WORDPTR)cmd_SEQ;
+     return;
     }
 
 

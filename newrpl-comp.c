@@ -93,7 +93,8 @@ void compShowErrorMsg(char *inputfile,char *mainbuffer,FILE *stream)
             fprintf(stream," error: ");
             // TODO: GET NEW TRANSLATABLE MESSAGES
             WORDPTR message=uiGetLibMsg(ErrorCode);
-            fwrite((char *)(message+1),1,rplStrSize(message),stream);
+            if(!message) fprintf(stream," %d in library %d\n",ErrorCode&0x7f,LIBFROMMSG(ErrorCode));
+            else fwrite((char *)(message+1),1,rplStrSize(message),stream);
         }
     fprintf(stream,"\n");
 }

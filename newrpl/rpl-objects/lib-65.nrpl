@@ -163,3 +163,18 @@ to the memory address in level 2
 I I →"
 
 }
+
+
+
+
+@ ****************************************************************************
+@ COMMANDS IMPLEMENTED IN RPL
+@ ****************************************************************************
+
+
+@#name cmd_TEVAL
+:: 0 '.TckStart' LSTO TICKS '.TckStart' LSTO HIDELOCALS EVAL TICKS UNHIDELOCALS .TckStart - 1000000 / ;
+
+
+
+

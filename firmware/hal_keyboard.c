@@ -494,9 +494,9 @@ if(iseval) {
 
             }
             else {
-                // RETURN STACK WAS INTACT, RESTORE THE REST
-                if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
-                if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
+                // RETURN STACK WAS INTACT, IT HALTED AT OUR OWN SECONDARY
+                //if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
+                //if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
 
                     // DON'T ALTER THE INSTRUCTION POINTER OF THE HALTED PROGRAM
                     rplClearErrors();
@@ -613,8 +613,8 @@ if(iseval) {
             }
             else {
                 // RETURN STACK WAS INTACT, RESTORE THE REST
-                if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
-                if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
+                //if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
+                //if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
 
                     // DON'T ALTER THE INSTRUCTION POINTER OF THE HALTED PROGRAM
                     rplClearErrors();

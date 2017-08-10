@@ -60,7 +60,9 @@
     CMD(READCFI,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(DOALARM,MKTOKENINFO(7,TITYPE_NOTALLOWED,0,2)), \
     CMD(ALRM,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(OFF,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2))
+    CMD(OFF,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    CMD(TEVAL,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+
 
 // ADD MORE OPCODES HERE
 
@@ -97,7 +99,7 @@ INCLUDE_ROMOBJECT(lib65_menu_1_memory);
 INCLUDE_ROMOBJECT(lib65_menu_2_alarms);
 INCLUDE_ROMOBJECT(newrpl_version);
 INCLUDE_ROMOBJECT(alarms_ident);
-
+INCLUDE_ROMOBJECT(cmd_TEVAL);
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
@@ -109,6 +111,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)lib65_menu_2_alarms,
     (WORDPTR)newrpl_version,
     (WORDPTR)alarms_ident,
+    (WORDPTR)cmd_TEVAL,
     0
 };
 
@@ -2170,7 +2173,17 @@ void LIB_HANDLER()
 
     }
 
-
+case TEVAL:
+    {
+     if(rplDepthData()<1) {
+         rplError(ERR_BADARGCOUNT);
+         return;
+     }
+     // RUN THE RPL CODE IMPLEMENTING THE COMMAND
+     rplPushRet(IPtr);
+     IPtr=(WORDPTR)cmd_TEVAL;
+     return;
+    }
 
         /*
     case DONUM:

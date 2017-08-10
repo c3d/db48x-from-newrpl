@@ -868,14 +868,29 @@ void LIB_HANDLER()
             }
             else {
                 // THIS WOULD CREATE A LOCAL THAT CANNOT BE TRACED
-                // BY THE COMPILER. DISABLE PUTLAM/GETLAM OPTIMIZATION
-                // FOR THE REST OF THIS ENVIRONMENT
+                // BY THE COMPILER. JUST USE AN INVALID NAME.
 
-                // ISSUE A SYNTAX ERROR, LSTO REQUIRES A COMPILE-TIME VARIABLE NAME
-                RetNum=ERR_SYNTAX;
-                return;
+                    // THIS IS NOT A VALID LAM, LEAVE AS IDENT
 
-            }
+                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
+
+                    // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
+                    if(!notrack) {
+                    // DO WE NEED A NEW ENVIRONMENT?
+
+                    if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
+                        rplCreateLAMEnvironment(*(ValidateTop-1));
+                    }
+                    rplCreateLAM((WORDPTR)zero_bint,(WORDPTR)zero_bint);
+                    }
+                    else {
+                        // CREATE A BARRIER TO PREVENT ANY MORE PUTLAM/GETLAM REFERENCES BEYOND THIS POINT
+                        rplCreateLAMEnvironment((WORDPTR)lameval_seco);     // CREATE A NEW ENVIRONMENT OWNED BY A DOCOL SECONDARY
+                    }
+                    RetNum=OK_CONTINUE;
+                    return;
+                }
+
 
             }
 
@@ -887,7 +902,7 @@ void LIB_HANDLER()
 
         // HIDELOCALS NEEDS SPECIAL CONSIDERATION TO CREATE LAMS AT COMPILE TIME, OR TRACING WILL BE OFF BY 1
 
-        if((TokenLen==10) && (!utf8ncmp((char *)TokenStart,"HIDELOCALS",4)))
+        if((TokenLen==10) && (!utf8ncmp((char *)TokenStart,"HIDELOCALS",10)))
         {
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
@@ -934,12 +949,8 @@ void LIB_HANDLER()
 
             }
 
-            if(object<CompileEnd) {
 
 
-            // WE HAVE A HARD-CODED IDENT, CHECK IF IT EXISTS ALREADY
-
-                // CHECK IF IT'S AN EXISTING LAM, COMPILE TO A PUTLAM OPCODE IF POSSIBLE
 
                     // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
                     if(!notrack) {
@@ -951,7 +962,6 @@ void LIB_HANDLER()
                     rplCreateLAM((WORDPTR)lam_privatevar_bint,(WORDPTR)lam_privatevar_bint);
                     }
 
-                  }
 
 
             rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,HIDELOCALS));

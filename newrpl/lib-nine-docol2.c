@@ -937,7 +937,10 @@ void LIB_HANDLER()
        {
            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,START));
            rplCreateLAMEnvironment(CompileEnd-1);
-
+           rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)nulllam_ident);        // NULLLAM FOR THE COMPILER
+           rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)nulllam_ident);        // NULLLAM FOR THE COMPILER
+           rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)nulllam_ident);        // NULLLAM FOR THE COMPILER
+           rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)nulllam_ident);      // NULLLAM FOR THE COMPILER
            RetNum=OK_STARTCONSTRUCT;
            return;
        }

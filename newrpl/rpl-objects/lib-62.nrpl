@@ -131,3 +131,23 @@ REVLIST
 L → L "
 
 }
+
+
+
+
+@ ****************************************************************************
+@ COMMANDS IMPLEMENTED IN RPL
+@ ****************************************************************************
+
+
+@#name cmd_SEQ
+:: 0 'Depth' LSTO 3 'Lvls' LSTO ROT →NUM ROT →NUM
+    FOR 'K'
+        DEPTH 'Depth' STO PICK3 PICK3 K SWAP
+        :: HIDELOCALS LSTO EVAL UNHIDELOCALS ;
+        DEPTH Depth - DUP Lvls + 'Lvls' STO 1 SWAP START Lvls ROLLD NEXT
+        DUP →NUM
+    STEP
+    3 DROPN
+    Lvls 3 - →LIST
+;
