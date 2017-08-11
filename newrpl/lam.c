@@ -335,6 +335,7 @@ BINT rplNeedNewLAMEnv()
         else {
             // CURRENT ENVIRONMENT BELONGS TO SOMETHING NOT-A-SECO (LOOPS, ETC.)
             rsptr=RSTop-1;
+
             if(rsptr<RStk) return 0;    // THERE'S NO RETURN ADDRESS, WE ARE EXECUTING FREE COMMANDS FROM THE COMMAND LINE
             if( **rsptr==(CMD_OVR_EVAL)) {
                 // WE ARE EXECUTING A SECONDARY THAT WAS 'EVAL'd, NEED A NEW ENVIRONMENT
@@ -343,6 +344,12 @@ BINT rplNeedNewLAMEnv()
             if( ISPROLOG(**rsptr) && (LIBNUM(**rsptr)==DOIDENTEVAL)) {
                 // WE ARE EXECUTING A SECONDARY THAT WAS DIRECTLY EXECUTED FROM AN IDENT, NEED A NEW ENVIRONMENT
                 return 1;
+            }
+
+            while(rsptr>=RStk) {
+                if(*rsptr==*(nLAMBase+1)) return 0;     // CURRENT ENVIRONMENT IS INSIDE CURRENT SECO
+                if(*rsptr==seco) return 1;  // CURRENT SECO IS INSIDE THE CURRENT ENVIRONMENT
+                --rsptr;
             }
 
             // NO NEED FOR AN ENVIRONMENT
@@ -389,6 +396,7 @@ BINT rplNeedNewLAMEnvCompiler()
 
 
     if(nLAMBase>=LAMTopSaved && nLAMBase<LAMTop) {
+
         if(ISPROLOG(**(nLAMBase+1)) && ((LIBNUM(**(nLAMBase+1))==SECO)||(LIBNUM(**(nLAMBase+1))==DOCOL))) {
             // THIS ENVIRONMENT BELONGS TO A SECONDARY
             if(*(nLAMBase+1)==seco) {
@@ -399,6 +407,21 @@ BINT rplNeedNewLAMEnvCompiler()
         }
         else {
             // CURRENT ENVIRONMENT BELONGS TO SOMETHING NOT-A-SECO (LOOPS)
+
+            // FIND OUT IF THE CURRENT SECONDARY IS INSIDE THE CURRENT ENVIRONMENT
+            rsptr=ValidateTop-1;
+            while(rsptr>=ValidateBottom) {
+                if(*rsptr==*(nLAMBase+1))
+                {
+                    // FOUND THE CURRENT ENVIRONMENT OWNER INSIDE THE CURRENT SECO, NO NEED FOR ENVIRONMENT
+                    return 0;
+                }
+                if(*rsptr==seco) return 1;  // CURRENT SECO IS INSIDE THE OWNER OF THE CURRENT ENVIRONMENT, CREATE A NEW ONE
+                --rsptr;
+            }
+
+
+            // THIS SHOULD BE UNREACHABLE CODE SINCE seco IS GUARANTEED TO BE ON THE LIST
             // NO NEED FOR AN ENVIRONMENT
             return 0;
         }

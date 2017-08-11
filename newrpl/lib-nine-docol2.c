@@ -346,7 +346,10 @@ void LIB_HANDLER()
             // EXIT THE LOOP BY DROPPING THE RETURN STACK
             rplPopRet();
         }
-        else rplPushRet(rplPeekRet(1));     // RDUP TO CONTINUE THE LOOP
+        else {
+            rplPushRet(rplPeekRet(1));     // RDUP TO CONTINUE THE LOOP
+            LAMTop=rplGetLAMnName(5);      // KEEP ONLY THE ORIGINAL 4 LOOP VARIABLES, DESTROY ALL OTHER LOCALS
+        }
 
         // JUMP TO THE TOP RETURN STACK, EITHER THE LOOP OR THE ABND WORD
         IPtr=rplPopRet();
@@ -370,6 +373,7 @@ void LIB_HANDLER()
             // MALFORMED FOR/NEXT LOOP
             return;
         }
+
         rplPushData(*rplGetLAMn(4));     // COUNTER;
 
         // CALL THE OVERLOADED OPERATOR '+'
@@ -399,7 +403,10 @@ void LIB_HANDLER()
             // EXIT THE LOOP BY DROPPING THE RETURN STACK
             rplPopRet();
         }
-        else rplPushRet(rplPeekRet(1));     // RDUP TO CONTINUE THE LOOP
+        else {
+            rplPushRet(rplPeekRet(1));     // RDUP TO CONTINUE THE LOOP
+            LAMTop=rplGetLAMnName(5);      // KEEP ONLY THE ORIGINAL 4 LOOP VARIABLES, DESTROY ALL OTHER LOCALS
+        }
 
         // JUMP TO THE TOP RETURN STACK, EITHER THE LOOP OR THE ABND WORD
         IPtr=rplPopRet();
@@ -457,7 +464,10 @@ void LIB_HANDLER()
             // EXIT THE LOOP BY DROPPING THE RETURN STACK
             rplPopRet();
         }
-        else rplPushRet(rplPeekRet(1));     // RDUP TO CONTINUE THE LOOP
+        else {
+            rplPushRet(rplPeekRet(1));     // RDUP TO CONTINUE THE LOOP
+            LAMTop=rplGetLAMnName(1);      // DESTROY ALL LOCALS, RESET THE ENVIRONMENT
+        }
 
         // JUMP TO THE TOP RETURN STACK, EITHER THE LOOP OR THE ABND WORD
         IPtr=rplPopRet();
@@ -516,8 +526,13 @@ void LIB_HANDLER()
     }
     case ENDWHILE:
         // JUMP TO THE TOP RETURN STACK TO REPEAT THE LOOP
+        if(**rplGetLAMn(0)!=CMD_ENDWHILE) {
+            // MALFORMED LOOP
+            return;
+        }
         if(rplDepthRet()>0) {
         IPtr=rplPeekRet(1);
+        LAMTop=rplGetLAMnName(1);      // DESTROY ALL LOCALS, RESET THE ENVIRONMENT
         CurOpcode=*IPtr;
         }
      return;

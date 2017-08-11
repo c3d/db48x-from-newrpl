@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
  * All rights reserved.
  * This file is released under the 3-clause BSD license.
@@ -532,6 +532,8 @@ void LIB_HANDLER()
 
         if(val && !neednewenv) {
             val[1]=rplPeekData(2);
+            // STILL, CREATE A NEW VARIABLE WITHIN THE CURRENT ENVIRONMENT TO ALLOW THE COMPILER TO TRACK IT
+            rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)nulllam_ident);
             rplDropData(2);
         }
         else {
@@ -881,6 +883,8 @@ void LIB_HANDLER()
                     if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
                         rplCreateLAMEnvironment(*(ValidateTop-1));
                     }
+
+                    // FORCE CREATION OF A NEW LAM OF UNKNOWN NAME - EVEN THOUGH THERE COULD BE AN EXISTING LAM WITH THE UNKNOWN NAME
                     rplCreateLAM((WORDPTR)zero_bint,(WORDPTR)zero_bint);
                     }
                     else {
@@ -1149,7 +1153,12 @@ void LIB_HANDLER()
             // HERE PREVOBJECT CONTAINS THE LAST OBJECT THAT WAS DECOMPILED
 
             if(!ISIDENT(*prevobject)) {
-                // MAKE SURE IT'S AN IDENT, OTHERWISE IT'S FINE BUT NO VARIABLE CREATION IS TRACKED
+                // DO WE NEED A NEW ENVIRONMENT?
+
+                if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
+                    rplCreateLAMEnvironment(*(ValidateTop-1));
+                }
+                rplCreateLAM((WORDPTR)zero_bint,(WORDPTR)zero_bint);    // CRREATE UNKNOWN LOCAL NAME
                 RetNum=OK_CONTINUE;
                 return;
             }
@@ -1241,6 +1250,27 @@ void LIB_HANDLER()
                 return;
 
         }
+
+        if(*DecompileObject==MKOPCODE(LIBRARY_NUMBER,HIDELOCALS)) {
+
+            rplDecompAppendString((BYTEPTR)"HIDELOCALS");
+
+                   // TRACK LAM CREATION IN THE CURRENT ENVIRONMENT
+
+                    // DO WE NEED A NEW ENVIRONMENT?
+
+                    if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
+                        rplCreateLAMEnvironment(*(ValidateTop-1));
+                    }
+                    rplCreateLAM((WORDPTR)lam_privatevar_bint,(WORDPTR)lam_privatevar_bint);
+
+
+                    RetNum=OK_CONTINUE;
+                    return;
+
+
+                }
+
 
 
 

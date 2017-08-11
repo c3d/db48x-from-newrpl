@@ -145,7 +145,7 @@ L → L "
     FOR 'K'
         DEPTH 'Depth' STO PICK3 PICK3 K SWAP
         :: HIDELOCALS LSTO EVAL UNHIDELOCALS ;
-        DEPTH Depth - DUP Lvls + 'Lvls' STO 1 SWAP START Lvls ROLLD NEXT
+        DEPTH Depth - DUP DUP Lvls + 'Lvls' STO 3 + 'Rold' LSTO 1 SWAP START Rold ROLLD NEXT
         DUP →NUM
     STEP
     3 DROPN
