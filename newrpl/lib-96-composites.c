@@ -1964,13 +1964,14 @@ void LIB_HANDLER()
                 }
 
                 BINT len1,len2,pos,maxpos;
-                BYTEPTR str1,str2;
+                BYTEPTR str1,str2,str1ptr,str1end;
 
                 str2=(BYTEPTR)(rplPeekData(1)+1);
                 str1=(BYTEPTR)(rplPeekData(2)+1);
                 len1=rplStrLen(rplPeekData(2));
                 maxpos=rplStrLen(rplPeekData(1));
                 len2=rplStrLenCp(rplPeekData(1));
+                str1end=str1+rplStrSize(rplPeekData(2));
 
                 if(maxpos>len1) {
                     // WILL NEVER FIND A LONGER STRING INSIDE A SHORT ONE
@@ -1980,16 +1981,17 @@ void LIB_HANDLER()
                 }
 
                 maxpos=len1-maxpos+1;
+                str1ptr=(BYTEPTR)utf8nskipst((char *)str1,(char *)str1end,maxpos);
 
                 for(pos=maxpos;pos>=1;--pos)
                 {
-                    if(utf8ncmp((char *)str1,(char *)str2,len2)==0) {
+                    if(utf8ncmp((char *)str1ptr,(char *)str2,len2)==0) {
                         // IT'S A MATCH
                         rplDropData(2);
                         rplNewBINTPush(pos,DECBINT);
                         return;
                     }
-                    str1=(BYTEPTR)utf8skipst((char *)str1,(char *)(str1+4));
+                    str1ptr=(BYTEPTR)utf8rskipst((char *)str1ptr,(char *)str1);
 
                 }
 
@@ -2075,7 +2077,7 @@ void LIB_HANDLER()
                 }
 
                 BINT len1,len2,pos,maxpos;
-                BYTEPTR str1,str2;
+                BYTEPTR str1,str2,strptr;
 
                 if(!ISNUMBER(*rplPeekData(2))) {
                     rplError(ERR_INVALIDPOSITION);
@@ -2106,17 +2108,17 @@ void LIB_HANDLER()
                 maxpos=len1-maxpos+1;
                 if(pos>maxpos) pos=maxpos;
 
-                str1=(BYTEPTR)utf8nskipst((char *)str1,(char *)(str1+rplStrSize(rplPeekData(3))),pos-1);
+                str1ptr=(BYTEPTR)utf8nskipst((char *)str1,(char *)(str1+rplStrSize(rplPeekData(3))),pos-1);
 
                 for(;pos>=1;--pos)
                 {
-                    if(utf8ncmp((char *)str1,(char *)str2,len2)==0) {
+                    if(utf8ncmp((char *)str1ptr,(char *)str2,len2)==0) {
                         // IT'S A MATCH
                         rplDropData(2);
                         rplNewBINTPush(pos,DECBINT);
                         return;
                     }
-                    str1=(BYTEPTR)utf8skipst((char *)str1,(char *)(str1+4));
+                    str1ptr=(BYTEPTR)utf8rskipst((char *)str1ptr,(char *)str1);
 
                 }
 
