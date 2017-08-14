@@ -54,9 +54,11 @@
     CMD(UNROT,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(IFT,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
     CMD(IFTE,MKTOKENINFO(4,TITYPE_FUNCTION,3,2)), \
-    CMD(SPUSH,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SPOP,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SDROP,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+    CMD(STKPUSH,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STKPOP,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STKDROP,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STKPICK,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+
 
 
 // ADD MORE OPCODES HERE
@@ -528,29 +530,54 @@ void LIB_HANDLER()
      }
 
 
-    case SPUSH:
+    case STKPUSH:
     {
      // PUSH CURRENT STACK TO UNDO STACK
      rplTakeSnapshot();
      return;
     }
-    case SPOP:
+    case STKPOP:
     {
      rplRevertToSnapshot(1);
      return;
     }
-    case SDROP:
+    case STKDROP:
     {
      rplRemoveSnapshot(1);
      return;
     }
 
 
+    case STKPICK:
+        //  PICK A VALUE FROM ANY SNAPSHOT
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        BINT64 snap,level;
 
+        snap=rplReadNumberAsBINT(rplPeekData(2));
+        if(Exceptions) return;
+        level=rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions) return;
 
+        if( (snap<1) || (snap>rplCountSnapshots())) {
+            rplError(ERR_BADSTACKINDEX);
+            return;
+        }
 
+        if( (level<1)||(level>rplDepthSnapshot(snap))) {
+            rplError(ERR_BADSTACKINDEX);
+            return;
+        }
 
+        rplDropData(1);
+        rplOverwriteData(1,rplPeekSnapshot(snap,level));
 
+        return;
+
+    }
 
 
 

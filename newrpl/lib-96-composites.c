@@ -1981,7 +1981,7 @@ void LIB_HANDLER()
                 }
 
                 maxpos=len1-maxpos+1;
-                str1ptr=(BYTEPTR)utf8nskipst((char *)str1,(char *)str1end,maxpos);
+                str1ptr=(BYTEPTR)utf8nskipst((char *)str1,(char *)str1end,maxpos-1);
 
                 for(pos=maxpos;pos>=1;--pos)
                 {
@@ -2077,7 +2077,7 @@ void LIB_HANDLER()
                 }
 
                 BINT len1,len2,pos,maxpos;
-                BYTEPTR str1,str2,strptr;
+                BYTEPTR str1,str2,str1ptr;
 
                 if(!ISNUMBER(*rplPeekData(2))) {
                     rplError(ERR_INVALIDPOSITION);
@@ -2114,7 +2114,7 @@ void LIB_HANDLER()
                 {
                     if(utf8ncmp((char *)str1ptr,(char *)str2,len2)==0) {
                         // IT'S A MATCH
-                        rplDropData(2);
+                        rplDropData(3);
                         rplNewBINTPush(pos,DECBINT);
                         return;
                     }

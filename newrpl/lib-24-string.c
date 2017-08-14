@@ -207,6 +207,7 @@ BINT rplStringGetNextLine(WORDPTR str,BINT prevlineoff)
     BYTEPTR start=(BYTEPTR) (str+1),ptr;
     BINT len=STRLEN(*str);
 
+    if(prevlineoff>=len) return -1;
     ptr=start+prevlineoff;
     while((ptr-start<len) && (*ptr!='\n')) ++ptr;
 
