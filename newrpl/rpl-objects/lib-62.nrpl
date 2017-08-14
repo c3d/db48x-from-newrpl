@@ -141,7 +141,7 @@ L → L "
 
 
 @#name cmd_SEQ
-:: 0 'Depth' LSTO 3 'Lvls' LSTO ROT →NUM ROT →NUM
+« :: 0 'Depth' LSTO 3 'Lvls' LSTO ROT →NUM ROT →NUM
     FOR 'K'
         DEPTH 'Depth' STO PICK3 PICK3 K SWAP
         :: HIDELOCALS LSTO EVAL UNHIDELOCALS ;
@@ -150,4 +150,4 @@ L → L "
     STEP
     3 DROPN
     Lvls 3 - →LIST
-;
+; »

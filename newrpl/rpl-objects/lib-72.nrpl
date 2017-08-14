@@ -26,7 +26,7 @@
 CLEAR DEPTH DROP DROP2 DROPN
 DUP DUP2 DUPDUP DUPN NDUPN
 SWAP NIP OVER ROLL ROLLD
-ROT UNROT PICK PICK3 UNPICK IFT IFTE
+ROT UNROT PICK PICK3 UNPICK IFT IFTE STKPUSH STKPOP STKDROP STKPICK
 }
 
 @#name lib72_cmdhelp
@@ -143,6 +143,27 @@ IFTE
 "XEQ level 2 or 1 if level 3
 is true or false (0)
 O<T/F> O1 O2 → [O1] or [O2]"
+
+
+STKPUSH
+"Take a snapshot of the
+current stack
+ → "
+
+STKPOP
+"Revert to last stack
+snapshot
+ → ... "
+
+STKDROP
+"Delete last stack
+snapshot
+→ "
+
+STKPICK
+"PICK from any stack
+snapshot
+I<snap> I<lvl> → O "
 
 }
 

@@ -306,7 +306,7 @@ BINT rplNeedNewLAMEnv()
             // THERE IS AN EXISTING ENVIRONMENT
             rsptr=RSTop-1;
             if(rsptr<RStk) return 0;    // THERE'S NO RETURN ADDRESS, WE ARE EXECUTING FREE COMMANDS FROM THE COMMAND LINE
-            if( **rsptr==(CMD_OVR_EVAL)) {
+            if( (**rsptr==(CMD_OVR_EVAL)) || (**rsptr==(CMD_OVR_EVAL1)) || (**rsptr==(CMD_OVR_XEQ))) {
                 // WE ARE EXECUTING A SECONDARY THAT WAS 'EVAL'd, NEED A NEW ENVIRONMENT
                 return 1;
             }
@@ -337,7 +337,7 @@ BINT rplNeedNewLAMEnv()
             rsptr=RSTop-1;
 
             if(rsptr<RStk) return 0;    // THERE'S NO RETURN ADDRESS, WE ARE EXECUTING FREE COMMANDS FROM THE COMMAND LINE
-            if( **rsptr==(CMD_OVR_EVAL)) {
+            if( (**rsptr==(CMD_OVR_EVAL)) || (**rsptr==(CMD_OVR_EVAL1)) || (**rsptr==(CMD_OVR_XEQ))) {
                 // WE ARE EXECUTING A SECONDARY THAT WAS 'EVAL'd, NEED A NEW ENVIRONMENT
                 return 1;
             }
