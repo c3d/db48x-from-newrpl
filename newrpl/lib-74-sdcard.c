@@ -59,7 +59,10 @@
     CMD(SDMOVE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDCOPY,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDPATH,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SDFREE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+    CMD(SDFREE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDARCHIVE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDRESTORE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+
 
 
 
@@ -80,7 +83,8 @@
     ERR(ALREADYEXISTS,11), \
     ERR(INVALIDHANDLE,12), \
     ERR(IDENTORPATHEXPECTED,13), \
-    ERR(NOTANRPLFILE,14)
+    ERR(NOTANRPLFILE,14), \
+    ERR(INVALIDDATA,15)
 
 
 
@@ -192,6 +196,31 @@ BINT rplPathFromList(BYTEPTR path,WORDPTR list)
 
     return off;
 }
+
+
+void rplSDArchiveWriteWord(unsigned int data,void *opaque)
+{
+
+    FS_FILE *file=(FS_FILE *)opaque;
+    FSWrite((BYTEPTR)&data,4,file);
+    return;
+}
+
+WORD rplSDArchiveReadWord(void *opaque)
+{
+    WORD data;
+    FS_FILE *file=(FS_FILE *)opaque;
+
+    if(FSRead((BYTEPTR)&data,4,file)!=4) return 0;
+    return data;
+}
+
+
+
+
+
+
+
 
 void LIB_HANDLER()
 {
@@ -2092,6 +2121,177 @@ case SDPATH:
 
             return;
         }
+
+
+    case SDARCHIVE:
+    {
+        // STORE A BACKUP OBJECT DIRECTLY INTO A FILE
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(1)) && !ISSTRING(*rplPeekData(1)) && !ISLIST(*rplPeekData(1))) {
+            rplError(ERR_IDENTORPATHEXPECTED);
+            return;
+        }
+
+        BYTEPTR path=(BYTEPTR)RReg[0].data;
+
+        // USE RReg[0] TO STORE THE FILE PATH
+
+        if(ISIDENT(*rplPeekData(1))) {
+            BINT pathlen=rplGetIdentLength(rplPeekData(1));
+            memmoveb(path,rplPeekData(1)+1,pathlen);
+            path[pathlen]=0;    // NULL TERMINATED STRING
+        } else
+            if(ISLIST(*rplPeekData(1))) {
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(path,rplPeekData(1))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
+            }
+            else if(ISSTRING(*rplPeekData(1))) {
+                // FULL PATH GIVEN
+                BINT pathlen=rplStrSize(rplPeekData(1));
+                memmoveb(path,rplPeekData(1)+1,pathlen);
+                path[pathlen]=0;    // NULL TERMINATED STRING
+
+            }
+            else {
+                // TODO: ACCEPT TAGGED NAMES WHEN TAGS EXIST
+                rplError(ERR_IDENTORPATHEXPECTED);
+                return;
+            }
+
+        // TRY TO OPEN THE FILE
+
+        FS_FILE *objfile;
+        int err;
+        err=FSOpen((char *)(RReg[0].data),FSMODE_WRITE|FSMODE_WRITEBUFFERS,&objfile);
+        err=FS_OK;
+
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+            }
+
+        err = rplBackup(&rplSDArchiveWriteWord,(void *)objfile);
+
+        if(err!=FS_OK) {
+            FSClose(objfile);
+            rplError(ERR_CANTWRITE);
+            return;
+        }
+        FSClose(objfile);
+        rplDropData(1);
+        return;
+
+    }
+
+
+    case SDRESTORE:
+    {
+        // STORE A BACKUP OBJECT DIRECTLY INTO A FILE
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(1)) && !ISSTRING(*rplPeekData(1)) && !ISLIST(*rplPeekData(1))) {
+            rplError(ERR_IDENTORPATHEXPECTED);
+            return;
+        }
+
+        BYTEPTR path=(BYTEPTR)RReg[0].data;
+
+        // USE RReg[0] TO STORE THE FILE PATH
+
+        if(ISIDENT(*rplPeekData(1))) {
+            BINT pathlen=rplGetIdentLength(rplPeekData(1));
+            memmoveb(path,rplPeekData(1)+1,pathlen);
+            path[pathlen]=0;    // NULL TERMINATED STRING
+        } else
+            if(ISLIST(*rplPeekData(1))) {
+                // MAKE A PATH BY APPENDING ALL STRINGS/IDENTS
+                if(!rplPathFromList(path,rplPeekData(1))) {
+                    rplError(ERR_BADFILENAME);
+                    return;
+                }
+            }
+            else if(ISSTRING(*rplPeekData(1))) {
+                // FULL PATH GIVEN
+                BINT pathlen=rplStrSize(rplPeekData(1));
+                memmoveb(path,rplPeekData(1)+1,pathlen);
+                path[pathlen]=0;    // NULL TERMINATED STRING
+
+            }
+            else {
+                // TODO: ACCEPT TAGGED NAMES WHEN TAGS EXIST
+                rplError(ERR_IDENTORPATHEXPECTED);
+                return;
+            }
+
+        // TRY TO OPEN THE FILE
+
+        FS_FILE *objfile;
+        int err;
+        err=FSOpen((char *)(RReg[0].data),FSMODE_READ,&objfile);
+        if(err!=FS_OK) {
+            rplError(rplFSError2Error(err));
+            return;
+            }
+
+        GCFlags=GC_IN_PROGRESS; // MARK THAT A GC IS IN PROGRESS TO BLOCK ANY HARDWARE INTERRUPTS
+
+        err = rplRestoreBackup(&rplSDArchiveReadWord,(void *)objfile);
+        FSClose(objfile);
+
+        switch(err)
+        {
+        case -1:
+            // FILE WAS CORRUPTED, AND MEMORY WAS DESTROYED
+            GCFlags=GC_COMPLETED;   // MARK THAT GC WAS COMPLETED
+            FSShutdown();
+            throw_dbgexception("Memory lost during restore",__EX_WIPEOUT|__EX_RESET|__EX_NOREG);
+            // THIS WON'T RETURN, ONLY A RESET IS ACCEPTABLE AT THIS POINT
+            return;
+        case 0:
+            // FILE WAS CORRUPTED, BUT MEMORY IS STILL INTACT
+            rplError(ERR_INVALIDDATA);
+            GCFlags=0;  // NOTHING MOVED IN MEMORY, SO DON'T SIGNAL THAT A GC TOOK PLACE
+            return;
+        default:
+        case 1:
+            // SUCCESS! STILL NEED TO DO A WARMSTART
+            // FALL THROUGH
+        case 2:
+            // SOME ERRORS, BUT rplWarmInit WILL FIX AUTOMATICALLY
+            FSShutdown();
+            rplWarmInit();
+            FSHardReset();
+            GCFlags=GC_COMPLETED;   // MARK THAT GC WAS COMPLETED SO HARDWARE INTERRUPTS ARE ACCEPTED AGAIN
+            rplException(EX_EXITRPL);
+            return;
+        }
+
+        return;
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         // STANDARIZED OPCODES:
         // --------------------

@@ -173,7 +173,7 @@ I I →"
 
 
 @#name cmd_TEVAL
-:: 0 '.TckStart' LSTO TICKS '.TckStart' LSTO HIDELOCALS EVAL TICKS UNHIDELOCALS .TckStart - 1000000 / ;
+« :: 0 '.TckStart' LSTO TICKS '.TckStart' LSTO HIDELOCALS EVAL TICKS UNHIDELOCALS .TckStart - 1000000 / ; »
 
 
 

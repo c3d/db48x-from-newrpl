@@ -26,6 +26,16 @@ if(error!=FS_OK) { return error; }
 if(file->Mode&FSMODE_WRITE) {
 // TO DO:
 // FLUSH WRITE BUFFERS
+ if(file->WrBuffer.Used) {
+     file->CurrentOffset=file->WrBuffer.Offset;
+     FSWriteLL(file->WrBuffer.Data,file->WrBuffer.Used,file,FSystem.Volumes[file->Volume]);
+
+     if(!(file->Mode&FSMODE_MODIFY)) {
+     file->FileSize=file->CurrentOffset;		// TRUNCATE FILE
+     }
+     file->WrBuffer.Used=0;
+
+ }
 
 if(!(file->Mode&FSMODE_MODIFY)) {
 error=FSTruncateChain(file,file->FileSize);	// TRUNCATE CHAIN UNLESS IN MODIFY MODE

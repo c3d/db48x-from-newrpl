@@ -108,6 +108,15 @@
  */
 #define FSMODE_NOCREATE	32    // DON'T CREATE IF FILE DOESN'T EXIST
 
+/*!
+ * \brief Enable write buffers
+ *
+ * This flag is for the FSOpen function only. By default writes are not
+ * buffered (written directly). This flag enables buffered writes.
+ */
+#define FSMODE_WRITEBUFFERS	64    // USE BUFFERED WRITES
+
+
 // SIMILAR TO STANDARD SEEK_XXX CONSTANTS
 #define FSSEEK_SET  0
 #define FSSEEK_CUR  1

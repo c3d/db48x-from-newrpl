@@ -1271,7 +1271,7 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT64 Ai1,Ai2,Bi1,Bi2,A,B,k;
+        BINT64 Ai1,Ai2,Bi1,Bi2,A,B,k,oflowA,oflowB;
         REAL num;
         BINT isneg;
         rplReadNumberAsReal(rplPeekData(1),&num);
@@ -1302,14 +1302,17 @@ void LIB_HANDLER()
                 break;
             }
             k=getBINT64Real(&RReg[4]);
-            A=Ai2+k*Ai1;
-            B=Bi2+k*Bi1;
-            if((A<0) || (B<0)) {
+            oflowA=(Ai1>>32)*k+(Ai2>>32)+((((Ai1&0xffffffff)*k+(Ai2&0xffffffff))+0x80000000)>>32);
+            oflowA>>=31;
+            oflowB=(Bi1>>32)*k+(Bi2>>32)+((((Bi1&0xffffffff)*k+(Bi2&0xffffffff))+0x80000000)>>32);
+            oflowB>>=31;
+            if(oflowA || oflowB) {
                 // OVERFLOW! USE THE PREVIOUS RESULT
-                A=Ai1;
-                B=Bi1;
                 break;
             }
+
+            A=Ai2+k*Ai1;
+            B=Bi2+k*Bi1;
             Ai2=Ai1;
             Bi2=Bi1;
             Ai1=A;

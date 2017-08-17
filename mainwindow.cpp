@@ -27,9 +27,9 @@ extern volatile int __cpu_idle;
 
 extern "C" void __keyb_update();
 // BACKUP/RESTORE
-extern "C" int rplBackup(void (*writefunc)(unsigned int));
-extern "C" int rplRestoreBackup(unsigned int (*readfunc)());
-extern "C" int rplRestoreBackupMessedup(unsigned int (*readfunc)());    // DEBUG ONLY
+extern "C" int rplBackup(void (*writefunc)(unsigned int,void *),void *);
+extern "C" int rplRestoreBackup(unsigned int (*readfunc)(void *),void *);
+extern "C" int rplRestoreBackupMessedup(unsigned int (*readfunc)(void *),void *);    // DEBUG ONLY
 extern "C" void __SD_irqeventinsert();
 
 
@@ -336,12 +336,14 @@ unsigned int MainWindow::ReadWord()
 }
 
 
-extern "C" void write_data(unsigned int word)
+extern "C" void write_data(unsigned int word,void *opaque)
 {
+    (void)opaque;
     MainWindow::WriteWord(word);
 }
-extern "C" unsigned int read_data()
+extern "C" unsigned int read_data(void *opaque)
 {
+    (void)opaque;
     return MainWindow::ReadWord();
 }
 
@@ -381,7 +383,7 @@ void MainWindow::on_actionSave_triggered()
         // PERFORM BACKUP
         myMainWindow=this;
         fileptr=&file;
-        rplBackup(&write_data);
+        rplBackup(&write_data,(void *)fileptr);
 
         file.close();
 
@@ -425,7 +427,7 @@ void MainWindow::on_actionOpen_triggered()
         // PERFORM RESTORE PROCEDURE
         myMainWindow=this;
         fileptr=&file;
-        int result=rplRestoreBackup(&read_data);
+        int result=rplRestoreBackup(&read_data,(void *)fileptr);
 
         file.close();
 
@@ -519,7 +521,7 @@ void MainWindow::on_actionSaveAs_triggered()
         // PERFORM BACKUP
         myMainWindow=this;
         fileptr=&file;
-        rplBackup(&write_data);
+        rplBackup(&write_data,(void *)fileptr);
 
         file.close();
 
