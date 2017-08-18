@@ -22,7 +22,7 @@
 
 
 int __pc_terminate;
-
+int __memmap_intact;
 
 void setup_hardware()
 {
@@ -42,6 +42,9 @@ void main_virtual()
 
     gglsurface scr;
     int wascleared=0,mode;
+
+    do {
+
     bat_setup();
 
     // MONITOR BATTERY VOLTAGE TWICE PER SECOND
@@ -116,6 +119,15 @@ void main_virtual()
 
     //   CLEAR SCREEN
     ggl_rect(&scr,0,0,SCREEN_WIDTH,SCREEN_HEIGHT-1,0x11111111);
+
+    keyb_flushnowait();
+
+    if(halFlags&HAL_RESET) {
+        rplWarmInit();
+        __memmap_intact=2;
+    }
+
+    } while(halFlags&HAL_RESET);
 
 }
 

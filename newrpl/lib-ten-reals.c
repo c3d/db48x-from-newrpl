@@ -816,12 +816,12 @@ void LIB_HANDLER()
 
 
         // realnum DATA MIGHT MOVE DUE TO GC, NEEDS TO BE PROTECTED
-        ScratchPointer1=realnum.data;
+        ScratchPointer1=(WORDPTR)realnum.data;
 
         // RESERVE THE MEMORY FIRST
         rplDecompAppendString2(0,len);
 
-        realnum.data=ScratchPointer1;
+        realnum.data=(BINT *)ScratchPointer1;
 
         // NOW USE IT
         string=(BYTEPTR)DecompStringEnd;

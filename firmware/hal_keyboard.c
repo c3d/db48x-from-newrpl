@@ -254,6 +254,7 @@ BINT endCmdLineAndCompile()
                     // THE CODE HALTED SOMEWHERE INSIDE!
                     halFlags|=HAL_HALTED;
                     if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                    if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
                     if(Exceptions&EX_AUTORESUME) {
                         halFlags|=HAL_AUTORESUME;
                         Exceptions=0;
@@ -270,6 +271,7 @@ BINT endCmdLineAndCompile()
                         if(HaltedIPtr) {
                             halFlags|=HAL_HALTED;
                             if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                            if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
                             if(Exceptions&EX_AUTORESUME) {
                                 halFlags|=HAL_AUTORESUME;
                                 Exceptions=0;
@@ -288,6 +290,8 @@ BINT endCmdLineAndCompile()
                         if(HaltedIPtr) {
                             halFlags|=HAL_HALTED;
                             if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                            if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+
 
                             if(Exceptions&EX_AUTORESUME) {
                                 halFlags|=HAL_AUTORESUME;
@@ -468,6 +472,8 @@ if(iseval) {
             // THE CODE HALTED SOMEWHERE INSIDE!
             halFlags|=HAL_HALTED;
             if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+            if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+
 
             if(Exceptions&EX_AUTORESUME) {
                 halFlags|=HAL_AUTORESUME;
@@ -484,6 +490,8 @@ if(iseval) {
                 if(HaltedIPtr) {
                     halFlags|=HAL_HALTED;
                     if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                    if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+
 
                     if(Exceptions&EX_AUTORESUME) {
                         halFlags|=HAL_AUTORESUME;
@@ -499,10 +507,11 @@ if(iseval) {
                 //if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
 
                     // DON'T ALTER THE INSTRUCTION POINTER OF THE HALTED PROGRAM
-                    rplClearErrors();
                     if(HaltedIPtr) {
                         halFlags|=HAL_HALTED;
                         if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                        if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+
 
                         if(Exceptions&EX_AUTORESUME) {
                             halFlags|=HAL_AUTORESUME;
@@ -510,6 +519,8 @@ if(iseval) {
                         }
                     }
                     else halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                    rplClearErrors();
+
 
             }
         }
@@ -585,6 +596,8 @@ if(iseval) {
             // THE CODE HALTED SOMEWHERE INSIDE!
             halFlags|=HAL_HALTED;
             if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+            if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+
 
             if(Exceptions&EX_AUTORESUME) {
                 halFlags|=HAL_AUTORESUME;
@@ -602,6 +615,8 @@ if(iseval) {
                 if(HaltedIPtr) {
                     halFlags|=HAL_HALTED;
                     if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                    if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+
 
                     if(Exceptions&EX_AUTORESUME) {
                         halFlags|=HAL_AUTORESUME;
@@ -617,10 +632,10 @@ if(iseval) {
                 //if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
 
                     // DON'T ALTER THE INSTRUCTION POINTER OF THE HALTED PROGRAM
-                    rplClearErrors();
                     if(HaltedIPtr) {
                         halFlags|=HAL_HALTED;
                         if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                        if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
 
                         if(Exceptions&EX_AUTORESUME) {
                             halFlags|=HAL_AUTORESUME;
@@ -628,6 +643,7 @@ if(iseval) {
                         }
                     }
                     else halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                    rplClearErrors();
 
             }
         }
@@ -6438,9 +6454,20 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
         if(halFlags&HAL_POWEROFF)
         {
             halFlags&=~HAL_POWEROFF;
-            halPreparePowerOff();
-            halEnterPowerOff();
-            return;
+            if(FSIsInit()) {
+                if(FSCardInserted()) FSShutdown();
+                else FSShutdownNoCard();
+            }
+            if(!(halFlags&HAL_RESET)) {
+                halPreparePowerOff();
+                halEnterPowerOff();
+            }
+            else {
+                halFlags=0;   // DURING HAL RESET, DON'T PRESERVE THE FLAGS
+                halPreparePowerOff();
+                halFlags=HAL_RESET;
+            }
+           return;
         }
 
         if(halFlags&HAL_FASTAUTORESUME) {

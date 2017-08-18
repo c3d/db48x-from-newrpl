@@ -188,6 +188,11 @@ ROMOBJECT customkey_ident[]= {
     TEXT2WORD('K','e','y','s')
 };
 
+ROMOBJECT stksave_ident[]= {
+    MKPROLOG(DOIDENT,2),
+    TEXT2WORD('.','S','t','k'),
+    TEXT2WORD('S','a','v','e')
+};
 
 ROMOBJECT savedflags_ident[]= {
     MKPROLOG(DOIDENT,2),
@@ -226,6 +231,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)customkey_ident,
     (WORDPTR)savedflags_ident,
     (WORDPTR)userflags_ident,
+    (WORDPTR)stksave_ident,
     0
 };
 

@@ -816,7 +816,7 @@ BINT rplKeyName2Msg(WORDPTR keyname);
 #define EX_HWBKPTSKIP     512
 #define EX_TIMER          1024
 #define EX_ALARM          2048
-
+#define EX_HALRESET       4096
 
 // ADD OTHER EXCEPTIONS HERE
 

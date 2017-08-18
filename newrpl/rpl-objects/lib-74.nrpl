@@ -62,6 +62,10 @@ SDNEXTENTRY
 SDSETPART
 SDFREE
 
+@ MENU PAGE
+
+SDARCHIVE
+SDRESTORE
 }
 
 @#name lib74_msgtable
@@ -81,6 +85,7 @@ SDFREE
 ##1,ERR_INVALIDHANDLE "Invalid file handle"
 ##1,ERR_IDENTORPATHEXPECTED "Ident or path expected"
 ##1,ERR_NOTANRPLFILE "Invalid RPL file"
+##1,ERR_INVALIDDATA "Invalid data on file"
 }
 
 
@@ -236,5 +241,16 @@ SDFREE
 "Get free space in active partition.
 
  → I "
+
+SDARCHIVE
+"Store full backup on SD CARD
+
+N → "
+
+SDRESTORE
+"Restore full backup
+No warning!!!
+N → "
+
 
 }

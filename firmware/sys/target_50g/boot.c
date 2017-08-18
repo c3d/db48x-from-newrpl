@@ -161,6 +161,7 @@ void main_virtual(unsigned int mode)
 
     // INITIALIZE SOME SYSTEM VARIABLES
 
+    do {
 
     gglsurface scr;
     int wascleared=0;
@@ -236,7 +237,17 @@ void main_virtual(unsigned int mode)
 
     tmr_eventkill(event);
     //   CLEAR SCREEN
-    ggl_rect(&scr,0,0,SCREEN_WIDTH-1,SCREEN_HEIGHT-1,0x12345678);
+    ggl_rect(&scr,0,0,SCREEN_WIDTH-1,SCREEN_HEIGHT-1,0x11111111);
+
+
+    keyb_flushnowait();
+
+    if(halFlags&HAL_RESET) {
+        rplWarmInit();
+        mode=1;
+    }
+
+    } while(halFlags&HAL_RESET);
 
 }
 

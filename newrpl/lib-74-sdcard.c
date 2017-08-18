@@ -845,7 +845,7 @@ void LIB_HANDLER()
 
         // OPEN THE FILE
         FS_FILE *handle;
-        BINT err=FSOpen((char *)path,FSMODE_WRITE,&handle);
+        BINT err=FSOpen((char *)path,FSMODE_WRITE | FSMODE_WRITEBUFFERS,&handle);
 
         if(err!=FS_OK) {
             rplError(rplFSError2Error(err));
@@ -2170,12 +2170,22 @@ case SDPATH:
         FS_FILE *objfile;
         int err;
         err=FSOpen((char *)(RReg[0].data),FSMODE_WRITE|FSMODE_WRITEBUFFERS,&objfile);
-        err=FS_OK;
 
         if(err!=FS_OK) {
             rplError(rplFSError2Error(err));
             return;
             }
+
+        // PACK THE STACK
+        WORDPTR stklist=0;
+
+        if(rplDepthData()>1) stklist=rplCreateListN(rplDepthData()-1,2,0);
+        // JUST DON'T SAVE THE STACK IF THERE'S NOT ENOUGH MEMORY FOR IT
+        if(stklist) {
+            rplListAutoExpand(stklist);
+            rplStoreSettings((WORDPTR)stksave_ident,stklist);
+        }
+        else rplPurgeSettings((WORDPTR)stksave_ident);
 
         err = rplBackup(&rplSDArchiveWriteWord,(void *)objfile);
 
@@ -2237,6 +2247,8 @@ case SDPATH:
 
         FS_FILE *objfile;
         int err;
+
+
         err=FSOpen((char *)(RReg[0].data),FSMODE_READ,&objfile);
         if(err!=FS_OK) {
             rplError(rplFSError2Error(err));
@@ -2268,11 +2280,8 @@ case SDPATH:
             // FALL THROUGH
         case 2:
             // SOME ERRORS, BUT rplWarmInit WILL FIX AUTOMATICALLY
-            FSShutdown();
-            rplWarmInit();
-            FSHardReset();
             GCFlags=GC_COMPLETED;   // MARK THAT GC WAS COMPLETED SO HARDWARE INTERRUPTS ARE ACCEPTED AGAIN
-            rplException(EX_EXITRPL);
+            rplException(EX_POWEROFF|EX_HALRESET);  // REQUEST A COMPLETE HAL RESET
             return;
         }
 

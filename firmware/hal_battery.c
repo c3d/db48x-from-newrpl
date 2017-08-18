@@ -182,7 +182,6 @@ WORDPTR saved=rplGetSettings((WORDPTR)savedcmdline_ident);
 if(saved) {
     if(halRestoreCmdLine(saved))  halSetContext(halGetContext()|CONTEXT_INEDITOR);
     rplPurgeSettings((WORDPTR)savedcmdline_ident);
-    halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;  // UPDATE STATUS AREA AND MENUS
 }
 
 // RESTORE THE FLAGS
@@ -201,6 +200,27 @@ rplPurgeSettings((WORDPTR)savedflags_ident);
 if(rplTestSystemFlag(FL_HIDEMENU2)) halSetMenu2Height(0);
 else halSetMenu2Height(MENU2_HEIGHT);
 
+// RESTORE STACK
+saved=rplGetSettings((WORDPTR)stksave_ident);
+
+if(saved) {
+    if(ISAUTOEXPLIST(*saved)) {
+        BINT nitems=rplListLength(saved);
+        rplExpandStack(nitems);
+        if(!Exceptions) {
+        WORDPTR ptr=saved+1;
+        while(nitems--) { rplPushDataNoGrow(ptr); ptr=rplSkipOb(ptr); }
+        }
+    }
+    else rplPushData(saved);
+
+}
+rplPurgeSettings((WORDPTR)stksave_ident);
+
+
+
+
+
 // FLUSH THE ON-KEY KEYPRESS FROM THE KEYBOARD BUFFER BEFORE ENTERING THE OUTER LOOP
 // THIS CAN CANCEL AN EXISTING COMMAND LINE
 keyb_flushnowait();
@@ -211,5 +231,7 @@ else
     halSetNotification(N_CONNECTION, 0x0);
 
 // TODO: ADD OTHER WAKEUP PROCEDURES
+
+halScreen.DirtyFlag|=STACK_DIRTY|FORM_DIRTY|CMDLINE_ALLDIRTY|MENU2_DIRTY|STAREA_DIRTY;  // UPDATE EVERYTHING
 
 }

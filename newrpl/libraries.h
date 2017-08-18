@@ -473,6 +473,7 @@ extern const WORD angle_180[];
 extern const WORD savedcmdline_ident[];
 extern const WORD customkey_ident[];
 extern const WORD savedflags_ident[];
+extern const WORD stksave_ident[];
 extern const WORD error_reenter_seco[];
 extern const WORD invalid_string[];
 
