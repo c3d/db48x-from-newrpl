@@ -4178,6 +4178,7 @@ if(ndigits+quot->exp<0) {
     return;
 }
 round_real(quot,ndigits+quot->exp,1);
+normalize(quot);
 if((a->flags&F_APPROX)||(b->flags&F_APPROX)) quot->flags|=F_APPROX;
 else quot->flags&=~F_APPROX;    // REMOVE THE APPROXIMATED FLAG AFTER TRUNCATION
 }
