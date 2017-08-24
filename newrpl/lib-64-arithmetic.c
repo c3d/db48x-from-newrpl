@@ -78,7 +78,8 @@
     CMD(MIN,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
     CMD(MAX,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
     CMD(RND,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
-    CMD(TRNC,MKTOKENINFO(4,TITYPE_FUNCTION,2,2))
+    CMD(TRNC,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
+    CMD(DIGITS,MKTOKENINFO(6,TITYPE_FUNCTION,3,2))
 
 
 
@@ -3008,7 +3009,61 @@ case IPPOST:
     return;
     }
 
+case DIGITS:
+        // EXTRACT DIGITS FROM A REAL NUMBER
+        // GIVEN THE NUMBER AND POSITION START/END
+        // POSITION IS GIVEN IN 10s POWERS (0 = UNITY, 1 = TENS, ETC)
+    {
+     if(rplDepthData()<3) {
+         rplError(ERR_BADARGCOUNT);
+         return;
+     }
 
+
+     if(ISLIST(*rplPeekData(3)))
+     {
+         rplListMultiArgDoCmd(3);
+         return;
+     }
+
+
+     if(!ISNUMBER(*rplPeekData(3))) {
+         rplError(ERR_REALEXPECTED);
+         return;
+     }
+
+     if(!ISNUMBER(*rplPeekData(2)) || !ISNUMBER(*rplPeekData(1))) {
+         rplError(ERR_INTEGEREXPECTED);
+         return;
+     }
+
+     REAL re;
+     BINT64 start,end;
+
+     rplReadNumberAsReal(rplPeekData(3),&re);
+     start=rplReadNumberAsBINT(rplPeekData(2));
+     end=rplReadNumberAsBINT(rplPeekData(1));
+
+     if(Exceptions) return;
+
+     if(start<end) {
+         BINT64 tmp=start;
+         start=end;
+         end=tmp;
+     }
+
+     re.exp-=end;
+     ipReal(&RReg[0],&re,1);
+     RReg[0].exp+=end;
+     RReg[0].exp-=start+1;
+     fracReal(&RReg[1],&RReg[0]);
+     RReg[1].exp+=(start-end)+1;
+     rplDropData(3);
+     if(inBINT64Range(&RReg[1])) { start=getBINT64Real(&RReg[1]);  rplNewBINTPush(start,DECBINT); }
+     else rplNewRealFromRRegPush(1);
+
+     return;
+    }
 
 
 

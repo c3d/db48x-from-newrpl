@@ -57,7 +57,8 @@
     CMD(STKPUSH,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(STKPOP,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(STKDROP,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(STKPICK,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+    CMD(STKPICK,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(STKDEPTH,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
 
 
 
@@ -579,6 +580,32 @@ void LIB_HANDLER()
 
     }
 
+    case STKDEPTH:
+        //  PICK A VALUE FROM ANY SNAPSHOT
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        BINT64 snap;
+
+        snap=rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions) return;
+
+        if( (snap<1) || (snap>rplCountSnapshots())) {
+            rplError(ERR_BADSTACKINDEX);
+            return;
+        }
+
+        BINT depth=rplDepthSnapshot(snap);
+
+        WORDPTR newbint=rplNewBINT(depth,DECBINT);
+        if(!newbint) return;
+        rplOverwriteData(1,newbint);
+
+        return;
+
+    }
 
 
 
