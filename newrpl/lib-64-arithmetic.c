@@ -898,7 +898,7 @@ case IPPOST:
                     rplError(ERR_MATHDIVIDEBYZERO);
                     return;
                 }
-
+                if(m<(1LL<<62)) {
                 r = (a%m + m)%m;
                 q = (a-r)/m;
                 rplDropData(2);
@@ -909,6 +909,7 @@ case IPPOST:
                     rplNewBINTPush(r,DECBINT);
                 }
                 return;
+                }
             }
                 // THERE'S REALS INVOLVED, DO IT ALL WITH REALS
 

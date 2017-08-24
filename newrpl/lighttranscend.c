@@ -2430,10 +2430,10 @@ void pln()
 
        decconst_ln10(&ln10);
 
-       RReg[2].flags=0;
+       RReg[2].flags=(correction<0)? F_NEGATIVE:0;
        RReg[2].exp=0;
        RReg[2].len=1;
-       RReg[2].data[0]=correction;
+       RReg[2].data[0]=(correction<0)? -correction:correction;
 
        mulReal(&RReg[1],&RReg[2],&ln10);
        addReal(&RReg[0],&RReg[1],&RReg[4]);
