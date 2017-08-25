@@ -275,9 +275,17 @@ doupdate:
             if(oldkeyplane!=__keyplane)	__keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY) | MKOLDSHIFT(oldkeyplane|((oldkeyplane&ALPHALOCK)>>16)));
         }
         else {
+
             if(__keyplane&SHIFT_ALPHA) {
             // THIS IS A PRESS AND HOLD KEY BEING RAISED
                 __keyplane|=OTHER_KEY;
+            }
+            if(!(__keyplane&(SHIFT_HOLD))) {
+                unsigned int oldkeyplane=__keyplane;
+                // IT WAS ALPHA-HOLD OR ON-HOLD, KILL SHIFTS
+                __keyplane&=~(SHIFT_LS|SHIFT_RS); // KILL ALL SHIFT PLANES
+
+                if(oldkeyplane!=__keyplane)	__keyb_postmsg(KM_SHIFT | (__keyplane&SHIFT_ANY) | MKOLDSHIFT(oldkeyplane|((oldkeyplane&ALPHALOCK)>>16)));
 
             }
         }
@@ -288,12 +296,12 @@ doupdate:
             unsigned int oldkeyplane=__keyplane;
             if(key==KB_LSHIFT) {
                 __keyplane&=~((SHIFT_LSHOLD|SHIFT_LS)^((__keyplane>>16)&SHIFT_LS));
-                __keyplane&=~((SHIFT_ALPHA)^(((__keyplane>>16)|(__keyplane>>17))&SHIFT_ALPHA));
+                if(!(oldkeyplane&SHIFT_ALHOLD)) __keyplane&=~((SHIFT_ALPHA)^(((__keyplane>>16)|(__keyplane>>17))&SHIFT_ALPHA));
 
             }
             if(key==KB_RSHIFT) {
                 __keyplane&=~((SHIFT_RSHOLD|SHIFT_RS)^((__keyplane>>16)&SHIFT_RS));
-                __keyplane&=~((SHIFT_ALPHA)^(((__keyplane>>16)|(__keyplane>>17))&SHIFT_ALPHA));
+                if(!(oldkeyplane&SHIFT_ALHOLD)) __keyplane&=~((SHIFT_ALPHA)^(((__keyplane>>16)|(__keyplane>>17))&SHIFT_ALPHA));
 
             }
             if(key==KB_ALPHA) {
