@@ -23,7 +23,7 @@
 
 @#name lib8_menu_error
 {
-    DOERR RESUME ERRN ERRM ERR0
+    DOERR RESUME ERRN ERRM ERR0 BLAMEERR
 }
 
 
@@ -76,7 +76,7 @@ program at this point
 DOERR
 "Throw a system error or
 custom error
-I or S → <error!>"
+I or S → "
 
 RESUME
 "Exit an error handler
@@ -98,6 +98,10 @@ ERR0
 
  → "
 
+BLAMEERR
+"Throw a system error or
+custom error
+S<name> I|S → "
 
 
 }

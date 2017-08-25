@@ -34,7 +34,7 @@
 @#name lib64_menu_1_real
 {
   FLOOR CEIL IP FP MOD
-  SQ  % %CH %T { "" }
+  DIGITS SQ  % %CH %T
   MANT XPON SIGN SETPREC GETPREC
 }
 
@@ -236,5 +236,10 @@ PSUB
 "SUBTRACTION OF 2 POLYNOMIAL
 P1-P2=P3
 V V → V"
+
+DIGITS
+"Extract digits from a number
+
+R I<st> I<end> → I"
 }
 

@@ -27,7 +27,7 @@
 
 @#name lib32_menu
 {
-  ##1,CMD_LSTO LRCL
+  ##1,CMD_LSTO LRCL HIDELOCALS UNHIDELOCALS
 }
 
 @#name lib32_cmdhelp
@@ -40,4 +40,15 @@ LRCL
 "Get the contents of a local variable
 
 N → O"
+
+HIDELOCALS
+"Hide local variables from
+children programs
+ → "
+
+UNHIDELOCALS
+"Re-enable local variable
+visibility
+ → "
+
 }

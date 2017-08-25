@@ -21,14 +21,15 @@
 @#name lib65_menu_0_time
 {
   DATE →DATE TIME →TIME { { "Alarms" 1 } :: #04102000h TMENULST DOALARM ; }
-  DATE+ DDAYS TICKS CLKADJ TSTR
+  DATE+ DDAYS TICKS TEVAL TSTR
   →HMS HMS→ HMS+ HMS-
 }
 
 @#name lib65_menu_1_memory
 {
-  MEM BYTES NEWOB GARBAGE VERSION
-  PEEK POKE
+  BYTES TYPE TYPEE NEWOB MEM
+  GARBAGE
+
 }
 
 @#name lib65_menu_2_alarms
@@ -36,6 +37,10 @@
   ACK ACKALL STOALARM RCLALARM DELALARM FINDALARM
 }
 
+@#name lib65_menu_3_others
+{
+  OFF VERSION
+}
 
 @#name lib65_msgtable
 {
@@ -56,11 +61,6 @@ TICKS
 "Returns the system time in
 microseconds
  → I"
-
-CLKADJ
-"Adjusts the system time by x
-clock ticks
-I →"
 
 DATE
 "Returns the system date
@@ -161,6 +161,16 @@ POKE
 "Writes 4 bytes in level 1
 to the memory address in level 2
 I I →"
+
+OFF
+"Turns the calculator OFF.
+Exec. resumes on power on.
+ → "
+
+TEVAL
+"Measure time to run a program
+
+P → ... R<time>"
 
 }
 
