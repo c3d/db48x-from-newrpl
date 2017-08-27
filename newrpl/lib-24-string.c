@@ -1179,13 +1179,32 @@ void LIB_HANDLER()
                 BYTE bytes[4];
             } temp;
 
-            BINT count=0;
+            BINT count=0,escape=0,code;
             BYTEPTR ptr=(BYTEPTR) TokenStart;
             ++ptr;  // SKIP THE QUOTE
             do {
             while(count<4) {
                 if(ptr==(BYTEPTR)NextTokenStart) {
                  // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
+                    if(escape>1) {
+                        // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
+                        UBINT codebytes=cp2utf8(code);
+                        do {
+                        if(count==0) temp.word=0;
+                        temp.bytes[count]=codebytes&0xff;
+                        ++count;
+                        codebytes>>=8;
+                        if(count>=4) {
+                            //  WE HAVE A COMPLETE WORD HERE
+                            ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                            rplCompileAppend(temp.word);
+                            ptr=(BYTEPTR)ScratchPointer1;
+                            count=0;
+                        }
+                        }while(codebytes);
+                        escape=0;
+                    }
+
 
                     // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
                     if(count) rplCompileAppend(temp.word);
@@ -1193,7 +1212,28 @@ void LIB_HANDLER()
                     RetNum=OK_NEEDMORE;
                     return;
                 }
-                if(*ptr=='\"') {
+                if( (*ptr=='\\')&&(!escape)) { escape=1; ++ptr; continue; }
+                if( (*ptr=='\"') && (escape!=1)) {
+                    if(escape>1) {
+                        // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
+                        UBINT codebytes=cp2utf8(code);
+                        do {
+                        if(count==0) temp.word=0;
+                        temp.bytes[count]=codebytes&0xff;
+                        ++count;
+                        codebytes>>=8;
+                        if(count>=4) {
+                            //  WE HAVE A COMPLETE WORD HERE
+                            ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                            rplCompileAppend(temp.word);
+                            ptr=(BYTEPTR)ScratchPointer1;
+                            count=0;
+                        }
+                        }while(codebytes);
+                        escape=0;
+                    }
+
+
                     // END OF STRING!
                     ++ptr;
                     if(ptr!=(BYTEPTR)BlankStart) {
@@ -1209,10 +1249,54 @@ void LIB_HANDLER()
                     RetNum=OK_CONTINUE;
                     return;
                 }
+
+                if( (escape==1) && ((*ptr=='U')||(*ptr=='u'))) { escape++; code=0; ++ptr; continue; }
+                if(escape>5) {
+                    // ALREADY HAVE 4 DIGITS, WE ARE DONE
+                    UBINT codebytes=cp2utf8(code);
+                    do {
+                    if(count==0) temp.word=0;
+                    temp.bytes[count]=codebytes&0xff;
+                    ++count;
+                    codebytes>>=8;
+                    if(count>=4) {
+                        //  WE HAVE A COMPLETE WORD HERE
+                        ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                        rplCompileAppend(temp.word);
+                        ptr=(BYTEPTR)ScratchPointer1;
+                        count=0;
+                    }
+                    } while(codebytes);
+                    escape=0;
+                }
+                if(escape>1 && ((*ptr>='0')&&(*ptr<='9'))) { ++escape; code=code*16+(*ptr-'0'); ++ptr; continue; }
+                if(escape>1 && ((*ptr>='A')&&(*ptr<='F'))) { ++escape; code=code*16+(*ptr-'A'); ++ptr; continue; }
+                if(escape>1 && ((*ptr>='a')&&(*ptr<='f'))) { ++escape; code=code*16+(*ptr-'A'); ++ptr; continue; }
+
+                if(escape>1) {
+                    // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
+                    UBINT codebytes=cp2utf8(code);
+                    do {
+                    if(count==0) temp.word=0;
+                    temp.bytes[count]=codebytes&0xff;
+                    ++count;
+                    codebytes>>=8;
+                    if(count>=4) {
+                        //  WE HAVE A COMPLETE WORD HERE
+                        ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                        rplCompileAppend(temp.word);
+                        ptr=(BYTEPTR)ScratchPointer1;
+                        count=0;
+                    }
+                    }while(codebytes);
+                    escape=0;
+                }
+
                 if(count==0) temp.word=0;
                 temp.bytes[count]=*ptr;
                 ++count;
                 ++ptr;
+                escape=0;
                 }
                 //  WE HAVE A COMPLETE WORD HERE
                 ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
@@ -1248,16 +1332,37 @@ void LIB_HANDLER()
             BYTE bytes[4];
         } temp;
 
+        BINT escape=0,code;
+
         BINT count=(4-(LIBNUM(*ScratchPointer4)&3))&3; // GET NUMBER OF BYTES ALREADY WRITTEN IN LAST WORD
         if(count) {
             --CompileEnd;
             temp.word=*CompileEnd;  // GET LAST WORD
         }
         BYTEPTR ptr=(BYTEPTR) TokenStart;
+
         do {
         while(count<4) {
             if(ptr==(BYTEPTR)NextTokenStart) {
              // WE ARE AT THE END OF THE GIVEN STRING, STILL NO CLOSING QUOTE, SO WE NEED MORE
+                if(escape>1) {
+                    // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
+                    UBINT codebytes=cp2utf8(code);
+                    do {
+                    if(count==0) temp.word=0;
+                    temp.bytes[count]=codebytes&0xff;
+                    ++count;
+                    codebytes>>=8;
+                    if(count>=4) {
+                        //  WE HAVE A COMPLETE WORD HERE
+                        ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                        rplCompileAppend(temp.word);
+                        ptr=(BYTEPTR)ScratchPointer1;
+                        count=0;
+                    }
+                    }while(codebytes);
+                    escape=0;
+                }
 
                 // CLOSE THE OBJECT, BUT WE'LL REOPEN IT LATER
                 if(count) rplCompileAppend(temp.word);
@@ -1265,8 +1370,28 @@ void LIB_HANDLER()
                 RetNum=OK_NEEDMORE;
                 return;
             }
+            if( (*ptr=='\\')&&(!escape)) { escape=1; ++ptr; continue; }
+            if( (*ptr=='\"') && (escape!=1)) {
+                if(escape>1) {
+                    // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
+                    UBINT codebytes=cp2utf8(code);
+                    do {
+                    if(count==0) temp.word=0;
+                    temp.bytes[count]=codebytes&0xff;
+                    ++count;
+                    codebytes>>=8;
+                    if(count>=4) {
+                        //  WE HAVE A COMPLETE WORD HERE
+                        ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                        rplCompileAppend(temp.word);
+                        ptr=(BYTEPTR)ScratchPointer1;
+                        count=0;
+                    }
+                    }while(codebytes);
+                    escape=0;
+                }
 
-            if(*ptr=='\"') {
+
                 // END OF STRING!
                 ++ptr;
                 if(ptr!=(BYTEPTR)BlankStart) {
@@ -1280,6 +1405,59 @@ void LIB_HANDLER()
                 RetNum=OK_CONTINUE;
                 return;
             }
+
+            if( (escape==1) && ((*ptr=='U')||(*ptr=='u'))) { escape++; code=0; ++ptr; continue; }
+            if(escape>5) {
+                // ALREADY HAVE 4 DIGITS, WE ARE DONE
+                UBINT codebytes=cp2utf8(code);
+                do {
+                if(count==0) temp.word=0;
+                temp.bytes[count]=codebytes&0xff;
+                ++count;
+                codebytes>>=8;
+                if(count>=4) {
+                    //  WE HAVE A COMPLETE WORD HERE
+                    ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                    rplCompileAppend(temp.word);
+                    ptr=(BYTEPTR)ScratchPointer1;
+                    count=0;
+                }
+                }while(codebytes);
+                escape=0;
+            }
+            if(escape>1 && ((*ptr>='0')&&(*ptr<='9'))) { ++escape; code=code*16+(*ptr-'0'); ++ptr; continue; }
+            if(escape>1 && ((*ptr>='A')&&(*ptr<='F'))) { ++escape; code=code*16+(*ptr-'A'); ++ptr; continue; }
+            if(escape>1 && ((*ptr>='a')&&(*ptr<='f'))) { ++escape; code=code*16+(*ptr-'A'); ++ptr; continue; }
+
+            if(escape>1) {
+                // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
+                UBINT codebytes=cp2utf8(code);
+                do {
+                if(count==0) temp.word=0;
+                temp.bytes[count]=codebytes&0xff;
+                ++count;
+                codebytes>>=8;
+                if(count>=4) {
+                    //  WE HAVE A COMPLETE WORD HERE
+                    ScratchPointer1=(WORDPTR)ptr;           // SAVE AND RESTORE THE POINTER TO A GC-SAFE LOCATION
+                    rplCompileAppend(temp.word);
+                    ptr=(BYTEPTR)ScratchPointer1;
+                    count=0;
+                }
+                }while(codebytes);
+                escape=0;
+            }
+
+
+
+
+
+
+
+
+
+
+
             if(count==0) temp.word=0;
             temp.bytes[count]=*ptr;
             ++count;
@@ -1300,6 +1478,53 @@ void LIB_HANDLER()
 
     }
     case OPCODE_DECOMPEDIT:
+    {
+        // SAME AS DECOMPILE BUT NEED TO ESCAPE THE BACKSLASH CHARACTER AND THE DOUBLE QUOTE
+        // DecompileObject = Ptr to prolog of object to decompile
+        // DecompStringEnd = Ptr to the end of decompile string
+
+        //DECOMPILE RETURNS
+        // RetNum =  enum DecompileErrors
+        if(ISPROLOG(*DecompileObject)) {
+            rplDecompAppendChar('\"');
+            BYTEPTR start=(BYTEPTR)(DecompileObject+1);
+            BYTEPTR end=start+(OBJSIZE(*DecompileObject)<<2)-(LIBNUM(*DecompileObject)&3);
+            BYTEPTR ptr;
+            for(ptr=start;ptr<end;++ptr)
+            {
+                if(*ptr=='\\') {
+                    rplDecompAppendString2(start,ptr-start);
+                    rplDecompAppendChar('\\');
+                    start=ptr;
+                    continue;
+                }
+                if(*ptr=='\"') {
+                    rplDecompAppendString2(start,ptr-start);
+                    rplDecompAppendChar('\\');
+                    start=ptr;
+                    continue;
+                }
+                if(*ptr==0) {
+                    rplDecompAppendString2(start,ptr-start);
+                    rplDecompAppendString((BYTEPTR)"\\U0000");
+                    start=ptr+1;
+                    continue;
+                }
+            }
+            if(ptr>start) rplDecompAppendString2(start,ptr-start);
+            rplDecompAppendChar('\"');
+
+            RetNum=OK_CONTINUE;
+            return;
+
+        }
+
+        // THIS STANDARD FUNCTION WILL TAKE CARE OF DECOMPILING STANDARD COMMANDS GIVEN IN THE LIST
+        // NO NEED TO CHANGE THIS UNLESS THERE ARE CUSTOM OPCODES
+        libDecompileCmds((char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        return;
+
+    }
     case OPCODE_DECOMPILE:
         // DECOMPILE RECEIVES:
         // DecompileObject = Ptr to prolog of object to decompile
