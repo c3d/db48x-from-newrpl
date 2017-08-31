@@ -99,7 +99,7 @@ BINT uiSetCmdLineText(WORDPTR text)
     halScreen.CursorPosition=((BYTEPTR)(CmdLineText+1))+end-linestart;
 
     if(halScreen.CursorPosition<0) halScreen.CursorPosition=0;
-    halScreen.CursorX=StringWidthN((char *)linestart,(char *)linestart+halScreen.CursorPosition,(UNIFONT *)halScreen.CmdLineFont);
+    halScreen.CursorX=StringWidthN((char *)linestart,(char *)linestart+halScreen.CursorPosition,(UNIFONT *)halScreen.FontArray[FONT_CMDLINE]);
 
 
 
@@ -285,7 +285,7 @@ void uiSetCurrentLine(BINT line)
     BINT len=rplStrSize(CmdLineCurrentLine);
     BINT targetx=halScreen.CursorX;
     BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1);
-    BYTEPTR ptr2=(BYTEPTR)StringCoordToPointer((char *)ptr,(char *)ptr+len,halScreen.CmdLineFont,&targetx);
+    BYTEPTR ptr2=(BYTEPTR)StringCoordToPointer((char *)ptr,(char *)ptr+len,*halScreen.FontArray[FONT_CMDLINE],&targetx);
 
     halScreen.CursorX=targetx;
     halScreen.CursorPosition=ptr2-ptr;
@@ -459,7 +459,7 @@ if(nl)  {
 
 }
 else {
-halScreen.CursorX+=StringWidthN(((char *)CmdLineCurrentLine)+4+halScreen.CursorPosition,((char *)CmdLineCurrentLine)+4+halScreen.CursorPosition+length,halScreen.CmdLineFont);
+halScreen.CursorX+=StringWidthN(((char *)CmdLineCurrentLine)+4+halScreen.CursorPosition,((char *)CmdLineCurrentLine)+4+halScreen.CursorPosition+length,*halScreen.FontArray[FONT_CMDLINE]);
 
 // MOVE CURRENT SELECTION
 if((halScreen.SelStartLine==halScreen.LineCurrent)&&(halScreen.SelStart>=halScreen.CursorPosition))    halScreen.SelStart+=length;
@@ -785,7 +785,7 @@ offset=ptr2-ptr;
 
 halScreen.CursorPosition=offset;
 
-halScreen.CursorX=StringWidthN((char *)ptr,(char *)ptr2,halScreen.CmdLineFont);
+halScreen.CursorX=StringWidthN((char *)ptr,(char *)ptr2,*halScreen.FontArray[FONT_CMDLINE]);
 
 halScreen.CursorState&=~0xc000;
 
@@ -884,7 +884,7 @@ void uiCursorLeft(BINT nchars)
 
     halScreen.CursorPosition=offset;
 
-    halScreen.CursorX=StringWidthN((char *)ptr,(char *)ptr2,halScreen.CmdLineFont);
+    halScreen.CursorX=StringWidthN((char *)ptr,(char *)ptr2,*halScreen.FontArray[FONT_CMDLINE]);
 
     halScreen.CursorState&=~0xc000;
 
@@ -984,7 +984,7 @@ void uiCursorRight(BINT nchars)
 
     halScreen.CursorPosition=offset;
 
-    halScreen.CursorX=StringWidthN((char *)ptr,(char *)ptr2,halScreen.CmdLineFont);
+    halScreen.CursorX=StringWidthN((char *)ptr,(char *)ptr2,*halScreen.FontArray[FONT_CMDLINE]);
 
     halScreen.CursorState&=~0xc000;
 
@@ -1063,7 +1063,7 @@ void uiCursorPageRight()
 BINT len=rplStrSize(CmdLineCurrentLine);
 BINT targetx=halScreen.CursorX+SCREEN_WIDTH;
 BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1);
-BYTEPTR ptr2=(BYTEPTR)StringCoordToPointer((char *)ptr,(char *)ptr+len,halScreen.CmdLineFont,&targetx);
+BYTEPTR ptr2=(BYTEPTR)StringCoordToPointer((char *)ptr,(char *)ptr+len,*halScreen.FontArray[FONT_CMDLINE],&targetx);
 
 halScreen.CursorX=targetx;
 halScreen.CursorPosition=ptr2-ptr;
@@ -1101,7 +1101,7 @@ void uiCursorPageLeft()
 BINT len=rplStrSize(CmdLineCurrentLine);
 BINT targetx=halScreen.CursorX-SCREEN_WIDTH;
 BYTEPTR ptr=(BYTEPTR)(CmdLineCurrentLine+1);
-BYTEPTR ptr2=(BYTEPTR)StringCoordToPointer((char *)ptr,(char *)ptr+len,halScreen.CmdLineFont,&targetx);
+BYTEPTR ptr2=(BYTEPTR)StringCoordToPointer((char *)ptr,(char *)ptr+len,*halScreen.FontArray[FONT_CMDLINE],&targetx);
 
 halScreen.CursorX=targetx;
 halScreen.CursorPosition=ptr2-ptr;
@@ -1221,10 +1221,10 @@ void uiStretchCmdLine(BINT addition)
     halScreen.NumLinesVisible+=addition;
     if(halScreen.NumLinesVisible<1) halScreen.NumLinesVisible=1;
 
-    halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight*halScreen.NumLinesVisible+2);
-    if(halScreen.CmdLine!=halScreen.CmdLineFont->BitmapHeight*halScreen.NumLinesVisible+2) {
+    halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight*halScreen.NumLinesVisible+2);
+    if(halScreen.CmdLine!=(*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight*halScreen.NumLinesVisible+2) {
         // NO ROOM, ADJUST NUMBER OF VISIBLE LINES
-        BINT actuallines=(halScreen.CmdLine-2)/halScreen.CmdLineFont->BitmapHeight;
+        BINT actuallines=(halScreen.CmdLine-2)/(*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight;
         halScreen.NumLinesVisible=actuallines;
         if(halScreen.NumLinesVisible<1) halScreen.NumLinesVisible=1;
     }

@@ -237,6 +237,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
             if(nresults==1) ptr=rplPopData();
             else ptr=(WORDPTR)empty_string;      // IF THE PROGRAM FAILED TO RETURN AN OBJECT, JUST USE THE EMPTY STRING
             item=rplPopData();  // RESTORE THE item POINTER IN CASE OF GC
+            halUpdateFonts();
             // CONTINUE HERE WITH THE NEW ptr
 
         }
@@ -267,7 +268,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
         // SPECIAL CASE: FOR IDENTS LOOK FOR VARIABLES AND DRAW DIFFERENTLY IF IT'S A DIRECTORY
         WORDPTR *var=rplFindGlobal(ptr,1);
 
-        BINT w=StringWidthN((char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.MenuFont),pos;
+        BINT w=StringWidthN((char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),*halScreen.FontArray[FONT_MENU]),pos;
 
         if(w>=scr->clipx2-scr->clipx) pos=scr->clipx+1;
         else pos=(scr->clipx2+1+scr->clipx-w)>>1;
@@ -275,7 +276,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
         if((flags&1) || (var && ISDIR(*var[1]))) {
             //ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(color));
             //ggl_cliphline(scr,scr->clipy,scr->clipx,scr->clipx+3,ggl_mkcolor(color));
-            //DrawTextN(pos+1,scr->clipy+1,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.MenuFont,(color)? 0x4:0xa,scr);
+            //DrawTextN(pos+1,scr->clipy+1,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.FontArray[FONT_MENU],(color)? 0x4:0xa,scr);
 
             // FIRST LETTER GRAY BACKGROUND
             ggl_clipvline(scr,pos,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x8));
@@ -294,7 +295,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 
         }
 
-        DrawTextN(pos,scr->clipy+1,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),halScreen.MenuFont,color,scr);
+        DrawTextN(pos,scr->clipy+1,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),*halScreen.FontArray[FONT_MENU],color,scr);
 
         // DARKEN/LIGHTEN EFFECT ON LAST FEW PIXELS
         if(w>=scr->clipx2-scr->clipx) {
@@ -367,14 +368,14 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 
     // JUST DISPLAY THE STRING
 
-    BINT w=StringWidthN((char *)string,(char *)endstring,halScreen.MenuFont),pos;
+    BINT w=StringWidthN((char *)string,(char *)endstring,*halScreen.FontArray[FONT_MENU]),pos;
     if(w>=scr->clipx2-scr->clipx) pos=scr->clipx+1;
     else pos=(scr->clipx2+1+scr->clipx-w)>>1;
 
     if(flags&1) {   // FOR NOW, flags & 1 INDICATES THE MENU IS TO BE DISPLAYED AS A DIRECTORY
         //ggl_clipvline(scr,scr->clipx2,scr->clipy,scr->clipy2,ggl_mkcolor(color));
         //ggl_cliphline(scr,scr->clipy,scr->clipx,scr->clipx+3,ggl_mkcolor(color));
-        //DrawTextN(pos+1,scr->clipy+1,(char *)string,(char *)endstring,halScreen.MenuFont,(color)? 0x4:0xa,scr);
+        //DrawTextN(pos+1,scr->clipy+1,(char *)string,(char *)endstring,halScreen.FontArray[FONT_MENU],(color)? 0x4:0xa,scr);
 
         // FIRST LETTER GRAY BACKGROUND
         ggl_clipvline(scr,pos,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x8));
@@ -393,7 +394,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
     }
 
 
-    DrawTextN(pos,scr->clipy+1,(char *)string,(char *)endstring,halScreen.MenuFont,color,scr);
+    DrawTextN(pos,scr->clipy+1,(char *)string,(char *)endstring,*halScreen.FontArray[FONT_MENU],color,scr);
 
     // DARKEN/LIGHTEN EFFECT ON LAST FEW PIXELS
     if(w>=scr->clipx2-scr->clipx) {

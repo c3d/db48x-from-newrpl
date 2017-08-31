@@ -25,15 +25,16 @@ void uiClearRenderCache()
 }
 
 // ADD AN ENTRY TO THE CACHE
-void uiAddCacheEntry(WORDPTR object,WORDPTR bitmap)
+void uiAddCacheEntry(WORDPTR object,WORDPTR bitmap,UNIFONT **font)
 {
     if(GCFlags&GC_COMPLETED) {
         uiClearRenderCache();
         GCFlags=0;
     }
 
-    halCacheContents[NEXT_ENTRY*2]=object;
-    halCacheContents[NEXT_ENTRY*2+1]=bitmap;
+    halCacheContents[NEXT_ENTRY*3]=object;
+    halCacheContents[NEXT_ENTRY*3+1]=bitmap;
+    halCacheContents[NEXT_ENTRY*3+2]=(WORDPTR)font;
     halCacheEntry=INC_NEXT_ENTRY;
     if(NEXT_ENTRY==0) halCacheEntry|=CACHE_FULL;
 }
@@ -41,7 +42,7 @@ void uiAddCacheEntry(WORDPTR object,WORDPTR bitmap)
 
 
 // USE AN ENTRY IN THE CACHE
-WORDPTR uiFindCacheEntry(WORDPTR object)
+WORDPTR uiFindCacheEntry(WORDPTR object,UNIFONT **font)
 {
     if(GCFlags&GC_COMPLETED) {
         uiClearRenderCache();
@@ -53,11 +54,15 @@ WORDPTR uiFindCacheEntry(WORDPTR object)
     int k;
     int limit=(halCacheEntry&CACHE_FULL)? MAX_RENDERCACHE_ENTRIES:NEXT_ENTRY;
 
-    limit*=2;
+    limit*=3;
 
-    for(k=0;k<limit;k+=2)
+    for(k=0;k<limit;k+=3)
     {
-        if(halCacheContents[k]==object) return halCacheContents[k+1];
+        if(halCacheContents[k]==object)
+        {
+            if(halCacheContents[k+2]==(WORDPTR)font) return halCacheContents[k+1];
+        }
+
     }
     return 0;
 }
@@ -88,13 +93,11 @@ WORDPTR uiAllocNewBitmap(BINT width, BINT height)
 
 // RENDER AN OBJECT TO THE GIVEN DRAWSURFACE, USE CACHE IF POSSIBLE
 
-void uiDrawObject(WORDPTR object,DRAWSURFACE *scr,UNIFONT *font)
+void uiDrawObject(WORDPTR object,DRAWSURFACE *scr,UNIFONT **font)
 {
 
     // FIRST, CHECK IF THE OBJECT IS IN THE CACHE
-
     WORDPTR bmp=uiRenderObject(object,font);
-
     if(bmp) {
         // COPY IT TO DESTINATION
            DRAWSURFACE tsurf;
@@ -121,19 +124,19 @@ void uiDrawObject(WORDPTR object,DRAWSURFACE *scr,UNIFONT *font)
         BINT nchars=rplStrSize(string);
         BYTEPTR charptr=(BYTEPTR) (string+1);
 
-        DrawTextN(scr->x,scr->y,(char *)charptr,(char *)charptr+nchars,font,15,scr);
+        DrawTextN(scr->x,scr->y,(char *)charptr,(char *)charptr+nchars,*font,15,scr);
 
 }
 
 
 // RENDER AN OBJECT TO A BITMAP, USE CACHE IF POSSIBLE
 
-WORDPTR uiRenderObject(WORDPTR object,UNIFONT *font)
+WORDPTR uiRenderObject(WORDPTR object,UNIFONT **font)
 {
 
     // FIRST, CHECK IF THE OBJECT IS IN THE CACHE
 
-    WORDPTR bmp=uiFindCacheEntry(object);
+    WORDPTR bmp=uiFindCacheEntry(object,font);
 
     if(bmp) return bmp;
 
@@ -144,19 +147,19 @@ WORDPTR uiRenderObject(WORDPTR object,UNIFONT *font)
         WORDPTR string;
         string=rplDecompile(object,DECOMP_NOHINTS);
 
-    if(!string) string=(WORDPTR)invalid_string;
+        if(!string) string=(WORDPTR)invalid_string;
 
     // NOW PRINT THE STRING OBJECT
 
         BINT nchars=rplStrSize(string);
         BYTEPTR charptr=(BYTEPTR) (string+1);
-        BINT numwidth=StringWidthN((char *)charptr,(char *)charptr+nchars,font);
+        BINT numwidth=StringWidthN((char *)charptr,(char *)charptr+nchars,*font);
 
         if(numwidth>MAX_BMP_WIDTH) numwidth=MAX_BMP_WIDTH;
 
         ScratchPointer1=string;
 
-        WORDPTR newbmp=uiAllocNewBitmap(numwidth,font->BitmapHeight);
+        WORDPTR newbmp=uiAllocNewBitmap(numwidth,(*font)->BitmapHeight);
         if(newbmp) {
 
                 // RELOAD ALL POINTERS IN CASE THERE WAS A GC
@@ -175,15 +178,15 @@ WORDPTR uiRenderObject(WORDPTR object,UNIFONT *font)
                 tsurf.clipx=0;
                 tsurf.clipx2=numwidth-1;
                 tsurf.clipy=0;
-                tsurf.clipy2=font->BitmapHeight-1;
+                tsurf.clipy2=(*font)->BitmapHeight-1;
                 tsurf.x=0;
                 tsurf.y=0;
 
-                DrawTextN(0,0,(char *)charptr,(char *)charptr+nchars,font,15,&tsurf);
+                DrawTextN(0,0,(char *)charptr,(char *)charptr+nchars,*font,15,&tsurf);
 
                 // AND ADD TO CACHE
 
-                uiAddCacheEntry(object,newbmp);
+                uiAddCacheEntry(object,newbmp,font);
 
                 return newbmp;
 
@@ -223,6 +226,6 @@ void uiDrawBitmap(WORDPTR bmp,DRAWSURFACE *scr)
         BINT nchars=rplStrSize(string);
         BYTEPTR charptr=(BYTEPTR) (string+1);
 
-        DrawTextN(scr->x,scr->y,(char *)charptr,(char *)charptr+nchars,halScreen.StackFont,15,scr);
+        DrawTextN(scr->x,scr->y,(char *)charptr,(char *)charptr+nchars,*halScreen.FontArray[FONT_STACK],15,scr);
     }
 }

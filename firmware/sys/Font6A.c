@@ -5,7 +5,7 @@
 
 
 const unsigned int const Font_6A[]= { 
-0x508020F, // PROLOG
+0x4E8020F, // PROLOG
 0x6008F, // FONT HEIGHT AND BITMAP WIDTH
 0x130116, // OFFSETS TO TABLES
 0x102000, 

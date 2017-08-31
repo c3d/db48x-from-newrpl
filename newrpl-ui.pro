@@ -204,7 +204,6 @@ SOURCES += main.cpp\
     firmware/ui_forms.c \
     firmware/ui_render.c \
     newrpl/lib-80-bitmaps.c \
-    newrpl/lib-78-fonts.c \
     newrpl/lib-88-plot.c \
     newrpl/fastmath.c \
     newrpl/lib-77-libdata.c \
@@ -214,7 +213,8 @@ SOURCES += main.cpp\
     newrpl/lighttranscend.c \
     newrpl/ln_ltables.c \
     interaction.cpp \
-    interaction_rpl.c
+    interaction_rpl.c \
+    newrpl/lib-78-fonts.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -266,6 +266,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-52.nrpl \
                 newrpl/rpl-objects/lib-56.nrpl \
                 newrpl/rpl-objects/lib-77.nrpl \
+                newrpl/rpl-objects/lib-78.nrpl \
                 newrpl/rpl-objects/lib-80.nrpl \
                 newrpl/rpl-objects/lib-88.nrpl \
                 newrpl/rpl-objects/lib-96.nrpl \

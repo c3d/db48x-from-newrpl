@@ -743,6 +743,14 @@ void rplSkipNextAlarm();
 WORDPTR rplMsg2KeyName(BINT keymsg);
 BINT rplKeyName2Msg(WORDPTR keyname);
 
+// FONT FUNCTIONS
+WORDPTR rplGetCurrentFont(BINT area);
+void rplSetCurrentFont(BINT area,WORDPTR ident);
+void rplUpdateFontArray(WORDPTR **fontarray);
+void rplAddSystemFont(WORDPTR ident,WORDPTR font);
+void rplPurgeSystemFont(WORDPTR ident);
+WORDPTR rplGetSystemFont(WORDPTR ident);
+WORDPTR rplGetSystemFontName(WORDPTR font);
 
 
 
@@ -894,7 +902,7 @@ BINT rplKeyName2Msg(WORDPTR keyname);
 #define PLT_CLRTRANSFORM    'u'
 //'a' REPEATGROUP
 #define PLT_DOGROUP 'a'
-//'v' SETFONT: F ->
+//'v' SETFONT: F -> (F IS SYSTEM FONT INDEX NUMBER OR FONT NAME)
 #define PLT_TXTFONT 'v'
 //'x' TEXTHEIGHT: H ->
 #define PLT_TXTHEIGHT   'x'

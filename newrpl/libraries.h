@@ -294,8 +294,9 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define ISPLOT(prolog)   (ISPROLOG(prolog) && ((LIBNUM(prolog)&~7)==DOPLOT))
 
+#define ISFONT(prolog)   (ISPROLOG(prolog) && (LIBNUM(prolog)==DOFONT))
 
-
+#define ISLIBDATA(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIBDATA))
 
 #define ANGLEMODE(prolog) ( (ISANGLE(prolog)? (BINT)(LIBNUM(prolog)&3):(BINT)ANGLENONE) )
 

@@ -364,7 +364,7 @@ void numberKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
 
-        halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+        halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
         else uiOpenCmdLine('D');
@@ -1964,7 +1964,7 @@ void symbolKeyHandler(BINT keymsg,BYTEPTR symbol,BINT separate)
 {
 if(!(halGetContext()&CONTEXT_INEDITOR)) {
     if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
-    halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+    halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
     halSetContext(halGetContext()|CONTEXT_INEDITOR);
     if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
     else uiOpenCmdLine('D');
@@ -1984,7 +1984,7 @@ void alphasymbolKeyHandler(BINT keymsg,BYTEPTR Lsymbol,BYTEPTR Csymbol)
 if(!(halGetContext()&CONTEXT_INEDITOR)) {
     if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
 
-    halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+    halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
     halSetContext(halGetContext()|CONTEXT_INEDITOR);
     if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
     else uiOpenCmdLine('D');
@@ -2014,7 +2014,7 @@ void newlineKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
 
-        halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+        halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
         else uiOpenCmdLine('D');
@@ -2042,7 +2042,7 @@ void decimaldotKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
 
-        halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+        halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
         else uiOpenCmdLine('D');
@@ -3068,7 +3068,7 @@ void downKeyHandler(BINT keymsg)
                 if(ISLIST(*ptr)) cursorstart='P';
 
                 // OPEN THE COMMAND LINE
-                halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+                halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
                 halSetContext(halGetContext()|CONTEXT_INEDITOR);
                 if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
                 else uiOpenCmdLine(cursorstart);
@@ -3449,7 +3449,7 @@ void eexKeyHandler(BINT keymsg)
 
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
-            halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+            halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
             halSetContext(halGetContext()|CONTEXT_INEDITOR);
             if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
             else uiOpenCmdLine('D');
@@ -3519,7 +3519,7 @@ void bracketKeyHandler(BINT keymsg,BYTEPTR string)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
 
-        halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+        halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
         else uiOpenCmdLine('D');
@@ -3677,8 +3677,8 @@ int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
 // CLEAR STATUS AREA
 ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
-DrawTextBk(STATUSAREA_X+1,ytop+1,"Format:",halScreen.StAreaFont,0xf,0,&scr);
-DrawTextBk(STATUSAREA_X+1,ytop+1+halScreen.StAreaFont->BitmapHeight,(char *)options[option],halScreen.StAreaFont,0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1,"Format:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,(char *)options[option],*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
 
 
 // CHANGE THE FORMAT TO THE SELECTED OPTION
@@ -3817,8 +3817,8 @@ int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
 // CLEAR STATUS AREA
 ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
-DrawTextBk(STATUSAREA_X+1,ytop+1,"Display Mode:",halScreen.StAreaFont,0xf,0,&scr);
-DrawTextBk(STATUSAREA_X+1,ytop+1+halScreen.StAreaFont->BitmapHeight,(char *)options[option],halScreen.StAreaFont,0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1,"Display Mode:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,(char *)options[option],*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
 
 
 // CHANGE THE FORMAT TO THE SELECTED OPTION
@@ -3905,8 +3905,8 @@ int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
 // CLEAR STATUS AREA
 ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
-DrawTextBk(STATUSAREA_X+1,ytop+1,"ENG exponent:",halScreen.StAreaFont,0xf,0,&scr);
-DrawTextBk(STATUSAREA_X+1,ytop+1+halScreen.StAreaFont->BitmapHeight,(char *)options[option],halScreen.StAreaFont,0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1,"ENG exponent:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,(char *)options[option],*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
 
 
 if(option) option+=7;
@@ -3983,8 +3983,8 @@ int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
 // CLEAR STATUS AREA
 ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
-DrawTextBk(STATUSAREA_X+1,ytop+1,"Display Digits:",halScreen.StAreaFont,0xf,0,&scr);
-DrawTextBk(STATUSAREA_X+1,ytop+1+halScreen.StAreaFont->BitmapHeight,(char *)&digits,halScreen.StAreaFont,0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1,"Display Digits:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,(char *)&digits,*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
 
 
 rplSetSystemNumberFormat(&fmt);
@@ -4029,8 +4029,8 @@ int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
 // CLEAR STATUS AREA
 ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
-DrawTextBk(STATUSAREA_X+1,ytop+1,"System precision:",halScreen.StAreaFont,0xf,0,&scr);
-DrawTextBk(STATUSAREA_X+1,ytop+1+halScreen.StAreaFont->BitmapHeight,digits_string,halScreen.StAreaFont,0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1,"System precision:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,digits_string,*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
 
 
 halScreen.DirtyFlag|=STACK_DIRTY;
@@ -4186,7 +4186,7 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
                    else if(ISSTRING(*action) && inlist) {
                             // A STRING TO INSERT INTO THE EDITOR
                             // OPEN AN EDITOR AND INSERT THE STRING
-                            halSetCmdLineHeight(halScreen.CmdLineFont->BitmapHeight+2);
+                            halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
                             halSetContext(halGetContext()|CONTEXT_INEDITOR);
                             if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
                             else uiOpenCmdLine('D');
@@ -6351,7 +6351,7 @@ int halProcessKey(BINT keymsg, int (*dokey)(BINT),BINT flags)
     // ALL OTHER KEYS, JUST DISPLAY THE KEY NAME ON SCREEN
         DRAWSURFACE scr;
         ggl_initscr(&scr);
-        UNIFONT *fnt=halScreen.StAreaFont;
+        UNIFONT *fnt=halScreen.FontArray[FONT_STATUS];
 
     // FOR DEBUG ONLY
     int width=StringWidth((char *)keyNames[KM_KEY(keymsg)],fnt);

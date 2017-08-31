@@ -1135,7 +1135,7 @@ void LIB_HANDLER()
                 if(!isintegerReal(&rop1)) rplPushData((WORDPTR)zero_bint);
                 else {
                 rplBINTToRReg(0,op2);
-                int res=eqReal(&RReg[1],&RReg[0]);
+                int res=eqReal(&rop1,&RReg[0]);
                 if(res) rplPushData((WORDPTR)one_bint);
                 else rplPushData((WORDPTR)zero_bint);
                 }
@@ -1145,7 +1145,7 @@ void LIB_HANDLER()
                 if(!isintegerReal(&rop2)) rplPushData((WORDPTR)zero_bint);
                 else {
                 rplBINTToRReg(0,op1);
-                int res=eqReal(&RReg[0],&RReg[1]);
+                int res=eqReal(&RReg[0],&rop2);
                 if(res) rplPushData((WORDPTR)one_bint);
                 else rplPushData((WORDPTR)zero_bint);
                 }

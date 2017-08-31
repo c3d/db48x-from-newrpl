@@ -19,9 +19,13 @@
 
 @#name lib88_msgtable
 {
+ ##1,ERR_PLOTEXPECTED "Expected PLOT object"
  ##1,ERR_INVALIDPLOTCOMMAND "Invalid PLOT primitive"
  ##1,ERR_INVALIDPLOTSIZE "Invalid PLOT size"
  ##1,ERR_NOCURRENTPLOT "No current PLOT object"
+ ##1,ERR_INVALIDRENDERSTATUS "Invalid renderer status"
+ ##1,ERR_INVALIDRENDERER "Invalid renderer"
+ ##1,ERR_INVALIDPLOTARGS "Invalid plot arguments"
 }
 
 

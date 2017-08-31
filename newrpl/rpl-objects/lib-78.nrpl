@@ -1,0 +1,116 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+@ B = Bitmap
+@ P = Plot object
+
+
+@#name lib78_msgtable
+{
+ ##1,ERR_FONTEXPECTED "Expected a FONT object"
+ ##1,ERR_RESERVEDNAME "Reserved font name"
+}
+
+
+@#name lib78_menu
+{
+ FNTSTO FNTRCL FNTPG FNTSTK →FNTSTK
+ FNT1STK →FNT1STK FNTMENU →FNTMENU FNTFORM
+ →FNTFORM FNTCMDL →FNTCMDL FNTSTAT →FNTSTAT
+}
+
+@#name lib78_cmdhelp
+{
+
+FNTSTO
+"Installs a new font
+for use by the system
+F N → "
+
+FNTRCL
+"Recall a system font
+by name
+N → F "
+
+FNTPG
+"Remove a font from the
+system by name
+N → "
+
+FNTSTK
+"Current font name
+for stack display
+ → N"
+
+→FNTSTK
+"Use the named system
+font for stack display
+N → "
+
+FNT1STK
+"Current font name
+for stack level 1
+ → N"
+
+→FNT1STK
+"Use the named system
+font for stack level 1
+N → "
+
+FNTMENU
+"Current font name
+for menus
+ → N"
+
+→FNTMENU
+"Use the named system
+for menus
+N → "
+
+→FNTFORM
+"Current font name
+for forms
+ → N"
+
+→FNTFORM
+"Use the named system
+font for forms
+N → "
+
+FNTCMDL
+"Current font name
+for the editor
+ → N"
+
+→FNTCMDL
+"Use the named system
+font for the editor
+N → "
+
+FNTSTAT
+"Current font name
+for status area
+ → N"
+
+→FNTSTAT
+"Use the named system
+font for status area
+N → "
+
+}
+
+
+
+

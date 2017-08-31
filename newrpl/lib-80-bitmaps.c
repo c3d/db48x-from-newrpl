@@ -509,6 +509,7 @@ void LIB_HANDLER()
         BMP_RENDERSTATE *renderst=(BMP_RENDERSTATE *)(ptr+1);
 
         // INITIALIZE THE RENDERING INTERNAL STATUS
+
         renderst->ptalloc=1;
         renderst->npoints=0;
         renderst->srf.clipx=0;
@@ -519,7 +520,9 @@ void LIB_HANDLER()
         renderst->srf.width=w;
         renderst->srf.x=0;
         renderst->srf.y=0;
-
+        renderst->points[0].type=0;
+        renderst->points[0].x=0;
+        renderst->points[0].y=0;
         ptr=rplSkipOb(ptr);
         ptr[0]=CMD_ENDLIST;     // CLOSE THE LIST
 

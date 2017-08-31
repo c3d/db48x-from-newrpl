@@ -1297,11 +1297,21 @@ void LIB_HANDLER()
 
             }
             else if((*ptr>>4)==0x5) {
-                // OUTPUT A STRING
+                // RETRIEVE A STRING
                 BINT64 len=rplPlotNumber2BINT(ptr);
 
                 //  TODO: FIGURE OUT HOW TO PASS THE STRING POINTER!
-                //rplDecompAppendString2(ptr+3,len);
+                //  STACK LEVEL 1 ALWAYS CONTAINS THE PLOT OBJECT
+                //  THEREFORE PASS THE LENGTH AND OFFSET IN ARG1 AND ARG2
+                //  THE RENDERER MUST GET THE POINTER TO THE ACTUAL OBJECT FROM STACK LEVEL 1
+                if(argn) {
+                                     rplError(ERR_INVALIDPLOTARGS);
+                                     return;
+                }
+                *ARG1PTR(rstatus)=len;  // NOTE: LENGTH OF STRING IS IN BYTES, NOT IN CODE POINTS BUT THE STRING IS UTF8
+                *ARG2PTR(rstatus)=ptr+2-(BYTEPTR)plotobj;   // PASS THE OFFSET OF THE STRING WITHIN THE PLOT OBJECT
+                argn=2;
+
 
             }
 

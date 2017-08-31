@@ -133,6 +133,16 @@ enum halNotification {
     N_ALARM
 };
 
+enum halFonts {
+    FONT_STACK=0,
+    FONT_STACKLVL1,
+    FONT_CMDLINE,
+    FONT_MENU,
+    FONT_STATUS,
+    FONT_PLOT,
+    FONT_FORMS
+};
+
 #define FORM_DIRTY 1
 #define STACK_DIRTY 2
 #define CMDLINE_DIRTY 4
@@ -145,8 +155,8 @@ enum halNotification {
 
 // BASIC HEIGHT OF SCREEN AREAS IN PIXELS - THIS IS HARDWARE DEPENDENT
 
-#define MENU2_HEIGHT 16
-#define MENU1_HEIGHT  9
+#define MENU2_HEIGHT ((2*(1+(*halScreen.FontArray[FONT_MENU])->BitmapHeight))+2)
+#define MENU1_HEIGHT (((*halScreen.FontArray[FONT_MENU])->BitmapHeight)+3)
 
 // NUMBER OF ENTRIES IN THE RENDER CACHE
 
@@ -165,12 +175,7 @@ typedef struct {
     int HelpMode;       // SOFT MENU ON-SCREEN HELP
     int DirtyFlag;      // 1 BIT PER AREA IN ORDER, 1=FORM, 2=STACK, 4=CMDLINE, 8=MENU1,16=MENU2,32=STATUS
     HEVENT SAreaTimer,CursorTimer;
-    UNIFONT *FormFont;
-    UNIFONT *StackFont;
-    UNIFONT *Stack1Font;
-    UNIFONT *MenuFont;
-    UNIFONT *CmdLineFont;
-    UNIFONT *StAreaFont;
+    UNIFONT **FontArray[7];
     // VARIABLES FOR THE TEXT EDITOR / COMMAND LINE
     int LineVisible,LineCurrent,LineIsModified;
     int NumLinesVisible;    // HEIGHT OF COMMAND LINE AREA IN LINES OF TEXT
@@ -1177,6 +1182,7 @@ void halShowMsgN(char *Text,char *End);
 void halSetCmdLineHeight(int h);
 void halStatusAreaPopup();
 void halCancelPopup();
+void halUpdateFonts();
 void halRedrawAll(DRAWSURFACE *scr);
 void halRedrawCmdLine(DRAWSURFACE *scr);
 void halUpdateStatus();
@@ -1224,16 +1230,16 @@ void halDeferProcess(void (*function)(void));
 
 
 // RENDER CACHE EXTERNAL DATA
-extern WORDPTR halCacheContents[2*MAX_RENDERCACHE_ENTRIES];
+extern WORDPTR halCacheContents[3*MAX_RENDERCACHE_ENTRIES];
 extern WORD halCacheEntry;
 
 // RENDER
 
 void uiClearRenderCache();
-void uiAddCacheEntry(WORDPTR object,WORDPTR bitmap);
-WORDPTR uiFindCacheEntry(WORDPTR object);
-void uiDrawObject(WORDPTR object,DRAWSURFACE *scr,UNIFONT *font);
-WORDPTR uiRenderObject(WORDPTR object,UNIFONT *font);
+void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT **font);
+WORDPTR uiFindCacheEntry(WORDPTR object, UNIFONT **font);
+void uiDrawObject(WORDPTR object, DRAWSURFACE *scr, UNIFONT **font);
+WORDPTR uiRenderObject(WORDPTR object,UNIFONT **font);
 void uiDrawBitmap(WORDPTR bmp,DRAWSURFACE *scr);
 
 

@@ -27,11 +27,36 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(SETSTKFONT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)) \
+    CMD(FNTSTO,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTRCL,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTPG,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTSTK,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNT1STK,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTMENU,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTCMDL,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTSTAT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTPLOT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(FNTFORM,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTSTK,"→FNTSTK",MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNT1STK,"→FNT1STK",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTMENU,"→FNTMENU",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTCMDL,"→FNTCMDL",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTSTAT,"→FNTSTAT",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTPLOT,"→FNTPLOT",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOFNTFORM,"→FNTFORM",MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
 
 
 
 // ADD MORE OPCODES HERE
+
+#define ERROR_LIST \
+    ERR(FONTEXPECTED,0), \
+    ERR(RESERVEDNAME,1), \
+    ERR(FONTNOTINSTALLED,2)
+
+
+
+
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
@@ -47,27 +72,525 @@
 // *** END OF COMMON LIBRARY HEADER ***
 // ************************************
 
+INCLUDE_ROMOBJECT(LIB_MSGTABLE);
+INCLUDE_ROMOBJECT(LIB_HELPTABLE);
+INCLUDE_ROMOBJECT(lib78_menu);
 
+
+
+ROMOBJECT fnt5a_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('F','o','n','t'),
+        TEXT2WORD('5','A',0,0)
+};
+ROMOBJECT fnt5b_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('F','o','n','t'),
+        TEXT2WORD('5','B',0,0)
+};
+ROMOBJECT fnt5c_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('F','o','n','t'),
+        TEXT2WORD('5','C',0,0)
+};
+ROMOBJECT fnt6a_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('F','o','n','t'),
+        TEXT2WORD('6','A',0,0)
+};
+
+ROMOBJECT fnt6b_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('F','o','n','t'),
+        TEXT2WORD('6','B',0,0)
+};
+
+ROMOBJECT fnt7a_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('F','o','n','t'),
+        TEXT2WORD('7','A',0,0)
+};
+
+
+ROMOBJECT fnt8a_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('F','o','n','t'),
+        TEXT2WORD('8','A',0,0)
+};
+
+ROMOBJECT fnt8b_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('F','o','n','t'),
+        TEXT2WORD('8','B',0,0)
+};
+
+ROMOBJECT fnt8c_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('F','o','n','t'),
+        TEXT2WORD('8','C',0,0)
+};
+
+ROMOBJECT fnt8d_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('F','o','n','t'),
+        TEXT2WORD('8','D',0,0)
+};
+
+ROMOBJECT sysfonts_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('S','y','s','F'),
+        TEXT2WORD('o','n','t','s')
+};
+
+ROMOBJECT fontstack1_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('S','t','k','1'),
+        TEXT2WORD('F','o','n','t')
+};
+
+ROMOBJECT fontstack_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('S','t','k','2'),
+        TEXT2WORD('F','o','n','t')
+};
+
+ROMOBJECT fontmenu_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('M','e','n','u'),
+        TEXT2WORD('F','o','n','t')
+};
+
+ROMOBJECT fontform_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('F','o','r','m'),
+        TEXT2WORD('F','o','n','t')
+};
+
+ROMOBJECT fontcmdline_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('C','m','d','l'),
+        TEXT2WORD('F','o','n','t')
+};
+
+ROMOBJECT fontstarea_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('S','t','a','t'),
+        TEXT2WORD('F','o','n','t')
+};
+
+ROMOBJECT fontplot_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('P','l','o','t'),
+        TEXT2WORD('F','o','n','t')
+};
 
 // THIS LIBRARY DEPENDS ON THE FONTS INSTALLED IN THE FIRMWARE
-// SO IT'S NOT HARDWARE-INDEPENDENT.
+// SO IT'S NOT HARDWARE-INDEPENDENT, BUT THE NAMES OF THE FONTS SHOULD BE CONSISTENT
 
+#define NUMBER_OF_FONTS_IN_ROM 10
+#define START_ROMPTR_INDEX 4            // START OF THE ROM FONTS TABLE
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
+    (WORDPTR)LIB_MSGTABLE,
+    (WORDPTR)LIB_HELPTABLE,
+
+    (WORDPTR)lib78_menu,
+    (WORDPTR)sysfonts_ident,
+
+    // START OF ROM FONT NAME/OBJECT PAIRS
+
+    (WORDPTR)fnt5a_ident,
     (WORDPTR)Font_5A,
+    (WORDPTR)fnt5b_ident,
     (WORDPTR)Font_5B,
+    (WORDPTR)fnt5c_ident,
     (WORDPTR)Font_5C,
+    (WORDPTR)fnt6a_ident,
     (WORDPTR)Font_6A,
+    (WORDPTR)fnt6b_ident,
     (WORDPTR)Font_6m,
+    (WORDPTR)fnt7a_ident,
     (WORDPTR)Font_7A,
+    (WORDPTR)fnt8a_ident,
     (WORDPTR)Font_8A,
+    (WORDPTR)fnt8b_ident,
     (WORDPTR)Font_8B,
+    (WORDPTR)fnt8c_ident,
     (WORDPTR)Font_8C,
+    (WORDPTR)fnt8d_ident,
     (WORDPTR)Font_8D,
+
+
+    // OTHER ROM OBJECTS
+
+    (WORDPTR)fontstack_ident,
+    (WORDPTR)fontstack1_ident,
+    (WORDPTR)fontcmdline_ident,
+    (WORDPTR)fontmenu_ident,
+    (WORDPTR)fontstarea_ident,
+    (WORDPTR)fontplot_ident,
+    (WORDPTR)fontform_ident,
+
+
     0
 };
+
+
+
+// FIND A SYSTEM FONT BY NAME
+
+WORDPTR rplGetSystemFont(WORDPTR ident)
+{
+    // CHECK FOR RESERVED ROM NAMES FIRST
+    int k;
+
+    for(k=START_ROMPTR_INDEX;k<START_ROMPTR_INDEX+2*NUMBER_OF_FONTS_IN_ROM;k+=2)
+    {
+        if(rplCompareIDENT(ident,ROMPTR_TABLE[k])) return ROMPTR_TABLE[k+1];
+    }
+
+    // CHECK FOR USER INSTALLED FONTS
+
+    WORDPTR fontlist=rplGetSettings((WORDPTR)sysfonts_ident);
+
+    if(!fontlist) return 0;
+    if(!ISLIST(*fontlist)) return 0;
+
+    WORDPTR name=fontlist+1,endofobj=rplSkipOb(fontlist);
+
+    while( (*name!=CMD_ENDLIST)&&(name<endofobj)) {
+        if(rplCompareIDENT(ident,name)) return rplSkipOb(name);
+        name=rplSkipOb(name);
+        name=rplSkipOb(name);
+    }
+
+    return 0;   // NOT FOUND
+}
+
+// FIND A FONT NAME BY OBJECT
+WORDPTR rplGetSystemFontName(WORDPTR font)
+{
+    // CHECK FOR RESERVED ROM NAMES FIRST
+    int k;
+
+    for(k=START_ROMPTR_INDEX;k<START_ROMPTR_INDEX+2*NUMBER_OF_FONTS_IN_ROM;k+=2)
+    {
+        if(font==ROMPTR_TABLE[k+1]) return ROMPTR_TABLE[k];
+    }
+
+    // CHECK FOR USER INSTALLED FONTS
+
+    WORDPTR fontlist=rplGetSettings((WORDPTR)sysfonts_ident);
+
+    if(!fontlist) return 0;
+    if(!ISLIST(*fontlist)) return 0;
+
+    WORDPTR name=fontlist+1,endofobj=rplSkipOb(fontlist);
+
+    while( (*name!=CMD_ENDLIST)&&(name<endofobj)) {
+        if(rplSkipOb(name)==font) return name;
+        name=rplSkipOb(name);
+        name=rplSkipOb(name);
+    }
+
+    return 0;   // NOT FOUND
+}
+
+// ADD/REPLACE A SYSTEM FONT, RETURN TRUE
+void rplAddSystemFont(WORDPTR ident,WORDPTR font)
+{
+    if(!ISFONT(*font)) return;
+    if(!ISIDENT(*ident)) return;
+
+    // MAKE SURE THE IDENT IS NOT A RESERVED NAME
+    // CHECK FOR RESERVED ROM NAMES FIRST
+    int k;
+
+    for(k=START_ROMPTR_INDEX;k<START_ROMPTR_INDEX+2*NUMBER_OF_FONTS_IN_ROM;k+=2)
+    {
+        if(rplCompareIDENT(ident,ROMPTR_TABLE[k])) {
+            rplError(ERR_RESERVEDNAME);
+            return;
+
+        }
+
+    }
+
+    WORDPTR fontlist=rplGetSettings((WORDPTR)sysfonts_ident),oldfont,endofobj=rplSkipOb(fontlist);
+    BINT newsize;
+
+    if(fontlist) {
+        oldfont=fontlist+1;
+
+        while( (*oldfont!=CMD_ENDLIST)&&(oldfont<endofobj)) {
+            if(rplCompareIDENT(ident,oldfont)) break;
+            oldfont=rplSkipOb(oldfont);
+            oldfont=rplSkipOb(oldfont);
+        }
+
+        if((*oldfont==CMD_ENDLIST)||(oldfont>=endofobj)) oldfont=0;
+        else {
+            oldfont=rplSkipOb(oldfont);
+            if(!ISFONT(*oldfont)) oldfont=0;
+        }
+    } else oldfont=0;
+
+
+    if(fontlist) newsize=rplObjSize(fontlist)-1;
+    else newsize=1;
+
+    if(!oldfont) newsize+=rplObjSize(ident);
+    else newsize-=rplObjSize(oldfont);
+    newsize+=rplObjSize(font);
+    // PROTECT ALL POINTERS
+
+    ScratchPointer1=ident;
+    ScratchPointer2=font;
+    ScratchPointer3=oldfont;
+    ScratchPointer4=fontlist;
+
+    WORDPTR newlist=rplAllocTempOb(newsize);
+    if(!newlist) return;
+
+    ident=ScratchPointer1;
+    font=ScratchPointer2;
+    oldfont=ScratchPointer3;
+    fontlist=ScratchPointer4;
+    endofobj=rplSkipOb(fontlist);
+
+    if(fontlist) {
+    if(oldfont) {
+        memmovew(newlist+1,fontlist+1,oldfont-fontlist-1);
+        memmovew(newlist+(oldfont-fontlist),font,rplObjSize(font));
+        memmovew(newlist+(oldfont-fontlist)+rplObjSize(font),rplSkipOb(oldfont),rplSkipOb(fontlist)-rplSkipOb(oldfont));
+    }
+    else {
+        memmovew(newlist+1,fontlist+1,rplObjSize(fontlist)-2);
+        memmovew(newlist+rplObjSize(fontlist),ident,rplObjSize(ident));
+        memmovew(newlist+rplObjSize(fontlist)+rplObjSize(ident),font,rplObjSize(font));
+    }
+    }
+    else {
+        memmovew(newlist+1,ident,rplObjSize(ident));
+        memmovew(newlist+1+rplObjSize(ident),font,rplObjSize(font));
+    }
+
+    // CLOSE THE LIST
+    newlist[0]=MKPROLOG(DOLIST,newsize);
+    newlist[newsize]=CMD_ENDLIST;
+
+    rplStoreSettings((WORDPTR)sysfonts_ident,newlist);
+
+}
+
+
+// PURGE A SYSTEM FONT
+void rplPurgeSystemFont(WORDPTR ident)
+{
+    if(!ISIDENT(*ident)) return;
+
+    // MAKE SURE THE IDENT IS NOT A RESERVED NAME
+    // CHECK FOR RESERVED ROM NAMES FIRST
+    int k;
+
+    for(k=START_ROMPTR_INDEX;k<START_ROMPTR_INDEX+2*NUMBER_OF_FONTS_IN_ROM;k+=2)
+    {
+        if(rplCompareIDENT(ident,ROMPTR_TABLE[k])) {
+            rplError(ERR_RESERVEDNAME);
+            return;
+
+        }
+
+    }
+
+    WORDPTR fontlist=rplGetSettings((WORDPTR)sysfonts_ident),oldfont,endofobj=rplSkipOb(fontlist);
+    BINT newsize,oldsize;
+
+    if(fontlist) {
+        oldfont=fontlist+1;
+
+        while( (*oldfont!=CMD_ENDLIST)&&(oldfont<endofobj)) {
+            if(rplCompareIDENT(ident,oldfont)) break;
+            oldfont=rplSkipOb(oldfont);
+            oldfont=rplSkipOb(oldfont);
+        }
+
+        if((*oldfont==CMD_ENDLIST)||(oldfont>=endofobj)) oldfont=0;
+    } else return;
+
+    if(!oldfont) return;
+
+    newsize=rplObjSize(fontlist)-1;
+
+    oldsize=rplSkipOb(rplSkipOb(oldfont))-oldfont;
+
+    newsize-=oldsize;
+    // PROTECT ALL POINTERS
+
+    ScratchPointer1=ident;
+    ScratchPointer2=oldfont;
+    ScratchPointer3=fontlist;
+
+    WORDPTR newlist=rplAllocTempOb(newsize);
+    if(!newlist) return;
+
+    ident=ScratchPointer1;
+    oldfont=ScratchPointer2;
+    fontlist=ScratchPointer3;
+    endofobj=rplSkipOb(fontlist);
+    WORDPTR endold=rplSkipOb(rplSkipOb(oldfont));
+    if(endold>endofobj-1) endold=endofobj-1;
+
+    memmovew(newlist+1,fontlist+1,oldfont-fontlist-1);
+    memmovew(newlist+(oldfont-fontlist),endold,rplSkipOb(fontlist)-endold);
+
+    // CLOSE THE LIST
+    newlist[0]=MKPROLOG(DOLIST,newsize);
+    newlist[newsize]=CMD_ENDLIST;
+
+    rplStoreSettings((WORDPTR)sysfonts_ident,newlist);
+
+}
+
+
+
+// UPDATE AN ARRAY WITH ALL 7 FONT POINTERS
+// NEEDS TO BE FAST
+void rplUpdateFontArray(WORDPTR **fontarray)
+{
+    // FILL THE ARRAY WITH ROM DEFAULTS - COORDINATE THE OFFSETS WITH THE ROMPTR_TABLE
+    fontarray[FONT_STACK]= (WORDPTR *)ROMPTR_TABLE + (START_ROMPTR_INDEX+17);
+    fontarray[FONT_STACKLVL1]=(WORDPTR *)ROMPTR_TABLE + (START_ROMPTR_INDEX+17);
+    fontarray[FONT_CMDLINE]=(WORDPTR *)ROMPTR_TABLE + (START_ROMPTR_INDEX+17);
+    fontarray[FONT_MENU]=(WORDPTR *)ROMPTR_TABLE + (START_ROMPTR_INDEX+7);
+    fontarray[FONT_STATUS]=(WORDPTR *)ROMPTR_TABLE + (START_ROMPTR_INDEX+7);
+    fontarray[FONT_PLOT]=(WORDPTR *)ROMPTR_TABLE + (START_ROMPTR_INDEX+7);
+    fontarray[FONT_FORMS]=(WORDPTR *)ROMPTR_TABLE + (START_ROMPTR_INDEX+17);
+
+    WORDPTR *var;
+    if(!ISDIR(*SettingsDir)) return;
+
+    var=rplFindFirstByHandle(SettingsDir);
+
+    while(var) {
+        if(rplCompareIDENT(var[0],(WORDPTR)fontstack_ident)) {  if(ISFONT(*var[1])) fontarray[FONT_STACK]=var+1; }
+        else if(rplCompareIDENT(var[0],(WORDPTR)fontstack1_ident)) { if(ISFONT(*var[1])) fontarray[FONT_STACKLVL1]=var+1; }
+        else if(rplCompareIDENT(var[0],(WORDPTR)fontcmdline_ident)) {  if(ISFONT(*var[1])) fontarray[FONT_CMDLINE]=var+1; }
+        else if(rplCompareIDENT(var[0],(WORDPTR)fontmenu_ident)) { if(ISFONT(*var[1])) fontarray[FONT_MENU]=var+1; }
+        else if(rplCompareIDENT(var[0],(WORDPTR)fontstarea_ident)) {  if(ISFONT(*var[1])) fontarray[FONT_STATUS]=var+1; }
+        else if(rplCompareIDENT(var[0],(WORDPTR)fontform_ident)) {  if(ISFONT(*var[1])) fontarray[FONT_FORMS]=var+1; }
+        else if(rplCompareIDENT(var[0],(WORDPTR)fontplot_ident)) {  if(ISFONT(*var[1])) fontarray[FONT_PLOT]=var+1; }
+
+        var=rplFindNext(var);
+    }
+    return;
+}
+
+
+
+
+// CHANGE THE CURRENT FONT
+void rplSetCurrentFont(BINT area,WORDPTR ident)
+{
+    WORDPTR font=rplGetSystemFont(ident);
+    if(!font) {
+        rplError(ERR_FONTNOTINSTALLED);
+        return;
+    }
+    WORDPTR fntid;
+    switch(area)
+    {
+    case FONT_STACK:
+        fntid=(WORDPTR)fontstack_ident;
+        break;
+    case FONT_STACKLVL1:
+        fntid=(WORDPTR)fontstack1_ident;
+        break;
+    case FONT_CMDLINE:
+        fntid=(WORDPTR)fontcmdline_ident;
+        break;
+    case FONT_MENU:
+        fntid=(WORDPTR)fontmenu_ident;
+        break;
+    case FONT_STATUS:
+        fntid=(WORDPTR)fontstarea_ident;
+        break;
+    case FONT_PLOT:
+        fntid=(WORDPTR)fontplot_ident;
+        break;
+    case FONT_FORMS:
+        fntid=(WORDPTR)fontform_ident;
+        break;
+    default:
+        return;
+    }
+
+
+    rplStoreSettings((WORDPTR)fntid,font);
+
+}
+
+
+WORDPTR rplGetCurrentFont(BINT area)
+{
+    WORDPTR fntid;
+    switch(area)
+    {
+    case FONT_STACK:
+        fntid=(WORDPTR)fontstack_ident;
+        break;
+    case FONT_STACKLVL1:
+        fntid=(WORDPTR)fontstack1_ident;
+        break;
+    case FONT_CMDLINE:
+        fntid=(WORDPTR)fontcmdline_ident;
+        break;
+    case FONT_MENU:
+        fntid=(WORDPTR)fontmenu_ident;
+        break;
+    case FONT_STATUS:
+        fntid=(WORDPTR)fontstarea_ident;
+        break;
+    case FONT_PLOT:
+        fntid=(WORDPTR)fontplot_ident;
+        break;
+    case FONT_FORMS:
+        fntid=(WORDPTR)fontform_ident;
+        break;
+    default:
+        return 0;
+    }
+
+    fntid=rplGetSettings(fntid);
+
+    if(!fntid) {
+        // RETURN A DEFAULT SYSTEM FONT
+        switch(area)
+        {
+        case FONT_STACK:
+            return (WORDPTR)fnt8c_ident;
+        case FONT_STACKLVL1:
+            return (WORDPTR)fnt8c_ident;
+        case FONT_CMDLINE:
+            return (WORDPTR)fnt8c_ident;
+        case FONT_MENU:
+            return (WORDPTR)fnt6a_ident;
+        case FONT_STATUS:
+            return (WORDPTR)fnt6a_ident;
+        case FONT_PLOT:
+            return (WORDPTR)fnt6a_ident;
+        case FONT_FORMS:
+            return (WORDPTR)fnt8c_ident;
+        default:
+            return 0;
+        }
+
+    }
+
+    return rplGetSystemFontName(fntid);
+}
 
 
 
@@ -81,6 +604,230 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
+
+    case FNTSTO:
+        // INSTALL A NEW USER FONT
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+        if(!ISFONT(*rplPeekData(2))) {
+            rplError(ERR_FONTEXPECTED);
+            return;
+        }
+
+        rplAddSystemFont(rplPeekData(1),rplPeekData(2));
+        rplDropData(2);
+        return;
+    }
+
+    case FNTRCL:
+        // RECALL A SYSTEM FONT
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+        WORDPTR fnt=rplGetSystemFont(rplPeekData(1));
+        if(!fnt) {
+            rplError(ERR_FONTNOTINSTALLED);
+            return;
+        }
+        rplOverwriteData(1,fnt);
+        return;
+    }
+
+    case FNTPG:
+        // PURGE A USER INSTALLED FONT
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+        rplPurgeSystemFont(rplPeekData(1));
+        rplDropData(1);
+        return;
+    }
+
+    case FNTSTK:
+    {
+        WORDPTR fntid=rplGetCurrentFont(FONT_STACK);
+        if(fntid) rplPushData(fntid);
+        return;
+    }
+    case FNT1STK:
+    {
+        WORDPTR fntid=rplGetCurrentFont(FONT_STACKLVL1);
+        if(fntid) rplPushData(fntid);
+        return;
+    }
+    case FNTMENU:
+    {
+        WORDPTR fntid=rplGetCurrentFont(FONT_MENU);
+        if(fntid) rplPushData(fntid);
+        return;
+    }
+    case FNTCMDL:
+    {
+        WORDPTR fntid=rplGetCurrentFont(FONT_CMDLINE);
+        if(fntid) rplPushData(fntid);
+        return;
+    }
+    case FNTSTAT:
+    {
+        WORDPTR fntid=rplGetCurrentFont(FONT_STATUS);
+        if(fntid) rplPushData(fntid);
+        return;
+    }
+    case FNTPLOT:
+    {
+        WORDPTR fntid=rplGetCurrentFont(FONT_PLOT);
+        if(fntid) rplPushData(fntid);
+        return;
+    }
+    case FNTFORM:
+    {
+        WORDPTR fntid=rplGetCurrentFont(FONT_FORMS);
+        if(fntid) rplPushData(fntid);
+        return;
+    }
+    case STOFNTSTK:
+        // CHANGE CURRENT FONT
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+        rplSetCurrentFont(FONT_STACK,rplPeekData(1));
+        rplDropData(1);
+        return;
+    }
+
+    case STOFNT1STK:
+        // CHANGE CURRENT FONT
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+        rplSetCurrentFont(FONT_STACKLVL1,rplPeekData(1));
+        rplDropData(1);
+        return;
+    }
+
+    case STOFNTMENU:
+        // CHANGE CURRENT FONT
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+        rplSetCurrentFont(FONT_MENU,rplPeekData(1));
+        rplDropData(1);
+        return;
+    }
+
+    case STOFNTCMDL:
+        // CHANGE CURRENT FONT
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+        rplSetCurrentFont(FONT_CMDLINE,rplPeekData(1));
+        rplDropData(1);
+        return;
+    }
+
+    case STOFNTSTAT:
+        // CHANGE CURRENT FONT
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+        rplSetCurrentFont(FONT_STATUS,rplPeekData(1));
+        rplDropData(1);
+        return;
+    }
+
+    case STOFNTPLOT:
+        // CHANGE CURRENT FONT
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+        rplSetCurrentFont(FONT_PLOT,rplPeekData(1));
+        rplDropData(1);
+        return;
+    }
+
+    case STOFNTFORM:
+        // CHANGE CURRENT FONT
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+        rplSetCurrentFont(FONT_FORMS,rplPeekData(1));
+        rplDropData(1);
+        return;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
         // STANDARIZED OPCODES:
         // --------------------
         // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
@@ -108,8 +855,7 @@ void LIB_HANDLER()
             // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
             // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
 
-        RetNum=ERR_NOTMINE;
-        //libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
      return;
     case OPCODE_COMPILECONT:
     {
@@ -400,6 +1146,40 @@ void LIB_HANDLER()
     case OPCODE_AUTOCOMPNEXT:
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         return;
+
+    case OPCODE_LIBMENU:
+        // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
+        // MUST RETURN A MENU LIST IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        if(MENUNUMBER(MenuCodeArg)>0) {
+            RetNum=ERR_NOTMINE;
+            return;
+        }
+        ObjectPTR=(WORDPTR)lib78_menu;
+        RetNum=OK_CONTINUE;
+       return;
+    }
+
+    case OPCODE_LIBHELP:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN CmdHelp
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+        libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
+       return;
+    }
+    case OPCODE_LIBMSG:
+        // LIBRARY RECEIVES AN OBJECT OR OPCODE IN LibError
+        // MUST RETURN A STRING OBJECT IN ObjectPTR
+        // AND RetNum=OK_CONTINUE;
+    {
+
+        libFindMsg(LibError,(WORDPTR)LIB_MSGTABLE);
+       return;
+    }
+
+
 
     case OPCODE_LIBINSTALL:
         LibraryList=(WORDPTR)libnumberlist;

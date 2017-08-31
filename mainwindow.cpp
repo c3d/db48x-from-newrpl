@@ -231,7 +231,8 @@ const int keyMap[] = {
     Qt::Key_Tab,        60,
     Qt::Key_CapsLock,   61,
     Qt::Key_Control,    62,
-    Qt::Key_Escape,     63
+    Qt::Key_Escape,     63,
+    Qt::Key_Home,       63
 
     // ADD MORE KEYS HERE
 
