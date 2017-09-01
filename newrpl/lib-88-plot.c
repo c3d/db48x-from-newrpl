@@ -1401,7 +1401,39 @@ case SCLVIEW:
 
 
 
+    case OVR_SAME:
+    // COMPARE AS PLAIN OBJECTS, THIS INCLUDES SIMPLE COMMANDS IN THIS LIBRARY
+        {
+         BINT same=rplCompareObjects(rplPeekData(1),rplPeekData(2));
+         rplDropData(2);
+         if(same) rplPushTrue(); else rplPushFalse();
+         return;
+        }
 
+
+
+    case OVR_ISTRUE:
+    {
+        rplOverwriteData(1,(WORDPTR)one_bint);
+        return;
+    }
+
+
+    case OVR_EVAL:
+    case OVR_EVAL1:
+    case OVR_XEQ:
+        // ALSO EXECUTE THE OBJECT
+        if(!ISPROLOG(*rplPeekData(1))) {
+               // EXECUTE THE COMMAND BY CALLING THE HANDLER DIRECTLY
+                WORD saveOpcode=CurOpcode;
+                CurOpcode=*rplPopData();
+                // RECURSIVE CALL
+                LIB_HANDLER();
+                CurOpcode=saveOpcode;
+                return;
+            }
+
+        return;
 
 
 

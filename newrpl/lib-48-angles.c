@@ -234,7 +234,6 @@ void LIB_HANDLER()
                 rplOverwriteData(1,newangle);
                 return;
             }
-
             case OVR_EVAL1:
             case OVR_EVAL:
             case OVR_XEQ:

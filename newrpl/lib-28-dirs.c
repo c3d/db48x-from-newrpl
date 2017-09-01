@@ -1459,6 +1459,9 @@ case TVARSE:
                 rplPushFalse();
             }
         return;
+    case OVR_ISTRUE:
+        rplOverwriteData(1,(WORDPTR)one_bint);
+        return;
 
     // STANDARIZED OPCODES:
     // --------------------

@@ -160,7 +160,14 @@ ROMOBJECT matrixtonum_seco[]={
     CMD_SEMI
 };
 
-
+ROMOBJECT matrixistrue_seco[]={
+    MKPROLOG(DOCOL,5),
+    MKOPCODE(LIBRARY_NUMBER,DOMATPRE),     // PREPARE EACH ELEMENT
+    (CMD_OVR_ISTRUE),    // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER,DOMATPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER,DOMATERR),     // ERROR HANDLER
+    CMD_SEMI
+};
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
@@ -175,6 +182,8 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)matrixeval_seco,
    (WORDPTR)matrixeval1_seco,
    (WORDPTR)matrixtonum_seco,
+    (WORDPTR)matrixistrue_seco,
+
 
     (WORDPTR)lib52_menu,
     // ADD MORE MENUS HERE
@@ -407,6 +416,56 @@ void LIB_HANDLER()
 
             return;
         }
+
+        case OVR_ISTRUE:
+            // EVAL NEEDS TO SCAN THE MATRIX, EVAL EACH ARGUMENT SEPARATELY AND REBUILD IT.
+        {
+            WORDPTR object=rplPeekData(1),mainobj;
+            if(!ISMATRIX(*object)) {
+                rplError(ERR_MATRIXEXPECTED);
+                return;
+            }
+            mainobj=object;
+
+            // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
+            rplCreateLAMEnvironment(IPtr);
+
+            object=rplMatrixGetFirstObj(object);
+            WORDPTR endobject=rplSkipOb(mainobj);
+
+            rplCreateLAM((WORDPTR)nulllam_ident,endobject);     // LAM 1 = END OF CURRENT LIST
+            if(Exceptions) { rplCleanupLAMs(0); return; }
+
+            rplCreateLAM((WORDPTR)nulllam_ident,object);     // LAM 2 = NEXT OBJECT TO PROCESS
+            if(Exceptions) { rplCleanupLAMs(0); return; }
+
+            rplCreateLAM((WORDPTR)nulllam_ident,mainobj);     // LAM 3 = ORIGINAL MATRIX
+            if(Exceptions) { rplCleanupLAMs(0); return; }
+
+            // GETLAM 1 = END OF MATRIX, GETLAM2 = OBJECT, GETLAM3 = ORIGINAL MATRIX
+
+            // THIS NEEDS TO BE DONE IN 3 STEPS:
+            // EVAL WILL PREPARE THE LAMS FOR OPEN EXECUTION
+            // MATPRE WILL PUSH THE NEXT OBJECT IN THE STACK
+            // MATPOST WILL CHECK IF THE ARGUMENT WAS PROCESSED WITHOUT ERRORS,
+            // AND CLOSE THE LOOP TO PROCESS MORE ARGUMENTS
+
+            // THE INITIAL CODE FOR EVAL MUST TRANSFER FLOW CONTROL TO A
+            // SECONDARY THAT CONTAINS :: MATPRE EVAL MATPOST ;
+            // MATPOST WILL CHANGE IP AGAIN TO BEGINNING OF THE SECO
+            // IN ORDER TO KEEP THE LOOP RUNNING
+
+            rplPushRet(IPtr);
+            IPtr=(WORDPTR)  matrixistrue_seco;
+            CurOpcode=(CMD_OVR_ISTRUE);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+
+            rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
+
+            return;
+        }
+
+
+
         case OVR_XEQ:
             // XEQ NEEDS TO LEAVE THE MATRIX ON THE STACK
             return;
@@ -1889,6 +1948,27 @@ void LIB_HANDLER()
 
         // COMPUTE THE REQUIRED SIZE
 
+        if(OPCODE(*(IPtr-1))==OVR_ISTRUE) {
+            // SPECIAL CASE ISTRUE DOESN'T RETURN A MATRIX
+            BINT istrue=0;
+            BINT k;
+            for(k=1;k<=newdepth;++k) {
+                if(!rplIsFalse(rplPeekData(k))) istrue=1;
+            }
+
+            // HERE THE STACK HAS: MATRIX ELEM1... ELEMN
+            rplDropData(newdepth);
+
+
+            if(istrue) rplOverwriteData(1,(WORDPTR)one_bint);
+            else rplOverwriteData(1,(WORDPTR)zero_bint);
+
+            rplCleanupLAMs(0);
+            CurOpcode=*(IPtr-1);    // BLAME THE OPERATOR IN QUESTION
+            IPtr=rplPopRet();       // AND RETURN
+            return;
+        }
+
         BINT totalsize=rplMatrixGetFirstObj(matrix)-matrix;
         BINT k;
         for(k=1;k<=newdepth;++k) {
@@ -2531,7 +2611,7 @@ case BASIS:
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+5];
+        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+6];
         RetNum=OK_CONTINUE;
         return;
     }

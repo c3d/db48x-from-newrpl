@@ -374,6 +374,43 @@ void LIB_HANDLER()
     return;
 }
 
+    case OVR_ISTRUE:
+    {
+     // UNARY OPERATION ON A SYMBOLIC
+
+     WORDPTR object=rplPeekData(1);
+
+         if(rplSymbMainOperator(object)==CurOpcode) {
+             // THIS SYMBOLIC ALREADY HAS THE OPERATOR, NO NEED TO ADD IT
+             return;
+         }
+
+     object=rplSymbUnwrap(object);
+     if(!object) {
+         rplError(ERR_SYMBOLICEXPECTED);
+
+         return;
+     }
+     BINT size=rplObjSize(object);
+     // NEED TO WRAP AND ADD THE OPERATOR
+     size+=2;
+
+    WORDPTR newobject=rplAllocTempOb(size-1);
+    if(!newobject) return;
+
+    newobject[0]=MKPROLOG(DOSYMB,size-1);
+    newobject[1]=MKOPCODE(LIB_OVERLOADABLE,OPCODE(CurOpcode));
+    object=rplSymbUnwrap(rplPeekData(1));  // READ AGAIN, GC MIGHT'VE MOVED THE OBJECT
+
+    WORDPTR endptr=rplSkipOb(object);
+    WORDPTR ptr=newobject+2;
+    while(object!=endptr) *ptr++=*object++;
+
+    rplOverwriteData(1,newobject);
+    //return; //DELIBERATE FALL-THROUGH ->NUM - DO NOT REORDER!!
+
+    }
+
     case OVR_NUM:
     // NUM NEEDS TO SCAN THE SYMBOLIC, EVAL EACH ARGUMENT SEPARATELY AND APPLY THE OPCODE.
 {
@@ -450,7 +487,6 @@ void LIB_HANDLER()
         // JUST LEAVE IT ON THE STACK
         return;
         case OVR_ABS:
-        case OVR_ISTRUE:
 
     {
      // UNARY OPERATION ON A SYMBOLIC

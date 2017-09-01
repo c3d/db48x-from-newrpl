@@ -1242,6 +1242,10 @@ void LIB_HANDLER()
             if(op1) rplPushData((WORDPTR)zero_bint);
             else rplPushData((WORDPTR)one_bint);
             return;
+        case OVR_ISTRUE:
+            if(op1) rplPushData((WORDPTR)one_bint);
+            else rplPushData((WORDPTR)zero_bint);
+            return;
 
 
 

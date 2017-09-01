@@ -119,6 +119,10 @@ void LIB_HANDLER()
             CurOpcode=saveOpcode;
             return;
         }
+        if(OPCODE(CurOpcode)==OVR_ISTRUE) {
+            rplOverwriteData(1,(WORDPTR)one_bint);
+            return;
+        }
         // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
             if(OPCODE(CurOpcode)==OVR_SAME) {
                 if(*rplPeekData(2)==*rplPeekData(1)) {

@@ -1665,6 +1665,7 @@ void LIB_HANDLER()
         WORDPTR startobj;
         // EMPTY LISTS NEED TO BE HANDLED HERE (NO EVAL NEEDED)
         WORDPTR endmarker=rplSkipOb(*rplGetLAMn(3))-1;
+        WORD opcode=*((*rplGetLAMn(1))+1);
 
         do {
 
@@ -1673,8 +1674,18 @@ void LIB_HANDLER()
             while(ISLIST(*nextobj)) {
                 // GET INSIDE THE LIST
                 ++nextobj;
+                {
                 // LEAVE A MARKER ON THE STACK. USE THE SECO OBJECT AS A MARKER TO SAVE STORAGE
+                BINT nxtoff=nextobj-*rplGetLAMn(2);
+                BINT strtoff=startobj-nextobj;
+                BINT endoff=endmarker-nextobj;
+
                 rplPushData((WORDPTR)map_seco);
+
+                nextobj=*rplGetLAMn(2)+nxtoff;  // RESTORE
+                startobj=nextobj+strtoff;
+                endmarker=nextobj+endoff;
+                }
             }
 
             while(*nextobj==MKOPCODE(LIBRARY_NUMBER,ENDLIST)) {
@@ -1684,8 +1695,23 @@ void LIB_HANDLER()
 
                     BINT newdepth=(BINT)(DSTop-prevDStk);
 
-                    rplNewBINTPush(newdepth,DECBINT);
-                    if(Exceptions) {
+
+                    if(OPCODE(opcode)==OVR_ISTRUE) {
+                        //  SPECIAL CASE - COLLAPSE THE LIST INTO A SINGLE TRUE/FALSE
+                        BINT k;
+                        BINT istrue=0;
+                        for(k=1;k<=newdepth;++k) {
+                            if(!rplIsFalse(rplPeekData(k))) { istrue=1; break; }
+                        }
+
+                        rplDropData(newdepth);
+                        if(istrue) rplOverwriteData(1,(WORDPTR)one_bint);
+                        else rplOverwriteData(1,(WORDPTR)zero_bint);
+
+                    }
+                    else {
+                    WORDPTR newlist=rplCreateListN(newdepth,1,1);
+                    if(!newlist) {
                         DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
                         rplCleanupLAMs(0);
                         IPtr=rplPopRet();
@@ -1693,18 +1719,8 @@ void LIB_HANDLER()
                         return;
                     }
 
-                    rplCreateList();
-                    if(Exceptions) {
-                        DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
-                        rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=CMD_OVR_EVAL;
-                        return;
+                    rplOverwriteData(1,newlist);
                     }
-
-                    rplOverwriteData(2,rplPeekData(1));
-                    rplDropData(1);
-
                     rplCleanupLAMs(0);
                     IPtr=rplPopRet();
                     CurOpcode=CMD_OVR_EVAL;
@@ -1720,8 +1736,28 @@ void LIB_HANDLER()
                     while(*stkptr!=map_seco) --stkptr;  // FIND THE NEXT MARKER ON THE STACK
                     BINT nelements=(BINT)(DSTop-stkptr)-1;
 
-                    rplNewBINTPush(nelements,DECBINT);
-                    if(Exceptions) {
+
+                    if(OPCODE(opcode)==OVR_ISTRUE) {
+                        //  SPECIAL CASE - COLLAPSE THE LIST INTO A SINGLE TRUE/FALSE
+                        BINT k;
+                        BINT istrue=0;
+                        for(k=1;k<=nelements;++k) {
+                            if(!rplIsFalse(rplPeekData(k))) { istrue=1; break; }
+                        }
+
+                        rplDropData(nelements);
+                        if(istrue) rplOverwriteData(1,(WORDPTR)one_bint);
+                        else rplOverwriteData(1,(WORDPTR)zero_bint);
+
+                    }
+
+                    else {
+                    BINT nxtoff=nextobj-*rplGetLAMn(2);
+                    BINT strtoff=startobj-nextobj;
+                    BINT endoff=endmarker-nextobj;
+
+                    WORDPTR newlist=rplCreateListN(nelements,1,1);
+                    if(!newlist) {
                         DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
                         rplCleanupLAMs(0);
                         IPtr=rplPopRet();
@@ -1729,19 +1765,13 @@ void LIB_HANDLER()
                         return;
                     }
 
-                    rplCreateList();
-                    if(Exceptions) {
-                        DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
-                        rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=CMD_OVR_EVAL;
-                        return;
-                    }
+                    nextobj=*rplGetLAMn(2)+nxtoff;  // RESTORE
+                    startobj=nextobj+strtoff;
+                    endmarker=nextobj+endoff;
 
                     // NOW REMOVE THE MARKER FROM THE STACK
-                    rplOverwriteData(2,rplPeekData(1));
-                    rplDropData(1);
-
+                    rplOverwriteData(1,newlist);
+                    }
 
                 }
 

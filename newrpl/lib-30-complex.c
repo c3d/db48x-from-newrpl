@@ -6361,6 +6361,12 @@ void LIB_HANDLER()
             else rplPushData((WORDPTR)zero_bint);
             return;
         }
+        case OVR_ISTRUE:
+        {
+            if(cclass1==CPLX_ZERO) rplPushData((WORDPTR)zero_bint);
+            else rplPushData((WORDPTR)one_bint);
+            return;
+        }
         case OVR_EVAL:
         case OVR_EVAL1:
         case OVR_XEQ:

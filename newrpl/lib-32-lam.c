@@ -99,6 +99,14 @@ ROMOBJECT lamnum_seco[]={
     CMD_SEMI
 };
 
+ROMOBJECT lamistrue_seco[]={
+    MKPROLOG(DOCOL,5),
+    MKOPCODE(LIBRARY_NUMBER,LAMEVALPRE),
+    (CMD_OVR_ISTRUE),    // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER,LAMEVALPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER,LAMEVALERR),     // ERROR HANDLER
+    CMD_SEMI
+};
 
 
 // INTERNAL RPL PROGRAM THAT CALLS ABND
@@ -145,6 +153,8 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)lam_baseseco_bint,
     (WORDPTR)lam_privatevar_bint,
     (WORDPTR)LIB_MSGTABLE,
+    (WORDPTR)lamnum_seco,
+    (WORDPTR)lamistrue_seco,
     0
 };
 
@@ -392,6 +402,50 @@ void LIB_HANDLER()
                 }
                     return;
 
+            case OVR_ISTRUE:
+            // RCL WHATEVER IS STORED IN THE LAM AND THEN ISTRUE ITS CONTENTS
+                // NO ARGUMENT CHECKS! THAT SHOULD'VE BEEN DONE BY THE OVERLOADED "EVAL" DISPATCHER
+                {
+                    WORDPTR *val=rplFindLAM(rplPeekData(1),1);
+                    if(!val) {
+                        val=rplFindGlobal(rplPeekData(1),1);
+                        if(!val) {
+                            // INEXISTENT VARIABLE CANNOT BE CONVERTED TO NUMBER
+                            rplError(ERR_UNDEFINEDVARIABLE);
+                            return;
+                        }
+                    }
+
+                    if(rplCheckCircularReference((WORDPTR)symbnum_seco+2,*(val+1),4)) {
+                        rplError(ERR_CIRCULARREFERENCE);
+                        return;
+                    }
+
+                    // CREATE A NEW LAM ENVIRONMENT IDENTICAL TO THE ONE USED TO EVAL SYMBOLICS
+                    // FOR CIRCULAR REFERENCE CHECK
+                    rplCreateLAMEnvironment((WORDPTR)symbnum_seco+2);
+
+                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 1 = 0 (DUMMY)
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 2 = 0 (DUMMY)
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);     // LAM 3 = 0 (DUMMY)
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                    rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));     // LAM 4 = MAIN VARIABLE NAME, FOR CIRCULAR REFERENCE CHECK
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+
+                    rplOverwriteData(1,*(val+1));    // REPLACE THE FIRST LEVEL WITH THE VALUE
+
+                    rplPushRet(IPtr);
+                    IPtr=(WORDPTR) lamistrue_seco;
+                    CurOpcode=(CMD_OVR_ISTRUE);
+                }
+                    return;
+
             case OVR_XEQ:
                 // JUST KEEP THE IDENT ON THE STACK, UNEVALUATED
                 if(!ISPROLOG(*rplPeekData(1))) {
@@ -404,6 +458,8 @@ void LIB_HANDLER()
                 }
 
                return;
+
+
 
             default:
                 // PASS AL OTHER OPERATORS DIRECTLY AS A SYMBOLIC OBJECT

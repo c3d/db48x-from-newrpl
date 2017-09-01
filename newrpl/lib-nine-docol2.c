@@ -75,12 +75,19 @@ INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib9_menu);
 
+ROMOBJECT retrysemi_seco[]={
+    CMD_RETRYSEMI,              // THIS FIRST COMMAND WILL BE IGNORED
+    CMD_RETRYSEMI
+};
+
+
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
      (WORDPTR)LIB_MSGTABLE,
      (WORDPTR)LIB_HELPTABLE,
      (WORDPTR)lib9_menu,
+     (WORDPTR)retrysemi_seco,
         0
 };
 
@@ -113,9 +120,7 @@ void LIB_HANDLER()
          if(same) rplPushTrue(); else rplPushFalse();
          return;
         }
-
-
-
+    case OVR_ISTRUE:
     case OVR_EVAL:
     case OVR_EVAL1:
     case OVR_XEQ:
@@ -145,6 +150,20 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+            WORDPTR *rstopsave=RSTop;
+            rplPushRet(IPtr);
+            rplCallOvrOperator(CMD_OVR_ISTRUE);
+            if(IPtr!=*rstopsave) {
+                // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+                rstopsave[1]=(WORDPTR)retrysemi_seco;   // REPLACE THE RETURN ADDRESS WITH A RETRY
+                return;
+            }
+            RSTop=rstopsave;
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+
             // EXTRACT THE OBJECT INTO A GC-SAFE POINTER
             ScratchPointer1=rplPopData();
 
@@ -183,6 +202,20 @@ void LIB_HANDLER()
     case THENCASE:
         {
         // BY DEFINITION, BINT 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        WORDPTR *rstopsave=RSTop;
+        rplPushRet(IPtr);
+        rplCallOvrOperator(CMD_OVR_ISTRUE);
+        if(IPtr!=*rstopsave) {
+            // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+            rstopsave[1]=(WORDPTR)retrysemi_seco;   // REPLACE THE RETURN ADDRESS WITH A RETRY
+            return;
+        }
+        RSTop=rstopsave;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -456,6 +489,19 @@ void LIB_HANDLER()
             return;
         }
 
+        WORDPTR *rstopsave=RSTop;
+        rplPushRet(IPtr);
+        rplCallOvrOperator(CMD_OVR_ISTRUE);
+        if(IPtr!=*rstopsave) {
+            // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+            rstopsave[1]=(WORDPTR)retrysemi_seco;   // REPLACE THE RETURN ADDRESS WITH A RETRY
+            return;
+        }
+        RSTop=rstopsave;
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
         // BY DEFINITION, BINT 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
 
         WORDPTR result=rplPopData();
@@ -509,6 +555,24 @@ void LIB_HANDLER()
             // MALFORMED LOOP
             return;
         }
+
+
+        WORDPTR *rstopsave=RSTop;
+        rplPushRet(IPtr);
+        rplCallOvrOperator(CMD_OVR_ISTRUE);
+        if(IPtr!=*rstopsave) {
+            // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+            rstopsave[1]=(WORDPTR)retrysemi_seco;   // REPLACE THE RETURN ADDRESS WITH A RETRY
+            return;
+        }
+        RSTop=rstopsave;
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+
+
 
         WORDPTR result=rplPopData();
 

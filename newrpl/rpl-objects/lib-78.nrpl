@@ -19,8 +19,9 @@
 
 @#name lib78_msgtable
 {
- ##1,ERR_FONTEXPECTED "Expected a FONT object"
+ ##1,ERR_FONTEXPECTED "Expected a font object"
  ##1,ERR_RESERVEDNAME "Reserved font name"
+ ##1,ERR_FONTNOTINSTALLED "Font not installed"
 }
 
 

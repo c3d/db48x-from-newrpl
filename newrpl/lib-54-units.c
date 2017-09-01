@@ -205,7 +205,6 @@ void LIB_HANDLER()
             // JUST LEAVE IT ON THE STACK
             return;
         case OVR_ABS:
-        case OVR_ISTRUE:
         case OVR_NOT:
         case OVR_NEG:
         {
@@ -231,6 +230,18 @@ void LIB_HANDLER()
 
         return;
         }
+        case OVR_ISTRUE:
+        {
+            if(!ISUNIT(*rplPeekData(1))) {
+                rplError(ERR_UNITEXPECTED);
+                return;
+            }
+            rplOverwriteData(1,rplPeekData(1)+1);
+            rplCallOvrOperator(CurOpcode);
+            return;
+        }
+
+
         case OVR_MUL:
         {
             if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {

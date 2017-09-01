@@ -1148,7 +1148,12 @@ void LIB_HANDLER()
         else rplOverwriteData(2,(WORDPTR)one_bint);
         rplDropData(1);
         return;
-
+    case OVR_ISTRUE:
+    {
+        if(rplStrSize(rplPeekData(1))) rplOverwriteData(1,(WORDPTR)one_bint);
+        else rplOverwriteData(1,(WORDPTR)zero_bint);
+        return;
+    }
 
     // STANDARIZED OPCODES:
     // --------------------
