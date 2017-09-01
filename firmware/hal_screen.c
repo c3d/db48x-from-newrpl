@@ -642,7 +642,7 @@ void halRedrawHelp(DRAWSURFACE *scr)
        BINT oldclipy=scr->clipy,oldclipy2=scr->clipy2;
 
        scr->clipy=ytop+1;
-       scr->clipy2=ytop+1+(*halScreen.FontArray[FONT_MENU])->BitmapHeight;
+       scr->clipy2=ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight;
 
         uiDrawMenuItem(item,0xf,scr);
 
@@ -1263,7 +1263,7 @@ void halUpdateFonts()
     int f;
     for(f=0;f<7;++f)
     {
-        if(halScreen.FontArray[f]!=tmparray[f]) {
+        if(*halScreen.FontArray[f]!=*tmparray[f]) {
 
          halScreen.FontArray[f]=tmparray[f];
 
