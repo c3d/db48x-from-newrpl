@@ -19,7 +19,7 @@ unsigned int NumClr;
 unsigned int ClrImp;
 } BMP_Header;
 
-#define LIB_FONTS   80
+#define LIB_FONTS   78
 
 
 #define MAX_GLYPHS 65536

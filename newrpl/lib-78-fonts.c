@@ -298,11 +298,68 @@ WORDPTR rplGetSystemFontName(WORDPTR font)
     return 0;   // NOT FOUND
 }
 
+void rplFontsNewList(WORDPTR oldlist,WORDPTR newlist)
+{
+
+    if(oldlist) {
+    WORDPTR oldname;
+    WORDPTR endoldlst=rplSkipOb(oldlist);
+    WORDPTR font,fontname;
+    WORDPTR fntid[7]=  {
+            (WORDPTR)fontstack_ident,
+            (WORDPTR)fontstack1_ident,
+            (WORDPTR)fontcmdline_ident,
+            (WORDPTR)fontmenu_ident,
+            (WORDPTR)fontstarea_ident,
+            (WORDPTR)fontplot_ident,
+            (WORDPTR)fontform_ident
+    };
+
+    int k;
+    for(k=0;k<7;++k) {
+                 font=rplGetSettings(fntid[k]);
+                 if((font>=oldlist)&&(font<endoldlst)) {
+                     // MOVE THIS FONT TO THE NEW LIST
+                     fontname=rplGetSystemFontName(font);
+                     if(!fontname) rplPurgeSettings(fntid[k]);
+                     else {
+                         // FIND THE NAME IN THE NEW LIST
+                         WORDPTR ptr=newlist+1,endnewlst=rplSkipOb(newlist);
+                         while((*ptr!=CMD_ENDLIST)&&(ptr<endnewlst)) {
+                             if(rplCompareIDENT(ptr,fontname)) {
+                                 // FOUND IT
+                                 font=rplSkipOb(ptr);
+                                 if(!ISFONT(*font)) rplPurgeSettings(fntid[k]);
+                                 else rplStoreSettings(fntid[k],font);
+                               break;
+                             }
+                             ptr=rplSkipOb(ptr);
+                             ptr=rplSkipOb(ptr);
+                         }
+
+                         if( (*ptr==CMD_ENDLIST) || (ptr>=endnewlst)) rplPurgeSettings(fntid[k]);
+
+
+                     }
+
+                 }
+    }
+
+    }
+
+    // ALL FONTS POINTERS MOVED TO THE NEW LIST, NOW REPLACE THE LIST WITH THE NEW ONE
+    rplStoreSettings((WORDPTR)sysfonts_ident,newlist);
+
+}
+
+
+
 // ADD/REPLACE A SYSTEM FONT, RETURN TRUE
 void rplAddSystemFont(WORDPTR ident,WORDPTR font)
 {
     if(!ISFONT(*font)) return;
     if(!ISIDENT(*ident)) return;
+
 
     // MAKE SURE THE IDENT IS NOT A RESERVED NAME
     // CHECK FOR RESERVED ROM NAMES FIRST
@@ -318,10 +375,11 @@ void rplAddSystemFont(WORDPTR ident,WORDPTR font)
 
     }
 
-    WORDPTR fontlist=rplGetSettings((WORDPTR)sysfonts_ident),oldfont,endofobj=rplSkipOb(fontlist);
+    WORDPTR fontlist=rplGetSettings((WORDPTR)sysfonts_ident),oldfont,endofobj;
     BINT newsize;
 
     if(fontlist) {
+        endofobj=rplSkipOb(fontlist);
         oldfont=fontlist+1;
 
         while( (*oldfont!=CMD_ENDLIST)&&(oldfont<endofobj)) {
@@ -358,9 +416,10 @@ void rplAddSystemFont(WORDPTR ident,WORDPTR font)
     font=ScratchPointer2;
     oldfont=ScratchPointer3;
     fontlist=ScratchPointer4;
-    endofobj=rplSkipOb(fontlist);
+
 
     if(fontlist) {
+        endofobj=rplSkipOb(fontlist);
     if(oldfont) {
         memmovew(newlist+1,fontlist+1,oldfont-fontlist-1);
         memmovew(newlist+(oldfont-fontlist),font,rplObjSize(font));
@@ -368,8 +427,8 @@ void rplAddSystemFont(WORDPTR ident,WORDPTR font)
     }
     else {
         memmovew(newlist+1,fontlist+1,rplObjSize(fontlist)-2);
-        memmovew(newlist+rplObjSize(fontlist),ident,rplObjSize(ident));
-        memmovew(newlist+rplObjSize(fontlist)+rplObjSize(ident),font,rplObjSize(font));
+        memmovew(newlist+rplObjSize(fontlist)-1,ident,rplObjSize(ident));
+        memmovew(newlist+rplObjSize(fontlist)-1+rplObjSize(ident),font,rplObjSize(font));
     }
     }
     else {
@@ -381,7 +440,9 @@ void rplAddSystemFont(WORDPTR ident,WORDPTR font)
     newlist[0]=MKPROLOG(DOLIST,newsize);
     newlist[newsize]=CMD_ENDLIST;
 
-    rplStoreSettings((WORDPTR)sysfonts_ident,newlist);
+
+    rplFontsNewList(fontlist,newlist);
+
 
 }
 
@@ -601,6 +662,66 @@ void LIB_HANDLER()
         rplPushData(IPtr);
         return;
     }
+
+    // PROCESS OVERLOADED OPERATORS FIRST
+    if(LIBNUM(CurOpcode)==LIB_OVERLOADABLE) {
+
+        if(ISUNARYOP(CurOpcode))
+        {
+        // APPLY UNARY OPERATOR DIRECTLY TO THE CONTENTS OF THE VARIABLE
+            switch(OPCODE(CurOpcode))
+            {
+            case OVR_EVAL1:
+            case OVR_EVAL:
+            case OVR_XEQ:
+                // JUST KEEP THE OBJECT ON THE STACK, UNEVALUATED
+                if(!ISPROLOG(*rplPeekData(1))) {
+                WORD saveOpcode=CurOpcode;
+                CurOpcode=*rplPopData();
+                // RECURSIVE CALL
+                LIB_HANDLER();
+                CurOpcode=saveOpcode;
+                return;
+                }
+
+               return;
+
+            default:
+                // BY DEFAULT, ISSUE A BAD OPCODE ERROR
+                rplError(ERR_INVALIDOPCODE);
+                return;
+
+        }
+
+
+    }   // END OF UNARY OPERATORS
+
+    if(ISBINARYOP(CurOpcode)) {
+
+
+        switch(OPCODE(CurOpcode))
+        {
+        case OVR_SAME:
+        {
+         BINT same=rplCompareObjects(rplPeekData(1),rplPeekData(2));
+         rplDropData(2);
+         if(same) rplPushTrue(); else rplPushFalse();
+         return;
+        }
+        default:
+            // BY DEFAULT, ISSUE A BAD OPCODE ERROR
+            rplError(ERR_INVALIDOPCODE);
+
+            return;
+
+        }
+    }
+
+
+    }
+
+
+
 
     switch(OPCODE(CurOpcode))
     {

@@ -175,7 +175,8 @@ typedef struct {
     int HelpMode;       // SOFT MENU ON-SCREEN HELP
     int DirtyFlag;      // 1 BIT PER AREA IN ORDER, 1=FORM, 2=STACK, 4=CMDLINE, 8=MENU1,16=MENU2,32=STATUS
     HEVENT SAreaTimer,CursorTimer;
-    UNIFONT **FontArray[7];
+    UNIFONT **FontArray[7];     // POINTERS TO ADDRESSES OF FONTS
+    WORD FontHash[7];           // HASH TO DETECT FONT CHANGES
     // VARIABLES FOR THE TEXT EDITOR / COMMAND LINE
     int LineVisible,LineCurrent,LineIsModified;
     int NumLinesVisible;    // HEIGHT OF COMMAND LINE AREA IN LINES OF TEXT

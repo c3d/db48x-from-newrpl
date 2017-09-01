@@ -467,9 +467,13 @@ void halRedrawStack(DRAWSURFACE *scr)
 
 void halInitScreen()
 {
+
+rplUpdateFontArray((WORDPTR **)halScreen.FontArray);
+int k;
+for(k=0;k<7;++k) halScreen.FontHash[k]=0;
+
 halFlags=0;
 halProcesses[0]=halProcesses[1]=halProcesses[2]=0;
-rplUpdateFontArray((WORDPTR **)halScreen.FontArray);
 halScreen.HelpMode=0;
 halScreen.CmdLine=0;
 halScreen.Menu1=MENU1_HEIGHT;
@@ -1257,16 +1261,18 @@ void halRedrawCmdLine(DRAWSURFACE *scr)
 void halUpdateFonts()
 {
     UNIFONT **tmparray[7];
-
+    WORD hash;
     rplUpdateFontArray((WORDPTR **)tmparray);
 
     int f;
     for(f=0;f<7;++f)
     {
-        if(*halScreen.FontArray[f]!=*tmparray[f]) {
+        // COMPUTE THE HASH OF THE FONT
+        hash=OPCODE((*tmparray[f])->Prolog)|(((*tmparray[f])->BitmapHeight)<<20);
+        if(halScreen.FontHash[f]!=hash) {
 
-         halScreen.FontArray[f]=tmparray[f];
-
+            halScreen.FontArray[f]=tmparray[f];
+            halScreen.FontHash[f]=hash;
          switch(f)
          {
          case FONT_STACK:
@@ -1299,6 +1305,7 @@ void halUpdateFonts()
 
 
         }
+        else halScreen.FontArray[f]=tmparray[f];
 
     }
 
