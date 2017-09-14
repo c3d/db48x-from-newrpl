@@ -264,6 +264,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-52.nrpl \
                 newrpl/rpl-objects/lib-56.nrpl \
                 newrpl/rpl-objects/lib-77.nrpl \
+                newrpl/rpl-objects/lib-78.nrpl \
                 newrpl/rpl-objects/lib-80.nrpl \
                 newrpl/rpl-objects/lib-88.nrpl \
                 newrpl/rpl-objects/lib-96.nrpl \

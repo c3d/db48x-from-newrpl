@@ -778,7 +778,7 @@ void LIB_HANDLER()
                 while(construct>=ValidateBottom) {
                     if((**construct==CMD_THEN)||(**construct==CMD_ELSE)
                             ||(**construct==CMD_THENERR)||(**construct==CMD_ELSEERR)
-                            ||(**construct==CMD_THENCASE)||(**construct==CMD_REPEAT) )
+                            ||(**construct==CMD_THENCASE) )
                     {
                         // DON'T TRACK LAMS THAT COULD BE CONDITIONALLY CREATED
                         notrack=1;
@@ -980,7 +980,7 @@ void LIB_HANDLER()
                 while(construct>=ValidateBottom) {
                     if((**construct==CMD_THEN)||(**construct==CMD_ELSE)
                             ||(**construct==CMD_THENERR)||(**construct==CMD_ELSEERR)
-                            ||(**construct==CMD_THENCASE)||(**construct==CMD_REPEAT) )
+                            ||(**construct==CMD_THENCASE) )
                     {
                         // DON'T TRACK LAMS THAT COULD BE CONDITIONALLY CREATED
                         notrack=1;
@@ -1207,8 +1207,41 @@ void LIB_HANDLER()
             } while(object<DecompileObject);
 
             // HERE PREVOBJECT CONTAINS THE LAST OBJECT THAT WAS DECOMPILED
+            BINT notrack=0;
+                // CHECK FOR CONDITIONAL VARIABLE CREATION!
+                WORDPTR *construct=ValidateTop-1;
+                while(construct>=ValidateBottom) {
+                    if((**construct==CMD_THEN)||(**construct==CMD_ELSE)
+                            ||(**construct==CMD_THENERR)||(**construct==CMD_ELSEERR)
+                            ||(**construct==CMD_THENCASE) )
+                    {
+                        // DON'T TRACK LAMS THAT COULD BE CONDITIONALLY CREATED
+                        notrack=1;
+                        break;
+                    }
+                    --construct;
+                }
 
-            if(!ISIDENT(*prevobject)) {
+                // CHECK FOR PREVIOUS LAM TRACKING DISABLE MARKERS
+                if(!notrack) {
+
+                    WORDPTR *env=nLAMBase;
+                    do {
+                        if(env<LAMTopSaved) break;
+                        if(env[1]==(WORDPTR)lameval_seco) {
+                        // FOUND THE MARKER, STOP TRACKING VARIABLES THIS COMPILE SESSION
+                            notrack=1;
+                            break;
+                        }
+                        env=rplGetNextLAMEnv(env);
+                    } while(env);
+
+
+                }
+
+
+
+            if(notrack || !ISIDENT(*prevobject)) {
                 // DO WE NEED A NEW ENVIRONMENT?
 
                 if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
@@ -1405,6 +1438,37 @@ void LIB_HANDLER()
 
             rplDecompAppendChar('\'');
             WORDPTR name=*rplGetLAMnName(num);
+            if(!name) {
+                // THIS SHOULD NEVER HAPPEN!!
+                //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
+
+                rplDecompAppendString((BYTEPTR)"GETLAM");
+                BINT result=OPCODE(*DecompileObject)&0xffff;
+                if(result&0x8000) result|=0xFFFF0000;
+                if(result<0) {
+                    rplDecompAppendChar('u');
+                    result=-result;
+                }
+
+                BINT digit=0;
+                char basechr='0';
+                while(result<powersof10[digit]) ++digit;  // SKIP ALL LEADING ZEROS
+                // NOW DECOMPILE THE NUMBER
+                while(digit<18) {
+                while(result>=powersof10[digit]) { ++basechr; result-=powersof10[digit]; }
+                rplDecompAppendChar(basechr);
+                ++digit;
+                basechr='0';
+                }
+                basechr+=result;
+                rplDecompAppendChar(basechr);
+                RetNum=OK_CONTINUE;
+                return;
+            }
+
+
+
+
             if(!ISIDENT(*name)) {
                 RetNum=ERR_SYNTAX;
                 return;
@@ -1423,38 +1487,42 @@ void LIB_HANDLER()
             return;
         }
 
-            /*
-            //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
-            rplDecompAppendString((BYTEPTR)"GETLAM");
-            BINT result=OPCODE(*DecompileObject)&0xffff;
-            if(result&0x8000) result|=0xFFFF0000;
-            if(result<0) {
-                rplDecompAppendChar('u');
-                result=-result;
-            }
 
-            BINT digit=0;
-            char basechr='0';
-            while(result<powersof10[digit]) ++digit;  // SKIP ALL LEADING ZEROS
-            // NOW DECOMPILE THE NUMBER
-            while(digit<18) {
-            while(result>=powersof10[digit]) { ++basechr; result-=powersof10[digit]; }
-            rplDecompAppendChar(basechr);
-            ++digit;
-            basechr='0';
-            }
-            basechr+=result;
-            rplDecompAppendChar(basechr);
-        }
-            RetNum=OK_CONTINUE;
-            return;
-            */
         case GETLAMNEVAL:
         {
             BINT num=OPCODE(*DecompileObject)&0xffff;
             if(num&0x8000) num|=0xFFFF0000; // GET NEGATIVE LAMS TOO!
 
             WORDPTR name=*rplGetLAMnName(num);
+
+            if(!name) {
+                // THIS SHOULD NEVER HAPPEN!!
+                //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
+
+                rplDecompAppendString((BYTEPTR)"GETLAM");
+                BINT result=OPCODE(*DecompileObject)&0xffff;
+                if(result&0x8000) result|=0xFFFF0000;
+                if(result<0) {
+                    rplDecompAppendChar('u');
+                    result=-result;
+                }
+
+                BINT digit=0;
+                char basechr='0';
+                while(result<powersof10[digit]) ++digit;  // SKIP ALL LEADING ZEROS
+                // NOW DECOMPILE THE NUMBER
+                while(digit<18) {
+                while(result>=powersof10[digit]) { ++basechr; result-=powersof10[digit]; }
+                rplDecompAppendChar(basechr);
+                ++digit;
+                basechr='0';
+                }
+                basechr+=result;
+                rplDecompAppendChar(basechr);
+                rplDecompAppendString((BYTEPTR)"EVAL");
+                RetNum=OK_CONTINUE;
+                return;
+            }
             if(!ISIDENT(*name)) {
                 RetNum=ERR_SYNTAX;
                 return;
@@ -1475,41 +1543,45 @@ void LIB_HANDLER()
 
         }
 
-            /*
-            //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
 
-            rplDecompAppendString((BYTEPTR)"GETLAM");
-            BINT result=OPCODE(*DecompileObject)&0xffff;
-            if(result&0x8000) result|=0xFFFF0000;
-            if(result<0) {
-                rplDecompAppendChar('u');
-                result=-result;
-            }
-
-            BINT digit=0;
-            char basechr='0';
-            while(result<powersof10[digit]) ++digit;  // SKIP ALL LEADING ZEROS
-            // NOW DECOMPILE THE NUMBER
-            while(digit<18) {
-            while(result>=powersof10[digit]) { ++basechr; result-=powersof10[digit]; }
-            rplDecompAppendChar(basechr);
-            ++digit;
-            basechr='0';
-            }
-            basechr+=result;
-            rplDecompAppendChar(basechr);
-        }
-            rplDecompAppendString((BYTEPTR)"EVAL");
-            RetNum=OK_CONTINUE;
-            return;
-            */
         case PUTLAMN:
         {
             BINT num=OPCODE(*DecompileObject)&0xffff;
             if(num&0x8000) num|=0xFFFF0000; // GET NEGATIVE LAMS TOO!
 
-            rplDecompAppendChar('\'');
             WORDPTR name=*rplGetLAMnName(num);
+
+            if(!name) {
+                //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
+                rplDecompAppendString((BYTEPTR)"PUTLAM");
+                BINT result=OPCODE(*DecompileObject)&0xffff;
+                if(result&0x8000) result|=0xFFFF0000;
+                if(result<0) {
+                    rplDecompAppendChar('u');
+                    result=-result;
+                }
+
+                BINT digit=0;
+                char basechr='0';
+                while(result<powersof10[digit]) ++digit;  // SKIP ALL LEADING ZEROS
+                // NOW DECOMPILE THE NUMBER
+                while(digit<18) {
+                while(result>=powersof10[digit]) { ++basechr; result-=powersof10[digit]; }
+                rplDecompAppendChar(basechr);
+                ++digit;
+                basechr='0';
+                }
+                basechr+=result;
+                rplDecompAppendChar(basechr);
+
+                RetNum=OK_CONTINUE;
+                return;
+
+            }
+
+            rplDecompAppendChar('\'');
+
+
             if(!ISIDENT(*name)) {
                 RetNum=ERR_SYNTAX;
                 return;
@@ -1527,32 +1599,6 @@ void LIB_HANDLER()
             RetNum=OK_CONTINUE;
             return;
         }
-            /*
-            //  LEAVE THIS FOR SOME OBSCURE DEBUG MODE
-            rplDecompAppendString((BYTEPTR)"PUTLAM");
-            BINT result=OPCODE(*DecompileObject)&0xffff;
-            if(result&0x8000) result|=0xFFFF0000;
-            if(result<0) {
-                rplDecompAppendChar('u');
-                result=-result;
-            }
-
-            BINT digit=0;
-            char basechr='0';
-            while(result<powersof10[digit]) ++digit;  // SKIP ALL LEADING ZEROS
-            // NOW DECOMPILE THE NUMBER
-            while(digit<18) {
-            while(result>=powersof10[digit]) { ++basechr; result-=powersof10[digit]; }
-            rplDecompAppendChar(basechr);
-            ++digit;
-            basechr='0';
-            }
-            basechr+=result;
-            rplDecompAppendChar(basechr);
-        }
-            RetNum=OK_CONTINUE;
-            return;
-            */
 
         }
 

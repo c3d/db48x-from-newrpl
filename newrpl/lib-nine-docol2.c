@@ -224,23 +224,32 @@ void LIB_HANDLER()
             ScratchPointer1=rplPopData();
 
             if(rplIsFalse(ScratchPointer1)) {
-                // SKIP ALL OBJECTS UNTIL ENDTHEN
-                while(*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDTHEN)) {
-                    if(*IPtr==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
-                    if(*IPtr==CMD_SEMI) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
-                    rplSkipNext();
-                }
+                int count=0;
+            while(count || (*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDTHEN))) {
+                if(*IPtr==MKOPCODE(LIBRARY_NUMBER,CASE)) ++count;
+                if(*IPtr==MKOPCODE(LIBRARY_NUMBER,ENDCASE)) --count;
+                if(*IPtr==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
+                if(*IPtr==CMD_SEMI) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
+                rplSkipNext();
+            }
+
             }
         }
         return;
     case ENDTHEN:
+    {
         // IF THIS GETS EXECUTED, IT'S BECAUSE THE THEN CLAUSE WAS TRUE, SO SKIP UNTIL ENDCASE
-        while(*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDCASE)) {
-            if(*IPtr==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
-            if(*IPtr==CMD_SEMI) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
-            rplSkipNext();
+        int count=0;
+         while(count || (*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDCASE))) {
+        if(*IPtr==MKOPCODE(LIBRARY_NUMBER,CASE)) ++count;
+        if(*IPtr==MKOPCODE(LIBRARY_NUMBER,ENDCASE)) --count;
+        if(*IPtr==MKOPCODE(LIBRARY_NUMBER,QSEMI)) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
+        if(*IPtr==CMD_SEMI) { --IPtr; return; }   // MALFORMED, JUST EXIT AT THE SEMI
+        rplSkipNext();
         }
+
         return;
+    }
 
     case ENDCASE:
         return;
@@ -879,7 +888,8 @@ void LIB_HANDLER()
            // ENDDO
 
            if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,UNTIL)) {
-               rplCleanupLAMs(0);
+               --ValidateTop;   // DISCARD THE UNTIL CONSTRUCT
+               rplCleanupLAMs(*(ValidateTop-1));
                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,ENDDO));
                RetNum=OK_ENDCONSTRUCT;
                return;
@@ -888,7 +898,8 @@ void LIB_HANDLER()
            // ENDWHILE
 
            if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,REPEAT)) {
-               rplCleanupLAMs(0);
+               --ValidateTop;   // DISCARD THE REPEAT CONSTRUCT
+               rplCleanupLAMs(*(ValidateTop-1));
                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,ENDWHILE));
                RetNum=OK_ENDCONSTRUCT;
                return;
@@ -973,7 +984,8 @@ void LIB_HANDLER()
            // ENDDO
 
            if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,UNTIL)) {
-               rplCleanupLAMs(0);
+               --ValidateTop;   // DISCARD THE UNTIL CONSTRUCT
+               rplCleanupLAMs(*(ValidateTop-1));
                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,ENDDO));
                RetNum=OK_ENDCONSTRUCT;
                return;
@@ -990,7 +1002,8 @@ void LIB_HANDLER()
            // ENDWHILE
 
            if(CurrentConstruct==MKOPCODE(LIBRARY_NUMBER,REPEAT)) {
-               rplCleanupLAMs(0);
+               --ValidateTop;   // DISCARD THE REPEAT CONSTRUCT
+               rplCleanupLAMs(*(ValidateTop-1));
                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,ENDWHILE));
                RetNum=OK_ENDCONSTRUCT;
                return;
@@ -1073,7 +1086,7 @@ void LIB_HANDLER()
                return;
             }
            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,UNTIL));
-           RetNum=OK_CHANGECONSTRUCT;
+           RetNum=OK_STARTCONSTRUCT;
            return;
        }
 
@@ -1094,7 +1107,7 @@ void LIB_HANDLER()
                        return;
                     }
                    rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,REPEAT));
-                   RetNum=OK_CHANGECONSTRUCT;
+                   RetNum=OK_STARTCONSTRUCT;
                    return;
                }
 

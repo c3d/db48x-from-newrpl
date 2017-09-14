@@ -6400,6 +6400,11 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        if(ISLIST(*rplPeekData(1))) {
+            rplListUnaryDoCmd();
+            return;
+        }
         if(!ISNUMBERCPLX(*rplPeekData(1))) {
             rplError(ERR_COMPLEXORREALEXPECTED);
             return;
@@ -6442,6 +6447,12 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        if(ISLIST(*rplPeekData(1))) {
+            rplListUnaryDoCmd();
+            return;
+        }
+
         if(!ISNUMBERCPLX(*rplPeekData(1))) {
             rplError(ERR_COMPLEXORREALEXPECTED);
             return;
@@ -6488,6 +6499,12 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        if(ISLIST(*rplPeekData(1))) {
+            rplListUnaryDoCmd();
+            return;
+        }
+
+
         if(!ISNUMBERCPLX(*rplPeekData(1))) {
             rplError(ERR_COMPLEXORREALEXPECTED);
             return;
@@ -6570,6 +6587,12 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        if(ISLIST(*rplPeekData(1))) {
+            rplListUnaryDoCmd();
+            return;
+        }
+
         if(!ISNUMBERCPLX(*rplPeekData(1))) {
             rplError(ERR_COMPLEXORREALEXPECTED);
             return;
@@ -6604,6 +6627,11 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        if(ISLIST(*rplPeekData(1))) {
+            rplListUnaryDoCmd();
+            return;
+        }
+
         if(!ISCOMPLEX(*rplPeekData(1))) {
             rplError(ERR_COMPLEXEXPECTED);
             return;
@@ -6619,6 +6647,12 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        if(ISLIST(*rplPeekData(1))||ISLIST(*rplPeekData(2))) {
+            rplListBinaryDoCmd();
+            return;
+        }
+
         if(!(ISNUMBER(*rplPeekData(1))||ISANGLE(*rplPeekData(1)))) {
             rplError(ERR_REALORANGLEEXPECTED);
             return;

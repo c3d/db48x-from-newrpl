@@ -57,7 +57,9 @@
     CMD(UNLOCKVAR,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(RENAME,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(TVARS,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(TVARSE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+    CMD(TVARSE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(STOADD2,"STOADD",MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+
 
 
 
@@ -91,6 +93,10 @@
 #define GETLAMN    0x20000   // SPECIAL OPCODE TO RCL THE CONTENT OF A LAM
 #define PUTLAMN    0x10000   // SPECIAL OPCODE TO STO THE CONTENT OF A LAM
 
+
+// THIS IS USED AS A MARKER FOR VARIABLE TRACKING, BUT IT'S DEFINED IN THE LAM LIBRARY
+extern ROMOBJECT lameval_seco[];
+extern ROMOBJECT retrysemi_seco[];
 
 ROMOBJECT dir_start_bint[]=
 {
@@ -276,20 +282,33 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
-        if(!ISIDENT(*rplPeekData(1))) {
-            rplError(ERR_IDENTEXPECTED);
-            return;
+        BINT varidx=0,done_add=0;
 
+
+        if(rplDepthData()>=5) {
+            // CHECK IF THIS IS A RETRY
+            if(rplPeekData(3)==IPtr) {
+                // THE ADDITION IS COMPLETE, NOW STORE THE VARIABLE
+                done_add=1;
+                varidx=2;
+            }
         }
 
+        if(!varidx) {
+        if(ISIDENT(*rplPeekData(1))) varidx=1;
+        else if(ISIDENT(*rplPeekData(2))) varidx=2;
+        if(!varidx) {
+        rplError(ERR_IDENTEXPECTED);
+        return;
+        }
+        }
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
         WORDPTR *stksave=DSTop;
 
-        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
-        if(!var) var=rplFindGlobal(rplPeekData(1),1);
+        WORDPTR *var=rplFindLAM(rplPeekData(varidx),1);
+        if(!var) var=rplFindGlobal(rplPeekData(varidx),1);
         if(var) {
                 if(ISDIR(*var[1])) {
                     rplError(ERR_CANTOVERWRITEDIR);
@@ -300,19 +319,36 @@ void LIB_HANDLER()
                     return;
                 }
 
+            if(!done_add) {
 
+            rplPushData(IPtr);
+            rplPushData(rplPeekData(varidx+1));
+            if(Exceptions) return;
+            if(varidx==2) {
             rplPushData(*(var+1));
-
-            rplPushData(rplPeekData(3));       // PUSH THE OBJECT TO ADD
-
-            // CALL THE OVERLOADED OPERATOR '+'
-
+            rplPushData(rplPeekData((varidx^3)+3));       // PUSH THE OBJECT TO ADD
+            }
+            else {
+                rplPushData(rplPeekData((varidx^3)+2));       // PUSH THE OBJECT TO ADD
+                rplPushData(*(var+1));
+            }
+            if(Exceptions) return;
+            WORDPTR *rstopsave=RSTop;
+            rplPushRet(IPtr);
             rplCallOvrOperator(CMD_OVR_ADD);
-
+            if(IPtr!=*rstopsave) {
+                // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+                rstopsave[1]=(WORDPTR)retrysemi_seco;   // REPLACE THE RETURN ADDRESS WITH A RETRY
+                return;
+            }
+            RSTop=rstopsave;
             if(Exceptions) { DSTop=stksave; return; }
 
+            }
+
             *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
-            rplDropData(3);
+            rplDropData(5);
+
         }
         else {
             rplError(ERR_UNDEFINEDVARIABLE);
@@ -324,395 +360,79 @@ void LIB_HANDLER()
 
 
     case STOSUB:
-        {
-        if(rplDepthData()<2) {
-            rplError(ERR_BADARGCOUNT);
-            return;
-        }
-        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
-        if(!ISIDENT(*rplPeekData(1))) {
-            rplError(ERR_IDENTEXPECTED);
-            return;
-
-        }
-
-        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
-
-        WORDPTR *stksave=DSTop;
-
-        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
-        if(!var) var=rplFindGlobal(rplPeekData(1),1);
-        if(var) {
-                if(ISDIR(*var[1])) {
-                    rplError(ERR_CANTOVERWRITEDIR);
-                    return;
-                }
-                if(ISLOCKEDIDENT(*var[0])) {
-                    rplError(ERR_READONLYVARIABLE);
-                    return;
-                }
-
-            rplPushData(*(var+1));
-
-            rplPushData(rplPeekData(3));       // PUSH THE OBJECT TO OPERATE
-
-            // CALL THE OVERLOADED OPERATOR '-'
-
-            rplCallOvrOperator(CMD_OVR_SUB);
-
-            if(Exceptions) { DSTop=stksave; return; }
-
-            *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
-            rplDropData(3);
-        }
-        else {
-            rplError(ERR_UNDEFINEDVARIABLE);
-            return;
-        }
-
-        }
-        return;
-
-
-    case STOMUL:
-        {
-        if(rplDepthData()<2) {
-            rplError(ERR_BADARGCOUNT);
-            return;
-        }
-        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
-
-        if(!ISIDENT(*rplPeekData(1))) {
-            rplError(ERR_IDENTEXPECTED);
-            return;
-
-        }
-
-        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
-
-        WORDPTR *stksave=DSTop;
-
-        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
-        if(!var) var=rplFindGlobal(rplPeekData(1),1);
-        if(var) {
-                if(ISDIR(*var[1])) {
-                    rplError(ERR_CANTOVERWRITEDIR);
-                    return;
-                }
-                if(ISLOCKEDIDENT(*var[0])) {
-                    rplError(ERR_READONLYVARIABLE);
-                    return;
-                }
-
-            rplPushData(*(var+1));
-
-            rplPushData(rplPeekData(3));       // PUSH THE OBJECT TO OPERATE
-
-            // CALL THE OVERLOADED OPERATOR '*'
-
-            rplCallOvrOperator(CMD_OVR_MUL);
-
-            if(Exceptions) { DSTop=stksave; return; }
-
-            *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
-            rplDropData(3);
-        }
-        else {
-            rplError(ERR_UNDEFINEDVARIABLE);
-            return;
-        }
-
-        }
-        return;
-
-
-    case STODIV:
-        {
-        if(rplDepthData()<2) {
-            rplError(ERR_BADARGCOUNT);
-            return;
-        }
-        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
-
-        if(!ISIDENT(*rplPeekData(1))) {
-            rplError(ERR_IDENTEXPECTED);
-            return;
-
-        }
-
-        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
-
-        WORDPTR *stksave=DSTop;
-
-        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
-        if(!var) var=rplFindGlobal(rplPeekData(1),1);
-        if(var) {
-                if(ISDIR(*var[1])) {
-                    rplError(ERR_CANTOVERWRITEDIR);
-                    return;
-               }
-                if(ISLOCKEDIDENT(*var[0])) {
-                    rplError(ERR_READONLYVARIABLE);
-                    return;
-                }
-
-            rplPushData(*(var+1));
-
-            rplPushData(rplPeekData(3));       // PUSH THE OBJECT TO OPERATE
-
-            // CALL THE OVERLOADED OPERATOR '/'
-
-            rplCallOvrOperator(CMD_OVR_DIV);
-
-            if(Exceptions) { DSTop=stksave; return; }
-
-            *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
-            rplDropData(3);
-        }
-        else {
-            rplError(ERR_UNDEFINEDVARIABLE);
-            return;
-        }
-
-        }
-        return;
-
-    case SINV:
-        {
-        if(rplDepthData()<1) {
-            rplError(ERR_BADARGCOUNT);
-            return;
-        }
-        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
-
-        if(!ISIDENT(*rplPeekData(1))) {
-            rplError(ERR_IDENTEXPECTED);
-            return;
-
-        }
-
-        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
-
-        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
-        if(!var) var=rplFindGlobal(rplPeekData(1),1);
-        if(var) {
-                if(ISDIR(*var[1])) {
-                    rplError(ERR_CANTOVERWRITEDIR);
-                    return;
-                }
-                if(ISLOCKEDIDENT(*var[0])) {
-                    rplError(ERR_READONLYVARIABLE);
-                    return;
-                }
-
-            rplPushData(*(var+1));
-
-            // CALL THE OVERLOADED OPERATOR 'INV'
-
-            rplCallOvrOperator(CMD_OVR_INV);
-
-            if(Exceptions) return;
-
-
-            *(var+1)=rplPeekData(1);      // STORE THE NEW VALUE
-            rplDropData(2);
-        }
-        else {
-            rplError(ERR_UNDEFINEDVARIABLE);
-            return;
-        }
-
-        }
-        return;
-
-    case SNEG:
-        {
-        if(rplDepthData()<1) {
-            rplError(ERR_BADARGCOUNT);
-            return;
-        }
-        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
-
-        if(!ISIDENT(*rplPeekData(1))) {
-            rplError(ERR_IDENTEXPECTED);
-            return;
-
-        }
-
-        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
-
-        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
-        if(!var) var=rplFindGlobal(rplPeekData(1),1);
-        if(var) {
-                if(ISDIR(*var[1])) {
-                    rplError(ERR_CANTOVERWRITEDIR);
-                    return;
-                }
-                if(ISLOCKEDIDENT(*var[0])) {
-                    rplError(ERR_READONLYVARIABLE);
-                    return;
-                }
-
-            rplPushData(*(var+1));
-
-            // CALL THE OVERLOADED OPERATOR
-
-            rplCallOvrOperator(CMD_OVR_NEG);
-
-            if(Exceptions) return;
-
-
-            *(var+1)=rplPeekData(1);      // STORE THE NEW VALUE
-            rplDropData(2);
-        }
-        else {
-            rplError(ERR_UNDEFINEDVARIABLE);
-            return;
-        }
-
-        }
-        return;
-
-    case SCONJ:
-        {
-        if(rplDepthData()<1) {
-            rplError(ERR_BADARGCOUNT);
-            return;
-        }
-        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
-
-        if(!ISIDENT(*rplPeekData(1))) {
-            rplError(ERR_IDENTEXPECTED);
-            return;
-
-        }
-
-        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
-
-        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
-        if(!var) var=rplFindGlobal(rplPeekData(1),1);
-        if(var) {
-                if(ISDIR(*var[1])) {
-                    rplError(ERR_CANTOVERWRITEDIR);
-                    return;
-                }
-                if(ISLOCKEDIDENT(*var[0])) {
-                    rplError(ERR_READONLYVARIABLE);
-                    return;
-                }
-
-            rplPushData(*(var+1));
-
-            // CALL THE COMMAND
-
-            rplCallOperator(CMD_CONJ);
-
-            if(Exceptions) return;
-
-
-            *(var+1)=rplPeekData(1);      // STORE THE NEW VALUE
-            rplDropData(2);
-        }
-        else {
-            rplError(ERR_UNDEFINEDVARIABLE);
-            return;
-        }
-
-        }
-        return;
-
-
-
-    case INCR:
-        {
-        if(rplDepthData()<1) {
-            rplError(ERR_BADARGCOUNT);
-            return;
-        }
-        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
-
-        if(!ISIDENT(*rplPeekData(1))) {
-            rplError(ERR_IDENTEXPECTED);
-            return;
-
-        }
-
-        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
-
-        WORDPTR *var=rplFindLAM(rplPeekData(1),1);
-        if(!var) var=rplFindGlobal(rplPeekData(1),1);
-        if(var) {
-                if(ISDIR(*var[1])) {
-                    rplError(ERR_CANTOVERWRITEDIR);
-                    return;
-                }
-                if(ISLOCKEDIDENT(*var[0])) {
-                    rplError(ERR_READONLYVARIABLE);
-                    return;
-                }
-
-            rplOverwriteData(1,*(var+1));
-            rplPushData((WORDPTR)one_bint);       // PUSH THE NUMBER ONE
-
-            // CALL THE OVERLOADED OPERATOR '+'
-
-            rplCallOvrOperator(CMD_OVR_ADD);
-
-            if(Exceptions) return;
-
-
-            *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
-        }
-        else {
-            rplError(ERR_UNDEFINEDVARIABLE);
-            return;
-        }
-
-        }
-        return;
-
-
-    case DECR:
     {
-    if(rplDepthData()<1) {
+    if(rplDepthData()<2) {
         rplError(ERR_BADARGCOUNT);
         return;
     }
-    // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
-    if(!ISIDENT(*rplPeekData(1))) {
-        rplError(ERR_IDENTEXPECTED);
-        return;
+    BINT varidx=0,done_add=0;
 
+
+    if(rplDepthData()>=5) {
+        // CHECK IF THIS IS A RETRY
+        if(rplPeekData(3)==IPtr) {
+            // THE ADDITION IS COMPLETE, NOW STORE THE VARIABLE
+            done_add=1;
+            varidx=2;
+        }
     }
 
+    if(!varidx) {
+    if(ISIDENT(*rplPeekData(1))) varidx=1;
+    else if(ISIDENT(*rplPeekData(2))) varidx=2;
+    if(!varidx) {
+    rplError(ERR_IDENTEXPECTED);
+    return;
+    }
+    }
     // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
 
-    WORDPTR *var=rplFindLAM(rplPeekData(1),1);
-    if(!var) var=rplFindGlobal(rplPeekData(1),1);
+    WORDPTR *stksave=DSTop;
+
+    WORDPTR *var=rplFindLAM(rplPeekData(varidx),1);
+    if(!var) var=rplFindGlobal(rplPeekData(varidx),1);
     if(var) {
-        if(ISDIR(*var[1])) {
-            rplError(ERR_CANTOVERWRITEDIR);
-            return;
-        }
-        if(ISLOCKEDIDENT(*var[0])) {
-            rplError(ERR_READONLYVARIABLE);
-            return;
-        }
+            if(ISDIR(*var[1])) {
+                rplError(ERR_CANTOVERWRITEDIR);
+                return;
+            }
+            if(ISLOCKEDIDENT(*var[0])) {
+                rplError(ERR_READONLYVARIABLE);
+                return;
+            }
 
+        if(!done_add) {
 
-        rplOverwriteData(1,*(var+1));
-        rplPushData((WORDPTR)one_bint);       // PUSH THE NUMBER ONE
-
-        // CALL THE OVERLOADED OPERATOR '+'
-
-        rplCallOvrOperator(CMD_OVR_SUB);
-
+        rplPushData(IPtr);
+        rplPushData(rplPeekData(varidx+1));
         if(Exceptions) return;
+        if(varidx==2) {
+        rplPushData(*(var+1));
+        rplPushData(rplPeekData((varidx^3)+3));       // PUSH THE OBJECT TO ADD
+        }
+        else {
+            rplPushData(rplPeekData((varidx^3)+2));       // PUSH THE OBJECT TO ADD
+            rplPushData(*(var+1));
+        }
+        if(Exceptions) return;
+        WORDPTR *rstopsave=RSTop;
+        rplPushRet(IPtr);
+        rplCallOvrOperator(CMD_OVR_SUB);
+        if(IPtr!=*rstopsave) {
+            // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+            rstopsave[1]=(WORDPTR)retrysemi_seco;   // REPLACE THE RETURN ADDRESS WITH A RETRY
+            return;
+        }
+        RSTop=rstopsave;
+        if(Exceptions) { DSTop=stksave; return; }
 
+        }
 
         *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
+        rplDropData(5);
+
     }
     else {
         rplError(ERR_UNDEFINEDVARIABLE);
@@ -722,6 +442,549 @@ void LIB_HANDLER()
     }
     return;
 
+    case STOMUL:
+
+    {
+    if(rplDepthData()<2) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+
+    BINT varidx=0,done_add=0;
+
+
+    if(rplDepthData()>=5) {
+        // CHECK IF THIS IS A RETRY
+        if(rplPeekData(3)==IPtr) {
+            // THE ADDITION IS COMPLETE, NOW STORE THE VARIABLE
+            done_add=1;
+            varidx=2;
+        }
+    }
+
+    if(!varidx) {
+    if(ISIDENT(*rplPeekData(1))) varidx=1;
+    else if(ISIDENT(*rplPeekData(2))) varidx=2;
+    if(!varidx) {
+    rplError(ERR_IDENTEXPECTED);
+    return;
+    }
+    }
+    // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+    WORDPTR *stksave=DSTop;
+
+    WORDPTR *var=rplFindLAM(rplPeekData(varidx),1);
+    if(!var) var=rplFindGlobal(rplPeekData(varidx),1);
+    if(var) {
+            if(ISDIR(*var[1])) {
+                rplError(ERR_CANTOVERWRITEDIR);
+                return;
+            }
+            if(ISLOCKEDIDENT(*var[0])) {
+                rplError(ERR_READONLYVARIABLE);
+                return;
+            }
+
+        if(!done_add) {
+
+        rplPushData(IPtr);
+        rplPushData(rplPeekData(varidx+1));
+        if(Exceptions) return;
+        if(varidx==2) {
+        rplPushData(*(var+1));
+        rplPushData(rplPeekData((varidx^3)+3));       // PUSH THE OBJECT TO ADD
+        }
+        else {
+            rplPushData(rplPeekData((varidx^3)+2));       // PUSH THE OBJECT TO ADD
+            rplPushData(*(var+1));
+        }
+        if(Exceptions) return;
+        WORDPTR *rstopsave=RSTop;
+        rplPushRet(IPtr);
+        rplCallOvrOperator(CMD_OVR_MUL);
+        if(IPtr!=*rstopsave) {
+            // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+            rstopsave[1]=(WORDPTR)retrysemi_seco;   // REPLACE THE RETURN ADDRESS WITH A RETRY
+            return;
+        }
+        RSTop=rstopsave;
+        if(Exceptions) { DSTop=stksave; return; }
+
+        }
+
+        *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
+        rplDropData(5);
+
+    }
+    else {
+        rplError(ERR_UNDEFINEDVARIABLE);
+        return;
+    }
+
+    }
+    return;
+
+    case STODIV:
+
+    {
+    if(rplDepthData()<2) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+
+    BINT varidx=0,done_add=0;
+
+
+    if(rplDepthData()>=5) {
+        // CHECK IF THIS IS A RETRY
+        if(rplPeekData(3)==IPtr) {
+            // THE ADDITION IS COMPLETE, NOW STORE THE VARIABLE
+            done_add=1;
+            varidx=2;
+        }
+    }
+
+    if(!varidx) {
+    if(ISIDENT(*rplPeekData(1))) varidx=1;
+    else if(ISIDENT(*rplPeekData(2))) varidx=2;
+    if(!varidx) {
+    rplError(ERR_IDENTEXPECTED);
+    return;
+    }
+    }
+    // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+    WORDPTR *stksave=DSTop;
+
+    WORDPTR *var=rplFindLAM(rplPeekData(varidx),1);
+    if(!var) var=rplFindGlobal(rplPeekData(varidx),1);
+    if(var) {
+            if(ISDIR(*var[1])) {
+                rplError(ERR_CANTOVERWRITEDIR);
+                return;
+            }
+            if(ISLOCKEDIDENT(*var[0])) {
+                rplError(ERR_READONLYVARIABLE);
+                return;
+            }
+
+        if(!done_add) {
+
+        rplPushData(IPtr);
+        rplPushData(rplPeekData(varidx+1));
+        if(Exceptions) return;
+        if(varidx==2) {
+        rplPushData(*(var+1));
+        rplPushData(rplPeekData((varidx^3)+3));       // PUSH THE OBJECT TO ADD
+        }
+        else {
+            rplPushData(rplPeekData((varidx^3)+2));       // PUSH THE OBJECT TO ADD
+            rplPushData(*(var+1));
+        }
+        if(Exceptions) return;
+        WORDPTR *rstopsave=RSTop;
+        rplPushRet(IPtr);
+        rplCallOvrOperator(CMD_OVR_DIV);
+        if(IPtr!=*rstopsave) {
+            // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+            rstopsave[1]=(WORDPTR)retrysemi_seco;   // REPLACE THE RETURN ADDRESS WITH A RETRY
+            return;
+        }
+        RSTop=rstopsave;
+        if(Exceptions) { DSTop=stksave; return; }
+
+        }
+
+        *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
+        rplDropData(5);
+
+    }
+    else {
+        rplError(ERR_UNDEFINEDVARIABLE);
+        return;
+    }
+
+    }
+    return;
+
+    case SINV:
+
+    {
+    if(rplDepthData()<1) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+
+    BINT varidx=0,done_add=0;
+
+
+    if(rplDepthData()>=3) {
+        // CHECK IF THIS IS A RETRY
+        if(rplPeekData(2)==IPtr) {
+            // THE ADDITION IS COMPLETE, NOW STORE THE VARIABLE
+            done_add=1;
+            varidx=3;
+        }
+    }
+
+    if(!varidx) {
+    if(ISIDENT(*rplPeekData(1))) varidx=1;
+    if(!varidx) {
+    rplError(ERR_IDENTEXPECTED);
+    return;
+    }
+    }
+    // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+    WORDPTR *stksave=DSTop;
+
+    WORDPTR *var=rplFindLAM(rplPeekData(varidx),1);
+    if(!var) var=rplFindGlobal(rplPeekData(varidx),1);
+    if(var) {
+            if(ISDIR(*var[1])) {
+                rplError(ERR_CANTOVERWRITEDIR);
+                return;
+            }
+            if(ISLOCKEDIDENT(*var[0])) {
+                rplError(ERR_READONLYVARIABLE);
+                return;
+            }
+
+        if(!done_add) {
+
+        rplPushData(IPtr);
+        if(Exceptions) return;
+        rplPushData(*(var+1));
+        if(Exceptions) return;
+        WORDPTR *rstopsave=RSTop;
+        rplPushRet(IPtr);
+        rplCallOvrOperator(CMD_OVR_INV);
+        if(IPtr!=*rstopsave) {
+            // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+            rstopsave[1]=(WORDPTR)retrysemi_seco;   // REPLACE THE RETURN ADDRESS WITH A RETRY
+            return;
+        }
+        RSTop=rstopsave;
+        if(Exceptions) { DSTop=stksave; return; }
+
+        }
+
+        *(var+1)=rplPeekData(1);      // STORE THE RESULT
+        rplDropData(3);
+
+    }
+    else {
+        rplError(ERR_UNDEFINEDVARIABLE);
+        return;
+    }
+
+    }
+    return;
+
+    case SNEG:
+    {
+    if(rplDepthData()<1) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+
+    BINT varidx=0,done_add=0;
+
+
+    if(rplDepthData()>=3) {
+        // CHECK IF THIS IS A RETRY
+        if(rplPeekData(2)==IPtr) {
+            // THE ADDITION IS COMPLETE, NOW STORE THE VARIABLE
+            done_add=1;
+            varidx=3;
+        }
+    }
+
+    if(!varidx) {
+    if(ISIDENT(*rplPeekData(1))) varidx=1;
+    if(!varidx) {
+    rplError(ERR_IDENTEXPECTED);
+    return;
+    }
+    }
+    // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+    WORDPTR *stksave=DSTop;
+
+    WORDPTR *var=rplFindLAM(rplPeekData(varidx),1);
+    if(!var) var=rplFindGlobal(rplPeekData(varidx),1);
+    if(var) {
+            if(ISDIR(*var[1])) {
+                rplError(ERR_CANTOVERWRITEDIR);
+                return;
+            }
+            if(ISLOCKEDIDENT(*var[0])) {
+                rplError(ERR_READONLYVARIABLE);
+                return;
+            }
+
+        if(!done_add) {
+
+        rplPushData(IPtr);
+        if(Exceptions) return;
+        rplPushData(*(var+1));
+        if(Exceptions) return;
+        WORDPTR *rstopsave=RSTop;
+        rplPushRet(IPtr);
+        rplCallOvrOperator(CMD_OVR_NEG);
+        if(IPtr!=*rstopsave) {
+            // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+            rstopsave[1]=(WORDPTR)retrysemi_seco;   // REPLACE THE RETURN ADDRESS WITH A RETRY
+            return;
+        }
+        RSTop=rstopsave;
+        if(Exceptions) { DSTop=stksave; return; }
+
+        }
+
+        *(var+1)=rplPeekData(1);      // STORE THE RESULT
+        rplDropData(3);
+
+    }
+    else {
+        rplError(ERR_UNDEFINEDVARIABLE);
+        return;
+    }
+
+    }
+    return;
+
+    case SCONJ:
+    {
+    if(rplDepthData()<1) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+
+    BINT varidx=0,done_add=0;
+
+
+    if(rplDepthData()>=3) {
+        // CHECK IF THIS IS A RETRY
+        if(rplPeekData(2)==IPtr) {
+            // THE ADDITION IS COMPLETE, NOW STORE THE VARIABLE
+            done_add=1;
+            varidx=3;
+        }
+    }
+
+    if(!varidx) {
+    if(ISIDENT(*rplPeekData(1))) varidx=1;
+    if(!varidx) {
+    rplError(ERR_IDENTEXPECTED);
+    return;
+    }
+    }
+    // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+    WORDPTR *stksave=DSTop;
+
+    WORDPTR *var=rplFindLAM(rplPeekData(varidx),1);
+    if(!var) var=rplFindGlobal(rplPeekData(varidx),1);
+    if(var) {
+            if(ISDIR(*var[1])) {
+                rplError(ERR_CANTOVERWRITEDIR);
+                return;
+            }
+            if(ISLOCKEDIDENT(*var[0])) {
+                rplError(ERR_READONLYVARIABLE);
+                return;
+            }
+
+        if(!done_add) {
+
+        rplPushData(IPtr);
+        if(Exceptions) return;
+        rplPushData(*(var+1));
+        if(Exceptions) return;
+        WORDPTR *rstopsave=RSTop;
+        rplPushRet(IPtr);
+        rplCallOperator(CMD_CONJ);
+        if(IPtr!=*rstopsave) {
+            // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+            rstopsave[1]=(WORDPTR)retrysemi_seco;   // REPLACE THE RETURN ADDRESS WITH A RETRY
+            return;
+        }
+        RSTop=rstopsave;
+        if(Exceptions) { DSTop=stksave; return; }
+
+        }
+
+        *(var+1)=rplPeekData(1);      // STORE THE RESULT
+        rplDropData(3);
+
+    }
+    else {
+        rplError(ERR_UNDEFINEDVARIABLE);
+        return;
+    }
+
+    }
+    return;
+
+
+
+    case INCR:
+
+    {
+    if(rplDepthData()<1) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+
+    BINT varidx=0,done_add=0;
+
+
+    if(rplDepthData()>=4) {
+        // CHECK IF THIS IS A RETRY
+        if(rplPeekData(3)==IPtr) {
+            // THE ADDITION IS COMPLETE, NOW STORE THE VARIABLE
+            done_add=1;
+            varidx=2;
+        }
+    }
+
+    if(!varidx) {
+    if(ISIDENT(*rplPeekData(1))) varidx=1;
+    if(!varidx) {
+    rplError(ERR_IDENTEXPECTED);
+    return;
+    }
+    }
+    // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+    WORDPTR *stksave=DSTop;
+
+    WORDPTR *var=rplFindLAM(rplPeekData(varidx),1);
+    if(!var) var=rplFindGlobal(rplPeekData(varidx),1);
+    if(var) {
+            if(ISDIR(*var[1])) {
+                rplError(ERR_CANTOVERWRITEDIR);
+                return;
+            }
+            if(ISLOCKEDIDENT(*var[0])) {
+                rplError(ERR_READONLYVARIABLE);
+                return;
+            }
+
+        if(!done_add) {
+
+        rplPushData(IPtr);
+        rplPushData(rplPeekData(varidx+1));
+        if(Exceptions) return;
+        rplPushData(*(var+1));
+        rplPushData((WORDPTR)one_bint);        // PUSH THE OBJECT TO ADD
+        if(Exceptions) return;
+        WORDPTR *rstopsave=RSTop;
+        rplPushRet(IPtr);
+        rplCallOvrOperator(CMD_OVR_ADD);
+        if(IPtr!=*rstopsave) {
+            // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+            rstopsave[1]=(WORDPTR)retrysemi_seco;   // REPLACE THE RETURN ADDRESS WITH A RETRY
+            return;
+        }
+        RSTop=rstopsave;
+        if(Exceptions) { DSTop=stksave; return; }
+
+        }
+
+        *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
+        rplOverwriteData(4,rplPeekData(1));
+        rplDropData(3);
+
+    }
+    else {
+        rplError(ERR_UNDEFINEDVARIABLE);
+        return;
+    }
+
+    }
+    return;
+
+
+
+    case DECR:
+
+    {
+    if(rplDepthData()<1) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+
+    BINT varidx=0,done_add=0;
+
+
+    if(rplDepthData()>=4) {
+        // CHECK IF THIS IS A RETRY
+        if(rplPeekData(3)==IPtr) {
+            // THE ADDITION IS COMPLETE, NOW STORE THE VARIABLE
+            done_add=1;
+            varidx=2;
+        }
+    }
+
+    if(!varidx) {
+    if(ISIDENT(*rplPeekData(1))) varidx=1;
+    if(!varidx) {
+    rplError(ERR_IDENTEXPECTED);
+    return;
+    }
+    }
+    // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+    WORDPTR *stksave=DSTop;
+
+    WORDPTR *var=rplFindLAM(rplPeekData(varidx),1);
+    if(!var) var=rplFindGlobal(rplPeekData(varidx),1);
+    if(var) {
+            if(ISDIR(*var[1])) {
+                rplError(ERR_CANTOVERWRITEDIR);
+                return;
+            }
+            if(ISLOCKEDIDENT(*var[0])) {
+                rplError(ERR_READONLYVARIABLE);
+                return;
+            }
+
+        if(!done_add) {
+
+        rplPushData(IPtr);
+        rplPushData(rplPeekData(varidx+1));
+        if(Exceptions) return;
+        rplPushData(*(var+1));
+        rplPushData((WORDPTR)one_bint);        // PUSH THE OBJECT TO ADD
+        if(Exceptions) return;
+        WORDPTR *rstopsave=RSTop;
+        rplPushRet(IPtr);
+        rplCallOvrOperator(CMD_OVR_SUB);
+        if(IPtr!=*rstopsave) {
+            // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+            rstopsave[1]=(WORDPTR)retrysemi_seco;   // REPLACE THE RETURN ADDRESS WITH A RETRY
+            return;
+        }
+        RSTop=rstopsave;
+        if(Exceptions) { DSTop=stksave; return; }
+
+        }
+
+        *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
+        rplOverwriteData(4,rplPeekData(1));
+        rplDropData(3);
+
+    }
+    else {
+        rplError(ERR_UNDEFINEDVARIABLE);
+        return;
+    }
+
+    }
+    return;
 
 
     case PURGE:
@@ -1406,6 +1669,94 @@ case TVARSE:
         return;
         }
 
+
+    case STOADD2:
+        {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        BINT varidx=0,done_add=0;
+
+
+        if(rplDepthData()>=5) {
+            // CHECK IF THIS IS A RETRY
+            if(rplPeekData(3)==IPtr) {
+                // THE ADDITION IS COMPLETE, NOW STORE THE VARIABLE
+                done_add=1;
+                varidx=2;
+            }
+        }
+
+        if(!varidx) {
+        if(ISIDENT(*rplPeekData(1))) varidx=1;
+        else if(ISIDENT(*rplPeekData(2))) varidx=2;
+        if(!varidx) {
+        rplError(ERR_IDENTEXPECTED);
+        return;
+        }
+        }
+        // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
+
+        WORDPTR *stksave=DSTop;
+
+        WORDPTR *var=rplFindLAM(rplPeekData(varidx),1);
+        if(!var) var=rplFindGlobal(rplPeekData(varidx),1);
+        if(var) {
+                if(ISDIR(*var[1])) {
+                    rplError(ERR_CANTOVERWRITEDIR);
+                    return;
+                }
+                if(ISLOCKEDIDENT(*var[0])) {
+                    rplError(ERR_READONLYVARIABLE);
+                    return;
+                }
+
+            if(!done_add) {
+
+            rplPushData(IPtr);
+            rplPushData(rplPeekData(varidx+1));
+            if(Exceptions) return;
+            if(varidx==2) {
+            rplPushData(*(var+1));
+            rplPushData(rplPeekData((varidx^3)+3));       // PUSH THE OBJECT TO ADD
+            }
+            else {
+                rplPushData(rplPeekData((varidx^3)+2));       // PUSH THE OBJECT TO ADD
+                rplPushData(*(var+1));
+            }
+            if(Exceptions) return;
+            WORDPTR *rstopsave=RSTop;
+            rplPushRet(IPtr);
+            rplCallOperator(CMD_ADD);
+            if(IPtr!=*rstopsave) {
+                // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+                rstopsave[1]=(WORDPTR)retrysemi_seco;   // REPLACE THE RETURN ADDRESS WITH A RETRY
+                return;
+            }
+            RSTop=rstopsave;
+            if(Exceptions) { DSTop=stksave; return; }
+
+            }
+
+            *(var+1)=rplPeekData(1);      // STORE THE INCREMENTED COUNTER
+            rplDropData(5);
+
+        }
+        else {
+            rplError(ERR_UNDEFINEDVARIABLE);
+            return;
+        }
+
+        }
+        return;
+
+
+
+
+
+
     case OVR_EVAL:
     case OVR_EVAL1:
     case OVR_XEQ:
@@ -1489,12 +1840,46 @@ case TVARSE:
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
             WORDPTR object,prevobject;
+            BINT notrack=0;
             if(ValidateTop<=ValidateBottom) {
                 // THERE'S NO ENVIRONMENT
                 object=TempObEnd;   // START OF COMPILATION
             } else {
                 object=*(ValidateTop-1);    // GET LATEST CONSTRUCT
                 ++object;                   // AND SKIP THE PROLOG / ENTRY WORD
+
+                // CHECK FOR CONDITIONAL VARIABLE CREATION!
+                WORDPTR *construct=ValidateTop-1;
+                while(construct>=ValidateBottom) {
+                    if((**construct==CMD_THEN)||(**construct==CMD_ELSE)
+                            ||(**construct==CMD_THENERR)||(**construct==CMD_ELSEERR)
+                            ||(**construct==CMD_THENCASE) )
+                    {
+                        // DON'T TRACK LAMS THAT COULD BE CONDITIONALLY CREATED
+                        notrack=1;
+                        break;
+                    }
+                    --construct;
+                }
+
+                // CHECK FOR PREVIOUS LAM TRACKING DISABLE MARKERS
+                if(!notrack) {
+
+                    WORDPTR *env=nLAMBase;
+                    do {
+                        if(env<LAMTopSaved) break;
+                        if(env[1]==(WORDPTR)lameval_seco) {
+                        // FOUND THE MARKER, STOP TRACKING VARIABLES THIS COMPILE SESSION
+                            notrack=1;
+                            break;
+                        }
+                        env=rplGetNextLAMEnv(env);
+                    } while(env);
+
+
+                }
+
+
             }
 
             if(object<CompileEnd) {
@@ -1559,11 +1944,13 @@ case TVARSE:
                 WORDPTR *scanenv=ValidateTop-1;
 
                 while(scanenv>=ValidateBottom) {
-                    if( ((LIBNUM(**scanenv)==SECO))&& (ISPROLOG(**scanenv))) {
+                    if( ((LIBNUM(**scanenv)==DOCOL)||(LIBNUM(**scanenv)==SECO))&& (ISPROLOG(**scanenv))) {
                             // FOUND INNERMOST SECONDARY
                             if(*scanenv>*(nLAMBase+1)) {
                                 // THE CURRENT LAM BASE IS OUTSIDE THE INNER SECONDARY
                             rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,STO));
+
+
                             RetNum=OK_CONTINUE;
                             return;
                             }
