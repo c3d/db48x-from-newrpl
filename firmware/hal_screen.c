@@ -164,7 +164,7 @@ void halSetCmdLineHeight(int h)
             else {
                 // STACK AND FORMS ARE AT MINIMUM
                 if(total>SCREEN_HEIGHT) {
-                    halScreen.CmdLine=SCREEN_HEIGHT-(halScreen.Form+halScreen.Stack+halScreen.Menu1+halScreen.Menu2);
+                    halScreen.CmdLine=SCREEN_HEIGHT-2-(halScreen.Form+halScreen.Stack+halScreen.Menu1+halScreen.Menu2);
                     halScreen.CmdLine/=(*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight;
                     if(halScreen.CmdLine<1) halScreen.CmdLine=1;
                     halScreen.CmdLine*=(*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight;
