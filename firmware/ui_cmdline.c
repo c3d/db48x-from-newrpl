@@ -99,7 +99,7 @@ BINT uiSetCmdLineText(WORDPTR text)
     halScreen.CursorPosition=((BYTEPTR)(CmdLineText+1))+end-linestart;
 
     if(halScreen.CursorPosition<0) halScreen.CursorPosition=0;
-    halScreen.CursorX=StringWidthN((char *)linestart,(char *)linestart+halScreen.CursorPosition,(UNIFONT *)halScreen.FontArray[FONT_CMDLINE]);
+    halScreen.CursorX=StringWidthN((char *)linestart,(char *)linestart+halScreen.CursorPosition,*halScreen.FontArray[FONT_CMDLINE]);
 
 
 
