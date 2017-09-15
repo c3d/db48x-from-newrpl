@@ -169,6 +169,12 @@ void LIB_HANDLER()
             return;
         }
         // ONLY ACCEPT IDENTS AS KEYS
+        if(ISLIST(*rplPeekData(1)))
+        {
+            rplListBinaryDoCmd();
+            return;
+        }
+
 
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);

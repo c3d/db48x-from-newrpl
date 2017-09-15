@@ -715,7 +715,7 @@ void halRedrawMenu1(DRAWSURFACE *scr)
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
     // FOR EXAMPLE BY PURGING VARIABLES
-    if(MENUPAGE(m1code)>=(WORD)nitems) { m1code=SETMENUPAGE(m1code,0); rplSetMenuCode(1,m1code); }
+    if((MENUPAGE(m1code)>=(WORD)nitems)||(nitems<=6)) { m1code=SETMENUPAGE(m1code,0); rplSetMenuCode(1,m1code); }
 
 
     // FIRST ROW
@@ -803,7 +803,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
 
     // BASIC CHECK OF VALIDITY - COMMANDS MAY HAVE RENDERED THE PAGE NUMBER INVALID
     // FOR EXAMPLE BY PURGING VARIABLES
-    if(MENUPAGE(m2code)>=(WORD)nitems) { m2code=SETMENUPAGE(m2code,0); rplSetMenuCode(2,m2code); }
+    if( (MENUPAGE(m2code)>=(WORD)nitems)||(nitems<=6)) { m2code=SETMENUPAGE(m2code,0); rplSetMenuCode(2,m2code); }
 
 
     // FIRST ROW
