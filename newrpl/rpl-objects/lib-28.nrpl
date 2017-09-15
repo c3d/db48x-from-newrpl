@@ -18,8 +18,8 @@
 @#name lib28_menu
 {
   STO RCL PURGE STO+ STO-
-  STO* STO/ SINV SNEG SCONJ
-  STOADD INCR DECR QUOTEID UNQUOTEID
+  INCR DECR STO* STO/ SINV
+  SNEG SCONJ SADD QUOTEID UNQUOTEID
   HIDEVAR UNHIDEVAR LOCKVAR UNLOCKVAR CLVAR
   ORDER VARS ALLVARS TVARS TVARSE
   CRDIR PGDIR HOME UPDIR PATH
@@ -80,6 +80,11 @@ O N →"
 SCONJ
 "Complex conjugate of the object
 stored in global variable
+O N →"
+
+SADD
+"ADD to stored object in
+global variable
 O N →"
 
 INCR

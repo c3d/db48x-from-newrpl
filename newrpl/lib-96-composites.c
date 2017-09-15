@@ -45,7 +45,10 @@
     CMD(POSREV,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(NPOSREV,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(SUB,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SIZE,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+    CMD(SIZE,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RHEAD,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RTAIL,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+
 
 
 
@@ -2494,6 +2497,91 @@ void LIB_HANDLER()
         return;
 
     }
+
+
+    case RHEAD:
+    {
+        // CHECK ARGUMENTS
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+
+            return;
+        }
+        WORDPTR comp=rplPeekData(1);
+
+        if(ISLIST(*comp)) {
+        BINT nitems=rplListLength(comp);
+        if(nitems>0) rplOverwriteData(1,rplGetListElement(comp,nitems));
+        else rplError(ERR_EMPTYLIST);
+        return;
+        }
+
+        if(ISSTRING(*comp)) {
+
+        BYTEPTR start=(BYTEPTR) (comp+1);
+        BYTEPTR end=start+rplStrSize(comp);
+        BYTEPTR ptr=(BYTEPTR)utf8rskipst((char *)end,(char *)start);
+
+        if(end==start) {
+            rplError(ERR_EMPTYSTRING);
+            return;
+        }
+        WORDPTR newstring=rplCreateString(ptr,end);
+        if(!newstring) return;
+        rplOverwriteData(1,newstring);
+        return;
+        }
+
+
+        rplError(ERR_COMPOSITEEXPECTED);
+
+        return;
+
+    }
+
+
+    case RTAIL:
+    {
+        // CHECK ARGUMENTS
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR comp=rplPeekData(1);
+
+        if(ISLIST(*comp)) {
+        BINT nitems=rplExplodeList2(comp);
+        WORDPTR newlist;
+
+        if(Exceptions) return;
+        if(nitems<2) {
+            newlist=(WORDPTR)empty_list;
+        }
+        else {
+        newlist=rplCreateListN(nitems-1,2,1);
+        if(!newlist) return;
+        }
+        if(nitems>0) rplDropData(1);
+        rplOverwriteData(1,newlist);
+        return;
+        }
+
+        if(ISSTRING(*comp)) {
+            BYTEPTR start=(BYTEPTR) (comp+1);
+            BYTEPTR end=start+rplStrSize(comp);
+            BYTEPTR ptr=(BYTEPTR)utf8rskipst((char *)end,(char *)start);
+
+            WORDPTR newstring=rplCreateString(start,ptr);
+            if(!newstring) return;
+            rplOverwriteData(1,newstring);
+            return;
+        }
+
+        rplError(ERR_COMPOSITEEXPECTED);
+
+        return;
+    }
+
 
 
 

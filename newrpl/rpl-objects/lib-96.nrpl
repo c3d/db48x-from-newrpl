@@ -24,7 +24,7 @@
 
 @#name lib96menu_main
 {
-PUT PUTI GET GETI SIZE HEAD TAIL OBJ→ REPL POS POSREV NPOS NPOSREV SUB
+PUT PUTI GET GETI SIZE HEAD TAIL RHEAD RTAIL OBJ→ REPL POS POSREV NPOS NPOSREV SUB
 }
 
 @#name lib96_cmdhelp
@@ -60,6 +60,15 @@ TAIL
 
 <L|S> → <L|S> "
 
+RHEAD
+"Return last element
+
+<L|S> → <O|S> "
+
+RTAIL
+"Remove last element
+
+<L|S> → <L|S> "
 
 OBJ→
 "Split into components
