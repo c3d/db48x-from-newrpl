@@ -194,6 +194,8 @@ if(saved) {
 }
 rplPurgeSettings((WORDPTR)savedflags_ident);
 
+// AFTER PURGE SETTINGS WE MUST UPDATE THE FONT ARRAYS
+halUpdateFonts();
 
 // RESTORE THE MENU2 HIDDEN STATUS
 
