@@ -4144,7 +4144,7 @@ if(ndigits<0) {
 // NUMERATOR IS SMALLER THAN DIVISOR, QUOTIENT IS ZERO
 quot->data[0]=0;
 quot->len=1;
-quot->exp=1;
+quot->exp=0;
 quot->flags=0;
 }
 else {
