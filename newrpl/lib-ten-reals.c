@@ -677,8 +677,8 @@ void LIB_HANDLER()
             else rplPushData((WORDPTR)zero_bint);
             return;
         case OVR_ISTRUE:
-            if(iszeroReal(&Darg1)) rplPushData((WORDPTR)one_bint);
-            else rplPushData((WORDPTR)zero_bint);
+            if(iszeroReal(&Darg1)) rplPushData((WORDPTR)zero_bint);
+            else rplPushData((WORDPTR)one_bint);
             return;
 
 
