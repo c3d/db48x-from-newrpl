@@ -280,7 +280,7 @@ void rplCompileRemoveWords(BINT nwords);
 #define DECOMP_EMBEDDED     1
 #define DECOMP_EDIT         2
 #define DECOMP_NOHINTS      4
-#define DECOMP_MAXWIDTH(n) ((n)<<4)
+#define DECOMP_MAXWIDTH(n) (((n)&0xfff)<<4)
 #define DECOMP_GETMAXWIDTH(f) (((f)>>4)&0xfff)
 
 #define DEFAULT_DECOMP_WIDTH 20

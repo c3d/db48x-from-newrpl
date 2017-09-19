@@ -200,6 +200,12 @@ ROMOBJECT savedflags_ident[]= {
     TEXT2WORD('l','a','g','s')
 };
 
+ROMOBJECT editwidth_ident[]= {
+    MKPROLOG(DOIDENT,2),
+    TEXT2WORD('E','d','W','i'),
+    TEXT2WORD('d','t','h',0)
+};
+
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
@@ -232,6 +238,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)savedflags_ident,
     (WORDPTR)userflags_ident,
     (WORDPTR)stksave_ident,
+    (WORDPTR)editwidth_ident,
     0
 };
 

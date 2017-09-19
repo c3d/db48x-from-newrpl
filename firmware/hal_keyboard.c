@@ -3053,8 +3053,16 @@ void downKeyHandler(BINT keymsg)
         if(halGetContext()&CONTEXT_STACK) {
 
             if(rplDepthData()>=1) {
+                WORDPTR prefwidth=rplGetSettings((WORDPTR)editwidth_ident);
+                BINT width;
+                if(!prefwidth) width=0;
+                else width=rplReadNumberAsBINT(prefwidth);
+                if(Exceptions) {
+                    width=0;
+                    Exceptions=0;
+                }
                 WORDPTR ptr=rplPeekData(1);
-                WORDPTR text=rplDecompile(ptr,DECOMP_EDIT);
+                WORDPTR text=rplDecompile(ptr,DECOMP_EDIT|DECOMP_MAXWIDTH(width));
                 if(Exceptions) {
                     halShowErrorMsg();
                     Exceptions=0;

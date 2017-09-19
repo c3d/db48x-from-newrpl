@@ -877,7 +877,7 @@ return (startaddr-SDAddr);		// RETURN NUMBER OF BYTES RECEIVED
 int SDCardInit(SD_CARD * card)
 {
 unsigned  CSD[4];
-halFlags&=~HAL_NOCLOCKCHANGE;
+halFlags|=HAL_NOCLOCKCHANGE;
 
 card->SysFlags=0;
 if(!SDInit(card)) {
