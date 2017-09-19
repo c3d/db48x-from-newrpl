@@ -1722,7 +1722,7 @@ void LIB_HANDLER()
         while(nitems>0) {
             if(ISNUMBER(*item)) {
                 rplReadNumberAsReal(item,&num);
-                rplOneToRReg(2);
+                rplOneToRReg(0);
                 if(gteReal(&num,&RReg[0])) {
                     cloneReal(&f.BigLimit,&num);
                     hasnumber=2;
