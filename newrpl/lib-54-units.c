@@ -1444,7 +1444,15 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        if(ISLIST(*rplPeekData(1)) || ISLIST(*rplPeekData(2))) {
+            rplListBinaryDoCmd();
+            return;
+        }
+
+
         WORDPTR unit,name;
+
         unit=rplPeekData(2);
         name=rplPeekData(1);
 
@@ -1536,6 +1544,14 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+
+        if(ISLIST(*rplPeekData(1))) {
+            rplListUnaryDoCmd();
+            return;
+        }
+
+
         WORDPTR name=rplPeekData(1);
 
         if(!ISIDENT(*name)) {
@@ -1571,6 +1587,12 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+       if(ISLIST(*rplPeekData(1))) {
+                    rplListUnaryDoCmd();
+                    return;
+       }
+
         if(!ISUNIT(*rplPeekData(1))) {
             rplError(ERR_UNITEXPECTED);
             return;
@@ -1590,6 +1612,15 @@ void LIB_HANDLER()
             return;
         }
 
+        if(ISLIST(*rplPeekData(1)) || ISLIST(*rplPeekData(2))) {
+            rplListBinaryDoCmd();
+            return;
+        }
+
+        if( !ISUNIT(*rplPeekData(2))|| !ISUNIT(*rplPeekData(1))) {
+            rplError(ERR_UNITEXPECTED);
+            return;
+        }
 
         BINT nlevels1,nlevels2;
         WORDPTR *stkclean=DSTop;
@@ -1673,6 +1704,16 @@ void LIB_HANDLER()
             return;
         }
 
+         if(ISLIST(*rplPeekData(1)) || ISLIST(*rplPeekData(2))) {
+                    rplListBinaryDoCmd();
+                    return;
+          }
+
+            if(!ISUNIT(*rplPeekData(1)) || !ISUNIT(*rplPeekData(2))) {
+                rplError(ERR_UNITEXPECTED);
+                return;
+            }
+
         // DO SWAP OVER
         WORDPTR *savestk=DSTop;
         rplPushData(rplPeekData(2));
@@ -1704,6 +1745,13 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+
+        if(ISLIST(*rplPeekData(1)) || ISLIST(*rplPeekData(2))) {
+              rplListBinaryDoCmd();
+              return;
+        }
+
         if(!ISUNIT(*rplPeekData(1))) {
             rplError(ERR_UNITEXPECTED);
             return;
@@ -1719,6 +1767,11 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+                if(ISLIST(*rplPeekData(1))) {
+                      rplListUnaryDoCmd();
+                      return;
+                }
+
         if(!ISUNIT(*rplPeekData(1))) {
             rplError(ERR_UNITEXPECTED);
             return;

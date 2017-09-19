@@ -857,6 +857,15 @@ void LIB_HANDLER()
     }
 
     if(!varidx) {
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+            rplListUnaryDoCmd();
+            return;
+        }
+
+
+
     if(ISIDENT(*rplPeekData(1))) varidx=1;
     if(!varidx) {
     rplError(ERR_IDENTEXPECTED);
@@ -936,6 +945,15 @@ void LIB_HANDLER()
     }
 
     if(!varidx) {
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+            rplListUnaryDoCmd();
+            return;
+        }
+
+
+
     if(ISIDENT(*rplPeekData(1))) varidx=1;
     if(!varidx) {
     rplError(ERR_IDENTEXPECTED);
@@ -1006,24 +1024,7 @@ void LIB_HANDLER()
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*rplPeekData(1))) {
 
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAPINNERCOMP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+           rplListUnaryNoResultDoCmd();
             return;
         }
 
@@ -1044,6 +1045,15 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*rplPeekData(1))) {
+            rplListUnaryNoResultDoCmd();
+            return;
+        }
+
+
+
         // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
         if(!ISIDENT(*rplPeekData(1))) {
@@ -1069,25 +1079,7 @@ void LIB_HANDLER()
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*rplPeekData(1))) {
-
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAPINNERCOMP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+            rplListUnaryNoResultDoCmd();
             return;
         }
 
@@ -1295,7 +1287,7 @@ void LIB_HANDLER()
 
 
         if(ISLIST(*rplPeekData(1))) {
-            rplListUnaryDoCmd();
+            rplListUnaryNoResultDoCmd();
             return;
         }
 
@@ -1335,7 +1327,7 @@ void LIB_HANDLER()
         return;
     }
     if(ISLIST(*rplPeekData(1))) {
-        rplListUnaryDoCmd();
+        rplListUnaryNoResultDoCmd();
         return;
     }
 
@@ -1399,7 +1391,7 @@ void LIB_HANDLER()
     }
 
     if(ISLIST(*rplPeekData(1))) {
-        rplListUnaryDoCmd();
+        rplListUnaryNoResultDoCmd();
         return;
     }
 
@@ -1438,7 +1430,7 @@ case UNLOCKVAR:
 
 
     if(ISLIST(*rplPeekData(1))) {
-        rplListUnaryDoCmd();
+        rplListUnaryNoResultDoCmd();
         return;
     }
 

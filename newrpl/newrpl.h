@@ -628,6 +628,7 @@ WORDPTR rplGetListElementFlat(WORDPTR composite, BINT pos);
 WORDPTR rplGetNextListElementFlat(WORDPTR composite, WORDPTR elem);
 BINT rplIsLastElementFlat(WORDPTR composite, BINT pos);
 void rplListUnaryDoCmd();
+void rplListUnaryNoResultDoCmd();
 void rplListBinaryDoCmd();
 void rplListMultiArgDoCmd(BINT nargs);
 WORDPTR rplListAddRot(WORDPTR list,WORDPTR object,BINT nmax);

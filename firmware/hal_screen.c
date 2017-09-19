@@ -888,7 +888,7 @@ void halRedrawStatus(DRAWSURFACE *scr)
         // SECOND LINE
         if(!Exceptions) {
         // BUT ONLY IF THERE WERE NO ERRORS
-        BINT y=ytop+(*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight;
+        BINT y=ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight;
         // FOR NOW JUST DISPLAY THE SELECTED TOKEN
         WORDPTR cmdname=rplDecompile(&halScreen.ACSuggestion,DECOMP_NOHINTS);
         if( (!cmdname) || Exceptions) {
@@ -911,7 +911,7 @@ void halRedrawStatus(DRAWSURFACE *scr)
         BINT nnames,j,width,xst;
         WORDPTR pathnames[8],lastword;
         BYTEPTR start,end;
-        BINT y=ytop+(*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight;
+        BINT y=ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight;
 
         nnames=rplGetFullPath(CurrentDir,pathnames,8);
 
@@ -957,11 +957,11 @@ void halRedrawStatus(DRAWSURFACE *scr)
             // FADE THE TEXT OUT
 
             scr->x=STATUSAREA_X;
-            ggl_filter(scr,2,(*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight,0xA,&ggl_fltlighten);
+            ggl_filter(scr,2,(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,0xA,&ggl_fltlighten);
             scr->x+=2;
-            ggl_filter(scr,2,(*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight,0x6,&ggl_fltlighten);
+            ggl_filter(scr,2,(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,0x6,&ggl_fltlighten);
             scr->x+=2;
-            ggl_filter(scr,2,(*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight,0x4,&ggl_fltlighten);
+            ggl_filter(scr,2,(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,0x4,&ggl_fltlighten);
 
         }
 

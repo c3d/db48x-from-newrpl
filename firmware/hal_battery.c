@@ -176,13 +176,7 @@ void halPreparePowerOff()
 // DO ANY PREPARATIONS BEFORE WAKEUP FROM POWEROFF
 void halWakeUp()
 {
-
-// RESTORE THE COMMAND LINE
-WORDPTR saved=rplGetSettings((WORDPTR)savedcmdline_ident);
-if(saved) {
-    if(halRestoreCmdLine(saved))  halSetContext(halGetContext()|CONTEXT_INEDITOR);
-    rplPurgeSettings((WORDPTR)savedcmdline_ident);
-}
+WORDPTR saved;
 
 // RESTORE THE FLAGS
 
@@ -219,8 +213,18 @@ if(saved) {
 }
 rplPurgeSettings((WORDPTR)stksave_ident);
 
+// AFTER PURGE SETTINGS WE MUST UPDATE THE FONT ARRAYS
+halUpdateFonts();
 
+// RESTORE THE COMMAND LINE
+saved=rplGetSettings((WORDPTR)savedcmdline_ident);
+if(saved) {
+    if(halRestoreCmdLine(saved))  halSetContext(halGetContext()|CONTEXT_INEDITOR);
+    rplPurgeSettings((WORDPTR)savedcmdline_ident);
+}
 
+// AFTER PURGE SETTINGS WE MUST UPDATE THE FONT ARRAYS
+halUpdateFonts();
 
 
 // FLUSH THE ON-KEY KEYPRESS FROM THE KEYBOARD BUFFER BEFORE ENTERING THE OUTER LOOP

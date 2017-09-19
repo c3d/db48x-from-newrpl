@@ -359,6 +359,32 @@ void rplListUnaryDoCmd()
     return;
 }
 
+// List handling for funtions with 1 argument
+void rplListUnaryNoResultDoCmd()
+{
+
+    WORDPTR *savestk=DSTop;
+    WORDPTR newobj=rplAllocTempOb(2);
+    if(!newobj) return;
+    // CREATE A PROGRAM AND RUN THE MAP COMMAND
+    newobj[0]=MKPROLOG(DOCOL,2);
+    newobj[1]=CurOpcode;
+    newobj[2]=CMD_SEMI;
+
+    rplPushData(newobj);
+
+    rplCallOperator(CMD_MAPINNERCOMP);
+
+    if(Exceptions) {
+        if(DSTop>savestk) DSTop=savestk;
+    }
+
+    // EXECUTION WILL CONTINUE AT MAP
+
+    return;
+}
+
+
 // APPEND AN ITEM TO THE END OF THE LIST, DROP THE FIRST
 // ELEMENT IF NEEDED TO KEEP THE LIST AT N ELEMENTS MAX.
 // USES ScratchPointers 1 THRU 3
