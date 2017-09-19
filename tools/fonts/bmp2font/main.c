@@ -476,7 +476,7 @@ if(!han) {
 
 printf("Starting binary output to file '%s'\n",outfile);
 
-int totalsize=2+used_ranges+((used_data+1)>>1)+((rowlen*hdr.Height-1+3)>>2);
+int totalsize=2+used_ranges+((used_data+1)>>1)+((rowlen*(hdr.Height-1)+3)>>2);
 
 unsigned int prolog=MKPROLOG(LIB_FONTS,totalsize);
 
@@ -523,7 +523,7 @@ else {
 
     printf("Starting C format output to file '%s'\n",outfile);
 
-    int totalsize=2+used_ranges+((used_data+1)>>1)+((rowlen*hdr.Height-1+3)>>2);
+    int totalsize=2+used_ranges+((used_data+1)>>1)+((rowlen*(hdr.Height-1)+3)>>2);
 
     unsigned int prolog=MKPROLOG(LIB_FONTS,totalsize);
 
