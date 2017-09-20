@@ -565,7 +565,7 @@ const WORD const system_unit_defs[]={
     //[593]='μ'   (micron)
     MKPROLOG(DOUNIT,5),
     MAKESINT(1),
-    MKPROLOG(DOIDENT,1),TEXT2WORD(0xce,0xbc,'m',0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xc2,0xb5,'m',0),MAKESINT(1),MAKESINT(1),
 
     //[599]='mho' = 'S'
     MKPROLOG(DOUNIT,9),
