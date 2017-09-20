@@ -119,18 +119,34 @@ void halSetMenu2Height(int h)
     while(total!=SCREEN_HEIGHT) {
         // STRETCH THE STACK FIRST (IF ACTIVE), THEN FORM
 
-        if(halScreen.Stack) {
+        if(halScreen.Stack>1) {
             halScreen.Stack+=SCREEN_HEIGHT-total;
             halScreen.DirtyFlag|=STACK_DIRTY;
-            if(halScreen.Stack<0) halScreen.Stack=0;
+            if(halScreen.Stack<1) halScreen.Stack=1;
         }
         else {
+            if(halScreen.Form>1) {
             halScreen.Form+=SCREEN_HEIGHT-total;
             halScreen.DirtyFlag|=FORM_DIRTY;
-
-            if(halScreen.Form<0) {
-                halScreen.Menu2+=halScreen.Form;
-                halScreen.Form=0;
+            if(halScreen.Form<1) halScreen.Form=1;
+            }
+            else {
+            if(halScreen.CmdLine>1) {
+                int newcmdht=halScreen.CmdLine+SCREEN_HEIGHT-total;
+                int newnlines=(newcmdht-2)/(*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight;
+                if(newnlines<1) {
+                    // THERE'S NO ROOM AT ALL, VANISH THE MENU REGARDLESS
+                    halScreen.Menu2=0;
+                }
+                else {
+                if(newnlines!=halScreen.NumLinesVisible) {
+                    // WE ARE CHANGING THE COMMAND LINE HEIGHT
+                    uiStretchCmdLine(newnlines-halScreen.NumLinesVisible);
+                    uiEnsureCursorVisible();
+                }
+                halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
+                }
+            }
             }
         }
         total=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1+halScreen.Menu2;
