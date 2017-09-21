@@ -295,6 +295,16 @@ BINT rplNeedNewLAMEnv()
             seco=*rsptr;
             break;
         }
+        if( (**rsptr==(CMD_OVR_EVAL)) || (**rsptr==(CMD_OVR_EVAL1)) || (**rsptr==(CMD_OVR_XEQ))) {
+            // WE ARE EXECUTING A SECONDARY THAT WAS 'EVAL'd, NEED A NEW ENVIRONMENT
+            break;
+        }
+        if( ISPROLOG(**rsptr) && (LIBNUM(**rsptr)==DOIDENTEVAL)) {
+            // WE ARE EXECUTING A SECONDARY THAT WAS DIRECTLY EXECUTED FROM AN IDENT, NEED A NEW ENVIRONMENT
+            break;
+        }
+
+
         --rsptr;
     }
 
@@ -305,14 +315,20 @@ BINT rplNeedNewLAMEnv()
         if(nLAMBase!=LAMTop && nLAMBase>=LAMs) {
             // THERE IS AN EXISTING ENVIRONMENT
             rsptr=RSTop-1;
+            while( (rsptr>=RStk)&&(**rsptr==CMD_ABND)) --rsptr;
+
             if(rsptr<RStk) return 0;    // THERE'S NO RETURN ADDRESS, WE ARE EXECUTING FREE COMMANDS FROM THE COMMAND LINE
             if( (**rsptr==(CMD_OVR_EVAL)) || (**rsptr==(CMD_OVR_EVAL1)) || (**rsptr==(CMD_OVR_XEQ))) {
+                if(*(nLAMBase+1)!=*rsptr) {
                 // WE ARE EXECUTING A SECONDARY THAT WAS 'EVAL'd, NEED A NEW ENVIRONMENT
                 return 1;
+                }
             }
             if( ISPROLOG(**rsptr) && (LIBNUM(**rsptr)==DOIDENTEVAL)) {
+                if(*(nLAMBase+1)!=*rsptr) {
                 // WE ARE EXECUTING A SECONDARY THAT WAS DIRECTLY EXECUTED FROM AN IDENT, NEED A NEW ENVIRONMENT
                 return 1;
+                }
             }
 
             return 0;
