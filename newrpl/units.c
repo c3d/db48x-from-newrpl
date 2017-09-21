@@ -88,7 +88,7 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('l','m', 0 , 0 ),                      // [153]='lm' (lumen)
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('l','x', 0 , 0 ),                      // [155]='lx' (lux)
     MKPROLOG(DOIDENT,1),TEXT2WORD('l','y','r', 0 ),                              // [157]='lyr' (light year)
-    MKPROLOG(DOIDENT,1),TEXT2WORD(0xce,0xbc, 0 , 0 ),                            // [159]='μ'   (micron)
+    MKPROLOG(DOIDENT,1),TEXT2WORD(0xc2,0xb5, 0 , 0 ),                            // [159]='µ'   (micron)
     MKPROLOG(DOIDENT,1),TEXT2WORD('m','h','o', 0 ),                              // [161]='mho'
     MKPROLOG(DOIDENT,1),TEXT2WORD('m','i', 0 , 0 ),                              // [163]='mi'
     MKPROLOG(DOIDENT,1),TEXT2WORD('m','i','l', 0 ),                              // [165]='mil'  (mils)
@@ -562,7 +562,7 @@ const WORD const system_unit_defs[]={
     0,0,
 
 
-    //[593]='μ'   (micron)
+    //[593]='µ'   (micron)
     MKPROLOG(DOUNIT,5),
     MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD(0xc2,0xb5,'m',0),MAKESINT(1),MAKESINT(1),
@@ -1058,7 +1058,7 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[153],(WORDPTR)&system_unit_defs[555], // 'lm'=1_cd*sr
     (WORDPTR)&system_unit_names[155],(WORDPTR)&system_unit_defs[565], // 'lx'=1_lm*m^2
     (WORDPTR)&system_unit_names[157],(WORDPTR)&system_unit_defs[575], // 'lyr'=365.25_d*c
-    (WORDPTR)&system_unit_names[159],(WORDPTR)&system_unit_defs[593], // 'μ'=1_μm
+    (WORDPTR)&system_unit_names[159],(WORDPTR)&system_unit_defs[593], // 'µ'=1_µm
     (WORDPTR)&system_unit_names[161],(WORDPTR)&system_unit_defs[599], // 'mho'=1_A/V
     (WORDPTR)&system_unit_names[163],(WORDPTR)&system_unit_defs[609], // 'mi'=5280_ft
     (WORDPTR)&system_unit_names[165],(WORDPTR)&system_unit_defs[615], // 'mil'=0.001_in

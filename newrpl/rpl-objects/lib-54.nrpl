@@ -71,7 +71,7 @@ ULIST
     1_fath
     1_ftUS
     1_mil
-    1_μ
+    1_µ
     1_Å
     1_fermi
     { { "Units" 1 } :: #03600000h TMENULST ; }
@@ -198,6 +198,7 @@ ULIST
 @#name unitmenu_9_energy
 {
     1_J
+    1_kW*h
     1_erg
     1_Kcal
     1_cal
