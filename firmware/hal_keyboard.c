@@ -3380,10 +3380,11 @@ void chsKeyHandler(BINT keymsg)
         // ACTION INSIDE THE EDITOR
 
         BYTEPTR startnum;
-        BYTEPTR line=(BYTEPTR)(CmdLineCurrentLine+1);
+        BYTEPTR line;
 
         // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER, CHANGE THE SIGN OF THE NUMBER IN THE TEXT
         startnum=uiFindNumberStart();
+        line=(BYTEPTR)(CmdLineCurrentLine+1);
         if(!startnum) {
             startnum=line+halScreen.CursorPosition;
             if(startnum>line) {
