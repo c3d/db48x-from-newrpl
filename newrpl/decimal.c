@@ -3773,7 +3773,9 @@ void addReal(REAL *result,REAL *a,REAL *b)
         }
     }
 
-    add_real(result,a,b);
+    if(a->len==1 && a->data[0]==0) copyReal(result,b);
+    else if(b->len==1 && b->data[0]==0) copyReal(result,a);
+         else add_real(result,a,b);
     finalize(result);
 }
 
