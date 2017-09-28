@@ -2443,7 +2443,7 @@ void LIB_HANDLER()
         WORDPTR arg=rplPeekData(1);
 
         if(ISSTRING(*arg)) {
-            BINT size=rplStrLen(arg);
+            BINT size=rplStrSize(arg);
             rplDropData(1);
             rplNewBINTPush(size,DECBINT);
             return;
