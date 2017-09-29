@@ -651,6 +651,7 @@ BINT rplSymbIsRule(WORDPTR ptr);
 void rplSymbAutoSimplify();
 WORDPTR rplSymbNumericReduce(WORDPTR object);
 BINT rplSymbIsNumeric(WORDPTR ptr);
+BINT rplSymbIsZero(WORDPTR ptr);
 
 
 // INTERNAL SYMBOLIC API, FOR USE BY OTHER LIBRARIES
@@ -704,7 +705,7 @@ void rplMatrixMul();
 void rplMatrixMulScalar();
 void rplMatrixDivScalar();
 void rplMatrixBareiss();
-void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa);
+void rplMatrixBareissEx(WORDPTR *a, BINT rowsa, BINT colsa);
 void rplMatrixInvert();
 void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 BINT rplMatrixIsPolar(WORDPTR matobj);

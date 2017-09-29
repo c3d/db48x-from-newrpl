@@ -736,13 +736,78 @@ for(j=1;j<i;++j) {
 
 
 
+
+
+// REORDER THE ROWS OF A MATRIX TO MAKE SURE THERE'S NO ZEROS IN THE DIAGONALS
+// UPDATES A PERMUTATION INDEX VECTOR
+
+
+void rplMatrixRowOrder(WORDPTR *a,WORDPTR *rowidx,BINT rowsa,BINT colsa)
+{
+    int j;
+    int needswap;
+    // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
+    // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
+    #define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
+    #define IDXELEM(r) rowidx[r]
+
+    for(j=1;j<=rowsa;++j)
+    {
+        needswap=0;
+        if(ISNUMBER(*STACKELEM(j,j))) {
+            if(ISBINT(*STACKELEM(j,j))) {
+                BINT64 c=rplReadBINT(STACKELEM(j,j));
+                if(c==0) needswap=1;
+            }
+            else {
+             REAL r;
+             rplReadNumberAsReal(STACKELEM(j,j),&r);
+             if(iszeroReal(&r)) needswap=1;
+            }
+        }
+        else
+            if(ISCOMPLEX(*STACKELEM(j,j))) {
+              BINT cclass=rplComplexClass(STACKELEM(j,j));
+              if(cclass==CPLX_ZERO) needswap=1;
+            }
+        else
+        if(ISSYMBOLIC(*STACKELEM(j,j))) {
+            if(rplSymbIsNumeric(STACKELEM(j,j))&&rplSymbIsZero(STACKELEM(j,j))) needswap=1;
+        }
+        else
+        if(ISANGLE(*STACKELEM(j,j))) {
+            REAL r;
+            rplReadNumberAsReal(STACKELEM(j,j)+1,&r);
+            if(iszeroReal(&r)) needswap=1;
+        }
+        else continue;
+
+        if(needswap) {
+        // FOUND A ZERO IN THE DIAGONAL, FIND A ROW AND SWAP IT
+
+
+
+
+
+
+        }
+
+
+
+
+}
+
+
+}
+
+
 // FRACTION-FREE GAUSSIAN ELIMINATION
 // TAKES MATRIX ON THE STACK AND PERFORMS BAREISS ELIMINATION
 // LEAVES NEW MATRIX ON THE STACK
 
 void rplMatrixBareiss()
 {
-    WORDPTR *Savestk,*a;
+    WORDPTR *Savestk,*a,*idx;
     // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
     // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
     Savestk=DSTop;
@@ -759,6 +824,21 @@ void rplMatrixBareiss()
         rplError(ERR_INVALIDDIMENSION);
         return;
     }
+
+
+    // RESERVE SPACE FOR THE ROW INDEX LIST
+
+    WORDPTR IdxList=rplAllocTempOb(rowsa);
+
+    if(!IdxList) {
+        return;
+    }
+
+    IdxList[0]=MKPROLOG(DOLIBDATA,rowsa);
+    rplPushDataNoGrow(rplPeekData(1));
+    rplOverwriteData(2,IdxList);
+    idx=a;
+    ++a;
 
     rplMatrixExplode();
     if(Exceptions) {
@@ -849,7 +929,7 @@ for(i=1;i<rowsa;++i) {
 
 void rplMatrixInvert()
 {
-    WORDPTR *Savestk,*a;
+    WORDPTR *Savestk,*a,*idx;
     // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
     // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
     Savestk=DSTop;
@@ -866,6 +946,21 @@ void rplMatrixInvert()
         rplError(ERR_INVALIDDIMENSION);
         return;
     }
+
+    // RESERVE SPACE FOR THE ROW INDEX LIST
+
+    WORDPTR IdxList=rplAllocTempOb(rowsa);
+
+    if(!IdxList) {
+        return;
+    }
+
+    IdxList[0]=MKPROLOG(DOLIBDATA,rowsa);
+    rplPushDataNoGrow(rplPeekData(1));
+    rplOverwriteData(2,IdxList);
+    idx=a;
+    ++a;
+
 
     rplMatrixExplode();
     if(Exceptions) {
@@ -904,6 +999,11 @@ void rplMatrixInvert()
 
    #undef NEWSTACKELEM
    #undef STACKELEM
+
+    // INITIALIZE THE ROW PERMUTATION INDEX
+    for(i=1;i<=rowsa;++i) (*idx)[i]=i;
+
+
 
     rplMatrixBareissEx(a,rowsa,colsa<<1);
     if(Exceptions) {

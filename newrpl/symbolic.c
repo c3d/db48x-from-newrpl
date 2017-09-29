@@ -3347,3 +3347,60 @@ while(ptr<endofobj) {
 return 1;
 
 }
+
+// RETURN 1 IF THE GIVEN SYMBOLIC IS ZERO, WITHOUT EVALUATING ANY VARIABLES
+// RETURN 0 IF THE GIVEN SYMBOLIC HAS ANY VARIABLES, CALLS A CUSTOM USER FUNCTION OR HAS ANY NON-ATOMIC OPERATION
+BINT rplSymbIsZero(WORDPTR ptr)
+{
+    WORDPTR obj=rplSymbUnwrap(ptr),end=rplSkipOb(obj);
+    BINT onezero=0,allzeros=1,optype=0;
+
+    while(obj!=end) {
+    if(! (ISPROLOG(*obj) || ISBINT(*obj))) {
+        // SOME KIND OF OPERATION, THE ONLY THING ALLOWED IS UNARY PLUS OR MINUS BEFORE THE NUMBER ZERO
+        switch(*obj)
+        {
+        case CMD_OVR_UMINUS:
+        case CMD_OVR_UPLUS:
+        case CMD_OVR_POW:
+        return rplSymbIsZero(obj+1);
+
+        case CMD_OVR_MUL:
+            obj++;
+            break;
+        case CMD_OVR_ADD:
+            obj++;
+            optype=1;
+            break;
+        case CMD_OVR_INV:
+            obj++;
+            if(ISREAL(*obj)) {
+                REAL n;
+                rplReadReal(obj,&n);
+                if(isinfiniteReal(&n)||isundinfiniteReal(&n)) return 1;
+            }
+            return 0;
+        default:
+        return 0;   // ALL OTHER COMMANDS AND OPERATORS ARE NOT KNOWN TO BE ZERO UNTIL EVALUATED
+        }
+        continue;
+    }
+    // HERE WE HAVE AN OBJECT
+    if(ISSYMBOLIC(*obj)) {
+        if(rplSymbIsZero(obj)) onezero=1;
+        else allzeros=0;
+    }
+    else {
+        if(rplIsNumberZero(obj)) onezero=1;
+         else allzeros=0;
+    }
+      obj=rplSkipOb(obj);
+    }
+
+    if(optype==0) {
+        if(onezero) return 1;
+        return 0;
+    }
+    if(allzeros) return 1;
+    return 0;
+}
