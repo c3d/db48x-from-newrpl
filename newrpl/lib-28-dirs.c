@@ -1061,6 +1061,22 @@ void LIB_HANDLER()
             return;
 
         }
+
+        // SAFEGUARD AGAINST OVERWRITING
+        WORDPTR *val=rplFindGlobal(rplPeekData(1),0);
+        if(val) {
+            if(ISDIR(*val[1])) {
+                rplError(ERR_CANTOVERWRITEDIR);
+                return;
+            }
+            if(ISLOCKEDIDENT(*val[0])) {
+                rplError(ERR_READONLYVARIABLE);
+                return;
+            }
+
+        }
+
+
         WORDPTR name=rplMakeIdentQuoted(rplPeekData(1));
         rplCreateNewDir(name,CurrentDir);
 

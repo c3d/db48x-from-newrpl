@@ -659,9 +659,9 @@ void rplMatrixMul()
 // RETURNS THE SAME MATRIX WITH ALTERED ELEMENTS
 // EXPLODED IN THE STACK
 
-void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa)
+void rplMatrixBareissEx(WORDPTR *a,WORDPTR *index,BINT rowsa,BINT colsa)
 {
-    BINT i,j,k;
+    BINT i,j,k,q;
 
     /*
     Single step Bareiss
@@ -669,8 +669,20 @@ void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa)
     n := NumberOfRows(M);
     for k in [1..n-1] do
     for i in [k+1..n] do
+    q=i+1
     for j in [k+1..n] do
+
     D := M[k][k]*M[i][j] - M[k][j]*M[i][k];
+
+    if i==j==k+1 && D==0 then
+    if q>n --> Error: Singular matrix
+    swap row i and q
+    q=q+1
+    recompute D
+
+    endif;
+
+
     M[i][j] := k eq 1 select D div 1
                         else D div M[k-1][k-1];
     end for;
@@ -687,7 +699,11 @@ void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa)
 
     for(k=1;k<rowsa;++k) {
         for(i=k+1;i<=rowsa;++i) {
+            q=i+1;
             for(j=k+1;j<=colsa;++j) {
+
+                do {
+
                 rplPushData(STACKELEM(k,k));  // M[k][k];
                 rplPushData(STACKELEM(i,j));  // M[i][j];
                 rplCallOvrOperator((CMD_OVR_MUL));
@@ -698,6 +714,37 @@ void rplMatrixBareissEx(WORDPTR *a,BINT rowsa,BINT colsa)
                 if(Exceptions) return;
                 rplCallOvrOperator((CMD_OVR_SUB));
                 if(Exceptions) return;
+
+                // HERE WE HAVE D, NOW CHECK IF IT'S ZERO
+                // USES rplSymbIsZero WHICH EXPLICITLY IS AN ATOMIC OPERATION
+                // AND DOESN'T NEED THE RPL LOOP
+
+                if( (i==k+1)&&(j==k+1)&&rplSymbIsZero(rplPeekData(1))) {
+                    if(q>rowsa) {
+                        rplError(ERR_SINGULARMATRIX);
+                        return;
+                    }
+                    // ZERO ELEMENT IN THE DIAGONAL, TRY SWAPPING ROWS
+                    int s;
+                    WORDPTR tmp;
+                    for(s=k;s<=colsa;++s) {
+                        tmp=STACKELEM(i,s);
+                        STACKELEM(i,s)=STACKELEM(q,s);
+                        STACKELEM(q,s)=tmp;
+                    }
+                    // NOW UPDATE THE INDEX
+                    s=(*index)[i];
+                    (*index)[i]=(*index)[q];
+                    (*index)[q]=s;
+                    ++q;
+
+                    // TRY AGAIN WITH THE NEW ROW
+                    rplDropData(1);
+                    continue;
+                }
+                break;  // ALWAYS BREAK OUT OF THE LOOP, UNLESS WE HAVE A ZERO IN THE DIAGONAL
+                } while(1);
+
                 if(k>1) {
                     rplPushData(STACKELEM(k-1,k-1));
                     rplCallOvrOperator((CMD_OVR_DIV));
@@ -846,7 +893,7 @@ void rplMatrixBareiss()
         return;
     }
 
-    rplMatrixBareissEx(a,rowsa,colsa);
+    rplMatrixBareissEx(a,idx,rowsa,colsa);
     if(Exceptions) {
         DSTop=Savestk;
         return;
@@ -856,6 +903,8 @@ void rplMatrixBareiss()
     DSTop=Savestk;
     if(Exceptions) return;
     rplOverwriteData(1,newmat);
+
+    // LEAVES THE INTERNAL PERMUTATION VECTOR ON LEVEL 2 AND
 
 }
 
@@ -946,7 +995,6 @@ void rplMatrixInvert()
         rplError(ERR_INVALIDDIMENSION);
         return;
     }
-
     // RESERVE SPACE FOR THE ROW INDEX LIST
 
     WORDPTR IdxList=rplAllocTempOb(rowsa);
@@ -960,7 +1008,6 @@ void rplMatrixInvert()
     rplOverwriteData(2,IdxList);
     idx=a;
     ++a;
-
 
     rplMatrixExplode();
     if(Exceptions) {
@@ -979,7 +1026,7 @@ void rplMatrixInvert()
 
     // WE HAVE THE SPACE IN THE STACK, EXPAND THE ROWS
 
-    BINT i,j;
+    BINT i,j,k;
     // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
     // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
     #define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
@@ -1005,7 +1052,7 @@ void rplMatrixInvert()
 
 
 
-    rplMatrixBareissEx(a,rowsa,colsa<<1);
+    rplMatrixBareissEx(a,idx,rowsa,colsa<<1);
     if(Exceptions) {
         DSTop=Savestk;
         return;
@@ -1033,6 +1080,28 @@ void rplMatrixInvert()
 
     // TRIM THE STACK
     DSTop=&(STACKELEM(rowsa,colsa))+1;
+/*
+    // NOW WE HAVE INV(A)*INV(P) ON THE STACK
+
+    // REVERSE ALL THE ROW SWAPPING FROM THE INDEX
+    for(i=1;i<=rowsa;++i) {
+        if( (*idx)[i]!=(WORD)i) {
+            // FIND WHERE IS THE CORRECT ROW
+            for(k=i+1;k<=rowsa;++k) if((*idx)[k]==(WORD)i) break;
+            // SWAP IT
+            WORDPTR tmp;
+            for(j=1;j<=colsa;++j) {
+                tmp=STACKELEM(i,j);
+                STACKELEM(i,j)=STACKELEM(k,j);
+                STACKELEM(k,j)=tmp;
+            }
+            // AND UPDATE THE INDEX
+            (*idx)[k]=(*idx)[i];
+        }
+    }
+*/
+
+    // WE FINALLY HAVE INV(A) HERE
 
     // AND COMPOSE A NEW MATRIX
     WORDPTR newmat=rplMatrixCompose(rowsa,colsa);

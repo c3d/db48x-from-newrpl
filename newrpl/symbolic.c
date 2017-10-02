@@ -3350,9 +3350,11 @@ return 1;
 
 // RETURN 1 IF THE GIVEN SYMBOLIC IS ZERO, WITHOUT EVALUATING ANY VARIABLES
 // RETURN 0 IF THE GIVEN SYMBOLIC HAS ANY VARIABLES, CALLS A CUSTOM USER FUNCTION OR HAS ANY NON-ATOMIC OPERATION
+// IF THE OBJECT IS NUMERIC, ALSO CHECK FOR ZERO
+
 BINT rplSymbIsZero(WORDPTR ptr)
 {
-    WORDPTR obj=rplSymbUnwrap(ptr),end=rplSkipOb(obj);
+    WORDPTR obj=ptr,end=rplSkipOb(obj);
     BINT onezero=0,allzeros=1,optype=0;
 
     while(obj!=end) {

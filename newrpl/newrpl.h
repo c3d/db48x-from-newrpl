@@ -705,7 +705,7 @@ void rplMatrixMul();
 void rplMatrixMulScalar();
 void rplMatrixDivScalar();
 void rplMatrixBareiss();
-void rplMatrixBareissEx(WORDPTR *a, BINT rowsa, BINT colsa);
+void rplMatrixBareissEx(WORDPTR *a, WORDPTR *index, BINT rowsa, BINT colsa);
 void rplMatrixInvert();
 void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 BINT rplMatrixIsPolar(WORDPTR matobj);
