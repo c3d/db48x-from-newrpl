@@ -2166,7 +2166,127 @@ void LIB_HANDLER()
 
 
 
-case BASIS:
+    case BASIS:
+        {
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            WORDPTR *a=DSTop-1;
+            WORDPTR *savestk=DSTop;
+
+            if(!ISLIST(**a)) {
+                rplError(ERR_LISTEXPECTED);
+                return;
+            }
+
+            WORDPTR lelem=*a+1,endoflist=rplSkipOb(*a);
+            BINT ncols=0,nvecs=0,allzeros;
+            BINT i,j,k;
+
+            while( (lelem<endoflist) && (*lelem!=CMD_ENDLIST) ) {
+
+            if(!ISMATRIX(*lelem)) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+            if(rplMatrixRows(lelem)>1) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+
+            }
+            if(ncols) {
+                if(rplMatrixCols(lelem)!=ncols) {
+                    rplError(ERR_INVALIDDIMENSION);
+                    return;
+                }
+            } else ncols=rplMatrixCols(lelem);
+
+            //  EXPAND THE VALID VECTOR
+            BINT off=lelem-*a;  // PROTECT FROM GC
+            for(k=1;k<=ncols;++k) {
+                rplPushData(rplMatrixGet(lelem,1,k));
+                if(Exceptions) { DSTop=savestk; return; }
+            }
+            lelem=*a+off;
+            ++nvecs;
+            lelem=rplSkipOb(lelem);
+            }
+
+            // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+            rplMatrixBareissEx(a,0,nvecs,ncols);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+
+            rplMatrixBackSubstEx(a,nvecs,ncols);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+            // EXPAND THE MATRIX INTO ITS ROWS, BUT ELIMINATE ALL NULL ONES
+
+            WORDPTR *base=DSTop;
+
+            for(i=1;i<=nvecs;++i) {
+
+            allzeros=1;
+            for(j=1;j<=ncols;++j) {
+                if(!rplSymbIsZero(base[-j])) { allzeros=0; break; }
+            }
+            if(allzeros) {
+                // DROP THE ROWS THAT ARE ALL ZERO
+                --base;
+                rplRemoveAtData(DSTop-base,ncols);
+                --nvecs;
+                --i;
+                base-=ncols-1;
+            }
+            else {
+                // MAKE A ROW VECTOR AND LEAVE IT IN THE STACK
+                --base;
+                lelem=rplMatrixComposeN(DSTop-base,0,ncols);
+                if(!lelem) { DSTop=savestk; return; }
+                rplRemoveAtData(DSTop-base,ncols-1);
+                base-=ncols-1;
+                base[0]=lelem;
+            }
+
+            }
+
+
+            // HERE WE HAVE nvecs IN THE STACK, READY TO PACK
+
+            WORDPTR newlist=rplCreateListN(nvecs,1,1);
+            if(Exceptions) { DSTop=savestk; return; }
+
+            rplOverwriteData(1,newlist);
+            return;
+        }
+
+
+    case CHOLESKY:
+
+    {
+
+    return;
+     }
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

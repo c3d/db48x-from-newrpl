@@ -658,10 +658,11 @@ void rplMatrixMul()
 // IMMEDIATELY AFTER
 // RETURNS THE SAME MATRIX WITH ALTERED ELEMENTS
 // EXPLODED IN THE STACK
+// RETURNS FALSE IF MATRIX IS SINGULAR OR THERE WAS AN ERROR, TRUE OTHERWISE
 
-void rplMatrixBareissEx(WORDPTR *a,WORDPTR *index,BINT rowsa,BINT colsa)
+BINT rplMatrixBareissEx(WORDPTR *a,WORDPTR *index,BINT rowsa,BINT colsa)
 {
-    BINT i,j,k,q;
+    BINT i,j,k,q,startrow=1;
 
     /*
     Single step Bareiss
@@ -697,7 +698,37 @@ void rplMatrixBareissEx(WORDPTR *a,WORDPTR *index,BINT rowsa,BINT colsa)
 // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
 #define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
 
-    for(k=1;k<rowsa;++k) {
+    // ELEMENT 1,1 MUST BE NON-ZERO
+
+    if(rplSymbIsZero(STACKELEM(1,1))) {
+
+        q=2;
+        while( (q<=rowsa) && rplSymbIsZero(STACKELEM(q,1))) ++q;
+        if(q>rowsa) {
+            // ENTIRE FIRST COLUMN IS FULL OF ZEROS...
+            startrow=2;
+        }
+        else {
+        // ZERO ELEMENT IN THE DIAGONAL, TRY SWAPPING ROWS
+        int s;
+        WORDPTR tmp;
+        for(s=1;s<=colsa;++s) {
+            tmp=STACKELEM(1,s);
+            STACKELEM(1,s)=STACKELEM(q,s);
+            STACKELEM(q,s)=tmp;
+        }
+        if(index) {
+        // NOW UPDATE THE INDEX
+        s=(*index)[1];
+        (*index)[1]=(*index)[q];
+        (*index)[q]=s;
+        }
+        ++q;
+        }
+   }
+
+
+    for(k=startrow;k<rowsa;++k) {
         for(i=k+1;i<=rowsa;++i) {
             q=i+1;
             for(j=k+1;j<=colsa;++j) {
@@ -707,23 +738,31 @@ void rplMatrixBareissEx(WORDPTR *a,WORDPTR *index,BINT rowsa,BINT colsa)
                 rplPushData(STACKELEM(k,k));  // M[k][k];
                 rplPushData(STACKELEM(i,j));  // M[i][j];
                 rplCallOvrOperator((CMD_OVR_MUL));
-                if(Exceptions) return;
+                if(Exceptions) return 0;
                 rplPushData(STACKELEM(k,j));  // M[k][j];
                 rplPushData(STACKELEM(i,k));  // M[i][k];
                 rplCallOvrOperator((CMD_OVR_MUL));
-                if(Exceptions) return;
+                if(Exceptions) return 0;
                 rplCallOvrOperator((CMD_OVR_SUB));
-                if(Exceptions) return;
+                if(Exceptions) return 0;
 
                 // HERE WE HAVE D, NOW CHECK IF IT'S ZERO
                 // USES rplSymbIsZero WHICH EXPLICITLY IS AN ATOMIC OPERATION
                 // AND DOESN'T NEED THE RPL LOOP
+                if(ISSYMBOLIC(*rplPeekData(1))) {
+                    rplSymbAutoSimplify();
+                    if(Exceptions) return 0;
+                }
 
-                if( (i==k+1)&&(j==k+1)&&rplSymbIsZero(rplPeekData(1))) {
+
+                if( (i==k+1)&&(j==k+1) &&rplSymbIsZero(rplPeekData(1))) {
                     if(q>rowsa) {
-                        rplError(ERR_SINGULARMATRIX);
-                        return;
+                        startrow=k+1;
+                        break;
+                        // rplError(ERR_SINGULARMATRIX);
+                        //return;
                     }
+                    else {
                     // ZERO ELEMENT IN THE DIAGONAL, TRY SWAPPING ROWS
                     int s;
                     WORDPTR tmp;
@@ -732,29 +771,33 @@ void rplMatrixBareissEx(WORDPTR *a,WORDPTR *index,BINT rowsa,BINT colsa)
                         STACKELEM(i,s)=STACKELEM(q,s);
                         STACKELEM(q,s)=tmp;
                     }
+                    if(index) {
                     // NOW UPDATE THE INDEX
                     s=(*index)[i];
                     (*index)[i]=(*index)[q];
                     (*index)[q]=s;
+                    }
                     ++q;
 
                     // TRY AGAIN WITH THE NEW ROW
                     rplDropData(1);
                     continue;
+                    }
+
                 }
                 break;  // ALWAYS BREAK OUT OF THE LOOP, UNLESS WE HAVE A ZERO IN THE DIAGONAL
                 } while(1);
 
-                if(k>1) {
+                if(k>startrow) {
                     rplPushData(STACKELEM(k-1,k-1));
                     rplCallOvrOperator((CMD_OVR_DIV));
-                    if(Exceptions) return;
+                    if(Exceptions) return 0;
                 }
 
                 // SIMPLIFY IF IT'S A SYMBOLIC TO KEEP THE OBJECTS SMALL
                 if(ISSYMBOLIC(*rplPeekData(1))) {
                     rplSymbAutoSimplify();
-                    if(Exceptions) return;
+                    if(Exceptions) return 0;
                 }
 
                 // PUT THE ELEMENT IN ITS PLACE M[i][j]
@@ -778,7 +821,7 @@ for(j=1;j<i;++j) {
 }
 
 #undef STACKELEM
-
+return (startrow==1)? 1:0;
 }
 
 
@@ -852,7 +895,7 @@ void rplMatrixRowOrder(WORDPTR *a,WORDPTR *rowidx,BINT rowsa,BINT colsa)
 // TAKES MATRIX ON THE STACK AND PERFORMS BAREISS ELIMINATION
 // LEAVES NEW MATRIX ON THE STACK
 
-void rplMatrixBareiss()
+void rplMatrixReduce()
 {
     WORDPTR *Savestk,*a,*idx;
     // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
@@ -872,7 +915,7 @@ void rplMatrixBareiss()
         return;
     }
 
-
+/*
     // RESERVE SPACE FOR THE ROW INDEX LIST
 
     WORDPTR IdxList=rplAllocTempOb(rowsa);
@@ -882,22 +925,31 @@ void rplMatrixBareiss()
     }
 
     IdxList[0]=MKPROLOG(DOLIBDATA,rowsa);
-    rplPushDataNoGrow(rplPeekData(1));
-    rplOverwriteData(2,IdxList);
-    idx=a;
-    ++a;
-
+    rplPushDataNoGrow(IdxList);
+    rplPushDataNoGrow(*a);
+    idx=a+1;
+    a+=2;
+*/
     rplMatrixExplode();
     if(Exceptions) {
         DSTop=Savestk;
         return;
     }
 
-    rplMatrixBareissEx(a,idx,rowsa,colsa);
+    rplMatrixBareissEx(a,0,rowsa,colsa);
     if(Exceptions) {
         DSTop=Savestk;
         return;
     }
+
+
+    rplMatrixBackSubstEx(a,rowsa,colsa);
+    if(Exceptions) {
+        DSTop=Savestk;
+        return;
+    }
+
+
 
     WORDPTR newmat=rplMatrixCompose(rowsa,colsa);
     DSTop=Savestk;
@@ -925,6 +977,7 @@ void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa)
 #define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
 
         for(i=rowsa;i>=1;--i) {
+            if(!rplSymbIsZero(STACKELEM(i,i))) {
             for(j=colsa;j>=i;--j) {
                 rplPushData(STACKELEM(i,j));
                 rplPushData(STACKELEM(i,i));
@@ -939,8 +992,9 @@ void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa)
                 // PUT THE ELEMENT IN ITS PLACE
                 STACKELEM(i,j)=rplPopData();
             }
+
             for(k=i-1;k>=1;--k) {
-                for(j=colsa;j>=i;--j) {
+                for(j=colsa;j>i;--j) {
                     rplPushData(STACKELEM(k,j));
                     rplPushData(STACKELEM(k,i));
                     rplPushData(STACKELEM(i,j));
@@ -958,15 +1012,11 @@ void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa)
                     // PUT THE ELEMENT IN ITS PLACE
                     STACKELEM(k,j)=rplPopData();
                 }
+            STACKELEM(k,i)=(WORDPTR)zero_bint;
+            }
 
             }
         }
-
-// FILL THE UPPER DIAGONAL WITH ZEROS
-for(i=1;i<rowsa;++i) {
-    for(j=i+1;j<=rowsa;++j) STACKELEM(i,j)=(WORDPTR)zero_bint;
-}
-
 
 #undef STACKELEM
 
@@ -995,6 +1045,8 @@ void rplMatrixInvert()
         rplError(ERR_INVALIDDIMENSION);
         return;
     }
+
+    /*
     // RESERVE SPACE FOR THE ROW INDEX LIST
 
     WORDPTR IdxList=rplAllocTempOb(rowsa);
@@ -1004,11 +1056,11 @@ void rplMatrixInvert()
     }
 
     IdxList[0]=MKPROLOG(DOLIBDATA,rowsa);
-    rplPushDataNoGrow(rplPeekData(1));
-    rplOverwriteData(2,IdxList);
-    idx=a;
-    ++a;
-
+    rplPushDataNoGrow(IdxList);
+    rplPushDataNoGrow(*a);
+    idx=a+1;
+    a+=2;
+*/
     rplMatrixExplode();
     if(Exceptions) {
         DSTop=Savestk;
@@ -1047,12 +1099,13 @@ void rplMatrixInvert()
    #undef NEWSTACKELEM
    #undef STACKELEM
 
+    /*
     // INITIALIZE THE ROW PERMUTATION INDEX
     for(i=1;i<=rowsa;++i) (*idx)[i]=i;
+    */
 
 
-
-    rplMatrixBareissEx(a,idx,rowsa,colsa<<1);
+    if(!rplMatrixBareissEx(a,0,rowsa,colsa<<1)) rplError(ERR_SINGULARMATRIX);
     if(Exceptions) {
         DSTop=Savestk;
         return;

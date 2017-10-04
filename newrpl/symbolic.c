@@ -21,7 +21,7 @@
  * Compiler will switch to infix mode with the return value: OK_STARTCONSTRUCT_INFIX
  * And will return to RPN on ENDCONSTRUCT.
  *
- * In infix mode, the compiler sends OPCODE_MAXTOKEN to all libraries.
+ * In infix mode, the compiler sends OPCODE_PROBETOKEN to all libraries.
  * Libraries must determine if the token string starts with a token provided by the library.
  * Libraries reply with OK_TOKENINFO + MKTOKENINFO(precedence,nargs,length), with length=maximum
  * number of characters that the compiled token will absorb (length<=TokenLen)
@@ -3356,7 +3356,7 @@ BINT rplSymbIsZero(WORDPTR ptr)
 {
     WORDPTR obj=ptr,end=rplSkipOb(obj);
     BINT onezero=0,allzeros=1,optype=0;
-
+    if(ISSYMBOLIC(*obj)) ++obj;
     while(obj!=end) {
     if(! (ISPROLOG(*obj) || ISBINT(*obj))) {
         // SOME KIND OF OPERATION, THE ONLY THING ALLOWED IS UNARY PLUS OR MINUS BEFORE THE NUMBER ZERO

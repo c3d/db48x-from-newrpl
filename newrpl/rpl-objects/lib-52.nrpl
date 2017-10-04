@@ -99,7 +99,7 @@ VANDERMONDE
 ##1,ERR_VECTOREXPECTED  "Expected a vector"
 ##1,ERR_MISPLACEDBRACKETS  "Misplaced brackets"
 ##1,ERR_MALFORMEDMATRIX  "Malformed Matrix"
-
+##1,ERR_SINGULARMATRIX  "Matrix is singular"
 }
 
 
