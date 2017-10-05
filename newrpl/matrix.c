@@ -136,6 +136,33 @@ WORDPTR *rplMatrixExplode()
     return matrix+1;
 }
 
+
+// EXPLODES A MATRIX IN THE STACK TRANSPOSED
+// PUTS A POINTER TO THE MATRIX, THEN THE ELEMENTS IN COLUMN ORDER
+// RETURNS A POINTER TO THE DATA STACK WHERE THE FIRST ELEMENT IS
+// LEAVES THE ORIGINAL MATRIX POINTER IN THE STACK
+WORDPTR *rplMatrixExplodeByCols()
+{
+    WORDPTR *matrix=DSTop-1,elem;
+    BINT rows=MATROWS(*(*matrix+1)),cols=MATCOLS(*(*matrix+1));
+    if(!rows) return rplMatrixExplode();
+
+    BINT i,j,nelem;
+
+    nelem=rows*cols;
+
+    for(i=1;i<=cols;++i) {
+    for(j=1;j<=rows;++j) {
+        rplPushData(*matrix+(*matrix)[(i-1)*cols+j+1]);
+        if(Exceptions) {
+        DSTop=matrix+1;
+        return 0;
+        }
+    }
+    }
+    return matrix+1;
+}
+
 // COMPOSES A NEW MATRIX OBJECT FROM OBJECTS IN THE STACK STARTING AT level
 // OBJECTS MUST BE IN ROW-ORDER, level IS THE LAST OBJECT IN THE MATRIX (LOWEST NUMBER)
 // RETURNS 0 IF ERROR, AND SETS Exceptions AND ExceptionPtr.
@@ -660,7 +687,7 @@ void rplMatrixMul()
 // EXPLODED IN THE STACK
 // RETURNS FALSE IF MATRIX IS SINGULAR OR THERE WAS AN ERROR, TRUE OTHERWISE
 
-BINT rplMatrixBareissEx(WORDPTR *a,WORDPTR *index,BINT rowsa,BINT colsa)
+BINT rplMatrixBareissEx(WORDPTR *a,WORDPTR *index,BINT rowsa,BINT colsa,BINT upperonly)
 {
     BINT i,j,k,q,startrow=1;
 
@@ -809,13 +836,15 @@ BINT rplMatrixBareissEx(WORDPTR *a,WORDPTR *index,BINT rowsa,BINT colsa)
 
     }
 
-
+if(upperonly) {
 // IF WE GOT HERE WITHOUT DIVISION BY ZERO THEN THE MARIX IS INVERTIBLE
 // FILL THE LOWER TRIANGULAR PORTION WITH ZEROS
 
 for(i=2;i<=rowsa;i++) {
 for(j=1;j<i;++j) {
     STACKELEM(i,j)=(WORDPTR)zero_bint;
+}
+
 }
 
 }
@@ -936,7 +965,7 @@ void rplMatrixReduce()
         return;
     }
 
-    rplMatrixBareissEx(a,0,rowsa,colsa);
+    rplMatrixBareissEx(a,0,rowsa,colsa,1);
     if(Exceptions) {
         DSTop=Savestk;
         return;
@@ -1105,7 +1134,7 @@ void rplMatrixInvert()
     */
 
 
-    if(!rplMatrixBareissEx(a,0,rowsa,colsa<<1)) rplError(ERR_SINGULARMATRIX);
+    if(!rplMatrixBareissEx(a,0,rowsa,colsa<<1,1)) rplError(ERR_SINGULARMATRIX);
     if(Exceptions) {
         DSTop=Savestk;
         return;
@@ -1781,4 +1810,31 @@ void rplMatrixSame() {
         rplPushFalse();
     }
 
+}
+
+
+void rplMatrixTranspose()
+{
+    WORDPTR *Savestk,*a;
+    // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
+    // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
+    Savestk=DSTop;
+    a=DSTop-1;
+
+    // NO TYPE CHECK, DO THAT AT HIGHER LEVEL
+
+    // CHECK DIMENSIONS
+
+    BINT rowsa=MATROWS(*(*a+1)),colsa=MATCOLS(*(*a+1));
+
+    if(!rowsa) return;  // NO NEED TO TRANSPOSE VECTORS
+    rplMatrixExplodeByCols();
+    if(Exceptions) {
+        DSTop=Savestk;
+        return;
+    }
+    WORDPTR newmat=rplMatrixCompose(colsa,rowsa);
+    DSTop=Savestk;
+    if(Exceptions) return;
+    rplOverwriteData(1,newmat);
 }

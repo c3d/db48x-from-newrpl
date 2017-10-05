@@ -2214,7 +2214,7 @@ void LIB_HANDLER()
             }
 
             // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
-            rplMatrixBareissEx(a,0,nvecs,ncols);
+            rplMatrixBareissEx(a,0,nvecs,ncols,1);
             if(Exceptions) {
                 DSTop=savestk;
                 return;
@@ -2270,10 +2270,100 @@ void LIB_HANDLER()
 
     case CHOLESKY:
 
-    {
+        {
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            WORDPTR *a=DSTop-1,*savestk=DSTop;
 
-    return;
-     }
+            if(!ISMATRIX(**a)) {
+                rplError(ERR_MATRIXEXPECTED);
+                return;
+            }
+
+            BINT rows,cols;
+            rows=rplMatrixRows(*a);
+            cols=rplMatrixCols(*a);
+
+            // ONLY ACCEPT SQUARE MATRICES
+            if(rows!=cols) {
+                rplError(ERR_INVALIDDIMENSION);
+                return;
+            }
+
+            // TODO: TEST FOR HERMITIAN SYMMETRY
+            // ORIGINAL COMMAND GIVES BAD RESULTS IF MATRIX IS NOT SPD
+            // AND DOESN'T EVEN ALLOW COMPLEX
+
+
+
+            WORDPTR *first=rplMatrixExplode();
+            if(Exceptions) return;
+
+            // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+            BINT canreduce=rplMatrixBareissEx(a,0,rows,cols,1);
+            if(!canreduce) rplError(ERR_SINGULARMATRIX);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+            // CREATE THE DIAGONAL VECTOR
+            // Dii=Product( akk,k=1..i)
+            rplPushData(*rplMatrixFastGetEx(first,cols,1,1));
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+            BINT k;
+
+            for(k=2;k<=rows;++k) {
+                rplPushData(rplPeekData(1));
+                rplPushData(*rplMatrixFastGetEx(first,cols,k,k));
+                rplCallOvrOperator(CMD_OVR_MUL);
+                if(Exceptions) {
+                    DSTop=savestk;
+                    return;
+                }
+            }
+
+            // MULTIPLY THE DIAGONAL BY SQRT(D^-1)
+
+            for(k=rows;k>=1;--k) {
+                rplCallOperator(CMD_SQRT);
+                if(Exceptions) {
+                    DSTop=savestk;
+                    return;
+                }
+                rplPushData(rplPeekData(1));
+                rplOverwriteData(2,*rplMatrixFastGetEx(first,cols,k,k));
+                if(Exceptions) {
+                    DSTop=savestk;
+                    return;
+                }
+                rplCallOvrOperator(CMD_OVR_DIV);
+                if(Exceptions) {
+                    DSTop=savestk;
+                    return;
+                }
+                *rplMatrixFastGetEx(first,cols,k,k)=rplPopData();
+            }
+
+
+
+            // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+            WORDPTR newmat=rplMatrixCompose(rows,cols);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+            DSTop=savestk;
+            rplOverwriteData(1,newmat);
+
+            return;
+        }
+
 
 
 

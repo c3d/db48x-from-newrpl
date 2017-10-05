@@ -686,6 +686,7 @@ BINT rplMatrixIsAllowed(WORDPTR object);
 
 
 WORDPTR *rplMatrixExplode();
+WORDPTR *rplMatrixExplodeByCols();
 WORDPTR rplMatrixGetFirstObj(WORDPTR matrix);
 BINT rplMatrixCols(WORDPTR matrix);
 BINT rplMatrixRows(WORDPTR matrix);
@@ -704,8 +705,9 @@ void rplMatrixSub();
 void rplMatrixMul();
 void rplMatrixMulScalar();
 void rplMatrixDivScalar();
+void rplMatrixTranspose();
 void rplMatrixReduce();
-BINT rplMatrixBareissEx(WORDPTR *a, WORDPTR *index, BINT rowsa, BINT colsa);
+BINT rplMatrixBareissEx(WORDPTR *a, WORDPTR *index, BINT rowsa, BINT colsa, BINT upperonly);
 void rplMatrixInvert();
 void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 BINT rplMatrixIsPolar(WORDPTR matobj);
