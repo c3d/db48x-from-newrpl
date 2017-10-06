@@ -681,6 +681,8 @@ WORDPTR rplCreateStringBySize(BINT lenbytes);
 WORDPTR rplMatrixCompose(BINT rows,BINT cols);
 WORDPTR rplMatrixComposeN(BINT level,BINT rows,BINT cols);
 WORDPTR rplMatrixFlexComposeN(BINT level,BINT totalelements);
+WORDPTR rplMatrixFill(BINT rows,BINT cols,WORDPTR obj);
+
 
 BINT rplMatrixIsAllowed(WORDPTR object);
 

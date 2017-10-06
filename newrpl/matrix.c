@@ -854,72 +854,6 @@ return (startrow==1)? 1:0;
 }
 
 
-
-
-
-// REORDER THE ROWS OF A MATRIX TO MAKE SURE THERE'S NO ZEROS IN THE DIAGONALS
-// UPDATES A PERMUTATION INDEX VECTOR
-
-
-void rplMatrixRowOrder(WORDPTR *a,WORDPTR *rowidx,BINT rowsa,BINT colsa)
-{
-    int j;
-    int needswap;
-    // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
-    // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
-    #define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
-    #define IDXELEM(r) rowidx[r]
-
-    for(j=1;j<=rowsa;++j)
-    {
-        needswap=0;
-        if(ISNUMBER(*STACKELEM(j,j))) {
-            if(ISBINT(*STACKELEM(j,j))) {
-                BINT64 c=rplReadBINT(STACKELEM(j,j));
-                if(c==0) needswap=1;
-            }
-            else {
-             REAL r;
-             rplReadNumberAsReal(STACKELEM(j,j),&r);
-             if(iszeroReal(&r)) needswap=1;
-            }
-        }
-        else
-            if(ISCOMPLEX(*STACKELEM(j,j))) {
-              BINT cclass=rplComplexClass(STACKELEM(j,j));
-              if(cclass==CPLX_ZERO) needswap=1;
-            }
-        else
-        if(ISSYMBOLIC(*STACKELEM(j,j))) {
-            if(rplSymbIsNumeric(STACKELEM(j,j))&&rplSymbIsZero(STACKELEM(j,j))) needswap=1;
-        }
-        else
-        if(ISANGLE(*STACKELEM(j,j))) {
-            REAL r;
-            rplReadNumberAsReal(STACKELEM(j,j)+1,&r);
-            if(iszeroReal(&r)) needswap=1;
-        }
-        else continue;
-
-        if(needswap) {
-        // FOUND A ZERO IN THE DIAGONAL, FIND A ROW AND SWAP IT
-
-
-
-
-
-
-        }
-
-
-
-
-}
-
-
-}
-
-
 // FRACTION-FREE GAUSSIAN ELIMINATION
 // TAKES MATRIX ON THE STACK AND PERFORMS BAREISS ELIMINATION
 // LEAVES NEW MATRIX ON THE STACK
@@ -1837,4 +1771,46 @@ void rplMatrixTranspose()
     DSTop=Savestk;
     if(Exceptions) return;
     rplOverwriteData(1,newmat);
+}
+
+// COMPOSES A NEW MATRIX OBJECT FROM FILLED WITH GIVEN OBJECT
+// CREATES A VECTOR IF ROWS == 0, OTHERWISE A MATRIX
+
+WORDPTR rplMatrixFill(BINT rows,BINT cols,WORDPTR obj)
+{
+BINT k,totalelements=(rows)? rows*cols:cols;
+
+if((rows<0) || (rows>65535) || (cols<1) || (cols>65535)) {
+    rplError(ERR_INVALIDDIMENSION);
+    return 0;
+}
+
+if(!rplMatrixIsAllowed(obj)) {
+    rplError(ERR_NOTALLOWEDINMATRIX);
+    return 0;
+    }
+
+ScratchPointer1=obj;
+WORDPTR matrix=rplAllocTempOb(1+totalelements+rplObjSize(obj));
+WORDPTR newobj=matrix+2+totalelements;  // POINT TO THE NEXT OBJECT TO STORE
+
+if(!matrix) return 0;
+
+obj=ScratchPointer1;
+
+// FINALLY, ASSEMBLE THE OBJECT
+for(k=0;k<totalelements;++k) {
+            // ADD A NEW OBJECT
+            matrix[2+k]=newobj-matrix;
+        }
+rplCopyObject(newobj,obj);
+newobj=rplSkipOb(newobj);
+
+rplTruncateLastObject(newobj);
+
+matrix[0]=MKPROLOG(DOMATRIX,newobj-matrix-1);
+matrix[1]=MATMKSIZE(rows,cols);
+
+return matrix;
+
 }

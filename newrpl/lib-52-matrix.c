@@ -2038,8 +2038,6 @@ void LIB_HANDLER()
         return;
     }
 
-
-
     case AXL:
     {
         // CONVERT MATRIX TO LIST AND VICE VERSA
@@ -2162,10 +2160,6 @@ void LIB_HANDLER()
 
     }
 
-
-
-
-
     case BASIS:
         {
             if(rplDepthData()<1) {
@@ -2269,7 +2263,6 @@ void LIB_HANDLER()
 
 
     case CHOLESKY:
-
         {
             if(rplDepthData()<1) {
                 rplError(ERR_BADARGCOUNT);
@@ -2310,18 +2303,15 @@ void LIB_HANDLER()
             }
 
             // CREATE THE DIAGONAL VECTOR
-            // Dii=Product( akk,k=1..i)
-            rplPushData(*rplMatrixFastGetEx(first,cols,1,1));
-            if(Exceptions) {
-                DSTop=savestk;
-                return;
-            }
-            BINT k;
+            // Dii=u(i,i)*u(i-1,i-1)
+            BINT k,j;
 
-            for(k=2;k<=rows;++k) {
-                rplPushData(rplPeekData(1));
+            for(k=1;k<=rows;++k) {
                 rplPushData(*rplMatrixFastGetEx(first,cols,k,k));
-                rplCallOvrOperator(CMD_OVR_MUL);
+                if(k>1) {
+                    rplPushData(*rplMatrixFastGetEx(first,cols,k-1,k-1));
+                    rplCallOvrOperator(CMD_OVR_MUL);
+                }
                 if(Exceptions) {
                     DSTop=savestk;
                     return;
@@ -2336,8 +2326,9 @@ void LIB_HANDLER()
                     DSTop=savestk;
                     return;
                 }
-                rplPushData(rplPeekData(1));
-                rplOverwriteData(2,*rplMatrixFastGetEx(first,cols,k,k));
+                for(j=k;j<=cols;++j) {
+                rplPushData(*rplMatrixFastGetEx(first,cols,k,j));
+                rplPushData(rplPeekData(2));
                 if(Exceptions) {
                     DSTop=savestk;
                     return;
@@ -2347,7 +2338,10 @@ void LIB_HANDLER()
                     DSTop=savestk;
                     return;
                 }
-                *rplMatrixFastGetEx(first,cols,k,k)=rplPopData();
+                *rplMatrixFastGetEx(first,cols,k,j)=rplPopData();
+                }
+                rplPopData();
+
             }
 
 
@@ -2364,19 +2358,370 @@ void LIB_HANDLER()
             return;
         }
 
+    case CNRM:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR *a=DSTop-1,*savestk=DSTop;
+
+        if(!ISMATRIX(**a)) {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+
+        BINT rows,cols;
+        rows=rplMatrixRows(*a);
+        cols=rplMatrixCols(*a);
+
+        if(!rows) rows=1;
+
+        BINT i,j;
+
+        for(j=1;j<=cols;++j) {
+
+        for(i=1;i<=rows;++i) {
+                rplPushData(rplMatrixFastGet(*a,i,j));
+                rplCallOvrOperator(CMD_OVR_ABS);
+                if(Exceptions) { DSTop=savestk; return; }
+                if(i>1) {
+                    rplCallOvrOperator(CMD_OVR_ADD);
+                    if(Exceptions) { DSTop=savestk; return; }
+                }
+        }
+        if(j>1) {
+            rplCallOperator(CMD_MAX);
+            if(Exceptions) { DSTop=savestk; return; }
+        }
+        }
+
+        if(ISSYMBOLIC(*rplPeekData(1))) {
+            rplSymbAutoSimplify();
+            if(Exceptions) { DSTop=savestk; return; }
+        }
+
+        rplOverwriteData(2,rplPeekData(1));
+        rplDropData(1);
+        return;
+    }
+
+    case CON:
+    {
+
+            if(rplDepthData()<2) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            BINT64 rows,cols;
+            WORDPTR *var=0;
+
+            if(!rplMatrixIsAllowed(rplPeekData(1))) {
+                rplError(ERR_NOTALLOWEDINMATRIX);
+                return;
+            }
+
+            if(ISIDENT(*rplPeekData(2))) {
+
+                var=rplFindLAM(rplPeekData(2),1);
+                if(!var) var=rplFindGlobal(rplPeekData(2),1);
+                if(!var) {
+                    rplError(ERR_UNDEFINEDVARIABLE);
+                    return;
+                }
+                ++var;
+                if(!ISMATRIX(**var)) {
+                    rplError(ERR_INVALIDDIMENSION);
+                    return;
+                }
+
+            }
+            else var=DSTop-2;
+
+
+            if(ISLIST(**var)) {
+                BINT ndims=rplListLength(*var);
+                if((ndims<1) || (ndims>2)) {
+                    rplError(ERR_INVALIDDIMENSION);
+                    return;
+                }
+
+                cols=rplReadNumberAsBINT(rplGetListElement(*var,1));
+                if(Exceptions) {
+                    return;
+                }
+
+                if(ndims==2) {
+                    rows=cols;
+                    cols=rplReadNumberAsBINT(rplGetListElement(*var,2));
+                    if(Exceptions) {
+                        return;
+                    }
 
 
 
+                } else rows=0;
+
+            }
+            else if(ISNUMBER(**var)) {
+                // IT HAS TO BE A NUMBER
+
+                cols=rplReadNumberAsBINT(*var);
+                if(Exceptions) {
+                    return;
+                }
+
+                rows=0;
+
+                if((cols<1)||(cols>65535))  {
+                    rplError(ERR_INVALIDDIMENSION);
+                    return;
+                }
+                }
+            else if(ISMATRIX(**var)) {
+                        rows=rplMatrixRows(*var);
+                        cols=rplMatrixCols(*var);
+                    }
+            else {
+                rplError(ERR_INVALIDDIMENSION);
+                return;
+            }
+
+
+            if( (rows<0)||(rows>65535)||(cols<1)||(cols>65535))  {
+                rplError(ERR_INVALIDDIMENSION);
+                return;
+            }
+
+            // HERE WE HAVE PROPER ROWS AND COLUMNS
+
+            WORDPTR newmat=rplMatrixFill(rows,cols,rplPeekData(1));
+
+            if(newmat) {
+                *var=newmat;
+                if(var!=DSTop-2) rplDropData(2);
+                else rplDropData(1);
+            }
+
+            return;
+    }
+
+
+    case COND:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        WORDPTR *savestk=DSTop;
+
+        if(!ISMATRIX(*rplPeekData(1))) {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+
+        rplPushData(rplPeekData(1));
+        rplMatrixInvert();
+        if(Exceptions) { DSTop=savestk; return; }
+
+        rplCallOperator(CMD_CNRM);
+        if(Exceptions) { DSTop=savestk; return; }
+
+        WORDPTR tmp=rplPeekData(2);
+        rplOverwriteData(2,rplPeekData(1));
+        rplOverwriteData(1,tmp);
+
+        rplCallOperator(CMD_CNRM);
+        if(Exceptions) { DSTop=savestk; return; }
+
+        rplCallOvrOperator(CMD_OVR_MUL);
+        if(Exceptions) { DSTop=savestk; return; }
+
+        return;
+    }
+
+
+    case CROSS:
+    {
+    // EXPLODE A VECTOR INTO ITS COMPONENTS
+    if(rplDepthData()<2) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+
+    if(!ISMATRIX(*rplPeekData(2)) || !ISMATRIX(*rplPeekData(1))) {
+        rplError(ERR_MATRIXEXPECTED);
+        return;
+    }
+    WORDPTR *v1=DSTop-2,*v2=DSTop-1;
+    BINT rows1=rplMatrixRows(*v1),rows2=rplMatrixRows(*v2);
+    BINT cols1=rplMatrixCols(*v1),cols2=rplMatrixCols(*v2);
 
 
 
+    if((rows1>1)||(rows2>1)) {
+        rplError(ERR_VECTOREXPECTED);
+        return;
+    }
+    if((cols1>3)||(cols2>3)) {
+        rplError(ERR_INVALIDDIMENSION);
+        return;
+    }
+
+    // FIRST COMPONENT
+
+    if(cols1>=2) rplPushData(rplMatrixFastGet(*v1,1,2)); else rplPushData((WORDPTR)zero_bint);
+    if(cols2>=3) rplPushData(rplMatrixFastGet(*v2,1,3)); else rplPushData((WORDPTR)zero_bint);
+    rplCallOvrOperator(CMD_OVR_MUL);
+    if(Exceptions) { DSTop=v2+1; return; }
+    if(cols2>=2) rplPushData(rplMatrixFastGet(*v2,1,2)); else rplPushData((WORDPTR)zero_bint);
+    if(cols1>=3) rplPushData(rplMatrixFastGet(*v1,1,3)); else rplPushData((WORDPTR)zero_bint);
+    rplCallOvrOperator(CMD_OVR_MUL);
+    if(Exceptions) { DSTop=v2+1; return; }
+    rplCallOvrOperator(CMD_OVR_SUB);
+    if(Exceptions) { DSTop=v2+1; return; }
+
+    if(ISSYMBOLIC(*rplPeekData(1))) rplSymbAutoSimplify();
+    if(Exceptions) { DSTop=v2+1; return; }
+
+    // SECOND COMPONENT
+
+    rplPushData(rplMatrixFastGet(*v1,1,1));
+    if(cols2>=3) rplPushData(rplMatrixFastGet(*v2,1,3)); else rplPushData((WORDPTR)zero_bint);
+    rplCallOvrOperator(CMD_OVR_MUL);
+    if(Exceptions) { DSTop=v2+1; return; }
+    rplPushData(rplMatrixFastGet(*v2,1,1));
+    if(cols1>=3) rplPushData(rplMatrixFastGet(*v1,1,3)); else rplPushData((WORDPTR)zero_bint);
+    rplCallOvrOperator(CMD_OVR_MUL);
+    if(Exceptions) { DSTop=v2+1; return; }
+    rplCallOvrOperator(CMD_OVR_SUB);
+    if(Exceptions) { DSTop=v2+1; return; }
+
+    if(ISSYMBOLIC(*rplPeekData(1))) rplSymbAutoSimplify();
+    if(Exceptions) { DSTop=v2+1; return; }
+
+
+    // THIRD COMPONENT
+
+    rplPushData(rplMatrixFastGet(*v1,1,1));
+    if(cols2>=2) rplPushData(rplMatrixFastGet(*v2,1,2)); else rplPushData((WORDPTR)zero_bint);
+    rplCallOvrOperator(CMD_OVR_MUL);
+    if(Exceptions) { DSTop=v2+1; return; }
+    rplPushData(rplMatrixFastGet(*v2,1,1));
+    if(cols1>=2) rplPushData(rplMatrixFastGet(*v1,1,2)); else rplPushData((WORDPTR)zero_bint);
+    rplCallOvrOperator(CMD_OVR_MUL);
+    if(Exceptions) { DSTop=v2+1; return; }
+    rplCallOvrOperator(CMD_OVR_SUB);
+    if(Exceptions) { DSTop=v2+1; return; }
+
+    if(ISSYMBOLIC(*rplPeekData(1))) rplSymbAutoSimplify();
+    if(Exceptions) { DSTop=v2+1; return; }
+
+    WORDPTR newmat=rplMatrixComposeN(1,0,3);
+    if(!newmat) { DSTop=v2+1; return; }
+
+    *v1=newmat;
+    DSTop=v2;
+    return;
+
+    }
+
+    case CSWP:
+    {
+        // EXPLODE A VECTOR INTO ITS COMPONENTS
+        if(rplDepthData()<3) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISMATRIX(*rplPeekData(3))) {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+        WORDPTR *m=DSTop-3;
+        BINT rows=rplMatrixRows(*m);
+        BINT cols=rplMatrixCols(*m);
+
+        if(!ISNUMBER(*rplPeekData(1)) || !ISNUMBER(*rplPeekData(2))) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+        BINT64 cfrom,cto;
+        cfrom=rplReadNumberAsBINT(rplPeekData(2));
+        cto=rplReadNumberAsBINT(rplPeekData(1));
+
+        if( (cfrom<1)||(cfrom>cols) || (cto<1) || (cto>cols)) {
+            rplError(ERR_INDEXOUTOFBOUNDS);
+            return;
+        }
+
+// SWAP THE COLUMNS INTERNALLY TO REDUCE OVERHEAD
+        WORDPTR newmat=rplMakeNewCopy(*m);
+        WORD offset;
+        BINT i;
+
+
+#define MATOFFSET(matrix,row,col) ((matrix)[2+(((row)-1)*cols+((col)-1))])
+
+
+        for(i=1;i<=rows;++i) {
+            offset=MATOFFSET(newmat,i,cfrom);
+            MATOFFSET(newmat,i,cfrom)=MATOFFSET(newmat,i,cto);
+            MATOFFSET(newmat,i,cto)=offset;
+        }
+
+#undef MATOFFSET
 
 
 
+        rplDropData(2);
+        rplOverwriteData(1,newmat);
 
+        return;
+    }
 
+    case DET:
+        {
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            WORDPTR *a=DSTop-1,*savestk=DSTop;
 
+            if(!ISMATRIX(**a)) {
+                rplError(ERR_MATRIXEXPECTED);
+                return;
+            }
 
+            BINT rows,cols;
+            rows=rplMatrixRows(*a);
+            cols=rplMatrixCols(*a);
+
+            // ONLY ACCEPT SQUARE MATRICES
+            if(rows!=cols) {
+                rplError(ERR_INVALIDDIMENSION);
+                return;
+            }
+
+            WORDPTR *first=rplMatrixExplode();
+            if(Exceptions) return;
+
+            // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+            rplMatrixBareissEx(a,0,rows,cols,1);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+            // THE PARTIAL DETERMINANTS ARE IN THE DIAGONAL,
+            // THE DETERMINANT OF THE WHOLE MATRIX IS Ukk
+
+            WORDPTR det=rplPeekData(1);
+            DSTop=savestk;
+            rplOverwriteData(1,det);
+            return;
+        }
 
 
 
