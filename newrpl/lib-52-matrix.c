@@ -2544,7 +2544,6 @@ void LIB_HANDLER()
 
     case CROSS:
     {
-    // EXPLODE A VECTOR INTO ITS COMPONENTS
     if(rplDepthData()<2) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -2704,11 +2703,19 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR *first=rplMatrixExplode();
+            // PREPARE THE PERMUTATIONS INDEX
+            WORDPTR idx=rplMatrixInitIdx(rows);
+            if(!idx) return;
+
+            rplPushData(idx);
+            rplPushData(*a);
+            a+=2;
+
+            rplMatrixExplode();
             if(Exceptions) return;
 
             // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
-            rplMatrixBareissEx(a,0,rows,cols,1);
+            rplMatrixBareissEx(a,a-1,rows,cols,0);
             if(Exceptions) {
                 DSTop=savestk;
                 return;
@@ -2717,15 +2724,687 @@ void LIB_HANDLER()
             // THE PARTIAL DETERMINANTS ARE IN THE DIAGONAL,
             // THE DETERMINANT OF THE WHOLE MATRIX IS Ukk
 
+            // FIRST CHECK THE SIGN CHANGE DUE TO ROW PERMUTATIONS
+
+            BINT k,count=0;
+            idx=*(a-1); // RETRIEVE THE INDEX ADDRESS IN CASE IT MOVED
+            for(k=1;k<=rows;++k) if(idx[k]!=(WORD)k) ++count;
+            if(count&2) {
+                rplCallOvrOperator(CMD_OVR_NEG);
+                if(Exceptions) {
+                    DSTop=savestk;
+                    return;
+                }
+            }
+
+
             WORDPTR det=rplPeekData(1);
             DSTop=savestk;
             rplOverwriteData(1,det);
             return;
         }
 
+    case DIAGMAP:
+    {
+        // TODO: COMPUTE EIGENVECTORS, FORM A BASE CONVERSION MATRIX P SO P^-1*D*P = A
+        // APPLY THE FUNCTIONAL OPERATOR TO THE MATRIX D, ELEMENT BY ELEMENT
+        // MULTIPLY BY P AND P^-1 TO FIND f(A)
+
+        return;
+    }
+
+    case DOT:
+    {
+    if(rplDepthData()<2) {
+        rplError(ERR_BADARGCOUNT);
+        return;
+    }
+
+    if(!ISMATRIX(*rplPeekData(2)) || !ISMATRIX(*rplPeekData(1))) {
+        rplError(ERR_MATRIXEXPECTED);
+        return;
+    }
+    WORDPTR *v1=DSTop-2,*v2=DSTop-1;
+    BINT rows1=rplMatrixRows(*v1),rows2=rplMatrixRows(*v2);
+    BINT cols1=rplMatrixCols(*v1),cols2=rplMatrixCols(*v2);
 
 
 
+    if((rows1>1)||(rows2>1)) {
+        rplError(ERR_VECTOREXPECTED);
+        return;
+    }
+    if(cols1>cols2) cols1=cols2;
+
+    // FIRST COMPONENT
+
+    BINT k;
+    for(k=1;k<=cols1;++k)
+    {
+    rplPushData(rplMatrixFastGet(*v1,1,k));
+    rplPushData(rplMatrixFastGet(*v2,1,k));
+    rplCallOvrOperator(CMD_OVR_MUL);
+    if(Exceptions) { DSTop=v2+1; return; }
+    if(k>1) {
+        rplCallOvrOperator(CMD_OVR_ADD);
+        if(Exceptions) { DSTop=v2+1; return; }
+    }
+    }
+
+    if(ISSYMBOLIC(*rplPeekData(1))) rplSymbAutoSimplify();
+    if(Exceptions) { DSTop=v2+1; return; }
+
+    *v1=rplPeekData(1);
+    DSTop=v2;
+    return;
+
+    }
+
+        case EGV:
+        {
+
+            // TODO:
+
+        return;
+        }
+        case EGVL:
+        {
+
+            // TODO:
+
+            return;
+        }
+
+        case GRAMSCHMIDT:
+        {
+
+            // TODO:
+
+            return;
+        }
+
+        case HADAMARD:
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+
+            return;
+        }
+        WORDPTR a=rplPeekData(2),b=rplPeekData(1);
+
+        if(!ISMATRIX(*a))
+        {
+            // CHECK DIMENSIONS OF MATRIX B
+            // OPERATION IS VALID IF B IS A SCALAR
+            if(ISMATRIX(*b)){
+                BINT rows=rplMatrixRows(b);
+                BINT cols=rplMatrixCols(b);
+                if( (rows<2)&&(cols==1)) {
+                    // OPERATION IS SCALAR, ACCEPT IT
+                    WORDPTR scalar=rplMatrixGet(b,1,1);
+                    rplOverwriteData(1,scalar);
+                    rplCallOvrOperator(CurOpcode);
+                    return;
+                }
+            }
+                rplError(ERR_INCOMPATIBLEDIMENSION);
+                return;
+        }
+        if(!ISMATRIX(*b))
+        {
+            // CHECK DIMENSIONS OF MATRIX A
+            // OPERATION IS VALID IF A IS A SCALAR
+            if(ISMATRIX(*a)){
+                BINT rows=rplMatrixRows(a);
+                BINT cols=rplMatrixCols(a);
+                if( (rows<2)&&(cols==1)) {
+                    // OPERATION IS SCALAR, ACCEPT IT
+                    WORDPTR scalar=rplMatrixGet(a,1,1);
+                    rplOverwriteData(2,scalar);
+                    rplCallOvrOperator(CurOpcode);
+                    return;
+                }
+            }
+                rplError(ERR_INCOMPATIBLEDIMENSION);
+                return;
+        }
+
+        rplMatrixHadamard();
+        return;
+    }
+
+        case HILBERT:
+        {
+            // COMPUTE THE HILBERT MATRIX AS SYMBOLIC
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+        }
+
+        WORDPTR *savestk=DSTop;
+        BINT64 n=rplReadNumberAsBINT(rplPeekData(1));
+
+        if(n<1) {
+            rplError(ERR_INVALIDDIMENSION);
+            return;
+        }
+
+
+        BINT i,j;
+
+        for(i=1;i<=n;++i) {
+            for(j=1;j<=n;++j) {
+                if((i>1)&&(j<n)) rplPushData(rplPeekData(n-1));
+                    else {
+                    // CREATE THE FRACTION IN CANONICAL FORM TO SAVE THE AUTOSIMPLIFY STEP
+                    rplPushData((WORDPTR)one_bint);
+                    if(i+j-1>1) {
+                    rplNewBINTPush(i+j-1,DECBINT);
+                    if(Exceptions) { DSTop=savestk; return; }
+                    rplSymbApplyOperator(CMD_OVR_INV,1);
+                    if(Exceptions) { DSTop=savestk; return; }
+                    rplSymbApplyOperator(CMD_OVR_MUL,2);
+                    if(Exceptions) { DSTop=savestk; return; }
+                    }
+                }
+                }
+
+
+            }
+
+
+        WORDPTR newmat=rplMatrixCompose(n,n);
+
+            if(!newmat) { DSTop=savestk; return; }
+
+            DSTop=savestk;
+            rplOverwriteData(1,newmat);
+            return;
+        }
+
+        case IBASIS:
+        {
+            if(rplDepthData()<2) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            WORDPTR *a=DSTop-1,*b=DSTop-2;
+            WORDPTR *savestk=DSTop;
+
+            if(!ISLIST(**a) || !ISLIST(**b)) {
+                rplError(ERR_LISTEXPECTED);
+                return;
+            }
+
+            WORDPTR lelem=*a+1,endoflist=rplSkipOb(*a);
+            BINT ncols=0,nvecs=0,allzeros;
+            BINT i,j,k;
+
+            while( (lelem<endoflist) && (*lelem!=CMD_ENDLIST) ) {
+
+            if(!ISMATRIX(*lelem)) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+            if(rplMatrixRows(lelem)>1) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+
+            }
+            if(ncols) {
+                if(rplMatrixCols(lelem)!=ncols) {
+                    rplError(ERR_INVALIDDIMENSION);
+                    return;
+                }
+            } else ncols=rplMatrixCols(lelem);
+
+            //  EXPAND THE VALID VECTOR
+            BINT off=lelem-*a;  // PROTECT FROM GC
+            for(k=1;k<=ncols;++k) {
+                rplPushData(rplMatrixGet(lelem,1,k));
+                if(Exceptions) { DSTop=savestk; return; }
+            }
+            lelem=*a+off;
+            ++nvecs;
+            lelem=rplSkipOb(lelem);
+            }
+
+            lelem=*b+1;
+            endoflist=rplSkipOb(*b);
+
+            while( (lelem<endoflist) && (*lelem!=CMD_ENDLIST) ) {
+
+            if(!ISMATRIX(*lelem)) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+            if(rplMatrixRows(lelem)>1) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+
+            }
+            if(ncols) {
+                if(rplMatrixCols(lelem)!=ncols) {
+                    rplError(ERR_INVALIDDIMENSION);
+                    return;
+                }
+            } else ncols=rplMatrixCols(lelem);
+
+            //  EXPAND THE VALID VECTOR
+            BINT off=lelem-*b;  // PROTECT FROM GC
+            for(k=1;k<=ncols;++k) {
+                rplPushData(rplMatrixGet(lelem,1,k));
+                if(Exceptions) { DSTop=savestk; return; }
+            }
+            lelem=*b+off;
+            ++nvecs;
+            lelem=rplSkipOb(lelem);
+            }
+
+            // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+            rplMatrixBareissEx(a,0,nvecs,ncols,1);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+
+            rplMatrixBackSubstEx(a,nvecs,ncols);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+            // EXPAND THE MATRIX INTO ITS ROWS, BUT ELIMINATE ALL NULL ONES
+
+            WORDPTR *base=DSTop;
+
+            for(i=1;i<=nvecs;++i) {
+
+            allzeros=1;
+            for(j=1;j<=ncols;++j) {
+                if(!rplSymbIsZero(base[-j])) { allzeros=0; break; }
+            }
+            if(allzeros) {
+                // DROP THE ROWS THAT ARE ALL ZERO
+                --base;
+                rplRemoveAtData(DSTop-base,ncols);
+                --nvecs;
+                --i;
+                base-=ncols-1;
+            }
+            else {
+                // MAKE A ROW VECTOR AND LEAVE IT IN THE STACK
+                --base;
+                lelem=rplMatrixComposeN(DSTop-base,0,ncols);
+                if(!lelem) { DSTop=savestk; return; }
+                rplRemoveAtData(DSTop-base,ncols-1);
+                base-=ncols-1;
+                base[0]=lelem;
+            }
+
+            }
+
+
+            // HERE WE HAVE nvecs IN THE STACK, READY TO PACK
+
+            WORDPTR newlist=rplCreateListN(nvecs,1,1);
+            if(Exceptions) { DSTop=savestk; return; }
+
+            rplOverwriteData(1,newlist);
+            return;
+        }
+
+        case IDN:
+        {
+
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            BINT64 rows,cols;
+            WORDPTR *var=0;
+
+            if(ISIDENT(*rplPeekData(1))) {
+
+                var=rplFindLAM(rplPeekData(1),1);
+                if(!var) var=rplFindGlobal(rplPeekData(1),1);
+                if(!var) {
+                    rplError(ERR_UNDEFINEDVARIABLE);
+                    return;
+                }
+                ++var;
+                if(!ISMATRIX(**var)) {
+                    rplError(ERR_INVALIDDIMENSION);
+                    return;
+                }
+
+            }
+            else var=DSTop-1;
+
+
+            if(ISLIST(**var)) {
+                BINT ndims=rplListLength(*var);
+                if((ndims<1) || (ndims>2)) {
+                    rplError(ERR_INVALIDDIMENSION);
+                    return;
+                }
+
+                cols=rplReadNumberAsBINT(rplGetListElement(*var,1));
+                if(Exceptions) {
+                    return;
+                }
+
+                if(ndims==2) {
+                    rows=cols;
+                    cols=rplReadNumberAsBINT(rplGetListElement(*var,2));
+                    if(Exceptions) {
+                        return;
+                    }
+
+
+
+                } else rows=0;
+
+            }
+            else if(ISNUMBER(**var)) {
+                // IT HAS TO BE A NUMBER
+
+                cols=rplReadNumberAsBINT(*var);
+                if(Exceptions) {
+                    return;
+                }
+
+                rows=0;
+
+                }
+            else if(ISMATRIX(**var)) {
+                        rows=rplMatrixRows(*var);
+                        cols=rplMatrixCols(*var);
+                    }
+            else {
+                rplError(ERR_INVALIDDIMENSION);
+                return;
+            }
+
+
+            if(!rows) rows=cols;
+
+            if( (rows<0)||(rows>65535)||(cols<1)||(cols>65535) || (rows!=cols))  {
+                rplError(ERR_INVALIDDIMENSION);
+                return;
+            }
+
+
+            // HERE WE HAVE PROPER ROWS AND COLUMNS
+
+            WORDPTR newmat=rplMatrixIdent(rows);
+
+            if(newmat) {
+                *var=newmat;
+                if(var!=DSTop-1) rplDropData(1);
+            }
+
+            return;
+    }
+
+        case IMAGE:
+        {
+        // THE IMAGE OF THE MATRIX, SIMILAR TO BASIS USING THE COLUMNS AS THE VECTORS OF THE BASE
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            WORDPTR *a=DSTop-1;
+            WORDPTR *savestk=DSTop;
+
+            if(!ISMATRIX(**a)) {
+                rplError(ERR_MATRIXEXPECTED);
+                return;
+            }
+
+            BINT nrows=rplMatrixRows(*a);
+            BINT ncols=rplMatrixCols(*a);
+
+            if(!nrows) {
+                rplError(ERR_INVALIDDIMENSION);
+                return;
+            }
+
+
+            rplMatrixExplodeByCols();
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+
+            // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+            rplMatrixBareissEx(a,0,ncols,nrows,1);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+
+            rplMatrixBackSubstEx(a,ncols,nrows);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+            // EXPAND THE MATRIX INTO ITS ROWS, BUT ELIMINATE ALL NULL ONES
+
+            WORDPTR *base=DSTop;
+            BINT nvecs=ncols,allzeros;
+            BINT i,j;
+
+            for(i=1;i<=nvecs;++i) {
+
+            allzeros=1;
+            for(j=1;j<=nrows;++j) {
+                if(!rplSymbIsZero(base[-j])) { allzeros=0; break; }
+            }
+            if(allzeros) {
+                // DROP THE ROWS THAT ARE ALL ZERO
+                --base;
+                rplRemoveAtData(DSTop-base,nrows);
+                --nvecs;
+                --i;
+                base-=nrows-1;
+            }
+            else {
+                // MAKE A ROW VECTOR AND LEAVE IT IN THE STACK
+                --base;
+                WORDPTR newvect=rplMatrixComposeN(DSTop-base,0,nrows);
+                if(!newvect) { DSTop=savestk; return; }
+                rplRemoveAtData(DSTop-base,nrows-1);
+                base-=nrows-1;
+                base[0]=newvect;
+            }
+
+            }
+
+
+            // HERE WE HAVE nvecs IN THE STACK, READY TO PACK
+
+            WORDPTR newlist=rplCreateListN(nvecs,1,1);
+            if(Exceptions) { DSTop=savestk; return; }
+
+            rplOverwriteData(1,newlist);
+            return;
+        }
+
+        case ISOM:
+    {
+        // TODO:
+
+        return;
+    }
+
+        case JORDAN:
+    {
+        // TODO:
+        return;
+    }
+        case KER:
+    {
+    // THE KERNEL OF THE MATRIX
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR *a=DSTop-1;
+        WORDPTR *savestk=DSTop;
+
+        if(!ISMATRIX(**a)) {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+
+        BINT nrows=rplMatrixRows(*a);
+        BINT ncols=rplMatrixCols(*a);
+
+        if(!nrows) {
+            rplError(ERR_INVALIDDIMENSION);
+            return;
+        }
+
+
+        WORDPTR *first=rplMatrixExplode();
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+
+
+        // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+        rplMatrixBareissEx(a,0,nrows,ncols,1);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+
+
+        rplMatrixBackSubstEx(a,nrows,ncols);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+
+        BINT i,j,k,nvecs;
+
+        for(i=1;i<=ncols;++i)
+        {
+            if(i<=nrows) {
+                for(j=1;j<ncols;++j) {
+                    if(!rplSymbIsZero(*rplMatrixFastGetEx(first,ncols,i,j))) {
+                        // j=COLUMN OF THE LEFTMOST NON-ZERO ELEMENT IN THIS ROW
+                        while(j>i) {
+                            // INSERT A NEW ROW
+                            WORDPTR *rowptr=rplMatrixFastGetEx(first,ncols,i,1);
+                            // MAKE ROOM
+                            rplExpandStack(ncols);
+                            if(Exceptions) { DSTop=savestk; return; }
+                            memmovew(rowptr+ncols,rowptr,(DSTop-rowptr)*sizeof(WORDPTR)/sizeof(WORD));
+                            DSTop+=ncols;
+                            ++nrows;
+                            for(k=1;k<=ncols;++k,++rowptr) *rowptr=(WORDPTR)zero_bint;
+                            ++i;
+                        }
+
+                        break;
+
+                        }
+
+
+                    }
+
+                }
+            else {
+               // NEED TO ADD A ROW AT THE END
+                for(k=1;k<=ncols;++k) {
+                    rplPushData((WORDPTR)zero_bint);
+                    if(Exceptions) { DSTop=savestk; return; }
+                }
+                ++nrows;
+
+            }
+        }
+
+        // HERE THE MATRIX IS COMPLETE, JUST EXTRACT THE COLUMNS WITH A ZERO IN THE DIAGONAL
+
+        nvecs=0;
+
+         for(j=1;j<=ncols;++j) {
+
+                    if(rplSymbIsZero(*rplMatrixFastGetEx(first,ncols,j,j))) {
+
+                    for(k=1;k<=nrows;++k) {
+                        if(k==j) rplPushData((WORDPTR)minusone_bint);
+                        else rplPushData(*rplMatrixFastGetEx(first,ncols,k,j));
+                        if(Exceptions) {
+                            DSTop=savestk;
+                            return;
+                        }
+                    }
+
+                    // CREATE A VECTOR
+                    WORDPTR newvec=rplMatrixCompose(0,ncols);
+                    if(!newvec) {
+                        DSTop=savestk;
+                        return;
+                    }
+                    rplDropData(ncols-1);
+                    rplOverwriteData(1,newvec);
+                    ++nvecs;
+
+                    }
+        }
+
+        // HERE WE HAVE nvecs IN THE STACK, READY TO PACK
+
+        WORDPTR newlist=rplCreateListN(nvecs,1,1);
+        if(Exceptions) { DSTop=savestk; return; }
+        DSTop=savestk;
+        rplOverwriteData(1,newlist);
+        return;
+    }
+
+        case LQ:
+        case LSQ:
+        case LU:
+        case MAD:
+        case MKISOM:
+        case PMINI:
+        case QR:
+        case RANK:
+        case RANM:
+        case RCI:
+        case RCIJ:
+        case RDM:
+        case REF:
+        case RNRM:
+        case RREF:
+        case RREFMOD:
+        case RSD:
+        case RSWP:
+        case SCHUR:
+        case SNRM:
+        case SRAD:
+        case SVD:
+        case SVL:
+        case SYLVESTER:
+        case TRACE:
+        case TRAN:
+        case TRN:
+        case VANDERMONDE:
+
+        return;
 
 
 

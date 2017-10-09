@@ -143,17 +143,15 @@ WORDPTR *rplMatrixExplode()
 // LEAVES THE ORIGINAL MATRIX POINTER IN THE STACK
 WORDPTR *rplMatrixExplodeByCols()
 {
-    WORDPTR *matrix=DSTop-1,elem;
+    WORDPTR *matrix=DSTop-1;
     BINT rows=MATROWS(*(*matrix+1)),cols=MATCOLS(*(*matrix+1));
     if(!rows) return rplMatrixExplode();
 
-    BINT i,j,nelem;
-
-    nelem=rows*cols;
+    BINT i,j;
 
     for(i=1;i<=cols;++i) {
     for(j=1;j<=rows;++j) {
-        rplPushData(*matrix+(*matrix)[(i-1)*cols+j+1]);
+        rplPushData(*matrix+(*matrix)[(j-1)*cols+i+1]);
         if(Exceptions) {
         DSTop=matrix+1;
         return 0;
@@ -335,7 +333,7 @@ rplDropData(1);
 // ADD/SUBTRACT TWO MATRICES, A+B, WITH A IN LEVEL 2 AND B IN LEVEL 1 OF THE STACK
 void rplMatrixAdd() { rplMatrixBinary((CMD_OVR_ADD)); }
 void rplMatrixSub() { rplMatrixBinary((CMD_OVR_SUB)); }
-
+void rplMatrixHadamard() { rplMatrixBinary((CMD_OVR_MUL)); }
 
 void rplMatrixMulScalar()
 {
@@ -860,7 +858,7 @@ return (startrow==1)? 1:0;
 
 void rplMatrixReduce()
 {
-    WORDPTR *Savestk,*a,*idx;
+    WORDPTR *Savestk,*a;
     // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
     // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
     Savestk=DSTop;
@@ -933,17 +931,21 @@ void rplMatrixReduce()
 
 void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa)
 {
-    BINT i,j,k;
+    BINT i,j,k,l;
 
 // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
 // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
 #define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
 
         for(i=rowsa;i>=1;--i) {
-            if(!rplSymbIsZero(STACKELEM(i,i))) {
-            for(j=colsa;j>=i;--j) {
+            for(k=i;k<=colsa;++k) {
+            if(!rplSymbIsZero(STACKELEM(i,k))) break;
+            }
+            if(k<=colsa) {
+            // HERE k HAS THE FIRST NON-ZERO COLUMN ELEMENT FOR THIS ROW
+            for(j=colsa;j>=k;--j) {
                 rplPushData(STACKELEM(i,j));
-                rplPushData(STACKELEM(i,i));
+                rplPushData(STACKELEM(i,k));
                 rplCallOvrOperator((CMD_OVR_DIV));
                 if(Exceptions) return;
                 // SIMPLIFY IF IT'S A SYMBOLIC TO KEEP THE OBJECTS SMALL
@@ -956,10 +958,10 @@ void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa)
                 STACKELEM(i,j)=rplPopData();
             }
 
-            for(k=i-1;k>=1;--k) {
-                for(j=colsa;j>i;--j) {
-                    rplPushData(STACKELEM(k,j));
-                    rplPushData(STACKELEM(k,i));
+            for(l=i-1;l>=1;--l) {
+                for(j=colsa;j>k;--j) {
+                    rplPushData(STACKELEM(l,j));
+                    rplPushData(STACKELEM(l,k));
                     rplPushData(STACKELEM(i,j));
                     rplCallOvrOperator((CMD_OVR_MUL));
                     if(Exceptions) return;
@@ -973,13 +975,14 @@ void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa)
                     }
 
                     // PUT THE ELEMENT IN ITS PLACE
-                    STACKELEM(k,j)=rplPopData();
+                    STACKELEM(l,j)=rplPopData();
                 }
-            STACKELEM(k,i)=(WORDPTR)zero_bint;
+            STACKELEM(l,k)=(WORDPTR)zero_bint;
+            }
             }
 
-            }
         }
+
 
 #undef STACKELEM
 
@@ -991,7 +994,7 @@ void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa)
 
 void rplMatrixInvert()
 {
-    WORDPTR *Savestk,*a,*idx;
+    WORDPTR *Savestk,*a;
     // DONT KEEP POINTER TO THE MATRICES, BUT POINTERS TO THE POINTERS IN THE STACK
     // AS THE OBJECTS MIGHT MOVE DURING THE OPERATION
     Savestk=DSTop;
@@ -1041,7 +1044,7 @@ void rplMatrixInvert()
 
     // WE HAVE THE SPACE IN THE STACK, EXPAND THE ROWS
 
-    BINT i,j,k;
+    BINT i,j;
     // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
     // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
     #define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
@@ -1810,6 +1813,60 @@ rplTruncateLastObject(newobj);
 
 matrix[0]=MKPROLOG(DOMATRIX,newobj-matrix-1);
 matrix[1]=MATMKSIZE(rows,cols);
+
+return matrix;
+
+}
+
+
+// CREATE TEMPORARY STORAGE FOR ROW INDEX PERMUTATION VECTOR
+// USED IN PARTIAL PIVOTING
+
+WORDPTR rplMatrixInitIdx(BINT nrows)
+{
+        // RESERVE SPACE FOR THE ROW INDEX LIST
+
+        WORDPTR IdxList=rplAllocTempOb(nrows);
+
+        if(!IdxList) {
+            return 0;
+        }
+
+        IdxList[0]=MKPROLOG(DOLIBDATA,nrows);
+
+        BINT k;
+        for(k=1;k<=nrows;++k) IdxList[k]=k;
+
+        return IdxList;
+}
+
+
+// COMPOSES A NEW IDENTITY MATRIX OBJECT
+
+WORDPTR rplMatrixIdent(BINT rows)
+{
+BINT k;
+
+if((rows<0) || (rows>65535) ) {
+    rplError(ERR_INVALIDDIMENSION);
+    return 0;
+}
+
+WORDPTR matrix=rplAllocTempOb(1+rows*rows+2);
+WORDPTR newobj=matrix+2+rows*rows;  // POINT TO THE NEXT OBJECT TO STORE
+
+if(!matrix) return 0;
+
+newobj[0]=MAKESINT(0);
+newobj[1]=MAKESINT(1);
+
+// FILL MATRIX WITH ZEROS
+for(k=0;k<rows*rows;++k) matrix[2+k]=newobj-matrix;
+// AND THE DIAGONAL WITH ONES
+for(k=0;k<rows*rows;k+=rows+1) matrix[2+k]++;
+
+matrix[0]=MKPROLOG(DOMATRIX,newobj-matrix+1);
+matrix[1]=MATMKSIZE(rows,rows);
 
 return matrix;
 

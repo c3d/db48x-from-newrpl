@@ -682,6 +682,8 @@ WORDPTR rplMatrixCompose(BINT rows,BINT cols);
 WORDPTR rplMatrixComposeN(BINT level,BINT rows,BINT cols);
 WORDPTR rplMatrixFlexComposeN(BINT level,BINT totalelements);
 WORDPTR rplMatrixFill(BINT rows,BINT cols,WORDPTR obj);
+WORDPTR rplMatrixIdent(BINT rows);
+
 
 
 BINT rplMatrixIsAllowed(WORDPTR object);
@@ -708,7 +710,9 @@ void rplMatrixMul();
 void rplMatrixMulScalar();
 void rplMatrixDivScalar();
 void rplMatrixTranspose();
+void rplMatrixHadamard();
 void rplMatrixReduce();
+WORDPTR rplMatrixInitIdx(BINT nrows);
 BINT rplMatrixBareissEx(WORDPTR *a, WORDPTR *index, BINT rowsa, BINT colsa, BINT upperonly);
 void rplMatrixInvert();
 void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
