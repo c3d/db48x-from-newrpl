@@ -79,7 +79,8 @@
     CMD(MAX,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
     CMD(RND,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
     CMD(TRNC,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
-    CMD(DIGITS,MKTOKENINFO(6,TITYPE_FUNCTION,3,2))
+    CMD(DIGITS,MKTOKENINFO(6,TITYPE_FUNCTION,3,2)), \
+    CMD(PROOT,MKTOKENINFO(5,TITYPE_FUNCTION,3,2))
 
 
 
@@ -3067,6 +3068,95 @@ case DIGITS:
     }
 
 
+
+case PROOT:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR vect_val=rplPeekData(1);
+
+
+        /*
+        if(ISLIST(*real_val)) {
+            rplListBinaryDoCmd();
+            return;
+        }
+        else if((ISIDENT(*vect_val) || ISSYMBOLIC(*vect_val)) || (ISIDENT(*real_val) || ISSYMBOLIC(*real_val))){
+                rplSymbApplyOperator(CurOpcode,2);
+                return;
+        }
+        else */ if(ISMATRIX(*vect_val)){
+
+            BINT rows=MATROWS(vect_val[1]),cols=MATCOLS(vect_val[1]);
+
+            if(rows) {
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+            BINT f;
+            WORDPTR *savestk=DSTop;
+
+            for(f=0;f<cols;++f) {
+                WORDPTR entry=rplMatrixFastGet(vect_val,1,f+1);
+                if(!ISNUMBERCPLX(*entry)) {
+                    DSTop=savestk;
+                    rplError(ERR_VECTOROFNUMBERSEXPECTED);
+                    return;
+                }
+                rplPushData(entry);
+            }
+
+            WORDPTR solution;
+            for(f=1;f<cols-1;++f) {
+
+            solution=rplPolyRootEx(savestk,cols-f);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+            // WE HAVE ONE SOLUTION!
+            rplPushData(solution);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+            // DEFLATE THE POLYNOMIAL
+            rplPolyDeflateEx(savestk,cols-f,DSTop-1);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+            // NOW THE POLYNOMIAL IS ONE DEGREE LESS
+            }
+
+            // HERE WE HAVE ALL ROOTS OF THE POLYNOMIAL EXCEPT THE LAST ONE
+            // THE POLYNOMIAL OF DEGREE 1 IS a0*X+a1 = 0
+            // THEREFORE THE LAST ROOT IS X=-a1/a0
+            rplPushData(savestk[1]);
+            rplPushData(savestk[0]);
+            rplCallOvrOperator(CMD_OVR_DIV);
+            rplCallOvrOperator(CMD_OVR_NEG);
+
+
+            solution=rplMatrixCompose(0,cols-1);
+            if(!solution) {
+                DSTop=savestk;
+                return;
+            }
+            DSTop=savestk;
+            rplOverwriteData(1,solution);
+
+            return;
+
+        }
+        rplError(ERR_VECTOROFNUMBERSEXPECTED);
+        return;
+
+    }
 
 
 

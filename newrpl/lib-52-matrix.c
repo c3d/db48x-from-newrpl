@@ -97,7 +97,8 @@
     CMD(TRACE,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
     CMD(TRAN,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(TRN,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
-    CMD(VANDERMONDE,MKTOKENINFO(11,TITYPE_FUNCTION,1,2))
+    CMD(VANDERMONDE,MKTOKENINFO(11,TITYPE_FUNCTION,1,2)), \
+    CMD(BAREISS,MKTOKENINFO(7,TITYPE_FUNCTION,1,2))
 
 
 
@@ -3405,6 +3406,74 @@ void LIB_HANDLER()
         case VANDERMONDE:
 
         return;
+
+
+        case BAREISS:
+        {
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            WORDPTR *a=DSTop-1,*savestk=DSTop;
+
+            if(!ISMATRIX(**a)) {
+                rplError(ERR_MATRIXEXPECTED);
+                return;
+            }
+
+            BINT rows,cols;
+            rows=rplMatrixRows(*a);
+            cols=rplMatrixCols(*a);
+
+            WORDPTR *first=rplMatrixExplode();
+            if(Exceptions) return;
+
+            // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+            BINT canreduce=rplMatrixBareissEx(a,0,rows,cols,1);
+
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+            // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+            WORDPTR newmat=rplMatrixCompose(rows,cols);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+            DSTop=savestk;
+            rplOverwriteData(1,newmat);
+
+            return;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
