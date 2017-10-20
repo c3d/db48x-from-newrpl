@@ -254,8 +254,100 @@ WORDPTR rplPolyRootEx(WORDPTR *first,BINT degree)
 
     } while(1); // ADD SOME LOOP LIMIT HERE IN CASE IT DOESN'T CONVERGE!
 
-    Context.precdigits=oldprec;
+    // FOUND A ROOT, CLEAN IT UP BEFORE SENDING
+
     pk=rplPeekData(1);
+
+    if(ISCOMPLEX(*pk)) {
+        BINT cclass=rplComplexClass(pk);
+        if(cclass==CPLX_ZERO) rplOverwriteData(1,(WORDPTR)zero_bint);
+        else if(cclass==CPLX_NORMAL) {
+            REAL re,im;
+
+            rplReadCNumberAsReal(pk,&re);
+            rplReadCNumberAsImag(pk,&im);
+
+            BINT digre,digim;
+            digre=intdigitsReal(&re);
+            digim=intdigitsReal(&im);
+
+            if( (digim<-10) && (digre>digim+10)) {
+                // IF IM(r)<1E-10 AND RE(r)>10^10*IM(r)
+                // TRY A REAL ROOT AND SEE IF IT'S STILL GOOD
+
+                rplNewRealPush(&re);
+                if(Exceptions) { Context.precdigits=oldprec; return 0; }
+                pk=rplPolyEvalEx(first,degree,DSTop-1);
+                if(!pk) { Context.precdigits=oldprec; return 0; }
+                rplPushData(pk);
+                if(Exceptions) { Context.precdigits=oldprec; return 0; }
+                rplCallOvrOperator(CMD_OVR_ABS);
+                if(Exceptions) { Context.precdigits=oldprec; return 0; }
+                rplReadNumberAsReal(rplPopData(),&err);
+                if(Exceptions) { Context.precdigits=oldprec; return 0; }
+                if(iszeroReal(&err) || (intdigitsReal(&err)<-(2*oldprec)))
+                { pk=rplPopData(); rplOverwriteData(1,pk); }    // REAL ROOT ALONE IS STILL GOOD, USE IT
+
+            }
+            else
+            if( (digre<-10) && (digim>digre+10)) {
+                // IF RE(r)<1E-10 AND IM()>10^10*RE()
+                // TRY A PURE IMAGINARY ROOT AND SEE IF IT'S STILL GOOD
+
+                rplZeroToRReg(0);
+                rplNewComplexPush(&RReg[0],&im,ANGLENONE);
+                if(Exceptions) { Context.precdigits=oldprec; return 0; }
+                pk=rplPolyEvalEx(first,degree,DSTop-1);
+                if(!pk) { Context.precdigits=oldprec; return 0; }
+                rplPushData(pk);
+                if(Exceptions) { Context.precdigits=oldprec; return 0; }
+                rplCallOvrOperator(CMD_OVR_ABS);
+                if(Exceptions) { Context.precdigits=oldprec; return 0; }
+                rplReadNumberAsReal(rplPopData(),&err);
+                if(Exceptions) { Context.precdigits=oldprec; return 0; }
+                if(iszeroReal(&err) || (intdigitsReal(&err)<-(2*oldprec)))
+                { pk=rplPopData(); rplOverwriteData(1,pk); }    // IMAG. ROOT ALONE IS STILL GOOD, USE IT
+
+            }
+
+
+
+        }
+
+
+    }
+
+    if(ISNUMBER(*pk)) {
+        // ADJUST ROOTS TO BE INTEGER IF THEY ARE CLOSE TO IT
+
+        REAL re;
+
+        rplReadNumberAsReal(pk,&re);
+
+        fracReal(&RReg[0],&re);
+
+        if(!iszeroReal(&RReg[0]) && (intdigitsReal(&RReg[0])<-10)) {
+
+            ipReal(&RReg[1],&re,0);
+
+            rplNewRealPush(&RReg[1]);
+            if(Exceptions) { Context.precdigits=oldprec; return 0; }
+            pk=rplPolyEvalEx(first,degree,DSTop-1);
+            if(!pk) { Context.precdigits=oldprec; return 0; }
+            rplPushData(pk);
+            if(Exceptions) { Context.precdigits=oldprec; return 0; }
+            rplCallOvrOperator(CMD_OVR_ABS);
+            if(Exceptions) { Context.precdigits=oldprec; return 0; }
+            rplReadNumberAsReal(rplPopData(),&err);
+            if(Exceptions) { Context.precdigits=oldprec; return 0; }
+            if(iszeroReal(&err) || (intdigitsReal(&err)<-(2*oldprec)))
+            { pk=rplPopData(); rplOverwriteData(1,pk); }    // INTEGER ROOT ALONE IS STILL GOOD, USE IT
+    }
+
+    }
+
+
+    Context.precdigits=oldprec;
     rplDropData(2);
     return pk;
 }
@@ -292,3 +384,4 @@ WORDPTR rplPolyDeflateEx(WORDPTR *first,BINT degree,WORDPTR *value)
     return rplPopData();
 
 }
+

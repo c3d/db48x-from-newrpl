@@ -1692,16 +1692,17 @@ case IPPOST:
             WORDPTR vect_val=rplPeekData(2);
             WORDPTR real_val=rplPeekData(1);
 
-            /*
+
             if(ISLIST(*real_val)) {
                 rplListBinaryDoCmd();
                 return;
             }
-            else if((ISIDENT(*vect_val) || ISSYMBOLIC(*vect_val)) || (ISIDENT(*real_val) || ISSYMBOLIC(*real_val))){
+            else if((ISIDENT(*vect_val) || ISSYMBOLIC(*vect_val)))
+            {
                     rplSymbApplyOperator(CurOpcode,2);
                     return;
             }
-            else */ if(ISMATRIX(*vect_val) && ISNUMBER(*real_val) ){
+            else if(ISMATRIX(*vect_val) ){
 
                 BINT rows=MATROWS(vect_val[1]),cols=MATCOLS(vect_val[1]);
 
@@ -1709,48 +1710,24 @@ case IPPOST:
                     rplError(ERR_VECTOREXPECTED);
                     return;
                 }
-                BINT f;
 
-                for(f=0;f<cols;++f) {
-                    WORDPTR entry=rplMatrixFastGet(vect_val,1,f+1);
-                    if(!ISNUMBER(*entry)) {
-                        rplError(ERR_VECTOROFNUMBERSEXPECTED);
-                        return;
-                    }
+                WORDPTR *savestk=DSTop;
+
+                rplPushData(rplPeekData(2));
+                if(Exceptions) { DSTop=savestk; return; }
+                WORDPTR *first=rplMatrixExplode();
+                if(!first || Exceptions) { DSTop=savestk; return; }
+
+                WORDPTR result=rplPolyEvalEx(first,cols-1,savestk-1);
+                if(!result || Exceptions) { DSTop=savestk; return; }
+
+                if(ISSYMBOLIC(*result)) {
+                    result=rplSymbNumericReduce(result);
+                   if(!result || Exceptions) { DSTop=savestk; return; }
                 }
 
-                // DO IT ALL WITH REALS
-
-                BINT saveprec=Context.precdigits;
-
-                BINT argdigits=(cols+7)&~7;
-
-                if(argdigits>MAX_USERPRECISION) {
-                    argdigits=MAX_USERPRECISION;
-                }
-
-                argdigits=(argdigits>Context.precdigits)? argdigits:Context.precdigits;
-                //   AUTOMATICALLY INCREASE PRECISION TEMPORARILY
-
-                Context.precdigits=argdigits;
-
-                // use Horner scheme
-                rplNumberToRReg(0,real_val);
-                rplNumberToRReg(1,(WORDPTR)zero_bint);
-
-                for(f=0;f<cols;++f) {
-                    WORDPTR entry=rplMatrixFastGet(vect_val,1,f+1);
-                    rplNumberToRReg(3,entry);
-                    mulReal(&RReg[2], &RReg[1], &RReg[0]);
-                    addReal(&RReg[1], &RReg[2], &RReg[3]);
-                }
-
-                Context.precdigits=saveprec;
-                WORDPTR newnumber=rplNewReal(&RReg[1]);
-                if(!newnumber) return;
-                // drop one value and replace level 1 value
-                rplDropData(1);
-                rplOverwriteData(1,newnumber);
+                DSTop=savestk-1;
+                rplOverwriteData(1,result);
 
                 return;
 
@@ -3078,20 +3055,20 @@ case PROOT:
         WORDPTR vect_val=rplPeekData(1);
 
 
-        /*
-        if(ISLIST(*real_val)) {
-            rplListBinaryDoCmd();
+
+        if(ISLIST(*vect_val)) {
+            rplListUnaryDoCmd();
             return;
         }
-        else if((ISIDENT(*vect_val) || ISSYMBOLIC(*vect_val)) || (ISIDENT(*real_val) || ISSYMBOLIC(*real_val))){
-                rplSymbApplyOperator(CurOpcode,2);
-                return;
-        }
-        else */ if(ISMATRIX(*vect_val)){
+        else if(ISMATRIX(*vect_val)){
+
+            BINT cplxmode=rplTestSystemFlag(FL_COMPLEXMODE);
+            rplSetSystemFlag(FL_COMPLEXMODE);
 
             BINT rows=MATROWS(vect_val[1]),cols=MATCOLS(vect_val[1]);
 
             if(rows) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
                 rplError(ERR_VECTOREXPECTED);
                 return;
             }
@@ -3101,6 +3078,7 @@ case PROOT:
             for(f=0;f<cols;++f) {
                 WORDPTR entry=rplMatrixFastGet(vect_val,1,f+1);
                 if(!ISNUMBERCPLX(*entry)) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
                     DSTop=savestk;
                     rplError(ERR_VECTOROFNUMBERSEXPECTED);
                     return;
@@ -3109,10 +3087,53 @@ case PROOT:
             }
 
             WORDPTR solution;
+            REAL re;
             for(f=1;f<cols-1;++f) {
 
+            if(f>1) {
+                // TEST IF PREVIOUS SOLUTION IS ALSO A SOLUTION OF THE DEFLATED POLYNOMIAL
+
+                solution=rplPolyEvalEx(savestk,cols-f,DSTop-1);
+                if(!solution || Exceptions) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                    DSTop=savestk;
+                    return;
+                }
+                rplPushData(solution);
+
+                rplCallOvrOperator(CMD_OVR_ABS);
+                if(Exceptions) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                    DSTop=savestk;
+                    return;
+                }
+                rplReadNumberAsReal(rplPopData(),&re);
+                if(Exceptions) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                    DSTop=savestk;
+                    return;
+                }
+
+                if(iszeroReal(&re) || (intdigitsReal(&re)<-Context.precdigits)) {
+                    // THE CURRENT ROOT HAS MULTIPLICITY
+                    rplPushData(rplPeekData(1));
+
+
+                // DEFLATE THE POLYNOMIAL
+                rplPolyDeflateEx(savestk,cols-f,DSTop-1);
+                if(Exceptions) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                    DSTop=savestk;
+                    return;
+                }
+                continue;
+                }
+
+            }
+
             solution=rplPolyRootEx(savestk,cols-f);
-            if(Exceptions) {
+            if(!solution || Exceptions) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
                 DSTop=savestk;
                 return;
             }
@@ -3120,12 +3141,14 @@ case PROOT:
             // WE HAVE ONE SOLUTION!
             rplPushData(solution);
             if(Exceptions) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
                 DSTop=savestk;
                 return;
             }
             // DEFLATE THE POLYNOMIAL
             rplPolyDeflateEx(savestk,cols-f,DSTop-1);
             if(Exceptions) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
                 DSTop=savestk;
                 return;
             }
@@ -3138,17 +3161,46 @@ case PROOT:
             // THEREFORE THE LAST ROOT IS X=-a1/a0
             rplPushData(savestk[1]);
             rplPushData(savestk[0]);
-            rplCallOvrOperator(CMD_OVR_DIV);
-            rplCallOvrOperator(CMD_OVR_NEG);
+            if(Exceptions) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                DSTop=savestk;
+                return;
+            }
 
+            rplCallOvrOperator(CMD_OVR_DIV);
+            if(Exceptions) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                DSTop=savestk;
+                return;
+            }
+
+            rplCallOvrOperator(CMD_OVR_NEG);
+            if(Exceptions) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                DSTop=savestk;
+                return;
+            }
+
+            BINT doerror=0;
+            if(!cplxmode) {
+                // ISSUE AN ERROR IF ANY OF THE ROOTS ARE COMPLEX
+            for(f=1;f<cols;++f) {
+                if(ISCOMPLEX(*rplPeekData(f))) { doerror=1; break; }
+            }
+            }
 
             solution=rplMatrixCompose(0,cols-1);
             if(!solution) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
                 DSTop=savestk;
                 return;
             }
             DSTop=savestk;
             rplOverwriteData(1,solution);
+            if(!cplxmode) {
+                rplClrSystemFlag(FL_COMPLEXMODE);
+                if(doerror) rplError(ERR_COMPLEXRESULT);
+            }
 
             return;
 
