@@ -3382,6 +3382,117 @@ void LIB_HANDLER()
         case MAD:
         case MKISOM:
         case PMINI:
+        {
+        // THE MINIMAL POLYNOMIAL OF THE MATRIX
+        // OBTAINED BY A^2
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            WORDPTR *a=DSTop-1;
+            WORDPTR *savestk=DSTop;
+
+            if(!ISMATRIX(**a)) {
+                rplError(ERR_MATRIXEXPECTED);
+                return;
+            }
+
+            BINT nrows=rplMatrixRows(*a);
+            BINT ncols=rplMatrixCols(*a);
+            BINT k,j;
+
+            if(nrows!=ncols) {
+                rplError(ERR_SQUAREMATRIXONLY);
+                return;
+            }
+
+            // GENERATE CANONICAL VECTOR [ 1 0 0 0 ... 0 ]
+
+            rplPushData((WORDPTR)one_bint);
+            if(Exceptions) { DSTop=savestk; return; }
+            for(k=1;k<nrows;++k)
+            { rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { DSTop=savestk; return; }
+            }
+            WORDPTR newvec=rplMatrixCompose(0,ncols);
+            if(Exceptions) { DSTop=savestk; return; }
+            a[1]=newvec;
+            rplDropData(nrows-1);
+
+            // HERE WE HAVE THE MATRIX A AND THE CANONICAL VECTOR
+            for(k=1;k<=nrows;++k) {
+                rplPushData(a[0]);  // matrix A
+                if(Exceptions) { DSTop=savestk; return; }
+                rplPushData(rplPeekData(2));    // VECTOR A^(k-1)*e1
+                if(Exceptions) { DSTop=savestk; return; }
+                rplMatrixMul(); // MULTIPLY AND LEAVE NEW VECTOR IN THE STACK
+                if(Exceptions) { DSTop=savestk; return; }
+
+            }
+
+            // HERE WE HAVE e1, A*e1, A^2*e1, ... A^n*e1 AT a[1]...a[n+1]
+
+            // NOW USE THE ELEMENTS TO CREATE AN EXPLODED AUGMENTED MATRIX
+            WORDPTR *firstelem=DSTop;
+            rplExpandStack(nrows*(nrows+1));
+            DSTop+=nrows*(nrows+1);
+            if(Exceptions) { DSTop=savestk; return; }
+
+
+            for(k=1;k<=(nrows+1);++k) {
+                for(j=1;j<=nrows;++j) {
+                *rplMatrixFastGetEx(firstelem,nrows+1,j,k)=rplMatrixFastGet(a[k],1,j);
+                }
+            }
+
+            // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+            rplMatrixBareissEx(firstelem-1,0,nrows,nrows+1,1);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+            rplMatrixBackSubstEx(firstelem-1,nrows,nrows+1);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+            // HERE WE HAVE THE ROW-REDUCED FORM OF THE MATRIX
+            // THE COLUMN NEXT TO THE LAST ROW WITH A NON-ZERO DIAGONAL
+            // EXCEPT FOR THE FIRST COEFFICIENT, WHICH IS ONE
+
+            rplPushData((WORDPTR)one_bint);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+            for(j=0,k=nrows;k>=1;--k) {
+                if(rplSymbIsZero(*rplMatrixFastGetEx(firstelem,nrows+1,k,k))) continue;
+                if(!j) j=k+1;
+                rplPushData(*rplMatrixFastGetEx(firstelem,nrows+1,k,j));
+                if(Exceptions) {
+                    DSTop=savestk;
+                    return;
+                }
+                rplCallOvrOperator(CMD_OVR_NEG);
+                if(Exceptions) {
+                    DSTop=savestk;
+                    return;
+                }
+            }
+
+            WORDPTR poly=rplMatrixCompose(0,j);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+            a[0]=poly;
+            DSTop=savestk;
+
+            return;
+        }
+
         case QR:
         case RANK:
         case RANM:
@@ -3425,11 +3536,11 @@ void LIB_HANDLER()
             rows=rplMatrixRows(*a);
             cols=rplMatrixCols(*a);
 
-            WORDPTR *first=rplMatrixExplode();
+            rplMatrixExplode();
             if(Exceptions) return;
 
             // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
-            BINT canreduce=rplMatrixBareissEx(a,0,rows,cols,1);
+            rplMatrixBareissEx(a,0,rows,cols,1);
 
             if(Exceptions) {
                 DSTop=savestk;

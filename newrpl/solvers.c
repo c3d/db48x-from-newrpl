@@ -123,102 +123,113 @@ WORDPTR rplPolyRootEx(WORDPTR *first,BINT degree)
     rplNewRealFromRRegPush(0);
     if(Exceptions) return 0;
     rplCallOvrOperator(CMD_OVR_MUL);
-
-    firstabs[0]=rplPeekData(1);
-    DSTop=firstabs+1;           //    DROP ALL OTHER INTERMEDIATE VALUES
+    firstabs[0]=(WORDPTR)one_bint;
+    firstabs[1]=rplPeekData(1);
+    DSTop=firstabs+2;           //    DROP ALL OTHER INTERMEDIATE VALUES
 
     // HERE WE HAVE THE POLYNOMIAL EXPLODED AND AN INITIAL GUESS
 
-    BINT error=-Context.precdigits;     // ERROR REQUESTED IS 10^(-PREC)
+    BINT oldprec=Context.precdigits;
     WORDPTR pk;
-
+    REAL err;
     // TEMPORARILY INCREASE PRECISION
-    Context.precdigits+=8;
+    if(Context.precdigits<=REAL_PRECISION_MAX-8) Context.precdigits+=8;
 
     do {
-        pk=rplPolyEvalEx(first,degree,firstabs);
-        if(!pk) { Context.precdigits-=8; { Context.precdigits-=8; return 0; } }
-        rplPushData(pk);
-        rplPushData(rplPeekData(1));
+
+        rplPushData(firstabs[0]);
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
         rplCallOvrOperator(CMD_OVR_ABS);
-        newRealFromBINT(&RReg[0],1,error-1);   // REQUEST 1 EXTRA DIGIT TO GUARANTEE 1 ULP ROUNDING
-        rplNewRealFromRRegPush(0);
-        if(Exceptions) { Context.precdigits-=8; return 0; }
-        rplCallOvrOperator(CMD_OVR_LT);
-        if(Exceptions) { Context.precdigits-=8; return 0; }
-        if(!rplIsFalse(rplPopData())) break;    // FOUND A ROOT!
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
+        rplReadNumberAsReal(rplPopData(),&err);
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
+        if(intdigitsReal(&err)<-(oldprec/2+8))
+            break;    // FOUND A ROOT!
+
+        pk=rplPolyEvalEx(first,degree,firstabs+1);
+        if(!pk) { Context.precdigits=oldprec; return 0; }
+        rplPushData(pk);
+        // ALSO CHECK FOR ZERO pk() SINCE IT CAN BLOW THE ALGORITHM
+        rplPushData(rplPeekData(1));
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
+        rplCallOvrOperator(CMD_OVR_ABS);
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
+        rplReadNumberAsReal(rplPopData(),&err);
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
+        if(iszeroReal(&err) || (intdigitsReal(&err)<-(2*oldprec)))
+        { rplDropData(1); break; }    // FOUND A ROOT!
 
         //   HERE WE HAVE pk ON THE STACK, COMPUTE p'k and p''k
 
-        pk=rplPolyEvalDerivEx(1,first,degree,firstabs);
-        if(!pk) { Context.precdigits-=8; return 0; }
+        pk=rplPolyEvalDerivEx(1,first,degree,firstabs+1);
+        if(!pk) { Context.precdigits=oldprec; return 0; }
         rplPushData(pk);
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
         rplPushData(rplPeekData(2));
         rplCallOvrOperator(CMD_OVR_DIV);
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
 
         // HERE G=p'k/pk IS IN LEVEL ONE
 
         rplPushData(rplPeekData(1));
         rplPushData(rplPeekData(1));
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
         rplCallOvrOperator(CMD_OVR_MUL);    // G^2
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
         rplPushData(rplPeekData(1));
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
 
-        pk=rplPolyEvalDerivEx(2,first,degree,firstabs);
-        if(!pk) { Context.precdigits-=8; return 0; }
+        pk=rplPolyEvalDerivEx(2,first,degree,firstabs+1);
+        if(!pk) { Context.precdigits=oldprec; return 0; }
         rplPushData(pk);
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
         rplPushData(rplPeekData(5));        // HERE WE HAVE pk,G,G^2,G^2, p''k AND NOW pk
         rplCallOvrOperator(CMD_OVR_DIV);
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
         rplCallOvrOperator(CMD_OVR_SUB);
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
 
         // HERE WE HAVE pk, G, G^2 AND H ON THE STACK
 
         rplNewBINTPush(degree,DECBINT);
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
         rplOverwriteData(5,rplPeekData(1)); // SAVE n FOR LATER, OVERWRITE pk
         rplCallOvrOperator(CMD_OVR_MUL);    // n*H
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
         rplCallOvrOperator(CMD_OVR_SUB);    // G^2-n*H
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
 
         rplNewBINTPush(1-degree,DECBINT);   // -(n-1) = (1-n)
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
 
         rplCallOvrOperator(CMD_OVR_MUL);    // (n-1)*(n*H-G^2)
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
 
         rplCallOperator(CMD_SQRT);
-        if(Exceptions) { Context.precdigits-=8; return 0; }            // THIS COULD TRIGGER "ARGUMENT OUT OF BOUNDS" IF COMPLEX MODE IS NOT ENABLED
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }            // THIS COULD TRIGGER "ARGUMENT OUT OF BOUNDS" IF COMPLEX MODE IS NOT ENABLED
 
         // HERE WE HAVE n, G, SQRT( (n-1)*(n*H-G^2) ) ON THE STACK
 
 
         rplPushData(rplPeekData(2));
         rplPushData(rplPeekData(2));
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
         rplCallOvrOperator(CMD_OVR_ADD);        // G+SQRT(...)
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
         rplPushData(rplPeekData(3));
         rplPushData(rplPeekData(3));
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
         rplCallOvrOperator(CMD_OVR_SUB);        // G-SQRT(...)
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
 
         rplPushData(rplPeekData(2));
         rplCallOvrOperator(CMD_OVR_ABS);
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
         rplPushData(rplPeekData(2));
         rplCallOvrOperator(CMD_OVR_ABS);
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
         rplCallOvrOperator(CMD_OVR_GT);
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
         // PICK THE MAX(ABS(G+SQRT(...)) , ABS(G-SQRT(...))
             // HERE WE HAVE n, G, SQRT( (n-1)*(n*H-G^2) )
             // G+SQRT(...) , G-SQRT(...), ON THE STACK
@@ -231,22 +242,22 @@ WORDPTR rplPolyRootEx(WORDPTR *first,BINT degree)
             // THIS MAY HAPPEN AT A LOCAL EXTREMUM
             // NOT SURE WHAT TO DO, FOR NOW JUST SET a=1000*error TO MOVE IT TO A DIFFERENT POINT
             rplDropData(2);
-            newRealFromBINT(&RReg[0],1,error+3);
+            newRealFromBINT(&RReg[0],1,-Context.precdigits+12);
             rplNewRealFromRRegPush(0);
         } else rplCallOvrOperator(CMD_OVR_DIV);
 
-        if(Exceptions) { Context.precdigits-=8; return 0; }
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
         // FINALLY, WE HAVE x AND a ON THE STACK
-
+        firstabs[0]=rplPeekData(1);
         rplCallOvrOperator(CMD_OVR_SUB);
-        if(Exceptions) { Context.precdigits-=8; return 0; }
-
+        if(Exceptions) { Context.precdigits=oldprec; return 0; }
 
     } while(1); // ADD SOME LOOP LIMIT HERE IN CASE IT DOESN'T CONVERGE!
 
-    Context.precdigits-=8;
-    rplDropData(1);
-    return rplPopData();
+    Context.precdigits=oldprec;
+    pk=rplPeekData(1);
+    rplDropData(2);
+    return pk;
 }
 
 

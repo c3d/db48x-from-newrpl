@@ -1932,7 +1932,13 @@ void add_real_mul(REAL *r,REAL *a,REAL *b,BINT mult)
         copy_words(result->data+apos-trimwords,a->data,a->len);
     }
     else copy_words(result->data,a->data+trimwords-apos,a->len-trimwords+apos);
-    if(totalwords>a->len+apos-trimwords) zero_words(result->data+apos-trimwords+a->len,totalwords-a->len-apos+trimwords);
+    if(a->len-trimwords+apos>=0)
+    {
+        if(totalwords>a->len+apos-trimwords) zero_words(result->data+apos-trimwords+a->len,totalwords-a->len-apos+trimwords);
+    } else
+    {
+        zero_words(result->data,totalwords);
+    }
 
     // AND ADD A ZERO FOR POSSIBLE CARRY
     result->data[totalwords]=0;
@@ -1963,7 +1969,7 @@ void add_real_mul(REAL *r,REAL *a,REAL *b,BINT mult)
     // NO CARRY CORRECTION
 
     result->len=totalwords+1; // +1 IN CASE b>a AND THE SHIFT ADDED A WORD
-    result->flags|=F_NOTNORMALIZED;
+    result->flags|=F_NOTNORMALIZED  | ((a->flags|b->flags)&F_APPROX) | (trimwords? F_APPROX:0);
     result->exp=a->exp-((apos-trimwords)<<3);
 
     // NO ROUNDING OR TRUNCATION
