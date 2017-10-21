@@ -310,7 +310,7 @@ void LIB_HANDLER()
             }
         }
 
-        if(CurrentConstruct==CMD_NEWLOCALENV) {
+        if(LIBNUM(CurrentConstruct)==LIBNUM(CMD_NEWLOCALENV)) {
             // INSIDE THIS CONSTRUCT WE NEED TO QUOTE ALL
             // IDENTS
 

@@ -722,6 +722,15 @@ void rplMatrixPolarToRectEx(WORDPTR *a,BINT rowsa,BINT colsa);
 void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BINT angmode);
 
 
+
+// NUMERIC SOLVERS
+
+WORDPTR rplPolyEvalEx(WORDPTR *first,BINT degree,WORDPTR *value);
+WORDPTR rplPolyEvalDerivEx(BINT deriv,WORDPTR *first,BINT degree,WORDPTR *value);
+WORDPTR rplPolyRootEx(WORDPTR *first,BINT degree);
+WORDPTR rplPolyDeflateEx(WORDPTR *first,BINT degree,WORDPTR *value);
+
+
 // DATE AND TIME FUNCTIONS
 BINT rplReadRealAsDate(REAL *date, struct date *dt);
 BINT rplReadRealAsDateNoCk(REAL *date, struct date *dt);

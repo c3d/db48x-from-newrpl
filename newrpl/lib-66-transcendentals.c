@@ -3975,6 +3975,11 @@ void LIB_HANDLER()
                 mulReal(&RReg[7],&RReg[1],&RReg[0]);
                 mulReal(&RReg[8],&RReg[2],&RReg[0]);
 
+                // TRAP: WHEN y<<x SQRT(x^2+y^2) == SQRT(x^2) WHICH COULD LOSE HALF THE SIGNIFICANT DIGITS
+                // THEREFORE SQRT(X^2)-X OR SQRT(X^2)-X COULD BE NEGATIVE
+                if(RReg[7].flags&F_NEGATIVE) rplZeroToRReg(7);
+                if(RReg[8].flags&F_NEGATIVE) rplZeroToRReg(8);
+
                 hyp_sqrt(&RReg[7]);     // THIS IS THE REAL PART OF THE RESULT
 
                 finalize(&RReg[0]);
@@ -3983,7 +3988,6 @@ void LIB_HANDLER()
                 hyp_sqrt(&RReg[8]);     // THIS IS THE IMAGINARY PART
 
                 finalize(&RReg[0]);
-
                 RReg[0].flags|=y.flags&F_NEGATIVE;
 
                 // DONE, RETURN THE COMPLEX ROOTS

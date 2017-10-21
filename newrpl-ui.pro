@@ -214,7 +214,8 @@ SOURCES += main.cpp\
     newrpl/ln_ltables.c \
     interaction.cpp \
     interaction_rpl.c \
-    newrpl/lib-78-fonts.c
+    newrpl/lib-78-fonts.c \
+    newrpl/solvers.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
