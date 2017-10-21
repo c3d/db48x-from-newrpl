@@ -287,7 +287,7 @@ WORDPTR rplPolyRootEx(WORDPTR *first,BINT degree)
                 if(Exceptions) { Context.precdigits=oldprec; return 0; }
                 if(iszeroReal(&err) || (intdigitsReal(&err)<-(2*oldprec)))
                 { pk=rplPopData(); rplOverwriteData(1,pk); }    // REAL ROOT ALONE IS STILL GOOD, USE IT
-
+                else { rplPopData(); pk=rplPeekData(1); }
             }
             else
             if( (digre<-10) && (digim>digre+10)) {
@@ -307,7 +307,7 @@ WORDPTR rplPolyRootEx(WORDPTR *first,BINT degree)
                 if(Exceptions) { Context.precdigits=oldprec; return 0; }
                 if(iszeroReal(&err) || (intdigitsReal(&err)<-(2*oldprec)))
                 { pk=rplPopData(); rplOverwriteData(1,pk); }    // IMAG. ROOT ALONE IS STILL GOOD, USE IT
-
+                else { rplPopData(); pk=rplPeekData(1); }
             }
 
 
@@ -342,6 +342,7 @@ WORDPTR rplPolyRootEx(WORDPTR *first,BINT degree)
             if(Exceptions) { Context.precdigits=oldprec; return 0; }
             if(iszeroReal(&err) || (intdigitsReal(&err)<-(2*oldprec)))
             { pk=rplPopData(); rplOverwriteData(1,pk); }    // INTEGER ROOT ALONE IS STILL GOOD, USE IT
+            else { rplPopData(); pk=rplPeekData(1); }
     }
 
     }
