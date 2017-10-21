@@ -86,8 +86,7 @@ BINT rplCompareIDENTByName(WORDPTR id1,BYTEPTR name,BYTEPTR nameend)
 BINT len=nameend-name;
 BINT nwords=(len+3)>>2;
 BINT extra=(nwords<<2)-len;
-if ((*id1!=MKPROLOG(DOIDENT,nwords))&&(*id1!=MKPROLOG(DOIDENTEVAL,nwords))) return 0;
-
+if((( (*id1)&MKPROLOG(0xff1,0xfffff))!=MKPROLOG(DOIDENT,nwords))&&(( (*id1)&MKPROLOG(0xff1,0xfffff))!=MKPROLOG(DOIDENTATTR,nwords+1))) return 0;
 BYTEPTR ptr=(BYTEPTR) (id1+1);
 while(len) {
     if(*ptr!=*name) return 0;
@@ -111,13 +110,17 @@ return 1;
 // COMPARE OBJECTS FOR EQUALITY IN THEIR DEFINITION
 BINT rplCompareIDENT(WORDPTR id1,WORDPTR id2)
 {
-BINT nwords;
+BINT nwords,nwords2;
 
 nwords=rplObjSize(id1);
+if(LIBNUM(*id1)&HASATTR_BIT) --nwords;  // DO NOT COMPARE ATTRIBUTES
+nwords2=rplObjSize(id2);
+if(LIBNUM(*id2)&HASATTR_BIT) --nwords2;  // DO NOT COMPARE ATTRIBUTES
+
 // ADDED THIS SPECIAL CASE FOR IDENTS WITH VARIOUS FLAGS TO BE TREATED AS SAME
 if( ISIDENT(*id1) && ISIDENT(*id2) )
 {
-    if(OBJSIZE(*id1)!=OBJSIZE(*id2)) return 0;
+    if(nwords!=nwords2) return 0;
     ++id1;
     ++id2;
     --nwords;
@@ -131,6 +134,35 @@ if( ISIDENT(*id1) && ISIDENT(*id2) )
      --nwords;
  }
 return 1;
+}
+
+// GET THE ATTRIBUTES WORD OF AN IDENT, OR 0 IF IT DOESN'T HAVE ANY
+
+WORD rplGetIdentAttributes(WORDPTR name)
+{
+    if(LIBNUM(*name)&HASATTR_BIT) return name[OBJSIZE(*name)];
+    return 0;
+}
+
+
+// RETURN A NEW IDENT WITH THE ATTRIBUTES CHANGED
+// ONLY BITS THAT ARE ONE IN attrmask WILL BE CHANGED
+WORDPTR rplSetIdentAttr(WORDPTR name,WORD attr,WORD attrmask)
+{
+    WORDPTR newobj;
+    if(LIBNUM(*name)&HASATTR_BIT) newobj=rplMakeNewCopy(name);
+    else {
+        newobj=rplAllocTempOb(OBJSIZE(*name)+1);
+        if(!newobj) return 0;
+        rplCopyObject(newobj,name);
+        newobj[OBJSIZE(*name)+1]=0;
+        newobj[0]++;
+    }
+    if(!newobj) return 0;
+    // HERE WE HAVE A NEW IDENT READY TO ACCEPT ATTRIBUTES
+    newobj[0]|=MKPROLOG(HASATTR_BIT,0);
+    newobj[OBJSIZE(*newobj)]=(newobj[OBJSIZE(*newobj)]&(~attrmask))|attr;
+    return newobj;
 }
 
 // COMPARE OBJECTS FOR EQUALITY IN THEIR DEFINITION
