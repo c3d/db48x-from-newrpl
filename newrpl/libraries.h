@@ -381,7 +381,7 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define ISUNARYOP(prolog) ( (OPCODE(prolog)>=OVR_OPERATORS) && (((prolog)&0xf000)==OVR_UNARY))
 #define ISBINARYOP(prolog) ( (OPCODE(prolog)>=OVR_OPERATORS) && (((prolog)&0xf000)==OVR_BINARY))
-#define ISTESTOP(prolog)   ( (OPCODE(prolog)>=OVR_OPERATORS) && (((prolog)&0xfff0)==OVR_BINARY))
+#define ISTESTOP(prolog)   ( (OPCODE(prolog)>=OVR_OPERATORS) && (((prolog)&0x20)))
 
 // UNARY OPERATORS
 #define OVRT_INV              "INV"
@@ -400,8 +400,6 @@ void libFindMsg(BINT message,WORDPTR table);
 #define OVR_NUM      OVR_OPERATORS+OVR_UNARY+7
 #define OVRT_ABS              "ABS"
 #define OVR_ABS       OVR_OPERATORS+OVR_UNARY+8
-#define OVRT_ISTRUE           "ISTRUE"
-#define OVR_ISTRUE     OVR_OPERATORS+OVR_UNARY+9
 #define OVRT_NOT              "NOT"
 #define OVR_NOT        OVR_OPERATORS+OVR_UNARY+10
 
@@ -427,9 +425,7 @@ void libFindMsg(BINT message,WORDPTR table);
 #define OVRT_LTE        "≤"
 #define OVR_LTE      OVR_OPERATORS+OVR_BINARY+5
 #define OVRT_GTE        "≥"
-#define OVR_GTE      OVR_OPERATORS+OVR_BINARY+6
-#define OVRT_SAME        "SAME"
-#define OVR_SAME    OVR_OPERATORS+OVR_BINARY+7
+#define OVR_GTE    OVR_OPERATORS+OVR_BINARY+7
 #define OVRT_AND        "AND"
 #define OVR_AND    OVR_OPERATORS+OVR_BINARY+8
 #define OVRT_OR        "OR"
@@ -449,10 +445,20 @@ void libFindMsg(BINT message,WORDPTR table);
 #define OVR_MUL      OVR_OPERATORS+OVR_BINARY+18
 #define OVRT_DIV           "/"
 #define OVR_DIV      OVR_OPERATORS+OVR_BINARY+19
+
+
 #define OVRT_POW           "^"
 #define OVR_POW      OVR_OPERATORS+OVR_BINARY+22
 #define OVRT_XROOT         "XROOT"
 #define OVR_XROOT      OVR_OPERATORS+OVR_BINARY+24
+
+// SPECIAL OPERATORS THAT MUST RETURN TRUE/FALSE
+// LAST BIT=0 MEANS TEST IS TRUE IF ANY VALUE IS TRUE IN A COMPOSITE
+// LAST BIT=1 MEANS TEST IS TRUE IF ALL VALUES ARE TRUE IN A COMPOSITE
+#define OVRT_ISTRUE           "ISTRUE"
+#define OVR_ISTRUE     OVR_OPERATORS+OVR_UNARY+32   // IF ANY VALUE IS TRUE, THIS IS TRUE
+#define OVRT_SAME        "SAME"
+#define OVR_SAME      OVR_OPERATORS+OVR_BINARY+33   // IF ALL VALUES ARE THE SAME, THEN THIS IS TRUE
 
 // ADD MORE OPERATORS HERE
 

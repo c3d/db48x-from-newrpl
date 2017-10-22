@@ -2044,10 +2044,7 @@ void LIB_HANDLER()
 
                         switch(OPCODE(Opcode))
                         {
-                        case OVR_EQ:
                         case OVR_SAME:
-                        case OVR_GTE:
-                        case OVR_LTE:
                             // TWO EMPTY LISTS ARE EQUAL
                             result=1;
                             break;
@@ -2087,37 +2084,62 @@ void LIB_HANDLER()
                     }
                  }
 
-                    // CLOSE THE MAIN LIST AND RETURN
-                    WORDPTR *prevDStk = rplUnprotectData();
+                 // CLOSE THE MAIN LIST AND RETURN
+                 WORDPTR *prevDStk = rplUnprotectData();
 
-                    BINT newdepth=(BINT)(DSTop-prevDStk);
+                 BINT newdepth=(BINT)(DSTop-prevDStk);
+                 BINT result;
 
-                    rplNewBINTPush(newdepth,DECBINT);
-                    if(Exceptions) {
-                        DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
-                        rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=(CMD_OVR_ADD);
-                        return;
-                    }
+                 if(newdepth) {
+                     BINT f;
+                     WORD Opcode=*((*rplGetLAMn(1))+1);  // GET OPCODE FROM THE PROGRAM WE APPLIED
+                     if(Opcode&1) {
+                         // SPECIAL TEST IS TRUE ONLY IF ALL VALUES ARE TRUE
+                         result=1;
+                     for(f=1;f<=newdepth;++f)
+                     {
+                     if(rplIsFalse(rplPeekData(f))) { result=0; break; }
+                     }
 
-                    rplCreateList();
-                    if(Exceptions) {
-                        DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
-                        rplCleanupLAMs(0);
-                        IPtr=rplPopRet();
-                        CurOpcode=(CMD_OVR_ADD);
-                        return;
-                    }
+                     }
+                     else {
+                         // SPECIAL TEST IS TRUE IF ANY VALUE IS TRUE
+                         result=0;
+                     for(f=1;f<=newdepth;++f)
+                     {
+                     if(!rplIsFalse(rplPeekData(f))) { result=1; break; }
+                     }
 
-                    rplOverwriteData(3,rplPeekData(1));
-                    rplDropData(2);
 
-                    rplCleanupLAMs(0);
-                    IPtr=rplPopRet();
-                    CurOpcode=(CMD_OVR_ADD);
-                    return;
+                     }
+                 } else {
+                     // THIS CAN ONLY HAPPEN WHEN BOTH LISTS WERE EMPTY
+                     WORD Opcode=*((*rplGetLAMn(1))+1);  // GET OPCODE FROM THE PROGRAM WE APPLIED
 
+                     switch(OPCODE(Opcode))
+                     {
+                     case OVR_SAME:
+                         // TWO EMPTY LISTS ARE EQUAL
+                         result=1;
+                         break;
+                     default:
+                         // ALL OTHER TESTS ARE FALSE
+                         result=0;
+                         break;
+                     }
+
+
+                 }
+                 DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+
+                 rplDropData(2); // REMOVE ORIGINAL ARGUMENTS
+                 if(result) rplPushData((WORDPTR)one_bint);
+                 else rplPushData((WORDPTR)zero_bint);
+
+                 rplCleanupLAMs(0);
+                 IPtr=rplPopRet();
+                 CurOpcode=(CMD_OVR_ADD);
+                 return;
 
                 }
 
