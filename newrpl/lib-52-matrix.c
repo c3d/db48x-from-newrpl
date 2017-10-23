@@ -3494,7 +3494,58 @@ void LIB_HANDLER()
         }
 
         case QR:
+    {
+        // TODO:
+        return;
+    }
+
+
         case RANK:
+    {
+        // RANK COMPUTED FROM BAREISS FACTORIZATION
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            WORDPTR *a=DSTop-1,*savestk=DSTop;
+
+            if(!ISMATRIX(**a)) {
+                rplError(ERR_MATRIXEXPECTED);
+                return;
+            }
+
+            BINT rows,cols;
+            rows=rplMatrixRows(*a);
+            cols=rplMatrixCols(*a);
+
+            rplMatrixExplode();
+            if(Exceptions) return;
+
+            // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+            rplMatrixBareissEx(a,0,rows,cols,1);
+
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+
+            // COUNT THE ROWS WITH A ZERO IN THE DIAGONAL
+            BINT k;
+            BINT rank=rows;
+            for(k=1;k<=rows;++k) {
+                if(rplSymbIsZero(*rplMatrixFastGetEx(a+1,cols,k,k))) --rank;
+            }
+
+            DSTop=savestk;
+            WORDPTR rankobj=rplNewBINT(rank,DECBINT);
+            if(!rankobj) return;
+
+            rplOverwriteData(1,rankobj);
+
+            return;
+    }
+
         case RANM:
         case RCI:
         case RCIJ:
