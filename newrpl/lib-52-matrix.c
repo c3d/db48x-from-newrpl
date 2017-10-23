@@ -3377,8 +3377,189 @@ void LIB_HANDLER()
     }
 
         case LQ:
+    {
+        // TODO:
+
+        return;
+    }
+
         case LSQ:
+    {
+        // TODO:
+
+        return;
+    }
+
         case LU:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR *a=DSTop-1,*savestk=DSTop;
+
+        if(!ISMATRIX(**a)) {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+
+        BINT rows,cols;
+        rows=rplMatrixRows(*a);
+        cols=rplMatrixCols(*a);
+
+        // ONLY ACCEPT SQUARE MATRICES
+        if(rows!=cols) {
+            rplError(ERR_INVALIDDIMENSION);
+            return;
+        }
+
+        // EXPLODE THE MATRIX IN THE STACK
+        WORDPTR *first=rplMatrixExplode();
+        if(Exceptions) return;
+
+        // INITIALIZE A PERMUTATION INDEX
+        WORDPTR idx=rplMatrixInitIdx(rows),*indexptr;
+        if(!idx || Exceptions) { DSTop=savestk; return; }
+        indexptr=DSTop;
+        rplPushData(idx);
+
+        // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+        BINT canreduce=rplMatrixBareissEx(a,indexptr,rows,cols,0);
+        if(!canreduce) rplError(ERR_SINGULARMATRIX);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+
+
+        // SPLIT L AND U
+
+        WORDPTR *lfirst=DSTop;
+        BINT k,j;
+
+        rplExpandStack(rows*cols);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+        DSTop+=rows*cols;
+
+
+        // EXTRACT L
+
+        for(j=1;j<=cols;++j) {
+
+            for(k=1;k<=rows;++k) {
+                if(k>=j) {
+
+                    rplPushData(*rplMatrixFastGetEx(first,cols,k,j));
+                    // SPLIT THE DIAGONAL FACTOR Dii = u(i-1,i-1) FOR L AND Dii=u(i,i) FOR U
+                    if(j>1) {
+                        rplPushData(*rplMatrixFastGetEx(first,cols,j-1,j-1));
+                        if(Exceptions) {
+                            DSTop=savestk;
+                            return;
+                        }
+
+                        rplCallOvrOperator(CMD_OVR_DIV);
+                    }
+
+                }
+                else rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) {
+                    DSTop=savestk;
+                    return;
+                }
+
+                lfirst[(k-1)*cols+(j-1)]=rplPopData();
+            }
+
+        }
+
+
+        // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+        WORDPTR newmat=rplMatrixCompose(rows,cols);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+
+
+        DSTop=lfirst+1;
+        *lfirst=newmat;
+
+
+        // NOW DO THE SAME WITH U
+        rplExpandStack(rows*cols);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+        DSTop+=rows*cols;
+
+        WORDPTR *ufirst=DSTop;
+
+        for(k=1;k<=rows;++k) {
+            for(j=1;j<=cols;++j) {
+                if(j<k) rplPushData((WORDPTR)zero_bint);
+                else if(j==k) rplPushData((WORDPTR)one_bint);
+                      else {
+                    rplPushData(*rplMatrixFastGetEx(first,cols,k,j));
+                    // SPLIT THE DIAGONAL FACTOR Dii = u(i-1,i-1) FOR L AND Dii=u(i,i) FOR U
+                    // TO OBTAIN CROUT
+                    rplPushData(*rplMatrixFastGetEx(first,cols,k,k));
+                    rplCallOvrOperator(CMD_OVR_DIV);
+                }
+                if(Exceptions) {
+                    DSTop=savestk;
+                    return;
+                }
+            }
+        }
+
+        // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+        newmat=rplMatrixCompose(rows,cols);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+
+        DSTop=ufirst+1;
+        *ufirst=newmat;
+
+        // FINALLY, CREATE A PERMUTATION MATRIX P
+        for(k=1;k<=rows;++k) {
+            for(j=1;j<=cols;++j) {
+                if((*indexptr)[k]==(WORD)j) rplPushData((WORDPTR)one_bint);
+                    else rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) {
+                    DSTop=savestk;
+                    return;
+                }
+            }
+        }
+
+
+        // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+        newmat=rplMatrixCompose(rows,cols);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+
+
+        // NOW CLEANUP THE STACK
+        savestk[-1]=*lfirst;
+        savestk[0]=*ufirst;
+        savestk[1]=newmat;
+
+        DSTop=savestk+2;
+        return;
+    }
+
+
+
+
         case MAD:
         case MKISOM:
         case PMINI:
@@ -3591,7 +3772,7 @@ void LIB_HANDLER()
             if(Exceptions) return;
 
             // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
-            rplMatrixBareissEx(a,0,rows,cols,1);
+            rplMatrixBareissEx(a,0,rows,cols,0);
 
             if(Exceptions) {
                 DSTop=savestk;
