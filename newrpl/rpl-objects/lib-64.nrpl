@@ -241,5 +241,5 @@ DIGITS
 "Extract digits from a number
 
 R I<st> I<end> → I"
-}
 
+ }

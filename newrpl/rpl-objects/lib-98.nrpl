@@ -1,0 +1,46 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib98_msgtable
+{
+}
+
+@#name lib98_menu_0_main
+{
+{ { "Random" 1 } { ::   #06201000h TMENULST ; ::   #06201000h TMENUOTHR ; } }
+}
+
+
+@#name lib98_menu_1_rng
+{
+  RDZ RAND
+}
+
+
+
+@#name lib98_cmdhelp
+{
+RDZ
+"Seed the random number
+generator
+R → "
+
+RAND
+"Get a random number
+0 < x < 1
+ → R"
+}

@@ -730,6 +730,14 @@ WORDPTR rplPolyEvalDerivEx(BINT deriv,WORDPTR *first,BINT degree,WORDPTR *value)
 WORDPTR rplPolyRootEx(WORDPTR *first,BINT degree);
 WORDPTR rplPolyDeflateEx(WORDPTR *first,BINT degree,WORDPTR *value);
 
+// RANDOM NUMBER GENERATOR
+void rplRandomSeed(UBINT64 seed);
+void rplRandomJump(void);
+UBINT64 rplRandomNext(void);
+BINT rplRandom8Digits();
+
+
+
 
 // DATE AND TIME FUNCTIONS
 BINT rplReadRealAsDate(REAL *date, struct date *dt);

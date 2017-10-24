@@ -207,13 +207,16 @@ SOURCES +=\
     newrpl/lib-80-bitmaps.c \
     newrpl/lib-88-plot.c \
     newrpl/lib-96-composites.c \
+    newrpl/lib-98-statistics.c \
     firmware/ggl/ggl/ggl_fltreplace.c \
     firmware/hal_alarm.c \
     firmware/ui_render.c \
     firmware/ui_forms.c \
     newrpl/fastmath.c \
     newrpl/render.c \
-    newrpl/mul_real_arm.c
+    newrpl/mul_real_arm.c \
+    newrpl/rng.c \
+    newrpl/solvers.c
 
 
 HEADERS  += \
@@ -268,6 +271,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-80.nrpl \
                 newrpl/rpl-objects/lib-88.nrpl \
                 newrpl/rpl-objects/lib-96.nrpl \
+                newrpl/rpl-objects/lib-98.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 

@@ -40,6 +40,7 @@
     INCLUDELIB(80,lib-80-bitmaps.c) , \
     INCLUDELIB(88,lib-88-plot.c) , \
     INCLUDELIB(96,lib-96-composites.c) , \
+    INCLUDELIB(98,lib-98-statistics.c) , \
     INCLUDELIB(4080,lib-4080-localenv.c) , \
     INCLUDELIB(4090,lib-4090-overloaded.c)
 

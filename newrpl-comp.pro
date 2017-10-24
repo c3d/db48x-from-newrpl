@@ -208,9 +208,12 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     newrpl/fastmath.c \
     newrpl/render.c \
     newrpl/lib-96-composites.c \
+    newrpl/lib-98-statistics.c \
     newrpl/atan_ltables.c \
     newrpl/lighttranscend.c \
-    newrpl/ln_ltables.c
+    newrpl/ln_ltables.c \
+    newrpl/solvers.c \
+    newrpl/rng.c
 
 
 

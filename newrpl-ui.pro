@@ -215,7 +215,9 @@ SOURCES += main.cpp\
     interaction.cpp \
     interaction_rpl.c \
     newrpl/lib-78-fonts.c \
-    newrpl/solvers.c
+    newrpl/solvers.c \
+    newrpl/rng.c \
+    newrpl/lib-98-statistics.c
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
@@ -271,6 +273,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-80.nrpl \
                 newrpl/rpl-objects/lib-88.nrpl \
                 newrpl/rpl-objects/lib-96.nrpl \
+                newrpl/rpl-objects/lib-98.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 
