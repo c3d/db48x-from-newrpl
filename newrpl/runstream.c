@@ -669,6 +669,10 @@ void rplInit(void)
     // INITIALIZE THE FLOATING POINT CONTEXT
     initContext(32);
 
+    // SEED THE RNG
+    rplRandomSeed(rplRandomNext()^0xbad1dea);
+
+
     // INITIALIZE THE REAL REGISTERS
     for(count=0;count<REAL_REGISTERS;++count)
     {
@@ -718,6 +722,10 @@ void rplWarmInit(void)
 
     // INITIALIZE THE FLOATING POINT CONTEXT
     initContext(32);
+
+    // SEED THE RNG
+    rplRandomSeed(rplRandomNext()^0xbad1dea);
+
 
     // INITIALIZE THE REAL REGISTERS
     for(count=0;count<REAL_REGISTERS;++count)
