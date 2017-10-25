@@ -97,7 +97,9 @@
     CMD(TRACE,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
     CMD(TRAN,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(TRN,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
-    CMD(VANDERMONDE,MKTOKENINFO(11,TITYPE_FUNCTION,1,2))
+    CMD(VANDERMONDE,MKTOKENINFO(11,TITYPE_FUNCTION,1,2)), \
+    CMD(LDUP,MKTOKENINFO(4,TITYPE_FUNCTION,1,2))
+    
 
 
 
@@ -2818,9 +2820,7 @@ void LIB_HANDLER()
         case GRAMSCHMIDT:
         {
 
-            // TODO:
-
-            return;
+        return;
         }
 
         case HADAMARD:
@@ -4387,6 +4387,212 @@ void LIB_HANDLER()
         return;
     }
 
+        case LDUP:
+    {
+        // ROUNDOFF-ERROR FREE DECOMPOSITION
+        // DECOMPOSE A MATRIX AS P*A=L*D^-1*U
+        // WHERE P=PERMUTATION MATRIX
+        // L = LOWER TRIANGULAR
+        // U = UPPER TRIANGULAR
+        // D = DIAGONAL MATRIX, WHERE d(i,i)=u(i,i)*u(i-1,i-1), ASSUMING u(0,0)=1
+        // THIS IS THE BASE FOR MANY DECOMPOSITIONS:
+        // CHOLESKY:
+        // SPLIT D^-1 INTO SQRT(D^-1)*SQRT(D^-1) --> (L*SQRT(D^-1)) * (SQRT(D^-1)*U) = L * LT
+        // CROUT/DOLITTLE:
+        // SPLIT D=Du*Dl --> Du(i,i)=u(i,i) AND Dl(i,i)=u(i-1,i-1)
+        // CROUT: (L*Dl^-1) * (Du^-1 * U) = L' * U' WITH U' = UNIT UPPER TRIANGULAR.
+        // DOLITTLE: (L*Du^-1) * (Dl^-1 * U) = L' * U' WITH L' = UNIT LOWER TRIANGULAR.
+
+
+
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR *a=DSTop-1,*savestk=DSTop;
+
+        if(!ISMATRIX(**a)) {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+
+        BINT rows,cols;
+        rows=rplMatrixRows(*a);
+        cols=rplMatrixCols(*a);
+
+        // ONLY ACCEPT SQUARE MATRICES
+        if(rows!=cols) {
+            rplError(ERR_INVALIDDIMENSION);
+            return;
+        }
+
+        // EXPLODE THE MATRIX IN THE STACK
+        WORDPTR *first=rplMatrixExplode();
+        if(Exceptions) return;
+
+        // INITIALIZE A PERMUTATION INDEX
+        WORDPTR idx=rplMatrixInitIdx(rows),*indexptr;
+        if(!idx || Exceptions) { DSTop=savestk; return; }
+        indexptr=DSTop;
+        rplPushData(idx);
+
+        // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+        BINT canreduce=rplMatrixBareissEx(a,indexptr,rows,cols,0);
+        if(!canreduce) rplError(ERR_SINGULARMATRIX);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+
+
+        // SPLIT L AND U
+
+        WORDPTR *lfirst=DSTop;
+        BINT k,j;
+
+        rplExpandStack(rows*cols);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+        DSTop+=rows*cols;
+
+
+        // EXTRACT L
+
+        for(j=1;j<=cols;++j) {
+
+            for(k=1;k<=rows;++k) {
+                if(k>=j) {
+                    rplPushData(*rplMatrixFastGetEx(first,cols,k,j));
+                }
+                else rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) {
+                    DSTop=savestk;
+                    return;
+                }
+
+                lfirst[(k-1)*cols+(j-1)]=rplPopData();
+            }
+
+        }
+
+
+        // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+        WORDPTR newmat=rplMatrixCompose(rows,cols);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+
+
+        DSTop=lfirst+1;
+        *lfirst=newmat;
+
+
+        // NOW DO THE SAME WITH U
+        rplExpandStack(rows*cols);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+        DSTop+=rows*cols;
+
+        WORDPTR *dfirst=DSTop;
+
+        for(k=1;k<=rows;++k) {
+            for(j=1;j<=cols;++j) {
+                if(j!=k) rplPushData((WORDPTR)zero_bint);
+                 else {
+                    rplPushData(*rplMatrixFastGetEx(first,cols,k,k));
+                    if(k>1) {
+                    rplPushData(*rplMatrixFastGetEx(first,cols,k-1,k-1));
+                    rplCallOvrOperator(CMD_OVR_MUL);
+                    }
+                }
+                if(Exceptions) {
+                    DSTop=savestk;
+                    return;
+                }
+            }
+        }
+
+        // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+        newmat=rplMatrixCompose(rows,cols);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+
+        DSTop=dfirst+1;
+        *dfirst=newmat;
+
+
+
+
+        // NOW DO THE SAME WITH U
+        rplExpandStack(rows*cols);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+        DSTop+=rows*cols;
+
+        WORDPTR *ufirst=DSTop;
+
+        for(k=1;k<=rows;++k) {
+            for(j=1;j<=cols;++j) {
+                if(j<k) rplPushData((WORDPTR)zero_bint);
+                 else {
+                    rplPushData(*rplMatrixFastGetEx(first,cols,k,j));
+                }
+                if(Exceptions) {
+                    DSTop=savestk;
+                    return;
+                }
+            }
+        }
+
+        // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+        newmat=rplMatrixCompose(rows,cols);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+
+        DSTop=ufirst+1;
+        *ufirst=newmat;
+
+        // FINALLY, CREATE A PERMUTATION MATRIX P
+        for(k=1;k<=rows;++k) {
+            for(j=1;j<=cols;++j) {
+                if((*indexptr)[k]==(WORD)j) rplPushData((WORDPTR)one_bint);
+                    else rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) {
+                    DSTop=savestk;
+                    return;
+                }
+            }
+        }
+
+
+        // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+        newmat=rplMatrixCompose(rows,cols);
+        if(Exceptions) {
+            DSTop=savestk;
+            return;
+        }
+
+
+        // NOW CLEANUP THE STACK
+        savestk[-1]=*lfirst;
+        savestk[0]=*dfirst;
+        savestk[1]=*ufirst;
+        savestk[2]=newmat;
+
+        DSTop=savestk+3;
+        return;
+    }
 
 
 
