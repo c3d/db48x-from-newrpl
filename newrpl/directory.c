@@ -871,3 +871,53 @@ BINT rplIsVarEmptyDir(WORDPTR *var)
     }
     return 0;
 }
+
+
+// RETURNS A POINTER TO THE START OF A DIRECTORY
+// FROM A LIST OF DIRECTORIES IN A PATH
+// uselastname=0 --> DISREGARD THE LAST NAME (ASSUME IT'S A VARIABLE)
+// uselastname=1 --> THE ENTIRE LIST IS A PATH
+
+// RETURN NULL IF ANY DIRECTORY IS NOT FOUND
+// PATH CAN BE ABSOLUTE OR RELATIVE TO CurrentDir
+// LIST MAY CONTAIN HOME AND UPDIR
+
+WORDPTR *rplFindDirFromPath(WORDPTR pathlist,BINT uselastname)
+{
+    WORDPTR ident, last;
+    if(!ISLIST(*pathlist)) return CurrentDir;
+    WORDPTR *dir=CurrentDir;
+
+    last=rplSkipOb(pathlist)-1; // POINT TO CMD_ENDLIST
+
+    if(!uselastname) {
+        ident=pathlist+1;
+        while(rplSkipOb(ident)<last) ident=rplSkipOb(ident);
+
+        last=ident; // HERE IDENT POINTS TO THE LAST OBJECT IN THE LIST
+    }
+
+    ident=pathlist+1;
+
+
+    while(ident<last) {
+        if(*ident==CMD_HOME) dir=Directories;
+        else if(*ident==CMD_UPDIR) dir=rplGetParentDir(dir);
+        else if(ISIDENT(*ident)) {
+            dir=rplFindGlobalInDir(ident,dir,0);
+            if(dir) {
+                if(!ISDIR(*dir[1])) { dir=0; }
+                else dir=rplFindDirbyHandle(dir[1]);
+            }
+        }
+        else dir=0;
+
+        if(!dir) {
+            rplError(ERR_DIRECTORYNOTFOUND);
+            return 0;
+        }
+        ident=rplSkipOb(ident);
+    }
+
+    return dir;
+}

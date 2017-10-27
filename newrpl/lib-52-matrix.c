@@ -4373,12 +4373,144 @@ void LIB_HANDLER()
     }
         case TRAN:
     {
-        // TODO:
+        // MATRIX TRANSPOSE
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        BINT64 rows,cols;
+        WORDPTR *var=0;
+
+
+        if(ISIDENT(*rplPeekData(1))) {
+
+            var=rplFindLAM(rplPeekData(1),1);
+            if(!var) var=rplFindGlobal(rplPeekData(1),1);
+            if(!var) {
+                rplError(ERR_UNDEFINEDVARIABLE);
+                return;
+            }
+            ++var;
+            if(!ISMATRIX(**var)) {
+                rplError(ERR_INVALIDDIMENSION);
+                return;
+            }
+
+        }
+        else var=DSTop-1;
+
+
+        if(ISMATRIX(**var)) {
+                    rows=rplMatrixRows(*var);
+                    cols=rplMatrixCols(*var);
+                }
+        else {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+        if(rows==0) return;     // VECTORS DON'T NEED TO BE TRANSPOSED, BUT NO NEED TO ERROR ON THAT
+
+
+        rplMatrixTranspose();
+
         return;
     }
         case TRN:
     {
-        // TODO:
+                // COMPLEX CONJUGATE
+                if(rplDepthData()<1) {
+                    rplError(ERR_BADARGCOUNT);
+                    return;
+                }
+                BINT64 rows,cols;
+                WORDPTR *var=0;
+
+
+                if(ISIDENT(*rplPeekData(1))) {
+
+                    var=rplFindLAM(rplPeekData(1),1);
+                    if(!var) var=rplFindGlobal(rplPeekData(1),1);
+                    if(!var) {
+                        rplError(ERR_UNDEFINEDVARIABLE);
+                        return;
+                    }
+                    ++var;
+                    if(!ISMATRIX(**var)) {
+                        rplError(ERR_INVALIDDIMENSION);
+                        return;
+                    }
+
+                }
+                else var=DSTop-1;
+
+
+                if(ISMATRIX(**var)) {
+                            rows=rplMatrixRows(*var);
+                            cols=rplMatrixCols(*var);
+                        }
+                else {
+                    rplError(ERR_MATRIXEXPECTED);
+                    return;
+                }
+
+                if(rows==0) {
+                    // VECTORS DON'T NEED TO BE TRANSPOSED, JUST DO THE COMPLEX CONJUGATE
+                    rplMatrixConj();
+                    return;
+                }
+
+                if( (rows<1)||(rows>65535)||(cols<1)||(cols>65535))  {
+                    rplError(ERR_INVALIDDIMENSION);
+                    return;
+                }
+
+
+                // DO IT MANUALLY INSTEAD OF USING rplMatrixTranspose() and rplMatrixConj()
+                // TO AVOID DOUBLE rplMatrixCompose() OVERHEAD
+
+
+                WORDPTR *savestk=DSTop;
+
+                WORDPTR *a=DSTop;
+
+                rplPushData(*var);
+
+                // TRANSPOSE IS DONE DURING EXPLODE
+                rplMatrixExplodeByCols();
+                if(Exceptions) { DSTop=savestk; return; }
+
+                BINT i,j;
+
+                // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
+                // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
+#define STACKELEM(r,c) a[((r)-1)*rows+(c)]
+
+                // NOW DO THE COMPLEX CONJUGATE
+                for(i=1;i<=cols;++i)
+                {
+                    for(j=1;j<=rows;++j) {
+                        rplPushData(STACKELEM(i,j));
+                        if(Exceptions) { DSTop=savestk; return; }
+                        rplCallOperator(CMD_CONJ);
+                        if(Exceptions) { DSTop=savestk; return; }
+                        if(ISSYMBOLIC(*rplPeekData(1))) {
+                            rplSymbAutoSimplify();
+                            if(Exceptions) { DSTop=savestk; return; }
+                        }
+                        STACKELEM(i,j)=rplPopData();
+                    }
+                }
+
+#undef STACKELEM
+
+                WORDPTR newmat=rplMatrixCompose(cols,rows);
+
+                DSTop=savestk;
+                if(newmat) {
+                    *var=newmat;
+                    if(var!=DSTop-1) rplDropData(1);
+                }
+
         return;
     }
         case VANDERMONDE:

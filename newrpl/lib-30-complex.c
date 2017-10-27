@@ -6401,10 +6401,18 @@ void LIB_HANDLER()
             return;
         }
 
+
         if(ISLIST(*rplPeekData(1))) {
             rplListUnaryDoCmd();
             return;
         }
+
+        if( ISSYMBOLIC(*rplPeekData(1)) || ISIDENT(*rplPeekData(1))) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
         if(!ISNUMBERCPLX(*rplPeekData(1))) {
             rplError(ERR_COMPLEXORREALEXPECTED);
             return;
@@ -6450,6 +6458,12 @@ void LIB_HANDLER()
 
         if(ISLIST(*rplPeekData(1))) {
             rplListUnaryDoCmd();
+            return;
+        }
+
+        if( ISSYMBOLIC(*rplPeekData(1)) || ISIDENT(*rplPeekData(1))) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
             return;
         }
 
@@ -6504,6 +6518,11 @@ void LIB_HANDLER()
             return;
         }
 
+        if( ISSYMBOLIC(*rplPeekData(1)) || ISIDENT(*rplPeekData(1))) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
 
         if(!ISNUMBERCPLX(*rplPeekData(1))) {
             rplError(ERR_COMPLEXORREALEXPECTED);
@@ -6590,6 +6609,17 @@ void LIB_HANDLER()
 
         if(ISLIST(*rplPeekData(1))) {
             rplListUnaryDoCmd();
+            return;
+        }
+
+        if( ISSYMBOLIC(*rplPeekData(1)) || ISIDENT(*rplPeekData(1))) {
+            // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
+        if(ISMATRIX(*rplPeekData(1))) {
+            rplMatrixConj();
             return;
         }
 

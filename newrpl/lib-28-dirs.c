@@ -168,20 +168,43 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        // ONLY ACCEPT IDENTS AS KEYS
+
+        WORDPTR *indir=0;
+        // LIST IS A PATH, ONLY ENABLE PARALLEL PROCESSING FOR LISTS OF LISTS
         if(ISLIST(*rplPeekData(1)))
         {
-            rplListBinaryDoCmd();
-            return;
+            WORDPTR firstelem=rplPeekData(1)+1;
+            if(!ISLIST(*firstelem)) {
+                rplListBinaryDoCmd();
+                return;
+            }
+            // LIST OF LIST, TREAT LIKE A PATH
+            indir=rplFindDirFromPath(rplPeekData(1)+1,0);
+            if(!indir) {
+                rplError(ERR_DIRECTORYNOTFOUND);
+                return;
+            }
+
         }
 
-
+        if(!indir) {
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);
             return;
         }
+        }
+        else {
+                    if(!ISIDENT(*rplGetListElement(rplPeekData(1)+1,rplListLength(rplPeekData(1)+1)))) {
+                        rplError(ERR_IDENTEXPECTED);
+                        return;
+                    }
 
-        WORDPTR *val=rplFindLAM(rplPeekData(1),1);
+        }
+
+        WORDPTR *val;
+
+        if(!indir) val=rplFindLAM(rplPeekData(1),1);
+        else val=0;
 
 
 
@@ -199,7 +222,10 @@ void LIB_HANDLER()
         }
         else {
             // LAM WAS NOT FOUND, TRY A GLOBAL
-            val=rplFindGlobal(rplPeekData(1),0);
+            if(indir) {
+                val=rplFindGlobalInDir(rplGetListElement(rplPeekData(1)+1,rplListLength(rplPeekData(1)+1)),indir,0);
+            }
+            else val=rplFindGlobal(rplPeekData(1),0);
             if(val) {
                 if(ISDIR(*val[1])) {
                     rplError(ERR_CANTOVERWRITEDIR);
@@ -223,13 +249,29 @@ void LIB_HANDLER()
                             *(val+1)=*(newdir+1);                   // AND NEW HANDLE
                         }
                         else {
+                            // NOT FOUND, CREATE A NEW VARIABLE
+                            if(!indir) {
                             *(newdir+3)=*(CurrentDir+1);
                             WORDPTR name=rplMakeIdentQuoted(rplPeekData(1));
+                            if(!name) return;
                             rplCreateGlobal(name,*(newdir+1));
+                            }
+                            else {
+                                // SET PARENT DIR
+                                *(newdir+3)=*(indir+1);
+                                WORDPTR name=rplMakeIdentQuoted(rplGetListElement(rplPeekData(1)+1,rplListLength(rplPeekData(1)+1)));
+                                if(!name) return;
+                                rplCreateGlobalInDir(name,*(newdir+1),indir);
+                            }
                         }
                         rplDropData(2);
                         return;
                     }
+                    else return;
+                }
+                else {
+                    rplError(ERR_DIRECTORYNOTFOUND);
+                    return;
                 }
             }
 
@@ -240,8 +282,16 @@ void LIB_HANDLER()
             }
             else {
                 // CREATE A NEW GLOBAL VARIABLE
+                if(!indir) {
                 WORDPTR name=rplMakeIdentQuoted(rplPeekData(1));
+                if(!name) return;
                 rplCreateGlobal(name,rplPeekData(2));
+                }
+                else {
+                    WORDPTR name=rplMakeIdentQuoted(rplGetListElement(rplPeekData(1)+1,rplListLength(rplPeekData(1)+1)));
+                    if(!name) return;
+                    rplCreateGlobalInDir(name,rplPeekData(2),indir);
+                }
             }
             rplDropData(2);
         }
@@ -256,21 +306,60 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
-
-        if(!ISIDENT(*rplPeekData(1))) {
-            rplError(ERR_IDENTEXPECTED);
-            return;
+        WORDPTR *indir=0;
+        // LIST IS A PATH, ONLY ENABLE PARALLEL PROCESSING FOR LISTS OF LISTS
+        if(ISLIST(*rplPeekData(1)))
+        {
+            WORDPTR firstelem=rplPeekData(1)+1;
+            if(!ISLIST(*firstelem)) {
+                rplListUnaryDoCmd();
+                return;
+            }
+            // NOT A LIST, SO IT MUST BE A PATH
+            indir=rplFindDirFromPath(rplPeekData(1)+1,0);
+            if(!indir) {
+                rplError(ERR_DIRECTORYNOTFOUND);
+                return;
+            }
 
         }
 
-        WORDPTR val=rplGetLAM(rplPeekData(1));
+        if(!indir) {
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+        }
+        else {
+                    if(!ISIDENT(*rplGetListElement(rplPeekData(1)+1,rplListLength(rplPeekData(1)+1)))) {
+                        rplError(ERR_IDENTEXPECTED);
+                        return;
+                    }
+
+        }
+
+        WORDPTR val;
+
+
+        if(!indir) val=rplGetLAM(rplPeekData(1));
+        else val=0;
+
+
         if(val) {
             rplOverwriteData(1,val);
         }
         else {
+            if(!indir) {
             // NO LAM, TRY A GLOBAL
             val=rplGetGlobal(rplPeekData(1));
+            }
+            else {
+            WORDPTR *var=rplFindGlobalInDir(rplGetListElement(rplPeekData(1)+1,rplListLength(rplPeekData(1)+1)),indir,0);
+            if(var) val=var[1];
+            else val=0;
+            }
+
+
             if(val) {
                 rplOverwriteData(1,val);
             }

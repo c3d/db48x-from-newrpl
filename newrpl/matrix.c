@@ -308,7 +308,7 @@ BINT j;
 for(j=0;j<totalelements;++j) {
  rplPushData(GETELEMENT(*a,j));
  rplPushData(GETELEMENT(*b,j));
- rplCallOvrOperator(Opcode);
+ rplCallOperator(Opcode);
  if(Exceptions) {
      DSTop=Savestk;
      return;
@@ -462,7 +462,7 @@ BINT j;
 
 for(j=0;j<totalelements;++j) {
  rplPushData(GETELEMENT(*a,j));
- rplCallOvrOperator(Opcode);
+ rplCallOperator(Opcode);
  if(Exceptions) {
      DSTop=Savestk;
      return;
@@ -490,6 +490,10 @@ void rplMatrixNeg()
     rplMatrixUnary((CMD_OVR_NEG));
 }
 
+void rplMatrixConj()
+{
+    rplMatrixUnary((CMD_CONJ));
+}
 
 
 
