@@ -4368,7 +4368,39 @@ void LIB_HANDLER()
     }
         case TRACE:
     {
-        // TODO:
+        // RETURN THE SUM OF THE DIAGONAL ITEMS
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        BINT k,rows,cols;
+
+        if(ISMATRIX(*rplPeekData(1))) {
+                    rows=rplMatrixRows(rplPeekData(1));
+                    cols=rplMatrixCols(rplPeekData(1));
+                }
+        else {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+        if(rows==0) rows=1;
+
+        if(cols<rows) rows=cols;
+
+        WORDPTR *mat=DSTop-1;
+
+        for(k=1;k<=rows;++k)
+        {
+            rplPushData(rplMatrixFastGet(*mat,k,k));
+            if(Exceptions) { DSTop= mat+1; return; }
+            if(k>1) {
+                rplCallOvrOperator(CMD_OVR_ADD);
+                if(Exceptions) { DSTop= mat+1; return; }
+            }
+        }
+
+        *mat=rplPopData();
         return;
     }
         case TRAN:
@@ -4378,7 +4410,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        BINT64 rows,cols;
+        BINT64 rows;
         WORDPTR *var=0;
 
 
@@ -4402,7 +4434,6 @@ void LIB_HANDLER()
 
         if(ISMATRIX(**var)) {
                     rows=rplMatrixRows(*var);
-                    cols=rplMatrixCols(*var);
                 }
         else {
             rplError(ERR_MATRIXEXPECTED);
