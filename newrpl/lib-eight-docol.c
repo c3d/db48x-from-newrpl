@@ -49,7 +49,8 @@
     CMD(CLRBKPOINT,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
     CMD(DBUG,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(BLAMEERR,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(RETRYSEMI,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2))
+    ECMD(RETRYSEMI,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EXIT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
 
 
 
@@ -87,6 +88,11 @@ ROMOBJECT error_reenter_seco[]={
     CMD_ERROR_REENTER
 };
 
+ROMOBJECT nullptr_catastrophic_seco[]={
+    CMD_EXITRPL,
+    CMD_EXITRPL
+};
+
 ROMOBJECT bkpoint_seco[]={
     MKPROLOG(DOCOL,12),
     CMD_IFERR,
@@ -119,6 +125,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)errormsg_ident,
     (WORDPTR)error_reenter_seco,
     (WORDPTR)bkpoint_seco,
+    (WORDPTR)nullptr_catastrophic_seco,
     0
 };
 
@@ -714,6 +721,59 @@ void LIB_HANDLER()
 
 
     }
+
+    case EXIT:
+    {
+        // EXIT FROM THE CURRENT SECONDARY
+        while(ErrorHandler==(WORDPTR)error_reenter_seco) {
+            // WITHIN AN ERROR HANDLER, OR AFTER AN ELSEERR STATEMENT, EXIT SHOULD WORK LIKE ENDERR
+
+        // EXIT THE ERROR HANDLER
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
+
+
+        }
+        // INSPECT THE RETURN STACK
+
+        WORDPTR *rptr=RSTop-1;
+
+        while(rptr>=RStk) {
+            if(ISSECO(**rptr)) { RSTop=rptr+1; break; }
+            if(ISPROGRAM(**rptr)) { RSTop=rptr+1; break; }
+
+            if( (*rptr==abnd_prog)||( (*rptr)[1]==CMD_ABND)) {
+                // ABND ALSO DOES SEMI, SO IT TERMINATES THE CURRENT SECONDARY
+                RSTop=rptr+1; break;
+            }
+
+            if((**rptr==CMD_OVR_EVAL)||(**rptr==CMD_OVR_EVAL1)||(**rptr==CMD_OVR_XEQ)) {
+                RSTop=rptr+1;
+                break;
+            }
+            --rptr;
+        }
+
+        if(rptr<RStk) {
+            // SAFETY CHECK: THIS CAN ONLY HAPPEN IF WE EXECUTE EXIT AS A FREE STREAM WITH rplRun()
+            // IN THAT CASE, DON'T EXIT
+            return;
+        }
+
+        // JUST DO SEMI
+        IPtr=rplPopRet();   // GET THE CALLER ADDRESS
+        if(IPtr) CurOpcode=*IPtr;    // SET THE WORD SO MAIN LOOP SKIPS THIS OBJECT, AND THE NEXT ONE IS EXECUTED
+        return;
+
+
+    }
+
+
+
+
+
         // ADD MORE OPCODES HERE
 
 

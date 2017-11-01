@@ -8,6 +8,10 @@
 #include "newrpl.h"
 #include "libraries.h"
 
+
+extern ROMOBJECT nullptr_catastrophic_seco[];
+
+
 // THIS IS THE TRAP THAT HANDLES REAL NUMBER EXCEPTIONS AND CONVERTS THEM
 // TO RPL KERNEL EXCEPTIONS
 void decTrapHandler(BINT error)
@@ -25,10 +29,14 @@ void decTrapHandler(BINT error)
 void rplSetExceptionHandler(WORDPTR Handler)
 {
     // SAVE CURRENT ERROR HANDLERS
-    rplPushRet((WORDPTR)ErrorHandler);
-    rplPushRet((WORDPTR)ErrorRSTop);
-    rplPushRet((WORDPTR)ErrorLAMTop);
-    rplPushRet((WORDPTR)ErrornLAMBase);
+    if(!ErrorHandler) rplPushRet((WORDPTR)nullptr_catastrophic_seco);
+    else rplPushRet((WORDPTR)ErrorHandler);
+    if(!ErrorRSTop) rplPushRet((WORDPTR)nullptr_catastrophic_seco);
+    else rplPushRet((WORDPTR)ErrorRSTop);
+    if(!ErrorLAMTop) rplPushRet((WORDPTR)nullptr_catastrophic_seco);
+    else rplPushRet((WORDPTR)ErrorLAMTop);
+    if(!ErrornLAMBase) rplPushRet((WORDPTR)nullptr_catastrophic_seco);
+    else rplPushRet((WORDPTR)ErrornLAMBase);
 
     ErrorHandler=Handler;
     ErrorLAMTop=LAMTop;
@@ -55,6 +63,12 @@ void rplRemoveExceptionHandler()
     ErrorLAMTop=(WORDPTR *)rplPopRet();
     ErrorRSTop=(WORDPTR *)rplPopRet();
     ErrorHandler=(WORDPTR)rplPopRet();
+
+    if(ErrorHandler==(WORDPTR)nullptr_catastrophic_seco) ErrorHandler=0;
+    if(ErrorLAMTop==(WORDPTR *)nullptr_catastrophic_seco) ErrorLAMTop=0;
+    if(ErrorRSTop==(WORDPTR *)nullptr_catastrophic_seco) ErrorRSTop=0;
+    if(ErrornLAMBase==(WORDPTR *)nullptr_catastrophic_seco) ErrornLAMBase=0;
+
 
 }
 
