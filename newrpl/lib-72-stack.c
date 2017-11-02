@@ -91,9 +91,7 @@ ROMOBJECT unprotect_seco[]={
 
 
 ROMOBJECT ift_seco[]={
-    MKPROLOG(DOCOL,9),
-    (CMD_OVER),
-    (CMD_OVR_NUM),    // DO NUM
+    MKPROLOG(DOCOL,7),
     (CMD_IF),
     (CMD_THEN),
     (CMD_SWAP),
@@ -105,9 +103,7 @@ ROMOBJECT ift_seco[]={
 
 
 ROMOBJECT ifte_seco[]={
-    MKPROLOG(DOCOL,14),
-    (CMD_PICK3),
-    (CMD_OVR_NUM),    // DO NUM
+    MKPROLOG(DOCOL,12),
     (CMD_IF),
     (CMD_THEN),
     (CMD_DROP),
@@ -482,18 +478,26 @@ void LIB_HANDLER()
              return;
          }
 
-         if(ISIDENT(*rplPeekData(2))||ISSYMBOLIC(*rplPeekData(2)))
-         {
-             // TRY INDIRECT EXECUTION BY DOING ->NUM ON THE ARGUMENT FIRST
-             rplPushRet(IPtr);
-             IPtr=(WORDPTR) ift_seco;
+        WORDPTR *savestk=DSTop;
+
+        rplPushData(rplPeekData(2));
+        if(Exceptions) { DSTop=savestk; return; }
+
+         WORDPTR *rstopsave=RSTop;
+         rplPushRet(IPtr);
+         rplCallOvrOperator(CMD_OVR_ISTRUE);
+         if(Exceptions) { DSTop=savestk; RSTop=rstopsave; return; }
+         if(IPtr!=*rstopsave) {
+             // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+             rstopsave[1]=(WORDPTR)ift_seco+1;   // REPLACE THE RETURN ADDRESS WITH OUR SECONDARY
              return;
          }
-
+         RSTop=rstopsave;
+         // IT WAS AN ATOMIC OPERATION
              // DIRECT EXECUTION
 
-             if(rplIsFalse(rplPeekData(2))) {
-                 rplDropData(2);
+             if(rplIsFalse(rplPopData())) {
+                 rplDropData(1);
                  return;
              }
 
@@ -512,17 +516,26 @@ void LIB_HANDLER()
              return;
          }
 
-         if(ISIDENT(*rplPeekData(3))||ISSYMBOLIC(*rplPeekData(3)))
-         {
-             // TRY INDIRECT EXECUTION BY DOING ->NUM ON THE ARGUMENT FIRST
-             rplPushRet(IPtr);
-             IPtr=(WORDPTR) ifte_seco;
-             return;
-         }
+         WORDPTR *savestk=DSTop;
+
+         rplPushData(rplPeekData(3));
+         if(Exceptions) { DSTop=savestk; return; }
+
+          WORDPTR *rstopsave=RSTop;
+          rplPushRet(IPtr);
+          rplCallOvrOperator(CMD_OVR_ISTRUE);
+          if(Exceptions) { DSTop=savestk; RSTop=rstopsave; return; }
+          if(IPtr!=*rstopsave) {
+              // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+              rstopsave[1]=(WORDPTR)ifte_seco+1;   // REPLACE THE RETURN ADDRESS WITH OUR SECONDARY
+              return;
+          }
+          RSTop=rstopsave;
+          // IT WAS AN ATOMIC OPERATION
 
              // DIRECT EXECUTION
 
-             if(rplIsFalse(rplPeekData(3))) rplOverwriteData(3,rplPeekData(1));
+             if(rplIsFalse(rplPopData())) rplOverwriteData(3,rplPeekData(1));
              else rplOverwriteData(3,rplPeekData(2));
              rplDropData(2);
              rplCallOvrOperator(CMD_OVR_XEQ);
