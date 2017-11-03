@@ -6103,7 +6103,6 @@ int halDoCustomKey(BINT keymsg)
 {
     if(rplTestSystemFlag(FL_NOCUSTOMKEYS)) return 0;    // DON'T USE CUSTOM KEYS IF DISABLED PER FLAG
 
-
     // TODO: READ THE KEYBOARD TABLE FROM THE Settings DIRECTORY AND DO IT
     WORDPTR keytable;
 
@@ -6114,8 +6113,13 @@ int halDoCustomKey(BINT keymsg)
     if(!ISLIST(*keytable)) return 0;    // INVALID KEY DEFINITION
 
     WORDPTR ptr=keytable+1,endoftable=rplSkipOb(keytable),action=0;
-    BINT msg,ctx;
+    BINT msg,ctx,keepgoing;
 
+    // CLEAR THE DEFAULT KEY FLAG, ANY OF THE CUSTOM HANDLERS CAN SET THIS FLAG TO HAVE THE DEFAULT KEY HANDLER EXECUTED
+    rplClrSystemFlag(FL_DODEFAULTKEY);
+
+    do {
+    keepgoing=0;
     while(ptr<endoftable)
     {
     msg=rplReadNumberAsBINT(ptr);
@@ -6149,9 +6153,19 @@ int halDoCustomKey(BINT keymsg)
 
     if(action) {
         // EXECUTE THE REQUESTED ACTION
+        // CLEAR THE NEXT HANDLER FLAGS, THE KEY HANDLER CAN SET THE FLAG TO CHAIN THE PREVIOUS HANDLER
+        rplClrSystemFlag(FL_DONEXTCUSTKEY);
         customKeyHandler(keymsg,action);
-        return 1;
-    }
+
+        if(rplTestSystemFlag(FL_DONEXTCUSTKEY)>0) { ptr=rplSkipOb(ptr); keepgoing=1; }
+        else {
+            if(rplTestSystemFlag(FL_DODEFAULTKEY)>0) halDoDefaultKey(keymsg);
+            return 1;
+        }
+        }
+
+
+    } while(keepgoing);
 
     return 0;
 }

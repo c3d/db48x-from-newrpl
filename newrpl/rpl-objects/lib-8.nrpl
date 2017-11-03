@@ -18,7 +18,7 @@
 @#name lib8_menu_debug
 {
     DBUG SST SST↓ KILL CONT
-    HALT SETBKPOINT CLRBKPOINT EXITRPL
+    HALT SETBKPOINT CLRBKPOINT EXIT
 }
 
 @#name lib8_menu_error
@@ -45,7 +45,7 @@ entering into subroutines
 
 KILL
 "Force-terminate halted
-program
+program (not current one)
  → "
 
 CONT
@@ -68,9 +68,15 @@ CLRBKPOINT
 
  → "
 
-EXITRPL
-"Force-terminate running
+
+EXIT
+"Exit current loop or
 program at this point
+ → "
+
+EXITRPL
+"Panic-exit RPL engine,
+stop all programs
  → "
 
 DOERR
