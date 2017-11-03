@@ -497,7 +497,7 @@ void LIB_HANDLER()
              // DIRECT EXECUTION
 
              if(rplIsFalse(rplPopData())) {
-                 rplDropData(1);
+                 rplDropData(2);
                  return;
              }
 
