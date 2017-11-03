@@ -302,7 +302,6 @@ void rplFontsNewList(WORDPTR oldlist,WORDPTR newlist)
 {
 
     if(oldlist) {
-    WORDPTR oldname;
     WORDPTR endoldlst=rplSkipOb(oldlist);
     WORDPTR font,fontname;
     WORDPTR fntid[7]=  {

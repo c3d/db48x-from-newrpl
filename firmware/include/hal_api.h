@@ -104,6 +104,8 @@ enum halFlagsEnum {
     HAL_RESET=8192
     // ADD MORE BITS HERE
 
+    // STARTING WITH 2^16 = 65536 ARE NOTIFICATION FLAGS
+
 };
 
 #define HAL_AUTOOFFTIME (HAL_AUTOOFFTIME1|HAL_AUTOOFFTIME2|HAL_AUTOOFFTIME3)
@@ -1224,6 +1226,10 @@ void halInitKeyboard();
 BINT halWaitForKey();
 BINT halWaitForKeyTimeout(BINT timeoutms);
 void halPostKeyboardMessage(BINT keymsg);
+int halDoDefaultKey(BINT keymsg);
+int halDoCustomKey(BINT keymsg);
+
+
 
 // IDLE PROCESSES
 void halDeferProcess(void (*function)(void));

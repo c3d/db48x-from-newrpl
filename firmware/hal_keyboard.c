@@ -2106,34 +2106,6 @@ void  enterKeyHandler(BINT keymsg)
 }
 
 
-void cancelKeyHandler(BINT keymsg)
-{
-    UNUSED_ARGUMENT(keymsg);
-
-    if(halGetNotification(N_RIGHTSHIFT)) {
-      // SHIFT-ON MEANS POWER OFF!
-       halPreparePowerOff();
-       halEnterPowerOff();
-       return;
-
-    }
-
-    if((halGetContext()&CONTEXT_INEDITOR)) {
-        // END THE COMMAND LINE
-     endCmdLine();
-   }
-
-    if((halGetContext()&CONTEXT_INTSTACK)) {
-        // END INTERACTIVE STACK
-        halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
-        halScreen.StkVisibleLvl=1;
-        halScreen.StkVisibleOffset=0;
-        halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
-        halScreen.DirtyFlag|=STACK_DIRTY;
-   }
-
-
-}
 
 
 
@@ -4794,6 +4766,7 @@ DECLARE_VARKEYHANDLER(var6,2,5)
 
 
 
+
 void underscoreKeyHandler(BINT keymsg)
 {
     symbolKeyHandler(keymsg,(BYTEPTR)"_",0);
@@ -5514,6 +5487,9 @@ DECLARE_CMDKEYHANDLER(arg,CMD_ARG,"ARG",1)
 
 DECLARE_CMDKEYHANDLER(convert,CMD_CONVERT,"CONVERT",-1)
 
+DECLARE_CMDKEYHANDLER(cont,CMD_CONT,"CONT",-1)
+
+
 DECLARE_TRANSPCMDKEYHANDLER(updir,CMD_UPDIR)
 DECLARE_TRANSPCMDKEYHANDLER(home,CMD_HOME)
 
@@ -5528,6 +5504,65 @@ DECLARE_MENUKEYHANDLER(arithmenu,MKMENUCODE(0,64,0,0))
 DECLARE_MENUKEYHANDLER(cplxmenu,MKMENUCODE(0,30,0,0))
 DECLARE_MENUKEYHANDLER(timemenu,MKMENUCODE(0,65,0,0))
 DECLARE_MENUKEYHANDLER(basemenu,MKMENUCODE(0,70,0,0))
+
+
+void cancelKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(halGetNotification(N_RIGHTSHIFT)) {
+      // SHIFT-ON MEANS POWER OFF!
+       halPreparePowerOff();
+       halEnterPowerOff();
+       return;
+
+    }
+
+    if(halGetNotification(N_LEFTSHIFT)) {
+     // THIS IS CONTINUE
+        contKeyHandler(keymsg);
+        keyb_setshiftplane(0,0,0,0);
+        return;
+    }
+
+
+    if((halGetContext()&CONTEXT_INEDITOR)) {
+        // END THE COMMAND LINE
+     endCmdLine();
+   }
+
+    if((halGetContext()&CONTEXT_INTSTACK)) {
+        // END INTERACTIVE STACK
+        halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
+        halScreen.StkVisibleLvl=1;
+        halScreen.StkVisibleOffset=0;
+        halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
+        halScreen.DirtyFlag|=STACK_DIRTY;
+   }
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // **************************************************************************
@@ -6113,7 +6148,7 @@ int halDoCustomKey(BINT keymsg)
     if(!ISLIST(*keytable)) return 0;    // INVALID KEY DEFINITION
 
     WORDPTR ptr=keytable+1,endoftable=rplSkipOb(keytable),action=0;
-    BINT msg,ctx,keepgoing;
+    BINT msg,ctx,keepgoing,hanoffset;
 
     // CLEAR THE DEFAULT KEY FLAG, ANY OF THE CUSTOM HANDLERS CAN SET THIS FLAG TO HAVE THE DEFAULT KEY HANDLER EXECUTED
     rplClrSystemFlag(FL_DODEFAULTKEY);
@@ -6149,20 +6184,56 @@ int halDoCustomKey(BINT keymsg)
         }
     }
     ptr=rplSkipOb(ptr);
+
     }
 
     if(action) {
         // EXECUTE THE REQUESTED ACTION
         // CLEAR THE NEXT HANDLER FLAGS, THE KEY HANDLER CAN SET THE FLAG TO CHAIN THE PREVIOUS HANDLER
+
+
+            // REMEMBER WHICH HANDLER WAS EXECUTED
+
+            hanoffset=action-keytable;
+
+
         rplClrSystemFlag(FL_DONEXTCUSTKEY);
         customKeyHandler(keymsg,action);
 
-        if(rplTestSystemFlag(FL_DONEXTCUSTKEY)>0) { ptr=rplSkipOb(ptr); keepgoing=1; }
+        if(rplTestSystemFlag(FL_DONEXTCUSTKEY)>0) {
+
+            // RESTORE ALL POINTERS, SINCE EXECUTION COULD'VE CHANGED EVERYTHING
+
+
+            keytable=rplGetSettings((WORDPTR)customkey_ident);
+
+            if(!keytable) return 1; // NO MORE KEYS, KEYTABLE VANISHED?
+
+            if(!ISLIST(*keytable)) return 1;    // INVALID KEY DEFINITION
+
+            endoftable=rplSkipOb(keytable);
+            action=0;
+            ptr=keytable+1;
+            while(ptr-keytable<=hanoffset) {
+                ptr=rplSkipOb(ptr);
+                if(ptr>=endoftable) break;
+                ptr=rplSkipOb(ptr);
+                if(ptr>=endoftable) break;
+                ptr=rplSkipOb(ptr);
+                if(ptr>=endoftable) break;
+            }
+
+            // FOUND THE NEXT HANDLER TO SCAN OR THE END OF LIST
+
+            keepgoing=1;
+
+        }
         else {
             if(rplTestSystemFlag(FL_DODEFAULTKEY)>0) halDoDefaultKey(keymsg);
             return 1;
         }
-        }
+
+    }
 
 
     } while(keepgoing);

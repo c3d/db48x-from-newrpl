@@ -16,6 +16,9 @@
 
 void halSetNotification(enum halNotification type,int color)
 {
+    if(color) halFlags|=1<<(16+type);
+    else halFlags&=~(1<<(16+type));
+
     if(type<N_DISKACCESS) {
         unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
         scrptr+=65;
@@ -30,15 +33,7 @@ void halSetNotification(enum halNotification type,int color)
 
 int halGetNotification(enum halNotification type)
 {
-    if(type<N_DISKACCESS) {
-        unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
-        scrptr+=65;
-        scrptr+=type*80;
-        return *scrptr>>4;
-    }
-    else {
-        // TODO: IMPLEMENT CUSTOM ANNUNCIATORS
-    }
+    if(halFlags&(1<<(16+type))) return 1;
     return 0;
 }
 
@@ -1493,7 +1488,7 @@ void halShowErrorMsg()
         // SHOW ERROR MESSAGE
 
         if(Exceptions!=EX_ERRORCODE) {
-            BINT xstart=scr.clipx;
+            BINT xstart=scr.clipx+6;
             if(ExceptionPointer!=0) {  // ONLY IF THERE'S A VALID COMMAND TO BLAME
             WORDPTR cmdname=halGetCommandName(ExceptionPointer);
             if(cmdname) {
