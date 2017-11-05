@@ -462,18 +462,18 @@ void LIB_HANDLER()
 
         WORDPTR strobj=rplPeekData(1);
         ScratchPointer1=(strobj+1);
-        ScratchPointer2=(WORDPTR)(((BYTEPTR)ScratchPointer1)+STRLEN(*strobj));
+        ScratchPointer2=(WORDPTR)(((BYTEPTR)ScratchPointer1)+STRLEN(*strobj)-1);
 
         BINT utfchar,count=0;
 
-        while(ScratchPointer1<ScratchPointer2) {
+        while(ScratchPointer1<=ScratchPointer2) {
 
-        utfchar=utf82cp((char *) ScratchPointer1,(char *)ScratchPointer2);
+        utfchar=utf82cp((char *) ScratchPointer1,((char *)ScratchPointer2)+1);
         rplNewBINTPush(utfchar,HEXBINT);
         ++count;
         if(Exceptions) return;
 
-        ScratchPointer1=(WORDPTR)utf8skip((char *)ScratchPointer1,(char *)ScratchPointer2);
+        ScratchPointer1=(WORDPTR)utf8skip((char *)ScratchPointer1,((char *)ScratchPointer2)+1);
         }
 
         rplNewBINTPush(count,DECBINT);
@@ -880,12 +880,12 @@ void LIB_HANDLER()
                 if(size==totalsize) {
                 ScratchPointer1=newstring;
                 ScratchPointer2=(WORDPTR)start;
-                ScratchPointer3=(WORDPTR)end;
+                ScratchPointer3=(WORDPTR)(end-1);
                 rplResizeLastObject(1);
                 totalsize+=4;
                 newstring=ScratchPointer1;
                 start=(BYTEPTR)ScratchPointer2;
-                end=(BYTEPTR)ScratchPointer3;
+                end=((BYTEPTR)ScratchPointer3)+1;
                 nstrptr=(BYTEPTR) (newstring+1);
                 }
 
