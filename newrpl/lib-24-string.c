@@ -1184,7 +1184,7 @@ void LIB_HANDLER()
                 BYTE bytes[4];
             } temp;
 
-            BINT count=0,escape=0,code;
+            BINT count=0,escape=0,code=0;
             BYTEPTR ptr=(BYTEPTR) TokenStart;
             ++ptr;  // SKIP THE QUOTE
             do {
@@ -1337,7 +1337,7 @@ void LIB_HANDLER()
             BYTE bytes[4];
         } temp;
 
-        BINT escape=0,code;
+        BINT escape=0,code=0;
 
         BINT count=(4-(LIBNUM(*ScratchPointer4)&3))&3; // GET NUMBER OF BYTES ALREADY WRITTEN IN LAST WORD
         if(count) {

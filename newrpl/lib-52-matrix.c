@@ -276,7 +276,8 @@ void LIB_HANDLER()
                 return;
             }
 
-            rplMatrixNeg();
+            if(rplMatrixIsPolar(a)) rplMatrixNegPolar();
+            else rplMatrixNeg();
             return;
 
         }
@@ -527,7 +528,10 @@ void LIB_HANDLER()
                     return;
             }
 
-            rplMatrixAdd();
+            // HERE WE KNOW BOTH ARGUMENTS ARE MATRICES, HANDLE POLAR VECTORS AS SPECIAL CASE
+
+            if(rplMatrixIsPolar(a)||rplMatrixIsPolar(b)) rplMatrixAddPolar(0);
+            else rplMatrixAdd();
             return;
         }
         case OVR_SUB:
@@ -575,7 +579,8 @@ void LIB_HANDLER()
                     return;
             }
 
-            rplMatrixSub();
+            if(rplMatrixIsPolar(a)||rplMatrixIsPolar(b)) rplMatrixAddPolar(1);
+            else rplMatrixSub();
             return;
         }
         case OVR_MUL:

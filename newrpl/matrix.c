@@ -1227,6 +1227,50 @@ BINT rplMatrixIsPolar(WORDPTR matobj)
 
 }
 
+// GET THE POLAR MODE TEMPLATE FOR A MATRIX (UP TO 32 DIMENSIONS SUPPORTED IN POLAR MODE)
+// BIT0=1 MEANS x2 IS AN ANGLE, BIT1=x3, .... BITn=x(n+1)
+
+
+WORD rplMatrixPolarGetTemplate(WORDPTR matrix)
+{
+    WORD templ=0;
+
+    // CHECK DIMENSIONS
+
+    BINT rowsa=MATROWS(*(matrix+1)),colsa=MATCOLS(*(matrix+1));
+    BINT k;
+    WORDPTR item;
+
+    if(rowsa) return 0;    // NOT A VECTOR
+
+    for(k=1;k<colsa;++k) {
+        item=GETELEMENT(matrix,k);
+        if(ISANGLE(*item)) templ|=(1<<(k-1));
+    }
+    return templ;
+
+}
+
+
+// GET THE ANGLE MODE
+
+BINT rplMatrixPolarGetAngMode(WORDPTR matrix)
+{
+    // CHECK DIMENSIONS
+
+    BINT rowsa=MATROWS(*(matrix+1)),colsa=MATCOLS(*(matrix+1));
+    BINT k;
+    WORDPTR item;
+
+    if(rowsa) return ANGLENONE;    // NOT A VECTOR
+
+    for(k=1;k<colsa;++k) {
+        item=GETELEMENT(matrix,k);
+        if(ISANGLE(*item)) return ANGLEMODE(*item);
+    }
+    return ANGLENONE;
+
+}
 
 
 // CONVERT VECTOR IN POLAR FORM TO CARTESIAN COORDINATES
@@ -1498,6 +1542,203 @@ void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BI
 
 
 }
+
+
+// SAME AS ADD, BUT ADDS VECTORS IN POLAR MODE
+
+void rplMatrixAddPolar(BINT negv2)
+{
+    WORDPTR *v1,*v2,*savestk=DSTop;
+
+    v1=DSTop-2;
+    v2=DSTop-1;
+
+
+    // CHECK DIMENSIONS
+
+    BINT rows1=MATROWS((*v1)[1]),cols1=MATCOLS((*v1)[1]);
+    BINT rows2=MATROWS((*v2)[1]),cols2=MATCOLS((*v2)[1]);
+    BINT elem;
+
+    if(rows1>1) {
+        if(cols1!=1) {
+            // NOT A VECTOR OPERATION!
+            rplError(ERR_INCOMPATIBLEDIMENSION);
+            return;
+        }
+    }
+
+    if(rows2>1) {
+        if(cols2!=1) {
+            // NOT A VECTOR OPERATION!
+            rplError(ERR_INCOMPATIBLEDIMENSION);
+            return;
+        }
+    }
+
+    elem=(rows1>1)? rows1 : cols1;
+
+    if(rows2>1) {
+        if(rows2!=elem) {
+            rplError(ERR_INCOMPATIBLEDIMENSION);
+            return;
+        }
+    } else {
+        if(cols2!=elem) {
+            rplError(ERR_INCOMPATIBLEDIMENSION);
+            return;
+        }
+    }
+
+
+    // HERE WE KNOW THE RESULT WILL BE A VECTOR OF elem ELEMENTS
+
+    //  RESULTING VECTOR WILL FOLLOW THE TEMPLATE OF THE FIRST ARGUMENT BY CONVENTION
+    WORD templ=rplMatrixPolarGetTemplate(*v1);
+    BINT angmode=rplMatrixPolarGetAngMode(*v1);
+
+
+    rplPushData(*v1);
+    WORDPTR *firstv1=rplMatrixExplode()-1;  // EXPLODE V1
+    if(Exceptions) { DSTop=savestk; return; }
+    if(templ) {
+        rplMatrixPolarToRectEx(firstv1,1,elem);   // CONVERT TO RECT COORDINATES
+        if(Exceptions) { DSTop=savestk; return; }
+    }
+
+
+    rplPushData(*v2);
+    WORDPTR *firstv2=rplMatrixExplode()-1;  // EXPLODE V2
+    if(Exceptions) { DSTop=savestk; return; }
+    if(rplMatrixIsPolar(*v2)) {
+        rplMatrixPolarToRectEx(firstv2,1,elem);   // CONVERT TO RECT COORDINATES
+        if(Exceptions) { DSTop=savestk; return; }
+    }
+
+    // OPERATE ELEMENT BY ELEMENT
+    BINT k;
+
+
+    for(k=1;k<=elem;++k)
+       {
+        rplPushData(firstv1[k]);
+        rplPushData(firstv2[k]);
+        if(Exceptions) { DSTop=savestk; return; }
+        rplCallOvrOperator(negv2? CMD_OVR_SUB:CMD_OVR_ADD);
+        if(Exceptions) { DSTop=savestk; return; }
+        firstv1[k]=rplPopData();
+       }
+
+    // DROP THE SECOND VECTOR
+    DSTop=firstv2;
+
+    // CONVERT BACK TO POLAR IF NEEDED, TO MATCH v1 CONFIGURATION
+    if(templ) {
+        rplMatrixRectToPolarEx(firstv1,1,elem,templ,angmode);
+        if(Exceptions) { DSTop=savestk; return; }
+    }
+
+    WORDPTR newmat=rplMatrixCompose(rows1,cols1);
+    if(Exceptions) { DSTop=savestk; return; }
+
+    DSTop=savestk-1;
+    rplOverwriteData(1,newmat);
+
+    return;
+}
+
+
+
+
+// NEG A POLAR VECTOR:
+// EACH ANGLE WILL BE ADDED HALF CIRCLE
+// EACH COMPONENT NOT AN ANGLE WILL BE NEGATED
+// FIRST COMPONENT NOT AFFECTED
+
+void rplMatrixNegPolar()
+{
+    // CHECK DIMENSIONS
+
+    WORDPTR *matrix=DSTop-1;
+    BINT rows1=MATROWS(*(*matrix+1)),cols1=MATCOLS(*(*matrix+1));
+    BINT k,elem,negdone;
+    WORDPTR item;
+
+    if(rows1>1) {
+        if(cols1!=1) {
+            // NOT A VECTOR OPERATION!
+            rplMatrixNeg();
+            return;
+        }
+    }
+
+    elem=(rows1>1)? rows1 : cols1;
+
+
+    for(negdone=0,k=0;k<elem;++k) {
+        item=GETELEMENT(*matrix,k);
+        rplPushData(item);
+        if(Exceptions) { DSTop=matrix+1; return; }
+
+        if(!k) continue;
+        if(!negdone && ISANGLE(*item)) {
+            // ADD HALF CIRCLE TO THE ANGLE
+            BINT angmode=ANGLEMODE(*item);
+            REAL halfturn,ang;
+
+            switch(angmode)
+            {
+            case ANGLERAD:
+                decconst_PI(&halfturn);
+                break;
+            case ANGLEGRAD:
+                decconst_200(&halfturn);
+                break;
+            case ANGLEDEG:
+            case ANGLEDMS:
+            default:
+                decconst_180(&halfturn);
+                break;
+            }
+
+            rplReadNumberAsReal(item,&ang);
+
+            halfturn.flags|=ang.flags&F_NEGATIVE;
+
+            addReal(&RReg[4],&ang,&halfturn);
+
+            trig_reduceangle(&RReg[4],angmode);
+
+            // HERE RReg[0] HAS THE REDUCED ANGLE
+
+            WORDPTR newangle=rplNewAngleFromReal(&RReg[0],angmode);
+            if(Exceptions) { DSTop=matrix+1; return; }
+
+            rplOverwriteData(1,newangle);
+
+            negdone=1;
+
+        }
+        else {
+            if(negdone) {
+            // OR SIMPLY NEGATE OTHER COORDINATES
+            rplCallOvrOperator(CMD_OVR_NEG);
+            if(Exceptions) { DSTop=matrix+1; return; }
+            }
+        }
+
+    }
+
+    // HERE WE HAVE A VECTOR WITH THE SAME FORMAT AS THE ORIGINAL
+
+    WORDPTR newvec=rplMatrixCompose(rows1,cols1);
+    if(Exceptions) { DSTop=matrix+1; return; }
+    DSTop=matrix+1;
+    *matrix=newvec;
+
+}
+
+
 
 
 // SIMILAR TO rplMatrixComposeN BUT USING FLEXIBLE ELEMENTS IN THE STACK
