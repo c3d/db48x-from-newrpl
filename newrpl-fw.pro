@@ -216,7 +216,8 @@ SOURCES +=\
     newrpl/render.c \
     newrpl/mul_real_arm.c \
     newrpl/rng.c \
-    newrpl/solvers.c
+    newrpl/solvers.c \
+    firmware/sys/usb/usb_rawhid.c
 
 
 HEADERS  += \
@@ -240,7 +241,8 @@ HEADERS  += \
     firmware/include/fsystem.h \
     newrpl/fastmath.h \
     newrpl/render.h \
-    firmware/include/firmware.h
+    firmware/include/firmware.h \
+    firmware/sys/usb/usb_rawhid.h
 
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
