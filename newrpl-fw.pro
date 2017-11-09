@@ -241,8 +241,7 @@ HEADERS  += \
     firmware/include/fsystem.h \
     newrpl/fastmath.h \
     newrpl/render.h \
-    firmware/include/firmware.h \
-    firmware/sys/usb/usb_rawhid.h
+    firmware/include/firmware.h
 
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \

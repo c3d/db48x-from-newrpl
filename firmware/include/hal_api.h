@@ -1127,6 +1127,14 @@ void __rtc_poweron();
 void __rtc_poweroff();
 void __rtc_reset();
 
+// LOW-LEVEL HARDWARE DRIVERS - USB
+void usb_init();
+void usb_shutdown();
+int usb_isconnected();
+int usb_isconfigured();
+
+
+
 
 // HIGHER LEVEL MEMORY MANAGEMENT
 

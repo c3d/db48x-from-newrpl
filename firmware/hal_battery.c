@@ -169,6 +169,10 @@ void halPreparePowerOff()
     if(!saved) saved=(WORDPTR)zero_bint;
     rplStoreSettings((WORDPTR)savedflags_ident,saved);
 
+    // SHUTDOWN THE USB DRIVER
+
+    usb_shutdown();
+
 
 }
 
@@ -236,6 +240,9 @@ else
     halSetNotification(N_CONNECTION, 0x0);
 
 // TODO: ADD OTHER WAKEUP PROCEDURES
+
+// START THE USB DRIVER
+usb_init();
 
 halScreen.DirtyFlag|=STACK_DIRTY|FORM_DIRTY|CMDLINE_ALLDIRTY|MENU2_DIRTY|STAREA_DIRTY;  // UPDATE EVERYTHING
 

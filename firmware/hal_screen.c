@@ -1002,6 +1002,11 @@ void halRedrawStatus(DRAWSURFACE *scr)
 
     if(halFlags&HAL_HALTED) DrawTextBk(STATUSAREA_X+20,ytop+1,(char *)"H",*halScreen.FontArray[FONT_STATUS],0xf,0x0,scr);
 
+    // DEBUG USB STATUS
+
+    if(usb_isconnected()) rplSetUserFlag(1); else rplClrUserFlag(1);
+    if(usb_isconfigured()) rplSetUserFlag(2); else rplClrUserFlag(2);
+
 
     // FIRST 6 USER FLAGS
 

@@ -103,8 +103,10 @@
  **************************************************************************/
 
 // You can change these to give your code its own name.
-#define STR_MANUFACTURER	L"newRPL Team"
-#define STR_PRODUCT		L"Calculator with newRPL"
+#define STR_MANUFACTURER	{'n',0,'e',0,'w',0,'R',0,'P',0,'L',0,' ',0,'T',0,'e',0,'a',0,'m',0}
+#define STR_MANUFLENGTH   22+2
+#define STR_PRODUCT		{'n',0,'e',0,'w',0,'R',0,'P',0,'L',0,' ',0,'C',0,'a',0,'l',0,'c',0}
+#define STR_PRODLENGTH   22+2
 
 // These 4 numbers identify your device.  Set these to
 // something that is (hopefully) not used by any others!
@@ -276,25 +278,23 @@ const BYTE const config1_descriptor[CONFIG1_DESC_SIZE] = {
 // can be completely removed if iManufacturer, iProduct, iSerialNumber
 // in the device desciptor are changed to zeros.
 
-typedef const uint16_t wchar_t;
-
 struct usb_string_descriptor_struct {
     BYTE bLength;
     BYTE bDescriptorType;
-    wchar_t const wString[];
+    BYTE wString[];
 };
 const struct usb_string_descriptor_struct const _usb_string0 = {
     4,
     3,
-    {0x0409}
+    {0x09,0x04}
 };
 const struct usb_string_descriptor_struct const _usb_string1 = {
-    sizeof(STR_MANUFACTURER),
+    STR_MANUFLENGTH,
     3,
     STR_MANUFACTURER
 };
 const struct usb_string_descriptor_struct const _usb_string2 = {
-    sizeof(STR_PRODUCT),
+    STR_PRODLENGTH,
     3,
     STR_PRODUCT
 };
@@ -312,8 +312,8 @@ const struct descriptor_list_struct {
     {0x2200, RAWHID_INTERFACE, rawhid_hid_report_desc, sizeof(rawhid_hid_report_desc)},
     {0x2100, RAWHID_INTERFACE, config1_descriptor+RAWHID_HID_DESC_OFFSET, 9},
     {0x0300, 0x0000, (const BYTEPTR )&_usb_string0, 4},
-    {0x0301, 0x0409, (const BYTEPTR )&_usb_string1, sizeof(STR_MANUFACTURER)},
-    {0x0302, 0x0409, (const BYTEPTR )&_usb_string2, sizeof(STR_PRODUCT)}
+    {0x0301, 0x0409, (const BYTEPTR )&_usb_string1, STR_MANUFLENGTH},
+    {0x0302, 0x0409, (const BYTEPTR )&_usb_string2, STR_PRODLENGTH}
 };
 
 #define NUM_DESC_LIST (sizeof(descriptor_list)/sizeof(struct descriptor_list_struct))
@@ -342,14 +342,14 @@ const struct descriptor_list_struct {
 
 // GLOBAL VARIABLES OF THE USB SUBSYSTEM
 BINT __usb_drvstatus __SYSTEM_GLOBAL__; // FLAGS TO INDICATE IF INITIALIZED, CONNECTED, SENDING/RECEIVING, ETC.
-BYTE *__usb_bufptr[3]; __SYSTEM_GLOBAL__;   // POINTERS TO BUFFERS FOR EACH ENDPOINT (0/1/2)
-BINT __usb_count[3];   __SYSTEM_GLOBAL__;   // REMAINING BYTES TO TRANSFER ON EACH ENDPOINT (0/1/2)
+BYTE *__usb_bufptr[3] __SYSTEM_GLOBAL__;   // POINTERS TO BUFFERS FOR EACH ENDPOINT (0/1/2)
+BINT __usb_count[3]   __SYSTEM_GLOBAL__;   // REMAINING BYTES TO TRANSFER ON EACH ENDPOINT (0/1/2)
 BYTE __usb_tmpbuffer[RAWHID_TX_SIZE] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER FOR NON-BLOCKING CONTROL TRANSFERS
 
 
 void usb_hwsetup()
 {
-    *CLKCON&=~0xc0;     // POWER DOWN BOTH USB DEVICE AND HOST TO MAKE SURE HOST AND DEVICE AREN'T WORKING AT ONCE
+    *CLKCON&=~0x40;     // POWER DOWN USB HOST TO MAKE SURE HOST AND DEVICE AREN'T WORKING AT ONCE
     *CLKCON|=0x80;      // POWER UP USB DEVICE
 
     *UPLLCON=0x78023;   // 48 MHZ CLOCK
@@ -357,7 +357,8 @@ void usb_hwsetup()
 
     *MISCCR&=~(USBSUSPND0|USBSUSPND1|USBPAD);   // SET DEVICE MODE, CHANGE TO NORMAL MODE
 
-    *PWR_REG=1; // ALLOW THE DEVICE TO ENTER SUSPEND MODE
+    // DEBUG: FOR NOW DON'T ALLOW SUSPEND
+    *PWR_REG=0; // ALLOW THE DEVICE TO ENTER SUSPEND MODE
 
     // SET WHICH INTERRUPTS WE WANT
     *USB_INT_EN_REG=0x7;    // ENABLE RESET, RESUME AND SUSPEND INTERRUPTS
@@ -367,11 +368,20 @@ void usb_hwsetup()
 
     *INDEX_REG=0;       // SETUP ENDPOINT0
     *MAXP_REG=1;        // USE 8-BYTE PACKETS
+    *EP0_CSR=0xc0;      // CLEAR ANYTHING PENDING
 
     *INDEX_REG=1;
     *MAXP_REG=8;        // USE 64-BYTE PACKETS ON EP1
+    *IN_CSR1_REG=0x48;  // CLR_DATA TOGGLE + FIFO_FLUSH
+    *IN_CSR2_REG=0X20;  // CONFIGURE AS IN ENDPOINT
+    *OUT_CSR1_REG=0x80; // SET CLR_DATA_TOGGLE
+    *OUT_CSR2_REG=0;
     *INDEX_REG=2;
     *MAXP_REG=8;        // USE 64-BYTE PACKETS ON EP2
+    *IN_CSR1_REG=0x48;  // CLR_DATA TOGGLE + FIFO_FLUSH
+    *IN_CSR2_REG=0;  // CONFIGURE AS OUT ENDPOINT
+    *OUT_CSR1_REG=0x80; // SET CLR_DATA_TOGGLE
+    *OUT_CSR2_REG=0;
 
 }
 
@@ -380,7 +390,7 @@ void usb_hwsuspend()
 
     *MISCCR|=(USBSUSPND0|USBSUSPND1);   // CHANGE TO SUSPEND MODE
 
-    *CLKSLOW|=~0x80;    // TURN OFF UPLL
+    *CLKSLOW|=0x80;    // TURN OFF UPLL
 
 
 }
@@ -393,6 +403,8 @@ void usb_hwresume()
     *MISCCR&=~(USBSUSPND0|USBSUSPND1);   // CHANGE TO NORMAL MODE
 
 }
+
+void usb_irqservice();
 
 void usb_init()
 {
@@ -539,6 +551,19 @@ void ep0_irqservice()
 {
     *INDEX_REG=0;   // SELECT ENDPOINT 0
 
+    if( (*EP0_CSR) & EP0_SETUP_END) {
+        // SOMETHING HAPPENED, CLEAR THE CONDITION TO ALLOW RETRY
+        __usb_drvstatus|=8192;
+        *EP0_CSR|=EP0_SERVICED_SETUP_END;
+        if( (*EP0_CSR) & EP0_OUT_PKT_RDY) {
+        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
+        __usb_count[0]=0;
+        usb_ep0_transmit(1);    // SEND 0-DATA STATUS STAGE
+        }
+        return;
+    }
+
+
     if( (*EP0_CSR) & EP0_OUT_PKT_RDY) {
 
         // PROCESS FIRST ANY ONGOING TRANSMISSIONS
@@ -566,20 +591,27 @@ void ep0_irqservice()
         length=*EP0_FIFO;
         length|=(*EP0_FIFO)<<8;
 
+        __usb_drvstatus|=4096;
 
         if(reqtype&0x60==0) {   // STANDARD REQUESTS
+
+            __usb_drvstatus|=2048;
+
         // PROCESS THE REQUEST
         switch(request) {
         case GET_DESCRIPTOR:
         {
             // SEND THE REQUESTED RESPONSE
+            __usb_drvstatus|=32768; // FOR DEBUG ONLY
             int k;
             for(k=0;k<NUM_DESC_LIST;++k)
             {
                 if((descriptor_list[k].wValue==value)&&(descriptor_list[k].wIndex==index))
                 {
+                    __usb_drvstatus|=16384; // FOR DEBUG ONLY
+
                     // FOUND THE REQUESTED DESCRIPTOR
-                    __usb_bufptr[0]=descriptor_list[k].addr;
+                    __usb_bufptr[0]=(BYTEPTR) descriptor_list[k].addr;
                     if(length<descriptor_list[k].length) __usb_count[0]=length;
                     else __usb_count[0]=descriptor_list[k].length;
                     *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
@@ -623,23 +655,23 @@ void ep0_irqservice()
         }
         case GET_STATUS:
         {
+            __usb_drvstatus|=1024;
+
             __usb_tmpbuffer[0]=__usb_tmpbuffer[1]=0;
             switch(reqtype) {
             case 0x80:  // DEVICE GET STATUS
-                __usb_bufptr[0]=(__usb_drvstatus&USB_STATUS_WAKEUPENABLED)? 2:0;
+                *(__usb_bufptr[0])=(__usb_drvstatus&USB_STATUS_WAKEUPENABLED)? 2:0;
                 break;
             case 0x82:  // ENDPONT GET STATUS
                 *INDEX_REG=index&0x7;
                 if((index&7)==0) {
-                    __usb_bufptr[0]=((*EP0_CSR)&EP0_SEND_STALL)? 1:0;
+                    *(__usb_bufptr[0])=((*EP0_CSR)&EP0_SEND_STALL)? 1:0;
                 }
                 else {
-                    __usb_bufptr[0]|=((*OUT_CSR1_REG)&EPn_OUT_SEND_STALL)? 1:0;
-                    __usb_bufptr[0]|=((*IN_CSR1_REG)&EPn_IN_SEND_STALL)? 1:0;
+                    *(__usb_bufptr[0])|=((*OUT_CSR1_REG)&EPn_OUT_SEND_STALL)? 1:0;
+                    *(__usb_bufptr[0])|=((*IN_CSR1_REG)&EPn_IN_SEND_STALL)? 1:0;
                 }
                 break;
-            default:    // NOTHING TO DO FOR INTERFACE REQUESTS
-
             }
 
             // FOR NOW SEND THE DATA
@@ -673,7 +705,6 @@ void ep0_irqservice()
                     }
                 }
              break;
-            default:
             }
 
             *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
@@ -704,7 +735,6 @@ void ep0_irqservice()
                     }
                 }
              break;
-            default:
             }
 
             *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
@@ -733,7 +763,7 @@ void ep0_irqservice()
                 *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
                 __usb_count[0]=RAWHID_TX_SIZE;
                 __usb_bufptr[0]=__usb_tmpbuffer;    // FOR NOW, LET'S SEE WHAT TO DO WITH THIS LATER
-                usb_ep0_receive();
+                usb_ep0_receive(1);
                 return;
             case HID_GET_REPORT:
                 // SEND DATA TO HOST
@@ -837,4 +867,16 @@ void usb_irqservice()
     }
 
 
+}
+
+
+int usb_isconnected()
+{
+    if(__usb_drvstatus&USB_STATUS_CONNECTED) return 1;
+    return 0;
+}
+int usb_isconfigured()
+{
+    if(__usb_drvstatus&USB_STATUS_CONFIGURED) return 1;
+    return 0;
 }
