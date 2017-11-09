@@ -217,7 +217,7 @@ SOURCES +=\
     newrpl/mul_real_arm.c \
     newrpl/rng.c \
     newrpl/solvers.c \
-    firmware/sys/usb/usb_rawhid.c
+    firmware/sys/target_50g/usbdriver.c
 
 
 HEADERS  += \
