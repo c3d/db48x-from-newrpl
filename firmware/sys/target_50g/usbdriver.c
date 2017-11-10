@@ -30,7 +30,8 @@
 #define EP0_CSR             HWREG(USBD_REGS,0x184)
 #define IN_CSR1_REG         HWREG(USBD_REGS,0x184)
 #define IN_CSR2_REG         HWREG(USBD_REGS,0x188)
-#define MAXP_REG            HWREG(USBD_REGS,0x18c)
+#define MAXP_REG            HWREG(USBD_REGS,0x180)
+#define MAXP_REG2           HWREG(USBD_REGS,0x18c)
 #define OUT_CSR1_REG        HWREG(USBD_REGS,0x190)
 #define OUT_CSR2_REG        HWREG(USBD_REGS,0x194)
 #define OUT_FIFO_CNT1_REG   HWREG(USBD_REGS,0x198)
@@ -368,16 +369,19 @@ void usb_hwsetup()
 
     *INDEX_REG=0;       // SETUP ENDPOINT0
     *MAXP_REG=1;        // USE 8-BYTE PACKETS
+    *MAXP_REG2=1;        // USE 8-BYTE PACKETS
     *EP0_CSR=0xc0;      // CLEAR ANYTHING PENDING
 
     *INDEX_REG=1;
     *MAXP_REG=8;        // USE 64-BYTE PACKETS ON EP1
+    *MAXP_REG2=8;        // USE 64-BYTE PACKETS ON EP1
     *IN_CSR1_REG=0x48;  // CLR_DATA TOGGLE + FIFO_FLUSH
     *IN_CSR2_REG=0X20;  // CONFIGURE AS IN ENDPOINT
     *OUT_CSR1_REG=0x80; // SET CLR_DATA_TOGGLE
     *OUT_CSR2_REG=0;
     *INDEX_REG=2;
     *MAXP_REG=8;        // USE 64-BYTE PACKETS ON EP2
+    *MAXP_REG2=8;        // USE 64-BYTE PACKETS ON EP2
     *IN_CSR1_REG=0x48;  // CLR_DATA TOGGLE + FIFO_FLUSH
     *IN_CSR2_REG=0;  // CONFIGURE AS OUT ENDPOINT
     *OUT_CSR1_REG=0x80; // SET CLR_DATA_TOGGLE
@@ -582,27 +586,24 @@ void ep0_irqservice()
 
         // READ ALL 8 BYTES FROM THE FIFO
 
-        reqtype=*EP0_FIFO;
-        request=*EP0_FIFO;
-        value=*EP0_FIFO;
-        value|=(*EP0_FIFO)<<8;
-        index=*EP0_FIFO;
-        index|=(*EP0_FIFO)<<8;
-        length=*EP0_FIFO;
-        length|=(*EP0_FIFO)<<8;
+        __usb_tmpbuffer[0]=reqtype=*EP0_FIFO;
+        __usb_tmpbuffer[1]=request=*EP0_FIFO;
+        __usb_tmpbuffer[2]=value=*EP0_FIFO;
+        __usb_tmpbuffer[3]=value|=(*EP0_FIFO)<<8;
+        __usb_tmpbuffer[4]=index=*EP0_FIFO;
+        __usb_tmpbuffer[5]=index|=(*EP0_FIFO)<<8;
+        __usb_tmpbuffer[6]=length=*EP0_FIFO;
+        __usb_tmpbuffer[7]=length|=(*EP0_FIFO)<<8;
 
-        __usb_drvstatus|=4096;
 
-        if(reqtype&0x60==0) {   // STANDARD REQUESTS
+        if((reqtype&0x60)==0) {   // STANDARD REQUESTS
 
-            __usb_drvstatus|=2048;
 
         // PROCESS THE REQUEST
         switch(request) {
         case GET_DESCRIPTOR:
         {
             // SEND THE REQUESTED RESPONSE
-            __usb_drvstatus|=32768; // FOR DEBUG ONLY
             int k;
             for(k=0;k<NUM_DESC_LIST;++k)
             {

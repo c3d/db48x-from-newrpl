@@ -298,7 +298,7 @@ void startup(int prevstate)
 
     set_stackall(); // SET FINAL STACK POINTERS FOR ALL MODES IN VIRTUAL SPACE
 
-    cpu_setspeed(192000000);
+    cpu_setspeed(HAL_FASTCLOCK);
 
     if(*HWREG(0x05600000,0xb4)&2) {
         // WOKE UP FROM POWEROFF
@@ -321,8 +321,10 @@ void startup(int prevstate)
 
     tmr_setup();
     __keyb_init();
-    // ADD MORE HARDWARE INITIALIZATION HERE
 
+    usb_init();
+
+    // ADD MORE HARDWARE INITIALIZATION HERE
     // ...
 
     // DONE WITH SYSTEM INITIALIZATION, SWITCH BACK TO USER MODE
@@ -671,7 +673,7 @@ void halWarmStart()
     disable_interrupts();
 
     // PUT THE CPU IN A KNOWN SLOW SPEED
-    cpu_setspeed(6000000);
+    cpu_setspeed(HAL_SLOWCLOCK);
     // DISABLE THE MMU
     disable_mmu();
     // AND RESTART LIKE NEW
@@ -699,7 +701,7 @@ void halReset()
 
 
    // PUT THE CPU IN A KNOWN SLOW SPEED
-    cpu_setspeed(6000000);
+    cpu_setspeed(HAL_SLOWCLOCK);
 
     // MAKE SURE ALL WRITE BUFFERS ARE PROPERLY FLUSHED
 
@@ -729,7 +731,7 @@ void halEnterPowerOff()
     __rtc_poweroff();
 
     // PUT THE CPU IN A KNOWN SLOW SPEED
-    cpu_setspeed(6000000);
+    cpu_setspeed(HAL_SLOWCLOCK);
 
 
 

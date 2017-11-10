@@ -122,13 +122,13 @@ void busy_handler()
     }
     halBusyEvent=-1;
     if(halFlags&HAL_SLOWLOCK) return;
-    cpu_setspeed(192000000);
+    cpu_setspeed(HAL_FASTCLOCK);
     halFlags|=HAL_FASTMODE;
 }
 
 void halInitBusyHandler()
 {
-    cpu_setspeed(6000000);
+    cpu_setspeed(HAL_SLOWCLOCK);
     halFlags=(halFlags&~HAL_AUTOOFFTIME)|SET_AUTOOFFTIME(DEFAULT_AUTOOFFTIME);        // DEFAULT TO 2 MINUTES
     halBusyEvent=tmr_eventcreate(&busy_handler,500,0);
 }
@@ -168,11 +168,6 @@ void halPreparePowerOff()
     saved=rplNewBINT(halFlags,DECBINT);
     if(!saved) saved=(WORDPTR)zero_bint;
     rplStoreSettings((WORDPTR)savedflags_ident,saved);
-
-    // SHUTDOWN THE USB DRIVER
-
-    usb_shutdown();
-
 
 }
 
@@ -240,9 +235,6 @@ else
     halSetNotification(N_CONNECTION, 0x0);
 
 // TODO: ADD OTHER WAKEUP PROCEDURES
-
-// START THE USB DRIVER
-usb_init();
 
 halScreen.DirtyFlag|=STACK_DIRTY|FORM_DIRTY|CMDLINE_ALLDIRTY|MENU2_DIRTY|STAREA_DIRTY;  // UPDATE EVERYTHING
 
