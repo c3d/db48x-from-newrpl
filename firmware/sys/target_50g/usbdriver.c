@@ -566,6 +566,12 @@ void ep0_irqservice()
         }
         return;
     }
+    if( (*EP0_CSR) & EP0_SENT_STALL) {
+        // CLEAR ANY PREVIOUS STALL CONDITION
+        *EP0_CSR&=~(EP0_SENT_STALL|EP0_SEND_STALL);
+
+        // AND CONTINUE PROCESSING ANY OTHER INTERRUPTS
+    }
 
 
     if( (*EP0_CSR) & EP0_OUT_PKT_RDY) {
