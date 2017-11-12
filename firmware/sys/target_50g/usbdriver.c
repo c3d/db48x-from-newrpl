@@ -67,6 +67,10 @@
 #define EPn_IN_SEND_STALL   0x10
 #define EPn_OUT_SEND_STALL  0x20
 
+// OTHER BIT DEFINITIONS
+#define USB_RESET        8
+
+
 #define EP0_FIFO_SIZE    8
 
 //********************************************************************
@@ -568,7 +572,7 @@ void ep0_irqservice()
     }
     if( (*EP0_CSR) & EP0_SENT_STALL) {
         // CLEAR ANY PREVIOUS STALL CONDITION
-        *EP0_CSR&=~(EP0_SENT_STALL|EP0_SEND_STALL);
+        *EP0_CSR=0;     // CLEAR SEND_STALL AND SENT_STALL SIGNALS
 
         // AND CONTINUE PROCESSING ANY OTHER INTERRUPTS
     }
@@ -627,7 +631,8 @@ void ep0_irqservice()
                 }
             }
             // DON'T KNOW THE ANSWER TO THIS
-            *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_SEND_STALL;
+            *EP0_CSR|=EP0_SEND_STALL;
+            *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
             return;
         }
         case SET_ADDRESS:
@@ -754,7 +759,8 @@ void ep0_irqservice()
         }
         // UNKNOWN STANDARD REQUEST??
         // DON'T KNOW THE ANSWER TO THIS
-        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_SEND_STALL;
+        *EP0_CSR|=EP0_SEND_STALL;
+        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
         return;
 
 
@@ -789,7 +795,8 @@ void ep0_irqservice()
         }
         // UNKNOWN CLASS REQUEST??
         // DON'T KNOW THE ANSWER TO THIS
-        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_SEND_STALL;
+        *EP0_CSR|=EP0_SEND_STALL;
+        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
         return;
 
         }
@@ -797,7 +804,8 @@ void ep0_irqservice()
         // ADD OTHER REQUESTS HERE
 
         // ENOUGH REQUESTS FOR NOW
-        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_SEND_STALL;
+        *EP0_CSR|=EP0_SEND_STALL;
+        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
         return;
 
     }
@@ -868,8 +876,11 @@ void usb_irqservice()
 
     if(*USB_INT_REG&4) {
         // RESET RECEIVED
+        if( (*PWR_REG)&USB_RESET) {
         __usb_drvstatus=USB_STATUS_INIT|USB_STATUS_CONNECTED;  // DECONFIGURE THE DEVICE
         usb_hwsetup();      // AND MAKE SURE THE HARDWARE IS IN KNOWN STATE
+        }
+        *USB_INT_REG=4;
         return;
     }
 
