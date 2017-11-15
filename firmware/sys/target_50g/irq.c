@@ -32,10 +32,10 @@ void __irq_service()
     asm volatile ("msr cpsr_all,r1");   // SWITCH TO SYSTEM MODE
     asm volatile ("stmfd r0!,{sp,lr}"); // SAVE REGISTERS THAT WERE BANKED
     asm volatile ("stmfd sp!,{ r0 }");  // SAVE IRQ STACK PTR
+    *HWREG(INT_REGS,0x0)=*HWREG(INT_REGS,0x10); // CLEAR SRCPENDING EARLY TO AVOID MISSING ANY OTHER INTERRUPTS
     (*( (__interrupt__) (irq_table[*HWREG(INT_REGS,0x14)]))) ();
 	// CLEAR INTERRUPT PENDING FLAG
 	register unsigned int a=1<<(*HWREG(INT_REGS,0x14));
-	*HWREG(INT_REGS,0x0)=a;
 	*HWREG(INT_REGS,0x10)=a;
 	
     asm volatile ("ldmia sp!, { r0 }"); // GET IRQ STACK PTR

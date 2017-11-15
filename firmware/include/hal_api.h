@@ -1128,7 +1128,7 @@ void __rtc_poweroff();
 void __rtc_reset();
 
 // LOW-LEVEL HARDWARE DRIVERS - USB
-void usb_init();
+void usb_init(int force);
 void usb_shutdown();
 int usb_isconnected();
 int usb_isconfigured();

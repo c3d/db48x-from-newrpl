@@ -322,7 +322,7 @@ void startup(int prevstate)
     tmr_setup();
     __keyb_init();
 
-    usb_init();
+    usb_init(1);
 
     // ADD MORE HARDWARE INITIALIZATION HERE
     // ...

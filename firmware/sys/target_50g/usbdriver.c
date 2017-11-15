@@ -73,6 +73,11 @@
 
 #define EP0_FIFO_SIZE    8
 
+#define USB_DIRECTION   0x80
+#define USB_DEV_TO_HOST 0x80
+
+
+
 //********************************************************************
 // THE DESCRIPTOR DATA BELOW WAS COPIED AND PORTED FROM THE Teensy rawHID
 // EXAMPLE IN AGREEMENT WITH THE LICENSE BELOW:
@@ -349,6 +354,7 @@ const struct descriptor_list_struct {
 BINT __usb_drvstatus __SYSTEM_GLOBAL__; // FLAGS TO INDICATE IF INITIALIZED, CONNECTED, SENDING/RECEIVING, ETC.
 BYTE *__usb_bufptr[3] __SYSTEM_GLOBAL__;   // POINTERS TO BUFFERS FOR EACH ENDPOINT (0/1/2)
 BINT __usb_count[3]   __SYSTEM_GLOBAL__;   // REMAINING BYTES TO TRANSFER ON EACH ENDPOINT (0/1/2)
+BINT __usb_padding[3] __SYSTEM_GLOBAL__;    // PADDING FOR OUTGOING TRANSFERS
 BYTE __usb_tmpbuffer[RAWHID_TX_SIZE] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER FOR NON-BLOCKING CONTROL TRANSFERS
 
 
@@ -414,10 +420,10 @@ void usb_hwresume()
 
 void usb_irqservice();
 
-void usb_init()
+void usb_init(int force)
 {
 
-    if(__usb_drvstatus&USB_STATUS_INIT) return;
+    if(!force && (__usb_drvstatus&USB_STATUS_INIT)) return;
 
     __usb_drvstatus=USB_STATUS_INIT;
 
@@ -472,6 +478,8 @@ void usb_ep0_transmit(int newtransmission)
 
     if(newtransmission || (__usb_drvstatus&USB_STATUS_EP0TX)) {
 
+keepgoing:
+
     *INDEX_REG=0;
 
     if(*EP0_CSR&EP0_IN_PKT_RDY) {
@@ -488,13 +496,24 @@ void usb_ep0_transmit(int newtransmission)
         --__usb_count[0];
     }
 
-    if(__usb_count[0]==0)  {
+    if(__usb_count[0]==0) {
+        // SEND ANY PADDING
+        while( (__usb_padding[0]!=0) && (cnt<EP0_FIFO_SIZE)) {
+        *EP0_FIFO=0;
+        ++cnt;
+        --__usb_padding[0];
+        }
+    }
+
+    if((__usb_count[0]==0)&&(__usb_padding[0]==0))  {
         *EP0_CSR|=EP0_IN_PKT_RDY|EP0_DATA_END;  // SEND THE LAST PACKET
         __usb_drvstatus&=~USB_STATUS_EP0TX;
     }
     else {
         *EP0_CSR|=EP0_IN_PKT_RDY;               // SEND PART OF THE BUFFER
         __usb_drvstatus|=USB_STATUS_EP0TX;      // AND KEEP TRANSMITTING
+        while(((*EP0_CSR)&EP0_IN_PKT_RDY));     //  WAIT...
+        goto keepgoing;
     }
     }
 
@@ -519,7 +538,7 @@ void usb_ep0_receive(int newtransmission)
 
     if(*EP0_CSR&EP0_IN_PKT_RDY) {
         // PREVIOUS PACKET IS STILL BEING SENT, DON'T PUSH IT
-        __usb_drvstatus|=USB_STATUS_EP0TX;      // AND KEEP TRANSMITTING
+        __usb_drvstatus|=USB_STATUS_EP0RX;      // AND KEEP TRANSMITTING
         return;
     }
 
@@ -549,7 +568,24 @@ void usb_ep0_receive(int newtransmission)
 
 
 
+void inline usb_checkpipe()
+{
+    if( (*EP0_CSR) & EP0_SETUP_END) {
+        // SOMETHING HAPPENED, CLEAR THE CONDITION TO ALLOW RETRY
+        *EP0_CSR|= EP0_SERVICED_SETUP_END;
+        // CANCEL ALL ONGOING TRANSMISSIONS
+        __usb_drvstatus&=~ (USB_STATUS_EP0RX|USB_STATUS_EP0TX);
 
+    }
+    if( (*EP0_CSR) & EP0_SENT_STALL) {
+        // CLEAR ANY PREVIOUS STALL CONDITION
+        *EP0_CSR=0;   // CLEAR SEND_STALL AND SENT_STALL SIGNALS
+        // CANCEL ALL ONGOING TRANSMISSIONS
+        __usb_drvstatus&=~ (USB_STATUS_EP0RX|USB_STATUS_EP0TX);
+        // AND CONTINUE PROCESSING ANY OTHER INTERRUPTS
+    }
+
+}
 
 
 
@@ -559,23 +595,8 @@ void ep0_irqservice()
 {
     *INDEX_REG=0;   // SELECT ENDPOINT 0
 
-    if( (*EP0_CSR) & EP0_SETUP_END) {
-        // SOMETHING HAPPENED, CLEAR THE CONDITION TO ALLOW RETRY
-        __usb_drvstatus|=8192;
-        *EP0_CSR|=EP0_SERVICED_SETUP_END;
-        if( (*EP0_CSR) & EP0_OUT_PKT_RDY) {
-        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
-        __usb_count[0]=0;
-        usb_ep0_transmit(1);    // SEND 0-DATA STATUS STAGE
-        }
-        return;
-    }
-    if( (*EP0_CSR) & EP0_SENT_STALL) {
-        // CLEAR ANY PREVIOUS STALL CONDITION
-        *EP0_CSR=0;     // CLEAR SEND_STALL AND SENT_STALL SIGNALS
 
-        // AND CONTINUE PROCESSING ANY OTHER INTERRUPTS
-    }
+    usb_checkpipe();
 
 
     if( (*EP0_CSR) & EP0_OUT_PKT_RDY) {
@@ -619,28 +640,36 @@ void ep0_irqservice()
             {
                 if((descriptor_list[k].wValue==value)&&(descriptor_list[k].wIndex==index))
                 {
-                    __usb_drvstatus|=16384; // FOR DEBUG ONLY
-
                     // FOUND THE REQUESTED DESCRIPTOR
                     __usb_bufptr[0]=(BYTEPTR) descriptor_list[k].addr;
-                    if(length<descriptor_list[k].length) __usb_count[0]=length;
-                    else __usb_count[0]=descriptor_list[k].length;
+                    if(length<descriptor_list[k].length) { __usb_count[0]=length; __usb_padding[0]=0; }
+                    else { __usb_count[0]=descriptor_list[k].length; __usb_padding[0]=length-descriptor_list[k].length; }
                     *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
                     usb_ep0_transmit(1);    // SEND 0-DATA STATUS STAGE
+                    usb_checkpipe();
                     return;
                 }
             }
+
+
             // DON'T KNOW THE ANSWER TO THIS
-            *EP0_CSR|=EP0_SEND_STALL;
-            *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
+            __usb_count[0]=0;
+            __usb_padding[0]=length;    // SEND THE DATA AS REQUESTED, STALL AT THE END
+            *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
+            usb_ep0_transmit(1);    // SEND DATA STATUS STAGE
+            usb_checkpipe();
+
             return;
         }
         case SET_ADDRESS:
         {
             *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
             __usb_count[0]=0;
+            __usb_padding[0]=0;
             *FUNC_ADDR_REG=value|0x80;
             usb_ep0_transmit(1);    // SEND 0-DATA STATUS STAGE
+            usb_checkpipe();
+
             return;
         }
         case SET_CONFIGURATION:
@@ -652,7 +681,10 @@ void ep0_irqservice()
             __usb_count[0]=0;
             if(value) __usb_drvstatus|=USB_STATUS_CONFIGURED;
             else __usb_drvstatus&=~USB_STATUS_CONFIGURED;
+            __usb_padding[0]=0;
             usb_ep0_transmit(1);    // SEND 0-DATA STATUS STAGE
+            usb_checkpipe();
+
             return;
         }
         case GET_CONFIGURATION:
@@ -660,14 +692,16 @@ void ep0_irqservice()
           BINT configvalue=(__usb_drvstatus&USB_STATUS_CONFIGURED)? 1:0;
           *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
           __usb_count[0]=1;
+          __usb_padding[0]=0;
           __usb_bufptr[0]=__usb_tmpbuffer;
           __usb_tmpbuffer[0]=configvalue;
           usb_ep0_transmit(1);    // SEND DATA STATUS STAGE
+          usb_checkpipe();
+
           return;
         }
         case GET_STATUS:
         {
-            __usb_drvstatus|=1024;
 
             __usb_tmpbuffer[0]=__usb_tmpbuffer[1]=0;
             switch(reqtype) {
@@ -689,9 +723,12 @@ void ep0_irqservice()
             // FOR NOW SEND THE DATA
             *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
             __usb_count[0]=2;
+            __usb_padding[0]=0;
             __usb_bufptr[0]=__usb_tmpbuffer;
 
             usb_ep0_transmit(1);    // SEND DATA STATUS STAGE
+            usb_checkpipe();
+
             return;
         }
         case SET_FEATURE:
@@ -721,7 +758,10 @@ void ep0_irqservice()
 
             *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
             __usb_count[0]=0;
+            __usb_padding[0]=0;
             usb_ep0_transmit(1);    // SEND 0-DATA STATUS STAGE
+            usb_checkpipe();
+
             return;
         }
         case CLEAR_FEATURE:
@@ -751,16 +791,39 @@ void ep0_irqservice()
 
             *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
             __usb_count[0]=0;
+            __usb_padding[0]=0;
             usb_ep0_transmit(1);    // SEND 0-DATA STATUS STAGE
+            usb_checkpipe();
+
             return;
         }
 
 
         }
         // UNKNOWN STANDARD REQUEST??
-        // DON'T KNOW THE ANSWER TO THIS
-        *EP0_CSR|=EP0_SEND_STALL;
-        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
+        // DON'T KNOW THE ANSWER TO THIS BUT KEEP THE PIPES RUNNING
+        if((reqtype&USB_DIRECTION)==USB_DEV_TO_HOST) {
+            __usb_drvstatus|=32768;
+            // SEND THE RIGHT AMOUNT OF ZEROS TO THE HOST
+            __usb_count[0]=0;
+            __usb_padding[0]=length;
+            *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
+            usb_ep0_transmit(1);
+            usb_checkpipe();
+
+            return;
+        }
+
+        __usb_drvstatus|=16384;
+
+                // READ ANY EXTRA DATA TO KEEP THE FIFO CLEAN
+                while(length>0) { __usb_tmpbuffer[0]=*EP0_FIFO; --length; }
+        __usb_count[0]=0;
+        __usb_padding[0]=0;
+        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
+        usb_ep0_transmit(1);
+        usb_checkpipe();
+
         return;
 
 
@@ -775,6 +838,7 @@ void ep0_irqservice()
                 // GET DATA FROM HOST
                 *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
                 __usb_count[0]=RAWHID_TX_SIZE;
+                __usb_padding[0]=0;
                 __usb_bufptr[0]=__usb_tmpbuffer;    // FOR NOW, LET'S SEE WHAT TO DO WITH THIS LATER
                 usb_ep0_receive(1);
                 return;
@@ -782,8 +846,11 @@ void ep0_irqservice()
                 // SEND DATA TO HOST
                 *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
                 __usb_count[0]=RAWHID_TX_SIZE;
+                __usb_padding[0]=0;
                 __usb_bufptr[0]=__usb_tmpbuffer;    // FOR NOW SEND WHATEVER WAS STORED THERE
                 usb_ep0_transmit(1);
+                usb_checkpipe();
+
                 return;
 
 
@@ -795,17 +862,51 @@ void ep0_irqservice()
         }
         // UNKNOWN CLASS REQUEST??
         // DON'T KNOW THE ANSWER TO THIS
-        *EP0_CSR|=EP0_SEND_STALL;
-        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
+        if(reqtype&USB_DIRECTION==USB_DEV_TO_HOST) {
+            // SEND THE RIGHT AMOUNT OF ZEROS TO THE HOST
+            __usb_count[0]=0;
+            __usb_padding[0]=length;
+            *EP0_CSR|=EP0_SEND_STALL|EP0_SERVICED_OUT_PKT_RDY;
+            usb_ep0_transmit(1);
+            usb_checkpipe();
+
+            return;
+        }
+                // READ ANY EXTRA DATA TO KEEP THE FIFO CLEAN
+                while(length>0) { __usb_tmpbuffer[0]=*EP0_FIFO; --length; }
+        __usb_count[0]=0;
+        __usb_padding[0]=0;
+        *EP0_CSR|=EP0_SEND_STALL|EP0_SERVICED_OUT_PKT_RDY;
+        usb_ep0_transmit(1);
+        usb_checkpipe();
+
         return;
+
 
         }
 
         // ADD OTHER REQUESTS HERE
 
-        // ENOUGH REQUESTS FOR NOW
-        *EP0_CSR|=EP0_SEND_STALL;
-        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
+        if(reqtype&USB_DIRECTION==USB_DEV_TO_HOST) {
+            // SEND THE RIGHT AMOUNT OF ZEROS TO THE HOST
+            __usb_count[0]=0;
+            __usb_padding[0]=length;
+            *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
+            usb_ep0_transmit(1);
+            usb_checkpipe();
+
+            return;
+        }
+                // READ ANY EXTRA DATA TO KEEP THE FIFO CLEAN
+                while(length>0) { __usb_tmpbuffer[0]=*EP0_FIFO; --length; }
+        __usb_count[0]=0;
+        __usb_padding[0]=0;
+        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
+        usb_ep0_transmit(1);
+        usb_checkpipe();
+
+        return;
+
         return;
 
     }
@@ -815,6 +916,8 @@ void ep0_irqservice()
 
         if(__usb_drvstatus&USB_STATUS_EP0TX) {
             usb_ep0_transmit(0);
+            usb_checkpipe();
+
             return;
         }
 
