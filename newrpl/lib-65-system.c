@@ -2064,7 +2064,15 @@ void LIB_HANDLER()
 
        rplDropData(1);
 
-       rplNewBINTPush((BINT64) (*(NUMBER2PTR(addr&0xffffffff))),HEXBINT);
+       if(addr&3) {
+       BYTEPTR data=(BYTEPTR) NUMBER2PTR(addr&0xffffffff);
+       addr=data[0] | (data[1]<<8) | (data[2]<<16) | (data[3]<<24);
+       }
+       else {
+           WORDPTR data=NUMBER2PTR(addr&0xffffffff);
+           addr=data[0];
+       }
+       rplNewBINTPush(addr,HEXBINT);
 
        return;
     }
@@ -2093,8 +2101,21 @@ void LIB_HANDLER()
 
 
        rplDropData(2);
+
+       if(addr&3) {
+           // MISALIGNED POKE
+           BYTEPTR ptr=(BYTEPTR) NUMBER2PTR(addr&0xffffffff);
+
+           ptr[0]=value&0xff;
+           ptr[1]=(value>>8)&0xff;
+           ptr[2]=(value>>16)&0xff;
+           ptr[3]=(value>>24)&0xff;
+
+       }
+       else {
        WORDPTR ptr=NUMBER2PTR(addr&0xffffffff);
        *ptr=(WORD)(value&0xffffffffLL);
+       }
 
        return;
     }

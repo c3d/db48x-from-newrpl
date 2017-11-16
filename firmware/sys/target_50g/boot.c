@@ -205,8 +205,8 @@ void main_virtual(unsigned int mode)
     }
 
 
-    halInitScreen();
     halInitKeyboard();
+    halInitScreen();
     halInitBusyHandler();
     halRedrawAll(&scr);
 

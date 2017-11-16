@@ -6661,6 +6661,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
 void halInitKeyboard()
 {
     keyb_setalphalock(1);
+    keyb_setshiftplane(0,0,0,0);
 }
 
 
