@@ -681,13 +681,12 @@ void ep0_irqservice()
         }
         case SET_ADDRESS:
         {
-            *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
             __usb_count[0]=0;
             __usb_padding[0]=0;
+            __usb_drvstatus&=~USB_STATUS_EP0RX|USB_STATUS_EP0TX;
             *FUNC_ADDR_REG=value|0x80;
-            usb_ep0_transmit(1);    // SEND 0-DATA STATUS STAGE
+            *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
             usb_checkpipe();
-
             return;
         }
         case SET_CONFIGURATION:
@@ -695,12 +694,12 @@ void ep0_irqservice()
             // OUR DEVICE HAS ONE SINGLE CONFIGURATION AND IS SETUP
             // ON WAKEUP, SO NOTHING TO DO HERE BUT ACKNOWLEDGE
 
-            *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
-            __usb_count[0]=0;
             if(value) __usb_drvstatus|=USB_STATUS_CONFIGURED;
             else __usb_drvstatus&=~USB_STATUS_CONFIGURED;
+            __usb_count[0]=0;
             __usb_padding[0]=0;
-            usb_ep0_transmit(1);    // SEND 0-DATA STATUS STAGE
+            __usb_drvstatus&=~USB_STATUS_EP0RX|USB_STATUS_EP0TX;
+            *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
             usb_checkpipe();
 
             return;
@@ -774,10 +773,10 @@ void ep0_irqservice()
              break;
             }
 
-            *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
             __usb_count[0]=0;
             __usb_padding[0]=0;
-            usb_ep0_transmit(1);    // SEND 0-DATA STATUS STAGE
+            __usb_drvstatus&=~USB_STATUS_EP0RX|USB_STATUS_EP0TX;
+            *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
             usb_checkpipe();
 
             return;
@@ -807,10 +806,10 @@ void ep0_irqservice()
              break;
             }
 
-            *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
             __usb_count[0]=0;
             __usb_padding[0]=0;
-            usb_ep0_transmit(1);    // SEND 0-DATA STATUS STAGE
+            __usb_drvstatus&=~USB_STATUS_EP0RX|USB_STATUS_EP0TX;
+            *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
             usb_checkpipe();
 
             return;
@@ -831,13 +830,15 @@ void ep0_irqservice()
             return;
         }
 
+        // THIS IS AN INCOMING REQUEST WITH NO DATA STAGE
 
-                // READ ANY EXTRA DATA TO KEEP THE FIFO CLEAN
-                while(length>0) { __usb_tmpbuffer[0]=*EP0_FIFO; --length; }
+        // READ ANY EXTRA DATA TO KEEP THE FIFO CLEAN
+        while(length>0) { __usb_tmpbuffer[0]=*EP0_FIFO; --length; }
+
         __usb_count[0]=0;
         __usb_padding[0]=0;
-        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
-        usb_ep0_transmit(1);
+        __usb_drvstatus&=~USB_STATUS_EP0RX|USB_STATUS_EP0TX;
+        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
         usb_checkpipe();
 
         return;
@@ -889,13 +890,12 @@ void ep0_irqservice()
             return;
         }
                 // READ ANY EXTRA DATA TO KEEP THE FIFO CLEAN
-                while(length>0) { __usb_tmpbuffer[0]=*EP0_FIFO; --length; }
+        while(length>0) { __usb_tmpbuffer[0]=*EP0_FIFO; --length; }
         __usb_count[0]=0;
         __usb_padding[0]=0;
-        *EP0_CSR|=EP0_SEND_STALL|EP0_SERVICED_OUT_PKT_RDY;
-        usb_ep0_transmit(1);
+        __usb_drvstatus&=~USB_STATUS_EP0RX|USB_STATUS_EP0TX;
+        *EP0_CSR|=EP0_SEND_STALL|EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
         usb_checkpipe();
-
         return;
 
 
@@ -915,13 +915,11 @@ void ep0_irqservice()
         }
                 // READ ANY EXTRA DATA TO KEEP THE FIFO CLEAN
                 while(length>0) { __usb_tmpbuffer[0]=*EP0_FIFO; --length; }
-        __usb_count[0]=0;
-        __usb_padding[0]=0;
-        *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
-        usb_ep0_transmit(1);
-        usb_checkpipe();
-
-        return;
+                __usb_count[0]=0;
+                __usb_padding[0]=0;
+                __usb_drvstatus&=~USB_STATUS_EP0RX|USB_STATUS_EP0TX;
+                *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
+                usb_checkpipe();
 
         return;
 
