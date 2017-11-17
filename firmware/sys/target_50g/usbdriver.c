@@ -67,6 +67,7 @@
 #define EPn_IN_SEND_STALL   0x10
 #define EPn_OUT_SEND_STALL  0x20
 
+
 // OTHER BIT DEFINITIONS
 #define USB_RESET        8
 
@@ -337,14 +338,12 @@ const struct descriptor_list_struct {
 
 // INITIALIZE USB SUBSYSTEM, POWER, PINS
 #define USB_STATUS_INIT                 1
-#define USB_STATUS_EP0TX                2
-#define USB_STATUS_EP0RX                4
-#define USB_STATUS_EP1TX                8
-#define USB_STATUS_EP1RX                16
-#define USB_STATUS_EP2TX                32
-#define USB_STATUS_EP2RX                64
-#define USB_STATUS_CONNECTED            128
-#define USB_STATUS_CONFIGURED           256
+#define USB_STATUS_CONNECTED            2
+#define USB_STATUS_CONFIGURED           4
+#define USB_STATUS_EP0TX                8
+#define USB_STATUS_EP0RX                16
+#define USB_STATUS_HIDTX                32
+#define USB_STATUS_HIDRX                64
 #define USB_STATUS_SUSPEND              512
 #define USB_STATUS_WAKEUPENABLED        1024
 #define USB_STATUS_TESTMODE             2048
@@ -605,7 +604,6 @@ void ep0_irqservice()
 
     if(__usb_drvstatus&USB_STATUS_EP0TX) {
 
-        __usb_drvstatus|=32768;
         usb_ep0_transmit(0);
         usb_checkpipe();
 
@@ -846,7 +844,7 @@ void ep0_irqservice()
 
         }
 
-        if((reqtype&0x60)==0x20) {  // CLASS REQUESTS
+        if((reqtype&0x61)==0x21) {  // CLASS INTERFACE REQUESTS
 
         if(index==RAWHID_INTERFACE) {
             switch(request)
@@ -860,10 +858,10 @@ void ep0_irqservice()
                 usb_ep0_receive(1);
                 return;
             case HID_GET_REPORT:
-                // SEND DATA TO HOST
+                // SEND DATA TO HOST - SEND ALL ZEROS
                 *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
-                __usb_count[0]=RAWHID_TX_SIZE;
-                __usb_padding[0]=0;
+                __usb_count[0]=0;
+                __usb_padding[0]=RAWHID_TX_SIZE;
                 __usb_bufptr[0]=__usb_tmpbuffer;    // FOR NOW SEND WHATEVER WAS STORED THERE
                 usb_ep0_transmit(1);
                 usb_checkpipe();
@@ -890,6 +888,7 @@ void ep0_irqservice()
             return;
         }
                 // READ ANY EXTRA DATA TO KEEP THE FIFO CLEAN
+        if(length>EP0_FIFO_SIZE) length=EP0_FIFO_SIZE;
         while(length>0) { __usb_tmpbuffer[0]=*EP0_FIFO; --length; }
         __usb_count[0]=0;
         __usb_padding[0]=0;
@@ -914,6 +913,7 @@ void ep0_irqservice()
             return;
         }
                 // READ ANY EXTRA DATA TO KEEP THE FIFO CLEAN
+                if(length>EP0_FIFO_SIZE) length=EP0_FIFO_SIZE;
                 while(length>0) { __usb_tmpbuffer[0]=*EP0_FIFO; --length; }
                 __usb_count[0]=0;
                 __usb_padding[0]=0;
@@ -927,11 +927,82 @@ void ep0_irqservice()
 
 }
 
-void ep1_irqservice()
+
+void usb_ep1_transmit(int newtransmission)
 {
+
+    if(!__usb_drvstatus&USB_STATUS_CONNECTED) return;
+
+    if(newtransmission || (__usb_drvstatus&USB_STATUS_EP0TX)) {
+
+    *INDEX_REG=0;
+
+    if( (*EP0_CSR)&EP0_IN_PKT_RDY) {
+        // PREVIOUS PACKET IS STILL BEING SENT, DON'T PUSH IT
+        __usb_drvstatus|=USB_STATUS_EP0TX;      // AND KEEP TRANSMITTING
+        return;
+    }
+
+    int cnt=0;
+    while(__usb_count[0] && (cnt<EP0_FIFO_SIZE)) {
+        *EP0_FIFO=(WORD) *__usb_bufptr[0];
+        ++__usb_bufptr[0];
+        ++cnt;
+        --__usb_count[0];
+    }
+
+    if(__usb_count[0]==0) {
+        // SEND ANY PADDING
+        while( (__usb_padding[0]!=0) && (cnt<EP0_FIFO_SIZE)) {
+        *EP0_FIFO=0;
+        ++cnt;
+        --__usb_padding[0];
+        }
+    }
+
+    if((__usb_count[0]==0)&&(__usb_padding[0]==0))  {
+        *EP0_CSR|=EP0_IN_PKT_RDY|EP0_DATA_END;  // SEND THE LAST PACKET
+
+        __usb_intdata[__usb_intcount++]=0xEEEE0000 | cnt;
+
+        __usb_drvstatus&=~USB_STATUS_EP0TX;
+    }
+    else {
+        *EP0_CSR|=EP0_IN_PKT_RDY;               // SEND PART OF THE BUFFER
+        __usb_intdata[__usb_intcount++]=0xAAAA0000 | cnt;
+        __usb_drvstatus|=USB_STATUS_EP0TX;      // AND KEEP TRANSMITTING
+    }
+    }
+
 
 }
 
+
+
+// SENDING INTERRUPT ENDPOINT
+void ep1_irqservice()
+{
+    // ONLY RESPOND ONCE EVERYTHING IS SETUP
+    if(!(__usb_drvstatus&USB_STATUS_CONFIGURED)) return;
+
+    *INDEX_REG=1;
+
+    if(*EPn_IN_SEND_STALL)
+
+
+    if(__usb_drvstatus&USB_STATUS_HIDTX) {
+        // TRANSMISSION IN PROGRESS
+        usb_ep1_transmit(0);
+        return;
+    }
+
+
+
+
+}
+
+
+// RECEIVING DATA ENDPOINT
 void ep2_irqservice()
 {
 
