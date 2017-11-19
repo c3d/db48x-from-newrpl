@@ -64,15 +64,25 @@
 #define EP0_SERVICED_SETUP_END 128
 
 // OTHER ENDPOINTS CSR
-#define EPn_IN_SEND_STALL   0x10
-#define EPn_OUT_SEND_STALL  0x20
-
+#define EPn_OUT_SEND_STALL      0x20
+#define EPn_IN_PKT_RDY          0x1
+#define EPn_IN_FIFO_FLUSH       0x8
+#define EPn_IN_SEND_STALL       0x10
+#define EPn_IN_SENT_STALL       0x20
+#define EPn_IN_CLR_DATA_TOGGLE  0x40
+#define EPn_OUT_PKT_RDY          0x1
+#define EPn_OUT_FIFO_FLUSH       0x10
+#define EPn_OUT_SEND_STALL       0x20
+#define EPn_OUT_SENT_STALL       0x40
+#define EPn_OUT_CLR_DATA_TOGGLE  0x80
 
 // OTHER BIT DEFINITIONS
 #define USB_RESET        8
 
 
 #define EP0_FIFO_SIZE    8
+#define EP1_FIFO_SIZE    64
+#define EP2_FIFO_SIZE    64
 
 #define USB_DIRECTION   0x80
 #define USB_DEV_TO_HOST 0x80
@@ -344,6 +354,7 @@ const struct descriptor_list_struct {
 #define USB_STATUS_EP0RX                16
 #define USB_STATUS_HIDTX                32
 #define USB_STATUS_HIDRX                64
+#define USB_STATUS_DATAREADY            128
 #define USB_STATUS_SUSPEND              512
 #define USB_STATUS_WAKEUPENABLED        1024
 #define USB_STATUS_TESTMODE             2048
@@ -355,8 +366,12 @@ BYTE *__usb_bufptr[3] __SYSTEM_GLOBAL__;   // POINTERS TO BUFFERS FOR EACH ENDPO
 BINT __usb_count[3]   __SYSTEM_GLOBAL__;   // REMAINING BYTES TO TRANSFER ON EACH ENDPOINT (0/1/2)
 BINT __usb_padding[3] __SYSTEM_GLOBAL__;    // PADDING FOR OUTGOING TRANSFERS
 BYTE __usb_tmpbuffer[RAWHID_TX_SIZE] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER FOR NON-BLOCKING CONTROL TRANSFERS
-WORD __usb_intcount __SYSTEM_GLOBAL__;
-WORD __usb_intdata[1024] __SYSTEM_GLOBAL__;
+WORD __usb_rcvtotal __SYSTEM_GLOBAL__;
+WORD __usb_rcvpartial __SYSTEM_GLOBAL__;
+WORD __usb_rcvcrc __SYSTEM_GLOBAL__;
+
+
+//WORD __usb_intdata[1024] __SYSTEM_GLOBAL__;
 
 void usb_hwsetup()
 {
@@ -427,7 +442,7 @@ void usb_init(int force)
 
     if(!force && (__usb_drvstatus&USB_STATUS_INIT)) return;
 
-    __usb_intcount=0;
+    //__usb_intcount=0;
 
     __usb_drvstatus=USB_STATUS_INIT;
 
@@ -510,13 +525,13 @@ void usb_ep0_transmit(int newtransmission)
     if((__usb_count[0]==0)&&(__usb_padding[0]==0))  {
         *EP0_CSR|=EP0_IN_PKT_RDY|EP0_DATA_END;  // SEND THE LAST PACKET
 
-        __usb_intdata[__usb_intcount++]=0xEEEE0000 | cnt;
+        //__usb_intdata[__usb_intcount++]=0xEEEE0000 | cnt;
 
         __usb_drvstatus&=~USB_STATUS_EP0TX;
     }
     else {
         *EP0_CSR|=EP0_IN_PKT_RDY;               // SEND PART OF THE BUFFER
-        __usb_intdata[__usb_intcount++]=0xAAAA0000 | cnt;
+        //__usb_intdata[__usb_intcount++]=0xAAAA0000 | cnt;
         __usb_drvstatus|=USB_STATUS_EP0TX;      // AND KEEP TRANSMITTING
     }
     }
@@ -638,10 +653,11 @@ void ep0_irqservice()
         length=*EP0_FIFO;
         length|=(*EP0_FIFO)<<8;
 
+        /*
         __usb_intdata[__usb_intcount++]= 0xffff0000 | (reqtype<<8) | (request);
         __usb_intdata[__usb_intcount++]=(value<<16)|index;
         __usb_intdata[__usb_intcount++]=(length<<16) | 0xffff;
-
+        */
 
         if((reqtype&0x60)==0) {   // STANDARD REQUESTS
 
@@ -933,50 +949,143 @@ void usb_ep1_transmit(int newtransmission)
 
     if(!__usb_drvstatus&USB_STATUS_CONNECTED) return;
 
-    if(newtransmission || (__usb_drvstatus&USB_STATUS_EP0TX)) {
+    if(newtransmission || (__usb_drvstatus&USB_STATUS_HIDTX)) {
 
-    *INDEX_REG=0;
+    *INDEX_REG=RAWHID_TX_ENDPOINT;
 
-    if( (*EP0_CSR)&EP0_IN_PKT_RDY) {
+        if( (*IN_CSR1_REG)&EPn_IN_SENT_STALL) {
+            // REMOVE THE STALL CONDITION
+            *IN_CSR1_REG&=~EPn_IN_SENT_STALL|EPn_IN_SEND_STALL;
+        }
+
+
+
+
+    if( (*IN_CSR1_REG)&EPn_IN_PKT_RDY) {
         // PREVIOUS PACKET IS STILL BEING SENT, DON'T PUSH IT
-        __usb_drvstatus|=USB_STATUS_EP0TX;      // AND KEEP TRANSMITTING
+        __usb_drvstatus|=USB_STATUS_HIDTX;      // AND KEEP TRANSMITTING
         return;
     }
 
     int cnt=0;
-    while(__usb_count[0] && (cnt<EP0_FIFO_SIZE)) {
-        *EP0_FIFO=(WORD) *__usb_bufptr[0];
-        ++__usb_bufptr[0];
+    while(__usb_count[1] && (cnt<EP1_FIFO_SIZE)) {
+        *EP1_FIFO=(WORD) *__usb_bufptr[1];
+        ++__usb_bufptr[1];
         ++cnt;
-        --__usb_count[0];
+        --__usb_count[1];
     }
 
-    if(__usb_count[0]==0) {
+    if(__usb_count[1]==0) {
         // SEND ANY PADDING
-        while( (__usb_padding[0]!=0) && (cnt<EP0_FIFO_SIZE)) {
-        *EP0_FIFO=0;
+        while( (__usb_padding[1]!=0) && (cnt<EP1_FIFO_SIZE)) {
+        *EP1_FIFO=0;
         ++cnt;
-        --__usb_padding[0];
+        --__usb_padding[1];
         }
     }
 
-    if((__usb_count[0]==0)&&(__usb_padding[0]==0))  {
-        *EP0_CSR|=EP0_IN_PKT_RDY|EP0_DATA_END;  // SEND THE LAST PACKET
+    if((__usb_count[1]==0)&&(__usb_padding[1]==0))  {
+        *IN_CSR1_REG|=EPn_IN_PKT_RDY;  // SEND THE LAST PACKET
 
-        __usb_intdata[__usb_intcount++]=0xEEEE0000 | cnt;
-
-        __usb_drvstatus&=~USB_STATUS_EP0TX;
+       __usb_drvstatus&=~USB_STATUS_HIDTX;
     }
     else {
-        *EP0_CSR|=EP0_IN_PKT_RDY;               // SEND PART OF THE BUFFER
-        __usb_intdata[__usb_intcount++]=0xAAAA0000 | cnt;
-        __usb_drvstatus|=USB_STATUS_EP0TX;      // AND KEEP TRANSMITTING
+        *IN_CSR1_REG|=EPn_IN_PKT_RDY;  // SEND THE PACKET
+        __usb_drvstatus|=USB_STATUS_HIDTX;      // AND KEEP TRANSMITTING
     }
     }
 
 
 }
 
+// TRANSMIT BYTES TO THE HOST IN EP2 ENDPOINT
+// STARTS A NEW TRANSMISSION IF newtransmission IS TRUE, EVEN IF
+// THERE ARE ZERO BYTES IN THE BUFFER
+// FOR USE WITHIN ISR
+
+void usb_ep2_receive(int newtransmission)
+{
+
+    if(!__usb_drvstatus&USB_STATUS_CONNECTED) return;
+
+    if(newtransmission || (__usb_drvstatus&USB_STATUS_HIDRX)) {
+
+    *INDEX_REG=RAWHID_RX_ENDPOINT;
+
+    if(!((*OUT_CSR1_REG)&EPn_OUT_PKT_RDY)) {
+        // THEREŚ NO PACKETS AVAILABLE
+        __usb_drvstatus|=USB_STATUS_HIDRX;      // AND KEEP RECEIVING
+        return;
+    }
+
+
+    int fifocnt=(*OUT_FIFO_CNT1_REG)+256*(*OUT_FIFO_CNT2_REG);
+
+    if(newtransmission) {
+        if(__usb_drvstatus&USB_STATUS_DATAREADY) {
+            // PREVIOUS DATA WASN RETRIEVED!
+            // STALL UNTIL USER RETRIEVES
+            *OUT_CSR1_REG|=EPn_OUT_SEND_STALL;
+            return;
+        }
+
+        __usb_rcvtotal=0;
+        __usb_rcvpartial=0;
+        __usb_rcvcrc=0;
+
+        if(!fifocnt)  {
+            __usb_drvstatus&=~USB_STATUS_HIDRX;
+            return;
+        }
+
+        // WE ARE READY TO RECEIVE A NEW DATA BLOCK
+
+        __usb_bufptr[2]=__usb_tmpbuffer;    // FOR NOW, HERE WE NEED AN EXTERNAL DATA BLOCK
+
+        if(fifocnt>8) {
+        // READ THE HEADER
+        WORD startmarker=*EP2_FIFO;
+
+        if(startmarker==0xab) {
+        __usb_rcvtotal=(*EP2_FIFO);
+        __usb_rcvtotal|=(*EP2_FIFO)<<8;
+        __usb_rcvtotal|=(*EP2_FIFO)<<16;
+
+        __usb_rcvpartial=0;
+        __usb_rcvcrc=(*EP2_FIFO);
+        __usb_rcvcrc|=(*EP2_FIFO)<<8;
+        __usb_rcvcrc|=(*EP2_FIFO)<<16;
+        __usb_rcvcrc|=(*EP2_FIFO)<<24;
+
+        }
+
+        fifocnt-=8;
+
+        }
+
+   }
+
+
+    int cnt=0;
+    while(cnt<fifocnt) {
+        *__usb_bufptr[2]=(BYTE)*EP2_FIFO;
+        ++__usb_bufptr[2];
+        ++cnt;
+    }
+
+    *OUT_CSR1_REG&=~EPn_OUT_PKT_RDY;  // RECEIVED THE PACKET
+
+    __usb_rcvpartial+=fifocnt;
+
+    if(fifocnt!=EP2_FIFO_SIZE) {
+        // PARTIAL PACKET SIGNALS END OF TRANSMISSION
+        __usb_drvstatus&=~USB_STATUS_HIDRX;
+        __usb_drvstatus|=USB_STATUS_DATAREADY;
+    }
+
+    }
+
+}
 
 
 // SENDING INTERRUPT ENDPOINT
@@ -985,10 +1094,7 @@ void ep1_irqservice()
     // ONLY RESPOND ONCE EVERYTHING IS SETUP
     if(!(__usb_drvstatus&USB_STATUS_CONFIGURED)) return;
 
-    *INDEX_REG=1;
-
-    if(*EPn_IN_SEND_STALL)
-
+    *INDEX_REG=RAWHID_TX_ENDPOINT;
 
     if(__usb_drvstatus&USB_STATUS_HIDTX) {
         // TRANSMISSION IN PROGRESS
@@ -996,16 +1102,43 @@ void ep1_irqservice()
         return;
     }
 
+    // NOTHING TO TRANSMIT, STALL
 
+    if(*IN_CSR1_REG&EPn_IN_SENT_STALL) return;  // ALREADY DONE
 
+    *IN_CSR1_REG|=EPn_IN_SEND_STALL;
 
+    return;
 }
 
 
 // RECEIVING DATA ENDPOINT
 void ep2_irqservice()
 {
+    // ONLY RESPOND ONCE EVERYTHING IS SETUP
+    if(!(__usb_drvstatus&USB_STATUS_CONFIGURED)) return;
 
+    *INDEX_REG=RAWHID_RX_ENDPOINT;
+
+    if(__usb_drvstatus&USB_STATUS_HIDRX) {
+        // TRANSMISSION IN PROGRESS
+        usb_ep2_receive(0);
+        return;
+    }
+
+    // NOTHING TO RECEIVE, STALL
+    if(*OUT_CSR1_REG&EPn_OUT_PKT_RDY) {
+        // WE HAVE A PACKET, FIRST OF A TRANSMISSION
+        usb_ep2_receive(1);
+        return;
+    }
+
+    if(*OUT_CSR1_REG&EPn_OUT_SENT_STALL) return;  // ALREADY DONE
+
+
+    *OUT_CSR1_REG|=EPn_OUT_SEND_STALL;
+
+    return;
 }
 
 
@@ -1016,11 +1149,14 @@ void usb_irqservice()
     if(!__usb_drvstatus&USB_STATUS_INIT) return;
 
     *INDEX_REG=0;
+
+    /*
     int k;
 
         __usb_intdata[__usb_intcount]= ((*EP_INT_REG)<<24) | (((*USB_INT_REG)&0xff)<<16) | ((*EP0_CSR)<<8) | (*PWR_REG&0xff);
         __usb_intdata[__usb_intcount+1]=((__usb_drvstatus&0xffff)<<16)| (__usb_intcount);
     __usb_intcount+=2;
+    */
 
     if( !(*EP_INT_REG&7) && !(*USB_INT_REG&7) )
     {
