@@ -672,6 +672,8 @@ void halWarmStart()
     // TODO: ADD RPL ENGINE CLEANUP HERE BEFORE RESET
     disable_interrupts();
 
+    usb_shutdown();
+
     // PUT THE CPU IN A KNOWN SLOW SPEED
     cpu_setspeed(HAL_SLOWCLOCK);
     // DISABLE THE MMU
@@ -723,6 +725,8 @@ void halReset()
 void halEnterPowerOff()
 {
     // TODO: ADD RPL ENGINE CLEANUP HERE BEFORE RESET
+
+    usb_shutdown();
 
     // FILE SYSTEM SHUTDOWN
 

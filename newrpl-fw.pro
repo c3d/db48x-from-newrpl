@@ -217,7 +217,8 @@ SOURCES +=\
     newrpl/mul_real_arm.c \
     newrpl/rng.c \
     newrpl/solvers.c \
-    firmware/sys/target_50g/usbdriver.c
+    firmware/sys/target_50g/usbdriver.c \
+    firmware/hal_cpu.c
 
 
 HEADERS  += \

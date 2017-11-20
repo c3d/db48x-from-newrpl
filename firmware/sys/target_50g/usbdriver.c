@@ -383,9 +383,13 @@ WORD __usb_rcvcrc __SYSTEM_GLOBAL__;
 
 
 //WORD __usb_intdata[1024] __SYSTEM_GLOBAL__;
+extern int __cpu_getPCLK();
 
 void usb_hwsetup()
 {
+    // MAKE SURE WE HAVE PCLK>20 MHz FOR USB COMMUNICATIONS TO WORK
+    if(__cpu_getPCLK()<20000000) cpu_setspeed(HAL_USBCLOCK);
+
     *CLKCON&=~0x40;     // POWER DOWN USB HOST TO MAKE SURE HOST AND DEVICE AREN'T WORKING AT ONCE
     *CLKCON|=0x80;      // POWER UP USB DEVICE
 
@@ -1253,14 +1257,14 @@ int usb_isconfigured()
 
 
 // HIGH LEVEL FUNCTION TO SEE IF THERE'S ANY DATA FROM THE USB DRIVER
-int usb_havedata()
+int usb_hasdata()
 {
     if(__usb_drvstatus&USB_STATUS_DATAREADY) return 1;
     return 0;
 }
 
 // HIGH LEVEL FUNCTION TO ACCESS A BLOCK OF DATA
-BYTEPTR usb_accessdata(BINT *blksize)
+BYTEPTR usb_accessdata(int *blksize)
 {
     if(!(__usb_drvstatus&USB_STATUS_DATAREADY)) return 0;
     if(blksize) *blksize=__usb_rcvpartial;

@@ -32,7 +32,7 @@ BINT halWaitForKey()
     if(!keymsg) {
     // FIRST: ENTER LOW SPEED MODE
     if(halFlags&HAL_FASTMODE) {
-    cpu_setspeed(HAL_SLOWCLOCK);
+    halCPUSlowMode();
     halFlags&=~HAL_FASTMODE;
     }
     if(halFlags&HAL_HOURGLASS) {
@@ -88,7 +88,7 @@ BINT halWaitForKeyTimeout(BINT timeoutms)
     if(!keymsg) {
     // FIRST: ENTER LOW SPEED MODE
     if(halFlags&HAL_FASTMODE) {
-    cpu_setspeed(HAL_SLOWCLOCK);
+    halCPUSlowMode();
     halFlags&=~HAL_FASTMODE;
     }
     if(halFlags&HAL_HOURGLASS) {

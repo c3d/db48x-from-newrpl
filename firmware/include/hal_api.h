@@ -1100,6 +1100,13 @@ void cpu_off_die();
 void cpu_flushwritebuffers();
 void cpu_flushTLB();
 
+// LOW-LEVEL DRIVERS - USB
+int usb_hasdata();
+int usb_isconnected();
+int usb_isconfigured();
+void usb_releasedata();
+BYTEPTR usb_accessdata(int *blksize);
+
 
 
 // LOW-LEVEL HARDWARE DRIVERS - KEYBOARD
@@ -1163,6 +1170,8 @@ void halEnterPowerOff();
 
 void halPreparePowerOff();
 void halWakeUp();
+void halCPUSlowMode();
+void halCPUFastMode();
 
 
 // TIMER FUNCTIONS

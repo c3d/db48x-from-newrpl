@@ -122,13 +122,13 @@ void busy_handler()
     }
     halBusyEvent=-1;
     if(halFlags&HAL_SLOWLOCK) return;
-    cpu_setspeed(HAL_FASTCLOCK);
+    halCPUFastMode();
     halFlags|=HAL_FASTMODE;
 }
 
 void halInitBusyHandler()
 {
-    cpu_setspeed(HAL_SLOWCLOCK);
+    halCPUSlowMode();
     halFlags=(halFlags&~HAL_AUTOOFFTIME)|SET_AUTOOFFTIME(DEFAULT_AUTOOFFTIME);        // DEFAULT TO 2 MINUTES
     halBusyEvent=tmr_eventcreate(&busy_handler,500,0);
 }
