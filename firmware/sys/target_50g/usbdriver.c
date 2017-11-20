@@ -8,6 +8,16 @@
 #include <newrpl.h>
 #include <ui.h>
 
+
+// ADD-ON MEMORY ALLOCATOR - SHARED WITH FILE SYSTEM AND NEWRPL ENGINE
+extern void init_simpalloc();
+extern unsigned int *simpmalloc(int words);
+extern unsigned char *simpmallocb(int bytes);
+extern void simpfree(void *voidptr);
+
+
+
+
 // HARDWARE PORTS FOR S3C2410 - USB DEVICE
 
 
@@ -366,6 +376,7 @@ BYTE *__usb_bufptr[3] __SYSTEM_GLOBAL__;   // POINTERS TO BUFFERS FOR EACH ENDPO
 BINT __usb_count[3]   __SYSTEM_GLOBAL__;   // REMAINING BYTES TO TRANSFER ON EACH ENDPOINT (0/1/2)
 BINT __usb_padding[3] __SYSTEM_GLOBAL__;    // PADDING FOR OUTGOING TRANSFERS
 BYTE __usb_tmpbuffer[RAWHID_TX_SIZE] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER FOR NON-BLOCKING CONTROL TRANSFERS
+BYTEPTR __usb_rcvbuffer;
 WORD __usb_rcvtotal __SYSTEM_GLOBAL__;
 WORD __usb_rcvpartial __SYSTEM_GLOBAL__;
 WORD __usb_rcvcrc __SYSTEM_GLOBAL__;
@@ -1040,7 +1051,6 @@ void usb_ep2_receive(int newtransmission)
 
         // WE ARE READY TO RECEIVE A NEW DATA BLOCK
 
-        __usb_bufptr[2]=__usb_tmpbuffer;    // FOR NOW, HERE WE NEED AN EXTERNAL DATA BLOCK
 
         if(fifocnt>8) {
         // READ THE HEADER
@@ -1059,12 +1069,26 @@ void usb_ep2_receive(int newtransmission)
 
         }
 
+        BYTEPTR buf;
+
+        // ONLY ALLOCATE MEMORY FOR DATA BLOCKS LARGER THAN 1 PACKET
+        if(__usb_rcvtotal>EP2_FIFO_SIZE-8) buf=simpmallocb(__usb_rcvtotal);
+        else buf=__usb_tmpbuffer;
+
+        if(!buf) {
+            __usb_rcvbuffer=__usb_tmpbuffer;
+        } else {
+            __usb_rcvbuffer=buf;
+            __usb_bufptr[2]=__usb_rcvbuffer;
+        }
+
         fifocnt-=8;
 
         }
 
    }
 
+    if(__usb_rcvbuffer==__usb_tmpbuffer)  __usb_bufptr[2]=__usb_tmpbuffer;    // IF WE HAD NO MEMORY, RESET THE BUFFER FOR EVERY PARTIAL PACKET
 
     int cnt=0;
     while(cnt<fifocnt) {
@@ -1079,6 +1103,11 @@ void usb_ep2_receive(int newtransmission)
 
     if(fifocnt!=EP2_FIFO_SIZE) {
         // PARTIAL PACKET SIGNALS END OF TRANSMISSION
+
+        // IF WE HAD NO MEMORY TO ALLOCATE A BLOCK, INDICATE THAT WE RECEIVED ONLY THE LAST PARTIAL PACKET
+        if(__usb_rcvbuffer==__usb_tmpbuffer) {
+            __usb_rcvpartial=__usb_bufptr[2]-__usb_rcvbuffer;
+        }
         __usb_drvstatus&=~USB_STATUS_HIDRX;
         __usb_drvstatus|=USB_STATUS_DATAREADY;
     }
@@ -1220,4 +1249,29 @@ int usb_isconfigured()
 {
     if(__usb_drvstatus&USB_STATUS_CONFIGURED) return 1;
     return 0;
+}
+
+
+// HIGH LEVEL FUNCTION TO SEE IF THERE'S ANY DATA FROM THE USB DRIVER
+int usb_havedata()
+{
+    if(__usb_drvstatus&USB_STATUS_DATAREADY) return 1;
+    return 0;
+}
+
+// HIGH LEVEL FUNCTION TO ACCESS A BLOCK OF DATA
+BYTEPTR usb_accessdata(BINT *blksize)
+{
+    if(!(__usb_drvstatus&USB_STATUS_DATAREADY)) return 0;
+    if(blksize) *blksize=__usb_rcvpartial;
+    return __usb_rcvbuffer;
+}
+
+// HIGH LEVEL FUNCTION TO RELEASE A BLOCK OF DATA AND GET READY TO RECEIVE THE NEXT
+void usb_releasedata()
+{
+    if(!(__usb_drvstatus&USB_STATUS_DATAREADY)) return;
+    if(__usb_rcvbuffer!=__usb_tmpbuffer) simpfree(__usb_rcvbuffer);
+
+    __usb_drvstatus&=~USB_STATUS_DATAREADY;
 }
