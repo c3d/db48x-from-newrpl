@@ -228,6 +228,7 @@ halUpdateFonts();
 // FLUSH THE ON-KEY KEYPRESS FROM THE KEYBOARD BUFFER BEFORE ENTERING THE OUTER LOOP
 // THIS CAN CANCEL AN EXISTING COMMAND LINE
 keyb_flushnowait();
+keyb_setshiftplane(0,0,0,0);
 
 if (rplCheckAlarms())
     halSetNotification(N_CONNECTION, 0xf);

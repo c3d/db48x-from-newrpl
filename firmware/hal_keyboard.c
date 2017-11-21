@@ -6613,7 +6613,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
 
 
             // AUTO-OFF WHEN IDLING
-            if(!(flags&OL_NOAUTOOFF) && (halFlags&HAL_AUTOOFFTIME)) {
+            if(!(flags&OL_NOAUTOOFF) && (halFlags&HAL_AUTOOFFTIME) && (!usb_isconnected())) {
             BINT64 autoofftime=15000000 << (GET_AUTOOFFTIME(halFlags));
             if(halTicks()-offcounter >=autoofftime) {
                 halPreparePowerOff();
