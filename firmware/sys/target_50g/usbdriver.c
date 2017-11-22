@@ -376,9 +376,9 @@ BYTE *__usb_bufptr[3] __SYSTEM_GLOBAL__;   // POINTERS TO BUFFERS FOR EACH ENDPO
 BINT __usb_count[3]   __SYSTEM_GLOBAL__;   // REMAINING BYTES TO TRANSFER ON EACH ENDPOINT (0/1/2)
 BINT __usb_padding[3] __SYSTEM_GLOBAL__;    // PADDING FOR OUTGOING TRANSFERS
 BYTE __usb_tmpbuffer[RAWHID_TX_SIZE] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER FOR NON-BLOCKING CONTROL TRANSFERS
-BYTEPTR __usb_rcvbuffer;
-WORD __usb_rcvtotal __SYSTEM_GLOBAL__;
-WORD __usb_rcvpartial __SYSTEM_GLOBAL__;
+BYTEPTR __usb_rcvbuffer __SYSTEM_GLOBAL__;
+BINT __usb_rcvtotal __SYSTEM_GLOBAL__;
+BINT __usb_rcvpartial __SYSTEM_GLOBAL__;
 WORD __usb_rcvcrc __SYSTEM_GLOBAL__;
 
 
@@ -899,8 +899,14 @@ void ep0_irqservice()
 
                 return;
 
-
-
+           case HID_SET_IDLE:
+                // SEND DATA TO HOST - SEND ALL ZEROS
+                __usb_count[0]=0;
+                __usb_padding[0]=0;
+                __usb_drvstatus&=~USB_STATUS_EP0RX|USB_STATUS_EP0TX;
+                *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
+                usb_checkpipe();
+                return;
 
             }
 
@@ -1035,6 +1041,7 @@ void usb_ep2_receive(int newtransmission)
 
 
     int fifocnt=(*OUT_FIFO_CNT1_REG)+256*(*OUT_FIFO_CNT2_REG);
+    int cnt=0;
 
     if(newtransmission) {
         if(__usb_drvstatus&USB_STATUS_DATAREADY) {
@@ -1056,6 +1063,8 @@ void usb_ep2_receive(int newtransmission)
         // WE ARE READY TO RECEIVE A NEW DATA BLOCK
 
 
+
+
         if(fifocnt>8) {
         // READ THE HEADER
         WORD startmarker=*EP2_FIFO;
@@ -1065,13 +1074,13 @@ void usb_ep2_receive(int newtransmission)
         __usb_rcvtotal|=(*EP2_FIFO)<<8;
         __usb_rcvtotal|=(*EP2_FIFO)<<16;
 
-        __usb_rcvpartial=0;
+        __usb_rcvpartial=-8;
         __usb_rcvcrc=(*EP2_FIFO);
         __usb_rcvcrc|=(*EP2_FIFO)<<8;
         __usb_rcvcrc|=(*EP2_FIFO)<<16;
         __usb_rcvcrc|=(*EP2_FIFO)<<24;
 
-        }
+        cnt+=8;
 
         BYTEPTR buf;
 
@@ -1086,15 +1095,37 @@ void usb_ep2_receive(int newtransmission)
             __usb_bufptr[2]=__usb_rcvbuffer;
         }
 
-        fifocnt-=8;
 
         }
 
+        else {
+            // BAD START MARKER, TREAT THE BLOCK AS ARBITRARY DATA
+            ++cnt;
+            __usb_rcvtotal=fifocnt;
+            __usb_rcvbuffer=__usb_tmpbuffer;
+            __usb_rcvcrc=0;
+            __usb_rcvpartial=0;
+            __usb_bufptr[2]=__usb_rcvbuffer+1;
+            __usb_tmpbuffer[0]=startmarker;
+        }
+
+
+
+
+        }
+        else {
+            // NO PACKET STARTER - TREAT AS ARBITRARY DATA
+            __usb_rcvtotal=fifocnt;
+            __usb_rcvbuffer=__usb_tmpbuffer;
+            __usb_rcvcrc=0;
+            __usb_rcvpartial=0;
+            __usb_bufptr[2]=__usb_rcvbuffer;
+        }
+
    }
+    else  if(__usb_rcvbuffer==__usb_tmpbuffer)  __usb_bufptr[2]=__usb_tmpbuffer;    // IF WE HAD NO MEMORY, RESET THE BUFFER FOR EVERY PARTIAL PACKET
 
-    if(__usb_rcvbuffer==__usb_tmpbuffer)  __usb_bufptr[2]=__usb_tmpbuffer;    // IF WE HAD NO MEMORY, RESET THE BUFFER FOR EVERY PARTIAL PACKET
 
-    int cnt=0;
     while(cnt<fifocnt) {
         *__usb_bufptr[2]=(BYTE)*EP2_FIFO;
         ++__usb_bufptr[2];
@@ -1105,7 +1136,7 @@ void usb_ep2_receive(int newtransmission)
 
     __usb_rcvpartial+=fifocnt;
 
-    if(fifocnt!=EP2_FIFO_SIZE) {
+    if((fifocnt!=EP2_FIFO_SIZE)||(__usb_rcvpartial>=__usb_rcvtotal)) {
         // PARTIAL PACKET SIGNALS END OF TRANSMISSION
 
         // IF WE HAD NO MEMORY TO ALLOCATE A BLOCK, INDICATE THAT WE RECEIVED ONLY THE LAST PARTIAL PACKET
@@ -1114,7 +1145,10 @@ void usb_ep2_receive(int newtransmission)
         }
         __usb_drvstatus&=~USB_STATUS_HIDRX;
         __usb_drvstatus|=USB_STATUS_DATAREADY;
+        return;
     }
+
+    __usb_drvstatus|=USB_STATUS_HIDRX;
 
     }
 
