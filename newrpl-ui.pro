@@ -217,7 +217,11 @@ SOURCES += main.cpp\
     newrpl/lib-78-fonts.c \
     newrpl/solvers.c \
     newrpl/rng.c \
-    newrpl/lib-98-statistics.c
+    newrpl/lib-98-statistics.c \
+    firmware/sys/target_pc/usbdriver.c \
+    firmware/hal_cpu.c \
+    firmware/sys/target_pc/usbdriver.c
+
 
 HEADERS  += mainwindow.h \
     qemuscreen.h \
