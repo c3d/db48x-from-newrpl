@@ -116,7 +116,7 @@ border-width: 0px;</string>
      <x>0</x>
      <y>0</y>
      <width>1016</width>
-     <height>25</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -157,18 +157,22 @@ border-width: 0px;</string>
     <addaction name="actionSave_Level_1_As"/>
     <addaction name="actionOpen_file_to_Level_1"/>
    </widget>
+   <widget class="QMenu" name="menuUSB">
+    <property name="title">
+     <string>USB</string>
+    </property>
+    <addaction name="actionConnect_to_calc"/>
+    <addaction name="separator"/>
+    <addaction name="actionSend_Stack_Level_1"/>
+    <addaction name="actionManual_Receive"/>
+    <addaction name="separator"/>
+    <addaction name="actionAuto_Receive"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuStack"/>
    <addaction name="menuSD_Card"/>
    <addaction name="menuHardware"/>
-  </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
+   <addaction name="menuUSB"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionOpen">
@@ -244,6 +248,32 @@ border-width: 0px;</string>
   <action name="actionOpen_file_to_Level_1">
    <property name="text">
     <string>Open file to Level 1...</string>
+   </property>
+  </action>
+  <action name="actionConnect_to_calc">
+   <property name="text">
+    <string>Connect to calc...</string>
+   </property>
+  </action>
+  <action name="actionSend_Stack_Level_1">
+   <property name="text">
+    <string>Send Stack Level 1...</string>
+   </property>
+  </action>
+  <action name="actionAuto_Receive">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto Receive</string>
+   </property>
+  </action>
+  <action name="actionManual_Receive">
+   <property name="text">
+    <string>Manual Receive</string>
    </property>
   </action>
  </widget>

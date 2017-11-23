@@ -12,7 +12,7 @@
 #include <QMessageBox>
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include "hidapi.h"
 #define takemax(a,b) (((a)>(b))? (a):(b))
 
 MainWindow *myMainWindow;
@@ -777,4 +777,30 @@ void MainWindow::on_actionOpen_file_to_Level_1_triggered()
 
     __cpu_idle=0;   // LET GO THE SIMULATOR
 
+}
+
+void MainWindow::on_actionConnect_to_calc_triggered()
+{
+    struct hid_device_info *devs, *cur_dev;
+
+        if (hid_init())
+            return;
+
+        devs = hid_enumerate(0x0, 0x0);
+        cur_dev = devs;
+        QString result;
+        result.clear();
+        while (cur_dev) {
+            result+=QString::asprintf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls", cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
+            result+=QString::asprintf("\n");
+            result+=QString::asprintf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
+            result+=QString::asprintf("  Product:      %ls\n", cur_dev->product_string);
+            result+=QString::asprintf("  Release:      %hx\n", cur_dev->release_number);
+            result+=QString::asprintf("  Interface:    %d\n",  cur_dev->interface_number);
+            result+=QString::asprintf("\n");
+            cur_dev = cur_dev->next;
+        }
+        hid_free_enumeration(devs);
+
+        hid_exit();
 }

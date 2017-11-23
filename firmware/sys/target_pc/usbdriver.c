@@ -84,7 +84,7 @@ void usb_shutdown()
 
 
 
-void inline usb_checkpipe()
+inline void usb_checkpipe()
 {
 
 }
@@ -98,7 +98,7 @@ void inline usb_checkpipe()
 void usb_ep1_transmit(int newtransmission)
 {
 
-    if(!__usb_drvstatus&USB_STATUS_CONNECTED) return;
+    if(!(__usb_drvstatus&USB_STATUS_CONNECTED)) return;
 
     if(newtransmission || (__usb_drvstatus&USB_STATUS_HIDTX)) {
 
@@ -115,7 +115,7 @@ void usb_ep1_transmit(int newtransmission)
 void usb_ep2_receive(int newtransmission)
 {
 
-    if(!__usb_drvstatus&USB_STATUS_CONNECTED) return;
+    if(!(__usb_drvstatus&USB_STATUS_CONNECTED)) return;
 
     if(newtransmission || (__usb_drvstatus&USB_STATUS_HIDRX)) {
 

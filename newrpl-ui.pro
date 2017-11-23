@@ -218,7 +218,6 @@ SOURCES += main.cpp\
     newrpl/solvers.c \
     newrpl/rng.c \
     newrpl/lib-98-statistics.c \
-    firmware/sys/target_pc/usbdriver.c \
     firmware/hal_cpu.c \
     firmware/sys/target_pc/usbdriver.c
 
@@ -280,7 +279,6 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-98.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
-
 INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
 
 LIBS += -L/usr/local/lib
@@ -289,6 +287,21 @@ FORMS    += mainwindow.ui
 
 RESOURCES += \
     annunciators.qrc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #QMAKE_CFLAGS += -Wno-duplicate-decl-specifier
 
@@ -303,4 +316,20 @@ rpl_compiler.variable_out = SOURCES
 QMAKE_EXTRA_COMPILERS += rpl_compiler
 
 
+# Additional external library HIDAPI linked statically into the code
 
+
+INCLUDEPATH += external/hidapi/hidapi
+
+HEADERS += external/hidapi/hidapi/hidapi.h
+
+win32: SOURCES += external/hidapi/windows/hid.c
+win32: LIBS += -lsetupapi
+
+unix:!macx: SOURCES += external/hidapi/linux/hid.c
+unix:!macx: LIBS += -ludev
+
+macx: SOURCES += external/hidapi/mac/hid.c
+macx: LIBS += -framework CoreFoundation -framework IOKit
+
+# End of HIDAPI

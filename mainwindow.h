@@ -70,6 +70,8 @@ private slots:
 
     void on_actionOpen_file_to_Level_1_triggered();
 
+    void on_actionConnect_to_calc_triggered();
+
 public slots:
     void domaintimer();
 private:
