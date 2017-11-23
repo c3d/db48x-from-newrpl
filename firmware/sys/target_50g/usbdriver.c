@@ -133,40 +133,6 @@ extern void simpfree(void *voidptr);
  *
  **************************************************************************/
 
-// You can change these to give your code its own name.
-#define STR_MANUFACTURER	{'n',0,'e',0,'w',0,'R',0,'P',0,'L',0,' ',0,'T',0,'e',0,'a',0,'m',0}
-#define STR_MANUFLENGTH   22+2
-#define STR_PRODUCT		{'n',0,'e',0,'w',0,'R',0,'P',0,'L',0,' ',0,'C',0,'a',0,'l',0,'c',0}
-#define STR_PRODLENGTH   22+2
-
-// These 4 numbers identify your device.  Set these to
-// something that is (hopefully) not used by any others!
-#define VENDOR_ID		0x3f0
-#define PRODUCT_ID		0x121   // ORIGINAL VID/PID OF THE 50g/39gs/40g TARGET HARDWARE
-//#define PRODUCT_ID		0x441   // ORIGINAL VID/PID OF THE Prime TARGET HARDWARE
-#define RAWHID_USAGE_PAGE	0xFFAB	// recommended: 0xFF00 to 0xFFFF
-#define RAWHID_USAGE		0x0200	// recommended: 0x0100 to 0xFFFF
-
-// These determine the bandwidth that will be allocated
-// for your communication.  You do not need to use it
-// all, but allocating more than necessary means reserved
-// bandwidth is no longer available to other USB devices.
-#define RAWHID_TX_SIZE		64	// transmit packet size
-#define RAWHID_TX_INTERVAL	2	// max # of ms between transmit packets
-#define RAWHID_RX_SIZE		64	// receive packet size
-#define RAWHID_RX_INTERVAL	8	// max # of ms between receive packets
-
-
-/**************************************************************************
- *
- *  Endpoint Buffer Configuration
- *
- **************************************************************************/
-
-#define ENDPOINT0_SIZE		8
-#define RAWHID_INTERFACE	0
-#define RAWHID_TX_ENDPOINT	1
-#define RAWHID_RX_ENDPOINT	2
 
 /**************************************************************************
  *

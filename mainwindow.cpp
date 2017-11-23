@@ -13,7 +13,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "hidapi.h"
+#include "firmware.h"
 #define takemax(a,b) (((a)>(b))? (a):(b))
+
+
+
+
 
 MainWindow *myMainWindow;
 
@@ -791,6 +796,8 @@ void MainWindow::on_actionConnect_to_calc_triggered()
         QString result;
         result.clear();
         while (cur_dev) {
+
+            if( (cur_dev->usage_page==RAWHID_USAGE_PAGE)) {
             result+=QString::asprintf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls", cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
             result+=QString::asprintf("\n");
             result+=QString::asprintf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
@@ -798,9 +805,14 @@ void MainWindow::on_actionConnect_to_calc_triggered()
             result+=QString::asprintf("  Release:      %hx\n", cur_dev->release_number);
             result+=QString::asprintf("  Interface:    %d\n",  cur_dev->interface_number);
             result+=QString::asprintf("\n");
+            }
             cur_dev = cur_dev->next;
         }
         hid_free_enumeration(devs);
 
         hid_exit();
+
+        QMessageBox a(QMessageBox::Information,"List of HID devices",result,QMessageBox::Ok,this);
+        a.exec();
+
 }
