@@ -797,7 +797,11 @@ void MainWindow::on_actionConnect_to_calc_triggered()
         result.clear();
         while (cur_dev) {
 
-            if( (cur_dev->usage_page==RAWHID_USAGE_PAGE)) {
+            QString manuf;
+
+            if(cur_dev->manufacturer_string) manuf=QString::fromStdWString(cur_dev->manufacturer_string);
+
+            if(manuf.startsWith("newRPL")) {
             result+=QString::asprintf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls", cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
             result+=QString::asprintf("\n");
             result+=QString::asprintf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
