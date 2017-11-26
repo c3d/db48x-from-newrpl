@@ -78,6 +78,10 @@ void usb_shutdown()
 
     if(!__usb_drvstatus&USB_STATUS_INIT) return;
 
+    if(__usb_drvstatus&USB_STATUS_DATAREADY) {
+        usb_releasedata();
+    }
+
     __usb_drvstatus=0;  // MARK UNCONFIGURED
 
 }

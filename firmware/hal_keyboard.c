@@ -6534,7 +6534,7 @@ void halDoDeferredProcess()
 
 // THIS FUNCTION RETURNS WHEN THE FORM CLOSES, OR THE USER EXITS WITH THE ON KEY
 
-void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
+void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT flags)
 {
     int keymsg=0,isidle,jobdone;
     BINT64 offcounter;
@@ -6598,6 +6598,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
 
             halDoDeferredProcess();
 
+
             if(!isidle) offcounter=halTicks();
 
             // FLUSH FILE SYSTEM CACHES WHEN IDLING FOR MORE THAN 3 SECONDS
@@ -6638,6 +6639,11 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags)
                 halScreen.DirtyFlag|=CMDLINE_ALLDIRTY|STACK_DIRTY|STAREA_DIRTY|MENU1_DIRTY|MENU2_DIRTY|FORM_DIRTY;
                 continue;
             }
+
+            if(doidle) {
+                if((*doidle)()) break;
+            }
+
 
             isidle=1;
 

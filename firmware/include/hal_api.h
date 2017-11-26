@@ -1234,7 +1234,7 @@ void halSetContext(BINT KeyContext);
 
 
 // OUTER LOOP
-void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), BINT flags);
+void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT),BINT flags);
 //  IF THIS FUNCTION RETURNS TRUE, TERMINATE THE OUTER LOOP
 int halExitOuterLoop();
 

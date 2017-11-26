@@ -444,6 +444,11 @@ void usb_shutdown()
 {
 
     if(!__usb_drvstatus&USB_STATUS_INIT) return;
+
+    if(__usb_drvstatus&USB_STATUS_DATAREADY) {
+        usb_releasedata();
+    }
+
     // MASK INTERRUPT AND REMOVE HANDLER
     __irq_mask(25);
     __irq_releasehook(25);
@@ -461,7 +466,6 @@ void usb_shutdown()
 
     __usb_drvstatus=0;  // MARK UNCONFIGURED
 
-    // TODO: RELEASE COMMUNICATIONS BUFFERS
 
 }
 
