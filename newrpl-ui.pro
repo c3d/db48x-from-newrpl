@@ -219,7 +219,8 @@ SOURCES += main.cpp\
     newrpl/rng.c \
     newrpl/lib-98-statistics.c \
     firmware/hal_cpu.c \
-    firmware/sys/target_pc/usbdriver.c
+    firmware/sys/target_pc/usbdriver.c \
+    usbselector.cpp
 
 
 HEADERS  += mainwindow.h \
@@ -246,7 +247,8 @@ HEADERS  += mainwindow.h \
     newrpl/fastmath.h \
     newrpl/render.h \
     firmware/include/target_pc.h \
-    firmware/include/firmware.h
+    firmware/include/firmware.h \
+    usbselector.h
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-9.nrpl \
@@ -283,7 +285,8 @@ INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
 
 LIBS += -L/usr/local/lib
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    usbselector.ui
 
 RESOURCES += \
     annunciators.qrc

@@ -19,7 +19,7 @@
 
 
 
-CONTEXT Context;
+extern CONTEXT Context;
 
 void initContext(WORD precision)
 {

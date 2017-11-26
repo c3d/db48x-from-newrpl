@@ -10,9 +10,10 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QMessageBox>
+#include "hidapi.h"
+#include "usbselector.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "hidapi.h"
 #include "firmware.h"
 #define takemax(a,b) (((a)>(b))? (a):(b))
 
@@ -786,37 +787,9 @@ void MainWindow::on_actionOpen_file_to_Level_1_triggered()
 
 void MainWindow::on_actionConnect_to_calc_triggered()
 {
-    struct hid_device_info *devs, *cur_dev;
+    USBSelector seldlg;
 
-        if (hid_init())
-            return;
+    seldlg.exec();
 
-        devs = hid_enumerate(0x0, 0x0);
-        cur_dev = devs;
-        QString result;
-        result.clear();
-        while (cur_dev) {
-
-            QString manuf;
-
-            if(cur_dev->manufacturer_string) manuf=QString::fromStdWString(cur_dev->manufacturer_string);
-
-            if(manuf.startsWith("newRPL")) {
-            result+=QString::asprintf("Device Found\n  type: %04hx %04hx\n  path: %s\n  serial_number: %ls", cur_dev->vendor_id, cur_dev->product_id, cur_dev->path, cur_dev->serial_number);
-            result+=QString::asprintf("\n");
-            result+=QString::asprintf("  Manufacturer: %ls\n", cur_dev->manufacturer_string);
-            result+=QString::asprintf("  Product:      %ls\n", cur_dev->product_string);
-            result+=QString::asprintf("  Release:      %hx\n", cur_dev->release_number);
-            result+=QString::asprintf("  Interface:    %d\n",  cur_dev->interface_number);
-            result+=QString::asprintf("\n");
-            }
-            cur_dev = cur_dev->next;
-        }
-        hid_free_enumeration(devs);
-
-        hid_exit();
-
-        QMessageBox a(QMessageBox::Information,"List of HID devices",result,QMessageBox::Ok,this);
-        a.exec();
-
+    return;
 }
