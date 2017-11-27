@@ -4,8 +4,13 @@
 #include "usbselector.h"
 #include "ui_usbselector.h"
 
+extern "C" {
 #include "newrpl.h"
 #include "libraries.h"
+
+BINT64 rplObjChecksum(WORDPTR object);
+}
+
 
 USBSelector::USBSelector(QWidget *parent) :
     QDialog(parent),
@@ -68,22 +73,29 @@ USBSelector::USBSelector(QWidget *parent) :
 
                         thisdev=hid_open_path(cur_dev->path);
 
-                        if(!thisdev) delete newitem;
-                        else {
+                        if(thisdev)
+                        {
                             // ATTEMPT TO SEND SOMETHING TO SEE IF IT'S ACTIVELY RESPONDING
-                            const uint32_t getversion[]={
-                                MKPROLOG(DOCOL,4),
+                            uint32_t getversion[]={
+                                0xab,       // BLOCK SIZE AND MARKER
+                                0,         // CRC32
+                                MKPROLOG(SECO,4),  // ACTUAL DATA
                                 CMD_VERSION,
                                 CMD_DROP,
                                 CMD_USBSEND,
-                                CMD_SEMI
+                                CMD_QSEMI
                             };
 
+                            getversion[0]|=(1+OBJSIZE(getversion[2]))<<10;
+                            getversion[1]=usb_crc32((BYTEPTR) &(getversion[2]),(1+OBJSIZE(getversion[2]))*4);
 
-                            int res=hid_write(thisdev,(const unsigned char *)getversion,(OBJSIZE(getversion[0])+1)*4);
+
+
+                            int res=hid_write(thisdev,(const unsigned char *)getversion,(getversion[0]>>8)+8);
                             if(res<0) {
                                 hid_close(thisdev);
-                                delete newitem;
+                                tmp="[Device not responding]";
+                                newitem->setText(2,tmp);
                             }
                             else {
                                 unsigned char buffer[1024];
@@ -92,7 +104,8 @@ USBSelector::USBSelector(QWidget *parent) :
                                 if(res<=0) {
                                     // DEVICE UNAVAILABLE
                                     hid_close(thisdev);
-                                    delete newitem;
+                                    tmp="[Device not responding]";
+                                    newitem->setText(2,tmp);
                                 }
                                 else {
                                     // WE GOT A RESPONSE, THE DEVICE IS ALIVE!

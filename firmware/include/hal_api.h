@@ -1106,6 +1106,7 @@ int usb_isconnected();
 int usb_isconfigured();
 void usb_releasedata();
 BYTEPTR usb_accessdata(int *blksize);
+WORD usb_crc32(BYTEPTR data,BINT len);
 int usb_checkcrc();
 
 

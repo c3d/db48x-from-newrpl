@@ -228,17 +228,19 @@ void LIB_HANDLER()
         }
 
         // READ THE DATA AND PUT IT ON THE STACK
+        extern WORD __usb_rcvcrc;
         BINT datasize;
         BYTEPTR data=usb_accessdata(&datasize);
 
         if(!usb_checkcrc()) {
+            usb_releasedata();
             rplError(ERR_USBINVALIDDATA);
             return;
         }
 
 
         WORDPTR newobj=rplAllocTempOb((datasize+3)>>2);
-        if(!newobj) return;
+        if(!newobj) { usb_releasedata(); return; }
         memmoveb(newobj,data,(datasize+3)&~3);
 
         usb_releasedata();
