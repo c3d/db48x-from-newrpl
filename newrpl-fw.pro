@@ -208,6 +208,7 @@ SOURCES +=\
     newrpl/lib-88-plot.c \
     newrpl/lib-96-composites.c \
     newrpl/lib-98-statistics.c \
+    newrpl/lib-100-usb.c \
     firmware/ggl/ggl/ggl_fltreplace.c \
     firmware/hal_alarm.c \
     firmware/ui_render.c \
@@ -274,6 +275,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-88.nrpl \
                 newrpl/rpl-objects/lib-96.nrpl \
                 newrpl/rpl-objects/lib-98.nrpl \
+                newrpl/rpl-objects/lib-100.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 

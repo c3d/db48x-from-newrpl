@@ -21,6 +21,7 @@ BINT halFlags __SYSTEM_GLOBAL__;
 void (*halProcesses[3])(void) __SYSTEM_GLOBAL__;
 
 HEVENT halBusyEvent __SYSTEM_GLOBAL__;
+HEVENT halTimeoutEvent __SYSTEM_GLOBAL__;
 
 
 // HIGH LEVEL KEYBOARD HANDLER

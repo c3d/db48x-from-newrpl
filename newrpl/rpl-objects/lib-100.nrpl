@@ -1,0 +1,61 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib100_msgtable
+{
+##1,ERR_USBNOTCONNECTED "USB port not connected"
+##1,ERR_USBINVALIDDATA "Received invalid data"
+}
+
+@#name lib100_menu
+{
+USBON USBOFF USBSEND USBRECV USBSTATUS
+}
+
+
+@#name lib100_cmdhelp
+{
+USBON
+"Enable the USB port
+for connections
+ → "
+
+USBOFF
+"Turn off USB subsystem
+
+ → "
+
+USBRECV
+"Receive an object, timeout
+after given time
+R<time> → O I<T/F>"
+
+USBSEND
+"Transmit an object to
+remote calc.
+O → "
+
+USBSTATUS
+"State of USB subsystem.
+Bits: TX/RX/Config/Conn/On
+ → I<status>"
+
+USBAUTORCV
+"Receive an object,
+then do XEQ on it.
+ → "
+}

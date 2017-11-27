@@ -61,11 +61,11 @@ WORDPTR halSaveCmdLine();
 BINT halRestoreCmdLine(WORDPTR data);
 
 
-BINT ui_visibleline,ui_nlines;
-BINT ui_currentline,ui_prevline;
-BINT ui_islinemodified;
-BINT ui_cursorx,ui_cursoroffset;
-BINT ui_visiblex;
+extern BINT ui_visibleline,ui_nlines;
+extern BINT ui_currentline,ui_prevline;
+extern BINT ui_islinemodified;
+extern BINT ui_cursorx,ui_cursoroffset;
+extern BINT ui_visiblex;
 
 
 void uiSetCmdLineState(BINT state);

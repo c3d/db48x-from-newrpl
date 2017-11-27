@@ -20,7 +20,8 @@
 
 
 #define ERROR_LIST \
-    ERR(USBNOTCONNECTED,0)
+    ERR(USBNOTCONNECTED,0), \
+    ERR(USBINVALIDDATA,1)
 
 
 // LIST OF COMMANDS EXPORTED,
@@ -35,7 +36,8 @@
     CMD(USBRECV,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(USBSEND,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(USBOFF,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(USBON,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+    CMD(USBON,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(USBAUTORCV,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
 
 
 // ADD MORE OPCODES HERE
@@ -57,6 +59,7 @@
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 
+INCLUDE_ROMOBJECT(lib100_menu);
 
 
 // EXTERNAL EXPORTED OBJECT TABLE
@@ -64,6 +67,7 @@ INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)LIB_MSGTABLE,
     (WORDPTR)LIB_HELPTABLE,
+    (WORDPTR)lib100_menu,
     0
 };
 
@@ -74,6 +78,8 @@ if(usb_hasdata()) return 1; // END THE LOOP IF THEREŚ DATA IN THE USB
 return 0;
 }
 
+
+extern int waitProcess(int);
 
 void LIB_HANDLER()
 {
@@ -152,11 +158,10 @@ void LIB_HANDLER()
         timeout.exp+=3;    // CONVERT FROM SECONDS TO MILLISECONDS
         BINT64 mstimeout=getBINT64Real(&timeout);
 
-        BINT keymsg;
 
         RetNum=0;
 
-        if(mStimeout<0) mstimeout=0;
+        if(mstimeout<0) mstimeout=0;
 
         // JUST WAIT IN THE MAIN LOOP, SO KEYS CAN CANCEL THE WAIT AND INDICATORS CAN BE UPDATED
         halOuterLoop(mstimeout,&waitProcess,&exitOnUBSData,OL_NOEXIT|OL_NOAUTOOFF|OL_NOCUSTOMKEYS|OL_NODEFAULTKEYS);
@@ -171,6 +176,12 @@ void LIB_HANDLER()
         BINT datasize;
         BYTEPTR data=usb_accessdata(&datasize);
 
+        if(!usb_checkcrc()) {
+            rplError(ERR_USBINVALIDDATA);
+            return;
+        }
+
+
         WORDPTR newobj=rplAllocTempOb((datasize+3)>>2);
         if(!newobj) return;
         memmoveb(newobj,data,(datasize+3)&~3);
@@ -179,7 +190,7 @@ void LIB_HANDLER()
 
 
         if(!rplVerifyObject((WORDPTR)data)) {
-            rplError(ERR_UNRECOGNIZEDOBJECT);
+            rplError(ERR_USBINVALIDDATA);
             return;
         }
 
@@ -207,6 +218,47 @@ void LIB_HANDLER()
         return;
     }
 
+
+    case USBAUTORCV:
+    {
+    // SAME AS USBRCV BUT DOES NOT WAIT FOR DATA (DOES NOTHING IF DATA IS NOT AVAILABLE)
+    // AND DOES XEQ IMMEDIATELY ON THE DATA RECEIVED.
+        if(!usb_hasdata()) {
+            return;
+        }
+
+        // READ THE DATA AND PUT IT ON THE STACK
+        BINT datasize;
+        BYTEPTR data=usb_accessdata(&datasize);
+
+        if(!usb_checkcrc()) {
+            rplError(ERR_USBINVALIDDATA);
+            return;
+        }
+
+
+        WORDPTR newobj=rplAllocTempOb((datasize+3)>>2);
+        if(!newobj) return;
+        memmoveb(newobj,data,(datasize+3)&~3);
+
+        usb_releasedata();
+
+
+        if(!rplVerifyObject((WORDPTR)data)) {
+            rplError(ERR_USBINVALIDDATA);
+            return;
+        }
+
+        // WE HAVE A VALID OBJECT!
+
+        rplPushData(newobj);
+        if(Exceptions) return;
+
+        rplCallOvrOperator(CMD_OVR_XEQ);
+
+        return;
+
+    }
 
 
         // STANDARIZED OPCODES:

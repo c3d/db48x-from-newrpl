@@ -941,7 +941,7 @@ unsigned int status; // 1=ACTIVE, 2=AUTORELOAD, 4=PAUSED, NOT FINISHED
 
 
 // LOW-LEVEL TIMER STRUCTURE
-timed_event tmr_events[NUM_EVENTS];
+extern timed_event tmr_events[NUM_EVENTS];
 
 //! Save all timers state to a buffer (13-word)
 void tmr_save(unsigned int *tmrbuffer);
@@ -1022,7 +1022,7 @@ void battery_handler();
 void bat_read();
 
 // VARIABLE WHERE THE BATTERY STATUS IS STORED
-WORD __battery;
+extern WORD __battery;
 
 // SYSTEM FONTS
 extern const unsigned int Font_5A[];
@@ -1063,7 +1063,7 @@ void cpu_off();
 
 // LCD LOW-LEVEL HARDWARE API
 
-int __lcd_contrast;
+extern int __lcd_contrast;
 void lcd_sync();
 void __lcd_fix();
 void lcd_off();
@@ -1106,6 +1106,7 @@ int usb_isconnected();
 int usb_isconfigured();
 void usb_releasedata();
 BYTEPTR usb_accessdata(int *blksize);
+int usb_checkcrc();
 
 
 
@@ -1156,10 +1157,10 @@ void halInitMemoryMap();
 // HIGHER LEVEL GLOBAL VARIABLES
 
 
-BINT halFlags;
-void (*halProcesses[3])(void);
-HEVENT halBusyEvent,halTimeoutEvent;
-BINT halLongKeyPending;
+extern BINT halFlags;
+extern void (*halProcesses[3])(void);
+extern HEVENT halBusyEvent,halTimeoutEvent;
+extern BINT halLongKeyPending;
 
 // HIGHER LEVEL HAL FUNCTIONS
 
@@ -1227,7 +1228,7 @@ void halSetContext(BINT KeyContext);
 #define OL_LONGPRESS 16     // DETECT LONG PRESS MESSAGE ON ALL KEYS
 #define OL_NOCUSTOMKEYS 32  // DON'T DO USER-DEFINED ACTIONS
 #define OL_NODEFAULTKEYS 64 // DON'T DO DEFAUL KEY ACTIONS
-
+#define OL_NOCOMMS      128 // DON'T AUTOMATICALLY RECEIVE DATA OVER USB OR SERIAL
 
 
 

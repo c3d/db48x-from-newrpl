@@ -6598,6 +6598,14 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
 
             halDoDeferredProcess();
 
+            if(!(flags&OL_NOCOMMS)) {
+                if(usb_hasdata()) {
+                uiCmdRun(CMD_USBAUTORCV);
+                halScreen.DirtyFlag|=CMDLINE_ALLDIRTY|STACK_DIRTY|STAREA_DIRTY|MENU1_DIRTY|MENU2_DIRTY|FORM_DIRTY;
+                continue;
+                }
+            }
+
 
             if(!isidle) offcounter=halTicks();
 
@@ -6641,7 +6649,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
             }
 
             if(doidle) {
-                if((*doidle)()) break;
+                if((*doidle)(0)) break;
             }
 
 

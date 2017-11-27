@@ -213,7 +213,11 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     newrpl/lighttranscend.c \
     newrpl/ln_ltables.c \
     newrpl/solvers.c \
-    newrpl/rng.c
+    newrpl/rng.c \
+    newrpl/lib-100-usb.c \
+    firmware/sys/target_pc/usbdriver.c \
+    firmware/hal_cpu.c
+
 
 
 
