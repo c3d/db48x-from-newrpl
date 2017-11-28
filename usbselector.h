@@ -15,6 +15,9 @@ public:
     explicit USBSelector(QWidget *parent = 0);
     ~USBSelector();
 
+private slots:
+    void on_USBtreeWidget_itemSelectionChanged();
+
 private:
     Ui::USBSelector *ui;
 };

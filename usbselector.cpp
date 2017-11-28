@@ -100,10 +100,10 @@ USBSelector::USBSelector(QWidget *parent) :
                             else {
                                 unsigned char buffer[1024];
                                 res=hid_read_timeout(thisdev,buffer,1024,1000);
+                                hid_close(thisdev);
 
                                 if(res<=0) {
                                     // DEVICE UNAVAILABLE
-                                    hid_close(thisdev);
                                     tmp="[Device not responding]";
                                     newitem->setText(2,tmp);
                                 }
@@ -134,4 +134,78 @@ USBSelector::USBSelector(QWidget *parent) :
 USBSelector::~USBSelector()
 {
     delete ui;
+}
+
+void USBSelector::on_USBtreeWidget_itemSelectionChanged()
+{
+
+    QString result;
+
+    result.clear();
+    QTreeWidgetItem *newitem;
+
+    if(ui->USBtreeWidget->selectedItems().count()>=1) newitem=ui->USBtreeWidget->selectedItems().first();
+    else return;
+    QString path=newitem->data(0,3).toString(),tmp;
+
+    hid_device *thisdev;
+
+                    thisdev=hid_open_path(path.toUtf8());
+
+                    if(thisdev)
+                    {
+                        // ATTEMPT TO SEND SOMETHING TO SEE IF IT'S ACTIVELY RESPONDING
+                        uint32_t getversion[]={
+                            0xab,       // BLOCK SIZE AND MARKER
+                            0,         // CRC32
+                            MKPROLOG(SECO,4),  // ACTUAL DATA
+                            CMD_VERSION,
+                            CMD_DROP,
+                            CMD_USBSEND,
+                            CMD_QSEMI
+                        };
+
+                        getversion[0]|=(1+OBJSIZE(getversion[2]))<<10;
+                        getversion[1]=usb_crc32((BYTEPTR) &(getversion[2]),(1+OBJSIZE(getversion[2]))*4);
+
+
+
+                        int res=hid_write(thisdev,(const unsigned char *)getversion,(getversion[0]>>8)+8);
+                        if(res<0) {
+                            hid_close(thisdev);
+                            tmp="[Device not responding]";
+                            newitem->setText(2,tmp);
+                            ui->buttonBox->setStandardButtons(QDialogButtonBox::Cancel);
+
+                        }
+                        else {
+                            unsigned char buffer[1024];
+                            res=hid_read_timeout(thisdev,buffer,1024,1000);
+                            hid_close(thisdev);
+
+                            if(res<=0) {
+                                // DEVICE UNAVAILABLE
+                                tmp="[Device not responding]";
+                                newitem->setText(2,tmp);
+                                ui->buttonBox->setStandardButtons( QDialogButtonBox::Cancel);
+
+                            }
+                            else {
+                                // WE GOT A RESPONSE, THE DEVICE IS ALIVE!
+                                unsigned int strprolog;
+                                strprolog=buffer[0]+(buffer[1]<<8)+(buffer[2]<<16)+(buffer[3]<<24);
+
+                                tmp=QString::fromUtf8((const char *)(buffer+4),rplStrSize(&strprolog));
+                                newitem->setText(2,tmp);
+
+                                ui->buttonBox->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+                            }
+
+
+
+                        }
+
+                    }
+
+
 }
