@@ -10,13 +10,21 @@ class USBSelector;
 class USBSelector : public QDialog
 {
     Q_OBJECT
+    QTimer *tmr;
 
 public:
+    void RefreshList();
+
     explicit USBSelector(QWidget *parent = 0);
     ~USBSelector();
 
 private slots:
     void on_USBtreeWidget_itemSelectionChanged();
+
+    void on_USBSelector_accepted();
+
+    void on_USBSelector_rejected();
+    void refresh();
 
 private:
     Ui::USBSelector *ui;

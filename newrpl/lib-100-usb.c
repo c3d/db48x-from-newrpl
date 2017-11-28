@@ -204,6 +204,16 @@ void LIB_HANDLER()
     case USBSEND:
     {
         // SEND ONE OBJECT THROUGH THE USB LINK
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        BINT result=usb_transmitdata((BYTEPTR)rplPeekData(1),rplObjSize(rplPeekData(1))*sizeof(WORD));
+
+        if(!result) rplOverwriteData(1,(WORDPTR)zero_bint);
+        else rplOverwriteData(1,(WORDPTR)one_bint);
+
         return;
     }
 

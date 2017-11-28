@@ -1108,6 +1108,7 @@ void usb_releasedata();
 BYTEPTR usb_accessdata(int *blksize);
 WORD usb_crc32(BYTEPTR data,BINT len);
 int usb_checkcrc();
+int usb_transmitdata(BYTEPTR data,BINT size);
 
 
 

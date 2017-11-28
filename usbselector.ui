@@ -25,6 +25,12 @@
      <property name="allColumnsShowFocus">
       <bool>true</bool>
      </property>
+     <attribute name="headerDefaultSectionSize">
+      <number>150</number>
+     </attribute>
+     <attribute name="headerMinimumSectionSize">
+      <number>64</number>
+     </attribute>
      <column>
       <property name="text">
        <string>Device Name</string>
@@ -40,6 +46,22 @@
        <string>Status / Version</string>
       </property>
      </column>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Selected device:</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>No device selected</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
@@ -89,4 +111,7 @@
    </hints>
   </connection>
  </connections>
+ <slots>
+  <slot>refresh()</slot>
+ </slots>
 </ui>
