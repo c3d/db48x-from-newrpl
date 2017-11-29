@@ -20,12 +20,14 @@ USBSelector::USBSelector(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    SelectedDevicePath.clear();
+
     RefreshList();
 
     tmr = new QTimer(this);
     if(tmr) {
     connect(tmr, SIGNAL(timeout()), this, SLOT(refresh()));
-    tmr->start(1000);
+    tmr->start(2000);
     }
 
 }
@@ -38,7 +40,6 @@ USBSelector::~USBSelector()
 void USBSelector::on_USBtreeWidget_itemSelectionChanged()
 {
 
-    tmr->stop();
 
     QString result;
 
@@ -47,79 +48,32 @@ void USBSelector::on_USBtreeWidget_itemSelectionChanged()
 
     if(ui->USBtreeWidget->selectedItems().count()>=1) newitem=ui->USBtreeWidget->selectedItems().first();
     else {
-        tmr->start();
         return;
     }
-    QString path=newitem->data(0,3).toString(),tmp;
 
-    hid_device *thisdev;
+    if(newitem->text(2)==QString("[Device not responding]")) {
+        ui->buttonBox->setStandardButtons( QDialogButtonBox::Cancel);
+        SelectedDevicePath.clear();
+        ui->selectedCalc->setText(QString("No device selected."));
+    }
+    else {
+        ui->buttonBox->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+        SelectedDevicePath=newitem->data(0,Qt::UserRole+3).toString();
+        ui->selectedCalc->setText(newitem->text(0)+QString("[build ")+newitem->text(2).right(4)+QString("]"));
+    }
 
-                    thisdev=hid_open_path(path.toUtf8());
-
-                    if(thisdev)
-                    {
-                        // ATTEMPT TO SEND SOMETHING TO SEE IF IT'S ACTIVELY RESPONDING
-                        uint32_t getversion[]={
-                            0xab,       // BLOCK SIZE AND MARKER
-                            0,         // CRC32
-                            MKPROLOG(SECO,4),  // ACTUAL DATA
-                            CMD_VERSION,
-                            CMD_DROP,
-                            CMD_USBSEND,
-                            CMD_QSEMI
-                        };
-
-                        getversion[0]|=(1+OBJSIZE(getversion[2]))<<10;
-                        getversion[1]=usb_crc32((BYTEPTR) &(getversion[2]),(1+OBJSIZE(getversion[2]))*4);
-
-
-
-                        int res=hid_write(thisdev,(const unsigned char *)getversion,(getversion[0]>>8)+8);
-                        if(res<0) {
-                            hid_close(thisdev);
-                            tmp="[Device not responding]";
-                            newitem->setText(2,tmp);
-                            ui->buttonBox->setStandardButtons(QDialogButtonBox::Cancel);
-
-                        }
-                        else {
-                            unsigned char buffer[1024];
-                            res=hid_read_timeout(thisdev,buffer,1024,1000);
-                            hid_close(thisdev);
-
-                            if(res<=0) {
-                                // DEVICE UNAVAILABLE
-                                tmp="[Device not responding]";
-                                newitem->setText(2,tmp);
-                                ui->buttonBox->setStandardButtons( QDialogButtonBox::Cancel);
-
-                            }
-                            else {
-                                // WE GOT A RESPONSE, THE DEVICE IS ALIVE!
-                                unsigned int strprolog;
-                                strprolog=buffer[0]+(buffer[1]<<8)+(buffer[2]<<16)+(buffer[3]<<24);
-
-                                tmp=QString::fromUtf8((const char *)(buffer+4),rplStrSize(&strprolog));
-                                newitem->setText(2,tmp);
-
-                                ui->buttonBox->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-                            }
-
-
-
-                        }
-
-                    }
-
-
-                    tmr->start();
 }
 
+QString& USBSelector::getSelectedDevicePath()
+{
+    return SelectedDevicePath;
+}
 
 void USBSelector::RefreshList()
 {
     struct hid_device_info *devs, *cur_dev;
     QTreeWidgetItem *newitem;
+
 
         if (hid_init())
         {
@@ -159,9 +113,9 @@ void USBSelector::RefreshList()
 
             newitem=0;
             while(*it) {
-                if( ((*it)->data(0,0).toInt()==cur_dev->vendor_id)
-                        && ((*it)->data(0,1).toInt()==cur_dev->product_id)
-                        && ((*it)->data(0,3).toString()==QString(cur_dev->path))
+                if( ((*it)->data(0,Qt::UserRole+1).toInt()==cur_dev->vendor_id)
+                        && ((*it)->data(0,Qt::UserRole+2).toInt()==cur_dev->product_id)
+                        && ((*it)->data(0,Qt::UserRole+3).toString()==QString(cur_dev->path))
                         )
                 {
                     // FOUND THE SAME ITEM AGAIN
@@ -195,9 +149,9 @@ void USBSelector::RefreshList()
 
                         newitem->setText(2,tmp);
 
-                        newitem->setData(0,0,QVariant(cur_dev->vendor_id));
-                        newitem->setData(0,1,QVariant(cur_dev->product_id));
-                        newitem->setData(0,3,QVariant(QString(cur_dev->path)));
+                        newitem->setData(0,Qt::UserRole+1,QVariant(cur_dev->vendor_id));
+                        newitem->setData(0,Qt::UserRole+2,QVariant(cur_dev->product_id));
+                        newitem->setData(0,Qt::UserRole+3,QVariant(QString(cur_dev->path)));
 
                         hid_device *thisdev;
 
@@ -240,9 +194,9 @@ void USBSelector::RefreshList()
                                 else {
                                     // WE GOT A RESPONSE, THE DEVICE IS ALIVE!
                                     unsigned int strprolog;
-                                    strprolog=buffer[0]+(buffer[1]<<8)+(buffer[2]<<16)+(buffer[3]<<24);
+                                    strprolog=buffer[8]+(buffer[9]<<8)+(buffer[10]<<16)+(buffer[11]<<24);
 
-                                    tmp=QString::fromUtf8((const char *)(buffer+4),rplStrSize(&strprolog));
+                                    tmp=QString::fromUtf8((const char *)(buffer+12),rplStrSize(&strprolog));
                                     newitem->setText(2,tmp);
                                 }
 
@@ -272,7 +226,6 @@ void USBSelector::RefreshList()
         }
 
         // DONE, THE LIST WAS REFRESHED
-
 
 }
 
