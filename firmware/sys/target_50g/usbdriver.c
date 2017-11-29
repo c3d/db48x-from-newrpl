@@ -1411,7 +1411,8 @@ int usb_transmitdata(BYTEPTR data,BINT size)
     __usb_bufptr[1]=__usb_sndbuffer;
 
     __usb_count[1]=size+8;
-    __usb_padding[1]=0;
+    __usb_padding[1]=(size+8)&(EP1_FIFO_SIZE-1);        // PAD WITH ZEROS THE LAST PACKET
+    if(__usb_padding[1]) __usb_padding[1]=EP1_FIFO_SIZE-__usb_padding[1];
 
     buf[0]=USB_BLOCKSTART_MARKER;        // START OF BLOCK MARKER
     buf[1]=size&0xff;

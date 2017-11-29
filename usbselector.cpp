@@ -34,6 +34,12 @@ USBSelector::USBSelector(QWidget *parent) :
 
 USBSelector::~USBSelector()
 {
+    if(tmr) {
+        tmr->stop();
+        delete tmr;
+        tmr=0;
+    }
+
     delete ui;
 }
 
@@ -161,21 +167,23 @@ void USBSelector::RefreshList()
                         {
                             // ATTEMPT TO SEND SOMETHING TO SEE IF IT'S ACTIVELY RESPONDING
                             uint32_t getversion[]={
+                                0,          // 0 = DON'T USE REPORT ID'S - THIS IS REQUIRED ONLY FOR HIDAPI
                                 0xab,       // BLOCK SIZE AND MARKER
                                 0,         // CRC32
-                                MKPROLOG(SECO,4),  // ACTUAL DATA
+                                MKPROLOG(SECO,5),  // ACTUAL DATA
                                 CMD_VERSION,
                                 CMD_DROP,
                                 CMD_USBSEND,
+                                CMD_DROP,
                                 CMD_QSEMI
                             };
 
-                            getversion[0]|=(1+OBJSIZE(getversion[2]))<<10;
-                            getversion[1]=usb_crc32((BYTEPTR) &(getversion[2]),(1+OBJSIZE(getversion[2]))*4);
+                            getversion[1]|=(1+OBJSIZE(getversion[3]))<<10;
+                            getversion[2]=usb_crc32((BYTEPTR) &(getversion[3]),(1+OBJSIZE(getversion[3]))*4);
 
 
 
-                            int res=hid_write(thisdev,(const unsigned char *)getversion,(getversion[0]>>8)+8);
+                            int res=hid_write(thisdev,((const unsigned char *)getversion)+3,(getversion[1]>>8)+9);
                             if(res<0) {
                                 hid_close(thisdev);
                                 tmp="[Device not responding]";
@@ -183,7 +191,7 @@ void USBSelector::RefreshList()
                             }
                             else {
                                 unsigned char buffer[1024];
-                                res=hid_read_timeout(thisdev,buffer,1024,1000);
+                                res=hid_read_timeout(thisdev,buffer,1024,500);
                                 hid_close(thisdev);
 
                                 if(res<=0) {
@@ -234,6 +242,7 @@ void USBSelector::on_USBSelector_accepted()
     if(tmr) {
         tmr->stop();
         delete tmr;
+        tmr=0;
     }
 }
 
@@ -242,6 +251,7 @@ void USBSelector::on_USBSelector_rejected()
     if(tmr) {
         tmr->stop();
         delete tmr;
+        tmr=0;
     }
 }
 
