@@ -1061,22 +1061,21 @@ void usb_ep1_transmit(int newtransmission)
         }
     }
 
-    if((__usb_count[1]==0)&&(__usb_padding[1]==0))  {
+
         *IN_CSR1_REG|=EPn_IN_PKT_RDY;  // SEND THE LAST PACKET
 
-       __usb_drvstatus&=~USB_STATUS_HIDTX;
+       if((cnt==0)||(cnt!=EP1_FIFO_SIZE)) {
+           __usb_drvstatus&=~USB_STATUS_HIDTX;
+       } else __usb_drvstatus|=USB_STATUS_HIDTX;      // AND KEEP TRANSMITTING
 
+       if((__usb_count[1]==0)&&(__usb_padding[1]==0))  {
        // RELEASE ANY ALLOCATED MEMORY
-
        if(__usb_sndbuffer!=__usb_tmpbuffer) simpfree(__usb_sndbuffer);
+       }
 
 
     }
-    else {
-        *IN_CSR1_REG|=EPn_IN_PKT_RDY;  // SEND THE PACKET
-        __usb_drvstatus|=USB_STATUS_HIDTX;      // AND KEEP TRANSMITTING
-    }
-    }
+
 
 
 }
