@@ -517,7 +517,7 @@ static WORDPTR ResetAlarms()
     alarms = InitAlarms();
 
     rplError(ERR_ALRMCORRUPT);
-    halSetNotification(N_CONNECTION, 0x0);
+    halSetNotification(N_ALARM, 0x0);
 
     return alarms;
 }
@@ -933,7 +933,7 @@ static void ScanPastDue()
     struct alarm alrm;
 
     if (!GetFirstAlarm(PASTDUE_ALM, &alrm))
-        halSetNotification(N_CONNECTION, 0x0);
+        halSetNotification(N_ALARM, 0x0);
 
     return;
 }

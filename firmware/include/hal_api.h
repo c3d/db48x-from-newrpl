@@ -131,7 +131,7 @@ enum halNotification {
     N_ALPHA,
     N_LOWBATTERY,
     N_HOURGLASS,
-    N_DISKACCESS,
+    N_DATARECVD,
     N_ALARM
 };
 

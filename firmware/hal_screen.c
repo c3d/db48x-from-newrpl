@@ -16,10 +16,11 @@
 
 void halSetNotification(enum halNotification type,int color)
 {
+    int old=halFlags&(1<<(16+type));
     if(color) halFlags|=1<<(16+type);
     else halFlags&=~(1<<(16+type));
 
-    if(type<N_DISKACCESS) {
+    if(type<N_DATARECVD) {
         unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
         scrptr+=65;
         scrptr+=type*80;
@@ -28,6 +29,7 @@ void halSetNotification(enum halNotification type,int color)
     }
     else {
         // TODO: DRAW CUSTOM ICONS INTO THE STATUS AREA FOR ALL OTHER ANNUNCIATORS
+        if(halFlags^old) halScreen.DirtyFlag|=STAREA_DIRTY;  // REDRAW STATUS AS SOON AS POSSIBLE
     }
 }
 
@@ -500,7 +502,7 @@ halSetNotification(N_RIGHTSHIFT,0);
 halSetNotification(N_ALPHA,0);
 halSetNotification(N_LOWBATTERY,0);
 halSetNotification(N_HOURGLASS,0);
-halSetNotification(N_DISKACCESS,0);
+halSetNotification(N_DATARECVD,0);
 
 // NOT NECESSARILY PART OF HALSCREEN, BUT INITIALIZE THE COMMAND LINE
 uiCloseCmdLine();
@@ -1002,12 +1004,6 @@ void halRedrawStatus(DRAWSURFACE *scr)
 
     if(halFlags&HAL_HALTED) DrawTextBk(STATUSAREA_X+20,ytop+1,(char *)"H",*halScreen.FontArray[FONT_STATUS],0xf,0x0,scr);
 
-    // DEBUG USB STATUS
-
-    if(usb_isconnected()) rplSetUserFlag(1); else rplClrUserFlag(1);
-    if(usb_isconfigured()) rplSetUserFlag(2); else rplClrUserFlag(2);
-
-
     // FIRST 6 USER FLAGS
 
     {
@@ -1031,6 +1027,26 @@ void halRedrawStatus(DRAWSURFACE *scr)
     }
 
 
+    // NOTIFICATION ICONS! ONLY ONE WILL BE DISPLAYED AT A TIME
+
+    if(halGetNotification(N_ALARM))
+        {
+            char txt[4];
+            txt[0]='A';
+            txt[1]='L';
+            txt[2]='M';
+            txt[3]=0;
+            DrawTextBk(STATUSAREA_X+38,ytop+1,txt,*halScreen.FontArray[FONT_STATUS],0xf,0,scr);
+        }
+    else if(halGetNotification(N_DATARECVD))
+    {
+            char txt[4];
+            txt[0]='R';
+            txt[1]='X';
+            txt[2]=' ';
+            txt[3]=0;
+            DrawTextBk(STATUSAREA_X+38,ytop+1,txt,*halScreen.FontArray[FONT_STATUS],0xf,0,scr);
+    }
 
 
     // SD CARD INSERTED INDICATOR
@@ -1062,6 +1078,10 @@ void halRedrawStatus(DRAWSURFACE *scr)
 
 
     }
+
+
+
+
 
     // ADD OTHER INDICATORS HERE
 

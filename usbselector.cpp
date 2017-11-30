@@ -10,6 +10,8 @@ extern "C" {
 #include "newrpl.h"
 #include "libraries.h"
 
+extern hid_device *__usb_curdevice;
+
 BINT64 rplObjChecksum(WORDPTR object);
 }
 
@@ -19,6 +21,7 @@ USBSelector::USBSelector(QWidget *parent) :
     ui(new Ui::USBSelector)
 {
     ui->setupUi(this);
+
 
     SelectedDevicePath.clear();
 
@@ -142,6 +145,7 @@ void USBSelector::RefreshList()
 
             if(cur_dev->product_string) tmp=QString::fromStdWString(cur_dev->product_string);
             else tmp="[Unknown]";
+            if(cur_dev->serial_number) tmp+=QString("|SN=")+QString::fromStdWString(cur_dev->serial_number);
 
                 newitem->setText(0,tmp);
 
@@ -150,14 +154,10 @@ void USBSelector::RefreshList()
 
                     newitem->setText(1,tmp);
 
-                    if(cur_dev->serial_number) tmp=QString::fromStdWString(cur_dev->serial_number);
-                    else tmp="[Unknown]";
-
-                        newitem->setText(2,tmp);
-
                         newitem->setData(0,Qt::UserRole+1,QVariant(cur_dev->vendor_id));
                         newitem->setData(0,Qt::UserRole+2,QVariant(cur_dev->product_id));
                         newitem->setData(0,Qt::UserRole+3,QVariant(QString(cur_dev->path)));
+                        newitem->setData(0,Qt::UserRole+4,QVariant(QString::fromStdWString(cur_dev->serial_number)));
 
                         hid_device *thisdev;
 
@@ -227,7 +227,18 @@ void USBSelector::RefreshList()
 
         QTreeWidgetItemIterator it(ui->USBtreeWidget);
         while(*it) {
-            if((*it)->isDisabled()) delete (*it);
+            if((*it)->isDisabled()) {
+                if(SelectedDevicePath==(*it)->data(0,Qt::UserRole+3).toString()) {
+
+                    ui->buttonBox->setStandardButtons( QDialogButtonBox::Cancel);
+                    SelectedDevicePath.clear();
+                    ui->selectedCalc->setText(QString("No device selected."));
+                    ui->USBtreeWidget->clearSelection();
+                }
+
+
+                delete (*it);
+            }
             ++it;
         }
 
@@ -244,6 +255,8 @@ void USBSelector::on_USBSelector_accepted()
         delete tmr;
         tmr=0;
     }
+
+
 }
 
 void USBSelector::on_USBSelector_rejected()

@@ -217,9 +217,9 @@ void main_virtual(unsigned int mode)
         // SCAN AND UPDATE ALARMS AFTER A WARMSTART
         rplUpdateAlarms();
         if (rplCheckAlarms())
-            halSetNotification(N_CONNECTION, 0xf);
+            halSetNotification(N_ALARM, 0xf);
         else
-            halSetNotification(N_CONNECTION, 0x0);
+            halSetNotification(N_ALARM, 0x0);
 
         halShowMsg("Memory Recovered");
     }

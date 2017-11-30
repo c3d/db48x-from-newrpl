@@ -202,7 +202,7 @@ const BYTE const device_descriptor[] = {
     0x00, 0x01,				// bcdDevice
     1,					// iManufacturer
     2,					// iProduct
-    0,					// iSerialNumber
+    3,					// iSerialNumber
     1					// bNumConfigurations
 };
 
@@ -754,6 +754,31 @@ void ep0_irqservice()
                 }
             }
 
+            // SPECIAL CASE - CALCULATOR SERIAL NUMBER STRING
+            if((0x0303==value)&&(0x0409==index)) {
+                // FOUND THE REQUESTED DESCRIPTOR
+                __usb_bufptr[0]=__usb_tmpbuffer;
+                __usb_tmpbuffer[0]=20+2;
+                __usb_tmpbuffer[1]=3;
+
+                // COPY THE SERIAL NUMBER - EXPAND ASCII TO UTF-16
+                int n;
+                BYTEPTR ptr=(BYTEPTR)SERIAL_NUMBER_ADDRESS;
+                for(n=0;n<10;++n,++ptr) {
+                    __usb_tmpbuffer[2+2*n]=*ptr;
+                    __usb_tmpbuffer[3+2*n]=0;
+                }
+
+
+                if(length<__usb_tmpbuffer[0]) { __usb_count[0]=length; __usb_padding[0]=0; }
+                else { __usb_count[0]=__usb_tmpbuffer[0]; __usb_padding[0]=length-__usb_tmpbuffer[0]; }
+                *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
+                usb_ep0_transmit(1);    // SEND 0-DATA STATUS STAGE
+                usb_checkpipe();
+                return;
+            }
+
+
 
             // DON'T KNOW THE ANSWER TO THIS
             __usb_count[0]=0;
@@ -883,9 +908,13 @@ void ep0_irqservice()
 
                     int endp=index&3;
                     *INDEX_REG=endp;
-                    if(endp!=0) {   // DO NOT STALL THE CONTROL ENDPOINT
-                        *OUT_CSR1_REG&=~EPn_OUT_SEND_STALL;
-                        *IN_CSR1_REG&=~EPn_IN_SEND_STALL;
+                    if(endp==1) {   // DO NOT STALL THE CONTROL ENDPOINT
+                        *IN_CSR1_REG|=EPn_IN_FIFO_FLUSH|EPn_IN_CLR_DATA_TOGGLE;
+                        *IN_CSR1_REG&=~(EPn_IN_SEND_STALL|EPn_IN_CLR_DATA_TOGGLE);
+                    }
+                    if(endp==2) {
+                        *OUT_CSR1_REG|=EPn_OUT_FIFO_FLUSH|EPn_OUT_CLR_DATA_TOGGLE;
+                        *OUT_CSR1_REG&=~(EPn_OUT_SEND_STALL|EPn_OUT_CLR_DATA_TOGGLE);
                     }
                 }
              break;
@@ -1029,14 +1058,6 @@ void usb_ep1_transmit(int newtransmission)
     if(newtransmission || (__usb_drvstatus&USB_STATUS_HIDTX)) {
 
     *INDEX_REG=RAWHID_TX_ENDPOINT;
-
-        if( (*IN_CSR1_REG)&EPn_IN_SENT_STALL) {
-            // REMOVE THE STALL CONDITION
-            *IN_CSR1_REG&=~EPn_IN_SENT_STALL|EPn_IN_SEND_STALL;
-        }
-
-
-
 
     if( (*IN_CSR1_REG)&EPn_IN_PKT_RDY) {
         // PREVIOUS PACKET IS STILL BEING SENT, DON'T PUSH IT
@@ -1374,7 +1395,7 @@ BYTEPTR usb_accessdata(int *blksize)
 int usb_checkcrc()
 {
     if(!(__usb_drvstatus&USB_STATUS_DATAREADY)) return 0;
-    WORD rcvdcrc=usb_crc32(__usb_rcvbuffer,__usb_rcvpartial);
+    WORD rcvdcrc=usb_crc32(__usb_rcvbuffer,(__usb_rcvpartial>__usb_rcvtotal)? __usb_rcvtotal:__usb_rcvpartial);
 
     if(rcvdcrc!=__usb_rcvcrc) return 0;
     return 1;

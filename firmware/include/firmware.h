@@ -5,6 +5,8 @@
 
 #define PREAMBLE_STRING "KINPOUPDATEIMAGE"
 
+// Address of the serial number in this hardware
+#define SERIAL_NUMBER_ADDRESS 0x3ff0
 
 #define DEFAULT_AUTOOFFTIME 3
 

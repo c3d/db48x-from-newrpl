@@ -30,6 +30,10 @@ extern unsigned long long __pckeymatrix;
 extern int __pc_terminate;
 extern int __memmap_intact;
 extern volatile int __cpu_idle;
+extern hid_device *__usb_curdevice;
+
+
+extern "C" void usb_irqservice();
 
 extern "C" void __keyb_update();
 // BACKUP/RESTORE
@@ -53,8 +57,12 @@ MainWindow::MainWindow(QWidget *parent) :
     myMainWindow=this;
 
     ui->setupUi(this);
+
+    __usb_curdevice=0;
+
     screentmr=new QTimer(this);
     ui->EmuScreen->connect(screentmr,SIGNAL(timeout()),ui->EmuScreen,SLOT(update()));
+    connect(screentmr,SIGNAL(timeout()),this,SLOT(usbupdate()));
     maintmr=new QTimer(this);
     connect(maintmr,SIGNAL(timeout()),this,SLOT(domaintimer()));
     __memmap_intact=0;
@@ -110,6 +118,7 @@ if(__tmr_singleshot_running) {
     if(!__tmr1_msec) {
         __tmr_singleshot_running=0;
         __tmr_newirqeventsvc();
+
     }
 }
 }
@@ -789,7 +798,26 @@ void MainWindow::on_actionConnect_to_calc_triggered()
 {
     USBSelector seldlg;
 
-    seldlg.exec();
+    if(__usb_curdevice) {
+        hid_close(__usb_curdevice);
+        __usb_curdevice=0;
+    }
 
+    if(seldlg.exec()==QDialog::Accepted) {
+        if(!seldlg.getSelectedDevicePath().isEmpty()) {
+            __usb_curdevice=hid_open_path(seldlg.getSelectedDevicePath().toUtf8().constData());
+
+            return;
+        }
+
+    }
     return;
+}
+
+void MainWindow::usbupdate()
+{
+if(!__usb_curdevice) return;
+
+usb_irqservice();
+
 }

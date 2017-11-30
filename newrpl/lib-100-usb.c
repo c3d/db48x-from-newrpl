@@ -238,7 +238,6 @@ void LIB_HANDLER()
         }
 
         // READ THE DATA AND PUT IT ON THE STACK
-        extern WORD __usb_rcvcrc;
         BINT datasize;
         BYTEPTR data=usb_accessdata(&datasize);
 

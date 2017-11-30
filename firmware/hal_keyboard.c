@@ -6598,6 +6598,14 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
 
             halDoDeferredProcess();
 
+
+            if(usb_isconfigured()) {
+                halSetNotification(N_CONNECTION,0xf);
+                if(usb_hasdata()) halSetNotification(N_DATARECVD,0xf);
+                        else halSetNotification(N_DATARECVD,0);
+            }
+            else halSetNotification(N_CONNECTION,0);
+
             if(!(flags&OL_NOCOMMS)) {
                 if(usb_hasdata()) {
                 uiCmdRun(CMD_USBAUTORCV);

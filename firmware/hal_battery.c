@@ -231,9 +231,9 @@ keyb_flushnowait();
 keyb_setshiftplane(0,0,0,0);
 
 if (rplCheckAlarms())
-    halSetNotification(N_CONNECTION, 0xf);
+    halSetNotification(N_ALARM, 0xf);
 else
-    halSetNotification(N_CONNECTION, 0x0);
+    halSetNotification(N_ALARM, 0x0);
 
 // TODO: ADD OTHER WAKEUP PROCEDURES
 

@@ -73,6 +73,7 @@ private slots:
     void on_actionConnect_to_calc_triggered();
 
 public slots:
+    void usbupdate();
     void domaintimer();
 private:
     Ui::MainWindow *ui;

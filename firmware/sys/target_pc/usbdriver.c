@@ -8,6 +8,7 @@
 #include <newrpl.h>
 #include <ui.h>
 
+#include "hidapi.h"
 
 // ADD-ON MEMORY ALLOCATOR - SHARED WITH FILE SYSTEM AND NEWRPL ENGINE
 extern void init_simpalloc();
@@ -17,6 +18,8 @@ extern void simpfree(void *voidptr);
 
 #define RAWHID_TX_SIZE  64
 #define RAWHID_RX_SIZE  64
+// AN ARBITRARY MARKER
+#define USB_BLOCKSTART_MARKER 0xab
 
 
 // INITIALIZE USB SUBSYSTEM, POWER, PINS
@@ -32,7 +35,8 @@ extern void simpfree(void *voidptr);
 #define USB_STATUS_WAKEUPENABLED        1024
 #define USB_STATUS_TESTMODE             2048
 
-
+// FOR PCS USE HIDAPI LIBRARY TO EXPOSE THE CONNECTED DEVICE AS A HOST
+hid_device *__usb_curdevice;
 // GLOBAL VARIABLES OF THE USB SUBSYSTEM
 BINT __usb_drvstatus __SYSTEM_GLOBAL__; // FLAGS TO INDICATE IF INITIALIZED, CONNECTED, SENDING/RECEIVING, ETC.
 BYTE *__usb_bufptr[3] __SYSTEM_GLOBAL__;   // POINTERS TO BUFFERS FOR EACH ENDPOINT (0/1/2)
@@ -169,7 +173,8 @@ void usb_init(int force)
 
     __usb_drvstatus=USB_STATUS_INIT;
 
-    usb_hwsetup();
+    if(__usb_curdevice) __usb_drvstatus|=USB_STATUS_CONNECTED|USB_STATUS_CONFIGURED;
+
 }
 
 void usb_shutdown()
@@ -181,6 +186,10 @@ void usb_shutdown()
         usb_releasedata();
     }
 
+    if(__usb_curdevice) {
+        hid_close(__usb_curdevice);
+        __usb_curdevice=0;
+    }
     __usb_drvstatus=0;  // MARK UNCONFIGURED
 
 }
@@ -210,39 +219,138 @@ void usb_ep1_transmit(int newtransmission)
 
 }
 
-// TRANSMIT BYTES TO THE HOST IN EP2 ENDPOINT
-// STARTS A NEW TRANSMISSION IF newtransmission IS TRUE, EVEN IF
-// THERE ARE ZERO BYTES IN THE BUFFER
-// FOR USE WITHIN ISR
-
-void usb_ep2_receive(int newtransmission)
-{
-
-    if(!(__usb_drvstatus&USB_STATUS_CONNECTED)) return;
-
-    if(newtransmission || (__usb_drvstatus&USB_STATUS_HIDRX)) {
-
-
-    }
-
-}
-
-
-// SENDING INTERRUPT ENDPOINT
-void ep1_irqservice()
-{
-}
-
-
-// RECEIVING DATA ENDPOINT
-void ep2_irqservice()
-{
-}
-
 
 // GENERAL INTERRUPT SERVICE ROUTINE - DISPATCH TO INDIVIDUAL ENDPOINT ROUTINES
 void usb_irqservice()
 {
+
+    if(!__usb_curdevice) usb_shutdown();
+
+    if(!(__usb_drvstatus&USB_STATUS_INIT)) usb_init(0);
+
+    if(!(__usb_drvstatus&USB_STATUS_CONFIGURED)) return;
+
+    if(__usb_drvstatus&USB_STATUS_DATAREADY) {
+        // PREVIOUS DATA WASN RETRIEVED!
+        // STALL UNTIL USER RETRIEVES
+        return;
+    }
+
+    int fifocnt=hid_read_timeout(__usb_curdevice,__usb_tmpbuffer,RAWHID_RX_SIZE,1);
+
+    if(fifocnt<0) {
+        // SOME KIND OF ERROR - DISCONNECT
+        hid_close(__usb_curdevice);
+        __usb_curdevice=0;
+        usb_shutdown();
+        return;
+    }
+
+    int cnt=0;
+    if(!(__usb_drvstatus&USB_STATUS_HIDRX)) {
+        // IF THERE'S ANY DATA - START TO RECEIVE A NEW DATA BLOCK
+
+
+            __usb_rcvtotal=0;
+            __usb_rcvpartial=0;
+            __usb_rcvcrc=0;
+
+
+
+            // WE ARE READY TO RECEIVE A NEW DATA BLOCK
+
+            if(fifocnt>8) {
+            // READ THE HEADER
+            WORD startmarker=__usb_tmpbuffer[0];
+
+            if(startmarker==USB_BLOCKSTART_MARKER) {
+            __usb_rcvtotal=__usb_tmpbuffer[1];
+            __usb_rcvtotal|=__usb_tmpbuffer[2]<<8;
+            __usb_rcvtotal|=__usb_tmpbuffer[3]<<16;
+
+            __usb_rcvpartial=-8;
+            __usb_rcvcrc=__usb_tmpbuffer[4];
+            __usb_rcvcrc|=__usb_tmpbuffer[5]<<8;
+            __usb_rcvcrc|=__usb_tmpbuffer[6]<<16;
+            __usb_rcvcrc|=__usb_tmpbuffer[7]<<24;
+
+            cnt+=8;
+
+            BYTEPTR buf;
+
+            // ONLY ALLOCATE MEMORY FOR DATA BLOCKS LARGER THAN 1 PACKET
+            if(__usb_rcvtotal>RAWHID_RX_SIZE-8) buf=simpmallocb(__usb_rcvtotal);
+            else buf=__usb_tmpbuffer;
+
+            if(!buf) {
+                __usb_rcvbuffer=__usb_tmpbuffer;
+            } else {
+                __usb_rcvbuffer=buf;
+                __usb_bufptr[2]=__usb_rcvbuffer;
+            }
+
+            memmoveb(__usb_tmpbuffer,__usb_tmpbuffer+8,fifocnt-8);
+
+            }
+
+            else {
+                // BAD START MARKER, TREAT THE BLOCK AS ARBITRARY DATA
+                cnt+=fifocnt;
+                __usb_rcvtotal=fifocnt;
+                __usb_rcvbuffer=__usb_tmpbuffer;
+                __usb_rcvcrc=0;
+                __usb_rcvpartial=0;
+                __usb_bufptr[2]=__usb_rcvbuffer+fifocnt;
+
+            }
+
+
+
+
+            }
+            else {
+                // NO PACKET STARTER - TREAT AS ARBITRARY DATA
+                __usb_rcvtotal=fifocnt;
+                __usb_rcvbuffer=__usb_tmpbuffer;
+                __usb_rcvcrc=0;
+                __usb_rcvpartial=0;
+                __usb_bufptr[2]=__usb_rcvbuffer;
+            }
+
+       }
+        else  if(__usb_rcvbuffer==__usb_tmpbuffer)  __usb_bufptr[2]=__usb_tmpbuffer;    // IF WE HAD NO MEMORY, RESET THE BUFFER FOR EVERY PARTIAL PACKET
+
+        if(__usb_bufptr[2]!=__usb_tmpbuffer) {
+        BYTEPTR tmpptr=__usb_tmpbuffer;
+        while(cnt<fifocnt) {
+            *__usb_bufptr[2]=*tmpptr;
+            ++__usb_bufptr[2];
+            ++tmpptr;
+            ++cnt;
+        }
+        } else {
+            __usb_bufptr[2]+=fifocnt-cnt;
+            cnt=fifocnt;
+        }
+
+        __usb_rcvpartial+=fifocnt;
+
+        if((fifocnt!=RAWHID_RX_SIZE)||(__usb_rcvpartial>=__usb_rcvtotal)) {
+            // PARTIAL PACKET SIGNALS END OF TRANSMISSION
+
+            // IF WE HAD NO MEMORY TO ALLOCATE A BLOCK, INDICATE THAT WE RECEIVED ONLY THE LAST PARTIAL PACKET
+            if(__usb_rcvbuffer==__usb_tmpbuffer) {
+                __usb_rcvpartial=__usb_bufptr[2]-__usb_rcvbuffer;
+            }
+            __usb_drvstatus&=~USB_STATUS_HIDRX;
+            if(__usb_rcvtotal!=0)
+                __usb_drvstatus|=USB_STATUS_DATAREADY;
+            return;
+        }
+
+        __usb_drvstatus|=USB_STATUS_HIDRX;
+
+
 
 
 
@@ -289,7 +397,7 @@ void usb_releasedata()
 int usb_checkcrc()
 {
     if(!(__usb_drvstatus&USB_STATUS_DATAREADY)) return 0;
-    WORD rcvdcrc=usb_crc32(__usb_rcvbuffer,__usb_rcvpartial);
+    WORD rcvdcrc=usb_crc32(__usb_rcvbuffer,(__usb_rcvpartial>__usb_rcvtotal)? __usb_rcvtotal:__usb_rcvpartial);
 
     if(rcvdcrc!=__usb_rcvcrc) return 0;
     return 1;
@@ -299,8 +407,24 @@ int usb_checkcrc()
 // HIGH LEVEL FUNCTION TO SEND ANYTHING TO THE OTHER SIDE
 int usb_transmitdata(BYTEPTR data,BINT size)
 {
+    if(!usb_isconfigured()) return 0;
 
-    // TODO: SEND USING HIDAPI
-    return 0;
+    if(!__usb_curdevice) {
+        __usb_drvstatus=USB_STATUS_INIT;
+        return 0;
+    }
+    int err;
+
+    err=hid_write(__usb_curdevice,data,size);
+
+    if(err<=0) {
+        // CANNOT WRITE TO USB? - DISCONNECT
+        hid_close(__usb_curdevice);
+        __usb_curdevice=0;
+        usb_shutdown();
+        return 0;
+    }
+
+    return 1;
 
 }
