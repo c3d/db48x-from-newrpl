@@ -6608,9 +6608,11 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
 
             if(!(flags&OL_NOCOMMS)) {
                 if(usb_hasdata()) {
+                if(!rplTestSystemFlag(FL_NOAUTORECV)) {
                 uiCmdRun(CMD_USBAUTORCV);
                 halScreen.DirtyFlag|=CMDLINE_ALLDIRTY|STACK_DIRTY|STAREA_DIRTY|MENU1_DIRTY|MENU2_DIRTY|FORM_DIRTY;
                 continue;
+                }
                 }
             }
 

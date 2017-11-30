@@ -177,6 +177,7 @@ void LIB_HANDLER()
         BYTEPTR data=usb_accessdata(&datasize);
 
         if(!usb_checkcrc()) {
+            usb_releasedata();
             rplError(ERR_USBINVALIDDATA);
             return;
         }
