@@ -1230,11 +1230,14 @@ void ep1_irqservice()
         return;
     }
 
-    // NOTHING TO TRANSMIT, STALL
+    // NOTHING TO TRANSMIT
 
-    if(*IN_CSR1_REG&EPn_IN_SENT_STALL) return;  // ALREADY DONE
+    // JUST REPLY WITH A ZERO DATA PACKET
+    *IN_CSR1_REG|=EPn_IN_PKT_RDY;
 
-    *IN_CSR1_REG|=EPn_IN_SEND_STALL;
+    //if(*IN_CSR1_REG&EPn_IN_SENT_STALL) return;  // ALREADY DONE
+
+    //*IN_CSR1_REG|=EPn_IN_SEND_STALL;
 
     return;
 }
