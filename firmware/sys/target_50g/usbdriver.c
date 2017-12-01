@@ -55,7 +55,7 @@ extern void simpfree(void *voidptr);
 #define CLKCON              HWREG(CLK_REGS,0xc)
 #define CLKSLOW             HWREG(CLK_REGS,0x10)
 
-
+#define CABLE_IS_CONNECTED  (*HWREG(IO_REGS,0x54)&2)
 
 // VARIOUS STATES AND PIN CONSTANTS
 #define USBSUSPND1  (1<<13)
@@ -556,6 +556,8 @@ void usb_init(int force)
     __irq_unmask(25);
     __irq_unmask(1);
 
+
+    if(CABLE_IS_CONNECTED) __usb_drvstatus|=USB_STATUS_CONNECTED;
     // TODO: SETUP COMMUNICATIONS BUFFERS
 
 }

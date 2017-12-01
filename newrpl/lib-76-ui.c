@@ -245,12 +245,12 @@ void LIB_HANDLER()
         RetNum=0;
 
         if(mstimeout>0) {
-            halOuterLoop(mstimeout,&waitProcess,0,OL_NOEXIT|OL_NOAUTOOFF|OL_NOCUSTOMKEYS|OL_NODEFAULTKEYS);
+            halOuterLoop(mstimeout,&waitProcess,0,OL_NOCOMMS|OL_NOEXIT|OL_NOAUTOOFF|OL_NOCUSTOMKEYS|OL_NODEFAULTKEYS);
             rplDropData(1);
         }
         else  {
            if(mstimeout<0) mstimeout=-mstimeout;
-               halOuterLoop(mstimeout,&waitKeyProcess,0,OL_NOEXIT|OL_NOAUTOOFF|OL_NODEFAULTKEYS|OL_NOCUSTOMKEYS|OL_LONGPRESS);
+               halOuterLoop(mstimeout,&waitKeyProcess,0,OL_NOCOMMS|OL_NOEXIT|OL_NOAUTOOFF|OL_NODEFAULTKEYS|OL_NOCUSTOMKEYS|OL_LONGPRESS);
 
         keymsg=RetNum;
 
