@@ -976,9 +976,10 @@ void ep0_irqservice()
             case HID_GET_REPORT:
                 // SEND DATA TO HOST - SEND ALL ZEROS
                 *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY;
-                __usb_count[0]=0;
-                __usb_padding[0]=RAWHID_TX_SIZE;
-                __usb_bufptr[0]=__usb_tmpbuffer;    // FOR NOW SEND WHATEVER WAS STORED THERE
+                __usb_count[0]=1;
+                __usb_padding[0]=RAWHID_TX_SIZE-1;
+                __usb_tmpbuffer[0]=(__usb_drvstatus&USB_STATUS_DATAREADY)? 1:0;
+                __usb_bufptr[0]=__usb_tmpbuffer;    // SEND THE STATUS
                 usb_ep0_transmit(1);
                 usb_checkpipe();
 

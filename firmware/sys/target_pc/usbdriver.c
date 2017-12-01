@@ -403,6 +403,22 @@ int usb_checkcrc()
     return 1;
 }
 
+// RETURN TRUE IF THE REMOTE SIDE IS READY TO RECEIVE A NEW TRANSMISSION
+int usb_remoteready()
+{
+    if(!usb_isconfigured()) return 0;
+    BYTE tmpbuf[RAWHID_TX_SIZE+1];
+
+    memsetb(tmpbuf,0,RAWHID_TX_SIZE+1);
+
+
+    int err=hid_get_feature_report(__usb_curdevice,tmpbuf,RAWHID_TX_SIZE+1);
+
+    if(err<=0) return 0; // NOT READY - ERROR
+
+    return !(int)tmpbuf[1];
+
+}
 
 // HIGH LEVEL FUNCTION TO SEND ANYTHING TO THE OTHER SIDE
 int usb_transmitdata(BYTEPTR data,BINT size)
@@ -416,6 +432,9 @@ int usb_transmitdata(BYTEPTR data,BINT size)
     int err;
 
     if(size<=0) return 0;   // BAD SIZE
+
+    if(!usb_remoteready()) return 0;    // CHECK IF REMOTE IS AVAILABLE BEFORE FLOODING IT WITH DATA
+
 
     BYTEPTR buf;
 
