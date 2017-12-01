@@ -191,7 +191,7 @@ void USBSelector::RefreshList()
                             }
                             else {
                                 unsigned char buffer[1024];
-                                res=hid_read_timeout(thisdev,buffer,1024,500);
+                                res=hid_read_timeout(thisdev,buffer,1024,100);
                                 hid_close(thisdev);
 
                                 if(res<=0) {

@@ -415,7 +415,39 @@ int usb_transmitdata(BYTEPTR data,BINT size)
     }
     int err;
 
-    err=hid_write(__usb_curdevice,data,size);
+    if(size<=0) return 0;   // BAD SIZE
+
+    BYTEPTR buf;
+
+    // ONLY ALLOCATE MEMORY FOR DATA BLOCKS LARGER THAN 1 PACKET
+    if(size>RAWHID_TX_SIZE-8) buf=simpmallocb(size+8);
+    else buf=__usb_tmpbuffer;
+
+    if(!buf) return 0;      // FAILED TO SEND - NOT ENOUGH MEMORY
+
+    __usb_bufptr[1]=buf;
+
+    __usb_count[1]=size+8;
+
+    buf[0]=USB_BLOCKSTART_MARKER;        // START OF BLOCK MARKER
+    buf[1]=size&0xff;
+    buf[2]=(size>>8)&0xff;
+    buf[3]=(size>>16)&0xff;
+
+    WORD crc=usb_crc32(data,size);
+
+    buf[4]=crc&0xff;
+    buf[5]=(crc>>8)&0xff;
+    buf[6]=(crc>>16)&0xff;
+    buf[7]=(crc>>24)&0xff;
+
+    memmoveb(buf+8,data,size);
+
+
+
+    err=hid_write(__usb_curdevice,__usb_bufptr[1],__usb_count[1]);
+
+    if(buf!=__usb_tmpbuffer) simpfree(buf);
 
     if(err<=0) {
         // CANNOT WRITE TO USB? - DISCONNECT
