@@ -96,6 +96,13 @@ void battery_handler()
         return;
     }
 
+    if(__battery==0x400) {
+        // WE ARE ON USB POWER
+        halSetNotification(N_LOWBATTERY,0x8);
+        halFlags&=~HAL_SLOWLOCK;
+        return;
+    }
+
 
     if(__battery>=0x320) {
             // REMOVE BATTERY INDICATOR AND ALLOW FAST MODE

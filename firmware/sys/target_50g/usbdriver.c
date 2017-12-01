@@ -475,11 +475,17 @@ void usb_hwsetup()
     *OUT_CSR1_REG=0x80; // SET CLR_DATA_TOGGLE
     *OUT_CSR2_REG=0;
 
+
     // SET WHICH INTERRUPTS WE WANT
     *USB_INT_EN_REG=0x7;    // ENABLE RESET, RESUME AND SUSPEND INTERRUPTS
     *EP_INT_EN_REG=0x7;     // ENABLE ONLY EP0, EP1 AND EP2 INTERRUPTS
     *USB_INT_REG=0x7;      // CLEAR ALL PENDING INTERRUPTS
     *EP_INT_REG=0x1f;       // CLEAR ALL PENDING INTERRUPTS
+
+    // SETUP CABLE DISCONNECT DETECTION
+    *HWREG(IO_REGS,0x50)=*HWREG(IO_REGS,0x50)&(~0xc)|0x8;      // GPF1 SET TO EINT1
+    *HWREG(IO_REGS,0x88)=*HWREG(IO_REGS,0x88)&(~0x70)|0x20;    // CHANGE TO FALLING EDGE TRIGGERED
+
 
 }
 
@@ -504,6 +510,24 @@ void usb_hwresume()
 
 void usb_irqservice();
 
+
+void usb_irqdisconnect()
+{
+    // CALLED WHEN THE CABLE IS DISCONNECTED
+    usb_shutdown();
+
+}
+
+void usb_irqconnect()
+{
+    // CALLED WHEN THE CABLE IS DISCONNECTED
+    usb_init(0);
+
+}
+
+
+
+
 void usb_init(int force)
 {
 
@@ -515,12 +539,22 @@ void usb_init(int force)
 
     usb_hwsetup();
 
+
     // SET INTERRUPT HANDLER
     __irq_mask(25);
+    __irq_mask(1);
 
     __irq_addhook(25,&usb_irqservice);
+    __irq_addhook(1,&usb_irqdisconnect);
+
+
+    // ELIMINATE PREVIOUS DISCONNECT INTERRUPTS CAUSED BY NOISE
+    *HWREG(INT_REGS,0)=2;       // REMOVE ANY PENDING INTERRUPTS FROM THIS SOURCE
+    *HWREG(INT_REGS,0X10)=2;       // REMOVE ANY PENDING INTERRUPTS FROM THIS SOURCE
+
 
     __irq_unmask(25);
+    __irq_unmask(1);
 
     // TODO: SETUP COMMUNICATIONS BUFFERS
 
@@ -552,8 +586,24 @@ void usb_shutdown()
 
     __usb_drvstatus=0;  // MARK UNCONFIGURED
 
+    __irq_mask(1);
+
+
+    // SETUP CABLE CONNECT INTERRUPT
+    *HWREG(IO_REGS,0x50)=*HWREG(IO_REGS,0x50)&(~0xc)|0x8;      // GPF1 SET TO EINT1
+    *HWREG(IO_REGS,0x88)=*HWREG(IO_REGS,0x88)&(~0x70)|0x40;    // CHANGE TO RAISING EDGE TRIGGERED
+
+
+    __irq_addhook(1,&usb_irqconnect);
+
+    *HWREG(INT_REGS,0)=2;       // REMOVE ANY PENDING INTERRUPTS FROM THIS SOURCE
+    *HWREG(INT_REGS,0X10)=2;       // REMOVE ANY PENDING INTERRUPTS FROM THIS SOURCE
+
+
+    __irq_unmask(1);
 
 }
+
 
 
 // TRANSMIT BYTES TO THE HOST IN EP0 ENDPOINT
