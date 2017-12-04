@@ -164,7 +164,7 @@ void LIB_HANDLER()
         if(mstimeout<0) mstimeout=0;
 
         // JUST WAIT IN THE MAIN LOOP, SO KEYS CAN CANCEL THE WAIT AND INDICATORS CAN BE UPDATED
-        halOuterLoop(mstimeout,&waitProcess,&exitOnUBSData,OL_NOEXIT|OL_NOAUTOOFF|OL_NOCUSTOMKEYS|OL_NODEFAULTKEYS);
+        halOuterLoop(mstimeout,&waitProcess,&exitOnUBSData,OL_NOCOMMS|OL_NOEXIT|OL_NOAUTOOFF|OL_NOCUSTOMKEYS|OL_NODEFAULTKEYS);
 
         if(!usb_hasdata()) {
             rplDropData(1);

@@ -16,6 +16,12 @@ BINT64 rplObjChecksum(WORDPTR object);
 }
 
 
+#define USB_BLOCKSTART_MARKER 0xab
+#define USB_BLOCKSTATUS_INFO  0xcd
+#define USB_BLOCKSTATUS_RESPND 0xce
+
+
+
 USBSelector::USBSelector(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::USBSelector)
@@ -166,16 +172,17 @@ void USBSelector::RefreshList()
                         if(thisdev)
                         {
                             // ATTEMPT TO SEND SOMETHING TO SEE IF IT'S ACTIVELY RESPONDING
-                            uint32_t getversion[]={
+                            uint32_t getversion[16]={
                                 0,          // 0 = DON'T USE REPORT ID'S - THIS IS REQUIRED ONLY FOR HIDAPI
-                                0xab,       // BLOCK SIZE AND MARKER
+                                USB_BLOCKSTART_MARKER,       // BLOCK SIZE AND MARKER
                                 0,         // CRC32
                                 MKPROLOG(SECO,5),  // ACTUAL DATA
                                 CMD_VERSION,
                                 CMD_DROP,
                                 CMD_USBSEND,
                                 CMD_DROP,
-                                CMD_QSEMI
+                                CMD_QSEMI,
+                                0,0,0,0,0,0,0
                             };
 
                             getversion[1]|=(1+OBJSIZE(getversion[3]))<<10;
@@ -184,41 +191,60 @@ void USBSelector::RefreshList()
 
 
                             int res=hid_write(thisdev,((const unsigned char *)getversion)+3,(getversion[1]>>8)+9);
-                            if(res<0) {
-                                hid_close(thisdev);
-                                tmp="[Device not responding]";
-                                newitem->setText(2,tmp);
-                            }
-                            else {
+                            int available=0;
+                            if(res>0) {
                                 unsigned char buffer[1024];
                                 res=hid_read_timeout(thisdev,buffer,1024,100);
-                                hid_close(thisdev);
 
-                                if(res<=0) {
-                                    // DEVICE UNAVAILABLE
-                                    tmp="[Device not responding]";
-                                    newitem->setText(2,tmp);
-                                }
-                                else {
+                                if(res>0) {
                                     // WE GOT A RESPONSE, THE DEVICE IS ALIVE!
-                                    unsigned int strprolog;
-                                    strprolog=buffer[8]+(buffer[9]<<8)+(buffer[10]<<16)+(buffer[11]<<24);
 
-                                    tmp=QString::fromUtf8((const char *)(buffer+12),rplStrSize(&strprolog));
-                                    newitem->setText(2,tmp);
+
+                                    if(buffer[0]==USB_BLOCKSTATUS_INFO) {
+                                        // REMOTE IS ASKING IF WE ARE READY TO RECEIVE DATA
+                                        memset(buffer,0,RAWHID_TX_SIZE+1);
+                                        buffer[0]=0;    // REPORT ID
+                                        buffer[1]=USB_BLOCKSTATUS_RESPND;   // RE ARE RESPONDING TO THE REQUEST
+                                        buffer[2]=0;    // WE ARE NOT BUSY
+
+                                        res=hid_write(thisdev,buffer,RAWHID_TX_SIZE+1);
+
+                                        if(res>0) {
+                                            res=hid_read_timeout(thisdev,buffer,1024,100);
+
+                                            if(res>0) {
+                                                // WE GOT A RESPONSE, THE DEVICE IS ALIVE!
+                                                if(buffer[0]==USB_BLOCKSTART_MARKER) {
+                                                unsigned int strprolog;
+                                                strprolog=buffer[8]+(buffer[9]<<8)+(buffer[10]<<16)+(buffer[11]<<24);
+
+                                                tmp=QString::fromUtf8((const char *)(buffer+12),rplStrSize(&strprolog));
+                                                newitem->setText(2,tmp);
+                                                available=1;
+                                                }
+                                            }
+
+                                        }
+                                    }
+
+                                    }
+
+
                                 }
 
 
+                        hid_close(thisdev);
 
-                            }
+                        if(!available) {
 
+                            tmp="[Device not responding]";
+                            newitem->setText(2,tmp);
                         }
 
+                        }
+                        }
 
-
-
-            }
-            cur_dev = cur_dev->next;
+                            cur_dev = cur_dev->next;
         }
         hid_free_enumeration(devs);
 
