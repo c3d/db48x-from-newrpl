@@ -148,6 +148,11 @@ void LIB_HANDLER()
             return;
         }
 
+        if(!usb_isconfigured()) {
+            rplError(ERR_USBNOTCONNECTED);
+            return;
+        }
+
         if(!ISNUMBER(*rplPeekData(1))) {
             rplError(ERR_REALEXPECTED);
             return;
@@ -210,6 +215,10 @@ void LIB_HANDLER()
             return;
         }
 
+        if(!usb_isconfigured()) {
+            rplError(ERR_USBNOTCONNECTED);
+            return;
+        }
         BINT result=usb_transmitdata((BYTEPTR)rplPeekData(1),rplObjSize(rplPeekData(1))*sizeof(WORD));
 
         if(!result) rplOverwriteData(1,(WORDPTR)zero_bint);

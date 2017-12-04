@@ -15,6 +15,13 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>Available devices:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QTreeWidget" name="USBtreeWidget">
      <property name="sortingEnabled">
       <bool>true</bool>

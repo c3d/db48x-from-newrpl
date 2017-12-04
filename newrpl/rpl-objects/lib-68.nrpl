@@ -85,14 +85,15 @@
 {
 { { "Settings" 1 } { ::   #0440a000h TMENULST ; ::   #0440a000h TMENUOTHR ; } }
 { { "Time" 1 } { ::   #04100000h TMENULST ; ::   #04100000h TMENUOTHR ; } }
-{ { "SDCard" 1 } { ::   #04a00000h TMENULST ; ::   #04a00000h TMENUOTHR ; } }
+{ { "Alarm" 1 } { ::   #04102000h TMENULST ; ::   #04102000h TMENUOTHR ; } }
 { { "Menu" 1 } { ::   #04408000h TMENULST ; ::   #04408000h TMENUOTHR ; } }
 { { "Keys" 1 } { ::   #0440c000h TMENULST ; ::   #0440c000h TMENUOTHR ; } }
 { { "Fonts" 1 } { ::   #04e00000h TMENULST ; ::   #04e00000h TMENUOTHR ; } }
 { { "Clip" 1 } { ::   #04c01000h TMENULST ; ::   #04c01000h TMENUOTHR ; } }
 { { "Mem" 1 } { ::   #04101000h TMENULST ; ::   #04101000h TMENUOTHR ; } }
-{ { "Alarm" 1 } { ::   #04102000h TMENULST ; ::   #04102000h TMENUOTHR ; } }
 { { "Others" 1 } { ::   #04103000h TMENULST ; ::   #04103000h TMENUOTHR ; } }
+{ { "SDCard" 1 } { ::   #04a00000h TMENULST ; ::   #04a00000h TMENUOTHR ; } }
+{ { "USB" 1 } { ::   #06400000h TMENULST ; ::   #06400000h TMENUOTHR ; } }
 
 }
 
