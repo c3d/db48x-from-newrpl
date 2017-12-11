@@ -28,7 +28,7 @@ class MainWindow : public QMainWindow
 public:
     QFile *fileptr;
 
-    static void WriteWord(unsigned int word);
+    static int WriteWord(unsigned int word);
     static unsigned int ReadWord();
 
     explicit MainWindow(QWidget *parent = 0);

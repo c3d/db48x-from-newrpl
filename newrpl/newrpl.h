@@ -395,7 +395,7 @@ WORD rplUpdateSuggestion(WORD suggestion,BYTEPTR start,BYTEPTR end);
 void rplGCollect();
 
 // BACKUP/RESTORE
-BINT rplBackup(void (*writefunc)(unsigned int,void *),void *OpaqueArg);
+BINT rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArg);
 BINT rplRestoreBackup(WORD (*readfunc)(void *),void *Opaque);
 
 

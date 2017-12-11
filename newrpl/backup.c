@@ -85,7 +85,7 @@ WORDPTR rplConvertIDToPTR(WORD romptrid)
 
 // BACKUP TEMPOB AND DIRECTORIES (NO STACK) TO EXTERNAL DEVICE
 
-BINT rplBackup(void (*writefunc)(unsigned int,void *),void *OpaqueArgument)
+BINT rplBackup(int (*writefunc)(unsigned int,void *),void *OpaqueArgument)
 {
     BINT offset;
     BINT k;
@@ -160,37 +160,37 @@ BINT rplBackup(void (*writefunc)(unsigned int,void *),void *OpaqueArgument)
     BINT writeoff=0;
 
     // FIRST, WRITE SIGNATURE TO THE FILE
-    writefunc( TEXT2WORD('N','R','P','B'),OpaqueArgument);
+    if(!writefunc( TEXT2WORD('N','R','P','B'),OpaqueArgument)) return 0;
     writeoff++;
     // WRITE ALL 10 SECTIONS START OFFSET
     // END OFFSET IS THE START OF THE SECTION IMMEDIATELY AFTER
 
     for(k=0;k<10;++k) {
-        writefunc(sections[k].offwords,OpaqueArgument);
+        if(!writefunc(sections[k].offwords,OpaqueArgument)) return 0;
         ++writeoff;
     }
 
     // TODO: WRITE OTHER SYSTEM VARIABLES HERE
 
     // FILL THE HEADER SECTION
-    while(writeoff<1024) { writefunc(0,OpaqueArgument); ++writeoff; }
+    while(writeoff<1024) { if(!writefunc(0,OpaqueArgument)) return 0; ++writeoff; }
 
     // HERE WE ARE AT OFFSET 4096 (1024 WORDS)
 
     // DUMP TEMPBLOCKS TO THE FILE
     for(k=0;k<sections[0].nitems;++k) {
-        writefunc((BINT)(TempBlocks[k]-TempOb)+sections[1].offwords,OpaqueArgument);        // WRITE BLOCKS AS OFFSET RELATIVE TO THE FILE INSTEAD OF POINTER
+        if(!writefunc((BINT)(TempBlocks[k]-TempOb)+sections[1].offwords,OpaqueArgument)) return 0;        // WRITE BLOCKS AS OFFSET RELATIVE TO THE FILE INSTEAD OF POINTER
         ++writeoff;
     }
 
     // DUMP TEMPOB TO THE FILE
     for(k=0;k<sections[1].nitems;++k) {
-        writefunc(TempOb[k],OpaqueArgument);        // WRITE TEMPOB AS-IS, NO POINTERS THERE
+        if(!writefunc(TempOb[k],OpaqueArgument)) return 0;        // WRITE TEMPOB AS-IS, NO POINTERS THERE
         ++writeoff;
     }
     // DUMP TEMPOB AFTER END TO THE FILE
     for(k=0;k<sections[2].nitems;++k) {
-        writefunc(TempObEnd[k],OpaqueArgument);        // WRITE TEMPOB AS-IS, NO POINTERS THERE
+        if(!writefunc(TempObEnd[k],OpaqueArgument)) return 0;        // WRITE TEMPOB AS-IS, NO POINTERS THERE
         ++writeoff;
     }
 
@@ -201,7 +201,7 @@ BINT rplBackup(void (*writefunc)(unsigned int,void *),void *OpaqueArgument)
         ptr=Directories[k];
         if( (ptr>=TempOb) && (ptr<TempObEnd) ) {
             // VALID POINTER INTO TEMPOB, CONVERT INTO FILE OFFSET
-            writefunc( (BINT)(ptr-TempOb)+ sections[1].offwords,OpaqueArgument);
+            if(!writefunc( (BINT)(ptr-TempOb)+ sections[1].offwords,OpaqueArgument)) return 0;
         } else {
             // IF THE OBJECT IS NOT IN TEMPOB IS IN ROM
 
@@ -214,7 +214,7 @@ BINT rplBackup(void (*writefunc)(unsigned int,void *),void *OpaqueArgument)
                 // WE DON'T DO THAT HERE
                 return 0;
             }
-            writefunc(id,OpaqueArgument);
+            if(!writefunc(id,OpaqueArgument)) return 0;
         }
         ++writeoff;
     }
@@ -224,7 +224,7 @@ BINT rplBackup(void (*writefunc)(unsigned int,void *),void *OpaqueArgument)
         ptr=GC_PTRUpdate[k];
         if( (ptr>=TempOb) && (ptr<=TempObSize) ) {
             // VALID POINTER INTO TEMPOB, CONVERT INTO FILE OFFSET
-            writefunc( (BINT)(ptr-TempOb)+ sections[1].offwords,OpaqueArgument);
+            if(!writefunc( (BINT)(ptr-TempOb)+ sections[1].offwords,OpaqueArgument)) return 0;
         } else {
             // IF THE OBJECT IS NOT IN TEMPOB IS IN ROM
 
@@ -237,7 +237,7 @@ BINT rplBackup(void (*writefunc)(unsigned int,void *),void *OpaqueArgument)
                 // REPLACE WITH zero_bint FOR GOOD MEASURES
                 id=rplConvertToRomptrID((WORDPTR)zero_bint);
             }
-            writefunc(id,OpaqueArgument);
+            if(!writefunc(id,OpaqueArgument)) return 0;
         }
         ++writeoff;
     }
@@ -336,6 +336,8 @@ BINT rplRestoreBackup(WORD (*readfunc)(void *),void *OpaqueArgument)
         TempBlocks[k]=TempOb+(data-sections[1].offwords);
         ++offset;
     }
+    if(Exceptions) return -1;
+
     TempBlocksEnd=TempBlocks+sections[0].nitems;
 
     // HERE'S THE START OF TEMPOB
@@ -345,6 +347,8 @@ BINT rplRestoreBackup(WORD (*readfunc)(void *),void *OpaqueArgument)
         TempOb[k]=data;
         ++offset;
     }
+    if(Exceptions) return -1;
+
     TempObEnd=TempOb+sections[1].nitems;
 
     // AFTER TEMPOB
@@ -354,6 +358,7 @@ BINT rplRestoreBackup(WORD (*readfunc)(void *),void *OpaqueArgument)
         TempObEnd[k]=data;
         ++offset;
     }
+    if(Exceptions) return -1;
 
 
     // HERE'S THE START OF THE DIRECTORIES
@@ -366,6 +371,7 @@ BINT rplRestoreBackup(WORD (*readfunc)(void *),void *OpaqueArgument)
         if(Directories[k]==0) ++errors; // JUST COUNT THE ERRORS BUT DON'T STOP, RECOVER AS MUCH AS POSSIBLE
         ++offset;
     }
+    if(Exceptions) return -1;
 
     DirsTop=Directories+sections[3].nitems;
 
@@ -393,6 +399,8 @@ BINT rplRestoreBackup(WORD (*readfunc)(void *),void *OpaqueArgument)
     return 1;
 }
 
+// THIS IS FOR DEBUGGING ERROR RECOVERY CODE
+/*
 #define DO_SOME_DAMAGE 0x123
 
 BINT rplRestoreBackupMessedup(WORD (*readfunc)(void *),void *OpaqueArgument)
@@ -511,3 +519,4 @@ BINT rplRestoreBackupMessedup(WORD (*readfunc)(void *),void *OpaqueArgument)
     return 1;
 }
 
+*/

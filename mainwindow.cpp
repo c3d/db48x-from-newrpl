@@ -37,7 +37,7 @@ extern "C" void usb_irqservice();
 
 extern "C" void __keyb_update();
 // BACKUP/RESTORE
-extern "C" int rplBackup(void (*writefunc)(unsigned int,void *),void *);
+extern "C" int rplBackup(int (*writefunc)(unsigned int,void *),void *);
 extern "C" int rplRestoreBackup(unsigned int (*readfunc)(void *),void *);
 extern "C" int rplRestoreBackupMessedup(unsigned int (*readfunc)(void *),void *);    // DEBUG ONLY
 extern "C" void __SD_irqeventinsert();
@@ -339,9 +339,10 @@ void MainWindow::on_actionExit_triggered()
 
 }
 
-void MainWindow::WriteWord(unsigned int word)
+int MainWindow::WriteWord(unsigned int word)
 {
-    myMainWindow->fileptr->write((const char *)&word,4);
+    if(myMainWindow->fileptr->write((const char *)&word,4)!=4) return 0;
+    return 1;
 }
 
 unsigned int MainWindow::ReadWord()
@@ -352,10 +353,10 @@ unsigned int MainWindow::ReadWord()
 }
 
 
-extern "C" void write_data(unsigned int word,void *opaque)
+extern "C" int write_data(unsigned int word,void *opaque)
 {
     (void)opaque;
-    MainWindow::WriteWord(word);
+    return MainWindow::WriteWord(word);
 }
 extern "C" unsigned int read_data(void *opaque)
 {

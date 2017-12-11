@@ -1102,6 +1102,8 @@ void cpu_flushTLB();
 
 // LOW-LEVEL DRIVERS - USB
 int usb_hasdata();
+int usb_waitfordata();
+int usb_datablocktype();
 int usb_isconnected();
 int usb_isconfigured();
 void usb_releasedata();
@@ -1109,6 +1111,13 @@ BYTEPTR usb_accessdata(int *blksize);
 WORD usb_crc32(BYTEPTR data,BINT len);
 int usb_checkcrc();
 int usb_transmitdata(BYTEPTR data,BINT size);
+int usb_transmitlong_start();
+int usb_transmitlong_word(unsigned int data);
+int usb_transmitlong_finish();
+int usb_receivelong_start();
+int usb_receivelong_word(unsigned int *data);
+int usb_receivelong_finish();
+
 
 
 

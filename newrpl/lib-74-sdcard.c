@@ -60,8 +60,8 @@
     CMD(SDCOPY,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDPATH,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDFREE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SDARCHIVE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SDRESTORE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+    CMD(SDARCHIVE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDRESTORE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2))
 
 
 
@@ -198,12 +198,12 @@ BINT rplPathFromList(BYTEPTR path,WORDPTR list)
 }
 
 
-void rplSDArchiveWriteWord(unsigned int data,void *opaque)
+int rplSDArchiveWriteWord(unsigned int data,void *opaque)
 {
 
     FS_FILE *file=(FS_FILE *)opaque;
-    FSWrite((BYTEPTR)&data,4,file);
-    return;
+    if(FSWrite((BYTEPTR)&data,4,file)!=4) return 0;
+    return 1;
 }
 
 WORD rplSDArchiveReadWord(void *opaque)

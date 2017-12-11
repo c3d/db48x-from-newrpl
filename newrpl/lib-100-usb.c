@@ -21,7 +21,9 @@
 
 #define ERROR_LIST \
     ERR(USBNOTCONNECTED,0), \
-    ERR(USBINVALIDDATA,1)
+    ERR(USBINVALIDDATA,1), \
+    ERR(USBCOMMERROR,2), \
+    ERR(USBTIMEOUT,3)
 
 
 // LIST OF COMMANDS EXPORTED,
@@ -37,7 +39,10 @@
     CMD(USBSEND,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(USBOFF,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(USBON,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(USBAUTORCV,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
+    CMD(USBAUTORCV,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(USBARCHIVE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
+    CMD(USBRESTORE,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2))
+
 
 
 // ADD MORE OPCODES HERE
@@ -77,6 +82,34 @@ UNUSED_ARGUMENT(useless);
 if(usb_hasdata()) return 1; // END THE LOOP IF THEREŚ DATA IN THE USB
 return 0;
 }
+
+// FOR rplBackup, RETURNS 1 ON SUCCESS, 0 ON ERROR
+int rplUSBArchiveWriteWord(unsigned int data,void *opaque)
+{
+    UNUSED_ARGUMENT(opaque);
+    return usb_transmitlong_word(data);
+}
+
+// FOR rplRestoreBackup, RETURNS THE WORD, SET AND rplError ON ERROR
+WORD rplUSBArchiveReadWord(void *opaque)
+{
+    UNUSED_ARGUMENT(opaque);
+    WORD data;
+    switch(usb_receivelong_word(&data))
+    {
+    case 0:
+        // OPERATION TIMED OUT
+        rplError(ERR_USBTIMEOUT);
+        return 0;
+    case 1:
+        return data;
+    case -1:
+        rplError(ERR_USBCOMMERROR);
+        return 0;
+    }
+}
+
+
 
 
 extern int waitProcess(int);
@@ -177,8 +210,22 @@ void LIB_HANDLER()
             return;
         }
 
+
+
         // READ THE DATA AND PUT IT ON THE STACK
-        BINT datasize;
+        BINT datasize,blocktype,byteoffset;
+        WORDPTR newobj;
+
+
+
+        do {
+
+        // WAIT FOR NEXT BLOCK IN A MULTIPART TRANSACTION
+        if(!usb_waitfordata()) {
+            rplError(ERR_USBTIMEOUT);
+            return;
+        }
+
         BYTEPTR data=usb_accessdata(&datasize);
 
         if(!usb_checkcrc()) {
@@ -187,15 +234,33 @@ void LIB_HANDLER()
             return;
         }
 
+        blocktype=usb_datablocktype();
 
-        WORDPTR newobj=rplAllocTempOb((datasize+3)>>2);
-        if(!newobj) return;
-        memmoveb(newobj,data,(datasize+3)&~3);
+        if((blocktype==USB_BLOCKMARK_SINGLE)||(blocktype==USB_BLOCKMARK_MULTISTART)) {
+        // GET A NEW BLOCK OF MEMORY AND STORE THE OBJECT THERE
+        byteoffset=0;
+        newobj=rplAllocTempOb((datasize+3)>>2);
+        if(!newobj) { usb_releasedata(); return; }
+        }
+        else {
+        // STRETCH THE LAST OBJECT
+        ScratchPointer1=newobj;
+        rplResizeLastObject((datasize+3)>>2);
+        if(Exceptions) { usb_releasedata(); return; }
+        newobj=ScratchPointer1;
+        }
+
+        memmoveb((BYTEPTR)newobj+byteoffset,data,datasize);
+
+        byteoffset+=datasize;
 
         usb_releasedata();
 
+        } while((blocktype!=USB_BLOCKMARK_SINGLE)&&(blocktype!=USB_BLOCKMARK_MULTIEND));
 
-        if(!rplVerifyObject((WORDPTR)data)) {
+        // DONE RECEIVING BLOCKS OF DATA, CHECK IF EVERYTHING WORKS
+
+        if(!rplVerifyObject(newobj)) {
             rplError(ERR_USBINVALIDDATA);
             return;
         }
@@ -248,7 +313,19 @@ void LIB_HANDLER()
         }
 
         // READ THE DATA AND PUT IT ON THE STACK
-        BINT datasize;
+        BINT datasize,blocktype,byteoffset;
+        WORDPTR newobj;
+
+
+
+        do {
+
+        // WAIT FOR NEXT BLOCK IN A MULTIPART TRANSACTION
+        if(!usb_waitfordata()) {
+            rplError(ERR_USBTIMEOUT);
+            return;
+        }
+
         BYTEPTR data=usb_accessdata(&datasize);
 
         if(!usb_checkcrc()) {
@@ -257,15 +334,33 @@ void LIB_HANDLER()
             return;
         }
 
+        blocktype=usb_datablocktype();
 
-        WORDPTR newobj=rplAllocTempOb((datasize+3)>>2);
+        if((blocktype==USB_BLOCKMARK_SINGLE)||(blocktype==USB_BLOCKMARK_MULTISTART)) {
+        // GET A NEW BLOCK OF MEMORY AND STORE THE OBJECT THERE
+        byteoffset=0;
+        newobj=rplAllocTempOb((datasize+3)>>2);
         if(!newobj) { usb_releasedata(); return; }
-        memmoveb(newobj,data,(datasize+3)&~3);
+        }
+        else {
+        // STRETCH THE LAST OBJECT
+        ScratchPointer1=newobj;
+        rplResizeLastObject((datasize+3)>>2);
+        if(Exceptions) { usb_releasedata(); return; }
+        newobj=ScratchPointer1;
+        }
+
+        memmoveb((BYTEPTR)newobj+byteoffset,data,datasize);
+
+        byteoffset+=datasize;
 
         usb_releasedata();
 
+        } while((blocktype!=USB_BLOCKMARK_SINGLE)&&(blocktype!=USB_BLOCKMARK_MULTIEND));
 
-        if(!rplVerifyObject((WORDPTR)data)) {
+        // DONE RECEIVING BLOCKS OF DATA, CHECK IF EVERYTHING WORKS
+
+        if(!rplVerifyObject(newobj)) {
             rplError(ERR_USBINVALIDDATA);
             return;
         }
@@ -280,6 +375,150 @@ void LIB_HANDLER()
         return;
 
     }
+
+
+
+
+
+    case USBARCHIVE:
+    {
+        // STORE A BACKUP OBJECT DIRECTLY INTO A FILE ON THE USB HOST MACHINE
+
+        if(!usb_isconfigured()) {
+            rplError(ERR_USBNOTCONNECTED);
+            return;
+        }
+
+        // PACK THE STACK
+        WORDPTR stklist=0;
+
+        if(rplDepthData()>1) stklist=rplCreateListN(rplDepthData()-1,2,0);
+        // JUST DON'T SAVE THE STACK IF THERE'S NOT ENOUGH MEMORY FOR IT
+        if(stklist) {
+            rplListAutoExpand(stklist);
+            rplStoreSettings((WORDPTR)stksave_ident,stklist);
+        }
+        else rplPurgeSettings((WORDPTR)stksave_ident);
+
+        BINT err = rplBackup(&rplUSBArchiveWriteWord,(void *)0);
+
+        if(err!=1) {
+            if(!Exceptions) rplError(ERR_USBCOMMERROR);
+            return;
+        }
+        rplPurgeSettings((WORDPTR)stksave_ident);
+        return;
+
+    }
+
+
+    case USBRESTORE:
+    {
+        // STORE A BACKUP OBJECT DIRECTLY INTO A FILE
+        // RECEIVE A BLOCK OF DATA WITH TIMEOUT
+        // TAKES ONE ARGUMENT, 0 = WAIT INDEFINITELY, OTHERWISE TIME IN SECONDS TO WAIT (SAME AS WAIT)
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!usb_isconfigured()) {
+            rplError(ERR_USBNOTCONNECTED);
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_REALEXPECTED);
+            return;
+        }
+
+        REAL timeout;
+        rplReadNumberAsReal(rplPeekData(1),&timeout);
+        timeout.exp+=3;    // CONVERT FROM SECONDS TO MILLISECONDS
+        BINT64 mstimeout=getBINT64Real(&timeout);
+
+
+        RetNum=0;
+
+        if(mstimeout<0) mstimeout=0;
+
+        // JUST WAIT IN THE MAIN LOOP, SO KEYS CAN CANCEL THE WAIT AND INDICATORS CAN BE UPDATED
+        halOuterLoop(mstimeout,&waitProcess,&exitOnUBSData,OL_NOCOMMS|OL_NOEXIT|OL_NOAUTOOFF|OL_NOCUSTOMKEYS|OL_NODEFAULTKEYS);
+
+        if(!usb_hasdata()) {
+            rplDropData(1);
+            return;
+        }
+
+
+        GCFlags=GC_IN_PROGRESS; // MARK THAT A GC IS IN PROGRESS TO BLOCK ANY HARDWARE INTERRUPTS
+
+        BINT err = rplRestoreBackup(&rplUSBArchiveReadWord,(void *)0);
+
+        switch(err)
+        {
+        case -1:
+            // FILE WAS CORRUPTED, AND MEMORY WAS DESTROYED
+            GCFlags=GC_COMPLETED;   // MARK THAT GC WAS COMPLETED
+            throw_dbgexception("Memory lost during restore",__EX_WIPEOUT|__EX_RESET|__EX_NOREG);
+            // THIS WON'T RETURN, ONLY A RESET IS ACCEPTABLE AT THIS POINT
+            return;
+        case 0:
+            // FILE WAS CORRUPTED, BUT MEMORY IS STILL INTACT
+            rplError(ERR_INVALIDDATA);
+            GCFlags=0;  // NOTHING MOVED IN MEMORY, SO DON'T SIGNAL THAT A GC TOOK PLACE
+            return;
+        default:
+        case 1:
+            // SUCCESS! STILL NEED TO DO A WARMSTART
+            // FALL THROUGH
+        case 2:
+            // SOME ERRORS, BUT rplWarmInit WILL FIX AUTOMATICALLY
+            GCFlags=GC_COMPLETED;   // MARK THAT GC WAS COMPLETED SO HARDWARE INTERRUPTS ARE ACCEPTED AGAIN
+            rplException(EX_POWEROFF|EX_HALRESET);  // REQUEST A COMPLETE HAL RESET
+            return;
+        }
+
+        return;
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         // STANDARIZED OPCODES:

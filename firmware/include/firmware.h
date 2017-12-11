@@ -164,16 +164,11 @@
 // all, but allocating more than necessary means reserved
 // bandwidth is no longer available to other USB devices.
 #define RAWHID_TX_SIZE		64	// transmit packet size
-#define RAWHID_TX_INTERVAL	2	// max # of ms between transmit packets
+#define RAWHID_TX_INTERVAL	10	// max # of ms between transmit packets
 #define RAWHID_RX_SIZE		64	// receive packet size
-#define RAWHID_RX_INTERVAL	8	// max # of ms between receive packets
+#define RAWHID_RX_INTERVAL	10	// max # of ms between receive packets
 
 
-/**************************************************************************
- *
- *  Endpoint Buffer Configuration
- *
- **************************************************************************/
 
 #define ENDPOINT0_SIZE		8
 #define RAWHID_INTERFACE	0
@@ -181,11 +176,33 @@
 #define RAWHID_RX_ENDPOINT	2
 
 
+// USB SUBSYSTEM STATUS BITS
+#define USB_STATUS_INIT                 1
+#define USB_STATUS_CONNECTED            2
+#define USB_STATUS_CONFIGURED           4
+#define USB_STATUS_EP0TX                8
+#define USB_STATUS_EP0RX                16
+#define USB_STATUS_HIDTX                32
+#define USB_STATUS_HIDRX                64
+#define USB_STATUS_DATAREADY            128
+#define USB_STATUS_REMOTEBUSY           256
+#define USB_STATUS_REMOTERESPND         512
+#define USB_STATUS_WAKEUPENABLED        1024
+#define USB_STATUS_SUSPEND              2048
+#define USB_STATUS_TESTMODE             4096
 
+// USB DATA BLOCK MARKERS
+#define USB_BLOCKMARK_SINGLE 0xa0
+#define USB_BLOCKMARK_MULTISTART 0xa5
+#define USB_BLOCKMARK_MULTI  0xa1
+#define USB_BLOCKMARK_MULTIEND   0xaf
+#define USB_BLOCKMARK_GETSTATUS  0xcd
+#define USB_BLOCKMARK_RESPONSE 0xce
 
+// MAXIMUM SIZE OF A BLOCK OF DATA, LARGER BLOCKS WILL BE SPLIT INTO MULTIPLE SMALLER BLOCKS
+#define USB_BLOCKSIZE      2048
 
-
-
+#define USB_TIMEOUT_MS     1000
 
 
 

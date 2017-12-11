@@ -16,28 +16,7 @@ extern unsigned int *simpmalloc(int words);
 extern unsigned char *simpmallocb(int bytes);
 extern void simpfree(void *voidptr);
 
-#define RAWHID_TX_SIZE  64
-#define RAWHID_RX_SIZE  64
-// AN ARBITRARY MARKER
-#define USB_BLOCKSTART_MARKER 0xab
-#define USB_BLOCKSTATUS_INFO  0xcd
-#define USB_BLOCKSTATUS_RESPND 0xce
 
-
-// USB DRIVER STATUS CONSTANTS
-#define USB_STATUS_INIT                 1
-#define USB_STATUS_CONNECTED            2
-#define USB_STATUS_CONFIGURED           4
-#define USB_STATUS_EP0TX                8
-#define USB_STATUS_EP0RX                16
-#define USB_STATUS_HIDTX                32
-#define USB_STATUS_HIDRX                64
-#define USB_STATUS_DATAREADY            128
-#define USB_STATUS_REMOTEBUSY           256
-#define USB_STATUS_REMOTERESPND         512
-#define USB_STATUS_WAKEUPENABLED        1024
-#define USB_STATUS_SUSPEND              2048
-#define USB_STATUS_TESTMODE             4096
 
 // FOR PCS USE HIDAPI LIBRARY TO EXPOSE THE CONNECTED DEVICE AS A HOST
 hid_device *__usb_curdevice;
@@ -52,6 +31,11 @@ BYTEPTR __usb_rcvbuffer;
 WORD __usb_rcvtotal __SYSTEM_GLOBAL__;
 WORD __usb_rcvpartial __SYSTEM_GLOBAL__;
 WORD __usb_rcvcrc __SYSTEM_GLOBAL__;
+
+// GLOBAL VARIABLES FOR DOUBLE BUFFERED LONG TRANSACTIONS
+BYTEPTR __usb_longbuffer[2];              // DOUBLE BUFFERING FOR LONG TRANSMISSIONS OF DATA
+BINT __usb_longoffset;
+BINT __usb_longactbuffer;                 // WHICH BUFFER IS BEING WRITTEN
 
 
 
@@ -512,5 +496,186 @@ int usb_transmitdata(BYTEPTR data,BINT size)
     }
 
     return 1;
+
+}
+
+// HIGH LEVEL FUNCTION TO SEND ANYTHING TO THE OTHER SIDE
+int usb_transmitlong_block(BYTEPTR data,BINT size)
+{
+    if(!usb_isconfigured()) return 0;
+
+    if(!__usb_curdevice) {
+        __usb_drvstatus=USB_STATUS_INIT;
+        return 0;
+    }
+    int err;
+
+    if(size<=0) return 0;   // BAD SIZE
+
+    if(!usb_remoteready()) return 0;    // CHECK IF REMOTE IS AVAILABLE BEFORE FLOODING IT WITH DATA
+
+
+    BYTEPTR buf;
+
+    buf=data;   // NO NEED TO USE INTERMEDIATE BUFFERS
+
+    if(!buf) return 0;      // FAILED TO SEND - NOT ENOUGH MEMORY
+
+    __usb_bufptr[1]=buf;
+
+    __usb_count[1]=size+8;
+
+    buf[0]=0;                           // REPORT ID
+    buf[1]=USB_BLOCKSTART_MARKER;        // START OF BLOCK MARKER
+    buf[2]=size&0xff;
+    buf[3]=(size>>8)&0xff;
+    buf[4]=(size>>16)&0xff;
+
+    WORD crc=usb_crc32(data,size);
+
+    buf[5]=crc&0xff;
+    buf[6]=(crc>>8)&0xff;
+    buf[7]=(crc>>16)&0xff;
+    buf[8]=(crc>>24)&0xff;
+
+    err=hid_write(__usb_curdevice,__usb_bufptr[1],__usb_count[1]+1);
+
+    if(err<=0) {
+        // CANNOT WRITE TO USB? - DISCONNECT
+        hid_close(__usb_curdevice);
+        __usb_curdevice=0;
+        usb_shutdown();
+        return 0;
+    }
+
+    return 1;
+
+}
+
+
+// START A LONG DATA TRANSACTION OVER THE USB PORT
+int usb_transmitlong_start()
+{
+    // USE 1024 BYTE PACKETS
+
+    __usb_longbuffer[0]=simpmallocb(USB_BLOCKSIZE+8);
+    if(!__usb_longbuffer[0]) return 0;  // NOT ENOUGH MEMORY TO DO IT!
+    __usb_longbuffer[1]=simpmallocb(USB_BLOCKSIZE+8);
+    if(!__usb_longbuffer[1]) {
+        simpfree(__usb_longbuffer[0]);
+        return 0;  // NOT ENOUGH MEMORY TO DO IT!
+    }
+
+    __usb_longactbuffer=0;
+    __usb_longoffset=0;
+
+    return 1;
+}
+
+// WRITE A 32-BIT WORD OF DATA
+int usb_transmitlong_word(unsigned int data)
+{
+    unsigned int *ptr=(unsigned int *)(__usb_longbuffer[__usb_longactbuffer]+8+(__usb_longoffset&(USB_BLOCKSIZE-1)));
+
+    *ptr=data;
+    __usb_longoffset+=4;
+
+    if(((__usb_longoffset)&(USB_BLOCKSIZE-1))==0) {
+
+    if(!usb_transmitlong_block(__usb_longbuffer[__usb_longactbuffer],USB_BLOCKSIZE)) {
+        __usb_longactbuffer=0;
+        __usb_longoffset=0;
+        simpfree(__usb_longbuffer[1]);
+        simpfree(__usb_longbuffer[0]);
+        __usb_longbuffer[0]=0;
+        __usb_longbuffer[1]=0;
+        return 0;
+    }
+    __usb_longactbuffer^=1;
+
+    }
+
+
+    return 1;
+
+}
+
+// SEND FINAL BLOCK AND CLEANUP
+int usb_transmitlong_finish()
+{
+    int success=1;
+    if(__usb_longoffset&(USB_BLOCKSIZE-1)) {
+    success=usb_transmitlong_block(__usb_longbuffer[__usb_longactbuffer],__usb_longoffset&(USB_BLOCKSIZE-1));
+    }
+
+    // CLEANUP
+    __usb_longactbuffer=0;
+    __usb_longoffset=0;
+    simpfree(__usb_longbuffer[1]);
+    simpfree(__usb_longbuffer[0]);
+    __usb_longbuffer[0]=0;
+    __usb_longbuffer[1]=0;
+    return success;
+
+}
+
+// START A LONG DATA TRANSACTION OVER THE USB PORT
+int usb_receivelong_start()
+{
+    __usb_longactbuffer=-1;
+    __usb_longoffset=0;
+
+    return 1;
+}
+
+// WRITE A 32-BIT WORD OF DATA
+int usb_receivelong_word(unsigned int *data)
+{
+    if(__usb_longactbuffer==-1) {
+        // WE DON'T HAVE ANY BUFFERS YET!
+        // WAIT UNTIL WE DO, TIMEOUT IN 2
+
+
+
+    }
+    unsigned int *ptr=(unsigned int *)(__usb_longbuffer[__usb_longactbuffer]+(__usb_longoffset&(USB_BLOCKSIZE-1)));
+
+    *ptr=data;
+    ++__usb_longoffset;
+
+    if(__usb_longoffset>=USB_BLOCKSIZE) {
+
+    if(!usb_transmitdata(__usb_longbuffer[__usb_longactbuffer],USB_BLOCKSIZE)) {
+        __usb_longactbuffer=0;
+        __usb_longoffset=0;
+        simpfree(__usb_longbuffer[1]);
+        simpfree(__usb_longbuffer[0]);
+        __usb_longbuffer[0]=0;
+        __usb_longbuffer[1]=0;
+        return 0;
+    }
+    __usb_longactbuffer^=1;
+
+    }
+    return 1;
+
+}
+
+// SEND FINAL BLOCK AND CLEANUP
+int usb_receivelong_finish()
+{
+    int success=1;
+    if(__usb_longoffset&(USB_BLOCKSIZE-1)) {
+    success=usb_transmitdata(__usb_longbuffer[__usb_longactbuffer],__usb_longoffset&(USB_BLOCKSIZE-1));
+    }
+
+    // CLEANUP
+    __usb_longactbuffer=0;
+    __usb_longoffset=0;
+    simpfree(__usb_longbuffer[1]);
+    simpfree(__usb_longbuffer[0]);
+    __usb_longbuffer[0]=0;
+    __usb_longbuffer[1]=0;
+    return success;
 
 }
