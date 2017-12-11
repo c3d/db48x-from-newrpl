@@ -103,7 +103,7 @@ WORD rplUSBArchiveReadWord(void *opaque)
         return 0;
     case 1:
         return data;
-    case -1:
+    default:
         rplError(ERR_USBCOMMERROR);
         return 0;
     }
@@ -213,8 +213,8 @@ void LIB_HANDLER()
 
 
         // READ THE DATA AND PUT IT ON THE STACK
-        BINT datasize,blocktype,byteoffset;
-        WORDPTR newobj;
+        BINT datasize,blocktype,byteoffset=0;
+        WORDPTR newobj=0;
 
 
 
@@ -313,8 +313,8 @@ void LIB_HANDLER()
         }
 
         // READ THE DATA AND PUT IT ON THE STACK
-        BINT datasize,blocktype,byteoffset;
-        WORDPTR newobj;
+        BINT datasize,blocktype,byteoffset=0;
+        WORDPTR newobj=0;
 
 
 

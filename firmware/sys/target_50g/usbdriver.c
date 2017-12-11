@@ -1500,6 +1500,7 @@ int usb_waitfordata()
 
     while(!(__usb_drvstatus&USB_STATUS_DATAREADY)) {
         cpu_waitforinterrupt();
+
         end=tmr_ticks();
         if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
             // MORE THAN 1 SECOND TO SEND 1 BLOCK? TIMEOUT - CLEANUP AND RETURN
@@ -1520,7 +1521,7 @@ int usb_datablocktype()
 BYTEPTR usb_accessdata(int *blksize)
 {
     if(!(__usb_drvstatus&USB_STATUS_DATAREADY)) return 0;
-    if(blksize) *blksize=__usb_rcvpartial;
+    if(blksize) *blksize=(__usb_rcvpartial>__usb_rcvtotal)? __usb_rcvtotal:__usb_rcvpartial;
     return __usb_rcvbuffer;
 }
 

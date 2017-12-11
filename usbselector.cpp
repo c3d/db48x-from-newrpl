@@ -16,12 +16,6 @@ BINT64 rplObjChecksum(WORDPTR object);
 }
 
 
-#define USB_BLOCKSTART_MARKER 0xab
-#define USB_BLOCKSTATUS_INFO  0xcd
-#define USB_BLOCKSTATUS_RESPND 0xce
-
-
-
 USBSelector::USBSelector(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::USBSelector)
@@ -174,7 +168,7 @@ void USBSelector::RefreshList()
                             // ATTEMPT TO SEND SOMETHING TO SEE IF IT'S ACTIVELY RESPONDING
                             uint32_t getversion[16]={
                                 0,          // 0 = DON'T USE REPORT ID'S - THIS IS REQUIRED ONLY FOR HIDAPI
-                                USB_BLOCKSTART_MARKER,       // BLOCK SIZE AND MARKER
+                                USB_BLOCKMARK_SINGLE,       // BLOCK SIZE AND MARKER
                                 0,         // CRC32
                                 MKPROLOG(SECO,5),  // ACTUAL DATA
                                 CMD_VERSION,
@@ -200,11 +194,11 @@ void USBSelector::RefreshList()
                                     // WE GOT A RESPONSE, THE DEVICE IS ALIVE!
 
 
-                                    if(buffer[0]==USB_BLOCKSTATUS_INFO) {
+                                    if(buffer[0]==USB_BLOCKMARK_GETSTATUS) {
                                         // REMOTE IS ASKING IF WE ARE READY TO RECEIVE DATA
                                         memset(buffer,0,RAWHID_TX_SIZE+1);
                                         buffer[0]=0;    // REPORT ID
-                                        buffer[1]=USB_BLOCKSTATUS_RESPND;   // RE ARE RESPONDING TO THE REQUEST
+                                        buffer[1]=USB_BLOCKMARK_RESPONSE;   // RE ARE RESPONDING TO THE REQUEST
                                         buffer[2]=0;    // WE ARE NOT BUSY
 
                                         res=hid_write(thisdev,buffer,RAWHID_TX_SIZE+1);
@@ -214,7 +208,7 @@ void USBSelector::RefreshList()
 
                                             if(res>0) {
                                                 // WE GOT A RESPONSE, THE DEVICE IS ALIVE!
-                                                if(buffer[0]==USB_BLOCKSTART_MARKER) {
+                                                if(buffer[0]==USB_BLOCKMARK_SINGLE) {
                                                 unsigned int strprolog;
                                                 strprolog=buffer[8]+(buffer[9]<<8)+(buffer[10]<<16)+(buffer[11]<<24);
 
