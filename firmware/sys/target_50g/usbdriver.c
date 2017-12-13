@@ -1863,7 +1863,7 @@ int usb_receivelong_word(unsigned int *data)
 
         }
         if((__usb_rcvblkmark==USB_BLOCKMARK_MULTI)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND)) {
-            if(__usb_longoffset) {
+            if(!__usb_longoffset) {
                 // BAD BLOCK, WE CAN ONLY RECEIVE THE FIRST BLOCK ONCE, ABORT
                 return -1;
             }

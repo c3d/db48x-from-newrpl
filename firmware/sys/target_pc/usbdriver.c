@@ -668,6 +668,7 @@ int usb_transmitlong_start()
     __usb_longbuffer[1]=simpmallocb(USB_BLOCKSIZE+8);
     if(!__usb_longbuffer[1]) {
         simpfree(__usb_longbuffer[0]);
+        __usb_longbuffer[0]=0;
         return 0;  // NOT ENOUGH MEMORY TO DO IT!
     }
 
@@ -690,8 +691,8 @@ int usb_transmitlong_word(unsigned int data)
     if(!usb_transmitlong_block(__usb_longbuffer[__usb_longactbuffer],USB_BLOCKSIZE,(__usb_longoffset<=USB_BLOCKSIZE)? 1:0)) {
         __usb_longactbuffer=0;
         __usb_longoffset=0;
-        simpfree(__usb_longbuffer[1]);
-        simpfree(__usb_longbuffer[0]);
+        if(__usb_longbuffer[1]) simpfree(__usb_longbuffer[1]);
+        if(__usb_longbuffer[0]) simpfree(__usb_longbuffer[0]);
         __usb_longbuffer[0]=0;
         __usb_longbuffer[1]=0;
         return 0;
@@ -716,8 +717,8 @@ int usb_transmitlong_finish()
     // CLEANUP
     __usb_longactbuffer=0;
     __usb_longoffset=0;
-    simpfree(__usb_longbuffer[1]);
-    simpfree(__usb_longbuffer[0]);
+    if(__usb_longbuffer[1]) simpfree(__usb_longbuffer[1]);
+    if(__usb_longbuffer[0]) simpfree(__usb_longbuffer[0]);
     __usb_longbuffer[0]=0;
     __usb_longbuffer[1]=0;
     return success;
@@ -760,7 +761,7 @@ int usb_receivelong_word(unsigned int *data)
 
         }
         if((__usb_rcvblkmark==USB_BLOCKMARK_MULTI)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND)) {
-            if(__usb_longoffset) {
+            if(!__usb_longoffset) {
                 // BAD BLOCK, WE CAN ONLY RECEIVE THE FIRST BLOCK ONCE, ABORT
                 return -1;
             }

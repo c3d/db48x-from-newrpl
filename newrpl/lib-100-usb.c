@@ -86,15 +86,27 @@ return 0;
 // FOR rplBackup, RETURNS 1 ON SUCCESS, 0 ON ERROR
 int rplUSBArchiveWriteWord(unsigned int data,void *opaque)
 {
-    UNUSED_ARGUMENT(opaque);
+    WORDPTR progress=(WORDPTR) opaque;
+
+    if(Exceptions) return 0;
+
+    // PROVIDE VISUAL FEEDBACK
+    halSetNotification(N_CONNECTION,((*progress)>>8)&0xf);
+    ++*progress;
     return usb_transmitlong_word(data);
 }
 
 // FOR rplRestoreBackup, RETURNS THE WORD, SET AND rplError ON ERROR
 WORD rplUSBArchiveReadWord(void *opaque)
 {
-    UNUSED_ARGUMENT(opaque);
+    WORDPTR progress=(WORDPTR) opaque;
     WORD data;
+    if(Exceptions) return 0;
+
+    // PROVIDE VISUAL FEEDBACK
+    halSetNotification(N_CONNECTION,((*progress)>>8)&0xf);
+    ++*progress;
+
     switch(usb_receivelong_word(&data))
     {
     case 0:
@@ -396,10 +408,14 @@ void LIB_HANDLER()
             return;
         }
 
+        if(!usb_transmitlong_start()) {
+            rplError(ERR_USBCOMMERROR);     // IT'S ACTUALLY OUT OF BUFFER MEMORY
+            return;
+        }
         // PACK THE STACK
         WORDPTR stklist=0;
 
-        if(rplDepthData()>1) stklist=rplCreateListN(rplDepthData()-1,2,0);
+        if(rplDepthData()>1) stklist=rplCreateListN(rplDepthData(),1,0);
         // JUST DON'T SAVE THE STACK IF THERE'S NOT ENOUGH MEMORY FOR IT
         if(stklist) {
             rplListAutoExpand(stklist);
@@ -407,7 +423,12 @@ void LIB_HANDLER()
         }
         else rplPurgeSettings((WORDPTR)stksave_ident);
 
-        BINT err = rplBackup(&rplUSBArchiveWriteWord,(void *)0);
+
+
+        WORD progress=0;
+        BINT err = rplBackup(&rplUSBArchiveWriteWord,(void *)&progress);
+
+        usb_transmitlong_finish();
 
         if(err!=1) {
             if(!Exceptions) rplError(ERR_USBCOMMERROR);
@@ -421,9 +442,9 @@ void LIB_HANDLER()
 
     case USBRESTORE:
     {
-        // STORE A BACKUP OBJECT DIRECTLY INTO A FILE
-        // RECEIVE A BLOCK OF DATA WITH TIMEOUT
-        // TAKES ONE ARGUMENT, 0 = WAIT INDEFINITELY, OTHERWISE TIME IN SECONDS TO WAIT (SAME AS WAIT)
+        // RECEIVE A BACKUP FILE OVER THE USB WIRE AND RESTORE IT DIRECTLY TO MEMORY
+        // EXPECTS A TIMEOUT VALUE IN SECONDS
+
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -445,6 +466,8 @@ void LIB_HANDLER()
         BINT64 mstimeout=getBINT64Real(&timeout);
 
 
+        rplDropData(1);
+
         RetNum=0;
 
         if(mstimeout<0) mstimeout=0;
@@ -452,15 +475,25 @@ void LIB_HANDLER()
         // JUST WAIT IN THE MAIN LOOP, SO KEYS CAN CANCEL THE WAIT AND INDICATORS CAN BE UPDATED
         halOuterLoop(mstimeout,&waitProcess,&exitOnUBSData,OL_NOCOMMS|OL_NOEXIT|OL_NOAUTOOFF|OL_NOCUSTOMKEYS|OL_NODEFAULTKEYS);
 
+
         if(!usb_hasdata()) {
-            rplDropData(1);
+            return;
+        }
+
+
+        if(!usb_receivelong_start()) {
+            rplError(ERR_USBCOMMERROR);
             return;
         }
 
 
         GCFlags=GC_IN_PROGRESS; // MARK THAT A GC IS IN PROGRESS TO BLOCK ANY HARDWARE INTERRUPTS
 
-        BINT err = rplRestoreBackup(&rplUSBArchiveReadWord,(void *)0);
+
+        WORD progress=0;
+        BINT err = rplRestoreBackup(&rplUSBArchiveReadWord,(void *)&progress);
+
+        usb_receivelong_finish();
 
         switch(err)
         {
@@ -472,7 +505,7 @@ void LIB_HANDLER()
             return;
         case 0:
             // FILE WAS CORRUPTED, BUT MEMORY IS STILL INTACT
-            rplError(ERR_INVALIDDATA);
+            rplError(ERR_USBINVALIDDATA);
             GCFlags=0;  // NOTHING MOVED IN MEMORY, SO DON'T SIGNAL THAT A GC TOOK PLACE
             return;
         default:
