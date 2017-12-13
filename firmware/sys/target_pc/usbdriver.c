@@ -217,7 +217,7 @@ void usb_ep1_transmit(int newtransmission)
 // GENERAL INTERRUPT SERVICE ROUTINE - DISPATCH TO INDIVIDUAL ENDPOINT ROUTINES
 void usb_irqservice()
 {
-
+do {
     if(!__usb_curdevice) usb_shutdown();
 
     if(!(__usb_drvstatus&USB_STATUS_INIT)) usb_init(0);
@@ -240,6 +240,8 @@ void usb_irqservice()
         return;
     }
 
+    if(fifocnt==0)  // EITHER TIMEOUT OR NO DATA
+        return;
     int cnt=0;
     if(!(__usb_drvstatus&USB_STATUS_HIDRX)) {
         // IF THERE'S ANY DATA - START TO RECEIVE A NEW DATA BLOCK
@@ -373,7 +375,7 @@ void usb_irqservice()
         __usb_drvstatus|=USB_STATUS_HIDRX;
 
 
-
+} while(1); // KEEP PROCESSING UNTIL THERE'S NO MORE PACKETS
 
 
 }
@@ -449,7 +451,8 @@ int usb_checkcrc()
     if(!(__usb_drvstatus&USB_STATUS_DATAREADY)) return 0;
     WORD rcvdcrc=usb_crc32(__usb_rcvbuffer,(__usb_rcvpartial>__usb_rcvtotal)? __usb_rcvtotal:__usb_rcvpartial);
 
-    if(rcvdcrc!=__usb_rcvcrc) return 0;
+    if(rcvdcrc!=__usb_rcvcrc)
+        return 0;
     return 1;
 }
 

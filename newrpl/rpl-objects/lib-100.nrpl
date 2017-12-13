@@ -19,6 +19,8 @@
 {
 ##1,ERR_USBNOTCONNECTED "USB port not connected"
 ##1,ERR_USBINVALIDDATA "Received invalid data"
+##1,ERR_USBCOMMERROR "USB communication error"
+##1,ERR_USBTIMEOUT "Connection timed out"
 }
 
 @#name lib100_menu

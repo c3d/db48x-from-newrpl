@@ -1131,14 +1131,15 @@ void usb_ep1_transmit(int newtransmission)
 
         *IN_CSR1_REG|=EPn_IN_PKT_RDY;  // SEND THE LAST PACKET
 
+        if((__usb_count[1]==0)&&(__usb_padding[1]==0))  {
+        // RELEASE ANY ALLOCATED MEMORY
+        if(__usb_sndbuffer!=__usb_txtmpbuffer) simpfree(__usb_sndbuffer);
+        }
+
        if((cnt==0)||(cnt!=EP1_FIFO_SIZE)) {
            __usb_drvstatus&=~USB_STATUS_HIDTX;
        } else __usb_drvstatus|=USB_STATUS_HIDTX;      // AND KEEP TRANSMITTING
 
-       if((__usb_count[1]==0)&&(__usb_padding[1]==0))  {
-       // RELEASE ANY ALLOCATED MEMORY
-       if(__usb_sndbuffer!=__usb_txtmpbuffer) simpfree(__usb_sndbuffer);
-       }
 
 
     }
@@ -1574,7 +1575,7 @@ int usb_remoteready()
     while(!(__usb_drvstatus&USB_STATUS_REMOTERESPND)) {
         end=tmr_ticks();
 
-        if(tmr_ticks2ms(start,end)>=USB_TIMEOUT_MS/10) {
+        if(tmr_ticks2ms(start,end)>=USB_TIMEOUT_MS) {
             // WE WAITED ENOUGH AND REMOTE DIDN'T RESPOND
             return 0;
         }
@@ -1600,14 +1601,16 @@ int usb_transmitdata(BYTEPTR data,BINT size)
     BINT blksize,sent=0,bufsize=0;
     BYTEPTR buf=0;
 
+
+
     while(sent<size) {
 
-    if(!usb_remoteready())
-    {
-        __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
-        if(buf && (buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
-        return 0;
-    }
+   if(!usb_remoteready())
+   {
+     __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
+     return 0;
+   }
+
 
     blksize=size-sent;
     if(blksize>USB_BLOCKSIZE) blksize=USB_BLOCKSIZE;

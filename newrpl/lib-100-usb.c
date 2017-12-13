@@ -343,6 +343,13 @@ void LIB_HANDLER()
         if(!newobj) { usb_releasedata(); return; }
         }
         else {
+        if(!newobj) {
+            // NOT A SINGLE PACKAGE, NOT A MULTI STARTER, THEN WHAT IT IS?
+            // POSSIBLY PART OF A TRANSMISSION ABORTED EARLIER, JUST IGNORE THE WHOLE PACKET
+            usb_releasedata();
+            return;
+        }
+
         // STRETCH THE LAST OBJECT
         ScratchPointer1=newobj;
         rplResizeLastObject((datasize+3)>>2);
