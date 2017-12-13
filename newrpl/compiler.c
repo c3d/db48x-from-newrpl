@@ -1861,6 +1861,7 @@ end_of_expression:
 
         BYTEPTR start=(((BYTEPTR)CompileEnd)+lastnloffset),ptr=(BYTEPTR)DecompStringEnd;
 
+        if(!(flags&DECOMP_NOHINTS)) {
         do {
             --ptr;
             if(*ptr=='\n') break;
@@ -1868,6 +1869,7 @@ end_of_expression:
 
         lastnloffset=ptr-((BYTEPTR)CompileEnd);
         if(*ptr=='\n') ++lastnloffset;
+        } else lastnloffset=0;
 
         // CHECK IF MAXIMUM WIDTH EXCEEDED, THEN ADD A NEW LINE
         if(((BYTEPTR)DecompStringEnd)-(((BYTEPTR)CompileEnd)+lastnloffset)>maxwidth) dhints|=HINT_NLAFTER;

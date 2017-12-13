@@ -558,7 +558,7 @@ void usb_init(int force)
 void usb_shutdown()
 {
 
-    if(!__usb_drvstatus&USB_STATUS_INIT) return;
+    if(!(__usb_drvstatus&USB_STATUS_INIT)) return;
 
     if(__usb_drvstatus&USB_STATUS_DATAREADY) {
         usb_releasedata();
@@ -609,7 +609,7 @@ void usb_shutdown()
 void usb_ep0_transmit(int newtransmission)
 {
 
-    if(!__usb_drvstatus&USB_STATUS_CONNECTED) return;
+    if(!(__usb_drvstatus&USB_STATUS_CONNECTED)) return;
 
     if(newtransmission || (__usb_drvstatus&USB_STATUS_EP0TX)) {
 
@@ -665,7 +665,7 @@ void usb_ep0_transmit(int newtransmission)
 void usb_ep0_receive(int newtransmission)
 {
 
-    if(!__usb_drvstatus&USB_STATUS_CONNECTED) return;
+    if(!(__usb_drvstatus&USB_STATUS_CONNECTED)) return;
 
     if(newtransmission || (__usb_drvstatus&USB_STATUS_EP0RX)) {
 
@@ -838,7 +838,7 @@ void ep0_irqservice()
         {
             __usb_count[0]=0;
             __usb_padding[0]=0;
-            __usb_drvstatus&=~USB_STATUS_EP0RX|USB_STATUS_EP0TX;
+            __usb_drvstatus&=~(USB_STATUS_EP0RX|USB_STATUS_EP0TX);
             *FUNC_ADDR_REG=value|0x80;
             *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
             usb_checkpipe();
@@ -853,7 +853,7 @@ void ep0_irqservice()
             else __usb_drvstatus&=~USB_STATUS_CONFIGURED;
             __usb_count[0]=0;
             __usb_padding[0]=0;
-            __usb_drvstatus&=~USB_STATUS_EP0RX|USB_STATUS_EP0TX;
+            __usb_drvstatus&=~(USB_STATUS_EP0RX|USB_STATUS_EP0TX);
             *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
             usb_checkpipe();
 
@@ -967,7 +967,7 @@ void ep0_irqservice()
 
             __usb_count[0]=0;
             __usb_padding[0]=0;
-            __usb_drvstatus&=~USB_STATUS_EP0RX|USB_STATUS_EP0TX;
+            __usb_drvstatus&=~(USB_STATUS_EP0RX|USB_STATUS_EP0TX);
             *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
             usb_checkpipe();
 
@@ -996,7 +996,7 @@ void ep0_irqservice()
 
         __usb_count[0]=0;
         __usb_padding[0]=0;
-        __usb_drvstatus&=~USB_STATUS_EP0RX|USB_STATUS_EP0TX;
+        __usb_drvstatus&=~(USB_STATUS_EP0RX|USB_STATUS_EP0TX);
         *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
         usb_checkpipe();
 
@@ -1034,7 +1034,7 @@ void ep0_irqservice()
                 // SEND DATA TO HOST - SEND ALL ZEROS
                 __usb_count[0]=0;
                 __usb_padding[0]=0;
-                __usb_drvstatus&=~USB_STATUS_EP0RX|USB_STATUS_EP0TX;
+                __usb_drvstatus&=~(USB_STATUS_EP0RX|USB_STATUS_EP0TX);
                 *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
                 usb_checkpipe();
                 return;
@@ -1060,7 +1060,7 @@ void ep0_irqservice()
         while(length>0) { __usb_rxtmpbuffer[0]=*EP0_FIFO; --length; }
         __usb_count[0]=0;
         __usb_padding[0]=0;
-        __usb_drvstatus&=~USB_STATUS_EP0RX|USB_STATUS_EP0TX;
+        __usb_drvstatus&=~(USB_STATUS_EP0RX|USB_STATUS_EP0TX);
         *EP0_CSR|=EP0_SEND_STALL|EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
         usb_checkpipe();
         return;
@@ -1085,7 +1085,7 @@ void ep0_irqservice()
                 while(length>0) { __usb_rxtmpbuffer[0]=*EP0_FIFO; --length; }
                 __usb_count[0]=0;
                 __usb_padding[0]=0;
-                __usb_drvstatus&=~USB_STATUS_EP0RX|USB_STATUS_EP0TX;
+                __usb_drvstatus&=~(USB_STATUS_EP0RX|USB_STATUS_EP0TX);
                 *EP0_CSR|=EP0_SERVICED_OUT_PKT_RDY|EP0_DATA_END;
                 usb_checkpipe();
 
@@ -1099,7 +1099,7 @@ void ep0_irqservice()
 void usb_ep1_transmit(int newtransmission)
 {
 
-    if(!__usb_drvstatus&USB_STATUS_CONNECTED) return;
+    if(!(__usb_drvstatus&USB_STATUS_CONNECTED)) return;
 
     if(newtransmission || (__usb_drvstatus&USB_STATUS_HIDTX)) {
 
@@ -1157,7 +1157,7 @@ void usb_ep1_transmit(int newtransmission)
 void usb_ep2_receive(int newtransmission)
 {
 
-    if(!__usb_drvstatus&USB_STATUS_CONNECTED) return;
+    if(!(__usb_drvstatus&USB_STATUS_CONNECTED)) return;
 
     if(newtransmission || (__usb_drvstatus&USB_STATUS_HIDRX)) {
 
@@ -1409,7 +1409,7 @@ void ep2_irqservice()
 void usb_irqservice()
 {
 
-    if(!__usb_drvstatus&USB_STATUS_INIT) return;
+    if(!(__usb_drvstatus&USB_STATUS_INIT)) return;
 
     *INDEX_REG=0;
 
@@ -1608,6 +1608,7 @@ int usb_transmitdata(BYTEPTR data,BINT size)
    if(!usb_remoteready())
    {
      __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
+     if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
      return 0;
    }
 
@@ -1667,9 +1668,9 @@ int usb_transmitdata(BYTEPTR data,BINT size)
         cpu_waitforinterrupt();
         end=tmr_ticks();
         if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
-            // MORE THAN 1 SECOND TO SEND 1 BLOCK? TIMEOUT - CLEANUP AND RETURN
+            // TIMEOUT - CLEANUP AND RETURN
             __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
-            if(buf!=__usb_txtmpbuffer) simpfree(buf);   // RELEASE BUFFERS
+            if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
             return 0;
         }
     }
@@ -1678,6 +1679,9 @@ int usb_transmitdata(BYTEPTR data,BINT size)
     // PROCESS THE NEXT BLOCK
     sent+=blksize;
     }
+
+    if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
+
     return 1;
 }
 

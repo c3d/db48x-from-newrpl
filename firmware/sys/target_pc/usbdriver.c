@@ -432,7 +432,7 @@ int usb_datablocktype()
 BYTEPTR usb_accessdata(int *blksize)
 {
     if(!(__usb_drvstatus&USB_STATUS_DATAREADY)) return 0;
-    if(blksize) *blksize=__usb_rcvpartial;
+    if(blksize) *blksize=(__usb_rcvpartial>__usb_rcvtotal)? __usb_rcvtotal:__usb_rcvpartial;
     return __usb_rcvbuffer;
 }
 
@@ -485,63 +485,109 @@ int usb_remoteready()
 // HIGH LEVEL FUNCTION TO SEND ANYTHING TO THE OTHER SIDE
 int usb_transmitdata(BYTEPTR data,BINT size)
 {
-    if(!usb_isconfigured()) return 0;
 
-    if(!__usb_curdevice) {
-        __usb_drvstatus=USB_STATUS_INIT;
-        return 0;
-    }
-    int err;
+    // MAKE SURE THERE'S NO OTHER PENDING TRANSMISSIONS AND EVERYTHING IS CONNECTED
+    if((__usb_drvstatus&0xff)!= ( USB_STATUS_CONFIGURED
+                                 |USB_STATUS_CONNECTED
+                                 |USB_STATUS_INIT       ) ) return 0;
 
     if(size<=0) return 0;   // BAD SIZE
 
-    if(!usb_remoteready()) return 0;    // CHECK IF REMOTE IS AVAILABLE BEFORE FLOODING IT WITH DATA
+
+    BINT blksize,sent=0,bufsize=0;
+    BYTEPTR buf=0;
 
 
-    BYTEPTR buf;
 
+    while(sent<size) {
+
+   if(!usb_remoteready())
+   {
+     __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
+     if(buf!=__usb_txtmpbuffer) simpfree(buf);   // RELEASE BUFFERS
+     return 0;
+   }
+
+
+    blksize=size-sent;
+    if(blksize>USB_BLOCKSIZE) blksize=USB_BLOCKSIZE;
+
+    if(bufsize<blksize+9) {
     // ONLY ALLOCATE MEMORY FOR DATA BLOCKS LARGER THAN 1 PACKET
-    if(size>RAWHID_TX_SIZE-8) buf=simpmallocb(size+9);
-    else buf=__usb_txtmpbuffer;
+        if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
 
+    if(blksize>RAWHID_TX_SIZE-8) {
+        buf=simpmallocb(blksize+9); // GET A NEW BUFFER WITH ENOUGH SPACE
+        bufsize=blksize+9;
+     }
+    else {
+        buf=__usb_txtmpbuffer;
+        bufsize=RAWHID_TX_SIZE+9;
+    }
     if(!buf) return 0;      // FAILED TO SEND - NOT ENOUGH MEMORY
+    }
 
-    __usb_bufptr[1]=buf;
+    __usb_sndbuffer=buf;
+    __usb_bufptr[1]=__usb_sndbuffer;
 
-    __usb_count[1]=size+8;
+    __usb_count[1]=blksize+8;
+    __usb_padding[1]=(blksize+8)&(RAWHID_TX_SIZE-1);        // PAD WITH ZEROS THE LAST PACKET
+    if(__usb_padding[1]) __usb_padding[1]=RAWHID_TX_SIZE-__usb_padding[1];
 
-    buf[0]=0;                           // REPORT ID
-    buf[1]=USB_BLOCKMARK_SINGLE;        // START OF BLOCK MARKER
-    buf[2]=size&0xff;
-    buf[3]=(size>>8)&0xff;
-    buf[4]=(size>>16)&0xff;
 
-    WORD crc=usb_crc32(data,size);
+    buf[0]=0;   // REPORT ID
+
+
+    if(!sent) {
+        // EITHER THE FIRST BLOCK IN A MULTI OR A SINGLE BLOCK
+        if(blksize>=size) buf[1]=USB_BLOCKMARK_SINGLE;
+        else buf[1]=USB_BLOCKMARK_MULTISTART;
+    } else {
+        // EITHER A MIDDLE BLOCK OR FINAL BLOCK
+        if(sent+blksize>=size) buf[1]=USB_BLOCKMARK_MULTIEND;
+        else buf[1]=USB_BLOCKMARK_MULTI;
+    }
+    buf[2]=blksize&0xff;
+    buf[3]=(blksize>>8)&0xff;
+    buf[4]=(blksize>>16)&0xff;
+
+    WORD crc=usb_crc32(data+sent,blksize);
 
     buf[5]=crc&0xff;
     buf[6]=(crc>>8)&0xff;
     buf[7]=(crc>>16)&0xff;
     buf[8]=(crc>>24)&0xff;
 
-    memmoveb(buf+9,data,size);
+    memmoveb(buf+9,data+sent,blksize);
 
+    int err=hid_write(__usb_curdevice,__usb_bufptr[1],__usb_count[1]+1);
 
-
-    err=hid_write(__usb_curdevice,__usb_bufptr[1],__usb_count[1]+1);
-
-    if(buf!=__usb_txtmpbuffer) simpfree(buf);
 
     if(err<=0) {
         // CANNOT WRITE TO USB? - DISCONNECT
+        if(buf!=__usb_txtmpbuffer) simpfree(buf);
         hid_close(__usb_curdevice);
         __usb_curdevice=0;
         usb_shutdown();
         return 0;
     }
 
+    // PROCESS THE NEXT BLOCK
+    sent+=blksize;
+    }
+
+    if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
+
     return 1;
 
 }
+
+
+
+
+
+
+
 
 // HIGH LEVEL FUNCTION TO SEND ANYTHING TO THE OTHER SIDE
 int usb_transmitlong_block(BYTEPTR data,BINT blksize,BINT isfirst)
