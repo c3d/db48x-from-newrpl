@@ -12,10 +12,13 @@ class USBSelector : public QDialog
     Q_OBJECT
     QTimer *tmr;
     QString SelectedDevicePath;
+    QString SelectedDeviceName;
+
 
 public:
     void RefreshList();
     QString& getSelectedDevicePath();
+    QString& getSelectedDeviceName();
 
     explicit USBSelector(QWidget *parent = 0);
     ~USBSelector();

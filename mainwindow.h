@@ -23,6 +23,7 @@ class MainWindow : public QMainWindow
     QTimer *screentmr,*maintmr;
     QFile sdcard;
     QString currentfile;
+    QString currentusb,currentusbpath;
     RPLThread rpl;
 
 public:
@@ -71,6 +72,15 @@ private slots:
     void on_actionOpen_file_to_Level_1_triggered();
 
     void on_actionConnect_to_calc_triggered();
+
+
+
+    void on_usbconnectButton_clicked();
+
+
+    void on_actionUSB_Remote_ARCHIVE_to_file_triggered();
+
+    void on_actionRemote_USBRESTORE_from_file_triggered();
 
 public slots:
     void usbupdate();

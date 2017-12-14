@@ -63,12 +63,14 @@ void USBSelector::on_USBtreeWidget_itemSelectionChanged()
     if(newitem->text(2)==QString("[Device not responding]")) {
         ui->buttonBox->setStandardButtons( QDialogButtonBox::Cancel);
         SelectedDevicePath.clear();
+        SelectedDeviceName.clear();
         ui->selectedCalc->setText(QString("No device selected."));
     }
     else {
         ui->buttonBox->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
         SelectedDevicePath=newitem->data(0,Qt::UserRole+3).toString();
-        ui->selectedCalc->setText(newitem->text(0)+QString("[build ")+newitem->text(2).right(4)+QString("]"));
+        SelectedDeviceName=newitem->text(0)+QString("[build ")+newitem->text(2).right(4)+QString("]");
+        ui->selectedCalc->setText(SelectedDeviceName);
     }
 
 }
@@ -76,6 +78,11 @@ void USBSelector::on_USBtreeWidget_itemSelectionChanged()
 QString& USBSelector::getSelectedDevicePath()
 {
     return SelectedDevicePath;
+}
+
+QString& USBSelector::getSelectedDeviceName()
+{
+    return SelectedDeviceName;
 }
 
 void USBSelector::RefreshList()

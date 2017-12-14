@@ -59,7 +59,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     __usb_curdevice=0;
+    currentusb.clear();
+    currentusbpath.clear();
 
+    ui->USBDockSelect->setVisible(false);
     screentmr=new QTimer(this);
     ui->EmuScreen->connect(screentmr,SIGNAL(timeout()),ui->EmuScreen,SLOT(update()));
     connect(screentmr,SIGNAL(timeout()),this,SLOT(usbupdate()));
@@ -797,28 +800,72 @@ void MainWindow::on_actionOpen_file_to_Level_1_triggered()
 
 void MainWindow::on_actionConnect_to_calc_triggered()
 {
+  ui->USBDockSelect->setVisible(true);
+}
+
+void MainWindow::usbupdate()
+{
+if(!__usb_curdevice) {
+    if(!currentusb.isEmpty()) {
+        // ATTEMPT TO RECONNECT WITH THE DEVICE
+      if(ui->usbconnectButton->text().endsWith("[ Click to reconnect ]")) {
+          return;
+      }
+      ui->usbconnectButton->setText(currentusb+ QString(" [ Click to reconnect ]"));
+    }
+    return;
+}
+
+usb_irqservice();
+
+}
+
+void MainWindow::on_usbconnectButton_clicked()
+{
     USBSelector seldlg;
+
+    if(ui->usbconnectButton->text().endsWith("[ Click to reconnect ]")) {
+        if(__usb_curdevice) {
+            hid_close(__usb_curdevice);
+        }
+        // ATTEMPT TO RECONNECT
+        __usb_curdevice=hid_open_path(currentusbpath.toUtf8().constData());
+        if(!__usb_curdevice) {
+            currentusb.clear();
+            currentusbpath.clear();
+        }
+        else {
+            ui->usbconnectButton->setText(currentusb);
+            return;
+        }
+    }
 
     if(__usb_curdevice) {
         hid_close(__usb_curdevice);
+        currentusb.clear();
+        currentusbpath.clear();
         __usb_curdevice=0;
     }
 
     if(seldlg.exec()==QDialog::Accepted) {
         if(!seldlg.getSelectedDevicePath().isEmpty()) {
             __usb_curdevice=hid_open_path(seldlg.getSelectedDevicePath().toUtf8().constData());
-
-            return;
+            currentusbpath=seldlg.getSelectedDevicePath();
+            currentusb=seldlg.getSelectedDeviceName();
         }
 
     }
-    return;
+    if(currentusb.isEmpty()) ui->usbconnectButton->setText(" [ Select a USB Device ] ");
+    else ui->usbconnectButton->setText(currentusb);
+
 }
 
-void MainWindow::usbupdate()
+void MainWindow::on_actionUSB_Remote_ARCHIVE_to_file_triggered()
 {
-if(!__usb_curdevice) return;
 
-usb_irqservice();
+}
+
+void MainWindow::on_actionRemote_USBRESTORE_from_file_triggered()
+{
 
 }

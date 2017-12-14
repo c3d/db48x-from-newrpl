@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1016</width>
+    <width>1076</width>
     <height>598</height>
    </rect>
   </property>
@@ -115,7 +115,7 @@ border-width: 0px;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1016</width>
+     <width>1076</width>
      <height>23</height>
     </rect>
    </property>
@@ -132,19 +132,17 @@ border-width: 0px;</string>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
-   <widget class="QMenu" name="menuSD_Card">
-    <property name="title">
-     <string>SD Card</string>
-    </property>
-    <addaction name="actionInsert_SD_Card_Image"/>
-    <addaction name="separator"/>
-    <addaction name="actionEject_SD_Card_Image"/>
-   </widget>
    <widget class="QMenu" name="menuHardware">
     <property name="title">
      <string>Hardware</string>
     </property>
     <addaction name="actionConnect_to_calc"/>
+    <addaction name="actionUSB_Remote_ARCHIVE_to_file"/>
+    <addaction name="actionRemote_USBRESTORE_from_file"/>
+    <addaction name="separator"/>
+    <addaction name="actionInsert_SD_Card_Image"/>
+    <addaction name="actionEject_SD_Card_Image"/>
+    <addaction name="separator"/>
     <addaction name="actionSimulate_Alarm"/>
     <addaction name="actionTake_Screenshot"/>
    </widget>
@@ -160,10 +158,43 @@ border-width: 0px;</string>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuStack"/>
-   <addaction name="menuSD_Card"/>
    <addaction name="menuHardware"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <widget class="QDockWidget" name="USBDockSelect">
+   <property name="allowedAreas">
+    <set>Qt::BottomDockWidgetArea|Qt::TopDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>USB Connection</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>4</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QToolButton" name="usbconnectButton">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
+       <property name="focusPolicy">
+        <enum>Qt::NoFocus</enum>
+       </property>
+       <property name="text">
+        <string>[ Select a USB device ]</string>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <action name="actionOpen">
    <property name="text">
     <string>Open</string>
@@ -241,7 +272,7 @@ border-width: 0px;</string>
   </action>
   <action name="actionConnect_to_calc">
    <property name="text">
-    <string>USB Connect to calc...</string>
+    <string>USB Connections...</string>
    </property>
   </action>
   <action name="actionSend_Stack_Level_1">
@@ -249,20 +280,14 @@ border-width: 0px;</string>
     <string>Send Stack Level 1...</string>
    </property>
   </action>
-  <action name="actionAuto_Receive">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
+  <action name="actionUSB_Remote_ARCHIVE_to_file">
    <property name="text">
-    <string>Auto Receive</string>
+    <string>Remote USBARCHIVE to file...</string>
    </property>
   </action>
-  <action name="actionManual_Receive">
+  <action name="actionRemote_USBRESTORE_from_file">
    <property name="text">
-    <string>Manual Receive</string>
+    <string>Remote USBRESTORE from file...</string>
    </property>
   </action>
  </widget>
