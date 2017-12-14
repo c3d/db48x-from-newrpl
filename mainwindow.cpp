@@ -48,6 +48,10 @@ extern int __sd_nsectors;             // TOTAL SIZE OF SD CARD IN 512-BYTE SECTO
 extern int __sd_RCA;
 extern unsigned char *__sd_buffer;    // BUFFER WITH THE ENTIRE CONTENTS OF THE SD CARD
 
+extern "C" int usbremotearchivestart();
+extern "C" int usbreceivearchive(uint32_t *buffer,int bufsize);
+
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -420,7 +424,7 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_actionOpen_triggered()
 {
-    QString fname=QFileDialog::getOpenFileName(this,"Open File Name",QString(),"*.nrpl");
+    QString fname=QFileDialog::getOpenFileName(this,"Open File Name",QString(),"*.nrpb");
 
     if(!fname.isEmpty()) {
         QFile file(fname);
@@ -510,12 +514,12 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionSaveAs_triggered()
 {
-    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpl");
+    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpb");
 
     if(!fname.isEmpty()) {
         // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
 
-        if(!fname.endsWith(".nrpl")) fname+=".nrpl";
+        if(!fname.endsWith(".nrpb")) fname+=".nrpb";
 
         QFile file(fname);
 
@@ -862,7 +866,50 @@ void MainWindow::on_usbconnectButton_clicked()
 
 void MainWindow::on_actionUSB_Remote_ARCHIVE_to_file_triggered()
 {
+    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpb");
 
+    if(!fname.isEmpty()) {
+        // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
+
+        if(!fname.endsWith(".nrpb")) fname+=".nrpb";
+
+        QFile file(fname);
+
+        if(!file.open(QIODevice::WriteOnly)) {
+            QMessageBox a(QMessageBox::Warning,"Error while saving","Cannot write to file "+ fname,QMessageBox::Ok,this);
+            a.exec();
+            return;
+        }
+
+        // FILE IS OPEN AND READY FOR WRITING
+
+
+        if(!usbremotearchivestart()) {
+            QMessageBox a(QMessageBox::Warning,"Error while saving","Failed to send remote commands"+ fname,QMessageBox::Ok,this);
+            a.exec();
+            file.close();
+            return;
+        }
+
+#define USBARCHIVE_MAX_SIZE_WORDS 1024*1024
+
+        uint32_t *buffer=new uint32_t[USBARCHIVE_MAX_SIZE_WORDS];    // 4 MB EXPECTED MAXIMUM SIZE OF AN ARCHIVE
+        if(!buffer) { file.close(); return; }   // RETURN - THIS WILL NEVER HAPPEN FOR JUST 4 MB
+
+
+        int nwords = usbreceivearchive(buffer,USBARCHIVE_MAX_SIZE_WORDS);
+        if(nwords==-1) {
+            file.close();
+            QMessageBox a(QMessageBox::Warning,"Error while saving","USB communication error",QMessageBox::Ok,this);
+            a.exec();
+            return;
+        }
+
+        file.write((const char *)buffer,nwords*sizeof(uint32_t));
+
+        file.close();
+
+    }
 }
 
 void MainWindow::on_actionRemote_USBRESTORE_from_file_triggered()

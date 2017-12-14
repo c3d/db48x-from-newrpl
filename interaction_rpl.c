@@ -4,6 +4,7 @@
 // IN NEWRPL CONFLICTING WITH QT
 
 #include <newrpl.h>
+#include <libraries.h>
 #include <ui.h>
 
 // GET A POINTER TO AN OBJECT ON THE STACK, AS WELL AS ITS SIZE
@@ -60,5 +61,104 @@ void pushtext(char *data,int sizebytes)
 
     rplPushData(newobj);
     halScreen.DirtyFlag|=CMDLINE_ALLDIRTY|FORM_DIRTY|STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
+
+}
+
+
+int usbsendtoremote(uint32_t *data,int nwords)
+{
+    return usb_transmitdata((BYTEPTR) data,nwords*sizeof(WORD));
+}
+
+int usbremotearchivestart()
+{
+    WORD program[]={
+        CMD_USBARCHIVE
+    };
+
+    return usb_transmitdata((BYTEPTR)&program,4);
+}
+
+
+
+// THESE ARE INTERNALS FROM THE USB DRIVER - COPIED HERE FOR PROPER INTERACTION
+extern BINT __usb_longoffset;
+extern BINT __usb_longactbuffer;                 // WHICH BUFFER IS BEING WRITTEN
+extern BINT __usb_longlastsize;                  // LAST BLOCK SIZE IN A LONG TRANSMISSION
+extern BYTEPTR __usb_rcvbuffer;
+extern WORD __usb_rcvtotal __SYSTEM_GLOBAL__;
+extern WORD __usb_rcvpartial __SYSTEM_GLOBAL__;
+extern WORD __usb_rcvcrc __SYSTEM_GLOBAL__;
+extern BINT __usb_rcvblkmark __SYSTEM_GLOBAL__;    // TYPE OF RECEIVED BLOCK (ONE OF USB_BLOCKMARK_XXX CONSTANTS)
+
+extern void usb_irqservice();
+
+
+// RECEIVE AN ENTIRE ARCHIVE, RETURN WORD COUNT, OR -1 IF ERROR
+int usbreceivearchive(uint32_t *buffer,int bufsize)
+{
+    int flag=rplTestSystemFlag(FL_NOAUTORECV);
+    rplSetSystemFlag(FL_NOAUTORECV);
+
+    if(!usb_receivelong_start()) {
+        if(flag) rplSetSystemFlag(FL_NOAUTORECV);
+        else     rplClrSystemFlag(FL_NOAUTORECV);
+
+
+        return 0;
+    }
+
+
+     BINT count=0;
+
+     do {
+         while(!usb_hasdata()) usb_irqservice();
+
+         // CHECK IF THE RECEIVED BLOCK IS OURS
+         if((__usb_rcvblkmark==USB_BLOCKMARK_MULTISTART)||(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)) {
+             if(count) {
+                 // BAD BLOCK, WE CAN ONLY RECEIVE THE FIRST BLOCK ONCE, ABORT
+                 if(flag) rplSetSystemFlag(FL_NOAUTORECV);
+                 else     rplClrSystemFlag(FL_NOAUTORECV);
+                 return -1;
+             }
+             if(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE) __usb_longlastsize=__usb_rcvtotal;
+
+         }
+         if((__usb_rcvblkmark==USB_BLOCKMARK_MULTI)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND)) {
+             if(!count) {
+                 // BAD BLOCK, WE CAN ONLY RECEIVE THE FIRST BLOCK ONCE, ABORT
+                 if(flag) rplSetSystemFlag(FL_NOAUTORECV);
+                 else     rplClrSystemFlag(FL_NOAUTORECV);
+                 return -1;
+             }
+
+         }
+
+
+         // HAVE A GOOD BLOCK!
+
+         if(count+__usb_rcvtotal>=bufsize*sizeof(WORD)) {
+             if(flag) rplSetSystemFlag(FL_NOAUTORECV);
+             else     rplClrSystemFlag(FL_NOAUTORECV);
+
+             return -1; // BUFFER TOO SMALL
+            }
+
+        memmoveb(&buffer[count],__usb_rcvbuffer,__usb_rcvtotal);
+        count+=__usb_rcvtotal;
+        if(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND) {
+            // LAST BLOCK RECEIVED AND PROCESSED
+            usb_releasedata();
+            break;
+        }
+        usb_releasedata();
+     } while(1);
+
+    usb_receivelong_finish();
+    if(flag) rplSetSystemFlag(FL_NOAUTORECV);
+    else     rplClrSystemFlag(FL_NOAUTORECV);
+
+    return (count+3)>>2;
 
 }
