@@ -261,3 +261,22 @@ DISTFILES +=
 install_bin.path = $$PWD/tools-bin
 install_bin.files = $$OUT_PWD/newrpl-comp
 INSTALLS += install_bin
+
+
+# Additional external library HIDAPI linked statically into the code
+
+
+INCLUDEPATH += external/hidapi/hidapi
+
+HEADERS += external/hidapi/hidapi/hidapi.h
+
+win32: SOURCES += external/hidapi/windows/hid.c
+win32: LIBS += -lsetupapi
+
+unix:!macx: SOURCES += external/hidapi/linux/hid.c
+unix:!macx: LIBS += -ludev
+
+macx: SOURCES += external/hidapi/mac/hid.c
+macx: LIBS += -framework CoreFoundation -framework IOKit
+
+# End of HIDAPI
