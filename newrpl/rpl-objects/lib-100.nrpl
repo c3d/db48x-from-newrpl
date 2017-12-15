@@ -25,7 +25,7 @@
 
 @#name lib100_menu
 {
-USBON USBOFF USBSEND USBRECV USBSTATUS
+USBSEND USBRECV USBARCHIVE USBRESTORE USBSTATUS USBON USBOFF
 }
 
 
@@ -60,4 +60,15 @@ USBAUTORCV
 "Receive an object,
 then do XEQ on it.
  → "
+
+USBRESTORE
+"Receive a backup file, timeout
+after given time
+R<time> → O I<T/F>"
+
+USBARCHIVE
+"Transmit a backup file to
+remote calc.
+ → "
+
 }
