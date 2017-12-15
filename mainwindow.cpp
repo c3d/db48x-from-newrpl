@@ -34,6 +34,7 @@ extern hid_device *__usb_curdevice;
 
 
 extern "C" void usb_irqservice();
+extern "C" int usb_isconnected();
 
 extern "C" void __keyb_update();
 // BACKUP/RESTORE
@@ -50,6 +51,8 @@ extern unsigned char *__sd_buffer;    // BUFFER WITH THE ENTIRE CONTENTS OF THE 
 
 extern "C" int usbremotearchivestart();
 extern "C" int usbreceivearchive(uint32_t *buffer,int bufsize);
+extern "C" int usbremoterestorestart();
+extern "C" int usbsendarchive(uint32_t *buffer,int bufsize);
 
 
 
@@ -376,12 +379,12 @@ void MainWindow::on_actionSave_triggered()
 {
     QString fname;
 
-    if(currentfile.isEmpty()) fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpl");
+    if(currentfile.isEmpty()) fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpb");
     else fname=currentfile;
     if(!fname.isEmpty()) {
         // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
 
-        if(!fname.endsWith(".nrpl")) fname+=".nrpl";
+        if(!fname.endsWith(".nrpb")) fname+=".nrpb";
 
         QFile file(fname);
 
@@ -817,6 +820,8 @@ if(!__usb_curdevice) {
       }
       ui->usbconnectButton->setText(currentusb+ QString(" [ Click to reconnect ]"));
     }
+    if(usb_isconnected())
+        usb_irqservice();
     return;
 }
 
@@ -859,8 +864,11 @@ void MainWindow::on_usbconnectButton_clicked()
         }
 
     }
-    if(currentusb.isEmpty()) ui->usbconnectButton->setText(" [ Select a USB Device ] ");
+    if(currentusb.isEmpty())
+        ui->usbconnectButton->setText(" [ Select a USB Device ] ");
     else ui->usbconnectButton->setText(currentusb);
+
+    usbupdate();
 
 }
 
@@ -885,7 +893,7 @@ void MainWindow::on_actionUSB_Remote_ARCHIVE_to_file_triggered()
 
 
         if(!usbremotearchivestart()) {
-            QMessageBox a(QMessageBox::Warning,"Error while saving","Failed to send remote commands"+ fname,QMessageBox::Ok,this);
+            QMessageBox a(QMessageBox::Warning,"Error while saving","Failed to send remote commands to "+ currentusb,QMessageBox::Ok,this);
             a.exec();
             file.close();
             return;
@@ -914,5 +922,46 @@ void MainWindow::on_actionUSB_Remote_ARCHIVE_to_file_triggered()
 
 void MainWindow::on_actionRemote_USBRESTORE_from_file_triggered()
 {
+    QString fname=QFileDialog::getOpenFileName(this,"Open File Name",QString(),"*.nrpb");
 
+    if(!fname.isEmpty()) {
+        QFile file(fname);
+
+        if(!file.open(QIODevice::ReadOnly)) {
+            QMessageBox a(QMessageBox::Warning,"Error while opening","Cannot open file "+ fname,QMessageBox::Ok,this);
+            a.exec();
+            return;
+        }
+
+
+        // FILE IS OPEN AND READY FOR READING
+
+        QByteArray filedata;
+
+        filedata=file.readAll();
+
+        file.close();
+
+
+        QMessageBox warn(QMessageBox::Warning,"Remote USBRESTORE","USBRESTORE will completely replace *ALL DATA* on the connected device with no way to undo the operation. OK to proceed?",QMessageBox::Yes | QMessageBox::No,this);
+
+        if(warn.exec()==QMessageBox::Yes) {
+
+        if(!usbremoterestorestart()) {
+            QMessageBox a(QMessageBox::Warning,"Error while restoring","Failed to send remote commands to "+ currentusb,QMessageBox::Ok,this);
+            a.exec();
+            return;
+        }
+
+        int nwords = usbsendarchive((uint32_t *)filedata.constData(),(filedata.size()+3)>>2);
+        if(nwords==-1) {
+            file.close();
+            QMessageBox a(QMessageBox::Warning,"Error while restoring","USB communication error",QMessageBox::Ok,this);
+            a.exec();
+            return;
+        }
+
+        }
+
+    }
 }

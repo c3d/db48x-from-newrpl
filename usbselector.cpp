@@ -30,7 +30,7 @@ USBSelector::USBSelector(QWidget *parent) :
     tmr = new QTimer(this);
     if(tmr) {
     connect(tmr, SIGNAL(timeout()), this, SLOT(refresh()));
-    tmr->start(2000);
+    tmr->start(500);
     }
 
 }

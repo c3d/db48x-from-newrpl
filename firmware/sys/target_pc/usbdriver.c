@@ -218,7 +218,7 @@ void usb_ep1_transmit(int newtransmission)
 void usb_irqservice()
 {
 do {
-    if(!__usb_curdevice) usb_shutdown();
+    if(!__usb_curdevice) { usb_shutdown(); return; }
 
     if(!(__usb_drvstatus&USB_STATUS_INIT)) usb_init(0);
 

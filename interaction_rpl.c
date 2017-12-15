@@ -76,10 +76,20 @@ int usbremotearchivestart()
         CMD_USBARCHIVE
     };
 
-    return usb_transmitdata((BYTEPTR)&program,4);
+    return usb_transmitdata((BYTEPTR)&program,1*sizeof(WORD));
 }
 
+int usbremoterestorestart()
+{
+    WORD program[]={
+        MKPROLOG(SECO,3),
+        MAKESINT(3),
+        CMD_USBRESTORE,
+        CMD_QSEMI,
+    };
 
+    return usb_transmitdata((BYTEPTR)&program,4*sizeof(WORD));
+}
 
 // THESE ARE INTERNALS FROM THE USB DRIVER - COPIED HERE FOR PROPER INTERACTION
 extern BINT __usb_longoffset;
@@ -145,7 +155,7 @@ int usbreceivearchive(uint32_t *buffer,int bufsize)
              return -1; // BUFFER TOO SMALL
             }
 
-        memmoveb(&buffer[count],__usb_rcvbuffer,__usb_rcvtotal);
+        memmoveb(((unsigned char *)buffer)+count,__usb_rcvbuffer,__usb_rcvtotal);
         count+=__usb_rcvtotal;
         if(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND) {
             // LAST BLOCK RECEIVED AND PROCESSED
@@ -161,4 +171,10 @@ int usbreceivearchive(uint32_t *buffer,int bufsize)
 
     return (count+3)>>2;
 
+}
+
+// RECEIVE AN ENTIRE ARCHIVE, RETURN WORD COUNT, OR -1 IF ERROR
+int usbsendarchive(uint32_t *buffer,int bufsize)
+{
+    return usb_transmitdata((BYTEPTR)buffer,bufsize*sizeof(WORD));
 }
