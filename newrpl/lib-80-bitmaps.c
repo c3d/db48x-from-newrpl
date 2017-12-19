@@ -392,9 +392,9 @@ void rplBMPRenderAllocPoint(WORDPTR *rstatusptr,BMP_RENDERSTATE **renderstptr,BI
 
     memmovew(newobj,rstatus,OBJSIZE(*rstatus));
 
-    // STRETCH THE LIBDATA OBJECT
+    // STRETCH THE BINDATA OBJECT
     WORDPTR libdata=PERSISTPTR(newobj);
-    *libdata=MKPROLOG(DOLIBDATA, RENDERSTATE_SIZE(need*8));
+    *libdata=MKPROLOG(DOBINDATA, RENDERSTATE_SIZE(need*8));
     renderst=(BMP_RENDERSTATE *) (libdata+1);
     libdata=rplSkipOb(libdata);
     *libdata=CMD_ENDLIST;
@@ -503,7 +503,7 @@ void LIB_HANDLER()
         ptr[2]=h;
         memsetw(ptr+3,0,totalsize);     // CLEAR NEW BITMAP BACKGROUND
         ptr=PERSISTPTR(newrst);
-        ptr[0]=MKPROLOG(DOLIBDATA,RENDERSTATE_SIZE(1));
+        ptr[0]=MKPROLOG(DOBINDATA,RENDERSTATE_SIZE(1));
 
         // INITIALIZE THE RENDERING STRUCTURE
         BMP_RENDERSTATE *renderst=(BMP_RENDERSTATE *)(ptr+1);

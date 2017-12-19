@@ -238,7 +238,7 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define DOMATRIX    52       // ARRAY OBJECT
 
-#define DOLIBDATA   77      // ARBITRARY BINARY DATA (LIBRARY DATA)
+#define DOBINDATA   77      // ARBITRARY BINARY DATA (LIBRARY DATA)
 
 #define DOFONT      78      // FONT OBJECT
 
@@ -297,7 +297,7 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define ISFONT(prolog)   (ISPROLOG(prolog) && (LIBNUM(prolog)==DOFONT))
 
-#define ISLIBDATA(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIBDATA))
+#define ISBINDATA(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOBINDATA))
 
 #define ANGLEMODE(prolog) ( (ISANGLE(prolog)? (BINT)(LIBNUM(prolog)&3):(BINT)ANGLENONE) )
 
@@ -306,6 +306,7 @@ void libFindMsg(BINT message,WORDPTR table);
 
 // CONVENIENCE MACRO TO CREATE SMALL INTEGERS
 #define MAKESINT(a) MKOPCODE(DECBINT,(a)&0x3ffff)
+#define MAKESINTH(a) MKOPCODE(HEXBINT,(a)&0x3ffff)
 #define MAKEBINT64(a) MKPROLOG(DECBINT,2),(WORD)(((BINT64)a)&0xffffffff),((WORD)(((BINT64)a)>>32))
 
 #define MAKEREALFLAGS(exp,len,flags)  ((WORD)(((exp)&0xffff)|(((len)&0xfff)<<16)|(((flags)&0xf)<<28) ))

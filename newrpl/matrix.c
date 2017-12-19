@@ -889,7 +889,7 @@ void rplMatrixReduce()
         return;
     }
 
-    IdxList[0]=MKPROLOG(DOLIBDATA,rowsa);
+    IdxList[0]=MKPROLOG(DOBINDATA,rowsa);
     rplPushDataNoGrow(IdxList);
     rplPushDataNoGrow(*a);
     idx=a+1;
@@ -1025,7 +1025,7 @@ void rplMatrixInvert()
         return;
     }
 
-    IdxList[0]=MKPROLOG(DOLIBDATA,rowsa);
+    IdxList[0]=MKPROLOG(DOBINDATA,rowsa);
     rplPushDataNoGrow(IdxList);
     rplPushDataNoGrow(*a);
     idx=a+1;
@@ -2077,7 +2077,7 @@ WORDPTR rplMatrixInitIdx(BINT nrows)
             return 0;
         }
 
-        IdxList[0]=MKPROLOG(DOLIBDATA,nrows);
+        IdxList[0]=MKPROLOG(DOBINDATA,nrows);
 
         BINT k;
         for(k=1;k<=nrows;++k) IdxList[k]=k;

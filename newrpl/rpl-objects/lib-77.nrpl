@@ -25,14 +25,14 @@
 
 @#name lib77_menu
 {
-MKLIBDATA
+MKBINDATA
 }
 
 @#name lib77_cmdhelp
 {
 
-MKLIBDATA
-"Create a LIBDATA object
+MKBINDATA
+"Create a BINDATA object
 of given size in bytes
 I<bytes> → "
 

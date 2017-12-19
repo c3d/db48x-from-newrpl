@@ -27,14 +27,22 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(MKLIBDATA,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)) \
-
+    CMD(MKBINDATA,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINPUTB,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINGETB,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINPUTW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINGETW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINPUTOBJ,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINGETOBJ,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2))
 
 
 // ADD MORE OPCODES HERE
 
 #define ERROR_LIST \
-    ERR(INVALIDSIZE,0)
+    ERR(INVALIDSIZE,0), \
+    ERR(BINDATAEXPECTED,1), \
+    ERR(READOUTSIDEOBJECT,2), \
+    ERR(WRITEOUTSIDEOBJECT,3)
 
 
 
@@ -83,7 +91,7 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
-        case MKLIBDATA:
+        case MKBINDATA:
         {
             if(rplDepthData()<1) {
                 rplError(ERR_BADARGCOUNT);
@@ -107,14 +115,219 @@ void LIB_HANDLER()
 
             newobj[0]=MKPROLOG(LIBRARY_NUMBER,sizebytes);
 
-            // FOR SPEED, DON'T CLEAR THE DATA, USE IS RESPONSIBLE FOR DATA INITIALIZATION
+            // FOR SPEED, DON'T CLEAR THE DATA, USER IS RESPONSIBLE FOR DATA INITIALIZATION
 
             rplOverwriteData(1,newobj);
             return;
 
 
         }
+    case BINPUTB:
+    {
+        // ARGUMENTS: DEST_BINDATA DEST_OFFSET SOURCE_BINDATA SRC_OFFSET NBYTES
 
+        if(rplDepthData()<5) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISBINDATA(*rplPeekData(5))) {
+            rplError(ERR_BINDATAEXPECTED);
+            return;
+        }
+
+        BINT destsize=sizeof(WORD)*rplObjSize(rplPeekData(5));
+
+        BINT64 destoffset=rplReadNumberAsBINT(rplPeekData(4));
+
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+
+        destoffset+=4;
+
+        // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
+
+        BINT64 srcoffset=rplReadNumberAsBINT(rplPeekData(2));
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+        srcoffset+=4;
+        BINT64 nbytes=rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+
+        BINT srcsize=sizeof(WORD)*rplObjSize(rplPeekData(3));
+
+        if(srcoffset+nbytes>srcsize) {\
+            rplError(ERR_READOUTSIDEOBJECT);
+            return;
+        }
+
+        if(destoffset+nbytes>destsize) {\
+            rplError(ERR_WRITEOUTSIDEOBJECT);
+            return;
+        }
+
+        // EVERYTHING WORKS
+
+        WORDPTR newobj=rplMakeNewCopy(rplPeekData(5));
+        if(!newobj) return; // NOT ENOUGH MEMORY
+        memmoveb(((BYTEPTR)newobj)+destoffset,((BYTEPTR)rplPeekData(3))+srcoffset,nbytes);
+
+        rplOverwriteData(5,newobj);
+        rplDropData(4);
+        return;
+
+    }
+
+
+    case BINGETB:
+    {
+        // ARGUMENTS: SOURCE_BINDATA SRC_OFFSET NBYTES
+
+        if(rplDepthData()<3) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
+
+        BINT64 srcoffset=rplReadNumberAsBINT(rplPeekData(2));
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+        srcoffset+=4;
+        BINT64 nbytes=rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+
+        BINT srcsize=sizeof(WORD)*rplObjSize(rplPeekData(3));
+
+        if(srcoffset+nbytes>srcsize) {\
+            rplError(ERR_READOUTSIDEOBJECT);
+            return;
+        }
+
+
+        // EVERYTHING WORKS
+
+        WORDPTR newobj=rplAllocTempOb(nbytes+1);
+        if(!newobj) return; // NOT ENOUGH MEMORY
+        BINT k;
+
+        BYTEPTR ptr=(BYTEPTR)rplPeekData(3);
+        ptr+=srcoffset;
+
+        for(k=1;k<=nbytes;++k,++ptr)
+        {
+            newobj[k]=MAKESINTH(*ptr);
+        }
+        newobj[k]=CMD_ENDLIST;
+        newobj[0]=MKPROLOG(DOLIST,nbytes+1);
+
+        rplOverwriteData(3,newobj);
+        rplDropData(2);
+        return;
+
+    }
+
+
+    case BINPUTW:
+    {
+        // ARGUMENTS: DEST_BINDATA DEST_OFFSET SOURCE_BINDATA SRC_OFFSET NWORDS
+
+        if(rplDepthData()<5) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISBINDATA(*rplPeekData(5))) {
+            rplError(ERR_BINDATAEXPECTED);
+            return;
+        }
+
+        BINT destsize=rplObjSize(rplPeekData(5));
+
+        BINT64 destoffset=rplReadNumberAsBINT(rplPeekData(4));
+
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+
+        destoffset+=1;
+
+        // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
+
+        BINT64 srcoffset=rplReadNumberAsBINT(rplPeekData(2));
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+        srcoffset+=1;
+        BINT64 nwords=rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+
+        BINT srcsize=rplObjSize(rplPeekData(3));
+
+        if(srcoffset+nwords>srcsize) {\
+            rplError(ERR_READOUTSIDEOBJECT);
+            return;
+        }
+
+        if(destoffset+nwords>destsize) {\
+            rplError(ERR_WRITEOUTSIDEOBJECT);
+            return;
+        }
+
+        // EVERYTHING WORKS
+
+        WORDPTR newobj=rplMakeNewCopy(rplPeekData(5));
+        if(!newobj) return; // NOT ENOUGH MEMORY
+        memmovew(newobj+destoffset,rplPeekData(3)+srcoffset,nwords);
+
+        rplOverwriteData(5,newobj);
+        rplDropData(4);
+        return;
+
+    }
+
+
+    case BINGETW:
+    {
+        // ARGUMENTS: SOURCE_BINDATA SRC_OFFSET NBYTES
+
+        if(rplDepthData()<3) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
+
+        BINT64 srcoffset=rplReadNumberAsBINT(rplPeekData(2));
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+        srcoffset+=1;
+        BINT64 nwords=rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+
+        BINT srcsize=rplObjSize(rplPeekData(3));
+
+        if(srcoffset+nwords>srcsize) {
+            rplError(ERR_READOUTSIDEOBJECT);
+            return;
+        }
+
+
+        // EVERYTHING WORKS
+
+        WORDPTR newobj=rplAllocTempOb(nwords*3+1);
+        if(!newobj) return; // NOT ENOUGH MEMORY
+        BINT k;
+
+        WORDPTR ptr=rplPeekData(3);
+        ptr+=srcoffset;
+
+        for(k=0;k<nwords;++k,++ptr)
+        {
+            newobj[3*k+1]=MKPROLOG(HEXBINT,2);
+            newobj[3*k+2]=*ptr;
+            newobj[3*k+3]=0;
+        }
+        newobj[3*k+1]=CMD_ENDLIST;
+        newobj[0]=MKPROLOG(DOLIST,3*nwords+1);
+
+        rplOverwriteData(3,newobj);
+        rplDropData(2);
+        return;
+
+    }
 
     case OVR_SAME:
     // COMPARE AS PLAIN OBJECTS, THIS INCLUDES SIMPLE COMMANDS IN THIS LIBRARY
@@ -167,7 +380,7 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
-        if((TokenLen==8) && (!utf8ncmp((char *)TokenStart,"LIBDATA",8))) {
+        if((TokenLen==8) && (!utf8ncmp((char *)TokenStart,"BINDATA",8))) {
 
             ScratchPointer4=CompileEnd;
             rplCompileAppend(MKPROLOG(LIBRARY_NUMBER,0));
@@ -179,8 +392,7 @@ void LIB_HANDLER()
             // THIS STANDARD FUNCTION WILL TAKE CARE OF COMPILATION OF STANDARD COMMANDS GIVEN IN THE LIST
             // NO NEED TO CHANGE THIS UNLESS CUSTOM OPCODES
 
-        RetNum=ERR_NOTMINE;
-        //libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
+        libCompileCmds(LIBRARY_NUMBER,(char **)LIB_NAMES,NULL,LIB_NUMBEROFCMDS);
      return;
     case OPCODE_COMPILECONT:
     {
@@ -306,7 +518,7 @@ void LIB_HANDLER()
         if(ISPROLOG(*DecompileObject)) {
             // DECOMPILE FONT
 
-            rplDecompAppendString((BYTEPTR)"LIBDATA ");
+            rplDecompAppendString((BYTEPTR)"BINDATA ");
             BINT size=OBJSIZE(*DecompileObject);
             BINT k,zero=1,nibble;
             for(k=4;k>=0;--k) {
