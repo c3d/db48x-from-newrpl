@@ -329,6 +329,99 @@ void LIB_HANDLER()
 
     }
 
+    case BINPUTOBJ:
+    {
+        // ARGUMENTS: DEST_BINDATA DEST_OFFSET SOURCE_OBJECT
+
+        if(rplDepthData()<3) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISBINDATA(*rplPeekData(3))) {
+            rplError(ERR_BINDATAEXPECTED);
+            return;
+        }
+
+        BINT destsize=sizeof(WORD)*rplObjSize(rplPeekData(3));
+
+        BINT64 destoffset=rplReadNumberAsBINT(rplPeekData(2));
+
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+
+        destoffset+=4;
+
+        // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
+
+        BINT nbytes=sizeof(WORD)*rplObjSize(rplPeekData(1));
+
+        if(destoffset+nbytes>destsize) {\
+            rplError(ERR_WRITEOUTSIDEOBJECT);
+            return;
+        }
+
+        // EVERYTHING WORKS
+
+        WORDPTR newobj=rplMakeNewCopy(rplPeekData(3));
+        if(!newobj) return; // NOT ENOUGH MEMORY
+        memmoveb(((BYTEPTR)newobj)+destoffset,(BYTEPTR)rplPeekData(1),nbytes);
+
+        rplOverwriteData(3,newobj);
+        rplDropData(2);
+        return;
+
+    }
+
+
+    case BINGETOBJ:
+    {
+        // ARGUMENTS: SOURCE_BINDATA SRC_OFFSET
+
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
+
+        BINT64 srcoffset=rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+        srcoffset+=4;
+
+        BYTEPTR ptr=(BYTEPTR)rplPeekData(2);
+
+        ptr+=srcoffset;
+
+        WORD prolog=ptr[0] | (ptr[1]<<8) | (ptr[2]<<16) | (ptr[3]<<24);
+
+        BINT nwords=OBJSIZE(prolog);
+
+        if(((1+nwords)*sizeof(WORD)+srcoffset)>sizeof(WORD)*rplObjSize(rplPeekData(2))) {
+            rplError(ERR_READOUTSIDEOBJECT);
+            return;
+        }
+
+        // AT LEAST WE CAN READ AN OBJECT FROM THERE
+
+        WORDPTR newobj=rplAllocTempOb(nwords);
+        if(!newobj) return; // NOT ENOUGH MEMORY
+
+        memmoveb(newobj,ptr,(1+nwords)*sizeof(WORD));   // EXTRACT THE ENTIRE OBJECT
+
+        // VERIFY THE OBJECT JUST IN CASE
+
+        if(!rplVerifyObject(newobj)) {
+            rplError(ERR_MALFORMEDOBJECT);
+            return;
+        }
+
+
+        rplOverwriteData(2,newobj);
+        rplDropData(1);
+        return;
+
+    }
+
     case OVR_SAME:
     // COMPARE AS PLAIN OBJECTS, THIS INCLUDES SIMPLE COMMANDS IN THIS LIBRARY
         {
