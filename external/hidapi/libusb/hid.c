@@ -1088,10 +1088,10 @@ int HID_API_EXPORT hid_read_timeout(hid_device *dev, unsigned char *data, size_t
 	pthread_cleanup_push(&cleanup_mutex, dev);
 
 	/* There's an input report queued up. Return it. */
-	if (dev->input_reports) {
+        while(dev->input_reports) {
 		/* Return the first one */
 		bytes_read = return_data(dev, data, length);
-		goto ret;
+                if(bytes_read) goto ret;
 	}
 
 	if (dev->shutdown_thread) {
@@ -1127,7 +1127,7 @@ int HID_API_EXPORT hid_read_timeout(hid_device *dev, unsigned char *data, size_t
 			if (res == 0) {
 				if (dev->input_reports) {
 					bytes_read = return_data(dev, data, length);
-					break;
+                                        if(bytes_read) break;
 				}
 
 				/* If we're here, there was a spurious wake up
