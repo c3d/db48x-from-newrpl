@@ -12,6 +12,7 @@ CONFIG = static ordered
 DEFINES += TARGET_50G NDEBUG "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
 
+
 # DO NOT ALTER THE ORDER OF THESE MODULES
 
 
@@ -279,16 +280,14 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 
+# Cross compiler dependent
 
-
-
-# This might need to be adapted to each cross-compiler installation
-GCC_LIBDIR = /usr/lib/gcc/arm-none-eabi/4.9.3
+GCC_LIBDIR = $$system(arm-none-eabi-gcc -print-file-name=)
 
 INCLUDEPATH += $$GCC_LIBDIR/include
 QMAKE_LIBDIR += $$GCC_LIBDIR
 
-# End of cross-compiler dependent
+
 
 
 INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
