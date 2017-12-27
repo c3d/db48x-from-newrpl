@@ -253,8 +253,8 @@ LIBS += -L/usr/local/lib
 
 DISTFILES +=
 
-
-#QMAKE_CFLAGS += -Wno-duplicate-decl-specifier
+# Clang doesn't like double const specifiers, but are needed for firmware: disable the warning
+clang: QMAKE_CFLAGS += -Wno-duplicate-decl-specifier
 
 
 
@@ -273,8 +273,11 @@ HEADERS += external/hidapi/hidapi/hidapi.h
 win32: SOURCES += external/hidapi/windows/hid.c
 win32: LIBS += -lsetupapi
 
-unix:!macx: SOURCES += external/hidapi/linux/hid.c
-unix:!macx: LIBS += -ludev
+freebsd: SOURCES += external/hidapi/libusb/hid.c
+freebsd: LIBS += -lusb -lthr -liconv
+
+unix:!macx:!freebsd: SOURCES += external/hidapi/linux/hid.c
+unix:!macx:!freebsd: LIBS += -ludev
 
 macx: SOURCES += external/hidapi/mac/hid.c
 macx: LIBS += -framework CoreFoundation -framework IOKit

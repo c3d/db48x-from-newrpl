@@ -191,11 +191,11 @@ void USBSelector::RefreshList()
 
 
 
-                            int res=hid_write(thisdev,((const unsigned char *)getversion)+3,(getversion[1]>>8)+9);
+                            int res=hid_write(thisdev,((const unsigned char *)getversion)+3,RAWHID_TX_SIZE+1);//(getversion[1]>>8)+9);
                             int available=0;
                             if(res>0) {
                                 unsigned char buffer[1024];
-                                res=hid_read_timeout(thisdev,buffer,1024,100);
+                                res=hid_read_timeout(thisdev,buffer,1024,500);
 
                                 if(res>0) {
                                     // WE GOT A RESPONSE, THE DEVICE IS ALIVE!
@@ -211,7 +211,7 @@ void USBSelector::RefreshList()
                                         res=hid_write(thisdev,buffer,RAWHID_TX_SIZE+1);
 
                                         if(res>0) {
-                                            res=hid_read_timeout(thisdev,buffer,1024,100);
+                                            res=hid_read_timeout(thisdev,buffer,1024,2000);
 
                                             if(res>0) {
                                                 // WE GOT A RESPONSE, THE DEVICE IS ALIVE!
