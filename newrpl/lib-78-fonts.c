@@ -670,6 +670,7 @@ void LIB_HANDLER()
         // APPLY UNARY OPERATOR DIRECTLY TO THE CONTENTS OF THE VARIABLE
             switch(OPCODE(CurOpcode))
             {
+            case OVR_FUNCEVAL:
             case OVR_EVAL1:
             case OVR_EVAL:
             case OVR_XEQ:

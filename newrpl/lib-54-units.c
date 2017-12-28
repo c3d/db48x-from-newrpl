@@ -198,6 +198,7 @@ void LIB_HANDLER()
 
         switch(OPCODE(CurOpcode))
         {
+        case OVR_FUNCEVAL:
         case OVR_EVAL:
         case OVR_EVAL1:
         case OVR_XEQ:

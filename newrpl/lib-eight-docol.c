@@ -789,6 +789,7 @@ void LIB_HANDLER()
 
 
     case OVR_ISTRUE:
+    case OVR_FUNCEVAL:
     case OVR_EVAL:
     case OVR_EVAL1:
         // EXECUTE THE OBJECT

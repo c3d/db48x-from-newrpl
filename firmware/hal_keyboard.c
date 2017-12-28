@@ -454,7 +454,9 @@ if(iseval) {
         if(RSTop>=RStk+rstksave) {
             RSTop=RStk+rstksave;
             // BLAME THE ERROR ON THE COMMAND WE CALLED
-            if(BlameCmd!=0) rplBlameError(BlameCmd);
+            if(!rplIsTempObPointer(ExceptionPointer)){
+                if(BlameCmd!=0) rplBlameError(BlameCmd);
+            }
         }
         else { rplCleanup(); halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME); }
         if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;

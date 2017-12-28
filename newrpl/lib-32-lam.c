@@ -108,6 +108,14 @@ ROMOBJECT lamistrue_seco[]={
     CMD_SEMI
 };
 
+ROMOBJECT lamfunceval_seco[]={
+    MKPROLOG(DOCOL,5),
+    MKOPCODE(LIBRARY_NUMBER,LAMEVALPRE),
+    (CMD_OVR_FUNCEVAL),    // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER,LAMEVALPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER,LAMEVALERR),     // ERROR HANDLER
+    CMD_SEMI
+};
 
 // INTERNAL RPL PROGRAM THAT CALLS ABND
 ROMOBJECT abnd_prog[]=
@@ -297,7 +305,7 @@ void LIB_HANDLER()
                     rplOverwriteData(1,*(val+1));    // REPLACE THE FIRST LEVEL WITH THE VALUE
 
                     rplPushRet(IPtr);
-                    IPtr=(WORDPTR) lameval_seco;
+                    IPtr=(WORDPTR) lamfunceval_seco;
                     CurOpcode=(CMD_OVR_EVAL);
                 }
                     return;
@@ -368,6 +376,7 @@ void LIB_HANDLER()
                         if(!val) {
                             // INEXISTENT VARIABLE CANNOT BE CONVERTED TO NUMBER
                             rplError(ERR_UNDEFINEDVARIABLE);
+                            rplBlameError(rplPeekData(1));
                             return;
                         }
                     }
@@ -412,6 +421,8 @@ void LIB_HANDLER()
                         if(!val) {
                             // INEXISTENT VARIABLE CANNOT BE CONVERTED TO NUMBER
                             rplError(ERR_UNDEFINEDVARIABLE);
+                            rplBlameError(rplPeekData(1));
+
                             return;
                         }
                     }
@@ -626,6 +637,8 @@ void LIB_HANDLER()
         }
         else {
             rplError(ERR_UNDEFINEDVARIABLE);
+            rplBlameError(rplPeekData(1));
+
             return;
         }
     }
@@ -682,8 +695,13 @@ void LIB_HANDLER()
         return;
     }
     case LAMEVALERR:
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
+
         // JUST CLEANUP AND EXIT
-        //DSTop=rplUnprotectData();
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;

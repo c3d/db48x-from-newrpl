@@ -1452,9 +1452,14 @@ const WORD const text_editor_string[]={
 
 WORDPTR halGetCommandName(WORDPTR NameObject)
 {
-    WORD Opcode=*NameObject;
+    WORD Opcode=NameObject? *NameObject : 0;
 
     if(Opcode==0) return (WORDPTR)text_editor_string;
+    if(ISSYMBOLIC(Opcode)) {
+        NameObject=rplSymbMainOperatorPTR(NameObject);
+        Opcode=*NameObject;
+    }
+
     if(ISPROLOG(Opcode)) {
         // ONLY ACCEPT IDENTS AND STRINGS AS COMMAND NAMES
         if(ISSTRING(Opcode)) return NameObject;

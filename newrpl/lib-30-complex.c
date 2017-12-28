@@ -6367,6 +6367,7 @@ void LIB_HANDLER()
             else rplPushData((WORDPTR)one_bint);
             return;
         }
+        case OVR_FUNCEVAL:
         case OVR_EVAL:
         case OVR_EVAL1:
         case OVR_XEQ:

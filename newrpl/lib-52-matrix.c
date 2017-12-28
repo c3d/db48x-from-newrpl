@@ -328,6 +328,68 @@ void LIB_HANDLER()
 
             return;
         }
+
+        case OVR_FUNCEVAL:
+            // EVALUATING A MATRIX OR VECTOR AS A FUNCTION GETS THE ELEMENT
+
+        {
+            WORDPTR comp=rplPeekData(1);
+                WORDPTR posobj;
+                BINT rows,cols,ndims;
+                BINT posrow,poscol;
+                rows=rplMatrixRows(comp);
+                cols=rplMatrixCols(comp);
+
+                if(!rows) {
+                    // THIS IS A VECTOR
+                    ndims=1;
+                    rows=1;
+                } else ndims=2; // IT'S A 2D MATRIX
+
+
+                if(rplDepthData()<ndims+1) {
+                    rplError(ERR_INVALIDPOSITION);
+                    return;
+                }
+                // CHECK IF WE HAVE THE RIGHT POSITION
+
+                    posobj=rplPeekData(2);
+                    poscol=rplReadNumberAsBINT(posobj);
+                    if(Exceptions) {
+                        rplError(ERR_INVALIDPOSITION);
+                        return;
+                    }
+
+                    if(ndims==2) {
+                      // READ THE SECOND COORDINATE (COLUMN)
+                      posobj=rplPeekData(3);
+                      posrow=rplReadNumberAsBINT(posobj);
+                      if(Exceptions) {
+                          rplError(ERR_INVALIDPOSITION);
+                          return;
+                      }
+
+                    } else posrow=1;
+
+                // CHECK IF THE POSITION IS WITHIN THE MATRIX
+
+                if( (posrow<1) || (posrow>rows) || (poscol<1) || (poscol>cols)) {
+                    rplError(ERR_INDEXOUTOFBOUNDS);
+                    return;
+                }
+
+                WORDPTR item=rplMatrixGet(comp,posrow,poscol);
+                if(!item) {
+                    rplError(ERR_INDEXOUTOFBOUNDS);
+                    return;
+                }
+
+                rplOverwriteData(1+ndims,item);
+                rplDropData(ndims);
+            return;
+
+        }
+
         case OVR_EVAL:
             // EVAL NEEDS TO SCAN THE MATRIX, EVAL EACH ARGUMENT SEPARATELY AND REBUILD IT.
         {

@@ -157,6 +157,7 @@ void rplCallOvrOperator(WORD op)
             // RESPOND TO OVERLOADED OPERATORS LIKE A LIBRARY HANDLER
             switch(OPCODE(op))
             {
+            case OVR_FUNCEVAL:
             case OVR_EVAL:
             case OVR_EVAL1:
             case OVR_XEQ:

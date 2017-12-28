@@ -440,6 +440,7 @@ void LIB_HANDLER()
     }
 
 
+    case OVR_FUNCEVAL:
     case OVR_EVAL:
     case OVR_EVAL1:
     case OVR_XEQ:
