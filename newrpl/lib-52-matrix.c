@@ -351,9 +351,27 @@ void LIB_HANDLER()
                     rplError(ERR_INVALIDPOSITION);
                     return;
                 }
+
                 // CHECK IF WE HAVE THE RIGHT POSITION
 
                     posobj=rplPeekData(2);
+
+                    if(ISSYMBOLIC(*posobj)) {
+                        if(!rplSymbIsNumeric(posobj)) {
+                            rplError(ERR_INVALIDPOSITION);
+                            return;
+                        }
+
+                        WORDPTR *stksave=DSTop;
+                        rplPushData(posobj);
+                        rplSymbNumericCompute();
+                        if(Exceptions) { DSTop=stksave; return; }
+
+                        posobj=rplPopData();
+
+
+                    }
+
                     poscol=rplReadNumberAsBINT(posobj);
                     if(Exceptions) {
                         rplError(ERR_INVALIDPOSITION);
@@ -363,6 +381,26 @@ void LIB_HANDLER()
                     if(ndims==2) {
                       // READ THE SECOND COORDINATE (COLUMN)
                       posobj=rplPeekData(3);
+
+                      if(ISSYMBOLIC(*posobj)) {
+                          if(!rplSymbIsNumeric(posobj)) {
+                              rplError(ERR_INVALIDPOSITION);
+                              return;
+                          }
+
+                          WORDPTR *stksave=DSTop;
+                          rplPushData(posobj);
+                          rplSymbNumericCompute();
+                          if(Exceptions) { DSTop=stksave; return; }
+
+                          posobj=rplPopData();
+
+
+                      }
+
+
+
+
                       posrow=rplReadNumberAsBINT(posobj);
                       if(Exceptions) {
                           rplError(ERR_INVALIDPOSITION);

@@ -169,6 +169,40 @@ void LIB_HANDLER()
             return;
         }
 
+        WORDPTR *stksave=DSTop;
+
+        if(rplDepthData()>=5) {
+            // CHECK IF THIS IS A RETRY DUE TO SYMBOLIC EVALUATION
+            if(rplPeekData(3)==IPtr) {
+
+                // REMOVE THE ERROR HANDLER IF THERE WERE NO ERRORS
+                if(ErrorHandler==(WORDPTR)retrysemi_seco) {
+                    rplRemoveExceptionHandler();
+                    rplDropRet(1);
+                }
+                // RETURN STACK HAS THE SAVED TOP OF STACK
+                WORDPTR *stkptr=(WORDPTR *)rplPopRet();
+                // ONLY RESTORE THE DATA STACK IF WITHIN LIMITS
+                if((stkptr>=DStkBottom)&&(stkptr<stksave)) stksave=stkptr;
+
+                // THE EVALUATION IS COMPLETE, NOW STORE THE VARIABLE
+                // THE STACK HAS: OBJECT , EXPRESSION, MARKER, IDENT, IDX_EXPRESSION_LIST
+                rplPushData(rplPeekData(5));
+                if(Exceptions) { DSTop=stksave; return; }
+
+                rplCallOperator(CMD_PUT);
+                if(Exceptions) { rplBlameError(IPtr); DSTop=stksave; return; }
+                // EVERYTHING WORKED OK
+                DSTop=stksave;
+                rplDropData(2);
+                return;
+            }
+        }
+
+
+
+
+
         WORDPTR *indir=0;
         // LIST IS A PATH, ONLY ENABLE PARALLEL PROCESSING FOR LISTS OF LISTS
         if(ISLIST(*rplPeekData(1)))
@@ -188,6 +222,68 @@ void LIB_HANDLER()
         }
 
         if(!indir) {
+        if(ISSYMBOLIC(*rplPeekData(1))) {
+            // ONLY ACCEPT A FUNCEVAL EXPRESSION TO DO 'PUT'
+            WORD oper=rplSymbMainOperator(rplPeekData(1));
+
+            if(oper!=CMD_OVR_FUNCEVAL) {
+                rplError(ERR_IDENTEXPECTED);
+                return;
+            }
+
+            // GET THE NAME OF THE IDENT IN THE LAST ARGUMENT OF THE EXPRESSION
+            rplPushDataNoGrow(IPtr);    // PUSH A MARKER FOR RETRY
+
+            BINT nargs=rplSymbExplodeOneLevel(rplPeekData(2));
+
+            if(Exceptions) { DSTop=stksave; return; }
+
+            rplDropData(2);
+            nargs-=2;       // REMOVE THE OPERATOR AND COUNT FROM THE STACK
+            if(nargs>2) {
+                // MAKE A LIST OF ARGUMENTS
+                WORDPTR newlist=rplCreateListN(nargs-1,2,1);
+                if(!newlist) { DSTop=stksave; return; }
+
+                rplPushData(newlist);
+            } else {
+             // SWAP THE IDENT NAME AND ARGUMENT
+             WORDPTR tmp=rplPeekData(1);
+             rplOverwriteData(1,rplPeekData(2));
+             rplOverwriteData(2,tmp);
+            }
+
+            // NOW PREPARE FRO A NON-ATOMIC EXECUTION OF ->NUM
+
+            rplPushRet((WORDPTR)stksave);
+            rplPushRet(IPtr);
+            rplSetExceptionHandler((WORDPTR)retrysemi_seco);
+            WORDPTR *rstopsave=RSTop;
+            rplPushRet(IPtr);
+            rplCallOvrOperator(CMD_OVR_NUM);
+            if(IPtr!=rstopsave[0]) {
+                // THIS OPERATION WAS NOT ATOMIC, LET THE RPL ENGINE RUN UNTIL IT COMES BACK HERE
+                rstopsave[1]=(WORDPTR)retrysemi_seco;   // REPLACE THE RETURN ADDRESS WITH A RETRY
+                return;
+            }
+            // OPERATION WAS ATOMIC, RESTORE AND CONTINUE
+            RSTop=rstopsave;
+            rplRemoveExceptionHandler();
+            rplPopRet();
+            // STORE THE VARIABLE
+
+            rplPushData(rplPeekData(5));
+            if(Exceptions) { DSTop=stksave; return; }
+
+            rplCallOperator(CMD_PUT);
+            if(Exceptions) { rplBlameError(IPtr); DSTop=stksave; return; }
+            // EVERYTHING WORKED OK
+            DSTop=stksave;
+            rplDropData(2);
+            return;
+            }
+
+
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);
             return;

@@ -653,6 +653,7 @@ void rplSymbAutoSimplify();
 WORDPTR rplSymbNumericReduce(WORDPTR object);
 BINT rplSymbIsNumeric(WORDPTR ptr);
 BINT rplSymbIsZero(WORDPTR ptr);
+void rplSymbNumericCompute();
 
 
 // INTERNAL SYMBOLIC API, FOR USE BY OTHER LIBRARIES

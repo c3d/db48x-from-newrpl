@@ -867,10 +867,11 @@ BINT rplSymbExplode(WORDPTR object)
 }
 
 
-// EXPLODE A SYMBOLIC IN THE STACK IN REVERSE (LEVEL 1 CONTAINS THE FIRST OBJECT, LEVEL 2 THE SECOND, ETC.)
+// EXPLODE A SYMBOLIC IN THE STACK
 // BUT ONLY EXPLODE THE OUTERMOST OPERATOR, KEEPING ITS ARGUMENTS UNEXPLODED
 // USES ScratchPointer1 THRU 3 FOR GC PROTECTION
 // RETURN THE NUMBER OF OBJECTS THAT ARE ON THE STACK
+// LEVEL 1=OPERATOR, LEVEL2=NARGS, LEVEL3=LAST ARG ... LEVEL 2+NARGS = 1ST ARG
 
 BINT rplSymbExplodeOneLevel(WORDPTR object)
 {
@@ -3405,4 +3406,47 @@ BINT rplSymbIsZero(WORDPTR ptr)
     }
     if(allzeros) return 1;
     return 0;
+}
+
+
+// FULLY COMPUTE A NUMERIC SYMBOLIC, DOES ->NUM ATOMICALLY
+
+void rplSymbNumericCompute()
+{
+    WORDPTR *stksave=DSTop;
+    WORDPTR ptr=rplPeekData(1);
+    WORDPTR endofobj=rplSkipOb(ptr),partialend=endofobj;
+    WORD opcode=0;
+
+    while(ptr<endofobj) {
+
+        if(ptr==partialend) {
+            if(opcode) rplCallOperator(opcode);     // THIS BETTER BE ATOMIC OR IT WILL CRASH BADLY
+            if(Exceptions) { DSTop=stksave; return; }
+            opcode=0;
+        }
+
+        if(ISSYMBOLIC(*ptr)) { partialend=rplSkipOb(ptr); ptr=rplSymbUnwrap(ptr); }
+
+        if(ISNUMBERCPLX(*ptr)) { rplPushData(ptr); ptr=rplPeekData(1); }
+        else if(ISIDENT(*ptr)) { DSTop=stksave; return; }
+        else if(!ISPROLOG(*ptr)) {
+            if(*ptr==CMD_OVR_FUNCEVAL) { DSTop=stksave; return; }
+            opcode=*ptr;
+        }
+
+        ptr=rplSkipOb(ptr);
+
+    }
+
+    if(ptr==partialend) {
+        if(opcode) rplCallOperator(opcode);     // THIS BETTER BE ATOMIC OR IT WILL CRASH BADLY
+        if(Exceptions) { DSTop=stksave; return; }
+    }
+
+    BINT nitems=DSTop-stksave;
+    DSTop=stksave;
+    if(nitems>1) return;
+    rplOverwriteData(1,*stksave);
+
 }

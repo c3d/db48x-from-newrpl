@@ -957,8 +957,10 @@ void LIB_HANDLER()
         return;
     }
     case SYMBEVAL1ERR:
+        // BLAME THE ERROR ON THE LAST OBJECT EVALUATED UNLESS A MORE SPECIFIC SUSPECT WAS ALREADY BLAMED
+        if((ExceptionPointer<*rplGetLAMn(4))||(ExceptionPointer>=rplSkipOb(*rplGetLAMn(4))))
+                rplBlameError(*rplGetLAMn(4));
         // SAME PROCEDURE AS ENDERR
-        rplBlameError(*rplGetLAMn(4));  // BLAME THE ERROR ON THE LAST OBJECT EVALUATED
         rplRemoveExceptionHandler();
         rplPopRet();
         rplUnprotectData();
@@ -1113,9 +1115,11 @@ void LIB_HANDLER()
         return;
     }
     case SYMBEVALERR:
-        // SAME PROCEDURE AS ENDERR
-        rplBlameError(*rplGetLAMn(4));  // BLAME THE ERROR ON THE LAST OBJECT EVALUATED
+        // BLAME THE ERROR ON THE LAST OBJECT EVALUATED UNLESS A MORE SPECIFIC SUSPECT WAS ALREADY BLAMED
+        if((ExceptionPointer<*rplGetLAMn(4))||(ExceptionPointer>=rplSkipOb(*rplGetLAMn(4))))
+                rplBlameError(*rplGetLAMn(4));
 
+        // SAME PROCEDURE AS ENDERR
         rplRemoveExceptionHandler();
         rplPopRet();
         rplUnprotectData();
@@ -1183,9 +1187,9 @@ void LIB_HANDLER()
 
                 }
 
-                if(newdepth!=1)
+                //if(newdepth!=1)
                     // DO SYMBOLIC WRAP ON ALL OBJECTS THAT ARE NOT MATRICES OR LISTS
-                    rplSymbWrapN(1,newdepth);
+                    //rplSymbWrapN(1,newdepth);
 
                     // PUSH THE OPERATOR IN THE STACK AND EVAL IT. THIS SHOULD APPLY THE OPERATOR IF THE RESULT IS SYMBOLIC
                     // OTHERWISE IT WILL CALCULATE IT
@@ -1250,12 +1254,7 @@ void LIB_HANDLER()
         WORDPTR endoflist=*rplGetLAMn(2);
         WORDPTR nextobj=rplSkipOb(*rplGetLAMn(3));
 
-        if(nextobj<endoflist) {
-            // SPECIAL CASE: DON'T DO ->NUM ON THE NAME OF A FUNCTION, KEEP IT AS-IS
-            if((Opcode==(CMD_OVR_FUNCEVAL)) && (rplSkipOb(nextobj)==endoflist) ) {
-            nextobj=rplSkipOb(nextobj);
-            }
-        }
+
 
         if(nextobj<=endoflist) rplPutLAMn(3,nextobj);    // MOVE TO THE NEXT OBJECT IN THE LIST
 
@@ -1265,9 +1264,12 @@ void LIB_HANDLER()
         return;
     }
     case SYMBNUMERR:
-        // SAME PROCEDURE AS ENDERR
-        rplBlameError(*rplGetLAMn(4));  // BLAME THE ERROR ON THE LAST OBJECT EVALUATED
 
+        // BLAME THE ERROR ON THE LAST OBJECT EVALUATED UNLESS A MORE SPECIFIC SUSPECT WAS ALREADY BLAMED
+        if((ExceptionPointer<*rplGetLAMn(4))||(ExceptionPointer>=rplSkipOb(*rplGetLAMn(4))))
+                rplBlameError(*rplGetLAMn(4));
+
+        // SAME PROCEDURE AS ENDERR
         rplRemoveExceptionHandler();
         rplPopRet();
         rplUnprotectData();
