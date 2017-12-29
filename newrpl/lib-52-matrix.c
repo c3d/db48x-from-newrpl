@@ -2096,6 +2096,12 @@ void LIB_HANDLER()
 
     case DOMATERR:
     {
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
+
         // JUST CLEANUP AND EXIT
         DSTop=rplUnprotectData();
         rplCleanupLAMs(0);
