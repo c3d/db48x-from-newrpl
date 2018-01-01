@@ -3426,7 +3426,7 @@ void rplSymbNumericCompute()
             opcode=0;
         }
 
-        if(ISSYMBOLIC(*ptr)) { partialend=rplSkipOb(ptr); ptr=rplSymbUnwrap(ptr); }
+        if(ISSYMBOLIC(*ptr)) { partialend=rplSkipOb(ptr); ptr=rplSymbUnwrap(ptr)+1; }
 
         if(ISNUMBERCPLX(*ptr)) { rplPushData(ptr); ptr=rplPeekData(1); }
         else if(ISIDENT(*ptr)) { DSTop=stksave; return; }
