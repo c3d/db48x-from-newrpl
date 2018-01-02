@@ -547,14 +547,15 @@ void LIB_HANDLER()
             return;
         }
 
+        WORDPTR *stksave=DSTop;
+
         BINT nitems=rplListLength(list);
 
         if(nitems<2) return;
 
-        rplDropData(1);
 
         rplExplodeList(list);
-        if(Exceptions) return;
+        if(Exceptions) { DSTop=stksave; return; }
 
 
         // PERFORM BINARY INSERTION SORT
@@ -578,18 +579,26 @@ void LIB_HANDLER()
                     right=left+(right-left)/2;
                 }
                 else {
+                    if(Exceptions) { DSTop=stksave; return; }
                     left=left+(right-left)/2;
                 }
             }
-               } else right=left;
+               } else {
+                   if(Exceptions) { DSTop=stksave; return; }
+                   right=left;
+               }
             // INSERT THE POINTER RIGHT BEFORE right
             for(ptr2=ptr;ptr2>right; ptr2-=1 ) *ptr2=*(ptr2-1);
             //memmoveb(right+1,right,(ptr-right)*sizeof(WORDPTR));
             *right=save;
             }
+            if(Exceptions) { DSTop=stksave; return; }
         }
 
         rplCreateList();
+        if(Exceptions) { DSTop=stksave; return; }
+        rplOverwriteData(2,rplPeekData(1));
+        rplDropData(1);
         return;
     }
 
