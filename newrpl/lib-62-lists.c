@@ -317,6 +317,84 @@ void LIB_HANDLER()
 
         if(OPCODE(CurOpcode)==OVR_XEQ) return;  // JUST LEAVE THE LIST ON THE STACK
 
+        if(OPCODE(CurOpcode)==OVR_FUNCEVAL) {
+                // DO INDEXING ON LISTS JUST LIKE ON MATRICES
+
+
+                    WORDPTR comp=rplPeekData(1);
+                        WORDPTR posobj;
+                        BINT ndims, length;
+                        BINT pos;
+
+                        length=rplListLength(comp);
+                        ndims=rplDepthData()-1;
+                        BINT k;
+                        WORDPTR *stksave=DSTop;
+
+                        for(k=1;k<=ndims;++k) {
+                        // CHECK IF WE HAVE THE RIGHT POSITION
+
+                            posobj=rplPeekData(ndims+1);
+
+                            if(ISSYMBOLIC(*posobj)) {
+                                if(!rplSymbIsNumeric(posobj)) {
+                                    DSTop=stksave;
+                                    rplError(ERR_INVALIDPOSITION);
+                                    return;
+                                }
+
+
+                                rplPushData(posobj);
+                                rplSymbNumericCompute();
+                                if(Exceptions) { DSTop=stksave; return; }
+
+                                posobj=rplPopData();
+
+
+                            }
+
+                            pos=rplReadNumberAsBINT(posobj);
+                            if(Exceptions) {
+                                DSTop=stksave;
+                                rplError(ERR_INVALIDPOSITION);
+                                return;
+                            }
+
+                        // CHECK IF THE POSITION IS WITHIN THE LIST
+
+                        if( (pos<1) || (pos>length) ) {
+                            DSTop=stksave;
+                            rplError(ERR_INDEXOUTOFBOUNDS);
+                            return;
+                        }
+
+                        comp=rplGetListElement(rplPeekData(1),pos);
+                        if(!comp) {
+                            DSTop=stksave;
+                            rplError(ERR_INDEXOUTOFBOUNDS);
+                            return;
+                        }
+                        if( (k!=ndims)&& (!ISLIST(*comp))) {
+                            DSTop=stksave;
+                            rplError(ERR_INVALIDPOSITION);
+                            return;
+                        }
+
+                        rplPushData(comp);
+
+                        }
+
+                        // WE GOT THE ANSWER
+
+                        comp=rplPeekData(1);
+                        DSTop=stksave;
+                        rplDropData(ndims);
+                        rplOverwriteData(1,comp);
+
+                    return;
+
+        }
+
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -452,6 +530,7 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
+
 
     case SORT:
     {

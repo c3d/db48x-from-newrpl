@@ -3337,7 +3337,7 @@ WORDPTR endofobj=rplSkipOb(ptr);
 if(ISNUMBERCPLX(*ptr)) return 1;
 
 while(ptr<endofobj) {
-    if(ISSYMBOLIC(*ptr)) ptr=rplSymbUnwrap(ptr);
+    if(ISSYMBOLIC(*ptr)) ptr=rplSymbUnwrap(ptr)+1;
     if(ISIDENT(*ptr)) return 0;
     if(*ptr==CMD_OVR_FUNCEVAL) return 0;
 
