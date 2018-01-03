@@ -15,17 +15,21 @@
 @ A = Algebraic object (symbolic)
 @ B = Bitmap
 @ P = Plot object
+@ D = Data object
 
 
 @#name lib77_msgtable
 {
  ##1,ERR_INVALIDSIZE "Invalid size"
+ ##1,ERR_BINDATAEXPECTED "Expected BINDATA object"
+ ##1,ERR_READOUTSIDEOBJECT "Read outside bounds"
+ ##1,ERR_WRITEOUTSIDEOBJECT "Write outside bounds"
 }
 
 
 @#name lib77_menu
 {
-MKBINDATA
+MKBINDATA BINTPUTB BINGETB BINPUTW BINGETW BINPUTOBJ BINGETOBJ BINMOVB BINMOVW
 }
 
 @#name lib77_cmdhelp
@@ -35,6 +39,41 @@ MKBINDATA
 "Create a BINDATA object
 of given size in bytes
 I<bytes> → "
+
+
+
+BINGETB
+"Extract bytes from a BINDATA
+
+D I<off> I<nbytes> → L"
+
+BINPUTB
+"Put bytes into a BINDATA
+
+D I<off> (I|L|S) I<nbytes> → D"
+
+
+BINGETW
+"Extract 32-bit words from
+a BINDATA
+D I<off> I<nwords> → L"
+
+BINPUTW
+"Put 32-bit words into
+a BINDATA
+D I<off> (I|L|S) I<nwords> → D"
+
+
+BINMOVB
+"Copy bytes between BINDATA
+D I<off> O<src>
+  I<off> I<nbytes> → D"
+
+BINMOVW
+"Copy 32-bit words in BINDATA
+D I<off> O<src>
+  I<off> I<nbytes> → D"
+
 
 }
 

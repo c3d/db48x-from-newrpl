@@ -33,7 +33,10 @@
     CMD(BINPUTW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(BINGETW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(BINPUTOBJ,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(BINGETOBJ,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2))
+    CMD(BINGETOBJ,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINMOVB,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(BINMOVW,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2))
+
 
 
 // ADD MORE OPCODES HERE
@@ -122,7 +125,7 @@ void LIB_HANDLER()
 
 
         }
-    case BINPUTB:
+    case BINMOVB:
     {
         // ARGUMENTS: DEST_BINDATA DEST_OFFSET SOURCE_BINDATA SRC_OFFSET NBYTES
 
@@ -224,8 +227,369 @@ void LIB_HANDLER()
 
     }
 
+    case BINPUTB:
+    {
+        // ARGUMENTS: DEST_BINDATA DEST_OFFSET SOURCE_OBJECT NBYTES
+
+        if(rplDepthData()<4) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        BINT destsize=sizeof(WORD)*rplObjSize(rplPeekData(4));
+
+        BINT64 destoffset=rplReadNumberAsBINT(rplPeekData(3));
+
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+
+        destoffset+=4;
+
+        // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
+
+        BINT64 nbytes=rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+
+
+        if(destoffset+nbytes>destsize) {\
+            rplError(ERR_WRITEOUTSIDEOBJECT);
+            return;
+        }
+
+        if(ISNUMBER(*rplPeekData(2))) {
+            // EXTRACT DATA FROM AN INTEGER NUMBER, STORE AS LITTLE ENDIAN BINARY INTEGER
+            REAL num;
+
+            rplReadNumberAsReal(rplPeekData(2),&num);
+            if(Exceptions) return;
+
+
+
+            WORDPTR newobj=rplMakeNewCopy(rplPeekData(4));
+            if(!newobj) return; // NOT ENOUGH MEMORY
+
+
+            int k;
+            BINT byte_num;
+            BYTEPTR ptr=(BYTEPTR)newobj;
+            ptr+=destoffset;
+
+
+
+            ipReal(&RReg[0],&num,0);
+
+            RReg[0].flags&=~F_NEGATIVE;
+
+            rplBINTToRReg(3,256);
+
+
+            // EXTRACT BYTES FROM THE BINARY INTEGER
+            for(k=0;k<nbytes;++k) {
+
+            divmodReal(&RReg[1],&RReg[2],&RReg[0],&RReg[3]);
+
+            byte_num=(BYTE)getBINTReal(&RReg[2]);
+            if(num.flags&F_NEGATIVE) {
+                byte_num^=0xff;
+                if(!k) byte_num+=1;
+            }
+
+            ptr[k]=byte_num;
+            swapReal(&RReg[1],&RReg[0]);
+
+            }
+
+
+            rplOverwriteData(4,newobj);
+            rplDropData(3);
+            return;
+        }
+
+
+        if(ISSTRING(*rplPeekData(2))) {
+           // STORE THE STRING AS A STREAM OF UNICODE CODEPOINTS
+           // ONLY THE LOWER 8 BITS OF EACH CODEPOINT IS STORED
+
+            WORDPTR newobj=rplMakeNewCopy(rplPeekData(4));
+            if(!newobj) return; // NOT ENOUGH MEMORY
+
+
+
+            int k;
+            BINT byte_num;
+            BYTEPTR ptr=(BYTEPTR)newobj;
+            ptr+=destoffset;
+
+            BYTEPTR src=(BYTEPTR)rplPeekData(2);
+            BYTEPTR srcend=src+4+rplStrSize(rplPeekData(2));
+            BINT strlen=rplStrLenCp(rplPeekData(2));
+
+
+            src+=4;
+
+
+            // EXTRACT BYTES FROM THE UTF-8 STREAM
+            for(k=0;k<nbytes;++k) {
+
+            if(strlen>0) { byte_num=utf82cp((char *)src,(char *)srcend)&0xff; --strlen; src=(BYTEPTR)utf8skip((char *)src,(char *)srcend); }
+            else byte_num=0;
+
+            ptr[k]=byte_num;
+
+            }
+
+
+            rplOverwriteData(4,newobj);
+            rplDropData(3);
+            return;
+
+
+        }
+
+        if(ISLIST(*rplPeekData(2))) {
+           // A LIST OF INTEGER NUMBERS, STORE THE LOWEST 8 BITS OF EACH
+
+            BINT listlen=rplListLength(rplPeekData(2));
+            WORDPTR listptr=rplGetListElement(rplPeekData(2),1);
+            REAL num;
+            int k;
+            BINT byte_num;
+
+            WORDPTR newobj=rplMakeNewCopy(rplPeekData(4));
+            if(!newobj) return; // NOT ENOUGH MEMORY
+
+
+            BYTEPTR ptr=(BYTEPTR)newobj;
+            ptr+=destoffset;
+
+            rplBINTToRReg(3,256);
+
+            // EXTRACT BYTES FROM THE BINARY INTEGER
+            for(k=0;k<nbytes;++k) {
+            if(ISNUMBER(*listptr)) {
+            rplReadNumberAsReal(listptr,&num);
+            if(Exceptions) return;
+
+            if(inBINTRange(&num)) byte_num=getBINTReal(&num)&0xff;
+            else {
+            divmodReal(&RReg[1],&RReg[2],&num,&RReg[3]);
+            byte_num=(BYTE)getBINTReal(&RReg[2]);
+            if(num.flags&F_NEGATIVE) {
+                byte_num^=0xff;
+                byte_num+=1;
+            }
+
+            }
+
+            ptr[k]=byte_num;
+            listptr=rplSkipOb(listptr);
+            }
+            else {
+                if(k<listlen-1) {
+                    rplError(ERR_INTEGEREXPECTED);
+                    return;
+                }
+                ptr[k]=0;
+            }
+
+            }
+
+
+            rplOverwriteData(4,newobj);
+            rplDropData(3);
+            return;
+
+
+        }
+
+        rplError(ERR_BADARGTYPE);
+        return;
+
+
+    }
 
     case BINPUTW:
+    {
+        // ARGUMENTS: DEST_BINDATA DEST_OFFSET SOURCE_OBJECT NBYTES
+
+        if(rplDepthData()<4) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        BINT destsize=rplObjSize(rplPeekData(4));
+
+        BINT64 destoffset=rplReadNumberAsBINT(rplPeekData(3));
+
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+
+        destoffset+=1;
+
+        // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
+
+        BINT64 nwords=rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions) return;  // A NUMBER WAS EXPECTED
+
+
+        if(destoffset+nwords>destsize) {\
+            rplError(ERR_WRITEOUTSIDEOBJECT);
+            return;
+        }
+
+        if(ISNUMBER(*rplPeekData(2))) {
+            // EXTRACT DATA FROM AN INTEGER NUMBER, STORE AS LITTLE ENDIAN BINARY INTEGER
+            REAL num;
+
+            rplReadNumberAsReal(rplPeekData(2),&num);
+            if(Exceptions) return;
+
+
+
+            WORDPTR newobj=rplMakeNewCopy(rplPeekData(4));
+            if(!newobj) return; // NOT ENOUGH MEMORY
+
+
+            int k;
+            WORD word_num;
+            WORDPTR ptr=newobj;
+            ptr+=destoffset;
+
+
+
+            ipReal(&RReg[0],&num,0);
+
+            RReg[0].flags&=~F_NEGATIVE;
+
+            rplBINTToRReg(3,0x100000000LL);
+
+
+            // EXTRACT WORDS FROM THE BINARY INTEGER
+            for(k=0;k<nwords;++k) {
+
+            divmodReal(&RReg[1],&RReg[2],&RReg[0],&RReg[3]);
+
+            word_num=getBINTReal(&RReg[2]);
+            if(num.flags&F_NEGATIVE) {
+                word_num^=0xffffffff;
+                if(!k) word_num+=1;
+            }
+
+            ptr[k]=word_num;
+            swapReal(&RReg[1],&RReg[0]);
+
+            }
+
+
+            rplOverwriteData(4,newobj);
+            rplDropData(3);
+            return;
+        }
+
+
+        if(ISSTRING(*rplPeekData(2))) {
+           // STORE THE STRING AS A STREAM OF UNICODE CODEPOINTS
+           // ONLY THE LOWER 8 BITS OF EACH CODEPOINT IS STORED
+
+            WORDPTR newobj=rplMakeNewCopy(rplPeekData(4));
+            if(!newobj) return; // NOT ENOUGH MEMORY
+
+
+
+            int k;
+            WORD word_num;
+            WORDPTR ptr=newobj;
+            ptr+=destoffset;
+
+            BYTEPTR src=(BYTEPTR)rplPeekData(2);
+            BYTEPTR srcend=src+4+rplStrSize(rplPeekData(2));
+            BINT strlen=rplStrLenCp(rplPeekData(2));
+
+
+            src+=4;
+
+
+            // EXTRACT WORDS FROM THE UTF-8 STREAM
+            for(k=0;k<nwords;++k) {
+
+            if(strlen>0) { word_num=(WORD)utf82cp((char *)src,(char *)srcend); --strlen; src=(BYTEPTR)utf8skip((char *)src,(char *)srcend); }
+            else word_num=0;
+
+            ptr[k]=word_num;
+
+            }
+
+
+            rplOverwriteData(4,newobj);
+            rplDropData(3);
+            return;
+
+
+        }
+
+        if(ISLIST(*rplPeekData(2))) {
+           // A LIST OF INTEGER NUMBERS, STORE THE LOWEST 32 BITS OF EACH
+
+            BINT listlen=rplListLength(rplPeekData(2));
+            WORDPTR listptr=rplGetListElement(rplPeekData(2),1);
+            REAL num;
+            int k;
+            WORD word_num;
+
+            WORDPTR newobj=rplMakeNewCopy(rplPeekData(4));
+            if(!newobj) return; // NOT ENOUGH MEMORY
+
+
+            WORDPTR ptr=newobj;
+            ptr+=destoffset;
+
+            rplBINTToRReg(3,0x100000000LL);
+
+            // EXTRACT BYTES FROM THE BINARY INTEGER
+            for(k=0;k<nwords;++k) {
+            if(ISNUMBER(*listptr)) {
+            rplReadNumberAsReal(listptr,&num);
+            if(Exceptions) return;
+
+            if(inBINTRange(&num)) word_num=getBINTReal(&num);
+            else {
+            divmodReal(&RReg[1],&RReg[2],&num,&RReg[3]);
+            word_num=getBINTReal(&RReg[2]);
+            if(num.flags&F_NEGATIVE) {
+                word_num^=0xff;
+                word_num+=1;
+            }
+
+            }
+
+            ptr[k]=word_num;
+            listptr=rplSkipOb(listptr);
+            }
+            else {
+                if(k<listlen-1) {
+                    rplError(ERR_INTEGEREXPECTED);
+                    return;
+                }
+                ptr[k]=0;
+            }
+
+            }
+
+
+            rplOverwriteData(4,newobj);
+            rplDropData(3);
+            return;
+
+
+        }
+
+        rplError(ERR_BADARGTYPE);
+        return;
+
+
+    }
+
+
+
+    case BINMOVW:
     {
         // ARGUMENTS: DEST_BINDATA DEST_OFFSET SOURCE_BINDATA SRC_OFFSET NWORDS
 
@@ -394,7 +758,7 @@ void LIB_HANDLER()
 
         WORD prolog=ptr[0] | (ptr[1]<<8) | (ptr[2]<<16) | (ptr[3]<<24);
 
-        BINT nwords=OBJSIZE(prolog);
+        BINT nwords=(ISPROLOG(prolog)? OBJSIZE(prolog):0);
 
         if(((1+nwords)*sizeof(WORD)+srcoffset)>sizeof(WORD)*rplObjSize(rplPeekData(2))) {
             rplError(ERR_READOUTSIDEOBJECT);

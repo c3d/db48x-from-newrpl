@@ -62,6 +62,7 @@
 { { "Menu" 1 } { ::   #04408000h TMENULST ; ::   #04408000h TMENUOTHR ; } }
 { { "Clip" 1 } { ::   #04c01000h TMENULST ; ::   #04c01000h TMENUOTHR ; } }
 { { "Comments" 1 } { ::   #01400000h TMENULST ; ::   #01400000h TMENUOTHR ; } }
+{ { "Binary" 1 } { ::   #04d00000h TMENULST ; ::   #04d00000h TMENUOTHR ; } }
 }
 
 @#name sysmenu_4_math
