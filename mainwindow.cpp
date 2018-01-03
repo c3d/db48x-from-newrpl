@@ -379,12 +379,12 @@ void MainWindow::on_actionSave_triggered()
 {
     QString fname;
 
-    if(currentfile.isEmpty()) fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpb");
+    if(currentfile.isEmpty()) fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"newRPL Backups (*.nrpb *.* *)");
     else fname=currentfile;
     if(!fname.isEmpty()) {
         // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
 
-        if(!fname.endsWith(".nrpb")) fname+=".nrpb";
+        //if(!fname.endsWith(".nrpb")) fname+=".nrpb";
 
         QFile file(fname);
 
@@ -427,7 +427,7 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::on_actionOpen_triggered()
 {
-    QString fname=QFileDialog::getOpenFileName(this,"Open File Name",QString(),"*.nrpb");
+    QString fname=QFileDialog::getOpenFileName(this,"Open File Name",QString(),"newRPL Backups (*.nrpb *.* *)");
 
     if(!fname.isEmpty()) {
         QFile file(fname);
@@ -517,12 +517,12 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_actionSaveAs_triggered()
 {
-    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpb");
+    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"newRPL Backups (*.nrpb *.* *)");
 
     if(!fname.isEmpty()) {
         // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
 
-        if(!fname.endsWith(".nrpb")) fname+=".nrpb";
+        //if(!fname.endsWith(".nrpb")) fname+=".nrpb";
 
         QFile file(fname);
 
@@ -770,24 +770,27 @@ void MainWindow::on_actionCut_Level_1_triggered()
 
 void MainWindow::on_actionSave_Level_1_As_triggered()
 {
-    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpl");
+    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"newRPL objects (*.nrpl *.* *)");
 
     if(!fname.isEmpty()) {
         // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
 
-        if(!fname.endsWith(".nrpl")) fname+=".nrpl";
-    }
+        //if(!fname.endsWith(".nrpl")) fname+=".nrpl";
+
 
     if(!SaveRPLObject(fname,1)) {
             QMessageBox a(QMessageBox::Warning,"Error while saving","Cannot write to file "+ fname,QMessageBox::Ok,this);
             a.exec();
             return;
     }
+    }
 }
 
 void MainWindow::on_actionOpen_file_to_Level_1_triggered()
 {
-    QString fname=QFileDialog::getOpenFileName(this,"Select File Name",QString(),"*.nrpl");
+    QString fname=QFileDialog::getOpenFileName(this,"Select File Name",QString(),"newRPL objects (*.nrpl *.* *)");
+
+    if(!fname.isEmpty()) {
     if(!rpl.isRunning()) return;    // DO NOTHING
 
     while(!__cpu_idle)     QThread::msleep(1);  // BLOCK UNTIL RPL IS IDLE
@@ -801,7 +804,10 @@ void MainWindow::on_actionOpen_file_to_Level_1_triggered()
             return;
     }
 
+    }
+
     __cpu_idle=0;   // LET GO THE SIMULATOR
+
 
 }
 
@@ -874,12 +880,12 @@ void MainWindow::on_usbconnectButton_clicked()
 
 void MainWindow::on_actionUSB_Remote_ARCHIVE_to_file_triggered()
 {
-    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"*.nrpb");
+    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"newRPL Backups (*.nrpb *.* *)");
 
     if(!fname.isEmpty()) {
         // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
 
-        if(!fname.endsWith(".nrpb")) fname+=".nrpb";
+        //if(!fname.endsWith(".nrpb")) fname+=".nrpb";
 
         QFile file(fname);
 
@@ -922,7 +928,7 @@ void MainWindow::on_actionUSB_Remote_ARCHIVE_to_file_triggered()
 
 void MainWindow::on_actionRemote_USBRESTORE_from_file_triggered()
 {
-    QString fname=QFileDialog::getOpenFileName(this,"Open File Name",QString(),"*.nrpb");
+    QString fname=QFileDialog::getOpenFileName(this,"Open File Name",QString(),"newRPL Backups (*.nrpb *.* *)");
 
     if(!fname.isEmpty()) {
         QFile file(fname);
