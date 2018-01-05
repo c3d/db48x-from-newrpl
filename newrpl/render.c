@@ -69,24 +69,6 @@ deriv->y=temp[4].y-temp[3].y;
 
 }
 
-// SCANS A POLYGON INTO A BUFFER. THE BUFFER HAS PAIRS OF FPINT NUMBERS
-// THE FUNCTION WILL ALLOCATE A BUFFER AS LARGE AS NEEDED AND RETURN ITS POINTER
-// THE BUFFER WILL BE INSIDE A TEMPORARY OBJECT IN TEMPOB (GC MIGHT BE TRIGGERED)
-// THE BUFFER CONTAINS PAIRS OF SCANS STARTX+LENGTH. WHEN LENGTH<0 THEN Y COORDINATE
-// MUST BE INCREMENTED BY ONE PIXEL AFTER PAINTING SCAN WITH (-LENGTH),
-// OTHERWISE NEXT SCAN IS ON THE SAME LINE
-
-
-// ARGUMENTS: poly = (CURVEPT *)POINTER TO THE CURVE DATA
-//            starty = FIRST SCAN LINE TO GENERATE
-//            endy = LAST SCAN LINE TO GENERATE
-
-// FORMAT OF THE RESULTING BUFFER:
-// ARRAY OF OFFSETS TO EACH SCANLINE IN FPINT NUMBERS (endy-starty+1) 32-BIT INTEGERS
-// ARRAY OF AVAILABLE FPINTS FOR EACH SCANLINE 32-BIT INTEGERS
-// ARRAY OF USED FPINTS FOR EACH SCANLINE 32-BIT INTEGERS
-
-// EACH SCANLINE = ARRAY OF FPINT NUMBERS, X COORD. OF INTERSECTION OF POLYGON WITH THE SCAN
 
 #define INITIAL_SCANLINE_INTERS     8
 
@@ -138,8 +120,27 @@ WORDPTR rndWriteScanvalue(WORDPTR buffer,FPINT value,BINT scanline,BINT nscans)
 }
 
 
+// SCANS A POLYGON INTO A BUFFER. THE BUFFER HAS PAIRS OF FPINT NUMBERS
+// THE FUNCTION WILL ALLOCATE A BUFFER AS LARGE AS NEEDED AND RETURN ITS POINTER
+// THE BUFFER WILL BE INSIDE A TEMPORARY OBJECT IN TEMPOB (GC MIGHT BE TRIGGERED)
+// THE BUFFER CONTAINS PAIRS OF SCANS STARTX+LENGTH. WHEN LENGTH<0 THEN Y COORDINATE
+// MUST BE INCREMENTED BY ONE PIXEL AFTER PAINTING SCAN WITH (-LENGTH),
+// OTHERWISE NEXT SCAN IS ON THE SAME LINE
 
-void rndScanPolygon(BINT npoints,CURVEPT *poly, FPINT starty, FPINT endy, FPINT **result)
+
+// ARGUMENTS: poly = (CURVEPT *)POINTER TO THE CURVE DATA
+//            starty = FIRST SCAN LINE TO GENERATE
+//            endy = LAST SCAN LINE TO GENERATE
+
+// FORMAT OF THE RESULTING BUFFER:
+// ARRAY OF OFFSETS TO EACH SCANLINE IN FPINT NUMBERS (endy-starty+1) 32-BIT INTEGERS
+// ARRAY OF AVAILABLE FPINTS FOR EACH SCANLINE 32-BIT INTEGERS
+// ARRAY OF USED FPINTS FOR EACH SCANLINE 32-BIT INTEGERS
+
+// EACH SCANLINE = ARRAY OF FPINT NUMBERS, X COORD. OF INTERSECTION OF POLYGON WITH THE SCAN
+
+
+WORDPTR rndScanPolygon(BINT npoints,CURVEPT *poly, FPINT starty, FPINT endy)
 {
 BINT k;
 BINT nscans=endy-starty+1;
@@ -171,12 +172,16 @@ for(k=0;k<npoints;++k)
     {
         FPINT incy=poly[k].y-poly[k-1].y;
         FPINT incx=poly[k].x-poly[k-1].x;
-        FPINT x,y,dx;
+        FPINT x,y,dx,ey;
         BINT scancnt;
+        if(incy==0) break; // NO NEED TO SCAN HORIZONTAL LINES
         if(incy>0) {
             // LINE GOES DOWN, THEREFORE LOW POINT IS k, HIGH POINT IS k-1
             if(poly[k].y<=starty) break;  // CLIP IT, NEXT LINE
             if(poly[k-1].y>endy)  break;  // CLIP IT, NEXT LINE
+
+
+            ey=endy;
 
             dx=divFPINT(incx,incy);
 
@@ -184,34 +189,62 @@ for(k=0;k<npoints;++k)
             if(poly[k-1].y<starty) {
                 y=starty;
                 scancnt=0;
-                x=poly[k-1].x+divFPINT(mulFPINT(incx,y-poly[k-1].y),incy);
             }
             else {
-                y=poly[k-1].y;
-                x=poly[k-1].x;
+                // SNAP TO GRID
+                if(starty<0) y=-(TRUNCFPINT(-poly[k-1].y)+FRACFPINT(-starty));
+                else y=TRUNCFPINT(poly[k-1].y)+FRACFPINT(starty);
+                scancnt=FPINT2INT(y-starty);
             }
+            if(poly[k].y<endy) ey=poly[k].y;
 
+            x=poly[k-1].x+divFPINT(mulFPINT(incx,y-poly[k-1].y),incy);
 
-            while(y<=endy) {
+            while(y<=ey) {
                 buffer=rndWriteScanvalue(buffer,x,scancnt,nscans);
                 if(!buffer) { *result=0; return; }
                 x+=dx;
-
-
+                y+=INT2FPINT(1);
             }
 
-
-            }
-        } else {
-            if(poly[k-1].y<=starty) break;  // CLIP IT, NEXT LINE
 
         }
-        FPINT dx=divFPINT((poly[k].x-poly[k-1].x),poly[k].y-poly[k-1].y);
-        FPINT dy=0;
+        else {
+            // LINE GOES UP, THEREFORE LOW POINT IS k-1, HIGH POINT IS k
+            if(poly[k-1].y<=starty) break;  // CLIP IT, NEXT LINE
+            if(poly[k].y>endy)  break;  // CLIP IT, NEXT LINE
 
 
+            ey=endy;
+
+            dx=divFPINT(incx,incy);
+
+            // SCAN THE LINE
+            if(poly[k].y<starty) {
+                y=starty;
+                scancnt=0;
+            }
+            else {
+                // SNAP TO GRID
+                if(starty<0) y=-(TRUNCFPINT(-poly[k].y)+FRACFPINT(-starty));
+                else y=TRUNCFPINT(poly[k].y)+FRACFPINT(starty);
+                scancnt=FPINT2INT(y-starty);
+            }
+            if(poly[k-1].y<endy) ey=poly[k-1].y;
+
+            x=poly[k].x-divFPINT(mulFPINT(incx,y-poly[k].y),incy);
+
+            while(y<=ey) {
+                buffer=rndWriteScanvalue(buffer,x,scancnt,nscans);
+                if(!buffer) { *result=0; return; }
+                x+=dx;
+                y+=INT2FPINT(1);
+            }
+
+            }
 
 
+    break;
     }
 
     case TYPE_CURVE:
@@ -228,5 +261,5 @@ for(k=0;k<npoints;++k)
     }
 }
 
-
+return buffer;
 }

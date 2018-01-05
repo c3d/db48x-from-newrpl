@@ -27,8 +27,10 @@ extern FPINT mulFPINT(FPINT a,FPINT b);
 
 extern FPINT divFPINT(FPINT a,FPINT b);
 
-
-
+#define INT2FPINT(a) (((FPINT)(a))<<24)
+#define FPINT2INT(a) ((a)>>24)
+#define TRUNCFPINT(a) (((FPINT)(a))&~((1LL<<24)-1LL))
+#define FRACFPINT(a) (((FPINT)(a))&((1<<24)-1))
 
 
 
