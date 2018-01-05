@@ -76,13 +76,86 @@ deriv->y=temp[4].y-temp[3].y;
 // MUST BE INCREMENTED BY ONE PIXEL AFTER PAINTING SCAN WITH (-LENGTH),
 // OTHERWISE NEXT SCAN IS ON THE SAME LINE
 
+
 // ARGUMENTS: poly = (CURVEPT *)POINTER TO THE CURVE DATA
 //            starty = FIRST SCAN LINE TO GENERATE
 //            endy = LAST SCAN LINE TO GENERATE
 
+// FORMAT OF THE RESULTING BUFFER:
+// ARRAY OF OFFSETS TO EACH SCANLINE IN FPINT NUMBERS (endy-starty+1) 32-BIT INTEGERS
+// ARRAY OF AVAILABLE FPINTS FOR EACH SCANLINE 32-BIT INTEGERS
+// ARRAY OF USED FPINTS FOR EACH SCANLINE 32-BIT INTEGERS
+
+// EACH SCANLINE = ARRAY OF FPINT NUMBERS, X COORD. OF INTERSECTION OF POLYGON WITH THE SCAN
+
+#define INITIAL_SCANLINE_INTERS     8
+
+#define SCANSTART(buffer,scanline)
+
+
+// WRITE A VALUE IN THE BUFFER, RESIZE THE BUFFER AS NEEDED TO MAKE ROOM
+// RETURN 0 IF NOT ENOUGH MEMORY, MAY TRIGGER GC SO IT ALWAYS RETURNS A NEW (OR SAME) buffer
+
+WORDPTR rndWriteScanvalue(WORDPTR buffer,FPINT value,BINT scanline,BINT nscans)
+{
+    if(buffer[scanline+2*nscans]==buffer[scanline+nscans]) {
+     // NO MORE AVAILABLE SLOTS IN THIS SCANLINE, RESIZE
+        ScratchPointer1=buffer;
+        rplResizeLastObject((buffer[scanline+nscans]+INITIAL_SCANLINE_INTERS)*sizeof(FPINT)/sizeof(WORD));
+        buffer=ScratchPointer1;
+        if(Exceptions) return 0;
+
+        // ADJUST BUFFER
+        BINT oldoffset=buffer[scanline],newoffset=0;
+        BINT k,prevscan;
+
+        for(k=0;k<nscans;++k)
+        {
+            BINT endofblock=buffer[k]+buffer[k+nscans]*sizeof(FPINT)/sizeof(WORD);
+            if(newoffset<endofblock) newoffset=endofblock;
+            if(oldoffset==endofblock) {
+                // THIS IS THE PRECEDING SCANLINE, MAKE IT SWALLOW OUR BLOCK
+                buffer[k+nscans]+=buffer[scanline+nscans];
+            }
+        }
+
+        // NOW MOVE THE CURRENT SCANLINE TO THE NEW BLOCK
+        memmovew(buffer+newoffset,buffer+oldoffset,buffer[scanline+nscans]*sizeof(FPINT)/sizeof(WORD));
+        buffer[scanline]=newoffset;
+        buffer[scanline+nscans]+=INITIAL_SCANLINE_INTERS;
+
+    }
+
+    // FINALLY, JUST STORE THE NEW POINT
+
+    FPINT *scline=(FPINT *) (buffer+buffer[scanline]);
+
+    scline[buffer[scanline+2*nscans]]=value;
+
+    ++buffer[scanline+2*nscans];
+    return buffer;
+
+}
+
+
+
 void rndScanPolygon(BINT npoints,CURVEPT *poly, FPINT starty, FPINT endy, FPINT **result)
 {
 BINT k;
+BINT nscans=endy-starty+1;
+// INTERMEDIATE BUFFER
+
+WORDPTR buffer=rplAllocTempOb( (INITIAL_SCANLINE_INTERS*sizeof(FPINT)/sizeof(WORD)+3)*nscans);
+if(!buffer) { *result=0; return; }
+
+// PREPARE BUFFER
+for(k=0;k<nscans;++k)
+{
+    buffer[k]=3*nscans+INITIAL_SCANLINE_INTERS*k;   //  INITIALIZE OFFSET TABLE
+    buffer[k+nscans]=INITIAL_SCANLINE_INTERS;       //  INITIALIZE AVAILABLE COUNT
+    buffer[k+2*nscans]=0;                           //  INITIALIZE USED
+}
+
 
 // SCAN CONVERT ALL LINES
 for(k=0;k<npoints;++k)
@@ -96,7 +169,44 @@ for(k=0;k<npoints;++k)
     case TYPE_LINE:
         // SCAN THE LINE AT [k-1] TO [k]
     {
-        FPINT incx=divFPINT((poly[k].x-poly[k-1].x),poly[k].y-poly[k-1].y);
+        FPINT incy=poly[k].y-poly[k-1].y;
+        FPINT incx=poly[k].x-poly[k-1].x;
+        FPINT x,y,dx;
+        BINT scancnt;
+        if(incy>0) {
+            // LINE GOES DOWN, THEREFORE LOW POINT IS k, HIGH POINT IS k-1
+            if(poly[k].y<=starty) break;  // CLIP IT, NEXT LINE
+            if(poly[k-1].y>endy)  break;  // CLIP IT, NEXT LINE
+
+            dx=divFPINT(incx,incy);
+
+            // SCAN THE LINE
+            if(poly[k-1].y<starty) {
+                y=starty;
+                scancnt=0;
+                x=poly[k-1].x+divFPINT(mulFPINT(incx,y-poly[k-1].y),incy);
+            }
+            else {
+                y=poly[k-1].y;
+                x=poly[k-1].x;
+            }
+
+
+            while(y<=endy) {
+                buffer=rndWriteScanvalue(buffer,x,scancnt,nscans);
+                if(!buffer) { *result=0; return; }
+                x+=dx;
+
+
+            }
+
+
+            }
+        } else {
+            if(poly[k-1].y<=starty) break;  // CLIP IT, NEXT LINE
+
+        }
+        FPINT dx=divFPINT((poly[k].x-poly[k-1].x),poly[k].y-poly[k-1].y);
         FPINT dy=0;
 
 
