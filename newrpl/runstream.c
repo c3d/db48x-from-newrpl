@@ -119,6 +119,16 @@ void rplClearLibraries()
 
 }
 
+
+void rplInstallCoreLibraries()
+{
+    // INSTALL ALL ROM LIBRARIES FROM A NULL-TERMINATED LIST
+    LIBHANDLER *libptr=(LIBHANDLER *)ROMLibs;
+    while(*libptr) { rplInstallLibrary(*libptr); ++libptr; }
+
+}
+
+
 // INSTALL A LIBRARY HANDLER, RETURN 1 ON SUCCESS, 0 ON FAILURE
 
 BINT rplInstallLibrary(LIBHANDLER handler)
@@ -631,10 +641,7 @@ void rplInit(void)
 
     rplClearLibraries();
 
-    // INSTALL ALL ROM LIBRARIES FROM A NULL-TERMINATED LIST
-    LIBHANDLER *libptr=(LIBHANDLER *)ROMLibs;
-    while(*libptr) { rplInstallLibrary(*libptr); ++libptr; }
-
+    rplInstallCoreLibraries();
 
     growRStk(1024);   // GET SOME MEMORY FOR RETURN STACK
     growDStk(1024);   // GET SOME MEMORY FOR DATA STACK
@@ -715,9 +722,7 @@ void rplWarmInit(void)
 
     // CLEAR ALL INSTALLED LIBRARIES
     rplClearLibraries();
-    // INSTALL ALL ROM LIBRARIES FROM A NULL-TERMINATED LIST
-    LIBHANDLER *libptr=(LIBHANDLER *)ROMLibs;
-    while(*libptr) { rplInstallLibrary(*libptr); ++libptr; }
+    rplInstallCoreLibraries();
 
 
     // INITIALIZE THE FLOATING POINT CONTEXT
@@ -795,9 +800,7 @@ void rplHotInit()
 
     // CLEAR ALL INSTALLED LIBRARIES
     rplClearLibraries();
-    // INSTALL ALL ROM LIBRARIES FROM A NULL-TERMINATED LIST
-    LIBHANDLER *libptr=(LIBHANDLER *)ROMLibs;
-    while(*libptr) { rplInstallLibrary(*libptr); ++libptr; }
+    rplInstallCoreLibraries();
 
 
     // RE-INITIALIZE THE FLOATING POINT CONTEXT BUT KEEP CURRENT PRECISION

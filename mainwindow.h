@@ -86,6 +86,9 @@ public slots:
     void usbupdate();
     void domaintimer();
 private:
+    int OpenFile(QString fname);
+    void SaveFile(QString fname);
+
     Ui::MainWindow *ui;
 };
 

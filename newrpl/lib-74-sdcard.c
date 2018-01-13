@@ -2257,7 +2257,7 @@ case SDPATH:
 
         GCFlags=GC_IN_PROGRESS; // MARK THAT A GC IS IN PROGRESS TO BLOCK ANY HARDWARE INTERRUPTS
 
-        err = rplRestoreBackup(&rplSDArchiveReadWord,(void *)objfile);
+        err = rplRestoreBackup(0,&rplSDArchiveReadWord,(void *)objfile);
         FSClose(objfile);
 
         switch(err)

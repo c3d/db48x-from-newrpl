@@ -396,7 +396,7 @@ void rplGCollect();
 
 // BACKUP/RESTORE
 BINT rplBackup(int (*writefunc)(unsigned int, void *), void *OpaqueArg);
-BINT rplRestoreBackup(WORD (*readfunc)(void *),void *Opaque);
+BINT rplRestoreBackup(BINT includestack, WORD (*readfunc)(void *), void *Opaque);
 
 
 // SYSTEM SANITY CHECKS

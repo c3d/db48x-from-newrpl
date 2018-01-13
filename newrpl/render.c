@@ -9,6 +9,7 @@
 // ALL MATH USES fastmath,c 40,24 FIXED POINT
 
 #include "newrpl.h"
+#include "ui.h"
 #include "render.h"
 
 
@@ -89,7 +90,7 @@ WORDPTR rndWriteScanvalue(WORDPTR buffer,FPINT value,BINT scanline,BINT nscans)
 
         // ADJUST BUFFER
         BINT oldoffset=buffer[scanline],newoffset=0;
-        BINT k,prevscan;
+        BINT k;
 
         for(k=0;k<nscans;++k)
         {
@@ -147,7 +148,7 @@ BINT nscans=endy-starty+1;
 // INTERMEDIATE BUFFER
 
 WORDPTR buffer=rplAllocTempOb( (INITIAL_SCANLINE_INTERS*sizeof(FPINT)/sizeof(WORD)+3)*nscans);
-if(!buffer) { *result=0; return; }
+if(!buffer) { return 0; }
 
 // PREPARE BUFFER
 for(k=0;k<nscans;++k)
@@ -202,7 +203,7 @@ for(k=0;k<npoints;++k)
 
             while(y<=ey) {
                 buffer=rndWriteScanvalue(buffer,x,scancnt,nscans);
-                if(!buffer) { *result=0; return; }
+                if(!buffer) { return 0; }
                 x+=dx;
                 y+=INT2FPINT(1);
             }
@@ -236,7 +237,7 @@ for(k=0;k<npoints;++k)
 
             while(y<=ey) {
                 buffer=rndWriteScanvalue(buffer,x,scancnt,nscans);
-                if(!buffer) { *result=0; return; }
+                if(!buffer) { return 0; }
                 x+=dx;
                 y+=INT2FPINT(1);
             }

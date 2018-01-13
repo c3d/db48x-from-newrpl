@@ -148,6 +148,13 @@ BINT rplBackup(int (*writefunc)(unsigned int,void *),void *OpaqueArgument)
     offset+=sections[k].nitems;
     ++k;
 
+    // STACK
+    sections[k].start=(WORDPTR)DStk;
+    sections[k].nitems=DSTop-DStk;
+    sections[k].offwords=offset;
+
+    offset+=sections[k].nitems;
+    ++k;
 
     // FILL ALL OTHER SECTIONS
     for(;k<10;++k) {
@@ -226,22 +233,62 @@ BINT rplBackup(int (*writefunc)(unsigned int,void *),void *OpaqueArgument)
             // VALID POINTER INTO TEMPOB, CONVERT INTO FILE OFFSET
             if(!writefunc( (BINT)(ptr-TempOb)+ sections[1].offwords,OpaqueArgument)) return 0;
         } else {
+
+            WORD id;
+            if(!ptr) {
+                // NULL POINTER, STORE AS-IS
+                id=0;
+            }
+            else {
             // IF THE OBJECT IS NOT IN TEMPOB IS IN ROM
 
             // CONVERT TO ROMPTR ID
 
-            WORD id=rplConvertToRomptrID(ptr);
+            id=rplConvertToRomptrID(ptr);
 
             if(!id) {
                 // INVALID POINTER! THESE ARE NORMAL IN THIS ARE, NO BIG DEAL
                 // REPLACE WITH zero_bint FOR GOOD MEASURES
                 id=rplConvertToRomptrID((WORDPTR)zero_bint);
             }
+            }
             if(!writefunc(id,OpaqueArgument)) return 0;
         }
         ++writeoff;
     }
 
+    // DUMP DATA STACK POINTERS
+    for(k=0;k<sections[5].nitems;++k) {
+        ptr=DStk[k];
+        if( (ptr>=TempOb) && (ptr<=TempObSize) ) {
+            // VALID POINTER INTO TEMPOB, CONVERT INTO FILE OFFSET
+            if(!writefunc( (BINT)(ptr-TempOb)+ sections[1].offwords,OpaqueArgument)) return 0;
+        } else {
+
+            WORD id;
+
+            // SPECIAL CASE - HANDLE OFFSET NUMBERS STORED INSIDE THE STACK
+            if((PTR2NUMBER)ptr<=(UBINT64)sections[5].nitems) {
+                // THIS IS A NUMBER, NOT A POINTER
+                //  IN THE STACK, THESE ARE STACK MARKERS
+                // REPLACE WITH THE ACTUAL NUMBER, BUT USE NEGATIVE OFFSET TO DISTINGUISH IT FROM FILE OFFSETS
+                id=-((PTR2NUMBER)ptr);
+            }
+            else {
+            // IF THE OBJECT IS NOT IN TEMPOB IS IN ROM
+
+            // CONVERT TO ROMPTR ID
+
+            id=rplConvertToRomptrID(ptr);
+
+            if(!id) id=rplConvertToRomptrID((WORDPTR)zero_bint);
+            }
+
+
+            if(!writefunc(id,OpaqueArgument)) return 0;
+        }
+        ++writeoff;
+    }
 
     return 1;
 
@@ -257,7 +304,7 @@ BINT rplBackup(int (*writefunc)(unsigned int,void *),void *OpaqueArgument)
 // 1 = RESTORE COMPLETED WITH NO ERRORS
 // 2 = RESTORE COMPLETED WITH SOME ERRORS, RUN MEMFIX LATER
 
-BINT rplRestoreBackup(WORD (*readfunc)(void *),void *OpaqueArgument)
+BINT rplRestoreBackup(BINT includestack,WORD (*readfunc)(void *),void *OpaqueArgument)
 {
 
     // GENERIC SECTIONS
@@ -285,6 +332,35 @@ BINT rplRestoreBackup(WORD (*readfunc)(void *),void *OpaqueArgument)
         if(k>0) sections[k-1].nitems=sections[k].offwords-sections[k-1].offwords;
     }
 
+
+
+    // RESET RPL ENVIRONMENT
+    // ERASE ALL RPL MEMORY IN PREPARATION FOR RESTORE
+    // ALL SECTIONS TO MINIMUM SIZE TO FREE AS MANY PAGES AS POSSIBLE
+    rplInit();
+
+/*
+    // ERASE ALL RPL MEMORY IN PREPARATION FOR RESTORE
+    // ALL SECTIONS TO MINIMUM SIZE TO FREE AS MANY PAGES AS POSSIBLE
+    shrinkTempOb(1024); // GET SOME MEMORY FOR TEMPORARY OBJECT STORAGE
+    shrinkTempBlocks(1024); // GET SOME MEMORY FOR TEMPORARY OBJECT BLOCKS
+    TempObEnd=TempOb;
+    TempBlocksEnd=TempBlocks;
+
+    growRStk(1024);   // GET SOME MEMORY FOR RETURN STACK
+    RSTop=RStk;
+
+    growDStk(1024);   // GET SOME MEMORY FOR DATA STACK
+    DSTop=DStkBottom=DStkProtect=DStk;
+
+    growLAMs(1024); // GET SOME MEMORY FOR LAM ENVIRONMENTS
+    LAMTopSaved=LAMTop=nLAMBase=LAMs;
+
+    growDirs(1024); // MEMORY FOR ROOT DIRECTORY
+    CurrentDir=Directories;
+    DirsTop=Directories;
+*/
+
     // NOW DETERMINE THE POINTERS
 
     sections[0].start=(WORDPTR)TempBlocks;
@@ -294,35 +370,15 @@ BINT rplRestoreBackup(WORD (*readfunc)(void *),void *OpaqueArgument)
     sections[4].start=(WORDPTR)GC_PTRUpdate;
 
 
-    // TODO: ADD OTHER SECTIONS HERE (STACKS, ETC)
 
-
-
-
-    // ERASE ALL RPL MEMORY IN PREPARATION FOR RESTORE
-    // ALL SECTIONS TO MINIMUM SIZE TO FREE AS MANY PAGES AS POSSIBLE
-    TempObEnd=TempOb;
-    TempBlocksEnd=TempBlocks;
-    shrinkTempOb(1024); // GET SOME MEMORY FOR TEMPORARY OBJECT STORAGE
-    shrinkTempBlocks(1024); // GET SOME MEMORY FOR TEMPORARY OBJECT BLOCKS
-
-    RSTop=RStk;
-    growRStk(1024);   // GET SOME MEMORY FOR RETURN STACK
-
-    DSTop=DStkBottom=DStkProtect=DStk;
-    growDStk(1024);   // GET SOME MEMORY FOR DATA STACK
-
-    LAMTopSaved=LAMTop=nLAMBase=LAMs;
-    growLAMs(1024); // GET SOME MEMORY FOR LAM ENVIRONMENTS
-
-    CurrentDir=Directories;
-    DirsTop=Directories;
-    growDirs(1024); // MEMORY FOR ROOT DIRECTORY
 
     // RESIZE ALL SECTIONS TO THE REQUESTED SIZE
     if(sections[0].nitems+TEMPBLOCKSLACK>1024) growTempBlocks(sections[0].nitems+TEMPBLOCKSLACK);
     if(sections[1].nitems+sections[2].nitems>1024) growTempOb(sections[1].nitems+sections[2].nitems);
     if(sections[3].nitems+DIRSLACK>1024) growDirs(sections[3].nitems+DIRSLACK);
+    if(includestack) {
+        if(sections[5].nitems+DSTKSLACK>1024) growDirs(sections[5].nitems+DSTKSLACK);
+    }
 
     if(Exceptions) return -1;
 
@@ -380,19 +436,55 @@ BINT rplRestoreBackup(WORD (*readfunc)(void *),void *OpaqueArgument)
     for(k=0;k<sections[4].nitems;++k)
     {
         data=readfunc(OpaqueArgument);
-        if(ISROMPTRID(data)) GC_PTRUpdate[k]=rplConvertIDToPTR(data);
+        if(ISROMPTRID(data)) {
+            GC_PTRUpdate[k]=rplConvertIDToPTR(data);
+            // EARLIER VERSIONS WOULD CONVERT INVALID POINTERS INTO POINTERS TO zero_bint
+            if(GC_PTRUpdate[k]==(WORDPTR)zero_bint) GC_PTRUpdate[k]=0;
+        }
         else {
+            if(!data) GC_PTRUpdate[k]=0;    // RESTORE NULL POINTERS
+            else {
             if((k==1)||(k==2)) {
                 // EXTRA CHECKS FOR TempObEnd and TempObSize
              if(GC_PTRUpdate[k]!=TempOb+(data-sections[1].offwords)) ++errors;
             }
 
                 GC_PTRUpdate[k]=TempOb+(data-sections[1].offwords);
+            }
         }
         ++offset;
     }
 
 
+
+    if(includestack) {
+    // OPTIONALLY EXTRACT THE DATA STACK
+
+    DStkProtect=DStkBottom=DStk;
+
+    for(k=0;k<sections[5].nitems;++k)
+    {
+        data=readfunc(OpaqueArgument);
+        if(ISROMPTRID(data)) DStk[k]=rplConvertIDToPTR(data);
+        else {
+            if(((BINT)data)<=0) {
+                // THESE WERE NUMBERS USED IN THE STACK SNAPSHOTS
+             DStk[k]=NUMBER2PTR(-(BINT)data);
+             DStkProtect=DStkBottom=DStk+k+1;
+            }
+            else {
+                // THESE ARE OFFSETS INTO TEMPOB
+                DStk[k]=TempOb+(data-sections[1].offwords);
+
+            }
+        }
+        ++offset;
+    }
+    // SET DATA STACK POINTERS ACCORDINGLY
+    DSTop=DStk+k;
+
+
+    }
     // TODO: MORE SECTIONS OR OTHER CLEANUP HERE
 
     if(errors) return 2;

@@ -252,7 +252,7 @@ extern const WORD const root_dir_handle[];
 BINT rplVerifyDirectories(BINT fix)
 {
 BINT errors=0;
-WORDPTR *dirptr=Directories,*dirend;
+WORDPTR *dirptr=Directories,*dirptr2,*dirend;
 WORDPTR handle,parent,name;
 BINT nitems;
 
@@ -328,6 +328,20 @@ while(dirptr<DirsTop) {
 
     }
 
+    if(handle) {
+        // WE HAVE A HANDLE, CHECK IF IT WAS USED BEFORE
+        dirptr2=Directories;
+
+        while(dirptr2<dirptr) {
+
+        if((*dirptr2==dir_start_bint)||(*dirptr2==dir_end_bint)) {
+            if(dirptr2[1]==handle) { handle=0; break; }  // HANDLE WAS USED, CREATE A NEW ONE
+        }
+        dirptr2+=2;
+        }
+    }
+
+
     // HERE, WE EITHER HAVE A HANDLE OR WE DON'T
 
     if(!handle) {
@@ -338,6 +352,7 @@ while(dirptr<DirsTop) {
         handle[0]=MKPROLOG(DODIR,1);
         handle[1]=nitems;
     }
+
 
     // HERE WE ARE GUARANTEED TO HAVE A HANDLE
 

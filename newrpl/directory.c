@@ -460,7 +460,7 @@ WORDPTR rplGetGlobal(WORDPTR nameobj)
 
 WORDPTR *rplGetDirfromGlobal(WORDPTR *var)
 {
-    while((var>=Directories) && (**var!=DIR_START_MARKER) ) var-=2;
+    while((var>=Directories) && (*var) && (**var!=DIR_START_MARKER) ) var-=2;
     return var;
 }
 

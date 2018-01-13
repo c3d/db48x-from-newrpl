@@ -39,7 +39,7 @@ extern "C" int usb_isconnected();
 extern "C" void __keyb_update();
 // BACKUP/RESTORE
 extern "C" int rplBackup(int (*writefunc)(unsigned int,void *),void *);
-extern "C" int rplRestoreBackup(unsigned int (*readfunc)(void *),void *);
+extern "C" int rplRestoreBackup(int,unsigned int (*readfunc)(void *),void *);
 extern "C" int rplRestoreBackupMessedup(unsigned int (*readfunc)(void *),void *);    // DEBUG ONLY
 extern "C" void __SD_irqeventinsert();
 
@@ -61,6 +61,11 @@ MainWindow::MainWindow(QWidget *parent) :
     rpl(this),
     ui(new Ui::MainWindow)
 {
+
+    QCoreApplication::setOrganizationName("newRPL");
+    QCoreApplication::setApplicationName("newRPL Desktop");
+
+
     myMainWindow=this;
 
     ui->setupUi(this);
@@ -83,10 +88,24 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->actionEject_SD_Card_Image->setEnabled(false);
     ui->actionInsert_SD_Card_Image->setEnabled(true);
 
-    rpl.start();
-    maintmr->start(1);
-    screentmr->start(50);
+
+
+    //rpl.start();
+    //maintmr->start(1);
+    //screentmr->start(50);
     setWindowTitle("newRPL - [Unnamed]");
+
+    QSettings settings;
+
+    QString startfile=settings.value("CurrentFile",QString("")).toString();
+
+    if(!OpenFile(startfile))
+    {
+        rpl.start();
+        maintmr->start(1);
+        screentmr->start(50);
+    }
+
 
 }
 
@@ -347,6 +366,17 @@ void MainWindow::on_actionExit_triggered()
     // CLEANUP SD CARD EMULATION
     if(__sd_inserted) on_actionEject_SD_Card_Image_triggered();
 
+    // SAVE CURRENT FILE
+    if(currentfile.isEmpty()) {
+    QMessageBox a(QMessageBox::Warning,"Work not saved","Do you want to save before exit?",QMessageBox::Yes | QMessageBox::No,this);
+    if(a.exec()==QMessageBox::Yes)     on_actionSave_triggered();
+    }
+    else on_actionSave_triggered();
+
+    QSettings settings;
+
+    settings.setValue(QString("CurrentFile"),QVariant(currentfile));
+
 }
 
 int MainWindow::WriteWord(unsigned int word)
@@ -379,49 +409,17 @@ void MainWindow::on_actionSave_triggered()
 {
     QString fname;
 
-    if(currentfile.isEmpty()) fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"newRPL Backups (*.nrpb *.* *)");
+    if(currentfile.isEmpty()) {
+        fname=QFileDialog::getSaveFileName(this,"Select file name to Save as",QString(),"newRPL Backups (*.nrpb *.* *)");
+        if(!fname.isEmpty()) {
+            currentfile=fname;
+            setWindowTitle(QString("newRPL - [")+fname+QString("]"));
+        } else return;
+
+    }
     else fname=currentfile;
-    if(!fname.isEmpty()) {
-        // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
 
-        //if(!fname.endsWith(".nrpb")) fname+=".nrpb";
-
-        QFile file(fname);
-
-        if(!file.open(QIODevice::WriteOnly)) {
-            QMessageBox a(QMessageBox::Warning,"Error while saving","Cannot write to file "+ fname,QMessageBox::Ok,this);
-            a.exec();
-            return;
-        }
-
-        // FILE IS OPEN AND READY FOR WRITING
-
-        // STOP RPL ENGINE
-        maintmr->stop();
-        screentmr->stop();
-        if(rpl.isRunning()) {
-            __cpu_idle=0;
-            __pc_terminate=1;
-            __pckeymatrix^=(1ULL<<63);
-            __keyb_update();
-        while(rpl.isRunning());
-        }
-
-        // PERFORM BACKUP
-        myMainWindow=this;
-        fileptr=&file;
-        rplBackup(&write_data,(void *)fileptr);
-
-        file.close();
-
-        __memmap_intact=1;
-        // RESTART RPL ENGINE
-        __pc_terminate=0;
-        __pckeymatrix=0;
-        rpl.start();
-        maintmr->start(1);
-        screentmr->start(50);
-        }
+    SaveFile(fname);
 
 }
 
@@ -429,80 +427,8 @@ void MainWindow::on_actionOpen_triggered()
 {
     QString fname=QFileDialog::getOpenFileName(this,"Open File Name",QString(),"newRPL Backups (*.nrpb *.* *)");
 
-    if(!fname.isEmpty()) {
-        QFile file(fname);
-
-        if(!file.open(QIODevice::ReadOnly)) {
-            QMessageBox a(QMessageBox::Warning,"Error while opening","Cannot open file "+ fname,QMessageBox::Ok,this);
-            a.exec();
-            return;
-        }
-
-        // FILE IS OPEN AND READY FOR READING
-
-        // STOP RPL ENGINE
-        maintmr->stop();
-        screentmr->stop();
-        if(rpl.isRunning()) {
-            __cpu_idle=0;
-            __pc_terminate=1;
-            __pckeymatrix^=(1ULL<<63);
-            __keyb_update();
-        while(rpl.isRunning());
-        }
-
-        // PERFORM RESTORE PROCEDURE
-        myMainWindow=this;
-        fileptr=&file;
-        int result=rplRestoreBackup(&read_data,(void *)fileptr);
-
-        file.close();
-
-
-        switch(result)
-        {
-        case -1:
-        {
-            QMessageBox a(QMessageBox::Warning,"Error while opening","File "+ fname + " is corrupt or incompatible.\nCan't recover and memory was destroyed.",QMessageBox::Ok,this);
-            a.exec();
-            currentfile.clear();
-            setWindowTitle("newRPL - [Unnamed]");
-            __memmap_intact=0;
-            break;
-        }
-        case 0:
-        {
-            QMessageBox a(QMessageBox::Warning,"Error while opening","File "+ fname + " is corrupt or incompatible.\nCan't recover but memory was left intact.",QMessageBox::Ok,this);
-            a.exec();
-            __memmap_intact=1;
-            break;
-        }
-        case 1:
-        {
-            QMessageBox a(QMessageBox::Warning,"Recovery success","File "+ fname + " was sucessfully recovered.",QMessageBox::Ok,this);
-            a.exec();
-            currentfile=fname;
-            QString nameonly=currentfile.right(currentfile.length()-1-takemax(currentfile.lastIndexOf("/"),currentfile.lastIndexOf("\\")));
-            setWindowTitle("newRPL - ["+ nameonly + "]");
-
-            __memmap_intact=1;
-
-            break;
-        }
-        case 2:
-        {
-            QMessageBox a(QMessageBox::Warning,"Recovery success","File "+ fname + " was recovered with minor errors.\nRun MEMFIX to correct them.",QMessageBox::Ok,this);
-            a.exec();
-            currentfile=fname;
-            QString nameonly=currentfile.right(currentfile.length()-1-takemax(currentfile.lastIndexOf("/"),currentfile.lastIndexOf("\\")));
-            setWindowTitle("newRPL - ["+ nameonly + "]");
-
-            __memmap_intact=1;
-            break;
-        }
-
-        }
-
+    if(!OpenFile(fname)) {
+        if(!rpl.isRunning()) {
         // RESTART RPL ENGINE
         __pc_terminate=0;
         __pckeymatrix=0;
@@ -511,56 +437,21 @@ void MainWindow::on_actionOpen_triggered()
         maintmr->start(1);
         screentmr->start(50);
         }
-
-
+    }
 }
 
 void MainWindow::on_actionSaveAs_triggered()
 {
-    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"newRPL Backups (*.nrpb *.* *)");
+    QString fname;
 
+    fname=QFileDialog::getSaveFileName(this,"Select file name to Save as",QString(),"newRPL Backups (*.nrpb *.* *)");
     if(!fname.isEmpty()) {
-        // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
+            currentfile=fname;
+            setWindowTitle(QString("newRPL - [")+fname+QString("]"));
+    } else return;
 
-        //if(!fname.endsWith(".nrpb")) fname+=".nrpb";
 
-        QFile file(fname);
-
-        if(!file.open(QIODevice::WriteOnly)) {
-            QMessageBox a(QMessageBox::Warning,"Error while saving","Cannot write to file "+ fname,QMessageBox::Ok,this);
-            a.exec();
-            return;
-        }
-
-        // FILE IS OPEN AND READY FOR WRITING
-
-        // STOP RPL ENGINE
-        maintmr->stop();
-        screentmr->stop();
-        if(rpl.isRunning()) {
-            __cpu_idle=0;
-            __pc_terminate=1;
-            __pckeymatrix^=(1ULL<<63);
-            __keyb_update();
-        while(rpl.isRunning());
-        }
-
-        // PERFORM BACKUP
-        myMainWindow=this;
-        fileptr=&file;
-        rplBackup(&write_data,(void *)fileptr);
-
-        file.close();
-
-        // RESTART RPL ENGINE
-        __memmap_intact=1;
-        __pc_terminate=0;
-        __pckeymatrix=0;
-        rpl.start();
-        maintmr->start(1);
-        screentmr->start(50);
-        }
-
+    SaveFile(fname);
 }
 
 void MainWindow::on_actionNew_triggered()
@@ -770,7 +661,7 @@ void MainWindow::on_actionCut_Level_1_triggered()
 
 void MainWindow::on_actionSave_Level_1_As_triggered()
 {
-    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"newRPL objects (*.nrpl *.* *)");
+    QString fname=QFileDialog::getSaveFileName(this,"Select file name to store object",QString(),"newRPL objects (*.nrpl *.* *)");
 
     if(!fname.isEmpty()) {
         // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
@@ -880,7 +771,7 @@ void MainWindow::on_usbconnectButton_clicked()
 
 void MainWindow::on_actionUSB_Remote_ARCHIVE_to_file_triggered()
 {
-    QString fname=QFileDialog::getSaveFileName(this,"Select File Name",QString(),"newRPL Backups (*.nrpb *.* *)");
+    QString fname=QFileDialog::getSaveFileName(this,"Select file name to Save as",QString(),"newRPL Backups (*.nrpb *.* *)");
 
     if(!fname.isEmpty()) {
         // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
@@ -970,4 +861,142 @@ void MainWindow::on_actionRemote_USBRESTORE_from_file_triggered()
         }
 
     }
+}
+
+
+
+int MainWindow::OpenFile(QString fname)
+{
+    if(!fname.isEmpty()) {
+        QFile file(fname);
+
+        if(!file.open(QIODevice::ReadOnly)) {
+            QMessageBox a(QMessageBox::Warning,"Error while opening","Cannot open file "+ fname,QMessageBox::Ok,this);
+            a.exec();
+            return 0;
+        }
+
+        // FILE IS OPEN AND READY FOR READING
+
+        // STOP RPL ENGINE
+        maintmr->stop();
+        screentmr->stop();
+        if(rpl.isRunning()) {
+            __cpu_idle=0;
+            __pc_terminate=1;
+            __pckeymatrix^=(1ULL<<63);
+            __keyb_update();
+        while(rpl.isRunning());
+        }
+
+        // PERFORM RESTORE PROCEDURE
+        myMainWindow=this;
+        fileptr=&file;
+        int result=rplRestoreBackup(1,&read_data,(void *)fileptr);
+
+        file.close();
+
+
+        switch(result)
+        {
+        case -1:
+        {
+            QMessageBox a(QMessageBox::Warning,"Error while opening","File "+ fname + " is corrupt or incompatible.\nCan't recover and memory was destroyed.",QMessageBox::Ok,this);
+            a.exec();
+            currentfile.clear();
+            setWindowTitle("newRPL - [Unnamed]");
+            __memmap_intact=0;
+            return 0;
+        }
+        case 0:
+        {
+            QMessageBox a(QMessageBox::Warning,"Error while opening","File "+ fname + " is corrupt or incompatible.\nCan't recover but memory was left intact.",QMessageBox::Ok,this);
+            a.exec();
+            __memmap_intact=1;
+            break;
+        }
+        case 1:
+        {
+            currentfile=fname;
+            QString nameonly=currentfile.right(currentfile.length()-1-takemax(currentfile.lastIndexOf("/"),currentfile.lastIndexOf("\\")));
+            setWindowTitle("newRPL - ["+ nameonly + "]");
+
+            __memmap_intact=2;
+
+            break;
+        }
+        case 2:
+        {
+            QMessageBox a(QMessageBox::Warning,"Recovery success","File "+ fname + " was recovered with minor errors.\nRun MEMFIX to correct them.",QMessageBox::Ok,this);
+            a.exec();
+            currentfile=fname;
+            QString nameonly=currentfile.right(currentfile.length()-1-takemax(currentfile.lastIndexOf("/"),currentfile.lastIndexOf("\\")));
+            setWindowTitle("newRPL - ["+ nameonly + "]");
+
+            __memmap_intact=1;
+            break;
+        }
+
+        }
+
+        // RESTART RPL ENGINE
+        __pc_terminate=0;
+        __pckeymatrix=0;
+
+        rpl.start();
+        maintmr->start(1);
+        screentmr->start(50);
+
+        return 1;
+        }
+
+        return 0;
+}
+
+
+void MainWindow::SaveFile(QString fname)
+{
+
+   if(!fname.isEmpty()) {
+        // GOT A NAME, APPEND EXTENSION IF NOT GIVEN
+
+        //if(!fname.endsWith(".nrpb")) fname+=".nrpb";
+
+        QFile file(fname);
+
+        if(!file.open(QIODevice::WriteOnly)) {
+            QMessageBox a(QMessageBox::Warning,"Error while saving","Cannot write to file "+ fname,QMessageBox::Ok,this);
+            a.exec();
+            return;
+        }
+
+        // FILE IS OPEN AND READY FOR WRITING
+
+        // STOP RPL ENGINE
+        maintmr->stop();
+        screentmr->stop();
+        if(rpl.isRunning()) {
+            __cpu_idle=0;
+            __pc_terminate=1;
+            __pckeymatrix^=(1ULL<<63);
+            __keyb_update();
+        while(rpl.isRunning());
+        }
+
+        // PERFORM BACKUP
+        myMainWindow=this;
+        fileptr=&file;
+        rplBackup(&write_data,(void *)fileptr);
+
+        file.close();
+
+        __memmap_intact=2;
+        // RESTART RPL ENGINE
+        __pc_terminate=0;
+        __pckeymatrix=0;
+        rpl.start();
+        maintmr->start(1);
+        screentmr->start(50);
+        }
+
 }

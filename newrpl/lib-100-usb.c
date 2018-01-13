@@ -491,7 +491,7 @@ void LIB_HANDLER()
 
 
         WORD progress=0;
-        BINT err = rplRestoreBackup(&rplUSBArchiveReadWord,(void *)&progress);
+        BINT err = rplRestoreBackup(0,&rplUSBArchiveReadWord,(void *)&progress);
 
         usb_receivelong_finish();
 
