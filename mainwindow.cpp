@@ -353,6 +353,30 @@ extern "C" void thread_processevents()
 
 void MainWindow::on_actionExit_triggered()
 {
+
+    // CLEANUP SD CARD EMULATION
+    if(__sd_inserted) {
+        // STOP RPL ENGINE
+        maintmr->stop();
+        screentmr->stop();
+        if(rpl.isRunning()) {
+            __cpu_idle=0;
+            __pc_terminate=1;
+            __pckeymatrix^=(1ULL<<63);
+            __keyb_update();
+        while(rpl.isRunning());
+        }
+        on_actionEject_SD_Card_Image_triggered();
+    }
+
+    // SAVE CURRENT FILE
+    if(currentfile.isEmpty()) {
+    QMessageBox a(QMessageBox::Warning,"Work not saved","Do you want to save before exit?",QMessageBox::Yes | QMessageBox::No,this);
+    if(a.exec()==QMessageBox::Yes)     on_actionSave_triggered();
+    }
+    else on_actionSave_triggered();
+
+    // STOP RPL ENGINE
     maintmr->stop();
     screentmr->stop();
     if(rpl.isRunning()) {
@@ -363,15 +387,6 @@ void MainWindow::on_actionExit_triggered()
     while(rpl.isRunning());
     }
 
-    // CLEANUP SD CARD EMULATION
-    if(__sd_inserted) on_actionEject_SD_Card_Image_triggered();
-
-    // SAVE CURRENT FILE
-    if(currentfile.isEmpty()) {
-    QMessageBox a(QMessageBox::Warning,"Work not saved","Do you want to save before exit?",QMessageBox::Yes | QMessageBox::No,this);
-    if(a.exec()==QMessageBox::Yes)     on_actionSave_triggered();
-    }
-    else on_actionSave_triggered();
 
     QSettings settings;
 
