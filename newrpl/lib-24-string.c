@@ -492,21 +492,8 @@ void LIB_HANDLER()
             return;
         }
 
-     GCFlags=127;
      WORDPTR string=rplDecompile(rplPeekData(1),0);
 
-     if(GCFlags==GC_COMPLETED) {
-         rplPushDataNoGrow(string);
-         string=rplDecompile(rplPeekData(2),0);
-         if(!rplStringCompare(string,rplPeekData(1))) {
-             //FAILED!!
-             rplPushDataNoGrow(string);
-             rplError(ERR_BADERRORCODE);
-             return;
-         }
-
-        rplDropData(1);
-     }
      if(!string) { ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
      rplOverwriteData(1,string);
     }
