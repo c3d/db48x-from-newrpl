@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
 
     while(chunk-mainbuffer<length) {
 
-    if(!utf8ncmp(chunk,"@#name",6)) {
+    if(!utf8ncmp2(chunk,mainbuffer+length,"@#name",6)) {
         // FOUND START OF CHUNK
         chunkstart[numchunks]=chunk;
         ++numchunks;
@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
         start=chunkstart[k];
         end=chunkstart[k+1];
 
-        if(!utf8ncmp(start,"@#name",6)) {
+        if(!utf8ncmp2(start,end,"@#name",6)) {
         // SKIP TO THE NEXT LINE FOR THE REAL DATA
         while( (*start!='\n')&&(*start!='\r')&&(start<end)) ++start;
         while( ((*start=='\n')||(*start=='\r'))&&(start<end)) ++start;
@@ -297,7 +297,7 @@ int main(int argc, char *argv[])
 
             char *objname;
             char *nameend;
-            if(!utf8ncmp(chunkstart[k],"@#name",6)) {
+            if(!utf8ncmp2(chunkstart[k],chunkstart[k+1],"@#name",6)) {
                 objname=chunkstart[k]+6;
                 while( (*objname==' ') || (*objname=='\t')) ++objname;
                 nameend=objname;

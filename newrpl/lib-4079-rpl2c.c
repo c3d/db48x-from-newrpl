@@ -78,7 +78,7 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
-        if((TokenLen>2) && (!utf8ncmp((char * )TokenStart,"##",2))) {
+        if((TokenLen>2) && (!utf8ncmp2((char * )TokenStart,(char *)BlankStart,"##",2))) {
             BYTEPTR numptr=(BYTEPTR)TokenStart;
             BINT numwords=0;
             numptr+=2;
