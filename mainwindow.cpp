@@ -54,6 +54,8 @@ extern "C" int usbreceivearchive(uint32_t *buffer,int bufsize);
 extern "C" int usbremoterestorestart();
 extern "C" int usbsendarchive(uint32_t *buffer,int bufsize);
 
+extern "C" void setExceptionPoweroff();
+
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -991,6 +993,8 @@ void MainWindow::SaveFile(QString fname)
         maintmr->stop();
         screentmr->stop();
         if(rpl.isRunning()) {
+
+            setExceptionPoweroff();
             __cpu_idle=0;
             __pc_terminate=1;
             __pckeymatrix^=(1ULL<<63);

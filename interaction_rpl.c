@@ -178,3 +178,9 @@ int usbsendarchive(uint32_t *buffer,int bufsize)
 {
     return usb_transmitdata((BYTEPTR)buffer,bufsize*sizeof(WORD));
 }
+
+
+void setExceptionPoweroff()
+{
+    HWExceptions|=EX_POWEROFF;
+}
