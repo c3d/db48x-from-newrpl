@@ -493,6 +493,7 @@ void LIB_HANDLER()
         }
 
      WORDPTR string=rplDecompile(rplPeekData(1),0);
+
      if(!string) { ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
      rplOverwriteData(1,string);
     }

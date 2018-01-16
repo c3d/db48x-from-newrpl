@@ -901,7 +901,7 @@ int MainWindow::OpenFile(QString fname)
             __pc_terminate=1;
             __pckeymatrix^=(1ULL<<63);
             __keyb_update();
-        while(rpl.isRunning());
+            while(rpl.isRunning()) __pc_terminate=1;
         }
 
         // PERFORM RESTORE PROCEDURE
@@ -995,7 +995,7 @@ void MainWindow::SaveFile(QString fname)
             __pc_terminate=1;
             __pckeymatrix^=(1ULL<<63);
             __keyb_update();
-        while(rpl.isRunning());
+            while(rpl.isRunning()) __pc_terminate=1;
         }
 
         // PERFORM BACKUP
