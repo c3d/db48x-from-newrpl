@@ -19,7 +19,7 @@ void libCompileCmds(BINT libnum,char *libnames[],WORD libopcodes[],int numcmds)
     for(idx=0;idx<numcmds;++idx)
     {
         len=utf8len((char *)libnames[idx]);
-        if((len!=0) && (len==(BINT)TokenLen) && (!utf8ncmp((char *)TokenStart,(char *)libnames[idx],len)))
+        if((len!=0) && (len==(BINT)TokenLen) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,(char *)libnames[idx],len)))
        {
             if(libopcodes) rplCompileAppend((WORD) MKOPCODE(libnum,libopcodes[idx]));
            else rplCompileAppend((WORD) MKOPCODE(libnum,idx));
@@ -68,7 +68,7 @@ void libProbeCmds(char *libnames[],BINT tokeninfo[],int numcmds)
     for(idx=0;idx<numcmds;++idx)
     {
         len=utf8len((char *)libnames[idx]);
-        if((len>0) && (len<=(BINT)TokenLen) && (!utf8ncmp((char *)TokenStart,(char *)libnames[idx],len)))
+        if((len>0) && (len<=(BINT)TokenLen) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,(char *)libnames[idx],len)))
         {
             // WE HAVE A MATCH, STORE THE INDEX BEFORE WE MAKE ANY DECISIONS
             if(len>maxlen) { maxidx=idx; maxlen=len; }
@@ -186,7 +186,7 @@ void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds)
 
     while(idx>=0) {
         len=utf8len((char *)libnames[idx]);
-        if((len>=(BINT)TokenLen) && (!utf8ncmp((char *)TokenStart,(char *)libnames[idx],TokenLen)))
+        if((len>=(BINT)TokenLen) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,(char *)libnames[idx],TokenLen)))
         {
             // WE HAVE THE NEXT MATCH
             SuggestedOpcode=MKOPCODE(libnum,idx);
@@ -202,7 +202,7 @@ void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds)
         else {
         // SKIP THE FIRST CHARACTER AND CHECK AGAIN
             --len;
-            if((len>=(BINT)TokenLen) && (!utf8ncmp((char *)TokenStart,utf8skipst((char *)libnames[idx],(char *)libnames[idx]+4),TokenLen)))
+            if((len>=(BINT)TokenLen) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,utf8skipst((char *)libnames[idx],(char *)libnames[idx]+4),TokenLen)))
             {
                 // WE HAVE THE NEXT MATCH
                 SuggestedOpcode=MKOPCODE(libnum,idx);
@@ -245,7 +245,7 @@ void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds)
 
     while(idx<numcmds) {
         len=utf8len((char *)libnames[idx]);
-        if((len>=(BINT)TokenLen) && (!utf8ncmp((char *)TokenStart,(char *)libnames[idx],TokenLen)))
+        if((len>=(BINT)TokenLen) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,(char *)libnames[idx],TokenLen)))
         {
             // WE HAVE THE NEXT MATCH
             SuggestedOpcode=MKOPCODE(libnum,idx);

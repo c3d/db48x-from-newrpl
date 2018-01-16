@@ -434,7 +434,7 @@ BINT rplSetSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
 
     while(flags_names[idx].flagname) {
         flaglen=utf8len((char *)flags_names[idx].flagname);
-        if((flaglen==len) && !utf8ncmp((char *)name,flags_names[idx].flagname,len))
+        if((flaglen==len) && !utf8ncmp2((char *)name,(char *)nameend,flags_names[idx].flagname,len))
         {
             BINT count;
             for(count=0;count<8;++count)
@@ -478,7 +478,7 @@ BINT rplClrSystemFlagByName(BYTEPTR name,BYTEPTR nameend)
 
     while(flags_names[idx].flagname) {
         flaglen=utf8len((char *)flags_names[idx].flagname);
-        if((flaglen==len) && !utf8ncmp((char *)name,flags_names[idx].flagname,len))
+        if((flaglen==len) && !utf8ncmp2((char *)name,(char *)nameend,flags_names[idx].flagname,len))
         {
             BINT count;
             for(count=0;count<8;++count)
@@ -541,7 +541,7 @@ BINT rplTestSystemFlagByName(BYTEPTR name,BYTEPTR nameend)
     BINT flaglen;
     while(flags_names[idx].flagname) {
         flaglen=utf8len((char *)flags_names[idx].flagname);
-        if((flaglen==len) && !utf8ncmp((char *)name,flags_names[idx].flagname,len))
+        if((flaglen==len) && !utf8ncmp2((char *)name,(char *)nameend,flags_names[idx].flagname,len))
         {
             BINT count;
             BINT match=0;

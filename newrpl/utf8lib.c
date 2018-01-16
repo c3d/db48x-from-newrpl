@@ -589,36 +589,39 @@ return len-(end-string);
 // COMPARE len UNICODE CODE POINTS IN UTF8 ENCODED STRINGS
 // SIMILAR TO strncmp BUT WITH UTF8 SUPPORT
 
-int utf8ncmp(const char *s1,const char *s2,int len)
+int utf8ncmp(const char *s1,const char *s1end,const char *s2,const char *s2end,int len)
 {
        if (len > 0)
         {
-            while (len > 0 )
+            while ((len > 0 ) && (s1<s1end) && (s2<s2end))
             {
-                if (utf82cp((char *)s1,(char *)s1+4) != utf82cp((char *)s2,(char *)s2+4)) break;
-                if (*s1 == '\0') return 0;
+                if (utf82cp((char *)s1,(char *)s1end) != utf82cp((char *)s2,(char *)s2end)) break;
 
-                s1=utf8skip((char *)s1,(char *)s1+4);
-                s2=utf8skip((char *)s2,(char *)s2+4);
+                s1=utf8skip((char *)s1,(char *)s1end);
+                s2=utf8skip((char *)s2,(char *)s2end);
                 --len;
             }
 
             if (len > 0)
             {
-                if (*s1 == '\0') return -1;
-                if (*s2 == '\0' ) return 1;
-
-                return (utf82cp((char *)s1,(char *)s1+4) - utf82cp((char *)s2,(char *)s2+4));
+                if((s1<s1end)&&(s2<s2end)) return (utf82cp((char *)s1,(char *)s1end) - utf82cp((char *)s2,(char *)s2end));
+                else {
+                    if(s1==s1end) return -1;
+                    return 1;
+                }
             }
 
+            // THE CHARACTERS OF THE SHORTEST STRING WERE ALL IDENTICAL
+
+
+            if(s1<s1end) {
             // CHECK IF LEFTOVER IS A NON-STARTER
-            if(*s1!='\0') {
-                if(CCLASS(getCPInfo(utf82cp((char *)s1,(char *)s1+4)))!=0) {
+                if(CCLASS(getCPInfo(utf82cp((char *)s1,(char *)s1end)))!=0) {
                     // NOT A STARTER, STRINGS ARE NOT EQUAL
                     return 1;
                 }
             }
-            if(*s2!='\0') {
+            if(s2<s2end) {
                 if(CCLASS(getCPInfo(utf82cp((char *)s2,(char *)s2+4)))!=0) {
                     // NOT A STARTER, STRINGS ARE NOT EQUAL
                     return -1;
@@ -626,10 +629,49 @@ int utf8ncmp(const char *s1,const char *s2,int len)
             }
 
 
+
         }
 
         return 0;
 }
+
+// SIMILAR TO utf8ncmp2 BUT SECOND STRING IS EXACTLY len CODE POINTS
+// (TO AVOID COMPUTING THE END OF A NULL TERMINATED STRING)
+int utf8ncmp2(const char *s1,const char *s1end,const char *s2,int len)
+{
+       if (len > 0)
+        {
+            while ((len > 0 ) && (s1<s1end) )
+            {
+                if (utf82cp((char *)s1,(char *)s1end) != utf82cp((char *)s2,(char *)s2+4)) break;
+
+                s1=utf8skip((char *)s1,(char *)s1end);
+                s2=utf8skip((char *)s2,(char *)s2+4);
+                --len;
+            }
+
+            if (len > 0)
+            {
+                if(s1<s1end) return (utf82cp((char *)s1,(char *)s1end) - utf82cp((char *)s2,(char *)s2+4));
+                else return -1;
+            }
+
+            // THE N CHARACTERS WERE ALL IDENTICAL
+
+
+            if(s1<s1end) {
+            // CHECK IF LEFTOVER IS A NON-STARTER
+                if(CCLASS(getCPInfo(utf82cp((char *)s1,(char *)s1end)))!=0) {
+                    // NOT A STARTER, STRINGS ARE NOT EQUAL
+                    return 1;
+                }
+            }
+
+        }
+
+        return 0;
+}
+
 
 // SIMILAR TO strcmp BUT WITH UTF8 SUPPORT
 int utf8cmp(const char *s1,const char *s2)

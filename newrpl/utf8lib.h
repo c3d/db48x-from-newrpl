@@ -89,7 +89,8 @@ unsigned int cp2utf8(int codepoint);
 
 // UTF-8 COMPLIANT FORM OF strncmp.
 // len IS IN UNICODE CODE POINTS, NOT BYTES
-int utf8ncmp(const char *s1,const char *s2,int len);
+int utf8ncmp(const char *s1, const char *s1end, const char *s2, const char *s2end, int len);
+int utf8ncmp2(const char *s1,const char *s1end,const char *s2,int len);
 
 // UTF-8 COMPLIANT FORM OF strcmp.
 int utf8cmp(const char *s1,const char *s2);

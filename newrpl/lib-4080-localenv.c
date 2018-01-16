@@ -78,7 +78,7 @@ void LIB_HANDLER()
         // CHECK IF THE TOKEN IS THE OBJECT DOCOL
         // BUT ONLY IF WE ARE WITHIN A NEWLOCALENV CONSTRUCT
 
-       if((TokenLen==1) && (!utf8ncmp((char *)TokenStart,"«",1)))
+       if((TokenLen==1) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"«",1)))
        {
            if((CurrentConstruct&~0xffff)!=MKOPCODE(LIBRARY_NUMBER,NEWLOCALENV)) {
                RetNum=ERR_NOTMINE;
@@ -116,7 +116,7 @@ void LIB_HANDLER()
 
        // CHECK IF THE TOKEN IS THE NEW LOCAL
 
-       if((TokenLen==1) && (!utf8ncmp((char *)TokenStart,"→",1)))
+       if((TokenLen==1) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"→",1)))
        {
            rplCompileAppend(CMD_XEQSECO);   // EVAL THE NEXT SECO IN THE RUNSTREAM
            rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,NEWLOCALENV));  // PUT A MARKER

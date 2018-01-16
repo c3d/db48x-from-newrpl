@@ -662,7 +662,7 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
     {
-        if((TokenLen==10) && (!utf8ncmp((char *)TokenStart,"BITMAPDATA",10))) {
+        if((TokenLen==10) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"BITMAPDATA",10))) {
 
             ScratchPointer4=CompileEnd;
             rplCompileAppend(MKPROLOG(LIBRARY_NUMBER,0));
@@ -694,12 +694,12 @@ void LIB_HANDLER()
                 RetNum=ERR_SYNTAX;
                 return;
             }
-            if(!utf8ncmp((char *)TokenStart,"MONO",4)) *ScratchPointer4|=BITMAP_RAWMONO|0x10000;
-            else if(!utf8ncmp((char *)TokenStart,"16GR",4)) *ScratchPointer4|=BITMAP_RAW16G|0x10000;
-            else if(!utf8ncmp((char *)TokenStart,"256G",4)) *ScratchPointer4|=BITMAP_RAW256G|0x10000;
-            else if(!utf8ncmp((char *)TokenStart,"64KC",4)) *ScratchPointer4|=BITMAP_RAW64KC|0x10000;
-            else if(!utf8ncmp((char *)TokenStart,"ARGB",4)) *ScratchPointer4|=BITMAP_RAWARGB|0x10000;
-            else if(!utf8ncmp((char *)TokenStart,"OTHR",4)) *ScratchPointer4|=BITMAP_EXTERNAL|0x10000;
+            if(!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"MONO",4)) *ScratchPointer4|=BITMAP_RAWMONO|0x10000;
+            else if(!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"16GR",4)) *ScratchPointer4|=BITMAP_RAW16G|0x10000;
+            else if(!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"256G",4)) *ScratchPointer4|=BITMAP_RAW256G|0x10000;
+            else if(!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"64KC",4)) *ScratchPointer4|=BITMAP_RAW64KC|0x10000;
+            else if(!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"ARGB",4)) *ScratchPointer4|=BITMAP_RAWARGB|0x10000;
+            else if(!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"OTHR",4)) *ScratchPointer4|=BITMAP_EXTERNAL|0x10000;
             else {
                 rplError(ERR_UNSUPPORTEDBITMAP);
                 RetNum=ERR_SYNTAX;

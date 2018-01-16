@@ -838,7 +838,7 @@ void LIB_HANDLER()
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
 
-        if((TokenLen==8) && (!utf8ncmp((char *)TokenStart,"BINDATA",8))) {
+        if((TokenLen==7) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"BINDATA",7))) {
 
             ScratchPointer4=CompileEnd;
             rplCompileAppend(MKPROLOG(LIBRARY_NUMBER,0));

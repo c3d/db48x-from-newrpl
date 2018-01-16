@@ -492,8 +492,21 @@ void LIB_HANDLER()
             return;
         }
 
+     GCFlags=127;
      WORDPTR string=rplDecompile(rplPeekData(1),0);
 
+     if(GCFlags==GC_COMPLETED) {
+         rplPushDataNoGrow(string);
+         string=rplDecompile(rplPeekData(2),0);
+         if(!rplStringCompare(string,rplPeekData(1))) {
+             //FAILED!!
+             rplPushDataNoGrow(string);
+             rplError(ERR_BADERRORCODE);
+             return;
+         }
+
+        rplDropData(1);
+     }
      if(!string) { ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
      rplOverwriteData(1,string);
     }
@@ -964,7 +977,7 @@ void LIB_HANDLER()
 
             for(;pos<=maxpos;++pos)
             {
-                if(utf8ncmp((char *)nextchar,(char *)find,lenfindcp)==0) {
+                if(utf8ncmp2((char *)nextchar,(char *)end1,(char *)find,lenfindcp)==0) {
                     // FOUND A MATCH, COPY THE STRING SO FAR AND THE REPLACEMENT
                     BINT newsize2=newsize+(nextchar-str1)+sizerepl;
                     if( ((newsize2+3)>>2)>((newsize+3)>>2) ) {

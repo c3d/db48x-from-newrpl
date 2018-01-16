@@ -1649,7 +1649,7 @@ for(k=1;k<NUM_SIPREFIXES;++k)
 {
 // LEN IN UNICODE CHARATERS OF THE SI PREFIX
 if(k==10) len=2; else len=1;
-if(!utf8ncmp((char *)istart,(char *)siprefix_text[k],len)) {
+if(!utf8ncmp2((char *)istart,(char *)iend,(char *)siprefix_text[k],len)) {
  // FOUND A VALID PREFIX
  if(ilen>len) return k;
 }

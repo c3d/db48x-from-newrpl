@@ -848,7 +848,7 @@ void LIB_HANDLER()
 
         // CHECK IF THE TOKEN IS THE OBJECT DOCOL
 
-       if((TokenLen==2) && (!utf8ncmp((char * )TokenStart,"::",2)))
+       if((TokenLen==2) && (!utf8ncmp2((char * )TokenStart,(char *)BlankStart,"::",2)))
        {
            rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER,0));
            RetNum=OK_STARTCONSTRUCT;
@@ -856,7 +856,7 @@ void LIB_HANDLER()
        }
        // CHECK IF THE TOKEN IS SEMI
 
-       if(((TokenLen==1) && (!utf8ncmp((char *)TokenStart,";",1))))
+       if(((TokenLen==1) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,";",1))))
        {
            if(CurrentConstruct!=MKPROLOG(LIBRARY_NUMBER,0)) {
                RetNum=ERR_SYNTAX;

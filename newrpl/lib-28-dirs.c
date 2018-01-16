@@ -2033,7 +2033,7 @@ case TVARSE:
 
         // LSTO NEEDS SPECIAL CONSIDERATION TO CREATE LAMS AT COMPILE TIME
 
-        if((TokenLen==3) && (!utf8ncmp((char *)TokenStart,"STO",3)))
+        if((TokenLen==3) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"STO",3)))
         {
 
             // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
@@ -2186,7 +2186,7 @@ case TVARSE:
         }
 
 
-        if((TokenLen==3) && (!utf8ncmp((char *)TokenStart,"RCL",3)))
+        if((TokenLen==3) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"RCL",3)))
         {
 
             // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)

@@ -776,7 +776,7 @@ void LIB_HANDLER()
 
         // LSTO NEEDS SPECIAL CONSIDERATION TO CREATE LAMS AT COMPILE TIME
 
-        if((TokenLen==4) && (!utf8ncmp((char *)TokenStart,"LSTO",4)))
+        if((TokenLen==4) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"LSTO",4)))
         {
 
             // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
@@ -980,7 +980,7 @@ void LIB_HANDLER()
 
         // HIDELOCALS NEEDS SPECIAL CONSIDERATION TO CREATE LAMS AT COMPILE TIME, OR TRACING WILL BE OFF BY 1
 
-        if((TokenLen==10) && (!utf8ncmp((char *)TokenStart,"HIDELOCALS",10)))
+        if((TokenLen==10) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"HIDELOCALS",10)))
         {
 
             // CHECK IF THE PREVIOUS OBJECT IS A QUOTED IDENT?
@@ -1048,7 +1048,7 @@ void LIB_HANDLER()
         }
 
 
-        if((TokenLen==4) && (!utf8ncmp((char *)TokenStart,"LRCL",4)))
+        if((TokenLen==4) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"LRCL",4)))
         {
 
             // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)

@@ -1472,7 +1472,7 @@ case SCLVIEW:
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
     {
-        if((TokenLen==8) && (!utf8ncmp((char *)TokenStart,"PLOTDATA",8))) {
+        if((TokenLen==8) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"PLOTDATA",8))) {
 
             ScratchPointer4=CompileEnd;
             rplCompileAppend(MKPROLOG(LIBRARY_NUMBER,0));
@@ -1609,7 +1609,7 @@ case SCLVIEW:
         }
         else {
 
-        if((TokenLen==7) && (!utf8ncmp((char *)TokenStart,"ENDPLOT",7))) {
+        if((TokenLen==7) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"ENDPLOT",7))) {
             // ADD THE ENDPLOT COMMAND '~'
             if(count==0) temp.word=0;
             temp.bytes[count]='~';

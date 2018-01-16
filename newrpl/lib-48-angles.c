@@ -1447,7 +1447,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(!utf8ncmp((char *)TokenStart,"∡",1)) {
+        if(!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"∡",1)) {
 
 
         // POINT TO THE LAST CHARACTER
@@ -1458,7 +1458,7 @@ void LIB_HANDLER()
         BINT isapprox=0;
 
 
-            if(!utf8ncmp((char *)ptr,"°",1)) { angmode=ANGLEDEG; --tlen; }
+            if(!utf8ncmp2((char *)ptr,(char *)BlankStart,"°",1)) { angmode=ANGLEDEG; --tlen; }
             if((*ptr=='d')||(*ptr=='D')) { angmode=ANGLEDMS; --tlen; }
             if((*ptr=='g')||(*ptr=='G')) { angmode=ANGLEGRAD; --tlen; }
             if((*ptr=='r')||(*ptr=='R')) { angmode=ANGLERAD; --tlen; }
@@ -1725,7 +1725,7 @@ void LIB_HANDLER()
             if(f<(int)TokenLen) {
                 if(num=='.') { ++f; ++ptr; num=*ptr; }
                 if(f<(int)TokenLen) {
-                    if(!utf8ncmp((char *)ptr,"°",1)) ++f;
+                    if(!utf8ncmp2((char *)ptr,(char *)BlankStart,"°",1)) ++f;
                     else
                         if((num=='d')||(num=='D')||(num=='g')||(num=='G')||(num=='r')||(num=='R')) ++f;
                 }

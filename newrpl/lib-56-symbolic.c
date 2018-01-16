@@ -1507,7 +1507,7 @@ void LIB_HANDLER()
         return;
         }
 
-        if( (TokenLen==2) && !utf8ncmp((char *)tok,":→",2)) {
+        if( (TokenLen==2) && !utf8ncmp2((char *)tok,(char *)BlankStart,":→",2)) {
             if(CurrentConstruct==MKPROLOG(DOSYMB,0)) {
                 rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,RULESEPARATOR));
                 RetNum=OK_CONTINUE;
@@ -1609,7 +1609,7 @@ void LIB_HANDLER()
             return;
         }
 /*
-        if( !utf8ncmp((char *)TokenStart,":→",2) ) {
+        if( !utf8ncmp2((char *)TokenStart,(char *)BlankStart,":→",2) ) {
             RetNum= OK_TOKENINFO | MKTOKENINFO(2,TITYPE_BINARYOP_LEFT,2,14);
             return;
         }
