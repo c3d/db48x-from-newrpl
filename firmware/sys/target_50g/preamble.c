@@ -12,7 +12,7 @@
 char kinpo_preamble[16] __attribute__( (section (".preamble")))
 = PREAMBLE_STRING;
 
-unsigned int filler[2] __attribute__( (section (".preamble"))) = { 0,0 };
+unsigned int filler[2] __attribute__( (section (".preamble"))) = { 0, 0 };
 
 extern void startup(int);
 
