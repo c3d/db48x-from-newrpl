@@ -1037,23 +1037,27 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        ScratchPointer1=rplPeekData(2);
-        ScratchPointer2=rplPeekData(1);
 
-        if(!ISSTRING(*ScratchPointer1)) {
-        WORDPTR string=rplDecompile(ScratchPointer1,DECOMP_NOHINTS);
-        if(!string) { ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
-        ScratchPointer1=string;
+        WORDPTR *savestk=DSTop;
+        WORDPTR str1,str2;
+
+        if(!ISSTRING(*rplPeekData(2))) {
+        str1=rplDecompile(rplPeekData(2),DECOMP_NOHINTS);
+        if(!str1) { DSTop=savestk; ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
+        rplPushData(str1);
         }
+        else rplPushData(rplPeekData(2));
 
-        if(!ISSTRING(*ScratchPointer2)) {
-        WORDPTR string=rplDecompile(ScratchPointer2,DECOMP_NOHINTS);
-        if(!string) { ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
-        ScratchPointer2=string;
+        if(!ISSTRING(*rplPeekData(2))) {
+        str2=rplDecompile(rplPeekData(2),DECOMP_NOHINTS);
+        if(!str2) { DSTop=savestk; ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
+        rplPushData(str2);
         }
+        else rplPushData(rplPeekData(2));
 
-        BINT len1=STRLEN(*ScratchPointer1);
-        BINT len2=STRLEN(*ScratchPointer2);
+
+        BINT len1=STRLEN(*rplPeekData(2));
+        BINT len2=STRLEN(*rplPeekData(1));
 
         WORDPTR newobject=rplAllocTempOb((len1+len2+3)>>2);
         if(!newobject) {
@@ -1061,8 +1065,11 @@ void LIB_HANDLER()
            return;
         }
         // COPY BOTH STRINGS
-        memmoveb(newobject+1,ScratchPointer1+1,len1);
-        memmoveb( ((BYTEPTR)newobject)+len1+4,ScratchPointer2+1,len2);
+        str2=rplPopData();
+        str1=rplPopData();
+
+        memmoveb(newobject+1,str1+1,len1);
+        memmoveb( ((BYTEPTR)newobject)+len1+4,str2+1,len2);
 
         BINT padding=(4-((len1+len2)&3))&3;
 
