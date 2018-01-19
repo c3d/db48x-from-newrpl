@@ -21,6 +21,7 @@ WORD rplGetNextSuggestion(WORD suggestion,BYTEPTR start,BYTEPTR end)
     else libcnt=LIBNUM(suggestion);
 
     TokenStart=(WORDPTR)start;
+    BlankStart=(WORDPTR)end;
     TokenLen=(BINT) utf8nlen((char *)start,(char *)end);
     SuggestedObject=(WORDPTR)zero_bint;
     SuggestedOpcode=suggestion;
@@ -68,6 +69,7 @@ WORD rplGetPrevSuggestion(WORD suggestion,BYTEPTR start,BYTEPTR end)
     libcnt=rplGetNextLib(MAXLIBNUMBER+1);  // START FROM THE HIGHEST NUMBER
 
     TokenStart=(WORDPTR)start;
+    BlankStart=(WORDPTR)end;
     TokenLen=(BINT) utf8nlen((char *)start,(char *)end);
     SuggestedObject=(WORDPTR)zero_bint;
     SuggestedOpcode=-1;
