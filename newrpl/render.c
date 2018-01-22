@@ -6,7 +6,7 @@
  */
 
 // THIS FILE CONTAINS A GENERIC SCAN-LINE RENDERER
-// ALL MATH USES fastmath,c 40,24 FIXED POINT
+// ALL MATH USES fastmath.c 40.24 FIXED POINT
 
 #include "newrpl.h"
 #include "ui.h"

@@ -6579,6 +6579,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
 
 
         if(Exceptions) {
+            if(flags&OL_EXITONERROR) break;
             halShowErrorMsg();
             Exceptions=0;
         }
