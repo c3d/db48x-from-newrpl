@@ -884,7 +884,9 @@ void LIB_HANDLER()
                         return;
 
                     }
-                    rplError(ERR_INCOMPATIBLEDIMENSION);
+                    // ALWAYS RETURN FALSE IF DIFFERENT DIMENSIONS
+                    rplDropData(2);
+                    rplPushFalse();
                     return;
             }
             if(!ISMATRIX(*b))
@@ -902,12 +904,83 @@ void LIB_HANDLER()
                         return;
                     }
                 }
-                    rplError(ERR_INCOMPATIBLEDIMENSION);
+                // ALWAYS RETURN FALSE IF DIFFERENT DIMENSIONS
+                rplDropData(2);
+                rplPushFalse();
                     return;
             }
 
             // MATRIX HAS COMPATIBLE DIMENSIONS FOR ADDITION, NOW APPLY "SAME" TO ALL ELEMENTS
             rplMatrixSame();
+            return;
+
+
+        }
+        case OVR_EQ:
+        {
+            if(rplDepthData()<2) {
+                rplError(ERR_BADARGCOUNT);
+
+                return;
+            }
+            WORDPTR a=rplPeekData(2),b=rplPeekData(1);
+
+            if(!ISMATRIX(*a))
+            {
+                // CHECK DIMENSIONS OF MATRIX B
+                // OPERATION IS VALID IF B IS A SCALAR
+                if(ISMATRIX(*b)){
+                    BINT rows=rplMatrixRows(b);
+                    BINT cols=rplMatrixCols(b);
+                    if( (rows<2)&&(cols==1)) {
+                        // OPERATION IS SCALAR, ACCEPT IT
+                        WORDPTR scalar=rplMatrixGet(b,1,1);
+                        rplOverwriteData(1,scalar);
+                        rplCallOvrOperator(CurOpcode);
+                        return;
+                    }
+                }
+
+                // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
+                    if(!ISPROLOG(*a)|| !ISPROLOG(*b)) {
+                        if(*a==*b) {
+                            rplDropData(2);
+                            rplPushTrue();
+                        } else {
+                            rplDropData(2);
+                            rplPushFalse();
+                        }
+                        return;
+
+                    }
+                    // ALWAYS RETURN FALSE IF DIFFERENT DIMENSIONS
+                    rplDropData(2);
+                    rplPushFalse();
+                    return;
+            }
+            if(!ISMATRIX(*b))
+            {
+                // CHECK DIMENSIONS OF MATRIX A
+                // OPERATION IS VALID IF A IS A SCALAR
+                if(ISMATRIX(*a)){
+                    BINT rows=rplMatrixRows(a);
+                    BINT cols=rplMatrixCols(a);
+                    if( (rows<2)&&(cols==1)) {
+                        // OPERATION IS SCALAR, ACCEPT IT
+                        WORDPTR scalar=rplMatrixGet(a,1,1);
+                        rplOverwriteData(2,scalar);
+                        rplCallOvrOperator(CurOpcode);
+                        return;
+                    }
+                }
+                // ALWAYS RETURN FALSE IF DIFFERENT DIMENSIONS
+                rplDropData(2);
+                rplPushFalse();
+                    return;
+            }
+
+            // MATRIX HAS COMPATIBLE DIMENSIONS FOR ADDITION, NOW APPLY "EQ" TO ALL ELEMENTS
+            rplMatrixEqual();
             return;
 
 

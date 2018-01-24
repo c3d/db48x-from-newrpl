@@ -586,20 +586,14 @@ void LIB_HANDLER()
             arg1=rplPeekData(2);
             arg2=rplPeekData(1);
 
-            if(!(ISBINT(*arg1)||ISREAL(*arg1)) || !(ISBINT(*arg2)||ISREAL(*arg2))) {
-                rplError(ERR_REALEXPECTED);
-                return;
-            }
-
             if(ISREAL(*arg1)) {
                 rplReadReal(arg1,&rop1);
                 op1type=1;
                 op1app=rop1.flags&F_APPROX;
             }
             else {
-                op1=rplReadBINT(arg1);
-                op1type=0;
-                op1app=ISAPPROX(*arg1);
+                if(ISBINT(*arg1)) { op1=rplReadBINT(arg1); op1type=0; op1app=ISAPPROX(*arg1); }
+                else { op1=0; op1type=-1; op1app=0; }
             }
             if(ISREAL(*arg2)) {
                 rplReadReal(arg2,&rop2);
@@ -607,10 +601,34 @@ void LIB_HANDLER()
                 op1app=rop2.flags&F_APPROX;
             }
             else {
-                op2=rplReadBINT(arg2);
-                op2type=0;
-                op2app=ISAPPROX(*arg2);
+                if(ISBINT(*arg2)) { op2=rplReadBINT(arg2); op2type=0; op2app=ISAPPROX(*arg2); }
+                else { op2=0; op2type=-1; op2app=0; }
             }
+
+
+            if( (op1type<0)||(op2type<0)) {
+               switch(OPCODE(CurOpcode))
+               {
+               case OVR_SAME:
+               case OVR_EQ:
+                   rplDropData(2);
+                   rplPushFalse();
+                   break;
+               case OVR_NOTEQ:
+                   rplDropData(2);
+                   rplPushTrue();
+                   break;
+               default:
+               rplError(ERR_REALEXPECTED);
+               }
+               return;
+            }
+
+
+
+
+
+
             rplDropData(2);
         }
 

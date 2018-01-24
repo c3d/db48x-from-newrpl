@@ -445,8 +445,22 @@ void LIB_HANDLER()
 
                     }
 
-                rplError(ERR_COMPLEXORREALEXPECTED);
-                return;
+                    // AT LEAST ONE OBJECT IS NOT A NUMBER
+                    switch(OPCODE(CurOpcode))
+                    {
+                    case OVR_SAME:
+                    case OVR_EQ:
+                        rplDropData(2);
+                        rplPushFalse();
+                        break;
+                    case OVR_NOTEQ:
+                        rplDropData(2);
+                        rplPushTrue();
+                        break;
+                    default:
+                    rplError(ERR_COMPLEXORREALEXPECTED);
+                    }
+                    return;
             }
 
             amode1=rplPolarComplexMode(arg1);

@@ -708,6 +708,7 @@ void rplMatrixEval1();
 void rplMatrixEval();
 void rplMatrixToNum();
 void rplMatrixSame();
+void rplMatrixEqual();
 void rplMatrixAdd();
 void rplMatrixAddPolar(BINT negv2);
 void rplMatrixSub();

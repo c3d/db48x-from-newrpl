@@ -1114,10 +1114,6 @@ void LIB_HANDLER()
                 return;
 
             }
-            else {
-                rplError(ERR_INVALIDOPCODE);
-                return;
-            }
 
         // DELIBERATED FALL-THROUGH TO OVR_EQ WHEN THERE'S NO COMMANDS INVOLVED
 

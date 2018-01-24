@@ -1996,10 +1996,7 @@ case TVARSE:
                 return;
 
             }
-            else {
-                rplError(ERR_INVALIDOPCODE);
-                return;
-            }
+
 
             // DIRECTORY OBJECTS ARE THE SAME ONLY IF THEY POINT TO THE SAME DIRECTORY, HENCE THEY ARE THE SAME HANDLE
             if(rplPeekData(2)==rplPeekData(1)) {

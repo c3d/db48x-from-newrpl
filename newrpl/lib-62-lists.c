@@ -460,9 +460,11 @@ void LIB_HANDLER()
                     if(*rplPeekData(2)==*rplPeekData(1)) {
                         rplDropData(2);
                         rplPushTrue();
+                        return;
                     } else {
                         rplDropData(2);
                         rplPushFalse();
+                        return;
                     }
 
                 }
@@ -473,7 +475,11 @@ void LIB_HANDLER()
             }
 
 
-
+            if(OPCODE(CurOpcode)==OVR_SAME) {
+                rplDropData(2);
+                rplPushFalse();
+                return;
+            }
             rplError(ERR_LISTEXPECTED);
             return;
         }

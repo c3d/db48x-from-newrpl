@@ -1994,6 +1994,27 @@ void rplMatrixSame() {
 
 }
 
+void rplMatrixEqual() {
+
+    rplMatrixBinary((CMD_OVR_EQ));
+
+    if(Exceptions) return;
+
+    rplMatrixUnary(CMD_OVR_NOT);
+    if(Exceptions) return;
+
+    if(rplIsZeroMatrix(rplPeekData(1))) {
+        rplDropData(1);
+        rplPushTrue();
+    }
+    else {
+        rplDropData(1);
+        rplPushFalse();
+    }
+
+}
+
+
 
 void rplMatrixTranspose()
 {
