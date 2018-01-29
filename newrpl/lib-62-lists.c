@@ -266,7 +266,14 @@ BINT rplListItemCompare(WORDPTR a,WORDPTR b)
     rplPushData(a);
     rplPushData(b);
     rplCallOvrOperator((CMD_OVR_CMP));
-    if(Exceptions) return 0;
+    if(Exceptions) {
+        // DON'T FAIL IF COMPARISON IS NOT DEFINED, JUST LEAVE THE OBJECTS IN THEIR PLACES
+        if(ErrorCode==ERR_INVALIDOPCODE) {
+            rplClearErrors();
+           return -1;
+        }
+        return 0;
+    }
     BINT r=rplReadBINT(rplPopData());
     if(r==0) return (BINT)(a-b);
     return r;
@@ -485,6 +492,14 @@ void LIB_HANDLER()
         }
 
 
+        if(OPCODE(CurOpcode)==OVR_SAME) {
+            BINT result=rplListSame();
+            if(Exceptions) return;
+            rplDropData(2);
+            if(result) rplPushTrue();
+            else rplPushFalse();
+            return;
+        }
 
         // NOW CREATE A PROGRAM TO 'MAP'
 

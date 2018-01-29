@@ -1313,6 +1313,7 @@ end_of_expression:
                         if(TI_PRECEDENCE(*(InfixOpTop-5))==TI_PRECEDENCE(RetNum)) {
                             // ALWAYS ADD PARENTHESIS, EXCEPT FOR MUL AND ADD
                           if( (*DecompileObject!=(CMD_OVR_MUL)) && (*DecompileObject!=(CMD_OVR_ADD))) {
+                              if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC))   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS!
                               rplDecompAppendChar('(');
 
                           }

@@ -628,6 +628,7 @@ WORDPTR rplGetListElement(WORDPTR composite, BINT pos);
 WORDPTR rplGetListElementFlat(WORDPTR composite, BINT pos);
 WORDPTR rplGetNextListElementFlat(WORDPTR composite, WORDPTR elem);
 BINT rplIsLastElementFlat(WORDPTR composite, BINT pos);
+BINT rplListSame();
 void rplListUnaryDoCmd();
 void rplListUnaryNoResultDoCmd();
 void rplListBinaryDoCmd();

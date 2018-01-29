@@ -554,3 +554,39 @@ void rplListMultiArgDoCmd(BINT nargs)
     }
 
 }
+
+
+// ATOMIC SAME OPERATION FOR LISTS
+// INPUT ARGUMENTS ARE 2 OBJECTS (LISTS) ON THE STACK
+// RETURNS 1 IF THEY ARE THE SAME
+
+BINT rplListSame()
+{
+WORDPTR *a=DSTop-2;
+WORDPTR *b=DSTop-1;
+BINT aend,bend;
+BINT aptr,bptr;
+
+aend=rplObjSize(*a);
+bend=rplObjSize(*b);
+
+aptr=bptr=0;
+
+while((aptr<aend)&&(bptr<bend))
+{
+    if(ISLIST((*a)[aptr])) ++aptr;
+    if(ISLIST((*b)[bptr])) ++bptr;
+
+    rplPushDataNoGrow((*a)+aptr);
+    rplPushDataNoGrow((*b)+bptr);
+    rplCallOvrOperator(CMD_OVR_SAME);
+    if(Exceptions) return 0;
+
+    if(rplIsFalse(rplPopData())) return 0;
+    aptr+=rplObjSize((*a)+aptr);
+    bptr+=rplObjSize((*b)+bptr);
+}
+if((aptr!=aend)||(bptr!=bend)) return 0;
+return 1;
+
+}
