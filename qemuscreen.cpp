@@ -33,14 +33,17 @@ QEmuScreen::QEmuScreen(QWidget *parent) :
 
     screen_height=80;
     screen_width=131;
-    BkgndColor=QColor(162,209,148);
+    BkgndColor=QColor(172,222,157);
     MainColor=QColor(0,0,0);
+    BkgndPen.setColor(BkgndColor);
+    BkgndPen.setStyle(Qt::NoPen);
+    BkgndPen.setWidthF(0.05);
 
     for(i=0;i<16;++i)
     {
-        Grays[i].setRed((MainColor.red()-BkgndColor.red())*((qreal)i)/((qreal)15.0)+BkgndColor.red());
-        Grays[i].setGreen((MainColor.green()-BkgndColor.green())*((qreal)i)/((qreal)15.0)+BkgndColor.green());
-        Grays[i].setBlue((MainColor.blue()-BkgndColor.blue())*((qreal)i)/((qreal)15.0)+BkgndColor.blue());
+        Grays[i].setRed((MainColor.red()-BkgndColor.red())*((qreal)(i+1))/((qreal)16.0)+BkgndColor.red());
+        Grays[i].setGreen((MainColor.green()-BkgndColor.green())*((qreal)(i+1))/((qreal)16.0)+BkgndColor.green());
+        Grays[i].setBlue((MainColor.blue()-BkgndColor.blue())*((qreal)(i+1))/((qreal)16.0)+BkgndColor.blue());
         Grays[i].setAlpha(255);
         GrayBrush[i].setColor(Grays[i]);
         GrayBrush[i].setStyle(Qt::SolidPattern);
@@ -54,7 +57,7 @@ QEmuScreen::QEmuScreen(QWidget *parent) :
     for(j=0;j<screen_height;++j) {
     for(i=0;i<screen_width;++i)
     {
-     Pixels[j*screen_width+i]=scr.addRect(i,j,1.0-1e-3,1.0-1e-3,Qt::NoPen,GrayBrush[0]);
+     Pixels[j*screen_width+i]=scr.addRect(i,j,1.0,1.0,BkgndPen,GrayBrush[0]);
     }
     }
 
@@ -153,6 +156,7 @@ void QEmuScreen::update()
             for(j=0;j<screen_width;++j) {
                 color=*ptr&mask;
                 Pixels[i*screen_width+j]->setBrush(GrayBrush[ (color? 15:0)]);
+                Pixels[i*screen_width+j]->setPen(BkgndPen);
                 mask<<=1;
                 if(!mask) { mask=1; ++ptr; }
             }
@@ -180,6 +184,7 @@ void QEmuScreen::update()
             for(j=0;j<screen_width;++j) {
                 color=(*ptr&mask)>>((j&7)*4);
                 Pixels[i*screen_width+j]->setBrush(GrayBrush[color]);
+                Pixels[i*screen_width+j]->setPen(BkgndPen);
                 mask<<=4;
                 if(!mask) { mask=0xf; ++ptr; }
             }

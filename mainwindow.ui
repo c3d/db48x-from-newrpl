@@ -119,7 +119,7 @@ border-width: 0px;</string>
      <x>0</x>
      <y>0</y>
      <width>1076</width>
-     <height>23</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -148,6 +148,7 @@ border-width: 0px;</string>
     <addaction name="separator"/>
     <addaction name="actionSimulate_Alarm"/>
     <addaction name="actionTake_Screenshot"/>
+    <addaction name="actionShow_LCD_grid"/>
    </widget>
    <widget class="QMenu" name="menuStack">
     <property name="title">
@@ -291,6 +292,14 @@ border-width: 0px;</string>
   <action name="actionRemote_USBRESTORE_from_file">
    <property name="text">
     <string>Remote USBRESTORE from file...</string>
+   </property>
+  </action>
+  <action name="actionShow_LCD_grid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show LCD grid</string>
    </property>
   </action>
  </widget>

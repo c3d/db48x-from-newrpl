@@ -1019,3 +1019,9 @@ void MainWindow::SaveFile(QString fname)
         }
 
 }
+
+void MainWindow::on_actionShow_LCD_grid_toggled(bool arg1)
+{
+    ui->EmuScreen->BkgndPen.setStyle((arg1)? Qt::SolidLine : Qt::NoPen);
+
+}

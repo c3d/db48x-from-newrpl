@@ -82,6 +82,8 @@ private slots:
 
     void on_actionRemote_USBRESTORE_from_file_triggered();
 
+    void on_actionShow_LCD_grid_toggled(bool arg1);
+
 public slots:
     void usbupdate();
     void domaintimer();

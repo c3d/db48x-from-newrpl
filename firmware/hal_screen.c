@@ -346,7 +346,8 @@ void halRedrawStack(DRAWSURFACE *scr)
   if(depth>=10000) xright+=6;
 
   ggl_cliprect(scr,scr->clipx,ystart,scr->clipx2,yend-1,0);  // CLEAR RECTANGLE
-  ggl_clipvline(scr,xright,ystart,yend-1,ggl_mkcolor(0x8));
+
+  if(depth>0) ggl_clipvline(scr,xright,ystart,yend-1,ggl_mkcolor(0x8));
 
   while(y>ystart) {
       if(level==1) levelfnt=halScreen.FontArray[FONT_STACKLVL1];
@@ -433,11 +434,13 @@ void halRedrawStack(DRAWSURFACE *scr)
         else if( (level==depth) && (halScreen.StkPointer>depth)) DrawText(0,ytop-(*levelfnt)->BitmapHeight/2+1,"▶",*levelfnt,0xf,scr);
         }
 
+      if(level<=depth) {
       // DRAW THE NUMBER
       halInt2String(level,num);
       numwidth=StringWidth(num,*levelfnt);
 
       DrawText(xright-numwidth,ytop,num,*levelfnt,0xf,scr);
+      }
 
       if(level<=depth) {
 

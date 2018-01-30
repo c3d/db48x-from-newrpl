@@ -24,6 +24,7 @@ public:
 
     QColor Grays[16];   // ARRAY WITH ALL THE DIFFERENT GRAY LEVELS
     QBrush GrayBrush[16];
+    QPen   BkgndPen;
     QPixmap annHourglass,annComms,annAlpha,annBattery,annLShift,annRShift;
 
 
