@@ -244,6 +244,8 @@ void libFindMsg(BINT message,WORDPTR table);
 
 #define DOBITMAP    80      // BITMAPS 80-87
 
+#define DOLIBRARY   102     // LIBRARIES AND LIBPTRS
+
 
 // BITMAP TYPES TO ADD TO DOBITMAP
 #define BITMAP_RAWMONO  0
@@ -298,6 +300,11 @@ void libFindMsg(BINT message,WORDPTR table);
 #define ISFONT(prolog)   (ISPROLOG(prolog) && (LIBNUM(prolog)==DOFONT))
 
 #define ISBINDATA(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOBINDATA))
+
+#define ISLIBRARY(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIBRARY))
+#define ISLIBPTR(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIBRARY+1))
+
+
 
 #define ANGLEMODE(prolog) ( (ISANGLE(prolog)? (BINT)(LIBNUM(prolog)&3):(BINT)ANGLENONE) )
 

@@ -1,0 +1,51 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib102_msgtable
+{
+##1,ERR_INVALIDLIBRARY "Invalid Library Object"
+}
+
+@#name lib102_menu
+{
+CRLIB ATTACH DETACH RESETDATA
+}
+
+
+@#name lib102_cmdhelp
+{
+CRLIB
+"Create a library from
+a directory
+ → Lib"
+
+ATTACH
+"Install a library
+
+Lib → "
+
+DETACH
+"Uninstall a library
+
+N<libID> → "
+
+RESETDATA
+"Reset (erase) library
+data.
+N<libID> → "
+
+}
