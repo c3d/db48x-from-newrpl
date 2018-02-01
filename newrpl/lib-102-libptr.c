@@ -37,8 +37,7 @@
 
 #define ERROR_LIST \
     ERR(INVALIDLIBID,0), \
-    ERR(INVALIDVISIBLE,1), \
-    ERR(INVALIDTITLE,2)
+    ERR(INVALIDVISIBLE,1)
 
 
 
@@ -333,7 +332,7 @@ void LIB_HANDLER()
 
         if(object) {
             if(ISIDENT(*object[1]) && (OBJSIZE(*object[1])==1)) {
-                libid=*object[1];
+                libid=object[1][1];
 
                 BYTEPTR ptr=(BYTEPTR)(object[1]+1);
                 while(ptr<(BYTEPTR)(object[1]+2)) {
@@ -513,14 +512,14 @@ void LIB_HANDLER()
 
         for(k=0;k<totaln;++k) {
             // ADD COMMAND NAME
-            if(k>=2) rplCopyObject(newobj+offset,stksave[2*k]);
+            if(k>=2) rplCopyObject(newobj+offset,stksave[2*(k-2)]);
             else newobj[offset]=MAKESINT(0);    // NULL NAME = BINT ZERO
 
             offset+=rplObjSize(newobj+offset);
 
             // ADD INFO
             if((k>=2)&&(k<nvisible+2)) {
-                WORDPTR info=rplSkipOb(stksave[2*k]);
+                WORDPTR info=rplSkipOb(stksave[2*(k-2)]);
 
                 if(object && (info>object[1]) && (info<rplSkipOb(object[1]))) {
 
@@ -564,7 +563,7 @@ void LIB_HANDLER()
 
                 }
                 default:
-                    prog=stksave[2*k+1];
+                    prog=stksave[2*(k-2)+1];
                 }
 
 
@@ -586,7 +585,7 @@ void LIB_HANDLER()
                                 // VARIABLE WAS FOUND, REPLACE WITH LIBPTR
                                 newobj[offset++]=MKPROLOG(DOLIBPTR,2);
                                 newobj[offset++]=newobj[2];
-                                newobj[offset++]=(stkscan-stksave)/2;
+                                newobj[offset++]=(stkscan-stksave)/2+2;
 
                                 BINT sizedelta=3-rplObjSize(prog);
 
@@ -626,6 +625,7 @@ void LIB_HANDLER()
                             DSTop=tmp;
 
                             newobj[offset]=*prog;
+                            ++offset;
                             ++prog;
                             continue;
                         }
@@ -647,6 +647,12 @@ void LIB_HANDLER()
             }
 
         }
+
+        // DONE, LIBRARY IS READY
+
+        DSTop=stksave;
+        rplPushData(newobj);
+
         return;
     }
 
