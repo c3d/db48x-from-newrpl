@@ -27,8 +27,8 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(CRLIB,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
-    CMD(EXLIB,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+    CMD(CRLIB,MKTOKENINFO(5,TITYPE_NOTALLOWED,0,2)), \
+    CMD(ATTACH,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
 
 
 
@@ -37,7 +37,9 @@
 
 #define ERROR_LIST \
     ERR(INVALIDLIBID,0), \
-    ERR(INVALIDVISIBLE,1)
+    ERR(INVALIDVISIBLE,1), \
+    ERR(LIBRARYEXPECTED,2), \
+    ERR(UNABLETOATTACH,3)
 
 
 
@@ -294,7 +296,7 @@ void LIB_HANDLER()
          * [4..N+4-1]=OFFSET TABLE (ONE ENTRY FOR EACH COMMAND) (AS SINT - OFFSET MEASURED FROM START OF LIBRARY OBJECT)
          * [N+4 ...]=COMMAND DATA:
          *                         IDENT = NAME OF COMMAND
-         *                         SINT = { TOKENINFO SIMPLIFIED: NARGS+1000*(ALLOWEDINSYMBOLICS?)
+         *                         SINT = { TOKENINFO SIMPLIFIED: NARGS*256+(ALLOWEDINSYMBOLICS?)
          *                         OBJECT = WHATEVER THIS NAMED OBJECT IS
          *                         REPEATS IDENT/SINT/OBJECT GROUPS UNTIL END OF LIBRARY
          *
@@ -355,15 +357,20 @@ void LIB_HANDLER()
 
         // CHECK FOR VALID $HANDLER
         // HANDLER USES ENTRY #0, IT TAKES A NULL-NAME (1 WORD), INFO=1 WORD AND SIZE OF HANDLER
+        object=rplFindGlobal((WORDPTR)handler_ident,0);
 
-        datasize+=2+rplObjSize((WORDPTR)zero_bint);
+        if(object) datasize+=2+rplObjSize(object[1]);
+        else datasize+=2+rplObjSize((WORDPTR)defhandler_seco);
 
 
 
         // CHECK FOR VALID $TITLE
 
+        object=rplFindGlobal((WORDPTR)title_ident,0);
+
         // TITLE USES ENTRY #1, SO IT TAKES A NULL-NAME (A SINT=1 WORD), INFO=1 WORD, AND THE SIZE OF THE STRING
-        datasize+=2+rplObjSize((WORDPTR)empty_string);
+        if(object) datasize+=2+rplObjSize(object[1]);
+        else datasize+=2+rplObjSize((WORDPTR)empty_string);
 
 
         // CHECK FOR VALID $VISIBLE
@@ -654,6 +661,50 @@ void LIB_HANDLER()
         rplPushData(newobj);
 
         return;
+    }
+
+
+    case ATTACH:
+    {
+        // ATTACH A LIBRARY
+
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISLIBRARY(*rplPeekData(1))) {
+            rplError(ERR_LIBRARYEXPECTED);
+            return;
+        }
+
+        WORDPTR libdir=rplGetSettings((WORDPTR)library_dirname);
+
+        if(!libdir) {
+            // CREATE THE DIRECTORY!
+            WORDPTR *sethan=rplFindDirbyHandle(SettingsDir);
+            if(!sethan) {
+                rplError(ERR_DIRECTORYNOTFOUND);
+                return;
+            }
+
+            libdir=rplCreateNewDir((WORDPTR)library_dirname,sethan);
+
+            if(!libdir) return;
+
+        }
+
+        // STORE THE LIBRARY IN THE DIRECTORY
+        WORDPTR lib=rplPeekData(1);
+
+        rplCreateGlobalInDir(lib+1,lib,rplFindDirbyHandle(libdir));
+
+        lib=rplPopData();
+
+        rplPushDataNoGrow(lib+1);
+        rplPushData(lib+lib[5]);
+        return;
+
     }
 
     case OVR_SAME:
@@ -1122,7 +1173,7 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
+
 
         RetNum=OK_CONTINUE;
         return;
