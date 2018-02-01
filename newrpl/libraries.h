@@ -245,6 +245,7 @@ void libFindMsg(BINT message,WORDPTR table);
 #define DOBITMAP    80      // BITMAPS 80-87
 
 #define DOLIBRARY   102     // LIBRARIES AND LIBPTRS
+#define DOLIBPTR    (DOLIBRARY+1)
 
 
 // BITMAP TYPES TO ADD TO DOBITMAP

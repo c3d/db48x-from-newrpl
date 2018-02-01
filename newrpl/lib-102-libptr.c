@@ -93,6 +93,10 @@ ROMOBJECT handler_ident[]={
     TEXT2WORD('D','L','E','R')
 };
 
+ROMOBJECT defhandler_seco[]={
+    MKPROLOG(SECO,1),
+    CMD_QSEMI
+};
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
@@ -111,6 +115,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)visible_ident,
     (WORDPTR)ignore_ident,
     (WORDPTR)handler_ident,
+    (WORDPTR)defhandler_seco,
     0
 };
 
@@ -381,12 +386,14 @@ void LIB_HANDLER()
                             WORDPTR *prog=rplFindGlobal(var,0);
 
                             if(prog) {
-                                rplPushData(*prog);
+                                rplPushData(var);
                                 rplPushData(prog[1]);
                                 if(Exceptions) { DSTop=stksave; return; }
                                 datasize+=rplObjSize(rplPeekData(2))+rplObjSize(rplPeekData(1))+1;
                                 var=rplSkipOb(var);
-                                if( ISNUMBER(*var) && ISNUMBER(*rplSkipOb(var))) { item=rplSkipOb(item); continue; }
+                                if( ISNUMBER(*var) && ISNUMBER(*rplSkipOb(var))) {
+                                    item=rplSkipOb(item); continue;
+                                }
                             }
                         }
                     }
@@ -502,7 +509,7 @@ void LIB_HANDLER()
         newobj[3]=MAKESINT(2+nvisible+nhidden);
 
         int k,totaln=2+nvisible+nhidden;
-        BINT offset=4+totaln,size1;
+        BINT offset=4+totaln;
 
         for(k=0;k<totaln;++k) {
             // ADD COMMAND NAME
@@ -512,12 +519,130 @@ void LIB_HANDLER()
             offset+=rplObjSize(newobj+offset);
 
             // ADD INFO
-            if(k>=2)
+            if((k>=2)&&(k<nvisible+2)) {
+                WORDPTR info=rplSkipOb(stksave[2*k]);
 
+                if(object && (info>object[1]) && (info<rplSkipOb(object[1]))) {
+
+                BINT nargs=rplReadNumberAsBINT(info);
+                BINT allow=!rplIsFalse(rplSkipOb(info));
+
+                newobj[offset]=MAKESINT( (nargs<<8) | ((allow)? 1:0));
+                }
+                else newobj[offset]=MAKESINT(0);
+            }
+            else newobj[offset]=MAKESINT(0);
+
+            offset++;
+
+            // ADD THE POINTER TO THE OBJECT IN THE HASH TABLE
             newobj[4+k]=offset;
-            if(k>=2) {
-                // COPY
 
+            // AND FINALLY ADD THE OBJECT ITSELF
+                WORDPTR prog;
+
+                switch(k)
+                {
+                case 0:
+                {
+                    // GET THE $HANDLER OBJECT
+                    WORDPTR *han=rplFindGlobal((WORDPTR)handler_ident,0);
+
+                    if(han) prog=han[1];
+                    else prog=(WORDPTR)defhandler_seco;
+                    break;
+                }
+                case 1:
+                {
+                    // GET THE $TITLE OBJECT
+                    WORDPTR *tit=rplFindGlobal((WORDPTR)title_ident,0);
+
+                    if(tit) prog=tit[1];
+                    else prog=(WORDPTR)empty_string;
+
+                    break;
+
+                }
+                default:
+                    prog=stksave[2*k+1];
+                }
+
+
+                WORDPTR endprog=rplSkipOb(prog);
+                WORDPTR *stktop=DSTop;
+
+
+                while(prog!=endprog) {
+                    if(ISUNQUOTEDIDENT(*prog)) {
+                            // CHECK IF WE ALREADY HAVE IT IN THE LIST
+                            WORDPTR *stkscan=stksave;
+
+
+                            while(stkscan<DSTop) {
+                                if(rplCompareIDENT(prog,*stkscan)) break;
+                                stkscan+=2;
+                            }
+                            if(stkscan<DSTop) {
+                                // VARIABLE WAS FOUND, REPLACE WITH LIBPTR
+                                newobj[offset++]=MKPROLOG(DOLIBPTR,2);
+                                newobj[offset++]=newobj[2];
+                                newobj[offset++]=(stkscan-stksave)/2;
+
+                                BINT sizedelta=3-rplObjSize(prog);
+
+                                WORDPTR *sptr=DSTop;
+                                while(sptr<stktop) {
+                                    if( (offset>=(*sptr-newobj)) && (offset<(rplSkipOb(*sptr)-newobj)) ) {
+                                        // PATCH THE SIZE
+                                        **sptr+=sizedelta;
+                                    }
+                                    ++sptr;
+                                }
+
+                            }
+                            else {
+                             // JUST COPY THE OBJECT
+                             rplCopyObject(newobj+offset,prog);
+                             offset+=rplObjSize(prog);
+                            }
+
+                    }
+                    else {
+                        // ANY OTHER OBJECT, JUST COPY VERBATIM
+                        if(ISPROGRAM(*prog) || ISLIST(*prog))
+                        {
+                            WORDPTR *tmp=DSTop;
+                            DSTop=stktop;
+                            // CREATE A STACK OF OBJECTS TO PATCH SIZE
+                            ScratchPointer1=newobj;
+                            ScratchPointer2=prog;
+                            ScratchPointer3=endprog;
+                            rplPushData(newobj+offset);
+                            if(Exceptions) { DSTop=stksave; return; }
+
+                            newobj=ScratchPointer1;
+                            prog=ScratchPointer2;
+                            endprog=ScratchPointer3;
+                            DSTop=tmp;
+
+                            newobj[offset]=*prog;
+                            ++prog;
+                            continue;
+                        }
+                        else {
+                            // JUST COPY THE OBJECT
+                            rplCopyObject(newobj+offset,prog);
+                            offset+=rplObjSize(prog);
+                        }
+
+                    }
+
+
+
+
+
+
+                prog=rplSkipOb(prog);
 
             }
 
