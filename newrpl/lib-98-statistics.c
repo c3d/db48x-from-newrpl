@@ -138,6 +138,7 @@ void LIB_HANDLER()
      }
      REAL r;
      rplReadNumberAsReal(rplPeekData(1),&r);
+     if(Exceptions) return;
      UBINT64 seed=12345678901234567890ULL;
      int k;
      for(k=1;k<r.len;++k) {

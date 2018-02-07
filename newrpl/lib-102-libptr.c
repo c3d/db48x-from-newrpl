@@ -157,7 +157,7 @@ WORDPTR rplGetLibPtr(WORDPTR libptr)
             // COMPARE LIBRARY ID
             if(direntry[0][1] == libid) {
                 // FOUND THE LIBRARY - GET THE COMMAND
-                if(libcmd>direntry[1][3]) return 0;
+                if(libcmd>OPCODE(direntry[1][3])) return 0;
 
                 return direntry[1]+OPCODE(direntry[1][libcmd+4]);
             }
@@ -170,7 +170,7 @@ WORDPTR rplGetLibPtr(WORDPTR libptr)
    return 0;
 }
 
-// GET COMMAND THE NAME OF A LIBPTR
+// GET THE NAME OF A LIBPTR
 
 WORDPTR rplGetLibPtrName(WORDPTR libptr)
 {
@@ -207,7 +207,14 @@ WORDPTR rplGetLibPtrName(WORDPTR libptr)
    return 0;
 }
 
+// GET THE TOKEN INFO OF A LIBPTR
 
+WORDPTR rplGetLibPtrInfo(WORDPTR libptr)
+{
+WORDPTR result=rplGetLibPtrName(libptr);
+if(result) return rplSkipOb(result);
+return 0;
+}
 
 
 // FIND A COMMAND BY NAME WITHIN A LIBRARY, RETURN ITS INDEX IN THE HIGH WORD, LIBRARY NAME IN ITS LOW WORD
@@ -247,6 +254,8 @@ BINT64 rplFindLibPtrIndex(BYTEPTR start,BYTEPTR end)
             if(cmd>=libend) break;
             cmd=rplSkipOb(cmd); // SKIP TOKENINFO
             if(cmd>=libend) break;
+            cmd=rplSkipOb(cmd); // SKIP HELPTEXT
+            if(cmd>=libend) break;
             cmd=rplSkipOb(cmd); // SKIP OBJECT
 
             ++idx;
@@ -258,6 +267,75 @@ BINT64 rplFindLibPtrIndex(BYTEPTR start,BYTEPTR end)
 
    return -1;
 }
+
+// RETURN LIBRARY AND INDEX TO THE COMMAND THAT HAS THE LONGEST MATCH
+// AT THE BEGINNING OF THE TOKEN (USED FOR PROBING)
+// ALSO SETS *cmdinfo TO THE COMMAND INFORMATION LIST (NAME / TOKENINFO / HELPINFO / OBJECT)
+
+BINT64 rplProbeLibPtrIndex(BYTEPTR start,BYTEPTR end,WORDPTR *cmdinfo)
+{
+
+    WORDPTR libdir=rplGetSettings((WORDPTR)library_dirname);
+
+    if(!libdir) return -1;
+
+    WORDPTR *direntry=rplFindFirstByHandle(libdir);
+
+    if(!direntry) return -1;
+
+    WORDPTR cmd,libend;
+    BINT idx,ncommands;
+    BINT len,maxlen,chosenidx;
+    WORD chosenlib;
+    WORDPTR chosencmd;
+
+    maxlen=0;
+
+    do {
+
+        if(ISLIBRARY(*direntry[1])) {
+            ncommands=OPCODE(direntry[1][3]);
+            idx=0;
+            libend=rplSkipOb(direntry[1]);
+
+            cmd=direntry[1]+OPCODE(direntry[1][3])+4;
+
+            // SCAN THROUGH ALL THE COMMANDS
+            while (cmd<libend) {
+            len=rplGetIdentLength(cmd); // LENGTH IN BYTES
+            if(end-start<len) len=end-start;
+
+            if(rplCompareIDENTByName(cmd,start,start+len)) {
+                // FOUND A MATCH
+                if(len>maxlen) { chosencmd=cmd; chosenlib=direntry[1][2]; chosenidx=idx; maxlen=len; }
+            }
+
+            cmd=rplSkipOb(cmd); // SKIP NAME
+            if(cmd>=libend) break;
+            cmd=rplSkipOb(cmd); // SKIP TOKENINFO
+            if(cmd>=libend) break;
+            cmd=rplSkipOb(cmd); // SKIP HELPTEXT
+            if(cmd>=libend) break;
+            cmd=rplSkipOb(cmd); // SKIP OBJECT
+
+            ++idx;
+            }
+        }
+
+    } while((direntry=rplFindNext(direntry)));
+
+
+    if(maxlen!=0) {
+        if(cmdinfo) *cmdinfo=chosencmd;
+        return (((BINT64)chosenidx)<<32)| chosenlib;
+    }
+
+   return -1;
+}
+
+
+
+
 
 void LIB_HANDLER()
 {
@@ -297,6 +375,7 @@ void LIB_HANDLER()
          * [N+4 ...]=COMMAND DATA:
          *                         IDENT = NAME OF COMMAND
          *                         SINT = { TOKENINFO SIMPLIFIED: NARGS*256+(ALLOWEDINSYMBOLICS?)
+         *                         HELPTEXT = STRING TO DISPLAY COMMAND HELP
          *                         OBJECT = WHATEVER THIS NAMED OBJECT IS
          *                         REPEATS IDENT/SINT/OBJECT GROUPS UNTIL END OF LIBRARY
          *
@@ -315,7 +394,7 @@ void LIB_HANDLER()
         //              IF NO HANDLER IS SUPPLIED, A DUMMY WILL BE ADDED TO THE LIBRARY
 
         // $VISIBLE HAS THE FOLLOWING FORMAT:
-        // { { IDENT NARGS ALLOWINSYMB } { IDENT NARGS ALLOWINSYMB } ... }
+        // { { IDENT NARGS ALLOWINSYMB HELPTEXT } { IDENT NARGS ALLOWINSYMB HELPTEXT } ... }
 
 
         // LIBRARY CREATION - PASS 1
@@ -385,7 +464,7 @@ void LIB_HANDLER()
                 int k;
                 WORDPTR item=object[1]+1;
                 for(k=0;k<nvisible;++k) {
-                    if( ISLIST(*item) && (rplListLength(item)==3) ) {
+                    if( ISLIST(*item) && (rplListLength(item)==4) ) {
                         WORDPTR var=item+1;
                         if(ISIDENT(*var))  {
                             // CHECK FOR REFERENCES
@@ -397,7 +476,9 @@ void LIB_HANDLER()
                                 if(Exceptions) { DSTop=stksave; return; }
                                 datasize+=rplObjSize(rplPeekData(2))+rplObjSize(rplPeekData(1))+1;
                                 var=rplSkipOb(var);
-                                if( ISNUMBER(*var) && ISNUMBER(*rplSkipOb(var))) {
+                                if( ISNUMBER(*var) && ISNUMBER(*rplSkipOb(var)) && ISSTRING(*rplSkipOb(rplSkipOb(var)))) {
+                                    var=rplSkipOb(rplSkipOb(var));
+                                    datasize+=rplObjSize(var);
                                     item=rplSkipOb(item); continue;
                                 }
                             }
@@ -540,6 +621,20 @@ void LIB_HANDLER()
             else newobj[offset]=MAKESINT(0);
 
             offset++;
+
+            // ADD HELP STRING
+            {
+            WORDPTR info;
+            info=(WORDPTR)empty_string;
+            if((k>=2)&&(k<nvisible+2)) {
+                WORDPTR info=rplSkipOb(stksave[2*(k-2)]);
+
+                if(object && (info>object[1]) && (info<rplSkipOb(object[1]))) info=rplSkipOb(rplSkipOb(info));
+                else info=(WORDPTR)empty_string;
+            }
+            rplCopyObject(newobj+offset,info);
+            offset+=rplObjSize(info);
+            }
 
             // ADD THE POINTER TO THE OBJECT IN THE HASH TABLE
             newobj[4+k]=offset;
@@ -747,7 +842,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            rplPushData(libobj);
+            rplOverwriteData(1,libobj);
             rplCallOvrOperator(CMD_OVR_XEQ);
             return;
         }
@@ -1120,6 +1215,24 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
         {
+
+        // PROBE LIBRARY COMMANDS FIRST
+        WORDPTR cmdinfo;
+        BINT64 libptr=rplProbeLibPtrIndex((BYTEPTR)TokenStart,(BYTEPTR)BlankStart,&cmdinfo);
+
+        if(libptr>=0) {
+            // FOUND A MATCH!
+            BINT len=utf8nlenst((char *)(cmdinfo+1),((char *)(cmdinfo+1)) + rplGetIdentLength(cmdinfo));
+            BINT nargs=OPCODE(*rplSkipOb(cmdinfo));
+            BINT allow=nargs&1;
+
+            nargs>>=8;
+
+            if(allow) RetNum=OK_TOKENINFO | MKTOKENINFO(len,TITYPE_IDENT,nargs,2);
+            else RetNum=OK_TOKENINFO | MKTOKENINFO(len,TITYPE_NOTALLOWED,nargs,1);
+            return;
+        }
+
         libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
 
         return;
@@ -1139,8 +1252,30 @@ void LIB_HANDLER()
         // .12 =  BINARY INTEGER, .22 = DECIMAL INT., .32 = OCTAL BINT, .42 = HEX INTEGER
 
         if(ISPROLOG(*ObjectPTR)) {
-        TypeInfo=LIBRARY_NUMBER*100;
+        TypeInfo=LIBNUM(*ObjectPTR)*100;
         DecompHints=0;
+
+        if(ISLIBPTR(*ObjectPTR)) {
+
+                // FOUND A MATCH!
+                WORDPTR cmdinfo=rplGetLibPtrName(ObjectPTR);
+                if(cmdinfo) {
+                BINT nargs=OPCODE(*rplSkipOb(cmdinfo));
+                BINT allow=nargs&1;
+                BINT len;
+
+                if(ISIDENT(*cmdinfo)) len=utf8nlenst((char *)(cmdinfo+1),(char *)(cmdinfo+1)+rplGetIdentLength(cmdinfo));
+
+                nargs>>=8;
+
+                if(allow) RetNum=OK_TOKENINFO | MKTOKENINFO(len,TITYPE_IDENT,nargs,2);
+                else RetNum=OK_TOKENINFO | MKTOKENINFO(len,TITYPE_NOTALLOWED,nargs,1);
+                return;
+                }
+
+        }
+
+
         RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NOTALLOWED,0,1);
         }
         else {
@@ -1179,6 +1314,19 @@ void LIB_HANDLER()
         return;
 
     case OPCODE_AUTOCOMPNEXT:
+
+
+    {
+        // AUTOCOMPLETE NAMES OF LIBRARIES
+        // TokenStart = token string
+        // TokenLen = token length
+        // SuggestedOpcode = OPCODE OF THE CURRENT SUGGESTION, OR 0 IF SUGGESTION IS AN OBJECT
+        // SuggestedObject = POINTER TO AN OBJECT (ONLY VALID IF SuggestedOpcode==0)
+
+
+
+
+    }
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         return;
 
