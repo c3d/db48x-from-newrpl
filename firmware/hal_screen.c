@@ -531,7 +531,7 @@ void halRedrawHelp(DRAWSURFACE *scr)
         }
 
         WORDPTR helptext;
-        WORD m1code=rplGetMenuCode(halScreen.HelpMode>>16);
+        BINT64 m1code=rplGetMenuCode(halScreen.HelpMode>>16);
         WORDPTR MenuObj=uiGetLibMenu(m1code);
         BINT nitems=uiCountMenuItems(m1code,MenuObj);
         BINT k;
@@ -811,7 +811,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
     oldclipy=scr->clipy;
     oldclipy2=scr->clipy2;
 
-    WORD m2code=rplGetMenuCode(2);
+    BINT64 m2code=rplGetMenuCode(2);
     WORDPTR MenuObj=uiGetLibMenu(m2code);
     BINT nitems=uiCountMenuItems(m2code,MenuObj);
     BINT k;

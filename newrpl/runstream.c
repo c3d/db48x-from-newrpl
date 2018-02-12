@@ -841,7 +841,7 @@ void rplCopyObject(WORDPTR dest, WORDPTR src)
 void rplResetSystemFlags()
 {
     // CREATE AN EMPTY LIST OF SYSTEM FLAGS
-    SystemFlags=rplAllocTempOb(16);  // FOR NOW: 128 SYSTEM FLAGS IN 2 BINTS WITH 64 BITS EACH
+    SystemFlags=rplAllocTempOb(19);  // FOR NOW: 128 SYSTEM FLAGS IN 2 BINTS WITH 64 BITS EACH
 
     if(!SystemFlags) return;
 
@@ -858,17 +858,21 @@ void rplResetSystemFlags()
     SystemFlags[8]=MKMENUCODE(0,68,2,0);  // MenuCode1 IS IN SystemFlags[8] AND INITIALIZED TO THE MAIN MENU
     SystemFlags[9]=MKMENUCODE(1,0,0,0); // MenuCode2 IS IN SystemFlags[9] AND INITIALIZED TO VARS
 
+    SystemFlags[10]=MKPROLOG(HEXBINT,2);    // HIGH WORD OF THE MENU CONTAINS THE USER LIBRARY ID THAT OWNS IT (0=SYSTEM)
+    SystemFlags[11]=0;                      // LIBID OF Menu1
+    SystemFlags[12]=0;                      // LIBID OF Menu2
+
     // 128 USER FLAGS
-    SystemFlags[10]=MKPROLOG(HEXBINT,2);
-    SystemFlags[11]=0;
-    SystemFlags[12]=0;
     SystemFlags[13]=MKPROLOG(HEXBINT,2);
     SystemFlags[14]=0;
     SystemFlags[15]=0;
+    SystemFlags[16]=MKPROLOG(HEXBINT,2);
+    SystemFlags[17]=0;
+    SystemFlags[18]=0;
 
     // FUTURE EXPANSION: ADD MORE FLAGS HERE
 
-    SystemFlags[16]=CMD_ENDLIST;         // CLOSE THE LIST
+    SystemFlags[19]=CMD_ENDLIST;         // CLOSE THE LIST
 
 }
 

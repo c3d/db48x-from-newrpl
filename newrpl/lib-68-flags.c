@@ -1053,24 +1053,25 @@ BINT rplNumFormatFromString(WORDPTR string)
 // ONLY VALID menunumbers ARE 1 AND 2
 // THIS MAY CHANGE IN OTHER IMPLEMENTATIONS
 
-void rplSetMenuCode(BINT menunumber,WORD menucode)
+void rplSetMenuCode(BINT menunumber,BINT64 menucode)
 {
     if(!ISLIST(*SystemFlags)) return;
 
     if((menunumber<1)||(menunumber>2)) return;
 
     SystemFlags[7+menunumber]=menucode;
+    SystemFlags[10+menunumber]=(menucode>>32);
 
     return;
 }
 
-WORD rplGetMenuCode(BINT menunumber)
+BINT64 rplGetMenuCode(BINT menunumber)
 {
     if(!ISLIST(*SystemFlags)) return 0;
 
     if((menunumber<1)||(menunumber>2)) return 0;
 
-    return  SystemFlags[7+menunumber];
+    return  ((BINT64)SystemFlags[7+menunumber]) | (((BINT64)SystemFlags[10+menunumber])<<32);
 
 }
 
@@ -1116,7 +1117,7 @@ return 1;
 // CAN TRIGGER GC AND USES ScratchPointers 1 thru 3
 void rplSaveMenuHistory(BINT menu)
 {
-    WORD oldmcode=rplGetMenuCode(menu);
+    BINT64 oldmcode=rplGetMenuCode(menu);
 
     // STORE THE OLD MENU IN THE HISTORY
     WORDPTR msetting;
@@ -1132,7 +1133,7 @@ void rplSaveMenuHistory(BINT menu)
     else {
     // NOTHING CUSTOM, JUST RETURN THE MENU CODE
     // THIS CAN TRIGGER A GC!
-    msetting=rplNewBINT((BINT64)oldmcode,HEXBINT);
+    msetting=rplNewBINT(oldmcode,HEXBINT);
     }
 
     if(!msetting) return;
@@ -1197,7 +1198,7 @@ void rplChangeMenu(BINT menu,WORDPTR newmenu)
        if(ISLIST(*newmenu)||ISIDENT(*newmenu)) {
            // CUSTOM MENU
 
-          WORD mcode=MKMENUCODE(0,LIBRARY_NUMBER,menu-1,0);
+          BINT64 mcode=MKMENUCODE(0,LIBRARY_NUMBER,menu-1,0);
 
           rplSetMenuCode(menu,mcode);
 

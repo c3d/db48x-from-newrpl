@@ -123,8 +123,8 @@ void uiCursorPageRight();
 // SOFT MENUS
 
 BINT uiCountMenuItems(WORD MenuCode,WORDPTR menu);
-WORDPTR uiGetLibMenu(WORD MenuCode);
-WORDPTR uiGetMenuItem(WORD MenuCode,WORDPTR menu,BINT item);
+WORDPTR uiGetLibMenu(BINT64 MenuCode);
+WORDPTR uiGetMenuItem(BINT64 MenuCode,WORDPTR menu,BINT item);
 WORDPTR uiGetMenuItemAction(WORDPTR item,BINT shift);
 WORDPTR uiGetMenuItemHelp(WORDPTR item);
 void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr);

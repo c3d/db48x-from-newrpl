@@ -28,7 +28,12 @@
 
 #define COMMAND_LIST \
     CMD(CRLIB,MKTOKENINFO(5,TITYPE_NOTALLOWED,0,2)), \
-    CMD(ATTACH,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+    CMD(ATTACH,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DETACH,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(LIBMENU,MKTOKENINFO(7,TITYPE_NOTALLOWED,2,2)), \
+    CMD(LIBMENUOTHR,MKTOKENINFO(11,TITYPE_NOTALLOWED,2,2)), \
+    CMD(LIBMENULST,MKTOKENINFO(10,TITYPE_NOTALLOWED,2,2))
+
 
 
 
@@ -76,6 +81,12 @@ ROMOBJECT title_ident[]={
     TEXT2WORD('L','E',0,0)
 };
 
+ROMOBJECT libmenu_ident[]={
+    MKPROLOG(DOIDENT,2),
+    TEXT2WORD('$','M','E','N'),
+    TEXT2WORD('U',0,0,0)
+};
+
 ROMOBJECT visible_ident[]={
     MKPROLOG(DOIDENT,2),
     TEXT2WORD('$','V','I','S'),
@@ -113,6 +124,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)library_dirname,
     (WORDPTR)libid_ident,
     (WORDPTR)title_ident,
+    (WORDPTR)libmenu_ident,
     (WORDPTR)visible_ident,
     (WORDPTR)ignore_ident,
     (WORDPTR)handler_ident,
@@ -169,6 +181,47 @@ WORDPTR rplGetLibPtr(WORDPTR libptr)
 
    return 0;
 }
+
+
+// SAME AS GETLIBPTR, BUT THE LIBID AND COMMAND NUMBER ARE GIVEN SEPARATELY INSTEAD OF BY OBJECT
+
+WORDPTR rplGetLibPtr2(WORD libid,WORD libcmd)
+{
+
+    WORDPTR libdir=rplGetSettings((WORDPTR)library_dirname);
+
+    if(!libdir) return 0;
+
+    WORDPTR *direntry=rplFindFirstByHandle(libdir);
+
+    if(!direntry) return 0;
+
+    do {
+
+        if(ISIDENT(*direntry[0]) && (OBJSIZE(*direntry[0])==1)) {
+            // COMPARE LIBRARY ID
+            if(direntry[0][1] == libid) {
+                // FOUND THE LIBRARY - GET THE COMMAND
+                if(libcmd>OPCODE(direntry[1][3])) return 0;
+
+                return direntry[1]+OPCODE(direntry[1][libcmd+4]);
+            }
+
+        }
+
+    } while((direntry=rplFindNext(direntry)));
+
+
+   return 0;
+}
+
+
+
+
+
+
+
+
 
 // GET THE NAME OF A LIBPTR
 
@@ -379,6 +432,11 @@ void LIB_HANDLER()
          *                         OBJECT = WHATEVER THIS NAMED OBJECT IS
          *                         REPEATS IDENT/SINT/OBJECT GROUPS UNTIL END OF LIBRARY
          *
+         *                         IDX=0 (LIBPTR INDEX 0) ===> DEFAULT LIBRARY HANDLER (NULL NAME/HELP, ETC)
+         *                         IDX=1 (LIBPTR INDEX 1) ===> LIBRARY TITLE (NULL NAME/HELP, ETC)
+         *                         IDX=2 (LIBPTR INDEX 2) ===> LIBRARY MENU  (NULL NAME/HELP, ETC)
+         *                         IDX=3 (LIBPTR INDEX 3) ===> RESERVED FOR FUTURE USE (NULL NAME/HELP, ETC)
+         *                         IDX=4 TO N  ===> USER VISIBLE AND INVISIBLE COMMANDS.
         */
 
         // VARIABLES THAT INFLUENCE CRLIB:
@@ -404,6 +462,7 @@ void LIB_HANDLER()
         WORD libid=0;
         BINT nvisible,nhidden,nsizeextra,datasize;
         WORDPTR *object;
+        WORDPTR *stksave=DSTop;
 
         nvisible=nhidden=0;
         nsizeextra=datasize=0;
@@ -435,11 +494,20 @@ void LIB_HANDLER()
         }
 
         // CHECK FOR VALID $HANDLER
-        // HANDLER USES ENTRY #0, IT TAKES A NULL-NAME (1 WORD), INFO=1 WORD AND SIZE OF HANDLER
+        // HANDLER USES ENTRY #0, IT TAKES A NULL-NAME (1 WORD), INFO=1 WORD, NULLHELP=1 WORD AND SIZE OF HANDLER
         object=rplFindGlobal((WORDPTR)handler_ident,0);
 
-        if(object) datasize+=2+rplObjSize(object[1]);
-        else datasize+=2+rplObjSize((WORDPTR)defhandler_seco);
+        if(object) {
+            datasize+=3+rplObjSize(object[1]);
+            rplPushData((WORDPTR)handler_ident);
+            rplPushData(object[1]);
+        }
+        else {
+            datasize+=3+rplObjSize((WORDPTR)defhandler_seco);
+            rplPushData((WORDPTR)handler_ident);
+            rplPushData((WORDPTR)defhandler_seco);
+        }
+        if(Exceptions) { DSTop=stksave; return; }
 
 
 
@@ -448,15 +516,49 @@ void LIB_HANDLER()
         object=rplFindGlobal((WORDPTR)title_ident,0);
 
         // TITLE USES ENTRY #1, SO IT TAKES A NULL-NAME (A SINT=1 WORD), INFO=1 WORD, AND THE SIZE OF THE STRING
-        if(object) datasize+=2+rplObjSize(object[1]);
-        else datasize+=2+rplObjSize((WORDPTR)empty_string);
+        if(object) {
+            datasize+=3+rplObjSize(object[1]);
+            rplPushData((WORDPTR)title_ident);
+            rplPushData(object[1]);
+        }
+        else {
+            datasize+=3+rplObjSize((WORDPTR)empty_string);
+
+            rplPushData((WORDPTR)title_ident);
+            rplPushData((WORDPTR)empty_string);
+        }
+        if(Exceptions) { DSTop=stksave; return; }
+
+
+        // CHECK FOR VALID $MENU
+
+        object=rplFindGlobal((WORDPTR)libmenu_ident,0);
+
+        // TITLE USES ENTRY #2, SO IT TAKES A NULL-NAME (A SINT=1 WORD), INFO=1 WORD, AND THE SIZE OF THE LIST
+        if(object) {
+            datasize+=3+rplObjSize(object[1]);
+            rplPushData((WORDPTR)libmenu_ident);
+            rplPushData(object[1]);
+        }
+        else {
+            datasize+=3+rplObjSize((WORDPTR)empty_list);
+            rplPushData((WORDPTR)libmenu_ident);
+            rplPushData((WORDPTR)empty_list);
+        }
+        if(Exceptions) { DSTop=stksave; return;}
+
+
+        // RESERVED FOR FUTURE USE, TAKES 1-WORD NULL NAME, 1-WORD INFO, 1-WORD NULL HELP, 1-WORD FOR THE ZERO_BINT
+        rplPushData((WORDPTR)nulllam_ident);
+        rplPushData((WORDPTR)zero_bint);
+        if(Exceptions) { DSTop=stksave; return; }
+        datasize+=4;
 
 
         // CHECK FOR VALID $VISIBLE
 
         object=rplFindGlobal((WORDPTR)visible_ident,0);
 
-        WORDPTR *stksave=DSTop;
 
         if(object) {
             if(ISLIST(*object[1])) {
@@ -495,9 +597,15 @@ void LIB_HANDLER()
             return;
         }
 
+
+
+
+        if(Exceptions) { DSTop=stksave; return; }
+
         // SCAN ALL VISIBLE VARIABLES FOR REFERENCES TO HIDDEN ONES
 
         WORDPTR *stkptr=stksave;
+
 
         WORDPTR *ignore=rplFindGlobal((WORDPTR)ignore_ident,0);
 
@@ -582,7 +690,7 @@ void LIB_HANDLER()
 
         // PASS 2 - CREATION OF THE OBJECT
 
-        BINT totalsize=3+(2+nvisible+nhidden)+datasize+nsizeextra;
+        BINT totalsize=3+(nvisible+nhidden)+datasize+nsizeextra;
 
 
         WORDPTR newobj=rplAllocTempOb(totalsize);
@@ -593,21 +701,21 @@ void LIB_HANDLER()
         newobj[0]=MKPROLOG(DOLIBRARY,totalsize);
         newobj[1]=MKPROLOG(DOIDENT,1);
         newobj[2]=libid;
-        newobj[3]=MAKESINT(2+nvisible+nhidden);
+        newobj[3]=MAKESINT(nvisible+nhidden);
 
-        int k,totaln=2+nvisible+nhidden;
+        int k,totaln=nvisible+nhidden;
         BINT offset=4+totaln;
 
         for(k=0;k<totaln;++k) {
             // ADD COMMAND NAME
-            if(k>=2) rplCopyObject(newobj+offset,stksave[2*(k-2)]);
+            if(k>=4) rplCopyObject(newobj+offset,stksave[2*k]);
             else newobj[offset]=MAKESINT(0);    // NULL NAME = BINT ZERO
 
             offset+=rplObjSize(newobj+offset);
 
             // ADD INFO
-            if((k>=2)&&(k<nvisible+2)) {
-                WORDPTR info=rplSkipOb(stksave[2*(k-2)]);
+            if((k>=4)&&(k<nvisible+4)) {
+                WORDPTR info=rplSkipOb(stksave[2*k]);
 
                 if(object && (info>object[1]) && (info<rplSkipOb(object[1]))) {
 
@@ -624,16 +732,16 @@ void LIB_HANDLER()
 
             // ADD HELP STRING
             {
-            WORDPTR info;
-            info=(WORDPTR)empty_string;
-            if((k>=2)&&(k<nvisible+2)) {
-                WORDPTR info=rplSkipOb(stksave[2*(k-2)]);
+            WORDPTR helpstring;
+            helpstring=(WORDPTR)empty_string;
+            if((k>=4)&&(k<nvisible+4)) {
+                WORDPTR helpstring=rplSkipOb(stksave[2*k]);
 
-                if(object && (info>object[1]) && (info<rplSkipOb(object[1]))) info=rplSkipOb(rplSkipOb(info));
-                else info=(WORDPTR)empty_string;
+                if(object && (helpstring>object[1]) && (helpstring<rplSkipOb(object[1]))) helpstring=rplSkipOb(rplSkipOb(helpstring));
+                else helpstring=(WORDPTR)empty_string;
             }
-            rplCopyObject(newobj+offset,info);
-            offset+=rplObjSize(info);
+            rplCopyObject(newobj+offset,helpstring);
+            offset+=rplObjSize(helpstring);
             }
 
             // ADD THE POINTER TO THE OBJECT IN THE HASH TABLE
@@ -642,32 +750,7 @@ void LIB_HANDLER()
             // AND FINALLY ADD THE OBJECT ITSELF
                 WORDPTR prog;
 
-                switch(k)
-                {
-                case 0:
-                {
-                    // GET THE $HANDLER OBJECT
-                    WORDPTR *han=rplFindGlobal((WORDPTR)handler_ident,0);
-
-                    if(han) prog=han[1];
-                    else prog=(WORDPTR)defhandler_seco;
-                    break;
-                }
-                case 1:
-                {
-                    // GET THE $TITLE OBJECT
-                    WORDPTR *tit=rplFindGlobal((WORDPTR)title_ident,0);
-
-                    if(tit) prog=tit[1];
-                    else prog=(WORDPTR)empty_string;
-
-                    break;
-
-                }
-                default:
-                    prog=stksave[2*(k-2)+1];
-                }
-
+                prog=stksave[2*k+1];
 
                 WORDPTR endprog=rplSkipOb(prog);
                 WORDPTR *stktop=DSTop;
@@ -687,7 +770,7 @@ void LIB_HANDLER()
                                 // VARIABLE WAS FOUND, REPLACE WITH LIBPTR
                                 newobj[offset++]=MKPROLOG(DOLIBPTR,2);
                                 newobj[offset++]=newobj[2];
-                                newobj[offset++]=(stkscan-stksave)/2+2;
+                                newobj[offset++]=(stkscan-stksave)/2;
 
                                 BINT sizedelta=3-rplObjSize(prog);
 
@@ -851,6 +934,102 @@ void LIB_HANDLER()
         // IT'S A LIBRARY - DO NOTHING
 
         return;
+
+
+
+
+
+    case LIBMENU:
+     {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        BINT64 mcode;
+        mcode=rplReadNumberAsBINT(rplPeekData(1));
+        if(Exceptions) return;
+        WORD libid;
+
+        if(ISIDENT(*rplPeekData(2))) libid=rplPeekData(2)[1];
+        else {
+            rplError(ERR_INVALIDLIBID);
+            return;
+        }
+
+        mcode=(((BINT64)libid)<<32)| MKMENUCODE(MENU_USERLIB,DOLIBPTR,MENUNUMBER(mcode),MENUPAGE(mcode));
+        WORDPTR newmenu=rplNewBINT(mcode,HEXBINT);
+        if(!newmenu) return;
+
+
+        BINT menu=rplGetActiveMenu();
+        rplSaveMenuHistory(menu);
+
+        rplChangeMenu(menu,newmenu);
+
+        if(!Exceptions) rplDropData(2);
+
+      return;
+    }
+
+
+    case LIBMENULST:
+    case LIBMENUOTHR:
+     {
+
+      if(rplDepthData()<2) {
+          rplError(ERR_BADARGCOUNT);
+          return;
+      }
+
+      BINT64 mcode;
+      mcode=rplReadNumberAsBINT(rplPeekData(1));
+      if(Exceptions) return;
+      WORD libid;
+
+      if(ISIDENT(*rplPeekData(2))) libid=rplPeekData(2)[1];
+      else {
+          rplError(ERR_INVALIDLIBID);
+          return;
+      }
+
+      mcode=(((BINT64)libid)<<32)| MKMENUCODE(MENU_USERLIB,DOLIBPTR,MENUNUMBER(mcode),MENUPAGE(mcode));
+      WORDPTR newmenu=rplNewBINT(mcode,HEXBINT);
+      if(!newmenu) return;
+
+
+      BINT menu=rplGetLastMenu();
+      if(CurOpcode==CMD_LIBMENUOTHR) {
+          // USE THE OTHER MENU
+          if(menu==1) menu=2;
+          else menu=1;
+      }
+
+      rplSaveMenuHistory(menu);
+
+      rplChangeMenu(menu,newmenu);
+
+      if(!Exceptions) rplDropData(2);
+
+    return;
+
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         // STANDARIZED OPCODES:
@@ -1331,13 +1510,16 @@ void LIB_HANDLER()
         return;
 
     case OPCODE_LIBMENU:
-        // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
+        // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg (LOW WORD)
+        // AND IN ArgNum2 (HI WORD)
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg)>0) { RetNum=ERR_NOTMINE; return; }
-        // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+2];
+        WORDPTR libmenu=rplGetLibPtr2(ArgNum2,2);
+
+        if(!libmenu) { RetNum=ERR_NOTMINE; return; }
+
+        ObjectPTR=libmenu;
         RetNum=OK_CONTINUE;
        return;
     }

@@ -109,7 +109,8 @@ extern const LIBHANDLER ROMLibs[];
 #define MKMENUCODE(special,lib,num,page) ( (((special)&0x3)<<18) | (((lib)&0xfff)<<20) | (((num)&0x3f)<<12) | ((page)&0xfff) )
 #define SETMENUPAGE(menucode,newpage) (((menucode)&~0xfff) | ((newpage)&0xfff))
 
-
+#define MENU_VARS       1
+#define MENU_USERLIB    2
 
 
 

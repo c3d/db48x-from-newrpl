@@ -18,7 +18,7 @@
 
 BINT uiCountMenuItems(WORD MenuCode,WORDPTR menu)
 {
-if(MENUSPECIAL(MenuCode)==1) {
+if(MENUSPECIAL(MenuCode)==MENU_VARS) {
     // MENU IS VARS
     return rplGetVisibleVarCount();
 }
@@ -56,9 +56,9 @@ WORDPTR uiGetLibObject(BINT libnum,WORD Code,WORD Opcode)
 
 // GET A MENU OBJECT FROM A MENU CODE
 
-WORDPTR uiGetLibMenu(WORD MenuCode)
+WORDPTR uiGetLibMenu(BINT64 MenuCode)
 {
-    if(MENUSPECIAL(MenuCode)==1) {
+    if(MENUSPECIAL(MenuCode)==MENU_VARS) {
         // MENU IS VARS, NO NEED FOR MENU OBJECT
         return 0;
     }
@@ -81,9 +81,9 @@ WORDPTR uiGetLibMsg(WORD MsgCode)
 // RETURN A POINTER TO A MENU ITEM OBJECT
 // FIRST ITEM = NUMBER 0
 
-WORDPTR uiGetMenuItem(WORD MenuCode,WORDPTR menu,BINT item)
+WORDPTR uiGetMenuItem(BINT64 MenuCode, WORDPTR menu, BINT item)
 {
-if(MENUSPECIAL(MenuCode)==1) {
+if(MENUSPECIAL(MenuCode)==MENU_VARS) {
  // MENU IS VARS
  // RETURN A POINTER TO THE VARIABLE NAME
 

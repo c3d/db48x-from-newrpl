@@ -927,7 +927,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-                WORD mcode=rplGetMenuCode(menunum);
+                BINT64 mcode=rplGetMenuCode(menunum);
                 WORDPTR menu=uiGetLibMenu(mcode);
                 BINT nitems=uiCountMenuItems(mcode,menu);
                 BINT idx=MENUPAGE(mcode)+varnum,page=MENUPAGE(mcode);
@@ -1047,7 +1047,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
     }
     else {
         // ACTION INSIDE THE EDITOR
-        WORD mcode=rplGetMenuCode(menunum);
+        BINT64 mcode=rplGetMenuCode(menunum);
         WORDPTR menu=uiGetLibMenu(mcode);
         BINT nitems=uiCountMenuItems(mcode,menu);
         BINT idx=MENUPAGE(mcode)+varnum,page=MENUPAGE(mcode);

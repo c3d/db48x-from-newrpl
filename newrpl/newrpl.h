@@ -371,8 +371,8 @@ void rplGetSystemNumberFormat(NUMFORMAT *fmt);
 void rplSetSystemNumberFormat(NUMFORMAT *fmt);
 
 // SYSTEM SOFT MENUS
-void rplSetMenuCode(BINT menunumber,WORD menucode);
-WORD rplGetMenuCode(BINT menunumber);
+void rplSetMenuCode(BINT menunumber,BINT64 menucode);
+BINT64 rplGetMenuCode(BINT menunumber);
 void rplSetActiveMenu(BINT menunumber);
 BINT rplGetActiveMenu();
 void rplChangeMenu(BINT menu, WORDPTR newmenu);
