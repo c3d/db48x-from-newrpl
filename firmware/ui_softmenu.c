@@ -22,6 +22,19 @@ if(MENUSPECIAL(MenuCode)==MENU_VARS) {
     // MENU IS VARS
     return rplGetVisibleVarCount();
 }
+if(MENUSPECIAL(MenuCode)==MENU_USERLIB) {
+    // MENU IS LIBS
+    WORDPTR libdir=rplGetSettings((WORDPTR)library_dirname);
+
+    if(!libdir) return 0;
+
+    WORDPTR *direntry=rplFindDirbyHandle(libdir);
+
+    if(!direntry) return 0;
+
+    return rplGetVisibleVarCountInDir(direntry);
+}
+
 if(!menu) return 0;
 if(ISLIST(*menu)) return rplListLength(menu);
 return 1;
@@ -62,7 +75,10 @@ WORDPTR uiGetLibMenu(BINT64 MenuCode)
         // MENU IS VARS, NO NEED FOR MENU OBJECT
         return 0;
     }
-
+    if(MENUSPECIAL(MenuCode)==MENU_USERLIB) {
+        // MENU IS LIBS, NO NEED FOR MENU OBJECT
+        return 0;
+    }
     return uiGetLibObject(MENULIBRARY(MenuCode),MenuCode,OPCODE_LIBMENU);
 
 }
@@ -90,6 +106,21 @@ if(MENUSPECIAL(MenuCode)==MENU_VARS) {
     WORDPTR *var=rplFindVisibleGlobalByIndex(item);
     if(!var) return 0;
     return var[0];
+}
+if(MENUSPECIAL(MenuCode)==MENU_USERLIB) {
+ // MENU IS LIBS
+ // RETURN A POINTER TO THE VARIABLE NAME
+    WORDPTR libdir=rplGetSettings((WORDPTR)library_dirname);
+
+    if(!libdir) return 0;
+
+    WORDPTR *direntry=rplFindDirbyHandle(libdir);
+
+    if(!direntry) return 0;
+
+    WORDPTR *var=rplFindVisibleGlobalByIndexInDir(item,direntry);
+    if(!var) return 0;
+    return var[1];
 }
 
     if(!menu) return 0;

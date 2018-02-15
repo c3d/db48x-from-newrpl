@@ -978,6 +978,13 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         Opcode=CMD_CONVERT;
                         break;
                     }
+                    if(ISLIBRARY(*action)) {
+                        // SHOW THE LIBRARY TITLE
+                        WORDPTR title=rplGetLibPtr2(action[2],USERLIB_TITLE);
+                        if(title) rplPushData(title);
+                        break;
+                    }
+
 
                     // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
                     rplPushData(action);
@@ -1003,6 +1010,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         break;
                     }
 
+
                     // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
                     rplPushData(action);
                     Opcode=(CMD_OVR_XEQ);
@@ -1023,6 +1031,21 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         // FOR UNITS, APPLY THE INVERSE
                         rplPushData(action);    // PUSH THE NAME ON THE STACK
                         Opcode=(CMD_OVR_MUL);
+                        break;
+                    }
+                    if(ISLIBRARY(*action)) {
+                        // SHOW THE LIBRARY MENU
+                        BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
+                        WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
+
+                        if(!numobject || Exceptions) return;
+
+                        rplSaveMenuHistory(menunum);
+                        rplChangeMenu(menunum,numobject);
+
+                        if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
+                        else halScreen.DirtyFlag|=MENU2_DIRTY;
+
                         break;
                     }
 
@@ -4087,7 +4110,7 @@ void shiftedalphaKeyHandler(BINT keymsg)
 }
 
 
-void changemenuKeyHandler(BINT keymsg,WORD menucode)
+void changemenuKeyHandler(BINT keymsg,BINT64 menucode)
 {
     UNUSED_ARGUMENT(keymsg);
 
@@ -4679,7 +4702,7 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
 
 #define DECLARE_MENUKEYHANDLER(name,menucode) void name##KeyHandler(BINT keymsg) \
                                                     { \
-                                                    changemenuKeyHandler(keymsg,(WORD)(menucode)); \
+                                                    changemenuKeyHandler(keymsg,(BINT64)(menucode)); \
                                                     }
 
 

@@ -376,7 +376,11 @@ void libFindMsg(BINT message,WORDPTR table);
 
 
 
-
+// CONSTANTS FOR UNIVERSAL LIBRARY ENTRY POINTS
+#define USERLIB_HANDLER 0
+#define USERLIB_TITLE   1
+#define USERLIB_MENU    2
+#define USERLIB_RESERVED 3
 
 
 #define OVR_GETNARGS(p) ( ((p)>>12)&0xf )
@@ -496,7 +500,7 @@ extern const WORD editwidth_ident[];
 extern const WORD error_reenter_seco[];
 extern const WORD invalid_string[];
 
-
+extern const WORD library_dirname[];
 
 
 

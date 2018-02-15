@@ -728,6 +728,11 @@ BINT rplIsZeroMatrix(WORDPTR object);
 void rplMatrixPolarToRectEx(WORDPTR *a,BINT rowsa,BINT colsa);
 void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BINT angmode);
 
+// USER LIBRARIES
+WORDPTR rplGetLibPtr(WORDPTR libptr);
+WORDPTR rplGetLibPtr2(WORD libid,WORD libcmd);
+WORDPTR rplGetLibPtrName(WORDPTR libptr);
+WORDPTR rplGetLibPtrInfo(WORDPTR libptr);
 
 
 // NUMERIC SOLVERS

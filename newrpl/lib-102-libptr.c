@@ -874,8 +874,15 @@ void LIB_HANDLER()
 
         // STORE THE LIBRARY IN THE DIRECTORY
         WORDPTR lib=rplPeekData(1);
+        WORDPTR *libdirentry=rplFindDirbyHandle(libdir);
 
-        rplCreateGlobalInDir(lib+1,lib,rplFindDirbyHandle(libdir));
+        WORDPTR *var=rplFindGlobalInDir(lib+1,libdirentry,0);
+        if(var) {
+            // LIBRARY IS ALREADY INSTALLED, REPLACE
+            var[0]=lib+1;
+            var[1]=lib;
+        }
+        else rplCreateGlobalInDir(lib+1,lib,rplFindDirbyHandle(libdir));
 
         lib=rplPopData();
 
@@ -957,7 +964,7 @@ void LIB_HANDLER()
             return;
         }
 
-        mcode=(((BINT64)libid)<<32)| MKMENUCODE(MENU_USERLIB,DOLIBPTR,MENUNUMBER(mcode),MENUPAGE(mcode));
+        mcode=(((BINT64)libid)<<32)| MKMENUCODE(0,DOLIBPTR,MENUNUMBER(mcode),MENUPAGE(mcode));
         WORDPTR newmenu=rplNewBINT(mcode,HEXBINT);
         if(!newmenu) return;
 
@@ -993,7 +1000,7 @@ void LIB_HANDLER()
           return;
       }
 
-      mcode=(((BINT64)libid)<<32)| MKMENUCODE(MENU_USERLIB,DOLIBPTR,MENUNUMBER(mcode),MENUPAGE(mcode));
+      mcode=(((BINT64)libid)<<32)| MKMENUCODE(0,DOLIBPTR,MENUNUMBER(mcode),MENUPAGE(mcode));
       WORDPTR newmenu=rplNewBINT(mcode,HEXBINT);
       if(!newmenu) return;
 

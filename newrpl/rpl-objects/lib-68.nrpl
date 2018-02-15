@@ -35,7 +35,7 @@
 @#name sysmenu_2_main
 {
   { { "Math" 1 } { ::   #04404000h TMENULST ; ::   #04404000h TMENUOTHR ; } }
-  { { "Symb" 1 } { ::   #04405000h TMENULST ; ::   #04405000h TMENUOTHR ; } }
+  { { "Libs" 1 } { ::   #00080000h TMENULST ; ::   #00080000h TMENUOTHR ; } }
   { { "Units" 1 } { ::   #03600000h TMENULST ; ::   #03600000h TMENUOTHR ; } }
   { { "Prog" 1 } { ::   #04403000h TMENULST ; ::   #04403000h TMENUOTHR ; } }
   { { "System" 1 } { ::   #04406000h TMENULST ; ::   #04406000h TMENUOTHR ; } }
