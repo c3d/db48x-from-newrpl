@@ -723,7 +723,7 @@ void halRedrawMenu1(DRAWSURFACE *scr)
     oldclipy=scr->clipy;
     oldclipy2=scr->clipy2;
 
-    WORD m1code=rplGetMenuCode(1);
+    BINT64 m1code=rplGetMenuCode(1);
     WORDPTR MenuObj=uiGetLibMenu(m1code);
     BINT nitems=uiCountMenuItems(m1code,MenuObj);
     BINT k;

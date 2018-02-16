@@ -40,7 +40,7 @@ if(ISLIST(*menu)) return rplListLength(menu);
 return 1;
 }
 
-WORDPTR uiGetLibObject(BINT libnum,WORD Code,WORD Opcode)
+WORDPTR uiGetLibObject(BINT libnum,WORD arg2,WORD arg3,WORD Opcode)
 {
     LIBHANDLER han=rplGetLibHandler(libnum);
     if(!han) return 0;
@@ -50,7 +50,8 @@ WORDPTR uiGetLibObject(BINT libnum,WORD Code,WORD Opcode)
 
     Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE LIBRARY TO RUN
     CurOpcode=MKOPCODE(libnum,Opcode);
-    ArgNum3=Code;
+    ArgNum2=arg2;
+    ArgNum3=arg3;
     RetNum=-1;
     (*han)();
 
@@ -79,19 +80,27 @@ WORDPTR uiGetLibMenu(BINT64 MenuCode)
         // MENU IS LIBS, NO NEED FOR MENU OBJECT
         return 0;
     }
-    return uiGetLibObject(MENULIBRARY(MenuCode),MenuCode,OPCODE_LIBMENU);
+    return uiGetLibObject(MENULIBRARY(MenuCode),(MenuCode>>32),MenuCode,OPCODE_LIBMENU);
 
 }
 
 
 WORDPTR uiGetLibCmdHelp(WORD Command)
 {
-   return uiGetLibObject(LIBNUM(Command),Command,OPCODE_LIBHELP);
+   return uiGetLibObject(LIBNUM(Command),0,Command,OPCODE_LIBHELP);
 }
+
+WORDPTR uiGetLibPtrHelp(WORDPTR LibCommand)
+{
+
+   return uiGetLibObject(LIBNUM(*LibCommand),LibCommand[1],MKOPCODE(DOLIBPTR,LibCommand[2]),OPCODE_LIBHELP);
+}
+
+
 
 WORDPTR uiGetLibMsg(WORD MsgCode)
 {
-   return uiGetLibObject(LIBFROMMSG(MsgCode),MsgCode,OPCODE_LIBMSG);
+   return uiGetLibObject(LIBFROMMSG(MsgCode),0,MsgCode,OPCODE_LIBMSG);
 }
 
 // RETURN A POINTER TO A MENU ITEM OBJECT
@@ -216,6 +225,10 @@ WORDPTR uiGetMenuItemHelp(WORDPTR item)
     if(!item) return 0;
 
     if(ISIDENT(*item)) return item;
+    if(ISLIBPTR(*item)) {
+        // USER LIBRARY COMMAND
+        return uiGetLibPtrHelp(item);
+    }
     if(!ISLIST(*item)) {
         if(!ISPROLOG(*item)) {
            // THIS IS A COMMAND, SEARCH FOR HELP

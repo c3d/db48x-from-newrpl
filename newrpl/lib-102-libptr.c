@@ -225,10 +225,8 @@ WORDPTR rplGetLibPtr2(WORD libid,WORD libcmd)
 
 // GET THE NAME OF A LIBPTR
 
-WORDPTR rplGetLibPtrName(WORDPTR libptr)
+WORDPTR rplGetLibPtrName2(WORD libid,WORD libcmd)
 {
-    WORD libid=libptr[1];
-    WORD libcmd=libptr[2];
 
     WORDPTR libdir=rplGetSettings((WORDPTR)library_dirname);
 
@@ -260,6 +258,16 @@ WORDPTR rplGetLibPtrName(WORDPTR libptr)
    return 0;
 }
 
+WORDPTR rplGetLibPtrName(WORDPTR libptr)
+{
+    WORD libid=libptr[1];
+    WORD libcmd=libptr[2];
+
+    return rplGetLibPtrName2(libid,libcmd);
+}
+
+
+
 // GET THE TOKEN INFO OF A LIBPTR
 
 WORDPTR rplGetLibPtrInfo(WORDPTR libptr)
@@ -269,6 +277,12 @@ if(result) return rplSkipOb(result);
 return 0;
 }
 
+WORDPTR rplGetLibPtrHelp(WORD libid,WORD libcmd)
+{
+WORDPTR result=rplGetLibPtrName2(libid,libcmd);
+if(result) return rplSkipOb(rplSkipOb(result));
+return 0;
+}
 
 // FIND A COMMAND BY NAME WITHIN A LIBRARY, RETURN ITS INDEX IN THE HIGH WORD, LIBRARY NAME IN ITS LOW WORD
 // OR -1 IF NOT FOUND
@@ -589,6 +603,9 @@ void LIB_HANDLER()
                     nvisible=0;
                     break;
                 }
+                // ADJUST NUMBER OF VISIBLE VARIABLES
+                nvisible=(DSTop-stksave-8)>>1;
+
             }
         }
         if(!nvisible) {
@@ -597,7 +614,33 @@ void LIB_HANDLER()
             return;
         }
 
+        //  CREATE A DEFAULT MENU FROM THE VISIBLE LIST
+        //  BUT ONLY IF A CUSTOM MENU WASN'T GIVEN IN A $MENU VARIABLE
+        if(stksave[5]==(WORDPTR)empty_list) {
 
+            int k;
+            BINT listsize=1+3*nvisible;     // ENDLIST + LIBPTR FOR EACH VISIBLE VARIABLE
+
+            WORDPTR defmenu=rplAllocTempOb(listsize);
+            // COMPUTE THE SIZE OF A MENU
+            if(!defmenu) { DSTop=stksave; return; }
+
+            defmenu[0]=MKPROLOG(DOLIST,listsize);
+            for(k=0;k<nvisible;++k) {
+                defmenu[1+3*k]=MKPROLOG(DOLIBPTR,2);
+                defmenu[2+3*k]=libid;
+                defmenu[3+3*k]=k+4;
+            }
+            defmenu[1+3*k]=CMD_ENDLIST;
+
+            // REPLACE THE EMPTY LIST WITH THE NEW MENU
+            stksave[5]=defmenu;
+
+            // UPDATE THE SIZE COMPUTATION
+            datasize-=rplObjSize((WORDPTR)empty_list);
+            datasize+=listsize+1;
+
+        }
 
 
         if(Exceptions) { DSTop=stksave; return; }
@@ -969,10 +1012,10 @@ void LIB_HANDLER()
         if(!newmenu) return;
 
 
+        rplPushDataNoGrow(newmenu);
         BINT menu=rplGetActiveMenu();
         rplSaveMenuHistory(menu);
-
-        rplChangeMenu(menu,newmenu);
+        rplChangeMenu(menu,rplPopData());
 
         if(!Exceptions) rplDropData(2);
 
@@ -1012,9 +1055,10 @@ void LIB_HANDLER()
           else menu=1;
       }
 
+      rplPushDataNoGrow(newmenu);
       rplSaveMenuHistory(menu);
 
-      rplChangeMenu(menu,newmenu);
+      rplChangeMenu(menu,rplPopData());
 
       if(!Exceptions) rplDropData(2);
 
@@ -1533,9 +1577,20 @@ void LIB_HANDLER()
 
     case OPCODE_LIBHELP:
         // LIBRARY RECEIVES AN OBJECT OR OPCODE IN CmdHelp
+        // IF THE OPCODE IS FROM A USER LIBRARY, LIBID IS IN ArgNum2
         // MUST RETURN A STRING OBJECT IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
+        if(LIBNUM(CmdHelp)==DOLIBPTR) {
+            // RETURN THE HELP FOR THAT COMMAND
+            WORDPTR help=rplGetLibPtrHelp(ArgNum2,OPCODE(CmdHelp));
+            if(!help) RetNum=ERR_NOTMINE;
+            else {
+                RetNum=OK_CONTINUE;
+                ObjectPTR=help;
+            }
+            return;
+        }
         libFindMsg(CmdHelp,(WORDPTR)LIB_HELPTABLE);
        return;
     }

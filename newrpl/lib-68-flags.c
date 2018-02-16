@@ -1215,7 +1215,7 @@ void rplChangeMenu(BINT menu,WORDPTR newmenu)
            // IT'S A PREDEFINED MENU CODE
            BINT64 num=rplReadBINT(newmenu);
 
-           if((num<0)||(num>0xffffffff)) {
+           if(num<0) {
                // JUST SET IT TO ZERO
                rplSetMenuCode(menu,0);
                // STORE THE LIST IN .Settings AS CURRENT MENU
@@ -2168,11 +2168,10 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        WORDPTR arg=rplPeekData(1);
         BINT menu=rplGetActiveMenu();
 
         rplSaveMenuHistory(menu);
-        rplChangeMenu(menu,arg);
+        rplChangeMenu(menu,rplPeekData(1));
 
         if(!Exceptions) {
             rplDropData(1);
@@ -2189,7 +2188,6 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        WORDPTR arg=rplPeekData(1);
         BINT menu=rplGetLastMenu();
         if(CurOpcode==CMD_TMENUOTHR) {
             // USE THE OTHER MENU
@@ -2198,7 +2196,7 @@ void LIB_HANDLER()
         }
 
         rplSaveMenuHistory(menu);
-        rplChangeMenu(menu,arg);
+        rplChangeMenu(menu,rplPeekData(1));
 
         if(!Exceptions) {
             rplDropData(1);

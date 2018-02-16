@@ -10,6 +10,8 @@
 #include <QFileDialog>
 #include <QFile>
 #include <QMessageBox>
+#include <QKeyEvent>
+
 #include "hidapi.h"
 #include "usbselector.h"
 #include "mainwindow.h"
@@ -71,6 +73,8 @@ MainWindow::MainWindow(QWidget *parent) :
     myMainWindow=this;
 
     ui->setupUi(this);
+
+    ui->KeybImage->installEventFilter(this);
 
     __usb_curdevice=0;
     currentusb.clear();
@@ -285,6 +289,74 @@ const int keyMap[] = {
     ,0,0
 };
 
+struct mousemap {
+    int key, keynum;
+    qreal left,right,top,bot;
+} mouseMap[] = {
+{ Qt::Key_Backspace,  1      ,0.842672,0.982759,  0.335196,0.383613 },
+{ Qt::Key_U,          2      ,0.842672,0.982759,  0.428305,0.482309 },
+{ Qt::Key_Z,          3      ,0.842672,0.982759,  0.527002,0.575419 },
+{ Qt::Key_Asterisk,   4      ,0.842672,0.982759,  0.616387,0.683426 },
+{ Qt::Key_Minus,      5      ,0.842672,0.982759,  0.716946,0.783985 },
+{ Qt::Key_Plus,       6      ,0.842672,0.982759,  0.817505,0.886406 },
+{ Qt::Key_Enter,      7      ,0.842672,0.982759,  0.918063,0.979516 },
+
+{ Qt::Key_P,          9      ,0.637931,0.778017,  0.335196,0.383613 },
+{ Qt::Key_T,          10      ,0.637931,0.778017,  0.428305,0.482309 },
+{ Qt::Key_Y,          11      ,0.637931,0.778017,  0.527002,0.575419 },
+{ Qt::Key_9,          12      ,0.637931,0.778017,  0.616387,0.683426 },
+{ Qt::Key_6,          13      ,0.637931,0.778017,  0.716946,0.783985 },
+{ Qt::Key_3,          14      ,0.637931,0.778017,  0.817505,0.886406 },
+{ Qt::Key_Space,      15      ,0.637931,0.778017,  0.918063,0.979516 },
+
+{ Qt::Key_O,          17      ,0.428879,0.573276,  0.335196,0.383613 },
+{ Qt::Key_S,          18      ,0.428879,0.573276,  0.428305,0.482309 },
+{ Qt::Key_X,          19      ,0.428879,0.573276,  0.527002,0.575419 },
+{ Qt::Key_8,          20      ,0.428879,0.573276,  0.616387,0.683426 },
+{ Qt::Key_5,          21      ,0.428879,0.573276,  0.716946,0.783985 },
+{ Qt::Key_2,          22      ,0.428879,0.573276,  0.817505,0.886406 },
+{ Qt::Key_Period,     23      ,0.428879,0.573276,  0.918063,0.979516 },
+
+{ Qt::Key_N,          25      ,0.217672,0.364224,  0.335196,0.383613 },
+{ Qt::Key_R,          26      ,0.217672,0.364224,  0.428305,0.482309 },
+{ Qt::Key_W,          27      ,0.217672,0.364224,  0.527002,0.575419 },
+{ Qt::Key_7,          28      ,0.217672,0.364224,  0.616387,0.683426 },
+{ Qt::Key_4,          29      ,0.217672,0.364224,  0.716946,0.783985 },
+{ Qt::Key_1,          30      ,0.217672,0.364224,  0.817505,0.886406 },
+{ Qt::Key_0,          31      ,0.217672,0.364224,  0.918063,0.979516 },
+
+{ Qt::Key_M,          33      ,0.00862069,0.153017,  0.335196,0.383613 },
+{ Qt::Key_Q,          34      ,0.00862069,0.153017,  0.428305,0.482309 },
+{ Qt::Key_V,          35      ,0.00862069,0.153017,  0.527002,0.575419 },
+
+{ Qt::Key_F1,         41      ,0.00862069,0.118534,  0.00931099,0.0521415 },
+{ Qt::Key_F2,         42      ,0.181034,0.295259,    0.00931099,0.0521415 },
+{ Qt::Key_F3,         43      ,0.357759,0.467672,  0.00931099,0.0521415 },
+{ Qt::Key_F4,         44      ,0.530172,0.642241,  0.00931099,0.0521415 },
+{ Qt::Key_F5,         45      ,0.706897,0.814655,  0.00931099,0.0521415 },
+{ Qt::Key_F6,         46      ,0.872845,0.987069,  0.00931099,0.0521415 },
+{ Qt::Key_G,          47      ,0.00862069,0.118534,  0.108007,0.163873 },
+{ Qt::Key_Up,         49      ,0.706897,0.803879,  0.0893855,0.156425 },
+{ Qt::Key_Left,       50      ,0.581897,0.678879,  0.150838,0.230912 },
+{ Qt::Key_Down,       51      ,0.706897,0.803879,  0.219739,0.292365 },
+{ Qt::Key_Right,      52      ,0.838362,0.937500,  0.150838,0.230912 },
+{ Qt::Key_H,          53      ,0.181034,0.295259,  0.108007,0.163873 },
+{ Qt::Key_I,          54      ,0.357759,0.467672,  0.108007,0.163873 },
+{ Qt::Key_J,          55      ,0.00862069,0.118534,  0.221601,0.271881 },
+{ Qt::Key_K,          57      ,0.181034,0.295259,  0.221601,0.271881 },
+{ Qt::Key_L,          58      ,0.357759,0.467672,  0.221601,0.271881 },
+
+{ Qt::Key_Tab,        60      ,0.00862069,0.161638,  0.616387,0.683426 },
+{ Qt::Key_CapsLock,   61      ,0.00862069,0.161638,  0.716946,0.783985 },
+{ Qt::Key_Control,    62      ,0.00862069,0.161638,  0.817505,0.886406 },
+{ Qt::Key_Home,       63      ,0.00862069,0.118534,  0.918063,0.979516 },
+
+// ADD MORE KEYS HERE
+
+{ 0,0 , 0.0,0.0,0.0,0.0 }
+
+
+};
 
 
 
@@ -333,10 +405,10 @@ void MainWindow::keyReleaseEvent(QKeyEvent *ev)
         return;
     }
 
-
+    int mykey=ev->key();
 
     for(i=0;keyMap[i]!=0;i+=2) {
-        if(ev->key()==keyMap[i]) {
+        if(mykey==keyMap[i]) {
             __pckeymatrix&=~(1ULL<<(keyMap[i+1]));
             __keyb_update();
             ev->accept();
@@ -1025,3 +1097,65 @@ void MainWindow::on_actionShow_LCD_grid_toggled(bool arg1)
     ui->EmuScreen->BkgndPen.setStyle((arg1)? Qt::SolidLine : Qt::NoPen);
 
 }
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
+{
+if(obj == ui->KeybImage)
+{
+    if( ev->type() == QEvent::MouseButtonPress)
+{
+    QMouseEvent *me = static_cast<QMouseEvent *>(ev);
+    QPoint coordinates = me->pos();
+    qreal relx,rely;
+
+    relx=(qreal)me->x()/(qreal)ui->KeybImage->width();
+    rely=(qreal)me->y()/(qreal)ui->KeybImage->height();
+
+    //qDebug() << "PRESS x=" << relx << ", y=" << rely ;
+
+    struct mousemap *ptr=mouseMap;
+
+    while(ptr->key!=0) {
+        if( (relx>=ptr->left)&&(relx<=ptr->right)&&(rely>=ptr->top)&&(rely<=ptr->bot)) {
+            // CLICKED INSIDE A KEY
+
+            //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
+                        __pckeymatrix|=1ULL<<(ptr->keynum);
+                        __keyb_update();
+        }
+        ptr++;
+    }
+
+    return true;
+}
+    if( ev->type() == QEvent::MouseButtonRelease)
+{
+    QMouseEvent *me = static_cast<QMouseEvent *>(ev);
+    QPoint coordinates = me->pos();
+    qreal relx,rely;
+
+    relx=(qreal)me->x()/(qreal)ui->KeybImage->width();
+    rely=(qreal)me->y()/(qreal)ui->KeybImage->height();
+
+    //qDebug() << "RELEASE x=" << relx << ", y=" << rely ;
+
+    struct mousemap *ptr=mouseMap;
+
+    while(ptr->key!=0) {
+        if( (relx>=ptr->left)&&(relx<=ptr->right)&&(rely>=ptr->top)&&(rely<=ptr->bot)) {
+            // CLICKED INSIDE A KEY
+
+            //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
+                        __pckeymatrix&=~(1ULL<<(ptr->keynum));
+                        __keyb_update();
+        }
+        ptr++;
+    }
+
+    return true;
+}
+}
+
+return false;
+}
+

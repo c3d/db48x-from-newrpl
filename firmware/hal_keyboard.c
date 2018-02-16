@@ -1040,8 +1040,9 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                         if(!numobject || Exceptions) return;
 
+                        rplPushDataNoGrow(numobject);
                         rplSaveMenuHistory(menunum);
-                        rplChangeMenu(menunum,numobject);
+                        rplChangeMenu(menunum,rplPopData());
 
                         if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
                         else halScreen.DirtyFlag|=MENU2_DIRTY;
@@ -4119,8 +4120,9 @@ void changemenuKeyHandler(BINT keymsg,BINT64 menucode)
     if(!numobject || Exceptions) return;
     BINT menu=rplGetActiveMenu();
 
+    rplPushDataNoGrow(numobject);
     rplSaveMenuHistory(menu);
-    rplChangeMenu(menu,numobject);
+    rplChangeMenu(menu,rplPopData());
 
     if(menu==1) halScreen.DirtyFlag|=MENU1_DIRTY;
     else halScreen.DirtyFlag|=MENU2_DIRTY;
