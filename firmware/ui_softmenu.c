@@ -229,6 +229,10 @@ WORDPTR uiGetMenuItemHelp(WORDPTR item)
         // USER LIBRARY COMMAND
         return uiGetLibPtrHelp(item);
     }
+    if(ISLIBRARY(*item)) {
+       // SHOW THE LIBRARY TITLE AS HELP STRING
+       return rplGetLibPtr2(item[2],USERLIB_TITLE);
+    }
     if(!ISLIST(*item)) {
         if(!ISPROLOG(*item)) {
            // THIS IS A COMMAND, SEARCH FOR HELP
@@ -285,6 +289,10 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
             // CONTINUE HERE WITH THE NEW ptr
 
         }
+        if(ISLIBRARY(*ptr)) {
+            // MAKE THE ITEM BE THE LIBRARY IDENTIFIER
+            ptr++;
+        }
 
         //  IF IT'S A LIST, THEN TAKE THE FLAGS FROM THE SECOND ELEMENT IN THE LIST, AND USE THE FIRST AS THE DISPLAY OBJECT
         if(ISLIST(*ptr)) {
@@ -297,6 +305,8 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
             }
         }
 
+
+
         }
     } else ptr=item;
 
@@ -305,7 +315,45 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 
     // AND flags HAS THE FLAGS
 
+    if(ISLIBRARY(*ptr)) {
 
+        // SPECIAL CASE: DRAW IT LIKE A DIRECTORY, DISPLAYING THE LIBRARY ID
+        ptr++;
+
+        BINT w=StringWidthN((char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),*halScreen.FontArray[FONT_MENU]),pos;
+
+        if(w>=scr->clipx2-scr->clipx) pos=scr->clipx+1;
+        else pos=(scr->clipx2+1+scr->clipx-w)>>1;
+
+            // FIRST LETTER GRAY BACKGROUND
+            ggl_clipvline(scr,pos,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x8));
+            ggl_clipvline(scr,pos+1,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x8));
+            ggl_clipvline(scr,pos+2,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x8));
+            ggl_clipvline(scr,pos+3,scr->clipy,scr->clipy2,ggl_mkcolor( (color)? 0X4:0x8));
+
+        DrawTextN(pos,scr->clipy+1,(char *)(ptr+1),(char *)(ptr+1)+rplGetIdentLength(ptr),*halScreen.FontArray[FONT_MENU],color,scr);
+
+        // DARKEN/LIGHTEN EFFECT ON LAST FEW PIXELS
+        if(w>=scr->clipx2-scr->clipx) {
+            scr->x=scr->clipx2;
+            scr->y=scr->clipy;
+            ggl_filter(scr,1,scr->clipy2-scr->clipy+1,(color)? 0xf4:0x0c,&ggl_fltreplace);
+            scr->x--;
+            ggl_filter(scr,1,scr->clipy2-scr->clipy+1,(color)? 0xf6:0x0a,&ggl_fltreplace);
+            scr->x--;
+            ggl_filter(scr,1,scr->clipy2-scr->clipy+1,(color)? 0xfa:0x06,&ggl_fltreplace);
+
+        }
+
+                if(flags&2) {
+                   // SECOND BIT IN FLAGS MEANS INVERTED
+                            scr->x=scr->clipx;
+                            scr->y=scr->clipy;
+                            ggl_filter(scr,scr->clipx2-scr->clipx+1,scr->clipy2-scr->clipy+1,0,&ggl_fltinvert);
+                }
+
+        return;
+    }
 
     if(ISIDENT(*ptr)) {
 

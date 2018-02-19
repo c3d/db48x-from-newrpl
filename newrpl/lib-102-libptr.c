@@ -401,7 +401,34 @@ BINT64 rplProbeLibPtrIndex(BYTEPTR start,BYTEPTR end,WORDPTR *cmdinfo)
 }
 
 
+WORDPTR *rplFindAttachedLibrary(WORDPTR ident)
+{
 
+    if(OBJSIZE(*ident)!=1) return 0;
+
+    WORDPTR libdir=rplGetSettings((WORDPTR)library_dirname);
+
+    if(!libdir) return 0;
+
+    WORDPTR *direntry=rplFindFirstByHandle(libdir);
+
+    if(!direntry) return 0;
+
+    do {
+
+        if(ISIDENT(*direntry[0]) && (OBJSIZE(*direntry[0])==1)) {
+            // COMPARE LIBRARY ID
+            if(direntry[0][1] == ident[1]) {
+                // FOUND THE LIBRARY
+                return direntry;
+            }
+        }
+
+    } while((direntry=rplFindNext(direntry)));
+
+
+   return 0;
+}
 
 
 void LIB_HANDLER()
@@ -700,7 +727,7 @@ void LIB_HANDLER()
                             endprog=ScratchPointer2;
                             if(Exceptions) { DSTop=stksave; return; }
 
-                            datasize+=rplObjSize(rplPeekData(2))+rplObjSize(rplPeekData(1))+1;
+                            datasize+=rplObjSize(rplPeekData(2))+rplObjSize(rplPeekData(1))+2;  // NAME, INFO, NULL HELP, OBJECT
 
                         }
                         // EITHER WAY, THE REFERENCE NEEDS TO BE REPLACED
@@ -751,8 +778,7 @@ void LIB_HANDLER()
 
         for(k=0;k<totaln;++k) {
             // ADD COMMAND NAME
-            if(k>=4) rplCopyObject(newobj+offset,stksave[2*k]);
-            else newobj[offset]=MAKESINT(0);    // NULL NAME = BINT ZERO
+            rplCopyObject(newobj+offset,(k>=4)? stksave[2*k] : (WORDPTR)nulllam_ident);
 
             offset+=rplObjSize(newobj+offset);
 
@@ -778,7 +804,7 @@ void LIB_HANDLER()
             WORDPTR helpstring;
             helpstring=(WORDPTR)empty_string;
             if((k>=4)&&(k<nvisible+4)) {
-                WORDPTR helpstring=rplSkipOb(stksave[2*k]);
+                helpstring=rplSkipOb(stksave[2*k]);
 
                 if(object && (helpstring>object[1]) && (helpstring<rplSkipOb(object[1]))) helpstring=rplSkipOb(rplSkipOb(helpstring));
                 else helpstring=(WORDPTR)empty_string;
@@ -934,6 +960,28 @@ void LIB_HANDLER()
         return;
 
     }
+
+    case DETACH:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_INVALIDLIBID);
+            return;
+        }
+
+        WORDPTR *var=rplFindAttachedLibrary(rplPeekData(1));
+
+        if(var) rplPurgeForced(var);
+
+        rplDropData(1);
+
+      return;
+    }
+
 
     case OVR_SAME:
     // COMPARE AS PLAIN OBJECTS, THIS INCLUDES SIMPLE COMMANDS IN THIS LIBRARY
@@ -1111,7 +1159,7 @@ void LIB_HANDLER()
 
         if((TokenLen==6) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"LIBPTR",6))) {
             ScratchPointer4=CompileEnd;
-            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER+1,2));
+            rplCompileAppend(MKPROLOG(DOLIBPTR,2));
             RetNum=OK_NEEDMORE;
             return;
         }
@@ -1123,7 +1171,7 @@ void LIB_HANDLER()
 
         if(libidx>=0) {
             // FOUND A MATCH
-            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER+1,2));
+            rplCompileAppend(MKPROLOG(DOLIBPTR,2));
             rplCompileAppend((WORD)libidx);
             rplCompileAppend((WORD)(libidx>>32));
             RetNum=OK_CONTINUE;
@@ -1139,7 +1187,7 @@ void LIB_HANDLER()
     }
     case OPCODE_COMPILECONT:
     {
-        if(LIBNUM(*ScratchPointer4)==LIBRARY_NUMBER+1) {
+        if(LIBNUM(*ScratchPointer4)==DOLIBPTR) {
             // COMPILE A ROMPOINTER WITH A MISSING LIBRARY
             BYTEPTR ptr=(BYTEPTR)TokenStart;
             int rot=0;
@@ -1151,7 +1199,10 @@ void LIB_HANDLER()
                 if( ((cp>='A')&&(cp<='Z')) || ((cp>='a')&&(cp<='z')) || ((cp>='0')&&(cp<='9'))) {
                     libid|=cp<<rot;
                     rot+=8;
-                    if(rot>=32) break;
+                    if(rot>=32) {
+                        ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)BlankStart);
+                        break;
+                    }
                 }
                 else {
                     RetNum=ERR_SYNTAX;
@@ -1308,7 +1359,7 @@ void LIB_HANDLER()
 
                 WORDPTR name=rplGetLibPtrName(DecompileObject);
 
-                if(!name) {
+                if(!name || (*name==CMD_NULLLAM)) {
                     // LIBPTRS WITHOUT A PROPER LIBRARY INSTALLED
                     rplDecompAppendString((BYTEPTR)"LIBPTR ");
 
@@ -1323,9 +1374,9 @@ void LIB_HANDLER()
                     ++ptr;
                     rplDecompAppendChar('.');
                     BYTE buffer[22];
-                    BINT n=rplIntToString(DecompileObject[2],10,buffer,buffer+22);
+                    BINT n=rplIntToString(DecompileObject[2],DECBINT,buffer,buffer+22);
                     ptr=buffer;
-                    while(n) { rplDecompAppendChar(*ptr); ++ptr; }
+                    while(n--) { rplDecompAppendChar(*ptr); ++ptr; }
 
 
                 }

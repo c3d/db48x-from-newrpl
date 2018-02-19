@@ -182,6 +182,9 @@ BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend)
 BINT rplGetIdentLength(WORDPTR ident)
 {
     BINT len=OBJSIZE(*ident);
+
+    if(!len) return 0;
+
     WORD lastword=*(ident+len);
     BINT usedbytes=0;
     while( !(lastword&0xff000000) && (usedbytes<4) ) { lastword<<=8; ++usedbytes; }

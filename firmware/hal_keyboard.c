@@ -978,14 +978,23 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         Opcode=CMD_CONVERT;
                         break;
                     }
+
                     if(ISLIBRARY(*action)) {
-                        // SHOW THE LIBRARY TITLE
-                        WORDPTR title=rplGetLibPtr2(action[2],USERLIB_TITLE);
-                        if(title) rplPushData(title);
+                        // SHOW THE LIBRARY MENU
+                        BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
+                        WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
+
+                        if(!numobject || Exceptions) return;
+
+                        rplPushDataNoGrow(numobject);
+                        rplSaveMenuHistory(menunum);
+                        rplChangeMenu(menunum,rplPopData());
+
+                        if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
+                        else halScreen.DirtyFlag|=MENU2_DIRTY;
+
                         break;
                     }
-
-
                     // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
                     rplPushData(action);
                     Opcode=(CMD_OVR_XEQ);
@@ -1010,7 +1019,22 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                         break;
                     }
 
+                    if(ISLIBRARY(*action)) {
+                        // SHOW THE LIBRARY MENU
+                        BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
+                        WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
 
+                        if(!numobject || Exceptions) return;
+
+                        rplPushDataNoGrow(numobject);
+                        rplSaveMenuHistory(menunum);
+                        rplChangeMenu(menunum,rplPopData());
+
+                        if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
+                        else halScreen.DirtyFlag|=MENU2_DIRTY;
+
+                        break;
+                    }
                     // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
                     rplPushData(action);
                     Opcode=(CMD_OVR_XEQ);
@@ -1189,6 +1213,25 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 }
                 break;
             }
+
+            if(ISLIBRARY(*action)) {
+
+                    // SHOW THE LIBRARY MENU
+                    BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
+                    WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
+
+                    if(!numobject || Exceptions) return;
+
+                    rplPushDataNoGrow(numobject);
+                    rplSaveMenuHistory(menunum);
+                    rplChangeMenu(menunum,rplPopData());
+
+                    if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
+                    else halScreen.DirtyFlag|=MENU2_DIRTY;
+
+                    break;
+            }
+
 
 
             if(ISPROGRAM(*action)) {
@@ -1455,6 +1498,43 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     break;
                 }
 
+                }
+                break;
+            }
+
+            if(ISLIBRARY(*action)) {
+                switch(halScreen.CursorState&0xff)
+                {
+                case 'D':
+                case 'P':
+                {
+                    // SHOW THE LIBRARY MENU
+                    BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
+                    WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
+
+                    if(!numobject || Exceptions) return;
+
+                    rplPushDataNoGrow(numobject);
+                    rplSaveMenuHistory(menunum);
+                    rplChangeMenu(menunum,rplPopData());
+
+                    if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
+                    else halScreen.DirtyFlag|=MENU2_DIRTY;
+
+                    break;
+                }
+                case 'A':
+                {
+                    // INSERT THE LIBRARY IDENTIFIER
+                    BYTEPTR string,endstring;
+                    string=(BYTEPTR)(action+2);
+                    endstring=string+rplGetIdentLength(action+1);
+                    BINT nlines=uiInsertCharactersN(string,endstring);
+                    if(nlines) uiStretchCmdLine(nlines);
+                    uiAutocompleteUpdate();
+
+                }
+                    break;
                 }
                 break;
             }
@@ -1846,6 +1926,23 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
 
 
+            }
+
+            if(ISLIBRARY(*action)) {
+                    // SHOW THE LIBRARY MENU
+                    BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
+                    WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
+
+                    if(!numobject || Exceptions) return;
+
+                    rplPushDataNoGrow(numobject);
+                    rplSaveMenuHistory(menunum);
+                    rplChangeMenu(menunum,rplPopData());
+
+                    if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
+                    else halScreen.DirtyFlag|=MENU2_DIRTY;
+
+                    break;
             }
 
             if(ISPROGRAM(*action)) {
@@ -5531,6 +5628,8 @@ DECLARE_MENUKEYHANDLER(arithmenu,MKMENUCODE(0,64,0,0))
 DECLARE_MENUKEYHANDLER(cplxmenu,MKMENUCODE(0,30,0,0))
 DECLARE_MENUKEYHANDLER(timemenu,MKMENUCODE(0,65,0,0))
 DECLARE_MENUKEYHANDLER(basemenu,MKMENUCODE(0,70,0,0))
+DECLARE_MENUKEYHANDLER(libsmenu,MKMENUCODE(2,0,0,0))
+
 
 
 void cancelKeyHandler(BINT keymsg)
@@ -6128,6 +6227,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_P,CONTEXT_ANY, KEYHANDLER_NAME(mainmenu) },
     { KM_PRESS|KB_1|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(arithmenu) },
     { KM_PRESS|KB_1|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(cplxmenu) },
+    { KM_PRESS|KB_2|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(libsmenu) },
     { KM_PRESS|KB_9|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(timemenu) },
     { KM_PRESS|KB_3|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(basemenu) },
     { KM_PRESS|KB_M|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(backmenu1) },

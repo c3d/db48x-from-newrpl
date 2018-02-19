@@ -850,7 +850,7 @@ void LIB_HANDLER()
                     ++newdepth;
                     // DO MINIMAL TYPE CHECKING, LAST ARGUMENT HAS TO BE
                     // AN IDENT, OTHERWISE THE RESULT IS INVALID
-                    if(!ISIDENT(*rplPeekData(1))) {
+                    if(!ISIDENT(*rplPeekData(1)) && !ISLIBPTR(*rplPeekData(1))) {
                         // IT SHOULD ACTUALLY RETURN SOMETHING LIKE "INVALID USER FUNCTION"
                         DSTop=rplUnprotectData();
                         rplCleanupLAMs(0);
@@ -1022,7 +1022,7 @@ void LIB_HANDLER()
                     ++newdepth;
                     // DO MINIMAL TYPE CHECKING, LAST ARGUMENT HAS TO BE
                     // AN IDENT, OTHERWISE THE RESULT IS INVALID
-                    if(!ISIDENT(*rplPeekData(1))) {
+                    if(!ISIDENT(*rplPeekData(1)) && !ISLIBPTR(*rplPeekData(1))) {
                         // IT SHOULD ACTUALLY RETURN SOMETHING LIKE "INVALID USER FUNCTION"
                         DSTop=rplUnprotectData();
                         rplCleanupLAMs(0);
@@ -1164,7 +1164,7 @@ void LIB_HANDLER()
                     ++newdepth;
                     // DO MINIMAL TYPE CHECKING, LAST ARGUMENT HAS TO BE
                     // AN IDENT, OTHERWISE THE RESULT IS INVALID
-                    if(!ISIDENT(*rplPeekData(1))) {
+                    if(!ISIDENT(*rplPeekData(1)) && !ISLIBPTR(*rplPeekData(1))) {
                         // IT SHOULD ACTUALLY RETURN SOMETHING LIKE "INVALID USER FUNCTION"
                         DSTop=rplUnprotectData();
                         rplCleanupLAMs(0);
