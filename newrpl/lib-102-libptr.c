@@ -32,7 +32,11 @@
     CMD(DETACH,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(LIBMENU,MKTOKENINFO(7,TITYPE_NOTALLOWED,2,2)), \
     CMD(LIBMENUOTHR,MKTOKENINFO(11,TITYPE_NOTALLOWED,2,2)), \
-    CMD(LIBMENULST,MKTOKENINFO(10,TITYPE_NOTALLOWED,2,2))
+    CMD(LIBMENULST,MKTOKENINFO(10,TITYPE_NOTALLOWED,2,2)), \
+    CMD(LIBSTO,MKTOKENINFO(6,TITYPE_NOTALLOWED,2,2)), \
+    CMD(LIBRCL,MKTOKENINFO(6,TITYPE_NOTALLOWED,2,2)), \
+    CMD(LIBRESET,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
+
 
 
 
@@ -218,6 +222,36 @@ WORDPTR rplGetLibPtr2(WORD libid,WORD libcmd)
 
 
 
+// FIND THE LIBRARY THAT CONTAINS THE GIVEN POINTER
+// NO ARGUMENT CHECKS FOR SPEED
+
+WORDPTR rplGetLibFromPointer(WORDPTR libptr)
+{
+
+    WORDPTR libdir=rplGetSettings((WORDPTR)library_dirname);
+
+    if(!libdir) return 0;
+
+    WORDPTR *direntry=rplFindFirstByHandle(libdir);
+
+    if(!direntry) return 0;
+
+    do {
+
+        if(ISIDENT(*direntry[0]) && (OBJSIZE(*direntry[0])==1)) {
+            // SEE IF THE POINTER IS INSIDE THE LIBRARY
+            if( (libptr>=direntry[1])&&(libptr<rplSkipOb(direntry[1]))) {
+                // FOUND THE LIBRARY - GET THE COMMAND
+                return direntry[1];
+            }
+
+        }
+
+    } while((direntry=rplFindNext(direntry)));
+
+
+   return 0;
+}
 
 
 
@@ -1117,6 +1151,85 @@ void LIB_HANDLER()
     }
 
 
+    case LIBSTO:
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+
+        // FIND CURRENTLY EXECUTING LIBRARY
+        WORDPTR library=rplGetLibFromPointer(IPtr);
+        if(!library) {
+            // STORE IT IN THE CURRENT DIRECTORY
+            rplCallOperator(CMD_STO);
+            return;
+        }
+
+        WORDPTR dirhandle=rplGetSettings(library+1);
+
+        if(!dirhandle) dirhandle=rplCreateNewDir(library+1,rplFindDirbyHandle(SettingsDir));
+        if(!dirhandle || Exceptions) return;
+
+        WORDPTR *var=rplFindGlobalInDir(rplPeekData(1),rplFindDirbyHandle(dirhandle),0);
+
+        if(!var) rplCreateGlobalInDir(rplPeekData(1),rplPeekData(2),rplFindDirbyHandle(dirhandle));
+        else var[1]=rplPeekData(2);
+        if(Exceptions) return;
+
+        rplDropData(2);
+        return;
+
+    }
+
+
+    case LIBRCL:
+    {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+
+        // FIND CURRENTLY EXECUTING LIBRARY
+        WORDPTR library=rplGetLibFromPointer(IPtr);
+        if(!library) {
+            // GET IT FROM THE CURRENT DIRECTORY
+            rplCallOperator(CMD_RCL);
+            return;
+        }
+
+        WORDPTR dirhandle=rplGetSettings(library+1);
+
+        if(!dirhandle) {
+            rplError(ERR_UNDEFINEDVARIABLE);
+            return;
+        }
+
+        WORDPTR *var=rplFindGlobalInDir(rplPeekData(1),rplFindDirbyHandle(dirhandle),0);
+
+        if(!var) {
+            rplError(ERR_UNDEFINEDVARIABLE);
+            return;
+        }
+
+        rplOverwriteData(1,var[1]);
+        return;
+
+    }
+
+    case LIBRESET:
+    {
+        // PURGE ENTIRE DATA DIRECTORY, AND CALL THE LIBRARY HANDLER TO CREATE A NEW ONE
 
 
 
@@ -1127,9 +1240,7 @@ void LIB_HANDLER()
 
 
 
-
-
-
+    }
 
         // STANDARIZED OPCODES:
         // --------------------

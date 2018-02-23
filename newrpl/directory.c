@@ -739,7 +739,7 @@ void rplWipeDir(WORDPTR *directory)
 
 void rplPurgeDir(WORDPTR nameobj)
 {
-    WORDPTR *var=rplFindGlobal(nameobj,1);
+    WORDPTR *var=rplFindGlobal(nameobj,0);
 
     if(!var) {
         rplError(ERR_DIRECTORYNOTFOUND);
@@ -753,7 +753,7 @@ void rplPurgeDir(WORDPTR nameobj)
         // RECURSIVELY WIPE OUT THE DIRECTORY
         rplWipeDir(dir);
         // GET DIRECTORY POINTERS FROM NAME AGAIN, SINCE WIPE DIR MIGHT'VE MOVED THE POINTERS!
-        var=rplFindGlobal(nameobj,1);
+        var=rplFindGlobal(nameobj,0);
         rplPurgeForced(var);
         return;
 
