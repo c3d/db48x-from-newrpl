@@ -667,6 +667,7 @@ void rplWipeDir(WORDPTR *directory)
     // PUSH THE HANDLE TO PURGE LATER
     rplNewBINTPush(direntry-directory,DECBINT);
     rplPushData(directory[1]);
+    if(Exceptions) { DSTop=Stacksave; return; }
 
     while(DSTop!=Stacksave) {
 
@@ -750,8 +751,15 @@ void rplPurgeDir(WORDPTR nameobj)
         // TRYING TO PURGE AN ENTIRE DIRECTORY
         WORDPTR *dir=rplFindDirbyHandle(*(var+1));
 
+        // PROTECT THE DIRECTORY NAME IN THE STACK
+        rplPushDataNoGrow(nameobj);
+
         // RECURSIVELY WIPE OUT THE DIRECTORY
         rplWipeDir(dir);
+        if(Exceptions) return;
+        // RESTORE DIRECTORY NAME
+        nameobj=rplPopData();
+
         // GET DIRECTORY POINTERS FROM NAME AGAIN, SINCE WIPE DIR MIGHT'VE MOVED THE POINTERS!
         var=rplFindGlobal(nameobj,0);
         rplPurgeForced(var);
@@ -762,7 +770,49 @@ void rplPurgeDir(WORDPTR nameobj)
     rplError(ERR_DIRECTORYNOTFOUND);
 }
 
+void rplPurgeDirByHandle(WORDPTR handle)
+{
 
+        WORDPTR *dir=rplFindDirbyHandle(handle);
+        WORDPTR parenthandle;
+
+        if(dir) {
+
+        rplPushDataNoGrow(handle);
+        // FIND A HANDLE TO THE PARENT DIR
+        // AND PRESERVE THE HANDLE OBJECT
+        if(*dir[2]==*dir_parent_bint) {
+            parenthandle=dir[3];
+            if(parenthandle) rplPushDataNoGrow(parenthandle);
+            else parenthandle=0;
+        }
+        else parenthandle=0;
+
+        // RECURSIVELY WIPE OUT THE DIRECTORY
+        rplWipeDir(dir);
+
+        if(parenthandle) parenthandle=rplPopData();
+        handle=rplPopData();
+        if(Exceptions) return;
+        // GET DIRECTORY POINTERS FROM NAME AGAIN, SINCE WIPE DIR MIGHT'VE MOVED THE POINTERS!
+        if(parenthandle) {
+        dir=rplFindDirbyHandle(parenthandle);
+        if(!dir) return;
+
+        while(**dir!=DIR_END_MARKER) {
+            if(*(dir+1)==handle) break;
+            dir+=2;
+        }
+        if(**dir!=DIR_END_MARKER) rplPurgeForced(dir);
+        }
+
+        return;
+        }
+
+
+        rplError(ERR_DIRECTORYNOTFOUND);
+
+}
 
 
 // CREATE OR MODIFY VARIABLES IN THE SETTINGS DIRECTORY

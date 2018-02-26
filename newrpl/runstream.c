@@ -846,7 +846,7 @@ void rplResetSystemFlags()
     if(!SystemFlags) return;
 
     // 128 SYSTEM FLAGS
-    SystemFlags[0]=MKPROLOG(DOLIST,16);  // PUT ALL SYSTEM FLAGS ON A LIST
+    SystemFlags[0]=MKPROLOG(DOLIST,19);  // PUT ALL SYSTEM FLAGS ON A LIST
     SystemFlags[1]=MKPROLOG(HEXBINT,2); // USE A BINT PROLOG
     SystemFlags[2]=(63<<4)|(1<<29);             // FLAGS 0-31 ARE IN SystemFlags[2], DEFAULTS: WORDSIZE=63, DEG, COMMENTS=ON
     SystemFlags[3]=0;                   // FLAGS 32-63 ARE IN SystemFlags[3]

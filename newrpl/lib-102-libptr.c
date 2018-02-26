@@ -35,7 +35,7 @@
     CMD(LIBMENULST,MKTOKENINFO(10,TITYPE_NOTALLOWED,2,2)), \
     CMD(LIBSTO,MKTOKENINFO(6,TITYPE_NOTALLOWED,2,2)), \
     CMD(LIBRCL,MKTOKENINFO(6,TITYPE_NOTALLOWED,2,2)), \
-    CMD(LIBRESET,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
+    CMD(LIBCLEAR,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
 
 
 
@@ -71,6 +71,12 @@
 ROMOBJECT library_dirname[]={
     MKPROLOG(DOIDENT,1),
     TEXT2WORD('L','I','B',0)
+};
+
+ROMOBJECT libdata_dirname[]={
+    MKPROLOG(DOIDENT,2),
+    TEXT2WORD('L','I','B','D'),
+    TEXT2WORD('A','T','A',0)
 };
 
 ROMOBJECT libid_ident[]={
@@ -126,6 +132,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)LIB_HELPTABLE,
     (WORDPTR)lib102_menu,
     (WORDPTR)library_dirname,
+    (WORDPTR)libdata_dirname,
     (WORDPTR)libid_ident,
     (WORDPTR)title_ident,
     (WORDPTR)libmenu_ident,
@@ -1171,12 +1178,27 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR dirhandle=rplGetSettings(library+1);
+        // FIND LIBDATA DIRECTORY, CREATE IF DOESN'T EXIST
+        WORDPTR dirhandle=rplGetSettings((WORDPTR)libdata_dirname);
+        if(!dirhandle) {
+            rplPushDataNoGrow(library);
+            dirhandle=rplCreateNewDir((WORDPTR)libdata_dirname,rplFindDirbyHandle(SettingsDir));
+            library=rplPopData();
+            if(!dirhandle || Exceptions) return;
 
-        if(!dirhandle) dirhandle=rplCreateNewDir(library+1,rplFindDirbyHandle(SettingsDir));
+        }
+
+        // FIND LIBRARY DIRECTORY WITHIN LIBDATA, CREATE IF DOESN'T EXIST
+        WORDPTR *dirptr=rplFindDirbyHandle(dirhandle);
+        WORDPTR *var=rplFindGlobalInDir(library+1,dirptr,0);
+
+        if(!var) dirhandle=rplCreateNewDir(library+1,dirptr);
+        else dirhandle=var[1];
         if(!dirhandle || Exceptions) return;
 
-        WORDPTR *var=rplFindGlobalInDir(rplPeekData(1),rplFindDirbyHandle(dirhandle),0);
+        // FINALLY, FIND THE VARIABLE IN THE EXISTING DIRECTORY, CREATE OR MODIFY
+
+        var=rplFindGlobalInDir(rplPeekData(1),rplFindDirbyHandle(dirhandle),0);
 
         if(!var) rplCreateGlobalInDir(rplPeekData(1),rplPeekData(2),rplFindDirbyHandle(dirhandle));
         else var[1]=rplPeekData(2);
@@ -1208,14 +1230,27 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR dirhandle=rplGetSettings(library+1);
-
+        // FIND LIBDATA DIRECTORY
+        WORDPTR dirhandle=rplGetSettings((WORDPTR)libdata_dirname);
         if(!dirhandle) {
             rplError(ERR_UNDEFINEDVARIABLE);
             return;
         }
 
-        WORDPTR *var=rplFindGlobalInDir(rplPeekData(1),rplFindDirbyHandle(dirhandle),0);
+        // FIND LIBRARY DIRECTORY WITHIN LIBDATA
+        WORDPTR *dirptr=rplFindDirbyHandle(dirhandle);
+        WORDPTR *var=rplFindGlobalInDir(library+1,dirptr,0);
+
+        if(!var) {
+            rplError(ERR_UNDEFINEDVARIABLE);
+            return;
+        }
+        else dirhandle=var[1];
+
+
+        // FINALLY, FIND THE VARIABLE IN THE EXISTING DIRECTORY, CREATE OR MODIFY
+
+        var=rplFindGlobalInDir(rplPeekData(1),rplFindDirbyHandle(dirhandle),0);
 
         if(!var) {
             rplError(ERR_UNDEFINEDVARIABLE);
@@ -1227,20 +1262,57 @@ void LIB_HANDLER()
 
     }
 
-    case LIBRESET:
+    case LIBCLEAR:
     {
         // PURGE ENTIRE DATA DIRECTORY, AND CALL THE LIBRARY HANDLER TO CREATE A NEW ONE
 
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
 
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_INVALIDLIBID);
+            return;
+        }
 
+        WORDPTR *var=rplFindAttachedLibrary(rplPeekData(1));
 
+        if(var) {
+            // FIND LIBDATA DIRECTORY
+            WORDPTR dirhandle=rplGetSettings((WORDPTR)libdata_dirname);
+            if(!dirhandle) {
+                // DO NOTHING IF THE LIBRARY HAS NO DATA
+                rplDropData(1);
+                return;
+            }
 
+            // FIND LIBRARY DIRECTORY WITHIN LIBDATA
+            WORDPTR *dirptr=rplFindDirbyHandle(dirhandle);
+            WORDPTR *var2=rplFindGlobalInDir(var[1]+1,dirptr,0);
 
+            if(!var2) {
+                // DO NOTHING IF THE LIBRARY HAS NO DATA
+                rplDropData(1);
+                return;
+            }
+            else dirhandle=var2[1];
 
+            rplPurgeDirByHandle(dirhandle);
 
+        }
 
+        rplDropData(1);
 
+      return;
     }
+
+
+
+
+
+
+
 
         // STANDARIZED OPCODES:
         // --------------------

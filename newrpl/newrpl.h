@@ -459,6 +459,7 @@ WORDPTR *rplFindDirbyHandle(WORDPTR handle);
 WORDPTR *rplFindDirFromPath(WORDPTR pathlist,BINT uselastname);
 WORDPTR rplCreateNewDir(WORDPTR nameobj, WORDPTR *parentdir);
 void rplPurgeDir(WORDPTR nameobj);
+void rplPurgeDirByHandle(WORDPTR handle);
 WORDPTR *rplGetParentDir(WORDPTR *directory);
 // VARIOUS WAYS TO RCL GLOBAL VARIABLES
 WORDPTR *rplFindGlobalbyNameInDir(BYTEPTR name, BYTEPTR nameend, WORDPTR *parent, BINT scanparents);

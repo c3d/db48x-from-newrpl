@@ -23,7 +23,7 @@
 
 @#name lib102_menu
 {
-CRLIB ATTACH DETACH RESETDATA
+ATTACH DETACH LIBCLEAR LIBSTO LIBRCL LIBMENU LIBMENUOTHR LIBMENULST CRLIB
 }
 
 
@@ -37,16 +37,32 @@ a directory
 ATTACH
 "Install a library
 
-Lib → "
+Lib → N<libID> S"
 
 DETACH
 "Uninstall a library
 
 N<libID> → "
 
-RESETDATA
-"Reset (erase) library
-data.
+LIBCLEAR
+"Clear (erase) internal
+library data.
 N<libID> → "
+
+LIBMENU
+"Change active menu to the
+library menu
+N<libID> I<menucode> → "
+
+LIBMENULST
+"Change last used menu to the
+library menu
+N<libID> I<menucode> → "
+
+
+LIBMENUOTHR
+"Change menu that was not
+used last to the lib menu
+N<libID> I<menucode> → "
 
 }
