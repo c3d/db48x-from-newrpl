@@ -876,11 +876,33 @@ void rplResetSystemFlags()
 
 }
 
+void rplInitMemoryAllocator()
+{
+    Context.alloc_bmp=EMPTY_STORAGEBMP;
+
+    int count;
+    // INITIALIZE THE REAL REGISTERS
+    for(count=0;count<REAL_REGISTERS;++count)
+    {
+        RReg[count].data=allocRegister();
+        RReg[count].flags=0;
+        RReg[count].exp=0;
+        RReg[count].len=1;
+    }
+    // INITIALIZE TEMP STORAGE FOR INTEGER TO REAL CONVERSION
+    BINT2RealIdx=0;
+
+    // INITIALIZE MEMORY ALLOCATOR FOR OTHER USES
+    init_simpalloc();
+
+}
+
+
 // INITIALIZE THE RPL MACHINE
 void rplInit(void)
 {
 
-    int k,count;
+    int k;
 
     for(k=0;k<MAX_GC_PTRUPDATE;++k) GC_PTRUpdate[k]=0;  // CLEAN UP ALL GC SAFE POINTERS
 
@@ -946,16 +968,6 @@ void rplInit(void)
     rplRandomSeed(rplRandomNext()^0xbad1dea);
 
 
-    // INITIALIZE THE REAL REGISTERS
-    for(count=0;count<REAL_REGISTERS;++count)
-    {
-        RReg[count].data=allocRegister();
-        RReg[count].flags=0;
-        RReg[count].exp=0;
-        RReg[count].len=1;
-    }
-    // INITIALIZE TEMP STORAGE FOR INTEGER TO REAL CONVERSION
-    BINT2RealIdx=0;
 
     // SET ERROR TRAP HANDLER
 
@@ -997,17 +1009,6 @@ void rplWarmInit(void)
     // SEED THE RNG
     rplRandomSeed(rplRandomNext()^0xbad1dea);
 
-
-    // INITIALIZE THE REAL REGISTERS
-    for(count=0;count<REAL_REGISTERS;++count)
-    {
-        RReg[count].data=allocRegister();
-        RReg[count].flags=0;
-        RReg[count].exp=0;
-        RReg[count].len=1;
-    }
-    // INITIALIZE TEMP STORAGE FOR INTEGER TO REAL CONVERSION
-    BINT2RealIdx=0;
 
     // FINALLY, CHECK EXISTING MEMORY FOR DAMAGE AND REPAIR AUTOMATICALLY
     rplVerifyTempOb(1);
@@ -1071,17 +1072,6 @@ void rplHotInit()
 
     // RE-INITIALIZE THE FLOATING POINT CONTEXT BUT KEEP CURRENT PRECISION
     initContext(Context.precdigits);
-
-    // INITIALIZE THE REAL REGISTERS
-    for(count=0;count<REAL_REGISTERS;++count)
-    {
-        RReg[count].data=allocRegister();
-        RReg[count].flags=0;
-        RReg[count].exp=0;
-        RReg[count].len=1;
-    }
-    // INITIALIZE TEMP STORAGE FOR INTEGER TO REAL CONVERSION
-    BINT2RealIdx=0;
 
     // FINALLY, CHECK EXISTING MEMORY FOR DAMAGE AND REPAIR AUTOMATICALLY
     rplVerifyTempOb(1);

@@ -18,7 +18,6 @@ typedef void (*myfunctype)(void);
 void FSHardReset()
 {
    memsetw(&FSystem,0,sizeof(FS_PUBLIC)>>2);
-   init_simpalloc();
    SDIOSetup(NULL,0);   // INITIALIZE PINS AND CARD DETECTION INTERRUPTS
    if(!SDCardInserted()) SDIOSetup(NULL,1); // POWER OFF SD CONTROLLER IF NO CARD INSERTED
 }

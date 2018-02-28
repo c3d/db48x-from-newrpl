@@ -187,6 +187,7 @@ void main_virtual(unsigned int mode)
     if(!halCheckMemoryMap()) {
         // WIPEOUT MEMORY
     halInitMemoryMap();
+    rplInitMemoryAllocator();
     rplInit();
     wascleared=1;
     }
@@ -194,16 +195,21 @@ void main_virtual(unsigned int mode)
         if(!halCheckRplMemory()) {
             // WIPEOUT MEMORY
         halInitMemoryMap();
+        rplInitMemoryAllocator();
         rplInit();
         wascleared=1;
         }
-        else rplWarmInit();
+        else { rplInitMemoryAllocator(); rplWarmInit(); }
     }
 
     } else {
+        rplInitMemoryAllocator();
         rplHotInit();
     }
 
+
+    // INITIALIZE SD CARD SYSTEM MEMORY ALLOCATOR
+    FSHardReset();
 
     halInitKeyboard();
     halInitScreen();
@@ -228,9 +234,6 @@ void main_virtual(unsigned int mode)
         // RESTORE OTHER SYSTEM STATUS FROM POWER OFF
         halWakeUp();
     }
-
-    // INITIALIZE SD CARD SYSTEM MEMORY ALLOCATOR
-    FSHardReset();
 
 
     halOuterLoop(0,0,0,0);

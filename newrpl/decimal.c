@@ -26,7 +26,8 @@ void initContext(WORD precision)
     if(precision>REAL_PRECISION_MAX) precision=REAL_PRECISION_MAX;
     Context.flags=0;
     Context.precdigits=precision;
-    Context.alloc_bmp=EMPTY_STORAGEBMP;
+    // DON'T RESET MEMORY ALLOCATION HERE
+    //Context.alloc_bmp=EMPTY_STORAGEBMP;
 }
 
 const int lowestzerobit[16]={

@@ -221,6 +221,7 @@ void rplBlameError(WORDPTR command);
 
 // ENVIRONMENT FUNCTIONS IN RUNSTREAM.C
 void rplInit();
+void rplInitMemoryAllocator();
 void rplWarmInit();
 void rplHotInit();
 void rplSetEntryPoint(WORDPTR ip);
