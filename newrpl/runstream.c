@@ -979,7 +979,7 @@ void rplInit(void)
 // ASSUME ALL VARRIABLES IN MEMORY ARE VALID
 void rplWarmInit(void)
 {
-    int count;
+
 
     IPtr=0;  // INSTRUCTION POINTER SHOULD BE SET LATER TO A VALID RUNSTREAM
     HaltedIPtr=0;
@@ -1041,7 +1041,7 @@ void rplWarmInit(void)
 // ASSUME ALL VARRIABLES IN MEMORY ARE VALID
 void rplHotInit()
 {
-    int count;
+
 
 
 

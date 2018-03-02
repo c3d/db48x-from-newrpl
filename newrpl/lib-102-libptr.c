@@ -1800,6 +1800,11 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
+        if(LIBNUM(MenuCodeArg)==DOLIBRARY) {
+            ObjectPTR=lib102_menu;
+            RetNum=OK_CONTINUE;
+            return;
+        }
         WORDPTR libmenu=rplGetLibPtr2(ArgNum2,2);
 
         if(!libmenu) { RetNum=ERR_NOTMINE; return; }

@@ -65,4 +65,14 @@ LIBMENUOTHR
 used last to the lib menu
 N<libID> I<menucode> → "
 
+LIBSTO
+"Store private library
+data
+O N  → "
+
+LIBRCL
+"Recall private library
+data
+N  → O "
+
 }
