@@ -32,9 +32,10 @@ WORDPTR GC_PTRUpdate[MAX_GC_PTRUPDATE];
 
 #define EndOfObject         GC_PTRUpdate[7]     // NAME AS USED BY THE DECOMPILER
 #define NextTokenStart      GC_PTRUpdate[7]     // NAME AS USED BY THE COMPILER
-#define SuggestedObject     GC_PTRUpdate[7]     // NAME AS USED BY THE AUTOCOMPLETE FEATURE
 
 #define CompileStringEnd    GC_PTRUpdate[8]
+#define SuggestedObject     GC_PTRUpdate[8]     // NAME AS USED BY THE AUTOCOMPLETE FEATURE
+
 #define ErrorHandler        GC_PTRUpdate[9]
 #define SettingsDir         GC_PTRUpdate[10]
 #define SystemFlags         GC_PTRUpdate[11]

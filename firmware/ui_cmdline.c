@@ -246,6 +246,7 @@ void uiCloseCmdLine()
     if(halScreen.CmdLineState&CMDSTATE_ACACTIVE) halScreen.DirtyFlag|=STAREA_DIRTY;
     halScreen.CmdLineState=0;
     halScreen.ACSuggestion=0;
+    SuggestedObject=0;
     halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
 
 }
@@ -1301,7 +1302,7 @@ void uiAutocompleteUpdate()
     if(tokptr==end) halScreen.CmdLineState&=~(CMDSTATE_ACACTIVE|CMDSTATE_ACUPDATE);
     else halScreen.CmdLineState|=CMDSTATE_ACUPDATE|CMDSTATE_ACACTIVE;
 
-    halScreen.ACSuggestion=rplGetNextSuggestion(-1,tokptr,end);
+    halScreen.ACSuggestion=rplGetNextSuggestion(-1,0,tokptr,end);
 
     if(oldstate || (oldstate!=(halScreen.CmdLineState&CMDSTATE_ACACTIVE))) halScreen.DirtyFlag|=STAREA_DIRTY;
 
@@ -1333,8 +1334,7 @@ void uiAutocompNext()
     BYTEPTR start=(BYTEPTR)(CmdLineCurrentLine+1);
     BYTEPTR end=start+halScreen.CursorPosition;
 
-    halScreen.ACSuggestion=rplGetNextSuggestion(halScreen.ACSuggestion,start+halScreen.ACTokenStart,end);
-    //if(!halScreen.ACSuggestion) halScreen.ACSuggestion=rplGetNextSuggestion(halScreen.ACSuggestion,start+halScreen.ACTokenStart,end);
+    halScreen.ACSuggestion=rplGetNextSuggestion(halScreen.ACSuggestion,SuggestedObject,start+halScreen.ACTokenStart,end);
 
     halScreen.CmdLineState|=CMDSTATE_ACUPDATE;
     halScreen.DirtyFlag|=STAREA_DIRTY;
@@ -1366,7 +1366,7 @@ void uiAutocompPrev()
     BYTEPTR start=(BYTEPTR)(CmdLineCurrentLine+1);
     BYTEPTR end=start+halScreen.CursorPosition;
 
-    halScreen.ACSuggestion=rplGetPrevSuggestion(halScreen.ACSuggestion,start+halScreen.ACTokenStart,end);
+    halScreen.ACSuggestion=rplGetPrevSuggestion(halScreen.ACSuggestion,SuggestedObject,start+halScreen.ACTokenStart,end);
 
     halScreen.CmdLineState|=CMDSTATE_ACUPDATE;
     halScreen.DirtyFlag|=STAREA_DIRTY;
@@ -1378,11 +1378,11 @@ void uiAutocompPrev()
 
 void uiAutocompInsert()
 {
-    if(halScreen.ACSuggestion!=0) {
+    if((halScreen.ACSuggestion!=0)||(SuggestedObject)) {
     BYTEPTR tokstart=uiAutocompStringStart();
     BYTEPTR tokend=uiAutocompStringEnd();
 
-    WORDPTR cmdname=rplDecompile(&halScreen.ACSuggestion,DECOMP_NOHINTS);
+    WORDPTR cmdname=rplDecompile((halScreen.ACSuggestion? (&halScreen.ACSuggestion) : SuggestedObject),DECOMP_NOHINTS);
     BYTEPTR namest=(BYTEPTR)(cmdname+1);
     BYTEPTR nameend=namest+rplStrSize(cmdname);
 
@@ -1656,7 +1656,8 @@ WORDPTR halSaveCmdLine()
 
 
     // AUTOCOMPLETE
-    rplNewBINTPush(halScreen.ACSuggestion,DECBINT);
+    if(SuggestedObject) rplPushData(SuggestedObject);
+    else rplNewBINTPush(halScreen.ACSuggestion,DECBINT);
     if(Exceptions) { DSTop=savestk; return 0; }
 
     rplNewBINTPush(halScreen.ACTokenStart,DECBINT);
@@ -1749,7 +1750,9 @@ BINT halRestoreCmdLine(WORDPTR data)
     // AUTOCOMPLETE
     ptr=rplGetListElement(data,15);
     if(!ptr) { uiCloseCmdLine(); return 0;  }
-    halScreen.ACSuggestion=rplReadNumberAsBINT(ptr);
+    if(ISNUMBER(*ptr)) { halScreen.ACSuggestion=rplReadNumberAsBINT(ptr); SuggestedObject=0; }
+    else { SuggestedObject=ptr; halScreen.ACSuggestion=0; }
+
 
     ptr=rplGetListElement(data,16);
     if(!ptr) { uiCloseCmdLine(); return 0;  }

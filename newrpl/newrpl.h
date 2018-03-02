@@ -386,9 +386,9 @@ void rplSaveMenuHistory(BINT menu);
 
 
 // SYSTEM AUTOCOMPLETE
-WORD rplGetNextSuggestion(WORD suggestion, BYTEPTR start, BYTEPTR end);
-WORD rplGetPrevSuggestion(WORD suggestion,BYTEPTR start,BYTEPTR end);
-WORD rplUpdateSuggestion(WORD suggestion,BYTEPTR start,BYTEPTR end);
+WORD rplGetNextSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start, BYTEPTR end);
+WORD rplGetPrevSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start, BYTEPTR end);
+WORD rplUpdateSuggestion(WORD suggestion, WORDPTR suggobject, BYTEPTR start, BYTEPTR end);
 
 
 
