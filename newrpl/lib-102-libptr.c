@@ -34,7 +34,8 @@
     CMD(LIBMENUOTHR,MKTOKENINFO(11,TITYPE_NOTALLOWED,2,2)), \
     CMD(LIBMENULST,MKTOKENINFO(10,TITYPE_NOTALLOWED,2,2)), \
     CMD(LIBSTO,MKTOKENINFO(6,TITYPE_NOTALLOWED,2,2)), \
-    CMD(LIBRCL,MKTOKENINFO(6,TITYPE_NOTALLOWED,2,2)), \
+    CMD(LIBRCL,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(LIBDEFRCL,MKTOKENINFO(6,TITYPE_NOTALLOWED,2,2)), \
     CMD(LIBCLEAR,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2))
 
 
@@ -886,7 +887,7 @@ void LIB_HANDLER()
 
                                 WORDPTR *sptr=DSTop;
                                 while(sptr<stktop) {
-                                    if( (offset>=(*sptr-newobj)) && (offset<(rplSkipOb(*sptr)-newobj)) ) {
+                                    if( (offset>=(*sptr-newobj)) && (offset<(rplSkipOb(*sptr)-newobj+sizedelta)) ) {
                                         // PATCH THE SIZE
                                         **sptr+=sizedelta;
                                     }
@@ -914,6 +915,7 @@ void LIB_HANDLER()
                             rplPushData(newobj+offset);
                             if(Exceptions) { DSTop=stksave; return; }
 
+                            stktop=DSTop;
                             newobj=ScratchPointer1;
                             prog=ScratchPointer2;
                             endprog=ScratchPointer3;
@@ -1261,6 +1263,71 @@ void LIB_HANDLER()
         return;
 
     }
+
+    case LIBDEFRCL:
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISIDENT(*rplPeekData(1))) {
+            rplError(ERR_IDENTEXPECTED);
+            return;
+        }
+
+        // FIND CURRENTLY EXECUTING LIBRARY
+        WORDPTR library=rplGetLibFromPointer(IPtr);
+        if(!library) {
+            // GET IT FROM THE CURRENT DIRECTORY
+            rplCallOperator(CMD_RCL);
+            if(!Exceptions) { rplOverwriteData(2,rplPeekData(1)); rplDropData(1); }
+
+            else {
+                  // ONLY CLEAR ERRORS IF IT WAS CAUSED BY UNDEF VARIABLE
+                if((Exceptions==EX_ERRORCODE)&&(ErrorCode==ERR_UNDEFINEDVARIABLE))
+                {
+                    // CLEAR ERROR AND LEAVE DEFAULT VALUE ON THE STACK
+                    rplClearErrors();
+                    rplDropData(1);
+                }
+            }
+            return;
+        }
+
+        // FIND LIBDATA DIRECTORY
+        WORDPTR dirhandle=rplGetSettings((WORDPTR)libdata_dirname);
+        if(!dirhandle) {
+            rplDropData(1);
+            return;
+        }
+
+        // FIND LIBRARY DIRECTORY WITHIN LIBDATA
+        WORDPTR *dirptr=rplFindDirbyHandle(dirhandle);
+        WORDPTR *var=rplFindGlobalInDir(library+1,dirptr,0);
+
+        if(!var) {
+            rplDropData(1);
+            return;
+        }
+        else dirhandle=var[1];
+
+
+        // FINALLY, FIND THE VARIABLE IN THE EXISTING DIRECTORY, CREATE OR MODIFY
+
+        var=rplFindGlobalInDir(rplPeekData(1),rplFindDirbyHandle(dirhandle),0);
+
+        if(!var) {
+            rplDropData(1);
+            return;
+        }
+
+        rplOverwriteData(2,var[1]);
+        rplDropData(1);
+        return;
+
+    }
+
 
     case LIBCLEAR:
     {
@@ -1788,11 +1855,94 @@ void LIB_HANDLER()
         // SuggestedObject = POINTER TO AN OBJECT (ONLY VALID IF SuggestedOpcode==0)
 
 
+        // AUTOMCOMPLETE FIRST COMMANDS OF INSTALLED LIBRARIES
 
+        WORDPTR libdir=rplGetSettings((WORDPTR)library_dirname);
 
-    }
+        if(libdir) {
+
+        WORD prevlibid=0;
+        BINT previdx=0;
+        if(!SuggestedOpcode && SuggestedObject) {
+            if(ISLIBPTR(*SuggestedObject)) {
+                prevlibid=SuggestedObject[1];
+                previdx=SuggestedObject[2];
+            }
+        }
+        WORDPTR *direntry=rplFindFirstByHandle(libdir);
+
+        if(direntry) {
+
+            do {
+
+                if(ISIDENT(*direntry[0]) && (OBJSIZE(*direntry[0])==1)) {
+
+                    BINT nentries=OPCODE(direntry[1][3]);
+                    // COMPARE LIBRARY ID
+                    if(prevlibid)
+                    {
+                        // SKIP UNTIL WE FIND THE PREVIOUS LIBRARY
+                        if(direntry[0][1]!=prevlibid) continue;
+                        // FOUND IT, previdx HAS THE START INDEX
+                        prevlibid=0;
+                        if(previdx<=4) continue;    // THE PREVIOUS COMMAND WAS THE FIRST COMMAND, SKIP TO THE NEXT LIBRARY
+                    } else previdx=nentries;
+
+                    if(previdx>nentries) previdx=nentries;
+                    WORDPTR nameptr;
+                    do {
+                        --previdx;
+                            nameptr=rplSkipOb(direntry[1]+OPCODE(direntry[1][previdx+3]));
+                            if(ISIDENT(*nameptr)) {
+                                // COMPARE IDENT WITH THE GIVEN TOKEN
+                                BINT len,idlen=rplGetIdentLength(nameptr);    // LENGTH IN BYTES
+                                len=utf8nlen((char *)(nameptr+1),(char *)(nameptr+1)+idlen);  // LENGTH IN UNICODE CHARACTERS
+                                if((len>=(BINT)TokenLen) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,(char *)(nameptr+1),TokenLen))) {
+                                    // WE HAVE A MATCH!
+                                    RetNum=OK_CONTINUE;
+                                    SuggestedObject=nameptr;
+                                    SuggestedOpcode=0;
+                                    return;
+                                }
+                                BINT firstchar=utf82cp((char *)(nameptr+1),(char *)(nameptr+1)+idlen);
+
+                                // CHECK FOR NON-STANDARD STARTING CHARACTERS
+                                if( !(
+                                            ((firstchar>='A') && (firstchar<='Z')) ||
+                                            ((firstchar>='a') && (firstchar<='z')) )
+                                        )
+                                {
+                                // SKIP THE FIRST CHARACTER AND CHECK AGAIN
+                                    --len;
+                                    if((len>=(BINT)TokenLen) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,utf8skipst((char *)(nameptr+1),(char *)(nameptr+1)+4),TokenLen)))
+                                    {
+                                        // WE HAVE A MATCH!
+                                        RetNum=OK_CONTINUE;
+                                        SuggestedObject=nameptr;
+                                        SuggestedOpcode=0;
+                                        return;
+                                    }
+
+                                }
+                                // THERE WAS NO MATCH, DO THE NEXT NAME
+                        }
+                    } while(previdx>4);
+
+                    // NO MATCHES ON THIS LIBRARY
+
+                }
+
+            } while((direntry=rplFindNext(direntry)));
+
+            // NO MATCHES ON ANY LIBRARY
+
+        }
+
+        }
+
         libAutoCompleteNext(LIBRARY_NUMBER,(char **)LIB_NAMES,LIB_NUMBEROFCMDS);
         return;
+        }
 
     case OPCODE_LIBMENU:
         // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg (LOW WORD)
@@ -1801,7 +1951,7 @@ void LIB_HANDLER()
         // AND RetNum=OK_CONTINUE;
     {
         if(LIBNUM(MenuCodeArg)==DOLIBRARY) {
-            ObjectPTR=lib102_menu;
+            ObjectPTR=(WORDPTR)lib102_menu;
             RetNum=OK_CONTINUE;
             return;
         }

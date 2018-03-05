@@ -23,7 +23,7 @@
 
 @#name lib102_menu
 {
-ATTACH DETACH LIBCLEAR LIBSTO LIBRCL LIBMENU LIBMENUOTHR LIBMENULST CRLIB
+ATTACH DETACH LIBSTO LIBRCL LIBDEFRCL LIBCLEAR LIBMENU LIBMENUOTHR LIBMENULST CRLIB
 }
 
 
@@ -74,5 +74,11 @@ LIBRCL
 "Recall private library
 data
 N  → O "
+
+LIBDEFRCL
+"Recall private library
+data, or provide default
+O<default> N → O "
+
 
 }

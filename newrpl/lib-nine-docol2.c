@@ -1557,7 +1557,7 @@ void LIB_HANDLER()
         // LIBRARY RECEIVES A MENU CODE IN MenuCodeArg
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
-    {\
+    {
         if(MENUNUMBER(MenuCodeArg)>0) {
             RetNum=ERR_NOTMINE;
             return;
