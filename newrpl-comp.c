@@ -188,6 +188,7 @@ int main(int argc, char *argv[])
     fclose(f);
 
     // HERE WE HAVE THE MAIN FILE
+    rplInitMemoryAllocator();
     rplInit();
     rplSetSystemFlag(FL_STRIPCOMMENTS);
     rplInstallLibrary(lib4079_handler);
