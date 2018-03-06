@@ -168,8 +168,8 @@ void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds)
 {
     // TokenStart = token string
     // TokenLen = token length
-    // SuggestedOpcode = OPCODE OF THE CURRENT SUGGESTION, OR 0 IF SUGGESTION IS AN OBJECT
-    // SuggestedObject = POINTER TO AN OBJECT (ONLY VALID IF SuggestedOpcode==0)
+    // SuggestedOpcode = OPCODE OF THE CURRENT SUGGESTION, OR THE PROLOG OF THE OBJECT IF SUGGESTION IS AN OBJECT
+    // SuggestedObject = POINTER TO AN OBJECT (ONLY VALID IF ISPROLOG(SuggestedOpcode)==True)
 
     WORD Prolog=SuggestedOpcode;
 
@@ -181,7 +181,7 @@ void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds)
     }
     BINT idx,len;
 
-    if(LIBNUM(Prolog)==(WORD)libnum) idx=OPCODE(Prolog)-1;
+    if(!ISPROLOG(Prolog) && (LIBNUM(Prolog)==(WORD)libnum)) idx=OPCODE(Prolog)-1;
     else idx=numcmds-1;
 
     while(idx>=0) {

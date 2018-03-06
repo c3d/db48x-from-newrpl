@@ -2365,15 +2365,15 @@ case TEVAL:
         // THIS OPCODE RECEIVES
         // TokenStart = token string
         // TokenLen = token length
-        // SuggestedOpcode = OPCODE OF THE CURRENT SUGGESTION, OR 0 IF SUGGESTION IS AN OBJECT
-        // SuggestedObject = POINTER TO AN OBJECT (ONLY VALID IF SuggestedOpcode==0)
+        // SuggestedOpcode = OPCODE OF THE CURRENT SUGGESTION, OR THE PROLOG OF THE OBJECT IF SUGGESTION IS AN OBJECT
+        // SuggestedObject = POINTER TO AN OBJECT (ONLY VALID IF ISPROLOG(SuggestedOpcode)==True)
         // IF SuggestedOpcode LIBRARY NUMBER<THIS LIBRARY
         // IT MUST RETURN ERR_NOTMINE
         // IF SuggestedOpcode OR SuggestedObject BELONG TO THIS LIBRARY,
         // SEARCH MUST CONTINUE AFTER THAT SUGGESTION
         // IF A NEW SUGGESTION IS FOUND, RETURN OK_CONTINUE, AND SET
-        // SuggestedOpcode TO THE NEXT SUGGESTION, or 0xffffffff IF SUGGESTION IS AN OBJECT
-        // IN SUCH CASE, SuggestedObject MUST BE SET TO POINT TO THE OBJECT IN QUESTION
+        // SuggestedOpcode TO THE NEXT SUGGESTION, SuggestedObject MUST BE SET TO POINT TO THE OBJECT IN QUESTION
+        // OR SET TO ZERO IF SuggestedOpcode IS NOT AN OBJECT
         // IF THERE ARE NO MORE SUGGESTIONS, RETURN ERR_NOTMINE
 
         // AUTOCOMP RETURNS:

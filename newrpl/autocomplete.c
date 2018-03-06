@@ -90,13 +90,15 @@ WORD rplGetPrevSuggestion(WORD suggestion,WORDPTR suggobject,BYTEPTR start,BYTEP
         RetNum=-1;
         CurOpcode=MKOPCODE(libcnt,OPCODE_AUTOCOMPNEXT);
         han=rplGetLibHandler(libcnt);
+        ScratchPointer1=prevsuggobj;
         if(han) (*han)();
+        prevsuggobj=ScratchPointer1;
 
         if(RetNum==OK_CONTINUE) {
-            if((SuggestedOpcode &&(SuggestedOpcode==suggestion))||(!SuggestedOpcode && (SuggestedObject==suggobject))) {
+            if((!ISPROLOG(SuggestedOpcode) &&(SuggestedOpcode==suggestion))||(ISPROLOG(SuggestedOpcode) && ISPROLOG(suggestion) && (rplCompareObjects(SuggestedObject,suggobject)))) {
                 if(prevsugg || prevsuggobj) {
                     CurOpcode=saveop;
-                    SuggestedOpcode=prevsuggobj;
+                    SuggestedObject=prevsuggobj;
                     return prevsugg;
                 }
                 else {

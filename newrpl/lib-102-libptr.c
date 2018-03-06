@@ -1851,8 +1851,8 @@ void LIB_HANDLER()
         // AUTOCOMPLETE NAMES OF LIBRARIES
         // TokenStart = token string
         // TokenLen = token length
-        // SuggestedOpcode = OPCODE OF THE CURRENT SUGGESTION, OR 0 IF SUGGESTION IS AN OBJECT
-        // SuggestedObject = POINTER TO AN OBJECT (ONLY VALID IF SuggestedOpcode==0)
+        // SuggestedOpcode = OPCODE OF THE CURRENT SUGGESTION, OR THE PROLOG OF THE OBJECT IF SUGGESTION IS AN OBJECT
+        // SuggestedObject = POINTER TO AN OBJECT (ONLY VALID IF ISPROLOG(SuggestedOpcode)==True)
 
 
         // AUTOMCOMPLETE FIRST COMMANDS OF INSTALLED LIBRARIES
@@ -1863,8 +1863,8 @@ void LIB_HANDLER()
 
         WORD prevlibid=0;
         BINT previdx=0;
-        if(!SuggestedOpcode && SuggestedObject) {
-            if(ISLIBPTR(*SuggestedObject)) {
+        if(ISPROLOG(SuggestedOpcode) && SuggestedObject) {
+            if(ISLIBPTR(SuggestedOpcode)) {
                 prevlibid=SuggestedObject[1];
                 previdx=SuggestedObject[2];
             }
@@ -1899,9 +1899,18 @@ void LIB_HANDLER()
                                 len=utf8nlen((char *)(nameptr+1),(char *)(nameptr+1)+idlen);  // LENGTH IN UNICODE CHARACTERS
                                 if((len>=(BINT)TokenLen) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,(char *)(nameptr+1),TokenLen))) {
                                     // WE HAVE A MATCH!
+                                    // CREATE A NEW LIBPTR AND RETURN IT
+                                    WORDPTR newobj=rplAllocTempOb(2);
+                                    if(!newobj) { RetNum=ERR_NOTMINE; return; }
+
+                                    newobj[0]=MKPROLOG(DOLIBPTR,2);
+                                    newobj[1]=direntry[0][1];
+                                    newobj[2]=previdx;
+
+
                                     RetNum=OK_CONTINUE;
-                                    SuggestedObject=nameptr;
-                                    SuggestedOpcode=0;
+                                    SuggestedObject=newobj;
+                                    SuggestedOpcode=newobj[0];
                                     return;
                                 }
                                 BINT firstchar=utf82cp((char *)(nameptr+1),(char *)(nameptr+1)+idlen);
@@ -1917,9 +1926,18 @@ void LIB_HANDLER()
                                     if((len>=(BINT)TokenLen) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,utf8skipst((char *)(nameptr+1),(char *)(nameptr+1)+4),TokenLen)))
                                     {
                                         // WE HAVE A MATCH!
+                                        // CREATE A NEW LIBPTR AND RETURN IT
+                                        WORDPTR newobj=rplAllocTempOb(2);
+                                        if(!newobj) { RetNum=ERR_NOTMINE; return; }
+
+                                        newobj[0]=MKPROLOG(DOLIBPTR,2);
+                                        newobj[1]=direntry[0][1];
+                                        newobj[2]=previdx;
+
+
                                         RetNum=OK_CONTINUE;
-                                        SuggestedObject=nameptr;
-                                        SuggestedOpcode=0;
+                                        SuggestedObject=newobj;
+                                        SuggestedOpcode=newobj[0];
                                         return;
                                     }
 

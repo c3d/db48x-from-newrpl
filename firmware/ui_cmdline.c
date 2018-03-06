@@ -1378,11 +1378,11 @@ void uiAutocompPrev()
 
 void uiAutocompInsert()
 {
-    if((halScreen.ACSuggestion!=0)||(SuggestedObject)) {
+    if(halScreen.ACSuggestion!=0) {
     BYTEPTR tokstart=uiAutocompStringStart();
     BYTEPTR tokend=uiAutocompStringEnd();
 
-    WORDPTR cmdname=rplDecompile((halScreen.ACSuggestion? (&halScreen.ACSuggestion) : SuggestedObject),DECOMP_NOHINTS);
+    WORDPTR cmdname=rplDecompile(((ISPROLOG(halScreen.ACSuggestion))? SuggestedObject : (&halScreen.ACSuggestion)),DECOMP_NOHINTS);
     BYTEPTR namest=(BYTEPTR)(cmdname+1);
     BYTEPTR nameend=namest+rplStrSize(cmdname);
 

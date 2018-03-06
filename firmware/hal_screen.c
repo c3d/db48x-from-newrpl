@@ -899,14 +899,14 @@ void halRedrawStatus(DRAWSURFACE *scr)
     if( halScreen.CmdLineState&CMDSTATE_ACACTIVE) {
         BYTEPTR namest;
         BYTEPTR nameend;
-        if((halScreen.ACSuggestion!=0)||(SuggestedObject)) {
+        if(halScreen.ACSuggestion!=0) {
         // DISPLAY THE CURRENTLY SELECTED AUTOCOMPLETE COMMAND IN THE
         // SECOND LINE
         if(!Exceptions) {
         // BUT ONLY IF THERE WERE NO ERRORS
         BINT y=ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight;
         // FOR NOW JUST DISPLAY THE SELECTED TOKEN
-        WORDPTR cmdname=rplDecompile((halScreen.ACSuggestion? (&halScreen.ACSuggestion) : SuggestedObject),DECOMP_NOHINTS);
+        WORDPTR cmdname=rplDecompile(((ISPROLOG(halScreen.ACSuggestion)&&SuggestedObject)? SuggestedObject:(&halScreen.ACSuggestion)),DECOMP_NOHINTS);
         if( (!cmdname) || Exceptions) {
             // JUST IGNORE, CLEAR EXCEPTIONS AND RETURN;
             Exceptions=0;
