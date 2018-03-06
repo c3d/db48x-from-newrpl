@@ -3419,7 +3419,7 @@ void div_real(REAL *r,REAL *num,REAL *d,int maxdigits)
 
 
 
-    result->flags=F_NOTNORMALIZED|((num->flags^div->flags)&F_NEGATIVE);
+    result->flags=F_NOTNORMALIZED|((num->flags^div->flags)&F_NEGATIVE) | ((num->flags|div->flags)&F_APPROX);
     result->len=(maxdigits+7)>>3;
     result->len+=2;  // DO EXTRA 16 DIGITS FOR PROPER ROUNDING
 
