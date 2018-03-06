@@ -1343,9 +1343,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR *var=rplFindAttachedLibrary(rplPeekData(1));
 
-        if(var) {
             // FIND LIBDATA DIRECTORY
             WORDPTR dirhandle=rplGetSettings((WORDPTR)libdata_dirname);
             if(!dirhandle) {
@@ -1356,7 +1354,7 @@ void LIB_HANDLER()
 
             // FIND LIBRARY DIRECTORY WITHIN LIBDATA
             WORDPTR *dirptr=rplFindDirbyHandle(dirhandle);
-            WORDPTR *var2=rplFindGlobalInDir(var[1]+1,dirptr,0);
+            WORDPTR *var2=rplFindGlobalInDir(rplPeekData(1),dirptr,0);
 
             if(!var2) {
                 // DO NOTHING IF THE LIBRARY HAS NO DATA
@@ -1367,7 +1365,6 @@ void LIB_HANDLER()
 
             rplPurgeDirByHandle(dirhandle);
 
-        }
 
         rplDropData(1);
 
