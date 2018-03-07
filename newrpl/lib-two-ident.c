@@ -182,7 +182,7 @@ BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend)
 BINT rplGetIdentLength(WORDPTR ident)
 {
     BINT len=OBJSIZE(*ident);
-
+    if(LIBNUM(*ident)&HASATTR_BIT) --len;
     if(!len) return 0;
 
     WORD lastword=*(ident+len);

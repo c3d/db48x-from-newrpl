@@ -2222,7 +2222,7 @@ void LIB_HANDLER()
         else menu=rplGetActiveMenu();
 
 
-        WORD mcode=rplGetMenuCode(menu);
+        BINT64 mcode=rplGetMenuCode(menu);
 
         if((MENULIBRARY(mcode)==LIBRARY_NUMBER)&&(MENUNUMBER(mcode)<2)) {
             // SPECIAL CUSTOM MENUS, RCL FROM THE SETTINGS DIRECTORY
@@ -2249,8 +2249,8 @@ void LIB_HANDLER()
     case MENUSWAP:
     {
         // JUST SWAP MENUS 1 AND 2
-        WORD m1code=rplGetMenuCode(1);
-        WORD m2code=rplGetMenuCode(2);
+        BINT64 m1code=rplGetMenuCode(1);
+        BINT64 m2code=rplGetMenuCode(2);
 
         if((MENULIBRARY(m2code)==LIBRARY_NUMBER)&&(MENUNUMBER(m2code)<2)) m2code=MKMENUCODE(0,LIBRARY_NUMBER,MENUNUMBER(m2code)^1,MENUPAGE(m2code));  // ALTERNATE MENU'S 1 AND 2
         if((MENULIBRARY(m1code)==LIBRARY_NUMBER)&&(MENUNUMBER(m1code)<2)) m1code=MKMENUCODE(0,LIBRARY_NUMBER,MENUNUMBER(m1code)^1,MENUPAGE(m1code));  // ALTERNATE MENU'S 1 AND 2
