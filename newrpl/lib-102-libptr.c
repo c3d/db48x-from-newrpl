@@ -743,7 +743,7 @@ void LIB_HANDLER()
                                 }
                                 ignitem=rplSkipOb(ignitem);
                             }
-                            if(ignitem>=endign) {
+                            if(ignitem<endign) {
                                 // VARIABLE IS IN THE IGNORE LIST - NOTHING TO DO HERE
                                 prog=rplSkipOb(prog);
                                 continue;
@@ -869,6 +869,33 @@ void LIB_HANDLER()
 
                 while(prog!=endprog) {
                     if(ISUNQUOTEDIDENT(*prog)) {
+
+                        // MAKE SURE IS NOT IN THE IGNORE LIST
+
+                        if(ignore) {
+                            WORDPTR ignitem=ignore[1];
+                            WORDPTR endign=rplSkipOb(ignitem);
+                            if(ISLIST(*ignitem)) ++ignitem;
+                            while(ignitem<endign) {
+                                if(rplCompareIDENT(ignitem,prog)) {
+                                    // IS IN THE IGNORE LIST
+                                    break;
+                                }
+                                ignitem=rplSkipOb(ignitem);
+                            }
+                            if(ignitem<endign) {
+                                // VARIABLE IS IN THE IGNORE LIST - NOTHING TO DO HERE
+                                // JUST COPY THE OBJECT
+                                rplCopyObject(newobj+offset,prog);
+                                offset+=rplObjSize(prog);
+
+                                prog=rplSkipOb(prog);
+                                continue;
+                            }
+
+
+                        }
+
                             // CHECK IF WE ALREADY HAVE IT IN THE LIST
                             WORDPTR *stkscan=stksave;
 
