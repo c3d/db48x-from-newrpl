@@ -488,6 +488,7 @@ BINT isprimeReal(REAL *n)
 
 }
 
+// USES ALL RReg FROM 0 TO 4 INCLUSIVE
 // RETURN THE NEXT PRIME NUMBER IN RReg[regnum]
 void nextprimeReal(BINT regnum,REAL *n)
 {

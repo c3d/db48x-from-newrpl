@@ -80,7 +80,8 @@
     CMD(RND,MKTOKENINFO(3,TITYPE_FUNCTION,2,2)), \
     CMD(TRNC,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
     CMD(DIGITS,MKTOKENINFO(6,TITYPE_FUNCTION,3,2)), \
-    CMD(PROOT,MKTOKENINFO(5,TITYPE_FUNCTION,1,2))
+    CMD(PROOT,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
+    CMD(PREVPRIME,MKTOKENINFO(9,TITYPE_FUNCTION,1,2))
 
 
 
@@ -657,6 +658,121 @@ case IPPOST:
         return;
     }
 
+
+    case PREVPRIME:
+    {
+
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+
+            return;
+        }
+        WORDPTR arg=rplPeekData(1);
+
+        // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
+        // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
+        if(ISLIST(*arg)) {
+
+            WORDPTR *savestk=DSTop;
+            WORDPTR newobj=rplAllocTempOb(2);
+            if(!newobj) return;
+            // CREATE A PROGRAM AND RUN THE MAP COMMAND
+            newobj[0]=MKPROLOG(DOCOL,2);
+            newobj[1]=CurOpcode;
+            newobj[2]=CMD_SEMI;
+
+            rplPushData(newobj);
+
+            rplCallOperator(CMD_MAP);
+
+            if(Exceptions) {
+                if(DSTop>savestk) DSTop=savestk;
+            }
+
+            // EXECUTION WILL CONTINUE AT MAP
+
+            return;
+        }
+
+
+        if(!ISNUMBER(*arg)) {
+            rplError(ERR_BADARGTYPE);
+            return;
+        }
+
+
+        if(ISBINT(*arg)) {
+            BINT64 n=rplReadBINT(arg);
+            BINT64 next,prev;
+            BINT previsprime;
+            prev=n-30;    // ARBITRARILY SCAN 1000 NUMBERS TO THE LEFT
+            if(prev<0) prev=0;
+            previsprime=0;
+            do {
+            next=nextprimeBINT(prev);
+            if((next>n) && previsprime) {
+                rplNewBINTPush(prev,DECBINT);
+                if(Exceptions) return;
+                WORDPTR ptr=rplPopData();
+                rplOverwriteData(1,ptr);
+                return;
+            }
+            if(next>n) {
+               // NO PRIMES WITHIN 1000 NUMBERS, SUBTRACT OTHER 1000 AND GO
+                prev-=30;
+                if(prev<0) prev=0;
+            }
+            if(next>0) {
+                // FOUND A PRIME BETWEEN prev AND n, USE IT FOR NEXT ITERATION
+                prev=next;
+                previsprime=1;
+            }
+
+            } while(next>0);
+            // THE NEXT PRIME IS > 2^63, USE REALS INSTEAD
+
+        }
+
+        REAL num;
+            rplReadNumberAsReal(arg,&num);
+
+            if(!isintegerReal(&num)) {
+                rplError(ERR_INTEGEREXPECTED);
+                return;
+            }
+
+            BINT previsprime=0;
+            // USE RReg[5]=next
+            // RReg[6]=prev
+            rplBINTToRReg(7,-30);
+            addReal(&RReg[6],&num,&RReg[7]);
+            if(RReg[6].flags&F_NEGATIVE) rplZeroToRReg(6);
+            do {
+            nextprimeReal(5,&RReg[6]);
+            BINT islarger=gtReal(&RReg[5],&num);
+            if(islarger) {
+                if(previsprime) {
+                rplDropData(1);
+                rplNewRealFromRRegPush(6);
+                return;
+                }
+                // NO PRIMES IN THIS GROUP, SUBTRACT OTHER 1000 AND REDO
+                addReal(&RReg[0],&RReg[6],&RReg[7]);
+                if(RReg[0].flags&F_NEGATIVE) rplZeroToRReg(0);
+                swapReal(&RReg[0],&RReg[6]);
+            }
+            else {
+                // A PRIME WAS FOUND IN BETWEEN, USE IT FOR NEXT ITERATION
+                swapReal(&RReg[5],&RReg[6]);    // prev=next;
+                previsprime=1;
+            }
+
+            } while(1);
+
+        return;
+
+
+    }
     case MODSTO:
     {
         if(rplDepthData()<1) {
