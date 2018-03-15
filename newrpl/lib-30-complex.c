@@ -18,6 +18,7 @@
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  30
 
+//@TITLE=Operations with Complex Numbers
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -6411,6 +6412,7 @@ void LIB_HANDLER()
 
     case RE:
     {
+        //@SHORT_DESC=Real part of a complex number
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -6466,6 +6468,8 @@ void LIB_HANDLER()
     }
     case IM:
     {
+        //@SHORT_DESC=Imaginary part of a complex number
+
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -6524,6 +6528,8 @@ void LIB_HANDLER()
     }
     case ARG:
     {
+        //@SHORT_DESC=Argument of a complex number
+
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -6617,6 +6623,8 @@ void LIB_HANDLER()
     }
     case CONJ:
     {
+        //@SHORT_DESC=Conjugate of a complex number
+
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -6668,6 +6676,8 @@ void LIB_HANDLER()
 
 
     case CPLX2REAL:
+        //@SHORT_DESC=Split Complex into two Reals
+
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -6688,6 +6698,8 @@ void LIB_HANDLER()
 
     case REAL2CPLX:
     {
+        //@SHORT_DESC=Make Complex from real and imaginary parts
+
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
