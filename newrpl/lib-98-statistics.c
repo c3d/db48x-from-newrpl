@@ -18,6 +18,9 @@
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  98
 
+
+//@TITLE=Statistics
+
 /*
 #define ERROR_LIST \
         ERR(VECTOROFNUMBERSEXPECTED,0), \

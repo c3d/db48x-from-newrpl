@@ -18,6 +18,8 @@
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  68
 
+//@TITLE=Menus, Flags and System Settings
+
 #define ERROR_LIST \
     ERR(SYSTEMFLAGSINVALID,0), \
     ERR(INVALIDFLAGNUMBER,1), \

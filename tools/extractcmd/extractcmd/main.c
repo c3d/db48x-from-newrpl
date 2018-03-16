@@ -10,6 +10,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <file.h>
 
 int main(int argc, char *argv[])
 {
@@ -18,9 +19,9 @@ int main(int argc, char *argv[])
 
     if(argc<2) {
     printf("NewRPL command extract - Version 1.0\n");
-    printf("Usage: extractcmd <filename.c> -d <path>\n");
+    printf("Usage: extractcmd <path-to-sources> -d <output-path>\n");
     printf("\nOptions:\n");
-   printf("\t\t-d <path>\tSpecify a the directory where the output file will be created (by default, same as the source file)\n\n\n");
+    printf("\t\t-d <output-path>\tSpecify the directory where the output file will be created (by default, same as the source file)\n\n\n");
     return 0;
     }
 
@@ -43,9 +44,12 @@ int main(int argc, char *argv[])
 
     // HERE WE HAVE ALL ARGUMENTS PROCESSED
     if(!inputfile) {
-        fprintf(stderr,"Error: No input file\n");
+        fprintf(stderr,"Error: No path to sources given\n");
         return 1;
     }
+
+
+    findfirst()
 
     if(!outputfile) {
 
@@ -254,6 +258,21 @@ int main(int argc, char *argv[])
     int j;
 
     char buffer[1024];
+
+
+    // OUTPUT THE PREAMBLE FOR THE WIKI
+
+    fprintf(f,"<button collapse=\"");
+    fwrite(outputfile+nameoffset,namelen,1,f);
+    fprintf(f,"-commands\" block=\"true\" >**");
+    if(libtitle) fwrite(libtitle,libtitlelen,1,f);
+    fprintf(f,"**</button>\n<collapse id=\"");
+    fwrite(outputfile+nameoffset,namelen,1,f);
+    fprintf(f,"-commands\" collapsed=\"false\">\n");
+    fprintf(f,"\n^ Command  ^ Short Description ^ Details ^\n");
+
+    // OUTPUT THE COMPLETE LIST OF COMMANDS
+
 
     for(k=0;k<ncmd;++k) {
     fprintf(f,"| **[[manual:chapter6:");

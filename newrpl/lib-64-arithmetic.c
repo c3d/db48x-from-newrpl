@@ -18,6 +18,8 @@
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  64
 
+//@TITLE=Integer arithmetic and polynomials
+
 #define ERROR_LIST \
         ERR(VECTOROFNUMBERSEXPECTED,0), \
         ERR(IABCUV_NO_SOLUTION,1), \

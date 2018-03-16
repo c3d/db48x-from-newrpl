@@ -18,6 +18,7 @@
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  72
 
+//@TITLE=Stack manipulation
 
 #define ERROR_LIST \
     ERR(BADSTACKINDEX,0)

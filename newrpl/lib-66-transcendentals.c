@@ -18,6 +18,8 @@
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  66
 
+//@TITLE=Transcendental functions
+
 #define ERROR_LIST \
     ERR(ARGOUTSIDEDOMAIN,0)
 

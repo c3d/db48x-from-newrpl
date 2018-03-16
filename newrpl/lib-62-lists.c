@@ -18,6 +18,8 @@
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  62
 
+//@TITLE=Operations with Lists
+
 #define ERROR_LIST \
     ERR(LISTEXPECTED,0), \
     ERR(INDEXOUTOFBOUNDS,1), \

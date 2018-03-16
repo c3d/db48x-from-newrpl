@@ -18,6 +18,8 @@
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  76
 
+//@TITLE=User Interface
+
 
 #define ERROR_LIST \
     ERR(EMPTYCLIPBOARD,0)

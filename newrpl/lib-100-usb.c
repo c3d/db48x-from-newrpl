@@ -18,6 +18,7 @@
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  100
 
+//@TITLE=USB Communications
 
 #define ERROR_LIST \
     ERR(USBNOTCONNECTED,0), \

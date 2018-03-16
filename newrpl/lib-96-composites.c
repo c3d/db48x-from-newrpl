@@ -18,6 +18,7 @@
 // REPLACE THE NUMBER
 #define LIBRARY_NUMBER  96
 
+//@TITLE=Lists, Matrix and String commands
 
 #define ERROR_LIST \
     ERR(COMPOSITEEXPECTED,0), \
