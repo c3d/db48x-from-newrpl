@@ -1420,6 +1420,7 @@ void LIB_HANDLER()
     {
     case TICKS:
         // RETURN SYSTEM CLOCK
+        //@SHORT_DESC=Return system clock in microseconds
     {
         BINT64 ticks=halTicks();
         rplNewBINTPush(ticks,DECBINT);
@@ -1427,6 +1428,7 @@ void LIB_HANDLER()
     }
     case DATE:
     {
+        //@SHORT_DESC=Current system date as MM.DDYYYY
         struct date dt;
 
         dt = halGetSystemDate();
@@ -1438,6 +1440,7 @@ void LIB_HANDLER()
     }
     case SETDATE:
     {
+        //@SHORT_DESC=Set current system date in MM.DDYYYY
         struct date dt, sys_dt;
         WORDPTR     arg_date;
         REAL        r_date;
@@ -1487,6 +1490,7 @@ void LIB_HANDLER()
     }
     case DATEADD:
     {
+        //@SHORT_DESC=Add days to a date in MM.DDYYYY
         WORDPTR     arg_date, arg_days;
         struct date dt;
         BINT        days, day_num;
@@ -1539,6 +1543,7 @@ void LIB_HANDLER()
     }
     case DDAYS:
     {
+        //@SHORT_DESC=Number of days between dates in MM.DDYYYY
         struct date dt;
         WORDPTR     arg_date1, arg_date2;
         BINT        ddays;
@@ -1586,6 +1591,7 @@ void LIB_HANDLER()
     }
     case TIME:
     {
+        //@SHORT_DESC=Current time in HH.MMSS
         struct time tm;
 
         tm = halGetSystemTime();
@@ -1597,6 +1603,7 @@ void LIB_HANDLER()
     }
     case SETTIME:
     {
+        //@SHORT_DESC=Set current time as HH.MMSS
         struct time tm;
         WORDPTR     arg_time;
         REAL        r_time;
@@ -1624,6 +1631,7 @@ void LIB_HANDLER()
     }
     case TOHMS:
     {
+        //@SHORT_DESC=Convert decimal time to HH.MMSS
         WORDPTR arg_dec;
         REAL    r_dec;
 
@@ -1668,6 +1676,7 @@ void LIB_HANDLER()
     }
     case FROMHMS:
     {
+        //@SHORT_DESC=Convert time in HH.MMSS to decimal
         WORDPTR arg_hms;
         REAL    r_hms;
 
@@ -1712,6 +1721,7 @@ void LIB_HANDLER()
     }
     case HMSADD:
     {
+        //@SHORT_DESC=Add time in HH.MMSS format
         WORDPTR arg_hms1, arg_hms2;
         REAL    r_hms1, r_hms2;
 
@@ -1757,6 +1767,7 @@ void LIB_HANDLER()
     }
     case HMSSUB:
     {
+        //@SHORT_DESC=Subtract time in HH.MMSS format
         WORDPTR arg_hms1, arg_hms2;
         REAL    r_hms1, r_hms2;
 
@@ -1802,6 +1813,7 @@ void LIB_HANDLER()
     }
     case ACK:
     {
+        //@SHORT_DESC=Acknowledge oldest alarm (dismiss)
         struct alarm past_due;
         BINT past_due_id;
 
@@ -1828,6 +1840,7 @@ void LIB_HANDLER()
     }
     case ACKALL:
     {
+        //@SHORT_DESC=Acknowledge (dismiss) all alarms
         while (GetFirstAlarmId(PASTDUE_ALM))
             rplCallOperator(CMD_ACK);
 
@@ -1835,6 +1848,7 @@ void LIB_HANDLER()
     }
     case RCLALARM:
     {
+        //@SHORT_DESC=Recall specified alarm
         struct alarm alrm;
         WORDPTR arg_id;
         BINT    id;
@@ -1864,6 +1878,7 @@ void LIB_HANDLER()
     }
     case STOALARM:
     {
+        //@SHORT_DESC=Create a new alarm
         WORDPTR      arg_alarm;
         BINT         alarm_id;
         struct alarm alrm;
@@ -1886,6 +1901,7 @@ void LIB_HANDLER()
     }
     case DELALARM:
     {
+        //@SHORT_DESC=Delete an existing alarm
         WORDPTR arg_id;
         BINT    id;
 
@@ -1913,6 +1929,7 @@ void LIB_HANDLER()
     }
     case FINDALARM:
     {
+        //@SHORT_DESC=Get first alarm due after the given time
         struct date dt, sys_dt;
         struct time tm;
         struct alarm alrm;
@@ -1997,6 +2014,7 @@ void LIB_HANDLER()
     }
     case DOALARM:
     {
+        //@SHORT_DESC=@HIDE
         BINT id;
         char *msg_start,
              *msg_end;
@@ -2020,12 +2038,13 @@ void LIB_HANDLER()
     }
     case ALRM: // ONLY FOR TESTS
     {
-
+        //@SHORT_DESC=@HIDE
 
         return;
     }
     case MEM:
     {
+        //@SHORT_DESC=Get available memory in bytes
         rplGCollect();
         rplNewBINTPush((BINT64)rplGetFreeMemory(), DECBINT);
 
@@ -2034,6 +2053,7 @@ void LIB_HANDLER()
 
     case BYTES:
     {
+        //@SHORT_DESC=Size of an object in bytes and CRC32
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2047,6 +2067,7 @@ void LIB_HANDLER()
      }
     case PEEK:
     {
+        //@SHORT_DESC=Low-level read memory address
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2079,6 +2100,7 @@ void LIB_HANDLER()
     }
     case POKE:
     {
+        //@SHORT_DESC=Low level write to memory address
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2124,6 +2146,7 @@ void LIB_HANDLER()
     case NEWOB:
         // MAKE A NEW COPY OF THE POINTED OBJECT
     {
+        //@SHORT_DESC=Make a new copy of the given object
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2136,18 +2159,20 @@ void LIB_HANDLER()
 
     case VERSION:
     {
+        //@SHORT_DESC=Get newRPL version string
         rplPushData((WORDPTR)newrpl_version);
         rplCallOvrOperator(CMD_OVR_EVAL);
 
         return;
     }
     case GARBAGE:
+        //@SHORT_DESC=Force a garbage collection
         rplGCollect();
         return;
     case MEMCHECK:
     {
         // SYSTEM SANITY CHECK
-
+        //@SHORT_DESC=@HIDE
         if(rplVerifyDStack(0)) rplPushDataNoGrow((WORDPTR)one_bint);
         else rplPushDataNoGrow((WORDPTR)zero_bint);
         if(rplVerifyRStack()) rplPushDataNoGrow((WORDPTR)one_bint);
@@ -2162,6 +2187,7 @@ void LIB_HANDLER()
     }
     case MEMFIX:
     {
+        //@SHORT_DESC=@HIDE
         if(rplVerifyDStack(0)) rplPushDataNoGrow((WORDPTR)one_bint);
         else rplPushDataNoGrow((WORDPTR)zero_bint);
         if(rplVerifyRStack()) rplPushDataNoGrow((WORDPTR)one_bint);
@@ -2174,6 +2200,7 @@ void LIB_HANDLER()
     }
     case READCFI:
     {
+        //@SHORT_DESC=@HIDE
         unsigned short buffer[100];
 
         flash_CFIRead(buffer);
@@ -2188,7 +2215,7 @@ void LIB_HANDLER()
 
  case OFF:
     {
-
+        //@SHORT_DESC=Turn calculator off programmatically
         rplException(EX_POWEROFF);
         rplCallOperator(CMD_AUTOBKPOINT);
 
@@ -2198,6 +2225,7 @@ void LIB_HANDLER()
 
 case TEVAL:
     {
+     //@SHORT_DESC=Perform EVAL and measure elapsed time
      if(rplDepthData()<1) {
          rplError(ERR_BADARGCOUNT);
          return;

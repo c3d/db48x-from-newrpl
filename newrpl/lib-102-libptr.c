@@ -501,6 +501,7 @@ void LIB_HANDLER()
     {
     case CRLIB:
     {
+        //@SHORT_DESC=Create a library from current directory
         // CREATE A LIBRARY FROM THE CURRENT DIRECTORY
         /* LIBRARY OBJECT FORMAT:
          *
@@ -984,6 +985,7 @@ void LIB_HANDLER()
 
     case ATTACH:
     {
+        //@SHORT_DESC=Install a library
         // ATTACH A LIBRARY
 
         if(rplDepthData()<1) {
@@ -1034,6 +1036,7 @@ void LIB_HANDLER()
 
     case DETACH:
     {
+        //@SHORT_DESC=Uninstall a library
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1110,6 +1113,7 @@ void LIB_HANDLER()
 
     case LIBMENU:
      {
+        //@SHORT_DESC=Show a menu within a library
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1143,7 +1147,9 @@ void LIB_HANDLER()
 
 
     case LIBMENULST:
+        //@SHORT_DESC=Show library menu in the last used menu
     case LIBMENUOTHR:
+        //@SHORT_DESC=Show library menu in the other menu
      {
 
       if(rplDepthData()<2) {
@@ -1190,6 +1196,7 @@ void LIB_HANDLER()
 
     case LIBSTO:
     {
+        //@SHORT_DESC=Store private library data
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1242,6 +1249,7 @@ void LIB_HANDLER()
 
     case LIBRCL:
     {
+        //@SHORT_DESC=Recall private library data
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1294,6 +1302,7 @@ void LIB_HANDLER()
 
     case LIBDEFRCL:
     {
+        //@SHORT_DESC=Recall private data with default value
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1359,6 +1368,7 @@ void LIB_HANDLER()
 
     case LIBCLEAR:
     {
+        //@SHORT_DESC=Purge all private data for a specific library
         // PURGE ENTIRE DATA DIRECTORY, AND CALL THE LIBRARY HANDLER TO CREATE A NEW ONE
 
         if(rplDepthData()<1) {

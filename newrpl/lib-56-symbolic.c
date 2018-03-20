@@ -980,6 +980,7 @@ void LIB_HANDLER()
 
     case AUTOSIMPLIFY:
     {
+        //@SHORT_DESC=Reduce numeric subexpressions
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             rplBlameUserCommand();
@@ -1293,6 +1294,7 @@ void LIB_HANDLER()
 
     case RULEMATCH:
     {
+        //@SHORT_DESC=Find if an expression matches a rule pattern
         if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
             return;
@@ -1338,6 +1340,7 @@ void LIB_HANDLER()
 
     case RULEAPPLY:
     {
+        //@SHORT_DESC=Match and apply a rule to an expression
         if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
             return;
@@ -1373,6 +1376,7 @@ void LIB_HANDLER()
 
     case TOFRACTION:
     {
+        //@SHORT_DESC=Convert number to fraction
         if(rplDepthData()<1) {
                 rplError(ERR_BADARGCOUNT);
             return;
@@ -1456,8 +1460,13 @@ void LIB_HANDLER()
     }
 
 
-
-
+    case RULESEPARATOR:
+                //@SHORT_DESC=@HIDE
+    case OPENBRACKET:
+                //@SHORT_DESC=@HIDE
+    case CLOSEBRACKET:
+                //@SHORT_DESC=@HIDE
+    return;
 
     // STANDARIZED OPCODES:
     // --------------------

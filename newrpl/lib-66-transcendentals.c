@@ -147,6 +147,7 @@ void LIB_HANDLER()
     {
     case PINUM:
     {
+        //@SHORT_DESC=Numeric constant π with twice the current system precision
         REAL pi;
 
         decconst_PI(&pi);
@@ -157,6 +158,7 @@ void LIB_HANDLER()
     }
     case SIN:
     {
+        //@SHORT_DESC=Compute the sine
         REAL dec;
         BINT angmode;
         if(rplDepthData()<1) {
@@ -317,6 +319,7 @@ void LIB_HANDLER()
     }
     case COS:
     {
+        //@SHORT_DESC=Compute the cosine
         REAL dec;
         BINT angmode;
         if(rplDepthData()<1) {
@@ -478,6 +481,7 @@ void LIB_HANDLER()
     }
     case TAN:
     {
+        //@SHORT_DESC=Compute the tangent
         REAL dec;
         BINT angmode;
         if(rplDepthData()<1) {
@@ -653,6 +657,7 @@ void LIB_HANDLER()
     }
     case ASIN:
     {
+        //@SHORT_DESC=Compute the arcsine
         REAL y;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -945,6 +950,7 @@ void LIB_HANDLER()
 
     case ACOS:
     {
+        //@SHORT_DESC=Compute the arccosine
         REAL y;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1250,6 +1256,7 @@ void LIB_HANDLER()
     case ATAN:
         // CALCULATE ATAN FROM ATAN2(Y,1)
     {
+        //@SHORT_DESC=Compute the arctangent
         REAL y;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1527,6 +1534,7 @@ void LIB_HANDLER()
     case ATAN2:
         // CALCULATE ATAN IN THE RANGE -PI,+PI
     {
+        //@SHORT_DESC=Compute arctangent(y/x)
         REAL y,x;
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -1574,6 +1582,7 @@ void LIB_HANDLER()
 
     case LN:
     {
+        //@SHORT_DESC=Compute natural logarithm
         REAL x;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1754,6 +1763,7 @@ void LIB_HANDLER()
 
     case EXP:
     {
+        //@SHORT_DESC=Compute exponential function
         REAL dec;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1955,6 +1965,7 @@ void LIB_HANDLER()
     }
     case SINH:
     {
+        //@SHORT_DESC=Compute the hyperbolic sine
         REAL dec;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -2230,6 +2241,7 @@ void LIB_HANDLER()
 
     case COSH:
     {
+        //@SHORT_DESC=Compute the hyperbolic cosine
         REAL dec;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -2505,6 +2517,7 @@ void LIB_HANDLER()
     case TANH:
 
     {
+        //@SHORT_DESC=Compute the hyperbolic tangent
         REAL dec;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -2749,6 +2762,7 @@ void LIB_HANDLER()
 
     case ASINH:
     {
+        //@SHORT_DESC=Compute the hyperbolic arcsine
         REAL x;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -3039,6 +3053,7 @@ void LIB_HANDLER()
 
     case ACOSH:
     {
+        //@SHORT_DESC=Compute the hyperbolic arccosine
         REAL x;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -3360,6 +3375,7 @@ void LIB_HANDLER()
 
     case ATANH:
     {
+        //@SHORT_DESC=Compute the hyperbolic arctangent
         REAL x;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -3724,6 +3740,7 @@ void LIB_HANDLER()
 
     case SQRT:
     {
+        //@SHORT_DESC=Compute the square root
         REAL x,y;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -4116,6 +4133,7 @@ void LIB_HANDLER()
 
     case LOG:
     {
+        //@SHORT_DESC=Compute logarithm in base 10
         REAL x;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -4303,6 +4321,7 @@ void LIB_HANDLER()
 
     case ALOG:
     {
+        //@SHORT_DESC=Compute anti-logarithm in base 10
         REAL dec;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -4478,6 +4497,7 @@ void LIB_HANDLER()
 
     case EXPM:
     {
+        //@SHORT_DESC=Compute exp(x)-1
         REAL dec;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -4679,6 +4699,7 @@ void LIB_HANDLER()
 
     case LNP1:
     {
+        //@SHORT_DESC=Compute ln(x+1)
         REAL x;
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);

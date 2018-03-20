@@ -994,6 +994,7 @@ void LIB_HANDLER()
     {
     case TOARRAY:
     {
+        //@SHORT_DESC=Assemble an array from its elements
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1078,6 +1079,7 @@ void LIB_HANDLER()
        }
     case ARRAYDECOMP:
     {
+        //@SHORT_DESC=Split an array into its elements
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1109,6 +1111,7 @@ void LIB_HANDLER()
     }
     case TOCOL:
     {
+        //@SHORT_DESC=Split an array into column vectors
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1146,6 +1149,7 @@ void LIB_HANDLER()
     }
     case ADDCOL:
     {
+        //@SHORT_DESC=Instert a column into an array
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1301,6 +1305,7 @@ void LIB_HANDLER()
     }
     case REMCOL:
     {
+        //@SHORT_DESC=Remove a column from an array
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1398,6 +1403,8 @@ void LIB_HANDLER()
     }
     case FROMCOL:
         {
+        //@SHORT_DESC=Assemble a matrix from its columns
+
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1493,6 +1500,7 @@ void LIB_HANDLER()
         }
     case TODIAG:
     {
+        //@SHORT_DESC=Extract diagonal elements from a matrix
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1522,6 +1530,8 @@ void LIB_HANDLER()
     }
     case FROMDIAG:
         {
+        //@SHORT_DESC=Create a matrix with the given diagonal elements
+
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1627,6 +1637,7 @@ void LIB_HANDLER()
 
     case TOROW:
     {
+        //@SHORT_DESC=Split an array into its row vectors
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1671,6 +1682,7 @@ void LIB_HANDLER()
 
     case ADDROW:
     {
+        //@SHORT_DESC=Insert a row into an array
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1826,6 +1838,7 @@ void LIB_HANDLER()
 
     case REMROW:
     {
+        //@SHORT_DESC=Remove a row from an array
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1930,6 +1943,8 @@ void LIB_HANDLER()
 
     case FROMROW:
     {
+        //@SHORT_DESC=Assemble an array from its rows
+
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -2028,6 +2043,8 @@ void LIB_HANDLER()
 
     case TOV2:
     {
+        //@SHORT_DESC=Assemble a vector from two values
+
     // PACK 2 VALUES INTO A VECTOR
 
     // ALL ARGUMENT CHECKS ARE DONE IN rplMatrixCompose
@@ -2043,7 +2060,8 @@ void LIB_HANDLER()
     }
     case TOV3:
     {
-    // PACK 3 VALUES INTO A VECTOR
+        //@SHORT_DESC=Assemble a vector from three values
+        // PACK 3 VALUES INTO A VECTOR
 
     // ALL ARGUMENT CHECKS ARE DONE IN rplMatrixCompose
 
@@ -2059,6 +2077,8 @@ void LIB_HANDLER()
 
     case FROMV:
     {
+        //@SHORT_DESC=Split a vector into its elements
+
     // EXPLODE A VECTOR INTO ITS COMPONENTS
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
@@ -2087,6 +2107,7 @@ void LIB_HANDLER()
 
     case DOMATPRE:
     {
+
 
         // GETLAM 1 = END OF MATRIX, GETLAM2 = OBJECT, GETLAM3 = ORIGINAL MATRIX
 
@@ -2227,6 +2248,7 @@ void LIB_HANDLER()
 
     case AXL:
     {
+        //@SHORT_DESC=Convert a matrix to list and vice versa
         // CONVERT MATRIX TO LIST AND VICE VERSA
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -2349,6 +2371,7 @@ void LIB_HANDLER()
 
     case BASIS:
         {
+        //@SHORT_DESC=Find vectors forming a basis of the subspace represented by the matrix
             if(rplDepthData()<1) {
                 rplError(ERR_BADARGCOUNT);
                 return;
@@ -2451,6 +2474,7 @@ void LIB_HANDLER()
 
     case CHOLESKY:
         {
+        //@SHORT_DESC=Perform Cholesky decomposition on a matrix
             if(rplDepthData()<1) {
                 rplError(ERR_BADARGCOUNT);
                 return;
@@ -2547,6 +2571,7 @@ void LIB_HANDLER()
 
     case CNRM:
     {
+        //@SHORT_DESC=Column norm (one norm) of a matrix
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2595,7 +2620,7 @@ void LIB_HANDLER()
 
     case CON:
     {
-
+        //@SHORT_DESC=Assemble an array with given constant value
             if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
                 return;
@@ -2696,6 +2721,7 @@ void LIB_HANDLER()
 
     case COND:
     {
+        //@SHORT_DESC=Column norm condition number of a matrix
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2731,6 +2757,8 @@ void LIB_HANDLER()
 
     case CROSS:
     {
+        //@SHORT_DESC=Cross produce of vectors
+
     if(rplDepthData()<2) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -2815,6 +2843,7 @@ void LIB_HANDLER()
 
     case CSWP:
     {
+        //@SHORT_DESC=Swap two columns in a matrix
         // EXPLODE A VECTOR INTO ITS COMPONENTS
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
@@ -2869,6 +2898,7 @@ void LIB_HANDLER()
 
     case DET:
         {
+        //@SHORT_DESC=Determinant of a matrix
             if(rplDepthData()<1) {
                 rplError(ERR_BADARGCOUNT);
                 return;
@@ -2942,6 +2972,8 @@ void LIB_HANDLER()
 
     case DOT:
     {
+        //@SHORT_DESC=Internal product (dot product) of vectors
+
     if(rplDepthData()<2) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -3010,6 +3042,7 @@ void LIB_HANDLER()
 
         case HADAMARD:
     {
+        //@SHORT_DESC=Multiply corresponding elements in a matrix
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -3060,6 +3093,7 @@ void LIB_HANDLER()
 
         case HILBERT:
         {
+        //@SHORT_DESC=Assemble a Hilbert symbolic array
             // COMPUTE THE HILBERT MATRIX AS SYMBOLIC
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -3113,6 +3147,7 @@ void LIB_HANDLER()
 
         case IBASIS:
         {
+        //@SHORT_DESC=Find a basis of the intersection of two vector spaces
             if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
                 return;
@@ -3246,7 +3281,7 @@ void LIB_HANDLER()
 
         case IDN:
         {
-
+            //@SHORT_DESC=Assemble an identity matrix
             if(rplDepthData()<1) {
                 rplError(ERR_BADARGCOUNT);
                 return;
@@ -3339,6 +3374,8 @@ void LIB_HANDLER()
 
         case IMAGE:
         {
+
+            //@SHORT_DESC=Find a basis of the image of a linear application
         // THE IMAGE OF THE MATRIX, SIMILAR TO BASIS USING THE COLUMNS AS THE VECTORS OF THE BASE
             if(rplDepthData()<1) {
                 rplError(ERR_BADARGCOUNT);
@@ -3438,6 +3475,8 @@ void LIB_HANDLER()
     }
         case KER:
     {
+
+        //@SHORT_DESC=Find a basis for the kernel of a linear application
     // THE KERNEL OF THE MATRIX
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -3576,6 +3615,7 @@ void LIB_HANDLER()
 
         case LU:
     {
+        //@SHORT_DESC=LU factorization of a matrix
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -3760,6 +3800,8 @@ void LIB_HANDLER()
 
         case PMINI:
         {
+
+            //@SHORT_DESC=Minimal polynomial of a matrix
         // THE MINIMAL POLYNOMIAL OF THE MATRIX
         // OBTAINED BY A^2
             if(rplDepthData()<1) {
@@ -3879,6 +3921,7 @@ void LIB_HANDLER()
 
         case RANK:
     {
+        //@SHORT_DESC=Rank of a matrix
         // RANK COMPUTED FROM BAREISS FACTORIZATION
             if(rplDepthData()<1) {
                 rplError(ERR_BADARGCOUNT);
@@ -3925,7 +3968,7 @@ void LIB_HANDLER()
 
         case RANM:
     {
-
+            //@SHORT_DESC=Assemble a matrix with random numbers
             if(rplDepthData()<1) {
                 rplError(ERR_BADARGCOUNT);
                 return;
@@ -4031,6 +4074,7 @@ void LIB_HANDLER()
 
         case RCI:
     {
+        //@SHORT_DESC=Multiply a row by a constant
         // MULTIPLY A ROW BY A CONSTANT
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
@@ -4096,6 +4140,7 @@ void LIB_HANDLER()
 
         case RCIJ:
     {
+        //@SHORT_DESC=Multiply a row by a constant and add to other row
         // MULTIPLY A ROW BY A CONSTANT AND ADD TO OTHER ROW
         if(rplDepthData()<4) {
             rplError(ERR_BADARGCOUNT);
@@ -4168,7 +4213,7 @@ void LIB_HANDLER()
 
         case RDM:
     {
-
+            //@SHORT_DESC=Change dimensions of an array
             if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
                 return;
@@ -4293,6 +4338,7 @@ void LIB_HANDLER()
 
         case REF:
     {
+        //@SHORT_DESC=Reduce matrix to echelon form (upper triangular form)
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -4332,6 +4378,7 @@ void LIB_HANDLER()
     }
         case RNRM:
     {
+        //@SHORT_DESC=Row norm (infinity norm) of a matrix
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -4379,6 +4426,7 @@ void LIB_HANDLER()
 
         case RREF:
     {
+        //@SHORT_DESC=Fully reduce to row-reduced echelon form
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -4433,6 +4481,7 @@ void LIB_HANDLER()
     }
         case RSD:
     {
+        //@SHORT_DESC=Residual R=B-A*X' on a system A*X=B
         // PERFORM B-A*Z GIVEN B, A AND Z
 
         if(rplDepthData()<3) {
@@ -4467,6 +4516,7 @@ void LIB_HANDLER()
     }
         case RSWP:
     {
+        //@SHORT_DESC=Swap two rows in a matrix
         // EXPLODE A VECTOR INTO ITS COMPONENTS
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
@@ -4553,6 +4603,7 @@ void LIB_HANDLER()
     }
         case TRACE:
     {
+        //@SHORT_DESC=Sum of the items in the diagonal of a matrix
         // RETURN THE SUM OF THE DIAGONAL ITEMS
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -4590,6 +4641,7 @@ void LIB_HANDLER()
     }
         case TRAN:
     {
+        //@SHORT_DESC=Transpose a matrix
         // MATRIX TRANSPOSE
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -4633,6 +4685,7 @@ void LIB_HANDLER()
     }
         case TRN:
     {
+        //@SHORT_DESC=Complex conjugate transpose of a matrix
                 // COMPLEX CONJUGATE
                 if(rplDepthData()<1) {
                     rplError(ERR_BADARGCOUNT);
@@ -4737,6 +4790,7 @@ void LIB_HANDLER()
 
         case LDUP:
     {
+        //@SHORT_DESC=Decompose A into LDUP such that P*A=L*D<sup>-1</sup>*U
         // ROUNDOFF-ERROR FREE DECOMPOSITION
         // DECOMPOSE A MATRIX AS P*A=L*D^-1*U
         // WHERE P=PERMUTATION MATRIX

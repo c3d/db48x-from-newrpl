@@ -10,7 +10,27 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
-#include <file.h>
+#include <dirent.h>
+
+
+FILE *fopenindir(char *dirpath,char *filename,char *mode)
+{
+    int lenpath=strlen(dirpath);
+    char *name=malloc(lenpath+strlen(filename)+100);
+    if(!name) return NULL;
+    strcpy(name,dirpath);
+    if(name[lenpath-1]!='/') name[lenpath++]='/';
+    strcpy(name+lenpath,filename);
+    FILE *retvalue=fopen(name,mode);
+
+    free(name);
+
+    return retvalue;
+
+}
+
+
+
 
 int main(int argc, char *argv[])
 {
@@ -19,7 +39,7 @@ int main(int argc, char *argv[])
 
     if(argc<2) {
     printf("NewRPL command extract - Version 1.0\n");
-    printf("Usage: extractcmd <path-to-sources> -d <output-path>\n");
+    printf("Usage: extractcmd <path-to-sources> [-d <output-path>]\n");
     printf("\nOptions:\n");
     printf("\t\t-d <output-path>\tSpecify the directory where the output file will be created (by default, same as the source file)\n\n\n");
     return 0;
@@ -31,35 +51,46 @@ int main(int argc, char *argv[])
     int nameoffset,namelen;
     char *outputfile=NULL;
     char *outputpath=NULL;
-    char *inputfile=NULL;
+    char *inputpath=NULL;
     while(argidx<argc) {
         if(needoutputpath) { outputpath=argv[argidx]; needoutputpath=0; }
         else if((argv[argidx][0]=='-')&&(argv[argidx][1]=='d')) {
                 if(argv[argidx][2]==0) needoutputpath=1;
                 else outputpath=argv[argidx]+2;
-                } else inputfile=argv[argidx];
+                } else inputpath=argv[argidx];
 
         ++argidx;
     }
 
     // HERE WE HAVE ALL ARGUMENTS PROCESSED
-    if(!inputfile) {
+    if(!inputpath) {
         fprintf(stderr,"Error: No path to sources given\n");
         return 1;
     }
 
+    DIR *dirhandle;
+    struct dirent *entry;
 
-    findfirst()
+    dirhandle=opendir(inputpath);
+    if(!dirhandle) {
+        fprintf(stderr,"Error: Can't find source directory '%s'\n",inputpath);
+        return 1;
+    }
 
-    if(!outputfile) {
+
+    while((entry=readdir(dirhandle)))
+    {
+        if( !strncmp(entry->d_name,"lib-",4) ) {
+
+
 
         // CREATE AN OUTPUT FILE NAME FROM THE INPUT FILE
-        char *end=inputfile+strlen(inputfile)-1;
-        char *libname=inputfile;
+        char *end=entry->d_name+strlen(entry->d_name)-1;
+        char *libname=entry->d_name;
 
-        while((end>inputfile)&&(*end!='.')&&(*end!='/')&&(*end!='\\')) --end;
-        if(end<=inputfile) end=inputfile+strlen(inputfile);
-        else if(*end!='.') { libname=end; end=inputfile+strlen(inputfile); }
+        while((end>entry->d_name)&&(*end!='.')&&(*end!='/')&&(*end!='\\')) --end;
+        if(end<=entry->d_name) end=entry->d_name+strlen(entry->d_name);
+        else if(*end!='.') { libname=end; end=entry->d_name+strlen(entry->d_name); }
         needcleanup++;
 
         while(strrchr(libname,'-')>libname) libname=strrchr(libname,'-')+1;
@@ -67,6 +98,7 @@ int main(int argc, char *argv[])
         outputfile=malloc(end-libname+10+((outputpath)? strlen(outputpath):0));
         if(!outputfile) {
             fprintf(stderr,"error: Memory allocation error\n");
+            closedir(dirhandle);
             return 1;
         }
         nameoffset=0;
@@ -74,20 +106,22 @@ int main(int argc, char *argv[])
         if(outputpath) {
             strcpy(outputfile,outputpath);
             nameoffset=strlen(outputpath);
-            if(outputpath[nameoffset-1]!='/') outputpath[nameoffset++]='/';
+            if(outputfile[nameoffset-1]!='/') outputfile[nameoffset++]='/';
         }
         memmove(outputfile+nameoffset,libname,namelen);
         strcpy(outputfile+nameoffset+namelen,".txt");
 
-    }
+
 
     // HERE WE HAVE THE SECTION NAME AT outputfile[nameoffset]..outputfile[nameoffset+namelen-1]
 
     // READ THE INPUT FILE INTO A BUFFER
-    FILE *f=fopen(inputfile,"rb");
+    FILE *f=fopenindir(inputpath,entry->d_name,"rb");
     if(f==NULL) {
-        fprintf(stderr,"error: File not found %s\n",inputfile);
+        fprintf(stderr,"error: File not found %s\n",inputpath);
         if(needcleanup) free(outputfile);
+        closedir(dirhandle);
+
         return 1;
     }
     fseek(f,0,SEEK_END);
@@ -98,12 +132,15 @@ int main(int argc, char *argv[])
     if(!mainbuffer) {
         fprintf(stderr,"error: Memory allocation error\n");
         if(needcleanup) free(outputfile);
+        closedir(dirhandle);
+
         return 1;
     }
     if(fread(mainbuffer,1,length,f)!=(size_t)length) {
         fprintf(stderr,"error: Can't read from input file\n");
         if(needcleanup) free(outputfile);
         free(mainbuffer);
+        closedir(dirhandle);
         return 1;
     }
     fclose(f);
@@ -168,6 +205,19 @@ int main(int argc, char *argv[])
             cmddesc[currentcmd]=chunk+14;
             while( (*chunk!='\n')&&(*chunk!='\r')&&(chunk-mainbuffer<length)) ++chunk;
             cmddesclen[currentcmd]=chunk-cmddesc[currentcmd];
+
+            if( (cmddesclen[currentcmd]>=5) && !strncmp(cmddesc[currentcmd],"@HIDE",5)) {
+                    // HIDE THE CURRENT COMMAND FROM THE LIST
+                --ncmd;
+                for(k=currentcmd;k<ncmd;++k) {
+                    cmdname[k]=cmdname[k+1];
+                    cmdnamelen[k]=cmdnamelen[k+1];
+                    cmdstring[k]=cmdstring[k+1];
+                    cmdstrlen[k]=cmdstrlen[k+1];
+                    cmddesc[k]=cmddesc[k+1];
+                    cmddesclen[k]=cmddesclen[k+1];
+                }
+            }
         }
 
         if(*chunk=='E') { extcommand=1; ++chunk; }
@@ -245,13 +295,14 @@ int main(int argc, char *argv[])
 
     // DONE ANALYZING THE FILE, NOW CREATE THE SUMMARY INFO TEMPLATES
 
-
+    if(ncmd) {
 
     f=fopen(outputfile,"wb");
     if(f==NULL) {
         fprintf(stderr,"error: Can't open %s for writing.\n",outputfile);
         if(needcleanup) free(outputfile);
         free(mainbuffer);
+        closedir(dirhandle);
         return 1;
     }
 
@@ -266,9 +317,9 @@ int main(int argc, char *argv[])
     fwrite(outputfile+nameoffset,namelen,1,f);
     fprintf(f,"-commands\" block=\"true\" >**");
     if(libtitle) fwrite(libtitle,libtitlelen,1,f);
-    fprintf(f,"**</button>\n<collapse id=\"");
+    fprintf(f,"**  <badge>%d</badge></button>\n<collapse id=\"",ncmd);
     fwrite(outputfile+nameoffset,namelen,1,f);
-    fprintf(f,"-commands\" collapsed=\"false\">\n");
+    fprintf(f,"-commands\" collapsed=\"true\">\n");
     fprintf(f,"\n^ Command  ^ Short Description ^ Details ^\n");
 
     // OUTPUT THE COMPLETE LIST OF COMMANDS
@@ -287,12 +338,21 @@ int main(int argc, char *argv[])
     fprintf(f," |  |\n");
     }
 
+    fprintf(f,"</collapse>\n");
     // CLOSE THE OUTPUT FILE
+    if(needcleanup) { free(outputfile); needcleanup=0; }
     fclose(f);
+
 
     // TODO: CREATE THE DIRECTORY FOR THE TEMPLATES
 
 
+    }
+    }
+
+    }
+
+    closedir(dirhandle);
     return 0;
 
 }

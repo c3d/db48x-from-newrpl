@@ -1614,6 +1614,7 @@ void LIB_HANDLER()
     {
     case SETLOCALE:
     {
+        //@SHORT_DESC=Change the separator symbols
      NUMFORMAT fmt;
      if(rplDepthData()<1) {
          rplError(ERR_BADARGCOUNT);
@@ -1691,6 +1692,7 @@ void LIB_HANDLER()
 
     case SETNFMT:
     {
+        //@SHORT_DESC=Change the display format for numbers
         // SET THE SYSTEM NUMBER FORMAT
         // ACCEPT EITHER A SINGLE STRING OR A LIST AS FOLLOWS:
         // FORMAT_STRING --> REPLACE NUMBER FORMAT FOR ALL NUMBERS (BIG, SMALL AND NORMAL)
@@ -1788,6 +1790,7 @@ void LIB_HANDLER()
 
 
     case CF:
+        //@SHORT_DESC=Clear a flag
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1845,7 +1848,7 @@ void LIB_HANDLER()
         return;
 
     case SF:
-
+        //@SHORT_DESC=Set a flag
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1904,6 +1907,7 @@ void LIB_HANDLER()
 
     case FCTEST:
     {
+        //@SHORT_DESC=Test if a flag is clear
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1966,6 +1970,7 @@ void LIB_HANDLER()
      }
     case FSTEST:
     {
+        //@SHORT_DESC=Test if a flag is set
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2030,6 +2035,7 @@ void LIB_HANDLER()
 
     case FCTESTCLEAR:
     {
+        //@SHORT_DESC=Test if a flag is clear, then clear it
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2099,6 +2105,7 @@ void LIB_HANDLER()
     case FSTESTCLEAR:
 
     {
+        //@SHORT_DESC=Test if a flag is set, then clear it
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2166,6 +2173,7 @@ void LIB_HANDLER()
 
     case TMENU:
      {
+        //@SHORT_DESC=Display the given menu on the active menu area
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2184,8 +2192,10 @@ void LIB_HANDLER()
 
 
     case TMENULST:
+        //@SHORT_DESC=Display the given menu on the menu area the user used last
     case TMENUOTHR:
      {
+        //@SHORT_DESC=Display the given menu on the menu are the user did not use last
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2208,9 +2218,12 @@ void LIB_HANDLER()
     }
 
     case RCLMENU:
+        //@SHORT_DESC=Recall the active menu
     case RCLMENULST:
+        //@SHORT_DESC=Recall the menu the user used last
     case RCLMENUOTHR:
     {
+        //@SHORT_DESC=Recall the menu the user did not use last
         BINT menu;
 
         if(CurOpcode!=CMD_RCLMENU) {
@@ -2250,6 +2263,7 @@ void LIB_HANDLER()
 
     case MENUSWAP:
     {
+        //@SHORT_DESC=Swap the contents of menu areas 1 and 2
         // JUST SWAP MENUS 1 AND 2
         BINT64 m1code=rplGetMenuCode(1);
         BINT64 m2code=rplGetMenuCode(2);
@@ -2279,9 +2293,12 @@ void LIB_HANDLER()
     }
 
     case MENUBK:
+        //@SHORT_DESC=Display the previous menu on the active menu area
     case MENUBKLST:
+        //@SHORT_DESC=Display the previous menu on the area the user used last
     case MENUBKOTHR:
     {
+        //@SHORT_DESC=Display the previous menu on the area the user did not use last
         BINT menu;
 
         if(CurOpcode!=CMD_MENUBK) {
@@ -2303,18 +2320,22 @@ void LIB_HANDLER()
 
 
     case DEG:
+        //@SHORT_DESC=Set the angle mode flags to degrees
         rplClrSystemFlag(-17);
         rplClrSystemFlag(-18);
         return;
     case RAD:
+        //@SHORT_DESC=Set the angle mode flags to radians
         rplSetSystemFlag(-17);
         rplClrSystemFlag(-18);
         return;
     case GRAD:
+        //@SHORT_DESC=Set the angle mode flags to grads (gons)
         rplClrSystemFlag(-17);
         rplSetSystemFlag(-18);
         return;
     case DMS:
+        //@SHORT_DESC=Set the angle mode to DMS (as DD.MMSS)
         rplSetSystemFlag(-17);
         rplSetSystemFlag(-18);
         return;
@@ -2322,6 +2343,7 @@ void LIB_HANDLER()
 
     case ASNKEY:
     {
+        //@SHORT_DESC=Assign a custom definition to a key
         // ASSIGN A CUSTOM KEY DEFINITION
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
@@ -2381,6 +2403,7 @@ void LIB_HANDLER()
 
     case DELKEY:
     {
+        //@SHORT_DESC=Remove a custom key definition
         // REMOVE A CUSTOM KEY DEFINITION
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -2454,6 +2477,7 @@ void LIB_HANDLER()
 
     case RCLKEYS:
     {
+        //@SHORT_DESC=Recall the list of all custom key definitions
         // GET THE ENTIRE LIST OF KEY ASSIGNMENTS
         WORDPTR keylist=rplGetSettings((WORDPTR)customkey_ident);
 
@@ -2466,6 +2490,7 @@ void LIB_HANDLER()
 
     case STOKEYS:
     {
+        //@SHORT_DESC=Store and replace all custom key definitions
         // STORE THE ENTIRE LIST OF KEY ASSIGNMENTS
         // REMOVE A CUSTOM KEY DEFINITION
         if(rplDepthData()<1) {
@@ -2516,6 +2541,7 @@ void LIB_HANDLER()
 
  case TYPE:
     {
+        //@SHORT_DESC=Get type information from an object
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2546,6 +2572,7 @@ void LIB_HANDLER()
 
     case TYPEE:
        {
+        //@SHORT_DESC=Get extended type information from an object
            if(rplDepthData()<1) {
                rplError(ERR_BADARGCOUNT);
                return;
@@ -2581,6 +2608,7 @@ void LIB_HANDLER()
 
     case GETLOCALE:
     {
+        //@SHORT_DESC=Get the current separator symbols
         // GET LOCALE STRING
 
         UBINT64 loc;
@@ -2616,6 +2644,7 @@ void LIB_HANDLER()
     }
     case GETNFMT:
     {
+        //@SHORT_DESC=Recall the current display format for numbers
         // GET SYSTEM NUMBER FORMAT IN USER-READABLE FORMAT
         NUMFORMAT f;
 
@@ -2656,6 +2685,7 @@ void LIB_HANDLER()
 
     case RCLF:
     {
+        //@SHORT_DESC=Recall all system flags
             if(!ISLIST(*SystemFlags)) {
                 rplError(ERR_SYSTEMFLAGSINVALID);
                 return;
@@ -2670,6 +2700,7 @@ void LIB_HANDLER()
 
     case STOF:
     {
+        //@SHORT_DESC=Store and replace all system flags
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2724,6 +2755,7 @@ void LIB_HANDLER()
 
     case VTYPE:
        {
+        //@SHORT_DESC=Get type information on the contents of a variable
            if(rplDepthData()<1) {
                rplError(ERR_BADARGCOUNT);
                return;
@@ -2777,6 +2809,7 @@ void LIB_HANDLER()
 
        case VTYPEE:
           {
+            //@SHORT_DESC=Get extended type information on the contents of a variable
               if(rplDepthData()<1) {
                   rplError(ERR_BADARGCOUNT);
                   return;

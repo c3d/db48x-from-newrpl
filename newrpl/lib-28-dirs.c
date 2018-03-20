@@ -164,6 +164,7 @@ void LIB_HANDLER()
     {
     case STO:
     {
+        //@SHORT_DESC=Store an object into a variable
         // STORE CONTENT INSIDE A LAM OR GLOBAL VARIABLE, CREATE A NEW "GLOBAL" VARIABLE IF NEEDED
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -398,6 +399,7 @@ void LIB_HANDLER()
 
     case RCL:
     {
+        //@SHORT_DESC=Recall the contents of a variable
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -470,6 +472,7 @@ void LIB_HANDLER()
 
     case STOADD:
         {
+        //@SHORT_DESC=Add to the content of a variable
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -554,6 +557,7 @@ void LIB_HANDLER()
     case STOSUB:
 
     {
+        //@SHORT_DESC=Subtract from the contents of a variable
     if(rplDepthData()<2) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -637,6 +641,7 @@ void LIB_HANDLER()
     case STOMUL:
 
     {
+        //@SHORT_DESC=Multiply contents of a variable
     if(rplDepthData()<2) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -720,6 +725,7 @@ void LIB_HANDLER()
     case STODIV:
 
     {
+        //@SHORT_DESC=Divide the content of a variable
     if(rplDepthData()<2) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -803,6 +809,7 @@ void LIB_HANDLER()
     case SINV:
 
     {
+        //@SHORT_DESC=Invert the content of a variable
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -876,6 +883,7 @@ void LIB_HANDLER()
 
     case SNEG:
     {
+        //@SHORT_DESC=Change sign (negate) the content of a variable
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -949,6 +957,7 @@ void LIB_HANDLER()
 
     case SCONJ:
     {
+        //@SHORT_DESC=Complex conjugate the contents of a variable
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -1025,6 +1034,7 @@ void LIB_HANDLER()
     case INCR:
 
     {
+        //@SHORT_DESC=Add one to the content of a variable
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -1113,6 +1123,7 @@ void LIB_HANDLER()
     case DECR:
 
     {
+        //@SHORT_DESC=Subtract one from content of a variable
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -1198,6 +1209,7 @@ void LIB_HANDLER()
 
 
     case PURGE:
+        //@SHORT_DESC=Delete a variable
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1226,6 +1238,7 @@ void LIB_HANDLER()
 
     case CRDIR:
     {
+        //@SHORT_DESC=Create new directory
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1271,6 +1284,7 @@ void LIB_HANDLER()
      }
     return;
     case PGDIR:
+        //@SHORT_DESC=Purge entire directory tree
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1299,17 +1313,20 @@ void LIB_HANDLER()
 
     case UPDIR:
     {
+        //@SHORT_DESC=Change current directory to its parent
         WORDPTR *dir=rplGetParentDir(CurrentDir);
         if(dir) CurrentDir=dir;
         return;
     }
     return;
     case HOME:
+        //@SHORT_DESC=Change current directory to HOME
         CurrentDir=Directories;
         return;
     case PATH:
 
     {
+        //@SHORT_DESC=Get a path to the current directory
         WORDPTR *scandir=CurrentDir;
         BINT nitems=0;
         WORDPTR *stksave=DSTop;
@@ -1350,6 +1367,7 @@ void LIB_HANDLER()
 
     case VARS:
     {
+        //@SHORT_DESC=List all visible variables in a directory
        WORDPTR *varptr=rplFindFirstInDir(CurrentDir);
        WORDPTR *stksave=DSTop;
        BINT nitems=0;
@@ -1373,6 +1391,7 @@ void LIB_HANDLER()
 
     case ALLVARS:
     {
+        //@SHORT_DESC=List all variables in a directory
        WORDPTR *varptr=rplFindFirstInDir(CurrentDir);
        WORDPTR *stksave=DSTop;
        BINT nitems=0;
@@ -1398,6 +1417,7 @@ void LIB_HANDLER()
 
      case ORDER:
     {
+        //@SHORT_DESC=Sort variables in a directory
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1441,6 +1461,7 @@ void LIB_HANDLER()
 
     case QUOTEID:
     {
+        //@SHORT_DESC=Add single quotes to a variable name
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -1461,6 +1482,7 @@ void LIB_HANDLER()
     }
     case UNQUOTEID:
     {
+        //@SHORT_DESC=Remove single quotes from a variable name
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -1482,6 +1504,7 @@ void LIB_HANDLER()
 
     case HIDEVAR:
         {
+        //@SHORT_DESC=Hide a variable (make invisible)
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1524,6 +1547,7 @@ void LIB_HANDLER()
 
     case UNHIDEVAR:
     {
+        //@SHORT_DESC=Make a hidden variable visible
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -1566,6 +1590,7 @@ void LIB_HANDLER()
 
     case CLVAR:
     {
+        //@SHORT_DESC=Purge all variables and empty subdirectories in current directory
         // PURGE ALL VARIABLES AND EMPTY SUBDIRECTORIES IN CURRENT DIR
 
         WORDPTR *var;
@@ -1587,6 +1612,7 @@ void LIB_HANDLER()
 
     case LOCKVAR:
     {
+        //@SHORT_DESC=Make variable read-only
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -1625,6 +1651,7 @@ void LIB_HANDLER()
 
 case UNLOCKVAR:
     {
+        //@SHORT_DESC=Make variable read/write
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -1666,6 +1693,7 @@ case UNLOCKVAR:
 
     case RENAME:
     {
+        //@SHORT_DESC=Change the name of a variable
         // RENAME A LAM OR GLOBAL VARIABLE
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -1712,6 +1740,7 @@ case UNLOCKVAR:
 
 case TVARS:
     {
+        //@SHORT_DESC=List variables of a specific type
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -1789,6 +1818,7 @@ case TVARS:
 
 case TVARSE:
         {
+        //@SHORT_DESC=List all variables with extended type information
         // SAME AS TVARS BUT USE EXTENDED TYPE INFORMATION
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1872,6 +1902,7 @@ case TVARSE:
 
     case SADD:
         {
+        //@SHORT_DESC=Apply command ADD to the stored contents of the variable
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;

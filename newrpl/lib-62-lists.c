@@ -557,6 +557,7 @@ void LIB_HANDLER()
 
     case SORT:
     {
+        //@SHORT_DESC=Sort elements in a list
         // CHECK ARGUMENTS
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -627,6 +628,7 @@ void LIB_HANDLER()
 
     case REVLIST:
      {
+        //@SHORT_DESC=Reverse the order of elements in a list
         // CHECK ARGUMENTS
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -670,8 +672,10 @@ void LIB_HANDLER()
     }
 
     case ENDLIST:
+        //@SHORT_DESC=@HIDE
         return;
     case TOLIST:
+        //@SHORT_DESC=Assemble a list from its elements
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -686,6 +690,7 @@ void LIB_HANDLER()
 
         return;
     case INNERCOMP:
+        //@SHORT_DESC=Split a list into its elements
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -705,6 +710,7 @@ void LIB_HANDLER()
 
     case CMDDOLIST:
     {
+        //@SHORT_DESC=Do a procedure with elements of lists
         BINT initdepth=rplDepthData();
         if(initdepth<3) {
             rplError(ERR_BADARGCOUNT);
@@ -947,6 +953,7 @@ void LIB_HANDLER()
 
     case DOSUBS:
     {
+        //@SHORT_DESC=Do a procedure on a subset of a list
         BINT initdepth=rplDepthData();
         if(initdepth<3) {
             rplError(ERR_BADARGCOUNT);
@@ -1182,6 +1189,7 @@ void LIB_HANDLER()
 
     case MAP:
     {
+        //@SHORT_DESC=Do a procedure on each element of a list, recursively
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -1398,6 +1406,7 @@ void LIB_HANDLER()
 
     case MAPINNERCOMP:
     {
+        //@SHORT_DESC=Do a procedure on each element recursively, return individual elements
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -1615,6 +1624,7 @@ void LIB_HANDLER()
 
     case STREAM:
     {
+        //@SHORT_DESC=Do a procedure on consecutive elements of a list
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -2328,8 +2338,10 @@ void LIB_HANDLER()
         // THE COMMANDS THAT FOLLOW ALL WORK TOGETHER TO IMPLEMENT SUMLIST, PRODLIST
 
     case PRODLIST:
+        //@SHORT_DESC=Product of all elements in a list
     case SUMLIST:
     {
+        //@SHORT_DESC=Sum of all elements in a list
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -2477,6 +2489,7 @@ void LIB_HANDLER()
 
     case DELTALIST:
     {
+        //@SHORT_DESC=First differences on the elements of a list
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -2639,6 +2652,7 @@ void LIB_HANDLER()
     case ADD:
         // CONCATENATE LISTS
      {
+        //@SHORT_DESC=Concatenate lists and/or elements
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -2680,6 +2694,7 @@ void LIB_HANDLER()
     }
 
     case ADDROT:
+        //@SHORT_DESC=Add elements to a list, keep only the last N elements
         // APPEND AN ELEMENT TO A LIST AND ROTATE IT
         // LIST ELEM NITEMS -> { Obj ... ObjN ELEM }
         // THE NEW LIST DROPS ELEMENTS TO BE NITEMS MAX.
@@ -2715,6 +2730,7 @@ void LIB_HANDLER()
 
     case SEQ:
     {
+        //@SHORT_DESC=Assemble a list from results of sequential procedure
      if(rplDepthData()<5) {
          rplError(ERR_BADARGCOUNT);
          return;

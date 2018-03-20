@@ -581,6 +581,7 @@ void LIB_HANDLER()
     {
     case LSTO:
     {
+        //@SHORT_DESC=Store to a new local variable
         // STORE CONTENT INSIDE A LAM VARIABLE, CREATE A NEW VARIABLE IF NEEDED
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -620,6 +621,7 @@ void LIB_HANDLER()
     return;
     case LRCL:
     {
+        //@SHORT_DESC=Recall content of local variable
         // RCL CONTENT FROM INSIDE A LAM VARIABLE
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -716,6 +718,7 @@ void LIB_HANDLER()
 
     case HIDELOCALS:
     {
+        //@SHORT_DESC=Hide local variables from subroutines
         // HIDE ALL LOCAL VARIABLES AFTER THIS POINT FROM ANY CHILD PROCESSES
         // STORE CONTENT INSIDE A LAM VARIABLE, CREATE A NEW VARIABLE IF NEEDED
 
@@ -737,6 +740,7 @@ void LIB_HANDLER()
 
     case UNHIDELOCALS:
         {
+        //@SHORT_DESC=Unhide local variables from subroutines
         // REMOVE PROTECTION FOR LOCAL VARIABLES HIDDEN WITH HIDELOCALS
             BINT neednewenv=rplNeedNewLAMEnv();
 

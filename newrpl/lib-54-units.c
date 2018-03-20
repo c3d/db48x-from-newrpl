@@ -1442,6 +1442,7 @@ void LIB_HANDLER()
     {
     case UDEFINE:
     {
+        //@SHORT_DESC=Create a user-defined unit
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1542,6 +1543,7 @@ void LIB_HANDLER()
     }
     case UPURGE:
     {
+        //@SHORT_DESC=Delete a user-defined unit
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1585,6 +1587,7 @@ void LIB_HANDLER()
     }
     case UVAL:
     {
+        //@SHORT_DESC=Numeric part of a unit object
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1609,6 +1612,7 @@ void LIB_HANDLER()
     }
     case CONVERT:
     {
+        //@SHORT_DESC=Convert value from one unit to another
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1700,6 +1704,7 @@ void LIB_HANDLER()
 
     case UFACT:
     {
+        //@SHORT_DESC=Expose a group of units within a unit object (factor)
         // THIS IS EASILY ACHIEVED WITH << SWAP OVER / UBASE * >>
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -1740,8 +1745,10 @@ void LIB_HANDLER()
     }
     case SYMBTOUNIT:
         // DELIBERATE FALL THROUGH
+        //@SHORT_DESC=Apply a unit within a symbolic expression
     case TOUNIT:
         // THIS IS IDENTICAL TO OVR_MUL
+        //@SHORT_DESC=Apply a unit to an object
     {
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -1765,6 +1772,7 @@ void LIB_HANDLER()
 
     case UBASE:
     {
+        //@SHORT_DESC=Expand all unit factors to their base unit
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1802,6 +1810,7 @@ void LIB_HANDLER()
 
     case ULIST:
     {
+        //@SHORT_DESC=List all user-defined units
         //  GET THE UNITS DIRECTORY
 
         WORDPTR unitdir_obj=rplGetSettings((WORDPTR)unitdir_ident);

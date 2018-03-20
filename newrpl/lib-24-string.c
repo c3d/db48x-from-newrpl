@@ -380,6 +380,7 @@ void LIB_HANDLER()
     {
     case TOUTF:
     {
+        //@SHORT_DESC=Create a Utf8 string from a list of code points
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -452,6 +453,7 @@ void LIB_HANDLER()
     }
     case FROMUTF:
     {
+        //@SHORT_DESC=List all code points in a Utf8 string
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -488,6 +490,7 @@ void LIB_HANDLER()
     case TOSTR:
         // VERY IMPORTANT: DECOMPILE FUNCTION
     {
+        //@SHORT_DESC=Decompile any object (convert to string)
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -503,6 +506,7 @@ void LIB_HANDLER()
     case FROMSTR:
         // COMPILER FUNCTION, FOR STR-> AND ->OBJ COMMANDS
     {
+        //@SHORT_DESC=Compile a string into RPL objects
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -527,6 +531,7 @@ void LIB_HANDLER()
 
     case SREV:
     {
+        //@SHORT_DESC=Reverse the characters on a string
         // REVERSE A UTF-8 STRING
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -569,6 +574,7 @@ void LIB_HANDLER()
 
      case NTOKENS:
     {
+        //@SHORT_DESC=Number of tokens in a string
      // STRING SEPSTRING -> n
        if(rplDepthData()<2) {
            rplError(ERR_BADARGCOUNT);
@@ -599,6 +605,7 @@ void LIB_HANDLER()
     }
      case NTHTOKEN:
     {
+        //@SHORT_DESC=Token at position N in a string
      // EXTRACT THE NTH TOKEN IN THE STRING
 
      // STRING STRINGSEP N -> STRING
@@ -650,6 +657,7 @@ void LIB_HANDLER()
     }
      case NTHTOKENPOS:
     {
+        //@SHORT_DESC=Position of token N in a string
      // EXTRACT THE NTH TOKEN IN THE STRING
 
      // STRING STRINGSEP N -> POS
@@ -714,6 +722,7 @@ void LIB_HANDLER()
 
      case TRIM:
     {
+        //@SHORT_DESC=Remove characters at end of string
         // ELIMINATE ANY SEPARATORS AT THE END OF STRING
 
         // STRING STRINGSEP -> STRING
@@ -765,6 +774,7 @@ void LIB_HANDLER()
 
      case RTRIM:
     {
+        //@SHORT_DESC=Remove characters at start of string
         // ELIMINATE ANY SEPARATORS AT THE START OF STRING
 
         // STRING STRINGSEP -> STRING
@@ -806,6 +816,7 @@ void LIB_HANDLER()
     }
     case SSTRLEN:
     {
+        //@SHORT_DESC=Length of string in characters
         // COMPUTE STRING LENGTH IN CHARACTERS
 
            if(rplDepthData()<1) {
@@ -826,6 +837,7 @@ void LIB_HANDLER()
 
     case STRLENCP:
     {
+        //@SHORT_DESC=Length of string in Unicode code points
         // COMPUTE STRING LENGTH IN CODE POINTS
 
            if(rplDepthData()<1) {
@@ -848,6 +860,7 @@ void LIB_HANDLER()
 
     case TONFC:
     {
+        //@SHORT_DESC=Normalize a string to Unicode NFC
         // NORMALIZE ANY STRING BY NFC
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -911,6 +924,7 @@ void LIB_HANDLER()
 
      case SREPL:
     {
+        //@SHORT_DESC=Find and replace text in a string
         // MULTIPLE FIND AND REPLACE
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);

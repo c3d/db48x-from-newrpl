@@ -185,23 +185,28 @@ void LIB_HANDLER()
     switch(OPCODE(CurOpcode))
     {
     case CLEAR:
+        //@SHORT_DESC=Remove all objects from the stack
         // ONLY CLEAR UP TO THE STACK PROTECTED AREA
         // DON'T THROW AN ERROR
         DSTop=DStkProtect;
         return;
     case DEPTH:
+        //@SHORT_DESC=Get the current stack depth
         rplNewBINTPush(rplDepthData(),DECBINT);
         return;
     case DROP:
+        //@SHORT_DESC=Remove an object from the stack
         if(rplDepthData()<1) { rplError(ERR_BADARGCOUNT); return; }
         rplDropData(1);
         return;
     case DROP2:
+        //@SHORT_DESC=Remove two objects form the stack
         if(rplDepthData()<2) { rplError(ERR_BADARGCOUNT); return; }
         rplDropData(2);
         return;
     case DROPN:
     {
+        //@SHORT_DESC=Remove N objects from the stack
         if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
          return;
@@ -216,6 +221,7 @@ void LIB_HANDLER()
         return;
     }
     case DUP:
+        //@SHORT_DESC=Duplicate an object on the stack
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
          return;
@@ -223,6 +229,7 @@ void LIB_HANDLER()
         rplPushData(rplPeekData(1));
         return;
     case DUP2:
+        //@SHORT_DESC=Duplicate two objects on the stack
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -232,6 +239,7 @@ void LIB_HANDLER()
         rplPushData(rplPeekData(2));
         return;
     case DUPDUP:
+        //@SHORT_DESC=Duplicate the same object twice on the stack
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -242,6 +250,7 @@ void LIB_HANDLER()
         return;
     case DUPN:
     {
+        //@SHORT_DESC=Duplicate a group of N objects
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -264,6 +273,7 @@ void LIB_HANDLER()
     }
     case NDUPN:
     {
+        //@SHORT_DESC=Replicate one object N times and return N
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -286,6 +296,7 @@ void LIB_HANDLER()
         return;
     }
     case NIP:
+        //@SHORT_DESC=Remove object at level 2 on the stack
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -296,6 +307,7 @@ void LIB_HANDLER()
         return;
 
     case OVER:
+        //@SHORT_DESC=Duplicate object at level 2 on the stack
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -305,7 +317,7 @@ void LIB_HANDLER()
         return;
     case PICK:
     {
-
+        //@SHORT_DESC=Duplicate object at position N on the stack
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -325,6 +337,7 @@ void LIB_HANDLER()
         return;
     }
     case PICK3:
+        //@SHORT_DESC=Duplicate object at level 3 on the stack
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
 
@@ -334,6 +347,7 @@ void LIB_HANDLER()
         return;
     case ROLL:
     {
+        //@SHORT_DESC=Move object at level N to level 1
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -363,6 +377,7 @@ void LIB_HANDLER()
      }
     case ROLLD:
     {
+        //@SHORT_DESC=Move object from level 1 to level N
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -392,6 +407,7 @@ void LIB_HANDLER()
      }
     case ROT:
     {
+        //@SHORT_DESC=Move object from level 3 to level 1
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
 
@@ -406,6 +422,7 @@ void LIB_HANDLER()
 
     case SWAP:
     {
+        //@SHORT_DESC=Exchange objects in levels 1 and 2
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -419,7 +436,7 @@ void LIB_HANDLER()
 
     case UNPICK:
     {
-
+        //@SHORT_DESC=Move object from level 1 to level N.
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -445,7 +462,7 @@ void LIB_HANDLER()
 
     case UNROT:
     {
-
+        //@SHORT_DESC=Move object from level 1 to level 3
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
 
@@ -461,6 +478,7 @@ void LIB_HANDLER()
 
     case UNPROTECTSTACK:
     {
+        //@SHORT_DESC=@HIDE
         // THIS INTERNAL OPCODE PROVIDES SAFETY GUARD AGAINST DATA STACK PROTECTION
         // IF A PROGRAM FORGETS TO UNPROTECT THE STACK, IT WILL BE UNPROTECTED
         // AUTOMATICALLY ON EXIT
@@ -474,6 +492,7 @@ void LIB_HANDLER()
 
     case IFT:
      {
+        //@SHORT_DESC=Evaluate objects on the stack conditionally
          if(rplDepthData()<2) {
              rplError(ERR_BADARGCOUNT);
              return;
@@ -512,6 +531,7 @@ void LIB_HANDLER()
 
      case IFTE:
      {
+        //@SHORT_DESC=Evaluate objects on the stack conditionally
          if(rplDepthData()<3) {
              rplError(ERR_BADARGCOUNT);
              return;
@@ -547,17 +567,20 @@ void LIB_HANDLER()
 
     case STKPUSH:
     {
+     //@SHORT_DESC=Push a snapshot of the current stack on the undo stack
      // PUSH CURRENT STACK TO UNDO STACK
      rplTakeSnapshot();
      return;
     }
     case STKPOP:
     {
+        //@SHORT_DESC=Pop a stack snapshot from the undo stack
      rplRevertToSnapshot(1);
      return;
     }
     case STKDROP:
     {
+        //@SHORT_DESC=Drop a snapshot from the undo stack
      rplRemoveSnapshot(1);
      return;
     }
@@ -566,6 +589,7 @@ void LIB_HANDLER()
     case STKPICK:
         //  PICK A VALUE FROM ANY SNAPSHOT
     {
+        //@SHORT_DESC=Copy snapshot in level N to the current stack
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -597,6 +621,7 @@ void LIB_HANDLER()
     case STKDEPTH:
         //  PICK A VALUE FROM ANY SNAPSHOT
     {
+        //@SHORT_DESC=Get the depth of the undo stack
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;

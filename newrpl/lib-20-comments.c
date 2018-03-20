@@ -149,6 +149,7 @@ void LIB_HANDLER()
     {
     case STRIPCOMMENTS:
     {
+        //@SHORT_DESC=Remove all comments from a compiled program
         // TODO: IMPLEMENT THIS
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);

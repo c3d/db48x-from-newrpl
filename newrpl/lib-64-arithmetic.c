@@ -64,11 +64,11 @@
     CMD(PCOEF,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
     CMD(IEGCD,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
     CMD(IABCUV,MKTOKENINFO(6,TITYPE_FUNCTION,2,2)), \
-    CMD(TCHEBYCHEFF,MKTOKENINFO(11,TITYPE_FUNCTION,1,2)), \
-    CMD(LEGENDRE,MKTOKENINFO(8,TITYPE_FUNCTION,1,2)), \
-    CMD(HERMITE,MKTOKENINFO(7,TITYPE_FUNCTION,1,2)), \
-    CMD(TCHEBYCHEFF2,MKTOKENINFO(12,TITYPE_FUNCTION,1,2)), \
-    CMD(HERMITE2,MKTOKENINFO(8,TITYPE_FUNCTION,1,2)), \
+    CMD(PTCHEBYCHEFF,MKTOKENINFO(11,TITYPE_FUNCTION,1,2)), \
+    CMD(PLEGENDRE,MKTOKENINFO(8,TITYPE_FUNCTION,1,2)), \
+    CMD(PHERMITE,MKTOKENINFO(7,TITYPE_FUNCTION,1,2)), \
+    CMD(PTCHEBYCHEFF2,MKTOKENINFO(12,TITYPE_FUNCTION,1,2)), \
+    CMD(PHERMITE2,MKTOKENINFO(8,TITYPE_FUNCTION,1,2)), \
     CMD(DIV2,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
     CMD(PDIV2,MKTOKENINFO(5,TITYPE_FUNCTION,2,2)), \
     CMD(PDER,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
@@ -295,6 +295,7 @@ void LIB_HANDLER()
     {
     case SETPREC:
     {
+        //@SHORT_DESC=Set the current system precision
         // TAKE AN INTEGER NUMBER FROM THE STACK
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -311,12 +312,14 @@ void LIB_HANDLER()
 
     case GETPREC:
     {
+        //@SHORT_DESC=Get the current system precision
         rplNewBINTPush(getPrecision(),DECBINT);
         return;
     }
 
     case FLOOR:
         {
+        //@SHORT_DESC=Largest integer less than the input
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -348,6 +351,7 @@ void LIB_HANDLER()
 
     case CEIL:
         {
+        //@SHORT_DESC=Smallest integer larger than the input
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -378,6 +382,7 @@ void LIB_HANDLER()
 
     case IP:
     {
+        //@SHORT_DESC=Integer part of a number
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
 
@@ -444,6 +449,7 @@ case IPPOST:
 
     case FP:
     {
+        //@SHORT_DESC=Fractional part of a number
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
 
@@ -490,6 +496,7 @@ case IPPOST:
 
     case FACTORIAL:
     {
+        //@SHORT_DESC=Factorial of a number
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -542,7 +549,7 @@ case IPPOST:
 
     case ISPRIME:
     {
-
+        //@SHORT_DESC=Return true/false (1/0) if a number is prime or not
 
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -589,7 +596,7 @@ case IPPOST:
 
     case NEXTPRIME:
     {
-
+        //@SHORT_DESC=Smallest prime number larger than the input
 
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -663,7 +670,7 @@ case IPPOST:
 
     case PREVPRIME:
     {
-
+        //@SHORT_DESC=Largest prime smaller than the input
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -777,6 +784,7 @@ case IPPOST:
     }
     case MODSTO:
     {
+        //@SHORT_DESC=Set the current system modulo for all MOD operations
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -821,6 +829,7 @@ case IPPOST:
 
     case MODRCL:
     {
+        //@SHORT_DESC=Get the current system modulo
         WORDPTR mod=rplGetSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)modulo_name+3);
         if(!mod) mod=(WORDPTR)zero_bint;
         if(!ISNUMBER(*mod)) {
@@ -839,10 +848,14 @@ case IPPOST:
     }
 
     case POWMOD:
+        //@SHORT_DESC=Power operator MOD the current system modulo
     case ADDTMOD:
+        //@SHORT_DESC=Addition operator MOD the current system modulo
     case SUBTMOD:
+        //@SHORT_DESC=Subtraction operator MOD the current system modulo
     case MULTMOD:
     {
+        //@SHORT_DESC=Multiplication operator MOD the current system modulo
 
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -983,8 +996,11 @@ case IPPOST:
     }
 
     case MOD:
+        //@SHORT_DESC=Remainder of the integer division
     case IDIV2:
+        //@SHORT_DESC=Integer division, get quoteiant and remainder
     case IQUOT:
+        //@SHORT_DESC=Quotient of the integer division
     {
 
             if(rplDepthData()<2) {
@@ -1096,6 +1112,7 @@ case IPPOST:
 
     case SQ:
     {
+        //@SHORT_DESC=Square of the input
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1129,6 +1146,7 @@ case IPPOST:
 
     case MANT:
     {
+        //@SHORT_DESC=Mantissa of a real number (M*10<sup>exp</sup>)
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1171,6 +1189,7 @@ case IPPOST:
 
     case XPON:
     {
+        //@SHORT_DESC=Exponent of a number represented as (M*10<sup>exp</sup>)
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1210,6 +1229,7 @@ case IPPOST:
 
     case SIGN:
     {
+        //@SHORT_DESC=Sign of a number
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1301,7 +1321,7 @@ case IPPOST:
 
     case PERCENT:
     {
-
+        //@SHORT_DESC=Percentage of a number
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1338,7 +1358,7 @@ case IPPOST:
 
     case PERCENTCH:
     {
-
+            //@SHORT_DESC=Percentage of change on a number
             if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
                 return;
@@ -1385,7 +1405,7 @@ case IPPOST:
 
     case PERCENTTOT:
     {
-
+            //@SHORT_DESC=Get percentage of a total
             if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
                 return;
@@ -1430,9 +1450,12 @@ case IPPOST:
     }
 
     case GCD:
+        //@SHORT_DESC=Greatest common divisor
     case LCM:
+        //@SHORT_DESC=Least common multiple
     case IEGCD:
     {
+        //@SHORT_DESC=Extended euclidean algorithm
 
             if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
@@ -1803,7 +1826,7 @@ case IPPOST:
 
     case PEVAL:
     {
-
+            //@SHORT_DESC=Evaluation of polynomial given as vector of coefficients
             if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
                 return;
@@ -1861,7 +1884,7 @@ case IPPOST:
 
     case PCOEF:
     {
-
+            //@SHORT_DESC=Coefficients of monic polynomial with the given roots
             if(rplDepthData()<1) {
                 rplError(ERR_BADARGCOUNT);
                 return;
@@ -1961,6 +1984,7 @@ case IPPOST:
 
     case IABCUV:
     {
+        //@SHORT_DESC=Find integers u,v to solve a*u+b*v=c
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2065,11 +2089,16 @@ case IPPOST:
         return;
     }
 
-    case TCHEBYCHEFF:
-    case TCHEBYCHEFF2:
-    case LEGENDRE:
-    case HERMITE:
-    case HERMITE2:
+    case PTCHEBYCHEFF:
+        //@SHORT_DESC=Nth Tchebycheff polynomial
+    case PTCHEBYCHEFF2:
+        //@SHORT_DESC=Nth Tchebycheff polynomial of the second kind
+    case PLEGENDRE:
+        //@SHORT_DESC=Nth Legendre polynomial
+    case PHERMITE:
+        //@SHORT_DESC=Nth Hermite polynomial as used by physics
+    case PHERMITE2:
+        //@SHORT_DESC=Nth Hermite polynomial as used in probabilities
     {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -2140,14 +2169,14 @@ case IPPOST:
         }
         else if (n == 1) {
             switch (OPCODE(CurOpcode)) {
-            case TCHEBYCHEFF:
-            case LEGENDRE:
-            case HERMITE2:
+            case PTCHEBYCHEFF:
+            case PLEGENDRE:
+            case PHERMITE2:
                 rplPushData((WORDPTR)(one_bint));
                 rplPushData((WORDPTR)(zero_bint));
                 break;
-            case HERMITE:
-            case TCHEBYCHEFF2:
+            case PHERMITE:
+            case PTCHEBYCHEFF2:
                 rplPushData((WORDPTR)(two_bint));
                 rplPushData((WORDPTR)(zero_bint));
                 break;
@@ -2201,14 +2230,14 @@ case IPPOST:
             int oth = 1 - cur;
             // todo populate n=0 and n=1
             switch (OPCODE(CurOpcode)) {
-            case TCHEBYCHEFF:
-            case LEGENDRE:
-            case HERMITE2:
+            case PTCHEBYCHEFF:
+            case PLEGENDRE:
+            case PHERMITE2:
                 rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint)); //n=0
                 rplOverwriteData(oth*(n+1)+2,(WORDPTR)(one_bint)); //n=1
                 break;
-            case HERMITE:
-            case TCHEBYCHEFF2:
+            case PHERMITE:
+            case PTCHEBYCHEFF2:
                 rplOverwriteData(cur*(n+1)+1,(WORDPTR)(one_bint)); //n=0
                 rplOverwriteData(oth*(n+1)+2,(WORDPTR)(two_bint)); //n=1
                 break;
@@ -2234,23 +2263,23 @@ case IPPOST:
                         rplNumberToRReg(1, (WORDPTR)(zero_bint)); // the last is zero
                     }
                     switch (OPCODE(CurOpcode)) {
-                    case TCHEBYCHEFF:
-                    case TCHEBYCHEFF2:
+                    case PTCHEBYCHEFF:
+                    case PTCHEBYCHEFF2:
                         mulReal(&RReg[3], &RReg[2], &RReg[1]); // 2*x*current
                         subReal(&RReg[4], &RReg[3], &RReg[0]); // 2*x*current - previous
                         break;
-                    case LEGENDRE:
+                    case PLEGENDRE:
                         mulReal(&RReg[3], &RReg[5], &RReg[0]); // n*previous
                         mulReal(&RReg[0], &RReg[6], &RReg[1]); // (2n+1)*x*current
                         subReal(&RReg[1], &RReg[0], &RReg[3]); // (2n+1)*x*current - n*previous
                         divReal(&RReg[4], &RReg[1], &RReg[7]); // 2*x*current - 2*n*previous
                         break;
-                    case HERMITE:
+                    case PHERMITE:
                         mulReal(&RReg[3], &RReg[5], &RReg[0]); // n*previous
                         subReal(&RReg[0], &RReg[1], &RReg[3]); // x*current - n*previous
                         mulReal(&RReg[4], &RReg[0], &RReg[2]); // 2*x*current - 2*n*previous
                         break;
-                    case HERMITE2:
+                    case PHERMITE2:
                         mulReal(&RReg[3], &RReg[5], &RReg[0]); // n*previous
                         subReal(&RReg[4], &RReg[1], &RReg[3]); // x*current - n*previous
                         break;
@@ -2286,8 +2315,12 @@ case IPPOST:
         return;
     }
 
-    case PDIV2:
     case DIV2:
+        //@SHORT_DESC=Polynomial euclidean division as symbolic
+        // TODO: THIS NEEDS TO RETURN A SYMBOLIC EXPRESSION
+        return;
+    case PDIV2:
+        //@SHORT_DESC=Polynomial euclidean division as coefficient vector
     {
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -2451,7 +2484,9 @@ case IPPOST:
     }
 
     case PINT:
+        //@SHORT_DESC=Integration of polynomials as coefficient vector
     case PDER:
+        //@SHORT_DESC=Derivative of polynomial as coefficient vector
     {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -2535,8 +2570,10 @@ case IPPOST:
     }
 
     case PADD:
+        //@SHORT_DESC=Addition of polynomials as coefficient vector
     case PSUB:
     {
+        //@SHORT_DESC=Subtraction of polynomials as coefficient vector
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2656,6 +2693,7 @@ case IPPOST:
 
     case PMUL:
     {
+        //@SHORT_DESC=Multiplication of polynomials as coefficient vectors
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2764,6 +2802,7 @@ case IPPOST:
 
 
     case MIN:
+        //@SHORT_DESC=Smallest of 2 objects
     {
         // COMPARE ANY 2 OBJECTS AND KEEP THE SMALLEST
 
@@ -2809,6 +2848,7 @@ case IPPOST:
 
 
     case MAX:
+        //@SHORT_DESC=Largest of 2 objects
     {
         // COMPARE ANY 2 OBJECTS AND KEEP THE SMALLEST
 
@@ -2854,7 +2894,9 @@ case IPPOST:
 
 
     case RND:
+        //@SHORT_DESC=Round a number to the given number of figures
     case TRNC:
+        //@SHORT_DESC=Truncate a number to the given number of figures
     {
     if(rplDepthData()<2) {
         rplError(ERR_BADARGCOUNT);
@@ -3108,6 +3150,7 @@ case IPPOST:
     }
 
 case DIGITS:
+        //@SHORT_DESC=Extract digits from a real number
         // EXTRACT DIGITS FROM A REAL NUMBER
         // GIVEN THE NUMBER AND POSITION START/END
         // POSITION IS GIVEN IN 10s POWERS (0 = UNITY, 1 = TENS, ETC)
@@ -3167,6 +3210,7 @@ case DIGITS:
 
 case PROOT:
     {
+        //@SHORT_DESC=All roots of a polynomial
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
