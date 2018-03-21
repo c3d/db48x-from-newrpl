@@ -177,6 +177,8 @@ void LIB_HANDLER()
 
     case COPYCLIP:
     {
+        //@SHORT_DESC=Copy an object to the clipboard
+        //@NEW
         // STORE LEVEL 1 INTO .Settings/Clipbd
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -190,6 +192,8 @@ void LIB_HANDLER()
     }
     case CUTCLIP:
     {
+        //@SHORT_DESC=Move an object to the clipboard
+        //@NEW
         // STORE LEVEL 1 INTO .Settings/Clipbd
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -204,6 +208,8 @@ void LIB_HANDLER()
 
     case PASTECLIP:
     {
+        //@SHORT_DESC=Insert the clipboard contents on the stack
+        //@NEW
         WORDPTR object=rplGetSettings((WORDPTR)clipbd_ident);
 
         if(!object) rplError(ERR_EMPTYCLIPBOARD);
@@ -227,6 +233,8 @@ void LIB_HANDLER()
 
     case WAIT:
     {
+        //@SHORT_DESC=Wait for a key press or a time lapse
+        //@INCOMPAT
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -271,6 +279,8 @@ void LIB_HANDLER()
 
     case KEYEVAL:
     {
+        //@SHORT_DESC=Simulate a keypress from within a program
+        //@INCOMPAT
         // REMOVE A CUSTOM KEY DEFINITION
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -309,7 +319,8 @@ void LIB_HANDLER()
 
     case KEY:
     {
-
+        //@SHORT_DESC=Get instantaneous state of the keyboard
+        //@INCOMPAT
         keymatrix key=keyb_getmatrix();
 
 
@@ -319,14 +330,19 @@ void LIB_HANDLER()
         }
 
         BINT knum=0;
+        int k;
+        for(k=0;k<63;++k) {
+            if(key&(1LL<<k)) {
+                WORDPTR kn=rplMsg2KeyName(k);
 
-        while(!(key&1)) { ++knum; key>>=1; }
+                if(!kn) return;
+                rplPushData(kn);
 
-        WORDPTR kn=rplMsg2KeyName(KM_PRESS|knum);
+                ++knum;
+            }
 
-        if(!kn) return;
-        rplPushData(kn);
-        rplPushData((WORDPTR)one_bint);
+        }
+        rplNewBINTPush(knum,DECBINT);
 
         return;
 

@@ -1615,6 +1615,7 @@ void LIB_HANDLER()
     case SETLOCALE:
     {
         //@SHORT_DESC=Change the separator symbols
+        //@NEW
      NUMFORMAT fmt;
      if(rplDepthData()<1) {
          rplError(ERR_BADARGCOUNT);
@@ -1693,6 +1694,7 @@ void LIB_HANDLER()
     case SETNFMT:
     {
         //@SHORT_DESC=Change the display format for numbers
+        //@NEW
         // SET THE SYSTEM NUMBER FORMAT
         // ACCEPT EITHER A SINGLE STRING OR A LIST AS FOLLOWS:
         // FORMAT_STRING --> REPLACE NUMBER FORMAT FOR ALL NUMBERS (BIG, SMALL AND NORMAL)
@@ -2174,6 +2176,7 @@ void LIB_HANDLER()
     case TMENU:
      {
         //@SHORT_DESC=Display the given menu on the active menu area
+        //@INCOMPAT
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2193,9 +2196,11 @@ void LIB_HANDLER()
 
     case TMENULST:
         //@SHORT_DESC=Display the given menu on the menu area the user used last
+        //@NEW
     case TMENUOTHR:
      {
         //@SHORT_DESC=Display the given menu on the menu are the user did not use last
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2219,11 +2224,14 @@ void LIB_HANDLER()
 
     case RCLMENU:
         //@SHORT_DESC=Recall the active menu
+        //@INCOMPAT
     case RCLMENULST:
         //@SHORT_DESC=Recall the menu the user used last
+        //@NEW
     case RCLMENUOTHR:
     {
         //@SHORT_DESC=Recall the menu the user did not use last
+        //@NEW
         BINT menu;
 
         if(CurOpcode!=CMD_RCLMENU) {
@@ -2264,6 +2272,7 @@ void LIB_HANDLER()
     case MENUSWAP:
     {
         //@SHORT_DESC=Swap the contents of menu areas 1 and 2
+        //@NEW
         // JUST SWAP MENUS 1 AND 2
         BINT64 m1code=rplGetMenuCode(1);
         BINT64 m2code=rplGetMenuCode(2);
@@ -2294,11 +2303,14 @@ void LIB_HANDLER()
 
     case MENUBK:
         //@SHORT_DESC=Display the previous menu on the active menu area
+        //@NEW
     case MENUBKLST:
         //@SHORT_DESC=Display the previous menu on the area the user used last
+        //@NEW
     case MENUBKOTHR:
     {
         //@SHORT_DESC=Display the previous menu on the area the user did not use last
+        //@NEW
         BINT menu;
 
         if(CurOpcode!=CMD_MENUBK) {
@@ -2344,6 +2356,7 @@ void LIB_HANDLER()
     case ASNKEY:
     {
         //@SHORT_DESC=Assign a custom definition to a key
+        //@NEW
         // ASSIGN A CUSTOM KEY DEFINITION
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
@@ -2404,6 +2417,7 @@ void LIB_HANDLER()
     case DELKEY:
     {
         //@SHORT_DESC=Remove a custom key definition
+        //@NEW
         // REMOVE A CUSTOM KEY DEFINITION
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -2478,6 +2492,7 @@ void LIB_HANDLER()
     case RCLKEYS:
     {
         //@SHORT_DESC=Recall the list of all custom key definitions
+        //@INCOMPAT
         // GET THE ENTIRE LIST OF KEY ASSIGNMENTS
         WORDPTR keylist=rplGetSettings((WORDPTR)customkey_ident);
 
@@ -2491,6 +2506,7 @@ void LIB_HANDLER()
     case STOKEYS:
     {
         //@SHORT_DESC=Store and replace all custom key definitions
+        //@INCOMPAT
         // STORE THE ENTIRE LIST OF KEY ASSIGNMENTS
         // REMOVE A CUSTOM KEY DEFINITION
         if(rplDepthData()<1) {
@@ -2542,6 +2558,7 @@ void LIB_HANDLER()
  case TYPE:
     {
         //@SHORT_DESC=Get type information from an object
+        //@INCOMPAT
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2573,6 +2590,7 @@ void LIB_HANDLER()
     case TYPEE:
        {
         //@SHORT_DESC=Get extended type information from an object
+        //@NEW
            if(rplDepthData()<1) {
                rplError(ERR_BADARGCOUNT);
                return;
@@ -2609,6 +2627,7 @@ void LIB_HANDLER()
     case GETLOCALE:
     {
         //@SHORT_DESC=Get the current separator symbols
+        //@NEW
         // GET LOCALE STRING
 
         UBINT64 loc;
@@ -2645,6 +2664,7 @@ void LIB_HANDLER()
     case GETNFMT:
     {
         //@SHORT_DESC=Recall the current display format for numbers
+        //@NEW
         // GET SYSTEM NUMBER FORMAT IN USER-READABLE FORMAT
         NUMFORMAT f;
 
@@ -2686,6 +2706,7 @@ void LIB_HANDLER()
     case RCLF:
     {
         //@SHORT_DESC=Recall all system flags
+        //@INCOMPAT
             if(!ISLIST(*SystemFlags)) {
                 rplError(ERR_SYSTEMFLAGSINVALID);
                 return;
@@ -2701,6 +2722,7 @@ void LIB_HANDLER()
     case STOF:
     {
         //@SHORT_DESC=Store and replace all system flags
+        //@INCOMPAT
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2756,6 +2778,7 @@ void LIB_HANDLER()
     case VTYPE:
        {
         //@SHORT_DESC=Get type information on the contents of a variable
+        //@INCOMPAT
            if(rplDepthData()<1) {
                rplError(ERR_BADARGCOUNT);
                return;
@@ -2810,6 +2833,7 @@ void LIB_HANDLER()
        case VTYPEE:
           {
             //@SHORT_DESC=Get extended type information on the contents of a variable
+            //@NEW
               if(rplDepthData()<1) {
                   rplError(ERR_BADARGCOUNT);
                   return;

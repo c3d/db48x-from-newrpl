@@ -472,6 +472,7 @@ void LIB_HANDLER()
 
     case BEGINPLOT:
     {
+        //@SHORT_DESC=Initialize a new current plot object
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -520,6 +521,7 @@ void LIB_HANDLER()
 
     case EDITPLOT:
     {
+        //@SHORT_DESC=Set the current plot object to the given graphic
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -544,6 +546,7 @@ void LIB_HANDLER()
 
     case ENDPLOT:
     {
+        //@SHORT_DESC=Finish current plot object and leave it on the stack
         // PUSH THE CURRENT PLOT OBJECT TO THE STACK
         WORDPTR val=rplGetLAM((WORDPTR)cplot_ident);
         if(val) rplPushData(val);
@@ -554,7 +557,7 @@ void LIB_HANDLER()
 
     case STROKECOL:
     {
-
+        //@SHORT_DESC=Change the current stroke color
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
         WORDPTR val=rplGetLAM((WORDPTR)cplot_ident);
         if(!val) { rplError(ERR_NOCURRENTPLOT); return; }
@@ -591,7 +594,7 @@ void LIB_HANDLER()
 
     case STROKETYPE:
     {
-
+        //@SHORT_DESC=Change current stroke type
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
         WORDPTR val=rplGetLAM((WORDPTR)cplot_ident);
         if(!val) { rplError(ERR_NOCURRENTPLOT); return; }
@@ -628,7 +631,7 @@ void LIB_HANDLER()
 
     case FILLCOL:
     {
-
+        //@SHORT_DESC=Change the current fill color
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
         WORDPTR val=rplGetLAM((WORDPTR)cplot_ident);
         if(!val) { rplError(ERR_NOCURRENTPLOT); return; }
@@ -664,7 +667,7 @@ void LIB_HANDLER()
 
     case FILLTYPE:
     {
-
+        //@SHORT_DESC=Change the current fill type
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
         WORDPTR val=rplGetLAM((WORDPTR)cplot_ident);
         if(!val) { rplError(ERR_NOCURRENTPLOT); return; }
@@ -701,7 +704,7 @@ void LIB_HANDLER()
 
     case FILL:
     {
-
+        //@SHORT_DESC=Fill the last polygon
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
         WORDPTR val=rplGetLAM((WORDPTR)cplot_ident);
         if(!val) { rplError(ERR_NOCURRENTPLOT); return; }
@@ -721,7 +724,7 @@ void LIB_HANDLER()
 
     case STROKE:
     {
-
+        //@SHORT_DESC=Draw the outline of the last polygon
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
         WORDPTR val=rplGetLAM((WORDPTR)cplot_ident);
         if(!val) { rplError(ERR_NOCURRENTPLOT); return; }
@@ -740,7 +743,7 @@ void LIB_HANDLER()
 
     case FILLSTROKE:
     {
-
+        //@SHORT_DESC=Draw the outline and fill the last polygon
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
         WORDPTR val=rplGetLAM((WORDPTR)cplot_ident);
         if(!val) { rplError(ERR_NOCURRENTPLOT); return; }
@@ -761,7 +764,7 @@ void LIB_HANDLER()
 
     case MOVETO:
     {
-
+        //@SHORT_DESC=Move current coordinates
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
         WORDPTR val=rplGetLAM((WORDPTR)cplot_ident);
         if(!val) { rplError(ERR_NOCURRENTPLOT); return; }
@@ -800,7 +803,7 @@ void LIB_HANDLER()
 
     case LINETO:
     {
-
+        //@SHORT_DESC=Draw a line
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
         WORDPTR val=rplGetLAM((WORDPTR)cplot_ident);
         if(!val) { rplError(ERR_NOCURRENTPLOT); return; }
@@ -839,7 +842,7 @@ void LIB_HANDLER()
 
     case CIRCLE:
     {
-
+        //@SHORT_DESC=Draw a circle
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
         WORDPTR val=rplGetLAM((WORDPTR)cplot_ident);
         if(!val) { rplError(ERR_NOCURRENTPLOT); return; }
@@ -877,7 +880,7 @@ void LIB_HANDLER()
 
     case RECTANG:
     {
-
+        //@SHORT_DESC=Draw a rectangle
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
         WORDPTR val=rplGetLAM((WORDPTR)cplot_ident);
         if(!val) { rplError(ERR_NOCURRENTPLOT); return; }
@@ -916,7 +919,7 @@ void LIB_HANDLER()
 
     case CTLNODE:
     {
-
+        //@SHORT_DESC=Add a control node to the current polygon
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
         WORDPTR val=rplGetLAM((WORDPTR)cplot_ident);
         if(!val) { rplError(ERR_NOCURRENTPLOT); return; }
@@ -956,7 +959,7 @@ void LIB_HANDLER()
 
     case CURVE:
     {
-
+        //@SHORT_DESC=Draw a curve using all previous control points
         // CHECK IF THERE'S A CURRENT PLOT OBJECT
         WORDPTR val=rplGetLAM((WORDPTR)cplot_ident);
         if(!val) { rplError(ERR_NOCURRENTPLOT); return; }
@@ -1003,6 +1006,7 @@ void LIB_HANDLER()
 
     case INITRENDER:
     {
+        //@SHORT_DESC=Set which library will be used as default renderer
      // TAKES INTEGER NUMBER SPECIFYING THE LIBRARY NUMBER TO USE FOR DRAWING
      // WIDTH AND HEIGHT OF THE TARGET GRAPHIC
 
@@ -1137,6 +1141,7 @@ void LIB_HANDLER()
 
     case DORENDER:
     {
+        //@SHORT_DESC=Render a graphics object using the current renderer
     //  PERFORM A RENDERING USING A CUSTOM LIBRARY
     // SCANS THE OBJECT, PERFORMS ALL THE TRANSFORMATIONS, THEN PASS THE FINAL PIXEL COORDINATES TO THE LIBRARY
 
@@ -1332,6 +1337,7 @@ void LIB_HANDLER()
 
     case PANVIEW:
     {
+        //@SHORT_DESC=Shift the center of viewport to render graphics
         // MOVES THE VIEWPORT
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
@@ -1369,6 +1375,7 @@ void LIB_HANDLER()
 
 case SCLVIEW:
     {
+        //@SHORT_DESC=Set scale to render graphics
         // APPLY A RELATIVE SCALE TO THE VIEWPORT
 
         if(rplDepthData()<2) {

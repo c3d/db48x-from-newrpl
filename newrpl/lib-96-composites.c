@@ -139,6 +139,7 @@ void LIB_HANDLER()
 
     case PUT:
     {
+        //@SHORT_DESC=Replace an item in a composite
         // CHECK ARGUMENTS
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
@@ -394,6 +395,7 @@ void LIB_HANDLER()
     }
     case PUTI:
     {
+        //@SHORT_DESC=Replace an item and increase index
         // CHECK ARGUMENTS
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
@@ -733,6 +735,7 @@ void LIB_HANDLER()
     case GET:
 
     {
+        //@SHORT_DESC=Extract an item from a composite
         // CHECK ARGUMENTS
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -910,6 +913,7 @@ void LIB_HANDLER()
 
     case GETI:
     {
+        //@SHORT_DESC=Extract an item and increase index
         // CHECK ARGUMENTS
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -1170,6 +1174,7 @@ void LIB_HANDLER()
 
     case HEAD:
     {
+        //@SHORT_DESC=Extract the first item in a composite
         // CHECK ARGUMENTS
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1210,6 +1215,7 @@ void LIB_HANDLER()
 
     case TAIL:
     {
+        //@SHORT_DESC=Removes the first item in a composite
         // CHECK ARGUMENTS
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1253,6 +1259,7 @@ void LIB_HANDLER()
 
     case OBJDECOMP:
     {
+        //@SHORT_DESC=Explode an object into its components
         // EXPLODE ANY COMPOSITE INTO COMPONENTS
         // CHECK ARGUMENTS
         if(rplDepthData()<1) {
@@ -1335,6 +1342,7 @@ void LIB_HANDLER()
 
     case REPL:
      {
+        //@SHORT_DESC=Replace elements in a composite
             // CHECK ARGUMENTS
             if(rplDepthData()<3) {
                 rplError(ERR_BADARGCOUNT);
@@ -1676,6 +1684,7 @@ void LIB_HANDLER()
 
     case POS:
     {
+        //@SHORT_DESC=Find the position of an element in a composite
         // CHECK ARGUMENTS
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -1781,6 +1790,7 @@ void LIB_HANDLER()
 
     case NPOS:
     {
+        //@SHORT_DESC=Find object in a composite, starting from index N
         // CHECK ARGUMENTS
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
@@ -1918,6 +1928,7 @@ void LIB_HANDLER()
 
     case POSREV:
     {
+        //@SHORT_DESC=Find the position of an element, starting from the end
         // CHECK ARGUMENTS
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -2021,6 +2032,7 @@ void LIB_HANDLER()
 
     case NPOSREV:
     {
+        //@SHORT_DESC=Find the position from the end, starting at index N
         // CHECK ARGUMENTS
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
@@ -2153,6 +2165,7 @@ void LIB_HANDLER()
     case SUB:
 
         {
+            //@SHORT_DESC=Extract a group of elements from a composite
             // CHECK ARGUMENTS
             if(rplDepthData()<3) {
                 rplError(ERR_BADARGCOUNT);
@@ -2442,6 +2455,7 @@ void LIB_HANDLER()
 
         case SIZE:
     {
+        //@SHORT_DESC=Number of elements in a composite
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2508,6 +2522,7 @@ void LIB_HANDLER()
 
     case RHEAD:
     {
+        //@SHORT_DESC=Returns the last element from the composite
         // CHECK ARGUMENTS
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -2549,6 +2564,7 @@ void LIB_HANDLER()
 
     case RTAIL:
     {
+        //@SHORT_DESC=Removes the last element from the composite
         // CHECK ARGUMENTS
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);

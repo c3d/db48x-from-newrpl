@@ -165,6 +165,7 @@ void LIB_HANDLER()
     case STO:
     {
         //@SHORT_DESC=Store an object into a variable
+        //@INCOMPAT
         // STORE CONTENT INSIDE A LAM OR GLOBAL VARIABLE, CREATE A NEW "GLOBAL" VARIABLE IF NEEDED
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -400,6 +401,7 @@ void LIB_HANDLER()
     case RCL:
     {
         //@SHORT_DESC=Recall the contents of a variable
+        //@INCOMPAT
         // GET CONTENT FROM LOCAL OR GLOBAL VARIABLE
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1392,6 +1394,7 @@ void LIB_HANDLER()
     case ALLVARS:
     {
         //@SHORT_DESC=List all variables in a directory
+        //@NEW
        WORDPTR *varptr=rplFindFirstInDir(CurrentDir);
        WORDPTR *stksave=DSTop;
        BINT nitems=0;
@@ -1462,6 +1465,7 @@ void LIB_HANDLER()
     case QUOTEID:
     {
         //@SHORT_DESC=Add single quotes to a variable name
+        //@NEW
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -1483,6 +1487,7 @@ void LIB_HANDLER()
     case UNQUOTEID:
     {
         //@SHORT_DESC=Remove single quotes from a variable name
+        //@NEW
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -1505,6 +1510,7 @@ void LIB_HANDLER()
     case HIDEVAR:
         {
         //@SHORT_DESC=Hide a variable (make invisible)
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1548,6 +1554,7 @@ void LIB_HANDLER()
     case UNHIDEVAR:
     {
         //@SHORT_DESC=Make a hidden variable visible
+        //@NEW
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -1613,6 +1620,7 @@ void LIB_HANDLER()
     case LOCKVAR:
     {
         //@SHORT_DESC=Make variable read-only
+        //@NEW
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -1652,6 +1660,7 @@ void LIB_HANDLER()
 case UNLOCKVAR:
     {
         //@SHORT_DESC=Make variable read/write
+        //@NEW
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -1694,6 +1703,7 @@ case UNLOCKVAR:
     case RENAME:
     {
         //@SHORT_DESC=Change the name of a variable
+        //@NEW
         // RENAME A LAM OR GLOBAL VARIABLE
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -1741,6 +1751,7 @@ case UNLOCKVAR:
 case TVARS:
     {
         //@SHORT_DESC=List variables of a specific type
+        //@INCOMPAT
     if(rplDepthData()<1) {
         rplError(ERR_BADARGCOUNT);
         return;
@@ -1819,6 +1830,7 @@ case TVARS:
 case TVARSE:
         {
         //@SHORT_DESC=List all variables with extended type information
+        //@NEW
         // SAME AS TVARS BUT USE EXTENDED TYPE INFORMATION
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1903,6 +1915,7 @@ case TVARSE:
     case SADD:
         {
         //@SHORT_DESC=Apply command ADD to the stored contents of the variable
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;

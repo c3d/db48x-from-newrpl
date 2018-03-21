@@ -144,11 +144,14 @@ void LIB_HANDLER()
     switch(OPCODE(CurOpcode))
     {
     case EXITRPL:
+        //@SHORT_DESC=Panic exit - abort the RPL engine.
+        //@NEW
         rplException(EX_EXITRPL);
         return;
 
     case ENDOFCODE:
     {
+
         // SAME AS HALT BUT DON'T AFFECT THE HALTED PROGRAM
         rplException(EX_HALT);
 
@@ -175,6 +178,7 @@ void LIB_HANDLER()
     }
     case HALT:
     {
+        //@SHORT_DESC=Halt the execution of RPL code
         if(HaltedIPtr) {
             return; // CAN'T HALT WITHIN AN ALREADY HALTED PROGRAM!
         }
@@ -191,6 +195,7 @@ void LIB_HANDLER()
 
     case CONT:
     {
+        //@SHORT_DESC=Continue execution of a halted program
         if(!HaltedIPtr) return;
 
         // UN-PAUSE ALL HARDWARE BREAKPOINTS. THIS IS NEEDED FOR breakpt_seco ONLY.
@@ -210,6 +215,7 @@ void LIB_HANDLER()
     }
     case SSTIN:
     {
+        //@SHORT_DESC=Single-step through a halted program, goes into subroutines
         // SINGLE STEP A HALTED PROGRAM
         if(!HaltedIPtr) return;
 
@@ -236,6 +242,7 @@ void LIB_HANDLER()
 
     case SST:
     {
+        //@SHORT_DESC=Single-step through a halted program, skip over subroutines
         // SINGLE STEP A HALTED PROGRAM BUT SKIP OVER INNER CODE
         if(!HaltedIPtr) return;
 
@@ -269,7 +276,9 @@ void LIB_HANDLER()
     }
 
     case KILL:
-    {   // KILL THE HALTED PROGRAM
+    {
+        //@SHORT_DESC=Terminate a halted program
+        // KILL THE HALTED PROGRAM
         if(!HaltedIPtr) return;
         HaltedIPtr=0;
         if(RSTop>HaltedRSTop) {
@@ -290,7 +299,7 @@ void LIB_HANDLER()
 
     case DBUG:
     {
-
+        //@SHORT_DESC=Halt the given program at the first instruction for debugging
         if(HaltedIPtr) return;      // DO NOTHING IF A PROGRAM IS ALREADY BEING DEBUGGED
 
         if(rplDepthData()<1) {
@@ -331,6 +340,7 @@ void LIB_HANDLER()
         return;
 
     case SEMI:
+        //@SHORT_DESC=@HIDE
         // POP THE RETURN ADDRESS
         IPtr=rplPopRet();   // GET THE CALLER ADDRESS
         if(IPtr) CurOpcode=*IPtr;    // SET THE WORD SO MAIN LOOP SKIPS THIS OBJECT, AND THE NEXT ONE IS EXECUTED
@@ -343,6 +353,8 @@ void LIB_HANDLER()
         return;
 
     case EVAL1NEXT:
+        //@SHORT_DESC=Perform EVAL1 on the next object in a secondary and skips it
+        //@NEW
         // DO EVAL1 ON THE NEXT OBJECT IN THE SECONDARY, THEN SKIP IT
         if(ISPROLOG(*(IPtr+1))) {   // ONLY SKIP OBJECTS, NOT COMMANDS TO GUARANTEE IT CAN'T BREAK OUT OF LOOPS OR SECONDARIES
         ++IPtr;
@@ -380,6 +392,8 @@ void LIB_HANDLER()
 
 
     case RESUME:
+        //@SHORT_DESC=End error handler and resume execution of main program
+        //@NEW
         // THIS IS CALLED FROM WITHIN A SPECIAL ERROR HANDLER, TO RESUME EXECUTION WHERE IT STOPPED
         // JUST LIKE A NORMAL ERROR HANDLER WOULD
         // THE RETURN STACK CAN NEVER BE EMPTY (CHECK THAT) AND IT SHOULD HAVE:
@@ -410,6 +424,8 @@ void LIB_HANDLER()
     case DOERR:
         // THROW AN ERROR BY EITHER A STRING OR ERROR CODE
     {
+        //@SHORT_DESC=Issue an error condition
+        //@INCOMPAT
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -477,6 +493,8 @@ void LIB_HANDLER()
 
     case ERRN:
     {
+        //@SHORT_DESC=Recall the previous error code
+        //@INCOMPAT
         // GET THE PREVIOUS ERROR CODE
         BINT msgcode;
         if(TrappedExceptions==EX_ERRORCODE) msgcode=TrappedErrorCode;
@@ -496,6 +514,8 @@ void LIB_HANDLER()
 
     case ERRM:
     {
+        //@SHORT_DESC=Recall the previous error message
+        //@INCOMPAT
         // GET THE PREVIOUS ERROR CODE
         BINT msgcode;
         WORDPTR string=0;
@@ -540,6 +560,7 @@ void LIB_HANDLER()
 
     case ERR0:
     {
+        //@SHORT_DESC=Clear previous error code
         // CLEAR ALL ERROR CODES
         TrappedExceptions=0;
         TrappedErrorCode=0;
@@ -551,6 +572,8 @@ void LIB_HANDLER()
 
     case SETBKPOINT:
     {
+        //@SHORT_DESC=Set a breakpoint on a halted program
+        //@NEW
         // SET A BREAKPOINT ANYWHERE IN A BLOCK OF CODE
         // << ... CODE ... >> OFFSET [ << ... CONDITION ... >> ]
         // OFFSET IS THE NUMBER OF OBJECTS TO SKIP FROM START OF CODE
@@ -632,6 +655,8 @@ void LIB_HANDLER()
     }
     case CLRBKPOINT:
     {
+        //@SHORT_DESC=Remove a breakpoint
+        //@NEW
         // REMOVE THE BREAK POINT
 
         SET_BKPOINTFLAG(0,0);
@@ -648,6 +673,8 @@ void LIB_HANDLER()
         // THROW AN ERROR BY EITHER A STRING OR ERROR CODE
         // AND BLAME A CERTAIN PROGRAM BY STRING OR IDENT
     {
+        //@SHORT_DESC=Issue an error condition, blame other program for it
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -725,6 +752,8 @@ void LIB_HANDLER()
 
     case EXIT:
     {
+        //@SHORT_DESC=Early exit from the current program or loop
+        //@NEW
         // EXIT FROM THE CURRENT SECONDARY
         while(ErrorHandler==(WORDPTR)error_reenter_seco) {
             // WITHIN AN ERROR HANDLER, OR AFTER AN ELSEERR STATEMENT, EXIT SHOULD WORK LIKE ENDERR

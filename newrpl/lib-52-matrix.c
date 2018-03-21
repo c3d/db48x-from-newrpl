@@ -4791,6 +4791,7 @@ void LIB_HANDLER()
         case LDUP:
     {
         //@SHORT_DESC=Decompose A into LDUP such that P*A=L*D<sup>-1</sup>*U
+        //@NEW
         // ROUNDOFF-ERROR FREE DECOMPOSITION
         // DECOMPOSE A MATRIX AS P*A=L*D^-1*U
         // WHERE P=PERMUTATION MATRIX

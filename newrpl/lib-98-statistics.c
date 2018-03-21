@@ -135,6 +135,7 @@ void LIB_HANDLER()
     case RDZ:
         // RANDOMIZE SEQUENCE
     {
+        //@SHORT_DESC=Initialize random number generator with a seed
      if(rplDepthData()<1) {
          rplError(ERR_BADARGCOUNT);
          return;
@@ -154,6 +155,7 @@ void LIB_HANDLER()
     case RAND:
         // GET A RANDOM NUMBER AT LEAST AT CURRENT PRECISION
     {
+        //@SHORT_DESC=Generate a random real number
         BINT nwords=(Context.precdigits+7)>>3;
         BINT k;
 

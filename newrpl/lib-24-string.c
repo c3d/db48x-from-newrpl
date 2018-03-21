@@ -381,6 +381,7 @@ void LIB_HANDLER()
     case TOUTF:
     {
         //@SHORT_DESC=Create a Utf8 string from a list of code points
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -454,6 +455,7 @@ void LIB_HANDLER()
     case FROMUTF:
     {
         //@SHORT_DESC=List all code points in a Utf8 string
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -575,6 +577,7 @@ void LIB_HANDLER()
      case NTOKENS:
     {
         //@SHORT_DESC=Number of tokens in a string
+        //@NEW
      // STRING SEPSTRING -> n
        if(rplDepthData()<2) {
            rplError(ERR_BADARGCOUNT);
@@ -606,6 +609,7 @@ void LIB_HANDLER()
      case NTHTOKEN:
     {
         //@SHORT_DESC=Token at position N in a string
+        //@NEW
      // EXTRACT THE NTH TOKEN IN THE STRING
 
      // STRING STRINGSEP N -> STRING
@@ -658,6 +662,7 @@ void LIB_HANDLER()
      case NTHTOKENPOS:
     {
         //@SHORT_DESC=Position of token N in a string
+        //@NEW
      // EXTRACT THE NTH TOKEN IN THE STRING
 
      // STRING STRINGSEP N -> POS
@@ -723,6 +728,7 @@ void LIB_HANDLER()
      case TRIM:
     {
         //@SHORT_DESC=Remove characters at end of string
+        //@NEW
         // ELIMINATE ANY SEPARATORS AT THE END OF STRING
 
         // STRING STRINGSEP -> STRING
@@ -775,6 +781,7 @@ void LIB_HANDLER()
      case RTRIM:
     {
         //@SHORT_DESC=Remove characters at start of string
+        //@NEW
         // ELIMINATE ANY SEPARATORS AT THE START OF STRING
 
         // STRING STRINGSEP -> STRING
@@ -817,6 +824,7 @@ void LIB_HANDLER()
     case SSTRLEN:
     {
         //@SHORT_DESC=Length of string in characters
+        //@NEW
         // COMPUTE STRING LENGTH IN CHARACTERS
 
            if(rplDepthData()<1) {
@@ -838,6 +846,7 @@ void LIB_HANDLER()
     case STRLENCP:
     {
         //@SHORT_DESC=Length of string in Unicode code points
+        //@NEW
         // COMPUTE STRING LENGTH IN CODE POINTS
 
            if(rplDepthData()<1) {
@@ -861,6 +870,7 @@ void LIB_HANDLER()
     case TONFC:
     {
         //@SHORT_DESC=Normalize a string to Unicode NFC
+        //@NEW
         // NORMALIZE ANY STRING BY NFC
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);

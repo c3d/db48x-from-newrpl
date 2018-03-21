@@ -148,6 +148,7 @@ void LIB_HANDLER()
     case PINUM:
     {
         //@SHORT_DESC=Numeric constant π with twice the current system precision
+        //@NEW
         REAL pi;
 
         decconst_PI(&pi);

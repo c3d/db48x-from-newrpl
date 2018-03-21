@@ -1421,6 +1421,7 @@ void LIB_HANDLER()
     case TICKS:
         // RETURN SYSTEM CLOCK
         //@SHORT_DESC=Return system clock in microseconds
+        //@INCOMPAT
     {
         BINT64 ticks=halTicks();
         rplNewBINTPush(ticks,DECBINT);
@@ -2054,6 +2055,7 @@ void LIB_HANDLER()
     case BYTES:
     {
         //@SHORT_DESC=Size of an object in bytes and CRC32
+        //@INCOMPAT
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2068,6 +2070,7 @@ void LIB_HANDLER()
     case PEEK:
     {
         //@SHORT_DESC=Low-level read memory address
+        //@INCOMPAT
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2101,6 +2104,7 @@ void LIB_HANDLER()
     case POKE:
     {
         //@SHORT_DESC=Low level write to memory address
+        //@INCOMPAT
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2167,6 +2171,7 @@ void LIB_HANDLER()
     }
     case GARBAGE:
         //@SHORT_DESC=Force a garbage collection
+        //@NEW
         rplGCollect();
         return;
     case MEMCHECK:
@@ -2226,6 +2231,7 @@ void LIB_HANDLER()
 case TEVAL:
     {
      //@SHORT_DESC=Perform EVAL and measure elapsed time
+     //@INCOMPAT
      if(rplDepthData()<1) {
          rplError(ERR_BADARGCOUNT);
          return;

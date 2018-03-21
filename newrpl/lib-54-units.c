@@ -1443,6 +1443,7 @@ void LIB_HANDLER()
     case UDEFINE:
     {
         //@SHORT_DESC=Create a user-defined unit
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1544,6 +1545,7 @@ void LIB_HANDLER()
     case UPURGE:
     {
         //@SHORT_DESC=Delete a user-defined unit
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1745,7 +1747,7 @@ void LIB_HANDLER()
     }
     case SYMBTOUNIT:
         // DELIBERATE FALL THROUGH
-        //@SHORT_DESC=Apply a unit within a symbolic expression
+        //@SHORT_DESC=@HIDE
     case TOUNIT:
         // THIS IS IDENTICAL TO OVR_MUL
         //@SHORT_DESC=Apply a unit to an object
@@ -1811,6 +1813,7 @@ void LIB_HANDLER()
     case ULIST:
     {
         //@SHORT_DESC=List all user-defined units
+        //@NEW
         //  GET THE UNITS DIRECTORY
 
         WORDPTR unitdir_obj=rplGetSettings((WORDPTR)unitdir_ident);

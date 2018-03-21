@@ -730,6 +730,8 @@ void LIB_HANDLER()
     case FNTSTO:
         // INSTALL A NEW USER FONT
     {
+        //@SHORT_DESC=Install a user font for system use
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -751,6 +753,8 @@ void LIB_HANDLER()
     case FNTRCL:
         // RECALL A SYSTEM FONT
     {
+        //@SHORT_DESC=Recall a system font
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -771,6 +775,8 @@ void LIB_HANDLER()
     case FNTPG:
         // PURGE A USER INSTALLED FONT
     {
+        //@SHORT_DESC=Purge a user-installed system font
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -786,42 +792,57 @@ void LIB_HANDLER()
 
     case FNTSTK:
     {
+        //@SHORT_DESC=Recall name of current font for stack area
+        //@NEW
         WORDPTR fntid=rplGetCurrentFont(FONT_STACK);
         if(fntid) rplPushData(fntid);
         return;
     }
     case FNT1STK:
     {
+        //@SHORT_DESC=Recall name of current font for stack level 1
+        //@NEW
         WORDPTR fntid=rplGetCurrentFont(FONT_STACKLVL1);
         if(fntid) rplPushData(fntid);
         return;
     }
     case FNTMENU:
     {
+        //@SHORT_DESC=Recall name of current font for menu area
+        //@NEW
         WORDPTR fntid=rplGetCurrentFont(FONT_MENU);
         if(fntid) rplPushData(fntid);
         return;
     }
     case FNTCMDL:
     {
+        //@SHORT_DESC=Recall name of current font for command line area
+        //@NEW
         WORDPTR fntid=rplGetCurrentFont(FONT_CMDLINE);
         if(fntid) rplPushData(fntid);
         return;
     }
     case FNTSTAT:
     {
+        //@SHORT_DESC=Recall name of current font for status area
+        //@NEW
         WORDPTR fntid=rplGetCurrentFont(FONT_STATUS);
         if(fntid) rplPushData(fntid);
         return;
     }
     case FNTPLOT:
     {
+        //@SHORT_DESC=Recall name of current font for plot objects
+        //@NEW
+
         WORDPTR fntid=rplGetCurrentFont(FONT_PLOT);
         if(fntid) rplPushData(fntid);
         return;
     }
     case FNTFORM:
     {
+        //@SHORT_DESC=Recall name of current font for forms
+        //@NEW
         WORDPTR fntid=rplGetCurrentFont(FONT_FORMS);
         if(fntid) rplPushData(fntid);
         return;
@@ -829,6 +850,8 @@ void LIB_HANDLER()
     case STOFNTSTK:
         // CHANGE CURRENT FONT
     {
+        //@SHORT_DESC=Change current font for stack area
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -845,6 +868,8 @@ void LIB_HANDLER()
     case STOFNT1STK:
         // CHANGE CURRENT FONT
     {
+        //@SHORT_DESC=Change current font for stack level 1
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -861,6 +886,8 @@ void LIB_HANDLER()
     case STOFNTMENU:
         // CHANGE CURRENT FONT
     {
+        //@SHORT_DESC=Change current font for menu area
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -877,6 +904,9 @@ void LIB_HANDLER()
     case STOFNTCMDL:
         // CHANGE CURRENT FONT
     {
+        //@SHORT_DESC=Change current font for command line area
+        //@NEW
+
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -893,6 +923,8 @@ void LIB_HANDLER()
     case STOFNTSTAT:
         // CHANGE CURRENT FONT
     {
+        //@SHORT_DESC=Change current font for status area
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -909,6 +941,9 @@ void LIB_HANDLER()
     case STOFNTPLOT:
         // CHANGE CURRENT FONT
     {
+        //@SHORT_DESC=Change current font for plot objects
+        //@NEW
+
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -925,6 +960,9 @@ void LIB_HANDLER()
     case STOFNTFORM:
         // CHANGE CURRENT FONT
     {
+        //@SHORT_DESC=Change current font for forms
+        //@NEW
+
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;

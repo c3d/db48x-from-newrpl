@@ -107,6 +107,7 @@ void LIB_HANDLER()
     switch(OPCODE(CurOpcode))
     {
     case QSEMI:
+        //@SHORT_DESC=@HIDE
         // POP THE RETURN ADDRESS
         IPtr=rplPopRet();   // GET THE CALLER ADDRESS
         if(IPtr) CurOpcode=*IPtr;    // SET THE WORD SO MAIN LOOP SKIPS THIS OBJECT, AND THE NEXT ONE IS EXECUTED
@@ -142,11 +143,13 @@ void LIB_HANDLER()
     return;
 
     case IF:
+        //@SHORT_DESC=Conditional IF ... THEN ... ELSE ... END statement
     // THIS COMMAND DOES NOTHING, IT'S JUST A MARKER FOR THE COMPILER
         return;
 
     case THEN:
         {
+        //@SHORT_DESC=Conditional IF ... THEN ... ELSE ... END statement
         // BY DEFINITION, BINT 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -183,6 +186,7 @@ void LIB_HANDLER()
        }
         return;
     case ELSE:
+        //@SHORT_DESC=Conditional IF ... THEN ... ELSE ... END statement
         // SKIP ALL OBJECTS UNTIL NEXT END
         {
             int count=0;
@@ -196,13 +200,19 @@ void LIB_HANDLER()
         }
         return;
     case ENDIF:
+        //@SHORT_DESC=Conditional IF ... THEN ... ELSE ... END statement
+        //@NEW
         return;
 
     case CASE:
+        //@SHORT_DESC=Conditional CASE ... THEN ... END THEN ... END END statement
         return;
 
     case THENCASE:
         {
+        //@SHORT_DESC=Conditional CASE ... THEN ... END THEN ... END END statement
+        //@NEW
+
         // BY DEFINITION, BINT 0 OR REAL 0.0 = FALSE, EVERYTHING ELSE IS TRUE
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -240,6 +250,9 @@ void LIB_HANDLER()
         return;
     case ENDTHEN:
     {
+        //@SHORT_DESC=Conditional CASE ... THEN ... END THEN ... END END statement
+        //@NEW
+
         // IF THIS GETS EXECUTED, IT'S BECAUSE THE THEN CLAUSE WAS TRUE, SO SKIP UNTIL ENDCASE
         int count=0;
          while(count || (*IPtr!=MKOPCODE(LIBRARY_NUMBER,ENDCASE))) {
@@ -254,10 +267,14 @@ void LIB_HANDLER()
     }
 
     case ENDCASE:
+        //@SHORT_DESC=Conditional CASE ... THEN ... END THEN ... END END statement
+        //@NEW
+
         return;
 
     case FOR:
     {
+        //@SHORT_DESC=Loop FOR ... NEXT/STEP statement
         // DEFINE 3 LAMS, THE FIRST WILL BE THE LOW LIMIT, THEN THE HIGH LIMIT, THEN THE ITERATOR
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -307,6 +324,8 @@ void LIB_HANDLER()
      }
     case START:
     {
+        //@SHORT_DESC=Loop START ... NEXT/STEP statement
+
         // DEFINE 3 LAMS, THE FIRST WILL BE THE LOW LIMIT, THEN THE HIGH LIMIT, THEN THE ITERATOR
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -354,6 +373,8 @@ void LIB_HANDLER()
     case NEXT:
 
     {
+        //@SHORT_DESC=Loop FOR/START ... NEXT statement
+
         // INCREMENT THE COUNTER
         if(nLAMBase==LAMTop) return;    // NO ENVIRONMENT
 
@@ -404,6 +425,8 @@ void LIB_HANDLER()
     case STEP:
 
     {
+        //@SHORT_DESC=Loop FOR/START ... STEP statement
+
         // INCREMENT THE COUNTER
         // THE NUMBER TO ADD IS EXPECTED TO BE ON THE STACK
         if(rplDepthData()<1) {
@@ -461,6 +484,8 @@ void LIB_HANDLER()
 
     case DO:
     {
+        //@SHORT_DESC=Loop DO ... UNTIL ... END statement
+
         ScratchPointer3=IPtr;       // THIS IS POINTING AT THE FOR STATEMENT
         BINT depth=1;               // TRACK NESTED LOOPS
         while( depth || (*ScratchPointer3!=MKOPCODE(LIBRARY_NUMBER,ENDDO))) {
@@ -485,10 +510,15 @@ void LIB_HANDLER()
         return;
     }
     case UNTIL:
+        //@SHORT_DESC=Loop DO ... UNTIL ... END statement
+
         return;
 
     case ENDDO:
     {
+        //@SHORT_DESC=Loop DO ... UNTIL ... END statement
+        //@NEW
+
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -533,6 +563,8 @@ void LIB_HANDLER()
     }
     case WHILE:
     {
+        //@SHORT_DESC=Loop WHILE ... REPEAT ... END statement
+
         ScratchPointer3=IPtr;       // THIS IS POINTING AT THE FOR STATEMENT
         BINT depth=1;               // TRACK NESTED LOOPS
         while( depth || (*ScratchPointer3!=MKOPCODE(LIBRARY_NUMBER,ENDWHILE))) {
@@ -555,6 +587,8 @@ void LIB_HANDLER()
     }
     case REPEAT:
     {
+        //@SHORT_DESC=Loop WHILE ... REPEAT ... END statement
+
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -600,6 +634,9 @@ void LIB_HANDLER()
         return;
     }
     case ENDWHILE:
+        //@SHORT_DESC=Loop WHILE ... REPEAT ... END statement
+        //@NEW
+
         // JUMP TO THE TOP RETURN STACK TO REPEAT THE LOOP
         if(**rplGetLAMn(0)!=CMD_ENDWHILE) {
             // MALFORMED LOOP
@@ -614,6 +651,8 @@ void LIB_HANDLER()
 
     case IFERR:
         {
+        //@SHORT_DESC=Conditional IFERR ... THEN ... ELSE ... END statement
+
         // SETUP AN ERROR TRAP
         WORDPTR errhandler=rplSkipOb(IPtr);     // START AFTER THE IFERR BYTECODE
         // SKIP TO THE NEXT THENERR OPCODE, BUT TAKING INTO ACCOUNT POSSIBLY NESTED IFERR STATEMENTS
@@ -636,6 +675,9 @@ void LIB_HANDLER()
         }
         return;
     case THENERR:
+        //@SHORT_DESC=Conditional IFERR ... THEN ... ELSE ... END statement
+        //@NEW
+
         // IF THIS IS EXECUTED, THEN THERE WERE NO ERRORS, REMOVE THE ERROR TRAP AND SKIP TO THE ENDERR MARKER
         rplRemoveExceptionHandler();
 
@@ -652,6 +694,9 @@ void LIB_HANDLER()
         return;
     case ELSEERR:
     {
+        //@SHORT_DESC=Conditional IFERR ... THEN ... ELSE ... END statement
+        //@NEW
+
         if(ErrorHandler!=(WORDPTR)error_reenter_seco) {
             // NOT WITHIN AN ERROR HANDLER, DO NOTHING
             return;
@@ -677,6 +722,9 @@ void LIB_HANDLER()
         return;
     case ENDERR:
     {
+        //@SHORT_DESC=Conditional IFERR ... THEN ... ELSE ... END statement
+        //@NEW
+
         if(ErrorHandler!=(WORDPTR)error_reenter_seco) {
             // NOT WITHIN AN ERROR HANDLER, OR AFTER AN ELSEERR STATEMENT, DO NOTHING
             return;

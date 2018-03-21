@@ -981,6 +981,7 @@ void LIB_HANDLER()
     case AUTOSIMPLIFY:
     {
         //@SHORT_DESC=Reduce numeric subexpressions
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             rplBlameUserCommand();
@@ -1295,6 +1296,7 @@ void LIB_HANDLER()
     case RULEMATCH:
     {
         //@SHORT_DESC=Find if an expression matches a rule pattern
+        //@NEW
         if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
             return;
@@ -1341,6 +1343,7 @@ void LIB_HANDLER()
     case RULEAPPLY:
     {
         //@SHORT_DESC=Match and apply a rule to an expression
+        //@NEW
         if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
             return;

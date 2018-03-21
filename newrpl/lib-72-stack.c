@@ -568,6 +568,7 @@ void LIB_HANDLER()
     case STKPUSH:
     {
      //@SHORT_DESC=Push a snapshot of the current stack on the undo stack
+     //@NEW
      // PUSH CURRENT STACK TO UNDO STACK
      rplTakeSnapshot();
      return;
@@ -575,12 +576,14 @@ void LIB_HANDLER()
     case STKPOP:
     {
         //@SHORT_DESC=Pop a stack snapshot from the undo stack
+        //@NEW
      rplRevertToSnapshot(1);
      return;
     }
     case STKDROP:
     {
         //@SHORT_DESC=Drop a snapshot from the undo stack
+        //@NEW
      rplRemoveSnapshot(1);
      return;
     }
@@ -590,6 +593,7 @@ void LIB_HANDLER()
         //  PICK A VALUE FROM ANY SNAPSHOT
     {
         //@SHORT_DESC=Copy snapshot in level N to the current stack
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -622,6 +626,7 @@ void LIB_HANDLER()
         //  PICK A VALUE FROM ANY SNAPSHOT
     {
         //@SHORT_DESC=Get the depth of the undo stack
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;

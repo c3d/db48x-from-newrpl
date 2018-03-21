@@ -153,7 +153,7 @@ int main(int argc, char *argv[])
     char *chunk=mainbuffer;
     int ncmd=0,extcommand;
     char *cmdname[1000],*cmdstring[1000],*cmddesc[1000];
-    int cmdnamelen[1000],cmdstrlen[1000],cmddesclen[1000];
+    int cmdnamelen[1000],cmdstrlen[1000],cmddesclen[1000],cmdflags[1000];
     int line=1;
     char *libtitle=0;
     int libtitlelen=0;
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
     // SET ALL LENGTHS TO ZERO
     for(k=0;k<1000;++k)
     {
-        cmdnamelen[k]=cmdstrlen[k]=cmddesclen[k]=0;
+        cmdnamelen[k]=cmdstrlen[k]=cmddesclen[k]=cmdflags[k]=0;
     }
 
     while(chunk-mainbuffer<length) {
@@ -198,6 +198,16 @@ int main(int argc, char *argv[])
             }
 
 
+        }
+
+        if((chunk-mainbuffer<length-6) && !strncmp(chunk,"//@NEW",6)) {
+            // CURRENT COMMAND IS NEW ON NEWRPL
+            cmdflags[currentcmd]=1; // MARK THIS COMMAND IS NEW ON NEWRPL
+        }
+
+        if((chunk-mainbuffer<length-11) && !strncmp(chunk,"//@INCOMPAT",11)) {
+            // CURRENT COMMAND IS INCOMPATIBLE OR CHANGED FROM USERRPL
+            cmdflags[currentcmd]=2; // MARK THIS COMMAND IS NEW ON NEWRPL
         }
 
         if((chunk-mainbuffer<length-14) && !strncmp(chunk,"//@SHORT_DESC=",14)) {
@@ -310,6 +320,8 @@ int main(int argc, char *argv[])
 
     char buffer[1024];
 
+    int nnew=0;
+    for(j=0;j<ncmd;++j) nnew+=cmdflags[j]&1;
 
     // OUTPUT THE PREAMBLE FOR THE WIKI
 
@@ -317,10 +329,12 @@ int main(int argc, char *argv[])
     fwrite(outputfile+nameoffset,namelen,1,f);
     fprintf(f,"-commands\" block=\"true\" >**");
     if(libtitle) fwrite(libtitle,libtitlelen,1,f);
-    fprintf(f,"**  <badge>%d</badge></button>\n<collapse id=\"",ncmd);
+    if(!nnew) fprintf(f,"**  <badge>%d</badge></button>\n<collapse id=\"",ncmd);
+    else if(ncmd!=nnew) fprintf(f,"**  <badge>%d</badge> <badge>%d NEW</badge></button>\n<collapse id=\"",ncmd,nnew);
+        else fprintf(f,"**  <badge>%d NEW</badge></button>\n<collapse id=\"",ncmd);
     fwrite(outputfile+nameoffset,namelen,1,f);
     fprintf(f,"-commands\" collapsed=\"true\">\n");
-    fprintf(f,"\n^ Command  ^ Short Description ^ Details ^\n");
+    fprintf(f,"\n^ Command  ^ Short Description ^  ^\n");
 
     // OUTPUT THE COMPLETE LIST OF COMMANDS
 
@@ -335,7 +349,9 @@ int main(int argc, char *argv[])
     fwrite(cmdstring[k],cmdstrlen[k],1,f);
     fprintf(f,"]]** | ");
     if(cmddesclen[k]) fwrite(cmddesc[k],cmddesclen[k],1,f);
-    fprintf(f," |  |\n");
+    if(cmdflags[k]==1) fprintf(f," | <badge>NEW</badge> |\n");
+    else if(cmdflags[k]==2) fprintf(f," | <badge>CHANGED</badge> |\n");
+        else fprintf(f," |  |\n");
     }
 
     fprintf(f,"</collapse>\n");

@@ -97,6 +97,8 @@ void LIB_HANDLER()
     {
         case MKBINDATA:
         {
+            //@SHORT_DESC=Create binary data container object
+            //@NEW
             if(rplDepthData()<1) {
                 rplError(ERR_BADARGCOUNT);
                 return;
@@ -128,6 +130,8 @@ void LIB_HANDLER()
         }
     case BINMOVB:
     {
+        //@SHORT_DESC=Copy binary data block into a binary data object
+        //@NEW
         // ARGUMENTS: DEST_BINDATA DEST_OFFSET SOURCE_BINDATA SRC_OFFSET NBYTES
 
         if(rplDepthData()<5) {
@@ -183,6 +187,8 @@ void LIB_HANDLER()
 
     case BINGETB:
     {
+        //@SHORT_DESC=Extract binary data as list of bytes
+        //@NEW
         // ARGUMENTS: SOURCE_BINDATA SRC_OFFSET NBYTES
 
         if(rplDepthData()<3) {
@@ -230,6 +236,8 @@ void LIB_HANDLER()
 
     case BINPUTB:
     {
+        //@SHORT_DESC=Store bytes into binary data object
+        //@NEW
         // ARGUMENTS: DEST_BINDATA DEST_OFFSET SOURCE_OBJECT NBYTES
 
         if(rplDepthData()<4) {
@@ -410,6 +418,8 @@ void LIB_HANDLER()
 
     case BINPUTW:
     {
+        //@SHORT_DESC=Store 32-bit words into binary data object
+        //@NEW
         // ARGUMENTS: DEST_BINDATA DEST_OFFSET SOURCE_OBJECT NBYTES
 
         if(rplDepthData()<4) {
@@ -592,6 +602,8 @@ void LIB_HANDLER()
 
     case BINMOVW:
     {
+        //@SHORT_DESC=Copy 32-bit words between binary data objects
+        //@NEW
         // ARGUMENTS: DEST_BINDATA DEST_OFFSET SOURCE_BINDATA SRC_OFFSET NWORDS
 
         if(rplDepthData()<5) {
@@ -647,6 +659,8 @@ void LIB_HANDLER()
 
     case BINGETW:
     {
+        //@SHORT_DESC=Extract data from a binary data object as a list of 32-bit words
+        //@NEW
         // ARGUMENTS: SOURCE_BINDATA SRC_OFFSET NBYTES
 
         if(rplDepthData()<3) {
@@ -696,6 +710,8 @@ void LIB_HANDLER()
 
     case BINPUTOBJ:
     {
+        //@SHORT_DESC=Store an entire object into a binary data container
+        //@NEW
         // ARGUMENTS: DEST_BINDATA DEST_OFFSET SOURCE_OBJECT
 
         if(rplDepthData()<3) {
@@ -740,6 +756,8 @@ void LIB_HANDLER()
 
     case BINGETOBJ:
     {
+        //@SHORT_DESC=Extract an entire object from a binary data container
+        //@NEW
         // ARGUMENTS: SOURCE_BINDATA SRC_OFFSET
 
         if(rplDepthData()<2) {

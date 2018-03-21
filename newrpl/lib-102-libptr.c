@@ -502,6 +502,7 @@ void LIB_HANDLER()
     case CRLIB:
     {
         //@SHORT_DESC=Create a library from current directory
+        //@INCOMPAT
         // CREATE A LIBRARY FROM THE CURRENT DIRECTORY
         /* LIBRARY OBJECT FORMAT:
          *
@@ -986,6 +987,7 @@ void LIB_HANDLER()
     case ATTACH:
     {
         //@SHORT_DESC=Install a library
+        //@INCOMPAT
         // ATTACH A LIBRARY
 
         if(rplDepthData()<1) {
@@ -1037,6 +1039,7 @@ void LIB_HANDLER()
     case DETACH:
     {
         //@SHORT_DESC=Uninstall a library
+        //@INCOMPAT
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1114,6 +1117,7 @@ void LIB_HANDLER()
     case LIBMENU:
      {
         //@SHORT_DESC=Show a menu within a library
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1148,8 +1152,10 @@ void LIB_HANDLER()
 
     case LIBMENULST:
         //@SHORT_DESC=Show library menu in the last used menu
+        //@NEW
     case LIBMENUOTHR:
         //@SHORT_DESC=Show library menu in the other menu
+        //@NEW
      {
 
       if(rplDepthData()<2) {
@@ -1197,6 +1203,7 @@ void LIB_HANDLER()
     case LIBSTO:
     {
         //@SHORT_DESC=Store private library data
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1250,6 +1257,7 @@ void LIB_HANDLER()
     case LIBRCL:
     {
         //@SHORT_DESC=Recall private library data
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1303,6 +1311,7 @@ void LIB_HANDLER()
     case LIBDEFRCL:
     {
         //@SHORT_DESC=Recall private data with default value
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1369,6 +1378,7 @@ void LIB_HANDLER()
     case LIBCLEAR:
     {
         //@SHORT_DESC=Purge all private data for a specific library
+        //@NEW
         // PURGE ENTIRE DATA DIRECTORY, AND CALL THE LIBRARY HANDLER TO CREATE A NEW ONE
 
         if(rplDepthData()<1) {

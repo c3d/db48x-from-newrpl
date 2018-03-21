@@ -180,6 +180,7 @@ void LIB_HANDLER()
     case USBSTATUS:
     {
         //@SHORT_DESC=Get status of the USB driver
+        //@NEW
         BINT status=usb_isconnected()+2*usb_isconfigured()+4*usb_hasdata();
 
         rplNewBINTPush(status,HEXBINT);
@@ -189,6 +190,8 @@ void LIB_HANDLER()
     case USBRECV:
     {
         //@SHORT_DESC=Receive an object through USB link
+        //@NEW
+
         // RECEIVE A BLOCK OF DATA WITH TIMEOUT
         // TAKES ONE ARGUMENT, 0 = WAIT INDEFINITELY, OTHERWISE TIME IN SECONDS TO WAIT (SAME AS WAIT)
         if(rplDepthData()<1) {
@@ -290,6 +293,8 @@ void LIB_HANDLER()
     case USBSEND:
     {
         //@SHORT_DESC=Send an object through the USB link
+        //@NEW
+
         // SEND ONE OBJECT THROUGH THE USB LINK
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -311,12 +316,16 @@ void LIB_HANDLER()
     case USBON:
     {
         //@SHORT_DESC=Enable USB port
+        //@NEW
+
         usb_init(0);
         return;
     }
     case USBOFF:
     {
         //@SHORT_DESC=Disable USB port
+        //@NEW
+
         usb_shutdown();
         return;
     }
@@ -325,6 +334,8 @@ void LIB_HANDLER()
     case USBAUTORCV:
     {
         //@SHORT_DESC=Receive an object and execute it
+        //@NEW
+
     // SAME AS USBRCV BUT DOES NOT WAIT FOR DATA (DOES NOTHING IF DATA IS NOT AVAILABLE)
     // AND DOES XEQ IMMEDIATELY ON THE DATA RECEIVED.
         if(!usb_hasdata()) {
@@ -409,6 +420,8 @@ void LIB_HANDLER()
     case USBARCHIVE:
     {
         //@SHORT_DESC=Create a backup on a remote machine
+        //@NEW
+
         // STORE A BACKUP OBJECT DIRECTLY INTO A FILE ON THE USB HOST MACHINE
 
         if(!usb_isconfigured()) {
@@ -451,6 +464,8 @@ void LIB_HANDLER()
     case USBRESTORE:
     {
         //@SHORT_DESC=Restore a backup from a remote machine
+        //@NEW
+
         // RECEIVE A BACKUP FILE OVER THE USB WIRE AND RESTORE IT DIRECTLY TO MEMORY
         // EXPECTS A TIMEOUT VALUE IN SECONDS
 

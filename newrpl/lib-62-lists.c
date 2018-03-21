@@ -711,6 +711,7 @@ void LIB_HANDLER()
     case CMDDOLIST:
     {
         //@SHORT_DESC=Do a procedure with elements of lists
+        //@INCOMPAT
         BINT initdepth=rplDepthData();
         if(initdepth<3) {
             rplError(ERR_BADARGCOUNT);
@@ -954,6 +955,7 @@ void LIB_HANDLER()
     case DOSUBS:
     {
         //@SHORT_DESC=Do a procedure on a subset of a list
+        //@INCOMPAT
         BINT initdepth=rplDepthData();
         if(initdepth<3) {
             rplError(ERR_BADARGCOUNT);
@@ -1407,6 +1409,7 @@ void LIB_HANDLER()
     case MAPINNERCOMP:
     {
         //@SHORT_DESC=Do a procedure on each element recursively, return individual elements
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -2339,9 +2342,11 @@ void LIB_HANDLER()
 
     case PRODLIST:
         //@SHORT_DESC=Product of all elements in a list
+        //@INCOMPAT
     case SUMLIST:
     {
         //@SHORT_DESC=Sum of all elements in a list
+        //@INCOMPAT
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
 
@@ -2653,6 +2658,7 @@ void LIB_HANDLER()
         // CONCATENATE LISTS
      {
         //@SHORT_DESC=Concatenate lists and/or elements
+        //@INCOMPAT
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -2695,6 +2701,7 @@ void LIB_HANDLER()
 
     case ADDROT:
         //@SHORT_DESC=Add elements to a list, keep only the last N elements
+        //@NEW
         // APPEND AN ELEMENT TO A LIST AND ROTATE IT
         // LIST ELEM NITEMS -> { Obj ... ObjN ELEM }
         // THE NEW LIST DROPS ELEMENTS TO BE NITEMS MAX.

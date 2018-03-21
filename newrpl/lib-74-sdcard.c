@@ -275,6 +275,8 @@ void LIB_HANDLER()
     {
     case SDRESET:
     {
+        //@SHORT_DESC=Reset the file system module
+        //@NEW
         // REINIT FILE SYSTEM
         int error=FSRestart();
         if(error!=FS_OK) {
@@ -286,6 +288,8 @@ void LIB_HANDLER()
 
     case SDSETPART:
     {
+        //@SHORT_DESC=Set active partition
+        //@NEW
         // SET CURRENT SD CARD PARTITION
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -311,6 +315,8 @@ void LIB_HANDLER()
 
     case SDSTO:
     {
+        //@SHORT_DESC=Store a an object into a file
+        //@NEW
         // STORE AN OBJECT DIRECTLY INTO A FILE
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -382,6 +388,8 @@ void LIB_HANDLER()
 
     case SDRCL:
     {
+        //@SHORT_DESC=Recall an object from a file
+        //@NEW
         // RCL AN OBJECT DIRECTLY FROM A FILE
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -493,6 +501,8 @@ void LIB_HANDLER()
 
     case SDCHDIR:
     {
+        //@SHORT_DESC=Change current directory
+        //@NEW
         // CHANGE CURRENT DIRECTORY
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -551,6 +561,8 @@ void LIB_HANDLER()
 
     case SDUPDIR:
     {
+        //@SHORT_DESC=Change to parent directory
+        //@NEW
         // TRY TO CHANGE CURRENT DIR
 
         BINT err=FSChdir("..");
@@ -565,6 +577,8 @@ void LIB_HANDLER()
 
     case SDCRDIR:
     {
+        //@SHORT_DESC=Create a new directory
+        //@NEW
         // CREATE A NEW DIRECTORY
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -623,6 +637,8 @@ void LIB_HANDLER()
 
     case SDPGDIR:
     {
+        //@SHORT_DESC=Delete an entire directory
+        //@NEW
         // DELETE A DIRECTORY
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -681,6 +697,8 @@ void LIB_HANDLER()
 
     case SDPURGE:
     {
+        //@SHORT_DESC=Delete a file
+        //@NEW
         // DELETE A FILE
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -739,6 +757,8 @@ void LIB_HANDLER()
 
     case SDOPENRD:
     {
+        //@SHORT_DESC=Open a file for read-only operation
+        //@NEW
         // OPEN A FILE FOR READ
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -803,6 +823,8 @@ void LIB_HANDLER()
 
     case SDOPENWR:
     {
+        //@SHORT_DESC=Open a file for writing
+        //@NEW
         // OPEN A FILE FOR WRITING, IF IT EXISTS IT WILL TRUNCATE THE FILE TO 0 BYTES
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -867,6 +889,8 @@ void LIB_HANDLER()
 
     case SDOPENAPP:
     {
+        //@SHORT_DESC=Open a file in append mode
+        //@NEW
         // OPEN A FILE FOR APPEND
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -931,6 +955,8 @@ void LIB_HANDLER()
 
     case SDOPENMOD:
     {
+        //@SHORT_DESC=Open a file in modify mode
+        //@NEW
         // OPEN A FILE FOR MODIFY, IF IT EXISTS IT DOESN'T TRUNCATE THE FILE, USE LSEEK TO POSITION AND WRITE SPECIFIC RECORDS
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -999,6 +1025,8 @@ void LIB_HANDLER()
 
     case SDCLOSE:
     {
+        //@SHORT_DESC=Close an open file
+        //@NEW
         // CLOSE A HANDLE
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1035,6 +1063,8 @@ void LIB_HANDLER()
 
     case SDREADTEXT:
     {
+        //@SHORT_DESC=Read text from an open file (UTF-8 encoding)
+        //@NEW
         // READ THE GIVEN NUMBER OF UNICODE CHARACTERS FROM A FILE, RETURN THEM AS STRING OBJECT
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -1155,6 +1185,8 @@ void LIB_HANDLER()
 
     case SDWRITETEXT:
     {
+        //@SHORT_DESC=Write text to a file (UTF-8 encoding)
+        //@NEW
         // WRITE A STRING TO A FILE
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -1208,6 +1240,8 @@ void LIB_HANDLER()
 
     case SDREADLINE:
     {
+        //@SHORT_DESC=Read one line of text from a file
+        //@NEW
         // READ ONE LINE OF TEXT FROM A FILE, RETURN THEM AS STRING OBJECT
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1294,9 +1328,15 @@ void LIB_HANDLER()
 
 
     case SDSEEKCUR:
+        //@SHORT_DESC=Move position to given offset from the current point.
+        //@NEW
     case SDSEEKEND:
+        //@SHORT_DESC=Move position to given offset from end of file
+        //@NEW
     case SDSEEKSTA:
     {
+        //@SHORT_DESC=Move position to given offset from start of file
+        //@NEW
         // MOVE THE FILE POINTER TO THE GIVEN OFFSET.
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -1337,6 +1377,8 @@ void LIB_HANDLER()
 
     case SDTELL:
     {
+        //@SHORT_DESC=Get the current position
+        //@NEW
         // RETURN THE CURRENT OFFSET WITHIN THE FILE IN BYTES
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1368,6 +1410,8 @@ void LIB_HANDLER()
 
     case SDFILESIZE:
     {
+        //@SHORT_DESC=Get the file size in bytes
+        //@NEW
         // RETURN THE SIZE OF THE FILE IN BYTES
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1401,7 +1445,9 @@ void LIB_HANDLER()
     case SDEOF:
 
     {
-        // RETURN THE SIZE OF THE FILE IN BYTES
+        //@SHORT_DESC=Return true if last operation reached end of file
+        //@NEW
+
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1432,6 +1478,8 @@ void LIB_HANDLER()
 
     case SDOPENDIR:
     {
+        //@SHORT_DESC=Open a directory to scan entries
+        //@NEW
         // OPEN A DIRECTORY FOR ENTRY SCANNING
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1497,6 +1545,8 @@ void LIB_HANDLER()
 
     case SDNEXTFILE:
     {
+        //@SHORT_DESC=Get the next entry in a directory that is a file
+        //@NEW
         // GET NEXT FILE IN A DIRECTORY LISTING
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1620,6 +1670,8 @@ void LIB_HANDLER()
 
     case SDNEXTENTRY:
     {
+        //@SHORT_DESC=Get the next entry in a directory
+        //@NEW
         // GET NEXT ENTRY IN A DIRECTORY LISTING
         // INCLUDE ALL SPECIAL AND HIDDEN FILES
         if(rplDepthData()<1) {
@@ -1724,6 +1776,8 @@ void LIB_HANDLER()
     }
     case SDNEXTDIR:
     {
+        //@SHORT_DESC=Get the next entry in a directory that is a subdirectory
+        //@NEW
         // GET NEXT DIRECTORY IN A DIRECTORY LISTING
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1846,6 +1900,8 @@ void LIB_HANDLER()
 
     case SDCOPY:
     {
+        //@SHORT_DESC=Copy a file
+        //@NEW
         // COPY A FILE
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -1984,6 +2040,8 @@ void LIB_HANDLER()
 
     case SDMOVE:
     {
+        //@SHORT_DESC=Move or rename a file
+        //@NEW
         // MOVE/RENAME A FILE
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -2076,6 +2134,8 @@ void LIB_HANDLER()
 
 case SDPATH:
     {
+        //@SHORT_DESC=Get the path to current directory
+        //@NEW
         // RETURN THE CURRENT WORK DIRECTORY
         BINT cvol=FSGetCurrentVolume();
 
@@ -2106,6 +2166,8 @@ case SDPATH:
 
     case SDFREE:
         {
+            //@SHORT_DESC=Get the free space in the current volume
+            //@NEW
             // RETURN THE FREE SPACE IN BYTES IN THE CURRENT PARTITION
             BINT cvol=FSGetCurrentVolume();
 
@@ -2128,6 +2190,8 @@ case SDPATH:
 
     case SDARCHIVE:
     {
+        //@SHORT_DESC=Create a full calculator backup on a file
+        //@NEW
         // STORE A BACKUP OBJECT DIRECTLY INTO A FILE
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -2206,6 +2270,8 @@ case SDPATH:
 
     case SDRESTORE:
     {
+        //@SHORT_DESC=Restore from a backup stored in a file
+        //@NEW
         // STORE A BACKUP OBJECT DIRECTLY INTO A FILE
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
