@@ -793,6 +793,10 @@ void rplPurgeSystemFont(WORDPTR ident);
 WORDPTR rplGetSystemFont(WORDPTR ident);
 WORDPTR rplGetSystemFontName(WORDPTR font);
 
+// BITMAP FUNCTIONS
+WORDPTR rplBmpCreate(BINT type,BINT width,BINT height,BINT clear);
+WORDPTR rplBmpToDisplay(WORDPTR bitmap);
+
 
 
 // ANGULAR MODES

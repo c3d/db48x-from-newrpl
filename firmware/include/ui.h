@@ -137,6 +137,8 @@ WORDPTR uiGetLibMsg(WORD MsgCode);
 void uiCmdRun(WORD Opcode);
 BINT uiCmdRunTransparent(WORD Opcode,BINT nargs,BINT nresults);
 
+// FORMS
 
+void uiUpdateForm(WORDPTR form);
 
 #endif // UI_H

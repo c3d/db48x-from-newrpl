@@ -251,6 +251,13 @@ void halInt2String(int num,char *str)
 }
 
 
+
+
+
+
+
+
+
 void halRedrawForm(DRAWSURFACE *scr)
 {
 
@@ -260,10 +267,67 @@ void halRedrawForm(DRAWSURFACE *scr)
     }
 
     // REDRAW THE CONTENTS OF THE CURRENT FORM
+    int oldclipx,oldclipx2,oldclipy,oldclipy2;
+    int ystart=0,yend=ystart+halScreen.Form;
 
-    uiUpdateForm(scr);
+    oldclipx=scr->clipx;
+    oldclipy=scr->clipy;
+    oldclipx2=scr->clipx2;
+    oldclipy2=scr->clipy2;
 
+
+    WORDPTR form,bmp;
+
+    form=rplGetSettings((WORDPTR)currentform_ident);
+
+    if(!form) {
+         ggl_cliprect(scr,scr->clipx,ystart,scr->clipx2,yend-1,0x12488421);  // CLEAR RECTANGLE
+         halScreen.DirtyFlag&=~FORM_DIRTY;
+         return;
+    }
+
+
+    bmp=uiFindCacheEntry(form,halScreen.FontArray[FONT_FORMS]);
+
+    if(!bmp) {
+            ggl_cliprect(scr,scr->clipx,ystart,scr->clipx2,yend-1,0x12488421);  // CLEAR RECTANGLE
+            halScreen.DirtyFlag&=~FORM_DIRTY;
+            return;
+        }
+
+    DRAWSURFACE viewport;
+
+    viewport.addr=(int *)(bmp+3);
+    viewport.width=bmp[1];
+    viewport.x=0;
+    viewport.y=0;       // TODO: CHANGE THIS TO ENABLE SCROLLING
+    viewport.clipx=0;
+    viewport.clipx2=bmp[1]-1;
+    viewport.clipy=0;
+    viewport.clipy2=bmp[2]-1;
+
+    // POSITION THE VIEWPORT ON THE SCREEN
+
+    scr->x=0;
+    scr->y=0;
+
+    scr->clipx=0;
+    scr->clipx2=SCREEN_WIDTH-1;
+    scr->clipy=0;
+    scr->clipy2=yend;
+
+
+    if(yend>viewport.clipy2+1) {
+        // CLEAR THE BACKGROUND
+        ggl_cliprect(scr,scr->clipx,viewport.clipy2+1,scr->clipx2,yend-1,0);  // CLEAR RECTANGLE
+    }
+
+    // DRAW THE VIEWPORT
+    ggl_bitbltclip(scr,&viewport,viewport.width,viewport.clipy2+1);
+    halScreen.DirtyFlag&=~FORM_DIRTY;
 }
+
+
 
 void halRedrawStack(DRAWSURFACE *scr)
 {
@@ -1627,3 +1691,47 @@ void halShowMsg(char *Text)
     halShowMsgN(Text,End);
 }
 
+
+// CHANGE THE CONTEXT AND DISPLAY THE CURRENT FORM
+void halSwitch2Form()
+{
+
+    if(halGetContext()&CONTEXT_INEDITOR) {
+        // CLOSE THE EDITOR FIRST
+        uiCloseCmdLine();
+        halSetCmdLineHeight(0);
+    }
+
+    halSetContext(CONTEXT_FORM);
+
+    // ENLARGE THE FORM
+    halSetFormHeight(halScreen.Stack);
+    // AND ELIMINATE THE STACK
+    halSetStackHeight(0);
+
+    //uiFormEnterEvent();
+
+    halScreen.DirtyFlag|=STACK_DIRTY|FORM_DIRTY|STAREA_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
+}
+
+// CHANGE THE CONTEXT AND DISPLAY THE STACK
+void halSwitch2Stack()
+{
+    if(halGetContext()&CONTEXT_INEDITOR) {
+        // CLOSE THE EDITOR FIRST
+        uiCloseCmdLine();
+        halSetCmdLineHeight(0);
+    }
+
+    halSetContext(CONTEXT_STACK);
+
+    // ENLARGE THE STACK
+    halSetStackHeight(halScreen.Form);
+    // AND ELIMINATE THE FORM
+    halSetFormHeight(0);
+
+    //uiFormExitEvent();
+
+    halScreen.DirtyFlag|=STACK_DIRTY|FORM_DIRTY|STAREA_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
+
+}

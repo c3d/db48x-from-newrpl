@@ -127,6 +127,7 @@ void LIB_HANDLER()
 
     case STWS:
         //@SHORT_DESC=Store current word size in bits (0-63)
+
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -161,6 +162,7 @@ void LIB_HANDLER()
     case RCWS:
     {
         //@SHORT_DESC=Recall the currnent word size in bits
+
         if(!ISLIST(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
@@ -180,6 +182,7 @@ void LIB_HANDLER()
     case BOR:
     {
         //@SHORT_DESC=Bitwise OR operation
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -231,6 +234,7 @@ void LIB_HANDLER()
     case BAND:
     {
         //@SHORT_DESC=Bitwise AND operator
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -283,6 +287,7 @@ void LIB_HANDLER()
     case BXOR:
     {
         //@SHORT_DESC=Bitwise XOR operation
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -335,6 +340,7 @@ void LIB_HANDLER()
     case BLSL:
     {
         //@SHORT_DESC=Bitwise logical shift left
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -388,6 +394,7 @@ void LIB_HANDLER()
     case BLSR:
     {
         //@SHORT_DESC=Bitwise logical shift right
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -442,6 +449,7 @@ void LIB_HANDLER()
     case BASR:
     {
         //@SHORT_DESC=Bitwise arithmetic shift right
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -496,6 +504,7 @@ void LIB_HANDLER()
     case BADD:
     {
         //@SHORT_DESC=Bitwise addition with overflow
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -548,6 +557,7 @@ void LIB_HANDLER()
     case BSUB:
     {
         //@SHORT_DESC=Bitwise subtraction with overflow
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -600,6 +610,7 @@ void LIB_HANDLER()
     case BMUL:
     {
         //@SHORT_DESC=Bitwise multiplication
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -652,6 +663,7 @@ void LIB_HANDLER()
     case BDIV:
     {
         //@SHORT_DESC=Bitwise integer division
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -706,6 +718,7 @@ void LIB_HANDLER()
     case BRL:
     {
         //@SHORT_DESC=Bitwise rotate left
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -761,6 +774,7 @@ void LIB_HANDLER()
     case BRR:
     {
         //@SHORT_DESC=Bitwise rotate right
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
 
@@ -817,6 +831,7 @@ void LIB_HANDLER()
     case BNOT:
     {
         //@SHORT_DESC=Bitwise inversion of bits
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
 

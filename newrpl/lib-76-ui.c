@@ -38,7 +38,8 @@
     CMD(PASTECLIP,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(WAIT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(KEYEVAL,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(KEY,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2))
+    CMD(KEY,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
+    CMD(DOFORM,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -347,6 +348,55 @@ void LIB_HANDLER()
         return;
 
     }
+
+
+
+    case DOFORM:
+    {
+        //@SHORT_DESC=Take a variable identifier with a form list
+        //@NEW
+
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+
+        if(!ISLIST(*rplPeekData(1))) {
+            rplError(ERR_LISTEXPECTED);
+            return;
+        }
+
+        // STORE THE FORM DATA
+        rplStoreSettings((WORDPTR)currentform_ident,rplPeekData(1));
+
+        if(Exceptions) return;
+
+        uiUpdateForm(rplPeekData(1));
+
+        rplDropData(1);
+        halSwitch2Form();
+
+        return;
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         // STANDARIZED OPCODES:

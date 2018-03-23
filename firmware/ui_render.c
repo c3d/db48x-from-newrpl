@@ -39,6 +39,35 @@ void uiAddCacheEntry(WORDPTR object,WORDPTR bitmap,UNIFONT **font)
     if(NEXT_ENTRY==0) halCacheEntry|=CACHE_FULL;
 }
 
+void uiUpdateOrAddCacheEntry(WORDPTR object,WORDPTR bitmap,UNIFONT **font)
+{
+    if(GCFlags&GC_COMPLETED) {
+        uiClearRenderCache();
+        GCFlags=0;
+    }
+
+    int k;
+    int limit=(halCacheEntry&CACHE_FULL)? MAX_RENDERCACHE_ENTRIES:NEXT_ENTRY;
+
+    limit*=3;
+
+    for(k=0;k<limit;k+=3)
+    {
+        if(halCacheContents[k]==object)
+        {
+            halCacheContents[k+1]=bitmap;
+            halCacheContents[k+2]=(WORDPTR)font;
+            return;
+        }
+
+    }
+
+    halCacheContents[NEXT_ENTRY*3]=object;
+    halCacheContents[NEXT_ENTRY*3+1]=bitmap;
+    halCacheContents[NEXT_ENTRY*3+2]=(WORDPTR)font;
+    halCacheEntry=INC_NEXT_ENTRY;
+    if(NEXT_ENTRY==0) halCacheEntry|=CACHE_FULL;
+}
 
 
 // USE AN ENTRY IN THE CACHE
@@ -202,7 +231,7 @@ WORDPTR uiRenderObject(WORDPTR object,UNIFONT **font)
 // DRAW A BITMAP INTO THE SURFACE. MUST BE SYSTEM-DEFAULT BITMAP
 void uiDrawBitmap(WORDPTR bmp,DRAWSURFACE *scr)
 {
-    if(bmp) {
+    if(bmp && ISBITMAP(*bmp)) {
     // COPY IT TO DESTINATION
        DRAWSURFACE tsurf;
 

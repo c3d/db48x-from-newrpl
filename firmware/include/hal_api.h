@@ -218,10 +218,10 @@ enum {
     CONTEXT_STACK=2,
     CONTEXT_INTSTACK=4,
     CONTEXT_PLOT=8,
-    CONTEXT_PICT=16
+    CONTEXT_PICT=16,
 
     // CONTEXT NUMBERS ABOVE 32 ARE JUST NUMBERS (MUST BE MULTIPLE OF 32)
-
+    CONTEXT_FORM=32
 
 
     // ADD MORE SYSTEM CONTEXTS HERE
@@ -1230,6 +1230,11 @@ WORDPTR halGetCommandName(WORDPTR NameObject);
 BINT halGetContext();
 void halSetContext(BINT KeyContext);
 
+// FORMS, PLOTS AND OTHER SCREENS
+void halSwitch2Form();
+void halSwitch2Stack();
+
+
 
 // OUTER LOOP FLAGS
 #define OL_NOEXIT 1         // DON'T POLL EXTERNAL EXIT FUNCTION DURING OUTER POL
@@ -1274,6 +1279,7 @@ extern WORD halCacheEntry;
 
 void uiClearRenderCache();
 void uiAddCacheEntry(WORDPTR object, WORDPTR bitmap, UNIFONT **font);
+void uiUpdateOrAddCacheEntry(WORDPTR object,WORDPTR bitmap,UNIFONT **font);
 WORDPTR uiFindCacheEntry(WORDPTR object, UNIFONT **font);
 void uiDrawObject(WORDPTR object, DRAWSURFACE *scr, UNIFONT **font);
 WORDPTR uiRenderObject(WORDPTR object,UNIFONT **font);

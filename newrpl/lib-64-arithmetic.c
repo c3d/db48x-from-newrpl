@@ -296,6 +296,7 @@ void LIB_HANDLER()
     case SETPREC:
     {
         //@SHORT_DESC=Set the current system precision
+        //@NEW
         // TAKE AN INTEGER NUMBER FROM THE STACK
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -313,6 +314,7 @@ void LIB_HANDLER()
     case GETPREC:
     {
         //@SHORT_DESC=Get the current system precision
+        //@NEW
         rplNewBINTPush(getPrecision(),DECBINT);
         return;
     }
@@ -2091,14 +2093,19 @@ case IPPOST:
 
     case PTCHEBYCHEFF:
         //@SHORT_DESC=Nth Tchebycheff polynomial
+        //@NEW
     case PTCHEBYCHEFF2:
         //@SHORT_DESC=Nth Tchebycheff polynomial of the second kind
+        //@NEW
     case PLEGENDRE:
         //@SHORT_DESC=Nth Legendre polynomial
+        //@NEW
     case PHERMITE:
         //@SHORT_DESC=Nth Hermite polynomial as used by physics
+        //@NEW
     case PHERMITE2:
         //@SHORT_DESC=Nth Hermite polynomial as used in probabilities
+        //@NEW
     {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -2485,8 +2492,10 @@ case IPPOST:
 
     case PINT:
         //@SHORT_DESC=Integration of polynomials as coefficient vector
+        //@NEW
     case PDER:
         //@SHORT_DESC=Derivative of polynomial as coefficient vector
+        //@NEW
     {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -2571,9 +2580,11 @@ case IPPOST:
 
     case PADD:
         //@SHORT_DESC=Addition of polynomials as coefficient vector
+        //@NEW
     case PSUB:
     {
         //@SHORT_DESC=Subtraction of polynomials as coefficient vector
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -2694,6 +2705,7 @@ case IPPOST:
     case PMUL:
     {
         //@SHORT_DESC=Multiplication of polynomials as coefficient vectors
+        //@NEW
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -3151,6 +3163,7 @@ case IPPOST:
 
 case DIGITS:
         //@SHORT_DESC=Extract digits from a real number
+        //@NEW
         // EXTRACT DIGITS FROM A REAL NUMBER
         // GIVEN THE NUMBER AND POSITION START/END
         // POSITION IS GIVEN IN 10s POWERS (0 = UNITY, 1 = TENS, ETC)

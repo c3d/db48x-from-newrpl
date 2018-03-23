@@ -1791,6 +1791,7 @@ void LIB_HANDLER()
     case NPOS:
     {
         //@SHORT_DESC=Find object in a composite, starting from index N
+        //@NEW
         // CHECK ARGUMENTS
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
@@ -1929,6 +1930,7 @@ void LIB_HANDLER()
     case POSREV:
     {
         //@SHORT_DESC=Find the position of an element, starting from the end
+        //@NEW
         // CHECK ARGUMENTS
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
@@ -2033,6 +2035,7 @@ void LIB_HANDLER()
     case NPOSREV:
     {
         //@SHORT_DESC=Find the position from the end, starting at index N
+        //@NEW
         // CHECK ARGUMENTS
         if(rplDepthData()<3) {
             rplError(ERR_BADARGCOUNT);
@@ -2523,6 +2526,7 @@ void LIB_HANDLER()
     case RHEAD:
     {
         //@SHORT_DESC=Returns the last element from the composite
+        //@NEW
         // CHECK ARGUMENTS
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -2565,6 +2569,7 @@ void LIB_HANDLER()
     case RTAIL:
     {
         //@SHORT_DESC=Removes the last element from the composite
+        //@NEW
         // CHECK ARGUMENTS
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);

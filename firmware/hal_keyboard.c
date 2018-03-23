@@ -4257,7 +4257,6 @@ backmenuKeyHandler(keymsg,2);
 // CUSTOM KEY DEFINITIONS - LOWER LEVEL HANDLER
 void customKeyHandler(BINT keymsg,WORDPTR action)
 {
-
     if(!action) return;
     BINT inlist=0;
     // COMMANDS CAN BE PUT INSIDE LISTS
@@ -4756,6 +4755,20 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
 
 
 
+void formswitcherKeyHandler(BINT keymsg)
+{
+    UNUSED_ARGUMENT(keymsg);
+
+    if(halGetContext()>=CONTEXT_FORM) {
+        // THE USER IS RUNNING A FORM OR OTHER CONTEXT, JUST CLOSE IT
+
+        //uiCloseFormEvent();
+        halSwitch2Stack();
+        return;
+    }
+    halSwitch2Form();
+    return;
+}
 
 
 
@@ -6234,6 +6247,9 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_M|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(backmenu1) },
     { KM_PRESS|KB_M|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(backmenu2) },
     { KM_PRESS|KB_M|SHIFT_RS|SHIFT_RSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(backmenu2) },
+
+    // FORM SWITCHER
+    { KM_LPRESS|KB_P,CONTEXT_ANY, KEYHANDLER_NAME(formswitcher) },
 
     { 0 , 0 , 0 }
 };

@@ -441,6 +441,7 @@ void LIB_HANDLER()
     case TAGDEG:
     {
         //@SHORT_DESC=Mark a number as an angle in degrees
+        //@NEW
     // TAG A NUMBER
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -490,6 +491,7 @@ void LIB_HANDLER()
     case TAGRAD:
     {
         //@SHORT_DESC=Mark a number as an angle in radians
+        //@NEW
     // TAG A NUMBER
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -538,6 +540,7 @@ void LIB_HANDLER()
     case TAGGRAD:
     {
         //@SHORT_DESC=Mark a number as an angle in grads (gons)
+        //@NEW
     // TAG A NUMBER
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -586,6 +589,7 @@ void LIB_HANDLER()
     case TAGDMS:
     {
         //@SHORT_DESC=Mark a number as an angle in DMS (DD.MMSS)
+        //@NEW
     // TAG A NUMBER
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -633,6 +637,7 @@ void LIB_HANDLER()
     case ANGTODEG:
     {
         //@SHORT_DESC=Convert an angle to degrees
+        //@NEW
         // CONVERT ANGLE TO DEGREES
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -782,6 +787,7 @@ void LIB_HANDLER()
     case ANGTORAD:
     {
         //@SHORT_DESC=Convert an angle to radians
+        //@NEW
         // CONVERT ANGLE TO DEGREES
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -930,6 +936,7 @@ void LIB_HANDLER()
     case ANGTOGRAD:
     {
         //@SHORT_DESC=Convert an angle to grads (gons)
+        //@NEW
         // CONVERT ANGLE TO DEGREES
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1078,6 +1085,7 @@ void LIB_HANDLER()
     case ANGTODMS:
     {
         //@SHORT_DESC=Convert an angle to DMS (DD.MMSS)
+        //@NEW
         // CONVERT ANGLE TO DEGREES
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
@@ -1226,6 +1234,7 @@ void LIB_HANDLER()
         // CONVERT EITHER A COMPLEX OR A VECTOR TO CARTESIAN COORDINATES
     {
         //@SHORT_DESC=Convert vector or complex to cartesian coordinates
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1303,6 +1312,7 @@ void LIB_HANDLER()
         // CONVERT EITHER A COMPLEX OR A VECTOR TO POLAR COORDINATES
     {
         //@SHORT_DESC=Convert vector or complex to polar coordinates
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -1386,6 +1396,7 @@ void LIB_HANDLER()
         // CONVERT EITHER A COMPLEX OR A VECTOR TO POLAR COORDINATES
     {
         //@SHORT_DESC=Convert vector or complex to spherical coordinates
+        //@NEW
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
