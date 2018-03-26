@@ -971,3 +971,126 @@ WORDPTR *rplFindDirFromPath(WORDPTR pathlist,BINT uselastname)
 
     return dir;
 }
+
+
+WORDPTR *rplFindGlobalPropInDir(WORDPTR nameobj,WORD propname,WORDPTR *parent,BINT scanparents)
+{
+    WORDPTR *direntry=parent;
+    WORDPTR parentdir;
+    BINT idlen=rplGetIdentLength(nameobj);
+    BYTEPTR nameptr=(BYTEPTR)(nameobj+1);
+
+    if(!parent) return 0;
+
+    do {
+    parentdir=*(direntry+3);
+    direntry+=4;    // SKIP SELF REFERENCE AND PARENT DIR
+    while(direntry<DirsTop) {
+        if(**direntry==DIR_END_MARKER) break;
+
+        // FIND A PROPERTY NAME = VARNAME...PROPNAME
+        if(ISIDENT(**direntry) && (rplGetIdentLength(*direntry)==idlen+7)) {
+            // LONG ENOUGH TO BE A PROPERTY OF THIS VARIABLE
+            BYTEPTR ptr=(BYTEPTR)(direntry[0]+1);
+            int k;
+            for(k=0;k<idlen;++k) if(ptr[k]!=nameptr[k]) break;
+
+            if(k==idlen) {
+                // NAME MATCHES
+            if((ptr[idlen]=='.')&&(ptr[idlen+1]=='.')&&(ptr[idlen+2]=='.')) {
+                // FOUND A PROPERTY, CHECK IF IT'S THE SAME
+
+                WORD prop=ptr[idlen+3]|(ptr[idlen+4]<<8)|(ptr[idlen+5]<<16)|(ptr[idlen+6]<<24);
+                if(prop==propname) {
+                    // CORRECT PROPERTY AND CORRECT VARIABLE LENGTH, NOW CHECK IF THE NAME MATCHES
+                    return direntry;
+                }
+            }
+            }
+
+
+        }
+        direntry+=2;
+    }
+    direntry=rplFindDirbyHandle(parentdir);
+    } while(scanparents && direntry);
+return 0;
+}
+
+
+
+
+// START AUTO-EVALUATION OF DEPENDENCIES
+void rplDoAutoEval(WORDPTR varname,WORDPTR *indir)
+{
+    // STEP 1: CREATE A LIST OF VARIABLES TO RECALCULATE
+    WORDPTR stksave=DSTop;
+    rplPushDataNoGrow(varname);   // SAVE THE ROOT VARIABLE TO EVALUATE
+    WORDPTR *stkptr=stksave;
+    WORDPTR *var;
+
+    if(!indir) indir=CurrentDir;
+
+    ScratchPointer1=varname;    // PRESERVE POINTER FROM GC
+
+    while(stkptr<DSTop) {
+        // CHECK IF THE VARIABLE HAS DEPENDENCIES
+        var=rplFindGlobalInDir(*stkptr,indir,0);
+
+        if(var && (IDENTHASATTR(*var[1])) ) {
+
+            WORD attr=rplGetIdentAttr(var[1]);
+            if(attr&IDATTR_DEPEND) {
+            var=rplFindGlobalPropInDir(varname,IDPROP_DEPN,indir,0);
+            if(var) {
+                // EXPLODE THE DEPENDENCY LIST ON THE STACK
+                if(ISLIST(*var[1])) {
+                    BINT k=rplListLength(var[1]);
+                    rplExpandStack(k);
+                    if(Exceptions) { DSTop=stksave; return; }
+                    WORDPTR item=var[1]+1;
+                    while(k--) {
+                        if(ISIDENT(*item)) {
+                            WORDPTR *stkptr2=stksave;
+
+                            while(stkptr2<stkptr) {
+                                if(*stkptr2==item) {
+                                    // THIS VARIABLE HAD BEEN CALCULATED EARLIER, REMOVE IT
+                                    memmovew(stkptr2,stkptr2+1,DSTop-stkptr2-1);
+                                    --DSTop;
+                                    --stkptr;
+                                }
+                                else ++stkptr2;
+                            }
+                            // NOW WE HAVE GUARANTEE THAT THE VARIABLE WILL BE EVALUATED ONCE AND ONLY ONCE
+                            rplPushDataNoGrow(item);
+
+                        }
+                        item=rplSkipOb(item);
+                    }
+
+                    // ALL VARIABLES WERE PLACED IN STACK
+
+                }
+
+            }
+            }
+
+        }
+
+        +=stkptr;
+
+    }
+
+    // DONE CREATING LIST OF VARIABLES THAT NEED TO BE RECALCULATED
+
+    if(*stksave!=ScratchPointer1) {
+        // THE MAIN VARIABLE WAS MOVED DOWN THE LIST!
+        // THIS MEANS CIRCULAR REFERENCE
+        rplError(ERR_CIRCULARREFERENCE);
+        DSTop=stksave;
+        return;
+    }
+
+    // NOW DO ->NUM ON THE 'CALC' PROPERTY OF ALL VARIABLES ON THE LIST AND STORE THEIR RESULTS
+}

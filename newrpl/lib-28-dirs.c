@@ -122,7 +122,6 @@ ROMOBJECT home_opcode[]=
     (WORD)MKOPCODE(LIBRARY_NUMBER,HOME)
 };
 
-
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib28_menu);
@@ -301,6 +300,7 @@ void LIB_HANDLER()
         }
 
         WORDPTR *val;
+        WORD valattr=0;
 
         if(!indir) val=rplFindLAM(rplPeekData(1),1);
         else val=0;
@@ -334,6 +334,8 @@ void LIB_HANDLER()
                     rplError(ERR_READONLYVARIABLE);
                     return;
                 }
+                valattr=rplGetIdentAttr(val[0]);
+
 
             }
             // HANDLE SPECIAL CASE OF STORING DIRECTORY OBJECTS
@@ -394,6 +396,7 @@ void LIB_HANDLER()
             }
             rplDropData(2);
         }
+        if(valattr&IDATTR_DEPEND) rplDoAutoEval(val[0],indir);
     }
     return;
 

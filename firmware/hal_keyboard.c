@@ -362,6 +362,7 @@ void endCmdLine()
 void numberKeyHandler(BINT keymsg)
 {
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()>>5) return;  // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
         if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
 
         halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
@@ -925,7 +926,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
     // DEFAULT PRESS MESSAGE
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-        if(halGetContext()&CONTEXT_STACK) {
+        if(!(halGetContext()&(CONTEXT_INTSTACK|CONTEXT_PICT|CONTEXT_PLOT))) {
             // ACTION WHEN IN THE STACK
                 BINT64 mcode=rplGetMenuCode(menunum);
                 WORDPTR menu=uiGetLibMenu(mcode);
@@ -2086,6 +2087,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 void symbolKeyHandler(BINT keymsg,BYTEPTR symbol,BINT separate)
 {
 if(!(halGetContext()&CONTEXT_INEDITOR)) {
+    if(halGetContext()>>5) return;  // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
     if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
     halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
     halSetContext(halGetContext()|CONTEXT_INEDITOR);
@@ -2105,6 +2107,8 @@ if(!(halGetContext()&CONTEXT_INEDITOR)) {
 void alphasymbolKeyHandler(BINT keymsg,BYTEPTR Lsymbol,BYTEPTR Csymbol)
 {
 if(!(halGetContext()&CONTEXT_INEDITOR)) {
+    if(halGetContext()>>5) return;  // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
+
     if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
 
     halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
@@ -2135,6 +2139,7 @@ void VarMenuKeyHandler(BINT keymsg)
 void newlineKeyHandler(BINT keymsg)
 {
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()>>5) return;  // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
         if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
 
         halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
@@ -2163,6 +2168,8 @@ void decimaldotKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()>>5) return;  // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
+
         if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
 
         halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
@@ -2699,7 +2706,7 @@ void backspKeyHandler(BINT keymsg)
     }
     else{
         // REMOVE CHARACTERS FROM THE COMMAND LINE
-        // TODO: IMPLEMENT THIS!
+
         uiCursorLeft(1);
         uiRemoveCharacters(1);
         uiAutocompleteUpdate();

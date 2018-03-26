@@ -325,6 +325,11 @@ void halRedrawForm(DRAWSURFACE *scr)
     // DRAW THE VIEWPORT
     ggl_bitbltclip(scr,&viewport,viewport.width,viewport.clipy2+1);
     halScreen.DirtyFlag&=~FORM_DIRTY;
+
+    scr->clipx=oldclipx;
+    scr->clipx2=oldclipx2;
+    scr->clipy=oldclipy;
+    scr->clipy2=oldclipy2;
 }
 
 
@@ -1731,6 +1736,8 @@ void halSwitch2Stack()
     halSetFormHeight(0);
 
     //uiFormExitEvent();
+
+    uiClearRenderCache();
 
     halScreen.DirtyFlag|=STACK_DIRTY|FORM_DIRTY|STAREA_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
 

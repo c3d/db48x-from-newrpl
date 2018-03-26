@@ -416,6 +416,8 @@ BINT rplGetIdentLength(WORDPTR ident);
 void rplCompileIDENT(BINT libnum, BYTEPTR tok, BYTEPTR tokend);
 WORDPTR rplCreateIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend);
 BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend);
+WORD rplGetIdentAttr(WORDPTR name);
+WORDPTR rplSetIdentAttr(WORDPTR name,WORD attr,WORD attrmask);
 
 
 

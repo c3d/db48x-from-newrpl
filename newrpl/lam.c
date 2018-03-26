@@ -138,9 +138,9 @@ return 1;
 
 // GET THE ATTRIBUTES WORD OF AN IDENT, OR 0 IF IT DOESN'T HAVE ANY
 
-WORD rplGetIdentAttributes(WORDPTR name)
+WORD rplGetIdentAttr(WORDPTR name)
 {
-    if(LIBNUM(*name)&HASATTR_BIT) return name[OBJSIZE(*name)];
+    if(IDENTHASATTR(*name)) return name[OBJSIZE(*name)];
     return 0;
 }
 
