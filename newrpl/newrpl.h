@@ -226,6 +226,7 @@ void rplWarmInit();
 void rplHotInit();
 void rplSetEntryPoint(WORDPTR ip);
 BINT rplRun();
+BINT rplRunAtomic(WORD opcode);
 void rplCleanup();
 void rplDisableSingleStep();
 void rplEnableSingleStep();
@@ -503,7 +504,8 @@ void rplStoreSettingsbyName(BYTEPTR name, BYTEPTR nameend, WORDPTR object);
 WORDPTR rplGetSettings(WORDPTR nameobject);
 WORDPTR rplGetSettingsbyName(BYTEPTR name, BYTEPTR nameend);
 
-
+// AUTOMATIC EVALUATION
+void rplDoAutoEval(WORDPTR varname,WORDPTR *indir);
 
 
 

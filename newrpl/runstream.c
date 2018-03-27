@@ -495,258 +495,86 @@ BINT rplRun(void)
 BINT rplRunAtomic(WORD opcode)
 // TAKE THE NEXT WORD AND EXECUTE IT
 {
-    LIBHANDLER han;
-    // SAVE THE CURRENT EXECUTION STREAM
-    WORDPTR *rstksave=RSTop;
-    rplPushRet(IPtr);
+    WORDPTR obj=rplAllocTempObLowMem(2);
+    if(obj) {
+    obj[0]=Opcode;
+    obj[1]=CMD_ENDOFCODE;
+    obj[2]=CMD_QSEMI;   // THIS IS FOR SAFETY REASONS
 
-    han=rplGetLibHandler(LIBNUM(opcode));
-
-    if(han) {
-        // EXECUTE THE OTHER LIBRARY DIRECTLY
-        BINT SavedOpcode=CurOpcode;
-        CurOpcode=opcode;
-        (*han)();
-        if(CurOpcode==opcode) CurOpcode=SavedOpcode;
-    }
-    else {
-        rplError(ERR_MISSINGLIBRARY);
-        return 0;
-    }
+    BINT rsave,lamsave,nlambase,retvalue;
+    WORD exceptsave,errcodesave;
+    // PRESERVE VARIOUS STACK POINTERS
 
 
-    if((RSTop>=rstksave) &&(IPtr==rstksave[0])) return 0;   // EXECUTION WAS ATOMIC
+    rplSetExceptionHandler(0);  // SAVE CURRENT EXCEPTION HANDLERS
+    rplPushRet(IPtr);   // SAVE THE CURRENT INSTRUCTION POINTER
 
-    // IPtr WAS CHANGED, THEREFORE EXECUTION NEEDS TO CONTINUE
+    rsave=RSTop-RStk;        // PROTECT THE RETURN STACK
+    lamsave=LAMTop-LAMs;     // PROTECT LAM ENVIRONMENTS
+    nlambase=nLAMBase-LAMs;
+
+
+    rplSetEntryPoint(obj);
 
     do {
-    RPLLastOpcode=CurOpcode=*IPtr;
+    retvalue=rplRun();
+    if(retvalue) {
+        if(Exceptions&(EX_POWEROFF|EX_HALT|EX_HWHALT|EX_HWBKPOINT|EX_HWBKPTSKIP)) {
+    if(!HaltedIPtr) return;
 
-    han=rplGetLibHandler(LIBNUM(CurOpcode));
+    // UN-PAUSE ALL HARDWARE BREAKPOINTS. THIS IS NEEDED FOR breakpt_seco ONLY.
+    BreakPtFlags&=~BKPT_ALLPAUSED;
 
-    if(han) (*han)();
-    else {
-        rplError(ERR_MISSINGLIBRARY);
-        // INVALID OPCODE = END OF EXECUTION (CANNOT BE TRAPPED BY HANDLER)
-        return NEEDS_CLEANUP;
+    // CONTINUE HALTED EXECUTION
+    if(RSTop>=HaltedRSTop) {
+        IPtr=HaltedIPtr-1;
+        RSTop=HaltedRSTop;
+        if(LAMTop>=HaltedLAMTop) LAMTop=HaltedLAMTop;
+        if(nLAMBase>=HaltednLAMBase) nLAMBase=HaltednLAMBase;
+        HaltedIPtr=0;
+        if(HWExceptions&EX_HWBKPOINT) HWExceptions|=EX_HWBKPTSKIP;  // SKIP ONE SO AT LEAST IT EXECUTES ONE OPCODE
     }
-    Exceptions|=HWExceptions;
-    if(Exceptions) {
-        if(HWExceptions) HWExceptions&=EX_HWBKPOINT;    // CLEAR ANY EXCEPTIONS EXCEPT CHECK FOR BREAKPOINTS
-
-        if(Exceptions&EX_HWBKPOINT) {
-            if(!HaltedIPtr && !(Exceptions&~(EX_HWBKPOINT|EX_HWBKPTSKIP))) {   // MAKE SURE WE DON'T HALT ALREADY HALTED CODE OR INTERFERE WITH OTHER EXCEPTIONS
-                // CHECK FOR BREAKPOINT TRIGGERS!
-                int trigger=0;
-                if(GET_BKPOINTFLAG(0)&BKPT_ENABLED) {
-                    if(GET_BKPOINTFLAG(0)&BKPT_LOCATION) {
-                        WORDPTR nextopcode=IPtr+1+((ISPROLOG(CurOpcode))? OBJSIZE(CurOpcode):0);
-                        if((nextopcode>=BreakPt1Pointer)&&(nextopcode<rplSkipOb(BreakPt1Pointer))) {
-                            if(!(Exceptions&EX_HWBKPTSKIP)) trigger=1;
-                        }
-                    } else if(!(Exceptions&EX_HWBKPTSKIP)) trigger=1;
-
-                    if(trigger) {
-                    if(GET_BKPOINTFLAG(0)&BKPT_COND) {
-                        // HALT CURRENT PROGRAM
-                        // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
-                        HaltedIPtr=IPtr+1+((ISPROLOG(CurOpcode))? OBJSIZE(CurOpcode):0);
-                        HaltedRSTop=RSTop;  // SAVE RETURN STACK POINTER
-                        HaltednLAMBase=nLAMBase;
-                        HaltedLAMTop=LAMTop;
-
-                        // PAUSE ALL HARDWARE BREAKPOINTS UNTIL CONDITION IS EXECUTED
-                        BreakPtFlags|=BKPT_ALLPAUSED;
-
-                        // PREPARE TO EXECUTE THE CONDITION - MUST BE A SECONDARY
-
-                        rplPushDataNoGrow(BreakPt1Arg);
-                        IPtr=(WORDPTR)bkpoint_seco;
-                        CurOpcode=0;
-                        Exceptions=0; //    CLEAR ERRORS AND GO...
-
-
-                    } else {
-
-                        // HALT CURRENT PROGRAM
-                        // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
-                        HaltedIPtr=IPtr+1+((ISPROLOG(CurOpcode))? OBJSIZE(CurOpcode):0);
-                        HaltedRSTop=RSTop;  // SAVE RETURN STACK POINTER
-                        HaltednLAMBase=nLAMBase;
-                        HaltedLAMTop=LAMTop;
-
-                        Exceptions=EX_HALT;
-
-                    }
-
-                    }
-                }
-
-                // TODO: ADD SAME CODE FOR BREKPOINTS 1 AND 2 HERE
-
-                if(!trigger && (GET_BKPOINTFLAG(1)&BKPT_ENABLED)) {
-                    if(GET_BKPOINTFLAG(1)&BKPT_LOCATION) {
-                        WORDPTR nextopcode=IPtr+1+((ISPROLOG(CurOpcode))? OBJSIZE(CurOpcode):0);
-                        if((nextopcode>=BreakPt2Pointer)&&(nextopcode<rplSkipOb(BreakPt2Pointer))) {
-                            if(!(Exceptions&EX_HWBKPTSKIP)) trigger=1;
-                        }
-                    } else if(!(Exceptions&EX_HWBKPTSKIP)) trigger=1;
-
-                    if(trigger) {
-                    if(GET_BKPOINTFLAG(1)&BKPT_COND) {
-                        // HALT CURRENT PROGRAM
-                        // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
-                        HaltedIPtr=IPtr+1+((ISPROLOG(CurOpcode))? OBJSIZE(CurOpcode):0);
-                        HaltedRSTop=RSTop;  // SAVE RETURN STACK POINTER
-                        HaltednLAMBase=nLAMBase;
-                        HaltedLAMTop=LAMTop;
-
-                        // PAUSE ALL HARDWARE BREAKPOINTS UNTIL CONDITION IS EXECUTED
-                        BreakPtFlags|=BKPT_ALLPAUSED;
-
-                        // PREPARE TO EXECUTE THE CONDITION - MUST BE A SECONDARY
-
-                        rplPushDataNoGrow(BreakPt2Arg);
-                        IPtr=(WORDPTR)bkpoint_seco;
-                        CurOpcode=0;
-                        Exceptions=0; //    CLEAR ERRORS AND GO...
-
-
-                    } else {
-
-                        // HALT CURRENT PROGRAM
-                        // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
-                        HaltedIPtr=IPtr+1+((ISPROLOG(CurOpcode))? OBJSIZE(CurOpcode):0);
-                        HaltedRSTop=RSTop;  // SAVE RETURN STACK POINTER
-                        HaltednLAMBase=nLAMBase;
-                        HaltedLAMTop=LAMTop;
-
-                        Exceptions=EX_HALT;
-
-                    }
-
-                    }
-                }
-
-                if(!trigger && (GET_BKPOINTFLAG(2)&BKPT_ENABLED)) {
-                    if(GET_BKPOINTFLAG(2)&BKPT_LOCATION) {
-                        WORDPTR nextopcode=IPtr+1+((ISPROLOG(CurOpcode))? OBJSIZE(CurOpcode):0);
-                        if((nextopcode>=BreakPt3Pointer)&&(nextopcode<rplSkipOb(BreakPt3Pointer))) {
-                            if(!(Exceptions&EX_HWBKPTSKIP)) trigger=1;
-                        }
-                    } else if(!(Exceptions&EX_HWBKPTSKIP)) trigger=1;
-
-                    if(trigger) {
-
-                    // SINGLE STEP BREAKPOINT DISABLES ITSELF AFTER IT'S TRIGGERED
-                    SET_BKPOINTFLAG(2,GET_BKPOINTFLAG(2)&(~BKPT_ENABLED));
-
-                    if(GET_BKPOINTFLAG(2)&BKPT_COND) {
-                        // HALT CURRENT PROGRAM
-                        // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
-                        HaltedIPtr=IPtr+1+((ISPROLOG(CurOpcode))? OBJSIZE(CurOpcode):0);
-                        HaltedRSTop=RSTop;  // SAVE RETURN STACK POINTER
-                        HaltednLAMBase=nLAMBase;
-                        HaltedLAMTop=LAMTop;
-
-                        // PAUSE ALL HARDWARE BREAKPOINTS UNTIL CONDITION IS EXECUTED
-                        BreakPtFlags|=BKPT_ALLPAUSED;
-
-                        // PREPARE TO EXECUTE THE CONDITION - MUST BE A SECONDARY
-
-                        rplPushDataNoGrow(BreakPt3Arg);
-                        IPtr=(WORDPTR)bkpoint_seco;
-                        CurOpcode=0;
-                        Exceptions=0; //    CLEAR ERRORS AND GO...
-
-
-                    } else {
-
-                        // HALT CURRENT PROGRAM
-                        // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
-                        HaltedIPtr=IPtr+1+((ISPROLOG(CurOpcode))? OBJSIZE(CurOpcode):0);
-                        HaltedRSTop=RSTop;  // SAVE RETURN STACK POINTER
-                        HaltednLAMBase=nLAMBase;
-                        HaltedLAMTop=LAMTop;
-
-                        Exceptions=EX_HALT;
-
-                    }
-
-                    }
-                }
-
-
-
-            } else {
-                // CHECK IF WE ARE DONE WITH THE BREAKPOINT CONDITION ROUTINE
-                // WARNING!!!: DO NOT MODIFY bkpoint_seco WITHOUT FIXING THIS!!
-                if(IPtr==bkpoint_seco+11) {
-                    // WE REACHED THE END OF CODE STATEMENT, THEREFORE THE BREAKPOINT WAS TRIGGERED
-                    // UN-PAUSE ALL HARDWARE BREAKPOINTS
-                    BreakPtFlags&=~BKPT_ALLPAUSED;
-
-                    // JUST STAY HALTED AND ISSUE A BREAKPOINT
-                    Exceptions=EX_HALT;
-                }
-
-            }
-            Exceptions&=~(EX_HWBKPOINT|EX_HWBKPTSKIP);
-            if(!Exceptions) {
-                IPtr+=1+((ISPROLOG(CurOpcode))? OBJSIZE(CurOpcode):0);
-                continue;
-            }
-        }
-
-
-
-        // HARD EXCEPTIONS FIRST, DO NOT ALLOW ERROR HANDLERS TO CATCH THESE ONES
-        if(Exceptions&EX_EXITRPL) {
-            Exceptions=0;
-            rplClearRStk(); // CLEAR THE RETURN STACK
-            rplClearLAMs(); // CLEAR ALL LOCAL VARIABLES
-            ErrorHandler=0;
-            return CLEAN_RUN; // DON'T ALLOW HANDLER TO TRAP THIS EXCEPTION
-        }
-
-
-        if(Exceptions&EX_HWHALT) {
-            // HARDWARE-CAUSED HALT
-            // EMULATE THE HALT INSTRUCTION HERE
-            if(!HaltedIPtr) { // CAN'T HALT WITHIN AN ALREADY HALTED PROGRAM!
-
-            // SAVE THE ADDRESS OF THE NEXT INSTRUCTION
-            HaltedIPtr=IPtr+1+((ISPROLOG(CurOpcode))? OBJSIZE(CurOpcode):0);
-
-            HaltedRSTop=RSTop;  // SAVE RETURN STACK POINTER
-            HaltednLAMBase=nLAMBase;
-            HaltedLAMTop=LAMTop;
-            Exceptions|=EX_HALT;    // CONVERT TO A NORMAL HALT
-            }
-        }
-        if(Exceptions&EX_HALT) { rplSkipNext(); return CODE_HALTED; } // PREPARE TO RESUME ON NEXT CALL
-        if(Exceptions&EX_POWEROFF) { rplSkipNext(); return CODE_HALTED; } // PREPARE AUTORESUME
-
-        if(ErrorHandler) {
-            // ERROR WAS TRAPPED BY A HANDLER
-            rplCatchException();
-        }
-        else {
-            // THERE IS NO ERROR HANDLER --> UNTRAPPED ERROR
-            // SAVE THE EXCEPTIONS FOR ERRN AND ERRM
-            TrappedExceptions=Exceptions;   // THE ERROR HANDLER CAN KNOW THE EXCEPTIONS BY LOOKING AT THIS VARIABLE
-                                            // ExceptionPointer STILL POINTS TO THE WORD THAT CAUSED THE EXCEPTION
-            TrappedErrorCode=ErrorCode;
-
-            return NEEDS_CLEANUP;      // END EXECUTION IMMEDIATELY IF AN UNHANDLED EXCEPTION IS THROWN
-        }
+    Exceptions=0;
+    continue;
     }
+        else // STOP EXECUTION ON OTHER EXCEPTIONS
+            break;
+    }
+    } while(retvalue);
 
-    // SKIP TO THE NEXT INSTRUCTION / OBJECT BASED ON CurOpcode
-    // NOTICE THAT CurOpcode MIGHT BE MODIFIED BY A LIBRARY HANDLER TO ALTER THE FLOW
-    IPtr+=1+((ISPROLOG(CurOpcode))? OBJSIZE(CurOpcode):0);
+    // MANUAL RESTORE
 
-    } while(1);
+    if(RSTop>=RStk+rsave) RSTop=RStk+rsave;  // IF RSTop<RStk+rsave THE RETURN STACK WAS COMPLETELY CORRUPTED, SHOULD NEVER HAPPEN BUT...
+    else rplCleanup();
+    if(LAMTop>=LAMs+lamsave) LAMTop=LAMs+lamsave;  // OTHERWISE THE LAM ENVIRONMENTS WERE DESTROYED, SHOULD NEVER HAPPEN BUT...
+    else rplCleanup();
+    if(nLAMBase>=LAMs+nlambase) nLAMBase=LAMs+nlambase;  // OTHERWISE THE LAM ENVIRONMENTS WERE DESTROYED, SHOULD NEVER HAPPEN BUT...
+    else rplCleanup();
+
+    // RESTORE THE ERROR CODES FIRST, TO CAPTURE ANY ERRORS DURING POPPING THE RETURN STACK
+    exceptsave=Exceptions;
+    errcodesave=ErrorCode;
+
+    Exceptions=0;
+
+    // RESTORE THE IP POINTER
+    IPtr=rplPopRet();
+
+    // AND THE ERROR HANDLERS
+    rplRemoveExceptionHandler();
+
+
+    Exceptions=exceptsave;
+    Errorcode=errcodesave;
+
+    if(Exceptions) ExceptionPointer=IPtr;
+
+    // IF EVERYTHING WENT WELL, HERE WE HAVE THE SAME ENVIRONMENT AS BEFORE
+    // IF SOMETHING GOT CORRUPTED, WE SHOULD HAVE AN INTERNAL EMPTY RSTACK ERROR
+    return retvalue;
+
+    }
+    return 0;
 
 }
 

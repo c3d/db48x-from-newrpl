@@ -1,0 +1,34 @@
+<button collapse="ovr-operators" block="true" >**Overloadable operators**  <badge>26</badge> <badge>3 NEW</badge></button>
+<collapse id="ovr-operators" collapsed="true">
+^ Operator  ^ Short Description ^  ^
+| **Evaluation operators:** |||
+| **[[manual:chapter6:operators:cmd_ovr_eval1|EVAL1]]** | Evaluate one level | <badge>NEW</badge> |
+| **[[manual:chapter6:operators:cmd_ovr_eval|EVAL]]** | Evaluate full depth |  |
+| **[[manual:chapter6:operators:cmd_ovr_xeq|XEQ]]** | Execute | <badge>NEW</badge> |
+| **[[manual:chapter6:operators:cmd_ovr_num|→NUM]]** | Compute numeric result |  |
+| **Test operators:** |||
+| **[[manual:chapter6:operators:cmd_ovr_eq|==]]** | Equality test |  |
+| **[[manual:chapter6:operators:cmd_ovr_noteq|≠]]** | Not equal test |  |
+| **[[manual:chapter6:operators:cmd_ovr_lt|<]]** | Less than test |  |
+| **[[manual:chapter6:operators:cmd_ovr_lte|≤]]** | Less than or equal test |  |
+| **[[manual:chapter6:operators:cmd_ovr_gt|>]]** | Greater than test |  |
+| **[[manual:chapter6:operators:cmd_ovr_gte|≥]]** | Greater than or equal test |  |
+| **[[manual:chapter6:operators:cmd_ovr_cmp|CMP]]** | Comparison test (<0 if A<B, 0 if A==B, >0 if A>B) | <badge>NEW</badge> |
+| **[[manual:chapter6:operators:cmd_ovr_same|SAME]]** | Comparison test, true if objects are the same |  |
+| **[[manual:chapter6:operators:cmd_ovr_istrue|ISTRUE]]** | True test | <badge>NEW</badge> |
+| **Logical operators:** |||
+| **[[manual:chapter6:operators:cmd_ovr_and|AND]]** | Logical AND |  |
+| **[[manual:chapter6:operators:cmd_ovr_or|OR]]** | Logical OR |  |
+| **[[manual:chapter6:operators:cmd_ovr_xor|XOR]]** | Logical XOR |  |
+| **[[manual:chapter6:operators:cmd_ovr_not|NOT]]** | Logical NOT |  |
+| **Mathematic operators:** |||
+| **[[manual:chapter6:operators:cmd_ovr_add|+]]** | Addition |  |
+| **[[manual:chapter6:operators:cmd_ovr_sub|-]]** | Subtraction |  |
+| **[[manual:chapter6:operators:cmd_ovr_mul|*]]** | Multiplication |  |
+| **[[manual:chapter6:operators:cmd_ovr_div|/]]** | Division |  |
+| **[[manual:chapter6:operators:cmd_ovr_pow|^]]** | Power |  |
+| **[[manual:chapter6:operators:cmd_ovr_xroot|XROOT]]** | Root |  |
+| **[[manual:chapter6:operators:cmd_ovr_inv|INV]]** | Inverse |  |
+| **[[manual:chapter6:operators:cmd_ovr_neg|NEG]]** | Negate/change sign|  |
+| **[[manual:chapter6:operators:cmd_ovr_abs|ABS]]** | Magnitude or absolute value |  |
+</collapse>

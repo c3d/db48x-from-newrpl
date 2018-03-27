@@ -1041,7 +1041,7 @@ void rplDoAutoEval(WORDPTR varname,WORDPTR *indir)
 
             WORD attr=rplGetIdentAttr(var[1]);
             if(attr&IDATTR_DEPEND) {
-            var=rplFindGlobalPropInDir(varname,IDPROP_DEPN,indir,0);
+            var=rplFindGlobalPropInDir(*stkptr,IDPROP_DEPN,indir,0);
             if(var) {
                 // EXPLODE THE DEPENDENCY LIST ON THE STACK
                 if(ISLIST(*var[1])) {
@@ -1084,6 +1084,7 @@ void rplDoAutoEval(WORDPTR varname,WORDPTR *indir)
 
     // DONE CREATING LIST OF VARIABLES THAT NEED TO BE RECALCULATED
 
+    // IS THIS REALLY A PROBLEM?
     if(*stksave!=ScratchPointer1) {
         // THE MAIN VARIABLE WAS MOVED DOWN THE LIST!
         // THIS MEANS CIRCULAR REFERENCE
@@ -1093,4 +1094,52 @@ void rplDoAutoEval(WORDPTR varname,WORDPTR *indir)
     }
 
     // NOW DO ->NUM ON THE 'CALC' PROPERTY OF ALL VARIABLES ON THE LIST AND STORE THEIR RESULTS
+    stkptr=stksave+1;
+
+    while(stkptr<DSTop) {
+        // FIND VARIABLE 'CALC' PROPERTY
+        // CHECK IF THE VARIABLE HAS DEPENDENCIES
+        var=rplFindGlobalInDir(*stkptr,indir,0);
+
+        if(var && (IDENTHASATTR(*var[1])) ) {
+
+            WORD attr=rplGetIdentAttr(var[1]);
+            if(attr&IDATTR_CALC) {
+            WORDPTR varcalc=rplFindGlobalPropInDir(*stkptr,IDPROP_CALC,indir,0);
+            if(varcalc) {
+                // FOUND A FORMULA OR PROGRAM, IF A PROGRAM, RUN XEQ THEN ->NUM
+                // IF A FORMULA OR ANYTHING ELSE, ->NUM
+                rplPushData(varcalc[1]);
+                WORDPTR stkcheck=DSTop;
+                if(ISPROGRAM(*varcalc[1])) rplRunAtomic(CMD_OVR_XEQ);
+                if(Exceptions) {
+                    rplBlameError(varcalc[0]);   // AT LEAST SHOW WHERE THE ERROR CAME FROM
+                    if(DSTop>stksave) DSTop=stksave;
+                    return;
+                }
+                rplRunAtomic(CMD_OVR_NUM);
+                if(Exceptions) {
+                    rplBlameError(varcalc[0]);   // AT LEAST SHOW WHERE THE ERROR CAME FROM
+                    if(DSTop>stksave) DSTop=stksave;
+                    return;
+                }
+
+                // WE GOT THE RESULT ON THE STACK
+                if(DSTop!=stkcheck) {
+                   rplError(ERR_BADARGCOUNT);
+                   rplBlameError(varcalc[0]);   // AT LEAST SHOW WHERE THE ERROR CAME FROM
+                   DSTop=stksave;
+                   return;
+                }
+                // STORE THE NEW RESULT AND CONTINUE
+                var[1]=rplPopData();
+            }
+            }
+        }
+        ++stkptr;
+    }
+
+    // ALL VARIABLES WERE RECOMPUTED
+
+    DSTop=stksave;
 }
