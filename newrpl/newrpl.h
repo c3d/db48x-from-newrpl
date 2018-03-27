@@ -419,6 +419,7 @@ WORDPTR rplCreateIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend);
 BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend);
 WORD rplGetIdentAttr(WORDPTR name);
 WORDPTR rplSetIdentAttr(WORDPTR name,WORD attr,WORD attrmask);
+WORD rplGetIdentProp(WORDPTR ident);
 
 
 
@@ -454,6 +455,8 @@ WORDPTR rplMakeIdentHidden(WORDPTR ident);
 WORDPTR rplMakeIdentVisible(WORDPTR ident);
 WORDPTR rplMakeIdentReadOnly(WORDPTR ident);
 WORDPTR rplMakeIdentWriteable(WORDPTR ident);
+WORDPTR rplMakeIdentNoProps(WORDPTR ident);
+
 
 
 void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir);
@@ -474,6 +477,7 @@ WORDPTR *rplFindGlobalInDir(WORDPTR nameobj,WORDPTR *parentdir,BINT scanparents)
 WORDPTR *rplFindGlobal(WORDPTR nameobj,BINT scanparents);
 WORDPTR *rplFindVisibleGlobalByIndexInDir(BINT idx,WORDPTR *directory);
 WORDPTR *rplFindVisibleGlobalByIndex(BINT idx);
+WORDPTR *rplFindGlobalPropInDir(WORDPTR nameobj,WORD propname,WORDPTR *parent,BINT scanparents);
 // DIRECTORY SCANNING AND LOWER-LEVEL ACCESS
 WORDPTR *rplFindFirstInDir(WORDPTR *directory);
 WORDPTR *rplFindFirstByHandle(WORDPTR dirhandle);

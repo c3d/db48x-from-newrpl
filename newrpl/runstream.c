@@ -497,7 +497,7 @@ BINT rplRunAtomic(WORD opcode)
 {
     WORDPTR obj=rplAllocTempObLowMem(2);
     if(obj) {
-    obj[0]=Opcode;
+    obj[0]=opcode;
     obj[1]=CMD_ENDOFCODE;
     obj[2]=CMD_QSEMI;   // THIS IS FOR SAFETY REASONS
 
@@ -520,7 +520,7 @@ BINT rplRunAtomic(WORD opcode)
     retvalue=rplRun();
     if(retvalue) {
         if(Exceptions&(EX_POWEROFF|EX_HALT|EX_HWHALT|EX_HWBKPOINT|EX_HWBKPTSKIP)) {
-    if(!HaltedIPtr) return;
+        if(!HaltedIPtr) break;
 
     // UN-PAUSE ALL HARDWARE BREAKPOINTS. THIS IS NEEDED FOR breakpt_seco ONLY.
     BreakPtFlags&=~BKPT_ALLPAUSED;
@@ -565,7 +565,7 @@ BINT rplRunAtomic(WORD opcode)
 
 
     Exceptions=exceptsave;
-    Errorcode=errcodesave;
+    ErrorCode=errcodesave;
 
     if(Exceptions) ExceptionPointer=IPtr;
 

@@ -486,3 +486,136 @@ void rplClearLAMs()
 {
     LAMTop=nLAMBase=LAMs;
 }
+
+
+
+void rplCompileIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
+{
+    // WE HAVE A VALID QUOTED IDENT, CREATE THE OBJECT
+    BINT lenwords=(tokend-tok+3)>>2;
+    BINT len=tokend-tok;
+    ScratchPointer1=(WORDPTR)tok;
+    rplCompileAppend(MKPROLOG(libnum,lenwords));
+    WORD nextword;
+    tok=(BYTEPTR )ScratchPointer1;
+    while(len>3) {
+        // WARNING: THIS IS LITTLE ENDIAN ONLY!
+        nextword=tok[0]+(tok[1]<<8)+(tok[2]<<16)+(tok[3]<<24);
+        ScratchPointer1=(WORDPTR)tok;
+        rplCompileAppend(nextword);
+        tok=(BYTEPTR )ScratchPointer1;
+        tok+=4;
+        len-=4;
+    }
+    if(len) {
+    nextword=0;
+    BINT rot=0;
+    while(len) {
+        // WARNING: THIS IS LITTLE ENDIAN ONLY!
+        nextword|=(*tok)<<rot;
+        --len;
+        ++tok;
+        rot+=8;
+    }
+    rplCompileAppend(nextword);
+    }
+    // DONE
+
+}
+
+// ALLOCATES MEMORY AND CREATES AN IDENT OBJECT
+// RETURNS NULL ON ERROR, DOESN'T CHECK IF IDENT IS VALID!
+// USER MUST CALL rplIsValidIdent() BEFORE CALLING THIS FUNCTION
+
+WORDPTR rplCreateIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
+{
+    // CREATE THE OBJECT
+    BINT lenwords=(tokend-tok+3)>>2;
+    BINT len=tokend-tok;
+
+    ScratchPointer1=(WORDPTR)tok;
+
+    WORDPTR newobj=rplAllocTempOb(lenwords),newptr;
+    if(!newobj) return 0;
+    newptr=newobj;
+    *newptr=MKPROLOG(libnum,lenwords);
+    ++newptr;
+    WORD nextword;
+    tok=(BYTEPTR )ScratchPointer1;
+    while(len>3) {
+        // WARNING: THIS IS LITTLE ENDIAN ONLY!
+        nextword=tok[0]+(tok[1]<<8)+(tok[2]<<16)+(tok[3]<<24);
+        *newptr=nextword;
+        ++newptr;
+        tok+=4;
+        len-=4;
+    }
+    if(len) {
+    nextword=0;
+    BINT rot=0;
+    while(len) {
+        // WARNING: THIS IS LITTLE ENDIAN ONLY!
+        nextword|=(*tok)<<rot;
+        --len;
+        ++tok;
+        rot+=8;
+    }
+    *newptr=nextword;
+    }
+    // DONE
+ return newobj;
+}
+
+// THESE ARE THE ONLY CHARACTERS THAT ARE FORBIDDEN IN AN IDENTIFIER
+// ALSO FORBIDDEN IS THE ARGUMENT SEPARATOR IF NOT INCLUDED IN THIS LIST
+const char const forbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@|√«»≤≥≠∡";
+
+BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend)
+{
+    BYTEPTR ptr;
+    BINT char1,char2;
+    BINT argsep;
+
+    if(tokend<=tok) return 0;
+
+    argsep=ARG_SEP(rplGetSystemLocale());
+
+    // SKIP ANY INITIAL DOTS
+    while((tok!=tokend)&&(*tok=='.')) ++tok;
+
+    // IDENT CANNOT START WITH A NUMBER
+    if( (((char)*tok)>='0') && (((char)*tok)<='9')) return 0;
+
+    // OR CONTAIN ANY OF THE FORBIDDEN CHARACTERS
+    while(tok!=tokend)
+    {
+        ptr=(BYTEPTR )forbiddenChars;
+        char1=utf82cp((char *)tok,(char *)tokend);
+        do {
+        char2=utf82cp((char *)ptr,(char *)ptr+4);
+        if(char1==char2) return 0;
+        ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)ptr+4);
+        } while(*ptr);
+
+        if(char1==argsep) return 0; // DON'T ALLOW THE ARGUMENT SEPARATOR
+
+        tok=(BYTEPTR)utf8skip((char *)tok,(char *)tokend);
+    }
+    return 1;
+}
+
+// DETERMINE THE LENGTH OF AN IDENT STRING IN BYTES (NOT CHARACTERS)
+BINT rplGetIdentLength(WORDPTR ident)
+{
+    BINT len=OBJSIZE(*ident);
+    if(LIBNUM(*ident)&HASATTR_BIT) --len;
+    if(!len) return 0;
+
+    WORD lastword=*(ident+len);
+    BINT usedbytes=0;
+    while( !(lastword&0xff000000) && (usedbytes<4) ) { lastword<<=8; ++usedbytes; }
+    usedbytes=4-usedbytes;
+
+    return ((len-1)<<2)+usedbytes;
+}
+

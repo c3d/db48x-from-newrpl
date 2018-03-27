@@ -544,6 +544,12 @@ void rplPurgeGlobal(WORDPTR nameobj)
     if(ISLOCKEDIDENT(**var)) { rplError(ERR_READONLYVARIABLE); return; }
 
     rplPurgeForced(var);
+
+    // PURGE ALL PROPERTIES OF THIS VARIABLE TOO
+    while( (var=rplFindGlobalPropInDir(nameobj,0,CurrentDir,0))) {
+        rplPurgeForced(var);
+    }
+
 }
 
 
@@ -972,7 +978,7 @@ WORDPTR *rplFindDirFromPath(WORDPTR pathlist,BINT uselastname)
     return dir;
 }
 
-
+// FIND A SPECIFIC PROPERTY. IF propname==0 FINDS ANY PROPERTY OF THE GIVEN VARIABLE
 WORDPTR *rplFindGlobalPropInDir(WORDPTR nameobj,WORD propname,WORDPTR *parent,BINT scanparents)
 {
     WORDPTR *direntry=parent;
@@ -1000,7 +1006,7 @@ WORDPTR *rplFindGlobalPropInDir(WORDPTR nameobj,WORD propname,WORDPTR *parent,BI
             if((ptr[idlen]=='.')&&(ptr[idlen+1]=='.')&&(ptr[idlen+2]=='.')) {
                 // FOUND A PROPERTY, CHECK IF IT'S THE SAME
 
-                WORD prop=ptr[idlen+3]|(ptr[idlen+4]<<8)|(ptr[idlen+5]<<16)|(ptr[idlen+6]<<24);
+                WORD prop=propname? (ptr[idlen+3]|(ptr[idlen+4]<<8)|(ptr[idlen+5]<<16)|(ptr[idlen+6]<<24)):0;
                 if(prop==propname) {
                     // CORRECT PROPERTY AND CORRECT VARIABLE LENGTH, NOW CHECK IF THE NAME MATCHES
                     return direntry;
@@ -1024,7 +1030,7 @@ return 0;
 void rplDoAutoEval(WORDPTR varname,WORDPTR *indir)
 {
     // STEP 1: CREATE A LIST OF VARIABLES TO RECALCULATE
-    WORDPTR stksave=DSTop;
+    WORDPTR *stksave=DSTop;
     rplPushDataNoGrow(varname);   // SAVE THE ROOT VARIABLE TO EVALUATE
     WORDPTR *stkptr=stksave;
     WORDPTR *var;
@@ -1078,7 +1084,7 @@ void rplDoAutoEval(WORDPTR varname,WORDPTR *indir)
 
         }
 
-        +=stkptr;
+        ++stkptr;
 
     }
 
@@ -1093,24 +1099,24 @@ void rplDoAutoEval(WORDPTR varname,WORDPTR *indir)
         return;
     }
 
-    // NOW DO ->NUM ON THE 'CALC' PROPERTY OF ALL VARIABLES ON THE LIST AND STORE THEIR RESULTS
+    // NOW DO ->NUM ON THE 'Defn' PROPERTY OF ALL VARIABLES ON THE LIST AND STORE THEIR RESULTS
     stkptr=stksave+1;
 
     while(stkptr<DSTop) {
-        // FIND VARIABLE 'CALC' PROPERTY
+        // FIND VARIABLE 'Defn' PROPERTY
         // CHECK IF THE VARIABLE HAS DEPENDENCIES
         var=rplFindGlobalInDir(*stkptr,indir,0);
 
         if(var && (IDENTHASATTR(*var[1])) ) {
 
             WORD attr=rplGetIdentAttr(var[1]);
-            if(attr&IDATTR_CALC) {
-            WORDPTR varcalc=rplFindGlobalPropInDir(*stkptr,IDPROP_CALC,indir,0);
+            if(attr&IDATTR_DEFN) {
+            WORDPTR *varcalc=rplFindGlobalPropInDir(*stkptr,IDPROP_DEFN,indir,0);
             if(varcalc) {
                 // FOUND A FORMULA OR PROGRAM, IF A PROGRAM, RUN XEQ THEN ->NUM
                 // IF A FORMULA OR ANYTHING ELSE, ->NUM
                 rplPushData(varcalc[1]);
-                WORDPTR stkcheck=DSTop;
+                WORDPTR *stkcheck=DSTop;
                 if(ISPROGRAM(*varcalc[1])) rplRunAtomic(CMD_OVR_XEQ);
                 if(Exceptions) {
                     rplBlameError(varcalc[0]);   // AT LEAST SHOW WHERE THE ERROR CAME FROM
@@ -1142,4 +1148,53 @@ void rplDoAutoEval(WORDPTR varname,WORDPTR *indir)
     // ALL VARIABLES WERE RECOMPUTED
 
     DSTop=stksave;
+}
+
+// GET THE 4-LETTER PROPERTY IDENTIFIER AS A 32-BIT WORD
+// OR ZERO IF THERE'S NO PROPERTY IN THE IDENT
+WORD rplGetIdentProp(WORDPTR ident)
+{
+    WORD prop=0;
+    BYTEPTR ptr=(BYTEPTR)(ident+1);
+    BYTEPTR end=(BYTEPTR)rplSkipOb(ident);
+
+    if(IDENTHASATTR(ident)) end-=4;
+    while(end[-1]==0) --end;
+
+    // FIND THE TRIPLE DOT SEPARATOR
+    if(end-ptr<8) return 0;
+    ptr=end-7;
+    if((ptr[0]!='.')||(ptr[1]!='.')||(ptr[2]!='.')) return 0;
+    ptr+=3;
+    prop=ptr[0]|(ptr[1]<<8)|(ptr[2]<<16)|(ptr[3]<<24);
+    return prop;
+}
+
+
+// RETURN AN IDENT WITH ANY PROPERTIES REMOVED
+WORDPTR rplMakeIdentNoProps(WORDPTR ident)
+{
+        BYTEPTR ptr=(BYTEPTR)(ident+1);
+        BYTEPTR start=ptr,end=(BYTEPTR)rplSkipOb(ident);
+
+        if(IDENTHASATTR(ident)) end-=4;
+        while(end[-1]==0) --end;
+
+        // FIND THE TRIPLE DOT SEPARATOR
+        if(end-ptr<8) return ident;
+        ptr=end-7;
+        if((ptr[0]!='.')||(ptr[1]!='.')||(ptr[2]!='.')) return ident;
+
+        WORDPTR newident=rplAllocTempOb((ptr-start+3)>>2);
+        if(newident) {
+        newident[0]=MKPROLOG(DOIDENT,(ptr-start+3)>>2);
+        BINT nchars=ptr-start;
+        int k;
+        ptr=(BYTEPTR)(newident+1);
+        for(k=0;k<nchars;++k) ptr[k]=start[k];
+        while(k&3) ptr[k++]=0;
+        }
+
+        return newident;
+
 }
