@@ -2064,17 +2064,19 @@ case TVARSE:
             WORDPTR newname=rplMakeIdentHidden(rplPeekData(1));
             if(!newname) return;
             rplCreateGlobal(newname,rplPeekData(2));
+            if(Exceptions) return;
+            var+=2;     // CORRECT THE POINTER TO THE ORIGINAL VARIABLE, MOVED IN MEMORY WHEN CREATING THE GLOBAL
         }
 
         // IF THE PROPERTY IS A SYSTEM PROPERTY, DO SOME EXTRA HOUSEKEEPING
 
         if(prop==IDPROP_DEFN) {
             // CHANGING Defn NEEDS TO UPDATE THE DEPENDENCY CACHE
-            ScratchPointer1=oldvarprop;
+            ScratchPointer2=oldvarprop;
             varname=rplSetIdentAttr(var[0],IDATTR_DEFN,IDATTR_DEFN);
             if(!varname) return;
             var[0]=varname;
-            oldvarprop=ScratchPointer1;
+            oldvarprop=ScratchPointer2;
 
             rplUpdateDependencyTree(varname,CurrentDir,oldvarprop,rplPeekData(2));
 
