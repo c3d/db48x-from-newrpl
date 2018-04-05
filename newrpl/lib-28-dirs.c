@@ -2045,6 +2045,8 @@ case TVARSE:
 
         WORDPTR *var=rplFindGlobalInDir(varname,CurrentDir,0);
         if(!var) {
+            // CAN'T SET A PROPERTY OF A VARIABLE THAT DOESN'T EXIST
+            // TODO: UNLESS IT'S THE 'Defn' PROPERTY, THEN IT SHOULD BE EVALUATED
             rplError(ERR_UNDEFINEDVARIABLE);
             return;
         }
@@ -2055,20 +2057,27 @@ case TVARSE:
         }
 
         WORDPTR *varprop=rplFindGlobalInDir(rplPeekData(1),CurrentDir,0);
-        if(varprop) varprop[1]=rplPeekData(2);
+        WORDPTR oldvarprop=0;
+        if(varprop) { oldvarprop=varprop[1]; varprop[1]=rplPeekData(2); }
         else {
             // CREATE A NEW PROPERTY
             WORDPTR newname=rplMakeIdentHidden(rplPeekData(1));
+            if(!newname) return;
             rplCreateGlobal(newname,rplPeekData(2));
         }
 
         // IF THE PROPERTY IS A SYSTEM PROPERTY, DO SOME EXTRA HOUSEKEEPING
 
         if(prop==IDPROP_DEFN) {
-            // CHANGING Defn NEEDS TO INVALIDATE THE DEPENDENCY CACHE
-            varname=rplSetIdentAttr(var[0],IDATTR_DEFN,IDATTR_DEFN|IDATTR_DEPEND);
+            // CHANGING Defn NEEDS TO UPDATE THE DEPENDENCY CACHE
+            ScratchPointer1=oldvarprop;
+            varname=rplSetIdentAttr(var[0],IDATTR_DEFN,IDATTR_DEFN);
             if(!varname) return;
             var[0]=varname;
+            oldvarprop=ScratchPointer1;
+
+            rplUpdateDependencyTree(varname,CurrentDir,oldvarprop,rplPeekData(2));
+
         }
 
         // ADD OTHER SYSTEM SIDE EFFECTS HERE

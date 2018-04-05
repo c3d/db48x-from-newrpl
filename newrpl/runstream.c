@@ -543,17 +543,17 @@ BINT rplRunAtomic(WORD opcode)
     } while(retvalue);
 
     // MANUAL RESTORE
-
+    BINT allgood=1;
     if(RSTop>=RStk+rsave) RSTop=RStk+rsave;  // IF RSTop<RStk+rsave THE RETURN STACK WAS COMPLETELY CORRUPTED, SHOULD NEVER HAPPEN BUT...
-    else rplCleanup();
+    else { rplCleanup(); allgood=0; }
     if(LAMTop>=LAMs+lamsave) LAMTop=LAMs+lamsave;  // OTHERWISE THE LAM ENVIRONMENTS WERE DESTROYED, SHOULD NEVER HAPPEN BUT...
-    else rplCleanup();
+    else { rplCleanup(); allgood=0; }
     if(nLAMBase>=LAMs+nlambase) nLAMBase=LAMs+nlambase;  // OTHERWISE THE LAM ENVIRONMENTS WERE DESTROYED, SHOULD NEVER HAPPEN BUT...
-    else rplCleanup();
+    else { rplCleanup(); allgood=0; }
 
-    // RESTORE THE ERROR CODES FIRST, TO CAPTURE ANY ERRORS DURING POPPING THE RETURN STACK
-    exceptsave=Exceptions;
-    errcodesave=ErrorCode;
+    if(allgood && (Exceptions==EX_HALT) && (*(IPtr-1)==CMD_ENDOFCODE))
+    {
+        // EVERYTHING FINISHED EXECUTION WITHOUT ANY TROUBLES
 
     Exceptions=0;
 
@@ -563,11 +563,31 @@ BINT rplRunAtomic(WORD opcode)
     // AND THE ERROR HANDLERS
     rplRemoveExceptionHandler();
 
+    return 0;
+    }
+
+
+    // THERE WERE ERRORS DURING EXECUTION
+    exceptsave=Exceptions;
+    errcodesave=ErrorCode;
+
+    Exceptions=0;
+
+    // RESTORE THE IP POINTER
+    IPtr=rplPopRet();
+
+    if(!Exceptions) {
+
+    // SOME ERROR BUT NO STACK CORRUPTION, TRY TO RETURN CLEAN
+
+    // AND THE ERROR HANDLERS
+    rplRemoveExceptionHandler();
 
     Exceptions=exceptsave;
     ErrorCode=errcodesave;
 
-    if(Exceptions) ExceptionPointer=IPtr;
+    }
+
 
     // IF EVERYTHING WENT WELL, HERE WE HAVE THE SAME ENVIRONMENT AS BEFORE
     // IF SOMETHING GOT CORRUPTED, WE SHOULD HAVE AN INTERNAL EMPTY RSTACK ERROR

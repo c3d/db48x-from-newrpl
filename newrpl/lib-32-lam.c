@@ -1203,12 +1203,14 @@ void LIB_HANDLER()
                 // THIS IS A QUOTED IDENT
                 rplDecompAppendChar('\'');
 
-            BYTEPTR ptr=(BYTEPTR)(DecompileObject+OBJSIZE(*DecompileObject));
+            BINT len=OBJSIZE(*DecompileObject);
+            if(LIBNUM(*DecompileObject)&HASATTR_BIT) --len;
+            BYTEPTR ptr=(BYTEPTR)(DecompileObject+len);
             if(ptr[3]==0)
                 // WE HAVE A NULL-TERMINATED STRING, SO WE CAN USE THE STANDARD FUNCTION
                 rplDecompAppendString((BYTEPTR) (DecompileObject+1));
             else
-                rplDecompAppendString2((BYTEPTR)(DecompileObject+1),OBJSIZE(*DecompileObject)<<2);
+                rplDecompAppendString2((BYTEPTR)(DecompileObject+1),len<<2);
 
             if((ISQUOTEDIDENT(*DecompileObject))&&(PreviousConstruct!=CMD_XEQSECO))
                 // THIS IS A QUOTED IDENT

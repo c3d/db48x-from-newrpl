@@ -1023,8 +1023,31 @@ WORDPTR *rplFindGlobalPropInDir(WORDPTR nameobj,WORD propname,WORDPTR *parent,BI
 return 0;
 }
 
+// SAME AS CREATE GLOBAL, BUT CREATES A PROPERTY NAME AND MARKS IT HIDDEN
+// USES 2 SCRATCH POINTERS
+void rplCreateGlobalPropInDir(WORDPTR nameobj,WORD propname,WORDPTR value,WORDPTR *parentdir)
+{
+  WORDPTR newname;
+  BINT len=rplGetIdentLength(nameobj);
+  ScratchPointer1=value;
+  ScratchPointer2=nameobj;
+  newname=rplAllocTempOb((len+10)>>2);
+  nameobj=ScratchPointer2;
+  value=ScratchPointer1;
+  if(!newname) return;
+  newname[0]=MKPROLOG(DOIDENTHIDDEN,(len+10)>>2);
+  newname[(len+10)>>2]=0;    // FILL LAST WORD WITH ZEROS
+  memmovew(newname+1,nameobj+1,OBJSIZE(*nameobj));
+  BYTEPTR string=(BYTEPTR)(newname+1);
+  string[len]=string[len+1]=string[len+2]='.';
+  string[len+3]=propname&0xff;
+  string[len+4]=(propname>>8)&0xff;
+  string[len+5]=(propname>>16)&0xff;
+  string[len+6]=(propname>>24)&0xff;
 
+  rplCreateGlobalInDir(newname,value,parentdir);
 
+}
 
 // START AUTO-EVALUATION OF DEPENDENCIES
 void rplDoAutoEval(WORDPTR varname,WORDPTR *indir)
@@ -1043,9 +1066,9 @@ void rplDoAutoEval(WORDPTR varname,WORDPTR *indir)
         // CHECK IF THE VARIABLE HAS DEPENDENCIES
         var=rplFindGlobalInDir(*stkptr,indir,0);
 
-        if(var && (IDENTHASATTR(*var[1])) ) {
+        if(var && (IDENTHASATTR(*var[0])) ) {
 
-            WORD attr=rplGetIdentAttr(var[1]);
+            WORD attr=rplGetIdentAttr(var[0]);
             if(attr&IDATTR_DEPEND) {
             var=rplFindGlobalPropInDir(*stkptr,IDPROP_DEPN,indir,0);
             if(var) {
@@ -1107,9 +1130,9 @@ void rplDoAutoEval(WORDPTR varname,WORDPTR *indir)
         // CHECK IF THE VARIABLE HAS DEPENDENCIES
         var=rplFindGlobalInDir(*stkptr,indir,0);
 
-        if(var && (IDENTHASATTR(*var[1])) ) {
+        if(var && (IDENTHASATTR(*var[0])) ) {
 
-            WORD attr=rplGetIdentAttr(var[1]);
+            WORD attr=rplGetIdentAttr(var[0]);
             if(attr&IDATTR_DEFN) {
             WORDPTR *varcalc=rplFindGlobalPropInDir(*stkptr,IDPROP_DEFN,indir,0);
             if(varcalc) {
@@ -1196,5 +1219,412 @@ WORDPTR rplMakeIdentNoProps(WORDPTR ident)
         }
 
         return newident;
+
+}
+
+
+// INTERNAL FUNCTION TO CLEAN UP LOCALS FROM THE STACK
+// LAM ENVIRONMENT ENDS WITH cmd COMMAND
+static void ClrLAMonStack(WORDPTR *bottom,WORDPTR cmdlist)
+{
+    WORDPTR *stkptr=DSTop-1;
+    WORDPTR find;
+    while(stkptr>=bottom) {
+        if(!ISPROLOG(**stkptr)) {
+        find=cmdlist;
+        while(*find) { if(**stkptr==*find) break; ++find; }
+        if(*find) break;
+        }
+        --stkptr;
+    }
+    if(stkptr<bottom) return;
+
+    // FOUND THE MARKER
+    WORDPTR *scan=stkptr+1;
+    while(scan<DSTop) {
+        if(ISIDENT(**scan)) {
+            if(!(rplGetIdentAttr(*scan)&IDATTR_DONTUSE)) {
+                // KEEP THIS GLOBAL DEPENDENCY
+                *stkptr=*scan;
+                ++stkptr;
+            }
+        }
+        ++scan;
+    }
+
+    DSTop=stkptr;
+}
+
+// PUSH ALL DEPENDENCIES OF A PROGRAM ON THE STACK, RETURN THE NUMBER OF THEM
+// USES 3 SCRATCHPOINTERS
+BINT rplGetDependency(WORDPTR program)
+{
+    if(!program) return 0;
+    WORDPTR *savestk=DSTop;
+
+    WORDPTR end=rplSkipOb(program);
+    WORDPTR ptr=program;
+    while(ptr<end) {
+        // HANDLE A FEW SPECIAL CASES
+        if(ISPROGRAM(*ptr)) { ++ptr; continue; }     // GO INSIDE ALL PROGRAMS
+        if(ISLIST(*ptr)) { ++ptr; continue; }         // GO INSIDE ALL LISTS
+        if(ISSYMBOLIC(*ptr)) { ++ptr; continue; }    // GO INSIDE ALL SYMBOLICS
+        if(ISMATRIX(*ptr)) { ptr=rplMatrixGetFirstObj(ptr); continue; }  // GO INSIDE ALL MATRIX OBJECTS
+
+        if(((*ptr)&~0xffff)==MKOPCODE(DOIDENT,NEWNLOCALS)) {
+            // NEW LOCAL VAR DEFINITIONS ARE NOT REALLY DEPENDENCIES, MARK AS NOT-DEPENDENCY
+            BINT nlocals=*ptr&0xffff;
+            ScratchPointer2=ptr;
+            ScratchPointer3=end;
+            while(nlocals) {
+            WORDPTR varattr=rplSetIdentAttr(rplPeekData(nlocals),IDATTR_DONTUSE,IDATTR_DONTUSE);
+            if(!varattr) { DSTop=savestk; return 0; }
+            rplOverwriteData(nlocals,varattr);
+            --nlocals;
+            }
+            ptr=ScratchPointer2;
+            end=ScratchPointer3;
+
+        }
+
+        if(!ISPROLOG(*ptr)) {
+            switch(*ptr)
+            {
+            case CMD_FOR:
+            {
+                ScratchPointer3=end;
+                rplPushDataNoGrow(ptr);
+                rplPushData(ptr+1);
+                WORDPTR varattr=rplSetIdentAttr(rplPeekData(1),IDATTR_DONTUSE,IDATTR_DONTUSE);
+                if(!varattr) { DSTop=savestk; return 0; }
+                ptr=rplSkipOb(rplPeekData(1));
+                end=ScratchPointer3;
+                rplOverwriteData(1,varattr);
+                break;
+            }
+            case CMD_START:
+            case CMD_DO:
+            case CMD_WHILE:
+            case CMD_CASE:
+            case CMD_IF:
+            case CMD_IFERR:
+            {
+                ScratchPointer3=end;
+                rplPushData(ptr);
+                ptr=rplPeekData(1)+1;
+                end=ScratchPointer3;
+
+                break;
+            }
+            case CMD_THEN:
+            case CMD_THENERR:
+            case CMD_THENCASE:
+            {
+                const WORD const then_list[]={ CMD_IF,CMD_IFERR,CMD_CASE,0 };
+                ClrLAMonStack(savestk,(WORDPTR)then_list);
+                rplPushData(ptr);
+                ptr=rplPeekData(1)+1;
+                break;
+            }
+            case CMD_ELSE:
+            case CMD_ELSEERR:
+            {
+                const WORD const else_list[]={ CMD_THEN,CMD_THENERR,0 };
+                ClrLAMonStack(savestk,(WORDPTR)else_list);
+                break;
+                ScratchPointer3=end;
+                rplPushData(ptr);
+                ptr=rplPeekData(1)+1;
+                end=ScratchPointer3;
+                break;
+            }
+
+            case CMD_NEXT:
+            case CMD_STEP:
+            {
+                const WORD const next_list[]={ CMD_FOR,CMD_START,0 };
+                ClrLAMonStack(savestk,(WORDPTR)next_list);
+                break;
+            }
+            case CMD_ENDIF:
+            case CMD_ENDERR:
+            case CMD_ENDTHEN:
+            {
+                const WORD const endif_list[]={ CMD_THEN,CMD_ELSE,CMD_THENERR,CMD_ELSEERR,CMD_THENCASE,0 };
+                ClrLAMonStack(savestk,(WORDPTR)endif_list);
+                break;
+            }
+            case CMD_ENDDO:
+            case CMD_ENDWHILE:
+            case CMD_ENDCASE:
+            {
+                const WORD const end_list[]={ CMD_DO,CMD_WHILE,CMD_CASE,0 };
+                ClrLAMonStack(savestk,(WORDPTR)end_list);
+                break;
+            }
+
+        }
+        }
+
+
+        if(ISIDENT(*ptr)) {
+            ScratchPointer2=ptr;
+            ScratchPointer3=end;
+            rplPushData(ptr);
+            end=ScratchPointer3;
+            ptr=ScratchPointer2;
+        }
+
+        ptr=rplSkipOb(ptr);
+    }
+
+    // DONE EXTRACTING, NOW CLEANUP THE STACK
+
+    WORDPTR *stkptr=savestk;
+    WORDPTR *dest=stkptr;
+    while(stkptr!=DSTop) {
+        if(ISIDENT(**stkptr)) {
+            if(!(rplGetIdentAttr(*stkptr)&IDATTR_DONTUSE)) {
+                // KEEP THIS GLOBAL
+               *dest=*stkptr;
+                ++stkptr;
+                ++dest;
+                continue;
+            }
+
+        }
+        ++stkptr;
+    }
+
+    DSTop=stkptr;
+
+    return DSTop-savestk;
+}
+
+// GIVEN AN EQUATION OR A PROGRAM, REMOVE
+// USES 5 SCRATCHPOINTERS
+void rplUpdateDependencyTree(WORDPTR varname,WORDPTR *dir,WORDPTR olddefn,WORDPTR newdefn)
+{
+
+WORDPTR *stkbase=DSTop;
+BINT oldnum,newnum;
+
+ScratchPointer4=varname;
+ScratchPointer5=newdefn;
+oldnum=rplGetDependency(olddefn);
+newdefn=ScratchPointer5;
+newnum=rplGetDependency(newdefn);
+varname=ScratchPointer4;
+
+
+BINT k;
+BINT hasdepend;
+for(k=0;k<oldnum;++k)
+{
+    WORDPTR *var=rplFindGlobalPropInDir(stkbase[k],IDPROP_DEPN,dir,0);
+    if(var) {
+        if(ISLIST(*var[1])) {
+           WORDPTR *stkptr=DSTop;
+           WORDPTR ptr=var[1]+1,end=rplSkipOb(var[1]);
+           BINT totalsize=0,addvar=0;
+
+           // COMPUTE THE SIZE OF THE LIST AFTER REMOVING THE OLD DEPENDENCY
+           while(ptr<end) {
+               if(ISIDENT(*ptr) && !rplCompareIDENT(ptr,varname)) totalsize+=rplObjSize(ptr);
+               ptr=rplSkipOb(ptr);
+           }
+
+           // ADD THE SIZE OF THE NEW VARNAME IF IT IS IN THE NEW DEPENDENCY
+           BINT j;
+           for(j=0;j<newnum;++j)
+           {
+               if(rplCompareIDENT(stkbase[k],stkptr[oldnum+j])) {
+                   totalsize+=rplObjSize(varname);
+                   ++addvar;
+                   // REMOVE FROM THE NEW DEPENDENCY LIST
+                   WORDPTR *movptr=stkbase+oldnum+j;
+                   while(movptr<DSTop-1) { *movptr=*(movptr+1); ++movptr; }
+                   --DSTop;
+                   --newnum;
+                   break;
+               }
+           }
+
+           if(totalsize>0) {
+           ScratchPointer1=varname;
+           WORDPTR newlist=rplAllocTempOb(totalsize+1),newlptr;
+           if(!newlist) { DSTop=stkbase; return; }
+           varname=ScratchPointer1;
+
+
+           newlist[0]=MKPROLOG(DOLIST,totalsize+1);
+           ptr=var[1]+1;
+           end=rplSkipOb(ptr);
+           newlptr=newlist+1;
+           // COPY ALL OLD DEPENDENT VARS EXCEPT THE NEW ONE
+           while(ptr<end) {
+               if(ISIDENT(*ptr) && !rplCompareIDENT(ptr,varname)) { rplCopyObject(newlptr,ptr); newlptr=rplSkipOb(newlptr); }
+               ptr=rplSkipOb(ptr);
+           }
+           if(addvar) { rplCopyObject(newlptr,varname); newlptr=rplSkipOb(newlptr); }
+
+           *newlptr=CMD_ENDLIST;
+
+           // HERE newlptr-newlist == totalsize+1
+
+           var[1]=newlist;
+           hasdepend=1;
+           }
+           else {
+               // REMOVE THE PROPERTY ALTOGETHER
+               rplPurgeForced(var);
+               hasdepend=0;
+           }
+
+
+        }
+    }
+    else {
+        // THIS DEPENDENCY TREE WAS BROKEN,CHECK IF WE SHOULD ADD THE DEPENDENCY
+        hasdepend=0;
+        BINT j,addvar=0;
+        for(j=0;j<newnum;++j)
+        {
+            if(rplCompareIDENT(stkbase[k],stkbase[oldnum+j])) {
+                ++addvar;
+                // REMOVE FROM THE NEW DEPENDENCY LIST
+                WORDPTR *movptr=stkbase+oldnum+j;
+                while(movptr<DSTop-1) { *movptr=*(movptr+1); ++movptr; }
+                --DSTop;
+                --newnum;
+                break;
+            }
+        }
+
+        if(addvar) {
+            ScratchPointer1=varname;
+            WORDPTR newlist=rplAllocTempOb(rplObjSize(varname)+1);
+            if(!newlist) { DSTop=stkbase; return; }
+            varname=ScratchPointer1;
+
+
+            newlist[0]=MKPROLOG(DOLIST,rplObjSize(varname)+1);
+            rplCopyObject(newlist+1,varname);
+            newlist[1]=MKPROLOG(LIBNUM(newlist[1])&~(UNQUOTED_BIT),OBJSIZE(newlist[1]));   // MAKE SURE THE IDENT IS QUOTED
+            newlist[rplObjSize(varname)+1]=CMD_ENDLIST;
+            ScratchPointer3=varname;
+            rplCreateGlobalPropInDir(stkbase[k],IDPROP_DEPN,newlist,dir);
+            varname=ScratchPointer3;
+            hasdepend=1;
+        }
+
+
+    }
+
+    // FIX THE HASDEPEND ATTRIBUTE
+
+    var=rplFindGlobalInDir(stkbase[k],dir,0);
+    if(var) {
+        WORD attr=rplGetIdentAttr(var[0]);
+        if( (attr&IDATTR_DEPEND) && !hasdepend ) {
+            ScratchPointer2=varname;
+            WORDPTR newname=rplSetIdentAttr(var[0],0,IDATTR_DEPEND);
+            if(newname) var[0]=newname;
+            varname=ScratchPointer2;
+        }
+        else if( !(attr&IDATTR_DEPEND) && hasdepend ) {
+            ScratchPointer2=varname;
+            WORDPTR newname=rplSetIdentAttr(var[0],IDATTR_DEPEND,IDATTR_DEPEND);
+            if(newname) var[0]=newname;
+            varname=ScratchPointer2;
+
+        }
+    }
+
+}
+
+// DONE UPDATING OLD DEPENDENCIES, NOW ADD THE NEW ONES
+
+for(k=0;k<newnum;++k)
+{
+    WORDPTR *var=rplFindGlobalPropInDir(stkbase[oldnum+k],IDPROP_DEPN,dir,0);
+    if(var) {
+        if(ISLIST(*var[1])) {
+           WORDPTR ptr=var[1]+1,end=rplSkipOb(var[1]);
+           BINT totalsize=0;
+
+           // COMPUTE THE SIZE OF THE LIST AFTER REMOVING THE OLD DEPENDENCY
+           while(ptr<end) {
+               if(ISIDENT(*ptr) && !rplCompareIDENT(ptr,varname)) totalsize+=rplObjSize(ptr);
+               ptr=rplSkipOb(ptr);
+           }
+
+           // ADD THE SIZE OF THE NEW VARNAME
+           totalsize+=rplObjSize(varname);
+
+           ScratchPointer1=varname;
+           WORDPTR newlist=rplAllocTempOb(totalsize+1),newlptr;
+           if(!newlist) { DSTop=stkbase; return; }
+           varname=ScratchPointer1;
+
+
+           newlist[0]=MKPROLOG(DOLIST,totalsize+1);
+           ptr=var[1]+1;
+           end=rplSkipOb(ptr);
+           newlptr=newlist+1;
+           // COPY ALL OLD DEPENDENT VARS EXCEPT THE NEW ONE
+           while(ptr<end) {
+               if(ISIDENT(*ptr) && !rplCompareIDENT(ptr,varname)) { rplCopyObject(newlptr,ptr); newlptr=rplSkipOb(newlptr); }
+               ptr=rplSkipOb(ptr);
+           }
+           rplCopyObject(newlptr,varname);
+           newlptr=rplSkipOb(newlptr);
+
+           *newlptr=CMD_ENDLIST;
+
+           // HERE newlptr-newlist == totalsize+1
+
+           var[1]=newlist;
+           continue;
+        }
+    }
+        // NOT A LIST? CORRUPTED DEPENDENCY TREE, CREATE A NEW ONE
+
+            ScratchPointer1=varname;
+            WORDPTR newlist=rplAllocTempOb(rplObjSize(varname)+1);
+            if(!newlist) { DSTop=stkbase; return; }
+            varname=ScratchPointer1;
+
+
+            newlist[0]=MKPROLOG(DOLIST,rplObjSize(varname)+1);
+            rplCopyObject(newlist+1,varname);
+            newlist[1]=MKPROLOG(DOIDENT,OBJSIZE(newlist[1]));   // MAKE SURE THE IDENT IS QUOTED
+            newlist[rplObjSize(varname)+1]=CMD_ENDLIST;
+            ScratchPointer3=varname;
+
+            if(var) var[1]=newlist;
+            else rplCreateGlobalPropInDir(stkbase[k],IDPROP_DEPN,newlist,dir);
+            varname=ScratchPointer3;
+
+
+
+
+}
+
+// SET THE HASDEPEND ATTRIBUTE ON ALL NEW DEPENDENCIES
+for(k=0;k<newnum;++k)
+{
+WORDPTR *var=rplFindGlobalInDir(stkbase[oldnum+k],dir,0);
+if(var) {
+    WORD attr=rplGetIdentAttr(var[0]);
+    if( !(attr&IDATTR_DEPEND) ) {
+        WORDPTR newname=rplSetIdentAttr(var[0],IDATTR_DEPEND,IDATTR_DEPEND);
+        if(newname) var[0]=newname;
+
+    }
+}
+}
+// ALL DEPENDENCIES UPDATED
+DSTop=stkbase;
 
 }

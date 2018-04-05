@@ -510,6 +510,7 @@ WORDPTR rplGetSettingsbyName(BYTEPTR name, BYTEPTR nameend);
 
 // AUTOMATIC EVALUATION
 void rplDoAutoEval(WORDPTR varname,WORDPTR *indir);
+void rplUpdateDependencyTree(WORDPTR varname, WORDPTR *dir, WORDPTR olddefn, WORDPTR newdefn);
 
 
 

@@ -147,6 +147,7 @@ WORD rplGetIdentAttr(WORDPTR name)
 
 // RETURN A NEW IDENT WITH THE ATTRIBUTES CHANGED
 // ONLY BITS THAT ARE ONE IN attrmask WILL BE CHANGED
+// USES ONE SCRATCHPOINTER
 WORDPTR rplSetIdentAttr(WORDPTR name,WORD attr,WORD attrmask)
 {
     WORDPTR newobj;
@@ -284,6 +285,7 @@ while(ltop>LAMs) {
             if(((*(ltop+1))==currentseco)||(currentseco==0)) {
                 LAMTop=ltop;
                 nLAMBase=rplGetNextLAMEnv(LAMTop);
+                if(!nLAMBase) nLAMBase=LAMs;
                 return;
             }
     }
