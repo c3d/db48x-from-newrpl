@@ -83,7 +83,8 @@
     CMD(TRNC,MKTOKENINFO(4,TITYPE_FUNCTION,2,2)), \
     CMD(DIGITS,MKTOKENINFO(6,TITYPE_FUNCTION,3,2)), \
     CMD(PROOT,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
-    CMD(PREVPRIME,MKTOKENINFO(9,TITYPE_FUNCTION,1,2))
+    CMD(PREVPRIME,MKTOKENINFO(9,TITYPE_FUNCTION,1,2)), \
+    CMD(FACTORS,MKTOKENINFO(7,TITYPE_FUNCTION,1,2)))
 
 
 
@@ -3388,8 +3389,224 @@ case PROOT:
 
 
 
+case FACTORS:
+
+    {
+        //@SHORT_DESC=All roots of a polynomial
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR vect_val=rplPeekData(1);
 
 
+
+        if(ISLIST(*vect_val)) {
+            rplListUnaryDoCmd();
+            return;
+        }
+        else if(ISMATRIX(*vect_val)){
+
+            BINT cplxmode=rplTestSystemFlag(FL_COMPLEXMODE);
+            rplSetSystemFlag(FL_COMPLEXMODE);
+
+            BINT rows=MATROWS(vect_val[1]),cols=MATCOLS(vect_val[1]);
+
+            if(rows) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                rplError(ERR_VECTOREXPECTED);
+                return;
+            }
+            BINT f;
+            WORDPTR *savestk=DSTop;
+
+            for(f=0;f<cols;++f) {
+                WORDPTR entry=rplMatrixFastGet(vect_val,1,f+1);
+                if(!ISNUMBERCPLX(*entry)) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                    DSTop=savestk;
+                    rplError(ERR_VECTOROFNUMBERSEXPECTED);
+                    return;
+                }
+                rplPushData(entry);
+            }
+
+            WORDPTR solution;
+            REAL re;
+            for(f=1;f<cols-1;++f) {
+
+            if(f>1) {
+                // TEST IF PREVIOUS SOLUTION IS ALSO A SOLUTION OF THE DEFLATED POLYNOMIAL
+
+                solution=rplPolyEvalEx(savestk,cols-f,DSTop-2);
+                if(!solution || Exceptions) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                    DSTop=savestk;
+                    return;
+                }
+                rplPushData(solution);
+
+                rplCallOvrOperator(CMD_OVR_ABS);
+                if(Exceptions) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                    DSTop=savestk;
+                    return;
+                }
+                rplReadNumberAsReal(rplPopData(),&re);
+                if(Exceptions) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                    DSTop=savestk;
+                    return;
+                }
+
+                if(iszeroReal(&re) || (intdigitsReal(&re)<-Context.precdigits)) {
+                    // THE CURRENT ROOT HAS MULTIPLICITY
+                    rplPushData((WORDPTR)one_bint);
+                    rplCallOvrOperator(CMD_OVR_ADD);
+
+                // DEFLATE THE POLYNOMIAL
+                rplPolyDeflateEx(savestk,cols-f,DSTop-2);
+                if(Exceptions) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                    DSTop=savestk;
+                    return;
+                }
+                continue;
+                }
+
+            }
+
+            solution=rplPolyRootEx(savestk,cols-f);
+            if(!solution || Exceptions) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                DSTop=savestk;
+                return;
+            }
+
+            // WE HAVE ONE SOLUTION!
+            rplPushData(solution);
+            rplPushData((WORDPTR)one_bint); // MULTIPLICITY
+            if(Exceptions) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                DSTop=savestk;
+                return;
+            }
+            // DEFLATE THE POLYNOMIAL
+            rplPolyDeflateEx(savestk,cols-f,DSTop-2);
+            if(Exceptions) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                DSTop=savestk;
+                return;
+            }
+
+            // NOW THE POLYNOMIAL IS ONE DEGREE LESS
+            }
+
+            // HERE WE HAVE ALL ROOTS OF THE POLYNOMIAL EXCEPT THE LAST ONE
+
+            // FIRST CHECK IF THE LAST ROOT WE FOUND IS THE NEW ROOT
+
+            if(f>1) {
+                // TEST IF PREVIOUS SOLUTION IS ALSO A SOLUTION OF THE DEFLATED POLYNOMIAL
+
+                solution=rplPolyEvalEx(savestk,cols-f,DSTop-2);
+                if(!solution || Exceptions) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                    DSTop=savestk;
+                    return;
+                }
+                rplPushData(solution);
+
+                rplCallOvrOperator(CMD_OVR_ABS);
+                if(Exceptions) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                    DSTop=savestk;
+                    return;
+                }
+                rplReadNumberAsReal(rplPopData(),&re);
+                if(Exceptions) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                    DSTop=savestk;
+                    return;
+                }
+
+                if(iszeroReal(&re) || (intdigitsReal(&re)<-Context.precdigits)) {
+                    // THE CURRENT ROOT HAS MULTIPLICITY
+                    rplPushData((WORDPTR)one_bint);
+                    rplCallOvrOperator(CMD_OVR_ADD);
+                    ++f;
+                }
+
+            }
+
+
+
+
+            if(f==cols-1) {
+
+            // ONE LAST ROOT IS NEEDED
+            // THE POLYNOMIAL OF DEGREE 1 IS a0*X+a1 = 0
+            // THEREFORE THE LAST ROOT IS X=-a1/a0
+
+            rplPushData(savestk[1]);
+            rplPushData(savestk[0]);
+            if(Exceptions) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                DSTop=savestk;
+                return;
+            }
+
+            rplCallOvrOperator(CMD_OVR_DIV);
+            if(Exceptions) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                DSTop=savestk;
+                return;
+            }
+
+            rplCallOvrOperator(CMD_OVR_NEG);
+            if(Exceptions) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                DSTop=savestk;
+                return;
+            }
+            rplPushData((WORDPTR)one_bint);
+
+            }
+
+            BINT doerror=0;
+            if(!cplxmode) {
+                // ISSUE AN ERROR IF ANY OF THE ROOTS ARE COMPLEX
+            for(f=1;f<cols;++f) {
+                if(ISCOMPLEX(*rplPeekData(2*f))) { doerror=1; break; }
+            }
+            }
+
+            solution=rplMatrixCompose(0,2*(cols-1));
+            if(!solution) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                DSTop=savestk;
+                return;
+            }
+            DSTop=savestk;
+            rplOverwriteData(1,solution);
+            if(!cplxmode) {
+                rplClrSystemFlag(FL_COMPLEXMODE);
+                if(doerror) rplError(ERR_COMPLEXRESULT);
+            }
+
+            return;
+
+        }
+        else if(ISNUMBER(*vect_val)) {
+            // FACTORIZE INTEGER NUMBERS AS WELL
+
+
+
+        }
+        rplError(ERR_VECTOROFNUMBERSEXPECTED);
+        return;
+
+    }
 
 
 
