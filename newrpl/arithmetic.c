@@ -677,3 +677,30 @@ void powmodReal(REAL *result,REAL *a,REAL *b,REAL *mod)
 
     // RESULT IS IN result
 }
+
+
+// COMPUTE GCD OF 2 REALS
+// USE DIVISION OR SUBTRACTION, WHATEVER IS FASTER ON EACH LOOP
+/*
+void gcdReal(REAL *result,REAL *a,REAL *b)
+{
+
+        copyReal(&RReg[0],a);
+        copyReal(&RReg[1],b);
+        RReg[0].flags&=~F_NEGATIVE;
+        RReg[1].flags&=~F_NEGATIVE;
+
+        BINT idxa;
+
+        if(gtReal(a,b)) idxa=0; else idxa=1;
+
+#define REG_a RReg[idxa]
+#define REG_b RReg[idxa^1]
+
+        while( (!iszeroReal(REG_b))&&(!eqReal(REG_a,REG_b)))
+        {
+
+        }
+
+}
+*/

@@ -327,9 +327,10 @@ RReg[2].exp=0;
 RReg[2].flags=0;
 RReg[2].len=1;
 int savedprec=Context.precdigits;
+int maxprec=(Context.precdigits+15)&~7;
 
 // Halley's method
-Context.precdigits=(Context.precdigits+15)&~7;
+Context.precdigits=8;
 int iters=0;
 int goodexp,gooddigits=0;
 do {
@@ -352,10 +353,14 @@ mulReal(&RReg[4],&RReg[2],&RReg[3]);        // x(n+1)=0.125*xn*(15-yn*(10-3*yn))
 swapReal(&RReg[4],&RReg[1]);
 subReal(&RReg[3],&RReg[4],&RReg[1]);
 if(RReg[3].len>1) continue;
-if(RReg[3].data[0]==0) break;
+
+if((Context.precdigits==maxprec) && (RReg[3].data[0]==0)) break;
 goodexp=RReg[3].exp+sig_digits(RReg[3].data[0]);
 gooddigits=intdigitsReal(&RReg[1])-RReg[1].exp;
 gooddigits-=goodexp-RReg[1].exp;
+Context.precdigits+=Context.precdigits;  // DOUBLE THE PRECISION AT EACH STEP
+if(Context.precdigits<8) Context.precdigits=8;
+if(Context.precdigits>maxprec) Context.precdigits=maxprec;
 
 } while(gooddigits<=savedprec);
 
