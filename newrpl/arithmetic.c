@@ -680,8 +680,10 @@ void powmodReal(REAL *result,REAL *a,REAL *b,REAL *mod)
 
 
 // COMPUTE GCD OF 2 REALS
-// USE DIVISION OR SUBTRACTION, WHATEVER IS FASTER ON EACH LOOP
-/*
+// USE EUCLIDEAN ALGORITHM, DIVISION METHOD
+
+// a, b or result CANNOT BE RReg[0] THRU [2]
+
 void gcdReal(REAL *result,REAL *a,REAL *b)
 {
 
@@ -691,16 +693,33 @@ void gcdReal(REAL *result,REAL *a,REAL *b)
         RReg[1].flags&=~F_NEGATIVE;
 
         BINT idxa;
+        REAL *aptr,bptr;
+        if(gtReal(a,b)) swapReal(&RReg[0],&RReg[1]);
 
-        if(gtReal(a,b)) idxa=0; else idxa=1;
-
-#define REG_a RReg[idxa]
-#define REG_b RReg[idxa^1]
-
-        while( (!iszeroReal(REG_b))&&(!eqReal(REG_a,REG_b)))
+        while( !iszeroReal(&RReg[1]))
         {
+            divmodReal(&RReg[2],result,&RReg[0],&RReg[1]);
+            // b=a MOD b
+            swapReal(&RReg[0],&RReg[1]);
+            swapReal(&RReg[1],result);
+            if(inBINT64Range(&RReg[0])) {
+                // SWITCH TO INTEGERS AS SOON AS THE SIZE PERMITS
+                BINT64 a=getBINT64Real(&RReg[0]);
+                BINT64 b=getBINT64Real(&RReg[1]);
+                BINT64 tmp;
 
+                while(b) {
+                    tmp=b;
+                    b=a%b;
+                    a=t;
+                }
+
+                newRealFromBINT64(result,a,0);
+                return;
+            }
         }
+    // HERE THE RESULT IS IN RREG[0]
 
+    swapReal(RReg[0],result);
 }
-*/
+
