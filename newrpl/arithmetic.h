@@ -72,6 +72,10 @@ BINT isprimeReal(REAL *n);
 BINT64 powmodBINT(BINT64 a, BINT64 b, BINT64 mod);
 void powmodReal(REAL *result,REAL *a,REAL *b,REAL *mod);
 
+void gcdReal(REAL *result,REAL *a,REAL *b);
+BINT64 gcdBINT64(BINT64 a,BINT64 b);
+BINT64 factorReal(REAL *result,REAL *n);
+
 
 
 

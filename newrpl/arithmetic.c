@@ -692,8 +692,6 @@ void gcdReal(REAL *result,REAL *a,REAL *b)
         RReg[0].flags&=~F_NEGATIVE;
         RReg[1].flags&=~F_NEGATIVE;
 
-        BINT idxa;
-        REAL *aptr,bptr;
         if(gtReal(a,b)) swapReal(&RReg[0],&RReg[1]);
 
         while( !iszeroReal(&RReg[1]))
@@ -711,7 +709,7 @@ void gcdReal(REAL *result,REAL *a,REAL *b)
                 while(b) {
                     tmp=b;
                     b=a%b;
-                    a=t;
+                    a=tmp;
                 }
 
                 newRealFromBINT64(result,a,0);
@@ -720,6 +718,216 @@ void gcdReal(REAL *result,REAL *a,REAL *b)
         }
     // HERE THE RESULT IS IN RREG[0]
 
-    swapReal(RReg[0],result);
+    swapReal(&RReg[0],result);
 }
 
+BINT64 gcdBINT64(BINT64 a,BINT64 b)
+{
+    BINT64 tmp;
+    while(b) {
+        tmp=b;
+        b=a%b;
+        a=tmp;
+    }
+    return a;
+}
+
+// RETURN ONE NON-TRIVIAL FACTOR OF n
+// RETURNS n IF n IS PRIME
+// USES POLLARD'S RHO ALGORITHM + TRIAL DIVISION IF IT FAILS
+// n CAN'T BE RREG[0] TO [4]  OR [7] TO [9]
+// RETURNS THE FACTOR AS A BINT64 OR -1 AND THE RESULT IN result
+BINT64 factorReal(REAL *result,REAL *n)
+{
+    BINT64 x=2,y=2,ni, d=1;
+
+    if(inBINT64Range(n)) ni=getBINT64Real(n);
+    else ni=-1;
+
+    do {
+
+        // do x=g(x) with g(x)=x^2+1
+
+        if(x>=(1LL<<31)) {
+            // SWITCH TO REALS
+            x=-1;
+            newRealFromBINT64(&RReg[8],x,0);
+            mulReal(&RReg[1],&RReg[8],&RReg[8]);
+            divmodReal(&RReg[8],&RReg[2],&RReg[1],n);
+            // HERE RReg[2]=x^2 MOD n
+            RReg[1].data[0]=1;
+            RReg[1].exp=0;
+            RReg[1].flags=0;
+            RReg[1].len=1;
+            addReal(&RReg[8],&RReg[2],&RReg[1]);
+            if(eqReal(&RReg[8],n)) {
+                RReg[8].data[0]=0;
+                RReg[8].exp=0;
+                RReg[8].flags=0;
+                RReg[8].len=1;
+            }
+            // HERE RReg[8]= (x^2+1) mod n
+
+        }
+        else if(x<0) {
+            // ALREADY USING REALS, x IS IN RReg[8]
+            mulReal(&RReg[1],&RReg[8],&RReg[8]);
+            divmodReal(&RReg[8],&RReg[2],&RReg[1],n);
+            // HERE RReg[2]=x^2 MOD n
+            RReg[1].data[0]=1;
+            RReg[1].exp=0;
+            RReg[1].flags=0;
+            RReg[1].len=1;
+            addReal(&RReg[8],&RReg[2],&RReg[1]);
+            if(eqReal(&RReg[8],n)) {
+                RReg[8].data[0]=0;
+                RReg[8].exp=0;
+                RReg[8].flags=0;
+                RReg[8].len=1;
+            }
+            // HERE RReg[8]= (x^2+1) mod n
+
+        }
+        else {
+            x=(x*x+1);
+            if( (ni>0) && (ni<=x)) x=x%ni;
+        }
+
+        // HERE EITHER x OR RReg[8] HAVE x=g(x) MOD n
+
+        // do y=g(g(y)) with g(x)=x^2+1
+
+        if(y>=(1LL<<31)) {
+            // SWITCH TO REALS
+            y=-1;
+            newRealFromBINT64(&RReg[9],y,0);
+            mulReal(&RReg[1],&RReg[9],&RReg[9]);
+            divmodReal(&RReg[9],&RReg[2],&RReg[1],n);
+            // HERE RReg[2]=y^2 MOD n
+            RReg[1].data[0]=1;
+            RReg[1].exp=0;
+            RReg[1].flags=0;
+            RReg[1].len=1;
+            addReal(&RReg[9],&RReg[2],&RReg[1]);
+            if(eqReal(&RReg[9],n)) {
+                RReg[9].data[0]=0;
+                RReg[9].exp=0;
+                RReg[9].flags=0;
+                RReg[9].len=1;
+            }
+            // HERE RReg[9]= (y^2+1) mod n
+
+        }
+        else if(y<0) {
+            // ALREADY USING REALS, y IS IN RReg[9]
+            mulReal(&RReg[1],&RReg[9],&RReg[9]);
+            divmodReal(&RReg[9],&RReg[2],&RReg[1],n);
+            // HERE RReg[2]=y^2 MOD n
+            RReg[1].data[0]=1;
+            RReg[1].exp=0;
+            RReg[1].flags=0;
+            RReg[1].len=1;
+            addReal(&RReg[9],&RReg[2],&RReg[1]);
+            if(eqReal(&RReg[9],n)) {
+                RReg[9].data[0]=0;
+                RReg[9].exp=0;
+                RReg[9].flags=0;
+                RReg[9].len=1;
+            }
+            // HERE RReg[9]= (y^2+1) mod n
+
+        }
+        else {
+            y=(y*y+1);
+            if( (ni>0) && (ni<=y)) y=y%ni;
+        }
+
+        if(y>=(1LL<<31)) {
+            // SWITCH TO REALS
+            y=-1;
+            newRealFromBINT64(&RReg[9],y,0);
+            mulReal(&RReg[1],&RReg[9],&RReg[9]);
+            divmodReal(&RReg[9],&RReg[2],&RReg[1],n);
+            // HERE RReg[2]=y^2 MOD n
+            RReg[1].data[0]=1;
+            RReg[1].exp=0;
+            RReg[1].flags=0;
+            RReg[1].len=1;
+            addReal(&RReg[9],&RReg[2],&RReg[1]);
+            if(eqReal(&RReg[9],n)) {
+                RReg[9].data[0]=0;
+                RReg[9].exp=0;
+                RReg[9].flags=0;
+                RReg[9].len=1;
+            }
+            // HERE RReg[9]= (y^2+1) mod n
+
+        }
+        else if(y<0) {
+            // ALREADY USING REALS, y IS IN RReg[9]
+            mulReal(&RReg[1],&RReg[9],&RReg[9]);
+            divmodReal(&RReg[9],&RReg[2],&RReg[1],n);
+            // HERE RReg[2]=y^2 MOD n
+            RReg[1].data[0]=1;
+            RReg[1].exp=0;
+            RReg[1].flags=0;
+            RReg[1].len=1;
+            addReal(&RReg[9],&RReg[2],&RReg[1]);
+            if(eqReal(&RReg[9],n)) {
+                RReg[9].data[0]=0;
+                RReg[9].exp=0;
+                RReg[9].flags=0;
+                RReg[9].len=1;
+            }
+            // HERE RReg[9]= (y^2+1) mod n
+
+        }
+        else {
+            y=(y*y+1);
+            if( (ni>0) && (ni<=y)) y=y%ni;
+        }
+
+        // HERE EITHER y OR RReg[9] HAVE y=g(g(y)) MOD n
+
+        // DO d=gcd(abs(x-y),n)
+        if( (x<0)||(y<0)||(ni<0)) {
+            if(x>=0) newRealFromBINT64(&RReg[0],x,0);
+            if(y>=0) newRealFromBINT64(&RReg[3],y,0);
+
+            subReal(&RReg[4],&RReg[3],&RReg[0]);
+            RReg[5].flags&=~F_NEGATIVE;
+
+            // PRESERVE x AND y
+            swapReal(&RReg[0],&RReg[8]);
+            swapReal(&RReg[3],&RReg[9]);
+
+            gcdReal(&RReg[3],&RReg[4],n);
+
+            if(inBINT64Range(&RReg[3])) d=getBINT64Real(&RReg[3]);
+            else {
+                d=-1;
+                swapReal(&RReg[3],&RReg[7]);
+            }
+
+        } else {
+            // ALL INTEGERS HERE
+            BINT64 tmp=x-y;
+            if(tmp<0) tmp=-tmp;
+            d=gcdBINT64(tmp,ni);
+        }
+
+        // here d OR RReg[7] HAS gcd(abs(x-y),n)
+
+        if(d<0) {
+            RReg[1].data[0]=1;
+            RReg[1].exp=0;
+            RReg[1].flags=0;
+            RReg[1].len=1;
+            if(!eqReal(&RReg[1],&RReg[7])) break;
+        }
+    } while(d<=1);
+
+    if(d<0) swapReal(result,&RReg[7]);
+    return d;
+
+}

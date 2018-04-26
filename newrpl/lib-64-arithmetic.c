@@ -3600,7 +3600,54 @@ case FACTORS:
         else if(ISNUMBER(*vect_val)) {
             // FACTORIZE INTEGER NUMBERS AS WELL
 
+            REAL num;
+            BINT prec=Context.precdigits;
+            BINT64 onefactor,inum;
+            WORDPTR *savestk=DSTop;
 
+            rplReadNumberAsReal(vect_val,&num);
+            copyReal(&RReg[6],&num);
+            if(inBINT64Range(&RReg[6])) inum=getBINT64Real(&RReg[6]);
+            else inum=-1;
+
+            // USE THE LEAST PRECISION THAT WILL WORK FOR OUR INTEGER
+            Context.precdigits=((2*intdigitsReal(&num))+7)&~7;
+            if(Context.precdigits<prec) Context.precdigits=prec;
+            if(Context.precdigits>MAX_USERPRECISION) Context.precdigits=MAX_USERPRECISION;
+
+            do {
+                onefactor=factorReal(&RReg[7],&RReg[6]);
+                if(onefactor<0) {
+                    rplNewRealFromRRegPush(7);
+                    if(eqReal(&RReg[7],&RReg[6])) break;
+                }
+                else {
+                    rplNewBINTPush(onefactor,DECBINT);
+                    if(onefactor==inum) break;
+                }
+
+                if(Exceptions) {
+                    DSTop=savestk;
+                    Context.precdigits=prec;
+                    return;
+                }
+                // KEEP FACTORIZING THE NUMBER
+
+                if(inum<0) {
+                    if(onefactor>=0) newRealFromBINT64(&RReg[7],onefactor,0);
+                    divReal(&RReg[1],&RReg[6],&RReg[7]);
+                    swapReal(&RReg[1],&RReg[6]);
+                }
+                else {
+                    inum/=onefactor;
+                    newRealFromBINT64(&RReg[6],inum,0);
+                }
+
+            } while(1);
+
+            // HERE WE HAVE A LIST OF FACTORS IN THE STACK
+            Context.precdigits=prec;
+            return;
 
         }
         rplError(ERR_VECTOROFNUMBERSEXPECTED);
