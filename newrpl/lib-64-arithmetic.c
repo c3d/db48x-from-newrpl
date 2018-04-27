@@ -3615,15 +3615,98 @@ case FACTORS:
             if(Context.precdigits<prec) Context.precdigits=prec;
             if(Context.precdigits>MAX_USERPRECISION) Context.precdigits=MAX_USERPRECISION;
 
+#define     FACTORS_TRIVIALLIMIT    100
+
+            if(inum<0) {
+            // FIRST, REMOVE FIRST FEW TRIVIAL FACTORS
+            BINT k=2,count;
+            RReg[0].exp=0;
+            RReg[0].flags=0;
+            RReg[0].len=1;
+            while(k<FACTORS_TRIVIALLIMIT) {
+            RReg[0].data[0]=k;
+            if(gtReal(&RReg[0],&RReg[6])) break;
+            count=-1;
             do {
+            divmodReal(&RReg[1],&RReg[2],&RReg[6],&RReg[0]);
+            swapReal(&RReg[6],&RReg[1]);
+            ++count;
+            } while(iszeroReal(&RReg[2]));
+
+            swapReal(&RReg[6],&RReg[1]);
+            if(count>0) {
+                rplNewBINTPush(k,DECBINT);
+                rplNewBINTPush(count,DECBINT);
+            }
+            k=nextprimeBINT(k);
+            }
+
+            } else
+            {
+                BINT k=2,count;
+                BINT64 prev;
+                while((k<FACTORS_TRIVIALLIMIT) && (k<=inum)) {
+                count=-1;
+                do {
+                prev=inum;
+                inum/=k;
+                ++count;
+                } while(inum*k==prev);
+
+                inum=prev;
+                if(count>0) {
+                    rplNewBINTPush(k,DECBINT);
+                    rplNewBINTPush(count,DECBINT);
+                    if(Exceptions) {
+                        DSTop=savestk;
+                        Context.precdigits=prec;
+                        return;
+                    }
+
+                    newRealFromBINT64(&RReg[6],inum,0);
+
+                }
+                k=nextprimeBINT(k);
+                }
+
+
+            }
+
+            // NOW DO POLLARD RHO
+
+            do {
+
+                // EXIT IF THE NUMBER TO FACTOR IS ONE
+                RReg[0].data[0]=1;
+                RReg[0].exp=0;
+                RReg[0].flags=0;
+                RReg[0].len=1;
+
+                if(!gtReal(&RReg[6],&RReg[0])) break;
+
                 onefactor=factorReal(&RReg[7],&RReg[6]);
                 if(onefactor<0) {
+                    // CHECK FOR PERFECT SQUARES
+                    //hyp_sqrt(&RReg[7]);
+                    //ipReal(&RReg[1],&RReg[0],0);
+                    //mulReal(&RReg[0],&RReg[1],&RReg[1]);
+
+                    //if(eqReal(&RReg[0],&RReg[7])) swapReal(&RReg[1],&RReg[7]);  // USE THE SQUARE ROOT IF IT'S A PERFECT SQUARE
+
                     rplNewRealFromRRegPush(7);
-                    if(eqReal(&RReg[7],&RReg[6])) break;
+                    if(eqReal(&RReg[7],&RReg[6])) {
+                        rplPushData((WORDPTR)one_bint);
+                        break;
+                    }
                 }
                 else {
+                    //BINT64 tmp=sqrtBINT64(onefactor);
+                    //if(tmp*tmp==onefactor) onefactor=tmp;
                     rplNewBINTPush(onefactor,DECBINT);
-                    if(onefactor==inum) break;
+                    if(onefactor==inum) {
+                        rplPushData((WORDPTR)one_bint);
+                        break;
+                    }
                 }
 
                 if(Exceptions) {
@@ -3635,11 +3718,33 @@ case FACTORS:
 
                 if(inum<0) {
                     if(onefactor>=0) newRealFromBINT64(&RReg[7],onefactor,0);
-                    divReal(&RReg[1],&RReg[6],&RReg[7]);
+                    BINT count=-1;
+                    do {
+                    divmodReal(&RReg[1],&RReg[0],&RReg[6],&RReg[7]);
                     swapReal(&RReg[1],&RReg[6]);
+                    ++count;
+                    } while(iszeroReal(&RReg[0]));
+
+                    swapReal(&RReg[1],&RReg[6]);
+
+                    rplNewBINTPush(count,DECBINT);
+
+
+                    if(inBINT64Range(&RReg[6])) inum=getBINT64Real(&RReg[6]);
                 }
                 else {
+                    BINT64 prev;
+                    BINT count=-1;
+                    do {
+                    prev=inum;
                     inum/=onefactor;
+                    ++count;
+                    } while(inum*onefactor==prev);
+
+                    inum=prev;
+                    rplNewBINTPush(count,DECBINT);
+
+
                     newRealFromBINT64(&RReg[6],inum,0);
                 }
 
@@ -3647,6 +3752,20 @@ case FACTORS:
 
             // HERE WE HAVE A LIST OF FACTORS IN THE STACK
             Context.precdigits=prec;
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+
+            WORDPTR newlist=rplCreateListN(DSTop-savestk,1,1);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+            DSTop=savestk;
+            rplOverwriteData(1,newlist);
+
             return;
 
         }

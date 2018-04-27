@@ -74,6 +74,7 @@ void powmodReal(REAL *result,REAL *a,REAL *b,REAL *mod);
 
 void gcdReal(REAL *result,REAL *a,REAL *b);
 BINT64 gcdBINT64(BINT64 a,BINT64 b);
+BINT64 sqrtBINT64(BINT64 num);
 BINT64 factorReal(REAL *result,REAL *n);
 
 

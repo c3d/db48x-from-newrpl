@@ -731,6 +731,26 @@ BINT64 gcdBINT64(BINT64 a,BINT64 b)
     }
     return a;
 }
+// COMPUTE INTEGER SQUARE ROOT
+BINT64 sqrtBINT64(BINT64 num)
+{
+    int shift=2;
+    BINT64 nshifted=num>>shift;
+    while(nshifted)
+    {
+        shift+=2;
+        nshifted=num>>shift;
+    }
+    shift-2;
+    nshifted=0;
+    while(shift>=0) {
+        nshifted<<=1;
+        if( (nshifted+1)*(nshifted+1) <= (num>>shift) ) nshifted+=1;
+        shift-=2;
+    }
+    return nshifted;
+}
+
 
 // RETURN ONE NON-TRIVIAL FACTOR OF n
 // RETURNS n IF n IS PRIME
@@ -739,10 +759,14 @@ BINT64 gcdBINT64(BINT64 a,BINT64 b)
 // RETURNS THE FACTOR AS A BINT64 OR -1 AND THE RESULT IN result
 BINT64 factorReal(REAL *result,REAL *n)
 {
-    BINT64 x=2,y=2,ni, d=1;
+    BINT64 startnum=2,x,y,ni, d=1;
 
     if(inBINT64Range(n)) ni=getBINT64Real(n);
     else ni=-1;
+
+    do {
+
+        x=y=startnum;
 
     do {
 
@@ -750,8 +774,8 @@ BINT64 factorReal(REAL *result,REAL *n)
 
         if(x>=(1LL<<31)) {
             // SWITCH TO REALS
-            x=-1;
             newRealFromBINT64(&RReg[8],x,0);
+            x=-1;
             mulReal(&RReg[1],&RReg[8],&RReg[8]);
             divmodReal(&RReg[8],&RReg[2],&RReg[1],n);
             // HERE RReg[2]=x^2 MOD n
@@ -799,8 +823,8 @@ BINT64 factorReal(REAL *result,REAL *n)
 
         if(y>=(1LL<<31)) {
             // SWITCH TO REALS
-            y=-1;
             newRealFromBINT64(&RReg[9],y,0);
+            y=-1;
             mulReal(&RReg[1],&RReg[9],&RReg[9]);
             divmodReal(&RReg[9],&RReg[2],&RReg[1],n);
             // HERE RReg[2]=y^2 MOD n
@@ -844,8 +868,8 @@ BINT64 factorReal(REAL *result,REAL *n)
 
         if(y>=(1LL<<31)) {
             // SWITCH TO REALS
-            y=-1;
             newRealFromBINT64(&RReg[9],y,0);
+            y=-1;
             mulReal(&RReg[1],&RReg[9],&RReg[9]);
             divmodReal(&RReg[9],&RReg[2],&RReg[1],n);
             // HERE RReg[2]=y^2 MOD n
@@ -891,15 +915,11 @@ BINT64 factorReal(REAL *result,REAL *n)
 
         // DO d=gcd(abs(x-y),n)
         if( (x<0)||(y<0)||(ni<0)) {
-            if(x>=0) newRealFromBINT64(&RReg[0],x,0);
-            if(y>=0) newRealFromBINT64(&RReg[3],y,0);
+            if(x>=0) newRealFromBINT64(&RReg[8],x,0);
+            if(y>=0) newRealFromBINT64(&RReg[9],y,0);
 
-            subReal(&RReg[4],&RReg[3],&RReg[0]);
-            RReg[5].flags&=~F_NEGATIVE;
-
-            // PRESERVE x AND y
-            swapReal(&RReg[0],&RReg[8]);
-            swapReal(&RReg[3],&RReg[9]);
+            subReal(&RReg[4],&RReg[8],&RReg[9]);
+            RReg[4].flags&=~F_NEGATIVE;
 
             gcdReal(&RReg[3],&RReg[4],n);
 
@@ -927,7 +947,26 @@ BINT64 factorReal(REAL *result,REAL *n)
         }
     } while(d<=1);
 
+
+    if(d<0) {
+        if(ni>0) newRealFromBINT64(&RReg[0],ni,0);
+
+        if(!eqReal(&RReg[7],&RReg[0])) break;
+    }
+    else {
+     if(d!=ni) break;
+    }
+
+    // d==n --> FAILURE, TRY ANOTHER STARTING POINT
+    startnum=nextprimeBINT(startnum);
+
+    } while((startnum<MAX_PRIME) && !((ni>0)&&(startnum>ni)));
+
+
+
+
     if(d<0) swapReal(result,&RReg[7]);
+
     return d;
 
 }
