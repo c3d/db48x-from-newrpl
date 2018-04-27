@@ -42,7 +42,7 @@
 @#name lib64_menu_2_integer
 {
   ! GCD LCM IDIV2 IQUOT
-  IEGCD IABCUV { "" } { "" } { "" }
+  IEGCD IABCUV FACTORS { "" } { "" }
   NEXTPRIME ISPRIME? { "" } { "" } { "" }
 }
 
@@ -258,5 +258,10 @@ TRNC
 "Truncate a number to a number
 of figures
 R I<figures> → R"
+
+FACTORS
+"Factors a number into
+product of primes
+I → L"
 
  }

@@ -3702,6 +3702,15 @@ case FACTORS:
                 else {
                     //BINT64 tmp=sqrtBINT64(onefactor);
                     //if(tmp*tmp==onefactor) onefactor=tmp;
+                    if(onefactor==1) {
+                        rplNewRealFromRRegPush(6);
+                        rplPushData((WORDPTR)one_bint);
+
+                        // AD A FACTOR (-1)^0 = 1 TO INDICATE WE GAVE UP
+                        rplPushData((WORDPTR)minusone_bint);
+                        rplPushData((WORDPTR)zero_bint);
+                        break; // TERMINATE, WE GAVE UP
+                    }
                     rplNewBINTPush(onefactor,DECBINT);
                     if(onefactor==inum) {
                         rplPushData((WORDPTR)one_bint);
@@ -3747,7 +3756,11 @@ case FACTORS:
 
                     newRealFromBINT64(&RReg[6],inum,0);
                 }
-
+                if(Exceptions) {
+                    DSTop=savestk;
+                    Context.precdigits=prec;
+                    return;
+                }
             } while(1);
 
             // HERE WE HAVE A LIST OF FACTORS IN THE STACK

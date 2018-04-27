@@ -741,7 +741,7 @@ BINT64 sqrtBINT64(BINT64 num)
         shift+=2;
         nshifted=num>>shift;
     }
-    shift-2;
+    shift-=2;
     nshifted=0;
     while(shift>=0) {
         nshifted<<=1;
@@ -754,12 +754,16 @@ BINT64 sqrtBINT64(BINT64 num)
 
 // RETURN ONE NON-TRIVIAL FACTOR OF n
 // RETURNS n IF n IS PRIME
-// USES POLLARD'S RHO ALGORITHM + TRIAL DIVISION IF IT FAILS
+// USES POLLARD'S RHO ALGORITHM
 // n CAN'T BE RREG[0] TO [4]  OR [7] TO [9]
 // RETURNS THE FACTOR AS A BINT64 OR -1 AND THE RESULT IN result
+
+#define GIVEUP_PRIME    2000
+#define GIVEUP_ITERATIONS 2000
+
 BINT64 factorReal(REAL *result,REAL *n)
 {
-    BINT64 startnum=2,x,y,ni, d=1;
+    BINT64 startnum=2,x,y,ni, d=1,itercnt;
 
     if(inBINT64Range(n)) ni=getBINT64Real(n);
     else ni=-1;
@@ -767,7 +771,7 @@ BINT64 factorReal(REAL *result,REAL *n)
     do {
 
         x=y=startnum;
-
+        itercnt=0;
     do {
 
         // do x=g(x) with g(x)=x^2+1
@@ -945,7 +949,8 @@ BINT64 factorReal(REAL *result,REAL *n)
             RReg[1].len=1;
             if(!eqReal(&RReg[1],&RReg[7])) break;
         }
-    } while(d<=1);
+        ++itercnt;
+    } while((d<=1) && (itercnt<GIVEUP_ITERATIONS));
 
 
     if(d<0) {
@@ -960,7 +965,7 @@ BINT64 factorReal(REAL *result,REAL *n)
     // d==n --> FAILURE, TRY ANOTHER STARTING POINT
     startnum=nextprimeBINT(startnum);
 
-    } while((startnum<MAX_PRIME) && !((ni>0)&&(startnum>ni)));
+    } while((startnum<GIVEUP_PRIME) && !((ni>0)&&(startnum>ni)));
 
 
 
