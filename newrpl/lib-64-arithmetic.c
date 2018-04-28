@@ -3615,7 +3615,7 @@ case FACTORS:
             if(Context.precdigits<prec) Context.precdigits=prec;
             if(Context.precdigits>MAX_USERPRECISION) Context.precdigits=MAX_USERPRECISION;
 
-#define     FACTORS_TRIVIALLIMIT    100
+#define     FACTORS_TRIVIALLIMIT    500
 
             if(inum<0) {
             // FIRST, REMOVE FIRST FEW TRIVIAL FACTORS
