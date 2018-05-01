@@ -98,7 +98,7 @@ WORDPTR rplMakeIdentUnquoted(WORDPTR ident)
 
 }
 
-
+// USES ONE SCRATCHPOINTER AND MAY CAUSE GC
 WORDPTR rplMakeIdentHidden(WORDPTR ident)
 {
     if(ISHIDDENIDENT(*ident)) return ident;
@@ -547,6 +547,19 @@ void rplPurgeGlobal(WORDPTR nameobj)
 
     // PURGE ALL PROPERTIES OF THIS VARIABLE TOO
     while( (var=rplFindGlobalPropInDir(nameobj,0,CurrentDir,0))) {
+
+        WORD prop=rplGetIdentProp(var[0]);
+
+        if(prop==IDPROP_DEFN) {
+            WORDPTR *stksave=DSTop;
+            rplPushDataNoGrow(nameobj);
+            rplUpdateDependencyTree(nameobj,CurrentDir,var[1],(WORDPTR)zero_bint);
+            nameobj=*stksave;
+            DSTop=stksave;
+            // SEARCH AGAIN, SINCE DIRECTORIES WERE UPDATED BY THE DEPENDENCY TREE
+            var=rplFindGlobalPropInDir(nameobj,0,CurrentDir,0);
+        }
+
         rplPurgeForced(var);
     }
 
@@ -1424,7 +1437,6 @@ for(k=0;k<oldnum;++k)
     WORDPTR *var=rplFindGlobalPropInDir(stkbase[k],IDPROP_DEPN,dir,0);
     if(var) {
         if(ISLIST(*var[1])) {
-           WORDPTR *stkptr=DSTop;
            WORDPTR ptr=var[1]+1,end=rplSkipOb(var[1]);
            BINT totalsize=0,addvar=0;
 
@@ -1438,7 +1450,7 @@ for(k=0;k<oldnum;++k)
            BINT j;
            for(j=0;j<newnum;++j)
            {
-               if(rplCompareIDENT(stkbase[k],stkptr[oldnum+j])) {
+               if(rplCompareIDENT(stkbase[k],stkbase[oldnum+j])) {
                    totalsize+=rplObjSize(varname);
                    ++addvar;
                    // REMOVE FROM THE NEW DEPENDENCY LIST
@@ -1598,7 +1610,7 @@ for(k=0;k<newnum;++k)
 
             newlist[0]=MKPROLOG(DOLIST,rplObjSize(varname)+1);
             rplCopyObject(newlist+1,varname);
-            newlist[1]=MKPROLOG(DOIDENT,OBJSIZE(newlist[1]));   // MAKE SURE THE IDENT IS QUOTED
+            newlist[1]&=~MKOPCODE(UNQUOTED_BIT,0);   // MAKE SURE THE IDENT IS QUOTED
             newlist[rplObjSize(varname)+1]=CMD_ENDLIST;
             ScratchPointer3=varname;
 

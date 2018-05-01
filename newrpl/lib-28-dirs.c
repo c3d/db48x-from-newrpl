@@ -2047,10 +2047,19 @@ case TVARSE:
         if(!var) {
             // CAN'T SET A PROPERTY OF A VARIABLE THAT DOESN'T EXIST
             // TODO: UNLESS IT'S THE 'Defn' PROPERTY, THEN IT SHOULD BE EVALUATED
+            if(prop==IDPROP_DEFN) {
+                ScratchPointer1=varname;
+                rplCreateGlobalInDir(varname,(WORDPTR)zero_bint,CurrentDir);
+                if(Exceptions) return;
+
+                varname=ScratchPointer1;
+                var=rplFindFirstInDir(CurrentDir);
+            }
+            else {
             rplError(ERR_UNDEFINEDVARIABLE);
             return;
+            }
         }
-
         if(ISLOCKEDIDENT(*var[0])) {
             rplError(ERR_READONLYVARIABLE);
             return;
@@ -2061,10 +2070,12 @@ case TVARSE:
         if(varprop) { oldvarprop=varprop[1]; varprop[1]=rplPeekData(2); }
         else {
             // CREATE A NEW PROPERTY
+            ScratchPointer2=varname;
             WORDPTR newname=rplMakeIdentHidden(rplPeekData(1));
             if(!newname) return;
             rplCreateGlobal(newname,rplPeekData(2));
             if(Exceptions) return;
+            varname=ScratchPointer2;
             var+=2;     // CORRECT THE POINTER TO THE ORIGINAL VARIABLE, MOVED IN MEMORY WHEN CREATING THE GLOBAL
         }
 
@@ -2072,13 +2083,52 @@ case TVARSE:
 
         if(prop==IDPROP_DEFN) {
             // CHANGING Defn NEEDS TO UPDATE THE DEPENDENCY CACHE
-            ScratchPointer2=oldvarprop;
+
+
+            // EVALUATE THE DEFINITION FOR THE FIRST TIME
+            // FOUND A FORMULA OR PROGRAM, IF A PROGRAM, RUN XEQ THEN ->NUM
+            // IF A FORMULA OR ANYTHING ELSE, ->NUM
+            WORDPTR *stksave=DSTop;
+            rplPushData(oldvarprop);
+            rplPushData(rplPeekData(2));
+            WORDPTR *stkcheck=DSTop;
+            if(ISPROGRAM(*rplPeekData(1))) rplRunAtomic(CMD_OVR_XEQ);
+            if(Exceptions) {
+                rplBlameError(stksave[-1]);   // AT LEAST SHOW WHERE THE ERROR CAME FROM
+                if(DSTop>stksave) DSTop=stksave;
+                return;
+            }
+            rplRunAtomic(CMD_OVR_NUM);
+            if(Exceptions) {
+                rplBlameError(stksave[-1]);   // AT LEAST SHOW WHERE THE ERROR CAME FROM
+                if(DSTop>stksave) DSTop=stksave;
+                return;
+            }
+
+            // WE GOT THE RESULT ON THE STACK
+            if(DSTop!=stkcheck) {
+               rplError(ERR_BADARGCOUNT);
+               rplBlameError(stksave[-1]);   // AT LEAST SHOW WHERE THE ERROR CAME FROM
+               DSTop=stksave;
+               return;
+            }
+            // STORE THE NEW RESULT AND CONTINUE
+            var[1]=rplPopData();
             varname=rplSetIdentAttr(var[0],IDATTR_DEFN,IDATTR_DEFN);
-            if(!varname) return;
+            if(!varname) {
+                DSTop=stksave;
+                return;
+            }
             var[0]=varname;
-            oldvarprop=ScratchPointer2;
+            oldvarprop=rplPopData();
 
             rplUpdateDependencyTree(varname,CurrentDir,oldvarprop,rplPeekData(2));
+
+            if(Exceptions) return;
+            // AND TRIGGER AUTO EVALUATION
+
+            rplDoAutoEval(var[0],CurrentDir);
+            if(Exceptions) return;
 
         }
 
