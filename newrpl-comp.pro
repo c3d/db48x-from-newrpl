@@ -248,14 +248,14 @@ HEADERS  += firmware/include/ggl.h \
     newrpl/render.h
 
 
-INCLUDEPATH += firmware/include newrpl /usr/local/include /usr/include
+INCLUDEPATH += firmware/include newrpl
 
 LIBS += -L/usr/local/lib
 
 DISTFILES +=
 
 # Clang doesn't like double const specifiers, but are needed for firmware: disable the warning
-clang: QMAKE_CFLAGS += -Wno-duplicate-decl-specifier
+QMAKE_CFLAGS += -Wno-duplicate-decl-specifier
 
 
 
