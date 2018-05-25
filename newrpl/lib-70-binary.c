@@ -188,6 +188,14 @@ void LIB_HANDLER()
 
             return;
         }
+
+        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+            rplListBinaryDoCmd();
+            return;
+        }
+
+
+
         BINT64 num1,num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
@@ -240,6 +248,13 @@ void LIB_HANDLER()
 
             return;
         }
+
+        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+            rplListBinaryDoCmd();
+            return;
+        }
+
+
         BINT64 num1,num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
@@ -293,6 +308,13 @@ void LIB_HANDLER()
 
             return;
         }
+
+        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+            rplListBinaryDoCmd();
+            return;
+        }
+
+
         BINT64 num1,num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
@@ -346,6 +368,12 @@ void LIB_HANDLER()
 
             return;
         }
+
+        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+            rplListBinaryDoCmd();
+            return;
+        }
+
         BINT64 num1,num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
@@ -401,6 +429,14 @@ void LIB_HANDLER()
 
             return;
         }
+
+        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+            rplListBinaryDoCmd();
+            return;
+        }
+
+
+
         BINT64 num1,num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
@@ -455,6 +491,13 @@ void LIB_HANDLER()
 
             return;
         }
+
+        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+            rplListBinaryDoCmd();
+            return;
+        }
+
+
         BINT64 num1,num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
@@ -510,6 +553,13 @@ void LIB_HANDLER()
 
             return;
         }
+
+        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+            rplListBinaryDoCmd();
+            return;
+        }
+
+
         BINT64 num1,num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
@@ -563,6 +613,13 @@ void LIB_HANDLER()
 
             return;
         }
+
+        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+            rplListBinaryDoCmd();
+            return;
+        }
+
+
         BINT64 num1,num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
@@ -616,6 +673,13 @@ void LIB_HANDLER()
 
             return;
         }
+
+        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+            rplListBinaryDoCmd();
+            return;
+        }
+
+
         BINT64 num1,num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
@@ -669,6 +733,13 @@ void LIB_HANDLER()
 
             return;
         }
+
+        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+            rplListBinaryDoCmd();
+            return;
+        }
+
+
         BINT64 num1,num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
@@ -724,6 +795,14 @@ void LIB_HANDLER()
 
             return;
         }
+
+        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+            rplListBinaryDoCmd();
+            return;
+        }
+
+
+
         BINT64 num1,num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
@@ -755,16 +834,21 @@ void LIB_HANDLER()
         WORDPTR low64=SystemFlags+2;
         BINT wsize=(low64[0]>>4)&0x3f;
 
-        num2%=wsize;
-        if(num2<0) num2+=wsize;
+        num2%=wsize+1;
+        if(num2<0) num2+=wsize+1;
 
         BINT64 left,right;
 
-        left=(num1<<num2)&((1LL<<wsize)-1);
-        right=(num1>>(wsize-num2))&((1LL<<(wsize-num2))-1);
+        left=(num1<<num2);
+        right=(num1>>(wsize+1-num2))&((1LL<<num2)-1);
 
         num1=left|right;
 
+        if(num1&(1LL<<wsize)) {
+            // SIGN EXTEND THE RESULT
+            num1|=~((1LL<<wsize)-1);
+        }
+        else num1&=((1LL<<wsize)-1);
 
         rplDropData(2);
         rplNewBINTPush(num1,base);
@@ -780,6 +864,13 @@ void LIB_HANDLER()
 
             return;
         }
+
+        if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
+            rplListBinaryDoCmd();
+            return;
+        }
+
+
         BINT64 num1,num2;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
@@ -811,16 +902,22 @@ void LIB_HANDLER()
         WORDPTR low64=SystemFlags+2;
         BINT wsize=(low64[0]>>4)&0x3f;
 
-        num2%=wsize;
-        if(num2<0) num2+=wsize;
+        num2=-num2;
+        num2%=wsize+1;
+        if(num2<0) num2+=wsize+1;
 
         BINT64 left,right;
 
-        left=(num1<<(wsize-num2))&((1LL<<wsize)-1);
-        right=(num1>>num2)&((1LL<<(wsize-num2))-1);
+        left=(num1<<num2);
+        right=(num1>>(wsize+1-num2))&((1LL<<num2)-1);
 
         num1=left|right;
 
+        if(num1&(1LL<<wsize)) {
+            // SIGN EXTEND THE RESULT
+            num1|=~((1LL<<wsize)-1);
+        }
+        else num1&=((1LL<<wsize)-1);
 
         rplDropData(2);
         rplNewBINTPush(num1,base);
@@ -837,6 +934,14 @@ void LIB_HANDLER()
 
             return;
         }
+
+        if (ISLIST(*rplPeekData(1))) {
+            rplListUnaryDoCmd();
+            return;
+        }
+
+
+
         BINT64 num1;
         BINT base;
         if(ISNUMBER(*rplPeekData(1))) {
