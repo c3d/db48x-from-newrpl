@@ -127,6 +127,7 @@ void LIB_HANDLER()
     case OVR_EVAL:
     case OVR_EVAL1:
     case OVR_XEQ:
+    case OVR_NUM:
     // EXECUTE THE SECONDARY THAT'S ON THE STACK
         if(ISPROLOG(*rplPeekData(1))) {
         rplPushRet(IPtr);       // PUSH CURRENT POINTER AS THE RETURN ADDRESS. AT THIS POINT, IPtr IS POINTING TO THIS SECONDARY WORD

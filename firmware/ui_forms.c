@@ -38,7 +38,13 @@ void uiFormGetDimensions(WORDPTR form,BINT *width,BINT *height)
         roww=SCREEN_WIDTH;
 
         if(ISBINT(*item)) { rowh=rplReadBINT(item); item=rplSkipOb(item); }
-        else rowh=(*halScreen.FontArray[FONT_FORMS])->BitmapHeight;
+        else {
+            // TODO: DEFINE THE HEIGHT FOR VARIOUS OTHER TYPES
+
+            // BY DEFAULT, THIS IS THE HEIGHT OF ONE LINE OF TEXT
+            rowh=(*halScreen.FontArray[FONT_FORMS])->BitmapHeight;
+
+        }
 
         if(ISLIST(*item)) {
             // A LIST OF COLUMNS
@@ -99,7 +105,9 @@ void uiUpdateForm(WORDPTR form)
     WORDPTR newbmp=rplBmpCreate(DEFAULTBITMAPMODE,formw,formh,1);   // ALLOCATE A NEW BITMAP AND CLEAR IT
     if(!newbmp) return;
     form=ScratchPointer1;
-    // REDRAW EACH ELEMENT ONTO THE NEW BITMAP
+
+
+    // PASS 2: REDRAW EACH ELEMENT ONTO THE NEW BITMAP
 
     DRAWSURFACE backgnd;
 

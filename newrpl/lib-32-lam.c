@@ -882,9 +882,19 @@ void LIB_HANDLER()
                         if(LAMptr>env) break;
                         prolog=**(env+1);   // GET THE PROLOG OF THE SECONDARY
                         if(ISPROLOG(prolog) && LIBNUM(prolog)==SECO) {
-                        // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS
+                        // LAMS ACROSS << >> SECONDARIES HAVE TO BE COMPILED AS IDENTS, AND NEW LAM WILL BE CREATED SHADOWING THE OLD
                         rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LSTO));
+                        if(!notrack) {
+                        if(rplNeedNewLAMEnvCompiler()) {    // CREATE A NEW ENVIRONMENT IF NEEDED
+                            rplCreateLAMEnvironment(*(ValidateTop-1));
+                        }
+                        rplCreateLAM(prevobject,prevobject);
 
+                        }
+                        else {
+                            // CREATE A BARRIER TO PREVENT ANY MORE PUTLAM/GETLAM REFERENCES BEYOND THIS POINT
+                            rplCreateLAMEnvironment((WORDPTR)lameval_seco);     // CREATE A NEW ENVIRONMENT OWNED BY A DOCOL SECONDARY
+                        }
                         RetNum=OK_CONTINUE;
                         return;
                         }
