@@ -515,13 +515,13 @@ void LIB_HANDLER()
     // SPECIAL OPCODES
     if(OPCODE(CurOpcode)&0x70000) {
         // IT'S ONE OF THE COMPACT OPCODES
-        BINT op=OPCODE(CurOpcode)>>16;
+        BINT op=OPCODE(CurOpcode)&0x70000;
         BINT num=OPCODE(CurOpcode)&0xffff;
         if(num&0x8000) num|=0xFFFF0000; // GET NEGATIVE LAMS TOO!
 
         switch(op)
         {
-        case 1: // PUTLAMn
+        case PUTLAMN: // PUTLAMn
         {
             if(rplDepthData()<1) {
                 rplError(ERR_BADARGCOUNT);
@@ -531,14 +531,14 @@ void LIB_HANDLER()
             *local=rplPopData();
             return;
          }
-        case 2: // GETLAMn
+        case GETLAMN: // GETLAMn
             rplPushData(*rplGetLAMn(num));
             return;
-        case 3: // GETLAMnEVAL
+        case GETLAMNEVAL: // GETLAMnEVAL
             rplPushData(*rplGetLAMn(num));
             //rplCallOvrOperator((CMD_OVR_XEQ));
             return;
-        case 4: // NEWNLOCALS
+        case NEWNLOCALS: // NEWNLOCALS
             // THIS ONE HAS TO CREATE 'N' LOCALS TAKING THE NAMES AND OBJECTS FROM THE STACK
             // AND ALSO HAS TO 'EVAL' THE NEXT OBJECT IN THE RUNSTREAM
             // THE STACK CONTAINS VAL1 VAL2 ... VALN LAM1 LAM2 ... LAMN

@@ -84,7 +84,9 @@
     CMD(DIGITS,MKTOKENINFO(6,TITYPE_FUNCTION,3,2)), \
     CMD(PROOT,MKTOKENINFO(5,TITYPE_FUNCTION,1,2)), \
     CMD(PREVPRIME,MKTOKENINFO(9,TITYPE_FUNCTION,1,2)), \
-    CMD(FACTORS,MKTOKENINFO(7,TITYPE_FUNCTION,1,2))
+    CMD(FACTORS,MKTOKENINFO(7,TITYPE_FUNCTION,1,2)), \
+    CMD(NUMINT,MKTOKENINFO(6,TITYPE_FUNCTION,4,2))
+
 
 
 
@@ -3789,7 +3791,82 @@ case FACTORS:
 
 
 
+case NUMINT:
+    {
+        // DOES NUMERIC INTEGRATION ON FUNCTION PROVIDED BY THE USER
+        // TAKES A PROGRAM FROM THE STACK, START AND END LIMITS, AND ERROR TOLERANCE
 
+        if(rplDepthData()<4) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISPROGRAM(*rplPeekData(4))) {
+            rplError(ERR_PROGRAMEXPECTED);
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(3)) || !ISNUMBER(*rplPeekData(2)) || !ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_REALEXPECTED);
+            return;
+        }
+
+
+
+            /*
+            "«
+              0 →
+                FUNC A B EPS AREA
+                « DEPTH 'DPTH' LSTO
+                A B + 2 / 'C' LSTO
+                B A - 'H' LSTO A FUNC
+                EVAL 'FA' LSTO B FUNC
+                EVAL 'FB' LSTO C FUNC
+                EVAL 'FC' LSTO @@ LEAVE A B IN STACK
+             A B @@ LEAVE AREA S ON STACK
+             FA FB + FC 4 * + H 6
+                / * @@ LEAVE ERROR ON STACK
+             EPS @@ LEAVE VALUES OF FUNCTION
+             FA FB FC WHILE DEPTH
+                DPTH > REPEAT
+                  →
+                    A B S EPS FA FB
+                    FC « A B
+                    + 2 / 'C' LSTO
+                    B A - 'H' LSTO
+                    A C + 2 / 'D'
+                    LSTO C B + 2 /
+                    'E' LSTO D FUNC
+                    EVAL 'FD' LSTO
+                    E FUNC EVAL 'FE'
+                    LSTO H 12 / DUP
+                    FA FD 4 * + FC
+                    + * 'SL' LSTO
+                    FC FE 4 * + FB
+                    + * 'SR' LSTO
+                    SL SR + DUP S -
+                    15 / IF DUP ABS
+                    EPS ≤ THEN
+                      AREA + + 'AREA'
+                      STO
+                    ELSE
+                      DROP2 @@ SPLIT IN THE STACK AND LOOP
+             @@ LEFT PART
+             A C SL EPS 0.5 * FA FC
+                      FD C B SR EPS
+                      0.5 * FC FB
+                      FE
+                    END
+                  »
+                END
+                AREA
+              »
+            »"
+            */
+
+
+        return;
+    }
         // ADD MORE OPCODES HERE
 
     // STANDARIZED OPCODES:
