@@ -2967,8 +2967,12 @@ void LIB_HANDLER()
         // RetNum =  OK_TOKENINFO | MKTOKENINFO(...) WITH THE INFORMATION ABOUT THE CURRENT TOKEN
         // OR RetNum = ERR_NOTMINE IF NO TOKEN WAS FOUND
         {
+        if(*((char *)TokenStart)=='}') {
+            // FOUND END OF LIST WITHIN A SYMBOLIC COMPILATION. JUST IGNORE AND LET THE SYMBOLIC LIBRARY HANDLE IT
+            RetNum=ERR_NOTMINE;
+            return;
+        }
         libProbeCmds((char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
-
         return;
         }
 

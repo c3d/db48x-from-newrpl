@@ -30,7 +30,7 @@
 
 #define COMMAND_LIST \
     ECMD(RULESEPARATOR,":→",MKTOKENINFO(2,TITYPE_BINARYOP_LEFT,2,14)), \
-    ECMD(OPENBRACKET,"(",MKTOKENINFO(1,TITYPE_OPENBRACKET,0,31)), \
+    ECMD(OPENBRACKET,"(",MKTOKENINFO(1,TITYPE_OPENBRACKET,0,1)), \
     ECMD(CLOSEBRACKET,")",MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31)), \
     ECMD(COMMA,"",MKTOKENINFO(1,TITYPE_COMMA,0,31)), \
     ECMD(SYMBEVALPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
@@ -46,8 +46,10 @@
     CMD(RULEMATCH,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     CMD(RULEAPPLY,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
     ECMD(TOFRACTION,"→Q",MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
-    ECMD(SYMBEVAL1CHK,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2))
-
+    ECMD(SYMBEVAL1CHK,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(EQUATIONOPERATOR,"=",MKTOKENINFO(1,TITYPE_BINARYOP_LEFT,2,15)), \
+    ECMD(LISTOPENBRACKET,"{",MKTOKENINFO(1,TITYPE_OPENBRACKET,0,1)), \
+    ECMD(LISTCLOSEBRACKET,"}",MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31))
 
 //    CMD(TEST,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
 
@@ -895,6 +897,13 @@ void LIB_HANDLER()
 
                     rplSetExceptionHandler(IPtr+5); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
 
+                    if((Opcode==CMD_OPENBRACKET) || (Opcode==CMD_LISTOPENBRACKET)) {
+                        // SPECIAL CASE, THESE COMMANDS NEED THE NUMBER OF ARGUMENTS PUSHED ON THE STACK
+                        rplNewBINTPush(newdepth,DECBINT);
+
+
+                    }
+
                     if((Opcode==CMD_OVR_MUL)||(Opcode==CMD_OVR_ADD)) {
                         // CHECK FOR FLATTENED LIST, APPLY MORE THAN ONCE IF MORE THAN 2 ARGUMENTS
                         if(newdepth<=2) rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
@@ -1494,11 +1503,57 @@ void LIB_HANDLER()
 
     case RULESEPARATOR:
                 //@SHORT_DESC=@HIDE
+        return;
     case OPENBRACKET:
                 //@SHORT_DESC=@HIDE
+    {
+        // OPERATOR USED IN SYMBOLIC NUMBERS, SHOULD CREATE SOME KIND OF SET OF NUMBERS, A LIST FOR NOW
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        rplCreateList();
+        return;
+    }
     case CLOSEBRACKET:
                 //@SHORT_DESC=@HIDE
-    return;
+        return;
+    case LISTOPENBRACKET:
+                //@SHORT_DESC=@HIDE
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        rplCreateList();
+        return;
+    case LISTCLOSEBRACKET:
+                //@SHORT_DESC=@HIDE
+
+    case EQUATIONOPERATOR:
+                //@SHORT_DESC=@HIDE
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        WORDPTR arg1=rplPeekData(2);
+        WORDPTR arg2=rplPeekData(1);
+
+
+        // ALLOW LIST PROCESSING AND MATRIX PROCESSING FIRST
+        if(ISLIST(*arg1) || ISLIST(*arg2)){
+            rplListBinaryDoCmd(arg1,arg2);
+            return;
+        }
+
+        // MAKE SURE WE KEEP THE EQUALITY WHEN EVAL'd
+        rplSymbApplyOperator(CurOpcode,2);
+        return;
+    }
+
 
     // STANDARIZED OPCODES:
     // --------------------
@@ -1534,7 +1589,7 @@ void LIB_HANDLER()
 
         if(*tok==')') {
             if((TokenLen==1) && (CurrentConstruct==MKPROLOG(DOSYMB,0))) {
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,CLOSEBRACKET));
+                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,OPENBRACKET)); // INDICATE THE OPENING BRACKET TO MATCH
                 RetNum=OK_CONTINUE;
             }
             else RetNum=ERR_NOTMINE;
@@ -1548,6 +1603,27 @@ void LIB_HANDLER()
             else RetNum=ERR_NOTMINE;
         return;
         }
+
+        if(*tok=='{') {
+            if((TokenLen==1)&&(CurrentConstruct==MKPROLOG(DOSYMB,0))) {
+                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LISTOPENBRACKET));
+                RetNum=OK_CONTINUE;
+            }
+            else RetNum=ERR_NOTMINE;
+            return;
+        }
+        if(*tok=='}') {
+            if((TokenLen==1)&&(CurrentConstruct==MKPROLOG(DOSYMB,0))) {
+                // ISSUE A BUILDLIST OPERATOR
+                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LISTOPENBRACKET));
+                RetNum=OK_CONTINUE;
+            }
+            else RetNum=ERR_NOTMINE;
+            return;
+        }
+
+
+
 
         if( (TokenLen==2) && !utf8ncmp2((char *)tok,(char *)BlankStart,":→",2)) {
             if(CurrentConstruct==MKPROLOG(DOSYMB,0)) {
@@ -1635,17 +1711,7 @@ void LIB_HANDLER()
             RetNum= OK_ENDCONSTRUCT_INFIX;
             return;
         }
-/*
-        if(*((char *)TokenStart)=='(') {
-            RetNum= OK_TOKENINFO | MKTOKENINFO(1,TITYPE_OPENBRACKET,0,31);
-            return;
-        }
 
-        if(*((char *)TokenStart)==')') {
-            RetNum= OK_TOKENINFO | MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31);
-            return;
-        }
-*/
         if((WORD)utf82cp((char *)TokenStart,(char *)BlankStart)==ARG_SEP(Locale)) {
             RetNum= OK_TOKENINFO | MKTOKENINFO(1,TITYPE_COMMA,0,31);
             return;

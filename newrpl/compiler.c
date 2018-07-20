@@ -563,17 +563,19 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             if(!previous_tokeninfo || (TI_TYPE(previous_tokeninfo)>TITYPE_OPERATORS)) {
                                 // THIS IS A PARENTHESIS FOLLOWING AN OPERATOR
                             // PUSH THE NEW OPERATOR
-                            if(RStkSize<=(InfixOpTop+1-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
+                            if(RStkSize<=(InfixOpTop+3-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
                             if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
                             InfixOpTop[0]=CompileEnd-TempObEnd;        // SAVE POSITION TO START COUNTING ARGUMENTS
                             InfixOpTop[1]=probe_tokeninfo;
-                            InfixOpTop+=2;
+                            InfixOpTop[2]=Opcode;        // SAVE OPCODE TO DISTINGUISH BRACKET TYPES
+                            InfixOpTop[3]=probe_tokeninfo;
+                            InfixOpTop+=4;
                             } else
                             {
                                 // THIS IS EITHER MATRIX/VECTOR INDEXING OR A USER FUNCTION CALL
 
                                 // PUSH OPERATOR FUNCEVAL FIRST
-                                if(RStkSize<=(InfixOpTop+3-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
+                                if(RStkSize<=(InfixOpTop+5-(WORDPTR)RStk)) growRStk(InfixOpTop-(WORDPTR)RStk+RSTKSLACK);
                                 if(Exceptions) { LAMTop=LAMTopSaved; return 0; }
                                 InfixOpTop[0]=(CMD_OVR_FUNCEVAL);        // SAVE POSITION TO START COUNTING ARGUMENTS
                                 InfixOpTop[1]=MKTOKENINFO(TI_LENGTH(previous_tokeninfo),TITYPE_FUNCTION,0xf,2);
@@ -582,7 +584,9 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                                 // THEN THE OPENING BRACKET
                                 InfixOpTop[0]=CompileEnd-TempObEnd;        // SAVE POSITION TO START COUNTING ARGUMENTS
                                 InfixOpTop[1]=probe_tokeninfo;
-                                InfixOpTop+=2;
+                                InfixOpTop[2]=Opcode;        // SAVE OPCODE TO DISTINGUISH BRACKET TYPES
+                                InfixOpTop[3]=probe_tokeninfo;
+                                InfixOpTop+=4;
 
 
                             }
@@ -593,7 +597,16 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                          // POP ALL OPERATORS OFF THE STACK UNTIL THE OPENING BRACKET IS FOUND
 
                             while(InfixOpTop>(WORDPTR)ValidateTop){
-                                if((TI_TYPE(*(InfixOpTop-1))==TITYPE_OPENBRACKET)) break;
+                                if((TI_TYPE(*(InfixOpTop-1))==TITYPE_OPENBRACKET)) {
+                                    // CHECK IF THE BRACKET IS THE RIGHT TYPE OF BRACKET
+                                    if((TI_TYPE(probe_tokeninfo)==TITYPE_CLOSEBRACKET) &&(*(InfixOpTop-2)!=Opcode)) {
+                                        // MISMATCHED BRACKET TYPE
+                                        rplError(ERR_MISSINGBRACKET);
+                                        LAMTop=LAMTopSaved;
+                                        return 0;
+                                    }
+                                    break;
+                                }
                                 // POP OPERATORS OFF THE STACK AND APPLY TO OBJECTS
                                 InfixOpTop-=2;
                                 if(!rplInfixApply(InfixOpTop[0],TI_NARGS(InfixOpTop[1])))
@@ -614,9 +627,10 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             if(TI_TYPE(probe_tokeninfo)==TITYPE_CLOSEBRACKET) {
                             // COUNT THE NUMBER OF ARGUMENTS WE HAVE
                             // REMOVE THE OPENING BRACKET
-                            InfixOpTop-=2;
+                            InfixOpTop-=4;
 
                             BINT nargs=0;
+                            WORD brackettype=InfixOpTop[2]; // OPCODE WITH BRACKET TYPE TO DISTINGUISH BRACKETS
                             WORDPTR list=TempObEnd+InfixOpTop[0];
                             WORDPTR ptr=CompileEnd;
 
@@ -625,8 +639,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
 
                             // CHECK IF THE TOP OF STACK IS A FUNCTION
-                            if(InfixOpTop>(WORDPTR)ValidateTop) {
-                                if(TI_TYPE(*(InfixOpTop-1))==TITYPE_FUNCTION) {
+                            if((InfixOpTop>(WORDPTR)ValidateTop)&&(TI_TYPE(*(InfixOpTop-1))==TITYPE_FUNCTION)) {
                                     BINT needargs=(BINT)TI_NARGS(*(InfixOpTop-1));
                                     if((needargs!=0xf) && (nargs!=needargs)) {
                                         rplError(ERR_BADARGCOUNT);
@@ -652,7 +665,23 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                                     }
 
                                 }
+                            else {
+                                // THERE'S NO FUNCTION ON THE STACK, USE THE BRACKET THE MAIN OPERATOR
+                                if((brackettype!=CMD_OPENBRACKET)||(nargs>1)) {
+
+                                    if(!rplInfixApply(brackettype,nargs))
+                                    {
+                                        LAMTop=LAMTopSaved;
+                                        return 0;
+                                    }
+
+
+
+                                }
+
+
                             }
+
                             } else {
                                 // THE PARAMETER IS A COMMA
                                 // DO NOTHING FOR NOW
@@ -1433,6 +1462,31 @@ end_of_expression:
 
                 }
 
+                case TITYPE_OPENBRACKET:
+                {
+                    // DECOMPILE THE OPERATOR NOW, THEN ADD PARENTHESIS FOR THE LIST
+                    CurOpcode=MKOPCODE(LIBNUM(*DecompileObject),(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
+                    DecompMode=infixmode|(flags<<16);
+
+                    RetNum=-1;
+                    if(handler) {
+                        // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
+                        WORDPTR *tmpRSTop=RSTop;
+                        RSTop=(WORDPTR *)InfixOpTop;
+
+                        (*handler)();
+                        RSTop=tmpRSTop;
+                    }
+                    // IGNORE THE RESULT OF DECOMPILATION
+                    if(RetNum!=OK_CONTINUE) {
+                        rplDecompAppendString((BYTEPTR)"##INVALID##");
+                    }
+
+                    ++DecompileObject;
+                    infixmode=INFIX_FUNCARGUMENT;
+                    break;
+                }
+
                 case TITYPE_FUNCTION:
                 default:
                     // DECOMPILE THE OPERATOR NOW, THEN ADD PARENTHESIS FOR THE LIST
@@ -1801,11 +1855,41 @@ end_of_expression:
             WORDPTR EndofExpression = rplSkipOb(*(signed int *)(InfixOpTop-4)+EndOfObject);
 
             if(DecompileObject==EndofExpression) {
-                rplDecompAppendChar(')');
+                LIBHANDLER handler;
+                // ADD THE OPERATOR AFTER THE OPERAND
+                WORD functype=*(InfixOpTop-1);
+
+                if(TI_TYPE(functype)==TITYPE_OPENBRACKET) {
+                    BINT libnum=LIBNUM(*(InfixOpTop-2));
+                    WORD closebracket;
+                    closebracket=*(InfixOpTop-2)+1;
+                    DecompileObject=&closebracket;
+                    CurOpcode=MKOPCODE(libnum,(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
+                    DecompMode=infixmode|(flags<<16);
+                    handler=rplGetLibHandler(libnum);
+                    RetNum=-1;
+
+                    if(handler) {
+                        // PROTECT OPERATOR'S STACK FROM BEING OVERWRITTEN
+                        WORDPTR *tmpRSTop=RSTop;
+                        RSTop=(WORDPTR *)InfixOpTop;
+                        (*handler)();
+                        RSTop=tmpRSTop;
+                    }
+
+                    // IGNORE THE RESULT OF DECOMPILATION
+                    if(RetNum!=OK_CONTINUE) {
+                        rplDecompAppendString((BYTEPTR)"##INVALID##");
+                    }
+                }
+                else rplDecompAppendChar(')');
+
                 // END OF THIS EXPRESSION
                 // POP EXPRESSION FROM THE STACK
                 InfixOpTop-=4;
                 // RESTORE PREVIOUS EXPRESSION STATE
+
+
                 infixmode=InfixOpTop[1];
                 DecompileObject=rplSkipOb(*(signed int *)InfixOpTop+EndOfObject);
                 if(!infixmode) rplDecompAppendChar('\'');
