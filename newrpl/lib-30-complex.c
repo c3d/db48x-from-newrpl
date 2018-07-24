@@ -3050,7 +3050,7 @@ void LIB_HANDLER()
                         switch(cmpReal(&Rarg1,&one)) {
                         case -1:
                             // Im(Z)==0 Re(Z)<0 --> Z^Inf = 0 ; Z^-Inf = UndInf
-                            if(!Rarg2.flags&F_NEGATIVE) {
+                            if(!(Rarg2.flags&F_NEGATIVE)) {
                                 rplPushData((WORDPTR)zero_bint);
                                 return;
                             }
@@ -3083,7 +3083,7 @@ void LIB_HANDLER()
                     switch(cmpReal(&Rarg1,&one)) {
                     case -1:
                         // Im(Z)==0 Re(Z)<1 --> Z^Inf = 0 ; Z^-Inf = Inf
-                        if(!Rarg2.flags&F_NEGATIVE) {
+                        if(!(Rarg2.flags&F_NEGATIVE)) {
                             rplPushData((WORDPTR)zero_bint);
                             return;
                         }
@@ -3503,7 +3503,7 @@ void LIB_HANDLER()
                     switch(cmpReal(&Rarg1,&one)) {
                     case -1:
                         // Im(Z)==0 Re(Z)<1 --> Z^Inf = 0 ; Z^-Inf = Inf
-                        if(!Rarg2.flags&F_NEGATIVE) {
+                        if(!(Rarg2.flags&F_NEGATIVE)) {
                             rplPushData((WORDPTR)zero_bint);
                             return;
                         }
@@ -3569,7 +3569,7 @@ void LIB_HANDLER()
                             switch(cmpReal(&Rarg1,&one)) {
                             case -1:
                                 // Im(Z)==0 Re(Z)<0 --> Z^Inf = 0 ; Z^-Inf = UndInf
-                                if(!Rarg2.flags&F_NEGATIVE) {
+                                if(!(Rarg2.flags&F_NEGATIVE)) {
                                     rplPushData((WORDPTR)zero_bint);
                                     return;
                                 }

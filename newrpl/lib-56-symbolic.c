@@ -1305,9 +1305,6 @@ void LIB_HANDLER()
 
         rplRemoveExceptionHandler();    // THERE WAS NO ERROR DURING EVALUATION
 
-        WORDPTR Opcodeptr=*rplGetLAMn(1);
-        WORD Opcode=(Opcodeptr==zero_bint)? 0:*Opcodeptr;
-
         WORDPTR endoflist=*rplGetLAMn(2);
         WORDPTR nextobj=rplSkipOb(*rplGetLAMn(3));
 
