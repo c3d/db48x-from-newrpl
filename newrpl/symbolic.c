@@ -190,11 +190,19 @@ void rplSymbApplyOperator(WORD Opcode,BINT nargs)
                     return;
                 }
         }
-        rplCopyObject(ptr,obj);
-        // REPLACE QUOTED IDENT WITH UNQUOTED ONES FOR SYMBOLIC OBJECTS
-        if(ISIDENT(*ptr)) *ptr=SETLIBNUMBIT(*ptr,UNQUOTED_BIT);
-
-        ptr=rplSkipOb(ptr);
+        if(ISLIST(*obj)) {
+            BINT listsize=OBJSIZE(*obj);
+            memmovew(ptr+2,obj+1,listsize-1);
+            ptr[0]=MKPROLOG(DOSYMB,listsize);
+            ptr[1]=CMD_LISTOPENBRACKET;
+            ptr+=listsize+1;  // OVERWRITE THE ENDLIST COMMAND IN THE LIST, NOT NEEDED IN SYMBOLICS
+        }
+        else {
+            rplCopyObject(ptr,obj);
+            // REPLACE QUOTED IDENT WITH UNQUOTED ONES FOR SYMBOLIC OBJECTS
+            if(ISIDENT(*ptr)) *ptr=SETLIBNUMBIT(*ptr,UNQUOTED_BIT);
+            ptr=rplSkipOb(ptr);
+        }
     }
     rplDropData(nargs-1);
     rplOverwriteData(1,newobject);
@@ -2706,14 +2714,18 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                 }
 
-                rplCallOperator(**stkptr);
+                // SPECIAL CASE: FOR BRACKET OPERATORS WE NEED TO KEEP THEM AS SYMBOLIC
+                if((**stkptr==CMD_OPENBRACKET)||(**stkptr==CMD_LISTOPENBRACKET)) rplSymbApplyOperator(**stkptr,nargs);
+                else rplCallOperator(**stkptr);
                 if(Exceptions) { rplBlameError(*stkptr); DSTop=endofstk+1; return 0; }
 
                 if(!ISNUMBERORUNIT(*rplPeekData(1))) {
 
                     // THIS IS STRANGE, A COMMAND WITH NUMERIC INPUT SHOULD RETURN A NUMERIC OUTPUT
 
-                    // TODO: IF THE RESULT IS SYMBOLIC, NEED TO EXPAND BEFORE INSERTING, SO ADDITIONAL SIMPLIFICATION CAN BE DONE INSIDE
+                    // IT'S LIKELY A COMPLEX NUMBER, A VECTOR/MATRIX OR A LIST. IN ANY CASE, DON'T TRY TO SIMPLIFY
+
+                   // TODO: IF THE RESULT IS SYMBOLIC, NEED TO EXPAND BEFORE INSERTING, SO ADDITIONAL SIMPLIFICATION CAN BE DONE INSIDE
 
                     WORDPTR *ptr,*endofobj=rplSymbSkipInStack(stkptr);   // POINT TO THE NEXT OBJECT
                     ptr=endofobj+1;

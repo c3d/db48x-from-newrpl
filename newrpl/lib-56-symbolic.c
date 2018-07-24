@@ -578,7 +578,7 @@ void LIB_HANDLER()
 
         // ALLOW LIST PROCESSING AND MATRIX PROCESSING FIRST
         if(ISLIST(*arg1) || ISLIST(*arg2)){
-            rplListBinaryDoCmd(arg1,arg2);
+            rplListBinaryDoCmd();
             return;
         }
 
@@ -719,7 +719,7 @@ void LIB_HANDLER()
 
         // ALLOW LIST PROCESSING AND MATRIX PROCESSING FIRST
         if(ISLIST(*arg1) || ISLIST(*arg2)) {
-            rplListBinaryDoCmd(arg1,arg2);
+            rplListBinaryDoCmd();
             return;
         }
 
@@ -798,7 +798,7 @@ void LIB_HANDLER()
 
         // ALLOW LIST PROCESSING AND MATRIX PROCESSING FIRST
         if(ISLIST(*arg1) || ISLIST(*arg2)){
-            rplListBinaryDoCmd(arg1,arg2);
+            rplListBinaryDoCmd();
             return;
         }
 
@@ -1027,6 +1027,10 @@ void LIB_HANDLER()
             return;
         }
 
+        if(ISLIST(*rplPeekData(1))) {
+            rplListUnaryDoCmd();
+            return;
+        }
         if(!ISSYMBOLIC(*rplPeekData(1))) return;    // LEAVE IT ON THE STACK, NOT A SYMBOLIC
 
         rplSymbAutoSimplify();
@@ -1094,6 +1098,11 @@ void LIB_HANDLER()
                     // OTHERWISE IT WILL CALCULATE IT
 
                     rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
+
+                    if((Opcode==CMD_OPENBRACKET) || (Opcode==CMD_LISTOPENBRACKET)) {
+                        // SPECIAL CASE, THESE COMMANDS NEED THE NUMBER OF ARGUMENTS PUSHED ON THE STACK
+                        rplNewBINTPush(newdepth,DECBINT);
+                    }
 
                     if((Opcode==CMD_OVR_MUL)||(Opcode==CMD_OVR_ADD)) {
                         // CHECK FOR FLATTENED LIST, APPLY MORE THAN ONCE IF MORE THAN 2 ARGUMENTS
@@ -1217,6 +1226,7 @@ void LIB_HANDLER()
 
                     rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
 
+
                     // PUSH THE NEXT OBJECT IN THE STACK
                     rplPushData(Opcodeptr);
 
@@ -1236,6 +1246,12 @@ void LIB_HANDLER()
                     // OTHERWISE IT WILL CALCULATE IT
 
                     rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
+
+                    if((Opcode==CMD_OPENBRACKET) || (Opcode==CMD_LISTOPENBRACKET)) {
+                        // SPECIAL CASE, THESE COMMANDS NEED THE NUMBER OF ARGUMENTS PUSHED ON THE STACK
+                        rplNewBINTPush(newdepth,DECBINT);
+                    }
+
 
                     if((Opcode==CMD_OVR_MUL)||(Opcode==CMD_OVR_ADD)) {
                         // CHECK FOR FLATTENED LIST, APPLY MORE THAN ONCE IF MORE THAN 2 ARGUMENTS
@@ -1545,7 +1561,7 @@ void LIB_HANDLER()
 
         // ALLOW LIST PROCESSING AND MATRIX PROCESSING FIRST
         if(ISLIST(*arg1) || ISLIST(*arg2)){
-            rplListBinaryDoCmd(arg1,arg2);
+            rplListBinaryDoCmd();
             return;
         }
 

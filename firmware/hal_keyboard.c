@@ -3646,15 +3646,17 @@ void bracketKeyHandler(BINT keymsg,BYTEPTR string)
 
 void curlyBracketKeyHandler(BINT keymsg)
 {
-    bracketKeyHandler(keymsg,(BYTEPTR)"{  }");
-
-    if( (halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C'))
+    if((halGetCmdLineMode()=='A')||(halGetCmdLineMode()=='C')||(halGetCmdLineMode()=='L'))     bracketKeyHandler(keymsg,(BYTEPTR)"{}");
+    else {
+        bracketKeyHandler(keymsg,(BYTEPTR)"{  }");
         halSetCmdLineMode('P');
+    }
 
 }
 void squareBracketKeyHandler(BINT keymsg)
 {
-    bracketKeyHandler(keymsg,(BYTEPTR)"[  ]");
+    if((halGetCmdLineMode()=='A')||(halGetCmdLineMode()=='C')||(halGetCmdLineMode()=='L'))     bracketKeyHandler(keymsg,(BYTEPTR)"[]");
+    else bracketKeyHandler(keymsg,(BYTEPTR)"[  ]");
 
 }
 void secoBracketKeyHandler(BINT keymsg)
@@ -3683,19 +3685,22 @@ void textBracketKeyHandler(BINT keymsg)
 
 void ticksKeyHandler(BINT keymsg)
 {
-    bracketKeyHandler(keymsg,(BYTEPTR)"''");
-    // GO INTO ALGEBRAIC MODE
     if( (halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C'))
+    {
+    bracketKeyHandler(keymsg,(BYTEPTR)"''");
     halSetCmdLineMode('A');
-
+    }
+    else symbolKeyHandler(keymsg,(BYTEPTR)"'",0);
 }
 
 void tagKeyHandler(BINT keymsg)
 {
+    if( (halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C')) {
     bracketKeyHandler(keymsg,(BYTEPTR)"::");
     //  LOCK ALPHA MODE
-    if( (halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C'))
         keyb_setshiftplane(0,0,1,1);
+    }
+    else symbolKeyHandler(keymsg,(BYTEPTR)":",0);
 
 }
 
