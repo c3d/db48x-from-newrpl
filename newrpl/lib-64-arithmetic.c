@@ -3793,6 +3793,8 @@ case FACTORS:
 
 case NUMINT:
     {
+        //@SHORT_DESC=Numerical integration (adaptive Simpson)
+        //@NEW
         // DOES NUMERIC INTEGRATION ON FUNCTION PROVIDED BY THE USER
         // TAKES A PROGRAM FROM THE STACK, START AND END LIMITS, AND ERROR TOLERANCE
 
