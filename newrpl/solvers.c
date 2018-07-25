@@ -386,3 +386,63 @@ WORDPTR rplPolyDeflateEx(WORDPTR *first,BINT degree,WORDPTR *value)
 
 }
 
+// EVALUATES A USER-DEFINED FUNCTION
+// IT CAN BE A PROGRAM OR AN ALGEBRAIC IN THE FORM 'f(X,Y,Z)=EXPRESSION'
+// IT WILL TAKE n ARGUMENTS FROM THE STACK, PUT IT IN LOCAL VARIABLES (X,Y,Z), THEN EVALUATE THE EXPRESSION WITH THE GIVEN OPCODE (->NUM OR EVAL)
+// IF IT'S A PROGRAM, IT WILL XEQ THE PROGRAM, THEN RUN THE OPCODE ON THE RESULT
+
+void rplEvalUserFunc(WORDPTR arg_userfunc,WORD Opcode)
+{
+    WORDPTR *dstksave=DSTop;
+    if( ISSYMBOLIC(*arg_userfunc) && (OBJSIZE(*arg_userfunc)>3) && (arg_userfunc[1]==CMD_EQUATIONOPERATOR) && (ISSYMBOLIC(arg_userfunc[2])) && (arg_userfunc[3]==CMD_OVR_FUNCEVAL) ) {
+        // CREATE LAMS FOR ALL FUNCTION ARGUMENTS
+            ScratchPointer1=arg_userfunc+4;                 // FIRST ARGUMENT
+            ScratchPointer2=rplSkipOb(arg_userfunc+2);      // END OF SYMBOLIC FUNCTION CALL
+            rplCreateLAMEnvironment(arg_userfunc);
+            if(Exceptions) return;
+            BINT nargs=0;
+            while(rplSkipOb(ScratchPointer1)<ScratchPointer2) {
+                ++nargs;
+                if(!ISIDENT(*ScratchPointer1)) {
+                    rplError(ERR_INVALIDUSERDEFINEDFUNCTION);
+                    DSTop=dstksave; rplCleanupLAMs(0); return;
+                }
+                rplPushData(ScratchPointer1);
+                if(Exceptions) { DSTop=dstksave; rplCleanupLAMs(0); return; }
+                ScratchPointer1=rplSkipOb(ScratchPointer1);
+            }
+            if(rplDepthData()<2*nargs) {
+                rplError(ERR_BADARGCOUNT);
+                DSTop=dstksave; rplCleanupLAMs(0); return;
+            }
+            BINT k;
+
+            for(k=0;k<nargs;++k) {
+                rplCreateLAM(DSTop[-k-1],DSTop[-k-nargs-1]);
+                if(Exceptions) { DSTop=dstksave; rplCleanupLAMs(0); return; }
+            }
+
+            rplDropData(nargs);   // REMOVE ALL ARGUMENT NAMES
+
+            rplPushData(ScratchPointer2);   // PUSH THE SYMBOLIC FUNCTION DEFINITION
+
+            rplRunAtomic(Opcode);
+            rplCleanupLAMs(0);
+
+            if(Exceptions) { DSTop=dstksave; return; }
+            if(DSTop-dstksave!=1) {
+                rplError(ERR_INVALIDUSERDEFINEDFUNCTION);
+                DSTop=dstksave; return;
+            }
+            // DONE, NOW REMOVE THE ARGUMENTS
+            dstksave[-nargs]=rplPopData();
+            rplDropData(nargs-1);
+
+    } else {
+        // IT'S A PROGRAM
+        rplPushData(arg_userfunc);
+        rplRunAtomic(CMD_OVR_XEQ);
+        if(Exceptions) { if(DSTop>dstksave) DSTop=dstksave; return; }
+        rplRunAtomic(Opcode);
+    }
+}

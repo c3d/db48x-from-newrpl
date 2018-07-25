@@ -512,6 +512,8 @@ WORDPTR rplGetSettingsbyName(BYTEPTR name, BYTEPTR nameend);
 void rplDoAutoEval(WORDPTR varname,WORDPTR *indir);
 void rplUpdateDependencyTree(WORDPTR varname, WORDPTR *dir, WORDPTR olddefn, WORDPTR newdefn);
 
+// SOLVERS AUXILIARY FUNCTIONS
+void rplEvalUserFunc(WORDPTR arg_userfunc,WORD Opcode);
 
 
 

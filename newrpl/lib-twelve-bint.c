@@ -125,6 +125,36 @@ ROMOBJECT three_bint[]=
     (WORD)MAKESINT(3)
 };
 
+ROMOBJECT four_bint[]=
+{
+    (WORD)MAKESINT(4)
+};
+
+ROMOBJECT five_bint[]=
+{
+    (WORD)MAKESINT(5)
+};
+
+ROMOBJECT six_bint[]=
+{
+    (WORD)MAKESINT(6)
+};
+
+ROMOBJECT seven_bint[]=
+{
+    (WORD)MAKESINT(7)
+};
+
+ROMOBJECT eight_bint[]=
+{
+    (WORD)MAKESINT(8)
+};
+
+ROMOBJECT nine_bint[]=
+{
+    (WORD)MAKESINT(9)
+};
+
 ROMOBJECT ten_bint[]=
 {
     (WORD)MAKESINT(10)
@@ -145,6 +175,12 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)three_bint,
     (WORDPTR)minusone_bint,
     (WORDPTR)ten_bint,
+    (WORDPTR)four_bint,
+    (WORDPTR)five_bint,
+    (WORDPTR)six_bint,
+    (WORDPTR)seven_bint,
+    (WORDPTR)eight_bint,
+    (WORDPTR)nine_bint,
     0
 };
 

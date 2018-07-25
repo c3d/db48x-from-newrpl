@@ -243,6 +243,8 @@ inline __attribute__((always_inline)) BINT Mul_BINT_is_Safe(BINT64 op1, BINT64 o
 }
 
 
+
+
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
@@ -3803,33 +3805,206 @@ case NUMINT:
             return;
         }
 
-        if(!ISPROGRAM(*rplPeekData(4))) {
+        if(!ISPROGRAM(*rplPeekData(4)) && !ISSYMBOLIC(*rplPeekData(4)) ) {
             rplError(ERR_PROGRAMEXPECTED);
             return;
         }
 
-        if(!ISNUMBER(*rplPeekData(3)) || !ISNUMBER(*rplPeekData(2)) || !ISNUMBER(*rplPeekData(1))) {
+        if(!ISNUMBERCPLX(*rplPeekData(3)) || !ISNUMBERCPLX(*rplPeekData(2)))
+        {
+            rplError(ERR_COMPLEXORREALEXPECTED);
+            return;
+        }
+        if(!ISNUMBER(*rplPeekData(1))) {
             rplError(ERR_REALEXPECTED);
             return;
         }
 
+        BINT startdepth=rplDepthData()-4;
+        WORDPTR *dstkptr=DSTop,*lambasesave=nLAMBase,*lamsave=LAMTop;
+
+#define ARG_USERFUNC  *(dstkptr-4)
+#define ARG_A   *(dstkptr-3)
+#define ARG_B   *(dstkptr-2)
+#define ARG_ERROR *(dstkptr-1)
+
+#define TOTAL_AREA *dstkptr
+        rplPushDataNoGrow((WORDPTR)zero_bint);          // INITIAL AREA = 0
+
+        // PREPARE FOR MAIN LOOP
+        // MAIN LOOP NEEDS ERR A B C FA FB FC AREA ON THE STACK
+
+        rplPushDataNoGrow(ARG_ERROR);                   // ERROR
+        rplPushDataNoGrow(ARG_A);                       // A
+        rplPushData(ARG_B);                             // B
+        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
 
 
-            /*
-            "«
-              0 →
-                FUNC A B EPS AREA
-                « DEPTH 'DPTH' LSTO
-                A B + 2 / 'C' LSTO
-                B A - 'H' LSTO A FUNC
-                EVAL 'FA' LSTO B FUNC
-                EVAL 'FB' LSTO C FUNC
-                EVAL 'FC' LSTO @@ LEAVE A B IN STACK
-             A B @@ LEAVE AREA S ON STACK
-             FA FB + FC 4 * + H 6
-                / * @@ LEAVE ERROR ON STACK
-             EPS @@ LEAVE VALUES OF FUNCTION
-             FA FB FC WHILE DEPTH
+        rplPushDataNoGrow(ARG_A);
+        rplPushDataNoGrow(ARG_B);
+        rplCallOvrOperator(CMD_OVR_ADD);
+        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        rplPushData((WORDPTR)one_half_real);
+        rplCallOvrOperator(CMD_OVR_MUL);                // C=(A+B)/2
+        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+
+        rplPushDataNoGrow(ARG_A);
+        rplEvalUserFunc(ARG_USERFUNC,CMD_OVR_NUM);      // F(A)
+        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+
+        rplPushDataNoGrow(ARG_B);
+        rplEvalUserFunc(ARG_USERFUNC,CMD_OVR_NUM);      // F(B)
+        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+
+        rplPushDataNoGrow(rplPeekData(3));  // C
+        rplEvalUserFunc(ARG_USERFUNC,CMD_OVR_NUM);      // F(C)
+        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+
+        // COMPUTE INITIAL AREA APPROXIMATION
+        // AREA = (F(A)+F(B)+4*F(C))*(B-A)/6
+        rplPushData(rplPeekData(1));
+        rplPushData((WORDPTR)four_bint);
+        rplCallOvrOperator(CMD_OVR_MUL);                // 4*F(C)
+        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+
+        rplPushData(rplPeekData(4));    // F(A)
+        rplCallOvrOperator(CMD_OVR_ADD);
+        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        rplPushData(rplPeekData(4));    // F(B)
+        rplCallOvrOperator(CMD_OVR_ADD);                // F(A)+F(B)+4*F(C)
+        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+
+        rplPushData(rplPeekData(6));    // B
+        rplPushData(rplPeekData(8));    // A
+        rplCallOvrOperator(CMD_OVR_SUB);
+        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        rplCallOvrOperator(CMD_OVR_MUL);
+        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        rplPushData((WORDPTR)six_bint);
+        rplCallOvrOperator(CMD_OVR_DIV);    // AREA = (F(A)+F(B)+4*F(C)) * (B-A)/6
+
+        rplPushData(rplPeekData(6));    // B
+        rplPushData(rplPeekData(8));    // A
+        rplCallOvrOperator(CMD_OVR_SUB);
+        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        rplNewSINTPush(12,DECBINT);
+        rplCallOvrOperator(CMD_OVR_DIV);
+
+        // MAIN LOOP NEEDS: ERR A B C FA FB FC AREA H_12
+
+        while(DSTop>dstkptr+1)
+        {
+            WORDPTR *argbase=DSTop-9;
+
+#define     L_ERR argbase[0]
+#define     L_A   argbase[1]
+#define     L_B   argbase[2]
+#define     L_C   argbase[3]
+#define     L_FA  argbase[4]
+#define     L_FB  argbase[5]
+#define     L_FC  argbase[6]
+#define     L_AREA argbase[7]
+#define     L_H_12 argbase[8]
+
+            // D=(A+C)/2
+
+            rplPushData(L_A);
+            rplPushData(L_C);
+            rplCallOvrOperator(CMD_OVR_ADD);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            rplPushData((WORDPTR)one_half_real);
+            rplCallOvrOperator(CMD_OVR_MUL);
+
+            // F(D)
+            rplPushData(rplPeekData(1));
+            rplEvalUserFunc(ARG_USERFUNC,CMD_OVR_NUM);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+
+            // E=(C+B)/2
+            rplPushData(L_B);
+            rplPushData(L_C);
+            rplCallOvrOperator(CMD_OVR_ADD);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            rplPushData((WORDPTR)one_half_real);
+            rplCallOvrOperator(CMD_OVR_MUL);
+
+            // F(E)
+            rplPushData(rplPeekData(1));
+            rplEvalUserFunc(ARG_USERFUNC,CMD_OVR_NUM);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+
+            // AREA_L=(F(A)+4*F(D)+F(C))*(B-A)/12
+            rplPushData(rplPeekData(3));    // F(D)
+            rplPushData((WORDPTR)four_bint);
+            rplCallOvrOperator(CMD_OVR_MUL);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            rplPushData(L_FA);
+            rplCallOvrOperator(CMD_OVR_ADD);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            rplPushData(L_FC);
+            rplCallOvrOperator(CMD_OVR_ADD);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+
+            rplPushData(L_H_12);
+            rplCallOvrOperator(CMD_OVR_MUL);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+
+            // AREA_R=(F(C)+4*F(E)+F(B))*(B-A)/12
+            rplPushData(rplPeekData(2));    // F(E)
+            rplPushData((WORDPTR)four_bint);
+            rplCallOvrOperator(CMD_OVR_MUL);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            rplPushData(L_FB);
+            rplCallOvrOperator(CMD_OVR_ADD);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            rplPushData(L_FC);
+            rplCallOvrOperator(CMD_OVR_ADD);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+
+            rplPushData(L_H_12);
+            rplCallOvrOperator(CMD_OVR_MUL);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+
+
+            // NEWERR=(AREA_L+AREA_R-L_AREA)/15
+            rplPushData(rplPeekData(2));
+            rplPushData(rplPeekData(2));
+            rplCallOvrOperator(CMD_OVR_ADD);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            rplPushData(L_AREA);
+            rplCallOvrOperator(CMD_OVR_SUB);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            rplNewSINTPush(15,DECBINT);
+            rplCallOvrOperator(CMD_OVR_DIV);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+
+
+            rplPushData(rplPeekData(1));
+            rplCallOvrOperator(CMD_OVR_ABS);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            rplPushData(L_ERR);
+            rplCallOvrOperator(CMD_OVR_LTE);
+            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+
+            if(rplIsFalse(rplPeekData(1))) {
+                // IF ABS(NEWERR)<=L_ERR THEN AREA+=(AREA_L+AREA_R)+NEWERR
+                // ELSE
+                // PUT LEFT AND RIGHT PARTS ON THE STACK
+                // PUSH RIGHT: L_ERR/2 C B E F(C) F(B) F(E) AREA_R
+                // OVERWRITE LEFT: L_ERR/2 A D C F(A) F(D) F(C) AREA_L
+
+                // HERE THERE'S 8 VALUES ON THE STACK OVER THE RIGHT PART
+
+            }
+            else {
+                // IF ABS(NEWERR)<=L_ERR THEN AREA+=(AREA_L+AREA_R)+NEWERR
+
+
+            }
+
+
+
+            /* WHILE DEPTH
                 DPTH > REPEAT
                   →
                     A B S EPS FA FB
