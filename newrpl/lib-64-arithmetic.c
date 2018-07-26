@@ -3820,8 +3820,7 @@ case NUMINT:
             return;
         }
 
-        BINT startdepth=rplDepthData()-4;
-        WORDPTR *dstkptr=DSTop,*lambasesave=nLAMBase,*lamsave=LAMTop;
+        WORDPTR *dstkptr=DSTop;
 
 #define ARG_USERFUNC  *(dstkptr-4)
 #define ARG_A   *(dstkptr-3)
@@ -3837,56 +3836,56 @@ case NUMINT:
         rplPushDataNoGrow(ARG_ERROR);                   // ERROR
         rplPushDataNoGrow(ARG_A);                       // A
         rplPushData(ARG_B);                             // B
-        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        if(Exceptions) { DSTop=dstkptr;  return; }
 
 
         rplPushDataNoGrow(ARG_A);
         rplPushDataNoGrow(ARG_B);
         rplCallOvrOperator(CMD_OVR_ADD);
-        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        if(Exceptions) { DSTop=dstkptr;  return; }
         rplPushData((WORDPTR)one_half_real);
         rplCallOvrOperator(CMD_OVR_MUL);                // C=(A+B)/2
-        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        if(Exceptions) { DSTop=dstkptr;  return; }
 
         rplPushDataNoGrow(ARG_A);
         rplEvalUserFunc(ARG_USERFUNC,CMD_OVR_NUM);      // F(A)
-        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        if(Exceptions) { DSTop=dstkptr;  return; }
 
         rplPushDataNoGrow(ARG_B);
         rplEvalUserFunc(ARG_USERFUNC,CMD_OVR_NUM);      // F(B)
-        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        if(Exceptions) { DSTop=dstkptr;  return; }
 
         rplPushDataNoGrow(rplPeekData(3));  // C
         rplEvalUserFunc(ARG_USERFUNC,CMD_OVR_NUM);      // F(C)
-        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        if(Exceptions) { DSTop=dstkptr;  return; }
 
         // COMPUTE INITIAL AREA APPROXIMATION
         // AREA = (F(A)+F(B)+4*F(C))*(B-A)/6
         rplPushData(rplPeekData(1));
         rplPushData((WORDPTR)four_bint);
         rplCallOvrOperator(CMD_OVR_MUL);                // 4*F(C)
-        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        if(Exceptions) { DSTop=dstkptr;  return; }
 
         rplPushData(rplPeekData(4));    // F(A)
         rplCallOvrOperator(CMD_OVR_ADD);
-        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        if(Exceptions) { DSTop=dstkptr;  return; }
         rplPushData(rplPeekData(4));    // F(B)
         rplCallOvrOperator(CMD_OVR_ADD);                // F(A)+F(B)+4*F(C)
-        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        if(Exceptions) { DSTop=dstkptr;  return; }
 
         rplPushData(rplPeekData(6));    // B
         rplPushData(rplPeekData(8));    // A
         rplCallOvrOperator(CMD_OVR_SUB);
-        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        if(Exceptions) { DSTop=dstkptr;  return; }
         rplCallOvrOperator(CMD_OVR_MUL);
-        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        if(Exceptions) { DSTop=dstkptr;  return; }
         rplPushData((WORDPTR)six_bint);
         rplCallOvrOperator(CMD_OVR_DIV);    // AREA = (F(A)+F(B)+4*F(C)) * (B-A)/6
 
         rplPushData(rplPeekData(6));    // B
         rplPushData(rplPeekData(8));    // A
         rplCallOvrOperator(CMD_OVR_SUB);
-        if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+        if(Exceptions) { DSTop=dstkptr;  return; }
         rplNewSINTPush(12,DECBINT);
         rplCallOvrOperator(CMD_OVR_DIV);
 
@@ -3911,135 +3910,159 @@ case NUMINT:
             rplPushData(L_A);
             rplPushData(L_C);
             rplCallOvrOperator(CMD_OVR_ADD);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
             rplPushData((WORDPTR)one_half_real);
             rplCallOvrOperator(CMD_OVR_MUL);
 
             // F(D)
             rplPushData(rplPeekData(1));
             rplEvalUserFunc(ARG_USERFUNC,CMD_OVR_NUM);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
 
             // E=(C+B)/2
             rplPushData(L_B);
             rplPushData(L_C);
             rplCallOvrOperator(CMD_OVR_ADD);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
             rplPushData((WORDPTR)one_half_real);
             rplCallOvrOperator(CMD_OVR_MUL);
 
             // F(E)
             rplPushData(rplPeekData(1));
             rplEvalUserFunc(ARG_USERFUNC,CMD_OVR_NUM);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
 
             // AREA_L=(F(A)+4*F(D)+F(C))*(B-A)/12
             rplPushData(rplPeekData(3));    // F(D)
             rplPushData((WORDPTR)four_bint);
             rplCallOvrOperator(CMD_OVR_MUL);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
             rplPushData(L_FA);
             rplCallOvrOperator(CMD_OVR_ADD);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
             rplPushData(L_FC);
             rplCallOvrOperator(CMD_OVR_ADD);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
 
             rplPushData(L_H_12);
             rplCallOvrOperator(CMD_OVR_MUL);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
 
             // AREA_R=(F(C)+4*F(E)+F(B))*(B-A)/12
             rplPushData(rplPeekData(2));    // F(E)
             rplPushData((WORDPTR)four_bint);
             rplCallOvrOperator(CMD_OVR_MUL);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
             rplPushData(L_FB);
             rplCallOvrOperator(CMD_OVR_ADD);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
             rplPushData(L_FC);
             rplCallOvrOperator(CMD_OVR_ADD);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
 
             rplPushData(L_H_12);
             rplCallOvrOperator(CMD_OVR_MUL);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
 
 
             // NEWERR=(AREA_L+AREA_R-L_AREA)/15
             rplPushData(rplPeekData(2));
             rplPushData(rplPeekData(2));
             rplCallOvrOperator(CMD_OVR_ADD);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
             rplPushData(L_AREA);
             rplCallOvrOperator(CMD_OVR_SUB);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
             rplNewSINTPush(15,DECBINT);
             rplCallOvrOperator(CMD_OVR_DIV);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
 
 
             rplPushData(rplPeekData(1));
             rplCallOvrOperator(CMD_OVR_ABS);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
             rplPushData(L_ERR);
             rplCallOvrOperator(CMD_OVR_LTE);
-            if(Exceptions) { DSTop=dstkptr; nLAMBase=lambasesave; LAMTop=lamsave; return; }
+            if(Exceptions) { DSTop=dstkptr;  return; }
 
             if(rplIsFalse(rplPeekData(1))) {
                 // IF ABS(NEWERR)<=L_ERR THEN AREA+=(AREA_L+AREA_R)+NEWERR
                 // ELSE
                 // PUT LEFT AND RIGHT PARTS ON THE STACK
-                // PUSH RIGHT: L_ERR/2 C B E F(C) F(B) F(E) AREA_R
-                // OVERWRITE LEFT: L_ERR/2 A D C F(A) F(D) F(C) AREA_L
+                // PUSH RIGHT: L_ERR/2 C B E F(C) F(B) F(E) AREA_R L_H_12/2
+                // OVERWRITE LEFT: L_ERR/2 A C D F(A) F(C) F(D) AREA_L L_H_12/2
+                // HERE THERE'S 8 VALUES ON THE STACK OVER THE RIGHT PART: D F(D) E F(E) AREA_L AREA_R NEWERR FALSE
 
-                // HERE THERE'S 8 VALUES ON THE STACK OVER THE RIGHT PART
+                rplOverwriteData(1,L_ERR);
+                rplPushData((WORDPTR)one_half_real);
+                rplCallOvrOperator(CMD_OVR_MUL);        // L_ERR/2
+                if(Exceptions) { DSTop=dstkptr;  return; }
+
+                rplPushData(L_H_12);
+                rplPushData((WORDPTR)one_half_real);
+                rplCallOvrOperator(CMD_OVR_MUL);        // PUSH L_H_12/2
+                if(Exceptions) { DSTop=dstkptr;  return; }
+
+                // IN THE STACK WE HAVE: L_ERR L_A L_B L_C L_FA L_FB L_FC L_AREA L_H_12  |  D     F(D)   E   F(E) AREA_L AREA_R NEWERR L_ERR/2 L_H_12/2
+                //                                                                       |  9      8     7    6     5      4      3      2      1
+                // WE WANT:             L_ERR/2 A   C   D  F(A) F(C) F(D) AREA_L L_H_12/2| L_ERR/2 C     B    E    F(C)   F(B)   F(E)  AREA_R L_H_12/2
+
+
+                L_H_12=rplPeekData(1);              // L_H_12/2
+                L_ERR=rplPeekData(2);               // L_ERR/2
+
+                rplOverwriteData(2,rplPeekData(4)); // AREA_R
+                rplOverwriteData(3,rplPeekData(6)); // F(E)
+                rplOverwriteData(4,L_FB);           // F(B)
+
+                L_AREA=rplPeekData(5);              // AREA_L
+                rplOverwriteData(5,L_FC);           // F(C)
+                rplOverwriteData(6,rplPeekData(7)); // E
+                rplOverwriteData(7,L_B);            // B
+                L_FC=rplPeekData(8);                // F(D)
+                rplOverwriteData(8,L_C);            // C
+                L_C=rplPeekData(9);                 // D
+                rplOverwriteData(9,L_ERR);          // L_ERR/2
+
+                L_FB=rplPeekData(5);                // F(C)
+                L_B=rplPeekData(8);                 // C
+
+                // DONE, WE HAVE LEFT AND RIGHT, NOW CLOSE THE LOOP
 
             }
             else {
                 // IF ABS(NEWERR)<=L_ERR THEN AREA+=(AREA_L+AREA_R)+NEWERR
 
+                // HERE THERE'S 8 NEW VALUES ON THE STACK: D F(D) E F(E) AREA_L AREA_R NEWERR TRUE
 
+                rplOverwriteData(1,TOTAL_AREA);
+                rplCallOvrOperator(CMD_OVR_ADD);
+                if(Exceptions) { DSTop=dstkptr;  return; }
+                rplCallOvrOperator(CMD_OVR_ADD);
+                if(Exceptions) { DSTop=dstkptr;  return; }
+                rplCallOvrOperator(CMD_OVR_ADD);
+                if(Exceptions) { DSTop=dstkptr;  return; }
+
+                TOTAL_AREA=rplPeekData(1);
+
+                DSTop=argbase;  // DROP ALL VALUES FROM THE STACK AND CONTINUE THE LOOP
             }
 
+#undef     L_ERR
+#undef     L_A
+#undef     L_B
+#undef     L_C
+#undef     L_FA
+#undef     L_FB
+#undef     L_FC
+#undef     L_AREA
+#undef     L_H_12
+        }
 
+        // HERE THE STACK SHOULD CONTAIN ONLY THE TOTAL AREA + THE INITIAL ARGUMENTS
 
-            /* WHILE DEPTH
-                DPTH > REPEAT
-                  →
-                    A B S EPS FA FB
-                    FC « A B
-                    + 2 / 'C' LSTO
-                    B A - 'H' LSTO
-                    A C + 2 / 'D'
-                    LSTO C B + 2 /
-                    'E' LSTO D FUNC
-                    EVAL 'FD' LSTO
-                    E FUNC EVAL 'FE'
-                    LSTO H 12 / DUP
-                    FA FD 4 * + FC
-                    + * 'SL' LSTO
-                    FC FE 4 * + FB
-                    + * 'SR' LSTO
-                    SL SR + DUP S -
-                    15 / IF DUP ABS
-                    EPS ≤ THEN
-                      AREA + + 'AREA'
-                      STO
-                    ELSE
-                      DROP2 @@ SPLIT IN THE STACK AND LOOP
-             @@ LEFT PART
-             A C SL EPS 0.5 * FA FC
-                      FD C B SR EPS
-                      0.5 * FC FB
-                      FE
-                    END
-                  »
-                END
-                AREA
-              »
-            »"
-            */
+        rplOverwriteData(5,rplPeekData(1));
+        rplDropData(4);
 
 
         return;
