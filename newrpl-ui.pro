@@ -222,7 +222,8 @@ SOURCES += main.cpp\
     firmware/sys/target_pc/usbdriver.c \
     usbselector.cpp \
     newrpl/lib-100-usb.c \
-    newrpl/lib-102-libptr.c
+    newrpl/lib-102-libptr.c \
+    newrpl/lib-104-solvers.c
 
 
 HEADERS  += mainwindow.h \
@@ -283,6 +284,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-98.nrpl \
                 newrpl/rpl-objects/lib-100.nrpl \
                 newrpl/rpl-objects/lib-102.nrpl \
+                newrpl/rpl-objects/lib-104.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 INCLUDEPATH += firmware/include newrpl
@@ -332,4 +334,5 @@ macx: SOURCES += external/hidapi/mac/hid.c
 macx: LIBS += -framework CoreFoundation -framework IOKit
 
 # End of HIDAPI
+
 

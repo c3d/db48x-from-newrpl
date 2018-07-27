@@ -216,6 +216,7 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     newrpl/rng.c \
     newrpl/lib-100-usb.c \
     newrpl/lib-102-libptr.c \
+    newrpl/lib-104-solvers.c \
     firmware/sys/target_pc/usbdriver.c \
     firmware/hal_cpu.c
 

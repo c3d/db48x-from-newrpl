@@ -26,7 +26,7 @@
 {
 { { "Real" 1 } { ::   #04001000h TMENULST ; ::   #04001000h TMENUOTHR ; } }
 { { "Integer" 1 } { ::   #04002000h TMENULST ; ::   #04002000h TMENUOTHR ; } }
-{ { "Modules" 1 } { ::   #04003000h TMENULST ; ::   #04003000h TMENUOTHR ; } }
+{ { "Modulo" 1 } { ::   #04003000h TMENULST ; ::   #04003000h TMENUOTHR ; } }
 { { "Polynomial" 1 } { ::   #04004000h TMENULST ; ::   #04004000h TMENUOTHR ; } }
 { { "PolyFCN" 1 } { ::   #04005000h TMENULST ; ::   #04005000h TMENUOTHR ; } }
 }

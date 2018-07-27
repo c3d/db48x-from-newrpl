@@ -43,6 +43,7 @@
     INCLUDELIB(98,lib-98-statistics.c) , \
     INCLUDELIB(100,lib-100-usb.c) , \
     INCLUDELIB(102,lib-102-libptr.c) , \
+    INCLUDELIB(104,lib-104-solvers.c) , \
     INCLUDELIB(4080,lib-4080-localenv.c) , \
     INCLUDELIB(4090,lib-4090-overloaded.c)
 

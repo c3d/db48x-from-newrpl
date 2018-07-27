@@ -69,14 +69,13 @@
 
 @#name sysmenu_4_math
 {
-{ { "Real" 1 } { ::   #04000000h TMENULST ; ::   #04000000h TMENUOTHR ; } }
+{ { "Arith" 1 } { ::   #04000000h TMENULST ; ::   #04000000h TMENUOTHR ; } }
 { { "Base" 1 } { ::   #04600000h TMENULST ; ::   #04600000h TMENUOTHR ; } }
-{ { "Trig" 1 } { ::   #04201000h TMENULST ; ::   #04201000h TMENUOTHR ; } }
-{ { "Hyp" 1 } { ::   #04202000h TMENULST ; ::   #04202000h TMENUOTHR ; } }
-{ { "Log" 1 } { ::   #04203000h TMENULST ; ::   #04203000h TMENUOTHR ; } }
+{ { "Trans" 1 } { ::   #04200000h TMENULST ; ::   #04200000h TMENUOTHR ; } }
 { { "Stats" 1 } { ::   #06200000h TMENULST ; ::   #06200000h TMENUOTHR ; } }
 { { "List" 1 } { ::  #03e01000h TMENULST ; ::   #03e01000h TMENUOTHR ; } }
 { { "Matrix" 1 } { ::  #03401000h TMENULST ; ::   #03401000h TMENUOTHR ; } }
+{ { "Solve" 1 } { ::  #06800000h TMENULST ; ::   #06800000h TMENUOTHR ; } }
 
 }
 

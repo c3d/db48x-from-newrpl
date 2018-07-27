@@ -221,7 +221,8 @@ SOURCES +=\
     newrpl/rng.c \
     newrpl/solvers.c \
     firmware/sys/target_50g/usbdriver.c \
-    firmware/hal_cpu.c
+    firmware/hal_cpu.c \
+    newrpl/lib-104-solvers.c
 
 
 HEADERS  += \
@@ -279,6 +280,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-98.nrpl \
                 newrpl/rpl-objects/lib-100.nrpl \
                 newrpl/rpl-objects/lib-102.nrpl \
+                newrpl/rpl-objects/lib-104.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 

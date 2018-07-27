@@ -394,7 +394,8 @@ WORDPTR rplPolyDeflateEx(WORDPTR *first,BINT degree,WORDPTR *value)
 void rplEvalUserFunc(WORDPTR arg_userfunc,WORD Opcode)
 {
     WORDPTR *dstksave=DSTop;
-    if( ISSYMBOLIC(*arg_userfunc) && (OBJSIZE(*arg_userfunc)>3) && (arg_userfunc[1]==CMD_EQUATIONOPERATOR) && (ISSYMBOLIC(arg_userfunc[2])) && (arg_userfunc[3]==CMD_OVR_FUNCEVAL) ) {
+    if(ISSYMBOLIC(*arg_userfunc)) arg_userfunc=rplSymbUnwrap(arg_userfunc);
+    if(ISSYMBOLIC(*arg_userfunc) && (OBJSIZE(*arg_userfunc)>3) && (arg_userfunc[1]==CMD_EQUATIONOPERATOR) && (ISSYMBOLIC(arg_userfunc[2])) && (arg_userfunc[3]==CMD_OVR_FUNCEVAL) ) {
         // CREATE LAMS FOR ALL FUNCTION ARGUMENTS
             ScratchPointer1=arg_userfunc+4;                 // FIRST ARGUMENT
             ScratchPointer2=rplSkipOb(arg_userfunc+2);      // END OF SYMBOLIC FUNCTION CALL

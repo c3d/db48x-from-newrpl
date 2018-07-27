@@ -1,0 +1,35 @@
+@ Typical RPL symbols to copy/paste:
+@ « » →
+@ Stack diagram symbols:
+@ I = Integer number
+@ R = Real number
+@ Z = Complex number
+@ S = String
+@ L = List
+@ U = Unit object
+@ V = Vector
+@ M = Matrix
+@ N = Variable name
+@ O = Any object
+@ P = Program
+@ A = Algebraic object (symbolic)
+
+
+@#name lib104_msgtable
+{
+}
+
+@#name lib104_menu
+{
+NUMINT
+}
+
+
+@#name lib104_cmdhelp
+{
+NUMINT
+"Numerical integration
+
+(A or P) R<a> R<b> R<tol> → R"
+
+}
