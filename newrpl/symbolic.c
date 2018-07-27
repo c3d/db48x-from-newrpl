@@ -332,9 +332,12 @@ WORDPTR rplSymbWrap(WORDPTR obj)
     // ALL OTHER OBJECTS ARE ATOMIC, ADD A SYMBOLIC WRAP
 
 
+
     BINT size=rplObjSize(obj);
 
+    ScratchPointer1=obj;
     WORDPTR newobject=rplAllocTempOb(size);
+    obj=ScratchPointer1;
     if(!newobject) return obj;
 
     newobject[0]=MKPROLOG(DOSYMB,size);

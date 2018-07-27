@@ -504,7 +504,7 @@ BINT rplRunAtomic(WORD opcode)
     BINT rsave,lamsave,nlambase,retvalue;
     WORD exceptsave,errcodesave;
     // PRESERVE VARIOUS STACK POINTERS
-
+    rplPushDataNoGrow(obj); // PRESERVE POINTER IN CASE OF GC
 
     rplSetExceptionHandler(0);  // SAVE CURRENT EXCEPTION HANDLERS
     rplPushRet(IPtr);   // SAVE THE CURRENT INSTRUCTION POINTER
@@ -513,6 +513,7 @@ BINT rplRunAtomic(WORD opcode)
     lamsave=LAMTop-LAMs;     // PROTECT LAM ENVIRONMENTS
     nlambase=nLAMBase-LAMs;
 
+    obj=rplPopData();   // RESTORE POINTER
 
     rplSetEntryPoint(obj);
 
