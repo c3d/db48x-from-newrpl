@@ -6668,7 +6668,7 @@ void halDeferProcess(void (*function)(void))
 {
     int k;
     for(k=0;k<3;++k) {
-        if(halProcesses[k]==0) halProcesses[k]=function; break;
+        if(halProcesses[k]==0) { halProcesses[k]=function; break; }
     }
 }
 

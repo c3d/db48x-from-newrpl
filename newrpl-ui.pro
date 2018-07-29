@@ -299,8 +299,8 @@ RESOURCES += \
 
 
 
-# Clang doesn't like double const specifiers, but are needed for firmware: disable the warning
-clang: QMAKE_CFLAGS += -Wno-duplicate-decl-specifier
+# gcc and Clang don't like double const specifiers, but are needed for firmware: disable the warning
+QMAKE_CFLAGS += -Wno-duplicate-decl-specifier
 
 
 

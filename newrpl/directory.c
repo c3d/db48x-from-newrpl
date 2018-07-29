@@ -1194,7 +1194,7 @@ WORD rplGetIdentProp(WORDPTR ident)
     BYTEPTR ptr=(BYTEPTR)(ident+1);
     BYTEPTR end=(BYTEPTR)rplSkipOb(ident);
 
-    if(IDENTHASATTR(ident)) end-=4;
+    if(IDENTHASATTR(*ident)) end-=4;
     while(end[-1]==0) --end;
 
     // FIND THE TRIPLE DOT SEPARATOR
@@ -1213,7 +1213,7 @@ WORDPTR rplMakeIdentNoProps(WORDPTR ident)
         BYTEPTR ptr=(BYTEPTR)(ident+1);
         BYTEPTR start=ptr,end=(BYTEPTR)rplSkipOb(ident);
 
-        if(IDENTHASATTR(ident)) end-=4;
+        if(IDENTHASATTR(*ident)) end-=4;
         while(end[-1]==0) --end;
 
         // FIND THE TRIPLE DOT SEPARATOR
@@ -1494,7 +1494,7 @@ for(k=0;k<oldnum;++k)
            }
 
 
-        }
+        } else hasdepend=0;
     }
     else {
         // THIS DEPENDENCY TREE WAS BROKEN,CHECK IF WE SHOULD ADD THE DEPENDENCY

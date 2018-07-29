@@ -1330,7 +1330,7 @@ end_of_expression:
                                 else
                                 if(*(InfixOpTop-6)==(CMD_OVR_POW)) {
                                     // ALWAYS PARENTHESIZE THE ARGUMENTS OF POWER
-                                    if((TI_TYPE(*(InfixOpTop-1))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-1))!=TITYPE_CUSTOMFUNC))
+                                    if((TI_TYPE(*(InfixOpTop-1))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-1))!=TITYPE_CUSTOMFUNC)&&(TI_TYPE(RetNum)!=TITYPE_OPENBRACKET))
                                         rplDecompAppendChar('(');
 
                                 }
@@ -1342,14 +1342,14 @@ end_of_expression:
                         if(TI_PRECEDENCE(*(InfixOpTop-5))==TI_PRECEDENCE(RetNum)) {
                             // ALWAYS ADD PARENTHESIS, EXCEPT FOR MUL AND ADD
                           if( (*DecompileObject!=(CMD_OVR_MUL)) && (*DecompileObject!=(CMD_OVR_ADD))) {
-                              if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC))   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS!
+                              if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC)&&(TI_TYPE(RetNum)!=TITYPE_OPENBRACKET))   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS! OR BRACKET-TYPE DELIMITERS
                               rplDecompAppendChar('(');
 
                           }
                         }
                         else
                         if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(RetNum)) {
-                            if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC))   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS!
+                            if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC)&&(TI_TYPE(RetNum)!=TITYPE_OPENBRACKET))   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS! OR BRACKET-TYPE DELIMITERS
                                 rplDecompAppendChar('(');
                         }
                         }
