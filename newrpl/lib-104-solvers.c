@@ -488,6 +488,21 @@ case NUMINT:
         rplReadNumberAsReal(ARG_ERROR,&err);
 
         if( !((fa.flags^fb.flags)&F_NEGATIVE)) {
+
+            if(iszeroReal(&fa)) {
+                // WE ALREADY HAVE A ROOT, RETURN IT
+                rplNewRealPush(&a);
+                ARG_USERFUNC=rplPeekData(1);    // OVERWRITE FIRST ARGUMENT WITH THE RESULT
+                DSTop=dstkptr-3;    // RESTORE AND DROP 3 ARGUMENTS
+                return;
+            }
+            if(iszeroReal(&fb)) {
+                // WE ALREADY HAVE A ROOT, RETURN IT
+                rplNewRealPush(&b);
+                ARG_USERFUNC=rplPeekData(1);    // OVERWRITE FIRST ARGUMENT WITH THE RESULT
+                DSTop=dstkptr-3;    // RESTORE AND DROP 3 ARGUMENTS
+                return;
+            }
             // THERE'S NO ROOT IN THIS BRACKET, EXIT
             rplError(ERR_NOROOTFOUND);
             DSTop=dstkptr;
@@ -560,6 +575,21 @@ case NUMINT:
         // AND IS GUARANTEED THAT B-A < TOLERANCE
 
         // RETURN THE BEST-GUESS BY INTERPOLATION
+
+        if(iszeroReal(&fa)) {
+            // WE ALREADY HAVE A ROOT, RETURN IT
+            rplNewRealPush(&a);
+            ARG_USERFUNC=rplPeekData(1);    // OVERWRITE FIRST ARGUMENT WITH THE RESULT
+            DSTop=dstkptr-3;    // RESTORE AND DROP 3 ARGUMENTS
+            return;
+        }
+        if(iszeroReal(&fb)) {
+            // WE ALREADY HAVE A ROOT, RETURN IT
+            rplNewRealPush(&b);
+            ARG_USERFUNC=rplPeekData(1);    // OVERWRITE FIRST ARGUMENT WITH THE RESULT
+            DSTop=dstkptr-3;    // RESTORE AND DROP 3 ARGUMENTS
+            return;
+        }
 
         fa.flags^=F_NEGATIVE;
         mulReal(&RReg[1],&RReg[0],&fa); // (b-a)*(0-fa)

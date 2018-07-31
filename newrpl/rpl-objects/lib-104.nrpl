@@ -17,6 +17,7 @@
 
 @#name lib104_msgtable
 {
+##1,ERR_NOROOTFOUND "No root found"
 }
 
 @#name lib104_menu
