@@ -20,9 +20,9 @@
 
 //@TITLE=Numeric solvers
 
-/*#define ERROR_LIST
-        ERR(MYERROR,0), \
-*/
+#define ERROR_LIST \
+        ERR(NOROOTFOUND,0)
+
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
 // IN THE CMD() FORM, THE COMMAND NAME AND ITS
@@ -31,7 +31,8 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    CMD(NUMINT,MKTOKENINFO(6,TITYPE_FUNCTION,4,2))
+    CMD(NUMINT,MKTOKENINFO(6,TITYPE_FUNCTION,4,2)), \
+    CMD(ROOT,MKTOKENINFO(4,TITYPE_FUNCTION,3,2))
 
 
 
@@ -390,6 +391,13 @@ case NUMINT:
 #undef     L_FC
 #undef     L_AREA
 #undef     L_H_12
+
+#undef ARG_USERFUNC
+#undef ARG_A
+#undef ARG_B
+#undef ARG_ERROR
+
+#undef TOTAL_AREA
         }
 
         // HERE THE STACK SHOULD CONTAIN ONLY THE TOTAL AREA + THE INITIAL ARGUMENTS
@@ -400,6 +408,83 @@ case NUMINT:
 
         return;
     }
+
+    case ROOT:
+        {
+            //@SHORT_DESC=Root seeking
+            //@INCOMPAT
+            // NUMERIC ROOT FINDER ON FUNCTION PROVIDED BY THE USER
+            // TAKES A PROGRAM FROM THE STACK, LEFT/RIGHT OF INITIAL INTERVAL AND ERROR TOLERANCE
+            // USES BISECTION, CAN ONLY FIND REAL ROOTS
+
+        if(rplDepthData()<4) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+
+        if(!ISPROGRAM(*rplPeekData(4)) && !ISSYMBOLIC(*rplPeekData(4)) ) {
+            rplError(ERR_PROGRAMEXPECTED);
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(3)) || !ISNUMBER(*rplPeekData(2)))
+        {
+            rplError(ERR_REALEXPECTED);
+            return;
+        }
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_REALEXPECTED);
+            return;
+        }
+
+        WORDPTR *dstkptr=DSTop;
+
+#define ARG_USERFUNC  *(dstkptr-4)
+#define ARG_A   *(dstkptr-3)
+#define ARG_B   *(dstkptr-2)
+#define ARG_ERROR *(dstkptr-1)
+
+        // PUSH COPIES OF A AND B
+        rplPushDataNoGrow(ARG_A);
+        rplPushDataNoGrow(ARG_B);
+
+        // COMPUTE F(A)
+        rplPushData(ARG_A);
+        rplEvalUserFunc(ARG_USERFUNC,CMD_OVR_NUM);
+        if(Exceptions) { DSTop=dstkptr;  return; }
+
+        // COMPUTE F(B)
+        rplPushData(ARG_B);
+        rplEvalUserFunc(ARG_USERFUNC,CMD_OVR_NUM);
+        if(Exceptions) { DSTop=dstkptr;  return; }
+
+        REAL a,b,fa,fb;
+
+        do {
+
+        rplReadNumberAsReal(rplPeekData(4),&a);
+        rplReadNumberAsReal(rplPeekData(3),&b);
+        rplReadNumberAsReal(rplPeekData(2),&fa);
+        rplReadNumberAsReal(rplPeekData(1),&fb);
+
+        if( !((fa.flags^fb.flags)&F_NEGATIVE)) {
+            // THERE'S NO ROOT IN THIS BRACKET, EXIT
+            rplError(ERR_NOROOTFOUND);
+            DSTop=dstkptr;
+            return;
+        }
+
+        addReal(&RReg[0],&a,&b);
+        newRealFromBINT(&RReg[1],5,-1);
+        mulReal(&RReg[2],&RReg[0],&RReg[1]);    // C=(A+B)/2
+
+
+        } while(1);
+
+        return;
+    }
+
         // ADD MORE OPCODES HERE
 
     // STANDARIZED OPCODES:

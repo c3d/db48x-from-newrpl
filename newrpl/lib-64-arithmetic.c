@@ -3420,7 +3420,7 @@ case FACTORS:
                 rplError(ERR_VECTOREXPECTED);
                 return;
             }
-            BINT f;
+            BINT f,nroots;
             WORDPTR *savestk=DSTop;
 
             for(f=0;f<cols;++f) {
@@ -3436,7 +3436,8 @@ case FACTORS:
 
             WORDPTR solution;
             REAL re;
-            for(f=1;f<cols-1;++f) {
+
+            for(nroots=0,f=1;f<cols-1;++f) {
 
             if(f>1) {
                 // TEST IF PREVIOUS SOLUTION IS ALSO A SOLUTION OF THE DEFLATED POLYNOMIAL
@@ -3489,6 +3490,7 @@ case FACTORS:
             // WE HAVE ONE SOLUTION!
             rplPushData(solution);
             rplPushData((WORDPTR)one_bint); // MULTIPLICITY
+            ++nroots;
             if(Exceptions) {
                 if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
                 DSTop=savestk;
@@ -3573,18 +3575,26 @@ case FACTORS:
                 return;
             }
             rplPushData((WORDPTR)one_bint);
-
+            ++nroots;
             }
 
             BINT doerror=0;
-            if(!cplxmode) {
+
                 // ISSUE AN ERROR IF ANY OF THE ROOTS ARE COMPLEX
-            for(f=1;f<cols;++f) {
-                if(ISCOMPLEX(*rplPeekData(2*f))) { doerror=1; break; }
-            }
+            for(f=1;f<=nroots;++f) {
+                if( (!cplxmode) && ISCOMPLEX(*rplPeekData(2*f))) doerror=1;
+                rplPushData(rplPeekData(2*f));
+                rplCallOvrOperator(CMD_OVR_NEG);    // CHANGE THE SIGN OF THE ROOT
+                if(Exceptions) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                    DSTop=savestk;
+                    return;
+                }
+                rplOverwriteData(2*f,rplPopData());
             }
 
-            solution=rplMatrixCompose(0,2*(cols-1));
+
+            solution=rplMatrixCompose(0,2*nroots);
             if(!solution) {
                 if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
                 DSTop=savestk;
@@ -3605,10 +3615,12 @@ case FACTORS:
 
             REAL num;
             BINT prec=Context.precdigits;
-            BINT64 onefactor,inum;
+            BINT64 onefactor,inum,isneg;
             WORDPTR *savestk=DSTop;
 
             rplReadNumberAsReal(vect_val,&num);
+            if(num.flags&F_NEGATIVE) { isneg=1; num.flags^=F_NEGATIVE; }
+            else isneg=0;
             copyReal(&RReg[6],&num);
             if(inBINT64Range(&RReg[6])) inum=getBINT64Real(&RReg[6]);
             else inum=-1;
@@ -3773,6 +3785,16 @@ case FACTORS:
                 return;
             }
 
+            if(isneg) // MAKE THE FIRST FACTOR NEGATIVE IF THE NUMBER IS NEGATIVE
+            {
+                rplPushData(*savestk);  // GET THE FIRST VALUE
+                rplCallOvrOperator(CMD_OVR_NEG);
+                if(Exceptions) {
+                    DSTop=savestk;
+                    return;
+                }
+                *savestk=rplPopData();
+            }
 
             WORDPTR newlist=rplCreateListN(DSTop-savestk,1,1);
             if(Exceptions) {
