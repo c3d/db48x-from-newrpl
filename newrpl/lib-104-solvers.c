@@ -328,8 +328,9 @@ case NUMINT:
                 // HERE THERE'S 8 VALUES ON THE STACK OVER THE RIGHT PART: D F(D) E F(E) AREA_L AREA_R NEWERR FALSE
 
                 rplOverwriteData(1,L_ERR);
-                rplPushData((WORDPTR)one_half_real);
-                rplCallOvrOperator(CMD_OVR_MUL);        // L_ERR/2
+                //*** TESTING: DO NOT HALVE THE ERROR EACH TIME
+                //rplPushData((WORDPTR)one_half_real);
+                //rplCallOvrOperator(CMD_OVR_MUL);        // L_ERR/2
                 if(Exceptions) { DSTop=dstkptr;  return; }
 
                 rplPushData(L_H_12);
@@ -445,7 +446,24 @@ case NUMINT:
 #define ARG_B   *(dstkptr-2)
 #define ARG_ERROR *(dstkptr-1)
 
+        // MAKE SURE THE ERROR IS POSITIVE
+        rplCallOvrOperator(CMD_OVR_ABS);
+        if(Exceptions) { DSTop=dstkptr;  return; }
+
         // PUSH COPIES OF A AND B
+        rplPushDataNoGrow(ARG_A);
+        rplPushDataNoGrow(ARG_B);
+        rplCallOvrOperator(CMD_OVR_LTE);
+        if(Exceptions) { DSTop=dstkptr;  return; }
+
+        if(rplIsFalse(rplPopData())) {
+            // SWAP POINTS A AND B
+            WORDPTR tmp;
+            tmp=ARG_A;
+            ARG_A=ARG_B;
+            ARG_B=tmp;
+        }
+
         rplPushDataNoGrow(ARG_A);
         rplPushDataNoGrow(ARG_B);
 
@@ -459,7 +477,7 @@ case NUMINT:
         rplEvalUserFunc(ARG_USERFUNC,CMD_OVR_NUM);
         if(Exceptions) { DSTop=dstkptr;  return; }
 
-        REAL a,b,fa,fb;
+        REAL a,b,fa,fb,fc,err;
 
         do {
 
@@ -467,6 +485,7 @@ case NUMINT:
         rplReadNumberAsReal(rplPeekData(3),&b);
         rplReadNumberAsReal(rplPeekData(2),&fa);
         rplReadNumberAsReal(rplPeekData(1),&fb);
+        rplReadNumberAsReal(ARG_ERROR,&err);
 
         if( !((fa.flags^fb.flags)&F_NEGATIVE)) {
             // THERE'S NO ROOT IN THIS BRACKET, EXIT
@@ -475,12 +494,82 @@ case NUMINT:
             return;
         }
 
-        addReal(&RReg[0],&a,&b);
-        newRealFromBINT(&RReg[1],5,-1);
-        mulReal(&RReg[2],&RReg[0],&RReg[1]);    // C=(A+B)/2
+        BINT aff=fa.flags,bff=fb.flags;
 
+        fa.flags&=~F_NEGATIVE;
+        fb.flags&=~F_NEGATIVE;      // TAKE ABSOLUTE VALUE FOR COMPARISON
+
+        subReal(&RReg[0],&b,&a);    // B-A IS GUARANTEED TO BE POSITIVE
+        if(ltReal(&RReg[0],&err)) break;    // WE REACHED THE TOLERANCE
+
+        newRealFromBINT(&RReg[1],5,-1);
+
+        // IMPROVEMENT FOR FASTER CONVERGENCE, COMMENT TO DISABLE
+        if(gtReal(&fb,&fa)) {
+            copyReal(&RReg[6],&fb);     // BIG VALUE
+            addReal(&RReg[4],&fa,&fa);  // 2*SMALL
+            addReal(&RReg[5],&fa,&RReg[4]); // 3*SMALL
+            if(ltReal(&RReg[5],&fb)) {  // BIG VALUE > 3*SMALL
+                // USE THE QUARTER POINT INSTEAD OF THE CENTER
+                newRealFromBINT(&RReg[1],25,-2);
+            }
+        } else {
+            copyReal(&RReg[6],&fa);     // BIG VALUE
+            addReal(&RReg[4],&fb,&fb);  // 2*SMALL
+            addReal(&RReg[5],&fb,&RReg[4]); // 3*SMALL
+            if(ltReal(&RReg[5],&fa)) {  // BIG VALUE > 3*SMALL
+                // USE THE QUARTER POINT INSTEAD OF THE CENTER
+                newRealFromBINT(&RReg[1],75,-2);
+            }
+        }
+
+
+
+        mulReal(&RReg[2],&RReg[0],&RReg[1]);    // (B-A)*(COEFF=0.25,0.5 OR 0.75)
+        addReal(&RReg[0],&a,&RReg[2]);  // C= EITHER AT 1/4, 1/2 OR 3/4 POSITION
+
+
+        // COMPUTE F(C)
+        rplNewRealFromRRegPush(0);
+        rplPushData(rplPeekData(1));            // LEAVE C AND F(C) ON THE STACK
+        if(Exceptions) { DSTop=dstkptr;  return; }
+        rplEvalUserFunc(ARG_USERFUNC,CMD_OVR_NUM);
+        if(Exceptions) { DSTop=dstkptr;  return; }
+
+        rplReadNumberAsReal(rplPeekData(1),&fc);
+
+        if((fc.flags&F_NEGATIVE)==(aff&F_NEGATIVE)) {
+            // DISCARD POINT A
+
+            // STACK HERE HAS A,B,F(A),F(B),C,F(C)
+            rplOverwriteData(4,rplPeekData(1));
+            rplOverwriteData(6,rplPeekData(2));
+        }
+        else {
+            // DISCARD POINT B
+
+            // STACK HERE HAS A,B,F(A),F(B),C,F(C)
+            rplOverwriteData(3,rplPeekData(1));
+            rplOverwriteData(5,rplPeekData(2));
+        }
+        rplDropData(2);
 
         } while(1);
+
+        // HERE THE REALS a,b,fa,fb ARE VALID, and RReg[0]=b-a
+        // AND IS GUARANTEED THAT B-A < TOLERANCE
+
+        // RETURN THE BEST-GUESS BY INTERPOLATION
+
+        fa.flags^=F_NEGATIVE;
+        mulReal(&RReg[1],&RReg[0],&fa); // (b-a)*(0-fa)
+        addReal(&RReg[2],&fb,&fa);      // (fb-fa)
+        divReal(&RReg[3],&RReg[1],&RReg[2]); // (b-a)*(0-fa)/(fb-fa)
+        addReal(&RReg[0],&a,&RReg[3]);  // c=a+(b-a)*(0-fa)/(fb-fa)
+        rplNewRealFromRRegPush(0);
+        ARG_USERFUNC=rplPeekData(1);    // OVERWRITE FIRST ARGUMENT WITH THE RESULT
+
+        DSTop=dstkptr-3;    // RESTORE AND DROP 3 ARGUMENTS
 
         return;
     }

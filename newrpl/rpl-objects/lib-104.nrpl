@@ -21,7 +21,7 @@
 
 @#name lib104_menu
 {
-NUMINT
+NUMINT ROOT
 }
 
 
@@ -29,6 +29,11 @@ NUMINT
 {
 NUMINT
 "Numerical integration
+
+(A or P) R<a> R<b> R<tol> → R"
+
+ROOT
+"Real root finder
 
 (A or P) R<a> R<b> R<tol> → R"
 
