@@ -329,9 +329,9 @@ case NUMINT:
 
                 rplOverwriteData(1,L_ERR);
                 //*** TESTING: DO NOT HALVE THE ERROR EACH TIME
-                //rplPushData((WORDPTR)one_half_real);
+                //plPushData((WORDPTR)one_half_real);
                 //rplCallOvrOperator(CMD_OVR_MUL);        // L_ERR/2
-                if(Exceptions) { DSTop=dstkptr;  return; }
+                //if(Exceptions) { DSTop=dstkptr;  return; }
 
                 rplPushData(L_H_12);
                 rplPushData((WORDPTR)one_half_real);

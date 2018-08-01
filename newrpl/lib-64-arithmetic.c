@@ -3408,7 +3408,7 @@ case FACTORS:
             rplListUnaryDoCmd();
             return;
         }
-        else if(ISMATRIX(*vect_val)){
+        else if(ISMATRIX(*vect_val)) {
 
             BINT cplxmode=rplTestSystemFlag(FL_COMPLEXMODE);
             rplSetSystemFlag(FL_COMPLEXMODE);
@@ -3593,15 +3593,49 @@ case FACTORS:
                 rplOverwriteData(2*f,rplPopData());
             }
 
+            // PRESENT THE SOLUTION IN A BETTER FORMAT
 
-            solution=rplMatrixCompose(0,2*nroots);
+            WORDPTR *stksol=DSTop;
+            for(f=0;f<nroots;++f) {
+                rplPushData(stksol[-2-2*f]);    // MAKE A COPY OF ALL FACTORS
+                if(Exceptions) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                    DSTop=savestk;
+                    return;
+                }
+            }
+            for(f=0;f<nroots;++f) {
+                rplPushData(stksol[-1-2*f]);    // MAKE A COPY OF ALL MULTIPLICITY NUMBERS
+                if(Exceptions) {
+                    if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                    DSTop=savestk;
+                    return;
+                }
+            }
+
+            rplRemoveAtData(2*nroots,2*nroots);
+
+
+            solution=rplCreateListN(nroots,1+nroots,0);
             if(!solution) {
                 if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
                 DSTop=savestk;
                 return;
             }
-            DSTop=savestk;
-            rplOverwriteData(1,solution);
+            rplPushData(solution);
+            solution=rplCreateListN(nroots,2,0);
+            if(!solution) {
+                if(!cplxmode) rplClrSystemFlag(FL_COMPLEXMODE);
+                DSTop=savestk;
+                return;
+            }
+            rplPushData(solution);
+
+            // PUTH THE LEADING FACTOR FIRST
+            savestk[-1]=rplMatrixFastGet(savestk[-1],1,1);
+
+            rplRemoveAtData(3,DSTop-savestk-2); // REMOVE ALL THE INTERMEDIATE VALUES FROM THE STACK
+
             if(!cplxmode) {
                 rplClrSystemFlag(FL_COMPLEXMODE);
                 if(doerror) rplError(ERR_COMPLEXRESULT);
@@ -3613,14 +3647,20 @@ case FACTORS:
         else if(ISNUMBER(*vect_val)) {
             // FACTORIZE INTEGER NUMBERS AS WELL
 
-            REAL num;
-            BINT prec=Context.precdigits;
-            BINT64 onefactor,inum,isneg;
+            REAL num,mult;
+            BINT prec=Context.precdigits,isneg,exponent;
+            BINT64 onefactor,inum;
             WORDPTR *savestk=DSTop;
 
             rplReadNumberAsReal(vect_val,&num);
             if(num.flags&F_NEGATIVE) { isneg=1; num.flags^=F_NEGATIVE; }
             else isneg=0;
+
+            if(!isintegerReal(&num)) {
+                exponent=num.exp;   // REMEMBER THE EXPONENT
+                num.exp=0;          // AND FORCE IT TO BE INTEGER
+            } else exponent=0;
+
             copyReal(&RReg[6],&num);
             if(inBINT64Range(&RReg[6])) inum=getBINT64Real(&RReg[6]);
             else inum=-1;
@@ -3785,24 +3825,126 @@ case FACTORS:
                 return;
             }
 
-            if(isneg) // MAKE THE FIRST FACTOR NEGATIVE IF THE NUMBER IS NEGATIVE
-            {
-                rplPushData(*savestk);  // GET THE FIRST VALUE
-                rplCallOvrOperator(CMD_OVR_NEG);
+            BINT nfactors=(DSTop-savestk)/2,f;
+
+            if(nfactors==0) {
+                // SPECIAL CASES 0, 1 ,-1
+                DSTop=savestk;
+                rplPushData((WORDPTR)one_bint);
+                WORDPTR list=rplCreateListN(1,1,1);
+                if(!list) return;
+                rplPushDataNoGrow(list);
+                rplPushData(list);
+                return;
+            }
+
+
+            // GET THE FACTORS
+            for(f=0;f<nfactors;++f) {
+                rplPushData(savestk[2*f]);
                 if(Exceptions) {
                     DSTop=savestk;
                     return;
                 }
-                *savestk=rplPopData();
+            }
+            // GET THE MULTIPLICITY
+            if(exponent) {
+                BINT factor2done=0,factor5done=0;
+
+                rplBINTToRReg(0,exponent);
+                rplBINTToRReg(1,2);
+                rplBINTToRReg(2,5);
+                for(f=0;f<nfactors;++f) {
+                    rplReadNumberAsReal(savestk[1+2*f],&mult);  // READ MULTIPLICITY
+                    rplReadNumberAsReal(savestk[2*f],&num);     // READ FACTOR
+                    if(eqReal(&num,&RReg[1])) { // IF FACTOR IS 2
+                        // ADD THE EXPONENT
+                        addReal(&RReg[3],&mult,&RReg[0]);
+                        factor2done=1;
+                        if(iszeroReal(&RReg[3])) {
+                            // WE NEED TO REMOVE THE FACTOR
+                            rplRemoveAtData(nfactors,1);
+                            --nfactors;
+                        } else rplNewRealFromRRegPush(3);
+                    } else if(eqReal(&num,&RReg[2])) { // IF FACTOR IS 5
+                        // ADD THE EXPONENT
+                        addReal(&RReg[3],&mult,&RReg[0]);
+                        factor5done=1;
+                        if(iszeroReal(&RReg[3])) {
+                            // WE NEED TO REMOVE THE FACTOR
+                            rplRemoveAtData(nfactors,1);
+                            --nfactors;
+                        } else rplNewRealFromRRegPush(3);
+                    } else {
+                        // OTHER FACTOR, JUST PUSH THE VALUE
+                        rplPushData(savestk[1+2*f]);
+                    }
+
+                    if(Exceptions) {
+                        DSTop=savestk;
+                        return;
+                    }
+                }
+                // SEE IF WE NEED TO ADD A FACTOR
+
+                if(!factor2done) {
+                    // NEED TO ADD A FACTOR 2 WITH MULTIPLICITY exponent
+
+                    rplExpandStack(2);
+                    if(Exceptions) {
+                        DSTop=savestk;
+                        return;
+                    }
+                    memmovew(DSTop-nfactors+1,DSTop-nfactors,nfactors*sizeof(WORDPTR)/sizeof(WORD));
+                    ++DSTop;
+                    rplOverwriteData(nfactors+1,(WORDPTR)two_bint); // ADD FACTOR 2
+                    rplNewBINTPush(exponent,DECBINT);
+                    ++nfactors;
+                }
+                if(!factor5done) {
+                    // NEED TO ADD A FACTOR 2 WITH MULTIPLICITY exponent
+
+                    rplExpandStack(2);
+                    if(Exceptions) {
+                        DSTop=savestk;
+                        return;
+                    }
+                    memmovew(DSTop-nfactors+1,DSTop-nfactors,nfactors*sizeof(WORDPTR)/sizeof(WORD));
+                    ++DSTop;
+                    rplOverwriteData(nfactors+1,(WORDPTR)five_bint); // ADD FACTOR 5
+                    rplNewBINTPush(exponent,DECBINT);
+                    ++nfactors;
+                }
+            } else {
+                for(f=0;f<nfactors;++f) {
+                    rplPushData(savestk[1+2*f]);
+                    if(Exceptions) {
+                        DSTop=savestk;
+                        return;
+                    }
+                }
+
             }
 
-            WORDPTR newlist=rplCreateListN(DSTop-savestk,1,1);
+
+            WORDPTR newlist=rplCreateListN(nfactors,1+nfactors,0);
             if(Exceptions) {
                 DSTop=savestk;
                 return;
             }
+            rplPushData(newlist); // PUSH THE LIST TO PRESERVE IT
+            WORDPTR mnewlist=rplCreateListN(nfactors,2,0);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+            newlist=rplPopData();   // RESTORE FROM STACK
             DSTop=savestk;
-            rplOverwriteData(1,newlist);
+            if(isneg) rplOverwriteData(1,(WORDPTR)minusone_bint);
+            else rplOverwriteData(1,(WORDPTR)one_bint);
+
+            rplPushDataNoGrow(newlist);
+            rplPushData(mnewlist);
 
             return;
 
