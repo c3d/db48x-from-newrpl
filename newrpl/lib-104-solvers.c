@@ -21,7 +21,10 @@
 //@TITLE=Numeric solvers
 
 #define ERROR_LIST \
-        ERR(NOROOTFOUND,0)
+        ERR(NOROOTFOUND,0), \
+        ERR(LISTOFEQEXPECTED,1), \
+        ERR(INVALIDLISTOFVARS,2), \
+        ERR(INVALIDVARRANGE,3)
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -32,8 +35,8 @@
 
 #define COMMAND_LIST \
     CMD(NUMINT,MKTOKENINFO(6,TITYPE_FUNCTION,4,2)), \
-    CMD(ROOT,MKTOKENINFO(4,TITYPE_FUNCTION,3,2))
-
+    CMD(ROOT,MKTOKENINFO(4,TITYPE_FUNCTION,3,2)), \
+    CMD(MSOLVE,MKTOKENINFO(4,TITYPE_FUNCTION,5,2))
 
 
 
@@ -509,7 +512,7 @@ case NUMINT:
             return;
         }
 
-        BINT aff=fa.flags,bff=fb.flags;
+        BINT aff=fa.flags;
 
         fa.flags&=~F_NEGATIVE;
         fb.flags&=~F_NEGATIVE;      // TAKE ABSOLUTE VALUE FOR COMPARISON
@@ -603,6 +606,400 @@ case NUMINT:
 
         return;
     }
+
+
+
+    case MSOLVE:
+    {
+        //@SHORT_DESC=Multiple non-linear equation solver/optimization search
+        //@INCOMPAT
+        // NUMERIC OPTIMIZATION BASED ON NELDER-MEAD SIMPLEX METHOD
+        // TAKES A LIST OF EQUATIONS OR ONE PROGRAM FROM THE STACK
+        // A LIST OF VARIABLE NAMES
+        // A LIST WITH MINIMUM VALUES FOR ALL VARIABLES
+        // A LIST WITH MAXIMUM VALUES FOR ALL VARIABLES
+        // TOLERANCE
+
+        // WHEN A LIST OF EQUATIONS IS GIVEN, EQUATIONS WILL BE:
+        // A) EXPRESSIONS --> WILL SOLVE FOR MINIMUM OF (EXPRESSION)^2
+        // B) EQUATIONS --> WILL SOLVE FOR MINIMUM OF (LEFT-RIGHT)^2
+        // C) INEQUALITIES --> WILL SOLVE FOR MINIMUM OF (1/T-1) WHERE T=TRUE/FALSE RESULT OF THE INEQUALITY (+Inf when result is false, 0 when true)
+
+        // WHEN A PROGRAM IS GIVEN: THE PROGRAM WILL TAKE N VALUES FROM THE STACK, CORRESPONDING TO THE LIST OF VARIABLES AND RETURN A SINGLE SCALAR
+
+        // THE EQUIVALENT PROGRAM OF A LIST OF EQUATIONS IS THE SUM OF THE SQUARES OF ALL EXPRESSIONS AND INEQUALITIES
+
+        // ALGORITHM WILL RETURN:
+        // A LIST WITH THE BEST SET OF VALUES FOR ALL THE VARIABLES, AT A POINT THAT MINIMIZES THE VALUE GIVEN BY THE PROGRAM OR THE SUM OF THE SQUARES OF ALL EQUATIONS
+        // A LIST WITH THE RESIDUAL VALUE OF ALL EXPRESSIONS AFTER REPLACING THE SET OF VALUES
+
+
+        if(rplDepthData()<5) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISPROGRAM(*rplPeekData(5)) && !ISSYMBOLIC(*rplPeekData(5)) && !ISLIST(*rplPeekData(5))) {
+            rplError(ERR_LISTOFEQEXPECTED);
+            return;
+        }
+
+        if(!ISLIST(*rplPeekData(4))) {
+            rplError(ERR_INVALIDLISTOFVARS);
+            return;
+        }
+
+        if(!ISLIST(*rplPeekData(3))|| !ISLIST(*rplPeekData(2))) {
+            rplError(ERR_INVALIDVARRANGE);
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(1))) {
+            rplError(ERR_REALEXPECTED);
+            return;
+        }
+
+        WORDPTR *listmin=DSTop-3;
+        WORDPTR *listmax=DSTop-2;
+        WORDPTR *listofeq=DSTop-5;
+        WORDPTR *listofvars=DSTop-4;
+        WORDPTR *toler=DSTop-1;
+        WORDPTR *stksave=DSTop,*pointarray=DSTop;
+
+
+        BINT nvars=rplListLength(*listofvars),i,j;
+
+        if( (rplListLength(*listmin)!=nvars) || (rplListLength(*listmax)!=nvars)) {
+            rplError(ERR_INVALIDVARRANGE);
+            return;
+        }
+
+        WORDPTR vptr=rplGetListElement(*listofvars,1),minptr=rplGetListElement(*listmin,1),maxptr=rplGetListElement(*listmax,1);
+
+        // CHECK THAT ALL THE VARIABLES ARE IDENTS
+        for(j=0;j<nvars;++j) {
+            if(!ISIDENT(*vptr)) {
+                rplError(ERR_INVALIDLISTOFVARS);
+                return;
+            }
+            if(!ISNUMBER(*minptr) || !ISNUMBER(*maxptr)) {
+                rplError(ERR_INVALIDVARRANGE);
+                return;
+            }
+            vptr=rplSkipOb(vptr);
+            minptr=rplSkipOb(minptr);
+            maxptr=rplSkipOb(maxptr);
+        }
+
+        // WE HAVE ALL VALID VARIABLE NAMES AND RANGE
+
+        // BASIC ALGORITHM:
+
+        // PHASE 1
+        // 1.1 - GENERATE N+1 N-TUPLES WITHIN THE GIVEN VARIABLE RANGES, COMPUTE THE SCALAR VALUE, ADDED AT THE END OF THE N-TUPLE { X1 ... XN F(X) }, DISCARD ANY POINTS THAT PRODUCE +Inf
+
+        REAL x1,x2,fx,tolerance;
+        BINT tries;
+
+        for(j=0;j<=nvars;++j)
+        {
+            for(i=1;i<=nvars;++i) {
+                // EXTRACT A VECTOR USING A MIX OF MINIMUM AND MAXIMUM COORDINATES, THE INITIAL CLOUD WIL COVER ROUGHLY HALF OF THE GIVEN AREA
+                if(i<=j) rplPushData(rplGetListElement(*listmin,i+1));
+                else if(i>j) rplPushData(rplGetListElement(*listmax,i+1));
+                if(Exceptions) { DSTop=stksave; return; }
+            }
+
+            tries=1;
+            do {
+
+            rplEvalMultiUserFunc(listofeq,listofvars,nvars);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
+            if(Exceptions) { DSTop=stksave; return; }
+
+            rplReadNumberAsReal(rplPeekData(1),&fx);
+
+            if(!isNANorinfiniteReal(&fx)) break;
+
+            // THE FUNCTION HAD NO VALUE AT THIS POINT, LET'S PICK A DIFFERENT POINT
+
+            rplDropData(1);
+            rplReadNumberAsReal(rplGetListElement(*listmin,nvars+1-tries),&x1);
+            rplReadNumberAsReal(rplGetListElement(*listmax,nvars+1-tries),&x2);
+
+            addReal(&RReg[0],&x1,&x2);
+            newRealFromBINT(&RReg[1],5,-1); // RReg[1]=0.5
+            mulReal(&RReg[2],&RReg[1],&RReg[0]);    // (x1+x2)/2
+            WORDPTR tmpreal=rplNewRealFromRReg(2);
+            if(!tmpreal) { DSTop=stksave; return; }
+            rplOverwriteData(tries,tmpreal);    // REPLACE ONE COORDINATE WITH THE MIDPOINT BETWEEN MIN AND MAX
+            ++tries;
+            } while(tries<=nvars);
+
+            // NOW CREATE THE POINT VECTOR
+            WORDPTR newpoint=rplCreateListN(nvars+1,1,1);
+            if(Exceptions) { DSTop=stksave; return; }
+
+            rplPushData(newpoint);
+
+        }
+
+        // HERE WE HAVE N+1 POINTS AS LISTS { X1 ... XN F(X) }
+
+        // 1.2 - SORT THE POINTS FROM LOW TO HIGH F(X), HIGHEST F(X) AT STACK LEVEL 1
+
+        for(i=1;i<=nvars;++i) {
+            for(j=nvars;j>=i;--j) {
+                rplReadNumberAsReal(rplGetListElement(rplPeekData(j),nvars+1),&x1);
+                rplReadNumberAsReal(rplGetListElement(rplPeekData(j+1),nvars+1),&x2);
+                if(ltReal(&x1,&x2)) {
+                    // SWAP
+                    WORDPTR tmp=rplPeekData(j+1);
+                    rplOverwriteData(j+1,rplPeekData(j));
+                    rplOverwriteData(j,tmp);
+                }
+            }
+        }
+
+
+        // MAIN LOOP:
+
+        do {
+
+        // 1.3 - CALCULATE CENTROID OF ALL POINTS EXCEPT THE WORST - C
+
+        rplPushDataNoGrow(rplPeekData(2));
+        for(j=4;j<=nvars+2;++j) {
+            rplPushData(rplPeekData(j));
+            if(Exceptions) { DSTop=stksave; return; }
+            rplRunAtomic(CMD_OVR_ADD);
+            if(Exceptions) { DSTop=stksave; return; }
+        }
+        rplNewBINTPush(nvars,DECBINT);
+        rplRunAtomic(CMD_OVR_DIV);
+        if(Exceptions) { DSTop=stksave; return; }
+
+        // 1.4 - EXIT WHEN EVERY COMPONENT OF (X0-C) < TOLERANCE
+
+        rplReadNumberAsReal(*toler,&tolerance);
+
+        for(j=1;j<=nvars;++j)
+        {
+            rplReadNumberAsReal(rplGetListElement(rplPeekData(nvars+2),j),&x1);
+            rplReadNumberAsReal(rplGetListElement(rplPeekData(1),j),&x2);
+            subReal(&RReg[0],&x1,&x2);
+            RReg[0].flags&=~F_NEGATIVE;
+
+            if(gtReal(&RReg[0],&tolerance)) break;  // OUT OF TOLERANCE, NO NEED TO CHECK ANYMORE, KEEP WORKING
+        }
+        if(j>nvars) break;  // ALL COMPONENTS WITHIN TOLERANCE, BREAK OUT OF THE MAIN LOOP
+
+
+        // 1.5 - CHOOSE NEW POINT BY REFLECTION OF THE WORST POINT P = C+(C-W)
+
+
+        for(j=1;j<=nvars;++j)
+        {
+            rplReadNumberAsReal(rplGetListElement(pointarray[nvars+1],j),&x1);   // C(j)
+            rplReadNumberAsReal(rplGetListElement(pointarray[nvars],j),&x2);   // W(j)
+
+            addReal(&RReg[0],&x1,&x1);
+            subReal(&RReg[1],&RReg[0],&x2); // P(j)=2*C(j)-W(j)
+            rplNewRealFromRRegPush(1);
+            if(Exceptions) { DSTop=stksave; return; }
+        }
+
+        // 1.6 - CALCULATE SCALAR VALUE AT P:
+
+        rplEvalMultiUserFunc(listofeq,listofvars,nvars);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
+        if(Exceptions) { DSTop=stksave; return; }
+
+        //                                    IF F(P) IS BETWEEN F(X0) AND F(XN), THEN ACCEPT P, REPLACE X(N+1) AND LOOP
+
+        rplReadNumberAsReal(rplGetListElement(pointarray[0],nvars+1),&x1);   // F(X0)
+        rplReadNumberAsReal(rplGetListElement(pointarray[nvars-1],nvars+1),&x2);   // F(Xn)
+        rplReadNumberAsReal(rplPeekData(1),&fx);  // F(P)
+
+        if(gteReal(&fx,&x1) && ltReal(&fx,&x2)) {
+            // REPLACE POINT AND CONTINUE
+            WORDPTR newpt=rplCreateListN(nvars+1,1,1);
+            if(!newpt) { DSTop=stksave; return; }
+            // UPDATE SINCE IT COULD'VE MOVED
+            rplReadNumberAsReal(rplGetListElement(newpt,nvars+1),&fx);  // F(P)
+
+            // INSERT IN THE PROPER PLACE IN THE LIST
+            for(j=nvars-1;j>0;--j) {
+                rplReadNumberAsReal(rplGetListElement(pointarray[j],nvars+1),&x1);   // F(Xj)
+                if(gtReal(&fx,&x1)) { pointarray[j+1]=newpt; break; }
+                else pointarray[j+1]=pointarray[j];
+            }
+
+            continue;
+
+        }
+
+        //                                    IF F(P)<F(X0) --> GET ANOTHER P' AT TWICE THE DISTANCE FROM C IN THE SAME DIRECTION: P'=P+(P-C), IF F(P')<F(P) USE P', OTHERWISE USE P, REPLACE AND LOOP
+
+        if(ltReal(&fx,&x1)) {
+
+            // P'=2P-C
+            for(j=1;j<=nvars;++j)
+            {
+                rplReadNumberAsReal(rplGetListElement(pointarray[nvars+1],j),&x2);   // C(j)
+                rplReadNumberAsReal(rplPeekData(nvars+2-j),&x1);   // P(j)
+
+                addReal(&RReg[0],&x1,&x1);
+                subReal(&RReg[1],&RReg[0],&x2); // P'(j)=2*P(j)-C(j)
+                rplNewRealFromRRegPush(1);
+                if(Exceptions) { DSTop=stksave; return; }
+            }
+
+            // F(P')
+            rplEvalMultiUserFunc(listofeq,listofvars,nvars);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
+            if(Exceptions) { DSTop=stksave; return; }
+
+            rplReadNumberAsReal(rplPeekData(1),&fx);  // F(P')
+            rplReadNumberAsReal(rplPeekData(nvars+2),&x1);  // F(P)
+
+            if(ltReal(&fx,&x1)) rplRemoveAtData(nvars+2,nvars+1);   // KEEP P'
+            else rplDropData(nvars+1);  // OR KEEP P
+
+            // NOW REPLACE WORST POINT WITH P
+
+            // REPLACE POINT AND CONTINUE
+            WORDPTR newpt=rplCreateListN(nvars+1,1,1);
+            if(!newpt) { DSTop=stksave; return; }
+            // UPDATE SINCE IT COULD'VE MOVED
+            rplReadNumberAsReal(rplGetListElement(newpt,nvars+1),&fx);  // F(P)
+
+            // INSERT IN THE PROPER PLACE IN THE LIST
+            for(j=nvars-1;j>0;--j) {
+                rplReadNumberAsReal(rplGetListElement(pointarray[j],nvars+1),&x1);   // F(Xj)
+                if(gtReal(&fx,&x1)) { pointarray[j+1]=newpt; break; }
+                else pointarray[j+1]=pointarray[j];
+            }
+
+            continue;
+
+        }
+
+        //                                    IF F(P)>=F(XN) (NOT N+1)! --> GET ANOTHER P''= C + (W-C)/2 BETWEEN THE CENTROID AND WORST POINT, IF F(P'')<F(XN+1) USE P'', REPLACE AND LOOP
+        //                                                                 ELSE OF F(P'') IS NO BETTER THAN THE WORST POINT, SHRINK ALL POINTS TOWARDS THE BEST
+        //                                                                 Xi=X0+(Xi-X0)/2
+
+        // IF WE ARE HERE, IT IS GUARANTEED THAT F(P)>=F(XN)
+
+        // P''=(C+W)/2
+        for(j=1;j<=nvars;++j)
+        {
+            rplReadNumberAsReal(rplGetListElement(pointarray[nvars+1],j),&x2);   // C(j)
+            rplReadNumberAsReal(rplGetListElement(pointarray[nvars],j),&x1);   // W(j)
+
+            addReal(&RReg[0],&x1,&x2);
+            newRealFromBINT(&RReg[2],5,-1);
+            mulReal(&RReg[1],&RReg[0],&RReg[2]);    //  (C(j)+W(j))/2
+            rplNewRealFromRRegPush(1);
+            if(Exceptions) { DSTop=stksave; return; }
+        }
+
+        // F(P'')
+        rplEvalMultiUserFunc(listofeq,listofvars,nvars);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
+        if(Exceptions) { DSTop=stksave; return; }
+
+        rplReadNumberAsReal(rplPeekData(1),&fx);  // F(P'')
+        rplReadNumberAsReal(rplGetListElement(pointarray[nvars],nvars+1),&x1);  // F(W)
+
+        if(ltReal(&fx,&x1)) {
+
+            rplRemoveAtData(nvars+2,nvars+1);   // KEEP P''
+            // REPLACE POINT AND CONTINUE
+            WORDPTR newpt=rplCreateListN(nvars+1,1,1);
+            if(!newpt) { DSTop=stksave; return; }
+            // UPDATE SINCE IT COULD'VE MOVED
+            rplReadNumberAsReal(rplGetListElement(newpt,nvars+1),&fx);  // F(P)
+
+            // INSERT IN THE PROPER PLACE IN THE LIST
+            for(j=nvars-1;j>0;--j) {
+                rplReadNumberAsReal(rplGetListElement(pointarray[j],nvars+1),&x1);   // F(Xj)
+                if(gtReal(&fx,&x1)) { pointarray[j+1]=newpt; break; }
+                else pointarray[j+1]=pointarray[j];
+            }
+
+            continue;
+
+
+        }
+
+        // P'' IS WORSE, WE ARE GOING NOWHERE. SHRINK ENTIRE GROUP OF POINTS TOWARDS THE BEST VALUE
+
+        rplDropData(nvars+2); // DROP P(i), F(P) AND THE C POINT LIST
+
+        for(j=1;j<=nvars;++j) {
+            newRealFromBINT(&RReg[4],5,-1); // 1/2
+
+            for(i=1;i<=nvars;++i) {
+            rplReadNumberAsReal(rplGetListElement(pointarray[0],i),&x1);    // X0(i)
+            rplReadNumberAsReal(rplGetListElement(pointarray[j],i),&x2);    // Xj(i)
+
+            addReal(&RReg[0],&x1,&x2);
+            mulReal(&RReg[1],&RReg[0],&RReg[4]);    // (X0(i)+Xj(i))/2
+
+            rplNewRealFromRRegPush(1);
+            if(Exceptions) { DSTop=stksave; return; }
+            }
+
+            rplEvalMultiUserFunc(listofeq,listofvars,nvars);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
+            if(Exceptions) { DSTop=stksave; return; }
+
+            // REPLACE POINT
+            WORDPTR newpt=rplCreateListN(nvars+1,1,1);
+            if(!newpt) { DSTop=stksave; return; }
+
+            pointarray[j]=newpt;        // REPLACE THE POINTS WITH THE NEW POINT
+
+
+        }
+
+        // SORT THE POINTS AGAIN
+        // 1.2 - SORT THE POINTS FROM LOW TO HIGH F(X), HIGHEST F(X) AT STACK LEVEL 1
+
+        for(i=1;i<=nvars;++i) {
+            for(j=nvars;j>=i;--j) {
+                rplReadNumberAsReal(rplGetListElement(rplPeekData(j),nvars+1),&x1);
+                rplReadNumberAsReal(rplGetListElement(rplPeekData(j+1),nvars+1),&x2);
+                if(ltReal(&x1,&x2)) {
+                    // SWAP
+                    WORDPTR tmp=rplPeekData(j+1);
+                    rplOverwriteData(j+1,rplPeekData(j));
+                    rplOverwriteData(j,tmp);
+                }
+            }
+        }
+
+
+        } while(1);
+
+     return;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         // ADD MORE OPCODES HERE
 

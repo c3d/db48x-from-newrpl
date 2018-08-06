@@ -18,6 +18,9 @@
 @#name lib104_msgtable
 {
 ##1,ERR_NOROOTFOUND "No root found"
+##1,ERR_LISTOFEQEXPECTED "Expected list of equations"
+##1,ERR_INVALIDLISTOFVARS "Invalid list of variables"
+##1,ERR_INVALIDVARRANGE "Invalid variable range"
 }
 
 @#name lib104_menu
