@@ -25,7 +25,8 @@
         ERR(LISTOFEQEXPECTED,1), \
         ERR(INVALIDLISTOFVARS,2), \
         ERR(INVALIDVARRANGE,3), \
-        ERR(REALVALUEDFUNCTIONSONLY,4)
+        ERR(REALVALUEDFUNCTIONSONLY,4), \
+        ERR(TRYDIFFERENTRANGE,5)
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -712,7 +713,7 @@ case NUMINT:
             }
 
             tries=1;
-            do {
+            while(tries<=nvars+1) {
 
             rplEvalMultiUserFunc(listofeq,listofvars,nvars,1);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
             if(Exceptions) { DSTop=stksave; return; }
@@ -722,7 +723,11 @@ case NUMINT:
             if(!isNANorinfiniteReal(&fx)) break;
 
             // THE FUNCTION HAD NO VALUE AT THIS POINT, LET'S PICK A DIFFERENT POINT
-
+            if(tries>nvars) {
+                rplError(ERR_TRYDIFFERENTRANGE);
+                DSTop=stksave; return;
+                break;
+            }
             rplDropData(1);
             rplReadNumberAsReal(rplGetListElement(*listmin,nvars+1-tries),&x1);
             rplReadNumberAsReal(rplGetListElement(*listmax,nvars+1-tries),&x2);
@@ -734,7 +739,7 @@ case NUMINT:
             if(!tmpreal) { DSTop=stksave; return; }
             rplOverwriteData(tries,tmpreal);    // REPLACE ONE COORDINATE WITH THE MIDPOINT BETWEEN MIN AND MAX
             ++tries;
-            } while(tries<=nvars);
+            }
 
             // NOW CREATE THE POINT VECTOR
             WORDPTR newpoint=rplCreateListN(nvars+1,1,1);
@@ -783,6 +788,8 @@ case NUMINT:
 
         rplReadNumberAsReal(*toler,&tolerance);
 
+        if(nvars>=2) {
+            // GENERAL CASE, CHECK THE DISTANCE BETWEEN THE CENTROID AND THE BEST POINT
         for(j=1;j<=nvars;++j)
         {
             rplReadNumberAsReal(rplGetListElement(rplPeekData(nvars+2),j),&x1);
@@ -793,7 +800,19 @@ case NUMINT:
             if(gtReal(&RReg[0],&tolerance)) break;  // OUT OF TOLERANCE, NO NEED TO CHECK ANYMORE, KEEP WORKING
         }
         if(j>nvars) break;  // ALL COMPONENTS WITHIN TOLERANCE, BREAK OUT OF THE MAIN LOOP
+        }
+        else {
+            // SPECIAL CASE FOR SINGLE-VARIABLE PROBLEMS
+            // CHECK THE DISTANCE BETWEEN THE BEST AND WORST POINTS
+            rplReadNumberAsReal(rplGetListElement(rplPeekData(2),1),&x1);
+            rplReadNumberAsReal(rplGetListElement(rplPeekData(1),1),&x2);
+            subReal(&RReg[0],&x1,&x2);
+            RReg[0].flags&=~F_NEGATIVE;
 
+            if(lteReal(&RReg[0],&tolerance)) break;  // WITHIN TOLERANCE, EXIT MAIN LOOP
+
+
+        }
 
         // 1.5 - CHOOSE NEW POINT BY REFLECTION OF THE WORST POINT P = C+(C-W)
 

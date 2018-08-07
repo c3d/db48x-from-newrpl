@@ -22,6 +22,7 @@
 ##1,ERR_INVALIDLISTOFVARS "Invalid list of variables"
 ##1,ERR_INVALIDVARRANGE "Invalid variable range"
 ##1,ERR_REALVALUEDFUNCTIONSONLY "Real valued func only"
+##1,ERR_TRYDIFFERENTRANGE "Try a different range"
 }
 
 @#name lib104_menu
