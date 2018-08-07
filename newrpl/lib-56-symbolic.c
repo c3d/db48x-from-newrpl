@@ -1562,8 +1562,11 @@ void LIB_HANDLER()
             return;
         }
 
-        // MAKE SURE WE KEEP THE EQUALITY WHEN EVAL'd
-        rplSymbApplyOperator(CurOpcode,2);
+        if(ISSYMBOLIC(*arg1)||ISSYMBOLIC(*arg2)) {
+                // MAKE SURE WE KEEP THE EQUALITY WHEN EVAL'd
+            rplSymbApplyOperator(CurOpcode,2);
+        }
+        else rplCallOvrOperator(CMD_OVR_SUB);
         return;
     }
 

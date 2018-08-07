@@ -2661,7 +2661,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
 
 
-        if( (*sobj!=(CMD_OVR_MUL)) && (*sobj!=(CMD_OVR_ADD)) && (*sobj!=(CMD_OVR_INV)) && (*sobj!=(CMD_OVR_UMINUS))) {
+        if( (*sobj!=(CMD_OVR_MUL)) && (*sobj!=(CMD_OVR_ADD)) && (*sobj!=(CMD_OVR_INV)) && (*sobj!=(CMD_OVR_UMINUS)) &&(*sobj!=(CMD_EQUATIONOPERATOR))) {
                 // EXCEPT ADDITION AND MULTIPLICATIONS, CHECK IF ALL ARGUMENTS ARE NUMERIC AND APPLY THE OPERATOR
 
                 BINT nargs=OPCODE(**(stkptr-1))-1;

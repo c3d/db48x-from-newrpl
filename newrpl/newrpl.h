@@ -514,6 +514,7 @@ void rplUpdateDependencyTree(WORDPTR varname, WORDPTR *dir, WORDPTR olddefn, WOR
 
 // SOLVERS AUXILIARY FUNCTIONS
 void rplEvalUserFunc(WORDPTR arg_userfunc,WORD Opcode);
+void rplEvalMultiUserFunc(WORDPTR *listofeq,WORDPTR *listofvars, BINT nvars, BINT minimizer);
 
 
 

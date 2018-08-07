@@ -24,7 +24,8 @@
         ERR(NOROOTFOUND,0), \
         ERR(LISTOFEQEXPECTED,1), \
         ERR(INVALIDLISTOFVARS,2), \
-        ERR(INVALIDVARRANGE,3)
+        ERR(INVALIDVARRANGE,3), \
+        ERR(REALVALUEDFUNCTIONSONLY,4)
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -705,15 +706,15 @@ case NUMINT:
         {
             for(i=1;i<=nvars;++i) {
                 // EXTRACT A VECTOR USING A MIX OF MINIMUM AND MAXIMUM COORDINATES, THE INITIAL CLOUD WIL COVER ROUGHLY HALF OF THE GIVEN AREA
-                if(i<=j) rplPushData(rplGetListElement(*listmin,i+1));
-                else if(i>j) rplPushData(rplGetListElement(*listmax,i+1));
+                if(i<=j) rplPushData(rplGetListElement(*listmin,i));
+                else rplPushData(rplGetListElement(*listmax,i));
                 if(Exceptions) { DSTop=stksave; return; }
             }
 
             tries=1;
             do {
 
-            rplEvalMultiUserFunc(listofeq,listofvars,nvars);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
+            rplEvalMultiUserFunc(listofeq,listofvars,nvars,1);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
             if(Exceptions) { DSTop=stksave; return; }
 
             rplReadNumberAsReal(rplPeekData(1),&fx);
@@ -810,7 +811,7 @@ case NUMINT:
 
         // 1.6 - CALCULATE SCALAR VALUE AT P:
 
-        rplEvalMultiUserFunc(listofeq,listofvars,nvars);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
+        rplEvalMultiUserFunc(listofeq,listofvars,nvars,1);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
         if(Exceptions) { DSTop=stksave; return; }
 
         //                                    IF F(P) IS BETWEEN F(X0) AND F(XN), THEN ACCEPT P, REPLACE X(N+1) AND LOOP
@@ -827,12 +828,15 @@ case NUMINT:
             rplReadNumberAsReal(rplGetListElement(newpt,nvars+1),&fx);  // F(P)
 
             // INSERT IN THE PROPER PLACE IN THE LIST
-            for(j=nvars-1;j>0;--j) {
+            for(j=nvars-1;j>=0;--j) {
                 rplReadNumberAsReal(rplGetListElement(pointarray[j],nvars+1),&x1);   // F(Xj)
                 if(gtReal(&fx,&x1)) { pointarray[j+1]=newpt; break; }
                 else pointarray[j+1]=pointarray[j];
             }
+            if(j<0) pointarray[0]=newpt;
 
+
+            rplDropData(1); // DROP CENTROID
             continue;
 
         }
@@ -854,7 +858,7 @@ case NUMINT:
             }
 
             // F(P')
-            rplEvalMultiUserFunc(listofeq,listofvars,nvars);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
+            rplEvalMultiUserFunc(listofeq,listofvars,nvars,1);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
             if(Exceptions) { DSTop=stksave; return; }
 
             rplReadNumberAsReal(rplPeekData(1),&fx);  // F(P')
@@ -872,11 +876,14 @@ case NUMINT:
             rplReadNumberAsReal(rplGetListElement(newpt,nvars+1),&fx);  // F(P)
 
             // INSERT IN THE PROPER PLACE IN THE LIST
-            for(j=nvars-1;j>0;--j) {
+            for(j=nvars-1;j>=0;--j) {
                 rplReadNumberAsReal(rplGetListElement(pointarray[j],nvars+1),&x1);   // F(Xj)
                 if(gtReal(&fx,&x1)) { pointarray[j+1]=newpt; break; }
                 else pointarray[j+1]=pointarray[j];
             }
+            if(j<0) pointarray[0]=newpt;
+
+            rplDropData(1);     // DROP CENTROID
 
             continue;
 
@@ -902,7 +909,7 @@ case NUMINT:
         }
 
         // F(P'')
-        rplEvalMultiUserFunc(listofeq,listofvars,nvars);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
+        rplEvalMultiUserFunc(listofeq,listofvars,nvars,1);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
         if(Exceptions) { DSTop=stksave; return; }
 
         rplReadNumberAsReal(rplPeekData(1),&fx);  // F(P'')
@@ -918,12 +925,14 @@ case NUMINT:
             rplReadNumberAsReal(rplGetListElement(newpt,nvars+1),&fx);  // F(P)
 
             // INSERT IN THE PROPER PLACE IN THE LIST
-            for(j=nvars-1;j>0;--j) {
+            for(j=nvars-1;j>=0;--j) {
                 rplReadNumberAsReal(rplGetListElement(pointarray[j],nvars+1),&x1);   // F(Xj)
                 if(gtReal(&fx,&x1)) { pointarray[j+1]=newpt; break; }
                 else pointarray[j+1]=pointarray[j];
             }
+            if(j<0) pointarray[0]=newpt;
 
+            rplDropData(1);
             continue;
 
 
@@ -947,7 +956,7 @@ case NUMINT:
             if(Exceptions) { DSTop=stksave; return; }
             }
 
-            rplEvalMultiUserFunc(listofeq,listofvars,nvars);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
+            rplEvalMultiUserFunc(listofeq,listofvars,nvars,1);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
             if(Exceptions) { DSTop=stksave; return; }
 
             // REPLACE POINT
@@ -978,7 +987,26 @@ case NUMINT:
 
         } while(1);
 
-     return;
+        // HERE WE HAVE A SOLUTION!!
+
+        // IN THE STACK WE HAVE ORIGINAL 4 ARGUMENTS
+        // THEN N+1 POINTS AND THEIR CENTROID
+
+        rplDropData(nvars+1);       // DROP THE CENTROID AND ALL POINTS EXCEPT THE BEST POINT, THIS IS OUR SOLUTION
+        rplExplodeList2(rplPeekData(1));
+        if(Exceptions) { DSTop=stksave; return; }
+        rplDropData(1);
+        WORDPTR newlist=rplCreateListN(nvars,1,0);
+        if(!newlist) { DSTop=stksave; return; }
+
+        rplOverwriteData(nvars+1,newlist);  // KEEP THE NEW LIST WITHOUT THE RESIDUAL
+        rplEvalMultiUserFunc(listofeq,listofvars,nvars,0);    // EVALUATE THE EXPRESSIONS BUT GET A LIST WITH THE RESULTS INSTEAD
+        if(Exceptions) { DSTop=stksave; return; }
+
+        stksave[-5]=rplPeekData(nvars+2);
+        stksave[-4]=rplPeekData(1);
+        DSTop=stksave-3;    // RESTORE STACK AND DROP 3 ARGUMENTS
+        return;
     }
 
 

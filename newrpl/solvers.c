@@ -447,3 +447,192 @@ void rplEvalUserFunc(WORDPTR arg_userfunc,WORD Opcode)
         rplRunAtomic(Opcode);
     }
 }
+
+
+// EVALUATES A USER-DEFINED LIST OF EQUATIONS
+// IT CAN BE A PROGRAM OR AN ALGEBRAIC IN THE FORMS:
+// 'EXPRESSION' (JUST AN EXPRESSION --> WILL BE ASSUMED AS 'EXPRESSION=0'
+// 'EXPRESSION=EXPRESSION'
+// 'EXPRESSION<=EXPRESSION' (ANY INEQUALITY)
+// IT WILL TAKE nvars ARGUMENTS FROM THE STACK, PUT IT IN LOCAL VARIABLES FROM THE LIST OF VARIABLES (X,Y,Z),
+// THEN EVALUATE THE EXPRESSION WITH THE OPCODE ->NUM
+// IF IT'S A PROGRAM, IT WILL XEQ THE PROGRAM, THE PROGRAM IS EXPECTED TO RETURN A FUNCTION THAT CAN BE MINIMIZED
+// IF IT'S A LIST OF EQUATIONS, IT RETURNS THE SUM OF:
+// FOR ALL EXPRESSIONS OR EQUALITIES: '(LEFT-RIGHT)^2'
+// FOR ALL TRUTH EXPRESSIONS (INEQUALITIES): +Inf IF FALSE, 0 IF TRUE
+
+void rplEvalMultiUserFunc(WORDPTR *listofeq,WORDPTR *listofvars, BINT nvars, BINT minimizer)
+{
+    WORDPTR *dstksave=DSTop;
+
+    if(ISPROGRAM(**listofeq)) {
+            // IT'S A PROGRAM
+            rplPushData(*listofeq);
+            rplRunAtomic(CMD_OVR_XEQ);
+            if(Exceptions) { if(DSTop>dstksave) DSTop=dstksave; return; }
+            if(DSTop!=dstksave-nvars+1) {
+                rplError(ERR_INVALIDUSERDEFINEDFUNCTION);
+                if(DSTop>dstksave) DSTop=dstksave;
+                return;
+            }
+            rplRunAtomic(CMD_OVR_NUM);
+            return;
+        }
+
+
+    BINT woffset=0,endoffset,j;
+
+    endoffset=rplSkipOb(*listofeq) - *listofeq;
+    if(ISLIST(**listofeq)) { ++woffset; --endoffset; }
+
+
+    rplCreateLAMEnvironment(*listofeq);
+
+    if(Exceptions) return;
+
+    BINT varname=0,varends=rplSkipOb(*listofvars)-(*listofvars);
+
+    if(ISLIST(**listofvars)) varname++;
+
+    for(j=0;j<nvars;++j) {
+        if(ISIDENT( *(*listofvars+varname))) rplCreateLAM(*listofvars+varname,rplPeekData(nvars-j));
+        if(Exceptions) {
+         rplCleanupLAMs(*listofeq);
+         DSTop=dstksave;
+         return;
+        }
+        varname+=rplObjSize(*listofvars+varname);
+        if(varname>varends) {
+            // USER DID NOT PROVIDE ENOUGH NAMES
+            break;
+        }
+    }
+
+    // HERE ALL VARIABLES HAVE BEEN DEFINED
+
+    // EVALUATE ALL FUNCTIONS
+    WORD eqtype;
+    WORDPTR *tmp;
+    BINT nresults=0;
+    REAL result;
+    while(woffset<endoffset) {
+
+
+    rplPushData(*listofeq+woffset);   // PUSH THE SYMBOLIC FUNCTION DEFINITION
+    if(Exceptions) {
+        rplCleanupLAMs(*listofeq);
+        DSTop=dstksave;
+        return;
+    }
+
+    tmp=DSTop;
+    rplRunAtomic(CMD_OVR_NUM);
+
+    if(Exceptions) {
+        rplCleanupLAMs(*listofeq);
+        DSTop=dstksave;
+        return;
+    }
+
+    if(DSTop!=tmp) {
+        rplError(ERR_INVALIDUSERDEFINEDFUNCTION);
+        rplCleanupLAMs(*listofeq);
+        DSTop=dstksave;
+        return;
+    }
+
+    if(!ISNUMBERORUNIT(*rplPeekData(1))) {
+        rplError(ERR_REALVALUEDFUNCTIONSONLY);
+        rplCleanupLAMs(*listofeq);
+        DSTop=dstksave;
+        return;
+    }
+
+
+    if(minimizer) {
+        eqtype=rplSymbMainOperator(*listofeq+woffset);
+
+        if(ISUNIT(*rplPeekData(1))) rplReadNumberAsReal(rplPeekData(1)+1,&result);
+        else rplReadNumberAsReal(rplPeekData(1),&result);
+
+        switch(eqtype)
+        {
+        case CMD_OVR_EQ:
+        case CMD_OVR_NOTEQ:
+        case CMD_OVR_GT:
+        case CMD_OVR_GTE:
+        case CMD_OVR_LT:
+        case CMD_OVR_LTE:
+        case CMD_OVR_ISTRUE:
+        case CMD_OVR_NOT:
+        case CMD_OVR_OR:
+        case CMD_OVR_AND:
+        case CMD_OVR_XOR:
+        {
+            // EVALUATE AS +Inf WHEN FALSE, 0 WHEN TRUE
+            if(iszeroReal(&result)) rplInfinityToRReg(0);
+            else rplZeroToRReg(0);
+            break;
+        }
+        default:
+        {
+            // ALL OTHER EXPRESSIONS EVALUATE AS (EXPRESSION)^2
+            mulReal(&RReg[0],&result,&result);
+            break;
+        }
+        }
+
+        WORDPTR newreal=rplNewRealFromRReg(0);
+        if(!newreal) {
+            rplCleanupLAMs(*listofeq);
+            DSTop=dstksave;
+            return;
+        }
+        rplOverwriteData(1,newreal);
+    }
+
+    ++nresults;
+
+    woffset+=rplObjSize(*listofeq+woffset);
+    }
+
+    // WE ARE DONE EVALUATING FUNCTIONS, CLEAN UP THE LAM ENVIRONMENT
+    rplCleanupLAMs(*listofeq);
+
+    // WE HAVE nresults IN THE STACK, EITHER CREATE A LIST OR ADD THEM ALL TOGETHER
+    if(minimizer)
+    {
+        rplZeroToRReg(0);
+        for(j=1;j<=nresults;++j) {
+            rplReadNumberAsReal(rplPeekData(j),&result);
+            if(isNANorinfiniteReal(&result)) rplInfinityToRReg(0);
+            else {
+                if(!isinfiniteReal(&RReg[0])) {
+                swapReal(&RReg[1],&RReg[0]);
+                addReal(&RReg[0],&RReg[1],&result);
+                }
+            }
+        }
+        rplDropData(nresults-1);
+
+        WORDPTR newreal=rplNewRealFromRReg(0);
+        if(!newreal) {
+            DSTop=dstksave;
+            return;
+        }
+        rplOverwriteData(1,newreal);
+  }
+    else {
+        // PROVIDE A LIST OF RESULTS
+        WORDPTR newlist=rplCreateListN(nresults,1,0);
+        if(!newlist) {
+            DSTop=dstksave;
+            return;
+        }
+        rplDropData(nresults-1);
+        rplOverwriteData(1,newlist);
+    }
+
+    // FINALLY, WE HAVE THE ORIGINAL STACK AND THE RESULT
+
+}

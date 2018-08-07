@@ -21,6 +21,7 @@
 ##1,ERR_LISTOFEQEXPECTED "Expected list of equations"
 ##1,ERR_INVALIDLISTOFVARS "Invalid list of variables"
 ##1,ERR_INVALIDVARRANGE "Invalid variable range"
+##1,ERR_REALVALUEDFUNCTIONSONLY "Real valued func only"
 }
 
 @#name lib104_menu
