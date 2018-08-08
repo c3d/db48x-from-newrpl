@@ -918,7 +918,7 @@ case NUMINT:
             for(j=1;j<=nvars;++j)
             {
                 rplReadNumberAsReal(rplGetListElement(pointarray[nvars+1],j),&x2);   // C(j)
-                rplReadNumberAsReal(rplPeekData(nvars+2-j),&x1);   // P(j)
+                rplReadNumberAsReal(rplPeekData(nvars+1),&x1);   // P(j)
 
                 addReal(&RReg[0],&x1,&x1);
                 subReal(&RReg[1],&RReg[0],&x2); // P'(j)=2*P(j)-C(j)
