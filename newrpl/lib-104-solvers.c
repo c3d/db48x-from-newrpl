@@ -701,19 +701,78 @@ case NUMINT:
         // 1.1 - GENERATE N+1 N-TUPLES WITHIN THE GIVEN VARIABLE RANGES, COMPUTE THE SCALAR VALUE, ADDED AT THE END OF THE N-TUPLE { X1 ... XN F(X) }, DISCARD ANY POINTS THAT PRODUCE +Inf
 
         REAL x1,x2,fx,tolerance;
-        BINT tries;
+        BINT tries,maxtries;
+        maxtries=2*nvars;  // 2 BITS PER VARIABLE INDICATING STATE: 0=ORIGINAL, 1=MID-POINT, 2=CLOSE-QUARTER, 3=FAR QUARTER
+        if(maxtries>8) maxtries=1<<8;
+        else maxtries=1<<maxtries;
+
 
         for(j=0;j<=nvars;++j)
         {
+
+            tries=0;
+            while(tries<maxtries) {
+
             for(i=1;i<=nvars;++i) {
                 // EXTRACT A VECTOR USING A MIX OF MINIMUM AND MAXIMUM COORDINATES, THE INITIAL CLOUD WIL COVER ROUGHLY HALF OF THE GIVEN AREA
-                if(i<=j) rplPushData(rplGetListElement(*listmin,i));
-                else rplPushData(rplGetListElement(*listmax,i));
-                if(Exceptions) { DSTop=stksave; return; }
+                switch( (tries>>(2*(i-1)))&3) {
+                case 0:
+                default:
+                    // USE EITHER MIN. OR MAX POINT
+                    if(i<=j) rplPushData(rplGetListElement(*listmin,i));
+                    else rplPushData(rplGetListElement(*listmax,i));
+                    if(Exceptions) { DSTop=stksave; return; }
+                    break;
+                case 1:
+                    // USE QUARTER POINT CLOSER TO MIN OR MAX DEPENDING ON j
+                    rplReadNumberAsReal(rplGetListElement(*listmin,i),&x1);
+                    rplReadNumberAsReal(rplGetListElement(*listmax,i),&x2);
+
+                    if(i>j) swapReal(&x1,&x2);
+
+                    addReal(&RReg[1],&x1,&x1);
+                    addReal(&RReg[2],&x1,&RReg[1]);
+                    addReal(&RReg[0],&RReg[2],&x2);     // 3*X1+X2
+
+                    newRealFromBINT(&RReg[1],25,-2); // RReg[1]=0.25
+                    mulReal(&RReg[2],&RReg[1],&RReg[0]);    // (3*x1+x2)/4
+                    rplNewRealFromRRegPush(2);
+                    if(Exceptions) { DSTop=stksave; return; }
+                    break;
+
+                case 2:
+                    // USE QUARTER POINT FARTHER FROM MIN OR MAX DEPENDING ON j
+                    rplReadNumberAsReal(rplGetListElement(*listmin,i),&x1);
+                    rplReadNumberAsReal(rplGetListElement(*listmax,i),&x2);
+
+                    if(i<=j) swapReal(&x1,&x2);
+
+                    addReal(&RReg[1],&x1,&x1);
+                    addReal(&RReg[2],&x1,&RReg[1]);
+                    addReal(&RReg[0],&RReg[2],&x2);     // 3*X1+X2
+
+                    newRealFromBINT(&RReg[1],25,-2); // RReg[1]=0.25
+                    mulReal(&RReg[2],&RReg[1],&RReg[0]);    // (3*x1+x2)/4
+                    rplNewRealFromRRegPush(2);
+                    if(Exceptions) { DSTop=stksave; return; }
+                    break;
+                case 3:
+                    // USE MID POINT BETWEEN MIN AND MAX
+                    rplReadNumberAsReal(rplGetListElement(*listmin,i),&x1);
+                    rplReadNumberAsReal(rplGetListElement(*listmax,i),&x2);
+
+                    addReal(&RReg[0],&x1,&x2);
+                    newRealFromBINT(&RReg[1],5,-1); // RReg[1]=0.5
+                    mulReal(&RReg[2],&RReg[1],&RReg[0]);    // (x1+x2)/2
+                    rplNewRealFromRRegPush(2);
+                    if(Exceptions) { DSTop=stksave; return; }
+                    break;
+
+
+                }
             }
 
-            tries=1;
-            while(tries<=nvars+1) {
+
 
             rplEvalMultiUserFunc(listofeq,listofvars,nvars,1);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
             if(Exceptions) { DSTop=stksave; return; }
@@ -723,24 +782,15 @@ case NUMINT:
             if(!isNANorinfiniteReal(&fx)) break;
 
             // THE FUNCTION HAD NO VALUE AT THIS POINT, LET'S PICK A DIFFERENT POINT
-            if(tries>nvars) {
+            rplDropData(nvars+1);
+            ++tries;
+            }
+
+            if(tries>=maxtries) {
                 rplError(ERR_TRYDIFFERENTRANGE);
                 DSTop=stksave; return;
                 break;
             }
-            rplDropData(1);
-            rplReadNumberAsReal(rplGetListElement(*listmin,nvars+1-tries),&x1);
-            rplReadNumberAsReal(rplGetListElement(*listmax,nvars+1-tries),&x2);
-
-            addReal(&RReg[0],&x1,&x2);
-            newRealFromBINT(&RReg[1],5,-1); // RReg[1]=0.5
-            mulReal(&RReg[2],&RReg[1],&RReg[0]);    // (x1+x2)/2
-            WORDPTR tmpreal=rplNewRealFromRReg(2);
-            if(!tmpreal) { DSTop=stksave; return; }
-            rplOverwriteData(tries,tmpreal);    // REPLACE ONE COORDINATE WITH THE MIDPOINT BETWEEN MIN AND MAX
-            ++tries;
-            }
-
             // NOW CREATE THE POINT VECTOR
             WORDPTR newpoint=rplCreateListN(nvars+1,1,1);
             if(Exceptions) { DSTop=stksave; return; }
@@ -959,7 +1009,7 @@ case NUMINT:
 
         // P'' IS WORSE, WE ARE GOING NOWHERE. SHRINK ENTIRE GROUP OF POINTS TOWARDS THE BEST VALUE
 
-        rplDropData(nvars+2); // DROP P(i), F(P) AND THE C POINT LIST
+        rplDropData((nvars+1)*2+1); // DROP P(i), F(P), P'', F(P'') AND THE C POINT LIST
 
         for(j=1;j<=nvars;++j) {
             newRealFromBINT(&RReg[4],5,-1); // 1/2
