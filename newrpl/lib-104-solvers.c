@@ -818,25 +818,49 @@ case NUMINT:
 
 
         // MAIN LOOP:
-
+        //BINT loopcount=1;
         do {
 
-        // 1.3 - CALCULATE CENTROID OF ALL POINTS EXCEPT THE WORST - C
+        //printf("Pass=%d\n",loopcount);
+        //loopcount++;
 
+        // 1.3 - CALCULATE CENTROID OF ALL POINTS EXCEPT THE WORST - C
+        BINT weight=1;
         rplPushDataNoGrow(rplPeekData(2));
+        // STARTING WEIGHT IS 1
         for(j=4;j<=nvars+2;++j) {
             rplPushData(rplPeekData(j));
+            if(Exceptions) { DSTop=stksave; return; }
+
+            weight+=j-2;
+            //++weight;
+            rplNewBINTPush(j-2,DECBINT);
+            if(Exceptions) { DSTop=stksave; return; }
+            rplRunAtomic(CMD_OVR_MUL);
             if(Exceptions) { DSTop=stksave; return; }
             rplRunAtomic(CMD_OVR_ADD);
             if(Exceptions) { DSTop=stksave; return; }
         }
-        rplNewBINTPush(nvars,DECBINT);
+        rplNewBINTPush(weight,DECBINT);
         rplRunAtomic(CMD_OVR_DIV);
         if(Exceptions) { DSTop=stksave; return; }
 
         // 1.4 - EXIT WHEN EVERY COMPONENT OF (X0-C) < TOLERANCE
 
         rplReadNumberAsReal(*toler,&tolerance);
+        tolerance.flags&=~F_NEGATIVE;
+
+        // PRIME CRITERIA: THERE'S NO PROGRESS BETWEEN WORST AND BEST POINTS
+        rplReadNumberAsReal(rplGetListElement(pointarray[0],nvars+1),&x1);
+        rplReadNumberAsReal(rplGetListElement(pointarray[nvars],nvars+1),&x2);
+
+        subReal(&RReg[0],&x1,&x2);
+        RReg[0].flags&=~F_NEGATIVE;
+        RReg[0].exp+=3; // COMPARE WITH TOLERANCE/1000
+
+        // BREAK IF THERE'S NO PROGRESS BUT NOT IF WE ARE CLOSE TO ZERO (GUARANTEED GLOBAL MINIMUM)
+        if(lteReal(&RReg[0],&tolerance) && (intdigitsReal(&x1)>intdigitsReal(&tolerance))) break;  // WITHIN TOLERANCE, EXIT MAIN LOOP
+
 
         if(nvars>=2) {
             // GENERAL CASE, CHECK THE DISTANCE BETWEEN THE CENTROID AND THE BEST POINT
@@ -883,14 +907,30 @@ case NUMINT:
         rplEvalMultiUserFunc(listofeq,listofvars,nvars,1);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
         if(Exceptions) { DSTop=stksave; return; }
 
+
         //                                    IF F(P) IS BETWEEN F(X0) AND F(XN), THEN ACCEPT P, REPLACE X(N+1) AND LOOP
 
         rplReadNumberAsReal(rplGetListElement(pointarray[0],nvars+1),&x1);   // F(X0)
         rplReadNumberAsReal(rplGetListElement(pointarray[nvars-1],nvars+1),&x2);   // F(Xn)
         rplReadNumberAsReal(rplPeekData(1),&fx);  // F(P)
 
+
         if(gteReal(&fx,&x1) && ltReal(&fx,&x2)) {
             // REPLACE POINT AND CONTINUE
+            /*
+            //************************* DEBUG ONLY ***************************
+            char Buffer0[1000],Buffer1[1000],Buffer2[1000];
+            rplReadNumberAsReal(rplPeekData(3),&x1);
+            rplReadNumberAsReal(rplPeekData(2),&x2);
+            rplReadNumberAsReal(rplPeekData(1),&fx);
+            *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+            *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+            *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+
+            printf("REF: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2);
+            //************************* DEBUG ONLY ***************************
+            */
+
             WORDPTR newpt=rplCreateListN(nvars+1,1,1);
             if(!newpt) { DSTop=stksave; return; }
             // UPDATE SINCE IT COULD'VE MOVED
@@ -938,6 +978,19 @@ case NUMINT:
 
             // NOW REPLACE WORST POINT WITH P
 
+            /*
+            //************************* DEBUG ONLY ***************************
+            char Buffer0[1000],Buffer1[1000],Buffer2[1000];
+            rplReadNumberAsReal(rplPeekData(3),&x1);
+            rplReadNumberAsReal(rplPeekData(2),&x2);
+            rplReadNumberAsReal(rplPeekData(1),&fx);
+            *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+            *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+            *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+
+            printf("EXP: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2);
+            //************************* DEBUG ONLY ***************************
+            */
             // REPLACE POINT AND CONTINUE
             WORDPTR newpt=rplCreateListN(nvars+1,1,1);
             if(!newpt) { DSTop=stksave; return; }
@@ -987,6 +1040,23 @@ case NUMINT:
         if(ltReal(&fx,&x1)) {
 
             rplRemoveAtData(nvars+2,nvars+1);   // KEEP P''
+
+            /*
+            //************************* DEBUG ONLY ***************************
+            char Buffer0[1000],Buffer1[1000],Buffer2[1000];
+            rplReadNumberAsReal(rplPeekData(3),&x1);
+            rplReadNumberAsReal(rplPeekData(2),&x2);
+            rplReadNumberAsReal(rplPeekData(1),&fx);
+            *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+            *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+            *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+
+            printf("CON: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2);
+            //************************* DEBUG ONLY ***************************
+            */
+
+
+
             // REPLACE POINT AND CONTINUE
             WORDPTR newpt=rplCreateListN(nvars+1,1,1);
             if(!newpt) { DSTop=stksave; return; }
@@ -1028,6 +1098,19 @@ case NUMINT:
             rplEvalMultiUserFunc(listofeq,listofvars,nvars,1);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
             if(Exceptions) { DSTop=stksave; return; }
 
+            /*
+            //************************* DEBUG ONLY ***************************
+            char Buffer0[1000],Buffer1[1000],Buffer2[1000];
+            rplReadNumberAsReal(rplPeekData(3),&x1);
+            rplReadNumberAsReal(rplPeekData(2),&x2);
+            rplReadNumberAsReal(rplPeekData(1),&fx);
+            *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+            *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+            *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+
+            printf("SHR: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2);
+            //************************* DEBUG ONLY ***************************
+            */
             // REPLACE POINT
             WORDPTR newpt=rplCreateListN(nvars+1,1,1);
             if(!newpt) { DSTop=stksave; return; }
@@ -1057,7 +1140,7 @@ case NUMINT:
         } while(1);
 
         // HERE WE HAVE A SOLUTION!!
-
+        //printf("Solution @ Pass=%d",loopcount);
         // IN THE STACK WE HAVE ORIGINAL 4 ARGUMENTS
         // THEN N+1 POINTS AND THEIR CENTROID
 
