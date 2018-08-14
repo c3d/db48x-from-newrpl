@@ -803,7 +803,7 @@ case NUMINT:
             *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
-            printf("INI: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2);
+            printf("INI: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
             //************************* DEBUG ONLY ***************************
 
 
@@ -837,7 +837,7 @@ case NUMINT:
 
 #if USE_ORIGINAL_SIMPLEX_METHOD
         // MAIN LOOP:
-        //BINT loopcount=1;
+        BINT loopcount=1;
         do {
 
         //printf("Pass=%d\n",loopcount);
@@ -946,7 +946,7 @@ case NUMINT:
             *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
-            printf("REF: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2);
+            printf("REF: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
             //************************* DEBUG ONLY ***************************
             */
 
@@ -1007,7 +1007,7 @@ case NUMINT:
             *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
-            printf("EXP: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2);
+            printf("EXP: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
             //************************* DEBUG ONLY ***************************
             */
             // REPLACE POINT AND CONTINUE
@@ -1070,7 +1070,7 @@ case NUMINT:
             *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
-            printf("CON: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2);
+            printf("CON: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
             //************************* DEBUG ONLY ***************************
             */
 
@@ -1127,7 +1127,7 @@ case NUMINT:
             *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
-            printf("SHR: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2);
+            printf("SHR: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
             //************************* DEBUG ONLY ***************************
             */
             // REPLACE POINT
@@ -1169,73 +1169,28 @@ case NUMINT:
         printf("Pass=%d\n",loopcount);
         loopcount++;
 
-        // 1.3 - GET A POINT WITH THE QUASI-GRADIENTS
+        // 1.3 - CALCULATE CENTROID OF ALL POINTS EXCEPT THE WORST - C
+        BINT weight=1;
+        rplPushDataNoGrow(rplPeekData(2));
+        // STARTING WEIGHT IS 1
+        for(j=4;j<=nvars+2;++j) {
+            rplPushData(rplPeekData(j));
+            if(Exceptions) { DSTop=stksave; return; }
 
-        // PUT ALL THE COORDINATES FROM EACH POINT
-        for(j=1;j<=nvars;++j) {
-            rplPushData(rplGetListElement(pointarray[j-1],j));
+            weight+=j-2;
+            //++weight;
+            rplNewBINTPush(j-2,DECBINT);
+            if(Exceptions) { DSTop=stksave; return; }
+            rplRunAtomic(CMD_OVR_MUL);
+            if(Exceptions) { DSTop=stksave; return; }
+            rplRunAtomic(CMD_OVR_ADD);
             if(Exceptions) { DSTop=stksave; return; }
         }
-
-        rplEvalMultiUserFunc(listofeq,listofvars,nvars,1);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
+        rplNewBINTPush(weight,DECBINT);
+        rplRunAtomic(CMD_OVR_DIV);
         if(Exceptions) { DSTop=stksave; return; }
 
-
-        rplReadNumberAsReal(rplPeekData(1),&fx);    // READ F(e)
-        // COMPUTE THE QUASI-GRADIENTS
-
-        rplZeroToRReg(8);   // KEEP THE MAX ABS. VALUE HERE
-        for(j=1;j<=nvars;++j)
-        {
-            rplReadNumberAsReal(rplGetListElement(pointarray[j-1],j),&x1);    // READ Xe(j)
-            rplReadNumberAsReal(rplGetListElement(pointarray[(j&1)? j:(j-2)],j),&x2); // READ Xj-1(j) or Xj+1(j)
-
-            subReal(&RReg[1],&x2,&x1);
-
-            if(!iszeroReal(&RReg[1])) {
-                rplReadNumberAsReal(rplGetListElement(pointarray[(j&1)? j:(j-2)],nvars+1),&x2); // READ F(Xj-1) or F(Xj+1)
-                subReal(&RReg[2],&x2,&fx);
-                divReal(&RReg[0],&RReg[2],&RReg[1]);    // dF/dXj= (F(Xj-1)-F(e))  /  (Xj-1(j) - Xe(j))
-            }
-            else rplZeroToRReg(0);  // USE ZERO GRADIENT IF DIVISION BY ZERO
-
-
-            WORDPTR newreal=rplNewRealFromRReg(0);
-            if(!newreal) { DSTop=stksave; return; }
-
-            rplOverwriteData(nvars+2-j,newreal);
-
-            RReg[0].flags&=~F_NEGATIVE;
-
-            if(gtReal(&RReg[0],&RReg[8])) {
-                swapReal(&RReg[0],&RReg[8]);  // SAVE THE MAXIMUM ABS. VALUE
-                swapReal(&RReg[1],&RReg[7]);  // AND SAVE THE DELTA THAT PRODUCED IT
-            }
-        }
-
-        if(!iszeroReal(&RReg[8])) {
-        // NORMALIZE THE GRADIENT VECTOR TO THE COORDINATE WITH MAXIMUM ABSOLUTE VALUE
-            divReal(&RReg[2],&RReg[7],&RReg[8]);
-        for(j=1;j<=nvars;++j)
-        {
-            rplReadNumberAsReal(rplPeekData(nvars+2-j),&x1);
-            if(iszeroReal(&x1)) {
-                copyReal(&RReg[0],&RReg[2]);
-                RReg[0].exp-=3;                    // ADD DISTURBANCE TO BREAK THE CYCLE WHEN ALL POINTS ARE COLINEAR
-            }
-            else mulReal(&RReg[0],&x1,&RReg[2]);
-            WORDPTR newreal=rplNewRealFromRReg(0);
-            if(!newreal) { DSTop=stksave; return; }
-
-            rplOverwriteData(nvars+2-j,newreal);
-        }
-        }
-
-        WORDPTR newpt=rplCreateListN(nvars+1,1,1);
-        if(!newpt) { DSTop=stksave; return; }
-        rplPushDataNoGrow(newpt);                   // KEEP THE LIST WITH THE GRADIENT VALUES
-
-        // 1.4 - EXIT WHEN EVERY COMPONENT OF (X0-XN+1) < TOLERANCE
+        // 1.4 - EXIT WHEN EVERY COMPONENT OF (X0-C) < TOLERANCE
 
         rplReadNumberAsReal(*toler,&tolerance);
         tolerance.flags&=~F_NEGATIVE;
@@ -1252,28 +1207,42 @@ case NUMINT:
         if(lteReal(&RReg[0],&tolerance) && (intdigitsReal(&x1)>intdigitsReal(&tolerance))) break;  // WITHIN TOLERANCE, EXIT MAIN LOOP
 
 
-        // CHECK THE DISTANCE BETWEEN THE WORST POINT AND THE BEST POINT
+        if(nvars>=2) {
+            // GENERAL CASE, CHECK THE DISTANCE BETWEEN THE CENTROID AND THE BEST POINT
         for(j=1;j<=nvars;++j)
         {
-            rplReadNumberAsReal(rplGetListElement(pointarray[0],j),&x1);
-            rplReadNumberAsReal(rplGetListElement(pointarray[nvars],j),&x2);
+            rplReadNumberAsReal(rplGetListElement(rplPeekData(nvars+2),j),&x1);
+            rplReadNumberAsReal(rplGetListElement(rplPeekData(1),j),&x2);
             subReal(&RReg[0],&x1,&x2);
             RReg[0].flags&=~F_NEGATIVE;
 
             if(gtReal(&RReg[0],&tolerance)) break;  // OUT OF TOLERANCE, NO NEED TO CHECK ANYMORE, KEEP WORKING
         }
         if(j>nvars) break;  // ALL COMPONENTS WITHIN TOLERANCE, BREAK OUT OF THE MAIN LOOP
+        }
+        else {
+            // SPECIAL CASE FOR SINGLE-VARIABLE PROBLEMS
+            // CHECK THE DISTANCE BETWEEN THE BEST AND WORST POINTS
+            rplReadNumberAsReal(rplGetListElement(rplPeekData(2),1),&x1);
+            rplReadNumberAsReal(rplGetListElement(rplPeekData(1),1),&x2);
+            subReal(&RReg[0],&x1,&x2);
+            RReg[0].flags&=~F_NEGATIVE;
+
+            if(lteReal(&RReg[0],&tolerance)) break;  // WITHIN TOLERANCE, EXIT MAIN LOOP
 
 
-        // 1.5 - CHOOSE NEW POINT BY REFLECTION OF THE WORST POINT P = X0 - G
+        }
+
+        // 1.5 - CHOOSE NEW POINT BY REFLECTION OF THE WORST POINT P = C+(C-W)
 
 
         for(j=1;j<=nvars;++j)
         {
-            rplReadNumberAsReal(rplGetListElement(pointarray[0],j),&x1);   // X0(j)
-            rplReadNumberAsReal(rplGetListElement(pointarray[nvars+1],j),&x2);   // G(j)
+            rplReadNumberAsReal(rplGetListElement(pointarray[nvars+1],j),&x1);   // C(j)
+            rplReadNumberAsReal(rplGetListElement(pointarray[nvars],j),&x2);   // W(j)
 
-            subReal(&RReg[1],&x1,&x2); // P(j)=X0(j)-G(j)
+            addReal(&RReg[0],&x1,&x1);
+            subReal(&RReg[1],&RReg[0],&x2); // P(j)=2*C(j)-W(j)
             rplNewRealFromRRegPush(1);
             if(Exceptions) { DSTop=stksave; return; }
         }
@@ -1284,60 +1253,24 @@ case NUMINT:
         if(Exceptions) { DSTop=stksave; return; }
 
 
-        //                                    IF F(P) IS BETWEEN F(X0) AND F(XN), THEN ACCEPT P, REPLACE X(N+1) AND LOOP
 
         rplReadNumberAsReal(rplGetListElement(pointarray[0],nvars+1),&x1);   // F(X0)
         rplReadNumberAsReal(rplGetListElement(pointarray[nvars-1],nvars+1),&x2);   // F(Xn)
         rplReadNumberAsReal(rplPeekData(1),&fx);  // F(P)
 
 
-        if(gteReal(&fx,&x1) && ltReal(&fx,&x2)) {
-            // REPLACE POINT AND CONTINUE
-
-            //************************* DEBUG ONLY ***************************
-            char Buffer0[1000],Buffer1[1000],Buffer2[1000];
-            rplReadNumberAsReal(rplPeekData(3),&x1);
-            rplReadNumberAsReal(rplPeekData(2),&x2);
-            rplReadNumberAsReal(rplPeekData(1),&fx);
-            *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-            *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-            *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
-
-            printf("REF: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2);
-            //************************* DEBUG ONLY ***************************
-
-
-            WORDPTR newpt=rplCreateListN(nvars+1,1,1);
-            if(!newpt) { DSTop=stksave; return; }
-            // UPDATE SINCE IT COULD'VE MOVED
-            rplReadNumberAsReal(rplGetListElement(newpt,nvars+1),&fx);  // F(P)
-
-            // INSERT IN THE PROPER PLACE IN THE LIST
-            for(j=nvars-1;j>=0;--j) {
-                rplReadNumberAsReal(rplGetListElement(pointarray[j],nvars+1),&x1);   // F(Xj)
-                if(gtReal(&fx,&x1)) { pointarray[j+1]=newpt; break; }
-                else pointarray[j+1]=pointarray[j];
-            }
-            if(j<0) pointarray[0]=newpt;
-
-
-            rplDropData(1); // DROP CENTROID
-            continue;
-
-        }
-
-        //  IF F(P)<F(X0) --> GET ANOTHER P' AT TWICE THE DISTANCE FROM B IN THE SAME DIRECTION: P'=P+(P-B), IF F(P')<F(P) USE P', OTHERWISE USE P, REPLACE AND LOOP
+        //   IF F(P)<F(X0) --> GET ANOTHER P' AT TWICE THE DISTANCE FROM C IN THE SAME DIRECTION: P'=P+(P-C), IF F(P')<F(P) USE P', OTHERWISE USE P, REPLACE AND LOOP
 
         if(ltReal(&fx,&x1)) {
 
-            // P'=2P-B
+            // P'=2P-C
             for(j=1;j<=nvars;++j)
             {
-                rplReadNumberAsReal(rplGetListElement(pointarray[0],j),&x2);   // B(j)
+                rplReadNumberAsReal(rplGetListElement(pointarray[nvars+1],j),&x2);   // C(j)
                 rplReadNumberAsReal(rplPeekData(nvars+1),&x1);   // P(j)
 
                 addReal(&RReg[0],&x1,&x1);
-                subReal(&RReg[1],&RReg[0],&x2); // P'(j)=2*P(j)-B(j)
+                subReal(&RReg[1],&RReg[0],&x2); // P'(j)=2*P(j)-C(j)
                 rplNewRealFromRRegPush(1);
                 if(Exceptions) { DSTop=stksave; return; }
             }
@@ -1356,6 +1289,7 @@ case NUMINT:
 
 
             //************************* DEBUG ONLY ***************************
+            {
             char Buffer0[1000],Buffer1[1000],Buffer2[1000];
             rplReadNumberAsReal(rplPeekData(3),&x1);
             rplReadNumberAsReal(rplPeekData(2),&x2);
@@ -1364,7 +1298,8 @@ case NUMINT:
             *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
-            printf("EXP: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2);
+            printf("EXP: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
+            }
             //************************* DEBUG ONLY ***************************
 
             // REPLACE POINT AND CONTINUE
@@ -1387,22 +1322,193 @@ case NUMINT:
 
         }
 
+
+
+        //************************* DEBUG ONLY ***************************
+        char Buffer0[1000],Buffer1[1000],Buffer2[1000];
+        rplReadNumberAsReal(rplPeekData(3),&x1);
+        rplReadNumberAsReal(rplPeekData(2),&x2);
+        rplReadNumberAsReal(rplPeekData(1),&fx);
+        *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+        *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+        *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+
+        printf("P??: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
+        //************************* DEBUG ONLY ***************************
+
+        // REFLECTION DIDN'T IMPROVE ON OUR BEST POINT, FIND A POINT THROUGH GRADIENTS TO SEE IF WE CAN DO BETTER
+
+
+                // 1.3 - GET A POINT WITH THE QUASI-GRADIENTS
+
+                // PUT ALL THE COORDINATES FROM EACH POINT
+                for(j=1;j<=nvars;++j) {
+                    rplPushData(rplGetListElement(pointarray[j-1],j));
+                    if(Exceptions) { DSTop=stksave; return; }
+                }
+
+                rplEvalMultiUserFunc(listofeq,listofvars,nvars,1);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
+                if(Exceptions) { DSTop=stksave; return; }
+
+
+                rplReadNumberAsReal(rplPeekData(1),&fx);    // READ F(e)
+                // COMPUTE THE QUASI-GRADIENTS
+
+                rplZeroToRReg(8);   // KEEP THE MAX ABS. VALUE HERE
+                for(j=1;j<=nvars;++j)
+                {
+                    rplReadNumberAsReal(rplPeekData(nvars+2-j),&x1);    // READ Xe(j)
+                    rplReadNumberAsReal(rplGetListElement(pointarray[(j&1)? j:(j-2)],j),&x2); // READ Xj-1(j) or Xj+1(j)
+
+                    subReal(&RReg[1],&x2,&x1);
+
+                    if(!iszeroReal(&RReg[1])) {
+                        rplReadNumberAsReal(rplGetListElement(pointarray[(j&1)? j:(j-2)],nvars+1),&x2); // READ F(Xj-1) or F(Xj+1)
+                        subReal(&RReg[2],&x2,&fx);
+                        divReal(&RReg[0],&RReg[2],&RReg[1]);    // dF/dXj= (F(Xj-1)-F(e))  /  (Xj-1(j) - Xe(j))
+                    }
+                    else rplZeroToRReg(0);  // USE ZERO GRADIENT IF DIVISION BY ZERO
+
+
+                    WORDPTR newreal=rplNewRealFromRReg(0);
+                    if(!newreal) { DSTop=stksave; return; }
+
+                    rplOverwriteData(nvars+2-j,newreal);
+
+                    RReg[0].flags&=~F_NEGATIVE;
+
+                    if(gtReal(&RReg[0],&RReg[8])) {
+                        swapReal(&RReg[0],&RReg[8]);  // SAVE THE MAXIMUM ABS. VALUE
+                        swapReal(&RReg[1],&RReg[7]);  // AND SAVE THE DELTA THAT PRODUCED IT
+                    }
+                }
+
+                if(!iszeroReal(&RReg[8])) {
+                    RReg[7].flags&=~F_NEGATIVE;
+                // NORMALIZE THE GRADIENT VECTOR TO THE COORDINATE WITH MAXIMUM ABSOLUTE VALUE
+                    divReal(&RReg[2],&RReg[7],&RReg[8]);
+                for(j=1;j<=nvars;++j)
+                {
+                    rplReadNumberAsReal(rplPeekData(nvars+2-j),&x1);
+                    if(iszeroReal(&x1)) {
+                        copyReal(&RReg[0],&RReg[2]);
+                        RReg[0].exp-=3;                    // ADD DISTURBANCE TO BREAK THE CYCLE WHEN ALL POINTS ARE COLINEAR
+                    }
+                    else mulReal(&RReg[0],&x1,&RReg[2]);
+                    WORDPTR newreal=rplNewRealFromRReg(0);
+                    if(!newreal) { DSTop=stksave; return; }
+
+                    rplOverwriteData(nvars+2-j,newreal);
+                }
+                }
+
+                // HERE WE HAVE P, F(P), G
+
+                // 1.5 - CHOOSE NEW POINT BY REFLECTION OF THE WORST POINT P = X0 - G
+
+
+                for(j=1;j<=nvars;++j)
+                {
+                    rplReadNumberAsReal(rplGetListElement(pointarray[0],j),&x1);   // X0(j)
+                    rplReadNumberAsReal(rplPeekData(nvars+2-j),&x2);   // G(j)
+
+                    subReal(&RReg[0],&x1,&x2); // G'(j)=X0(j)-G(j)
+                    WORDPTR newreal=rplNewRealFromRReg(0);
+                    if(!newreal) { DSTop=stksave; return; }
+
+                    rplOverwriteData(nvars+2-j,newreal);
+                }
+
+                rplDropData(1); // DROP THE OLD VALUE F(e)
+
+
+
+                // 1.6 - CALCULATE SCALAR VALUE AT THE NEW POINT G'
+
+                rplEvalMultiUserFunc(listofeq,listofvars,nvars,1);    // EVALUATE THE EXPRESSION TO MINIMIZE, PUSHES THE VALUE ON THE STACK, LEAVES THE VECTOR IN IT
+                if(Exceptions) { DSTop=stksave; return; }
+
+
+                //************************* DEBUG ONLY ***************************
+                {
+                char Buffer0[1000],Buffer1[1000],Buffer2[1000];
+                rplReadNumberAsReal(rplPeekData(3),&x1);
+                rplReadNumberAsReal(rplPeekData(2),&x2);
+                rplReadNumberAsReal(rplPeekData(1),&fx);
+                *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+                *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+                *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+
+                printf("GR?: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
+                }
+                //************************* DEBUG ONLY ***************************
+
+                rplReadNumberAsReal(rplPeekData(1),&x1);        // F(G')
+                rplReadNumberAsReal(rplPeekData(nvars+2),&fx);  // F(P)
+                rplReadNumberAsReal(rplGetListElement(pointarray[nvars-1],nvars+1),&x2);   // F(Xn)
+
+                if(ltReal(&x1,&x2)) {
+                    // F(G')<F(P) --> WE FOUND A BETTER POINT, KEEP IT
+                    rplRemoveAtData(nvars+2,nvars+1);
+                    swapReal(&x1,&fx);
+                    printf("Chose Gradient\n");
+                }
+                else rplDropData(nvars+1);  // OTHERWISE KEEP THE ORIGINAL POINT P
+
+
+        //  IF F(P)< F(XN), THEN ACCEPT P, REPLACE X(N+1) AND LOOP
+
+        if(ltReal(&fx,&x2)) {
+            // REPLACE POINT AND CONTINUE
+
+            //************************* DEBUG ONLY ***************************
+            char Buffer0[1000],Buffer1[1000],Buffer2[1000];
+            rplReadNumberAsReal(rplPeekData(3),&x1);
+            rplReadNumberAsReal(rplPeekData(2),&x2);
+            rplReadNumberAsReal(rplPeekData(1),&fx);
+            *formatReal(&x1,Buffer0,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+            *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+            *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
+
+            printf("REF: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
+            //************************* DEBUG ONLY ***************************
+
+
+            WORDPTR newpt=rplCreateListN(nvars+1,1,1);
+            if(!newpt) { DSTop=stksave; return; }
+            // UPDATE SINCE IT COULD'VE MOVED
+            rplReadNumberAsReal(rplGetListElement(newpt,nvars+1),&fx);  // F(P)
+
+            // INSERT IN THE PROPER PLACE IN THE LIST
+            for(j=nvars-1;j>=0;--j) {
+                rplReadNumberAsReal(rplGetListElement(pointarray[j],nvars+1),&x1);   // F(Xj)
+                if(gtReal(&fx,&x1)) { pointarray[j+1]=newpt; break; }
+                else pointarray[j+1]=pointarray[j];
+            }
+            if(j<0) pointarray[0]=newpt;
+
+
+            rplDropData(1); // DROP CENTROID
+            continue;
+
+        }
+
+
         //                                    IF F(P)>=F(XN) (NOT N+1)! --> GET ANOTHER P''= C + (W-C)/2 BETWEEN THE CENTROID AND WORST POINT, IF F(P'')<F(XN+1) USE P'', REPLACE AND LOOP
         //                                                                 ELSE OF F(P'') IS NO BETTER THAN THE WORST POINT, SHRINK ALL POINTS TOWARDS THE BEST
         //                                                                 Xi=X0+(Xi-X0)/2
 
         // IF WE ARE HERE, IT IS GUARANTEED THAT F(P)>=F(XN)
 
-        // P''=B+G/2 (SHORT WALK THE OPPOSITE WAY)
+        // P''=(C+W)/2
         for(j=1;j<=nvars;++j)
         {
-            rplReadNumberAsReal(rplGetListElement(pointarray[nvars+1],j),&x2);   // G(j)
-            rplReadNumberAsReal(rplGetListElement(pointarray[0],j),&x1);   // B(j)
+            rplReadNumberAsReal(rplGetListElement(pointarray[nvars+1],j),&x2);   // C(j)
+            rplReadNumberAsReal(rplGetListElement(pointarray[nvars],j),&x1);   // W(j)
 
-
+            addReal(&RReg[0],&x1,&x2);
             newRealFromBINT(&RReg[2],5,-1);
-            mulReal(&RReg[0],&x2,&RReg[2]);    //  G(j)/2
-            addReal(&RReg[1],&x1,&RReg[0]);
+            mulReal(&RReg[1],&RReg[0],&RReg[2]);    //  (C(j)+W(j))/2
             rplNewRealFromRRegPush(1);
             if(Exceptions) { DSTop=stksave; return; }
         }
@@ -1428,7 +1534,7 @@ case NUMINT:
             *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
-            printf("CON: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2);
+            printf("CON: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
             //************************* DEBUG ONLY ***************************
 
 
@@ -1456,7 +1562,7 @@ case NUMINT:
 
         // P'' IS WORSE, WE ARE GOING NOWHERE. SHRINK ENTIRE GROUP OF POINTS TOWARDS THE BEST VALUE
 
-        rplDropData((nvars+1)*2+1); // DROP P(i), F(P), P'', F(P'') AND THE G POINT LIST
+        rplDropData((nvars+1)*2+1); // DROP P(i), F(P), P'', F(P'') AND THE C POINT LIST
 
         for(j=1;j<=nvars;++j) {
             newRealFromBINT(&RReg[4],5,-1); // 1/2
@@ -1485,7 +1591,7 @@ case NUMINT:
             *formatReal(&x2,Buffer1,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
-            printf("SHR: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2);
+            printf("SHR: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
             //************************* DEBUG ONLY ***************************
 
             // REPLACE POINT
@@ -1515,6 +1621,9 @@ case NUMINT:
 
 
         } while(1);
+
+
+
 
 
 
