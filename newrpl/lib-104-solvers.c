@@ -795,6 +795,7 @@ case NUMINT:
 
 
             //************************* DEBUG ONLY ***************************
+            /*
             char Buffer0[1000],Buffer1[1000],Buffer2[1000];
             rplReadNumberAsReal(rplPeekData(3),&x1);
             rplReadNumberAsReal(rplPeekData(2),&x2);
@@ -804,6 +805,7 @@ case NUMINT:
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
             printf("INI: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
+            */
             //************************* DEBUG ONLY ***************************
 
 
@@ -1163,11 +1165,11 @@ case NUMINT:
         // PHAM IMPROVEMENT TO NELDER-MEAD METHOD - QUASI GRADIENTS
 
         // MAIN LOOP:
-        BINT loopcount=1;
+        BINT noprogress=0; //loopcount=1;
         do {
 
-        printf("Pass=%d\n",loopcount);
-        loopcount++;
+        //printf("Pass=%d\n",loopcount);
+        //loopcount++;
 
         // 1.3 - CALCULATE CENTROID OF ALL POINTS EXCEPT THE WORST - C
         BINT weight=1;
@@ -1204,7 +1206,10 @@ case NUMINT:
         RReg[0].exp+=3; // COMPARE WITH TOLERANCE/1000
 
         // BREAK IF THERE'S NO PROGRESS BUT NOT IF WE ARE CLOSE TO ZERO (GUARANTEED GLOBAL MINIMUM)
-        if(lteReal(&RReg[0],&tolerance) && (intdigitsReal(&x1)>intdigitsReal(&tolerance))) break;  // WITHIN TOLERANCE, EXIT MAIN LOOP
+        if(lteReal(&RReg[0],&tolerance) && (intdigitsReal(&x1)>intdigitsReal(&tolerance))) {
+            if(noprogress>3) break;  // WITHIN TOLERANCE, EXIT MAIN LOOP
+            ++noprogress;
+        } else noprogress=0;
 
 
         if(nvars>=2) {
@@ -1289,6 +1294,7 @@ case NUMINT:
 
 
             //************************* DEBUG ONLY ***************************
+            /*
             {
             char Buffer0[1000],Buffer1[1000],Buffer2[1000];
             rplReadNumberAsReal(rplPeekData(3),&x1);
@@ -1300,6 +1306,7 @@ case NUMINT:
 
             printf("EXP: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
             }
+            */
             //************************* DEBUG ONLY ***************************
 
             // REPLACE POINT AND CONTINUE
@@ -1325,6 +1332,7 @@ case NUMINT:
 
 
         //************************* DEBUG ONLY ***************************
+        /*
         char Buffer0[1000],Buffer1[1000],Buffer2[1000];
         rplReadNumberAsReal(rplPeekData(3),&x1);
         rplReadNumberAsReal(rplPeekData(2),&x2);
@@ -1334,6 +1342,7 @@ case NUMINT:
         *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
         printf("P??: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
+        */
         //************************* DEBUG ONLY ***************************
 
         // REFLECTION DIDN'T IMPROVE ON OUR BEST POINT, FIND A POINT THROUGH GRADIENTS TO SEE IF WE CAN DO BETTER
@@ -1430,6 +1439,7 @@ case NUMINT:
 
 
                 //************************* DEBUG ONLY ***************************
+                /*
                 {
                 char Buffer0[1000],Buffer1[1000],Buffer2[1000];
                 rplReadNumberAsReal(rplPeekData(3),&x1);
@@ -1441,6 +1451,7 @@ case NUMINT:
 
                 printf("GR?: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
                 }
+                */
                 //************************* DEBUG ONLY ***************************
 
                 rplReadNumberAsReal(rplPeekData(1),&x1);        // F(G')
@@ -1451,7 +1462,7 @@ case NUMINT:
                     // F(G')<F(P) --> WE FOUND A BETTER POINT, KEEP IT
                     rplRemoveAtData(nvars+2,nvars+1);
                     swapReal(&x1,&fx);
-                    printf("Chose Gradient\n");
+                    //printf("Chose Gradient\n");
                 }
                 else rplDropData(nvars+1);  // OTHERWISE KEEP THE ORIGINAL POINT P
 
@@ -1462,6 +1473,7 @@ case NUMINT:
             // REPLACE POINT AND CONTINUE
 
             //************************* DEBUG ONLY ***************************
+            /*
             char Buffer0[1000],Buffer1[1000],Buffer2[1000];
             rplReadNumberAsReal(rplPeekData(3),&x1);
             rplReadNumberAsReal(rplPeekData(2),&x2);
@@ -1471,6 +1483,7 @@ case NUMINT:
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
             printf("REF: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
+            */
             //************************* DEBUG ONLY ***************************
 
 
@@ -1526,6 +1539,7 @@ case NUMINT:
 
 
             //************************* DEBUG ONLY ***************************
+            /*
             char Buffer0[1000],Buffer1[1000],Buffer2[1000];
             rplReadNumberAsReal(rplPeekData(3),&x1);
             rplReadNumberAsReal(rplPeekData(2),&x2);
@@ -1535,6 +1549,7 @@ case NUMINT:
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
             printf("CON: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
+            */
             //************************* DEBUG ONLY ***************************
 
 
@@ -1583,6 +1598,7 @@ case NUMINT:
 
 
             //************************* DEBUG ONLY ***************************
+            /*
             char Buffer0[1000],Buffer1[1000],Buffer2[1000];
             rplReadNumberAsReal(rplPeekData(3),&x1);
             rplReadNumberAsReal(rplPeekData(2),&x2);
@@ -1592,6 +1608,7 @@ case NUMINT:
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
             printf("SHR: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
+            */
             //************************* DEBUG ONLY ***************************
 
             // REPLACE POINT
@@ -1635,7 +1652,7 @@ case NUMINT:
 
 
         // HERE WE HAVE A SOLUTION!!
-        printf("Solution @ Pass=%d",loopcount);
+        //printf("Solution @ Pass=%d",loopcount);
         // IN THE STACK WE HAVE ORIGINAL 4 ARGUMENTS
         // THEN N+1 POINTS AND THEIR CENTROID
 
