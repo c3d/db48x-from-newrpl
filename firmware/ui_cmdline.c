@@ -1776,3 +1776,21 @@ BINT halRestoreCmdLine(WORDPTR data)
     return 1;
 
 }
+
+
+void uiOpenAndInsertTextN(BYTEPTR start,BYTEPTR end)
+{
+if(!(halGetContext()&CONTEXT_INEDITOR)) {
+
+    ScratchPointer1=(WORDPTR)start;
+    halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
+    halSetContext(halGetContext()|CONTEXT_INEDITOR);
+    uiOpenCmdLine('D');
+    end=((BYTEPTR)ScratchPointer1)+(end-start);
+    start=(BYTEPTR)ScratchPointer1;
+    }
+
+    uiInsertCharactersN(start,end);
+    uiAutocompleteUpdate();
+    halScreen.DirtyFlag|=CMDLINE_ALLDIRTY;
+}

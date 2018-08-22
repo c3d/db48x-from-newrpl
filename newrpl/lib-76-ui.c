@@ -39,7 +39,8 @@
     CMD(WAIT,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(KEYEVAL,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(KEY,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
-    CMD(DOFORM,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+    CMD(DOFORM,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EDINSERT,MKTOKENINFO(8,TITYPE_NOTALLOWED,2,2))
 
 // ADD MORE OPCODES HERE
 
@@ -381,7 +382,36 @@ void LIB_HANDLER()
 
     }
 
+case EDINSERT:
+    {
+        //@SHORT_DESC=Insert given text into the editor
+        //@NEW
 
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+
+        if(!ISSTRING(*rplPeekData(1))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
+
+
+
+        WORDPTR string=rplPeekData(1);
+        BYTEPTR start,end;
+        start=(BYTEPTR)(string+1);
+        end=start+rplStrSize(string);
+
+        uiOpenAndInsertTextN(start,end);
+
+        rplDropData(1);
+
+        return;
+
+    }
 
 
 

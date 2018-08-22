@@ -59,6 +59,8 @@ typedef uint32_t PTR2NUMBER;
 
 WORDPTR halSaveCmdLine();
 BINT halRestoreCmdLine(WORDPTR data);
+// INSERT TEXT, OPEN NEW CMD LINE IF NEEDED
+void uiOpenAndInsertTextN(BYTEPTR start,BYTEPTR end);
 
 
 extern BINT ui_visibleline,ui_nlines;
