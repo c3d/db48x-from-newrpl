@@ -7,7 +7,14 @@
 
 TARGET = newrplfw.elf
 TEMPLATE = app
+
+CONFIG(release, debug|release) {
 CONFIG = static ordered
+}
+CONFIG(debug, debug|release) {
+CONFIG = debug static ordered
+
+}
 
 DEFINES += TARGET_50G NDEBUG "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
@@ -310,13 +317,12 @@ QMAKE_CXX = arm-none-eabi-g++
 QMAKE_LINK = arm-none-eabi-gcc
 #QMAKE_AR_CMD = arm-none-eabi-ar -cqs $(TARGET) $(OBJECTS)
 #QMAKE_AR_CMD = arm-none-eabi-ld --verbose -T$$PWD/firmware/ld.script -nodefaultlibs -nostdlib -L$$GCC_LIBDIR $(OBJECTS) -lgcc -o $(TARGET).elf
-QMAKE_CFLAGS_DEBUG =
-QMAKE_CFLAGS_RELEASE =
+QMAKE_CFLAGS_DEBUG = -g -mtune=arm920t -mcpu=arm920t -mlittle-endian -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -Og -pipe -mthumb-interwork -nostdinc
+QMAKE_CFLAGS_RELEASE = -g -mtune=arm920t -mcpu=arm920t -mlittle-endian -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -O2 -pipe -mthumb-interwork -nostdinc
 QMAKE_CFLAGS_SHLIB =
 QMAKE_CFLAGS_MT =
 QMAKE_CFLAGS_MT_DBG =
 QMAKE_CFLAGS_THREAD =
-QMAKE_CFLAGS = -g -mtune=arm920t -mcpu=arm920t -mlittle-endian -fomit-frame-pointer -fno-toplevel-reorder -msoft-float -O2 -pipe -mthumb-interwork -nostdinc
 QMAKE_CFLAGS_APP =
 
 QMAKE_LFLAGS_DEBUG =

@@ -40,7 +40,16 @@
     CMD(KEYEVAL,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(KEY,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2)), \
     CMD(DOFORM,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(EDINSERT,MKTOKENINFO(8,TITYPE_NOTALLOWED,2,2))
+    CMD(EDINSERT,MKTOKENINFO(8,TITYPE_NOTALLOWED,2,2)), \
+    CMD(EDREMOVE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EDLEFT,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EDRIGHT,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EDUP,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EDDOWN,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EDSTART,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EDEND,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+
+
 
 // ADD MORE OPCODES HERE
 
@@ -413,10 +422,177 @@ case EDINSERT:
 
     }
 
+    case EDREMOVE:
+        {
+            //@SHORT_DESC=Remove characters in the editor at the cursor position
+            //@NEW
+
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
 
 
+            if(!ISNUMBER(*rplPeekData(1))) {
+                rplError(ERR_STRINGEXPECTED);
+                return;
+            }
 
 
+            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+
+            BINT64 nchars=rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions) return;
+
+            uiRemoveCharacters(nchars);
+
+            rplDropData(1);
+
+            return;
+
+        }
+    case EDLEFT:
+        {
+            //@SHORT_DESC=Move cursor to the left in the editor
+            //@NEW
+
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+
+
+            if(!ISNUMBER(*rplPeekData(1))) {
+                rplError(ERR_STRINGEXPECTED);
+                return;
+            }
+
+
+            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+
+            BINT64 nchars=rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions) return;
+
+            uiCursorLeft(nchars);
+
+            rplDropData(1);
+
+            return;
+
+        }
+    case EDRIGHT:
+        {
+            //@SHORT_DESC=Move cursor to the right in the editor
+            //@NEW
+
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+
+
+            if(!ISNUMBER(*rplPeekData(1))) {
+                rplError(ERR_STRINGEXPECTED);
+                return;
+            }
+
+
+            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+
+            BINT64 nchars=rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions) return;
+
+            uiCursorRight(nchars);
+
+            rplDropData(1);
+
+            return;
+
+        }
+    case EDUP:
+        {
+            //@SHORT_DESC=Move cursor up in the editor
+            //@NEW
+
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+
+
+            if(!ISNUMBER(*rplPeekData(1))) {
+                rplError(ERR_STRINGEXPECTED);
+                return;
+            }
+
+
+            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+
+            BINT64 nchars=rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions) return;
+
+            uiCursorUp(nchars);
+
+            rplDropData(1);
+
+            return;
+
+        }
+    case EDDOWN:
+        {
+            //@SHORT_DESC=Move cursor down in the editor
+            //@NEW
+
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+
+
+            if(!ISNUMBER(*rplPeekData(1))) {
+                rplError(ERR_STRINGEXPECTED);
+                return;
+            }
+
+
+            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+
+            BINT64 nchars=rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions) return;
+
+            uiCursorDown(nchars);
+
+            rplDropData(1);
+
+            return;
+
+        }
+    case EDSTART:
+        {
+            //@SHORT_DESC=Move cursor to the start of current line in the editor
+            //@NEW
+
+
+            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+
+            uiCursorStartOfLine();
+
+            return;
+
+        }
+     case EDEND:
+        {
+            //@SHORT_DESC=Move cursor to the end of current line in the editor
+            //@NEW
+
+
+            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+
+            uiCursorEndOfLine();
+
+            return;
+
+        }
 
 
 

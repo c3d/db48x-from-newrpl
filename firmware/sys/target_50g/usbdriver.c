@@ -701,8 +701,6 @@ void usb_ep0_receive(int newtransmission)
 
 
 
-
-
 void inline usb_checkpipe()
 {
     if( (*EP0_CSR) & EP0_SETUP_END) {

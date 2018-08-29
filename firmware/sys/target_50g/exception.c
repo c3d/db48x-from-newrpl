@@ -40,7 +40,7 @@ void __ex_hline(int y)
     yptr[0]=yptr[1]=yptr[2]=yptr[3]=yptr[4]=0xaaaaaaaa;
 }
 
-inline int __ex_width(char *string) { return StringWidth(string,(UNIFONT *)Font_6A); }
+#define __ex_width(string) StringWidth((string),(UNIFONT *)Font_6A)
 
 // GET HIGH REGISTERS R8 TO R14 + CPSR (8 WORDS)
 
