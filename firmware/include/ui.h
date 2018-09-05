@@ -95,6 +95,7 @@ void uiAutocompInsert();
 
 BYTEPTR uiAutocompStringStart();
 BYTEPTR uiAutocompStringEnd();
+BYTEPTR uiAutocompStringTokEnd();
 
 void uiSetSelectionStart();
 void uiSetSelectionEnd();

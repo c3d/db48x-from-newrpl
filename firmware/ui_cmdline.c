@@ -1472,9 +1472,11 @@ BYTEPTR uiAutocompStringTokEnd()
         }
 
     BYTEPTR start=(BYTEPTR)(CmdLineCurrentLine+1);
-    BYTEPTR end=start+halScreen.CursorPosition;
+    BINT len=rplStrSize(CmdLineCurrentLine);
+    BYTEPTR end=start+len,ptr=start+halScreen.CursorPosition;
 
-    return end;
+    while((ptr<end) && (*((char *)ptr)!=' ') && (*((char *)ptr)!='\t') && (*((char *)ptr)!='\n') && (*((char *)ptr)!='\r')) ++ptr;
+    return ptr;
 }
 
 // SET SELECTION START AT THE CURRENT CURSOR POSITION

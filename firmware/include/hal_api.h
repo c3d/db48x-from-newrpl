@@ -1229,6 +1229,12 @@ WORDPTR halGetCommandName(WORDPTR NameObject);
 // HIGHER LEVEL UI
 BINT halGetContext();
 void halSetContext(BINT KeyContext);
+void halSetCmdLineMode(BYTE mode);
+BYTE halGetCmdLineMode();
+void halForceAlphaModeOn();
+void halForceAlphaModeOff();
+
+
 
 // FORMS, PLOTS AND OTHER SCREENS
 void halSwitch2Form();

@@ -47,7 +47,13 @@
     CMD(EDUP,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(EDDOWN,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(EDSTART,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
-    CMD(EDEND,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+    CMD(EDEND,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EDLSTART,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EDLEND,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EDTOKEN,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EDACTOKEN,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(EDMODE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2))
+
 
 
 
@@ -569,6 +575,33 @@ case EDINSERT:
         }
     case EDSTART:
         {
+            //@SHORT_DESC=Move cursor to the start of text in the editor
+            //@NEW
+
+
+            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+
+            uiCursorStartOfText();
+
+            return;
+
+        }
+     case EDEND:
+        {
+            //@SHORT_DESC=Move cursor to the end of text in the editor
+            //@NEW
+
+
+            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+
+            uiCursorEndOfText();
+
+            return;
+
+        }
+
+    case EDLSTART:
+        {
             //@SHORT_DESC=Move cursor to the start of current line in the editor
             //@NEW
 
@@ -580,7 +613,7 @@ case EDINSERT:
             return;
 
         }
-     case EDEND:
+     case EDLEND:
         {
             //@SHORT_DESC=Move cursor to the end of current line in the editor
             //@NEW
@@ -594,9 +627,97 @@ case EDINSERT:
 
         }
 
+    case EDTOKEN:
+       {
+           //@SHORT_DESC=Extract one full word at the cursor location in the editor
+           //@NEW
 
 
+           if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
 
+           BYTEPTR start,end;
+
+           start=uiAutocompStringStart();
+           end=uiAutocompStringTokEnd();
+
+           WORDPTR newstr=rplCreateString(start,end);
+
+           if(!newstr) return;
+
+           rplPushData(newstr);
+
+           return;
+
+       }
+
+    case EDACTOKEN:
+       {
+           //@SHORT_DESC=Extract one word at the left of cursor location (suitable for autocomplete)
+           //@NEW
+
+
+           if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+
+           BYTEPTR start,end;
+
+           start=uiAutocompStringStart();
+           end=uiAutocompStringEnd();
+
+           WORDPTR newstr=rplCreateString(start,end);
+
+           if(!newstr) return;
+
+           rplPushData(newstr);
+
+           return;
+
+       }
+
+    case EDMODE:
+        {
+            //@SHORT_DESC=Change the cursor mode in the editor
+            //@NEW
+
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+
+
+            if(!ISSTRING(*rplPeekData(1))) {
+                rplError(ERR_STRINGEXPECTED);
+                return;
+            }
+
+
+            if(!(halGetContext()&CONTEXT_INEDITOR)) return; // DO NOTHING UNLESS AN EDITOR IS OPEN
+
+            BYTEPTR str=(BYTEPTR) (rplPeekData(1)+1);
+            if(rplStrLen(rplPeekData(1))>=1) {
+                switch(*str)
+                {
+                case 'L':
+                case 'C':
+                    halForceAlphaModeOn();
+                    halSetCmdLineMode(*str);
+                    break;
+                case 'A':
+                case 'D':
+                case 'P':
+                    halForceAlphaModeOff();
+                    halSetCmdLineMode(*str);
+                    break;
+                default:
+                    halForceAlphaModeOff();
+                    break;
+                }
+
+            }
+            rplDropData(1);
+
+            return;
+
+        }
 
 
 

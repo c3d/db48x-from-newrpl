@@ -172,6 +172,17 @@ BYTE halGetCmdLineMode()
     return halScreen.CursorState&0xff;
 }
 
+void halForceAlphaModeOn()
+{
+    halSwapCmdLineMode(1);
+    keyb_setshiftplane(0,0,1,1);
+}
+void halForceAlphaModeOff()
+{
+    halSwapCmdLineMode(0);
+    keyb_setshiftplane(0,0,0,0);
+}
+
 // DEBUG: DO-NOTHING KEYBOARD HANDLER
 void dummyKeyhandler(BINT keymsg)
 {

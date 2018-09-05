@@ -23,10 +23,21 @@
 
 @#name lib70menu_main
 {
+{ "#h" :: "#h" EDINSERT 1 EDLEFT "C" EDMODE ; }
+{ "→#h" :: #0h SWAP + ; }
+{ "#b" :: "#b" EDINSERT 1 EDLEFT ; }
+{ "→#b" :: #0b SWAP + ; }
+{ "→#d" :: 0 SWAP + ; }
+
+{ "#o" :: "#o" EDINSERT 1 EDLEFT ; }
+{ "→#o" :: #0o SWAP + ; }
+{ "" :: ; }
+STWS RCWS
+
+
 BADD BSUB BMUL BDIV { "" :: ; }
 BLSL BLSR BASR BRL BRR
 BOR BAND BXOR BNOT { "" :: ; }
-STWS RCWS
 }
 
 @#name lib70_cmdhelp
