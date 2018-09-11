@@ -137,14 +137,14 @@ void halInitBusyHandler()
 {
     halCPUSlowMode();
     halFlags=(halFlags&~HAL_AUTOOFFTIME)|SET_AUTOOFFTIME(DEFAULT_AUTOOFFTIME);        // DEFAULT TO 2 MINUTES
-    halBusyEvent=tmr_eventcreate(&busy_handler,500,0);
+    halBusyEvent=tmr_eventcreate(&busy_handler,(halFlags&HAL_QUICKRESPONSE)? 30:500,0);
 }
 
 void halSetBusyHandler()
 {
     if(!(halFlags&HAL_FASTMODE)) {
     // START THE EVENT AGAIN
-    if(halBusyEvent<=0) halBusyEvent=tmr_eventcreate(&busy_handler,500,0);
+    if(halBusyEvent<=0) halBusyEvent=tmr_eventcreate(&busy_handler,(halFlags&HAL_QUICKRESPONSE)? 30:500,0);
     }
 }
 
@@ -201,6 +201,8 @@ halUpdateFonts();
 if(rplTestSystemFlag(FL_HIDEMENU2)) halSetMenu2Height(0);
 else halSetMenu2Height(MENU2_HEIGHT);
 
+if(rplTestSystemFlag(FL_QUICKRESPONSE)) halFlags|=HAL_QUICKRESPONSE;
+else halFlags&=~HAL_QUICKRESPONSE;
 // RESTORE STACK
 saved=rplGetSettings((WORDPTR)stksave_ident);
 

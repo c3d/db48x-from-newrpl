@@ -323,16 +323,24 @@ HEADERS += external/hidapi/hidapi/hidapi.h
 win32: SOURCES += external/hidapi/windows/hid.c
 win32: LIBS += -lsetupapi
 
+android: SOURCES += external/hidapi/libusb/hid.c
+android: INCLUDEPATH += external/libusb-1.0.22/libusb/
+android: LIBS += -L$$PWD/external/libusb-1.0.22/android/libs -lusb
 
 freebsd: SOURCES += external/hidapi/libusb/hid.c
 freebsd: LIBS += -lusb -lthr -liconv
 
-unix:!macx:!freebsd: SOURCES += external/hidapi/linux/hid.c
-unix:!macx:!freebsd: LIBS += -ludev
+unix:!macx:!freebsd:!android: SOURCES += external/hidapi/linux/hid.c
+unix:!macx:!freebsd:!android: LIBS += -ludev
 
 macx: SOURCES += external/hidapi/mac/hid.c
 macx: LIBS += -framework CoreFoundation -framework IOKit
 
 # End of HIDAPI
+
+contains(ANDROID_TARGET_ARCH,armeabi-v7a) {
+    ANDROID_EXTRA_LIBS = \
+        $$PWD/external/libusb-1.0.22/android/libs/armeabi-v7a/libusb1.0.so
+}
 
 

@@ -31,6 +31,10 @@ BINT halWaitForKey()
 
     if(!keymsg) {
     // FIRST: ENTER LOW SPEED MODE
+    // UPDATE RESPONSIVENESS FLAG
+    if(rplTestSystemFlag(FL_QUICKRESPONSE)) halFlags|=HAL_QUICKRESPONSE;
+    else halFlags&=~HAL_QUICKRESPONSE;
+
     if(halFlags&HAL_FASTMODE) {
     halCPUSlowMode();
     halFlags&=~HAL_FASTMODE;
@@ -87,6 +91,9 @@ BINT halWaitForKeyTimeout(BINT timeoutms)
 
     if(!keymsg) {
     // FIRST: ENTER LOW SPEED MODE
+    if(rplTestSystemFlag(FL_QUICKRESPONSE)) halFlags|=HAL_QUICKRESPONSE;
+    else halFlags&=~HAL_QUICKRESPONSE;
+
     if(halFlags&HAL_FASTMODE) {
     halCPUSlowMode();
     halFlags&=~HAL_FASTMODE;
