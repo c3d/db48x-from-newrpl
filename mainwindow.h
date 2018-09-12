@@ -39,6 +39,7 @@ protected:
     virtual void keyReleaseEvent(QKeyEvent *ev);
     void closeEvent(QCloseEvent *event);
     bool eventFilter(QObject *obj, QEvent *ev);
+    void resizeEvent(QResizeEvent *event);
 
 private slots:
     void on_EmuScreen_destroyed();

@@ -119,8 +119,8 @@ QEmuScreen::QEmuScreen(QWidget *parent) :
     setScene(&scr);
     setSceneRect(0,-5,screen_width,screen_height+5);
     centerOn(qreal(screen_width)/2,qreal(screen_height)/2);
-    scale(4.0,4.0);
-
+    m_scale=1.0;
+    setScale(4.0);
 
 
     show();
@@ -138,6 +138,17 @@ void QEmuScreen::setWord(int offset,unsigned int color)
     for(f=0;f<32;++f) {
         Pixels[offset+f]->setBrush(GrayBrush[(color>>(f*4))&15]);
     }
+}
+
+void QEmuScreen::setScale(qreal _scale)
+{
+    scale(_scale/m_scale,_scale/m_scale);
+    m_scale=_scale;
+
+    QSize s;
+    s.setWidth(0);
+    s.setHeight((screen_height+5)*m_scale);
+    setMinimumSize(s);
 }
 
 
@@ -215,3 +226,4 @@ void QEmuScreen::update()
     }
 
 }
+

@@ -130,6 +130,23 @@ void MainWindow::closeEvent(QCloseEvent *event)
 
 }
 
+void MainWindow::resizeEvent(QResizeEvent *event)
+{
+    int w,h;
+    qreal scale;
+
+
+    w=ui->EmuScreen->screen_width;
+    h=ui->EmuScreen->screen_height+5;
+    if(!h) h=80;
+    if(!w) w=131;
+    scale=((qreal)event->size().width())/w;
+    if((int)scale<1) scale=1.0;
+    if(event->size().height()*0.40<scale*h) scale=event->size().height()*0.40/h;
+    ui->EmuScreen->setScale((int)scale);
+
+
+}
 
 void MainWindow::on_EmuScreen_destroyed()
 {
@@ -350,6 +367,8 @@ struct mousemap {
 { Qt::Key_CapsLock,   61      ,0.00862069,0.161638,  0.716946,0.783985 },
 { Qt::Key_Control,    62      ,0.00862069,0.161638,  0.817505,0.886406 },
 { Qt::Key_Home,       63      ,0.00862069,0.118534,  0.918063,0.979516 },
+
+{ Qt::Key_F10,        64      ,0.872845,0.987069,  0.108007,0.163873 },
 
 // ADD MORE KEYS HERE
 
@@ -1119,9 +1138,15 @@ if(obj == ui->KeybImage)
         if( (relx>=ptr->left)&&(relx<=ptr->right)&&(rely>=ptr->top)&&(rely<=ptr->bot)) {
             // CLICKED INSIDE A KEY
 
+            if(ptr->keynum==64) {
+                // PRESSED THE SIMULATED MAIN MENU KEY
+                menuBar()->activateWindow();
+            }
+            else {
             //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
                         __pckeymatrix|=1ULL<<(ptr->keynum);
                         __keyb_update();
+            }
         }
         ptr++;
     }

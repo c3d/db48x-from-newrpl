@@ -325,7 +325,7 @@ win32: LIBS += -lsetupapi
 
 android: SOURCES += external/hidapi/libusb/hid.c
 android: INCLUDEPATH += external/libusb-1.0.22/libusb/
-android: LIBS += -L$$PWD/external/libusb-1.0.22/android/libs -lusb
+android: LIBS += -L$$PWD/external/libusb-1.0.22/android/libs/armeabi-v7a -lusb1.0
 
 freebsd: SOURCES += external/hidapi/libusb/hid.c
 freebsd: LIBS += -lusb -lthr -liconv
@@ -342,5 +342,23 @@ contains(ANDROID_TARGET_ARCH,armeabi-v7a) {
     ANDROID_EXTRA_LIBS = \
         $$PWD/external/libusb-1.0.22/android/libs/armeabi-v7a/libusb1.0.so
 }
+
+DISTFILES += \
+    android/AndroidManifest.xml \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradlew \
+    android/res/values/libs.xml \
+    android/build.gradle \
+    android/gradle/wrapper/gradle-wrapper.properties \
+    android/gradlew.bat \
+    android/AndroidManifest.xml \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradlew \
+    android/res/values/libs.xml \
+    android/build.gradle \
+    android/gradle/wrapper/gradle-wrapper.properties \
+    android/gradlew.bat
+
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android
 
 

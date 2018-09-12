@@ -18,6 +18,7 @@ public:
     // SIZE OF THE SCREEN TO EMULATE
     int screen_width;
     int screen_height;
+    qreal m_scale;
     // MAIN COLORS, ALL GRAYS WILL BE INTERPOLATED
     QColor BkgndColor;
     QColor MainColor;
@@ -36,7 +37,9 @@ public:
     void setPixel(int offset,int color);
     void setWord(int offset,unsigned int color);
     void setMode(int _mode,unsigned int *_buffer);
+    void setScale(qreal _scale);
     explicit QEmuScreen(QWidget *parent = 0);
+
 
 signals:
 
