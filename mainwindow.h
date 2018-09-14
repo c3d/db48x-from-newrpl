@@ -41,7 +41,7 @@ protected:
     bool eventFilter(QObject *obj, QEvent *ev);
     void resizeEvent(QResizeEvent *event);
 
-private slots:
+public slots:
     void on_EmuScreen_destroyed();
     void on_actionExit_triggered();
 

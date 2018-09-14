@@ -4,9 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       += core gui quick widgets quickcontrols2
 
 TARGET = newrpl-ui
 TEMPLATE = app
@@ -295,7 +293,8 @@ FORMS    += mainwindow.ui \
     usbselector.ui
 
 RESOURCES += \
-    annunciators.qrc
+    annunciators.qrc \
+    qml.qrc
 
 
 

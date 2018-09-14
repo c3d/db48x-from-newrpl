@@ -1140,7 +1140,7 @@ if(obj == ui->KeybImage)
 
             if(ptr->keynum==64) {
                 // PRESSED THE SIMULATED MAIN MENU KEY
-                menuBar()->activateWindow();
+                //menuBar()->activateWindow();
             }
             else {
             //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
