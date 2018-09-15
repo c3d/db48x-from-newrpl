@@ -74,6 +74,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
 
+    ui->KeybImage->setAttribute(Qt::WA_AcceptTouchEvents);
     ui->KeybImage->installEventFilter(this);
 
     __usb_curdevice=0;
@@ -1121,6 +1122,64 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *ev)
 {
 if(obj == ui->KeybImage)
 {
+    if( (ev->type() == QEvent::TouchBegin)||(ev->type() == QEvent::TouchUpdate)||(ev->type() == QEvent::TouchEnd)||(ev->type() == QEvent::TouchCancel))  {
+        // ACCEPT THE TOUCH
+        QTouchEvent *me = static_cast<QTouchEvent *>(ev);
+        int npoints,k,pressed;
+        npoints=me->touchPoints().count();
+        for(k=0;k<npoints;++k) {
+        QPointF coordinates = me->touchPoints().at(k).startPos();
+        qreal relx,rely;
+
+        if(me->touchPoints().at(k).state() & Qt::TouchPointPressed) pressed=1;
+        else if(me->touchPoints().at(k).state() & Qt::TouchPointReleased) pressed=0;
+             else continue; // NOT INTERESTED IN DRAGGING
+
+
+        relx=coordinates.x()/(qreal)ui->KeybImage->width();
+        rely=coordinates.y()/(qreal)ui->KeybImage->height();
+
+        //qDebug() << "PRESS x=" << relx << ", y=" << rely ;
+
+        struct mousemap *ptr=mouseMap;
+
+        while(ptr->key!=0) {
+            if( (relx>=ptr->left)&&(relx<=ptr->right)&&(rely>=ptr->top)&&(rely<=ptr->bot)) {
+                // CLICKED INSIDE A KEY
+
+                if(ptr->keynum==64) {
+                    // PRESSED THE SIMULATED MAIN MENU KEY
+                    //menuBar()->activateWindow();
+                }
+                else {
+                //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
+                            if(pressed)
+                            { __pckeymatrix|=1ULL<<(ptr->keynum);
+                            qDebug() << "PRESS x=" << relx << ", y=" << rely << ", key=" << ptr->keynum;
+                            if(ptr->keynum==63) {
+                                // CHECK IF ON WAS PRESSED AND THE CALCULATOR WAS OFF
+                                if(!rpl.isRunning()) on_actionPower_ON_triggered();
+                            }
+                            }
+                            else {
+                                __pckeymatrix&=~(1ULL<<(ptr->keynum));
+                                qDebug() << "RELEA x=" << relx << ", y=" << rely << ", key=" << ptr->keynum;
+                            }
+
+                            __keyb_update();
+                }
+            }
+            ptr++;
+        }
+        }
+
+        return true;
+
+
+
+    }
+
+
     if( ev->type() == QEvent::MouseButtonPress)
 {
     QMouseEvent *me = static_cast<QMouseEvent *>(ev);
@@ -1146,6 +1205,11 @@ if(obj == ui->KeybImage)
             //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
                         __pckeymatrix|=1ULL<<(ptr->keynum);
                         __keyb_update();
+                        if(ptr->keynum==63) {
+                            // CHECK IF ON WAS PRESSED AND THE CALCULATOR WAS OFF
+                            if(!rpl.isRunning()) on_actionPower_ON_triggered();
+                        }
+
             }
         }
         ptr++;
