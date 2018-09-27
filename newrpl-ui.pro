@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui quick widgets quickcontrols2
+QT       += core gui quick widgets quickcontrols2 quickwidgets
 
 TARGET = newrpl-ui
 TEMPLATE = app
@@ -221,7 +221,8 @@ SOURCES += main.cpp\
     usbselector.cpp \
     newrpl/lib-100-usb.c \
     newrpl/lib-102-libptr.c \
-    newrpl/lib-104-solvers.c
+    newrpl/lib-104-solvers.c \
+    menuwidget.cpp
 
 
 HEADERS  += mainwindow.h \
@@ -249,7 +250,8 @@ HEADERS  += mainwindow.h \
     newrpl/render.h \
     firmware/include/target_pc.h \
     firmware/include/firmware.h \
-    usbselector.h
+    usbselector.h \
+    menuwidget.h
 
 RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-9.nrpl \

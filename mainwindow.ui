@@ -28,6 +28,22 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
+     <widget class="menuWidget" name="menuw" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="MinimumExpanding" vsizetype="Minimum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>1</height>
+       </size>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QEmuScreen" name="EmuScreen">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -312,6 +328,12 @@ border-width: 0px;</string>
    <slots>
     <slot>setScreenSize(int,int)</slot>
    </slots>
+  </customwidget>
+  <customwidget>
+   <class>menuWidget</class>
+   <extends>QWidget</extends>
+   <header>menuwidget.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

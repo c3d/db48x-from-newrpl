@@ -1,9 +1,6 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.3
-
-ApplicationWindow {
-        menuBar: MenuBar {
-
+Drawer {
             Menu {
             title: "File"
             Action {
@@ -34,6 +31,7 @@ ApplicationWindow {
                 onTriggered: mymainWindow.on_actionExit_triggered();
             }
         }
+
         Menu {
             title: "Stack"
             Action {
@@ -113,5 +111,5 @@ ApplicationWindow {
 
 
         }
-    }
-    }
+
+}

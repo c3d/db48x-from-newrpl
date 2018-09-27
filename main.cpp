@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QApplication a(argc, argv);
-
+/*
     QQmlApplicationEngine engine;
     engine.load(QUrl(QStringLiteral("qrc:///qml/main.qml")));
     if (engine.rootObjects().isEmpty())
@@ -27,16 +27,16 @@ int main(int argc, char *argv[])
     QWindow *qmlWindow = qobject_cast<QWindow*>(engine.rootObjects().at(0));
     QWidget *container = QWidget::createWindowContainer(qmlWindow);
     container->setMinimumSize (qmlWindow->size ().width (), qmlWindow->size ().height ()+30);
-
+*/
     MainWindow w;
 
-    w.setMenuWidget (container);
+//    w.setMenuWidget (container);
 
 
     w.show();
 
 
-    engine.rootContext()->setContextProperty("mymainWindow", &w);
+//    engine.rootContext()->setContextProperty("mymainWindow", &w);
 
     return a.exec();
 }

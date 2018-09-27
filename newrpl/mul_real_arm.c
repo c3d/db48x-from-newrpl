@@ -65,7 +65,7 @@ void mul_real_arm(BINT *rdata,BINT *adata,BINT *bdata,UBINT len)
     // DO CARRY CORRECTION LOOP
     asm volatile ("push {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,r12,r14}");
     asm volatile ("sub r0,r0,#32");     // R0 = SOURCE PTR
-    asm volatile ("add r1,r10,#40");    // R1 = NWORDS*4
+    asm volatile ("add r1,r11,#40");    // R1 = NWORDS*4
     asm volatile ("add r2,r0,r1");     // R2 = END PTR
 
     // THE NEXT 2 LINES ARE VOODOO TO MAKE GCC PUT carry_table IN R3
