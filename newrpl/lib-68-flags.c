@@ -410,7 +410,7 @@ BINT rplSetSystemFlag(BINT flag)
     WORDPTR hi64=SystemFlags+5;
     if(flag>=-32) low64[0]|=(1 << -(flag+1));
     else if(flag>=-64) low64[1]|=(1 << -(flag+33));
-    else if(flag>=96) hi64[0]|=(1 << -(flag+65));
+    else if(flag>=-96) hi64[0]|=(1 << -(flag+65));
     else hi64[1]|=(1 << -(flag+97));
 
     return 0;
@@ -428,7 +428,7 @@ BINT rplClrSystemFlag(BINT flag)
     WORDPTR hi64=SystemFlags+5;
     if(flag>=-32) low64[0]&=~(1 << -(flag+1));
     else if(flag>=-64) low64[1]&=~(1 << -(flag+33));
-    else if(flag>=96) hi64[0]&=~(1 << -(flag+65));
+    else if(flag>=-96) hi64[0]&=~(1 << -(flag+65));
     else hi64[1]&=~(1 << -(flag+97));
 
     return 0;
@@ -531,7 +531,7 @@ BINT rplTestSystemFlag(BINT flag)
         BINT result;
         if(flag>=-32) result=low64[0]&(1 << -(flag+1));
         else if(flag>=-64) result=low64[1]&(1 << -(flag+33));
-        else if(flag>=96) result=hi64[0]&(1 << -(flag+65));
+        else if(flag>=-96) result=hi64[0]&(1 << -(flag+65));
         else result=hi64[1]&(1 << -(flag+97));
         if(result) return 1;
         return 0;

@@ -295,7 +295,11 @@ BINT endCmdLineAndCompile()
                                 Exceptions=0;
                             }
                         }
-                        else halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                        else {
+                            halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                            if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                        }
 
                     }
                     else {
@@ -316,7 +320,11 @@ BINT endCmdLineAndCompile()
                                 Exceptions=0;
                             }
                         }
-                        else halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                        else {
+                            halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                            if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                        }
 
                     }
                 }
@@ -519,7 +527,11 @@ if(iseval) {
                         Exceptions=0;
                     }
                 }
-                else halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                else {
+                    halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                    if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                    if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                }
 
             }
             else {
@@ -539,7 +551,11 @@ if(iseval) {
                             Exceptions=0;
                         }
                     }
-                    else halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                    else {
+                        halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                        if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                        if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                    }
                     rplClearErrors();
 
 
@@ -644,7 +660,12 @@ if(iseval) {
                         Exceptions=0;
                     }
                 }
-                else halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                else {
+                    halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                    if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                    if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                }
+
 
             }
             else {
@@ -663,7 +684,11 @@ if(iseval) {
                             Exceptions=0;
                         }
                     }
-                    else halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                    else {
+                        halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                        if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                        if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                    }
                     rplClearErrors();
 
             }
