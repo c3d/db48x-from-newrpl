@@ -940,7 +940,7 @@ if(!SDSendACmdLongResp(card->Rca,51,card->Rca,(int *)CSD)) { halFlags&=~HAL_NOCL
   return FALSE; }
 
 card->BusWidth=0;
-if( (CSD[1]&0xf0000) == 0xf0000) {
+if( (CSD[1]&0x40000) ) {
 // ENABLE WIDE BUS SUPPORT
 if(!SDSendACmdShortResp(card->Rca,6,2,(int *)CSD)) { halFlags&=~HAL_NOCLOCKCHANGE;
  return FALSE; }
