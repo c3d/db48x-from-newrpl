@@ -273,6 +273,7 @@ BINT endCmdLineAndCompile()
                     halFlags|=HAL_HALTED;
                     if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
                     if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                    if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
                     if(Exceptions&EX_AUTORESUME) {
                         halFlags|=HAL_AUTORESUME;
                         Exceptions=0;
@@ -290,6 +291,7 @@ BINT endCmdLineAndCompile()
                             halFlags|=HAL_HALTED;
                             if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
                             if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                            if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
                             if(Exceptions&EX_AUTORESUME) {
                                 halFlags|=HAL_AUTORESUME;
                                 Exceptions=0;
@@ -299,6 +301,7 @@ BINT endCmdLineAndCompile()
                             halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
                             if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
                             if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                            if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
                         }
 
                     }
@@ -313,6 +316,7 @@ BINT endCmdLineAndCompile()
                             halFlags|=HAL_HALTED;
                             if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
                             if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                            if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
 
 
                             if(Exceptions&EX_AUTORESUME) {
@@ -324,6 +328,7 @@ BINT endCmdLineAndCompile()
                             halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
                             if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
                             if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                            if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
                         }
 
                     }
@@ -338,7 +343,7 @@ BINT endCmdLineAndCompile()
 
             if(Exceptions) {
                 // TODO: SHOW ERROR MESSAGE
-                halShowErrorMsg();
+                if(!(halFlags&(HAL_RESET|HAL_HWRESET))) halShowErrorMsg();
                 Exceptions=0;
                 return 1;
             }
@@ -502,6 +507,7 @@ if(iseval) {
             halFlags|=HAL_HALTED;
             if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
             if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+            if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
 
 
             if(Exceptions&EX_AUTORESUME) {
@@ -520,6 +526,7 @@ if(iseval) {
                     halFlags|=HAL_HALTED;
                     if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
                     if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                    if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
 
 
                     if(Exceptions&EX_AUTORESUME) {
@@ -531,6 +538,7 @@ if(iseval) {
                     halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
                     if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
                     if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                    if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
                 }
 
             }
@@ -544,6 +552,7 @@ if(iseval) {
                         halFlags|=HAL_HALTED;
                         if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
                         if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                        if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
 
 
                         if(Exceptions&EX_AUTORESUME) {
@@ -555,6 +564,7 @@ if(iseval) {
                         halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
                         if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
                         if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                        if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
                     }
                     rplClearErrors();
 
@@ -634,6 +644,7 @@ if(iseval) {
             halFlags|=HAL_HALTED;
             if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
             if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+            if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
 
 
             if(Exceptions&EX_AUTORESUME) {
@@ -653,6 +664,7 @@ if(iseval) {
                     halFlags|=HAL_HALTED;
                     if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
                     if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                    if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
 
 
                     if(Exceptions&EX_AUTORESUME) {
@@ -664,6 +676,7 @@ if(iseval) {
                     halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
                     if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
                     if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                    if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
                 }
 
 
@@ -678,6 +691,7 @@ if(iseval) {
                         halFlags|=HAL_HALTED;
                         if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
                         if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                        if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
 
                         if(Exceptions&EX_AUTORESUME) {
                             halFlags|=HAL_AUTORESUME;
@@ -688,6 +702,7 @@ if(iseval) {
                         halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
                         if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
                         if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                        if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
                     }
                     rplClearErrors();
 
@@ -2265,8 +2280,10 @@ void  enterKeyHandler(BINT keymsg)
 
      if(endCmdLineAndCompile()) {
          halScreen.DirtyFlag|=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
+         if(!halFlags&(HAL_HWRESET|HAL_RESET)) {
          rplRemoveSnapshot(halScreen.StkUndolevels+2);
          rplRemoveSnapshot(halScreen.StkUndolevels+1);
+         }
 
      }
      else  {
@@ -6745,7 +6762,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
     halTimeoutEvent=-1;
 
     do {
-        halRedrawAll(&scr);
+        if(!(halFlags&HAL_HWRESET)) halRedrawAll(&scr);
         if(!(flags&OL_NOEXIT) && halExitOuterLoop()) break;
         if(halFlags&HAL_POWEROFF)
         {
@@ -6754,14 +6771,17 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
                 if(FSCardInserted()) FSShutdown();
                 else FSShutdownNoCard();
             }
-            if(!(halFlags&HAL_RESET)) {
+            if(!(halFlags&(HAL_RESET|HAL_HWRESET))) {
                 halPreparePowerOff();
                 halEnterPowerOff();
             }
             else {
-                halFlags=0;   // DURING HAL RESET, DON'T PRESERVE THE FLAGS
-                halPreparePowerOff();
-                halFlags=HAL_RESET;
+                if(!(halFlags&HAL_HWRESET)) {
+                    halFlags=0;   // DURING HAL RESET, DON'T PRESERVE THE FLAGS
+                    halPreparePowerOff();
+                    halFlags=HAL_RESET;
+                } else halReset();  // THIS FUNCTION DOES NOT RETURN
+
             }
            return;
         }

@@ -892,6 +892,7 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap);
 #define EX_TIMER          1024
 #define EX_ALARM          2048
 #define EX_HALRESET       4096
+#define EX_HWRESET        8192
 
 // ADD OTHER EXCEPTIONS HERE
 

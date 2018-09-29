@@ -57,6 +57,7 @@ int BusWidth;
 int MaxBlockLen;
 int WriteBlockLen;
 int CurrentBLen;
+int WantedClock;
 unsigned int CardSize;
 unsigned int CID[4];
 } SD_CARD;

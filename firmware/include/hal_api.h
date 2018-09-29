@@ -102,7 +102,8 @@ enum halFlagsEnum {
     HAL_FASTAUTORESUME=2048,
     HAL_POWEROFF=4096,
     HAL_RESET=8192,
-    HAL_QUICKRESPONSE=16384
+    HAL_HWRESET=16384,
+    HAL_QUICKRESPONSE=32768
     // ADD MORE BITS HERE
 
     // STARTING WITH 2^16 = 65536 ARE NOTIFICATION FLAGS
@@ -1185,6 +1186,7 @@ void halPreparePowerOff();
 void halWakeUp();
 void halCPUSlowMode();
 void halCPUFastMode();
+void halReset();
 
 
 // TIMER FUNCTIONS

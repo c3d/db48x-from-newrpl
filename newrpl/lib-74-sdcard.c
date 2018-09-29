@@ -2350,7 +2350,7 @@ case SDPATH:
         case 2:
             // SOME ERRORS, BUT rplWarmInit WILL FIX AUTOMATICALLY
             GCFlags=GC_COMPLETED;   // MARK THAT GC WAS COMPLETED SO HARDWARE INTERRUPTS ARE ACCEPTED AGAIN
-            rplException(EX_POWEROFF|EX_HALRESET);  // REQUEST A COMPLETE HAL RESET
+            rplException(EX_POWEROFF|EX_HWRESET);  // REQUEST A COMPLETE HARDWARE RESET
             return;
         }
 

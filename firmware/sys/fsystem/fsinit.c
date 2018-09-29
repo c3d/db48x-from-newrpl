@@ -62,7 +62,7 @@ SDPowerDown();
 SDIOSetup(&temp,FS_OK);
 FSystem.Init=0;
 simpfree(dsk);
-return FS_ERROR;
+return FS_NOCARD;
 }
 FSystem.Init=1;
 

@@ -438,7 +438,8 @@ if(card->SysFlags&2) return TRUE;
 SDIOReset();
 if(SDIOSetup(card,FALSE)) {
 
-SDSetClock(600000);		// SET INITIAL CLOCK AT 600 kHz
+card->WantedClock=600000;
+SDSetClock(card->WantedClock);		// SET INITIAL CLOCK AT 600 kHz
 
 SDPowerUp();			// START CLOCK
 
@@ -621,6 +622,9 @@ blocks=((endaddr+(1<<card->CurrentBLen)-1)>>card->CurrentBLen)-startaddr;
 startaddr<<=card->CurrentBLen;
 
 halFlags|=HAL_NOCLOCKCHANGE;
+
+SDSetClock(card->WantedClock);
+
 
 //printf("DSTA=%04X\n",*SDIDSTA);
 //printf("FSTA=%04X\n",*SDIFSTA);
@@ -897,7 +901,8 @@ if(card->Rca&1) { card->SysFlags|=16; card->Rca&=~1; }
 
 // SWITCH TO HIGH SPEED MODE
 SDPowerDown();
-SDSetClock(20000000);
+card->WantedClock=20000000;
+SDSetClock(card->WantedClock);
 SDPowerUp();
 
 // GET CSD TO OBTAIN TOTAL SIZE OF CARD, SECTOR AND BLOCK LENGTH
@@ -1000,6 +1005,7 @@ finalblock=startaddr+(blocks<<card->CurrentBLen);
 
 halFlags|=HAL_NOCLOCKCHANGE;
 
+SDSetClock(card->WantedClock);
 
 if(startaddr!=SDAddr) {
 startbuffer=simpmallocb(blmask+1);
