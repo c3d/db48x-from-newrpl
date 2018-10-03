@@ -901,7 +901,7 @@ if(card->Rca&1) { card->SysFlags|=16; card->Rca&=~1; }
 
 // SWITCH TO HIGH SPEED MODE
 SDPowerDown();
-card->WantedClock=20000000;
+card->WantedClock=6000000;
 SDSetClock(card->WantedClock);
 SDPowerUp();
 

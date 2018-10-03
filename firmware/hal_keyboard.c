@@ -6762,7 +6762,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
     halTimeoutEvent=-1;
 
     do {
-        if(!(halFlags&HAL_HWRESET)) halRedrawAll(&scr);
+        if(!(halFlags&(HAL_RESET|HAL_HWRESET))) halRedrawAll(&scr);
         if(!(flags&OL_NOEXIT) && halExitOuterLoop()) break;
         if(halFlags&HAL_POWEROFF)
         {
@@ -6777,8 +6777,8 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
             }
             else {
                 if(!(halFlags&HAL_HWRESET)) {
-                    halFlags=0;   // DURING HAL RESET, DON'T PRESERVE THE FLAGS
-                    halPreparePowerOff();
+                    //halFlags=0;   // DURING HAL RESET, DON'T PRESERVE THE FLAGS
+                    //halPreparePowerOff(); // DON'T DO A POWEROFF PROCEDURE
                     halFlags=HAL_RESET;
                 } else halReset();  // THIS FUNCTION DOES NOT RETURN
 
@@ -6844,7 +6844,10 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
             if(!(flags&OL_NOSDFLUSH) && !(jobdone&1) && FSIsInit()) {
 
             if(halTicks()-offcounter >=3000000) {
-                if(FSIsDirty()) { FSFlushAll(); halUpdateStatus(); }
+                if(FSIsDirty()) {
+                    FSFlushAll();
+                    halUpdateStatus();
+                }
                 jobdone|=1;
                 isidle=0;
             }

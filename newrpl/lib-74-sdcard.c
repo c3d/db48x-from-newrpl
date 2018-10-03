@@ -2243,7 +2243,7 @@ case SDPATH:
             return;
             }
 
-        // PACK THE STACK
+        // ALSO PACK AND SAVE THE STACK
         WORDPTR stklist=0;
 
         if(rplDepthData()>1) stklist=rplCreateListN(rplDepthData()-1,2,0);
@@ -2350,7 +2350,7 @@ case SDPATH:
         case 2:
             // SOME ERRORS, BUT rplWarmInit WILL FIX AUTOMATICALLY
             GCFlags=GC_COMPLETED;   // MARK THAT GC WAS COMPLETED SO HARDWARE INTERRUPTS ARE ACCEPTED AGAIN
-            rplException(EX_POWEROFF|EX_HWRESET);  // REQUEST A COMPLETE HARDWARE RESET
+            rplException(EX_POWEROFF|EX_HALRESET);  // REQUEST A COMPLETE HAL RESET
             return;
         }
 
