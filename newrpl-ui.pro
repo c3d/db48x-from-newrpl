@@ -221,8 +221,7 @@ SOURCES += main.cpp\
     usbselector.cpp \
     newrpl/lib-100-usb.c \
     newrpl/lib-102-libptr.c \
-    newrpl/lib-104-solvers.c \
-    menuwidget.cpp
+    newrpl/lib-104-solvers.c
 
 
 HEADERS  += mainwindow.h \

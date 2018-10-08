@@ -375,4 +375,9 @@ ULIST
 "Get a list of all custom
 defined units
  → L "
+
+1_Pa
+"One Pascal!
+
+"
 }

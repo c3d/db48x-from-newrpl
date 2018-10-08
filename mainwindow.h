@@ -40,6 +40,7 @@ protected:
     void closeEvent(QCloseEvent *event);
     bool eventFilter(QObject *obj, QEvent *ev);
     void resizeEvent(QResizeEvent *event);
+    void contextMenuEvent(QContextMenuEvent *event);
 
 public slots:
     void on_EmuScreen_destroyed();
@@ -90,6 +91,8 @@ public slots:
 public slots:
     void usbupdate();
     void domaintimer();
+private slots:
+
 private:
     int OpenFile(QString fname);
     void SaveFile(QString fname);

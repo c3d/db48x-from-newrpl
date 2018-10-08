@@ -76,6 +76,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->KeybImage->setAttribute(Qt::WA_AcceptTouchEvents);
     ui->KeybImage->installEventFilter(this);
+    ui->EmuScreen->setAttribute(Qt::WA_AcceptTouchEvents);
+    ui->EmuScreen->installEventFilter(this);
 
     __usb_curdevice=0;
     currentusb.clear();
@@ -1136,6 +1138,7 @@ if(obj == ui->KeybImage)
              else continue; // NOT INTERESTED IN DRAGGING
 
 
+
         relx=coordinates.x()/(qreal)ui->KeybImage->width();
         rely=coordinates.y()/(qreal)ui->KeybImage->height();
 
@@ -1185,6 +1188,12 @@ if(obj == ui->KeybImage)
     QMouseEvent *me = static_cast<QMouseEvent *>(ev);
     QPoint coordinates = me->pos();
     qreal relx,rely;
+
+    /*if(coordinates.y()<30) {
+        // TOUCHED THE TOP BAR, SHOW THE MENU
+        contextMenuEvent(NULL);
+        return true;
+    }*/
 
     relx=(qreal)me->x()/(qreal)ui->KeybImage->width();
     rely=(qreal)me->y()/(qreal)ui->KeybImage->height();
@@ -1243,8 +1252,68 @@ if(obj == ui->KeybImage)
 
     return true;
 }
+
+    return false;
 }
+
+if(obj == ui->EmuScreen) {
+    if( (ev->type() == QEvent::TouchBegin)||(ev->type() == QEvent::TouchUpdate)||(ev->type() == QEvent::TouchEnd)||(ev->type() == QEvent::TouchCancel))  {
+        // ACCEPT THE TOUCH
+        QTouchEvent *me = static_cast<QTouchEvent *>(ev);
+        int npoints,k,pressed;
+        npoints=me->touchPoints().count();
+        for(k=0;k<npoints;++k) {
+        QPointF coordinates = me->touchPoints().at(k).startPos();
+
+        if(me->touchPoints().at(k).state() & Qt::TouchPointPressed) pressed=1;
+        else if(me->touchPoints().at(k).state() & Qt::TouchPointReleased) pressed=0;
+             else continue; // NOT INTERESTED IN DRAGGING
+
+        if(pressed && (coordinates.y()<30)) {
+            contextMenuEvent(NULL);
+            return true;
+        }
+        }
+
+        }
+
+    if( ev->type() == QEvent::MouseButtonPress)
+{
+    QMouseEvent *me = static_cast<QMouseEvent *>(ev);
+    QPoint coordinates = me->pos();
+    qreal relx,rely;
+
+    if(coordinates.y()<30) {
+        // TOUCHED THE TOP BAR, SHOW THE MENU
+        contextMenuEvent(NULL);
+        return true;
+    }
+
+
+}
+
+}
+
 
 return false;
 }
 
+void MainWindow::contextMenuEvent(QContextMenuEvent *event)
+  {
+    QMenu popup;
+    popup.addMenu(ui->menuFile);
+    popup.addMenu(ui->menuStack);
+    popup.addMenu(ui->menuHardware);
+    popup.setStyleSheet("font-size: 24px;");
+    QString menufilestyle=ui->menuFile->styleSheet();
+    ui->menuFile->setStyleSheet("font-size: 24px;");
+    QString menustkstyle=ui->menuStack->styleSheet();
+    ui->menuStack->setStyleSheet("font-size: 24px;");
+    QString menuhardstyle=ui->menuHardware->styleSheet();
+    ui->menuHardware->setStyleSheet("font-size: 24px;");
+    popup.exec(ui->centralWidget->mapToGlobal(ui->EmuScreen->pos()));
+
+    ui->menuFile->setStyleSheet(menufilestyle);
+    ui->menuStack->setStyleSheet(menustkstyle);
+    ui->menuHardware->setStyleSheet(menuhardstyle);
+  }
