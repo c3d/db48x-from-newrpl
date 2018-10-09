@@ -178,6 +178,8 @@ void libGetPTRFromID(WORDPTR *table,WORD id);
 void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds);
 void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds);
 void libFindMsg(BINT message,WORDPTR table);
+WORD libComputeHash(WORDPTR object);
+
 
 
 

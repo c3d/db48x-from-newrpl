@@ -2280,7 +2280,7 @@ void  enterKeyHandler(BINT keymsg)
 
      if(endCmdLineAndCompile()) {
          halScreen.DirtyFlag|=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
-         if(!halFlags&(HAL_HWRESET|HAL_RESET)) {
+         if(!(halFlags&(HAL_HWRESET|HAL_RESET))) {
          rplRemoveSnapshot(halScreen.StkUndolevels+2);
          rplRemoveSnapshot(halScreen.StkUndolevels+1);
          }

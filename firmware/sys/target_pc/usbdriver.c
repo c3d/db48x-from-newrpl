@@ -174,7 +174,7 @@ void usb_init(int force)
 void usb_shutdown()
 {
 
-    if(!__usb_drvstatus&USB_STATUS_INIT) return;
+    if(!(__usb_drvstatus&USB_STATUS_INIT)) return;
 
     if(__usb_drvstatus&USB_STATUS_DATAREADY) {
         usb_releasedata();

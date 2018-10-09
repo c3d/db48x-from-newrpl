@@ -15,7 +15,7 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('m',0,0,0),                           // [0]='m'
     MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),                                  // [2]='kg'
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('s',0,0,0),                           // [4]='s'
-    MKPROLOG(DOIDENT,1),TEXT2WORD('a',0,0,0),                           // [6]='a'     (are=100 m^2)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('a',0,0,0),                                   // [6]='a'     (are=100 m^2)
     MKPROLOG(DOIDENT,1),TEXT2WORD(0xc3,0x85,0,0),                               // [8]='Å'     (1e-10 m)
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('A',0,0,0),                           // [10]='A'     (Ampere)
     MKPROLOG(DOIDENT,1),TEXT2WORD('a','c','r','e'),                             // [12]='acre'    (acre international)
@@ -984,13 +984,13 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[284],(WORDPTR)&system_unit_defs[1126], // 'ca'=0.01_a
     (WORDPTR)&system_unit_names[8],(WORDPTR)&system_unit_defs[6], // 'Å'=1e-10_m
     (WORDPTR)&system_unit_names[10],(WORDPTR)&one_bint,            // 'A'=1
-    (WORDPTR)&system_unit_names[12],(WORDPTR)&system_unit_defs[14], // 'acre'=4840_yd
-    (WORDPTR)&system_unit_names[14],(WORDPTR)&system_unit_defs[20], // 'acreUS'=4840_ydUS
+    (WORDPTR)&system_unit_names[12],(WORDPTR)&system_unit_defs[14], // 'acre'=4840_yd^2
+    (WORDPTR)&system_unit_names[14],(WORDPTR)&system_unit_defs[20], // 'acreUS'=4840_ydUS^2
     (WORDPTR)&system_unit_names[17],(WORDPTR)&system_unit_defs[26], // 'arcmin'=3*(180^-2)*pi_r
     (WORDPTR)&system_unit_names[20],(WORDPTR)&system_unit_defs[40], // 'arcs'=9*(180^-3)*pi_r
     (WORDPTR)&system_unit_names[22],(WORDPTR)&system_unit_defs[54], // 'atm'=101325_Pa
     (WORDPTR)&system_unit_names[24],(WORDPTR)&system_unit_defs[60], // 'au'=149597870700_m
-    (WORDPTR)&system_unit_names[26],(WORDPTR)&system_unit_defs[68], // 'b'=1e-28_m
+    (WORDPTR)&system_unit_names[26],(WORDPTR)&system_unit_defs[68], // 'b'=1e-28_m^2
     (WORDPTR)&system_unit_names[28],(WORDPTR)&system_unit_defs[76], // 'bar'=1e5_Pa
     (WORDPTR)&system_unit_names[30],(WORDPTR)&system_unit_defs[82], // 'bbl'=42_gal
     (WORDPTR)&system_unit_names[32],(WORDPTR)&system_unit_defs[88], // 'Bq'=1_1/s
@@ -1126,7 +1126,7 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[268],(WORDPTR)&system_unit_defs[1067], // 'W'=1_J/s=1_kg*m^2/s^3
     (WORDPTR)&system_unit_names[270],(WORDPTR)&system_unit_defs[1081], // 'Wb'=1_kg*m^2/A/s^2
     (WORDPTR)&system_unit_names[272],(WORDPTR)&system_unit_defs[1099], // 'yd'=3_ft
-    (WORDPTR)&system_unit_names[274],(WORDPTR)&system_unit_defs[1105], // 'yr'=31556925.9747_s (tropical year)
+    (WORDPTR)&system_unit_names[274],(WORDPTR)&system_unit_defs[1105], // 'yr'=31556925.9747_s (tropical year per 1952 ephemeris time definition)
 
     (WORDPTR)&system_unit_names[276],(WORDPTR)&system_unit_defs[587], // 'π'= π0 = 3.141592..... (VARIABLE PRECISION)
     (WORDPTR)&system_unit_names[278],(WORDPTR)&system_unit_defs[588], // '?CDG'=180 (NON-DIMENSIONAL)

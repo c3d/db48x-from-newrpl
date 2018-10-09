@@ -133,10 +133,9 @@ ULIST
     1_pkUK
     1_buC
 
-    1_buUK
+    1_pkC
 
-
-{ { "Units" 1 } :: #03600000h TMENULST ; }
+ { { "Units" 1 } :: #03600000h TMENULST ; }
 }
 @#name unitmenu_5_time
 {
@@ -200,7 +199,7 @@ ULIST
     1_J
     1_kW*h
     1_erg
-    1_Kcal
+    1_kcal
     1_cal
     1_Btu
     1_ft*lbf
@@ -376,8 +375,650 @@ ULIST
 defined units
  → L "
 
-1_Pa
-"One Pascal!
 
-"
+1_m
+"metre
+Def: 1_m
+Base SI unit of length"
+
+1_cm
+"centimetre
+Def: 1_cm = 0.01_m
+SI length"
+
+1_mm
+"millimetre
+Def: 1_mm = 0.001_m
+SI length"
+
+1_yd
+"yard
+Def: 1_yd = 3_ft
+US customary length"
+
+1_ft
+"foot
+Def: 1_ft = 12_in
+US customary length"
+
+1_in
+"inch
+Def: 1_in = 0.0254_m
+US customary length"
+
+1_Mpc
+"Megaparsec
+Def: 1_Mpc = 1000000_pc
+Astronomical length"
+
+1_pc
+"parsec
+Def: 1_pc = (648000/π)_au
+Astronomical length"
+
+1_lyr
+"light year
+Def: 1_lyr = 365.25_d*c
+Astronomical length"
+
+1_au
+"astronomical unit
+Def: 1_au = 149597870700_m
+SI astronomical length"
+
+1_km
+"kilometre
+Def: 1_km = 1000_m
+SI length"
+
+1_mi
+"mile
+Def: 1_mi = 5280_ft
+US customary length"
+
+1_nmi
+"nautical mile
+Def: 1_nmi = 1852_m
+non-SI length"
+
+1_miUS
+"surveying mile
+Def: 1_miUS = 5280_ftUS
+US surveying length"
+
+1_chain
+"surveying chain
+Def: 1_chain = 66_ftUS
+US surveying length"
+
+1_rd
+"rod
+Def: 1_rd =16.5_ft
+US customary length"
+
+1_rdUS
+"surveying rod
+Def: 1_rdUS =16.5_ftUS
+US surveying length"
+
+1_fath
+"surveying fathom
+Def: 1_fath =6_ftUS
+US surveying length"
+
+1_ftUS
+"surveying foot
+Def: 1_ftUS = =1200/3937_m
+US surveying length"
+
+1_mil
+"thousandth of inch
+Def: 1_mil = 0.001_in
+US customary length"
+
+1_µ
+"micron or micrometre
+Def: 1_µ = 1_µm
+SI length"
+
+1_Å
+"Ångström
+Def: 1_Å = 0.1_nm
+non-SI length"
+
+1_fermi
+"fermi or femtometre
+Def: 1_fermi = 1_fm
+SI length"
+
+1_m^2
+"square metre
+Def: 1_m^2
+Base SI unit of area"
+
+1_cm^2
+"square centimetre
+Def: 1_cm^2 = 0.0001_m^2
+SI area"
+
+1_b
+"barn
+Def: 1_b = 1E-28_m^2
+non-SI area"
+
+1_yd^2
+"square yard
+Def: 1_yd^2 = 9_ft^2
+US customary area"
+
+1_ft^2
+"square foot
+Def: 1_ft^2 = 144_in^2
+US customary area"
+
+1_in^2
+"square inch
+Def: 1_in^2 = 6.4516_cm^2
+US customary area"
+
+1_km^2
+"square kilometre
+Def: 1_km^2 = 1E6_m^2
+SI area"
+
+1_ha
+"hectare
+Def: 1_ha = 1_hm^2
+SI area (deprecated)"
+
+1_a
+"are
+Def: 1_a = 100_m^2
+non-SI area"
+
+1_mi^2
+"square mile
+Def: 1_mi^2 = 9_ft^2
+US customary area"
+
+1_miUS^2
+"survey square mile
+Def: 1_miUS^2 = 9_ftUS^2
+US surveying area"
+
+1_acre
+"acre
+Def: 1_acre = 4840_yd^2
+US customary area"
+
+1_m^3
+"cubic metre
+Def: 1_m^3
+Base SI unit of volume"
+
+1_cm^3
+"cubic centimetre
+Def: 1_cm^3 = 1E-6_m^3
+SI volume"
+
+1_ml
+"millilitre
+Def: 1_ml = 1_cm^3
+SI volume"
+
+1_l
+"litre
+Def: 1_l = 0.001_m^3
+SI volume"
+
+1_st
+"stere
+Def: 1_st = 1_m^3
+non-SI volume"
+
+1_yd^3
+"cubic yard
+Def: 1_yd^3 = 27_ft^3
+US customary volume"
+
+1_ft^3
+"cubic foot
+Def: 1_ft^3 = 1728_in^3
+US customary volume"
+
+1_in^3
+"cubic inch
+Def: 1_in^3 = 16.387064_cm^3
+US customary volume"
+
+1_gal
+"gallon
+Def: 1_gal = 231_in^3
+US customary volume"
+
+1_qt
+"quart
+Def: 1_qt = 1/4_gal
+US customary volume"
+
+1_pt
+"pint
+Def: 1_pt = 1/8_gal
+US customary volume"
+
+1_cu
+"cup
+Def: 1_cu = 1/16_gal
+US customary volume"
+
+1_ozfl
+"fluid ounce
+Def: 1_ozfl = 1/128_gal
+US customary volume"
+
+1_tbsp
+"table spoon
+Def: 1_tbsp = 1/2_ozfl
+US customary volume"
+
+1_tsp
+"tea spoon
+Def: 1_tsp = 1/6_ozfl
+US customary volume"
+
+
+1_fbm
+"board foot
+Def: 1_fbm = 144_in^3
+US customary volume"
+
+1_galUK
+"gallon (UK)
+Def: 1_galUK = 0.00454609_m^3
+Imperial volume"
+
+1_qtUK
+"quart (UK)
+Def: 1_qtUK = 1/4_galUK
+Imperial volume"
+
+1_ptUK
+"pint (UK)
+Def: 1_ptUK = 1/8_galUK
+Imperial volume"
+
+1_ozUK
+"ounce (UK)
+Def: 1_ozUK = 1/160_galUK
+US customary volume"
+
+1_galC
+"gallon (Canada)
+Def: 1_galC = 1_galUK
+Canadian volume"
+
+1_qtC
+"quart (Canada)
+Def: 1_qtC = 1_qtUK
+Canadian volume"
+
+1_ptC
+"pint (Canada)
+Def: 1_ptC = 1_ptUK
+Canadian volume"
+
+1_ozC
+"ounce (Canada)
+Def: 1_ozC = 1_ozUK
+Canadian volume"
+
+1_bbl
+"oil barrel
+Def: 1_bbl = 42_gal
+oil industry volume"
+
+1_bu
+"bushel (US)
+Def: 1_bu = 2150.42_in^3
+US customary volume"
+
+1_pk
+"peck (US)
+Def: 1_pk = 1/4_bu
+US customary volume"
+
+1_buUK
+"bushel (UK)
+Def: 1_buUK = 8_galUK
+Imperial volume"
+
+1_pkUK
+"peck (UK)
+Def: 1_pkUK = 1/4_buUK
+Imperial volume"
+
+1_buC
+"bushel (Canada)
+Def: 1_buC = 8_galC
+Canadian volume"
+
+1_pkC
+"peck (Canada)
+Def: 1_pkC = 1/4_buC
+Canadian volume"
+
+1_yr
+"tropical year
+Def: 1_yr = 31556925.9747_s
+per 1952 Ephemeris Time"
+
+1_d
+"day
+Def: 1_d = 86400_s
+SI time"
+
+1_h
+"hour
+Def: 1_h = 3600_s
+SI time"
+
+1_min
+"minute
+Def: 1_min = 60_s
+SI time"
+
+1_s
+"second
+Def: 1_s
+Base SI unit of time"
+
+1_Hz
+"Hertz
+Def: 1_Hz = 1_1/s
+SI frequency"
+
+1_m/s
+"metres per second
+Def: 1_m/s
+Base SI unit of speed"
+
+1_cm/s
+"centimetres per second
+Def: 1_cm/s = 0.01_m/s
+SI speed"
+
+1_ft/s
+"feet per second
+Def: 1_ft/s = 12_in/s
+US customary speed"
+
+1_kph
+"kilometres per hour
+Def: 1_kph = 1_km/h
+SI speed"
+
+1_mph
+"miles per hour
+Def: 1_mph = 1_mi/h
+SI speed"
+
+1_knot
+"nautical knot
+Def: 1_knot = 1_nmi/h
+non-SI speed"
+
+1_c
+"speed of light
+Def: 1_c = 299792458_m/s
+non-SI speed"
+
+1_r/s
+"radians per second
+Def: 1_r/s
+Base SI angular speed"
+
+1_rpm
+"revolutions per minute
+Def: 1_rpm = 1_tr/min
+non-SI speed"
+
+1_tr/s
+"turns per second
+Def: 1_tr/s = 2*π_r/s
+non-SI speed"
+
+1_kg
+"kilogram
+Def: 1_kg
+Base SI unit of mass"
+
+1_g
+"kilogram
+Def: 1_g = 0.001_kg
+SI mass"
+
+1_lb
+"pound
+Def: 1_lb = 7000_grain
+US customary mass"
+
+1_oz
+"ounce
+Def: 1_oz = 1/16_lb
+US customary mass"
+
+1_slug
+"slug
+Def: 1_slug = 1_lb*s^2/ft*ga
+US customary mass"
+
+1_lbt
+"troy pound
+Def: 1_lbt = 5760_grain
+US customary mass"
+
+1_ton
+"tonne
+Def: 1_ton = 2000_lb
+US customary mass"
+
+1_tonUK
+"tonne (UK)
+Def: 1_tonUK = 2240_lb
+Imperial mass"
+
+1_t
+"metric tonne
+Def: 1_t = 1000_kg
+non-SI mass"
+
+1_ozt
+"troy ounce
+Def: 1_ozt = 480_grain
+Imperial mass"
+
+1_ct
+"metric carat
+Def: 1_ct = 200_mg
+Metric System mass"
+
+1_grain
+"grain
+Def: 1_grain = 64.79891_mg
+Imperial mass"
+
+1_u
+"unified atomic mass
+Def: 1_u = 1.660539040E-27_kg
+non-SI mass"
+
+1_mol
+"mole
+Def: 1_mol
+Base SI amount of substance"
+
+1_gmol
+"gram mole
+Def: 1_gmol = 1_mol
+non-SI amount of substance"
+
+1_lbmol
+"pound mole
+Def: 1_lbmol = 453.59237_mol
+US customary substance"
+
+
+1_N
+"Newton
+Def: 1_N = 1_kg*m/s^2
+SI force"
+
+1_dyn
+"dyne
+Def: 1_dyn = 1_g*cm/s^2
+non-SI force"
+
+1_gf
+"gram-force
+Def: 1_gf = 1_g*ga
+non-SI force"
+
+1_kip
+"kip
+Def: 1_kip = 1000_lbf
+US customary force"
+
+1_lbf
+"pound-force
+Def: 1_lbf = 1_lb*ga
+US customary force"
+
+1_pdl
+"poundal
+Def: 1_pdl = = 1_lb*ft/s^2
+US customary force"
+
+1_J
+"Joule
+Def: 1_J = 1_N*m
+SI energy"
+
+1_kW*h
+"kilowatt-hour
+Def: 1_kW*h = 3.6_MJ
+non-SI energy"
+
+1_erg
+"erg
+Def: 1_erg = 1_dyn*cm
+non-SI energy"
+
+1_kcal
+"kilo calorie
+Def: 1_kcal = 1000_cal
+non-SI energy"
+
+1_cal
+"calorie
+Def: 1_cal = 4.184_J
+non-SI energy"
+
+1_Btu
+"british thermal unit
+Def: 1_Btu = =1055.056_J
+Imperial energy"
+
+1_ft*lbf
+"foot-pound
+Def: 1_ft*lbf = 1_lb*ft*ga
+US customary energy"
+
+1_therm
+"therm
+Def: 1_therm = 100000_Btu
+Imperial energy"
+
+1_MeV
+"mega electronvolt
+Def: 1_MeV = 1E6_eV
+non-SI energy"
+
+1_eV
+"electronvolt
+Def: 1_eV = 1.6021766208E-19_J
+non-SI energy"
+
+1_W
+1_kW
+1_MW
+1_hp
+1_lbf*ft/s
+
+1_Pa
+1_atm
+1_bar
+1_psi
+1_Torr
+1_mmHg
+1_inHg
+1_inH2O
+
+1_°C
+1_Δ°C
+1_°F
+1_Δ°F
+1_K
+1_ΔK
+1_°R
+1_Δ°R
+
+1_V
+1_A
+1_C
+1_Ω
+1_F
+1_A*h
+1_W
+1_Fdy
+1_H
+1_mho
+1_S
+1_T
+1_Wb
+
+1_°
+1_r
+1_grad
+1_tr
+1_arcmin
+1_arcs
+1_sr
+
+1_fc
+1_flam
+1_lx
+1_ph
+1_sb
+1_lm
+1_cd
+1_lam
+
+1_Gy
+1_rad
+1_rem
+1_Sv
+1_Bq
+1_Ci
+1_R
+
+1_P
+1_St
+1_m^2/s
+1_kg/(m*s)
+
+1_m/s^2
+1_cm/s^2
+1_ft/s^2
+1_ga
+1_r/s^2
 }

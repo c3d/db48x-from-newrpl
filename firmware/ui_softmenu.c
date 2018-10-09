@@ -85,9 +85,10 @@ WORDPTR uiGetLibMenu(BINT64 MenuCode)
 }
 
 
-WORDPTR uiGetLibCmdHelp(WORD Command)
+WORDPTR uiGetLibHelp(WORDPTR Object)
 {
-   return uiGetLibObject(LIBNUM(Command),0,Command,OPCODE_LIBHELP);
+    WORD hash=(ISPROLOG(*Object))? libComputeHash(Object) : *Object;
+   return uiGetLibObject(LIBNUM(*Object),0,hash,OPCODE_LIBHELP);
 }
 
 WORDPTR uiGetLibPtrHelp(WORDPTR LibCommand)
@@ -234,16 +235,10 @@ WORDPTR uiGetMenuItemHelp(WORDPTR item)
        return rplGetLibPtr2(item[2],USERLIB_TITLE);
     }
     if(!ISLIST(*item)) {
-        if(!ISPROLOG(*item)) {
-           // THIS IS A COMMAND, SEARCH FOR HELP
-            return uiGetLibCmdHelp(*item);
-
+           // SEARCH FOR HELP
+            return uiGetLibHelp(item);
         }
 
-
-
-        return 0;
-    }
 
     // GET HELP ITEM WITHIN THE ITEM
 

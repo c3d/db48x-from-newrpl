@@ -132,7 +132,8 @@ WORDPTR uiGetMenuItemAction(WORDPTR item,BINT shift);
 WORDPTR uiGetMenuItemHelp(WORDPTR item);
 void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr);
 
-WORDPTR uiGetLibCmdHelp(WORD Command);
+WORDPTR uiGetLibHelp(WORDPTR Object);
+
 WORDPTR uiGetLibMsg(WORD MsgCode);
 
 

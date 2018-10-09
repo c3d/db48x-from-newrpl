@@ -259,19 +259,39 @@ void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds)
 }
 */
 
+// LOOSELY BASED ON JDB2, CHANGES INITIAL PRIME NUMBER AND USES MERSENNE PRIME 2^13-1 AS MULTIPLIER
+WORD libComputeHash(WORDPTR object)
+{
+WORDPTR end=rplSkipOb(object);
+WORD hash=115127;
+while(object!=end) {
+    hash=((hash<<13)-hash)+ *object;
+    ++object;
+}
+return hash;
+}
+
+
+
 // FINDS A TEXT MESSAGE IN A TABLE IN THE FORM
 // { #MSGNUMBER "Message" ...  0 }
 // SET ObjectPTR TO THE TEXT MESSAGE AND RETURN IF THE MESSAGE IS FOUND
+// THE KEY CAN BE EITHER #MSGNUMBER OR A COMMAND, OR THE HASH OF AN OBJECT
 
 void libFindMsg(BINT message,WORDPTR table)
 {
 
-
+    WORD key;
 
     if(!ISLIST(*table)) { RetNum=ERR_NOTMINE; return; }
     ++table;
     while(*table!=CMD_ENDLIST) {
-        if(*table==(WORD)message) {
+        key=*table;
+        if(ISPROLOG(key)) {
+            // THE KEY IS AN OBJECT, USE AN OBJECT HASH
+            key=libComputeHash(table);
+        }
+        if(key==(WORD)message) {
             ObjectPTR=rplSkipOb(table);
             if(!ISSTRING(*ObjectPTR)) { RetNum=ERR_NOTMINE; return; }
             RetNum=OK_CONTINUE;
