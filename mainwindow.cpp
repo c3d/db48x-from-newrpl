@@ -1158,7 +1158,7 @@ if(obj == ui->KeybImage)
                 //TODO: HIGHLIGHT IT FOR VISUAL EFFECT
                             if(pressed)
                             { __pckeymatrix|=1ULL<<(ptr->keynum);
-                            qDebug() << "PRESS x=" << relx << ", y=" << rely << ", key=" << ptr->keynum;
+                            //qDebug() << "PRESS x=" << relx << ", y=" << rely << ", key=" << ptr->keynum;
                             if(ptr->keynum==63) {
                                 // CHECK IF ON WAS PRESSED AND THE CALCULATOR WAS OFF
                                 if(!rpl.isRunning()) on_actionPower_ON_triggered();
@@ -1166,7 +1166,7 @@ if(obj == ui->KeybImage)
                             }
                             else {
                                 __pckeymatrix&=~(1ULL<<(ptr->keynum));
-                                qDebug() << "RELEA x=" << relx << ", y=" << rely << ", key=" << ptr->keynum;
+                                //qDebug() << "RELEA x=" << relx << ", y=" << rely << ", key=" << ptr->keynum;
                             }
 
                             __keyb_update();
