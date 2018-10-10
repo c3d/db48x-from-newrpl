@@ -138,15 +138,24 @@ void MainWindow::resizeEvent(QResizeEvent *event)
     int w,h;
     qreal scale;
 
-
+    //qreal realdpi=qApp->primaryScreen()->logicalDotsPerInch();
+    qreal dpratio=qApp->primaryScreen()->devicePixelRatio();
     w=ui->EmuScreen->screen_width;
     h=ui->EmuScreen->screen_height+5;
     if(!h) h=85;
     if(!w) w=131;
-    scale=((qreal)event->size().width())/w;
+    qreal dpwidth=event->size().width();
+    qreal realwidth=dpwidth*dpratio;
+    scale=realwidth/w;
     if((int)scale<1) scale=1.0;
-    if(event->size().height()*0.38<scale*h) scale=event->size().height()*0.38/h;
-    ui->EmuScreen->setScale((int)scale);
+    else scale=(int)scale;
+    if(event->size().height()*0.38*dpratio<scale*h) {
+        scale=event->size().height()*0.38*dpratio/h;
+        if((int)scale<1) scale=1.0;
+        else scale=(int)scale;
+    }
+    // NOW CONVERT BACK TO dp SCALE
+    ui->EmuScreen->setScale(scale/dpratio);
 
 
 }
