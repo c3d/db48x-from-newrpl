@@ -141,11 +141,11 @@ void MainWindow::resizeEvent(QResizeEvent *event)
 
     w=ui->EmuScreen->screen_width;
     h=ui->EmuScreen->screen_height+5;
-    if(!h) h=80;
+    if(!h) h=85;
     if(!w) w=131;
     scale=((qreal)event->size().width())/w;
     if((int)scale<1) scale=1.0;
-    if(event->size().height()*0.40<scale*h) scale=event->size().height()*0.40/h;
+    if(event->size().height()*0.38<scale*h) scale=event->size().height()*0.38/h;
     ui->EmuScreen->setScale((int)scale);
 
 
