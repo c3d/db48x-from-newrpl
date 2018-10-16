@@ -1183,22 +1183,79 @@ Def: 1_lam = 10000/π_cd/m^2
 non-SI illuminance"
 
 1_Gy
+"gray
+Def: 1_Gy = 1_J/kg
+SI radiation"
 
 1_rad
+"rad
+Def: 1_rad = 0.01_Gy
+non-SI radiation"
+
 1_rem
-1_Sv
+"roentgen equivalent man
+Def: 1_rem = 1_erg/g
+SI radiation"
+
 1_Bq
+"becquerel
+Def: 1_Bq = 1_1/s
+SI radiation"
+
 1_Ci
+"curie
+Def: 1_Ci = 3.7E10_Bq
+non-SI radiation"
+
 1_R
+"rontgen
+Def: 1_R = 2.58E-4_C/kg
+non-SI radiation"
 
 1_P
+"poise
+Def: 1_P = 0.01_Pa*s
+non-SI dynamic viscosity"
+
 1_St
+"stokes
+Def: 1_St = 0.0001_m^2/s
+non-SI kinematic viscosity"
+
 1_m^2/s
+"square metre per second
+Def: 1_m^2/s
+SI kinematic viscosity"
+
 1_kg/(m*s)
+"kilogram per metre per second
+Def: 1_kg/(m*s) = 1_Pa*s
+SI dynamic viscosity"
+
 
 1_m/s^2
+"metre per second squared
+Def: 1_m/s^2
+SI acceleration"
+
 1_cm/s^2
+"centimetre per second squared
+Def: 1_cm/s^2 = 0.01_m/s^2
+SI acceleration"
+
 1_ft/s^2
+"foot per second squared
+Def: 1_ft/s^2
+US customary acceleration"
 1_ga
+"acceleration of gravity
+Def: 1_ga = 9.80665_m/s^2
+non-SI acceleration"
+
 1_r/s^2
+"radian per second squared
+Def: 1_r/s^2
+SI angular acceleration"
+
+
 }
