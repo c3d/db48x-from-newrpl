@@ -88,6 +88,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->EmuScreen->connect(screentmr,SIGNAL(timeout()),ui->EmuScreen,SLOT(update()));
     connect(screentmr,SIGNAL(timeout()),this,SLOT(usbupdate()));
     maintmr=new QTimer(this);
+    maintmr->setTimerType(Qt::PreciseTimer);
     connect(maintmr,SIGNAL(timeout()),this,SLOT(domaintimer()));
     __memmap_intact=0;
     __sd_inserted=0;
@@ -178,7 +179,7 @@ void MainWindow::domaintimer()
 // THE CLOCK IS FIXED AT 100 KHZ, SO ADD 1 msec
 __pcsystmr+=100;
 if(__tmr_singleshot_running) {
-    __tmr1_msec--;
+    if(__tmr1_msec) __tmr1_msec--;
     if(!__tmr1_msec) {
         __tmr_singleshot_running=0;
         __tmr_newirqeventsvc();
