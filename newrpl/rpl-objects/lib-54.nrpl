@@ -784,7 +784,7 @@ non-SI speed"
 
 1_tr/s
 "turns per second
-Def: 1_tr/s = 2*π_r/s
+Def: 1_tr/s = 2π_r/s
 non-SI speed"
 
 1_kg
@@ -949,61 +949,241 @@ Def: 1_eV = 1.6021766208E-19_J
 non-SI energy"
 
 1_W
+"Watt
+Def: 1_W = 1_J/s
+SI power"
 1_kW
+"kilowatt
+Def: 1_kW = 1000_W
+SI power"
 1_MW
+"megawatt
+Def: 1_MW = 1000000_W
+SI power"
+
 1_hp
+"mechanical horsepower
+Def: 1_hp = 550_ft*lbf/s
+Imperial power"
+
 1_lbf*ft/s
+"pound-foot per second
+Def: 1_ft*lbf/s
+Imperial power"
 
 1_Pa
+"Pascal
+Def: 1_Pa = 1_N/m^2
+SI pressure"
+
 1_atm
+"atmospheric pressure
+Def: 1_atm = 101325_Pa
+non-SI pressure"
+
 1_bar
+"bar
+Def: 1_bar = 100000_Pa
+non-SI pressure"
+
 1_psi
+"pound per square inch
+Def: 1_psi = 1_lbf/in^2
+US customary pressure"
+
 1_Torr
+"Torricelli
+Def: 1_Torr = 1/760_atm
+non-SI pressure"
+
 1_mmHg
+"millimetres of mercury (at 0°C)
+Def: 1_mmHg = 13595.1_kg/m^3*mm*ga
+non-SI pressure"
 1_inHg
+"inches of mercury (at 0°C)
+Def: 1_inHg = 13595.1_kg/m^3*in*ga
+non-SI pressure"
+
 1_inH2O
+"inches of water (at 4°C)
+Def: 1_inH2O = 999.972_kg/m^3*in*ga
+non-SI pressure"
+
 
 1_°C
+"celsius (or degree celsius)
+Def: 1_°C Zero: 0_°C → 273.15_K
+Base SI temperature (rel. scale)"
+
 1_Δ°C
+"celsius temperature change
+Def: 1_Δ°C=1_ΔK
+change of temperature"
 1_°F
+"farenheit (or degree farenheit)
+Def: 1_°F Zero: 0_°F → 459.67_°R
+US cust. temp. (rel. scale)"
 1_Δ°F
+"farenheit temperature change
+Def: 1_Δ°F=1_Δ°R
+change of temperature"
 1_K
+"kelvin
+Def: 1_K
+Base SI temperature (abs. scale)"
+
 1_ΔK
+"kelvin temperature change
+Def: 1_ΔK
+base change of temperature"
 1_°R
+"rankine
+Def: 1_°R = 5/9_K
+Imperial temperature (abs. scale)"
+
 1_Δ°R
+"rankine temperature change
+Def: 1_Δ°R = 5/9_ΔK
+change of temperature"
 
 1_V
+"volt
+Def: 1_V = 1_J/C
+SI potential difference"
+
 1_A
+"ampere
+Def: 1_A
+Base SI electric current"
+
 1_C
+"coulomb
+Def: 1_C = 1_A*s
+SI electrical charge"
+
 1_Ω
+"ohm
+Def: 1_Ω = 1_V/A
+SI electrical resistance"
+
 1_F
+"farad
+Def: 1_F = 1_C/V
+SI electrical capacity"
+
 1_A*h
-1_W
+"ampere-hour
+Def: 1_A*h = 3600_C
+non-SI electrical charge"
+
 1_Fdy
+"faraday
+Def: 1_Fdy = 96485.33289_C
+non-SI electrical charge"
+
 1_H
+"henry
+Def: 1_H = 1_Wb/A
+SI inductance"
+
+
 1_mho
+"mho (Siemens)
+Def: 1_mho = 1_S
+non-SI conductance"
+
 1_S
+"siemens
+Def: 1_S = 1_1/Ω
+SI conductance"
+
 1_T
+"tesla
+Def: 1_T = 1_Wb/m^2
+SI magnetic flux density"
+
 1_Wb
+"weber
+Def: 1_Wb = 1_kg*m^2/A/s^2
+SI magnetic flux"
 
 1_°
+"degree
+Def: 1_° = 2π/360_r
+non-SI plane angle"
 1_r
+"radian
+Def: 1_r
+Base SI plane angle"
+
 1_grad
+"grad (gon)
+Def: 1_grad = 2π/400_r
+non-SI plane angle"
+
 1_tr
+"full turn (one revolution)
+Def: 1_tr = 2π_r
+non-SI plane angle"
+
 1_arcmin
+"arc minute
+Def: 1_arcmin = 1/60_°
+non-SI plane angle"
+
 1_arcs
+"arc second
+Def: 1_arcmin = 1/3600_°
+non-SI plane angle"
+
 1_sr
+"steradian
+Def: 1_sr
+Base SI solid angle"
 
 1_fc
+"foot-candle
+Def: 1_fc = 1_lm/ft^2
+non-SI illuminance"
+
 1_flam
+"footlambert
+Def: 1_flam = 1/π_cd/ft^2
+non-SI illuminance"
+
 1_lx
+"lux
+Def: 1_lx = 1_lm/m^2
+SI illuminance"
+
 1_ph
+"phot
+Def: 1_ph = 1_lm/cm^2
+non-SI illuminance"
+
 1_sb
+"stilb
+Def: 1_sb = 1_cd/cm^2
+non-SI illuminance"
+
 1_lm
+"lumen
+Def: 1_lm = 1_cd*sr
+SI luminous flux"
+
 1_cd
+"candela
+Def: 1_cd
+Base SI luminous intensity"
+
 1_lam
+"lambert
+Def: 1_lam = 10000/π_cd/m^2
+non-SI illuminance"
 
 1_Gy
+
 1_rad
 1_rem
 1_Sv

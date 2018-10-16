@@ -361,7 +361,7 @@ const WORD const system_unit_defs[]={
 
     //[277] = Fdy
     MKPROLOG(DOUNIT,9),
-    MKPROLOG(DOREAL,4),MAKEREALFLAGS(-16,3,0),98760256,53328824,9648,       // 6.022140857e23 * 1.6021766208e-19 per CODATA 2014
+    MKPROLOG(DOREAL,4),MAKEREALFLAGS(-15,3,0),00000000,53328900,9648,       // 6.022140857e23 * 1.6021766208e-19 per CODATA 2014
     MKPROLOG(DOIDENT,1),TEXT2WORD('C',0,0,0),MAKESINT(1),MAKESINT(1),
 
     //[287] = zero Celsius
@@ -1023,7 +1023,7 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[79],(WORDPTR)&system_unit_defs[255], // 'fath'=6_ftUS
     (WORDPTR)&system_unit_names[81],(WORDPTR)&system_unit_defs[261], // 'fbm'=144_in^3
     (WORDPTR)&system_unit_names[83],(WORDPTR)&system_unit_defs[267], // 'fc'=1_lm/ft^2
-    (WORDPTR)&system_unit_names[85],(WORDPTR)&system_unit_defs[277], // 'Fdy'=9648.5332882498760256_C (per CODATA 2014)
+    (WORDPTR)&system_unit_names[85],(WORDPTR)&system_unit_defs[277], // 'Fdy'=96485.33289_C (per CODATA 2014)
     (WORDPTR)&system_unit_names[87],(WORDPTR)&system_unit_defs[303], // 'fermi'=1_fm
     (WORDPTR)&system_unit_names[90],(WORDPTR)&system_unit_defs[309], // 'flam'=1/pi_cd/ft^2
     (WORDPTR)&system_unit_names[92],(WORDPTR)&system_unit_defs[323], // 'ft'=12_in'
@@ -1056,7 +1056,7 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[149],(WORDPTR)&system_unit_defs[538], // 'lbf'=1_lb*ga
     (WORDPTR)&system_unit_names[151],(WORDPTR)&system_unit_defs[548], // 'lbt'=5760_grain
     (WORDPTR)&system_unit_names[153],(WORDPTR)&system_unit_defs[555], // 'lm'=1_cd*sr
-    (WORDPTR)&system_unit_names[155],(WORDPTR)&system_unit_defs[565], // 'lx'=1_lm*m^2
+    (WORDPTR)&system_unit_names[155],(WORDPTR)&system_unit_defs[565], // 'lx'=1_lm/m^2
     (WORDPTR)&system_unit_names[157],(WORDPTR)&system_unit_defs[575], // 'lyr'=365.25_d*c
     (WORDPTR)&system_unit_names[159],(WORDPTR)&system_unit_defs[593], // 'µ'=1_µm
     (WORDPTR)&system_unit_names[161],(WORDPTR)&system_unit_defs[599], // 'mho'=1_A/V

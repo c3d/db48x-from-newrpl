@@ -1313,13 +1313,13 @@ void MainWindow::contextMenuEvent(QContextMenuEvent *event)
     popup.addMenu(ui->menuFile);
     popup.addMenu(ui->menuStack);
     popup.addMenu(ui->menuHardware);
-    popup.setStyleSheet("font-size: 24px;");
+    popup.setStyleSheet("font-size: 16px;");
     QString menufilestyle=ui->menuFile->styleSheet();
-    ui->menuFile->setStyleSheet("font-size: 24px;");
+    ui->menuFile->setStyleSheet("font-size: 16px;");
     QString menustkstyle=ui->menuStack->styleSheet();
-    ui->menuStack->setStyleSheet("font-size: 24px;");
+    ui->menuStack->setStyleSheet("font-size: 16px;");
     QString menuhardstyle=ui->menuHardware->styleSheet();
-    ui->menuHardware->setStyleSheet("font-size: 24px;");
+    ui->menuHardware->setStyleSheet("font-size: 16px;");
     popup.exec(ui->centralWidget->mapToGlobal(ui->EmuScreen->pos()));
 
     ui->menuFile->setStyleSheet(menufilestyle);
