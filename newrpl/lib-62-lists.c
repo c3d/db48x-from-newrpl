@@ -886,6 +886,10 @@ void LIB_HANDLER()
             WORDPTR newbint=rplNewBINT(idx,DECBINT);
             if(Exceptions) {
                 DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
+                if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
+                    DSTop-=2;
+                    rplClrSystemFlag(FL_LISTCMDCLEANUP);
+                }
                 rplCleanupLAMs(0);
                 IPtr=rplPopRet();
                 CurOpcode=MKOPCODE(LIBRARY_NUMBER,CMDDOLIST);
@@ -908,6 +912,10 @@ void LIB_HANDLER()
         rplNewBINTPush(newdepth,DECBINT);
         if(Exceptions) {
             DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+            if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
+                DSTop-=2;
+                rplClrSystemFlag(FL_LISTCMDCLEANUP);
+            }
             rplCleanupLAMs(0);
             IPtr=rplPopRet();
             CurOpcode=MKOPCODE(LIBRARY_NUMBER,CMDDOLIST);
@@ -917,6 +925,10 @@ void LIB_HANDLER()
         rplCreateList();
         if(Exceptions) {
             DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+            if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
+                DSTop-=2;
+                rplClrSystemFlag(FL_LISTCMDCLEANUP);
+            }
             rplCleanupLAMs(0);
             IPtr=rplPopRet();
             CurOpcode=MKOPCODE(LIBRARY_NUMBER,CMDDOLIST);
@@ -926,6 +938,7 @@ void LIB_HANDLER()
         rplOverwriteData(nlists+3,rplPeekData(1));
         rplDropData(nlists+2);
 
+        rplClrSystemFlag(FL_LISTCMDCLEANUP);
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         CurOpcode=MKOPCODE(LIBRARY_NUMBER,CMDDOLIST);
@@ -941,6 +954,10 @@ void LIB_HANDLER()
 
         // JUST CLEANUP AND EXIT
         DSTop=rplUnprotectData();
+        if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
+            DSTop-=2;
+            rplClrSystemFlag(FL_LISTCMDCLEANUP);
+        }
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;
@@ -1117,6 +1134,7 @@ void LIB_HANDLER()
             WORDPTR newbint=rplNewBINT(idx,DECBINT);
             if(Exceptions) {
                 DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
+
                 rplCleanupLAMs(0);
                 IPtr=rplPopRet();
                 CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOSUBS);
@@ -1294,6 +1312,10 @@ void LIB_HANDLER()
                     WORDPTR newlist=rplCreateListN(newdepth,1,1);
                     if(Exceptions || !newlist) {
                         DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+                        if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
+                            DSTop--;
+                            rplClrSystemFlag(FL_LISTCMDCLEANUP);
+                        }
                         rplCleanupLAMs(0);
                         IPtr=rplPopRet();
                         CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
@@ -1302,7 +1324,7 @@ void LIB_HANDLER()
 
                     rplOverwriteData(2,newlist);
                     rplDropData(1);
-
+                    rplClrSystemFlag(FL_LISTCMDCLEANUP);
                     rplCleanupLAMs(0);
                     IPtr=rplPopRet();
                     CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
@@ -1321,6 +1343,10 @@ void LIB_HANDLER()
                     rplNewBINTPush(nelements,DECBINT);
                     if(Exceptions) {
                         DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
+                        if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
+                            DSTop--;
+                            rplClrSystemFlag(FL_LISTCMDCLEANUP);
+                        }
                         rplCleanupLAMs(0);
                         IPtr=rplPopRet();
                         CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
@@ -1330,6 +1356,10 @@ void LIB_HANDLER()
                     rplCreateList();
                     if(Exceptions) {
                         DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
+                        if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
+                            DSTop--;
+                            rplClrSystemFlag(FL_LISTCMDCLEANUP);
+                        }
                         rplCleanupLAMs(0);
                         IPtr=rplPopRet();
                         CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
@@ -1362,7 +1392,7 @@ void LIB_HANDLER()
 
         rplPushData(*rplGetLAMn(1));
 
-        if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP); return; }
+        //if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP); return; }
 
         // AND EXECUTION WILL CONTINUE AT EVAL
 
@@ -1390,6 +1420,10 @@ void LIB_HANDLER()
 
         // JUST CLEANUP AND EXIT
         DSTop=rplUnprotectData();
+        if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
+            DSTop--;
+            rplClrSystemFlag(FL_LISTCMDCLEANUP);
+        }
         rplCleanupLAMs(0);
         IPtr=rplPopRet();
         Exceptions=TrappedExceptions;
@@ -2786,7 +2820,7 @@ void LIB_HANDLER()
                     BINT newdepth=(BINT)(DSTop-prevDStk);
 
                     rplRemoveAtData(newdepth+1,1);  // REMOVE ORIGINAL LIST ARGUMENT, LEAVING THE EXPLODED RESULTS IN THE STACK
-
+                        rplClrSystemFlag(FL_LISTCMDCLEANUP);
                     rplCleanupLAMs(0);
                     IPtr=rplPopRet();
                     CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
@@ -2805,6 +2839,10 @@ void LIB_HANDLER()
                     rplNewBINTPush(nelements,DECBINT);
                     if(Exceptions) {
                         DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
+                        if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
+                            DSTop--;
+                            rplClrSystemFlag(FL_LISTCMDCLEANUP);
+                        }
                         rplCleanupLAMs(0);
                         IPtr=rplPopRet();
                         CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
@@ -2814,6 +2852,10 @@ void LIB_HANDLER()
                     rplCreateList();
                     if(Exceptions) {
                         DSTop=rplUnprotectData();   // CLEANUP ALL INTERMEDIATE RESULTS
+                        if(rplTestSystemFlag(FL_LISTCMDCLEANUP)) {
+                            DSTop--;
+                            rplClrSystemFlag(FL_LISTCMDCLEANUP);
+                        }
                         rplCleanupLAMs(0);
                         IPtr=rplPopRet();
                         CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
@@ -2846,7 +2888,7 @@ void LIB_HANDLER()
 
         rplPushData(*rplGetLAMn(1));
 
-        if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP); return; }
+        //if(Exceptions) { DSTop=rplUnprotectData(); rplCleanupLAMs(0); IPtr=rplPopRet(); CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP); return; }
 
         // AND EXECUTION WILL CONTINUE AT EVAL
 

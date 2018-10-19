@@ -264,6 +264,8 @@ void rplListBinaryDoCmd()
         rplPushDataNoGrow((WORDPTR)two_bint);
         rplPushData(newobj);
 
+        rplSetSystemFlag(FL_LISTCMDCLEANUP);
+
         rplCallOperator(CMD_CMDDOLIST);
 
         if(Exceptions) {
@@ -290,6 +292,8 @@ void rplListBinaryDoCmd()
 
         rplDropData(1);
         rplPushData(newobj);
+
+        rplSetSystemFlag(FL_LISTCMDCLEANUP);
 
         rplCallOperator(CMD_MAP);
 
@@ -322,6 +326,8 @@ void rplListBinaryDoCmd()
         rplDropData(1);
         rplPushData(newobj);
 
+        rplSetSystemFlag(FL_LISTCMDCLEANUP);
+
         rplCallOperator(CMD_MAP);
 
         if(Exceptions) {
@@ -347,6 +353,7 @@ void rplListUnaryDoCmd()
     newobj[2]=CMD_SEMI;
 
     rplPushData(newobj);
+    rplSetSystemFlag(FL_LISTCMDCLEANUP);
 
     rplCallOperator(CMD_MAP);
 
@@ -372,6 +379,7 @@ void rplListUnaryNoResultDoCmd()
     newobj[2]=CMD_SEMI;
 
     rplPushData(newobj);
+    rplSetSystemFlag(FL_LISTCMDCLEANUP);
 
     rplCallOperator(CMD_MAPINNERCOMP);
 
@@ -538,6 +546,9 @@ void rplListMultiArgDoCmd(BINT nargs)
         rplPushDataNoGrow(rplPeekData(k));
         rplPushDataNoGrow(newobj);
         rplPushData(newcmd);
+
+        rplSetSystemFlag(FL_LISTCMDCLEANUP);
+
         rplCallOvrOperator(CMD_OVR_XEQ);
 
             if(Exceptions) {

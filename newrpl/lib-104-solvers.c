@@ -62,7 +62,7 @@
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib104_menu);
-
+INCLUDE_ROMOBJECT(lib104_TVMmenu);
 
 
 
@@ -72,6 +72,8 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)LIB_MSGTABLE,
     (WORDPTR)LIB_HELPTABLE,
     (WORDPTR)lib104_menu,
+    (WORDPTR)lib104_TVMmenu,
+
     0
 };
 
@@ -1828,7 +1830,7 @@ case NUMINT:
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg)>0) {
+        if(MENUNUMBER(MenuCodeArg)>1) {
             RetNum=ERR_NOTMINE;
             return;
         }

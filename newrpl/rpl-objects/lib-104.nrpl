@@ -27,7 +27,85 @@
 
 @#name lib104_menu
 {
-NUMINT ROOT
+NUMINT ROOT MSOLVE "" ""
+{ { "Finan" 1 } { ::   #06801000h TMENULST ; ::   #06801000h TMENUOTHR ; } }
+}
+
+@#name lib104_TVMmenu
+{
+@ TVM FORMULA: 'FV+PV*(1+(I%YR/PYR)/100)^N+PMT*((1+(I%YR/PYR)/100)^N-1)/((I%YR/PYR)/100)*(1+(I%YR/PYR)/100*FS?(-14))'
+
+@ PV
+{
+"PV"
+{  PV @ NO SHIFT ACTION
+  'PV' @ L-SHIFT ACTION
+  'PV' @ R-SHIFT ACTION
+  'PV' @ LS-HOLD ACTION
+  « IFERR '(-FV-PMT*((1+(I%YR/PYR)/100)^N-1)/((I%YR/PYR)/100)*(1+(I%YR/PYR)/100*FS?(-14)))/(1+(I%YR/PYR)/100)^N' →NUM THEN 1 ELSE 0 END
+  IF THEN DROP "TVM" ERRN BLAMEERR END DUP 'PV' STO
+  » @ RS-HOLD ACTION
+}
+"PV: Present value
+RS-Hold-press to calculate new
+value and store it"
+}
+
+@ FV
+{
+"FV"
+{  FV @ NO SHIFT ACTION
+  'FV' @ L-SHIFT ACTION
+  'FV' @ R-SHIFT ACTION
+  'FV' @ LS-HOLD ACTION
+  « IFERR '-PV*(1+(I%YR/PYR)/100)^N-PMT*((1+(I%YR/PYR)/100)^N-1)/((I%YR/PYR)/100)*(1+(I%YR/PYR)/100*FS?(-14))' →NUM THEN 1 ELSE 0 END
+  IF THEN DROP "TVM" ERRN BLAMEERR END DUP 'FV' STO
+  » @ RS-HOLD ACTION
+}
+}
+
+@ PMT
+{
+"PMT"
+{  PMT @ NO SHIFT ACTION
+  'PMT' @ L-SHIFT ACTION
+  'PMT' @ R-SHIFT ACTION
+  'PMT' @ LS-HOLD ACTION
+  « IFERR '(-FV-PV*(1+(I%YR/PYR)/100)^N)/(((1+(I%YR/PYR)/100)^N-1)/((I%YR/PYR)/100)*(1+(I%YR/PYR)/100*FS?(-14)))' →NUM THEN 1 ELSE 0 END
+  IF THEN DROP "TVM" ERRN BLAMEERR END DUP 'PMT' STO
+  » @ RS-HOLD ACTION
+}
+}
+
+@ I%YR
+{
+"I%YR"
+{  I%YR @ NO SHIFT ACTION
+  'I%YR' @ L-SHIFT ACTION
+  'I%YR' @ R-SHIFT ACTION
+  'I%YR' @ LS-HOLD ACTION
+  « IFERR { 'FV+PV*(1+(I%YR/PYR)/100)^N+PMT*((1+(I%YR/PYR)/100)^N-1)/((I%YR/PYR)/100)*(1+(I%YR/PYR)/100*FS?(-14))' } { 'I%YR' } { 1 } { 20 } 1E-8 MSOLVE THEN 1 ELSE 0 END
+  IF THEN DROP "TVM" ERRN BLAMEERR END OBJ→ DROP ABS IF 1E-4 > THEN "TVM" ##1,ERR_NOROOTFOUND BLAMEERR END OBJ→ DROP DUP 'I%YR' STO
+  » @ RS-HOLD ACTION
+}
+}
+
+N
+
+PYR
+
+@ END OR START OF PERIOD TOGGLE
+{
+:: ##1,MAKESINT(FL_TVMEND) IF FS? THEN "■Strt" ELSE "End" END ;
+::  ##1,MAKESINT(FL_TVMEND) IF DUP FS? THEN CF ELSE SF END ; @ ACTION: NO SHIFTS
+"TVM period mode:
+Payments occur at start or end
+of a period.
+"
+}
+
+
+
 }
 
 
@@ -42,5 +120,11 @@ ROOT
 "Real root finder
 
 (A or P) R<a> R<b> R<tol> → R"
+
+MSOLVE
+"Multiple equation solver
+L<A> L<N> L<a> L<b> R<tol> →
+L<roots> L<residuals>"
+
 
 }
