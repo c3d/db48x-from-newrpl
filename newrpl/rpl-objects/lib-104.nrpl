@@ -47,8 +47,8 @@ NUMINT ROOT MSOLVE "" ""
   » @ RS-HOLD ACTION
 }
 "PV: Present value
-RS-Hold-press to calculate new
-value and store it"
+
+RS-Hold-press to calculate."
 }
 
 @ FV
@@ -62,6 +62,9 @@ value and store it"
   IF THEN DROP "TVM" ERRN BLAMEERR END DUP 'FV' STO
   » @ RS-HOLD ACTION
 }
+"FV: Future value (at the end of
+N periods)
+RS-Hold-press to calculate."
 }
 
 @ PMT
@@ -75,6 +78,9 @@ value and store it"
   IF THEN DROP "TVM" ERRN BLAMEERR END DUP 'PMT' STO
   » @ RS-HOLD ACTION
 }
+"PMT: Payment amount made on
+each period.
+RS-Hold-press to calculate."
 }
 
 @ I%YR
@@ -88,19 +94,50 @@ value and store it"
   IF THEN DROP "TVM" ERRN BLAMEERR END OBJ→ DROP ABS IF 1E-4 > THEN "TVM" ##1,ERR_NOROOTFOUND BLAMEERR END OBJ→ DROP DUP 'I%YR' STO
   » @ RS-HOLD ACTION
 }
+"I%YR: Yearly interest rate as
+a percentage.
+RS-Hold-press to calculate."
 }
 
-N
+@ N
+{
+"N"
+{  N @ NO SHIFT ACTION
+  'N' @ L-SHIFT ACTION
+  'N' @ R-SHIFT ACTION
+  'N' @ LS-HOLD ACTION
+  « IFERR { 'FV+PV*(1+(I%YR/PYR)/100)^N+PMT*((1+(I%YR/PYR)/100)^N-1)/((I%YR/PYR)/100)*(1+(I%YR/PYR)/100*FS?(-14))' } { 'N' } { 1 } { 20 } 1E-8 MSOLVE THEN 1 ELSE 0 END
+  IF THEN DROP "TVM" ERRN BLAMEERR END OBJ→ DROP ABS IF 1E-4 > THEN "TVM" ##1,ERR_NOROOTFOUND BLAMEERR END OBJ→ DROP DUP 'N' STO
+  » @ RS-HOLD ACTION
+}
+"N: Number of compounding
+periods (or payments).
+RS-Hold-press to calculate."
+}
 
-PYR
+@ PYR
+{
+"PYR"
+{  PYR @ NO SHIFT ACTION
+  'PYR' @ L-SHIFT ACTION
+  'PYR' @ R-SHIFT ACTION
+  'PYR' @ LS-HOLD ACTION
+  « IFERR { 'FV+PV*(1+(I%YR/PYR)/100)^N+PMT*((1+(I%YR/PYR)/100)^N-1)/((I%YR/PYR)/100)*(1+(I%YR/PYR)/100*FS?(-14))' } { 'PYR' } { 10 } { 12 } 1E-8 MSOLVE THEN 1 ELSE 0 END
+  IF THEN DROP "TVM" ERRN BLAMEERR END OBJ→ DROP ABS IF 1E-4 > THEN "TVM" ##1,ERR_NOROOTFOUND BLAMEERR END OBJ→ DROP DUP 'PYR' STO
+  » @ RS-HOLD ACTION
+}
+"PYR: Compounding periods per
+year (usually 12 or 1).
+RS-Hold-press to calculate."
+}
 
 @ END OR START OF PERIOD TOGGLE
 {
 :: ##1,MAKESINT(FL_TVMEND) IF FS? THEN "■Strt" ELSE "End" END ;
 ::  ##1,MAKESINT(FL_TVMEND) IF DUP FS? THEN CF ELSE SF END ; @ ACTION: NO SHIFTS
-"TVM period mode:
-Payments occur at start or end
-of a period.
+"TVM period mode: Payments occur
+at start or end of a period.
+Normally at end. Press to toggle.
 "
 }
 
