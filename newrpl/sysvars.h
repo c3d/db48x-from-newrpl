@@ -114,6 +114,7 @@ UBINT ArgNum1,ArgNum2,ArgNum3,RetNum;
 
 #define BlankLen ArgNum2
 #define DecompHints ArgNum2
+#define ObjectIDHash ArgNum2
 
 #define CurrentConstruct ArgNum3
 #define SuggestedOpcode  ArgNum3

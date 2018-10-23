@@ -13,7 +13,7 @@
 // CONVERT A POINTER INTO A ROMPTR ID
 // IF IT FAILS, RETURNS 0
 
-WORD rplConvertToRomptrID(WORDPTR ptr)
+UBINT64 rplConvertToRomptrID(WORDPTR ptr)
 {
     BINT libnum=MAXLIBNUMBER;
     BINT SavedOpcode;
@@ -30,9 +30,9 @@ WORD rplConvertToRomptrID(WORDPTR ptr)
 
            (*han)();
 
-           if(RetNum==OK_CONTINUE) return ObjectID;
+           if(RetNum==OK_CONTINUE) return ((UBINT64)ObjectID) | (((UBINT64)ObjectIDHash)<<32);
        }
-       --libnum;
+       libnum=rplGetNextLib(libnum);
     }
     CurOpcode=SavedOpcode;
 
@@ -45,7 +45,7 @@ WORD rplConvertToRomptrID(WORDPTR ptr)
 // RETURNS 0 IF NOT A VALID ID
 // OR NOT RECOGNIZED BY ITS LIBRARIES
 
-WORDPTR rplConvertIDToPTR(WORD romptrid)
+WORDPTR rplConvertIDToPTR(UBINT64 romptrid)
 {
     if(!ISROMPTRID(romptrid)) return 0;
 
@@ -61,6 +61,7 @@ WORDPTR rplConvertIDToPTR(WORD romptrid)
     if(!han) return 0;
     RetNum=ERR_INVALID;
     ObjectID=romptrid;
+    ObjectIDHash=romptrid>>32;
 
     (*han)();
 
@@ -137,23 +138,23 @@ BINT rplBackup(int (*writefunc)(unsigned int,void *),void *OpaqueArgument)
     sections[k].nitems=DirsTop-Directories;
     sections[k].offwords=offset;
 
-    offset+=sections[k].nitems;
+    offset+=sections[k].nitems*2;
     ++k;
 
     // SYSTEM POINTERS
     sections[k].start=(WORDPTR)GC_PTRUpdate;
-    sections[k].nitems=MAX_GC_PTRUPDATE;
+    sections[k].nitems=(MAX_GC_PTRUPDATE);
     sections[k].offwords=offset;
 
-    offset+=sections[k].nitems;
+    offset+=sections[k].nitems*2;
     ++k;
 
     // STACK
     sections[k].start=(WORDPTR)DStk;
-    sections[k].nitems=DSTop-DStk;
+    sections[k].nitems=(DSTop-DStk);
     sections[k].offwords=offset;
 
-    offset+=sections[k].nitems;
+    offset+=sections[k].nitems*2;
     ++k;
 
     // FILL ALL OTHER SECTIONS
@@ -176,6 +177,13 @@ BINT rplBackup(int (*writefunc)(unsigned int,void *),void *OpaqueArgument)
         if(!writefunc(sections[k].offwords,OpaqueArgument)) return 0;
         ++writeoff;
     }
+
+    // WRITE ALL 10 SECTIONS nitems
+    for(k=0;k<10;++k) {
+        if(!writefunc(sections[k].nitems,OpaqueArgument)) return 0;
+        ++writeoff;
+    }
+
 
     // TODO: WRITE OTHER SYSTEM VARIABLES HERE
 
@@ -210,11 +218,11 @@ BINT rplBackup(int (*writefunc)(unsigned int,void *),void *OpaqueArgument)
             // VALID POINTER INTO TEMPOB, CONVERT INTO FILE OFFSET
             if(!writefunc( (BINT)(ptr-TempOb)+ sections[1].offwords,OpaqueArgument)) return 0;
         } else {
-            // IF THE OBJECT IS NOT IN TEMPOB IS IN ROM
+            // IF THE OBJECT IS NOT IN TEMPOB, IS IN ROM
 
             // CONVERT TO ROMPTR ID
 
-            WORD id=rplConvertToRomptrID(ptr);
+            UBINT64 id=rplConvertToRomptrID(ptr);
 
             if(!id) {
                 // INVALID POINTER! NEED TO FIX THE MEMORY BEFORE DOING BACKUP
@@ -222,9 +230,15 @@ BINT rplBackup(int (*writefunc)(unsigned int,void *),void *OpaqueArgument)
                 return 0;
             }
             if(!writefunc(id,OpaqueArgument)) return 0;
+            if(ROMPTRID_OFF(id)==31) {
+            ++writeoff;
+            if(!writefunc((id>>32),OpaqueArgument)) return 0;
+            }
         }
         ++writeoff;
     }
+
+       while(writeoff<sections[4].offwords) { if(!writefunc(0,OpaqueArgument)) return 0; ++writeoff; }
 
     // DUMP SYSTEM POINTERS
     for(k=0;k<sections[4].nitems;++k) {
@@ -234,7 +248,7 @@ BINT rplBackup(int (*writefunc)(unsigned int,void *),void *OpaqueArgument)
             if(!writefunc( (BINT)(ptr-TempOb)+ sections[1].offwords,OpaqueArgument)) return 0;
         } else {
 
-            WORD id;
+            UBINT64 id;
             if(!ptr) {
                 // NULL POINTER, STORE AS-IS
                 id=0;
@@ -253,9 +267,16 @@ BINT rplBackup(int (*writefunc)(unsigned int,void *),void *OpaqueArgument)
             }
             }
             if(!writefunc(id,OpaqueArgument)) return 0;
+            if(ROMPTRID_OFF(id)==31) {
+            ++writeoff;
+            if(!writefunc((id>>32),OpaqueArgument)) return 0;
+            }
         }
         ++writeoff;
     }
+
+    while(writeoff<sections[5].offwords) { if(!writefunc(0,OpaqueArgument)) return 0; ++writeoff; }
+
 
     // DUMP DATA STACK POINTERS
     for(k=0;k<sections[5].nitems;++k) {
@@ -265,14 +286,14 @@ BINT rplBackup(int (*writefunc)(unsigned int,void *),void *OpaqueArgument)
             if(!writefunc( (BINT)(ptr-TempOb)+ sections[1].offwords,OpaqueArgument)) return 0;
         } else {
 
-            WORD id;
+            UBINT64 id;
 
             // SPECIAL CASE - HANDLE OFFSET NUMBERS STORED INSIDE THE STACK
             if((PTR2NUMBER)ptr<=(UBINT64)sections[5].nitems) {
                 // THIS IS A NUMBER, NOT A POINTER
                 //  IN THE STACK, THESE ARE STACK MARKERS
-                // REPLACE WITH THE ACTUAL NUMBER, BUT USE NEGATIVE OFFSET TO DISTINGUISH IT FROM FILE OFFSETS
-                id=-((PTR2NUMBER)ptr);
+                // REPLACE WITH A SPECIAL ROMPTRID FOR LIBRARY 0, ID=63, offset=31
+                id=(((UBINT64)((PTR2NUMBER)ptr))<<32) | MKROMPTRID(0,63,31);
             }
             else {
             // IF THE OBJECT IS NOT IN TEMPOB IS IN ROM
@@ -286,9 +307,16 @@ BINT rplBackup(int (*writefunc)(unsigned int,void *),void *OpaqueArgument)
 
 
             if(!writefunc(id,OpaqueArgument)) return 0;
+            if(ROMPTRID_OFF(id)==31) {
+            ++writeoff;
+            if(!writefunc((id>>32),OpaqueArgument)) return 0;
+            }
+
         }
         ++writeoff;
     }
+
+    while(writeoff<sections[6].offwords) { if(!writefunc(0,OpaqueArgument)) return 0; ++writeoff; }
 
     return 1;
 
@@ -329,10 +357,15 @@ BINT rplRestoreBackup(BINT includestack,WORD (*readfunc)(void *),void *OpaqueArg
     {
         sections[k].offwords=readfunc(OpaqueArgument);
         ++offset;
-        if(k>0) sections[k-1].nitems=sections[k].offwords-sections[k-1].offwords;
     }
 
-
+    // READ nitems, RESTORE FROM OFFSETS IF NOTE PRESENT (BACKWARDS COMPATIBLE WITH OLD BACKUP FORMAT)
+    for(k=0;k<10;++k)
+    {
+        sections[k].nitems=readfunc(OpaqueArgument);
+        ++offset;
+        if((k>0) && (sections[k-1].nitems==0)) sections[k-1].nitems=sections[k].offwords-sections[k-1].offwords;
+    }
 
     // RESET RPL ENVIRONMENT
     // ERASE ALL RPL MEMORY IN PREPARATION FOR RESTORE
@@ -375,7 +408,7 @@ BINT rplRestoreBackup(BINT includestack,WORD (*readfunc)(void *),void *OpaqueArg
     // RESIZE ALL SECTIONS TO THE REQUESTED SIZE
     if(sections[0].nitems+TEMPBLOCKSLACK>1024) growTempBlocks(sections[0].nitems+TEMPBLOCKSLACK);
     if(sections[1].nitems+sections[2].nitems>1024) growTempOb(sections[1].nitems+sections[2].nitems);
-    if(sections[3].nitems+DIRSLACK>1024) growDirs(sections[3].nitems+DIRSLACK);
+    if((sections[3].nitems)+DIRSLACK>1024) growDirs(sections[3].nitems+DIRSLACK);
     if(includestack) {
         if(sections[5].nitems+DSTKSLACK>1024) growDirs(sections[5].nitems+DSTKSLACK);
     }
@@ -384,7 +417,7 @@ BINT rplRestoreBackup(BINT includestack,WORD (*readfunc)(void *),void *OpaqueArg
 
     // SKIP TO THE PROPER FILE OFFSET
 
-    while(offset!=1024) { readfunc(OpaqueArgument); ++offset; }
+    while(offset<1024) { readfunc(OpaqueArgument); ++offset; }
 
     // HERE'S THE START OF TEMPBLOCKS
     for(k=0;k<sections[0].nitems;++k) {
@@ -395,6 +428,9 @@ BINT rplRestoreBackup(BINT includestack,WORD (*readfunc)(void *),void *OpaqueArg
     if(Exceptions) return -1;
 
     TempBlocksEnd=TempBlocks+sections[0].nitems;
+
+    while(offset<sections[1].offwords) { readfunc(OpaqueArgument); ++offset; }
+
 
     // HERE'S THE START OF TEMPOB
     for(k=0;k<sections[1].nitems;++k)
@@ -407,6 +443,9 @@ BINT rplRestoreBackup(BINT includestack,WORD (*readfunc)(void *),void *OpaqueArg
 
     TempObEnd=TempOb+sections[1].nitems;
 
+    while(offset<sections[2].offwords) { readfunc(OpaqueArgument); ++offset; }
+
+
     // AFTER TEMPOB
     for(k=0;k<sections[2].nitems;++k)
     {
@@ -416,13 +455,22 @@ BINT rplRestoreBackup(BINT includestack,WORD (*readfunc)(void *),void *OpaqueArg
     }
     if(Exceptions) return -1;
 
+    while(offset<sections[3].offwords) { readfunc(OpaqueArgument); ++offset; }
 
     // HERE'S THE START OF THE DIRECTORIES
 
     for(k=0;k<sections[3].nitems;++k)
     {
         data=readfunc(OpaqueArgument);
-        if(ISROMPTRID(data)) Directories[k]=rplConvertIDToPTR(data);
+        if(ISROMPTRID(data)) {
+            WORD hash=0;
+
+            if(ROMPTRID_OFF(data)==31) {
+                hash=readfunc(OpaqueArgument);
+                ++offset;
+            }
+            Directories[k]=rplConvertIDToPTR( ((UBINT64)data) | (((UBINT64)hash)<<32));
+        }
         else Directories[k]=TempOb+(data-sections[1].offwords);
         if(Directories[k]==0) ++errors; // JUST COUNT THE ERRORS BUT DON'T STOP, RECOVER AS MUCH AS POSSIBLE
         ++offset;
@@ -431,15 +479,25 @@ BINT rplRestoreBackup(BINT includestack,WORD (*readfunc)(void *),void *OpaqueArg
 
     DirsTop=Directories+sections[3].nitems;
 
+    while(offset<sections[4].offwords) { readfunc(OpaqueArgument); ++offset; }
+
     // HERE'S THE START OF SYSTEM POINTERS
 
     for(k=0;k<sections[4].nitems;++k)
     {
         data=readfunc(OpaqueArgument);
         if(ISROMPTRID(data)) {
-            GC_PTRUpdate[k]=rplConvertIDToPTR(data);
-            // EARLIER VERSIONS WOULD CONVERT INVALID POINTERS INTO POINTERS TO zero_bint
-            if(GC_PTRUpdate[k]==(WORDPTR)zero_bint) GC_PTRUpdate[k]=0;
+
+            WORD hash=0;
+
+            if(ROMPTRID_OFF(data)==31) {
+                hash=readfunc(OpaqueArgument);
+                ++offset;
+            }
+
+
+            GC_PTRUpdate[k]=rplConvertIDToPTR(((UBINT64)data) | (((UBINT64)hash)<<32));
+
         }
         else {
             if(!data) GC_PTRUpdate[k]=0;    // RESTORE NULL POINTERS
@@ -460,15 +518,30 @@ BINT rplRestoreBackup(BINT includestack,WORD (*readfunc)(void *),void *OpaqueArg
     if(includestack) {
     // OPTIONALLY EXTRACT THE DATA STACK
 
+        while(offset<sections[5].offwords) { readfunc(OpaqueArgument); ++offset; }
     DStkProtect=DStkBottom=DStk;
 
     for(k=0;k<sections[5].nitems;++k)
     {
         data=readfunc(OpaqueArgument);
-        if(ISROMPTRID(data)) DStk[k]=rplConvertIDToPTR(data);
+        if(ISROMPTRID(data)) {
+            WORD hash=0;
+
+            if(ROMPTRID_OFF(data)==31) {
+                hash=readfunc(OpaqueArgument);
+                ++offset;
+            }
+
+            if(data==MKROMPTRID(0,63,31)) {
+                DStk[k]=NUMBER2PTR(hash);
+                DStkProtect=DStkBottom=DStk+k+1;
+            }
+            else DStk[k]=rplConvertIDToPTR(((UBINT64)data) | (((UBINT64)hash)<<32));
+
+        }
         else {
             if(((BINT)data)<=0) {
-                // THESE WERE NUMBERS USED IN THE STACK SNAPSHOTS
+                // OLD FORMAT - THESE WERE NUMBERS USED IN THE STACK SNAPSHOTS
              DStk[k]=NUMBER2PTR(-(BINT)data);
              DStkProtect=DStkBottom=DStk+k+1;
             }

@@ -138,7 +138,15 @@ void libGetRomptrID(BINT libnum,WORDPTR *table,WORDPTR ptr)
     while(table[idx]) {
         if( (ptr>=table[idx]) && (ptr<table[idx]+rplObjSize(table[idx]))) {
             BINT offset=ptr-table[idx];
-            ObjectID=MKROMPTRID(libnum,idx,offset);
+            if(offset>30) {
+                ObjectID=MKROMPTRID(libnum,idx,31); // MARK OFFSET=31 TO INDICATE OFFSET EXCEEDS THE OFFSET
+                ObjectIDHash=libComputeHash(ptr);
+            }
+            else {
+                    ObjectID=MKROMPTRID(libnum,idx,offset);
+                    ObjectIDHash=0;
+                }
+
             RetNum=OK_CONTINUE;
             return;
         }
@@ -148,7 +156,7 @@ void libGetRomptrID(BINT libnum,WORDPTR *table,WORDPTR ptr)
     return;
 }
 
-void libGetPTRFromID(WORDPTR *table,WORD id)
+void libGetPTRFromID(WORDPTR *table,WORD id,WORD hash)
 {
     BINT idx=0;
     while(table[idx]) ++idx;
@@ -156,7 +164,33 @@ void libGetPTRFromID(WORDPTR *table,WORD id)
         RetNum=ERR_NOTMINE;
         return;
     }
-    ObjectPTR=table[ROMPTRID_IDX(id)]+ROMPTRID_OFF(id);
+    if(ROMPTRID_OFF(id)<31) ObjectPTR=table[ROMPTRID_IDX(id)]+ROMPTRID_OFF(id);
+    else {
+        // SCAN THE OBJECT TO FIND A MATCHING HASH
+        WORDPTR scan=table[ROMPTRID_IDX(id)],ptr;
+        WORDPTR end=rplSkipOb(scan);
+        BINT len;
+        WORD exhash;
+        scan+=31;   // MINIMUM OFFSET FOR A SEARCH
+        while(scan<end) {
+            exhash=115127;
+            ptr=scan;
+            while(ptr<end) {
+                exhash=((exhash<<13)-exhash)+ *ptr;
+                ++ptr;
+                if(exhash==hash) {
+                    // FOUND AN OBJECT, CHECK FOR VALIDITY
+                    if(rplObjSize(scan)==ptr-scan) {
+                        ObjectPTR=scan;
+                        RetNum=OK_CONTINUE;
+                    }
+
+                }
+            }
+          ++scan;
+        }
+
+    }
     RetNum=OK_CONTINUE;
 }
 
@@ -271,6 +305,16 @@ while(object!=end) {
 return hash;
 }
 
+WORD libComputeHash2(WORDPTR start,BINT nwords)
+{
+WORDPTR end=start+nwords;
+WORD hash=115127;
+while(start!=end) {
+    hash=((hash<<13)-hash)+ *start;
+    ++start;
+}
+return hash;
+}
 
 
 // FINDS A TEXT MESSAGE IN A TABLE IN THE FORM

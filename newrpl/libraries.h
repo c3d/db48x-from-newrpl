@@ -174,11 +174,12 @@ void libProbeCmds(char *libnames[], BINT tokeninfo[], int numcmds);
 void libGetInfo(WORD opcode,char *libnames[],WORD libopcodes[],BINT tokeninfo[],int numcmds);
 void libGetInfo2(WORD opcode, char *libnames[], BINT tokeninfo[], int numcmds);
 void libGetRomptrID(BINT libnum,WORDPTR *table,WORDPTR ptr);
-void libGetPTRFromID(WORDPTR *table,WORD id);
+void libGetPTRFromID(WORDPTR *table,WORD id,WORD hash);
 void libAutoCompleteNext(BINT libnum,char *libnames[],int numcmds);
 void libAutoCompletePrev(BINT libnum,char *libnames[],int numcmds);
 void libFindMsg(BINT message,WORDPTR table);
 WORD libComputeHash(WORDPTR object);
+WORD libComputeHash2(WORDPTR start,BINT nwords);
 
 
 
