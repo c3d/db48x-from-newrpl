@@ -1763,11 +1763,21 @@ void LIB_HANDLER()
               return;
         }
 
-        if(!ISUNIT(*rplPeekData(1))) {
+        WORDPTR val,unit;
+
+        val=rplPeekData(2);
+        unit=rplPeekData(1);
+
+        if(ISSYMBOLIC(*val)) val=rplSymbUnwrap(val)+1;
+        if(ISSYMBOLIC(*unit)) unit=rplSymbUnwrap(unit)+1;
+
+        if(!ISUNIT(*unit)) {
             rplError(ERR_UNITEXPECTED);
             return;
         }
 
+        rplOverwriteData(1,unit);
+        rplOverwriteData(2,val);
         rplCallOvrOperator((CMD_OVR_MUL));
         return;
     }
