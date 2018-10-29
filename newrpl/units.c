@@ -1925,7 +1925,7 @@ BINT rplUnitToBase(BINT nlevels)
 // WITH THE UNIT IN reflevel TO (nlevels+1)
 // BOTH UNITS MUST BE EXPLODED AND REDUCED TO BASE BEFOREHAND
 BINT rplUnitIsConsistent(BINT nlevels,BINT reflevel)
-{
+ {
 if(reflevel<nlevels) {
     BINT tmp=reflevel;
     reflevel=nlevels;
@@ -1953,27 +1953,17 @@ while(lvl>0) {
         if(rplCompareIDENT(mainident,rplPeekData(lvl2))) {
             // FOUND, COMPARE THE EXPONENTS
 
-            if(ISREAL(*rplPeekData(lvl-1))) {
-                // DO A REAL COMPARISON
-                REAL num1,num2;
+                REAL num1,num2,den1,den2;
 
                 rplReadNumberAsReal(rplPeekData(lvl-1),&num1);
                 rplReadNumberAsReal(rplPeekData(lvl2-1),&num2);
-                if(!eqReal(&num1,&num2)) return 0;  // INCONSISTENT UNITS
-            } else {
-                if(!rplCompareObjects(rplPeekData(lvl-1),rplPeekData(lvl2-1))) return 0; // INCONSISTENT UNITS
-            }
+                rplReadNumberAsReal(rplPeekData(lvl-2),&den1);
+                rplReadNumberAsReal(rplPeekData(lvl2-2),&den2);
 
-            if(ISREAL(*rplPeekData(lvl-2))) {
-                // DO A REAL COMPARISON
-                REAL num1,num2;
+                mulReal(&RReg[0],&num1,&den2);
+                mulReal(&RReg[1],&num2,&den1);
 
-                rplReadNumberAsReal(rplPeekData(lvl-2),&num1);
-                rplReadNumberAsReal(rplPeekData(lvl2-2),&num2);
-                if(!eqReal(&num1,&num2)) return 0;  // INCONSISTENT UNITS
-            } else {
-                if(!rplCompareObjects(rplPeekData(lvl-2),rplPeekData(lvl2-2))) return 0; // INCONSISTENT UNITS
-            }
+                if(!eqReal(&RReg[0],&RReg[1])) return 0; // INCONSISTENT UNITS
 
             // HERE WE HAVE A MATCH
 
