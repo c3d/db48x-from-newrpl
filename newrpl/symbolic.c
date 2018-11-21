@@ -3465,3 +3465,238 @@ void rplSymbNumericCompute()
     rplOverwriteData(1,*stksave);
 
 }
+
+
+
+// ********************************************************************************************************************
+// START OF NEW AND IMPROVED RULE ALGORITHM FROM SCRATCH
+// ********************************************************************************************************************
+
+// EXPLODE A SYMBOLIC IN THE STACK
+// BUT ONLY EXPLODE THE OUTERMOST OPERATOR, KEEPING ITS ARGUMENTS UNEXPLODED
+// USES ScratchPointer1 THRU 3 FOR GC PROTECTION
+// RETURN THE NUMBER OF OBJECTS THAT ARE ON THE STACK
+// LEVEL 1=OPERATOR, LEVEL2=NARGS, LEVEL3=LAST ARG ... LEVEL 2+NARGS = 1ST ARG
+
+BINT rplSymbExplodeOneLevel2(WORDPTR object)
+{
+    BINT count=0,countops=0;
+
+    ScratchPointer1=rplSymbUnwrap(object)+1;
+    ScratchPointer2=rplSkipOb(object);
+
+    while(ScratchPointer1<ScratchPointer2) {
+        if(! (ISPROLOG(*ScratchPointer1) || ISBINT(*ScratchPointer1))) { ScratchPointer3=ScratchPointer1; ++countops; }
+        else {
+            rplPushData(ScratchPointer1);
+            ++count;
+        }
+        ScratchPointer1=rplSkipOb(ScratchPointer1);
+    }
+
+    if(countops) {
+        rplNewSINTPush(count,DECBINT);
+        rplPushData(ScratchPointer3);
+        ++countops;
+    }
+    return count+countops;
+
+}
+
+
+// RETURN 1 IF THE GIVEN SYMBOLIC IS A SINGLE NUMBER
+// RETURN 0 IF THE GIVEN SYMBOLIC HAS ANY VARIABLES OR CALLS A CUSTOM USER FUNCTION
+BINT rplSymbIsANumber(WORDPTR ptr)
+{
+if(ISSYMBOLIC(*ptr)) ptr=rplSymbUnwrap(ptr)+1;
+
+if(ISNUMBERCPLX(*ptr)) return 1;
+
+return 0;
+
+}
+
+// MATCH A RULE AGAINST AN EXPRESSION
+// FIND ALL MATCHES IS findall IS TRUE
+// ARGUMENTS:
+// SYMBOLIC EXPRESSION IN LEVEL 2 (MUST BE ALREADY IN CANONICAL FORM)
+// RULE IN LEVEL 1 (ALSO IN CANONICAL FORM)
+
+// RETURNS:
+// NUMBER OF MATCHES FOUND = NUMBER OF NEW LOCAL ENVIRONMENTS CREATED (NEED TO BE CLEANED UP BY CALLER)
+// EACH MATCH FOUND CREATES A NEW LOCAL ENVIRONMENT, WITH THE FOLLOWING VARIABLES:
+// GETLAM1 IS UNNAMED, AND WILL CONTAIN A POINTER INSIDE THE ORIGINAL SYMBOLIC WHERE THE MATCH WAS FOUND, TO BE USED BY REPLACE (INTERNAL USE)
+// ANY IDENTS THAT START WITH A PERIOD IN THE RULE DEFINITION WILL HAVE A DEFINITION IN THIS ENVIRONMENT
+
+// STACK IS LEFT UNTOUCHED
+// MAY TRIGGER GC
+// USES ALL SCRATCHPOINTERS
+
+// NO ARGUMENT CHECKS!
+
+enum {
+    OPMATCH=0,
+    ARGMATCH=1,
+    RESTARTMATCH=2,
+    BACKTRACK=3,
+    ARGDONE=4
+};
+
+BINT rplSymbRuleMatch2(BINT findall)
+{
+WORDPTR * expression=DSTop-2;
+WORDPTR * rule=DSTop-1;
+WORDPTR *left,*right,*marker;
+WORDPTR *lamsave=LAMTop,*lamcurrent=nLAMBase;
+
+WORDPTR ruleleft=rplSymbMainOperatorPTR(*rule);
+if(*ruleleft==CMD_RULESEPARATOR) ++ruleleft;    // POINT TO THE FIRST ARGUMENT, OTHERWISE THE ENTIRE SYMBOLIC IS AN EXPRESSION TO MATCH BUT NOT A RULE TO REPLACE
+BINT ruleleftoffset=ruleleft-*rule;
+BINT leftnargs,rightnargs;
+BINT leftidx,rightidx;
+BINT matchtype,noadvance;
+
+// PUSH LOOP STOPPERS
+rplPushData((WORDPTR)minusone_bint);
+if(Exceptions) { DSTop=rule+1; LAMTop=lamsave; lamcurrent=nLAMBase; return 0; }
+rplPushData((WORDPTR)minusone_bint);
+if(Exceptions) { DSTop=rule+1; LAMTop=lamsave; lamcurrent=nLAMBase; return 0; }
+
+
+// PUSH LOOP INITIAL ARGUMENTS
+// PUSH THE LEFT
+marker=DSTop;
+rplSymbExplodeOneLevel2(*expression);
+if(Exceptions) { DSTop=rule+1; LAMTop=lamsave; lamcurrent=nLAMBase; return 0; }
+left=DSTop;
+// PUSH THE RIGHT
+rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
+if(Exceptions) { DSTop=rule+1; LAMTop=lamsave; lamcurrent=nLAMBase; return 0; }
+right=DSTop;
+
+// LEFTARG AND RIGHTARG
+rplPushData((WORDPTR)one_bint);
+if(Exceptions) { DSTop=rule+1; LAMTop=lamsave; lamcurrent=nLAMBase; return 0; }
+rplPushData((WORDPTR)one_bint);
+if(Exceptions) { DSTop=rule+1; LAMTop=lamsave; lamcurrent=nLAMBase; return 0; }
+
+matchtype=RESTARTMATCH;
+
+do {
+
+    switch(matchtype)
+    {
+    case OPMATCH:
+    {
+
+        // GET POINTERS TO THE LEFT AND RIGHT EXPRESSIONS, AND ARGUMENT COUNTS
+        right=DSTop-3;
+        left=right-1;
+        if(!ISPROLOG(**right)) rightnargs=rplReadBINT(*(right-1));
+        else rightnargs=0;
+        left-=rightnargs;
+        if(!ISPROLOG(**left)) leftnargs=rplReadBINT(*(left-1));
+        else leftnargs=0;
+
+        leftidx=rplReadBINT(right[1]);  // GET THE INDEX INTO THE ARGUMENTS
+        rightidx=rplReadBINT(right[2]);
+
+        // OPERATOR COMPARISON, CHECK IF OPERATORS ARE IDENTICAL
+        if(rightnargs) {
+            // THE RIGHT PART HAS AN OPERATOR, CHECK IF THE LEFT IS IDENTICAL
+            if(leftnargs && ( (**right) == (**left) )) {
+                // OPERATOR MATCHES, MOVE ON TO ARGUMENT BY ARGUMENT
+                matchtype=ARGMATCH;
+                break;
+            }
+            // NO MATCH, BACKTRACK
+            matchtype=BACKTRACK;
+        }
+        else {
+            // RIGHT PART DOESN'T HAVE AN OPERATOR, CHECK FOR SPECIAL IDENTS
+            if(ISIDENT(**right)) {
+                // IF THE RIGHT EXPRESSION IS A SINGLE IDENTIFIER
+                WORDPTR *lamname=rplFindLAM(*right,0);
+                if(lamname) *right=lamname[1]; // REPLACE THIS OCCURRENCE WITH ITS VALUE
+                else {
+
+                    WORD firstchars=(*right)[1];
+                    firstchars&=0xffff;
+
+                    switch(firstchars)
+                    {
+                    case TEXT2WORD('.','x',0,0):
+                        // x = Match smallest expression with any variables or constants, assuming commutative addition and multiplication
+                        rplCreateLAM(*right,*left);
+                        matchtype=ARGDONE;
+                        break;
+                    case TEXT2WORD('.','X',0,0):
+                        // X = Match largest expression with any variables or constants, assuming commutative addition and multiplication
+                        // TAKE ALL ARGUMENTS OF THE OPERATION
+                        break;
+                    case TEXT2WORD('.','m',0,0):
+                        // m = Match smallest expression with any variables or constants, assuming commutative addition but non-commutative multiplication (use this with matrix expressions)
+                        break;
+                    case TEXT2WORD('.','M',0,0):
+                        // M = Same as m but largest expression
+                        break;
+                    case TEXT2WORD('.','f',0,0):
+                        // f = match only a single function name
+                        // TODO: PERHAPS THERE'S NO USE FOR THIS?
+                        break;
+                    case TEXT2WORD('.','n',0,0):
+                        // n = Match only a single number (real or integer)
+                        break;
+                    case TEXT2WORD('.','N',0,0):
+                        // N = Match the largest expression involving only numbers (real or integer)
+                        break;
+                    case TEXT2WORD('.','i',0,0):
+                        // i = Match only a single integer number
+                        // TODO: PERHAPS THERE'S NO USE FOR THIS?
+                        break;
+                    case TEXT2WORD('.','I',0,0):
+                        // I = Match the largest expression involving all integer numbers
+                        // TODO: PERHAPS THERE'S NO USE FOR THIS?
+                        break;
+                    default:
+                        // THIS IS NOT A SPECIAL IDENT, JUST COMPARE THE IDENTS
+                        if(rplCompareIDENT(*left,*right)) matchtype=ARGDONE;
+                    }
+                }
+            }
+            else {
+                // NO OPERATOR, JUST AN OBJECT, NOTHING SPECIAL
+                rplPushData(*left);
+                rplPushData(*right);
+                if(Exceptions) { DSTop=rule+1; LAMTop=lamsave; lamcurrent=nLAMBase; return 0; }
+                rplCallOvrOperator(CMD_OVR_SAME);
+                if(Exceptions) { DSTop=rule+1; LAMTop=lamsave; lamcurrent=nLAMBase; return 0; }
+                if(rplIsFalse(rplPopData())) matchtype=BACKTRACK;
+                else matchtype=ARGDONE;
+            }
+
+        }
+        break;
+    }
+    case ARGMATCH:
+    {
+        break;
+    }
+    case RESTARTMATCH:
+    {
+        break;
+    }
+    case ARGDONE:
+    {
+        break;
+    }
+
+    }
+
+
+
+
+} while(1);
+
+return 0;
+}
