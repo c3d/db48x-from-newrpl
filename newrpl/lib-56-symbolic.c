@@ -1354,7 +1354,7 @@ void LIB_HANDLER()
         }
         // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
 
-        BINT nsolutions=rplSymbRuleMatch2(0);
+        BINT nsolutions=rplSymbRuleMatch2(0),nsol2=nsolutions;
         if(Exceptions) return;
 
         while(nsolutions) {
@@ -1364,10 +1364,11 @@ void LIB_HANDLER()
         BINT numlams=rplLAMCount(0);
         BINT f;
 
-        if(numlams>=3) {
+        if(numlams>=1) {
 
-        for(f=3;f<=numlams;++f) {
+        for(f=1;f<=numlams;++f) {
             // CREATE A RULE FOR ALL LAMS
+            if(f>1) {
             rplPushData(*rplGetLAMnName(f));    // PUT THE NAME ON THE STACK
             rplPushData(*rplGetLAMn(f));        // PUT THE MATCHED EXPRESSION
             rplSymbApplyOperator(CMD_RULESEPARATOR,2);  // CREATE A RULE
@@ -1375,8 +1376,13 @@ void LIB_HANDLER()
                 rplCleanupLAMs(0);
                 return;
             }
+            }
+            else {
+                rplPushData(*rplGetLAMn(f));        // PUT THE MATCHED SUBEXPRESSION
+            }
+
         }
-        rplNewBINTPush(numlams-2,DECBINT);
+        rplNewBINTPush(numlams,DECBINT);
         rplCreateList();
         if(Exceptions) {
             rplCleanupLAMs(0);
@@ -1385,11 +1391,10 @@ void LIB_HANDLER()
 
         } else { rplPushData((WORDPTR)empty_list); }
 
-        rplPushData(*rplGetLAMn(1));    // NULLAM1 HAS THE RESULT OF THE MATCH (0=NO MATCH, 1 = MATCH FOUND)
-
         rplCleanupLAMs(0);
         --nsolutions;
         }
+        rplNewBINTPush(nsol2,DECBINT);
         return;
 
      }
