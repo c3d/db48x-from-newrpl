@@ -1354,9 +1354,10 @@ void LIB_HANDLER()
         }
         // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
 
-        rplSymbRuleMatch();
+        BINT nsolutions=rplSymbRuleMatch2(0);
         if(Exceptions) return;
 
+        while(nsolutions) {
         // HERE WE HAVE A NEW LOCAL ENVIRONMENT
         // PUSH THE RESULT OF THE MATCH IN THE STACK AS A LIST OF RULES
 
@@ -1387,6 +1388,8 @@ void LIB_HANDLER()
         rplPushData(*rplGetLAMn(1));    // NULLAM1 HAS THE RESULT OF THE MATCH (0=NO MATCH, 1 = MATCH FOUND)
 
         rplCleanupLAMs(0);
+        --nsolutions;
+        }
         return;
 
      }
