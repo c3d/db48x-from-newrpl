@@ -3652,7 +3652,10 @@ void rplSymbReplaceMatchHere(WORDPTR *rule,BINT startleftarg)
 
 
         // REPLACE THE LEFT ARGUMENT WITH THE NEW OBJECT
-        if(leftnargs) FINDARGUMENT(left,leftnargs,leftidx)=rplPopData();
+        if(leftnargs) {
+            if(leftidx>leftnargs) FINDARGUMENT(left,leftnargs,leftidx-leftnargs)=rplPopData();
+            else FINDARGUMENT(left,leftnargs,leftidx)=rplPopData();
+        }
         else *left=rplPopData();
 
         }
@@ -3668,6 +3671,9 @@ void rplSymbReplaceMatchHere(WORDPTR *rule,BINT startleftarg)
 
 
 }
+
+#define RULEDEBUG 1
+
 
 BINT rplSymbRuleMatch2(BINT findall)
 {
@@ -3691,7 +3697,7 @@ if(*ruleleft==CMD_RULESEPARATOR) ++ruleleft;    // POINT TO THE FIRST ARGUMENT, 
 BINT ruleleftoffset=ruleleft-*rule;
 BINT leftnargs,rightnargs;
 BINT leftidx,rightidx;
-BINT matchtype;
+BINT matchtype,matchstarted;
 
 
 
@@ -3721,6 +3727,7 @@ if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0
 
 baselevel=DSTop;
 matchtype=OPMATCH;
+matchstarted=0;
 
 // CREATE LAM ENVIRONMENT
 rplCreateLAMEnvironment(*rule);
@@ -3747,6 +3754,32 @@ do {
         leftidx=rplReadBINT(right[1]);  // GET THE INDEX INTO THE ARGUMENTS
         rightidx=rplReadBINT(right[2]);
 
+        //******************************************************
+        // DEBUG ONLY AREA
+        //******************************************************
+#ifdef RULEDEBUG
+        printf("OPMATCH: ");
+
+        WORDPTR string=rplDecompile(*left,DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("left=%s",strbyte);
+        }
+        string=rplDecompile(*right,DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  right=%s",strbyte);
+        }
+        printf("\n"); fflush(stdout);
+#endif
+        //******************************************************
+        //      END DEBUG ONLY AREA
+        //******************************************************
+
         // OPERATOR COMPARISON, CHECK IF OPERATORS ARE IDENTICAL
         if(rightnargs) {
             // THE RIGHT PART HAS AN OPERATOR, CHECK IF THE LEFT IS IDENTICAL
@@ -3755,10 +3788,39 @@ do {
                 right[1]=(WORDPTR)one_bint;
                 right[2]=(WORDPTR)one_bint;     // SET POINTERS TO FIRST ARGUMENT
                 matchtype=ARGMATCH;
+                matchstarted=1;
                 break;
             }
-            // NO MATCH, BACKTRACK
-            matchtype=BACKTRACK;
+            // NO MATCH, TRY PASSING IT TO THE ARGUMENTS
+            if(DSTop==baselevel && leftnargs && !matchstarted) {
+               // RECURSE INTO FIRST ARGUMENT
+               // PUSH THE LEFT
+                ++leftidx;
+
+                if(leftidx<=leftnargs) {
+                right[1]=rplNewSINT(leftidx,DECBINT);
+                if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                rplSymbExplodeOneLevel2(FINDARGUMENT(left,leftnargs,leftidx));
+                if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                // PUSH THE RIGHT
+                rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
+                if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                right=DSTop;
+
+                // LEFTARG AND RIGHTARG
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                baselevel=DSTop;
+                matchtype=OPMATCH;
+                }
+                else matchtype=BACKTRACK;
+
+            }
+            else matchtype=BACKTRACK;
         }
         else {
             // RIGHT PART DOESN'T HAVE AN OPERATOR, CHECK FOR SPECIAL IDENTS
@@ -3841,6 +3903,38 @@ do {
         leftidx=rplReadBINT(right[1]);  // GET THE INDEX INTO THE ARGUMENTS
         rightidx=rplReadBINT(right[2]);
 
+        //******************************************************
+        // DEBUG ONLY AREA
+        //******************************************************
+#ifdef RULEDEBUG
+        printf("ARGMATCH: %d/%d,%d/%d",leftidx,leftnargs,rightidx,rightnargs);
+        if(leftidx>0 && leftidx<=leftnargs) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(left,leftnargs,leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  left=%s",strbyte);
+        }
+        }
+        if(rightidx>0 && rightidx<=rightnargs) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(right,rightnargs,rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  right=%s",strbyte);
+        }
+        }
+        printf("\n"); fflush(stdout);
+#endif
+        //******************************************************
+        //      END DEBUG ONLY AREA
+        //******************************************************
+
+
+
+
         if(leftidx<=leftnargs) {
             if(rightidx>rightnargs) {
                 // THERE'S EXTRA ARGUMENTS IN THE LEFT PART, COULD BE A PARTIAL MATCH
@@ -3888,6 +3982,36 @@ do {
         leftidx=rplReadBINT(right[1]);  // GET THE INDEX INTO THE ARGUMENTS
         rightidx=rplReadBINT(right[2]);
 
+        //******************************************************
+        // DEBUG ONLY AREA
+        //******************************************************
+#ifdef RULEDEBUG
+        printf("RESTARTMATCH: %d/%d,%d/%d",leftidx,leftnargs,rightidx,rightnargs);
+        if(leftidx>0 && leftidx<=leftnargs) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(left,leftnargs,leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  left=%s",strbyte);
+        }
+        }
+        if(rightidx>0 && rightidx<=rightnargs) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(right,rightnargs,rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  right=%s",strbyte);
+        }
+        }
+        printf("\n"); fflush(stdout);
+#endif
+        //******************************************************
+        //      END DEBUG ONLY AREA
+        //******************************************************
+
+
         if(leftidx<leftnargs) {
 
          // ADVANCE TO THE NEXT ARGUMENT
@@ -3912,6 +4036,40 @@ do {
 
             baselevel=DSTop;
             matchtype=OPMATCH;
+            matchstarted=0;
+
+            //******************************************************
+            // DEBUG ONLY AREA
+            //******************************************************
+    #ifdef RULEDEBUG
+            printf("RESTARTED: %d/%d,%d/%d",leftidx,leftnargs,rightidx,rightnargs);
+            if(leftidx>0 && leftidx<=leftnargs) {
+            WORDPTR string=rplDecompile(FINDARGUMENT(left,leftnargs,leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+            if(string) {
+                BYTE strbyte[1024];
+                memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                strbyte[rplStrSize(string)]=0;
+                printf("  left=%s",strbyte);
+            }
+            }
+            if(rightidx>0 && rightidx<=rightnargs) {
+            WORDPTR string=rplDecompile(FINDARGUMENT(right,rightnargs,rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+            if(string) {
+                BYTE strbyte[1024];
+                memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                strbyte[rplStrSize(string)]=0;
+                printf("  right=%s",strbyte);
+            }
+            }
+            printf("\n"); fflush(stdout);
+    #endif
+            //******************************************************
+            //      END DEBUG ONLY AREA
+            //******************************************************
+
+
+
+
 
             rplCleanupLAMs(0);
             // CREATE LAM ENVIRONMENT
@@ -3922,9 +4080,48 @@ do {
 
         }
         else {
+            if((baselevel==DSTop)&&(matchstarted==2)) {
+                // THIS MATCH WAS STARTED ON AN INNER LEVEL, RESTART NEXT LEVEL FROM THE OPERATOR
+                ++leftidx;  // LEFTIDX EXCEEDS NARGS TO SIGNAL WE ARE DOING AN INNER RESTART ON THIS ARGUMENT
+                right[1]=rplNewSINT(leftidx,DECBINT);
+                if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                // PUSH THE LEFT
+                rplSymbExplodeOneLevel2(FINDARGUMENT(left,leftnargs,leftidx-leftnargs));
+                if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                // PUSH THE RIGHT
+                rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
+                if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                right=DSTop;
+
+                // LEFTARG AND RIGHTARG
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                baselevel=DSTop;
+                matchtype=OPMATCH;
+                matchstarted=0;
+
+
+            }
+            else {
             // LAST ARGUMENT WAS ALREADY COMPARED, BACKTRACK TO THE PREVIOUS BASE
+
             DSTop=left- ( (leftnargs)? (1+leftnargs):0);
             baselevel=DSTop;
+            //******************************************************
+            // DEBUG ONLY AREA
+            //******************************************************
+    #ifdef RULEDEBUG
+            printf("RESTARTMATCH UP");
+            printf("\n"); fflush(stdout);
+    #endif
+            //******************************************************
+            //      END DEBUG ONLY AREA
+            //******************************************************
+            }
         }
 
         break;
@@ -3942,6 +4139,39 @@ do {
         left-=rightnargs;
         if(!ISPROLOG(**left) && !ISBINT(**left)) leftnargs=rplReadBINT(*(left-1));
         else leftnargs=0;
+
+        leftidx=rplReadBINT(right[1]);  // GET THE INDEX INTO THE ARGUMENTS
+        rightidx=rplReadBINT(right[2]);
+
+        //******************************************************
+        // DEBUG ONLY AREA
+        //******************************************************
+#ifdef RULEDEBUG
+        printf("BACKTRACK: %d/%d,%d/%d",leftidx,leftnargs,rightidx,rightnargs);
+        if(leftidx>0 && leftidx<=leftnargs) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(left,leftnargs,leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  left=%s",strbyte);
+        }
+        }
+        if(rightidx>0 && rightidx<=rightnargs) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(right,rightnargs,rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  right=%s",strbyte);
+        }
+        }
+        printf("\n"); fflush(stdout);
+#endif
+        //******************************************************
+        //      END DEBUG ONLY AREA
+        //******************************************************
+
 
         if(DSTop==baselevel) {
             // FAILED TO FIND A MATCH, RESTART THE MATCH WITH THE NEXT ARGUMENT
@@ -3969,6 +4199,38 @@ do {
 
                 baselevel=DSTop;
                 matchtype=OPMATCH;
+                matchstarted=0;
+
+
+                //******************************************************
+                // DEBUG ONLY AREA
+                //******************************************************
+        #ifdef RULEDEBUG
+                printf("BACKTRACKED: %d/%d,%d/%d",leftidx,leftnargs,rightidx,rightnargs);
+                if(leftidx>0 && leftidx<=leftnargs) {
+                WORDPTR string=rplDecompile(FINDARGUMENT(left,leftnargs,leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+                if(string) {
+                    BYTE strbyte[1024];
+                    memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                    strbyte[rplStrSize(string)]=0;
+                    printf("  left=%s",strbyte);
+                }
+                }
+                if(rightidx>0 && rightidx<=rightnargs) {
+                WORDPTR string=rplDecompile(FINDARGUMENT(right,rightnargs,rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+                if(string) {
+                    BYTE strbyte[1024];
+                    memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                    strbyte[rplStrSize(string)]=0;
+                    printf("  right=%s",strbyte);
+                }
+                }
+                printf("\n"); fflush(stdout);
+        #endif
+                //******************************************************
+                //      END DEBUG ONLY AREA
+                //******************************************************
+
 
                 // CLEAN THE PREVIOUS ENVIRONMENT
                 rplCleanupLAMs(0);
@@ -3983,6 +4245,19 @@ do {
             else {
                 // KEEP BACKTRACKING
                 DSTop=left- ( (leftnargs)? (1+leftnargs):0); // DROP ENTIRE LEVEL
+                if(baselevel>DSTop) { matchtype=RESTARTMATCH; if(matchstarted) matchstarted=2; }
+                //******************************************************
+                // DEBUG ONLY AREA
+                //******************************************************
+        #ifdef RULEDEBUG
+                printf("BACKTRACKED UP");
+                printf("\n"); fflush(stdout);
+        #endif
+                //******************************************************
+                //      END DEBUG ONLY AREA
+                //******************************************************
+
+
             }
 
 
@@ -3990,6 +4265,19 @@ do {
         else {
             // KEEP BACKTRACKING
             DSTop=left- ( (leftnargs)? (1+leftnargs):0); // DROP ENTIRE LEVEL
+            if(baselevel>DSTop) matchtype=RESTARTMATCH;
+
+            //******************************************************
+            // DEBUG ONLY AREA
+            //******************************************************
+    #ifdef RULEDEBUG
+            printf("BACKTRACKED UP");
+            printf("\n"); fflush(stdout);
+    #endif
+            //******************************************************
+            //      END DEBUG ONLY AREA
+            //******************************************************
+
         }
 
 
@@ -4011,6 +4299,36 @@ do {
         leftidx=rplReadBINT(right[1]);  // GET THE INDEX INTO THE ARGUMENTS
         rightidx=rplReadBINT(right[2]);
 
+        //******************************************************
+        // DEBUG ONLY AREA
+        //******************************************************
+#ifdef RULEDEBUG
+        printf("ARGDONE: %d/%d,%d/%d",leftidx,leftnargs,rightidx,rightnargs);
+        if(leftidx>0 && leftidx<=leftnargs) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(left,leftnargs,leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  left=%s",strbyte);
+        }
+        }
+        if(rightidx>0 && rightidx<=rightnargs) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(right,rightnargs,rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  right=%s",strbyte);
+        }
+        }
+        printf("\n"); fflush(stdout);
+#endif
+        //******************************************************
+        //      END DEBUG ONLY AREA
+        //******************************************************
+
+
         ++leftidx;
         ++rightidx;
 
@@ -4024,6 +4342,23 @@ do {
                         rplSymbReplaceMatchHere(rule,leftidx-rightnargs);
                         if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
+                        //******************************************************
+                        // DEBUG ONLY AREA
+                        //******************************************************
+                #ifdef RULEDEBUG
+                        printf("REPLACED (EXTRA LEFT): ");
+                        WORDPTR string=rplDecompile(*expression,DECOMP_EDIT|DECOMP_NOHINTS);
+                        if(string) {
+                            BYTE strbyte[1024];
+                            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                            strbyte[rplStrSize(string)]=0;
+                            printf("  expression=%s",strbyte);
+                        }
+                        printf("\n"); fflush(stdout);
+                #endif
+                        //******************************************************
+                        //      END DEBUG ONLY AREA
+                        //******************************************************
                         // UPDATE ALL POINTERS AS THE EXPRESSION MOVED IN THE STACK
                         baselevel=DSTop;
                         right=DSTop-3;
@@ -4050,6 +4385,7 @@ do {
                         right[2]=rplNewSINT(rightidx,DECBINT);
 
                         matchtype=ARGMATCH;
+
 
                     }
                     else {
@@ -4082,6 +4418,23 @@ do {
                     rplPutLAMn(1,*left);
                     rplSymbReplaceMatchHere(rule,leftidx-rightnargs);
                     if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    //******************************************************
+                    // DEBUG ONLY AREA
+                    //******************************************************
+            #ifdef RULEDEBUG
+                    printf("REPLACED (EXACT): ");
+                    WORDPTR string=rplDecompile(*expression,DECOMP_EDIT|DECOMP_NOHINTS);
+                    if(string) {
+                        BYTE strbyte[1024];
+                        memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                        strbyte[rplStrSize(string)]=0;
+                        printf("  expression=%s",strbyte);
+                    }
+                    printf("\n"); fflush(stdout);
+            #endif
+                    //******************************************************
+                    //      END DEBUG ONLY AREA
+                    //******************************************************
 
                     // UPDATE ALL POINTERS AS THE EXPRESSION MOVED IN THE STACK
                     baselevel=DSTop;
@@ -4109,6 +4462,17 @@ do {
 
             // ALL ARGUMENTS ARE DONE, PASS IT TO THE UPPER LEVEL
             DSTop=left- ( (leftnargs)? (1+leftnargs):0);
+            //******************************************************
+            // DEBUG ONLY AREA
+            //******************************************************
+    #ifdef RULEDEBUG
+            printf("ARGDONE UP");
+            printf("\n"); fflush(stdout);
+    #endif
+            //******************************************************
+            //      END DEBUG ONLY AREA
+            //******************************************************
+
 
             }
         }
@@ -4129,6 +4493,35 @@ do {
         leftidx=rplReadBINT(right[1]);  // GET THE INDEX INTO THE ARGUMENTS
         rightidx=rplReadBINT(right[2]);
 
+        //******************************************************
+        // DEBUG ONLY AREA
+        //******************************************************
+#ifdef RULEDEBUG
+        printf("ARGDONEEXTRA: %d/%d,%d/%d",leftidx,leftnargs,rightidx,rightnargs);
+        if(leftidx>0 && leftidx<=leftnargs) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(left,leftnargs,leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  left=%s",strbyte);
+        }
+        }
+        if(rightidx>0 && rightidx<=rightnargs) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(right,rightnargs,rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  right=%s",strbyte);
+        }
+        }
+        printf("\n"); fflush(stdout);
+#endif
+        //******************************************************
+        //      END DEBUG ONLY AREA
+        //******************************************************
+
         // TODO: HANDLE THE CASE OF PARTIAL MATCH
         // ALL ARGUMENTS ARE DONE, PASS IT TO THE UPPER LEVEL
         DSTop=left- ( (leftnargs)? (1+leftnargs):0);
@@ -4141,7 +4534,7 @@ do {
 
 } while(DSTop>marker);
 
-if(matchtype==BACKTRACK) rplCleanupLAMs(0); // THE LAST BACKTRACK ENDED IN FAILURE, DISCARD THE ENVIRONMENT
+if((matchtype==BACKTRACK)||(matchtype==RESTARTMATCH)) rplCleanupLAMs(0); // THE LAST BACKTRACK ENDED IN FAILURE, DISCARD THE ENVIRONMENT
 
 // COUNT HOW MANY RESULTS WERE FOUND
 DSTop=expression+1;     // KEEP THE RESULTING EXPRESSION ON THE STACK
