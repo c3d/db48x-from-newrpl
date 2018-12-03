@@ -662,7 +662,7 @@ WORDPTR rplSymbMainOperatorPTR(WORDPTR symbolic);
 BINT rplIsAllowedInSymb(WORDPTR object);
 void rplSymbApplyOperator(WORD Opcode,BINT nargs);
 void rplSymbRuleMatch();
-BINT rplSymbRuleMatch2(BINT findall);
+BINT rplSymbRuleMatch2();
 
 void rplSymbRuleApply();
 BINT rplSymbIsRule(WORDPTR ptr);

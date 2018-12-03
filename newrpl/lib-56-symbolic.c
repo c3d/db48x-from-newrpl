@@ -1354,7 +1354,7 @@ void LIB_HANDLER()
         }
         // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
 
-        BINT nsolutions=rplSymbRuleMatch2(0),nsol2=nsolutions;
+        BINT nsolutions=rplSymbRuleMatch2(),nsol2=nsolutions;
         if(Exceptions) return;
 
         while(nsolutions) {
@@ -1407,31 +1407,82 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
             return;
         }
+        // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
+        BINT nrules=1;
+        WORDPTR *savestk=DSTop;
+        if(ISLIST(*rplPeekData(1))) {
+            // THIS IS A RULE SET, APPLY ALL RULES IN THE LIST TO THE EXPRESSION, IN SEQUENCE
+            // RETURN TOTAL NUMBER OF POSITIVE MATCHES IN THE ENTIRE SET (ZERO IF NO CHANGES WERE MADE)
+            // FIRST MAKE A FULL LIST OF RULES IN THE STACK, IN ORDER OF APPLICATION
 
-        if(!ISSYMBOLIC(*rplPeekData(2))) {
-            rplError(ERR_SYMBOLICEXPECTED);
+            WORDPTR *rulelist=DSTop-1;
+            WORDPTR first=(*rulelist)+1;
+            while(first!=rplSkipOb(*rulelist)) {
+                if(ISLIST(*first)) {
+                    rplPushData(first);
+                    first=rplPeekData(1)+1;
+                } // ENTER INTO THE LIST, PUT THE LIST ON THE STACK
 
-            return;
+                if(*first==CMD_ENDLIST) {
+                 WORDPTR *stkptr=DSTop-1;
+                 while((stkptr>=rulelist) && !ISLIST(**stkptr)) break;
+                 if(stkptr==rulelist) break;    // END OF MAIN LIST
+                 first=rplSkipOb(*stkptr);  // NEXT ARGUMENT IN THE INNER LIST
+                }
+
+                // IDENTIFIERS ARE VARIABLES CONTAINING SETS OF RULES
+                if(ISIDENT(*first)) {
+                    WORDPTR *var=rplFindGlobal(first,1);
+                    if(var) {
+                        if(ISLIST(*var[1])) { first=var[1]; continue; }
+                        if(rplSymbIsRule(var[1])) {
+                           ScratchPointer1=first;
+                           rplPushData(var[1]);
+                           first=ScratchPointer1;   // READ AGAIN IN CASE THERE WAS A GC
+                        }
+                    } // TAKE THE VALUE OF THE VARIABLE AS THE NEXT RULE
+                }
+                 if(rplSymbIsRule(first)) {
+                    rplPushData(first);
+                    first=rplPeekData(1);   // READ AGAIN IN CASE THERE WAS A GC
+                 }
+
+                 // JUST SKIP ANY OTHER OBJECT
+                 first=rplSkipOb(first);
+                }
+
+
+            nrules=DSTop-savestk+1;
+            }
+
+
+
+        WORDPTR *firstrule=savestk-1;
+        BINT k;
+        BINT nsolutions,totalreplacements=0;
+        rplPushDataNoGrow(*(savestk-2)); // COPY THE EXPRESSION
+
+
+
+        for(k=0;k<nrules;++k) {
+
+        if(rplSymbIsRule(firstrule[k])) {
+            rplPushDataNoGrow(firstrule[k]);
+            nsolutions=rplSymbRuleMatch2();
+            if(Exceptions) { DSTop=savestk; return; }
+            totalreplacements+=nsolutions;
+            rplOverwriteData(3,rplPeekData(1));  // REPLACE THE ORIGINAL EXPRESSION WITH THE NEW ONE
+            rplDropData(2);
+            // CLEANUP ALL LAM ENVIRONMENTS
+            while(nsolutions>0) { rplCleanupLAMs(firstrule[0]); --nsolutions; }
         }
-        if(!ISSYMBOLIC(*rplPeekData(1))) {
-            rplError(ERR_SYMBOLICEXPECTED);
-
-            return;
         }
 
-        if(!rplSymbIsRule(rplPeekData(1))) {
-            rplError(ERR_NOTAVALIDRULE);
-            return;
-        }
+        // WE APPLIED ALL RULES
 
-
-        rplSymbRuleApply();
-        if(Exceptions) return;
-
-        // HERE WE HAVE A NEW LOCAL ENVIRONMENT WITH THE
-        // PUSH THE RESULT OF THE MATCH IN THE STACK AS A LIST OF RULES
-
-        rplCleanupLAMs(0);
+        firstrule[-1]=rplPopData(); // REPLACE ORIGINAL EXPRESSION WITH RESULT
+        firstrule[0]=rplNewBINT(totalreplacements,DECBINT);
+        DSTop=savestk;
         return;
 
      }
