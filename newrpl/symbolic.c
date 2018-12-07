@@ -3595,7 +3595,7 @@ void rplSymbReplaceMatchHere(WORDPTR *rule,BINT startleftarg)
         // HERE WE FINALLY HAVE THE RIGHT PART EXPRESSION READY TO REPLACE
         DSTop=stksave;
         if(leftnargs) {
-            if(leftnargs!=rightnargs) {
+            if(rightnargs && (leftnargs!=rightnargs)) {
                 // THERE'S EXTRA ARGUMENTS, MUST BE ADDITION OR MULTIPLICATION, JUST REPLACE ARGUMENTS
             FINDARGUMENT(left,leftnargs,startleftarg)=newsymb;
             rplRemoveAtData(DSTop-&FINDARGUMENT(left,leftnargs,startleftarg+rightnargs)+1,rightnargs-1);
@@ -3669,7 +3669,7 @@ void rplSymbReplaceMatchHere(WORDPTR *rule,BINT startleftarg)
 
 }
 
-//#define RULEDEBUG 1
+#define RULEDEBUG 1
 
 // MATCH A RULE AGAINST AN EXPRESSION
 // ARGUMENTS:
@@ -3860,7 +3860,7 @@ do {
                     {
                     case TEXT2WORD('.','x',0,0):
                         // x = Match smallest expression with any variables or constants, assuming commutative addition and multiplication
-
+                    {
                         if(leftnargs) {
                             // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
 
@@ -3883,6 +3883,7 @@ do {
                         // JUST CAPTURE THE CURRENT ARGUMENT
 
                             if(pleftidx>=1 && pleftidx<=pleftnargs) rplCreateLAM(*right,FINDARGUMENT(pleft,pleftnargs,pleftidx));
+                            else if(pleftidx==-1) rplCreateLAM(*right,*pleft);
                             // else SOMETHING IS WRONG IN THE EXPRESSION.
 
                             leftidx=leftnargs;
@@ -3890,6 +3891,7 @@ do {
                         } else rplCreateLAM(*right,*left);
                         matchtype=ARGDONE;
                         break;
+                    }
                     case TEXT2WORD('.','X',0,0):
                         // X = Match largest expression with any variables or constants, assuming commutative addition and multiplication
                         // TAKE ALL ARGUMENTS OF THE OPERATION
@@ -3990,6 +3992,7 @@ do {
                             // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
 
                             if(pleftidx>=1 && pleftidx<=pleftnargs) rplCreateLAM(*right,FINDARGUMENT(pleft,pleftnargs,pleftidx));
+                            else if(pleftidx==-1) rplCreateLAM(*right,*pleft);
                             // else SOMETHING IS WRONG IN THE EXPRESSION.
 
                             leftidx=leftnargs;
@@ -4022,6 +4025,7 @@ do {
                         // JUST CAPTURE THE CURRENT ARGUMENT
 
                             if(pleftidx>=1 && pleftidx<=pleftnargs) rplCreateLAM(*right,FINDARGUMENT(pleft,pleftnargs,pleftidx));
+                            else if(pleftidx==-1) rplCreateLAM(*right,*pleft);
                             // else SOMETHING IS WRONG IN THE EXPRESSION.
 
                             leftidx=leftnargs;
@@ -4129,6 +4133,7 @@ do {
                             // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
 
                             if(pleftidx>=1 && pleftidx<=pleftnargs) rplCreateLAM(*right,FINDARGUMENT(pleft,pleftnargs,pleftidx));
+                            else if(pleftidx==-1) rplCreateLAM(*right,*pleft);
                             // else SOMETHING IS WRONG IN THE EXPRESSION.
 
                             leftidx=leftnargs;
@@ -4138,10 +4143,6 @@ do {
                         matchtype=ARGDONE;
                         break;
                     }
-                    case TEXT2WORD('.','f',0,0):
-                        // f = match only a single function name
-                        // TODO: PERHAPS THERE'S NO USE FOR THIS?
-                        break;
                     case TEXT2WORD('.','n',0,0):
                         // n = Match only a single number (real or integer)
                         if(rplSymbIsANumber(*left)) {
@@ -4153,8 +4154,92 @@ do {
 
                     case TEXT2WORD('.','N',0,0):
                         // N = Match the largest expression involving only numbers (real or integer)
-                        // TODO: THIS IS NOT TRIVIAL, NEEDS TO SEARCH FOR NUMBERS THROUGH COMMUTATIVE OPERATORS
+                    {
+                            WORDPTR *pleft,*pright;
+                            BINT pleftnargs,prightnargs,pleftidx,prightidx,pleftrot;
+
+                        // GET POINTERS TO THE PARENT EXPRESSION TO CAPTURE ALL ARGUMENTS
+                        pright=left- ( (leftnargs)? (1+leftnargs):0)-4;
+                        pleft=pright-1;
+                          if(!ISPROLOG(**pright) && !ISBINT(**pright)) { prightnargs=rplReadBINT(*(pright-1)); --pleft; }
+                        else prightnargs=0;
+                        pleft-=prightnargs;
+                        if(!ISPROLOG(**pleft) && !ISBINT(**pleft)) pleftnargs=rplReadBINT(*(pleft-1));
+                        else pleftnargs=0;
+
+                        pleftidx=rplReadBINT(pright[1]);  // GET THE INDEX INTO THE ARGUMENTS
+                        prightidx=rplReadBINT(pright[2]);
+                        pleftrot=rplReadBINT(pright[3]);
+
+                        BINT k,count;
+                        
+                        if((**pleft==CMD_OVR_ADD)||(**pleft==CMD_OVR_MUL))  // IT'S A COMMUTATIVE/ASSOCIATIVE OPERATOR
+                        {
+                            
+
+                            // OTHERWISE CREATE A SYMBOLIC WITH THE SAME OPERATOR AND ALL REMAINING ARGUMENTS
+                            // AND ASSIGN IT TO THIS VARIABLE
+                            for(k=pleftidx,count=0;k<=pleftnargs-count;++k) {
+                                rplPushData(FINDARGUMENT(pleft,pleftnargs,k));
+                                if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                                if(!rplSymbIsNumeric(DSTop[-1])) {
+                                    --DSTop;    // DROP THE ARGUMENT
+                                    // ROT THE BAD TERM ALL THE WAY TO THE END
+                                     WORDPTR tmp=FINDARGUMENT(pleft,pleftnargs,k);
+                                     BINT j;
+                                     for(j=k;j<pleftnargs;++j) FINDARGUMENT(pleft,pleftnargs,j)=FINDARGUMENT(pleft,pleftnargs,j+1);
+                                     FINDARGUMENT(pleft,pleftnargs,pleftnargs)=tmp;
+                                     ++count;   // COUNT HOW MANY NON-NUMERIC RESULTS WE HAVE
+                                     --k;
+                                    }
+
+                                }
+
+                            if(pleftnargs-count>pleftidx) {
+                                rplSymbApplyOperator(**pleft,pleftnargs-count-pleftidx+1);
+                                if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                            }
+                            else {
+                                // ARGUMENTS WERE NON NUMERIC
+                                matchtype=BACKTRACK;
+                                break;
+                            }
+
+                            rplCreateLAM(*right,rplPopData());
+                            if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+
+                            DSTop=pright+4; // REMOVE THIS LEVEL
+
+
+                            // FINALLY, REMOVE ALL EXTRA ARGUMENTS FROM THE PARENT
+                            pleftidx=pleftnargs-count;
+
+                            pright[1]=rplNewSINT(pleftidx,DECBINT);
+                            if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                            matchtype=ARGDONE;
+
+                            break;
+
+                        }
+
+
+                        // IN ALL OTHER CASES, JUST ASSIGN THE CURRENT ARGUMENT
+                        if(leftnargs) {
+                            // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
+
+                            if((pleftidx>=1) && (pleftidx<=pleftnargs)) rplCreateLAM(*right,FINDARGUMENT(pleft,pleftnargs,pleftidx));
+                            else if(pleftidx==-1) rplCreateLAM(*right,*pleft);
+                            // else SOMETHING IS WRONG IN THE EXPRESSION.
+
+                            leftidx=leftnargs;
+                            right[1]=rplNewSINT(leftidx,DECBINT);
+                        } else rplCreateLAM(*right,*left);
+                        matchtype=ARGDONE;
                         break;
+                    }
+
                     case TEXT2WORD('.','i',0,0):
                         // i = Match only a single integer number
                         if(rplSymbIsIntegerNumber(*left)) {
@@ -4163,10 +4248,13 @@ do {
                         }
                         else matchtype=BACKTRACK;
                         break;
-                        break;
-                    case TEXT2WORD('.','I',0,0):
-                        // I = Match the largest expression involving all integer numbers
-                        // TODO: PERHAPS THERE'S NO USE FOR THIS?
+                    case TEXT2WORD('.','v',0,0):
+                        // v = Match a single variable name
+                        if(ISIDENT(**left)) {
+                        rplCreateLAM(*right,*left);
+                        matchtype=ARGDONE;
+                        }
+                        else matchtype=BACKTRACK;
                         break;
                     default:
                         // THIS IS NOT A SPECIAL IDENT, JUST COMPARE THE IDENTS
@@ -4773,7 +4861,9 @@ do {
                         prightidx=rplReadBINT(pright[2]);
                         pleftrot=rplReadBINT(pright[3]);
 
-                        rplPutLAMn(1,FINDARGUMENT(pleft,pleftnargs,pleftidx));
+                        if( (pleftidx>0) && (pleftidx<=pleftnargs)) rplPutLAMn(1,FINDARGUMENT(pleft,pleftnargs,pleftidx));
+                        else rplPutLAMn(1,*pleft);
+
                         }
                         // CREATE LAM ENVIRONMENT
                         rplCreateLAMEnvironment(*orgrule);
@@ -4836,9 +4926,11 @@ do {
                     prightidx=rplReadBINT(pright[2]);
                     pleftrot=rplReadBINT(pright[3]);
 
-                    rplPutLAMn(1,FINDARGUMENT(pleft,pleftnargs,pleftidx));
+                    if( (pleftidx>0) && (pleftidx<=pleftnargs)) rplPutLAMn(1,FINDARGUMENT(pleft,pleftnargs,pleftidx));
+                    else rplPutLAMn(1,*pleft);
                     }
-                    rplSymbReplaceMatchHere(rule,leftidx-rightnargs);
+                    if( (leftidx-rightnargs>=1)&& (leftidx-rightnargs<leftnargs)) rplSymbReplaceMatchHere(rule,leftidx-rightnargs);
+                    else rplSymbReplaceMatchHere(rule,1);
                     if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                     //******************************************************
                     // DEBUG ONLY AREA
@@ -4958,8 +5050,8 @@ do {
 
 if((matchtype==BACKTRACK)||(matchtype==RESTARTMATCH)) rplCleanupLAMs(0); // THE LAST BACKTRACK ENDED IN FAILURE, DISCARD THE ENVIRONMENT
 
-// COUNT HOW MANY RESULTS WERE FOUND
 DSTop=expression+1;     // KEEP THE RESULTING EXPRESSION ON THE STACK
+// COUNT HOW MANY RESULTS WERE FOUND
 BINT found=0;
 WORDPTR *lamenv=LAMTop;
 while(lamenv>lamcurrent) {
