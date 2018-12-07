@@ -43,13 +43,14 @@
     ECMD(SYMBNUMPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     ECMD(SYMBNUMERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     CMD(AUTOSIMPLIFY,MKTOKENINFO(12,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RULEMATCH,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(RULEAPPLY,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(RULEMATCH,MKTOKENINFO(9,TITYPE_NOTALLOWED,2,2)), \
+    CMD(RULEAPPLY,MKTOKENINFO(9,TITYPE_NOTALLOWED,2,2)), \
     ECMD(TOFRACTION,"→Q",MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
     ECMD(SYMBEVAL1CHK,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     ECMD(EQUATIONOPERATOR,"=",MKTOKENINFO(1,TITYPE_BINARYOP_LEFT,2,15)), \
     ECMD(LISTOPENBRACKET,"{",MKTOKENINFO(1,TITYPE_OPENBRACKET,0,31)), \
-    ECMD(LISTCLOSEBRACKET,"}",MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31))
+    ECMD(LISTCLOSEBRACKET,"}",MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31)), \
+    CMD(RULEAPPLY1,MKTOKENINFO(10,TITYPE_NOTALLOWED,2,2))
 
 //    CMD(TEST,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
 
@@ -1401,7 +1402,98 @@ void LIB_HANDLER()
 
     case RULEAPPLY:
     {
-        //@SHORT_DESC=Match and apply a rule to an expression
+        //@SHORT_DESC=Match and apply a rule to an expression repeatedly
+        //@NEW
+        if(rplDepthData()<2) {
+                rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
+        BINT nrules=1;
+        WORDPTR *savestk=DSTop;
+        if(ISLIST(*rplPeekData(1))) {
+            // THIS IS A RULE SET, APPLY ALL RULES IN THE LIST TO THE EXPRESSION, IN SEQUENCE
+            // RETURN TOTAL NUMBER OF POSITIVE MATCHES IN THE ENTIRE SET (ZERO IF NO CHANGES WERE MADE)
+            // FIRST MAKE A FULL LIST OF RULES IN THE STACK, IN ORDER OF APPLICATION
+
+            WORDPTR *rulelist=DSTop-1;
+            WORDPTR first=(*rulelist)+1;
+            while(first!=rplSkipOb(*rulelist)) {
+                if(ISLIST(*first)) {
+                    rplPushData(first);
+                    first=rplPeekData(1)+1;
+                } // ENTER INTO THE LIST, PUT THE LIST ON THE STACK
+
+                if(*first==CMD_ENDLIST) {
+                 WORDPTR *stkptr=DSTop-1;
+                 while((stkptr>=rulelist) && !ISLIST(**stkptr)) break;
+                 if(stkptr==rulelist) break;    // END OF MAIN LIST
+                 first=rplSkipOb(*stkptr);  // NEXT ARGUMENT IN THE INNER LIST
+                }
+
+                // IDENTIFIERS ARE VARIABLES CONTAINING SETS OF RULES
+                if(ISIDENT(*first)) {
+                    WORDPTR *var=rplFindGlobal(first,1);
+                    if(var) {
+                        if(ISLIST(*var[1])) { first=var[1]; continue; }
+                        if(rplSymbIsRule(var[1])) {
+                           ScratchPointer1=first;
+                           rplPushData(var[1]);
+                           first=ScratchPointer1;   // READ AGAIN IN CASE THERE WAS A GC
+                        }
+                    } // TAKE THE VALUE OF THE VARIABLE AS THE NEXT RULE
+                }
+                 if(rplSymbIsRule(first)) {
+                    rplPushData(first);
+                    first=rplPeekData(1);   // READ AGAIN IN CASE THERE WAS A GC
+                 }
+
+                 // JUST SKIP ANY OTHER OBJECT
+                 first=rplSkipOb(first);
+                }
+
+
+            nrules=DSTop-savestk+1;
+            }
+
+
+
+        WORDPTR *firstrule=savestk-1;
+        BINT k;
+        BINT nsolutions,totalreplacements=0,prevreplacements=-1;
+        rplPushDataNoGrow(*(savestk-2)); // COPY THE EXPRESSION
+
+        while(totalreplacements!=prevreplacements) {
+        prevreplacements=totalreplacements;
+
+        for(k=0;k<nrules;++k) {
+
+        if(rplSymbIsRule(firstrule[k])) {
+            rplPushDataNoGrow(firstrule[k]);
+            nsolutions=rplSymbRuleMatch2();
+            if(Exceptions) { DSTop=savestk; return; }
+            totalreplacements+=nsolutions;
+            rplOverwriteData(3,rplPeekData(1));  // REPLACE THE ORIGINAL EXPRESSION WITH THE NEW ONE
+            rplDropData(2);
+            // CLEANUP ALL LAM ENVIRONMENTS
+            while(nsolutions>0) { rplCleanupLAMs(firstrule[0]); --nsolutions; }
+        }
+        }
+
+        // WE APPLIED ALL RULES
+
+        }
+
+        firstrule[-1]=rplPopData(); // REPLACE ORIGINAL EXPRESSION WITH RESULT
+        firstrule[0]=rplNewBINT(totalreplacements,DECBINT);
+        DSTop=savestk;
+        return;
+
+     }
+
+    case RULEAPPLY1:
+    {
+        //@SHORT_DESC=Match and apply a rule to an expression only once
         //@NEW
         if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);

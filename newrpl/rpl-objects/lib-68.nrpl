@@ -35,7 +35,7 @@
 @#name sysmenu_2_main
 {
   { { "Math" 1 } { ::   #04404000h TMENULST ; ::   #04404000h TMENUOTHR ; } }
-  { { "Libs" 1 } { ::   #00080000h TMENULST ; ::   #00080000h TMENUOTHR ; } }
+  { { "Symb" 1 } { ::   #04405000h TMENULST ; ::   #04405000h TMENUOTHR ; } }
   { { "Units" 1 } { ::   #03600000h TMENULST ; ::   #03600000h TMENUOTHR ; } }
   { { "Prog" 1 } { ::   #04403000h TMENULST ; ::   #04403000h TMENUOTHR ; } }
   { { "System" 1 } { ::   #04406000h TMENULST ; ::   #04406000h TMENUOTHR ; } }
@@ -81,10 +81,12 @@
 
 @#name sysmenu_5_symb
 {
+{ { "Rules" 1 } { ::   #03800000h TMENULST ; ::   #03800000h TMENUOTHR ; } }
 }
 
 @#name sysmenu_6_system
 {
+{ { "Libs" 1 } { ::   #00080000h TMENULST ; ::   #00080000h TMENUOTHR ; } }
 { { "Settings" 1 } { ::   #0440a000h TMENULST ; ::   #0440a000h TMENUOTHR ; } }
 { { "Time" 1 } { ::   #04100000h TMENULST ; ::   #04100000h TMENUOTHR ; } }
 { { "Alarm" 1 } { ::   #04102000h TMENULST ; ::   #04102000h TMENUOTHR ; } }

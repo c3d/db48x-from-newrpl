@@ -19,6 +19,7 @@
 {
 AUTOSIMPLIFY
 RULEMATCH
+RULEAPPLY1
 RULEAPPLY
 →Q
 
@@ -36,20 +37,28 @@ RULEAPPLY
 @#name lib56_cmdhelp
 {
 AUTOSIMPLIFY
-"Help not available yet
+"Apply basic simplifications
+to an expression
+A → A"
 
- → "
 RULEMATCH
-"Help not available yet
+"Get information about how
+a rule matches an expression
+A A<rule> → A { A A<match> ... } I"
 
- → "
+RULEAPPLY1
+"Apply rules once
+
+A (A<rule> or L<rules>) → A I"
+
 RULEAPPLY
-"Help not available yet
+"Apply rules repeateadly until
+there's no more changes
+A (A<rule> or L<rules>) → A I"
 
- → "
 →Q
-"Help not available yet
-
- → "
+"Approximate number with fraction
+(denominator < 2^63)
+R → A<fraction>"
 
 }
