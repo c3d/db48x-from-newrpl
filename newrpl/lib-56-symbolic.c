@@ -116,6 +116,7 @@ ROMOBJECT symbnum_seco[]={
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib56_menu);
+INCLUDE_ROMOBJECT(lib56_autosimplify_level1);
 
 
 
@@ -1034,7 +1035,27 @@ void LIB_HANDLER()
         }
         if(!ISSYMBOLIC(*rplPeekData(1))) return;    // LEAVE IT ON THE STACK, NOT A SYMBOLIC
 
-        rplSymbAutoSimplify();
+        WORD hash=0,prevhash;
+        do {
+
+        prevhash=hash;
+        rplSymbAutoSimplify();      // FIRST A STAGE OF NUMERIC REDUCTION
+        if(Exceptions) return;
+
+
+        WORDPTR *stksave=DSTop;
+
+        rplPushDataNoGrow((WORDPTR)lib56_autosimplify_level1);
+
+        rplCallOperator(CMD_RULEAPPLY);
+
+        DSTop=stksave;
+
+        if(Exceptions)  return;
+
+        hash=rplObjChecksum(rplPeekData(1));
+
+        } while(prevhash!=hash);
 
         return;
 
@@ -1426,7 +1447,7 @@ void LIB_HANDLER()
 
                 if(*first==CMD_ENDLIST) {
                  WORDPTR *stkptr=DSTop-1;
-                 while((stkptr>=rulelist) && !ISLIST(**stkptr)) break;
+                 while((stkptr>=rulelist) && !ISLIST(**stkptr)) { --stkptr; }
                  if(stkptr==rulelist) break;    // END OF MAIN LIST
                  first=rplSkipOb(*stkptr);  // NEXT ARGUMENT IN THE INNER LIST
                 }
@@ -1461,10 +1482,15 @@ void LIB_HANDLER()
         WORDPTR *firstrule=savestk-1;
         BINT k;
         BINT nsolutions,totalreplacements=0,prevreplacements=-1;
+        WORD objhash,prevhash;
         rplPushDataNoGrow(*(savestk-2)); // COPY THE EXPRESSION
-
+        prevhash=objhash=0;
         while(totalreplacements!=prevreplacements) {
         prevreplacements=totalreplacements;
+        WORD tmphash=(WORD)rplObjChecksum(rplPeekData(1));
+        if(prevhash==tmphash)
+            break;    // SAME OBJECT AFTER 2 ROUNDS OF RULES BEING APPLIED
+        prevhash=tmphash;
 
         for(k=0;k<nrules;++k) {
 
@@ -1476,7 +1502,7 @@ void LIB_HANDLER()
             rplOverwriteData(3,rplPeekData(1));  // REPLACE THE ORIGINAL EXPRESSION WITH THE NEW ONE
             rplDropData(2);
             // CLEANUP ALL LAM ENVIRONMENTS
-            while(nsolutions>0) { rplCleanupLAMs(firstrule[0]); --nsolutions; }
+            while(nsolutions>0) { rplCleanupLAMs(firstrule[k]); --nsolutions; }
         }
         }
 
@@ -1566,7 +1592,7 @@ void LIB_HANDLER()
             rplOverwriteData(3,rplPeekData(1));  // REPLACE THE ORIGINAL EXPRESSION WITH THE NEW ONE
             rplDropData(2);
             // CLEANUP ALL LAM ENVIRONMENTS
-            while(nsolutions>0) { rplCleanupLAMs(firstrule[0]); --nsolutions; }
+            while(nsolutions>0) { rplCleanupLAMs(firstrule[k]); --nsolutions; }
         }
         }
 

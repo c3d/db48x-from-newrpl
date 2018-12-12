@@ -3700,6 +3700,31 @@ BINT rplSymbRuleMatch2()
     rplPushDataNoGrow(newexp);
 
 
+    //******************************************************
+    // DEBUG ONLY AREA
+    //******************************************************
+#ifdef RULEDEBUG
+    printf("START RULE MATCH: ");
+
+    WORDPTR string=rplDecompile(DSTop[-2],DECOMP_EDIT|DECOMP_NOHINTS);
+    if(string) {
+        BYTE strbyte[1024];
+        memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+        strbyte[rplStrSize(string)]=0;
+        printf("exp=%s",strbyte);
+    }
+    string=rplDecompile(DSTop[-1],DECOMP_EDIT|DECOMP_NOHINTS);
+    if(string) {
+        BYTE strbyte[1024];
+        memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+        strbyte[rplStrSize(string)]=0;
+        printf("  rule=%s",strbyte);
+    }
+    printf("\n"); fflush(stdout);
+#endif
+
+
+
 
 WORDPTR * expression=DSTop-2;
 WORDPTR * rule=DSTop-1;
@@ -3753,6 +3778,10 @@ rplCreateLAMEnvironment(*orgrule);
 if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);
 if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+
+
+
 
 
 do {
@@ -3850,7 +3879,22 @@ do {
             if(ISIDENT(**right)) {
                 // IF THE RIGHT EXPRESSION IS A SINGLE IDENTIFIER
                 WORDPTR *lamname=rplFindLAM(*right,0);
-                if(lamname) *right=lamname[1]; // REPLACE THIS OCCURRENCE WITH ITS VALUE
+                if(lamname) {
+                    // REPLACE THE ENTIRE right PART WITH ITS VALUE, EXPLODED
+                    DSTop=left+1;
+                    // PUSH THE RIGHT
+                    rplSymbExplodeOneLevel2(lamname[1]);
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    right=DSTop-1;
+
+                    // LEFTARG AND RIGHTARG
+                    rplPushData((WORDPTR)zero_bint);
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    rplPushData((WORDPTR)zero_bint);
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    rplPushData((WORDPTR)zero_bint);
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                }
                 else {
 
                     WORD firstchars=(*right)[1];
@@ -3923,10 +3967,13 @@ do {
                                 if(ISIDENT(*tmp)) {
                                     // CHECK IF THIS IS ANOTHER SPECIAL IDENT AND BREAK THE INFINITE LOOP
                                     if( (((tmp[1])&0xffff) == TEXT2WORD('.','X',0,0))||(((tmp[1])&0xffff) == TEXT2WORD('.','M',0,0))) {
+                                        // ALSO CHECK IF IT'S THE SAME VARIABLE USED LATER, THAT DOESN'T COUNT
+                                        if(!rplCompareIDENT(*right,tmp)) {
                                         // BREAK THE LOOP, JUST ASSIGN THE CURRENT ARGUMENT
                                         rplCreateLAM(*right,*left);
                                         matchtype=ARGDONE;
                                         break;
+                                        }
                                     }
 
                                 }
@@ -4064,10 +4111,13 @@ do {
                                 if(ISIDENT(*tmp)) {
                                     // CHECK IF THIS IS ANOTHER SPECIAL IDENT AND BREAK THE INFINITE LOOP
                                     if( (((tmp[1])&0xffff) == TEXT2WORD('.','X',0,0))||(((tmp[1])&0xffff) == TEXT2WORD('.','M',0,0))) {
-                                        // BREAK THE LOOP, JUST ASSIGN THE CURRENT ARGUMENT
+                                        // ALSO CHECK IF IT'S THE SAME VARIABLE USED LATER, THAT DOESN'T COUNT
+                                        if(!rplCompareIDENT(*right,tmp)) {
+                                            // BREAK THE LOOP, JUST ASSIGN THE CURRENT ARGUMENT
                                         rplCreateLAM(*right,*left);
                                         matchtype=ARGDONE;
                                         break;
+                                        }
                                     }
 
                                 }
@@ -4200,9 +4250,11 @@ do {
                                 if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                             }
                             else {
+                                if(pleftnargs-count<pleftidx) {
                                 // ARGUMENTS WERE NON NUMERIC
                                 matchtype=BACKTRACK;
                                 break;
+                                }
                             }
 
                             rplCreateLAM(*right,rplPopData());

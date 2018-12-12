@@ -524,7 +524,7 @@ void rplCallOvrOperator(WORD op);
 void rplCallOperator(WORD op);
 void rplCopyObject(WORDPTR dest, WORDPTR src);
 WORDPTR rplMakeNewCopy(WORDPTR object);
-
+BINT64 rplObjChecksum(WORDPTR object);
 
 // BINT FUNCTIONS
 WORDPTR rplNewSINT(int num,int base);

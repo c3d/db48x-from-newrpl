@@ -119,7 +119,7 @@ void LIB_HANDLER()
                     rplDropData(2);
                     rplPushFalse();
                 }
-
+                return;
             }
             else {
                 rplError(ERR_INVALIDOPCODE);

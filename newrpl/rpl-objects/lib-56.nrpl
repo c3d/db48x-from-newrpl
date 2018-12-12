@@ -62,3 +62,23 @@ A (A<rule> or L<rules>) → A I"
 R → A<fraction>"
 
 }
+
+
+@#name lib56_autosimplify_level1
+{
+'0+.XX:→.XX'                                        @ REMOVE TERMS WITH ZERO
+'INV(1):→1'                                         @ ELIMINATE OPERATION ON ONE
+'1*.XX:→.XX'                                        @ REMOVE MULTIPLY BY ONE
+'.XX^1:→.XX'                                        @ REMOVE EXPONENT OF 1
+'√.XX:→.XX^INV(2)'                                  @ ELIMINATE SQUARE ROOT FOR OTHER RULES TO WORK
+'.NN*.vX+.NM*.vX:→(.NN+.NM)*.vX'                    @ ADD TERMS IN THE SAME VARIABLE AS LONG AS THE REST IS NUMERIC
+'.NN*.vX^.Nexp+.NM*.vX^.Nexp:→(.NN+.NM)*.vX^.Nexp'  @ ADD TERMS IN THE SAME VARIABLE AS LONG AS THE REST IS NUMERIC
+'.xX*INV(.xX):→1'                                   @ BASIC TERM CANCELATION
+'.XX^.NN*INV(.XX^.NM):→.XX^(.NN-.NM)'               @ CANCEL OUT TERMS WITH EXPONENTS
+'.XX^.NN*INV(.XX):→.XX^(.NN-1)'                     @ CANCEL OUT TERMS WITHOUT EXPONENT IN DENOMINATOR
+'.XX*INV(.XX^.NM):→.XX^(1-.NM)'                     @ CANCEL OUT TERMS WITHOUT EXPONENT IN NUMERATOR
+'.XX^.NN*.XX^.NM:→.XX^(.NN+.NM)'                    @ ADD EXPONENTS IN MULTIPLYING TERMS
+'.XX*.XX^.NM:→.XX^(1+.NM)'                          @ ADD EXPONENTS WITH IMPLICIT EXPONENT 1
+'.XX^INV(2):→√.XX'                                  @ BACK TO SQUARE ROOTS
+}
+
