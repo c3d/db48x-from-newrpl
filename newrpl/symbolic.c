@@ -3669,7 +3669,7 @@ void rplSymbReplaceMatchHere(WORDPTR *rule,BINT startleftarg)
 
 }
 
-#define RULEDEBUG 1
+//#define RULEDEBUG 1
 
 // MATCH A RULE AGAINST AN EXPRESSION
 // ARGUMENTS:
@@ -3736,7 +3736,7 @@ WORDPTR ruleleft=rplSymbMainOperatorPTR(*rule);
 if(*ruleleft==CMD_RULESEPARATOR) ++ruleleft;    // POINT TO THE FIRST ARGUMENT, OTHERWISE THE ENTIRE SYMBOLIC IS AN EXPRESSION TO MATCH BUT NOT A RULE TO REPLACE
 BINT ruleleftoffset=ruleleft-*rule;
 BINT leftnargs,rightnargs;
-BINT leftidx,rightidx,leftrot;
+BINT leftidx,rightidx,leftrot,lrotbase;
 BINT matchtype,matchstarted;
 
 
@@ -3801,7 +3801,7 @@ do {
 
         leftidx=rplReadBINT(right[1]);  // GET THE INDEX INTO THE ARGUMENTS
         rightidx=rplReadBINT(right[2]);
-        leftrot=rplReadBINT(right[3]);
+        { BINT64 tmpint=rplReadBINT(right[3]); leftrot=(BINT)tmpint; lrotbase=(BINT)(tmpint>>32); }
 
         //******************************************************
         // DEBUG ONLY AREA
@@ -3836,7 +3836,28 @@ do {
                 // OPERATOR MATCHES, MOVE ON TO ARGUMENT BY ARGUMENT
                 right[1]=(WORDPTR)one_bint;
                 right[2]=(WORDPTR)one_bint;     // SET POINTERS TO FIRST ARGUMENT
-                right[3]=(WORDPTR)zero_bint;    // NO ARGUMENT ROT
+                leftidx=rightidx=1;
+                if((**left==CMD_OVR_ADD)||(**right==CMD_OVR_MUL)) {
+                    // CREATE A COPY OF THE ENTIRE LEVEL TO DO A SUB-ROTATION
+                    WORDPTR *topoflevel=left- ( (leftnargs)? (1+leftnargs):0);
+                    rplExpandStack(DSTop-topoflevel);
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    BINT k;
+                    for(k=0;k<DSTop-topoflevel;++k) DSTop[k]=topoflevel[k];
+                    left+=k;
+                    right+=k;
+                    DSTop+=k;
+                    leftrot=0;
+                    lrotbase=leftidx;
+
+                    right[3]=rplNewBINT(((BINT64)lrotbase)<<32,DECBINT);
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                    // AND CREATE AN ADDITIONAL LAM ENVIRONMENT
+                    rplDupLAMEnv();
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                }
+                else right[3]=(WORDPTR)zero_bint;    // NO ARGUMENT ROT
                 matchtype=ARGMATCH;
                 matchstarted=1;
                 break;
@@ -3909,7 +3930,7 @@ do {
                             // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
 
                             WORDPTR *pleft,*pright;
-                            BINT pleftnargs,prightnargs,pleftidx,prightidx,pleftrot;
+                            BINT pleftnargs,prightnargs,pleftidx,prightidx;
 
                         // GET POINTERS TO THE PARENT EXPRESSION
                         pright=left- ( (leftnargs)? (1+leftnargs):0)-4;
@@ -3922,7 +3943,6 @@ do {
 
                         pleftidx=rplReadBINT(pright[1]);  // GET THE INDEX INTO THE ARGUMENTS
                         prightidx=rplReadBINT(pright[2]);
-                        pleftrot=rplReadBINT(pright[3]);
 
                         // JUST CAPTURE THE CURRENT ARGUMENT
 
@@ -3941,7 +3961,7 @@ do {
                         // TAKE ALL ARGUMENTS OF THE OPERATION
                     {
                             WORDPTR *pleft,*pright;
-                            BINT pleftnargs,prightnargs,pleftidx,prightidx,pleftrot;
+                            BINT pleftnargs,prightnargs,pleftidx,prightidx;
 
                         // GET POINTERS TO THE PARENT EXPRESSION TO CAPTURE ALL ARGUMENTS
                         pright=left- ( (leftnargs)? (1+leftnargs):0)-4;
@@ -3954,7 +3974,7 @@ do {
 
                         pleftidx=rplReadBINT(pright[1]);  // GET THE INDEX INTO THE ARGUMENTS
                         prightidx=rplReadBINT(pright[2]);
-                        pleftrot=rplReadBINT(pright[3]);
+
 
                         if((**pleft==CMD_OVR_ADD)||(**pleft==CMD_OVR_MUL))  // IT'S A COMMUTATIVE/ASSOCIATIVE OPERATOR
                         {
@@ -4017,6 +4037,30 @@ do {
                             rplCreateLAM(*right,rplPopData());
 
 
+
+                            if(lrotbase) {
+                                // PASS THE SUB-ENVIRONMENT TO THE PARENT
+                                WORDPTR *nextenv=rplGetNextLAMEnv(nLAMBase);
+                                if(nextenv) {
+                                    // DUMP THE LAST ENVIRONMENT INTO THE PREVIOUS ONE
+                                    BINT nptrs=LAMTop-nLAMBase;
+                                    memmovew(nextenv,nLAMBase,nptrs*sizeof(WORDPTR)/sizeof(WORD));
+                                    // AND DROP THE ENVIRONMENT
+
+                                    nLAMBase=nextenv;
+                                    LAMTop=nLAMBase+nptrs;
+                                }
+
+                                // COPY THE ROTATED ARGUMENTS FROM THE LEFT INTO THE UPPER LEVEL
+                                // TO MAKE SURE THEY ARE PICKED UP ON REPLACEMENT
+
+                                    BINT k;
+                                    // COPY ALL ARGUMENTS TO THE UPPER ENVIRONMENT
+                                    for(k=1;k<=pleftnargs;++k) FINDARGUMENT(pleft,pleftnargs,k)=FINDARGUMENT(left,leftnargs,k);
+
+
+                            }
+
                             DSTop=pright+4; // REMOVE THIS LEVEL
 
                             // FINALLY, REMOVE ALL EXTRA ARGUMENTS FROM THE PARENT
@@ -4054,7 +4098,7 @@ do {
                             // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
 
                             WORDPTR *pleft,*pright;
-                            BINT pleftnargs,prightnargs,pleftidx,prightidx,pleftrot;
+                            BINT pleftnargs,prightnargs,pleftidx,prightidx;
 
                         // GET POINTERS TO THE PARENT EXPRESSION
                         pright=left- ( (leftnargs)? (1+leftnargs):0)-4;
@@ -4067,7 +4111,7 @@ do {
 
                         pleftidx=rplReadBINT(pright[1]);  // GET THE INDEX INTO THE ARGUMENTS
                         prightidx=rplReadBINT(pright[2]);
-                        pleftrot=rplReadBINT(pright[3]);
+
 
                         // JUST CAPTURE THE CURRENT ARGUMENT
 
@@ -4085,7 +4129,7 @@ do {
                         // TAKE ALL ARGUMENTS OF THE OPERATION
                     {
                             WORDPTR *pleft,*pright;
-                            BINT pleftnargs,prightnargs,pleftidx,prightidx,pleftrot;
+                            BINT pleftnargs,prightnargs,pleftidx,prightidx;
 
                         // GET POINTERS TO THE PARENT EXPRESSION TO CAPTURE ALL ARGUMENTS
                         pright=left- ( (leftnargs)? (1+leftnargs):0)-4;
@@ -4098,9 +4142,9 @@ do {
 
                         pleftidx=rplReadBINT(pright[1]);  // GET THE INDEX INTO THE ARGUMENTS
                         prightidx=rplReadBINT(pright[2]);
-                        pleftrot=rplReadBINT(pright[3]);
 
-                        if((**pleft==CMD_OVR_ADD))  // IT'S A COMMUTATIVE/ASSOCIATIVE OPERATOR
+
+                        if(**pleft==CMD_OVR_ADD)  // IT'S A COMMUTATIVE/ASSOCIATIVE OPERATOR
                         {
                             BINT k;
 
@@ -4206,7 +4250,7 @@ do {
                         // N = Match the largest expression involving only numbers (real or integer)
                     {
                             WORDPTR *pleft,*pright;
-                            BINT pleftnargs,prightnargs,pleftidx,prightidx,pleftrot;
+                            BINT pleftnargs,prightnargs,pleftidx,prightidx;
 
                         // GET POINTERS TO THE PARENT EXPRESSION TO CAPTURE ALL ARGUMENTS
                         pright=left- ( (leftnargs)? (1+leftnargs):0)-4;
@@ -4219,7 +4263,7 @@ do {
 
                         pleftidx=rplReadBINT(pright[1]);  // GET THE INDEX INTO THE ARGUMENTS
                         prightidx=rplReadBINT(pright[2]);
-                        pleftrot=rplReadBINT(pright[3]);
+
 
                         BINT k,count;
                         
@@ -4342,7 +4386,7 @@ do {
 
         leftidx=rplReadBINT(right[1]);  // GET THE INDEX INTO THE ARGUMENTS
         rightidx=rplReadBINT(right[2]);
-        leftrot=rplReadBINT(right[3]);
+        { BINT64 tmpint=rplReadBINT(right[3]); leftrot=(BINT)tmpint; lrotbase=(BINT)(tmpint>>32); }
 
         //******************************************************
         // DEBUG ONLY AREA
@@ -4424,7 +4468,7 @@ do {
 
         leftidx=rplReadBINT(right[1]);  // GET THE INDEX INTO THE ARGUMENTS
         rightidx=rplReadBINT(right[2]);
-        leftrot=rplReadBINT(right[3]);
+        { BINT64 tmpint=rplReadBINT(right[3]); leftrot=(BINT)tmpint; lrotbase=(BINT)(tmpint>>32); }
 
 
         //******************************************************
@@ -4558,18 +4602,20 @@ do {
             else {
             // LAST ARGUMENT WAS ALREADY COMPARED, BACKTRACK TO THE PREVIOUS BASE
 
-            DSTop=left- ( (leftnargs)? (1+leftnargs):0);
-            baselevel=DSTop;
-            //******************************************************
-            // DEBUG ONLY AREA
-            //******************************************************
-    #ifdef RULEDEBUG
-            printf("RESTARTMATCH UP");
-            printf("\n"); fflush(stdout);
-    #endif
-            //******************************************************
-            //      END DEBUG ONLY AREA
-            //******************************************************
+                    DSTop=left- ( (leftnargs)? (1+leftnargs):0);
+                    baselevel=DSTop;
+                    //******************************************************
+                    // DEBUG ONLY AREA
+                    //******************************************************
+            #ifdef RULEDEBUG
+                    printf("RESTARTMATCH UP");
+                    printf("\n"); fflush(stdout);
+            #endif
+                    //******************************************************
+                    //      END DEBUG ONLY AREA
+                    //******************************************************
+
+
             }
         }
 
@@ -4590,7 +4636,7 @@ do {
 
         leftidx=rplReadBINT(right[1]);  // GET THE INDEX INTO THE ARGUMENTS
         rightidx=rplReadBINT(right[2]);
-        leftrot=rplReadBINT(right[3]);
+        { BINT64 tmpint=rplReadBINT(right[3]); leftrot=(BINT)tmpint; lrotbase=(BINT)(tmpint>>32); }
 
         //******************************************************
         // DEBUG ONLY AREA
@@ -4624,7 +4670,17 @@ do {
 
         if(DSTop==baselevel) {
 
-            if(leftnargs && (leftidx>0) && (leftidx<leftnargs) && (leftrot<leftnargs-leftidx) && ((**left==CMD_OVR_MUL)||(**left==CMD_OVR_ADD))) {
+            if(lrotbase) {
+            if(leftnargs && (leftidx>0) && (leftidx<leftnargs) && ((**left==CMD_OVR_MUL)||(**left==CMD_OVR_ADD))) {
+                if(leftrot<leftnargs-leftidx) {
+
+                    while(leftidx>lrotbase) {
+                        // WE ARE BACKTRACKING FROM A LOWER LEVEL ROT, ELIMINATE ANY VARIABLES DEFINED AFTERWARDS
+                        rplCleanupLAMs(0);
+                        --leftidx;
+                    }
+
+
                 // COMMUTATIVE OPERATORS NEED TO ROT THE ARGUMENTS AND TRY AGAIN
                 WORDPTR tmp=FINDARGUMENT(left,leftnargs,leftidx);
                 BINT k;
@@ -4632,9 +4688,13 @@ do {
                 FINDARGUMENT(left,leftnargs,leftnargs)=tmp;
                 matchtype=ARGMATCH;
                 ++leftrot;
-                right[3]=rplNewSINT(leftrot,DECBINT);
+                right[3]=rplNewBINT((((BINT64)lrotbase)<<32)|leftrot,DECBINT);
                 if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
+                // ELIMINATE ANY VARIABLES CREATED DURING THE PREVIOUS ROT
+                rplCleanupLAMs(0);
+                rplDupLAMEnv();
+                if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                 //******************************************************
                 // DEBUG ONLY AREA
                 //******************************************************
@@ -4645,8 +4705,31 @@ do {
                 //******************************************************
                 //      END DEBUG ONLY AREA
                 //******************************************************
+                }
+                else {
+                    if(leftrot && (leftrot==leftnargs-leftidx)) {
+                        // WE DID ALL THE ROTS IN THIS LEVEL
+                        // KEEP BACKTRACKING
+                        DSTop=left- ( (leftnargs)? (1+leftnargs):0); // DROP ENTIRE LEVEL
+                        if(baselevel>DSTop) matchtype=RESTARTMATCH;
 
 
+
+
+                        //******************************************************
+                        // DEBUG ONLY AREA
+                        //******************************************************
+                #ifdef RULEDEBUG
+                        printf("BACKTRACKED UP");
+                        printf("\n"); fflush(stdout);
+                #endif
+                        //******************************************************
+                        //      END DEBUG ONLY AREA
+                        //******************************************************
+
+                    }
+
+                }
             }
             else {
             // FAILED TO FIND A MATCH, RESTART THE MATCH WITH THE NEXT ARGUMENT
@@ -4737,14 +4820,30 @@ do {
 
             }
             }
-
-
+            }
+            else {
+                // KEEP BACKTRACKING
+                DSTop=left- ( (leftnargs)? (1+leftnargs):0); // DROP ENTIRE LEVEL
+                if(baselevel>DSTop) { matchtype=RESTARTMATCH; if(matchstarted) matchstarted=2; }
+                //******************************************************
+                // DEBUG ONLY AREA
+                //******************************************************
+        #ifdef RULEDEBUG
+                printf("BACKTRACKED UP");
+                printf("\n"); fflush(stdout);
+        #endif
+                //******************************************************
+                //      END DEBUG ONLY AREA
+                //******************************************************
+            }
         }
         else {
 
             if(matchstarted && DSTop>baselevel) {
                 // WE ARE IN THE MIDDLE OF A COMPARISON, CHECK FOR COMMUTATIVE OPERATORS
-                if(leftnargs && (leftidx>0) && (leftidx<leftnargs) && (leftrot<leftnargs-leftidx) && ((**left==CMD_OVR_MUL)||(**left==CMD_OVR_ADD))) {
+                if(leftnargs && (leftidx>0) && (leftidx<leftnargs) && ((**left==CMD_OVR_MUL)||(**left==CMD_OVR_ADD))) {
+
+                    if(leftrot<leftnargs-leftidx) {
                     // COMMUTATIVE OPERATORS NEED TO ROT THE ARGUMENTS AND TRY AGAIN
                     WORDPTR tmp=FINDARGUMENT(left,leftnargs,leftidx);
                     BINT k;
@@ -4752,7 +4851,12 @@ do {
                     FINDARGUMENT(left,leftnargs,leftnargs)=tmp;
                     matchtype=ARGMATCH;
                     ++leftrot;
-                    right[3]=rplNewSINT(leftrot,DECBINT);
+                    right[3]=rplNewBINT((((BINT64)lrotbase)<<32)|leftrot,DECBINT);
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                    // ELIMINATE ANY VARIABLES CREATED DURING THE PREVIOUS ROT
+                    rplCleanupLAMs(0);
+                    rplDupLAMEnv();
                     if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
                     //******************************************************
@@ -4765,9 +4869,32 @@ do {
                     //******************************************************
                     //      END DEBUG ONLY AREA
                     //******************************************************
-
+                    }
+                    else {
+                        if(leftrot==leftnargs-leftidx) {
+                            // REMOVE ANY LAMS CREATED BY THIS COPY OF THE LEVEL
+                            rplCleanupLAMs(0);
+                            // KEEP BACKTRACKING
+                            DSTop=left- ( (leftnargs)? (1+leftnargs):0); // DROP ENTIRE LEVEL
+                            if(baselevel>DSTop) matchtype=RESTARTMATCH;
+                            //******************************************************
+                            // DEBUG ONLY AREA
+                            //******************************************************
+                    #ifdef RULEDEBUG
+                            printf("BACKTRACKED UP");
+                            printf("\n"); fflush(stdout);
+                    #endif
+                            //******************************************************
+                            //      END DEBUG ONLY AREA
+                            //******************************************************
+                        }
+                    }
 
                 } else {
+                    if(lrotbase) {
+                        // REMOVE ANY LAMS CREATED BY THIS COPY OF THE LEVEL
+                        rplCleanupLAMs(0);
+                    }
                     // KEEP BACKTRACKING
                     DSTop=left- ( (leftnargs)? (1+leftnargs):0); // DROP ENTIRE LEVEL
                     if(baselevel>DSTop) matchtype=RESTARTMATCH;
@@ -4821,6 +4948,8 @@ do {
 
         leftidx=rplReadBINT(right[1]);  // GET THE INDEX INTO THE ARGUMENTS
         rightidx=rplReadBINT(right[2]);
+        { BINT64 tmpint=rplReadBINT(right[3]); leftrot=(BINT)tmpint; lrotbase=(BINT)(tmpint>>32); }
+
 
         //******************************************************
         // DEBUG ONLY AREA
@@ -4894,11 +5023,12 @@ do {
 
                         leftidx=rplReadBINT(right[1]);  // GET THE INDEX INTO THE ARGUMENTS
                         rightidx=rplReadBINT(right[2]);
+                        { BINT64 tmpint=rplReadBINT(right[3]); leftrot=(BINT)tmpint; lrotbase=(BINT)(tmpint>>32); }
 
                         // STORE THE PART OF THE EXPRESSION BEING REPLACED
                         {
                         WORDPTR *pleft,*pright;
-                        BINT pleftnargs,prightnargs,pleftidx,prightidx,pleftrot;
+                        BINT pleftnargs,prightnargs,pleftidx,prightidx;
 
                         // GET POINTERS TO THE PARENT EXPRESSION
                         pright=left- ( (leftnargs)? (1+leftnargs):0)-4;
@@ -4911,7 +5041,7 @@ do {
 
                         pleftidx=rplReadBINT(pright[1]);  // GET THE INDEX INTO THE ARGUMENTS
                         prightidx=rplReadBINT(pright[2]);
-                        pleftrot=rplReadBINT(pright[3]);
+
 
                         if( (pleftidx>0) && (pleftidx<=pleftnargs)) rplPutLAMn(1,FINDARGUMENT(pleft,pleftnargs,pleftidx));
                         else rplPutLAMn(1,*pleft);
@@ -4929,29 +5059,139 @@ do {
                         right[2]=rplNewSINT(rightidx,DECBINT);
                         right[3]=(WORDPTR)zero_bint;
 
+                        // SINCE IT'S A COMMUTATIVE OPERATOR, WE'LL HAVE TO RE-CREATE THE ROT ENVIRONMENT
+
+
+                        // CREATE A COPY OF THE ENTIRE LEVEL TO DO A SUB-ROTATION
+                        WORDPTR *topoflevel=left- ( (leftnargs)? (1+leftnargs):0);
+                        rplExpandStack(DSTop-topoflevel);
+                        if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                        BINT k;
+                        for(k=0;k<DSTop-topoflevel;++k) DSTop[k]=topoflevel[k];
+                        left+=k;
+                        right+=k;
+                        DSTop+=k;
+                        leftrot=0;
+                        lrotbase=leftidx;
+
+                        right[3]=rplNewBINT(((BINT64)lrotbase)<<32,DECBINT);
+                        if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                        // AND CREATE AN ADDITIONAL LAM ENVIRONMENT
+                        rplDupLAMEnv();
+                        if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+
+
                         matchtype=ARGMATCH;
 
 
                     }
                     else {
+                        if(lrotbase) {
+                            // PASS THE SUB-ENVIRONMENT TO THE PARENT AND REPORT ARGDONE
+                            WORDPTR *nextenv=rplGetNextLAMEnv(nLAMBase);
+                            if(nextenv) {
+                            // DUMP THE LAST ENVIRONMENT INTO THE PREVIOUS ONE
+                            BINT nptrs=LAMTop-nLAMBase;
+                            memmovew(nextenv,nLAMBase,nptrs*sizeof(WORDPTR)/sizeof(WORD));
+                            // AND DROP THE ENVIRONMENT
+
+                            nLAMBase=nextenv;
+                            LAMTop=nLAMBase+nptrs;
+                            }
+
+                            // COPY THE ROTATED ARGUMENTS FROM THE LEFT INTO THE UPPER LEVEL
+                            // TO MAKE SURE THEY ARE PICKED UP ON REPLACEMENT
+                            {
+                            WORDPTR *pleft,*pright;
+                            BINT pleftnargs,prightnargs,pleftidx,prightidx;
+
+                            // GET POINTERS TO THE PARENT EXPRESSION
+                            pright=left- ( (leftnargs)? (1+leftnargs):0)-4;
+                            pleft=pright-1;
+                              if(!ISPROLOG(**pright) && !ISBINT(**pright)) { prightnargs=rplReadBINT(*(pright-1)); --pleft; }
+                            else prightnargs=0;
+                            pleft-=prightnargs;
+                            if(!ISPROLOG(**pleft) && !ISBINT(**pleft)) pleftnargs=rplReadBINT(*(pleft-1));
+                            else pleftnargs=0;
+
+                            pleftidx=rplReadBINT(pright[1]);  // GET THE INDEX INTO THE ARGUMENTS
+                            prightidx=rplReadBINT(pright[2]);
+
+                            BINT k;
+                            // COPY ALL ARGUMENTS TO THE UPPER ENVIRONMENT
+                            for(k=1;k<=pleftnargs;++k) FINDARGUMENT(pleft,pleftnargs,k)=FINDARGUMENT(left,leftnargs,k);
+
+                            }
+
+
+                            // ALL ARGUMENTS ARE DONE, PASS IT TO THE UPPER LEVEL
+                            DSTop=left- ( (leftnargs)? (1+leftnargs):0);
+                            right=DSTop-4;
+                            // ADVANCE UPPER LEVEL POINTERS
+                            right[1]=rplNewSINT(leftidx-1,DECBINT);
+                            if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                            right[2]=rplNewSINT(rightidx-1,DECBINT);
+                            if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+
+                            //******************************************************
+                            // DEBUG ONLY AREA
+                            //******************************************************
+                    #ifdef RULEDEBUG
+                            printf("ARGDONE UP");
+                            printf("\n"); fflush(stdout);
+                    #endif
+                            //******************************************************
+                            //      END DEBUG ONLY AREA
+                            //******************************************************
+
+
+                        }
+                        else {
                         // EXTRA ARGUMENTS MEANS NO MATCH
                         matchtype=BACKTRACK;
+                        }
                     }
                 }
                 else matchtype=BACKTRACK;
 
             }
             else {
-                // UPDATE ARGUMENT INDEX
-               right[1]=rplNewSINT(leftidx,DECBINT);
-               if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-               right[2]=rplNewSINT(rightidx,DECBINT);
-               if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                // WE HAVE MORE ARGUMENTS IN THE RIGHT PART, KEEP COMPARING
 
+               if(lrotbase && (leftidx>lrotbase) && (leftidx<leftnargs)) {
+                   // CREATE A COPY OF THE ENTIRE LEVEL TO DO A SUB-ROTATION
+                   WORDPTR *topoflevel=left- ( (leftnargs)? (1+leftnargs):0);
+                   rplExpandStack(DSTop-topoflevel);
+                   if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                   BINT k;
+                   for(k=0;k<DSTop-topoflevel;++k) DSTop[k]=topoflevel[k];
+                   left+=k;
+                   right+=k;
+                   DSTop+=k;
+                   leftrot=0;
+                   lrotbase=leftidx;
+
+                   right[3]=rplNewBINT(((BINT64)lrotbase)<<32,DECBINT);
+                   if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                   // AND CREATE AN ADDITIONAL LAM ENVIRONMENT
+                   rplDupLAMEnv();
+                   if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+               }
+               // UPDATE ARGUMENT INDEX
+              right[1]=rplNewSINT(leftidx,DECBINT);
+              if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+              right[2]=rplNewSINT(rightidx,DECBINT);
+              if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                matchtype=ARGMATCH;  // KEEP MATCHING ARGUMENTS
             }
         }
         else {
+            // NO MORE ARGUMENT ON THE LEFT SIDE
             if(rightidx<=rightnargs) {
             // WE NEED MORE ARGUMENTS! THIS IS NOT A MATCH
             matchtype=BACKTRACK;
@@ -4963,7 +5203,7 @@ do {
                     // STORE THE PART OF THE EXPRESSION BEING REPLACED
                     {
                     WORDPTR *pleft,*pright;
-                    BINT pleftnargs,prightnargs,pleftidx,prightidx,pleftrot;
+                    BINT pleftnargs,prightnargs,pleftidx,prightidx;
 
                     // GET POINTERS TO THE PARENT EXPRESSION
                     pright=left- ( (leftnargs)? (1+leftnargs):0)-4;
@@ -4976,7 +5216,7 @@ do {
 
                     pleftidx=rplReadBINT(pright[1]);  // GET THE INDEX INTO THE ARGUMENTS
                     prightidx=rplReadBINT(pright[2]);
-                    pleftrot=rplReadBINT(pright[3]);
+
 
                     if( (pleftidx>0) && (pleftidx<=pleftnargs)) rplPutLAMn(1,FINDARGUMENT(pleft,pleftnargs,pleftidx));
                     else rplPutLAMn(1,*pleft);
@@ -5014,6 +5254,7 @@ do {
 
                     leftidx=rplReadBINT(right[1]);  // GET THE INDEX INTO THE ARGUMENTS
                     rightidx=rplReadBINT(right[2]);
+                    { BINT64 tmpint=rplReadBINT(right[3]); leftrot=(BINT)tmpint; lrotbase=(BINT)(tmpint>>32); }
 
 
                     // CREATE LAM ENVIRONMENT
@@ -5024,6 +5265,62 @@ do {
 
                     matchtype=RESTARTMATCH;
 
+                }
+                else {
+                    // IF THIS WAS A SUB-ENVIRONMENT FOR A ROT, CLEANUP
+
+                    if(lrotbase) {
+                        // CLEANUP THE LAM ENVIRONMENT
+                        WORDPTR *nextenv=rplGetNextLAMEnv(nLAMBase);
+                        if(nextenv) {
+                        // DUMP THE LAST ENVIRONMENT INTO THE PREVIOUS ONE
+                        BINT nptrs=LAMTop-nLAMBase;
+                        memmovew(nextenv,nLAMBase,nptrs*sizeof(WORDPTR)/sizeof(WORD));
+                        // AND DROP THE ENVIRONMENT
+                        nLAMBase=nextenv;
+                        LAMTop=nLAMBase+nptrs;
+                        }
+
+                        // COPY THE ROTATED ARGUMENTS FROM THE LEFT INTO THE UPPER LEVEL
+                        // TO MAKE SURE THEY ARE PICKED UP ON REPLACEMENT
+                        {
+                        WORDPTR *pleft,*pright;
+                        BINT pleftnargs,prightnargs,pleftidx,prightidx;
+
+                        // GET POINTERS TO THE PARENT EXPRESSION
+                        pright=left- ( (leftnargs)? (1+leftnargs):0)-4;
+                        pleft=pright-1;
+                          if(!ISPROLOG(**pright) && !ISBINT(**pright)) { prightnargs=rplReadBINT(*(pright-1)); --pleft; }
+                        else prightnargs=0;
+                        pleft-=prightnargs;
+                        if(!ISPROLOG(**pleft) && !ISBINT(**pleft)) pleftnargs=rplReadBINT(*(pleft-1));
+                        else pleftnargs=0;
+
+                        pleftidx=rplReadBINT(pright[1]);  // GET THE INDEX INTO THE ARGUMENTS
+                        prightidx=rplReadBINT(pright[2]);
+
+                        BINT k;
+                        // COPY ALL ARGUMENTS TO THE UPPER ENVIRONMENT
+                        for(k=1;k<=pleftnargs;++k) FINDARGUMENT(pleft,pleftnargs,k)=FINDARGUMENT(left,leftnargs,k);
+                        // REMOVE ADDITIONAL ARGUMENTS IF NEEDED
+                        k=pleftnargs-leftnargs;
+                        if(k>0) rplRemoveAtData(DSTop-&FINDARGUMENT(pleft,leftnargs,leftnargs)-1,k);
+                        pleft-=k;
+                        pright-=k;
+                        left-=k;
+                        right-=k;
+                        if(baselevel>pleft) baselevel-=k;
+
+                        // AND UPDATE THE INDEX OF THE PARENT EXPRESSION TOO
+                        pright[1]=rplNewSINT(leftidx-1,DECBINT);
+                        if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                        pright[2]=rplNewSINT(rightidx-1,DECBINT);
+                        if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                        }
+
+                    }
                 }
 
             // ALL ARGUMENTS ARE DONE, PASS IT TO THE UPPER LEVEL
@@ -5058,6 +5355,7 @@ do {
 
         leftidx=rplReadBINT(right[1]);  // GET THE INDEX INTO THE ARGUMENTS
         rightidx=rplReadBINT(right[2]);
+        { BINT64 tmpint=rplReadBINT(right[3]); leftrot=(BINT)tmpint; lrotbase=(BINT)(tmpint>>32); }
 
         //******************************************************
         // DEBUG ONLY AREA

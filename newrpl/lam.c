@@ -621,3 +621,14 @@ BINT rplGetIdentLength(WORDPTR ident)
     return ((len-1)<<2)+usedbytes;
 }
 
+// MAKE A NEW COPY OF THE CURRENT ENVIRONMENT
+void rplDupLAMEnv()
+{
+    WORDPTR *ptr=nLAMBase,*endptr=LAMTop;
+    while(ptr<endptr) {
+        rplCreateLAM(ptr[0],ptr[1]);
+        if(Exceptions) return;
+        ptr+=2;
+    }
+    nLAMBase=ptr;
+}

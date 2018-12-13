@@ -427,6 +427,7 @@ WORD rplGetIdentProp(WORDPTR ident);
 // LAM FUNCTIONS
 void growLAMs(WORD newtotalsize);
 void rplCreateLAMEnvironment(WORDPTR owner);
+void rplDupLAMEnv();
 BINT rplCreateLAM(WORDPTR nameobj,WORDPTR value);
 BINT rplCompareIDENT(WORDPTR id1,WORDPTR id2);
 BINT rplCompareIDENTByName(WORDPTR id1, BYTEPTR name, BYTEPTR nameend);
