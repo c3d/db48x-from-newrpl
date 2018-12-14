@@ -4094,11 +4094,13 @@ do {
                     }
                     case TEXT2WORD('.','m',0,0):
                         // m = Match smallest expression with any variables or constants, assuming commutative addition but non-commutative multiplication (use this with matrix expressions)
-                        if(leftnargs) {
+                    {
+
+
                             // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
 
                             WORDPTR *pleft,*pright;
-                            BINT pleftnargs,prightnargs,pleftidx,prightidx;
+                            BINT pleftnargs,prightnargs,pleftidx,prightidx,pleftrot,plrotbase;
 
                         // GET POINTERS TO THE PARENT EXPRESSION
                         pright=left- ( (leftnargs)? (1+leftnargs):0)-4;
@@ -4111,8 +4113,15 @@ do {
 
                         pleftidx=rplReadBINT(pright[1]);  // GET THE INDEX INTO THE ARGUMENTS
                         prightidx=rplReadBINT(pright[2]);
+                        { BINT64 tmpint=rplReadBINT(pright[3]); pleftrot=(BINT)tmpint; plrotbase=(BINT)(tmpint>>32); }
 
+                        if(plrotbase && pleftrot && (**pleft==CMD_OVR_MUL)) {
+                            // DO NOT ACCEPT ANY MATCH THAT HAS ANY ROTATION WHEN MULTIPLICATION IS ACTIVE
+                            matchtype=BACKTRACK;
+                            break;
+                        }
 
+                        if(leftnargs) {
                         // JUST CAPTURE THE CURRENT ARGUMENT
 
                             if(pleftidx>=1 && pleftidx<=pleftnargs) rplCreateLAM(*right,FINDARGUMENT(pleft,pleftnargs,pleftidx));
@@ -4124,12 +4133,13 @@ do {
                         } else rplCreateLAM(*right,*left);
                         matchtype=ARGDONE;
                         break;
+                    }
                     case TEXT2WORD('.','M',0,0):
                         // M = Same as m but largest expression
                         // TAKE ALL ARGUMENTS OF THE OPERATION
                     {
                             WORDPTR *pleft,*pright;
-                            BINT pleftnargs,prightnargs,pleftidx,prightidx;
+                            BINT pleftnargs,prightnargs,pleftidx,prightidx,pleftrot,plrotbase;
 
                         // GET POINTERS TO THE PARENT EXPRESSION TO CAPTURE ALL ARGUMENTS
                         pright=left- ( (leftnargs)? (1+leftnargs):0)-4;
@@ -4142,8 +4152,12 @@ do {
 
                         pleftidx=rplReadBINT(pright[1]);  // GET THE INDEX INTO THE ARGUMENTS
                         prightidx=rplReadBINT(pright[2]);
+                        { BINT64 tmpint=rplReadBINT(pright[3]); pleftrot=(BINT)tmpint; plrotbase=(BINT)(tmpint>>32); }
 
-
+                        if(plrotbase && pleftrot) {
+                            matchtype=BACKTRACK;
+                            break;
+                        }
                         if(**pleft==CMD_OVR_ADD)  // IT'S A COMMUTATIVE/ASSOCIATIVE OPERATOR
                         {
                             BINT k;
@@ -4220,10 +4234,54 @@ do {
                             break;
 
                         }
+                        else if(**pleft==CMD_OVR_MUL) {
+                            // IT'S NON-COMMUTATIVE BUT ASSOCIATIVE OPERATOR, TAKE ALL ARGUMENTS LESS WHAT'S LEFT ON THE RIGHT SIDE
+                            BINT k;
+
+                            BINT otherright=prightnargs-prightidx;  // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
+                            BINT available=pleftnargs-pleftidx+1-otherright; // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
+
+                            if(available>1) {
+                            // CREATE A SYMBOLIC WITH THE SAME OPERATOR AND ALL REMAINING ARGUMENTS
+                            // AND ASSIGN IT TO THIS VARIABLE
+                            for(k=pleftidx;k<=pleftnargs-otherright;++k) {
+                                rplPushData(FINDARGUMENT(pleft,pleftnargs,k));
+                                if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                            }
+
+                                rplSymbApplyOperator(**pleft,available);
+                                if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                            rplCreateLAM(*right,rplPopData());
 
 
+                            DSTop=pright+4; // REMOVE THIS LEVEL
+
+                            // FINALLY, REMOVE ALL EXTRA ARGUMENTS FROM THE PARENT
+                            rplRemoveAtData(DSTop-&FINDARGUMENT(pleft,pleftnargs,pleftnargs-otherright),available-1);
+                                pleft-=available-1;
+                                if(baselevel>pleft) baselevel-=available-1;
+                                pleft[-1]=rplNewSINT(pleftnargs-(available-1),DECBINT);
+
+
+                            matchtype=ARGDONE;
+
+                            break;
+
+                            }
+
+
+                        }
                         // IN ALL OTHER CASES, JUST ASSIGN THE CURRENT ARGUMENT
                         if(leftnargs) {
+
+                            if(plrotbase && pleftrot && (**pleft==CMD_OVR_MUL)) {
+                                // DO NOT ACCEPT ANY MATCH THAT HAS ANY ROTATION WHEN MULTIPLICATION IS ACTIVE
+                                matchtype=BACKTRACK;
+                                break;
+                            }
+
+
                             // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
 
                             if(pleftidx>=1 && pleftidx<=pleftnargs) rplCreateLAM(*right,FINDARGUMENT(pleft,pleftnargs,pleftidx));
@@ -4822,6 +4880,79 @@ do {
             }
             }
             else {
+
+                if(leftidx<leftnargs) {
+
+                 // ADVANCE TO THE NEXT ARGUMENT
+
+                    ++leftidx;
+                    // RECURSE INTO THE ARGUMENT
+                    right[1]=rplNewSINT(leftidx,DECBINT);   // UPDATE THE ARGUMENT COUNT
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    // PUSH THE LEFT
+                    rplSymbExplodeOneLevel2(FINDARGUMENT(left,leftnargs,leftidx));
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    // PUSH THE RIGHT
+                    rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    right=DSTop;
+
+                    // LEFTARG AND RIGHTARG
+                    rplPushData((WORDPTR)zero_bint);
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    rplPushData((WORDPTR)zero_bint);
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    rplPushData((WORDPTR)zero_bint);
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                    baselevel=DSTop;
+                    matchtype=OPMATCH;
+                    matchstarted=0;
+
+
+                    //******************************************************
+                    // DEBUG ONLY AREA
+                    //******************************************************
+            #ifdef RULEDEBUG
+                    printf("BACKTRACKED: %d/%d,%d/%d",leftidx,leftnargs,rightidx,rightnargs);
+                    if(leftidx>0 && leftidx<=leftnargs) {
+                    WORDPTR string=rplDecompile(FINDARGUMENT(left,leftnargs,leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+                    if(string) {
+                        BYTE strbyte[1024];
+                        memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                        strbyte[rplStrSize(string)]=0;
+                        printf("  left=%s",strbyte);
+                    }
+                    }
+                    if(rightidx>0 && rightidx<=rightnargs) {
+                    WORDPTR string=rplDecompile(FINDARGUMENT(right,rightnargs,rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+                    if(string) {
+                        BYTE strbyte[1024];
+                        memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                        strbyte[rplStrSize(string)]=0;
+                        printf("  right=%s",strbyte);
+                    }
+                    }
+                    printf("\n"); fflush(stdout);
+            #endif
+                    //******************************************************
+                    //      END DEBUG ONLY AREA
+                    //******************************************************
+
+
+                    // CLEAN THE PREVIOUS ENVIRONMENT
+                    rplCleanupLAMs(0);
+
+                    // CREATE LAM ENVIRONMENT
+                    rplCreateLAMEnvironment(*orgrule);
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                }
+
+                else {
+
                 // KEEP BACKTRACKING
                 DSTop=left- ( (leftnargs)? (1+leftnargs):0); // DROP ENTIRE LEVEL
                 if(baselevel>DSTop) { matchtype=RESTARTMATCH; if(matchstarted) matchstarted=2; }
@@ -4835,24 +4966,52 @@ do {
                 //******************************************************
                 //      END DEBUG ONLY AREA
                 //******************************************************
+                }
             }
         }
         else {
 
             if(matchstarted && DSTop>baselevel) {
                 // WE ARE IN THE MIDDLE OF A COMPARISON, CHECK FOR COMMUTATIVE OPERATORS
-                if(leftnargs && (leftidx>0) && (leftidx<leftnargs) && ((**left==CMD_OVR_MUL)||(**left==CMD_OVR_ADD))) {
+                if(leftnargs && (leftidx>0) && lrotbase) {
 
-                    if(leftrot<leftnargs-leftidx) {
+                    if(leftrot<leftnargs-lrotbase) {
                     // COMMUTATIVE OPERATORS NEED TO ROT THE ARGUMENTS AND TRY AGAIN
-                    WORDPTR tmp=FINDARGUMENT(left,leftnargs,leftidx);
+                    WORDPTR tmp=FINDARGUMENT(left,leftnargs,lrotbase);
                     BINT k;
-                    for(k=leftidx;k<leftnargs;++k) FINDARGUMENT(left,leftnargs,k)=FINDARGUMENT(left,leftnargs,k+1);
+                    for(k=lrotbase;k<leftnargs;++k) FINDARGUMENT(left,leftnargs,k)=FINDARGUMENT(left,leftnargs,k+1);
                     FINDARGUMENT(left,leftnargs,leftnargs)=tmp;
                     matchtype=ARGMATCH;
                     ++leftrot;
                     right[3]=rplNewBINT((((BINT64)lrotbase)<<32)|leftrot,DECBINT);
                     if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    // GET LEFT/RIGHT INDEX FROM PARENT
+
+                    // STORE THE PART OF THE EXPRESSION BEING REPLACED
+                    {
+                    WORDPTR *pleft,*pright;
+                    BINT pleftnargs,prightnargs,pleftidx,prightidx;
+
+                    // GET POINTERS TO THE PARENT EXPRESSION
+                    pright=left- ( (leftnargs)? (1+leftnargs):0)-4;
+                    pleft=pright-1;
+                      if(!ISPROLOG(**pright) && !ISBINT(**pright)) { prightnargs=rplReadBINT(*(pright-1)); --pleft; }
+                    else prightnargs=0;
+                    pleft-=prightnargs;
+                    if(!ISPROLOG(**pleft) && !ISBINT(**pleft)) pleftnargs=rplReadBINT(*(pleft-1));
+                    else pleftnargs=0;
+
+                    pleftidx=rplReadBINT(pright[1]);  // GET THE INDEX INTO THE ARGUMENTS
+                    prightidx=rplReadBINT(pright[2]);
+
+                    leftidx=pleftidx;
+                    rightidx=prightidx;
+                    right[1]=rplNewSINT(leftidx,DECBINT);
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    right[2]=rplNewSINT(rightidx,DECBINT);
+                    if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                    }
 
                     // ELIMINATE ANY VARIABLES CREATED DURING THE PREVIOUS ROT
                     rplCleanupLAMs(0);
@@ -4871,7 +5030,7 @@ do {
                     //******************************************************
                     }
                     else {
-                        if(leftrot==leftnargs-leftidx) {
+                        if(leftrot==leftnargs-lrotbase) {
                             // REMOVE ANY LAMS CREATED BY THIS COPY OF THE LEVEL
                             rplCleanupLAMs(0);
                             // KEEP BACKTRACKING
