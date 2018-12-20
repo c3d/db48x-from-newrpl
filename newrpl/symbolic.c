@@ -3669,7 +3669,7 @@ void rplSymbReplaceMatchHere(WORDPTR *rule,BINT startleftarg)
 
 }
 
-//#define RULEDEBUG 1
+#define RULEDEBUG 1
 
 // MATCH A RULE AGAINST AN EXPRESSION
 // ARGUMENTS:
@@ -5563,7 +5563,7 @@ DSTop=expression+1;     // KEEP THE RESULTING EXPRESSION ON THE STACK
 // COUNT HOW MANY RESULTS WERE FOUND
 BINT found=0;
 WORDPTR *lamenv=LAMTop;
-while(lamenv>lamcurrent) {
+while(lamenv>lamsave) {
     lamenv=rplGetNextLAMEnv(lamenv);
     if(lamenv) ++found;
 }
