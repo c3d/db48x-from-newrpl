@@ -662,8 +662,7 @@ WORD rplSymbMainOperator(WORDPTR symbolic);
 WORDPTR rplSymbMainOperatorPTR(WORDPTR symbolic);
 BINT rplIsAllowedInSymb(WORDPTR object);
 void rplSymbApplyOperator(WORD Opcode,BINT nargs);
-void rplSymbRuleMatch();
-BINT rplSymbRuleMatch2();
+BINT rplSymbRuleMatch();
 
 void rplSymbRuleApply();
 BINT rplSymbIsRule(WORDPTR ptr);
@@ -678,7 +677,7 @@ void rplSymbNumericCompute();
 BINT rplCheckCircularReference(WORDPTR env_owner,WORDPTR object,BINT lamnum);
 BINT rplFractionSimplify();
 BINT rplFractionAdd();
-WORDPTR rplSymbCanonicalForm(WORDPTR object);
+WORDPTR rplSymbCanonicalForm(WORDPTR object,BINT fordisplay);
 BINT rplSymbExplodeOneLevel(WORDPTR object);
 
 

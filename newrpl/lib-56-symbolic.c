@@ -1376,7 +1376,7 @@ void LIB_HANDLER()
         }
         // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
 
-        BINT nsolutions=rplSymbRuleMatch2(),nsol2=nsolutions;
+        BINT nsolutions=rplSymbRuleMatch(),nsol2=nsolutions;
         if(Exceptions) return;
 
         while(nsolutions) {
@@ -1496,7 +1496,7 @@ void LIB_HANDLER()
 
         if(rplSymbIsRule(firstrule[k])) {
             rplPushDataNoGrow(firstrule[k]);
-            nsolutions=rplSymbRuleMatch2();
+            nsolutions=rplSymbRuleMatch();
             if(Exceptions) { DSTop=savestk; return; }
             totalreplacements+=nsolutions;
             rplOverwriteData(3,rplPeekData(1));  // REPLACE THE ORIGINAL EXPRESSION WITH THE NEW ONE
@@ -1586,7 +1586,7 @@ void LIB_HANDLER()
 
         if(rplSymbIsRule(firstrule[k])) {
             rplPushDataNoGrow(firstrule[k]);
-            nsolutions=rplSymbRuleMatch2();
+            nsolutions=rplSymbRuleMatch();
             if(Exceptions) { DSTop=savestk; return; }
             totalreplacements+=nsolutions;
             rplOverwriteData(3,rplPeekData(1));  // REPLACE THE ORIGINAL EXPRESSION WITH THE NEW ONE
