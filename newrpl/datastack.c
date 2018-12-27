@@ -421,3 +421,31 @@ WORDPTR rplPeekSnapshot(BINT numsnap,BINT level)
 
         return *(prevptr-level-1);
 }
+
+
+// DROPS THE CURRENT STACK AND MAKES THE PREVIOUS SNAPSHOT THE CURRENT STACK
+// DOES NOT MOVE THE STACK, CAN BE USED FROM C
+
+
+void rplDropCurrentStack()
+{
+
+    if(DStkBottom>DStk) {
+        BINT nlevels=((PTR2NUMBER)*(DStkBottom-1))+1;
+        // FIX THE POINTERS
+        DSTop-=nlevels;
+        DStkBottom-=nlevels;
+        DStkProtect-=nlevels;
+    } else {
+        DStkBottom=DStkProtect=DSTop=DStk;  // CLEAR THE STACK
+    }
+}
+
+// REMOVE CURRENT STACK AND ALL SNAPSHOTS WHERE DStkBottom>newstkbottom
+// THE SNAPSHOT WITH newstkbottom BECOMES THE CURRENT STACK
+// USE TO REMOVE ALL SNAPSHOTS TAKEN BY A PROGRAM IN ONE SINGLE CLEANUP OPERATION
+
+void rplCleanupSnapshots(WORDPTR *newstkbottom)
+{
+    while((DStkBottom>newstkbottom)&&(DStkBottom>DStk)) rplDropCurrentStack();
+}

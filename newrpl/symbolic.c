@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
  * All rights reserved.
  * This file is released under the 3-clause BSD license.
@@ -3764,6 +3764,102 @@ do {
         //******************************************************
 
 
+        {
+        // BEFORE WE BACKTRACK, SEE IF ANY CHILDREN HAVE ANY ROTS AVAILABLE
+        BINT nlams=rplLAMCount(nLAMBase);
+        WORDPTR lstart,lend;
+        if(leftnargs) {
+            if(leftidx>0) lstart=FINDARGUMENT(left,leftnargs,leftidx);
+            else lstart=FINDARGUMENT(left,leftnargs,1);
+        } else lstart=*left;
+        lend=rplSkipOb(lstart);
+
+        while(nlams>2) {
+            WORDPTR lamname=*rplGetLAMnName(nlams-1);
+                if( (lamname>=lstart)&&(lamname<lend)) {
+                    // WE HAVE A ROTATION TO EXECUTE IN ONE OF THE CHILDREN
+                    break;
+                }
+                --nlams;
+            }
+
+        if(nlams>2) {
+            // NEED TO PROCEED BACK TO RE-PROCESS THE ARGUMENTS
+            //******************************************************
+            // DEBUG ONLY AREA
+            //******************************************************
+    #ifdef RULEDEBUG
+            printf("CHILDREN ROT AVAILABLE");
+            printf("\n"); fflush(stdout);
+    #endif
+            //******************************************************
+            //      END DEBUG ONLY AREA
+            //******************************************************
+
+            // TODO: TRIM LOCAL ENVIRONMENT TO ELIMINATE VARIABLES CREATED AFTER THIS CHILD WAS PROCESSED
+
+
+
+            // RECURSE INTO THE ARGUMENT
+            right[1]=rplNewSINT(leftidx,DECBINT);   // UPDATE THE ARGUMENT COUNT
+            if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+            // PUSH THE LEFT
+            rplSymbExplodeOneLevel2(FINDARGUMENT(left,leftnargs,leftidx));
+            if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+            // PUSH THE RIGHT
+            rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
+            if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+            right=DSTop;
+
+            // LEFTARG AND RIGHTARG
+            rplPushData((WORDPTR)zero_bint);
+            if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+            rplPushData((WORDPTR)zero_bint);
+            if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+            rplPushData((WORDPTR)zero_bint);
+            if(Exceptions) { DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+            baselevel=DSTop;
+            matchtype=OPMATCH;
+            matchstarted=0;
+
+
+
+            //******************************************************
+            // DEBUG ONLY AREA
+            //******************************************************
+    #ifdef RULEDEBUG
+            printf("BACKTRACKED: %d/%d,%d/%d",leftidx,leftnargs,rightidx,rightnargs);
+            if(leftidx>0 && leftidx<=leftnargs) {
+            WORDPTR string=rplDecompile(FINDARGUMENT(left,leftnargs,leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+            if(string) {
+                BYTE strbyte[1024];
+                memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                strbyte[rplStrSize(string)]=0;
+                printf("  left=%s",strbyte);
+            }
+            }
+            if(rightidx>0 && rightidx<=rightnargs) {
+            WORDPTR string=rplDecompile(FINDARGUMENT(right,rightnargs,rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+            if(string) {
+                BYTE strbyte[1024];
+                memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                strbyte[rplStrSize(string)]=0;
+                printf("  right=%s",strbyte);
+            }
+            }
+            printf("\n"); fflush(stdout);
+    #endif
+            //******************************************************
+            //      END DEBUG ONLY AREA
+            //******************************************************
+
+            break;
+
+
+        }
+        }
+
         if(DSTop==baselevel) {
 
             if(lrotbase) {
@@ -4088,9 +4184,6 @@ do {
                     }
 
                 } else {
-
-                    // TODO: BEFORE WE BACKTRACK, SEE IF ANY CHILDREN HAVE ANY ROTS AVAILABLE, BUT HOW??
-
 
 
                     if(lrotbase) {
@@ -4599,6 +4692,1696 @@ do {
         break;
     }
     }
+
+
+
+
+} while(DSTop>marker);
+
+if((matchtype==BACKTRACK)||(matchtype==RESTARTMATCH)) rplCleanupLAMs(0); // THE LAST BACKTRACK ENDED IN FAILURE, DISCARD THE ENVIRONMENT
+
+DSTop=expression+1;     // KEEP THE RESULTING EXPRESSION ON THE STACK
+// COUNT HOW MANY RESULTS WERE FOUND
+BINT found=0;
+WORDPTR *lamenv=LAMTop;
+while(lamenv>lamsave) {
+    lamenv=rplGetNextLAMEnv(lamenv);
+    if(lamenv) ++found;
+}
+
+return found;
+}
+
+
+
+// MATCH A RULE AGAINST AN EXPRESSION
+// ARGUMENTS:
+// SYMBOLIC EXPRESSION IN LEVEL 2
+// RULE IN LEVEL 1
+
+// RETURNS:
+// NUMBER OF MATCHES FOUND = NUMBER OF NEW LOCAL ENVIRONMENTS CREATED (NEED TO BE CLEANED UP BY CALLER)
+// EACH MATCH FOUND CREATES A NEW LOCAL ENVIRONMENT, WITH THE FOLLOWING VARIABLES:
+// GETLAM1 IS UNNAMED, AND WILL CONTAIN A POINTER INSIDE THE ORIGINAL SYMBOLIC WHERE THE MATCH WAS FOUND, TO BE USED BY REPLACE (INTERNAL USE)
+// ANY IDENTS THAT START WITH A PERIOD IN THE RULE DEFINITION WILL HAVE A DEFINITION IN THIS ENVIRONMENT
+
+// STACK ON RETURN: ORIGINAL ARGUMENTS UNTOUCHED + THE RESULTING EXPRESSION AFTER APPLYING THE RULE
+// MAY TRIGGER GC
+// USES ALL SCRATCHPOINTERS
+// CALLER NEEDS TO CLEANUP ALL LOCAL ENVIRONMENTS. LOCAL ENVIRONMENTS ARE OWNED BY THE RULE ARGUMENT.
+
+// NO ARGUMENT CHECKS!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// NEW VERSION 3 IMPLEMENTATION
+
+typedef struct {
+WORDPTR *left,*right;
+BINT leftnargs,rightnargs;
+BINT leftidx,rightidx,leftrot,lrotbase;
+BINT nlams;
+} TRACK_STATE;
+
+// NO ARGUMENT CHECKS, INTERNAL USE ONLY, ptr MUST NOT BE NULL, stkbase MUST POINT AFTER VALID DATA ON THE STACK
+
+// EXPECTED STACK FORMAT:
+// LARGN ... LARG1 LNARGS LOP RARGN ... RARG1 RNARGS ROP LIDX RIDX LROT LAMN_VALUE LAMN_NAME ... LAM1_VALUE LAM1_NAME NLAMS
+// INPUT/OUTPUT:     left->|                   right->|                                                               stkbase->|
+
+
+static void reloadPointers(WORDPTR *stkbase,TRACK_STATE *ptr)
+{
+    ptr->nlams=rplReadBINT(*(stkbase-1));
+    ptr->right=stkbase-2*ptr->nlams-5;           // POINT TO THE RIGHT OPERATOR
+    ptr->left=ptr->right-1;
+    if(!ISPROLOG(**(ptr->right)) && !ISBINT(**(ptr->right))) { ptr->rightnargs=rplReadBINT(*((ptr->right)-1)); ptr->left--; }
+    else ptr->rightnargs=0;
+    ptr->left-=ptr->rightnargs;
+    if(!ISPROLOG(**(ptr->left)) && !ISBINT(**(ptr->left))) ptr->leftnargs=rplReadBINT(*((ptr->left)-1));
+    else ptr->leftnargs=0;
+
+    ptr->leftidx=rplReadBINT(ptr->right[1]);  // GET THE INDEX INTO THE ARGUMENTS
+    ptr->rightidx=rplReadBINT(ptr->right[2]);
+    { BINT64 tmpint=rplReadBINT(ptr->right[3]); ptr->leftrot=(BINT)tmpint; ptr->lrotbase=(BINT)(tmpint>>32); }
+
+}
+
+// REPLACE ALL LAMS IN CURRENT ENVIRONMENT WITH THE ONES FROM THE STACK
+static void reloadLAMs(WORDPTR *orgrule,TRACK_STATE *ptr)
+{
+    rplCleanupLAMs(0);
+    rplCreateLAMEnvironment(*orgrule);
+    if(Exceptions) return;
+    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);
+    BINT oldnlams=rplLAMCount(0)-1;
+    while(oldnlams<ptr->nlams) {
+        rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);
+        if(Exceptions) return;
+        ++oldnlams;
+    }
+    // COPY ALL LAM DEFINITIONS
+    memmovew(nLAMBase+4,ptr->right+4,ptr->nlams*2*sizeof(WORDPTR)/sizeof(WORD));
+    LAMTop=nLAMBase+4+2*ptr->nlams;
+}
+
+// UPDATE ONLY NUMERIC COUNTERS, EXCEPT nlams
+// ALL POINTERS IN ptr MUST BE VALID
+static void updateCounters(TRACK_STATE *ptr)
+{
+ptr->right[1]=rplNewSINT(ptr->leftidx,DECBINT);
+if(Exceptions)  return;
+ptr->right[2]=rplNewSINT(ptr->rightidx,DECBINT);
+if(Exceptions)  return;
+ptr->right[3]=rplNewBINT((((BINT64)ptr->lrotbase)<<32)+ptr->leftrot,DECBINT);
+if(Exceptions)  return;
+}
+
+// SAVE CURRENT LAM ENVIRONMENT TO THE STACK
+static void updateLAMs(TRACK_STATE *ptr)
+{
+    BINT newnlams=rplLAMCount(0);
+    if(ptr->nlams<newnlams) {
+        rplExpandStack(newnlams-ptr->nlams);
+        if(Exceptions) return;
+       if(ptr->right+5+2*ptr->nlams<DSTop) {
+        // THIS UPDATE IS HAPPENING IN THE MIDDLE OF THE STACK, NOT AT THE END
+        // MAKE A HOLE IN THE STACK
+        memmovew(ptr->right+5+ptr->nlams+newnlams,ptr->right+5+2*ptr->nlams,(DSTop-(ptr->right+5+2*ptr->nlams))*sizeof(WORDPTR)/sizeof(WORD));
+     }
+    }
+
+    // STORE ALL LAMS
+    memmovew(ptr->right+4,nLAMBase+4,newnlams*2*sizeof(WORDPTR)/sizeof(WORD));
+
+    ptr->right[4+2*newnlams]=rplNewSINT(newnlams,DECBINT);
+    if(Exceptions)  return;
+    ptr->nlams=newnlams;
+}
+
+
+BINT rplSymbRuleMatch3()
+{
+    // MAKE SURE BOTH EXPRESSION AND RULE ARE IN CANONIC FORM
+    WORDPTR newexp=rplSymbCanonicalForm(rplPeekData(2),0);
+    if(!newexp || Exceptions) { return 0; }
+    rplPushDataNoGrow(newexp);
+    newexp=rplSymbCanonicalForm(rplPeekData(2),0);
+    if(!newexp || Exceptions) { return 0; }
+    rplPushDataNoGrow(newexp);
+
+
+    //******************************************************
+    // DEBUG ONLY AREA
+    //******************************************************
+#ifdef RULEDEBUG
+    printf("START RULE MATCH 3: ");
+
+    WORDPTR string=rplDecompile(DSTop[-2],DECOMP_EDIT|DECOMP_NOHINTS);
+    if(string) {
+        BYTE strbyte[1024];
+        memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+        strbyte[rplStrSize(string)]=0;
+        printf("exp=%s",strbyte);
+    }
+    string=rplDecompile(DSTop[-1],DECOMP_EDIT|DECOMP_NOHINTS);
+    if(string) {
+        BYTE strbyte[1024];
+        memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+        strbyte[rplStrSize(string)]=0;
+        printf("  rule=%s",strbyte);
+    }
+    printf("\n"); fflush(stdout);
+#endif
+
+
+
+
+WORDPTR * expression=DSTop-2;
+WORDPTR * rule=DSTop-1;
+WORDPTR * orgrule=DSTop-3;
+WORDPTR *marker;
+WORDPTR *lamsave=LAMTop,*lamcurrent=nLAMBase,*stkbottom=DStkBottom;
+
+WORDPTR ruleleft=rplSymbMainOperatorPTR(*rule);
+if(*ruleleft==CMD_RULESEPARATOR) ++ruleleft;    // POINT TO THE FIRST ARGUMENT, OTHERWISE THE ENTIRE SYMBOLIC IS AN EXPRESSION TO MATCH BUT NOT A RULE TO REPLACE
+BINT ruleleftoffset=ruleleft-*rule;
+BINT matchtype,matchstarted;
+BINT baselevel;
+
+TRACK_STATE s;
+
+rplTakeSnapshotN(2);
+if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+
+// PUSH LOOP STOPPERS
+rplPushData((WORDPTR)minusone_bint);
+if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+rplPushData((WORDPTR)minusone_bint);
+if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+rplPushData((WORDPTR)minusone_bint);
+if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+rplPushData((WORDPTR)zero_bint);
+if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+
+// PUSH LOOP INITIAL ARGUMENTS
+// PUSH THE LEFT
+marker=DSTop;
+rplSymbExplodeOneLevel2(*expression);
+if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+s.left=DSTop;
+// PUSH THE RIGHT
+rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
+if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+s.right=DSTop;
+
+// LEFTIDX AND RIGHTIDX
+rplPushData((WORDPTR)zero_bint);
+if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+rplPushData((WORDPTR)zero_bint);
+if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+// LROTBASE AND LEFTROT
+rplPushData((WORDPTR)zero_bint);
+if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+// NLAMS
+rplPushData((WORDPTR)zero_bint);
+if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+baselevel=DSTop-DStkBottom;
+matchtype=OPMATCH;
+matchstarted=0;
+
+// DO NOT USE LAM ENVIRONMENTS, ONLY THE STACK
+
+do {
+
+    switch(matchtype)
+    {
+    case OPMATCH:
+    {
+        // GET POINTERS TO THE LEFT AND RIGHT EXPRESSIONS, AND ARGUMENT COUNTS
+        reloadPointers(DSTop,&s);
+
+        //******************************************************
+        // DEBUG ONLY AREA
+        //******************************************************
+#ifdef RULEDEBUG
+        printf("OPMATCH: ");
+
+        WORDPTR string=rplDecompile(*s.left,DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("left=%s",strbyte);
+        }
+        string=rplDecompile(*s.right,DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  right=%s",strbyte);
+        }
+        printf("\n"); fflush(stdout);
+#endif
+        //******************************************************
+        //      END DEBUG ONLY AREA
+        //******************************************************
+
+        // OPERATOR COMPARISON, CHECK IF OPERATORS ARE IDENTICAL
+        if(s.rightnargs) {
+            // THE RIGHT PART HAS AN OPERATOR, CHECK IF THE LEFT IS IDENTICAL
+            if(s.leftnargs && ( (**s.right) == (**s.left) )) {
+                // OPERATOR MATCHES, MOVE ON TO ARGUMENT BY ARGUMENT
+                s.leftidx=s.rightidx=1;
+                if((**s.left==CMD_OVR_ADD)||(**s.right==CMD_OVR_MUL)) {
+                    // KEEP PARENT UP TO DATE IN THE STACK
+                    updateCounters(&s);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    updateLAMs(&s);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                    // CREATE A COPY OF THE ENTIRE LEVEL TO DO A SUB-ROTATION
+                    WORDPTR *topoflevel=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
+                    rplExpandStack(DSTop-topoflevel);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    BINT k;
+                    for(k=0;k<DSTop-topoflevel;++k) DSTop[k]=topoflevel[k];
+                    s.left+=k;
+                    s.right+=k;
+                    DSTop+=k;
+                    s.leftrot=0;
+                    s.lrotbase=s.leftidx;
+
+                    updateCounters(&s);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                    rplTakeSnapshot();
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                }
+                else {
+                    s.leftrot=s.lrotbase=0;
+                    updateCounters(&s);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                }
+                matchtype=ARGMATCH;
+                matchstarted=1;
+                break;
+            }
+            // NO MATCH, TRY PASSING IT TO THE ARGUMENTS
+            if((DSTop-DStkBottom==baselevel) && s.leftnargs && !matchstarted) {
+               // RECURSE INTO FIRST ARGUMENT
+               // PUSH THE LEFT
+                ++s.leftidx;
+
+                if(s.leftidx<=s.leftnargs) {
+                updateCounters(&s);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                rplSymbExplodeOneLevel2(FINDARGUMENT(s.left,s.leftnargs,s.leftidx));
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                // PUSH THE RIGHT
+                rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                s.right=DSTop;
+
+                s.leftidx=s.rightidx=0;
+                s.lrotbase=s.leftrot=0;
+                // LEFTARG AND RIGHTARG
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                updateLAMs(&s);
+                baselevel=DSTop-DStkBottom;
+                matchtype=OPMATCH;
+                }
+                else matchtype=BACKTRACK;
+
+            }
+            else matchtype=BACKTRACK;
+        }
+        else {
+            // RIGHT PART DOESN'T HAVE AN OPERATOR, CHECK FOR SPECIAL IDENTS
+            if(ISIDENT(**s.right)) {
+                // IF THE RIGHT EXPRESSION IS A SINGLE IDENTIFIER
+                WORDPTR *lamname=rplFindLAM(*s.right,0);
+                if(lamname) {
+                    // REPLACE THE ENTIRE right PART WITH ITS VALUE, EXPLODED
+                    DSTop=s.left+1;
+                    // PUSH THE RIGHT
+                    rplSymbExplodeOneLevel2(lamname[1]);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    s.right=DSTop-1;
+
+                    s.leftidx=s.rightidx=0;
+                    s.leftrot=s.lrotbase=0;
+                    s.nlams=0;
+                    // PUSH NEW INDEX
+                    rplPushData((WORDPTR)zero_bint);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    rplPushData((WORDPTR)zero_bint);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    rplPushData((WORDPTR)zero_bint);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    rplPushData((WORDPTR)zero_bint);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    updateLAMs(&s);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                }
+                else {
+
+                    WORD firstchars=(*s.right)[1];
+                    firstchars&=0xffff;
+
+                    switch(firstchars)
+                    {
+                    case TEXT2WORD('.','x',0,0):
+                        // x = Match smallest expression with any variables or constants, assuming commutative addition and multiplication
+                    {
+                        if(s.leftnargs) {
+                        // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
+
+                        // GET POINTERS TO THE PARENT EXPRESSION
+                            TRACK_STATE p;
+                            reloadPointers(s.left-( (s.leftnargs)? (1+s.leftnargs):0),&p);
+
+                        // JUST CAPTURE THE CURRENT ARGUMENT
+                            if(p.leftidx>=1 && p.leftidx<=p.leftnargs) rplCreateLAM(*s.right,FINDARGUMENT(p.left,p.leftnargs,p.leftidx));
+                            else if(p.leftidx==-1) rplCreateLAM(*s.right,*p.left);
+                            // else SOMETHING IS WRONG IN THE EXPRESSION.
+
+                            s.leftidx=s.leftnargs;
+                            updateCounters(&s);
+
+                        } else rplCreateLAM(*s.right,*s.left);
+                        matchtype=ARGDONE;
+                        break;
+                    }
+                    case TEXT2WORD('.','X',0,0):
+                        // X = Match largest expression with any variables or constants, assuming commutative addition and multiplication
+                        // TAKE ALL ARGUMENTS OF THE OPERATION
+                    {
+
+                        // GET POINTERS TO THE PARENT EXPRESSION
+                            TRACK_STATE p;
+                            reloadPointers(s.left-( (s.leftnargs)? (1+s.leftnargs):0),&p);
+
+                        if((**p.left==CMD_OVR_ADD)||(**p.left==CMD_OVR_MUL))  // IT'S A COMMUTATIVE/ASSOCIATIVE OPERATOR
+                        {
+                            BINT k;
+
+                            if(p.rightidx!=p.rightnargs) { // THE SPECIAL IDENT IS NOT THE LAST ARGUMENT
+
+                                WORDPTR tmp=FINDARGUMENT(p.right,p.rightnargs,p.rightidx);
+
+                                if(ISIDENT(*tmp)) {
+                                    // CHECK IF THIS IS ANOTHER SPECIAL IDENT AND BREAK THE INFINITE LOOP
+                                    if( (((tmp[1])&0xffff) == TEXT2WORD('.','X',0,0))||(((tmp[1])&0xffff) == TEXT2WORD('.','M',0,0))) {
+                                        // ALSO CHECK IF IT'S THE SAME VARIABLE USED LATER, THAT DOESN'T COUNT
+                                        if(!rplCompareIDENT(*s.right,tmp)) {
+                                        // BREAK THE LOOP, JUST ASSIGN THE CURRENT ARGUMENT
+                                        rplCreateLAM(*s.right,*s.left);
+                                        matchtype=ARGDONE;
+                                        break;
+                                        }
+                                    }
+
+                                }
+
+                                // ROT THE RIGHT ARGUMENTS TO SEND THE EXPANSIVE EXPRESSION LAST
+
+                                for(k=p.rightidx;k<p.rightnargs;++k)  FINDARGUMENT(p.right,p.rightnargs,k)=FINDARGUMENT(p.right,p.rightnargs,k+1);
+                                FINDARGUMENT(p.right,p.rightnargs,k)=tmp;
+
+                                // THEN REPLACE THE right PART ON THE CURRENT EXPRESSION AND REDO THIS OP_MATCH
+                                DSTop=s.left+1;
+
+                                // PUSH THE RIGHT
+                                rplSymbExplodeOneLevel2(FINDARGUMENT(p.right,p.rightnargs,p.rightidx));
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                                s.right=DSTop;
+
+                                // LEFTARG AND RIGHTARG
+                                rplNewSINTPush(s.leftidx,DECBINT);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                                rplNewSINTPush(s.rightidx,DECBINT);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                                rplPushData((WORDPTR)zero_bint);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                                rplPushData((WORDPTR)zero_bint);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                                s.nlams=0;
+                                updateLAMs(&s);
+                                // WARNING: THIS BECOMES AN INFINITE LOOP WHEN THERE'S 2 EXPANSIVE VARIABLES ON THE SAME SUM
+
+                                break;
+                            }
+
+                            // OTHERWISE CREATE A SYMBOLIC WITH THE SAME OPERATOR AND ALL REMAINING ARGUMENTS
+                            // AND ASSIGN IT TO THIS VARIABLE
+                            for(k=p.leftidx;k<=p.leftnargs;++k) {
+                                rplPushData(FINDARGUMENT(p.left,p.leftnargs,k));
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                            }
+                            if(p.leftnargs>p.leftidx) {
+                                rplSymbApplyOperator(**p.left,p.leftnargs-p.leftidx+1);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                            }
+
+                            rplCreateLAM(*s.right,rplPopData());
+                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+
+
+                            if(s.lrotbase) {
+                                // COPY THE ROTATED ARGUMENTS FROM THE LEFT INTO THE UPPER LEVEL
+                                // TO MAKE SURE THEY ARE PICKED UP ON REPLACEMENT
+
+                                    BINT k;
+                                    // COPY ALL ARGUMENTS TO THE UPPER ENVIRONMENT
+                                    for(k=1;k<=p.leftnargs;++k) FINDARGUMENT(p.left,p.leftnargs,k)=FINDARGUMENT(s.left,s.leftnargs,k);
+
+
+                            }
+
+                            DSTop=s.left-( (s.leftnargs)? (1+s.leftnargs):0); // REMOVE THIS LEVEL
+
+                            // FINALLY, REMOVE ALL EXTRA ARGUMENTS FROM THE PARENT
+                            if(p.leftnargs>p.leftidx) {
+                                rplRemoveAtData(DSTop-&FINDARGUMENT(p.left,p.leftnargs,p.leftnargs),p.leftnargs-p.leftidx);
+                                p.left-=p.leftnargs-p.leftidx;
+                                if(baselevel>p.left-DStkBottom) baselevel-=p.leftnargs-p.leftidx;
+                                p.left[-1]=rplNewSINT(p.leftidx,DECBINT);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                            }
+                            // UPDATE THE VARIABLES ON THIS LEVEL
+                            updateLAMs(&p);
+
+                            matchtype=ARGDONE;
+
+                            break;
+
+                        }
+
+
+                        // IN ALL OTHER CASES, JUST ASSIGN THE CURRENT ARGUMENT
+                        if(s.leftnargs) {
+                            // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
+
+                            if(p.leftidx>=1 && p.leftidx<=p.leftnargs) rplCreateLAM(*s.right,FINDARGUMENT(p.left,p.leftnargs,p.leftidx));
+                            else if(p.leftidx==-1) rplCreateLAM(*s.right,*p.left);
+                            // else SOMETHING IS WRONG IN THE EXPRESSION.
+
+                            s.leftidx=s.leftnargs;
+                            updateCounters(&s);
+
+                        } else rplCreateLAM(*s.right,*s.left);
+                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                        matchtype=ARGDONE;
+                        break;
+                    }
+                    case TEXT2WORD('.','m',0,0):
+                        // m = Match smallest expression with any variables or constants, assuming commutative addition but non-commutative multiplication (use this with matrix expressions)
+                    {
+
+
+                        // GET POINTERS TO THE PARENT EXPRESSION
+                            TRACK_STATE p;
+                            reloadPointers(s.left-( (s.leftnargs)? (1+s.leftnargs):0),&p);
+
+
+                        if(p.lrotbase && p.leftrot && (**p.left==CMD_OVR_MUL)) {
+                            // DO NOT ACCEPT ANY MATCH THAT HAS ANY ROTATION WHEN MULTIPLICATION IS ACTIVE
+                            matchtype=BACKTRACK;
+                            break;
+                        }
+
+                        if(s.leftnargs) {
+                        // JUST CAPTURE THE CURRENT ARGUMENT
+
+                            if(p.leftidx>=1 && p.leftidx<=p.leftnargs) rplCreateLAM(*s.right,FINDARGUMENT(p.left,p.leftnargs,p.leftidx));
+                            else if(p.leftidx==-1) rplCreateLAM(*s.right,*p.left);
+                            // else SOMETHING IS WRONG IN THE EXPRESSION.
+                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                            s.leftidx=s.leftnargs;
+                            updateCounters(&s);
+
+                        } else rplCreateLAM(*s.right,*s.left);
+                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                        matchtype=ARGDONE;
+                        break;
+                    }
+                    case TEXT2WORD('.','M',0,0):
+                        // M = Same as m but largest expression
+                        // TAKE ALL ARGUMENTS OF THE OPERATION
+                    {
+                        // GET POINTERS TO THE PARENT EXPRESSION
+                            TRACK_STATE p;
+                            reloadPointers(s.left-( (s.leftnargs)? (1+s.leftnargs):0),&p);
+
+                        if(p.lrotbase && p.leftrot) {
+                            matchtype=BACKTRACK;
+                            break;
+                        }
+                        if(**p.left==CMD_OVR_ADD)  // IT'S A COMMUTATIVE/ASSOCIATIVE OPERATOR
+                        {
+                            BINT k;
+
+                            if(p.rightidx!=p.rightnargs) { // THE SPECIAL IDENT IS NOT THE LAST ARGUMENT
+
+                                WORDPTR tmp=FINDARGUMENT(p.right,p.rightnargs,p.rightidx);
+
+                                if(ISIDENT(*tmp)) {
+                                    // CHECK IF THIS IS ANOTHER SPECIAL IDENT AND BREAK THE INFINITE LOOP
+                                    if( (((tmp[1])&0xffff) == TEXT2WORD('.','X',0,0))||(((tmp[1])&0xffff) == TEXT2WORD('.','M',0,0))) {
+                                        // ALSO CHECK IF IT'S THE SAME VARIABLE USED LATER, THAT DOESN'T COUNT
+                                        if(!rplCompareIDENT(*s.right,tmp)) {
+                                            // BREAK THE LOOP, JUST ASSIGN THE CURRENT ARGUMENT
+                                        rplCreateLAM(*s.right,*s.left);
+                                        matchtype=ARGDONE;
+                                        break;
+                                        }
+                                    }
+
+                                }
+
+                                // ROT THE RIGHT ARGUMENTS TO SEND THE EXPANSIVE EXPRESSION LAST
+
+                                for(k=p.rightidx;k<p.rightnargs;++k)  FINDARGUMENT(p.right,p.rightnargs,k)=FINDARGUMENT(p.right,p.rightnargs,k+1);
+                                FINDARGUMENT(p.right,p.rightnargs,k)=tmp;
+
+                                // THEN REPLACE THE right PART ON THE CURRENT EXPRESSION AND REDO THIS OP_MATCH
+                                DSTop=s.left+1;
+
+                                // PUSH THE RIGHT
+                                rplSymbExplodeOneLevel2(FINDARGUMENT(p.right,p.rightnargs,p.rightidx));
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                                s.right=DSTop;
+
+                                s.leftrot=s.lrotbase=0;
+                                s.nlams=0;
+                                rplExpandStack(4);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                                DSTop+=3;
+                                updateCounters(&s);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                                *DSTop++=(WORDPTR)zero_bint;
+
+                                updateLAMs(&s);
+
+                                break;
+                            }
+
+                            // OTHERWISE CREATE A SYMBOLIC WITH THE SAME OPERATOR AND ALL REMAINING ARGUMENTS
+                            // AND ASSIGN IT TO THIS VARIABLE
+                            for(k=p.leftidx;k<=p.leftnargs;++k) {
+                                rplPushData(FINDARGUMENT(p.left,p.leftnargs,k));
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                            }
+                            if(p.leftnargs>p.leftidx) {
+                                rplSymbApplyOperator(**p.left,p.leftnargs-p.leftidx+1);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                            }
+
+                            rplCreateLAM(*s.right,rplPopData());
+                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+
+                            DSTop=s.left-( (s.leftnargs)? (1+s.leftnargs):0); // REMOVE THIS LEVEL
+
+                            // FINALLY, REMOVE ALL EXTRA ARGUMENTS FROM THE PARENT
+                            if(p.leftnargs>p.leftidx) {
+                                rplRemoveAtData(DSTop-&FINDARGUMENT(p.left,p.leftnargs,p.leftnargs),p.leftnargs-p.leftidx);
+                                p.left-=p.leftnargs-p.leftidx;
+                                if(baselevel>p.left-DStkBottom) baselevel-=p.leftnargs-p.leftidx;
+                                p.left[-1]=rplNewSINT(p.leftidx,DECBINT);
+                            }
+
+                            matchtype=ARGDONE;
+
+                            break;
+
+                        }
+                        else if(**p.left==CMD_OVR_MUL) {
+                            // IT'S NON-COMMUTATIVE BUT ASSOCIATIVE OPERATOR, TAKE ALL ARGUMENTS LESS WHAT'S LEFT ON THE RIGHT SIDE
+                            BINT k;
+
+                            BINT otherright=p.rightnargs-p.rightidx;  // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
+                            BINT available=p.leftnargs-p.leftidx+1-otherright; // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
+
+                            if(available>1) {
+                            // CREATE A SYMBOLIC WITH THE SAME OPERATOR AND ALL REMAINING ARGUMENTS
+                            // AND ASSIGN IT TO THIS VARIABLE
+                            for(k=p.leftidx;k<=p.leftnargs-otherright;++k) {
+                                rplPushData(FINDARGUMENT(p.left,p.leftnargs,k));
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                            }
+
+                                rplSymbApplyOperator(**p.left,available);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                            rplCreateLAM(*s.right,rplPopData());
+                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                            DSTop=s.left-( (s.leftnargs)? (1+s.leftnargs):0); // REMOVE THIS LEVEL
+
+
+                            // FINALLY, REMOVE ALL EXTRA ARGUMENTS FROM THE PARENT
+                            rplRemoveAtData(DSTop-&FINDARGUMENT(p.left,p.leftnargs,p.leftnargs-otherright),available-1);
+                                p.left-=available-1;
+                                if(baselevel>p.left-DStkBottom) baselevel-=available-1;
+                                p.left[-1]=rplNewSINT(p.leftnargs-(available-1),DECBINT);
+
+                            matchtype=ARGDONE;
+
+                            break;
+
+                            }
+
+
+                        }
+                        // IN ALL OTHER CASES, JUST ASSIGN THE CURRENT ARGUMENT
+                        if(s.leftnargs) {
+
+                            if(p.lrotbase && p.leftrot && (**p.left==CMD_OVR_MUL)) {
+                                // DO NOT ACCEPT ANY MATCH THAT HAS ANY ROTATION WHEN MULTIPLICATION IS ACTIVE
+                                matchtype=BACKTRACK;
+                                break;
+                            }
+
+
+                            // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
+
+                            if(p.leftidx>=1 && p.leftidx<=p.leftnargs) rplCreateLAM(*s.right,FINDARGUMENT(p.left,p.leftnargs,p.leftidx));
+                            else if(p.leftidx==-1) rplCreateLAM(*s.right,*p.left);
+                            // else SOMETHING IS WRONG IN THE EXPRESSION.
+
+                            s.leftidx=s.leftnargs;
+                            updateCounters(&s);
+
+                        } else rplCreateLAM(*s.right,*s.left);
+                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                        matchtype=ARGDONE;
+                        break;
+                    }
+                    case TEXT2WORD('.','n',0,0):
+                        // n = Match only a single number (real or integer)
+                        if(rplSymbIsANumber(*s.left)) {
+                        rplCreateLAM(*s.right,*s.left);
+                        matchtype=ARGDONE;
+                        }
+                        else matchtype=BACKTRACK;
+                        break;
+
+                    case TEXT2WORD('.','N',0,0):
+                        // N = Match the largest expression involving only numbers (real or integer)
+                    {
+                        // GET POINTERS TO THE PARENT EXPRESSION
+                            TRACK_STATE p;
+                            reloadPointers(s.left-( (s.leftnargs)? (1+s.leftnargs):0),&p);
+
+                        BINT k,count;
+
+                        if((**p.left==CMD_OVR_ADD)||(**p.left==CMD_OVR_MUL))  // IT'S A COMMUTATIVE/ASSOCIATIVE OPERATOR
+                        {
+
+
+                            // OTHERWISE CREATE A SYMBOLIC WITH THE SAME OPERATOR AND ALL REMAINING ARGUMENTS
+                            // AND ASSIGN IT TO THIS VARIABLE
+                            for(k=p.leftidx,count=0;k<=p.leftnargs-count;++k) {
+                                rplPushData(FINDARGUMENT(p.left,p.leftnargs,k));
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                                if(!rplSymbIsNumeric(DSTop[-1])) {
+                                    --DSTop;    // DROP THE ARGUMENT
+                                    // ROT THE BAD TERM ALL THE WAY TO THE END
+                                     WORDPTR tmp=FINDARGUMENT(p.left,p.leftnargs,k);
+                                     BINT j;
+                                     for(j=k;j<p.leftnargs;++j) FINDARGUMENT(p.left,p.leftnargs,j)=FINDARGUMENT(p.left,p.leftnargs,j+1);
+                                     FINDARGUMENT(p.left,p.leftnargs,p.leftnargs)=tmp;
+                                     ++count;   // COUNT HOW MANY NON-NUMERIC RESULTS WE HAVE
+                                     --k;
+                                    }
+
+                                }
+
+                            if(p.leftnargs-count>p.leftidx) {
+                                rplSymbApplyOperator(**p.left,p.leftnargs-count-p.leftidx+1);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                            }
+                            else {
+                                if(p.leftnargs-count<p.leftidx) {
+                                // ARGUMENTS WERE NON NUMERIC
+                                matchtype=BACKTRACK;
+                                break;
+                                }
+                            }
+
+                            rplCreateLAM(*s.right,rplPopData());
+                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+
+                            DSTop=s.left-( (s.leftnargs)? (1+s.leftnargs):0); // REMOVE THIS LEVEL
+
+
+                            // FINALLY, REMOVE ALL EXTRA ARGUMENTS FROM THE PARENT
+                            p.leftidx=p.leftnargs-count;
+
+                            updateCounters(&p);
+                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                            matchtype=ARGDONE;
+
+                            break;
+
+                        }
+
+
+                        // IN ALL OTHER CASES, JUST ASSIGN THE CURRENT ARGUMENT
+                        if(s.leftnargs) {
+                            // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
+
+                            if((p.leftidx>=1) && (p.leftidx<=p.leftnargs)) rplCreateLAM(*s.right,FINDARGUMENT(p.left,p.leftnargs,p.leftidx));
+                            else if(p.leftidx==-1) rplCreateLAM(*s.right,*p.left);
+                            // else SOMETHING IS WRONG IN THE EXPRESSION.
+
+                            s.leftidx=s.leftnargs;
+                            updateCounters(&s);
+
+                        } else rplCreateLAM(*s.right,*s.left);
+                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                        matchtype=ARGDONE;
+                        break;
+                    }
+
+                    case TEXT2WORD('.','i',0,0):
+                        // i = Match only a single integer number
+                        if(rplSymbIsIntegerNumber(*s.left)) {
+                        rplCreateLAM(*s.right,*s.left);
+                        matchtype=ARGDONE;
+                        }
+                        else matchtype=BACKTRACK;
+                        break;
+                    case TEXT2WORD('.','v',0,0):
+                        // v = Match a single variable name
+                        if(ISIDENT(**s.left)) {
+                        rplCreateLAM(*s.right,*s.left);
+                        matchtype=ARGDONE;
+                        }
+                        else matchtype=BACKTRACK;
+                        break;
+                    default:
+                        // THIS IS NOT A SPECIAL IDENT, JUST COMPARE THE IDENTS
+                        if(rplCompareIDENT(*s.left,*s.right)) matchtype=ARGDONE;
+                        else matchtype=BACKTRACK;
+                    }
+                }
+            }
+            else {
+                // NO OPERATOR, JUST AN OBJECT, NOTHING SPECIAL
+                rplPushData(*s.left);
+                rplPushData(*s.right);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                rplCallOvrOperator(CMD_OVR_SAME);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                if(rplIsFalse(rplPopData())) matchtype=BACKTRACK;
+                else matchtype=ARGDONE;
+            }
+
+        }
+        break;
+    }
+    case ARGMATCH:
+    {
+        // UPDATE POINTERS
+        reloadPointers(DSTop,&s);
+
+        //******************************************************
+        // DEBUG ONLY AREA
+        //******************************************************
+#ifdef RULEDEBUG
+        printf("ARGMATCH: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
+        if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(s.left,s.leftnargs,s.leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  left=%s",strbyte);
+        }
+        }
+        if((s.rightidx>0) && (s.rightidx<=s.rightnargs)) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(s.right,s.rightnargs,s.rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  right=%s",strbyte);
+        }
+        }
+        printf("\n"); fflush(stdout);
+#endif
+        //******************************************************
+        //      END DEBUG ONLY AREA
+        //******************************************************
+
+
+
+
+        if(s.leftidx<=s.leftnargs) {
+            if(s.rightidx>s.rightnargs) {
+                // THERE'S EXTRA ARGUMENTS IN THE LEFT PART, COULD BE A PARTIAL MATCH
+                matchtype=ARGDONEEXTRA;
+            }
+            else {
+                // RECURSE INTO THE ARGUMENT
+                // PUSH THE LEFT
+                rplSymbExplodeOneLevel2(FINDARGUMENT(s.left,s.leftnargs,s.leftidx));
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                // PUSH THE RIGHT
+                rplSymbExplodeOneLevel2(FINDARGUMENT(s.right,s.rightnargs,s.rightidx));
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                s.right=DSTop;
+
+                // LEFTARG AND RIGHTARG
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                matchtype=OPMATCH;
+            }
+        }
+        else {
+            // WE NEED MORE ARGUMENTS! THIS IS NOT A MATCH
+            matchtype=BACKTRACK;
+        }
+        break;
+    }
+    case RESTARTMATCH:
+    {
+        // BACK TO START LEVEL
+        DSTop=DStkBottom+baselevel;
+
+        // DISCARD/REMOVE ALL PREVIOUS SNAPSHOTS, KEEP ONLY THE CURRENT THREAD
+        while(DStkBottom>stkbottom) {
+            rplRemoveSnapshot(1);
+        }
+
+        reloadPointers(DSTop,&s);
+
+        //******************************************************
+        // DEBUG ONLY AREA
+        //******************************************************
+#ifdef RULEDEBUG
+        printf("RESTARTMATCH: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
+        if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(s.left,s.leftnargs,s.leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  left=%s",strbyte);
+        }
+        }
+        if((s.rightidx>0) && (s.rightidx<=s.rightnargs)) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(s.right,s.rightnargs,s.rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  right=%s",strbyte);
+        }
+        }
+        printf("\n"); fflush(stdout);
+#endif
+        //******************************************************
+        //      END DEBUG ONLY AREA
+        //******************************************************
+
+
+        if(s.leftidx<s.leftnargs) {
+
+         // ADVANCE TO THE NEXT ARGUMENT
+
+            ++s.leftidx;
+            // RECURSE INTO THE ARGUMENT
+            updateCounters(&s);
+            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+            // PUSH THE LEFT
+            rplSymbExplodeOneLevel2(FINDARGUMENT(s.left,s.leftnargs,s.leftidx));
+            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+            // PUSH THE RIGHT
+            rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
+            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+            s.right=DSTop;
+
+            // LEFTARG AND RIGHTARG
+            rplPushData((WORDPTR)zero_bint);
+            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+            rplPushData((WORDPTR)zero_bint);
+            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+            rplPushData((WORDPTR)zero_bint);
+            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+            rplPushData((WORDPTR)zero_bint);
+            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+            baselevel=DSTop-DStkBottom;
+            matchtype=OPMATCH;
+            matchstarted=0;
+
+            //******************************************************
+            // DEBUG ONLY AREA
+            //******************************************************
+    #ifdef RULEDEBUG
+            printf("RESTARTED: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
+            if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
+            WORDPTR string=rplDecompile(FINDARGUMENT(s.left,s.leftnargs,s.leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+            if(string) {
+                BYTE strbyte[1024];
+                memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                strbyte[rplStrSize(string)]=0;
+                printf("  left=%s",strbyte);
+            }
+            }
+            if((s.rightidx>0) && (s.rightidx<=s.rightnargs)) {
+            WORDPTR string=rplDecompile(FINDARGUMENT(s.right,s.rightnargs,s.rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+            if(string) {
+                BYTE strbyte[1024];
+                memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                strbyte[rplStrSize(string)]=0;
+                printf("  right=%s",strbyte);
+            }
+            }
+            printf("\n"); fflush(stdout);
+    #endif
+            //******************************************************
+            //      END DEBUG ONLY AREA
+            //******************************************************
+
+
+
+
+
+            rplCleanupLAMs(0);
+            // CREATE LAM ENVIRONMENT
+            rplCreateLAMEnvironment(*orgrule);
+            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+            rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);
+            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+        }
+        else {
+            if((baselevel==DSTop-DStkBottom)&&(matchstarted==2)) {
+                // THIS MATCH WAS STARTED ON AN INNER LEVEL, RESTART NEXT LEVEL FROM THE OPERATOR
+                ++s.leftidx;  // LEFTIDX EXCEEDS NARGS TO SIGNAL WE ARE DOING AN INNER RESTART ON THIS ARGUMENT
+                updateCounters(&s);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                // PUSH THE LEFT
+                rplSymbExplodeOneLevel2(FINDARGUMENT(s.left,s.leftnargs,s.leftidx-s.leftnargs));
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                // PUSH THE RIGHT
+                rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                s.right=DSTop;
+
+                // LEFTARG AND RIGHTARG
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                rplPushData((WORDPTR)zero_bint);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                baselevel=DSTop-DStkBottom;
+                matchtype=OPMATCH;
+                matchstarted=0;
+
+
+            }
+            else {
+            // LAST ARGUMENT WAS ALREADY COMPARED, BACKTRACK TO THE PREVIOUS BASE
+
+                    DSTop=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
+                    baselevel=DSTop-DStkBottom;
+                    //******************************************************
+                    // DEBUG ONLY AREA
+                    //******************************************************
+            #ifdef RULEDEBUG
+                    printf("RESTARTMATCH UP");
+                    printf("\n"); fflush(stdout);
+            #endif
+                    //******************************************************
+                    //      END DEBUG ONLY AREA
+                    //******************************************************
+
+
+            }
+        }
+
+        break;
+    }
+    case BACKTRACK:
+    {
+
+        reloadPointers(DSTop,&s);
+
+        //******************************************************
+        // DEBUG ONLY AREA
+        //******************************************************
+#ifdef RULEDEBUG
+        printf("BACKTRACK: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
+        if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(s.left,s.leftnargs,s.leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  left=%s",strbyte);
+        }
+        }
+        if((s.rightidx>0) && (s.rightidx<=s.rightnargs)) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(s.right,s.rightnargs,s.rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  right=%s",strbyte);
+        }
+        }
+        printf("\n"); fflush(stdout);
+#endif
+        //******************************************************
+        //      END DEBUG ONLY AREA
+        //******************************************************
+
+
+
+        if(DStkBottom>stkbottom) {
+            // THERE'S A SNAPSHOT STORED, RESTORE FROM SNAPSHOT AND RESUME
+
+            rplDropCurrentStack();
+            reloadPointers(DSTop,&s);
+            reloadLAMs(orgrule,&s);
+
+            // DO A ROT OF THE ARGUMENTS IF NEEDED
+
+            if(s.lrotbase) {
+            if(s.leftnargs && (s.leftidx>0) && (s.leftidx<s.leftnargs) && ((**s.left==CMD_OVR_MUL)||(**s.left==CMD_OVR_ADD))) {
+                if(s.leftrot<s.leftnargs-s.leftidx) {
+
+                // COMMUTATIVE OPERATORS NEED TO ROT THE ARGUMENTS AND TRY AGAIN
+                WORDPTR tmp=FINDARGUMENT(s.left,s.leftnargs,s.leftidx);
+                BINT k;
+                for(k=s.leftidx;k<s.leftnargs;++k) FINDARGUMENT(s.left,s.leftnargs,k)=FINDARGUMENT(s.left,s.leftnargs,k+1);
+                FINDARGUMENT(s.left,s.leftnargs,s.leftnargs)=tmp;
+                matchtype=ARGMATCH;
+                ++s.leftrot;
+                updateCounters(&s);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                //******************************************************
+                // DEBUG ONLY AREA
+                //******************************************************
+        #ifdef RULEDEBUG
+                printf("ARGUMENT ROT1");
+                printf("\n"); fflush(stdout);
+        #endif
+                //******************************************************
+                //      END DEBUG ONLY AREA
+                //******************************************************
+                }
+                else {
+                    if(s.leftrot && (s.leftrot==s.leftnargs-s.leftidx)) {
+                        // ALL ARGUMENTS COMPLETE
+                        matchtype=BACKTRACK;
+
+                        //******************************************************
+                        // DEBUG ONLY AREA
+                        //******************************************************
+                #ifdef RULEDEBUG
+                        printf("BACKTRACKED UP");
+                        printf("\n"); fflush(stdout);
+                #endif
+                        //******************************************************
+                        //      END DEBUG ONLY AREA
+                        //******************************************************
+
+                        break;
+                    }
+
+                }
+            }
+            else {
+            // NON-COMMUTATIVE MATCH BACKTRACK FROM A SNAPSHOT, THIS SHOULD NEVER HAPPEN (???)
+
+
+                //******************************************************
+                // DEBUG ONLY AREA
+                //******************************************************
+        #ifdef RULEDEBUG
+                printf("ERROR IN BACKTRACK: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
+                if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
+                WORDPTR string=rplDecompile(FINDARGUMENT(s.left,s.leftnargs,s.leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+                if(string) {
+                    BYTE strbyte[1024];
+                    memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                    strbyte[rplStrSize(string)]=0;
+                    printf("  left=%s",strbyte);
+                }
+                }
+                if((s.rightidx>0) && (s.rightidx<=s.rightnargs)) {
+                WORDPTR string=rplDecompile(FINDARGUMENT(s.right,s.rightnargs,s.rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+                if(string) {
+                    BYTE strbyte[1024];
+                    memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                    strbyte[rplStrSize(string)]=0;
+                    printf("  right=%s",strbyte);
+                }
+                }
+                printf("\n"); fflush(stdout);
+        #endif
+                //******************************************************
+                //      END DEBUG ONLY AREA
+                //******************************************************
+
+                break;
+
+            }
+            }
+            }
+            else {
+                // NO MORE SNAPSHOTS, THIS IS A STANDARD BACKTRACK ON THE MAIN THREAD
+                if(s.leftidx<s.leftnargs) {
+
+                 // ADVANCE TO THE NEXT ARGUMENT
+
+                    ++s.leftidx;
+                    // RECURSE INTO THE ARGUMENT
+                    updateCounters(&s);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    // PUSH THE LEFT
+                    rplSymbExplodeOneLevel2(FINDARGUMENT(s.left,s.leftnargs,s.leftidx));
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    // PUSH THE RIGHT
+                    rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    s.right=DSTop;
+
+                    // LEFTARG AND RIGHTARG
+                    rplPushData((WORDPTR)zero_bint);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    rplPushData((WORDPTR)zero_bint);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    rplPushData((WORDPTR)zero_bint);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    rplPushData((WORDPTR)zero_bint);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    s.nlams=0;
+
+                    baselevel=DSTop-DStkBottom;
+                    matchtype=OPMATCH;
+                    matchstarted=0;
+
+
+                    //******************************************************
+                    // DEBUG ONLY AREA
+                    //******************************************************
+            #ifdef RULEDEBUG
+                    printf("BACKTRACKED: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
+                    if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
+                    WORDPTR string=rplDecompile(FINDARGUMENT(s.left,s.leftnargs,s.leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+                    if(string) {
+                        BYTE strbyte[1024];
+                        memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                        strbyte[rplStrSize(string)]=0;
+                        printf("  left=%s",strbyte);
+                    }
+                    }
+                    if((s.rightidx>0) && (s.rightidx<=s.rightnargs)) {
+                    WORDPTR string=rplDecompile(FINDARGUMENT(s.right,s.rightnargs,s.rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+                    if(string) {
+                        BYTE strbyte[1024];
+                        memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                        strbyte[rplStrSize(string)]=0;
+                        printf("  right=%s",strbyte);
+                    }
+                    }
+                    printf("\n"); fflush(stdout);
+            #endif
+                    //******************************************************
+                    //      END DEBUG ONLY AREA
+                    //******************************************************
+
+
+                    // CLEAN THE PREVIOUS ENVIRONMENT
+                    rplCleanupLAMs(0);
+
+                    // CREATE LAM ENVIRONMENT
+                    rplCreateLAMEnvironment(*orgrule);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                }
+
+                else {
+                // ALL ARGUMENTS DONE
+                // KEEP BACKTRACKING
+                DSTop=s.left- ( (s.leftnargs)? (1+s.leftnargs):0); // DROP ENTIRE LEVEL
+
+                //******************************************************
+                // DEBUG ONLY AREA
+                //******************************************************
+        #ifdef RULEDEBUG
+                printf("BACKTRACKED UP");
+                printf("\n"); fflush(stdout);
+        #endif
+                //******************************************************
+                //      END DEBUG ONLY AREA
+                //******************************************************
+                }
+            }
+        break;
+    }
+    case ARGDONE:
+    {
+        reloadPointers(DSTop,&s);
+
+        //******************************************************
+        // DEBUG ONLY AREA
+        //******************************************************
+#ifdef RULEDEBUG
+        printf("ARGDONE: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
+        if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(s.left,s.leftnargs,s.leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  left=%s",strbyte);
+        }
+        }
+        if((s.rightidx>0) && (s.rightidx<=s.rightnargs)) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(s.right,s.rightnargs,s.rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  right=%s",strbyte);
+        }
+        }
+        printf("\n"); fflush(stdout);
+#endif
+        //******************************************************
+        //      END DEBUG ONLY AREA
+        //******************************************************
+
+
+        ++s.leftidx;
+        ++s.rightidx;
+
+        if(s.leftidx<=s.leftnargs) {
+            if(s.rightidx>s.rightnargs) {
+                // THERE'S EXTRA ARGUMENTS IN THE LEFT PART
+                if( (**s.left==CMD_OVR_ADD)||(**s.left==CMD_OVR_MUL)) {
+
+                    if(baselevel==DSTop-DStkBottom) {
+                        // WE HAVE A COMPLETE MATCH
+                        rplSymbReplaceMatchHere(rule,s.leftidx-s.rightnargs);
+                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                        //******************************************************
+                        // DEBUG ONLY AREA
+                        //******************************************************
+                #ifdef RULEDEBUG
+                        printf("REPLACED (EXTRA LEFT): ");
+                        WORDPTR string=rplDecompile(*DStkBottom,DECOMP_EDIT|DECOMP_NOHINTS);
+                        if(string) {
+                            BYTE strbyte[1024];
+                            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                            strbyte[rplStrSize(string)]=0;
+                            printf("  expression=%s",strbyte);
+                        }
+                        printf("\n"); fflush(stdout);
+                #endif
+                        //******************************************************
+                        //      END DEBUG ONLY AREA
+                        //******************************************************
+                        // UPDATE ALL POINTERS AS THE EXPRESSION MOVED IN THE STACK
+                        baselevel=DSTop-DStkBottom;
+                        reloadPointers(DSTop,&s);
+
+                        // STORE THE PART OF THE EXPRESSION BEING REPLACED
+                        {
+                        TRACK_STATE p;
+                        reloadPointers(s.left-( (s.leftnargs)? (1+s.leftnargs):0),&p);
+
+                        if( (p.leftidx>0) && (p.leftidx<=p.leftnargs)) rplPutLAMn(1,FINDARGUMENT(p.left,p.leftnargs,p.leftidx));
+                        else rplPutLAMn(1,*p.left);
+
+                        }
+                        // CREATE LAM ENVIRONMENT
+                        rplCreateLAMEnvironment(*orgrule);
+                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                        rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);
+                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                        s.rightidx=s.rightnargs? 1:0;
+
+                        s.lrotbase=s.leftrot=0;
+                        // UPDATE IDX COUNT TO RESET RIGHT SIDE
+                        updateCounters(&s);
+
+                        matchtype=RESTARTMATCH;
+
+
+                    }
+                    else {
+                        // IT'S AN INNER OPERATION
+                        if(s.lrotbase) {
+                            // COPY THE ROTATED ARGUMENTS FROM THE LEFT INTO THE UPPER LEVEL
+                            // TO MAKE SURE THEY ARE PICKED UP ON REPLACEMENT
+                            {
+                                // GET POINTERS TO THE PARENT EXPRESSION
+                                    TRACK_STATE p;
+                                    reloadPointers(s.left-( (s.leftnargs)? (1+s.leftnargs):0),&p);
+
+                            BINT k;
+                            // COPY ALL ARGUMENTS TO THE UPPER ENVIRONMENT
+                            for(k=1;k<=p.leftnargs;++k) FINDARGUMENT(p.left,p.leftnargs,k)=FINDARGUMENT(s.left,s.leftnargs,k);
+
+                            }
+
+
+                            // ALL ARGUMENTS ARE DONE, PASS IT TO THE UPPER LEVEL
+                            DSTop=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
+                            s.right=DSTop-4;
+                            // ADVANCE UPPER LEVEL POINTERS
+                            --s.leftidx;
+                            --s.rightidx;
+                            updateCounters(&s);
+                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+
+                            //******************************************************
+                            // DEBUG ONLY AREA
+                            //******************************************************
+                    #ifdef RULEDEBUG
+                            printf("ARGDONE UP");
+                            printf("\n"); fflush(stdout);
+                    #endif
+                            //******************************************************
+                            //      END DEBUG ONLY AREA
+                            //******************************************************
+
+
+                        }
+                        else {
+                        // EXTRA ARGUMENTS MEANS NO MATCH
+                        matchtype=BACKTRACK;
+                        }
+                    }
+                }
+                else matchtype=BACKTRACK;
+
+            }
+            else {
+                // WE HAVE MORE ARGUMENTS IN THE RIGHT PART, KEEP COMPARING
+
+               if(s.lrotbase && (s.leftidx>s.lrotbase) && (s.leftidx<s.leftnargs)) {
+                   // CREATE A COPY OF THE ENTIRE LEVEL TO DO A SUB-ROTATION
+                   WORDPTR *topoflevel=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
+                   rplExpandStack(DSTop-topoflevel);
+                   if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                   BINT k;
+                   for(k=0;k<DSTop-topoflevel;++k) DSTop[k]=topoflevel[k];
+                   s.left+=k;
+                   s.right+=k;
+                   DSTop+=k;
+                   s.leftrot=0;
+                   s.lrotbase=s.leftidx;
+
+
+
+               }
+               updateCounters(&s);
+               if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+               matchtype=ARGMATCH;  // KEEP MATCHING ARGUMENTS
+            }
+        }
+        else {
+            // NO MORE ARGUMENT ON THE LEFT SIDE
+            if(s.rightidx<=s.rightnargs) {
+            // WE NEED MORE ARGUMENTS! THIS IS NOT A MATCH
+            matchtype=BACKTRACK;
+            }
+            else {
+                // WE FINISHED ALL THE ARGUMENTS IN THIS LEVEL, PASS IT BACK TO UPPER LEVEL UNLESS THIS IS THE BASE LEVEL
+                if(baselevel==DSTop-DStkBottom) {
+                    // WE HAVE A COMPLETE MATCH
+                    // STORE THE PART OF THE EXPRESSION BEING REPLACED
+                    {
+                        // GET POINTERS TO THE PARENT EXPRESSION
+                            TRACK_STATE p;
+                            reloadPointers(s.left-( (s.leftnargs)? (1+s.leftnargs):0),&p);
+
+
+                    if( (p.leftidx>0) && (p.leftidx<=p.leftnargs)) rplPutLAMn(1,FINDARGUMENT(p.left,p.leftnargs,p.leftidx));
+                    else rplPutLAMn(1,*p.left);
+                    }
+                    if( (s.leftidx-s.rightnargs>=1)&& (s.leftidx-s.rightnargs<s.leftnargs)) rplSymbReplaceMatchHere(rule,s.leftidx-s.rightnargs);
+                    else rplSymbReplaceMatchHere(rule,1);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    //******************************************************
+                    // DEBUG ONLY AREA
+                    //******************************************************
+            #ifdef RULEDEBUG
+                    printf("REPLACED (EXACT): ");
+                    WORDPTR string=rplDecompile(*DStkBottom,DECOMP_EDIT|DECOMP_NOHINTS);
+                    if(string) {
+                        BYTE strbyte[1024];
+                        memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+                        strbyte[rplStrSize(string)]=0;
+                        printf("  expression=%s",strbyte);
+                    }
+                    printf("\n"); fflush(stdout);
+            #endif
+                    //******************************************************
+                    //      END DEBUG ONLY AREA
+                    //******************************************************
+
+                    // UPDATE ALL POINTERS AS THE EXPRESSION MOVED IN THE STACK
+                    baselevel=DSTop-DStkBottom;
+                    reloadPointers(DSTop,&s);
+
+                    // CREATE LAM ENVIRONMENT
+                    rplCreateLAMEnvironment(*orgrule);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);
+                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                    matchtype=RESTARTMATCH;
+
+                }
+                else {
+                    // IF THIS WAS A SUB-ENVIRONMENT FOR A ROT, CLEANUP
+
+                    if(s.lrotbase) {
+
+                        // COPY THE ROTATED ARGUMENTS FROM THE LEFT INTO THE UPPER LEVEL
+                        // TO MAKE SURE THEY ARE PICKED UP ON REPLACEMENT
+                        {
+                            // GET POINTERS TO THE PARENT EXPRESSION
+                                TRACK_STATE p;
+                                reloadPointers(s.left-( (s.leftnargs)? (1+s.leftnargs):0),&p);
+
+                        BINT k;
+                        // COPY ALL ARGUMENTS TO THE UPPER ENVIRONMENT
+                        for(k=1;k<=p.leftnargs;++k) FINDARGUMENT(p.left,p.leftnargs,k)=FINDARGUMENT(s.left,s.leftnargs,k);
+                        k=p.leftnargs-s.leftnargs;
+                        if(k>0) rplRemoveAtData(DSTop-&FINDARGUMENT(p.left,s.leftnargs,s.leftnargs)-1,k);
+                        p.left-=k;                        // REMOVE ADDITIONAL ARGUMENTS IF NEEDED
+
+                        p.right-=k;
+                        s.left-=k;
+                        s.right-=k;
+                        if(baselevel>p.left-DStkBottom) baselevel-=k;
+
+                        // AND UPDATE THE INDEX OF THE PARENT EXPRESSION TOO
+                        p.leftidx=s.leftidx-1;
+                        p.rightidx=s.rightidx-1;
+                        updateCounters(&p);
+
+                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                        }
+
+                    }
+                }
+
+            // ALL ARGUMENTS ARE DONE, PASS IT TO THE UPPER LEVEL
+            DSTop=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
+            //******************************************************
+            // DEBUG ONLY AREA
+            //******************************************************
+    #ifdef RULEDEBUG
+            printf("ARGDONE UP");
+            printf("\n"); fflush(stdout);
+    #endif
+            //******************************************************
+            //      END DEBUG ONLY AREA
+            //******************************************************
+
+
+            }
+        }
+        break;
+    }
+
+    case ARGDONEEXTRA:
+    {
+        reloadPointers(DSTop,&s);
+        //******************************************************
+        // DEBUG ONLY AREA
+        //******************************************************
+#ifdef RULEDEBUG
+        printf("ARGDONEEXTRA: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
+        if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(s.left,s.leftnargs,s.leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  left=%s",strbyte);
+        }
+        }
+        if((s.rightidx>0) && (s.rightidx<=s.rightnargs)) {
+        WORDPTR string=rplDecompile(FINDARGUMENT(s.right,s.rightnargs,s.rightidx),DECOMP_EDIT|DECOMP_NOHINTS);
+        if(string) {
+            BYTE strbyte[1024];
+            memmoveb(strbyte,(BYTEPTR)(string+1),rplStrSize(string));
+            strbyte[rplStrSize(string)]=0;
+            printf("  right=%s",strbyte);
+        }
+        }
+        printf("\n"); fflush(stdout);
+#endif
+        //******************************************************
+        //      END DEBUG ONLY AREA
+        //******************************************************
+
+        // TODO: HANDLE THE CASE OF PARTIAL MATCH
+        // ALL ARGUMENTS ARE DONE, PASS IT TO THE UPPER LEVEL
+        DSTop=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
+        break;
+    }
+
+    // ADD MORE STATES HERE
+
+    }   // END OF SWITCH
 
 
 

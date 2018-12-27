@@ -327,6 +327,8 @@ void rplTakeSnapshotHide(BINT nargs);
 void rplTakeSnapshotAndClear();
 BINT rplDepthSnapshot(BINT numsnap);
 WORDPTR rplPeekSnapshot(BINT numsnap,BINT level);
+void rplDropCurrentStack();
+void rplCleanupSnapshots(WORDPTR *newstkbottom);
 
 
 
