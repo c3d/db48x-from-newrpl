@@ -2564,7 +2564,7 @@ enum {
 
 // REPLACES THE RIGHT PART OF THE RULE AT THE CURRENT LOCATION
 // ONLY THE ARGUMENTS (THE OPERATORS ARE ASSUMED TO MATCH)
-
+/*
 void rplSymbReplaceMatchHere(WORDPTR *rule,BINT startleftarg)
 {
     WORDPTR *left,*right;
@@ -2686,7 +2686,7 @@ void rplSymbReplaceMatchHere(WORDPTR *rule,BINT startleftarg)
 
 
 }
-
+*/
 #define RULEDEBUG 1
 
 // MATCH A RULE AGAINST AN EXPRESSION
@@ -2706,7 +2706,7 @@ void rplSymbReplaceMatchHere(WORDPTR *rule,BINT startleftarg)
 // CALLER NEEDS TO CLEANUP ALL LOCAL ENVIRONMENTS. LOCAL ENVIRONMENTS ARE OWNED BY THE RULE ARGUMENT.
 
 // NO ARGUMENT CHECKS!
-
+/*
 BINT rplSymbRuleMatch()
 {
     // MAKE SURE BOTH EXPRESSION AND RULE ARE IN CANONIC FORM
@@ -4712,113 +4712,9 @@ while(lamenv>lamsave) {
 return found;
 }
 
+*/
 
 
-// MATCH A RULE AGAINST AN EXPRESSION
-// ARGUMENTS:
-// SYMBOLIC EXPRESSION IN LEVEL 2
-// RULE IN LEVEL 1
-
-// RETURNS:
-// NUMBER OF MATCHES FOUND = NUMBER OF NEW LOCAL ENVIRONMENTS CREATED (NEED TO BE CLEANED UP BY CALLER)
-// EACH MATCH FOUND CREATES A NEW LOCAL ENVIRONMENT, WITH THE FOLLOWING VARIABLES:
-// GETLAM1 IS UNNAMED, AND WILL CONTAIN A POINTER INSIDE THE ORIGINAL SYMBOLIC WHERE THE MATCH WAS FOUND, TO BE USED BY REPLACE (INTERNAL USE)
-// ANY IDENTS THAT START WITH A PERIOD IN THE RULE DEFINITION WILL HAVE A DEFINITION IN THIS ENVIRONMENT
-
-// STACK ON RETURN: ORIGINAL ARGUMENTS UNTOUCHED + THE RESULTING EXPRESSION AFTER APPLYING THE RULE
-// MAY TRIGGER GC
-// USES ALL SCRATCHPOINTERS
-// CALLER NEEDS TO CLEANUP ALL LOCAL ENVIRONMENTS. LOCAL ENVIRONMENTS ARE OWNED BY THE RULE ARGUMENT.
-
-// NO ARGUMENT CHECKS!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// NEW VERSION 3 IMPLEMENTATION
 
 typedef struct {
 WORDPTR *left,*right;
@@ -4908,7 +4804,132 @@ static void updateLAMs(TRACK_STATE *ptr)
 }
 
 
-BINT rplSymbRuleMatch3()
+
+
+
+// REPLACES THE RIGHT PART OF THE RULE AT THE CURRENT LOCATION
+// ONLY THE ARGUMENTS (THE OPERATORS ARE ASSUMED TO MATCH)
+
+void rplSymbReplaceMatchHere(WORDPTR *rule,BINT startleftarg)
+{
+    WORDPTR ruleleft=rplSymbMainOperatorPTR(*rule);
+    if(*ruleleft==CMD_RULESEPARATOR) ++ruleleft;    // POINT TO THE FIRST ARGUMENT, OTHERWISE THE ENTIRE SYMBOLIC IS AN EXPRESSION TO MATCH BUT NOT A RULE TO REPLACE
+    else return;    // NOTHING TO REPLACE IF NOT A RULE
+    WORDPTR ruleright=rplSkipOb(ruleleft);
+    WORDPTR *stksave=DSTop;
+    TRACK_STATE s;
+
+    reloadPointers(DSTop,&s);
+
+    // GET EXPRESSION TO REPLACE WITH
+        WORDPTR *expstart=rplSymbExplodeCanonicalForm(ruleright,0);
+        if(Exceptions) { DSTop=stksave; return; }
+        WORDPTR *lamenv=rplGetNextLAMEnv(LAMTop);
+        if(!lamenv) { DSTop=stksave; return; }
+        BINT nlams=rplLAMCount(lamenv),k;
+
+        // REPLACE ALL LAMS WITH THEIR VALUES
+        while(expstart>=stksave) {
+            if(ISIDENT(**expstart)) {
+                // FIND MATCHING LAM AND REPLACE
+                for(k=1;k<=nlams;++k) {
+                    if(rplCompareIDENT(*expstart,*rplGetLAMnNameEnv(lamenv,k))) {
+                        *expstart=*rplGetLAMnEnv(lamenv,k);
+                    }
+                }
+            }
+            --expstart;
+        }
+
+        WORDPTR newsymb=rplSymbImplode(DSTop-1);
+        if(!newsymb) { DSTop=stksave; return; }
+        // HERE WE FINALLY HAVE THE RIGHT PART EXPRESSION READY TO REPLACE
+        DSTop=stksave;
+        if(s.leftnargs) {
+            if(s.rightnargs && (s.leftnargs!=s.rightnargs)) {
+                // THERE'S EXTRA ARGUMENTS, MUST BE ADDITION OR MULTIPLICATION, JUST REPLACE ARGUMENTS
+            FINDARGUMENT(s.left,s.leftnargs,startleftarg)=newsymb;
+            rplRemoveAtData(DSTop-&FINDARGUMENT(s.left,s.leftnargs,startleftarg+s.rightnargs)+1,s.rightnargs-1);
+            s.leftnargs-=s.rightnargs-1;
+            s.left-=s.rightnargs-1;
+            s.left[-1]=rplNewSINT(s.leftnargs,DECBINT);
+            }
+            else {
+                // SINCE ALL ARGUMENTS ARE REPLACED, ALSO REPLACE THE OPERATOR
+                *s.left=newsymb;
+                rplRemoveAtData(DSTop-&FINDARGUMENT(s.left,s.leftnargs,1+s.leftnargs),s.leftnargs+1);
+                s.left-=s.leftnargs+1;
+                s.leftidx=s.leftnargs=0;
+
+            }
+        }
+        else *s.left=newsymb;
+
+        // REPLACEMENT WAS PERFORMED AT THIS LEVEL, NOW PROPAGATE UPSTREAM
+
+        WORDPTR *DSBase=DSTop;
+
+        while(s.leftidx>=0) {
+            if(s.leftnargs) {
+            // ASSEMBLE THE NEW OBJECT
+            rplExpandStack(s.leftnargs);
+            if(Exceptions) { DSTop=stksave; return; }
+            for(k=1;k<=s.leftnargs;++k) *DSTop++=FINDARGUMENT(s.left,s.leftnargs,k);
+            rplSymbApplyOperator(**s.left,s.leftnargs);
+            }
+            else {
+             rplPushData(*s.left);
+            }
+            if(Exceptions) { DSTop=stksave; return; }
+
+            // HERE WE HAVE THE UPDATED OBJECT TO BE REPLACED UPSTREAM
+
+        DSBase=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
+        reloadPointers(DSBase,&s);
+
+        if(s.leftidx>=0) {
+        // REPLACE THE LEFT ARGUMENT WITH THE NEW OBJECT
+        if(s.leftnargs) {
+            if(s.leftidx>s.leftnargs) FINDARGUMENT(s.left,s.leftnargs,s.leftidx-s.leftnargs)=rplPopData();
+            else FINDARGUMENT(s.left,s.leftnargs,s.leftidx)=rplPopData();
+        }
+        else *s.left=rplPopData();
+
+        }
+        else {
+            // REPLACE THE ORIGINAL EXPRESSION IN WHOLE
+            s.right[-1]=rplPopData();
+
+        }
+
+        }
+
+}
+
+
+
+// MATCH A RULE AGAINST AN EXPRESSION
+// ARGUMENTS:
+// SYMBOLIC EXPRESSION IN LEVEL 2
+// RULE IN LEVEL 1
+
+// RETURNS:
+// NUMBER OF MATCHES FOUND = NUMBER OF NEW LOCAL ENVIRONMENTS CREATED (NEED TO BE CLEANED UP BY CALLER)
+// EACH MATCH FOUND CREATES A NEW LOCAL ENVIRONMENT, WITH THE FOLLOWING VARIABLES:
+// GETLAM1 IS UNNAMED, AND WILL CONTAIN A POINTER INSIDE THE ORIGINAL SYMBOLIC WHERE THE MATCH WAS FOUND, TO BE USED BY REPLACE (INTERNAL USE)
+// ANY IDENTS THAT START WITH A PERIOD IN THE RULE DEFINITION WILL HAVE A DEFINITION IN THIS ENVIRONMENT
+
+// STACK ON RETURN: ORIGINAL ARGUMENTS UNTOUCHED + THE RESULTING EXPRESSION AFTER APPLYING THE RULE
+// MAY TRIGGER GC
+// USES ALL SCRATCHPOINTERS
+// CALLER NEEDS TO CLEANUP ALL LOCAL ENVIRONMENTS. LOCAL ENVIRONMENTS ARE OWNED BY THE RULE ARGUMENT.
+
+// NO ARGUMENT CHECKS!
+
+// NEW VERSION 3 IMPLEMENTATION
+
+
+BINT rplSymbRuleMatch()
 {
     // MAKE SURE BOTH EXPRESSION AND RULE ARE IN CANONIC FORM
     WORDPTR newexp=rplSymbCanonicalForm(rplPeekData(2),0);
@@ -5229,7 +5250,7 @@ do {
                                 // PUSH THE RIGHT
                                 rplSymbExplodeOneLevel2(FINDARGUMENT(p.right,p.rightnargs,p.rightidx));
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                                s.right=DSTop;
+                                s.right=DSTop-1;
 
                                 // LEFTARG AND RIGHTARG
                                 rplNewSINTPush(s.leftidx,DECBINT);
@@ -5282,8 +5303,10 @@ do {
                             if(p.leftnargs>p.leftidx) {
                                 rplRemoveAtData(DSTop-&FINDARGUMENT(p.left,p.leftnargs,p.leftnargs),p.leftnargs-p.leftidx);
                                 p.left-=p.leftnargs-p.leftidx;
+                                p.right-=p.leftnargs-p.leftidx;
                                 if(baselevel>p.left-DStkBottom) baselevel-=p.leftnargs-p.leftidx;
                                 p.left[-1]=rplNewSINT(p.leftidx,DECBINT);
+                                p.leftnargs=p.leftidx;
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                             }
                             // UPDATE THE VARIABLES ON THIS LEVEL
@@ -6126,7 +6149,7 @@ do {
 
                     if(baselevel==DSTop-DStkBottom) {
                         // WE HAVE A COMPLETE MATCH
-                        rplSymbReplaceMatchHere3(rule,s.leftidx-s.rightnargs);
+                        rplSymbReplaceMatchHere(rule,s.leftidx-s.rightnargs);
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
                         //******************************************************
@@ -6267,8 +6290,8 @@ do {
                     if( (p.leftidx>0) && (p.leftidx<=p.leftnargs)) rplPutLAMn(1,FINDARGUMENT(p.left,p.leftnargs,p.leftidx));
                     else rplPutLAMn(1,*p.left);
                     }
-                    if( (s.leftidx-s.rightnargs>=1)&& (s.leftidx-s.rightnargs<s.leftnargs)) rplSymbReplaceMatchHere3(rule,s.leftidx-s.rightnargs);
-                    else rplSymbReplaceMatchHere3(rule,1);
+                    if( (s.leftidx-s.rightnargs>=1)&& (s.leftidx-s.rightnargs<s.leftnargs)) rplSymbReplaceMatchHere(rule,s.leftidx-s.rightnargs);
+                    else rplSymbReplaceMatchHere(rule,1);
                     if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                     //******************************************************
                     // DEBUG ONLY AREA
@@ -6420,101 +6443,3 @@ while(lamenv>lamsave) {
 return found;
 }
 
-// REPLACES THE RIGHT PART OF THE RULE AT THE CURRENT LOCATION
-// ONLY THE ARGUMENTS (THE OPERATORS ARE ASSUMED TO MATCH)
-
-void rplSymbReplaceMatchHere3(WORDPTR *rule,BINT startleftarg)
-{
-    WORDPTR ruleleft=rplSymbMainOperatorPTR(*rule);
-    if(*ruleleft==CMD_RULESEPARATOR) ++ruleleft;    // POINT TO THE FIRST ARGUMENT, OTHERWISE THE ENTIRE SYMBOLIC IS AN EXPRESSION TO MATCH BUT NOT A RULE TO REPLACE
-    else return;    // NOTHING TO REPLACE IF NOT A RULE
-    WORDPTR ruleright=rplSkipOb(ruleleft);
-    WORDPTR *stksave=DSTop;
-    TRACK_STATE s;
-
-    reloadPointers(DSTop,&s);
-
-    // GET EXPRESSION TO REPLACE WITH
-        WORDPTR *expstart=rplSymbExplodeCanonicalForm(ruleright,0);
-        if(Exceptions) { DSTop=stksave; return; }
-        WORDPTR *lamenv=rplGetNextLAMEnv(LAMTop);
-        if(!lamenv) { DSTop=stksave; return; }
-        BINT nlams=rplLAMCount(lamenv),k;
-
-        // REPLACE ALL LAMS WITH THEIR VALUES
-        while(expstart>=stksave) {
-            if(ISIDENT(**expstart)) {
-                // FIND MATCHING LAM AND REPLACE
-                for(k=1;k<=nlams;++k) {
-                    if(rplCompareIDENT(*expstart,*rplGetLAMnNameEnv(lamenv,k))) {
-                        *expstart=*rplGetLAMnEnv(lamenv,k);
-                    }
-                }
-            }
-            --expstart;
-        }
-
-        WORDPTR newsymb=rplSymbImplode(DSTop-1);
-        if(!newsymb) { DSTop=stksave; return; }
-        // HERE WE FINALLY HAVE THE RIGHT PART EXPRESSION READY TO REPLACE
-        DSTop=stksave;
-        if(s.leftnargs) {
-            if(s.rightnargs && (s.leftnargs!=s.rightnargs)) {
-                // THERE'S EXTRA ARGUMENTS, MUST BE ADDITION OR MULTIPLICATION, JUST REPLACE ARGUMENTS
-            FINDARGUMENT(s.left,s.leftnargs,startleftarg)=newsymb;
-            rplRemoveAtData(DSTop-&FINDARGUMENT(s.left,s.leftnargs,startleftarg+s.rightnargs)+1,s.rightnargs-1);
-            s.leftnargs-=s.rightnargs-1;
-            s.left-=s.rightnargs-1;
-            s.left[-1]=rplNewSINT(s.leftnargs,DECBINT);
-            }
-            else {
-                // SINCE ALL ARGUMENTS ARE REPLACED, ALSO REPLACE THE OPERATOR
-                *s.left=newsymb;
-                rplRemoveAtData(DSTop-&FINDARGUMENT(s.left,s.leftnargs,1+s.leftnargs),s.leftnargs+1);
-                s.left-=s.leftnargs+1;
-                s.leftidx=s.leftnargs=0;
-
-            }
-        }
-        else *s.left=newsymb;
-
-        // REPLACEMENT WAS PERFORMED AT THIS LEVEL, NOW PROPAGATE UPSTREAM
-
-        WORDPTR *DSBase=DSTop;
-
-        while(s.leftidx>=0) {
-            if(s.leftnargs) {
-            // ASSEMBLE THE NEW OBJECT
-            rplExpandStack(s.leftnargs);
-            if(Exceptions) { DSTop=stksave; return; }
-            for(k=1;k<=s.leftnargs;++k) *DSTop++=FINDARGUMENT(s.left,s.leftnargs,k);
-            rplSymbApplyOperator(**s.left,s.leftnargs);
-            }
-            else {
-             rplPushData(*s.left);
-            }
-            if(Exceptions) { DSTop=stksave; return; }
-
-            // HERE WE HAVE THE UPDATED OBJECT TO BE REPLACED UPSTREAM
-
-        DSBase=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
-        reloadPointers(DSBase,&s);
-
-        if(s.leftidx>=0) {
-        // REPLACE THE LEFT ARGUMENT WITH THE NEW OBJECT
-        if(s.leftnargs) {
-            if(s.leftidx>s.leftnargs) FINDARGUMENT(s.left,s.leftnargs,s.leftidx-s.leftnargs)=rplPopData();
-            else FINDARGUMENT(s.left,s.leftnargs,s.leftidx)=rplPopData();
-        }
-        else *s.left=rplPopData();
-
-        }
-        else {
-            // REPLACE THE ORIGINAL EXPRESSION IN WHOLE
-            s.right[-1]=rplPopData();
-
-        }
-
-        }
-
-}

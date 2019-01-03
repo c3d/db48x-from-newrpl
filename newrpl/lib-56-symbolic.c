@@ -1496,7 +1496,7 @@ void LIB_HANDLER()
 
         if(rplSymbIsRule(firstrule[k])) {
             rplPushDataNoGrow(firstrule[k]);
-            nsolutions=rplSymbRuleMatch3();
+            nsolutions=rplSymbRuleMatch();
             if(Exceptions) { DSTop=savestk; return; }
             totalreplacements+=nsolutions;
             rplOverwriteData(3,rplPeekData(1));  // REPLACE THE ORIGINAL EXPRESSION WITH THE NEW ONE
