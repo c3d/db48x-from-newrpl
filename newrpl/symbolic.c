@@ -4884,23 +4884,27 @@ if(Exceptions)  return;
 // SAVE CURRENT LAM ENVIRONMENT TO THE STACK
 static void updateLAMs(TRACK_STATE *ptr)
 {
-    BINT newnlams=rplLAMCount(0);
+    BINT newnlams=rplLAMCount(0)-1;
     if(ptr->nlams<newnlams) {
-        rplExpandStack(newnlams-ptr->nlams);
+        rplExpandStack(2*(newnlams-ptr->nlams));
         if(Exceptions) return;
-       if(ptr->right+5+2*ptr->nlams<DSTop) {
+    }
+    if(ptr->right+5+2*ptr->nlams!=DSTop) {
         // THIS UPDATE IS HAPPENING IN THE MIDDLE OF THE STACK, NOT AT THE END
         // MAKE A HOLE IN THE STACK
-        memmovew(ptr->right+5+ptr->nlams+newnlams,ptr->right+5+2*ptr->nlams,(DSTop-(ptr->right+5+2*ptr->nlams))*sizeof(WORDPTR)/sizeof(WORD));
+        memmovew(ptr->right+5+newnlams,ptr->right+5+2*ptr->nlams,(DSTop-(ptr->right+5+2*ptr->nlams))*sizeof(WORDPTR)/sizeof(WORD));
      }
+
+
+    if(newnlams>=0) {
+        // STORE ALL LAMS
+        memmovew(ptr->right+4,nLAMBase+4,newnlams*2*sizeof(WORDPTR)/sizeof(WORD));
+        ptr->right[4+2*newnlams]=rplNewSINT(newnlams,DECBINT);
+        if(Exceptions)  return;
+        DSTop+=2*(newnlams-ptr->nlams);
+        ptr->nlams=newnlams;
     }
 
-    // STORE ALL LAMS
-    memmovew(ptr->right+4,nLAMBase+4,newnlams*2*sizeof(WORDPTR)/sizeof(WORD));
-
-    ptr->right[4+2*newnlams]=rplNewSINT(newnlams,DECBINT);
-    if(Exceptions)  return;
-    ptr->nlams=newnlams;
 }
 
 
@@ -4945,7 +4949,7 @@ WORDPTR * expression=DSTop-2;
 WORDPTR * rule=DSTop-1;
 WORDPTR * orgrule=DSTop-3;
 WORDPTR *marker;
-WORDPTR *lamsave=LAMTop,*lamcurrent=nLAMBase,*stkbottom=DStkBottom;
+WORDPTR *lamsave=LAMTop,*lamcurrent=nLAMBase,*stkbottom=DStkBottom,*basestkbottom;
 
 WORDPTR ruleleft=rplSymbMainOperatorPTR(*rule);
 if(*ruleleft==CMD_RULESEPARATOR) ++ruleleft;    // POINT TO THE FIRST ARGUMENT, OTHERWISE THE ENTIRE SYMBOLIC IS AN EXPRESSION TO MATCH BUT NOT A RULE TO REPLACE
@@ -4958,6 +4962,7 @@ TRACK_STATE s;
 rplTakeSnapshotN(2);
 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
+basestkbottom=DStkBottom;
 
 // PUSH LOOP STOPPERS
 rplPushData((WORDPTR)minusone_bint);
@@ -4997,7 +5002,12 @@ baselevel=DSTop-DStkBottom;
 matchtype=OPMATCH;
 matchstarted=0;
 
-// DO NOT USE LAM ENVIRONMENTS, ONLY THE STACK
+// CREATE LAM ENVIRONMENT
+rplCreateLAMEnvironment(*orgrule);
+if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);
+if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
 
 do {
 
@@ -5104,6 +5114,8 @@ do {
                 rplPushData((WORDPTR)zero_bint);
                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                 updateLAMs(&s);
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
                 baselevel=DSTop-DStkBottom;
                 matchtype=OPMATCH;
                 }
@@ -5167,6 +5179,9 @@ do {
 
                         } else rplCreateLAM(*s.right,*s.left);
                         matchtype=ARGDONE;
+                        updateLAMs(&s);
+                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
                         break;
                     }
                     case TEXT2WORD('.','X',0,0):
@@ -5194,6 +5209,9 @@ do {
                                         // BREAK THE LOOP, JUST ASSIGN THE CURRENT ARGUMENT
                                         rplCreateLAM(*s.right,*s.left);
                                         matchtype=ARGDONE;
+                                        updateLAMs(&s);
+                                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
                                         break;
                                         }
                                     }
@@ -5224,6 +5242,8 @@ do {
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                                 s.nlams=0;
                                 updateLAMs(&s);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
                                 // WARNING: THIS BECOMES AN INFINITE LOOP WHEN THERE'S 2 EXPANSIVE VARIABLES ON THE SAME SUM
 
                                 break;
@@ -5268,6 +5288,8 @@ do {
                             }
                             // UPDATE THE VARIABLES ON THIS LEVEL
                             updateLAMs(&p);
+                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
 
                             matchtype=ARGDONE;
 
@@ -5288,6 +5310,9 @@ do {
                             updateCounters(&s);
 
                         } else rplCreateLAM(*s.right,*s.left);
+                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                        updateLAMs(&s);
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
                         matchtype=ARGDONE;
@@ -5322,6 +5347,8 @@ do {
 
                         } else rplCreateLAM(*s.right,*s.left);
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                        updateLAMs(&s);
+                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
                         matchtype=ARGDONE;
                         break;
@@ -5353,6 +5380,9 @@ do {
                                         if(!rplCompareIDENT(*s.right,tmp)) {
                                             // BREAK THE LOOP, JUST ASSIGN THE CURRENT ARGUMENT
                                         rplCreateLAM(*s.right,*s.left);
+                                        updateLAMs(&s);
+                                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
                                         matchtype=ARGDONE;
                                         break;
                                         }
@@ -5383,6 +5413,8 @@ do {
                                 *DSTop++=(WORDPTR)zero_bint;
 
                                 updateLAMs(&s);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
 
                                 break;
                             }
@@ -5411,6 +5443,10 @@ do {
                                 if(baselevel>p.left-DStkBottom) baselevel-=p.leftnargs-p.leftidx;
                                 p.left[-1]=rplNewSINT(p.leftidx,DECBINT);
                             }
+
+                            updateLAMs(&p);
+                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
 
                             matchtype=ARGDONE;
 
@@ -5447,6 +5483,9 @@ do {
                                 if(baselevel>p.left-DStkBottom) baselevel-=available-1;
                                 p.left[-1]=rplNewSINT(p.leftnargs-(available-1),DECBINT);
 
+                            updateLAMs(&s);
+                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
                             matchtype=ARGDONE;
 
                             break;
@@ -5476,6 +5515,8 @@ do {
 
                         } else rplCreateLAM(*s.right,*s.left);
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                        updateLAMs(&s);
+                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
                         matchtype=ARGDONE;
                         break;
@@ -5484,6 +5525,9 @@ do {
                         // n = Match only a single number (real or integer)
                         if(rplSymbIsANumber(*s.left)) {
                         rplCreateLAM(*s.right,*s.left);
+                        updateLAMs(&s);
+                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
                         matchtype=ARGDONE;
                         }
                         else matchtype=BACKTRACK;
@@ -5543,6 +5587,8 @@ do {
                             p.leftidx=p.leftnargs-count;
 
                             updateCounters(&p);
+                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                            updateLAMs(&p);
                             if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
                             matchtype=ARGDONE;
@@ -5683,7 +5729,7 @@ do {
         DSTop=DStkBottom+baselevel;
 
         // DISCARD/REMOVE ALL PREVIOUS SNAPSHOTS, KEEP ONLY THE CURRENT THREAD
-        while(DStkBottom>stkbottom) {
+        while(DStkBottom>basestkbottom) {
             rplRemoveSnapshot(1);
         }
 
@@ -5792,37 +5838,6 @@ do {
 
         }
         else {
-            if((baselevel==DSTop-DStkBottom)&&(matchstarted==2)) {
-                // THIS MATCH WAS STARTED ON AN INNER LEVEL, RESTART NEXT LEVEL FROM THE OPERATOR
-                ++s.leftidx;  // LEFTIDX EXCEEDS NARGS TO SIGNAL WE ARE DOING AN INNER RESTART ON THIS ARGUMENT
-                updateCounters(&s);
-                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-
-                // PUSH THE LEFT
-                rplSymbExplodeOneLevel2(FINDARGUMENT(s.left,s.leftnargs,s.leftidx-s.leftnargs));
-                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                // PUSH THE RIGHT
-                rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
-                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                s.right=DSTop;
-
-                // LEFTARG AND RIGHTARG
-                rplPushData((WORDPTR)zero_bint);
-                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                rplPushData((WORDPTR)zero_bint);
-                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                rplPushData((WORDPTR)zero_bint);
-                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                rplPushData((WORDPTR)zero_bint);
-                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-
-                baselevel=DSTop-DStkBottom;
-                matchtype=OPMATCH;
-                matchstarted=0;
-
-
-            }
-            else {
             // LAST ARGUMENT WAS ALREADY COMPARED, BACKTRACK TO THE PREVIOUS BASE
 
                     DSTop=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
@@ -5839,7 +5854,7 @@ do {
                     //******************************************************
 
 
-            }
+
         }
 
         break;
@@ -5880,7 +5895,7 @@ do {
 
 
 
-        if(DStkBottom>stkbottom) {
+        if(DStkBottom>basestkbottom) {
             // THERE'S A SNAPSHOT STORED, RESTORE FROM SNAPSHOT AND RESUME
 
             rplDropCurrentStack();
@@ -6111,7 +6126,7 @@ do {
 
                     if(baselevel==DSTop-DStkBottom) {
                         // WE HAVE A COMPLETE MATCH
-                        rplSymbReplaceMatchHere(rule,s.leftidx-s.rightnargs);
+                        rplSymbReplaceMatchHere3(rule,s.leftidx-s.rightnargs);
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
                         //******************************************************
@@ -6252,8 +6267,8 @@ do {
                     if( (p.leftidx>0) && (p.leftidx<=p.leftnargs)) rplPutLAMn(1,FINDARGUMENT(p.left,p.leftnargs,p.leftidx));
                     else rplPutLAMn(1,*p.left);
                     }
-                    if( (s.leftidx-s.rightnargs>=1)&& (s.leftidx-s.rightnargs<s.leftnargs)) rplSymbReplaceMatchHere(rule,s.leftidx-s.rightnargs);
-                    else rplSymbReplaceMatchHere(rule,1);
+                    if( (s.leftidx-s.rightnargs>=1)&& (s.leftidx-s.rightnargs<s.leftnargs)) rplSymbReplaceMatchHere3(rule,s.leftidx-s.rightnargs);
+                    else rplSymbReplaceMatchHere3(rule,1);
                     if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                     //******************************************************
                     // DEBUG ONLY AREA
@@ -6389,8 +6404,11 @@ do {
 } while(DSTop>marker);
 
 if((matchtype==BACKTRACK)||(matchtype==RESTARTMATCH)) rplCleanupLAMs(0); // THE LAST BACKTRACK ENDED IN FAILURE, DISCARD THE ENVIRONMENT
-
+// COPY THE RESULTING EXPRESSION
+*expression=*DStkBottom;
+rplDropCurrentStack();
 DSTop=expression+1;     // KEEP THE RESULTING EXPRESSION ON THE STACK
+
 // COUNT HOW MANY RESULTS WERE FOUND
 BINT found=0;
 WORDPTR *lamenv=LAMTop;
@@ -6400,4 +6418,103 @@ while(lamenv>lamsave) {
 }
 
 return found;
+}
+
+// REPLACES THE RIGHT PART OF THE RULE AT THE CURRENT LOCATION
+// ONLY THE ARGUMENTS (THE OPERATORS ARE ASSUMED TO MATCH)
+
+void rplSymbReplaceMatchHere3(WORDPTR *rule,BINT startleftarg)
+{
+    WORDPTR ruleleft=rplSymbMainOperatorPTR(*rule);
+    if(*ruleleft==CMD_RULESEPARATOR) ++ruleleft;    // POINT TO THE FIRST ARGUMENT, OTHERWISE THE ENTIRE SYMBOLIC IS AN EXPRESSION TO MATCH BUT NOT A RULE TO REPLACE
+    else return;    // NOTHING TO REPLACE IF NOT A RULE
+    WORDPTR ruleright=rplSkipOb(ruleleft);
+    WORDPTR *stksave=DSTop;
+    TRACK_STATE s;
+
+    reloadPointers(DSTop,&s);
+
+    // GET EXPRESSION TO REPLACE WITH
+        WORDPTR *expstart=rplSymbExplodeCanonicalForm(ruleright,0);
+        if(Exceptions) { DSTop=stksave; return; }
+        WORDPTR *lamenv=rplGetNextLAMEnv(LAMTop);
+        if(!lamenv) { DSTop=stksave; return; }
+        BINT nlams=rplLAMCount(lamenv),k;
+
+        // REPLACE ALL LAMS WITH THEIR VALUES
+        while(expstart>=stksave) {
+            if(ISIDENT(**expstart)) {
+                // FIND MATCHING LAM AND REPLACE
+                for(k=1;k<=nlams;++k) {
+                    if(rplCompareIDENT(*expstart,*rplGetLAMnNameEnv(lamenv,k))) {
+                        *expstart=*rplGetLAMnEnv(lamenv,k);
+                    }
+                }
+            }
+            --expstart;
+        }
+
+        WORDPTR newsymb=rplSymbImplode(DSTop-1);
+        if(!newsymb) { DSTop=stksave; return; }
+        // HERE WE FINALLY HAVE THE RIGHT PART EXPRESSION READY TO REPLACE
+        DSTop=stksave;
+        if(s.leftnargs) {
+            if(s.rightnargs && (s.leftnargs!=s.rightnargs)) {
+                // THERE'S EXTRA ARGUMENTS, MUST BE ADDITION OR MULTIPLICATION, JUST REPLACE ARGUMENTS
+            FINDARGUMENT(s.left,s.leftnargs,startleftarg)=newsymb;
+            rplRemoveAtData(DSTop-&FINDARGUMENT(s.left,s.leftnargs,startleftarg+s.rightnargs)+1,s.rightnargs-1);
+            s.leftnargs-=s.rightnargs-1;
+            s.left-=s.rightnargs-1;
+            s.left[-1]=rplNewSINT(s.leftnargs,DECBINT);
+            }
+            else {
+                // SINCE ALL ARGUMENTS ARE REPLACED, ALSO REPLACE THE OPERATOR
+                *s.left=newsymb;
+                rplRemoveAtData(DSTop-&FINDARGUMENT(s.left,s.leftnargs,1+s.leftnargs),s.leftnargs+1);
+                s.left-=s.leftnargs+1;
+                s.leftidx=s.leftnargs=0;
+
+            }
+        }
+        else *s.left=newsymb;
+
+        // REPLACEMENT WAS PERFORMED AT THIS LEVEL, NOW PROPAGATE UPSTREAM
+
+        WORDPTR *DSBase=DSTop;
+
+        while(s.leftidx>=0) {
+            if(s.leftnargs) {
+            // ASSEMBLE THE NEW OBJECT
+            rplExpandStack(s.leftnargs);
+            if(Exceptions) { DSTop=stksave; return; }
+            for(k=1;k<=s.leftnargs;++k) *DSTop++=FINDARGUMENT(s.left,s.leftnargs,k);
+            rplSymbApplyOperator(**s.left,s.leftnargs);
+            }
+            else {
+             rplPushData(*s.left);
+            }
+            if(Exceptions) { DSTop=stksave; return; }
+
+            // HERE WE HAVE THE UPDATED OBJECT TO BE REPLACED UPSTREAM
+
+        DSBase=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
+        reloadPointers(DSBase,&s);
+
+        if(s.leftidx>=0) {
+        // REPLACE THE LEFT ARGUMENT WITH THE NEW OBJECT
+        if(s.leftnargs) {
+            if(s.leftidx>s.leftnargs) FINDARGUMENT(s.left,s.leftnargs,s.leftidx-s.leftnargs)=rplPopData();
+            else FINDARGUMENT(s.left,s.leftnargs,s.leftidx)=rplPopData();
+        }
+        else *s.left=rplPopData();
+
+        }
+        else {
+            // REPLACE THE ORIGINAL EXPRESSION IN WHOLE
+            s.right[-1]=rplPopData();
+
+        }
+
+        }
+
 }

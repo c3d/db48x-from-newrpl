@@ -433,7 +433,7 @@ void rplDropCurrentStack()
     if(DStkBottom>DStk) {
         BINT nlevels=((PTR2NUMBER)*(DStkBottom-1))+1;
         // FIX THE POINTERS
-        DSTop-=nlevels;
+        DSTop=DStkBottom-1;
         DStkBottom-=nlevels;
         DStkProtect-=nlevels;
     } else {
