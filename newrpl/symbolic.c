@@ -908,7 +908,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
 
     //*******************************************
     // SCAN THE SYMBOLIC FOR ITEM G)
-    // G) ALL INV(A*B*...) = INV(A)*INV(B)*INV(...)
+    // G) ALL INV(A*B*...) = INV(...)*INV(B)*INV(A)
 
     stkptr=DSTop-1;
     while(stkptr!=endofstk) {
@@ -958,19 +958,81 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
                     nextarg=rplSymbSkipInStack(nextarg);
 
                 }
-                /*
+
                 nextarg=stkptr-4;
                 // INVERT THE ORDER OF TERMS
-                for(c=0;c<nargs;++c) {
+                for(c=1;c<=nargs/2;++c) {
 
-                    WORDPTR *ptr=nextarg-1;
-                    WORDPTR *nextptr=rplSymbSkipInStack(nextarg);
+                    WORDPTR *ptr=nextarg;
+                    WORDPTR *nextptr=rplSymbSkipInStack(ptr);
+                    WORDPTR *otherarg=nextptr,*endofotherarg;
+                    BINT k;
+                    for(k=0;k<nargs-2*c;++k) otherarg=rplSymbSkipInStack(otherarg);   // FIND THE ARGUMENT TO SWAP PLACES WITH
+
+                    endofotherarg=rplSymbSkipInStack(otherarg);
+                    // DO THE SWAP
+                    if(otherarg-endofotherarg<=ptr-nextptr) {
+                        // FIRST ARGUMENT IS BIGGER
+                        BINT offset=(ptr-nextptr)-(otherarg-endofotherarg);
+                        rplExpandStack(ptr-nextptr);  // NOW GROW THE STACK
+                        if(Exceptions) { DSTop=endofstk+1; return 0; }
+                        memmovew(DSTop,nextptr+1,(ptr-nextptr)*sizeof(WORDPTR)/sizeof(WORD));   // COPY FIRST ARGUMENT OUT OF THE WAY
+                        // COPY ARGUMENT FROM THE END
+                        nextptr=otherarg+offset;
+                        while(otherarg!=endofotherarg) {
+                            *ptr=*otherarg;
+                            --ptr;
+                            --otherarg;
+                        }
+                        // SHIFT ALL OTHER ARGUMENTS
+                        while(ptr!=nextptr) {
+                            *ptr=ptr[-offset];
+                            --ptr;
+                        }
+                        ptr=DSTop;
+                        // MOVE BACK ORIGINAL ARGUMENT
+                        while(endofotherarg<nextptr) {
+                            ++endofotherarg;
+                            *endofotherarg=*ptr;
+                            ++ptr;
+                        }
+
+                    }
+                    else {
+                        // LAST ARGUMENT IS BIGGER
+                        BINT offset=(otherarg-endofotherarg)-(ptr-nextptr);
+                        rplExpandStack(otherarg-endofotherarg);  // NOW GROW THE STACK
+                        if(Exceptions) { DSTop=endofstk+1; return 0; }
+                        memmovew(DSTop,endofotherarg+1,(otherarg-endofotherarg)*sizeof(WORDPTR)/sizeof(WORD));   // COPY LAST ARGUMENT OUT OF THE WAY
+                        // COPY ARGUMENT FROM THE END
+                        otherarg=nextptr-offset;
+                        while(nextptr<ptr) {
+                            ++endofotherarg;
+                            ++nextptr;
+                            *endofotherarg=*nextptr;
+                        }
+                        // SHIFT ALL OTHER ARGUMENTS
+                        while(endofotherarg!=otherarg) {
+                            *endofotherarg=endofotherarg[offset];
+                            ++endofotherarg;
+                        }
+                        otherarg=DSTop;
+                        // MOVE BACK ORIGINAL ARGUMENT
+                        while(endofotherarg<ptr) {
+                            *endofotherarg=*otherarg;
+                            ++endofotherarg;
+                            ++otherarg;
+                        }
+
+                    }
+
+
 
 
                     nextarg=rplSymbSkipInStack(nextarg);
 
                 }
-                */
+
 
                 // REMOVE THE ORIGINAL INVERSION
                 WORDPTR *ptr=stkptr-1;
@@ -2576,7 +2638,7 @@ enum {
 #define FINDARGUMENT(exp,nargs,argidx) (exp[-2-(nargs)+(argidx)])
 
 
-#define RULEDEBUG 1
+#define RULEDEBUG 0
 
 typedef struct {
 WORDPTR *left,*right;

@@ -77,7 +77,7 @@ ERR(CIRCULARREFERENCE,2)
 
 
 
-
+const char const subscriptChars[];
 
 extern const WORD const symbeval_seco[];
 extern const WORD const symbnum_seco[];
@@ -1221,6 +1221,21 @@ void LIB_HANDLER()
                 rplDecompAppendString((BYTEPTR) (DecompileObject+1));
             else
                 rplDecompAppendString2((BYTEPTR)(DecompileObject+1),len<<2);
+
+
+            if( (OPCODE(CurOpcode)==OPCODE_DECOMPEDIT) ) {
+                WORD attr=rplGetIdentAttr(DecompileObject);
+                if(attr) {
+                // APPEND THE ATTRIBUTES TO THE VARIABLE NAME IN SUBSCRIPT
+                BINT rot=28;
+                while(rot && !((attr>>rot)&0xf)) rot-=4;
+                while(rot>=0) {
+                    rplDecompAppendString2((BYTEPTR)subscriptChars+((attr>>rot)&0xf)*3,3);
+                    rot-=4;
+
+                }
+                }
+            }
 
             if((ISQUOTEDIDENT(*DecompileObject))&&(PreviousConstruct!=CMD_XEQSECO))
                 // THIS IS A QUOTED IDENT

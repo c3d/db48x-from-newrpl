@@ -1554,6 +1554,11 @@ end_of_expression:
                          {  Operator=(CMD_OVR_DIV);
                             // MAKE NEXT OBJECT SKIP THE INV OPERATOR
                             SavedDecompObject=rplSymbUnwrap(DecompileObject)+2;
+                            if(ISIDENT(*SavedDecompObject)) {
+                                // TODO: CHECK IF THE IDENT IS A MATRIX, KEEP THE INV() OPERATOR IF THAT'S THE CASE
+
+                            }
+
                 }
 
             }
@@ -1631,6 +1636,9 @@ end_of_expression:
                          {  Operator=(CMD_OVR_DIV);
                             // MAKE NEXT OBJECT SKIP THE INV OPERATOR
                             SavedDecompObject=rplSymbUnwrap(DecompileObject)+2;
+
+                            // TODO: CHECK IF THE EXPRESSION IS A MATRIX, KEEP THE INV() OPERATOR IF THAT'S THE CASE
+
                 }
 
             }

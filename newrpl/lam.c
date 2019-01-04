@@ -9,6 +9,12 @@
 #include "hal.h"
 #include "libraries.h"
 
+// THESE ARE THE ONLY CHARACTERS THAT ARE FORBIDDEN IN AN IDENTIFIER
+// ALSO FORBIDDEN IS THE ARGUMENT SEPARATOR IF NOT INCLUDED IN THIS LIST
+const char const forbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@|√«»≤≥≠∡";
+
+// SUBSCRIPT CHARS USED TO DESCRIBE VARIABLE ATTRIBUTES
+const char const subscriptChars[]="₀₁₂₃₄₅₆₇₈₉";
 
 // GROW THE LAM STACK
 
@@ -493,10 +499,36 @@ void rplClearLAMs()
 
 void rplCompileIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
 {
+    // CHECK IF THERE'S ATTRIBUTES TO THIS IDENT
+    WORD attr=0;
+    BYTEPTR lastchar=(BYTEPTR)utf8rskipst((char *)tokend,(char *)tok);
+    BINT rot=0;
+
+
+
+    BYTEPTR subs=(BYTEPTR)subscriptChars;
+
+    while(subs-(BYTEPTR)subscriptChars<30) {
+
+        if(!utf8ncmp((char *)lastchar,(char *)tokend,(char *)subs,subscriptChars+30,1)) {
+            // HAS ATTRIBUTE
+            attr|=((subs-(BYTEPTR)subscriptChars)/3)<<rot;
+            rot+=4;
+            subs=(BYTEPTR)subscriptChars;
+            if(lastchar==tok) break;
+            lastchar=(BYTEPTR)utf8rskipst((char *)lastchar,(char *)tok);
+        }
+        subs=(BYTEPTR)utf8skip((char *)subs,(char *)subscriptChars+30);
+    }
+
+    tokend=(BYTEPTR)utf8skipst((char *)lastchar,(char *)tokend);
+    if(rot<8) attr<<=4;
+
     // WE HAVE A VALID QUOTED IDENT, CREATE THE OBJECT
     BINT lenwords=(tokend-tok+3)>>2;
     BINT len=tokend-tok;
     ScratchPointer1=(WORDPTR)tok;
+    if(attr) { ++lenwords; libnum|=HASATTR_BIT; }
     rplCompileAppend(MKPROLOG(libnum,lenwords));
     WORD nextword;
     tok=(BYTEPTR )ScratchPointer1;
@@ -521,6 +553,8 @@ void rplCompileIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
     }
     rplCompileAppend(nextword);
     }
+
+    if(attr) rplCompileAppend(attr);
     // DONE
 
 }
@@ -568,9 +602,6 @@ WORDPTR rplCreateIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
  return newobj;
 }
 
-// THESE ARE THE ONLY CHARACTERS THAT ARE FORBIDDEN IN AN IDENTIFIER
-// ALSO FORBIDDEN IS THE ARGUMENT SEPARATOR IF NOT INCLUDED IN THIS LIST
-const char const forbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@|√«»≤≥≠∡";
 
 BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend)
 {
