@@ -111,12 +111,19 @@ ROMOBJECT symbnum_seco[]={
 };
 
 
-
-
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib56_menu);
-INCLUDE_ROMOBJECT(lib56_autosimplify_level1);
+INCLUDE_ROMOBJECT(lib56_autosimplify_pre);
+INCLUDE_ROMOBJECT(lib56_autosimplify_group1);
+INCLUDE_ROMOBJECT(lib56_autosimplify_group2);
+INCLUDE_ROMOBJECT(lib56_autosimplify_group3);
+INCLUDE_ROMOBJECT(lib56_autosimplify_group4);
+INCLUDE_ROMOBJECT(lib56_autosimplify_group5);
+INCLUDE_ROMOBJECT(lib56_autosimplify_group6);
+INCLUDE_ROMOBJECT(lib56_autosimplify_group7);
+INCLUDE_ROMOBJECT(lib56_autosimplify_group8);
+INCLUDE_ROMOBJECT(lib56_autosimplify_post);
 
 
 
@@ -128,6 +135,17 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)LIB_MSGTABLE,
     (WORDPTR)LIB_HELPTABLE,
     (WORDPTR)lib56_menu,
+    (WORDPTR)lib56_autosimplify_pre,
+    (WORDPTR)lib56_autosimplify_group1,
+    (WORDPTR)lib56_autosimplify_group2,
+    (WORDPTR)lib56_autosimplify_group3,
+    (WORDPTR)lib56_autosimplify_group4,
+    (WORDPTR)lib56_autosimplify_group5,
+    (WORDPTR)lib56_autosimplify_group6,
+    (WORDPTR)lib56_autosimplify_group7,
+    (WORDPTR)lib56_autosimplify_group8,
+    (WORDPTR)lib56_autosimplify_post,
+
     0
 };
 
@@ -1042,20 +1060,83 @@ void LIB_HANDLER()
         rplSymbAutoSimplify();      // FIRST A STAGE OF NUMERIC REDUCTION
         if(Exceptions) return;
 
+        if(!rplTestSystemFlag(FL_AUTOSIMPRULES)) {
 
         WORDPTR *stksave=DSTop;
 
-        rplPushDataNoGrow((WORDPTR)lib56_autosimplify_level1);
-
-        rplCallOperator(CMD_RULEAPPLY);
-
+        rplPushDataNoGrow((WORDPTR)lib56_autosimplify_pre);
+        rplCallOperator(CMD_RULEAPPLY1);
         DSTop=stksave;
-
         if(Exceptions)  return;
+
+        if(!rplTestSystemFlag(FL_AUTOSIMPGROUP1)) {
+        rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group1);
+        rplCallOperator(CMD_RULEAPPLY1);
+        DSTop=stksave;
+        if(Exceptions)  return;
+        }
+
+        if(!rplTestSystemFlag(FL_AUTOSIMPGROUP2)) {
+        rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group2);
+        rplCallOperator(CMD_RULEAPPLY1);
+        DSTop=stksave;
+        if(Exceptions)  return;
+        }
+
+        if(!rplTestSystemFlag(FL_AUTOSIMPGROUP3)) {
+        rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group3);
+        rplCallOperator(CMD_RULEAPPLY1);
+        DSTop=stksave;
+        if(Exceptions)  return;
+        }
+
+        if(!rplTestSystemFlag(FL_AUTOSIMPGROUP4)) {
+        rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group4);
+        rplCallOperator(CMD_RULEAPPLY1);
+        DSTop=stksave;
+        if(Exceptions)  return;
+        }
+
+        if(!rplTestSystemFlag(FL_AUTOSIMPGROUP5)) {
+        rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group5);
+        rplCallOperator(CMD_RULEAPPLY1);
+        DSTop=stksave;
+        if(Exceptions)  return;
+        }
+
+        if(!rplTestSystemFlag(FL_AUTOSIMPGROUP6)) {
+        rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group6);
+        rplCallOperator(CMD_RULEAPPLY1);
+        DSTop=stksave;
+        if(Exceptions)  return;
+        }
+
+        if(!rplTestSystemFlag(FL_AUTOSIMPGROUP7)) {
+        rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group7);
+        rplCallOperator(CMD_RULEAPPLY1);
+        DSTop=stksave;
+        if(Exceptions)  return;
+        }
+
+        if(!rplTestSystemFlag(FL_AUTOSIMPGROUP8)) {
+        rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group8);
+        rplCallOperator(CMD_RULEAPPLY1);
+        DSTop=stksave;
+        if(Exceptions)  return;
+        }
+
+        rplPushDataNoGrow((WORDPTR)lib56_autosimplify_post);
+        rplCallOperator(CMD_RULEAPPLY1);
+        DSTop=stksave;
+        if(Exceptions)  return;
+
+        }
 
         hash=rplObjChecksum(rplPeekData(1));
 
         } while(prevhash!=hash);
+
+
 
         return;
 
@@ -1454,7 +1535,8 @@ void LIB_HANDLER()
 
                 // IDENTIFIERS ARE VARIABLES CONTAINING SETS OF RULES
                 if(ISIDENT(*first)) {
-                    WORDPTR *var=rplFindGlobal(first,1);
+                    WORDPTR *var=rplFindLAM(first,1);
+                    if(!var) var=rplFindGlobal(first,1);
                     if(var) {
                         if(ISLIST(*var[1])) { first=var[1]; continue; }
                         if(rplSymbIsRule(var[1])) {
@@ -1543,14 +1625,15 @@ void LIB_HANDLER()
 
                 if(*first==CMD_ENDLIST) {
                  WORDPTR *stkptr=DSTop-1;
-                 while((stkptr>=rulelist) && !ISLIST(**stkptr)) break;
+                 while((stkptr>=rulelist) && !ISLIST(**stkptr)) { --stkptr; }
                  if(stkptr==rulelist) break;    // END OF MAIN LIST
                  first=rplSkipOb(*stkptr);  // NEXT ARGUMENT IN THE INNER LIST
                 }
 
                 // IDENTIFIERS ARE VARIABLES CONTAINING SETS OF RULES
                 if(ISIDENT(*first)) {
-                    WORDPTR *var=rplFindGlobal(first,1);
+                    WORDPTR *var=rplFindLAM(first,1);
+                    if(!var) var=rplFindGlobal(first,1);
                     if(var) {
                         if(ISLIST(*var[1])) { first=var[1]; continue; }
                         if(rplSymbIsRule(var[1])) {
@@ -1560,6 +1643,7 @@ void LIB_HANDLER()
                         }
                     } // TAKE THE VALUE OF THE VARIABLE AS THE NEXT RULE
                 }
+
                  if(rplSymbIsRule(first)) {
                     rplPushData(first);
                     first=rplPeekData(1);   // READ AGAIN IN CASE THERE WAS A GC
