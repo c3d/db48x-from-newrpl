@@ -4937,6 +4937,7 @@ DECLARE_SYMBKEYHANDLER(colon,":",0)
 DECLARE_SYMBKEYHANDLER(infinity,"∞",1)
 DECLARE_SYMBKEYHANDLER(undinfinity,"∞̅",1)
 DECLARE_SYMBKEYHANDLER(dot,".",0)
+DECLARE_SYMBKEYHANDLER(giventhat,"|",0)
 
 
 
@@ -6108,7 +6109,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_0|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&infinityKeyHandler },
     { KM_PRESS|KB_0|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&undinfinityKeyHandler },
     { KM_PRESS|KB_0|SHIFT_RS, CONTEXT_ANY,&arrowKeyHandler },
-    { KM_PRESS|KB_0|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(rulesep) },
+    { KM_PRESS|KB_0|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&arrowKeyHandler },
     { KM_PRESS|KB_0|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&arrowKeyHandler },
     { KM_PRESS|KB_0|SHIFT_RS|SHIFT_ALPHAHOLD, CONTEXT_ANY,&arrowKeyHandler },
     { KM_PRESS|KB_SPC|SHIFT_RS, CONTEXT_ANY,&commaKeyHandler },
@@ -6142,6 +6143,10 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_LPRESS|KB_N, CONTEXT_ANY,&eval1KeyHandler },
     { KM_PRESS|KB_ENT|SHIFT_RS, CONTEXT_ANY,&tonumKeyHandler },
     { KM_PRESS|KB_ENT|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&tonumKeyHandler },
+    { KM_PRESS|KB_ENT|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(rulesep) },
+    { KM_PRESS|KB_ENT|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(giventhat) },
+    { KM_PRESS|KB_ENT|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(rulesep) },
+    { KM_PRESS|KB_ENT|SHIFT_ALPHA|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(giventhat) },
 
     { KM_PRESS|KB_R, CONTEXT_ANY,&sqrtKeyHandler },
     { KM_PRESS|KB_Q, CONTEXT_ANY,&powKeyHandler },

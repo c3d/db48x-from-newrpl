@@ -29,7 +29,7 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    ECMD(RULESEPARATOR,":→",MKTOKENINFO(2,TITYPE_BINARYOP_LEFT,2,14)), \
+    ECMD(RULESEPARATOR,":→",MKTOKENINFO(2,TITYPE_BINARYOP_LEFT,2,16)), \
     ECMD(OPENBRACKET,"(",MKTOKENINFO(1,TITYPE_OPENBRACKET,0,31)), \
     ECMD(CLOSEBRACKET,")",MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31)), \
     ECMD(COMMA,"",MKTOKENINFO(1,TITYPE_COMMA,0,31)), \
@@ -47,10 +47,11 @@
     CMD(RULEAPPLY,MKTOKENINFO(9,TITYPE_NOTALLOWED,2,2)), \
     ECMD(TOFRACTION,"→Q",MKTOKENINFO(2,TITYPE_FUNCTION,1,2)), \
     ECMD(SYMBEVAL1CHK,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
-    ECMD(EQUATIONOPERATOR,"=",MKTOKENINFO(1,TITYPE_BINARYOP_LEFT,2,15)), \
+    ECMD(EQUATIONOPERATOR,"=",MKTOKENINFO(1,TITYPE_BINARYOP_LEFT,2,14)), \
     ECMD(LISTOPENBRACKET,"{",MKTOKENINFO(1,TITYPE_OPENBRACKET,0,31)), \
     ECMD(LISTCLOSEBRACKET,"}",MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31)), \
-    CMD(RULEAPPLY1,MKTOKENINFO(10,TITYPE_NOTALLOWED,2,2))
+    CMD(RULEAPPLY1,MKTOKENINFO(10,TITYPE_NOTALLOWED,2,2)), \
+    ECMD(GIVENTHAT,"|",MKTOKENINFO(1,TITYPE_BINARYOP_LEFT,2,15))
 
 //    CMD(TEST,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
 
@@ -1136,7 +1137,10 @@ void LIB_HANDLER()
 
         } while(prevhash!=hash);
 
-
+        // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
+        WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(1),1);
+        if(!newobj)  return;
+        rplOverwriteData(1,newobj);
 
         return;
 
@@ -1592,7 +1596,10 @@ void LIB_HANDLER()
 
         }
 
-        firstrule[-1]=rplPopData(); // REPLACE ORIGINAL EXPRESSION WITH RESULT
+        // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
+        WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(1),1);
+        if(!newobj) { DSTop=savestk; return; }
+        firstrule[-1]=newobj; // REPLACE ORIGINAL EXPRESSION WITH RESULT
         firstrule[0]=rplNewBINT(totalreplacements,DECBINT);
         DSTop=savestk;
         return;
@@ -1682,7 +1689,10 @@ void LIB_HANDLER()
 
         // WE APPLIED ALL RULES
 
-        firstrule[-1]=rplPopData(); // REPLACE ORIGINAL EXPRESSION WITH RESULT
+        // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
+        WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(1),1);
+        if(!newobj) { DSTop=savestk; return; }
+        firstrule[-1]=newobj; // REPLACE ORIGINAL EXPRESSION WITH RESULT
         firstrule[0]=rplNewBINT(totalreplacements,DECBINT);
         DSTop=savestk;
         return;
@@ -1831,6 +1841,9 @@ void LIB_HANDLER()
         return;
     }
 
+    case GIVENTHAT:
+                //@SHORT_DESC=@HIDE
+        return;
 
     // STANDARIZED OPCODES:
     // --------------------
@@ -1911,6 +1924,15 @@ void LIB_HANDLER()
         return;
         }
 
+        if(*tok=='|') {
+            if((TokenLen==1)&&(CurrentConstruct==MKPROLOG(DOSYMB,0))) {
+                // ISSUE A BUILDLIST OPERATOR
+                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,GIVENTHAT));
+                RetNum=OK_CONTINUE;
+            }
+            else RetNum=ERR_NOTMINE;
+            return;
+        }
 
 
     }
