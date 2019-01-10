@@ -2638,7 +2638,7 @@ enum {
 #define FINDARGUMENT(exp,nargs,argidx) (exp[-2-(nargs)+(argidx)])
 
 
-//#define RULEDEBUG 1
+#define RULEDEBUG 1
 
 typedef struct {
 WORDPTR *left,*right;
@@ -2794,38 +2794,48 @@ void rplSymbReplaceMatchHere(WORDPTR *rule,BINT startleftarg)
         WORDPTR *DSBase=DSTop;
 
         while(s.leftidx>=0) {
-            if(s.leftnargs) {
-            // ASSEMBLE THE NEW OBJECT
-            rplExpandStack(s.leftnargs);
-            if(Exceptions) { DSTop=stksave; return; }
-            for(k=1;k<=s.leftnargs;++k) *DSTop++=FINDARGUMENT(s.left,s.leftnargs,k);
-            rplSymbApplyOperator(**s.left,s.leftnargs);
+            if(s.lrotbase) {
+                // PASS THE ARGUMENTS TO THE PARENT EXPRESSION
+                TRACK_STATE p;
+                reloadPointers(s.left- ( (s.leftnargs)? (1+s.leftnargs):0),&p);
+                FINDARGUMENT(p.left,p.leftnargs,(s.leftidx+s.leftrot>p.leftnargs)? s.leftidx+s.leftrot-p.leftnargs:s.leftidx+s.leftrot)=FINDARGUMENT(s.left,s.leftnargs,s.leftidx);
+                DSBase=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
+                reloadPointers(DSBase,&s);
             }
             else {
-             rplPushData(*s.left);
+                if(s.leftnargs) {
+                    // ASSEMBLE THE NEW OBJECT
+                    rplExpandStack(s.leftnargs);
+                    if(Exceptions) { DSTop=stksave; return; }
+                    for(k=1;k<=s.leftnargs;++k) *DSTop++=FINDARGUMENT(s.left,s.leftnargs,k);
+                    rplSymbApplyOperator(**s.left,s.leftnargs);
+                }
+                else {
+                    rplPushData(*s.left);
+                }
+                if(Exceptions) { DSTop=stksave; return; }
+
+                // HERE WE HAVE THE UPDATED OBJECT TO BE REPLACED UPSTREAM
+
+                DSBase=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
+                reloadPointers(DSBase,&s);
+
+                if(s.leftidx>=0) {
+                    // REPLACE THE LEFT ARGUMENT WITH THE NEW OBJECT
+                    if(s.leftnargs) {
+                        if(s.leftidx>s.leftnargs) FINDARGUMENT(s.left,s.leftnargs,s.leftidx-s.leftnargs)=rplPopData();
+                        else FINDARGUMENT(s.left,s.leftnargs,s.leftidx)=rplPopData();
+                    }
+                    else *s.left=rplPopData();
+
+                }
+                else {
+                    // REPLACE THE ORIGINAL EXPRESSION IN WHOLE
+                    s.right[-1]=rplPopData();
+
+                }
+
             }
-            if(Exceptions) { DSTop=stksave; return; }
-
-            // HERE WE HAVE THE UPDATED OBJECT TO BE REPLACED UPSTREAM
-
-        DSBase=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
-        reloadPointers(DSBase,&s);
-
-        if(s.leftidx>=0) {
-        // REPLACE THE LEFT ARGUMENT WITH THE NEW OBJECT
-        if(s.leftnargs) {
-            if(s.leftidx>s.leftnargs) FINDARGUMENT(s.left,s.leftnargs,s.leftidx-s.leftnargs)=rplPopData();
-            else FINDARGUMENT(s.left,s.leftnargs,s.leftidx)=rplPopData();
-        }
-        else *s.left=rplPopData();
-
-        }
-        else {
-            // REPLACE THE ORIGINAL EXPRESSION IN WHOLE
-            s.right[-1]=rplPopData();
-
-        }
-
         }
 
 }
@@ -2925,11 +2935,11 @@ if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsav
 marker=DSTop;
 rplSymbExplodeOneLevel2(*expression);
 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-s.left=DSTop;
+s.left=DSTop-1;
 // PUSH THE RIGHT
 rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-s.right=DSTop;
+s.right=DSTop-1;
 
 // LEFTIDX AND RIGHTIDX
 rplPushData((WORDPTR)zero_bint);
@@ -3017,6 +3027,7 @@ do {
                     updateCounters(&s);
                     if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
+
                     rplTakeSnapshot();
                     if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
@@ -3045,7 +3056,7 @@ do {
                 // PUSH THE RIGHT
                 rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                s.right=DSTop;
+                s.right=DSTop-1;
 
                 s.leftidx=s.rightidx=0;
                 s.lrotbase=s.leftrot=0;
@@ -3348,7 +3359,7 @@ do {
                                 // PUSH THE RIGHT
                                 rplSymbExplodeOneLevel2(FINDARGUMENT(p.right,p.rightnargs,p.rightidx));
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                                s.right=DSTop;
+                                s.right=DSTop-1;
 
                                 s.leftrot=s.lrotbase=0;
                                 s.nlams=0;
@@ -3427,10 +3438,12 @@ do {
                             // FINALLY, REMOVE ALL EXTRA ARGUMENTS FROM THE PARENT
                             rplRemoveAtData(DSTop-&FINDARGUMENT(p.left,p.leftnargs,p.leftnargs-otherright),available-1);
                                 p.left-=available-1;
+                                p.right-=available-1;
                                 if(baselevel>p.left-DStkBottom) baselevel-=available-1;
                                 p.left[-1]=rplNewSINT(p.leftnargs-(available-1),DECBINT);
 
-                            updateLAMs(&s);
+
+                            updateLAMs(&p);
                             if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
                             matchtype=ARGDONE;
@@ -3649,7 +3662,7 @@ do {
                 // PUSH THE RIGHT
                 rplSymbExplodeOneLevel2(FINDARGUMENT(s.right,s.rightnargs,s.rightidx));
                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                s.right=DSTop;
+                s.right=DSTop-1;
 
                 // LEFTARG AND RIGHTARG
                 rplPushData((WORDPTR)zero_bint);
@@ -3727,7 +3740,7 @@ do {
             // PUSH THE RIGHT
             rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
             if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-            s.right=DSTop;
+            s.right=DSTop-1;
 
             // LEFTARG AND RIGHTARG
             rplPushData((WORDPTR)zero_bint);
@@ -3951,7 +3964,7 @@ do {
                     // PUSH THE RIGHT
                     rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
                     if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                    s.right=DSTop;
+                    s.right=DSTop-1;
 
                     // LEFTARG AND RIGHTARG
                     rplPushData((WORDPTR)zero_bint);
@@ -4124,27 +4137,24 @@ do {
                     else {
                         // IT'S AN INNER OPERATION
                         if(s.lrotbase) {
+
+                            // GET POINTERS TO THE PARENT EXPRESSION
+                                TRACK_STATE p;
+                                reloadPointers(s.left-( (s.leftnargs)? (1+s.leftnargs):0),&p);
+
                             // COPY THE ROTATED ARGUMENTS FROM THE LEFT INTO THE UPPER LEVEL
                             // TO MAKE SURE THEY ARE PICKED UP ON REPLACEMENT
-                            {
-                                // GET POINTERS TO THE PARENT EXPRESSION
-                                    TRACK_STATE p;
-                                    reloadPointers(s.left-( (s.leftnargs)? (1+s.leftnargs):0),&p);
 
                             BINT k;
                             // COPY ALL ARGUMENTS TO THE UPPER ENVIRONMENT
                             for(k=1;k<=p.leftnargs;++k) FINDARGUMENT(p.left,p.leftnargs,k)=FINDARGUMENT(s.left,s.leftnargs,k);
 
-                            }
-
-
                             // ALL ARGUMENTS ARE DONE, PASS IT TO THE UPPER LEVEL
                             DSTop=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
-                            s.right=DSTop-4;
                             // ADVANCE UPPER LEVEL POINTERS
-                            --s.leftidx;
-                            --s.rightidx;
-                            updateCounters(&s);
+                            p.leftidx=s.leftidx-1;
+                            p.rightidx=s.rightidx-1;
+                            updateCounters(&p);
                             if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
 
@@ -4174,6 +4184,13 @@ do {
                 // WE HAVE MORE ARGUMENTS IN THE RIGHT PART, KEEP COMPARING
 
                if(s.lrotbase && (s.leftidx>s.lrotbase) && (s.leftidx<s.leftnargs)) {
+
+                   // KEEP PARENT UP TO DATE IN THE STACK
+                   updateCounters(&s);
+                   if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                   updateLAMs(&s);
+                   if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
                    // CREATE A COPY OF THE ENTIRE LEVEL TO DO A SUB-ROTATION
                    WORDPTR *topoflevel=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
                    rplExpandStack(DSTop-topoflevel);
@@ -4186,7 +4203,11 @@ do {
                    s.leftrot=0;
                    s.lrotbase=s.leftidx;
 
+                   updateCounters(&s);
+                   if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
+                   rplTakeSnapshot();
+                   if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
                }
                updateCounters(&s);

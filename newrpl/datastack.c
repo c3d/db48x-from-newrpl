@@ -81,7 +81,7 @@ void rplPushData(WORDPTR p)
 {
     *DSTop++=p;
 
-if(DStkSize<=DSTop-DStk+DSTKSLACK) growDStk(DSTop-DStk+DSTKSLACK);
+if(DStkSize<=(DSTop-DStk+DSTKSLACK)*sizeof(WORDPTR)/sizeof(WORD)) growDStk((DSTop-DStk+DSTKSLACK)*sizeof(WORDPTR)/sizeof(WORD));
 if(Exceptions) return;
 }
 
@@ -89,7 +89,8 @@ if(Exceptions) return;
 // EXPAND THE STACK TO GUARANTEE THAT THERE'S SPACE TO PUSH numobjects MORE WITHOUT NEEDING ANY MEMORY
 void rplExpandStack(BINT numobjects)
 {
-if(DStkSize<=DSTop-DStk+numobjects+DSTKSLACK) growDStk(DSTop-DStk+numobjects+DSTKSLACK);
+
+if(DStkSize<=(DSTop-DStk+numobjects+DSTKSLACK)*sizeof(WORDPTR)/sizeof(WORD)) growDStk((DSTop-DStk+numobjects+DSTKSLACK)*sizeof(WORDPTR)+sizeof(WORD));
 if(Exceptions) return;
 }
 
