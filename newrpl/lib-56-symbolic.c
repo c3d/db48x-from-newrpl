@@ -51,7 +51,9 @@
     ECMD(LISTOPENBRACKET,"{",MKTOKENINFO(1,TITYPE_OPENBRACKET,0,31)), \
     ECMD(LISTCLOSEBRACKET,"}",MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31)), \
     CMD(RULEAPPLY1,MKTOKENINFO(10,TITYPE_NOTALLOWED,2,2)), \
-    ECMD(GIVENTHAT,"|",MKTOKENINFO(1,TITYPE_BINARYOP_LEFT,2,15))
+    ECMD(GIVENTHAT,"|",MKTOKENINFO(1,TITYPE_BINARYOP_LEFT,2,15)), \
+    CMD(TRIGSIN,MKTOKENINFO(7,TITYPE_CASFUNCTION,1,2))
+
 
 //    CMD(TEST,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
 
@@ -126,6 +128,7 @@ INCLUDE_ROMOBJECT(lib56_autosimplify_group7);
 INCLUDE_ROMOBJECT(lib56_autosimplify_group8);
 INCLUDE_ROMOBJECT(lib56_autosimplify_post);
 
+INCLUDE_ROMOBJECT(trigsin_rules);
 
 
 // EXTERNAL EXPORTED OBJECT TABLE
@@ -146,6 +149,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)lib56_autosimplify_group7,
     (WORDPTR)lib56_autosimplify_group8,
     (WORDPTR)lib56_autosimplify_post,
+    (WORDPTR)trigsin_rules,
 
     0
 };
@@ -176,7 +180,201 @@ BINT rplCheckCircularReference(WORDPTR env_owner,WORDPTR object,BINT lamnum)
 }
 
 
+// IMPLEMENTS THE COMMAND RULEAPPLY, CAN BE CALLED FROM OTHER CAS COMMANDS
+// NEEDS 2 ARGUMENTS ON THE STACK: EXPRESSION AND RULE SET
 
+void rplDoRuleApply()
+{
+        if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
+        BINT nrules=1;
+        WORDPTR *savestk=DSTop;
+        if(ISLIST(*rplPeekData(1))) {
+            // THIS IS A RULE SET, APPLY ALL RULES IN THE LIST TO THE EXPRESSION, IN SEQUENCE
+            // RETURN TOTAL NUMBER OF POSITIVE MATCHES IN THE ENTIRE SET (ZERO IF NO CHANGES WERE MADE)
+            // FIRST MAKE A FULL LIST OF RULES IN THE STACK, IN ORDER OF APPLICATION
+
+            WORDPTR *rulelist=DSTop-1;
+            WORDPTR first=(*rulelist)+1;
+            while(first!=rplSkipOb(*rulelist)) {
+                if(ISLIST(*first)) {
+                    rplPushData(first);
+                    first=rplPeekData(1)+1;
+                } // ENTER INTO THE LIST, PUT THE LIST ON THE STACK
+
+                if(*first==CMD_ENDLIST) {
+                 WORDPTR *stkptr=DSTop-1;
+                 while((stkptr>=rulelist) && !ISLIST(**stkptr)) { --stkptr; }
+                 if(stkptr==rulelist) break;    // END OF MAIN LIST
+                 first=rplSkipOb(*stkptr);  // NEXT ARGUMENT IN THE INNER LIST
+                }
+
+                // IDENTIFIERS ARE VARIABLES CONTAINING SETS OF RULES
+                if(ISIDENT(*first)) {
+                    WORDPTR *var=rplFindLAM(first,1);
+                    if(!var) var=rplFindGlobal(first,1);
+                    if(var) {
+                        if(ISLIST(*var[1])) { first=var[1]; continue; }
+                        if(rplSymbIsRule(var[1])) {
+                           ScratchPointer1=first;
+                           rplPushData(var[1]);
+                           first=ScratchPointer1;   // READ AGAIN IN CASE THERE WAS A GC
+                        }
+                    } // TAKE THE VALUE OF THE VARIABLE AS THE NEXT RULE
+                }
+                 if(rplSymbIsRule(first)) {
+                    rplPushData(first);
+                    first=rplPeekData(1);   // READ AGAIN IN CASE THERE WAS A GC
+                 }
+
+                 // JUST SKIP ANY OTHER OBJECT
+                 first=rplSkipOb(first);
+                }
+
+
+            nrules=DSTop-savestk+1;
+            }
+
+
+
+        WORDPTR *firstrule=savestk-1;
+        BINT k;
+        BINT nsolutions,totalreplacements=0,prevreplacements=-1;
+        WORD objhash,prevhash;
+        rplPushDataNoGrow(*(savestk-2)); // COPY THE EXPRESSION
+        prevhash=objhash=0;
+        while(totalreplacements!=prevreplacements) {
+        prevreplacements=totalreplacements;
+        WORD tmphash=(WORD)rplObjChecksum(rplPeekData(1));
+        if(prevhash==tmphash)
+            break;    // SAME OBJECT AFTER 2 ROUNDS OF RULES BEING APPLIED
+        prevhash=tmphash;
+
+        for(k=0;k<nrules;++k) {
+
+        if(rplSymbIsRule(firstrule[k])) {
+            rplPushDataNoGrow(firstrule[k]);
+            nsolutions=rplSymbRuleMatch();
+            if(Exceptions) { DSTop=savestk; return; }
+            totalreplacements+=nsolutions;
+            rplOverwriteData(3,rplPeekData(1));  // REPLACE THE ORIGINAL EXPRESSION WITH THE NEW ONE
+            rplDropData(2);
+            // CLEANUP ALL LAM ENVIRONMENTS
+            while(nsolutions>0) { rplCleanupLAMs(firstrule[k]); --nsolutions; }
+        }
+        }
+
+        // WE APPLIED ALL RULES
+
+        }
+
+        // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
+        WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(1),1);
+        if(!newobj) { DSTop=savestk; return; }
+        firstrule[-1]=newobj; // REPLACE ORIGINAL EXPRESSION WITH RESULT
+        firstrule[0]=rplNewBINT(totalreplacements,DECBINT);
+        DSTop=savestk;
+        return;
+
+}
+
+
+// IMPLEMENTS THE COMMAND RULEAPPLY1, CAN BE CALLED FROM OTHER CAS COMMANDS
+// NEEDS 2 ARGUMENTS ON THE STACK: EXPRESSION AND RULE SET
+
+void rplDoRuleApply1()
+{
+        if(rplDepthData()<2) {
+                rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
+        BINT nrules=1;
+        WORDPTR *savestk=DSTop;
+        if(ISLIST(*rplPeekData(1))) {
+            // THIS IS A RULE SET, APPLY ALL RULES IN THE LIST TO THE EXPRESSION, IN SEQUENCE
+            // RETURN TOTAL NUMBER OF POSITIVE MATCHES IN THE ENTIRE SET (ZERO IF NO CHANGES WERE MADE)
+            // FIRST MAKE A FULL LIST OF RULES IN THE STACK, IN ORDER OF APPLICATION
+
+            WORDPTR *rulelist=DSTop-1;
+            WORDPTR first=(*rulelist)+1;
+            while(first!=rplSkipOb(*rulelist)) {
+                if(ISLIST(*first)) {
+                    rplPushData(first);
+                    first=rplPeekData(1)+1;
+                } // ENTER INTO THE LIST, PUT THE LIST ON THE STACK
+
+                if(*first==CMD_ENDLIST) {
+                 WORDPTR *stkptr=DSTop-1;
+                 while((stkptr>=rulelist) && !ISLIST(**stkptr)) { --stkptr; }
+                 if(stkptr==rulelist) break;    // END OF MAIN LIST
+                 first=rplSkipOb(*stkptr);  // NEXT ARGUMENT IN THE INNER LIST
+                }
+
+                // IDENTIFIERS ARE VARIABLES CONTAINING SETS OF RULES
+                if(ISIDENT(*first)) {
+                    WORDPTR *var=rplFindLAM(first,1);
+                    if(!var) var=rplFindGlobal(first,1);
+                    if(var) {
+                        if(ISLIST(*var[1])) { first=var[1]; continue; }
+                        if(rplSymbIsRule(var[1])) {
+                           ScratchPointer1=first;
+                           rplPushData(var[1]);
+                           first=ScratchPointer1;   // READ AGAIN IN CASE THERE WAS A GC
+                        }
+                    } // TAKE THE VALUE OF THE VARIABLE AS THE NEXT RULE
+                }
+
+                 if(rplSymbIsRule(first)) {
+                    rplPushData(first);
+                    first=rplPeekData(1);   // READ AGAIN IN CASE THERE WAS A GC
+                 }
+
+                 // JUST SKIP ANY OTHER OBJECT
+                 first=rplSkipOb(first);
+                }
+
+
+            nrules=DSTop-savestk+1;
+            }
+
+
+
+        WORDPTR *firstrule=savestk-1;
+        BINT k;
+        BINT nsolutions,totalreplacements=0;
+        rplPushDataNoGrow(*(savestk-2)); // COPY THE EXPRESSION
+
+
+
+        for(k=0;k<nrules;++k) {
+
+        if(rplSymbIsRule(firstrule[k])) {
+            rplPushDataNoGrow(firstrule[k]);
+            nsolutions=rplSymbRuleMatch();
+            if(Exceptions) { DSTop=savestk; return; }
+            totalreplacements+=nsolutions;
+            rplOverwriteData(3,rplPeekData(1));  // REPLACE THE ORIGINAL EXPRESSION WITH THE NEW ONE
+            rplDropData(2);
+            // CLEANUP ALL LAM ENVIRONMENTS
+            while(nsolutions>0) { rplCleanupLAMs(firstrule[k]); --nsolutions; }
+        }
+        }
+
+        // WE APPLIED ALL RULES
+
+        // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
+        WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(1),1);
+        if(!newobj) { DSTop=savestk; return; }
+        firstrule[-1]=newobj; // REPLACE ORIGINAL EXPRESSION WITH RESULT
+        firstrule[0]=rplNewBINT(totalreplacements,DECBINT);
+        DSTop=savestk;
+        return;
+
+}
 
 void LIB_HANDLER()
 {
@@ -375,9 +573,10 @@ void LIB_HANDLER()
 
     object=rplSymbUnwrap(object);
     WORDPTR endobject=rplSkipOb(object);
-    WORD Opcode=rplSymbMainOperator(object);
+    WORD Opcode;
     WORDPTR Opcodeptr=rplSymbMainOperatorPTR(object);
-    if(!Opcodeptr) Opcodeptr=(WORDPTR)zero_bint;
+    if(!Opcodeptr) { Opcodeptr=(WORDPTR)zero_bint; Opcode=0; }
+    else Opcode=*Opcodeptr;
 
     rplCreateLAM((WORDPTR)nulllam_ident,Opcodeptr);     // LAM 1 = OPCODE
     if(Exceptions) { rplCleanupLAMs(0); return; }
@@ -390,6 +589,26 @@ void LIB_HANDLER()
             WORDPTR lastobj=object;
             while(rplSkipOb(lastobj)!=endobject) lastobj=rplSkipOb(lastobj);
             endobject=lastobj;
+        }
+        else {
+            BINT tokeninfo=rplSymbGetTokenInfo(Opcodeptr);
+
+            if(TI_TYPE(tokeninfo)==TITYPE_CASFUNCTION) {
+
+            // HANDLE SPECIAL CASE OF CAS COMMANDS, NO NEED TO EVALUATE ARGUMENTS ON THOSE
+                ScratchPointer1=object;
+                ScratchPointer2=endobject;
+                ScratchPointer3=mainobj;
+                // PUSH ALL ARGUMENTS TO THE STACK UNEVALUATED
+                while(ScratchPointer1<ScratchPointer2) {
+                    rplPushData(object);
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+                    object=rplSkipOb(object);
+                }
+                // SIGNAL THAT WE ARE DONE PROCESSING THE LAST ARGUMENT
+                object=endobject=ScratchPointer2;
+                mainobj=ScratchPointer3;
+            }
         }
 
     }
@@ -1510,193 +1729,16 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Match and apply a rule to an expression repeatedly
         //@NEW
-        if(rplDepthData()<2) {
-                rplError(ERR_BADARGCOUNT);
-            return;
-        }
-        // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
-        BINT nrules=1;
-        WORDPTR *savestk=DSTop;
-        if(ISLIST(*rplPeekData(1))) {
-            // THIS IS A RULE SET, APPLY ALL RULES IN THE LIST TO THE EXPRESSION, IN SEQUENCE
-            // RETURN TOTAL NUMBER OF POSITIVE MATCHES IN THE ENTIRE SET (ZERO IF NO CHANGES WERE MADE)
-            // FIRST MAKE A FULL LIST OF RULES IN THE STACK, IN ORDER OF APPLICATION
-
-            WORDPTR *rulelist=DSTop-1;
-            WORDPTR first=(*rulelist)+1;
-            while(first!=rplSkipOb(*rulelist)) {
-                if(ISLIST(*first)) {
-                    rplPushData(first);
-                    first=rplPeekData(1)+1;
-                } // ENTER INTO THE LIST, PUT THE LIST ON THE STACK
-
-                if(*first==CMD_ENDLIST) {
-                 WORDPTR *stkptr=DSTop-1;
-                 while((stkptr>=rulelist) && !ISLIST(**stkptr)) { --stkptr; }
-                 if(stkptr==rulelist) break;    // END OF MAIN LIST
-                 first=rplSkipOb(*stkptr);  // NEXT ARGUMENT IN THE INNER LIST
-                }
-
-                // IDENTIFIERS ARE VARIABLES CONTAINING SETS OF RULES
-                if(ISIDENT(*first)) {
-                    WORDPTR *var=rplFindLAM(first,1);
-                    if(!var) var=rplFindGlobal(first,1);
-                    if(var) {
-                        if(ISLIST(*var[1])) { first=var[1]; continue; }
-                        if(rplSymbIsRule(var[1])) {
-                           ScratchPointer1=first;
-                           rplPushData(var[1]);
-                           first=ScratchPointer1;   // READ AGAIN IN CASE THERE WAS A GC
-                        }
-                    } // TAKE THE VALUE OF THE VARIABLE AS THE NEXT RULE
-                }
-                 if(rplSymbIsRule(first)) {
-                    rplPushData(first);
-                    first=rplPeekData(1);   // READ AGAIN IN CASE THERE WAS A GC
-                 }
-
-                 // JUST SKIP ANY OTHER OBJECT
-                 first=rplSkipOb(first);
-                }
-
-
-            nrules=DSTop-savestk+1;
-            }
-
-
-
-        WORDPTR *firstrule=savestk-1;
-        BINT k;
-        BINT nsolutions,totalreplacements=0,prevreplacements=-1;
-        WORD objhash,prevhash;
-        rplPushDataNoGrow(*(savestk-2)); // COPY THE EXPRESSION
-        prevhash=objhash=0;
-        while(totalreplacements!=prevreplacements) {
-        prevreplacements=totalreplacements;
-        WORD tmphash=(WORD)rplObjChecksum(rplPeekData(1));
-        if(prevhash==tmphash)
-            break;    // SAME OBJECT AFTER 2 ROUNDS OF RULES BEING APPLIED
-        prevhash=tmphash;
-
-        for(k=0;k<nrules;++k) {
-
-        if(rplSymbIsRule(firstrule[k])) {
-            rplPushDataNoGrow(firstrule[k]);
-            nsolutions=rplSymbRuleMatch();
-            if(Exceptions) { DSTop=savestk; return; }
-            totalreplacements+=nsolutions;
-            rplOverwriteData(3,rplPeekData(1));  // REPLACE THE ORIGINAL EXPRESSION WITH THE NEW ONE
-            rplDropData(2);
-            // CLEANUP ALL LAM ENVIRONMENTS
-            while(nsolutions>0) { rplCleanupLAMs(firstrule[k]); --nsolutions; }
-        }
-        }
-
-        // WE APPLIED ALL RULES
-
-        }
-
-        // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
-        WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(1),1);
-        if(!newobj) { DSTop=savestk; return; }
-        firstrule[-1]=newobj; // REPLACE ORIGINAL EXPRESSION WITH RESULT
-        firstrule[0]=rplNewBINT(totalreplacements,DECBINT);
-        DSTop=savestk;
+        rplDoRuleApply();
         return;
-
      }
 
     case RULEAPPLY1:
     {
         //@SHORT_DESC=Match and apply a rule to an expression only once
         //@NEW
-        if(rplDepthData()<2) {
-                rplError(ERR_BADARGCOUNT);
-            return;
-        }
-        // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
-        BINT nrules=1;
-        WORDPTR *savestk=DSTop;
-        if(ISLIST(*rplPeekData(1))) {
-            // THIS IS A RULE SET, APPLY ALL RULES IN THE LIST TO THE EXPRESSION, IN SEQUENCE
-            // RETURN TOTAL NUMBER OF POSITIVE MATCHES IN THE ENTIRE SET (ZERO IF NO CHANGES WERE MADE)
-            // FIRST MAKE A FULL LIST OF RULES IN THE STACK, IN ORDER OF APPLICATION
-
-            WORDPTR *rulelist=DSTop-1;
-            WORDPTR first=(*rulelist)+1;
-            while(first!=rplSkipOb(*rulelist)) {
-                if(ISLIST(*first)) {
-                    rplPushData(first);
-                    first=rplPeekData(1)+1;
-                } // ENTER INTO THE LIST, PUT THE LIST ON THE STACK
-
-                if(*first==CMD_ENDLIST) {
-                 WORDPTR *stkptr=DSTop-1;
-                 while((stkptr>=rulelist) && !ISLIST(**stkptr)) { --stkptr; }
-                 if(stkptr==rulelist) break;    // END OF MAIN LIST
-                 first=rplSkipOb(*stkptr);  // NEXT ARGUMENT IN THE INNER LIST
-                }
-
-                // IDENTIFIERS ARE VARIABLES CONTAINING SETS OF RULES
-                if(ISIDENT(*first)) {
-                    WORDPTR *var=rplFindLAM(first,1);
-                    if(!var) var=rplFindGlobal(first,1);
-                    if(var) {
-                        if(ISLIST(*var[1])) { first=var[1]; continue; }
-                        if(rplSymbIsRule(var[1])) {
-                           ScratchPointer1=first;
-                           rplPushData(var[1]);
-                           first=ScratchPointer1;   // READ AGAIN IN CASE THERE WAS A GC
-                        }
-                    } // TAKE THE VALUE OF THE VARIABLE AS THE NEXT RULE
-                }
-
-                 if(rplSymbIsRule(first)) {
-                    rplPushData(first);
-                    first=rplPeekData(1);   // READ AGAIN IN CASE THERE WAS A GC
-                 }
-
-                 // JUST SKIP ANY OTHER OBJECT
-                 first=rplSkipOb(first);
-                }
-
-
-            nrules=DSTop-savestk+1;
-            }
-
-
-
-        WORDPTR *firstrule=savestk-1;
-        BINT k;
-        BINT nsolutions,totalreplacements=0;
-        rplPushDataNoGrow(*(savestk-2)); // COPY THE EXPRESSION
-
-
-
-        for(k=0;k<nrules;++k) {
-
-        if(rplSymbIsRule(firstrule[k])) {
-            rplPushDataNoGrow(firstrule[k]);
-            nsolutions=rplSymbRuleMatch();
-            if(Exceptions) { DSTop=savestk; return; }
-            totalreplacements+=nsolutions;
-            rplOverwriteData(3,rplPeekData(1));  // REPLACE THE ORIGINAL EXPRESSION WITH THE NEW ONE
-            rplDropData(2);
-            // CLEANUP ALL LAM ENVIRONMENTS
-            while(nsolutions>0) { rplCleanupLAMs(firstrule[k]); --nsolutions; }
-        }
-        }
-
-        // WE APPLIED ALL RULES
-
-        // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
-        WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(1),1);
-        if(!newobj) { DSTop=savestk; return; }
-        firstrule[-1]=newobj; // REPLACE ORIGINAL EXPRESSION WITH RESULT
-        firstrule[0]=rplNewBINT(totalreplacements,DECBINT);
-        DSTop=savestk;
+        rplDoRuleApply1();
         return;
-
      }
 
     case TOFRACTION:
@@ -1844,6 +1886,18 @@ void LIB_HANDLER()
     case GIVENTHAT:
                 //@SHORT_DESC=@HIDE
         return;
+
+    case TRIGSIN:
+        //@SHORT_DESC=Simplify replacing cos(x)^2+sin(x)^2=1
+    {
+        WORDPTR *stksave=DSTop;
+        rplPushDataNoGrow((WORDPTR)trigsin_rules);
+        rplDoRuleApply();
+        DSTop=stksave;
+        if(!Exceptions) rplSymbAutoSimplify();
+        return;
+    }
+
 
     // STANDARIZED OPCODES:
     // --------------------

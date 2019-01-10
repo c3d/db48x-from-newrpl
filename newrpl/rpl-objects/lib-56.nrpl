@@ -157,3 +157,16 @@ R → A<fraction>"
 '(-1)*.xX:→-.xX'                                    @ REMOVE MINUS ONE MULTIPLICAND
 '.XX^INV(2):→√.XX'                                  @ BACK TO SQUARE ROOTS
 }
+
+
+
+@ FROM HERE ON, THESE ARE RULES FOR DIFFERENT CAS COMMANDS THAT RELY ON RULES TO DO THEIR WORK
+
+
+@#name trigsin_rules
+{
+'COS(.xX)^2:→1-SIN(.xX)^2'
+}
+
+
+

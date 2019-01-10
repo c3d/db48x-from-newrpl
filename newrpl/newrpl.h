@@ -663,6 +663,7 @@ void rplSymbWrapN(BINT level, BINT nargs);
 WORD rplSymbMainOperator(WORDPTR symbolic);
 WORDPTR rplSymbMainOperatorPTR(WORDPTR symbolic);
 BINT rplIsAllowedInSymb(WORDPTR object);
+BINT rplSymbGetTokenInfo(WORDPTR object);
 void rplSymbApplyOperator(WORD Opcode,BINT nargs);
 BINT rplSymbRuleMatch();
 

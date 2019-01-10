@@ -153,6 +153,27 @@ BINT rplIsAllowedInSymb(WORDPTR object)
     return 0;
 }
 
+// OBTAIN INFORMATION ABOUT A COMMAND/OPERATOR
+
+BINT rplSymbGetTokenInfo(WORDPTR object)
+{
+    // CALL THE GETINFO OPCODE TO SEE IF IT'S ALLOWED
+    LIBHANDLER handler=rplGetLibHandler(LIBNUM(*object));
+    WORD savedopcode=CurOpcode;
+    // ARGUMENTS TO PASS TO THE HANDLER
+    DecompileObject=object;
+    RetNum=0;
+    CurOpcode=MKOPCODE(LIBNUM(*object),OPCODE_GETINFO);
+    if(handler) (*handler)();
+
+    // RESTORE ORIGINAL OPCODE
+    CurOpcode=savedopcode;
+
+    if(RetNum>OK_TOKENINFO) return RetNum&0x3fffffff;
+    return 0;
+}
+
+
 
 // TAKE 'nargs' ITEMS FROM THE STACK AND APPLY THE OPERATOR OPCODE
 // LEAVE THE NEW SYMBOLIC OBJECT IN THE STACK
@@ -3877,6 +3898,11 @@ do {
                 ++s.leftrot;
                 updateCounters(&s);
                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                // AND RECREATE THE SNAPSHOT WE DROPPED ABOVE
+                rplTakeSnapshot();
+                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
 
                 //******************************************************
                 // DEBUG ONLY AREA
