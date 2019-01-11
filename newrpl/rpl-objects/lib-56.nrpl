@@ -94,6 +94,7 @@ R → A<fraction>"
 '.MN*.mX+.mX:→(.MN+1)*.mX'                          @ ASSOCIATE TO THE LEFT (NON-COMMUTATIVE)
 '.mX*.MN+.mX*.MM:→.mX*(.MN+.MM)'                    @ ASSOCIATE TO THE RIGHT (NON-COMMUTATIVE)
 '.mX*.MN+.mX:→.mX*(.MN+1)'                          @ ASSOCIATE TO THE RIGHT (NON-COMMUTATIVE)
+'.xX+.xX:→2*.xX'                                    @ ADD TERMS WITH NO NUMERIC FACTOR
 '.NN*.xX^.Nexp+.NM*.xX^.Nexp:→(.NN+.NM)*.xX^.Nexp'  @ ADD TERMS IN THE SAME VARIABLE AS LONG AS THE REST IS NUMERIC
 '.xX^.Nexp+.NM*.xX^.Nexp:→(1+.NM)*.xX^.Nexp'        @ ADD TERMS IN THE SAME VARIABLE AS LONG AS THE REST IS NUMERIC
 }
@@ -110,12 +111,11 @@ R → A<fraction>"
 }
 
 
-@ GROUP 4 =
+@ GROUP 4 = CANCEL TERMS WITH VARIABLES (k*X-k*X) (INVALID WHEN k*X REACHES INFINITY, OK WHEN THEY ARE FINITE NUMBERS)
 
 @#name lib56_autosimplify_group4
 {
-
-
+'0*.XX:→0'
 }
 
 @ GROUP 5 =

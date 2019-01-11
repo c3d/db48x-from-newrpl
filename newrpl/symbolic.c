@@ -2659,7 +2659,7 @@ enum {
 #define FINDARGUMENT(exp,nargs,argidx) (exp[-2-(nargs)+(argidx)])
 
 
-#define RULEDEBUG 1
+//#define RULEDEBUG 1
 
 typedef struct {
 WORDPTR *left,*right;
