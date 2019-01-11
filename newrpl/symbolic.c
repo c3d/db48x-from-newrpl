@@ -2646,6 +2646,27 @@ return 0;
 
 }
 
+BINT rplSymbIsOddNumber(WORDPTR ptr)
+{
+if(ISSYMBOLIC(*ptr)) ptr=rplSymbUnwrap(ptr)+1;
+
+if(ISBINT(*ptr)) {
+    BINT64 n;
+    n=rplReadNumberAsBINT(ptr);
+    if(n&1) return 1;
+    return 0;
+}
+if(ISREAL(*ptr)) {
+    REAL n;
+    rplReadNumberAsReal(ptr,&n);
+
+    if(isintegerReal(&n) && isoddReal(&n)) return 1;
+}
+
+return 0;
+
+}
+
 
 enum {
     OPMATCH=0,
@@ -3604,6 +3625,28 @@ do {
                         }
                         else matchtype=BACKTRACK;
                         break;
+                    case TEXT2WORD('.','o',0,0):
+                        // i = Match only a single odd integer number
+                        if(rplSymbIsOddNumber(*s.left)) {
+
+                        rplCreateLAM(*s.right,*s.left);
+                        matchtype=ARGDONE;
+                        }
+                        else matchtype=BACKTRACK;
+                        break;
+                    case TEXT2WORD('.','e',0,0):
+                        // i = Match only a single even integer number
+                        if(rplSymbIsOddNumber(*s.left)) matchtype=BACKTRACK;
+                        else
+                        {
+                            if(rplSymbIsIntegerNumber(*s.left)) {
+                            rplCreateLAM(*s.right,*s.left);
+                            matchtype=ARGDONE;
+                            }
+                            else matchtype=BACKTRACK;
+                        }
+                        break;
+
                     case TEXT2WORD('.','v',0,0):
                         // v = Match a single variable name
                         if(ISIDENT(**s.left)) {
