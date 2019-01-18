@@ -1227,12 +1227,10 @@ void LIB_HANDLER()
                 WORD attr=rplGetIdentAttr(DecompileObject);
                 if(attr) {
                 // APPEND THE ATTRIBUTES TO THE VARIABLE NAME IN SUBSCRIPT
-                BINT rot=28;
-                while(rot && !((attr>>rot)&0xf)) rot-=4;
-                while(rot>=0) {
+                BINT rot=0;
+                while((rot<32)&&((attr>>rot)!=0)) {
                     rplDecompAppendString2((BYTEPTR)subscriptChars+((attr>>rot)&0xf)*3,3);
-                    rot-=4;
-
+                    rot+=4;
                 }
                 }
             }

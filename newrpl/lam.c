@@ -502,7 +502,7 @@ void rplCompileIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
     // CHECK IF THERE'S ATTRIBUTES TO THIS IDENT
     WORD attr=0;
     BYTEPTR lastchar=(BYTEPTR)utf8rskipst((char *)tokend,(char *)tok);
-    BINT rot=0;
+
 
 
 
@@ -512,8 +512,8 @@ void rplCompileIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
 
         if(!utf8ncmp((char *)lastchar,(char *)tokend,(char *)subs,subscriptChars+30,1)) {
             // HAS ATTRIBUTE
-            attr|=((subs-(BYTEPTR)subscriptChars)/3)<<rot;
-            rot+=4;
+            attr<<=4;
+            attr|=((subs-(BYTEPTR)subscriptChars)/3);
             subs=(BYTEPTR)subscriptChars;
             if(lastchar==tok) break;
             lastchar=(BYTEPTR)utf8rskipst((char *)lastchar,(char *)tok);
@@ -522,7 +522,7 @@ void rplCompileIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
     }
 
     tokend=(BYTEPTR)utf8skipst((char *)lastchar,(char *)tokend);
-    if(rot<8) attr<<=4;
+
 
     // WE HAVE A VALID QUOTED IDENT, CREATE THE OBJECT
     BINT lenwords=(tokend-tok+3)>>2;
