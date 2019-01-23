@@ -76,8 +76,8 @@
 WORD rplSymbMainOperator(WORDPTR symbolic)
 {
     WORDPTR endptr=rplSkipOb(symbolic);
-    while( (ISSYMBOLIC(*(symbolic+1))) && ((symbolic+1)<endptr)) ++symbolic;
-    if(symbolic+1>=endptr) return 0;
+    while( ((symbolic+1)<endptr) && (ISSYMBOLIC(*(symbolic+1))) ) ++symbolic;
+    if(!ISSYMBOLIC(*symbolic)) return 0;
     if(!ISPROLOG(*(symbolic+1)) && !ISBINT(*(symbolic+1))) return *(symbolic+1);
     return 0;
 }
@@ -88,7 +88,7 @@ WORDPTR rplSymbMainOperatorPTR(WORDPTR symbolic)
 {
     WORDPTR endptr=rplSkipOb(symbolic);
     while( (ISSYMBOLIC(*(symbolic+1))) && ((symbolic+1)<endptr)) ++symbolic;
-    if(symbolic+1>=endptr) return 0;
+    if(!ISSYMBOLIC(*symbolic)) return 0;
     if(!ISPROLOG(*(symbolic+1)) && !ISBINT(*(symbolic+1))) return (symbolic+1);
     return 0;
 }
@@ -101,8 +101,7 @@ WORDPTR rplSymbMainOperatorPTR(WORDPTR symbolic)
 WORDPTR rplSymbUnwrap(WORDPTR symbolic)
 {
     WORDPTR endptr=rplSkipOb(symbolic);
-    while( (ISSYMBOLIC(*(symbolic+1))) && ((symbolic+1)<endptr)) ++symbolic;
-    if(symbolic+1>=endptr) return 0;
+    while(((symbolic+1)<endptr) && (ISSYMBOLIC(*(symbolic+1))) ) ++symbolic;
     return symbolic;
 }
 
@@ -4503,6 +4502,7 @@ return found;
 
 // THE ATTRIBUTE OF THE SPECIAL VARIABLE AND THE MATCHING EXPRESSION MUST BE IDENTICAL.
 
+#define VARATTR_ISINF  1
 #define VARATTR_ISREAL 2
 #define VARATTR_ISCPLX 4
 #define VARATTR_ISINFREAL 3
@@ -4525,22 +4525,485 @@ return found;
 
 
 // COMPUTE THE RESULTING ATTRIBUTES OF A SYMBOLIC EXPRESSION
+BINT rplSymbCombineAttr(WORD operator,BINT rattr,BINT attr)
+{
+    // NOW COMBINE THE ATTRIBUTES BASED ON THE TYPE OF OPERATOR
+    if(operator) {
+        switch(operator)
+        {
+        case CMD_OVR_ADD:
+        {
+            if(rattr==-1) { rattr=attr; break; }    // THIS IS THE FIRST ARGUMENT, JUST COPY THE ATTRIBUTES
+
+                switch(rattr&VARATTR_nMASK) {
+                case VARATTR_ISREAL:
+                case VARATTR_ISINFREAL:
+                    // ADDING/SUBTRACTING REALS
+
+                    if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE (COMPLEX+REAL = COMPLEX, MATRIX + REAL/CPLX = MATRIX (REAL/CPLX k IS ASSUMED AS k*I)
+                    // WE ARE ADDING REAL TO REALS
+                    rattr|=attr&VARATTR_ISINFREAL;  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
+                    if( (rattr&VARATTR_GTEZERO)&&(attr&VARATTR_GTEZERO) ) {
+                        rattr|=VARATTR_GTEZERO | (attr&VARATTR_NOTZERO); // X>=0, Y>=0 MEANS X+Y>=0 AND IF ANY OF THE TWO >0, THEN X+Y>0
+                    }
+                    else if( (rattr&VARATTR_LTEZERO)&&(attr&VARATTR_LTEZERO) ) {
+                        rattr|=VARATTR_LTEZERO | (attr&VARATTR_NOTZERO); // X<=0, Y<=0 MEANS X+Y<=0 AND IF ANY OF THE TWO <0, THEN X+Y<0
+                    }
+                    else rattr&=~(VARATTR_LTEZERO|VARATTR_GTEZERO|VARATTR_NOTZERO); // ALL OTHER CASES MEANS X+Y COULD BE ANYTHING
+
+
+
+                    rattr=(rattr&(~VARATTR_INTEGER))|(rattr&attr&VARATTR_INTEGER);  // RESULT IS INTEGER ONLY IF BOTH ARE INTEGERS
+
+                    if(!(rattr&(VARATTR_ODD|VARATTR_EVEN)) || !(attr&(VARATTR_ODD|VARATTR_EVEN))) rattr&=~(VARATTR_ODD|VARATTR_EVEN); // IF THERE'S NO ODD/EVEN INFO ON ONE OF THE NUMBERS, REMOVE IT FROM THE RESULT AS WELL
+                    else {
+                        // BOTH NUMBERS ARE ODD/EVEN, LET'S ADD THEM
+                    if(rattr&attr&VARATTR_ODD) rattr|=VARATTR_EVEN;                 //  RESULT IS EVEN IF BOTH NUMBERS ARE ODD
+                    else rattr=(rattr&(~VARATTR_EVEN))|((rattr&attr)&VARATTR_EVEN);  // RESULT IS EVEN ONLY IF BOTH NUMBERS ARE EVEN
+
+                    rattr=(rattr&(~VARATTR_ODD))|((rattr^attr)&VARATTR_ODD);  // RESULT IS ODD ONLY IF ONE OF THEM IS ODD
+
+                    }
+
+
+
+                    break;
+
+                case VARATTR_ISCPLX:
+                case VARATTR_ISINFCPLX:
+
+                if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE
+                // WE ARE ADDING COMPLEX TO COMPLEX OR COMPLEX+REAL
+                rattr|=attr&VARATTR_ISINFCPLX;  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
+
+                rattr&=~VARATTR_mMASK;  // REMOVE ALL OTHER HINTS, ADDING 2 COMPLEX NUMBERS TELLS US NOTHING ABOUT THE RESULT
+
+                    break;
+
+                case VARATTR_ISMATRIX:
+
+                    if((attr&VARATTR_nMASK)>VARATTR_ISMATRIX) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE
+
+                    // TODO: POSSIBLY ADD ATTRIBUTES FOR DIAGONAL MATRICES, ETC.
+
+                    rattr&=~VARATTR_mMASK;  // REMOVE ALL OTHER HINTS, ADDING MATRICES TELLS US NOTHING ABOUT THE RESULT
+
+                    break;
+
+                default:
+                    rattr=VARATTR_ISUNKNOWN;
+                    break;
+                }
+
+
+            break;
+        }
+
+        case CMD_OVR_MUL:
+        {
+                if(rattr==-1) { rattr=attr; break; }    // THIS IS THE FIRST ARGUMENT, JUST COPY THE ATTRIBUTES
+
+                switch(rattr&VARATTR_nMASK) {
+                case VARATTR_ISREAL:
+                case VARATTR_ISINFREAL:
+                    // MULTIPLYING REALS
+
+                    if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE (COMPLEX+REAL = COMPLEX, MATRIX + REAL/CPLX = MATRIX (REAL/CPLX k IS ASSUMED AS k*I)
+                    // WE ARE ADDING REAL TO REALS
+                    rattr|=attr&VARATTR_ISINFREAL;  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
+                    // AND IF BOTH X AND Y ARE NON-ZERO, THEN X*Y IS NON-ZERO
+                    rattr=(rattr&~VARATTR_NOTZERO)|(rattr&attr&VARATTR_NOTZERO);
+
+                    if( (rattr&VARATTR_GTEZERO)&&(attr&VARATTR_GTEZERO) ) {
+                        // X>=0, Y>=0 MEANS X*Y>=0   WHICH IS ALREADY THE CASE
+                    }
+                    else if( (rattr&VARATTR_LTEZERO)&&(attr&VARATTR_LTEZERO) ) {
+                        rattr&=~VARATTR_LTEZERO;
+                        rattr|=VARATTR_GTEZERO ; // X<=0, Y<=0 MEANS X*Y>=0
+                    }
+                    else if( (rattr&VARATTR_GTEZERO)&&(attr&VARATTR_LTEZERO) ) {
+                        rattr&=~VARATTR_GTEZERO;
+                        rattr|=VARATTR_LTEZERO ; // X>=0, Y<=0 MEANS X*Y<=0
+                    }
+                    else if( (rattr&VARATTR_LTEZERO)&&(attr&VARATTR_GTEZERO) ) {
+                        // X<=0, Y>=0 MEANS X*Y<=0  WHICH IS ALREADY THE CASE
+                    }
+                    else rattr&=~(VARATTR_LTEZERO|VARATTR_GTEZERO); // ALL OTHER CASES MEANS X*Y COULD BE ANYTHING
+
+
+                    rattr=(rattr&(~VARATTR_INTEGER))|(rattr&attr&VARATTR_INTEGER);  // RESULT IS INTEGER ONLY IF BOTH ARE INTEGERS
+
+                    if(!(rattr&(VARATTR_ODD|VARATTR_EVEN)) || !(attr&(VARATTR_ODD|VARATTR_EVEN))) rattr&=~(VARATTR_ODD|VARATTR_EVEN); // IF THERE'S NO ODD/EVEN INFO ON ONE OF THE NUMBERS, REMOVE IT FROM THE RESULT AS WELL
+                    else {
+                    if(rattr&attr&VARATTR_ODD) rattr|=VARATTR_EVEN;                 //  RESULT IS EVEN IF BOTH NUMBERS ARE ODD
+                    else rattr=(rattr&(~VARATTR_EVEN))|((rattr|attr)&VARATTR_EVEN);  // RESULT IS EVEN ONLY IF BOTH NUMBERS ARE EVEN
+
+                    rattr=(rattr&(~VARATTR_ODD))|((rattr&attr)&VARATTR_ODD);  // RESULT IS ODD ONLY IF BOTH OF THEM ARE ODD
+                    }
+
+
+                    break;
+
+                case VARATTR_ISCPLX:
+                case VARATTR_ISINFCPLX:
+
+                if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE
+                // WE ARE MULTIPLYING COMPLEX TO COMPLEX OR COMPLEX*REAL
+                rattr|=attr&VARATTR_ISINFCPLX;  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
+                // AND IF BOTH X AND Y ARE NON-ZERO, THEN X*Y IS NON-ZERO
+                rattr=(rattr&~VARATTR_NOTZERO)|(rattr&attr&VARATTR_NOTZERO);
+
+                rattr&=~VARATTR_NOTZERO;  // REMOVE ALL OTHER HINTS, MULTIPLYING 2 COMPLEX NUMBERS TELLS US NOTHING ABOUT THE RESULT
+
+                break;
+
+                case VARATTR_ISMATRIX:
+
+                    if((attr&VARATTR_nMASK)>VARATTR_ISMATRIX) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE
+
+                    // TODO: POSSIBLY ADD ATTRIBUTES FOR DIAGONAL MATRICES, ETC.
+
+                    rattr&=~VARATTR_mMASK;  // REMOVE ALL OTHER HINTS, MULTIPLYING MATRICES TELLS US NOTHING ABOUT THE RESULT
+
+                    break;
+
+                default:
+                    rattr=VARATTR_ISUNKNOWN;
+                    break;
+                }
+
+
+            break;
+        }
+
+
+        case CMD_OVR_NEG:
+        case CMD_OVR_UMINUS:
+        {
+                rattr=attr;
+
+                switch(rattr&VARATTR_nMASK) {
+                case VARATTR_ISREAL:
+                case VARATTR_ISINFREAL:
+                    // NEGATING A REAL NUMBER
+
+                    if( (rattr&VARATTR_GTEZERO) ) {
+                        // X>=0,  MEANS -X<=0
+                        rattr&=~VARATTR_GTEZERO;
+                        rattr|=VARATTR_LTEZERO ;
+
+                    }
+                    if( (rattr&VARATTR_LTEZERO)) {
+                        rattr&=~VARATTR_LTEZERO;
+                        rattr|=VARATTR_GTEZERO ; // X<=0, MEANS -X>=0
+                    }
+
+                    break;
+
+                case VARATTR_ISCPLX:
+                case VARATTR_ISINFCPLX:
+                case VARATTR_ISMATRIX:
+                default:
+                    break;
+                }
+
+
+            break;
+        }
+
+
+        case CMD_OVR_UPLUS:
+
+            // DO ABSOLUTELY NOTHING
+            rattr=attr;
+
+            break;
+
+        case CMD_OVR_POW:
+        {
+           if(rattr==-1) { rattr=attr; break; }
+
+           switch(rattr&VARATTR_nMASK) {
+           case VARATTR_ISREAL:
+           case VARATTR_ISINFREAL:
+               // REAL X, computing X^a
+
+               if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
+               if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=VARATTR_ISINFCPLX; break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
+
+               // WE HAVE REAL BASE AND REAL EXPONENTS
+               rattr|=attr&VARATTR_ISINFREAL;  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
+
+               rattr=(rattr&(~VARATTR_INTEGER))|(rattr&attr&VARATTR_INTEGER);  // RESULT IS INTEGER ONLY IF BOTH ARE INTEGERS
+
+               // INTEGER RESULTS KEEP THEIR ODD/INTEGER PROPERTIES REGARDLESS OF EXPONENT
+               if(!(rattr&VARATTR_INTEGER)) rattr&=~(VARATTR_ODD|VARATTR_EVEN); // IF THE RESULT IS NOT INTEGER, WE DON'T KNOW IF IT WILL BE ODD OR EVEN
+
+               if(!(rattr&VARATTR_GTEZERO)) {
+                   // NEGATIVE BASE
+                   if(!(attr&VARATTR_INTEGER)) { rattr=VARATTR_ISINFCPLX; break; }    // NEGATIVE BASE TO A REAL EXPONENT IS IN GENERAL A COMPLEX NUMBER
+               }
+
+               if( (attr&VARATTR_pMASK)==(VARATTR_INTEGER|VARATTR_EVEN)) {
+                   // EVEN INTEGER POWERS ALWAYS RESULT IN x^a >=0
+                   rattr&=~VARATTR_LTEZERO;
+                   rattr|=VARATTR_GTEZERO;
+               }
+               else if((attr&VARATTR_pMASK)==(VARATTR_INTEGER|VARATTR_ODD)) {
+                   // ODD INTEGER POWERS KEEP THEIR SIGN, DO NOTHING
+
+               }
+               else {
+                // IF WE DON'T KNOW IF IT'S ODD OR EVEN
+               }
+
+
+               break;
+
+
+           case VARATTR_ISCPLX:
+           case VARATTR_ISINFCPLX:
+
+               // COMPLEX Z, computing Z^a
+
+               if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
+               if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
+
+               // WE HAVE COMPLEX BASE AND REAL EXPONENTS
+               rattr|=attr&VARATTR_ISINFCPLX;  // IF THE EXPONENT CAN BE INFINITE, SO CAN THE RESULT
+
+               break;
+
+
+           case VARATTR_ISMATRIX:
+
+               if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REAL EXPONENTS FOR MATRICES
+
+               // WE HAVE MATRIX BASE AND REAL EXPONENTS
+
+
+               // TODO: DEAL WITH SPECIAL MATRICES, FOR NOW JUST KEEP THE RESULT AS A MATRIX
+
+
+               break;
+
+           default:
+               rattr=VARATTR_ISUNKNOWN;
+               break;
+           }
+
+        break;
+        }
+
+        case CMD_OVR_XROOT:
+        {
+           if(rattr==-1) { rattr=attr; break; }
+
+           switch(rattr&VARATTR_nMASK) {
+           case VARATTR_ISREAL:
+           case VARATTR_ISINFREAL:
+               // REAL X, computing X^(1/a)
+
+               if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
+               if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=VARATTR_ISINFCPLX; break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
+
+               // WE HAVE REAL BASE AND REAL EXPONENTS
+               rattr|=attr&VARATTR_ISINFCPLX;  // IF THE EXPONENT CAN BE INFINITE, SO CAN THE RESULT
+
+               if(!rplTestSystemFlag(FL_COMPLEXMODE)) {
+                   // COMPLEX MODE DISABLED
+
+                   if((rattr&(VARATTR_GTEZERO|VARATTR_LTEZERO))!=VARATTR_GTEZERO) {
+                       // COULD HAVE NEGATIVE BASE
+                       rattr=VARATTR_ISINFCPLX;
+                       break;
+                   }
+               }
+               else {
+                    // IN COMPLEX MODE, THE RESULT IS ALWAYS COMPLEX
+               }
+
+               // FORGET ANYTHING ELSE WE KNEW ABOUT THE BASE
+               rattr&=~(VARATTR_pMASK);
+
+
+               break;
+
+
+           case VARATTR_ISCPLX:
+           case VARATTR_ISINFCPLX:
+
+               // COMPLEX Z, computing Z^(1/a)
+
+               if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
+               if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
+
+               // WE HAVE COMPLEX BASE AND REAL EXPONENTS
+               rattr|=attr&VARATTR_ISINFCPLX;  // IF THE EXPONENT CAN BE INFINITE, SO CAN THE RESULT
+
+               break;
+
+
+           case VARATTR_ISMATRIX:
+
+               if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REAL EXPONENTS FOR MATRICES
+
+               // WE HAVE MATRIX BASE AND REAL EXPONENTS
+
+               // TODO: DEAL WITH SPECIAL MATRICES, FOR NOW JUST KEEP THE RESULT AS A MATRIX
+
+
+               break;
+
+           default:
+               rattr=VARATTR_ISUNKNOWN;
+               break;
+           }
+
+        break;
+        }
+
+
+
+        case CMD_OVR_EQ:
+        case CMD_OVR_NOTEQ:
+        case CMD_OVR_GT:
+        case CMD_OVR_LT:
+        case CMD_OVR_GTE:
+        case CMD_OVR_LTE:
+        case CMD_OVR_OR:
+        case CMD_OVR_AND:
+        case CMD_OVR_NOT:
+        case CMD_OVR_ISTRUE:
+            // ALL TESTS RESULT IN 1/0 THEREFORE IT'S A REAL, NON-INFINITE, >=0 INTEGER.
+            rattr=VARATTR_ISREAL|VARATTR_INTEGER|VARATTR_GTEZERO;
+            break;
+
+        case CMD_OVR_CMP:
+            // CMP RESULTS IN -1/1/0 THEREFORE IT'S A REAL, NON-INFINITE, INTEGER.
+            rattr=VARATTR_ISREAL|VARATTR_INTEGER;
+            break;
+
+        case CMD_OVR_INV:
+        {
+                rattr=attr;
+
+                switch(rattr&VARATTR_nMASK) {
+                case VARATTR_ISREAL:
+                case VARATTR_ISINFREAL:
+                    // INVERSE OF A REAL NUMBER
+
+                    if( !(rattr&VARATTR_NOTZERO) ) {
+                        rattr|=VARATTR_ISINFREAL ;      // RESULT COULD BE INFINITE UNLESS EXPRESSION IS MARKED AS NON-ZERO
+                    }
+                    break;
+
+                case VARATTR_ISCPLX:
+                case VARATTR_ISINFCPLX:
+                    rattr|=VARATTR_ISINFCPLX;
+                    break;
+                case VARATTR_ISMATRIX:
+                    // JUST LEAVE IT AS A MATRIX
+                    break;
+                default:
+                    break;
+                }
+
+
+            break;
+        }
+
+
+
+
+
+        case CMD_OVR_ABS:
+            // THE NUMBER IS A SCALAR REGARDLESS OF INPUT
+            if(attr&VARATTR_ISINF) rattr=VARATTR_ISINFREAL|VARATTR_GTEZERO;
+            else rattr=VARATTR_ISREAL|VARATTR_GTEZERO;
+            break;
+
+         default:
+            rattr=VARATTR_ISUNKNOWN;
+            break;
+        break;
+
+        }
+
+        // HERE WE HAVE rattr WITH THE RESULTING ATTRIBUTE OF THE OPERATION
+
+
+    } else rattr=attr;
+    return rattr;
+}
+
+
 
 BINT rplSymbGetAttr(WORDPTR object)
 {
     BINT rattr=-1,attr;
-    WORDPTR ptr,operator=0,endofobj,argnum;
-    ptr=rplSymbUnwrap(object);
-    endofobj=rplSkipOb(object);
+    WORDPTR ptr,endofobj;
+    WORD operator;
+    WORDPTR *stksave=DSTop;
 
-        if(ISSYMBOLIC(*ptr)) ++ptr;
-        if(!ISPROLOG(*ptr) && !ISBINT(*ptr)) { operator=ptr; ++ptr; argnum=0; }
+    rplPushDataNoGrow(object);
+    rplPushDataNoGrow(object);
+    rplNewBINTPush(rattr,DECBINT);
+    if(Exceptions) { DSTop=stksave; return 0; }
+    operator=0;
+    attr=-1;
+
+    while(DSTop>stksave) {
+        rattr=rplReadBINT(rplPopData());
+        ptr=rplPopData();
+        ptr=rplSymbUnwrap(ptr);
+        object=rplPopData();
+        endofobj=rplSkipOb(object);
+        operator=rplSymbMainOperator(object);
+
+        if(attr!=-1) {
+            // IF WE ARE RESTORING FROM AN INNER OBJECT
+            // WE NEED TO COMBINE THE ATTRIBUTES ACCORDING TO THE OPERATOR
+            rattr=rplSymbCombineAttr(operator,rattr,attr);
+            attr=-1;
+        }
+
+        if(ISSYMBOLIC(*ptr)) {
+            rplPushDataNoGrow(object);
+            rplPushDataNoGrow(rplSkipOb(ptr));
+            ScratchPointer1=ptr;
+            rplNewBINTPush(rattr,DECBINT);
+            if(Exceptions) { DSTop=stksave; return 0; }
+            // RE-READ POINTERS FROM STACK IN CASE THEY MOVED DURING GC
+            ptr=ScratchPointer1;
+            object=DSTop[-3];
+            endofobj=rplSkipOb(ptr);
+            ++ptr;
+            operator=0;
+            rattr=-1;
+            attr=-1;
+        }
+
+        if(!ISPROLOG(*ptr) && !ISBINT(*ptr)) { operator=*ptr; ++ptr; }
+
+
         while(ptr<endofobj) {
             if(ISNUMBER(*ptr)) {
                 REAL n;
                 rplReadNumberAsReal(ptr,&n);
-                if(!iszeroReal(&n)) attr=VARATTR_ISREAL|VARATTR_GTEZERO|VARATTR_NOTZERO;
+                if(!iszeroReal(&n)) {
+                    if(isNANorinfiniteReal(&n)) attr=VARATTR_ISINFREAL;
+                        else {
+                        attr=VARATTR_ISREAL|VARATTR_GTEZERO|VARATTR_NOTZERO;
+                        if(isintegerReal(&n)) {
+                            attr|=VARATTR_INTEGER;
+                            if(isoddReal(&n)) attr|=VARATTR_ODD; else attr|=VARATTR_EVEN;
+                            }
+                    }
+
+                }
                 else attr=VARATTR_ISREAL;
+
             }
             else if(ISCOMPLEX(*ptr)) {
                 attr=VARATTR_ISCPLX;
@@ -4548,389 +5011,34 @@ BINT rplSymbGetAttr(WORDPTR object)
             else if(ISIDENT(*ptr)) {
                 attr=rplGetIdentAttr(ptr);
             }
-            else attr=0;
-
-            // NOW COMBINE THE ATTRIBUTES BASED ON THE TYPE OF OPERATOR
-            if(operator) {
-                switch(*operator)
-                {
-                case CMD_OVR_ADD:
-                {
-                    if(rattr==-1) { rattr=attr; break; }    // THIS IS THE FIRST ARGUMENT, JUST COPY THE ATTRIBUTES
-
-                        switch(rattr&VARATTR_nMASK) {
-                        case VARATTR_ISREAL:
-                        case VARATTR_ISINFREAL:
-                            // ADDING/SUBTRACTING REALS
-
-                            if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE (COMPLEX+REAL = COMPLEX, MATRIX + REAL/CPLX = MATRIX (REAL/CPLX k IS ASSUMED AS k*I)
-                            // WE ARE ADDING REAL TO REALS
-                            rattr|=attr&VARATTR_ISINFREAL;  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
-                            if( (rattr&VARATTR_GTEZERO)&&(attr&VARATTR_GTEZERO) ) {
-                                rattr|=VARATTR_GTEZERO | (attr&VARATTR_NOTZERO); // X>=0, Y>=0 MEANS X+Y>=0 AND IF ANY OF THE TWO >0, THEN X+Y>0
-                            }
-                            else if( (rattr&VARATTR_LTEZERO)&&(attr&VARATTR_LTEZERO) ) {
-                                rattr|=VARATTR_LTEZERO | (attr&VARATTR_NOTZERO); // X<=0, Y<=0 MEANS X+Y<=0 AND IF ANY OF THE TWO <0, THEN X+Y<0
-                            }
-                            else rattr&=~(VARATTR_LTEZERO|VARATTR_GTEZERO|VARATTR_NOTZERO); // ALL OTHER CASES MEANS X+Y COULD BE ANYTHING
-
-
-
-                            rattr=(rattr&(~VARATTR_INTEGER))|(rattr&attr&VARATTR_INTEGER);  // RESULT IS INTEGER ONLY IF BOTH ARE INTEGERS
-
-                            if(!(rattr&(VARATTR_ODD|VARATTR_EVEN)) || !(attr&(VARATTR_ODD|VARATTR_EVEN))) rattr&=~(VARATTR_ODD|VARATTR_EVEN); // IF THERE'S NO ODD/EVEN INFO ON ONE OF THE NUMBERS, REMOVE IT FROM THE RESULT AS WELL
-                            else {
-                                // BOTH NUMBERS ARE ODD/EVEN, LET'S ADD THEM
-                            if(rattr&attr&VARATTR_ODD) rattr|=VARATTR_EVEN;                 //  RESULT IS EVEN IF BOTH NUMBERS ARE ODD
-                            else rattr=(rattr&(~VARATTR_EVEN))|((rattr&attr)&VARATTR_EVEN);  // RESULT IS EVEN ONLY IF BOTH NUMBERS ARE EVEN
-
-                            rattr=(rattr&(~VARATTR_ODD))|((rattr^attr)&VARATTR_ODD);  // RESULT IS ODD ONLY IF ONE OF THEM IS ODD
-
-                            }
-
-
-
-                            break;
-
-                        case VARATTR_ISCPLX:
-                        case VARATTR_ISINFCPLX:
-
-                        if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE
-                        // WE ARE ADDING COMPLEX TO COMPLEX OR COMPLEX+REAL
-                        rattr|=attr&VARATTR_ISINFCPLX;  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
-
-                        rattr&=~VARATTR_mMASK;  // REMOVE ALL OTHER HINTS, ADDING 2 COMPLEX NUMBERS TELLS US NOTHING ABOUT THE RESULT
-
-                            break;
-
-                        case VARATTR_ISMATRIX:
-
-                            if((attr&VARATTR_nMASK)>VARATTR_ISMATRIX) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE
-
-                            // TODO: POSSIBLY ADD ATTRIBUTES FOR DIAGONAL MATRICES, ETC.
-
-                            rattr&=~VARATTR_mMASK;  // REMOVE ALL OTHER HINTS, ADDING MATRICES TELLS US NOTHING ABOUT THE RESULT
-
-                            break;
-
-                        default:
-                            rattr=VARATTR_ISUNKNOWN;
-                            break;
-                        }
-
-
-                    break;
-                }
-
-                case CMD_OVR_MUL:
-                {
-                        if(rattr==-1) { rattr=attr; break; }    // THIS IS THE FIRST ARGUMENT, JUST COPY THE ATTRIBUTES
-
-                        switch(rattr&VARATTR_nMASK) {
-                        case VARATTR_ISREAL:
-                        case VARATTR_ISINFREAL:
-                            // MULTIPLYING REALS
-
-                            if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE (COMPLEX+REAL = COMPLEX, MATRIX + REAL/CPLX = MATRIX (REAL/CPLX k IS ASSUMED AS k*I)
-                            // WE ARE ADDING REAL TO REALS
-                            rattr|=attr&VARATTR_ISINFREAL;  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
-                            // AND IF BOTH X AND Y ARE NON-ZERO, THEN X*Y IS NON-ZERO
-                            rattr=(rattr&~VARATTR_NOTZERO)|(rattr&attr&VARATTR_NOTZERO);
-
-                            if( (rattr&VARATTR_GTEZERO)&&(attr&VARATTR_GTEZERO) ) {
-                                // X>=0, Y>=0 MEANS X*Y>=0   WHICH IS ALREADY THE CASE
-                            }
-                            else if( (rattr&VARATTR_LTEZERO)&&(attr&VARATTR_LTEZERO) ) {
-                                rattr&=~VARATTR_LTEZERO;
-                                rattr|=VARATTR_GTEZERO ; // X<=0, Y<=0 MEANS X*Y>=0
-                            }
-                            else if( (rattr&VARATTR_GTEZERO)&&(attr&VARATTR_LTEZERO) ) {
-                                rattr&=~VARATTR_GTEZERO;
-                                rattr|=VARATTR_LTEZERO ; // X>=0, Y<=0 MEANS X*Y<=0
-                            }
-                            else if( (rattr&VARATTR_LTEZERO)&&(attr&VARATTR_GTEZERO) ) {
-                                // X<=0, Y>=0 MEANS X*Y<=0  WHICH IS ALREADY THE CASE
-                            }
-                            else rattr&=~(VARATTR_LTEZERO|VARATTR_GTEZERO); // ALL OTHER CASES MEANS X*Y COULD BE ANYTHING
-
-
-                            rattr=(rattr&(~VARATTR_INTEGER))|(rattr&attr&VARATTR_INTEGER);  // RESULT IS INTEGER ONLY IF BOTH ARE INTEGERS
-
-                            if(!(rattr&(VARATTR_ODD|VARATTR_EVEN)) || !(attr&(VARATTR_ODD|VARATTR_EVEN))) rattr&=~(VARATTR_ODD|VARATTR_EVEN); // IF THERE'S NO ODD/EVEN INFO ON ONE OF THE NUMBERS, REMOVE IT FROM THE RESULT AS WELL
-                            else {
-                            if(rattr&attr&VARATTR_ODD) rattr|=VARATTR_EVEN;                 //  RESULT IS EVEN IF BOTH NUMBERS ARE ODD
-                            else rattr=(rattr&(~VARATTR_EVEN))|((rattr|attr)&VARATTR_EVEN);  // RESULT IS EVEN ONLY IF BOTH NUMBERS ARE EVEN
-
-                            rattr=(rattr&(~VARATTR_ODD))|((rattr&attr)&VARATTR_ODD);  // RESULT IS ODD ONLY IF BOTH OF THEM ARE ODD
-                            }
-
-
-                            break;
-
-                        case VARATTR_ISCPLX:
-                        case VARATTR_ISINFCPLX:
-
-                        if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE
-                        // WE ARE MULTIPLYING COMPLEX TO COMPLEX OR COMPLEX*REAL
-                        rattr|=attr&VARATTR_ISINFCPLX;  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
-                        // AND IF BOTH X AND Y ARE NON-ZERO, THEN X*Y IS NON-ZERO
-                        rattr=(rattr&~VARATTR_NOTZERO)|(rattr&attr&VARATTR_NOTZERO);
-
-                        rattr&=~VARATTR_NOTZERO;  // REMOVE ALL OTHER HINTS, MULTIPLYING 2 COMPLEX NUMBERS TELLS US NOTHING ABOUT THE RESULT
-
-                        break;
-
-                        case VARATTR_ISMATRIX:
-
-                            if((attr&VARATTR_nMASK)>VARATTR_ISMATRIX) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE
-
-                            // TODO: POSSIBLY ADD ATTRIBUTES FOR DIAGONAL MATRICES, ETC.
-
-                            rattr&=~VARATTR_mMASK;  // REMOVE ALL OTHER HINTS, MULTIPLYING MATRICES TELLS US NOTHING ABOUT THE RESULT
-
-                            break;
-
-                        default:
-                            rattr=VARATTR_ISUNKNOWN;
-                            break;
-                        }
-
-
-                    break;
-                }
-
-
-                case CMD_OVR_UMINUS:
-                {
-                        rattr=attr;
-
-                        switch(rattr&VARATTR_nMASK) {
-                        case VARATTR_ISREAL:
-                        case VARATTR_ISINFREAL:
-                            // NEGATING A REAL NUMBER
-
-                            if( (rattr&VARATTR_GTEZERO) ) {
-                                // X>=0,  MEANS -X<=0
-                                rattr&=~VARATTR_GTEZERO;
-                                rattr|=VARATTR_LTEZERO ;
-
-                            }
-                            if( (rattr&VARATTR_LTEZERO)) {
-                                rattr&=~VARATTR_LTEZERO;
-                                rattr|=VARATTR_GTEZERO ; // X<=0, MEANS -X>=0
-                            }
-
-                            break;
-
-                        case VARATTR_ISCPLX:
-                        case VARATTR_ISINFCPLX:
-                        case VARATTR_ISMATRIX:
-                        default:
-                            break;
-                        }
-
-
-                    break;
-                }
-
-
-                case CMD_OVR_UPLUS:
-
-                    // DO ABSOLUTELY NOTHING
-                    rattr=attr;
-
-                    break;
-
-                case CMD_OVR_POW:
-                {
-                   if(rattr==-1) { rattr=attr; break; }
-
-                   switch(rattr&VARATTR_nMASK) {
-                   case VARATTR_ISREAL:
-                   case VARATTR_ISINFREAL:
-                       // REAL X, computing X^a
-
-                       if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
-                       if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=VARATTR_ISINFCPLX; break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
-
-                       // WE HAVE REAL BASE AND REAL EXPONENTS
-                       rattr|=attr&VARATTR_ISINFREAL;  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
-
-                       rattr=(rattr&(~VARATTR_INTEGER))|(rattr&attr&VARATTR_INTEGER);  // RESULT IS INTEGER ONLY IF BOTH ARE INTEGERS
-
-                       // INTEGER RESULTS KEEP THEIR ODD/INTEGER PROPERTIES REGARDLESS OF EXPONENT
-                       if(!(rattr&VARATTR_INTEGER)) rattr&=~(VARATTR_ODD|VARATTR_EVEN); // IF THE RESULT IS NOT INTEGER, WE DON'T KNOW IF IT WILL BE ODD OR EVEN
-
-                       if(!(rattr&VARATTR_GTEZERO)) {
-                           // NEGATIVE BASE
-                           if(!(attr&VARATTR_INTEGER)) { rattr=VARATTR_ISINFCPLX; break; }    // NEGATIVE BASE TO A REAL EXPONENT IS IN GENERAL A COMPLEX NUMBER
-                       }
-
-                       if( (attr&VARATTR_pMASK)==(VARATTR_INTEGER|VARATTR_EVEN)) {
-                           // EVEN INTEGER POWERS ALWAYS RESULT IN x^a >=0
-                           rattr&=~VARATTR_LTEZERO;
-                           rattr|=VARATTR_GTEZERO;
-                       }
-                       else if((attr&VARATTR_pMASK)==(VARATTR_INTEGER|VARATTR_ODD)) {
-                           // ODD INTEGER POWERS KEEP THEIR SIGN, DO NOTHING
-
-                       }
-                       else {
-                        // IF WE DON'T KNOW IF IT'S ODD OR EVEN
-                       }
-
-
-                       break;
-
-                       // ******************************************** TODO: DONE UP TO HERE
-
-                   case VARATTR_ISCPLX:
-                   case VARATTR_ISINFCPLX:
-
-                       // COMPLEX Z, computing Z^a
-
-                       if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
-                       if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
-
-                       // WE HAVE COMPLEX BASE AND REAL EXPONENTS
-                       rattr|=attr&VARATTR_ISINFCPLX;  // IF THE EXPONENT CAN BE INFINITE, SO CAN THE RESULT
-
-                       break;
-
-
-                   case VARATTR_ISMATRIX:
-
-                       if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REAL EXPONENTS FOR MATRICES
-
-                       // WE HAVE MATRIX BASE AND REAL EXPONENTS
-
-                       // TODO: DEAL WITH SPECIAL MATRICES, FOR NOW JUST KEEP THE RESULT AS A MATRIX
-
-
-                       break;
-
-                   default:
-                       rattr=VARATTR_ISUNKNOWN;
-                       break;
-                   }
-
-                break;
-                }
-
-                case CMD_OVR_XROOT:
-                {
-                   if(rattr==-1) { rattr=attr; break; }
-
-                   switch(rattr&VARATTR_nMASK) {
-                   case VARATTR_ISREAL:
-                   case VARATTR_ISINFREAL:
-                       // REAL X, computing X^(1/a)
-
-                       if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
-                       if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=VARATTR_ISINFCPLX; break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
-
-                       // WE HAVE REAL BASE AND REAL EXPONENTS
-                       rattr|=attr&VARATTR_ISINFCPLX;  // IF THE EXPONENT CAN BE INFINITE, SO CAN THE RESULT
-
-                       if(!rplTestSystemFlag(FL_COMPLEXMODE)) {
-                           // COMPLEX MODE DISABLED
-
-                           if(!(rattr&VARATTR_GTEZERO)) {
-                               // NEGATIVE BASE
-                               if(!(attr&VARATTR_INTEGER)) { rattr=VARATTR_ISINFCPLX; break; }    // NEGATIVE BASE TO A REAL EXPONENT IS IN GENERAL A COMPLEX NUMBER
-                           }
-                       }
-                       else {
-
-                       }
-
-
-                       if( (attr&VARATTR_pMASK)==(VARATTR_INTEGER|VARATTR_EVEN)) {
-                           // EVEN INTEGER POWERS ALWAYS RESULT IN x^a >=0
-                           rattr&=~VARATTR_LTEZERO;
-                           rattr|=VARATTR_GTEZERO;
-                       }
-                       else if((attr&VARATTR_pMASK)==(VARATTR_INTEGER|VARATTR_ODD)) {
-                           // ODD INTEGER POWERS KEEP THEIR SIGN, DO NOTHING
-
-                       }
-                       else {
-                        // IF WE DON'T KNOW IF IT'S ODD OR EVEN
-                       }
-
-
-                       break;
-
-                       // ******************************************** TODO: DONE UP TO HERE
-
-                   case VARATTR_ISCPLX:
-                   case VARATTR_ISINFCPLX:
-
-                       // COMPLEX Z, computing Z^a
-
-                       if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
-                       if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
-
-                       // WE HAVE COMPLEX BASE AND REAL EXPONENTS
-                       rattr|=attr&VARATTR_ISINFCPLX;  // IF THE EXPONENT CAN BE INFINITE, SO CAN THE RESULT
-
-                       break;
-
-
-                   case VARATTR_ISMATRIX:
-
-                       if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REAL EXPONENTS FOR MATRICES
-
-                       // WE HAVE MATRIX BASE AND REAL EXPONENTS
-
-                       // TODO: DEAL WITH SPECIAL MATRICES, FOR NOW JUST KEEP THE RESULT AS A MATRIX
-
-
-                       break;
-
-                   default:
-                       rattr=VARATTR_ISUNKNOWN;
-                       break;
-                   }
-
-                break;
-                }
-
-
-
-                case CMD_OVR_EQ:
-                case CMD_OVR_NOTEQ:
-                case CMD_OVR_GT:
-                case CMD_OVR_LT:
-                case CMD_OVR_GTE:
-                case CMD_OVR_LTE:
-                case CMD_OVR_CMP:
-                case CMD_OVR_OR:
-                case CMD_OVR_AND:
-                case CMD_OVR_NOT:
-                case CMD_OVR_ISTRUE:
-
-                case CMD_OVR_INV:
-
-                case CMD_OVR_NEG:
-
-
-                case CMD_OVR_ABS:
-
-                 default:
-                break;
-
-                }
-
-
-
-
-            }
-
-
+            else if(ISSYMBOLIC(*ptr)) {
+                    // RECURSE
+                    rplPushDataNoGrow(object);
+                    rplPushDataNoGrow(rplSkipOb(ptr));
+                    rplNewBINTPush(rattr,DECBINT);
+                    if(Exceptions) { DSTop=stksave; return 0; }
+                    endofobj=rplSkipOb(ptr);
+                    ++ptr;
+                    operator=0;
+                    rattr=-1;
+
+                } else attr=0;
+
+
+            if(operator) rattr=rplSymbCombineAttr(operator,rattr,attr);
+            else rattr=attr;
+
+            ptr=rplSkipOb(ptr);
         }
 
+        // HERE WE FINISHED COMPUTING THE ATTRIBUTE OF A SYMBOLIC
+        // USE IT AS THE ARGUMENT ATTRIBUTE FOR THE NEXT OPERATION
+        attr=rattr;
 
+    }
+
+    // WE FINISHED, attr HAS THE ATTRIBUTE WE ARE LOOKING FOR
+    return attr;
 }
 
 
