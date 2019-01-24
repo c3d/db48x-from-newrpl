@@ -898,7 +898,7 @@ void rplHotInit()
     // KEEP THE HALTED POINTER AS-IS, USE THEM TO KEEP RUNNING AFTER POWEROFF
     CurOpcode=0; // CURRENT OPCODE (WORD)
 
-    Exceptions=0;   // NO EXCEPTIONS RAISED
+    HWExceptions=Exceptions=0;   // NO EXCEPTIONS RAISED
     BreakPtFlags=0;              // DISABLE ALL BREAKPOINTS
     ExceptionPointer=0;
 

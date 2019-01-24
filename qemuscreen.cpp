@@ -182,6 +182,7 @@ void QEmuScreen::update()
             Annunciators[i]->setOpacity(color? 1.0:0.0);
         }
 
+        QGraphicsView::update();
     return;
     }
 
@@ -209,6 +210,7 @@ void QEmuScreen::update()
             Annunciators[i]->setOpacity(((qreal)color)/15.0);
         }
 
+        QGraphicsView::update();
     return;
     }
 
@@ -224,6 +226,7 @@ void QEmuScreen::update()
         }
 
     }
+    QGraphicsView::update();
 
 }
 
