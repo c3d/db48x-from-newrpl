@@ -4750,11 +4750,11 @@ return found;
 // WHERE nmp ARE SUBSCRIPT ATTRIBUTE DIGITS (0-9), AND NOT PART OF THE VARIABLE NAME
 
 // n=0 --> THERE'S NO HINT ABOUT TYPE OF VARIABLE
-// n=1 --> VARIABLE MAY BE INFINITE (REAL OR COMPLEX)
-// n=2 --> VARIABLE IS KNOWN TO BE REAL (EVEN IF COMPLEX MODE IS ON)
-// n=3 --> VARIABLE IS KNOWN TO BE REAL BUT MAY BE INFINITE
-// n=4 --> VARIABLE IS KNOWN TO BE COMPLEX (EVEN IF COMPLEX MODE IS OFF)
-// n=5 --> VARIABLE IS KNOWN TO BE COMPLEX BUT MAY BE ALSO INFINITE
+// n=1 --> VARIABLE IC KNOWN NOT TO BE INFINITE (REAL OR COMPLEX)
+// n=2 --> VARIABLE IS KNOWN TO BE REAL BUT MAY BE INFINITE
+// n=3 --> VARIABLE IS KNOWN TO BE REAL (EVEN IF COMPLEX MODE IS ON)
+// n=4 --> VARIABLE IS KNOWN TO BE COMPLEX BUT MAY BE ALSO INFINITE
+// n=5 --> VARIABLE IS KNOWN TO BE COMPLEX (EVEN IF COMPLEX MODE IS OFF)
 // n=6 --> VARIABLE IS A MATRIX
 // n=8 --> INTERNALLY UNKNOWN RESULT
 
@@ -4787,11 +4787,11 @@ return found;
 
 // THE ATTRIBUTE OF THE SPECIAL VARIABLE AND THE MATCHING EXPRESSION MUST BE IDENTICAL.
 
-#define VARATTR_ISINF  1
-#define VARATTR_ISREAL 2
-#define VARATTR_ISCPLX 4
-#define VARATTR_ISINFREAL 3
-#define VARATTR_ISINFCPLX 5
+#define VARATTR_ISNOTINF  1
+#define VARATTR_ISREAL 3
+#define VARATTR_ISCPLX 5
+#define VARATTR_ISINFREAL 2
+#define VARATTR_ISINFCPLX 4
 #define VARATTR_ISMATRIX 6
 #define VARATTR_ISUNKNOWN 8
 
@@ -4839,9 +4839,9 @@ BINT rplSymbCombineAttr(WORD operator,BINT rattr,BINT attr)
                 case VARATTR_ISINFREAL:
                     // ADDING/SUBTRACTING REALS
 
-                    if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE (COMPLEX+REAL = COMPLEX, MATRIX + REAL/CPLX = MATRIX (REAL/CPLX k IS ASSUMED AS k*I)
+                    if((attr&VARATTR_nMASK)>VARATTR_ISREAL) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE (COMPLEX+REAL = COMPLEX, MATRIX + REAL/CPLX = MATRIX (REAL/CPLX k IS ASSUMED AS k*I)
                     // WE ARE ADDING REAL TO REALS
-                    rattr|=attr&VARATTR_ISINFREAL;  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
+                    rattr&=~(attr&VARATTR_ISNOTINF);   // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
                     if( (rattr&VARATTR_GTEZERO)&&(attr&VARATTR_GTEZERO) ) {
                         rattr|=VARATTR_GTEZERO | (attr&VARATTR_NOTZERO); // X>=0, Y>=0 MEANS X+Y>=0 AND IF ANY OF THE TWO >0, THEN X+Y>0
                     }
@@ -4871,9 +4871,9 @@ BINT rplSymbCombineAttr(WORD operator,BINT rattr,BINT attr)
                 case VARATTR_ISCPLX:
                 case VARATTR_ISINFCPLX:
 
-                if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE
+                if((attr&VARATTR_nMASK)>VARATTR_ISCPLX) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE
                 // WE ARE ADDING COMPLEX TO COMPLEX OR COMPLEX+REAL
-                rattr|=attr&VARATTR_ISINFCPLX;  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
+                rattr&=~(attr&VARATTR_ISNOTINF);   // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
 
                 rattr&=~VARATTR_mMASK;  // REMOVE ALL OTHER HINTS, ADDING 2 COMPLEX NUMBERS TELLS US NOTHING ABOUT THE RESULT
 
@@ -4907,9 +4907,9 @@ BINT rplSymbCombineAttr(WORD operator,BINT rattr,BINT attr)
                 case VARATTR_ISINFREAL:
                     // MULTIPLYING REALS
 
-                    if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE (COMPLEX+REAL = COMPLEX, MATRIX + REAL/CPLX = MATRIX (REAL/CPLX k IS ASSUMED AS k*I)
+                    if((attr&VARATTR_nMASK)>VARATTR_ISREAL) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE (COMPLEX+REAL = COMPLEX, MATRIX + REAL/CPLX = MATRIX (REAL/CPLX k IS ASSUMED AS k*I)
                     // WE ARE ADDING REAL TO REALS
-                    rattr|=attr&VARATTR_ISINFREAL;  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
+                    rattr&=~(attr&VARATTR_ISNOTINF);   // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
                     // AND IF BOTH X AND Y ARE NON-ZERO, THEN X*Y IS NON-ZERO
                     rattr=(rattr&~VARATTR_NOTZERO)|(rattr&attr&VARATTR_NOTZERO);
 
@@ -4946,9 +4946,9 @@ BINT rplSymbCombineAttr(WORD operator,BINT rattr,BINT attr)
                 case VARATTR_ISCPLX:
                 case VARATTR_ISINFCPLX:
 
-                if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE
+                if((attr&VARATTR_nMASK)>VARATTR_ISCPLX) { rattr=attr; break; }  // HIGHER TYPES TAKE PRECEDENCE
                 // WE ARE MULTIPLYING COMPLEX TO COMPLEX OR COMPLEX*REAL
-                rattr|=attr&VARATTR_ISINFCPLX;  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
+                rattr&=~(attr&VARATTR_ISNOTINF);  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
                 // AND IF BOTH X AND Y ARE NON-ZERO, THEN X*Y IS NON-ZERO
                 rattr=(rattr&~VARATTR_NOTZERO)|(rattr&attr&VARATTR_NOTZERO);
 
@@ -5028,11 +5028,11 @@ BINT rplSymbCombineAttr(WORD operator,BINT rattr,BINT attr)
            case VARATTR_ISINFREAL:
                // REAL X, computing X^a
 
-               if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
-               if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=VARATTR_ISINFCPLX; break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
+               if((attr&VARATTR_nMASK)>VARATTR_ISCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
+               if((attr&VARATTR_nMASK)>VARATTR_ISREAL) { rattr=VARATTR_ISINFCPLX; break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
 
                // WE HAVE REAL BASE AND REAL EXPONENTS
-               rattr|=attr&VARATTR_ISINFREAL;  // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
+               rattr&=~(attr&VARATTR_ISNOTINF);   // IF THE NEW ARGUMENT CAN BE INFINITE, SO CAN THE RESULT
 
                rattr=(rattr&(~VARATTR_INTEGER))|(rattr&attr&VARATTR_INTEGER);  // RESULT IS INTEGER ONLY IF BOTH ARE INTEGERS
 
@@ -5066,18 +5066,18 @@ BINT rplSymbCombineAttr(WORD operator,BINT rattr,BINT attr)
 
                // COMPLEX Z, computing Z^a
 
-               if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
-               if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
+               if((attr&VARATTR_nMASK)>VARATTR_ISCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
+               if((attr&VARATTR_nMASK)>VARATTR_ISREAL) { break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
 
                // WE HAVE COMPLEX BASE AND REAL EXPONENTS
-               rattr|=attr&VARATTR_ISINFCPLX;  // IF THE EXPONENT CAN BE INFINITE, SO CAN THE RESULT
+               rattr&=~(attr&VARATTR_ISNOTINF);   // IF THE EXPONENT CAN BE INFINITE, SO CAN THE RESULT
 
                break;
 
 
            case VARATTR_ISMATRIX:
 
-               if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REAL EXPONENTS FOR MATRICES
+               if((attr&VARATTR_nMASK)>VARATTR_ISREAL) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REAL EXPONENTS FOR MATRICES
 
                // WE HAVE MATRIX BASE AND REAL EXPONENTS
 
@@ -5104,11 +5104,11 @@ BINT rplSymbCombineAttr(WORD operator,BINT rattr,BINT attr)
            case VARATTR_ISINFREAL:
                // REAL X, computing X^(1/a)
 
-               if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
-               if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=VARATTR_ISINFCPLX; break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
+               if((attr&VARATTR_nMASK)>VARATTR_ISCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
+               if((attr&VARATTR_nMASK)>VARATTR_ISREAL) { rattr=VARATTR_ISINFCPLX; break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
 
                // WE HAVE REAL BASE AND REAL EXPONENTS
-               rattr|=attr&VARATTR_ISINFCPLX;  // IF THE EXPONENT CAN BE INFINITE, SO CAN THE RESULT
+               rattr&=~(attr&VARATTR_ISNOTINF);  // IF THE EXPONENT CAN BE INFINITE, SO CAN THE RESULT
 
                if(!rplTestSystemFlag(FL_COMPLEXMODE)) {
                    // COMPLEX MODE DISABLED
@@ -5135,18 +5135,18 @@ BINT rplSymbCombineAttr(WORD operator,BINT rattr,BINT attr)
 
                // COMPLEX Z, computing Z^(1/a)
 
-               if((attr&VARATTR_nMASK)>VARATTR_ISINFCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
-               if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
+               if((attr&VARATTR_nMASK)>VARATTR_ISCPLX) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REALS OR COMPLEX AS EXPONENTS
+               if((attr&VARATTR_nMASK)>VARATTR_ISREAL) { break; }  // COMPLEX EXPONENT ALWAYS RESULTS IN COMPLEX RESULT
 
                // WE HAVE COMPLEX BASE AND REAL EXPONENTS
-               rattr|=attr&VARATTR_ISINFCPLX;  // IF THE EXPONENT CAN BE INFINITE, SO CAN THE RESULT
+               rattr&=~(attr&VARATTR_ISNOTINF);   // IF THE EXPONENT CAN BE INFINITE, SO CAN THE RESULT
 
                break;
 
 
            case VARATTR_ISMATRIX:
 
-               if((attr&VARATTR_nMASK)>VARATTR_ISINFREAL) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REAL EXPONENTS FOR MATRICES
+               if((attr&VARATTR_nMASK)>VARATTR_ISREAL) { rattr=VARATTR_ISUNKNOWN; break; }  // CAN ONLY USE REAL EXPONENTS FOR MATRICES
 
                // WE HAVE MATRIX BASE AND REAL EXPONENTS
 
@@ -5219,7 +5219,7 @@ BINT rplSymbCombineAttr(WORD operator,BINT rattr,BINT attr)
 
         case CMD_OVR_ABS:
             // THE NUMBER IS A SCALAR REGARDLESS OF INPUT
-            if(attr&VARATTR_ISINF) rattr=VARATTR_ISINFREAL|VARATTR_GTEZERO;
+            if(!(attr&VARATTR_ISNOTINF)) rattr=VARATTR_ISINFREAL|VARATTR_GTEZERO;
             else rattr=VARATTR_ISREAL|VARATTR_GTEZERO;
             break;
 
@@ -5242,7 +5242,7 @@ BINT rplSymbCombineAttr(WORD operator,BINT rattr,BINT attr)
 BINT rplSymbGetAttr(WORDPTR object)
 {
     BINT rattr=-1,attr;
-    WORDPTR ptr,endofobj;
+    WORDPTR ptr,endofobj,finishedobject;
     WORD operator;
     WORDPTR *stksave=DSTop;
 
@@ -5251,6 +5251,7 @@ BINT rplSymbGetAttr(WORDPTR object)
     rplNewBINTPush(rattr,DECBINT);
     if(Exceptions) { DSTop=stksave; return 0; }
     operator=0;
+    finishedobject=0;
     attr=-1;
 
     while(DSTop>stksave) {
@@ -5260,15 +5261,23 @@ BINT rplSymbGetAttr(WORDPTR object)
         object=rplPopData();
         endofobj=rplSkipOb(object);
         operator=rplSymbMainOperator(object);
-
+        if(finishedobject==object) continue;    // WE ARE ALREADY DONE WITH THIS LEVEL
+        finishedobject=0;
         if(attr!=-1) {
             // IF WE ARE RESTORING FROM AN INNER OBJECT
             // WE NEED TO COMBINE THE ATTRIBUTES ACCORDING TO THE OPERATOR
             rattr=rplSymbCombineAttr(operator,rattr,attr);
             attr=-1;
+            if(ptr>=endofobj) {
+                // WE ARE DONE ALREADY
+                finishedobject=object;
+                attr=rattr;
+                continue;
+            }
         }
 
         if(ISSYMBOLIC(*ptr)) {
+
             rplPushDataNoGrow(object);
             rplPushDataNoGrow(rplSkipOb(ptr));
             ScratchPointer1=ptr;
@@ -5276,8 +5285,9 @@ BINT rplSymbGetAttr(WORDPTR object)
             if(Exceptions) { DSTop=stksave; return 0; }
             // RE-READ POINTERS FROM STACK IN CASE THEY MOVED DURING GC
             ptr=ScratchPointer1;
-            object=DSTop[-3];
+            object=ptr;
             endofobj=rplSkipOb(ptr);
+
             ++ptr;
             operator=0;
             rattr=-1;
@@ -5315,8 +5325,12 @@ BINT rplSymbGetAttr(WORDPTR object)
                     // RECURSE
                     rplPushDataNoGrow(object);
                     rplPushDataNoGrow(rplSkipOb(ptr));
+                    ScratchPointer1=ptr;
                     rplNewBINTPush(rattr,DECBINT);
                     if(Exceptions) { DSTop=stksave; return 0; }
+                    // RE-READ POINTERS FROM STACK IN CASE THEY MOVED DURING GC
+                    ptr=ScratchPointer1;
+                    object=ptr;
                     endofobj=rplSkipOb(ptr);
                     operator=rplSymbMainOperator(ptr);
                     ++ptr;
@@ -5334,6 +5348,7 @@ BINT rplSymbGetAttr(WORDPTR object)
 
         // HERE WE FINISHED COMPUTING THE ATTRIBUTE OF A SYMBOLIC
         // USE IT AS THE ARGUMENT ATTRIBUTE FOR THE NEXT OPERATION
+        finishedobject=object;
         attr=rattr;
 
     }
