@@ -67,7 +67,7 @@ R → A<fraction>"
 
 @#name lib56_autosimplify_pre
 {
-'-.vX:→(-1)*.vX'                                    @ REMOVE NEGATIVE SIGN FROM VARIABLES
+'-.xX:→(-1)*.xX'                                    @ REMOVE NEGATIVE SIGN TO IMPROVE TERM MATCHING
 '√.XX:→.XX^INV(2)'                                  @ ELIMINATE SQUARE ROOT FOR OTHER RULES TO WORK
 }
 
@@ -90,14 +90,33 @@ R → A<fraction>"
 'INV(-.xX):→-1*INV(.xX)'                            @ MAKE NEGATION A SCALAR MULTIPLICATION
 '1*.XX:→.XX'                                        @ REMOVE MULTIPLY BY ONE
 '.XX^1:→.XX'                                        @ REMOVE EXPONENT OF 1
+'0*.XX₃:→0'                                         @ MULTIPLY ANYTHING BY ZERO IS ZERO AS LONG AS IT ISN'T INFINITY (FINITE REALS)
+'0*.XX₅:→0'                                         @ MULTIPLY ANYTHING BY ZERO IS ZERO AS LONG AS IT ISN'T INFINITY (FINITE COMPLEX)
+'.xX₃₁^0:→1'                                        @ ONLY VALID FOR NON-ZERO FINITE REALS
+'.xX₅₁^0:→1'                                        @ ONLY VALID FOR NON-ZERO FINITE COMPLEX
+
 '.MN*.mX+.MM*.mX:→(.MN+.MM)*.mX'                    @ ASSOCIATE TO THE LEFT (NON-COMMUTATIVE)
 '.MN*.mX+.mX:→(.MN+1)*.mX'                          @ ASSOCIATE TO THE LEFT (NON-COMMUTATIVE)
 '.mX*.MN+.mX*.MM:→.mX*(.MN+.MM)'                    @ ASSOCIATE TO THE RIGHT (NON-COMMUTATIVE)
 '.mX*.MN+.mX:→.mX*(.MN+1)'                          @ ASSOCIATE TO THE RIGHT (NON-COMMUTATIVE)
+
+'.XN*.xX₂+.XM*.xX₂:→(.XN+.XM)*.xX₂'                 @ ASSOCIATE (COMMUTATIVE, REALS ONLY)
+'.XN*.xX₂+.xX₂:→(.XN+1)*.xX'                        @ ASSOCIATE (COMMUTATIVE, REALS ONLY)
+
+'.XN*.xX₄+.XM*.xX₄:→(.XN+.XM)*.xX'                  @ ASSOCIATE (COMMUTATIVE, COMPLEX ONLY)
+'.XN*.xX₄+.xX₄:→(.XN+1)*.xX'                        @ ASSOCIATE (COMMUTATIVE, COMPLEX ONLY)
+
 '.xX+.xX:→2*.xX'                                    @ ADD TERMS WITH NO NUMERIC FACTOR
+
 '.mX*.mX:→.mX^2'                                    @ MULTIPLICATION TO POWER CONVERSION (NON-COMMUTATIVE)
-'.mX*.mX^.NN₂₂:→.mX^(1+.NN)'                        @ MULTIPLICATION TO POWER, AS LONG AS EXPONENTS ARE POSITIVE REALS  (NON-COMMUTATIVE)
-'.mX^.NM₂₂*.mX^.NN₂₂:→.mX^(.NM+.NN)'                @ MULTIPLICATION TO POWER, AS LONG AS EXPONENTS ARE POSITIVE REALS  (NON-COMMUTATIVE)
+'.mX*.mX^.NN₃₂₁:→.mX^(1+.NN)'                       @ MULTIPLICATION TO POWER, AS LONG AS EXPONENTS ARE POSITIVE INTEGER REALS  (NON-COMMUTATIVE)
+'.mX^.NN₃₂₁*.mX:→.mX^(.NN+1)'                       @ MULTIPLICATION TO POWER, AS LONG AS EXPONENTS ARE POSITIVE INTEGER REALS  (NON-COMMUTATIVE)
+'.mX^.NM₃₂₁*.mX^.NN₃₂₁:→.mX^(.NM+.NN)'              @ MULTIPLICATION TO POWER, AS LONG AS EXPONENTS ARE POSITIVE INTEGER REALS  (NON-COMMUTATIVE)
+
+'INV(.mX)*INV(.mX):→INV(.mX^2)'                     @ MULTIPLICATION TO POWER CONVERSION (NON-COMMUTATIVE)
+'INV(.mX)*INV(.mX^.NN₃₂₁):→INV(.mX^(1+.NN))'        @ MULTIPLICATION TO POWER, AS LONG AS EXPONENTS ARE POSITIVE INTEGER REALS  (NON-COMMUTATIVE)
+'INV(.mX^.NN₃₂₁)*INV(.mX):→INV(.mX^(.NN+1))'        @ MULTIPLICATION TO POWER, AS LONG AS EXPONENTS ARE POSITIVE INTEGER REALS  (NON-COMMUTATIVE)
+'INV(.mX^.NM₃₂₁)*INV(.mX^.NN₃₂₁):→INV(.mX^(.NM+.NN))' @ MULTIPLICATION TO POWER, AS LONG AS EXPONENTS ARE POSITIVE INTEGER REALS  (NON-COMMUTATIVE)
 }
 
 @ GROUP 3 = CANCEL TERMS IN DIVISION (MAY REMOVE POLES)
@@ -115,23 +134,25 @@ R → A<fraction>"
 '.xX₂*INV(.xX₂^.xM):→.xX^(1-.xM)'                   @ CANCEL OUT TERMS WITHOUT EXPONENT IN NUMERATOR (COMMUTATIVE, REALS)
 '.xX₄*INV(.xX₄^.xM):→.xX^(1-.xM)'                   @ CANCEL OUT TERMS WITHOUT EXPONENT IN NUMERATOR (COMMUTATIVE, REALS)
 
-'.xX^.NN*.xX^.NM:→.xX^(.NN+.NM)'                    @ ADD EXPONENTS IN MULTIPLYING TERMS
-'.mX*.mX^.NM:→.mX^(1+.NM)'                          @ ADD EXPONENTS WITH IMPLICIT EXPONENT 1
+'.mX*.mX^.xN₂₀₁:→.mX^(1+.xN)'                       @ MULTIPLICATION TO POWER, INTEGER EXPONENTS  (NON-COMMUTATIVE)
+'.mX^.xN₂₀₁*.mX:→.mX^(.xN+1)'                       @ MULTIPLICATION TO POWER, INTEGER EXPONENTS  (NON-COMMUTATIVE)
+'.mX^.xM₂₀₁*.mX^.xN₂₀₁:→.mX^(.xM+.xN)'              @ MULTIPLICATION TO POWER, INTEGER EXPONENTS  (NON-COMMUTATIVE)
 }
 
 
-@ GROUP 4 = CANCEL TERMS WITH VARIABLES (k*X-k*X) (INVALID WHEN k*X REACHES INFINITY, OK WHEN THEY ARE FINITE NUMBERS)
+@ GROUP 4 = SIMPLIFICATION ASSUMING 0^0=1
 
 @#name lib56_autosimplify_group4
 {
-'0*.XX:→0'
+'.xX₃^0:→1'                                        @ ONLY VALID FOR FINITE REALS
+'.xX₅^0:→1'                                        @ ONLY VALID FOR FINITE COMPLEX
 }
 
-@ GROUP 5 =
+@ GROUP 5 = SIMPLIFICATIONS WITH MULTIPLE ROOTS
 
 @#name lib56_autosimplify_group5
 {
-
+'(.xX^(.XN/.xD))^.xD:→.xX^.XN'                     @ POWER OF POWER WITH FRACTIONAL EXPONENTS ONLY SIMPLIFY IF IT CANCELS OUT EXACTLY
 
 }
 
@@ -164,8 +185,8 @@ R → A<fraction>"
 @#name lib56_autosimplify_post
 {
 '(-1)*.xX:→-.xX'                                    @ REMOVE MINUS ONE MULTIPLICAND
-'.xX^INV(2):→√.xX'                                  @ BACK TO SQUARE ROOTS
 '.xX^(1/2):→√.xX'                                  @ BACK TO SQUARE ROOTS
+'.xX^(.NN/2):→√(.xX^.NN)'                           @ BACK TO SQUARE ROOTS
 }
 
 

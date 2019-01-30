@@ -517,6 +517,7 @@ void rplCompileIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
             subs=(BYTEPTR)subscriptChars;
             if(lastchar==tok) break;
             lastchar=(BYTEPTR)utf8rskipst((char *)lastchar,(char *)tok);
+            continue;
         }
         subs=(BYTEPTR)utf8skip((char *)subs,(char *)subscriptChars+30);
     }

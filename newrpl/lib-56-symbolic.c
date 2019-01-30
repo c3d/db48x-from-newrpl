@@ -185,7 +185,7 @@ BINT rplCheckCircularReference(WORDPTR env_owner,WORDPTR object,BINT lamnum)
 
 void rplDoRuleApply()
 {
-        if(rplDepthData()<1) {
+        if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
             return;
         }
@@ -271,10 +271,7 @@ void rplDoRuleApply()
 
         }
 
-        // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
-        WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(1),1);
-        if(!newobj) { DSTop=savestk; return; }
-        firstrule[-1]=newobj; // REPLACE ORIGINAL EXPRESSION WITH RESULT
+        firstrule[-1]=rplPeekData(1); // REPLACE ORIGINAL EXPRESSION WITH RESULT
         firstrule[0]=rplNewBINT(totalreplacements,DECBINT);
         DSTop=savestk;
         return;
@@ -366,13 +363,10 @@ void rplDoRuleApply1()
 
         // WE APPLIED ALL RULES
 
-        // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
-        WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(1),1);
-        if(!newobj) { DSTop=savestk; return; }
-        firstrule[-1]=newobj; // REPLACE ORIGINAL EXPRESSION WITH RESULT
+
+        firstrule[-1]=rplPeekData(1); // REPLACE ORIGINAL EXPRESSION WITH RESULT
         firstrule[0]=rplNewBINT(totalreplacements,DECBINT);
         DSTop=savestk;
-        return;
 
 }
 
@@ -1274,11 +1268,10 @@ void LIB_HANDLER()
         if(!ISSYMBOLIC(*rplPeekData(1))) return;    // LEAVE IT ON THE STACK, NOT A SYMBOLIC
 
         WORD hash=0,prevhash;
-        do {
 
-        prevhash=hash;
-        rplSymbAutoSimplify();      // FIRST A STAGE OF NUMERIC REDUCTION
+        rplSymbAutoSimplify();      // A STAGE OF NUMERIC REDUCTION
         if(Exceptions) return;
+
 
         if(!rplTestSystemFlag(FL_AUTOSIMPRULES)) {
 
@@ -1286,80 +1279,131 @@ void LIB_HANDLER()
 
         rplPushDataNoGrow((WORDPTR)lib56_autosimplify_pre);
         rplCallOperator(CMD_RULEAPPLY1);
-        DSTop=stksave;
+        //DEBUG ONLY:
+        if(!rplIsFalse(rplPeekData(1))) rplOverwriteData(1,rplPeekData(2));
+        else DSTop=stksave;
+        // NON-DEBUG:
+        // DSTop=stksave;
+
         if(Exceptions)  return;
+
+        do {
+
+        prevhash=hash;
+
+
 
         if(!rplTestSystemFlag(FL_AUTOSIMPGROUP1)) {
         rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group1);
         rplCallOperator(CMD_RULEAPPLY1);
-        DSTop=stksave;
+        //DEBUG ONLY:
+        if(!rplIsFalse(rplPeekData(1))) rplOverwriteData(1,rplPeekData(2));
+        else DSTop=stksave;
+        // NON-DEBUG:
+        // DSTop=stksave;
         if(Exceptions)  return;
         }
 
         if(!rplTestSystemFlag(FL_AUTOSIMPGROUP2)) {
         rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group2);
         rplCallOperator(CMD_RULEAPPLY1);
-        DSTop=stksave;
+        //DEBUG ONLY:
+        if(!rplIsFalse(rplPeekData(1))) rplOverwriteData(1,rplPeekData(2));
+        else DSTop=stksave;
+        // NON-DEBUG:
+        // DSTop=stksave;
         if(Exceptions)  return;
         }
 
         if(!rplTestSystemFlag(FL_AUTOSIMPGROUP3)) {
         rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group3);
         rplCallOperator(CMD_RULEAPPLY1);
-        DSTop=stksave;
+        //DEBUG ONLY:
+        if(!rplIsFalse(rplPeekData(1))) rplOverwriteData(1,rplPeekData(2));
+        else DSTop=stksave;
+        // NON-DEBUG:
+        // DSTop=stksave;
         if(Exceptions)  return;
         }
 
         if(!rplTestSystemFlag(FL_AUTOSIMPGROUP4)) {
         rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group4);
         rplCallOperator(CMD_RULEAPPLY1);
-        DSTop=stksave;
+        //DEBUG ONLY:
+        if(!rplIsFalse(rplPeekData(1))) rplOverwriteData(1,rplPeekData(2));
+        else DSTop=stksave;
+        // NON-DEBUG:
+        // DSTop=stksave;
         if(Exceptions)  return;
         }
 
         if(!rplTestSystemFlag(FL_AUTOSIMPGROUP5)) {
         rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group5);
         rplCallOperator(CMD_RULEAPPLY1);
-        DSTop=stksave;
+        //DEBUG ONLY:
+        if(!rplIsFalse(rplPeekData(1))) rplOverwriteData(1,rplPeekData(2));
+        else DSTop=stksave;
+        // NON-DEBUG:
+        // DSTop=stksave;
         if(Exceptions)  return;
         }
 
         if(!rplTestSystemFlag(FL_AUTOSIMPGROUP6)) {
         rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group6);
         rplCallOperator(CMD_RULEAPPLY1);
-        DSTop=stksave;
+        //DEBUG ONLY:
+        if(!rplIsFalse(rplPeekData(1))) rplOverwriteData(1,rplPeekData(2));
+        else DSTop=stksave;
+        // NON-DEBUG:
+        // DSTop=stksave;
         if(Exceptions)  return;
         }
 
         if(!rplTestSystemFlag(FL_AUTOSIMPGROUP7)) {
         rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group7);
         rplCallOperator(CMD_RULEAPPLY1);
-        DSTop=stksave;
+        //DEBUG ONLY:
+        if(!rplIsFalse(rplPeekData(1))) rplOverwriteData(1,rplPeekData(2));
+        else DSTop=stksave;
+        // NON-DEBUG:
+        // DSTop=stksave;
         if(Exceptions)  return;
         }
 
         if(!rplTestSystemFlag(FL_AUTOSIMPGROUP8)) {
         rplPushDataNoGrow((WORDPTR)lib56_autosimplify_group8);
         rplCallOperator(CMD_RULEAPPLY1);
-        DSTop=stksave;
+        //DEBUG ONLY:
+        if(!rplIsFalse(rplPeekData(1))) rplOverwriteData(1,rplPeekData(2));
+        else DSTop=stksave;
+        // NON-DEBUG:
+        // DSTop=stksave;
         if(Exceptions)  return;
         }
 
-        rplPushDataNoGrow((WORDPTR)lib56_autosimplify_post);
-        rplCallOperator(CMD_RULEAPPLY1);
-        DSTop=stksave;
-        if(Exceptions)  return;
 
-        }
+        rplSymbAutoSimplify();      // A STAGE OF NUMERIC REDUCTION
+        if(Exceptions) return;
 
         hash=rplObjChecksum(rplPeekData(1));
 
         } while(prevhash!=hash);
 
+        rplPushDataNoGrow((WORDPTR)lib56_autosimplify_post);
+        rplCallOperator(CMD_RULEAPPLY1);
+        //DEBUG ONLY:
+        if(!rplIsFalse(rplPeekData(1))) rplOverwriteData(1,rplPeekData(2));
+        else DSTop=stksave;
+        // NON-DEBUG:
+        // DSTop=stksave;
+        if(Exceptions)  return;
+
+
+        }
+
         // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
         WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(1),1);
-        if(!newobj)  return;
-        rplOverwriteData(1,newobj);
+        if(newobj) rplOverwriteData(1,newobj);
 
         return;
 
@@ -1730,6 +1774,13 @@ void LIB_HANDLER()
         //@SHORT_DESC=Match and apply a rule to an expression repeatedly
         //@NEW
         rplDoRuleApply();
+
+        if(!Exceptions) {
+        // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
+        WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(2),1);
+        if(newobj) rplOverwriteData(2,newobj); // REPLACE ORIGINAL EXPRESSION WITH RESULT
+        }
+
         return;
      }
 
@@ -1738,6 +1789,14 @@ void LIB_HANDLER()
         //@SHORT_DESC=Match and apply a rule to an expression only once
         //@NEW
         rplDoRuleApply1();
+
+        if(!Exceptions) {
+        // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
+        WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(2),1);
+        if(newobj) rplOverwriteData(2,newobj); // REPLACE ORIGINAL EXPRESSION WITH RESULT
+        }
+
+
         return;
      }
 
