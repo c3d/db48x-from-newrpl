@@ -601,3 +601,81 @@ if((aptr!=aend)||(bptr!=bend)) return 0;
 return 1;
 
 }
+
+
+
+void rplListExpandCases()
+{
+    BINT nelem1,nelem2,size1,size2;
+    WORDPTR list1,list2;
+
+
+    list1=rplPeekData(2);
+    list2=rplPeekData(1);
+
+    if(!ISLIST(*list1)) return;  // ONLY EXPAND IF BOTH ARE LISTS
+    if(!ISLIST(*list2)) return;
+    if( (!ISAUTOEXPLIST(*list1)) && (!ISAUTOEXPLIST(*list2))) return;   // AND AT LEAST ONE OF THEM IS A CASE LIST
+
+
+    nelem1=rplListLength(list1);
+    nelem2=rplListLength(list2);
+
+    size1=rplObjSize(list1)-2;
+    size2=rplObjSize(list2)-2;
+
+    // FIRST LIST WILL HAVE nelem1*nelem2 ITEMS, WITH EACH INDIVIDUAL ITEM REPEATED nelem2 CONSECUTIVE TIMES
+    // SECOND LIST WIL HAVE nelem1*nelem2 ITEMS, WITH THE ENTIRE LIST REPEATED nelem1 TIMES
+
+    WORDPTR newlist1=rplAllocTempOb(size1*nelem2+1);
+    if(!newlist1) return;
+    rplPushDataNoGrow(newlist1);
+
+    WORDPTR newlist2=rplAllocTempOb(size2*nelem1+1);
+    if(!newlist2) { rplDropData(1); return; }
+
+    // RE-READ ALL POINTERS IN CASE OF GC
+    newlist1=rplPopData();
+    list1=rplPeekData(2)+1;
+    list2=rplPeekData(1)+1;
+
+
+    // COPY THE FIRST EXPANDED LIST
+    // EACH ELEMENT REPEATED nelem2 TIMES
+    newlist1[0]=MKPROLOG(DOCASELIST,size1*nelem2);
+    newlist1[size1*nelem2+1]=CMD_ENDLIST;
+
+    WORDPTR src,srcptr,dest,srcend;
+    BINT k;
+
+    src=list1;
+    dest=newlist1+1;
+
+    do {
+    srcend=rplSkipOb(src);
+    for(k=0;k<nelem2;++k)
+    {
+        srcptr=src;
+        while(srcptr<srcend) *dest++=*srcptr++;
+
+    }
+    src=srcend;
+    } while(src < list1+size1);
+
+    // COPY THE SECOND EXPANDED LIST
+    // THE ENTIRE LIST REPEATED nelem1 TIMES
+    newlist2[0]=MKPROLOG(DOCASELIST,size2*nelem1);
+    newlist2[size2*nelem1+1]=CMD_ENDLIST;
+
+    src=list2;
+    dest=newlist2+1;
+
+    for(k=0;k<nelem1;++k) {
+        memmovew(dest,src,size2);
+        dest+=size2;
+    }
+
+    // DONE, REPLACE THEM IN THE STACK
+    rplOverwriteData(1,newlist2);
+    rplOverwriteData(2,newlist1);
+}

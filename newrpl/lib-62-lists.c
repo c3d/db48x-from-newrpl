@@ -505,6 +505,15 @@ void LIB_HANDLER()
 
         // NOW CREATE A PROGRAM TO 'MAP'
 
+        if(ISAUTOEXPLIST(*rplPeekData(1)) || ISAUTOEXPLIST(*rplPeekData(2))) {
+            // CASE LISTS NEED TO BE EXPANDED BEFORE
+            rplListExpandCases();  // EXPAND 2 LISTS AND REPLACE THEM IN THE STACK
+            if(Exceptions) return;
+        }
+
+
+
+
         WORDPTR program=rplAllocTempOb(2);
         if(!program) {
             return;
@@ -620,7 +629,9 @@ void LIB_HANDLER()
         }
 
         rplCreateList();
+
         if(Exceptions) { DSTop=stksave; return; }
+        if(ISAUTOEXPLIST(*rplPeekData(2)) ) rplListAutoExpand(rplPeekData(1));
         rplOverwriteData(2,rplPeekData(1));
         rplDropData(1);
         return;
@@ -643,6 +654,7 @@ void LIB_HANDLER()
         }
 
         BINT nitems=rplListLength(list);
+        BINT iscaselist=ISAUTOEXPLIST(*list);
 
         if(nitems<2) return;
 
@@ -668,6 +680,8 @@ void LIB_HANDLER()
         }
 
         rplCreateList();
+        if(!Exceptions && iscaselist) rplListAutoExpand(rplPeekData(1));
+
         return;
     }
 
@@ -934,6 +948,11 @@ void LIB_HANDLER()
             CurOpcode=MKOPCODE(LIBRARY_NUMBER,CMDDOLIST);
             return;
         }
+
+        WORDPTR *lstptr=DSTop-nlists-3;
+        BINT k;
+        for(k=0;k<nlists;++k,++lstptr) if(ISAUTOEXPLIST(**lstptr)) { rplListAutoExpand(rplPeekData(1)); break; }
+
         // HERE THE STACK HAS: LIST1... LISTN N PROGRAM NEWLIST
         rplOverwriteData(nlists+3,rplPeekData(1));
         rplDropData(nlists+2);
@@ -1171,6 +1190,7 @@ void LIB_HANDLER()
             CurOpcode=MKOPCODE(LIBRARY_NUMBER,DOSUBS);
             return;
         }
+        if(ISAUTOEXPLIST(**rplGetLAMn(5))) rplListAutoExpand(rplPeekData(1));
         // HERE THE STACK HAS: LIST1 N PROGRAM NEWLIST
         rplOverwriteData(4,rplPeekData(1));
         rplDropData(3);
@@ -1321,6 +1341,7 @@ void LIB_HANDLER()
                         CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
                         return;
                     }
+                    if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(newlist);
 
                     rplOverwriteData(2,newlist);
                     rplDropData(1);
@@ -1365,6 +1386,8 @@ void LIB_HANDLER()
                         CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
                         return;
                     }
+
+                    if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(rplPeekData(1));
 
                     // NOW REMOVE THE MARKER FROM THE STACK
                     rplOverwriteData(2,rplPeekData(1));
@@ -1557,6 +1580,7 @@ void LIB_HANDLER()
                         CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
                         return;
                     }
+                    if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(newlist);
 
                     rplOverwriteData(1,newlist);
                     rplCleanupLAMs(0);
@@ -1591,6 +1615,7 @@ void LIB_HANDLER()
                         CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
                         return;
                     }
+                    if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(rplPeekData(1));
 
                     // NOW REMOVE THE MARKER FROM THE STACK
                     rplOverwriteData(2,rplPeekData(1));
@@ -1876,7 +1901,7 @@ void LIB_HANDLER()
                         CurOpcode=CMD_OVR_EVAL;
                         return;
                     }
-
+                    if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(newlist);
                     rplOverwriteData(1,newlist);
                     }
                     rplCleanupLAMs(0);
@@ -1922,6 +1947,7 @@ void LIB_HANDLER()
                         CurOpcode=CMD_OVR_EVAL;
                         return;
                     }
+                    if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(newlist);
 
                     nextobj=*rplGetLAMn(2)+nxtoff;  // RESTORE
                     startobj=nextobj+strtoff;
@@ -2041,6 +2067,7 @@ void LIB_HANDLER()
                         return;
                     }
 
+                    if(ISAUTOEXPLIST(**rplGetLAMn(4)) || ISAUTOEXPLIST(**rplGetLAMn(5))) rplListAutoExpand(rplPeekData(1));
                     rplOverwriteData(3,rplPeekData(1));
                     rplDropData(2);
 
@@ -2088,6 +2115,7 @@ void LIB_HANDLER()
                         CurOpcode=(CMD_OVR_ADD);
                         return;
                     }
+                    if(ISAUTOEXPLIST(**rplGetLAMn(4)) || ISAUTOEXPLIST(**rplGetLAMn(5))) rplListAutoExpand(rplPeekData(1));
 
                     rplOverwriteData(3,rplPeekData(1));
                     rplDropData(2);
@@ -2626,6 +2654,7 @@ void LIB_HANDLER()
                 CurOpcode=MKOPCODE(LIBRARY_NUMBER,DELTALIST);
                 return;
             }
+            if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(rplPeekData(1));
 
             rplOverwriteData(2,rplPeekData(1));
             rplDropData(1);
@@ -2861,6 +2890,7 @@ void LIB_HANDLER()
                         CurOpcode=MKOPCODE(LIBRARY_NUMBER,MAP);
                         return;
                     }
+                    if(ISAUTOEXPLIST(**rplGetLAMn(3))) rplListAutoExpand(rplPeekData(1));
 
                     // NOW REMOVE THE MARKER FROM THE STACK
                     rplOverwriteData(2,rplPeekData(1));
@@ -2927,6 +2957,19 @@ void LIB_HANDLER()
             else RetNum=OK_STARTCONSTRUCT;
             return;
         }
+
+        if( (TokenLen>1) && (*((char * )TokenStart)=='c') && (((char * )TokenStart)[1]=='{'))
+        {
+
+            rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER+1,0));
+            if(TokenLen>2) {
+                NextTokenStart=(WORDPTR)(((char *)TokenStart)+2);
+                RetNum=OK_STARTCONSTRUCT;
+            }
+            else RetNum=OK_STARTCONSTRUCT;
+            return;
+        }
+
         // CHECK IF THE TOKEN IS THE CLOSING BRACKET
 
         if(((char * )TokenStart)[TokenLen-1]=='}')
@@ -2938,7 +2981,7 @@ void LIB_HANDLER()
             }
 
 
-            if(CurrentConstruct!=MKPROLOG(LIBRARY_NUMBER,0)) {
+            if((CurrentConstruct!=MKPROLOG(LIBRARY_NUMBER,0)) && (CurrentConstruct!=MKPROLOG(LIBRARY_NUMBER+1,0))) {
                 RetNum=ERR_SYNTAX;
                 return;
             }
@@ -2963,12 +3006,13 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
         if(ISPROLOG(*DecompileObject)) {
             if(!ISAUTOEXPLIST(*DecompileObject)) rplDecompAppendString((BYTEPTR)"{");
+            else rplDecompAppendString((BYTEPTR)"c{");
             RetNum=OK_STARTCONSTRUCT;
             return;
         }
 
         if(*DecompileObject==CMD_ENDLIST) {
-            if(!ISAUTOEXPLIST(CurrentConstruct)) rplDecompAppendString((BYTEPTR)"}");
+            rplDecompAppendString((BYTEPTR)"}");
             RetNum=OK_ENDCONSTRUCT;
             return;
         }
