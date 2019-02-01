@@ -528,6 +528,8 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             case TITYPE_BINARYOP_RIGHT:
                             case TITYPE_OPENBRACKET:
                             case TITYPE_PREFIXOP:
+                            case TITYPE_COMMA:
+
                             // IT'S A UNARY MINUS
                                 Opcode=(CMD_OVR_UMINUS);
                                 probe_tokeninfo=MKTOKENINFO(1,TITYPE_PREFIXOP,1,4);
@@ -548,6 +550,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             case TITYPE_BINARYOP_RIGHT:
                             case TITYPE_OPENBRACKET:
                             case TITYPE_PREFIXOP:
+                            case TITYPE_COMMA:
                             // IT'S A UNARY PLUS
                                 Opcode=(CMD_OVR_UPLUS);
                                 probe_tokeninfo=MKTOKENINFO(1,TITYPE_PREFIXOP,1,4);

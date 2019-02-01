@@ -52,7 +52,8 @@
     ECMD(LISTCLOSEBRACKET,"}",MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31)), \
     CMD(RULEAPPLY1,MKTOKENINFO(10,TITYPE_NOTALLOWED,2,2)), \
     ECMD(GIVENTHAT,"|",MKTOKENINFO(1,TITYPE_BINARYOP_LEFT,2,15)), \
-    CMD(TRIGSIN,MKTOKENINFO(7,TITYPE_CASFUNCTION,1,2))
+    CMD(TRIGSIN,MKTOKENINFO(7,TITYPE_CASFUNCTION,1,2)), \
+    CMD(ALLROOTS,MKTOKENINFO(8,TITYPE_CASFUNCTION,1,2))
 
 
 //    CMD(TEST,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
@@ -129,6 +130,7 @@ INCLUDE_ROMOBJECT(lib56_autosimplify_group8);
 INCLUDE_ROMOBJECT(lib56_autosimplify_post);
 
 INCLUDE_ROMOBJECT(trigsin_rules);
+INCLUDE_ROMOBJECT(allroots_rules);
 
 
 // EXTERNAL EXPORTED OBJECT TABLE
@@ -407,6 +409,7 @@ void LIB_HANDLER()
     {
         case OVR_NEG:
         CurOpcode=(CMD_OVR_UMINUS);
+        // DELIBERATE FALL-THROUGH
         case OVR_INV:
         case OVR_NOT:
         case OVR_UMINUS:
@@ -1888,6 +1891,12 @@ void LIB_HANDLER()
 
     case RULESEPARATOR:
                 //@SHORT_DESC=@HIDE
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        rplSymbApplyOperator(CurOpcode,2);
+        if(Exceptions) return;
         return;
     case OPENBRACKET:
                 //@SHORT_DESC=@HIDE
@@ -1912,10 +1921,12 @@ void LIB_HANDLER()
         }
 
         rplCreateList();
+        if(!Exceptions) rplListAutoExpand(rplPeekData(1));
         return;
     case LISTCLOSEBRACKET:
                 //@SHORT_DESC=@HIDE
 
+        return;
     case EQUATIONOPERATOR:
                 //@SHORT_DESC=@HIDE
     {
@@ -1949,6 +1960,10 @@ void LIB_HANDLER()
     case TRIGSIN:
         //@SHORT_DESC=Simplify replacing cos(x)^2+sin(x)^2=1
     {
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
         WORDPTR *stksave=DSTop;
         rplPushDataNoGrow((WORDPTR)trigsin_rules);
         rplDoRuleApply();
@@ -1956,6 +1971,25 @@ void LIB_HANDLER()
         if(!Exceptions) rplSymbAutoSimplify();
         return;
     }
+
+    case ALLROOTS:
+        //@SHORT_DESC=Expand powers with rational exponents to consider all roots
+
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+        WORDPTR *stksave=DSTop;
+        rplPushDataNoGrow((WORDPTR)allroots_rules);
+        rplDoRuleApply();
+        DSTop=stksave;
+        if(!Exceptions) rplSymbAutoSimplify();
+        return;
+    }
+
+
+
+
 
 
     // STANDARIZED OPCODES:
@@ -2027,7 +2061,7 @@ void LIB_HANDLER()
 
 
 
-
+/*
         if( (TokenLen==2) && !utf8ncmp2((char *)tok,(char *)BlankStart,":→",2)) {
             if(CurrentConstruct==MKPROLOG(DOSYMB,0)) {
                 rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,RULESEPARATOR));
@@ -2036,7 +2070,7 @@ void LIB_HANDLER()
             else RetNum=ERR_NOTMINE;
         return;
         }
-
+*/
         if(*tok=='|') {
             if((TokenLen==1)&&(CurrentConstruct==MKPROLOG(DOSYMB,0))) {
                 // ISSUE A BUILDLIST OPERATOR
