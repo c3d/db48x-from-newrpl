@@ -199,5 +199,10 @@ R → A<fraction>"
 'COS(.xX)^2:→1-SIN(.xX)^2'
 }
 
+@#name allroots_rules
+{
+'√.xX:→XROOT(ABS(.xX),2)*{1,-1}'
+'.xX^(1/.iN)'
+}
 
 

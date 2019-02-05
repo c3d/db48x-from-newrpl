@@ -287,11 +287,14 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define DOLIST      62
 #define DOCASELIST  DOLIST+1
 
+#define DOCONST     55      // SYMBOLIC CONSTANTS
+
 #define DOSYMB      56      // SYMBOLIC OBJECT
 
 #define DOANGLE     48      // ANGLE TAGGED REALS
 
 #define DOMATRIX    52       // ARRAY OBJECT
+
 
 #define DOBINDATA   77      // ARBITRARY BINARY DATA (LIBRARY DATA)
 
@@ -319,6 +322,8 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 // USEFUL MACROS FOR TYPE IDENTIFICATION
 
 #define ISIDENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)>=DOIDENT)&&(LIBNUM(prolog)<=DOMAXIDENT)) )
+#define ISCONSTANT(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOCONST))
+
 #define IDENTHASATTR(prolog) (ISIDENT(prolog) && (LIBNUM(prolog)&HASATTR_BIT))
 #define ISQUOTEDIDENT(prolog) ( ISIDENT(prolog) && !(LIBNUM(prolog)&UNQUOTED_BIT) )
 #define ISUNQUOTEDIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&UNQUOTED_BIT) )

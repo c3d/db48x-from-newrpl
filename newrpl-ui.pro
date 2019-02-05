@@ -221,7 +221,8 @@ SOURCES += main.cpp\
     usbselector.cpp \
     newrpl/lib-100-usb.c \
     newrpl/lib-102-libptr.c \
-    newrpl/lib-104-solvers.c
+    newrpl/lib-104-solvers.c \
+    newrpl/lib-55-constants.c
 
 
 HEADERS  += mainwindow.h \
@@ -274,6 +275,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-0.nrpl \
                 newrpl/rpl-objects/lib-8.nrpl \
                 newrpl/rpl-objects/lib-52.nrpl \
+                newrpl/rpl-objects/lib-55.nrpl \
                 newrpl/rpl-objects/lib-56.nrpl \
                 newrpl/rpl-objects/lib-77.nrpl \
                 newrpl/rpl-objects/lib-78.nrpl \

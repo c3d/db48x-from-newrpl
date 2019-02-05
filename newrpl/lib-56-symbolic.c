@@ -592,7 +592,8 @@ void LIB_HANDLER()
 
             if(TI_TYPE(tokeninfo)==TITYPE_CASFUNCTION) {
 
-            // HANDLE SPECIAL CASE OF CAS COMMANDS, NO NEED TO EVALUATE ARGUMENTS ON THOSE
+                // HANDLE SPECIAL CASE OF CAS COMMANDS, NO NEED TO EVALUATE ARGUMENTS ON THOSE
+                WORDPTR *argstart=DSTop;
                 ScratchPointer1=object;
                 ScratchPointer2=endobject;
                 ScratchPointer3=mainobj;
@@ -600,11 +601,48 @@ void LIB_HANDLER()
                 while(ScratchPointer1<ScratchPointer2) {
                     rplPushData(object);
                     if(Exceptions) { rplCleanupLAMs(0); return; }
-                    object=rplSkipOb(object);
+                    ScratchPointer1=rplSkipOb(ScratchPointer1);
                 }
                 // SIGNAL THAT WE ARE DONE PROCESSING THE LAST ARGUMENT
                 object=endobject=ScratchPointer2;
                 mainobj=ScratchPointer3;
+
+                rplCreateLAM((WORDPTR)nulllam_ident,endobject);     // LAM 2 = END OF CURRENT OBJECT
+                if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                rplCreateLAM((WORDPTR)nulllam_ident,object);     // LAM 3 = NEXT OBJECT TO PROCESS
+                if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                rplCreateLAM((WORDPTR)nulllam_ident,mainobj);     // LAM 4 = MAIN SYMBOLIC EXPRESSION, FOR CIRCULAR REFERENCE CHECK
+                if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
+
+                // THIS NEEDS TO BE DONE IN 3 STEPS:
+                // EVAL WILL PREPARE THE LAMS FOR OPEN EXECUTION
+                // SYMBEVAL1PRE WILL PUSH THE NEXT OBJECT IN THE STACK AND EVAL IT
+                // SYMBEVAL1POST WILL CHECK IF THE ARGUMENT WAS PROCESSED WITHOUT ERRORS,
+                // AND CLOSE THE LOOP TO PROCESS MORE ARGUMENTS
+
+                // THE INITIAL CODE FOR EVAL MUST TRANSFER FLOW CONTROL TO A
+                // SECONDARY THAT CONTAINS :: SYMBEVALPRE EVAL SYMBEVALPOST ;
+                // SYMBEVAL1POST WILL CHANGE IP AGAIN TO BEGINNING OF THE SECO
+                // IN ORDER TO KEEP THE LOOP RUNNING
+
+                rplPushRet(IPtr);
+                if((rplPeekRet(1)<symbeval_seco)||(rplPeekRet(1)>symbeval_seco+4))
+                {
+                    // THIS EVAL IS NOT INSIDE A RECURSIVE LOOP
+                    // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER EVAL
+                    rplPushRet((WORDPTR)symbeval_seco+4);
+                }
+                IPtr=(WORDPTR) symbeval_seco;
+                CurOpcode=(CMD_OVR_EVAL);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+
+                // DO NOT PROTECT THE DATA, WAS ALREADY PROTECTED BEFORE THE ARGUMENTS WERE PUSHED
+                rplProtectData();   // PROTECT STACK ABOVE
+                DStkProtect=argstart;   // MOVE STACK PROTECTION TO ALLOW ACCESS TO THE ARGUMENTS
+                return;
             }
         }
 
@@ -1974,7 +2012,7 @@ void LIB_HANDLER()
 
     case ALLROOTS:
         //@SHORT_DESC=Expand powers with rational exponents to consider all roots
-
+    {
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;

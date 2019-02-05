@@ -25,6 +25,7 @@
     INCLUDELIB(48,lib-48-angles.c), \
     INCLUDELIB(52,lib-52-matrix.c) , \
     INCLUDELIB(54,lib-54-units.c) , \
+    INCLUDELIB(55,lib-55-constants.c) , \
     INCLUDELIB(56,lib-56-symbolic.c) , \
     INCLUDELIB(62,lib-62-lists.c) , \
     INCLUDELIB(64,lib-64-arithmetic.c) , \

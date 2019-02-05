@@ -52,7 +52,7 @@
     ECMD(SQRT,"√",MKTOKENINFO(1,TITYPE_PREFIXOP,1,3)), \
     CMD(EXPM,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(LNP1,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
-    ECMD(PINUM,"π0",MKTOKENINFO(2,TITYPE_PREFIXOP,0,3))
+    ECMD(PINUM,"π0",MKTOKENINFO(2,TITYPE_CONSTANTIDENT,0,2))
 
 
 // ADD MORE OPCODES HERE
@@ -117,8 +117,44 @@ void LIB_HANDLER()
                 return;
             }
 
+
+
             WORD saveOpcode=CurOpcode;
-            CurOpcode=*rplPopData();
+            CurOpcode=*rplPeekData(1);
+            libGetInfo2(CurOpcode,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+
+            if( (RetNum>OK_TOKENINFO)&&(TI_TYPE(RetNum)==TITYPE_CONSTANTIDENT)) {
+                // LEAVE CONSTANTS AS-IS DURING EVAL, ONLY CALL DURING ->NUM
+                return;
+            }
+            rplDropData(1);
+            // RECURSIVE CALL
+            LIB_HANDLER();
+            CurOpcode=saveOpcode;
+            return;
+        }
+
+        if( (OPCODE(CurOpcode)==OVR_NUM) )
+        {
+            // EXECUTE THE COMMAND BY CHANGING THE CURRENT OPCODE
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+
+
+
+            WORD saveOpcode=CurOpcode;
+            CurOpcode=*rplPeekData(1);
+            libGetInfo2(CurOpcode,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+
+            if(!( (RetNum>OK_TOKENINFO)&&(TI_TYPE(RetNum)==TITYPE_CONSTANTIDENT))) {
+                rplError(ERR_INVALIDOPCODE);
+                return;
+
+                return;
+            }
+            rplDropData(1);
             // RECURSIVE CALL
             LIB_HANDLER();
             CurOpcode=saveOpcode;
@@ -137,8 +173,30 @@ void LIB_HANDLER()
                 return;
             }
             else {
-                rplError(ERR_INVALIDOPCODE);
+                WORD opcode;
+                BINT nargs=0;
+                RetNum=0;
+
+                if(ISUNARYOP(CurOpcode)) {
+                opcode=*rplPeekData(1);
+                nargs=1;
+                }
+                else if(ISBINARYOP(CurOpcode)) {
+                opcode=*rplPeekData(1);
+                if(LIBNUM(opcode)!=LIBRARY_NUMBER) opcode=*rplPeekData(2);
+                nargs=2;
+                }
+
+                libGetInfo2(opcode,(char **)LIB_NAMES,(BINT *)LIB_TOKENINFO,LIB_NUMBEROFCMDS);
+                if(!( (RetNum>OK_TOKENINFO)&&(TI_TYPE(RetNum)==TITYPE_CONSTANTIDENT))) {
+                    rplError(ERR_INVALIDOPCODE);
+                    return;
+                }
+
+                if(nargs) rplSymbApplyOperator(CurOpcode,nargs);
+
                 return;
+
             }
 
     }
@@ -4893,8 +4951,6 @@ void LIB_HANDLER()
         return;
 
     }
-
-
 
 
 
