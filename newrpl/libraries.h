@@ -126,9 +126,6 @@ enum TokenInfo_Type {
     TITYPE_LIST,
     TITYPE_MATRIX,
     TITYPE_IDENT,
-    TITYPE_REALIDENT,
-    TITYPE_COMPLEXIDENT,
-    TITYPE_CONSTANTIDENT,
     TITYPE_EXPRESSION,
     TITYPE_OPERATORS=16,
     TITYPE_PREFIXOP,
@@ -322,8 +319,6 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 // USEFUL MACROS FOR TYPE IDENTIFICATION
 
 #define ISIDENT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)>=DOIDENT)&&(LIBNUM(prolog)<=DOMAXIDENT)) )
-#define ISCONSTANT(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOCONST))
-
 #define IDENTHASATTR(prolog) (ISIDENT(prolog) && (LIBNUM(prolog)&HASATTR_BIT))
 #define ISQUOTEDIDENT(prolog) ( ISIDENT(prolog) && !(LIBNUM(prolog)&UNQUOTED_BIT) )
 #define ISUNQUOTEDIDENT(prolog) ( ISIDENT(prolog) && (LIBNUM(prolog)&UNQUOTED_BIT) )
@@ -335,14 +330,17 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define ISAUTOEXPLIST(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIST+1))
 #define ISREAL(prolog) ( ISPROLOG(prolog) && (((LIBNUM(prolog)&~APPROX_BIT)==DOREAL)))
 #define ISCOMPLEX(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCMPLX)))
+#define ISCONSTANT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCONST)))
+#define ISREALCONSTANT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCONST)) && (!((prolog)&1)))
+#define ISCPLXCONSTANT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCONST)) && (((prolog)&1)))
 #define ISPROGRAM(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCOL) || (LIBNUM(prolog)==SECO)))
 #define ISSECO(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==SECO))
-#define ISNUMBER(prolog) (ISBINT(prolog)||ISREAL(prolog))
-#define ISNUMBERCPLX(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISCOMPLEX(prolog))
+#define ISNUMBER(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISREALCONSTANT(prolog))
+#define ISNUMBERCPLX(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISCOMPLEX(prolog)||ISCONSTANT(prolog))
 #define ISSTRING(prolog) (ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOSTRING))
 
 #define ISUNIT(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOUNIT))
-#define ISNUMBERORUNIT(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISUNIT(prolog))
+#define ISNUMBERORUNIT(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISCONSTANT(prolog)||ISUNIT(prolog))
 
 #define ISANGLE(prolog)   (ISPROLOG(prolog) && ((LIBNUM(prolog)&~3)==DOANGLE))
 

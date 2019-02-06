@@ -1528,8 +1528,8 @@ WORDPTR halGetCommandName(WORDPTR NameObject)
 
     if(Opcode==0) return (WORDPTR)text_editor_string;
     if(ISSYMBOLIC(Opcode)) {
-        NameObject=rplSymbMainOperatorPTR(NameObject);
-        Opcode=*NameObject;
+        WORDPTR OpObject=rplSymbMainOperatorPTR(NameObject);
+        if(OpObject) { Opcode=*OpObject; NameObject=OpObject; }
     }
 
     if(ISPROLOG(Opcode)) {
