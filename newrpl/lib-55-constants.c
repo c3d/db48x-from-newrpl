@@ -76,6 +76,34 @@ const WORDPTR const ROMPTR_TABLE[]={
 };
 
 
+// CONVERT A CONSTANT TO A NUMBER
+// RETURNS EITHER A NEW OBJECT WITH THE NUMERIC REPRESENTATION OF THE CONSTANT
+// OR THE SAME OBJECT AS BEFORE. MAY TRIGGER A GC BUT RETURNED POINTER IS SAFE FROM GC.
+
+WORDPTR rplConstant2Number(WORDPTR object)
+{
+    if(!ISCONSTANT(*object)) return object;
+    WORD saveopcode=CurOpcode;
+    rplPushDataNoGrow(object);
+    CurOpcode=object[1];   // GET THE OPCODE FOR THE SYMBOL
+    LIB_HANDLER();
+    CurOpcode=saveopcode;
+    return rplPopData();
+}
+
+// PUT THE GIVEN CONSTANT INTO RReg[0] OR RReg[0] AND RReg[1] IF COMPLEX
+// RETURNS 1 IF REAL, 1000+ANGLE_MODE IF COMPLEX
+
+
+BINT rplConstant2NumberDirect(WORDPTR object)
+{
+    if(!ISCONSTANT(*object)) return 0;
+    WORD saveopcode=CurOpcode;
+    CurOpcode=object[1]|CONSTANT_DIRECT2NUMBER;   // GET THE OPCODE FOR THE SYMBOL
+    LIB_HANDLER();
+    CurOpcode=saveopcode;
+    return (BINT)RetNum;
+}
 
 void LIB_HANDLER()
 {
@@ -181,6 +209,17 @@ void LIB_HANDLER()
         return;
 
     }
+    case PICONST | CONSTANT_DIRECT2NUMBER:
+    {
+        // PUT THE CONSTANT DIRECTLY INTO RReg[0] (REAL) OR RReg[0] AND [1] FOR COMPLEX
+        // RETURNS RetNum=1 IF REAL, 1000+ANGLE_MODE IF COMPLEX
+        REAL pi;
+
+        decconst_PI(&pi);
+        copyReal(&RReg[0],&pi);
+        normalize(&RReg[0]);
+        return;
+    }
     case ECONST:
     {
         //@SHORT_DESC=Numeric constant e at current system precision
@@ -199,6 +238,18 @@ void LIB_HANDLER()
         return;
 
     }
+    case ECONST | CONSTANT_DIRECT2NUMBER:
+    {
+        // PUT THE CONSTANT DIRECTLY INTO RReg[0] (REAL) OR RReg[0] AND [1] FOR COMPLEX
+        // RETURNS RetNum=1 IF REAL, 1000+ANGLE_MODE IF COMPLEX
+        rplOneToRReg(0);
+
+        hyp_exp(&RReg[0]);
+
+        normalize(&RReg[0]);
+        return;
+    }
+
     case ICONST:
     case JCONST:
     {
@@ -216,7 +267,15 @@ void LIB_HANDLER()
 
     }
 
-
+    case ICONST | CONSTANT_DIRECT2NUMBER:
+    case JCONST | CONSTANT_DIRECT2NUMBER:
+    {
+        // PUT THE CONSTANT DIRECTLY INTO RReg[0] (REAL) OR RReg[0] AND [1] FOR COMPLEX
+        // RETURNS RetNum=1 IF REAL, 1000+ANGLE_MODE IF COMPLEX
+        rplOneToRReg(0);
+        rplZeroToRReg(1);
+        return;
+    }
 
 
     // STANDARIZED OPCODES:
@@ -243,7 +302,11 @@ void LIB_HANDLER()
         if(RetNum==OK_CONTINUE) {
             // ENCAPSULATE THE OPCODE INSIDE AN OBJECT
             rplCompileAppend(MKOPCODE(DECBINT,OPCODE(*(CompileEnd-1))));
-            CompileEnd[-2]=MKPROLOG(LIBRARY_NUMBER,1);
+            if(CompileEnd[-2]&1) {
+                // THIS IS A COMPLEX CONSTANT, JUST REPEAT THE OPCODE
+                rplCompileAppend(*(CompileEnd-1));
+                CompileEnd[-3]=MKPROLOG(LIBRARY_NUMBER,2);
+            } else  CompileEnd[-2]=MKPROLOG(LIBRARY_NUMBER,1);
         }
      return;
     case OPCODE_DECOMPEDIT:

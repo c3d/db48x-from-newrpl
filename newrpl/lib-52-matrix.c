@@ -794,6 +794,8 @@ void LIB_HANDLER()
                 return;
             }
 
+            b=rplConstant2Number(b);    // CONVERT ANY CONSTANTS TO NUMERIC EQUIVALENT
+
             if(ISREAL(*b)) {
                 REAL real;
                 rplReadReal(b,&real);

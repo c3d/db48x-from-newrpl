@@ -6424,7 +6424,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if( ISSYMBOLIC(*rplPeekData(1)) || ISIDENT(*rplPeekData(1))) {
+        if( ISSYMBOLIC(*rplPeekData(1)) || ISIDENT(*rplPeekData(1)) || ISCONSTANT(*rplPeekData(1))) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -6434,6 +6434,9 @@ void LIB_HANDLER()
             rplError(ERR_COMPLEXORREALEXPECTED);
             return;
         }
+
+
+
         if(ISCOMPLEX(*rplPeekData(1))) {
             BINT angmode=rplPolarComplexMode(rplPeekData(1));
 
@@ -6480,7 +6483,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if( ISSYMBOLIC(*rplPeekData(1)) || ISIDENT(*rplPeekData(1))) {
+        if( ISSYMBOLIC(*rplPeekData(1)) || ISIDENT(*rplPeekData(1)) || ISCONSTANT(*rplPeekData(1))) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -6539,7 +6542,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if( ISSYMBOLIC(*rplPeekData(1)) || ISIDENT(*rplPeekData(1))) {
+        if( ISSYMBOLIC(*rplPeekData(1)) || ISIDENT(*rplPeekData(1)) || ISCONSTANT(*rplPeekData(1))) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -6635,7 +6638,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if( ISSYMBOLIC(*rplPeekData(1)) || ISIDENT(*rplPeekData(1))) {
+        if( ISSYMBOLIC(*rplPeekData(1)) || ISIDENT(*rplPeekData(1)) || ISCONSTANT(*rplPeekData(1))) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;

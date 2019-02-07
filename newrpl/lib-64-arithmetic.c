@@ -337,6 +337,29 @@ void LIB_HANDLER()
             return;
         }
 
+        if(ISSYMBOLIC(*arg)) {
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
+        if(ISCONSTANT(*arg)) {
+            if(rplConstant2NumberDirect(arg)==1) {
+                if(isintegerReal(&RReg[0])) {
+                    return;
+                }
+                ipReal(&RReg[1],&RReg[0],1);
+                if((RReg[0].flags&F_NEGATIVE)) {
+                    RReg[1].data[0]++;
+                    normalize(&RReg[1]);
+                }
+                rplDropData(1);
+                rplNewRealFromRRegPush(1);
+                return;
+            }
+            rplError(ERR_REALEXPECTED);
+            return;
+        }
+
         REAL rnum;
         if(ISBINT(*arg)) return;
         rplReadNumberAsReal(rplPeekData(1),&rnum);
@@ -368,8 +391,33 @@ void LIB_HANDLER()
             rplListUnaryDoCmd();
             return;
         }
+        if(ISSYMBOLIC(*arg)) {
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
 
         if(ISBINT(*arg)) return;
+
+        if(ISCONSTANT(*arg)) {
+            if(rplConstant2NumberDirect(arg)==1) {
+                if(isintegerReal(&RReg[0])) {
+                    return;
+                }
+                ipReal(&RReg[1],&RReg[0],1);
+                if(!(RReg[0].flags&F_NEGATIVE)) {
+                    RReg[1].data[0]++;
+                    normalize(&RReg[1]);
+                }
+                rplDropData(1);
+                rplNewRealFromRRegPush(1);
+                return;
+            }
+            rplError(ERR_REALEXPECTED);
+            return;
+        }
+
+
+
         REAL rnum;
         rplReadNumberAsReal(rplPeekData(1),&rnum);
         if(Exceptions) return;
@@ -416,6 +464,16 @@ void LIB_HANDLER()
         return;
     }
 
+    if(ISCONSTANT(*arg)) {
+        if(rplConstant2NumberDirect(arg)==1) {
+            ipReal(&RReg[1],&RReg[0],1);
+            rplDropData(1);
+            rplNewRealFromRRegPush(1);
+            return;
+        }
+        rplError(ERR_REALEXPECTED);
+        return;
+    }
 
     REAL rnum;
     rplReadNumberAsReal(arg,&rnum);
@@ -489,6 +547,16 @@ case IPPOST:
         return;
     }
 
+    if(ISCONSTANT(*arg)) {
+        if(rplConstant2NumberDirect(arg)==1) {
+            fpReal(&RReg[1],&RReg[0],1);
+            rplDropData(1);
+            rplNewRealFromRRegPush(1);
+            return;
+        }
+        rplError(ERR_REALEXPECTED);
+        return;
+    }
 
     REAL rnum;
     rplReadNumberAsReal(arg,&rnum);
@@ -515,7 +583,7 @@ case IPPOST:
             return;
         }
 
-        if(ISSYMBOLIC(*arg)||ISIDENT(*arg)) {
+        if(ISSYMBOLIC(*arg)||ISIDENT(*arg)||ISCONSTANT(*arg)) {
          rplSymbApplyOperator(MKOPCODE(LIBRARY_NUMBER,FACTORIAL),1);
          return;
         }
@@ -585,6 +653,23 @@ case IPPOST:
             else rplOverwriteData(1,(WORDPTR)zero_bint);
 
         } else {
+
+            if(ISCONSTANT(*arg)) {
+                if(rplConstant2NumberDirect(arg)==1) {
+                    if(!isintegerReal(&RReg[0])) {
+                        rplError(ERR_INTEGEREXPECTED);
+                        return;
+                    }
+                    swapReal(&RReg[0],&RReg[7]);
+                    if(isprimeReal(&RReg[7])) rplOverwriteData(1,(WORDPTR)one_bint);
+                    else rplOverwriteData(1,(WORDPTR)zero_bint);
+                    return;
+                }
+                rplError(ERR_REALEXPECTED);
+                return;
+            }
+
+
             REAL num;
             rplReadNumberAsReal(arg,&num);
 
@@ -614,25 +699,7 @@ case IPPOST:
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
-
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+            rplListUnaryDoCmd();
             return;
         }
 
@@ -657,6 +724,25 @@ case IPPOST:
             // THE NEXT PRIME IS > 2^63, USE REALS INSTEAD
 
         }
+
+        if(ISCONSTANT(*arg)) {
+            if(rplConstant2NumberDirect(arg)==1) {
+                if(!isintegerReal(&RReg[0])) {
+                    rplError(ERR_INTEGEREXPECTED);
+                    return;
+                }
+                swapReal(&RReg[0],&RReg[7]);
+                nextprimeReal(0,&RReg[7]);
+                rplDropData(1);
+                rplNewRealFromRRegPush(0);
+
+
+                return;
+            }
+            rplError(ERR_REALEXPECTED);
+            return;
+        }
+
 
         REAL num;
             rplReadNumberAsReal(arg,&num);
@@ -688,24 +774,7 @@ case IPPOST:
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
 
-            WORDPTR *savestk=DSTop;
-            WORDPTR newobj=rplAllocTempOb(2);
-            if(!newobj) return;
-            // CREATE A PROGRAM AND RUN THE MAP COMMAND
-            newobj[0]=MKPROLOG(DOCOL,2);
-            newobj[1]=CurOpcode;
-            newobj[2]=CMD_SEMI;
-
-            rplPushData(newobj);
-
-            rplCallOperator(CMD_MAP);
-
-            if(Exceptions) {
-                if(DSTop>savestk) DSTop=savestk;
-            }
-
-            // EXECUTION WILL CONTINUE AT MAP
-
+            rplListUnaryDoCmd();
             return;
         }
 
@@ -749,7 +818,18 @@ case IPPOST:
         }
 
         REAL num;
-            rplReadNumberAsReal(arg,&num);
+
+        if(ISCONSTANT(*arg)) {
+            if(rplConstant2NumberDirect(arg)==1) {
+                swapReal(&RReg[0],&RReg[8]);
+                cloneReal(&num,&RReg[8]);
+            }
+            else {
+            rplError(ERR_INTEGEREXPECTED);
+            return;
+            }
+        }
+        else rplReadNumberAsReal(arg,&num);
 
             if(!isintegerReal(&num)) {
                 rplError(ERR_INTEGEREXPECTED);
@@ -813,7 +893,19 @@ case IPPOST:
             }
             else {
                 REAL num;
-                rplReadNumberAsReal(arg,&num);
+
+                if(ISCONSTANT(*arg)) {
+                    if(rplConstant2NumberDirect(arg)==1) {
+                        swapReal(&RReg[0],&RReg[8]);
+                        cloneReal(&num,&RReg[8]);
+                    }
+                    else {
+                    rplError(ERR_INTEGEREXPECTED);
+                    return;
+                    }
+                }
+                else rplReadNumberAsReal(arg,&num);
+
                 if(!isintegerReal(&num)) {
                     rplError(ERR_INTEGEREXPECTED);
                     return;
@@ -1020,7 +1112,7 @@ case IPPOST:
                 rplListBinaryDoCmd();
                 return;
             }
-            else if((ISIDENT(*mod) || ISSYMBOLIC(*mod)) || (ISIDENT(*arg) || ISSYMBOLIC(*arg))){
+            else if((ISIDENT(*mod) || ISSYMBOLIC(*mod) || ISCONSTANT(*mod)) || (ISIDENT(*arg) || ISSYMBOLIC(*arg) || ISCONSTANT(*mod))){
                     rplSymbApplyOperator(CurOpcode,2);
                     return;
             }
@@ -1134,7 +1226,7 @@ case IPPOST:
         }
 
 
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -1169,7 +1261,7 @@ case IPPOST:
         }
 
 
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -1211,7 +1303,7 @@ case IPPOST:
             return;
         }
 
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -1252,7 +1344,7 @@ case IPPOST:
             return;
         }
 
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -1340,7 +1432,7 @@ case IPPOST:
             rplListBinaryDoCmd();
             return;
         }
-        else if((ISIDENT(*pct) || ISSYMBOLIC(*pct)) || (ISIDENT(*arg1) || ISSYMBOLIC(*arg1))){
+        else if((ISIDENT(*pct) || ISSYMBOLIC(*pct)|| ISCONSTANT(*pct)) || (ISIDENT(*arg1) || ISSYMBOLIC(*arg1)|| ISCONSTANT(*arg1))){
                 rplSymbApplyOperator(CurOpcode,2);
                 return;
         }
@@ -1376,7 +1468,7 @@ case IPPOST:
                 rplListBinaryDoCmd();
                 return;
             }
-            else if((ISIDENT(*new_val) || ISSYMBOLIC(*new_val)) || (ISIDENT(*old_val) || ISSYMBOLIC(*old_val))){
+            else if((ISIDENT(*new_val) || ISSYMBOLIC(*new_val)|| ISCONSTANT(*new_val)) || (ISIDENT(*old_val) || ISSYMBOLIC(*old_val) || ISCONSTANT(*old_val))){
                     rplSymbApplyOperator(CurOpcode,2);
                     return;
             }
@@ -1423,7 +1515,7 @@ case IPPOST:
                 rplListBinaryDoCmd();
                 return;
             }
-            else if((ISIDENT(*new_val) || ISSYMBOLIC(*new_val)) || (ISIDENT(*old_val) || ISSYMBOLIC(*old_val))){
+            else if((ISIDENT(*new_val) || ISSYMBOLIC(*new_val)|| ISCONSTANT(*new_val)) || (ISIDENT(*old_val) || ISSYMBOLIC(*old_val)|| ISCONSTANT(*old_val))){
                     rplSymbApplyOperator(CurOpcode,2);
                     return;
             }
@@ -1474,7 +1566,7 @@ case IPPOST:
                 rplListBinaryDoCmd();
                 return;
             }
-            else if((ISIDENT(*arg1) || ISSYMBOLIC(*arg1)) || (ISIDENT(*arg2) || ISSYMBOLIC(*arg2))){
+            else if((ISIDENT(*arg1) || ISSYMBOLIC(*arg1)|| ISCONSTANT(*arg1)) || (ISIDENT(*arg2) || ISSYMBOLIC(*arg2)|| ISCONSTANT(*arg2))){
                     rplSymbApplyOperator(CurOpcode,2);
                     return;
             }
@@ -1845,7 +1937,7 @@ case IPPOST:
                 rplListBinaryDoCmd();
                 return;
             }
-            else if((ISIDENT(*vect_val) || ISSYMBOLIC(*vect_val)))
+            else if((ISIDENT(*vect_val) || ISSYMBOLIC(*vect_val)|| ISCONSTANT(*vect_val)))
             {
                     rplSymbApplyOperator(CurOpcode,2);
                     return;
@@ -2004,7 +2096,7 @@ case IPPOST:
 //            return;
 //        }
 //        else
-        if((ISIDENT(*arg0) || ISSYMBOLIC(*arg0)) || (ISIDENT(*arg1) || ISSYMBOLIC(*arg1)) || (ISIDENT(*arg2) || ISSYMBOLIC(*arg2))){
+        if((ISIDENT(*arg0) || ISSYMBOLIC(*arg0) || ISCONSTANT(*arg0)) || (ISIDENT(*arg1) || ISSYMBOLIC(*arg1)|| ISCONSTANT(*arg1)) || (ISIDENT(*arg2) || ISSYMBOLIC(*arg2)|| ISCONSTANT(*arg2))){
                 rplSymbApplyOperator(CurOpcode,3);
                 return;
         }
@@ -2123,7 +2215,7 @@ case IPPOST:
             return;
         }
 
-        if(ISSYMBOLIC(*arg)||ISIDENT(*arg)) {
+        if(ISSYMBOLIC(*arg)||ISIDENT(*arg)|| ISCONSTANT(*arg)) {
          rplSymbApplyOperator(CurOpcode,1);
          return;
         }
@@ -2833,7 +2925,7 @@ case IPPOST:
             return;
         }
 
-        if(ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(2)) || ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(1)))
+        if(ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(2) || ISCONSTANT(*rplPeekData(2))) || ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(1))|| ISCONSTANT(*rplPeekData(1)))
         {
             rplSymbApplyOperator(CurOpcode,2);
             return;
@@ -2879,7 +2971,7 @@ case IPPOST:
             return;
         }
 
-        if(ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(2)) || ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(1)))
+        if(ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(2)|| ISCONSTANT(*rplPeekData(2))) || ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(1))|| ISCONSTANT(*rplPeekData(1)))
         {
             rplSymbApplyOperator(CurOpcode,2);
             return;
@@ -2927,7 +3019,7 @@ case IPPOST:
         return;
     }
 
-    if(ISIDENT(*arg) || ISSYMBOLIC(*arg) || ISIDENT(*ndig) || ISSYMBOLIC(*ndig) ) {
+    if(ISIDENT(*arg) || ISSYMBOLIC(*arg) || ISCONSTANT(*arg) || ISIDENT(*ndig) || ISSYMBOLIC(*ndig)|| ISCONSTANT(*ndig) ) {
         rplSymbApplyOperator(CurOpcode,2);
         return;
     }
@@ -3052,7 +3144,7 @@ case IPPOST:
         for(j=1;j<=totalelements;++j) {
          rplPushData(rplMatrixFastGet(*a,1,j));
          WORDPTR arg=rplPeekData(1);
-             if(ISIDENT(*arg) || ISSYMBOLIC(*arg) || ISIDENT(*ndig) || ISSYMBOLIC(*ndig) ) {
+             if(ISIDENT(*arg) || ISSYMBOLIC(*arg) || ISIDENT(*ndig) || ISSYMBOLIC(*ndig) || ISCONSTANT(*arg) || ISCONSTANT(*ndig)) {
                  rplPushData(a[1]);
                  rplSymbApplyOperator(CurOpcode,2);
                  if(Exceptions) { DSTop=savestk; return; }

@@ -252,6 +252,12 @@ void LIB_HANDLER()
                         (*symblib)();
                         return;
             }
+            if(ISCONSTANT(*rplPeekData(1))||ISCONSTANT(*rplPeekData(2))) {
+                // TREAT ANY CONSTANTS AS SYMBOLICS
+                        LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                        (*symblib)();
+                        return;
+            }
 
             BINT nlevels1,nlevels2;
             WORDPTR *stkclean=DSTop;
@@ -301,6 +307,13 @@ void LIB_HANDLER()
                         (*symblib)();
                         return;
             }
+            if(ISCONSTANT(*rplPeekData(1))||ISCONSTANT(*rplPeekData(2))) {
+                // TREAT ANY CONSTANTS AS SYMBOLICS
+                        LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                        (*symblib)();
+                        return;
+            }
+
 
             BINT nlevels1,nlevels2;
             WORDPTR *stkclean=DSTop;
@@ -344,6 +357,12 @@ void LIB_HANDLER()
                         return;
             }
 
+            if(ISCONSTANT(*rplPeekData(1))||ISCONSTANT(*rplPeekData(2))) {
+                // TREAT ANY CONSTANTS AS SYMBOLICS
+                        LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                        (*symblib)();
+                        return;
+            }
             BINT nlevels1,nlevels2;
             WORDPTR *stkclean=DSTop;
 
@@ -450,6 +469,12 @@ void LIB_HANDLER()
         {
             if(ISIDENT(*rplPeekData(1))||ISIDENT(*rplPeekData(2))) {
                 // TREAT ANY IDENTS AS SYMBOLICS
+                        LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                        (*symblib)();
+                        return;
+            }
+            if(ISCONSTANT(*rplPeekData(1))||ISCONSTANT(*rplPeekData(2))) {
+                // TREAT ANY CONSTANTS AS SYMBOLICS
                         LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
                         (*symblib)();
                         return;
@@ -566,16 +591,25 @@ void LIB_HANDLER()
                         (*symblib)();
                         return;
             }
+            if(ISCONSTANT(*rplPeekData(1))||ISCONSTANT(*rplPeekData(2))) {
+                // TREAT ANY CONSTANTS AS SYMBOLICS
+                        LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                        (*symblib)();
+                        return;
+            }
+
 
             BINT nlevels1;
             WORDPTR *stkclean=DSTop;
 
             BINT isspec1;
 
-            if(!ISNUMBER(*rplPeekData(1))) {
+            rplOverwriteData(1,rplConstant2Number(rplPeekData(1))); // MAKE SURE ANY CONSTANT IS REPLACED BY ITS NUMERIC VALUE
+             if(!ISNUMBER(*rplPeekData(1))) {
                 rplError(ERR_REALEXPECTED);
                 return;
             }
+
             isspec1=rplUnitIsSpecial(rplPeekData(2));
 
             nlevels1=rplUnitExplode(rplPeekData(2));
@@ -609,6 +643,8 @@ void LIB_HANDLER()
             WORDPTR *stkclean=DSTop;
 
             BINT isspec1;
+
+            rplOverwriteData(1,rplConstant2Number(rplPeekData(1))); // MAKE SURE ANY CONSTANT IS REPLACED BY ITS NUMERIC VALUE
 
             if(!ISNUMBER(*rplPeekData(1))) {
                 rplError(ERR_REALEXPECTED);

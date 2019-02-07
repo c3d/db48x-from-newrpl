@@ -189,7 +189,7 @@ void LIB_HANDLER()
         }
 
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -350,7 +350,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -512,7 +512,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -687,7 +687,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -980,7 +980,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -1286,7 +1286,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -1564,7 +1564,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1),arg2=rplPeekData(2);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISSYMBOLIC(*arg2) || ISIDENT(*arg2)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg) || ISSYMBOLIC(*arg2) || ISIDENT(*arg2) || ISCONSTANT(*arg2)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,2);
             return;
@@ -1612,7 +1612,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -1794,7 +1794,7 @@ void LIB_HANDLER()
         }
 
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -1995,7 +1995,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -2271,7 +2271,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -2546,7 +2546,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -2792,7 +2792,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -3083,7 +3083,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -3405,7 +3405,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -3770,7 +3770,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -4163,7 +4163,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -4352,7 +4352,7 @@ void LIB_HANDLER()
         }
 
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -4528,7 +4528,7 @@ void LIB_HANDLER()
         }
 
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;
@@ -4729,7 +4729,7 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-        if( ISSYMBOLIC(*arg) || ISIDENT(*arg)) {
+        if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
             rplSymbApplyOperator(CurOpcode,1);
             return;

@@ -595,6 +595,9 @@ void rplLoadBINTAsReal(BINT64 number,REAL*dec);
 BINT rplIsNegative(WORDPTR objptr);
 BINT rplIntToString(BINT64 number,BINT base,BYTEPTR buffer,BYTEPTR endbuffer);
 
+// CONSTANTS
+WORDPTR rplConstant2Number(WORDPTR object);
+BINT rplConstant2NumberDirect(WORDPTR object);
 
 
 // ANGLE FUNCTIONS

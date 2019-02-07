@@ -1176,6 +1176,7 @@ BINT rplUnitExplode(WORDPTR unitobj)
 {
     WORDPTR *savestk=DSTop;
 if(!ISUNIT(*unitobj)) {
+    unitobj=rplConstant2Number(unitobj);    // GET THE VALUE IF IT'S A CONSTANT
     if(!ISBINT(*unitobj) && !ISPROLOG(*unitobj)) {
         // IF IT'S NOT AN OBJECT, THEN IT'S A COMMAND THAT WILL RETURN A CONSTANT OR A UNIT
         rplCallOperator(*unitobj);

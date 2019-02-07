@@ -1306,6 +1306,10 @@ void LIB_HANDLER()
             rplListUnaryDoCmd();
             return;
         }
+        if(ISMATRIX(*rplPeekData(1))) {
+           // TODO: AUTOSIMPLIFY WITHIN VECTORS AND MATRICES ELEMENT BY ELEMENT
+            return;
+        }
         if(!ISSYMBOLIC(*rplPeekData(1))) return;    // LEAVE IT ON THE STACK, NOT A SYMBOLIC
 
         WORD hash=0,prevhash;

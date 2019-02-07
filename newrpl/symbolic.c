@@ -2543,32 +2543,33 @@ BINT rplSymbIsZero(WORDPTR ptr)
 void rplSymbNumericCompute()
 {
     WORDPTR *stksave=DSTop;
-    WORDPTR ptr=rplPeekData(1);
-    WORDPTR endofobj=rplSkipOb(ptr),partialend=endofobj;
+    WORDPTR *ptr=DSTop-1;
+    BINT endoffset=rplObjSize(*ptr),partialoff=endoffset;
     WORD opcode=0;
+    BINT offset=0;
 
-    while(ptr<endofobj) {
+    while(offset<endoffset) {
 
-        if(ptr==partialend) {
+        if(offset==partialoff) {
             if(opcode) rplCallOperator(opcode);     // THIS BETTER BE ATOMIC OR IT WILL CRASH BADLY
             if(Exceptions) { DSTop=stksave; return; }
             opcode=0;
         }
 
-        if(ISSYMBOLIC(*ptr)) { partialend=rplSkipOb(ptr); ptr=rplSymbUnwrap(ptr)+1; }
+        if(ISSYMBOLIC(*(*ptr+offset))) { partialoff=offset+rplObjSize(*ptr+offset); offset=(rplSymbUnwrap(*ptr+offset)-*ptr)+1; }
 
-        if(ISNUMBERCPLX(*ptr)) { rplPushData(ptr); ptr=rplPeekData(1); }
-        else if(ISIDENT(*ptr)) { DSTop=stksave; return; }
-        else if(!ISPROLOG(*ptr)) {
-            if(*ptr==CMD_OVR_FUNCEVAL) { DSTop=stksave; return; }
-            opcode=*ptr;
+        if(ISNUMBERCPLX(*(*ptr+offset))) { rplPushData(rplConstant2Number(*ptr+offset)); }
+        else if(ISIDENT(*(*ptr+offset))) { DSTop=stksave; return; }
+        else if(!ISPROLOG(*(*ptr+offset))) {
+            if(*(*ptr+offset)==CMD_OVR_FUNCEVAL) { DSTop=stksave; return; }
+            opcode=*(*ptr+offset);
         }
 
-        ptr=rplSkipOb(ptr);
+        offset+=rplObjSize((*ptr+offset));
 
     }
 
-    if(ptr==partialend) {
+    if(offset==partialoff) {
         if(opcode) rplCallOperator(opcode);     // THIS BETTER BE ATOMIC OR IT WILL CRASH BADLY
         if(Exceptions) { DSTop=stksave; return; }
     }

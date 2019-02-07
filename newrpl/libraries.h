@@ -331,8 +331,8 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define ISREAL(prolog) ( ISPROLOG(prolog) && (((LIBNUM(prolog)&~APPROX_BIT)==DOREAL)))
 #define ISCOMPLEX(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCMPLX)))
 #define ISCONSTANT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCONST)))
-#define ISREALCONSTANT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCONST)) && (!((prolog)&1)))
-#define ISCPLXCONSTANT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCONST)) && (((prolog)&1)))
+#define ISREALCONSTANT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCONST)) && (((prolog)&1)))
+#define ISCPLXCONSTANT(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCONST)) && (!((prolog)&1)))
 #define ISPROGRAM(prolog) ( ISPROLOG(prolog) && ((LIBNUM(prolog)==DOCOL) || (LIBNUM(prolog)==SECO)))
 #define ISSECO(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==SECO))
 #define ISNUMBER(prolog) (ISBINT(prolog)||ISREAL(prolog)||ISREALCONSTANT(prolog))
@@ -432,7 +432,8 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define INCLUDE_ROMOBJECT(id_name) ROMOBJECT id_name[]={ MAKESINT(0) }
 #endif
 
-
+// REQUEST OPCODE TO CONVERT CONSTANT DIRECTLY TO REAL/COMPLEX NUMBERS, WITHOUT CREATING ANY OBJECTS
+#define CONSTANT_DIRECT2NUMBER 0x40000
 
 // CONSTANTS FOR UNIVERSAL LIBRARY ENTRY POINTS
 #define USERLIB_HANDLER 0

@@ -161,6 +161,12 @@ case NUMINT:
             return;
         }
 
+        // REPLACE ANY CONSTANTS WITH NUMERIC VALUES IN LEVELS 1,2 OR 3
+        rplOverwriteData(1,rplConstant2Number(rplPeekData(1)));
+        rplOverwriteData(2,rplConstant2Number(rplPeekData(2)));
+        rplOverwriteData(3,rplConstant2Number(rplPeekData(3)));
+
+
         WORDPTR *dstkptr=DSTop;
 
 #define ARG_USERFUNC  *(dstkptr-4)
