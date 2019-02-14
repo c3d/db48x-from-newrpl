@@ -202,7 +202,7 @@ R → A<fraction>"
 @#name allroots_rules
 {
 '√.xX:→XROOT(ABS(.xX),2)*c{1,-1}'
-'.xX^(1/.iN):→XROOT(ABS(.xX),.iN)*е^(ARG(.xX)/.iN*і+∡360°/.iN*RANGE(1,.iN,1))'
+'.xX^(1/.iN):→XROOT(ABS(.xX),.iN)*е^(і*(ARG(.xX)/.iN+∡360°/.iN*RANGE(1,.iN,1)))'
 }
 
 

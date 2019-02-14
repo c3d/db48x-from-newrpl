@@ -23,6 +23,7 @@
 ##1,ERR_INVALIDVARRANGE "Invalid variable range"
 ##1,ERR_REALVALUEDFUNCTIONSONLY "Real valued func only"
 ##1,ERR_TRYDIFFERENTRANGE "Try a different range"
+##1,ERR_INVALIDSYMBFUNCTION "Use 'f(x)=...' in expressions."
 }
 
 @#name lib104_menu

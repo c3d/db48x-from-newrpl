@@ -26,7 +26,8 @@
         ERR(INVALIDLISTOFVARS,2), \
         ERR(INVALIDVARRANGE,3), \
         ERR(REALVALUEDFUNCTIONSONLY,4), \
-        ERR(TRYDIFFERENTRANGE,5)
+        ERR(TRYDIFFERENTRANGE,5), \
+        ERR(INVALIDSYMBFUNCTION,6)
 
 // LIST OF COMMANDS EXPORTED,
 // INCLUDING INFORMATION FOR SYMBOLIC COMPILER
@@ -150,6 +151,41 @@ case NUMINT:
             rplError(ERR_PROGRAMEXPECTED);
             return;
         }
+
+        // ADD CHECKS TO SEE IF THE SYMBOLIC IS VALID
+        if(ISSYMBOLIC(*rplPeekData(4))) {
+            if(rplSymbMainOperator(rplPeekData(4))!=CMD_EQUATIONOPERATOR) {
+                rplError(ERR_INVALIDSYMBFUNCTION);
+                return;
+            }
+            WORDPTR leftpart=rplSymbMainOperatorPTR(rplPeekData(4))+1;
+            if(ISSYMBOLIC(*leftpart)) {
+                if(rplSymbMainOperator(leftpart)!=CMD_OVR_FUNCEVAL) {
+                    rplError(ERR_INVALIDSYMBFUNCTION);
+                    return;
+                }
+                // COUNT NUMBER OF ARGUMENTS
+                WORDPTR end=rplSkipOb(leftpart);
+                BINT nargs=0;
+                leftpart=rplSymbMainOperatorPTR(leftpart)+1;
+                while(leftpart<end) { ++nargs; leftpart=rplSkipOb(leftpart); }
+                if(nargs!=2) {
+                    rplError(ERR_INVALIDSYMBFUNCTION);
+                    return;
+                }
+            }
+            else {
+                rplError(ERR_INVALIDSYMBFUNCTION);
+                return;
+
+            }
+
+
+
+        }
+
+
+
 
         if(!ISNUMBERCPLX(*rplPeekData(3)) || !ISNUMBERCPLX(*rplPeekData(2)))
         {
