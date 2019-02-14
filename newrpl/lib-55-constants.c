@@ -65,6 +65,12 @@ INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib55_menu);
 
+INCLUDE_ROMOBJECT(lib55_pi);
+INCLUDE_ROMOBJECT(lib55_i);
+INCLUDE_ROMOBJECT(lib55_e);
+INCLUDE_ROMOBJECT(lib55_j);
+
+
 
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
@@ -72,37 +78,25 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)LIB_HELPTABLE,
     (WORDPTR)LIB_MSGTABLE,
     (WORDPTR)lib55_menu,
+    // HERE ADD THE VALUES OF THE CONSTANTS AS RPL OBJECTS. ALL CONSTANTS NEED TO HAVE THEIR NUMERIC OBJECTS IN ROM
+    (WORDPTR)lib55_pi,
+    (WORDPTR)lib55_i,
+    (WORDPTR)lib55_e,
+    (WORDPTR)lib55_j,
+
     0
 };
 
 
 // CONVERT A CONSTANT TO A NUMBER
 // RETURNS EITHER A NEW OBJECT WITH THE NUMERIC REPRESENTATION OF THE CONSTANT
-// OR THE SAME OBJECT AS BEFORE. MAY TRIGGER A GC BUT RETURNED POINTER IS SAFE FROM GC.
-
+// OR THE SAME OBJECT AS BEFORE.
+// RETURNS OBJECTS IN ROM, VERY FAST, NEVER TRIGGERS GC OR ALLOCATES ANY MEMORY
+// DRAWBACK: IT'S ALWAYS AT MAXIMUM PRECISION (2000 DIGITS)
 WORDPTR rplConstant2Number(WORDPTR object)
 {
     if(!ISCONSTANT(*object)) return object;
-    WORD saveopcode=CurOpcode;
-    rplPushDataNoGrow(object);
-    CurOpcode=object[1];   // GET THE OPCODE FOR THE SYMBOL
-    LIB_HANDLER();
-    CurOpcode=saveopcode;
-    return rplPopData();
-}
-
-// PUT THE GIVEN CONSTANT INTO RReg[0] OR RReg[0] AND RReg[1] IF COMPLEX
-// RETURNS 1 IF REAL, 1000+ANGLE_MODE IF COMPLEX
-
-
-BINT rplConstant2NumberDirect(WORDPTR object)
-{
-    if(!ISCONSTANT(*object)) return 0;
-    WORD saveopcode=CurOpcode;
-    CurOpcode=object[1]|CONSTANT_DIRECT2NUMBER;   // GET THE OPCODE FOR THE SYMBOL
-    LIB_HANDLER();
-    CurOpcode=saveopcode;
-    return (BINT)RetNum;
+    return ROMPTR_TABLE[OPCODE(object[1])+3];   // GET THE OPCODE FOR THE SYMBOL
 }
 
 void LIB_HANDLER()
@@ -138,9 +132,8 @@ void LIB_HANDLER()
                 return;
             case OVR_NUM:
             {
-                WORDPTR obj=rplPeekData(1);
-                CurOpcode=obj[1];   // GET THE OPCODE FOR THE SYMBOL
-                break;              // AND CONTINUE TO THE EXECUTION PART
+                rplOverwriteData(1,rplConstant2Number(rplPeekData(1)));
+                return;
             }
 
             case OVR_ISTRUE:
@@ -194,88 +187,6 @@ void LIB_HANDLER()
     switch(OPCODE(CurOpcode))
     {
 
-    case PICONST:
-    {
-        //@SHORT_DESC=Numeric constant π with twice the current system precision
-        //@NEW
-
-        if(rplDepthData()<1) { rplError(ERR_BADARGCOUNT); return; }
-        REAL pi;
-
-        decconst_PI(&pi);
-
-        WORDPTR result=rplNewReal(&pi);
-        if(result) rplOverwriteData(1,result);
-        return;
-
-    }
-    case PICONST | CONSTANT_DIRECT2NUMBER:
-    {
-        // PUT THE CONSTANT DIRECTLY INTO RReg[0] (REAL) OR RReg[0] AND [1] FOR COMPLEX
-        // RETURNS RetNum=1 IF REAL, 1000+ANGLE_MODE IF COMPLEX
-        REAL pi;
-
-        decconst_PI(&pi);
-        copyReal(&RReg[0],&pi);
-        normalize(&RReg[0]);
-        return;
-    }
-    case ECONST:
-    {
-        //@SHORT_DESC=Numeric constant e at current system precision
-        //@NEW
-
-        if(rplDepthData()<1) { rplError(ERR_BADARGCOUNT); return; }
-
-        rplOneToRReg(0);
-
-        hyp_exp(&RReg[0]);
-
-        normalize(&RReg[0]);
-
-        WORDPTR result=rplNewReal(&RReg[0]);
-        if(result) rplOverwriteData(1,result);
-        return;
-
-    }
-    case ECONST | CONSTANT_DIRECT2NUMBER:
-    {
-        // PUT THE CONSTANT DIRECTLY INTO RReg[0] (REAL) OR RReg[0] AND [1] FOR COMPLEX
-        // RETURNS RetNum=1 IF REAL, 1000+ANGLE_MODE IF COMPLEX
-        rplOneToRReg(0);
-
-        hyp_exp(&RReg[0]);
-
-        normalize(&RReg[0]);
-        return;
-    }
-
-    case ICONST:
-    case JCONST:
-    {
-        //@SHORT_DESC=Imaginary constant i = j = (0,1)
-        //@NEW
-
-        if(rplDepthData()<1) { rplError(ERR_BADARGCOUNT); return; }
-
-        rplOneToRReg(0);
-        rplZeroToRReg(1);
-
-        WORDPTR result=rplNewComplex(&RReg[1],&RReg[0],ANGLENONE);
-        if(result) rplOverwriteData(1,result);
-        return;
-
-    }
-
-    case ICONST | CONSTANT_DIRECT2NUMBER:
-    case JCONST | CONSTANT_DIRECT2NUMBER:
-    {
-        // PUT THE CONSTANT DIRECTLY INTO RReg[0] (REAL) OR RReg[0] AND [1] FOR COMPLEX
-        // RETURNS RetNum=1 IF REAL, 1000+ANGLE_MODE IF COMPLEX
-        rplOneToRReg(0);
-        rplZeroToRReg(1);
-        return;
-    }
 
 
     // STANDARIZED OPCODES:

@@ -153,6 +153,8 @@ BINT rplReadRealFlags(WORDPTR object)
 // CHECK IF AN OBJECT IS THE NUMBER ZERO
 BINT rplIsNumberZero(WORDPTR obj)
 {
+  if(ISCONSTANT(*obj)) obj=rplConstant2Number(obj);
+
   if(ISBINT(*obj)) {
       if(ISPROLOG(*obj)) {
           BINT64 *ptr=(BINT64 *)(obj+1);

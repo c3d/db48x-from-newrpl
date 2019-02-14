@@ -53,7 +53,10 @@
     CMD(RULEAPPLY1,MKTOKENINFO(10,TITYPE_NOTALLOWED,2,2)), \
     ECMD(GIVENTHAT,"|",MKTOKENINFO(1,TITYPE_BINARYOP_LEFT,2,15)), \
     CMD(TRIGSIN,MKTOKENINFO(7,TITYPE_CASFUNCTION,1,2)), \
-    CMD(ALLROOTS,MKTOKENINFO(8,TITYPE_CASFUNCTION,1,2))
+    CMD(ALLROOTS,MKTOKENINFO(8,TITYPE_CASFUNCTION,1,2)), \
+    ECMD(CLISTOPENBRACKET,"c{",MKTOKENINFO(2,TITYPE_OPENBRACKET,0,31)), \
+    ECMD(CLISTCLOSEBRACKET,"}",MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31)), \
+    CMD(RANGE,MKTOKENINFO(5,TITYPE_FUNCTION,3,2))
 
 
 //    CMD(TEST,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
@@ -1172,7 +1175,7 @@ void LIB_HANDLER()
 
                     rplSetExceptionHandler(IPtr+5); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
 
-                    if((Opcode==CMD_OPENBRACKET) || (Opcode==CMD_LISTOPENBRACKET)) {
+                    if((Opcode==CMD_OPENBRACKET) || (Opcode==CMD_LISTOPENBRACKET) || (Opcode==CMD_CLISTOPENBRACKET)) {
                         // SPECIAL CASE, THESE COMMANDS NEED THE NUMBER OF ARGUMENTS PUSHED ON THE STACK
                         rplNewBINTPush(newdepth,DECBINT);
 
@@ -1514,7 +1517,7 @@ void LIB_HANDLER()
 
                     rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
 
-                    if((Opcode==CMD_OPENBRACKET) || (Opcode==CMD_LISTOPENBRACKET)) {
+                    if((Opcode==CMD_OPENBRACKET) || (Opcode==CMD_LISTOPENBRACKET)  || (Opcode==CMD_CLISTOPENBRACKET)) {
                         // SPECIAL CASE, THESE COMMANDS NEED THE NUMBER OF ARGUMENTS PUSHED ON THE STACK
                         rplNewBINTPush(newdepth,DECBINT);
                     }
@@ -1662,7 +1665,7 @@ void LIB_HANDLER()
 
                     rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE SYMBEVAL1ERR WORD
 
-                    if((Opcode==CMD_OPENBRACKET) || (Opcode==CMD_LISTOPENBRACKET)) {
+                    if((Opcode==CMD_OPENBRACKET) || (Opcode==CMD_LISTOPENBRACKET)  || (Opcode==CMD_CLISTOPENBRACKET)) {
                         // SPECIAL CASE, THESE COMMANDS NEED THE NUMBER OF ARGUMENTS PUSHED ON THE STACK
                         rplNewBINTPush(newdepth,DECBINT);
                     }
@@ -1963,8 +1966,22 @@ void LIB_HANDLER()
         }
 
         rplCreateList();
-        if(!Exceptions) rplListAutoExpand(rplPeekData(1));
+        //if(!Exceptions) rplListAutoExpand(rplPeekData(1));
         return;
+
+    case CLISTOPENBRACKET:
+                //@SHORT_DESC=@HIDE
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        rplCreateList();
+        if(!Exceptions) rplListAutoExpand(rplPeekData(1));
+
+        return;
+
+
     case LISTCLOSEBRACKET:
                 //@SHORT_DESC=@HIDE
 
@@ -2029,7 +2046,130 @@ void LIB_HANDLER()
         return;
     }
 
+    case RANGE:
+        //@SHORT_DESC=Create a case-list of integers in the given range.
+        //@NEW
 
+    {
+        if(rplDepthData()<3) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        WORDPTR argstart,argend,argstep;
+
+        argstart=rplPeekData(3);
+        argend=rplPeekData(2);
+        argstep=rplPeekData(1);
+
+        if( ISSYMBOLIC(*argstart)||ISIDENT(*argstart)||ISCONSTANT(*argstart) ||
+                ISSYMBOLIC(*argend)||ISIDENT(*argend)||ISCONSTANT(*argend) ||
+                ISSYMBOLIC(*argstep)||ISIDENT(*argstep)||ISCONSTANT(*argstep)
+                ) {
+            rplSymbApplyOperator(CurOpcode,3);
+            return;
+        }
+
+
+        if(ISBINT(*argstart)&&ISBINT(*argend)&&(ISBINT(*argstep)))
+        {
+            // ALL INTEGERS!, DO THIS FASTER
+            BINT64 start,end,step,k;
+            BINT size=1;
+            start=rplReadBINT(argstart);
+            end=rplReadBINT(argend);
+            step=rplReadBINT(argstep);
+            if(end<start) {
+                if(step>=0) step=(end-start)*2;
+            }
+            else if(step<=0) step=(end-start)*2;
+
+            if(step>0) {
+                for(k=start;k<=end;k+=step) {
+                    if( (k<=MAX_SINT)&&(k>=MIN_SINT)) size+=1;
+                    else size+=3;
+                }
+            } else {
+                for(k=start;k>=end;k+=step) {
+                    if( (k<=MAX_SINT)&&(k>=MIN_SINT)) size+=1;
+                    else size+=3;
+                }
+
+            }
+            // HERE WE HAVE THE SIZE OF THE LIST
+            WORDPTR newlist=rplAllocTempOb(size),ptr;
+            if(!newlist) return;
+            newlist[0]=MKPROLOG(DOCASELIST,size);
+            newlist[size]=CMD_ENDLIST;
+            ptr=newlist+1;
+            if(step>0) {
+                for(k=start;k<=end;k+=step) {
+                    ptr=rplWriteBINT(k,DECBINT,ptr);
+                }
+            } else {
+                for(k=start;k>=end;k+=step) {
+                    ptr=rplWriteBINT(k,DECBINT,ptr);
+                }
+            }
+
+            rplOverwriteData(3,newlist);
+            rplDropData(2);
+            return;
+        }
+
+        // USE REAL NUMBERS, WE ARE DEALING WITH LARGE INTEGERS
+        REAL start,end,step;
+        BINT direction;
+        WORDPTR newlist=rplAllocTempOb(2),ptr;
+        if(!newlist) return;
+        ptr=newlist+1;
+
+        rplReadNumberAsReal(argstart,&start);
+        if(Exceptions) return;
+        rplReadNumberAsReal(argend,&end);
+        if(Exceptions) return;
+        rplReadNumberAsReal(argstep,&step);
+        if(Exceptions) return;
+
+        subReal(&RReg[0],&end,&start);
+
+        if(RReg[0].flags&F_NEGATIVE) {
+            if(iszeroReal(&step) || !(step.flags&F_NEGATIVE)) addReal(&RReg[0],&RReg[0],&RReg[0]); // STEP=(END-REAL)*2 SO ONLY ONE POINT WILL BE RETURNED
+            else copyReal(&RReg[0],&step);
+        }
+        else {
+            if(iszeroReal(&step) || (step.flags&F_NEGATIVE)) addReal(&RReg[0],&RReg[0],&RReg[0]); // STEP=(END-REAL)*2 SO ONLY ONE POINT WILL BE RETURNED
+            else copyReal(&RReg[0],&step);
+        }
+
+
+        copyReal(&RReg[1],&start);
+        copyReal(&RReg[2],&end);
+        if(RReg[0].flags&F_NEGATIVE) direction=-1;
+        else direction=1;
+        do {
+            // ADD THE CURRENT NUMBER TO THE LIST
+            ScratchPointer1=newlist;
+            ScratchPointer2=ptr;
+            rplResizeLastObject(RReg[1].len+2);
+            if(Exceptions) return;
+            ptr=ScratchPointer2;
+            newlist=ScratchPointer1;
+            ptr=rplNewRealInPlace(&RReg[1],ptr);
+            addReal(&RReg[1],&RReg[1],&RReg[0]);
+
+        } while(cmpReal(&RReg[1],&RReg[2])!=direction);
+
+        newlist[0]=MKPROLOG(DOCASELIST,ptr-newlist);
+        newlist[ptr-newlist]=CMD_ENDLIST;
+
+
+       rplOverwriteData(3,newlist);
+       rplDropData(2);
+       return;
+
+
+    }
 
 
 
@@ -2068,7 +2208,7 @@ void LIB_HANDLER()
 
         if(*tok==')') {
             if((TokenLen==1) && (CurrentConstruct==MKPROLOG(DOSYMB,0))) {
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,OPENBRACKET)); // INDICATE THE OPENING BRACKET TO MATCH
+                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,CLOSEBRACKET)); // INDICATE THE OPENING BRACKET TO MATCH
                 RetNum=OK_CONTINUE;
             }
             else RetNum=ERR_NOTMINE;
@@ -2083,6 +2223,14 @@ void LIB_HANDLER()
         return;
         }
 
+        if( (TokenLen==2) && (*tok=='c') && (tok[1]=='{')) {
+            if(CurrentConstruct==MKPROLOG(DOSYMB,0)) {
+                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,CLISTOPENBRACKET));
+                RetNum=OK_CONTINUE;
+            }
+            else RetNum=ERR_NOTMINE;
+            return;
+        }
         if(*tok=='{') {
             if((TokenLen==1)&&(CurrentConstruct==MKPROLOG(DOSYMB,0))) {
                 rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LISTOPENBRACKET));
@@ -2094,7 +2242,7 @@ void LIB_HANDLER()
         if(*tok=='}') {
             if((TokenLen==1)&&(CurrentConstruct==MKPROLOG(DOSYMB,0))) {
                 // ISSUE A BUILDLIST OPERATOR
-                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LISTOPENBRACKET));
+                rplCompileAppend(MKOPCODE(LIBRARY_NUMBER,LISTCLOSEBRACKET));
                 RetNum=OK_CONTINUE;
             }
             else RetNum=ERR_NOTMINE;

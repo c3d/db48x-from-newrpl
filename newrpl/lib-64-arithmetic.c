@@ -342,23 +342,6 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISCONSTANT(*arg)) {
-            if(rplConstant2NumberDirect(arg)==1) {
-                if(isintegerReal(&RReg[0])) {
-                    return;
-                }
-                ipReal(&RReg[1],&RReg[0],1);
-                if((RReg[0].flags&F_NEGATIVE)) {
-                    RReg[1].data[0]++;
-                    normalize(&RReg[1]);
-                }
-                rplDropData(1);
-                rplNewRealFromRRegPush(1);
-                return;
-            }
-            rplError(ERR_REALEXPECTED);
-            return;
-        }
 
         REAL rnum;
         if(ISBINT(*arg)) return;
@@ -397,25 +380,6 @@ void LIB_HANDLER()
         }
 
         if(ISBINT(*arg)) return;
-
-        if(ISCONSTANT(*arg)) {
-            if(rplConstant2NumberDirect(arg)==1) {
-                if(isintegerReal(&RReg[0])) {
-                    return;
-                }
-                ipReal(&RReg[1],&RReg[0],1);
-                if(!(RReg[0].flags&F_NEGATIVE)) {
-                    RReg[1].data[0]++;
-                    normalize(&RReg[1]);
-                }
-                rplDropData(1);
-                rplNewRealFromRRegPush(1);
-                return;
-            }
-            rplError(ERR_REALEXPECTED);
-            return;
-        }
-
 
 
         REAL rnum;
@@ -464,18 +428,7 @@ void LIB_HANDLER()
         return;
     }
 
-    if(ISCONSTANT(*arg)) {
-        if(rplConstant2NumberDirect(arg)==1) {
-            ipReal(&RReg[1],&RReg[0],1);
-            rplDropData(1);
-            rplNewRealFromRRegPush(1);
-            return;
-        }
-        rplError(ERR_REALEXPECTED);
-        return;
-    }
-
-    REAL rnum;
+     REAL rnum;
     rplReadNumberAsReal(arg,&rnum);
     if(Exceptions) return;
 
@@ -544,17 +497,6 @@ case IPPOST:
     if(ISBINT(*arg)) {
         rplDropData(1);
         rplPushData((WORDPTR)zero_bint);
-        return;
-    }
-
-    if(ISCONSTANT(*arg)) {
-        if(rplConstant2NumberDirect(arg)==1) {
-            fpReal(&RReg[1],&RReg[0],1);
-            rplDropData(1);
-            rplNewRealFromRRegPush(1);
-            return;
-        }
-        rplError(ERR_REALEXPECTED);
         return;
     }
 
@@ -654,22 +596,6 @@ case IPPOST:
 
         } else {
 
-            if(ISCONSTANT(*arg)) {
-                if(rplConstant2NumberDirect(arg)==1) {
-                    if(!isintegerReal(&RReg[0])) {
-                        rplError(ERR_INTEGEREXPECTED);
-                        return;
-                    }
-                    swapReal(&RReg[0],&RReg[7]);
-                    if(isprimeReal(&RReg[7])) rplOverwriteData(1,(WORDPTR)one_bint);
-                    else rplOverwriteData(1,(WORDPTR)zero_bint);
-                    return;
-                }
-                rplError(ERR_REALEXPECTED);
-                return;
-            }
-
-
             REAL num;
             rplReadNumberAsReal(arg,&num);
 
@@ -724,25 +650,6 @@ case IPPOST:
             // THE NEXT PRIME IS > 2^63, USE REALS INSTEAD
 
         }
-
-        if(ISCONSTANT(*arg)) {
-            if(rplConstant2NumberDirect(arg)==1) {
-                if(!isintegerReal(&RReg[0])) {
-                    rplError(ERR_INTEGEREXPECTED);
-                    return;
-                }
-                swapReal(&RReg[0],&RReg[7]);
-                nextprimeReal(0,&RReg[7]);
-                rplDropData(1);
-                rplNewRealFromRRegPush(0);
-
-
-                return;
-            }
-            rplError(ERR_REALEXPECTED);
-            return;
-        }
-
 
         REAL num;
             rplReadNumberAsReal(arg,&num);
@@ -819,17 +726,7 @@ case IPPOST:
 
         REAL num;
 
-        if(ISCONSTANT(*arg)) {
-            if(rplConstant2NumberDirect(arg)==1) {
-                swapReal(&RReg[0],&RReg[8]);
-                cloneReal(&num,&RReg[8]);
-            }
-            else {
-            rplError(ERR_INTEGEREXPECTED);
-            return;
-            }
-        }
-        else rplReadNumberAsReal(arg,&num);
+        rplReadNumberAsReal(arg,&num);
 
             if(!isintegerReal(&num)) {
                 rplError(ERR_INTEGEREXPECTED);
@@ -894,17 +791,7 @@ case IPPOST:
             else {
                 REAL num;
 
-                if(ISCONSTANT(*arg)) {
-                    if(rplConstant2NumberDirect(arg)==1) {
-                        swapReal(&RReg[0],&RReg[8]);
-                        cloneReal(&num,&RReg[8]);
-                    }
-                    else {
-                    rplError(ERR_INTEGEREXPECTED);
-                    return;
-                    }
-                }
-                else rplReadNumberAsReal(arg,&num);
+                rplReadNumberAsReal(arg,&num);
 
                 if(!isintegerReal(&num)) {
                     rplError(ERR_INTEGEREXPECTED);
@@ -972,12 +859,15 @@ case IPPOST:
             return;
         }
 
+
         WORDPTR mod=rplGetSettingsbyName((BYTEPTR)modulo_name,(BYTEPTR)modulo_name+3);
         if(!mod) mod=(WORDPTR)two_bint;
         if( !ISNUMBER(*arg2) || !ISNUMBER(*mod)) {
             rplError(ERR_BADARGTYPE);
             return;
         }
+
+
 
         if(ISBINT(*arg1) && ISBINT(*arg2) && ISBINT(*mod)) {
 

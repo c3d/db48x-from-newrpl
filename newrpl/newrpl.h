@@ -657,6 +657,8 @@ WORDPTR rplListAddRot(WORDPTR list,WORDPTR object,BINT nmax);
 WORDPTR rplListReplace(WORDPTR list,BINT position,WORDPTR object);
 WORDPTR rplListReplaceMulti(WORDPTR list,BINT position,WORDPTR object);
 void rplListExpandCases();
+BINT rplListHasLists(WORDPTR list);
+
 
 
 

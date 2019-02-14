@@ -602,11 +602,14 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             while(InfixOpTop>(WORDPTR)ValidateTop){
                                 if((TI_TYPE(*(InfixOpTop-1))==TITYPE_OPENBRACKET)) {
                                     // CHECK IF THE BRACKET IS THE RIGHT TYPE OF BRACKET
-                                    if((TI_TYPE(probe_tokeninfo)==TITYPE_CLOSEBRACKET) &&(*(InfixOpTop-2)!=Opcode)) {
+                                    if((TI_TYPE(probe_tokeninfo)==TITYPE_CLOSEBRACKET) &&(*(InfixOpTop-2)!=(Opcode-1))) {
                                         // MISMATCHED BRACKET TYPE
+                                        // SPECIAL CASE: ALLOW LISTBRACKET TO CLOSE CLISTBRACKETS
+                                        if(!((Opcode==CMD_LISTCLOSEBRACKET)&&(*(InfixOpTop-2)==CMD_CLISTOPENBRACKET))) {
                                         rplError(ERR_MISSINGBRACKET);
                                         LAMTop=LAMTopSaved;
                                         return 0;
+                                        }
                                     }
                                     break;
                                 }
@@ -1272,6 +1275,7 @@ end_of_expression:
         case INFIX_STARTSYMBOLIC:
             rplDecompAppendChar('\'');
             if(Exceptions) break;
+            // DELIBERATE FALL THROUGH
         case INFIX_STARTEXPRESSION:
         {
 

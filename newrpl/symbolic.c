@@ -492,7 +492,6 @@ WORDPTR rplSymbImplode(WORDPTR *exprstart)
     {
         if(addcount) { numobjects+=OBJSIZE(**stkptr)-1; addcount=0; }
         if((!ISBINT(**stkptr)) && (!ISPROLOG(**stkptr))) { addcount=1; ++numobjects; }
-
         size+=rplObjSize(*stkptr);
         --stkptr;
     }
@@ -516,13 +515,37 @@ WORDPTR rplSymbImplode(WORDPTR *exprstart)
             ++f;
         }
         else {
-            if(f==0) {
-                // FIRST OBJECT NEEDS A SYMBOLIC WRAPPER EVEN WITHOUT AN OPCODE
-                *newptr++=MKPROLOG(DOSYMB,rplObjSize(object));
+            if(ISLIST(*object)) {
+                // CONVERT THE LIST INTO A SYMBOLIC LIST CONSTRUCTOR OPERATOR
+                *newptr++=MKPROLOG(DOSYMB,rplObjSize(object)-1);
+                if(ISAUTOEXPLIST(*object)) *newptr++=CMD_CLISTOPENBRACKET;
+                else *newptr++=CMD_LISTOPENBRACKET;
+                // NOW COPY THE OBJECTS IN THE LIST
+                WORDPTR endobj=rplSkipOb(object)-1; // STOP AT THE CMD_ENDLIST OBJECT
+                BINT k;
+                object++;
+                while(object!=endobj) {
+                    if(*object==CMD_ENDLIST) { ++object; continue; }
+                    if(ISLIST(*object)) {
+                        *newptr++=MKPROLOG(DOSYMB,rplObjSize(object)-1);
+                        if(ISAUTOEXPLIST(*object)) *newptr++=CMD_CLISTOPENBRACKET;
+                        else *newptr++=CMD_LISTOPENBRACKET;
+                        object++;
+                        continue;
+                    }
+                    for(k=0;k<rplObjSize(object);++k) *newptr++=*object++;
+                }
+
             }
+            else {
+            if(f==0) {
+                    // FIRST OBJECT NEEDS A SYMBOLIC WRAPPER EVEN WITHOUT AN OPCODE
+                    *newptr++=MKPROLOG(DOSYMB,rplObjSize(object));
+             }
             // COPY THE OBJECT
             WORDPTR endobj=rplSkipOb(object);
             while(object!=endobj) *newptr++=*object++;
+            }
         }
 
         --stkptr;
@@ -633,7 +656,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
     stkptr=DSTop-1;
     endofstk=stkptr-numitems;
 
-    //*******************************************
+    // *******************************************
     // SCAN THE SYMBOLIC FOR ITEM A)
     // A) NEGATIVE NUMBERS REPLACED WITH NEG(n)
 
@@ -692,7 +715,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
         }
 
 
-    //*******************************************
+    // *******************************************
     // SCAN THE SYMBOLIC FOR ITEM B)
     // B) ALL SUBTRACTIONS REPLACED WITH ADDITION OF NEGATED ITEMS
 
@@ -730,7 +753,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
 
 
 
-    //*******************************************
+    // *******************************************
     // SCAN THE SYMBOLIC FOR ITEM C)
     // C) ALL NEG(A+B+...) = NEG(A)+NEG(B)+NEG(...)
 
@@ -805,7 +828,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
 
 
 
-    //*******************************************
+    // *******************************************
     // SCAN THE SYMBOLIC FOR ITEM D)
     // D) FLATTEN ALL ADDITION TREES
 
@@ -856,7 +879,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
         }
 
 
-    //*******************************************
+    // *******************************************
     // SCAN THE SYMBOLIC FOR ITEM E)
     // E) ALL NEGATIVE POWERS REPLACED WITH a^-n = INV(a^n)
 
@@ -890,7 +913,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
         --stkptr;
         }
 
-    //*******************************************
+    // *******************************************
     // SCAN THE SYMBOLIC FOR ITEM F)
     // F) ALL DIVISIONS REPLACED WITH MULTIPLICATION BY INV()
 
@@ -926,7 +949,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
         }
 
 
-    //*******************************************
+    // *******************************************
     // SCAN THE SYMBOLIC FOR ITEM G)
     // G) ALL INV(A*B*...) = INV(...)*INV(B)*INV(A)
 
@@ -1073,7 +1096,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
         --stkptr;
         }
 
-    //*******************************************
+    // *******************************************
     // SCAN THE SYMBOLIC FOR ITEM G.2)
     // G.2) ALL NEG(A*B*...) = NEG(A)*B*...
 
@@ -1103,7 +1126,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
         --stkptr;
         }
 
-    //*******************************************
+    // *******************************************
     // SCAN THE SYMBOLIC FOR ITEM G.3)
     // G.3) ALL NEG(NEG(...)) = (...)
 
@@ -1133,7 +1156,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
         --stkptr;
         }
 
-    //*******************************************
+    // *******************************************
     // SCAN THE SYMBOLIC FOR ITEM H)
     // H) FLATTEN ALL MULTIPLICATION TREES
 
@@ -1185,7 +1208,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
 
 
 if(for_display) {
-    //*******************************************
+    // *******************************************
     // SCAN THE SYMBOLIC FOR ITEM I)
     // I) SORT ALL MULTIPLICATIONS WITH INV(...) LAST, NON-INVERSE FACTORS FIRST
     // ALSO, IF ALL FACTORS ARE INV(...), THEN ADD A BINT 1 AS FIRST ELEMENT (1/X)
@@ -1269,7 +1292,7 @@ if(for_display) {
         --stkptr;
         }
 
-    //*******************************************
+    // *******************************************
     // SCAN THE SYMBOLIC FOR ITEM J)
     // J) ANY EXPRESSION STARTING WITH INV() NEEDS TO BE REPLACED WITH 1*INV(), EXCEPT MUL ARGUMENTS
 
@@ -2341,7 +2364,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 }
 
                 // SPECIAL CASE: FOR BRACKET OPERATORS WE NEED TO KEEP THEM AS SYMBOLIC
-                if((**stkptr==CMD_OPENBRACKET)||(**stkptr==CMD_LISTOPENBRACKET)) rplSymbApplyOperator(**stkptr,nargs);
+                if((**stkptr==CMD_OPENBRACKET)||(**stkptr==CMD_LISTOPENBRACKET)||(**stkptr==CMD_CLISTOPENBRACKET)) rplSymbApplyOperator(**stkptr,nargs);
                 else rplCallOperator(**stkptr);
                 if(Exceptions) { rplBlameError(*stkptr); DSTop=endofstk+1; return 0; }
 
@@ -2916,9 +2939,9 @@ BINT rplSymbRuleMatch()
     rplPushDataNoGrow(newexp);
 
 
-    //******************************************************
+    // ******************************************************
     // DEBUG ONLY AREA
-    //******************************************************
+    // ******************************************************
 #ifdef RULEDEBUG
     printf("START RULE MATCH 3: ");
 
@@ -3015,9 +3038,9 @@ do {
         // GET POINTERS TO THE LEFT AND RIGHT EXPRESSIONS, AND ARGUMENT COUNTS
         reloadPointers(DSTop,&s);
 
-        //******************************************************
+        // ******************************************************
         // DEBUG ONLY AREA
-        //******************************************************
+        // ******************************************************
 #ifdef RULEDEBUG
         printf("OPMATCH: ");
 
@@ -3037,9 +3060,9 @@ do {
         }
         printf("\n"); fflush(stdout);
 #endif
-        //******************************************************
+        // ******************************************************
         //      END DEBUG ONLY AREA
-        //******************************************************
+        // ******************************************************
 
         // OPERATOR COMPARISON, CHECK IF OPERATORS ARE IDENTICAL
         if(s.rightnargs) {
@@ -3970,9 +3993,9 @@ do {
         // UPDATE POINTERS
         reloadPointers(DSTop,&s);
 
-        //******************************************************
+        // ******************************************************
         // DEBUG ONLY AREA
-        //******************************************************
+        // ******************************************************
 #ifdef RULEDEBUG
         printf("ARGMATCH: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
         if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
@@ -3995,9 +4018,9 @@ do {
         }
         printf("\n"); fflush(stdout);
 #endif
-        //******************************************************
+        // ******************************************************
         //      END DEBUG ONLY AREA
-        //******************************************************
+        // ******************************************************
 
 
 
@@ -4048,9 +4071,9 @@ do {
 
         reloadPointers(DSTop,&s);
 
-        //******************************************************
+        // ******************************************************
         // DEBUG ONLY AREA
-        //******************************************************
+        // ******************************************************
 #ifdef RULEDEBUG
         printf("RESTARTMATCH: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
         if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
@@ -4073,9 +4096,9 @@ do {
         }
         printf("\n"); fflush(stdout);
 #endif
-        //******************************************************
+        // ******************************************************
         //      END DEBUG ONLY AREA
-        //******************************************************
+        // ******************************************************
 
 
         if(s.leftidx<s.leftnargs) {
@@ -4109,9 +4132,9 @@ do {
             matchtype=OPMATCH;
             matchstarted=0;
 
-            //******************************************************
+            // ******************************************************
             // DEBUG ONLY AREA
-            //******************************************************
+            // ******************************************************
     #ifdef RULEDEBUG
             printf("RESTARTED: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
             if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
@@ -4134,9 +4157,9 @@ do {
             }
             printf("\n"); fflush(stdout);
     #endif
-            //******************************************************
+            // ******************************************************
             //      END DEBUG ONLY AREA
-            //******************************************************
+            // ******************************************************
 
 
 
@@ -4155,16 +4178,16 @@ do {
 
                     DSTop=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
                     baselevel=DSTop-DStkBottom;
-                    //******************************************************
+                    // ******************************************************
                     // DEBUG ONLY AREA
-                    //******************************************************
+                    // ******************************************************
             #ifdef RULEDEBUG
                     printf("RESTARTMATCH UP");
                     printf("\n"); fflush(stdout);
             #endif
-                    //******************************************************
+                    // ******************************************************
                     //      END DEBUG ONLY AREA
-                    //******************************************************
+                    // ******************************************************
 
 
 
@@ -4177,9 +4200,9 @@ do {
 
         reloadPointers(DSTop,&s);
 
-        //******************************************************
+        // ******************************************************
         // DEBUG ONLY AREA
-        //******************************************************
+        // ******************************************************
 #ifdef RULEDEBUG
         printf("BACKTRACK: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
         if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
@@ -4202,9 +4225,9 @@ do {
         }
         printf("\n"); fflush(stdout);
 #endif
-        //******************************************************
+        // ******************************************************
         //      END DEBUG ONLY AREA
-        //******************************************************
+        // ******************************************************
 
 
 
@@ -4236,32 +4259,32 @@ do {
                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
 
-                //******************************************************
+                // ******************************************************
                 // DEBUG ONLY AREA
-                //******************************************************
+                // ******************************************************
         #ifdef RULEDEBUG
                 printf("ARGUMENT ROT1");
                 printf("\n"); fflush(stdout);
         #endif
-                //******************************************************
+                // ******************************************************
                 //      END DEBUG ONLY AREA
-                //******************************************************
+                // ******************************************************
                 }
                 else {
                     if(s.leftrot && (s.leftrot==s.leftnargs-s.leftidx)) {
                         // ALL ARGUMENTS COMPLETE
                         matchtype=BACKTRACK;
 
-                        //******************************************************
+                        // ******************************************************
                         // DEBUG ONLY AREA
-                        //******************************************************
+                        // ******************************************************
                 #ifdef RULEDEBUG
                         printf("BACKTRACKED UP");
                         printf("\n"); fflush(stdout);
                 #endif
-                        //******************************************************
+                        // ******************************************************
                         //      END DEBUG ONLY AREA
-                        //******************************************************
+                        // ******************************************************
 
                         break;
                     }
@@ -4272,9 +4295,9 @@ do {
             // NON-COMMUTATIVE MATCH BACKTRACK FROM A SNAPSHOT, THIS SHOULD NEVER HAPPEN (???)
 
 
-                //******************************************************
+                // ******************************************************
                 // DEBUG ONLY AREA
-                //******************************************************
+                // ******************************************************
         #ifdef RULEDEBUG
                 printf("ERROR IN BACKTRACK: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
                 if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
@@ -4297,9 +4320,9 @@ do {
                 }
                 printf("\n"); fflush(stdout);
         #endif
-                //******************************************************
+                // ******************************************************
                 //      END DEBUG ONLY AREA
-                //******************************************************
+                // ******************************************************
 
                 break;
 
@@ -4340,9 +4363,9 @@ do {
                     matchstarted=0;
 
 
-                    //******************************************************
+                    // ******************************************************
                     // DEBUG ONLY AREA
-                    //******************************************************
+                    // ******************************************************
             #ifdef RULEDEBUG
                     printf("BACKTRACKED: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
                     if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
@@ -4365,9 +4388,9 @@ do {
                     }
                     printf("\n"); fflush(stdout);
             #endif
-                    //******************************************************
+                    // ******************************************************
                     //      END DEBUG ONLY AREA
-                    //******************************************************
+                    // ******************************************************
 
 
                     // CLEAN THE PREVIOUS ENVIRONMENT
@@ -4386,16 +4409,16 @@ do {
                 // KEEP BACKTRACKING
                 DSTop=s.left- ( (s.leftnargs)? (1+s.leftnargs):0); // DROP ENTIRE LEVEL
 
-                //******************************************************
+                // ******************************************************
                 // DEBUG ONLY AREA
-                //******************************************************
+                // ******************************************************
         #ifdef RULEDEBUG
                 printf("BACKTRACKED UP");
                 printf("\n"); fflush(stdout);
         #endif
-                //******************************************************
+                // ******************************************************
                 //      END DEBUG ONLY AREA
-                //******************************************************
+                // ******************************************************
                 }
             }
         break;
@@ -4404,9 +4427,9 @@ do {
     {
         reloadPointers(DSTop,&s);
 
-        //******************************************************
+        // ******************************************************
         // DEBUG ONLY AREA
-        //******************************************************
+        // ******************************************************
 #ifdef RULEDEBUG
         printf("ARGDONE: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
         if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
@@ -4429,9 +4452,9 @@ do {
         }
         printf("\n"); fflush(stdout);
 #endif
-        //******************************************************
+        // ******************************************************
         //      END DEBUG ONLY AREA
-        //******************************************************
+        // ******************************************************
 
 
         ++s.leftidx;
@@ -4447,9 +4470,9 @@ do {
                         rplSymbReplaceMatchHere(rule,s.leftidx-s.rightnargs);
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
-                        //******************************************************
+                        // ******************************************************
                         // DEBUG ONLY AREA
-                        //******************************************************
+                        // ******************************************************
                 #ifdef RULEDEBUG
                         printf("REPLACED (EXTRA LEFT): ");
                         WORDPTR string=rplDecompile(*DStkBottom,DECOMP_EDIT|DECOMP_NOHINTS);
@@ -4461,9 +4484,9 @@ do {
                         }
                         printf("\n"); fflush(stdout);
                 #endif
-                        //******************************************************
+                        // ******************************************************
                         //      END DEBUG ONLY AREA
-                        //******************************************************
+                        // ******************************************************
                         // UPDATE ALL POINTERS AS THE EXPRESSION MOVED IN THE STACK
                         baselevel=DSTop-DStkBottom;
                         reloadPointers(DSTop,&s);
@@ -4516,16 +4539,16 @@ do {
                             if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
 
-                            //******************************************************
+                            // ******************************************************
                             // DEBUG ONLY AREA
-                            //******************************************************
+                            // ******************************************************
                     #ifdef RULEDEBUG
                             printf("ARGDONE UP");
                             printf("\n"); fflush(stdout);
                     #endif
-                            //******************************************************
+                            // ******************************************************
                             //      END DEBUG ONLY AREA
-                            //******************************************************
+                            // ******************************************************
 
 
                         }
@@ -4596,9 +4619,9 @@ do {
                     if( (s.leftidx-s.rightnargs>=1)&& (s.leftidx-s.rightnargs<s.leftnargs)) rplSymbReplaceMatchHere(rule,s.leftidx-s.rightnargs);
                     else rplSymbReplaceMatchHere(rule,1);
                     if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                    //******************************************************
+                    // ******************************************************
                     // DEBUG ONLY AREA
-                    //******************************************************
+                    // ******************************************************
             #ifdef RULEDEBUG
                     printf("REPLACED (EXACT): ");
                     WORDPTR string=rplDecompile(*DStkBottom,DECOMP_EDIT|DECOMP_NOHINTS);
@@ -4610,9 +4633,9 @@ do {
                     }
                     printf("\n"); fflush(stdout);
             #endif
-                    //******************************************************
+                    // ******************************************************
                     //      END DEBUG ONLY AREA
-                    //******************************************************
+                    // ******************************************************
 
                     // UPDATE ALL POINTERS AS THE EXPRESSION MOVED IN THE STACK
                     baselevel=DSTop-DStkBottom;
@@ -4665,16 +4688,16 @@ do {
 
             // ALL ARGUMENTS ARE DONE, PASS IT TO THE UPPER LEVEL
             DSTop=s.left- ( (s.leftnargs)? (1+s.leftnargs):0);
-            //******************************************************
+            // ******************************************************
             // DEBUG ONLY AREA
-            //******************************************************
+            // ******************************************************
     #ifdef RULEDEBUG
             printf("ARGDONE UP");
             printf("\n"); fflush(stdout);
     #endif
-            //******************************************************
+            // ******************************************************
             //      END DEBUG ONLY AREA
-            //******************************************************
+            // ******************************************************
 
 
             }
@@ -4685,9 +4708,9 @@ do {
     case ARGDONEEXTRA:
     {
         reloadPointers(DSTop,&s);
-        //******************************************************
+        // ******************************************************
         // DEBUG ONLY AREA
-        //******************************************************
+        // ******************************************************
 #ifdef RULEDEBUG
         printf("ARGDONEEXTRA: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
         if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
@@ -4710,9 +4733,9 @@ do {
         }
         printf("\n"); fflush(stdout);
 #endif
-        //******************************************************
+        // ******************************************************
         //      END DEBUG ONLY AREA
-        //******************************************************
+        // ******************************************************
 
         // TODO: HANDLE THE CASE OF PARTIAL MATCH
         // ALL ARGUMENTS ARE DONE, PASS IT TO THE UPPER LEVEL

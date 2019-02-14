@@ -341,7 +341,7 @@ case NUMINT:
                 // HERE THERE'S 8 VALUES ON THE STACK OVER THE RIGHT PART: D F(D) E F(E) AREA_L AREA_R NEWERR FALSE
 
                 rplOverwriteData(1,L_ERR);
-                //*** TESTING: DO NOT HALVE THE ERROR EACH TIME
+                // *** TESTING: DO NOT HALVE THE ERROR EACH TIME
                 //plPushData((WORDPTR)one_half_real);
                 //rplCallOvrOperator(CMD_OVR_MUL);        // L_ERR/2
                 //if(Exceptions) { DSTop=dstkptr;  return; }
@@ -802,7 +802,7 @@ case NUMINT:
 
 
 
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
             /*
             char Buffer0[1000],Buffer1[1000],Buffer2[1000];
             rplReadNumberAsReal(rplPeekData(3),&x1);
@@ -814,7 +814,7 @@ case NUMINT:
 
             printf("INI: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
             */
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
 
 
 
@@ -947,7 +947,7 @@ case NUMINT:
         if(gteReal(&fx,&x1) && ltReal(&fx,&x2)) {
             // REPLACE POINT AND CONTINUE
             /*
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
             char Buffer0[1000],Buffer1[1000],Buffer2[1000];
             rplReadNumberAsReal(rplPeekData(3),&x1);
             rplReadNumberAsReal(rplPeekData(2),&x2);
@@ -957,7 +957,7 @@ case NUMINT:
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
             printf("REF: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
             */
 
             WORDPTR newpt=rplCreateListN(nvars+1,1,1);
@@ -1008,7 +1008,7 @@ case NUMINT:
             // NOW REPLACE WORST POINT WITH P
 
             /*
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
             char Buffer0[1000],Buffer1[1000],Buffer2[1000];
             rplReadNumberAsReal(rplPeekData(3),&x1);
             rplReadNumberAsReal(rplPeekData(2),&x2);
@@ -1018,7 +1018,7 @@ case NUMINT:
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
             printf("EXP: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
             */
             // REPLACE POINT AND CONTINUE
             WORDPTR newpt=rplCreateListN(nvars+1,1,1);
@@ -1071,7 +1071,7 @@ case NUMINT:
             rplRemoveAtData(nvars+2,nvars+1);   // KEEP P''
 
             /*
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
             char Buffer0[1000],Buffer1[1000],Buffer2[1000];
             rplReadNumberAsReal(rplPeekData(3),&x1);
             rplReadNumberAsReal(rplPeekData(2),&x2);
@@ -1081,7 +1081,7 @@ case NUMINT:
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
             printf("CON: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
             */
 
 
@@ -1128,7 +1128,7 @@ case NUMINT:
             if(Exceptions) { DSTop=stksave; return; }
 
             /*
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
             char Buffer0[1000],Buffer1[1000],Buffer2[1000];
             rplReadNumberAsReal(rplPeekData(3),&x1);
             rplReadNumberAsReal(rplPeekData(2),&x2);
@@ -1138,7 +1138,7 @@ case NUMINT:
             *formatReal(&fx,Buffer2,FMT_CODE,MAKELOCALE('.',' ',' ',','))=0;
 
             printf("SHR: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
             */
             // REPLACE POINT
             WORDPTR newpt=rplCreateListN(nvars+1,1,1);
@@ -1301,7 +1301,7 @@ case NUMINT:
             // NOW REPLACE WORST POINT WITH P
 
 
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
             /*
             {
             char Buffer0[1000],Buffer1[1000],Buffer2[1000];
@@ -1315,7 +1315,7 @@ case NUMINT:
             printf("EXP: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
             }
             */
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
 
             // REPLACE POINT AND CONTINUE
             WORDPTR newpt=rplCreateListN(nvars+1,1,1);
@@ -1339,7 +1339,7 @@ case NUMINT:
 
 
 
-        //************************* DEBUG ONLY ***************************
+        // ************************* DEBUG ONLY ***************************
         /*
         char Buffer0[1000],Buffer1[1000],Buffer2[1000];
         rplReadNumberAsReal(rplPeekData(3),&x1);
@@ -1351,7 +1351,7 @@ case NUMINT:
 
         printf("P??: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
         */
-        //************************* DEBUG ONLY ***************************
+        // ************************* DEBUG ONLY ***************************
 
         // REFLECTION DIDN'T IMPROVE ON OUR BEST POINT, FIND A POINT THROUGH GRADIENTS TO SEE IF WE CAN DO BETTER
 
@@ -1446,7 +1446,7 @@ case NUMINT:
                 if(Exceptions) { DSTop=stksave; return; }
 
 
-                //************************* DEBUG ONLY ***************************
+                // ************************* DEBUG ONLY ***************************
                 /*
                 {
                 char Buffer0[1000],Buffer1[1000],Buffer2[1000];
@@ -1460,7 +1460,7 @@ case NUMINT:
                 printf("GR?: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
                 }
                 */
-                //************************* DEBUG ONLY ***************************
+                // ************************* DEBUG ONLY ***************************
 
                 rplReadNumberAsReal(rplPeekData(1),&x1);        // F(G')
                 rplReadNumberAsReal(rplPeekData(nvars+2),&fx);  // F(P)
@@ -1480,7 +1480,7 @@ case NUMINT:
         if(ltReal(&fx,&x2)) {
             // REPLACE POINT AND CONTINUE
 
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
             /*
             char Buffer0[1000],Buffer1[1000],Buffer2[1000];
             rplReadNumberAsReal(rplPeekData(3),&x1);
@@ -1492,7 +1492,7 @@ case NUMINT:
 
             printf("REF: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
             */
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
 
 
             WORDPTR newpt=rplCreateListN(nvars+1,1,1);
@@ -1546,7 +1546,7 @@ case NUMINT:
             rplRemoveAtData(nvars+2,nvars+1);   // KEEP P''
 
 
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
             /*
             char Buffer0[1000],Buffer1[1000],Buffer2[1000];
             rplReadNumberAsReal(rplPeekData(3),&x1);
@@ -1558,7 +1558,7 @@ case NUMINT:
 
             printf("CON: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
             */
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
 
 
 
@@ -1605,7 +1605,7 @@ case NUMINT:
             if(Exceptions) { DSTop=stksave; return; }
 
 
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
             /*
             char Buffer0[1000],Buffer1[1000],Buffer2[1000];
             rplReadNumberAsReal(rplPeekData(3),&x1);
@@ -1617,7 +1617,7 @@ case NUMINT:
 
             printf("SHR: X=%s     , Y=%s       , F(P)=%s\n",Buffer0,Buffer1,Buffer2); fflush(stdout);
             */
-            //************************* DEBUG ONLY ***************************
+            // ************************* DEBUG ONLY ***************************
 
             // REPLACE POINT
             WORDPTR newpt=rplCreateListN(nvars+1,1,1);

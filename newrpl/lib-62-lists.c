@@ -3005,10 +3005,67 @@ void LIB_HANDLER()
         //DECOMPILE RETURNS
         // RetNum =  enum DecompileErrors
         if(ISPROLOG(*DecompileObject)) {
+
+
             if(!ISAUTOEXPLIST(*DecompileObject)) rplDecompAppendString((BYTEPTR)"{");
             else rplDecompAppendString((BYTEPTR)"c{");
-            RetNum=OK_STARTCONSTRUCT;
+            BINT islistoflist=rplListHasLists(DecompileObject);
+            BINT depth=0,needseparator;
+
+            if(islistoflist) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER|HINT_ADDINDENTAFTER);
+            else needseparator=!rplDecompDoHintsWidth(0);
+            if(needseparator) rplDecompAppendChar(' ');
+
+            BINT offset=1,endoffset=rplObjSize(DecompileObject);
+
+            while(offset<endoffset)
+            {
+                if(ISLIST(DecompileObject[offset])) {
+
+
+                    if(!ISAUTOEXPLIST(DecompileObject[offset])) rplDecompAppendString((BYTEPTR)"{");
+                    else rplDecompAppendString((BYTEPTR)"c{");
+
+                    if(!rplDecompDoHintsWidth(0)) rplDecompAppendChar(' ');
+                    if(Exceptions) { RetNum=ERR_INVALID; return; }
+
+                    ++depth;
+
+                    ++offset;
+                    continue;
+
+
+                }
+
+                if(DecompileObject[offset]==CMD_ENDLIST) {
+                    rplDecompAppendString((BYTEPTR)"}");
+                    if(Exceptions) { RetNum=ERR_INVALID; return; }
+
+                    if(depth) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER|HINT_SUBINDENTAFTER);
+                    else needseparator=!rplDecompDoHintsWidth(0);
+                    if(needseparator && offset<endoffset-1) rplDecompAppendChar(' ');
+
+                    --depth;
+
+                    ++offset;
+                    continue;
+                }
+
+                rplDecompile(DecompileObject+offset,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? (DECOMP_EDIT|DECOMP_NOHINTS):DECOMP_NOHINTS));    // RUN EMBEDDED
+                if(Exceptions) { RetNum=ERR_INVALID; return; }
+
+                if(islistoflist && !depth) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER);
+                else needseparator=!rplDecompDoHintsWidth(0);
+                if(needseparator) rplDecompAppendChar(' ');
+
+                offset+=rplObjSize(DecompileObject+offset);
+
+                }
+
+            RetNum=OK_CONTINUE;
             return;
+
+
         }
 
         if(*DecompileObject==CMD_ENDLIST) {

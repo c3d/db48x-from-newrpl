@@ -679,3 +679,15 @@ void rplListExpandCases()
     rplOverwriteData(1,newlist2);
     rplOverwriteData(2,newlist1);
 }
+
+// RETURN TRUE IF ANY OF THE OBJECTS WITHIN A LIST IS A LIST
+BINT rplListHasLists(WORDPTR list)
+{
+    WORDPTR endlist=rplSkipOb(list);
+    ++list;
+    while(list<endlist) {
+        if(ISLIST(*list)) return 1;
+        list=rplSkipOb(list);
+    }
+    return 0;
+}

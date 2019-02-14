@@ -69,10 +69,7 @@
 
 #define LIBFROMBASE(base) ((base<<1)+(BINBINT-2))
 
-#define MIN_SINT    -131072
-#define MAX_SINT    +131071
-#define MAX_BINT    +9223372036854775807LL
-#define MIN_BINT    (-9223372036854775807LL-1LL)
+
 
 const UBINT64 const powersof10[20]={
     1000000000000000000LL,
@@ -315,6 +312,8 @@ void rplPushTrue()
 
 BINT rplIsFalse(WORDPTR objptr)
 {
+    objptr=rplConstant2Number(objptr);
+
     if(ISANGLE(*objptr)) ++objptr;  // POINT TO THE NUMBER INSIDE THE ANGLE
 
     if(IS_FALSE(*objptr)) return 1;
@@ -349,6 +348,7 @@ BINT rplIsTrue(WORDPTR objptr)
 
 BINT rplIsNegative(WORDPTR objptr)
 {
+    objptr=rplConstant2Number(objptr);
     if(ISANGLE(*objptr)) ++objptr;  // POINT TO THE NUMBER INSIDE THE ANGLE
 
     if(ISBINT(*objptr)) {
@@ -381,6 +381,7 @@ BINT rplIsNegative(WORDPTR objptr)
 // READS A SINT, BINT OR REAL INTO A REAL NUMBER REGISTER
 void rplNumberToRReg(int num,WORDPTR number)
 {
+    number=rplConstant2Number(number);
     if(ISREAL(*number)) rplCopyRealToRReg(num,number);
     else if(ISBINT(*number)) rplBINTToRReg(num,rplReadBINT(number));
     else {
@@ -396,6 +397,7 @@ void rplNumberToRReg(int num,WORDPTR number)
 BINT64 rplReadNumberAsBINT(WORDPTR number)
 {
     BINT64 value;
+    number=rplConstant2Number(number);
 
     if(ISANGLE(*number)) ++number;
     if(ISREAL(*number)) {
@@ -424,6 +426,8 @@ BINT64 rplReadNumberAsBINT(WORDPTR number)
 
 void rplReadNumberAsReal(WORDPTR number,REAL*dec)
 {
+    number=rplConstant2Number(number);
+
     if(ISANGLE(*number)) ++number;
     if(ISREAL(*number)) rplReadReal(number,dec);
     else if(ISBINT(*number))  {
