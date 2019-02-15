@@ -137,6 +137,12 @@ ROMOBJECT fnt8d_ident[]= {
         TEXT2WORD('8','D',0,0)
 };
 
+ROMOBJECT fnt10a_ident[]= {
+        MKPROLOG(DOIDENT,2),
+        TEXT2WORD('F','o','n','t'),
+        TEXT2WORD('1','0','A',0)
+};
+
 ROMOBJECT sysfonts_ident[]= {
         MKPROLOG(DOIDENT,2),
         TEXT2WORD('S','y','s','F'),
@@ -188,7 +194,7 @@ ROMOBJECT fontplot_ident[]= {
 // THIS LIBRARY DEPENDS ON THE FONTS INSTALLED IN THE FIRMWARE
 // SO IT'S NOT HARDWARE-INDEPENDENT, BUT THE NAMES OF THE FONTS SHOULD BE CONSISTENT
 
-#define NUMBER_OF_FONTS_IN_ROM 10
+#define NUMBER_OF_FONTS_IN_ROM 11
 #define START_ROMPTR_INDEX 4            // START OF THE ROM FONTS TABLE
 
 // EXTERNAL EXPORTED OBJECT TABLE
@@ -222,6 +228,8 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)Font_8C,
     (WORDPTR)fnt8d_ident,
     (WORDPTR)Font_8D,
+    (WORDPTR)fnt10a_ident,
+    (WORDPTR)Font_10A,
 
 
     // OTHER ROM OBJECTS

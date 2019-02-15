@@ -1037,6 +1037,7 @@ extern const unsigned int Font_8A[];
 extern const unsigned int Font_8B[];
 extern const unsigned int Font_8C[];
 extern const unsigned int Font_8D[];
+extern const unsigned int Font_10A[];
 
 
 //const unsigned int System5Font[];

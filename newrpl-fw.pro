@@ -108,6 +108,7 @@ SOURCES +=\
     firmware/sys/Font8B.c \
     firmware/sys/Font8C.c \
     firmware/sys/Font8D.c \
+    firmware/sys/Font10A.c \
     firmware/sys/target_50g/sddriver.c \
     firmware/sys/fsystem/fatconvert.c \
     firmware/sys/fsystem/fsattr.c \
@@ -229,7 +230,8 @@ SOURCES +=\
     newrpl/solvers.c \
     firmware/sys/target_50g/usbdriver.c \
     firmware/hal_cpu.c \
-    newrpl/lib-104-solvers.c
+    newrpl/lib-104-solvers.c \
+    newrpl/lib-55-constants.c
 
 
 HEADERS  += \
@@ -278,6 +280,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-0.nrpl \
                 newrpl/rpl-objects/lib-8.nrpl \
                 newrpl/rpl-objects/lib-52.nrpl \
+                newrpl/rpl-objects/lib-55.nrpl \
                 newrpl/rpl-objects/lib-56.nrpl \
                 newrpl/rpl-objects/lib-77.nrpl \
                 newrpl/rpl-objects/lib-78.nrpl \

@@ -222,7 +222,8 @@ SOURCES += main.cpp\
     newrpl/lib-100-usb.c \
     newrpl/lib-102-libptr.c \
     newrpl/lib-104-solvers.c \
-    newrpl/lib-55-constants.c
+    newrpl/lib-55-constants.c \
+    firmware/sys/Font10A.c
 
 
 HEADERS  += mainwindow.h \
