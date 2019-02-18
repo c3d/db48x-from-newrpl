@@ -2703,7 +2703,7 @@ enum {
 #define FINDARGUMENT(exp,nargs,argidx) (exp[-2-(nargs)+(argidx)])
 
 
-//#define RULEDEBUG 1
+#define RULEDEBUG 1
 
 typedef struct {
 WORDPTR *left,*right;
@@ -3348,6 +3348,7 @@ do {
 
                                 if((attr&otherattr)!=attr) {
                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
+                                    rplPopData(1);
                                     matchtype=BACKTRACK;
                                     break;
                                 }
@@ -3643,6 +3644,7 @@ do {
 
                                     if((attr&otherattr)!=attr) {
                                         // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
+                                        rplDropData(1);
                                         matchtype=BACKTRACK;
                                         break;
                                     }
@@ -3818,6 +3820,7 @@ do {
 
                                 if((attr&otherattr)!=attr) {
                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
+                                    rplDropData(1);
                                     matchtype=BACKTRACK;
                                     break;
                                 }

@@ -193,6 +193,7 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/sys/Font6m.c \
     firmware/sys/Font5B.c \
     firmware/sys/Font5A.c \
+    firmware/sys/Font10A.c \
     firmware/sys/target_pc/rtc.c \
     firmware/hal_clock.c \
     firmware/hal_alarm.c \
