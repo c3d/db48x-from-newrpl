@@ -3505,7 +3505,29 @@ do {
                             s.leftidx=s.leftnargs;
                             updateCounters(&s);
 
-                        } else rplCreateLAM(*s.right,*s.left);
+                        } else
+                        {
+                            BINT attr=rplGetIdentAttr(*s.right);
+
+                            if(attr) {
+                                // MATCH THE ATTRIBUTES
+                                BINT otherattr;
+
+                                otherattr=rplSymbGetAttr(*s.left);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
+                                    // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
+                                    matchtype=BACKTRACK;
+                                    break;
+                                }
+
+
+                            }
+
+
+                            rplCreateLAM(*s.right,*s.left);
+                        }
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                         updateLAMs(&s);
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
@@ -3539,6 +3561,24 @@ do {
                                         // ALSO CHECK IF IT'S THE SAME VARIABLE USED LATER, THAT DOESN'T COUNT
                                         if(!rplCompareIDENT(*s.right,tmp)) {
                                             // BREAK THE LOOP, JUST ASSIGN THE CURRENT ARGUMENT
+                                            BINT attr=rplGetIdentAttr(*s.right);
+
+                                            if(attr) {
+                                                // MATCH THE ATTRIBUTES
+                                                BINT otherattr;
+
+                                                otherattr=rplSymbGetAttr(s.left);
+                                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
+                                                    // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
+                                                    matchtype=BACKTRACK;
+                                                    break;
+                                                }
+
+
+                                            }
+
                                         rplCreateLAM(*s.right,*s.left);
                                         updateLAMs(&s);
                                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
@@ -3588,6 +3628,25 @@ do {
                             if(p.leftnargs>p.leftidx) {
                                 rplSymbApplyOperator(**p.left,p.leftnargs-p.leftidx+1);
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                            }
+
+                            BINT attr=rplGetIdentAttr(*s.right);
+
+                            if(attr) {
+                                // MATCH THE ATTRIBUTES
+                                BINT otherattr;
+
+                                otherattr=rplSymbGetAttr(rplPeekData(1));
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
+                                    // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
+                                    rplDropData(1);
+                                    matchtype=BACKTRACK;
+                                    break;
+                                }
+
+
                             }
 
                             rplCreateLAM(*s.right,rplPopData());
@@ -3751,6 +3810,29 @@ do {
                     case TEXT2WORD('.','n',0,0):
                         // n = Match only a single number (real or integer)
                         if(rplSymbIsANumber(*s.left)) {
+
+                            BINT attr=rplGetIdentAttr(*s.right);
+
+                            if(attr) {
+                                // MATCH THE ATTRIBUTES
+                                BINT otherattr;
+
+                                otherattr=rplSymbGetAttr(*s.left);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
+                                    // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
+                                    matchtype=BACKTRACK;
+                                    break;
+                                }
+
+
+                            }
+
+
+
+
                         rplCreateLAM(*s.right,*s.left);
                         updateLAMs(&s);
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
@@ -3913,6 +3995,25 @@ do {
                     case TEXT2WORD('.','i',0,0):
                         // i = Match only a single integer number
                         if(rplSymbIsIntegerNumber(*s.left)) {
+                            BINT attr=rplGetIdentAttr(*s.right);
+
+                            if(attr) {
+                                // MATCH THE ATTRIBUTES
+                                BINT otherattr;
+
+                                otherattr=rplSymbGetAttr(*s.left);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
+                                    // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
+                                    matchtype=BACKTRACK;
+                                    break;
+                                }
+
+
+                            }
+
                         rplCreateLAM(*s.right,*s.left);
                         matchtype=ARGDONE;
                         }
