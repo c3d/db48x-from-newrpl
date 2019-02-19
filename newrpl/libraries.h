@@ -231,7 +231,7 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define IDATTR_mMASK   0xf0
 #define IDATTR_pMASK  0xf00
 
-
+#define IDATTR_ALLTYPES 0xe
 
 
 

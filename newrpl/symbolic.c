@@ -3200,8 +3200,7 @@ do {
                                 else if(p.leftidx==-1) otherattr=rplSymbGetAttr(*p.left);
                                         else otherattr=0;
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-
-                                if((attr&otherattr)!=attr) {
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
                                     matchtype=BACKTRACK;
                                     break;
@@ -3228,7 +3227,7 @@ do {
                                 otherattr=rplSymbGetAttr(*s.left);
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
-                                if((attr&otherattr)!=attr) {
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
                                     matchtype=BACKTRACK;
                                     break;
@@ -3278,7 +3277,7 @@ do {
                                                 otherattr=rplSymbGetAttr(*s.left);
                                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
-                                                if((attr&otherattr)!=attr) {
+                                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
                                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
                                                     matchtype=BACKTRACK;
                                                     break;
@@ -3346,7 +3345,7 @@ do {
                                 otherattr=rplSymbGetAttr(rplPeekData(1));
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
-                                if((attr&otherattr)!=attr) {
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
                                     rplPopData(1);
                                     matchtype=BACKTRACK;
@@ -3409,7 +3408,7 @@ do {
                                 else if(p.leftidx==-1) otherattr=rplSymbGetAttr(*p.left);
                                         else otherattr=0;
 
-                                if((attr&otherattr)!=attr) {
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
                                     matchtype=BACKTRACK;
                                     break;
@@ -3436,7 +3435,7 @@ do {
                                 otherattr=rplSymbGetAttr(*s.left);
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
-                                if((attr&otherattr)!=attr) {
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
                                     matchtype=BACKTRACK;
                                     break;
@@ -3487,7 +3486,7 @@ do {
                                         else otherattr=0;
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
-                                if((attr&otherattr)!=attr) {
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
                                     matchtype=BACKTRACK;
                                     break;
@@ -3642,7 +3641,7 @@ do {
                                     otherattr=rplSymbGetAttr(rplPeekData(1));
                                     if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
-                                    if((attr&otherattr)!=attr) {
+                                    if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
                                         // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
                                         rplDropData(1);
                                         matchtype=BACKTRACK;
@@ -3702,7 +3701,7 @@ do {
 
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
-                                if((attr&otherattr)!=attr) {
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
                                     matchtype=BACKTRACK;
                                     break;
@@ -3731,7 +3730,7 @@ do {
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
 
-                                if((attr&otherattr)!=attr) {
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
                                     matchtype=BACKTRACK;
                                     break;
@@ -3818,7 +3817,7 @@ do {
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
 
-                                if((attr&otherattr)!=attr) {
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
                                     rplDropData(1);
                                     matchtype=BACKTRACK;
@@ -3866,7 +3865,7 @@ do {
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
 
-                                if((attr&otherattr)!=attr) {
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
                                     matchtype=BACKTRACK;
                                     break;
@@ -3894,7 +3893,7 @@ do {
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
 
-                                if((attr&otherattr)!=attr) {
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
                                     matchtype=BACKTRACK;
                                     break;
@@ -3955,7 +3954,7 @@ do {
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
 
-                                if((attr&otherattr)!=attr) {
+                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
                                     matchtype=BACKTRACK;
                                     break;

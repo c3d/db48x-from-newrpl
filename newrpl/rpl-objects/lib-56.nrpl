@@ -123,6 +123,9 @@ R → A<fraction>"
 
 @#name lib56_autosimplify_group3
 {
+'.mX₂*INV(.mX₂):→1'                                 @ CANCEL OUT TERMS WITHOUT ANY EXPONENTS (COMMUTATIVE, REALS ONLY)
+'.mX₄*INV(.mX₄):→1'                                 @ CANCEL OUT TERMS WITHOUT ANY EXPONENTS (COMMUTATIVE, COMPLEX ONLY)
+
 '.mX^.xN*INV(.mX^.xM):→.mX^(.xN-.xM)'               @ CANCEL OUT TERMS WITH EXPONENTS (NON-COMMUTATIVE)
 '.xX₂^.xN*INV(.xX₂^.xM):→.xX^(.xN-.xM)'             @ CANCEL OUT TERMS WITH EXPONENTS (COMMUTATIVE, ONLY ACCEPT REAL VARIABLES)
 '.xX₄^.xN*INV(.xX₄^.xM):→.xX^(.xN-.xM)'             @ CANCEL OUT TERMS WITH EXPONENTS (COMMUTATIVE, ONLY ACCEPT COMPLEX VARIABLES)
