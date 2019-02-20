@@ -184,6 +184,74 @@ BINT rplCheckCircularReference(WORDPTR env_owner,WORDPTR object,BINT lamnum)
     return 0;
 }
 
+// EXPAND A LIST OF RULES IN THE STACK
+BINT rplExpandRuleList()
+{
+    BINT nrules=1;
+    WORDPTR *savestk=DSTop;
+    if(ISLIST(*rplPeekData(1))) {
+        // THIS IS A RULE SET, APPLY ALL RULES IN THE LIST TO THE EXPRESSION, IN SEQUENCE
+        // RETURN TOTAL NUMBER OF POSITIVE MATCHES IN THE ENTIRE SET (ZERO IF NO CHANGES WERE MADE)
+        // FIRST MAKE A FULL LIST OF RULES IN THE STACK, IN ORDER OF APPLICATION
+
+        WORDPTR *rulelist=DSTop-1;
+        WORDPTR first=(*rulelist)+1;
+        while(first!=rplSkipOb(*rulelist)) {
+
+            if(rplSymbIsRule(first)) {
+               rplPushData(first);
+               first=rplPeekData(1);   // READ AGAIN IN CASE THERE WAS A GC
+            }
+            else {
+
+            if(ISLIST(*first)) {
+                rplPushDataNoGrow(first);   // OBJECT TO SKIP
+                rplPushData(first);         // THE LIST ITSELF
+                first=rplPeekData(1)+1;
+                continue;
+            } // ENTER INTO THE LIST, PUT THE LIST ON THE STACK
+
+            if(*first==CMD_ENDLIST) {
+             WORDPTR *stkptr=DSTop-1;
+             while((stkptr>=rulelist) && !ISLIST(**stkptr)) { --stkptr; }   // FIND THE LIST
+             if(stkptr==rulelist) break;    // END OF MAIN LIST
+             first=rplSkipOb(*(stkptr-1));  // NEXT ARGUMENT IN THE PARENT LIST
+             // REMOVE THE LIST AND THE OBJECT
+             if(DSTop>stkptr+1) memmovew(stkptr-1,stkptr+1,(DSTop-stkptr-1)*sizeof(WORDPTR)/sizeof(WORD));
+             DSTop-=2;
+             continue;
+            }
+
+            // IDENTIFIERS ARE VARIABLES CONTAINING SETS OF RULES
+            if(ISIDENT(*first)) {
+                WORDPTR *var=rplFindLAM(first,1);
+                if(!var) var=rplFindGlobal(first,1);
+                if(var) {
+                    if(ISLIST(*var[1])) {
+                        rplPushDataNoGrow(first);   // OBJECT TO SKIP
+                        rplPushData(var[1]);         // THE LIST ITSELF
+                        first=rplPeekData(1)+1;
+                        continue;
+                    }
+                    if(rplSymbIsRule(var[1])) {
+                       ScratchPointer1=first;
+                       rplPushData(var[1]);
+                       first=ScratchPointer1;   // READ AGAIN IN CASE THERE WAS A GC
+                    }
+                } // TAKE THE VALUE OF THE VARIABLE AS THE NEXT RULE
+            }
+            }
+
+             // JUST SKIP ANY OTHER OBJECT
+             first=rplSkipOb(first);
+            }
+
+
+        nrules=DSTop-savestk+1;
+        }
+    return nrules;
+}
+
 
 // IMPLEMENTS THE COMMAND RULEAPPLY, CAN BE CALLED FROM OTHER CAS COMMANDS
 // NEEDS 2 ARGUMENTS ON THE STACK: EXPRESSION AND RULE SET
@@ -195,55 +263,10 @@ void rplDoRuleApply()
             return;
         }
         // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
-        BINT nrules=1;
+        BINT nrules;
         WORDPTR *savestk=DSTop;
-        if(ISLIST(*rplPeekData(1))) {
-            // THIS IS A RULE SET, APPLY ALL RULES IN THE LIST TO THE EXPRESSION, IN SEQUENCE
-            // RETURN TOTAL NUMBER OF POSITIVE MATCHES IN THE ENTIRE SET (ZERO IF NO CHANGES WERE MADE)
-            // FIRST MAKE A FULL LIST OF RULES IN THE STACK, IN ORDER OF APPLICATION
 
-            WORDPTR *rulelist=DSTop-1;
-            WORDPTR first=(*rulelist)+1;
-            while(first!=rplSkipOb(*rulelist)) {
-                if(ISLIST(*first)) {
-                    rplPushData(first);
-                    first=rplPeekData(1)+1;
-                } // ENTER INTO THE LIST, PUT THE LIST ON THE STACK
-
-                if(*first==CMD_ENDLIST) {
-                 WORDPTR *stkptr=DSTop-1;
-                 while((stkptr>=rulelist) && !ISLIST(**stkptr)) { --stkptr; }
-                 if(stkptr==rulelist) break;    // END OF MAIN LIST
-                 first=rplSkipOb(*stkptr);  // NEXT ARGUMENT IN THE INNER LIST
-                }
-
-                // IDENTIFIERS ARE VARIABLES CONTAINING SETS OF RULES
-                if(ISIDENT(*first)) {
-                    WORDPTR *var=rplFindLAM(first,1);
-                    if(!var) var=rplFindGlobal(first,1);
-                    if(var) {
-                        if(ISLIST(*var[1])) { first=var[1]; continue; }
-                        if(rplSymbIsRule(var[1])) {
-                           ScratchPointer1=first;
-                           rplPushData(var[1]);
-                           first=ScratchPointer1;   // READ AGAIN IN CASE THERE WAS A GC
-                        }
-                    } // TAKE THE VALUE OF THE VARIABLE AS THE NEXT RULE
-                }
-                 if(rplSymbIsRule(first)) {
-                    rplPushData(first);
-                    first=rplPeekData(1);   // READ AGAIN IN CASE THERE WAS A GC
-                 }
-
-                 // JUST SKIP ANY OTHER OBJECT
-                 first=rplSkipOb(first);
-                }
-
-
-            nrules=DSTop-savestk+1;
-            }
-
-
+        nrules=rplExpandRuleList();
 
         WORDPTR *firstrule=savestk-1;
         BINT k;
@@ -294,56 +317,10 @@ void rplDoRuleApply1()
             return;
         }
         // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
-        BINT nrules=1;
+        BINT nrules;
         WORDPTR *savestk=DSTop;
-        if(ISLIST(*rplPeekData(1))) {
-            // THIS IS A RULE SET, APPLY ALL RULES IN THE LIST TO THE EXPRESSION, IN SEQUENCE
-            // RETURN TOTAL NUMBER OF POSITIVE MATCHES IN THE ENTIRE SET (ZERO IF NO CHANGES WERE MADE)
-            // FIRST MAKE A FULL LIST OF RULES IN THE STACK, IN ORDER OF APPLICATION
 
-            WORDPTR *rulelist=DSTop-1;
-            WORDPTR first=(*rulelist)+1;
-            while(first!=rplSkipOb(*rulelist)) {
-                if(ISLIST(*first)) {
-                    rplPushData(first);
-                    first=rplPeekData(1)+1;
-                } // ENTER INTO THE LIST, PUT THE LIST ON THE STACK
-
-                if(*first==CMD_ENDLIST) {
-                 WORDPTR *stkptr=DSTop-1;
-                 while((stkptr>=rulelist) && !ISLIST(**stkptr)) { --stkptr; }
-                 if(stkptr==rulelist) break;    // END OF MAIN LIST
-                 first=rplSkipOb(*stkptr);  // NEXT ARGUMENT IN THE INNER LIST
-                }
-
-                // IDENTIFIERS ARE VARIABLES CONTAINING SETS OF RULES
-                if(ISIDENT(*first)) {
-                    WORDPTR *var=rplFindLAM(first,1);
-                    if(!var) var=rplFindGlobal(first,1);
-                    if(var) {
-                        if(ISLIST(*var[1])) { first=var[1]; continue; }
-                        if(rplSymbIsRule(var[1])) {
-                           ScratchPointer1=first;
-                           rplPushData(var[1]);
-                           first=ScratchPointer1;   // READ AGAIN IN CASE THERE WAS A GC
-                        }
-                    } // TAKE THE VALUE OF THE VARIABLE AS THE NEXT RULE
-                }
-
-                 if(rplSymbIsRule(first)) {
-                    rplPushData(first);
-                    first=rplPeekData(1);   // READ AGAIN IN CASE THERE WAS A GC
-                 }
-
-                 // JUST SKIP ANY OTHER OBJECT
-                 first=rplSkipOb(first);
-                }
-
-
-            nrules=DSTop-savestk+1;
-            }
-
-
+        nrules=rplExpandRuleList();
 
         WORDPTR *firstrule=savestk-1;
         BINT k;
