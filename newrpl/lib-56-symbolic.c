@@ -1441,7 +1441,7 @@ void LIB_HANDLER()
         rplCallOperator(CMD_RULEAPPLY1);
         //DEBUG ONLY:
         if(!rplIsFalse(rplPeekData(1))) rplOverwriteData(1,rplPeekData(2));
-        else DSTop=stksave;
+        DSTop=stksave;
         // NON-DEBUG:
         // DSTop=stksave;
         if(Exceptions)  return;
