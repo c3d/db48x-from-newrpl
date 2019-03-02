@@ -5470,8 +5470,8 @@ BINT rplSymbGetAttr(WORDPTR object)
 
     // SET DEFAULT ATTRIBUTES FOR VARIABLES THAT DON'T HAVE THEM (REAL IN REAL MODE, COMPLEX IN COMPLEX MODE)
     if(!attr) {
-        if(rplTestSystemFlag(FL_COMPLEXMODE)) attr=IDATTR_ISINFCPLX;
-        else attr=IDATTR_ISINFREAL;
+        if(rplTestSystemFlag(FL_COMPLEXMODE)) attr=IDATTR_ISCPLX;
+        else attr=IDATTR_ISREAL;
     }
 
     return attr;
