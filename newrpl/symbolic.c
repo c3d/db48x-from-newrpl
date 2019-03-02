@@ -3266,7 +3266,7 @@ do {
                                     // CHECK IF THIS IS ANOTHER SPECIAL IDENT AND BREAK THE INFINITE LOOP
                                     if( (((tmp[1])&0xffff) == TEXT2WORD('.','X',0,0))||(((tmp[1])&0xffff) == TEXT2WORD('.','M',0,0))) {
                                         // ALSO CHECK IF IT'S THE SAME VARIABLE USED LATER, THAT DOESN'T COUNT
-                                        if(!rplCompareIDENT(*s.right,tmp)) {
+                                        if(rplCompareIDENT(*s.right,tmp)) {
                                         // BREAK THE LOOP, JUST ASSIGN THE CURRENT ARGUMENT
                                             BINT attr=rplGetIdentAttr(*s.right);
 
@@ -3559,7 +3559,7 @@ do {
                                     // CHECK IF THIS IS ANOTHER SPECIAL IDENT AND BREAK THE INFINITE LOOP
                                     if( (((tmp[1])&0xffff) == TEXT2WORD('.','X',0,0))||(((tmp[1])&0xffff) == TEXT2WORD('.','M',0,0))) {
                                         // ALSO CHECK IF IT'S THE SAME VARIABLE USED LATER, THAT DOESN'T COUNT
-                                        if(!rplCompareIDENT(*s.right,tmp)) {
+                                        if(rplCompareIDENT(*s.right,tmp)) {
                                             // BREAK THE LOOP, JUST ASSIGN THE CURRENT ARGUMENT
                                             BINT attr=rplGetIdentAttr(*s.right);
 
