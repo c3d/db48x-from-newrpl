@@ -93,6 +93,8 @@ public slots:
     void domaintimer();
 private slots:
 
+    void on_actionPaste_and_compile_triggered();
+
 private:
     int OpenFile(QString fname);
     void SaveFile(QString fname);

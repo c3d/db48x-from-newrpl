@@ -24,6 +24,7 @@ USBSelector::USBSelector(QWidget *parent) :
 
 
     SelectedDevicePath.clear();
+    ui->updateFirmware->hide();
 
     RefreshList();
 
@@ -65,12 +66,16 @@ void USBSelector::on_USBtreeWidget_itemSelectionChanged()
         SelectedDevicePath.clear();
         SelectedDeviceName.clear();
         ui->selectedCalc->setText(QString("No device selected."));
+        ui->updateFirmware->hide();
+
     }
     else {
         ui->buttonBox->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
         SelectedDevicePath=newitem->data(0,Qt::UserRole+3).toString();
         SelectedDeviceName=newitem->text(0)+QString("[build ")+newitem->text(2).right(4)+QString("]");
         ui->selectedCalc->setText(SelectedDeviceName);
+        ui->updateFirmware->show();
+
     }
 
 }
@@ -261,6 +266,7 @@ void USBSelector::RefreshList()
                     SelectedDevicePath.clear();
                     ui->selectedCalc->setText(QString("No device selected."));
                     ui->USBtreeWidget->clearSelection();
+                    ui->updateFirmware->hide();
                 }
 
 

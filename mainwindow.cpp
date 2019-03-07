@@ -784,6 +784,7 @@ void MainWindow::on_actionTake_Screenshot_triggered()
 
 extern void Stack2Clipboard(int level,int dropit);
 extern void Clipboard2Stack();
+extern void Clipboard2StackCompile();
 extern int SaveRPLObject(QString& filename,int level);
 int LoadRPLObject(QString& filename);
 
@@ -1418,3 +1419,18 @@ void MainWindow::contextMenuEvent(QContextMenuEvent *event)
     ui->menuStack->setStyleSheet(menustkstyle);
     ui->menuHardware->setStyleSheet(menuhardstyle);
   }
+
+void MainWindow::on_actionPaste_and_compile_triggered()
+{
+    if(!rpl.isRunning()) return;    // DO NOTHING
+
+    while(!__cpu_idle)     QThread::msleep(1);  // BLOCK UNTIL RPL IS IDLE
+
+    __cpu_idle=2;       // BLOCK REQUEST
+
+    // NOW WORK ON THE RPL ENGINE WHILE THE THREAD IS BLOCKED
+    Clipboard2StackCompile();
+
+    __cpu_idle=0;   // LET GO THE SIMULATOR
+
+}

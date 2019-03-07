@@ -64,6 +64,24 @@ void pushtext(char *data,int sizebytes)
 
 }
 
+// COMPILE OBJECT AT LEVEL 1 OF THE STACK
+int compileobject()
+{
+    int strsize;
+    BYTEPTR strdata;
+    if(rplDepthData()<1) return 0;
+    if(!ISSTRING(*rplPeekData(1))) return 0;
+
+    strdata=(BYTEPTR)rplPeekData(1);
+    strdata+=4;
+    strsize=rplStrSize(rplPeekData(1));
+
+    WORDPTR newobj=rplCompile(strdata,strsize,0);
+    if(!newobj) { rplBlameError(CMD_FROMSTR); return 0; }
+    rplOverwriteData(1,newobj);
+}
+
+
 
 int usbsendtoremote(uint32_t *data,int nwords)
 {

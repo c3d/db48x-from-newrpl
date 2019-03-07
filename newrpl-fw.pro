@@ -231,7 +231,8 @@ SOURCES +=\
     firmware/sys/target_50g/usbdriver.c \
     firmware/hal_cpu.c \
     newrpl/lib-104-solvers.c \
-    newrpl/lib-55-constants.c
+    newrpl/lib-55-constants.c \
+    firmware/sys/target_50g/fwupdate.c
 
 
 HEADERS  += \

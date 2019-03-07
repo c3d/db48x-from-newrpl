@@ -201,6 +201,7 @@ border-width: 0px;</string>
     <addaction name="actionCopy_Level_1"/>
     <addaction name="actionCut_Level_1"/>
     <addaction name="actionPaste_to_Level_1"/>
+    <addaction name="actionPaste_and_compile"/>
     <addaction name="actionSave_Level_1_As"/>
     <addaction name="actionOpen_file_to_Level_1"/>
    </widget>
@@ -343,6 +344,11 @@ border-width: 0px;</string>
    </property>
    <property name="text">
     <string>Show LCD grid</string>
+   </property>
+  </action>
+  <action name="actionPaste_and_compile">
+   <property name="text">
+    <string>Paste and Compile</string>
    </property>
   </action>
  </widget>

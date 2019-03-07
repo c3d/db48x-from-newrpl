@@ -11,7 +11,7 @@ char *getdecompiledrplobject(int level,int *strsize);
 void pushobject(char *data,int sizebytes);
 void pushtext(char *data,int sizebytes);
 void removestackobject(int level,int nitems);
-
+int compileobject();
 }
 
 // COPY OBJECT FROM THE STACK INTO THE HOST CLIPBOARD
@@ -69,6 +69,29 @@ void Clipboard2Stack()
         return;
     }
 }
+
+
+void Clipboard2StackCompile()
+{
+    QClipboard *clip = qApp->clipboard();
+    const QMimeData *data=clip->mimeData();
+
+    if(data->hasFormat(QString("application/newrpl-object"))) {
+        QByteArray mydata(data->data(QString("application/newrpl-object")));
+
+        pushobject(mydata.data(),mydata.size());
+        compileobject();
+        return;
+    }
+
+    if(data->hasText()) {
+        QByteArray mydata(data->text().toUtf8());
+        pushtext(mydata.data(),mydata.size());
+        compileobject();
+        return;
+    }
+}
+
 
 int SaveRPLObject(QString& filename,int level)
 {

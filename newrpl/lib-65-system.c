@@ -58,7 +58,7 @@
     CMD(GARBAGE,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
     CMD(MEMCHECK,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     CMD(MEMFIX,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
-    CMD(READCFI,MKTOKENINFO(7,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(USBFWUPDATE,"FWUPD",MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
     CMD(DOALARM,MKTOKENINFO(7,TITYPE_NOTALLOWED,0,2)), \
     CMD(ALRM,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(OFF,MKTOKENINFO(3,TITYPE_NOTALLOWED,1,2))
@@ -2203,16 +2203,10 @@ void LIB_HANDLER()
         else rplPushDataNoGrow((WORDPTR)zero_bint);
         return;
     }
-    case READCFI:
+    case USBFWUPDATE:
     {
-        //@SHORT_DESC=@HIDE
-        unsigned short buffer[100];
 
-        flash_CFIRead(buffer);
-
-        WORDPTR newobj=rplCreateString((BYTEPTR)buffer,(BYTEPTR)buffer+6);
-
-        rplPushData(newobj);
+        ram_startfwupdate();
 
      return;
     }

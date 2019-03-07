@@ -49,7 +49,7 @@ void flash_CFIQuery(unsigned short *ptr)
     asm volatile ("loop:");
     asm volatile ("ldrh r5,[r2],#2");
     asm volatile ("strh r5,[r4],#2");
-    asm volatile ("cmp r2,#0x34");
+    asm volatile ("cmp r2,#0x68");
     asm volatile ("bne loop");
 
     asm volatile ("mov r2,#0xf0");

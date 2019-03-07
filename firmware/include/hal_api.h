@@ -1063,6 +1063,8 @@ int cpu_getlock(int lockvar,volatile int *lock_ptr);
 int cpu_setspeed(int);
 void cpu_waitforinterrupt();
 void cpu_off();
+void cpu_intoff();
+void cpu_inton();
 
 // LCD LOW-LEVEL HARDWARE API
 
@@ -1130,6 +1132,7 @@ void __keyb_waitrelease();
 
 // LOW-LEVEL HARDWARE DRIVERS - FLASH MEMORY
 void flash_CFIRead(unsigned short *ptr);
+void ram_startfwupdate();
 
 // LOW-LEVEL MEMORY SUBALLOCATOR FOR FILE SYSTEM
 void init_simpalloc();

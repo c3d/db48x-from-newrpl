@@ -223,7 +223,8 @@ SOURCES += main.cpp\
     newrpl/lib-102-libptr.c \
     newrpl/lib-104-solvers.c \
     newrpl/lib-55-constants.c \
-    firmware/sys/Font10A.c
+    firmware/sys/Font10A.c \
+    firmware/sys/target_pc/fwupdate.c
 
 
 HEADERS  += mainwindow.h \
