@@ -305,3 +305,115 @@ void USBSelector::refresh()
 {
    RefreshList();
 }
+
+void USBSelector::reconnect()
+{
+    if(!__usb_curdevice) {
+   RefreshList();
+   if(!SelectedDevicePath.isEmpty()) {
+       // CONNECT TO THE USB DEVICE
+       __usb_curdevice=hid_open_path(SelectedDevicePath.toUtf8().constData());
+   }
+    }
+
+    if(!__usb_curdevice) {
+        ++numberoftries;
+        if(numberoftries>10) {
+            if(tmr) {
+                tmr->stop();
+                delete tmr;
+                tmr=0;
+            }
+            // FAILED TO RECONNECT AFTER 5 SECONDS
+
+            // TODO: SHOW SOME ERROR DIALOG
+        }
+        return;    // WAIT FOR ANOTHER TRY
+    }
+
+    // THE DEVICE IS BACK!
+
+    if(tmr) {
+        tmr->stop();
+        delete tmr;
+        tmr=0;
+    }
+
+    // TODO: ASK THE USER IF HE WANTS TO RESTORE FIRMWARE AFTER SUCCE
+
+    return;
+}
+
+extern "C" int usbremotefwupdatestart();
+extern "C" int usbsendtoremote(uint32_t *data,int nwords);
+extern "C" void usbflush();
+
+
+void USBSelector::on_updateFirmware_clicked()
+{
+
+    // STOP REFRESHING THE LIST
+
+    if(tmr) {
+        tmr->stop();
+        delete tmr;
+        tmr=0;
+    }
+
+    // CONNECT TO THE USB DEVICE
+    __usb_curdevice=hid_open_path(SelectedDevicePath.toUtf8().constData());
+
+    if(!__usb_curdevice) {
+        // TODO: ERROR PROCESS
+        return;
+    }
+
+    // TODO: SHOW NICE WINDOW WITH UPDATE STEPS
+
+    // THIS IS JUST A TEST
+    uint32_t updatedata[]={
+        0x1c0000, 4,        // ADDRESS AND NUMBER OF WORDS
+        0xBADF00D,
+        0x12345678,
+        0x90ABCDEF,
+        0x0F1E57A0
+    };
+
+    int j;
+    for(j=0;j<1000;++j) usbflush();
+
+    // SEND CMD_USBFWUPDATE TO THE CALC
+    if(!usbremotefwupdatestart()) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+
+
+    for(j=0;j<1000;++j) usbflush();
+
+    // SEND THE ACTUAL FIRMWARE
+    if(!usbsendtoremote(updatedata,6)) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+
+
+    for(j=0;j<1000;++j) usbflush();
+
+    // AT THIS POINT, THE CALC MUST'VE RESET TO LOAD THE NEW FIRMWARE
+    hid_close(__usb_curdevice);
+
+    __usb_curdevice=0;
+
+    numberoftries=0;
+
+    tmr = new QTimer(this);
+    if(tmr) {
+    connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
+    tmr->start(500);
+    }
+
+    // AND JUST HOPE IT WILL RECONENCT SOME TIME
+    return;
+
+}

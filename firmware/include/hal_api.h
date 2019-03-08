@@ -1104,6 +1104,8 @@ void cpu_off_prepare();
 void cpu_off_die();
 void cpu_flushwritebuffers();
 void cpu_flushTLB();
+void cpu_flushicache(void);
+
 
 // LOW-LEVEL DRIVERS - USB
 int usb_hasdata();
@@ -1132,6 +1134,8 @@ void __keyb_waitrelease();
 
 // LOW-LEVEL HARDWARE DRIVERS - FLASH MEMORY
 void flash_CFIRead(unsigned short *ptr);
+void flash_prepareforwriting();
+void flash_donewriting();
 void ram_startfwupdate();
 
 // LOW-LEVEL MEMORY SUBALLOCATOR FOR FILE SYSTEM

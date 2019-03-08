@@ -13,6 +13,7 @@ class USBSelector : public QDialog
     QTimer *tmr;
     QString SelectedDevicePath;
     QString SelectedDeviceName;
+    int numberoftries;
 
 
 public:
@@ -30,6 +31,9 @@ private slots:
 
     void on_USBSelector_rejected();
     void refresh();
+    void reconnect();
+
+    void on_updateFirmware_clicked();
 
 private:
     Ui::USBSelector *ui;

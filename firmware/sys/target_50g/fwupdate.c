@@ -144,7 +144,7 @@ extern void simpfree(void *voidptr);
 #define MSB(n) ((n >> 8) & 255)
 
 // GLOBAL VARIABLES OF THE USB SUBSYSTEM
-extern BINT __usb_drvstatus; // FLAGS TO INDICATE IF INITIALIZED, CONNECTED, SENDING/RECEIVING, ETC.
+extern volatile BINT __usb_drvstatus; // FLAGS TO INDICATE IF INITIALIZED, CONNECTED, SENDING/RECEIVING, ETC.
 extern BYTE *__usb_bufptr[3];   // POINTERS TO BUFFERS FOR EACH ENDPOINT (0/1/2)
 extern BINT __usb_count[3];   // REMAINING BYTES TO TRANSFER ON EACH ENDPOINT (0/1/2)
 extern BINT __usb_padding[3] ;    // PADDING FOR OUTGOING TRANSFERS
@@ -251,6 +251,8 @@ int ram_usb_receivelong_word(unsigned int *data)
         // WAIT UNTIL WE DO, TIMEOUT IN 2
         // NO TIMEOUT? THIS COULD HANG IF DISCONNECTED AND NO LONGER
         //tmr_t start=tmr_ticks(),end;
+        {unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+        scrptr[6]=0xffffffff;}
         while(!(__usb_drvstatus&USB_STATUS_DATAREADY)) {
             ram_cpu_waitforinterrupt();
             //end=tmr_ticks();
@@ -259,6 +261,8 @@ int ram_usb_receivelong_word(unsigned int *data)
             //    return 0;
             //}
         }
+        {unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+        scrptr[6]=0xF00F00F0;}
 
         // CHECK IF THE RECEIVED BLOCK IS OURS
         if((__usb_rcvblkmark==USB_BLOCKMARK_MULTISTART)||(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)) {
@@ -289,6 +293,8 @@ int ram_usb_receivelong_word(unsigned int *data)
 
     }
 
+    {unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+    scrptr[6]=0xF000000F;}
     // WE HAVE DATA, RETURN IT
 
     unsigned int *ptr=(unsigned int *)(__usb_longbuffer[__usb_longactbuffer]+(__usb_longoffset&(USB_BLOCKSIZE-1)));
@@ -1274,6 +1280,40 @@ void ram_usb_irqservice()
 
 }
 
+extern unsigned int irq_table[32] ;
+
+void __ram_irq_service() __attribute__ ((naked));
+void __ram_irq_service()
+{
+    asm volatile ("stmfd sp!, {r0-r12,lr}");
+    asm volatile ("mov r0,sp");
+    asm volatile ("mrs r1,cpsr_all");
+    asm volatile ("orr r1,r1,#0x1f");
+    asm volatile ("msr cpsr_all,r1");   // SWITCH TO SYSTEM MODE
+    asm volatile ("stmfd r0!,{sp,lr}"); // SAVE REGISTERS THAT WERE BANKED
+    asm volatile ("stmfd sp!,{ r0 }");  // SAVE IRQ STACK PTR
+    *HWREG(INT_REGS,0x0)=*HWREG(INT_REGS,0x10); // CLEAR SRCPENDING EARLY TO AVOID MISSING ANY OTHER INTERRUPTS
+    (*( (__interrupt__) (irq_table[*HWREG(INT_REGS,0x14)]))) ();
+    // CLEAR INTERRUPT PENDING FLAG
+    register unsigned int a=1<<(*HWREG(INT_REGS,0x14));
+    *HWREG(INT_REGS,0x10)=a;
+
+    asm volatile ("ldmia sp!, { r0 }"); // GET IRQ STACK PTR
+    asm volatile ("ldmia r0!, { sp, lr }"); // RESTORE USER STACK AND LR
+    asm volatile ("mrs r1,cpsr_all");
+    asm volatile ("bic r1,r1,#0xd");
+    asm volatile ("msr cpsr_all,r1");   // SWITCH BACK TO IRQ MODE
+    asm volatile ("ldmia sp!, {r0-r12,lr}");    // RESTORE ALL OTHER REGISTERS BACK
+    asm volatile ("subs pc,lr,#4");
+}
+
+
+
+
+
+
+
+
 
 void ram_doreset()
 {
@@ -1294,12 +1334,19 @@ void ram_doreset()
 
 // ERASE FLASH AREA BETWEEN GIVEN ADDRESSES (IN 32-BIT WORDS)
 
-void ram_flasherase(WORDPTR address,WORD nwords)
+void ram_flasherase(WORDPTR address,int nwords)
 {
 volatile HALFWORD *ptr=(HALFWORD *)(((WORD)address)&~(FLASH_SECTORSIZE-1));  // FIND START OF SECTOR
+nwords+=(((WORD)address)&(FLASH_SECTORSIZE-1))>>2;  // CORRECTION FOR MISALIGNED SECTORS
+
 HALFWORD data,prevdata;
+
+
+
 // START ERASING SECTORS OF FLASH
 while(nwords>0) {
+    if(((WORD)ptr>=0x4000)&&((WORD)ptr<0x0020000)) {  // NEVER ERASE THE BOOT LOADER!
+
     // SECTOR ERASE COMMAND
     WRITE_HALFWORD_FLASH(0x5555,0x00AA);     // write data 0x00AA to device addr 0x5555
     WRITE_HALFWORD_FLASH(0x2AAA,0x0055);     // write data 0x0055 to device addr 0x2AAA
@@ -1309,12 +1356,13 @@ while(nwords>0) {
     *ptr=0x0030;                             // write data 0x0030 to device sector addr
 
     // USE TOGGLE READY TO WAIT FOR COMPLETION
-    prevdata=*ptr&0x0040;
-    data=0;
-    while(data!=prevdata)
+    prevdata=*ptr;
+    data=prevdata^0xffff;
+    while(data^prevdata)
     {
         prevdata=data;
-        data=*ptr&0x0040;
+        data=*ptr;
+    }
     }
 
     nwords-=(FLASH_SECTORSIZE>>2);  // IN 32-BIT WORDS
@@ -1330,6 +1378,7 @@ void ram_flashprogramword(WORDPTR address,WORD value)
     volatile HALFWORD *ptr=(HALFWORD *)address;
     HALFWORD data,prevdata;
 
+        if(((WORD)ptr>=0x4000)&&((WORD)ptr<0x0020000)) {     // PROTECT THE BOOTLOADER AT ALL COSTS
         // PROGRAM WORD COMMAND
         WRITE_HALFWORD_FLASH(0x5555,0x00AA);
         WRITE_HALFWORD_FLASH(0x2AAA,0x0055);
@@ -1337,12 +1386,12 @@ void ram_flashprogramword(WORDPTR address,WORD value)
         *ptr=(HALFWORD)(value&0xffff);
 
         // USE TOGGLE READY TO WAIT FOR COMPLETION
-        prevdata=*ptr&0x0040;
-        data=0;
-        while(data!=prevdata)
+        prevdata=*ptr;
+        data=prevdata^0xffff;
+        while(data^prevdata)
         {
             prevdata=data;
-            data=*ptr&0x0040;
+            data=*ptr;
         }
 
         ++ptr;
@@ -1354,14 +1403,15 @@ void ram_flashprogramword(WORDPTR address,WORD value)
         *ptr=(HALFWORD)((value>>16)&0xffff);
 
         // USE TOGGLE READY TO WAIT FOR COMPLETION
-        prevdata=*ptr&0x0040;
-        data=0;
-        while(data!=prevdata)
+        prevdata=*ptr;
+        data=prevdata^0xffff;
+        while(data^prevdata)
         {
             prevdata=data;
-            data=*ptr&0x0040;
+            data=*ptr;
         }
 
+        }
 
 }
 
@@ -1370,38 +1420,77 @@ void ram_flashprogramword(WORDPTR address,WORD value)
 
 
 // MAIN PROCEDURE TO RECEIVE AND FLASH FIRMWARE FROM RAM
-void ram_receiveandflashfw(int flashsize)
+void ram_receiveandflashfw(WORD flashsize)
 {
 
 ram_usb_receivelong_start();
 
 WORDPTR flash_address;
 WORD flash_nwords,data;
-
+{unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+scrptr[4]=0xf0f0f0f0;}
 if(ram_usb_receivelong_word((WORDPTR)&flash_address)!=1)  ram_doreset(); // NOTHING ELSE TO DO
-if(ram_usb_receivelong_word(&flash_nwords)!=1)  ram_doreset();
 
-if(flash_nwords>flashsize) {
+{unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+scrptr[4]=0xffff6666;}
+if(ram_usb_receivelong_word(&flash_nwords)!=1)  ram_doreset();
+{unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+scrptr[4]=0x6666ffff;}
+
+if((WORD)(flash_address+flash_nwords)>flashsize) {
     // ROM TOO BIG!
     ram_doreset();
 }
 
+// DEBUG
+{
+    // SHOW SOME VISUALS
+unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+scrptr+=65;
+scrptr+=N_ALPHA*80;
+*scrptr=(*scrptr&0xf)|0xf0;
+}
 
 // ERASE THE ENTIRE FLASH
+{unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+scrptr[4]=0xf0f06666;}
 
 ram_flasherase(flash_address,flash_nwords );    // ERASE ENOUGH FLASH BLOCKS TO PREPARE FOR FIRMWARE UPDATE
+
+{unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+scrptr[4]=0xffffffff;}
+
+{
+    // SHOW SOME VISUALS
+unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+scrptr+=65;
+scrptr+=N_HOURGLASS*80;
+*scrptr=(*scrptr&0xf)|0xf0;
+}
+
 
 while(flash_nwords--) {
     if(ram_usb_receivelong_word(&data)!=1) ram_doreset();
     ram_flashprogramword(flash_address,data);
     ++flash_address;
+
+    // SHOW SOME VISUALS
+    unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+    scrptr+=65;
+    scrptr+=N_LEFTSHIFT*80;
+    *scrptr=(*scrptr&0xf)|((((WORD)flash_address)&0xf000)>>2);
 }
 
 // WE FINISHED PROGRAMMING THE FLASH!
 
-// DO A RESET, HOPEFULLY THE CALCULATOR WILL RECONNECT
+// SHOW SOME VISUALS
+unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+scrptr+=65;
+scrptr+=N_RIGHTSHIFT*80;
+*scrptr=(*scrptr&0xf)|0xf0;
 
-ram_doreset();
+while(1);
+//ram_doreset();
 
 // NEVER RETURNS
 }
@@ -1420,8 +1509,14 @@ void ram_startfwupdate()
     HALFWORD cfidata[50];   // ACTUALLY 36 WORDS ARE USED ONLY
     flash_CFIRead(cfidata);
 
+
+    flash_prepareforwriting();
+
+    {unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+    scrptr[2]=0xf0f0f0f0;}
+
     // CHECK THE SIZE OF RAM
-    int flashsize=1<<(WORD)(cfidata[0x17]-2);
+    int flashsize=1<<(WORD)(cfidata[0x17]);
 
     // NOW COPY THE CODE TO RAM
 
@@ -1440,14 +1535,36 @@ void ram_startfwupdate()
 
     memmovew(codeblock,&ram_simpmallocb,needwords);
 
+    {unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+    scrptr[2]=0xff00ff00;}
     // DISABLE ALL INTERRUPTS
     cpu_intoff();
+    // MAKE SURE THE CODE WAS COPIED TO RAM BEFORE WE EXECUTE IT
+    cpu_flushwritebuffers();
+
+    // MOVE MAIN ISR TO RAM AS WELL
+    *( (unsigned int *) 0x08000018)=(unsigned int) (codeblock+((WORDPTR)&__ram_irq_service-(WORDPTR)&ram_simpmallocb));
+
+    {unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+    scrptr[2]=0xffff0000;}
+
+    // AND MAKE SURE WE DON'T EXECUTE AN OLD COPY LEFT IN THE CACHE
+    cpu_flushicache();
+
+    {unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+    scrptr[2]=0x0000ffff;}
+
+
+
 
     // SET INTERRUPT HANDLER IN RAM
     __irq_addhook(25,(void *)(codeblock + ((WORDPTR)&ram_usb_irqservice-(WORDPTR)&ram_simpmallocb)));
 
+    // UNMASK ONLY THE ONE INTERRUPT WE NEED
     __irq_unmask(25);
 
+    {unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+    scrptr[2]=0xffffffff;}
     void (*ptr)(int);
 
     ptr=(void *) (codeblock+((WORDPTR)&ram_receiveandflashfw-(WORDPTR)&ram_simpmallocb));

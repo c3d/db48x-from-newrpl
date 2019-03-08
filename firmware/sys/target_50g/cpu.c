@@ -235,6 +235,16 @@ void cpu_flushwritebuffers(void)
 
 }
 
+void cpu_flushicache(void)
+{
+    register unsigned int value;
+
+    value=0;
+    asm volatile ("mcr p15, 0, %0, c7, c5, 0" : : "r" (value));
+
+}
+
+
 void cpu_flushTLB(void)
 {
     register unsigned int value;

@@ -137,6 +137,9 @@ unsigned int __attribute__((section (".text"))) flash_code_end[]={ 0 };
 
 void flash_CFIRead(unsigned short *ptr)
 {
+
+    flash_prepareforwriting();
+
     unsigned int buffer[400],*copy;
     void (*funcquery)(unsigned short *);
     unsigned short *read=0;
@@ -157,6 +160,9 @@ void flash_CFIRead(unsigned short *ptr)
 
     // ENSURE THE COPIED ROUTINE WILL BE EXECUTED
     cpu_flushwritebuffers();
+    // AND MAKE SURE WE DON'T EXECUTE AN OLD COPY LEFT IN THE CACHE
+    cpu_flushicache();
+
 
     funcquery(ptr);
 
@@ -164,6 +170,7 @@ void flash_CFIRead(unsigned short *ptr)
 
 
     // INTERRUPTS ARE RE-ENABLED BEFORE
+    flash_donewriting();
 
 
 }
@@ -190,6 +197,8 @@ void flash_Write(unsigned short *ptr,unsigned int data)
 
     // ENSURE THE COPIED ROUTINE WILL BE EXECUTED
     cpu_flushwritebuffers();
+    // AND MAKE SURE WE DON'T EXECUTE AN OLD COPY LEFT IN THE CACHE
+    cpu_flushicache();
 
     funcquery(ptr,data);
 
@@ -201,3 +210,58 @@ void flash_Write(unsigned short *ptr,unsigned int data)
 
 }
 
+#define MMU_SECTION_RAM(a) (((a)&0xfff00000)| 0xc1e)
+#define MMU_SECTION_ROM(a) (((a)&0xfff00000)| 0x01e)
+#define MMU_SECTION_DEV(a) (((a)&0xfff00000)| 0xc12)
+
+#define MMU_PAGES_RAM(a) (((a)&0xfffffc00)|0x011)
+
+#define MMU_PAGE(a) (((a)&0xfffff000)|0xffe)
+
+#define MMU_LEVEL1_INDEX(virt) (((virt)>>20)&0xfff)
+#define MMU_LEVEL2_INDEX(virt) (((virt)>>12)&0xff)
+
+#define MMU_MAP_SECTION_ROM(phys,virt) (mmu_base[MMU_LEVEL1_INDEX(virt)]=MMU_SECTION_ROM(phys))
+#define MMU_MAP_SECTION_RAM(phys,virt) (mmu_base[MMU_LEVEL1_INDEX(virt)]=MMU_SECTION_RAM(phys))
+#define MMU_MAP_SECTION_DEV(phys,virt) (mmu_base[MMU_LEVEL1_INDEX(virt)]=MMU_SECTION_DEV(phys))
+#define MMU_MAP_COARSE_RAM(phys,virt) (mmu_base[MMU_LEVEL1_INDEX(virt)]=MMU_PAGES_RAM(phys))
+
+#define MMU_MAP_PAGE(phys,virt) ( ( (unsigned int *)(mmu_base[MMU_LEVEL1_INDEX(virt)]&0xfffffc00))[MMU_LEVEL2_INDEX(virt)]=MMU_PAGE(phys))
+
+// SETUP FLASH MEMORY AS UNCACHED, UNBUFFERED SO THE CACHES DON'T INTERFERE WITH PROGRAMMING
+void flash_prepareforwriting()
+{
+    unsigned int *mmu_base=(unsigned int *)0x08008000;
+
+    //MEM_ROM         0x00000000  // VIRTUAL (AND PHYSICAL) ROM LOCATION (UP TO 4 MBytes)
+        MMU_MAP_SECTION_DEV(0x00000000,0x00000000);    // MAP 1ST MEGABYTE SECTION AS UNCACHED/UNBUFFERED
+        MMU_MAP_SECTION_DEV(0x00100000,0x00100000);    // MAP TOTAL 2 MBYTES OF ROM AS UNCACHED/UNBUFFERED
+
+        // SHOW SOME VISUALS
+    unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+    *scrptr=0xf0f0f0f0;        // FLUSH THE TLB TO FORCE THE MMU TO READ THE UPDATED SECTION MARKER
+        cpu_flushTLB();
+        *scrptr=0xffff0000;        // FLUSH THE TLB TO FORCE THE MMU TO READ THE UPDATED SECTION MARKER
+        // INVALIDATE THE DATA CACHES TO MAKE SURE THERE'S NO CACHE HIT ON THE ROM AREA WE ARE PROGRAMMING
+        cpu_flushwritebuffers();
+        *scrptr=0xf00f00f0;        // FLUSH THE TLB TO FORCE THE MMU TO READ THE UPDATED SECTION MARKER
+        cpu_flushicache();
+        *scrptr=0xffff8888;        // FLUSH THE TLB TO FORCE THE MMU TO READ THE UPDATED SECTION MARKER
+}
+
+// ENABLE CACHING AND BUFFERS AGAIN ON THE ROM
+void flash_donewriting()
+{
+    unsigned int *mmu_base=(unsigned int *)0x08008000;
+
+    //MEM_ROM         0x00000000  // VIRTUAL (AND PHYSICAL) ROM LOCATION (UP TO 4 MBytes)
+        MMU_MAP_SECTION_ROM(0x00000000,0x00000000);    // MAP 1ST MEGABYTE SECTION AS UNCACHED/UNBUFFERED
+        MMU_MAP_SECTION_ROM(0x00100000,0x00100000);    // MAP TOTAL 2 MBYTES OF ROM AS UNCACHED/UNBUFFERED
+
+        // FLUSH THE TLB TO FORCE THE MMU TO READ THE UPDATED SECTION MARKER
+        cpu_flushTLB();
+
+        // FROM NOW ON, THE CAHCE WILL START FILLING UP AGAIN
+        unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+        *scrptr=0x44444444;        // FLUSH THE TLB TO FORCE THE MMU TO READ THE UPDATED SECTION MARKER
+}

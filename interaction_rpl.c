@@ -83,6 +83,21 @@ int compileobject()
 
 
 
+// THESE ARE INTERNALS FROM THE USB DRIVER - COPIED HERE FOR PROPER INTERACTION
+extern BINT __usb_longoffset;
+extern BINT __usb_longactbuffer;                 // WHICH BUFFER IS BEING WRITTEN
+extern BINT __usb_longlastsize;                  // LAST BLOCK SIZE IN A LONG TRANSMISSION
+extern BYTEPTR __usb_rcvbuffer;
+extern WORD __usb_rcvtotal __SYSTEM_GLOBAL__;
+extern WORD __usb_rcvpartial __SYSTEM_GLOBAL__;
+extern WORD __usb_rcvcrc __SYSTEM_GLOBAL__;
+extern BINT __usb_rcvblkmark __SYSTEM_GLOBAL__;    // TYPE OF RECEIVED BLOCK (ONE OF USB_BLOCKMARK_XXX CONSTANTS)
+
+extern void usb_irqservice();
+extern int usb_remoteready();
+
+
+
 int usbsendtoremote(uint32_t *data,int nwords)
 {
     return usb_transmitdata((BYTEPTR) data,nwords*sizeof(WORD));
@@ -109,17 +124,27 @@ int usbremoterestorestart()
     return usb_transmitdata((BYTEPTR)&program,4*sizeof(WORD));
 }
 
-// THESE ARE INTERNALS FROM THE USB DRIVER - COPIED HERE FOR PROPER INTERACTION
-extern BINT __usb_longoffset;
-extern BINT __usb_longactbuffer;                 // WHICH BUFFER IS BEING WRITTEN
-extern BINT __usb_longlastsize;                  // LAST BLOCK SIZE IN A LONG TRANSMISSION
-extern BYTEPTR __usb_rcvbuffer;
-extern WORD __usb_rcvtotal __SYSTEM_GLOBAL__;
-extern WORD __usb_rcvpartial __SYSTEM_GLOBAL__;
-extern WORD __usb_rcvcrc __SYSTEM_GLOBAL__;
-extern BINT __usb_rcvblkmark __SYSTEM_GLOBAL__;    // TYPE OF RECEIVED BLOCK (ONE OF USB_BLOCKMARK_XXX CONSTANTS)
+int usbremotefwupdatestart()
+{
 
-extern void usb_irqservice();
+    WORD program[]={
+        MKPROLOG(SECO,2),
+        CMD_USBFWUPDATE,
+        CMD_QSEMI,
+    };
+
+    int attempts=0;
+    while(!usb_isconfigured()) {
+        usb_irqservice();
+        if(attempts>300000) return 0;
+        ++attempts;
+    }
+
+    return usb_transmitdata((BYTEPTR)&program,3*sizeof(WORD));
+}
+
+
+
 
 
 // RECEIVE AN ENTIRE ARCHIVE, RETURN WORD COUNT, OR -1 IF ERROR
@@ -197,6 +222,10 @@ int usbsendarchive(uint32_t *buffer,int bufsize)
     return usb_transmitdata((BYTEPTR)buffer,bufsize*sizeof(WORD));
 }
 
+void usbflush()
+{
+    usb_irqservice();
+}
 
 void setExceptionPoweroff()
 {
