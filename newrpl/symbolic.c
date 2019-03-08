@@ -3266,7 +3266,7 @@ do {
                                     // CHECK IF THIS IS ANOTHER SPECIAL IDENT AND BREAK THE INFINITE LOOP
                                     if( (((tmp[1])&0xffff) == TEXT2WORD('.','X',0,0))||(((tmp[1])&0xffff) == TEXT2WORD('.','M',0,0))) {
                                         // ALSO CHECK IF IT'S THE SAME VARIABLE USED LATER, THAT DOESN'T COUNT
-                                        if(!rplCompareIDENT(*s.right,tmp)) {
+                                        if(rplCompareIDENT(*s.right,tmp)) {
                                         // BREAK THE LOOP, JUST ASSIGN THE CURRENT ARGUMENT
                                             BINT attr=rplGetIdentAttr(*s.right);
 
@@ -3559,7 +3559,7 @@ do {
                                     // CHECK IF THIS IS ANOTHER SPECIAL IDENT AND BREAK THE INFINITE LOOP
                                     if( (((tmp[1])&0xffff) == TEXT2WORD('.','X',0,0))||(((tmp[1])&0xffff) == TEXT2WORD('.','M',0,0))) {
                                         // ALSO CHECK IF IT'S THE SAME VARIABLE USED LATER, THAT DOESN'T COUNT
-                                        if(!rplCompareIDENT(*s.right,tmp)) {
+                                        if(rplCompareIDENT(*s.right,tmp)) {
                                             // BREAK THE LOOP, JUST ASSIGN THE CURRENT ARGUMENT
                                             BINT attr=rplGetIdentAttr(*s.right);
 
@@ -5470,8 +5470,8 @@ BINT rplSymbGetAttr(WORDPTR object)
 
     // SET DEFAULT ATTRIBUTES FOR VARIABLES THAT DON'T HAVE THEM (REAL IN REAL MODE, COMPLEX IN COMPLEX MODE)
     if(!attr) {
-        if(rplTestSystemFlag(FL_COMPLEXMODE)) attr=IDATTR_ISINFCPLX;
-        else attr=IDATTR_ISINFREAL;
+        if(rplTestSystemFlag(FL_COMPLEXMODE)) attr=IDATTR_ISCPLX;
+        else attr=IDATTR_ISREAL;
     }
 
     return attr;
