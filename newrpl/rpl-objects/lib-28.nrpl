@@ -32,6 +32,7 @@
 ##1,ERR_DIRECTORYNOTFOUND "Directory not found"
 ##1,ERR_CANTOVERWRITEDIR "Can't overwrite directory"
 ##1,ERR_READONLYVARIABLE "Read only variable"
+##1,ERR_UNDEFINEDPROPERTY "Undefined property"
 }
 
 
