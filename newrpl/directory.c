@@ -1470,8 +1470,9 @@ for(k=0;k<oldnum;++k)
 
 
            newlist[0]=MKPROLOG(DOLIST,totalsize+1);
-           ptr=var[1]+1;
+           ptr=var[1];
            end=rplSkipOb(ptr);
+           ++ptr;
            newlptr=newlist+1;
            // COPY ALL OLD DEPENDENT VARS EXCEPT THE NEW ONE
            while(ptr<end) {

@@ -396,7 +396,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 
         }
 
-                if(flags&2) {
+                if( (flags&2) || (var && (rplGetIdentAttr(var[0])&IDATTR_DEFN))) {
                    // SECOND BIT IN FLAGS MEANS INVERTED
                             scr->x=scr->clipx;
                             scr->y=scr->clipy;
