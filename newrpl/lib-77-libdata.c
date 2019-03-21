@@ -1151,7 +1151,7 @@ void LIB_HANDLER()
         // VERIFY IF THE OBJECT IS PROPERLY FORMED AND VALID
         // ObjectPTR = POINTER TO THE OBJECT TO CHECK
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
-        if(ISPROLOG(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
+        //if(ISPROLOG(*ObjectPTR)) { RetNum=ERR_INVALID; return; }
 
         RetNum=OK_CONTINUE;
         return;
