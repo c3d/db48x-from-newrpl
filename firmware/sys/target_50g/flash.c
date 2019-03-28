@@ -238,7 +238,7 @@ void flash_prepareforwriting()
         MMU_MAP_SECTION_DEV(0x00100000,0x00100000);    // MAP TOTAL 2 MBYTES OF ROM AS UNCACHED/UNBUFFERED
 
         // SHOW SOME VISUALS
-    unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+    unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
     *scrptr=0xf0f0f0f0;        // FLUSH THE TLB TO FORCE THE MMU TO READ THE UPDATED SECTION MARKER
         cpu_flushTLB();
         *scrptr=0xffff0000;        // FLUSH THE TLB TO FORCE THE MMU TO READ THE UPDATED SECTION MARKER
@@ -262,6 +262,6 @@ void flash_donewriting()
         cpu_flushTLB();
 
         // FROM NOW ON, THE CAHCE WILL START FILLING UP AGAIN
-        unsigned int *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
+        unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
         *scrptr=0x44444444;        // FLUSH THE TLB TO FORCE THE MMU TO READ THE UPDATED SECTION MARKER
 }

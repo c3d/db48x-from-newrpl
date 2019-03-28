@@ -209,7 +209,8 @@ void halReset()
     // TODO: ADD RPL ENGINE CLEANUP HERE BEFORE RESET
 
     // DUMMY FUNCTION ON PC-TARGET, RESET NOT ALLOWED
-    exit(0);
+    halFlags|=HAL_RESET;
+    __memmap_intact=2;
 
 }
 

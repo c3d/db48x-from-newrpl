@@ -372,6 +372,7 @@ void USBSelector::on_updateFirmware_clicked()
 
     // THIS IS JUST A TEST
     uint32_t updatedata[]={
+        TEXT2WORD('F','W','U','P'),
         0x1c0000, 4,        // ADDRESS AND NUMBER OF WORDS
         0xBADF00D,
         0x12345678,
@@ -392,7 +393,7 @@ void USBSelector::on_updateFirmware_clicked()
     for(j=0;j<1000;++j) usbflush();
 
     // SEND THE ACTUAL FIRMWARE
-    if(!usbsendtoremote(updatedata,6)) {
+    if(!usbsendtoremote(updatedata,7)) {
         // TODO: SOME KIND OF ERROR
         return;
     }
