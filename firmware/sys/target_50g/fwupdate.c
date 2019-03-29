@@ -231,8 +231,11 @@ int ram_usb_receivelong_start()
 
 inline void ram_cpu_waitforinterrupt()
 {
+    asm volatile ("stmfd sp!,{ r0 }");  // SAVE IRQ STACK PTR
     asm volatile ("mov r0,#0");
     asm volatile ("mcr p15,0,r0,c7,c0,4");
+    asm volatile ("ldmia sp!,{ r0 }");  // SAVE IRQ STACK PTR
+
 }
 
 // READ A 32-BIT WORD OF DATA
@@ -1416,11 +1419,9 @@ while(nwords>0) {
 
 void ram_flashprogramword(WORDPTR address,WORD value)
 {
+
     volatile HALFWORD *ptr=(HALFWORD *)address;
     HALFWORD data,prevdata;
-
-        if(((WORD)ptr>=0x4000)&&((WORD)ptr<0x0020000)) {     // PROTECT THE BOOTLOADER AT ALL COSTS
-
             // DISABLE INTERRUPTS
             asm volatile ("stmfd sp!, {r0}");
             asm volatile ("mrs r0,cpsr_all");
@@ -1467,7 +1468,7 @@ void ram_flashprogramword(WORDPTR address,WORD value)
         asm volatile ("bic r1,r1,#0xc0");
         asm volatile ("msr cpsr_all,r1");
         asm volatile ("ldmia sp!, { r1 }");
-        }
+
 
 }
 
@@ -1581,7 +1582,6 @@ scrptr[4]=0xf0f06666;}
 if( (flash_address!=(WORDPTR)0x1c0000)||(flash_nwords!=4)) {
     {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
     scrptr[5]=0x88888888;}
-    while(1);
 }
 ram_flasherase(flash_address,flash_nwords );    // ERASE ENOUGH FLASH BLOCKS TO PREPARE FOR FIRMWARE UPDATE
 
@@ -1596,9 +1596,14 @@ scrptr+=N_HOURGLASS*80;
 *scrptr=(*scrptr&0xf)|0xf0;
 }
 
+if(((WORD)flash_address<0x4000)||((WORD)flash_address+flash_nwords>=0x00200000))  {
+    ram_doreset(); // PROTECT THE BOOTLOADER AT ALL COSTS
+}
+
 
 while(flash_nwords--) {
     if(ram_usb_receivelong_word(&data)!=1) ram_doreset();
+
     ram_flashprogramword(flash_address,data);
     ++flash_address;
 
@@ -1606,7 +1611,7 @@ while(flash_nwords--) {
     unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
     scrptr+=65;
     scrptr+=N_LEFTSHIFT*80;
-    *scrptr=(*scrptr&0xf)|((((WORD)flash_address)&0xf000)>>2);
+    *scrptr=(*scrptr&0xf)|((((WORD)flash_address)&0xf000)>>12);
 }
 
 // WE FINISHED PROGRAMMING THE FLASH!

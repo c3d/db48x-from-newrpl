@@ -1,7 +1,10 @@
 #include <QMessageBox>
 #include <QTreeWidget>
 #include <QTimer>
+#include <QStandardPaths>
+#include <QFileDialog>
 
+#include "string.h"
 #include "hidapi.h"
 #include "usbselector.h"
 #include "ui_usbselector.h"
@@ -352,6 +355,59 @@ extern "C" void usbflush();
 void USBSelector::on_updateFirmware_clicked()
 {
 
+        QString path;
+        QByteArray filedata;
+
+        path=QStandardPaths::locate(QStandardPaths::DocumentsLocation,"newRPL",QStandardPaths::LocateDirectory);
+        if(path.isEmpty()) path=QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
+
+        QString fname=QFileDialog::getOpenFileName(this,"Select firmware file to send to calculator",path,"firmware binary files (*.bin *.* *)");
+
+        if(!fname.isEmpty()) {
+            QFile file(fname);
+
+            if(!file.open(QIODevice::ReadOnly)) {
+                QMessageBox a(QMessageBox::Warning,"Error while opening","Cannot open file "+ fname,QMessageBox::Ok,this);
+                a.exec();
+                return;
+            }
+
+
+            // FILE IS OPEN AND READY FOR READING
+
+
+            filedata=file.readAll();
+
+            file.close();
+
+            // THIS IS ONLY VALID FOR 50G AND COUSINS, FIX LATER
+
+            if(strncmp(filedata.constData(),"KINPOUPDATEIMAGE",16)==0) {
+                unsigned int address=0x4000;
+                unsigned int nwords=filedata.size()>>2;
+
+                filedata.replace(0,16,"Kinposhcopyright");
+                filedata.insert(0,(const char *)(&nwords),4);
+                filedata.insert(0,(const char *)(&address),4);
+                filedata.insert(0,"FWUP",4);
+            }
+            else {
+                QMessageBox a(QMessageBox::Warning,"Invalid firmware image","Invalid firmware image",QMessageBox::Ok,this);
+                a.exec();
+                return;
+            }
+
+            QMessageBox warn(QMessageBox::Warning,"Firmware update","Firmware on the remote device is about to be updated. Do NOT disconnect the device. OK to proceed?",QMessageBox::Yes | QMessageBox::No,this);
+
+            if(warn.exec()==QMessageBox::No) return;
+
+        } else return;
+
+
+
+
+
+
     // STOP REFRESHING THE LIST
 
     if(tmr) {
@@ -370,18 +426,8 @@ void USBSelector::on_updateFirmware_clicked()
 
     // TODO: SHOW NICE WINDOW WITH UPDATE STEPS
 
-    // THIS IS JUST A TEST
-    uint32_t updatedata[]={
-        TEXT2WORD('F','W','U','P'),
-        0x1c0000, 4,        // ADDRESS AND NUMBER OF WORDS
-        0xBADF00D,
-        0x12345678,
-        0x90ABCDEF,
-        0x0F1E57A0
-    };
-
     int j;
-    for(j=0;j<1000;++j) usbflush();
+    for(j=0;j<500;++j) usbflush();
 
     // SEND CMD_USBFWUPDATE TO THE CALC
     if(!usbremotefwupdatestart()) {
@@ -392,14 +438,13 @@ void USBSelector::on_updateFirmware_clicked()
 
     for(j=0;j<1000;++j) usbflush();
 
-    // SEND THE ACTUAL FIRMWARE
-    if(!usbsendtoremote(updatedata,7)) {
-        // TODO: SOME KIND OF ERROR
-        return;
-    }
+    int nwords=filedata.size()+3,result;
+    nwords/=sizeof(WORD);
+
+    result=usbsendtoremote((unsigned int *)filedata.constData(),nwords);
 
 
-    for(j=0;j<1000;++j) usbflush();
+    for(j=0;j<500;++j) usbflush();
 
     // AT THIS POINT, THE CALC MUST'VE RESET TO LOAD THE NEW FIRMWARE
     hid_close(__usb_curdevice);
@@ -413,6 +458,15 @@ void USBSelector::on_updateFirmware_clicked()
     connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
     tmr->start(500);
     }
+
+
+
+    if(result!=1) {
+        QMessageBox a(QMessageBox::Warning,"Communication error while sending firmware","USB communication error",QMessageBox::Ok,this);
+        a.exec();
+    }
+
+
 
     // AND JUST HOPE IT WILL RECONENCT SOME TIME
     return;
