@@ -475,7 +475,8 @@ int usb_remoteready()
 
     err=hid_read_timeout(__usb_curdevice,tmpbuf,RAWHID_TX_SIZE+1,USB_TIMEOUT_MS);
 
-    if(err<=0) return 0; // NOT READY - ERROR
+    if(err<=0)
+        return 0; // NOT READY - ERROR
 
     if(tmpbuf[0]!=USB_BLOCKMARK_RESPONSE) return 0;
     return !(int)tmpbuf[1];

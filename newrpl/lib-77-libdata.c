@@ -1043,12 +1043,15 @@ void LIB_HANDLER()
                     else if(encoder[k]==62) encoder[k]='+';
                     else encoder[k]='/';
                 }
-
+                ScratchPointer1=ptr;
                 rplDecompAppendString(encoder);
                 if(Exceptions) {
                     RetNum=ERR_INVALID;
                     return;
                 }
+                ptr=ScratchPointer1;
+
+                ++ptr;
 
                 ++nwords;
                 if(nwords==8) { rplDecompAppendChar(' '); nwords=0; }
