@@ -180,6 +180,28 @@ void USBSelector::RefreshList()
 
                         if(thisdev)
                         {
+                            unsigned char buffer[1024];
+                            int res,datalen;
+                            int available=0;
+
+                            do {
+
+
+
+                             // ASK IF REMOTE IS READY TO RECEIVE DATA
+                             memset(buffer,0,RAWHID_TX_SIZE+1);
+                             buffer[0]=0;    // REPORT ID
+                             buffer[1]=USB_BLOCKMARK_GETSTATUS;   // CHECK IF REMOTE IS AVAILABLE TO ANSWER
+
+                             res=hid_write(thisdev,buffer,RAWHID_TX_SIZE+1);
+
+                             if(res<0) break;
+
+                             res=hid_read_timeout(thisdev,buffer,RAWHID_RX_SIZE,100);
+
+                             if(res<0) break;
+                             // WE GOT A RESPONSE, IGNORE IT AND SEND THE REQUEST
+
                             // ATTEMPT TO SEND SOMETHING TO SEE IF IT'S ACTIVELY RESPONDING
                             uint32_t getversion[16]={
                                 0,          // 0 = DON'T USE REPORT ID'S - THIS IS REQUIRED ONLY FOR HIDAPI
@@ -197,49 +219,66 @@ void USBSelector::RefreshList()
                             getversion[1]|=(1+OBJSIZE(getversion[3]))<<10;
                             getversion[2]=usb_crc32((BYTEPTR) &(getversion[3]),(1+OBJSIZE(getversion[3]))*4);
 
+                            res=hid_write(thisdev,((const unsigned char *)getversion)+3,RAWHID_TX_SIZE+1);
 
+                            if(res<0) break;
 
-                            int res=hid_write(thisdev,((const unsigned char *)getversion)+3,RAWHID_TX_SIZE+1);//(getversion[1]>>8)+9);
-                            int available=0;
-                            if(res>0) {
-                                unsigned char buffer[1024];
-                                res=hid_read_timeout(thisdev,buffer,1024,500);
+                            res=hid_read_timeout(thisdev,buffer,RAWHID_RX_SIZE,100);
 
-                                if(res>0) {
-                                    // WE GOT A RESPONSE, THE DEVICE IS ALIVE!
+                            if(res<0) break;
+                            // WE GOT A RESPONSE OR IT TIMED OUT, IGNORE IT
+                            while((res>0) &&(buffer[0]!=USB_BLOCKMARK_GETSTATUS)) res=hid_read_timeout(thisdev,buffer,RAWHID_RX_SIZE,100);
 
+                            if(res<0) break;
+                             // WE GOT A RESPONSE, THE DEVICE IS ALIVE!
 
-                                    if(buffer[0]==USB_BLOCKMARK_GETSTATUS) {
+                             if(buffer[0]==USB_BLOCKMARK_GETSTATUS) {
                                         // REMOTE IS ASKING IF WE ARE READY TO RECEIVE DATA
+
+                                        // SAVE THE SIZE OF WHATEVER IS TRYING TO SEND FOR LATER USE
+                                        datalen=buffer[1];
+                                        datalen|=(buffer[2])<<8;
+                                        datalen|=(buffer[3])<<16;
+                                        datalen|=(buffer[4])<<24;
+
+
                                         memset(buffer,0,RAWHID_TX_SIZE+1);
                                         buffer[0]=0;    // REPORT ID
                                         buffer[1]=USB_BLOCKMARK_RESPONSE;   // RE ARE RESPONDING TO THE REQUEST
                                         buffer[2]=0;    // WE ARE NOT BUSY
 
                                         res=hid_write(thisdev,buffer,RAWHID_TX_SIZE+1);
+                             } else break;
 
-                                        if(res>0) {
-                                            res=hid_read_timeout(thisdev,buffer,1024,2000);
 
-                                            if(res>0) {
-                                                // WE GOT A RESPONSE, THE DEVICE IS ALIVE!
-                                                if(buffer[0]==USB_BLOCKMARK_SINGLE) {
+                             while((res>0) &&(buffer[0]!=USB_BLOCKMARK_SINGLE)) res=hid_read_timeout(thisdev,buffer,RAWHID_RX_SIZE,100);
+
+                             if(res<0) break;
+
+                             // WE GOT A RESPONSE, THE DEVICE IS ALIVE!
+                             // RECEIVE THE DATA
+                             if(buffer[0]==USB_BLOCKMARK_SINGLE) {
                                                 unsigned int strprolog;
                                                 strprolog=buffer[8]+(buffer[9]<<8)+(buffer[10]<<16)+(buffer[11]<<24);
 
                                                 tmp=QString::fromUtf8((const char *)(buffer+12),rplStrSize(&strprolog));
                                                 newitem->setText(2,tmp);
                                                 available=1;
-                                                }
-                                            }
 
-                                        }
-                                    }
+                                                // REMOTE NEEDS CONFIRMATION THAT WE GOT ALL THE DATA
+                                                memset(buffer,0,RAWHID_TX_SIZE+1);
+                                                buffer[0]=0;    // REPORT ID
+                                                buffer[1]=USB_BLOCKMARK_RESPONSE;   // RE ARE RESPONDING TO THE REQUEST
+                                                buffer[2]=0;    // WE ARE NOT BUSY
+                                                buffer[7]=buffer[3]=datalen&0xff;  // DATALEN HAS TO BE < PACKET SIZE FOR THIS TO WORK
 
-                                    }
+                                                res=hid_write(thisdev,buffer,RAWHID_TX_SIZE+1);
+                              }
+                             else break;
+
+                            } while(!available);
 
 
-                                }
 
 
                         hid_close(thisdev);

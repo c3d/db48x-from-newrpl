@@ -683,7 +683,7 @@ int HID_API_EXPORT hid_write(hid_device *dev, const unsigned char *data, size_t 
         fds.fd = dev->device_handle;
         fds.events = POLLOUT|POLLERR | POLLHUP;
         fds.revents = 0;
-        ret = poll(&fds, 1, 1);
+        ret = poll(&fds, 1, 5);
         if (ret == -1) {
             /* Error or timeout */
             return ret;
@@ -732,12 +732,12 @@ int HID_API_EXPORT hid_read_timeout(hid_device *dev, unsigned char *data, size_t
 	}
 
 	bytes_read = read(dev->device_handle, data, length);
-	if (bytes_read < 0 && (errno == EAGAIN || errno == EINPROGRESS))
+    if ( (bytes_read < 0) && (errno == EAGAIN || errno == EINPROGRESS))
 		bytes_read = 0;
 
-	if (bytes_read >= 0 &&
-	    kernel_version != 0 &&
-	    kernel_version < KERNEL_VERSION(2,6,34) &&
+    if ( (bytes_read >= 0) &&
+        (kernel_version != 0) &&
+        (kernel_version < KERNEL_VERSION(2,6,34)) &&
 	    dev->uses_numbered_reports) {
 		/* Work around a kernel bug. Chop off the first byte. */
 		memmove(data, data+1, bytes_read);

@@ -1124,7 +1124,11 @@ int usb_transmitlong_finish();
 int usb_receivelong_start();
 int usb_receivelong_word(unsigned int *data);
 int usb_receivelong_finish();
-
+void usb_ignoreuntilend();
+int usb_remotetotalsize();
+int usb_remoteoffset();
+void usb_setoffset(int offset);
+void usb_waitdatareceived();
 
 
 
