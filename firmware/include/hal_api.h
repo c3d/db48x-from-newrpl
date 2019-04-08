@@ -1114,6 +1114,7 @@ int usb_datablocktype();
 int usb_isconnected();
 int usb_isconfigured();
 void usb_releasedata();
+void usb_sendfeedback();
 BYTEPTR usb_accessdata(int *blksize);
 WORD usb_crc32(BYTEPTR data,BINT len);
 int usb_checkcrc();
@@ -1127,6 +1128,7 @@ int usb_receivelong_finish();
 void usb_ignoreuntilend();
 int usb_remotetotalsize();
 int usb_remoteoffset();
+void usb_addremoteoffset(int bytes);
 void usb_setoffset(int offset);
 void usb_waitdatareceived();
 

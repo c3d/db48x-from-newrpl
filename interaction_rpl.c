@@ -202,10 +202,10 @@ int usbreceivearchive(uint32_t *buffer,int bufsize)
         count+=__usb_rcvtotal;
         if(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND) {
             // LAST BLOCK RECEIVED AND PROCESSED
-            usb_releasedata();
+            usb_releasedata(0);
             break;
         }
-        usb_releasedata();
+        usb_releasedata(0);
      } while(1);
 
     usb_receivelong_finish();

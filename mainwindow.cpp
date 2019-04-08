@@ -472,7 +472,7 @@ void MainWindow::on_actionExit_triggered()
             __pc_terminate=1;
             __pckeymatrix^=(1ULL<<63);
             __keyb_update();
-            while(rpl.isRunning()) __pc_terminate=1;
+            while(rpl.isRunning()) { usbupdate(); __pc_terminate=1; }
         }
         on_actionEject_SD_Card_Image_triggered();
     }
@@ -492,7 +492,7 @@ void MainWindow::on_actionExit_triggered()
         __pc_terminate=1;
         __pckeymatrix^=(1ULL<<63);
         __keyb_update();
-        while(rpl.isRunning()) __pc_terminate=1;
+        while(rpl.isRunning()) { usbupdate(); __pc_terminate=1; }
     }
 
 
@@ -618,7 +618,7 @@ void MainWindow::on_actionNew_triggered()
         __pc_terminate=1;
         __pckeymatrix^=(1ULL<<63);
         __keyb_update();
-        while(rpl.isRunning()) __pc_terminate=1;
+        while(rpl.isRunning()) { usbupdate(); __pc_terminate=1; }
     }
 
     currentfile.clear();
@@ -733,7 +733,7 @@ void MainWindow::on_actionPower_ON_triggered()
         __pc_terminate=1;
         __pckeymatrix^=(1ULL<<63);
         __keyb_update();
-    while(rpl.isRunning()) __pc_terminate=1;
+    while(rpl.isRunning()) { usbupdate(); __pc_terminate=1; }
     }
 
     if(__pc_terminate==2) {
@@ -1099,7 +1099,7 @@ int MainWindow::OpenFile(QString fname)
             __pc_terminate=1;
             __pckeymatrix^=(1ULL<<63);
             __keyb_update();
-            while(rpl.isRunning()) __pc_terminate=1;
+            while(rpl.isRunning()) { usbupdate(); __pc_terminate=1; }
         }
 
         // PERFORM RESTORE PROCEDURE
@@ -1195,7 +1195,7 @@ void MainWindow::SaveFile(QString fname)
             __pc_terminate=1;
             __pckeymatrix^=(1ULL<<63);
             __keyb_update();
-            while(rpl.isRunning()) __pc_terminate=1;
+            while(rpl.isRunning()) { usbupdate(); __pc_terminate=1; }
         }
 
         // PERFORM BACKUP

@@ -234,6 +234,31 @@ do {
         return;
     }
 
+    if(__usb_drvstatus&USB_STATUS_DATARECEIVED) {
+        // SEND ACKNOWLEDGEMENT THAT WE RECEIVED SOME DATA AND WE WANT THE NEXT OFFSET
+        BYTE tmpbuf[RAWHID_TX_SIZE+1];
+
+        memsetb(tmpbuf,0,RAWHID_TX_SIZE+1);
+
+        tmpbuf[0]=0;        // REPORT ID
+        tmpbuf[1]=USB_BLOCKMARK_RESPONSE;
+        tmpbuf[2]=(__usb_drvstatus&USB_STATUS_DATAREADY)? 1:0;
+        tmpbuf[3]=__usb_rembigtotal&0xff;
+        tmpbuf[4]=(__usb_rembigtotal>>8)&0xff;
+        tmpbuf[5]=(__usb_rembigtotal>>16)&0xff;
+        tmpbuf[6]=(__usb_rembigtotal>>24)&0xff;
+        tmpbuf[7]=__usb_localbigoffset&0xff;
+        tmpbuf[8]=(__usb_localbigoffset>>8)&0xff;
+        tmpbuf[9]=(__usb_localbigoffset>>16)&0xff;
+        tmpbuf[10]=(__usb_localbigoffset>>24)&0xff;
+
+        hid_write(__usb_curdevice,tmpbuf,RAWHID_TX_SIZE+1);
+
+        __usb_drvstatus&=~USB_STATUS_DATARECEIVED;
+        continue;
+    }
+
+
     int fifocnt=hid_read_timeout(__usb_curdevice,__usb_rxtmpbuffer,RAWHID_RX_SIZE,1);
 
     if(fifocnt<0) {
@@ -289,6 +314,14 @@ do {
                 tmpbuf[0]=0;        // REPORT ID
                 tmpbuf[1]=USB_BLOCKMARK_RESPONSE;
                 tmpbuf[2]=(__usb_drvstatus&USB_STATUS_DATAREADY)? 1:0;
+                tmpbuf[3]=__usb_rembigtotal&0xff;
+                tmpbuf[4]=(__usb_rembigtotal>>8)&0xff;
+                tmpbuf[5]=(__usb_rembigtotal>>16)&0xff;
+                tmpbuf[6]=(__usb_rembigtotal>>24)&0xff;
+                tmpbuf[7]=__usb_localbigoffset&0xff;
+                tmpbuf[8]=(__usb_localbigoffset>>8)&0xff;
+                tmpbuf[9]=(__usb_localbigoffset>>16)&0xff;
+                tmpbuf[10]=(__usb_localbigoffset>>24)&0xff;
 
                 hid_write(__usb_curdevice,tmpbuf,RAWHID_TX_SIZE+1);
 
@@ -297,9 +330,41 @@ do {
 
             }
 
+            if(startmarker==USB_BLOCKMARK_RESPONSE) {
+                // RECEIVING A RESPONSE FROM THE REMOTE
+
+
+                BYTE remotebusy=__usb_rxtmpbuffer[1];    // READ THE NEXT BYTE WITH THE STATUS
+
+                if(!remotebusy) __usb_drvstatus&=~USB_STATUS_REMOTEBUSY;
+                else __usb_drvstatus|=USB_STATUS_REMOTEBUSY;
+
+                WORD txsize=__usb_rxtmpbuffer[2];
+                txsize|=(__usb_rxtmpbuffer[3])<<8;
+                txsize|=(__usb_rxtmpbuffer[4])<<16;
+                txsize|=(__usb_rxtmpbuffer[5])<<24;
+
+
+                WORD txoffset=__usb_rxtmpbuffer[6];
+                txoffset|=(__usb_rxtmpbuffer[7])<<8;
+                txoffset|=(__usb_rxtmpbuffer[8])<<16;
+                txoffset|=(__usb_rxtmpbuffer[9])<<24;
+
+
+                __usb_rembigtotal=txsize;
+                __usb_rembigoffset=txoffset;    // FILE SIZE AND OFFSET AS REQUESTED BY THE REMOTE
+
+                __usb_drvstatus|=USB_STATUS_REMOTERESPND;
+
+                __usb_drvstatus&=~USB_STATUS_HIDRX;
+                return;
+
+
+            }
 
 
             if((startmarker&0xf0)==USB_BLOCKMARK_SINGLE) {
+            __usb_rcvpartial=fifocnt;
             __usb_rcvtotal=__usb_rxtmpbuffer[1];
             __usb_rcvtotal|=__usb_rxtmpbuffer[2]<<8;
             __usb_rcvtotal|=__usb_rxtmpbuffer[3]<<16;
@@ -319,7 +384,7 @@ do {
             BYTEPTR buf;
 
             // ONLY ALLOCATE MEMORY FOR DATA BLOCKS LARGER THAN 1 PACKET
-            buf=simpmallocb(__usb_rcvtotal);
+            buf=simpmallocb((__usb_rcvpartial<__usb_rcvtotal)? __usb_rcvtotal:__usb_rcvpartial);
 
 
             if(!buf) {
@@ -338,7 +403,7 @@ do {
 
             else {
                 // BAD START MARKER, TREAT THE BLOCK AS ARBITRARY DATA
-                cnt+=fifocnt;
+                cnt++;
                 __usb_rcvtotal=fifocnt;
                 __usb_rcvbuffer=__usb_rxtmpbuffer;
                 __usb_rcvcrc=0;
@@ -436,6 +501,8 @@ int usb_waitfordata()
     tmr_t start=tmr_ticks(),end;
 
     while(!(__usb_drvstatus&USB_STATUS_DATAREADY)) {
+        if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) return 0;
+
         cpu_waitforinterrupt();
 
         end=tmr_ticks();
@@ -474,6 +541,13 @@ void usb_releasedata()
     __usb_drvstatus&=~USB_STATUS_DATAREADY;
 }
 
+
+// SEND SOME FEEDBACK TO THE HOST ABOUT THE CURRENT TRANSMISSION
+void usb_sendfeedback()
+{
+    __usb_drvstatus|=USB_STATUS_DATARECEIVED;
+}
+
 // CHECK THE CRC OF THE LAST BLOCK RECEIVED
 int usb_checkcrc()
 {
@@ -486,7 +560,7 @@ int usb_checkcrc()
 }
 
 // RETURN TRUE IF THE REMOTE SIDE IS READY TO RECEIVE A NEW TRANSMISSION
-int usb_remoteready()
+int usb_remoteready(int size,int offset)
 {
     if(!usb_isconfigured())
         return 0;
@@ -494,11 +568,23 @@ int usb_remoteready()
     if(__usb_drvstatus&(USB_STATUS_HIDRX|USB_STATUS_HIDTX))
         return 0;
 
+    __usb_drvstatus|=USB_STATUS_REMOTEBUSY;
+    __usb_drvstatus&=~USB_STATUS_REMOTERESPND;
+
+
     BYTE tmpbuf[RAWHID_TX_SIZE+1];
 
     memsetb(tmpbuf,0,RAWHID_TX_SIZE+1);
 
     tmpbuf[1]=USB_BLOCKMARK_GETSTATUS;
+    tmpbuf[2]=size&0xff;
+    tmpbuf[3]=(size>>8)&0xff;
+    tmpbuf[4]=(size>>16)&0xff;
+    tmpbuf[5]=(size>>24)&0xff;
+    tmpbuf[6]=offset&0xff;
+    tmpbuf[7]=(offset>>8)&0xff;
+    tmpbuf[8]=(offset>>16)&0xff;
+    tmpbuf[9]=(offset>>24)&0xff;
 
     int err=hid_write(__usb_curdevice,tmpbuf,RAWHID_TX_SIZE+1);
 
@@ -512,7 +598,36 @@ int usb_remoteready()
 
     if(tmpbuf[0]!=USB_BLOCKMARK_RESPONSE)
         return 0;
-    return !(int)tmpbuf[1];
+
+    // RECEIVING A RESPONSE FROM THE REMOTE
+
+
+    BYTE remotebusy=tmpbuf[1];    // READ THE NEXT BYTE WITH THE STATUS
+
+    if(!remotebusy) __usb_drvstatus&=~USB_STATUS_REMOTEBUSY;
+    else __usb_drvstatus|=USB_STATUS_REMOTEBUSY;
+
+    WORD txsize=tmpbuf[2];
+    txsize|=(tmpbuf[3])<<8;
+    txsize|=(tmpbuf[4])<<16;
+    txsize|=(tmpbuf[5])<<24;
+
+
+    WORD txoffset=tmpbuf[6];
+    txoffset|=(tmpbuf[7])<<8;
+    txoffset|=(tmpbuf[8])<<16;
+    txoffset|=(tmpbuf[9])<<24;
+
+
+    __usb_rembigtotal=txsize;
+    __usb_rembigoffset=txoffset;    // FILE SIZE AND OFFSET AS REQUESTED BY THE REMOTE
+
+    __usb_drvstatus|=USB_STATUS_REMOTERESPND;
+
+    __usb_drvstatus&=~USB_STATUS_HIDRX;
+
+
+    return !(int)remotebusy;
 
 }
 
@@ -531,19 +646,106 @@ int usb_transmitdata(BYTEPTR data,BINT size)
     BINT blksize,sent=0,bufsize=0;
     BYTEPTR buf=0;
 
+    __usb_rembigoffset=0;
 
 
-    while(sent<size) {
+    if(!usb_remoteready(size,sent))
+    {
+      __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
+      if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
+      return 0;
+    }
 
-   if(!usb_remoteready())
-   {
-     __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
-     if(buf!=__usb_txtmpbuffer) simpfree(buf);   // RELEASE BUFFERS
-     return 0;
-   }
+    tmr_t start,end;
+    __usb_drvstatus&=~USB_STATUS_REMOTERESPND;  // CLEAR THE REMOTE RESPONSE FLAG
+
+    while(size!=__usb_rembigoffset) {
+
+        if(__usb_drvstatus&USB_STATUS_REMOTERESPND) {
+            // HOLD IT, THE REMOTE TRIED TO TELL US SOMETHING
+            if(__usb_drvstatus&USB_STATUS_REMOTEBUSY) {
+                // GIVE THE REMOTE A CHANCE, WAIT FOR A WHILE
+                start=tmr_ticks();
+                while(!usb_remoteready(size,sent))
+                {
+                    if( (__usb_drvstatus&USB_STATUS_REMOTERESPND)&&(__usb_drvstatus&USB_STATUS_REMOTEBUSY)) {
+                        end=tmr_ticks();
+                        if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
+                            // TIMEOUT - CLEANUP AND RETURN
+                            __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
+                            if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
+                            return 0;
+                        }
+                    }
+                    else {
+                            // FAILED FOR REASON OTHER THAN BEING BUSY
+                            __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
+                            if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
+                            return 0;
+                    }
+                }
+                // NOW WE ARE READY AND HAVE A RECENT RESPONSE THAT UPDATED bigoffset
+            }
+
+            // REMOTE IS NOT BUSY, DO THEY WANT A DIFFERENT PART?
+            if((__usb_rembigoffset>=0)&&(__usb_rembigoffset<sent)) {
+
+                sent=__usb_rembigoffset;   // SEND AGAIN THE BLOCK THE REMOTE WANTS TO GET
+
+                // INFORM THE REMOTE WE ARE ABOUT TO CHANGE THE OFFSET
+                start=tmr_ticks();
+                while(!usb_remoteready(size,sent))
+                {
+                    if( (__usb_drvstatus&USB_STATUS_REMOTERESPND)&&(__usb_drvstatus&USB_STATUS_REMOTEBUSY)) {
+                        end=tmr_ticks();
+                        if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
+                            // TIMEOUT - CLEANUP AND RETURN
+                            __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
+                            if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
+                            return 0;
+                        }
+                    }
+                    else {
+                            // FAILED FOR REASON OTHER THAN BEING BUSY
+                            __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
+                            if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
+                            return 0;
+                    }
+                }
+
+
+
+            }
+            if(__usb_rembigoffset<0) {
+                // THE REMOTE WANTS TO ABORT
+                __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
+                if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
+                return 0;
+            }
+
+            __usb_drvstatus&=~USB_STATUS_REMOTERESPND;  // CLEAR THE RESPONSE
+
+        }
+
+
 
 
     blksize=size-sent;
+
+    if(blksize==0) {
+        // WE ALREADY SENT THE WHOLE FILE, WAIT FOR ACKNOWLEDGMENT OR TIME OUT
+        cpu_waitforinterrupt();
+        end=tmr_ticks();
+        if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
+            // THE REMOTE NEVER ACKNOWLEDGED RECEIVING THE DATA
+            if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
+            return 0;
+
+        }
+        continue;
+    }
+
+
     if(blksize>USB_BLOCKSIZE) blksize=USB_BLOCKSIZE;
 
     if(bufsize<blksize+9) {
@@ -561,6 +763,18 @@ int usb_transmitdata(BYTEPTR data,BINT size)
     if(!buf) return 0;      // FAILED TO SEND - NOT ENOUGH MEMORY
     }
 
+    if(!sent) {
+        // EITHER THE FIRST BLOCK IN A MULTI OR A SINGLE BLOCK
+        if(blksize>=size) buf[1]=USB_BLOCKMARK_SINGLE;
+        else buf[1]=USB_BLOCKMARK_MULTISTART;
+    } else {
+        // EITHER A MIDDLE BLOCK OR FINAL BLOCK
+        if(sent+blksize>=size) buf[1]=USB_BLOCKMARK_MULTIEND;
+        else buf[1]=USB_BLOCKMARK_MULTI;
+    }
+
+
+
     __usb_sndbuffer=buf;
     __usb_bufptr[1]=__usb_sndbuffer;
 
@@ -572,15 +786,7 @@ int usb_transmitdata(BYTEPTR data,BINT size)
     buf[0]=0;   // REPORT ID
 
 
-    if(!sent) {
-        // EITHER THE FIRST BLOCK IN A MULTI OR A SINGLE BLOCK
-        if(blksize>=size) buf[1]=USB_BLOCKMARK_SINGLE;
-        else buf[1]=USB_BLOCKMARK_MULTISTART;
-    } else {
-        // EITHER A MIDDLE BLOCK OR FINAL BLOCK
-        if(sent+blksize>=size) buf[1]=USB_BLOCKMARK_MULTIEND;
-        else buf[1]=USB_BLOCKMARK_MULTI;
-    }
+
     buf[2]=blksize&0xff;
     buf[3]=(blksize>>8)&0xff;
     buf[4]=(blksize>>16)&0xff;
@@ -594,6 +800,8 @@ int usb_transmitdata(BYTEPTR data,BINT size)
 
     memmoveb(buf+9,data+sent,blksize);
 
+    __usb_drvstatus&=~USB_STATUS_REMOTERESPND;  // CLEAR THE REMOTE RESPONSE FLAG
+
     int err=hid_write(__usb_curdevice,__usb_bufptr[1],__usb_count[1]+1);
 
 
@@ -605,6 +813,8 @@ int usb_transmitdata(BYTEPTR data,BINT size)
         usb_shutdown();
         return 0;
     }
+
+
 
     // PROCESS THE NEXT BLOCK
     sent+=blksize;
@@ -642,7 +852,7 @@ int usb_transmitlong_block(BYTEPTR data,BINT blksize,BINT isfirst)
     BYTEPTR buf=data;
 
 
-    if(!usb_remoteready())
+    if(!usb_remoteready(0,0))
     {
         __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
 
@@ -777,6 +987,8 @@ int usb_receivelong_word(unsigned int *data)
         // NO TIMEOUT? THIS COULD HANG IF DISCONNECTED AND NO LONGER
         tmr_t start=tmr_ticks(),end;
         while(!(__usb_drvstatus&USB_STATUS_DATAREADY)) {
+            if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) return;
+
             cpu_waitforinterrupt();
             end=tmr_ticks();
             if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
@@ -873,6 +1085,11 @@ int usb_remoteoffset()
     return __usb_rembigoffset;
 }
 
+void usb_addremoteoffset(int bytes)
+{
+    __usb_rembigoffset+=bytes;
+}
+
 void usb_setoffset(int offset)
 {
     __usb_localbigoffset=offset;
@@ -882,6 +1099,7 @@ void usb_waitdatareceived()
 {
     tmr_t start=tmr_ticks(),end;
     while(__usb_drvstatus&USB_STATUS_DATARECEIVED) {
+         if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) return;
         cpu_waitforinterrupt();
         end=tmr_ticks();
         if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
