@@ -21,7 +21,7 @@ extern void simpfree(void *voidptr);
 // FOR PCS USE HIDAPI LIBRARY TO EXPOSE THE CONNECTED DEVICE AS A HOST
 hid_device *__usb_curdevice;
 // GLOBAL VARIABLES OF THE USB SUBSYSTEM
-BINT __usb_drvstatus __SYSTEM_GLOBAL__; // FLAGS TO INDICATE IF INITIALIZED, CONNECTED, SENDING/RECEIVING, ETC.
+volatile BINT __usb_drvstatus __SYSTEM_GLOBAL__; // FLAGS TO INDICATE IF INITIALIZED, CONNECTED, SENDING/RECEIVING, ETC.
 BYTE *__usb_bufptr[3] __SYSTEM_GLOBAL__;   // POINTERS TO BUFFERS FOR EACH ENDPOINT (0/1/2)
 BINT __usb_count[3]   __SYSTEM_GLOBAL__;   // REMAINING BYTES TO TRANSFER ON EACH ENDPOINT (0/1/2)
 BINT __usb_padding[3] __SYSTEM_GLOBAL__;    // PADDING FOR OUTGOING TRANSFERS
@@ -31,12 +31,13 @@ BYTEPTR __usb_rcvbuffer;
 WORD __usb_rcvtotal __SYSTEM_GLOBAL__;
 WORD __usb_rcvpartial __SYSTEM_GLOBAL__;
 WORD __usb_rcvcrc __SYSTEM_GLOBAL__;
+WORD __usb_rcvcrcroll __SYSTEM_GLOBAL__;
 BINT __usb_rcvblkmark __SYSTEM_GLOBAL__;    // TYPE OF RECEIVED BLOCK (ONE OF USB_BLOCKMARK_XXX CONSTANTS)
 BYTEPTR __usb_sndbuffer __SYSTEM_GLOBAL__;
 BINT __usb_sndtotal __SYSTEM_GLOBAL__;
 BINT __usb_sndpartial __SYSTEM_GLOBAL__;
-BINT __usb_rembigtotal __SYSTEM_GLOBAL__;
-BINT __usb_rembigoffset __SYSTEM_GLOBAL__;
+volatile BINT __usb_rembigtotal __SYSTEM_GLOBAL__;
+volatile BINT __usb_rembigoffset __SYSTEM_GLOBAL__;
 BINT __usb_localbigoffset __SYSTEM_GLOBAL__;
 
 
@@ -118,12 +119,13 @@ const WORD const __crctable[256] =
 
 // CALCULATE THE STANDARD CRC32 OF A BLOCK OF DATA
 
-WORD usb_crc32(BYTEPTR data,BINT len)
+WORD usb_crc32roll(WORD oldcrc,BYTEPTR data,BINT len)
 {
-    WORD crc=-1;
+    WORD crc=oldcrc^(-1);
     while(len--) crc=__crctable[(crc ^ *data++) & 0xFF] ^ (crc >> 8);
     return crc^(-1);
 }
+
 
 
 
@@ -282,6 +284,7 @@ do {
 
 
 
+
             // WE ARE READY TO RECEIVE A NEW DATA BLOCK
 
             if(fifocnt>8) {
@@ -305,6 +308,8 @@ do {
 
                 __usb_rembigtotal=txsize;
                 __usb_rembigoffset=txoffset;
+
+                __usb_rcvcrcroll=0;
 
 
                 BYTE tmpbuf[RAWHID_TX_SIZE+1];
@@ -395,7 +400,7 @@ do {
             }
 
             // IF THIS IS THE START OF A NEW TRANSMISSION, DON'T IGNORE IT
-            if((__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTISTART)) __usb_drvstatus&=~USB_STATUS_IGNORE;
+            if((__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTISTART)) { __usb_drvstatus&=~USB_STATUS_IGNORE; __usb_rcvcrcroll=0; }
 
             memmoveb(__usb_rxtmpbuffer,__usb_rxtmpbuffer+8,fifocnt-8);
 
@@ -548,12 +553,16 @@ void usb_sendfeedback()
     __usb_drvstatus|=USB_STATUS_DATARECEIVED;
 }
 
+void usb_restartcrc()
+{
+    __usb_rcvcrcroll=0;
+}
 // CHECK THE CRC OF THE LAST BLOCK RECEIVED
 int usb_checkcrc()
 {
     if(!(__usb_drvstatus&USB_STATUS_DATAREADY)) return 0;
-    WORD rcvdcrc=usb_crc32(__usb_rcvbuffer,(__usb_rcvpartial>__usb_rcvtotal)? __usb_rcvtotal:__usb_rcvpartial);
-
+    WORD rcvdcrc=usb_crc32roll(__usb_rcvcrcroll,__usb_rcvbuffer,(__usb_rcvpartial>__usb_rcvtotal)? __usb_rcvtotal:__usb_rcvpartial);
+    __usb_rcvcrcroll=rcvdcrc;
     if(rcvdcrc!=__usb_rcvcrc)
         return 0;
     return 1;
@@ -591,7 +600,7 @@ int usb_remoteready(int size,int offset)
     if(err<=0)
         return 0; // NOT READY - ERROR
 
-    err=hid_read_timeout(__usb_curdevice,tmpbuf,RAWHID_TX_SIZE+1,USB_TIMEOUT_MS);
+    err=hid_read_timeout(__usb_curdevice,tmpbuf,RAWHID_RX_SIZE,USB_TIMEOUT_MS);
 
     if(err<=0)
         return 0; // NOT READY - ERROR
@@ -643,8 +652,10 @@ int usb_transmitdata(BYTEPTR data,BINT size)
     if(size<=0) return 0;   // BAD SIZE
 
 
-    BINT blksize,sent=0,bufsize=0;
+    BINT blksize,sent=0,bufsize=0,firstblock=1;
     BYTEPTR buf=0;
+    WORD crcroll=0;
+
 
     __usb_rembigoffset=0;
 
@@ -660,6 +671,18 @@ int usb_transmitdata(BYTEPTR data,BINT size)
     __usb_drvstatus&=~USB_STATUS_REMOTERESPND;  // CLEAR THE REMOTE RESPONSE FLAG
 
     while(size!=__usb_rembigoffset) {
+
+        if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))
+        {
+            if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
+            return 0;
+        }
+
+        if(__usb_drvstatus&USB_STATUS_DATAREADY) {
+            // WHY ARE WE RECEIVING DATA WHILE SENDING? THE REMOTE NEEDS TO BE PATIENT - JUST IGNORE ALL DATA RECEIVED UNTIL WE ARE DONE TRANSMITTING
+            usb_releasedata();
+        }
+
 
         if(__usb_drvstatus&USB_STATUS_REMOTERESPND) {
             // HOLD IT, THE REMOTE TRIED TO TELL US SOMETHING
@@ -691,6 +714,8 @@ int usb_transmitdata(BYTEPTR data,BINT size)
             if((__usb_rembigoffset>=0)&&(__usb_rembigoffset<sent)) {
 
                 sent=__usb_rembigoffset;   // SEND AGAIN THE BLOCK THE REMOTE WANTS TO GET
+                crcroll=0;
+                firstblock=1;
 
                 // INFORM THE REMOTE WE ARE ABOUT TO CHANGE THE OFFSET
                 start=tmr_ticks();
@@ -763,10 +788,10 @@ int usb_transmitdata(BYTEPTR data,BINT size)
     if(!buf) return 0;      // FAILED TO SEND - NOT ENOUGH MEMORY
     }
 
-    if(!sent) {
+    if(firstblock) {
         // EITHER THE FIRST BLOCK IN A MULTI OR A SINGLE BLOCK
         if(blksize>=size) buf[1]=USB_BLOCKMARK_SINGLE;
-        else buf[1]=USB_BLOCKMARK_MULTISTART;
+        else { buf[1]=USB_BLOCKMARK_MULTISTART; firstblock=0; }
     } else {
         // EITHER A MIDDLE BLOCK OR FINAL BLOCK
         if(sent+blksize>=size) buf[1]=USB_BLOCKMARK_MULTIEND;
@@ -791,7 +816,8 @@ int usb_transmitdata(BYTEPTR data,BINT size)
     buf[3]=(blksize>>8)&0xff;
     buf[4]=(blksize>>16)&0xff;
 
-    WORD crc=usb_crc32(data+sent,blksize);
+    WORD crc=usb_crc32roll(crcroll,data+sent,blksize);
+    crcroll=crc;
 
     buf[5]=crc&0xff;
     buf[6]=(crc>>8)&0xff;
@@ -879,7 +905,7 @@ int usb_transmitlong_block(BYTEPTR data,BINT blksize,BINT isfirst)
     buf[2]=(blksize>>8)&0xff;
     buf[3]=(blksize>>16)&0xff;
 
-    WORD crc=usb_crc32(data+8,blksize);
+    WORD crc=usb_crc32roll(0,data+8,blksize);
 
     buf[4]=crc&0xff;
     buf[5]=(crc>>8)&0xff;

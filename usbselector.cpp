@@ -217,7 +217,7 @@ void USBSelector::RefreshList()
                             };
 
                             getversion[1]|=(1+OBJSIZE(getversion[3]))<<10;
-                            getversion[2]=usb_crc32((BYTEPTR) &(getversion[3]),(1+OBJSIZE(getversion[3]))*4);
+                            getversion[2]=usb_crc32roll(0,(BYTEPTR) &(getversion[3]),(1+OBJSIZE(getversion[3]))*4);
 
                             res=hid_write(thisdev,((const unsigned char *)getversion)+3,RAWHID_TX_SIZE+1);
 
