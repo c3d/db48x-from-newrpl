@@ -93,6 +93,8 @@ extern WORD __usb_rcvpartial __SYSTEM_GLOBAL__;
 extern WORD __usb_rcvcrc __SYSTEM_GLOBAL__;
 extern BINT __usb_rcvblkmark __SYSTEM_GLOBAL__;    // TYPE OF RECEIVED BLOCK (ONE OF USB_BLOCKMARK_XXX CONSTANTS)
 
+
+extern volatile int __usb_paused;
 extern void usb_irqservice();
 extern int usb_remoteready();
 
@@ -224,7 +226,7 @@ int usbsendarchive(uint32_t *buffer,int bufsize)
 
 void usbflush()
 {
-    usb_irqservice();
+
 }
 
 void setExceptionPoweroff()

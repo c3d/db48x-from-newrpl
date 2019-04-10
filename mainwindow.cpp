@@ -35,7 +35,7 @@ extern int __pc_terminate;
 extern int __memmap_intact;
 extern volatile int __cpu_idle;
 extern hid_device *__usb_curdevice;
-
+extern volatile int __usb_paused;
 
 extern "C" void usb_irqservice();
 extern "C" int usb_isconnected();
@@ -65,6 +65,7 @@ extern "C" void setExceptionPoweroff();
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     rpl(this),
+    usbdriver(this),
     ui(new Ui::MainWindow)
 {
 
@@ -81,9 +82,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->EmuScreen->setAttribute(Qt::WA_AcceptTouchEvents);
     ui->EmuScreen->installEventFilter(this);
 
-    __usb_curdevice=0;
+    __usb_curdevice=0;       // USB IS INITIALLY DISCONNECTED
+    __usb_paused=1;         // PAUSE THE USB THREAD
     currentusb.clear();
     currentusbpath.clear();
+
+    usbdriver.start();      // LAUNCH THE USB DRIVER THREAD
 
     ui->USBDockSelect->setVisible(false);
     screentmr=new QTimer(this);
@@ -472,7 +476,8 @@ void MainWindow::on_actionExit_triggered()
             __pc_terminate=1;
             __pckeymatrix^=(1ULL<<63);
             __keyb_update();
-            while(rpl.isRunning()) { usbupdate(); __pc_terminate=1; }
+            while(rpl.isRunning()) { __pc_terminate=1; }
+
         }
         on_actionEject_SD_Card_Image_triggered();
     }
@@ -492,9 +497,12 @@ void MainWindow::on_actionExit_triggered()
         __pc_terminate=1;
         __pckeymatrix^=(1ULL<<63);
         __keyb_update();
-        while(rpl.isRunning()) { usbupdate(); __pc_terminate=1; }
+        while(rpl.isRunning()) { __pc_terminate=1; }
     }
 
+    // STOP THE USB DRIVER THREAD
+    __usb_paused=2;
+    while(__usb_paused>=0) ;
 
     QSettings settings;
 
@@ -733,7 +741,7 @@ void MainWindow::on_actionPower_ON_triggered()
         __pc_terminate=1;
         __pckeymatrix^=(1ULL<<63);
         __keyb_update();
-    while(rpl.isRunning()) { usbupdate(); __pc_terminate=1; }
+    while(rpl.isRunning()) { __pc_terminate=1; }
     }
 
     if(__pc_terminate==2) {
@@ -910,17 +918,18 @@ if(!__usb_curdevice) {
       }
       ui->usbconnectButton->setText(currentusb+ QString(" [ Click to reconnect ]"));
     }
-    if(usb_isconnected())
-        usb_irqservice();
+    if(usb_isconnected()) __usb_paused=0;
     return;
 }
-
-usb_irqservice();
 
 }
 
 void MainWindow::on_usbconnectButton_clicked()
 {
+    __usb_paused=1;
+    while(__usb_paused>=0) ;
+
+
     USBSelector seldlg;
 
     if(ui->usbconnectButton->text().endsWith("[ Click to reconnect ]")) {
@@ -935,6 +944,7 @@ void MainWindow::on_usbconnectButton_clicked()
         }
         else {
             ui->usbconnectButton->setText(currentusb);
+            __usb_paused=0; // AND RESUME THE DRIVER
             return;
         }
     }
@@ -957,6 +967,8 @@ void MainWindow::on_usbconnectButton_clicked()
     if(currentusb.isEmpty())
         ui->usbconnectButton->setText(" [ Select a USB Device ] ");
     else ui->usbconnectButton->setText(currentusb);
+
+    if(__usb_curdevice) __usb_paused=0;
 
     usbupdate();
 
@@ -1434,3 +1446,34 @@ void MainWindow::on_actionPaste_and_compile_triggered()
     __cpu_idle=0;   // LET GO THE SIMULATOR
 
 }
+
+
+
+// ****************************************** USB DRIVER ON A SEPARATE THREAD
+
+USBThread::USBThread(QObject *parent)
+    : QThread(parent)
+{
+}
+
+USBThread::~USBThread()
+{
+}
+
+// RUNNING THREAD FOR USB COMMS
+// __usb_paused=0 MEANS COMMS ARE ACTIVE
+// __usb_paused==1 MEANS COMMS ARE TEMPORARILY HALTED
+// __usb_paused==2 MEANS EXIT THE THREAD
+
+void USBThread::run()
+{
+    while((__usb_paused!=2)&&(__usb_paused!=-2))
+    {
+        if(__usb_paused==0) usb_irqservice();
+        else if(__usb_paused>0) __usb_paused=-__usb_paused;     // SIGNAL THAT THE PAUSE WAS ACKNOWLEDGED BY MAKING IT NEGATIVE
+        msleep(2);
+    }
+    if(__usb_paused==2) __usb_paused=-__usb_paused; // MAKE SURE WE END THE THREAD WITH A NEGATIVE NUMBER
+}
+
+

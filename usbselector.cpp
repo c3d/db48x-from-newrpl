@@ -15,6 +15,7 @@ extern "C" {
 
 extern hid_device *__usb_curdevice;
 
+
 BINT64 rplObjChecksum(WORDPTR object);
 }
 
@@ -36,6 +37,7 @@ USBSelector::USBSelector(QWidget *parent) :
     connect(tmr, SIGNAL(timeout()), this, SLOT(refresh()));
     tmr->start(500);
     }
+
 
 }
 

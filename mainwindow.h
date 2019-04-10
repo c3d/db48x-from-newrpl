@@ -16,6 +16,16 @@ namespace Ui {
 class MainWindow;
 }
 
+class USBThread : public QThread
+{
+public:
+    void run();
+
+    USBThread(QObject *parent);
+    ~USBThread();
+};
+
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -25,6 +35,7 @@ class MainWindow : public QMainWindow
     QString currentfile;
     QString currentusb,currentusbpath;
     RPLThread rpl;
+    USBThread usbdriver;
 
 public:
     QFile *fileptr;
