@@ -1116,6 +1116,7 @@ int usb_receivelong_start()
     __usb_longactbuffer=-1;
     __usb_longoffset=0;
     __usb_longlastsize=-1;
+    __usb_localbigoffset=0;
     return 1;
 }
 
@@ -1126,7 +1127,7 @@ int usb_receivelong_word(unsigned int *data)
         // WE DON'T HAVE ANY BUFFERS YET!
         // WAIT UNTIL WE DO, TIMEOUT IN 2
         // READ THE DATA AND PUT IT ON THE STACK
-        BINT datasize,byteoffset=0,totalsize=0;
+        BINT datasize,byteoffset=__usb_localbigoffset,totalsize=0;
 
 
 

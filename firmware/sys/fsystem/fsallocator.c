@@ -18,6 +18,7 @@ struct {
     unsigned int chunk_bmp[MAX_CHUNKS];
     unsigned int chunk_1stblk[MAX_CHUNKS];
     int last_chunk;
+    volatile int mutex;
 } SimpAllocData;
 
 
@@ -33,6 +34,7 @@ void init_simpalloc()
         SimpAllocData.chunk_1stblk[f]=0;
     }
     SimpAllocData.last_chunk=0;
+    SimpAllocData.mutex=0;
 }
 
 // ADD A NEW CHUNK TO THE POOL
@@ -70,6 +72,11 @@ unsigned int *simpmalloc(int words)
 {
     unsigned int mask=0,rotmask;
     int nblocks=0,f,ch,startch;
+
+    while(SimpAllocData.mutex==1);
+
+    SimpAllocData.mutex=1;
+
     while(words>0) {
         mask<<=1;
         mask|=1;
@@ -92,6 +99,7 @@ unsigned int *simpmalloc(int words)
             SimpAllocData.chunk_1stblk[ch]|=rotmask;
             SimpAllocData.chunk_1stblk[ch]^=1<<f;
             SimpAllocData.last_chunk=ch;
+            SimpAllocData.mutex=0;
             return SimpAllocData.chunks[ch]+BLOCK_WORDS*f;
         }
         }
@@ -111,6 +119,8 @@ unsigned int *simpmalloc(int words)
 
 
     throw_dbgexception("Failed to allocate",__EX_CONT);
+    SimpAllocData.mutex=0;
+
     return 0;
 
 }
@@ -120,6 +130,10 @@ void simpfree(void *voidptr)
     int ch,blk;
     unsigned int mask;
     unsigned int *ptr=voidptr;
+
+    while(SimpAllocData.mutex==1);
+
+    SimpAllocData.mutex=1;
 
     for(ch=0;ch<MAX_CHUNKS;++ch)
     {
@@ -132,6 +146,7 @@ void simpfree(void *voidptr)
             mask<<=1;
             while(SimpAllocData.chunk_1stblk[ch]&mask) { SimpAllocData.chunk_bmp[ch]&=~mask; SimpAllocData.chunk_1stblk[ch]&=~mask; mask<<=1; }
             if(SimpAllocData.chunk_bmp[ch]==0) release_chunk(ch);
+            SimpAllocData.mutex=0;
             return;
         }
 
@@ -140,7 +155,7 @@ void simpfree(void *voidptr)
     }
     // POINTER WASN'T WITHIN THE ALLOCATED POOL!
     // DO NOTHING.
-
+SimpAllocData.mutex=0;
 }
 
 unsigned char *simpmallocb(int bytes)
