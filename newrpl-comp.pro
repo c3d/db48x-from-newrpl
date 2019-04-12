@@ -220,7 +220,8 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     newrpl/lib-104-solvers.c \
     firmware/sys/target_pc/usbdriver.c \
     firmware/hal_cpu.c \
-    newrpl/lib-55-constants.c
+    newrpl/lib-55-constants.c \
+    firmware/sys/target_pc/fwupdate.c
 
 
 
