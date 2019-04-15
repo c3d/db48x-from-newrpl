@@ -358,7 +358,7 @@ do {
             __usb_rcvtotal|=__usb_rxtmpbuffer[2]<<8;
             __usb_rcvtotal|=__usb_rxtmpbuffer[3]<<16;
 
-            __usb_rcvpartial=-8;
+            __usb_rcvpartial-=8;
             __usb_rcvcrc=__usb_rxtmpbuffer[4];
             __usb_rcvcrc|=__usb_rxtmpbuffer[5]<<8;
             __usb_rcvcrc|=__usb_rxtmpbuffer[6]<<16;
@@ -1209,7 +1209,7 @@ int usb_receivelong_word(unsigned int *data)
 
     // WE HAVE DATA, RETURN IT
 
-    unsigned int *ptr=(unsigned int *)(__usb_longbuffer[__usb_longactbuffer]+(__usb_longoffset&(USB_BLOCKSIZE-1)));
+    unsigned int *ptr=(unsigned int *)(__usb_longbuffer[__usb_longactbuffer]+(__usb_longoffset%USB_BLOCKSIZE));
 
     if((__usb_longlastsize!=-1)&&((__usb_longoffset%USB_BLOCKSIZE)>=__usb_longlastsize)) {
         // RELEASE THE LAST BUFFER IF WE HAVE ANY
@@ -1245,6 +1245,10 @@ int usb_receivelong_finish()
     __usb_longoffset=0;
     __usb_longbuffer[0]=0;
     __usb_longbuffer[1]=0;
+
+    __usb_drvstatus|=USB_STATUS_IGNORE;   // SIGNAL TO IGNORE PACKETS UNTIL END OF TRANSMISSION DETECTED
+    if(__usb_drvstatus&USB_STATUS_DATAREADY) usb_releasedata();
+
     return 1;
 
 }

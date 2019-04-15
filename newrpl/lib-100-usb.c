@@ -535,7 +535,7 @@ void LIB_HANDLER()
         // PACK THE STACK
         WORDPTR stklist=0;
 
-        if(rplDepthData()>1) stklist=rplCreateListN(rplDepthData(),1,0);
+        if(rplDepthData()>=1) stklist=rplCreateListN(rplDepthData(),1,0);
         // JUST DON'T SAVE THE STACK IF THERE'S NOT ENOUGH MEMORY FOR IT
         if(stklist) {
             rplListAutoExpand(stklist);
