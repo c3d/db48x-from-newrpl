@@ -485,6 +485,9 @@ int usb_hasdata()
 
 // HIGH LEVEL FUNCTION TO BLOCK UNTIL DATA ARRIVES
 // RETURN 0 IF TIMEOUT
+
+extern volatile BINT __pc_terminate;
+
 int usb_waitfordata()
 {
     tmr_t start=tmr_ticks(),end;
@@ -495,7 +498,7 @@ int usb_waitfordata()
         cpu_waitforinterrupt();
 
         end=tmr_ticks();
-        if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
+        if(__pc_terminate || (tmr_ticks2ms(start,end)>USB_TIMEOUT_MS)) {
             // MORE THAN 1 SECOND TO SEND 1 BLOCK? TIMEOUT - CLEANUP AND RETURN
             return 0;
         }
@@ -659,7 +662,7 @@ int usb_transmitdata(BYTEPTR data,BINT size)
       return 0;
     }
 
-    tmr_t start,end;
+    tmr_t start=tmr_ticks(),end;
     __usb_drvstatus&=~USB_STATUS_REMOTERESPND;  // CLEAR THE REMOTE RESPONSE FLAG
 
     while(size!=__usb_rembigoffset) {
@@ -777,7 +780,8 @@ int usb_transmitdata(BYTEPTR data,BINT size)
         buf=__usb_txtmpbuffer;
         bufsize=RAWHID_TX_SIZE+9;
     }
-    if(!buf) return 0;      // FAILED TO SEND - NOT ENOUGH MEMORY
+    if(!buf)
+        return 0;      // FAILED TO SEND - NOT ENOUGH MEMORY
     }
 
     if(firstblock) {

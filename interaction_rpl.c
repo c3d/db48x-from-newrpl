@@ -92,7 +92,10 @@ extern WORD __usb_rcvtotal __SYSTEM_GLOBAL__;
 extern WORD __usb_rcvpartial __SYSTEM_GLOBAL__;
 extern WORD __usb_rcvcrc __SYSTEM_GLOBAL__;
 extern BINT __usb_rcvblkmark __SYSTEM_GLOBAL__;    // TYPE OF RECEIVED BLOCK (ONE OF USB_BLOCKMARK_XXX CONSTANTS)
+extern BYTEPTR __usb_longbuffer[2];              // DOUBLE BUFFERING FOR LONG TRANSMISSIONS OF DATA
+extern BYTE __usb_rxtmpbuffer[RAWHID_TX_SIZE+1] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER FOR NON-BLOCKING CONTROL TRANSFERS
 
+extern BINT __usb_localbigoffset __SYSTEM_GLOBAL__;
 
 extern volatile int __usb_paused;
 extern void usb_irqservice();
@@ -167,47 +170,108 @@ int usbreceivearchive(uint32_t *buffer,int bufsize)
      BINT count=0;
 
      do {
-         while(!usb_hasdata()) usb_irqservice();
+         BINT datasize,byteoffset=__usb_localbigoffset,totalsize=0;
+
+         // WAIT FOR NEXT BLOCK IN A MULTIPART TRANSACTION
+         if(!usb_waitfordata()) {
+             usb_ignoreuntilend();
+             if(flag) rplSetSystemFlag(FL_NOAUTORECV);
+             else     rplClrSystemFlag(FL_NOAUTORECV);
+
+             return -1;
+         }
+
+         BYTEPTR data2=usb_accessdata(&datasize);
+
+         if(!totalsize) totalsize=usb_remotetotalsize();
+         if(byteoffset!=usb_remoteoffset()) {
+             // WE NEED TO REQUEST THE CORRECT OFFSET, BUT IT'S IMPOSSIBLE IN LONG TRANSMISSIONS
+             usb_setoffset(-1);  // ABORT, SOMETHING WENT WRONG
+             usb_releasedata();
+             usb_sendfeedback();
+             if(flag) rplSetSystemFlag(FL_NOAUTORECV);
+             else     rplClrSystemFlag(FL_NOAUTORECV);
+
+             return -1;
+         }
+
+
+         if(!usb_checkcrc()) {
+             // WE NEED TO REQUEST THE CORRECT OFFSET, BUT IT'S IMPOSSIBLE IN LONG TRANSMISSIONS
+             usb_setoffset(-1);  // ABORT, SOMETHING WENT WRONG
+             usb_releasedata();
+             usb_sendfeedback();
+             if(flag) rplSetSystemFlag(FL_NOAUTORECV);
+             else     rplClrSystemFlag(FL_NOAUTORECV);
+
+             return -1;
+         }
+
+         // WE GOT A BLOCK AND THE CRC MATCHES, IT'S ALL WE NEED
+
+         byteoffset+=datasize;
+         usb_addremoteoffset(datasize);  // ADVANCE THE COUNTER OF REMOTE DATA RECEIVED FROM THE REMOTE
+         usb_setoffset(byteoffset);      // AND OUR LOCAL COUNTER
+
+         if(datasize<USB_BLOCKSIZE) {
+         usb_sendfeedback();
+
+         usb_waitdatareceived(); // WAIT FOR THE DATA RECEIVED ACKNOWLEDGEMENT TO BE SENT TO THE REMOTE, INDICATING WE FINISHED RECEIVING DATA
+
+         // THIS IS REQUIRED ONLY AT END OF TRANSMISSION:
+         usb_setoffset(0);   // NEXT TRANSMISSION WE NEED TO REQUEST FROM OFFSET ZERO, RATHER THAN RESUME FROM WHERE WE LEFT OFF
+
+         }
+
+         // DONE RECEIVING BLOCKS OF DATA
+
 
          // CHECK IF THE RECEIVED BLOCK IS OURS
          if((__usb_rcvblkmark==USB_BLOCKMARK_MULTISTART)||(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)) {
-             if(count) {
+             if(__usb_longoffset) {
                  // BAD BLOCK, WE CAN ONLY RECEIVE THE FIRST BLOCK ONCE, ABORT
+                 usb_releasedata();
                  if(flag) rplSetSystemFlag(FL_NOAUTORECV);
                  else     rplClrSystemFlag(FL_NOAUTORECV);
+
                  return -1;
              }
-             if(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE) __usb_longlastsize=__usb_rcvtotal;
+             if(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE) __usb_longlastsize=datasize;
 
          }
          if((__usb_rcvblkmark==USB_BLOCKMARK_MULTI)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND)) {
-             if(!count) {
+             if(!__usb_longoffset) {
                  // BAD BLOCK, WE CAN ONLY RECEIVE THE FIRST BLOCK ONCE, ABORT
+                 usb_releasedata();
                  if(flag) rplSetSystemFlag(FL_NOAUTORECV);
                  else     rplClrSystemFlag(FL_NOAUTORECV);
+
                  return -1;
              }
+             if(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND) __usb_longlastsize=datasize;
 
          }
 
+         // TAKE OWNERSHIP OF THE BUFFER
 
          // HAVE A GOOD BLOCK!
 
-         if(count+__usb_rcvtotal>=bufsize*sizeof(WORD)) {
+         if(count+datasize>=bufsize*sizeof(WORD)) {
              if(flag) rplSetSystemFlag(FL_NOAUTORECV);
              else     rplClrSystemFlag(FL_NOAUTORECV);
 
              return -1; // BUFFER TOO SMALL
             }
 
-        memmoveb(((unsigned char *)buffer)+count,__usb_rcvbuffer,__usb_rcvtotal);
-        count+=__usb_rcvtotal;
+        memmoveb(((unsigned char *)buffer)+count,__usb_rcvbuffer,datasize);
+        count+=datasize;
+        __usb_longoffset+=datasize;
         if(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND) {
             // LAST BLOCK RECEIVED AND PROCESSED
-            usb_releasedata(0);
+            usb_releasedata();
             break;
         }
-        usb_releasedata(0);
+        usb_releasedata();
      } while(1);
 
     usb_receivelong_finish();
