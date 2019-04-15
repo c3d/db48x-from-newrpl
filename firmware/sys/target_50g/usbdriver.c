@@ -2111,6 +2111,7 @@ int usb_receivelong_start()
     __usb_longactbuffer=-1;
     __usb_longoffset=0;
     __usb_longlastsize=-1;
+    __usb_localbigoffset=0;
     return 1;
 }
 
@@ -2174,19 +2175,19 @@ int usb_receivelong_word(unsigned int *data)
         if((__usb_rcvblkmark==USB_BLOCKMARK_MULTISTART)||(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)) {
             if(__usb_longoffset) {
                 // BAD BLOCK, WE CAN ONLY RECEIVE THE FIRST BLOCK ONCE, ABORT
-                __usb_drvstatus&=~USB_STATUS_DATAREADY; // AND RELEASE THE SYSTEM TO RECEIVE THE NEXT BLOCK IN THE BACKGROUND
+                usb_releasedata();
                 return -1;
             }
-            if(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE) __usb_longlastsize=__usb_rcvtotal;
+            if(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE) __usb_longlastsize=datasize;
 
         }
         if((__usb_rcvblkmark==USB_BLOCKMARK_MULTI)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND)) {
             if(!__usb_longoffset) {
                 // BAD BLOCK, WE CAN ONLY RECEIVE THE FIRST BLOCK ONCE, ABORT
-                __usb_drvstatus&=~USB_STATUS_DATAREADY; // AND RELEASE THE SYSTEM TO RECEIVE THE NEXT BLOCK IN THE BACKGROUND
+                usb_releasedata();
                 return -1;
             }
-            if(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND) __usb_longlastsize=__usb_rcvtotal;
+            if(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND) __usb_longlastsize=datasize;
 
         }
 
@@ -2196,14 +2197,14 @@ int usb_receivelong_word(unsigned int *data)
         __usb_rcvbuffer=__usb_rxtmpbuffer;  // DON'T LET IT AUTOMATICALLY FREE OUR BUFFER
 
 
-        __usb_drvstatus&=~USB_STATUS_DATAREADY; // AND RELEASE THE SYSTEM TO RECEIVE THE NEXT BLOCK IN THE BACKGROUND
+        usb_releasedata();
 
 
     }
 
     // WE HAVE DATA, RETURN IT
 
-    unsigned int *ptr=(unsigned int *)(__usb_longbuffer[__usb_longactbuffer]+(__usb_longoffset&(USB_BLOCKSIZE-1)));
+    unsigned int *ptr=(unsigned int *)(__usb_longbuffer[__usb_longactbuffer]+(__usb_longoffset%USB_BLOCKSIZE));
 
     if((__usb_longlastsize!=-1)&&((__usb_longoffset%USB_BLOCKSIZE)>=__usb_longlastsize)) {
         // RELEASE THE LAST BUFFER IF WE HAVE ANY
@@ -2230,7 +2231,6 @@ int usb_receivelong_word(unsigned int *data)
 // SEND FINAL BLOCK AND CLEANUP
 int usb_receivelong_finish()
 {
-
     // CLEANUP
     // RELEASE A BUFFER IF WE HAVE ANY
     if((__usb_longactbuffer!=-1)&&(__usb_longbuffer[__usb_longactbuffer]!=0))  simpfree(__usb_longbuffer[__usb_longactbuffer]);
@@ -2239,6 +2239,10 @@ int usb_receivelong_finish()
     __usb_longoffset=0;
     __usb_longbuffer[0]=0;
     __usb_longbuffer[1]=0;
+
+    __usb_drvstatus|=USB_STATUS_IGNORE;   // SIGNAL TO IGNORE PACKETS UNTIL END OF TRANSMISSION DETECTED
+    if(__usb_drvstatus&USB_STATUS_DATAREADY) usb_releasedata();
+
     return 1;
 
 }
