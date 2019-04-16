@@ -2122,7 +2122,7 @@ int usb_receivelong_word(unsigned int *data)
 {
     if(__usb_longactbuffer==-1) {
         // WE DON'T HAVE ANY BUFFERS YET!
-        BINT datasize,byteoffset=0,totalsize=0;
+        BINT datasize,byteoffset=__usb_localbigoffset,totalsize=0;
 
 
 
@@ -2217,7 +2217,7 @@ int usb_receivelong_word(unsigned int *data)
     if(data) *data=*ptr;
     __usb_longoffset+=4;
 
-    if((__usb_longoffset&(USB_BLOCKSIZE-1))==0) {
+    if((__usb_longoffset%USB_BLOCKSIZE)==0) {
         // END OF THIS BLOCK, RELEASE IT WHILE WE WAIT FOR THE NEXT ONE
         if(__usb_longbuffer[__usb_longactbuffer])  simpfree(__usb_longbuffer[__usb_longactbuffer]);
         __usb_longbuffer[__usb_longactbuffer]=0;

@@ -93,9 +93,6 @@ MainWindow::MainWindow(QWidget *parent) :
     screentmr=new QTimer(this);
     ui->EmuScreen->connect(screentmr,SIGNAL(timeout()),ui->EmuScreen,SLOT(update()));
     connect(screentmr,SIGNAL(timeout()),this,SLOT(usbupdate()));
-    maintmr=new QTimer(this);
-    maintmr->setTimerType(Qt::PreciseTimer);
-    connect(maintmr,SIGNAL(timeout()),this,SLOT(domaintimer()));
     __memmap_intact=0;
     __sd_inserted=0;
     __sd_RCA=0;
@@ -118,7 +115,6 @@ MainWindow::MainWindow(QWidget *parent) :
     if(!OpenFile(startfile))
     {
         rpl.start();
-        maintmr->start(1);
         screentmr->start(50);
     }
 
@@ -127,7 +123,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    delete maintmr;
     delete screentmr;
     delete ui;
 }
@@ -179,20 +174,6 @@ volatile unsigned long long __tmr1_msec;
 
 extern "C" void __tmr_newirqeventsvc();
 
-
-void MainWindow::domaintimer()
-{
-// THE CLOCK IS FIXED AT 100 KHZ, SO ADD 1 msec
-__pcsystmr+=100;
-if(__tmr_singleshot_running) {
-    if(__tmr1_msec) __tmr1_msec--;
-    if(!__tmr1_msec) {
-        __tmr_singleshot_running=0;
-        __tmr_newirqeventsvc();
-
-    }
-}
-}
 
 extern "C" void stop_singleshot()
 {
@@ -469,7 +450,6 @@ void MainWindow::on_actionExit_triggered()
     // CLEANUP SD CARD EMULATION
     if(__sd_inserted) {
         // STOP RPL ENGINE
-        maintmr->stop();
         screentmr->stop();
         if(rpl.isRunning()) {
             __cpu_idle=0;
@@ -490,7 +470,6 @@ void MainWindow::on_actionExit_triggered()
     else on_actionSave_triggered();
 
     // STOP RPL ENGINE
-    maintmr->stop();
     screentmr->stop();
     if(rpl.isRunning()) {
         __cpu_idle=0;
@@ -585,7 +564,6 @@ void MainWindow::on_actionOpen_triggered()
         __pckeymatrix=0;
 
         rpl.start();
-        maintmr->start(1);
         screentmr->start(50);
         }
     }
@@ -619,7 +597,6 @@ void MainWindow::on_actionNew_triggered()
 
 
     // STOP RPL ENGINE
-    maintmr->stop();
     screentmr->stop();
     if(rpl.isRunning()) {
         __cpu_idle=0;
@@ -638,7 +615,6 @@ void MainWindow::on_actionNew_triggered()
     __pckeymatrix=0;
 
     rpl.start();
-    maintmr->start(1);
     screentmr->start(50);
 
 
@@ -734,7 +710,6 @@ void MainWindow::on_actionPower_ON_triggered()
 {
 
     // STOP RPL ENGINE
-    maintmr->stop();
     screentmr->stop();
     if(rpl.isRunning()) {
         __cpu_idle=0;
@@ -755,7 +730,6 @@ void MainWindow::on_actionPower_ON_triggered()
     __pckeymatrix=0;
 
     rpl.start();
-    maintmr->start(1);
     screentmr->start(50);
 
 }
@@ -1104,7 +1078,6 @@ int MainWindow::OpenFile(QString fname)
         // FILE IS OPEN AND READY FOR READING
 
         // STOP RPL ENGINE
-        maintmr->stop();
         screentmr->stop();
         if(rpl.isRunning()) {
             __cpu_idle=0;
@@ -1169,7 +1142,6 @@ int MainWindow::OpenFile(QString fname)
         __pckeymatrix=0;
 
         rpl.start();
-        maintmr->start(1);
         screentmr->start(50);
 
         return 1;
@@ -1198,7 +1170,6 @@ void MainWindow::SaveFile(QString fname)
         // FILE IS OPEN AND READY FOR WRITING
 
         // STOP RPL ENGINE
-        maintmr->stop();
         screentmr->stop();
         if(rpl.isRunning()) {
 
@@ -1222,7 +1193,6 @@ void MainWindow::SaveFile(QString fname)
         __pc_terminate=0;
         __pckeymatrix=0;
         rpl.start();
-        maintmr->start(1);
         screentmr->start(50);
         }
 
@@ -1467,11 +1437,26 @@ USBThread::~USBThread()
 
 void USBThread::run()
 {
+    QElapsedTimer timer;
+    timer.start();
+    __pcsystmr=timer.elapsed()*100;    // INITIALIZE TICK COUNTER
+
     while((__usb_paused!=2)&&(__usb_paused!=-2))
     {
         if(__usb_paused==0) usb_irqservice();
         else if(__usb_paused>0) __usb_paused=-__usb_paused;     // SIGNAL THAT THE PAUSE WAS ACKNOWLEDGED BY MAKING IT NEGATIVE
-        msleep(2);
+
+        __pcsystmr=timer.elapsed()*100;
+
+        if(__tmr_singleshot_running) {
+            if(__tmr1_msec) __tmr1_msec--;
+            if(!__tmr1_msec) {
+                __tmr_singleshot_running=0;
+                __tmr_newirqeventsvc();
+
+            }
+        }
+        msleep(1);
     }
     if(__usb_paused==2) __usb_paused=-__usb_paused; // MAKE SURE WE END THE THREAD WITH A NEGATIVE NUMBER
 }

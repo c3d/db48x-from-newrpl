@@ -148,6 +148,8 @@ extern BYTEPTR __usb_rcvbuffer ;
 extern BINT __usb_rcvtotal ;
 extern BINT __usb_rcvpartial ;
 extern WORD __usb_rcvcrc ;
+extern WORD __usb_rcvcrcroll;
+
 extern BINT __usb_rcvblkmark ;    // TYPE OF RECEIVED BLOCK (ONE OF USB_BLOCKMARK_XXX CONSTANTS)
 extern BYTEPTR __usb_sndbuffer ;
 extern BINT __usb_sndtotal ;
@@ -158,6 +160,10 @@ extern BYTEPTR __usb_longbuffer[2];              // DOUBLE BUFFERING FOR LONG TR
 extern BINT __usb_longoffset;
 extern BINT __usb_longactbuffer;                 // WHICH BUFFER IS BEING WRITTEN
 extern BINT __usb_longlastsize;                  // LAST BLOCK SIZE IN A LONG TRANSMISSION
+extern BINT __usb_rembigtotal;
+extern BINT __usb_rembigoffset;
+extern BINT __usb_localbigoffset;
+extern WORD __usb_longcrcroll;
 
 
 
@@ -165,6 +171,8 @@ extern BINT __usb_longlastsize;                  // LAST BLOCK SIZE IN A LONG TR
 extern const BYTE device_descriptor[];
 
 extern const BYTE rawhid_hid_report_desc[];
+
+extern const WORD const __crctable[256];
 
 
 #define CONFIG1_DESC_SIZE        (9+9+9+7+7)
@@ -225,9 +233,38 @@ int ram_usb_receivelong_start()
     __usb_longactbuffer=-1;
     __usb_longoffset=0;
     __usb_longlastsize=-1;
+    __usb_localbigoffset=0;
     return 1;
 }
 
+// HIGH LEVEL FUNCTION TO ACCESS A BLOCK OF DATA
+BYTEPTR ram_usb_accessdata(int *blksize)
+{
+    if(!(__usb_drvstatus&USB_STATUS_DATAREADY)) return 0;
+    if(blksize) *blksize=(__usb_rcvpartial>__usb_rcvtotal)? __usb_rcvtotal:__usb_rcvpartial;
+    return __usb_rcvbuffer;
+}
+
+// GET THE TOTAL SIZE THE REMOTE IS TRYING TO SEND
+int ram_usb_remotetotalsize()
+{
+    return __usb_rembigtotal;
+}
+// GET THE GLOBAL OFFSET THE REMOTE IS TRYING TO SEND
+int ram_usb_remoteoffset()
+{
+    return __usb_rembigoffset;
+}
+
+void ram_usb_addremoteoffset(int bytes)
+{
+    __usb_rembigoffset+=bytes;
+}
+
+void ram_usb_setoffset(int offset)
+{
+    __usb_localbigoffset=offset;
+}
 
 inline void ram_cpu_waitforinterrupt()
 {
@@ -237,6 +274,67 @@ inline void ram_cpu_waitforinterrupt()
     asm volatile ("ldmia sp!,{ r0 }");  // SAVE IRQ STACK PTR
 
 }
+
+
+
+void ram_usb_waitdatareceived()
+{
+    while(__usb_drvstatus&(USB_STATUS_DATARECEIVED|USB_STATUS_HIDTX)) {
+        if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) return;
+
+        ram_cpu_waitforinterrupt();
+    }
+}
+
+
+// HIGH LEVEL FUNCTION TO RELEASE A BLOCK OF DATA AND GET READY TO RECEIVE THE NEXT
+void ram_usb_releasedata()
+{
+    if(!(__usb_drvstatus&USB_STATUS_DATAREADY)) return;
+    if(__usb_rcvbuffer!=__usb_rxtmpbuffer) ram_simpfree(__usb_rcvbuffer);
+
+    __usb_drvstatus&=~USB_STATUS_DATAREADY;
+
+}
+
+// SEND SOME FEEDBACK TO THE HOST ABOUT THE CURRENT TRANSMISSION
+void ram_usb_sendfeedback()
+{
+   __usb_drvstatus|=USB_STATUS_DATARECEIVED;
+}
+
+
+// CALCULATE THE STANDARD CRC32 OF A BLOCK OF DATA
+// USE A MATH REGISTER DATA AS TABLE. NEEDS TO BE INITIALIZED
+#define RAM_CRCTABLE RReg[9].data
+
+WORD ram_usb_crc32roll(WORD oldcrc,BYTEPTR data,BINT len)
+{
+    WORD crc=oldcrc^(-1);
+    while(len--) crc=RAM_CRCTABLE[(crc ^ *data++) & 0xFF] ^ (crc >> 8);
+    return crc^(-1);
+}
+
+
+
+// CHECK THE CRC OF THE LAST BLOCK RECEIVED
+int ram_usb_checkcrc()
+{
+    if(!(__usb_drvstatus&USB_STATUS_DATAREADY)) return 0;
+    WORD rcvdcrc=ram_usb_crc32roll(__usb_rcvcrcroll,__usb_rcvbuffer,(__usb_rcvpartial>__usb_rcvtotal)? __usb_rcvtotal:__usb_rcvpartial);
+    __usb_rcvcrcroll=rcvdcrc;
+    if(rcvdcrc!=__usb_rcvcrc) return 0;
+    return 1;
+}
+
+
+
+
+int ram_mod_usblocksize(int value)
+{
+return value%USB_BLOCKSIZE;
+}
+
 
 // READ A 32-BIT WORD OF DATA
 // RETURN 1=OK, 0=TIMEOUT, -1=TRANSMISSION ERROR
@@ -250,14 +348,57 @@ int ram_usb_receivelong_word(unsigned int *data)
         //tmr_t start=tmr_ticks(),end;
         {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
         scrptr[6]=0xffffffff;}
+
+        BINT datasize,byteoffset=__usb_localbigoffset,totalsize=0;
+
+
         while(!(__usb_drvstatus&USB_STATUS_DATAREADY)) {
+            // SINCE WE ARE UPDATING FIRMWARE, DON'T DO TIMEOUT, ONLY CABLE DISCONNECT
+            if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) return 0;
             ram_cpu_waitforinterrupt();
-            //end=tmr_ticks();
-            //if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
-                // MORE THAN 1 SECOND TO SEND 1 BLOCK? TIMEOUT - CLEANUP AND RETURN
-            //    return 0;
-            //}
         }
+
+        BYTEPTR data2=ram_usb_accessdata(&datasize);
+
+        if(!totalsize) totalsize=ram_usb_remotetotalsize();
+        if(byteoffset!=ram_usb_remoteoffset()) {
+            // WE NEED TO REQUEST THE CORRECT OFFSET, BUT IT'S IMPOSSIBLE IN LONG TRANSMISSIONS
+            ram_usb_setoffset(-1);  // ABORT, SOMETHING WENT WRONG
+            ram_usb_releasedata();
+            ram_usb_sendfeedback();
+            return -1;
+        }
+
+
+        if(!ram_usb_checkcrc()) {
+            // WE NEED TO REQUEST THE CORRECT OFFSET, BUT IT'S IMPOSSIBLE IN LONG TRANSMISSIONS
+            ram_usb_setoffset(-1);  // ABORT, SOMETHING WENT WRONG
+            ram_usb_releasedata();
+            ram_usb_sendfeedback();
+            return -1;
+        }
+
+        // WE GOT A BLOCK AND THE CRC MATCHES, IT'S ALL WE NEED
+
+        byteoffset+=datasize;
+        ram_usb_addremoteoffset(datasize);  // ADVANCE THE COUNTER OF REMOTE DATA RECEIVED FROM THE REMOTE
+        ram_usb_setoffset(byteoffset);      // AND OUR LOCAL COUNTER
+
+        if(datasize<USB_BLOCKSIZE) {
+            // IT'S THE LAST BLOCK
+        ram_usb_sendfeedback();
+
+        ram_usb_waitdatareceived(); // WAIT FOR THE DATA RECEIVED ACKNOWLEDGEMENT TO BE SENT TO THE REMOTE, INDICATING WE FINISHED RECEIVING DATA
+
+        // THIS IS REQUIRED ONLY AT END OF TRANSMISSION:
+        ram_usb_setoffset(0);   // NEXT TRANSMISSION WE NEED TO REQUEST FROM OFFSET ZERO, RATHER THAN RESUME FROM WHERE WE LEFT OFF
+
+        }
+       
+
+
+
+
         {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
         scrptr[6]=0xF00F00F0;}
 
@@ -265,17 +406,19 @@ int ram_usb_receivelong_word(unsigned int *data)
         if((__usb_rcvblkmark==USB_BLOCKMARK_MULTISTART)||(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)) {
             if(__usb_longoffset) {
                 // BAD BLOCK, WE CAN ONLY RECEIVE THE FIRST BLOCK ONCE, ABORT
+                ram_usb_releasedata();
                 return -1;
             }
-            if(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE) __usb_longlastsize=__usb_rcvtotal;
+            if(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE) __usb_longlastsize=datasize;
 
         }
         if((__usb_rcvblkmark==USB_BLOCKMARK_MULTI)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND)) {
             if(!__usb_longoffset) {
                 // BAD BLOCK, WE CAN ONLY RECEIVE THE FIRST BLOCK ONCE, ABORT
+                ram_usb_releasedata();
                 return -1;
             }
-            if(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND) __usb_longlastsize=__usb_rcvtotal;
+            if(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND) __usb_longlastsize=datasize;
 
         }
 
@@ -285,8 +428,7 @@ int ram_usb_receivelong_word(unsigned int *data)
         __usb_rcvbuffer=__usb_rxtmpbuffer;  // DON'T LET IT AUTOMATICALLY FREE OUR BUFFER
 
 
-        __usb_drvstatus&=~USB_STATUS_DATAREADY; // AND RELEASE THE SYSTEM TO RECEIVE THE NEXT BLOCK IN THE BACKGROUND
-
+        ram_usb_releasedata();
 
     }
 
@@ -294,9 +436,9 @@ int ram_usb_receivelong_word(unsigned int *data)
     scrptr[6]=0xF000000F;}
     // WE HAVE DATA, RETURN IT
 
-    unsigned int *ptr=(unsigned int *)(__usb_longbuffer[__usb_longactbuffer]+(__usb_longoffset&(USB_BLOCKSIZE-1)));
+    unsigned int *ptr=(unsigned int *)(__usb_longbuffer[__usb_longactbuffer]+(ram_mod_usblocksize(__usb_longoffset)));
 
-    if((__usb_longlastsize!=-1)&&((__usb_longoffset&(USB_BLOCKSIZE-1))>=__usb_longlastsize)) {
+    if((__usb_longlastsize!=-1)&&(ram_mod_usblocksize(__usb_longoffset)>=__usb_longlastsize)) {
         // RELEASE THE LAST BUFFER IF WE HAVE ANY
         if(__usb_longbuffer[__usb_longactbuffer])  ram_simpfree(__usb_longbuffer[__usb_longactbuffer]);
         __usb_longbuffer[__usb_longactbuffer]=0;
@@ -304,9 +446,7 @@ int ram_usb_receivelong_word(unsigned int *data)
         return -1; // END OF FILE!
     }
 
-    if(data) {
-
-        *data=*ptr;
+    if(data) *data=*ptr;
 
         // DEBUG: WE DIDN'T ERASE THE FLASH YET, SO PRINT SOME STUFF:
         {
@@ -335,10 +475,9 @@ int ram_usb_receivelong_word(unsigned int *data)
 
         }
 
-    }
     __usb_longoffset+=4;
 
-    if((__usb_longoffset&(USB_BLOCKSIZE-1))==0) {
+    if(ram_mod_usblocksize(__usb_longoffset)==0) {
         // END OF THIS BLOCK, RELEASE IT WHILE WE WAIT FOR THE NEXT ONE
         if(__usb_longbuffer[__usb_longactbuffer])  ram_simpfree(__usb_longbuffer[__usb_longactbuffer]);
         __usb_longbuffer[__usb_longactbuffer]=0;
@@ -361,13 +500,13 @@ int ram_usb_receivelong_finish()
     __usb_longoffset=0;
     __usb_longbuffer[0]=0;
     __usb_longbuffer[1]=0;
+
+    __usb_drvstatus|=USB_STATUS_IGNORE;   // SIGNAL TO IGNORE PACKETS UNTIL END OF TRANSMISSION DETECTED
+    if(__usb_drvstatus&USB_STATUS_DATAREADY) usb_releasedata();
+
     return 1;
 
 }
-
-
-
-
 
 
 void ram_usb_hwsetup()
@@ -1042,11 +1181,36 @@ void ram_usb_ep2_receive(int newtransmission)
         if(startmarker==USB_BLOCKMARK_GETSTATUS) {
             // REQUESTED INFO, RESPOND EVEN IF PREVIOUS DATA WASN'T RETRIEVED
 
+            WORD txsize=*EP2_FIFO;
+            txsize|=(*EP2_FIFO)<<8;
+            txsize|=(*EP2_FIFO)<<16;
+            txsize|=(*EP2_FIFO)<<24;
+            fifocnt-=4;
 
-            __usb_count[1]=1;
-            __usb_padding[1]=RAWHID_TX_SIZE-1;
+            WORD txoffset=*EP2_FIFO;
+            txoffset|=(*EP2_FIFO)<<8;
+            txoffset|=(*EP2_FIFO)<<16;
+            txoffset|=(*EP2_FIFO)<<24;
+            fifocnt-=4;
+
+            __usb_rembigtotal=txsize;
+            __usb_rembigoffset=txoffset;
+
+            __usb_rcvcrcroll=0;
+
+            __usb_count[1]=10;
+            __usb_padding[1]=RAWHID_TX_SIZE-10;
             __usb_txtmpbuffer[0]=USB_BLOCKMARK_RESPONSE;
             __usb_txtmpbuffer[1]=(__usb_drvstatus&USB_STATUS_DATAREADY)? 1:0;
+            __usb_txtmpbuffer[2]=__usb_rembigtotal&0xff;
+            __usb_txtmpbuffer[3]=(__usb_rembigtotal>>8)&0xff;
+            __usb_txtmpbuffer[4]=(__usb_rembigtotal>>16)&0xff;
+            __usb_txtmpbuffer[5]=(__usb_rembigtotal>>24)&0xff;
+            __usb_txtmpbuffer[6]=__usb_localbigoffset&0xff;
+            __usb_txtmpbuffer[7]=(__usb_localbigoffset>>8)&0xff;
+            __usb_txtmpbuffer[8]=(__usb_localbigoffset>>16)&0xff;
+            __usb_txtmpbuffer[9]=(__usb_localbigoffset>>24)&0xff;
+
             __usb_bufptr[1]=__usb_txtmpbuffer;    // SEND THE STATUS
             ram_usb_ep1_transmit(1);
             --fifocnt;
@@ -1073,6 +1237,21 @@ void ram_usb_ep2_receive(int newtransmission)
 
             if(!remotebusy) __usb_drvstatus&=~USB_STATUS_REMOTEBUSY;
             else __usb_drvstatus|=USB_STATUS_REMOTEBUSY;
+
+            WORD txsize=*EP2_FIFO;
+            txsize|=(*EP2_FIFO)<<8;
+            txsize|=(*EP2_FIFO)<<16;
+            txsize|=(*EP2_FIFO)<<24;
+            fifocnt-=4;
+
+            WORD txoffset=*EP2_FIFO;
+            txoffset|=(*EP2_FIFO)<<8;
+            txoffset|=(*EP2_FIFO)<<16;
+            txoffset|=(*EP2_FIFO)<<24;
+            fifocnt-=4;
+
+            __usb_rembigtotal=txsize;
+            __usb_rembigoffset=txoffset;    // FILE SIZE AND OFFSET AS REQUESTED BY THE REMOTE
 
             __usb_drvstatus|=USB_STATUS_REMOTERESPND;
 
@@ -1140,6 +1319,8 @@ void ram_usb_ep2_receive(int newtransmission)
             __usb_bufptr[2]=__usb_rcvbuffer+1;
             __usb_rxtmpbuffer[0]=startmarker;
             __usb_rcvblkmark=0;
+            __usb_drvstatus|=USB_STATUS_IGNORE;     // IGNORE THIS BLOCK
+
         }
 
 
@@ -1154,6 +1335,7 @@ void ram_usb_ep2_receive(int newtransmission)
             __usb_rcvpartial=0;
             __usb_bufptr[2]=__usb_rcvbuffer;
             __usb_rcvblkmark=0;
+            __usb_drvstatus|=USB_STATUS_IGNORE;     // IGNORE THIS BLOCK
 
         }
 
@@ -1179,7 +1361,12 @@ void ram_usb_ep2_receive(int newtransmission)
             __usb_rcvpartial=__usb_bufptr[2]-__usb_rcvbuffer;
         }
         __usb_drvstatus&=~USB_STATUS_HIDRX;
-        __usb_drvstatus|=USB_STATUS_DATAREADY;
+        if(!(__usb_drvstatus&USB_STATUS_IGNORE)) __usb_drvstatus|=USB_STATUS_DATAREADY;
+        else {
+         // RELEASE THE BUFFER, THE USER WILL NEVER SEE IT
+            if(__usb_rcvbuffer!=__usb_rxtmpbuffer) ram_simpfree(__usb_rcvbuffer);
+        }
+        if((__usb_rcvblkmark==0)||(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND))  __usb_drvstatus&=~USB_STATUS_IGNORE;    // STOP IGNORING PACKETS AFTER THIS ONE
         return;
     }
 
@@ -1203,6 +1390,29 @@ void ram_ep1_irqservice()
         ram_usb_ep1_transmit(0);
         return;
     }
+
+
+    if(__usb_drvstatus&USB_STATUS_DATARECEIVED) {
+        // SEND ACKNOWLEDGEMENT THAT WE RECEIVED SOME DATA AND WE WANT THE NEXT OFFSET
+        __usb_count[1]=10;
+        __usb_padding[1]=RAWHID_TX_SIZE-10;
+        __usb_txtmpbuffer[0]=USB_BLOCKMARK_RESPONSE;
+        __usb_txtmpbuffer[1]=(__usb_drvstatus&USB_STATUS_DATAREADY)? 1:0;
+        __usb_txtmpbuffer[2]=__usb_rembigtotal&0xff;
+        __usb_txtmpbuffer[3]=(__usb_rembigtotal>>8)&0xff;
+        __usb_txtmpbuffer[4]=(__usb_rembigtotal>>16)&0xff;
+        __usb_txtmpbuffer[5]=(__usb_rembigtotal>>24)&0xff;
+        __usb_txtmpbuffer[6]=__usb_localbigoffset&0xff;
+        __usb_txtmpbuffer[7]=(__usb_localbigoffset>>8)&0xff;
+        __usb_txtmpbuffer[8]=(__usb_localbigoffset>>16)&0xff;
+        __usb_txtmpbuffer[9]=(__usb_localbigoffset>>24)&0xff;
+
+        __usb_bufptr[1]=__usb_txtmpbuffer;    // SEND THE STATUS
+        ram_usb_ep1_transmit(1);
+        __usb_drvstatus&=~USB_STATUS_DATARECEIVED;
+        return;
+    }
+
 
     // NOTHING TO TRANSMIT
 
@@ -1638,8 +1848,7 @@ void ram_startfwupdate()
     // AT THIS POINT, A USB CONNECTION HAS ALREADY BEEN ESTABLISHED
     // THIS ROUTINE WILL MAKE SURE WE RUN FROM RAM, ERASE ALL FLASH AND UPDATE THE FIRMWARE
 
-    //@SHORT_DESC=@HIDE
-    HALFWORD cfidata[50];   // ACTUALLY 36 WORDS ARE USED ONLY
+     HALFWORD cfidata[50];   // ACTUALLY 36 WORDS ARE USED ONLY
     flash_CFIRead(cfidata);
 
 
@@ -1667,6 +1876,13 @@ void ram_startfwupdate()
         ram_memblocksused[1]=0;
 
     memmovew(codeblock,&ram_simpmallocb,needwords);
+
+    // ALSO COPY THE CRC TABLE FROM ROM TO RAM
+    int k;
+    for(k=0;k<256;++k) RAM_CRCTABLE[k]=__crctable[k];
+
+
+    // EVERYTHING IS NOW IN RAM
 
     {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
     scrptr[2]=0xff00ff00;}
@@ -1709,3 +1925,4 @@ void ram_startfwupdate()
     while(1);
 
 }
+

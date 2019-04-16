@@ -30,7 +30,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-    QTimer *screentmr,*maintmr;
+    QTimer *screentmr;
     QFile sdcard;
     QString currentfile;
     QString currentusb,currentusbpath;
@@ -101,7 +101,6 @@ public slots:
 
 public slots:
     void usbupdate();
-    void domaintimer();
 private slots:
 
     void on_actionPaste_and_compile_triggered();
