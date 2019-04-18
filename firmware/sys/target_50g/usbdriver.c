@@ -321,7 +321,7 @@ const struct descriptor_list_struct {
 // END OF DEFINITIONS BORROWED FROM Teensy rawHID project.
 // EVERYTHING BELOW WAS WRITTEN FROM SCRATCH BY THE newRPL Team
 
-#define LONG_BUFFER_SIZE        100*USB_BLOCKSIZE
+#define LONG_BUFFER_SIZE        32*USB_BLOCKSIZE
 
 // GLOBAL VARIABLES OF THE USB SUBSYSTEM
 BINT __usb_drvstatus __SYSTEM_GLOBAL__; // FLAGS TO INDICATE IF INITIALIZED, CONNECTED, SENDING/RECEIVING, ETC.
@@ -1224,7 +1224,7 @@ void usb_ep2_receive(int newtransmission)
             __usb_count[1]=10;
             __usb_padding[1]=RAWHID_TX_SIZE-10;
             __usb_txtmpbuffer[0]=USB_BLOCKMARK_RESPONSE;
-            __usb_txtmpbuffer[1]=(__usb_drvstatus&USB_STATUS_DATAREADY)? 1:0;
+            __usb_txtmpbuffer[1]=(__usb_drvstatus&(USB_STATUS_DATAHALTED|USB_STATUS_DATAREADY))? 1:0;
             __usb_txtmpbuffer[2]=__usb_rembigtotal&0xff;
             __usb_txtmpbuffer[3]=(__usb_rembigtotal>>8)&0xff;
             __usb_txtmpbuffer[4]=(__usb_rembigtotal>>16)&0xff;
@@ -1421,7 +1421,7 @@ void ep1_irqservice()
         __usb_count[1]=10;
         __usb_padding[1]=RAWHID_TX_SIZE-10;
         __usb_txtmpbuffer[0]=USB_BLOCKMARK_RESPONSE;
-        __usb_txtmpbuffer[1]=(__usb_drvstatus&USB_STATUS_DATAREADY)? 1:0;
+        __usb_txtmpbuffer[1]=(__usb_drvstatus&(USB_STATUS_DATAREADY|USB_STATUS_DATAHALTED))? 1:0;
         __usb_txtmpbuffer[2]=__usb_rembigtotal&0xff;
         __usb_txtmpbuffer[3]=(__usb_rembigtotal>>8)&0xff;
         __usb_txtmpbuffer[4]=(__usb_rembigtotal>>16)&0xff;
@@ -1735,9 +1735,10 @@ int usb_transmitdata(BYTEPTR data,BINT size)
 
         if(__usb_drvstatus&USB_STATUS_REMOTERESPND) {
             // HOLD IT, THE REMOTE TRIED TO TELL US SOMETHING
+            start=tmr_ticks();  // COUNT TIME SINCE LAST RESPONSE WE GOT
+
             if(__usb_drvstatus&USB_STATUS_REMOTEBUSY) {
                 // GIVE THE REMOTE A CHANCE, WAIT FOR A WHILE
-                start=tmr_ticks();
                 while(!usb_remoteready(size,sent))
                 {
                     if( (__usb_drvstatus&USB_STATUS_REMOTERESPND)&&(__usb_drvstatus&USB_STATUS_REMOTEBUSY)) {
@@ -1766,7 +1767,6 @@ int usb_transmitdata(BYTEPTR data,BINT size)
                 firstblock=1;
 
                 // LET THE REMOTE KNOW WE ARE UPDATING THE OFFSET
-                start=tmr_ticks();
                 while(!usb_remoteready(size,sent))
                 {
                     if( (__usb_drvstatus&USB_STATUS_REMOTERESPND)&&(__usb_drvstatus&USB_STATUS_REMOTEBUSY)) {
@@ -1913,8 +1913,12 @@ int usb_transmitlong_block(BYTEPTR data,BINT blksize,BINT firstblock)
     if(blksize<0) return 0;   // BAD SIZE
 
 
-    BINT sent=__usb_rembigoffset,bufsize=0;
+    BINT sent=(__usb_longoffset+(USB_BLOCKSIZE-1))/USB_BLOCKSIZE;
+    BINT bufsize=0;
     tmr_t start,end;
+
+    sent*=USB_BLOCKSIZE;
+
 
     if(firstblock)
     {
@@ -1965,16 +1969,11 @@ int usb_transmitlong_block(BYTEPTR data,BINT blksize,BINT firstblock)
                     }
                 }
                 // NOW WE ARE READY AND HAVE A RECENT RESPONSE THAT UPDATED bigoffset
-            }
-
-            // REMOTE IS NOT BUSY, DO THEY WANT A DIFFERENT PART?
-            if((__usb_rembigoffset>=0)&&(__usb_rembigoffset<sent)) {
-
-                // THIS IS NOT POSSIBLE ON LONG TRANSMISSIONS SINCE IT'S DONE WORD-BY-WORD, CAN'T GO BACK
-                __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
-                return 0;
+                // ALSO SENDING GETSTATUS CAUSES CRC TO START ROLLING AGAIN ON TH RECEIVER, START AGAIN HERE TOO.
+                __usb_longcrcroll=0;
 
             }
+
             if(__usb_rembigoffset<0) {
                 // THE REMOTE WANTS TO ABORT
                 __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
@@ -2150,14 +2149,6 @@ int usb_receivelong_word(unsigned int *data)
         BYTEPTR data2=usb_accessdata(&datasize);
 
         if(!totalsize) totalsize=usb_remotetotalsize();
-        if(byteoffset!=usb_remoteoffset()) {
-            // WE NEED TO REQUEST THE CORRECT OFFSET, BUT IT'S IMPOSSIBLE IN LONG TRANSMISSIONS
-            usb_setoffset(-1);  // ABORT, SOMETHING WENT WRONG
-            usb_releasedata();
-            usb_sendfeedback();
-            return -1;
-        }
-
 
         if(!usb_checkcrc()) {
             // WE NEED TO REQUEST THE CORRECT OFFSET, BUT IT'S IMPOSSIBLE IN LONG TRANSMISSIONS
@@ -2170,7 +2161,6 @@ int usb_receivelong_word(unsigned int *data)
         // WE GOT A BLOCK AND THE CRC MATCHES, IT'S ALL WE NEED
 
         byteoffset+=datasize;
-        usb_addremoteoffset(datasize);  // ADVANCE THE COUNTER OF REMOTE DATA RECEIVED FROM THE REMOTE
         usb_setoffset(byteoffset);      // AND OUR LOCAL COUNTER
 
         if(datasize<USB_BLOCKSIZE) {
@@ -2222,9 +2212,11 @@ int usb_receivelong_word(unsigned int *data)
             }
             __usb_longbufused[__usb_longactbuffer]=0;
 
+            // LET THE DRIVER KNOW ALL RESPONSES NEED TO TELL THE HOST WE ARE HALTED
+            __usb_drvstatus|=USB_STATUS_DATAHALTED;
             // SINCE ONE BUFFER IS COMPLETE, SEND HALT FEEDBACK TO THE SENDER SO IT STOPS SENDING DATA UNTIL FURTHER NOTICE
             usb_sendfeedback();
-            usb_waitdatareceived();
+
 
         }
 
@@ -2264,9 +2256,11 @@ int usb_receivelong_word(unsigned int *data)
          // SWITCH TO THE OTHER BUFFER AND RELEASE THIS ONE
             __usb_longrdbuffer=__usb_longactbuffer;
             __usb_longrdoffset=0;
+
+            // LET THE HOST KNOW WE ARE NO LONGER HALTED
+            __usb_drvstatus&=~USB_STATUS_DATAHALTED;
+            usb_sendfeedback();
         }
-        // EITHER WAY, LET THE HOST KNOW WE WANT MORE DATA!
-        usb_sendfeedback();
     }
 
     return 1;

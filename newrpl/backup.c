@@ -438,6 +438,16 @@ BINT rplRestoreBackup(BINT includestack,WORD (*readfunc)(void *),void *OpaqueArg
         data=readfunc(OpaqueArgument);
         TempOb[k]=data;
         ++offset;
+
+
+       // ***DEBUG: INTENTIONAL DELAY TO FOCE BUFFER SWITCH
+//       {
+//       tmr_t start=tmr_ticks(),end;
+//       do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<2);
+//       }
+
+
+
     }
     if(Exceptions) return -1;
 
