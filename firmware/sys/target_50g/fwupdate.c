@@ -149,6 +149,10 @@ extern BINT __usb_rcvtotal ;
 extern BINT __usb_rcvpartial ;
 extern WORD __usb_rcvcrc ;
 extern WORD __usb_rcvcrcroll;
+extern BINT __usb_rembigtotal;
+extern BINT __usb_rembigoffset;
+extern BINT __usb_localbigoffset;
+
 
 extern BINT __usb_rcvblkmark ;    // TYPE OF RECEIVED BLOCK (ONE OF USB_BLOCKMARK_XXX CONSTANTS)
 extern BYTEPTR __usb_sndbuffer ;
@@ -157,13 +161,12 @@ extern BINT __usb_sndpartial ;
 
 // GLOBAL VARIABLES FOR DOUBLE BUFFERED LONG TRANSACTIONS
 extern BYTEPTR __usb_longbuffer[2];              // DOUBLE BUFFERING FOR LONG TRANSMISSIONS OF DATA
-extern BINT __usb_longoffset;
-extern BINT __usb_longactbuffer;                 // WHICH BUFFER IS BEING WRITTEN
+extern BINT __usb_longbufused[2];              // DOUBLE BUFFERING FOR LONG TRANSMISSIONS OF DATA
+extern BINT __usb_longoffset,__usb_longrdoffset;
+extern BINT __usb_longactbuffer,__usb_longrdbuffer;  // WHICH BUFFER IS BEING WRITTEN AND WHICH ONE IS BEING READ
 extern BINT __usb_longlastsize;                  // LAST BLOCK SIZE IN A LONG TRANSMISSION
-extern BINT __usb_rembigtotal;
-extern BINT __usb_rembigoffset;
-extern BINT __usb_localbigoffset;
 extern WORD __usb_longcrcroll;
+
 
 
 
@@ -206,6 +209,7 @@ extern struct descriptor_list_struct descriptor_list[];
 // USB ROUTINES PREPARED TO RUN FROM RAM DURING FIRMWARE UPDATE - DO NOT REORGANIZE OR CHANGE THIS BLOCK
 //*******************************************************************************************************
 
+#define LONG_BUFFER_SIZE        32*USB_BLOCKSIZE
 
 // FAKE MEMORY ALLOCATORS
 BYTEPTR ram_memblocks[2];
@@ -230,8 +234,18 @@ void ram_simpfree(void *buffer)
 // START A LONG DATA TRANSACTION OVER THE USB PORT
 int ram_usb_receivelong_start()
 {
-    __usb_longactbuffer=-1;
+    __usb_longactbuffer=0;
+    __usb_longrdbuffer=0;
     __usb_longoffset=0;
+    __usb_longrdoffset=0;
+
+    // PRE-ALLOCATE THE MEMORY USING THE ROM ROUTINES BEFORE WE START RUNNING FROM RAM
+    //__usb_longbuffer[0]=ram_simpmallocb(LONG_BUFFER_SIZE);      // PREALLOCATE 2 LARGE BUFFERS
+    //__usb_longbuffer[1]=ram_simpmallocb(LONG_BUFFER_SIZE);
+    if(!__usb_longbuffer[0]) return 0;
+    if(!__usb_longbuffer[1]) return 0;
+    __usb_longbufused[0]=0;
+    __usb_longbufused[1]=0;
     __usb_longlastsize=-1;
     __usb_localbigoffset=0;
     return 1;
@@ -341,15 +355,15 @@ return value%USB_BLOCKSIZE;
 
 int ram_usb_receivelong_word(unsigned int *data)
 {
-    if(__usb_longactbuffer==-1) {
+
         // WE DON'T HAVE ANY BUFFERS YET!
-        // WAIT UNTIL WE DO, TIMEOUT IN 2
-        // NO TIMEOUT? THIS COULD HANG IF DISCONNECTED AND NO LONGER
-        //tmr_t start=tmr_ticks(),end;
+
         {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
         scrptr[6]=0xffffffff;}
 
         BINT datasize,byteoffset=__usb_localbigoffset,totalsize=0;
+
+        if((__usb_longactbuffer==__usb_longrdbuffer)&&(__usb_longrdoffset>=__usb_longbufused[__usb_longrdbuffer])) {
 
 
         while(!(__usb_drvstatus&USB_STATUS_DATAREADY)) {
@@ -358,17 +372,14 @@ int ram_usb_receivelong_word(unsigned int *data)
             ram_cpu_waitforinterrupt();
         }
 
+        }
+
+        // THERE'S DATA AWAITING, MOVE IT TO ONE OF THE LARGE BUFFERS
+        if(__usb_drvstatus&USB_STATUS_DATAREADY) {
+
         BYTEPTR data2=ram_usb_accessdata(&datasize);
 
         if(!totalsize) totalsize=ram_usb_remotetotalsize();
-        if(byteoffset!=ram_usb_remoteoffset()) {
-            // WE NEED TO REQUEST THE CORRECT OFFSET, BUT IT'S IMPOSSIBLE IN LONG TRANSMISSIONS
-            ram_usb_setoffset(-1);  // ABORT, SOMETHING WENT WRONG
-            ram_usb_releasedata();
-            ram_usb_sendfeedback();
-            return -1;
-        }
-
 
         if(!ram_usb_checkcrc()) {
             // WE NEED TO REQUEST THE CORRECT OFFSET, BUT IT'S IMPOSSIBLE IN LONG TRANSMISSIONS
@@ -381,7 +392,6 @@ int ram_usb_receivelong_word(unsigned int *data)
         // WE GOT A BLOCK AND THE CRC MATCHES, IT'S ALL WE NEED
 
         byteoffset+=datasize;
-        ram_usb_addremoteoffset(datasize);  // ADVANCE THE COUNTER OF REMOTE DATA RECEIVED FROM THE REMOTE
         ram_usb_setoffset(byteoffset);      // AND OUR LOCAL COUNTER
 
         if(datasize<USB_BLOCKSIZE) {
@@ -395,8 +405,7 @@ int ram_usb_receivelong_word(unsigned int *data)
 
         }
        
-
-
+        // DONE RECEIVING BLOCKS OF DATA
 
 
         {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
@@ -422,13 +431,47 @@ int ram_usb_receivelong_word(unsigned int *data)
 
         }
 
-        // TAKE OWNERSHIP OF THE BUFFER
-        __usb_longactbuffer=0;
-        __usb_longbuffer[0]=__usb_rcvbuffer;
-        __usb_rcvbuffer=__usb_rxtmpbuffer;  // DON'T LET IT AUTOMATICALLY FREE OUR BUFFER
+        // COPY ALL DATA TO CURRENTLY ACTIVE LARGE BUFFER
 
+        if(__usb_longbufused[__usb_longactbuffer]+=datasize>LONG_BUFFER_SIZE) {
+            // THE BUFFER IS FULL, START THE OTHER BUFFER
+
+            __usb_longactbuffer^=1; // SWITCH WRITING TO THE OTHER BUFFER
+
+            if(__usb_longactbuffer==__usb_longrdbuffer) {
+                // BUFFER OVERRUN!
+                ram_usb_setoffset(-1);  // ABORT, SOMETHING WENT WRONG
+                ram_usb_releasedata();
+                ram_usb_sendfeedback();
+                return -1;
+            }
+            __usb_longbufused[__usb_longactbuffer]=0;
+
+            // LET THE DRIVER KNOW ALL RESPONSES NEED TO TELL THE HOST WE ARE HALTED
+            __usb_drvstatus|=USB_STATUS_DATAHALTED;
+            // SINCE ONE BUFFER IS COMPLETE, SEND HALT FEEDBACK TO THE SENDER SO IT STOPS SENDING DATA UNTIL FURTHER NOTICE
+            ram_usb_sendfeedback();
+
+
+        }
+
+
+        //ram_memmoveb(__usb_longbuffer[__usb_longactbuffer]+__usb_longbufused[__usb_longactbuffer],__usb_rcvbuffer,datasize);
+        {
+            int f;
+            for(f=0;f<datasize;++f)
+            {
+                *(__usb_longbuffer[__usb_longactbuffer]+__usb_longbufused[__usb_longactbuffer]+f)=__usb_rcvbuffer[f];
+            }
+        }
+
+
+        __usb_longbufused[__usb_longactbuffer]+=datasize;
 
         ram_usb_releasedata();
+
+        // DONE RECEIVING ANOTHER PACKET
+
 
     }
 
@@ -436,53 +479,35 @@ int ram_usb_receivelong_word(unsigned int *data)
     scrptr[6]=0xF000000F;}
     // WE HAVE DATA, RETURN IT
 
-    unsigned int *ptr=(unsigned int *)(__usb_longbuffer[__usb_longactbuffer]+(ram_mod_usblocksize(__usb_longoffset)));
+    unsigned int *ptr=(unsigned int *)(__usb_longbuffer[__usb_longrdbuffer]+__usb_longrdoffset);
 
     if((__usb_longlastsize!=-1)&&(ram_mod_usblocksize(__usb_longoffset)>=__usb_longlastsize)) {
         // RELEASE THE LAST BUFFER IF WE HAVE ANY
-        if(__usb_longbuffer[__usb_longactbuffer])  ram_simpfree(__usb_longbuffer[__usb_longactbuffer]);
-        __usb_longbuffer[__usb_longactbuffer]=0;
-        __usb_longactbuffer=-1;
         return -1; // END OF FILE!
     }
 
     if(data) *data=*ptr;
 
-        // DEBUG: WE DIDN'T ERASE THE FLASH YET, SO PRINT SOME STUFF:
-        {
+     __usb_longoffset+=4;
+     __usb_longrdoffset+=4;
 
-            // PRINT A HEX WORD
-            DRAWSURFACE scr;
-            // POSITION-INDEPENDENT FUNCTION CALL INTO ROM ROUTINES
-            void (* volatile funcptr)(DRAWSURFACE *);
-            funcptr=&ggl_initscr;
-            (*funcptr)(&scr);
+     if(__usb_longrdoffset>=__usb_longbufused[__usb_longrdbuffer]) {
+         // WE EITHER FINISHED THE BUFFER OR ARE ALL CAUGHT UP WITH DATA
+         if(__usb_longactbuffer==__usb_longrdbuffer) {
+             // WE ARE ALL CAUGHT UP, RESET THE USED COUNTERS SO IT USES THE ENTIRE BUFFER AGAIN
+             __usb_longbufused[__usb_longrdbuffer]=0;
+             __usb_longrdoffset=0;
+         }
+         else {
+          // SWITCH TO THE OTHER BUFFER AND RELEASE THIS ONE
+             __usb_longrdbuffer=__usb_longactbuffer;
+             __usb_longrdoffset=0;
 
-            BYTE string[9];
-
-            string[8]=0;
-
-            int j;
-            for(j=0;j<8;++j) {
-                BYTE nibble=((*ptr)>>(4*j))&0xf;
-                if(nibble>9) string[7-j]='A'+(nibble-10);
-                else string[7-j]='0'+nibble;
-            }
-
-            void (* volatile funcptr2)(int,int,char *,UNIFONT *,int,DRAWSURFACE *);
-            funcptr2=&DrawText;
-            (*funcptr2)(0,50,(char *)string,*halScreen.FontArray[FONT_MENU],0xf,&scr);
-
-        }
-
-    __usb_longoffset+=4;
-
-    if(ram_mod_usblocksize(__usb_longoffset)==0) {
-        // END OF THIS BLOCK, RELEASE IT WHILE WE WAIT FOR THE NEXT ONE
-        if(__usb_longbuffer[__usb_longactbuffer])  ram_simpfree(__usb_longbuffer[__usb_longactbuffer]);
-        __usb_longbuffer[__usb_longactbuffer]=0;
-        __usb_longactbuffer=-1;
-    }
+             // LET THE HOST KNOW WE ARE NO LONGER HALTED
+             __usb_drvstatus&=~USB_STATUS_DATAHALTED;
+             ram_usb_sendfeedback();
+         }
+     }
 
     return 1;
 
@@ -494,17 +519,29 @@ int ram_usb_receivelong_finish()
 
     // CLEANUP
     // RELEASE A BUFFER IF WE HAVE ANY
-    if((__usb_longactbuffer!=-1)&&(__usb_longbuffer[__usb_longactbuffer]!=0))  ram_simpfree(__usb_longbuffer[__usb_longactbuffer]);
+
+    // NO NEED TO RELEASE PRE-ALLOCATED BUFFERS
+    //if(__usb_longactbuffer!=-1) {
+    //ram_simpfree(__usb_longbuffer[0]);
+    //ram_simpfree(__usb_longbuffer[1]);
+    //}
 
     __usb_longactbuffer=-1;
+    __usb_longrdbuffer=-1;
     __usb_longoffset=0;
     __usb_longbuffer[0]=0;
     __usb_longbuffer[1]=0;
 
     __usb_drvstatus|=USB_STATUS_IGNORE;   // SIGNAL TO IGNORE PACKETS UNTIL END OF TRANSMISSION DETECTED
-    if(__usb_drvstatus&USB_STATUS_DATAREADY) usb_releasedata();
+    if(__usb_drvstatus&USB_STATUS_DATAREADY) ram_usb_releasedata();
+
+    while(__usb_drvstatus&USB_STATUS_IGNORE) {
+         if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
+        ram_cpu_waitforinterrupt();
+    }
 
     return 1;
+
 
 }
 
@@ -1201,7 +1238,7 @@ void ram_usb_ep2_receive(int newtransmission)
             __usb_count[1]=10;
             __usb_padding[1]=RAWHID_TX_SIZE-10;
             __usb_txtmpbuffer[0]=USB_BLOCKMARK_RESPONSE;
-            __usb_txtmpbuffer[1]=(__usb_drvstatus&USB_STATUS_DATAREADY)? 1:0;
+            __usb_txtmpbuffer[1]=(__usb_drvstatus&(USB_STATUS_DATAHALTED|USB_STATUS_DATAREADY))? 1:0;
             __usb_txtmpbuffer[2]=__usb_rembigtotal&0xff;
             __usb_txtmpbuffer[3]=(__usb_rembigtotal>>8)&0xff;
             __usb_txtmpbuffer[4]=(__usb_rembigtotal>>16)&0xff;
@@ -1306,6 +1343,8 @@ void ram_usb_ep2_receive(int newtransmission)
             __usb_bufptr[2]=__usb_rcvbuffer;
         }
 
+        // IF THIS IS THE START OF A NEW TRANSMISSION, DON'T IGNORE IT
+        if((__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTISTART)) {  __usb_rcvcrcroll=0; __usb_drvstatus&=~USB_STATUS_IGNORE; }
 
         }
 
@@ -1397,7 +1436,7 @@ void ram_ep1_irqservice()
         __usb_count[1]=10;
         __usb_padding[1]=RAWHID_TX_SIZE-10;
         __usb_txtmpbuffer[0]=USB_BLOCKMARK_RESPONSE;
-        __usb_txtmpbuffer[1]=(__usb_drvstatus&USB_STATUS_DATAREADY)? 1:0;
+        __usb_txtmpbuffer[1]=(__usb_drvstatus&(USB_STATUS_DATAREADY|USB_STATUS_DATAHALTED))? 1:0;
         __usb_txtmpbuffer[2]=__usb_rembigtotal&0xff;
         __usb_txtmpbuffer[3]=(__usb_rembigtotal>>8)&0xff;
         __usb_txtmpbuffer[4]=(__usb_rembigtotal>>16)&0xff;
@@ -1683,12 +1722,22 @@ void ram_flashprogramword(WORDPTR address,WORD value)
 }
 
 
+// FLASH PROGRAMMING PROTOCOL:
+// USES LONG TRANSMISSION PROTOCOL SAME AS USED FOR RAM BACKUP OBJECTS
+// 4 BYTES='FWUP' HEADER (INSTEAD OF 'NRPB')
+// 4 BYTES=START ADDRESS OF THIS BLOCK, USE 0XFFFFFFFF TO END FLASH PROGRAMMING AND RESET
+// 4 BYTES=NUMBER OF 32-BIT WORDS TO PROGRAM
+// [DATA]= NWORDS 32-BIT WORDS SENT IN LSB
 
+// DEVICE WILL KEEP LISTENING FOR ADDITIONAL BLOCKS
+// UNTIL A BLOCK WITH OFFSET 0xFFFFFFFF IS SENT, THEN IT WILL RESET
 
 
 // MAIN PROCEDURE TO RECEIVE AND FLASH FIRMWARE FROM RAM
 void ram_receiveandflashfw(WORD flashsize)
 {
+
+do {
 
 ram_usb_receivelong_start();
 
@@ -1698,62 +1747,6 @@ WORD flash_nwords,data;
 data=0xffffffff;
 
 if(ram_usb_receivelong_word((WORDPTR)&data)!=1)  ram_doreset(); // NOTHING ELSE TO DO
-
-// DEBUG: WE DIDN'T ERASE THE FLASH YET, SO PRINT SOME STUFF:
-{
-
-    // PRINT A HEX WORD
-    DRAWSURFACE scr;
-    // POSITION-INDEPENDENT FUNCTION CALL INTO ROM ROUTINES
-    void (* volatile funcptr)(DRAWSURFACE *);
-    funcptr=&ggl_initscr;
-    (*funcptr)(&scr);
-
-    BYTE string[9];
-
-    string[8]=0;
-
-    int j;
-    for(j=0;j<8;++j) {
-        BYTE nibble=(data>>(4*j))&0xf;
-        if(nibble>9) string[7-j]='A'+(nibble-10);
-        else string[7-j]='0'+nibble;
-    }
-
-    void (* volatile funcptr2)(int,int,char *,UNIFONT *,int,DRAWSURFACE *);
-    funcptr2=&DrawText;
-    (*funcptr2)(0,30,(char *)string,*halScreen.FontArray[FONT_MENU],0xf,&scr);
-
-}
-// DEBUG: WE DIDN'T ERASE THE FLASH YET, SO PRINT SOME STUFF:
-{
-
-    // PRINT A HEX WORD
-    DRAWSURFACE scr;
-
-    // POSITION-INDEPENDENT FUNCTION CALL INTO ROM ROUTINES
-    void (* volatile funcptr)(DRAWSURFACE *);
-    funcptr=&ggl_initscr;
-    (*funcptr)(&scr);
-
-
-    BYTE string[9];
-
-    string[8]=0;
-
-    int j;
-    for(j=0;j<8;++j) {
-        BYTE nibble=(__usb_rcvtotal>>(4*j))&0xf;
-        if(nibble>9) string[7-j]='A'+(nibble-10);
-        else string[7-j]='0'+nibble;
-    }
-
-    void (* volatile funcptr2)(int,int,char *,UNIFONT *,int,DRAWSURFACE *);
-    funcptr2=&DrawText;
-    (*funcptr2)(0,40,(char *)string,*halScreen.FontArray[FONT_MENU],0xf,&scr);
-
-}
-
 
 if(data!=TEXT2WORD('F','W','U','P'))  {
     {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
@@ -1777,6 +1770,10 @@ if((WORD)(flash_address+flash_nwords)>flashsize) {
     ram_doreset();
 }
 
+if(((WORD)flash_address<0x4000))  {
+    ram_doreset(); // PROTECT THE BOOTLOADER AT ALL COSTS
+}
+
 // DEBUG
 {
     // SHOW SOME VISUALS
@@ -1786,13 +1783,13 @@ scrptr+=N_ALPHA*80;
 *scrptr=(*scrptr&0xf)|0xf0;
 }
 
-// ERASE THE ENTIRE FLASH
+// ERASE THE FLASH
 {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
 scrptr[4]=0xf0f06666;}
-if( (flash_address!=(WORDPTR)0x1c0000)||(flash_nwords!=4)) {
-    {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-    scrptr[5]=0x88888888;}
-}
+
+
+
+
 ram_flasherase(flash_address,flash_nwords );    // ERASE ENOUGH FLASH BLOCKS TO PREPARE FOR FIRMWARE UPDATE
 
 {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
@@ -1805,11 +1802,6 @@ scrptr+=65;
 scrptr+=N_HOURGLASS*80;
 *scrptr=(*scrptr&0xf)|0xf0;
 }
-
-if(((WORD)flash_address<0x4000)||((WORD)flash_address+flash_nwords>=0x00200000))  {
-    ram_doreset(); // PROTECT THE BOOTLOADER AT ALL COSTS
-}
-
 
 while(flash_nwords--) {
     if(ram_usb_receivelong_word(&data)!=1) ram_doreset();
@@ -1827,12 +1819,16 @@ while(flash_nwords--) {
 // WE FINISHED PROGRAMMING THE FLASH!
 
 // SHOW SOME VISUALS
+{
 unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
 scrptr+=65;
 scrptr+=N_RIGHTSHIFT*80;
 *scrptr=(*scrptr&0xf)|0xf0;
+}
 
-while(1);
+
+ram_usb_receivelong_finish();
+} while(1);
 //ram_doreset();
 
 // NEVER RETURNS
@@ -1871,10 +1867,19 @@ void ram_startfwupdate()
 
         // INITIALIZE FAKE MEMORY ALLOCATOR
         ram_memblocks[0]=(BYTEPTR)allocRegister();
+        if(ram_memblocks[0]==0) { Exceptions|=EX_OUTOFMEM; return; }
         ram_memblocks[1]=(BYTEPTR)allocRegister();
+        if(ram_memblocks[1]==0) { Exceptions|=EX_OUTOFMEM; return; }
+
         ram_memblocksused[0]=0;
         ram_memblocksused[1]=0;
 
+        __usb_longbuffer[0]=simpmallocb(LONG_BUFFER_SIZE);      // PREALLOCATE 2 LARGE BUFFERS
+        if(__usb_longbuffer[0]==0) { Exceptions|=EX_OUTOFMEM; return; }
+        __usb_longbuffer[1]=simpmallocb(LONG_BUFFER_SIZE);
+        if(__usb_longbuffer[1]==0) { Exceptions|=EX_OUTOFMEM; return; }
+
+        if(ram_memblocks[0]==0)
     memmovew(codeblock,&ram_simpmallocb,needwords);
 
     // ALSO COPY THE CRC TABLE FROM ROM TO RAM
@@ -1898,7 +1903,7 @@ void ram_startfwupdate()
     scrptr[2]=0xffff0000;}
 
     // AND MAKE SURE WE DON'T EXECUTE AN OLD COPY LEFT IN THE CACHE
-    cpu_flushicache();
+    //cpu_flushicache();    // NO NEED,
 
     {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
     scrptr[2]=0x0000ffff;}
@@ -1914,6 +1919,7 @@ void ram_startfwupdate()
 
     {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
     scrptr[2]=0xffffffff;}
+
     void (*ptr)(int);
 
     ptr=(void *) (codeblock+((WORDPTR)&ram_receiveandflashfw-(WORDPTR)&ram_simpmallocb));

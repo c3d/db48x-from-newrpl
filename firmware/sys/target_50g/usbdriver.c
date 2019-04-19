@@ -530,7 +530,10 @@ void usb_irqconnect()
 void usb_init(int force)
 {
 
-    if((!force) && (__usb_drvstatus&USB_STATUS_INIT)) return;
+    if(__usb_drvstatus&USB_STATUS_INIT) {
+        if(!force) return;
+        usb_shutdown(); // FORCE A SHUTDOWN TO RESET THE PHY COMPLETELY
+    }
 
     //__usb_intcount=0;
 

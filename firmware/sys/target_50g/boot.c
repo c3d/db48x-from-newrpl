@@ -222,12 +222,9 @@ void main_virtual(unsigned int mode)
 
         // SCAN AND UPDATE ALARMS AFTER A WARMSTART
         rplUpdateAlarms();
-        if (rplCheckAlarms())
-            halSetNotification(N_ALARM, 0xf);
-        else
-            halSetNotification(N_ALARM, 0x0);
-
         halShowMsg("Memory Recovered");
+        // RESTORE OTHER SYSTEM STATUS FROM WARMSTART
+        halWakeUp();
     }
     }
     else {
@@ -704,7 +701,9 @@ void halWipeoutWarmStart()
 void halReset()
 {
     // TODO: ADD RPL ENGINE CLEANUP HERE BEFORE RESET
+    disable_interrupts();
 
+    usb_shutdown();
 
    // PUT THE CPU IN A KNOWN SLOW SPEED
     cpu_setspeed(HAL_SLOWCLOCK);

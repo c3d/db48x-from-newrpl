@@ -14,6 +14,7 @@ extern "C" {
 #include "libraries.h"
 
 extern hid_device *__usb_curdevice;
+extern volatile int __usb_paused;
 
 
 BINT64 rplObjChecksum(WORDPTR object);
@@ -465,10 +466,10 @@ void USBSelector::on_updateFirmware_clicked()
         return;
     }
 
-    // TODO: SHOW NICE WINDOW WITH UPDATE STEPS
 
-    int j;
-    for(j=0;j<500;++j) usbflush();
+    // START USB DRIVER
+    __usb_paused=0;
+    // TODO: SHOW NICE WINDOW WITH UPDATE STEPS
 
     // SEND CMD_USBFWUPDATE TO THE CALC
     if(!usbremotefwupdatestart()) {
@@ -477,15 +478,97 @@ void USBSelector::on_updateFirmware_clicked()
     }
 
 
-    for(j=0;j<1000;++j) usbflush();
-
     int nwords=filedata.size()+3,result;
     nwords/=sizeof(WORD);
 
-    result=usbsendtoremote((unsigned int *)filedata.constData(),nwords);
+    if(!usb_transmitlong_start()) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+
+    if(!usb_transmitlong_word(TEXT2WORD('F','W','U','P'))) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+
+    // FOR DEBUG, JUST WRITE ONE WORD TO THIS ADDRESS
+    if(!usb_transmitlong_word(0x1c0000)) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+    if(!usb_transmitlong_word(0x1)) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+    if(!usb_transmitlong_word(0x12345678)) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
 
 
-    for(j=0;j<500;++j) usbflush();
+    if(!usb_transmitlong_finish()) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+
+    if(!usb_transmitlong_start()) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+
+    if(!usb_transmitlong_word(TEXT2WORD('F','W','U','P'))) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+
+    // FOR DEBUG, JUST WRITE ONE WORD TO THIS ADDRESS
+    if(!usb_transmitlong_word(0x1D0000)) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+    if(!usb_transmitlong_word(0x1)) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+    if(!usb_transmitlong_word(0xBAADF00D)) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+
+
+    if(!usb_transmitlong_finish()) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+
+
+    // NOW FINISH THE TEST BY RESETTING
+
+    if(!usb_transmitlong_start()) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+
+    if(!usb_transmitlong_word(TEXT2WORD('F','W','U','P'))) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+
+    // FOR DEBUG, JUST WRITE ONE WORD TO THIS ADDRESS
+    if(!usb_transmitlong_word(0xFFFFFFFF)) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+    if(!usb_transmitlong_word(0x0)) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+
+    if(!usb_transmitlong_finish()) {
+        // TODO: SOME KIND OF ERROR
+        return;
+    }
+
 
     // AT THIS POINT, THE CALC MUST'VE RESET TO LOAD THE NEW FIRMWARE
     hid_close(__usb_curdevice);
