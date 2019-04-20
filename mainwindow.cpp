@@ -888,7 +888,19 @@ if(!__usb_curdevice) {
     if(!currentusb.isEmpty()) {
         // ATTEMPT TO RECONNECT WITH THE DEVICE
       if(ui->usbconnectButton->text().endsWith("[ Click to reconnect ]")) {
-          return;
+          if(__usb_curdevice) {
+              hid_close(__usb_curdevice);
+          }
+          // ATTEMPT TO RECONNECT
+          __usb_curdevice=hid_open_path(currentusbpath.toUtf8().constData());
+          if(!__usb_curdevice) {
+              return;
+          }
+          else {
+              ui->usbconnectButton->setText(currentusb);
+              __usb_paused=0; // AND RESUME THE DRIVER
+              return;
+          }
       }
       ui->usbconnectButton->setText(currentusb+ QString(" [ Click to reconnect ]"));
     }

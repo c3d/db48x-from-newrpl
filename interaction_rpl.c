@@ -282,10 +282,34 @@ int usbreceivearchive(uint32_t *buffer,int bufsize)
 
 }
 
-// RECEIVE AN ENTIRE ARCHIVE, RETURN WORD COUNT, OR -1 IF ERROR
+// SEND AN ENTIRE ARCHIVE, RETURN WORD COUNT, OR -1 IF ERROR
 int usbsendarchive(uint32_t *buffer,int bufsize)
 {
-    return usb_transmitdata((BYTEPTR)buffer,bufsize*sizeof(WORD));
+    if(!usb_isconfigured()) {
+        rplError(ERR_USBNOTCONNECTED);
+        return -1;
+    }
+
+    if(!usb_transmitlong_start()) {
+        rplError(ERR_USBCOMMERROR);     // IT'S ACTUALLY OUT OF BUFFER MEMORY
+        return -1;
+    }
+
+    int k;
+    for(k=0;k<bufsize;++k)
+    {
+        if(!usb_transmitlong_word(buffer[k])) {
+            rplError(ERR_USBCOMMERROR);
+            break;
+        }
+    }
+
+    usb_transmitlong_finish();
+
+    if(k!=bufsize) return -1;
+
+    return bufsize;
+
 }
 
 void usbflush()
