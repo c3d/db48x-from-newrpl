@@ -452,8 +452,15 @@ do {
             __usb_drvstatus&=~USB_STATUS_HIDRX;
             if(!(__usb_drvstatus&USB_STATUS_IGNORE)) { if(__usb_rcvtotal>0) __usb_drvstatus|=USB_STATUS_DATAREADY; }
             else {
+                if((__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTISTART)) {
+                    // THIS IS THE START OF A NEW TRANSMISSION ALREADY, DO NOT IGNORE
+                    __usb_drvstatus|=USB_STATUS_DATAREADY;
+                    __usb_drvstatus&=~USB_STATUS_IGNORE;
+                }
+                else {
              // RELEASE THE BUFFER, THE USER WILL NEVER SEE IT
                 if(__usb_rcvbuffer!=__usb_rxtmpbuffer) simpfree(__usb_rcvbuffer);
+                }
             }
             if((__usb_rcvblkmark==0)||(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND))  __usb_drvstatus&=~USB_STATUS_IGNORE;    // STOP IGNORING PACKETS AFTER THIS ONE
 
@@ -893,11 +900,24 @@ int usb_transmitlong_block(BYTEPTR data,BINT size,BINT isfirst)
         __usb_rembigoffset=0;
         sent=0;
         // ONLY AT THE BEGINNING SEND THE HEADER WITH THE TOTAL LENGTH SET TO ZERO TO INDICATE A LONG TRANSMISSION
-        if(!usb_remoteready(0,sent))
+        start=tmr_ticks();
+        while(!usb_remoteready(0,sent))
         {
-            __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
-            if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
-            return 0;
+                if( (__usb_drvstatus&USB_STATUS_REMOTERESPND)&&(__usb_drvstatus&USB_STATUS_REMOTEBUSY)) {
+                    end=tmr_ticks();
+                    if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
+                        // TIMEOUT - CLEANUP AND RETURN
+                        __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
+                        if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
+                        return 0;
+                    }
+                }
+                else {
+                    // FAILED FOR REASON OTHER THAN BEING BUSY
+                    __usb_drvstatus&=~USB_STATUS_HIDTX;  // FORCE-END THE TRANSMISSION
+                    if((buf!=0) &&(buf!=__usb_txtmpbuffer)) simpfree(buf);   // RELEASE BUFFERS
+                    return 0;
+                }
         }
 
 
@@ -1112,6 +1132,56 @@ int usb_transmitlong_finish()
 {
     int success=1;
     success=usb_transmitlong_block(__usb_longbuffer[__usb_longactbuffer],__usb_longoffset%USB_BLOCKSIZE,(__usb_longoffset<=USB_BLOCKSIZE)? 1:0);
+
+    tmr_t start,end;
+    // WAIT FOR FINAL FEEDBACK FROM THE REMOTE
+    start=tmr_ticks();
+    do {
+        if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))
+        {
+        break;
+        }
+
+        if(__usb_drvstatus&USB_STATUS_DATAREADY) {
+            // WHY ARE WE RECEIVING DATA WHILE SENDING? THE REMOTE NEEDS TO BE PATIENT - JUST IGNORE ALL DATA RECEIVED UNTIL WE ARE DONE TRANSMITTING
+            usb_releasedata();
+        }
+
+        if(__usb_drvstatus&USB_STATUS_REMOTERESPND) {
+            // HOLD IT, THE REMOTE TRIED TO TELL US SOMETHING
+            start=tmr_ticks();  // COUNT TIME SINCE LAST RESPONSE WE GOT
+
+            if(__usb_drvstatus&USB_STATUS_REMOTEBUSY) {
+                // GIVE THE REMOTE A CHANCE, WAIT FOR A WHILE
+                while(!usb_remoteready(0,0))
+                {
+                    if( (__usb_drvstatus&USB_STATUS_REMOTERESPND)&&(__usb_drvstatus&USB_STATUS_REMOTEBUSY)) {
+                        end=tmr_ticks();
+                        if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
+                        success=0;
+                        break;
+                        }
+                    }
+                    else {
+                            // FAILED FOR REASON OTHER THAN BEING BUSY
+                            success=0;
+                            break;
+                    }
+                }
+                // NOW WE ARE READY AND HAVE A RECENT RESPONSE THAT UPDATED bigoffset
+            }
+
+            // REMOTE IS NOT BUSY, LET'S END THIS
+              __usb_drvstatus&=~USB_STATUS_REMOTERESPND;  // CLEAR THE RESPONSE
+              break;
+        }
+
+    end=tmr_ticks();
+    } while((tmr_ticks2ms(start,end)<USB_TIMEOUT_MS)&&(success));
+
+
+
+
 
     // CLEANUP
     __usb_longactbuffer=0;

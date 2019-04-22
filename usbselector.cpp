@@ -511,6 +511,14 @@ void USBSelector::on_updateFirmware_clicked()
         return;
     }
 
+    {
+    // WAIT ONE FULL SECOND BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
+    tmr_t start,end;
+    start=tmr_ticks();
+    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<1000);
+    }
+
+
     if(!usb_transmitlong_start()) {
         // TODO: SOME KIND OF ERROR
         return;
@@ -542,6 +550,14 @@ void USBSelector::on_updateFirmware_clicked()
     }
 
 
+    {
+    // WAIT ONE FULL SECOND BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
+    tmr_t start,end;
+    start=tmr_ticks();
+    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<1000);
+    }
+
+
     // NOW FINISH THE TEST BY RESETTING
 
     if(!usb_transmitlong_start()) {
@@ -569,11 +585,21 @@ void USBSelector::on_updateFirmware_clicked()
         return;
     }
 
-
+    {
+    // WAIT ONE FULL SECOND BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
+    tmr_t start,end;
+    start=tmr_ticks();
+    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<1000);
+    }
     // AT THIS POINT, THE CALC MUST'VE RESET TO LOAD THE NEW FIRMWARE
     hid_close(__usb_curdevice);
 
     __usb_curdevice=0;
+
+
+    // PUT THE USB DRIVER TO REST
+    __usb_paused=1;
+
 
     numberoftries=0;
 

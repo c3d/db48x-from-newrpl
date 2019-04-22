@@ -375,7 +375,8 @@ int ram_usb_receivelong_word(unsigned int *data)
         }
 
         // THERE'S DATA AWAITING, MOVE IT TO ONE OF THE LARGE BUFFERS
-        if(__usb_drvstatus&USB_STATUS_DATAREADY) {
+        // BUT ONLY IF WE HAVEN'T YET RECEIVED THE LAST PACKET FOR THIS TRANSMISSION
+        if((__usb_longlastsize==-1) && (__usb_drvstatus&USB_STATUS_DATAREADY)) {
 
         BYTEPTR data2=ram_usb_accessdata(&datasize);
 
@@ -517,7 +518,7 @@ int ram_usb_receivelong_word(unsigned int *data)
 int ram_usb_receivelong_finish()
 {
 
-    // CLEANUP
+
     // RELEASE A BUFFER IF WE HAVE ANY
 
     // NO NEED TO RELEASE PRE-ALLOCATED BUFFERS
@@ -526,19 +527,26 @@ int ram_usb_receivelong_finish()
     //ram_simpfree(__usb_longbuffer[1]);
     //}
 
+    if(__usb_longlastsize==-1) {
+        // IF WE HAVEN'T YET RECEIVED THE LAST PACKET IN THIS TRANSMISSION
+    if(__usb_drvstatus&USB_STATUS_DATAREADY) ram_usb_releasedata();
+    else __usb_drvstatus|=USB_STATUS_IGNORE;   // SIGNAL TO IGNORE PACKETS UNTIL END OF TRANSMISSION DETECTED
+
+
+    while(__usb_drvstatus&USB_STATUS_IGNORE) {
+         if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
+        ram_cpu_waitforinterrupt();
+    }
+    }
+
+   // CLEANUP
     __usb_longactbuffer=-1;
     __usb_longrdbuffer=-1;
     __usb_longoffset=0;
     __usb_longbuffer[0]=0;
     __usb_longbuffer[1]=0;
 
-    __usb_drvstatus|=USB_STATUS_IGNORE;   // SIGNAL TO IGNORE PACKETS UNTIL END OF TRANSMISSION DETECTED
-    if(__usb_drvstatus&USB_STATUS_DATAREADY) ram_usb_releasedata();
 
-    while(__usb_drvstatus&USB_STATUS_IGNORE) {
-         if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
-        ram_cpu_waitforinterrupt();
-    }
 
     return 1;
 
@@ -1400,10 +1408,21 @@ void ram_usb_ep2_receive(int newtransmission)
             __usb_rcvpartial=__usb_bufptr[2]-__usb_rcvbuffer;
         }
         __usb_drvstatus&=~USB_STATUS_HIDRX;
+
+
+
+
         if(!(__usb_drvstatus&USB_STATUS_IGNORE)) __usb_drvstatus|=USB_STATUS_DATAREADY;
         else {
+            if((__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTISTART)) {
+                // THIS IS THE START OF A NEW TRANSMISSION ALREADY, DO NOT IGNORE
+                __usb_drvstatus|=USB_STATUS_DATAREADY;
+                __usb_drvstatus&=~USB_STATUS_IGNORE;
+            }
+            else {
          // RELEASE THE BUFFER, THE USER WILL NEVER SEE IT
             if(__usb_rcvbuffer!=__usb_rxtmpbuffer) ram_simpfree(__usb_rcvbuffer);
+            }
         }
         if((__usb_rcvblkmark==0)||(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND))  __usb_drvstatus&=~USB_STATUS_IGNORE;    // STOP IGNORING PACKETS AFTER THIS ONE
         return;
@@ -1835,7 +1854,8 @@ ram_usb_receivelong_finish();
 }
 
 
-
+// USE SCRATCH AREA TO EXECUTE TEMPORARY CODE FROM RAM
+WORD __scratch_buffer[2500] __SCRATCH_MEMORY__;
 
 
 void ram_startfwupdate()
@@ -1860,10 +1880,10 @@ void ram_startfwupdate()
 
     int needwords=(WORDPTR)&ram_startfwupdate-(WORDPTR)&ram_simpmallocb;
 
-    rplExpandStack(needwords);
-    if(Exceptions) return;
+    //rplExpandStack(needwords);
+    //if(Exceptions) return;
 
-    WORDPTR codeblock=(WORDPTR)DSTop;    // STORE CODE ON TOP OF THE STACK
+    WORDPTR codeblock=(WORDPTR)__scratch_buffer;    // STORE CODE ON TOP OF THE STACK
 
         // INITIALIZE FAKE MEMORY ALLOCATOR
         ram_memblocks[0]=(BYTEPTR)allocRegister();
@@ -1879,13 +1899,11 @@ void ram_startfwupdate()
         __usb_longbuffer[1]=simpmallocb(LONG_BUFFER_SIZE);
         if(__usb_longbuffer[1]==0) { Exceptions|=EX_OUTOFMEM; return; }
 
-        if(ram_memblocks[0]==0)
+
     memmovew(codeblock,&ram_simpmallocb,needwords);
 
     // ALSO COPY THE CRC TABLE FROM ROM TO RAM
-    int k;
-    for(k=0;k<256;++k) RAM_CRCTABLE[k]=__crctable[k];
-
+    memmovew(RAM_CRCTABLE,__crctable,256);
 
     // EVERYTHING IS NOW IN RAM
 
@@ -1903,16 +1921,19 @@ void ram_startfwupdate()
     scrptr[2]=0xffff0000;}
 
     // AND MAKE SURE WE DON'T EXECUTE AN OLD COPY LEFT IN THE CACHE
-    //cpu_flushicache();    // NO NEED,
+    cpu_flushicache();
 
     {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-    scrptr[2]=0x0000ffff;}
+    scrptr[2]=0x0000f0ff;}
 
 
 
 
     // SET INTERRUPT HANDLER IN RAM
     __irq_addhook(25,(void *)(codeblock + ((WORDPTR)&ram_usb_irqservice-(WORDPTR)&ram_simpmallocb)));
+
+    {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+    scrptr[2]=0x0000f66f;}
 
     // UNMASK ONLY THE ONE INTERRUPT WE NEED
     __irq_unmask(25);
