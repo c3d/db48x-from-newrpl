@@ -1776,10 +1776,6 @@ data=0xffffffff;
 if(ram_usb_receivelong_word((WORDPTR)&data)!=1)  ram_doreset(); // NOTHING ELSE TO DO
 
 if(data!=TEXT2WORD('F','W','U','P'))  {
-    {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-    scrptr[44]=0XFFFF6666;}
-
-    while(1);
     ram_doreset(); // NOTHING ELSE TO DO
 }
 
@@ -1789,9 +1785,7 @@ if(ram_usb_receivelong_word((WORDPTR)&flash_address)!=1)  ram_doreset(); // NOTH
 if(ram_usb_receivelong_word(&flash_nwords)!=1)  ram_doreset();
 
 if(((WORD)flash_address==0xffffffff))  {
-    {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-    scrptr[1]=0X66666666;}
-    while(1);
+
     ram_doreset(); // HOST REQUESTED A RESET
 }
 
@@ -1805,27 +1799,6 @@ if((WORD)(flash_address+flash_nwords)>flashsize) {
 if(((WORD)flash_address<0x4000))  {  
     ram_doreset(); // PROTECT THE BOOTLOADER AT ALL COSTS
 }
-
-// DEBUG
-if((WORD)flash_address==0x1c0000) {
-    // SHOW SOME VISUALS
-unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
-scrptr+=65;
-scrptr+=N_ALPHA*80;
-*scrptr=(*scrptr&0xf)|0xf0;
-}
-
-if((WORD)flash_address==0x1d0000) {
-    // SHOW SOME VISUALS
-unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
-scrptr+=65;
-scrptr+=N_HOURGLASS*80;
-*scrptr=(*scrptr&0xf)|0xf0;
-}
-
-
-
-
 
 // ERASE THE FLASH
 ram_flasherase(flash_address,flash_nwords );    // ERASE ENOUGH FLASH BLOCKS TO PREPARE FOR FIRMWARE UPDATE
@@ -1847,11 +1820,14 @@ while(flash_nwords--) {
 
 ram_usb_receivelong_finish();
 
-{unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-if(pass<40) scrptr[20*pass]=(0xffff<<(pass*4));
-
+// SHOW SOME VISUAL FEEDBACK
+{
+unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+int pixel=(((WORD)flash_address)-0x4000)>>14;
+scrptr[20+(pixel>>3)]|=(0xf<<((pixel&7)<<2));
+scrptr[40+(pixel>>3)]|=(0xf<<((pixel&7)<<2));
+scrptr[60+(pixel>>3)]|=(0xf<<((pixel&7)<<2));
 }
-++pass;
 } while(1);
 //ram_doreset();
 
@@ -1875,8 +1851,20 @@ void ram_startfwupdate()
 
     flash_prepareforwriting();
 
-    {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-    scrptr[2]=0xf0f0f0f0;}
+    // ADD SOME VISUAL FEEDBACK
+    {
+    unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+    int k;
+    for(k=0;k<16;++k) {
+    scrptr[k]=0xffffffff;
+    scrptr[20+k]=0;
+    scrptr[40+k]=0;
+    scrptr[60+k]=0;
+    scrptr[80+k]=0xffffffff;
+    }
+
+    }
+
 
     // CHECK THE SIZE OF RAM
     int flashsize=1<<(WORD)(cfidata[0x17]);
@@ -1885,8 +1873,6 @@ void ram_startfwupdate()
 
     int needwords=(WORDPTR)&ram_startfwupdate-(WORDPTR)&ram_simpmallocb;
 
-    //rplExpandStack(needwords);
-    //if(Exceptions) return;
 
     WORDPTR codeblock=(WORDPTR)__scratch_buffer;    // STORE CODE ON TOP OF THE STACK
 
@@ -1912,8 +1898,6 @@ void ram_startfwupdate()
 
     // EVERYTHING IS NOW IN RAM
 
-    {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-    scrptr[2]=0xff00ff00;}
     // DISABLE ALL INTERRUPTS
     cpu_intoff();
     // MAKE SURE THE CODE WAS COPIED TO RAM BEFORE WE EXECUTE IT
@@ -1922,29 +1906,18 @@ void ram_startfwupdate()
     // MOVE MAIN ISR TO RAM AS WELL
     *( (unsigned int *) 0x08000018)=(unsigned int) (codeblock+((WORDPTR)&__ram_irq_service-(WORDPTR)&ram_simpmallocb));
 
-    {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-    scrptr[2]=0xffff0000;}
 
     // AND MAKE SURE WE DON'T EXECUTE AN OLD COPY LEFT IN THE CACHE
     cpu_flushicache();
-
-    {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-    scrptr[2]=0x0000f0ff;}
-
-
 
 
     // SET INTERRUPT HANDLER IN RAM
     __irq_addhook(25,(void *)(codeblock + ((WORDPTR)&ram_usb_irqservice-(WORDPTR)&ram_simpmallocb)));
 
-    {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-    scrptr[2]=0x0000f66f;}
+
 
     // UNMASK ONLY THE ONE INTERRUPT WE NEED
     __irq_unmask(25);
-
-    {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-    scrptr[2]=0xffffffff;}
 
     void (*ptr)(int);
 
