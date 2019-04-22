@@ -397,8 +397,21 @@ extern "C" void usbflush();
 void USBSelector::on_updateFirmware_clicked()
 {
 
+
+    // STOP REFRESHING THE LIST
+
+    if(tmr) {
+        tmr->stop();
+        delete tmr;
+        tmr=0;
+    }
+
         QString path;
         QByteArray filedata;
+        // THIS IS ONLY FOR 50g/40g/39g HARDWARE
+        // TODO: IMPROVE ON THIS FOR OTHER HARDWARE PLATFORMS
+        unsigned int address;
+        unsigned int nwords;
 
         path=QStandardPaths::locate(QStandardPaths::DocumentsLocation,"newRPL",QStandardPaths::LocateDirectory);
         if(path.isEmpty()) path=QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation);
@@ -411,6 +424,16 @@ void USBSelector::on_updateFirmware_clicked()
             if(!file.open(QIODevice::ReadOnly)) {
                 QMessageBox a(QMessageBox::Warning,"Error while opening","Cannot open file "+ fname,QMessageBox::Ok,this);
                 a.exec();
+
+
+                // START REFRESHING THE LIST AGAIN
+                tmr = new QTimer(this);
+                if(tmr) {
+                connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
+                tmr->start(500);
+                }
+
+
                 return;
             }
 
@@ -424,45 +447,71 @@ void USBSelector::on_updateFirmware_clicked()
 
             // THIS IS ONLY VALID FOR 50G AND COUSINS, FIX LATER
 
-            if(strncmp(filedata.constData(),"KINPOUPDATEIMAGE",16)==0) {
-                unsigned int address=0x4000;
-                unsigned int nwords=filedata.size()>>2;
+            if((strncmp(filedata.constData(),"KINPOHP39G+IMAGE",16)==0)||
+               (strncmp(filedata.constData(),"KINPOHP40G+IMAGE",16)==0)||
+               (strncmp(filedata.constData(),"KINPOUPDATEIMAGE",16)==0)) {
+                address=0x4000;
+                nwords=filedata.size()>>2;
 
                 filedata.replace(0,16,"Kinposhcopyright");
-                filedata.insert(0,(const char *)(&nwords),4);
-                filedata.insert(0,(const char *)(&address),4);
-                filedata.insert(0,"FWUP",4);
             }
             else {
                 QMessageBox a(QMessageBox::Warning,"Invalid firmware image","Invalid firmware image",QMessageBox::Ok,this);
                 a.exec();
+                // START REFRESHING THE LIST AGAIN
+                tmr = new QTimer(this);
+                if(tmr) {
+                connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
+                tmr->start(500);
+                }
+
                 return;
             }
 
             QMessageBox warn(QMessageBox::Warning,"Firmware update","Firmware on the remote device is about to be updated. Do NOT disconnect the device. OK to proceed?",QMessageBox::Yes | QMessageBox::No,this);
 
-            if(warn.exec()==QMessageBox::No) return;
+            if(warn.exec()==QMessageBox::No) {
+                // START REFRESHING THE LIST AGAIN
+                tmr = new QTimer(this);
+                if(tmr) {
+                connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
+                tmr->start(500);
+                }
 
-        } else return;
+                return;
+            }
+
+        } else {
+
+            // START REFRESHING THE LIST AGAIN
+            tmr = new QTimer(this);
+            if(tmr) {
+            connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
+            tmr->start(500);
+            }
+
+            return;
+        }
 
 
 
 
 
 
-    // STOP REFRESHING THE LIST
 
-    if(tmr) {
-        tmr->stop();
-        delete tmr;
-        tmr=0;
-    }
 
     // CONNECT TO THE USB DEVICE
     __usb_curdevice=hid_open_path(SelectedDevicePath.toUtf8().constData());
 
     if(!__usb_curdevice) {
         // TODO: ERROR PROCESS
+        // START REFRESHING THE LIST AGAIN
+        tmr = new QTimer(this);
+        if(tmr) {
+        connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
+        tmr->start(500);
+        }
+
         return;
     }
 
@@ -474,79 +523,119 @@ void USBSelector::on_updateFirmware_clicked()
     // SEND CMD_USBFWUPDATE TO THE CALC
     if(!usbremotefwupdatestart()) {
         // TODO: SOME KIND OF ERROR
+        // START REFRESHING THE LIST AGAIN
+        tmr = new QTimer(this);
+        if(tmr) {
+        connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
+        tmr->start(500);
+        }
+
         return;
     }
 
 
-    int nwords=filedata.size()+3,result;
-    nwords/=sizeof(WORD);
+    int result=1,offset=0;
+
+
+    while(nwords>1024) {
 
     if(!usb_transmitlong_start()) {
         // TODO: SOME KIND OF ERROR
-        return;
+        result=0;
+        break;
     }
 
-    if(!usb_transmitlong_word(TEXT2WORD('F','W','U','P'))) {
+    // SEND FIRMWARE BLOCK MARKER
+    if(result && (!usb_transmitlong_word(TEXT2WORD('F','W','U','P')))) {
         // TODO: SOME KIND OF ERROR
-        return;
+        result=0;
+        break;
     }
 
-    // FOR DEBUG, JUST WRITE ONE WORD TO THIS ADDRESS
-    if(!usb_transmitlong_word(0x1c0000)) {
+    // SEND ADDRESS TO BURN THIS BLOCK
+    if(result && (!usb_transmitlong_word(address+(offset<<2)))) {
         // TODO: SOME KIND OF ERROR
-        return;
-    }
-    if(!usb_transmitlong_word(0x1)) {
-        // TODO: SOME KIND OF ERROR
-        return;
-    }
-    if(!usb_transmitlong_word(0x12345678)) {
-        // TODO: SOME KIND OF ERROR
-        return;
+            result=0;
+            break;
     }
 
-
-    if(!usb_transmitlong_finish()) {
+    // SEND SIZE OF THE BLOCK
+    if(result && (!usb_transmitlong_word(1024))) {
         // TODO: SOME KIND OF ERROR
-        return;
+        result=0;
+        break;
     }
 
+    int k;
+    WORDPTR buffer=(WORDPTR)filedata.constData();
+    for(k=0;k<1024;++k)
     {
-    // WAIT ONE FULL SECOND BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
-    tmr_t start,end;
-    start=tmr_ticks();
-    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<1000);
+        if(result && (!usb_transmitlong_word(buffer[offset]))) {
+            // TODO: SOME KIND OF ERROR
+            result=0;
+            break;
+        }
+        ++offset;
     }
 
 
-    if(!usb_transmitlong_start()) {
+
+    if(result && (!usb_transmitlong_finish())) {
         // TODO: SOME KIND OF ERROR
-        return;
+       result=0;
+       break;
     }
 
-    if(!usb_transmitlong_word(TEXT2WORD('F','W','U','P'))) {
-        // TODO: SOME KIND OF ERROR
-        return;
+    nwords-=1024;
+
+    update();
+
     }
 
-    // FOR DEBUG, JUST WRITE ONE WORD TO THIS ADDRESS
-    if(!usb_transmitlong_word(0x1D0000)) {
-        // TODO: SOME KIND OF ERROR
-        return;
-    }
-    if(!usb_transmitlong_word(0x1)) {
-        // TODO: SOME KIND OF ERROR
-        return;
-    }
-    if(!usb_transmitlong_word(0xBAADF00D)) {
-        // TODO: SOME KIND OF ERROR
-        return;
-    }
+    if(nwords) {
+        if(!usb_transmitlong_start()) {
+            // TODO: SOME KIND OF ERROR
+            result=0;
+        }
+
+        // SEND FIRMWARE BLOCK MARKER
+        if(result && (!usb_transmitlong_word(TEXT2WORD('F','W','U','P')))) {
+            // TODO: SOME KIND OF ERROR
+            result=0;
+        }
+
+        // SEND ADDRESS TO BURN THIS BLOCK
+        if(result && (!usb_transmitlong_word(address+(offset<<2)))) {
+            // TODO: SOME KIND OF ERROR
+                result=0;
+        }
+
+        // SEND SIZE OF THE BLOCK
+        if(result && (!usb_transmitlong_word(nwords))) {
+            // TODO: SOME KIND OF ERROR
+            result=0;
+        }
+
+        int k;
+        WORDPTR buffer=(WORDPTR)filedata.constData();
+        for(k=0;k<nwords;++k)
+        {
+            if(result && (!usb_transmitlong_word(buffer[offset]))) {
+                // TODO: SOME KIND OF ERROR
+                result=0;
+            }
+            ++offset;
+        }
 
 
-    if(!usb_transmitlong_finish()) {
-        // TODO: SOME KIND OF ERROR
-        return;
+
+        if(result && (!usb_transmitlong_finish())) {
+            // TODO: SOME KIND OF ERROR
+           result=0;
+        }
+
+
+        // DONE SENDING THE LAST BLOCK
     }
 
 
@@ -560,37 +649,32 @@ void USBSelector::on_updateFirmware_clicked()
 
     // NOW FINISH THE TEST BY RESETTING
 
-    if(!usb_transmitlong_start()) {
+    if(result && (!usb_transmitlong_start())) {
         // TODO: SOME KIND OF ERROR
-        return;
+       result=0;
     }
 
-    if(!usb_transmitlong_word(TEXT2WORD('F','W','U','P'))) {
+    if(result && (!usb_transmitlong_word(TEXT2WORD('F','W','U','P')))) {
         // TODO: SOME KIND OF ERROR
-        return;
+       result=0;
     }
 
     // FOR DEBUG, JUST WRITE ONE WORD TO THIS ADDRESS
-    if(!usb_transmitlong_word(0xFFFFFFFF)) {
+    if(result && (!usb_transmitlong_word(0xFFFFFFFF))) {
         // TODO: SOME KIND OF ERROR
-        return;
+       result=0;
     }
-    if(!usb_transmitlong_word(0x0)) {
+    if(result && (!usb_transmitlong_word(0x0))) {
         // TODO: SOME KIND OF ERROR
-        return;
+       result=0;
     }
 
-    if(!usb_transmitlong_finish()) {
+    if(result && (!usb_transmitlong_finish())) {
         // TODO: SOME KIND OF ERROR
-        return;
+       result=0;
     }
 
-    {
-    // WAIT ONE FULL SECOND BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
-    tmr_t start,end;
-    start=tmr_ticks();
-    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<1000);
-    }
+
     // AT THIS POINT, THE CALC MUST'VE RESET TO LOAD THE NEW FIRMWARE
     hid_close(__usb_curdevice);
 
@@ -603,6 +687,7 @@ void USBSelector::on_updateFirmware_clicked()
 
     numberoftries=0;
 
+    // START REFRESHING THE LIST AGAIN
     tmr = new QTimer(this);
     if(tmr) {
     connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
@@ -611,7 +696,7 @@ void USBSelector::on_updateFirmware_clicked()
 
 
 
-    if(result!=1) {
+    if(!result) {
         QMessageBox a(QMessageBox::Warning,"Communication error while sending firmware","USB communication error",QMessageBox::Ok,this);
         a.exec();
     }

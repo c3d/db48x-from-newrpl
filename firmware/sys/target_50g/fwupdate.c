@@ -521,20 +521,22 @@ int ram_usb_receivelong_finish()
 
     // RELEASE A BUFFER IF WE HAVE ANY
 
-    // NO NEED TO RELEASE PRE-ALLOCATED BUFFERS
-    //if(__usb_longactbuffer!=-1) {
-    //ram_simpfree(__usb_longbuffer[0]);
-    //ram_simpfree(__usb_longbuffer[1]);
-    //}
 
     if(__usb_longlastsize==-1) {
         // IF WE HAVEN'T YET RECEIVED THE LAST PACKET IN THIS TRANSMISSION
-    if(__usb_drvstatus&USB_STATUS_DATAREADY) ram_usb_releasedata();
-    else __usb_drvstatus|=USB_STATUS_IGNORE;   // SIGNAL TO IGNORE PACKETS UNTIL END OF TRANSMISSION DETECTED
+    __usb_drvstatus|=USB_STATUS_IGNORE;   // SIGNAL TO IGNORE PACKETS UNTIL END OF TRANSMISSION DETECTED
 
+    if(__usb_drvstatus&USB_STATUS_DATAREADY) {
+        // WE HAD A NEW PACKET COME IN BEFORE WE DECIDED TO IGNORE THEM, WE NEED TO PROCESS IT
+        // CHECK IF THE RECEIVED BLOCK WAS THE LAST ONE
+        if((__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND)) __usb_drvstatus&=~USB_STATUS_IGNORE;
+        // NOW WE CAN SAFELY IGNORE IT
+        ram_usb_releasedata();
+    }
 
     while(__usb_drvstatus&USB_STATUS_IGNORE) {
          if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
+
         ram_cpu_waitforinterrupt();
     }
     }
@@ -543,10 +545,16 @@ int ram_usb_receivelong_finish()
     __usb_longactbuffer=-1;
     __usb_longrdbuffer=-1;
     __usb_longoffset=0;
-    __usb_longbuffer[0]=0;
-    __usb_longbuffer[1]=0;
+    __usb_longbufused[0]=0;
+    __usb_longbufused[1]=0;
+    // NO NEED TO RELEASE PRE-ALLOCATED BUFFERS
+    //if(__usb_longactbuffer!=-1) {
+    //ram_simpfree(__usb_longbuffer[0]);
+    //ram_simpfree(__usb_longbuffer[1]);
+    //}
 
 
+    if(__usb_drvstatus&USB_STATUS_IGNORE) { __usb_drvstatus&=~USB_STATUS_IGNORE; return 0; }
 
     return 1;
 
@@ -1755,7 +1763,7 @@ void ram_flashprogramword(WORDPTR address,WORD value)
 // MAIN PROCEDURE TO RECEIVE AND FLASH FIRMWARE FROM RAM
 void ram_receiveandflashfw(WORD flashsize)
 {
-
+int pass=1;
 do {
 
 ram_usb_receivelong_start();
@@ -1769,32 +1777,37 @@ if(ram_usb_receivelong_word((WORDPTR)&data)!=1)  ram_doreset(); // NOTHING ELSE 
 
 if(data!=TEXT2WORD('F','W','U','P'))  {
     {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-    scrptr[10]=data;}
+    scrptr[44]=0XFFFF6666;}
+
     while(1);
     ram_doreset(); // NOTHING ELSE TO DO
 }
 
-{unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-scrptr[4]=0xf0f0f0f0;}
+
 if(ram_usb_receivelong_word((WORDPTR)&flash_address)!=1)  ram_doreset(); // NOTHING ELSE TO DO
 
-{unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-scrptr[4]=0xffff6666;}
 if(ram_usb_receivelong_word(&flash_nwords)!=1)  ram_doreset();
-{unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-scrptr[4]=0x6666ffff;}
+
+if(((WORD)flash_address==0xffffffff))  {
+    {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+    scrptr[1]=0X66666666;}
+    while(1);
+    ram_doreset(); // HOST REQUESTED A RESET
+}
+
+
 
 if((WORD)(flash_address+flash_nwords)>flashsize) {
     // ROM TOO BIG!
     ram_doreset();
 }
 
-if(((WORD)flash_address<0x4000))  {
+if(((WORD)flash_address<0x4000))  {  
     ram_doreset(); // PROTECT THE BOOTLOADER AT ALL COSTS
 }
 
 // DEBUG
-{
+if((WORD)flash_address==0x1c0000) {
     // SHOW SOME VISUALS
 unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
 scrptr+=65;
@@ -1802,19 +1815,7 @@ scrptr+=N_ALPHA*80;
 *scrptr=(*scrptr&0xf)|0xf0;
 }
 
-// ERASE THE FLASH
-{unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-scrptr[4]=0xf0f06666;}
-
-
-
-
-ram_flasherase(flash_address,flash_nwords );    // ERASE ENOUGH FLASH BLOCKS TO PREPARE FOR FIRMWARE UPDATE
-
-{unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-scrptr[4]=0xffffffff;}
-
-{
+if((WORD)flash_address==0x1d0000) {
     // SHOW SOME VISUALS
 unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
 scrptr+=65;
@@ -1822,31 +1823,35 @@ scrptr+=N_HOURGLASS*80;
 *scrptr=(*scrptr&0xf)|0xf0;
 }
 
+
+
+
+
+// ERASE THE FLASH
+ram_flasherase(flash_address,flash_nwords );    // ERASE ENOUGH FLASH BLOCKS TO PREPARE FOR FIRMWARE UPDATE
+
+
+
 while(flash_nwords--) {
     if(ram_usb_receivelong_word(&data)!=1) ram_doreset();
 
     ram_flashprogramword(flash_address,data);
     ++flash_address;
 
-    // SHOW SOME VISUALS
-    unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
-    scrptr+=65;
-    scrptr+=N_LEFTSHIFT*80;
-    *scrptr=(*scrptr&0xf)|((((WORD)flash_address)&0xf000)>>12);
 }
 
 // WE FINISHED PROGRAMMING THE FLASH!
 
-// SHOW SOME VISUALS
-{
-unsigned char *scrptr=(unsigned char *)MEM_PHYS_SCREEN;
-scrptr+=65;
-scrptr+=N_RIGHTSHIFT*80;
-*scrptr=(*scrptr&0xf)|0xf0;
-}
+
 
 
 ram_usb_receivelong_finish();
+
+{unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+if(pass<40) scrptr[20*pass]=(0xffff<<(pass*4));
+
+}
+++pass;
 } while(1);
 //ram_doreset();
 

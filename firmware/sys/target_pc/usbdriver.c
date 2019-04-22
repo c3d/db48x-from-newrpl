@@ -1356,6 +1356,35 @@ int usb_receivelong_word(unsigned int *data)
 // SEND FINAL BLOCK AND CLEANUP
 int usb_receivelong_finish()
 {
+
+
+    if(__usb_longlastsize==-1) {
+        // IF WE HAVEN'T YET RECEIVED THE LAST PACKET IN THIS TRANSMISSION
+    __usb_drvstatus|=USB_STATUS_IGNORE;   // SIGNAL TO IGNORE PACKETS UNTIL END OF TRANSMISSION DETECTED
+
+    if(__usb_drvstatus&USB_STATUS_DATAREADY) {
+        // WE HAD A NEW PACKET COME IN BEFORE WE DECIDED TO IGNORE THEM, WE NEED TO PROCESS IT
+        // CHECK IF THE RECEIVED BLOCK WAS THE LAST ONE
+        if((__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND)) __usb_drvstatus&=~USB_STATUS_IGNORE;
+        // NOW WE CAN SAFELY IGNORE IT
+        usb_releasedata();
+    }
+
+    tmr_t start=tmr_ticks(),end;
+    while(__usb_drvstatus&USB_STATUS_IGNORE) {
+         if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
+         cpu_waitforinterrupt();
+         end=tmr_ticks();
+         if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
+             // TOO LONG, ABORT ALL TRANSMISSION
+
+             break;
+         }
+    }
+
+    }
+
+
     // CLEANUP
     // RELEASE A BUFFER IF WE HAVE ANY
     if(__usb_longactbuffer!=-1) {
@@ -1369,21 +1398,7 @@ int usb_receivelong_finish()
     __usb_longbuffer[0]=0;
     __usb_longbuffer[1]=0;
 
-    __usb_drvstatus|=USB_STATUS_IGNORE;   // SIGNAL TO IGNORE PACKETS UNTIL END OF TRANSMISSION DETECTED
-    if(__usb_drvstatus&USB_STATUS_DATAREADY) usb_releasedata();
-
-    tmr_t start=tmr_ticks(),end;
-
-    while(__usb_drvstatus&USB_STATUS_IGNORE) {
-         if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
-        cpu_waitforinterrupt();
-        end=tmr_ticks();
-        if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
-            // TOO LONG, IT MUST'VE STOPPED TRANSMITTING
-            break;
-        }
-    }
-
+    if(__usb_drvstatus&USB_STATUS_IGNORE) { __usb_drvstatus&=~USB_STATUS_IGNORE; return 0; }
 
     return 1;
 
