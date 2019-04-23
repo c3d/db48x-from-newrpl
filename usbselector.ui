@@ -75,6 +75,13 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QProgressBar" name="updateProgress">
+        <property name="value">
+         <number>24</number>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

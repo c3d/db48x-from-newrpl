@@ -15,6 +15,10 @@ extern "C" {
 
 extern hid_device *__usb_curdevice;
 extern volatile int __usb_paused;
+int __fwupdate_progress;
+int __fwupdate_address;
+int __fwupdate_nwords;
+BYTEPTR __fwupdate_buffer;
 
 
 BINT64 rplObjChecksum(WORDPTR object);
@@ -23,13 +27,15 @@ BINT64 rplObjChecksum(WORDPTR object);
 
 USBSelector::USBSelector(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::USBSelector)
+    ui(new Ui::USBSelector),
+    update_thread(this)
 {
     ui->setupUi(this);
 
 
     SelectedDevicePath.clear();
     ui->updateFirmware->hide();
+    ui->updateProgress->hide();
 
     RefreshList();
 
@@ -406,8 +412,9 @@ void USBSelector::on_updateFirmware_clicked()
         tmr=0;
     }
 
+
+
         QString path;
-        QByteArray filedata;
         // THIS IS ONLY FOR 50g/40g/39g HARDWARE
         // TODO: IMPROVE ON THIS FOR OTHER HARDWARE PLATFORMS
         unsigned int address;
@@ -496,24 +503,118 @@ void USBSelector::on_updateFirmware_clicked()
 
 
 
+        ui->USBtreeWidget->setEnabled(false);
+
+        ui->updateFirmware->setEnabled(false);
+        ui->updateProgress->setRange(0,nwords);
+        ui->updateProgress->show();
+        ui->updateProgress->setValue(0);
+        ui->buttonBox->setEnabled(false);
 
 
+        // CONNECT TO THE USB DEVICE
+        __usb_curdevice=hid_open_path(SelectedDevicePath.toUtf8().constData());
 
+        if(!__usb_curdevice) {
+            // TODO: ERROR PROCESS
+            // START REFRESHING THE LIST AGAIN
+            tmr = new QTimer(this);
+            if(tmr) {
+            connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
+            tmr->start(500);
+            }
 
-    // CONNECT TO THE USB DEVICE
-    __usb_curdevice=hid_open_path(SelectedDevicePath.toUtf8().constData());
-
-    if(!__usb_curdevice) {
-        // TODO: ERROR PROCESS
-        // START REFRESHING THE LIST AGAIN
-        tmr = new QTimer(this);
-        if(tmr) {
-        connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
-        tmr->start(500);
+            return;
         }
 
-        return;
+   __fwupdate_progress=0;
+   __fwupdate_address=address;
+   __fwupdate_nwords=nwords;
+   __fwupdate_buffer=(BYTEPTR)filedata.constData();
+
+    connect(&update_thread,SIGNAL(finished()),this,SLOT(finishedupdate()));
+
+    update_thread.start();
+
+    while(!update_thread.isRunning());  // WAIT FOR THE THREAD TO START
+
+    // START REPORTING PROGRESS
+    QTimer::singleShot(0, this, SLOT(updateprogress()));
+
+
+}
+
+
+void USBSelector::finishedupdate()
+{
+    // PUT THE USB DRIVER TO REST
+    __usb_paused=1;
+
+    // AT THIS POINT, THE CALC MUST'VE RESET TO LOAD THE NEW FIRMWARE
+    hid_close(__usb_curdevice);
+
+    __usb_curdevice=0;
+
+
+   int result=__fwupdate_address;
+
+    if(!result) {
+        QMessageBox a(QMessageBox::Warning,"Communication error while sending firmware","USB communication error",QMessageBox::Ok,this);
+        a.exec();
     }
+
+
+    ui->USBtreeWidget->clear();
+    ui->USBtreeWidget->setEnabled(true);
+
+    ui->updateFirmware->setEnabled(true);
+    ui->updateProgress->hide();
+    ui->updateProgress->setValue(0);
+    ui->buttonBox->setEnabled(true);
+
+
+    numberoftries=0;
+
+    // START REFRESHING THE LIST AGAIN
+    tmr = new QTimer(this);
+    if(tmr) {
+    connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
+    tmr->start(500);
+    }
+
+
+    // AND JUST HOPE IT WILL RECONENCT SOME TIME
+
+}
+
+void USBSelector::updateprogress()
+{
+    if(!update_thread.isRunning()) return;
+
+    ui->updateProgress->setValue(__fwupdate_progress);
+
+    QTimer::singleShot(0, this, SLOT(updateprogress()));
+}
+
+
+
+// ****************************************** USB DRIVER ON A SEPARATE THREAD
+
+FWThread::FWThread(QObject *parent)
+    : QThread(parent)
+{
+}
+
+FWThread::~FWThread()
+{
+}
+
+
+void FWThread::run()
+{
+    int nwords=__fwupdate_nwords;
+    __fwupdate_progress=0;
+
 
 
     // START USB DRIVER
@@ -522,14 +623,7 @@ void USBSelector::on_updateFirmware_clicked()
 
     // SEND CMD_USBFWUPDATE TO THE CALC
     if(!usbremotefwupdatestart()) {
-        // TODO: SOME KIND OF ERROR
-        // START REFRESHING THE LIST AGAIN
-        tmr = new QTimer(this);
-        if(tmr) {
-        connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
-        tmr->start(500);
-        }
-
+        __fwupdate_address=0;
         return;
     }
 
@@ -553,7 +647,7 @@ void USBSelector::on_updateFirmware_clicked()
     }
 
     // SEND ADDRESS TO BURN THIS BLOCK
-    if(result && (!usb_transmitlong_word(address+(offset<<2)))) {
+    if(result && (!usb_transmitlong_word(__fwupdate_address+(offset<<2)))) {
         // TODO: SOME KIND OF ERROR
             result=0;
             break;
@@ -566,8 +660,9 @@ void USBSelector::on_updateFirmware_clicked()
         break;
     }
 
+    if(result) {
     int k;
-    WORDPTR buffer=(WORDPTR)filedata.constData();
+    WORDPTR buffer=(WORDPTR)__fwupdate_buffer;
     for(k=0;k<1024;++k)
     {
         if(result && (!usb_transmitlong_word(buffer[offset]))) {
@@ -576,6 +671,7 @@ void USBSelector::on_updateFirmware_clicked()
             break;
         }
         ++offset;
+    }
     }
 
 
@@ -588,7 +684,7 @@ void USBSelector::on_updateFirmware_clicked()
 
     nwords-=1024;
 
-    update();
+    __fwupdate_progress=offset;
 
     }
 
@@ -605,7 +701,7 @@ void USBSelector::on_updateFirmware_clicked()
         }
 
         // SEND ADDRESS TO BURN THIS BLOCK
-        if(result && (!usb_transmitlong_word(address+(offset<<2)))) {
+        if(result && (!usb_transmitlong_word(__fwupdate_address+(offset<<2)))) {
             // TODO: SOME KIND OF ERROR
                 result=0;
         }
@@ -616,15 +712,20 @@ void USBSelector::on_updateFirmware_clicked()
             result=0;
         }
 
+        if(result) {
         int k;
-        WORDPTR buffer=(WORDPTR)filedata.constData();
+        WORDPTR buffer=(WORDPTR)__fwupdate_buffer;
         for(k=0;k<nwords;++k)
         {
             if(result && (!usb_transmitlong_word(buffer[offset]))) {
                 // TODO: SOME KIND OF ERROR
                 result=0;
+                break;
             }
             ++offset;
+        }
+        __fwupdate_progress=offset;
+
         }
 
 
@@ -674,36 +775,8 @@ void USBSelector::on_updateFirmware_clicked()
        result=0;
     }
 
-
-    // AT THIS POINT, THE CALC MUST'VE RESET TO LOAD THE NEW FIRMWARE
-    hid_close(__usb_curdevice);
-
-    __usb_curdevice=0;
-
-
-    // PUT THE USB DRIVER TO REST
-    __usb_paused=1;
-
-
-    numberoftries=0;
-
-    // START REFRESHING THE LIST AGAIN
-    tmr = new QTimer(this);
-    if(tmr) {
-    connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
-    tmr->start(500);
-    }
-
-
-
-    if(!result) {
-        QMessageBox a(QMessageBox::Warning,"Communication error while sending firmware","USB communication error",QMessageBox::Ok,this);
-        a.exec();
-    }
-
-
-
-    // AND JUST HOPE IT WILL RECONENCT SOME TIME
-    return;
+    __fwupdate_address=result;
 
 }
+
+

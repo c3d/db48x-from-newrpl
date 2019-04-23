@@ -481,7 +481,9 @@ void MainWindow::on_actionExit_triggered()
 
     // STOP THE USB DRIVER THREAD
     __usb_paused=2;
-    while(__usb_paused>=0) ;
+    while(usbdriver.isRunning() || (__usb_paused>=0));
+
+
 
     QSettings settings;
 

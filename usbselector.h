@@ -2,10 +2,23 @@
 #define USBSELECTOR_H
 
 #include <QDialog>
+#include <QThread>
 
 namespace Ui {
 class USBSelector;
 }
+
+class FWThread : public QThread
+{
+    Q_OBJECT
+public:
+    void run();
+
+    FWThread(QObject *parent);
+    ~FWThread();
+};
+
+
 
 class USBSelector : public QDialog
 {
@@ -14,6 +27,8 @@ class USBSelector : public QDialog
     QString SelectedDevicePath;
     QString SelectedDeviceName;
     int numberoftries;
+    FWThread update_thread;
+    QByteArray filedata;
 
 
 public:
@@ -34,6 +49,10 @@ private slots:
     void reconnect();
 
     void on_updateFirmware_clicked();
+
+    void finishedupdate();
+    void updateprogress();
+
 
 private:
     Ui::USBSelector *ui;

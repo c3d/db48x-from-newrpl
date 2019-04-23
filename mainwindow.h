@@ -18,6 +18,7 @@ class MainWindow;
 
 class USBThread : public QThread
 {
+    Q_OBJECT
 public:
     void run();
 
