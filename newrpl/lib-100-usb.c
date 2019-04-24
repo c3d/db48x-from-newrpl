@@ -416,6 +416,7 @@ void LIB_HANDLER()
         if(byteoffset<usb_remoteoffset()) {
             // WE NEED TO REQUEST THE CORRECT OFFSET!
             usb_setoffset(byteoffset);
+            usb_ignoreuntilend();
             usb_releasedata();
             if(reqoffset!=byteoffset) { // SEND THE REQUEST ONLY ONCE
             usb_sendfeedback();
@@ -428,6 +429,7 @@ void LIB_HANDLER()
                 // SOMETHING WENT VERY WRONG! START AGAIN PLEASE
                 byteoffset=0;
                 usb_setoffset(0);
+                usb_ignoreuntilend();
                 usb_releasedata();
                 if(reqoffset!=byteoffset) { // SEND THE REQUEST ONLY ONCE
                 usb_sendfeedback();
@@ -441,18 +443,18 @@ void LIB_HANDLER()
         reqoffset=-1;  // WE GOT THE OFFSET WE WANTED, CLEAR THE REQUESTED FLAG
         if(!usb_checkcrc()) {
             usb_setoffset(byteoffset);  // REQUEST THIS PACKET AGAIN
+            usb_ignoreuntilend();
             usb_releasedata();
             usb_sendfeedback();
             reqoffset=byteoffset;
             continue;
-//            usb_ignoreuntilend();
 //            rplError(ERR_USBINVALIDDATA);
 //            return;
         }
 
         blocktype=usb_datablocktype();
 
-        if((blocktype==USB_BLOCKMARK_SINGLE)||(blocktype==USB_BLOCKMARK_MULTISTART)) {
+        if((byteoffset==0) && ((blocktype==USB_BLOCKMARK_SINGLE)||(blocktype==USB_BLOCKMARK_MULTISTART))) {
         // GET A NEW BLOCK OF MEMORY AND STORE THE OBJECT THERE
         if(totalsize) newobj=rplAllocTempOb((totalsize+3)>>2);
         else newobj=rplAllocTempOb((datasize+3)>>2);
@@ -473,7 +475,7 @@ void LIB_HANDLER()
         ScratchPointer1=newobj;
         rplResizeLastObject((datasize+3)>>2);
         if(Exceptions) {
-            usb_setoffset(-1); usb_releasedata(); usb_sendfeedback(); usb_ignoreuntilend(); return; }
+            usb_setoffset(-1); usb_ignoreuntilend(); usb_releasedata(); usb_sendfeedback();  return; }
         newobj=ScratchPointer1;
         }
         }

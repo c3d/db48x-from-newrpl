@@ -14,14 +14,21 @@
 
 // SIMULATED SYSTEM REGISTERS
 int __lcd_mode=-1;
+int __lcd_needsupdate=0;
 unsigned int *__lcd_buffer;
 // SIMULATED SCREEN MEMORY
 char PhysicalScreen[8192];
 char ExceptionScreen[8192];
 
-
-
 int __lcd_contrast __SYSTEM_GLOBAL__;
+
+void halScreenUpdated()
+{
+    // SEND SIGNAL THAT EMULATED SCREEN NEEDS TO BE UPDATED
+    __lcd_needsupdate=1;
+}
+
+
 
 void __lcd_fix()
 {

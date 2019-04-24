@@ -16,6 +16,8 @@
 
 void halSetNotification(enum halNotification type,int color)
 {
+
+
     int old=halFlags&(1<<(16+type));
     if(color) halFlags|=1<<(16+type);
     else halFlags&=~(1<<(16+type));
@@ -29,7 +31,9 @@ void halSetNotification(enum halNotification type,int color)
     }
     else {
         // TODO: DRAW CUSTOM ICONS INTO THE STATUS AREA FOR ALL OTHER ANNUNCIATORS
-        if(halFlags^old) halScreen.DirtyFlag|=STAREA_DIRTY;  // REDRAW STATUS AS SOON AS POSSIBLE
+        if((halFlags^old)&(1<<(16+type))) {
+            halScreen.DirtyFlag|=STAREA_DIRTY;  // REDRAW STATUS AS SOON AS POSSIBLE
+        }
     }
 }
 
@@ -266,6 +270,8 @@ void halRedrawForm(DRAWSURFACE *scr)
         return;
     }
 
+    halScreenUpdated();
+
     // REDRAW THE CONTENTS OF THE CURRENT FORM
     int oldclipx,oldclipx2,oldclipy,oldclipy2;
     int ystart=0,yend=ystart+halScreen.Form;
@@ -340,6 +346,8 @@ void halRedrawStack(DRAWSURFACE *scr)
         halScreen.DirtyFlag&=~STACK_DIRTY;
         return;
     }
+
+    halScreenUpdated();
 
   int oldclipx,oldclipx2,oldclipy,oldclipy2;
   int ystart=halScreen.Form,yend=ystart+halScreen.Stack;
@@ -592,12 +600,16 @@ halScreen.StkVisibleOffset=0;
 void halRedrawHelp(DRAWSURFACE *scr)
 {
 
+
         if(!halScreen.Menu2) {
             // SHOW THE SECOND MENU TO DISPLAY THE MESSAGE
             halSetMenu2Height(MENU2_HEIGHT);
             halRedrawAll(scr);             // THIS CALL WILL CALL HERE RECURSIVELY
             return;                         // SO IT'S BEST TO RETURN DIRECTLY
         }
+
+        halScreenUpdated();
+
 
         WORDPTR helptext;
         BINT64 m1code=rplGetMenuCode(halScreen.HelpMode>>16);
@@ -771,6 +783,9 @@ void halRedrawMenu1(DRAWSURFACE *scr)
         return;
     }
 
+    halScreenUpdated();
+
+
     int mcolor= (rplTestSystemFlag(FL_MENU1WHITE)? 0xf:0);
 
     int ytop,ybottom;
@@ -854,6 +869,7 @@ void halRedrawMenu2(DRAWSURFACE *scr)
         return;
     }
 
+    halScreenUpdated();
 
     int mcolor= (rplTestSystemFlag(FL_MENU2WHITE)? 0xf:0);
 
@@ -950,6 +966,7 @@ void halRedrawStatus(DRAWSURFACE *scr)
         return;
     }
 
+    halScreenUpdated();
 
 
     if(halScreen.Menu2) {
@@ -1168,6 +1185,8 @@ void halRedrawStatus(DRAWSURFACE *scr)
 
 void halRedrawCmdLine(DRAWSURFACE *scr)
 {
+    halScreenUpdated();
+
     if(halScreen.CmdLine) {
     int ytop=halScreen.Form+halScreen.Stack;
     if((halScreen.DirtyFlag&CMDLINE_ALLDIRTY)==CMDLINE_ALLDIRTY) {

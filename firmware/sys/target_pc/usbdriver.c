@@ -250,7 +250,7 @@ do {
     }
 
 
-    int fifocnt=hid_read_timeout(__usb_curdevice,__usb_rxtmpbuffer,RAWHID_RX_SIZE,1);
+    int fifocnt=hid_read_timeout(__usb_curdevice,__usb_rxtmpbuffer,RAWHID_RX_SIZE,0);
 
     if(fifocnt<0) {
         // SOME KIND OF ERROR - DISCONNECT
@@ -389,7 +389,10 @@ do {
             }
 
             // IF THIS IS THE START OF A NEW TRANSMISSION, DON'T IGNORE IT
-            if((__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTISTART)) { __usb_drvstatus&=~USB_STATUS_IGNORE; __usb_rcvcrcroll=0; }
+            if((__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTISTART)) {
+                __usb_drvstatus&=~USB_STATUS_IGNORE;
+                __usb_rcvcrcroll=0;
+            }
 
             memmoveb(__usb_rxtmpbuffer,__usb_rxtmpbuffer+8,fifocnt-8);
 
@@ -440,7 +443,7 @@ do {
             cnt=fifocnt;
         }
 
-        __usb_rcvpartial+=fifocnt;
+        //__usb_rcvpartial+=fifocnt;
 
         if((fifocnt!=RAWHID_RX_SIZE)||(__usb_rcvpartial>=__usb_rcvtotal)) {
             // PARTIAL PACKET SIGNALS END OF TRANSMISSION

@@ -71,6 +71,7 @@ void battery_handler()
             // LOW VOLTAGE WHEN RUNNING FAST
             halSetNotification(N_LOWBATTERY,0xf^halGetNotification(N_LOWBATTERY));
             halFlags|=HAL_SLOWLOCK;
+
         }
         else {
             // KEEP BLINKING INDICATOR
@@ -121,6 +122,8 @@ void busy_handler()
     // THE CPU IS BUSY, SWITCH TO FAST SPEED!!
     // PREVENT HIGH SPEED UNDER LOW BATTERY CONDITION
     halSetNotification(N_HOURGLASS,0xf);
+    halScreenUpdated();
+
     halFlags|=HAL_HOURGLASS;
     if(halFlags&HAL_NOCLOCKCHANGE) {
         tmr_events[halBusyEvent].status|=2; // SET AUTORELOAD FUNCTION

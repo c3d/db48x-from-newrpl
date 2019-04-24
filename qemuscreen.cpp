@@ -10,8 +10,10 @@
 
 #include <QGraphicsPixmapItem>
 #include <QBitmap>
+#include <QTimer>
 
 extern int __lcd_mode;
+extern int __lcd_needsupdate;
 extern unsigned int *__lcd_buffer;
 
 
@@ -30,6 +32,7 @@ QEmuScreen::QEmuScreen(QWidget *parent) :
 {
     int i,j;
 
+    screentmr=nullptr;
 
     screen_height=80;
     screen_width=131;
@@ -126,6 +129,12 @@ QEmuScreen::QEmuScreen(QWidget *parent) :
     show();
 }
 
+void QEmuScreen::setTimer(QTimer *tmr)
+{
+    screentmr=tmr;
+}
+
+
 // SET A PIXEL IN THE SPECIFIED COLOR
 void QEmuScreen::setPixel(int offset,int color)
 {
@@ -154,6 +163,17 @@ void QEmuScreen::setScale(qreal _scale)
 
 void QEmuScreen::update()
 {
+
+
+    if(__lcd_needsupdate) __lcd_needsupdate=0;
+    else {
+        if(screentmr) {
+        screentmr->setSingleShot(true);
+        screentmr->start(20);
+        }
+        return;
+    }
+
     int i,j;
     unsigned int color;
 
@@ -183,6 +203,11 @@ void QEmuScreen::update()
         }
 
         QGraphicsView::update();
+        if(screentmr) {
+        screentmr->setSingleShot(true);
+        screentmr->start(20);
+        }
+
     return;
     }
 
@@ -211,6 +236,11 @@ void QEmuScreen::update()
         }
 
         QGraphicsView::update();
+        if(screentmr) {
+        screentmr->setSingleShot(true);
+        screentmr->start(20);
+        }
+
     return;
     }
 
@@ -227,6 +257,10 @@ void QEmuScreen::update()
 
     }
     QGraphicsView::update();
+    if(screentmr) {
+    screentmr->setSingleShot(true);
+    screentmr->start(20);
+    }
 
 }
 

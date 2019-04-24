@@ -42,6 +42,7 @@ BINT halWaitForKey()
     if(halFlags&HAL_HOURGLASS) {
     halSetNotification(N_HOURGLASS,0);
     halFlags&=~HAL_HOURGLASS;
+    halScreenUpdated();
     }
 
     if(!keyb_wasupdated() && wokeup) return 0;   // ALLOW SCREEN REFRESH REQUESTED BY OTHER IRQ'S
@@ -101,6 +102,8 @@ BINT halWaitForKeyTimeout(BINT timeoutms)
     if(halFlags&HAL_HOURGLASS) {
     halSetNotification(N_HOURGLASS,0);
     halFlags&=~HAL_HOURGLASS;
+    halScreenUpdated();
+
     }
 
     if(wokeup)
@@ -6682,6 +6685,8 @@ int halProcessKey(BINT keymsg, int (*dokey)(BINT),BINT flags)
     if(!keymsg) return 0;
 
     if(KM_MESSAGE(keymsg)==KM_SHIFT) {
+        halScreenUpdated();
+
         // THERE WAS A CHANGE IN SHIFT PLANE, UPDATE ANNUNCIATORS
         if(KM_SHIFTPLANE(keymsg)&SHIFT_LS) {
             if((KM_SHIFTPLANE(keymsg)&SHIFT_HOLD)) halSetNotification(N_LEFTSHIFT,0xf);

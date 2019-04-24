@@ -1204,6 +1204,10 @@ void halCPUFastMode();
 void halReset();
 
 
+// SIGNALS FOR OS-DRIVEN EVENTS
+void halScreenUpdated();
+
+
 // TIMER FUNCTIONS
 BINT64 halTicks();
 

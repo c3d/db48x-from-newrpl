@@ -23,6 +23,7 @@ public:
     QColor BkgndColor;
     QColor MainColor;
 
+    QTimer *screentmr;
     QColor Grays[16];   // ARRAY WITH ALL THE DIFFERENT GRAY LEVELS
     QBrush GrayBrush[16];
     QPen   BkgndPen;
@@ -34,6 +35,7 @@ public:
     QGraphicsRectItem **Pixels;
     QGraphicsPixmapItem *Annunciators[6];
 
+    void setTimer(QTimer *tmr);
     void setPixel(int offset,int color);
     void setWord(int offset,unsigned int color);
     void setMode(int _mode,unsigned int *_buffer);

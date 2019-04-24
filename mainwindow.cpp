@@ -91,6 +91,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->USBDockSelect->setVisible(false);
     screentmr=new QTimer(this);
+    ui->EmuScreen->setTimer(screentmr);
     ui->EmuScreen->connect(screentmr,SIGNAL(timeout()),ui->EmuScreen,SLOT(update()));
     connect(screentmr,SIGNAL(timeout()),this,SLOT(usbupdate()));
     __memmap_intact=0;
@@ -105,7 +106,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //rpl.start();
     //maintmr->start(1);
-    //screentmr->start(50);
+    //screentmr->start(20);
     setWindowTitle("newRPL - [Unnamed]");
 
     QSettings settings;
@@ -115,7 +116,8 @@ MainWindow::MainWindow(QWidget *parent) :
     if(!OpenFile(startfile))
     {
         rpl.start();
-        screentmr->start(50);
+        screentmr->setSingleShot(true);
+        screentmr->start(20);
     }
 
 
@@ -442,6 +444,7 @@ void MainWindow::keyReleaseEvent(QKeyEvent *ev)
 extern "C" void thread_processevents()
 {
     QCoreApplication::processEvents();
+    QThread::yieldCurrentThread();
 }
 
 void MainWindow::on_actionExit_triggered()
@@ -566,7 +569,9 @@ void MainWindow::on_actionOpen_triggered()
         __pckeymatrix=0;
 
         rpl.start();
-        screentmr->start(50);
+        screentmr->setSingleShot(true);
+        screentmr->start(20);
+
         }
     }
 }
@@ -617,7 +622,9 @@ void MainWindow::on_actionNew_triggered()
     __pckeymatrix=0;
 
     rpl.start();
-    screentmr->start(50);
+
+    screentmr->setSingleShot(true);
+    screentmr->start(20);
 
 
 }
@@ -732,7 +739,9 @@ void MainWindow::on_actionPower_ON_triggered()
     __pckeymatrix=0;
 
     rpl.start();
-    screentmr->start(50);
+    screentmr->setSingleShot(true);
+    screentmr->start(20);
+
 
 }
 
@@ -1156,7 +1165,9 @@ int MainWindow::OpenFile(QString fname)
         __pckeymatrix=0;
 
         rpl.start();
-        screentmr->start(50);
+        screentmr->setSingleShot(true);
+        screentmr->start(20);
+
 
         return 1;
         }
@@ -1207,7 +1218,9 @@ void MainWindow::SaveFile(QString fname)
         __pc_terminate=0;
         __pckeymatrix=0;
         rpl.start();
-        screentmr->start(50);
+        screentmr->setSingleShot(true);
+        screentmr->start(20);
+
         }
 
 }
