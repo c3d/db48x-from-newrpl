@@ -901,6 +901,7 @@ if(!__usb_curdevice) {
       if(ui->usbconnectButton->text().endsWith("[ Click to reconnect ]")) {
           if(__usb_curdevice) {
               hid_close(__usb_curdevice);
+              __usb_curdevice=0;
           }
           // ATTEMPT TO RECONNECT
           __usb_curdevice=hid_open_path(currentusbpath.toUtf8().constData());
@@ -932,6 +933,7 @@ void MainWindow::on_usbconnectButton_clicked()
     if(ui->usbconnectButton->text().endsWith("[ Click to reconnect ]")) {
         if(__usb_curdevice) {
             hid_close(__usb_curdevice);
+            __usb_curdevice=0;
         }
         // ATTEMPT TO RECONNECT
         __usb_curdevice=hid_open_path(currentusbpath.toUtf8().constData());
@@ -948,9 +950,9 @@ void MainWindow::on_usbconnectButton_clicked()
 
     if(__usb_curdevice) {
         hid_close(__usb_curdevice);
+        __usb_curdevice=0;
         currentusb.clear();
         currentusbpath.clear();
-        __usb_curdevice=0;
     }
 
     if(seldlg.exec()==QDialog::Accepted) {

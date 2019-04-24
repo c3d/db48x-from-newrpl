@@ -552,7 +552,6 @@ void USBSelector::finishedupdate()
 
     // AT THIS POINT, THE CALC MUST'VE RESET TO LOAD THE NEW FIRMWARE
     hid_close(__usb_curdevice);
-
     __usb_curdevice=0;
 
 

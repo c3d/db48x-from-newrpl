@@ -48,6 +48,9 @@ extern char ExceptionScreen[8192];
 #undef __ROMLINK__
 #define __ROMLINK__
 
+#undef halScreenUpdated
 
+// SIGNALS FOR OS-DRIVEN EVENTS
+extern void halScreenUpdated();
 
 #endif // TARGET_PC_H

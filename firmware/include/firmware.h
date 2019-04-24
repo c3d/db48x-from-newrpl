@@ -208,15 +208,7 @@
 #define USB_TIMEOUT_MS     5000
 
 
-
-
-
-
-
-
-
-
-
+#define halScreenUpdated()    ((void)0)
 
 
 
