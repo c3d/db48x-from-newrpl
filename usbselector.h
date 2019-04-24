@@ -30,6 +30,7 @@ class USBSelector : public QDialog
     FWThread update_thread;
     QByteArray filedata;
 
+    virtual void closeEvent(QCloseEvent *event);
 
 public:
     void RefreshList();
@@ -52,6 +53,8 @@ private slots:
 
     void finishedupdate();
     void updateprogress();
+
+    virtual void reject();
 
 
 private:

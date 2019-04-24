@@ -92,7 +92,7 @@ int rplUSBArchiveWriteWord(unsigned int data,void *opaque)
     if(Exceptions) return 0;
 
     // PROVIDE VISUAL FEEDBACK
-    halSetNotification(N_CONNECTION,((*progress)>>8)&0xf);
+    if(!((*progress)&0xff)) halSetNotification(N_CONNECTION,((*progress)>>8)&0xf);
     ++*progress;
     return usb_transmitlong_word(data);
 }
@@ -105,7 +105,7 @@ WORD rplUSBArchiveReadWord(void *opaque)
     if(Exceptions) return 0;
 
     // PROVIDE VISUAL FEEDBACK
-    halSetNotification(N_CONNECTION,((*progress)>>8)&0xf);
+    if(!((*progress)&0xff)) halSetNotification(N_CONNECTION,((*progress)>>8)&0xf);
     ++*progress;
 
     switch(usb_receivelong_word(&data))
@@ -625,6 +625,7 @@ void LIB_HANDLER()
         case -1:
             // FILE WAS CORRUPTED, AND MEMORY WAS DESTROYED
             GCFlags=GC_COMPLETED;   // MARK THAT GC WAS COMPLETED
+            usb_shutdown();
             throw_dbgexception("Memory lost during restore",__EX_WIPEOUT|__EX_RESET|__EX_NOREG);
             // THIS WON'T RETURN, ONLY A RESET IS ACCEPTABLE AT THIS POINT
             return;
@@ -639,6 +640,7 @@ void LIB_HANDLER()
             // FALL THROUGH
         case 2:
             // SOME ERRORS, BUT rplWarmInit WILL FIX AUTOMATICALLY
+            usb_shutdown();
             GCFlags=GC_COMPLETED;   // MARK THAT GC WAS COMPLETED SO HARDWARE INTERRUPTS ARE ACCEPTED AGAIN
             rplException(EX_POWEROFF|EX_HWRESET);  // REQUEST A COMPLETE HARDWARE RESET
             return;

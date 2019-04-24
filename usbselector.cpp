@@ -3,6 +3,7 @@
 #include <QTimer>
 #include <QStandardPaths>
 #include <QFileDialog>
+#include <QCloseEvent>
 
 #include "string.h"
 #include "hidapi.h"
@@ -23,6 +24,9 @@ BYTEPTR __fwupdate_buffer;
 
 BINT64 rplObjChecksum(WORDPTR object);
 }
+
+
+
 
 
 USBSelector::USBSelector(QWidget *parent) :
@@ -58,6 +62,22 @@ USBSelector::~USBSelector()
 
     delete ui;
 }
+
+
+void USBSelector::closeEvent(QCloseEvent *event)
+{
+    if(!update_thread.isRunning()) event->accept();
+    else event->ignore();
+}
+
+void USBSelector::reject()
+{
+    if(!update_thread.isRunning()) QDialog::reject();
+}
+
+
+
+
 
 void USBSelector::on_USBtreeWidget_itemSelectionChanged()
 {
@@ -574,6 +594,9 @@ void USBSelector::finishedupdate()
 
     numberoftries=0;
 
+    hid_exit();
+
+
     // START REFRESHING THE LIST AGAIN
     tmr = new QTimer(this);
     if(tmr) {
@@ -777,5 +800,6 @@ void FWThread::run()
     __fwupdate_address=result;
 
 }
+
 
 
