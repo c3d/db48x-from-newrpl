@@ -1617,12 +1617,25 @@ void __ram_irq_service()
 
 
 
+#define IO_GPDDAT HWREG(IO_REGS,0x34)
+#define IO_GPDUP HWREG(IO_REGS,0x38)
+#define IO_GPDCON HWREG(IO_REGS,0x30)
 
-
+// DO A FULL RESET
 void ram_doreset()
 {
 
-    // DO A FULL RESET
+
+        // TURN OFF THE LCD
+        volatile unsigned int *LCDCON1 = (unsigned int*)LCD_REGS;
+        *LCDCON1=(*LCDCON1)&(0xFFFFFFFE);
+
+        *IO_GPDCON=(*IO_GPDCON&~0xC000)|0x4000;  // SET GPD7 AS OUTPUT
+        *IO_GPDUP&=~0x80;    // ENABLE PULLUPS
+        *IO_GPDDAT&=~0x80;  // DISCONNECT POWER TO THE LCD WITH GPD7
+
+
+
 
  // SET THE PRESCALER OF THE WATCHDOG AS FAST AS POSSIBLE AND A REASONABLE COUNT (ABOUT 87ms)
     *HWREG(WDT_REGS,8)=0x8000;
@@ -1785,6 +1798,42 @@ if(ram_usb_receivelong_word((WORDPTR)&flash_address)!=1)  ram_doreset(); // NOTH
 if(ram_usb_receivelong_word(&flash_nwords)!=1)  ram_doreset();
 
 if(((WORD)flash_address==0xffffffff))  {
+
+    // FINISH RECEIVING THE COMMAND
+    ram_usb_receivelong_finish();
+
+    // SHOW SOME VISUALS
+    int k;
+    for(k=0;k<flashsize;++k)
+    {
+    unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+    int pixel=(k)>>14;
+    scrptr[20+(pixel>>3)]&=~(0xf<<((pixel&7)<<2));
+    scrptr[40+(pixel>>3)]&=~(0xf<<((pixel&7)<<2));
+    scrptr[60+(pixel>>3)]&=~(0xf<<((pixel&7)<<2));
+    }
+
+    for(;k>=0;--k)
+    {
+    unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+    int pixel=(k)>>14;
+
+    scrptr[20+(pixel>>3)]|=(0x6<<((pixel&7)<<2));
+    scrptr[40+(pixel>>3)]|=(0x6<<((pixel&7)<<2));
+    scrptr[60+(pixel>>3)]|=(0x6<<((pixel&7)<<2));
+    }
+
+    for(k=0;k<flashsize;++k)
+    {
+    unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+    int pixel=(k)>>14;
+
+    scrptr[20+(pixel>>3)]|=(0xf<<((pixel&7)<<2));
+    scrptr[40+(pixel>>3)]|=(0xf<<((pixel&7)<<2));
+    scrptr[60+(pixel>>3)]|=(0xf<<((pixel&7)<<2));
+    }
+
+
 
     ram_doreset(); // HOST REQUESTED A RESET
 }
