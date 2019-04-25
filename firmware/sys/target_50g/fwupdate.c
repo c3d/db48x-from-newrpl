@@ -358,9 +358,6 @@ int ram_usb_receivelong_word(unsigned int *data)
 
         // WE DON'T HAVE ANY BUFFERS YET!
 
-        {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-        scrptr[6]=0xffffffff;}
-
         BINT datasize,byteoffset=__usb_localbigoffset,totalsize=0;
 
         if((__usb_longactbuffer==__usb_longrdbuffer)&&(__usb_longrdoffset>=__usb_longbufused[__usb_longrdbuffer])) {
@@ -409,8 +406,6 @@ int ram_usb_receivelong_word(unsigned int *data)
         // DONE RECEIVING BLOCKS OF DATA
 
 
-        {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-        scrptr[6]=0xF00F00F0;}
 
         // CHECK IF THE RECEIVED BLOCK IS OURS
         if((__usb_rcvblkmark==USB_BLOCKMARK_MULTISTART)||(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)) {
@@ -476,8 +471,6 @@ int ram_usb_receivelong_word(unsigned int *data)
 
     }
 
-    {unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-    scrptr[6]=0xF000000F;}
     // WE HAVE DATA, RETURN IT
 
     unsigned int *ptr=(unsigned int *)(__usb_longbuffer[__usb_longrdbuffer]+__usb_longrdoffset);
@@ -1804,7 +1797,7 @@ if(((WORD)flash_address==0xffffffff))  {
 
     // SHOW SOME VISUALS
     int k;
-    for(k=0;k<flashsize;++k)
+    for(k=0;k<flashsize-0x4000;++k)
     {
     unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
     int pixel=(k)>>14;
@@ -1823,7 +1816,7 @@ if(((WORD)flash_address==0xffffffff))  {
     scrptr[60+(pixel>>3)]|=(0x6<<((pixel&7)<<2));
     }
 
-    for(k=0;k<flashsize;++k)
+    for(k=0;k<flashsize-0x4000;++k)
     {
     unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
     int pixel=(k)>>14;

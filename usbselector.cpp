@@ -1,4 +1,4 @@
-#include <QMessageBox>
+﻿#include <QMessageBox>
 #include <QTreeWidget>
 #include <QTimer>
 #include <QStandardPaths>
@@ -642,6 +642,30 @@ void FWThread::run()
     // START USB DRIVER
     __usb_paused=0;
     // TODO: SHOW NICE WINDOW WITH UPDATE STEPS
+
+
+
+    //*****************************************************
+    // DEBUG: SIMULATE A FAILURE IN THE USB STACK
+    /*
+    int f;
+    for(f=0;f<__fwupdate_nwords;f+=__fwupdate_nwords>>2)
+    {
+        __fwupdate_progress=f;
+    // WAIT ONE FULL SECOND
+    tmr_t start,end;
+    start=tmr_ticks();
+    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<1000);
+    }
+
+    __fwupdate_address=0;
+
+    return;
+    //*****************************************************
+    */
+
+
+
 
     // SEND CMD_USBFWUPDATE TO THE CALC
     if(!usbremotefwupdatestart()) {
