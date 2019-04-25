@@ -575,8 +575,8 @@ HID_API_EXPORT hid_device * HID_API_CALL hid_open_path(const char *path)
 		goto err;
 	}
 
-	/* Set the Input Report buffer size to 64 reports. */
-	res = HidD_SetNumInputBuffers(dev->device_handle, 64);
+    /* Set the Input Report buffer size to 512 reports. */
+    res = HidD_SetNumInputBuffers(dev->device_handle, 512);
 	if (!res) {
 		register_error(dev, "HidD_SetNumInputBuffers");
 		goto err;
@@ -632,7 +632,7 @@ int HID_API_EXPORT HID_API_CALL hid_write(hid_device *dev, const unsigned char *
 		buf = (unsigned char *) malloc(dev->output_report_length);
 		memcpy(buf, data, length);
 		memset(buf + length, 0, dev->output_report_length - length);
-		length = dev->output_report_length;
+        length = dev->output_report_length;
 	}
 
 	res = WriteFile(dev->device_handle, buf, length, NULL, &ol);
@@ -644,17 +644,17 @@ int HID_API_EXPORT HID_API_CALL hid_write(hid_device *dev, const unsigned char *
 			bytes_written = -1;
 			goto end_of_function;
 		}
+        /* Wait here until the write is done. This makes
+           hid_write() synchronous. */
+        res = GetOverlappedResult(dev->device_handle, &ol, &bytes_written, TRUE/*wait*/);
+        if (!res) {
+            /* The Write operation failed. */
+            register_error(dev, "WriteFile");
+            bytes_written = -1;
+            goto end_of_function;
+        }
 	}
 
-	/* Wait here until the write is done. This makes
-	   hid_write() synchronous. */
-	res = GetOverlappedResult(dev->device_handle, &ol, &bytes_written, TRUE/*wait*/);
-	if (!res) {
-		/* The Write operation failed. */
-		register_error(dev, "WriteFile");
-		bytes_written = -1;
-		goto end_of_function;
-	}
 
 end_of_function:
 	if (buf != data)

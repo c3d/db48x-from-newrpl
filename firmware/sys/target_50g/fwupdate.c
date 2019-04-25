@@ -1797,7 +1797,7 @@ if(((WORD)flash_address==0xffffffff))  {
 
     // SHOW SOME VISUALS
     int k;
-    for(k=0;k<flashsize-0x4000;++k)
+    for(k=0;k<flashsize-0x4000;k+=0x1000)
     {
     unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
     int pixel=(k)>>14;
@@ -1806,7 +1806,7 @@ if(((WORD)flash_address==0xffffffff))  {
     scrptr[60+(pixel>>3)]&=~(0xf<<((pixel&7)<<2));
     }
 
-    for(;k>=0;--k)
+    for(;k>=0;k-=4)
     {
     unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
     int pixel=(k)>>14;
@@ -1816,7 +1816,7 @@ if(((WORD)flash_address==0xffffffff))  {
     scrptr[60+(pixel>>3)]|=(0x6<<((pixel&7)<<2));
     }
 
-    for(k=0;k<flashsize-0x4000;++k)
+    for(k=0;k<flashsize-0x4000;k+=4)
     {
     unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
     int pixel=(k)>>14;

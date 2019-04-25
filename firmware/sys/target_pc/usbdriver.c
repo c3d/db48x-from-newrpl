@@ -21,7 +21,7 @@ extern void simpfree(void *voidptr);
 // FOR PCS USE HIDAPI LIBRARY TO EXPOSE THE CONNECTED DEVICE AS A HOST
 hid_device *__usb_curdevice;
 // FOR PCS OR SYSTEMS WHERE THE DRIVER WILL RUN ON A SEPARATE THREAD
-int __usb_paused;
+volatile int __usb_paused;
 
 // GLOBAL VARIABLES OF THE USB SUBSYSTEM
 volatile BINT __usb_drvstatus __SYSTEM_GLOBAL__; // FLAGS TO INDICATE IF INITIALIZED, CONNECTED, SENDING/RECEIVING, ETC.
@@ -156,6 +156,42 @@ void usb_init(int force)
     if(!force && (__usb_drvstatus&USB_STATUS_INIT)) return;
 
     __usb_drvstatus=USB_STATUS_INIT;
+
+    __usb_bufptr[0]=0;
+    __usb_bufptr[1]=0;
+    __usb_bufptr[2]=0;
+    __usb_count[0]=0;
+    __usb_count[1]=0;
+    __usb_count[2]=0;
+    __usb_padding[0]=0;
+    __usb_padding[1]=0;
+    __usb_padding[2]=0;
+
+    __usb_rcvbuffer=0;
+    __usb_rcvtotal=0;
+    __usb_rcvpartial=0;
+    __usb_rcvcrc=0;
+    __usb_rcvcrcroll=0;
+    __usb_rcvblkmark=0;    // TYPE OF RECEIVED BLOCK (ONE OF USB_BLOCKMARK_XXX CONSTANTS)
+    __usb_sndbuffer=0;
+    __usb_sndtotal=0;
+    __usb_sndpartial=0;
+    __usb_rembigtotal=0;
+    __usb_rembigoffset=0;
+    __usb_localbigoffset=0;
+
+
+    // GLOBAL VARIABLES FOR DOUBLE BUFFERED LONG TRANSACTIONS
+    __usb_longbuffer[0]=0;              // DOUBLE BUFFERING FOR LONG TRANSMISSIONS OF DATA
+    __usb_longbuffer[1]=0;              // DOUBLE BUFFERING FOR LONG TRANSMISSIONS OF DATA
+    __usb_longbufused[0]=0;              // DOUBLE BUFFERING FOR LONG TRANSMISSIONS OF DATA
+    __usb_longbufused[1]=0;              // DOUBLE BUFFERING FOR LONG TRANSMISSIONS OF DATA
+    __usb_longoffset=0;
+    __usb_longrdoffset=0;
+    __usb_longactbuffer=0;
+    __usb_longrdbuffer=0;  // WHICH BUFFER IS BEING WRITTEN AND WHICH ONE IS BEING READ
+    __usb_longlastsize=0;                  // LAST BLOCK SIZE IN A LONG TRANSMISSION
+    __usb_longcrcroll=0;
 
     if(__usb_curdevice) __usb_drvstatus|=USB_STATUS_CONNECTED|USB_STATUS_CONFIGURED;
 
