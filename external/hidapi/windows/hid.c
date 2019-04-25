@@ -575,8 +575,8 @@ HID_API_EXPORT hid_device * HID_API_CALL hid_open_path(const char *path)
 		goto err;
 	}
 
-	/* Set the Input Report buffer size to 64 reports. */
-	res = HidD_SetNumInputBuffers(dev->device_handle, 64);
+    /* Set the Input Report buffer size to 512 reports. */
+    res = HidD_SetNumInputBuffers(dev->device_handle, 512);
 	if (!res) {
 		register_error(dev, "HidD_SetNumInputBuffers");
 		goto err;
