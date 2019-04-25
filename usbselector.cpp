@@ -569,6 +569,7 @@ void USBSelector::finishedupdate()
 {
     // PUT THE USB DRIVER TO REST
     __usb_paused=1;
+    while(__usb_paused>=0) ;
 
     // AT THIS POINT, THE CALC MUST'VE RESET TO LOAD THE NEW FIRMWARE
     hid_close(__usb_curdevice);
@@ -590,12 +591,10 @@ void USBSelector::finishedupdate()
     ui->updateProgress->hide();
     ui->updateProgress->setValue(0);
     ui->buttonBox->setEnabled(true);
+    SelectedDevicePath.clear();
 
 
     numberoftries=0;
-
-    hid_exit();
-
 
     // START REFRESHING THE LIST AGAIN
     tmr = new QTimer(this);
@@ -634,6 +633,7 @@ FWThread::~FWThread()
 
 void FWThread::run()
 {
+
     int nwords=__fwupdate_nwords;
     __fwupdate_progress=0;
 
@@ -641,31 +641,13 @@ void FWThread::run()
 
     // START USB DRIVER
     __usb_paused=0;
-    // TODO: SHOW NICE WINDOW WITH UPDATE STEPS
 
-
-
-    //*****************************************************
-    // DEBUG: SIMULATE A FAILURE IN THE USB STACK
-    /*
-    int f;
-    for(f=0;f<__fwupdate_nwords;f+=__fwupdate_nwords>>2)
     {
-        __fwupdate_progress=f;
-    // WAIT ONE FULL SECOND
+    // WAIT TWO FULL SECONDS BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
     tmr_t start,end;
     start=tmr_ticks();
-    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<1000);
+    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<200);
     }
-
-    __fwupdate_address=0;
-
-    return;
-    //*****************************************************
-    */
-
-
-
 
     // SEND CMD_USBFWUPDATE TO THE CALC
     if(!usbremotefwupdatestart()) {
@@ -673,13 +655,20 @@ void FWThread::run()
         return;
     }
 
+    {
+    // WAIT TWO FULL SECONDS BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
+    tmr_t start,end;
+    start=tmr_ticks();
+    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<200);
+    }
+
 
     int result=1,offset=0;
 
 
-    while(nwords>1024) {
+    while(result && (nwords>1024)) {
 
-    if(!usb_transmitlong_start()) {
+    if(result && (!usb_transmitlong_start())) {
         // TODO: SOME KIND OF ERROR
         result=0;
         break;
@@ -734,7 +723,7 @@ void FWThread::run()
 
     }
 
-    if(nwords) {
+    if(result && nwords) {
         if(!usb_transmitlong_start()) {
             // TODO: SOME KIND OF ERROR
             result=0;
@@ -787,10 +776,10 @@ void FWThread::run()
 
 
     {
-    // WAIT ONE FULL SECOND BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
+    // WAIT TWO FULL SECONDS BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
     tmr_t start,end;
     start=tmr_ticks();
-    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<1000);
+    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<2000);
     }
 
 

@@ -138,13 +138,6 @@ int usbremotefwupdatestart()
         CMD_QSEMI,
     };
 
-    int attempts=0;
-    while(!usb_isconfigured()) {
-        usb_irqservice();
-        if(attempts>300000) return 0;
-        ++attempts;
-    }
-
     return usb_transmitdata((BYTEPTR)&program,3*sizeof(WORD));
 }
 
