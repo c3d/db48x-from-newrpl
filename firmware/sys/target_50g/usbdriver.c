@@ -95,10 +95,10 @@ extern int __cpu_getPCLK();
   TX: SEND CHECKPOINT PACKET OR END_OF_FILE PACKET
   RX: SEND STATUS_REPORT AFTER RECEIVING CHECKPOINT PACKET
 
+
+  WHEN RECEIVER GETS A CHECKPOINT, REPORT THE STATUS IMMEDIATELY
   SENDER NEEDS TO WAIT FOR THE STATUS REPORT BEFORE SENDING NEXT FRAGMENT, TIMEOUT IF TOO MUCH TIME PASSED
 
-  WHEN RECEIVER GETS THE LAST PACKET OF A FRAGMENT, WAITS FOR A CHECKPOINT. IF A CHECKPOINT ARRIVES DURING AN INCOMPLETE FRAGMENT, REPORT AN ERROR IN THE STATUS AND DISCARD THE PARTIAL FRAGMENT
-  WHEN TRANSMISSION STOPS... RECEIVER TIMES OUT AND DISCARDS THE PARTIAL FRAGMENT
 
   IF SENDER STARTS A NEW TRANSMISSION (FILEID CHANGED) WITHOUT SENDING AN ABORT OR END_OF_FILE (OR THE RECEIVER MISSED THEM), RECEIVER NEEDS TO ABORT THE PREVIOUS FILEID, THEN START RECEIVING THE NEW FILE
 
@@ -503,6 +503,7 @@ BYTEPTR __usb_rxbuffer __SYSTEM_GLOBAL__;              // LARGE BUFFER TO RECEIV
 WORD    __usb_rxoffset __SYSTEM_GLOBAL__;              // STARTING OFFSET OF THE DATA IN THE RX BUFFER
 WORD    __usb_rxused __SYSTEM_GLOBAL__;                // NUMBER OF BYTES USED IN THE RX BUFFER
 WORD    __usb_rxread __SYSTEM_GLOBAL__;                // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
+WORD    __usb_rxtotalbytes __SYSTEM_GLOBAL__;          // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 
 BYTEPTR __usb_txbuffer __SYSTEM_GLOBAL__;              // LARGE BUFFER POINTING TO AN ENTIRE FILE TO TRANSMIT
 WORD    __usb_txoffset __SYSTEM_GLOBAL__;              // STARTING OFFSET OF THE DATA IN THE TX BUFFER
@@ -1481,7 +1482,7 @@ void usb_ep2_receive()
     // IS THE CORRECT OFFSET?
     if(pptr->p_offset!=__usb_offset) {
     //  WE MUST'VE MISSED SOMETHING
-    __usb_drvstatus|=USB_STATUS_RXERROR;
+    __usb_drvstatus|=USB_STATUS_ERROR;
     // SEND A REPORT NOW IF POSSIBLE, OTHERWISE THE ERROR INFO WILL GO IN THE NEXT REPORT
     if(!(__usb_drvstatus&USB_STATUS_TXCTL))  usb_sendcontrolpacket(P_TYPE_REPORT);
 
@@ -1506,7 +1507,7 @@ void usb_ep2_receive()
         __usb_rxoffset+=__usb_rxused;
         __usb_rxused=0;
         __usb_rxread=0;
-        __usb_drvstatus&=~USB_STATUS_RXHALT;
+        __usb_drvstatus&=~USB_STATUS_HALT;
     }
 
 
@@ -1515,7 +1516,7 @@ void usb_ep2_receive()
     // DO WE HAVE ENOUGH ROOM AVAILABLE?
     if(__usb_rxused+pptr->p_dataused>2*LONG_BUFFER_SIZE) {
      // DATA WON'T FIT IN THE BUFFER DUE TO OVERFLOW, ISSUE AN ERROR AND REQUEST RESEND
-        __usb_drvstatus|=USB_STATUS_RXERROR;
+        __usb_drvstatus|=USB_STATUS_ERROR;
         // SEND A REPORT NOW IF POSSIBLE, OTHERWISE THE ERROR INFO WILL GO IN THE NEXT REPORT
         if(!(__usb_drvstatus&USB_STATUS_TXCTL))  usb_sendcontrolpacket(P_TYPE_REPORT);
 
@@ -1555,7 +1556,7 @@ void usb_ep2_receive()
     __usb_rxused+=pptr->p_dataused;
     __usb_offset+=pptr->p_dataused;
 
-    if(__usb_rxused>=LONG_BUFFER_SIZE) __usb_drvstatus|=USB_STATUS_RXHALT;  // REQUEST HALT IF BUFFER IS HALF-FULL
+    if(__usb_rxused>=LONG_BUFFER_SIZE) __usb_drvstatus|=USB_STATUS_HALT;  // REQUEST HALT IF BUFFER IS HALF-FULL
 
     __usb_drvstatus|=USB_STATUS_RXDATA; // AND SIGNAL THAT WE HAVE DATA AVAILABLE
 }
@@ -1689,6 +1690,8 @@ int usb_hasdata()
     return 0;
 }
 
+
+
 // HIGH LEVEL FUNCTION TO BLOCK UNTIL DATA ARRIVES
 // RETURN 0 IF TIMEOUT
 int usb_waitfordata()
@@ -1697,6 +1700,7 @@ int usb_waitfordata()
 
     while(!(__usb_drvstatus&USB_STATUS_RXDATA)) {
         if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) return 0;
+        if(__usb_drvstatus&USB_STATUS_RXCTL) usb_processreport();
 
         cpu_waitforinterrupt();
 
@@ -1778,10 +1782,8 @@ void usb_sendcontrolpacket(int packet_type)
         p->p_fileidLSB=__usb_fileid&0xff;
         p->p_fileidMSB=__usb_fileid>>8;
         p->p_offset=__usb_rxoffset;
-        p->p_data[0]=__usb_crc32&0xff;
-        p->p_data[1]=(__usb_crc32>>8)&0xff;
-        p->p_data[2]=(__usb_crc32>>16)&0xff;
-        p->p_data[3]=(__usb_crc32>>24)&0xff;
+        p->p_data[0]=(__usb_drvstatus&USB_STATUS_HALT)? 1:0;
+        p->p_data[1]=(__usb_drvstatus&USB_STATUS_ERROR)? 1:0;
         break;
 
     default:
@@ -1790,6 +1792,133 @@ void usb_sendcontrolpacket(int packet_type)
     __usb_drvstatus|=USB_STATUS_TXCTL;  // INDICATE THE DRIVER WE HAVE TO SEND A CONTROL PACKET
 
 }
+
+// CALLED WHEN A REPORT ARRIVED FROM THE OTHER SIDE, PROCESS DEPENDING ON WHAT WE ARE DOING
+void usb_receivecontrolpacket()
+{
+    if(__usb_drvstatus&USB_STATUS_RXCTL) {
+
+        USB_PACKET *ctl=(USB_PACKET *)__usb_ctlrxbuffer;
+
+        switch(ctl->p_type)
+        {
+        case P_TYPE_GETSTATUS:
+        {
+        if(!__usb_fileid) {
+         // START RECEIVING A NEW TRANSMISSION
+            __usb_fileid=(WORD)ctl->p_fileidLSB+256*(WORD)ctl->p_fileidMSB;
+            __usb_offset=0;
+            __usb_crc32=0;
+            __usb_rxoffset=0;
+            __usb_rxused=0;                // NUMBER OF BYTES USED IN THE RX BUFFER
+            __usb_rxread=0;                // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
+            __usb_rxtotalbytes=0;          // DON'T KNOW THE TOTAL FILE SIZE YET
+            __usb_drvstatus&=~(USB_STATUS_HALT|USB_STATUS_ERROR);
+
+        }
+        // SEND A REPORT, IF WE HAVE AN EXISTING TRANSMISSION, IT WILL REPLY WITH THE OLD FILEID
+        usb_sendcontrolpacket(P_TYPE_REPORT);
+        break;
+        }
+        case P_TYPE_CHECKPOINT:
+        {
+
+           if(__usb_fileid==(WORD)ctl->p_fileidLSB+256*(WORD)ctl->p_fileidMSB) {
+
+               __usb_drvstatus&=~USB_STATUS_ERROR;    // REMOVE ERROR SIGNAL
+
+               if(__usb_rxoffset+__usb_rxused!=ctl->p_offset) {
+                   // SOMETHING WENT WRONG, WE DISAGREE ON THE FILE SIZE
+                   __usb_drvstatus|=USB_STATUS_ERROR;    // SIGNAL TO RESEND FROM CURRENT OFFSET
+               }
+               WORD crc=ctl->p_data[0];
+               crc|=((WORD)ctl->p_data[1])<<8;
+               crc|=((WORD)ctl->p_data[2])<<16;
+               crc|=((WORD)ctl->p_data[3])<<24;
+               if(__usb_crc32!=crc) __usb_drvstatus|=USB_STATUS_ERROR;    // SIGNAL TO RESEND FROM CURRENT OFFSET
+
+            // SEND THE REPORT
+               usb_sendcontrolpacket(P_TYPE_REPORT);
+           }
+        break;
+        }
+        case P_TYPE_ENDOFFILE:
+        {
+            if(__usb_fileid==(WORD)ctl->p_fileidLSB+256*(WORD)ctl->p_fileidMSB) {
+            // SAME AS FOR A CHECKPOINT, BUT SET TOTAL BYTE COUNT
+                __usb_drvstatus&=~USB_STATUS_ERROR;    // REMOVE ERROR SIGNAL
+
+                if(__usb_rxoffset+__usb_rxused!=ctl->p_offset) {
+                    // SOMETHING WENT WRONG, WE DISAGREE ON THE FILE SIZE
+                    __usb_drvstatus|=USB_STATUS_ERROR;    // SIGNAL TO RESEND FROM CURRENT OFFSET
+                }
+                WORD crc=ctl->p_data[0];
+                crc|=((WORD)ctl->p_data[1])<<8;
+                crc|=((WORD)ctl->p_data[2])<<16;
+                crc|=((WORD)ctl->p_data[3])<<24;
+                if(__usb_crc32!=crc) __usb_drvstatus|=USB_STATUS_ERROR;    // SIGNAL TO RESEND FROM CURRENT OFFSET
+
+                // SET TOTAL BYTES TO INDICATE WE RECEIVED THE LAST OF IT
+                if(!(__usb_drvstatus&USB_STATUS_ERROR)) __usb_rxtotalbytes=ctl->p_offset;
+
+
+             // SEND A REPORT
+                usb_sendcontrolpacket(P_TYPE_REPORT);
+            }
+            break;
+
+
+        }
+        case P_TYPE_ABORT:
+        {
+            if(__usb_fileid==(WORD)ctl->p_fileidLSB+256*(WORD)ctl->p_fileidMSB) {
+            // REMOTE REQUESTED TO ABORT WHATEVER WE WERE DOING
+            __usb_drvstatus&=~(USB_STATUS_TXDATA|USB_STATUS_TXCTL|USB_STATUS_RXDATA|USB_STATUS_HALT|USB_STATUS_ERROR|USB_STATUS_RXCTL);
+
+            // ABORT ALL TRANSACTIONS
+            __usb_fileid=0;
+            __usb_offset=0;
+            __usb_crc32=0;
+            __usb_rxread=0;
+            __usb_rxused=0;
+            __usb_rxoffset=0;
+            __usb_rxtotalbytes=0;
+            __usb_txoffset=0;
+            __usb_txused=0;
+            __usb_txtotalbytes=0;
+
+            // DO NOT REPLY TO AN ABORT CONDITION
+
+            break;
+
+        }
+
+        case P_TYPE_REPORT:
+        {
+         if(__usb_fileid==(WORD)ctl->p_fileidLSB+256*(WORD)ctl->p_fileidMSB) {
+
+         // UPDATE FLAGS WITH THE STATUS OF THE REMOTE
+         if(ctl->p_data[0]) __usb_drvstatus|=USB_STATUS_HALT;
+         else __usb_drvstatus&=~USB_STATUS_HALT;
+         if(ctl->p_data[0]) {
+             // SIGNAL THE ERROR AND LEAVE THE REQUESTED OFFSET AT rxoffset
+             __usb_drvstatus|=USB_STATUS_ERROR;
+             __usb_rxoffset=ctl->p_offset;
+         }
+         else __usb_drvstatus&=~USB_STATUS_ERROR;
+
+         break;
+
+        }
+
+
+
+
+    }
+
+}
+
+
 
 
 // WAIT FOR A CONTROL PACKET TO COME BACK FROM THE REMOTE
@@ -1919,26 +2048,58 @@ int usb_txfileclose()
 }
 
 // START RECEIVING A FILE, WHETHER IT WAS COMPLETELY RECEIVED YET OR NOT
+// RETURNS THE FILEID OR 0 IF FAILS
 int usb_rxfileopen()
 {
-
+if(!usb_hasdata()) return 0;
+return __usb_fileid;
 }
 
 // RETURN HOW MANY BYTES ARE READY TO BE READ
 int usb_rxbytesready()
 {
-
-}
-
-// CHECK IF END-OF-FILE WAS RECEIVED AND RETRIEVE TOTAL FILE SIZE
-int usb_eofreceived(int *totalsize)
-{
-
+return __usb_rxused-__usb_rxread;
 }
 
 // RETRIEVE BYTES THAT WERE ALREADY RECEIVED
 int usb_fileread(BYTEPTR dest,int nbytes)
 {
+    // QUICK COPY IF WE ALREADY HAVE ENOUGH BYTES
+    if(nbytes<=__usb_rxused-__usb_rxread) {
+      memmoveb(dest,__usb_rxbuffer+__usb_rxread,nbytes);
+      __usb_rxread+=nbytes;
+      return 1;
+    }
+
+    // WAIT FOR ENOUGH BYTES TO BECOME AVAILABLE
+    int busy,error;
+
+    tmr_t start,end;
+
+    start=tmr_ticks();
+    do {
+        end=tmr_ticks();
+        if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) return 0;    // FAIL IF TIMEOUT
+
+        usb_waitfordata();
+            if(!usb_waitforreport()) return 0;                  // FAIL IF TIMEOUT
+            USB_PACKET *ptr=usb_getreport();
+
+            if(P_FILEID(ptr)==__usb_fileid) {
+                // THE REMOTE WANTS TO ABORT THIS FILE ALREADY?
+                if(ptr->p_type==P_TYPE_ABORT) return 0;         // FAIL DUE TO ABORT
+
+                if(ptr->p_type==P_TYPE_REPORT) {
+                    busy=ptr->p_data[0];
+                    error=ptr->p_data[1];
+                    usb_releasereport();
+                    break;
+                }
+            }
+            usb_releasereport();
+        } while(1);
+
+    } while(busy||error);
 
 }
 
