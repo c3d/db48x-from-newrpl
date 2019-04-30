@@ -10,18 +10,9 @@
 
 #include <stdint.h>
 
-#ifndef FIRMWARE_H
-#include <firmware.h>
-#endif
-
-#ifndef UTF8LIB_H
-#include "utf8lib.h"
-#endif
 
 
 // BUILD SYSTEM PROVIDES NEWRPL_BUILDNUM MACRO WITH THE COMMIT NUMBER
-
-
 
 // EXTERNAL API FOR THE NEWRPL MACHINE - TO BE USED ONLY BY USER LIBRARIES
 // BASIC CONSTANTS AND TYPE DEFINITIONS FOR THE RUN ENVIRONMENT
@@ -45,6 +36,13 @@ typedef uint32_t PTR2NUMBER;
 #define NUMBER2PTR(a) ((WORDPTR)((WORD)(a)))
 #endif
 
+#ifndef FIRMWARE_H
+#include <firmware.h>
+#endif
+
+#ifndef UTF8LIB_H
+#include "utf8lib.h"
+#endif
 
 
 

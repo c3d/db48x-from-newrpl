@@ -143,81 +143,14 @@
 
 #define __ENABLE_ARM_ASSEMBLY__ 1
 
-// USB DEVICE CONFIGURATION PARAMETERS
-
-// You can change these to give your code its own name.
-#define STR_MANUFACTURER	{'n',0,'e',0,'w',0,'R',0,'P',0,'L',0,' ',0,'T',0,'e',0,'a',0,'m',0}
-#define STR_MANUFLENGTH   22+2
-#define STR_PRODUCT		{'n',0,'e',0,'w',0,'R',0,'P',0,'L',0,' ',0,'C',0,'a',0,'l',0,'c',0}
-#define STR_PRODLENGTH   22+2
-
-// These 4 numbers identify your device.  Set these to
-// something that is (hopefully) not used by any others!
-#define VENDOR_ID		0x3f0
-#define PRODUCT_ID		0x121   // ORIGINAL VID/PID OF THE 50g/39gs/40g TARGET HARDWARE
-//#define PRODUCT_ID		0x441   // ORIGINAL VID/PID OF THE Prime TARGET HARDWARE
-#define RAWHID_USAGE_PAGE	0xFFAB	// recommended: 0xFF00 to 0xFFFF
-#define RAWHID_USAGE		0x0200	// recommended: 0x0100 to 0xFFFF
-
-// These determine the bandwidth that will be allocated
-// for your communication.  You do not need to use it
-// all, but allocating more than necessary means reserved
-// bandwidth is no longer available to other USB devices.
-#define RAWHID_TX_SIZE		64	// transmit packet size
-#define RAWHID_TX_INTERVAL	2	// max # of ms between transmit packets
-#define RAWHID_RX_SIZE		64	// receive packet size
-#define RAWHID_RX_INTERVAL	2	// max # of ms between receive packets
-
-
-
-#define ENDPOINT0_SIZE		8
-#define RAWHID_INTERFACE	0
-#define RAWHID_TX_ENDPOINT	1
-#define RAWHID_RX_ENDPOINT	2
-
-
-// USB SUBSYSTEM STATUS BITS
-#define USB_STATUS_INIT                 1
-#define USB_STATUS_CONNECTED            2
-#define USB_STATUS_CONFIGURED           4
-#define USB_STATUS_EP0TX                8
-#define USB_STATUS_EP0RX                16
-#define USB_STATUS_INSIDEIRQ            32  // DRIVER IS PROCESSING IRQ, POSSIBLE MESSING WITH HARDWARE
-#define USB_STATUS_TXCTL                64  // THERE'S A CONTROL PACKET READY TO SEND
-#define USB_STATUS_TXDATA               128 // THERE'S DATA READY TO BE SENT
-#define USB_STATUS_RXCTL                512 // A CONTROL PACKET ARRIVED
-#define USB_STATUS_RXDATA               1024 // THERE'S DATA AVAILABLE TO READ
-#define USB_STATUS_ERROR                2048 // THERE WAS SOME ERROR WITH THE RECEIVED DATA
-#define USB_STATUS_HALT                 4096 // WE NEED TO TELL THE HOST TO STOP SENDING DATA
-
-
-
-#define USB_STATUS_REMOTEBUSY           256
-#define USB_STATUS_REMOTERESPND         512
-#define USB_STATUS_WAKEUPENABLED        1024
-#define USB_STATUS_SUSPEND              2048
-#define USB_STATUS_TESTMODE             4096
-#define USB_STATUS_IGNORE               8192
-#define USB_STATUS_DATARECEIVED         16384
-#define USB_STATUS_DATAHALTED           32768
-
-// USB DATA BLOCK MARKERS
-#define USB_BLOCKMARK_SINGLE 0xa0
-#define USB_BLOCKMARK_MULTISTART 0xa5
-#define USB_BLOCKMARK_MULTI  0xa1
-#define USB_BLOCKMARK_MULTIEND   0xaf
-#define USB_BLOCKMARK_GETSTATUS  0xcd
-#define USB_BLOCKMARK_RESPONSE 0xce
-
-// MAXIMUM SIZE OF A BLOCK OF DATA, LARGER BLOCKS WILL BE SPLIT INTO MULTIPLE SMALLER BLOCKS
-#define USB_DATASIZE      (RAWHID_TX_SIZE-8)
-
-#define USB_TIMEOUT_MS     5000
-
 
 #define halScreenUpdated()    ((void)0)
 
 
+// INCLUDE ALL USB EARLY TO ALLOW OVERRIDING SOME CONSTANTS IN target_xxx HEADERS
+#ifndef USB_H
+#include <usb.h>
+#endif
 
 
 // REDEFINE SOME CONSTANTS FOR THE VARIOUS TARGETS

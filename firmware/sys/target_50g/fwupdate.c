@@ -209,7 +209,6 @@ extern struct descriptor_list_struct descriptor_list[];
 // USB ROUTINES PREPARED TO RUN FROM RAM DURING FIRMWARE UPDATE - DO NOT REORGANIZE OR CHANGE THIS BLOCK
 //*******************************************************************************************************
 
-#define LONG_BUFFER_SIZE        32*USB_BLOCKSIZE
 
 // FAKE MEMORY ALLOCATORS
 BYTEPTR ram_memblocks[2];

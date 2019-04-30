@@ -1107,32 +1107,24 @@ void cpu_flushTLB();
 void cpu_flushicache(void);
 
 
-// LOW-LEVEL DRIVERS - USB
-int usb_hasdata();
-int usb_waitfordata();
-int usb_datablocktype();
+// LOW-LEVEL COMMON USB API
+void usb_sendcontrolpacket(int packet_type);
+void usb_receivecontrolpacket();
+
+// USER-LEVEL COMMON USB API
 int usb_isconnected();
 int usb_isconfigured();
-void usb_releasedata();
-void usb_sendfeedback();
-BYTEPTR usb_accessdata(int *blksize);
-WORD usb_crc32roll(WORD oldcrc,BYTEPTR data,BINT len);
-void usb_restartcrc();
-int usb_checkcrc();
-int usb_transmitdata(BYTEPTR data,BINT size);
-int usb_transmitlong_start();
-int usb_transmitlong_word(unsigned int data);
-int usb_transmitlong_finish();
-int usb_receivelong_start();
-int usb_receivelong_word(unsigned int *data);
-int usb_receivelong_finish();
-void usb_ignoreuntilend();
-int usb_remotetotalsize();
-int usb_remoteoffset();
-void usb_addremoteoffset(int bytes);
-void usb_setoffset(int offset);
-void usb_waitdatareceived();
+int usb_hasdata();
 
+int usb_txfileopen(int file_type);
+int usb_filewrite(BYTEPTR data,int nbytes);
+int usb_txfileclose();
+
+int usb_rxfileopen();
+int usb_rxbytesready();
+int usb_eof();
+int usb_fileread(BYTEPTR dest,int nbytes);
+int usb_rxclose();
 
 
 // LOW-LEVEL HARDWARE DRIVERS - KEYBOARD

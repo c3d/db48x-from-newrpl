@@ -38,32 +38,9 @@ SOURCES +=\
     firmware/sys/target_50g/mem.c \
     firmware/sys/target_50g/flash.c \
     firmware/sys/target_50g/rtc.c \
-    newrpl/decimal.c \
-    newrpl/lighttranscend.c \
-    newrpl/atan_ltables.c \
-    newrpl/ln_ltables.c \
-    newrpl/sysvars.c \
-    newrpl/compiler.c \
-    newrpl/datastack.c \
-    newrpl/directory.c \
-    newrpl/errors.c \
-    newrpl/gc.c \
-    newrpl/lam.c \
-    newrpl/lists.c \
-    newrpl/matrix.c \
-    newrpl/units.c \
-    newrpl/returnstack.c \
-    newrpl/romlibs.c \
-    newrpl/runstream.c \
-    newrpl/symbolic.c \
-    newrpl/tempob.c \
-    newrpl/backup.c \
-    newrpl/sanity.c \
-    newrpl/utf8lib.c \
-    newrpl/utf8data.c \
-    newrpl/autocomplete.c \
-    newrpl/arithmetic.c \
-    firmware/hal_globals.c \
+    firmware/sys/usbcommon.c \
+    firmware/sys/target_50g/usbdriver.c \
+    firmware/sys/target_50g/fwupdate.c \
     firmware/ggl/ggl/ggl_bitblt.c \
     firmware/ggl/ggl/ggl_bitbltoper.c \
     firmware/ggl/ggl/ggl_filter.c \
@@ -90,12 +67,7 @@ SOURCES +=\
     firmware/ggl/ggl/ggl_scrollrt.c \
     firmware/ggl/ggl/ggl_scrollup.c \
     firmware/ggl/ggl/ggl_vline.c \
-    firmware/ui_cmdline.c \
-    firmware/ui_softmenu.c \
-    firmware/hal_battery.c \
-    firmware/hal_clock.c \
-    firmware/hal_keyboard.c \
-    firmware/hal_screen.c \
+    firmware/ggl/ggl/ggl_fltreplace.c \
     firmware/sys/graphics.c \
     firmware/sys/icons.c \
     firmware/sys/Font5A.c \
@@ -184,6 +156,42 @@ SOURCES +=\
     firmware/sys/fsystem/fsystem.c \
     firmware/sys/fsystem/misalign.c \
     firmware/sys/fsystem/fsallocator.c \
+    firmware/hal_cpu.c \
+    firmware/hal_globals.c \
+    firmware/ui_cmdline.c \
+    firmware/ui_softmenu.c \
+    firmware/hal_battery.c \
+    firmware/hal_clock.c \
+    firmware/hal_keyboard.c \
+    firmware/hal_screen.c \
+    firmware/hal_alarm.c \
+    firmware/ui_render.c \
+    firmware/ui_forms.c \
+    newrpl/decimal.c \
+    newrpl/lighttranscend.c \
+    newrpl/atan_ltables.c \
+    newrpl/ln_ltables.c \
+    newrpl/sysvars.c \
+    newrpl/compiler.c \
+    newrpl/datastack.c \
+    newrpl/directory.c \
+    newrpl/errors.c \
+    newrpl/gc.c \
+    newrpl/lam.c \
+    newrpl/lists.c \
+    newrpl/matrix.c \
+    newrpl/units.c \
+    newrpl/returnstack.c \
+    newrpl/romlibs.c \
+    newrpl/runstream.c \
+    newrpl/symbolic.c \
+    newrpl/tempob.c \
+    newrpl/backup.c \
+    newrpl/sanity.c \
+    newrpl/utf8lib.c \
+    newrpl/utf8data.c \
+    newrpl/autocomplete.c \
+    newrpl/arithmetic.c \
     newrpl/lib-zero-messages.c \
     newrpl/lib-4080-localenv.c \
     newrpl/lib-4090-overloaded.c \
@@ -219,26 +227,20 @@ SOURCES +=\
     newrpl/lib-98-statistics.c \
     newrpl/lib-100-usb.c \
     newrpl/lib-102-libptr.c \
-    firmware/ggl/ggl/ggl_fltreplace.c \
-    firmware/hal_alarm.c \
-    firmware/ui_render.c \
-    firmware/ui_forms.c \
     newrpl/fastmath.c \
     newrpl/render.c \
     newrpl/mul_real_arm.c \
     newrpl/rng.c \
     newrpl/solvers.c \
-    firmware/sys/target_50g/usbdriver.c \
-    firmware/hal_cpu.c \
     newrpl/lib-104-solvers.c \
-    newrpl/lib-55-constants.c \
-    firmware/sys/target_50g/fwupdate.c
+    newrpl/lib-55-constants.c
 
 
 HEADERS  += \
     firmware/include/ggl.h \
     firmware/include/ui.h \
     firmware/include/hal_api.h \
+    firmware/include/usb.h \
     newrpl/hal.h \
     newrpl/libraries.h \
     newrpl/newrpl.h \
