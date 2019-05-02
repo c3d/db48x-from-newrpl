@@ -94,7 +94,8 @@ int rplUSBArchiveWriteWord(unsigned int data,void *opaque)
     // PROVIDE VISUAL FEEDBACK
     if(!((*progress)&0xff)) halSetNotification(N_CONNECTION,((*progress)>>8)&0xf);
     ++*progress;
-    return usb_transmitlong_word(data);
+    WORD buffer=data;
+    return usb_filewrite((BYTEPTR)&buffer,4);
 }
 
 // FOR rplRestoreBackup, RETURNS THE WORD, SET AND rplError ON ERROR
@@ -108,14 +109,18 @@ WORD rplUSBArchiveReadWord(void *opaque)
     if(!((*progress)&0xff)) halSetNotification(N_CONNECTION,((*progress)>>8)&0xf);
     ++*progress;
 
-    switch(usb_receivelong_word(&data))
+    switch(usb_fileread((BYTEPTR)&data,4))
     {
     case 0:
         // OPERATION TIMED OUT
-        rplError(ERR_USBTIMEOUT);
+        if(usb_eof()) rplError(ERR_INVALIDDATA);
+        else rplError(ERR_USBTIMEOUT);
         return 0;
-    case 1:
+    case 4:
         return data;
+    case 1:
+    case 2:
+    case 3:
     default:
         rplError(ERR_USBCOMMERROR);
         return 0;
@@ -230,114 +235,93 @@ void LIB_HANDLER()
 
 
         // READ THE DATA AND PUT IT ON THE STACK
-        BINT datasize,blocktype,reqoffset=-1,byteoffset=0,totalsize=0;
-        WORDPTR newobj=0;
+        WORDPTR newobj=0,newobjptr;
+        WORD fileid;
+        BINT bytesread, needwords,expectedsize,allocated,offset;
 
 
+        fileid=usb_rxfileopen();
+
+        if(!fileid) {
+            rplError(ERR_USBCOMMERROR);
+            return;
+        }
+
+        // GET MINIMAL STORAGE FIRST, 64 bytes=8 words
+        newobj=rplAllocTempOb(8);
+        if(!newobj) {
+            // INSUFFICIENT MEMORY
+            return;
+        }
+        allocated=8;
+
+        switch(usb_filetype(fileid))
+        {
+        case 'O':   // THIS IS AN RPL OBJECT
+            newobjptr=newobj;
+            bytesread=usb_fileread((BYTEPTR)&newobjptr,4);  // GET THE OBJECT PROLOG
+            if(bytesread<4) { rplError(ERR_USBCOMMERROR); break; }
+            expectedsize=rplObjSize(newobj);
+            newobjptr+=4;
+            break;
+        case 'D':   // THIS IS ARBITRARY BINARY DATA
+            newobjptr=newobj+4;
+            newobj[0]=MKPROLOG(DOBINDATA,0);    // WE DON'T KNOW THE SIZE YET
+            expectedsize=0;
+            break;
+        case 'B':   // THIS IS A BACKUP
+        case 'W':   // THIS IS A FIRMWARE UPDATE
+            rplError(ERR_USBINVALIDDATA);
+            break;
+        default:    // UNKNOWN DATA TYPE IS INVALID
+            rplError(ERR_USBINVALIDDATA);
+            break;
+        }
 
         do {
+            offset=newobjptr-newobj;
+            bytesread=usb_fileread((BYTEPTR)&newobjptr,allocated-offset);
 
-        // WAIT FOR NEXT BLOCK IN A MULTIPART TRANSACTION
-        if(!usb_waitfordata()) {
-            usb_ignoreuntilend();
-            rplError(ERR_USBTIMEOUT);
-            return;
-        }
-
-        BYTEPTR data=usb_accessdata(&datasize);
-
-        if(!totalsize) totalsize=usb_remotetotalsize();
-        if(byteoffset<usb_remoteoffset()) {
-            // WE NEED TO REQUEST THE CORRECT OFFSET!
-            usb_setoffset(byteoffset);
-            usb_releasedata();
-            if(reqoffset!=byteoffset) { // SEND THE REQUEST ONLY ONCE
-            usb_sendfeedback();
-            reqoffset=byteoffset;
-            }
-            blocktype=0;    // FORCE LOOP
-            continue;
-        } else {
-            if(byteoffset>usb_remoteoffset()) {
-                // SOMETHING WENT VERY WRONG! START AGAIN PLEASE
-                byteoffset=0;
-                usb_setoffset(0);
-                usb_releasedata();
-                if(reqoffset!=byteoffset) { // SEND THE REQUEST ONLY ONCE
-                usb_sendfeedback();
-                reqoffset=byteoffset;
+            if(bytesread<allocated-offset) {
+                if(usb_eof()) {
+                    // WE FINISHED THE FILE!
+                    newobjptr+=(bytesread+3)>>2;
                 }
-                blocktype=0;
-                continue;
+                else rplError(ERR_USBTIMEOUT);
+                break;
             }
-        }
+            // MORE DATA IS EXPECTED, ALLOCATE MORE MEMORY
 
-        reqoffset=-1;  // WE GOT THE OFFSET WE WANTED, CLEAR THE REQUESTED FLAG
-        if(!usb_checkcrc()) {
-            usb_setoffset(byteoffset);  // REQUEST THIS PACKET AGAIN
-            usb_releasedata();
-            usb_sendfeedback();
-            reqoffset=byteoffset;
-            continue;
-//            usb_ignoreuntilend();
-//            rplError(ERR_USBINVALIDDATA);
-//            return;
-        }
+            ScratchPointer1=newobj;
+            needwords=(expectedsize? (expectedsize-allocated+1):8);
+            if(needwords>0) rplResizeLastObject(needwords);
+            allocated+=needwords;
+            newobj=ScratchPointer1;
+            newobjptr=newobj+offset;
+        } while(!Exceptions);
 
-        blocktype=usb_datablocktype();
+        //  WE ARE DONE WITH THE TRANSMISSION
+        usb_rxfileclose();
 
-        if((blocktype==USB_BLOCKMARK_SINGLE)||(blocktype==USB_BLOCKMARK_MULTISTART)) {
-        // GET A NEW BLOCK OF MEMORY AND STORE THE OBJECT THERE
-        if(totalsize) newobj=rplAllocTempOb((totalsize+3)>>2);
-        else newobj=rplAllocTempOb((datasize+3)>>2);
-        if(!newobj) { usb_setoffset(-1); usb_releasedata(); usb_sendfeedback(); usb_ignoreuntilend(); return; }
-        }
-        else {
-        if(!newobj) {
-            // NOT A SINGLE PACKAGE, NOT A MULTI STARTER, THEN WHAT IT IS?
-            // POSSIBLY PART OF A TRANSMISSION ABORTED EARLIER, JUST IGNORE THE WHOLE PACKET
-            usb_setoffset(-1);
-            usb_releasedata();
-            usb_sendfeedback();
-            return;
-        }
+        if(Exceptions) return;
 
-        if(!totalsize) { // ONLY RESIZE IF THE TOTAL SIZE IS UNKNOWN
-        // STRETCH THE LAST OBJECT
-        ScratchPointer1=newobj;
-        rplResizeLastObject((datasize+3)>>2);
-        if(Exceptions) {
-            usb_setoffset(-1); usb_releasedata(); usb_sendfeedback(); usb_ignoreuntilend(); return; }
-        newobj=ScratchPointer1;
-        }
-        }
-
-        memmoveb((BYTEPTR)newobj+byteoffset,data,datasize);
-
-        byteoffset+=datasize;
-        usb_addremoteoffset(datasize);  // ADVANCE THE COUNTER OF REMOTE DATA RECEIVED FROM THE REMOTE
-        usb_setoffset(byteoffset);      // AND OUR LOCAL COUNTER
-        usb_releasedata();
-
-        } while((blocktype!=USB_BLOCKMARK_SINGLE)&&(blocktype!=USB_BLOCKMARK_MULTIEND));
-
-        usb_sendfeedback();
-
-        usb_waitdatareceived(); // WAIT FOR THE DATA RECEIVED ACKNOWLEDGEMENT TO BE SENT TO THE REMOTE, INDICATING WE FINISHED RECEIVING DATA
-
-        // THIS IS REQUIRED ONLY AT END OF TRANSMISSION:
-        usb_setoffset(0);   // NEXT TRANSMISSION WE NEED TO REQUEST FROM OFFSET ZERO, RATHER THAN RESUME FROM WHERE WE LEFT OFF
-
-
-        // DONE RECEIVING BLOCKS OF DATA, CHECK IF EVERYTHING WORKS
-
-        if(!rplVerifyObject(newobj)) {
-            rplError(ERR_USBINVALIDDATA);
-            return;
+        // THERE WERE NO ERRORS, WE RECEIVED SOMETHING
+        switch(usb_filetype(fileid))
+        {
+        case 'O':   // THIS IS AN RPL OBJECT
+            if(!rplVerifyObject(newobj)) {
+                rplError(ERR_USBINVALIDDATA);
+                return;
+            }
+            break;
+        case 'D':   // THIS IS ARBITRARY BINARY DATA
+            newobj[0]=MKPROLOG(DOBINDATA,newobjptr-newobj-1);    // FIX THE SIZE IN THE PROLOG
+            break;
+        default:    // UNKNOWN DATA TYPE IS INVALID - THIS IS UNREACHABLE-CAN'T HAPPEN
+            break;
         }
 
         // WE HAVE A VALID OBJECT!
-
         rplOverwriteData(1,newobj);
         rplPushTrue();
         return;
@@ -358,7 +342,11 @@ void LIB_HANDLER()
             rplError(ERR_USBNOTCONNECTED);
             return;
         }
-        BINT result=usb_transmitdata((BYTEPTR)rplPeekData(1),rplObjSize(rplPeekData(1))*sizeof(WORD));
+
+        BINT result=usb_txfileopen('O');    // OPEN AN RPL OBJECT TYPE TRANSMISSION
+        if(result) result=usb_filewrite((BYTEPTR)rplPeekData(1),rplObjSize(rplPeekData(1))*sizeof(WORD));
+        if(result) result=usb_txfileclose();
+        else usb_txfileclose();
 
         if(!result) rplOverwriteData(1,(WORDPTR)zero_bint);
         else rplOverwriteData(1,(WORDPTR)one_bint);
@@ -396,111 +384,90 @@ void LIB_HANDLER()
         }
 
         // READ THE DATA AND PUT IT ON THE STACK
-        BINT datasize,blocktype,reqoffset=-1,byteoffset=0,totalsize=0;
-        WORDPTR newobj=0;
+        WORDPTR newobj=0,newobjptr;
+        WORD fileid;
+        BINT bytesread, needwords,expectedsize,allocated,offset;
 
 
+        fileid=usb_rxfileopen();
+
+        if(!fileid) {
+            rplError(ERR_USBCOMMERROR);
+            return;
+        }
+
+        // GET MINIMAL STORAGE FIRST, 64 bytes=8 words
+        newobj=rplAllocTempOb(8);
+        if(!newobj) {
+            // INSUFFICIENT MEMORY
+            return;
+        }
+        allocated=8;
+
+        switch(usb_filetype(fileid))
+        {
+        case 'O':   // THIS IS AN RPL OBJECT
+            newobjptr=newobj;
+            bytesread=usb_fileread((BYTEPTR)&newobjptr,4);  // GET THE OBJECT PROLOG
+            if(bytesread<4) { rplError(ERR_USBCOMMERROR); break; }
+            expectedsize=rplObjSize(newobj);
+            newobjptr+=4;
+            break;
+        case 'D':   // THIS IS ARBITRARY BINARY DATA
+            newobjptr=newobj+4;
+            newobj[0]=MKPROLOG(DOBINDATA,0);    // WE DON'T KNOW THE SIZE YET
+            expectedsize=0;
+            break;
+        case 'B':   // THIS IS A BACKUP
+        case 'W':   // THIS IS A FIRMWARE UPDATE
+            rplError(ERR_USBINVALIDDATA);
+            break;
+        default:    // UNKNOWN DATA TYPE IS INVALID
+            rplError(ERR_USBINVALIDDATA);
+            break;
+        }
 
         do {
+            offset=newobjptr-newobj;
+            bytesread=usb_fileread((BYTEPTR)&newobjptr,allocated-offset);
 
-        // WAIT FOR NEXT BLOCK IN A MULTIPART TRANSACTION
-        if(!usb_waitfordata()) {
-            usb_ignoreuntilend();
-            rplError(ERR_USBTIMEOUT);
-            return;
-        }
-
-        BYTEPTR data=usb_accessdata(&datasize);
-
-        if(!totalsize) totalsize=usb_remotetotalsize();
-        if(byteoffset<usb_remoteoffset()) {
-            // WE NEED TO REQUEST THE CORRECT OFFSET!
-            usb_setoffset(byteoffset);
-            usb_ignoreuntilend();
-            usb_releasedata();
-            if(reqoffset!=byteoffset) { // SEND THE REQUEST ONLY ONCE
-            usb_sendfeedback();
-            reqoffset=byteoffset;
-            }
-            blocktype=0;    // FORCE LOOP
-            continue;
-        } else {
-            if(byteoffset>usb_remoteoffset()) {
-                // SOMETHING WENT VERY WRONG! START AGAIN PLEASE
-                byteoffset=0;
-                usb_setoffset(0);
-                usb_ignoreuntilend();
-                usb_releasedata();
-                if(reqoffset!=byteoffset) { // SEND THE REQUEST ONLY ONCE
-                usb_sendfeedback();
-                reqoffset=byteoffset;
+            if(bytesread<allocated-offset) {
+                if(usb_eof()) {
+                    // WE FINISHED THE FILE!
+                    newobjptr+=(bytesread+3)>>2;
                 }
-                blocktype=0;
-                continue;
+                else rplError(ERR_USBTIMEOUT);
+                break;
             }
-        }
+            // MORE DATA IS EXPECTED, ALLOCATE MORE MEMORY
 
-        reqoffset=-1;  // WE GOT THE OFFSET WE WANTED, CLEAR THE REQUESTED FLAG
-        if(!usb_checkcrc()) {
-            usb_setoffset(byteoffset);  // REQUEST THIS PACKET AGAIN
-            usb_ignoreuntilend();
-            usb_releasedata();
-            usb_sendfeedback();
-            reqoffset=byteoffset;
-            continue;
-//            rplError(ERR_USBINVALIDDATA);
-//            return;
-        }
+            ScratchPointer1=newobj;
+            needwords=(expectedsize? (expectedsize-allocated+1):8);
+            if(needwords>0) rplResizeLastObject(needwords);
+            allocated+=needwords;
+            newobj=ScratchPointer1;
+            newobjptr=newobj+offset;
+        } while(!Exceptions);
 
-        blocktype=usb_datablocktype();
+        //  WE ARE DONE WITH THE TRANSMISSION
+        usb_rxfileclose();
 
-        if((byteoffset==0) && ((blocktype==USB_BLOCKMARK_SINGLE)||(blocktype==USB_BLOCKMARK_MULTISTART))) {
-        // GET A NEW BLOCK OF MEMORY AND STORE THE OBJECT THERE
-        if(totalsize) newobj=rplAllocTempOb((totalsize+3)>>2);
-        else newobj=rplAllocTempOb((datasize+3)>>2);
-        if(!newobj) { usb_setoffset(-1); usb_releasedata(); usb_sendfeedback(); usb_ignoreuntilend(); return; }
-        }
-        else {
-        if(!newobj) {
-            // NOT A SINGLE PACKAGE, NOT A MULTI STARTER, THEN WHAT IT IS?
-            // POSSIBLY PART OF A TRANSMISSION ABORTED EARLIER, JUST IGNORE THE WHOLE PACKET
-            usb_setoffset(-1);
-            usb_releasedata();
-            usb_sendfeedback();
-            return;
-        }
+        if(Exceptions) return;
 
-        if(!totalsize) { // ONLY RESIZE IF THE TOTAL SIZE IS UNKNOWN
-        // STRETCH THE LAST OBJECT
-        ScratchPointer1=newobj;
-        rplResizeLastObject((datasize+3)>>2);
-        if(Exceptions) {
-            usb_setoffset(-1); usb_ignoreuntilend(); usb_releasedata(); usb_sendfeedback();  return; }
-        newobj=ScratchPointer1;
-        }
-        }
-
-        memmoveb((BYTEPTR)newobj+byteoffset,data,datasize);
-
-        byteoffset+=datasize;
-        usb_addremoteoffset(datasize);  // ADVANCE THE COUNTER OF REMOTE DATA RECEIVED FROM THE REMOTE
-        usb_setoffset(byteoffset);      // AND OUR LOCAL COUNTER
-        usb_releasedata();
-
-        } while((blocktype!=USB_BLOCKMARK_SINGLE)&&(blocktype!=USB_BLOCKMARK_MULTIEND));
-
-        usb_sendfeedback();
-
-        usb_waitdatareceived(); // WAIT FOR THE DATA RECEIVED ACKNOWLEDGEMENT TO BE SENT TO THE REMOTE, INDICATING WE FINISHED RECEIVING DATA
-
-        // THIS IS REQUIRED ONLY AT END OF TRANSMISSION:
-        usb_setoffset(0);   // NEXT TRANSMISSION WE NEED TO REQUEST FROM OFFSET ZERO, RATHER THAN RESUME FROM WHERE WE LEFT OFF
-
-        // DONE RECEIVING BLOCKS OF DATA, CHECK IF EVERYTHING WORKS
-
-        if(!rplVerifyObject(newobj)) {
-            rplError(ERR_USBINVALIDDATA);
-            return;
+        // THERE WERE NO ERRORS, WE RECEIVED SOMETHING
+        switch(usb_filetype(fileid))
+        {
+        case 'O':   // THIS IS AN RPL OBJECT
+            if(!rplVerifyObject(newobj)) {
+                rplError(ERR_USBINVALIDDATA);
+                return;
+            }
+            break;
+        case 'D':   // THIS IS ARBITRARY BINARY DATA
+            newobj[0]=MKPROLOG(DOBINDATA,newobjptr-newobj-1);    // FIX THE SIZE IN THE PROLOG
+            break;
+        default:    // UNKNOWN DATA TYPE IS INVALID - THIS IS UNREACHABLE-CAN'T HAPPEN
+            break;
         }
 
         // WE HAVE A VALID OBJECT!
@@ -530,7 +497,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(!usb_transmitlong_start()) {
+        if(!usb_txfileopen('B')) {
             rplError(ERR_USBCOMMERROR);     // IT'S ACTUALLY OUT OF BUFFER MEMORY
             return;
         }
@@ -550,7 +517,7 @@ void LIB_HANDLER()
         WORD progress=0;
         BINT err = rplBackup(&rplUSBArchiveWriteWord,(void *)&progress);
 
-        usb_transmitlong_finish();
+        usb_txfileclose();
 
         if(err!=1) {
             if(!Exceptions) rplError(ERR_USBCOMMERROR);
@@ -606,7 +573,7 @@ void LIB_HANDLER()
         }
 
 
-        if(!usb_receivelong_start()) {
+        if(!usb_rxfileopen()) {
             rplError(ERR_USBCOMMERROR);
             return;
         }
@@ -618,7 +585,7 @@ void LIB_HANDLER()
         WORD progress=0;
         BINT err = rplRestoreBackup(0,&rplUSBArchiveReadWord,(void *)&progress);
 
-        usb_receivelong_finish();
+        usb_rxfileclose();
 
         switch(err)
         {

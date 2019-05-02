@@ -1124,8 +1124,9 @@ int usb_rxfileopen();
 int usb_rxbytesready();
 int usb_eof();
 int usb_fileread(BYTEPTR dest,int nbytes);
-int usb_rxclose();
-
+int usb_rxfileclose();
+// file_type = 'O','B','W', OR 'D', SEE SPECS
+#define usb_filetype(fileid) ((fileid)>>8)
 
 // LOW-LEVEL HARDWARE DRIVERS - KEYBOARD
 void __keyb_waitrelease();

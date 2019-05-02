@@ -1163,7 +1163,7 @@ void ramusb_irqservice()
     }
 
     if(*EP_INT_REG&1) {
-        ramep0_irqservice();
+        ramusb_ep0_irqservice();
         *EP_INT_REG=1;
         __usb_drvstatus&=~USB_STATUS_INSIDEIRQ;
         return;
@@ -1928,7 +1928,7 @@ data=0xffffffff;
 
 if(ramusb_fileread((BYTEPTR)&data,4)<4)  ram_doreset(); // NOTHING ELSE TO DO
 
-if(data!=TEXT2WORD('F','W','U','P'))  {
+if(data!=TX2WORD('F','W','U','P'))  {
     ram_doreset(); // NOTHING ELSE TO DO
 }
 

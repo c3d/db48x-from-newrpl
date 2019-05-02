@@ -162,6 +162,7 @@ void usb_sendcontrolpacket(int packet_type)
         p->p_offset=__usb_rxoffset;
         p->p_data[0]=(__usb_drvstatus&USB_STATUS_HALT)? 1:0;
         p->p_data[1]=(__usb_drvstatus&USB_STATUS_ERROR)? 1:0;
+        p->p_data[2]=(__usb_rxtotalbytes)? 1:0;
         break;
 
     default:
@@ -288,7 +289,11 @@ void usb_receivecontrolpacket()
              __usb_drvstatus|=USB_STATUS_ERROR;
              __usb_rxoffset=ctl->p_offset;
          }
-         else __usb_drvstatus&=~USB_STATUS_ERROR;
+         if(ctl->p_data[2]) {
+             // SIGNAL THAT THE REMOTE ACKNOWLEDGED THE END OF FILE MARK
+             __usb_drvstatus|=USB_STATUS_EOF;
+         }
+         else __usb_drvstatus&=~USB_STATUS_EOF;
 
 
 
@@ -516,7 +521,28 @@ int usb_txfileclose()
      // THERE'S DATA IN TRANSMISSION, JUST SET THE TOTAL SIZE OF THE FILE
      __usb_txtotalbytes=__usb_offset+__usb_txused;
     }
-    return 1;
+
+    // BLOCK UNTIL TRANSMISSION IS COMPLETE
+    tmr_t start,end;
+    int prevoffset=0;
+    start=tmr_ticks();
+    do {
+
+        if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) return 0;
+
+        if(__usb_drvstatus&USB_STATUS_EOF) return 1;    // WE RECEIVED ACKNOWLEDGMENT OF END-OF-FILE
+        if(!__usb_fileid) break;                     // COMMUNICATION WAS ABORTED
+
+        if(prevoffset!=__usb_txoffset) start=tmr_ticks();   // MEASURE TIMEOUT SINCE LAST TIME WE SENT A PACKET
+        prevoffset=__usb_txoffset;
+        end=tmr_ticks();
+        if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) break;    // FAIL IF TIMEOUT
+
+        cpu_waitforinterrupt();
+
+        } while(1);
+
+    return 0;
 }
 
 // START RECEIVING A FILE, WHETHER IT WAS COMPLETELY RECEIVED YET OR NOT
