@@ -6,6 +6,7 @@
 */
 
 #include <newrpl.h>
+#include <libraries.h>
 #include <ui.h>
 
 
@@ -259,6 +260,16 @@ WORD ramusb_crc32roll(WORD oldcrc,BYTEPTR data,BINT len)
     while(len--) crc=RAM_CRCTABLE[(crc ^ *data++) & 0xFF] ^ (crc >> 8);
     return crc^(-1);
 }
+
+
+// PUT THE CPU IN "DOZE" MODE
+void ramcpu_waitforinterrupt()
+{
+    asm volatile ("mov r0,#0");
+    asm volatile ("mcr p15,0,r0,c7,c0,4");
+}
+
+
 
 void ramusb_hwsetup()
 {
@@ -1121,7 +1132,7 @@ inline void ramep1_irqservice()
 }
 
 // RECEIVING DATA ENDPOINT
-void ep2_irqservice()
+void ramep2_irqservice()
 {
     // ONLY RESPOND ONCE EVERYTHING IS SETUP
     if(!(__usb_drvstatus&USB_STATUS_CONFIGURED)) return;
@@ -1163,7 +1174,7 @@ void ramusb_irqservice()
     }
 
     if(*EP_INT_REG&1) {
-        ramusb_ep0_irqservice();
+        ramep0_irqservice();
         *EP_INT_REG=1;
         __usb_drvstatus&=~USB_STATUS_INSIDEIRQ;
         return;
@@ -1226,7 +1237,10 @@ void ramusb_sendcontrolpacket(int packet_type)
 
     // NOW PREPARE THE NEXT CONTROL PACKET IN THE BUFFER
     USB_PACKET *p=(USB_PACKET *)__usb_ctltxbuffer;
-    rammemsetb(__usb_ctltxbuffer,0,RAWHID_TX_SIZE+1);
+    {
+        int k;
+        for(k=0;k<RAWHID_TX_SIZE+1;++k) __usb_ctltxbuffer[k]=0;
+    }
 
     switch(packet_type)
     {
@@ -1449,8 +1463,7 @@ int ramusb_hasdata()
 // RETURN 0 IF TIMEOUT
 int ramusb_waitfordata(int nbytes)
 {
-    tmr_t start=ramtmr_ticks(),end;
-    int prevbytes=0,hasbytes;
+    int hasbytes;
 
     hasbytes=ramusb_hasdata();
 
@@ -1460,15 +1473,7 @@ int ramusb_waitfordata(int nbytes)
 
         ramcpu_waitforinterrupt();
 
-        end=ramtmr_ticks();
-        if(ramtmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
-            // TIMEOUT - CLEANUP AND RETURN
-            return 0;
-        }
-
         hasbytes=ramusb_hasdata();
-        if(hasbytes!=prevbytes) start=ramtmr_ticks();  // RESET THE TIMEOUT IF WE GET SOME DATA ON THE WIRE
-        prevbytes=hasbytes;
 
 
         if(__usb_rxtotalbytes) {
@@ -1535,15 +1540,11 @@ void ramusb_releasereport()
 // file_type = 'O','B','W', OR 'D', SEE SPECS
 int ramusb_txfileopen(int file_type)
 {
-    tmr_t start,end;
 
     // WAIT FOR ALL PREVIOUS DATA TO BE SENT COMPLETELY
-    start=ramtmr_ticks();
     while(__usb_drvstatus&USB_STATUS_TXDATA) {
-        end=ramtmr_ticks();
-        if(ramtmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
-        return 0;
-        }
+        if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) return 0;
+
         }
 
 
@@ -1561,10 +1562,7 @@ int ramusb_txfileopen(int file_type)
     // INDICATE WE ARE STARTING A TRANSMISSION, WAIT FOR REMOTE TO BE AVAILABLE
     int busy,error;
 
-    start=ramtmr_ticks();
     do {
-        end=ramtmr_ticks();
-        if(ramtmr_ticks2ms(start,end)>USB_TIMEOUT_MS) return 0;    // FAIL IF TIMEOUT
 
         ramusb_sendcontrolpacket(P_TYPE_GETSTATUS);
         do {
@@ -1655,7 +1653,10 @@ int ramusb_fileread(BYTEPTR dest,int nbytes)
     if(available<nbytes) nbytes=available;
 
         // QUICK COPY IF WE ALREADY HAVE ENOUGH BYTES
-    rammemmoveb(dest,__usb_rxbuffer+__usb_rxread,nbytes);
+    {
+        int k;
+        for(k=0;k<nbytes;++k) dest[k]=__usb_rxbuffer[__usb_rxread+k];
+    }
     __usb_rxread+=nbytes;
 
     if(__usb_rxtotalbytes && (__usb_rxoffset+__usb_rxread>=__usb_rxtotalbytes))
@@ -1677,18 +1678,12 @@ int ramusb_rxfileclose()
         // IF WE STILL DIDN'T RECEIVE THE ENTIRE FILE, ABORT IT
         ramusb_sendcontrolpacket(P_TYPE_ABORT);
 
-        tmr_t start,end;
         // WAIT FOR THE CONTROL PACKET TO BE SENT
-        start=tmr_ticks();
         while(__usb_drvstatus&USB_STATUS_TXCTL) {
 
             if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) return 0;
 
             ramcpu_waitforinterrupt();
-            end=ramtmr_ticks();
-            if(ramtmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
-            break;
-            }
        }
 
     }
@@ -1916,19 +1911,26 @@ void ram_flashprogramword(WORDPTR address,WORD value)
 // MAIN PROCEDURE TO RECEIVE AND FLASH FIRMWARE FROM RAM
 void ram_receiveandflashfw(WORD flashsize)
 {
-int pass=1;
+int pass=1,result;
 do {
 
-ramusb_rxfileopen();
+    // SLEEP UNTIL WE GET SOMETHING
+    while(!ramusb_hasdata()) ramcpu_waitforinterrupt();
+
+
+result=ramusb_rxfileopen();
+if( (!result) || usb_filetype(result)!='W') {
+    ramusb_rxfileclose();
+    continue;
+}
 
 WORDPTR flash_address;
 WORD flash_nwords,data;
-
 data=0xffffffff;
 
 if(ramusb_fileread((BYTEPTR)&data,4)<4)  ram_doreset(); // NOTHING ELSE TO DO
 
-if(data!=TX2WORD('F','W','U','P'))  {
+if(data!=TEXT2WORD('F','W','U','P'))  {
     ram_doreset(); // NOTHING ELSE TO DO
 }
 
