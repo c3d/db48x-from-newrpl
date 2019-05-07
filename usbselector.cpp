@@ -205,112 +205,141 @@ void USBSelector::RefreshList()
 
                         hid_device *thisdev;
 
+                        // STOP THE DRIVER AND REINITIALIZE COMPLETELY
+                        __usb_paused=1;
+                        while(__usb_paused>=0);
+
+
                         thisdev=hid_open_path(cur_dev->path);
 
                         if(thisdev)
                         {
                             unsigned char buffer[1024];
-                            int res,datalen;
+                            int res;
                             int available=0;
+
+                            // SET THE DRIVER TO USE THIS DEVICE AND START THE DRIVER
+                            __usb_curdevice=thisdev;
+                            __usb_timeout=200;      // SET TIMEOUT TO 200 ms FOR QUICK DETECTION
+
+                            usb_init(1);        // FORCE REINITIALIZATION, CLOSE ANY PREVIOUS HANDLES IF THEY EXIST
+
+
+                            __usb_paused=0;
 
                             do {
 
+                             usb_sendcontrolpacket(P_TYPE_GETSTATUS);
+
+                             tmr_t start,end;
 
 
-                             // ASK IF REMOTE IS READY TO RECEIVE DATA
-                             memset(buffer,0,RAWHID_TX_SIZE+1);
-                             buffer[0]=0;    // REPORT ID
-                             buffer[1]=USB_BLOCKMARK_GETSTATUS;   // CHECK IF REMOTE IS AVAILABLE TO ANSWER
+                             __usb_drvstatus|=USB_STATUS_EOF;       // FAKE END-OF-FILE TO DETECT WHEN THE REMOTE HAS RESPONDED
 
-                             res=hid_write(thisdev,buffer,RAWHID_TX_SIZE+1);
+                             // WAIT FOR THE CONTROL PACKET TO BE SENT
+                             start=tmr_ticks();
+                             res=0;
+                             while(__usb_drvstatus&USB_STATUS_TXCTL) {
+
+                                 if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
+
+                                 cpu_waitforinterrupt();
+                                 end=tmr_ticks();
+                                 if(tmr_ticks2ms(start,end)>__usb_timeout) {
+                                 res=-1;
+                                 break;
+                                 }
+                            }
 
                              if(res<0) break;
 
-                             res=hid_read_timeout(thisdev,buffer,RAWHID_RX_SIZE,100);
+                             // WAIT FOR A RESPONSE
+                             start=tmr_ticks();
+                             while(__usb_drvstatus&USB_STATUS_EOF) {
+
+                                 if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
+
+                                 cpu_waitforinterrupt();
+                                 end=tmr_ticks();
+                                 if(tmr_ticks2ms(start,end)>__usb_timeout) {
+                                 res=-1;
+                                 break;
+                                 }
+                            }
 
                              if(res<0) break;
-                             // WE GOT A RESPONSE, IGNORE IT AND SEND THE REQUEST
+                             // GOT AN ANSWER, MAKE SURE REMOTE IS READY TO RECEIVE
+                             if(__usb_drvstatus&(USB_STATUS_HALT|USB_STATUS_ERROR)) { res=-1; break; }
 
                             // ATTEMPT TO SEND SOMETHING TO SEE IF IT'S ACTIVELY RESPONDING
-                            uint32_t getversion[16]={
-                                0,          // 0 = DON'T USE REPORT ID'S - THIS IS REQUIRED ONLY FOR HIDAPI
-                                USB_BLOCKMARK_SINGLE,       // BLOCK SIZE AND MARKER
-                                0,         // CRC32
+                            uint32_t getversion[6]={
                                 MKPROLOG(SECO,5),  // ACTUAL DATA
                                 CMD_VERSION,
                                 CMD_DROP,
                                 CMD_USBSEND,
                                 CMD_DROP,
-                                CMD_QSEMI,
-                                0,0,0,0,0,0,0
+                                CMD_QSEMI
                             };
 
-                            getversion[1]|=(1+OBJSIZE(getversion[3]))<<10;
-                            getversion[2]=usb_crc32roll(0,(BYTEPTR) &(getversion[3]),(1+OBJSIZE(getversion[3]))*4);
 
-                            res=hid_write(thisdev,((const unsigned char *)getversion)+3,RAWHID_TX_SIZE+1);
+                            res=usb_txfileopen('O');
+                            if(!res) break;
+
+                            res=usb_filewrite((BYTEPTR)getversion,6*sizeof(uint32_t));
+
+                            if(!res) break;
+
+                            res=usb_txfileclose();
+
+                            if(res<0) break;
+
+
+                             // WAIT FOR THE FILE TO ARRIVE
+                             start=tmr_ticks();
+                             res=0;
+                             while(!usb_hasdata()) {
+
+                                 if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
+
+                                 cpu_waitforinterrupt();
+                                 end=tmr_ticks();
+                                 if(tmr_ticks2ms(start,end)>__usb_timeout) {
+                                 res=-1;
+                                 break;
+                                 }
+                            }
+                            if(res<0) break;
+
+                            res=usb_rxfileopen();
 
                             if(res<0) break;
 
-                            res=hid_read_timeout(thisdev,buffer,RAWHID_RX_SIZE,100);
+                            res=usb_fileread(buffer,1024);
 
-                            if(res<0) break;
-                            // WE GOT A RESPONSE OR IT TIMED OUT, IGNORE IT
-                            while((res>0) &&(buffer[0]!=USB_BLOCKMARK_GETSTATUS)) res=hid_read_timeout(thisdev,buffer,RAWHID_RX_SIZE,100);
+                            if(res<=0) break;
 
-                            if(res<0) break;
-                             // WE GOT A RESPONSE, THE DEVICE IS ALIVE!
+                            usb_rxfileclose();
 
-                             if(buffer[0]==USB_BLOCKMARK_GETSTATUS) {
-                                        // REMOTE IS ASKING IF WE ARE READY TO RECEIVE DATA
+                            {
+                            unsigned int strprolog;
+                            strprolog=buffer[0]+(buffer[1]<<8)+(buffer[2]<<16)+(buffer[3]<<24);
 
-                                        // SAVE THE SIZE OF WHATEVER IS TRYING TO SEND FOR LATER USE
-                                        datalen=buffer[1];
-                                        datalen|=(buffer[2])<<8;
-                                        datalen|=(buffer[3])<<16;
-                                        datalen|=(buffer[4])<<24;
+                            tmp=QString::fromUtf8((const char *)(buffer+4),rplStrSize(&strprolog));
+                            newitem->setText(2,tmp);
+                            available=1;
+                            }
 
-
-                                        memset(buffer,0,RAWHID_TX_SIZE+1);
-                                        buffer[0]=0;    // REPORT ID
-                                        buffer[1]=USB_BLOCKMARK_RESPONSE;   // RE ARE RESPONDING TO THE REQUEST
-                                        buffer[2]=0;    // WE ARE NOT BUSY
-
-                                        res=hid_write(thisdev,buffer,RAWHID_TX_SIZE+1);
-                             } else break;
-
-
-                             while((res>0) &&(buffer[0]!=USB_BLOCKMARK_SINGLE)) res=hid_read_timeout(thisdev,buffer,RAWHID_RX_SIZE,100);
-
-                             if(res<0) break;
-
-                             // WE GOT A RESPONSE, THE DEVICE IS ALIVE!
-                             // RECEIVE THE DATA
-                             if(buffer[0]==USB_BLOCKMARK_SINGLE) {
-                                                unsigned int strprolog;
-                                                strprolog=buffer[8]+(buffer[9]<<8)+(buffer[10]<<16)+(buffer[11]<<24);
-
-                                                tmp=QString::fromUtf8((const char *)(buffer+12),rplStrSize(&strprolog));
-                                                newitem->setText(2,tmp);
-                                                available=1;
-
-                                                // REMOTE NEEDS CONFIRMATION THAT WE GOT ALL THE DATA
-                                                memset(buffer,0,RAWHID_TX_SIZE+1);
-                                                buffer[0]=0;    // REPORT ID
-                                                buffer[1]=USB_BLOCKMARK_RESPONSE;   // RE ARE RESPONDING TO THE REQUEST
-                                                buffer[2]=0;    // WE ARE NOT BUSY
-                                                buffer[7]=buffer[3]=datalen&0xff;  // DATALEN HAS TO BE < PACKET SIZE FOR THIS TO WORK
-
-                                                res=hid_write(thisdev,buffer,RAWHID_TX_SIZE+1);
-                              }
-                             else break;
 
                             } while(!available);
 
 
+                            __usb_paused=1;
+                            while(__usb_paused>=0);
+                            usb_shutdown();
 
+                            __usb_timeout=5000;      // SET TIMEOUT TO THE DEFAULT 5000ms
 
-                        hid_close(thisdev);
+                        //hid_close(thisdev);   // ALREADY CLOSED BY usb_shutdown()
 
                         if(!available) {
 
@@ -656,62 +685,49 @@ void FWThread::run()
     }
 
     {
-    // WAIT TWO FULL SECONDS BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
+    // WAIT 500ms BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
     tmr_t start,end;
     start=tmr_ticks();
-    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<200);
+    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<500);
     }
 
 
+    WORD header[3];
     int result=1,offset=0;
 
 
     while(result && (nwords>1024)) {
 
-    if(result && (!usb_transmitlong_start())) {
+    if(result && (!usb_txfileopen('W'))) {
         // TODO: SOME KIND OF ERROR
         result=0;
         break;
     }
 
     // SEND FIRMWARE BLOCK MARKER
-    if(result && (!usb_transmitlong_word(TEXT2WORD('F','W','U','P')))) {
-        // TODO: SOME KIND OF ERROR
-        result=0;
-        break;
-    }
 
-    // SEND ADDRESS TO BURN THIS BLOCK
-    if(result && (!usb_transmitlong_word(__fwupdate_address+(offset<<2)))) {
-        // TODO: SOME KIND OF ERROR
-            result=0;
-            break;
-    }
+    header[0]=TEXT2WORD('F','W','U','P');
+    header[1]=__fwupdate_address+(offset<<2);
+    header[2]=1024;
 
-    // SEND SIZE OF THE BLOCK
-    if(result && (!usb_transmitlong_word(1024))) {
+    if(result && (!usb_filewrite((BYTEPTR)header,3*sizeof(WORD)))) {
         // TODO: SOME KIND OF ERROR
         result=0;
         break;
     }
 
     if(result) {
-    int k;
-    WORDPTR buffer=(WORDPTR)__fwupdate_buffer;
-    for(k=0;k<1024;++k)
-    {
-        if(result && (!usb_transmitlong_word(buffer[offset]))) {
-            // TODO: SOME KIND OF ERROR
-            result=0;
-            break;
-        }
-        ++offset;
+    BYTEPTR buffer=__fwupdate_buffer+offset*sizeof(WORD);
+    if(!usb_filewrite(buffer,1024*sizeof(WORD))) {
+        result=0;
+        break;
     }
+    offset+=1024;
     }
 
 
 
-    if(result && (!usb_transmitlong_finish())) {
+    if(result && (!usb_txfileclose())) {
         // TODO: SOME KIND OF ERROR
        result=0;
        break;
@@ -724,57 +740,39 @@ void FWThread::run()
     }
 
     if(result && nwords) {
-        if(!usb_transmitlong_start()) {
+        if(result && (!usb_txfileopen('W'))) {
             // TODO: SOME KIND OF ERROR
             result=0;
         }
 
         // SEND FIRMWARE BLOCK MARKER
-        if(result && (!usb_transmitlong_word(TEXT2WORD('F','W','U','P')))) {
-            // TODO: SOME KIND OF ERROR
-            result=0;
-        }
 
-        // SEND ADDRESS TO BURN THIS BLOCK
-        if(result && (!usb_transmitlong_word(__fwupdate_address+(offset<<2)))) {
-            // TODO: SOME KIND OF ERROR
-                result=0;
-        }
+        header[0]=TEXT2WORD('F','W','U','P');
+        header[1]=__fwupdate_address+(offset<<2);
+        header[2]=nwords;
 
-        // SEND SIZE OF THE BLOCK
-        if(result && (!usb_transmitlong_word(nwords))) {
+        if(result && (!usb_filewrite((BYTEPTR)header,3*sizeof(WORD)))) {
             // TODO: SOME KIND OF ERROR
             result=0;
         }
 
         if(result) {
-        int k;
-        WORDPTR buffer=(WORDPTR)__fwupdate_buffer;
-        for(k=0;k<nwords;++k)
-        {
-            if(result && (!usb_transmitlong_word(buffer[offset]))) {
-                // TODO: SOME KIND OF ERROR
-                result=0;
-                break;
-            }
-            ++offset;
+        BYTEPTR buffer=__fwupdate_buffer+offset*sizeof(WORD);
+        if(!usb_filewrite(buffer,nwords*sizeof(WORD))) {
+            result=0;
+        }
+        offset+=nwords;
+        }
+
+        if(result && (!usb_txfileclose())) {
+            // TODO: SOME KIND OF ERROR
+           result=0;
         }
         __fwupdate_progress=offset;
 
         }
 
-
-
-        if(result && (!usb_transmitlong_finish())) {
-            // TODO: SOME KIND OF ERROR
-           result=0;
-        }
-
-
-        // DONE SENDING THE LAST BLOCK
-    }
-
-
+    // DONE SENDING THE LAST BLOCK
     {
     // WAIT TWO FULL SECONDS BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
     tmr_t start,end;
@@ -785,27 +783,21 @@ void FWThread::run()
 
     // NOW FINISH THE TEST BY RESETTING
 
-    if(result && (!usb_transmitlong_start())) {
+    if(result && (!usb_txfileopen('W'))) {
         // TODO: SOME KIND OF ERROR
        result=0;
     }
 
-    if(result && (!usb_transmitlong_word(TEXT2WORD('F','W','U','P')))) {
+    header[0]=TEXT2WORD('F','W','U','P');
+    header[1]=0xffffffff;
+    header[2]=0;
+
+    if(result && (!usb_filewrite((BYTEPTR)header,3*sizeof(WORD)))) {
         // TODO: SOME KIND OF ERROR
        result=0;
     }
 
-    // FOR DEBUG, JUST WRITE ONE WORD TO THIS ADDRESS
-    if(result && (!usb_transmitlong_word(0xFFFFFFFF))) {
-        // TODO: SOME KIND OF ERROR
-       result=0;
-    }
-    if(result && (!usb_transmitlong_word(0x0))) {
-        // TODO: SOME KIND OF ERROR
-       result=0;
-    }
-
-    if(result && (!usb_transmitlong_finish())) {
+    if(result && (!usb_txfileclose())) {
         // TODO: SOME KIND OF ERROR
        result=0;
     }

@@ -218,6 +218,7 @@ SOURCES += main.cpp\
     newrpl/lib-98-statistics.c \
     firmware/hal_cpu.c \
     firmware/sys/target_pc/usbdriver.c \
+    firmware/sys/usbcommon.c \
     usbselector.cpp \
     newrpl/lib-100-usb.c \
     newrpl/lib-102-libptr.c \

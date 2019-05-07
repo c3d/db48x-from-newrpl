@@ -122,7 +122,7 @@ extern BYTE __usb_tmprxbuffer[RAWHID_RX_SIZE+1] ;  // TEMPORARY BUFFER TO RECEIV
 extern BYTE __usb_ctlrxbuffer[RAWHID_RX_SIZE+1] ;  // TEMPORARY BUFFER TO RECEIVE CONTROL PACKETS
 extern BYTE __usb_ctltxbuffer[RAWHID_TX_SIZE+1] ;  // TEMPORARY BUFFER TO TRANSMIT DATA
 
-extern BYTEPTR __usb_rxbuffer ;              // LARGE BUFFER TO RECEIVE AT LEAST 3 FULL FRAGMENTS
+extern BYTE __usb_rxbuffer[3*LONG_BUFFER_SIZE] ;              // LARGE BUFFER TO RECEIVE AT LEAST 3 FULL FRAGMENTS
 extern WORD    __usb_rxoffset ;              // STARTING OFFSET OF THE DATA IN THE RX BUFFER
 extern WORD    __usb_rxused ;                // NUMBER OF BYTES USED IN THE RX BUFFER
 extern WORD    __usb_rxread ;                // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER

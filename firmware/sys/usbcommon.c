@@ -355,7 +355,6 @@ int usb_waitfordata(int nbytes)
         if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) return 0;
 
 
-        cpu_waitforinterrupt();
 
         end=tmr_ticks();
         if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
@@ -367,6 +366,10 @@ int usb_waitfordata(int nbytes)
         if(hasbytes!=prevbytes) start=tmr_ticks();  // RESET THE TIMEOUT IF WE GET SOME DATA ON THE WIRE
         prevbytes=hasbytes;
 
+        if(__usb_drvstatus&USB_STATUS_HALT) {
+            // NO MORE DATA WILL COME BACAUSE OUR BUFFERS ARE FULL, EMPTY THE BUFFERS BY RETURNING WHAT WE HAVE SO FAR
+            break;
+        }
 
         if(__usb_rxtotalbytes) {
             // WE FINISHED RECEIVING THE FILE
@@ -375,6 +378,8 @@ int usb_waitfordata(int nbytes)
                 break;
             }
         }
+
+        cpu_waitforinterrupt();
 
     }
 

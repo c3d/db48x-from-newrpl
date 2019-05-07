@@ -53,4 +53,9 @@ extern char ExceptionScreen[8192];
 // SIGNALS FOR OS-DRIVEN EVENTS
 extern void halScreenUpdated();
 
+// MAKE TIMEOUT VARIABLE SO WE CAN HAVE SHORT TIMEOUT FOR DEVICE DETECTION
+#undef USB_TIMEOUT_MS
+#define USB_TIMEOUT_MS __usb_timeout
+extern int __usb_timeout;
+
 #endif // TARGET_PC_H

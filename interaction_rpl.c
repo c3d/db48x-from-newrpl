@@ -103,6 +103,18 @@ extern int usb_remoteready();
 
 
 
+int usb_transmitdata(BYTEPTR data,int nbytes)
+{
+    if(!usb_txfileopen('O')) return 0;
+
+    if(!usb_filewrite(data,nbytes)) return 0;
+
+    if(!usb_txfileclose()) return 0;
+
+    return 1;
+}
+
+
 int usbsendtoremote(uint32_t *data,int nwords)
 {
     return usb_transmitdata((BYTEPTR) data,nwords*sizeof(WORD));
@@ -148,130 +160,42 @@ int usbremotefwupdatestart()
 // RECEIVE AN ENTIRE ARCHIVE, RETURN WORD COUNT, OR -1 IF ERROR
 int usbreceivearchive(uint32_t *buffer,int bufsize)
 {
-    int flag=rplTestSystemFlag(FL_NOAUTORECV);
-    rplSetSystemFlag(FL_NOAUTORECV);
+  int count,bytesread;
+  int fileid;
+  BYTEPTR bufptr;
 
-    if(!usb_receivelong_start()) {
-        if(flag) rplSetSystemFlag(FL_NOAUTORECV);
-        else     rplClrSystemFlag(FL_NOAUTORECV);
+  if(!usb_waitfordata(4)) return 0;
 
+  fileid=usb_rxfileopen();
 
-        return 0;
-    }
+  if(usb_filetype(fileid)!='B') { usb_rxfileclose(); return 0; }
 
+  count=0;
 
-     BINT count=0;
+  bufptr=(BYTEPTR) buffer;
+  do {
 
-     do {
-         BINT datasize,byteoffset=__usb_localbigoffset,totalsize=0;
+      bytesread=usb_fileread(bufptr,bufsize-count);
 
-         // WAIT FOR NEXT BLOCK IN A MULTIPART TRANSACTION
-         if(!usb_waitfordata()) {
-             usb_ignoreuntilend();
-             if(flag) rplSetSystemFlag(FL_NOAUTORECV);
-             else     rplClrSystemFlag(FL_NOAUTORECV);
-
-             return -1;
-         }
-
-         BYTEPTR data2=usb_accessdata(&datasize);
-
-         if(!totalsize) totalsize=usb_remotetotalsize();
-         if(byteoffset!=usb_remoteoffset()) {
-             // WE NEED TO REQUEST THE CORRECT OFFSET, BUT IT'S IMPOSSIBLE IN LONG TRANSMISSIONS
-             usb_setoffset(-1);  // ABORT, SOMETHING WENT WRONG
-             usb_releasedata();
-             usb_sendfeedback();
-             if(flag) rplSetSystemFlag(FL_NOAUTORECV);
-             else     rplClrSystemFlag(FL_NOAUTORECV);
-
-             return -1;
-         }
+      if(bytesread>0) {
+          bufptr+=bytesread;
+      }
 
 
-         if(!usb_checkcrc()) {
-             // WE NEED TO REQUEST THE CORRECT OFFSET, BUT IT'S IMPOSSIBLE IN LONG TRANSMISSIONS
-             usb_setoffset(-1);  // ABORT, SOMETHING WENT WRONG
-             usb_releasedata();
-             usb_sendfeedback();
-             if(flag) rplSetSystemFlag(FL_NOAUTORECV);
-             else     rplClrSystemFlag(FL_NOAUTORECV);
+      if(bytesread<bufsize-count) {
+          if(usb_eof()) {
+              // WE FINISHED THE FILE!
+              break;
+          }
+      }
+      // MORE DATA IS EXPECTED, ALLOCATE MORE MEMORY
 
-             return -1;
-         }
+  } while(bytesread>0);
 
-         // WE GOT A BLOCK AND THE CRC MATCHES, IT'S ALL WE NEED
+  //  WE ARE DONE WITH THE TRANSMISSION
+  usb_rxfileclose();
 
-         byteoffset+=datasize;
-         usb_addremoteoffset(datasize);  // ADVANCE THE COUNTER OF REMOTE DATA RECEIVED FROM THE REMOTE
-         usb_setoffset(byteoffset);      // AND OUR LOCAL COUNTER
-
-         if(datasize<USB_BLOCKSIZE) {
-         usb_sendfeedback();
-
-         usb_waitdatareceived(); // WAIT FOR THE DATA RECEIVED ACKNOWLEDGEMENT TO BE SENT TO THE REMOTE, INDICATING WE FINISHED RECEIVING DATA
-
-         // THIS IS REQUIRED ONLY AT END OF TRANSMISSION:
-         usb_setoffset(0);   // NEXT TRANSMISSION WE NEED TO REQUEST FROM OFFSET ZERO, RATHER THAN RESUME FROM WHERE WE LEFT OFF
-
-         }
-
-         // DONE RECEIVING BLOCKS OF DATA
-
-
-         // CHECK IF THE RECEIVED BLOCK IS OURS
-         if((__usb_rcvblkmark==USB_BLOCKMARK_MULTISTART)||(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE)) {
-             if(__usb_longoffset) {
-                 // BAD BLOCK, WE CAN ONLY RECEIVE THE FIRST BLOCK ONCE, ABORT
-                 usb_releasedata();
-                 if(flag) rplSetSystemFlag(FL_NOAUTORECV);
-                 else     rplClrSystemFlag(FL_NOAUTORECV);
-
-                 return -1;
-             }
-             if(__usb_rcvblkmark==USB_BLOCKMARK_SINGLE) __usb_longlastsize=datasize;
-
-         }
-         if((__usb_rcvblkmark==USB_BLOCKMARK_MULTI)||(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND)) {
-             if(!__usb_longoffset) {
-                 // BAD BLOCK, WE CAN ONLY RECEIVE THE FIRST BLOCK ONCE, ABORT
-                 usb_releasedata();
-                 if(flag) rplSetSystemFlag(FL_NOAUTORECV);
-                 else     rplClrSystemFlag(FL_NOAUTORECV);
-
-                 return -1;
-             }
-             if(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND) __usb_longlastsize=datasize;
-
-         }
-
-         // TAKE OWNERSHIP OF THE BUFFER
-
-         // HAVE A GOOD BLOCK!
-
-         if(count+datasize>=bufsize*sizeof(WORD)) {
-             if(flag) rplSetSystemFlag(FL_NOAUTORECV);
-             else     rplClrSystemFlag(FL_NOAUTORECV);
-
-             return -1; // BUFFER TOO SMALL
-            }
-
-        memmoveb(((unsigned char *)buffer)+count,__usb_rcvbuffer,datasize);
-        count+=datasize;
-        __usb_longoffset+=datasize;
-        if(__usb_rcvblkmark==USB_BLOCKMARK_MULTIEND) {
-            // LAST BLOCK RECEIVED AND PROCESSED
-            usb_releasedata();
-            break;
-        }
-        usb_releasedata();
-     } while(1);
-
-    usb_receivelong_finish();
-    if(flag) rplSetSystemFlag(FL_NOAUTORECV);
-    else     rplClrSystemFlag(FL_NOAUTORECV);
-
-    return (count+3)>>2;
+    return (bytesread+3)>>2;
 
 }
 
@@ -283,7 +207,7 @@ int usbsendarchive(uint32_t *buffer,int bufsize)
         return -1;
     }
 
-    if(!usb_transmitlong_start()) {
+    if(!usb_txfileopen('B')) {
         rplError(ERR_USBCOMMERROR);     // IT'S ACTUALLY OUT OF BUFFER MEMORY
         return -1;
     }
@@ -291,13 +215,15 @@ int usbsendarchive(uint32_t *buffer,int bufsize)
     int k;
     for(k=0;k<bufsize;++k)
     {
-        if(!usb_transmitlong_word(buffer[k])) {
+        if(!usb_filewrite(buffer[k],(bufsize-k>64)? 64 : (bufsize-k))) {
             rplError(ERR_USBCOMMERROR);
             break;
         }
     }
 
-    usb_transmitlong_finish();
+    if(!usb_txfileclose()) {
+        rplError(ERR_USBCOMMERROR);
+    }
 
     if(k!=bufsize) return -1;
 

@@ -18,7 +18,11 @@
 #include "usbselector.h"
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+
+extern "C" {
+#include "ui.h"
 #include "firmware.h"
+}
 #define takemax(a,b) (((a)>(b))? (a):(b))
 
 
@@ -1469,6 +1473,7 @@ void USBThread::run()
     QElapsedTimer timer;
     timer.start();
     __pcsystmr=timer.elapsed()*100;    // INITIALIZE TICK COUNTER
+    __usb_timeout=5000; // DEFAULT
 
     while((__usb_paused!=2)&&(__usb_paused!=-2))
     {
