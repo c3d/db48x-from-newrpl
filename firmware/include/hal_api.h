@@ -1110,6 +1110,9 @@ void cpu_flushicache(void);
 // LOW-LEVEL COMMON USB API
 void usb_sendcontrolpacket(int packet_type);
 void usb_receivecontrolpacket();
+int usb_waitforreport();
+USB_PACKET *usb_getreport();
+void usb_releasereport();
 
 // USER-LEVEL COMMON USB API
 int usb_isconnected();
@@ -1117,14 +1120,14 @@ int usb_isconfigured();
 int usb_hasdata();
 
 int usb_txfileopen(int file_type);
-int usb_filewrite(BYTEPTR data,int nbytes);
-int usb_txfileclose();
+int usb_filewrite(int fileid, BYTEPTR data, int nbytes);
+int usb_txfileclose(int fileid);
 
 int usb_rxfileopen();
-int usb_rxbytesready();
-int usb_eof();
-int usb_fileread(BYTEPTR dest,int nbytes);
-int usb_rxfileclose();
+int usb_rxbytesready(int fileid);
+int usb_eof(int fileid);
+int usb_fileread(int fileid, BYTEPTR dest, int nbytes);
+int usb_rxfileclose(int fileid);
 // file_type = 'O','B','W', OR 'D', SEE SPECS
 #define usb_filetype(fileid) ((fileid)>>8)
 

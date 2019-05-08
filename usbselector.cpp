@@ -229,13 +229,10 @@ void USBSelector::RefreshList()
 
                             do {
 
+
                              usb_sendcontrolpacket(P_TYPE_GETSTATUS);
 
                              tmr_t start,end;
-
-
-                             __usb_drvstatus|=USB_STATUS_EOF;       // FAKE END-OF-FILE TO DETECT WHEN THE REMOTE HAS RESPONDED
-
                              // WAIT FOR THE CONTROL PACKET TO BE SENT
                              start=tmr_ticks();
                              res=0;
@@ -253,19 +250,34 @@ void USBSelector::RefreshList()
 
                              if(res<0) break;
 
+                             if(!usb_waitforreport()) { res=-1; break; }
                              // WAIT FOR A RESPONSE
-                             start=tmr_ticks();
-                             while(__usb_drvstatus&USB_STATUS_EOF) {
+                             USB_PACKET *pkt=usb_getreport();
 
-                                 if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
+                             if(P_FILEID(pkt)!=0) {
+                                 usb_sendcontrolpacket(P_TYPE_ABORT);
 
-                                 cpu_waitforinterrupt();
-                                 end=tmr_ticks();
-                                 if(tmr_ticks2ms(start,end)>__usb_timeout) {
-                                 res=-1;
-                                 break;
-                                 }
-                            }
+                                 tmr_t start,end;
+
+
+                                 // WAIT FOR THE CONTROL PACKET TO BE SENT
+                                 start=tmr_ticks();
+                                 res=0;
+                                 while(__usb_drvstatus&USB_STATUS_TXCTL) {
+
+                                     if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
+
+                                     cpu_waitforinterrupt();
+                                     end=tmr_ticks();
+                                     if(tmr_ticks2ms(start,end)>__usb_timeout) {
+                                     res=-1;
+                                     break;
+                                     }
+                                }
+                                 continue;
+                             }
+
+                             usb_releasereport();
 
                              if(res<0) break;
                              // GOT AN ANSWER, MAKE SURE REMOTE IS READY TO RECEIVE
@@ -281,15 +293,15 @@ void USBSelector::RefreshList()
                                 CMD_QSEMI
                             };
 
-
-                            res=usb_txfileopen('O');
+                            int fileid;
+                            res=fileid=usb_txfileopen('O');
                             if(!res) break;
 
-                            res=usb_filewrite((BYTEPTR)getversion,6*sizeof(uint32_t));
+                            res=usb_filewrite(fileid,(BYTEPTR)getversion,6*sizeof(uint32_t));
 
                             if(!res) break;
 
-                            res=usb_txfileclose();
+                            res=usb_txfileclose(fileid);
 
                             if(res<0) break;
 
@@ -310,15 +322,15 @@ void USBSelector::RefreshList()
                             }
                             if(res<0) break;
 
-                            res=usb_rxfileopen();
+                            res=fileid=usb_rxfileopen();
 
                             if(res<0) break;
 
-                            res=usb_fileread(buffer,1024);
+                            res=usb_fileread(fileid,buffer,1024);
 
                             if(res<=0) break;
 
-                            usb_rxfileclose();
+                            usb_rxfileclose(fileid);
 
                             {
                             unsigned int strprolog;
@@ -694,13 +706,14 @@ void FWThread::run()
 
     WORD header[3];
     int result=1,offset=0;
+    int fileid;
 
 
     while(result && (nwords>1024)) {
 
-    if(result && (!usb_txfileopen('W'))) {
+    if(result) result=fileid=usb_txfileopen('W');
+    if(!result) {
         // TODO: SOME KIND OF ERROR
-        result=0;
         break;
     }
 
@@ -710,7 +723,7 @@ void FWThread::run()
     header[1]=__fwupdate_address+(offset<<2);
     header[2]=1024;
 
-    if(result && (!usb_filewrite((BYTEPTR)header,3*sizeof(WORD)))) {
+    if(result && (!usb_filewrite(fileid,(BYTEPTR)header,3*sizeof(WORD)))) {
         // TODO: SOME KIND OF ERROR
         result=0;
         break;
@@ -718,7 +731,7 @@ void FWThread::run()
 
     if(result) {
     BYTEPTR buffer=__fwupdate_buffer+offset*sizeof(WORD);
-    if(!usb_filewrite(buffer,1024*sizeof(WORD))) {
+    if(!usb_filewrite(fileid,buffer,1024*sizeof(WORD))) {
         result=0;
         break;
     }
@@ -727,7 +740,7 @@ void FWThread::run()
 
 
 
-    if(result && (!usb_txfileclose())) {
+    if(result && (!usb_txfileclose(fileid))) {
         // TODO: SOME KIND OF ERROR
        result=0;
        break;
@@ -740,10 +753,7 @@ void FWThread::run()
     }
 
     if(result && nwords) {
-        if(result && (!usb_txfileopen('W'))) {
-            // TODO: SOME KIND OF ERROR
-            result=0;
-        }
+        result=fileid=usb_txfileopen('W');
 
         // SEND FIRMWARE BLOCK MARKER
 
@@ -751,20 +761,20 @@ void FWThread::run()
         header[1]=__fwupdate_address+(offset<<2);
         header[2]=nwords;
 
-        if(result && (!usb_filewrite((BYTEPTR)header,3*sizeof(WORD)))) {
+        if(result && (!usb_filewrite(fileid,(BYTEPTR)header,3*sizeof(WORD)))) {
             // TODO: SOME KIND OF ERROR
             result=0;
         }
 
         if(result) {
         BYTEPTR buffer=__fwupdate_buffer+offset*sizeof(WORD);
-        if(!usb_filewrite(buffer,nwords*sizeof(WORD))) {
+        if(!usb_filewrite(fileid,buffer,nwords*sizeof(WORD))) {
             result=0;
         }
         offset+=nwords;
         }
 
-        if(result && (!usb_txfileclose())) {
+        if(result && (!usb_txfileclose(fileid))) {
             // TODO: SOME KIND OF ERROR
            result=0;
         }
@@ -782,22 +792,18 @@ void FWThread::run()
 
 
     // NOW FINISH THE TEST BY RESETTING
-
-    if(result && (!usb_txfileopen('W'))) {
-        // TODO: SOME KIND OF ERROR
-       result=0;
-    }
+    result=fileid=usb_txfileopen('W');
 
     header[0]=TEXT2WORD('F','W','U','P');
     header[1]=0xffffffff;
     header[2]=0;
 
-    if(result && (!usb_filewrite((BYTEPTR)header,3*sizeof(WORD)))) {
+    if(result && (!usb_filewrite(fileid,(BYTEPTR)header,3*sizeof(WORD)))) {
         // TODO: SOME KIND OF ERROR
        result=0;
     }
 
-    if(result && (!usb_txfileclose())) {
+    if(result && (!usb_txfileclose(fileid))) {
         // TODO: SOME KIND OF ERROR
        result=0;
     }

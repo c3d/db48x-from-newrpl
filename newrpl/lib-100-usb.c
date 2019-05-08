@@ -84,36 +84,42 @@ if(usb_hasdata()) return 1; // END THE LOOP IF THEREŚ DATA IN THE USB
 return 0;
 }
 
+typedef struct {
+    BINT fileid;
+    WORD progress;
+} BACKUP_INFO;
+
 // FOR rplBackup, RETURNS 1 ON SUCCESS, 0 ON ERROR
 int rplUSBArchiveWriteWord(unsigned int data,void *opaque)
 {
-    WORDPTR progress=(WORDPTR) opaque;
+    BACKUP_INFO *info=(BACKUP_INFO *)opaque;
 
     if(Exceptions) return 0;
 
     // PROVIDE VISUAL FEEDBACK
-    if(!((*progress)&0xff)) halSetNotification(N_CONNECTION,((*progress)>>8)&0xf);
-    ++*progress;
+    if(!((info->progress)&0xff)) halSetNotification(N_CONNECTION,((info->progress)>>8)&0xf);
+    ++info->progress;
     WORD buffer=data;
-    return usb_filewrite((BYTEPTR)&buffer,4);
+    return usb_filewrite(info->fileid,(BYTEPTR)&buffer,4);
 }
 
 // FOR rplRestoreBackup, RETURNS THE WORD, SET AND rplError ON ERROR
 WORD rplUSBArchiveReadWord(void *opaque)
 {
-    WORDPTR progress=(WORDPTR) opaque;
+    BACKUP_INFO *info=(BACKUP_INFO *)opaque;
+
     WORD data;
     if(Exceptions) return 0;
 
     // PROVIDE VISUAL FEEDBACK
-    if(!((*progress)&0xff)) halSetNotification(N_CONNECTION,((*progress)>>8)&0xf);
-    ++*progress;
+    if(!((info->progress)&0xff)) halSetNotification(N_CONNECTION,((info->progress)>>8)&0xf);
+    ++info->progress;
 
-    switch(usb_fileread((BYTEPTR)&data,4))
+    switch(usb_fileread(info->fileid,(BYTEPTR)&data,4))
     {
     case 0:
         // OPERATION TIMED OUT
-        if(usb_eof()) rplError(ERR_INVALIDDATA);
+        if(usb_eof(info->fileid)) rplError(ERR_INVALIDDATA);
         else rplError(ERR_USBTIMEOUT);
         return 0;
     case 4:
@@ -259,7 +265,7 @@ void LIB_HANDLER()
         {
         case 'O':   // THIS IS AN RPL OBJECT
             newobjptr=newobj;
-            bytesread=usb_fileread((BYTEPTR)&newobjptr,4);  // GET THE OBJECT PROLOG
+            bytesread=usb_fileread(fileid,(BYTEPTR)&newobjptr,4);  // GET THE OBJECT PROLOG
             if(bytesread<4) { rplError(ERR_USBCOMMERROR); break; }
             expectedsize=rplObjSize(newobj);
             newobjptr+=4;
@@ -280,10 +286,10 @@ void LIB_HANDLER()
 
         do {
             offset=newobjptr-newobj;
-            bytesread=usb_fileread((BYTEPTR)&newobjptr,allocated-offset);
+            bytesread=usb_fileread(fileid,(BYTEPTR)&newobjptr,allocated-offset);
 
             if(bytesread<allocated-offset) {
-                if(usb_eof()) {
+                if(usb_eof(fileid)) {
                     // WE FINISHED THE FILE!
                     newobjptr+=(bytesread+3)>>2;
                 }
@@ -301,7 +307,7 @@ void LIB_HANDLER()
         } while(!Exceptions);
 
         //  WE ARE DONE WITH THE TRANSMISSION
-        usb_rxfileclose();
+        usb_rxfileclose(fileid);
 
         if(Exceptions) return;
 
@@ -343,10 +349,11 @@ void LIB_HANDLER()
             return;
         }
 
-        BINT result=usb_txfileopen('O');    // OPEN AN RPL OBJECT TYPE TRANSMISSION
-        if(result) result=usb_filewrite((BYTEPTR)rplPeekData(1),rplObjSize(rplPeekData(1))*sizeof(WORD));
-        if(result) result=usb_txfileclose();
-        else usb_txfileclose();
+        BINT result,fileid=usb_txfileopen('O');    // OPEN AN RPL OBJECT TYPE TRANSMISSION
+        result=fileid? 1:0;
+        if(result) result=usb_filewrite(fileid,(BYTEPTR)rplPeekData(1),rplObjSize(rplPeekData(1))*sizeof(WORD));
+        if(result) result=usb_txfileclose(fileid);
+        else usb_txfileclose(fileid);
 
         if(!result) rplOverwriteData(1,(WORDPTR)zero_bint);
         else rplOverwriteData(1,(WORDPTR)one_bint);
@@ -408,7 +415,7 @@ void LIB_HANDLER()
         {
         case 'O':   // THIS IS AN RPL OBJECT
             newobjptr=newobj;
-            bytesread=usb_fileread((BYTEPTR)&newobjptr,4);  // GET THE OBJECT PROLOG
+            bytesread=usb_fileread(fileid,(BYTEPTR)&newobjptr,4);  // GET THE OBJECT PROLOG
             if(bytesread<4) { rplError(ERR_USBCOMMERROR); break; }
             expectedsize=rplObjSize(newobj);
             newobjptr+=4;
@@ -429,10 +436,10 @@ void LIB_HANDLER()
 
         do {
             offset=newobjptr-newobj;
-            bytesread=usb_fileread((BYTEPTR)&newobjptr,allocated-offset);
+            bytesread=usb_fileread(fileid,(BYTEPTR)&newobjptr,allocated-offset);
 
             if(bytesread<allocated-offset) {
-                if(usb_eof()) {
+                if(usb_eof(fileid)) {
                     // WE FINISHED THE FILE!
                     newobjptr+=(bytesread+3)>>2;
                 }
@@ -450,7 +457,7 @@ void LIB_HANDLER()
         } while(!Exceptions);
 
         //  WE ARE DONE WITH THE TRANSMISSION
-        usb_rxfileclose();
+        usb_rxfileclose(fileid);
 
         if(Exceptions) return;
 
@@ -497,7 +504,11 @@ void LIB_HANDLER()
             return;
         }
 
-        if(!usb_txfileopen('B')) {
+        BACKUP_INFO info;
+        info.fileid=usb_txfileopen('B');
+        info.progress=0;
+
+        if(!info.fileid) {
             rplError(ERR_USBCOMMERROR);     // IT'S ACTUALLY OUT OF BUFFER MEMORY
             return;
         }
@@ -514,10 +525,9 @@ void LIB_HANDLER()
 
 
 
-        WORD progress=0;
-        BINT err = rplBackup(&rplUSBArchiveWriteWord,(void *)&progress);
+        BINT err = rplBackup(&rplUSBArchiveWriteWord,(void *)&info);
 
-        usb_txfileclose();
+        usb_txfileclose(info.fileid);
 
         if(err!=1) {
             if(!Exceptions) rplError(ERR_USBCOMMERROR);
@@ -572,8 +582,11 @@ void LIB_HANDLER()
             return;
         }
 
+        BACKUP_INFO info;
+        info.fileid=usb_rxfileopen();
+        info.progress=0;
 
-        if(!usb_rxfileopen()) {
+        if(!info.fileid) {
             rplError(ERR_USBCOMMERROR);
             return;
         }
@@ -582,10 +595,9 @@ void LIB_HANDLER()
         GCFlags=GC_IN_PROGRESS; // MARK THAT A GC IS IN PROGRESS TO BLOCK ANY HARDWARE INTERRUPTS
 
 
-        WORD progress=0;
-        BINT err = rplRestoreBackup(0,&rplUSBArchiveReadWord,(void *)&progress);
+        BINT err = rplRestoreBackup(0,&rplUSBArchiveReadWord,(void *)&info);
 
-        usb_rxfileclose();
+        usb_rxfileclose(info.fileid);
 
         switch(err)
         {

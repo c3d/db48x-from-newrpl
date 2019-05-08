@@ -105,11 +105,12 @@ extern int usb_remoteready();
 
 int usb_transmitdata(BYTEPTR data,int nbytes)
 {
-    if(!usb_txfileopen('O')) return 0;
+    int fileid=usb_txfileopen('O');
+    if(!fileid) return 0;
 
-    if(!usb_filewrite(data,nbytes)) return 0;
+    if(!usb_filewrite(fileid,data,nbytes)) return 0;
 
-    if(!usb_txfileclose()) return 0;
+    if(!usb_txfileclose(fileid)) return 0;
 
     return 1;
 }
@@ -168,14 +169,14 @@ int usbreceivearchive(uint32_t *buffer,int bufsize)
 
   fileid=usb_rxfileopen();
 
-  if(usb_filetype(fileid)!='B') { usb_rxfileclose(); return 0; }
+  if(usb_filetype(fileid)!='B') { usb_rxfileclose(fileid); return 0; }
 
   count=0;
 
   bufptr=(BYTEPTR) buffer;
   do {
 
-      bytesread=usb_fileread(bufptr,bufsize-count);
+      bytesread=usb_fileread(fileid,bufptr,bufsize-count);
 
       if(bytesread>0) {
           bufptr+=bytesread;
@@ -183,7 +184,7 @@ int usbreceivearchive(uint32_t *buffer,int bufsize)
 
 
       if(bytesread<bufsize-count) {
-          if(usb_eof()) {
+          if(usb_eof(fileid)) {
               // WE FINISHED THE FILE!
               break;
           }
@@ -192,8 +193,9 @@ int usbreceivearchive(uint32_t *buffer,int bufsize)
 
   } while(bytesread>0);
 
+  if((!bytesread) && (!usb_eof(fileid))) return -1;
   //  WE ARE DONE WITH THE TRANSMISSION
-  usb_rxfileclose();
+  if(!usb_rxfileclose(fileid)) return -1;
 
     return (bytesread+3)>>2;
 
@@ -207,25 +209,23 @@ int usbsendarchive(uint32_t *buffer,int bufsize)
         return -1;
     }
 
-    if(!usb_txfileopen('B')) {
+    int fileid=usb_txfileopen('B');
+    if(!fileid) {
         rplError(ERR_USBCOMMERROR);     // IT'S ACTUALLY OUT OF BUFFER MEMORY
         return -1;
     }
 
-    int k;
-    for(k=0;k<bufsize;++k)
-    {
-        if(!usb_filewrite(buffer[k],(bufsize-k>64)? 64 : (bufsize-k))) {
+
+    if(!usb_filewrite(fileid,(BYTEPTR)buffer,bufsize*sizeof(WORD))) {
             rplError(ERR_USBCOMMERROR);
-            break;
+            bufsize=-1;
         }
-    }
 
-    if(!usb_txfileclose()) {
+
+    if(!usb_txfileclose(fileid)) {
         rplError(ERR_USBCOMMERROR);
+        bufsize=-1;
     }
-
-    if(k!=bufsize) return -1;
 
     return bufsize;
 

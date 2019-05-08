@@ -295,7 +295,12 @@ void usb_ep1_transmit()
     if(__usb_drvstatus&USB_STATUS_TXCTL) {
         // WE HAVE A CONTROL PACKET READY TO GO IN THE CONTROL BUFFER
 
-        if(__usb_curdevice)  hid_write(__usb_curdevice,__usb_ctltxbuffer,RAWHID_TX_SIZE+1);
+        if(__usb_curdevice)  {
+            // ADD THE REPORT BYTE IN THE BUFFER
+            memmoveb(__usb_ctltxbuffer+1,__usb_ctltxbuffer,64);
+            __usb_ctltxbuffer[0]=0;
+            hid_write(__usb_curdevice,__usb_ctltxbuffer,RAWHID_TX_SIZE+1);
+        }
 
         __usb_drvstatus&=~USB_STATUS_TXCTL;
         return;
@@ -319,7 +324,11 @@ void usb_ep1_transmit()
 
             __usb_drvstatus&=~USB_STATUS_TXDATA;
 
-             if(__usb_curdevice)  hid_write(__usb_curdevice,__usb_ctltxbuffer,RAWHID_TX_SIZE+1);
+             if(__usb_curdevice)  {
+                 memmoveb(__usb_ctltxbuffer+1,__usb_ctltxbuffer,64);
+                 __usb_ctltxbuffer[0]=0;
+                 hid_write(__usb_curdevice,__usb_ctltxbuffer,RAWHID_TX_SIZE+1);
+             }
             __usb_drvstatus&=~USB_STATUS_TXCTL;
             return;
         }

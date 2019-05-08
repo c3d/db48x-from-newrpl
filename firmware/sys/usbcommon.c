@@ -114,7 +114,9 @@
 
 void usb_sendcontrolpacket(int packet_type)
 {
-    while(__usb_drvstatus&USB_STATUS_TXCTL);    // THERE'S ANOTHER CONTROL PACKET, WAIT FOR IT TO BE SENT
+    if(!(__usb_drvstatus&USB_STATUS_INSIDEIRQ)) {
+            while(__usb_drvstatus&USB_STATUS_TXCTL);    // THERE'S ANOTHER CONTROL PACKET, WAIT FOR IT TO BE SENT
+    }
 
     // NOW PREPARE THE NEXT CONTROL PACKET IN THE BUFFER
     USB_PACKET *p=(USB_PACKET *)__usb_ctltxbuffer;
@@ -126,6 +128,7 @@ void usb_sendcontrolpacket(int packet_type)
         p->p_type=P_TYPE_GETSTATUS;
         p->p_fileidLSB=__usb_fileid&0xff;
         p->p_fileidMSB=__usb_fileid>>8;
+        __usb_drvstatus&=~USB_STATUS_RXRCVD;
         break;
     case P_TYPE_CHECKPOINT:
         p->p_type=P_TYPE_CHECKPOINT;
@@ -136,6 +139,7 @@ void usb_sendcontrolpacket(int packet_type)
         p->p_data[1]=(__usb_crc32>>8)&0xff;
         p->p_data[2]=(__usb_crc32>>16)&0xff;
         p->p_data[3]=(__usb_crc32>>24)&0xff;
+        __usb_drvstatus&=~USB_STATUS_RXRCVD;
         break;
 
     case P_TYPE_ENDOFFILE:
@@ -147,6 +151,7 @@ void usb_sendcontrolpacket(int packet_type)
         p->p_data[1]=(__usb_crc32>>8)&0xff;
         p->p_data[2]=(__usb_crc32>>16)&0xff;
         p->p_data[3]=(__usb_crc32>>24)&0xff;
+        __usb_drvstatus&=~USB_STATUS_RXRCVD;
         break;
 
     case P_TYPE_ABORT:
@@ -253,9 +258,9 @@ void usb_receivecontrolpacket()
         }
         case P_TYPE_ABORT:
         {
-            if(__usb_fileid==(WORD)ctl->p_fileidLSB+256*(WORD)ctl->p_fileidMSB) {
+            if((__usb_fileid==(WORD)ctl->p_fileidLSB+256*(WORD)ctl->p_fileidMSB)||((WORD)ctl->p_fileidLSB+256*(WORD)ctl->p_fileidMSB==0xffff)) {
             // REMOTE REQUESTED TO ABORT WHATEVER WE WERE DOING
-            __usb_drvstatus&=~(USB_STATUS_TXDATA|USB_STATUS_TXCTL|USB_STATUS_RXDATA|USB_STATUS_HALT|USB_STATUS_ERROR|USB_STATUS_RXCTL);
+            __usb_drvstatus&=~(USB_STATUS_TXDATA|USB_STATUS_TXCTL|USB_STATUS_RXDATA|USB_STATUS_HALT|USB_STATUS_ERROR|USB_STATUS_RXCTL|USB_STATUS_EOF);
 
             // ABORT ALL TRANSACTIONS
             __usb_fileid=0;
@@ -270,6 +275,8 @@ void usb_receivecontrolpacket()
             __usb_txtotalbytes=0;
 
             }
+
+            __usb_drvstatus|=USB_STATUS_RXRCVD;
 
             // DO NOT REPLY TO AN ABORT CONDITION
 
@@ -297,8 +304,12 @@ void usb_receivecontrolpacket()
 
 
 
-        }
+         } else {
+             // WE RECEIVED A REPORT OF THE WRONG FILE, THE REMOTE ISN'T EVEN WORKING ON OUR FILE YET
+              __usb_drvstatus|=USB_STATUS_ERROR;
+         }
 
+         __usb_drvstatus|=USB_STATUS_RXRCVD;
         break;
         }
         default:
@@ -409,7 +420,7 @@ int usb_waitforreport()
 
     // WAIT FOR ALL PREVIOUS DATA TO BE SENT COMPLETELY
     start=tmr_ticks();
-    while(!(__usb_drvstatus&USB_STATUS_RXCTL)) {
+    while(!(__usb_drvstatus&USB_STATUS_RXRCVD)) {
         end=tmr_ticks();
         if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
         return 0;
@@ -422,14 +433,14 @@ int usb_waitforreport()
 // RETRIEVE LAST CONTROL PACKET WE RECEIVED
 USB_PACKET *usb_getreport()
 {
-    if(__usb_drvstatus&USB_STATUS_RXCTL)  return (USB_PACKET *)__usb_ctlrxbuffer;
+    if(__usb_drvstatus&USB_STATUS_RXRCVD)  return (USB_PACKET *)__usb_ctlrxbuffer;
     return 0;
 }
 
 // RELEASE THE CONTROL PACKET
 void usb_releasereport()
 {
-    __usb_drvstatus&=~USB_STATUS_RXCTL;
+    __usb_drvstatus&=~USB_STATUS_RXRCVD;
 }
 
 
@@ -491,14 +502,16 @@ int usb_txfileopen(int file_type)
 
     // WE ARE READY TO START!
 
-    return 1;
+    return __usb_fileid;
 
 }
 
 // WRITE BYTES TO A FILE BEING SENT
 
-int usb_filewrite(BYTEPTR data,int nbytes)
+int usb_filewrite(int fileid,BYTEPTR data,int nbytes)
 {
+    if(fileid!=__usb_fileid) return 0;
+
     // WAIT FOREVER UNTIL WE ARE DONE WRITING, BUT RETURN IF WE GET A REPORT
     while(__usb_drvstatus&USB_STATUS_TXDATA) {
         USB_PACKET *report=usb_getreport();
@@ -512,8 +525,10 @@ int usb_filewrite(BYTEPTR data,int nbytes)
     return 1;
 }
 
-int usb_txfileclose()
+int usb_txfileclose(int fileid)
 {
+    if(fileid!=__usb_fileid) return 0;
+
     if(!(__usb_drvstatus&USB_STATUS_TXDATA)) {
         // ZERO-DATA PACKET WILL BE SENT TO INDICATE END-OF-FILE
         __usb_txtotalbytes=__usb_offset;
@@ -559,14 +574,17 @@ return __usb_fileid;
 }
 
 // RETURN HOW MANY BYTES ARE READY TO BE READ
-int usb_rxbytesready()
+int usb_rxbytesready(int fileid)
 {
+    if(fileid!=__usb_fileid) return 0;
+
 return __usb_rxused-__usb_rxread;
 }
 
 // RETRIEVE BYTES THAT WERE ALREADY RECEIVED
-int usb_fileread(BYTEPTR dest,int nbytes)
+int usb_fileread(int fileid,BYTEPTR dest,int nbytes)
 {
+    if(fileid!=__usb_fileid) return 0;
 
 
     // WAIT FOR ENOUGH BYTES TO BECOME AVAILABLE
@@ -588,14 +606,18 @@ int usb_fileread(BYTEPTR dest,int nbytes)
 
 }
 
-int usb_eof()
+int usb_eof(int fileid)
 {
+    if(fileid!=__usb_fileid) return 0;
+
    return (__usb_drvstatus&USB_STATUS_EOF)? 1:0;
 }
 
 // CLOSE THE FILE RELEASE ANY PENDING DATA
-int usb_rxfileclose()
+int usb_rxfileclose(int fileid)
 {
+    if(fileid!=__usb_fileid) return 0;
+
     if(!__usb_rxtotalbytes) {
         // IF WE STILL DIDN'T RECEIVE THE ENTIRE FILE, ABORT IT
         usb_sendcontrolpacket(P_TYPE_ABORT);

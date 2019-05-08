@@ -39,7 +39,7 @@
 // all, but allocating more than necessary means reserved
 // bandwidth is no longer available to other USB devices.
 #define RAWHID_TX_SIZE		64	// transmit packet size
-#define RAWHID_TX_INTERVAL	2	// max # of ms between transmit packets
+#define RAWHID_TX_INTERVAL	3	// max # of ms between transmit packets
 #define RAWHID_RX_SIZE		64	// receive packet size
 #define RAWHID_RX_INTERVAL	2	// max # of ms between receive packets
 
@@ -65,9 +65,10 @@
 #define USB_STATUS_ERROR                1024 // THERE WAS SOME ERROR WITH THE RECEIVED DATA
 #define USB_STATUS_HALT                 2048 // WE NEED TO TELL THE HOST TO STOP SENDING DATA
 #define USB_STATUS_EOF                  4096 // READ UP TO END-OF-FILE
-#define USB_STATUS_WAKEUPENABLED        8192
-#define USB_STATUS_TESTMODE             16384
-#define USB_STATUS_SUSPEND              32768
+#define USB_STATUS_RXRCVD               8192
+#define USB_STATUS_WAKEUPENABLED        16384
+#define USB_STATUS_TESTMODE             32768
+#define USB_STATUS_SUSPEND              65536
 
 // MAXIMUM SIZE OF A BLOCK OF DATA, LARGER BLOCKS WILL BE SPLIT INTO MULTIPLE SMALLER BLOCKS
 #define USB_DATASIZE      (RAWHID_TX_SIZE-8)

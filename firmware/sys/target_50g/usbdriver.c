@@ -545,6 +545,22 @@ void usb_init(int force)
 
     __usb_drvstatus=USB_STATUS_INIT;
 
+    __usb_fileid=0;
+    __usb_fileid_seq=0;
+    __usb_offset=0;
+    __usb_crc32=0;      // RESET CRC32
+
+    __usb_txbuffer=0;
+    __usb_txused=0;
+    __usb_txoffset=0;
+    __usb_txoffset=0;
+    __usb_txtotalbytes=0;
+
+    __usb_rxoffset=0;
+    __usb_rxused=0;                // NUMBER OF BYTES USED IN THE RX BUFFER
+    __usb_rxread=0;                // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
+    __usb_rxtotalbytes=0;          // DON'T KNOW THE TOTAL FILE SIZE YET
+
     usb_hwsetup();
 
 
@@ -861,7 +877,13 @@ void ep0_irqservice()
             // OUR DEVICE HAS ONE SINGLE CONFIGURATION AND IS SETUP
             // ON WAKEUP, SO NOTHING TO DO HERE BUT ACKNOWLEDGE
 
-            if(value) __usb_drvstatus|=USB_STATUS_CONFIGURED;
+            if(value) {
+                __usb_drvstatus|=USB_STATUS_CONFIGURED;
+                // SET AUTOMATIC RESPONSE ON FIRST TX INTERRUPT
+               *INDEX_REG=1;
+               *IN_CSR1_REG|=EPn_IN_PKT_RDY;
+               *INDEX_REG=0;
+            }
             else __usb_drvstatus&=~USB_STATUS_CONFIGURED;
             __usb_ctlcount=0;
             __usb_ctlpadding=0;
@@ -932,7 +954,7 @@ void ep0_irqservice()
 
                     int endp=index&7;
                     *INDEX_REG=endp;
-                    if(endp!=0) {   // DO NOT STALL THE CONTROL ENDPOINT
+                    if(endp!=0) {   // DO NOT  THE CONTROL ENDPOINT
                         *OUT_CSR1_REG|=EPn_OUT_SEND_STALL;
                         *IN_CSR1_REG|=EPn_IN_SEND_STALL;
                     }
@@ -1451,20 +1473,17 @@ void usb_irqservice()
     if(*EP_INT_REG&1) {
         ep0_irqservice();
         *EP_INT_REG=1;
-        __usb_drvstatus&=~USB_STATUS_INSIDEIRQ;
-        return;
+
     }
     if(*EP_INT_REG&2) {
         ep1_irqservice();
         *EP_INT_REG=2;
-        __usb_drvstatus&=~USB_STATUS_INSIDEIRQ;
-        return;
+
     }
     if(*EP_INT_REG&4) {
         ep2_irqservice();
         *EP_INT_REG=4;
-        __usb_drvstatus&=~USB_STATUS_INSIDEIRQ;
-        return;
+
     }
 
     if(*USB_INT_REG&1) {
@@ -1496,6 +1515,7 @@ void usb_irqservice()
         return;
     }
 
+    __usb_drvstatus&=~USB_STATUS_INSIDEIRQ;
 
 }
 
