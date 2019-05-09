@@ -308,6 +308,16 @@ void usb_ep1_transmit()
 
     if(__usb_drvstatus&USB_STATUS_TXDATA) {
         // WE HAVE A DATA PACKET TO SEND
+        if(__usb_drvstatus&USB_STATUS_ERROR) {
+            // THE REMOTE DIDN'T GET IT, WE NEED TO RESEND
+            // THE WANTED OFFSET WAS LEFT IN __usb_rxoffset BY usb_receivecontrolpacket()
+            __usb_offset=__usb_rxoffset;
+            __usb_txseq--;
+            __usb_txseq&=0x1f;  // DIAL BACK THE SEQUENCE NUMBER BACK
+            __usb_crc32=0;      // RESET THE CRC FROM HERE ON
+            __usb_drvstatus&=~USB_STATUS_ERROR; // REMOVE THE ERROR AND RESEND
+        }
+
         int bufoff=__usb_offset-__usb_txoffset;
         int bufbytes;
         int p_type;
@@ -347,7 +357,6 @@ void usb_ep1_transmit()
 
         // SEND A FULL PACKET
         BYTE tmpbuf[RAWHID_TX_SIZE+1];
-        memsetb(tmpbuf,0,RAWHID_TX_SIZE+1);
         tmpbuf[0]=0;
 
         tmpbuf[1]=p_type;
@@ -359,7 +368,11 @@ void usb_ep1_transmit()
         tmpbuf[7]=(__usb_offset>>16)&0xff;
         tmpbuf[8]=(__usb_offset>>24)&0xff;
 
+        memmoveb(tmpbuf+9,__usb_txbuffer+bufoff,bufbytes);
+
         if(__usb_curdevice)  hid_write(__usb_curdevice,tmpbuf,RAWHID_TX_SIZE+1);
+
+        __usb_crc32=usb_crc32roll(__usb_crc32,__usb_txbuffer+bufoff,bufbytes);  // UPDATE THE CRC32
 
         __usb_offset+=bufbytes;
         __usb_txseq=p_type&0x1f;

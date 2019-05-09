@@ -134,7 +134,7 @@ void usb_sendcontrolpacket(int packet_type)
         p->p_type=P_TYPE_CHECKPOINT;
         p->p_fileidLSB=__usb_fileid&0xff;
         p->p_fileidMSB=__usb_fileid>>8;
-        p->p_offset=__usb_txoffset;
+        p->p_offset=__usb_offset;
         p->p_data[0]=__usb_crc32&0xff;
         p->p_data[1]=(__usb_crc32>>8)&0xff;
         p->p_data[2]=(__usb_crc32>>16)&0xff;
@@ -146,7 +146,7 @@ void usb_sendcontrolpacket(int packet_type)
         p->p_type=P_TYPE_ENDOFFILE;
         p->p_fileidLSB=__usb_fileid&0xff;
         p->p_fileidMSB=__usb_fileid>>8;
-        p->p_offset=__usb_txoffset;
+        p->p_offset=__usb_offset;
         p->p_data[0]=__usb_crc32&0xff;
         p->p_data[1]=(__usb_crc32>>8)&0xff;
         p->p_data[2]=(__usb_crc32>>16)&0xff;
@@ -164,7 +164,7 @@ void usb_sendcontrolpacket(int packet_type)
         p->p_type=P_TYPE_REPORT;
         p->p_fileidLSB=__usb_fileid&0xff;
         p->p_fileidMSB=__usb_fileid>>8;
-        p->p_offset=__usb_rxoffset;
+        p->p_offset=__usb_offset;
         p->p_data[0]=(__usb_drvstatus&USB_STATUS_HALT)? 1:0;
         p->p_data[1]=(__usb_drvstatus&USB_STATUS_ERROR)? 1:0;
         p->p_data[2]=(__usb_rxtotalbytes)? 1:0;
@@ -235,7 +235,7 @@ void usb_receivecontrolpacket()
             // SAME AS FOR A CHECKPOINT, BUT SET TOTAL BYTE COUNT
                 __usb_drvstatus&=~USB_STATUS_ERROR;    // REMOVE ERROR SIGNAL
 
-                if(__usb_rxoffset+__usb_rxused!=ctl->p_offset) {
+                if(__usb_offset!=ctl->p_offset) {
                     // SOMETHING WENT WRONG, WE DISAGREE ON THE FILE SIZE
                     __usb_drvstatus|=USB_STATUS_ERROR;    // SIGNAL TO RESEND FROM CURRENT OFFSET
                 }
@@ -383,11 +383,8 @@ int usb_waitfordata(int nbytes)
         }
 
         if(__usb_rxtotalbytes) {
-            // WE FINISHED RECEIVING THE FILE
-            if(__usb_rxoffset+__usb_rxused == __usb_rxtotalbytes) {
-                // WE GOT ALL THE DATA IN THE FILE, NO MORE DATA IS COMING
+           // WE GOT ALL THE DATA IN THE FILE, NO MORE DATA IS COMING
                 break;
-            }
         }
 
         cpu_waitforinterrupt();
@@ -467,7 +464,7 @@ int usb_txfileopen(int file_type)
     __usb_txbuffer=0;   // NULL BUFFER UNTIL USER PROVIDES DATA
     __usb_txused=0;
     __usb_txoffset=0;
-
+    __usb_txseq=1;      // FIRST PACKET NUMBER
     __usb_txoffset=0;   // RESET OFFSET
     __usb_crc32=0;      // RESET CRC32
 
@@ -544,25 +541,29 @@ int usb_txfileclose(int fileid)
 
     // BLOCK UNTIL TRANSMISSION IS COMPLETE
     tmr_t start,end;
-    int prevoffset=0;
+    int prevoffset=0,result=1;
     start=tmr_ticks();
     do {
 
         if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) return 0;
 
-        if(__usb_drvstatus&USB_STATUS_EOF) return 1;    // WE RECEIVED ACKNOWLEDGMENT OF END-OF-FILE
-        if(!__usb_fileid) break;                     // COMMUNICATION WAS ABORTED
+        if(__usb_drvstatus&USB_STATUS_EOF) break;;    // WE RECEIVED ACKNOWLEDGMENT OF END-OF-FILE
 
-        if(prevoffset!=__usb_txoffset) start=tmr_ticks();   // MEASURE TIMEOUT SINCE LAST TIME WE SENT A PACKET
-        prevoffset=__usb_txoffset;
+        if(!__usb_fileid) { result=0; break; }                     // COMMUNICATION WAS ABORTED
+
+        if(prevoffset!=__usb_offset) start=tmr_ticks();   // MEASURE TIMEOUT SINCE LAST TIME WE SENT A PACKET
+        prevoffset=__usb_offset;
         end=tmr_ticks();
-        if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) break;    // FAIL IF TIMEOUT
+        if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) { result=0; break; }    // FAIL IF TIMEOUT
 
         cpu_waitforinterrupt();
 
         } while(1);
 
-    return 0;
+
+    __usb_fileid=0; // CLOSE THE FILE
+
+    return result;
 }
 
 // START RECEIVING A FILE, WHETHER IT WAS COMPLETELY RECEIVED YET OR NOT
@@ -621,9 +622,10 @@ int usb_rxfileclose(int fileid)
     if(!__usb_rxtotalbytes) {
         // IF WE STILL DIDN'T RECEIVE THE ENTIRE FILE, ABORT IT
         usb_sendcontrolpacket(P_TYPE_ABORT);
+    }
 
         tmr_t start,end;
-        // WAIT FOR THE CONTROL PACKET TO BE SENT
+        // WAIT FOR ANY CONTROL PACKETS TO BE SENT
         start=tmr_ticks();
         while(__usb_drvstatus&USB_STATUS_TXCTL) {
 
@@ -636,7 +638,7 @@ int usb_rxfileclose(int fileid)
             }
        }
 
-    }
+
 
     // AND PUT THE DRIVER TO IDLE
    __usb_fileid=0;

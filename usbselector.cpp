@@ -255,7 +255,11 @@ void USBSelector::RefreshList()
                              USB_PACKET *pkt=usb_getreport();
 
                              if(P_FILEID(pkt)!=0) {
+
+                                 // REQUEST UNCONDITIONAL ABORT
+                                 __usb_fileid=0xffff;
                                  usb_sendcontrolpacket(P_TYPE_ABORT);
+                                 __usb_fileid=0;
 
                                  tmr_t start,end;
 

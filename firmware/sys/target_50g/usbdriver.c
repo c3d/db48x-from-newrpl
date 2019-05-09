@@ -1160,13 +1160,24 @@ void usb_ep1_transmit()
 
     if(__usb_drvstatus&USB_STATUS_TXDATA) {
         // WE HAVE A DATA PACKET TO SEND
+
+        if(__usb_drvstatus&USB_STATUS_ERROR) {
+            // THE REMOTE DIDN'T GET IT, WE NEED TO RESEND
+            // THE WANTED OFFSET WAS LEFT IN __usb_rxoffset BY usb_receivecontrolpacket()
+            __usb_offset=__usb_rxoffset;
+            __usb_txseq--;
+            __usb_txseq&=0x1f;  // DIAL BACK THE SEQUENCE NUMBER BACK
+            __usb_crc32=0;      // RESET THE CRC FROM HERE ON
+            __usb_drvstatus&=~USB_STATUS_ERROR; // REMOVE THE ERROR AND RESEND
+        }
+
         int bufoff=__usb_offset-__usb_txoffset;
         int bufbytes;
         int p_type;
         int eof=0;
         if(bufoff<0)
         {
-         // THE CURRENT OFFSET IS BAD! ABORT THE FILE
+         // THE CURRENT OFFSET IS BAD! WE NO LONGER HAVE THE REQUESTED OFFSET IN THE BUFFER, ABORT THE FILE
             usb_sendcontrolpacket(P_TYPE_ABORT);
             __usb_fileid=0;
             __usb_offset=0;
@@ -1175,6 +1186,7 @@ void usb_ep1_transmit()
             __usb_crc32=0;
 
             __usb_drvstatus&=~USB_STATUS_TXDATA;
+            __usb_drvstatus|=USB_STATUS_ERROR;
 
             // SEND THE CONTROL PACKET NOW
             int cnt;
@@ -1212,13 +1224,17 @@ void usb_ep1_transmit()
         int cnt;
         for(cnt=0;cnt<USB_DATASIZE;++cnt) {
             if(cnt>=bufbytes) *EP1_FIFO=0;
-            else *EP1_FIFO=(WORD) __usb_ctltxbuffer[cnt];
+            else *EP1_FIFO=(WORD) __usb_txbuffer[bufoff+cnt];
         }
 
          *IN_CSR1_REG|=EPn_IN_PKT_RDY;  // SEND THE PACKET
 
         __usb_offset+=bufbytes;
         __usb_txseq=p_type&0x1f;
+
+        __usb_crc32=usb_crc32roll(__usb_crc32,__usb_txbuffer+bufoff,bufbytes);  // UPDATE THE CRC32
+
+
         if(eof) {
         usb_sendcontrolpacket(P_TYPE_ENDOFFILE);
         __usb_drvstatus&=~USB_STATUS_TXDATA;
@@ -1475,16 +1491,11 @@ void usb_irqservice()
         *EP_INT_REG=1;
 
     }
-    if(*EP_INT_REG&2) {
-        ep1_irqservice();
-        *EP_INT_REG=2;
 
-    }
-    if(*EP_INT_REG&4) {
-        ep2_irqservice();
-        *EP_INT_REG=4;
-
-    }
+    // ALWAYS SERVICE THE ENDPOINTS
+    ep1_irqservice();
+    ep2_irqservice();
+    *EP_INT_REG=6;
 
     if(*USB_INT_REG&1) {
         // ENTER SUSPEND MODE

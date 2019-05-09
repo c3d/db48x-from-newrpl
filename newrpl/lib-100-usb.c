@@ -436,19 +436,16 @@ void LIB_HANDLER()
 
         do {
             offset=newobjptr-newobj;
-            bytesread=usb_fileread(fileid,(BYTEPTR)&newobjptr,allocated-offset);
-
-            if(bytesread<allocated-offset) {
-                if(usb_eof(fileid)) {
-                    // WE FINISHED THE FILE!
-                    newobjptr+=(bytesread+3)>>2;
-                }
-                else rplError(ERR_USBTIMEOUT);
+            bytesread=usb_fileread(fileid,(BYTEPTR)&newobjptr,(allocated-offset)*sizeof(WORD));
+            newobjptr+=(bytesread+3)>>2;
+            if(bytesread<(allocated-offset)*sizeof(WORD)) {
+                if(!usb_eof(fileid)) rplError(ERR_USBTIMEOUT);
                 break;
             }
             // MORE DATA IS EXPECTED, ALLOCATE MORE MEMORY
 
             ScratchPointer1=newobj;
+            offset=newobjptr-newobj;
             needwords=(expectedsize? (expectedsize-allocated+1):8);
             if(needwords>0) rplResizeLastObject(needwords);
             allocated+=needwords;
