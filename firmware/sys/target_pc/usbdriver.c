@@ -241,7 +241,7 @@ void usb_init(int force)
     __usb_drvstatus=USB_STATUS_INIT;
 
     __usb_fileid=0;
-    __usb_fileid_seq=0;
+    __usb_fileid_seq&=0xff;
     __usb_offset=0;
     __usb_crc32=0;      // RESET CRC32
 

@@ -459,13 +459,15 @@ int usb_txfileopen(int file_type)
 
     // CREATE A NEW FILEID
     __usb_fileid=(file_type<<8)&0xff00;
-    __usb_fileid+=__usb_fileid_seq;
     ++__usb_fileid_seq;
+    __usb_fileid_seq&=0xff;
+    __usb_fileid+=__usb_fileid_seq;
     __usb_txbuffer=0;   // NULL BUFFER UNTIL USER PROVIDES DATA
     __usb_txused=0;
     __usb_txoffset=0;
     __usb_txseq=1;      // FIRST PACKET NUMBER
     __usb_txoffset=0;   // RESET OFFSET
+    __usb_offset=0;
     __usb_crc32=0;      // RESET CRC32
 
     // INDICATE WE ARE STARTING A TRANSMISSION, WAIT FOR REMOTE TO BE AVAILABLE
@@ -476,8 +478,9 @@ int usb_txfileopen(int file_type)
         end=tmr_ticks();
         if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) return 0;    // FAIL IF TIMEOUT
 
-        usb_sendcontrolpacket(P_TYPE_GETSTATUS);
+
         do {
+            usb_sendcontrolpacket(P_TYPE_GETSTATUS);
             if(!usb_waitforreport()) return 0;                  // FAIL IF TIMEOUT
             USB_PACKET *ptr=usb_getreport();
 
@@ -491,6 +494,10 @@ int usb_txfileopen(int file_type)
                     usb_releasereport();
                     break;
                 }
+            } else {
+                // REPLYING WITH A DIFFERENT FILEID, PERHAPS IT'S STILL CLOSING THE PREVIOUS FILE
+                // KEEP WAITING
+
             }
             usb_releasereport();
         } while(1);
@@ -547,7 +554,7 @@ int usb_txfileclose(int fileid)
 
         if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) return 0;
 
-        if(__usb_drvstatus&USB_STATUS_EOF) break;;    // WE RECEIVED ACKNOWLEDGMENT OF END-OF-FILE
+        if(__usb_drvstatus&USB_STATUS_EOF) break;    // WE RECEIVED ACKNOWLEDGMENT OF END-OF-FILE
 
         if(!__usb_fileid) { result=0; break; }                     // COMMUNICATION WAS ABORTED
 
@@ -587,6 +594,7 @@ int usb_fileread(int fileid,BYTEPTR dest,int nbytes)
 {
     if(fileid!=__usb_fileid) return 0;
 
+    if(nbytes<=0) return 0;
 
     // WAIT FOR ENOUGH BYTES TO BECOME AVAILABLE
 
@@ -641,6 +649,7 @@ int usb_rxfileclose(int fileid)
 
 
     // AND PUT THE DRIVER TO IDLE
+   __usb_fileid_seq=__usb_fileid&0xff;
    __usb_fileid=0;
    __usb_rxused=0;
    __usb_rxread=0;

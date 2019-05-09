@@ -1452,7 +1452,7 @@ void ep2_irqservice()
 
     *INDEX_REG=RAWHID_RX_ENDPOINT;
 
-    // NOTHING TO RECEIVE, STALL
+    // NOTHING TO RECEIVE?
     if(*OUT_CSR1_REG&EPn_OUT_PKT_RDY) {
         // WE HAVE A PACKET, GO PROCESS IT
         usb_ep2_receive();
@@ -1461,10 +1461,10 @@ void ep2_irqservice()
 
     // GETTING INTERRUPTS WITHOUT PACKETS? SOMETHING IS WRONG, STALL
 
-    if(*OUT_CSR1_REG&EPn_OUT_SENT_STALL) return;  // ALREADY DONE
+    //if(*OUT_CSR1_REG&EPn_OUT_SENT_STALL) return;  // ALREADY DONE
 
 
-    *OUT_CSR1_REG|=EPn_OUT_SEND_STALL;
+    //*OUT_CSR1_REG|=EPn_OUT_SEND_STALL;
 
     return;
 }

@@ -265,7 +265,7 @@ void LIB_HANDLER()
         {
         case 'O':   // THIS IS AN RPL OBJECT
             newobjptr=newobj;
-            bytesread=usb_fileread(fileid,(BYTEPTR)&newobjptr,4);  // GET THE OBJECT PROLOG
+            bytesread=usb_fileread(fileid,(BYTEPTR)newobjptr,4);  // GET THE OBJECT PROLOG
             if(bytesread<4) { rplError(ERR_USBCOMMERROR); break; }
             expectedsize=rplObjSize(newobj);
             newobjptr+=4;
@@ -286,19 +286,16 @@ void LIB_HANDLER()
 
         do {
             offset=newobjptr-newobj;
-            bytesread=usb_fileread(fileid,(BYTEPTR)&newobjptr,allocated-offset);
-
-            if(bytesread<allocated-offset) {
-                if(usb_eof(fileid)) {
-                    // WE FINISHED THE FILE!
-                    newobjptr+=(bytesread+3)>>2;
-                }
-                else rplError(ERR_USBTIMEOUT);
+            bytesread=usb_fileread(fileid,(BYTEPTR)newobjptr,(allocated-offset)*sizeof(WORD));
+            newobjptr+=(bytesread+3)>>2;
+            if(bytesread<(allocated-offset)*sizeof(WORD)) {
+                if(!usb_eof(fileid)) rplError(ERR_USBTIMEOUT);
                 break;
             }
             // MORE DATA IS EXPECTED, ALLOCATE MORE MEMORY
 
             ScratchPointer1=newobj;
+            offset=newobjptr-newobj;
             needwords=(expectedsize? (expectedsize-allocated+1):8);
             if(needwords>0) rplResizeLastObject(needwords);
             allocated+=needwords;
@@ -326,6 +323,9 @@ void LIB_HANDLER()
         default:    // UNKNOWN DATA TYPE IS INVALID - THIS IS UNREACHABLE-CAN'T HAPPEN
             break;
         }
+
+        // WE HAVE A VALID OBJECT!
+
 
         // WE HAVE A VALID OBJECT!
         rplOverwriteData(1,newobj);
@@ -403,27 +403,22 @@ void LIB_HANDLER()
             return;
         }
 
-        // GET MINIMAL STORAGE FIRST, 64 bytes=8 words
-        newobj=rplAllocTempOb(8);
+        // GET MINIMAL STORAGE FIRST, 64 bytes=16 words
+        newobj=rplAllocTempOb(16);
         if(!newobj) {
             // INSUFFICIENT MEMORY
             return;
         }
-        allocated=8;
+        allocated=16;
 
         switch(usb_filetype(fileid))
         {
         case 'O':   // THIS IS AN RPL OBJECT
             newobjptr=newobj;
-            bytesread=usb_fileread(fileid,(BYTEPTR)&newobjptr,4);  // GET THE OBJECT PROLOG
-            if(bytesread<4) { rplError(ERR_USBCOMMERROR); break; }
-            expectedsize=rplObjSize(newobj);
-            newobjptr+=4;
             break;
         case 'D':   // THIS IS ARBITRARY BINARY DATA
             newobjptr=newobj+4;
             newobj[0]=MKPROLOG(DOBINDATA,0);    // WE DON'T KNOW THE SIZE YET
-            expectedsize=0;
             break;
         case 'B':   // THIS IS A BACKUP
         case 'W':   // THIS IS A FIRMWARE UPDATE
@@ -434,9 +429,9 @@ void LIB_HANDLER()
             break;
         }
 
-        do {
+        while(!Exceptions) {
             offset=newobjptr-newobj;
-            bytesread=usb_fileread(fileid,(BYTEPTR)&newobjptr,(allocated-offset)*sizeof(WORD));
+            bytesread=usb_fileread(fileid,(BYTEPTR)newobjptr,(allocated-offset)*sizeof(WORD));
             newobjptr+=(bytesread+3)>>2;
             if(bytesread<(allocated-offset)*sizeof(WORD)) {
                 if(!usb_eof(fileid)) rplError(ERR_USBTIMEOUT);
@@ -446,15 +441,15 @@ void LIB_HANDLER()
 
             ScratchPointer1=newobj;
             offset=newobjptr-newobj;
-            needwords=(expectedsize? (expectedsize-allocated+1):8);
-            if(needwords>0) rplResizeLastObject(needwords);
-            allocated+=needwords;
+            rplResizeLastObject(16);
+            allocated+=16;
             newobj=ScratchPointer1;
             newobjptr=newobj+offset;
-        } while(!Exceptions);
+        }
 
         //  WE ARE DONE WITH THE TRANSMISSION
         usb_rxfileclose(fileid);
+
 
         if(Exceptions) return;
 
