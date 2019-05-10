@@ -71,13 +71,16 @@ void battery_handler()
             // LOW VOLTAGE WHEN RUNNING FAST
             halSetNotification(N_LOWBATTERY,0xf^halGetNotification(N_LOWBATTERY));
             halFlags|=HAL_SLOWLOCK;
+            halScreenUpdated();
 
         }
         else {
             // KEEP BLINKING INDICATOR
+
         halSetNotification(N_LOWBATTERY,0xf^halGetNotification(N_LOWBATTERY));
         // AND DISALLOW FAST MODE
         halFlags|=HAL_SLOWLOCK;
+           halScreenUpdated();
         }
         return;
     }
@@ -91,6 +94,8 @@ void battery_handler()
         else {
         // SET PERMANENT BATTERY ICON
         // AND DISALLOW FAST MODE
+        if(!halGetNotification(N_LOWBATTERY)) halScreenUpdated();
+
         halSetNotification(N_LOWBATTERY,0xf);
         halFlags|=HAL_SLOWLOCK;
         }
@@ -99,6 +104,8 @@ void battery_handler()
 
     if(__battery==0x400) {
         // WE ARE ON USB POWER
+        if(!halGetNotification(N_LOWBATTERY)) halScreenUpdated();
+
         halSetNotification(N_LOWBATTERY,0x8);
         halFlags&=~HAL_SLOWLOCK;
         return;
@@ -107,6 +114,7 @@ void battery_handler()
 
     if(__battery>=0x320) {
             // REMOVE BATTERY INDICATOR AND ALLOW FAST MODE
+            if(halGetNotification(N_LOWBATTERY)) halScreenUpdated();
             halSetNotification(N_LOWBATTERY,0);
             halFlags&=~HAL_SLOWLOCK;
     }

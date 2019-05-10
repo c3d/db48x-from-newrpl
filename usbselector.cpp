@@ -240,7 +240,8 @@ void USBSelector::RefreshList()
 
                                  if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
 
-                                 cpu_waitforinterrupt();
+                                 QThread::yieldCurrentThread();
+
                                  end=tmr_ticks();
                                  if(tmr_ticks2ms(start,end)>__usb_timeout) {
                                  res=-1;
@@ -271,7 +272,7 @@ void USBSelector::RefreshList()
 
                                      if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
 
-                                     cpu_waitforinterrupt();
+                                     QThread::yieldCurrentThread();
                                      end=tmr_ticks();
                                      if(tmr_ticks2ms(start,end)>__usb_timeout) {
                                      res=-1;
@@ -317,7 +318,7 @@ void USBSelector::RefreshList()
 
                                  if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
 
-                                 cpu_waitforinterrupt();
+                                 QThread::yieldCurrentThread();
                                  end=tmr_ticks();
                                  if(tmr_ticks2ms(start,end)>__usb_timeout) {
                                  res=-1;

@@ -42,6 +42,8 @@ extern hid_device *__usb_curdevice;
 extern volatile int __usb_paused;
 
 extern "C" void usb_irqservice();
+extern "C" void usb_irqdisconnect();
+extern "C" void usb_irqconnect();
 extern "C" int usb_isconnected();
 
 extern "C" void __keyb_update();
@@ -61,6 +63,7 @@ extern "C" int usbremotearchivestart();
 extern "C" int usbreceivearchive(uint32_t *buffer,int bufsize);
 extern "C" int usbremoterestorestart();
 extern "C" int usbsendarchive(uint32_t *buffer,int bufsize);
+extern "C" int change_autorcv(int newfl);
 
 extern "C" void setExceptionPoweroff();
 
@@ -899,13 +902,16 @@ void MainWindow::on_actionConnect_to_calc_triggered()
 
 void MainWindow::usbupdate()
 {
-if(!__usb_curdevice) {
+if( (!usb_isconnected()) || (!__usb_curdevice)) {
     if(!currentusb.isEmpty()) {
         // ATTEMPT TO RECONNECT WITH THE DEVICE
       if(ui->usbconnectButton->text().endsWith("[ Click to reconnect ]")) {
           if(__usb_curdevice) {
-              hid_close(__usb_curdevice);
+              hid_device *tmp=__usb_curdevice;
               __usb_curdevice=0;
+
+              hid_close(tmp);
+
           }
           // ATTEMPT TO RECONNECT
           __usb_curdevice=hid_open_path(currentusbpath.toUtf8().constData());
@@ -914,8 +920,9 @@ if(!__usb_curdevice) {
           }
           else {
               ui->usbconnectButton->setText(currentusb);
+              usb_init(0);
               __usb_paused=0; // AND RESUME THE DRIVER
-              return;
+             return;
           }
       }
       ui->usbconnectButton->setText(currentusb+ QString(" [ Click to reconnect ]"));
@@ -928,6 +935,7 @@ if(!__usb_curdevice) {
 
 void MainWindow::on_usbconnectButton_clicked()
 {
+    // PAUSE THE USB DRIVER
     __usb_paused=1;
     while(__usb_paused>=0) ;
 
@@ -948,6 +956,7 @@ void MainWindow::on_usbconnectButton_clicked()
         else {
             ui->usbconnectButton->setText(currentusb);
             __usb_paused=0; // AND RESUME THE DRIVER
+            usb_init(0);
             return;
         }
     }
@@ -958,6 +967,19 @@ void MainWindow::on_usbconnectButton_clicked()
         currentusb.clear();
         currentusbpath.clear();
     }
+
+    int oldflag;
+    if(rpl.isRunning()) {
+
+    while(!__cpu_idle)     QThread::msleep(1);  // BLOCK UNTIL RPL IS IDLE
+
+    __cpu_idle=2;       // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
+
+    }
+    oldflag=change_autorcv(1);
+
+    __cpu_idle=0;
+
 
     if(seldlg.exec()==QDialog::Accepted) {
         if(!seldlg.getSelectedDevicePath().isEmpty()) {
@@ -971,9 +993,25 @@ void MainWindow::on_usbconnectButton_clicked()
         ui->usbconnectButton->setText(" [ Select a USB Device ] ");
     else ui->usbconnectButton->setText(currentusb);
 
-    if(__usb_curdevice) __usb_paused=0;
+    if(__usb_curdevice) {
+        __usb_paused=0;
+        usb_init(0);
+    }
 
     usbupdate();
+
+
+    if(rpl.isRunning()) {
+
+    while(!__cpu_idle)     QThread::msleep(1);  // BLOCK UNTIL RPL IS IDLE
+
+    __cpu_idle=2;       // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
+
+    }
+    change_autorcv(oldflag);
+
+    __cpu_idle=0;
+
 
 }
 
@@ -1477,6 +1515,8 @@ void USBThread::run()
 
     while((__usb_paused!=2)&&(__usb_paused!=-2))
     {
+        if(!__usb_curdevice && (__usb_drvstatus&USB_STATUS_CONNECTED)) usb_irqdisconnect();
+        if(__usb_curdevice && !(__usb_drvstatus&USB_STATUS_CONNECTED)) usb_irqconnect();
         if(__usb_paused==0) usb_irqservice();
         else if(__usb_paused>0) __usb_paused=-__usb_paused;     // SIGNAL THAT THE PAUSE WAS ACKNOWLEDGED BY MAKING IT NEGATIVE
 

@@ -240,3 +240,12 @@ void setExceptionPoweroff()
 {
     HWExceptions|=EX_POWEROFF;
 }
+
+int change_autorcv(int newfl)
+{
+    int fl=rplTestSystemFlag(FL_NOAUTORECV);
+    if(newfl) rplSetSystemFlag(FL_NOAUTORECV);
+    else rplClrSystemFlag(FL_NOAUTORECV);
+    return fl;
+}
+

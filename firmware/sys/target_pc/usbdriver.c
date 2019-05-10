@@ -415,7 +415,8 @@ void usb_ep2_receive()
    BYTE tmpbuf[RAWHID_RX_SIZE+1];
     int fifocnt;
     fifocnt=hid_read_timeout(__usb_curdevice,tmpbuf,RAWHID_RX_SIZE,0);
-    if(fifocnt==0) {
+    if(fifocnt<=0) {
+        if(fifocnt==-1) __usb_drvstatus&=~(USB_STATUS_CONNECTED|USB_STATUS_CONFIGURED);
         // THERE'S NO PACKETS AVAILABLE
         return;
     }
@@ -554,7 +555,11 @@ void ep2_irqservice()
 // GENERAL INTERRUPT SERVICE ROUTINE - DISPATCH TO INDIVIDUAL ENDPOINT ROUTINES
 void usb_irqservice()
 {
-    if(!(__usb_drvstatus&USB_STATUS_INIT)) return;
+    if(!(__usb_drvstatus&(USB_STATUS_INIT|USB_STATUS_CONNECTED|USB_STATUS_CONFIGURED)==(USB_STATUS_INIT|USB_STATUS_CONNECTED|USB_STATUS_CONFIGURED))) return;
+
+    if(!__usb_curdevice) return;    // SHOULDN'T HAPPEN, BUT JUST IN CASE A THREAD CLOSED THE HANDLE AFTER WE ENTERED HERE
+
+
     __usb_drvstatus|=USB_STATUS_INSIDEIRQ;
 
 
