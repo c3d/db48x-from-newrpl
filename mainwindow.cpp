@@ -19,6 +19,13 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+// ONLY REQUIRED UNDER MINGW
+#ifdef DrawText
+#undef DrawText
+#endif
+#define WORD _WORD
+
+
 extern "C" {
 #include "ui.h"
 #include "firmware.h"
@@ -89,6 +96,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->EmuScreen->setAttribute(Qt::WA_AcceptTouchEvents);
     ui->EmuScreen->installEventFilter(this);
 
+    nousbupdate=true;        // DON'T UPDATE THE ON-SCREEN USB CONNECTION STATUS
     __usb_curdevice=0;       // USB IS INITIALLY DISCONNECTED
     __usb_paused=1;         // PAUSE THE USB THREAD
     currentusb.clear();
@@ -902,6 +910,8 @@ void MainWindow::on_actionConnect_to_calc_triggered()
 
 void MainWindow::usbupdate()
 {
+if(nousbupdate) return;
+
 if( (!usb_isconnected()) || (!__usb_curdevice)) {
     if(!currentusb.isEmpty()) {
         // ATTEMPT TO RECONNECT WITH THE DEVICE
@@ -935,12 +945,12 @@ if( (!usb_isconnected()) || (!__usb_curdevice)) {
 
 void MainWindow::on_usbconnectButton_clicked()
 {
+    nousbupdate=true;
+
     // PAUSE THE USB DRIVER
     __usb_paused=1;
     while(__usb_paused>=0) ;
 
-
-    USBSelector seldlg;
 
     if(ui->usbconnectButton->text().endsWith("[ Click to reconnect ]")) {
         if(__usb_curdevice) {
@@ -957,6 +967,7 @@ void MainWindow::on_usbconnectButton_clicked()
             ui->usbconnectButton->setText(currentusb);
             __usb_paused=0; // AND RESUME THE DRIVER
             usb_init(0);
+            nousbupdate=false;
             return;
         }
     }
@@ -969,16 +980,19 @@ void MainWindow::on_usbconnectButton_clicked()
     }
 
     int oldflag;
-    if(rpl.isRunning()) {
-
-    while(!__cpu_idle)     QThread::msleep(1);  // BLOCK UNTIL RPL IS IDLE
+    if(rpl.isRunning()) while(!__cpu_idle)     QThread::msleep(1);  // BLOCK UNTIL RPL IS IDLE
 
     __cpu_idle=2;       // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
 
-    }
+
     oldflag=change_autorcv(1);
 
     __cpu_idle=0;
+    if(rpl.isRunning()) while(!__cpu_idle)     QThread::msleep(1);  // BLOCK UNTIL RPL IS IDLE
+
+
+    USBSelector seldlg;
+
 
 
     if(seldlg.exec()==QDialog::Accepted) {
@@ -989,17 +1003,13 @@ void MainWindow::on_usbconnectButton_clicked()
         }
 
     }
-    if(currentusb.isEmpty())
-        ui->usbconnectButton->setText(" [ Select a USB Device ] ");
-    else ui->usbconnectButton->setText(currentusb);
+    if(currentusb.isEmpty()) ui->usbconnectButton->setText(" [ Select a USB Device ] ");
+    else { ui->usbconnectButton->setText(currentusb); nousbupdate=false; }
 
     if(__usb_curdevice) {
         __usb_paused=0;
         usb_init(0);
     }
-
-    usbupdate();
-
 
     if(rpl.isRunning()) {
 

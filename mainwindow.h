@@ -37,6 +37,7 @@ class MainWindow : public QMainWindow
     QString currentusb,currentusbpath;
     RPLThread rpl;
     USBThread usbdriver;
+    bool nousbupdate;
 
 public:
     QFile *fileptr;

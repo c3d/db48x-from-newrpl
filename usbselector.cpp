@@ -41,13 +41,9 @@ USBSelector::USBSelector(QWidget *parent) :
     ui->updateFirmware->hide();
     ui->updateProgress->hide();
 
-    RefreshList();
-
     tmr = new QTimer(this);
-    if(tmr) {
-    connect(tmr, SIGNAL(timeout()), this, SLOT(refresh()));
-    tmr->start(500);
-    }
+
+    tmr->singleShot(200,this,SLOT(refresh()));
 
 
 }
@@ -340,9 +336,9 @@ void USBSelector::RefreshList()
                             {
                             unsigned int strprolog;
                             strprolog=buffer[0]+(buffer[1]<<8)+(buffer[2]<<16)+(buffer[3]<<24);
-
-                            tmp=QString::fromUtf8((const char *)(buffer+4),rplStrSize(&strprolog));
-                            newitem->setText(2,tmp);
+                            int length=rplStrSize(&strprolog);
+                            tmp=QString::fromUtf8((char *)(buffer+4),rplStrSize(&strprolog));
+                            //newitem->setText(2,tmp);
                             available=1;
                             }
 
@@ -353,16 +349,16 @@ void USBSelector::RefreshList()
                             __usb_paused=1;
                             while(__usb_paused>=0);
                             usb_shutdown();
-
+                            __usb_curdevice=0;
                             __usb_timeout=5000;      // SET TIMEOUT TO THE DEFAULT 5000ms
 
-                        //hid_close(thisdev);   // ALREADY CLOSED BY usb_shutdown()
+                            hid_close(thisdev);   // ALREADY CLOSED BY usb_shutdown()
 
                         if(!available) {
-
                             tmp="[Device not responding]";
-                            newitem->setText(2,tmp);
                         }
+                            newitem->setText(2,tmp);
+
 
                         }
                         }
@@ -421,6 +417,9 @@ void USBSelector::on_USBSelector_rejected()
 void USBSelector::refresh()
 {
    RefreshList();
+
+//   tmr->singleShot(500,this,SLOT(refresh()));
+
 }
 
 void USBSelector::reconnect()

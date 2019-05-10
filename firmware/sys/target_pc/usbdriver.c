@@ -266,12 +266,13 @@ void usb_shutdown()
 {
 
     if(!(__usb_drvstatus&USB_STATUS_INIT)) return;
-
+/*
        if(__usb_curdevice) {
         hid_close(__usb_curdevice);
         __usb_curdevice=0;
         __usb_fileid=0;
     }
+*/
     __usb_drvstatus=0;  // MARK UNCONFIGURED
 
 
