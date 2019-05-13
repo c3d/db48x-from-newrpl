@@ -97,7 +97,7 @@ int rplUSBArchiveWriteWord(unsigned int data,void *opaque)
     if(Exceptions) return 0;
 
     // PROVIDE VISUAL FEEDBACK
-    if(!((info->progress)&0xff)) halSetNotification(N_CONNECTION,((info->progress)>>8)&0xf);
+    if(!((info->progress)&0xff))  { halSetNotification(N_CONNECTION,((info->progress)>>8)&0xf); halScreenUpdated(); }
     ++info->progress;
     WORD buffer=data;
     return usb_filewrite(info->fileid,(BYTEPTR)&buffer,4);
@@ -112,7 +112,7 @@ WORD rplUSBArchiveReadWord(void *opaque)
     if(Exceptions) return 0;
 
     // PROVIDE VISUAL FEEDBACK
-    if(!((info->progress)&0xff)) halSetNotification(N_CONNECTION,((info->progress)>>8)&0xf);
+    if(!((info->progress)&0xff)) { halSetNotification(N_CONNECTION,((info->progress)>>8)&0xf); halScreenUpdated(); }
     ++info->progress;
 
     switch(usb_fileread(info->fileid,(BYTEPTR)&data,4))
@@ -544,7 +544,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(!usb_isconfigured()) {
+        if(!usb_isconnected()) {
             rplError(ERR_USBNOTCONNECTED);
             return;
         }
@@ -575,13 +575,18 @@ void LIB_HANDLER()
         }
 
         BACKUP_INFO info;
+
         info.fileid=usb_rxfileopen();
         info.progress=0;
 
-        if(!info.fileid) {
+        if(usb_filetype(info.fileid)!='B') {
             rplError(ERR_USBCOMMERROR);
+            if(info.fileid) usb_rxfileclose(info.fileid);
             return;
         }
+
+
+
 
 
         GCFlags=GC_IN_PROGRESS; // MARK THAT A GC IS IN PROGRESS TO BLOCK ANY HARDWARE INTERRUPTS

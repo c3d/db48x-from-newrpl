@@ -418,7 +418,7 @@ void USBSelector::refresh()
 {
    RefreshList();
 
-//   tmr->singleShot(500,this,SLOT(refresh()));
+   tmr->singleShot(500,this,SLOT(refresh()));
 
 }
 

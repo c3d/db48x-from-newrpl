@@ -216,14 +216,16 @@ void usb_irqservice();
 void usb_irqdisconnect()
 {
     // CALLED WHEN THE CABLE IS DISCONNECTED
-    usb_shutdown();
+__usb_drvstatus&=~(USB_STATUS_CONNECTED|USB_STATUS_CONFIGURED);
+usb_shutdown();
 
 }
 
 void usb_irqconnect()
 {
-    // CALLED WHEN THE CABLE IS DISCONNECTED
     usb_init(0);
+    // CALLED WHEN THE CABLE IS DISCONNECTED
+     if(__usb_curdevice) __usb_drvstatus|=USB_STATUS_CONNECTED|USB_STATUS_CONFIGURED;
 
 }
 

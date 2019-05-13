@@ -923,22 +923,23 @@ if( (!usb_isconnected()) || (!__usb_curdevice)) {
               hid_close(tmp);
 
           }
+          else halScreenUpdated();
           // ATTEMPT TO RECONNECT
           __usb_curdevice=hid_open_path(currentusbpath.toUtf8().constData());
-          if(!__usb_curdevice) {
+          if(!__usb_curdevice) {            
               return;
           }
           else {
               ui->usbconnectButton->setText(currentusb);
-              usb_init(0);
+              usb_irqconnect();
+              halScreenUpdated();
               __usb_paused=0; // AND RESUME THE DRIVER
              return;
           }
       }
       ui->usbconnectButton->setText(currentusb+ QString(" [ Click to reconnect ]"));
     }
-    if(usb_isconnected()) __usb_paused=0;
-    return;
+
 }
 
 }
@@ -966,7 +967,8 @@ void MainWindow::on_usbconnectButton_clicked()
         else {
             ui->usbconnectButton->setText(currentusb);
             __usb_paused=0; // AND RESUME THE DRIVER
-            usb_init(0);
+            usb_irqconnect();
+            halScreenUpdated();
             nousbupdate=false;
             return;
         }
@@ -1008,7 +1010,8 @@ void MainWindow::on_usbconnectButton_clicked()
 
     if(__usb_curdevice) {
         __usb_paused=0;
-        usb_init(0);
+        usb_irqconnect();
+        halScreenUpdated();
     }
 
     if(rpl.isRunning()) {
