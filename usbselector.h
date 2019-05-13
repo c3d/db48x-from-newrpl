@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QThread>
+#include <QList>
 
 namespace Ui {
 class USBSelector;
@@ -18,7 +19,7 @@ public:
     ~FWThread();
 };
 
-
+#define MAX_DIALOG_DEVICES 50
 
 class USBSelector : public QDialog
 {

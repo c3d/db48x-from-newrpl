@@ -38,13 +38,19 @@ USBSelector::USBSelector(QWidget *parent) :
 
 
     SelectedDevicePath.clear();
+    SelectedDeviceName.clear();
     ui->updateFirmware->hide();
     ui->updateProgress->hide();
+    ui->USBtreeWidget->clear();
+    ui->USBtreeWidget->hideColumn(1);
+    ui->USBtreeWidget->hideColumn(3);
+    ui->USBtreeWidget->hideColumn(4);
+
+
 
     tmr = new QTimer(this);
 
     tmr->singleShot(200,this,SLOT(refresh()));
-
 
 }
 
@@ -99,7 +105,7 @@ void USBSelector::on_USBtreeWidget_itemSelectionChanged()
     }
     else {
         ui->buttonBox->setStandardButtons(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-        SelectedDevicePath=newitem->data(0,Qt::UserRole+3).toString();
+        SelectedDevicePath=newitem->text(3);
         SelectedDeviceName=newitem->text(0)+QString("[build ")+newitem->text(2).right(4)+QString("]");
         ui->selectedCalc->setText(SelectedDeviceName);
         ui->updateFirmware->show();
@@ -162,10 +168,11 @@ void USBSelector::RefreshList()
 
             newitem=0;
             while(*it) {
-                if( ((*it)->data(0,Qt::UserRole+1).toInt()==cur_dev->vendor_id)
-                        && ((*it)->data(0,Qt::UserRole+2).toInt()==cur_dev->product_id)
-                        && ((*it)->data(0,Qt::UserRole+3).toString()==QString(cur_dev->path))
-                        )
+
+                QString pid=QString::number(cur_dev->vendor_id,16) + ":" + QString::number(cur_dev->product_id,16);
+
+
+                if( ((*it)->text(4)==pid)&&((*it)->text(3)==QString(cur_dev->path)))
                 {
                     // FOUND THE SAME ITEM AGAIN
                     newitem=*it;
@@ -194,10 +201,10 @@ void USBSelector::RefreshList()
 
                     newitem->setText(1,tmp);
 
-                        newitem->setData(0,Qt::UserRole+1,QVariant(cur_dev->vendor_id));
-                        newitem->setData(0,Qt::UserRole+2,QVariant(cur_dev->product_id));
-                        newitem->setData(0,Qt::UserRole+3,QVariant(QString(cur_dev->path)));
-                        newitem->setData(0,Qt::UserRole+4,QVariant(QString::fromStdWString(cur_dev->serial_number)));
+                    tmp=QString::number(cur_dev->vendor_id,16) + ":" + QString::number(cur_dev->product_id,16);
+                    newitem->setText(4,tmp);
+
+                    newitem->setText(3,QString(cur_dev->path));
 
                         hid_device *thisdev;
 
@@ -369,11 +376,13 @@ void USBSelector::RefreshList()
 
         // NOW ELIMINATE ANY ITEMS THAT ARE NOT ENABLED
         {
+        int restart=1;
 
+        while(restart) {
         QTreeWidgetItemIterator it(ui->USBtreeWidget);
         while(*it) {
             if((*it)->isDisabled()) {
-                if(SelectedDevicePath==(*it)->data(0,Qt::UserRole+3).toString()) {
+                if(SelectedDevicePath==(*it)->text(3)) {
 
                     ui->buttonBox->setStandardButtons( QDialogButtonBox::Cancel);
                     SelectedDevicePath.clear();
@@ -381,11 +390,16 @@ void USBSelector::RefreshList()
                     ui->USBtreeWidget->clearSelection();
                     ui->updateFirmware->hide();
                 }
-
-
+                QTreeWidgetItem *pparent=(*it)->parent();
+                pparent->removeChild(*it);
                 delete (*it);
+                restart=1;
+                break;
             }
+            restart=0;
             ++it;
+        }
+
         }
 
         }
@@ -418,7 +432,7 @@ void USBSelector::refresh()
 {
    RefreshList();
 
-   tmr->singleShot(500,this,SLOT(refresh()));
+   tmr->singleShot(2000,this,SLOT(refresh()));
 
 }
 

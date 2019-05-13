@@ -505,10 +505,10 @@ void  HID_API_EXPORT HID_API_CALL hid_free_enumeration(struct hid_device_info *d
 	struct hid_device_info *d = devs;
 	while (d) {
 		struct hid_device_info *next = d->next;
-		free(d->path);
-		free(d->serial_number);
-		free(d->manufacturer_string);
-		free(d->product_string);
+        if(d->path) free(d->path);
+        if(d->serial_number) free(d->serial_number);
+        if(d->manufacturer_string) free(d->manufacturer_string);
+        if(d->product_string) free(d->product_string);
 		free(d);
 		d = next;
 	}

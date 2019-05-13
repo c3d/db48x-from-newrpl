@@ -53,6 +53,16 @@
        <string>Status / Version</string>
       </property>
      </column>
+     <column>
+      <property name="text">
+       <string>Device Path</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>ProductID</string>
+      </property>
+     </column>
     </widget>
    </item>
    <item>
