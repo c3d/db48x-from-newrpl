@@ -1357,9 +1357,11 @@ void usb_ep2_receive()
     // IS THE CORRECT OFFSET?
     if(pptr->p_offset!=__usb_offset) {
     //  WE MUST'VE MISSED SOMETHING
-    __usb_drvstatus|=USB_STATUS_ERROR;
-    // SEND A REPORT NOW IF POSSIBLE, OTHERWISE THE ERROR INFO WILL GO IN THE NEXT REPORT
-    if(!(__usb_drvstatus&USB_STATUS_TXCTL))  usb_sendcontrolpacket(P_TYPE_REPORT);
+        if(!(__usb_drvstatus&USB_STATUS_ERROR)) {
+        __usb_drvstatus|=USB_STATUS_ERROR;
+        // SEND A REPORT NOW IF POSSIBLE, OTHERWISE THE ERROR INFO WILL GO IN THE NEXT REPORT
+        if(!(__usb_drvstatus&USB_STATUS_TXCTL))  usb_sendcontrolpacket(P_TYPE_REPORT);
+         }
 
     // FLUSH THE FIFO, IGNORE THE PACKET
     BYTE sum=0;
@@ -1373,6 +1375,13 @@ void usb_ep2_receive()
 
 
     }
+    else {
+            // GOT THE RIGHT OFFSET, RESET ERROR CONDITION IF ANY
+            if(__usb_drvstatus&USB_STATUS_ERROR) {
+                __usb_crc32=0;
+                __usb_drvstatus&=~USB_STATUS_ERROR;
+            }
+        }
 
     // MAKE SOME ROOM IF WE CAN
 
@@ -1431,7 +1440,11 @@ void usb_ep2_receive()
     __usb_rxused+=pptr->p_dataused;
     __usb_offset+=pptr->p_dataused;
 
-    if(__usb_rxused>=LONG_BUFFER_SIZE) __usb_drvstatus|=USB_STATUS_HALT;  // REQUEST HALT IF BUFFER IS HALF-FULL
+    if(__usb_rxused>=LONG_BUFFER_SIZE) {
+        __usb_drvstatus|=USB_STATUS_HALT;  // REQUEST HALT IF BUFFER IS HALF-FULL
+        // SEND A REPORT NOW IF POSSIBLE, OTHERWISE THE ERROR INFO WILL GO IN THE NEXT REPORT
+        if(!(__usb_drvstatus&USB_STATUS_TXCTL))  usb_sendcontrolpacket(P_TYPE_REPORT);
+    }
 
     __usb_drvstatus|=USB_STATUS_RXDATA; // AND SIGNAL THAT WE HAVE DATA AVAILABLE
 }

@@ -212,6 +212,10 @@ void usb_receivecontrolpacket()
 
            if(__usb_fileid==(WORD)ctl->p_fileidLSB+256*(WORD)ctl->p_fileidMSB) {
 
+               if(__usb_drvstatus&USB_STATUS_ERROR) {
+                   // IGNORE THE CHECKPOINT, THERE WAS A PRIOR ERROR
+                   break;
+               }
                __usb_drvstatus&=~USB_STATUS_ERROR;    // REMOVE ERROR SIGNAL
 
                if(__usb_rxoffset+__usb_rxused!=ctl->p_offset) {
@@ -232,6 +236,12 @@ void usb_receivecontrolpacket()
         case P_TYPE_ENDOFFILE:
         {
             if(__usb_fileid==(WORD)ctl->p_fileidLSB+256*(WORD)ctl->p_fileidMSB) {
+
+                if(__usb_drvstatus&USB_STATUS_ERROR) {
+                    // IGNORE THE END OF FILE, THERE WAS A PRIOR ERROR
+                    break;
+                }
+
             // SAME AS FOR A CHECKPOINT, BUT SET TOTAL BYTE COUNT
                 __usb_drvstatus&=~USB_STATUS_ERROR;    // REMOVE ERROR SIGNAL
 
@@ -378,7 +388,7 @@ int usb_waitfordata(int nbytes)
         prevbytes=hasbytes;
 
         if(__usb_drvstatus&USB_STATUS_HALT) {
-            // NO MORE DATA WILL COME BACAUSE OUR BUFFERS ARE FULL, EMPTY THE BUFFERS BY RETURNING WHAT WE HAVE SO FAR
+            // NO MORE DATA WILL COME BECAUSE OUR BUFFERS ARE FULL, EMPTY THE BUFFERS BY RETURNING WHAT WE HAVE SO FAR
             break;
         }
 
@@ -592,26 +602,47 @@ return __usb_rxused-__usb_rxread;
 // RETRIEVE BYTES THAT WERE ALREADY RECEIVED
 int usb_fileread(int fileid,BYTEPTR dest,int nbytes)
 {
-    if(fileid!=__usb_fileid) return 0;
+    if(fileid!=__usb_fileid)
+        return 0;
 
-    if(nbytes<=0) return 0;
+    if(nbytes<=0)
+        return 0;
 
     // WAIT FOR ENOUGH BYTES TO BECOME AVAILABLE
+    int bytescopied=0;
+
+    do {
 
     int available=usb_waitfordata(nbytes);
 
-    if(!available) return 0;
+    if(!available)
+        return 0;
 
-    if(available<nbytes) nbytes=available;
+    if(available>=nbytes) available=nbytes;
 
-        // QUICK COPY IF WE ALREADY HAVE ENOUGH BYTES
-    memmoveb(dest,__usb_rxbuffer+__usb_rxread,nbytes);
-    __usb_rxread+=nbytes;
+    // QUICK COPY IF WE ALREADY HAVE ENOUGH BYTES
+    memmoveb(dest,__usb_rxbuffer+__usb_rxread,available);
+    __usb_rxread+=available;
+    dest+=available;
+    nbytes-=available;
+    bytescopied+=available;
 
     if(__usb_rxtotalbytes && (__usb_rxoffset+__usb_rxread>=__usb_rxtotalbytes))
-        __usb_drvstatus|=USB_STATUS_EOF;
+       {  __usb_drvstatus|=USB_STATUS_EOF; nbytes=0; }
 
-    return nbytes;
+    if(nbytes>0) {
+        //   THERE WASN'T ENOUGH DATA, SEE IF COMMS WERE HALTED
+            if(__usb_drvstatus&USB_STATUS_HALT) {
+                // WE EMPTIED THE BUFFERS, RELEASE THE HALT THEN WAIT SOME MORE
+                __usb_drvstatus&=~USB_STATUS_HALT;
+                usb_sendcontrolpacket(P_TYPE_REPORT);
+            }
+    }
+
+    } while(nbytes>0);
+
+
+    return bytescopied;
 
 }
 

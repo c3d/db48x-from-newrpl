@@ -46,6 +46,7 @@ extern int __pc_terminate;
 extern int __memmap_intact;
 extern volatile int __cpu_idle;
 extern hid_device *__usb_curdevice;
+extern char __usb_devicepath[8192];
 extern volatile int __usb_paused;
 
 extern "C" void usb_irqservice();
@@ -97,6 +98,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->EmuScreen->installEventFilter(this);
 
     nousbupdate=true;        // DON'T UPDATE THE ON-SCREEN USB CONNECTION STATUS
+    __usb_devicepath[0]=0;   // NULL PATH
     __usb_curdevice=0;       // USB IS INITIALLY DISCONNECTED
     __usb_paused=1;         // PAUSE THE USB THREAD
     currentusb.clear();
@@ -912,32 +914,27 @@ void MainWindow::usbupdate()
 {
 if(nousbupdate) return;
 
-if( (!usb_isconnected()) || (!__usb_curdevice)) {
+if(!usb_isconnected()) {
     if(!currentusb.isEmpty()) {
         // ATTEMPT TO RECONNECT WITH THE DEVICE
       if(ui->usbconnectButton->text().endsWith("[ Click to reconnect ]")) {
-          if(__usb_curdevice) {
-              hid_device *tmp=__usb_curdevice;
-              __usb_curdevice=0;
-
-              hid_close(tmp);
-
-          }
-          else halScreenUpdated();
+           halScreenUpdated();
           // ATTEMPT TO RECONNECT
-          __usb_curdevice=hid_open_path(currentusbpath.toUtf8().constData());
-          if(!__usb_curdevice) {            
+          __usb_paused=1;
+          while(__usb_paused>=0);
+
+           if(strcpy_s(__usb_devicepath,8192,currentusbpath.toUtf8().constData())) __usb_devicepath[0]=0;
+          usb_init(1);
+          if(!usb_isconnected()) {
               return;
           }
           else {
               ui->usbconnectButton->setText(currentusb);
-              usb_irqconnect();
-              halScreenUpdated();
               __usb_paused=0; // AND RESUME THE DRIVER
              return;
           }
       }
-      ui->usbconnectButton->setText(currentusb+ QString(" [ Click to reconnect ]"));
+      else ui->usbconnectButton->setText(currentusb+ QString(" [ Click to reconnect ]"));
     }
 
 }
@@ -954,31 +951,33 @@ void MainWindow::on_usbconnectButton_clicked()
 
 
     if(ui->usbconnectButton->text().endsWith("[ Click to reconnect ]")) {
-        if(__usb_curdevice) {
-            hid_close(__usb_curdevice);
-            __usb_curdevice=0;
-        }
         // ATTEMPT TO RECONNECT
-        __usb_curdevice=hid_open_path(currentusbpath.toUtf8().constData());
-        if(!__usb_curdevice) {
+        if(strcpy_s(__usb_devicepath,8192,currentusbpath.toUtf8().constData())) __usb_devicepath[0]=0;
+       usb_init(1);
+       if(!usb_isconnected()) {
             currentusb.clear();
             currentusbpath.clear();
         }
         else {
             ui->usbconnectButton->setText(currentusb);
             __usb_paused=0; // AND RESUME THE DRIVER
-            usb_irqconnect();
             halScreenUpdated();
             nousbupdate=false;
             return;
         }
     }
 
-    if(__usb_curdevice) {
-        hid_close(__usb_curdevice);
-        __usb_curdevice=0;
+    if(!usb_isconnected()) {
+         currentusb.clear();
+         currentusbpath.clear();
+     }
+    else {
+     // DISCONNECT
+        ui->usbconnectButton->setText(" [ Select a USB Device ] ");
+        usb_shutdown();
         currentusb.clear();
         currentusbpath.clear();
+        return;
     }
 
     int oldflag;
@@ -999,20 +998,21 @@ void MainWindow::on_usbconnectButton_clicked()
 
     if(seldlg.exec()==QDialog::Accepted) {
         if(!seldlg.getSelectedDevicePath().isEmpty()) {
-            __usb_curdevice=hid_open_path(seldlg.getSelectedDevicePath().toUtf8().constData());
+
+           if(strcpy_s(__usb_devicepath,8192,seldlg.getSelectedDevicePath().toUtf8().constData())) __usb_devicepath[0]=0;
+           usb_init(1);
+           if(usb_isconnected()) {
             currentusbpath=seldlg.getSelectedDevicePath();
+            currentusbpath.detach();
             currentusb=seldlg.getSelectedDeviceName();
+            currentusb.detach();
+           }
         }
 
     }
-    if(currentusb.isEmpty()) ui->usbconnectButton->setText(" [ Select a USB Device ] ");
-    else { ui->usbconnectButton->setText(currentusb); nousbupdate=false; }
 
-    if(__usb_curdevice) {
-        __usb_paused=0;
-        usb_irqconnect();
-        halScreenUpdated();
-    }
+    if(currentusb.isEmpty()) ui->usbconnectButton->setText(" [ Select a USB Device ] ");
+    else { ui->usbconnectButton->setText(currentusb); nousbupdate=false; __usb_paused=0; }
 
     if(rpl.isRunning()) {
 
@@ -1024,6 +1024,7 @@ void MainWindow::on_usbconnectButton_clicked()
     change_autorcv(oldflag);
 
     __cpu_idle=0;
+
 
 
 }
@@ -1528,8 +1529,7 @@ void USBThread::run()
 
     while((__usb_paused!=2)&&(__usb_paused!=-2))
     {
-        if(!__usb_curdevice && (__usb_drvstatus&USB_STATUS_CONNECTED)) usb_irqdisconnect();
-        if(__usb_curdevice && !(__usb_drvstatus&USB_STATUS_CONNECTED)) usb_irqconnect();
+        if(__usb_curdevice && !(__usb_drvstatus&USB_STATUS_CONNECTED)) usb_irqdisconnect();
         if(__usb_paused==0) usb_irqservice();
         else if(__usb_paused>0) __usb_paused=-__usb_paused;     // SIGNAL THAT THE PAUSE WAS ACKNOWLEDGED BY MAKING IT NEGATIVE
 

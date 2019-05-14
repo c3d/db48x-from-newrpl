@@ -3,6 +3,14 @@
 // THIS IS ONLY NEEDED BECAUSE OF THE REDEFINITION OF THE TYPE WORD
 // IN NEWRPL CONFLICTING WITH QT
 
+
+// ONLY REQUIRED UNDER MINGW
+#ifdef DrawText
+#undef DrawText
+#endif
+#define WORD _WORD
+
+
 #include <newrpl.h>
 #include <libraries.h>
 #include <ui.h>

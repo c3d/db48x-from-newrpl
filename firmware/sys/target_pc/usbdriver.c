@@ -12,8 +12,12 @@
 
 // OTHER EXTERNAL FUNCTIONS NEEDED
 hid_device *__usb_curdevice;
+// THIS IS EXCLUSIVE TO THE PC VERSION
+char __usb_devicepath[8192];
+
 volatile int __usb_paused;
 int __usb_timeout;
+
 
 
 
@@ -80,10 +84,10 @@ WORD __usb_fileid __SYSTEM_GLOBAL__;  // CURRENT FILEID
 BINT __usb_fileid_seq __SYSTEM_GLOBAL__;  // SEQUENTIAL NUMBER TO MAKE FILEID UNIQUE
 WORD __usb_offset __SYSTEM_GLOBAL__;  // CURRENT OFFSET WITHIN THE FILE
 WORD __usb_crc32 __SYSTEM_GLOBAL__;   // CURRENT CRC32 OF DATA RECEIVED
-BYTE __usb_ctlbuffer[RAWHID_RX_SIZE+1] __SYSTEM_GLOBAL__;  // BUFFER TO RECEIVE CONTROL PACKETS IN THE CONTROL CHANNEL
-BYTE __usb_tmprxbuffer[RAWHID_RX_SIZE+1] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER TO RECEIVE DATA
-BYTE __usb_ctlrxbuffer[RAWHID_RX_SIZE+1] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER TO RECEIVE CONTROL PACKETS
-BYTE __usb_ctltxbuffer[RAWHID_TX_SIZE+1] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER TO TRANSMIT DATA
+BYTE __usb_ctlbuffer[10*RAWHID_RX_SIZE+1] __SYSTEM_GLOBAL__;  // BUFFER TO RECEIVE CONTROL PACKETS IN THE CONTROL CHANNEL
+BYTE __usb_tmprxbuffer[10*RAWHID_RX_SIZE+1] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER TO RECEIVE DATA
+BYTE __usb_ctlrxbuffer[10*RAWHID_RX_SIZE+1] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER TO RECEIVE CONTROL PACKETS
+BYTE __usb_ctltxbuffer[10*RAWHID_TX_SIZE+1] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER TO TRANSMIT DATA
 
 BYTE    __usb_rxbuffer[3*LONG_BUFFER_SIZE] ;              // LARGE BUFFER TO RECEIVE AT LEAST 3 FULL FRAGMENTS
 WORD    __usb_rxoffset __SYSTEM_GLOBAL__;              // STARTING OFFSET OF THE DATA IN THE RX BUFFER
@@ -216,31 +220,27 @@ void usb_irqservice();
 void usb_irqdisconnect()
 {
     // CALLED WHEN THE CABLE IS DISCONNECTED
-__usb_drvstatus&=~(USB_STATUS_CONNECTED|USB_STATUS_CONFIGURED);
-usb_shutdown();
+
+    if(__usb_curdevice) hid_close(__usb_curdevice);
+    __usb_curdevice=0;
+    __usb_devicepath[0]=0;
+
+           __usb_fileid=0;
+           __usb_drvstatus=0;  // MARK UNCONFIGURED
 
 }
 
 void usb_irqconnect()
 {
-    usb_init(0);
-    // CALLED WHEN THE CABLE IS DISCONNECTED
-     if(__usb_curdevice) __usb_drvstatus|=USB_STATUS_CONNECTED|USB_STATUS_CONFIGURED;
 
-}
+    // CALLED WHEN THE CABLE IS CONNECTED, CALLED FROM WITHIN THE THREAD
 
+    __usb_drvstatus=USB_STATUS_INIT|USB_STATUS_CONNECTNOW;
 
 
-
-void usb_init(int force)
-{
-
-    if(__usb_drvstatus&USB_STATUS_INIT) {
-        if(!force) return;
-        usb_shutdown(); // FORCE A SHUTDOWN TO RESET THE PHY COMPLETELY
-    }
-
-    __usb_drvstatus=USB_STATUS_INIT;
+    // WE HAVE A PATH, TRY TO OPEN THE DEVICE
+    __usb_curdevice=hid_open_path((const char *)__usb_devicepath);
+    if(!__usb_curdevice) __usb_devicepath[0]=0;
 
     __usb_fileid=0;
     __usb_fileid_seq&=0xff;
@@ -258,24 +258,83 @@ void usb_init(int force)
     __usb_rxread=0;                // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
     __usb_rxtotalbytes=0;          // DON'T KNOW THE TOTAL FILE SIZE YET
 
-    if(__usb_curdevice) __usb_drvstatus|=USB_STATUS_CONNECTED|USB_STATUS_CONFIGURED;
+    __usb_drvstatus|=USB_STATUS_CONNECTED|USB_STATUS_CONFIGURED;
+
+
+
+}
+
+
+
+
+void usb_init(int force)
+{
+
+    if(__usb_drvstatus&USB_STATUS_INIT) {
+        if(!force) return;
+        usb_shutdown(); // FORCE A SHUTDOWN TO RESET THE PHY COMPLETELY
+    }
+
+    int oldpause=__usb_paused;
+
+    __usb_drvstatus=USB_STATUS_INIT|USB_STATUS_CONNECTNOW;
+
+    __usb_paused=0;
+
+
+    while(__usb_drvstatus&USB_STATUS_CONNECTNOW);
+
+
+    if(oldpause) {
+        __usb_paused=1;
+        while(__usb_paused>=0);
+    }
+
+
+    __usb_fileid=0;
+    __usb_fileid_seq&=0xff;
+    __usb_offset=0;
+    __usb_crc32=0;      // RESET CRC32
+
+    __usb_txbuffer=0;
+    __usb_txused=0;
+    __usb_txoffset=0;
+    __usb_txoffset=0;
+    __usb_txtotalbytes=0;
+
+    __usb_rxoffset=0;
+    __usb_rxused=0;                // NUMBER OF BYTES USED IN THE RX BUFFER
+    __usb_rxread=0;                // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
+    __usb_rxtotalbytes=0;          // DON'T KNOW THE TOTAL FILE SIZE YET
+
     // TODO: SETUP COMMUNICATIONS BUFFERS
 
 }
 
 
+// THESE ARE MEANT TO BE CALLED FROM OUTSIDE THE IRQ HANDLER
+
 void usb_shutdown()
 {
 
     if(!(__usb_drvstatus&USB_STATUS_INIT)) return;
-/*
-       if(__usb_curdevice) {
-        hid_close(__usb_curdevice);
-        __usb_curdevice=0;
-        __usb_fileid=0;
-    }
-*/
-    __usb_drvstatus=0;  // MARK UNCONFIGURED
+
+           int oldpause=__usb_paused;
+
+           __usb_drvstatus=USB_STATUS_INIT|USB_STATUS_DISCONNECTNOW;
+
+           __usb_paused=0;
+
+           while(__usb_drvstatus&USB_STATUS_DISCONNECTNOW) ;
+
+           __usb_fileid=0;
+           __usb_drvstatus=0;  // MARK UNCONFIGURED
+
+           if(oldpause) {
+               __usb_paused=1;
+               while(__usb_paused>=0);
+           }
+
 
 
 }
@@ -315,10 +374,10 @@ void usb_ep1_transmit()
             // THE REMOTE DIDN'T GET IT, WE NEED TO RESEND
             // THE WANTED OFFSET WAS LEFT IN __usb_rxoffset BY usb_receivecontrolpacket()
             __usb_offset=__usb_rxoffset;
-            __usb_txseq--;
-            __usb_txseq&=0x1f;  // DIAL BACK THE SEQUENCE NUMBER BACK
+            __usb_txseq=0;  // RESTART BACK THE SEQUENCE NUMBER
             __usb_crc32=0;      // RESET THE CRC FROM HERE ON
             __usb_drvstatus&=~USB_STATUS_ERROR; // REMOVE THE ERROR AND RESEND
+
         }
 
         int bufoff=__usb_offset-__usb_txoffset;
@@ -476,15 +535,24 @@ void usb_ep2_receive()
 
     // IS THE CORRECT OFFSET?
     if(pptr->p_offset!=__usb_offset) {
-    //  WE MUST'VE MISSED SOMETHING
+        //  WE MUST'VE MISSED SOMETHING
+
+    if(!(__usb_drvstatus&USB_STATUS_ERROR)) {
     __usb_drvstatus|=USB_STATUS_ERROR;
     // SEND A REPORT NOW IF POSSIBLE, OTHERWISE THE ERROR INFO WILL GO IN THE NEXT REPORT
     if(!(__usb_drvstatus&USB_STATUS_TXCTL))  usb_sendcontrolpacket(P_TYPE_REPORT);
+     }
 
     // FLUSH THE FIFO, IGNORE THE PACKET
     return;
 
 
+    } else {
+        // GOT THE RIGHT OFFSET, RESET ERROR CONDITION IF ANY
+        if(__usb_drvstatus&USB_STATUS_ERROR) {
+            __usb_crc32=0;
+            __usb_drvstatus&=~USB_STATUS_ERROR;
+        }
     }
 
     // MAKE SOME ROOM IF WE CAN
@@ -508,6 +576,7 @@ void usb_ep2_receive()
         // SEND A REPORT NOW IF POSSIBLE, OTHERWISE THE ERROR INFO WILL GO IN THE NEXT REPORT
         if(!(__usb_drvstatus&USB_STATUS_TXCTL))  usb_sendcontrolpacket(P_TYPE_REPORT);
 
+        // FLUSH THE FIFO, DISCARD THE DATA
         return;
 
     }
@@ -529,7 +598,11 @@ void usb_ep2_receive()
     __usb_rxused+=pptr->p_dataused;
     __usb_offset+=pptr->p_dataused;
 
-    if(__usb_rxused>=LONG_BUFFER_SIZE) __usb_drvstatus|=USB_STATUS_HALT;  // REQUEST HALT IF BUFFER IS HALF-FULL
+    if(__usb_rxused>=LONG_BUFFER_SIZE) {
+        __usb_drvstatus|=USB_STATUS_HALT;  // REQUEST HALT IF BUFFER IS HALF-FULL
+        // SEND A REPORT NOW IF POSSIBLE, OTHERWISE THE ERROR INFO WILL GO IN THE NEXT REPORT
+        if(!(__usb_drvstatus&USB_STATUS_TXCTL))  usb_sendcontrolpacket(P_TYPE_REPORT);
+    }
 
     __usb_drvstatus|=USB_STATUS_RXDATA; // AND SIGNAL THAT WE HAVE DATA AVAILABLE
 }
@@ -558,6 +631,24 @@ void ep2_irqservice()
 // GENERAL INTERRUPT SERVICE ROUTINE - DISPATCH TO INDIVIDUAL ENDPOINT ROUTINES
 void usb_irqservice()
 {
+    if(__usb_drvstatus&USB_STATUS_CONNECTNOW) {
+        // WE HAVE A PATH, TRY TO OPEN THE DEVICE
+        __usb_curdevice=hid_open_path((const char *)__usb_devicepath);
+        if(!__usb_curdevice) __usb_devicepath[0]=0;
+        else __usb_drvstatus|=USB_STATUS_CONNECTED|USB_STATUS_CONFIGURED;
+        __usb_drvstatus&=~USB_STATUS_CONNECTNOW;
+        return;
+    }
+
+    if(__usb_drvstatus&USB_STATUS_DISCONNECTNOW) {
+        // WE HAVE A PATH, TRY TO OPEN THE DEVICE
+        if(__usb_curdevice) hid_close(__usb_curdevice);
+        __usb_curdevice=0;
+        __usb_devicepath[0]=0;
+        __usb_drvstatus&=~USB_STATUS_DISCONNECTNOW;
+        return;
+    }
+
     if(!(__usb_drvstatus&(USB_STATUS_INIT|USB_STATUS_CONNECTED|USB_STATUS_CONFIGURED)==(USB_STATUS_INIT|USB_STATUS_CONNECTED|USB_STATUS_CONFIGURED))) return;
 
     if(!__usb_curdevice) return;    // SHOULDN'T HAPPEN, BUT JUST IN CASE A THREAD CLOSED THE HANDLE AFTER WE ENTERED HERE

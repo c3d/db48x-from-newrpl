@@ -1,20 +1,31 @@
 ﻿#include <QMessageBox>
 #include <QTreeWidget>
+#include <QTreeWidgetItem>
+#include <QTreeWidgetItemIterator>
 #include <QTimer>
 #include <QStandardPaths>
 #include <QFileDialog>
 #include <QCloseEvent>
 
-#include "string.h"
+//#include "string.h"
 #include "hidapi.h"
 #include "usbselector.h"
 #include "ui_usbselector.h"
+
+// ONLY REQUIRED UNDER MINGW
+#ifdef DrawText
+#undef DrawText
+#endif
+#define WORD _WORD
+
 
 extern "C" {
 #include "newrpl.h"
 #include "libraries.h"
 
 extern hid_device *__usb_curdevice;
+extern char __usb_devicepath[8192];
+
 extern volatile int __usb_paused;
 int __fwupdate_progress;
 int __fwupdate_address;
@@ -50,7 +61,7 @@ USBSelector::USBSelector(QWidget *parent) :
 
     tmr = new QTimer(this);
 
-    tmr->singleShot(200,this,SLOT(refresh()));
+    QTimer::singleShot(200,this,SLOT(refresh()));
 
 }
 
@@ -129,6 +140,9 @@ void USBSelector::RefreshList()
     struct hid_device_info *devs, *cur_dev;
     QTreeWidgetItem *newitem;
 
+        // MAKE SURE WE CLOSE EVERYTHING AND RESET THE ENTIRE LIBRARY BEFORE ENUMERATION
+        usb_shutdown();
+        hid_exit();
 
         if (hid_init())
         {
@@ -142,6 +156,7 @@ void USBSelector::RefreshList()
         return;
         }
 
+
         cur_dev = devs;
         QString result;
         result.clear();
@@ -150,6 +165,7 @@ void USBSelector::RefreshList()
         // FIRST DISABLE ALL ITEMS IN THE LIST
 
         QTreeWidgetItemIterator it(ui->USBtreeWidget);
+
         while(*it) {
             (*it)->setDisabled(true);
             ++it;
@@ -157,197 +173,265 @@ void USBSelector::RefreshList()
 
         }
 
+        QString manuf;
+        QString tmp;
+        QString pid;
+        QString newpath;
+
+
         while (cur_dev) {
 
-            QString manuf;
 
             if(cur_dev->manufacturer_string) manuf=QString::fromStdWString(cur_dev->manufacturer_string);
+            else manuf.clear();
+
+            manuf.detach();
 
             if(manuf.startsWith("newRPL")) {
-            QTreeWidgetItemIterator it(ui->USBtreeWidget);
 
-            newitem=0;
-            while(*it) {
+                pid=QString::number(cur_dev->vendor_id,16) + ":" + QString::number(cur_dev->product_id,16);
+                newpath=QString(cur_dev->path);
+                newpath.detach();
 
-                QString pid=QString::number(cur_dev->vendor_id,16) + ":" + QString::number(cur_dev->product_id,16);
+                int nitems=ui->USBtreeWidget->topLevelItemCount();
+                int k;
+                QTreeWidgetItem *item;
 
-
-                if( ((*it)->text(4)==pid)&&((*it)->text(3)==QString(cur_dev->path)))
-                {
-                    // FOUND THE SAME ITEM AGAIN
-                    newitem=*it;
-                    (*it)->setDisabled(false);
+                newitem=0;
+                for(k=0;k<nitems;++k) {
+                    item=ui->USBtreeWidget->topLevelItem(k);
+                    if(item) {
+                        if( (item->text(4)==pid)&&(item->text(3)==newpath))
+                        {
+                            // FOUND THE SAME ITEM AGAIN
+                            newitem=item;
+                            item->setDisabled(false);
+                            break;
+                        }
+                    }
                 }
-                ++it;
 
-            }
+                if(!newitem) {
+                    newitem=new QTreeWidgetItem();
+                    if(!newitem) return;
 
-            if(!newitem) {
-                newitem=new QTreeWidgetItem(ui->USBtreeWidget);
+                    newitem->setText(0,"Empty");
+                    newitem->setText(1,"Empty");
+                    newitem->setText(2,"Empty");
+                    newitem->setText(3,"Empty");
+                    newitem->setText(4,"Empty");
 
-                if(!newitem) return;
-            }
+                    ui->USBtreeWidget->addTopLevelItem(newitem);
 
-            QString tmp;
+                }
 
-            if(cur_dev->product_string) tmp=QString::fromStdWString(cur_dev->product_string);
-            else tmp="[Unknown]";
-            if(cur_dev->serial_number) tmp+=QString("|SN=")+QString::fromStdWString(cur_dev->serial_number);
 
+                if(cur_dev->product_string) tmp=QString::fromStdWString(cur_dev->product_string);
+                else tmp="[Unknown]";
+                if(cur_dev->serial_number) tmp+=QString("|SN=")+QString::fromStdWString(cur_dev->serial_number);
+
+                tmp.detach();
                 newitem->setText(0,tmp);
 
                 if(cur_dev->manufacturer_string) tmp=QString::fromStdWString(cur_dev->manufacturer_string);
                 else tmp="[Unknown]";
 
-                    newitem->setText(1,tmp);
 
-                    tmp=QString::number(cur_dev->vendor_id,16) + ":" + QString::number(cur_dev->product_id,16);
-                    newitem->setText(4,tmp);
+                tmp.detach();
+                newitem->setText(1,tmp);
 
-                    newitem->setText(3,QString(cur_dev->path));
+                tmp=QString::number(cur_dev->vendor_id,16) + ":" + QString::number(cur_dev->product_id,16);
 
-                        hid_device *thisdev;
+                tmp.detach();
+                newitem->setText(4,tmp);
+
+                newitem->setText(3,newpath);
+            }
+
+            cur_dev = cur_dev->next;
+        }
+
+
+
+        hid_free_enumeration(devs);
+
+
+        // NOW ELIMINATE ANY ITEMS THAT ARE NOT ENABLED
+        {
+            int restart=1;
+
+            while(restart) {
+                int nitems=ui->USBtreeWidget->topLevelItemCount();
+                if(nitems==0) break;
+
+                int k;
+                QTreeWidgetItem *item;
+                for(k=0;k<nitems;++k) {
+                    item=ui->USBtreeWidget->topLevelItem(k);
+
+                    if(item) {
+                        if(item->isDisabled()) {
+                            if(SelectedDevicePath==item->text(3)) {
+
+                                ui->buttonBox->setStandardButtons( QDialogButtonBox::Cancel);
+                                SelectedDevicePath.clear();
+                                ui->selectedCalc->setText(QString("No device selected."));
+                                ui->USBtreeWidget->clearSelection();
+                                ui->updateFirmware->hide();
+                            }
+                            QTreeWidgetItem *pparent=item->parent();
+                            if(pparent) pparent->removeChild(item);
+                            delete item;
+                            restart=1;
+                            break;
+                        }
+
+
+                        // THE DEVICE IS ACTIVE
+
+
+                        tmp=item->text(3);
+                        tmp.detach();
 
                         // STOP THE DRIVER AND REINITIALIZE COMPLETELY
                         __usb_paused=1;
                         while(__usb_paused>=0);
 
+                        // SET THE DRIVER TO USE THIS DEVICE AND START THE DRIVER
+                        if(strcpy_s(__usb_devicepath,8192,tmp.toUtf8().constData())) __usb_devicepath[0]=0;
+                        __usb_timeout=200;      // SET TIMEOUT TO 200 ms FOR QUICK DETECTION
 
-                        thisdev=hid_open_path(cur_dev->path);
+                        usb_init(1);        // FORCE REINITIALIZATION, CLOSE ANY PREVIOUS HANDLES IF THEY EXIST
 
-                        if(thisdev)
+                        if(usb_isconnected())
                         {
                             unsigned char buffer[1024];
                             int res;
                             int available=0;
 
-                            // SET THE DRIVER TO USE THIS DEVICE AND START THE DRIVER
-                            __usb_curdevice=thisdev;
-                            __usb_timeout=200;      // SET TIMEOUT TO 200 ms FOR QUICK DETECTION
-
-                            usb_init(1);        // FORCE REINITIALIZATION, CLOSE ANY PREVIOUS HANDLES IF THEY EXIST
 
 
                             __usb_paused=0;
 
+
                             do {
 
 
-                             usb_sendcontrolpacket(P_TYPE_GETSTATUS);
+                                usb_sendcontrolpacket(P_TYPE_GETSTATUS);
 
-                             tmr_t start,end;
-                             // WAIT FOR THE CONTROL PACKET TO BE SENT
-                             start=tmr_ticks();
-                             res=0;
-                             while(__usb_drvstatus&USB_STATUS_TXCTL) {
+                                tmr_t start,end;
+                                // WAIT FOR THE CONTROL PACKET TO BE SENT
+                                start=tmr_ticks();
+                                res=0;
+                                while(__usb_drvstatus&USB_STATUS_TXCTL) {
 
-                                 if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
+                                    if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
 
-                                 QThread::yieldCurrentThread();
+                                    QThread::yieldCurrentThread();
 
-                                 end=tmr_ticks();
-                                 if(tmr_ticks2ms(start,end)>__usb_timeout) {
-                                 res=-1;
-                                 break;
-                                 }
-                            }
-
-                             if(res<0) break;
-
-                             if(!usb_waitforreport()) { res=-1; break; }
-                             // WAIT FOR A RESPONSE
-                             USB_PACKET *pkt=usb_getreport();
-
-                             if(P_FILEID(pkt)!=0) {
-
-                                 // REQUEST UNCONDITIONAL ABORT
-                                 __usb_fileid=0xffff;
-                                 usb_sendcontrolpacket(P_TYPE_ABORT);
-                                 __usb_fileid=0;
-
-                                 tmr_t start,end;
-
-
-                                 // WAIT FOR THE CONTROL PACKET TO BE SENT
-                                 start=tmr_ticks();
-                                 res=0;
-                                 while(__usb_drvstatus&USB_STATUS_TXCTL) {
-
-                                     if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
-
-                                     QThread::yieldCurrentThread();
-                                     end=tmr_ticks();
-                                     if(tmr_ticks2ms(start,end)>__usb_timeout) {
-                                     res=-1;
-                                     break;
-                                     }
+                                    end=tmr_ticks();
+                                    if(tmr_ticks2ms(start,end)>__usb_timeout) {
+                                        res=-1;
+                                        break;
+                                    }
                                 }
-                                 continue;
-                             }
 
-                             usb_releasereport();
+                                if(res<0) break;
 
-                             if(res<0) break;
-                             // GOT AN ANSWER, MAKE SURE REMOTE IS READY TO RECEIVE
-                             if(__usb_drvstatus&(USB_STATUS_HALT|USB_STATUS_ERROR)) { res=-1; break; }
+                                if(!usb_waitforreport()) { res=-1; break; }
+                                // WAIT FOR A RESPONSE
+                                USB_PACKET *pkt=usb_getreport();
 
-                            // ATTEMPT TO SEND SOMETHING TO SEE IF IT'S ACTIVELY RESPONDING
-                            uint32_t getversion[6]={
-                                MKPROLOG(SECO,5),  // ACTUAL DATA
-                                CMD_VERSION,
-                                CMD_DROP,
-                                CMD_USBSEND,
-                                CMD_DROP,
-                                CMD_QSEMI
-                            };
+                                if(P_FILEID(pkt)!=0) {
 
-                            int fileid;
-                            res=fileid=usb_txfileopen('O');
-                            if(!res) break;
+                                    // REQUEST UNCONDITIONAL ABORT
+                                    __usb_fileid=0xffff;
+                                    usb_sendcontrolpacket(P_TYPE_ABORT);
+                                    __usb_fileid=0;
 
-                            res=usb_filewrite(fileid,(BYTEPTR)getversion,6*sizeof(uint32_t));
-
-                            if(!res) break;
-
-                            res=usb_txfileclose(fileid);
-
-                            if(res<0) break;
+                                    tmr_t start,end;
 
 
-                             // WAIT FOR THE FILE TO ARRIVE
-                             start=tmr_ticks();
-                             res=0;
-                             while(!usb_hasdata()) {
+                                    // WAIT FOR THE CONTROL PACKET TO BE SENT
+                                    start=tmr_ticks();
+                                    res=0;
+                                    while(__usb_drvstatus&USB_STATUS_TXCTL) {
 
-                                 if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
+                                        if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
 
-                                 QThread::yieldCurrentThread();
-                                 end=tmr_ticks();
-                                 if(tmr_ticks2ms(start,end)>__usb_timeout) {
-                                 res=-1;
-                                 break;
-                                 }
-                            }
-                            if(res<0) break;
+                                        QThread::yieldCurrentThread();
+                                        end=tmr_ticks();
+                                        if(tmr_ticks2ms(start,end)>__usb_timeout) {
+                                            res=-1;
+                                            break;
+                                        }
+                                    }
+                                    continue;
+                                }
 
-                            res=fileid=usb_rxfileopen();
+                                usb_releasereport();
 
-                            if(res<0) break;
+                                if(res<0) break;
+                                // GOT AN ANSWER, MAKE SURE REMOTE IS READY TO RECEIVE
+                                if(__usb_drvstatus&(USB_STATUS_HALT|USB_STATUS_ERROR)) { res=-1; break; }
 
-                            res=usb_fileread(fileid,buffer,1024);
+                                // ATTEMPT TO SEND SOMETHING TO SEE IF IT'S ACTIVELY RESPONDING
+                                uint32_t getversion[6]={
+                                    MKPROLOG(SECO,5),  // ACTUAL DATA
+                                    CMD_VERSION,
+                                    CMD_DROP,
+                                    CMD_USBSEND,
+                                    CMD_DROP,
+                                    CMD_QSEMI
+                                };
 
-                            if(res<=0) break;
+                                int fileid;
+                                res=fileid=usb_txfileopen('O');
+                                if(!res) break;
 
-                            usb_rxfileclose(fileid);
+                                res=usb_filewrite(fileid,(BYTEPTR)getversion,6*sizeof(uint32_t));
 
-                            {
-                            unsigned int strprolog;
-                            strprolog=buffer[0]+(buffer[1]<<8)+(buffer[2]<<16)+(buffer[3]<<24);
-                            int length=rplStrSize(&strprolog);
-                            tmp=QString::fromUtf8((char *)(buffer+4),rplStrSize(&strprolog));
-                            //newitem->setText(2,tmp);
-                            available=1;
-                            }
+                                if(!res) break;
+
+                                res=usb_txfileclose(fileid);
+
+                                if(res<0) break;
+
+
+                                // WAIT FOR THE FILE TO ARRIVE
+                                start=tmr_ticks();
+                                res=0;
+                                while(!usb_hasdata()) {
+
+                                    if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) break;
+
+                                    QThread::yieldCurrentThread();
+                                    end=tmr_ticks();
+                                    if(tmr_ticks2ms(start,end)>__usb_timeout) {
+                                        res=-1;
+                                        break;
+                                    }
+                                }
+                                if(res<0) break;
+
+                                res=fileid=usb_rxfileopen();
+
+                                if(res<0) break;
+
+                                res=usb_fileread(fileid,buffer,1024);
+
+                                if(res<=0) break;
+
+                                usb_rxfileclose(fileid);
+
+                                {
+                                    unsigned int strprolog;
+                                    strprolog=buffer[0]+(buffer[1]<<8)+(buffer[2]<<16)+(buffer[3]<<24);
+                                    int length=rplStrSize(&strprolog);
+                                    tmp=QString::fromUtf8((char *)(buffer+4),rplStrSize(&strprolog));
+                                    tmp.detach();
+                                    available=1;
+                                }
 
 
                             } while(!available);
@@ -359,50 +443,26 @@ void USBSelector::RefreshList()
                             __usb_curdevice=0;
                             __usb_timeout=5000;      // SET TIMEOUT TO THE DEFAULT 5000ms
 
-                            hid_close(thisdev);   // ALREADY CLOSED BY usb_shutdown()
-
-                        if(!available) {
-                            tmp="[Device not responding]";
-                        }
-                            newitem->setText(2,tmp);
+                            if(!available) {
+                                tmp="[Device not responding]";
+                            }
+                            item->setText(2,tmp);
 
 
                         }
-                        }
 
-                            cur_dev = cur_dev->next;
-        }
-        hid_free_enumeration(devs);
 
-        // NOW ELIMINATE ANY ITEMS THAT ARE NOT ENABLED
-        {
-        int restart=1;
+                        restart=0;
 
-        while(restart) {
-        QTreeWidgetItemIterator it(ui->USBtreeWidget);
-        while(*it) {
-            if((*it)->isDisabled()) {
-                if(SelectedDevicePath==(*it)->text(3)) {
+                    }
 
-                    ui->buttonBox->setStandardButtons( QDialogButtonBox::Cancel);
-                    SelectedDevicePath.clear();
-                    ui->selectedCalc->setText(QString("No device selected."));
-                    ui->USBtreeWidget->clearSelection();
-                    ui->updateFirmware->hide();
                 }
-                QTreeWidgetItem *pparent=(*it)->parent();
-                pparent->removeChild(*it);
-                delete (*it);
-                restart=1;
-                break;
             }
-            restart=0;
-            ++it;
-        }
+
+            __usb_timeout=5000; // MAKE SURE WE LEAVE THE TIMEOUT TO THE DEFAULT VALUE
 
         }
 
-        }
 
         // DONE, THE LIST WAS REFRESHED
 
@@ -412,8 +472,6 @@ void USBSelector::on_USBSelector_accepted()
 {
     if(tmr) {
         tmr->stop();
-        delete tmr;
-        tmr=0;
     }
 
 
@@ -423,16 +481,13 @@ void USBSelector::on_USBSelector_rejected()
 {
     if(tmr) {
         tmr->stop();
-        delete tmr;
-        tmr=0;
     }
 }
 
 void USBSelector::refresh()
 {
    RefreshList();
-
-   tmr->singleShot(2000,this,SLOT(refresh()));
+  QTimer::singleShot(500,this,SLOT(refresh()));
 
 }
 
@@ -451,8 +506,6 @@ void USBSelector::reconnect()
         if(numberoftries>10) {
             if(tmr) {
                 tmr->stop();
-                delete tmr;
-                tmr=0;
             }
             // FAILED TO RECONNECT AFTER 5 SECONDS
 
@@ -465,8 +518,6 @@ void USBSelector::reconnect()
 
     if(tmr) {
         tmr->stop();
-        delete tmr;
-        tmr=0;
     }
 
     // TODO: ASK THE USER IF HE WANTS TO RESTORE FIRMWARE AFTER SUCCE
@@ -487,8 +538,6 @@ void USBSelector::on_updateFirmware_clicked()
 
     if(tmr) {
         tmr->stop();
-        delete tmr;
-        tmr=0;
     }
 
 

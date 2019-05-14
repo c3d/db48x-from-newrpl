@@ -434,8 +434,11 @@ void LIB_HANDLER()
             bytesread=usb_fileread(fileid,(BYTEPTR)newobjptr,(allocated-offset)*sizeof(WORD));
             newobjptr+=(bytesread+3)>>2;
             if(bytesread<(allocated-offset)*sizeof(WORD)) {
-                if(!usb_eof(fileid)) rplError(ERR_USBTIMEOUT);
-                break;
+
+                if(bytesread==0) {
+                    if(!usb_eof(fileid)) rplError(ERR_USBTIMEOUT);
+                    break;
+                }
             }
             // MORE DATA IS EXPECTED, ALLOCATE MORE MEMORY
 
@@ -457,7 +460,11 @@ void LIB_HANDLER()
         switch(usb_filetype(fileid))
         {
         case 'O':   // THIS IS AN RPL OBJECT
-            if(!rplVerifyObject(newobj)) {
+            if(offset<rplObjSize(newobj)) {     // CHECK IF WE RECEIVED A COMPLETE OBJECT
+                rplError(ERR_USBINVALIDDATA);
+                return;
+            }
+            if(!rplVerifyObject(newobj)) {      // AND ALSO THAT THE OBJECT IS VALID
                 rplError(ERR_USBINVALIDDATA);
                 return;
             }
