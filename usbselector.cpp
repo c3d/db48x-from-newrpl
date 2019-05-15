@@ -298,7 +298,7 @@ void USBSelector::RefreshList()
                         while(__usb_paused>=0);
 
                         // SET THE DRIVER TO USE THIS DEVICE AND START THE DRIVER
-                        if(strcpy_s(__usb_devicepath,8192,tmp.toUtf8().constData())) __usb_devicepath[0]=0;
+                        if(safe_stringcpy(__usb_devicepath,8192,tmp.toUtf8().constData())) __usb_devicepath[0]=0;
                         __usb_timeout=200;      // SET TIMEOUT TO 200 ms FOR QUICK DETECTION
 
                         usb_init(1);        // FORCE REINITIALIZATION, CLOSE ANY PREVIOUS HANDLES IF THEY EXIST

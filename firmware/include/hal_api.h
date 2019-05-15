@@ -1093,6 +1093,7 @@ void memcpyw(void *dest,const void *source,int nwords);
 void memmovew(void *dest,const void *source,int nwords);
 int stringlen(const char *s);
 char * stringcpy(char *t, const char *s);
+int safe_stringcpy(char *t,int bsize,const char *s);
 void *memcpyb(void *trg, const void *src, int n);
 void *memmoveb(void *_dest, const void *_source, int nbytes);
 void memsetw(void *dest,int value,int nwords);

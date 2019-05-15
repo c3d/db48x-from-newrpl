@@ -231,6 +231,13 @@ char * stringcpy(char *t, const char *s)
     return r;
 }
 
+int safe_stringcpy(char *t,int bsize,const char *s)
+{
+    int n=stringlen(s);
+    if(n+1>bsize) return 1;
+    memmoveb(t,s,n+1);
+    return 0;
+}
 
 long strtol(const char *number,char **endptr,int base)
 {
