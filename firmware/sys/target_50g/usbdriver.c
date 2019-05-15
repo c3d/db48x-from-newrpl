@@ -1161,6 +1161,13 @@ void usb_ep1_transmit()
     if(__usb_drvstatus&USB_STATUS_TXDATA) {
         // WE HAVE A DATA PACKET TO SEND
 
+        if(__usb_drvstatus&USB_STATUS_HALT) {
+            // REMOTE REQUESTED WE STOP SENDING DATA UNTIL IT PROCESSES IT
+            // JUST REPLY WITH A ZERO DATA PACKET
+            *IN_CSR1_REG|=EPn_IN_PKT_RDY;
+            return;
+        }
+
         if(__usb_drvstatus&USB_STATUS_ERROR) {
             // THE REMOTE DIDN'T GET IT, WE NEED TO RESEND
             // THE WANTED OFFSET WAS LEFT IN __usb_rxoffset BY usb_receivecontrolpacket()

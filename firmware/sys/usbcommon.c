@@ -526,10 +526,13 @@ int usb_filewrite(int fileid,BYTEPTR data,int nbytes)
 {
     if(fileid!=__usb_fileid) return 0;
 
-    // WAIT FOREVER UNTIL WE ARE DONE WRITING, BUT RETURN IF WE GET A REPORT
+    tmr_t start,end;
+    start=tmr_ticks();
+    // WAIT FOREVER UNTIL WE ARE DONE WRITING, BUT TIMEOUT ON ERRORS
     while(__usb_drvstatus&USB_STATUS_TXDATA) {
-        USB_PACKET *report=usb_getreport();
-        if(report) return 0;
+       if(!(__usb_drvstatus&(USB_STATUS_HALT|USB_STATUS_ERROR))) start=tmr_ticks();
+       end=tmr_ticks();
+       if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) return 0;
     }
 
     __usb_txbuffer=data;

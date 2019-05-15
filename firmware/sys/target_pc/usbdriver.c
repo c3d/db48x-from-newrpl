@@ -369,6 +369,12 @@ void usb_ep1_transmit()
     }
 
     if(__usb_drvstatus&USB_STATUS_TXDATA) {
+
+        if(__usb_drvstatus&USB_STATUS_HALT) {
+            // DON'T SEND ANY DATA IF THE REMOTE REQUESTED HALT
+            return;
+        }
+
         // WE HAVE A DATA PACKET TO SEND
         if(__usb_drvstatus&USB_STATUS_ERROR) {
             // THE REMOTE DIDN'T GET IT, WE NEED TO RESEND
@@ -379,6 +385,8 @@ void usb_ep1_transmit()
             __usb_drvstatus&=~USB_STATUS_ERROR; // REMOVE THE ERROR AND RESEND
 
         }
+
+
 
         int bufoff=__usb_offset-__usb_txoffset;
         int bufbytes;
