@@ -229,6 +229,7 @@ SOURCES += main.cpp\
 
 
 HEADERS  += mainwindow.h \
+    firmware/include/usb.h \
     qemuscreen.h \
     firmware/include/ggl.h \
     firmware/include/ui.h \

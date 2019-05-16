@@ -335,16 +335,16 @@ BYTE __usb_tmprxbuffer[RAWHID_RX_SIZE+1] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER
 BYTE __usb_ctlrxbuffer[RAWHID_RX_SIZE+1] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER TO RECEIVE CONTROL PACKETS
 BYTE __usb_ctltxbuffer[RAWHID_TX_SIZE+1] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER TO TRANSMIT DATA
 
-BYTE __usb_rxbuffer[LONG_BUFFER_SIZE*3] __SCRATCH_MEMORY__;              // LARGE BUFFER TO RECEIVE AT LEAST 3 FULL FRAGMENTS
+BYTE __usb_rxtxbuffer[LONG_BUFFER_SIZE] __SCRATCH_MEMORY__;              // LARGE BUFFER TO RECEIVE AT LEAST 3 FULL FRAGMENTS
 WORD    __usb_rxoffset __SYSTEM_GLOBAL__;              // STARTING OFFSET OF THE DATA IN THE RX BUFFER
-WORD    __usb_rxused __SYSTEM_GLOBAL__;                // NUMBER OF BYTES USED IN THE RX BUFFER
-WORD    __usb_rxread __SYSTEM_GLOBAL__;                // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
+BINT    __usb_rxtxtop __SYSTEM_GLOBAL__;                // NUMBER OF BYTES USED IN THE RX BUFFER
+BINT    __usb_rxtxbottom __SYSTEM_GLOBAL__;                // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
 WORD    __usb_rxtotalbytes __SYSTEM_GLOBAL__;          // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 
 BYTEPTR __usb_txbuffer __SYSTEM_GLOBAL__;              // LARGE BUFFER POINTING TO AN ENTIRE FILE TO TRANSMIT
 WORD    __usb_txoffset __SYSTEM_GLOBAL__;              // STARTING OFFSET OF THE DATA IN THE TX BUFFER
 WORD    __usb_txtotalbytes __SYSTEM_GLOBAL__;              // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
-WORD    __usb_txused __SYSTEM_GLOBAL__;                // NUMBER OF BYTES USED IN THE TX BUFFER
+BINT    __usb_txused __SYSTEM_GLOBAL__;                // NUMBER OF BYTES USED IN THE TX BUFFER
 BINT    __usb_txseq __SYSTEM_GLOBAL__;                // SEQUENTIAL NUMBER WITHIN A FRAGMENT OF DATA
 
 BYTEPTR __usb_ctlbufptr __SYSTEM_GLOBAL__;             // POINTER TO BUFFER DURING CONTROL CHANNEL TRANSFERS
@@ -546,7 +546,7 @@ void usb_init(int force)
     __usb_drvstatus=USB_STATUS_INIT;
 
     __usb_fileid=0;
-    __usb_fileid_seq=0;
+    __usb_fileid_seq&=0xff;
     __usb_offset=0;
     __usb_crc32=0;      // RESET CRC32
 
@@ -557,8 +557,8 @@ void usb_init(int force)
     __usb_txtotalbytes=0;
 
     __usb_rxoffset=0;
-    __usb_rxused=0;                // NUMBER OF BYTES USED IN THE RX BUFFER
-    __usb_rxread=0;                // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
+    __usb_rxtxtop=0;                // NUMBER OF BYTES USED IN THE RX BUFFER
+    __usb_rxtxbottom=0;                // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
     __usb_rxtotalbytes=0;          // DON'T KNOW THE TOTAL FILE SIZE YET
 
     usb_hwsetup();
@@ -609,6 +609,7 @@ void usb_shutdown()
 
     *CLKCON&=~0xc0;     // POWER DOWN BOTH USB DEVICE AND HOST
 
+    __usb_fileid=0;
     __usb_drvstatus=0;  // MARK UNCONFIGURED
 
     __irq_mask(1);
@@ -1172,8 +1173,7 @@ void usb_ep1_transmit()
             // THE REMOTE DIDN'T GET IT, WE NEED TO RESEND
             // THE WANTED OFFSET WAS LEFT IN __usb_rxoffset BY usb_receivecontrolpacket()
             __usb_offset=__usb_rxoffset;
-            __usb_txseq--;
-            __usb_txseq&=0x1f;  // DIAL BACK THE SEQUENCE NUMBER BACK
+            __usb_txseq=0;  // DIAL BACK THE SEQUENCE NUMBER
             __usb_crc32=0;      // RESET THE CRC FROM HERE ON
             __usb_drvstatus&=~USB_STATUS_ERROR; // REMOVE THE ERROR AND RESEND
         }
@@ -1392,12 +1392,12 @@ void usb_ep2_receive()
 
     // MAKE SOME ROOM IF WE CAN
 
-    if(__usb_rxread==__usb_rxused) {
+    if(__usb_rxtxbottom==__usb_rxtxtop) {
         // BUFFERS WERE READ BY THE USER COMPLETELY
         // START FROM A CLEAN BUFFER
-        __usb_rxoffset+=__usb_rxused;
-        __usb_rxused=0;
-        __usb_rxread=0;
+        __usb_rxoffset+=__usb_rxtxtop;
+        __usb_rxtxtop=0;
+        __usb_rxtxbottom=0;
         __usb_drvstatus&=~USB_STATUS_HALT;
     }
 
@@ -1405,7 +1405,7 @@ void usb_ep2_receive()
 
 
     // DO WE HAVE ENOUGH ROOM AVAILABLE?
-    if(__usb_rxused+pptr->p_dataused>2*LONG_BUFFER_SIZE) {
+    if(__usb_rxtxtop+pptr->p_dataused>2*LONG_BUFFER_SIZE) {
      // DATA WON'T FIT IN THE BUFFER DUE TO OVERFLOW, ISSUE AN ERROR AND REQUEST RESEND
         __usb_drvstatus|=USB_STATUS_ERROR;
         // SEND A REPORT NOW IF POSSIBLE, OTHERWISE THE ERROR INFO WILL GO IN THE NEXT REPORT
@@ -1425,7 +1425,7 @@ void usb_ep2_receive()
 
 
     // WE HAVE NEW DATA, RECEIVE IT DIRECTLY AT THE BUFFER
-    rcvbuf=__usb_rxbuffer+__usb_rxused;
+    rcvbuf=__usb_rxtxbuffer+__usb_rxtxtop;
 
     while((cnt<fifocnt)&&(cnt<pptr->p_dataused+8)) {
             *rcvbuf=(BYTE)*EP2_FIFO;
@@ -1441,13 +1441,13 @@ void usb_ep2_receive()
         }
 
     // UPDATE THE CRC
-    __usb_crc32=usb_crc32roll(__usb_crc32,__usb_rxbuffer+__usb_rxused,pptr->p_dataused);
+    __usb_crc32=usb_crc32roll(__usb_crc32,__usb_rxtxbuffer+__usb_rxtxtop,pptr->p_dataused);
 
     // UPDATE THE BUFFERS
-    __usb_rxused+=pptr->p_dataused;
+    __usb_rxtxtop+=pptr->p_dataused;
     __usb_offset+=pptr->p_dataused;
 
-    if(__usb_rxused>=LONG_BUFFER_SIZE) {
+    if(__usb_rxtxtop>=LONG_BUFFER_SIZE) {
         __usb_drvstatus|=USB_STATUS_HALT;  // REQUEST HALT IF BUFFER IS HALF-FULL
         // SEND A REPORT NOW IF POSSIBLE, OTHERWISE THE ERROR INFO WILL GO IN THE NEXT REPORT
         if(!(__usb_drvstatus&USB_STATUS_TXCTL))  usb_sendcontrolpacket(P_TYPE_REPORT);
