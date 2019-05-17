@@ -24,10 +24,10 @@ public:
 class USBSelector : public QDialog
 {
     Q_OBJECT
-    QTimer *tmr;
     QString SelectedDevicePath;
     QString SelectedDeviceName;
     int numberoftries;
+    bool norefresh;
     FWThread update_thread;
     QByteArray filedata;
 

@@ -922,9 +922,9 @@ if(!usb_isconnected()) {
           // ATTEMPT TO RECONNECT
           __usb_paused=1;
           while(__usb_paused>=0);
-
-           if(safe_stringcpy(__usb_devicepath,8192,currentusbpath.toUtf8().constData())) __usb_devicepath[0]=0;
-          usb_init(1);
+          usb_shutdown();
+          if(safe_stringcpy(__usb_devicepath,8192,currentusbpath.toUtf8().constData())) __usb_devicepath[0]=0;
+          usb_init(0);
           if(!usb_isconnected()) {
               return;
           }
@@ -952,8 +952,9 @@ void MainWindow::on_usbconnectButton_clicked()
 
     if(ui->usbconnectButton->text().endsWith("[ Click to reconnect ]")) {
         // ATTEMPT TO RECONNECT
+        usb_shutdown();
         if(safe_stringcpy(__usb_devicepath,8192,currentusbpath.toUtf8().constData())) __usb_devicepath[0]=0;
-       usb_init(1);
+        usb_init(0);
        if(!usb_isconnected()) {
             currentusb.clear();
             currentusbpath.clear();
@@ -998,9 +999,9 @@ void MainWindow::on_usbconnectButton_clicked()
 
     if(seldlg.exec()==QDialog::Accepted) {
         if(!seldlg.getSelectedDevicePath().isEmpty()) {
-
+           usb_shutdown();
            if(safe_stringcpy(__usb_devicepath,8192,seldlg.getSelectedDevicePath().toUtf8().constData())) __usb_devicepath[0]=0;
-           usb_init(1);
+           usb_init(0);
            if(usb_isconnected()) {
             currentusbpath=seldlg.getSelectedDevicePath();
             currentusbpath.detach();

@@ -91,8 +91,8 @@ BYTE __usb_ctltxbuffer[RAWHID_TX_SIZE+1] __SYSTEM_GLOBAL__;  // TEMPORARY BUFFER
 
 BYTE    __usb_rxtxbuffer[LONG_BUFFER_SIZE] ;              // LARGE BUFFER TO RECEIVE AT LEAST 3 FULL FRAGMENTS
 BINT    __usb_rxoffset __SYSTEM_GLOBAL__;              // STARTING OFFSET OF THE DATA IN THE RX BUFFER
-BINT    __usb_rxtxtop __SYSTEM_GLOBAL__;                // NUMBER OF BYTES USED IN THE RX BUFFER
-BINT    __usb_rxtxbottom __SYSTEM_GLOBAL__;                // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
+volatile BINT    __usb_rxtxtop __SYSTEM_GLOBAL__;                // NUMBER OF BYTES USED IN THE RX BUFFER
+volatile BINT    __usb_rxtxbottom __SYSTEM_GLOBAL__;                // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
 BINT    __usb_rxtotalbytes __SYSTEM_GLOBAL__;          // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 
 BINT    __usb_txtotalbytes __SYSTEM_GLOBAL__;              // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
@@ -107,10 +107,6 @@ BINT __usb_ctlpadding __SYSTEM_GLOBAL__;                 // COUNT OF DATA DURING
 
 //  END OF NEW GLOBALS
 // ********************************
-
-// SOME INTERNAL FORWARD DECLARATIONS
-void usb_sendcontrolpacket(int packet_type);
-
 
 
 static WORD __crctable[256] =
@@ -420,7 +416,8 @@ void usb_ep1_transmit()
         if(bufbytes>USB_DATASIZE) bufbytes=USB_DATASIZE;    // DON'T SEND MORE THAN ONE PACKET AT A TIME
 
         // CHECK IF THESE ARE THE LAST FEW BYTES OF THE FILE
-        if((int)__usb_txtotalbytes-(int)__usb_offset == bufbytes) eof=1;
+        if((int)__usb_txtotalbytes-(int)__usb_offset == bufbytes)
+            eof=1;
         else {
             if(bufbytes<USB_DATASIZE) {
                 // WAIT FOR MORE DATA TO FILL UP THE PACKET, NO NEED TO SEND IT NOW
@@ -667,6 +664,7 @@ void usb_irqservice()
         if(__usb_curdevice) hid_close(__usb_curdevice);
         __usb_curdevice=0;
         __usb_devicepath[0]=0;
+        hid_exit();
         __usb_drvstatus&=~USB_STATUS_DISCONNECTNOW;
         return;
     }

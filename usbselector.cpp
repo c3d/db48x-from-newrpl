@@ -42,8 +42,8 @@ BINT64 rplObjChecksum(WORDPTR object);
 
 USBSelector::USBSelector(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::USBSelector),
-    update_thread(this)
+    update_thread(this),
+    ui(new Ui::USBSelector)
 {
     ui->setupUi(this);
 
@@ -58,8 +58,7 @@ USBSelector::USBSelector(QWidget *parent) :
     ui->USBtreeWidget->hideColumn(4);
 
 
-
-    tmr = new QTimer(this);
+    norefresh=false;
 
     QTimer::singleShot(200,this,SLOT(refresh()));
 
@@ -67,11 +66,6 @@ USBSelector::USBSelector(QWidget *parent) :
 
 USBSelector::~USBSelector()
 {
-    if(tmr) {
-        tmr->stop();
-        delete tmr;
-        tmr=0;
-    }
 
     delete ui;
 }
@@ -142,7 +136,6 @@ void USBSelector::RefreshList()
 
         // MAKE SURE WE CLOSE EVERYTHING AND RESET THE ENTIRE LIBRARY BEFORE ENUMERATION
         usb_shutdown();
-        hid_exit();
 
         if (hid_init())
         {
@@ -297,11 +290,11 @@ void USBSelector::RefreshList()
                         __usb_paused=1;
                         while(__usb_paused>=0);
 
+                        usb_shutdown();
                         // SET THE DRIVER TO USE THIS DEVICE AND START THE DRIVER
                         if(safe_stringcpy(__usb_devicepath,8192,tmp.toUtf8().constData())) __usb_devicepath[0]=0;
                         __usb_timeout=200;      // SET TIMEOUT TO 200 ms FOR QUICK DETECTION
-
-                        usb_init(1);        // FORCE REINITIALIZATION, CLOSE ANY PREVIOUS HANDLES IF THEY EXIST
+                        usb_init(0);        // FORCE REINITIALIZATION, CLOSE ANY PREVIOUS HANDLES IF THEY EXIST
 
                         if(usb_isconnected())
                         {
@@ -428,7 +421,7 @@ void USBSelector::RefreshList()
                                     unsigned int strprolog;
                                     strprolog=buffer[0]+(buffer[1]<<8)+(buffer[2]<<16)+(buffer[3]<<24);
                                     int length=rplStrSize(&strprolog);
-                                    tmp=QString::fromUtf8((char *)(buffer+4),rplStrSize(&strprolog));
+                                    tmp=QString::fromUtf8((char *)(buffer+4),length);
                                     tmp.detach();
                                     available=1;
                                 }
@@ -464,28 +457,25 @@ void USBSelector::RefreshList()
         }
 
 
+
+        ui->USBtreeWidget->resizeColumnToContents(0);
         // DONE, THE LIST WAS REFRESHED
 
 }
 
 void USBSelector::on_USBSelector_accepted()
 {
-    if(tmr) {
-        tmr->stop();
-    }
-
 
 }
 
 void USBSelector::on_USBSelector_rejected()
 {
-    if(tmr) {
-        tmr->stop();
-    }
+
 }
 
 void USBSelector::refresh()
 {
+   if(norefresh) return;
    RefreshList();
   QTimer::singleShot(500,this,SLOT(refresh()));
 
@@ -493,41 +483,48 @@ void USBSelector::refresh()
 
 void USBSelector::reconnect()
 {
-    if(!__usb_curdevice) {
+
+// TODO: FIX ALL THIS, CAN'T JUST OPEN THE DEVICE ANYMORE
+
+    if(!usb_isconnected()) {
    RefreshList();
    if(!SelectedDevicePath.isEmpty()) {
-       // CONNECT TO THE USB DEVICE
-       __usb_curdevice=hid_open_path(SelectedDevicePath.toUtf8().constData());
-   }
-    }
+       // ATTEMPT TO RECONNECT
+       __usb_paused=1;
+       while(__usb_paused>=0);
 
-    if(!__usb_curdevice) {
+       usb_shutdown();
+       if(safe_stringcpy(__usb_devicepath,8192,SelectedDevicePath.toUtf8().constData())) __usb_devicepath[0]=0;
+       usb_init(0);
+
+       if(usb_isconnected()) {
+           __usb_paused=0;
+       }
+   }
+    if(!usb_isconnected()) {
         ++numberoftries;
         if(numberoftries>10) {
-            if(tmr) {
-                tmr->stop();
-            }
-            // FAILED TO RECONNECT AFTER 5 SECONDS
+             // FAILED TO RECONNECT AFTER 5 SECONDS
 
             // TODO: SHOW SOME ERROR DIALOG
+
         }
+        else QTimer::singleShot(500,this,SLOT(reconnect));
         return;    // WAIT FOR ANOTHER TRY
+    }
+
     }
 
     // THE DEVICE IS BACK!
 
-    if(tmr) {
-        tmr->stop();
-    }
-
-    // TODO: ASK THE USER IF HE WANTS TO RESTORE FIRMWARE AFTER SUCCE
+    // TODO: ASK THE USER IF HE WANTS TO RESTORE FIRMWARE AFTER SUCCESS
 
     return;
 }
 
 extern "C" int usbremotefwupdatestart();
 extern "C" int usbsendtoremote(uint32_t *data,int nwords);
-extern "C" void usbflush();
+
 
 
 void USBSelector::on_updateFirmware_clicked()
@@ -535,12 +532,6 @@ void USBSelector::on_updateFirmware_clicked()
 
 
     // STOP REFRESHING THE LIST
-
-    if(tmr) {
-        tmr->stop();
-    }
-
-
 
         QString path;
         // THIS IS ONLY FOR 50g/40g/39g HARDWARE
@@ -560,14 +551,7 @@ void USBSelector::on_updateFirmware_clicked()
                 QMessageBox a(QMessageBox::Warning,"Error while opening","Cannot open file "+ fname,QMessageBox::Ok,this);
                 a.exec();
 
-
-                // START REFRESHING THE LIST AGAIN
-                tmr = new QTimer(this);
-                if(tmr) {
-                connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
-                tmr->start(500);
-                }
-
+                QTimer::singleShot(500,this, SLOT(reconnect()));
 
                 return;
             }
@@ -594,12 +578,7 @@ void USBSelector::on_updateFirmware_clicked()
                 QMessageBox a(QMessageBox::Warning,"Invalid firmware image","Invalid firmware image",QMessageBox::Ok,this);
                 a.exec();
                 // START REFRESHING THE LIST AGAIN
-                tmr = new QTimer(this);
-                if(tmr) {
-                connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
-                tmr->start(500);
-                }
-
+                QTimer::singleShot(500,this, SLOT(reconnect()));
                 return;
             }
 
@@ -607,23 +586,15 @@ void USBSelector::on_updateFirmware_clicked()
 
             if(warn.exec()==QMessageBox::No) {
                 // START REFRESHING THE LIST AGAIN
-                tmr = new QTimer(this);
-                if(tmr) {
-                connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
-                tmr->start(500);
-                }
-
+                QTimer::singleShot(500,this, SLOT(reconnect()));
                 return;
             }
 
         } else {
 
             // START REFRESHING THE LIST AGAIN
-            tmr = new QTimer(this);
-            if(tmr) {
-            connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
-            tmr->start(500);
-            }
+            QTimer::singleShot(500,this, SLOT(reconnect()));
+
 
             return;
         }
@@ -641,17 +612,16 @@ void USBSelector::on_updateFirmware_clicked()
 
 
         // CONNECT TO THE USB DEVICE
-        __usb_curdevice=hid_open_path(SelectedDevicePath.toUtf8().constData());
+                __usb_paused=1;
+                while(__usb_paused>=0);
+                usb_shutdown();
+                if(safe_stringcpy(__usb_devicepath,8192,SelectedDevicePath.toUtf8().constData())) __usb_devicepath[0]=0;
+                usb_init(0);
 
-        if(!__usb_curdevice) {
+          if(!usb_isconnected()) {
             // TODO: ERROR PROCESS
-            // START REFRESHING THE LIST AGAIN
-            tmr = new QTimer(this);
-            if(tmr) {
-            connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
-            tmr->start(500);
-            }
-
+              // START REFRESHING THE LIST AGAIN
+              QTimer::singleShot(500,this, SLOT(reconnect()));
             return;
         }
 
@@ -675,14 +645,14 @@ void USBSelector::on_updateFirmware_clicked()
 
 void USBSelector::finishedupdate()
 {
+
+
+
     // PUT THE USB DRIVER TO REST
     __usb_paused=1;
     while(__usb_paused>=0) ;
 
-    // AT THIS POINT, THE CALC MUST'VE RESET TO LOAD THE NEW FIRMWARE
-    hid_close(__usb_curdevice);
-    __usb_curdevice=0;
-
+    usb_shutdown();
 
    int result=__fwupdate_address;
 
@@ -704,15 +674,11 @@ void USBSelector::finishedupdate()
 
     numberoftries=0;
 
-    // START REFRESHING THE LIST AGAIN
-    tmr = new QTimer(this);
-    if(tmr) {
-    connect(tmr, SIGNAL(timeout()), this, SLOT(reconnect()));
-    tmr->start(500);
-    }
 
 
     // AND JUST HOPE IT WILL RECONENCT SOME TIME
+    // START REFRESHING THE LIST AGAIN
+    QTimer::singleShot(500,this, SLOT(refresh()));
 
 }
 
@@ -751,7 +717,7 @@ void FWThread::run()
     __usb_paused=0;
 
     {
-    // WAIT TWO FULL SECONDS BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
+    // WAIT 200ms BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
     tmr_t start,end;
     start=tmr_ticks();
     do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<200);

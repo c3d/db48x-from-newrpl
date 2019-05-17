@@ -550,7 +550,17 @@ int usb_filewrite(int fileid,BYTEPTR data,int nbytes)
        while(__usb_drvstatus&USB_STATUS_INSIDEIRQ) ;   // MAKE SURE WE THE DRIVER DOESN'T CHANGE THE BUFFER POINTERS
        if(__usb_drvstatus&(USB_STATUS_ERROR)) continue; // DO NOT FILL UP THE BUFFER WHEN THERE'S AN ERROR, WE MIGHT NEED OLD DATA
 
-       available=(__usb_rxtxtop>=__usb_rxtxbottom)? (RING_BUFFER_SIZE-__usb_rxtxtop) : (__usb_rxtxbottom-__usb_rxtxtop) ;
+       available=__usb_rxtxbottom-__usb_rxtxtop;
+       if(available<=0) {
+           available+=RING_BUFFER_SIZE;
+           if(available>=4) available-=4;    // DO NOT FILL UP THE BUFFER ALL THE WAY, LEAVE THE LAST WORD TO SEPARATE TOP AND BOTTOM
+           else available=0;
+       }
+       else {
+           if(available>RING_BUFFER_SIZE-__usb_rxtxtop) available=RING_BUFFER_SIZE-__usb_rxtxtop;
+           else if(available>=4) available-=4;
+                else available=0;
+       }
 
        if(available>nbytes) available=nbytes;
 
@@ -561,7 +571,7 @@ int usb_filewrite(int fileid,BYTEPTR data,int nbytes)
            int new__usb_rxtxtop=__usb_rxtxtop+available;
            if(new__usb_rxtxtop>=RING_BUFFER_SIZE) new__usb_rxtxtop-=RING_BUFFER_SIZE;
            __usb_rxtxtop=new__usb_rxtxtop;
-
+           __usb_drvstatus|=USB_STATUS_TXDATA;
            nbytes-=available;
            sent+=available;
        }
