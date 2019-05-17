@@ -532,6 +532,7 @@ void USBSelector::on_updateFirmware_clicked()
 
 
     // STOP REFRESHING THE LIST
+    norefresh=true;
 
         QString path;
         // THIS IS ONLY FOR 50g/40g/39g HARDWARE
