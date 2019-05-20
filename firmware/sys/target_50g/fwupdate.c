@@ -1129,6 +1129,7 @@ void ramusb_ep2_receive()
             ++cnt;
         }
 
+    *OUT_CSR1_REG&=~EPn_OUT_PKT_RDY;  // RECEIVED THE PACKET
 
     // UPDATE THE BUFFERS
     __usb_rxtxtop+=pptr->p_dataused;
@@ -1136,11 +1137,14 @@ void ramusb_ep2_receive()
     __usb_offset+=pptr->p_dataused;
     usedspace+=pptr->p_dataused;
 
+    // FOR FIRMWARE UPDATE, WE KNOW THE BUFFER IS LARGER THAN THE 4KBYTE BLOCKS BEING TRANSFERRED, SO WE NEVER NEED TO HALT
+    /*
     if(usedspace>=RING_BUFFER_SIZE/2) {
         __usb_drvstatus|=USB_STATUS_HALT;  // REQUEST HALT IF BUFFER IS HALF-FULL
         // SEND A REPORT NOW IF POSSIBLE, OTHERWISE THE ERROR INFO WILL GO IN THE NEXT REPORT
         if(!(__usb_drvstatus&USB_STATUS_TXCTL))  ramusb_sendcontrolpacket(P_TYPE_REPORT);
     }
+    */
 
     __usb_drvstatus|=USB_STATUS_RXDATA; // AND SIGNAL THAT WE HAVE DATA AVAILABLE
 }
@@ -1161,16 +1165,16 @@ void ramep2_irqservice()
 
     *INDEX_REG=RAWHID_RX_ENDPOINT;
 
-    // NOTHING TO RECEIVE, STALL
+    // NOTHING TO RECEIVE,
     if(*OUT_CSR1_REG&EPn_OUT_PKT_RDY) {
         // WE HAVE A PACKET, GO PROCESS IT
         ramusb_ep2_receive();
         return;
     }
 
-    // GETTING INTERRUPTS WITHOUT PACKETS? SOMETHING IS WRONG, STALL
+    // GETTING INTERRUPTS WITHOUT PACKETS? SOMETHING IS WRONG,
 
-    //if(*OUT_CSR1_REG&EPn_OUT_SENT_STALL) return;  // ALREADY DONE
+    //if(*OUT_CSR1_REG&EPn_OUT_SENT_) return;  // ALREADY DONE
 
 
     //*OUT_CSR1_REG|=EPn_OUT_SEND_STALL;
@@ -1884,6 +1888,15 @@ do {
     // SLEEP UNTIL WE GET SOMETHING
     while(!ramusb_hasdata()) ramcpu_waitforinterrupt();
 
+    //*************************
+    {
+    unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+    scrptr[120]=0xff0880ff;
+    }
+    //*************************
+
+
+
 
 result=fileid=ramusb_rxfileopen();
 if( (!result) || usb_filetype(fileid)!='W') {
@@ -1895,16 +1908,72 @@ WORDPTR flash_address;
 WORD flash_nwords,data;
 data=0xffffffff;
 
-if(ramusb_fileread(fileid,(BYTEPTR)&data,4)<4)  ram_doreset(); // NOTHING ELSE TO DO
+// RECEIVE THE ENTIRE FILE, GET THE TOTAL NUMBER OF BYTES RECEIVED
+// THIS WAY WE AVOID IRQS DURING FLASHING
+WORD receivedwords=(ramusb_waitfordata(6000)+3)>>2 ;
+
+
+//*************************
+{
+unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+scrptr[122]=0xff0880ff;
+}
+//*************************
+
+
+
+if(ramusb_fileread(fileid,(BYTEPTR)&data,4)<4)  { while(1); ram_doreset(); } // NOTHING ELSE TO DO
+
+//*************************
+{
+unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+scrptr[124]=0xff0880ff;
+}
+//*************************
+
+
 
 if(data!=TEXT2WORD('F','W','U','P'))  {
+    while(1);
     ram_doreset(); // NOTHING ELSE TO DO
 }
 
+//*************************
+{
+unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+scrptr[126]=0xff0880ff;
+}
+//*************************
 
-if(ramusb_fileread(fileid,(BYTEPTR)&flash_address,4)<4)  ram_doreset(); // NOTHING ELSE TO DO
+if(ramusb_fileread(fileid,(BYTEPTR)&flash_address,4)<4) { while(1); ram_doreset(); }// NOTHING ELSE TO DO
 
-if(ramusb_fileread(fileid,(BYTEPTR)&flash_nwords,4)<4)  ram_doreset();
+//*************************
+{
+unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+scrptr[128]=0xff0880ff;
+}
+//*************************
+
+if(ramusb_fileread(fileid,(BYTEPTR)&flash_nwords,4)<4) { while(1); ram_doreset(); }
+
+//*************************
+{
+unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+scrptr[130]=0xff0880ff;
+}
+//*************************
+
+
+//if(flash_nwords!=receivedwords+3) { while(1); ram_doreset(); }
+
+//*************************
+{
+unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+scrptr[132]=0xffffffff;
+}
+//*************************
+
+
 
 if(((WORD)flash_address==0xffffffff))  {
 
@@ -1951,10 +2020,26 @@ if(((WORD)flash_address==0xffffffff))  {
 
 if((WORD)(flash_address+flash_nwords)>flashsize) {
     // ROM TOO BIG!
+    //*************************
+    {
+    unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+    scrptr[140]=0xfff00fff;
+    }
+    //*************************
+    while(1);
     ram_doreset();
 }
 
-if(((WORD)flash_address<0x4000))  {  
+if(((WORD)flash_address<0x4000))  {
+
+    //*************************
+    {
+    unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+    scrptr[160]=0xff0000ff;
+    }
+    //*************************
+
+    while(1);
     ram_doreset(); // PROTECT THE BOOTLOADER AT ALL COSTS
 }
 
@@ -1962,19 +2047,15 @@ if(((WORD)flash_address<0x4000))  {
 ram_flasherase(flash_address,flash_nwords );    // ERASE ENOUGH FLASH BLOCKS TO PREPARE FOR FIRMWARE UPDATE
 
 
+WORDPTR dataptr=(WORDPTR) (__usb_rxtxbuffer+__usb_rxtxbottom);  // THIS POINTS TO THE NEXT BYTE TO READ
 
 while(flash_nwords--) {
-    if(ramusb_fileread(fileid,(BYTEPTR)&data,4)<4) ram_doreset();
-
-    ram_flashprogramword(flash_address,data);
+    ram_flashprogramword(flash_address,*dataptr);
     ++flash_address;
-
+    ++dataptr;
 }
 
 // WE FINISHED PROGRAMMING THE FLASH!
-
-
-
 
 ramusb_rxfileclose(fileid);
 

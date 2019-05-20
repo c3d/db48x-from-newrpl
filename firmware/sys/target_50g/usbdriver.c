@@ -1442,6 +1442,7 @@ void usb_ep2_receive()
             ++cnt;
         }
 
+    *OUT_CSR1_REG&=~EPn_OUT_PKT_RDY;  // RECEIVED THE PACKET
 
     // UPDATE THE BUFFERS
     __usb_rxtxtop+=pptr->p_dataused;

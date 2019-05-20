@@ -734,7 +734,7 @@ void FWThread::run()
     // WAIT 500ms BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
     tmr_t start,end;
     start=tmr_ticks();
-    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<500);
+    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<2000);
     }
 
 
