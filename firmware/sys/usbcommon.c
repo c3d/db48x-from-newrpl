@@ -476,6 +476,10 @@ int usb_txfileopen(int file_type)
     while(__usb_drvstatus&USB_STATUS_TXDATA) {
         end=tmr_ticks();
         if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
+            //************************************
+            fprintf(stderr,"fileopen previous data timeout\n");
+            fflush(stderr);
+            //************************************
         return 0;
         }
         }
@@ -486,7 +490,7 @@ int usb_txfileopen(int file_type)
     __usb_fileid_seq&=0xff;
     __usb_fileid+=(WORD)__usb_fileid_seq;
     __usb_rxtxtop=__usb_rxtxbottom=0;
-    __usb_txseq=1;      // FIRST PACKET NUMBER
+    __usb_txseq=0;      // FIRST PACKET NUMBER
     __usb_offset=0;
     __usb_crc32=0;      // RESET CRC32
 
@@ -495,13 +499,27 @@ int usb_txfileopen(int file_type)
 
     start=tmr_ticks();
     do {
-        end=tmr_ticks();
-        if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) return 0;    // FAIL IF TIMEOUT
-
-
         do {
+        end=tmr_ticks();
+        if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS)
+        {
+            //************************************
+            fprintf(stderr,"fileopen general timeout\n");
+            fflush(stderr);
+            //************************************
+
+            return 0;    // FAIL IF TIMEOUT
+        }
+
             usb_sendcontrolpacket(P_TYPE_GETSTATUS);
-            if(!usb_waitforreport()) return 0;                  // FAIL IF TIMEOUT
+            if(!usb_waitforreport()) {
+                //************************************
+                fprintf(stderr,"fileopen NO REPORT timeout\n");
+                fflush(stderr);
+                //************************************
+
+                return 0;                  // FAIL IF TIMEOUT
+            }
             USB_PACKET *ptr=usb_getreport();
 
             if(P_FILEID(ptr)==__usb_fileid) {
@@ -517,6 +535,10 @@ int usb_txfileopen(int file_type)
             } else {
                 // REPLYING WITH A DIFFERENT FILEID, PERHAPS IT'S STILL CLOSING THE PREVIOUS FILE
                 // KEEP WAITING
+                //************************************
+                fprintf(stderr,"fileopen bad fileid\n");
+                fflush(stderr);
+                //************************************
 
             }
             usb_releasereport();
@@ -580,6 +602,10 @@ int usb_filewrite(int fileid,BYTEPTR data,int nbytes)
            if(new__usb_rxtxtop>=RING_BUFFER_SIZE) new__usb_rxtxtop-=RING_BUFFER_SIZE;
            __usb_rxtxtop=new__usb_rxtxtop;
            __usb_drvstatus|=USB_STATUS_TXDATA;
+           //************************************
+           fprintf(stderr,"Write %d bytes, offset=%d\n",available,__usb_offset);
+           fflush(stderr);
+           //************************************
            nbytes-=available;
            sent+=available;
        }
@@ -597,6 +623,10 @@ int usb_txfileclose(int fileid)
     // SET THE TOTAL SIZE OF THE FILE BASED ON THE LAST BUFFER SENT
     int total=__usb_rxtxtop-__usb_rxtxbottom;
     if(total<0) total+=RING_BUFFER_SIZE;
+    //************************************
+    fprintf(stderr,"fileclose totalbytes=%d, top=%d,bottom=%d,offset=%d\n",__usb_offset+total,__usb_rxtxtop,__usb_rxtxbottom,__usb_offset);
+    fflush(stderr);
+    //************************************
     __usb_txtotalbytes=__usb_offset+total;
 
     // SIGNAL THAT WE HAVE A NEW BUFFER READY
@@ -614,12 +644,25 @@ int usb_txfileclose(int fileid)
 
         if(__usb_drvstatus&USB_STATUS_EOF) break;    // WE RECEIVED ACKNOWLEDGMENT OF END-OF-FILE
 
-        if(!__usb_fileid) { result=0; break; }                     // COMMUNICATION WAS ABORTED
+        if(!__usb_fileid) { result=0;
+
+            //************************************
+            fprintf(stderr,"fileclose ABORTED file\n");
+            fflush(stderr);
+            //************************************
+
+            break; }                     // COMMUNICATION WAS ABORTED
 
         if(prevoffset!=__usb_offset) start=tmr_ticks();   // MEASURE TIMEOUT SINCE LAST TIME WE SENT A PACKET
         prevoffset=__usb_offset;
         end=tmr_ticks();
-        if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) { result=0; break; }    // FAIL IF TIMEOUT
+        if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
+            //************************************
+            fprintf(stderr,"filclose timeout\n");
+            fflush(stderr);
+            //************************************
+
+            result=0; break; }    // FAIL IF TIMEOUT
 
         cpu_waitforinterrupt();
 

@@ -422,7 +422,10 @@ void usb_ep1_transmit()
         else {
             if(bufbytes<USB_DATASIZE) {
                 // WAIT FOR MORE DATA TO FILL UP THE PACKET, NO NEED TO SEND IT NOW
-
+                //************************************
+                fprintf(stderr,"wait for more...\n");
+                fflush(stderr);
+                //************************************
                 return;
             }
         }
