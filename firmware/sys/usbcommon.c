@@ -140,6 +140,7 @@ void usb_sendcontrolpacket(int packet_type)
         p->p_data[2]=(__usb_crc32>>16)&0xff;
         p->p_data[3]=(__usb_crc32>>24)&0xff;
         __usb_drvstatus&=~USB_STATUS_RXRCVD;
+        //__usb_drvstatus|=USB_STATUS_HALT;
         break;
 
     case P_TYPE_ENDOFFILE:
@@ -192,6 +193,7 @@ void usb_receivecontrolpacket()
         case P_TYPE_GETSTATUS:
         {
         if(!__usb_fileid) {
+
          // START RECEIVING A NEW TRANSMISSION
             __usb_fileid=P_FILEID(ctl);
             __usb_offset=0;
@@ -426,6 +428,7 @@ BYTEPTR usb_accessdata(int *datasize)
 void usb_releasedata(int datasize)
 {
     if(!(__usb_drvstatus&USB_STATUS_RXDATA)) return;
+
     __usb_rxtxbottom+=datasize;
     if(__usb_rxtxbottom>=RING_BUFFER_SIZE) __usb_rxtxbottom-=RING_BUFFER_SIZE;
 }
@@ -476,7 +479,6 @@ int usb_txfileopen(int file_type)
         return 0;
         }
         }
-
 
     // CREATE A NEW FILEID
     __usb_fileid=(file_type<<8)&0xff00;
@@ -557,16 +559,22 @@ int usb_filewrite(int fileid,BYTEPTR data,int nbytes)
            else available=0;
        }
        else {
-           if(available>RING_BUFFER_SIZE-__usb_rxtxtop) available=RING_BUFFER_SIZE-__usb_rxtxtop;
-           else if(available>=4) available-=4;
+           if(available>=4) available-=4;
                 else available=0;
        }
 
-       if(available>nbytes) available=nbytes;
+       if(available>nbytes)
+           available=nbytes;
 
-       if(available) {
+       if(available && (!(__usb_drvstatus&USB_STATUS_HALT))) {
            start=tmr_ticks();
-           memmoveb(__usb_rxtxbuffer+__usb_rxtxtop,data+sent,available);  // MOVE THE DATA TO THE RING BUFFER
+
+           if(available>RING_BUFFER_SIZE-__usb_rxtxtop) {
+               // SPLIT MEMORY IN 2 COPIES
+               memmoveb(__usb_rxtxbuffer+__usb_rxtxtop,data+sent,RING_BUFFER_SIZE-__usb_rxtxtop);  // MOVE THE DATA TO THE RING BUFFER
+               memmoveb(__usb_rxtxbuffer,data+sent+RING_BUFFER_SIZE-__usb_rxtxtop,available-(RING_BUFFER_SIZE-__usb_rxtxtop));  // MOVE THE DATA TO THE RING BUFFER
+           }
+           else memmoveb(__usb_rxtxbuffer+__usb_rxtxtop,data+sent,available);  // MOVE THE DATA TO THE RING BUFFER
            // THIS OPERATION SHOULD BE ATOMIC SINCE IT MODIFIES THE BUFFER
            int new__usb_rxtxtop=__usb_rxtxtop+available;
            if(new__usb_rxtxtop>=RING_BUFFER_SIZE) new__usb_rxtxtop-=RING_BUFFER_SIZE;
@@ -733,8 +741,6 @@ int usb_rxfileclose(int fileid)
             break;
             }
        }
-
-
 
     // AND PUT THE DRIVER TO IDLE
    __usb_fileid_seq=__usb_fileid&0xff;

@@ -264,7 +264,7 @@ void usb_init(int force)
         usb_shutdown(); // FORCE A SHUTDOWN TO RESET THE PHY COMPLETELY
     }
 
-    int oldpause=__usb_paused;
+     int oldpause=__usb_paused;
 
     __usb_drvstatus=USB_STATUS_INIT|USB_STATUS_CONNECTNOW;
 
@@ -380,6 +380,7 @@ void usb_ep1_transmit()
                     __usb_fileid=0;
                     __usb_offset=0;
                     __usb_crc32=0;
+
                     __usb_rxtxtop=__usb_rxtxbottom=0;
 
                     __usb_drvstatus&=~USB_STATUS_TXDATA;
