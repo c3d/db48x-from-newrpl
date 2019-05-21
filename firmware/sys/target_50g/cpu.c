@@ -204,8 +204,8 @@ return __cpu_setspeed(CLK_6MHZ);
 // PUT THE CPU IN "DOZE" MODE
 void cpu_waitforinterrupt()
 {
-    asm volatile ("mov r0,#0");
-    asm volatile ("mcr p15,0,r0,c7,c0,4");
+    register unsigned int var=0;
+    asm volatile ("mcr p15,0,%0,c7,c0,4" : : "r" (var));
 }
 
 // ACQUIRE A LOCK AND RETURN PREVIOUS VALUE

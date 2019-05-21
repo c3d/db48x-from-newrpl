@@ -484,15 +484,16 @@ int usb_txfileopen(int file_type)
         }
         }
 
-    // CREATE A NEW FILEID
-    __usb_fileid=(file_type<<8)&0xff00;
-    ++__usb_fileid_seq;
-    __usb_fileid_seq&=0xff;
-    __usb_fileid+=(WORD)__usb_fileid_seq;
     __usb_rxtxtop=__usb_rxtxbottom=0;
     __usb_txseq=0;      // FIRST PACKET NUMBER
     __usb_offset=0;
     __usb_crc32=0;      // RESET CRC32
+    __usb_txtotalbytes=0;
+    // CREATE A NEW FILEID
+    ++__usb_fileid_seq;
+    __usb_fileid_seq&=0xff;
+    __usb_fileid=(file_type<<8)&0xff00;
+    __usb_fileid+=(WORD)__usb_fileid_seq;
 
     // INDICATE WE ARE STARTING A TRANSMISSION, WAIT FOR REMOTE TO BE AVAILABLE
     int busy,error;
@@ -625,6 +626,7 @@ int usb_txfileclose(int fileid)
     if(total<0) total+=RING_BUFFER_SIZE;
     //************************************
     fprintf(stderr,"fileclose totalbytes=%d, top=%d,bottom=%d,offset=%d\n",__usb_offset+total,__usb_rxtxtop,__usb_rxtxbottom,__usb_offset);
+    fprintf(stderr,"fileclose __usb_txtotalbytes=%d\n",__usb_txtotalbytes);
     fflush(stderr);
     //************************************
     __usb_txtotalbytes=__usb_offset+total;

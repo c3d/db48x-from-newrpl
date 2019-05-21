@@ -181,11 +181,11 @@ extern BYTE __usb_tmprxbuffer[RAWHID_RX_SIZE+1] ;  // TEMPORARY BUFFER TO RECEIV
 extern BYTE __usb_ctlrxbuffer[RAWHID_RX_SIZE+1] ;  // TEMPORARY BUFFER TO RECEIVE CONTROL PACKETS
 extern BYTE __usb_ctltxbuffer[RAWHID_TX_SIZE+1] ;  // TEMPORARY BUFFER TO TRANSMIT DATA
 
-extern BYTE    __usb_rxbuffer[LONG_BUFFER_SIZE*3] ;              // LARGE BUFFER TO RECEIVE AT LEAST 3 FULL FRAGMENTS
+extern BYTE    __usb_rxbuffer[LONG_BUFFER_SIZE] ;              // LARGE BUFFER TO RECEIVE AT LEAST 3 FULL FRAGMENTS
 extern BINT    __usb_rxoffset ;              // STARTING OFFSET OF THE DATA IN THE RX BUFFER
 extern volatile BINT    __usb_rxtxtop;                // NUMBER OF BYTES USED IN THE RX BUFFER
 extern volatile BINT    __usb_rxtxbottom;                // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
-extern BINT    __usb_rxtotalbytes ;          // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
+extern volatile BINT    __usb_rxtotalbytes ;          // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 
 extern BINT    __usb_txtotalbytes ;              // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 extern BINT    __usb_txseq ;                // SEQUENTIAL NUMBER WITHIN A FRAGMENT OF DATA
@@ -240,8 +240,8 @@ void rammemmoveb(void *_dest, const void *_source, int nbytes)
 // PUT THE CPU IN "DOZE" MODE
 void ramcpu_waitforinterrupt()
 {
-    asm volatile ("mov r0,#0");
-    asm volatile ("mcr p15,0,r0,c7,c0,4");
+    register unsigned int var=0;
+    asm volatile ("mcr p15,0,%0,c7,c0,4" : : "r" (var));
 }
 
 
@@ -1523,14 +1523,14 @@ int ramusb_waitfordata(int nbytes)
         if((__usb_drvstatus&(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED))!=(USB_STATUS_CONFIGURED|USB_STATUS_INIT|USB_STATUS_CONNECTED)) return 0;
 
 
-        ramcpu_waitforinterrupt();
+        //ramcpu_waitforinterrupt();
 
         hasbytes=ramusb_hasdata();
 
-        if(__usb_drvstatus&USB_STATUS_HALT) {
+        //if(__usb_drvstatus&USB_STATUS_HALT) {
             // NO MORE DATA WILL COME BECAUSE OUR BUFFERS ARE FULL, EMPTY THE BUFFERS BY RETURNING WHAT WE HAVE SO FAR
-            break;
-        }
+        //    break;
+        //}
 
 
         if(__usb_rxtotalbytes) {
@@ -1883,6 +1883,10 @@ void ram_flashprogramword(WORDPTR address,WORD value)
 void ram_receiveandflashfw(BINT flashsize)
 {
 int pass=1,result,fileid;
+WORDPTR flash_address;
+WORD flash_nwords,data;
+WORD receivedwords;
+
 do {
 
     // SLEEP UNTIL WE GET SOMETHING
@@ -1904,13 +1908,12 @@ if( (!result) || usb_filetype(fileid)!='W') {
     continue;
 }
 
-WORDPTR flash_address;
-WORD flash_nwords,data;
+
 data=0xffffffff;
 
 // RECEIVE THE ENTIRE FILE, GET THE TOTAL NUMBER OF BYTES RECEIVED
 // THIS WAY WE AVOID IRQS DURING FLASHING
-WORD receivedwords=(ramusb_waitfordata(6000)+3)>>2 ;
+receivedwords=(ramusb_waitfordata(6000)+3)>>2 ;
 
 
 //*************************
@@ -1963,8 +1966,55 @@ scrptr[130]=0xff0880ff;
 }
 //*************************
 
+//*************************
+{
+unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
+// EXPAND TO DISPLAY
+WORD row;
+row= (receivedwords&0x80000000)? 0xf:0 ;
+row|= (receivedwords&0x8000000)? 0xf00:0 ;
+row|= (receivedwords&0x800000)? 0xf0000:0 ;
+row|= (receivedwords&0x80000)? 0xf000000:0 ;
+scrptr[150]=row;
+row= (receivedwords&0x8000)? 0xf:0 ;
+row|= (receivedwords&0x800)? 0xf00:0 ;
+row|= (receivedwords&0x80)? 0xf0000:0 ;
+row|= (receivedwords&0x8)? 0xf000000:0 ;
+scrptr[151]=row;
+row= (receivedwords&0x40000000)? 0xf:0 ;
+row|= (receivedwords&0x4000000)? 0xf00:0 ;
+row|= (receivedwords&0x400000)? 0xf0000:0 ;
+row|= (receivedwords&0x40000)? 0xf000000:0 ;
+scrptr[170]=row;
+row= (receivedwords&0x4000)? 0xf:0 ;
+row|= (receivedwords&0x400)? 0xf00:0 ;
+row|= (receivedwords&0x40)? 0xf0000:0 ;
+row|= (receivedwords&0x4)? 0xf000000:0 ;
+scrptr[171]=row;
+row= (receivedwords&0x20000000)? 0xf:0 ;
+row|= (receivedwords&0x2000000)? 0xf00:0 ;
+row|= (receivedwords&0x200000)? 0xf0000:0 ;
+row|= (receivedwords&0x20000)? 0xf000000:0 ;
+scrptr[190]=row;
+row= (receivedwords&0x2000)? 0xf:0 ;
+row|= (receivedwords&0x200)? 0xf00:0 ;
+row|= (receivedwords&0x20)? 0xf0000:0 ;
+row|= (receivedwords&0x2)? 0xf000000:0 ;
+scrptr[191]=row;
+row= (receivedwords&0x10000000)? 0xf:0 ;
+row|= (receivedwords&0x1000000)? 0xf00:0 ;
+row|= (receivedwords&0x100000)? 0xf0000:0 ;
+row|= (receivedwords&0x10000)? 0xf000000:0 ;
+scrptr[210]=row;
+row= (receivedwords&0x1000)? 0xf:0 ;
+row|= (receivedwords&0x100)? 0xf00:0 ;
+row|= (receivedwords&0x10)? 0xf0000:0 ;
+row|= (receivedwords&0x1)? 0xf000000:0 ;
+scrptr[211]=row;
 
-//if(flash_nwords!=receivedwords+3) { while(1); ram_doreset(); }
+}
+//*************************
+if(flash_nwords+3!=receivedwords) { while(1); ram_doreset(); }
 
 //*************************
 {
@@ -1975,7 +2025,7 @@ scrptr[132]=0xffffffff;
 
 
 
-if(((WORD)flash_address==0xffffffff))  {
+if((((WORD)flash_address)==0xffffffff))  {
 
     // FINISH RECEIVING THE COMMAND
     ramusb_rxfileclose(fileid);

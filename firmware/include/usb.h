@@ -131,7 +131,7 @@ extern BYTE __usb_rxtxbuffer[LONG_BUFFER_SIZE] ;  // LARGE BUFFER TO RECEIVE AT 
 extern BINT    __usb_rxoffset ;              // STARTING OFFSET OF THE DATA IN THE RX BUFFER
 extern volatile BINT    __usb_rxtxtop ;                // NUMBER OF BYTES USED IN THE RX BUFFER
 extern volatile BINT    __usb_rxtxbottom ;                // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
-extern BINT    __usb_rxtotalbytes ;          // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
+extern volatile BINT    __usb_rxtotalbytes ;          // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 
 extern BINT    __usb_txtotalbytes ;              // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 extern BINT    __usb_txseq ;                // SEQUENTIAL NUMBER WITHIN A FRAGMENT OF DATA
