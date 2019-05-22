@@ -496,8 +496,6 @@ int usb_txfileopen(int file_type)
     __usb_fileid+=(WORD)__usb_fileid_seq;
 
     // INDICATE WE ARE STARTING A TRANSMISSION, WAIT FOR REMOTE TO BE AVAILABLE
-    int busy,error;
-
     start=tmr_ticks();
     do {
         do {
@@ -508,7 +506,7 @@ int usb_txfileopen(int file_type)
             fprintf(stderr,"fileopen general timeout\n");
             fflush(stderr);
             //************************************
-
+            __usb_fileid=0;
             return 0;    // FAIL IF TIMEOUT
         }
 
@@ -518,7 +516,7 @@ int usb_txfileopen(int file_type)
                 fprintf(stderr,"fileopen NO REPORT timeout\n");
                 fflush(stderr);
                 //************************************
-
+                __usb_fileid=0;
                 return 0;                  // FAIL IF TIMEOUT
             }
             USB_PACKET *ptr=usb_getreport();
@@ -528,8 +526,6 @@ int usb_txfileopen(int file_type)
                 if(ptr->p_type==P_TYPE_ABORT) return 0;         // FAIL DUE TO ABORT
 
                 if(ptr->p_type==P_TYPE_REPORT) {
-                    busy=ptr->p_data[0];
-                    error=ptr->p_data[1];
                     usb_releasereport();
                     break;
                 }
@@ -545,7 +541,7 @@ int usb_txfileopen(int file_type)
             usb_releasereport();
         } while(1);
 
-    } while(busy||error);
+    } while(__usb_drvstatus&(USB_STATUS_ERROR|USB_STATUS_HALT));
 
     // WE ARE READY TO START!
 
