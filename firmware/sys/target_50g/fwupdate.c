@@ -1892,15 +1892,6 @@ do {
     // SLEEP UNTIL WE GET SOMETHING
     while(!ramusb_hasdata()) ramcpu_waitforinterrupt();
 
-    //*************************
-    {
-    unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-    scrptr[120]=0xff0880ff;
-    }
-    //*************************
-
-
-
 
 result=fileid=ramusb_rxfileopen();
 if( (!result) || usb_filetype(fileid)!='W') {
@@ -1916,113 +1907,18 @@ data=0xffffffff;
 receivedwords=(ramusb_waitfordata(6000)+3)>>2 ;
 
 
-//*************************
-{
-unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-scrptr[122]=0xff0880ff;
-}
-//*************************
-
-
-
-if(ramusb_fileread(fileid,(BYTEPTR)&data,4)<4)  { while(1); ram_doreset(); } // NOTHING ELSE TO DO
-
-//*************************
-{
-unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-scrptr[124]=0xff0880ff;
-}
-//*************************
-
+if(ramusb_fileread(fileid,(BYTEPTR)&data,4)<4)  { ram_doreset(); } // NOTHING ELSE TO DO
 
 
 if(data!=TEXT2WORD('F','W','U','P'))  {
-    while(1);
-    ram_doreset(); // NOTHING ELSE TO DO
+   ram_doreset(); // NOTHING ELSE TO DO
 }
 
-//*************************
-{
-unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-scrptr[126]=0xff0880ff;
-}
-//*************************
+if(ramusb_fileread(fileid,(BYTEPTR)&flash_address,4)<4) { ram_doreset(); }// NOTHING ELSE TO DO
 
-if(ramusb_fileread(fileid,(BYTEPTR)&flash_address,4)<4) { while(1); ram_doreset(); }// NOTHING ELSE TO DO
+if(ramusb_fileread(fileid,(BYTEPTR)&flash_nwords,4)<4) {  ram_doreset(); }
 
-//*************************
-{
-unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-scrptr[128]=0xff0880ff;
-}
-//*************************
-
-if(ramusb_fileread(fileid,(BYTEPTR)&flash_nwords,4)<4) { while(1); ram_doreset(); }
-
-//*************************
-{
-unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-scrptr[130]=0xff0880ff;
-}
-//*************************
-
-//*************************
-{
-unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-// EXPAND TO DISPLAY
-WORD row;
-row= (receivedwords&0x80000000)? 0xf:0 ;
-row|= (receivedwords&0x8000000)? 0xf00:0 ;
-row|= (receivedwords&0x800000)? 0xf0000:0 ;
-row|= (receivedwords&0x80000)? 0xf000000:0 ;
-scrptr[150]=row;
-row= (receivedwords&0x8000)? 0xf:0 ;
-row|= (receivedwords&0x800)? 0xf00:0 ;
-row|= (receivedwords&0x80)? 0xf0000:0 ;
-row|= (receivedwords&0x8)? 0xf000000:0 ;
-scrptr[151]=row;
-row= (receivedwords&0x40000000)? 0xf:0 ;
-row|= (receivedwords&0x4000000)? 0xf00:0 ;
-row|= (receivedwords&0x400000)? 0xf0000:0 ;
-row|= (receivedwords&0x40000)? 0xf000000:0 ;
-scrptr[170]=row;
-row= (receivedwords&0x4000)? 0xf:0 ;
-row|= (receivedwords&0x400)? 0xf00:0 ;
-row|= (receivedwords&0x40)? 0xf0000:0 ;
-row|= (receivedwords&0x4)? 0xf000000:0 ;
-scrptr[171]=row;
-row= (receivedwords&0x20000000)? 0xf:0 ;
-row|= (receivedwords&0x2000000)? 0xf00:0 ;
-row|= (receivedwords&0x200000)? 0xf0000:0 ;
-row|= (receivedwords&0x20000)? 0xf000000:0 ;
-scrptr[190]=row;
-row= (receivedwords&0x2000)? 0xf:0 ;
-row|= (receivedwords&0x200)? 0xf00:0 ;
-row|= (receivedwords&0x20)? 0xf0000:0 ;
-row|= (receivedwords&0x2)? 0xf000000:0 ;
-scrptr[191]=row;
-row= (receivedwords&0x10000000)? 0xf:0 ;
-row|= (receivedwords&0x1000000)? 0xf00:0 ;
-row|= (receivedwords&0x100000)? 0xf0000:0 ;
-row|= (receivedwords&0x10000)? 0xf000000:0 ;
-scrptr[210]=row;
-row= (receivedwords&0x1000)? 0xf:0 ;
-row|= (receivedwords&0x100)? 0xf00:0 ;
-row|= (receivedwords&0x10)? 0xf0000:0 ;
-row|= (receivedwords&0x1)? 0xf000000:0 ;
-scrptr[211]=row;
-
-}
-//*************************
-if(flash_nwords+3!=receivedwords) { while(1); ram_doreset(); }
-
-//*************************
-{
-unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-scrptr[132]=0xffffffff;
-}
-//*************************
-
+if(flash_nwords+3!=receivedwords) { ram_doreset(); }
 
 
 if((((WORD)flash_address)==0xffffffff))  {
@@ -2069,28 +1965,12 @@ if((((WORD)flash_address)==0xffffffff))  {
 
 
 if((WORD)(flash_address+flash_nwords)>flashsize) {
-    // ROM TOO BIG!
-    //*************************
-    {
-    unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-    scrptr[140]=0xfff00fff;
-    }
-    //*************************
-    while(1);
-    ram_doreset();
+      ram_doreset();
 }
 
 if(((WORD)flash_address<0x4000))  {
 
-    //*************************
-    {
-    unsigned int *scrptr=(unsigned int *)MEM_PHYS_SCREEN;
-    scrptr[160]=0xff0000ff;
-    }
-    //*************************
-
-    while(1);
-    ram_doreset(); // PROTECT THE BOOTLOADER AT ALL COSTS
+   ram_doreset(); // PROTECT THE BOOTLOADER AT ALL COSTS
 }
 
 // ERASE THE FLASH
