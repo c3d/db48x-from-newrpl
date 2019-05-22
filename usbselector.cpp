@@ -748,10 +748,6 @@ void FWThread::run()
     if(result) result=fileid=usb_txfileopen('W');
     if(!result) {
         // TODO: SOME KIND OF ERROR
-        //*******************************
-        fprintf(stderr,"Failed to open 'W'\n");
-        fflush(stderr);
-        //*******************************
         break;
     }
 
@@ -761,32 +757,15 @@ void FWThread::run()
     header[1]=__fwupdate_address+(offset<<2);
     header[2]=1024;
 
-    //************************************
-    fprintf(stderr,"Starting flash block=%08X\n",header[1]);
-    fflush(stderr);
-    //************************************
-
-
-
     if(result && (!usb_filewrite(fileid,(BYTEPTR)header,3*sizeof(WORD)))) {
         // TODO: SOME KIND OF ERROR
         result=0;
-        //*******************************
-        fprintf(stderr,"Failed to write %d bytes\n",8*sizeof(WORD));
-        fflush(stderr);
-        //*******************************
-
         break;
     }
 
     if(result) {
     BYTEPTR buffer=__fwupdate_buffer+offset*sizeof(WORD);
     if(!usb_filewrite(fileid,buffer,1024*sizeof(WORD))) {
-        //*******************************
-        fprintf(stderr,"Failed to write %d bytes\n",1024*sizeof(WORD));
-        fflush(stderr);
-        //*******************************
-
         result=0;
         break;
     }
@@ -796,11 +775,6 @@ void FWThread::run()
 
 
     if(result && (!usb_txfileclose(fileid))) {
-        //*******************************
-        fprintf(stderr,"Failed to close the file\n");
-        fflush(stderr);
-        //*******************************
-
         // TODO: SOME KIND OF ERROR
        result=0;
        break;
@@ -823,11 +797,6 @@ void FWThread::run()
 
         if(result && (!usb_filewrite(fileid,(BYTEPTR)header,3*sizeof(WORD)))) {
             // TODO: SOME KIND OF ERROR
-            //*******************************
-            fprintf(stderr,"Failed to write %d bytes\n",3*sizeof(WORD));
-            fflush(stderr);
-            //*******************************
-
             result=0;
         }
 
@@ -840,11 +809,6 @@ void FWThread::run()
         }
 
         if(result && (!usb_txfileclose(fileid))) {
-            //*******************************
-            fprintf(stderr,"Failed to close file (last block)\n");
-            fflush(stderr);
-            //*******************************
-
             // TODO: SOME KIND OF ERROR
            result=0;
         }

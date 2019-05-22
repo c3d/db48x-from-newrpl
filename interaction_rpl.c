@@ -132,10 +132,12 @@ int usbsendtoremote(uint32_t *data,int nwords)
 int usbremotearchivestart()
 {
     WORD program[]={
-        CMD_USBARCHIVE
+        MKPROLOG(SECO,2),
+        CMD_USBARCHIVE,
+        CMD_QSEMI,
     };
 
-    return usb_transmitdata((BYTEPTR)&program,1*sizeof(WORD));
+    return usb_transmitdata((BYTEPTR)&program,3*sizeof(WORD));
 }
 
 int usbremoterestorestart()

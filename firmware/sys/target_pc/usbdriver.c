@@ -422,10 +422,6 @@ void usb_ep1_transmit()
         else {
             if(bufbytes<USB_DATASIZE) {
                 // WAIT FOR MORE DATA TO FILL UP THE PACKET, NO NEED TO SEND IT NOW
-                //************************************
-                fprintf(stderr,"wait for more...\n");
-                fflush(stderr);
-                //************************************
                 return;
             }
         }
@@ -510,9 +506,12 @@ void usb_ep2_receive()
     if(fifocnt<=0) {
         if(fifocnt==-1) __usb_drvstatus&=~(USB_STATUS_CONNECTED|USB_STATUS_CONFIGURED);
         // THERE'S NO PACKETS AVAILABLE
+        __usb_drvstatus&=~USB_STATUS_NOWAIT;    // GO TO SLEEP IF NEEDED, NOTHING ON THE WIRE
         return;
     }
 
+
+    __usb_drvstatus|=USB_STATUS_NOWAIT;         // THERE COULD BE MORE DATA, DON'T SLEEP UNTIL ALL DATA IS RETRIEVED
 
     int cnt=0;
 

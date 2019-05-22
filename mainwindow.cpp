@@ -1032,6 +1032,13 @@ void MainWindow::on_usbconnectButton_clicked()
 
 void MainWindow::on_actionUSB_Remote_ARCHIVE_to_file_triggered()
 {
+
+    if(!usb_isconnected()) {
+        QMessageBox a(QMessageBox::Warning,"USB not connected","Need to establish a connection to a device first.",QMessageBox::Ok,this);
+        a.exec();
+        return;
+    }
+
     QString path;
 
     if(currentfile.isEmpty()) {
@@ -1073,11 +1080,36 @@ void MainWindow::on_actionUSB_Remote_ARCHIVE_to_file_triggered()
         if(!buffer) { file.close(); return; }   // RETURN - THIS WILL NEVER HAPPEN FOR JUST 4 MB
 
 
+        int oldflag;
+        if(rpl.isRunning()) while(!__cpu_idle)     QThread::msleep(1);  // BLOCK UNTIL RPL IS IDLE
+
+        __cpu_idle=2;       // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
+
+
+        oldflag=change_autorcv(1);  // STOP THE SIMULATOR FROM RECEIVING THR TRANSMISSION
+
+        __cpu_idle=0;
+
+
         int nwords = usbreceivearchive(buffer,USBARCHIVE_MAX_SIZE_WORDS);
+
+
+        if(rpl.isRunning()) while(!__cpu_idle)     QThread::msleep(1);  // BLOCK UNTIL RPL IS IDLE
+
+        __cpu_idle=2;       // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
+
+
+        change_autorcv(oldflag);   // RESTORE THE SIMULATOR FLAG
+
+        __cpu_idle=0;
+
+
+
         if(nwords==-1) {
             file.close();
             QMessageBox a(QMessageBox::Warning,"Error while saving","USB communication error",QMessageBox::Ok,this);
             a.exec();
+            delete buffer;
             return;
         }
 
@@ -1085,11 +1117,19 @@ void MainWindow::on_actionUSB_Remote_ARCHIVE_to_file_triggered()
 
         file.close();
 
+        delete buffer;
+
     }
 }
 
 void MainWindow::on_actionRemote_USBRESTORE_from_file_triggered()
 {
+    if(!usb_isconnected()) {
+        QMessageBox a(QMessageBox::Warning,"USB not connected","Need to establish a connection to a device first.",QMessageBox::Ok,this);
+        a.exec();
+        return;
+    }
+
     QString path;
 
     if(currentfile.isEmpty()) {
@@ -1131,7 +1171,31 @@ void MainWindow::on_actionRemote_USBRESTORE_from_file_triggered()
             return;
         }
 
+
+        int oldflag;
+
+        if(rpl.isRunning()) while(!__cpu_idle)     QThread::msleep(1);  // BLOCK UNTIL RPL IS IDLE
+        __cpu_idle=2;       // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
+
+
+        oldflag=change_autorcv(1);  // STOP THE SIMULATOR FROM RECEIVING THR TRANSMISSION
+
+        __cpu_idle=0;
+
+
         int nwords = usbsendarchive((uint32_t *)filedata.constData(),(filedata.size()+3)>>2);
+
+
+        if(rpl.isRunning()) while(!__cpu_idle)     QThread::msleep(1);  // BLOCK UNTIL RPL IS IDLE
+
+        __cpu_idle=2;       // PAUSE RPL ENGINE UNTIL WE ARE DONE CONNECTING
+
+        change_autorcv(oldflag);   // RESTORE THE SIMULATOR FLAG
+
+        __cpu_idle=0;
+
+
+
         if(nwords==-1) {
             file.close();
             QMessageBox a(QMessageBox::Warning,"Error while restoring","USB communication error",QMessageBox::Ok,this);
@@ -1544,7 +1608,7 @@ void USBThread::run()
 
             }
         }
-        msleep(1);
+        if(!(__usb_drvstatus&USB_STATUS_NOWAIT)) msleep(1);
     }
     if(__usb_paused==2) __usb_paused=-__usb_paused; // MAKE SURE WE END THE THREAD WITH A NEGATIVE NUMBER
 }

@@ -601,6 +601,17 @@ void LIB_HANDLER()
 
         BINT err = rplRestoreBackup(0,&rplUSBArchiveReadWord,(void *)&info);
 
+        // FINISH THE DATA TRANSMISSION SO THE REMOTE CAN CONFIRM IT WAS SUCCESSFUL
+        if((err==1)||(err==2)) {
+            WORD data;
+            // KEEP READING UNLESS THERE'S SOME KIND OF ERROR
+            while(!usb_eof(info.fileid)) {
+              if(usb_fileread(info.fileid,(BYTEPTR)&data,4)<4) break;
+            }
+            }
+
+        }
+
         usb_rxfileclose(info.fileid);
 
         switch(err)
