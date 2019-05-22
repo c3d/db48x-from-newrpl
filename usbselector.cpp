@@ -481,46 +481,6 @@ void USBSelector::refresh()
 
 }
 
-void USBSelector::reconnect()
-{
-
-// TODO: FIX ALL THIS, CAN'T JUST OPEN THE DEVICE ANYMORE
-
-    if(!usb_isconnected()) {
-   RefreshList();
-   if(!SelectedDevicePath.isEmpty()) {
-       // ATTEMPT TO RECONNECT
-       __usb_paused=1;
-       while(__usb_paused>=0);
-
-       usb_shutdown();
-       if(safe_stringcpy(__usb_devicepath,8192,SelectedDevicePath.toUtf8().constData())) __usb_devicepath[0]=0;
-       usb_init(0);
-
-       if(usb_isconnected()) {
-           __usb_paused=0;
-       }
-   }
-    if(!usb_isconnected()) {
-        ++numberoftries;
-        if(numberoftries>10) {
-             // FAILED TO RECONNECT AFTER 5 SECONDS
-
-            // TODO: SHOW SOME ERROR DIALOG
-
-        }
-        else QTimer::singleShot(500,this,SLOT(reconnect));
-        return;    // WAIT FOR ANOTHER TRY
-    }
-
-    }
-
-    // THE DEVICE IS BACK!
-
-    // TODO: ASK THE USER IF HE WANTS TO RESTORE FIRMWARE AFTER SUCCESS
-
-    return;
-}
 
 extern "C" int usbremotefwupdatestart();
 extern "C" int usbsendtoremote(uint32_t *data,int nwords);
@@ -552,7 +512,8 @@ void USBSelector::on_updateFirmware_clicked()
                 QMessageBox a(QMessageBox::Warning,"Error while opening","Cannot open file "+ fname,QMessageBox::Ok,this);
                 a.exec();
 
-                QTimer::singleShot(500,this, SLOT(reconnect()));
+                norefresh=false;
+                QTimer::singleShot(500,this, SLOT(refresh()));
 
                 return;
             }
@@ -579,7 +540,8 @@ void USBSelector::on_updateFirmware_clicked()
                 QMessageBox a(QMessageBox::Warning,"Invalid firmware image","Invalid firmware image",QMessageBox::Ok,this);
                 a.exec();
                 // START REFRESHING THE LIST AGAIN
-                QTimer::singleShot(500,this, SLOT(reconnect()));
+                norefresh=false;
+                QTimer::singleShot(500,this, SLOT(refresh()));
                 return;
             }
 
@@ -587,14 +549,16 @@ void USBSelector::on_updateFirmware_clicked()
 
             if(warn.exec()==QMessageBox::No) {
                 // START REFRESHING THE LIST AGAIN
-                QTimer::singleShot(500,this, SLOT(reconnect()));
+                norefresh=false;
+                QTimer::singleShot(500,this, SLOT(refresh()));
                 return;
             }
 
         } else {
 
             // START REFRESHING THE LIST AGAIN
-            QTimer::singleShot(500,this, SLOT(reconnect()));
+            norefresh=false;
+            QTimer::singleShot(500,this, SLOT(refresh()));
 
 
             return;
@@ -619,10 +583,13 @@ void USBSelector::on_updateFirmware_clicked()
                 if(safe_stringcpy(__usb_devicepath,8192,SelectedDevicePath.toUtf8().constData())) __usb_devicepath[0]=0;
                 usb_init(0);
 
+  __fwupdate_progress=0;
+
           if(!usb_isconnected()) {
             // TODO: ERROR PROCESS
               // START REFRESHING THE LIST AGAIN
-              QTimer::singleShot(500,this, SLOT(reconnect()));
+              finishedupdate();
+
             return;
         }
 
@@ -663,23 +630,23 @@ void USBSelector::finishedupdate()
     }
 
 
-    ui->USBtreeWidget->clear();
+    //ui->USBtreeWidget->clear();
     ui->USBtreeWidget->setEnabled(true);
 
     ui->updateFirmware->setEnabled(true);
     ui->updateProgress->hide();
     ui->updateProgress->setValue(0);
     ui->buttonBox->setEnabled(true);
-    SelectedDevicePath.clear();
 
 
     numberoftries=0;
 
 
+    norefresh=false;
 
     // AND JUST HOPE IT WILL RECONENCT SOME TIME
     // START REFRESHING THE LIST AGAIN
-    QTimer::singleShot(500,this, SLOT(refresh()));
+    QTimer::singleShot(0,this, SLOT(refresh()));
 
 }
 

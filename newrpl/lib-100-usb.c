@@ -610,7 +610,7 @@ void LIB_HANDLER()
             }
             }
 
-        }
+
 
         usb_rxfileclose(info.fileid);
 

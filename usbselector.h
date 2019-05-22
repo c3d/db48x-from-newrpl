@@ -48,7 +48,6 @@ private slots:
 
     void on_USBSelector_rejected();
     void refresh();
-    void reconnect();
 
     void on_updateFirmware_clicked();
 
