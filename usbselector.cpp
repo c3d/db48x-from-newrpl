@@ -761,6 +761,13 @@ void FWThread::run()
     header[1]=__fwupdate_address+(offset<<2);
     header[2]=1024;
 
+    //************************************
+    fprintf(stderr,"Starting flash block=%08X\n",header[1]);
+    fflush(stderr);
+    //************************************
+
+
+
     if(result && (!usb_filewrite(fileid,(BYTEPTR)header,3*sizeof(WORD)))) {
         // TODO: SOME KIND OF ERROR
         result=0;

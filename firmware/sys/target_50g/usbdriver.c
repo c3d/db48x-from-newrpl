@@ -339,7 +339,7 @@ BYTE __usb_rxtxbuffer[LONG_BUFFER_SIZE] __SCRATCH_MEMORY__;              // LARG
 BINT    __usb_rxoffset __SYSTEM_GLOBAL__;              // STARTING OFFSET OF THE DATA IN THE RX BUFFER
 volatile BINT    __usb_rxtxtop __SYSTEM_GLOBAL__;                // NUMBER OF BYTES USED IN THE RX BUFFER
 volatile BINT    __usb_rxtxbottom __SYSTEM_GLOBAL__;                // NUMBER OF BYTES IN THE RX BUFFER ALREADY READ BY THE USER
-BINT    __usb_rxtotalbytes __SYSTEM_GLOBAL__;          // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
+volatile BINT    __usb_rxtotalbytes __SYSTEM_GLOBAL__;          // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 
 BINT    __usb_txtotalbytes __SYSTEM_GLOBAL__;              // TOTAL BYTES ON THE FILE, 0 MEANS DON'T KNOW YET
 BINT    __usb_txseq __SYSTEM_GLOBAL__;                // SEQUENTIAL NUMBER WITHIN A FRAGMENT OF DATA

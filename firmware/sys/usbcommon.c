@@ -308,7 +308,9 @@ void usb_receivecontrolpacket()
              // SIGNAL THE ERROR AND LEAVE THE REQUESTED OFFSET AT rxoffset
              __usb_drvstatus|=USB_STATUS_ERROR;
              __usb_rxoffset=ctl->p_offset;
-         }
+         } else {
+            __usb_drvstatus&=~USB_STATUS_ERROR;
+        }
          if(ctl->p_data[2]) {
              // SIGNAL THAT THE REMOTE ACKNOWLEDGED THE END OF FILE MARK
              __usb_drvstatus|=USB_STATUS_EOF;
@@ -477,8 +479,8 @@ int usb_txfileopen(int file_type)
         end=tmr_ticks();
         if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
             //************************************
-            fprintf(stderr,"fileopen previous data timeout\n");
-            fflush(stderr);
+            //fprintf(stderr,"fileopen previous data timeout\n");
+            ////fflush(stderr);
             //************************************
         return 0;
         }
@@ -503,8 +505,8 @@ int usb_txfileopen(int file_type)
         if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS)
         {
             //************************************
-            fprintf(stderr,"fileopen general timeout\n");
-            fflush(stderr);
+            //fprintf(stderr,"fileopen general timeout\n");
+            //fflush(stderr);
             //************************************
             __usb_fileid=0;
             return 0;    // FAIL IF TIMEOUT
@@ -513,8 +515,8 @@ int usb_txfileopen(int file_type)
             usb_sendcontrolpacket(P_TYPE_GETSTATUS);
             if(!usb_waitforreport()) {
                 //************************************
-                fprintf(stderr,"fileopen NO REPORT timeout\n");
-                fflush(stderr);
+                //fprintf(stderr,"fileopen NO REPORT timeout\n");
+                //fflush(stderr);
                 //************************************
                 __usb_fileid=0;
                 return 0;                  // FAIL IF TIMEOUT
@@ -533,8 +535,8 @@ int usb_txfileopen(int file_type)
                 // REPLYING WITH A DIFFERENT FILEID, PERHAPS IT'S STILL CLOSING THE PREVIOUS FILE
                 // KEEP WAITING
                 //************************************
-                fprintf(stderr,"fileopen bad fileid\n");
-                fflush(stderr);
+                //fprintf(stderr,"fileopen bad fileid\n");
+                //fflush(stderr);
                 //************************************
 
             }
@@ -600,8 +602,8 @@ int usb_filewrite(int fileid,BYTEPTR data,int nbytes)
            __usb_rxtxtop=new__usb_rxtxtop;
            __usb_drvstatus|=USB_STATUS_TXDATA;
            //************************************
-           fprintf(stderr,"Write %d bytes, offset=%d\n",available,__usb_offset);
-           fflush(stderr);
+           //fprintf(stderr,"Write %d bytes, offset=%d\n",available,__usb_offset);
+           //fflush(stderr);
            //************************************
            nbytes-=available;
            sent+=available;
@@ -620,11 +622,6 @@ int usb_txfileclose(int fileid)
     // SET THE TOTAL SIZE OF THE FILE BASED ON THE LAST BUFFER SENT
     int total=__usb_rxtxtop-__usb_rxtxbottom;
     if(total<0) total+=RING_BUFFER_SIZE;
-    //************************************
-    fprintf(stderr,"fileclose totalbytes=%d, top=%d,bottom=%d,offset=%d\n",__usb_offset+total,__usb_rxtxtop,__usb_rxtxbottom,__usb_offset);
-    fprintf(stderr,"fileclose __usb_txtotalbytes=%d\n",__usb_txtotalbytes);
-    fflush(stderr);
-    //************************************
     __usb_txtotalbytes=__usb_offset+total;
 
     // SIGNAL THAT WE HAVE A NEW BUFFER READY
@@ -645,8 +642,8 @@ int usb_txfileclose(int fileid)
         if(!__usb_fileid) { result=0;
 
             //************************************
-            fprintf(stderr,"fileclose ABORTED file\n");
-            fflush(stderr);
+            //fprintf(stderr,"fileclose ABORTED file\n");
+            //fflush(stderr);
             //************************************
 
             break; }                     // COMMUNICATION WAS ABORTED
@@ -656,8 +653,8 @@ int usb_txfileclose(int fileid)
         end=tmr_ticks();
         if(tmr_ticks2ms(start,end)>USB_TIMEOUT_MS) {
             //************************************
-            fprintf(stderr,"filclose timeout\n");
-            fflush(stderr);
+            //fprintf(stderr,"filclose timeout\n");
+            //fflush(stderr);
             //************************************
 
             result=0; break; }    // FAIL IF TIMEOUT
@@ -666,6 +663,10 @@ int usb_txfileclose(int fileid)
 
         } while(1);
 
+    //************************************
+    //fprintf(stderr,"fileclose totalbytes=%d\n",__usb_txtotalbytes);
+    //fflush(stderr);
+    //************************************
 
     __usb_fileid=0; // CLOSE THE FILE
 
