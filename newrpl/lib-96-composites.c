@@ -804,8 +804,11 @@ void LIB_HANDLER()
 
             // listelem = GOT ELEMENT
 
-            if(var) { *(var+1)=listelem; rplDropData(2); }
-            else { rplOverwriteData(2,listelem);  rplDropData(1); }
+            //if(var) { *(var+1)=listelem; rplDropData(2); }
+            //else {
+                rplOverwriteData(2,listelem);
+                rplDropData(1);
+            //}
 
             return;
             }
@@ -893,13 +896,13 @@ void LIB_HANDLER()
                     return;
                 }
 
-                if(var) {
-                    *(var+1)=item;
-                    rplDropData(2);
-                } else {
+                //if(var) {
+                //    *(var+1)=item;
+                //   rplDropData(2);
+                //} else {
                     rplOverwriteData(2,item);
                     rplDropData(1);
-                }
+                //}
 
             return;
             }

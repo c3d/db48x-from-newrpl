@@ -4094,9 +4094,8 @@ void LIB_HANDLER()
 
                 // DIVIDE BY TWO = * 5/10
                 rplBINTToRReg(0,5);
-                mulReal(&RReg[1],&im,&RReg[0]);
-                RReg[1].exp--;
-
+                RReg[0].exp--;
+                mulReal(&RReg[8],&im,&RReg[0]);
             } else {
                 BINT isodddeg,isoddmin;
 

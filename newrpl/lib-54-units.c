@@ -1250,7 +1250,15 @@ void LIB_HANDLER()
                     return;
 
                 }
-          // DELIBERATE FALL THROUGH TO THE 'EQ' OPERATOR
+                // SPECIAL CASE: OTHER OBJECTS ARE NOT THE SAME EVEN IF THEY ARE EQUAL
+                if( (!ISUNIT(rplPeekData(1))) || (!ISUNIT(*rplPeekData(2))) ) {
+                    rplDropData(2);
+                    rplPushFalse();
+                    return;
+                }
+
+                // DELIBERATE FALL THROUGH TO THE 'EQ' OPERATOR
+
 
          }
         case OVR_EQ:
