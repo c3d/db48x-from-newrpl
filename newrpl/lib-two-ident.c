@@ -328,15 +328,19 @@ void LIB_HANDLER()
         return;
     case OPCODE_PROBETOKEN:
     {
-        BYTEPTR tokptr,tokend,lastgood;
+        BYTEPTR tokptr,tokend,lastgood,tokstart;
         BINT maxlen,len;
 
-        tokptr=(BYTEPTR)TokenStart;
+        tokstart=(BYTEPTR)TokenStart;
         tokend=(BYTEPTR)BlankStart;
 
+        while( (*tokstart=='.')&&(tokstart<tokend)) ++tokstart; // SKIP THE INITIAL DOTS
+
+        tokptr=tokstart;
+
         tokptr=(BYTEPTR)utf8skipst((char *)tokptr,(char *)tokend);
-        for(maxlen=0,len=1;tokptr<=tokend;++len) {
-            if(!rplIsValidIdent((BYTEPTR)TokenStart,tokptr)) break;
+        for(maxlen=0,len=tokstart-(BYTEPTR)TokenStart;tokptr<=tokend;++len) {
+            if(!rplIsValidIdent((BYTEPTR)tokstart,tokptr)) break;
             maxlen=len;
             lastgood=tokptr;
             if(tokptr==tokend) break;
