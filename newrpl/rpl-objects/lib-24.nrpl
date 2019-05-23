@@ -42,13 +42,23 @@ code point list
 S → I"
 →STR
 "Convert any object to string
-(decompile)
+for display or edit (flag -60)
 O → S"
+→STRD
+"Convert any object to string
+(decompile) for display
+O → S"
+→STRE
+"Convert any object to string
+(decompile) for edit
+O → S"
+
 STR→
 "Convert any string to objects
 (compile)
 S → O"
 SREV
+
 "Reverse the order of the
 characters in string
 S → S "

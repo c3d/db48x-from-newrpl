@@ -617,6 +617,8 @@ BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend)
     // SKIP ANY INITIAL DOTS
     while((tok!=tokend)&&(*tok=='.')) ++tok;
 
+    if(tok==tokend) return 0;   // CAN'T BE ONLY DOTS
+
     // IDENT CANNOT START WITH A NUMBER
     if( (((char)*tok)>='0') && (((char)*tok)<='9')) return 0;
 

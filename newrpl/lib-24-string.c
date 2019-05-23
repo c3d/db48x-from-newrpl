@@ -42,7 +42,11 @@
     ECMD(SSTRLEN,"STRLEN",MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(STRLENCP,MKTOKENINFO(8,TITYPE_NOTALLOWED,1,2)), \
     ECMD(TONFC,"→NFC",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SREPL,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2))
+    CMD(SREPL,MKTOKENINFO(5,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TODISPSTR,"→STRD",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(TOEDITSTR,"→STRE",MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
+
+
 
 
 // ADD MORE OPCODES HERE
@@ -498,12 +502,46 @@ void LIB_HANDLER()
             return;
         }
 
+     BINT flag=rplTestSystemFlag(FL_DECOMPEDIT);
+
+     WORDPTR string=rplDecompile(rplPeekData(1),flag? DECOMP_EDIT:0);
+
+     if(!string) { ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
+     rplOverwriteData(1,string);
+    }
+        return;
+    case TODISPSTR:
+        // VERY IMPORTANT: DECOMPILE FUNCTION
+    {
+        //@SHORT_DESC=Decompile any object (convert to string)
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
      WORDPTR string=rplDecompile(rplPeekData(1),0);
 
      if(!string) { ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
      rplOverwriteData(1,string);
     }
         return;
+
+    case TOEDITSTR:
+        // VERY IMPORTANT: DECOMPILE FUNCTION
+    {
+        //@SHORT_DESC=Decompile any object (convert to string)
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+     WORDPTR string=rplDecompile(rplPeekData(1),DECOMP_EDIT);
+
+     if(!string) { ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
+     rplOverwriteData(1,string);
+    }
+        return;
+
 
     case FROMSTR:
         // COMPILER FUNCTION, FOR STR-> AND ->OBJ COMMANDS
@@ -1065,16 +1103,17 @@ void LIB_HANDLER()
 
         WORDPTR *savestk=DSTop;
         WORDPTR str1,str2;
+        BINT flag=rplTestSystemFlag(FL_DECOMPEDIT);
 
         if(!ISSTRING(*rplPeekData(2))) {
-        str1=rplDecompile(rplPeekData(2),DECOMP_NOHINTS);
+        str1=rplDecompile(rplPeekData(2),flag? (DECOMP_EDIT|DECOMP_NOHINTS):DECOMP_NOHINTS);
         if(!str1) { DSTop=savestk; ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
         rplPushData(str1);
         }
         else rplPushData(rplPeekData(2));
 
         if(!ISSTRING(*rplPeekData(2))) {
-        str2=rplDecompile(rplPeekData(2),DECOMP_NOHINTS);
+        str2=rplDecompile(rplPeekData(2),flag? (DECOMP_EDIT|DECOMP_NOHINTS):DECOMP_NOHINTS);
         if(!str2) { DSTop=savestk; ExceptionPointer=IPtr; return; }   // THERE WAS AN ERROR, TAKE OWNERSHIP OF IT
         rplPushData(str2);
         }

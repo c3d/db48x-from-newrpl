@@ -234,12 +234,44 @@ void LIB_HANDLER()
 
     case OPCODE_DECOMPILE:
 
+        // DecompMode = infix mode number, 0 = RPL mode, upper 16 bits are the original decompiler flags
+        if(DecompMode&0xffff) {
+            // NEED TO ADD SPACES ON ALL OPERATORS THAT ARE WORDS
+            switch(OPCODE(*DecompileObject))
+            {
+            case OVR_OR:
+            case OVR_AND:
+            case OVR_XOR:
+            rplDecompAppendChar(' ');
+                break;
+            default:
+                break;
+            }
+
+        }
         // MANUALLY DECOMPILE UNARY PLUS AND UNARY MINUS IN SYMBOLICS
         if(OPCODE(*DecompileObject)==OVR_UMINUS) { rplDecompAppendChar('-'); RetNum=OK_CONTINUE; return; }
         if(OPCODE(*DecompileObject)==OVR_UPLUS) { rplDecompAppendChar('+'); RetNum=OK_CONTINUE; return; }
 
 
         libDecompileCmds((char **)LIB_NAMES,(WORDPTR)LIB_OPCODES,LIB_NUMBEROFCMDS);
+
+        if(DecompMode&0xffff) {
+            // NEED TO ADD SPACES ON ALL OPERATORS THAT ARE WORDS
+            switch(OPCODE(*DecompileObject))
+            {
+            case OVR_OR:
+            case OVR_AND:
+            case OVR_XOR:
+            rplDecompAppendChar(' ');
+                break;
+            default:
+                break;
+            }
+
+        }
+
+
         return;
     case OPCODE_VALIDATE:
         // VALIDATE RECEIVES OPCODES COMPILED BY OTHER LIBRARIES, TO BE INCLUDED WITHIN A COMPOSITE OWNED BY

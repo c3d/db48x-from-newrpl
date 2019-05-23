@@ -775,9 +775,13 @@ void LIB_HANDLER()
             if(Exceptions) { DSTop=stkclean; return; }
 
             // INVERT THE RESULT IF THE OPERANDS WERE SWAPPED
-            rplCallOvrOperator((CMD_OVR_CMP));
-            if(swap)  rplCallOvrOperator((CMD_OVR_NEG));
+            if(swap) {
+                WORDPTR tmp=rplPeekData(1);
+                rplOverwriteData(1,rplPeekData(2));
+                rplOverwriteData(2,tmp);
+            }
 
+            rplCallOvrOperator((CMD_OVR_CMP));
 
             if(Exceptions) { DSTop=stkclean; return; }
 

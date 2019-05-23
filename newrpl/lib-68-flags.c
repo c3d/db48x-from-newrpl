@@ -283,6 +283,8 @@ const systemflag const flags_names[]= {
     { "RESCALM" , { (-FL_RESRPTALRM),0,0,0,0,0,0,0} },
     { "AUTOINDENT" , { (-FL_AUTOINDENT),0,0,0,0,0,0,0} },
     { "NOINDENT" , { 0x80|(-FL_AUTOINDENT),0,0,0,0,0,0,0} },
+    { "DECOMPDISP" , { (-FL_DECOMPEDIT),0,0,0,0,0,0,0} },
+    { "DECOMPEDIT" , { 0x80|(-FL_DECOMPEDIT),0,0,0,0,0,0,0} },
 
 // TODO: ADD MORE FLAG NAMES HERE
     { NULL , {0,0,0,0,0,0,0,0} }

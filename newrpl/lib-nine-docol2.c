@@ -56,7 +56,9 @@
 // ADD MORE OPCODES HERE
 #define ERROR_LIST \
     ERR(PROGRAMEXPECTED,0), \
-    ERR(ERRHANDLERREENTERED,1)
+    ERR(ERRHANDLERREENTERED,1), \
+    ERR(INVALIDLOOPLIMITS,2), \
+    ERR(INVALIDLOOPSTEP,3)
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
 #define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
@@ -282,13 +284,19 @@ void LIB_HANDLER()
             return;
         }
 
-        // FIND OUT THE DIRECTION OF THE LOOP
+        // MAKE SURE LOOP LIMITS ARE NUMERIC
+        if( !ISNUMBERORUNIT(*rplPeekData(1)) || !ISNUMBERORUNIT(*rplPeekData(2))) {
+            rplError(ERR_INVALIDLOOPLIMITS);
+            return;
+        }
 
+        // FIND OUT THE DIRECTION OF THE LOOP
         // MAKE 2DUP
         ScratchPointer3=(WORDPTR)DSTop;
         rplPushData(rplPeekData(2));
         rplPushData(rplPeekData(2));
-        rplCallOvrOperator(OVR_GT);
+        rplCallOvrOperator(OVR_CMP);
+
 
         if(Exceptions) { DSTop=(WORDPTR *)ScratchPointer3; return; }
 
@@ -332,11 +340,18 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        // MAKE SURE LOOP LIMITS ARE NUMERIC
+        if( !ISNUMBERORUNIT(*rplPeekData(1)) || !ISNUMBERORUNIT(*rplPeekData(2))) {
+            rplError(ERR_INVALIDLOOPLIMITS);
+            return;
+        }
+
         // MAKE 2DUP
         ScratchPointer3=(WORDPTR)DSTop;
         rplPushData(rplPeekData(2));
         rplPushData(rplPeekData(2));
-        rplCallOvrOperator(OVR_GT);
+        rplCallOvrOperator(OVR_CMP);
 
         if(Exceptions) { DSTop=(WORDPTR *)ScratchPointer3; return; }
 
@@ -434,6 +449,15 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        if(!ISNUMBERORUNIT(*rplPeekData(1))) {
+            rplError(ERR_INVALIDLOOPSTEP);
+            // EXIT THE LOOP BY DROPPING THE RETURN STACK
+            rplPopRet();
+            return;
+        }
+
+
         // INCREMENT THE COUNTER
         if(nLAMBase==LAMTop) return;    // NO ENVIRONMENT
 
@@ -462,8 +486,18 @@ void LIB_HANDLER()
         // CHECK IF COUNTER IS LESS THAN LIMIT
         // BY CALLING THE OVERLOADED OPERATOR <= (LTE)
 
-        if(rplIsFalse(*rplGetLAMn(3))) rplCallOvrOperator(OVR_LTE);
-        else rplCallOvrOperator(OVR_GTE);
+        switch(**rplGetLAMn(3))
+        {
+        case MAKESINT(-1):    // LOOP GOES FROM LOW TO HIGH, STEP SHOULD BE POSITIVE
+            rplCallOvrOperator(OVR_LTE);
+            break;
+        case MAKESINT(1):     // LOOP GOES FROM HIGH TO LOW, STEP SHOULD BE NEGATIVE
+            rplCallOvrOperator(OVR_GTE);
+            break;
+        case MAKESINT(0):    // LOOP START AND END ARE THE SAME, ANY STEP!=0 WOULD END THE LOOP
+            rplCallOvrOperator(OVR_EQ);
+            break;
+        }
 
         WORDPTR result=rplPopData();
 

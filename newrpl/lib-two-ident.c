@@ -130,6 +130,9 @@ void LIB_HANDLER()
 
 
         if(!rplIsValidIdent(tok,(BYTEPTR)BlankStart)) {
+
+            // DISABLE IMPLICIT MULTIPLICATION, DOESN'T WORK IN SYMBOLICS ANYWAY
+            /*
             if( (*tok>='0')&&(*tok<='9')) {
                 // IDENT STARTS WITH A NUMBER, THERE'S IMPLICIT MULTIPLICATION
 
@@ -174,6 +177,9 @@ void LIB_HANDLER()
          RetNum=ERR_SYNTAX;
          return;
             }
+            */
+            RetNum=ERR_NOTMINE;
+            return;
         }
 
         if(LIBNUM(CurrentConstruct)==LIBNUM(CMD_NEWLOCALENV)) {
