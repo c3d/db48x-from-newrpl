@@ -85,8 +85,9 @@ int compileobject()
     strsize=rplStrSize(rplPeekData(1));
 
     WORDPTR newobj=rplCompile(strdata,strsize,0);
-    if(!newobj) { rplBlameError(CMD_FROMSTR); return 0; }
+    if(!newobj) { rplBlameError(0); return 0; }
     rplOverwriteData(1,newobj);
+    return 1;
 }
 
 

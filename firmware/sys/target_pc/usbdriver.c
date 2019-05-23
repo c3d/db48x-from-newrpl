@@ -416,8 +416,7 @@ void usb_ep1_transmit()
 
         if(bufbytes>USB_DATASIZE) {
             bufbytes=USB_DATASIZE;    // DON'T SEND MORE THAN ONE PACKET AT A TIME
-            __usb_drvstatus|=USB_STATUS_NOWAIT;         // THERE COULD BE MORE DATA, DON'T SLEEP UNTIL ALL DATA IS RETRIEVED
-        } else  __usb_drvstatus&=~USB_STATUS_NOWAIT;    // SLOW DOWN, THIS IS THE LAST PACKET
+        }
 
 
         // CHECK IF THESE ARE THE LAST FEW BYTES OF THE FILE
