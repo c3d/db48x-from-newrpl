@@ -339,7 +339,7 @@ void LIB_HANDLER()
         tokptr=tokstart;
 
         tokptr=(BYTEPTR)utf8skipst((char *)tokptr,(char *)tokend);
-        for(maxlen=0,len=tokstart-(BYTEPTR)TokenStart;tokptr<=tokend;++len) {
+        for(maxlen=0,len=tokptr-(BYTEPTR)TokenStart;tokptr<=tokend;++len) {
             if(!rplIsValidIdent((BYTEPTR)tokstart,tokptr)) break;
             maxlen=len;
             lastgood=tokptr;

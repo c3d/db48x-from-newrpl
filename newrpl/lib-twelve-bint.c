@@ -988,8 +988,36 @@ void LIB_HANDLER()
         {
         if(op1type) copyReal(&RReg[6],&rop1);
         else rplBINTToRReg(6,op1);
+        if(op1app)RReg[6].flags|=F_APPROX;
         if(op2type) copyReal(&RReg[7],&rop2);
         else rplBINTToRReg(7,op2);
+        if(op2app)RReg[7].flags|=F_APPROX;
+
+        if(iszeroReal(&RReg[7])) {
+            // 0TH ROOTS OF ALL REALS ARE UNDEFINED
+            rplOneToRReg(1);
+            rplNANToRReg(0);
+            rplNewRealFromRRegPush(0);
+
+            if(eqReal(&RReg[6],&RReg[1])) {
+                rplError(ERR_UNDEFINEDRESULT);
+            }
+            else rplError(ERR_ARGOUTSIDEDOMAIN);
+            return;
+        }
+
+        if(iszeroReal(&RReg[6])) {
+            // NTH ROOTS OF ZERO ARE ZERO
+           if(iszeroReal(&RReg[7])) {
+               rplNANToRReg(0);
+               rplNewRealFromRRegPush(0);
+                rplError(ERR_UNDEFINEDRESULT);
+            }
+            else  rplNewRealFromRRegPush(6);
+            return;
+        }
+
+
 
         BINT isneg=RReg[6].flags&F_NEGATIVE;
         if(RReg[6].flags&F_NEGATIVE) {
@@ -1018,7 +1046,9 @@ void LIB_HANDLER()
         if(!isneg) {
         if(isintegerReal(&RReg[8]) && inBINT64Range(&RReg[8])) {
             BINT64 result=getBINT64Real(&RReg[8]);
-            rplNewBINTPush(result,LIBNUM(*arg1)|(LIBNUM(*arg2)&APPROX_BIT));
+            BINT base;
+            if(op1type) base=DECBINT; else base=LIBNUM(*arg1);
+            rplNewBINTPush(result,base|(LIBNUM(*arg2)&APPROX_BIT));
         }
         else rplNewRealFromRRegPush(8);
         if(!Exceptions) rplCheckResultAndError(&RReg[8]);

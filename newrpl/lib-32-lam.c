@@ -37,7 +37,8 @@
     ECMD(LAMEVALPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     ECMD(LAMEVALERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,1,2)), \
     CMD(HIDELOCALS,MKTOKENINFO(10,TITYPE_NOTALLOWED,1,2)), \
-    CMD(UNHIDELOCALS,MKTOKENINFO(12,TITYPE_NOTALLOWED,1,2))
+    CMD(UNHIDELOCALS,MKTOKENINFO(12,TITYPE_NOTALLOWED,1,2)), \
+    ECMD(INTERNAL_NEWNLOCALS,"→",MKTOKENINFO(1,TITYPE_NOTALLOWED,1,2))
 
 // ADD MORE OPCODES HERE
 
@@ -145,6 +146,14 @@ ROMOBJECT nulllam_ident[]=
     (WORD)MKOPCODE(LIBRARY_NUMBER,NULLLAM)
 };
 
+// INTERNAL NEWLOCALS OBJECT TO BLAME
+ROMOBJECT newnlocals_opcode[]=
+{
+    (WORD)MKOPCODE(LIBRARY_NUMBER,INTERNAL_NEWNLOCALS)
+};
+
+
+
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
@@ -164,6 +173,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)LIB_MSGTABLE,
     (WORDPTR)lamnum_seco,
     (WORDPTR)lamistrue_seco,
+    (WORDPTR)newnlocals_opcode,
     0
 };
 
@@ -545,7 +555,9 @@ void LIB_HANDLER()
         {
             if(rplDepthData()<2*num) {
                 // MALFORMED SECONDARY? THIS SHOULD NEVER HAPPEN
+                if(rplDepthData()>=num) rplDropData(num);
                 rplError(ERR_BADARGCOUNT);
+                rplBlameError((WORDPTR)newnlocals_opcode);
                 return;
             }
 

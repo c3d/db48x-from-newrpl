@@ -516,6 +516,32 @@ void LIB_HANDLER()
         }
 
         case OVR_XROOT:
+
+            if(iszeroReal(&Darg2)) {
+                // 0TH ROOTS OF ALL REALS ARE UNDEFINED
+                rplOneToRReg(1);
+                rplNANToRReg(0);
+                rplNewRealFromRRegPush(0);
+
+                if(eqReal(&Darg1,&RReg[1])) {
+                    rplError(ERR_UNDEFINEDRESULT);
+                }
+                else rplError(ERR_ARGOUTSIDEDOMAIN);
+                return;
+            }
+
+            if(iszeroReal(&Darg1)) {
+                // NTH ROOTS OF ZERO ARE ZERO
+               if(iszeroReal(&Darg2)) {
+                   rplNANToRReg(0);
+                   rplNewRealFromRRegPush(0);
+                    rplError(ERR_UNDEFINEDRESULT);
+                }
+                else  rplNewRealPush(&Darg1);
+                return;
+            }
+
+
             RReg[1].data[0]=2;
             RReg[1].exp=0;
             RReg[1].len=1;
