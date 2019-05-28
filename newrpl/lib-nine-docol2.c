@@ -285,7 +285,7 @@ void LIB_HANDLER()
         }
 
         // MAKE SURE LOOP LIMITS ARE NUMERIC
-        if( !ISNUMBERORUNIT(*rplPeekData(1)) || !ISNUMBERORUNIT(*rplPeekData(2))) {
+        if( ( (!ISNUMBERORUNIT(*rplPeekData(1))) && (!ISANGLE(*rplPeekData(1)))) || ((!ISNUMBERORUNIT(*rplPeekData(2)))  && (!ISANGLE(*rplPeekData(2))))) {
             rplError(ERR_INVALIDLOOPLIMITS);
             return;
         }
@@ -342,7 +342,7 @@ void LIB_HANDLER()
         }
 
         // MAKE SURE LOOP LIMITS ARE NUMERIC
-        if( !ISNUMBERORUNIT(*rplPeekData(1)) || !ISNUMBERORUNIT(*rplPeekData(2))) {
+        if( ( (!ISNUMBERORUNIT(*rplPeekData(1))) && (!ISANGLE(*rplPeekData(1)))) || ((!ISNUMBERORUNIT(*rplPeekData(2)))  && (!ISANGLE(*rplPeekData(2))))) {
             rplError(ERR_INVALIDLOOPLIMITS);
             return;
         }
@@ -450,7 +450,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(!ISNUMBERORUNIT(*rplPeekData(1))) {
+        if( (!ISNUMBERORUNIT(*rplPeekData(1))) && (!ISANGLE(*rplPeekData(1)))) {
             rplError(ERR_INVALIDLOOPSTEP);
             // EXIT THE LOOP BY DROPPING THE RETURN STACK
             rplPopRet();

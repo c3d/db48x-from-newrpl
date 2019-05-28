@@ -6553,77 +6553,124 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISCOMPLEX(*rplPeekData(1))) {
+             BINT cclass1=rplComplexClass(rplPeekData(1));
 
-            BINT angmode=rplPolarComplexMode(rplPeekData(1));
+            switch(cclass1)
+            {
+            case CPLX_ZERO:
+                // UNDEFINED OR ZERO?
+            {
+                WORDPTR angle;
+                BINT angmode;
+                if(rplTestSystemFlag(FL_COMPLEXMODE)) {
+                    // IN COMPLEX MODE, ARG(0) IS UNDEFINED
+                    angle=0;
+                }
+                else {
+                angle=(WORDPTR)angle_0;
+                }
+                angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+                if(angle) {
+                    if(angmode!=ANGLEDEG) {
+                        rplConvertAngleObj(angle,angmode);
+                        angle=rplNewAngleFromReal(&RReg[0],angmode);
+                        if(!angle) return;
+                    } else rplZeroToRReg(0);
+                    rplOverwriteData(1,angle);
+                } else rplNANToRReg(0);
 
-            if(angmode!=ANGLENONE) {
-            // AVOID CREATING A NEW OBJECT
-                WORDPTR arg=rplSkipOb(rplPeekData(1)+1);
-                rplOverwriteData(1,arg);
+                rplCheckResultAndError(&RReg[0]);
+
+                return;
+            }
+            case CPLX_NORMAL:
+            {
+
+                // IT'S A NORMAL COMPLEX, NEED TO COMPUTE THE ARGUMENT
+                BINT angmode;
+                REAL real,imag;
+
+                rplReadCNumber(rplPeekData(1),&real,&imag,&angmode);
+
+                if(Exceptions) return;
+
+                angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                // COMPUTE THE ANGLE DIRECTLY FOR SPEED INSTEAD OF USING rplRect2Polar
+                trig_atan2(&imag,&real,angmode);
+                finalize(&RReg[0]);
+
+
+                // RETURN AN ANGLE IN THE CURRENT SYSTEM
+
+                WORDPTR newang=rplNewAngleFromReal(&RReg[0],angmode);
+                if(!newang) return;
+                rplOverwriteData(1,newang);
+                rplCheckResultAndError(&RReg[0]);
+                return;
+             }
+
+            case CPLX_INF|CPLX_POLAR:
+            case CPLX_NORMAL|CPLX_POLAR:
+            {
+                // AVOID CREATING A NEW OBJECT
+                    WORDPTR arg=rplSkipOb(rplPeekData(1)+1);
+                    rplOverwriteData(1,arg);
+                    return;
+            }
+
+            case CPLX_INF:
+            case CPLX_INF|CPLX_MALFORMED:
+            {
+                BINT angmode;
+                WORDPTR angle;
+                REAL real,imag;
+
+                rplReadCNumber(rplPeekData(1),&real,&imag,&angmode);
+
+                if(isinfiniteReal(&real)) {
+                    // INFINITE IN THE REAL AXIS
+
+                    if(!isinfiniteReal(&imag)) {    // CHECK IF THE IMAGINARY AXIS IS FINITE
+                        if(real.flags&F_NEGATIVE) angle=(WORDPTR)angle_180; else angle=(WORDPTR)angle_0;
+                    } else angle=0;
+                }
+                else {
+                    // THE IMAGINARY AXIS HAS TO BE INFINTE
+                    if(imag.flags&F_NEGATIVE) angle=(WORDPTR)angle_270; else angle=(WORDPTR)angle_90;
+                }
+
+                     angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                     if(angle) {
+                         if(angmode!=ANGLEDEG) {
+                             rplConvertAngleObj(angle,angmode);
+                             angle=rplNewAngleFromReal(&RReg[0],angmode);
+                             if(!angle) return;
+                         }
+                         else rplZeroToRReg(0);
+                         rplOverwriteData(1,angle);
+                     }
+                     else rplNANToRReg(0);
+
+                     // HERE WE HAVE THE PROPER ANGLE IN RReg[0]
+
+
+
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+            }
+            case CPLX_UNDINF:
+            case CPLX_NAN:
+            default:
+            {
+                rplError(ERR_UNDEFINEDRESULT);
                 return;
             }
 
-            // IT'S A NORMAL COMPLEX, NEED TO COMPUTE THE ARGUMENT
-
-            REAL real,imag;
-
-            rplReadCNumber(rplPeekData(1),&real,&imag,&angmode);
-
-            if(Exceptions) return;
-
-            angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
-
-            // COMPUTE THE ANGLE DIRECTLY FOR SPEED INSTEAD OF USING rplRect2Polar
-            trig_atan2(&imag,&real,angmode);
-            finalize(&RReg[0]);
-
-
-            // RETURN AN ANGLE IN THE CURRENT SYSTEM
-
-            WORDPTR newang=rplNewAngleFromReal(&RReg[0],angmode);
-            if(!newang) return;
-            rplOverwriteData(1,newang);
-
-            return;
-        }
-
-        // REAL NUMBERS HAVE ARGUMENT DEPENDING ON THE SIGN
-
-        REAL real;
-        rplReadNumberAsReal(rplPeekData(1),&real);
-
-        BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
-
-        if(real.flags&F_NEGATIVE) {
-            switch(angmode)
-            {
-            case ANGLERAD:
-            {
-                REAL pi;
-              decconst_PI(&pi);
-              copyReal(&RReg[0],&pi);
-              finalize(&RReg[0]);   // ROUND PI TO THE CURRENT NUMBER OF DIGITS
-              break;
             }
-            case ANGLEGRAD:
-                newRealFromBINT(&RReg[0],200,0);
-                break;
-            case ANGLEDEG:
-            case ANGLEDMS:
-            default:
-                newRealFromBINT(&RReg[0],180,0);
-                break;
-            }
-        }
-        else rplZeroToRReg(0);
 
-        WORDPTR newang=rplNewAngleFromReal(&RReg[0],angmode);
-        if(!newang) return;
-        rplOverwriteData(1,newang);
-
-        return;
-    }
+     }
     case CONJ:
     {
         //@SHORT_DESC=Conjugate of a complex number

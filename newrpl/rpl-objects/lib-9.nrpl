@@ -29,6 +29,8 @@
 {
 ##1,ERR_PROGRAMEXPECTED  "Expected an program"
 ##1,ERR_ERRHANDLERREENTERED "Error handler reentered"
+##1,ERR_INVALIDLOOPLIMITS "Invalid loop limits"
+##1,ERR_INVALIDLOOPSTEP "Invalid loop step"
 }
 
 
