@@ -78,7 +78,7 @@ WORD rplSymbMainOperator(WORDPTR symbolic)
     WORDPTR endptr=rplSkipOb(symbolic);
     while( ((symbolic+1)<endptr) && (ISSYMBOLIC(*(symbolic+1))) ) ++symbolic;
     if(!ISSYMBOLIC(*symbolic)) return 0;
-    if(!ISPROLOG(*(symbolic+1)) && !ISBINT(*(symbolic+1))) return *(symbolic+1);
+    if(!ISPROLOG(*(symbolic+1)) && !ISBINT(*(symbolic+1)) && !ISCONSTANT(*(symbolic+1))) return *(symbolic+1);
     return 0;
 }
 
@@ -89,7 +89,7 @@ WORDPTR rplSymbMainOperatorPTR(WORDPTR symbolic)
     WORDPTR endptr=rplSkipOb(symbolic);
     while( (ISSYMBOLIC(*(symbolic+1))) && ((symbolic+1)<endptr)) ++symbolic;
     if(!ISSYMBOLIC(*symbolic)) return 0;
-    if(!ISPROLOG(*(symbolic+1)) && !ISBINT(*(symbolic+1))) return (symbolic+1);
+    if(!ISPROLOG(*(symbolic+1)) && !ISBINT(*(symbolic+1)) && !ISCONSTANT(*(symbolic+1))) return (symbolic+1);
     return 0;
 }
 
@@ -233,7 +233,7 @@ void rplSymbApplyOperator(WORD Opcode,BINT nargs)
 WORDPTR rplSymbWrap(WORDPTR obj)
 {
     if(ISSYMBOLIC(*obj)) return obj;
-    if(!ISPROLOG(*obj) && !ISBINT(*obj)) return obj;
+    if(!ISPROLOG(*obj) && !ISBINT(*obj) && !ISCONSTANT(*obj)) return obj;
 
     WORDPTR firstobj,endobj,ptr,destptr;
     BINT wrapcount;
@@ -299,7 +299,7 @@ WORDPTR rplSymbWrap(WORDPTR obj)
         ptr=firstobj;
         while(ptr!=endobj) {
             if(ISLIST(*ptr)) { ++ptr; continue; }
-            if(!ISPROLOG(*ptr) && !ISBINT(*ptr)) { ++ptr; continue; }
+            if(!ISPROLOG(*ptr) && !ISBINT(*ptr) && !ISCONSTANT(*ptr)) { ++ptr; continue; }
             if(ISMATRIX(*ptr)) { ptr=rplSkipOb(ptr); continue; }
             if(!ISSYMBOLIC(*ptr)) ++wrapcount;
             ptr=rplSkipOb(ptr);
@@ -328,7 +328,7 @@ WORDPTR rplSymbWrap(WORDPTR obj)
                 ++ptr;
                 continue;
             }
-            if(!ISPROLOG(*ptr) && !ISBINT(*ptr)) {
+            if(!ISPROLOG(*ptr) && !ISBINT(*ptr)&& !ISCONSTANT(*ptr)) {
                 *destptr=*ptr;
                 ++destptr;
                 ++ptr;
@@ -403,7 +403,7 @@ BINT rplSymbExplode(WORDPTR object)
 
     while(ptr!=end) {
         if(ISSYMBOLIC(*ptr)) { ++ptr; continue; }
-        if(! (ISPROLOG(*ptr) || ISBINT(*ptr))) ++countops;
+        if(! (ISPROLOG(*ptr) || ISBINT(*ptr) || ISCONSTANT(*ptr))) ++countops;
         ++count;
         ptr=rplSkipOb(ptr);
     }
@@ -432,7 +432,7 @@ BINT rplSymbExplode(WORDPTR object)
             continue;
         }
         *sptr=object;
-        if(! (ISPROLOG(*object) || ISBINT(*object))) { numbers[countops]=MAKESINT(nargs); --sptr; *sptr=&numbers[countops]; ++countops; }
+        if(! (ISPROLOG(*object) || ISBINT(*object) || ISCONSTANT(*object))) { numbers[countops]=MAKESINT(nargs); --sptr; *sptr=&numbers[countops]; ++countops; }
         --sptr;
         object=rplSkipOb(object);
     }
@@ -458,7 +458,7 @@ BINT rplSymbExplodeOneLevel(WORDPTR object)
     ScratchPointer2=rplSkipOb(object);
 
     while(ScratchPointer1<ScratchPointer2) {
-        if(! (ISPROLOG(*ScratchPointer1) || ISBINT(*ScratchPointer1))) { ScratchPointer3=ScratchPointer1; ++countops; }
+        if(! (ISPROLOG(*ScratchPointer1) || ISBINT(*ScratchPointer1)  || ISCONSTANT(*ScratchPointer1))) { ScratchPointer3=ScratchPointer1; ++countops; }
         else {
             rplPushData(ScratchPointer1);
             ++count;
@@ -491,7 +491,7 @@ WORDPTR rplSymbImplode(WORDPTR *exprstart)
     for(f=0;f<numobjects;++f)
     {
         if(addcount) { numobjects+=OBJSIZE(**stkptr)-1; addcount=0; }
-        if((!ISBINT(**stkptr)) && (!ISPROLOG(**stkptr))) { addcount=1; ++numobjects; }
+        if((!ISBINT(**stkptr)) && (!ISPROLOG(**stkptr) && !ISCONSTANT(**stkptr))) { addcount=1; ++numobjects; }
         size+=rplObjSize(*stkptr);
         --stkptr;
     }
@@ -507,7 +507,7 @@ WORDPTR rplSymbImplode(WORDPTR *exprstart)
     for(f=0;f<numobjects;++f)
     {
         object=*stkptr;
-        if(!(ISPROLOG(*object)||ISBINT(*object))) {
+        if(!(ISPROLOG(*object)||ISBINT(*object) || ISCONSTANT(*object))) {
             // WE HAVE AN OPCODE, START A SYMBOLIC RIGHT HERE
             *newptr++=MKPROLOG(DOSYMB,0);
             *newptr++=*object;    // STORE THE OPCODE
@@ -559,7 +559,7 @@ WORDPTR rplSymbImplode(WORDPTR *exprstart)
     for(;f>0;--f) {
         ++stkptr;
         object=*stkptr;
-        if(!(ISPROLOG(*object)||ISBINT(*object))) {
+        if(!(ISPROLOG(*object)||ISBINT(*object) || ISCONSTANT(*object))) {
             // FOUND AN OPERATOR, GET THE NUMBER OF ITEMS
             narg=OPCODE(**(stkptr-1));
 
@@ -595,7 +595,7 @@ WORDPTR rplSymbImplode(WORDPTR *exprstart)
 WORDPTR *rplSymbSkipInStack(WORDPTR *stkptr)
 {
     if(ISPROLOG(**stkptr)) return --stkptr;
-    if(ISBINT(**stkptr)) return --stkptr;
+    if(ISBINT(**stkptr)  || ISCONSTANT(**stkptr)) return --stkptr;
 
     // IT'S AN OPERATOR
     --stkptr;
@@ -604,7 +604,7 @@ WORDPTR *rplSymbSkipInStack(WORDPTR *stkptr)
     --stkptr;
     while(nargs) {
         if(ISPROLOG(**stkptr)) { --stkptr; --nargs; continue; }
-        if(ISBINT(**stkptr)) { --stkptr; --nargs; continue; }
+        if(ISBINT(**stkptr) || ISCONSTANT(**stkptr)) { --stkptr; --nargs; continue; }
         --stkptr;
         nargs+=OPCODE(**stkptr)-1;
         --stkptr;
@@ -1056,14 +1056,14 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
                         }
                         // SHIFT ALL OTHER ARGUMENTS
                         while(endofotherarg!=otherarg) {
-                            *endofotherarg=endofotherarg[offset];
                             ++endofotherarg;
+                            *endofotherarg=endofotherarg[offset];
                         }
                         otherarg=DSTop;
                         // MOVE BACK ORIGINAL ARGUMENT
                         while(endofotherarg<ptr) {
-                            *endofotherarg=*otherarg;
                             ++endofotherarg;
+                            *endofotherarg=*otherarg;
                             ++otherarg;
                         }
 
@@ -1316,7 +1316,7 @@ if(for_display) {
     while(stkptr!=endofstk) {
         sobj=*stkptr;
 
-        if(ISPROLOG(*sobj)||ISBINT(*sobj)) { --stkptr;  continue; }
+        if(ISPROLOG(*sobj)||ISBINT(*sobj) || ISCONSTANT(*sobj)) { --stkptr;  continue; }
 
         if(*sobj!=(CMD_OVR_MUL)) {
                 // EXCEPT MULTIPLICATIONS, CHECK IF ANY OTHER EXPRESSION STARTS WITH INV()
@@ -1828,7 +1828,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
     while(stkptr!=endofstk) {
         sobj=*stkptr;
 
-        if(ISPROLOG(*sobj)||ISBINT(*sobj)) { --stkptr;  continue; }
+        if(ISPROLOG(*sobj)||ISBINT(*sobj) || ISCONSTANT(*sobj)) { --stkptr;  continue; }
 
         if((*sobj==(CMD_OVR_MUL))||(*sobj==CMD_SYMBTOUNIT)) {
             // SCAN ALL NUMERIC FACTORS IN THE NUMERATOR AND MULTIPLY TOGETHER
@@ -2511,7 +2511,7 @@ BINT rplSymbIsZero(WORDPTR ptr)
     BINT onezero=0,allzeros=1,optype=0;
     if(ISSYMBOLIC(*obj)) ++obj;
     while(obj!=end) {
-    if(! (ISPROLOG(*obj) || ISBINT(*obj))) {
+    if(! (ISPROLOG(*obj) || ISBINT(*obj) || ISCONSTANT(*obj))) {
         // SOME KIND OF OPERATION, THE ONLY THING ALLOWED IS UNARY PLUS OR MINUS BEFORE THE NUMBER ZERO
         switch(*obj)
         {
@@ -2625,7 +2625,7 @@ BINT rplSymbExplodeOneLevel2(WORDPTR object)
     ScratchPointer2=rplSkipOb(object);
 
     while(ScratchPointer1<ScratchPointer2) {
-        if(! (ISPROLOG(*ScratchPointer1) || ISBINT(*ScratchPointer1))) { ScratchPointer3=ScratchPointer1; ++countops; }
+        if(! (ISPROLOG(*ScratchPointer1) || ISBINT(*ScratchPointer1) || ISCONSTANT(*ScratchPointer1))) { ScratchPointer3=ScratchPointer1; ++countops; }
         else {
             rplPushData(ScratchPointer1);
             ++count;
@@ -2724,10 +2724,10 @@ static void reloadPointers(WORDPTR *stkbase,TRACK_STATE *ptr)
     ptr->nlams=rplReadBINT(*(stkbase-1));
     ptr->right=stkbase-2*ptr->nlams-5;           // POINT TO THE RIGHT OPERATOR
     ptr->left=ptr->right-1;
-    if(!ISPROLOG(**(ptr->right)) && !ISBINT(**(ptr->right))) { ptr->rightnargs=rplReadBINT(*((ptr->right)-1)); ptr->left--; }
+    if(!ISPROLOG(**(ptr->right)) && !ISBINT(**(ptr->right)) && !ISCONSTANT(**(ptr->right))) { ptr->rightnargs=rplReadBINT(*((ptr->right)-1)); ptr->left--; }
     else ptr->rightnargs=0;
     ptr->left-=ptr->rightnargs;
-    if(!ISPROLOG(**(ptr->left)) && !ISBINT(**(ptr->left))) ptr->leftnargs=rplReadBINT(*((ptr->left)-1));
+    if(!ISPROLOG(**(ptr->left)) && !ISBINT(**(ptr->left)) && !ISCONSTANT(**(ptr->right))) ptr->leftnargs=rplReadBINT(*((ptr->left)-1));
     else ptr->leftnargs=0;
 
     ptr->leftidx=rplReadBINT(ptr->right[1]);  // GET THE INDEX INTO THE ARGUMENTS
@@ -5407,7 +5407,7 @@ BINT rplSymbGetAttr(WORDPTR object)
             attr=-1;
         }
 
-        if(!ISPROLOG(*ptr) && !ISBINT(*ptr)) { operator=*ptr; ++ptr; }
+        if(!ISPROLOG(*ptr) && !ISBINT(*ptr) && !ISCONSTANT(*ptr)) { operator=*ptr; ++ptr; }
 
 
         while(ptr<endofobj) {

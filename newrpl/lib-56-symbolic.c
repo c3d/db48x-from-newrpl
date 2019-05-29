@@ -997,7 +997,7 @@ void LIB_HANDLER()
             while(ISSYMBOLIC(*ScratchPointer1)) ++ScratchPointer1;
             while(ISSYMBOLIC(*ScratchPointer2)) ++ScratchPointer2;
 
-            if(ISPROLOG(*ScratchPointer1) || ISBINT(*ScratchPointer1)) {
+            if(ISPROLOG(*ScratchPointer1) || ISBINT(*ScratchPointer1)  || ISCONSTANT(*ScratchPointer1)) {
                 // COMPARE OBJECTS BY USING THE SAME OPERATOR
             rplPushDataNoGrow(ScratchPointer1);
             rplPushDataNoGrow(ScratchPointer2);
