@@ -749,6 +749,7 @@ BINT rplMatrixBareissEx(WORDPTR *a, WORDPTR *index, BINT rowsa, BINT colsa, BINT
 void rplMatrixInvert();
 void rplMatrixBackSubstEx(WORDPTR *a,BINT rowsa,BINT colsa);
 BINT rplMatrixIsPolar(WORDPTR matobj);
+WORD rplMatrixPolarGetTemplate(WORDPTR matrix);
 BINT rplIsZeroMatrix(WORDPTR object);
 void rplMatrixPolarToRectEx(WORDPTR *a,BINT rowsa,BINT colsa);
 void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BINT angmode);

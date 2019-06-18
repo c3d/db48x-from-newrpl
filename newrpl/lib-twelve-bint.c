@@ -1444,6 +1444,11 @@ void LIB_HANDLER()
                         return;
                     }
                     result=result*base+digit;
+                    if(result>>63) {
+                        // OVERFLOW, CANNOT BE AN INTEGER
+                        RetNum=ERR_NOTMINE;
+                        return;
+                    }
                 }
                 else {
                  // AN INVALID DIGIT

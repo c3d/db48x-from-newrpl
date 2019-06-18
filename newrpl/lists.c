@@ -427,11 +427,12 @@ WORDPTR oldobject=rplGetListElement(list,position);
 if(!oldobject) return 0; // INVALID INDEX?
 BINT oldobjsize=rplObjSize(oldobject);
 BINT oldobjoffset=oldobject-list;
+BINT newsize=OBJSIZE(*list)+newobjsize-oldobjsize;
 ScratchPointer1=list;
 ScratchPointer2=object;
-WORDPTR newlist=rplAllocTempOb(OBJSIZE(*list)+newobjsize-oldobjsize);
+WORDPTR newlist=rplAllocTempOb(newsize);
 if(!newlist) return 0;
-*newlist=MKPROLOG(DOLIST,OBJSIZE(*list)+newobjsize-oldobjsize);
+*newlist=MKPROLOG(DOLIST,newsize);
 memmovew(newlist+1,ScratchPointer1+1,oldobjoffset-1);
 memmovew(newlist+oldobjoffset,ScratchPointer2,newobjsize);
 memmovew(newlist+oldobjoffset+newobjsize,ScratchPointer1+oldobjoffset+oldobjsize,OBJSIZE(*ScratchPointer1)-(oldobjoffset+oldobjsize-1));

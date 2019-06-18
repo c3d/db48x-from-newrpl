@@ -1369,13 +1369,20 @@ void LIB_HANDLER()
 
             WORDPTR matrix=rplPeekData(1);
             BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
-
+            BINT need_rect=0;
             if(rows) {
                 rplError(ERR_VECTOREXPECTED);
                 return;
             }
 
-            if(rplMatrixIsPolar(matrix)) return; // NOTHING TO DO
+            if(rplMatrixIsPolar(matrix)) {
+                // ALREADY POLAR, SEE IF TEMPLATES MATCH
+                WORD template=rplMatrixPolarGetTemplate(matrix);
+                if(template==1) return; // NOTHING TO DO, ALREADY POLAR
+
+                // IT'S SOME KIND OF POLAR BUT NOT SPHERICAL
+                need_rect=1;
+            }
 
             BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
@@ -1383,6 +1390,7 @@ void LIB_HANDLER()
 
             WORDPTR *first=rplMatrixExplode();
 
+            if(need_rect) rplMatrixPolarToRectEx(first-1,1,cols);
             rplMatrixRectToPolarEx(first-1,1,cols,1,angmode);
             if(Exceptions) { DSTop=first; return; }
 
@@ -1432,13 +1440,22 @@ void LIB_HANDLER()
 
             WORDPTR matrix=rplPeekData(1);
             BINT rows=MATROWS(matrix[1]),cols=MATCOLS(matrix[1]);
+            BINT need_rect=0;
 
             if(rows) {
                 rplError(ERR_VECTOREXPECTED);
                 return;
             }
 
-            if(rplMatrixIsPolar(matrix)) return; // NOTHING TO DO
+            if(rplMatrixIsPolar(matrix)) {
+                // ALREADY POLAR, SEE IF TEMPLATES MATCH
+                WORD template=rplMatrixPolarGetTemplate(matrix);
+                WORD sphere=(1<<(cols))-1;
+                if(template==sphere) return; // NOTHING TO DO, ALREADY SPHERICAL
+
+                // IT'S SOME KIND OF POLAR BUT NOT SPHERICAL
+                need_rect=1;
+            }
 
             BINT angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
@@ -1446,6 +1463,7 @@ void LIB_HANDLER()
 
             WORDPTR *first=rplMatrixExplode();
 
+            if(need_rect) rplMatrixPolarToRectEx(first-1,1,cols);
             rplMatrixRectToPolarEx(first-1,1,cols,0xffffffff,angmode);
             if(Exceptions) { DSTop=first; return; }
 
