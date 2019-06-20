@@ -7,6 +7,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 // CALCULATE FREE SPACE AND CACHE BIG EMPTY AREAS
 
@@ -405,3 +406,5 @@ if(fs->NextFreeCluster!=initialnextfree) fs->InitFlags|=VOLFLAG_HINTDIRTY;
 return FS_OK;
 
 }
+
+#endif

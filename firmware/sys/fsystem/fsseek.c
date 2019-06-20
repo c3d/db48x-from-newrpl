@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 
@@ -28,3 +29,5 @@ file->CurrentOffset=from;
 return FS_OK;
 
 }
+
+#endif

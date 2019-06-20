@@ -10,6 +10,7 @@
 
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 int FSFlushBuffers(FS_FILE *file)
@@ -61,3 +62,5 @@ if(error!=FS_OK) return error;
 
 return FS_OK;
 }
+
+#endif

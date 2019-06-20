@@ -8,6 +8,7 @@
 #include <newrpl.h>
 #include <ui.h>
 
+#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
 
 void __keyb_waitrelease();
 int __keyb_getkey(int wait);
@@ -15,7 +16,7 @@ int __keyb_getkey(int wait);
 extern const unsigned int Font_6A[];
 extern unsigned int RPLLastOpcode;
 
-void __ex_print(int x,int y,char *str)
+__ARM_MODE__ void __ex_print(int x,int y,char *str)
 {
     DRAWSURFACE dr;
     dr.addr=(int *)MEM_PHYS_EXSCREEN;
@@ -28,13 +29,13 @@ void __ex_print(int x,int y,char *str)
     DrawTextMono(x,y,str,(UNIFONT *)Font_6A,1,&dr);
 }
 
-void __ex_clrscreen()
+__ARM_MODE__ void __ex_clrscreen()
 {
     int *ptr=(int *)MEM_PHYS_EXSCREEN,*end=ptr+400;
     while(ptr!=end) *ptr++=0;
 }
 
-void __ex_hline(int y)
+__ARM_MODE__ void __ex_hline(int y)
 {
     int *yptr=((int *)MEM_PHYS_EXSCREEN)+5*y;
     yptr[0]=yptr[1]=yptr[2]=yptr[3]=yptr[4]=0xaaaaaaaa;
@@ -44,7 +45,7 @@ void __ex_hline(int y)
 
 // GET HIGH REGISTERS R8 TO R14 + CPSR (8 WORDS)
 
-void __ex_gethireg(unsigned int *hi_reg)
+__ARM_MODE__ void __ex_gethireg(unsigned int *hi_reg)
 {
 register unsigned int tmp asm ("r3");
 register unsigned int tmp2 asm ("r2");
@@ -81,7 +82,7 @@ return;
 #define __EX_RPLREGS 64 // SHOW RPL REGISTERS INSTEAD
 #define __EX_RPLEXIT 128 // SHOW EXIT OPTION, IT RESUMES EXECUTION AFTER SETTING Exception=EX_EXITRPL
 */
-int __exception_handler(char *exstr, unsigned int *registers,int options)
+__ARM_MODE__ int __exception_handler(char *exstr, unsigned int *registers,int options)
 {
 unsigned int lcd_buffer[17];
 unsigned int hi_reg[8];
@@ -509,7 +510,7 @@ return j;
 
 
 void __handler_dabort(void) __attribute__ ((naked));
-void __handler_dabort(void)
+__ARM_MODE__ void __handler_dabort(void)
 {
 	// STORE ALL REGISTERS INTO THE SAFE STACK
     asm volatile ("stmfd sp!, {r0-r12, r14}");
@@ -547,7 +548,7 @@ void __handler_dabort(void)
 
 	if(f==__EX_WARM) {
 	asm volatile ("ldr lr, .Lexitwarm");
-	asm volatile ("b .Lretexit");
+    asm volatile ("b .Lretexit");
 	}
 
     if(f==__EX_WIPEOUT) {
@@ -571,6 +572,8 @@ void __handler_dabort(void)
 	asm volatile ("mrs %0,spsr" : "=r" (tmp));
 	asm volatile ("bic %0,%1,#0xff" : "=r" (tmp) : "r" (tmp));		// CLEAN STATE BITS
     asm volatile ("orr %0,%1, #0x1f" : "=r" (tmp) : "r" (tmp));		// SET SYSTEM CPU MODE W/IRQ AND FIQ ENABLED, ARM MODE
+    asm volatile ("tst lr,#1");
+    asm volatile ("orrne %0,%1, #0x20" : "=r" (tmp) : "r" (tmp));		// SET THUMB MODE IF THE RETURN ADDRESS IS THUMB
 	asm volatile ("msr spsr,%0" : "=r" (tmp));						// SAVE USER MODE STATUS
 	
 	
@@ -594,7 +597,7 @@ void __handler_dabort(void)
 
 
 void __handler_iabort(void) __attribute__ ((naked));
-void __handler_iabort(void)
+__ARM_MODE__ void __handler_iabort(void)
 {
 register unsigned int *stackptr asm("sp");
 
@@ -624,7 +627,7 @@ register unsigned int *stackptr asm("sp");
 }
 
 void __handler_und(void) __attribute__ ((naked));
-void __handler_und(void)
+__ARM_MODE__ void __handler_und(void)
 {
 register unsigned int *stackptr asm("sp");
 register unsigned int value asm("r0");
@@ -682,7 +685,7 @@ register unsigned int value asm("r0");
 
 
 
-void __exception_install()
+__ARM_MODE__ void __exception_install()
 {
     unsigned *handler_addr=(unsigned int *)0x08000000L;
 	handler_addr[1]=(unsigned int)(&__handler_und);
@@ -692,12 +695,12 @@ void __exception_install()
 	__irq_install();
 }
 
-void __attribute__ ((noinline)) throw_exception(char * message, unsigned int options)
+__ARM_MODE__ void throw_exception(char * message, unsigned int options)
 {
  asm volatile (".word 0xE6CCCC10");
 }
 
-void __attribute__ ((noinline)) throw_dbgexception(char * message, unsigned int options)
+__ARM_MODE__ void throw_dbgexception(char * message, unsigned int options)
 {
  asm volatile (".word 0xE6DDDD10");
 }

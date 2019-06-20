@@ -1,6 +1,7 @@
 
 #include <newrpl.h>
 
+#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
 
 // OPTIMIZED REAL NUMBER MULTIPLICATION LOOP
 
@@ -9,7 +10,7 @@
 extern const unsigned char const carry_table[];
 
 void mul_real_arm(BINT *rdata,BINT *adata,BINT *bdata,UBINT len) __attribute__ ((naked));
-void mul_real_arm(BINT *rdata,BINT *adata,BINT *bdata,UBINT len)
+__ARM_MODE__ void mul_real_arm(BINT *rdata,BINT *adata,BINT *bdata,UBINT len)
 {
     asm volatile ("push {r4,r5,r6,r7,r8,r9,r10,r11,r12,r14}");
 
@@ -184,7 +185,7 @@ void mul_real_arm(BINT *rdata,BINT *adata,BINT *bdata,UBINT len)
 
 }
 BINT carry_correct_arm(BINT *start,BINT *dest, BINT *end,char *carry_table) __attribute__ ((naked));
-BINT carry_correct_arm(BINT *start,BINT *dest, BINT *end,char *carry_table)
+__ARM_MODE__ BINT carry_correct_arm(BINT *start,BINT *dest, BINT *end,char *carry_table)
 {
 
     asm volatile ("push {r4,r5,r6,r7,r8,r9,r10,r11,r12,r14}");
@@ -302,7 +303,7 @@ extern const BINT const shiftmul_K1[];
 extern const BINT const shiftmul_K2[];
 
 void add_long_mul_shift_arm(BINT *result,BINT *n1start,BINT nwords,BINT shift_mul) __attribute__ ((naked));
-void add_long_mul_shift_arm(BINT *result,BINT *n1start,BINT nwords,BINT shift_mul)
+__ARM_MODE__ void add_long_mul_shift_arm(BINT *result,BINT *n1start,BINT nwords,BINT shift_mul)
 {
 
     //  r0 = result
@@ -495,7 +496,7 @@ void add_long_mul_shift_arm(BINT *result,BINT *n1start,BINT nwords,BINT shift_mu
 
 
 void sub_long_mul_shift_arm(BINT *result,BINT *n1start,BINT nwords,BINT shift_mul) __attribute__ ((naked));
-void sub_long_mul_shift_arm(BINT *result,BINT *n1start,BINT nwords,BINT shift_mul)
+__ARM_MODE__ void sub_long_mul_shift_arm(BINT *result,BINT *n1start,BINT nwords,BINT shift_mul)
 {
 
     //  r0 = result

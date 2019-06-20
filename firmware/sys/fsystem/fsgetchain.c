@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 // SCAN A CLUSTER CHAIN AND CONVERT TO FRAGMENTS
 
@@ -147,3 +148,7 @@ firstcluster=fatentry;
 simpfree(buffer);
 return FS_OK;
 }
+
+
+#endif
+

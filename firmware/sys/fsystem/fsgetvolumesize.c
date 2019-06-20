@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 int FSGetVolumeSize(int Volnumber)
 {
@@ -18,3 +19,4 @@ if(FSystem.Volumes[Volnumber]==NULL) return 0;
 return FSystem.Volumes[Volnumber]->TotalSectors;
 
 }
+#endif

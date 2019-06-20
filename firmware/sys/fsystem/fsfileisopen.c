@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 
@@ -35,3 +36,5 @@ ff=ff->Dir;
 return FALSE;
 
 }
+
+#endif

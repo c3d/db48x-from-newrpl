@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 
@@ -41,3 +42,4 @@ file->Mode=newmode;
 return FS_OK;
 }
 
+#endif

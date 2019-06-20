@@ -10,13 +10,13 @@
 #include <ui.h>
 #include "../fsystem/fsyspriv.h"
 
-
-
+#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
 
 
 #define enter_mode(mode) call_swi(mode)
 
-void switch_mode(int mode) __attribute__ ((naked));
+
+__ARM_MODE__ void switch_mode(int mode) __attribute__ ((naked));
 void switch_mode(int mode)
 {
     asm volatile ("and r0,r0,#0x1f");
@@ -28,7 +28,7 @@ void switch_mode(int mode)
     asm volatile ("bx r0");
 }
 
-unsigned int get_mode()
+__ARM_MODE__ unsigned int get_mode()
 {
     register unsigned int cpsr;
 
@@ -37,14 +37,14 @@ unsigned int get_mode()
     return cpsr&0x1f;
 }
 
-void call_swi(unsigned int arg1) __attribute ((noinline));
+__ARM_MODE__ void call_swi(unsigned int arg1) __attribute ((noinline));
 void call_swi(unsigned int arg1)
 {
     asm volatile ("swi #0" : : : "r0","r1");
 }
 
 
-void enable_interrupts()
+__ARM_MODE__ void enable_interrupts()
 {
     asm volatile ("mrs r1,cpsr_all");
     asm volatile ("bic r1,r1,#0xc0");
@@ -52,7 +52,7 @@ void enable_interrupts()
 }
 
 
-void disable_interrupts()
+__ARM_MODE__ void disable_interrupts()
 {
     asm volatile ("mrs r1,cpsr_all");
     asm volatile ("orr r1,r1,#0xc0");
@@ -61,7 +61,7 @@ void disable_interrupts()
 
 
 
-void set_stack(unsigned int *) __attribute__ ((naked));
+__ARM_MODE__ void set_stack(unsigned int *) __attribute__ ((naked));
 void set_stack(unsigned int *newstackptr)
 {
 
@@ -90,7 +90,7 @@ void dbg_reset()
 }
 
 
-void set_async_bus()
+__ARM_MODE__ void set_async_bus()
 {
     asm volatile ("mrc p15,0,r0,c1,c0,0");
     asm volatile ("orr r0,r0,#0xC0000000");
@@ -207,9 +207,10 @@ void main_virtual(unsigned int mode)
         rplHotInit();
     }
 
-
+#ifndef CONFIG_NO_FSYSTEM
     // INITIALIZE SD CARD SYSTEM MEMORY ALLOCATOR
     FSHardReset();
+#endif
 
     halInitKeyboard();
     halInitScreen();
@@ -260,7 +261,7 @@ void clear_globals()
 
 
 
-void startup(int) __attribute__ ((naked,noreturn));
+__ARM_MODE__ void startup(int) __attribute__ ((naked,noreturn));
 void startup(int prevstate)
 {
 
@@ -467,7 +468,7 @@ void create_mmu_tables()
 
 }
 
-void __SVM_enable_mmu()
+__ARM_MODE__ void __SVM_enable_mmu()
 {
 
     asm volatile ("mov r0,#0x08000000");
@@ -491,7 +492,7 @@ void __SVM_enable_mmu()
 
 
 // ALL CACHES AND TLB MUST BE FLUSHED BEFORE DISABLING MMU
-void __SVM_disable_mmu()
+__ARM_MODE__ void __SVM_disable_mmu()
 {
 
     asm volatile ("mrc p15, 0, r0, c1, c0, 0");
@@ -506,7 +507,7 @@ void __SVM_disable_mmu()
 }
 
 
-static void __SVM_flush_Dcache(void)
+__ARM_MODE__ static void __SVM_flush_Dcache(void)
 {
     register unsigned int counter asm("r2");
     register unsigned int cacheaddr asm("r3");
@@ -522,7 +523,7 @@ static void __SVM_flush_Dcache(void)
 
 }
 
-static void __SVM_flush_Icache(void)
+__ARM_MODE__ static void __SVM_flush_Icache(void)
 {
     // CLEAN AND INVALIDATE ENTRY USING INDEX
 
@@ -533,7 +534,7 @@ static void __SVM_flush_Icache(void)
 
 }
 
-static void __SVM_flush_TLB(void)
+__ARM_MODE__ static void __SVM_flush_TLB(void)
 {
     // CLEAN AND INVALIDATE ENTRY USING INDEX
 
@@ -568,7 +569,7 @@ inline void set_swivector_phys(void *handler)
 }
 
 
-void set_stackall()
+__ARM_MODE__ void set_stackall()
 {
     // THE USER STACK IS ALREADY SETUP PROPERLY
 
@@ -597,7 +598,7 @@ void set_stackall()
     asm volatile ("nop");   // DO SOMETHING IN USER MODE TO PREVENT COMPILER FROM MAKING A TAIL CALL OPTIMIZATION
 }
 
-void reset_stackall()
+__ARM_MODE__ void reset_stackall()
 {
     // THE USER STACK IS ALREADY SETUP PROPERLY
 
@@ -626,7 +627,7 @@ void reset_stackall()
     asm volatile ("nop");   // DO SOMETHING IN USER MODE TO PREVENT COMPILER FROM MAKING A TAIL CALL OPTIMIZATION
 }
 
-void enable_mmu()
+__ARM_MODE__ void enable_mmu()
 {
 
     // WE MUST BE IN SUPERVISOR MODE ALREADY
@@ -644,7 +645,7 @@ void enable_mmu()
 
 }
 
-void disable_mmu()
+__ARM_MODE__ void disable_mmu()
 {
 
     // WE MUST BE IN SUPERVISOR MODE ALREADY
@@ -732,8 +733,10 @@ void halEnterPowerOff()
     usb_shutdown();
 
     // FILE SYSTEM SHUTDOWN
-
+#ifndef CONFIG_NO_FSYSTEM
     FSShutdown();
+#endif
+
 
     __rtc_poweroff();
 
@@ -759,8 +762,6 @@ void halEnterPowerOff()
 
 
     cpu_off_die();
-
-    asm volatile ("b 0");
 
     //startup(0);
 

@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 // UPDATE ENTRY OFFSET IN ALL OPENFILES/DIRS WHILE REPACKING A DIRECTORY
 
@@ -39,3 +40,4 @@ ff=ff->Dir;
 return;
 
 }
+#endif

@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 
@@ -503,3 +504,6 @@ cr->DirUsedEntries=cr->DirValidEntries;
 return FS_OK;
 
 }
+
+
+#endif

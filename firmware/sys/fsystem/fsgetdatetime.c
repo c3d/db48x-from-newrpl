@@ -7,7 +7,7 @@
 
 
 #include "fsyspriv.h"
-
+#ifndef CONFIG_NO_FSYSTEM
 
 void FSGetDateTime(unsigned int *datetime,unsigned int *hundredths)
 {
@@ -20,3 +20,4 @@ void FSGetDateTime(unsigned int *datetime,unsigned int *hundredths)
     *hundredths=(tm.sec&1)? 100:0;
     return;
 }
+#endif

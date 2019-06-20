@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+
 #define CHUNK_SIZE  REAL_REGISTER_STORAGE
 #define MAX_CHUNKS  TOTAL_REGISTERS-10  // 10 REGISTERS RESERVED FOR RReg STATIC MEMORY, OTHERS CAN BE ALLOCATED FOR FILE SYSTEM
 #define BLOCK_WORDS ((CHUNK_SIZE)>>5)
@@ -162,3 +163,5 @@ unsigned char *simpmallocb(int bytes)
 {
     return (unsigned char *)simpmalloc((bytes+3)>>2);
 }
+
+

@@ -299,7 +299,10 @@ void LIB_HANDLER()
             arg1=rplPeekData(2);
             arg2=rplPeekData(1);
 
-            if(!(ISANGLE(*arg1)||ISNUMBER(*arg1)) || !(ISANGLE(*arg2)||ISNUMBER(*arg2))) {
+
+
+
+            if(!(ISANGLE(*arg1)||ISNUMBERCPLX(*arg1)) || !(ISANGLE(*arg2)||ISNUMBERCPLX(*arg2))) {
                 // COMPARE COMMANDS WITH "SAME" TO AVOID CHOKING SEARCH/REPLACE COMMANDS IN LISTS
                     if((OPCODE(CurOpcode)==OVR_SAME) && (!ISPROLOG(*arg1)|| !ISPROLOG(*arg2))) {
                         if(*rplPeekData(2)==*rplPeekData(1)) {
@@ -320,17 +323,25 @@ void LIB_HANDLER()
                     case OVR_EQ:
                         rplDropData(2);
                         rplPushFalse();
-                        break;
+                        return;
                     case OVR_NOTEQ:
                         rplDropData(2);
                         rplPushTrue();
-                        break;
+                        return;
                     default:
-                        rplError(ERR_REALORANGLEEXPECTED);
+                       break;
                     }
-                    return;
+
 
             }
+
+            if(ISIDENT(*arg1)||ISIDENT(*arg2)) {
+                // TREAT ANY IDENTS AS SYMBOLICS
+                        LIBHANDLER symblib=rplGetLibHandler(DOSYMB);
+                        (*symblib)();
+                        return;
+            }
+
 
             if(ISANGLE(*arg1) && ISANGLE(*arg2)) {
                 // ONLY ALLOW ADDITION/SUBTRACTION OF ANGLES
@@ -411,6 +422,106 @@ void LIB_HANDLER()
 
                 }
 
+            }
+            else {
+                // MAKE SURE THERE ARE NO COMPLEX NUMBERS OR OTHER NON-NUMERIC OBJECTS INVOLVED
+                if((ISANGLE(*arg1)||ISNUMBER(*arg1)) && (ISANGLE(*arg2)||ISNUMBER(*arg2))) {
+                if(ISANGLE(*arg1) || ISANGLE(*arg2)) {
+                  // ONLY 1 ARGUMENT IS AN ANGLE
+
+                    if(OPCODE(CurOpcode)==OVR_MUL) {
+
+                        // DO THE MULTIPLICATION OF NUMBER*ANGLE AND THE RESULT IS AN ANGLE
+
+                        BINT angmode;
+                        if(ISANGLE(*arg1)) angmode=ANGLEMODE(*arg1);
+                        else angmode=ANGLEMODE(*arg2);
+
+                        REAL arg1num;
+                        REAL arg2num;
+
+                        rplReadNumberAsReal(arg1,&arg1num);
+                        if(Exceptions) return;
+                        rplReadNumberAsReal(arg2,&arg2num);
+                        if(Exceptions) return;
+
+                        if(angmode!=ANGLEDMS) {
+
+                            mulReal(&RReg[1],&arg1num,&arg2num);
+                            WORDPTR newang=rplNewAngleFromReal(&RReg[1],angmode);
+
+                            if(Exceptions) return;
+                            rplOverwriteData(2,newang);
+                            rplDropData(1);
+                            return;
+
+                        }
+                            // MULTIPLYING NUMBERS IN DMS FORMAT DIRECTLY TAKES MORE WORK
+
+                            if(ISANGLE(*arg1)) {
+                                rplConvertAngleObj(arg1,ANGLEDEG);
+                                mulReal(&RReg[6],&RReg[0],&arg2num);
+                            }
+                            else {
+                                rplConvertAngleObj(arg2,ANGLEDEG);
+                                mulReal(&RReg[6],&arg1num,&RReg[0]);
+                            }
+
+                            trig_convertangle(&RReg[6],ANGLEDEG,ANGLEDMS);
+
+                            WORDPTR newang=rplNewAngleFromReal(&RReg[0],angmode);
+
+                            if(Exceptions) return;
+                            rplOverwriteData(2,newang);
+                            rplDropData(1);
+                            return;
+
+                    }
+
+                    if((OPCODE(CurOpcode)==OVR_DIV)&&(ISANGLE(*arg1))) {
+
+                        // DO THE DIVISION OF ANGLE/NUMBER AND THE RESULT IS AN ANGLE
+
+                        BINT angmode;
+                        angmode=ANGLEMODE(*arg1);
+                        REAL arg1num;
+                        REAL arg2num;
+
+                        rplReadNumberAsReal(arg1,&arg1num);
+                        if(Exceptions) return;
+                        rplReadNumberAsReal(arg2,&arg2num);
+                        if(Exceptions) return;
+
+                        if(angmode!=ANGLEDMS) {
+
+                            divReal(&RReg[1],&arg1num,&arg2num);
+                            WORDPTR newang=rplNewAngleFromReal(&RReg[1],angmode);
+
+                            if(Exceptions) return;
+                            rplOverwriteData(2,newang);
+                            rplDropData(1);
+                            return;
+
+                        }
+                            // DIVIDING NUMBERS IN DMS FORMAT DIRECTLY TAKES MORE WORK
+
+                                rplConvertAngleObj(arg1,ANGLEDEG);
+                                divReal(&RReg[6],&RReg[0],&arg2num);
+
+                            trig_convertangle(&RReg[6],ANGLEDEG,ANGLEDMS);
+
+                            WORDPTR newang=rplNewAngleFromReal(&RReg[0],angmode);
+
+                            if(Exceptions) return;
+                            rplOverwriteData(2,newang);
+                            rplDropData(1);
+                            return;
+
+                    }
+
+
+                }
+                }
             }
                 // ALL OTHER OPERATORS SHOULD CONVERT TO CURRENT ANGLE SYSTEM AND REMOVE TAGS
                 // THEN PROCESS THE OPCODE NORMALLY.

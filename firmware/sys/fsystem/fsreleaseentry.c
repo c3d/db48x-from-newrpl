@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 // CLEANUP STATICALLY CREATED FS_FILE STRUCTURES
@@ -20,3 +21,4 @@ simpfree(file->Name);
 file->Name=NULL;
 }
 }
+#endif

@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 // OPEN DIRECTORIES FOR ENTRY SCANNING
@@ -98,3 +99,5 @@ fs->Files[k]=entry;
 entry->CurrentOffset=0;
 return error;
 }
+
+#endif

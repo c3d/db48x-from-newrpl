@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 // STRIP TRAILING SEMICOLONS ON NAME
 void FSStripSemi(char *name)
@@ -19,3 +20,4 @@ while(*ptr) ++ptr;
 while(*ptr==';' && ptr>=name) --ptr;
 ptr[1]=0;
 }
+#endif

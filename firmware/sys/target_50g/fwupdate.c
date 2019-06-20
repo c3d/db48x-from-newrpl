@@ -9,6 +9,7 @@
 #include <libraries.h>
 #include <ui.h>
 
+#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
 
 // OTHER EXTERNAL FUNCTIONS NEEDED
 extern int __cpu_getPCLK();
@@ -201,7 +202,7 @@ extern BINT __usb_ctlpadding ;                 // COUNT OF DATA DURING CONTROL C
 // ********************************
 
 // SOME INTERNAL FORWARD DECLARATIONS
-void usbram_sendcontrolpacket(int packet_type);
+__ARM_MODE__ void usbram_sendcontrolpacket(int packet_type);
 
 
 
@@ -210,7 +211,7 @@ extern const WORD const __crctable[256];
 // CALCULATE THE STANDARD CRC32 OF A BLOCK OF DATA
 #define RAM_CRCTABLE RReg[9].data
 
-WORD ramusb_crc32roll(WORD oldcrc,BYTEPTR data,BINT len)
+__ARM_MODE__ WORD ramusb_crc32roll(WORD oldcrc,BYTEPTR data,BINT len)
 {
     WORD crc=oldcrc^0xffffffff;
     while(len--) crc=RAM_CRCTABLE[(crc ^ *data++) & 0xFF] ^ (crc >> 8);
@@ -218,7 +219,7 @@ WORD ramusb_crc32roll(WORD oldcrc,BYTEPTR data,BINT len)
 }
 
 
-void rammemmoveb(void *_dest, const void *_source, int nbytes)
+__ARM_MODE__ void rammemmoveb(void *_dest, const void *_source, int nbytes)
 {
     register char *dest= (char *) _dest;
     register char *source= (char *) _source;
@@ -238,7 +239,7 @@ void rammemmoveb(void *_dest, const void *_source, int nbytes)
 }
 
 // PUT THE CPU IN "DOZE" MODE
-void ramcpu_waitforinterrupt()
+__ARM_MODE__ void ramcpu_waitforinterrupt()
 {
     register unsigned int var=0;
     asm volatile ("mcr p15,0,%0,c7,c0,4" : : "r" (var));
@@ -246,7 +247,7 @@ void ramcpu_waitforinterrupt()
 
 
 
-void ramusb_hwsetup()
+__ARM_MODE__ void ramusb_hwsetup()
 {
 
     *CLKCON&=~0x40;     // POWER DOWN USB HOST TO MAKE SURE HOST AND DEVICE AREN'T WORKING AT ONCE
@@ -296,7 +297,7 @@ void ramusb_hwsetup()
 
 }
 
-void ramusb_hwsuspend()
+__ARM_MODE__ void ramusb_hwsuspend()
 {
 
     *MISCCR|=(USBSUSPND0|USBSUSPND1);   // CHANGE TO SUSPEND MODE
@@ -306,7 +307,7 @@ void ramusb_hwsuspend()
 
 }
 
-void ramusb_hwresume()
+__ARM_MODE__ void ramusb_hwresume()
 {
     *UPLLCON=0x78023;   // 48 MHZ CLOCK
     *CLKSLOW&=~0x80;    // MAKE SURE UPLL IS ON
@@ -317,16 +318,16 @@ void ramusb_hwresume()
 
 
 
-void ramusb_irqservice();
-void ramusb_sendcontrolpacket(int packet_type);
-void ramusb_receivecontrolpacket();
+__ARM_MODE__ void ramusb_irqservice();
+__ARM_MODE__ void ramusb_sendcontrolpacket(int packet_type);
+__ARM_MODE__ void ramusb_receivecontrolpacket();
 
 // TRANSMIT BYTES TO THE HOST IN EP0 ENDPOINT
 // STARTS A NEW TRANSMISSION IF newtransmission IS TRUE, EVEN IF
 // THERE ARE ZERO BYTES IN THE BUFFER
 // FOR USE WITHIN ISR
 
-void ramusb_ep0_transmit(int newtransmission)
+__ARM_MODE__ void ramusb_ep0_transmit(int newtransmission)
 {
 
     if(!(__usb_drvstatus&USB_STATUS_CONNECTED)) return;
@@ -382,7 +383,7 @@ void ramusb_ep0_transmit(int newtransmission)
 // THERE ARE ZERO BYTES IN THE BUFFER
 // FOR USE WITHIN ISR
 
-void ramusb_ep0_receive(int newtransmission)
+__ARM_MODE__ void ramusb_ep0_receive(int newtransmission)
 {
 
     if(!(__usb_drvstatus&USB_STATUS_CONNECTED)) return;
@@ -421,7 +422,7 @@ void ramusb_ep0_receive(int newtransmission)
 
 
 
-void inline ramusb_checkpipe()
+__ARM_MODE__ void ramusb_checkpipe()
 {
     if( (*EP0_CSR) & EP0_SETUP_END) {
         // SOMETHING HAPPENED, CLEAR THE CONDITION TO ALLOW RETRY
@@ -444,7 +445,7 @@ void inline ramusb_checkpipe()
 
 
 
-void ramep0_irqservice()
+__ARM_MODE__ void ramep0_irqservice()
 {
     *INDEX_REG=0;   // SELECT ENDPOINT 0
 
@@ -811,7 +812,7 @@ void ramep0_irqservice()
 
 // DRIVER - PACKET TRANSMISSION CALLED BY IRQ - NEVER CALLED BY USER
 // SEND A CONTROL PACKET IF ONE AVAILABLE, OR ONE DATA PACKET IF AVAILABLE
-void ramusb_ep1_transmit()
+__ARM_MODE__ void ramusb_ep1_transmit()
 {
 
     if(!(__usb_drvstatus&USB_STATUS_CONNECTED)) return;
@@ -973,7 +974,7 @@ void ramusb_ep1_transmit()
 // RECEIVE BYTES FROM THE HOST IN EP2 ENDPOINT
 // FOR USE WITHIN ISR
 
-void ramusb_ep2_receive()
+__ARM_MODE__ void ramusb_ep2_receive()
 {
 
     if(!(__usb_drvstatus&USB_STATUS_CONNECTED)) return;
@@ -1152,13 +1153,13 @@ void ramusb_ep2_receive()
 
 
 // SENDING INTERRUPT ENDPOINT
-inline void ramep1_irqservice()
+__ARM_MODE__ void ramep1_irqservice()
 {
     ramusb_ep1_transmit();
 }
 
 // RECEIVING DATA ENDPOINT
-void ramep2_irqservice()
+__ARM_MODE__ void ramep2_irqservice()
 {
     // ONLY RESPOND ONCE EVERYTHING IS SETUP
     if(!(__usb_drvstatus&USB_STATUS_CONFIGURED)) return;
@@ -1184,7 +1185,7 @@ void ramep2_irqservice()
 
 
 // GENERAL INTERRUPT SERVICE ROUTINE - DISPATCH TO INDIVIDUAL ENDPOINT ROUTINES
-void ramusb_irqservice()
+__ARM_MODE__ void ramusb_irqservice()
 {
     if(!(__usb_drvstatus&USB_STATUS_INIT)) return;
     __usb_drvstatus|=USB_STATUS_INSIDEIRQ;
@@ -1250,7 +1251,7 @@ void ramusb_irqservice()
 
 // TRANSMIT ONE CONTROL PACKET
 
-void ramusb_sendcontrolpacket(int packet_type)
+__ARM_MODE__ void ramusb_sendcontrolpacket(int packet_type)
 {
     if(!(__usb_drvstatus&USB_STATUS_INSIDEIRQ)) {
             while(__usb_drvstatus&USB_STATUS_TXCTL);    // THERE'S ANOTHER CONTROL PACKET, WAIT FOR IT TO BE SENT
@@ -1324,7 +1325,7 @@ void ramusb_sendcontrolpacket(int packet_type)
 
 
 // CALLED WHEN A REPORT ARRIVED FROM THE OTHER SIDE, PROCESS DEPENDING ON WHAT WE ARE DOING
-void ramusb_receivecontrolpacket()
+__ARM_MODE__ void ramusb_receivecontrolpacket()
 {
     if(__usb_drvstatus&USB_STATUS_RXCTL) {
 
@@ -1484,13 +1485,13 @@ void ramusb_receivecontrolpacket()
 
 
 
-int ramusb_isconnected()
+__ARM_MODE__ int ramusb_isconnected()
 {
     if(__usb_drvstatus&USB_STATUS_CONNECTED) return 1;
     return 0;
 }
 
-int ramusb_isconfigured()
+__ARM_MODE__ int ramusb_isconfigured()
 {
     if(__usb_drvstatus&USB_STATUS_CONFIGURED) return 1;
     return 0;
@@ -1498,7 +1499,7 @@ int ramusb_isconfigured()
 
 
 // HIGH LEVEL FUNCTION TO SEE IF THERE'S ANY DATA FROM THE USB DRIVER
-int ramusb_hasdata()
+__ARM_MODE__ int ramusb_hasdata()
 {
     if((__usb_drvstatus&USB_STATUS_RXDATA)&&(__usb_rxtxtop!=__usb_rxtxbottom)) {
         int bytesready=__usb_rxtxtop-__usb_rxtxbottom;
@@ -1513,7 +1514,7 @@ int ramusb_hasdata()
 // HIGH LEVEL FUNCTION TO BLOCK UNTIL DATA ARRIVES
 // WAIT UNTIL WE GET AT LEAST nbytes OR TIMEOUT
 // RETURN 0 IF TIMEOUT
-int ramusb_waitfordata(int nbytes)
+__ARM_MODE__ int ramusb_waitfordata(int nbytes)
 {
     int hasbytes;
 
@@ -1549,14 +1550,14 @@ int ramusb_waitfordata(int nbytes)
 
 // START RECEIVING A FILE, WHETHER IT WAS COMPLETELY RECEIVED YET OR NOT
 // RETURNS THE FILEID OR 0 IF FAILS
-int ramusb_rxfileopen()
+__ARM_MODE__ int ramusb_rxfileopen()
 {
 if(!ramusb_hasdata()) return 0;
 return __usb_fileid;
 }
 
 // RETURN HOW MANY BYTES ARE READY TO BE READ
-int ramusb_rxbytesready(int fileid)
+__ARM_MODE__ int ramusb_rxbytesready(int fileid)
 {
     if(fileid!=(int)__usb_fileid) return 0;
 int bytesready=__usb_rxtxtop-__usb_rxtxbottom;
@@ -1566,7 +1567,7 @@ return bytesready;
 
 
 // RETRIEVE BYTES THAT WERE ALREADY RECEIVED
-int ramusb_fileread(int fileid,BYTEPTR dest,int nbytes)
+__ARM_MODE__ int ramusb_fileread(int fileid,BYTEPTR dest,int nbytes)
 {
     if(fileid!=(int)__usb_fileid)
         return 0;
@@ -1632,7 +1633,7 @@ int ramusb_fileread(int fileid,BYTEPTR dest,int nbytes)
 
 
 
-int ramusb_eof(int fileid)
+__ARM_MODE__ int ramusb_eof(int fileid)
 {
     if(fileid!=__usb_fileid) return 0;
 
@@ -1640,7 +1641,7 @@ int ramusb_eof(int fileid)
 }
 
 // CLOSE THE FILE RELEASE ANY PENDING DATA
-int ramusb_rxfileclose(int fileid)
+__ARM_MODE__ int ramusb_rxfileclose(int fileid)
 {
     if(fileid!=__usb_fileid) return 0;
 
@@ -1693,7 +1694,7 @@ int ramusb_rxfileclose(int fileid)
 extern unsigned int irq_table[32] ;
 
 void __ramirq_service() __attribute__ ((naked));
-void __ramirq_service()
+__ARM_MODE__ void __ramirq_service()
 {
     asm volatile ("stmfd sp!, {r0-r12,lr}");
     asm volatile ("mov r0,sp");
@@ -1728,7 +1729,7 @@ void __ramirq_service()
 #define IO_GPDCON HWREG(IO_REGS,0x30)
 
 // DO A FULL RESET
-void ram_doreset()
+__ARM_MODE__ void ram_doreset()
 {
 
 
@@ -1757,7 +1758,7 @@ void ram_doreset()
 
 // ERASE FLASH AREA BETWEEN GIVEN ADDRESSES (IN 32-BIT WORDS)
 
-void ram_flasherase(WORDPTR address,int nwords)
+__ARM_MODE__ void ram_flasherase(WORDPTR address,int nwords)
 {
 volatile HALFWORD *ptr=(HALFWORD *)(((WORD)address)&~(FLASH_SECTORSIZE-1));  // FIND START OF SECTOR
 nwords+=(((WORD)address)&(FLASH_SECTORSIZE-1))>>2;  // CORRECTION FOR MISALIGNED SECTORS
@@ -1812,7 +1813,7 @@ while(nwords>0) {
 
 // PROGRAM A 32-BIT WORD INTO FLASH
 
-void ram_flashprogramword(WORDPTR address,WORD value)
+__ARM_MODE__ void ram_flashprogramword(WORDPTR address,WORD value)
 {
 
     volatile HALFWORD *ptr=(HALFWORD *)address;
@@ -1880,7 +1881,7 @@ void ram_flashprogramword(WORDPTR address,WORD value)
 
 
 // MAIN PROCEDURE TO RECEIVE AND FLASH FIRMWARE FROM RAM
-void ram_receiveandflashfw(BINT flashsize)
+__ARM_MODE__ void ram_receiveandflashfw(BINT flashsize)
 {
 int pass=1,result,fileid;
 WORDPTR flash_address;
@@ -2008,7 +2009,7 @@ scrptr[60+(pixel>>3)]|=(0xf<<((pixel&7)<<2));
 WORD __scratch_buffer[2500] __SCRATCH_MEMORY__;
 
 
-void ram_startfwupdate()
+__ARM_MODE__ void ram_startfwupdate()
 {
 
     // AT THIS POINT, A USB CONNECTION HAS ALREADY BEEN ESTABLISHED

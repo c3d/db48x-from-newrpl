@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 // REDUCE FAT CHAIN IF NOT NEEDED
@@ -90,3 +91,4 @@ return FS_OK;
 }
 
 
+#endif

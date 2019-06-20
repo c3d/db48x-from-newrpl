@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 // WRITE ALL CACHED ENTRIES
@@ -95,3 +96,6 @@ void FSFlushAll()
 
     }
 }
+
+
+#endif

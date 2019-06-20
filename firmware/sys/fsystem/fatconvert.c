@@ -8,7 +8,7 @@
 
 #include "fsyspriv.h"
 
-
+#ifndef CONFIG_NO_FSYSTEM
 
 // FAT CONVERSION FUNCTIONS
 
@@ -61,3 +61,5 @@ unsigned int FSFATEntry2Addr(unsigned int addr,FS_VOLUME *fs)
 {
 return FSCluster2Addr(FSFATEntry2Cluster(addr,fs),fs);
 }
+
+#endif

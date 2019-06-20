@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 // CHANGE CURRENT DIRECTORY
@@ -79,3 +80,5 @@ return FS_OK;
 
 }
 
+
+#endif

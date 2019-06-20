@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 // LOW-LEVEL READ FROM FILE'S CURRENT POSITION
@@ -207,3 +208,4 @@ file->CurrentOffset+=bytescachedr;
 return totalcount;
 
 }
+#endif

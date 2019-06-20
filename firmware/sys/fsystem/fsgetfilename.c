@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 // RETURN TYPE OF PATH
 // 1 == Name include drive
@@ -105,3 +106,4 @@ if(*(partial-1)=='\\') --partial;
 
 return ptr;
 }
+#endif

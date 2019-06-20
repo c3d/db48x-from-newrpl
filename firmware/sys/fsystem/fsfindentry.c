@@ -11,6 +11,7 @@
 
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 
@@ -225,3 +226,6 @@ else {
 return FS_ERROR;
 }
 }
+
+
+#endif

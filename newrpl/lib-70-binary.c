@@ -42,7 +42,9 @@
     CMD(BADD,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(BSUB,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(BMUL,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
-    CMD(BDIV,MKTOKENINFO(4,TITYPE_FUNCTION,1,2))
+    CMD(BDIV,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(BNEG,MKTOKENINFO(4,TITYPE_FUNCTION,1,2))
+
 
 // ADD MORE OPCODES HERE
 
@@ -977,6 +979,50 @@ void LIB_HANDLER()
         return;
     }
 
+    case BNEG:
+    {
+        //@SHORT_DESC=Bitwise negation
+        //@NEW
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+
+            return;
+        }
+
+        BINT64 num1;
+        BINT base;
+        if(ISNUMBER(*rplPeekData(1))) {
+            num1=rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions) return;
+            base=LIBNUM(*rplPeekData(1));
+        }
+        else {
+            rplError(ERR_INTEGEREXPECTED);
+
+            return;
+        }
+        if(!ISLIST(*SystemFlags)) {
+            // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
+            rplError(ERR_SYSTEMFLAGSINVALID);
+
+            return;
+        }
+        //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
+        WORDPTR low64=SystemFlags+2;
+        BINT wsize=(low64[0]>>4)&0x3f;
+
+        num1=-num1;
+
+        if(num1&(1LL<<wsize)) {
+            // SIGN EXTEND THE RESULT
+            num1|=~((1LL<<wsize)-1);
+        }
+        else num1&=((1LL<<wsize)-1);
+
+        rplDropData(1);
+        rplNewBINTPush(num1,base);
+        return;
+    }
 
     // ADD MORE OPCODES HERE
 

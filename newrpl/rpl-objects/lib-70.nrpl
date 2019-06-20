@@ -35,7 +35,7 @@
 STWS RCWS
 
 
-BADD BSUB BMUL BDIV { "" :: ; }
+BADD BSUB BMUL BDIV BNEG
 BLSL BLSR BASR BRL BRR
 BOR BAND BXOR BNOT { "" :: ; }
 }
@@ -62,6 +62,11 @@ BDIV
 "Divide two N-bit integers
 
 I1 I2 → (I1/I2) "
+
+BNEG
+"Change sign of N-bit integer
+(N-bit integer)
+I1 → -I1 "
 
 BLSL
 "Shift left (N-bit int)

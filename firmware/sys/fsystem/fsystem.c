@@ -6,9 +6,11 @@
 */
 
 #include "fsyspriv.h"
+#ifndef CONFIG_NO_FSYSTEM
 
 // FILE SYSTEM ONE AND ONLY GLOBAL STRUCTURE
 
 FS_PUBLIC FSystem __SYSTEM_GLOBAL__;
 
 
+#endif

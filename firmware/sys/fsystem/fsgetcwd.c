@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 char *FSGetcwd(int Volume)
 {
@@ -22,3 +23,4 @@ if(!fs) return NULL;
 return FSGetFileName(fs->CurrentDir,FSNAME_HASPATH | FSNAME_ABSPATH);
 
 }
+#endif

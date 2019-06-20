@@ -8,8 +8,11 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 int FSFileLength(FS_FILE *file)
 {
 return file->FileSize;
 }
+
+#endif

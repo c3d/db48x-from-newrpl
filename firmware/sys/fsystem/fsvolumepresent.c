@@ -7,6 +7,8 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
+
 // DETECT IF A VOLUME IS STILL PRESENT
 
 int FSVolumePresent(FS_VOLUME *fs)
@@ -35,3 +37,5 @@ fs->Disk->Rca=newcard.Rca;
 if(SDSelect(fs->Disk->Rca)) return FS_OK;
 return FS_ERROR;
 }
+
+#endif

@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 // GET CLUSTER CHAIN SIZE
@@ -22,3 +23,5 @@ fr=fr->NextFragment;
 }
 return size<<9;
 }
+
+#endif

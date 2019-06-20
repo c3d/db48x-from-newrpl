@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 void FSSetCaseMode(int newmode)
@@ -18,5 +19,6 @@ FSystem.CaseMode=newmode;
 return;
 }
 
+#endif
 
 

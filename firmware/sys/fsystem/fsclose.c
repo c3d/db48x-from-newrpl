@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 
@@ -40,3 +41,5 @@ if(!FSFileIsReferenced(file,fs)) // FREE ALLOCATED MEMORY
 //printf("done close\n");
 return FS_OK;
 }
+
+#endif

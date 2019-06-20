@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 // RETURNS TRUE IF VOLUME EXISTS IN THE CURRENTLY INSERTED CARD
 
@@ -21,3 +22,4 @@ if(VolNumber<0 || VolNumber>3) return FALSE;
 if(FSystem.Volumes[VolNumber]!=NULL) return TRUE;
 return FALSE;
 }
+#endif

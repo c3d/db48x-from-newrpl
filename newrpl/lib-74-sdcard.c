@@ -129,6 +129,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     0
 };
 
+#ifndef CONFIG_NO_FSYSTEM
 // CONVERT FILE SYSTEM ERROR MESSAGE INTO THIS LIBRARY ERRORS
 BINT rplFSError2Error(BINT err)
 {
@@ -218,7 +219,7 @@ WORD rplSDArchiveReadWord(void *opaque)
     return data;
 }
 
-
+#endif
 
 
 
@@ -273,6 +274,10 @@ void LIB_HANDLER()
 
     switch(OPCODE(CurOpcode))
     {
+
+
+#ifndef CONFIG_NO_FSYSTEM
+
     case SDRESET:
     {
         //@SHORT_DESC=Reset the file system module
@@ -2358,7 +2363,7 @@ case SDPATH:
 
     }
 
-
+#endif
 
 
 
@@ -2545,7 +2550,14 @@ case SDPATH:
         return;
     }
     // BY DEFAULT, ISSUE A BAD OPCODE ERROR
+
+#ifndef CONFIG_NO_FSYSTEM
     rplError(ERR_INVALIDOPCODE);
+#else
+    rplError(ERR_NOCARD);
+#endif
+
+
 
     return;
 

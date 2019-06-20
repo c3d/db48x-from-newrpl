@@ -8,6 +8,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 
@@ -37,3 +38,6 @@ file->Attr=newattr;
 
 return FS_OK;
 }
+
+
+#endif

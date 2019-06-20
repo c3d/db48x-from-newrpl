@@ -10,6 +10,7 @@
 
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 
@@ -30,3 +31,4 @@ if(fs==NULL) return FS_ERROR;
 return FSReadLL(buffer,nbytes,file,fs);
 }
 
+#endif

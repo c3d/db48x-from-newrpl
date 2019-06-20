@@ -8,6 +8,9 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
+
+
 void FSGetAccessDate(FS_FILE *file,struct compact_tm *dt)
 {
 
@@ -30,3 +33,4 @@ dt->tm_isdst=0;
 
 return;
 }
+#endif

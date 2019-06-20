@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 int FSMkdir(char *name)
@@ -86,3 +87,4 @@ return FSClose(newdir);
 
 }
 
+#endif

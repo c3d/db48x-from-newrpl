@@ -7,6 +7,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 int FSGetCurrentVolume()
 {
@@ -14,3 +15,4 @@ int error=FSInit();
 if(error!=FS_OK) return error;
 return FSystem.CurrentVolume;
 }
+#endif

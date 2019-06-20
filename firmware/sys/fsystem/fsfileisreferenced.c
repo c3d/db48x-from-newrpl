@@ -7,6 +7,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 // CHECK IF FILE IS REFERENCED, RETURNS TRUE/FALSE
 
@@ -35,3 +36,5 @@ ff=ff->Dir;
 return FALSE;
 
 }
+
+#endif

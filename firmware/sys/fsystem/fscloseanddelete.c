@@ -10,6 +10,7 @@
 
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 
@@ -71,3 +72,5 @@ while((file=FSFreeFile(file)));
 //printf("free done\n");
 return FS_OK;
 }
+
+#endif

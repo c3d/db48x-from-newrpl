@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 int FSGetVolumeFree(int Volnumber)
 {
@@ -19,3 +20,4 @@ if(!(FSystem.Volumes[Volnumber]->InitFlags&VOLFLAG_FREESPACEVALID)) FSCalcFreeSp
 return FSystem.Volumes[Volnumber]->FreeSpace;
 
 }
+#endif

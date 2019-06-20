@@ -8,7 +8,12 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
+
+
 int FSTell(FS_FILE *file)
 {
 return file->CurrentOffset;
 }
+
+#endif

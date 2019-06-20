@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 // FILLS IN A FS_FILE STRUCTURE WITH THE NEXT DIRECTORY ENTRY
 // STARTS AT CurrentOffset
@@ -145,3 +146,5 @@ if(dir->CurrentOffset>=dir->FileSize) return FS_EOF;
 else return FS_ERROR;
 }
 
+
+#endif

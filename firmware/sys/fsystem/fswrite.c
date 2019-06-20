@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 // WRITE DATA TO A FILE
@@ -133,3 +134,4 @@ file->FileSize=file->CurrentOffset;		// TRUNCATE FILE
 
 return nbytes;
 }
+#endif

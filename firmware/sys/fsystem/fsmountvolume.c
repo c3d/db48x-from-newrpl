@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 // MOUNT A VOLUME IN A CARD
 // Disk IS A CARD. MUST BE INITIALIZED AND SELECTED
@@ -265,3 +266,5 @@ int FSUpdateHints(FS_VOLUME *fs)
     fs->InitFlags&=~VOLFLAG_HINTDIRTY;
     return FS_OK;
 }
+
+#endif

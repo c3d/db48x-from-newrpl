@@ -7,6 +7,8 @@
 
 #include <ui.h>
 
+#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
+
 extern unsigned int __saveint;
 
 void cpu_intoff()
@@ -202,7 +204,7 @@ return __cpu_setspeed(CLK_6MHZ);
 }
 
 // PUT THE CPU IN "DOZE" MODE
-void cpu_waitforinterrupt()
+__ARM_MODE__ void cpu_waitforinterrupt()
 {
     register unsigned int var=0;
     asm volatile ("mcr p15,0,%0,c7,c0,4" : : "r" (var));
@@ -211,14 +213,14 @@ void cpu_waitforinterrupt()
 // ACQUIRE A LOCK AND RETURN PREVIOUS VALUE
 // IF PREVIOUS VALUE IS ZERO, LOCK WAS ACQUIRED SUCCESSFULLY
 // IF NON-ZERO, LOCKING FAILED (RESOURCE WAS ALREADY LOCKED)
-int __attribute__ ((noinline)) cpu_getlock(int lockvar,volatile int *lock_ptr)
+__ARM_MODE__ int cpu_getlock(int lockvar,volatile int *lock_ptr)
 {
     asm volatile ("swp %1,%1,[%2];" :"=r" (lockvar) : "r" (lockvar) ,"r" (lock_ptr) );
 
     return lockvar;
 }
 
-void cpu_flushwritebuffers(void)
+__ARM_MODE__ void cpu_flushwritebuffers(void)
 {
     register unsigned int counter asm("r2");
     register unsigned int cacheaddr asm("r3");
@@ -235,7 +237,7 @@ void cpu_flushwritebuffers(void)
 
 }
 
-void cpu_flushicache(void)
+__ARM_MODE__ void cpu_flushicache(void)
 {
     register unsigned int value;
 
@@ -245,7 +247,7 @@ void cpu_flushicache(void)
 }
 
 
-void cpu_flushTLB(void)
+__ARM_MODE__ void cpu_flushTLB(void)
 {
     register unsigned int value;
 
@@ -254,7 +256,7 @@ void cpu_flushTLB(void)
 
 }
 
-void cpu_off_prepare()
+__ARM_MODE__ void cpu_off_prepare()
 {
     // TODO: CHECK FOR SERIAL TRANSMISSIONS, SD CARD WRITE OPERATIONS, ETC BEFORE GOING DOWN
 
@@ -388,7 +390,7 @@ void cpu_off_prepare()
 
 #define PHYS_CLK_REGS 0x4c000000
 
-void cpu_off_die()
+__ARM_MODE__ void cpu_off_die()
 {
     // GO OFF!
     asm volatile ("mov r0,r0");

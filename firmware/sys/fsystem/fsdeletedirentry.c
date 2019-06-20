@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 // MARK DIRECTORY ENTRY AS DELETED
 
@@ -56,3 +57,5 @@ return FS_OK;
 
 }
 
+
+#endif

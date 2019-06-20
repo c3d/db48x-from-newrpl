@@ -8,6 +8,8 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
+
 // SHUTDOWN FILE SYSTEM
 
 int FSShutdown()
@@ -121,3 +123,5 @@ int FSShutdownNoCard()
 
     return TRUE;
 }
+
+#endif

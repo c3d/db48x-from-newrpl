@@ -12,6 +12,7 @@
 
 typedef void (*myfunctype)(void);
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 // HARD RESET USED ONLY DURING POWER ON SEQUENCE
@@ -112,3 +113,5 @@ int FSIsDirty()
     }
     return 0;
 }
+
+#endif

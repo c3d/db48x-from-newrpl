@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 // END-OF-FILE DETECTION
@@ -16,3 +17,5 @@ int FSEof(FS_FILE *file)
 {
 return (file->CurrentOffset>=file->FileSize)? TRUE:FALSE;
 }
+
+#endif

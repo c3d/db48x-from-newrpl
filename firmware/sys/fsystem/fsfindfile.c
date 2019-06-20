@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 static int isdot(char *string)
 {
@@ -259,3 +260,6 @@ return FS_NOTFOUND;
 return FS_OK;
 
 }
+
+
+#endif

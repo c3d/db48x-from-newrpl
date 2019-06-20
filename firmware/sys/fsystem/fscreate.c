@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 // CREATE A NEW FILE
@@ -306,3 +307,4 @@ return FS_OK;
 
 
 
+#endif

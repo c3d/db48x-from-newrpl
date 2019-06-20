@@ -8,6 +8,10 @@
 
 #include "fsyspriv.h"
 
+
+#ifndef CONFIG_NO_FSYSTEM
+
+
 static int isdot(char *string)
 {
     if((string[0]=='.')&&(string[1]==0)) return 1;
@@ -53,3 +57,4 @@ return FSCloseAndDelete(dir);
 
 }
 
+#endif

@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 
@@ -69,3 +70,5 @@ return FSFlushFATCache(fs);
 }
 
 
+
+#endif

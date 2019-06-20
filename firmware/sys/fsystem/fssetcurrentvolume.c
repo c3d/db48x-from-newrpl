@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 int FSSetCurrentVolume(int VolNumber)
@@ -22,6 +23,8 @@ return FS_OK;
 }
 return FS_BADVOLUME;
 }
+
+#endif
 
 
 

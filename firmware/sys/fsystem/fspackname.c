@@ -8,6 +8,10 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
+
+
+
 // CONVERSION TABLE TO TURN CHARACTERS FROM UNICODE TO DOS-OEM CODEPAGE 850
 const int const cp850toUnicode[128]={
   0XC7,   0XFC,   0XE9,   0XE2,   0XE4,   0XE0,   0XE5,   0XE7,     0XEA,   0XEB,     0XE8,   0XEF,   0XEE,   0XEC,   0XC4,   0XC5,
@@ -136,3 +140,4 @@ char *ptr;
 	*ptr=0;
 
 }
+#endif

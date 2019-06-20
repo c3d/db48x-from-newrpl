@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 // ADD A FAT ENTRY TO THE CACHE
@@ -74,3 +75,4 @@ fs->FATCache=ch;
 return FS_OK;
 
 }
+#endif

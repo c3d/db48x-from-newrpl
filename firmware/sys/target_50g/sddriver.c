@@ -13,13 +13,60 @@
 
 
 
-
 #include "../fsystem/fsyspriv.h"
 // SD MODULE
 
 #define EXTINT0 ((unsigned int *)(IO_REGS+0x88))
 #define SRCPND ((volatile unsigned int *)(INT_REGS+0))
 
+
+
+int GetPCLK()
+{
+int CLKSLOW=*HWREG(CLKREG,0x10);
+int FCLK=12000000;
+
+if(CLKSLOW&0x10) {	// slow mode
+    if(CLKSLOW&7) FCLK/= (CLKSLOW&7)<<1;
+    }
+else {				// fast mode
+    int PLLCON=*HWREG(CLKREG,0x4);
+    int m=((PLLCON>>12)&0xff)+8,p=((PLLCON>>4)&0x1f)+2,s=PLLCON&3;
+
+    FCLK=((unsigned)m*12000000)/(p*(1<<s));
+}
+int CLKDIVN=*HWREG(CLKREG,0x14);
+if(CLKDIVN&2) FCLK>>=1;
+if(CLKDIVN&1) FCLK>>=1;
+return FCLK;
+}
+
+
+int SDGetClock()
+{
+    int pclk=GetPCLK();
+
+    return pclk/((*SDIPRE+1)<<1);
+
+}
+
+
+
+void SDSetClock(int sdclk)
+{
+    int pclk=GetPCLK();
+//	printf("PCLK=%d\n",pclk);
+//	printf("requested=%d\n",sdclk);
+    int prescaler=(pclk+sdclk)/(sdclk<<1) -1;		// +sdclk to round up
+    if(prescaler<0) prescaler=0;
+    if(prescaler>0xff) prescaler=0xff;
+//	printf("Prescaler=%d\n",prescaler);
+//	keyb_getkeyM(1);
+    *SDIPRE=prescaler;
+}
+
+
+#ifndef CONFIG_NO_FSYSTEM
 
 // IRQ HANDLER FOR CARD INSERTION/REMOVAL
 void __SD_irqeventinsert()
@@ -163,27 +210,6 @@ return ((*GPD(DAT))&8)? 0:1;
 }
 
 
-int GetPCLK()
-{
-int CLKSLOW=*HWREG(CLKREG,0x10);
-int FCLK=12000000;
-
-if(CLKSLOW&0x10) {	// slow mode
-	if(CLKSLOW&7) FCLK/= (CLKSLOW&7)<<1;
-	}
-else {				// fast mode
-	int PLLCON=*HWREG(CLKREG,0x4);
-	int m=((PLLCON>>12)&0xff)+8,p=((PLLCON>>4)&0x1f)+2,s=PLLCON&3;
-	
-	FCLK=((unsigned)m*12000000)/(p*(1<<s));
-}
-int CLKDIVN=*HWREG(CLKREG,0x14);
-if(CLKDIVN&2) FCLK>>=1;
-if(CLKDIVN&1) FCLK>>=1;
-return FCLK;
-}	
-
-
 // SET PCLK AT FASTER SPEED TO ACHIEVE 20 MHz ON THE SD CARD
 // IT AFFECTS UART, USB AND OTHER DEVICES, SO DON'T USE IF
 // OTHER DEVICES ARE ACTIVE (WILL PROBABLY PREVENT ANY COMMUNICATION)
@@ -201,27 +227,6 @@ void SDRestorePCLK(int original)
 }
 
 
-
-void SDSetClock(int sdclk)
-{
-	int pclk=GetPCLK();
-//	printf("PCLK=%d\n",pclk);
-//	printf("requested=%d\n",sdclk);
-	int prescaler=(pclk+sdclk)/(sdclk<<1) -1;		// +sdclk to round up
-	if(prescaler<0) prescaler=0;
-	if(prescaler>0xff) prescaler=0xff;
-//	printf("Prescaler=%d\n",prescaler);
-//	keyb_getkeyM(1);
-	*SDIPRE=prescaler;
-}
-
-int SDGetClock()
-{
-	int pclk=GetPCLK();
-	
-	return pclk/((*SDIPRE+1)<<1);
-
-}
 
 
 void SDPowerDown()
@@ -1260,3 +1265,4 @@ return NumBytes;		// RETURN NUMBER OF BYTES TRANSMITTED
 
 
 
+#endif

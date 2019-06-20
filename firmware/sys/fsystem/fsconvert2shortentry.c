@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 static int stringchr(char *string,char a)
 {
@@ -215,3 +216,5 @@ flags|=(ecase&2)<<3;
 return flags;
 }
 
+
+#endif

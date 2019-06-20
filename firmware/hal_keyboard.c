@@ -4029,29 +4029,29 @@ halScreen.DirtyFlag|=STACK_DIRTY;
 
 }
 
-
+const char const * const onMulDivKeyHandler_options[]={
+    "Auto",
+    "  =  0",
+    "k = +3",
+    "M = +6",
+    "G = +9",
+    "T = +12",
+    "P = +15",
+    "E = +18",
+    "Z = +21",
+    "z = -21",
+    "a = -18",
+    "f = -15",
+    "p = -12",
+    "n = -9",
+    "µ = -6",
+    "m = -3"
+};
 void onMulDivKeyHandler(BINT keymsg)
 {
 
 // CYCLE BETWEEN VARIOUS OPTIONS
-    const char * const options[]={
-        "Auto",
-        "  =  0",
-        "k = +3",
-        "M = +6",
-        "G = +9",
-        "T = +12",
-        "P = +15",
-        "E = +18",
-        "Z = +21",
-        "z = -21",
-        "a = -18",
-        "f = -15",
-        "p = -12",
-        "n = -9",
-        "µ = -6",
-        "m = -3"
-    };
+
 
     NUMFORMAT fmt;
     BINT option=0;
@@ -4085,7 +4085,7 @@ int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
 ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
 DrawTextBk(STATUSAREA_X+1,ytop+1,"ENG exponent:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
-DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,(char *)options[option],*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
+DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,(char *)onMulDivKeyHandler_options[option],*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
 
 
 if(option) option+=7;
@@ -6883,10 +6883,12 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
         if(halFlags&HAL_POWEROFF)
         {
             halFlags&=~HAL_POWEROFF;
+#ifndef CONFIG_NO_FSYSTEM
             if(FSIsInit()) {
                 if(FSCardInserted()) FSShutdown();
                 else FSShutdownNoCard();
             }
+#endif
             if(!(halFlags&(HAL_RESET|HAL_HWRESET))) {
                 halPreparePowerOff();
                 halEnterPowerOff();
@@ -6956,6 +6958,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
 
             if(!isidle) offcounter=halTicks();
 
+#ifndef CONFIG_NO_FSYSTEM
             // FLUSH FILE SYSTEM CACHES WHEN IDLING FOR MORE THAN 3 SECONDS
             if(!(flags&OL_NOSDFLUSH) && !(jobdone&1) && FSIsInit()) {
 
@@ -6969,7 +6972,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
             }
 
             }
-
+#endif
 
             // AUTO-OFF WHEN IDLING
             if(!(flags&OL_NOAUTOOFF) && (halFlags&HAL_AUTOOFFTIME) && (!usb_isconnected())) {

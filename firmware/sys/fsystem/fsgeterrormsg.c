@@ -7,6 +7,10 @@
 
 
 #include "fsyspriv.h"
+
+#ifndef CONFIG_NO_FSYSTEM
+
+
 #define __READ_ONLY__    __attribute__ ((section(".rodata"))) 
 
 const char * const FSErrorMsgArray[] = {
@@ -48,3 +52,5 @@ const char *FSGetErrorMsg(int errornum)
 if(errornum>1 || errornum<-11) errornum=2;
 return FSErrorMsgArray[2-errornum];
 }
+
+#endif

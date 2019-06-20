@@ -8,6 +8,9 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
+
+
 void FSGetCreatTime(FS_FILE *file,struct compact_tm *dt)
 {
 if(file->CreatTimeDate) {
@@ -32,3 +35,4 @@ dt->tm_isdst=0;
 
 return;
 }
+#endif

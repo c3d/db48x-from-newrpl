@@ -7,6 +7,7 @@
 
 
 #include "fsyspriv.h"
+#ifndef CONFIG_NO_FSYSTEM
 
 // SAVE POWER BY STOPPING SD CARD CLOCK
 
@@ -19,3 +20,5 @@ void FSWakeUp()
 {
 SDPowerUp();
 }
+
+#endif

@@ -9,6 +9,8 @@
 
 #define HWREG(base,off) ( (volatile unsigned int *) (((int)base+(int)off)))
 
+#define __ARM_MODE__ __attribute__((target("arm"))) __attribute__((noinline))
+
 // IRQ AND CPU LOW LEVEL
 unsigned int irq_table[32] __SYSTEM_GLOBAL__;
 unsigned int __saveint __SYSTEM_GLOBAL__;
@@ -17,13 +19,13 @@ unsigned int __saveint __SYSTEM_GLOBAL__;
 
 
 
-void __irq_dummy(void)
+__ARM_MODE__ void __irq_dummy(void)
 {
 	return;
 }
 
 void __irq_service() __attribute__ ((naked));
-void __irq_service()
+__ARM_MODE__ void __irq_service()
 {
 	asm volatile ("stmfd sp!, {r0-r12,lr}");
     asm volatile ("mov r0,sp");

@@ -8,6 +8,9 @@
 
 #include "fsyspriv.h"
 
+
+#ifndef CONFIG_NO_FSYSTEM
+
 void FSGetWriteTime(FS_FILE *file,struct compact_tm *dt)
 {
 if(file->WriteTimeDate) {
@@ -32,3 +35,4 @@ dt->tm_isdst=0;
 
 return;
 }
+#endif

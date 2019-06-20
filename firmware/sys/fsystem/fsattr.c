@@ -8,8 +8,10 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 int FSAttr(FS_FILE *file)
 {
 return file->Attr;
 }
+#endif

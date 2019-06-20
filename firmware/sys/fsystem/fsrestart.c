@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 // RESTART FUNCTION
 // USE WHEN USER INSERTED A NEW CARD
@@ -17,3 +18,4 @@ int FSRestart()
 FSShutdown();
 return FSInit();
 }
+#endif

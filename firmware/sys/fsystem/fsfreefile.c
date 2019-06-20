@@ -8,6 +8,8 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
+
 
 // CLEANUP FS_FILE STRUCTURES
 FS_FILE *FSFreeFile(FS_FILE *file)
@@ -54,3 +56,5 @@ simpfree(file);
 //printf("done free file\n");
 return orig;
 }
+
+#endif

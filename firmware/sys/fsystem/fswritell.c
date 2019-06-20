@@ -8,6 +8,7 @@
 
 #include "fsyspriv.h"
 
+#ifndef CONFIG_NO_FSYSTEM
 
 // LOW-LEVEL WRITE FUNCTION
 
@@ -92,3 +93,5 @@ return totalcount;
 
 }
 
+
+#endif

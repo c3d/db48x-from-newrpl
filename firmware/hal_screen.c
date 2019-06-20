@@ -1137,6 +1137,7 @@ void halRedrawStatus(DRAWSURFACE *scr)
             DrawTextBk(STATUSAREA_X+38,ytop+1,txt,*halScreen.FontArray[FONT_STATUS],0xf,0,scr);
     }
 
+#ifndef CONFIG_NO_FSYSTEM
 
     // SD CARD INSERTED INDICATOR
     {
@@ -1169,6 +1170,7 @@ void halRedrawStatus(DRAWSURFACE *scr)
     }
 
 
+#endif
 
 
 

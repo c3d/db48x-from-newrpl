@@ -9,6 +9,7 @@
 #include "fsyspriv.h"
 
 
+#ifndef CONFIG_NO_FSYSTEM
 
 
 // FREE CLUSTER CHAIN
@@ -26,3 +27,5 @@ simpfree(temp);
 file->Chain.NextFragment=NULL;
 file->Chain.StartAddr=file->Chain.EndAddr=0;
 }
+
+#endif
