@@ -2744,6 +2744,35 @@ void hyp_acosh(REAL *x)
 void hyp_pow(REAL *x,REAL *a)
 {
 
+    if(iszeroReal(x)) {
+        // 0^0 = 1
+        if(iszeroReal(a)) {
+            RReg[0].exp=0;
+            RReg[0].len=1;
+            RReg[0].data[0]=1;
+            RReg[0].flags=(x->flags|a->flags)&F_APPROX;
+            return;
+        }
+
+        // 0^-n = Und. Inf
+        if(a->flags&F_NEGATIVE) {
+            RReg[0].exp=0;
+            RReg[0].len=1;
+            RReg[0].data[0]=0;
+            RReg[0].flags=F_INFINITY|F_NOTANUMBER;
+            return;
+        }
+
+        // 0^n = 0
+        RReg[0].exp=0;
+        RReg[0].len=1;
+        RReg[0].data[0]=0;
+        RReg[0].flags=(x->flags|a->flags)&F_APPROX;
+        return;
+
+    }
+
+
     if(isintegerReal(a)&& inBINT64Range(a)) {
         // INTEGER EXPONENTIATION
         BINT64 exponent=getBINT64Real(a);
@@ -2770,6 +2799,33 @@ void hyp_pow(REAL *x,REAL *a)
             divReal(&RReg[0],&One,&RReg[0]);    // INVERT THE RESULT
         }
         // RESULT IN RReg[0]
+        return;
+
+    }
+    if(iszeroReal(x)) {
+        // 0^0 = 1
+        if(iszeroReal(a)) {
+            RReg[0].exp=0;
+            RReg[0].len=1;
+            RReg[0].data[0]=1;
+            RReg[0].flags=(x->flags|a->flags)&F_APPROX;
+            return;
+        }
+
+        // 0^-n = Und. Inf
+        if(a->flags&F_NEGATIVE) {
+            RReg[0].exp=0;
+            RReg[0].len=1;
+            RReg[0].data[0]=0;
+            RReg[0].flags=F_INFINITY|F_NOTANUMBER;
+            return;
+        }
+
+        // 0^n = 0
+        RReg[0].exp=0;
+        RReg[0].len=1;
+        RReg[0].data[0]=0;
+        RReg[0].flags=(x->flags|a->flags)&F_APPROX;
         return;
 
     }

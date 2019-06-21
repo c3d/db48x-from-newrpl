@@ -26,6 +26,35 @@
 ##1,ERR_INVALIDSYMBFUNCTION "Use 'f(x)=...' in expressions."
 }
 
+@#name lib104_ROOT
+« { } →
+    FCN XMIN XMAX TOLX TOLY RES
+    «
+        STKPUSH CLEAR
+        XMIN XMAX
+        WHILE DEPTH 2 ≥ REPEAT
+            'xmx' LSTO 'xmn' LSTO
+            IFERR FCN xmn xmx TOLY BISECT THEN 0 ELSE 1 END
+            IF THEN
+                @ FOUND A ROOT
+                RES OVER ADD 'RES' STO                           @ ADD ROOT TO THE RESULT
+                TOLX 0.5 * - xmn SWAP DUP TOLX + xmx             @ PUT INTERVALS LEFT AND RIGHT OF NEW ROOT
+            ELSE
+                4 DROPN
+                @ NO ROOT FOUND, SPLIT INTERVAL AT THE CENTER
+                IF xmx xmn - TOLX > THEN                         @ CHECK IF INTERVAL SMALLER THAN TOLERANCE
+                    xmn DUP xmx + 0.5 * DUP xmx                  @ SPLIT INTERVAL IN HALF, EXPLORE BOTH HALVES
+                END
+            END
+        END                                                      @ END LOOP WHEN ALL INTERVALS WERE EXPLORED
+
+      STKPOP
+      RES
+  »
+»
+
+
+
 @#name lib104_menu
 {
 NUMINT ROOT MSOLVE "" ""
@@ -157,12 +186,16 @@ NUMINT
 ROOT
 "Real root finder
 
-(A or P) R<a> R<b> R<tol> → R"
+(A or P) R<a> R<b> R<Xtol> R<tol> → L"
 
 MSOLVE
 "Multiple equation solver
 L<A> L<N> L<a> L<b> R<tol> →
 L<roots> L<residuals>"
 
+BISECT
+"Bisection method
+
+(A or P) R<a> R<b> R<tol> → R"
 
 }

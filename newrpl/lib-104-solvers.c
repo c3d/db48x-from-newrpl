@@ -39,7 +39,9 @@
 #define COMMAND_LIST \
     CMD(NUMINT,MKTOKENINFO(6,TITYPE_FUNCTION,4,2)), \
     CMD(ROOT,MKTOKENINFO(4,TITYPE_FUNCTION,3,2)), \
-    CMD(MSOLVE,MKTOKENINFO(4,TITYPE_FUNCTION,5,2))
+    CMD(MSOLVE,MKTOKENINFO(6,TITYPE_FUNCTION,5,2)), \
+    CMD(BISECT,MKTOKENINFO(6,TITYPE_FUNCTION,3,2))
+
 
 
 
@@ -64,7 +66,7 @@ INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib104_menu);
 INCLUDE_ROMOBJECT(lib104_TVMmenu);
-
+INCLUDE_ROMOBJECT(lib104_ROOT);
 
 
 // EXTERNAL EXPORTED OBJECT TABLE
@@ -74,7 +76,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)LIB_HELPTABLE,
     (WORDPTR)lib104_menu,
     (WORDPTR)lib104_TVMmenu,
-
+    (WORDPTR)lib104_ROOT,
     0
 };
 
@@ -459,10 +461,10 @@ case NUMINT:
         return;
     }
 
-    case ROOT:
+    case BISECT:
         {
-            //@SHORT_DESC=Root seeking
-            //@INCOMPAT
+            //@SHORT_DESC=Root seeking (bisection method)
+            //@NEW
             // NUMERIC ROOT FINDER ON FUNCTION PROVIDED BY THE USER
             // TAKES A PROGRAM FROM THE STACK, LEFT/RIGHT OF INITIAL INTERVAL AND ERROR TOLERANCE
             // USES BISECTION, CAN ONLY FIND REAL ROOTS
@@ -1718,6 +1720,44 @@ case NUMINT:
     }
 
 
+    case ROOT:
+        {
+            //@SHORT_DESC=Root seeking within an interval
+            //@INCOMPAT
+            // NUMERIC ROOT FINDER ON FUNCTION PROVIDED BY THE USER
+            // TAKES A PROGRAM FROM THE STACK, LEFT/RIGHT OF INITIAL INTERVAL, VARIABLE TOLERANCE FOR FINE SCANNING AND ERROR TOLERANCE
+            // USES BISECTION, CAN ONLY FIND REAL ROOTS
+
+        if(rplDepthData()<5) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+
+        if(!ISPROGRAM(*rplPeekData(5)) && !ISSYMBOLIC(*rplPeekData(5)) ) {
+            rplError(ERR_PROGRAMEXPECTED);
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(4)) || !ISNUMBER(*rplPeekData(3)))
+        {
+            rplError(ERR_REALEXPECTED);
+            return;
+        }
+
+        if(!ISNUMBER(*rplPeekData(2)) || !ISNUMBER(*rplPeekData(1)))
+        {
+            rplError(ERR_REALEXPECTED);
+            return;
+        }
+
+        // RUN RPL PROGRAM
+
+        rplPushRet(IPtr);
+        IPtr=(WORDPTR)lib104_ROOT;
+
+        return;
+    }
 
 
 
