@@ -623,7 +623,7 @@ WORDPTR *rplDeepCopyDir(WORDPTR *sourcedir)
     WORDPTR *targetdir=rplMakeNewDir();
     if(!targetdir) return 0;
     WORDPTR *srcvars=sourcedir+4;
-    while(**srcvars!=DIR_END_MARKER) {
+    while((**srcvars!=DIR_END_MARKER)&&(**srcvars!=DIR_START_MARKER)) {
         if(LIBNUM(**(srcvars+1))==DODIR) {
             //POINTS TO A DIRECTORY, NEED TO DEEP-COPY THAT ONE TOO
             WORDPTR *subdir=rplDeepCopyDir(rplFindDirbyHandle(*(srcvars+1)));
@@ -1161,7 +1161,7 @@ void rplDoAutoEval(WORDPTR varname,WORDPTR *indir)
                 }
                 rplRunAtomic(CMD_OVR_NUM);
                 if(Exceptions) {
-                    rplBlameError(varcalc[0]);   // AT LEAST SHOW WHERE THE ERROR CAME FROM
+                    if( !((Exceptions&EX_ERRORCODE) &&(ErrorCode==ERR_UNDEFINEDVARIABLE))) rplBlameError(varcalc[0]);   // AT LEAST SHOW WHERE THE ERROR CAME FROM
                     if(DSTop>stksave) DSTop=stksave;
                     return;
                 }

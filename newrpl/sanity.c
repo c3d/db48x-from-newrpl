@@ -254,7 +254,7 @@ BINT rplVerifyDirectories(BINT fix)
 BINT errors=0;
 WORDPTR *dirptr=Directories,*dirptr2,*dirend;
 WORDPTR handle,parent,name;
-BINT nitems;
+BINT nitems,dirstate;
 
 
 // PASS 1 - SCAN DIRECTORY STRUCTURE ONLY
@@ -433,12 +433,46 @@ while(dirptr<DirsTop) {
 
 nitems=0;
 dirptr=Directories;
-
+dirstate=0;
 while(dirptr<DirsTop) {
     ++nitems;
-if(*dirptr==dir_start_bint) { dirptr+=2; continue; }
-if(*dirptr==dir_end_bint) { dirptr+=2; continue; }
-if(*dirptr==dir_parent_bint) { dirptr+=2; continue; }
+if(*dirptr==dir_start_bint) {
+    if(dirstate!=0) {
+        // SPURIOUS DIRECTORY START, REMOVE
+        if(fix) {
+        dirptr[1]=(WORDPTR)zero_bint;
+        rplPurgeForced(dirptr);
+        dirptr-=2;
+        }
+    } else dirstate=1;  // DIR START FOUND, NO PARENT YET
+    dirptr+=2;
+    continue;
+}
+if(*dirptr==dir_parent_bint) {
+    if(dirstate!=1) {
+        // SPURIOUS PARENT DIR RELATIONSHIP - REMOVE
+        if(fix) {
+        dirptr[1]=(WORDPTR)zero_bint;
+        rplPurgeForced(dirptr);
+        dirptr-=2;
+        }
+    } else dirstate=2;  // DIR START FOUND, PARENT REFERENCE FOUND
+    dirptr+=2;
+    continue;
+}
+
+if(*dirptr==dir_end_bint) {
+    if(dirstate!=2) {
+        // SPURIOUS DIRECTORY END??
+        if(fix) {
+        dirptr[1]=(WORDPTR)zero_bint;
+        rplPurgeForced(dirptr);
+        dirptr-=2;
+        }
+    } else dirstate=0;  // DIR END FOUND, PARENT REFERENCE OK
+    dirptr+=2;
+    continue;
+}
 
 // CHECK NAME
 BINT badname=0;

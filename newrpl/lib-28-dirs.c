@@ -2536,7 +2536,26 @@ case TVARSE:
         // RetNum =  enum DecompileErrors
 
         if(ISPROLOG(*DecompileObject)) {
-            rplDecompAppendString2((BYTEPTR)"DIRObject",9);
+
+            rplDecompAppendString((BYTEPTR)"DIR<");
+
+            WORDPTR *dir=rplFindDirbyHandle(DecompileObject);
+            if(dir) {
+                WORDPTR path[16];
+                BINT lvlcount=rplGetFullPath(dir,path,16);
+
+
+                if(lvlcount==16) rplDecompAppendString((BYTEPTR)"...");
+
+                while(lvlcount>0) {
+                    rplDecompAppendChar('/');
+                    rplDecompile(path[lvlcount-1],DECOMP_EMBEDDED);
+                    lvlcount--;
+                }
+            }
+            else rplDecompAppendString((BYTEPTR)"*unlinked*");
+
+            rplDecompAppendString((BYTEPTR)">");
             RetNum=OK_CONTINUE;
             return;
 
