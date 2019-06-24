@@ -231,6 +231,50 @@ WORDPTR rplNewComplex(REAL *real,REAL *imag,BINT angmode)
         // IT'S A REAL NUMBER, THERE'S NO IMAGINARY PART
         return rplNewReal(real);
     }
+
+    if(angmode!=ANGLENONE) {
+        // NORMALIZE THE COMPLEX IF IT'S POLAR
+
+        if(real->flags&F_NEGATIVE) {
+            // NEED TO MAKE IT POSITIVE
+            real->flags^=F_NEGATIVE;
+        REAL pi;
+        BINT pidata;
+        // ADD 180 DEGREES
+        switch(angmode)
+        {
+        case ANGLEDEG:
+            decconst_180(&pi);
+            break;
+        case ANGLEDMS:
+            pidata=1800000;
+            if(!isintegerReal(imag)) pidata-=4000;
+            imag->exp+=2;
+            if(!isintegerReal(imag)) pidata-=40;
+            imag->exp-=2;
+            pi.data=&pidata;
+            pi.len=0;
+            pi.exp=-4;
+            pi.flags=0;
+            break;
+        case ANGLEGRAD:
+            decconst_200(&pi);
+            break;
+        case ANGLERAD:
+            decconst_PI(&pi);
+            break;
+        }
+        BINT sign=imag->flags&F_NEGATIVE;
+        imag->flags|=F_NEGATIVE;
+        addReal(&RReg[8],imag,&pi);
+
+        RReg[8].flags^=sign^F_NEGATIVE;
+        imag=&RReg[8];
+
+    }
+
+    }
+
     BINT size=4+real->len+imag->len;
 
     if(angmode!=ANGLENONE) ++size;

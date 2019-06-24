@@ -601,6 +601,7 @@ void LIB_HANDLER()
         REAL rop1,rop2;
         int op1type=0,op2type=0;
         int op1app=0,op2app=0;
+        int op1base=DECBINT;
 
         // USE GC-SAFE POINTERS, NEVER LOCAL COPIES OF POINTERS INTO TEMPOB
 #define arg1 ScratchPointer1
@@ -633,7 +634,7 @@ void LIB_HANDLER()
                 op1app=rop1.flags&F_APPROX;
             }
             else {
-                if(ISBINT(*arg1)) { op1=rplReadBINT(arg1); op1type=0; op1app=ISAPPROX(*arg1); }
+                if(ISBINT(*arg1)) { op1=rplReadBINT(arg1); op1type=0; op1app=ISAPPROX(*arg1); op1base=LIBNUM(*arg1)&~APPROX_BIT; }
                 else { op1=0; op1type=-1; op1app=0; }
             }
             if(ISREAL(*arg2)) {
@@ -683,7 +684,6 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op2);
                     addReal(&RReg[0],&rop1,&RReg[1]);
 
-
                     if(op1app||op2app) RReg[0].flags|=F_APPROX;
                 }
 
@@ -692,6 +692,14 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
 
                     addReal(&RReg[0],&RReg[1],&rop2);
+                    if(op1base!=DECBINT) {
+                        if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
+                         rplNewBINTPush(getBINT64Real(&RReg[0]),op1base|((op1app||op2app)? APPROX_BIT:0));
+                         if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+                         return;
+                        }
+
+                    }
                     if(op1app||op2app) RReg[0].flags|=F_APPROX;
                 }
 
@@ -743,10 +751,20 @@ void LIB_HANDLER()
                 }
 
                 if(op2type) {
-                    // TODO: TRY TO RESPECT THE NUMBER TYPE OF THE FIRST ARGUMENT
                     rplBINTToRReg(1,op1);
 
                     subReal(&RReg[0],&RReg[1],&rop2);
+
+                    if(op1base!=DECBINT) {
+                        if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
+                         rplNewBINTPush(getBINT64Real(&RReg[0]),op1base|((op1app||op2app)? APPROX_BIT:0));
+                         if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+                         return;
+                        }
+
+                    }
+
+
                     if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
                 }
@@ -800,6 +818,17 @@ void LIB_HANDLER()
                     rplBINTToRReg(1,op1);
 
                     mulReal(&RReg[0],&RReg[1],&rop2);
+
+                    if(op1base!=DECBINT) {
+                        if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
+                         rplNewBINTPush(getBINT64Real(&RReg[0]),op1base|((op1app||op2app)? APPROX_BIT:0));
+                         if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+                         return;
+                        }
+
+                    }
+
+
                     if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
                 }
@@ -864,6 +893,14 @@ void LIB_HANDLER()
                         if(iszeroReal(&rop2) && op1!=0) RReg[0].flags|=F_UNDINFINITY;
                     }
 
+                    if(op1base!=DECBINT) {
+                        if(isintegerReal(&RReg[0]) && inBINT64Range(&RReg[0])) {
+                         rplNewBINTPush(getBINT64Real(&RReg[0]),op1base|((op1app||op2app)? APPROX_BIT:0));
+                         if(!Exceptions) rplCheckResultAndError(&RReg[0]);
+                         return;
+                        }
+
+                    }
 
                     if(op1app||op2app) RReg[0].flags|=F_APPROX;
 
