@@ -418,7 +418,53 @@ while(dirptr<DirsTop) {
         }
 
     }
+    else {
+     // PARENT IS AN OBJECT IN TEMPOB
+        WORDPTR pcandidate;
+              // SCAN FOR A POSSIBLE PARENT DIR ENTRY WITH OUR HANDLE
+                    pcandidate=(WORDPTR)root_dir_handle;
+                    WORDPTR *scan=Directories+1;
+                    while(scan<DirsTop) {
+                        if( (scan>=dirptr)&&(scan<dirend)) { scan=dirend+3; continue; }
+                        if(*scan==handle) break;
+                        scan+=2;
+                    }
 
+                    if( (scan<DirsTop) && (*scan==handle)) {
+                        // FOUND POSSIBLE PARENT
+                        if(rplVerifyObjPointer(*(scan-1))) {
+                            if(ISIDENT(**(scan-1))) {
+                                // THE ENTRY IS GOOD - FIND THE DIRECTORY HANDLE
+                                --scan;
+                                while(scan>=Directories)
+                                {
+                                    if(rplVerifyObjPointer(*scan)) {
+                                    if(**scan==DIR_START_MARKER) break;
+                                    }
+                                    scan-=2;
+                                }
+                                if(ISDIR(**(scan+1))) {
+                                    // WE HAVE A GOOD HANDLE
+                                    pcandidate=*(scan+1);
+                                }
+                            }
+
+
+                        }
+                    }
+                    // HERE EITHER WE HAVE A PARENT CANDIDATE HANDLE OR IT'S ROOT
+                    if(parent!=pcandidate) {
+                    if(!fix) return 0;
+                    // FIX THE PARENT, USE THE CANDIDATE
+                    if(ISDIR(*pcandidate)) dirptr[3]=pcandidate;
+                    }
+                    else if(!ISDIR(*parent)) {
+                        if(!fix) return 0;
+                        // MAKE THE PARENT ROOT, EVEN THOUGH IT'S NOT LINKED FROM THERE
+                        dirptr[3]=(WORDPTR)root_dir_handle;
+                    }
+
+    }
 
 
     dirptr=dirend+2;

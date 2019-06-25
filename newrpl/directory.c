@@ -68,6 +68,7 @@ void shrinkDirs(WORD newtotalsize)
 // CHECK IF AN IDENT IS QUOTED, IF NOT THEN
 // CREATE A NEW QUOTED OBJECT AND RETURN IT
 // MAY CAUSE GARBAGE COLLECTION
+// USES 1 SCRATCH POINTER
 WORDPTR rplMakeIdentQuoted(WORDPTR ident)
 {
     if(ISQUOTEDIDENT(*ident)) return ident;
@@ -206,6 +207,36 @@ void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir)
     //if(Exceptions) return;
 
 }
+
+
+// LOW-LEVEL: MAKE ROOM FOR N GLOBALS, ALL ASSIGNED ZERO_BINT FOR NAME AND VALUE
+
+WORDPTR *rplCreateNGlobalsInDir(BINT n,WORDPTR *parentdir)
+{
+    WORDPTR *direntry=parentdir+4; // POINT TO THE FIRST ENTRY IN THE DIRECTORY
+
+    if(DirSize<=DirsTop-Directories+DIRSLACK+(2*n*(sizeof(WORDPTR)/sizeof(WORD)))) growDirs((WORD)(DirsTop-Directories+DIRSLACK+2*n*(sizeof(WORDPTR)/sizeof(WORD))));
+    if(Exceptions) return 0;
+
+    // OPEN A HOLE FOR A NEW VARIABLE AT BEGINNING OF CURRENT DIR
+    MakeNewHole(direntry,DirsTop,2*n);
+    // INCREASE THE END OF DIRS
+    DirsTop+=2*n;
+    int k;
+    for(k=0;k<2*n;++k) {
+        direntry[k]=(WORDPTR)zero_bint;
+    }
+    // PATCH THE CURRENT DIRECTORY SIZE
+    WORDPTR size=*(parentdir+1)+1;
+    *size+=n;
+
+    // FIX THE CURRENT DIR IN CASE IT MOVED
+    if(CurrentDir>=direntry) CurrentDir+=2*n;
+
+    return direntry;
+
+}
+
 
 
 void rplCreateGlobal(WORDPTR nameobj,WORDPTR value)

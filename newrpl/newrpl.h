@@ -461,6 +461,7 @@ WORDPTR rplMakeIdentNoProps(WORDPTR ident);
 
 
 void rplCreateGlobalInDir(WORDPTR nameobj,WORDPTR value,WORDPTR *parentdir);
+WORDPTR *rplCreateNGlobalsInDir(BINT n,WORDPTR *parentdir);
 void rplCreateGlobal(WORDPTR nameobj,WORDPTR value);
 void rplPurgeGlobal(WORDPTR nameobj);
 WORDPTR *rplFindDirbyHandle(WORDPTR handle);

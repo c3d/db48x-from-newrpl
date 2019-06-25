@@ -268,6 +268,7 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define DOSTRING    24   // ACTUALLY USES 24, 25, 26 AND 27, WHERE LIBNUM&3 = NUMBER OF BYTES OF PADDING IN LAST WORD
 
 #define DODIR       28      // DIRECTORY OBJECTS
+#define DOPACKDIR   29      // PACKED DIRECTORY OBJECTS
 
 #define DOCMPLX     30
 
@@ -350,6 +351,7 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define ISSYMBOLIC(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOSYMB))
 #define ISMATRIX(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOMATRIX))
 #define ISDIR(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DODIR))
+#define ISPACKEDDIR(prolog) ( ISPROLOG(prolog) && (LIBNUM(prolog)==DOPACKDIR))
 
 #define ISAPPROX(prolog) ((LIBNUM(prolog)&APPROX_BIT))
 

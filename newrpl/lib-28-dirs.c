@@ -61,7 +61,9 @@
     CMD(TVARSE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(SADD,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2)), \
     CMD(SPROP,MKTOKENINFO(5,TITYPE_NOTALLOWED,2,2)), \
-    CMD(RPROP,MKTOKENINFO(5,TITYPE_NOTALLOWED,2,2))
+    CMD(RPROP,MKTOKENINFO(5,TITYPE_NOTALLOWED,2,2)), \
+    CMD(PACKDIR,MKTOKENINFO(7,TITYPE_NOTALLOWED,2,2))
+
 
 
 
@@ -78,12 +80,13 @@
     ERR(READONLYVARIABLE,3), \
     ERR(PROPERTYEXPECTED,4), \
     ERR(INVALIDPROPERTY,5), \
-    ERR(UNDEFINEDPROPERTY,6)
+    ERR(UNDEFINEDPROPERTY,6), \
+    ERR(LOCALSNOTALLOWED,7)
 
 
 
 // LIST ALL LIBRARY NUMBERS THIS LIBRARY WILL ATTACH TO
-#define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER
+#define LIBRARY_ASSIGNED_NUMBERS LIBRARY_NUMBER, LIBRARY_NUMBER+1
 
 // THIS HEADER DEFINES MANY COMMON MACROS FOR ALL LIBRARIES
 #include "lib-header.h"
@@ -162,7 +165,8 @@ void LIB_HANDLER()
         // PROVIDE BEHAVIOR OF EXECUTING THE OBJECT HERE
         // THIS SHOULD NEVER HAPPEN, AS DIRECTORY OBJECTS ARE SPECIAL HANDLES
         // THEY ARE NEVER USED IN THE MIDDLE OF THE CODE
-        rplError(ERR_UNRECOGNIZEDOBJECT);
+        if(!ISPACKEDDIR(CurOpcode)) rplError(ERR_UNRECOGNIZEDOBJECT);
+        else rplPushData(IPtr);
         return;
     }
 
@@ -323,6 +327,11 @@ void LIB_HANDLER()
                 rplError(ERR_READONLYVARIABLE);
                 return;
             }
+            if(ISPACKEDDIR(*rplPeekData(2))) {
+                rplError(ERR_LOCALSNOTALLOWED);
+                return;
+
+            }
             val[1]=rplPeekData(2);
             rplDropData(2);
         }
@@ -381,6 +390,95 @@ void LIB_HANDLER()
                     rplError(ERR_DIRECTORYNOTFOUND);
                     return;
                 }
+            }
+            else if(LIBNUM(*obj)==DOPACKDIR) {
+                WORDPTR *recurseptr=0;
+                do {
+                    if(recurseptr) {
+                        while(recurseptr<DirsTop) {
+                            if(ISPACKEDDIR(*recurseptr[1])) break;
+                            recurseptr+=2;
+                        }
+                        if(recurseptr>=DirsTop) break;
+
+                        // HERE WE HAVE TO EXTRACT ANOTHER EMBEDDED PACKED DIRECTORY
+                        val=recurseptr;
+                    }
+
+                    WORDPTR *newdir=rplMakeNewDir();
+                    if(newdir) {
+                        if(val) {
+                            *(newdir+3)=*(rplGetDirfromGlobal(val)+1);   // SET PARENT DIR
+                            *(val+1)=*(newdir+1);                   // AND NEW HANDLE
+                        }
+                        else {
+                            // NOT FOUND, CREATE A NEW VARIABLE
+                            if(!indir) {
+                            *(newdir+3)=*(CurrentDir+1);
+                            WORDPTR name=rplMakeIdentQuoted(rplPeekData(1));
+                            if(!name) return;
+                            rplCreateGlobal(name,*(newdir+1));
+                            // newdir WAS JUST CREATED AT THE END OF DIRECTORIES, IT MUST'VE MOVED
+                            newdir+=2;
+                            }
+                            else {
+                                // SET PARENT DIR
+                                *(newdir+3)=*(indir+1);
+                                WORDPTR name=rplMakeIdentQuoted(rplGetListElement(rplPeekData(1)+1,rplListLength(rplPeekData(1)+1)));
+                                if(!name) return;
+                                rplCreateGlobalInDir(name,*(newdir+1),indir);
+                                // newdir WAS JUST CREATED AT THE END OF DIRECTORIES, IT MUST'VE MOVED
+                                newdir+=2;
+                            }
+                        }
+
+                        // NOW STORE EVERY SINGLE VARIABLE
+                        BINT count;
+                        obj=rplPeekData(2); // READ AGAIN JUST IN CASE IT MOVED DUE TO GC
+
+                        WORDPTR name,value,endobj;
+
+                        endobj=rplSkipOb(obj);
+
+                        name=obj+1;
+                        count=0;
+                        while(name<endobj) {
+                            value=rplSkipOb(name);
+                            if(value>=endobj) break;
+                            ++count;
+                            name=rplSkipOb(value);
+                        }
+
+                        // NOW WE HAVE A COUNT OF VARIABLES
+
+                        WORDPTR *direntries=rplCreateNGlobalsInDir(count,newdir);
+
+                        if(!direntries || Exceptions) return;
+
+                        // POPULATE THE NEW ENTRIES
+                        name=rplPeekData(2)+1;
+                        BINT offset;
+                        while(count--) {
+                            offset=name-obj;
+                            ScratchPointer2=obj;
+                            name=rplMakeIdentQuoted(name);
+                            if(!name) return;
+                            *direntries++=name;
+                            name=ScratchPointer2+offset;
+                            value=rplSkipOb(name);
+                            *direntries++=value;
+                            name=rplSkipOb(value);
+                            if((recurseptr==0) && ISPACKEDDIR(*value)) recurseptr=direntries-2;
+                        }
+
+
+
+                    }
+                    else return;
+                } while(recurseptr);
+                rplDropData(2);
+                return;
+
             }
 
 
@@ -2182,6 +2280,13 @@ case TVARSE:
         return;
         }
 
+        if(LIBNUM(*rplPeekData(1))==DOPACKDIR) {
+            // DO ABSOLUTELY NOTHING WITH PACKED DIRS
+            return;
+
+        }
+
+
         WORDPTR *dir=rplFindDirbyHandle(rplPeekData(1));
 
         if(!dir) {
@@ -2237,6 +2342,29 @@ case TVARSE:
 
         // COMPILE RETURNS:
         // RetNum =  enum CompileErrors
+
+        // COMPILE PACKED DIRECTORIES
+
+        if((TokenLen==9) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"DIRECTORY",9)))
+        {
+        // START A CONSTRUCT AND PUT ALL OBJECTS INSIDE
+            rplCompileAppend((WORD) MKPROLOG(LIBRARY_NUMBER+1,0));
+            // FROM NOW ON IT'S ALL LOOSE OBJECTS NAME/OBJECT UNTIL FINAL OFFSET TABLES
+            RetNum=OK_STARTCONSTRUCT;
+            return;
+        }
+
+        if((TokenLen==6) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"ENDDIR",6)))
+        {
+            if((CurrentConstruct!=MKPROLOG(LIBRARY_NUMBER+1,0))) {
+                RetNum=ERR_SYNTAX;
+                return;
+            }
+
+            // JUST CLOSE THE OBJECT AND BE DONE
+            RetNum=OK_ENDCONSTRUCT;
+            return;
+        }
 
 
         // LSTO NEEDS SPECIAL CONSIDERATION TO CREATE LAMS AT COMPILE TIME
@@ -2537,6 +2665,9 @@ case TVARSE:
 
         if(ISPROLOG(*DecompileObject)) {
 
+            if(LIBNUM(*DecompileObject)==LIBRARY_NUMBER) {
+            // IT'S A DIRECTORY OBJECT
+
             rplDecompAppendString((BYTEPTR)"DIR<");
 
             WORDPTR *dir=rplFindDirbyHandle(DecompileObject);
@@ -2558,6 +2689,93 @@ case TVARSE:
             rplDecompAppendString((BYTEPTR)">");
             RetNum=OK_CONTINUE;
             return;
+            }
+
+            // OTHERWISE IT'S A PACKED DIRECTORY OBJECT
+
+                rplDecompAppendString((BYTEPTR)"DIRECTORY");
+                BINT depth=0,needseparator;
+
+                needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER|HINT_ADDINDENTAFTER);
+                if(needseparator) rplDecompAppendChar(' ');
+
+                BINT offset=1,endoffset=rplObjSize(DecompileObject),innerendoffset=endoffset;
+                BINT isodd=1;
+
+                while(offset<=endoffset)
+                {
+                    if(offset==innerendoffset) {
+
+                        rplDecompDoHintsWidth(HINT_SUBINDENTAFTER);
+                        rplDecompAppendString((BYTEPTR)"ENDDIR");
+                        if(Exceptions) { RetNum=ERR_INVALID; return; }
+
+                        if(innerendoffset==endoffset) break;    // END AFTER THE OUTER ENDDIR
+
+                        if(depth) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER|HINT_SUBINDENTAFTER);
+                        else needseparator=!rplDecompDoHintsWidth(0);
+                        if(needseparator && offset<endoffset-1) rplDecompAppendChar(' ');
+
+                        --depth;
+
+                        if(innerendoffset==endoffset) break;    // END AFTER THE OUTER ENDDIR
+
+                        // FIND THE INNER_END_OFFSET OF THE PARENT
+                        innerendoffset=endoffset;
+
+                        BINT tmpoff=1,endtmpoff;
+                        while(tmpoff<offset) {
+                            endtmpoff=tmpoff+rplObjSize(DecompileObject+tmpoff);
+                            if(ISPACKEDDIR(DecompileObject[tmpoff])) {
+                            if((endtmpoff>offset)&&(endtmpoff<innerendoffset)) innerendoffset=endtmpoff;
+                            }
+                            tmpoff=endtmpoff;
+                        }
+                        // HERE WE HAVE A PROPER INNERENDOFFSET
+
+                        continue;
+                    }
+
+                    if(ISPACKEDDIR(DecompileObject[offset])) {
+
+                        rplDecompDoHintsWidth(HINT_NLAFTER);
+                        rplDecompAppendString((BYTEPTR)"DIRECTORY");
+                        needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER|HINT_ADDINDENTAFTER);
+                        if(needseparator) rplDecompAppendChar(' ');
+
+                        if(Exceptions) { RetNum=ERR_INVALID; return; }
+
+                        innerendoffset=offset+rplObjSize(DecompileObject+offset);
+
+                        ++depth;
+
+                        ++offset;
+                        isodd^=1;
+
+                        continue;
+                    }
+
+
+                    rplDecompile(DecompileObject+offset,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? (DECOMP_EDIT|DECOMP_NOHINTS):DECOMP_NOHINTS));    // RUN EMBEDDED
+                    if(Exceptions) { RetNum=ERR_INVALID; return; }
+
+                    offset+=rplObjSize(DecompileObject+offset);
+                    if(offset==innerendoffset) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER|HINT_SUBINDENTAFTER);
+                    else if(!isodd) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER);
+                         else needseparator=!rplDecompDoHintsWidth(0);
+                    if(needseparator) rplDecompAppendChar(' ');
+
+
+                    isodd^=1;
+
+                    }
+
+                RetNum=OK_CONTINUE;
+                return;
+
+
+
+
 
         }
 
@@ -2652,10 +2870,12 @@ case TVARSE:
         // LIBRARY MUST RETURN: RetNum=OK_CONTINUE IF OBJECT IS VALID OR RetNum=ERR_INVALID IF IT'S INVALID
 
         if(ISPROLOG(*ObjectPTR)) {
+            if(!ISPACKEDDIR(*ObjectPTR)) {
         // DIRECTORY OBJECTS CAN ONLY HAVE 1 WORD
         if(OBJSIZE(*ObjectPTR)!=1) { RetNum=ERR_INVALID; return; }
 
         // ANY OTHER CHECKS TO DIRECTORY STRUCTURE ARE DANGEROUS TO BE DONE HERE
+        }
         }
         RetNum=OK_CONTINUE;
         return;
