@@ -1124,12 +1124,15 @@ void LIB_HANDLER()
             }
             ++ptr;
             } while(ptr!=(BYTEPTR)BlankStart);
-            if(ndigits) {
+            if(ndigits || (((CompileEnd-ScratchPointer4-1)<(BINT)OBJSIZE(*ScratchPointer4)))) {
                 // INCOMPLETE WORD, PREPARE FOR RESUME ON NEXT TOKEN
                 rplCompileAppend(value);
                 rplCompileAppend(ndigits | (checksum<<16));
                 *ScratchPointer4|=0x00100000;
+                RetNum=OK_NEEDMORE;
+                return;
             }
+            else *ScratchPointer4=MKPROLOG(DOFONT,OBJSIZE(*ScratchPointer4));
 
 
         }

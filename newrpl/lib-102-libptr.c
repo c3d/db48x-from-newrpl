@@ -1444,7 +1444,7 @@ void LIB_HANDLER()
         if((TokenLen==7) && (!utf8ncmp2((char *)TokenStart,(char *)BlankStart,"LIBRARY",7))) {
 
             ScratchPointer4=CompileEnd;
-            rplCompileAppend(MKPROLOG(LIBRARY_NUMBER,0));
+            rplCompileAppend(MKPROLOG(0,0));
             RetNum=OK_NEEDMORE;
             return;
         }
@@ -1561,7 +1561,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            *ScratchPointer4=MKPROLOG(LIBRARY_NUMBER,value);
+            *ScratchPointer4=MKPROLOG(0,value);
             RetNum=OK_NEEDMORE;
             return;
 
@@ -1587,8 +1587,13 @@ void LIB_HANDLER()
             *ScratchPointer4&=~0x00100000;
         }
 
-        while((CompileEnd-ScratchPointer4-1)<(BINT)OBJSIZE(*ScratchPointer4))
+        while(((CompileEnd-ScratchPointer4-1)<(BINT)OBJSIZE(*ScratchPointer4)))
         {
+            if(ptr>=(BYTEPTR)BlankStart) {
+                // WE NEED MORE TOKENS
+
+
+            }
             do {
                 if((*ptr>='0')&&(*ptr<='9')) dig=(*ptr+4);
                 else if((*ptr>='A')&&(*ptr<='Z')) dig=(*ptr-65);
@@ -1626,12 +1631,15 @@ void LIB_HANDLER()
             }
             ++ptr;
             } while(ptr!=(BYTEPTR)BlankStart);
-            if(ndigits) {
+            if(ndigits || (((CompileEnd-ScratchPointer4-1)<(BINT)OBJSIZE(*ScratchPointer4)))) {
                 // INCOMPLETE WORD, PREPARE FOR RESUME ON NEXT TOKEN
                 rplCompileAppend(value);
                 rplCompileAppend(ndigits | (checksum<<16));
                 *ScratchPointer4|=0x00100000;
+                RetNum=OK_NEEDMORE;
+                return;
             }
+            else *ScratchPointer4=MKPROLOG(DOLIBRARY,OBJSIZE(*ScratchPointer4));
 
 
         }

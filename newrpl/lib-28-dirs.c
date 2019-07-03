@@ -81,7 +81,8 @@
     ERR(PROPERTYEXPECTED,4), \
     ERR(INVALIDPROPERTY,5), \
     ERR(UNDEFINEDPROPERTY,6), \
-    ERR(LOCALSNOTALLOWED,7)
+    ERR(LOCALSNOTALLOWED,7), \
+    ERR(DIRECTORYEXPECTED,8)
 
 
 
@@ -2262,7 +2263,64 @@ case TVARSE:
         return;
     }
 
+    case PACKDIR:
+    {
+        //@SHORT_DESC=Pack a directory in an editable object
+        //@NEW
 
+        if(rplDepthData()<1) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        WORDPTR *indir=0;
+        // LIST IS A PATH WHEN USING DOUBLE LISTS {{ }}, OTHERWISE ENABLE LIST PROCESSING
+        if(ISLIST(*rplPeekData(1)))
+        {
+            WORDPTR firstelem=rplPeekData(1)+1;
+            if(!ISLIST(*firstelem)) {
+                rplListUnaryDoCmd();
+                return;
+            }
+            // NOT A LIST, SO IT MUST BE A PATH
+            indir=rplFindDirFromPath(rplPeekData(1)+1,0);
+
+        }
+        else if(ISIDENT(*rplPeekData(1))) {
+            WORDPTR *var=rplFindGlobal(rplPeekData(1),1);
+
+           if(!var) {
+           rplError(ERR_DIRECTORYNOTFOUND);
+           return;
+           }
+           if(!ISDIR(*var[1])) {
+               rplError(ERR_DIRECTORYEXPECTED);
+               return;
+           }
+           indir=rplFindDirbyHandle(var[1]);
+        }
+        else if(ISDIR(*rplPeekData(1))) indir=rplFindDirbyHandle(rplPeekData(1));
+            else {
+            rplError(ERR_DIRECTORYEXPECTED);
+            return;
+            }
+
+        if(!indir) {
+            rplError(ERR_DIRECTORYNOTFOUND);
+            return;
+        }
+
+        // COMPUTE THE SIZE
+        BINT size=rplGetDirSize(indir);
+
+        WORDPTR newobj=rplAllocTempOb(size);
+        if(!newobj) return; // NOT ENOUGH MEMORY!!
+        rplPackDirinPlace(indir,newobj);
+
+        rplOverwriteData(1,newobj);
+
+        return;
+    }
 
 
     case OVR_FUNCEVAL:
@@ -2330,6 +2388,7 @@ case TVARSE:
     // STANDARIZED OPCODES:
     // --------------------
     // LIBRARIES ARE FORCED TO ALWAYS HANDLE THE STANDARD OPCODES
+
 
 
     case OPCODE_COMPILE:

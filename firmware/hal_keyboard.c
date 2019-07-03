@@ -216,7 +216,47 @@ BINT endCmdLineAndCompile()
     if(len) {
         newobject=rplCompile((BYTEPTR)(text+1),len,1);
         if(Exceptions || (!newobject)) {
-            // TODO: SELECT THE WORD THAT CAUSED THE ERROR
+            // HIGHLIGHT THE WORD THAT CAUSED THE ERROR
+
+            char *mainbuffer=(char *) (CmdLineText+1);
+
+            // COUNT LINES UNTIL THE TOKEN ERROR
+
+            char *position = (char *)TokenStart;
+            char *linestart=NULL;
+
+            // COMPUTE LINE NUMBER
+            int linenum=1;
+
+            while(position>mainbuffer) {
+                --position;
+                if(*position=='\n') {
+                    ++linenum;
+                    if(!linestart) linestart=position+1;
+                }
+            }
+
+            // COUNT CHARACTERS FROM START OF LINE
+            position=(char *)TokenStart;
+
+            while(*linestart=='\r') ++linestart;
+
+            int posnum=utf8nlen(linestart,position)+1;
+
+
+            // HERE linenum HAS THE LINE NUMBER OF THE TOKEN CAUSING THE ERROR
+            // AND posnum IS THE POSITION OF THE FIRST CHARACTER OF THE TOKEN
+
+            WORD SavedExceptions=Exceptions;
+
+            Exceptions=0;
+
+            uiSetCurrentLine(linenum);
+            uiCursorStartOfLine();
+            uiCursorRight(posnum-1);
+
+            if(!Exceptions) Exceptions=SavedExceptions;
+
             WORD fakeprogram = 0;
             ExceptionPointer=&fakeprogram;
             halShowErrorMsg();

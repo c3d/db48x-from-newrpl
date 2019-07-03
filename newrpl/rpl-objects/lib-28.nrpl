@@ -17,13 +17,13 @@
 
 @#name lib28_menu
 {
-  STO RCL PURGE STO+ STO-
-  INCR DECR STO* STO/ SINV
-  SNEG SCONJ SADD QUOTEID UNQUOTEID
-  HIDEVAR UNHIDEVAR LOCKVAR UNLOCKVAR CLVAR
-  ORDER VARS ALLVARS TVARS TVARSE
-  CRDIR PGDIR HOME UPDIR PATH
-
+  STO RCL SPROP RPROP PURGE
+  STO+ STO- INCR DECR STO*
+  STO/ SINV SNEG SCONJ SADD
+  QUOTEID UNQUOTEID HIDEVAR UNHIDEVAR LOCKVAR
+  UNLOCKVAR VARS ALLVARS TVARS TVARSE
+  CLVAR ORDER CRDIR PGDIR PACKDIR
+  HOME UPDIR PATH
 }
 
 @#name lib28_msgtable
@@ -32,7 +32,12 @@
 ##1,ERR_DIRECTORYNOTFOUND "Directory not found"
 ##1,ERR_CANTOVERWRITEDIR "Can't overwrite directory"
 ##1,ERR_READONLYVARIABLE "Read only variable"
+##1,ERR_PROPERTYEXPECTED "Expected a property"
+##1,ERR_INVALIDPROPERTY  "Invalid property"
 ##1,ERR_UNDEFINEDPROPERTY "Undefined property"
+##1,ERR_LOCALSNOTALLOWED  "Local vars not allowed"
+##1,ERR_DIRECTORYEXPECTED "Expected a directory"
+
 }
 
 
@@ -103,6 +108,12 @@ PURGE
 
 (N or L) → "
 
+RENAME
+"Rename a variable
+
+N<orig> N<new> → "
+
+
 CRDIR
 "Create a subdirectory in the current
 directory
@@ -133,10 +144,22 @@ VARS
 variables in the current dir
   → L"
 
+
 ALLVARS
 "Get a list of names for all
 variables in the current dir
   → L"
+
+TVARS
+"Get a list of names of all visible
+variables of a given type
+R → L"
+
+TVARSE
+"Get a list of names of all visible
+variables given extended type
+R → L"
+
 
 ORDER
 "Sort variables in the currrent dir
@@ -177,5 +200,21 @@ UNLOCKVAR
 "Make a variable writeable
 in a directory
 N → "
+
+SPROP
+"Store a property to a variable
+'VAR...Prop' given VAR and Prop
+O N<VAR> N<Prop> → "
+
+RPROP
+"Recall a property to a variable
+'VAR...Prop' given VAR and Prop
+N<VAR> N<Prop> → O"
+
+PACKDIR
+"Pack a directory tree into an
+editable object
+( D | L<path> | N )  → D<packed>"
+
 
 }

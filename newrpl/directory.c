@@ -1672,3 +1672,46 @@ if(var) {
 DSTop=stkbase;
 
 }
+
+// COMPUTE SIZE OF DIRECTORY TREE (INCLUDES SIZE OF ALL NAMES, OBJECTS, AND PACKED SUBDIRECTORY OBJECTS)
+
+BINT rplGetDirSize(WORDPTR *directory)
+{
+    WORDPTR *entry=rplFindFirstInDir(directory);
+    BINT size=0;
+    while(entry) {
+        size+=rplObjSize(entry[0]);
+        if(ISDIR(*entry[1])) {
+            WORDPTR *subdir=rplFindDirbyHandle(entry[1]);
+            if(!subdir) size+=rplObjSize(entry[1]);
+            else size+=rplGetDirSize(subdir)+1;
+        }
+        else size+=rplObjSize(entry[1]);
+        entry=rplFindNext(entry);
+    }
+
+    return size;
+}
+
+// PACKS AN ENTIRE DIRECTORY TREE IN A PREALLOCATED AREA OF MEMORY
+
+void rplPackDirinPlace(WORDPTR *directory,WORDPTR where)
+{
+WORDPTR ptr=where+1;
+WORDPTR *entry=rplFindFirstInDir(directory);
+while(entry) {
+    rplCopyObject(ptr,entry[0]);
+    ptr=rplSkipOb(ptr);
+
+    if(ISDIR(*entry[1])) {
+        WORDPTR *subdir=rplFindDirbyHandle(entry[1]);
+        if(!subdir) rplCopyObject(ptr,entry[1]);
+        else rplPackDirinPlace(subdir,ptr);
+    }
+    else rplCopyObject(ptr,entry[1]);
+    ptr=rplSkipOb(ptr);
+    entry=rplFindNext(entry);
+}
+*where=MKPROLOG(DOPACKDIR,(ptr-where)-1);
+
+}
