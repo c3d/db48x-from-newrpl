@@ -804,8 +804,8 @@ void LIB_HANDLER()
                 if((*ptr>='0')&&(*ptr<='9')) dig=(*ptr+4);
                 else if((*ptr>='A')&&(*ptr<='Z')) dig=(*ptr-65);
                 else if((*ptr>='a')&&(*ptr<='z')) dig=(*ptr-71);
-                else if(*ptr=='+') dig=62;
-                else if(*ptr=='/') dig=63;
+                else if(*ptr=='#') dig=62;
+                else if(*ptr=='$') dig=63;
                 else {
                     // INVALID CHARACTER!
                     RetNum=ERR_SYNTAX;
@@ -925,20 +925,23 @@ void LIB_HANDLER()
                     if(encoder[k]<26) encoder[k]+=65;
                     else if(encoder[k]<52) encoder[k]+=71;
                     else if(encoder[k]<62) encoder[k]-=4;
-                    else if(encoder[k]==62) encoder[k]='+';
-                    else encoder[k]='/';
+                    else if(encoder[k]==62) encoder[k]='#';
+                    else encoder[k]='$';
                 }
 
+                ScratchPointer1=ptr;
                 rplDecompAppendString(encoder);
                 if(Exceptions) {
                     RetNum=ERR_INVALID;
                     return;
                 }
+                ptr=ScratchPointer1;
+
+                ++ptr;
 
                 ++nwords;
                 if(nwords==8) { rplDecompAppendChar(' '); nwords=0; }
 
-                ++ptr;
                 --size;
 
             }

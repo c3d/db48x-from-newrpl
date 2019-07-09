@@ -538,7 +538,22 @@ void LIB_HANDLER()
         // RetNum =  enum DecompileErrors
         if(ISPROLOG(*DecompileObject)) {
             rplDecompAppendChar('@');
-            rplDecompAppendString2((BYTEPTR)(DecompileObject+1),(OBJSIZE(*DecompileObject)<<2)-(LIBNUM(*DecompileObject)&3));
+            BINT len=(OBJSIZE(*DecompileObject)<<2)-(LIBNUM(*DecompileObject)&3);
+            BYTEPTR string=(BYTEPTR)(DecompileObject+1);
+            /*
+            if(string[len-1]=='\n') {
+                // COMMENT ENDS IN NEWLINE
+                if((len>1) && (string[len-2]=='\r')) --len;
+                rplDecompAppendString2(string,len-1);
+                if(!rplDecompDoHintsWidth(HINT_NLAFTER))    // ADD A NEWLINE AND RESPECT THE INDENTATION
+                {
+                 // END THE COMMENT WITH COMMENT SYMBOL SINCE NO NEWLINE WAS ADDED!
+                 rplDecompAppendChar('@');
+                 while((len>0) &&(*string=='@')) { rplDecompAppendChar('@'); ++string; --len; }
+                }
+            }
+            else */
+                rplDecompAppendString2(string,len);
 
             RetNum=OK_CONTINUE;
             return;

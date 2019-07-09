@@ -3009,7 +3009,7 @@ void LIB_HANDLER()
 
             if(!ISAUTOEXPLIST(*DecompileObject)) rplDecompAppendString((BYTEPTR)"{");
             else rplDecompAppendString((BYTEPTR)"c{");
-            BINT islistoflist=rplListHasLists(DecompileObject);
+            BINT islistoflist=rplListHasLists(DecompileObject)? 1:0;
             BINT depth=0,needseparator;
 
             if(islistoflist) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER|HINT_ADDINDENTAFTER);
@@ -3026,7 +3026,11 @@ void LIB_HANDLER()
                     if(!ISAUTOEXPLIST(DecompileObject[offset])) rplDecompAppendString((BYTEPTR)"{");
                     else rplDecompAppendString((BYTEPTR)"c{");
 
-                    if(!rplDecompDoHintsWidth(0)) rplDecompAppendChar(' ');
+                    if(rplListHasLists(DecompileObject+offset)) {
+                        islistoflist|=1<<(depth+1);
+                        if(!rplDecompDoHintsWidth(HINT_NLAFTER|HINT_ADDINDENTAFTER)) rplDecompAppendChar(' ');
+                    }
+                    else if(!rplDecompDoHintsWidth(0)) rplDecompAppendChar(' ');
                     if(Exceptions) { RetNum=ERR_INVALID; return; }
 
                     ++depth;
@@ -3038,10 +3042,11 @@ void LIB_HANDLER()
                 }
 
                 if(DecompileObject[offset]==CMD_ENDLIST) {
+                    rplDecompDoHintsWidth(HINT_SUBINDENTBEFORE);
                     rplDecompAppendString((BYTEPTR)"}");
                     if(Exceptions) { RetNum=ERR_INVALID; return; }
 
-                    if(depth) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER|HINT_SUBINDENTAFTER);
+                    if(depth) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER);
                     else needseparator=!rplDecompDoHintsWidth(0);
                     if(needseparator && offset<endoffset-1) rplDecompAppendChar(' ');
 
@@ -3054,7 +3059,7 @@ void LIB_HANDLER()
                 rplDecompile(DecompileObject+offset,DECOMP_EMBEDDED | ((CurOpcode==OPCODE_DECOMPEDIT)? (DECOMP_EDIT|DECOMP_NOHINTS):DECOMP_NOHINTS));    // RUN EMBEDDED
                 if(Exceptions) { RetNum=ERR_INVALID; return; }
 
-                if(islistoflist && !depth) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER);
+                if(islistoflist&(1<<depth)) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER);
                 else needseparator=!rplDecompDoHintsWidth(0);
                 if(needseparator) rplDecompAppendChar(' ');
 

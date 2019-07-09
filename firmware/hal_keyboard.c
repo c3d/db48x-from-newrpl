@@ -238,6 +238,7 @@ BINT endCmdLineAndCompile()
 
             // COUNT CHARACTERS FROM START OF LINE
             position=(char *)TokenStart;
+            if(!linestart) linestart=mainbuffer;
 
             while(*linestart=='\r') ++linestart;
 

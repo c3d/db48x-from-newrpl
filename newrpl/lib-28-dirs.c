@@ -2371,6 +2371,11 @@ case TVARSE:
 
             }
 
+            if(ISPACKEDDIR(*rplPeekData(1)) && ISPACKEDDIR(*rplPeekData(2))) {
+                if(rplCompareObjects(rplPeekData(1),rplPeekData(2))) { rplDropData(2); rplPushTrue(); }
+                else { rplDropData(2); rplPushFalse(); }
+                return;
+            }
 
             // DIRECTORY OBJECTS ARE THE SAME ONLY IF THEY POINT TO THE SAME DIRECTORY, HENCE THEY ARE THE SAME HANDLE
             if(rplPeekData(2)==rplPeekData(1)) {
@@ -2764,20 +2769,19 @@ case TVARSE:
                 while(offset<=endoffset)
                 {
                     if(offset==innerendoffset) {
-
-                        rplDecompDoHintsWidth(HINT_SUBINDENTAFTER);
+                        rplDecompDoHintsWidth(HINT_SUBINDENTBEFORE);
                         rplDecompAppendString((BYTEPTR)"ENDDIR");
                         if(Exceptions) { RetNum=ERR_INVALID; return; }
 
-                        if(innerendoffset==endoffset) break;    // END AFTER THE OUTER ENDDIR
-
-                        if(depth) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER|HINT_SUBINDENTAFTER);
-                        else needseparator=!rplDecompDoHintsWidth(0);
+                        if(depth) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER);
+                        else {
+                            if(innerendoffset==endoffset) break;    // END AFTER THE OUTER ENDDIR
+                            needseparator=!rplDecompDoHintsWidth(0);
+                        }
                         if(needseparator && offset<endoffset-1) rplDecompAppendChar(' ');
 
                         --depth;
 
-                        if(innerendoffset==endoffset) break;    // END AFTER THE OUTER ENDDIR
 
                         // FIND THE INNER_END_OFFSET OF THE PARENT
                         innerendoffset=endoffset;
@@ -2797,7 +2801,7 @@ case TVARSE:
 
                     if(ISPACKEDDIR(DecompileObject[offset])) {
 
-                        rplDecompDoHintsWidth(HINT_NLAFTER);
+                        //rplDecompDoHintsWidth(HINT_NLAFTER);
                         rplDecompAppendString((BYTEPTR)"DIRECTORY");
                         needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER|HINT_ADDINDENTAFTER);
                         if(needseparator) rplDecompAppendChar(' ');
@@ -2819,8 +2823,7 @@ case TVARSE:
                     if(Exceptions) { RetNum=ERR_INVALID; return; }
 
                     offset+=rplObjSize(DecompileObject+offset);
-                    if(offset==innerendoffset) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER|HINT_SUBINDENTAFTER);
-                    else if(!isodd) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER);
+                    if(!isodd) needseparator=!rplDecompDoHintsWidth(HINT_NLAFTER);
                          else needseparator=!rplDecompDoHintsWidth(0);
                     if(needseparator) rplDecompAppendChar(' ');
 

@@ -1001,13 +1001,14 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
 {
     LIBHANDLER han;
     BINT infixmode=0,indent=0,lastnewline=0,lastnloffset=0,maxwidth;
-    UBINT savecstruct=0,savedecompmode=0,dhints;
+    UBINT savecstruct=0,savedecompmode=0,dhints,savedhints;
     BINT validtop=0,validbottom=0;
     WORDPTR *SavedRSTop=0;
     if(flags&DECOMP_EMBEDDED) {
         SavedRSTop=RSTop;
         savecstruct=CurrentConstruct;
         savedecompmode=DecompMode;
+        savedhints=DecompHints;
         validtop=ValidateTop-RSTop;
         validbottom=ValidateBottom-RSTop;
         if(ValidateTop>RSTop) RSTop=ValidateTop;
@@ -1149,7 +1150,10 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
         WORDPTR *tmpRSTop=RSTop;
         if(infixmode) RSTop=(WORDPTR *)InfixOpTop;
         else RSTop=(WORDPTR *)ValidateTop;
+        DecompHints=SET_INDENT(dhints,indent);
         (*han)();
+        indent=GET_INDENT(DecompHints);
+        dhints=GET_HINTS(DecompHints);
         RSTop=tmpRSTop;
     }
     if(Exceptions) break;
@@ -1170,6 +1174,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
                 DecompileObject=*--RSTop;
                 CurrentConstruct=savecstruct;
                 DecompMode=savedecompmode;
+                DecompHints=savedhints;
                 RSTop=SavedRSTop;
                 ValidateTop=RSTop+validtop;
                 ValidateBottom=RSTop+validbottom;
@@ -1193,6 +1198,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
                 DecompileObject=*--RSTop;
                 CurrentConstruct=savecstruct;
                 DecompMode=savedecompmode;
+                DecompHints=savedhints;
                 RSTop=SavedRSTop;
                 ValidateTop=RSTop+validtop;
                 ValidateBottom=RSTop+validbottom;
@@ -1217,6 +1223,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
                 DecompileObject=*--RSTop;
                 CurrentConstruct=savecstruct;
                 DecompMode=savedecompmode;
+                DecompHints=savedhints;
                 RSTop=SavedRSTop;
                 ValidateTop=RSTop+validtop;
                 ValidateBottom=RSTop+validbottom;
@@ -1241,6 +1248,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
                 DecompileObject=*--RSTop;
                 CurrentConstruct=savecstruct;
                 DecompMode=savedecompmode;
+                DecompHints=savedhints;
                 RSTop=SavedRSTop;
                 ValidateTop=RSTop+validtop;
                 ValidateBottom=RSTop+validbottom;
@@ -1310,6 +1318,7 @@ end_of_expression:
                         DecompileObject=*--RSTop;
                         CurrentConstruct=savecstruct;
                         DecompMode=savedecompmode;
+                        DecompHints=savedhints;
                         RSTop=SavedRSTop;
                         ValidateTop=RSTop+validtop;
                         ValidateBottom=RSTop+validbottom;
@@ -2044,6 +2053,7 @@ end_of_expression:
                     DecompileObject=*--RSTop;
                     CurrentConstruct=savecstruct;
                     DecompMode=savedecompmode;
+                    DecompHints=savedhints;
                     RSTop=SavedRSTop;
                     ValidateTop=RSTop+validtop;
                     ValidateBottom=RSTop+validbottom;
@@ -2061,6 +2071,7 @@ end_of_expression:
            DecompileObject=*--RSTop;
            CurrentConstruct=savecstruct;
            DecompMode=savedecompmode;
+           DecompHints=savedhints;
            RSTop=SavedRSTop;
            ValidateTop=RSTop+validtop;
            ValidateBottom=RSTop+validbottom;
@@ -2087,7 +2098,7 @@ end_of_expression:
 // THAT DECOMPILE INNER OBJECTS USING EMBEDDED SESSIONS
 // AFTER EACH EMBEDDED SESSION OBJECT
 // ALSO CHECKS FOR MAXIMUM WIDTH AND INSERTS A NEWLINE AND INDENTATION AS NEEDED
-// EXPECTS DecompMode TO BE SET AND VALID
+// EXPECTS DecompMode AND DecompHints TO BE SET AND VALID
 // CALL THIS FUNCTION ONLY FROM A OPCODE_DECOMP OR OPCODE_DECOMPEDIT HANDLER.
 
 // RETURNS 1 IF A NEWLINE WAS ADDED TO THE STREAM (NO SEPARATOR NEEDED), 0 IF NOTHING WAS DONE
@@ -2097,7 +2108,7 @@ BINT rplDecompDoHintsWidth(BINT dhints)
     BINT infixmode=DecompMode&0xffff;
 
     if( !infixmode && !(flags&DECOMP_NOHINTS) ) {
-        BINT indent;
+        BINT indent=GET_INDENT(DecompHints);
 
 
         BYTEPTR start=(BYTEPTR)CompileEnd,ptr=(BYTEPTR)DecompStringEnd;
@@ -2112,18 +2123,41 @@ BINT rplDecompDoHintsWidth(BINT dhints)
         // CHECK IF MAXIMUM WIDTH EXCEEDED, THEN ADD A NEW LINE
         if(((BYTEPTR)DecompStringEnd)-ptr>DECOMP_GETMAXWIDTH(flags)) dhints|=HINT_NLAFTER;
 
+        if(dhints&HINT_SUBINDENTBEFORE) {
+            BINT currentindent=0;
+
+
+            // SET THE INDENTATION OF THE CURRENT LINE
+            while( (ptr<(BYTEPTR)DecompStringEnd)&&(*ptr==' ')) { ++currentindent; ++ptr; }
+
+            if(ptr==(BYTEPTR)DecompStringEnd) {
+                // ONLY CHANGE INDENTING IF THE CURRENT LINE HASN'T STARTED YET
+                indent-=2;
+                if(indent<0) indent=0;
+                DecompHints=SET_INDENT(DecompHints,indent);
+
+                if(currentindent>indent) DecompStringEnd=(WORDPTR)(((BYTEPTR)DecompStringEnd)-(currentindent-indent));
+                else {
+                    while(currentindent<indent) { rplDecompAppendChar(' '); ++currentindent; }
+                    }
+                }
+
+        }
+
+
+
+
         if(dhints&HINT_ALLAFTER) {
-        indent=0;
         // TODO: APPLY FORMATTING AFTER THE OBJECT
-        if(dhints&HINT_ADDINDENTAFTER) indent+=2;
-        if(dhints&HINT_SUBINDENTAFTER) indent-=2;
+        if(dhints&HINT_ADDINDENTAFTER) { indent+=2; DecompHints=SET_INDENT(DecompHints,indent); }
+        if(dhints&HINT_SUBINDENTAFTER) { indent-=2; if(indent<0) indent=0;  DecompHints=SET_INDENT(DecompHints,indent); }
         if(dhints&HINT_NLAFTER) {
 
 
 
             // DETERMINE THE INDENT OF THE CURRENT LINE
 
-            while( (ptr<(BYTEPTR)DecompStringEnd)&&(*ptr==' ')) { ++indent; ++ptr; }
+            //while( (ptr<(BYTEPTR)DecompStringEnd)&&(*ptr==' ')) { ++indent; ++ptr; }
 
             rplDecompAppendChar('\n');
             int k;

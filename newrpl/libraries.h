@@ -60,7 +60,10 @@ extern const LIBHANDLER ROMLibs[];
 #define HINT_ALLBEFORE 0xff00
 
 #define INDENT_SIZE     2
-
+#define HINT_INDENTMASK 0x7fff0000
+#define GET_INDENT(hints) (((hints)>>16)&0x7fff)
+#define SET_INDENT(hints,indent) (((hints)&0xffff)|(((indent)&0x7fff)<<16))
+#define GET_HINTS(hints) ((hints)&0xffff)
 
 
 

@@ -1325,6 +1325,8 @@ void LIB_HANDLER()
                 }
 
                 if( (escape==1) && ((*ptr=='U')||(*ptr=='u'))) { escape++; code=0; ++ptr; continue; }
+                if( (escape==1) && (*ptr=='\\')) { escape=6; code='\\'; ++ptr; }
+
                 if(escape>5) {
                     // ALREADY HAVE 4 DIGITS, WE ARE DONE
                     UBINT codebytes=cp2utf8(code);
@@ -1344,8 +1346,8 @@ void LIB_HANDLER()
                     escape=0;
                 }
                 if(escape>1 && ((*ptr>='0')&&(*ptr<='9'))) { ++escape; code=code*16+(*ptr-'0'); ++ptr; continue; }
-                if(escape>1 && ((*ptr>='A')&&(*ptr<='F'))) { ++escape; code=code*16+(*ptr-'A'); ++ptr; continue; }
-                if(escape>1 && ((*ptr>='a')&&(*ptr<='f'))) { ++escape; code=code*16+(*ptr-'A'); ++ptr; continue; }
+                if(escape>1 && ((*ptr>='A')&&(*ptr<='F'))) { ++escape; code=code*16+(*ptr-'A'+10); ++ptr; continue; }
+                if(escape>1 && ((*ptr>='a')&&(*ptr<='f'))) { ++escape; code=code*16+(*ptr-'a'+10); ++ptr; continue; }
 
                 if(escape>1) {
                     // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
@@ -1364,6 +1366,15 @@ void LIB_HANDLER()
                     }
                     }while(codebytes);
                     escape=0;
+                } else {
+                    if(escape) {
+                        if(count==0) temp.word=0;
+                        if(*ptr=='\"') { temp.bytes[count]='\"'; ++ptr; }
+                        else temp.bytes[count]='\\';
+                        ++count;
+                        escape=0;
+                        continue;
+                    }
                 }
 
                 if(count==0) temp.word=0;
@@ -1481,6 +1492,7 @@ void LIB_HANDLER()
             }
 
             if( (escape==1) && ((*ptr=='U')||(*ptr=='u'))) { escape++; code=0; ++ptr; continue; }
+            if( (escape==1) && (*ptr=='\\')) { escape=6; code='\\'; ++ptr; }
             if(escape>5) {
                 // ALREADY HAVE 4 DIGITS, WE ARE DONE
                 UBINT codebytes=cp2utf8(code);
@@ -1500,8 +1512,8 @@ void LIB_HANDLER()
                 escape=0;
             }
             if(escape>1 && ((*ptr>='0')&&(*ptr<='9'))) { ++escape; code=code*16+(*ptr-'0'); ++ptr; continue; }
-            if(escape>1 && ((*ptr>='A')&&(*ptr<='F'))) { ++escape; code=code*16+(*ptr-'A'); ++ptr; continue; }
-            if(escape>1 && ((*ptr>='a')&&(*ptr<='f'))) { ++escape; code=code*16+(*ptr-'A'); ++ptr; continue; }
+            if(escape>1 && ((*ptr>='A')&&(*ptr<='F'))) { ++escape; code=code*16+(*ptr-'A'+10); ++ptr; continue; }
+            if(escape>1 && ((*ptr>='a')&&(*ptr<='f'))) { ++escape; code=code*16+(*ptr-'a'+10); ++ptr; continue; }
 
             if(escape>1) {
                 // OTHER THAN A HEX CHARACTER, END UNICODE ENTRY
@@ -1520,15 +1532,16 @@ void LIB_HANDLER()
                 }
                 }while(codebytes);
                 escape=0;
+            } else {
+                if(escape) {
+                    if(count==0) temp.word=0;
+                    if(*ptr=='\"') { temp.bytes[count]='\"'; ++ptr; }
+                    else temp.bytes[count]='\\';
+                    ++count;
+                    escape=0;
+                    continue;
+                }
             }
-
-
-
-
-
-
-
-
 
 
 
