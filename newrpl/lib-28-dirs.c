@@ -394,6 +394,7 @@ void LIB_HANDLER()
             }
             else if(LIBNUM(*obj)==DOPACKDIR) {
                 WORDPTR *recurseptr=0;
+                BINT recurseoffset=0;
                 do {
                     if(recurseptr) {
                         while(recurseptr<DirsTop) {
@@ -404,6 +405,8 @@ void LIB_HANDLER()
 
                         // HERE WE HAVE TO EXTRACT ANOTHER EMBEDDED PACKED DIRECTORY
                         val=recurseptr;
+                        recurseoffset=recurseptr[1]-rplPeekData(2);
+                        recurseptr+=2;
                     }
 
                     WORDPTR *newdir=rplMakeNewDir();
@@ -436,6 +439,7 @@ void LIB_HANDLER()
                         // NOW STORE EVERY SINGLE VARIABLE
                         BINT count;
                         obj=rplPeekData(2); // READ AGAIN JUST IN CASE IT MOVED DUE TO GC
+                        if(recurseptr) obj+=recurseoffset;
 
                         WORDPTR name,value,endobj;
 
@@ -457,7 +461,9 @@ void LIB_HANDLER()
                         if(!direntries || Exceptions) return;
 
                         // POPULATE THE NEW ENTRIES
-                        name=rplPeekData(2)+1;
+                        obj=rplPeekData(2); // READ AGAIN, MIGHT'VE MOVED
+                        if(recurseptr) obj+=recurseoffset;
+                        name=obj+1;
                         BINT offset;
                         while(count--) {
                             offset=name-obj;
@@ -465,6 +471,7 @@ void LIB_HANDLER()
                             name=rplMakeIdentQuoted(name);
                             if(!name) return;
                             *direntries++=name;
+                            obj=ScratchPointer2;
                             name=ScratchPointer2+offset;
                             value=rplSkipOb(name);
                             *direntries++=value;

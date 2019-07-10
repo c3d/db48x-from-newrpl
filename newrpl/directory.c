@@ -1680,6 +1680,8 @@ BINT rplGetDirSize(WORDPTR *directory)
     WORDPTR *entry=rplFindFirstInDir(directory);
     BINT size=0;
     while(entry) {
+        if(ISIDENT(*entry[0])) {
+            // ONLY CONSIDER DIRECTORY ENTRIES THAT HAVE PROPER NAMES
         size+=rplObjSize(entry[0]);
         if(ISDIR(*entry[1])) {
             WORDPTR *subdir=rplFindDirbyHandle(entry[1]);
@@ -1687,6 +1689,7 @@ BINT rplGetDirSize(WORDPTR *directory)
             else size+=rplGetDirSize(subdir)+1;
         }
         else size+=rplObjSize(entry[1]);
+        }
         entry=rplFindNext(entry);
     }
 
@@ -1700,6 +1703,8 @@ void rplPackDirinPlace(WORDPTR *directory,WORDPTR where)
 WORDPTR ptr=where+1;
 WORDPTR *entry=rplFindFirstInDir(directory);
 while(entry) {
+    if(ISIDENT(*entry[0])) {
+        // ONLY PACK ENTRIES THAT HAVE A VALID NAME
     rplCopyObject(ptr,entry[0]);
     ptr=rplSkipOb(ptr);
 
@@ -1710,6 +1715,7 @@ while(entry) {
     }
     else rplCopyObject(ptr,entry[1]);
     ptr=rplSkipOb(ptr);
+    }
     entry=rplFindNext(entry);
 }
 *where=MKPROLOG(DOPACKDIR,(ptr-where)-1);
