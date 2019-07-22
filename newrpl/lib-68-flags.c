@@ -299,13 +299,10 @@ BINT rplSetUserFlag(BINT flag)
     WORDPTR UserFlags=rplGetSettings((WORDPTR)userflags_ident);
     UBINT64 low64,hi64;
 
-    if(!UserFlags) low64=hi64=0;
+    if(!UserFlags || (!ISBINDATA(*UserFlags))) low64=hi64=0;
     else {
-    if(!ISLIST(*UserFlags)) low64=hi64=0;
-    else {
-    low64=*((UBINT64 *)(UserFlags+2));
-    hi64=*((UBINT64 *)(UserFlags+5));
-    }
+    low64=*((UBINT64 *)(UserFlags+1));
+    hi64=*((UBINT64 *)(UserFlags+3));
     }
 
     if(flag<65) low64|=(1ULL << (flag-1));
@@ -314,16 +311,13 @@ BINT rplSetUserFlag(BINT flag)
     // UNLIKE SYSTEM FLAGS, THESE ARE NOT SELF-MODIFYING OBJECTS
 
 
-    UserFlags=rplAllocTempOb(7);
+    UserFlags=rplAllocTempOb(4);
     if(!UserFlags) return -2;
-    UserFlags[0]=MKPROLOG(DOLIST,7);
-    UserFlags[1]=MKPROLOG(HEXBINT,2);
-    UserFlags[2]=(WORD)low64;
-    UserFlags[3]=(WORD)(low64>>32);
-    UserFlags[4]=MKPROLOG(HEXBINT,2);
-    UserFlags[5]=(WORD)hi64;
-    UserFlags[6]=(WORD)(hi64>>32);
-    UserFlags[7]=CMD_ENDLIST;
+    UserFlags[0]=MKPROLOG(DOBINDATA,4);
+    UserFlags[1]=(WORD)low64;
+    UserFlags[2]=(WORD)(low64>>32);
+    UserFlags[3]=(WORD)hi64;
+    UserFlags[4]=(WORD)(hi64>>32);
 
     rplStoreSettings((WORDPTR)userflags_ident,UserFlags);
 
@@ -338,13 +332,10 @@ BINT rplClrUserFlag(BINT flag)
     WORDPTR UserFlags=rplGetSettings((WORDPTR)userflags_ident);
     UBINT64 low64,hi64;
 
-    if(!UserFlags) low64=hi64=0;
+    if(!UserFlags || (!ISBINDATA(*UserFlags))) low64=hi64=0;
     else {
-    if(!ISLIST(*UserFlags)) low64=hi64=0;
-    else {
-    low64=*((UBINT64 *)(UserFlags+2));
-    hi64=*((UBINT64 *)(UserFlags+5));
-    }
+    low64=*((UBINT64 *)(UserFlags+1));
+    hi64=*((UBINT64 *)(UserFlags+3));
     }
 
     if(flag<65) low64&=~(1ULL << (flag-1));
@@ -353,19 +344,15 @@ BINT rplClrUserFlag(BINT flag)
     // UNLIKE SYSTEM FLAGS, THESE ARE NOT SELF-MODIFYING OBJECTS
 
 
-    UserFlags=rplAllocTempOb(7);
+    UserFlags=rplAllocTempOb(4);
     if(!UserFlags) return -2;
-    UserFlags[0]=MKPROLOG(DOLIST,7);
-    UserFlags[1]=MKPROLOG(HEXBINT,2);
-    UserFlags[2]=(WORD)low64;
-    UserFlags[3]=(WORD)(low64>>32);
-    UserFlags[4]=MKPROLOG(HEXBINT,2);
-    UserFlags[5]=(WORD)hi64;
-    UserFlags[6]=(WORD)(hi64>>32);
-    UserFlags[7]=CMD_ENDLIST;
+    UserFlags[0]=MKPROLOG(DOBINDATA,4);
+    UserFlags[1]=(WORD)low64;
+    UserFlags[2]=(WORD)(low64>>32);
+    UserFlags[3]=(WORD)hi64;
+    UserFlags[4]=(WORD)(hi64>>32);
 
     rplStoreSettings((WORDPTR)userflags_ident,UserFlags);
-
     return 0;
 }
 
@@ -380,13 +367,10 @@ BINT rplTestUserFlag(BINT flag)
     WORDPTR UserFlags=rplGetSettings((WORDPTR)userflags_ident);
     UBINT64 low64,hi64;
 
-    if(!UserFlags) low64=hi64=0;
+    if(!UserFlags || (!ISBINDATA(*UserFlags))) low64=hi64=0;
     else {
-    if(!ISLIST(*UserFlags)) low64=hi64=0;
-    else {
-    low64=*((UBINT64 *)(UserFlags+2));
-    hi64=*((UBINT64 *)(UserFlags+5));
-    }
+    low64=*((UBINT64 *)(UserFlags+1));
+    hi64=*((UBINT64 *)(UserFlags+3));
     }
 
     if(flag<65) return (low64&(1ULL << (flag-1)))? 1:0;
@@ -398,22 +382,19 @@ UBINT64 *rplGetUserFlagsLow()
 {
     WORDPTR UserFlags=rplGetSettings((WORDPTR)userflags_ident);
     if(!UserFlags) return NULL;
-    if(!ISLIST(*UserFlags)) return NULL;
-    return (UBINT64 *)(UserFlags+2);
+    if(!ISBINDATA(*UserFlags)) return NULL;
+    return (UBINT64 *)(UserFlags+1);
 }
 
 
 BINT rplSetSystemFlag(BINT flag)
 {
     if(flag>-1 || flag<-128) return -1;
-    if(!ISLIST(*SystemFlags)) return -2;
+    if(!ISBINDATA(*SystemFlags)) return -2;
 
-    WORDPTR low64=SystemFlags+2;
-    WORDPTR hi64=SystemFlags+5;
-    if(flag>=-32) low64[0]|=(1 << -(flag+1));
-    else if(flag>=-64) low64[1]|=(1 << -(flag+33));
-    else if(flag>=-96) hi64[0]|=(1 << -(flag+65));
-    else hi64[1]|=(1 << -(flag+97));
+    WORDPTR low64=SystemFlags+1;
+    flag=-flag-1;
+    low64[flag>>5]|=1<<(flag&31);
 
     return 0;
 }
@@ -424,21 +405,19 @@ BINT rplSetSystemFlag(BINT flag)
 BINT rplClrSystemFlag(BINT flag)
 {
     if(flag>-1 || flag<-128) return -1;
-    if(!ISLIST(*SystemFlags)) return -2;
+    if(!ISBINDATA(*SystemFlags)) return -2;
 
-    WORDPTR low64=SystemFlags+2;
-    WORDPTR hi64=SystemFlags+5;
-    if(flag>=-32) low64[0]&=~(1 << -(flag+1));
-    else if(flag>=-64) low64[1]&=~(1 << -(flag+33));
-    else if(flag>=-96) hi64[0]&=~(1 << -(flag+65));
-    else hi64[1]&=~(1 << -(flag+97));
+    WORDPTR low64=SystemFlags+1;
+
+    flag=-flag-1;
+    low64[flag>>5]&=~(1<<(flag&31));
 
     return 0;
 }
 
 BINT rplSetSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
 {
-    if(!ISLIST(*SystemFlags)) return -2;
+    if(!ISBINDATA(*SystemFlags)) return -2;
 
     BINT idx=0;
     BINT len=utf8nlen((char *)name,(char *)nameend);
@@ -455,18 +434,12 @@ BINT rplSetSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
                     BINT flag=flags_names[idx].flags[count]&0x7f;
                     BINT value=flags_names[idx].flags[count]>>7;
                     //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-                    WORDPTR low64=SystemFlags+2;
-                    WORDPTR hi64=SystemFlags+5;
+                    WORDPTR low64=SystemFlags+1;
+                    flag=flag-1;
                     if(value) {
-                        if(flag<=32) low64[0]|=(1 << (flag-1));
-                        else if(flag<=64) low64[1]|=(1 << (flag-33));
-                        else if(flag<=96) hi64[0]|=(1 << (flag-65));
-                        else hi64[1]|=(1 << (flag-97));
+                        low64[flag>>5]|=1<<(flag&31);
                     } else {
-                        if(flag<=32) low64[0]&=~(1 << (flag-1));
-                        else if(flag<=64) low64[1]&=~(1 << (flag-33));
-                        else if(flag<=96) hi64[0]&=~(1 << (flag-65));
-                        else hi64[1]&=~(1 << (flag-97));
+                        low64[flag>>5]&=~(1<<(flag&31));
                     }
 
                 }
@@ -482,7 +455,7 @@ BINT rplSetSystemFlagByName(BYTEPTR name, BYTEPTR nameend)
 
 BINT rplClrSystemFlagByName(BYTEPTR name,BYTEPTR nameend)
 {
-    if(!ISLIST(*SystemFlags)) return -2;
+    if(!ISBINDATA(*SystemFlags)) return -2;
 
     BINT idx=0;
     BINT len=utf8nlen((char *)name,(char *)nameend);
@@ -498,12 +471,10 @@ BINT rplClrSystemFlagByName(BYTEPTR name,BYTEPTR nameend)
                 if(flags_names[idx].flags[count]) {
                     BINT flag=flags_names[idx].flags[count]&0x7f;
                     //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-                    WORDPTR low64=SystemFlags+2;
-                    WORDPTR hi64=SystemFlags+5;
-                    if(flag<=32) low64[0]&=~(1 << (flag-1));
-                    else if(flag<=64) low64[1]&=~(1 << (flag-33));
-                    else if(flag<=96) hi64[0]&=~(1 << (flag-65));
-                    else hi64[1]&=~(1 << (flag-97));
+                    WORDPTR low64=SystemFlags+1;
+                    flag=flag-1;
+                    low64[flag>>5]&=~(1<<(flag&31));
+
 
                 }
             }
@@ -525,16 +496,13 @@ BINT rplClrSystemFlagByName(BYTEPTR name,BYTEPTR nameend)
 BINT rplTestSystemFlag(BINT flag)
 {
     if(flag>-1 || flag<-128) return -1;
-    if(!ISLIST(*SystemFlags)) return -2;
+    if(!ISBINDATA(*SystemFlags)) return -2;
 
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
-        WORDPTR hi64=SystemFlags+5;
+        WORDPTR low64=SystemFlags+1;
         BINT result;
-        if(flag>=-32) result=low64[0]&(1 << -(flag+1));
-        else if(flag>=-64) result=low64[1]&(1 << -(flag+33));
-        else if(flag>=-96) result=hi64[0]&(1 << -(flag+65));
-        else result=hi64[1]&(1 << -(flag+97));
+        flag=-flag-1;
+        result = low64[flag>>5]&(1<<(flag&31));
         if(result) return 1;
         return 0;
 
@@ -547,7 +515,7 @@ BINT rplTestSystemFlag(BINT flag)
 
 BINT rplTestSystemFlagByName(BYTEPTR name,BYTEPTR nameend)
 {
-    if(!ISLIST(*SystemFlags)) return -2;
+    if(!ISBINDATA(*SystemFlags)) return -2;
     BINT idx=0;
     BINT len=utf8nlen((char *)name,(char *)nameend);
     BINT flaglen;
@@ -566,10 +534,9 @@ BINT rplTestSystemFlagByName(BYTEPTR name,BYTEPTR nameend)
                     WORDPTR low64=SystemFlags+2;
                     WORDPTR hi64=SystemFlags+5;
                     BINT res;
-                    if(flag<=32) res=(low64[0]>> (flag-1))&1;
-                    else if(flag<=64) res=(low64[1]>>(flag-33))&1;
-                    else if(flag<=96) res=(hi64[0]>>(flag-65))&1;
-                    else res=(hi64[1]>> (flag-97))&1;
+                    flag--;
+
+                    res=(low64[flag>>5]>>(flag&31))&1;
                     match|=(value^res);
                 }
             }
@@ -1067,23 +1034,23 @@ BINT rplNumFormatFromString(WORDPTR string)
 
 void rplSetMenuCode(BINT menunumber,BINT64 menucode)
 {
-    if(!ISLIST(*SystemFlags)) return;
+    if(!ISBINDATA(*SystemFlags)) return;
 
     if((menunumber<1)||(menunumber>2)) return;
 
-    SystemFlags[7+menunumber]=menucode;
-    SystemFlags[10+menunumber]=(menucode>>32);
+    SystemFlags[4+menunumber]=menucode;
+    SystemFlags[6+menunumber]=(menucode>>32);
 
     return;
 }
 
 BINT64 rplGetMenuCode(BINT menunumber)
 {
-    if(!ISLIST(*SystemFlags)) return 0;
+    if(!ISBINDATA(*SystemFlags)) return 0;
 
     if((menunumber<1)||(menunumber>2)) return 0;
 
-    return  ((BINT64)SystemFlags[7+menunumber]) | (((BINT64)SystemFlags[10+menunumber])<<32);
+    return  ((BINT64)SystemFlags[4+menunumber]) | (((BINT64)SystemFlags[6+menunumber])<<32);
 
 }
 
@@ -2717,14 +2684,14 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall all system flags
         //@INCOMPAT
-            if(!ISLIST(*SystemFlags)) {
+            if(!ISBINDATA(*SystemFlags)) {
                 rplError(ERR_SYSTEMFLAGSINVALID);
                 return;
             }
             // MAKE A NON-SELF-MODIFYING COPY OF THE SYSTEM FLAGS
-            WORDPTR newlist = rplMakeNewCopy(SystemFlags);
-            if(!newlist) return;
-            rplPushData(newlist);
+            WORDPTR newflags = rplMakeNewCopy(SystemFlags);
+            if(!newflags) return;
+            rplPushData(newflags);
             return;
     }
 
@@ -2738,12 +2705,10 @@ void LIB_HANDLER()
             return;
         }
 
-        if(!ISLIST(*rplPeekData(1))) {
-            rplError(ERR_LISTEXPECTED);
-            return;
-        }
+        if(ISLIST(*rplPeekData(1))) {
+            // CONVERT FLAGS STORED AS THE OLD LIST FORMAT TO THE NEW BINDATA FORMAT
 
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // TRY TO RECOVER INSTEAD OF ERROR
             rplResetSystemFlags();
             if(!SystemFlags) {
@@ -2754,14 +2719,14 @@ void LIB_HANDLER()
         }
 
         BINT nitems=rplListLength(rplPeekData(1));
-        if(nitems!=5) {
+        if(nitems<4) {
             rplError(ERR_SYSTEMFLAGSINVALID);
             return;
         }
 
         // ALL BINTS
         BINT k;
-        for(k=1;k<=5;++k) {
+        for(k=1;k<=4;++k) {
             if(!ISBINT(*rplGetListElement(rplPeekData(1),k))) {
                 rplError(ERR_SYSTEMFLAGSINVALID);
                 return;
@@ -2771,16 +2736,39 @@ void LIB_HANDLER()
         // IT ALL CHECKS OUT, DO THE MAGIC:
 
         UBINT64 value;
-        WORDPTR nptr=SystemFlags+2; // DATA OF THE FIRST 64-BIT INTEGER
+        WORDPTR nptr=SystemFlags+1; // DATA OF THE FIRST 64-BIT INTEGER
         UBINT64 *uptr;
-        for(k=1;k<=5;++k) {
+        for(k=1;k<=4;++k) {
             value=rplReadBINT(rplGetListElement(rplPeekData(1),k));
             uptr=(UBINT64 *)nptr;
             *uptr=value;
-            nptr+=3;
+            nptr+=2;
         }
         rplDropData(1);
         return;
+        }
+
+        if(ISBINDATA(*rplPeekData(1))&&(OBJSIZE(*rplPeekData(1))>=8)) {
+            if(!ISBINDATA(*SystemFlags)) {
+                // TRY TO RECOVER INSTEAD OF ERROR
+                rplResetSystemFlags();
+                if(!SystemFlags) {
+                    rplError(ERR_SYSTEMFLAGSINVALID);
+                    return;
+                }
+                rplStoreSettings((WORDPTR)flags_ident,SystemFlags);
+            }
+
+            // WE RECEIVED A PROPER BINDATA OBJECT, JUST COPY IT OVER
+            memcpyw(SystemFlags+1,rplPeekData(1)+1,8);
+            rplDropData(1);
+            return;
+
+        }
+
+        rplError(ERR_SYSTEMFLAGSINVALID);
+        return;
+
 
     }
 

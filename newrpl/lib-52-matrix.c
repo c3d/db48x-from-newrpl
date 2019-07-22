@@ -264,6 +264,9 @@ void LIB_HANDLER()
             return;
 
         }
+        case OVR_UPLUS:
+            return;
+        case OVR_UMINUS:
         case OVR_NEG:
         {
             if(rplDepthData()<1) {

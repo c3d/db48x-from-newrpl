@@ -67,6 +67,7 @@ R → A<fraction>"
 
 @#name lib56_autosimplify_pre
 {
+'+.xX:→.xX'                                         @ REMOVE UNARY PLUS OPERATIONS
 '-.xX:→(-1)*.xX'                                    @ REMOVE NEGATIVE SIGN TO IMPROVE TERM MATCHING
 '√.XX:→.XX^INV(2)'                                  @ ELIMINATE SQUARE ROOT FOR OTHER RULES TO WORK
 }

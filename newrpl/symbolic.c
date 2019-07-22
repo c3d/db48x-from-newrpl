@@ -3151,6 +3151,28 @@ do {
                 // IF THE RIGHT EXPRESSION IS A SINGLE IDENTIFIER
                 WORDPTR *lamname=rplFindLAM(*s.right,0);
                 if(lamname) {
+                    WORD firstchars=(*s.right)[1];
+                    firstchars&=0xffff;
+
+                    switch(firstchars)
+                    {
+                     case TEXT2WORD('.','m',0,0):
+                     case TEXT2WORD('.','M',0,0):
+                    {
+                        // GET POINTERS TO THE PARENT EXPRESSION
+                            TRACK_STATE p;
+                            reloadPointers(s.left-( (s.leftnargs)? (1+s.leftnargs):0),&p);
+
+                        if(p.lrotbase && (p.leftrot>0) && (**p.left==CMD_OVR_MUL)) {
+                            // DO NOT ACCEPT ANY MATCH THAT HAS ANY ROTATION WHEN MULTIPLICATION IS ACTIVE
+                            matchtype=BACKTRACK;
+                            break;
+                        }
+                    }
+                        // DELIBERATE FALL-THROUGH TO THE GENERAL CASE
+                    default:
+
+
                     // REPLACE THE ENTIRE right PART WITH ITS VALUE, EXPLODED
                     DSTop=s.left+1;
                     // PUSH THE RIGHT
@@ -3172,6 +3194,11 @@ do {
                     if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                     updateLAMs(&s);
                     if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                        break;
+                    }
+
+
                 }
                 else {
 
@@ -3466,7 +3493,7 @@ do {
                             reloadPointers(s.left-( (s.leftnargs)? (1+s.leftnargs):0),&p);
 
 
-                        if(p.lrotbase && p.leftrot && (**p.left==CMD_OVR_MUL)) {
+                        if(p.lrotbase && (p.leftrot>0) && (**p.left==CMD_OVR_MUL)) {
                             // DO NOT ACCEPT ANY MATCH THAT HAS ANY ROTATION WHEN MULTIPLICATION IS ACTIVE
                             matchtype=BACKTRACK;
                             break;
@@ -4345,7 +4372,45 @@ do {
 
             if(s.lrotbase) {
             if(s.leftnargs && (s.leftidx>0) && (s.leftidx<s.leftnargs) && ((**s.left==CMD_OVR_MUL)||(**s.left==CMD_OVR_ADD))) {
+
+
                 if(s.leftrot<s.leftnargs-s.leftidx) {
+                    if( (s.lrotbase==1)&&(s.leftrot==0)&&(s.rightidx==1)&&(s.leftnargs>s.rightnargs)) {
+                        // SPECIAL CASE: SCAN WITHOUT ROTATION FIRST TO FIND FIRST MATCH
+                        if(s.leftnargs-s.leftidx+1<=s.rightnargs) {
+                            // NO MORE ARGUMENTS TO SCAN, PROCEED TO ROTATION OF ARGUMENTS
+                            s.leftidx=1;
+                        }
+                        else {
+                            // SCAN THE NEXT ARGUMENT
+                            ++s.leftidx;
+                            matchtype=ARGMATCH;
+
+                            updateCounters(&s);
+                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                            // AND RECREATE THE SNAPSHOT WE DROPPED ABOVE
+                            rplTakeSnapshot();
+                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+
+                            // ******************************************************
+                            // DEBUG ONLY AREA
+                            // ******************************************************
+                    #ifdef RULEDEBUG
+                            printf("ARGUMENT SCAN");
+                            printf("\n"); fflush(stdout);
+                    #endif
+                            // ******************************************************
+                            //      END DEBUG ONLY AREA
+                            // ******************************************************
+
+                            break;
+                        }
+
+
+
+                    }
 
                 // COMMUTATIVE OPERATORS NEED TO ROT THE ARGUMENTS AND TRY AGAIN
                 WORDPTR tmp=FINDARGUMENT(s.left,s.leftnargs,s.leftidx);

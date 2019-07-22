@@ -141,15 +141,13 @@ void LIB_HANDLER()
             if(wsize<1) wsize=1;
             if(wsize>63) wsize=63;
 
-            if(!ISLIST(*SystemFlags)) {
+            if(!ISBINDATA(*SystemFlags)) {
                 // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
                 rplError(ERR_SYSTEMFLAGSINVALID);
                 return;
             }
             //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-            WORDPTR low64=SystemFlags+2;
-            //WORDPTR hi64=SystemFlags+5;
-
+            WORDPTR low64=SystemFlags+1;
             low64[0]=(low64[0]&~(0x3f<<4))| (wsize<<4);
 
             rplDropData(1);
@@ -165,13 +163,13 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Recall the currnent word size in bits
 
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
+        WORDPTR low64=SystemFlags+1;
         //WORDPTR hi64=SystemFlags+5;
 
         BINT wsize=(low64[0]>>4)&0x3f;
@@ -218,14 +216,14 @@ void LIB_HANDLER()
 
             return;
         }
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
 
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
+        WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
 
         num1|=num2;
@@ -278,14 +276,14 @@ void LIB_HANDLER()
 
             return;
         }
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
 
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
+        WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
 
         num1&=num2;
@@ -338,14 +336,14 @@ void LIB_HANDLER()
 
             return;
         }
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
 
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
+        WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
 
         num1^=num2;
@@ -397,14 +395,14 @@ void LIB_HANDLER()
 
             return;
         }
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
 
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
+        WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
 
         if((num2>wsize)||(num2<-wsize)) num1=0;
@@ -460,13 +458,13 @@ void LIB_HANDLER()
 
             return;
         }
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
+        WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
 
         if((num2>wsize)||(num2<-wsize)) num1=0;
@@ -521,14 +519,14 @@ void LIB_HANDLER()
 
             return;
         }
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
 
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
+        WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
 
         if(num2>0) num1>>=num2;
@@ -583,14 +581,14 @@ void LIB_HANDLER()
 
             return;
         }
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
 
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
+        WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
 
         num1+=num2;
@@ -643,14 +641,14 @@ void LIB_HANDLER()
 
             return;
         }
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
 
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
+        WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
 
         num1-=num2;
@@ -703,14 +701,14 @@ void LIB_HANDLER()
 
             return;
         }
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
 
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
+        WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
 
         num1*=num2;
@@ -763,14 +761,14 @@ void LIB_HANDLER()
 
             return;
         }
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
 
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
+        WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
 
         num1/=num2;
@@ -826,14 +824,14 @@ void LIB_HANDLER()
 
             return;
         }
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
 
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
+        WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
 
         num2%=wsize+1;
@@ -894,14 +892,14 @@ void LIB_HANDLER()
 
             return;
         }
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
 
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
+        WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
 
         num2=-num2;
@@ -956,14 +954,14 @@ void LIB_HANDLER()
 
             return;
         }
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
 
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
+        WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
 
         num1=~num1;
@@ -1001,14 +999,14 @@ void LIB_HANDLER()
 
             return;
         }
-        if(!ISLIST(*SystemFlags)) {
+        if(!ISBINDATA(*SystemFlags)) {
             // THIS IS FOR DEBUGGING ONLY, SYSTEM FLAGS SHOULD ALWAYS EXIST
             rplError(ERR_SYSTEMFLAGSINVALID);
 
             return;
         }
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
-        WORDPTR low64=SystemFlags+2;
+        WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
 
         num1=-num1;

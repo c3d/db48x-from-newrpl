@@ -199,6 +199,7 @@ void LIB_HANDLER()
 
         switch(OPCODE(CurOpcode))
         {
+        case OVR_UPLUS:
         case OVR_FUNCEVAL:
         case OVR_EVAL:
         case OVR_EVAL1:
@@ -209,6 +210,7 @@ void LIB_HANDLER()
         case OVR_ABS:
         case OVR_NOT:
         case OVR_NEG:
+        case OVR_UMINUS:
         {
             if(!ISUNIT(*rplPeekData(1))) {
                 rplError(ERR_UNITEXPECTED);

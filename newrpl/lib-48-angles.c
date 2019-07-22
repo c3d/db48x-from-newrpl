@@ -239,6 +239,8 @@ void LIB_HANDLER()
             }
 
             case OVR_ABS:
+            case OVR_UMINUS:
+            case OVR_UPLUS:
             case OVR_NEG:
             {
                 // OPERATE, KEEP THE TAG
@@ -1876,6 +1878,10 @@ void LIB_HANDLER()
                 if(num==DECIMAL_DOT(nformat.Locale)) { mode=MODE_FP; break; }
                 if(num==THOUSAND_SEP(nformat.Locale)) { break; }
                 if((f!=0) && (num=='e' || num=='E' || num==EXP_LETTER(nformat.MiddleFmt))) { mode=MODE_EXPSIGN; break; }
+                if(num=='+' || num=='-') {
+                    if(f!=1) { exitfor=1; break; }
+                    break;
+                }
                 if(num<'0' || num>'9') { exitfor=1; break; }
                 break;
             case MODE_FP:

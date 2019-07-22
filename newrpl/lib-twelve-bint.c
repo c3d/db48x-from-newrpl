@@ -1353,6 +1353,7 @@ void LIB_HANDLER()
             op1=-op1;
             rplNewBINTPush(op1,LIBNUM(*arg1));
             return;
+        case OVR_UPLUS:
         case OVR_FUNCEVAL:
         case OVR_EVAL:
         case OVR_EVAL1:

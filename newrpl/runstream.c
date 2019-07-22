@@ -689,39 +689,24 @@ void rplCopyObject(WORDPTR dest, WORDPTR src)
 // INITIALIZE SYSTEM FLAGS TO DEFAULT VALUE
 void rplResetSystemFlags()
 {
-    // CREATE AN EMPTY LIST OF SYSTEM FLAGS
-    SystemFlags=rplAllocTempOb(19);  // FOR NOW: 128 SYSTEM FLAGS IN 2 BINTS WITH 64 BITS EACH
+    // CREATE AN EMPTY BINDATA OF SYSTEM FLAGS
+    SystemFlags=rplAllocTempOb(8);  // FOR NOW: 128 SYSTEM FLAGS IN 4 WORDS WITH 32 BITS EACH, PLUS MENU CODE WORDS
 
     if(!SystemFlags) return;
 
     // 128 SYSTEM FLAGS
-    SystemFlags[0]=MKPROLOG(DOLIST,19);  // PUT ALL SYSTEM FLAGS ON A LIST
-    SystemFlags[1]=MKPROLOG(HEXBINT,2); // USE A BINT PROLOG
-    SystemFlags[2]=(63<<4)|(1<<29);             // FLAGS 0-31 ARE IN SystemFlags[2], DEFAULTS: WORDSIZE=63, DEG, COMMENTS=ON
-    SystemFlags[3]=0;                   // FLAGS 32-63 ARE IN SystemFlags[3]
-    SystemFlags[4]=MKPROLOG(HEXBINT,2);
-    SystemFlags[5]=0;                   // FLAGS 64-95 ARE IN SystemFlags[5]
-    SystemFlags[6]=0;                   // FLAGS 96-127 ARE IN SystemFlags[6]
+    SystemFlags[0]=MKPROLOG(DOBINDATA,8);  // PUT ALL SYSTEM FLAGS ON A LIST
+    SystemFlags[1]=(63<<4)|(1<<29);             // FLAGS 0-31 ARE IN SystemFlags[1], DEFAULTS: WORDSIZE=63, DEG, COMMENTS=ON
+    SystemFlags[2]=0;                   // FLAGS 32-63 ARE IN SystemFlags[2]
+    SystemFlags[3]=0;                   // FLAGS 64-95 ARE IN SystemFlags[3]
+    SystemFlags[4]=0;                   // FLAGS 96-127 ARE IN SystemFlags[4]
 
-    SystemFlags[7]=MKPROLOG(HEXBINT,2);
-    SystemFlags[8]=MKMENUCODE(0,68,2,0);  // MenuCode1 IS IN SystemFlags[8] AND INITIALIZED TO THE MAIN MENU
-    SystemFlags[9]=MKMENUCODE(1,0,0,0); // MenuCode2 IS IN SystemFlags[9] AND INITIALIZED TO VARS
+    SystemFlags[5]=MKMENUCODE(0,68,2,0);  // MenuCode1 IS IN SystemFlags[5] AND INITIALIZED TO THE MAIN MENU
+    SystemFlags[6]=MKMENUCODE(1,0,0,0); // MenuCode2 IS IN SystemFlags[6] AND INITIALIZED TO VARS
+    SystemFlags[7]=0;                      // LIBID OF Menu1
+    SystemFlags[8]=0;                      // LIBID OF Menu2
 
-    SystemFlags[10]=MKPROLOG(HEXBINT,2);    // HIGH WORD OF THE MENU CONTAINS THE USER LIBRARY ID THAT OWNS IT (0=SYSTEM)
-    SystemFlags[11]=0;                      // LIBID OF Menu1
-    SystemFlags[12]=0;                      // LIBID OF Menu2
-
-    // 128 USER FLAGS
-    SystemFlags[13]=MKPROLOG(HEXBINT,2);
-    SystemFlags[14]=0;
-    SystemFlags[15]=0;
-    SystemFlags[16]=MKPROLOG(HEXBINT,2);
-    SystemFlags[17]=0;
-    SystemFlags[18]=0;
-
-    // FUTURE EXPANSION: ADD MORE FLAGS HERE
-
-    SystemFlags[19]=CMD_ENDLIST;         // CLOSE THE LIST
+     // FUTURE EXPANSION: ADD MORE FLAGS HERE
 
 }
 
@@ -874,11 +859,38 @@ void rplWarmInit(void)
     }
 
     flags=rplFindGlobalInDir((WORDPTR)flags_ident,rplFindDirbyHandle(SettingsDir),0);
-    if(flags && ISLIST(*flags[1]) && (OBJSIZE(*flags[1])>=10)) SystemFlags=flags[1];
+    if(flags && ISBINDATA(*flags[1]) && (OBJSIZE(*flags[1])>=8)) SystemFlags=flags[1];
     else {
+        // EXISTING FLAGS ARE NOT VALID
         rplResetSystemFlags();
 
+        if(flags && ISLIST(*flags[1])) {
+            // CONVERT FLAGS STORED AS THE OLD LIST FORMAT TO THE NEW BINDATA FORMAT
+
+        BINT nitems=rplListLength(flags[1]);
+        if(nitems>=4) {
+        // IT ALL CHECKS OUT, DO THE MAGIC:
+
+        UBINT64 value;
+        WORDPTR nptr=SystemFlags+1; // DATA OF THE FIRST 64-BIT INTEGER
+        WORDPTR numptr;
+        UBINT64 *uptr;
+        BINT k;
+        for(k=1;k<=4;++k) {
+            numptr=rplGetListElement(flags[1],k);
+            if(numptr && ISBINT(*numptr)) value=rplReadBINT(numptr);
+            else value=0;
+            uptr=(UBINT64 *)nptr;
+            *uptr=value;
+            nptr+=2;
+        }
+
+        }
+        }
+
+
         rplStoreSettings((WORDPTR)flags_ident,SystemFlags);
+
 
     }
 
@@ -937,10 +949,39 @@ void rplHotInit()
     }
 
     flags=rplFindGlobalInDir((WORDPTR)flags_ident,rplFindDirbyHandle(SettingsDir),0);
-    if(flags && ISLIST(*flags[1]) && (OBJSIZE(*flags[1])>=10)) SystemFlags=flags[1];
+    if(flags && ISBINDATA(*flags[1]) && (OBJSIZE(*flags[1])>=8)) SystemFlags=flags[1];
     else {
+        // EXISTING FLAGS ARE NOT VALID
         rplResetSystemFlags();
+
+        if(flags && ISLIST(*flags[1])) {
+            // CONVERT FLAGS STORED AS THE OLD LIST FORMAT TO THE NEW BINDATA FORMAT
+
+        BINT nitems=rplListLength(flags[1]);
+        if(nitems>=4) {
+        // IT ALL CHECKS OUT, DO THE MAGIC:
+
+        UBINT64 value;
+        WORDPTR nptr=SystemFlags+1; // DATA OF THE FIRST 64-BIT INTEGER
+        WORDPTR numptr;
+        UBINT64 *uptr;
+        BINT k;
+        for(k=1;k<=4;++k) {
+            numptr=rplGetListElement(flags[1],k);
+            if(numptr && ISBINT(*numptr)) value=rplReadBINT(numptr);
+            else value=0;
+            uptr=(UBINT64 *)nptr;
+            *uptr=value;
+            nptr+=2;
+        }
+
+        }
+        }
+
+
         rplStoreSettings((WORDPTR)flags_ident,SystemFlags);
+
+
 
     }
 

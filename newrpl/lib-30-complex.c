@@ -6298,6 +6298,7 @@ void LIB_HANDLER()
             }
 
         }
+        case OVR_UMINUS:
         case OVR_NEG:
         {
             switch(cclass1)
@@ -6426,6 +6427,7 @@ void LIB_HANDLER()
             else rplPushData((WORDPTR)one_bint);
             return;
         }
+        case OVR_UPLUS:
         case OVR_FUNCEVAL:
         case OVR_EVAL:
         case OVR_EVAL1:

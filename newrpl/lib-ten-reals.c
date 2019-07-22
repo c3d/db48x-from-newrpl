@@ -708,6 +708,7 @@ void LIB_HANDLER()
             if(!Exceptions) rplCheckResultAndError(&Darg1);
         }
             return;
+        case OVR_UPLUS:
         case OVR_FUNCEVAL:
         case OVR_EVAL:
         case OVR_EVAL1:
