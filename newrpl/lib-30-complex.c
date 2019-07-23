@@ -268,7 +268,7 @@ WORDPTR rplNewComplex(REAL *real,REAL *imag,BINT angmode)
 
         addReal(tmp,imag,&pi);
 
-        if(!iszeoReal(tmp)) tmp->flags^=sign^F_NEGATIVE;
+        if(!iszeroReal(tmp)) tmp->flags^=sign^F_NEGATIVE;
         imag=tmp;
 
     }
