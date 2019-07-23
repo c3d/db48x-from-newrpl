@@ -2065,6 +2065,8 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                         }
                     }
 
+                if(!( num_is_one && (reddenom+redargs<nargs) )) {
+                    // ONLY ADD THE NUMERATOR ONE WHEN THERE'S NO OTHER (NON-NUMERIC) FACTORS
 
                     // IF THERE WERE ANY FACTORS IN THE NUMERATOR, REPLACE WITH THE NEW RESULT
                 WORDPTR *ptr=DSTop-1;
@@ -2077,6 +2079,8 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 ++DSTop;
 
                 *(stkptr-2)=rplPeekData(1+((reddenom>0)? 1:0)); // STORE THE NUMERATOR
+
+                }
 
                 }
 
@@ -2141,7 +2145,7 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
                 if(redargs+reddenom) {
                     // UPDATE THE ARGUMENT COUNT
                     BINT newcount=nargs-redargs-reddenom;
-                    if(redargs || num_is_one) ++newcount;
+                    if( (redargs || num_is_one) && !( num_is_one && (reddenom+redargs<nargs) )) ++newcount;
                     else if(approxdenom) ++newcount;
                     if(reddenom) {
                         ++newcount;
@@ -2703,7 +2707,7 @@ enum {
 #define FINDARGUMENT(exp,nargs,argidx) (exp[-2-(nargs)+(argidx)])
 
 
-//#define RULEDEBUG 1
+#define RULEDEBUG 1
 
 typedef struct {
 WORDPTR *left,*right;
@@ -3878,7 +3882,7 @@ do {
 
                         BINT k,count;
 
-                        // TODO: FIX THIS, DOESN'T WORK
+
                         BINT otherright=p.rightnargs-p.rightidx;  // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
                         BINT available=p.leftnargs-otherright; // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
 
@@ -3984,9 +3988,17 @@ do {
                             }
                             // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
 
-                            if((p.leftidx>=1) && (p.leftidx<=p.leftnargs)) rplCreateLAM(*s.right,FINDARGUMENT(p.left,p.leftnargs,p.leftidx));
-                            else if(p.leftidx==-1) rplCreateLAM(*s.right,*p.left);
+                            WORDPTR trymatch;
+                            if((p.leftidx>=1) && (p.leftidx<=p.leftnargs)) trymatch=FINDARGUMENT(p.left,p.leftnargs,p.leftidx);
+                            else if(p.leftidx==-1) trymatch=*p.left;
                             // else SOMETHING IS WRONG IN THE EXPRESSION.
+                            else trymatch=0;
+
+                            if(trymatch && rplSymbIsNumeric(trymatch)) rplCreateLAM(*s.right,trymatch);
+                            else {
+                                matchtype=BACKTRACK;
+                                break;
+                            }
 
                             s.leftidx=s.leftnargs;
                             updateCounters(&s);
