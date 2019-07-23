@@ -1833,6 +1833,11 @@ void LIB_HANDLER()
             return;
         }
 
+        if(ISLIST(*rplPeekData(1))) {
+            rplListUnaryDoCmd();
+            return;
+        }
+
         if(!ISNUMBER(*rplPeekData(1))) {
             rplError(ERR_REALEXPECTED);
             return;

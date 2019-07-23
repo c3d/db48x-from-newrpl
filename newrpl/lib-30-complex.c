@@ -227,10 +227,6 @@ void rplReadCNumber(WORDPTR complex,REAL *real,REAL *imag, BINT *angmode)
 
 WORDPTR rplNewComplex(REAL *real,REAL *imag,BINT angmode)
 {
-    if(iszeroReal(imag)) {
-        // IT'S A REAL NUMBER, THERE'S NO IMAGINARY PART
-        return rplNewReal(real);
-    }
 
     if(angmode!=ANGLENONE) {
         // NORMALIZE THE COMPLEX IF IT'S POLAR
@@ -266,13 +262,23 @@ WORDPTR rplNewComplex(REAL *real,REAL *imag,BINT angmode)
         }
         BINT sign=imag->flags&F_NEGATIVE;
         imag->flags|=F_NEGATIVE;
-        addReal(&RReg[8],imag,&pi);
 
-        RReg[8].flags^=sign^F_NEGATIVE;
-        imag=&RReg[8];
+        // CAREFUL, THIS OVERWRITES EITHER 0 OR 1, MAKE SURE THEY DON'T CONTAIN ANY VALUABLE DATA
+        REAL *tmp=(real==&RReg[0])? &RReg[1]:&RReg[0];  // DO NOT OVERWRITE THE REAL PART
+
+        addReal(tmp,imag,&pi);
+
+        tmp->flags^=sign^F_NEGATIVE;
+        imag=tmp;
 
     }
 
+    } else {
+        // RECTANGULAR COORDINATES CAN BE COERCED TO REALS IF THERE'S NO IMAGINARY PART
+        if(iszeroReal(imag)) {
+            // IT'S A REAL NUMBER, THERE'S NO IMAGINARY PART
+            return rplNewReal(real);
+        }
     }
 
     BINT size=4+real->len+imag->len;
@@ -316,8 +322,42 @@ void rplRRegToComplexPush(BINT real,BINT imag,BINT angmode)
     rplNewComplexPush( &RReg[real],&RReg[imag],angmode);
 }
 
+// NORMALIZE A COMPLEX OBJECT IN POLAR FORM TO THE FIRST CIRCLE
+// AND POSITIVE MAGNITUDE, USES ALL RREGS 0-3
+int rplNormalizeComplex(REAL *real,REAL *imag,BINT angmode)
+{
+if(angmode==ANGLENONE) return 0;  // NOTHING TO NORMALIZE IN NON-POLAR NUMBERS
+if(real->flags&F_NEGATIVE) {
+    real->flags&=~F_NEGATIVE;
+    // NEED TO ADD HALF TURN
+    REAL halfturn;
+    // INITIALIZE CONSTANTS
+    switch(angmode)
+    {
+    case ANGLERAD:
+        decconst_PI(&halfturn);
+        break;
+    case ANGLEGRAD:
+        decconst_200(&halfturn);
+        break;
+    case ANGLEDEG:
+    case ANGLEDMS:      // DMS IS NOT SUPPORTED HERE, FALL THROUGH THE DEFAULT CASE
+    default:
+        decconst_180(&halfturn);
+        break;
+    }
 
+    halfturn.flags|=imag->flags&F_NEGATIVE; // ADD IN THE SAME DIRECTION TO MAKE SURE IT WORKS FOR DMS TOO
 
+    addReal(&RReg[2],imag,&halfturn);
+    cloneReal(imag,&RReg[2]);
+
+}
+trig_reduceangle(imag,angmode);
+cloneReal(imag,&RReg[0]);
+// RETURN THE REALS IN real AND imag, BUT imag COULD BE CLONED RReg[0]
+return 1;
+}
 
 
 
@@ -562,13 +602,14 @@ void LIB_HANDLER()
                 {
                 case CPLX_ZERO:
                 {
-                    // 0 +/- ANYTHING = ANYTHING
-                    rplPushData(arg2);
-                    if(OPCODE(CurOpcode)==OVR_SUB) rplCallOvrOperator(CMD_OVR_NEG);
-                    else {
+                    if(OPCODE(CurOpcode)==OVR_SUB) {
+                    if(!iszeroReal(&Rarg2)) Rarg2.flags^=F_NEGATIVE;
+                    if(amode2==ANGLENONE) if(!iszeroReal(&Iarg2)) Iarg2.flags^=F_NEGATIVE;
+                    }
+                    rplNewComplexPush(&Rarg2,&Iarg2,amode2);
+                    if(Exceptions) return;
                     rplCheckResultAndError(&Rarg2);
                     rplCheckResultAndError(&Iarg2);
-                    }
                     return;
                 }
                 case CPLX_UNDINF:
@@ -919,7 +960,8 @@ void LIB_HANDLER()
                     case CPLX_ZERO:
                     {
                         // FINITE +/- 0 = FINITE
-                        rplPushData(arg1);
+                        rplNewComplexPush(&Rarg1,&Iarg1,amode1);
+                        if(Exceptions) return;
                         rplCheckResultAndError(&Rarg1);
                         rplCheckResultAndError(&Iarg1);
                         return;
@@ -1006,7 +1048,8 @@ void LIB_HANDLER()
                     case CPLX_ZERO:
                     {
                         // FINITE +/- 0 = FINITE
-                        rplPushData(arg1);
+                        rplNewComplexPush(&Rarg1,&Iarg1,amode1);
+                        if(Exceptions) return;
                         rplCheckResultAndError(&Rarg1);
                         rplCheckResultAndError(&Iarg1);
                         return;
@@ -6365,7 +6408,7 @@ void LIB_HANDLER()
         }
         case OVR_ABS:
         {
-            switch(cclass2)
+            switch(cclass1)
             {
             case CPLX_ZERO:
                 rplPushData((WORDPTR)zero_bint);
@@ -6388,7 +6431,12 @@ void LIB_HANDLER()
             }
             case CPLX_NORMAL|CPLX_POLAR:
             {
-                rplPushData(arg1+1);
+                // NORMALIZE THE MAGNITUDE
+                if(Rarg1.flags&F_NEGATIVE) {
+                    Rarg1.flags&=~F_NEGATIVE;
+                    rplNewRealPush(&Rarg1);
+
+                } else rplPushData(arg1+1);
                 rplCheckResultAndError(&Rarg1);
                 return;
             }

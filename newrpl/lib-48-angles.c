@@ -1377,7 +1377,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISCOMPLEX(*rplPeekData(1))) {
+        if(ISNUMBERCPLX(*rplPeekData(1))) {
             BINT angmode=rplPolarComplexMode(rplPeekData(1));
 
             if(angmode==ANGLENONE) return;   // NOTHING TO DO
@@ -1455,7 +1455,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISCOMPLEX(*rplPeekData(1))) {
+        if(ISNUMBERCPLX(*rplPeekData(1))) {
             BINT angmode=rplPolarComplexMode(rplPeekData(1));
 
             if(angmode!=ANGLENONE) return;   // NOTHING TO DO

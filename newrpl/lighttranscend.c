@@ -621,7 +621,7 @@ void trig_convertangle(REAL *oldang,BINT oldmode,BINT newmode)
 void trig_reduceangle(REAL *angle,BINT angmode)
 {
 REAL halfturn,*modangle;
-
+BINT isbig;
 if(angmode==ANGLEDMS) {
     trig_convertangle(angle,ANGLEDMS,ANGLEDEG);
     swapReal(&RReg[0],&RReg[2]);
@@ -647,8 +647,10 @@ default:
 if(angle->flags&F_NEGATIVE) {
     // HANDLE NEGATIVE ANGLES
     halfturn.flags|=F_NEGATIVE;
-}
+    isbig=ltReal(angle,&halfturn);
+} else isbig=gtReal(angle,&halfturn);
 
+if(isbig) {
     divmodReal(&RReg[1],&RReg[0],modangle,&halfturn);
         // HERE RReg[0] HAS THE ANGLE IN THE FIRST TURN
 
@@ -656,6 +658,7 @@ if(angle->flags&F_NEGATIVE) {
         subReal(&RReg[1],&RReg[0],&halfturn);
         swapReal(&RReg[0],&RReg[1]);
     }
+} else copyReal(&RReg[0],angle);  // NO NEED TO REDUCE
 
 // SPECIAL CASE: THE ABOVE RETURNS -180 FOR EXACTLY HALF TURN, MAKE IT 180 POSITIVE INSTEAD
 halfturn.flags|=F_NEGATIVE;
