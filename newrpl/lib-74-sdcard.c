@@ -64,7 +64,8 @@
     CMD(SDPATH,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDFREE,MKTOKENINFO(6,TITYPE_NOTALLOWED,1,2)), \
     CMD(SDARCHIVE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
-    CMD(SDRESTORE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2))
+    CMD(SDRESTORE,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2)), \
+    CMD(SDGETPART,MKTOKENINFO(9,TITYPE_NOTALLOWED,1,2))
 
 
 
@@ -303,10 +304,10 @@ void LIB_HANDLER()
         BINT64 partnum=rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions) return;
 
-        BINT ismounted=FSVolumeInserted(partnum);
+        BINT ismounted=FSVolumeInserted(partnum-3);
 
         if(ismounted==FS_OK) {
-            FSSetCurrentVolume(partnum);
+            FSSetCurrentVolume(partnum-3);
        }
         else  {
          rplError(rplFSError2Error(ismounted));
@@ -2362,6 +2363,23 @@ case SDPATH:
         return;
 
     }
+
+    case SDGETPART:
+    {
+        //@SHORT_DESC=Get the current partition number
+        //@NEW
+        // RETURN THE CURRENT VOLUME AS A NUMBER THAT CAN BE USED BY SDSETPART LATER
+        BINT cvol=FSGetCurrentVolume();
+
+        if(cvol<0) {
+            rplError(rplFSError2Error(cvol));
+            return;
+        }
+
+        rplNewBINTPush(cvol+3,DECBINT);
+        return;
+     }
+
 
 #endif
 

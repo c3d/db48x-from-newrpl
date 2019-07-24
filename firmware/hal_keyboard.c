@@ -3594,9 +3594,25 @@ void chsKeyHandler(BINT keymsg)
         if(!startnum) {
             startnum=line+halScreen.CursorPosition;
             if(startnum>line) {
-            if(startnum[-1]=='+') { uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"-"); halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
-            if(startnum[-1]=='-') { uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"+"); halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
-            if((startnum[-1]=='E')||(startnum[-1]=='e') ) { uiInsertCharacters((BYTEPTR)"-"); uiAutocompleteUpdate(); return; }
+            if(startnum[-1]=='+') { uiCursorLeft(1); uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"-"); halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
+            if(startnum[-1]=='-') { uiCursorLeft(1); uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"+"); halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
+            if((startnum[-1]=='E')||(startnum[-1]=='e') ) {
+                if(startnum[0]=='+') {
+                    uiRemoveCharacters(1);
+                    uiInsertCharacters((BYTEPTR)"-");
+                    uiAutocompleteUpdate();
+                    return;
+                } else if(startnum[0]=='-') {
+                    uiRemoveCharacters(1);
+                    uiInsertCharacters((BYTEPTR)"+");
+                    uiAutocompleteUpdate();
+                    return;
+                } else {
+                    uiInsertCharacters((BYTEPTR)"+");
+                    uiAutocompleteUpdate();
+                    return;
+                    }
+              }
 
 
             }
@@ -3627,7 +3643,58 @@ void chsKeyHandler(BINT keymsg)
             }
 
             if((halScreen.CursorState&0xff)=='A') {
-                uiInsertCharacters((BYTEPTR)"-");
+                // IN ALGEBRAIC MODE, TRY TO CHANGE THE SIGN OF THE LAST + OR - SIGN TO THE LEFT OF THE CURSOR
+
+                startnum=line+halScreen.CursorPosition;
+                int moveleft=0;
+                BYTEPTR prevstnum=startnum;
+                startnum=(BYTEPTR)utf8rskipst((char *)startnum,(char *)line);
+                if(startnum!=prevstnum) ++moveleft;
+                BINT char1,char2;
+                extern const char const forbiddenChars[];
+                while(startnum>=line) {
+                    BYTEPTR ptr=(BYTEPTR )forbiddenChars;
+                    char1=utf82cp((char *)startnum,(char *)prevstnum);
+                    do {
+                    char2=utf82cp((char *)ptr,(char *)ptr+4);
+                    if(char1==char2) break;
+                    ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)ptr+4);
+                    } while(*ptr);
+                    if(*ptr) break;
+                    if(*startnum=='\'') break;
+                    BYTEPTR newptr=(BYTEPTR)utf8rskipst((char *)startnum,(char *)line);
+                    if(newptr==startnum) break; // COULDN'T SKIP ANYMORE
+                    ++moveleft;
+                    prevstnum=startnum;
+                    startnum=newptr;
+                }
+                if(*startnum=='+') {
+                    if(moveleft>0) uiCursorLeft(moveleft);
+                    uiRemoveCharacters(1);
+                    uiInsertCharacters((BYTEPTR)"-");
+                    if(moveleft>0) uiCursorRight(moveleft-1);
+                }
+                else {
+                    if(*startnum=='-') {
+                        if(moveleft>0) uiCursorLeft(moveleft);
+                        uiRemoveCharacters(1);
+                        uiInsertCharacters((BYTEPTR)"+");
+                        if(moveleft>0) uiCursorRight(moveleft-1);
+                    }
+                    else {
+                     // FOUND NOTHING!
+                        if(moveleft>0) uiCursorLeft(moveleft-1);
+                        else uiCursorRight(1);
+                             startnum=(BYTEPTR)utf8skipst((char *)startnum,(char *)(startnum+4));
+                             if(*startnum=='+') { uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"-"); }
+                             else if(*startnum=='-') { uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"+"); }
+                             else uiInsertCharacters((BYTEPTR)"-");
+
+                             if(moveleft>0) uiCursorRight(moveleft-1);
+
+                    }
+                }
+
                 uiAutocompleteUpdate();
             return;
             }
