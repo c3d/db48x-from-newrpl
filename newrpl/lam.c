@@ -11,7 +11,7 @@
 
 // THESE ARE THE ONLY CHARACTERS THAT ARE FORBIDDEN IN AN IDENTIFIER
 // ALSO FORBIDDEN IS THE ARGUMENT SEPARATOR IF NOT INCLUDED IN THIS LIST
-const char const forbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@|√«»≤≥≠∡";
+const char const forbiddenChars[]="+-*/\\{}[]()#!^;:<>=, \"\'_`@|√«»≤≥≠∡∞";
 
 // SUBSCRIPT CHARS USED TO DESCRIBE VARIABLE ATTRIBUTES
 const char const subscriptChars[]="₀₁₂₃₄₅₆₇₈₉";

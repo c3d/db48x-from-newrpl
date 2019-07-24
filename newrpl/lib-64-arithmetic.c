@@ -1270,6 +1270,14 @@ case IPPOST:
 
             if(iszeroReal(&rnum)) rplOverwriteData(1,(WORDPTR)zero_bint);
             else {
+                if(rnum.flags&F_NOTANUMBER) {   // THIS INCLUDES BOTH NAN AND UNDIRECTED INFINITY
+                    rplNANToRReg(0);
+                    WORDPTR newobj=rplNewRealFromRReg(0);
+                    if(!newobj) return;
+                    rplOverwriteData(1,newobj);
+                    rplCheckResultAndError(&RReg[0]);
+                    return;
+                }
                 if(rnum.flags&F_NEGATIVE) rplOverwriteData(1,(WORDPTR)minusone_bint);
                 else rplOverwriteData(1,(WORDPTR)one_bint);
             }
@@ -1277,26 +1285,127 @@ case IPPOST:
         }
 
         if(ISCOMPLEX(*arg)) {
-            REAL Rarg,Iarg;
 
-            rplRealPart(arg,&Rarg);
-            rplImaginaryPart(arg,&Iarg);
+            // ADD COMPLEX POLAR SUPPORT
+            BINT cclass1=rplComplexClass(rplPeekData(1));
 
-            Context.precdigits+=8;
-            mulReal(&RReg[2],&Rarg,&Rarg);
-            mulReal(&RReg[3],&Iarg,&Iarg);
-            addReal(&RReg[0],&RReg[2],&RReg[3]);
+           switch(cclass1)
+           {
+           case CPLX_ZERO:
+               // UNDEFINED OR ZERO?
+           {
+               rplOverwriteData(1,(WORDPTR)zero_bint);
+               return;
+           }
+           case CPLX_NORMAL:
+           {
+               BINT angmode;
+               REAL Rarg,Iarg;
 
-            Context.precdigits-=8;
+               rplReadCNumber(rplPeekData(1),&Rarg,&Iarg,&angmode);
 
-            hyp_sqrt(&RReg[0]);
-            finalize(&RReg[0]);
+               Context.precdigits+=8;
+               mulReal(&RReg[2],&Rarg,&Rarg);
+               mulReal(&RReg[3],&Iarg,&Iarg);
+               addReal(&RReg[0],&RReg[2],&RReg[3]);
 
-            divReal(&RReg[1],&Rarg,&RReg[0]);
-            divReal(&RReg[2],&Iarg,&RReg[0]);
+               Context.precdigits-=8;
+
+               hyp_sqrt(&RReg[0]);
+               finalize(&RReg[0]);
+
+               divReal(&RReg[1],&Rarg,&RReg[0]);
+               divReal(&RReg[2],&Iarg,&RReg[0]);
 
 
-            rplNewComplexPush(&RReg[1],&RReg[2],ANGLENONE);
+               WORDPTR newobj=rplNewComplex(&RReg[1],&RReg[2],ANGLENONE);
+               if(!newobj) return;
+               rplOverwriteData(1,newobj);
+               rplCheckResultAndError(&RReg[1]);
+               rplCheckResultAndError(&RReg[2]);
+               return;
+            }
+
+           case CPLX_INF|CPLX_POLAR:
+           case CPLX_NORMAL|CPLX_POLAR:
+           {
+               // IT'S A NORMAL POLAR COMPLEX, NEED TO COMPUTE THE ARGUMENT BUT IN A PROPERLY REDUCED WAY
+               BINT angmode;
+               REAL real,imag;
+
+               rplReadCNumber(rplPeekData(1),&real,&imag,&angmode);
+
+               if(Exceptions) return;
+
+               rplNormalizeComplex(&real,&imag,angmode);
+
+               // RETURN AN ANGLE IN THE CURRENT SYSTEM
+               rplOneToRReg(4);
+
+               WORDPTR newobj=rplNewComplex(&RReg[4],&imag,angmode);
+               if(!newobj) return;
+               rplOverwriteData(1,newobj);
+               rplCheckResultAndError(&RReg[4]);
+               rplCheckResultAndError(&imag);
+               return;
+           }
+
+           case CPLX_INF:
+           case CPLX_INF|CPLX_MALFORMED:
+           {
+               BINT angmode;
+               WORDPTR result;
+               REAL real,imag;
+
+               rplReadCNumber(rplPeekData(1),&real,&imag,&angmode);
+
+               if(isinfiniteReal(&real)) {
+                   // INFINITE IN THE REAL AXIS
+
+                   if(!isinfiniteReal(&imag)) {    // CHECK IF THE IMAGINARY AXIS IS FINITE
+                       if(real.flags&F_NEGATIVE) result=(WORDPTR)minusone_bint; else result=(WORDPTR)one_bint;
+                   } else {
+                       // SIGN OF UNDEFINED/MALFORMED INFINITY IS UNKNOWN
+                       rplNANToRReg(0);
+                       WORDPTR newobj=rplNewRealFromRReg(0);
+                       if(!newobj) return;
+                       rplOverwriteData(1,newobj);
+                       rplCheckResultAndError(&RReg[0]);
+                       return;
+                   }
+                   rplOverwriteData(1,result);
+                   return;
+
+
+               }
+                   // THE IMAGINARY AXIS HAS TO BE INFINTE
+                rplZeroToRReg(0);
+                rplOneToRReg(1);
+                   if(imag.flags&F_NEGATIVE) RReg[1].flags|=F_NEGATIVE;
+
+                   WORDPTR newobj=rplNewComplex(&RReg[0],&RReg[1],ANGLENONE);
+                   if(!newobj) return;
+                   rplOverwriteData(1,newobj);
+                   return;
+
+
+           }
+           case CPLX_UNDINF:
+           case CPLX_NAN:
+           default:
+           {
+               rplNANToRReg(0);
+               WORDPTR newobj=rplNewRealFromRReg(0);
+               if(!newobj) return;
+               rplOverwriteData(1,newobj);
+               rplCheckResultAndError(&RReg[0]);
+               return;
+           }
+
+           }
+
+
+
 
             return;
 

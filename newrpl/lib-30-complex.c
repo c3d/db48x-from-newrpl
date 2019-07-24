@@ -328,38 +328,51 @@ int rplNormalizeComplex(REAL *real,REAL *imag,BINT angmode)
 {
 if(angmode==ANGLENONE) return 0;  // NOTHING TO NORMALIZE IN NON-POLAR NUMBERS
 if(real->flags&F_NEGATIVE) {
-    real->flags&=~F_NEGATIVE;
-    // NEED TO ADD HALF TURN
-    REAL halfturn;
-    // INITIALIZE CONSTANTS
-    switch(angmode)
-    {
-    case ANGLERAD:
-        decconst_PI(&halfturn);
-        break;
-    case ANGLEGRAD:
-        decconst_200(&halfturn);
-        break;
-    case ANGLEDEG:
-    case ANGLEDMS:      // DMS IS NOT SUPPORTED HERE, FALL THROUGH THE DEFAULT CASE
-    default:
-        decconst_180(&halfturn);
-        break;
-    }
-
-    halfturn.flags|=imag->flags&F_NEGATIVE; // ADD IN THE SAME DIRECTION TO MAKE SURE IT WORKS FOR DMS TOO
-
-    addReal(&RReg[2],imag,&halfturn);
-    cloneReal(imag,&RReg[2]);
-
+    // NEED TO MAKE IT POSITIVE
+    real->flags^=F_NEGATIVE;
+REAL pi;
+BINT pidata;
+// ADD 180 DEGREES
+switch(angmode)
+{
+case ANGLEDEG:
+    decconst_180(&pi);
+    break;
+case ANGLEDMS:
+    pidata=1800000;
+    if(!isintegerReal(imag)) pidata-=4000;
+    imag->exp+=2;
+    if(!isintegerReal(imag)) pidata-=40;
+    imag->exp-=2;
+    pi.data=&pidata;
+    pi.len=0;
+    pi.exp=-4;
+    pi.flags=0;
+    break;
+case ANGLEGRAD:
+    decconst_200(&pi);
+    break;
+case ANGLERAD:
+    decconst_PI(&pi);
+    break;
 }
-trig_reduceangle(imag,angmode);
-cloneReal(imag,&RReg[0]);
-// RETURN THE REALS IN real AND imag, BUT imag COULD BE CLONED RReg[0]
+BINT sign=imag->flags&F_NEGATIVE;
+imag->flags|=F_NEGATIVE;
+
+// CAREFUL, THIS OVERWRITES EITHER 0 OR 1, MAKE SURE THEY DON'T CONTAIN ANY VALUABLE DATA
+REAL *tmp=(real==&RReg[0])? &RReg[1]:&RReg[0];  // DO NOT OVERWRITE THE REAL PART
+
+addReal(tmp,imag,&pi);
+
+if(!iszeroReal(tmp)) tmp->flags^=sign^F_NEGATIVE;
+cloneReal(imag,tmp);
+}
+copyReal(&RReg[2],imag);                // MOVE TO RReg[2] TO MAKE SURE
+trig_reduceangle(&RReg[2],angmode);     // USES RReg[0] TO [3]
+cloneReal(imag,&RReg[0]);               // RETURN imag UPDATED, CLONED FROM RReg[0]
+
 return 1;
 }
-
-
 
 // CREATE COMPLEX NUMBER FROM 2 RREG'S AT ADDRESS dest
 // AND RETURN POINTER IMMEDIATELY AFTER THE NUMBER
@@ -6531,15 +6544,24 @@ void LIB_HANDLER()
 
 
 
-        if(ISCOMPLEX(*rplPeekData(1))) {
-            BINT angmode=rplPolarComplexMode(rplPeekData(1));
+        BINT angmode;
+        BINT cclass1=rplComplexClass(rplPeekData(1));
 
-            if(angmode==ANGLENONE) {
+
+        switch(cclass1)
+        {
+        case CPLX_ZERO:
+        case CPLX_INF:
+        case CPLX_NORMAL:
+        {
             // AVOID CREATING A NEW OBJECT
             WORDPTR real=rplPeekData(1)+1;
             rplOverwriteData(1,real);
             return;
-            }
+        }
+
+        case CPLX_NORMAL|CPLX_POLAR:
+        {
 
             // POLAR COMPLEX NEEDS TO BE CONVERTED TO CARTESIAN
 
@@ -6558,10 +6580,76 @@ void LIB_HANDLER()
             rplOverwriteData(1,newreal);
 
             return;
+        }
+
+        case CPLX_INF|CPLX_POLAR:
+        {
+            // IT'S A DIRECTED INFINITY, THE REAL PART COULD BE -Inf, 0 or +Inf depending on the angle
+            BINT angmode;
+            REAL real,imag;
+
+            rplReadCNumber(rplPeekData(1),&real,&imag,&angmode);
+
+            if(Exceptions) return;
+
+            rplNormalizeComplex(&real,&imag,angmode);
+
+            // HERE imag HAS THE ANGLE
+            trig_convertangle(&imag,angmode,ANGLEDEG);
+
+            REAL quarterturn;
+            decconst_90(&quarterturn);
+
+            imag.flags&=~F_NEGATIVE;    // DON'T CARE IF IT'S NEGATIVE OR NOT
+
+            switch(cmpReal(&imag,&quarterturn))
+            {
+            case -1:
+            default:
+                // LESS THAN 90 DEGREES, RETURN POSITIVE INFINITY
+                rplInfinityToRReg(0);
+                break;
+            case 0:
+                rplZeroToRReg(0);
+                break;
+            case 1:
+                rplInfinityToRReg(0);
+                RReg[0].flags|=F_NEGATIVE;
+                break;
+            }
+
+            WORDPTR newobj=rplNewReal(&RReg[0]);
+            if(!newobj) return;
+            rplOverwriteData(1,newobj);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        }
+        case CPLX_INF|CPLX_MALFORMED:
+        {
+                // AVOID CREATING A NEW OBJECT
+                WORDPTR real=rplPeekData(1)+1;
+                rplOverwriteData(1,real);
+                return;
+        }
+        case CPLX_UNDINF:
+        case CPLX_NAN:
+        default:
+        {
+            rplNANToRReg(0);
+            WORDPTR newobj=rplNewReal(&RReg[0]);
+            if(!newobj) return;
+            rplOverwriteData(1,newobj);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        }
+
+
+
 
         }
-        // IF IT IS A REAL NUMBER, THEN LEAVE THE REAL ON THE STACK
-        return;
+
+
+
     }
     case IM:
     {
@@ -6587,16 +6675,37 @@ void LIB_HANDLER()
             rplError(ERR_COMPLEXORREALEXPECTED);
             return;
         }
-        if(ISCOMPLEX(*rplPeekData(1))) {
 
-            BINT angmode=rplPolarComplexMode(rplPeekData(1));
+        BINT angmode;
+        BINT cclass1=rplComplexClass(rplPeekData(1));
 
-            if(angmode==ANGLENONE) {
-            // AVOID CREATING A NEW OBJECT
-            WORDPTR imag=rplSkipOb(rplPeekData(1)+1);
-            rplOverwriteData(1,imag);
-            return;
+
+        switch(cclass1)
+        {
+        case CPLX_ZERO:
+        case CPLX_INF:
+        case CPLX_NORMAL:
+        {
+            REAL re,im;
+
+            rplReadCNumber(rplPeekData(1),&re,&im,&angmode);
+            if(Exceptions) return;
+
+            if(iszeroReal(&im)) {
+                rplDropData(1);
+                rplPushData((WORDPTR)zero_bint);
+                return;
             }
+
+            WORDPTR newobj=rplNewReal(&im);
+            if(!newobj) return;
+            rplOverwriteData(1,newobj);
+            rplCheckResultAndError(&im);
+            return;
+        }
+
+        case CPLX_NORMAL|CPLX_POLAR:
+        {
 
             // POLAR COMPLEX NEEDS TO BE CONVERTED TO CARTESIAN
 
@@ -6615,13 +6724,65 @@ void LIB_HANDLER()
             rplOverwriteData(1,newreal);
 
             return;
+        }
+
+        case CPLX_INF|CPLX_POLAR:
+        {
+            // IT'S A DIRECTED INFINITY, THE IMAGINARY PART COULD BE -Inf, 0 or +Inf depending on the angle
+            BINT angmode;
+            REAL re,im;
+
+            rplReadCNumber(rplPeekData(1),&re,&im,&angmode);
+
+            if(Exceptions) return;
+
+            rplNormalizeComplex(&re,&im,angmode);
+
+            // HERE im HAS THE ANGLE
+
+           if(iszeroReal(&im)) rplZeroToRReg(0);
+           else {
+               rplInfinityToRReg(0);
+               RReg[0].flags|=im.flags&F_NEGATIVE;
+           }
+
+            WORDPTR newobj=rplNewReal(&RReg[0]);
+            if(!newobj) return;
+            rplOverwriteData(1,newobj);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        }
+        case CPLX_INF|CPLX_MALFORMED:
+        {
+            REAL re,im;
+
+            rplReadCNumber(rplPeekData(1),&re,&im,&angmode);
+
+            if(Exceptions) return;
+            WORDPTR newobj=rplNewReal(&im);
+            if(!newobj) return;
+            rplOverwriteData(1,newobj);
+            rplCheckResultAndError(&im);
+            return;
+        }
+        case CPLX_UNDINF:
+        case CPLX_NAN:
+        default:
+        {
+            rplNANToRReg(0);
+            WORDPTR newobj=rplNewReal(&RReg[0]);
+            if(!newobj) return;
+            rplOverwriteData(1,newobj);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        }
+
+
+
 
         }
 
-            // NON-COMPLEX NUMBERS HAVE IMAGINARY PART = 0
-            rplDropData(1);
-            rplPushData((WORDPTR)zero_bint);
-            return;
+
     }
     case ARG:
     {
@@ -6707,10 +6868,23 @@ void LIB_HANDLER()
             case CPLX_INF|CPLX_POLAR:
             case CPLX_NORMAL|CPLX_POLAR:
             {
-                // AVOID CREATING A NEW OBJECT
-                    WORDPTR arg=rplSkipOb(rplPeekData(1)+1);
-                    rplOverwriteData(1,arg);
-                    return;
+                // IT'S A NORMAL POLAR COMPLEX, NEED TO COMPUTE THE ARGUMENT BUT IN A PROPERLY REDUCED WAY
+                BINT angmode;
+                REAL real,imag;
+
+                rplReadCNumber(rplPeekData(1),&real,&imag,&angmode);
+
+                if(Exceptions) return;
+
+                rplNormalizeComplex(&real,&imag,angmode);
+
+                // RETURN AN ANGLE IN THE CURRENT SYSTEM
+
+                WORDPTR newang=rplNewAngleFromReal(&imag,angmode);
+                if(!newang) return;
+                rplOverwriteData(1,newang);
+                rplCheckResultAndError(&imag);
+                return;
             }
 
             case CPLX_INF:
@@ -6795,24 +6969,70 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISCOMPLEX(*rplPeekData(1))) {
-            REAL real,imag;
-            BINT angmode;
+        BINT angmode;
+        BINT cclass1=rplComplexClass(rplPeekData(1));
 
-            rplReadCNumber(rplPeekData(1),&real,&imag,&angmode);
 
-            // INVERT THE SIGN OF THE IMAGINARY PART OR THE ARGUMENT
-            if(!iszeroReal(&imag)) imag.flags^=F_NEGATIVE;
+        switch(cclass1)
+        {
+        case CPLX_ZERO:
+        case CPLX_INF:
+        case CPLX_NORMAL:
+        case CPLX_INF|CPLX_MALFORMED:
+        {
+            REAL re,im;
 
-            WORDPTR newcplx=rplNewComplex(&real,&imag,angmode);
-            if(!newcplx) return;
+            rplReadCNumber(rplPeekData(1),&re,&im,&angmode);
+            if(Exceptions) return;
 
-            rplOverwriteData(1,newcplx);
+            if(!iszeroReal(&im)) im.flags^=F_NEGATIVE;
 
+            WORDPTR newobj=rplNewComplex(&re,&im,angmode);
+            if(!newobj) return;
+            rplOverwriteData(1,newobj);
+            rplCheckResultAndError(&re);
+            rplCheckResultAndError(&im);
             return;
         }
 
-        // REAL NUMBERS ARE JUST LEFT ON THE STACK
+        case CPLX_INF|CPLX_POLAR:
+        case CPLX_NORMAL|CPLX_POLAR:
+        {
+            REAL re,im;
+
+            rplReadCNumber(rplPeekData(1),&re,&im,&angmode);
+            if(Exceptions) return;
+
+            rplNormalizeComplex(&re,&im,angmode);
+
+
+            if(!iszeroReal(&im)) im.flags^=F_NEGATIVE;
+
+            WORDPTR newobj=rplNewComplex(&re,&im,angmode);
+            if(!newobj) return;
+            rplOverwriteData(1,newobj);
+            rplCheckResultAndError(&re);
+            rplCheckResultAndError(&im);
+            return;
+        }
+
+        case CPLX_UNDINF:
+        case CPLX_NAN:
+        default:
+        {
+            rplNANToRReg(0);
+            WORDPTR newobj=rplNewReal(&RReg[0]);
+            if(!newobj) return;
+            rplOverwriteData(1,newobj);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        }
+
+
+
+
+        }
+
 
         return;
     }

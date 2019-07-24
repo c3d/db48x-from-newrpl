@@ -938,6 +938,30 @@ void LIB_HANDLER()
             return;
         }
 
+
+        // DETECT INFINITY ON SYMBOLIC EXPRESSIONS
+        {
+        const char *infinitystring="∞";
+        const char *undinfinitystring="∞̅";
+        char *textptr=(char *)TokenStart,*ptr=(char *)undinfinitystring;
+        while(*ptr!=0) { if(*textptr!=*ptr) break; ++textptr; ++ptr; }
+
+        if(*ptr==0) {
+            // THERE WAS AN UNDEFINED INFINITY SIGN THERE
+            RetNum=OK_TOKENINFO | MKTOKENINFO(utf8len((char *)undinfinitystring),TITYPE_REAL,0,1);
+            return;
+        }
+        textptr=(char *)TokenStart;
+        ptr=(char *)infinitystring;
+        while(*ptr!=0) { if(*textptr!=*ptr) break; ++textptr; ++ptr; }
+        if(*ptr==0) {
+            // THERE WAS AN INFINITY SIGN THERE
+            RetNum=OK_TOKENINFO | MKTOKENINFO(utf8len((char *)infinitystring),TITYPE_REAL,0,1);
+            return;
+        }
+        }
+
+
         enum {
             MODE_IP=0,
             MODE_FP,
