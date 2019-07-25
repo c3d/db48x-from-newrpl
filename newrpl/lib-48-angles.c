@@ -173,7 +173,7 @@ WORDPTR rplNewAngleFromReal(REAL *number,BINT newmode)
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
-        // NORMAL BEHAVIOR FOR A REAL IS TO PUSH THE OBJECT ON THE STACK:
+        // NORMAL BEHAVIOR FOR A NUMBER IS TO PUSH THE OBJECT ON THE STACK:
         rplPushData(IPtr);
         return;
     }
@@ -224,9 +224,12 @@ void LIB_HANDLER()
                 // ARGUMENT CHECKS SHOULD NOT BE NECESSARY
 
                 // CONVERT TO CURRENT SYSTEM AND REMOVE THE TAG
-                BINT curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+                //BINT curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
-                rplConvertAngleObj(rplPeekData(1),curmode);
+                rplConvertAngleObj(rplPeekData(1),ANGLERAD/*curmode*/);
+
+                rplSetSystemFlag(FL_FORCED_RAD);
+
                 // NEW ANGLE IS IN RReg[0]
                 WORDPTR number=rplNewReal(&RReg[0]);
                 if(Exceptions) return;
@@ -264,6 +267,8 @@ void LIB_HANDLER()
             {
                 // ARGUMENT CHECKS SHOULD NOT BE NECESSARY
 
+// ANGLES ARE BASIC OBJECTS AND SHOULD STAY ANGLES AFTER ->NUM
+/*
                 // CONVERT TO CURRENT SYSTEM AND REMOVE THE TAG
                 BINT curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
@@ -273,6 +278,7 @@ void LIB_HANDLER()
                 if(Exceptions) return;
 
                 rplOverwriteData(1,number);
+*/
                 return;
 
             }
@@ -521,19 +527,48 @@ void LIB_HANDLER()
 
                     }
 
+                    if( (OPCODE(CurOpcode)==OVR_ADD)||(OPCODE(CurOpcode)==OVR_SUB)) {
 
+                        // ADDING A NUMBER TO AN ANGLE SHOULD INTERPRET THE NUMBER AS IN THE CURRENT SYSTEM AND RETURN AN ANGLE
+                        BINT curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+
+                        if(ISANGLE(*arg1)) {
+                            // CONVERT TO CURRENT SYSTEM AND REMOVE THE TAG
+
+                            WORDPTR newobj=rplNewAngleFromNumber(arg2,curmode);
+                            if(!newobj) return;
+
+                            rplOverwriteData(1,newobj);
+                        }
+
+                        if(ISANGLE(*arg2)) {
+                            // CONVERT TO CURRENT SYSTEM AND REMOVE THE TAG
+
+
+                            WORDPTR newobj=rplNewAngleFromNumber(arg1,curmode);
+                            if(!newobj) return;
+
+                            rplOverwriteData(2,newobj);
+                        }
+
+                        rplCallOvrOperator(CurOpcode);
+                        return;
+                    }
                 }
                 }
             }
                 // ALL OTHER OPERATORS SHOULD CONVERT TO CURRENT ANGLE SYSTEM AND REMOVE TAGS
                 // THEN PROCESS THE OPCODE NORMALLY.
 
-                BINT curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+                //BINT curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
 
                 if(ISANGLE(*arg1)) {
                     // CONVERT TO CURRENT SYSTEM AND REMOVE THE TAG
 
-                    rplConvertAngleObj(arg1,curmode);
+                    rplConvertAngleObj(arg1,ANGLERAD /*curmode*/);
+
+                    rplSetSystemFlag(FL_FORCED_RAD);
+
                     // NEW ANGLE IS IN RReg[0]
                     WORDPTR number=rplNewReal(&RReg[0]);
                     if(Exceptions) return;
@@ -544,7 +579,10 @@ void LIB_HANDLER()
                 if(ISANGLE(*arg2)) {
                     // CONVERT TO CURRENT SYSTEM AND REMOVE THE TAG
 
-                    rplConvertAngleObj(arg2,curmode);
+                    rplConvertAngleObj(arg2,ANGLERAD /*curmode*/);
+
+                    rplSetSystemFlag(FL_FORCED_RAD);
+
                     // NEW ANGLE IS IN RReg[0]
                     WORDPTR number=rplNewReal(&RReg[0]);
                     if(Exceptions) return;

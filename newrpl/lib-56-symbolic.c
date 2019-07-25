@@ -160,6 +160,11 @@ const WORDPTR const ROMPTR_TABLE[]={
 };
 
 
+BINT rplIsTopLevelEnv(WORDPTR obj)
+{
+
+}
+
 // LOOKS INTO UPPER ENVIRONMENTS THAT MATCH env_owner,
 // SEARCHING IN lamnum INDEX FOR object. IF FOUND, MEANS
 // THAT A PARENT EVALUATION ALREADY USED THIS OBJECT
@@ -174,7 +179,7 @@ BINT rplCheckCircularReference(WORDPTR env_owner,WORDPTR object,BINT lamnum)
     while(lamenv) {
         if(*rplGetLAMnEnv(lamenv,0)==env_owner) {
         nlams=rplLAMCount(lamenv);
-        if(lamnum>=nlams) {
+        if((lamnum>=0) && (lamnum<=nlams)) {
         lamobj=rplGetLAMnEnv(lamenv,lamnum);
         if(*lamobj==object) return 1;
         }
@@ -457,6 +462,8 @@ void LIB_HANDLER()
         }
 
         // HERE WE HAVE program = PROGRAM TO EXECUTE
+        // CLEAR SYSTEM-WIDE FLAG ONLY ON THE TOP-LEVEL EVALUATION
+        if(!rplCheckCircularReference((WORDPTR)symbeval1_seco+2,(WORDPTR)symbeval1_seco+2,0))   rplClrSystemFlag(FL_FORCED_RAD);
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment((WORDPTR)symbeval1_seco+2);
@@ -530,6 +537,7 @@ void LIB_HANDLER()
     case OVR_EVAL:
     // EVAL NEEDS TO SCAN THE SYMBOLIC, EVAL EACH ARGUMENT SEPARATELY AND APPLY THE OPCODE.
 {
+
     WORDPTR object=rplPeekData(1),mainobj;
     if(!ISSYMBOLIC(*object)) {
         rplError(ERR_SYMBOLICEXPECTED);
@@ -542,6 +550,9 @@ void LIB_HANDLER()
 
         return;
     }
+
+    // CLEAR SYSTEM-WIDE FLAG ONLY ON THE TOP-LEVEL EVALUATION
+    if(!rplCheckCircularReference((WORDPTR)symbeval_seco+2,(WORDPTR)symbeval_seco+2,0))   rplClrSystemFlag(FL_FORCED_RAD);
 
     mainobj=object;
 
@@ -719,6 +730,9 @@ void LIB_HANDLER()
     }
 
     mainobj=object;
+
+    // CLEAR SYSTEM-WIDE FLAG ONLY ON THE TOP-LEVEL EVALUATION
+    if(!rplCheckCircularReference((WORDPTR)symbnum_seco+2,(WORDPTR)symbnum_seco+2,0))   rplClrSystemFlag(FL_FORCED_RAD);
 
     // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
     rplCreateLAMEnvironment((WORDPTR)symbnum_seco+2);
@@ -1192,6 +1206,9 @@ void LIB_HANDLER()
             // CLEANUP AND RETURN
             rplCleanupLAMs(0);
             IPtr=rplPopRet();
+            // CLEAR SYSTEM-WIDE FLAG ONLY ON THE TOP-LEVEL EVALUATION
+            if(!rplCheckCircularReference((WORDPTR)symbeval1_seco+2,(WORDPTR)symbeval1_seco+2,0))   rplClrSystemFlag(FL_FORCED_RAD);
+
             CurOpcode=(CMD_OVR_EVAL1);
             return;
 
@@ -1527,6 +1544,9 @@ void LIB_HANDLER()
             // CLEANUP AND RETURN
             rplCleanupLAMs(0);
             IPtr=rplPopRet();
+            // CLEAR SYSTEM-WIDE FLAG ONLY ON THE TOP-LEVEL EVALUATION
+            if(!rplCheckCircularReference((WORDPTR)symbeval_seco+2,(WORDPTR)symbeval_seco+2,0))   rplClrSystemFlag(FL_FORCED_RAD);
+
             CurOpcode=(CMD_OVR_EVAL);
             return;
 
@@ -1678,6 +1698,9 @@ void LIB_HANDLER()
             // CLEANUP AND RETURN
             rplCleanupLAMs(0);
             IPtr=rplPopRet();
+            // CLEAR SYSTEM-WIDE FLAG ONLY ON THE TOP-LEVEL EVALUATION
+            if(!rplCheckCircularReference((WORDPTR)symbnum_seco+2,(WORDPTR)symbnum_seco+2,0))   rplClrSystemFlag(FL_FORCED_RAD);
+
             CurOpcode=(CMD_OVR_NUM);
             return;
 

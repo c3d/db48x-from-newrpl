@@ -215,6 +215,7 @@ void LIB_HANDLER()
             rplNANToRReg(0);
             rplNewRealFromRRegPush(0);
             rplCheckResultAndError(&RReg[0]);
+            rplClrSystemFlag(FL_FORCED_RAD);
             return;
         case CPLX_NAN:
             if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
@@ -224,6 +225,7 @@ void LIB_HANDLER()
                 rplNewRealFromRRegPush(0);
                 rplCheckResultAndError(&RReg[0]);
             }
+            rplClrSystemFlag(FL_FORCED_RAD);
             return;
         case CPLX_ZERO:
         case CPLX_NORMAL:
@@ -237,7 +239,7 @@ void LIB_HANDLER()
 
         // SUPPORT FOR COMPLEX ARGUMENTS
         if(ISCOMPLEX(*arg)) {
-
+            rplClrSystemFlag(FL_FORCED_RAD);
             REAL re,im;
             rplReadCNumber(arg,&re,&im,&angmode);
 
@@ -320,7 +322,11 @@ void LIB_HANDLER()
 
         angmode=ANGLEMODE(*arg);
 
-        if(angmode==ANGLENONE) angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+        if(angmode==ANGLENONE) {
+            if(rplTestSystemFlag(FL_FORCED_RAD)) angmode=ANGLERAD;
+            else angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+        }
+        rplClrSystemFlag(FL_FORCED_RAD);
 
 
         // REAL  ARGUMENTS
@@ -378,6 +384,7 @@ void LIB_HANDLER()
             rplNANToRReg(0);
             rplNewRealFromRRegPush(0);
             rplCheckResultAndError(&RReg[0]);
+            rplClrSystemFlag(FL_FORCED_RAD);
             return;
         case CPLX_NAN:
             if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
@@ -386,7 +393,9 @@ void LIB_HANDLER()
                 rplNANToRReg(0);
                 rplNewRealFromRRegPush(0);
                 rplCheckResultAndError(&RReg[0]);
+
             }
+            rplClrSystemFlag(FL_FORCED_RAD);
             return;
         case CPLX_ZERO:
         case CPLX_NORMAL:
@@ -398,7 +407,7 @@ void LIB_HANDLER()
 
         // SUPPORT FOR COMPLEX ARGUMENTS
         if(ISCOMPLEX(*arg)) {
-
+            rplClrSystemFlag(FL_FORCED_RAD);
             REAL re,im;
             rplReadCNumber(arg,&re,&im,&angmode);
 
@@ -485,7 +494,12 @@ void LIB_HANDLER()
 
         angmode=ANGLEMODE(*arg);
 
-        if(angmode==ANGLENONE) angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+        if(angmode==ANGLENONE) {
+            if(rplTestSystemFlag(FL_FORCED_RAD)) angmode=ANGLERAD;
+            else angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+        }
+        rplClrSystemFlag(FL_FORCED_RAD);
+
 
 
         if(ISANGLE(*arg)) rplReadNumberAsReal(arg+1,&dec);
@@ -540,6 +554,7 @@ void LIB_HANDLER()
             rplNANToRReg(0);
             rplNewRealFromRRegPush(0);
             rplCheckResultAndError(&RReg[0]);
+            rplClrSystemFlag(FL_FORCED_RAD);
             return;
         case CPLX_NAN:
             if(!ISCOMPLEX(*arg) && !ISREAL(*arg) && !ISANGLE(*arg)) rplError(ERR_BADARGTYPE);
@@ -549,6 +564,7 @@ void LIB_HANDLER()
                 rplNewRealFromRRegPush(0);
                 rplCheckResultAndError(&RReg[0]);
             }
+            rplClrSystemFlag(FL_FORCED_RAD);
             return;
         case CPLX_ZERO:
         case CPLX_NORMAL:
@@ -560,7 +576,7 @@ void LIB_HANDLER()
 
         // SUPPORT FOR COMPLEX ARGUMENTS
         if(ISCOMPLEX(*arg)) {
-
+            rplClrSystemFlag(FL_FORCED_RAD);
             REAL re,im;
             rplReadCNumber(arg,&re,&im,&angmode);
 
@@ -659,7 +675,12 @@ void LIB_HANDLER()
 
         angmode=ANGLEMODE(*arg);
 
-        if(angmode==ANGLENONE) angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+        if(angmode==ANGLENONE) {
+            if(rplTestSystemFlag(FL_FORCED_RAD)) angmode=ANGLERAD;
+            else angmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
+        }
+        rplClrSystemFlag(FL_FORCED_RAD);
+
 
 
         if(ISANGLE(*arg)) rplReadNumberAsReal(arg+1,&dec);
