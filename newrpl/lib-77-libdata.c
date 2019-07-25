@@ -905,7 +905,7 @@ void LIB_HANDLER()
                 return;
             }
 
-            *ScratchPointer4=MKPROLOG(LIBRARY_NUMBER,value);
+            *ScratchPointer4=MKPROLOG(LIBRARY_NUMBER&~1,value);
             RetNum=OK_NEEDMORE;
             return;
 
@@ -975,11 +975,15 @@ void LIB_HANDLER()
                 rplCompileAppend(value);
                 rplCompileAppend(ndigits | (checksum<<16));
                 *ScratchPointer4|=0x00100000;
+                RetNum=OK_NEEDMORE;
+                return;
+
             }
 
 
         }
 
+        *ScratchPointer4=MKPROLOG(LIBRARY_NUMBER,OBJSIZE(*ScratchPointer4));    // MAKE SURE THE PROLOG IS CORRECT WHEN THIS ENDS
         RetNum=OK_CONTINUE;
         return;
      }
