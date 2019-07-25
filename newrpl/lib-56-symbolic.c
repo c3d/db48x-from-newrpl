@@ -462,8 +462,6 @@ void LIB_HANDLER()
         }
 
         // HERE WE HAVE program = PROGRAM TO EXECUTE
-        // CLEAR SYSTEM-WIDE FLAG ONLY ON THE TOP-LEVEL EVALUATION
-        if(!rplCheckCircularReference((WORDPTR)symbeval1_seco+2,(WORDPTR)symbeval1_seco+2,0))   rplClrSystemFlag(FL_FORCED_RAD);
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
         rplCreateLAMEnvironment((WORDPTR)symbeval1_seco+2);
@@ -486,6 +484,9 @@ void LIB_HANDLER()
                 while(rplSkipOb(lastobj)!=endobject) lastobj=rplSkipOb(lastobj);
                 endobject=lastobj;
             }
+
+            // TRACK FORCED_RAD FLAG THROUGH THE OPCODE'S ARGUMENTS
+            rplClrSystemFlag(FL_FORCED_RAD);
 
         }
 
@@ -551,8 +552,6 @@ void LIB_HANDLER()
         return;
     }
 
-    // CLEAR SYSTEM-WIDE FLAG ONLY ON THE TOP-LEVEL EVALUATION
-    if(!rplCheckCircularReference((WORDPTR)symbeval_seco+2,(WORDPTR)symbeval_seco+2,0))   rplClrSystemFlag(FL_FORCED_RAD);
 
     mainobj=object;
 
@@ -572,6 +571,9 @@ void LIB_HANDLER()
     object++;
     if(Opcode) {
         object++;
+        // TRACK FORCED_RAD FLAG THROUGH THE OPCODE'S ARGUMENTS
+        rplClrSystemFlag(FL_FORCED_RAD);
+
         if(OPCODE(Opcode)==OVR_FUNCEVAL) {
             // DON'T MARK THE LAST OBJECT AS THE END OF OBJECT
             WORDPTR lastobj=object;
@@ -731,8 +733,6 @@ void LIB_HANDLER()
 
     mainobj=object;
 
-    // CLEAR SYSTEM-WIDE FLAG ONLY ON THE TOP-LEVEL EVALUATION
-    if(!rplCheckCircularReference((WORDPTR)symbnum_seco+2,(WORDPTR)symbnum_seco+2,0))   rplClrSystemFlag(FL_FORCED_RAD);
 
     // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
     rplCreateLAMEnvironment((WORDPTR)symbnum_seco+2);
@@ -756,6 +756,9 @@ void LIB_HANDLER()
             endobject=lastobj;
         }
 
+        // TRACK FORCED_RAD FLAG THROUGH THE OPCODE'S ARGUMENTS
+        rplClrSystemFlag(FL_FORCED_RAD);
+
     }
 
     rplCreateLAM((WORDPTR)nulllam_ident,endobject);     // LAM 2 = END OF CURRENT OBJECT
@@ -766,6 +769,10 @@ void LIB_HANDLER()
 
     rplCreateLAM((WORDPTR)nulllam_ident,mainobj);     // LAM 4 = MAIN SYMBOLIC EXPRESSION, FOR CIRCULAR REFERENCE CHECK
     if(Exceptions) { rplCleanupLAMs(0); return; }
+
+    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);   // LAM 5 = TRACK FORCED_RAD FLAGS ACROSS ARGUMENTS
+    if(Exceptions) { rplCleanupLAMs(0); return; }
+
 
     // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
 
@@ -1203,11 +1210,16 @@ void LIB_HANDLER()
             // HERE WE ARE SUPPOSED TO HAVE ONLY ONE ARGUMENT ON THE STACK AND THE ORIGINAL OBJECT
             rplOverwriteData(2,rplPeekData(1));
             rplDropData(1);
+
+            // SET/CLEAR THE FORCED_RAD ANGLE
+            if(*rplGetLAMn(5)==(WORDPTR)zero_bint) rplClrSystemFlag(FL_FORCED_RAD);
+            else rplSetSystemFlag(FL_FORCED_RAD);
+
+
             // CLEANUP AND RETURN
             rplCleanupLAMs(0);
             IPtr=rplPopRet();
-            // CLEAR SYSTEM-WIDE FLAG ONLY ON THE TOP-LEVEL EVALUATION
-            if(!rplCheckCircularReference((WORDPTR)symbeval1_seco+2,(WORDPTR)symbeval1_seco+2,0))   rplClrSystemFlag(FL_FORCED_RAD);
+
 
             CurOpcode=(CMD_OVR_EVAL1);
             return;
@@ -1260,6 +1272,29 @@ void LIB_HANDLER()
 
         WORDPTR nextobj=*rplGetLAMn(3);
         WORDPTR endoflist=*rplGetLAMn(2);
+
+
+        // TRACK THE FORCED_RAD FLAG ACROSS ARGUMENTS
+        BINT forced_rad;
+        if(nextobj>endoflist) {
+            // WE ALREADY RAN THE OPCODE, THE RESULTING FLAG IS THE ONLY ONE THAT MATTERS
+            forced_rad=0;
+        }
+        else {
+            // BEFORE RUNNING THE OPCODE, NEED TO COMBINE THE FLAGS OF THE ARGUMENTS
+        if(*rplGetLAMn(5)==(WORDPTR)zero_bint) forced_rad=0;
+        else forced_rad=1;
+        }
+        if(rplTestSystemFlag(FL_FORCED_RAD)) forced_rad|=1;
+        if(forced_rad) rplPutLAMn(5,(WORDPTR)one_bint);
+        else rplPutLAMn(5,(WORDPTR)zero_bint);
+
+        if(nextobj<endoflist) rplClrSystemFlag(FL_FORCED_RAD);    // CLEAR THE FLAG BEFORE ANALYZING NEXT ARGUMENT
+        else {
+         if(forced_rad) rplSetSystemFlag(FL_FORCED_RAD);
+         else rplClrSystemFlag(FL_FORCED_RAD);
+        }
+
 
         if(nextobj<endoflist) rplPutLAMn(3,rplSkipOb(nextobj));    // MOVE TO THE NEXT OBJECT IN THE LIST
 
@@ -1541,11 +1576,15 @@ void LIB_HANDLER()
             // HERE WE ARE SUPPOSED TO HAVE ONLY ONE ARGUMENT ON THE STACK AND THE ORIGINAL OBJECT
             rplOverwriteData(2,rplPeekData(1));
             rplDropData(1);
+
+            // SET/CLEAR THE FORCED_RAD ANGLE
+            if(*rplGetLAMn(5)==(WORDPTR)zero_bint) rplClrSystemFlag(FL_FORCED_RAD);
+            else rplSetSystemFlag(FL_FORCED_RAD);
+
             // CLEANUP AND RETURN
             rplCleanupLAMs(0);
             IPtr=rplPopRet();
-            // CLEAR SYSTEM-WIDE FLAG ONLY ON THE TOP-LEVEL EVALUATION
-            if(!rplCheckCircularReference((WORDPTR)symbeval_seco+2,(WORDPTR)symbeval_seco+2,0))   rplClrSystemFlag(FL_FORCED_RAD);
+
 
             CurOpcode=(CMD_OVR_EVAL);
             return;
@@ -1571,6 +1610,28 @@ void LIB_HANDLER()
 
         WORDPTR nextobj=*rplGetLAMn(3);
         WORDPTR endoflist=*rplGetLAMn(2);
+
+
+        // TRACK THE FORCED_RAD FLAG ACROSS ARGUMENTS
+        BINT forced_rad;
+        if(nextobj>endoflist) {
+            // WE ALREADY RAN THE OPCODE, THE RESULTING FLAG IS THE ONLY ONE THAT MATTERS
+            forced_rad=0;
+        }
+        else {
+            // BEFORE RUNNING THE OPCODE, NEED TO COMBINE THE FLAGS OF THE ARGUMENTS
+        if(*rplGetLAMn(5)==(WORDPTR)zero_bint) forced_rad=0;
+        else forced_rad=1;
+        }
+        if(rplTestSystemFlag(FL_FORCED_RAD)) forced_rad|=1;
+        if(forced_rad) rplPutLAMn(5,(WORDPTR)one_bint);
+        else rplPutLAMn(5,(WORDPTR)zero_bint);
+
+        if(nextobj<endoflist) rplClrSystemFlag(FL_FORCED_RAD);    // CLEAR THE FLAG BEFORE ANALYZING NEXT ARGUMENT
+        else {
+         if(forced_rad) rplSetSystemFlag(FL_FORCED_RAD);
+         else rplClrSystemFlag(FL_FORCED_RAD);
+        }
 
         if(nextobj<endoflist) rplPutLAMn(3,rplSkipOb(nextobj));    // MOVE TO THE NEXT OBJECT IN THE LIST
 
@@ -1695,11 +1756,16 @@ void LIB_HANDLER()
             // HERE WE ARE SUPPOSED TO HAVE ONLY ONE ARGUMENT ON THE STACK AND THE ORIGINAL OBJECT
             rplOverwriteData(2,rplPeekData(1));
             rplDropData(1);
+
+            // SET/CLEAR THE FORCED_RAD ANGLE
+            if(*rplGetLAMn(5)==(WORDPTR)zero_bint) rplClrSystemFlag(FL_FORCED_RAD);
+            else rplSetSystemFlag(FL_FORCED_RAD);
+
+
             // CLEANUP AND RETURN
             rplCleanupLAMs(0);
             IPtr=rplPopRet();
-            // CLEAR SYSTEM-WIDE FLAG ONLY ON THE TOP-LEVEL EVALUATION
-            if(!rplCheckCircularReference((WORDPTR)symbnum_seco+2,(WORDPTR)symbnum_seco+2,0))   rplClrSystemFlag(FL_FORCED_RAD);
+
 
             CurOpcode=(CMD_OVR_NUM);
             return;
@@ -1726,9 +1792,31 @@ void LIB_HANDLER()
         WORDPTR endoflist=*rplGetLAMn(2);
         WORDPTR nextobj=rplSkipOb(*rplGetLAMn(3));
 
+        // TRACK THE FORCED_RAD FLAG ACROSS ARGUMENTS
+        BINT forced_rad;
+        if(nextobj>endoflist) {
+            // WE ALREADY RAN THE OPCODE, THE RESULTING FLAG IS THE ONLY ONE THAT MATTERS
+            forced_rad=0;
+        }
+        else {
+            // BEFORE RUNNING THE OPCODE, NEED TO COMBINE THE FLAGS OF THE ARGUMENTS
+        if(*rplGetLAMn(5)==(WORDPTR)zero_bint) forced_rad=0;
+        else forced_rad=1;
+        }
+        if(rplTestSystemFlag(FL_FORCED_RAD)) forced_rad|=1;
+        if(forced_rad) rplPutLAMn(5,(WORDPTR)one_bint);
+        else rplPutLAMn(5,(WORDPTR)zero_bint);
+
+        if(nextobj<endoflist) rplClrSystemFlag(FL_FORCED_RAD);    // CLEAR THE FLAG BEFORE ANALYZING NEXT ARGUMENT
+        else {
+         if(forced_rad) rplSetSystemFlag(FL_FORCED_RAD);
+         else rplClrSystemFlag(FL_FORCED_RAD);
+        }
 
 
-        if(nextobj<=endoflist) rplPutLAMn(3,nextobj);    // MOVE TO THE NEXT OBJECT IN THE LIST
+        if(nextobj<=endoflist) {
+            rplPutLAMn(3,nextobj);    // MOVE TO THE NEXT OBJECT IN THE LIST
+        }
 
 
         IPtr=(WORDPTR) symbnum_seco;   // CONTINUE THE LOOP

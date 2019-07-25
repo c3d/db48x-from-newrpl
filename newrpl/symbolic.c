@@ -2367,16 +2367,20 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                 }
 
+                // TRACK ANGLE CONVERSIONS
+                rplClrSystemFlag(FL_FORCED_RAD);
+
                 // SPECIAL CASE: FOR BRACKET OPERATORS WE NEED TO KEEP THEM AS SYMBOLIC
                 if((**stkptr==CMD_OPENBRACKET)||(**stkptr==CMD_LISTOPENBRACKET)||(**stkptr==CMD_CLISTOPENBRACKET)) rplSymbApplyOperator(**stkptr,nargs);
                 else rplCallOperator(**stkptr);
                 if(Exceptions) { rplBlameError(*stkptr); DSTop=endofstk+1; return 0; }
 
-                if(!ISNUMBERORUNIT(*rplPeekData(1))) {
+                if(rplTestSystemFlag(FL_FORCED_RAD) || !ISNUMBERORUNIT(*rplPeekData(1))) {
 
                     // THIS IS STRANGE, A COMMAND WITH NUMERIC INPUT SHOULD RETURN A NUMERIC OUTPUT
 
-                    // IT'S LIKELY A COMPLEX NUMBER, A VECTOR/MATRIX OR A LIST. IN ANY CASE, DON'T TRY TO SIMPLIFY
+                    // IT'S LIKELY A COMPLEX NUMBER, A VECTOR/MATRIX OR A LIST, OR SOME WEIRD ANGLE CONVERSION WITH LOSS OF ANGULAR UNIT
+                    // IN ANY CASE, DON'T TRY TO SIMPLIFY
 
                    // TODO: IF THE RESULT IS SYMBOLIC, NEED TO EXPAND BEFORE INSERTING, SO ADDITIONAL SIMPLIFICATION CAN BE DONE INSIDE
 
