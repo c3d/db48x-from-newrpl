@@ -3901,7 +3901,11 @@ __lcd_contrast++;
 if(__lcd_contrast>0xf) __lcd_contrast=0xf;
 
 lcd_setcontrast(__lcd_contrast);
-
+WORD savedex=Exceptions;
+Exceptions=0;
+WORDPTR contrast=rplNewSINT(__lcd_contrast,DECBINT);
+if(contrast) rplStoreSettings((WORDPTR)screenconfig_ident,contrast);
+Exceptions=savedex;
 }
 
 void onMinusKeyHandler(BINT keymsg)
@@ -3927,6 +3931,11 @@ for(j=0;j<15;++j) {
 __lcd_contrast--;
 if(__lcd_contrast<0) __lcd_contrast=0;
 lcd_setcontrast(__lcd_contrast);
+WORD savedex=Exceptions;
+Exceptions=0;
+WORDPTR contrast=rplNewSINT(__lcd_contrast,DECBINT);
+if(contrast) rplStoreSettings((WORDPTR)screenconfig_ident,contrast);
+Exceptions=savedex;
 }
 
 

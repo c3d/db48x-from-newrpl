@@ -561,6 +561,13 @@ void halRedrawStack(DRAWSURFACE *scr)
 void halInitScreen()
 {
 
+    // RESTORE THE SCREEN
+    WORDPTR    saved=rplGetSettings((WORDPTR)screenconfig_ident);
+    if(saved) {
+        // JUST THE CONTRAST SETTINGS FOR NOW
+        if(ISBINT(*saved)) lcd_setcontrast(rplReadBINT(saved));
+    }
+
 rplUpdateFontArray((WORDPTR **)halScreen.FontArray);
 int k;
 for(k=0;k<7;++k) halScreen.FontHash[k]=0;

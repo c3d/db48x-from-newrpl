@@ -215,6 +215,11 @@ ROMOBJECT currentform_ident[]= {
     TEXT2WORD('F','o','r','m')
 };
 
+ROMOBJECT screenconfig_ident[]= {
+    MKPROLOG(DOIDENT,2),
+    TEXT2WORD('S','c','r','C'),
+    TEXT2WORD('o','n','f',0)
+};
 // EXTERNAL EXPORTED OBJECT TABLE
 // UP TO 64 OBJECTS ALLOWED, NO MORE
 const WORDPTR const ROMPTR_TABLE[]={
@@ -249,6 +254,7 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)stksave_ident,
     (WORDPTR)editwidth_ident,
     (WORDPTR)currentform_ident,
+    (WORDPTR)screenconfig_ident,
     0
 };
 
