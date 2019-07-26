@@ -1589,12 +1589,7 @@ void LIB_HANDLER()
 
         while(((CompileEnd-ScratchPointer4-1)<(BINT)OBJSIZE(*ScratchPointer4)))
         {
-            if(ptr>=(BYTEPTR)BlankStart) {
-                // WE NEED MORE TOKENS
-
-
-            }
-            do {
+             do {
                 if((*ptr>='0')&&(*ptr<='9')) dig=(*ptr+4);
                 else if((*ptr>='A')&&(*ptr<='Z')) dig=(*ptr-65);
                 else if((*ptr>='a')&&(*ptr<='z')) dig=(*ptr-71);

@@ -371,6 +371,8 @@ void LIB_HANDLER()
                         if(Exceptions) return;
                         rplOverwriteData(2,newang);
                         rplDropData(1);
+                        rplCheckResultAndError(&RReg[1]);
+
                         return;
 
                     }
@@ -388,6 +390,8 @@ void LIB_HANDLER()
                         if(Exceptions) return;
                         rplOverwriteData(2,newang);
                         rplDropData(1);
+                        rplCheckResultAndError(&RReg[0]);
+
                         return;
 
                 }
@@ -409,6 +413,8 @@ void LIB_HANDLER()
                         if(Exceptions) return;
                         rplOverwriteData(2,newang);
                         rplDropData(1);
+                        rplCheckResultAndError(&RReg[1]);
+
                         return;
 
                     }
@@ -426,10 +432,43 @@ void LIB_HANDLER()
                         if(Exceptions) return;
                         rplOverwriteData(2,newang);
                         rplDropData(1);
+                        rplCheckResultAndError(&RReg[0]);
+
                         return;
 
                 }
 
+                if(OPCODE(CurOpcode)==OVR_DIV) {
+                    // ANGLE DIVIDED BY ANGLE SHOULD PRODUCE A NUMBER
+                    // CONVERT 2ND ARGUMENT TO THE SYSTEM OF THE FIRST
+
+                    BINT angmode=ANGLEMODE(*arg1);
+                    REAL arg1num,arg2num;
+
+                    rplReadNumberAsReal(arg1+1,&arg1num);
+                    rplReadNumberAsReal(arg2+1,&arg2num);
+
+                    if(angmode==ANGLEDMS) {
+                        trig_convertangle(&arg1num,angmode,ANGLEDEG);
+                        angmode=ANGLEDEG;
+                        cloneReal(&arg1num,&RReg[0]);
+                    }
+
+                    copyReal(&RReg[7],&arg1num);
+                    trig_convertangle(&arg2num,ANGLEMODE(*arg2),angmode);
+                    divReal(&RReg[1],&arg1num,&RReg[0]);
+
+                    WORDPTR newang=rplNewReal(&RReg[1]);
+                    if(Exceptions) return;
+                    rplOverwriteData(2,newang);
+                    rplDropData(1);
+                    rplCheckResultAndError(&RReg[1]);
+                    return;
+
+
+
+
+                }
             }
             else {
                 // MAKE SURE THERE ARE NO COMPLEX NUMBERS OR OTHER NON-NUMERIC OBJECTS INVOLVED
@@ -461,6 +500,7 @@ void LIB_HANDLER()
                             if(Exceptions) return;
                             rplOverwriteData(2,newang);
                             rplDropData(1);
+                            rplCheckResultAndError(&RReg[1]);
                             return;
 
                         }
@@ -482,6 +522,7 @@ void LIB_HANDLER()
                             if(Exceptions) return;
                             rplOverwriteData(2,newang);
                             rplDropData(1);
+                            rplCheckResultAndError(&RReg[0]);
                             return;
 
                     }
@@ -508,6 +549,8 @@ void LIB_HANDLER()
                             if(Exceptions) return;
                             rplOverwriteData(2,newang);
                             rplDropData(1);
+                            rplCheckResultAndError(&RReg[1]);
+
                             return;
 
                         }
@@ -523,6 +566,8 @@ void LIB_HANDLER()
                             if(Exceptions) return;
                             rplOverwriteData(2,newang);
                             rplDropData(1);
+                            rplCheckResultAndError(&RReg[0]);
+
                             return;
 
                     }
@@ -557,7 +602,7 @@ void LIB_HANDLER()
                 }
                 }
             }
-                // ALL OTHER OPERATORS SHOULD CONVERT TO CURRENT ANGLE SYSTEM AND REMOVE TAGS
+                // ALL OTHER OPERATORS SHOULD CONVERT TO RADIANS AND REMOVE TAGS
                 // THEN PROCESS THE OPCODE NORMALLY.
 
                 //BINT curmode=rplTestSystemFlag(FL_ANGLEMODE1)|(rplTestSystemFlag(FL_ANGLEMODE2)<<1);
