@@ -255,6 +255,8 @@ BINT rplRun(void)
 // TAKE THE NEXT WORD AND EXECUTE IT
 {
     LIBHANDLER han;
+    // CLEAR TEMPORARY SYSTEM FLAG ON EVERY SEPARATE EXECUTION
+    rplClrSystemFlag(FL_FORCED_RAD);
 
     do {
     RPLLastOpcode=CurOpcode=*IPtr;
