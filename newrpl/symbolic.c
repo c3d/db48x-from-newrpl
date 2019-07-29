@@ -2104,9 +2104,10 @@ WORDPTR rplSymbNumericReduce(WORDPTR object)
 
                     if(!den_is_one) {
                         // ONLY INSERT IN THE OBJECT IF THE DENOMINATOR IS NOT ONE
-
+                        BINT actualargs=nargs-redargs-reddenom+((redargs>0)? 1:0);
+                        if(num_is_one && (reddenom+redargs<nargs)) --actualargs;
                         WORDPTR *endofobj=stkptr-2;
-                        for(f=0;f<nargs-redargs-reddenom+((redargs>0)? 1:0);++f)
+                        for(f=0;f<actualargs;++f)
                             endofobj=rplSymbSkipInStack(endofobj);
                         WORDPTR *ptr=stkptr-2;
                         // FIND THE FIRST FACTOR IN THE DENOMINATOR
