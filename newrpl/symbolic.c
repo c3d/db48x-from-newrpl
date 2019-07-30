@@ -14,6 +14,9 @@
 #define num_min(a,b) ((a)<(b)? (a):(b))
 
 
+// THIS IS FOR DEBUGGING ONLY - *MUST* BE REMOVED FOR RELEASE
+//#define RULEDEBUG 1
+
 
 
 /* COMPILING A SYMBOLIC:
@@ -2712,12 +2715,12 @@ enum {
 #define FINDARGUMENT(exp,nargs,argidx) (exp[-2-(nargs)+(argidx)])
 
 
-//#define RULEDEBUG 1
 
 typedef struct {
 WORDPTR *left,*right;
 BINT leftnargs,rightnargs;
 BINT leftidx,rightidx,leftrot,lrotbase;
+BINT leftdepth,rightdepth;
 BINT nlams;
 } TRACK_STATE;
 
@@ -2739,8 +2742,8 @@ static void reloadPointers(WORDPTR *stkbase,TRACK_STATE *ptr)
     if(!ISPROLOG(**(ptr->left)) && !ISBINT(**(ptr->left)) && !ISCONSTANT(**(ptr->right))) ptr->leftnargs=rplReadBINT(*((ptr->left)-1));
     else ptr->leftnargs=0;
 
-    ptr->leftidx=rplReadBINT(ptr->right[1]);  // GET THE INDEX INTO THE ARGUMENTS
-    ptr->rightidx=rplReadBINT(ptr->right[2]);
+    { BINT64 tmpint=rplReadBINT(ptr->right[1]); ptr->leftidx=(BINT)tmpint; ptr->leftdepth=(BINT)(tmpint>>32); }
+    { BINT64 tmpint=rplReadBINT(ptr->right[2]); ptr->rightidx=(BINT)tmpint; ptr->rightdepth=(BINT)(tmpint>>32); }
     { BINT64 tmpint=rplReadBINT(ptr->right[3]); ptr->leftrot=(BINT)tmpint; ptr->lrotbase=(BINT)(tmpint>>32); }
 
 }
@@ -2767,9 +2770,9 @@ static void reloadLAMs(WORDPTR *orgrule,TRACK_STATE *ptr)
 // ALL POINTERS IN ptr MUST BE VALID
 static void updateCounters(TRACK_STATE *ptr)
 {
-ptr->right[1]=rplNewSINT(ptr->leftidx,DECBINT);
+ptr->right[1]=rplNewBINT((((BINT64)ptr->leftdepth)<<32)+ptr->leftidx,DECBINT);
 if(Exceptions)  return;
-ptr->right[2]=rplNewSINT(ptr->rightidx,DECBINT);
+ptr->right[2]=rplNewBINT((((BINT64)ptr->rightdepth)<<32)+ptr->rightidx,DECBINT);
 if(Exceptions)  return;
 ptr->right[3]=rplNewBINT((((BINT64)ptr->lrotbase)<<32)+ptr->leftrot,DECBINT);
 if(Exceptions)  return;
@@ -3015,7 +3018,7 @@ rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 s.right=DSTop-1;
 
-// LEFTIDX AND RIGHTIDX
+// LEFTIDX AND RIGHTIDX PLUS LEFTDEPTH AND RIGHTDEPTH
 rplPushData((WORDPTR)zero_bint);
 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 rplPushData((WORDPTR)zero_bint);
@@ -3051,7 +3054,7 @@ do {
         // DEBUG ONLY AREA
         // ******************************************************
 #ifdef RULEDEBUG
-        printf("OPMATCH: ");
+        printf("OPMATCH: [%d,%d] ",s.leftdepth,s.rightdepth);
 
         WORDPTR string=rplDecompile(*s.left,DECOMP_EDIT|DECOMP_NOHINTS);
         if(string) {
@@ -3131,7 +3134,7 @@ do {
                 rplSymbExplodeOneLevel2(*rule+ruleleftoffset);
                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                 s.right=DSTop-1;
-
+                s.leftdepth++;  // INCREASE THE DEPTH OF THE LEFT ARGUMENT
                 s.leftidx=s.rightidx=0;
                 s.lrotbase=s.leftrot=0;
                 // LEFTARG AND RIGHTARG
@@ -3193,9 +3196,9 @@ do {
                     s.leftrot=s.lrotbase=0;
                     s.nlams=0;
                     // PUSH NEW INDEX
-                    rplPushData((WORDPTR)zero_bint);
+                    rplNewBINTPush(((BINT64)s.leftdepth)<<32,DECBINT);
                     if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                    rplPushData((WORDPTR)zero_bint);
+                    rplNewBINTPush(((BINT64)s.rightdepth)<<32,DECBINT);
                     if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                     rplPushData((WORDPTR)zero_bint);
                     if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
@@ -3290,13 +3293,13 @@ do {
                             TRACK_STATE p;
                             reloadPointers(s.left-( (s.leftnargs)? (1+s.leftnargs):0),&p);
 
-                        if((**p.left==CMD_OVR_ADD)||(**p.left==CMD_OVR_MUL))  // IT'S A COMMUTATIVE/ASSOCIATIVE OPERATOR
+                        /*if((**p.left==CMD_OVR_ADD)||(**p.left==CMD_OVR_MUL))  // IT'S A COMMUTATIVE/ASSOCIATIVE OPERATOR
                         {
                             BINT k;
 
                             if(p.rightidx!=p.rightnargs) { // THE SPECIAL IDENT IS NOT THE LAST ARGUMENT
 
-                                WORDPTR tmp=FINDARGUMENT(p.right,p.rightnargs,p.rightidx);
+                                WORDPTR tmp=FINDARGUMENT(p.right,p.rightnargs,p.rightnargs);
 
                                 if(ISIDENT(*tmp)) {
                                     // CHECK IF THIS IS ANOTHER SPECIAL IDENT AND BREAK THE INFINITE LOOP
@@ -3491,6 +3494,145 @@ do {
 
                         matchtype=ARGDONE;
                         break;
+
+                        */
+
+                            if((**p.left==CMD_OVR_ADD)||(**p.left==CMD_OVR_MUL)) {
+                                // IT'S NON-COMMUTATIVE BUT ASSOCIATIVE OPERATOR, TAKE ALL ARGUMENTS LESS WHAT'S LEFT ON THE RIGHT SIDE
+                                BINT k;
+
+                                BINT otherright=p.rightnargs-p.rightidx;  // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
+                                BINT available=p.leftnargs-p.leftidx+1-otherright; // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
+
+                                if(available>1) {
+                                // CREATE A SYMBOLIC WITH THE SAME OPERATOR AND ALL REMAINING ARGUMENTS
+                                // AND ASSIGN IT TO THIS VARIABLE
+                                for(k=p.leftidx;k<=p.leftnargs-otherright;++k) {
+                                    rplPushData(FINDARGUMENT(p.left,p.leftnargs,k));
+                                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                                }
+
+                                    rplSymbApplyOperator(**p.left,available);
+                                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+
+                                    BINT attr=rplGetIdentAttr(*s.right);
+
+                                    if(attr) {
+                                        // MATCH THE ATTRIBUTES
+                                        BINT otherattr;
+
+                                        otherattr=rplSymbGetAttr(rplPeekData(1));
+                                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                                        if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
+                                            // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
+                                            rplDropData(1);
+                                            matchtype=BACKTRACK;
+                                            break;
+                                        }
+
+
+                                    }
+
+
+
+
+
+                                rplCreateLAM(*s.right,rplPopData());
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                                DSTop=s.left-( (s.leftnargs)? (1+s.leftnargs):0); // REMOVE THIS LEVEL
+
+
+                                // FINALLY, REMOVE ALL EXTRA ARGUMENTS FROM THE PARENT
+                                rplRemoveAtData(DSTop-&FINDARGUMENT(p.left,p.leftnargs,p.leftnargs-otherright),available-1);
+                                    p.left-=available-1;
+                                    p.right-=available-1;
+                                    if(baselevel>p.left-DStkBottom) baselevel-=available-1;
+                                    p.left[-1]=rplNewSINT(p.leftnargs-(available-1),DECBINT);
+
+
+                                updateLAMs(&p);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                                matchtype=ARGDONE;
+
+                                break;
+
+                                }
+
+
+                            }
+                            // IN ALL OTHER CASES, JUST ASSIGN THE CURRENT ARGUMENT
+                            if(s.leftnargs) {
+                                /*
+                                if(p.lrotbase && p.leftrot && (**p.left==CMD_OVR_MUL)) {
+                                    // DO NOT ACCEPT ANY MATCH THAT HAS ANY ROTATION WHEN MULTIPLICATION IS ACTIVE
+                                    matchtype=BACKTRACK;
+                                    break;
+                                }
+                                */
+
+                                BINT attr=rplGetIdentAttr(*s.right);
+
+                                if(attr) {
+                                    // MATCH THE ATTRIBUTES
+                                    BINT otherattr;
+
+                                    if(p.leftidx>=1 && p.leftidx<=p.leftnargs) otherattr=rplSymbGetAttr(FINDARGUMENT(p.left,p.leftnargs,p.leftidx));
+                                    else if(p.leftidx==-1) otherattr=rplSymbGetAttr(*p.left);
+                                            else otherattr=0;
+
+                                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                                    if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
+                                        // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
+                                        matchtype=BACKTRACK;
+                                        break;
+                                    }
+
+
+                                }
+
+                                // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
+
+                                if(p.leftidx>=1 && p.leftidx<=p.leftnargs) rplCreateLAM(*s.right,FINDARGUMENT(p.left,p.leftnargs,p.leftidx));
+                                else if(p.leftidx==-1) rplCreateLAM(*s.right,*p.left);
+                                // else SOMETHING IS WRONG IN THE EXPRESSION.
+
+                                s.leftidx=s.leftnargs;
+                                updateCounters(&s);
+
+                            } else {
+                                BINT attr=rplGetIdentAttr(*s.right);
+
+                                if(attr) {
+                                    // MATCH THE ATTRIBUTES
+                                    BINT otherattr;
+
+                                    otherattr=rplSymbGetAttr(*s.left);
+                                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+
+                                    if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
+                                        // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
+                                        matchtype=BACKTRACK;
+                                        break;
+                                    }
+
+
+                                }
+                                rplCreateLAM(*s.right,*s.left);
+
+                            }
+                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                            updateLAMs(&s);
+                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                            matchtype=ARGDONE;
+                            break;
+
                     }
                     case TEXT2WORD('.','m',0,0):
                         // m = Match smallest expression with any variables or constants, assuming commutative addition but non-commutative multiplication (use this with matrix expressions)
@@ -3583,13 +3725,14 @@ do {
                             matchtype=BACKTRACK;
                             break;
                         }
+                        /*
                         if(**p.left==CMD_OVR_ADD)  // IT'S A COMMUTATIVE/ASSOCIATIVE OPERATOR
                         {
                             BINT k;
 
                             if(p.rightidx!=p.rightnargs) { // THE SPECIAL IDENT IS NOT THE LAST ARGUMENT
 
-                                WORDPTR tmp=FINDARGUMENT(p.right,p.rightnargs,p.rightidx);
+                                WORDPTR tmp=FINDARGUMENT(p.right,p.rightnargs,p.rightnargs);
 
                                 if(ISIDENT(*tmp)) {
                                     // CHECK IF THIS IS ANOTHER SPECIAL IDENT AND BREAK THE INFINITE LOOP
@@ -3708,7 +3851,8 @@ do {
                             break;
 
                         }
-                        else if(**p.left==CMD_OVR_MUL) {
+                        else */
+                        if((**p.left==CMD_OVR_ADD)||(**p.left==CMD_OVR_MUL)) {
                             // IT'S NON-COMMUTATIVE BUT ASSOCIATIVE OPERATOR, TAKE ALL ARGUMENTS LESS WHAT'S LEFT ON THE RIGHT SIDE
                             BINT k;
 
@@ -4144,7 +4288,7 @@ do {
         // DEBUG ONLY AREA
         // ******************************************************
 #ifdef RULEDEBUG
-        printf("ARGMATCH: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
+        printf("ARGMATCH: %d/%d,%d/%d [%d,%d]",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs,s.leftdepth,s.rightdepth);
         if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
         WORDPTR string=rplDecompile(FINDARGUMENT(s.left,s.leftnargs,s.leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
         if(string) {
@@ -4188,9 +4332,9 @@ do {
                 s.right=DSTop-1;
 
                 // LEFTARG AND RIGHTARG
-                rplPushData((WORDPTR)zero_bint);
+                rplNewBINTPush(((BINT64)s.leftdepth+1)<<32,DECBINT);
                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                rplPushData((WORDPTR)zero_bint);
+                rplNewBINTPush(((BINT64)s.rightdepth+1)<<32,DECBINT);
                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                 rplPushData((WORDPTR)zero_bint);
                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
@@ -4222,7 +4366,7 @@ do {
         // DEBUG ONLY AREA
         // ******************************************************
 #ifdef RULEDEBUG
-        printf("RESTARTMATCH: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
+        printf("RESTARTMATCH: %d/%d,%d/%d [%d,%d]",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs,s.leftdepth,s.rightdepth);
         if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
         WORDPTR string=rplDecompile(FINDARGUMENT(s.left,s.leftnargs,s.leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
         if(string) {
@@ -4241,7 +4385,7 @@ do {
             printf("  right=%s",strbyte);
         }
         }
-        printf("\n"); fflush(stdout);
+        ("\n"); fflush(stdout);
 #endif
         // ******************************************************
         //      END DEBUG ONLY AREA
@@ -4351,7 +4495,7 @@ do {
         // DEBUG ONLY AREA
         // ******************************************************
 #ifdef RULEDEBUG
-        printf("BACKTRACK: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
+        printf("BACKTRACK: %d/%d,%d/%d [%d,%d]",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs,s.leftdepth,s.rightdepth);
         if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
         WORDPTR string=rplDecompile(FINDARGUMENT(s.left,s.leftnargs,s.leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
         if(string) {
@@ -4392,7 +4536,7 @@ do {
 
 
                 if(s.leftrot<s.leftnargs-s.leftidx) {
-                    if( (s.lrotbase==1)&&(s.leftrot==0)&&(s.rightidx==1)&&(s.leftnargs>s.rightnargs)) {
+                    if( (s.rightdepth==0)&&(s.lrotbase==1)&&(s.leftrot==0)&&(s.rightidx==1)&&(s.leftnargs>s.rightnargs)) {
                         // SPECIAL CASE: SCAN WITHOUT ROTATION FIRST TO FIND FIRST MATCH
                         if(s.leftnargs-s.leftidx+1<=s.rightnargs) {
                             // NO MORE ARGUMENTS TO SCAN, PROCEED TO ROTATION OF ARGUMENTS
@@ -4533,7 +4677,7 @@ do {
                     s.right=DSTop-1;
 
                     // LEFTARG AND RIGHTARG
-                    rplPushData((WORDPTR)zero_bint);
+                    rplNewBINTPush(((BINT64)s.leftdepth+1)<<32,DECBINT);
                     if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                     rplPushData((WORDPTR)zero_bint);
                     if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
@@ -4616,7 +4760,7 @@ do {
         // DEBUG ONLY AREA
         // ******************************************************
 #ifdef RULEDEBUG
-        printf("ARGDONE: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
+        printf("ARGDONE: %d/%d,%d/%d [%d,%d]",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs,s.leftdepth,s.rightdepth);
         if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
         WORDPTR string=rplDecompile(FINDARGUMENT(s.left,s.leftnargs,s.leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
         if(string) {
@@ -4897,7 +5041,7 @@ do {
         // DEBUG ONLY AREA
         // ******************************************************
 #ifdef RULEDEBUG
-        printf("ARGDONEEXTRA: %d/%d,%d/%d",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs);
+        printf("ARGDONEEXTRA: %d/%d,%d/%d [%d,%d]",s.leftidx,s.leftnargs,s.rightidx,s.rightnargs,s.leftdepth,s.rightdepth);
         if((s.leftidx>0) && (s.leftidx<=s.leftnargs)) {
         WORDPTR string=rplDecompile(FINDARGUMENT(s.left,s.leftnargs,s.leftidx),DECOMP_EDIT|DECOMP_NOHINTS);
         if(string) {
