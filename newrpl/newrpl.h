@@ -653,6 +653,7 @@ BINT rplListSame();
 void rplListUnaryDoCmd();
 void rplListUnaryNoResultDoCmd();
 void rplListBinaryDoCmd();
+void rplListBinaryNoResultDoCmd();
 void rplListMultiArgDoCmd(BINT nargs);
 WORDPTR rplListAddRot(WORDPTR list,WORDPTR object,BINT nmax);
 WORDPTR rplListReplace(WORDPTR list,BINT position,WORDPTR object);

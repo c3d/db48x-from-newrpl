@@ -221,9 +221,10 @@ void LIB_HANDLER()
         // LIST IS A PATH, ONLY ENABLE PARALLEL PROCESSING FOR LISTS OF LISTS
         if(ISLIST(*rplPeekData(1)))
         {
+            BINT elemcount=rplListLength(rplPeekData(1));
             WORDPTR firstelem=rplPeekData(1)+1;
-            if(!ISLIST(*firstelem)) {
-                rplListBinaryDoCmd();
+            if( (elemcount>1) || !ISLIST(*firstelem)) {
+                rplListBinaryNoResultDoCmd();
                 return;
             }
             // LIST OF LIST, TREAT LIKE A PATH
@@ -527,8 +528,9 @@ void LIB_HANDLER()
         // LIST IS A PATH, ONLY ENABLE PARALLEL PROCESSING FOR LISTS OF LISTS
         if(ISLIST(*rplPeekData(1)))
         {
+            BINT nelem=rplListLength(rplPeekData(1));
             WORDPTR firstelem=rplPeekData(1)+1;
-            if(!ISLIST(*firstelem)) {
+            if((nelem>1) || !ISLIST(*firstelem)) {
                 rplListUnaryDoCmd();
                 return;
             }

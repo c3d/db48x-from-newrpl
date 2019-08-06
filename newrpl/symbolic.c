@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
  * All rights reserved.
  * This file is released under the 3-clause BSD license.
@@ -15,7 +15,7 @@
 
 
 // THIS IS FOR DEBUGGING ONLY - *MUST* BE REMOVED FOR RELEASE
-//#define RULEDEBUG 1
+#define RULEDEBUG 1
 
 
 
@@ -2847,14 +2847,20 @@ void rplSymbReplaceMatchHere(WORDPTR *rule,BINT startleftarg)
         // HERE WE FINALLY HAVE THE RIGHT PART EXPRESSION READY TO REPLACE
         DSTop=stksave;
         if(s.leftnargs) {
-            if(s.rightnargs && (s.leftnargs!=s.rightnargs)) {
+            if( (s.rightnargs||(s.leftdepth>s.rightdepth)) && (s.leftnargs!=s.rightnargs)) {
                 // THERE'S EXTRA ARGUMENTS, MUST BE ADDITION OR MULTIPLICATION, JUST REPLACE ARGUMENTS
+                if((s.leftdepth>s.rightdepth)&&startleftarg>1) --startleftarg;  // CORRECT FOR BADLY UPDATED ARGUMENTS WHEN
+
             FINDARGUMENT(s.left,s.leftnargs,startleftarg)=newsymb;
-            rplRemoveAtData(DSTop-&FINDARGUMENT(s.left,s.leftnargs,startleftarg+s.rightnargs)+1,s.rightnargs-1);
-            s.leftnargs-=s.rightnargs-1;
-            s.left-=s.rightnargs-1;
-            s.left[-1]=rplNewSINT(s.leftnargs,DECBINT);
+            if(s.rightnargs>1)
+            {
+                rplRemoveAtData(DSTop-&FINDARGUMENT(s.left,s.leftnargs,startleftarg+s.rightnargs)+1,s.rightnargs-1);
+                s.leftnargs-=s.rightnargs-1;
+                s.left-=s.rightnargs-1;
+                s.left[-1]=rplNewSINT(s.leftnargs,DECBINT);
             }
+            }
+
             else {
                 // SINCE ALL ARGUMENTS ARE REPLACED, ALSO REPLACE THE OPERATOR
                 *s.left=newsymb;
@@ -3279,6 +3285,10 @@ do {
 
                         }
                         matchtype=ARGDONE;
+                        if(baselevel==DSTop-DStkBottom) {
+                            // IF THIS IS THE BASE LEVEL, WE NEED TO UPDATE IT WITH THE NEW LAMS
+                            baselevel+=2;
+                        }
                         updateLAMs(&s);
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
@@ -3543,6 +3553,8 @@ do {
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
                                 DSTop=s.left-( (s.leftnargs)? (1+s.leftnargs):0); // REMOVE THIS LEVEL
+                                if(baselevel>DSTop-DStkBottom) baselevel=DSTop-DStkBottom;
+                                p.leftdepth=p.rightdepth+s.leftdepth-s.rightdepth;
 
 
                                 // FINALLY, REMOVE ALL EXTRA ARGUMENTS FROM THE PARENT
@@ -3552,7 +3564,9 @@ do {
                                     if(baselevel>p.left-DStkBottom) baselevel-=available-1;
                                     p.left[-1]=rplNewSINT(p.leftnargs-(available-1),DECBINT);
 
-
+                                if(baselevel==DSTop-DStkBottom) baselevel+=2;
+                                updateCounters(&p);
+                                updateLAMs(&p);
                                 updateLAMs(&p);
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
@@ -3627,6 +3641,10 @@ do {
 
                             }
                             if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                            if(baselevel==DSTop-DStkBottom) {
+                                // IF THIS IS THE BASE LEVEL, WE NEED TO UPDATE IT WITH THE NEW LAMS
+                                baselevel+=2;
+                            }
                             updateLAMs(&s);
                             if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
@@ -3707,6 +3725,10 @@ do {
                             rplCreateLAM(*s.right,*s.left);
                         }
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                        if(baselevel==DSTop-DStkBottom) {
+                            // IF THIS IS THE BASE LEVEL, WE NEED TO UPDATE IT WITH THE NEW LAMS
+                            baselevel+=2;
+                        }
                         updateLAMs(&s);
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
@@ -3898,6 +3920,8 @@ do {
                             if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
                             DSTop=s.left-( (s.leftnargs)? (1+s.leftnargs):0); // REMOVE THIS LEVEL
+                            if(baselevel>DSTop-DStkBottom) baselevel=DSTop-DStkBottom;
+                            p.leftdepth=p.rightdepth+s.leftdepth-s.rightdepth;
 
 
                             // FINALLY, REMOVE ALL EXTRA ARGUMENTS FROM THE PARENT
@@ -3907,7 +3931,8 @@ do {
                                 if(baselevel>p.left-DStkBottom) baselevel-=available-1;
                                 p.left[-1]=rplNewSINT(p.leftnargs-(available-1),DECBINT);
 
-
+                            if(baselevel==DSTop-DStkBottom) baselevel+=2;
+                            updateCounters(&p);
                             updateLAMs(&p);
                             if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
@@ -3981,6 +4006,10 @@ do {
 
                         }
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                        if(baselevel==DSTop-DStkBottom) {
+                            // IF THIS IS THE BASE LEVEL, WE NEED TO UPDATE IT WITH THE NEW LAMS
+                            baselevel+=2;
+                        }
                         updateLAMs(&s);
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
@@ -4014,6 +4043,11 @@ do {
 
 
                         rplCreateLAM(*s.right,*s.left);
+
+                        if(baselevel==DSTop-DStkBottom) {
+                            // IF THIS IS THE BASE LEVEL, WE NEED TO UPDATE IT WITH THE NEW LAMS
+                            baselevel+=2;
+                        }
                         updateLAMs(&s);
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
@@ -4035,72 +4069,79 @@ do {
                         BINT otherright=p.rightnargs-p.rightidx;  // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
                         BINT available=p.leftnargs-otherright; // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
 
-                        if((**p.left==CMD_OVR_ADD)||(**p.left==CMD_OVR_MUL))  // IT'S A COMMUTATIVE/ASSOCIATIVE OPERATOR
-                        {
+                        if((**p.left==CMD_OVR_ADD)||(**p.left==CMD_OVR_MUL)) {
+                            // IT'S NON-COMMUTATIVE BUT ASSOCIATIVE OPERATOR, TAKE ALL ARGUMENTS LESS WHAT'S LEFT ON THE RIGHT SIDE
+                            BINT k;
+                            BINT taken;
 
+                            BINT otherright=p.rightnargs-p.rightidx;  // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
+                            BINT available=p.leftnargs-p.leftidx+1-otherright; // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
 
-                            // OTHERWISE CREATE A SYMBOLIC WITH THE SAME OPERATOR AND ALL REMAINING ARGUMENTS
+                            if(available>1) {
+                            // CREATE A SYMBOLIC WITH THE SAME OPERATOR AND ALL REMAINING ARGUMENTS
                             // AND ASSIGN IT TO THIS VARIABLE
-                            for(k=p.leftidx,count=0;k<=available-count;++k) {
-                                rplPushData(FINDARGUMENT(p.left,p.leftnargs,k));
-                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
-                                if(!rplSymbIsNumeric(DSTop[-1])) {
-                                    --DSTop;    // DROP THE ARGUMENT
-                                    // ROT THE BAD TERM ALL THE WAY TO THE END
-                                     WORDPTR tmp=FINDARGUMENT(p.left,p.leftnargs,k);
-                                     BINT j;
-                                     for(j=k;j<p.leftnargs;++j) FINDARGUMENT(p.left,p.leftnargs,j)=FINDARGUMENT(p.left,p.leftnargs,j+1);
-                                     FINDARGUMENT(p.left,p.leftnargs,p.leftnargs)=tmp;
-                                     ++count;   // COUNT HOW MANY NON-NUMERIC RESULTS WE HAVE
-                                     --k;
-                                    }
+                            for(k=p.leftidx,taken=0;k<=p.leftnargs-otherright;++k) {
+                                WORDPTR object=FINDARGUMENT(p.left,p.leftnargs,k);
+                                if(rplSymbIsNumeric(object))  {
+                                    rplPushData(object);
+                                    ++taken;
 
-                                }
-
-                            if(available-count>p.leftidx) {
-                                rplSymbApplyOperator(**p.left,available-count-p.leftidx+1);
+                                } else break;
                                 if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                             }
-                            else {
-                                if(available-count<p.leftidx) {
-                                // ARGUMENTS WERE NON NUMERIC
+                            if(taken>1) {
+                                rplSymbApplyOperator(**p.left,taken);
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                            }
+
+                            if(!taken) {
                                 matchtype=BACKTRACK;
                                 break;
-                                }
                             }
 
-                            BINT attr=rplGetIdentAttr(*s.right);
 
-                            if(attr) {
-                                // MATCH THE ATTRIBUTES
-                                BINT otherattr;
+                                BINT attr=rplGetIdentAttr(*s.right);
 
-                                otherattr=rplSymbGetAttr(rplPeekData(1));
-                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                                if(attr) {
+                                    // MATCH THE ATTRIBUTES
+                                    BINT otherattr;
+
+                                    otherattr=rplSymbGetAttr(rplPeekData(1));
+                                    if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
+                                    if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
+                                        // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
+                                        rplDropData(1);
+                                        matchtype=BACKTRACK;
+                                        break;
+                                    }
 
 
-                                if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
-                                    // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
-                                    rplDropData(1);
-                                    matchtype=BACKTRACK;
-                                    break;
                                 }
 
 
-                            }
+
+
 
                             rplCreateLAM(*s.right,rplPopData());
                             if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
-
                             DSTop=s.left-( (s.leftnargs)? (1+s.leftnargs):0); // REMOVE THIS LEVEL
+                            if(baselevel>DSTop-DStkBottom) baselevel=DSTop-DStkBottom;
+                            p.leftdepth=p.rightdepth+s.leftdepth-s.rightdepth;
 
 
                             // FINALLY, REMOVE ALL EXTRA ARGUMENTS FROM THE PARENT
-                            p.leftidx=available-count;
+                            if(taken>1) {
+                                rplRemoveAtData(DSTop-&FINDARGUMENT(p.left,p.leftnargs,p.leftidx+taken-1),taken-1);
+                                p.left-=taken-1;
+                                p.right-=taken-1;
+                                if(baselevel>p.left-DStkBottom) baselevel-=taken-1;
+                                p.left[-1]=rplNewSINT(p.leftnargs-(taken-1),DECBINT);
+                            }
 
+                            if(baselevel==DSTop-DStkBottom) baselevel+=2;
                             updateCounters(&p);
-                            if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
                             updateLAMs(&p);
                             if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
@@ -4108,12 +4149,12 @@ do {
 
                             break;
 
+                            }
+
+
                         }
-
-
                         // IN ALL OTHER CASES, JUST ASSIGN THE CURRENT ARGUMENT
                         if(s.leftnargs) {
-
 
                             BINT attr=rplGetIdentAttr(*s.right);
 
@@ -4124,8 +4165,8 @@ do {
                                 if(p.leftidx>=1 && p.leftidx<=p.leftnargs) otherattr=rplSymbGetAttr(FINDARGUMENT(p.left,p.leftnargs,p.leftidx));
                                 else if(p.leftidx==-1) otherattr=rplSymbGetAttr(*p.left);
                                         else otherattr=0;
-                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
+                                if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
 
                                 if(((attr|IDATTR_ALLTYPES)&otherattr)!=attr) {
                                     // DO NOT ACCEPT ANY MATCH THAT HAS AT LEAST THE REQUIRED BITS
@@ -4135,19 +4176,20 @@ do {
 
 
                             }
+
                             // ASSIGN THE WHOLE EXPRESSION FROM THE PARENT TREE
+                            WORDPTR expression=0;
 
-                            WORDPTR trymatch;
-                            if((p.leftidx>=1) && (p.leftidx<=p.leftnargs)) trymatch=FINDARGUMENT(p.left,p.leftnargs,p.leftidx);
-                            else if(p.leftidx==-1) trymatch=*p.left;
+
+                            if(p.leftidx>=1 && p.leftidx<=p.leftnargs) expression=FINDARGUMENT(p.left,p.leftnargs,p.leftidx);
+                            else if(p.leftidx==-1) expression=*p.left;
                             // else SOMETHING IS WRONG IN THE EXPRESSION.
-                            else trymatch=0;
-
-                            if(trymatch && rplSymbIsNumeric(trymatch)) rplCreateLAM(*s.right,trymatch);
+                            if(expression && rplSymbIsNumeric(expression)) rplCreateLAM(*s.right,expression);
                             else {
                                 matchtype=BACKTRACK;
                                 break;
                             }
+
 
                             s.leftidx=s.leftnargs;
                             updateCounters(&s);
@@ -4171,11 +4213,23 @@ do {
 
 
                             }
+                            if(rplSymbIsNumeric(*s.left)) {
                             rplCreateLAM(*s.right,*s.left);
-
+                            }
+                            else {
+                                matchtype=BACKTRACK;
+                                break;
+                            }
 
                         }
                         if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+                        if(baselevel==DSTop-DStkBottom) {
+                            // IF THIS IS THE BASE LEVEL, WE NEED TO UPDATE IT WITH THE NEW LAMS
+                            baselevel+=2;
+                        }
+                        updateLAMs(&s);
+                        if(Exceptions) { rplCleanupSnapshots(stkbottom); DSTop=expression; LAMTop=lamsave; nLAMBase=lamcurrent; return 0; }
+
                         matchtype=ARGDONE;
                         break;
                     }
