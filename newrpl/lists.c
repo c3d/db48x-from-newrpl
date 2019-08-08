@@ -469,6 +469,37 @@ void rplListUnaryDoCmd()
 }
 
 // List handling for funtions with 1 argument
+// Uses DOLIST instead of MAP so it doesn't recurse into the sublists
+void rplListUnaryNonRecursiveDoCmd()
+{
+
+    WORDPTR *savestk=DSTop;
+    WORDPTR newobj=rplAllocTempOb(2);
+    if(!newobj) return;
+    // CREATE A PROGRAM AND RUN THE MAP COMMAND
+    newobj[0]=MKPROLOG(DOCOL,2);
+    newobj[1]=CurOpcode;
+    newobj[2]=CMD_SEMI;
+
+    rplPushDataNoGrow((WORDPTR)one_bint);
+    rplPushData(newobj);
+    rplSetSystemFlag(FL_LISTCMDCLEANUP);
+
+    rplCallOperator(CMD_CMDDOLIST);
+
+    if(Exceptions) {
+        if(DSTop>savestk) DSTop=savestk;
+    }
+
+    // EXECUTION WILL CONTINUE AT DOLIST
+
+    return;
+}
+
+
+
+
+// List handling for funtions with 1 argument
 void rplListUnaryNoResultDoCmd()
 {
 

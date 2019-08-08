@@ -531,7 +531,7 @@ void LIB_HANDLER()
             BINT nelem=rplListLength(rplPeekData(1));
             WORDPTR firstelem=rplPeekData(1)+1;
             if((nelem>1) || !ISLIST(*firstelem)) {
-                rplListUnaryDoCmd();
+                rplListUnaryNonRecursiveDoCmd();
                 return;
             }
             // NOT A LIST, SO IT MUST BE A PATH

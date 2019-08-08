@@ -652,6 +652,7 @@ BINT rplIsLastElementFlat(WORDPTR composite, BINT pos);
 BINT rplListSame();
 void rplListUnaryDoCmd();
 void rplListUnaryNoResultDoCmd();
+void rplListUnaryNonRecursiveDoCmd();
 void rplListBinaryDoCmd();
 void rplListBinaryNoResultDoCmd();
 void rplListMultiArgDoCmd(BINT nargs);
