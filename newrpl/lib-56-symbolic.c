@@ -1954,6 +1954,138 @@ void LIB_HANDLER()
             return;
         }
 
+        // CONVERSION OF REAL NUMBER TO CLOSEST FRACTION USING THE PDQ ALGORITHM
+        // ALL CREDIT GOES TO JOE HORN FOR THE ORIGINAL ALGORITHM  http://www.hpmuseum.org/forum/thread-61.html
+
+        // INPUT = REAL NUMBER OR CONSTANT, AND TOLERANCE
+        // FOR TOFRACTION, TOLERANCE WILL BE 1E-P, WITH P=CURRENT SYSTEM PRECISION FOR FRACTIONS LESS THAN 1
+
+        REAL num;
+
+#define t1 RReg[0]
+#define t2 RReg[1]
+#define t3 RReg[2]
+#define n  RReg[4]
+#define d  RReg[5]
+#define a  RReg[6]
+#define b  RReg[7]
+#define c  RReg[8]
+#define p  RReg[9]
+
+#define ZERO_REG(reg) { reg.len=1; reg.data[0]=0; reg.exp=0; reg.flags=0; }
+#define ONE_REG(reg) { reg.len=1; reg.data[0]=1; reg.exp=0; reg.flags=0; }
+
+        BINT s,d0exp;
+        rplReadNumberAsReal(rplPeekData(1),&num);
+        if(Exceptions) return;
+
+
+        /*
+         **********************************************************************
+         *************** ORIGINAL PDQ ALGORITHM SOURCE CODE *******************
+         *************** Algorithm by Joe Horn ********************************
+         *************** Adapted and ported to newRPL *************************
+         **********************************************************************
+        pdq(j,t):=BEGIN
+        LOCAL n,n0,d,d0,c,p,s,t1,t2,t3,a,b;
+        IF t==0 THEN
+            err:=0;
+            ic:=0;
+            RETURN(d2f(j))  END ;
+        IF FP(t) AND (ABS(t)>1) THEN RETURN("Illegal Tolerance");  END ;
+        IF FP(t)==0 THEN t:=1/10^(exact(ABS(t)));  END ;
+        j:=d2f(j);
+        */
+
+        num.flags&=~F_APPROX;   // FROM NOW ON ALL NUMBERS ARE EXACT
+        BINT saveprec=Context.precdigits;
+        Context.precdigits=MAX_USERPRECISION;   // ALLOW INTEGERS TO GROW UP TO MAXIMUM SYSTEM PRECISION
+
+
+        copyReal(&n,&num); //  n:=numer(j);
+        d0exp=-n.exp;
+        n.exp=0;           // d0:=denom(j);
+        ZERO_REG(c);        // c=0;
+                            // t:=d2f(t);
+        ONE_REG(a);         // a:=numer(t);  - TOLERANCE WILL BE EXPRESSED AS 1E-prec
+        ONE_REG(b);
+        b.exp=saveprec;  // b:=denom(t);
+
+                            //   n:=n0;
+        ONE_REG(d);
+        d.exp=d0exp;        //   d:=d0;
+        ZERO_REG(c);        //   c:=0;
+        ONE_REG(p);         //   p:=1;
+        s=1;                //   s:=1;
+
+        do {                //   REPEAT
+
+        swapReal(&t1,&c);   //   t1:=c;
+
+        divmodReal(&c,&t3,&n,&d);  // t3:=irem(n,d);
+        mulReal(&c,&c,&t1);
+        addReal(&c,&c,&p);  // c:=c*iquo(n,d)+p;
+
+        swapReal(&p,&t1);   // p:=t1;
+        swapReal(&n,&d);    //  t2:=d; n:=t2;
+        swapReal(&d,&t3);   //  d:=t3;
+
+        s=-s;               // s:=-s
+
+        // AT THIS POINT, t1 AND t2 AND t3 ARE FREE TO USE
+        mulReal(&t1,&b,&d);
+        mulReal(&t3,&a,&c);
+        t3.exp+=d0exp;          // t3=a*c*d0
+
+        } while(gtReal(&t1,&t3));  //  UNTIL (b*d)<=(c*a*d0);
+
+        // WHEN THE LOOP ENDS, t3=a*c*d0, t1=b*d, t2 IS FREE TO USE
+
+        subReal(&t2,&t3,&t1);   // t2=c*a*d0-b*d
+        mulReal(&t1,&a,&p);
+        t1.exp+=d0exp;          // t1=p*a*d0
+        mulReal(&t3,&b,&n);
+        addReal(&t1,&t1,&t3);   // t1=p*a*d0+b*n
+
+        divmodReal(&t1,&t3,&t2,&t1);    // t1:=iquo(c*a*d0-b*d,p*a*d0+b*n);
+
+        mulReal(&t2,&n,&t1);
+        addReal(&t2,&t2,&d);
+        if(s<0) t2.flags^=F_NEGATIVE;   //   t2:=(n*t1+d)*s;
+
+        mulReal(&t3,&p,&t1);
+        subReal(&t3,&c,&t3);            //    t3:=c-p*t1;
+
+        num.exp=0;                      // num=n0
+        mulReal(&n,&t3,&num);
+        addReal(&t1,&t2,&n);            // t1=(t2+t3*n0)
+        t3.exp+=d0exp;                  // t3=t3*d0
+
+        // IGNORE ERROR FOR THIS COMMAND
+        // err:=t2/(d0*t3);
+        // ic:=t1;
+
+        // ELIMINATE SOME ZEROS (UNNECESSARY)
+
+        BINT t1zn=trailzerosReal(&t1);
+        BINT t3zn=trailzerosReal(&t3);
+        if(t1.exp+t1zn>t3.exp+t3zn) { t1.exp-=t3.exp+t3zn; t3.exp=-t3zn; }
+        else { t3.exp-=t1.exp+t1zn; t1.exp=-t1zn; }
+
+        Context.precdigits=saveprec;
+
+        rplNewRealPush(&t1);
+        if(Exceptions) return;
+        rplNewRealPush(&t3);
+        if(Exceptions) return;
+        rplSymbApplyOperator(CMD_OVR_DIV,2);  // RETURN((t2+t3*n0)/(d0*t3));
+        if(Exceptions) return;
+
+        return;
+    }
+
+/*
+
         BINT64 Ai1,Ai2,Bi1,Bi2,A,B,k,oflowA,oflowB;
         REAL num;
         BINT isneg;
@@ -2025,7 +2157,7 @@ void LIB_HANDLER()
 
         return;
     }
-
+*/
 
     case RULESEPARATOR:
                 //@SHORT_DESC=@HIDE

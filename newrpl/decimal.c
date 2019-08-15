@@ -4158,6 +4158,7 @@ quot->flags=0;
 }
 else {
 div_real(quot,a,b,ndigits);
+quot->flags=(quot->flags&~F_APPROX)|((a->flags|b->flags)&F_APPROX); // ONLY APPROX. IF EITHER ARGUMENT WAS APPROX.
 normalize(quot);
 }
 if(quot->exp<0) {
@@ -5052,6 +5053,45 @@ BINT intdigitsReal(REAL *r)
 {
     return ((r->len-1)<<3)+sig_digits(r->data[r->len-1])+r->exp;
 }
+// RETURN THE NUMBER OF STORED TRAILING ZEROS
+BINT trailzerosReal(REAL *r)
+{
+    BINT count=0;
+    BINT off=0;
+    while((r->data[off]==0)&&(off<r->len)) { ++off; count+=8; }
+
+    if(off==r->len) return count;
+    if(r->data[off]==0) return count+8;
+
+    if(lo_digits(r->data[off],4)) {
+        if(lo_digits(r->data[off],2)) {
+            // COULD BE 0 OR 1 ZEROS
+            if(lo_digits(r->data[off],1)) return count;
+            else return count+1;
+        }
+        else {
+            // COULD BE 2 OR 3 ZEROS
+            if(lo_digits(r->data[off],3)) return count+2;
+            else return count+3;
+        }
+    }
+    else {
+        if(lo_digits(r->data[off],6)) {
+            // COULD BE 4 OR 5 ZEROS
+            if(lo_digits(r->data[off],5)) return count+4;
+            else return count+5;
+        }
+        else {
+            // COULD BE 6 OR 7 ZEROS
+            if(lo_digits(r->data[off],7)) return count+6;
+            else return count+7;
+        }
+
+
+    }
+
+}
+
 
 // *************************************************************************
 // **************************** END DECIMAL LIBRARY ************************

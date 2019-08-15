@@ -324,6 +324,10 @@ void ipReal(REAL *result, REAL *num, BINT align);
 // RETURN THE FRACTION PART ONLY
 void fracReal(REAL *result,REAL *num);
 
+// RETURN THE NUMBER OF TRAILING ZEROS STORED AS DIGITS IN A NUMBER
+BINT trailzerosReal(REAL *num);
+
+
 // COMPARISON OPERATORS
 BINT ltReal(REAL *a,REAL *b);
 BINT gtReal(REAL *a,REAL *b);
