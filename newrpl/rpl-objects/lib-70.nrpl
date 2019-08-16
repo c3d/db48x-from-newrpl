@@ -24,14 +24,25 @@
 @#name lib70menu_main
 {
 { "#h" :: "#h" EDINSERT 1 EDLEFT "C" EDMODE ; }
-{ "→#h" :: #0h SWAP + ; }
+{ "#o" :: "#o" EDINSERT 1 EDLEFT ; }
 { "#b" :: "#b" EDINSERT 1 EDLEFT ; }
+{ "" :: ; }
+{ "#→#" :: IFERR DUP TYPEE IF DUP 62 == THEN DROP DUP HEAD TYPEE END
+                     CASE
+                     DUP 10.12 == THEN #0b END
+                     DUP 10 == THEN #0b END
+                     DUP 10.02 == THEN #0o END
+                     DUP 10.22 == THEN #0h END
+                     0
+                     END
+                ROT + NIP
+                THEN END
+        ;
+}
+
+{ "→#h" :: #0h SWAP + ; }
 { "→#b" :: #0b SWAP + ; }
 { "→#d" :: 0 SWAP + ; }
-
-{ "#o" :: "#o" EDINSERT 1 EDLEFT ; }
-{ "→#o" :: #0o SWAP + ; }
-{ "" :: ; }
 STWS RCWS
 
 

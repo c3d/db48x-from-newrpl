@@ -1972,8 +1972,10 @@ void LIB_HANDLER()
 #define c  RReg[8]
 #define p  RReg[9]
 
+#define NUM2REG(reg,nn) { reg.len=1; reg.data[0]=nn; reg.exp=0; reg.flags=0; }
 #define ZERO_REG(reg) { reg.len=1; reg.data[0]=0; reg.exp=0; reg.flags=0; }
 #define ONE_REG(reg) { reg.len=1; reg.data[0]=1; reg.exp=0; reg.flags=0; }
+
 
         BINT s,d0exp;
         rplReadNumberAsReal(rplPeekData(1),&num);
@@ -1983,7 +1985,7 @@ void LIB_HANDLER()
         /*
          **********************************************************************
          *************** ORIGINAL PDQ ALGORITHM SOURCE CODE *******************
-         *************** Algorithm by Joe Horn ********************************
+         *************** PDQ Algorithm by Joe Horn ********************************
          *************** Adapted and ported to newRPL *************************
          **********************************************************************
         pdq(j,t):=BEGIN
@@ -2008,8 +2010,8 @@ void LIB_HANDLER()
         ZERO_REG(c);        // c=0;
                             // t:=d2f(t);
         ONE_REG(a);         // a:=numer(t);  - TOLERANCE WILL BE EXPRESSED AS 1E-prec
-        ONE_REG(b);
-        b.exp=saveprec;  // b:=denom(t);
+        NUM2REG(b,2)
+        b.exp=saveprec-intdigitsReal(&num);  // b:=denom(t);
 
                             //   n:=n0;
         ONE_REG(d);
