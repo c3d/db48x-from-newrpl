@@ -77,7 +77,7 @@ BINT uiGetCmdLineState();
 void uiEnsureCursorVisible();
 void uiModifyLine(int dontaddnewline);
 void uiExtractLine(BINT line);
-BYTEPTR uiFindNumberStart();
+BYTEPTR uiFindNumberStart(BYTEPTR *endofnum);
 WORDPTR uiGetCmdLineText();
 BINT uiSetCmdLineText(WORDPTR text);
 void uiOpenCmdLine(BINT mode);

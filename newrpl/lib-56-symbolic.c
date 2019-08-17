@@ -1949,16 +1949,15 @@ void LIB_HANDLER()
             return;
         }
 
+        if(ISSYMBOLIC(*rplPeekData(1))) {
+            rplSymbApplyOperator(CurOpcode,1);
+            return;
+        }
+
         if(!ISNUMBER(*rplPeekData(1))) {
             rplError(ERR_REALEXPECTED);
             return;
         }
-
-        // CONVERSION OF REAL NUMBER TO CLOSEST FRACTION USING THE PDQ ALGORITHM
-        // ALL CREDIT GOES TO JOE HORN FOR THE ORIGINAL ALGORITHM  http://www.hpmuseum.org/forum/thread-61.html
-
-        // INPUT = REAL NUMBER OR CONSTANT, AND TOLERANCE
-        // FOR TOFRACTION, TOLERANCE WILL BE 1E-P, WITH P=CURRENT SYSTEM PRECISION FOR FRACTIONS LESS THAN 1
 
         REAL num;
 
@@ -2076,12 +2075,18 @@ void LIB_HANDLER()
 
         Context.precdigits=saveprec;
 
+        WORDPTR *stksave=DSTop;
+
         rplNewRealPush(&t1);
-        if(Exceptions) return;
+        if(Exceptions) { DSTop=stksave; return; }
         rplNewRealPush(&t3);
-        if(Exceptions) return;
+        if(Exceptions) { DSTop=stksave; return; }
         rplSymbApplyOperator(CMD_OVR_DIV,2);  // RETURN((t2+t3*n0)/(d0*t3));
-        if(Exceptions) return;
+        if(Exceptions) { DSTop=stksave; return; }
+
+        rplOverwriteData(2,rplPeekData(1));
+        rplDropData(1);
+
 
         return;
     }

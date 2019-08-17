@@ -1140,7 +1140,7 @@ void uiCursorPageDown()
 
 
 // FIND THE START OF A NUMBER IN THE COMMAND LINE, ONLY USED BY +/- ROUTINE
-BYTEPTR uiFindNumberStart()
+BYTEPTR uiFindNumberStart(BYTEPTR *endofnum)
 {
     if(halScreen.LineIsModified<0) {
         uiExtractLine(halScreen.LineCurrent);
@@ -1168,26 +1168,47 @@ BYTEPTR uiFindNumberStart()
     end=ptr;
     start=NULL;
     flags=0;
+
+    // CHECK IF WE ARE AT THE START OR END OF TOKEN
+    if((end<line+len)&&((*end=='+')||(*end=='-'))) ++end;  // INVESTIGATE TO THE RIGHT OF THE CURSOR FIRST WHEN THERE'S A + OR - SYMBOL
+    if((end<line+len)&&((*end==' ')||(*end=='\n'))) --end;  // INVESTIGATE THE LAST CHARACTER TO SET THE PROPER FLAGS
+    if(end==line+len) --end;                                // IF AT END OF STRING, CHECK NUMBER TO THE LEFT
+    if(end<line) end=line;
+
+
+
+
     while(end<line+len) {
         if((*end>='0')&&(*end<='9')) { ++end; continue; }
         if(*end=='.') { ++end; continue; }
+        if((*end=='#')&&!flags) { ++end; flags=1; continue; }
 
         if((*end>='A')&&(*end<='F')) { if(!start) start=end; ++end; continue; }
         if((*end>='a')&&(*end<='f')) { if(!start) start=end; ++end; continue; }
-        if(*end=='h') { flags=3; break; }
-        if(*end=='o') { if(start) end=start; else flags=1; break; }
+        if(*end=='h') { flags=3; ++end; break; }
+        if(*end=='o') { if(start) end=start+1; else { ++end; flags=1; } break; }
         // ANY OTHER CHARACTER ENDS THE NUMBER
-        if(start) {
-            end=start;
-            if(*end=='b') flags=1;
-            if(*end=='d') flags=1;
-        }
+        if(start) end=start+1;
         break;
     }
+
+
+        // REACHED THE END, CHECK THE LAST DIGIT WAS A 'b' TO SEE IF WE NEED TO SET THE FLAGS
+        if( (end>line) && ((end[-1]=='b')||(end[-1]=='d')||(end[-1]=='o'))) flags=1;
+        if( (end>line) && ((end[-1]=='h'))) flags=3;
+
+        --end;
+
+
+
     // HERE WE HAVE THE END OF THE NUMBER, AND flags=1 IF THE NUMBER STARTS WITH #
+    if(endofnum) *endofnum=end;
+
     // NOW FIND THE START OF THE NUMBER
     start=ptr;
-    if(start>=end) start=end-1;
+    if(start>=end) start=end;
+    if(flags && ((*start=='h')||(*start=='o')||(*start=='b'))) --start;
+
 
     while(start>=line) {
         if((*start>='0')&&(*start<='9')) { --start; continue; }
@@ -1205,7 +1226,7 @@ BYTEPTR uiFindNumberStart()
 
     // HERE START POINTS TO THE FIRST CHARACTER IN THE NUMBER
 
-    if(start>=end) return NULL;  // THERE WAS NO NUMBER
+    if(start>end) return NULL;  // THERE WAS NO NUMBER
     return start;
 }
 

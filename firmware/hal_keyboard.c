@@ -3589,7 +3589,7 @@ void chsKeyHandler(BINT keymsg)
         BYTEPTR line;
 
         // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER, CHANGE THE SIGN OF THE NUMBER IN THE TEXT
-        startnum=uiFindNumberStart();
+        startnum=uiFindNumberStart(NULL);
         line=(BYTEPTR)(CmdLineCurrentLine+1);
         if(!startnum) {
             startnum=line+halScreen.CursorPosition;
@@ -3755,7 +3755,7 @@ void eexKeyHandler(BINT keymsg)
         rplGetSystemNumberFormat(&config);
 
 
-        startnum=uiFindNumberStart();
+        startnum=uiFindNumberStart(NULL);
 
         BYTEPTR line=(BYTEPTR)(CmdLineCurrentLine+1);
 
@@ -4964,6 +4964,155 @@ void formswitcherKeyHandler(BINT keymsg)
 
 
 
+void basecycleKeyHandler(BINT keymsg)
+{
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()&CONTEXT_STACK) {
+            // ACTION WHEN IN THE STACK, CYCLE THROUGH DIFFERENT BASES
+
+            rplPushDataNoGrow((WORDPTR)lib70_basecycle);
+                uiCmdRunHide(CMD_OVR_XEQ,1);
+                if(Exceptions) {
+                    // TODO: SHOW ERROR MESSAGE
+                    halShowErrorMsg();
+                    Exceptions=0;
+                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
+            halScreen.DirtyFlag|=STACK_DIRTY;
+
+
+        }
+
+    }
+    else {
+
+        // ACTION INSIDE THE EDITOR
+
+        BYTEPTR startnum,endnum;
+        BYTEPTR line;
+
+        // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER, CHANGE THE BASE OF THE NUMBER IN THE TEXT
+        startnum=uiFindNumberStart(&endnum);
+        line=(BYTEPTR)(CmdLineCurrentLine+1);
+        if(!startnum) {
+            startnum=line+halScreen.CursorPosition;
+            if(startnum>line) {
+            if(startnum[-1]=='#') {
+                BINT nextbase;
+                switch(startnum[0])
+                {
+                case 'b':
+                case 'B':
+                    nextbase='o';
+                    break;
+                case 'O':
+                case 'o':
+                    nextbase='h';
+                    break;
+                case 'h':
+                case 'H':
+                    nextbase='d';
+                    break;
+                default:
+                    nextbase=0;
+                }
+                if(nextbase) uiRemoveCharacters(1);
+                else nextbase='b';
+                uiInsertCharacters((BYTEPTR)&nextbase);
+                halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
+                return;
+            }
+            }
+            // SECOND CASE: IF TOKEN UNDER CURSOR IS EMPTY, IN 'D' MODE COMPILE OBJECT AND THEN EXECUTE BASE CYCLE
+
+            if((halScreen.CursorState&0xff)=='D') {
+            // COMPILE AND EXECUTE
+            if(endCmdLineAndCompile()) {
+
+            rplPushDataNoGrow((WORDPTR)lib70_basecycle);
+            uiCmdRunHide(CMD_OVR_XEQ,1);
+            if(Exceptions) {
+                // TODO: SHOW ERROR MESSAGE
+                halShowErrorMsg();
+                Exceptions=0;
+            }
+            halScreen.DirtyFlag|=STACK_DIRTY;
+            }
+
+            return;
+            }
+
+
+        }
+        else {
+            // WE FOUND A NUMBER
+            BINT oldposition=halScreen.CursorPosition;
+            uiMoveCursor(startnum-line);
+            BYTE str[2];
+            BINT endchar;
+            str[1]=0;
+            str[0]='#';
+
+            if(endnum>startnum) endchar=*endnum;
+            else endchar=0;
+
+
+            // TODO: FIND THE END OF THE TOKEN, AND CYCLE THE LETTER
+            switch(endchar)
+            {
+                case 'b':
+                case 'B':
+                endchar='o';
+                break;
+                case 'o':
+                case 'O':
+                endchar='h';
+                break;
+                case 'h':
+                case 'H':
+                endchar=-1;
+                break;
+            default:
+                endchar=0;
+            }
+
+            if(endchar<0) {
+                // REMOVE NUMERAL SIGN
+                if(startnum[0]=='#') { uiRemoveCharacters(1); if(oldposition>startnum-line) --oldposition; --endnum; }
+
+            }
+            else {
+                // ADD NUMERAL SIGN IF NOT THERE YET
+                if(startnum[0]!='#') { uiInsertCharacters((BYTEPTR)str); if(oldposition>startnum-line) ++oldposition; ++endnum; }
+            }
+
+
+
+            if(endchar!=0) {
+                uiMoveCursor(endnum-line);
+                uiRemoveCharacters(1);
+                if(oldposition>endnum-line) --oldposition;
+            } else {
+                uiMoveCursor(endnum-line+1);
+                endchar='b';
+            }
+            if(endchar>0) {
+
+                str[0]=endchar;
+                uiInsertCharacters((BYTEPTR)str);
+                if(oldposition>=endnum-line) ++oldposition;
+            }
+
+            uiMoveCursor(oldposition);
+            uiEnsureCursorVisible();
+            uiAutocompleteUpdate();
+            return;
+      }
+
+        // THIRD CASE: IF TOKEN UNDER CURSOR IS SOMETHING OTHER THAN A NUMBER, JUST DO NOTHING
+
+
+   }
+}
 
 
 
@@ -5831,7 +5980,7 @@ DECLARE_CMDKEYHANDLER(atanh,CMD_ATANH,"ATANH",1)
 DECLARE_CMDKEYHANDLER(eval,(CMD_OVR_EVAL),"EVAL",-1)
 DECLARE_CMDKEYHANDLER(eval1,(CMD_OVR_EVAL1),"EVAL1",-1)
 DECLARE_CMDKEYHANDLER(tonum,(CMD_OVR_NUM),"→NUM",-1)
-
+DECLARE_CMDKEYHANDLER(tofrac,(CMD_TOFRACTION),"→Q",-1)
 
 DECLARE_CMDKEYHANDLER(sqrt,CMD_SQRT,"√",0)
 DECLARE_CMDKEYHANDLER(pow,(CMD_OVR_POW),"^",0)
@@ -5964,16 +6113,6 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_9, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_0, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_DOT, CONTEXT_ANY,&decimaldotKeyHandler },
-    { KM_PRESS|KB_1|SHIFT_ALPHAHOLD, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_2|SHIFT_ALPHAHOLD, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_3|SHIFT_ALPHAHOLD, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_4|SHIFT_ALPHAHOLD, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_5|SHIFT_ALPHAHOLD, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_6|SHIFT_ALPHAHOLD, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_7|SHIFT_ALPHAHOLD, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_8|SHIFT_ALPHAHOLD, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_9|SHIFT_ALPHAHOLD, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_0|SHIFT_ALPHAHOLD, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_DOT|SHIFT_ALPHAHOLD, CONTEXT_ANY,&dotKeyHandler },
     { KM_PRESS|KB_1|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
     { KM_PRESS|KB_2|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
@@ -6262,9 +6401,6 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_0|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&infinityKeyHandler },
     { KM_PRESS|KB_0|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&undinfinityKeyHandler },
     { KM_PRESS|KB_0|SHIFT_RS, CONTEXT_ANY,&arrowKeyHandler },
-    { KM_PRESS|KB_0|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&arrowKeyHandler },
-    { KM_PRESS|KB_0|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&arrowKeyHandler },
-    { KM_PRESS|KB_0|SHIFT_RS|SHIFT_ALPHAHOLD, CONTEXT_ANY,&arrowKeyHandler },
     { KM_PRESS|KB_SPC|SHIFT_RS, CONTEXT_ANY,&commaKeyHandler },
     { KM_PRESS|KB_SPC|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&commaKeyHandler },
     { KM_PRESS|KB_SPC|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&semiKeyHandler },
@@ -6296,10 +6432,8 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_LPRESS|KB_N, CONTEXT_ANY,&eval1KeyHandler },
     { KM_PRESS|KB_ENT|SHIFT_RS, CONTEXT_ANY,&tonumKeyHandler },
     { KM_PRESS|KB_ENT|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&tonumKeyHandler },
-    { KM_PRESS|KB_ENT|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(rulesep) },
-    { KM_PRESS|KB_ENT|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(giventhat) },
-    { KM_PRESS|KB_ENT|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(rulesep) },
-    { KM_PRESS|KB_ENT|SHIFT_ALPHA|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(giventhat) },
+    { KM_PRESS|KB_ENT|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(tofrac)  },
+    { KM_PRESS|KB_ENT|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(tofrac) },
 
     { KM_PRESS|KB_R, CONTEXT_ANY,&sqrtKeyHandler },
     { KM_PRESS|KB_Q, CONTEXT_ANY,&powKeyHandler },
@@ -6344,6 +6478,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_6|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(convert) },
     { KM_PRESS|KB_6|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(convert) },
 
+    { KM_PRESS|KB_3|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(basecycle) },
 
     // LETTERS
 
@@ -6462,21 +6597,25 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(backslash) },
     { KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_LSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(backslash) },
 
+    { KM_PRESS|KB_0|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(rulesep) },
+    { KM_PRESS|KB_2|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(giventhat) },
+    { KM_PRESS|KB_0|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(rulesep) },
+    { KM_PRESS|KB_2|SHIFT_ALPHA|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(giventhat) },
 
 
 
     // NUMBERS
 
-    { KM_PRESS|KB_0|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub0) },
-    { KM_PRESS|KB_1|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub1) },
-    { KM_PRESS|KB_2|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub2) },
-    { KM_PRESS|KB_3|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub3) },
-    { KM_PRESS|KB_4|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub4) },
-    { KM_PRESS|KB_5|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub5) },
-    { KM_PRESS|KB_6|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub6) },
-    { KM_PRESS|KB_7|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub7) },
-    { KM_PRESS|KB_8|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub8) },
-    { KM_PRESS|KB_9|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sub9) },
+    { KM_PRESS|KB_0|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub0) },
+    { KM_PRESS|KB_1|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub1) },
+    { KM_PRESS|KB_2|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub2) },
+    { KM_PRESS|KB_3|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub3) },
+    { KM_PRESS|KB_4|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub4) },
+    { KM_PRESS|KB_5|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub5) },
+    { KM_PRESS|KB_6|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub6) },
+    { KM_PRESS|KB_7|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub7) },
+    { KM_PRESS|KB_8|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub8) },
+    { KM_PRESS|KB_9|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub9) },
 
 
     // MENUS

@@ -577,6 +577,7 @@ extern const WORD error_reenter_seco[];
 extern const WORD invalid_string[];
 
 extern const WORD library_dirname[];
+extern const WORD lib70_basecycle[];
 
 
 
