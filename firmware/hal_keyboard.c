@@ -3803,9 +3803,12 @@ void eexKeyHandler(BINT keymsg)
 
             // NEED TO INSERT A CHARACTER HERE
             BINT oldposition=halScreen.CursorPosition;
+            if((*endnum=='e')||(*endnum=='E')) uiMoveCursor(endnum-line+1);
+            else {
             if((config.MiddleFmt|config.BigFmt|config.SmallFmt)&FMT_USECAPITALS) uiInsertCharacters((BYTEPTR)"E");
             else uiInsertCharacters((BYTEPTR)"e");
             uiMoveCursor(oldposition+1);
+            }
             uiEnsureCursorVisible();
             uiAutocompleteUpdate();
             return;
@@ -6470,6 +6473,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
     { KM_PRESS|KB_6|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(convert) },
 
     { KM_PRESS|KB_3|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(basecycle) },
+    { KM_PRESS|KB_3|SHIFT_RS|SHIFT_RSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(basecycle) },
 
     // LETTERS
 

@@ -1184,7 +1184,7 @@ BYTEPTR uiFindNumberStart(BYTEPTR *endofnum,BINT *flagsptr)
             if((*end>'7')&&(minbase<10)) minbase=10;
             ++end; continue;
         }
-        if(*end=='.') { ++end; continue; }
+        if(*end=='.') { ++end; flags|=8; continue; }
         if((*end=='#')&&!flags) { ++end; flags=1; continue; }
 
         if((*end>='A')&&(*end<='F')) {
@@ -1228,15 +1228,15 @@ BYTEPTR uiFindNumberStart(BYTEPTR *endofnum,BINT *flagsptr)
 
     while(start>=line) {
         if(nextisE) {
-            if((*start!='E')&&(*start!='e')) { start+=2; nextisE=0; break; }
+            if((*start!='E')&&(*start!='e')) { start+=2; flags|=8; nextisE=0; break; }
             nextisE=0;
         }
         if((*start>='0')&&(*start<='9')) {
             if((*start>'1')&&(minbase<8)) minbase=8;
             if((*start>'7')&&(minbase<10)) minbase=10;
             --start; continue; }
-        if(*start=='.') { --start; continue; }
-        if((*start=='+')||(*start=='-')) { --start; nextisE++; flags|=8; continue; }
+        if(*start=='.') { --start; flags|=8; continue; }
+        if((*start=='+')||(*start=='-')) { --start; nextisE++;  continue; }
 
         if((*start>='A')&&(*start<='F')) {
             if( (countE>=0)&&(*start=='E')) ++countE;
