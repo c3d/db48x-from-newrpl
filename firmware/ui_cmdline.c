@@ -1140,7 +1140,7 @@ void uiCursorPageDown()
 
 
 // FIND THE START OF A NUMBER IN THE COMMAND LINE, ONLY USED BY +/- ROUTINE
-BYTEPTR uiFindNumberStart(BYTEPTR *endofnum)
+BYTEPTR uiFindNumberStart(BYTEPTR *endofnum,BINT *flagsptr)
 {
     if(halScreen.LineIsModified<0) {
         uiExtractLine(halScreen.LineCurrent);
@@ -1161,7 +1161,7 @@ BYTEPTR uiFindNumberStart(BYTEPTR *endofnum)
     BYTEPTR line=(BYTEPTR )(CmdLineCurrentLine+1);
     BYTEPTR end,start,ptr;
     BINT len=rplStrSize(CmdLineCurrentLine);
-    BINT flags;
+    BINT flags,minbase=2,countE=0;
 
     // FIND NUMBER BEFORE
     ptr=line+halScreen.CursorPosition;
@@ -1179,23 +1179,38 @@ BYTEPTR uiFindNumberStart(BYTEPTR *endofnum)
 
 
     while(end<line+len) {
-        if((*end>='0')&&(*end<='9')) { ++end; continue; }
+        if((*end>='0')&&(*end<='9')) {
+            if((*end>'1')&&(minbase<8)) minbase=8;
+            if((*end>'7')&&(minbase<10)) minbase=10;
+            ++end; continue;
+        }
         if(*end=='.') { ++end; continue; }
         if((*end=='#')&&!flags) { ++end; flags=1; continue; }
 
-        if((*end>='A')&&(*end<='F')) { if(!start) start=end; ++end; continue; }
-        if((*end>='a')&&(*end<='f')) { if(!start) start=end; ++end; continue; }
+        if((*end>='A')&&(*end<='F')) {
+            if( (countE>=0)&&(*end=='E')) ++countE;
+            else countE=-1;
+            /*if(!start) start=end;*/
+            minbase=16; ++end; continue; }
+        if((*end>='a')&&(*end<='f')) {
+            if( (countE>=0)&&(*end=='e')) ++countE;
+            else countE=-1;
+            /*if(!start) start=end;*/ minbase=16; ++end; continue; }
         if(*end=='h') { flags=3; ++end; break; }
-        if(*end=='o') { if(start) end=start+1; else { ++end; flags=1; } break; }
+        if(*end=='o') { /*if(start) end=start+1; else*/ { ++end; flags=1; } break; }
+        if((*end=='+')||(*end=='-')) {
+            if((countE==1) && ((end[-1]=='E')||(end[-1]=='e'))) { ++end; flags|=8; continue; } else break;
+
+        }
         // ANY OTHER CHARACTER ENDS THE NUMBER
-        if(start) end=start+1;
+        /*if(start) end=start+1;*/
         break;
     }
 
 
         // REACHED THE END, CHECK THE LAST DIGIT WAS A 'b' TO SEE IF WE NEED TO SET THE FLAGS
-        if( (end>line) && ((end[-1]=='b')||(end[-1]=='d')||(end[-1]=='o'))) flags=1;
-        if( (end>line) && ((end[-1]=='h'))) flags=3;
+        if( (end>line) && ((end[-1]=='b')||(end[-1]=='d')||(end[-1]=='o')||(end[-1]=='B')||(end[-1]=='D')||(end[-1]=='O'))) flags=1;
+        if( (end>line) && ((end[-1]=='h')||(end[-1]=='H'))) flags=3;
 
         --end;
 
@@ -1207,24 +1222,52 @@ BYTEPTR uiFindNumberStart(BYTEPTR *endofnum)
     // NOW FIND THE START OF THE NUMBER
     start=ptr;
     if(start>=end) start=end;
-    if(flags && ((*start=='h')||(*start=='o')||(*start=='b'))) --start;
+    if(flags && ((*start=='h')||(*start=='o')||(*start=='b')||(*start=='H')||(*start=='O')||(*start=='B'))) --start;
 
+    BINT nextisE=0;
 
     while(start>=line) {
-        if((*start>='0')&&(*start<='9')) { --start; continue; }
+        if(nextisE) {
+            if((*start!='E')&&(*start!='e')) { start+=2; nextisE=0; break; }
+            nextisE=0;
+        }
+        if((*start>='0')&&(*start<='9')) {
+            if((*start>'1')&&(minbase<8)) minbase=8;
+            if((*start>'7')&&(minbase<10)) minbase=10;
+            --start; continue; }
         if(*start=='.') { --start; continue; }
-        if((flags&2)&&(*start>='A')&&(*start<='F')) { --start; continue; }
-        if((flags&2)&&(*start>='a')&&(*start<='f')) {--start; continue; }
+        if((*start=='+')||(*start=='-')) { --start; nextisE++; flags|=8; continue; }
+
+        if((*start>='A')&&(*start<='F')) {
+            if( (countE>=0)&&(*start=='E')) ++countE;
+            else countE=-1;
+
+            minbase=16;
+            --start; continue; }
+        if((*start>='a')&&(*start<='f')) {
+            if( (countE>=0)&&(*start=='e')) ++countE;
+            else countE=-1;
+            minbase=16;
+            --start; continue; }
 
         // ANY OTHER CHARACTER SHOULD END THE NUMBER
         if((flags&1)&&(*start=='#')) break;
+
         ++start;
         break;
     }
 
-    if(start<line) start=line;
+
+    if(start<line) {
+        start=line;
+        if(nextisE) ++start;
+    }
+
+    // IF THE NUMBER HAS AN EXPONENT
+    if(countE==1) { flags|=4; minbase=10; }
 
     // HERE START POINTS TO THE FIRST CHARACTER IN THE NUMBER
+    if(flagsptr) *flagsptr= (flags<<16) | minbase;
 
     if(start>end) return NULL;  // THERE WAS NO NUMBER
     return start;

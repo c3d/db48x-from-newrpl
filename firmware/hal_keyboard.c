@@ -3586,10 +3586,12 @@ void chsKeyHandler(BINT keymsg)
         // ACTION INSIDE THE EDITOR
 
         BYTEPTR startnum;
+        BYTEPTR endnum;
+        BINT flags;
         BYTEPTR line;
 
         // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER, CHANGE THE SIGN OF THE NUMBER IN THE TEXT
-        startnum=uiFindNumberStart(NULL);
+        startnum=uiFindNumberStart(&endnum,&flags);
         line=(BYTEPTR)(CmdLineCurrentLine+1);
         if(!startnum) {
             startnum=line+halScreen.CursorPosition;
@@ -3705,6 +3707,15 @@ void chsKeyHandler(BINT keymsg)
         else {
             // WE FOUND A NUMBER
             BINT oldposition=halScreen.CursorPosition;
+            // IF THIS IS A NUMBER WITH AN EXPONENT, SEE IF WE NEED TO CHANGE THE SIGN OF THE NUMBER OR THE EXPONENT
+            if((flags>>16)&4) {
+             // LOOK FOR THE 'e' OR 'E'
+            BINT epos=0;
+            while((epos<endnum-startnum)&&( (startnum[epos]!='E')&&(startnum[epos]!='e'))) ++epos;
+
+            if(oldposition>(startnum-line)+epos) startnum+=epos+1;  // MOVE START OF NUMBER TO AFTER THE EXPONENT LETTER
+            if((startnum[0]=='-')||(startnum[0]=='+')) ++startnum;
+            }
             uiMoveCursor(startnum-line);
             BYTEPTR plusminus=(BYTEPTR)"-";
 
@@ -3749,13 +3760,14 @@ void eexKeyHandler(BINT keymsg)
         // ACTION INSIDE THE EDITOR
 
         // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER
-        BYTEPTR startnum;
+        BYTEPTR startnum,endnum;
+        BINT flags;
         NUMFORMAT config;
 
         rplGetSystemNumberFormat(&config);
 
 
-        startnum=uiFindNumberStart(NULL);
+        startnum=uiFindNumberStart(&endnum,&flags);
 
         BYTEPTR line=(BYTEPTR)(CmdLineCurrentLine+1);
 
@@ -3774,13 +3786,20 @@ void eexKeyHandler(BINT keymsg)
             // WE FOUND A NUMBER
             if((startnum>line)&&((startnum[-1]=='-')||(startnum[-1]=='+'))) --startnum;
 
-            if((startnum>line) && ((startnum[-1]=='E')||(startnum[-1]=='e') )) {
-                uiMoveCursor(startnum-line);
-                // TODO: SELECT THE EXISTING NUMBER FOR DELETION ON NEXT KEYPRESS
-                uiEnsureCursorVisible();
-                uiAutocompleteUpdate();
-                return;
-            }
+             if(halScreen.CursorPosition<=endnum+1-line) {
+             // THE CURSOR IS WITHIN THE NUMBER
+            if((flags>>16)&4) {
+                // THE NUMBER ALREADY HAS AN EXPONENT, LOOK FOR THE 'e' OR 'E'
+               BINT epos=0;
+               while((epos<endnum-startnum)&&( (startnum[epos]!='E')&&(startnum[epos]!='e'))) ++epos;
+
+               startnum+=epos+1;  // MOVE START OF NUMBER TO AFTER THE EXPONENT LETTER
+               uiMoveCursor(startnum-line);
+               uiRemoveCharacters(endnum-startnum+1);
+               uiEnsureCursorVisible();
+               uiAutocompleteUpdate();
+               return;
+               }
 
             // NEED TO INSERT A CHARACTER HERE
             BINT oldposition=halScreen.CursorPosition;
@@ -3790,6 +3809,13 @@ void eexKeyHandler(BINT keymsg)
             uiEnsureCursorVisible();
             uiAutocompleteUpdate();
             return;
+
+            }
+             // THE CURSOR WAS PAST THE END OF THE NUMBER
+              if((config.MiddleFmt|config.BigFmt|config.SmallFmt)&FMT_USECAPITALS)    uiInsertCharacters((BYTEPTR)"1E");
+              else uiInsertCharacters((BYTEPTR)"1e");
+              uiAutocompleteUpdate();
+              return;
       }
 
     }
@@ -4989,58 +5015,15 @@ void basecycleKeyHandler(BINT keymsg)
 
         BYTEPTR startnum,endnum;
         BYTEPTR line;
+        BINT numflags;
 
         // FIRST CASE: IF TOKEN UNDER THE CURSOR IS OR CONTAINS A VALID NUMBER, CHANGE THE BASE OF THE NUMBER IN THE TEXT
-        startnum=uiFindNumberStart(&endnum);
+        startnum=uiFindNumberStart(&endnum,&numflags);
         line=(BYTEPTR)(CmdLineCurrentLine+1);
         if(!startnum) {
-            startnum=line+halScreen.CursorPosition;
-            if(startnum>line) {
-            if(startnum[-1]=='#') {
-                BINT nextbase;
-                switch(startnum[0])
-                {
-                case 'b':
-                case 'B':
-                    nextbase='o';
-                    break;
-                case 'O':
-                case 'o':
-                    nextbase='h';
-                    break;
-                case 'h':
-                case 'H':
-                    nextbase='d';
-                    break;
-                default:
-                    nextbase=0;
-                }
-                if(nextbase) uiRemoveCharacters(1);
-                else nextbase='b';
-                uiInsertCharacters((BYTEPTR)&nextbase);
-                halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY;
-                return;
-            }
-            }
-            // SECOND CASE: IF TOKEN UNDER CURSOR IS EMPTY, IN 'D' MODE COMPILE OBJECT AND THEN EXECUTE BASE CYCLE
 
-            if((halScreen.CursorState&0xff)=='D') {
-            // COMPILE AND EXECUTE
-            if(endCmdLineAndCompile()) {
-
-            rplPushDataNoGrow((WORDPTR)lib70_basecycle);
-            uiCmdRunHide(CMD_OVR_XEQ,1);
-            if(Exceptions) {
-                // TODO: SHOW ERROR MESSAGE
-                halShowErrorMsg();
-                Exceptions=0;
-            }
-            halScreen.DirtyFlag|=STACK_DIRTY;
-            }
 
             return;
-            }
-
 
         }
         else {
@@ -5048,7 +5031,9 @@ void basecycleKeyHandler(BINT keymsg)
             BINT oldposition=halScreen.CursorPosition;
             uiMoveCursor(startnum-line);
             BYTE str[2];
-            BINT endchar;
+            BINT endchar,minbase=numflags&0xffff;
+
+            numflags>>=16;
             str[1]=0;
             str[0]='#';
 
@@ -5076,13 +5061,17 @@ void basecycleKeyHandler(BINT keymsg)
             }
 
             if(endchar<0) {
+                if(minbase<=10) {
                 // REMOVE NUMERAL SIGN
                 if(startnum[0]=='#') { uiRemoveCharacters(1); if(oldposition>startnum-line) --oldposition; --endnum; }
-
+                }
+                else if(minbase==2) endchar='b';
+                else if(minbase==8) endchar='o';
+                else endchar='h';
             }
             else {
-                // ADD NUMERAL SIGN IF NOT THERE YET
-                if(startnum[0]!='#') { uiInsertCharacters((BYTEPTR)str); if(oldposition>startnum-line) ++oldposition; ++endnum; }
+                // ADD NUMERAL SIGN IF NOT THERE YET AND IF THERE'S NO EXPONENT WITH A SIGN
+                if( !(numflags&8) &&(startnum[0]!='#')) { uiInsertCharacters((BYTEPTR)str); if(oldposition>startnum-line) ++oldposition; ++endnum; }
             }
 
 
@@ -5093,9 +5082,11 @@ void basecycleKeyHandler(BINT keymsg)
                 if(oldposition>endnum-line) --oldposition;
             } else {
                 uiMoveCursor(endnum-line+1);
-                endchar='b';
+                if(minbase==2) endchar='b';
+                else if(minbase==8) endchar='o';
+                else endchar='h';
             }
-            if(endchar>0) {
+            if((endchar>0)&& !(numflags&8)) {   // IF WE NEED TO SET A BASE AND THERE'S NO EXPONENT SIGN IN BETWEEN
 
                 str[0]=endchar;
                 uiInsertCharacters((BYTEPTR)str);
