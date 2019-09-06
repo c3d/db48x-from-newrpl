@@ -1344,6 +1344,7 @@ void LIB_HANDLER()
                     }
                     } while(codebytes);
                     escape=0;
+                    continue;
                 }
                 if(escape>1 && ((*ptr>='0')&&(*ptr<='9'))) { ++escape; code=code*16+(*ptr-'0'); ++ptr; continue; }
                 if(escape>1 && ((*ptr>='A')&&(*ptr<='F'))) { ++escape; code=code*16+(*ptr-'A'+10); ++ptr; continue; }
@@ -1366,6 +1367,7 @@ void LIB_HANDLER()
                     }
                     }while(codebytes);
                     escape=0;
+                    continue;
                 } else {
                     if(escape) {
                         if(count==0) temp.word=0;

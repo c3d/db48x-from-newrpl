@@ -23,32 +23,29 @@
 
 @#name lib70menu_main
 {
-{ "#h" :: "#h" EDINSERT 1 EDLEFT "C" EDMODE ; }
-{ "#o" :: "#o" EDINSERT 1 EDLEFT ; }
-{ "#b" :: "#b" EDINSERT 1 EDLEFT ; }
-{ "" :: ; }
-{ "#→#" « IFERR DUP TYPEE IF DUP 62 == THEN DROP DUP HEAD TYPEE END
-                     CASE
-                     DUP 10.12 == THEN #0b END
-                     DUP 10 == THEN #0b END
-                     DUP 10.02 == THEN #0o END
-                     DUP 10.22 == THEN #0h END
-                     0
-                     END
-                ROT + NIP
-                THEN END
+{ "#→#" « IFERR DUP TYPEE IF DUP 62 == THEN DROP DUP 1 « TYPE 10 ≠ » DOLIST
+            IF ISTRUE THEN 62 ELSE DUP HEAD TYPEE END END
+            CASE
+                DUP 10.12 == THEN #0b 1 END
+                DUP 10 == THEN #0b 1 END
+                DUP 10.02 == THEN #0o 1 END
+                DUP 10.22 == THEN #0h 1 END
+                DUP 10.32 == THEN 0 1 END
+                0
+            END
+            IF THEN ROT + NIP ELSE DROP END
+         THEN END
         »
 }
+{ "→#h" « #0h SWAP + » }
+{ "→#d" « 0 SWAP + » }
+{ "→#o" « #0o SWAP + » }
+{ "→#b" « #0b SWAP + » }
 
-{ "→#h" :: #0h SWAP + ; }
-{ "→#b" :: #0b SWAP + ; }
-{ "→#d" :: 0 SWAP + ; }
-STWS RCWS
-
-
-BADD BSUB BMUL BDIV BNEG
-BLSL BLSR BASR BRL BRR
-BOR BAND BXOR BNOT { "" :: ; }
+STWS RCWS BADD BSUB BMUL
+BDIV BNEG BLSL BLSR BASR
+BRL BRR BOR BAND BXOR
+BNOT
 }
 
 @#name lib70_cmdhelp
@@ -140,15 +137,17 @@ RCWS
 }
 
 @#name lib70_basecycle
-« IFERR DUP TYPEE IF DUP 62 == THEN DROP DUP HEAD TYPEE END
+« IFERR DUP TYPEE IF DUP 62 == THEN DROP DUP 1 « TYPE 10 ≠ » DOLIST
+                                    IF ISTRUE THEN 62 ELSE DUP HEAD TYPEE END END
                      CASE
-                     DUP 10.12 == THEN #0b END
-                     DUP 10 == THEN #0b END
-                     DUP 10.02 == THEN #0o END
-                     DUP 10.22 == THEN #0h END
+                     DUP 10.12 == THEN #0b 1 END
+                     DUP 10 == THEN #0b 1 END
+                     DUP 10.02 == THEN #0o 1 END
+                     DUP 10.22 == THEN #0h 1 END
+                     DUP 10.32 == THEN 0 1 END
                      0
                      END
-                ROT + NIP
+                IF THEN ROT + NIP ELSE DROP END
                 THEN END
 »
 

@@ -3360,9 +3360,9 @@ BINT formatlengthReal(REAL *number, BINT format,UBINT64 locale)
         }
 
        if(format&FMT_FRACSEPARATOR) {
-       int numfsep=(wantzeros+wantdigits)/sep_spacing;
-       if( ((wantzeros+wantdigits)%sep_spacing)==0) --numfsep;
-       if((wantzeros+wantdigits)==0) ++numfsep;
+       int numfsep=(wantzeros+wantdigits+trailzeros)/sep_spacing;
+       if( ((wantzeros+wantdigits+trailzeros)%sep_spacing)==0) --numfsep;
+       if((wantzeros+wantdigits+trailzeros)==0) ++numfsep;
        totalcount+=numfsep*nbfracsep;
        }
    }
