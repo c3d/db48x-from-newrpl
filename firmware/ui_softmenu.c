@@ -420,6 +420,18 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 
     BINT SavedException=Exceptions;
     BINT SavedErrorCode=ErrorCode;
+    BINT removevalue;
+
+    if(ISUNIT(ptrprolog)) {
+        REAL r;
+        if(ISNUMBER(ptr[1])) {
+            rplReadNumberAsReal(ptr+1,&r);
+            rplOneToRReg(0);
+            removevalue=eqReal(&r,&RReg[0]);
+        } else removevalue=0;
+    }
+
+
 
     Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
@@ -435,13 +447,10 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
     totaln=rplStrLenCp(opname);
     endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
-    if(ISUNIT(ptrprolog)) {
-        // TODO: SKIP THE NUMERIC PORTION, LEAVE JUST THE UNIT
-        if((totaln>2)&&(string[0]=='1')&&(string[1]=='_')) {
-            totaln-=2;
-            string+=2;
-        }
-
+    if(removevalue) {
+        // SKIP THE NUMERIC PORTION, LEAVE JUST THE UNIT
+        BINT k,offset;
+        for(k=0,offset=0;k<totaln;++k,offset=(BYTEPTR)utf8skip((char *)string+offset,(char *)endstring)-string) if(utf82cp((char *)string+offset,(char *)endstring)=='_') { totaln-=k+1; string+=offset+1; break; }
     }
 
     // TODO: ADD MORE SPECIALIZED HANDLING HERE

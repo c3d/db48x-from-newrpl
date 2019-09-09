@@ -468,6 +468,10 @@ void LIB_HANDLER()
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
+        UBINT64 wmask=(1ULL<<wsize)-1;
+
+        num1&=wmask | (1ULL<<wsize);
+
 
         if((num2>wsize)||(num2<-wsize)) num1=0;
         else if(num2>0) num1=(BINT64)(((UBINT64)num1)>>num2);
@@ -772,6 +776,22 @@ void LIB_HANDLER()
         //SYSTEM FLAGS IS THE ONLY OBJECT THAT IS MODIFIED IN PLACE
         WORDPTR low64=SystemFlags+1;
         BINT wsize=(low64[0]>>4)&0x3f;
+
+        if(num2==0) {
+            if(num1!=0) {
+                rplInfinityToRReg(0);
+                if(rplTestSystemFlag(FL_COMPLEXMODE)) {
+                    RReg[0].flags|=F_UNDINFINITY;
+                }
+                else if(num1<0) RReg[0].flags|=F_NEGATIVE;
+            }
+            else rplNANToRReg(0);
+
+            rplDropData(2);
+            rplNewRealFromRRegPush(0);
+            rplCheckResultAndError(&RReg[0]);
+            return;
+        }
 
         num1/=num2;
 

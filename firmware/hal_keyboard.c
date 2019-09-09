@@ -1802,6 +1802,15 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
                     BINT SavedException=Exceptions;
                     BINT SavedErrorCode=ErrorCode;
+                    BINT removevalue;
+
+
+                        if(ISNUMBER(action[1])) {
+                            REAL r;
+                            rplReadNumberAsReal(action+1,&r);
+                            rplOneToRReg(0);
+                            removevalue=eqReal(&r,&RReg[0]);
+                        } else removevalue=0;
 
                     Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
                     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
@@ -1815,7 +1824,12 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     BINT totaln=rplStrLenCp(opname);
                     BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
-                    if( (totaln>2)&&(string[0]=='1')&&(string[1]=='_')) string+=2;
+                    if(removevalue) {
+                        // SKIP THE NUMERIC PORTION, LEAVE JUST THE UNIT
+                        BINT k,offset;
+                        for(k=0,offset=0;k<totaln;++k,offset=(BYTEPTR)utf8skip((char *)string+offset,(char *)endstring)-string) if(utf82cp((char *)string+offset,(char *)endstring)=='_') { totaln-=k+1; string+=offset+1; break; }
+                    }
+
 
                     uiInsertCharactersN(string,endstring);
                     uiAutocompleteUpdate();
@@ -4244,7 +4258,7 @@ if(option>15) option-=15;
 
 rplSetSystemNumberFormat(&fmt);
 uiClearRenderCache();
-halScreen.DirtyFlag|=STACK_DIRTY;
+halScreen.DirtyFlag|=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
 
 }
 
@@ -4314,7 +4328,7 @@ DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeig
 
 rplSetSystemNumberFormat(&fmt);
 uiClearRenderCache();
-halScreen.DirtyFlag|=STACK_DIRTY;
+halScreen.DirtyFlag|=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
 
 }
 

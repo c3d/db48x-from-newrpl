@@ -37,10 +37,30 @@
          THEN END
         »
 }
-{ "→#h" « #0h SWAP + » }
-{ "→#d" « 0 SWAP + » }
-{ "→#o" « #0o SWAP + » }
-{ "→#b" « #0b SWAP + » }
+{ "→#h" « IF DUP TYPE 62 == THEN
+                    1 « IF DUP TYPE 10 == THEN #0h SWAP + END » DOLIST
+            ELSE IF DUP TYPE 10 == THEN #0h SWAP + END
+            END
+        »
+}
+{ "→#d" « IF DUP TYPE 62 == THEN
+            1 « IF DUP TYPE 10 == THEN 0 SWAP + END » DOLIST
+            ELSE IF DUP TYPE 10 == THEN 0 SWAP + END
+            END
+        »
+}
+{ "→#o" « IF DUP TYPE 62 == THEN
+            1 « IF DUP TYPE 10 == THEN #0o SWAP + END » DOLIST
+            ELSE IF DUP TYPE 10 == THEN #0o SWAP + END
+            END
+»
+}
+{ "→#b" « IF DUP TYPE 62 == THEN
+            1 « IF DUP TYPE 10 == THEN #0b SWAP + END » DOLIST
+            ELSE IF DUP TYPE 10 == THEN #0b SWAP + END
+            END
+»
+}
 
 STWS RCWS BADD BSUB BMUL
 BDIV BNEG BLSL BLSR BASR
