@@ -607,6 +607,19 @@ void LIB_HANDLER()
             BINT isspec1;
 
             rplOverwriteData(1,rplConstant2Number(rplPeekData(1))); // MAKE SURE ANY CONSTANT IS REPLACED BY ITS NUMERIC VALUE
+
+            if(ISUNIT(*rplPeekData(1))) {
+              if(!rplUnitIsNonDimensional(rplPeekData(1))) {
+                  if(Exceptions) return;
+                  rplError(ERR_REALEXPECTED);
+                  return;
+              }
+              // HERE WE HAVE IN LEVEL 1 THE ACTUAL VALUE
+              rplOverwriteData(2,rplPeekData(1));
+              rplDropData(1);
+
+            }
+
              if(!ISNUMBER(*rplPeekData(1))) {
                 rplError(ERR_REALEXPECTED);
                 return;
@@ -647,7 +660,17 @@ void LIB_HANDLER()
             BINT isspec1;
 
             rplOverwriteData(1,rplConstant2Number(rplPeekData(1))); // MAKE SURE ANY CONSTANT IS REPLACED BY ITS NUMERIC VALUE
+            if(ISUNIT(*rplPeekData(1))) {
+              if(!rplUnitIsNonDimensional(rplPeekData(1))) {
+                  if(Exceptions) return;
+                  rplError(ERR_REALEXPECTED);
+                  return;
+              }
+              // HERE WE HAVE IN LEVEL 1 THE ACTUAL VALUE
+              rplOverwriteData(2,rplPeekData(1));
+              rplDropData(1);
 
+            }
             if(!ISNUMBER(*rplPeekData(1))) {
                 rplError(ERR_REALEXPECTED);
                 return;
@@ -1675,10 +1698,10 @@ void LIB_HANDLER()
             return;
         }
 
-        if( !ISUNIT(*rplPeekData(2))|| !ISUNIT(*rplPeekData(1))) {
+        /*if( !ISUNIT(*rplPeekData(2))|| !ISUNIT(*rplPeekData(1))) {
             rplError(ERR_UNITEXPECTED);
             return;
-        }
+        }*/
 
         BINT nlevels1,nlevels2;
         WORDPTR *stkclean=DSTop;
@@ -1768,10 +1791,11 @@ void LIB_HANDLER()
                     return;
           }
 
-            if(!ISUNIT(*rplPeekData(1)) || !ISUNIT(*rplPeekData(2))) {
+         /*   if(!ISUNIT(*rplPeekData(1)) || !ISUNIT(*rplPeekData(2))) {
                 rplError(ERR_UNITEXPECTED);
                 return;
             }
+            */
 
         // DO SWAP OVER
         WORDPTR *savestk=DSTop;
@@ -1844,10 +1868,10 @@ void LIB_HANDLER()
                       return;
                 }
 
-        if(!ISUNIT(*rplPeekData(1))) {
+        /*if(!ISUNIT(*rplPeekData(1))) {
             rplError(ERR_UNITEXPECTED);
             return;
-        }
+        }*/
         WORDPTR *stkclean=DSTop;
         BINT nlevels=rplUnitExplode(rplPeekData(1));
         if(Exceptions) { DSTop=stkclean; return; }

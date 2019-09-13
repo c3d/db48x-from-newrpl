@@ -331,7 +331,6 @@ void LIB_HANDLER()
             return;
         }
         WORDPTR arg=rplPeekData(1);
-
         if(ISLIST(*arg)) {
             rplListUnaryDoCmd();
             return;
@@ -342,12 +341,18 @@ void LIB_HANDLER()
             return;
         }
 
+        if(ISUNIT(*arg)) {
+            rplUnitUnaryDoCmd();
+            return;
+        }
+
 
         REAL rnum;
-        if(ISBINT(*arg)) return;
-        rplReadNumberAsReal(rplPeekData(1),&rnum);
-        if(Exceptions) return;
+        if(ISBINT(*arg)) { return; }
+        rplReadNumberAsReal(arg,&rnum);
+        if(Exceptions) { return; }
         if(isintegerReal(&rnum)) {
+
             return;
         }
         ipReal(&RReg[2],&rnum,1);
@@ -356,6 +361,7 @@ void LIB_HANDLER()
             RReg[2].flags|=F_NEGATIVE;
             normalize(&RReg[2]);
         }
+
         rplDropData(1);
         rplNewRealFromRRegPush(2);
         return;
@@ -374,25 +380,32 @@ void LIB_HANDLER()
             rplListUnaryDoCmd();
             return;
         }
+
         if(ISSYMBOLIC(*arg)) {
             rplSymbApplyOperator(CurOpcode,1);
             return;
         }
-
-        if(ISBINT(*arg)) return;
+        if(ISUNIT(*arg)) {
+            rplUnitUnaryDoCmd();
+            return;
+        }
 
 
         REAL rnum;
-        rplReadNumberAsReal(rplPeekData(1),&rnum);
-        if(Exceptions) return;
+        if(ISBINT(*arg)) {  return; }
+        rplReadNumberAsReal(arg,&rnum);
+        if(Exceptions) {  return; }
         if(isintegerReal(&rnum)) {
+
             return;
         }
         ipReal(&RReg[2],&rnum,1);
         if(!(rnum.flags&F_NEGATIVE)) {
             RReg[2].data[0]++;
+            RReg[2].flags|=F_NEGATIVE;
             normalize(&RReg[2]);
         }
+
         rplDropData(1);
         rplNewRealFromRRegPush(2);
         return;
@@ -407,6 +420,7 @@ void LIB_HANDLER()
         return;
     }
     WORDPTR arg=rplPeekData(1);
+    WORDPTR *stksave=DSTop;
 
     if(ISLIST(*arg)) {
         rplListUnaryDoCmd();
@@ -425,6 +439,11 @@ void LIB_HANDLER()
             return;
         }
         rplSymbApplyOperator(CurOpcode,1);
+        return;
+    }
+
+    if(ISUNIT(*arg)) {
+        rplUnitUnaryDoCmd();
         return;
     }
 
@@ -493,6 +512,10 @@ case IPPOST:
         return;
     }
 
+    if(ISUNIT(*arg)) {
+        rplUnitUnaryDoCmd();
+        return;
+    }
 
     if(ISBINT(*arg)) {
         rplDropData(1);
@@ -524,6 +547,14 @@ case IPPOST:
             rplListUnaryDoCmd();
             return;
         }
+
+
+        if(ISUNIT(*arg)) {
+            rplUnitUnaryDoCmdNonDimensional();
+            return;
+        }
+
+
 
         if(ISSYMBOLIC(*arg)||ISIDENT(*arg)||ISCONSTANT(*arg)) {
          rplSymbApplyOperator(MKOPCODE(LIBRARY_NUMBER,FACTORIAL),1);
@@ -581,6 +612,11 @@ case IPPOST:
             return;
         }
 
+        if(ISUNIT(*arg)) {
+            rplUnitUnaryDoCmdNonDimensional();
+            return;
+        }
+
 
         if(!ISNUMBER(*arg)) {
             rplError(ERR_BADARGTYPE);
@@ -626,6 +662,11 @@ case IPPOST:
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*arg)) {
             rplListUnaryDoCmd();
+            return;
+        }
+
+        if(ISUNIT(*arg)) {
+            rplUnitUnaryDoCmdNonDimensional();
             return;
         }
 
@@ -685,6 +726,10 @@ case IPPOST:
             return;
         }
 
+        if(ISUNIT(*arg)) {
+            rplUnitUnaryDoCmdNonDimensional();
+            return;
+        }
 
         if(!ISNUMBER(*arg)) {
             rplError(ERR_BADARGTYPE);
@@ -997,6 +1042,7 @@ case IPPOST:
             }
             WORDPTR arg=rplPeekData(2);
             WORDPTR mod=rplPeekData(1);
+            BINT isunit=0;
 
             if(ISLIST(*arg) || ISLIST(*mod)){
                 rplListBinaryDoCmd();
@@ -1006,6 +1052,16 @@ case IPPOST:
                     rplSymbApplyOperator(CurOpcode,2);
                     return;
             }
+
+
+            // WORK WITH VALUES IF ANY ARGUMENT IS A UNIT
+            if(ISUNIT(*arg)||ISUNIT(*mod)) {
+            if(ISUNIT(*arg)) ++arg;
+            if(ISUNIT(*mod)) ++mod;
+            isunit=1;
+            }
+
+
 
             if( !ISNUMBER(*arg) || !ISNUMBER(*mod)) {
                 rplError(ERR_BADARGTYPE);
@@ -1025,6 +1081,7 @@ case IPPOST:
                 if(m<(1LL<<62)) {
                 r = (a%m + m)%m;
                 q = (a-r)/m;
+                if(!isunit) {
                 rplDropData(2);
                 if (OPCODE(CurOpcode) == IDIV2 || OPCODE(CurOpcode) == IQUOT) {
                     rplNewBINTPush(q,DECBINT);
@@ -1034,6 +1091,62 @@ case IPPOST:
                 }
                 return;
                 }
+                else {
+                  // APPLY UNITS TO THE NEW RESULTS
+                  WORDPTR newvalue;
+                  WORDPTR *stksave=DSTop;
+                          switch(OPCODE(CurOpcode))
+                          {
+                          default:
+                          case IDIV2:
+                              newvalue=rplNewBINT(q,DECBINT);
+                              if(!newvalue) return;
+                              newvalue=rplUnitApply(newvalue,rplPeekData(2));   // APPLY THE UNITS OF THE ARGUMENT
+                              if(!newvalue) return;
+                              rplPushDataNoGrow(newvalue);
+                              newvalue=rplUnitApply((WORDPTR)one_bint,rplPeekData(2));  // GET THE UNITS OF THE MODULO
+                              if(!newvalue) { DSTop=stksave; return; }
+                              rplPushDataNoGrow(newvalue);
+                              rplCallOvrOperator(CMD_OVR_DIV);                          // DIVIDE THE UNIT
+                              if(Exceptions) { DSTop=stksave; return; }
+                              // HERE WE HAVE ON THE STACK THE QUOTIENT WITH PROPER UNITS (UNITS OF ARG/MOD)
+
+                              newvalue=rplNewBINT(r,DECBINT);
+                              if(!newvalue) return;
+                              newvalue=rplUnitApply(newvalue,rplPeekData(3));   // APPLY THE UNITS OF THE ARGUMENT
+                              if(!newvalue) return;
+                              // HERE WE HAVE QUOTIENT AND REMAINDER WITH PROPER UNITS ON BOTH
+                              rplOverwriteData(2,newvalue);
+                              rplOverwriteData(2,rplPopData());
+                              return;
+                          case IQUOT:
+                              newvalue=rplNewBINT(q,DECBINT);
+                              if(!newvalue) return;
+                              newvalue=rplUnitApply(newvalue,rplPeekData(2));   // APPLY THE UNITS OF THE ARGUMENT
+                              if(!newvalue) return;
+                              rplPushDataNoGrow(newvalue);
+                              newvalue=rplUnitApply((WORDPTR)one_bint,rplPeekData(2));  // GET THE UNITS OF THE MODULO
+                              if(!newvalue) { DSTop=stksave; return; }
+                              rplPushDataNoGrow(newvalue);
+                              rplCallOvrOperator(CMD_OVR_DIV);                          // DIVIDE THE UNIT
+                              if(Exceptions) { DSTop=stksave; return; }
+                              // HERE WE HAVE ON THE STACK THE QUOTIENT WITH PROPER UNITS (UNITS OF ARG/MOD)
+                              rplOverwriteData(3,rplPeekData(1));
+                              rplDropData(2);
+                              return;
+                          case MOD:
+                              newvalue=rplNewBINT(r,DECBINT);
+                              if(!newvalue) return;
+                              newvalue=rplUnitApply(newvalue,rplPeekData(2));   // APPLY THE UNITS OF THE ARGUMENT
+                              if(!newvalue) return;
+                              // HERE WE HAVE QUOTIENT AND REMAINDER WITH PROPER UNITS ON BOTH
+                              rplOverwriteData(2,newvalue);
+                              rplDropData(1);
+                              return;
+                          }
+
+                }
+                }
             }
                 // THERE'S REALS INVOLVED, DO IT ALL WITH REALS
 
@@ -1041,16 +1154,14 @@ case IPPOST:
                 rplReadNumberAsReal(arg,&a);
                 rplReadNumberAsReal(mod,&m);
 
+
+                if (iszeroReal(&m)) {
+                    rplError(ERR_MATHDIVIDEBYZERO);
+                    return;
+                }
+
+
                 BINT saveprec=Context.precdigits;
-                if (OPCODE(CurOpcode) == IDIV2 || OPCODE(CurOpcode) == IQUOT) {
-                    if(!isintegerReal(&a)) {
-                        rplError(ERR_INTEGEREXPECTED);
-                        return;
-                    }
-                    if(!isintegerReal(&m)) {
-                        rplError(ERR_INTEGEREXPECTED);
-                        return;
-                    }
                     BINT moddigits=(intdigitsReal(&m)+7)&~7;
                     BINT argdigits=(intdigitsReal(&a)+7)&~7;
 
@@ -1066,23 +1177,19 @@ case IPPOST:
                     //   AUTOMATICALLY INCREASE PRECISION TEMPORARILY
 
                     Context.precdigits=moddigits;
-                }
-
-                if (iszeroReal(&m)) {
-                    rplError(ERR_MATHDIVIDEBYZERO);
-                    return;
-                }
 
                 divmodReal(&RReg[7],&RReg[6],&a,&m);
                 // correct negative remainder
                 if(RReg[6].flags&F_NEGATIVE) {
                     addReal(&RReg[6],&RReg[6],&m);
-                    newRealFromBINT(&RReg[0],1,0);
+                    rplOneToRReg(0);
                     subReal(&RReg[7],&RReg[7],&RReg[0]);
                 }
 
                 Context.precdigits=saveprec;
 
+                // HERE RReg[7]=QUOTIENT, RReg[6]=REMAINDER
+                if(!isunit) {
                 rplDropData(2);
 
                 if (OPCODE(CurOpcode) == IDIV2 || OPCODE(CurOpcode) == IQUOT) {
@@ -1094,7 +1201,73 @@ case IPPOST:
                 rplCheckResultAndError(&RReg[6]);
                 rplCheckResultAndError(&RReg[7]);
 
-            return;
+                return;
+                }
+                else {
+                    // APPLY UNITS TO THE NEW RESULTS
+                    // HERE RReg[7]=QUOTIENT, RReg[6]=REMAINDER
+
+                    WORDPTR newvalue;
+                    WORDPTR *stksave=DSTop;
+                            switch(OPCODE(CurOpcode))
+                            {
+                            default:
+                            case IDIV2:
+                                newvalue=rplNewRealFromRReg(7);
+                                if(!newvalue) return;
+                                newvalue=rplUnitApply(newvalue,rplPeekData(2));   // APPLY THE UNITS OF THE ARGUMENT
+                                if(!newvalue) return;
+                                rplPushDataNoGrow(newvalue);
+                                newvalue=rplUnitApply((WORDPTR)one_bint,rplPeekData(2));  // GET THE UNITS OF THE MODULO
+                                if(!newvalue) { DSTop=stksave; return; }
+                                rplPushDataNoGrow(newvalue);
+                                rplCallOvrOperator(CMD_OVR_DIV);                          // DIVIDE THE UNIT
+                                if(Exceptions) { DSTop=stksave; return; }
+                                // HERE WE HAVE ON THE STACK THE QUOTIENT WITH PROPER UNITS (UNITS OF ARG/MOD)
+
+                                newvalue=rplNewRealFromRReg(6);
+                                if(!newvalue) { DSTop=stksave; return; }
+                                newvalue=rplUnitApply(newvalue,rplPeekData(3));   // APPLY THE UNITS OF THE ARGUMENT
+                                if(!newvalue) { DSTop=stksave; return; }
+                                // HERE WE HAVE QUOTIENT AND REMAINDER WITH PROPER UNITS ON BOTH
+                                rplOverwriteData(2,newvalue);
+                                rplOverwriteData(2,rplPopData());
+                                rplCheckResultAndError(&RReg[6]);
+                                rplCheckResultAndError(&RReg[7]);
+                                return;
+                            case IQUOT:
+                                newvalue=rplNewRealFromRReg(7);
+                                if(!newvalue) return;
+                                newvalue=rplUnitApply(newvalue,rplPeekData(2));   // APPLY THE UNITS OF THE ARGUMENT
+                                if(!newvalue) return;
+                                rplPushDataNoGrow(newvalue);
+                                newvalue=rplUnitApply((WORDPTR)one_bint,rplPeekData(2));  // GET THE UNITS OF THE MODULO
+                                if(!newvalue) { DSTop=stksave; return; }
+                                rplPushDataNoGrow(newvalue);
+                                rplCallOvrOperator(CMD_OVR_DIV);                          // DIVIDE THE UNIT
+                                if(Exceptions) { DSTop=stksave; return; }
+                                // HERE WE HAVE ON THE STACK THE QUOTIENT WITH PROPER UNITS (UNITS OF ARG/MOD)
+                                rplOverwriteData(3,rplPeekData(1));
+                                rplDropData(2);
+                                rplCheckResultAndError(&RReg[7]);
+                                return;
+                            case MOD:
+                                newvalue=rplNewRealFromRReg(6);
+                                if(!newvalue) return;
+                                newvalue=rplUnitApply(newvalue,rplPeekData(2));   // APPLY THE UNITS OF THE ARGUMENT
+                                if(!newvalue) return;
+                                // HERE WE HAVE QUOTIENT AND REMAINDER WITH PROPER UNITS ON BOTH
+                                rplOverwriteData(2,newvalue);
+                                rplDropData(1);
+                                rplCheckResultAndError(&RReg[6]);
+                                return;
+                            }
+
+
+
+
+                }
+
 
     }
 
@@ -1157,6 +1330,8 @@ case IPPOST:
             return;
         }
 
+        if(ISUNIT(*arg)) ++arg;
+
         if(!ISNUMBER(*arg)) {
             rplError(ERR_REALEXPECTED);
             return;
@@ -1164,13 +1339,14 @@ case IPPOST:
 
         REAL rnum;
         BINT digits;
-        rplReadNumberAsReal(rplPopData(),&rnum);
+        rplReadNumberAsReal(arg,&rnum);
 
         digits=sig_digits(rnum.data[rnum.len-1])+((rnum.len-1)<<3);
 
         rnum.exp=-digits+1;
         rnum.flags&=~F_NEGATIVE;
 
+        rplDropData(1);
         rplNewRealPush(&rnum);
         return;
     }
@@ -1199,17 +1375,23 @@ case IPPOST:
             return;
         }
 
+        if(ISUNIT(*arg)) ++arg;
+
+
         if(!ISNUMBER(*arg)) {
             rplError(ERR_REALEXPECTED);
             return;
         }
         REAL rnum;
         BINT digits;
-        rplReadNumberAsReal(rplPopData(),&rnum);
+        rplReadNumberAsReal(arg,&rnum);
+
 
         digits=sig_digits(rnum.data[rnum.len-1])+((rnum.len-1)<<3);
 
         digits+=rnum.exp-1;
+
+        rplDropData(1);
         rplNewBINTPush(digits,DECBINT);
         return;
 
@@ -1241,14 +1423,8 @@ case IPPOST:
         }
 
         if(ISUNIT(*arg)) {
-            WORDPTR *stkclean=DSTop;
-            BINT nlevels=rplUnitExplode(rplPeekData(1));
-            if(Exceptions) { DSTop=stkclean; return; }
-            rplOverwriteData(nlevels+1,rplPeekData(nlevels));
-
-            rplDropData(nlevels);         // POP EVERYTHING EXCEPT THE VALUE
-
-            arg=rplPeekData(1);
+            ++arg;
+            rplOverwriteData(1,arg+1);
             // FALL THROUGH TO INTEGERS AND REALS, THIS IS DELIBERATE
         }
 
@@ -1427,6 +1603,8 @@ case IPPOST:
         WORDPTR pct=rplPeekData(1);
         WORDPTR arg1=rplPeekData(2);
 
+        if(ISUNIT(arg1)) ++arg1;
+
         if(ISLIST(*arg1) || ISLIST(*pct)){
             rplListBinaryDoCmd();
             return;
@@ -1488,9 +1666,28 @@ case IPPOST:
                 // drop one value and replace level 1 value
                 rplDropData(1);
                 rplOverwriteData(1,newnumber);
-
+                rplCheckResultAndError(&RReg[0]);
                 return;
             }
+            else if(ISUNIT(*new_val)||ISUNIT(*old_val)) {
+                    WORDPTR *stksave=DSTop;
+
+                    rplPushDataNoGrow(new_val);
+                    rplPushDataNoGrow(old_val);
+                    rplCallOvrOperator(CMD_OVR_SUB);
+                    if(Exceptions) { DSTop=stksave; return; }
+                    rplNewBINTPush(100,DECBINT);
+                    if(Exceptions) { DSTop=stksave; return; }
+                    rplCallOvrOperator(CMD_OVR_MUL);
+                    if(Exceptions) { DSTop=stksave; return; }
+                    rplPushDataNoGrow(rplPeekData(3));
+                    rplCallOvrOperator(CMD_OVR_DIV);
+                    if(Exceptions) { DSTop=stksave; return; }
+                    rplOverwriteData(3,rplPeekData(1));
+                    rplDropData(2);
+                    return;
+            }
+
             else {
                 rplError(ERR_BADARGTYPE);
                 return;
@@ -1537,6 +1734,21 @@ case IPPOST:
 
                 return;
 
+            }
+            else if(ISUNIT(*new_val)||ISUNIT(*old_val)) {
+                    WORDPTR *stksave=DSTop;
+
+                    rplPushDataNoGrow(new_val);
+                    rplNewBINTPush(100,DECBINT);
+                    if(Exceptions) { DSTop=stksave; return; }
+                    rplCallOvrOperator(CMD_OVR_MUL);
+                    if(Exceptions) { DSTop=stksave; return; }
+                    rplPushDataNoGrow(rplPeekData(3));
+                    rplCallOvrOperator(CMD_OVR_DIV);
+                    if(Exceptions) { DSTop=stksave; return; }
+                    rplOverwriteData(3,rplPeekData(1));
+                    rplDropData(2);
+                    return;
             }
             else {
                 rplError(ERR_BADARGTYPE);

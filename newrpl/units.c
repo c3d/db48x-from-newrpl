@@ -2176,3 +2176,94 @@ void rplUnitSpecialToDelta(BINT nlevels)
 
 }
 
+// RETURN TRUE AND THE VALUE ON THE STACK IF THE UNIT OBJECT IS NON-DIMENSIONAL
+// OTHERWISE RETURN FALSE AND STACK UNMODIFIED
+// MAY TRIGGER ERRORS AND/OR GC
+
+BINT rplUnitIsNonDimensional(WORDPTR uobject)
+{
+    if(!ISUNIT(*uobject)) {
+        rplError(ERR_UNITEXPECTED);
+        return 0;
+    }
+    WORDPTR *stkclean=DSTop;
+    BINT nlevels=rplUnitExplode(uobject);
+    if(Exceptions) { DSTop=stkclean; return 0; }
+
+    nlevels=rplUnitToBase(nlevels);
+    if(Exceptions) { DSTop=stkclean; return 0; }
+
+    nlevels=rplUnitSimplify(nlevels);
+    if(Exceptions) { DSTop=stkclean; return 0; }
+
+    if(nlevels==1) return 1;
+
+    // FINAL CLEANUP
+    rplDropData(nlevels);
+
+    return 0;
+
+}
+
+// EXECUTE A COMMAND THAT TAKES A UNIT FOR ARGUMENT
+// SIMPLY EXTRACT THE VALUE, APPLY THE COMMAND AND REBUILD THE UNIT
+
+void rplUnitUnaryDoCmd()
+{
+    WORDPTR *stkclean=DSTop;
+    BINT nlevels=rplUnitExplode(rplPeekData(1));
+    if(Exceptions) { DSTop=stkclean; return; }
+    rplPushDataNoGrow(rplPeekData(nlevels));
+    rplRunAtomic(CurOpcode);
+    if(Exceptions) { DSTop=stkclean; return; }
+    rplOverwriteData(nlevels+1,rplPeekData(1));
+    rplDropData(1);
+    WORDPTR newobj=rplUnitAssemble(nlevels);
+    if(Exceptions) { DSTop=stkclean; return; }
+    DSTop=stkclean;
+    rplOverwriteData(1,newobj);
+}
+
+// EXECUTE A COMMAND THAT TAKES A UNIT FOR ARGUMENT BUT ONLY IF THE UNIT IS NON-DIMENSIONAL
+// AND DO IT AFTER SIMPLIFYING ALL UNITS
+
+void rplUnitUnaryDoCmdNonDimensional()
+{
+    WORDPTR *stkclean=DSTop;
+    BINT nlevels=rplUnitExplode(rplPeekData(1));
+    if(Exceptions) { DSTop=stkclean; return; }
+    nlevels=rplUnitToBase(nlevels);
+    if(Exceptions) { DSTop=stkclean; return; }
+    nlevels=rplUnitSimplify(nlevels);
+    if(Exceptions) { DSTop=stkclean; return; }
+    if(nlevels!=1) {
+        rplError(ERR_INCONSISTENTUNITS);
+        DSTop=stkclean;
+        return;
+    }
+    rplRunAtomic(CurOpcode);
+    if(Exceptions) { DSTop=stkclean; return; }
+    rplOverwriteData(2,rplPeekData(1));
+    rplDropData(1);
+}
+
+// ALLOCATE AND CREATE A NEW OBJECT WITH THE GIVEN VALUE AND THE UNITS OF THE GIVEN OBJECT
+// USES 2 SCRATCH POINTERS AND MAY TRIGGER A GC
+WORDPTR rplUnitApply(WORDPTR value,WORDPTR unitobj)
+{
+if(!ISUNIT(*unitobj)) return value;
+
+BINT size=rplObjSize(unitobj)-rplObjSize(unitobj+1)-1;
+BINT vsize=rplObjSize(value);
+
+ScratchPointer1=value;
+ScratchPointer2=unitobj;
+WORDPTR newobj=rplAllocTempOb(size+vsize);
+if(!newobj) return 0;
+value=ScratchPointer1;
+unitobj=ScratchPointer2;
+newobj[0]=MKPROLOG(DOUNIT,size+vsize);
+memmovew(newobj+1,value,vsize);
+memmovew(newobj+1+vsize,rplSkipOb(unitobj+1),size);
+return newobj;
+}

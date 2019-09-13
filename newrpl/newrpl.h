@@ -634,6 +634,12 @@ void rplUnitReverseReplaceSpecial(BINT nlevels);
 void rplUnitReverseReplaceSpecial2(BINT isspec_idx);
 void rplUnitSpecialToDelta(BINT nlevels);
 WORDPTR *rplUnitFindCustom(WORDPTR ident,BINT *siindex);
+void rplUnitUnaryDoCmd();
+BINT rplUnitIsNonDimensional(WORDPTR uobject);
+void rplUnitUnaryDoCmdNonDimensional();
+WORDPTR rplUnitApply(WORDPTR value,WORDPTR unitobj);
+
+
 
 
 
