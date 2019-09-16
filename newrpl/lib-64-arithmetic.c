@@ -1298,7 +1298,7 @@ case IPPOST:
 
         // FOR ALL OTHER OBJECTS, JUST DO DUP *
 
-        rplPushData(arg);
+        rplPushDataNoGrow(arg);
 
         rplCallOvrOperator((CMD_OVR_MUL));
 
@@ -1424,7 +1424,6 @@ case IPPOST:
 
         if(ISUNIT(*arg)) {
             ++arg;
-            rplOverwriteData(1,arg+1);
             // FALL THROUGH TO INTEGERS AND REALS, THIS IS DELIBERATE
         }
 
@@ -1442,7 +1441,7 @@ case IPPOST:
 
         if(ISREAL(*arg)) {
             REAL rnum;
-            rplReadNumberAsReal(rplPeekData(1),&rnum);
+            rplReadNumberAsReal(arg,&rnum);
 
             if(iszeroReal(&rnum)) rplOverwriteData(1,(WORDPTR)zero_bint);
             else {
@@ -1463,7 +1462,7 @@ case IPPOST:
         if(ISCOMPLEX(*arg)) {
 
             // ADD COMPLEX POLAR SUPPORT
-            BINT cclass1=rplComplexClass(rplPeekData(1));
+            BINT cclass1=rplComplexClass(arg);
 
            switch(cclass1)
            {
@@ -1478,7 +1477,7 @@ case IPPOST:
                BINT angmode;
                REAL Rarg,Iarg;
 
-               rplReadCNumber(rplPeekData(1),&Rarg,&Iarg,&angmode);
+               rplReadCNumber(arg,&Rarg,&Iarg,&angmode);
 
                Context.precdigits+=8;
                mulReal(&RReg[2],&Rarg,&Rarg);
@@ -1509,7 +1508,7 @@ case IPPOST:
                BINT angmode;
                REAL real,imag;
 
-               rplReadCNumber(rplPeekData(1),&real,&imag,&angmode);
+               rplReadCNumber(arg,&real,&imag,&angmode);
 
                if(Exceptions) return;
 
@@ -1533,7 +1532,7 @@ case IPPOST:
                WORDPTR result;
                REAL real,imag;
 
-               rplReadCNumber(rplPeekData(1),&real,&imag,&angmode);
+               rplReadCNumber(arg,&real,&imag,&angmode);
 
                if(isinfiniteReal(&real)) {
                    // INFINITE IN THE REAL AXIS
@@ -3136,7 +3135,7 @@ case IPPOST:
             return;
         }
 
-        if(ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(2) || ISCONSTANT(*rplPeekData(2))) || ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(1))|| ISCONSTANT(*rplPeekData(1)))
+        if(ISIDENT(*rplPeekData(2)) || ISSYMBOLIC(*rplPeekData(2) || ISCONSTANT(*rplPeekData(2))) || ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(1))|| ISCONSTANT(*rplPeekData(1)))
         {
             rplSymbApplyOperator(CurOpcode,2);
             return;
@@ -3182,7 +3181,7 @@ case IPPOST:
             return;
         }
 
-        if(ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(2)|| ISCONSTANT(*rplPeekData(2))) || ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(1))|| ISCONSTANT(*rplPeekData(1)))
+        if(ISIDENT(*rplPeekData(2)) || ISSYMBOLIC(*rplPeekData(2)|| ISCONSTANT(*rplPeekData(2))) || ISIDENT(*rplPeekData(1)) || ISSYMBOLIC(*rplPeekData(1))|| ISCONSTANT(*rplPeekData(1)))
         {
             rplSymbApplyOperator(CurOpcode,2);
             return;

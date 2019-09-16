@@ -68,6 +68,7 @@ ULIST
     1_miUS
     1_chain
     1_rd
+    1_rdUS
     1_fath
     1_ftUS
     1_mil
@@ -89,9 +90,11 @@ ULIST
     1_km^2
     1_ha
     1_a
+    1_ca
     1_mi^2
     1_miUS^2
     1_acre
+    1_acreUS
     { { "Units" 1 } :: #03600000h TMENULST ; }
 
 }
@@ -202,6 +205,8 @@ ULIST
     1_kcal
     1_cal
     1_Btu
+    1_calIT
+    1_BtuIT
     1_ft*lbf
     1_therm
     1_MeV
@@ -216,6 +221,7 @@ ULIST
     1_MW
     1_hp
     1_lbf*ft/s
+    1_dB
 
 { { "Units" 1 } :: #03600000h TMENULST ; }
 }
@@ -271,6 +277,7 @@ ULIST
     1_arcmin
     1_arcs
     1_sr
+    1_spat
 
 { { "Units" 1 } :: #03600000h TMENULST ; }
 }
@@ -529,7 +536,12 @@ SI area"
 1_ha
 "hectare
 Def: 1_ha = 1_hm^2
-SI area (deprecated)"
+non-SI area"
+
+1_ca
+"centiare
+Def: 1_ca = 1_m^2
+non-SI area"
 
 1_a
 "are
@@ -550,6 +562,11 @@ US surveying area"
 "acre
 Def: 1_acre = 4840_yd^2
 US customary area"
+
+1_acreUS
+"acre (US Surveying)
+Def: 1_acreUS = 4840_ydUS^2
+US surveying area"
 
 1_m^3
 "cubic metre
@@ -925,8 +942,20 @@ non-SI energy"
 
 1_Btu
 "british thermal unit
-Def: 1_Btu = =1055.056_J
+Def: 1_Btu = 1055.056_J
 Imperial energy"
+
+1_calIT
+"calorie (steam table)
+Def: 1_cal = 4.1868_J
+non-SI energy"
+
+1_BtuIT
+"Btu (from steam tables)
+Def: 1_Btu = 1055.05585262_J
+Imperial energy"
+
+
 
 1_ft*lbf
 "foot-pound
@@ -952,10 +981,12 @@ non-SI energy"
 "Watt
 Def: 1_W = 1_J/s
 SI power"
+
 1_kW
 "kilowatt
 Def: 1_kW = 1000_W
 SI power"
+
 1_MW
 "megawatt
 Def: 1_MW = 1000000_W
@@ -970,6 +1001,11 @@ Imperial power"
 "pound-foot per second
 Def: 1_ft*lbf/s
 Imperial power"
+
+1_dB
+"decibel
+Def: 1_dB = 10*log₁₀(P/P0)
+Unit of power level"
 
 1_Pa
 "Pascal
@@ -1141,6 +1177,11 @@ non-SI plane angle"
 "steradian
 Def: 1_sr
 Base SI solid angle"
+
+1_spat
+"spat
+Def: 1_spat = 4π_sr
+non-SI solid angle"
 
 1_fc
 "foot-candle
