@@ -1998,7 +1998,8 @@ void LIB_HANDLER()
         j:=d2f(j);
         */
 
-        num.flags&=~F_APPROX;   // FROM NOW ON ALL NUMBERS ARE EXACT
+        BINT savesign=num.flags&F_NEGATIVE;
+        num.flags&=~(F_APPROX|F_NEGATIVE);   // FROM NOW ON ALL NUMBERS ARE EXACT AND POSITIVE
         BINT saveprec=Context.precdigits;
         Context.precdigits=MAX_USERPRECISION;   // ALLOW INTEGERS TO GROW UP TO MAXIMUM SYSTEM PRECISION
 
@@ -2083,6 +2084,10 @@ void LIB_HANDLER()
         if(Exceptions) { DSTop=stksave; return; }
         rplSymbApplyOperator(CMD_OVR_DIV,2);  // RETURN((t2+t3*n0)/(d0*t3));
         if(Exceptions) { DSTop=stksave; return; }
+        if(savesign) {
+            rplSymbApplyOperator(CMD_OVR_UMINUS,1);  // RETURN(-(t2+t3*n0)/(d0*t3));
+            if(Exceptions) { DSTop=stksave; return; }
+        }
 
         rplOverwriteData(2,rplPeekData(1));
         rplDropData(1);

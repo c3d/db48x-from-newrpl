@@ -6555,7 +6555,9 @@ void LIB_HANDLER()
         case CPLX_NORMAL:
         {
             // AVOID CREATING A NEW OBJECT
-            WORDPTR real=rplPeekData(1)+1;
+            WORDPTR real;
+            if(ISNUMBER(*rplPeekData(1)) || ISCONSTANT(*rplPeekData(1))) real=rplPeekData(1);
+            else real=rplPeekData(1)+1;
             rplOverwriteData(1,real);
             return;
         }

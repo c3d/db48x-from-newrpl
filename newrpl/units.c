@@ -21,10 +21,10 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('a','c','r','e'),                             // [12]='acre'    (acre international)
     MKPROLOG(DOIDENT,2),TEXT2WORD('a','c','r','e'),TEXT2WORD('U','S',0,0),      // [14]='acreUS'    (acre US Survey)
     MKPROLOG(DOIDENT,2),TEXT2WORD('a','r','c','m'),TEXT2WORD('i','n',0,0),      // [17]='arcmin'
-    MKPROLOG(DOIDENT,1),TEXT2WORD('a','r','c','s'),                              // [20]='arcs'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('a','r','c','s'),                     // [20]='arcs'
     MKPROLOG(DOIDENT,1),TEXT2WORD('a','t','m', 0 ),                              // [22]='atm'
     MKPROLOG(DOIDENT,1),TEXT2WORD('a','u', 0 , 0 ),                              // [24]='au'
-    MKPROLOG(DOIDENT,1),TEXT2WORD('b', 0 , 0 , 0 ),                              // [26]='b'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('b', 0 , 0 , 0 ),                      // [26]='b'
     MKPROLOG(DOIDENT,1),TEXT2WORD('b','a','r', 0 ),                              // [28]='bar'
     MKPROLOG(DOIDENT,1),TEXT2WORD('b','b','l', 0 ),                              // [30]='bbl'
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('B','q', 0 , 0 ),                      // [32]='Bq'
@@ -58,12 +58,12 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('f','t', 0 , 0 ),                              // [92]='ft'
     MKPROLOG(DOIDENT,1),TEXT2WORD('f','t','U','S'),                              // [94]='ftUS'
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('g', 0 , 0 , 0 ),                      // [96]='g'
-    MKPROLOG(DOIDENT,1),TEXT2WORD('g','a', 0 , 0 ),                              // [98]='ga' (gravity's acceleration)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('g','a', 0 , 0 ),                      // [98]='ga' (gravity's acceleration)
     MKPROLOG(DOIDENT,1),TEXT2WORD('g','a','l', 0 ),                              // [100]='gal' (US gallon)
     MKPROLOG(DOIDENT,1),TEXT2WORD('g','a','l','C'),                              // [102]='galC' (Canadian gallon)
     MKPROLOG(DOIDENT,2),TEXT2WORD('g','a','l','U'),TEXT2WORD('K',0,0,0),         // [104]='galUK' (UK gallon)
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('g','f', 0 , 0 ),                      // [107]='gf' (gram force)
-    MKPROLOG(DOIDENT,1),TEXT2WORD('g','r','a','d'),                              // [109]='grad'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('g','r','a','d'),                      // [109]='grad'
     MKPROLOG(DOIDENT,2),TEXT2WORD('g','r','a','i'),TEXT2WORD('n',0,0,0),         // [111]='grain'
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('G','y', 0 , 0 ),                      // [114]='Gy' (Gray)
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('H', 0 , 0 , 0 ),                      // [116]='H' (Henry)
@@ -138,9 +138,9 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENT,2),TEXT2WORD('t','h','e','r'),TEXT2WORD('m',0,0,0),         // [252]='therm' (EEC therm)
     MKPROLOG(DOIDENT,1),TEXT2WORD('t','o','n', 0 ),                              // [255]='ton' (short ton)
     MKPROLOG(DOIDENT,2),TEXT2WORD('t','o','n','U'),TEXT2WORD('K',0,0,0),         // [257]='tonUK' (long ton UK)
-    MKPROLOG(DOIDENT,1),TEXT2WORD('T','o','r','r'),                              // [260]='torr' (Torricelli)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('T','o','r','r'),                      // [260]='torr' (Torricelli)
     MKPROLOG(DOIDENT,1),TEXT2WORD('t','s','p', 0 ),                              // [262]='tsp' (teaspoon)
-    MKPROLOG(DOIDENT,1),TEXT2WORD('u', 0 , 0 , 0 ),                              // [264]='u' (unified atomic mass)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('u', 0 , 0 , 0 ),                      // [264]='u' (unified atomic mass or Dalton)
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('V', 0 , 0 , 0 ),                      // [266]='V' (Volt)
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('W', 0 , 0 , 0 ),                      // [268]='W' (Watt)
     MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('W','b', 0 , 0 ),                      // [270]='Wb' (Weber)
@@ -161,7 +161,7 @@ const WORD const system_unit_names[]={
 
     MKPROLOG(DOIDENT,1),TEXT2WORD('d','B',0,0),             // [294]='dB' (decibel)
 
-    MKPROLOG(DOIDENT,1),TEXT2WORD('t','r',0,0),             // [296]='tr' (one turn)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('t','r',0,0),             // [296]='tr' (one turn)
 
     MKPROLOG(DOIDENT,1),TEXT2WORD('p','t','C',0),             // [298]='ptC'
     MKPROLOG(DOIDENT,1),TEXT2WORD('q','t','C',0),             // [300]='qtC'
@@ -175,6 +175,31 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENT,2),TEXT2WORD('l','b', 'm' , 'o' ),TEXT2WORD('l',0,0,0),         // [314]='lbmol'
 
     MKPROLOG(DOIDENT,1),TEXT2WORD('s','p', 'a' , 't' ),         // [317]='spat' (solid angle)
+
+    MKPROLOG(DOIDENT,1),TEXT2WORD('y','d', 'U' , 'S' ),         // [319]='ydUS' (distance)
+
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('D','a', 0 , 0 ),     // [321]='Da' (Dalton = new name for atomic mass unit)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','s', 'i' , 0 ),           // [323]='ksi'
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('B', 0 , 0 , 0 ),     // [325]='B' (Byte = amount of information)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('b','i', 't' , 0 ),   // [327]='bit' (amount of information)
+
+    MKPROLOG(DOIDENT,1),TEXT2WORD('K', 'i' , 'B' , 0 ),     // [329]='KiB' (KibiByte)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('M', 'i' , 'B' , 0 ),     // [331]='MiB' (MebiByte)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('G', 'i' , 'B' , 0 ),     // [333]='GiB' (GibiByte)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('T', 'i' , 'B' , 0 ),     // [335]='TiB' (TebiByte)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('P', 'i' , 'B' , 0 ),     // [337]='PiB' (PebiByte)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('E', 'i' , 'B' , 0 ),     // [339]='EiB' (ExbiByte)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('Z', 'i' , 'B' , 0 ),     // [341]='ZiB' (ZebiByte)
+    MKPROLOG(DOIDENT,1),TEXT2WORD('Y', 'i' , 'B' , 0 ),     // [343]='YiB' (YobiByte)
+
+    MKPROLOG(DOIDENT,2),TEXT2WORD('K', 'i' , 'b' , 'i' ),TEXT2WORD('t',0,0,0),     // [345]='Kibit' (Kibibit)
+    MKPROLOG(DOIDENT,2),TEXT2WORD('M', 'i' , 'b' , 'i' ),TEXT2WORD('t',0,0,0),     // [348]='Mibit' (Mebibit)
+    MKPROLOG(DOIDENT,2),TEXT2WORD('G', 'i' , 'b' , 'i' ),TEXT2WORD('t',0,0,0),     // [351]='Gibit' (Gibibit)
+    MKPROLOG(DOIDENT,2),TEXT2WORD('T', 'i' , 'b' , 'i' ),TEXT2WORD('t',0,0,0),     // [354]='Tibit' (Tebibit)
+    MKPROLOG(DOIDENT,2),TEXT2WORD('P', 'i' , 'b' , 'i' ),TEXT2WORD('t',0,0,0),     // [357]='Pibit' (Pebibit)
+    MKPROLOG(DOIDENT,2),TEXT2WORD('E', 'i' , 'b' , 'i' ),TEXT2WORD('t',0,0,0),     // [360]='Eibit' (Exbibit)
+    MKPROLOG(DOIDENT,2),TEXT2WORD('Z', 'i' , 'b' , 'i' ),TEXT2WORD('t',0,0,0),     // [363]='Zibit' (Zebibit)
+    MKPROLOG(DOIDENT,2),TEXT2WORD('Y', 'i' , 'b' , 'i' ),TEXT2WORD('t',0,0,0),     // [366]='Yibit' (Yobibit)
 
 };
 
@@ -329,7 +354,7 @@ const WORD const system_unit_defs[]={
 
     //[229] = eV
     MKPROLOG(DOUNIT,8),
-    MKPROLOG(DOREAL,3),MAKEREALFLAGS(-29,2,0),21766208,160,       // 1.6021766208e-19 per CODATA 2014
+    MKPROLOG(DOREAL,3),MAKEREALFLAGS(-29,2,0),21766340,160,       // 1.6021766340e-19 exact per 2019 SI redefinition
     MKPROLOG(DOIDENT,1),TEXT2WORD('J',0,0,0),MAKESINT(1),MAKESINT(1),
 
     //[238] = F
@@ -361,7 +386,7 @@ const WORD const system_unit_defs[]={
 
     //[277] = Fdy
     MKPROLOG(DOUNIT,9),
-    MKPROLOG(DOREAL,4),MAKEREALFLAGS(-15,3,0),00000000,53328900,9648,       // 6.022140857e23 * 1.6021766208e-19 per CODATA 2014
+    MKPROLOG(DOREAL,4),MAKEREALFLAGS(-13,3,0),33100184,48533212,96,       // 96485.3321233100184_C exact per 2019 SI
     MKPROLOG(DOIDENT,1),TEXT2WORD('C',0,0,0),MAKESINT(1),MAKESINT(1),
 
     //[287] = zero Celsius
@@ -841,7 +866,7 @@ const WORD const system_unit_defs[]={
 
     // [1040]='u' (unified atomic mass)
     MKPROLOG(DOUNIT,8),
-    MKPROLOG(DOREAL,3),MAKEREALFLAGS(-36,2,0),60539040,16,       // 1.660 539 040 x 10-27 kg
+    MKPROLOG(DOREAL,3),MAKEREALFLAGS(-40,2,0),90666050,166053,       // 1.660 539 066 6050 x 10-27 kg
     MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(1),MAKESINT(1),
 
     // [1049]='V' (Volt)
@@ -972,6 +997,108 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD(0xcf,0x80,0,0),MAKESINT(1),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('s','r',0,0),MAKESINT(1),MAKESINT(1),
 
+    //[1262] = ydUS
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(3),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t','U','S'),MAKESINT(1),MAKESINT(1),
+
+    // [1268]='Da' (Dalton = unified atomic mass)
+    MKPROLOG(DOUNIT,8),
+    MKPROLOG(DOREAL,3),MAKEREALFLAGS(-40,2,0),90666050,166053,       // 1.660 539 066 6050 x 10-27 kg
+    MKPROLOG(DOIDENT,1),TEXT2WORD('k','g',0,0),MAKESINT(1),MAKESINT(1),
+
+    //[1277] = ksi
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1000),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('p','s','i',0),MAKESINT(1),MAKESINT(1),
+
+    // [1283]='B' (Byte = amount of information)
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(8),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('b','i','t',0),MAKESINT(1),MAKESINT(1),   // =8_bits
+
+
+    // [1289]='KiB' (KibiByte)
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1024),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('B',0,0,0),MAKESINT(1),MAKESINT(1),   // =1024_B
+
+
+    // [1295]='MiB' (MebiByte)
+    MKPROLOG(DOUNIT,7),
+    MAKEBINT64(1024*1024),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('B',0,0,0),MAKESINT(1),MAKESINT(1),   // =1048576_B
+
+    // [1303]='GiB' (GibiByte)
+    MKPROLOG(DOUNIT,7),
+    MAKEBINT64(1024LL*1024LL*1024LL),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('B',0,0,0),MAKESINT(1),MAKESINT(1),   // =(1024^3)_B
+
+    // [1311]='TiB' (TebiByte)
+    MKPROLOG(DOUNIT,7),
+    MAKEBINT64(1024LL*1024LL*1024LL*1024LL),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('B',0,0,0),MAKESINT(1),MAKESINT(1),   // =(1024^4)_B
+
+    // [1319]='PiB' (PebiByte)
+    MKPROLOG(DOUNIT,7),
+    MAKEBINT64(1024LL*1024LL*1024LL*1024LL*1024LL),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('B',0,0,0),MAKESINT(1),MAKESINT(1),   // =(1024^5)_B
+
+    // [1327]='EiB' (ExbiByte)
+    MKPROLOG(DOUNIT,7),
+    MAKEBINT64(1024LL*1024LL*1024LL*1024LL*1024LL*1024LL),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('B',0,0,0),MAKESINT(1),MAKESINT(1),   // =(1024^6)_B
+
+    // [1335]='ZiB' (ZebiByte)
+    MKPROLOG(DOUNIT,9),
+    MKPROLOG(DOREAL,4),MAKEREALFLAGS(0,3,0),11303424,16207174,118059,   // 2^70 AS A REAL NUMBER
+    MKPROLOG(DOIDENT,1),TEXT2WORD('B',0,0,0),MAKESINT(1),MAKESINT(1),   // =(1024^7)_B
+
+    // [1345]='YiB' (YobiByte)
+    MKPROLOG(DOUNIT,10),
+    MKPROLOG(DOREAL,5),MAKEREALFLAGS(0,3,0),74706176,96146291,20892581,1,   // 2^80 AS A REAL NUMBER
+    MKPROLOG(DOIDENT,1),TEXT2WORD('B',0,0,0),MAKESINT(1),MAKESINT(1),   // =(1024^8)_B
+
+    // [1356]='Kibit' (Kibibit)
+    MKPROLOG(DOUNIT,5),
+    MAKESINT(1024),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('b','i','t',0),MAKESINT(1),MAKESINT(1),   // =1024_bit
+
+    // [1362]='Mibit' (Mebibit)
+    MKPROLOG(DOUNIT,7),
+    MAKEBINT64(1024*1024),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('b','i','t',0),MAKESINT(1),MAKESINT(1),   // =1024_bit
+
+    // [1370]='Gibit' (Gibibit)
+    MKPROLOG(DOUNIT,7),
+    MAKEBINT64(1024LL*1024LL*1024LL),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('b','i','t',0),MAKESINT(1),MAKESINT(1),   // =1024_bit
+
+    // [1378]='Tibit' (Tebibit)
+    MKPROLOG(DOUNIT,7),
+    MAKEBINT64(1024LL*1024LL*1024LL*1024LL),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('b','i','t',0),MAKESINT(1),MAKESINT(1),   // =1024_bit
+
+    // [1386]='Pibit' (Pebibit)
+    MKPROLOG(DOUNIT,7),
+    MAKEBINT64(1024LL*1024LL*1024LL*1024LL*1024LL),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('b','i','t',0),MAKESINT(1),MAKESINT(1),   // =1024_bit
+
+     // [1394]='Eibit' (Exbibit)
+    MKPROLOG(DOUNIT,7),
+    MAKEBINT64(1024LL*1024LL*1024LL*1024LL*1024LL*1024LL),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('b','i','t',0),MAKESINT(1),MAKESINT(1),   // =1024_bit
+
+    // [1402]='Zibit' (Zebibit)
+    MKPROLOG(DOUNIT,9),
+    MKPROLOG(DOREAL,4),MAKEREALFLAGS(0,3,0),11303424,16207174,118059,   // 2^70 AS A REAL NUMBER
+    MKPROLOG(DOIDENT,1),TEXT2WORD('b','i','t',0),MAKESINT(1),MAKESINT(1),   // =1024_bit
+
+    // [1412]='Yibit' (Yobibit)
+    MKPROLOG(DOUNIT,10),
+    MKPROLOG(DOREAL,5),MAKEREALFLAGS(0,3,0),74706176,96146291,20892581,1,   // 2^80 AS A REAL NUMBER
+    MKPROLOG(DOIDENT,1),TEXT2WORD('b','i','t',0),MAKESINT(1),MAKESINT(1),   // =1024_bit
+
 };
 
 // SYSTEM UNIT DEFINITION DIRECTORY: CONTAINS PONTERS TO NAME/VALUE PAIRS FOR ALL SYSTEM UNITS
@@ -1016,14 +1143,14 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[294],(WORDPTR)&one_real,             // 'dB'=1 (non-dimensional)
     (WORDPTR)&system_unit_names[66],(WORDPTR)&system_unit_defs[201], // 'dyn'=1_g*cm/s^2
     (WORDPTR)&system_unit_names[68],(WORDPTR)&system_unit_defs[215], // 'erg'=1_g*cm^2/s^2
-    (WORDPTR)&system_unit_names[70],(WORDPTR)&system_unit_defs[229], // 'eV'=1.6021766208e-19_J
+    (WORDPTR)&system_unit_names[70],(WORDPTR)&system_unit_defs[229], // 'eV'=1.602176634e-19_J
     (WORDPTR)&system_unit_names[72],(WORDPTR)&system_unit_defs[238], // 'F'=1_C/V
     (WORDPTR)&system_unit_names[74],(WORDPTR)&one_bint,              // '°F' IS A BASE UNIT BECAUSE IT'S INCONSISTENT UNLESS SPECIAL CASES
     (WORDPTR)&system_unit_names[76],(WORDPTR)&system_unit_defs[248], // 'Δ°F'=1_Δ°R
     (WORDPTR)&system_unit_names[79],(WORDPTR)&system_unit_defs[255], // 'fath'=6_ftUS
     (WORDPTR)&system_unit_names[81],(WORDPTR)&system_unit_defs[261], // 'fbm'=144_in^3
     (WORDPTR)&system_unit_names[83],(WORDPTR)&system_unit_defs[267], // 'fc'=1_lm/ft^2
-    (WORDPTR)&system_unit_names[85],(WORDPTR)&system_unit_defs[277], // 'Fdy'=96485.33289_C (per CODATA 2014)
+    (WORDPTR)&system_unit_names[85],(WORDPTR)&system_unit_defs[277], // 'Fdy'=96485.3321233100184_C (exact per 2019 SI redefinition)
     (WORDPTR)&system_unit_names[87],(WORDPTR)&system_unit_defs[303], // 'fermi'=1_fm
     (WORDPTR)&system_unit_names[90],(WORDPTR)&system_unit_defs[309], // 'flam'=1/pi_cd/ft^2
     (WORDPTR)&system_unit_names[92],(WORDPTR)&system_unit_defs[323], // 'ft'=12_in'
@@ -1121,7 +1248,7 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[296],(WORDPTR)&system_unit_defs[1172], // 'tr'=2*pi_r
 
     (WORDPTR)&system_unit_names[262],(WORDPTR)&system_unit_defs[1030], // 'tsp'=1/6_ozfl
-    (WORDPTR)&system_unit_names[264],(WORDPTR)&system_unit_defs[1040], // 'u'= 1.660539040E-27_kg
+    (WORDPTR)&system_unit_names[264],(WORDPTR)&system_unit_defs[1040], // 'u'= 1.6605390666050E-27_kg
     (WORDPTR)&system_unit_names[266],(WORDPTR)&system_unit_defs[1049], // 'V'=1_kg*m^2/A/s^3
     (WORDPTR)&system_unit_names[268],(WORDPTR)&system_unit_defs[1067], // 'W'=1_J/s=1_kg*m^2/s^3
     (WORDPTR)&system_unit_names[270],(WORDPTR)&system_unit_defs[1081], // 'Wb'=1_kg*m^2/A/s^2
@@ -1133,6 +1260,30 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[280],(WORDPTR)&system_unit_defs[589], // '?CFT'=3937 (NON-DIMENSIONAL)
     (WORDPTR)&system_unit_names[286],(WORDPTR)&system_unit_defs[590], // '?CTO'=760 (NON-DIMENSIONAL)
 
+    (WORDPTR)&system_unit_names[319],(WORDPTR)&system_unit_defs[1262], // 'ydUS'= 3_ftUS
+    (WORDPTR)&system_unit_names[321],(WORDPTR)&system_unit_defs[1268], // 'Da'= 1.6605390666050E-27_kg
+    (WORDPTR)&system_unit_names[323],(WORDPTR)&system_unit_defs[1277], // 'ksi'= 1000_psi
+
+    (WORDPTR)&system_unit_names[325],(WORDPTR)&system_unit_defs[1283], // 'B'= 8_bit (one byte)
+    (WORDPTR)&system_unit_names[327],(WORDPTR)&one_bint,              // 'bit'=1 (base unit)
+
+    (WORDPTR)&system_unit_names[329],(WORDPTR)&system_unit_defs[1289], // 'KiB'= (2^10)_B
+    (WORDPTR)&system_unit_names[331],(WORDPTR)&system_unit_defs[1295], // 'MiB'= (2^20)_B
+    (WORDPTR)&system_unit_names[333],(WORDPTR)&system_unit_defs[1303], // 'GiB'= (2^30)_B
+    (WORDPTR)&system_unit_names[335],(WORDPTR)&system_unit_defs[1311], // 'TiB'= (2^40)_B
+    (WORDPTR)&system_unit_names[337],(WORDPTR)&system_unit_defs[1319], // 'PiB'= (2^50)_B
+    (WORDPTR)&system_unit_names[339],(WORDPTR)&system_unit_defs[1327], // 'EiB'= (2^60)_B
+    (WORDPTR)&system_unit_names[341],(WORDPTR)&system_unit_defs[1335], // 'ZiB'= (2^70)_B
+    (WORDPTR)&system_unit_names[343],(WORDPTR)&system_unit_defs[1345], // 'YiB'= (2^80)_B
+
+    (WORDPTR)&system_unit_names[345],(WORDPTR)&system_unit_defs[1356], // 'Kibit'= (2^10)_bit
+    (WORDPTR)&system_unit_names[348],(WORDPTR)&system_unit_defs[1362], // 'Mibit'= (2^20)_bit
+    (WORDPTR)&system_unit_names[351],(WORDPTR)&system_unit_defs[1370], // 'Gibit'= (2^30)_bit
+    (WORDPTR)&system_unit_names[354],(WORDPTR)&system_unit_defs[1378], // 'Tibit'= (2^40)_bit
+    (WORDPTR)&system_unit_names[357],(WORDPTR)&system_unit_defs[1386], // 'Pibit'= (2^50)_bit
+    (WORDPTR)&system_unit_names[360],(WORDPTR)&system_unit_defs[1394], // 'Eibit'= (2^60)_bit
+    (WORDPTR)&system_unit_names[363],(WORDPTR)&system_unit_defs[1402], // 'Zibit'= (2^70)_bit
+    (WORDPTR)&system_unit_names[366],(WORDPTR)&system_unit_defs[1412], // 'Yibit'= (2^80)_bit
 
     0,0                                         // NULL TERMINATED LIST
 };
@@ -2183,8 +2334,8 @@ void rplUnitSpecialToDelta(BINT nlevels)
 BINT rplUnitIsNonDimensional(WORDPTR uobject)
 {
     if(!ISUNIT(*uobject)) {
-        rplError(ERR_UNITEXPECTED);
-        return 0;
+        rplPushData(uobject);
+        return 1;
     }
     WORDPTR *stkclean=DSTop;
     BINT nlevels=rplUnitExplode(uobject);

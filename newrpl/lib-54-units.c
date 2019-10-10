@@ -1626,7 +1626,7 @@ void LIB_HANDLER()
 
 
         if(ISLIST(*rplPeekData(1))) {
-            rplListUnaryDoCmd();
+            rplListUnaryNoResultDoCmd();
             return;
         }
 

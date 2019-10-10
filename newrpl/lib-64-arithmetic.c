@@ -1771,6 +1771,7 @@ case IPPOST:
             }
             WORDPTR arg1=rplPeekData(2);
             WORDPTR arg2=rplPeekData(1);
+            WORDPTR *cleanup=0;
 
             if(ISLIST(*arg1) || ISLIST(*arg2)){
                 rplListBinaryDoCmd();
@@ -1782,9 +1783,28 @@ case IPPOST:
             }
 
             if( !ISNUMBER(*arg1) || !ISNUMBER(*arg2)) {
-                rplError(ERR_BADARGTYPE);
-                return;
+                BINT nond1,nond2;
+                nond1=rplUnitIsNonDimensional(arg1);
+                if(Exceptions) return;
+                nond2=rplUnitIsNonDimensional(rplPeekData(1+nond1));
+                if(Exceptions) return;
+                if(nond1+nond2!=2) {
+                    rplDropData(nond1+nond2);
+                    rplError(ERR_INCONSISTENTUNITS);
+                    return;
+                }
+                // FALLBACK TO THE INTEGER CASE...
+                cleanup=DSTop-2;
+                arg1=rplPeekData(2);
+                arg2=rplPeekData(1);
+
+                if( !ISNUMBER(*arg1) || !ISNUMBER(*arg2)) {
+                                    rplError(ERR_BADARGTYPE);
+                                    if(cleanup) DSTop=cleanup;
+                                    return;
+                }
             }
+
 
             BINT isIEGCD = (OPCODE(CurOpcode) == IEGCD);
             BINT chs1 = 0;
@@ -1815,6 +1835,7 @@ case IPPOST:
                 }
                 if (r2 == (BINT64)0) {
                     rplError(ERR_MATHDIVIDEBYZERO);
+                    if(cleanup) DSTop=cleanup;
                     return;
                 }
                 // avoid swapping elements by loop unrolling
@@ -1881,10 +1902,12 @@ case IPPOST:
                     }
                 } while (notfinished);
                 if (OPCODE(CurOpcode) == GCD) {
+                    if(cleanup) DSTop=cleanup;
                     rplDropData(2);
                     rplNewBINTPush(gcd,DECBINT);
                 }
                 else if (isIEGCD) {
+                    if(cleanup) DSTop=cleanup;
                     rplDropData(2);
                     rplNewBINTPush(gcd,DECBINT);
                     if(!swapped){
@@ -1926,6 +1949,7 @@ case IPPOST:
                     divReal(&RReg[4],&RReg[0],&rgcd);
                     if((x.flags&F_APPROX)||(y.flags&F_APPROX)) RReg[4].flags|=F_APPROX;
                     else RReg[4].flags&=~F_APPROX;    // REMOVE THE APPROXIMATED FLAG AFTER TRUNCATION
+                    if(cleanup) DSTop=cleanup;
                     rplDropData(2);
                     rplNewRealFromRRegPush(4);
                 }
@@ -1938,10 +1962,12 @@ case IPPOST:
 
             if(!isintegerReal(&RReg[1])) {
                 rplError(ERR_INTEGEREXPECTED);
+                if(cleanup) DSTop=cleanup;
                 return;
             }
             if(!isintegerReal(&RReg[2])) {
                 rplError(ERR_INTEGEREXPECTED);
+                if(cleanup) DSTop=cleanup;
                 return;
             }
 
@@ -1959,6 +1985,7 @@ case IPPOST:
             }
             if (iszeroReal(&RReg[2])) {
                 rplError(ERR_MATHDIVIDEBYZERO);
+                if(cleanup) DSTop=cleanup;
                 return;
             }
 
@@ -1973,6 +2000,7 @@ case IPPOST:
 
             if(arg1digits>MAX_USERPRECISION) {
                 rplError(ERR_NUMBERTOOBIG);
+                if(cleanup) DSTop=cleanup;
                 return;
             }
 
@@ -2061,12 +2089,14 @@ case IPPOST:
 
             if (OPCODE(CurOpcode) == GCD) {
                 Context.precdigits=saveprec;
+                if(cleanup) DSTop=cleanup;
                 rplDropData(2);
                 rplNewRealFromRRegPush(igcd);
                 rplCheckResultAndError(&RReg[igcd]);
             }
             else if (isIEGCD) {
                 Context.precdigits=saveprec;
+                if(cleanup) DSTop=cleanup;
                 rplDropData(2);
                 rplNewRealFromRRegPush(igcd);
                 rplCheckResultAndError(&RReg[igcd]);
@@ -2121,6 +2151,7 @@ case IPPOST:
                 if((x.flags&F_APPROX)||(y.flags&F_APPROX)) RReg[4].flags|=F_APPROX;
                 else RReg[4].flags&=~F_APPROX;    // REMOVE THE APPROXIMATED FLAG AFTER TRUNCATION
                 Context.precdigits=saveprec;
+                if(cleanup) DSTop=cleanup;
                 rplDropData(2);
                 rplNewRealFromRRegPush(4);
                 rplCheckResultAndError(&RReg[4]);
