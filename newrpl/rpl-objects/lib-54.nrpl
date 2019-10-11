@@ -35,6 +35,8 @@
   { { "Light" 1 } ::  #0360F000h TMENULST ; }
   { { "Rad" 1 } ::    #03610000h TMENULST ; }
   { { "Visc" 1 } ::   #03611000h TMENULST ; }
+  { { "Chem" 1 } ::   #03613000h TMENULST ; }
+  { { "Info" 1 } ::   #03614000h TMENULST ; }
 }
 
 @#name unitmenu_1_tools
@@ -55,26 +57,31 @@ ULIST
     1_m
     1_cm
     1_mm
+    1_km
+    1_mi
+
     1_yd
     1_ft
     1_in
+    1_nmi
+    1_miUS
+
     1_Mpc
     1_pc
     1_lyr
     1_au
-    1_km
-    1_mi
-    1_nmi
-    1_miUS
-    1_chain
-    1_rd
-    1_rdUS
-    1_fath
-    1_ftUS
-    1_mil
     1_µ
+
     1_Å
     1_fermi
+    1_mil
+    1_chain
+    1_rd
+
+    1_fath
+    1_rdUS 
+    1_ftUS
+    1_ydUS
     { { "Units" 1 } :: #03600000h TMENULST ; }
 
 }
@@ -83,11 +90,11 @@ ULIST
 {
     1_m^2
     1_cm^2
+    1_km^2
     1_b
     1_yd^2
     1_ft^2
     1_in^2
-    1_km^2
     1_ha
     1_a
     1_ca
@@ -143,6 +150,7 @@ ULIST
 @#name unitmenu_5_time
 {
     1_yr
+    1_annum
     1_d
     1_h
     1_min
@@ -189,8 +197,12 @@ ULIST
 @#name unitmenu_8_force
 {
     1_N
-    1_dyn
+    1_MN
+    1_kN
+    1_kgf
     1_gf
+
+    1_dyn
     1_kip
     1_lbf
     1_pdl
@@ -228,9 +240,17 @@ ULIST
 @#name unitmenu_11_pressure
 {
     1_Pa
+    1_MPa
+    1_daN/mm^2
+    1_kgf/cm^2
+    1_kgf/m^2
+
+    1_psi
+    1_ksi
+    1_psf
     1_atm
     1_bar
-    1_psi
+
     1_Torr
     1_mmHg
     1_inHg
@@ -326,7 +346,36 @@ ULIST
 { { "Units" 1 } :: #03600000h TMENULST ; }
 }
 
+@#name unitmenu_19_chemistry
+{
+    1_kat
+    1_U
 
+
+{ { "Units" 1 } :: #03600000h TMENULST ; }
+}
+
+@#name unitmenu_20_information
+{
+    1_B
+    1_kB
+    1_KiB
+    1_MB
+    1_MiB
+
+    1_GB
+    1_GiB
+    1_bit
+    1_kbit
+    1_Kibit
+
+    1_Mbit
+    1_Mibit
+    1_Gbit
+    1_Gibit
+
+{ { "Units" 1 } :: #03600000h TMENULST ; }
+}
 
 @#name lib54_msgtable
 {
@@ -475,7 +524,12 @@ US surveying length"
 
 1_ftUS
 "surveying foot
-Def: 1_ftUS = =1200/3937_m
+Def: 1_ftUS = 1200/3937_m
+US surveying length"
+
+1_ydUS
+"surveying yard
+Def: 1_ydUS = 3_ftUS
 US surveying length"
 
 1_mil
@@ -729,6 +783,12 @@ Canadian volume"
 Def: 1_yr = 31556925.9747_s
 per 1952 Ephemeris Time"
 
+1_annum
+"Julian year
+Def: 1_annum = 365.25_d
+non-SI time"
+
+
 1_d
 "day
 Def: 1_d = 86400_s
@@ -866,8 +926,13 @@ Imperial mass"
 
 1_u
 "unified atomic mass
-Def: 1_u = 1.660539040E-27_kg
-non-SI mass"
+Def: 1_u = 1.660539066605E-27_kg
+non-SI atomic mass"
+
+1_Da
+"Dalton
+Def: 1_Da = 1.660539066605E-27_kg
+non-SI atomic mass"
 
 1_mol
 "mole
@@ -884,10 +949,28 @@ non-SI amount of substance"
 Def: 1_lbmol = 453.59237_mol
 US customary substance"
 
+1_kat
+"katal
+Def: 1_kat = 1_mol/s
+SI catalytic activity"
+
+1_U
+"unit of catalytic activity
+Def: 1_U = 0.000001_mol/s
+non-SI catalytic activity"
 
 1_N
 "Newton
 Def: 1_N = 1_kg*m/s^2
+SI force"
+
+1_kN
+"kilonewton
+Def: 1_kN = 1000_N
+SI force"
+1_MN
+"meganewton
+Def: 1_MN = 1000000_N
 SI force"
 
 1_dyn
@@ -898,6 +981,11 @@ non-SI force"
 1_gf
 "gram-force
 Def: 1_gf = 1_g*ga
+non-SI force"
+
+1_kgf
+"kilogram-force
+Def: 1_kgf = 1_kg*ga
 non-SI force"
 
 1_kip
@@ -1012,6 +1100,27 @@ Unit of power level"
 Def: 1_Pa = 1_N/m^2
 SI pressure"
 
+1_MPa
+"megapascal
+Def: 1_MPa = 1_N/mm^2
+SI pressure"
+
+1_daN/mm^2
+"decanewton per millimetre square
+Def: 1_daN/mm^2 = 10_MPa
+SI pressure"
+
+1_kgf/cm^2
+"kilogram force per centimetre square
+Def: 1_kgf/cm^2
+non-SI pressure"
+
+1_kgf/m^2
+"kilogram force per metre square
+Def: 1_kgf/m^2
+non-SI pressure"
+
+
 1_atm
 "atmospheric pressure
 Def: 1_atm = 101325_Pa
@@ -1025,6 +1134,16 @@ non-SI pressure"
 1_psi
 "pound per square inch
 Def: 1_psi = 1_lbf/in^2
+US customary pressure"
+
+1_ksi
+"kilopound per square inch
+Def: 1_ksi = 1000_lbf/in^2
+US customary pressure"
+
+1_psf
+"pound per square foot
+Def: 1_psf = 1_lbf/ft^2
 US customary pressure"
 
 1_Torr
@@ -1297,6 +1416,76 @@ non-SI acceleration"
 "radian per second squared
 Def: 1_r/s^2
 SI angular acceleration"
+
+1_B
+"Byte
+Def: 1_B = 8_bit
+ISO/IEC amount of information"
+
+1_kB
+"kilobyte
+Def: 1_kB = 1000_B
+ISO/IEC amount of information"
+
+1_KiB
+"kibibyte
+Def: 1_KiB = 1024_B
+ISO/IEC amount of information"
+
+1_MB
+"megabyte
+Def: 1_MB = 10^6_B
+ISO/IEC amount of information"
+
+1_MiB
+"mebibyte
+Def: 1_MiB = 2^20_B
+ISO/IEC amount of information"
+
+1_GB
+"gigabyte
+Def: 1_GB = 10^9_B
+ISO/IEC amount of information"
+
+1_GiB
+"gibibyte
+Def: 1_GiB = 2^30_B
+ISO/IEC amount of information"
+
+1_bit
+"bit
+Def: 1_bit (base unit)
+ISO/IEC amount of information"
+
+1_kbit
+"kilobit
+Def: 1_kbit = 1000_bit
+ISO/IEC amount of information"
+
+1_Kibit
+"kibibit
+Def: 1_Kibit = 1024_bit
+ISO/IEC amount of information"
+
+1_Mbit
+"megabit
+Def: 1_Mbit = 10^6_bit
+ISO/IEC amount of information"
+
+1_MiB
+"mebibit
+Def: 1_Mibit = 2^20_bit
+ISO/IEC amount of information"
+
+1_Gbit
+"gigabit
+Def: 1_Gbit = 10^9_bit
+ISO/IEC amount of information"
+
+1_Gibit
+"gibibit
+Def: 1_Gibit = 2^30_bit
+ISO/IEC amount of information"
 
 
 }

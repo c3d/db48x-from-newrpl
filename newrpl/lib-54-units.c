@@ -95,6 +95,8 @@ INCLUDE_ROMOBJECT(unitmenu_15_light);
 INCLUDE_ROMOBJECT(unitmenu_16_radiation);
 INCLUDE_ROMOBJECT(unitmenu_17_viscosity);
 INCLUDE_ROMOBJECT(unitmenu_18_acceleration);
+INCLUDE_ROMOBJECT(unitmenu_19_chemistry);
+INCLUDE_ROMOBJECT(unitmenu_20_information);
 
 
 
@@ -126,6 +128,9 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)unitmenu_16_radiation,
     (WORDPTR)unitmenu_17_viscosity,
     (WORDPTR)unitmenu_18_acceleration,
+    (WORDPTR)unitmenu_19_chemistry,
+    (WORDPTR)unitmenu_20_information,
+
      0
 };
 
@@ -3107,7 +3112,7 @@ void LIB_HANDLER()
         // MUST RETURN A MENU LIST IN ObjectPTR
         // AND RetNum=OK_CONTINUE;
     {
-        if(MENUNUMBER(MenuCodeArg)>17) {
+        if(MENUNUMBER(MenuCodeArg)>20) {
             RetNum=ERR_NOTMINE;
             return;
         }

@@ -201,6 +201,13 @@ const WORD const system_unit_names[]={
     MKPROLOG(DOIDENT,2),TEXT2WORD('Z', 'i' , 'b' , 'i' ),TEXT2WORD('t',0,0,0),     // [363]='Zibit' (Zebibit)
     MKPROLOG(DOIDENT,2),TEXT2WORD('Y', 'i' , 'b' , 'i' ),TEXT2WORD('t',0,0,0),     // [366]='Yibit' (Yobibit)
 
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('k', 'a' , 't' , 0 ),    // [369]='kat' (katal = unit of catalytic activity)
+
+    MKPROLOG(DOIDENTSIPREFIX,2),TEXT2WORD('a', 'n' , 'n' , 'u' ),TEXT2WORD('m',0,0,0),     // [371]='annum' (Julian year, symbol 'a' but was already taken)
+
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('p', 's' , 'f' , 0 ),    // [374]='psf' 1_lbf/ft^2 (US Customary)
+    MKPROLOG(DOIDENTSIPREFIX,1),TEXT2WORD('U', 0 , 0 , 0 ),        // [376]='U' (unit of catalytic activity)
+
 };
 
 // SYSTEM UNIT DEFINITION TABLE: CONTAINS THE VALUES OF ALL SYSTEM DEFINED UNITS
@@ -1099,6 +1106,29 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DOREAL,5),MAKEREALFLAGS(0,3,0),74706176,96146291,20892581,1,   // 2^80 AS A REAL NUMBER
     MKPROLOG(DOIDENT,1),TEXT2WORD('b','i','t',0),MAKESINT(1),MAKESINT(1),   // =1024_bit
 
+    // [1423] = 'kat' = katal = mol/s
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m','o','l',0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-1),MAKESINT(1),
+
+    // [1433] = 'annum' = Julian year
+    MKPROLOG(DOUNIT,7),
+    MAKEBINT64(31557600),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(1),MAKESINT(1),   // = 365.25 days = 31557600 seconds
+
+    //[1441]='psf'
+    MKPROLOG(DOUNIT,9),
+    MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('l','b','f',0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('f','t',0,0),MAKESINT(-2),MAKESINT(1),
+
+    // [1451] = 'U' = 1e-6_mol/s
+    MKPROLOG(DOUNIT,11),
+    MKPROLOG(DOREAL,2),MAKEREALFLAGS(-6,1,0),1,   // 1E-6 AS A REAL NUMBER
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m','o','l',0),MAKESINT(1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-1),MAKESINT(1),
+
 };
 
 // SYSTEM UNIT DEFINITION DIRECTORY: CONTAINS PONTERS TO NAME/VALUE PAIRS FOR ALL SYSTEM UNITS
@@ -1284,6 +1314,13 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[360],(WORDPTR)&system_unit_defs[1394], // 'Eibit'= (2^60)_bit
     (WORDPTR)&system_unit_names[363],(WORDPTR)&system_unit_defs[1402], // 'Zibit'= (2^70)_bit
     (WORDPTR)&system_unit_names[366],(WORDPTR)&system_unit_defs[1412], // 'Yibit'= (2^80)_bit
+
+    (WORDPTR)&system_unit_names[369],(WORDPTR)&system_unit_defs[1423], // 'kat'= 1_mol/s (katal = unit of catalytic activity)
+    (WORDPTR)&system_unit_names[371],(WORDPTR)&system_unit_defs[1433], // 'annum'= 365.25_d (Julian year)
+
+    (WORDPTR)&system_unit_names[374],(WORDPTR)&system_unit_defs[1441], // 'psf'= 1_lbf/ft^2 (US Customary)
+    (WORDPTR)&system_unit_names[376],(WORDPTR)&system_unit_defs[1451], // 'U'= 0.000001_mol/s (unit of catalytic activity)
+
 
     0,0                                         // NULL TERMINATED LIST
 };
