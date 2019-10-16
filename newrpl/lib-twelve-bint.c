@@ -1448,11 +1448,18 @@ void LIB_HANDLER()
 
             // THIS IS A NUMBER WITH A BASE
             basechr=strend[-1];
+            if(basechr=='.') {
+                // NUMBERS ENDING IN A DOT ARE APPROXIMATED
+                   libbase|=APPROX_BIT;
+                   --argnum1;
+                   --strend;
+                   basechr=strend[-1];
+            }
 
             if( (basechr=='d') || (basechr=='D')) { --argnum1; --strend; }
-            if( (basechr=='h') || (basechr=='H')) { base=16; libbase=HEXBINT; --argnum1; --strend; }
-            if( (basechr=='o') || (basechr=='O')) { base=8; libbase=OCTBINT; --argnum1; --strend; }
-            if( (basechr=='b') || (basechr=='B')) { base=2; libbase=BINBINT; --argnum1; --strend; }
+            if( (basechr=='h') || (basechr=='H')) { base=16; libbase=HEXBINT|(libbase&APPROX_BIT); --argnum1; --strend; }
+            if( (basechr=='o') || (basechr=='O')) { base=8; libbase=OCTBINT|(libbase&APPROX_BIT); --argnum1; --strend; }
+            if( (basechr=='b') || (basechr=='B')) { base=2; libbase=BINBINT|(libbase&APPROX_BIT); --argnum1; --strend; }
         }
 
         if(argnum1<=0) { RetNum=ERR_NOTMINE; return; }

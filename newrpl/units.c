@@ -1360,6 +1360,11 @@ const WORDPTR const system_unit_special[]={
 // (2): NUMERATOR
 // (1): DENOMINATOR
 
+#define DEG_IDENT 62   // [62]='°' (angular degree)
+#define RAD_IDENT 209  // [209]='r' (radian)
+#define GRAD_IDENT 109 // [109]='grad'
+
+
 BINT rplUnitExplode(WORDPTR unitobj)
 {
     WORDPTR *savestk=DSTop;
@@ -1376,6 +1381,40 @@ if(!ISUNIT(*unitobj)) {
     }
     else {
     rplPushData(unitobj);
+    if(ISANGLE(*unitobj)) {
+        // CONVERT THE ANGLE TO ANGULAR UNITS
+        BINT anglemode=ANGLEMODE(*unitobj);
+        switch(anglemode)
+        {
+        case ANGLEDEG:
+            rplOverwriteData(1,unitobj+1);
+            rplPushData(&system_unit_names[DEG_IDENT]);
+            break;
+
+        case ANGLEGRAD:
+            rplOverwriteData(1,unitobj+1);
+            rplPushData(&system_unit_names[GRAD_IDENT]);
+            break;
+        case ANGLEDMS:
+            rplConvertAngleObj(unitobj,ANGLEDEG);
+
+            WORDPTR newang=rplNewReal(&RReg[0]);
+            if(!newang) { DSTop=savestk; return 0; }
+            rplOverwriteData(1,newang);
+            rplPushData(&system_unit_names[DEG_IDENT]);
+            break;
+        case ANGLERAD:
+        default:
+            rplOverwriteData(1,unitobj+1);
+            rplPushData(&system_unit_names[RAD_IDENT]);
+            break;
+        }
+            rplPushData((WORDPTR)one_bint);
+            rplPushData((WORDPTR)one_bint);
+            return 4;
+
+        }
+
     return 1;
     }
 }

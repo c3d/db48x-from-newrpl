@@ -2862,7 +2862,7 @@ void LIB_HANDLER()
 
                     WORDPTR *stkptr=DSTop-1;
 
-                    while(*stkptr!=map_seco) --stkptr;  // FIND THE NEXT MARKER ON THE STACK
+                    while((*stkptr!=mapinnercomp_seco)&&(stkptr>DStkBottom)) --stkptr;  // FIND THE NEXT MARKER ON THE STACK
                     BINT nelements=(BINT)(DSTop-stkptr)-1;
 
                     rplNewBINTPush(nelements,DECBINT);
