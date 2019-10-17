@@ -1847,7 +1847,15 @@ void LIB_HANDLER()
         val=rplPeekData(2);
         unit=rplPeekData(1);
 
-        if(ISSYMBOLIC(*val)) val=rplSymbUnwrap(val)+1;
+        if(ISSYMBOLIC(*val)) {
+            val=rplSymbUnwrap(val);
+            if(ISBINT(val[1]) || ISPROLOG(val[1])) {
+                // THIS IS AN ATOMIC EXPRESSION, OPERATE DIRECTLY ON THE OBJECT
+                ++val;
+            } // OTHERWISE IT CONTAINS OPERATORS, SO KEEP IT SYMBOLIC
+
+        }
+
         if(ISSYMBOLIC(*unit)) unit=rplSymbUnwrap(unit)+1;
 
         if(!ISUNIT(*unit)) {
