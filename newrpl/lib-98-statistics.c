@@ -143,9 +143,10 @@ void LIB_HANDLER()
      REAL r;
      rplReadNumberAsReal(rplPeekData(1),&r);
      if(Exceptions) return;
+     if(iszeroReal(&r)) rplLoadBINTAsReal(halTicks(),&r);
      UBINT64 seed=12345678901234567890ULL;
      int k;
-     for(k=1;k<r.len;++k) {
+     for(k=0;k<r.len;++k) {
          if(r.data[k]) seed*=r.data[k];
      }
      rplRandomSeed(seed);
