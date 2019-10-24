@@ -125,6 +125,8 @@ void LIB_HANDLER()
          return;
         }
     case OVR_ISTRUE:
+        rplOverwriteData(1,(WORDPTR)one_bint); // ALWAYS RETURN TRUE
+        return;
     case OVR_FUNCEVAL:
     case OVR_EVAL:
     case OVR_EVAL1:
