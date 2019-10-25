@@ -59,9 +59,9 @@ struct date rtc_getdate()
     if(timest==NULL) return dt;
 
         dt.mday=timest->tm_mday;
-        dt.mon=timest->tm_mon;
+        dt.mon=timest->tm_mon+1;
         dt.wday=timest->tm_wday;
-        dt.year=timest->tm_year;
+        dt.year=timest->tm_year+1900;
 
         return dt;
 }

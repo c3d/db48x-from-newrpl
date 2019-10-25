@@ -357,6 +357,52 @@ void rplDoRuleApply1()
 
 }
 
+// CONVERT A COMPLEX NUMBER TO A SYMBOLIC OBJECT REPRESENTATION
+WORDPTR rplComplexToSymb(WORDPTR complex)
+{
+    if(!ISCOMPLEX(*complex)) return complex;
+    BINT size,resize,imsize;
+    size=rplObjSize(complex)+4;   // DOSYMB + RE() DOSYMB * IM() DOSYMB i
+    resize=rplObjSize(complex+1);
+    imsize=rplObjSize(rplSkipOb(complex+1));
+
+    BINT ispolar=ISANGLE(*rplSkipOb(complex+1));
+    if(ispolar) size+=4; // DOSYMB * RE() DOSYMB ^ e DOSYMB * i IM()
+    WORDPTR newobj=rplAllocTempOb(size);
+    if(!newobj) return 0;
+    if(ispolar) {
+        newobj[0]=MKPROLOG(DOSYMB,size);
+        newobj[1]=CMD_OVR_MUL;
+        memmovew(newobj+2,complex+1,resize);
+        newobj[2+resize]=MKPROLOG(DOSYMB,imsize+7);
+        newobj[3+resize]=CMD_OVR_POW;
+        newobj[4+resize]=MKPROLOG(DOSYMB,1);
+        newobj[5+resize]=CMD_ECONST;
+        newobj[6+resize]=MKPROLOG(DOSYMB,(imsize+3));
+        newobj[7+resize]=CMD_OVR_MUL;
+        newobj[8+resize]=MKPROLOG(DOSYMB,1);
+        if(rplTestSystemFlag(FL_PREFERJ)) newobj[9+resize]=CMD_JCONST;
+        else newobj[9+resize]=CMD_ICONST;
+        memmovew(newobj+10+resize,rplSkipOb(complex+1),imsize);
+        return newobj;
+    }
+
+    newobj[0]=MKPROLOG(DOSYMB,size);
+    newobj[1]=CMD_OVR_ADD;
+    memmovew(newobj+2,complex+1,resize);
+    newobj[2+resize]=MKPROLOG(DOSYMB,(imsize+3));
+    newobj[3+resize]=CMD_OVR_MUL;
+    memmovew(newobj+4+resize,rplSkipOb(complex+1),imsize);
+    newobj[4+resize+imsize]=MKPROLOG(DOSYMB,1);
+    if(rplTestSystemFlag(FL_PREFERJ)) newobj[5+resize+imsize]=CMD_JCONST;
+    else newobj[5+resize+imsize]=CMD_ICONST;
+    return newobj;
+}
+
+
+
+
+
 void LIB_HANDLER()
 {
     if(ISPROLOG(CurOpcode)) {
@@ -874,6 +920,24 @@ void LIB_HANDLER()
 
         BINT initdepth=rplDepthData();
         BINT argtype=0;
+
+        if(ISCOMPLEX(*rplPeekData(2))) {
+            WORDPTR newsymb=rplComplexToSymb(rplPeekData(2));
+            if(Exceptions) return;
+            rplOverwriteData(2,newsymb);
+            arg1=rplPeekData(2);
+            arg2=rplPeekData(1);
+        }
+
+        if(ISCOMPLEX(*rplPeekData(1))) {
+            WORDPTR newsymb=rplComplexToSymb(rplPeekData(1));
+            if(Exceptions) return;
+            rplOverwriteData(1,newsymb);
+            arg1=rplPeekData(2);
+            arg2=rplPeekData(1);
+        }
+
+
 
         if(ISSYMBOLIC(*arg1) && rplSymbMainOperator(arg1)==(CMD_OVR_ADD)) {
             // EXPLODE ALL ARGUMENTS ON THE STACK

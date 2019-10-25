@@ -873,6 +873,8 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap);
 #define FL_OVERFLOW       -25
 #define FL_INFINITE       -26
 
+#define FL_PREFERJ        -27
+
 #define FL_STRIPCOMMENTS  -30
 #define FL_TIMEFORMAT     -41
 #define FL_DATEFORMAT     -42
@@ -910,6 +912,7 @@ WORDPTR rplBmpToDisplay(WORDPTR bitmap);
 
 #define FL_QUICKRESPONSE  -88   // LOWER RESPONSE TIME TO 30 ms BEFORE GOING TO FULL SPEED (WHEN SET)
 #define FL_COMPLEXMODE    -103
+
 
 
 

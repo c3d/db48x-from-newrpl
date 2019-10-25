@@ -1505,6 +1505,7 @@ end_of_expression:
 
                 case TITYPE_FUNCTION:
                 default:
+                    {
                     // DECOMPILE THE OPERATOR NOW, THEN ADD PARENTHESIS FOR THE LIST
                     CurOpcode=MKOPCODE(LIBNUM(*DecompileObject),(flags&DECOMP_EDIT)? OPCODE_DECOMPEDIT:OPCODE_DECOMPILE);
                     DecompMode=infixmode|(flags<<16);
@@ -1524,8 +1525,32 @@ end_of_expression:
                     }
                     rplDecompAppendChar('(');
                     ++DecompileObject;
+
+                    // CHECK IF THIS IS THE LAST ARGUMENT
+                    WORDPTR EndofExpression = rplSkipOb(*(signed int *)(InfixOpTop-4)+EndOfObject);
+
+                    if(DecompileObject==EndofExpression) {
+
+                        rplDecompAppendChar(')');
+
+                        // END OF THIS EXPRESSION
+                        // POP EXPRESSION FROM THE STACK
+                        InfixOpTop-=4;
+                        // RESTORE PREVIOUS EXPRESSION STATE
+
+
+                        infixmode=InfixOpTop[1];
+                        DecompileObject=rplSkipOb(*(signed int *)InfixOpTop+EndOfObject);
+                        if(!infixmode) rplDecompAppendChar('\'');
+
+                        goto end_of_expression;
+                    }
+
+
+
                     infixmode=INFIX_FUNCARGUMENT;
                     break;
+                    }
                 }
                 } else infixmode=INFIX_ATOMIC;
 

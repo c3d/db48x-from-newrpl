@@ -497,8 +497,8 @@ void LIB_HANDLER()
             if(isspec1) {
                 rplUnitReplaceSpecial(nlevels1);
                 if(Exceptions) { DSTop=stkclean; return; }
-                ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
             }
+            ScratchPointer3=rplPeekData(nlevels1);      // SAVE THE CONVERTED VALUE FOR LATER, rplUnitExplode USES ScratchPointers 1 AND 2
 
             rplOverwriteData(nlevels1,(WORDPTR)one_bint);        // MAKE IT ONE TO PRODUCE A CONVERSION FACTOR
             nlevels1=rplUnitToBase(nlevels1);
@@ -540,12 +540,8 @@ void LIB_HANDLER()
             // THE UNITS ARE CONSISTENT
             WORDPTR unitval;
 
-            if(isspec1) rplPushData(ScratchPointer3);
-            else {
-                unitval=rplPeekData(2+nlevels1+nlevels2);
-                if(ISUNIT(*unitval)) ++unitval; // IF IT'S A UNIT, POINT TO THE VALUE
-                rplPushData(unitval);
-            }
+            rplPushData(ScratchPointer3);
+
             rplPushData(rplPeekData(nlevels2+1));
             rplPushData(rplPeekData(nlevels1+nlevels2+2));
             rplCallOvrOperator((CMD_OVR_DIV));

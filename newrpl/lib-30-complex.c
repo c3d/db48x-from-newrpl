@@ -7374,7 +7374,7 @@ void LIB_HANDLER()
         if(ISPROLOG(*ObjectPTR)) {
         TypeInfo=LIBRARY_NUMBER*100+rplPolarComplexMode(ObjectPTR)+1;
         DecompHints=0;
-        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_NOTALLOWED,0,1);
+        RetNum=OK_TOKENINFO | MKTOKENINFO(0,TITYPE_COMPLEX,0,1);
         }
         else {
             TypeInfo=0;     // ALL COMMANDS ARE TYPE 0
