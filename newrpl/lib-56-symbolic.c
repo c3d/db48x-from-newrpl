@@ -362,7 +362,7 @@ WORDPTR rplComplexToSymb(WORDPTR complex)
 {
     if(!ISCOMPLEX(*complex)) return complex;
     BINT size,resize,imsize;
-    size=rplObjSize(complex)+4;   // DOSYMB + RE() DOSYMB * IM() DOSYMB i
+    size=rplObjSize(complex)+5;   // DOSYMB + RE() DOSYMB * IM() i
     resize=rplObjSize(complex+1);
     imsize=rplObjSize(rplSkipOb(complex+1));
 
@@ -374,28 +374,30 @@ WORDPTR rplComplexToSymb(WORDPTR complex)
         newobj[0]=MKPROLOG(DOSYMB,size);
         newobj[1]=CMD_OVR_MUL;
         memmovew(newobj+2,complex+1,resize);
-        newobj[2+resize]=MKPROLOG(DOSYMB,imsize+7);
+        newobj[2+resize]=MKPROLOG(DOSYMB,imsize+8);
         newobj[3+resize]=CMD_OVR_POW;
-        newobj[4+resize]=MKPROLOG(DOSYMB,1);
-        newobj[5+resize]=CMD_ECONST;
-        newobj[6+resize]=MKPROLOG(DOSYMB,(imsize+3));
+        newobj[4+resize]=MKPROLOG(DOCONST,1);
+        newobj[5+resize]=MAKESINT(OPCODE(CMD_ECONST));
+        newobj[6+resize]=MKPROLOG(DOSYMB,(imsize+4));
         newobj[7+resize]=CMD_OVR_MUL;
-        newobj[8+resize]=MKPROLOG(DOSYMB,1);
-        if(rplTestSystemFlag(FL_PREFERJ)) newobj[9+resize]=CMD_JCONST;
-        else newobj[9+resize]=CMD_ICONST;
-        memmovew(newobj+10+resize,rplSkipOb(complex+1),imsize);
+        newobj[8+resize]=MKPROLOG(DOCONST,2);
+        if(rplTestSystemFlag(FL_PREFERJ)) newobj[9+resize]=MAKESINT(OPCODE(CMD_JCONST));
+        else newobj[9+resize]=MAKESINT(OPCODE(CMD_ICONST));
+        newobj[10+resize]=newobj[9+resize];
+        memmovew(newobj+11+resize,rplSkipOb(complex+1),imsize);
         return newobj;
     }
 
     newobj[0]=MKPROLOG(DOSYMB,size);
     newobj[1]=CMD_OVR_ADD;
     memmovew(newobj+2,complex+1,resize);
-    newobj[2+resize]=MKPROLOG(DOSYMB,(imsize+3));
+    newobj[2+resize]=MKPROLOG(DOSYMB,(imsize+4));
     newobj[3+resize]=CMD_OVR_MUL;
     memmovew(newobj+4+resize,rplSkipOb(complex+1),imsize);
-    newobj[4+resize+imsize]=MKPROLOG(DOSYMB,1);
-    if(rplTestSystemFlag(FL_PREFERJ)) newobj[5+resize+imsize]=CMD_JCONST;
-    else newobj[5+resize+imsize]=CMD_ICONST;
+    newobj[4+resize+imsize]=MKPROLOG(DOCONST,2);
+    if(rplTestSystemFlag(FL_PREFERJ)) newobj[5+resize+imsize]=MAKESINT(OPCODE(CMD_JCONST));
+    else newobj[5+resize+imsize]=MAKESINT(OPCODE(CMD_ICONST));
+    newobj[6+resize+imsize]=newobj[5+resize+imsize];
     return newobj;
 }
 
@@ -1071,6 +1073,21 @@ void LIB_HANDLER()
            return;
         }
 
+        if(ISCOMPLEX(*rplPeekData(2))) {
+            WORDPTR newsymb=rplComplexToSymb(rplPeekData(2));
+            if(Exceptions) return;
+            rplOverwriteData(2,newsymb);
+            arg1=rplPeekData(2);
+            arg2=rplPeekData(1);
+        }
+
+        if(ISCOMPLEX(*rplPeekData(1))) {
+            WORDPTR newsymb=rplComplexToSymb(rplPeekData(1));
+            if(Exceptions) return;
+            rplOverwriteData(1,newsymb);
+            arg1=rplPeekData(2);
+            arg2=rplPeekData(1);
+        }
         ScratchPointer1=arg1;
         ScratchPointer2=arg2;
         ScratchPointer3=rplSkipOb(arg1);
@@ -1158,6 +1175,19 @@ void LIB_HANDLER()
             rplError(ERR_NOTALLOWEDINSYMBOLICS);
 
             return;
+        }
+
+        if(ISCOMPLEX(*rplPeekData(2))) {
+            WORDPTR newsymb=rplComplexToSymb(rplPeekData(2));
+            if(Exceptions) return;
+            rplOverwriteData(2,newsymb);
+
+        }
+
+        if(ISCOMPLEX(*rplPeekData(1))) {
+            WORDPTR newsymb=rplComplexToSymb(rplPeekData(1));
+            if(Exceptions) return;
+            rplOverwriteData(1,newsymb);
         }
 
         rplSymbApplyOperator(CurOpcode,2);

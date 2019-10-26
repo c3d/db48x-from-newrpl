@@ -1123,11 +1123,11 @@ const WORD const system_unit_defs[]={
     MKPROLOG(DOIDENT,1),TEXT2WORD('l','b','f',0),MAKESINT(1),MAKESINT(1),
     MKPROLOG(DOIDENT,1),TEXT2WORD('f','t',0,0),MAKESINT(-2),MAKESINT(1),
 
-    // [1451] = 'U' = 1e-6_mol/s
+    // [1451] = 'U' = 1e-6_mol/min
     MKPROLOG(DOUNIT,11),
     MKPROLOG(DOREAL,2),MAKEREALFLAGS(-6,1,0),1,   // 1E-6 AS A REAL NUMBER
     MKPROLOG(DOIDENT,1),TEXT2WORD('m','o','l',0),MAKESINT(1),MAKESINT(1),
-    MKPROLOG(DOIDENT,1),TEXT2WORD('s',0,0,0),MAKESINT(-1),MAKESINT(1),
+    MKPROLOG(DOIDENT,1),TEXT2WORD('m','i','n',0),MAKESINT(-1),MAKESINT(1),
 
 };
 
@@ -1319,7 +1319,7 @@ const WORDPTR const system_unit_dir[]={
     (WORDPTR)&system_unit_names[371],(WORDPTR)&system_unit_defs[1433], // 'annum'= 365.25_d (Julian year)
 
     (WORDPTR)&system_unit_names[374],(WORDPTR)&system_unit_defs[1441], // 'psf'= 1_lbf/ft^2 (US Customary)
-    (WORDPTR)&system_unit_names[376],(WORDPTR)&system_unit_defs[1451], // 'U'= 0.000001_mol/s (unit of catalytic activity)
+    (WORDPTR)&system_unit_names[376],(WORDPTR)&system_unit_defs[1451], // 'U'= 0.000001_mol/min (unit of catalytic activity)
 
 
     0,0                                         // NULL TERMINATED LIST
