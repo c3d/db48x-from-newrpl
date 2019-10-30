@@ -682,6 +682,7 @@ BINT rplSymbGetTokenInfo(WORDPTR object);
 void rplSymbApplyOperator(WORD Opcode,BINT nargs);
 BINT rplSymbRuleMatch();
 BINT rplSymbGetAttr(WORDPTR object);
+WORDPTR rplComplexToSymb(WORDPTR complex);
 
 
 void rplSymbRuleApply();

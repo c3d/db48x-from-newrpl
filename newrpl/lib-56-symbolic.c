@@ -357,49 +357,6 @@ void rplDoRuleApply1()
 
 }
 
-// CONVERT A COMPLEX NUMBER TO A SYMBOLIC OBJECT REPRESENTATION
-WORDPTR rplComplexToSymb(WORDPTR complex)
-{
-    if(!ISCOMPLEX(*complex)) return complex;
-    BINT size,resize,imsize;
-    size=rplObjSize(complex)+5;   // DOSYMB + RE() DOSYMB * IM() i
-    resize=rplObjSize(complex+1);
-    imsize=rplObjSize(rplSkipOb(complex+1));
-
-    BINT ispolar=ISANGLE(*rplSkipOb(complex+1));
-    if(ispolar) size+=4; // DOSYMB * RE() DOSYMB ^ e DOSYMB * i IM()
-    WORDPTR newobj=rplAllocTempOb(size);
-    if(!newobj) return 0;
-    if(ispolar) {
-        newobj[0]=MKPROLOG(DOSYMB,size);
-        newobj[1]=CMD_OVR_MUL;
-        memmovew(newobj+2,complex+1,resize);
-        newobj[2+resize]=MKPROLOG(DOSYMB,imsize+8);
-        newobj[3+resize]=CMD_OVR_POW;
-        newobj[4+resize]=MKPROLOG(DOCONST,1);
-        newobj[5+resize]=MAKESINT(OPCODE(CMD_ECONST));
-        newobj[6+resize]=MKPROLOG(DOSYMB,(imsize+4));
-        newobj[7+resize]=CMD_OVR_MUL;
-        newobj[8+resize]=MKPROLOG(DOCONST,2);
-        if(rplTestSystemFlag(FL_PREFERJ)) newobj[9+resize]=MAKESINT(OPCODE(CMD_JCONST));
-        else newobj[9+resize]=MAKESINT(OPCODE(CMD_ICONST));
-        newobj[10+resize]=newobj[9+resize];
-        memmovew(newobj+11+resize,rplSkipOb(complex+1),imsize);
-        return newobj;
-    }
-
-    newobj[0]=MKPROLOG(DOSYMB,size);
-    newobj[1]=CMD_OVR_ADD;
-    memmovew(newobj+2,complex+1,resize);
-    newobj[2+resize]=MKPROLOG(DOSYMB,(imsize+4));
-    newobj[3+resize]=CMD_OVR_MUL;
-    memmovew(newobj+4+resize,rplSkipOb(complex+1),imsize);
-    newobj[4+resize+imsize]=MKPROLOG(DOCONST,2);
-    if(rplTestSystemFlag(FL_PREFERJ)) newobj[5+resize+imsize]=MAKESINT(OPCODE(CMD_JCONST));
-    else newobj[5+resize+imsize]=MAKESINT(OPCODE(CMD_ICONST));
-    newobj[6+resize+imsize]=newobj[5+resize+imsize];
-    return newobj;
-}
 
 
 
@@ -925,7 +882,7 @@ void LIB_HANDLER()
 
         if(ISCOMPLEX(*rplPeekData(2))) {
             WORDPTR newsymb=rplComplexToSymb(rplPeekData(2));
-            if(Exceptions) return;
+            if(!newsymb) return;
             rplOverwriteData(2,newsymb);
             arg1=rplPeekData(2);
             arg2=rplPeekData(1);
@@ -933,7 +890,7 @@ void LIB_HANDLER()
 
         if(ISCOMPLEX(*rplPeekData(1))) {
             WORDPTR newsymb=rplComplexToSymb(rplPeekData(1));
-            if(Exceptions) return;
+            if(!newsymb) return;
             rplOverwriteData(1,newsymb);
             arg1=rplPeekData(2);
             arg2=rplPeekData(1);

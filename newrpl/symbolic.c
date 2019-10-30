@@ -232,6 +232,55 @@ void rplSymbApplyOperator(WORD Opcode,BINT nargs)
 }
 
 
+
+
+// CONVERT A COMPLEX NUMBER TO A SYMBOLIC OBJECT REPRESENTATION
+WORDPTR rplComplexToSymb(WORDPTR complex)
+{
+    if(!ISCOMPLEX(*complex)) return complex;
+    BINT size,resize,imsize;
+    size=rplObjSize(complex)+5;   // DOSYMB + RE() DOSYMB * IM() i
+    resize=rplObjSize(complex+1);
+    imsize=rplObjSize(rplSkipOb(complex+1));
+
+    BINT ispolar=ISANGLE(*rplSkipOb(complex+1));
+    if(ispolar) size+=4; // DOSYMB * RE() DOSYMB ^ e DOSYMB * i IM()
+    WORDPTR newobj=rplAllocTempOb(size);
+    if(!newobj) return 0;
+    if(ispolar) {
+        newobj[0]=MKPROLOG(DOSYMB,size);
+        newobj[1]=CMD_OVR_MUL;
+        memmovew(newobj+2,complex+1,resize);
+        newobj[2+resize]=MKPROLOG(DOSYMB,imsize+8);
+        newobj[3+resize]=CMD_OVR_POW;
+        newobj[4+resize]=MKPROLOG(DOCONST,1);
+        newobj[5+resize]=MAKESINT(OPCODE(CMD_ECONST));
+        newobj[6+resize]=MKPROLOG(DOSYMB,(imsize+4));
+        newobj[7+resize]=CMD_OVR_MUL;
+        newobj[8+resize]=MKPROLOG(DOCONST,2);
+        if(rplTestSystemFlag(FL_PREFERJ)) newobj[9+resize]=MAKESINT(OPCODE(CMD_JCONST));
+        else newobj[9+resize]=MAKESINT(OPCODE(CMD_ICONST));
+        newobj[10+resize]=newobj[9+resize];
+        memmovew(newobj+11+resize,rplSkipOb(complex+1),imsize);
+        return newobj;
+    }
+
+    newobj[0]=MKPROLOG(DOSYMB,size);
+    newobj[1]=CMD_OVR_ADD;
+    memmovew(newobj+2,complex+1,resize);
+    newobj[2+resize]=MKPROLOG(DOSYMB,(imsize+4));
+    newobj[3+resize]=CMD_OVR_MUL;
+    memmovew(newobj+4+resize,rplSkipOb(complex+1),imsize);
+    newobj[4+resize+imsize]=MKPROLOG(DOCONST,2);
+    if(rplTestSystemFlag(FL_PREFERJ)) newobj[5+resize+imsize]=MAKESINT(OPCODE(CMD_JCONST));
+    else newobj[5+resize+imsize]=MAKESINT(OPCODE(CMD_ICONST));
+    newobj[6+resize+imsize]=newobj[5+resize+imsize];
+    return newobj;
+}
+
+
+
+
 // ADD SYMBOLIC WRAP TO AN OBJECT (NO CHECKS, EXCEPT IT WILL PROCESS LISTS AND MATRICES
 WORDPTR rplSymbWrap(WORDPTR obj)
 {
@@ -352,6 +401,12 @@ WORDPTR rplSymbWrap(WORDPTR obj)
 
     }
 
+    if(ISCOMPLEX(*obj)) {
+        WORDPTR newsymb=rplComplexToSymb(obj);
+        if(!newsymb) return obj;
+        return newsymb;
+    }
+
     // ALL OTHER OBJECTS ARE ATOMIC, ADD A SYMBOLIC WRAP
 
 
@@ -386,8 +441,6 @@ void rplSymbWrapN(BINT level,BINT nargs)
         rplOverwriteData(f+level,rplSymbWrap(obj));
     }
 }
-
-
 
 // EXPLODE A SYMBOLIC IN THE STACK IN REVERSE (LEVEL 1 CONTAINS THE FIRST OBJECT, LEVEL 2 THE SECOND, ETC.)
 // INCLUDING OPERATORS
@@ -621,6 +674,7 @@ WORDPTR *rplSymbSkipInStack(WORDPTR *stkptr)
 
 
 // CONVERT A SYMBOLIC INTO CANONICAL FORM:
+// A.0) ALL COMPLEX NUMBERS REPLACED WITH THEIR SYMBOLIC REPRESENTATION
 // A) NEGATIVE NUMBERS REPLACED WITH NEG(n)
 // B) ALL SUBTRACTIONS REPLACED WITH ADDITION OF NEGATED ITEMS
 // c) ALL NEG(A+B+...) = NEG(A)+NEG(B)+NEG(...)
@@ -661,11 +715,27 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
 
     // *******************************************
     // SCAN THE SYMBOLIC FOR ITEM A)
+    // A.0) COMPLEX NUMBER REPLACED WITH SYMBOLIC COMPLEX
     // A) NEGATIVE NUMBERS REPLACED WITH NEG(n)
 
 
     while(stkptr!=endofstk) {
         sobj=*stkptr;
+
+        if(ISCOMPLEX(*sobj)) {
+            WORDPTR newobj=rplComplexToSymb(sobj);
+            if(!newobj) { DSTop=endofstk+1; return 0; }
+            BINT numnew=rplSymbExplode(newobj);
+            rplExpandStack(numnew);
+            if(Exceptions) { DSTop=endofstk+1; return 0; }
+            // INSERT THE NEW EXPLODED COMPLEX INTO THE SYMBOLIC
+            memmovew(stkptr+numnew,stkptr+1,(endofstk+numitems-stkptr)*(sizeof(WORDPTR)/sizeof(WORD)));
+            memmovew(stkptr,DSTop-numnew,numnew*(sizeof(WORDPTR)/sizeof(WORD)));
+            DSTop--;
+            stkptr+=numnew;
+            numitems+=numnew-1;
+            sobj=*stkptr;
+        }
 
         if(ISBINT(*sobj)) {
             // THE OBJECT IS AN INTEGER NUMBER
@@ -684,6 +754,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
                     --ptr;
                 }
                 DSTop++;    // MOVE ONLY ONE SPOT, DROPPING THE NEW OBJECT IN THE SAME OPERATION
+                rplExpandStack(1);
                 stkptr[0]=newobj;
                 stkptr[1]=(WORDPTR)two_bint;
                 stkptr[2]=(WORDPTR)uminus_opcode;
@@ -708,6 +779,7 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
                     --ptr;
                 }
                 DSTop++;    // MOVE ONLY ONE SPOT, DROPPING THE NEW OBJECT IN THE SAME OPERATION
+                rplExpandStack(1);
                 stkptr[0]=newobj;
                 stkptr[1]=(WORDPTR)two_bint;
                 stkptr[2]=(WORDPTR)uminus_opcode;
