@@ -13,6 +13,7 @@ DEFINES += TARGET_PC "NEWRPL_BUILDNUM=$$system(git rev-list --count HEAD)"
 
 SOURCES += main.cpp\
         mainwindow.cpp \
+    newrpl/lib-4081-tags.c \
     qemuscreen.cpp \
     firmware/ggl/ggl/ggl_bitblt.c \
     firmware/ggl/ggl/ggl_bitbltoper.c \
