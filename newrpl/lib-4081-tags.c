@@ -113,12 +113,18 @@ void LIB_HANDLER()
 
                     }
 
-            //  THIS SHOULDN'T HAPPEN, TAGS SHOULD BE IGNORED BY OVERLOADED OPERATORS
-            rplError(ERR_INVALIDOPCODE);
-            return;
 
 
+           }
+
+        // STRIP TAGS FROM ALL ARGUMENTS
+        BINT nargs=OVR_GETNARGS(CurOpcode);
+        BINT k;
+        for(k=1;k<=nargs;++k) {
+            if(ISTAG(*DSTop[-k])) DSTop[-k]=rplSkipOb(DSTop[-k]+1);
         }
+        rplCallOvrOperator(CurOpcode);
+        return;
 
     }   // END OF OVERLOADABLE OPERATORS
 
@@ -189,7 +195,7 @@ void LIB_HANDLER()
                 else if(nbytes==1) rplCompileAppend(TEXT2WORD(ptr[0],0,0,0));
 
                 ptr+=nbytes;
-                RetNum=OK_CONTINUE_NOVALIDATE;  // NO NEED TO VALIDATE THE TAG
+                RetNum=OK_INCARGCOUNT;  // MARK WE ALREADY ADDED THE TAG
                 return;
 
             }

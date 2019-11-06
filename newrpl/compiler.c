@@ -291,7 +291,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                     force_libnum=-1;
                     break;
                 case OK_INCARGCOUNT:
-                    *(ValidateTop-1)=*(ValidateTop-1)+1; // POINTER TO THE WORD OF THE COMPOSITE, TEMPORARILY STORE THE NUMBER OF ARGUMENTS AS THE SIZE
+                    **(ValidateTop-1)=**(ValidateTop-1)+1; // POINTER TO THE WORD OF THE COMPOSITE, TEMPORARILY STORE THE NUMBER OF ARGUMENTS AS THE SIZE
                     libcnt=EXIT_LOOP;
                     force_libnum=-1;
                     break;
