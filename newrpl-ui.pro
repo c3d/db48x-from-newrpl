@@ -291,6 +291,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-100.nrpl \
                 newrpl/rpl-objects/lib-102.nrpl \
                 newrpl/rpl-objects/lib-104.nrpl \
+                newrpl/rpl-objects/lib-4081.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 INCLUDEPATH += firmware/include newrpl

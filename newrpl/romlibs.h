@@ -46,6 +46,7 @@
     INCLUDELIB(102,lib-102-libptr.c) , \
     INCLUDELIB(104,lib-104-solvers.c) , \
     INCLUDELIB(4080,lib-4080-localenv.c) , \
+    INCLUDELIB(4081,lib-4081-tags.c) , \
     INCLUDELIB(4090,lib-4090-overloaded.c)
 
 // ADD MORE LIBRARIES HERE

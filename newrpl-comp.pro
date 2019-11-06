@@ -222,6 +222,7 @@ SOURCES += firmware/ggl/ggl/ggl_bitblt.c \
     firmware/sys/usbcommon.c \
     firmware/hal_cpu.c \
     newrpl/lib-55-constants.c \
+    newrpl/lib-4081-tags.c \
     firmware/sys/target_pc/fwupdate.c
 
 

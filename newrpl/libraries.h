@@ -309,6 +309,7 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define DOLIBRARY   102     // LIBRARIES AND LIBPTRS
 #define DOLIBPTR    (DOLIBRARY+1)
 
+#define DOTAG     4081
 
 // BITMAP TYPES TO ADD TO DOBITMAP
 #define BITMAP_RAWMONO  0
@@ -372,6 +373,7 @@ WORD libComputeHash2(WORDPTR start,BINT nwords);
 #define ISLIBRARY(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIBRARY))
 #define ISLIBPTR(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOLIBRARY+1))
 
+#define ISTAG(prolog) (ISPROLOG(prolog) && (LIBNUM(prolog)==DOTAG))
 
 
 #define ANGLEMODE(prolog) ( (ISANGLE(prolog)? (BINT)(LIBNUM(prolog)&3):(BINT)ANGLENONE) )
