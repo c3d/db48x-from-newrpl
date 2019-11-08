@@ -103,6 +103,7 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(1);
 
             BINT64 sizebytes=rplReadNumberAsBINT(rplPeekData(1));
             if(Exceptions) return;
@@ -139,6 +140,7 @@ void LIB_HANDLER()
             return;
         }
 
+        rplStripTagStack(5);
         if(!ISBINDATA(*rplPeekData(5))) {
             rplError(ERR_BINDATAEXPECTED);
             return;
@@ -196,6 +198,8 @@ void LIB_HANDLER()
             return;
         }
 
+        rplStripTagStack(3);
+
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
         BINT64 srcoffset=rplReadNumberAsBINT(rplPeekData(2));
@@ -244,6 +248,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(4);
 
         BINT destsize=sizeof(WORD)*rplObjSize(rplPeekData(4));
 
@@ -426,6 +431,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(4);
 
         BINT destsize=rplObjSize(rplPeekData(4));
 
@@ -610,6 +616,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(5);
 
         if(!ISBINDATA(*rplPeekData(5))) {
             rplError(ERR_BINDATAEXPECTED);
@@ -667,6 +674,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(3);
 
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
@@ -719,6 +727,10 @@ void LIB_HANDLER()
             return;
         }
 
+        // STRIP TAGS ON ARGUMENTS BUT NOT ON OBJECT
+        rplOverwriteData(3,rplStripTag(rplPeekData(3)));
+        rplOverwriteData(2,rplStripTag(rplPeekData(2)));
+
         if(!ISBINDATA(*rplPeekData(3))) {
             rplError(ERR_BINDATAEXPECTED);
             return;
@@ -764,7 +776,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-
+        rplStripTagStack(2);
         // DO NOT CHECK THE SOURCE OF THE DATA ON PURPOSE, BUT DO CHECK THAT THE NUMBER OF BYTES ARE AVAILABLE
 
         BINT64 srcoffset=rplReadNumberAsBINT(rplPeekData(1));
@@ -818,7 +830,8 @@ void LIB_HANDLER()
 
     case OVR_ISTRUE:
     {
-        rplOverwriteData(1,(WORDPTR)one_bint);
+        if(OBJSIZE(*rplPeekData(1))) rplOverwriteData(1,(WORDPTR)one_bint);
+        else rplOverwriteData(1,(WORDPTR)zero_bint);
         return;
     }
 

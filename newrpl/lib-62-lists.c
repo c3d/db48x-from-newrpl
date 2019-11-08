@@ -572,6 +572,9 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        rplStripTagStack(1);
+
         WORDPTR list=rplPeekData(1);
 
         if(!ISLIST(*list)) {
@@ -645,6 +648,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR list=rplPeekData(1);
 
         if(!ISLIST(*list)) {
@@ -694,6 +699,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         if(!ISNUMBER(*rplPeekData(1))) {
             rplError(ERR_REALEXPECTED);
 
@@ -709,6 +716,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         if(!ISLIST(*rplPeekData(1))) {
             rplError(ERR_LISTEXPECTED);
 
@@ -732,6 +741,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(3);
+
 
         if(!ISNUMBER(*rplPeekData(2))) {
             rplError(ERR_REALEXPECTED);
@@ -998,6 +1009,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(3);
 
         if(!ISNUMBER(*rplPeekData(2))) {
             rplError(ERR_REALEXPECTED);
@@ -1235,6 +1247,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
 
         if(!ISLIST(*rplPeekData(2))) {
             rplError(ERR_LISTEXPECTED);
@@ -1472,6 +1485,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
 
         if(!ISLIST(*rplPeekData(2))) {
             rplError(ERR_LISTEXPECTED);
@@ -1692,6 +1706,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
 
         if(!ISLIST(*rplPeekData(2))) {
             rplError(ERR_LISTEXPECTED);
@@ -2414,6 +2429,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
 
         if(!ISLIST(*rplPeekData(1))) {
             rplError(ERR_LISTEXPECTED);
@@ -2562,6 +2578,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
 
         if(!ISLIST(*rplPeekData(1))) {
             rplError(ERR_LISTEXPECTED);
@@ -2773,6 +2790,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(3);
 
         if(!ISLIST(*rplPeekData(3))) {
             rplError(ERR_LISTEXPECTED);
@@ -2805,6 +2823,8 @@ void LIB_HANDLER()
          rplError(ERR_BADARGCOUNT);
          return;
      }
+     rplStripTagStack(5);
+
      if(!ISSYMBOLIC(*rplPeekData(5)) && !ISIDENT(*rplPeekData(5)) && !ISPROGRAM(*rplPeekData(5))) {
          rplError(ERR_BADARGTYPE);
          return;

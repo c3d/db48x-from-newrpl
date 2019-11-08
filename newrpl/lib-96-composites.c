@@ -146,6 +146,7 @@ void LIB_HANDLER()
             return;
         }
 
+            rplStripTagStack(3);
             WORDPTR comp=rplPeekData(3);
             WORDPTR *var=0;
             if(ISIDENT(*comp)) {
@@ -158,7 +159,7 @@ void LIB_HANDLER()
                     }
 
                 }
-                comp=*(var+1);
+                comp=rplStripTag(*(var+1));
             }
 
 
@@ -402,6 +403,7 @@ void LIB_HANDLER()
             return;
         }
 
+            rplStripTagStack(3);
             WORDPTR comp=rplPeekData(3);
             WORDPTR *var=0;
             if(ISIDENT(*comp)) {
@@ -414,7 +416,7 @@ void LIB_HANDLER()
                     }
 
                 }
-                comp=*(var+1);
+                comp=rplStripTag(*(var+1));
             }
 
 
@@ -742,6 +744,7 @@ void LIB_HANDLER()
             return;
         }
 
+            rplStripTagStack(2);
             WORDPTR comp=rplPeekData(2);
             WORDPTR *var=0;
             if(ISIDENT(*comp)) {
@@ -754,7 +757,7 @@ void LIB_HANDLER()
                     }
 
                 }
-                comp=*(var+1);
+                comp=rplStripTag(*(var+1));
             }
 
 
@@ -923,6 +926,7 @@ void LIB_HANDLER()
             return;
         }
 
+            rplStripTagStack(2);
             WORDPTR comp=rplPeekData(2);
             WORDPTR *var=0;
             if(ISIDENT(*comp)) {
@@ -935,7 +939,7 @@ void LIB_HANDLER()
                     }
 
                 }
-                comp=*(var+1);
+                comp=rplStripTag(*(var+1));
             }
 
 
@@ -1184,7 +1188,9 @@ void LIB_HANDLER()
 
             return;
         }
-        WORDPTR comp=rplPeekData(1);
+        WORDPTR comp;
+        head_recheck:
+        comp=rplPeekData(1);
 
         if(ISLIST(*comp)) {
         BINT nitems=rplListLength(comp);
@@ -1209,6 +1215,7 @@ void LIB_HANDLER()
         }
 
 
+        if(rplStripTagStack(1)) goto head_recheck;
         rplError(ERR_COMPOSITEEXPECTED);
 
         return;
@@ -1224,7 +1231,9 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        WORDPTR comp=rplPeekData(1);
+        WORDPTR comp;
+        tail_recheck:
+        comp=rplPeekData(1);
 
         if(ISLIST(*comp)) {
         BINT nitems=rplExplodeList2(comp);
@@ -1253,6 +1262,8 @@ void LIB_HANDLER()
             rplOverwriteData(1,newstring);
             return;
         }
+
+        if(rplStripTagStack(1)) goto tail_recheck;
 
         rplError(ERR_COMPOSITEEXPECTED);
 
@@ -1333,8 +1344,11 @@ void LIB_HANDLER()
         }
 
 
-        // TODO: ADD TAG OBJECTS HERE (NOT YET IMPLEMENTED)
-
+        if(ISTAG(*comp)) {
+           rplOverwriteData(1,comp+1);
+           rplPushData(rplStripTag(comp));
+           return;
+        }
 
         rplError(ERR_COMPOSITEEXPECTED);
 
@@ -1352,6 +1366,8 @@ void LIB_HANDLER()
                 return;
             }
 
+                rplStripTagStack(3);
+
                 WORDPTR comp=rplPeekData(3);
                 WORDPTR *var=0;
                 if(ISIDENT(*comp)) {
@@ -1364,7 +1380,7 @@ void LIB_HANDLER()
                         }
 
                     }
-                    comp=*(var+1);
+                    comp=rplStripTag(*(var+1));
                 }
 
 
@@ -1695,7 +1711,7 @@ void LIB_HANDLER()
         }
 
             // CHECK AND DISPATCH
-
+            rplStripTagStack(2);
 
 
             if(ISLIST(*rplPeekData(2))) {
@@ -1803,7 +1819,7 @@ void LIB_HANDLER()
 
             // CHECK AND DISPATCH
 
-
+            rplStripTagStack(3);
 
             if(ISLIST(*rplPeekData(3))) {
                 // FIND FIRST OCCURRENCE OF OBJECT INSIDE LIST
@@ -1942,7 +1958,7 @@ void LIB_HANDLER()
 
             // CHECK AND DISPATCH
 
-
+            rplStripTagStack(2);
 
             if(ISLIST(*rplPeekData(2))) {
                 // FIND FIRST OCCURRENCE OF OBJECT INSIDE LIST
@@ -2047,7 +2063,7 @@ void LIB_HANDLER()
 
             // CHECK AND DISPATCH
 
-
+            rplStripTagStack(3);
 
             if(ISLIST(*rplPeekData(3))) {
                 // FIND FIRST OCCURRENCE OF OBJECT INSIDE LIST
@@ -2180,7 +2196,7 @@ void LIB_HANDLER()
 
                 // CHECK AND DISPATCH
 
-
+                rplStripTagStack(3);
 
                 if(ISLIST(*rplPeekData(3))) {
                     // GET SUBLIST
@@ -2467,7 +2483,7 @@ void LIB_HANDLER()
             return;
         }
 
-        WORDPTR arg=rplPeekData(1);
+        WORDPTR arg=rplStripTag(rplPeekData(1));
 
         if(ISSTRING(*arg)) {
             BINT size=rplStrSize(arg);
@@ -2536,7 +2552,10 @@ void LIB_HANDLER()
 
             return;
         }
-        WORDPTR comp=rplPeekData(1);
+        WORDPTR comp;
+
+        rhead_recheck:
+        comp=rplPeekData(1);
 
         if(ISLIST(*comp)) {
         BINT nitems=rplListLength(comp);
@@ -2561,7 +2580,7 @@ void LIB_HANDLER()
         return;
         }
 
-
+        if(rplStripTagStack(1)) goto rhead_recheck;
         rplError(ERR_COMPOSITEEXPECTED);
 
         return;
@@ -2578,7 +2597,11 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        WORDPTR comp=rplPeekData(1);
+
+
+        WORDPTR comp;
+        rtail_recheck:
+        comp=rplPeekData(1);
 
         if(ISLIST(*comp)) {
         BINT nitems=rplExplodeList2(comp);
@@ -2608,6 +2631,7 @@ void LIB_HANDLER()
             return;
         }
 
+        if(rplStripTagStack(1)) goto rtail_recheck;
         rplError(ERR_COMPOSITEEXPECTED);
 
         return;

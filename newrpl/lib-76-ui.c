@@ -256,6 +256,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         if(!ISNUMBER(*rplPeekData(1))) {
             rplError(ERR_REALEXPECTED);
@@ -303,6 +304,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         if(!ISSTRING(*rplPeekData(1))) {
             rplError(ERR_STRINGEXPECTED);
@@ -377,7 +379,7 @@ void LIB_HANDLER()
             return;
         }
 
-
+        rplStripTagStack(1);
         if(!ISLIST(*rplPeekData(1))) {
             rplError(ERR_LISTEXPECTED);
             return;
@@ -407,7 +409,7 @@ case EDINSERT:
             return;
         }
 
-
+        rplStripTagStack(1);
         if(!ISSTRING(*rplPeekData(1))) {
             rplError(ERR_STRINGEXPECTED);
             return;
@@ -438,7 +440,7 @@ case EDINSERT:
                 return;
             }
 
-
+            rplStripTagStack(1);
             if(!ISNUMBER(*rplPeekData(1))) {
                 rplError(ERR_STRINGEXPECTED);
                 return;
@@ -467,7 +469,7 @@ case EDINSERT:
                 return;
             }
 
-
+            rplStripTagStack(1);
             if(!ISNUMBER(*rplPeekData(1))) {
                 rplError(ERR_STRINGEXPECTED);
                 return;
@@ -496,7 +498,7 @@ case EDINSERT:
                 return;
             }
 
-
+            rplStripTagStack(1);
             if(!ISNUMBER(*rplPeekData(1))) {
                 rplError(ERR_STRINGEXPECTED);
                 return;
@@ -525,6 +527,7 @@ case EDINSERT:
                 return;
             }
 
+            rplStripTagStack(1);
 
             if(!ISNUMBER(*rplPeekData(1))) {
                 rplError(ERR_STRINGEXPECTED);
@@ -553,6 +556,7 @@ case EDINSERT:
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(1);
 
 
             if(!ISNUMBER(*rplPeekData(1))) {
@@ -683,6 +687,7 @@ case EDINSERT:
                 return;
             }
 
+            rplStripTagStack(1);
 
             if(!ISSTRING(*rplPeekData(1))) {
                 rplError(ERR_STRINGEXPECTED);

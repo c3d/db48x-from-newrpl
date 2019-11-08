@@ -1450,6 +1450,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         arg_date = rplPeekData(1);
         if (!ISREAL(*arg_date)) {
             rplError(ERR_BADARGTYPE);
@@ -1501,6 +1503,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
 
         arg_days = rplPeekData(1);
         arg_date = rplPeekData(2);
@@ -1554,6 +1557,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
 
         arg_date1 = rplPeekData(1);
         arg_date2 = rplPeekData(2);
@@ -1613,6 +1617,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         arg_time = rplPeekData(1);
         if (!ISNUMBER(*arg_time)) {
             rplError(ERR_BADARGTYPE);
@@ -1640,6 +1646,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         arg_dec = rplPeekData(1);
 
@@ -1685,6 +1692,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         arg_hms = rplPeekData(1);
 
@@ -1730,6 +1738,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
 
         arg_hms1 = rplPeekData(1);
         arg_hms2 = rplPeekData(2);
@@ -1776,6 +1785,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
 
         arg_hms1 = rplPeekData(1);
         arg_hms2 = rplPeekData(2);
@@ -1858,6 +1868,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         arg_id = rplPeekData(1);
         if (!ISNUMBER(*arg_id)) {
@@ -1888,6 +1899,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         arg_alarm = rplPeekData(1);
         if (!rplReadAlarm(arg_alarm, &alrm))
@@ -1910,6 +1922,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         arg_id = rplPeekData(1);
         if (!ISNUMBER(*arg_id)) {
@@ -1942,6 +1955,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         arg = rplPeekData(1);
 
@@ -2075,6 +2089,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         if(!ISBINT(*rplPeekData(1))) {
             rplError(ERR_INTEGEREXPECTED);
             return;
@@ -2109,6 +2125,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
+
         if(!ISBINT(*rplPeekData(1))) {
             rplError(ERR_INTEGEREXPECTED);
             return;
@@ -2230,6 +2248,7 @@ case TEVAL:
          rplError(ERR_BADARGCOUNT);
          return;
      }
+
      // RUN THE RPL CODE IMPLEMENTING THE COMMAND
      rplPushRet(IPtr);
      IPtr=(WORDPTR)cmd_TEVAL;

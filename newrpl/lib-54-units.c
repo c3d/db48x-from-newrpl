@@ -1518,6 +1518,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
 
         if(ISLIST(*rplPeekData(1)) || ISLIST(*rplPeekData(2))) {
             rplListBinaryDoCmd();
@@ -1620,6 +1621,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
 
         if(ISLIST(*rplPeekData(1))) {
@@ -1664,6 +1666,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
        if(ISLIST(*rplPeekData(1))) {
                     rplListUnaryDoCmd();
@@ -1689,6 +1692,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
 
         if(ISLIST(*rplPeekData(1)) || ISLIST(*rplPeekData(2))) {
             rplListBinaryDoCmd();
@@ -1782,6 +1786,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
 
          if(ISLIST(*rplPeekData(1)) || ISLIST(*rplPeekData(2))) {
                     rplListBinaryDoCmd();
@@ -1827,6 +1832,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
 
 
         if(ISLIST(*rplPeekData(1)) || ISLIST(*rplPeekData(2))) {
@@ -1868,6 +1874,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
                 if(ISLIST(*rplPeekData(1))) {
                       rplListUnaryDoCmd();
                       return;

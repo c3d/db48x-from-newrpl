@@ -397,6 +397,7 @@ void rplNumberToRReg(int num,WORDPTR number)
 BINT64 rplReadNumberAsBINT(WORDPTR number)
 {
     BINT64 value;
+    readnumberbint_recheck:
     number=rplConstant2Number(number);
 
     if(ISANGLE(*number)) ++number;
@@ -412,6 +413,7 @@ BINT64 rplReadNumberAsBINT(WORDPTR number)
     }
     else if(ISBINT(*number)) return rplReadBINT(number);
     else {
+        if(ISTAG(*number)) { number=rplStripTag(number); goto readnumberbint_recheck; }
         rplError(ERR_REALEXPECTED);
     }
     return 0;
@@ -426,6 +428,7 @@ BINT64 rplReadNumberAsBINT(WORDPTR number)
 
 void rplReadNumberAsReal(WORDPTR number,REAL*dec)
 {
+    readnumber_recheck:
     number=rplConstant2Number(number);
 
     if(ISANGLE(*number)) ++number;
@@ -439,6 +442,7 @@ void rplReadNumberAsReal(WORDPTR number,REAL*dec)
         if(BINT2RealIdx>=BINT2REAL) BINT2RealIdx=0;
     }
     else {
+        if(ISTAG(*number)) { number=rplStripTag(number); goto readnumber_recheck; }
         rplError(ERR_REALEXPECTED);
     }
 

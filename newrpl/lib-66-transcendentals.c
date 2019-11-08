@@ -187,6 +187,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
@@ -355,6 +356,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -525,6 +528,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -707,6 +712,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -1000,6 +1007,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -1306,6 +1315,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -1584,6 +1595,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1),arg2=rplPeekData(2);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg) || ISSYMBOLIC(*arg2) || ISIDENT(*arg2) || ISCONSTANT(*arg2)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -1632,6 +1645,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -1813,6 +1828,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
 
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
@@ -2015,6 +2032,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -2291,6 +2310,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -2566,6 +2587,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -2812,6 +2835,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -3103,6 +3128,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -3425,6 +3452,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -3790,6 +3819,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -4182,6 +4213,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR
@@ -4370,6 +4403,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
 
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
@@ -4546,6 +4581,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
 
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
@@ -4748,6 +4784,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
         if( ISSYMBOLIC(*arg) || ISIDENT(*arg) || ISCONSTANT(*arg)) {
             // ARGUMENT IS SYMBOLIC, APPLY THE OPERATOR

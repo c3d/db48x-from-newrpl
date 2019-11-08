@@ -267,6 +267,8 @@ void rplDoRuleApply()
                 rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
+
         // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
         BINT nrules;
         WORDPTR *savestk=DSTop;
@@ -321,6 +323,8 @@ void rplDoRuleApply1()
                 rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
+
         // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
         BINT nrules;
         WORDPTR *savestk=DSTop;
@@ -1384,6 +1388,7 @@ void LIB_HANDLER()
             rplBlameUserCommand();
             return;
         }
+        rplStripTagStack(1);
 
         if(ISLIST(*rplPeekData(1))) {
             rplListUnaryDoCmd();
@@ -1909,6 +1914,8 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
+
         // THE ARGUMENT TYPES WILL BE CHECKED AT rplSymbRuleMatch
 
         BINT nsolutions=rplSymbRuleMatch(),nsol2=nsolutions;
@@ -1994,6 +2001,7 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         if(ISLIST(*rplPeekData(1))) {
             rplListUnaryDoCmd();
@@ -2343,6 +2351,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(3);
+
 
         WORDPTR argstart,argend,argstep;
 

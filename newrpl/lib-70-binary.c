@@ -136,9 +136,11 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-        if(ISNUMBER(*rplPeekData(1))) {
+
+
             // THIS IS A FLAG NUMBER
             BINT64 wsize=rplReadNumberAsBINT(rplPeekData(1));
+            if(Exceptions) return;
 
             if(wsize<1) wsize=1;
             if(wsize>63) wsize=63;
@@ -153,11 +155,6 @@ void LIB_HANDLER()
             low64[0]=(low64[0]&~(0x3f<<4))| (wsize<<4);
 
             rplDropData(1);
-            return;
-            }
-
-            // USER FLAGS NOT SUPPORTED FOR NOW
-            rplError(ERR_INTEGEREXPECTED);
             return;
 
 
@@ -190,6 +187,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
 
         if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
@@ -250,6 +248,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
 
         if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
@@ -310,6 +309,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
 
         if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
@@ -370,6 +370,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
 
         if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
@@ -431,6 +432,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
 
         if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
@@ -497,6 +499,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
 
         if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
@@ -559,6 +562,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
 
         if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
@@ -619,6 +623,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
 
         if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
@@ -679,6 +684,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
 
         if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
@@ -739,6 +745,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
 
         if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
@@ -817,6 +824,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
 
         if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
@@ -886,6 +894,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
 
         if (ISLIST(*rplPeekData(2)) || ISLIST(*rplPeekData(1))) {
             rplListBinaryDoCmd();
@@ -956,6 +965,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
 
         if (ISLIST(*rplPeekData(1))) {
             rplListUnaryDoCmd();
@@ -1008,6 +1018,7 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(1);
 
         BINT64 num1;
         BINT base;

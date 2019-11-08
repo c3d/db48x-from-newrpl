@@ -306,6 +306,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
         BINT64 number=rplReadNumberAsBINT(rplPeekData(1));
         if(Exceptions) return;
         if(number<4) number=4;
@@ -330,6 +331,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
         WORDPTR arg=rplPeekData(1);
         if(ISLIST(*arg)) {
             rplListUnaryDoCmd();
@@ -374,6 +376,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
         WORDPTR arg=rplPeekData(1);
 
         if(ISLIST(*arg)) {
@@ -419,6 +422,7 @@ void LIB_HANDLER()
 
         return;
     }
+    rplStripTagStack(1);
     WORDPTR arg=rplPeekData(1);
     WORDPTR *stksave=DSTop;
 
@@ -466,7 +470,7 @@ case IPPOST:
             rplError(ERR_BADARGCOUNT);
             return;
         }
-
+        rplStripTagStack(1);
         REAL num;
 
         rplReadNumberAsReal(rplPeekData(1),&num);
@@ -491,6 +495,7 @@ case IPPOST:
 
         return;
     }
+    rplStripTagStack(1);
     WORDPTR arg=rplPeekData(1);
 
     if(ISLIST(*arg)) {
@@ -541,6 +546,7 @@ case IPPOST:
 
             return;
         }
+        rplStripTagStack(1);
         WORDPTR arg=rplPeekData(1);
 
         if(ISLIST(*arg)) {
@@ -603,6 +609,7 @@ case IPPOST:
 
             return;
         }
+        rplStripTagStack(1);
         WORDPTR arg=rplPeekData(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
@@ -656,6 +663,7 @@ case IPPOST:
 
             return;
         }
+        rplStripTagStack(1);
         WORDPTR arg=rplPeekData(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
@@ -716,6 +724,7 @@ case IPPOST:
 
             return;
         }
+        rplStripTagStack(1);
         WORDPTR arg=rplPeekData(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
@@ -817,6 +826,7 @@ case IPPOST:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
         WORDPTR arg=rplPeekData(1);
 
         if(!ISNUMBER(*arg)) {
@@ -891,6 +901,7 @@ case IPPOST:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
         WORDPTR arg1=rplPeekData(2);
         WORDPTR arg2=rplPeekData(1);
 
@@ -1040,6 +1051,8 @@ case IPPOST:
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(2);
+
             WORDPTR arg=rplPeekData(2);
             WORDPTR mod=rplPeekData(1);
             BINT isunit=0;
@@ -1278,6 +1291,8 @@ case IPPOST:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR arg=rplPeekData(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
@@ -1312,6 +1327,7 @@ case IPPOST:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         WORDPTR arg=rplPeekData(1);
 
@@ -1358,6 +1374,7 @@ case IPPOST:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         WORDPTR arg=rplPeekData(1);
 
@@ -1405,6 +1422,7 @@ case IPPOST:
             return;
         }
 
+        rplStripTagStack(1);
 
         WORDPTR arg=rplPeekData(1);
 
@@ -1598,6 +1616,7 @@ case IPPOST:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
 
         WORDPTR pct=rplPeekData(1);
         WORDPTR arg1=rplPeekData(2);
@@ -1637,6 +1656,8 @@ case IPPOST:
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(2);
+
             WORDPTR old_val=rplPeekData(2);
             WORDPTR new_val=rplPeekData(1);
 
@@ -1703,6 +1724,8 @@ case IPPOST:
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(2);
+
             WORDPTR old_val=rplPeekData(2);
             WORDPTR new_val=rplPeekData(1);
 
@@ -1769,6 +1792,8 @@ case IPPOST:
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(2);
+
             WORDPTR arg1=rplPeekData(2);
             WORDPTR arg2=rplPeekData(1);
             WORDPTR *cleanup=0;
@@ -2170,6 +2195,8 @@ case IPPOST:
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(2);
+
             WORDPTR vect_val=rplPeekData(2);
             WORDPTR real_val=rplPeekData(1);
 
@@ -2228,6 +2255,7 @@ case IPPOST:
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(1);
 
             WORDPTR vect_val=rplPeekData(1);
 
@@ -2328,6 +2356,8 @@ case IPPOST:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(3);
+
         WORDPTR arg0=rplPeekData(3);
         WORDPTR arg1=rplPeekData(2);
         WORDPTR arg2=rplPeekData(1);
@@ -2448,6 +2478,7 @@ case IPPOST:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         WORDPTR arg=rplPeekData(1);
 
@@ -2670,6 +2701,7 @@ case IPPOST:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
 
         WORDPTR *savestk=DSTop; // Drop arguments in case of error
 
@@ -2838,6 +2870,7 @@ case IPPOST:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         WORDPTR poly=rplPeekData(1);
 
@@ -2926,6 +2959,7 @@ case IPPOST:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
 
         WORDPTR arg1=rplPeekData(2);
         WORDPTR arg2=rplPeekData(1);
@@ -3047,6 +3081,7 @@ case IPPOST:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
 
         WORDPTR arg1=rplPeekData(2);
         WORDPTR arg2=rplPeekData(1);
@@ -3159,6 +3194,7 @@ case IPPOST:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
 
         if(ISLIST(*rplPeekData(2))||ISLIST(*rplPeekData(1))) {
             // THIS IS A COMPOSITE, NEED TO RUN AN RPL LOOP
@@ -3205,6 +3241,7 @@ case IPPOST:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
 
         if(ISLIST(*rplPeekData(2))||ISLIST(*rplPeekData(1))) {
             // THIS IS A COMPOSITE, NEED TO RUN AN RPL LOOP
@@ -3252,6 +3289,8 @@ case IPPOST:
 
         return;
     }
+    rplStripTagStack(2);
+
     WORDPTR arg=rplPeekData(2);
     WORDPTR ndig=rplPeekData(1);
 
@@ -3510,6 +3549,7 @@ case DIGITS:
          return;
      }
 
+     rplStripTagStack(3);
 
      if(ISLIST(*rplPeekData(3)))
      {
@@ -3565,6 +3605,9 @@ case PROOT:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
+
         WORDPTR vect_val=rplPeekData(1);
 
 
@@ -3728,11 +3771,13 @@ case PROOT:
 case FACTORS:
 
     {
-        //@SHORT_DESC=All roots of a polynomial
+        //@SHORT_DESC=Factorize a polynomial or number
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR vect_val=rplPeekData(1);
 
 

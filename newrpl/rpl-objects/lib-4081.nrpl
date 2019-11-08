@@ -18,7 +18,7 @@
 
 @#name lib4081_msgtable
 {
-
+##1,ERR_INVALIDTAG  "Invalid tag string"
 }
 
 @#name lib4081_menu

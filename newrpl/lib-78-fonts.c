@@ -694,6 +694,9 @@ void LIB_HANDLER()
                 }
 
                return;
+            case OVR_ISTRUE:
+                rplOverwriteData(1,(WORDPTR)one_bint);
+                return;
 
             default:
                 // BY DEFAULT, ISSUE A BAD OPCODE ERROR
@@ -744,6 +747,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);
             return;
@@ -767,6 +771,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);
             return;
@@ -789,6 +794,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);
             return;
@@ -864,6 +870,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);
             return;
@@ -882,6 +889,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);
             return;
@@ -900,6 +908,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);
             return;
@@ -919,6 +928,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);
             return;
@@ -937,6 +947,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);
             return;
@@ -956,6 +967,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);
             return;
@@ -975,6 +987,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);
             return;

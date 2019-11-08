@@ -283,13 +283,15 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Loop FOR ... NEXT/STEP statement
         // DEFINE 3 LAMS, THE FIRST WILL BE THE LOW LIMIT, THEN THE HIGH LIMIT, THEN THE ITERATOR
+
         if(rplDepthData()<2) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
-
+        for_recheck:
         // MAKE SURE LOOP LIMITS ARE NUMERIC
         if( ( (!ISNUMBERORUNIT(*rplPeekData(1))) && (!ISANGLE(*rplPeekData(1)))) || ((!ISNUMBERORUNIT(*rplPeekData(2)))  && (!ISANGLE(*rplPeekData(2))))) {
+            if(rplStripTagStack(2)) goto for_recheck;
             rplError(ERR_INVALIDLOOPLIMITS);
             return;
         }
@@ -344,9 +346,11 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-
+        start_recheck:
         // MAKE SURE LOOP LIMITS ARE NUMERIC
         if( ( (!ISNUMBERORUNIT(*rplPeekData(1))) && (!ISANGLE(*rplPeekData(1)))) || ((!ISNUMBERORUNIT(*rplPeekData(2)))  && (!ISANGLE(*rplPeekData(2))))) {
+            if(rplStripTagStack(2)) goto start_recheck;
+
             rplError(ERR_INVALIDLOOPLIMITS);
             return;
         }
@@ -453,8 +457,10 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-
+        step_recheck:
         if( (!ISNUMBERORUNIT(*rplPeekData(1))) && (!ISANGLE(*rplPeekData(1)))) {
+            if(rplStripTagStack(1)) goto step_recheck;
+
             rplError(ERR_INVALIDLOOPSTEP);
             // EXIT THE LOOP BY DROPPING THE RETURN STACK
             rplPopRet();

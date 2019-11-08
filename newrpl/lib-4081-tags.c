@@ -72,6 +72,22 @@ const WORDPTR const ROMPTR_TABLE[]={
     0
 };
 
+
+// STRIP THE TAGS FROM N LEVELS OF THE STACK DURING ARGUMENT CHECKING
+BINT rplStripTagStack(BINT nlevels)
+{
+    if(nlevels>DSTop-DStkBottom) nlevels=DSTop-DStkBottom;
+    BINT k;
+    BINT changed=0;
+    for(k=1;k<=nlevels;++k) if(ISTAG(*DSTop[-k])) { changed=1; DSTop[-k]+=2+((ISPROLOG(*(DSTop[-k]+1)))? OBJSIZE(*(DSTop[-k]+1)):0); }
+    return changed;
+}
+
+WORDPTR rplStripTag(WORDPTR object)
+{
+    if(ISTAG(*object)) return object+2+((ISPROLOG(object[1]))? OBJSIZE(object[1]):0);
+    return object;
+}
 /* TAG OBJECT FORMAT:
  *
  * [0]=PROLOG
@@ -118,11 +134,7 @@ void LIB_HANDLER()
            }
 
         // STRIP TAGS FROM ALL ARGUMENTS
-        BINT nargs=OVR_GETNARGS(CurOpcode);
-        BINT k;
-        for(k=1;k<=nargs;++k) {
-            if(ISTAG(*DSTop[-k])) DSTop[-k]=rplSkipOb(DSTop[-k]+1);
-        }
+        rplStripTagStack(OVR_GETNARGS(CurOpcode));
         rplCallOvrOperator(CurOpcode);
         return;
 
@@ -136,6 +148,48 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Apply a tag to an object
 
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        if(!ISSTRING(*rplPeekData(2))) {
+            rplError(ERR_STRINGEXPECTED);
+            return;
+        }
+
+        // CHECK IF THE TAG IS VALID: IT MAY CONTAIN NO SPACES AND NO COLONS
+
+        BINT len=rplStrLen(rplPeekData(2));
+        BYTEPTR ptr=(BYTEPTR)(rplPeekData(2)+1);
+
+        if(len<1) {
+            rplError(ERR_INVALIDTAG);
+            return;
+        }
+        // ALLOW ARBITRARY STRINGS...
+        /*
+        BINT cp;
+        while(len) {
+            cp=utf82cp((char *)ptr,(char *)ptr+4);
+            if((cp==' ')||(cp==':')) {
+                rplError(ERR_INVALIDTAG);
+                return;
+            }
+            ptr=(BYTEPTR)utf8skipst((char *)ptr,(char *)ptr+4);
+            --len;
+        }
+        */
+
+        // IF WE GOT HERE WE HAVE A VALID STRING
+        BINT newsize=rplObjSize(rplPeekData(1))+rplObjSize(rplPeekData(2));
+        WORDPTR newobj=rplAllocTempOb(newsize);
+        if(!newobj) return;
+        newobj[0]=MKPROLOG(DOTAG,newsize);
+        rplCopyObject(newobj+1,rplPeekData(2));
+        rplCopyObject(newobj+1+rplObjSize(newobj+1),rplPeekData(1));
+        rplOverwriteData(2,newobj);
+        rplDropData(1);
         return;
     }
 
@@ -149,7 +203,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISTAG(*rplPeekData(1))) rplOverwriteData(1,rplSkipOb(rplPeekData(1)+1));
+        rplStripTagStack(1);
 
         return;
     }
@@ -203,7 +257,7 @@ void LIB_HANDLER()
             // WE FOUND A COLON, SEE IF THERE'S TWO
             endcolon=ptr+1;
             while( (endcolon<(BYTEPTR)BlankStart)&&(*endcolon!=':')) ++endcolon;
-            if(endcolon>((BYTEPTR)BlankStart)-1) { RetNum=ERR_NOTMINE; return; }   // WE MUST HAVE 2 COLONS AT LEAST, AND SOMETHING ELSE AFTER THE LAST COLON
+            if((endcolon>((BYTEPTR)BlankStart)-1) || (endcolon==ptr+1)) { RetNum=ERR_NOTMINE; return; }   // WE MUST HAVE 2 COLONS AT LEAST, AND SOMETHING ELSE AFTER THE LAST COLON
 
             rplCompileAppend(MKPROLOG(LIBRARY_NUMBER,0));
             if(endcolon<((BYTEPTR)BlankStart)-1) NextTokenStart=(WORDPTR)(endcolon+1);

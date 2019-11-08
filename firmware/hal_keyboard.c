@@ -930,7 +930,10 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
                     // TODO: SHOW ERROR MESSAGE
                     halShowErrorMsg();
                     Exceptions=0;
-                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
+                } else {
+                    if(rplTestSystemFlag(FL_LASTMENU))
+                    halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
+                }
             halScreen.DirtyFlag|=STACK_DIRTY;
                 }
             break;

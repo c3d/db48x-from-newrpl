@@ -311,7 +311,10 @@ void LIB_HANDLER()
             return;
         }
 
+        dbug_recheck:
         if(!ISPROGRAM(*rplPeekData(1))) {
+            if(rplStripTagStack(1)) goto dbug_recheck;
+
             rplError(ERR_PROGRAMEXPECTED);
             return;
         }
@@ -434,6 +437,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
+        rplStripTagStack(1);
 
         if(ISNUMBER(*rplPeekData(1))) {
             BINT64 errorcode=rplReadNumberAsBINT(rplPeekData(1));
@@ -684,6 +689,7 @@ void LIB_HANDLER()
             return;
         }
 
+        rplStripTagStack(2);
 
         if(ISNUMBER(*rplPeekData(1))) {
             BINT64 errorcode=rplReadNumberAsBINT(rplPeekData(1));

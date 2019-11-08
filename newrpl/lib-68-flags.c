@@ -1604,6 +1604,8 @@ void LIB_HANDLER()
          rplError(ERR_BADARGCOUNT);
          return;
      }
+     rplStripTagStack(1);
+
      if(!ISSTRING(*rplPeekData(1))) {
      rplError(ERR_STRINGEXPECTED);
      return;
@@ -1691,6 +1693,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         NUMFORMAT f;
         rplGetSystemNumberFormat(&f);   // GET CURRENT NUMBER FORMAT, TO OVERWRITE
@@ -1780,6 +1783,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
             BINT64 flag=rplReadNumberAsBINT(rplPeekData(1));
@@ -1838,6 +1843,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
             BINT64 flag=rplReadNumberAsBINT(rplPeekData(1));
@@ -1897,6 +1904,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         BINT test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
@@ -1960,6 +1969,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         BINT test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
@@ -2025,6 +2036,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         BINT test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
@@ -2095,6 +2108,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         BINT test;
         if(ISNUMBER(*rplPeekData(1))) {
             // THIS IS A FLAG NUMBER
@@ -2164,6 +2179,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         BINT menu=rplGetActiveMenu();
 
         rplSaveMenuHistory(menu);
@@ -2188,6 +2205,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         BINT menu=rplGetLastMenu();
         if(CurOpcode==CMD_TMENUOTHR) {
             // USE THE OTHER MENU
@@ -2345,6 +2364,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(3);
+
 
         if(!ISNUMBER(*rplPeekData(1))) {
             rplError(ERR_POSITIVEINTEGEREXPECTED);
@@ -2406,6 +2427,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         if(!ISSTRING(*rplPeekData(1))) {
             rplError(ERR_STRINGEXPECTED);
@@ -2496,6 +2518,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         if(!ISLIST(*rplPeekData(1))) {
             rplError(ERR_LISTEXPECTED);
@@ -2547,6 +2570,8 @@ void LIB_HANDLER()
             return;
         }
 
+        BINT istag=rplStripTagStack(1);
+
         LIBHANDLER han=rplGetLibHandler(LIBNUM(*rplPeekData(1)));
 
 
@@ -2561,7 +2586,7 @@ void LIB_HANDLER()
 
             if(RetNum>OK_TOKENINFO) {
                rplDropData(1);
-               rplNewBINTPush(TypeInfo/100,DECBINT);
+               rplNewBINTPush((TypeInfo/100)+(istag? 10000:0),DECBINT);
                return;
             }
         }
@@ -2578,6 +2603,7 @@ void LIB_HANDLER()
                rplError(ERR_BADARGCOUNT);
                return;
            }
+           BINT istag=rplStripTagStack(1);
 
            LIBHANDLER han=rplGetLibHandler(LIBNUM(*rplPeekData(1)));
 
@@ -2594,10 +2620,10 @@ void LIB_HANDLER()
                if(RetNum>OK_TOKENINFO) {
                   rplDropData(1);
                   if(TypeInfo%100) {
-                      newRealFromBINT64(&RReg[0],TypeInfo,-2);
+                      newRealFromBINT64(&RReg[0],TypeInfo+(istag? 1000000:0),-2);
 
                       rplNewRealFromRRegPush(0);
-                  } else rplNewBINTPush(TypeInfo/100,DECBINT);
+                  } else rplNewBINTPush(TypeInfo/100+(istag? 10000:0),DECBINT);
                   return;
                }
            }
@@ -2710,6 +2736,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         if(ISLIST(*rplPeekData(1))) {
             // CONVERT FLAGS STORED AS THE OLD LIST FORMAT TO THE NEW BINDATA FORMAT
@@ -2787,7 +2814,7 @@ void LIB_HANDLER()
                rplError(ERR_BADARGCOUNT);
                return;
            }
-
+           rplStripTagStack(1);
 
            if(ISLIST(*rplPeekData(1))) {
                rplListUnaryDoCmd();
@@ -2810,14 +2837,15 @@ void LIB_HANDLER()
                }
            }
 
-
-           LIBHANDLER han=rplGetLibHandler(LIBNUM(*var[1]));
+           WORDPTR obj=rplStripTag(var[1]);
+           LIBHANDLER han=rplGetLibHandler(LIBNUM(*obj));
 
 
            // GET THE SYMBOLIC TOKEN INFORMATION
            if(han) {
                WORD savecurOpcode=CurOpcode;
-               ObjectPTR=var[1];
+               BINT istag=ISTAG(*var[1]);
+               ObjectPTR=obj;
                CurOpcode=MKOPCODE(LIBNUM(*ObjectPTR),OPCODE_GETINFO);
                (*han)();
 
@@ -2825,7 +2853,7 @@ void LIB_HANDLER()
 
                if(RetNum>OK_TOKENINFO) {
                   rplDropData(1);
-                  rplNewBINTPush(TypeInfo/100,DECBINT);
+                  rplNewBINTPush(TypeInfo/100+(istag? 10000:0),DECBINT);
                   return;
                }
            }
@@ -2842,6 +2870,8 @@ void LIB_HANDLER()
                   rplError(ERR_BADARGCOUNT);
                   return;
               }
+              rplStripTagStack(1);
+
               if(ISLIST(*rplPeekData(1))) {
                   rplListUnaryDoCmd();
                   return;
@@ -2863,13 +2893,14 @@ void LIB_HANDLER()
                   }
               }
 
-
-              LIBHANDLER han=rplGetLibHandler(LIBNUM(*var[1]));
+              WORDPTR obj=rplStripTag(var[1]);
+              LIBHANDLER han=rplGetLibHandler(LIBNUM(*obj));
 
               // GET THE SYMBOLIC TOKEN INFORMATION
               if(han) {
                   WORD savecurOpcode=CurOpcode;
-                  ObjectPTR=var[1];
+                  BINT istag=ISTAG(*var[1]);
+                  ObjectPTR=obj;
                   CurOpcode=MKOPCODE(LIBNUM(*ObjectPTR),OPCODE_GETINFO);
                   (*han)();
 
@@ -2878,10 +2909,10 @@ void LIB_HANDLER()
                   if(RetNum>OK_TOKENINFO) {
                      rplDropData(1);
                      if(TypeInfo%100) {
-                         newRealFromBINT64(&RReg[0],TypeInfo,-2);
+                         newRealFromBINT64(&RReg[0],TypeInfo+(istag? 1000000:0),-2);
 
                          rplNewRealFromRRegPush(0);
-                     } else rplNewBINTPush(TypeInfo/100,DECBINT);
+                     } else rplNewBINTPush(TypeInfo/100+(istag? 10000:0),DECBINT);
                      return;
                   }
               }
