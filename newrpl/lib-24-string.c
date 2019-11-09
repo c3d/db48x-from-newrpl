@@ -390,6 +390,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         BINT nitems;
         WORDPTR list,item;
 
@@ -464,6 +466,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         if(!ISSTRING(*rplPeekData(1))) {
             rplError(ERR_STRINGEXPECTED);
             return;
@@ -502,6 +506,7 @@ void LIB_HANDLER()
             return;
         }
 
+
      BINT flag=rplTestSystemFlag(FL_DECOMPEDIT);
 
      WORDPTR string=rplDecompile(rplPeekData(1),flag? DECOMP_EDIT:0);
@@ -513,11 +518,12 @@ void LIB_HANDLER()
     case TODISPSTR:
         // VERY IMPORTANT: DECOMPILE FUNCTION
     {
-        //@SHORT_DESC=Decompile any object (convert to string)
+        //@SHORT_DESC=Decompile formatted for display
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
         }
+
 
      WORDPTR string=rplDecompile(rplPeekData(1),0);
 
@@ -529,7 +535,7 @@ void LIB_HANDLER()
     case TOEDITSTR:
         // VERY IMPORTANT: DECOMPILE FUNCTION
     {
-        //@SHORT_DESC=Decompile any object (convert to string)
+        //@SHORT_DESC=Decompile formatted for edit
         if(rplDepthData()<1) {
             rplError(ERR_BADARGCOUNT);
             return;
@@ -551,6 +557,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR string=rplPeekData(1);
         if(!ISSTRING(*string)) {
             rplError(ERR_STRINGEXPECTED);
@@ -577,6 +585,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         if(!ISSTRING(*rplPeekData(1))) {
             rplError(ERR_STRINGEXPECTED);
             return;
@@ -621,6 +631,8 @@ void LIB_HANDLER()
            rplError(ERR_BADARGCOUNT);
            return;
        }
+       rplStripTagStack(2);
+
        if(!ISSTRING(*rplPeekData(1)) || !ISSTRING(*rplPeekData(2))) {
            rplError(ERR_STRINGEXPECTED);
            return;
@@ -656,6 +668,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(3);
+
         if(!ISSTRING(*rplPeekData(3)) || !ISSTRING(*rplPeekData(2))) {
             rplError(ERR_STRINGEXPECTED);
             return;
@@ -709,6 +723,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(3);
+
         if(!ISSTRING(*rplPeekData(3)) || !ISSTRING(*rplPeekData(2))) {
             rplError(ERR_STRINGEXPECTED);
             return;
@@ -775,6 +791,8 @@ void LIB_HANDLER()
                rplError(ERR_BADARGCOUNT);
                return;
            }
+           rplStripTagStack(2);
+
            if(!ISSTRING(*rplPeekData(2)) || !ISSTRING(*rplPeekData(1))) {
                rplError(ERR_STRINGEXPECTED);
                return;
@@ -828,6 +846,8 @@ void LIB_HANDLER()
                rplError(ERR_BADARGCOUNT);
                return;
            }
+           rplStripTagStack(2);
+
            if(!ISSTRING(*rplPeekData(2)) || !ISSTRING(*rplPeekData(1))) {
                rplError(ERR_STRINGEXPECTED);
                return;
@@ -869,6 +889,8 @@ void LIB_HANDLER()
                rplError(ERR_BADARGCOUNT);
                return;
            }
+           rplStripTagStack(1);
+
            if(!ISSTRING(*rplPeekData(1))) {
                rplError(ERR_STRINGEXPECTED);
                return;
@@ -891,6 +913,8 @@ void LIB_HANDLER()
                rplError(ERR_BADARGCOUNT);
                return;
            }
+           rplStripTagStack(1);
+
            if(!ISSTRING(*rplPeekData(1))) {
                rplError(ERR_STRINGEXPECTED);
                return;
@@ -914,6 +938,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         if(!ISSTRING(*rplPeekData(1))) {
             rplError(ERR_STRINGEXPECTED);
             return;
@@ -978,6 +1004,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(3);
 
             if(ISLIST(*rplPeekData(3))||ISLIST(*rplPeekData(2))||ISLIST(*rplPeekData(1))) {
                 rplListMultiArgDoCmd(3);

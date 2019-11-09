@@ -602,14 +602,14 @@ void LIB_HANDLER()
         }
         // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
-        if(!ISIDENT(*rplPeekData(1))) {
+        if(!ISIDENT(*rplStripTag(rplPeekData(1)))) {
             rplError(ERR_IDENTEXPECTED);
             return;
         }
 
 
         // FIND LOCAL VARIABLE IN THE CURRENT SCOPE ONLY
-        WORDPTR *val=rplFindLAM(rplPeekData(1),0);
+        WORDPTR *val=rplFindLAM(rplStripTag(rplPeekData(1)),0);
         BINT neednewenv=rplNeedNewLAMEnv();
 
         if(val && !neednewenv) {
@@ -642,6 +642,7 @@ void LIB_HANDLER()
             return;
         }
         // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
+        rplStripTagStack(1);
 
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_IDENTEXPECTED);

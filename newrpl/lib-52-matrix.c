@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Copyright (c) 2014, Claudio Lapilli and the newRPL Team
  * All rights reserved.
  * This file is released under the 3-clause BSD license.
@@ -1004,6 +1004,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
         BINT64 rows,cols;
         WORDPTR *Savestk=DSTop;
 
@@ -1089,6 +1090,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         if(!ISMATRIX(*rplPeekData(1))) {
             rplError(ERR_MATRIXEXPECTED);
             return;
@@ -1121,6 +1124,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         if(!ISMATRIX(*rplPeekData(1))) {
             rplError(ERR_MATRIXEXPECTED);
             return;
@@ -1159,6 +1164,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(3);
+
         if(!ISMATRIX(*rplPeekData(3))) {
             rplError(ERR_MATRIXEXPECTED);
             return;
@@ -1315,6 +1322,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
+
         if(!ISMATRIX(*rplPeekData(2))) {
             rplError(ERR_MATRIXEXPECTED);
             return;
@@ -1414,6 +1423,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         if(!ISNUMBER(*rplPeekData(1))) {
             rplError(ERR_INTEGEREXPECTED);
             return;
@@ -1510,6 +1521,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         if(!ISMATRIX(*rplPeekData(1))) {
             rplError(ERR_MATRIXEXPECTED);
             return;
@@ -1541,6 +1554,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
 
         if(!ISMATRIX(*rplPeekData(2))) {
             rplError(ERR_MATRIXEXPECTED);
@@ -1647,6 +1661,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         if(!ISMATRIX(*rplPeekData(1))) {
             rplError(ERR_MATRIXEXPECTED);
             return;
@@ -1692,6 +1708,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(3);
+
         if(!ISMATRIX(*rplPeekData(3))) {
             rplError(ERR_MATRIXEXPECTED);
             return;
@@ -1848,6 +1866,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
+
         if(!ISMATRIX(*rplPeekData(2))) {
             rplError(ERR_MATRIXEXPECTED);
             return;
@@ -1954,6 +1974,8 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
+
     if(!ISNUMBER(*rplPeekData(1))) {
         rplError(ERR_INTEGEREXPECTED);
         return;
@@ -2053,6 +2075,7 @@ void LIB_HANDLER()
     // PACK 2 VALUES INTO A VECTOR
 
     // ALL ARGUMENT CHECKS ARE DONE IN rplMatrixCompose
+        rplStripTagStack(2);
 
     WORDPTR newmat=rplMatrixCompose(0,2);
     if(!newmat) return;
@@ -2069,6 +2092,7 @@ void LIB_HANDLER()
         // PACK 3 VALUES INTO A VECTOR
 
     // ALL ARGUMENT CHECKS ARE DONE IN rplMatrixCompose
+        rplStripTagStack(3);
 
     WORDPTR newmat=rplMatrixCompose(0,3);
     if(!newmat) return;
@@ -2089,6 +2113,7 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
 
     if(!ISMATRIX(*rplPeekData(1))) {
         rplError(ERR_MATRIXEXPECTED);
@@ -2259,6 +2284,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         if(ISMATRIX(*rplPeekData(1))) {
             // MATRIX TO LIST
 
@@ -2381,6 +2408,8 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(1);
+
             WORDPTR *a=DSTop-1;
             WORDPTR *savestk=DSTop;
 
@@ -2484,6 +2513,8 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(1);
+
             WORDPTR *a=DSTop-1,*savestk=DSTop;
 
             if(!ISMATRIX(**a)) {
@@ -2581,6 +2612,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR *a=DSTop-1,*savestk=DSTop;
 
         if(!ISMATRIX(**a)) {
@@ -2630,6 +2663,8 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(2);
+
             BINT64 rows,cols;
             WORDPTR *var=0;
 
@@ -2731,6 +2766,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         WORDPTR *savestk=DSTop;
 
@@ -2768,6 +2804,7 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(2);
 
     if(!ISMATRIX(*rplPeekData(2)) || !ISMATRIX(*rplPeekData(1))) {
         rplError(ERR_MATRIXEXPECTED);
@@ -2854,6 +2891,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(3);
 
         if(!ISMATRIX(*rplPeekData(3))) {
             rplError(ERR_MATRIXEXPECTED);
@@ -2908,6 +2946,8 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(1);
+
             WORDPTR *a=DSTop-1,*savestk=DSTop;
 
             if(!ISMATRIX(**a)) {
@@ -2983,6 +3023,7 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(2);
 
     if(!ISMATRIX(*rplPeekData(2)) || !ISMATRIX(*rplPeekData(1))) {
         rplError(ERR_MATRIXEXPECTED);
@@ -3053,6 +3094,8 @@ void LIB_HANDLER()
 
             return;
         }
+        rplStripTagStack(2);
+
         WORDPTR a=rplPeekData(2),b=rplPeekData(1);
 
         if(!ISMATRIX(*a))
@@ -3104,6 +3147,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         if(!ISNUMBER(*rplPeekData(1))) {
             rplError(ERR_INTEGEREXPECTED);
             return;
@@ -3157,6 +3202,8 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(2);
+
             WORDPTR *a=DSTop-1,*b=DSTop-2;
             WORDPTR *savestk=DSTop;
 
@@ -3291,6 +3338,8 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(1);
+
             BINT64 rows,cols;
             WORDPTR *var=0;
 
@@ -3386,6 +3435,8 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(1);
+
             WORDPTR *a=DSTop-1;
             WORDPTR *savestk=DSTop;
 
@@ -3487,6 +3538,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR *a=DSTop-1;
         WORDPTR *savestk=DSTop;
 
@@ -3625,6 +3678,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR *a=DSTop-1,*savestk=DSTop;
 
         if(!ISMATRIX(**a)) {
@@ -3813,6 +3868,8 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(1);
+
             WORDPTR *a=DSTop-1;
             WORDPTR *savestk=DSTop;
 
@@ -3932,6 +3989,8 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(1);
+
             WORDPTR *a=DSTop-1,*savestk=DSTop;
 
             if(!ISMATRIX(**a)) {
@@ -3978,6 +4037,8 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(1);
+
             BINT64 rows,cols;
             WORDPTR *var=0;
 
@@ -4085,6 +4146,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(3);
 
         if(!ISMATRIX(*rplPeekData(3))) {
             rplError(ERR_MATRIXEXPECTED);
@@ -4151,6 +4213,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(4);
 
         if(!ISMATRIX(*rplPeekData(4))) {
             rplError(ERR_MATRIXEXPECTED);
@@ -4223,6 +4286,8 @@ void LIB_HANDLER()
                 rplError(ERR_BADARGCOUNT);
                 return;
             }
+            rplStripTagStack(2);
+
             BINT64 rows,cols;
             WORDPTR *var=0;
 
@@ -4348,6 +4413,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR *a=DSTop-1,*savestk=DSTop;
 
         if(!ISMATRIX(**a)) {
@@ -4388,6 +4455,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR *a=DSTop-1,*savestk=DSTop;
 
         if(!ISMATRIX(**a)) {
@@ -4436,6 +4505,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR *a=DSTop-1,*savestk=DSTop;
 
         if(!ISMATRIX(**a)) {
@@ -4493,6 +4564,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(3);
 
         if(!ISMATRIX(*rplPeekData(3)) || !ISMATRIX(*rplPeekData(2)) || !ISMATRIX(*rplPeekData(1)))
         {
@@ -4527,6 +4599,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(3);
 
         if(!ISMATRIX(*rplPeekData(3))) {
             rplError(ERR_MATRIXEXPECTED);
@@ -4614,6 +4687,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         BINT k,rows,cols;
 
@@ -4652,6 +4726,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         BINT64 rows;
         WORDPTR *var=0;
 
@@ -4696,6 +4772,8 @@ void LIB_HANDLER()
                     rplError(ERR_BADARGCOUNT);
                     return;
                 }
+                rplStripTagStack(1);
+
                 BINT64 rows,cols;
                 WORDPTR *var=0;
 
@@ -4817,6 +4895,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR *a=DSTop-1,*savestk=DSTop;
 
         if(!ISMATRIX(**a)) {

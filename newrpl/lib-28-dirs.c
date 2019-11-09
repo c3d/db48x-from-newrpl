@@ -182,6 +182,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         WORDPTR *stksave=DSTop;
 
@@ -524,6 +525,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         WORDPTR *indir=0;
         // LIST IS A PATH, ONLY ENABLE PARALLEL PROCESSING FOR LISTS OF LISTS
         if(ISLIST(*rplPeekData(1)))
@@ -597,6 +600,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         BINT varidx=0,done_add=0;
 
@@ -682,6 +686,7 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
 
     BINT varidx=0,done_add=0;
 
@@ -766,6 +771,7 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
 
     BINT varidx=0,done_add=0;
 
@@ -850,6 +856,7 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
 
     BINT varidx=0,done_add=0;
 
@@ -934,6 +941,7 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
 
     BINT varidx=0,done_add=0;
 
@@ -1008,6 +1016,7 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
 
     BINT varidx=0,done_add=0;
 
@@ -1082,6 +1091,7 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
 
     BINT varidx=0,done_add=0;
 
@@ -1159,6 +1169,7 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
 
     BINT varidx=0,done_add=0;
 
@@ -1248,6 +1259,7 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
 
     BINT varidx=0,done_add=0;
 
@@ -1335,6 +1347,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
 
@@ -1364,6 +1378,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*rplPeekData(1))) {
@@ -1410,6 +1426,8 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
+
         // ONLY ACCEPT IDENTS AS KEYS (ONLY LOW-LEVEL VERSION CAN USE ARBITRARY OBJECTS)
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
@@ -1543,6 +1561,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         if(!ISLIST(*rplPeekData(1))) {
             rplError(ERR_LISTEXPECTED);
@@ -1588,6 +1607,8 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
+
     if(!ISIDENT(*rplPeekData(1))) {
         rplError(ERR_IDENTEXPECTED);
         return;
@@ -1610,6 +1631,8 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
+
     if(!ISIDENT(*rplPeekData(1))) {
         rplError(ERR_IDENTEXPECTED);
         return;
@@ -1633,6 +1656,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
 
         if(ISLIST(*rplPeekData(1))) {
@@ -1677,6 +1701,8 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
+
     if(ISLIST(*rplPeekData(1))) {
         rplListUnaryNoResultDoCmd();
         return;
@@ -1743,6 +1769,7 @@ void LIB_HANDLER()
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
 
     if(ISLIST(*rplPeekData(1))) {
         rplListUnaryNoResultDoCmd();
@@ -1783,6 +1810,7 @@ case UNLOCKVAR:
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
 
 
     if(ISLIST(*rplPeekData(1))) {
@@ -1827,6 +1855,8 @@ case UNLOCKVAR:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(2);
+
         // ONLY ACCEPT IDENTS AS KEYS
 
         if(!ISIDENT(*rplPeekData(1))||!ISIDENT(*rplPeekData(1))) {
@@ -1874,6 +1904,7 @@ case TVARS:
         rplError(ERR_BADARGCOUNT);
         return;
     }
+    rplStripTagStack(1);
 
     BINT nitems;
     WORDPTR first,itemptr;
@@ -1954,6 +1985,7 @@ case TVARSE:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         BINT nitems;
         WORDPTR first,itemptr;
@@ -2038,6 +2070,7 @@ case TVARSE:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         BINT varidx=0,done_add=0;
 
@@ -2133,6 +2166,7 @@ case TVARSE:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_PROPERTYEXPECTED);
@@ -2256,6 +2290,7 @@ case TVARSE:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         if(!ISIDENT(*rplPeekData(1))) {
             rplError(ERR_PROPERTYEXPECTED);
@@ -2281,6 +2316,7 @@ case TVARSE:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         WORDPTR *indir=0;
         // LIST IS A PATH WHEN USING DOUBLE LISTS {{ }}, OTHERWISE ENABLE LIST PROCESSING

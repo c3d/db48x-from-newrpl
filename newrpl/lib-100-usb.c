@@ -214,6 +214,7 @@ void LIB_HANDLER()
             rplError(ERR_USBNOTCONNECTED);
             return;
         }
+        rplStripTagStack(1);
 
         if(!ISNUMBER(*rplPeekData(1))) {
             rplError(ERR_REALEXPECTED);
@@ -551,11 +552,12 @@ void LIB_HANDLER()
             return;
         }
 
+
         if(!usb_isconnected()) {
             rplError(ERR_USBNOTCONNECTED);
             return;
         }
-
+        rplStripTagStack(1);
         if(!ISNUMBER(*rplPeekData(1))) {
             rplError(ERR_REALEXPECTED);
             return;

@@ -156,6 +156,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         if(!ISPROGRAM(*rplPeekData(1))) {
             rplError(ERR_PROGRAMEXPECTED);

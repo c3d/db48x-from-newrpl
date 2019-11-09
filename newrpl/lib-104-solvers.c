@@ -148,6 +148,7 @@ case NUMINT:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(4);
 
         if(!ISPROGRAM(*rplPeekData(4)) && !ISSYMBOLIC(*rplPeekData(4)) ) {
             rplError(ERR_PROGRAMEXPECTED);
@@ -473,7 +474,7 @@ case NUMINT:
             rplError(ERR_BADARGCOUNT);
             return;
         }
-
+        rplStripTagStack(4);
 
         if(!ISPROGRAM(*rplPeekData(4)) && !ISSYMBOLIC(*rplPeekData(4)) ) {
             rplError(ERR_PROGRAMEXPECTED);
@@ -686,6 +687,7 @@ case NUMINT:
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(5);
 
         if(!ISPROGRAM(*rplPeekData(5)) && !ISSYMBOLIC(*rplPeekData(5)) && !ISLIST(*rplPeekData(5))) {
             rplError(ERR_LISTOFEQEXPECTED);
@@ -1733,6 +1735,7 @@ case NUMINT:
             return;
         }
 
+        rplStripTagStack(5);
 
         if(!ISPROGRAM(*rplPeekData(5)) && !ISSYMBOLIC(*rplPeekData(5)) ) {
             rplError(ERR_PROGRAMEXPECTED);

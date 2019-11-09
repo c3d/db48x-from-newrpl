@@ -660,7 +660,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
-
+        rplStripTagStack(1);
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
         if(ISLIST(*rplPeekData(1))) {
@@ -710,6 +710,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -759,6 +760,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -808,6 +810,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -856,6 +859,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -1006,6 +1010,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -1155,6 +1160,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -1304,6 +1310,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -1452,6 +1459,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -1530,6 +1538,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
@@ -1622,6 +1631,7 @@ void LIB_HANDLER()
             rplError(ERR_BADARGCOUNT);
             return;
         }
+        rplStripTagStack(1);
 
         // APPLY THE OPCODE TO LISTS ELEMENT BY ELEMENT
         // THIS IS GENERIC, USE THE SAME CONCEPT FOR OTHER OPCODES
