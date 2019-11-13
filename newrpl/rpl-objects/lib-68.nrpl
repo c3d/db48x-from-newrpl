@@ -61,6 +61,7 @@
 { { "Flag" 1 } { ::   #04407000h TMENULST ; ::   #04407000h TMENUOTHR ; } }
 { { "Menu" 1 } { ::   #04408000h TMENULST ; ::   #04408000h TMENUOTHR ; } }
 { { "Clip" 1 } { ::   #04c01000h TMENULST ; ::   #04c01000h TMENUOTHR ; } }
+{ { "Tag" 1 } { ::   #FF100000h TMENULST ; ::   #FF100000h TMENUOTHR ; } }
 { { "Comments" 1 } { ::   #01400000h TMENULST ; ::   #01400000h TMENUOTHR ; } }
 { { "Binary" 1 } { ::   #04d00000h TMENULST ; ::   #04d00000h TMENUOTHR ; } }
 { { "Lib" 1 } { ::   #06600000h TMENULST ; ::   #06600000h TMENUOTHR ; } }

@@ -45,6 +45,7 @@
     INCLUDELIB(100,lib-100-usb.c) , \
     INCLUDELIB(102,lib-102-libptr.c) , \
     INCLUDELIB(104,lib-104-solvers.c) , \
+    INCLUDELIB(112,lib-112-asm.c) , \
     INCLUDELIB(4080,lib-4080-localenv.c) , \
     INCLUDELIB(4081,lib-4081-tags.c) , \
     INCLUDELIB(4090,lib-4090-overloaded.c)

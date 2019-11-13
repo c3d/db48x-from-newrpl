@@ -98,7 +98,7 @@ extern "C" {
 #define MAXSYSHILIBS 16
 #define MAXLIBNUMBER 4095
 // NUMBER OF SCRATCH POINTERS
-#define MAX_GC_PTRUPDATE 29
+#define MAX_GC_PTRUPDATE 38
 
 
 // MINIMUM GUARANTEED STACK LEVELS FOR MEMORY ALLOCATION
@@ -584,7 +584,7 @@ WORDPTR rplRRegToComplexInPlace(BINT real, BINT imag, WORDPTR dest, BINT angmode
 void rplRect2Polar(REAL *re,REAL *im,BINT angmode);
 void rplPolar2Rect(REAL *r,REAL *theta,BINT angmode);
 BINT rplIsZeroComplex(REAL *re,REAL *im,BINT angmode);
-
+int rplNormalizeComplex(REAL *real,REAL *imag,BINT angmode);
 
 
 
@@ -896,6 +896,9 @@ WORDPTR rplStripTag(WORDPTR object);
 #define FL_ERRORBEEP      -56
 #define FL_ALARMBEEP      -57
 
+#define FL_ASMZERO        -58   // ASM INSTRUCTIONS SET THIS FLAG WHEN RESULT IS ZERO
+#define FL_ASMNEG         -59   // ASM INSTRUCTIONS SET THIS FLAG WHEN RESULT IS NEGATIVE
+
 #define FL_DECOMPEDIT     -60  // SET TO FORCE ->STR AND + OPERATOR TO DECOMPILE TO PRESERVE OBJECTS
                                // CLEAR THE FLAG (DEFAULT) TO DECOMPILE FOR DISPLAY ONLY
 
@@ -916,7 +919,6 @@ WORDPTR rplStripTag(WORDPTR object);
 
 #define FL_QUICKRESPONSE  -88   // LOWER RESPONSE TIME TO 30 ms BEFORE GOING TO FULL SPEED (WHEN SET)
 #define FL_COMPLEXMODE    -103
-
 
 
 

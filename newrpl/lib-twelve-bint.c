@@ -157,6 +157,27 @@ ROMOBJECT ten_bint[]=
     (WORD)MAKESINT(10)
 };
 
+ROMOBJECT eleven_bint[]=
+{
+    (WORD)MAKESINT(11)
+};
+ROMOBJECT twelve_bint[]=
+{
+    (WORD)MAKESINT(12)
+};
+ROMOBJECT thirteen_bint[]=
+{
+    (WORD)MAKESINT(13)
+};
+ROMOBJECT fourteen_bint[]=
+{
+    (WORD)MAKESINT(14)
+};
+ROMOBJECT fifteen_bint[]=
+{
+    (WORD)MAKESINT(15)
+};
+
 
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 
@@ -178,6 +199,12 @@ const WORDPTR const ROMPTR_TABLE[]={
     (WORDPTR)seven_bint,
     (WORDPTR)eight_bint,
     (WORDPTR)nine_bint,
+    (WORDPTR)eleven_bint,
+    (WORDPTR)twelve_bint,
+    (WORDPTR)thirteen_bint,
+    (WORDPTR)fourteen_bint,
+    (WORDPTR)fifteen_bint,
+
     0
 };
 

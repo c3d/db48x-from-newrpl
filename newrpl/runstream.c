@@ -219,33 +219,46 @@ void rplRemoveLibrary(BINT number)
 {
     if(number<0 || number>MAXLIBNUMBER)  return;
     if(number<MAXLOWLIBS) {
-        LowLibRegistry[number]=0;
+        LIBHANDLER han=LowLibRegistry[number];
+        // REMOVE ALL LIBRARIES REGISTERED WITH THAT SAME HANDLE
+        if(han) {
+            BINT k;
+            for(k=0;k<MAXLOWLIBS;++k) if(LowLibRegistry[k]==han) LowLibRegistry[k]=0;
+        }
         return;
     }
     if(number>MAXLIBNUMBER-MAXSYSHILIBS) {
-        SysHiLibRegistry[number-(MAXLIBNUMBER-MAXSYSHILIBS+1)]=0;
+        LIBHANDLER han=SysHiLibRegistry[number-(MAXLIBNUMBER-MAXSYSHILIBS+1)];
+        // REMOVE ALL LIBRARIES REGISTERED WITH THAT SAME HANDLE
+        if(han) {
+            BINT k;
+            for(k=0;k<MAXSYSHILIBS;++k) if(SysHiLibRegistry[k]==han) SysHiLibRegistry[k]=0;
+        }
         return;
     }
 
-    // ADD LIBRARY
+
     if(NumHiLibs<=0) return;
     BINT *ptr=HiLibNumbers,found=0;
     LIBHANDLER *libptr=HiLibRegistry;
+    LIBHANDLER han;
 
     while(ptr<HiLibNumbers+NumHiLibs) {
-     if(*ptr==number) { found=1; break; }
+     if(*ptr==number) { han=*libptr; found=1; break; }
      ++ptr;
      ++libptr;
     }
+    if(!found) return;
     ++ptr;
     ++libptr;
     while(ptr<HiLibNumbers+NumHiLibs) {
-        ptr[-1]=*ptr;
-        libptr[-1]=*libptr;
+        if(*libptr==han) { ++found; continue; }
+        ptr[-found]=*ptr;
+        libptr[-found]=*libptr;
         ++ptr;
         ++libptr;
     }
-    if(found) --NumHiLibs;
+    NumHiLibs-=found;
 }
 
 // RETURNS 0 = FINISHED OK
@@ -807,6 +820,10 @@ void rplInit(void)
 
     // SET ERROR TRAP HANDLER
 
+    // RESET ALL USER REGISTERS TO zero_bint
+
+
+    for(k=GC_UserRegisters-GC_PTRUpdate;k<MAX_GC_PTRUPDATE;++k) GC_PTRUpdate[k]=(WORDPTR)zero_bint;
 
 }
 
@@ -896,6 +913,11 @@ void rplWarmInit(void)
 
     }
 
+
+    // RESET ALL USER REGISTERS TO zero_bint
+
+    BINT k;
+    for(k=GC_UserRegisters-GC_PTRUpdate;k<MAX_GC_PTRUPDATE;++k) GC_PTRUpdate[k]=(WORDPTR)zero_bint;
 
 }
 

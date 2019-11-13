@@ -239,7 +239,8 @@ SOURCES +=\
     newrpl/rng.c \
     newrpl/solvers.c \
     newrpl/lib-104-solvers.c \
-    newrpl/lib-55-constants.c
+    newrpl/lib-55-constants.c \
+    newrpl/lib-4081-tags.c
 
 
 HEADERS  += \
@@ -300,6 +301,7 @@ RPL_OBJECTS =   newrpl/rpl-objects/lib-54.nrpl \
                 newrpl/rpl-objects/lib-100.nrpl \
                 newrpl/rpl-objects/lib-102.nrpl \
                 newrpl/rpl-objects/lib-104.nrpl \
+                newrpl/rpl-objects/lib-4081.nrpl \
                 newrpl/rpl-objects/version.nrpl
 
 
