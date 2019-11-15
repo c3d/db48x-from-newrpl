@@ -110,9 +110,17 @@ const WORDPTR const numbers_table[]={
 #define ASM_GET   12
 #define ASM_PUT   13
 #define ASM_MATH  14
+#define ASM_MATH2 15
 #define ASM_LOOP  16
 #define ASM_SKIP  17
 #define ASM_FPUSH 18
+
+// ADDITIONAL COMMANDS PROPOSED:
+#define ASM_MIN   19
+#define ASM_MAX   20
+#define ASM_RND   21
+
+
 
 #define ASM_MATH_IP   0
 #define ASM_MATH_LN   1
@@ -130,6 +138,13 @@ const WORDPTR const numbers_table[]={
 #define ASM_MATH_ASINH 13
 #define ASM_MATH_ACOSH 14
 #define ASM_MATH_ATANH 15
+
+#define ASM_MATH2_FP  0
+#define ASM_MATH2_ABS 1
+#define ASM_MATH2_ARG 2
+#define ASM_MATH2_RE  3
+#define ASM_MATH2_IM  4
+
 
 #define ISLITERALY(opcode) (opcode&0x2000)
 #define ISLITERALZ(opcode) (opcode&0x1000)
@@ -156,6 +171,34 @@ const WORDPTR const numbers_table[]={
 #define ASMF_GTE 5  // (NOT LT)
 #define ASMF_NE  6  // (NOT EQ)
 #define ASMF_GT  7  // (NOT LTE)
+
+
+const WORD const mathcmd_table[]={
+    CMD_IP,
+    CMD_LN,
+    CMD_EXP,
+    CMD_SQRT,
+    CMD_SIN,
+    CMD_COS,
+    CMD_TAN,
+    CMD_ASIN,
+    CMD_ACOS,
+    CMD_ATAN,
+    CMD_SINH,
+    CMD_COSH,
+    CMD_TANH,
+    CMD_ASINH,
+    CMD_ACOSH,
+    CMD_ATANH
+};
+
+
+
+
+
+
+
+
 
 
 // FIND THE END OF THE CURRENT TOKEN
@@ -228,6 +271,23 @@ const struct optables const shortopcodes[]={
 { 16+14, TEXT2WORD('#','1','4',0)},
 { 16+15, TEXT2WORD('#','1','5',0)},
 
+{ 16+0, TEXT2WORD('0',0,0,0)},
+{ 16+1, TEXT2WORD('1',0,0,0)},
+{ 16+2, TEXT2WORD('2',0,0,0)},
+{ 16+3, TEXT2WORD('3',0,0,0)},
+{ 16+4, TEXT2WORD('4',0,0,0)},
+{ 16+5, TEXT2WORD('5',0,0,0)},
+{ 16+6, TEXT2WORD('6',0,0,0)},
+{ 16+7, TEXT2WORD('7',0,0,0)},
+{ 16+8, TEXT2WORD('8',0,0,0)},
+{ 16+9, TEXT2WORD('9',0,0,0)},
+{ 16+10, TEXT2WORD('1','0',0,0)},
+{ 16+11, TEXT2WORD('1','1',0,0)},
+{ 16+12, TEXT2WORD('1','2',0,0)},
+{ 16+13, TEXT2WORD('1','3',0,0)},
+{ 16+14, TEXT2WORD('1','4',0,0)},
+{ 16+15, TEXT2WORD('1','5',0,0)},
+
 { 16+0, TEXT2WORD('#','0','H',0)},
 { 16+1, TEXT2WORD('#','1','H',0)},
 { 16+2, TEXT2WORD('#','2','H',0)},
@@ -295,7 +355,7 @@ const struct optables const shortopcodes[]={
 { (ASM_LOOP<<8)|32, TEXT2WORD('L','O','O','P')},
 
 // THESE ARE MATH FUNCTIONS
-
+{ (ASM_MATH<<8)|(16+ASM_MATH_IP), TEXT2WORD('I','P',0,0)},
 { (ASM_MATH<<8)|(16+ASM_MATH_LN), TEXT2WORD('L','N',0,0)},
 { (ASM_MATH<<8)|(16+ASM_MATH_EXP), TEXT2WORD('E','X','P',0)},
 { (ASM_MATH<<8)|(16+ASM_MATH_SQRT), TEXT2WORD('S','Q','R','T')},
@@ -308,14 +368,15 @@ const struct optables const shortopcodes[]={
 { (ASM_MATH<<8)|(16+ASM_MATH_SINH), TEXT2WORD('S','I','N','H')},
 { (ASM_MATH<<8)|(16+ASM_MATH_COSH), TEXT2WORD('C','O','S','H')},
 { (ASM_MATH<<8)|(16+ASM_MATH_TANH), TEXT2WORD('T','A','N','H')},
+
 {0,0}
 };
 
 
 // THE ONLY OPCODES WITH MORE THAN 4 LETTERS, THE FIFTH LETTER IS ALWAYS AN H
 const struct optables const longopcodes[]={
-{ ASM_RPUSH<<8, TEXT2WORD('R','P','U','S')},
-{ ASM_FPUSH<<8, TEXT2WORD('F','P','U','S')},
+{ (ASM_RPUSH<<8)|32, TEXT2WORD('R','P','U','S')},
+{ (ASM_FPUSH<<8)|32, TEXT2WORD('F','P','U','S')},
 { (ASM_MATH<<8)|(16+ASM_MATH_ASINH), TEXT2WORD('A','S','I','N')},
 { (ASM_MATH<<8)|(16+ASM_MATH_ACOSH), TEXT2WORD('A','C','O','S')},
 { (ASM_MATH<<8)|(16+ASM_MATH_ATANH), TEXT2WORD('A','T','A','N')},
@@ -445,14 +506,14 @@ void LIB_HANDLER()
 
 
         // GET THE ARGUMENT Y
-
+        BINT skipnext=0;
         WORDPTR argY;
         if(ISLITERALY(CurOpcode)) argY=numbers_table[GETY(CurOpcode)];
         else {
         BINT y=GETY(CurOpcode);
         if(y&0x8) {
             y&=7;
-            if(y==0) argY=IPtr+4;
+            if(y==0) { argY=IPtr+1; skipnext=1; }
             else {
                 if(DSTop-y<DStkBottom) {
                 rplError(ERR_BADSTACKINDEX);
@@ -467,7 +528,7 @@ void LIB_HANDLER()
         WORDPTR *destD;
         if(d&0x8) {
             d&=7;
-            if(d==0) return;    // NOOP - INVALID DESTINATION
+            if(d==0) { rplPushDataNoGrow((WORDPTR)zero_bint); destD=DSTop-1; }
             else {
                 if(DSTop-d<DStkBottom) {
                 rplError(ERR_BADSTACKINDEX);
@@ -508,6 +569,10 @@ void LIB_HANDLER()
             if(rplIsNegative(DSTop[-1])) rplSetSystemFlag(FL_ASMNEG);
             else rplClrSystemFlag(FL_ASMNEG);
             rplDropData(1);
+            if(skipnext) {
+                ++IPtr;
+                CurOpcode=*IPtr;
+            }
             return;
         }
         // CALL THE OPERATION
@@ -519,6 +584,10 @@ void LIB_HANDLER()
         if(Exceptions) return;
         }
         *destD=rplPopData();
+        if(skipnext) {
+            ++IPtr;
+            CurOpcode=*IPtr;
+        }
         return;
     }
     case ASM_ADD:
@@ -529,14 +598,14 @@ void LIB_HANDLER()
 
 
         // GET THE ARGUMENT Y
-
+        BINT skipnext=0;
         WORDPTR argY;
         if(ISLITERALY(CurOpcode)) argY=numbers_table[GETY(CurOpcode)];
         else {
         BINT y=GETY(CurOpcode);
         if(y&0x8) {
             y&=7;
-            if(y==0) argY=IPtr+4;
+            if(y==0) { argY=IPtr+1; skipnext=1; }
             else {
                 if(DSTop-y<DStkBottom) {
                 rplError(ERR_BADSTACKINDEX);
@@ -553,7 +622,7 @@ void LIB_HANDLER()
         BINT z=GETZ(CurOpcode);
         if(z&0x8) {
             z&=7;
-            if(z==0) argZ=IPtr+4;
+            if(z==0) { argZ=IPtr+1; skipnext=1; }
             else {
                 if(DSTop-z<DStkBottom) {
                 rplError(ERR_BADSTACKINDEX);
@@ -568,7 +637,7 @@ void LIB_HANDLER()
         WORDPTR *destD;
         if(d&0x8) {
             d&=7;
-            if(d==0) return;    // NOOP - INVALID DESTINATION
+            if(d==0) { rplPushDataNoGrow((WORDPTR)zero_bint); destD=DSTop-1; }
             else {
                 if(DSTop-d<DStkBottom) {
                 rplError(ERR_BADSTACKINDEX);
@@ -613,6 +682,10 @@ void LIB_HANDLER()
                     if(rplIsNegative(DSTop[-1])) rplSetSystemFlag(FL_ASMNEG);
                     else rplClrSystemFlag(FL_ASMNEG);
                     rplDropData(1);
+                    if(skipnext) {
+                        ++IPtr;
+                        CurOpcode=*IPtr;
+                    }
                     return;
         }
         if(opcode) {
@@ -623,6 +696,10 @@ void LIB_HANDLER()
         if(Exceptions) return;
         }
         *destD=rplPopData();
+        if(skipnext) {
+            ++IPtr;
+            CurOpcode=*IPtr;
+        }
         return;
     }
     case ASM_SUB:
@@ -641,13 +718,635 @@ void LIB_HANDLER()
         oper=CMD_OVR_CMP;
         goto common_case;
     case ASM_POP  :
-    case ASM_RPOP :
-    case ASM_PUSH :
-    case ASM_RPUSH:
-    case ASM_GET  :
-    case ASM_PUT  :
-    case ASM_MATH :
+    {
+        // IMPLEMENTS :R=POP.Y.Z  where:
+        // R=first register to receive a stack value must be (A-H)
+        // Y=stack level to start the copy (must be a literal with level # or Sn reference)
+        // Z=literal or reference with number of items to move
+
+        // EXAMPLE: :A=POP.#1.#3 --> A=Lvl1, B=Lvl2, C=Lvl3, and data from levels 1 to 3 are removed from the stack
+
+        // GET THE ARGUMENT Y
+        BINT skipnext=0;
+        BINT ylevel,nitems;
+
+        if(ISLITERALY(CurOpcode)) ylevel=GETY(CurOpcode);
+        else {
+        BINT y=GETY(CurOpcode);
+        if(y&0x8) {
+            y&=7;
+            if(y==0) {
+                ylevel=rplReadNumberAsBINT(IPtr+1);
+                if(Exceptions) return;
+                skipnext=1;
+            }
+            else {
+                if(DSTop-y<DStkBottom) {
+                rplError(ERR_BADSTACKINDEX);
+                return;
+            } else ylevel=y;
+            }
+        } else {
+            ylevel=rplReadNumberAsBINT(GC_UserRegisters[y]);
+            if(Exceptions) return;
+        }
+        }
+
+
+        // HERE ylevel IS THE STACK LEVEL TO COPY FROM
+
+        // GET ARGUMENT Z
+
+        if(ISLITERALZ(CurOpcode)) nitems=GETZ(CurOpcode);
+        else {
+        BINT z=GETZ(CurOpcode);
+        if(z&0x8) {
+            z&=7;
+            if(z==0) {
+                nitems=rplReadNumberAsBINT(IPtr+1);
+                if(Exceptions) return;
+                skipnext=1;
+            }
+            else {
+                nitems=z-ylevel+1;
+            }
+        } else {
+            nitems=rplReadNumberAsBINT(GC_UserRegisters[z]);
+            if(Exceptions) return;
+        }
+        }
+
+        if((nitems<0)||(nitems>ylevel+rplDepthData()-1) ) {
+            rplError(ERR_BADSTACKINDEX);
+            return;
+        }
+
+        // GET ARGUMENT D
+        BINT d=GETD(CurOpcode);
+        WORDPTR *destD;
+        if(d&0x8) {
+                rplError(ERR_INVALIDASMCODE);
+                return;
+         } else destD=GC_UserRegisters+d;
+
+        if(d+nitems>8) {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        }
+
+        BINT opcode;
+        if(ASMSTO(CurOpcode)!=ASMSTO_STO) {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        }
+
+        // POP THE VALUES FROM THE STACK
+        WORDPTR *stkptr;
+
+        BINT k;
+        for(k=0;k<nitems;++k) {
+            *destD=DSTop[-ylevel-k];
+            ++destD;
+        }
+        rplRemoveAtData(ylevel,nitems);
+        if(skipnext)
+        {
+            ++IPtr;
+            CurOpcode=*IPtr;
+        }
         return;
+    }
+    case ASM_RPOP :
+    {
+        // IMPLEMENTS :R=RPOP.Y.Z (SAME AS POP BUT IN REVERSE ORDER) where:
+        // R=first register to receive a stack value must be (A-H)
+        // Y=stack level to start the copy (must be a literal with level # or Sn reference)
+        // Z=literal or reference with number of items to move
+
+        // EXAMPLE: :A=RPOP.#1.#3 --> A=Lvl3, B=Lvl2, C=Lvl1, and data from levels 1 to 3 are removed from the stack
+
+        // GET THE ARGUMENT Y
+        BINT skipnext=0;
+        BINT ylevel,nitems;
+
+        if(ISLITERALY(CurOpcode)) ylevel=GETY(CurOpcode);
+        else {
+        BINT y=GETY(CurOpcode);
+        if(y&0x8) {
+            y&=7;
+            if(y==0) {
+                ylevel=rplReadNumberAsBINT(IPtr+1);
+                if(Exceptions) return;
+                skipnext=1;
+            }
+            else {
+                if(DSTop-y<DStkBottom) {
+                rplError(ERR_BADSTACKINDEX);
+                return;
+            } else ylevel=y;
+            }
+        } else {
+            ylevel=rplReadNumberAsBINT(GC_UserRegisters[y]);
+            if(Exceptions) return;
+        }
+        }
+
+
+        // HERE ylevel IS THE STACK LEVEL TO COPY FROM
+
+        // GET ARGUMENT Z
+
+        if(ISLITERALZ(CurOpcode)) nitems=GETZ(CurOpcode);
+        else {
+        BINT z=GETZ(CurOpcode);
+        if(z&0x8) {
+            z&=7;
+            if(z==0) {
+                nitems=rplReadNumberAsBINT(IPtr+1);
+                if(Exceptions) return;
+                skipnext=1;
+            }
+            else {
+                nitems=z-ylevel+1;
+            }
+        } else {
+            nitems=rplReadNumberAsBINT(GC_UserRegisters[z]);
+            if(Exceptions) return;
+        }
+        }
+
+        if((nitems<0)||(nitems>ylevel+rplDepthData()-1) ) {
+            rplError(ERR_BADSTACKINDEX);
+            return;
+        }
+
+        // GET ARGUMENT D
+        BINT d=GETD(CurOpcode);
+        WORDPTR *destD;
+        if(d&0x8) {
+                rplError(ERR_INVALIDASMCODE);
+                return;
+         } else destD=GC_UserRegisters+d;
+
+        if(d+nitems>8) {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        }
+
+        BINT opcode;
+        if(ASMSTO(CurOpcode)!=ASMSTO_STO) {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        }
+
+        // POP THE VALUES FROM THE STACK
+        WORDPTR *stkptr;
+
+        BINT k;
+        for(k=nitems-1;k>=0;--k) {
+            *destD=DSTop[-ylevel-k];
+            ++destD;
+        }
+        rplRemoveAtData(ylevel,nitems);
+        if(skipnext)
+        {
+            ++IPtr;
+            CurOpcode=*IPtr;
+        }
+        return;
+    }
+    case ASM_PUSH :
+    {
+        // IMPLEMENTS PUSH.Y.Z where:
+        // Y=first register to push to the stack, must be a register reference (A-H)
+        // Z=literal or reference with number of registers to push
+
+        // EXAMPLE: :PUSH.A.#3 --> Lvl1=A, Lvl2=B, Lvl1=3
+
+        // GET THE ARGUMENT Y
+        BINT skipnext=0;
+        BINT ylevel,nitems;
+        WORDPTR *reg=0;
+        if(ISLITERALY(CurOpcode)) {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        }
+        else {
+        BINT y=GETY(CurOpcode);
+        if(y&0x8) {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        } else reg=GC_UserRegisters+y;
+
+        }
+
+
+        if(ISLITERALZ(CurOpcode)) nitems=GETZ(CurOpcode);
+        else {
+        BINT z=GETZ(CurOpcode);
+        if(z&0x8) {
+            z&=7;
+            if(z==0) {
+                nitems=rplReadNumberAsBINT(IPtr+1);
+                if(Exceptions) return;
+                skipnext=1;
+            }
+            else {
+                nitems=rplReadNumberAsBINT(DSTop[-z]);
+                if(Exceptions) return;
+            }
+        } else {
+            nitems=rplReadNumberAsBINT(GC_UserRegisters[z]);
+            if(Exceptions) return;
+        }
+        }
+
+        if((nitems<0)||(nitems+(reg-GC_UserRegisters)>8) ) {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        }
+
+
+        // PUSH THE VALUES TO THE STACK
+        BINT k;
+        for(k=nitems-1;k>=0;--k) {
+            rplPushData(reg[k]);
+            if(Exceptions) return;
+        }
+        if(skipnext)
+        {
+            ++IPtr;
+            CurOpcode=*IPtr;
+        }
+        return;
+    }
+    case ASM_RPUSH:
+    {
+        // IMPLEMENTS PUSH.Y.Z where:
+        // Y=first register to push to the stack, must be a register reference (A-H)
+        // Z=literal or reference with number of registers to push
+
+        // EXAMPLE: :PUSH.A.#3 --> Lvl1=A, Lvl2=B, Lvl1=3
+
+        // GET THE ARGUMENT Y
+        BINT skipnext=0;
+        BINT ylevel,nitems;
+        WORDPTR *reg=0;
+        if(ISLITERALY(CurOpcode)) {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        }
+        else {
+        BINT y=GETY(CurOpcode);
+        if(y&0x8) {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        } else reg=GC_UserRegisters+y;
+
+        }
+
+
+        if(ISLITERALZ(CurOpcode)) nitems=GETZ(CurOpcode);
+        else {
+        BINT z=GETZ(CurOpcode);
+        if(z&0x8) {
+            z&=7;
+            if(z==0) {
+                nitems=rplReadNumberAsBINT(IPtr+1);
+                if(Exceptions) return;
+                skipnext=1;
+            }
+            else {
+                nitems=rplReadNumberAsBINT(DSTop[-z]);
+                if(Exceptions) return;
+            }
+        } else {
+            nitems=rplReadNumberAsBINT(GC_UserRegisters[z]);
+            if(Exceptions) return;
+        }
+        }
+
+        if((nitems<0)||(nitems+(reg-GC_UserRegisters)>8) ) {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        }
+
+
+        // PUSH THE VALUES TO THE STACK
+        BINT k;
+        for(k=0;k<nitems;++k) {
+            rplPushData(reg[k]);
+            if(Exceptions) return;
+        }
+        if(skipnext)
+        {
+            ++IPtr;
+            CurOpcode=*IPtr;
+        }
+        return;
+    }
+    case ASM_GET  :
+    {
+        // IMPLEMENTS :R=GET.Y.Z  where:
+        // R=Destination reference (register or stack)
+        // Y=Reference to a composite object (list, vector or matrix)
+        // Z=literal or reference with index of the item to retrieve
+
+        // EXAMPLE: :A=GET.S1.#3 --> Gets the third element of list on stack level 1 (S1)
+
+            // GET THE ARGUMENT Y
+            BINT skipnext=0;
+            WORDPTR argY;
+            if(ISLITERALY(CurOpcode)) argY=numbers_table[GETY(CurOpcode)];
+            else {
+            BINT y=GETY(CurOpcode);
+            if(y&0x8) {
+                y&=7;
+                if(y==0) { argY=IPtr+1; skipnext=1; }
+                else {
+                    if(DSTop-y<DStkBottom) {
+                    rplError(ERR_BADSTACKINDEX);
+                    return;
+                } else argY=DSTop[-y];
+                }
+            } else argY=GC_UserRegisters[y];
+            }
+
+            // GET ARGUMENT Z
+            WORDPTR argZ;
+            if(ISLITERALZ(CurOpcode)) argZ=numbers_table[GETZ(CurOpcode)];
+            else {
+            BINT z=GETZ(CurOpcode);
+            if(z&0x8) {
+                z&=7;
+                if(z==0) { argZ=IPtr+1; skipnext=1; }
+                else {
+                    if(DSTop-z<DStkBottom) {
+                    rplError(ERR_BADSTACKINDEX);
+                    return;
+                } else argZ=DSTop[-z];
+                }
+            } else argZ=GC_UserRegisters[z];
+            }
+
+            // GET ARGUMENT D
+            BINT d=GETD(CurOpcode);
+            WORDPTR *destD;
+            if(d&0x8) {
+                d&=7;
+                if(d==0) { rplPushDataNoGrow((WORDPTR)zero_bint); destD=DSTop-1; }
+                else {
+                    if(DSTop-d<DStkBottom) {
+                    rplError(ERR_BADSTACKINDEX);
+                    return;
+                } else destD=DSTop-d;
+                }
+            } else destD=GC_UserRegisters+d;
+
+            BINT opcode;
+            switch(ASMSTO(CurOpcode))
+            {
+            default:
+            case ASMSTO_NOOP:
+                opcode=-1;
+                break;
+            case ASMSTO_STO:
+                opcode=0;
+                break;
+            case ASMSTO_STOADD:
+                opcode=CMD_OVR_ADD;
+                break;
+            case ASMSTO_STOSUB:
+                opcode=CMD_OVR_SUB;
+                break;
+            case ASMSTO_STOMUL:
+                opcode=CMD_OVR_MUL;
+                break;
+            case ASMSTO_STODIV:
+                opcode=CMD_OVR_DIV;
+                break;
+            }
+            // CALL THE OPERATION
+            rplPushDataNoGrow(argY);
+            rplPushDataNoGrow(argZ);
+
+            rplCallOperator(CMD_GET);   // COMMAND GET IS KNOWN TO BE ATOMIC
+            if(Exceptions) return;
+
+            if(opcode==-1) {
+                        // ONLY UPDATE THE FLAGS WITH THE RESULT, IF THE RESULT IS NUMERIC
+                        if(rplIsFalse(DSTop[-1])) rplSetSystemFlag(FL_ASMZERO);
+                        else rplClrSystemFlag(FL_ASMZERO);
+                        if(rplIsNegative(DSTop[-1])) rplSetSystemFlag(FL_ASMNEG);
+                        else rplClrSystemFlag(FL_ASMNEG);
+                        rplDropData(1);
+                        if(skipnext) {
+                            ++IPtr;
+                            CurOpcode=*IPtr;
+                        }
+                        return;
+            }
+            if(opcode) {
+                rplPushDataNoGrow(DSTop[-1]);
+                DSTop[-2]=*destD;
+            if(ISNUMBERCPLX(*DSTop[-1]) && ISNUMBERCPLX(**destD)) rplCallOvrOperator(opcode);
+            else rplRunAtomic(opcode);
+            if(Exceptions) return;
+            }
+            *destD=rplPopData();
+            if(skipnext) {
+                ++IPtr;
+                CurOpcode=*IPtr;
+            }
+            return;
+        }
+    case ASM_PUT  :
+    {
+        // IMPLEMENTS :R=PUT.Y.Z  where:
+        // R=Source composite AND destination reference (register or stack) - CANNOT be P.
+        // Y=Reference or literal to position
+        // Z=Reference to object to put in the composite
+
+        // EXAMPLE: :A=PUT.#3.S1 --> A(3)=S1 --->Replace the third element of list on A with stack level 1 (S1)
+
+            // GET THE ARGUMENT Y
+            BINT skipnext=0;
+            WORDPTR argY;
+            if(ISLITERALY(CurOpcode)) argY=numbers_table[GETY(CurOpcode)];
+            else {
+            BINT y=GETY(CurOpcode);
+            if(y&0x8) {
+                y&=7;
+                if(y==0) { argY=IPtr+1; skipnext=1; }
+                else {
+                    if(DSTop-y<DStkBottom) {
+                    rplError(ERR_BADSTACKINDEX);
+                    return;
+                } else argY=DSTop[-y];
+                }
+            } else argY=GC_UserRegisters[y];
+            }
+
+            // GET ARGUMENT Z
+            WORDPTR argZ;
+            if(ISLITERALZ(CurOpcode)) argZ=numbers_table[GETZ(CurOpcode)];
+            else {
+            BINT z=GETZ(CurOpcode);
+            if(z&0x8) {
+                z&=7;
+                if(z==0) { argZ=IPtr+1; skipnext=1; }
+                else {
+                    if(DSTop-z<DStkBottom) {
+                    rplError(ERR_BADSTACKINDEX);
+                    return;
+                } else argZ=DSTop[-z];
+                }
+            } else argZ=GC_UserRegisters[z];
+            }
+
+            // GET ARGUMENT D
+            BINT d=GETD(CurOpcode);
+            WORDPTR *destD;
+            if(d&0x8) {
+                d&=7;
+                if(d==0) { rplError(ERR_INVALIDASMCODE); return; }
+                else {
+                    if(DSTop-d<DStkBottom) {
+                    rplError(ERR_BADSTACKINDEX);
+                    return;
+                } else destD=DSTop-d;
+                }
+            } else destD=GC_UserRegisters+d;
+
+            if(ASMSTO(CurOpcode)!=ASMSTO_STO) {
+                rplError(ERR_INVALIDASMCODE);
+                return;
+            }
+
+            // CALL THE OPERATION
+            rplPushDataNoGrow(*destD);
+            rplPushDataNoGrow(argY);
+            rplPushDataNoGrow(argZ);
+
+            rplCallOperator(CMD_PUT);   // COMMAND PUT IS KNOWN TO BE ATOMIC
+            if(Exceptions) return;
+
+            *destD=rplPopData();
+            if(skipnext) {
+                ++IPtr;
+                CurOpcode=*IPtr;
+            }
+            return;
+        }
+
+
+    case ASM_MATH :
+    {
+        // IMPLEMENTS :R ?= CMD.Z
+        // CMD=Y= LITERAL REPRESENTING A MATH FUNCTION (SEE ASM_MATH_XXX CONSTANTS)
+
+        // GET THE ARGUMENT Y
+        BINT skipnext=0;
+        BINT ycmd;
+        if(ISLITERALY(CurOpcode)) ycmd=GETY(CurOpcode);
+        else {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        }
+
+        // GET ARGUMENT Z
+        WORDPTR argZ;
+        if(ISLITERALZ(CurOpcode)) argZ=numbers_table[GETZ(CurOpcode)];
+        else {
+        BINT z=GETZ(CurOpcode);
+        if(z&0x8) {
+            z&=7;
+            if(z==0) { argZ=IPtr+1; skipnext=1; }
+            else {
+                if(DSTop-z<DStkBottom) {
+                rplError(ERR_BADSTACKINDEX);
+                return;
+            } else argZ=DSTop[-z];
+            }
+        } else argZ=GC_UserRegisters[z];
+        }
+
+        // GET ARGUMENT D
+        BINT d=GETD(CurOpcode);
+        WORDPTR *destD;
+        if(d&0x8) {
+            d&=7;
+            if(d==0) { rplPushDataNoGrow((WORDPTR)zero_bint); destD=DSTop-1; }
+            else {
+                if(DSTop-d<DStkBottom) {
+                rplError(ERR_BADSTACKINDEX);
+                return;
+            } else destD=DSTop-d;
+            }
+        } else destD=GC_UserRegisters+d;
+
+        BINT opcode;
+        switch(ASMSTO(CurOpcode))
+        {
+        default:
+        case ASMSTO_NOOP:
+            opcode=-1;
+            break;
+        case ASMSTO_STO:
+            opcode=0;
+            break;
+        case ASMSTO_STOADD:
+            opcode=CMD_OVR_ADD;
+            break;
+        case ASMSTO_STOSUB:
+            opcode=CMD_OVR_SUB;
+            break;
+        case ASMSTO_STOMUL:
+            opcode=CMD_OVR_MUL;
+            break;
+        case ASMSTO_STODIV:
+            opcode=CMD_OVR_DIV;
+            break;
+        }
+        // CALL THE OPERATION
+        rplPushDataNoGrow(argZ);
+
+        if(ISNUMBERCPLX(*argZ)) rplCallOperator(mathcmd_table[ycmd]);
+        else rplRunAtomic(mathcmd_table[ycmd]);
+        if(Exceptions) return;
+        if(opcode==-1) {
+                    // ONLY UPDATE THE FLAGS WITH THE RESULT, IF THE RESULT IS NUMERIC
+                    if(rplIsFalse(DSTop[-1])) rplSetSystemFlag(FL_ASMZERO);
+                    else rplClrSystemFlag(FL_ASMZERO);
+                    if(rplIsNegative(DSTop[-1])) rplSetSystemFlag(FL_ASMNEG);
+                    else rplClrSystemFlag(FL_ASMNEG);
+                    rplDropData(1);
+                    if(skipnext) {
+                        ++IPtr;
+                        CurOpcode=*IPtr;
+                    }
+                    return;
+        }
+        if(opcode) {
+            rplPushDataNoGrow(DSTop[-1]);
+            DSTop[-2]=*destD;
+        if(ISNUMBERCPLX(*DSTop[-1]) && ISNUMBERCPLX(**destD)) rplCallOvrOperator(opcode);
+        else rplRunAtomic(opcode);
+        if(Exceptions) return;
+        }
+        *destD=rplPopData();
+        if(skipnext) {
+            ++IPtr;
+            CurOpcode=*IPtr;
+        }
+        return;
+    }
+
+    case ASM_LOOP:
+    case ASM_SKIP:
+    case ASM_FPUSH:
+
+    return;
 
     default:
 
@@ -737,7 +1436,7 @@ void LIB_HANDLER()
                     if(opcode_arg&~0xff) { RetNum=ERR_SYNTAX; return; }
                     z=opcode_arg&0xff;
 
-                    if(str!=(BYTEPTR)BlankStart) { RetNum=ERR_SYNTAX; return; } // AND IT NEEDS TO BE THE LAST TOKEN
+                    if(endtoken!=(BYTEPTR)BlankStart) { RetNum=ERR_SYNTAX; return; } // AND IT NEEDS TO BE THE LAST TOKEN
 
                 }
 
