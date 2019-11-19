@@ -1343,11 +1343,155 @@ void LIB_HANDLER()
     }
 
     case ASM_LOOP:
+    {
+        BINT doloop=0;
+        BINT yflags;
+        if(ISLITERALY(CurOpcode)) yflags=GETY(CurOpcode);
+        else {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        }
+        BINT isneg=rplTestSystemFlag(FL_ASMNEG);
+        BINT iszero=rplTestSystemFlag(FL_ASMZERO);
+
+        switch(yflags)
+        {
+        default:
+        case ASMF_AL:  // (always)
+            doloop=1;
+            break;
+        case ASMF_LT:  // (NEG flag)
+            if(isneg) doloop=1;
+            break;
+        case ASMF_EQ:  // (ZERO flag)
+            if(iszero) doloop=1;
+            break;
+        case ASMF_LTE:  // (NEG || ZERO)
+            if(isneg || iszero) doloop=1;
+            break;
+        case ASMF_NA:  // (NOT ALWAYS = NEVER)
+            break;
+        case ASMF_GTE:  // (NOT LT)
+            if(!isneg) doloop=1;
+            break;
+        case ASMF_NE:  // (NOT EQ)
+            if(!iszero) doloop=1;
+            break;
+        case ASMF_GT:  // (NOT LTE)
+            if(!(isneg||iszero)) doloop=1;
+            break;
+        }
+
+        if(doloop) {
+            rplPushRet(IPtr-1); // THERE MUST BE A SINGLE-WORD OPCODE BEFORE THE LOOP INSTRUCTION, COMPILER SHOULD ADD A NOOP IF THIS ISN'T TRUE
+            if(ISPROGRAM(IPtr[1])) ++IPtr; // GO INSIDE THE PROGRAM IN THE RUNSTREAM, SKIP THE PROLOG SO IT DOESN'T OVERWRITE THE RETURN ADDRESS
+        }
+        else {
+            // SKIP THE NEXT INSTRUCTION OR OBJECT
+            ++IPtr;
+            CurOpcode=*IPtr;
+        }
+
+        return;
+    }
+
+        return;
     case ASM_SKIP:
+    {
+        BINT skipnext=0;
+        BINT yflags;
+        if(ISLITERALY(CurOpcode)) yflags=GETY(CurOpcode);
+        else {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        }
+        BINT isneg=rplTestSystemFlag(FL_ASMNEG);
+        BINT iszero=rplTestSystemFlag(FL_ASMZERO);
+
+        switch(yflags)
+        {
+        default:
+        case ASMF_AL:  // (always)
+            skipnext=1;
+            break;
+        case ASMF_LT:  // (NEG flag)
+            if(isneg) skipnext=1;
+            break;
+        case ASMF_EQ:  // (ZERO flag)
+            if(iszero) skipnext=1;
+            break;
+        case ASMF_LTE:  // (NEG || ZERO)
+            if(isneg || iszero) skipnext=1;
+            break;
+        case ASMF_NA:  // (NOT ALWAYS = NEVER)
+            break;
+        case ASMF_GTE:  // (NOT LT)
+            if(!isneg) skipnext=1;
+            break;
+        case ASMF_NE:  // (NOT EQ)
+            if(!iszero) skipnext=1;
+            break;
+        case ASMF_GT:  // (NOT LTE)
+            if(!(isneg||iszero)) skipnext=1;
+            break;
+        }
+
+        if(skipnext) {
+            ++IPtr;
+            CurOpcode=*IPtr;
+        }
+
+        return;
+    }
     case ASM_FPUSH:
+    {
+        BINT yflags;
+        if(ISLITERALY(CurOpcode)) yflags=GETY(CurOpcode);
+        else {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        }
+        BINT isneg=rplTestSystemFlag(FL_ASMNEG);
+        BINT iszero=rplTestSystemFlag(FL_ASMZERO);
 
-    return;
+        switch(yflags)
+        {
+        default:
+        case ASMF_AL:  // (always)
+            rplPushTrue();
+            break;
+        case ASMF_LT:  // (NEG flag)
+            if(isneg) rplPushTrue();
+            else rplPushFalse();
+            break;
+        case ASMF_EQ:  // (ZERO flag)
+            if(iszero) rplPushTrue();
+            else rplPushFalse();
+            break;
+        case ASMF_LTE:  // (NEG || ZERO)
+            if(isneg||iszero) rplPushTrue();
+            else rplPushFalse();
+            break;
+        case ASMF_NA:  // (NOT ALWAYS = NEVER)
+            rplPushFalse();
+            break;
+        case ASMF_GTE:  // (NOT LT)
+            if(!isneg) rplPushTrue();
+            else rplPushFalse();
+            break;
+        case ASMF_NE:  // (NOT EQ)
+            if(!iszero) rplPushTrue();
+            else rplPushFalse();
+            break;
+        case ASMF_GT:  // (NOT LTE)
+            if(!(isneg||iszero)) rplPushTrue();
+            else rplPushFalse();
+            break;
+        }
 
+
+        return;
+    }
     default:
 
     switch(OPCODE(CurOpcode))
@@ -1558,6 +1702,9 @@ void LIB_HANDLER()
         // [CMD].[Y]
         // [CMD]
 
+        // LOOP INSTRUCTION NEEDS A NOOP BEFORE
+        if(operator==ASM_LOOP) rplCompileAppend(MKOPCODE(LIBRARY_NUMBER+ASMSTO_NOOP,0x3000|(ASM_NOOP<<14)));
+
         WORD final_opcode=(z&0xf)|((z&0x10)<<8)|((y&0xf)<<4)|((y&0x10)<<9)|((d&0xf)<<8)|((operator&0x1f)<<14);
 
         rplCompileAppend(MKOPCODE(LIBRARY_NUMBER+storemode,final_opcode));
@@ -1593,6 +1740,10 @@ void LIB_HANDLER()
          BINT storemode=LIBNUM(op)-LIBRARY_NUMBER;
          BINT operator=(op>>14)&0x1f;
          BINT noy=0,noz=0,yflags=0;
+
+         if(operator==ASM_NOOP) { RetNum=OK_CONTINUE; return; } // NOOP IS A SILENT OPCODE
+
+
 
          if(storemode) {
              BINT d=(op>>8)&0xf;
