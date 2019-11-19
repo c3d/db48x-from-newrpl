@@ -879,7 +879,12 @@ WORDPTR rplStripTag(WORDPTR object);
 
 #define FL_PREFERJ        -27
 
+#define FL_MODERPN       -28   // ENABLE RPN MODE WITH 4-LEVEL STACK
+#define FL_EXTENDEDRPN   -29   // ENABLE RPN MODE WITH 8-LEVEL STACK
 #define FL_STRIPCOMMENTS  -30
+
+
+
 #define FL_TIMEFORMAT     -41
 #define FL_DATEFORMAT     -42
 #define FL_RESRPTALRM     -43
