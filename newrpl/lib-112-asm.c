@@ -113,14 +113,15 @@ const WORDPTR const numbers_table[]={
 #define ASM_MATH2 15
 #define ASM_LOOP  16
 #define ASM_SKIP  17
-#define ASM_FPUSH 18
+#define ASM_CHK   18
 
 // ADDITIONAL COMMANDS PROPOSED:
 #define ASM_MIN   19
 #define ASM_MAX   20
 #define ASM_RND   21
-
-
+#define ASM_AND   22
+#define ASM_OR    23
+#define ASM_XOR   24
 
 #define ASM_MATH_IP   0
 #define ASM_MATH_LN   1
@@ -249,9 +250,11 @@ const struct optables const shortopcodes[]={
 // THESE ARE LITERALS
 { ASMF_LT+16 , TEXT2WORD('L','T',0,0) },
 { ASMF_EQ+16 , TEXT2WORD('E','Q',0,0) },
-{ ASMF_LTE+16 , TEXT2WORD('L','T','E',0) },
-{ ASMF_GTE+16 , TEXT2WORD('G','T','E',0) },
+{ ASMF_EQ+16 , TEXT2WORD('Z',0,0,0) },
+{ ASMF_LTE+16 , TEXT2WORD('L','E',0,0) },
+{ ASMF_GTE+16 , TEXT2WORD('G','E',0,0) },
 { ASMF_NE+16 , TEXT2WORD('N','E',0,0) },
+{ ASMF_NE+16 , TEXT2WORD('N','Z',0,0) },
 { ASMF_GT+16 , TEXT2WORD('G','T',0,0) },
 
 { 16+0, TEXT2WORD('#','0',0,0)},
@@ -351,8 +354,15 @@ const struct optables const shortopcodes[]={
 { (ASM_GET<<8)|32  , TEXT2WORD('G','E','T',0)},
 { (ASM_PUT<<8)|32  , TEXT2WORD('P','U','T',0)},
 { (ASM_RPUSH<<8)|32, TEXT2WORD('R','P','U','S')},
+{ (ASM_CHK<<8)|32 , TEXT2WORD('C','H','K',0) },
 { (ASM_SKIP<<8)|32, TEXT2WORD('S','K','I','P')},
 { (ASM_LOOP<<8)|32, TEXT2WORD('L','O','O','P')},
+{ (ASM_MIN<<8)|32 , TEXT2WORD('M','I','N',0) },
+{ (ASM_MAX<<8)|32 , TEXT2WORD('M','A','X',0) },
+{ (ASM_RND<<8)|32 , TEXT2WORD('R','N','D',0) },
+{ (ASM_AND<<8)|32 , TEXT2WORD('A','N','D',0) },
+{ (ASM_OR<<8)|32 , TEXT2WORD('O','R',0,0) },
+{ (ASM_XOR<<8)|32 , TEXT2WORD('X','O','R',0) },
 
 // THESE ARE MATH FUNCTIONS
 { (ASM_MATH<<8)|(16+ASM_MATH_IP), TEXT2WORD('I','P',0,0)},
@@ -376,7 +386,7 @@ const struct optables const shortopcodes[]={
 // THE ONLY OPCODES WITH MORE THAN 4 LETTERS, THE FIFTH LETTER IS ALWAYS AN H
 const struct optables const longopcodes[]={
 { (ASM_RPUSH<<8)|32, TEXT2WORD('R','P','U','S')},
-{ (ASM_FPUSH<<8)|32, TEXT2WORD('F','P','U','S')},
+
 { (ASM_MATH<<8)|(16+ASM_MATH_ASINH), TEXT2WORD('A','S','I','N')},
 { (ASM_MATH<<8)|(16+ASM_MATH_ACOSH), TEXT2WORD('A','C','O','S')},
 { (ASM_MATH<<8)|(16+ASM_MATH_ATANH), TEXT2WORD('A','T','A','N')},
@@ -672,7 +682,7 @@ void LIB_HANDLER()
         // CALL THE OPERATION
         rplPushDataNoGrow(argY);
         rplPushDataNoGrow(argZ);
-        if(ISNUMBERCPLX(*argY) && ISNUMBERCPLX(*argZ)) rplCallOvrOperator(oper);
+        if(ISNUMBERCPLX(*argY) && ISNUMBERCPLX(*argZ)) rplCallOperator(oper);
         else rplRunAtomic(oper);
         if(Exceptions) return;
         if(opcode==-1) {
@@ -691,7 +701,7 @@ void LIB_HANDLER()
         if(opcode) {
             rplPushDataNoGrow(DSTop[-1]);
             DSTop[-2]=*destD;
-        if(ISNUMBERCPLX(*DSTop[-1]) && ISNUMBERCPLX(**destD)) rplCallOvrOperator(opcode);
+        if(ISNUMBERCPLX(*DSTop[-1]) && ISNUMBERCPLX(**destD)) rplCallOperator(opcode);
         else rplRunAtomic(opcode);
         if(Exceptions) return;
         }
@@ -1443,7 +1453,7 @@ void LIB_HANDLER()
 
         return;
     }
-    case ASM_FPUSH:
+    case ASM_CHK:
     {
         BINT yflags;
         if(ISLITERALY(CurOpcode)) yflags=GETY(CurOpcode);
@@ -1453,45 +1463,65 @@ void LIB_HANDLER()
         }
         BINT isneg=rplTestSystemFlag(FL_ASMNEG);
         BINT iszero=rplTestSystemFlag(FL_ASMZERO);
-
+        WORDPTR result;
         switch(yflags)
         {
         default:
         case ASMF_AL:  // (always)
-            rplPushTrue();
+            result=(WORDPTR)one_bint;
             break;
         case ASMF_LT:  // (NEG flag)
-            if(isneg) rplPushTrue();
-            else rplPushFalse();
+            if(isneg) result=(WORDPTR)one_bint;
+            else result=(WORDPTR)zero_bint;
             break;
         case ASMF_EQ:  // (ZERO flag)
-            if(iszero) rplPushTrue();
-            else rplPushFalse();
+            if(iszero) result=(WORDPTR)one_bint;
+            else result=(WORDPTR)zero_bint;
             break;
         case ASMF_LTE:  // (NEG || ZERO)
-            if(isneg||iszero) rplPushTrue();
-            else rplPushFalse();
+            if(isneg||iszero) result=(WORDPTR)one_bint;
+            else result=(WORDPTR)zero_bint;
             break;
         case ASMF_NA:  // (NOT ALWAYS = NEVER)
-            rplPushFalse();
+            result=(WORDPTR)zero_bint;
             break;
         case ASMF_GTE:  // (NOT LT)
-            if(!isneg) rplPushTrue();
-            else rplPushFalse();
+            if(!isneg) result=(WORDPTR)one_bint;
+            else result=(WORDPTR)zero_bint;
             break;
         case ASMF_NE:  // (NOT EQ)
-            if(!iszero) rplPushTrue();
-            else rplPushFalse();
+            if(!iszero) result=(WORDPTR)one_bint;
+            else result=(WORDPTR)zero_bint;
             break;
         case ASMF_GT:  // (NOT LTE)
-            if(!(isneg||iszero)) rplPushTrue();
-            else rplPushFalse();
+            if(!(isneg||iszero)) result=(WORDPTR)one_bint;
+            else result=(WORDPTR)zero_bint;
             break;
         }
 
 
         return;
     }
+
+    case ASM_MIN:
+        oper=CMD_MIN;
+        goto common_case;
+    case ASM_MAX:
+        oper=CMD_MAX;
+        goto common_case;
+    case ASM_RND:
+        oper=CMD_RND;
+        goto common_case;
+    case ASM_AND:
+        oper=CMD_OVR_AND;
+        goto common_case;
+    case ASM_OR:
+        oper=CMD_OVR_OR;
+        goto common_case;
+    case ASM_XOR:
+        oper=CMD_OVR_XOR;
+        goto common_case;
+
     default:
 
     switch(OPCODE(CurOpcode))
@@ -1889,11 +1919,30 @@ void LIB_HANDLER()
                  rplDecompAppendString((BYTEPTR)"SKIP.");
                  break;
 
-             case  ASM_FPUSH:
+             case  ASM_CHK:
                  noz=1;
                  yflags=1;
-                 rplDecompAppendString((BYTEPTR)"FPUSH.");
+                 rplDecompAppendString((BYTEPTR)"CHK.");
                  break;
+             case  ASM_MIN:
+                 rplDecompAppendString((BYTEPTR)"MIN.");
+                 break;
+             case  ASM_MAX:
+                 rplDecompAppendString((BYTEPTR)"MAX.");
+                 break;
+             case  ASM_RND:
+                 rplDecompAppendString((BYTEPTR)"RND.");
+                 break;
+             case  ASM_AND:
+                 rplDecompAppendString((BYTEPTR)"AND.");
+                 break;
+             case  ASM_OR:
+                 rplDecompAppendString((BYTEPTR)"OR.");
+                 break;
+             case  ASM_XOR:
+                 rplDecompAppendString((BYTEPTR)"XOR.");
+                 break;
+
 
              }
          }

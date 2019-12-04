@@ -291,6 +291,9 @@ const systemflag const flags_names[]= {
     { "NOINDENT" , { 0x80|(-FL_AUTOINDENT),0,0,0,0,0,0,0} },
     { "DECOMPDISP" , { (-FL_DECOMPEDIT),0,0,0,0,0,0,0} },
     { "DECOMPEDIT" , { 0x80|(-FL_DECOMPEDIT),0,0,0,0,0,0,0} },
+    { "CPLX" , { 0x80|(-FL_COMPLEXMODE),0,0,0,0,0,0,0} },
+    { "REAL" , { (-FL_COMPLEXMODE),0,0,0,0,0,0,0} },
+
 
 // TODO: ADD MORE FLAG NAMES HERE
     { NULL , {0,0,0,0,0,0,0,0} }
