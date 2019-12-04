@@ -122,6 +122,7 @@ const WORDPTR const numbers_table[]={
 #define ASM_AND   22
 #define ASM_OR    23
 #define ASM_XOR   24
+#define ASM_CLR   25
 
 #define ASM_MATH_IP   0
 #define ASM_MATH_LN   1
@@ -363,6 +364,7 @@ const struct optables const shortopcodes[]={
 { (ASM_AND<<8)|32 , TEXT2WORD('A','N','D',0) },
 { (ASM_OR<<8)|32 , TEXT2WORD('O','R',0,0) },
 { (ASM_XOR<<8)|32 , TEXT2WORD('X','O','R',0) },
+{ (ASM_CLR<<8)|32 , TEXT2WORD('C','L','R',0) },
 
 // THESE ARE MATH FUNCTIONS
 { (ASM_MATH<<8)|(16+ASM_MATH_IP), TEXT2WORD('I','P',0,0)},
@@ -1522,6 +1524,82 @@ void LIB_HANDLER()
         oper=CMD_OVR_XOR;
         goto common_case;
 
+    case ASM_CLR:
+    {
+        // IMPLEMENTS :CLR.Y.Z  where:
+        // Y=register or stack level to zero-fill (must be A-H or Sn reference)
+        // Z=literal or reference with number of items to zero-fill
+
+        // EXAMPLE: :CLR.A.#3 --> A=0, B=0, C=0. also :CLR.S1.#3 --> S1=0, S2=0, S3=0 (error if S1..S3 levels are empty)
+
+        // GET THE ARGUMENT Y
+        BINT skipnext=0;
+        BINT ylevel,nitems,instack=0;
+        WORDPTR *reg=0;
+        if(ISLITERALY(CurOpcode)) {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        }
+        else {
+        BINT y=GETY(CurOpcode);
+        if(y&0x8) {
+            reg=DSTop-(y&7);
+            instack=1;
+        } else reg=GC_UserRegisters+y;
+
+        }
+
+
+        if(ISLITERALZ(CurOpcode)) nitems=GETZ(CurOpcode);
+        else {
+        BINT z=GETZ(CurOpcode);
+        if(z&0x8) {
+            z&=7;
+            if(z==0) {
+                nitems=rplReadNumberAsBINT(IPtr+1);
+                if(Exceptions) return;
+                skipnext=1;
+            }
+            else {
+                nitems=rplReadNumberAsBINT(DSTop[-z]);
+                if(Exceptions) return;
+            }
+        } else {
+            nitems=rplReadNumberAsBINT(GC_UserRegisters[z]);
+            if(Exceptions) return;
+        }
+        }
+
+        if(!instack) {
+        if((nitems<0)||(nitems+(reg-GC_UserRegisters)>8) ) {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        }
+        // CLEAR THE REGISTERS
+        BINT k;
+        for(k=0;k<nitems;++k) reg[k]=(WORDPTR)zero_bint;
+        }
+        else {
+            if((nitems<0)||((reg-DStkProtect+1)<nitems) ) {
+                rplError(ERR_BADSTACKINDEX);
+                return;
+            }
+            // CLEAR THE STACK
+            BINT k;
+            for(k=0;k<nitems;++k) reg[-k]=(WORDPTR)zero_bint;
+        }
+
+
+
+        if(skipnext)
+        {
+            ++IPtr;
+            CurOpcode=*IPtr;
+        }
+        return;
+    }
+
+
     default:
 
     switch(OPCODE(CurOpcode))
@@ -1594,9 +1672,22 @@ void LIB_HANDLER()
             storemode=(opcode_arg>>16)&0xff;
 
             if(!storemode) {
-                if(!(d&0x20)) { RetNum=ERR_SYNTAX;  return; } // DESTINATION WAS PROVIDED, BUT NO STORAGE OPERATOR
+                if(!(d&0x20)) { // DESTINATION WAS PROVIDED, BUT NO STORAGE OPERATOR, SO DESTINATION WAS ACTUALLY THE FIRST ARGUMENT OF AN EXPRESSION
+
+                    y=d;    // NO DESTINATION, THAT WAS THE Y ARGUMENT
+
+                    d=0x20;
+
+                    // THIS MAY BE AN OPERATOR
+                    if(operator && (opcode_arg&0xff00)) { RetNum=ERR_SYNTAX; return; } // CAN'T HAVE A SECOND OPERATOR!
+
+                    operator=(opcode_arg>>8)&0xff;
+
+                }
+                else {
                 if(opcode_arg&0xff00) { RetNum=ERR_SYNTAX; return; } // CAN'T HAVE A SECOND OPERATOR!
                 y=opcode_arg&0xff;
+                }
                 // MOVE ON TO THE THIRD TOKEN
                 str=endtoken;
                 endtoken=rplAsmEndOfToken(str,(BYTEPTR)BlankStart);
@@ -1719,8 +1810,11 @@ void LIB_HANDLER()
         // COMMAND WAS FULLY DECODED, CONSTRUCT THE OPCODE
 
         // POSSIBLE SYNTAX VARIANTS:
+        // [Y]
+        if(!(d&0x20) && !storemode && (y&0x20) && (z&0x20) && !operator) { y=d; d=0x20; operator=ASM_LDY; }
+
         // [D]?=[Y]
-        if(storemode && !(y&0x20) && (z&0x20) && !operator) operator=ASM_LDY;
+        if(!(y&0x20) && (z&0x20) && !operator) operator=ASM_LDY;
         // [D]?=[Y][OP][Z]
         if((operator>=ASM_ADD) && (operator<=ASM_POW)) {
             if((y&0x20)||(z&0x20)) { RetNum=ERR_SYNTAX; return; }
@@ -1763,7 +1857,7 @@ void LIB_HANDLER()
             // [CMD].[Y]
             // [CMD]
 
-         rplDecompAppendChar(':');
+
 
          WORD op=*DecompileObject;
 
@@ -1771,9 +1865,9 @@ void LIB_HANDLER()
          BINT operator=(op>>14)&0x1f;
          BINT noy=0,noz=0,yflags=0;
 
-         if(operator==ASM_NOOP) { RetNum=OK_CONTINUE; return; } // NOOP IS A SILENT OPCODE
+         if(operator==ASM_NOOP) { RetNum=OK_CONTINUE; return; } // NOOP IS A SILENT OPCODE USED FOR LOOP INTERNALLY
 
-
+          rplDecompAppendChar(':');
 
          if(storemode) {
              BINT d=(op>>8)&0xf;
@@ -1942,6 +2036,10 @@ void LIB_HANDLER()
              case  ASM_XOR:
                  rplDecompAppendString((BYTEPTR)"XOR.");
                  break;
+             case ASM_CLR:
+                 rplDecompAppendString((BYTEPTR)"CLR.");
+                 break;
+
 
 
              }
