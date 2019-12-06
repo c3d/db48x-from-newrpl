@@ -340,6 +340,22 @@ void LIB_HANDLER()
 
         tokptr=(BYTEPTR)utf8skipst((char *)tokptr,(char *)tokend);
         for(maxlen=0,len=tokptr-(BYTEPTR)TokenStart;tokptr<=tokend;++len) {
+            // TEST IF WE COULD ABSORB ATTRIBUTES
+            if(*tokptr==':') {
+                // TRY INCLUDING THE ATTRIBUTES FIRST
+                BYTEPTR tokattr=tokptr+1;
+                while((*tokattr!=':')&&(tokattr<tokend)) ++tokattr;
+
+                if((tokattr<tokend)&&(rplIsValidIdent((BYTEPTR)tokstart,tokattr+1))) {
+                    // ABSORB ATTRIBUTES, THEY ARE VALID
+                    tokptr=tokattr+1;
+                    maxlen=tokptr-(BYTEPTR)TokenStart;
+                    lastgood=tokptr;
+                    break;
+                }
+
+            }
+
             if(!rplIsValidIdent((BYTEPTR)tokstart,tokptr)) break;
             maxlen=len;
             lastgood=tokptr;

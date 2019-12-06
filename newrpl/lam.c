@@ -499,7 +499,7 @@ void rplClearLAMs()
 
 void rplCompileIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
 {
-    // CHECK IF THERE'S ATTRIBUTES TO THIS IDENT
+    // CHECK IF THERE'S SUBSCRIPT ATTRIBUTES TO THIS IDENT
     WORD attr=0;
     BYTEPTR lastchar=(BYTEPTR)utf8rskipst((char *)tokend,(char *)tok);
 
@@ -523,6 +523,24 @@ void rplCompileIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
     }
 
     tokend=(BYTEPTR)utf8skipst((char *)lastchar,(char *)tokend);
+
+
+    // CHECK IF THERE'S MNEMONIC ATTRIBUTES
+
+    if(*lastchar==':') {
+        --lastchar;
+        while((lastchar>tok)&&(*lastchar!=':')) --lastchar;
+
+        if(*lastchar==':') {
+
+        attr=rplDecodeAttrib(lastchar+1,tokend-1);
+
+        }
+
+        tokend=lastchar;
+
+    }
+
 
 
     // WE HAVE A VALID QUOTED IDENT, CREATE THE OBJECT
@@ -604,13 +622,103 @@ WORDPTR rplCreateIDENT(BINT libnum,BYTEPTR tok,BYTEPTR tokend)
 }
 
 
+// DECODE AN ATTRIBUTE STRING: RETURN ATTRIBUTE OR -1 IF INVALID
+// ATTRIBUTE STRINGS CAN BE:
+
+// ONE LETTER FOR TYPE:
+// R=REAL
+// C=COMPLEX
+// Z=INTEGER
+// O=ODD INTEGER
+// E=EVEN INTEGER
+// M=MATRIX/VECTOR
+// ?=UNKNOWN OBJECT TYPE (LIST OR OTHER)
+// *=NO ASSUMPTIONS MADE
+
+// ONE OPTIONAL MODIFIER LETTER ∞ IF THE VARIABLE MAY BE INFINITE
+
+// 2 OPTIONAL CHARACTERS FOR SIGN:
+// >0
+// ≥0
+// ≠0
+// ≤0
+// <0
+
+
+BINT rplDecodeAttrib(BYTEPTR st,BYTEPTR end)
+{
+    BINT attr=0;
+    if(st>=end) return -1;
+    switch(*st)
+    {
+    case 'R':
+        attr=IDATTR_ISINFREAL;
+        break;
+    case 'C':
+        attr=IDATTR_ISINFCPLX;
+        break;
+    case 'Z':
+        attr=IDATTR_ISINFREAL|IDATTR_INTEGER;
+        break;
+    case 'O':
+        attr=IDATTR_ISINFREAL|IDATTR_INTEGER|IDATTR_ODD;
+        break;
+    case 'E':
+        attr=IDATTR_ISINFREAL|IDATTR_INTEGER|IDATTR_EVEN;
+        break;
+    case 'M':
+        attr=IDATTR_ISMATRIX;
+        break;
+    case '?':
+        attr=IDATTR_ISUNKNOWN;
+        break;
+    case '*':
+        if(end-st!=1) return -1;
+        break;
+    default:
+        return -1;
+    }
+
+    ++st;
+    if(st>=end) {
+        if(attr&(IDATTR_ISINFCPLX|IDATTR_ISINFREAL)) attr|=IDATTR_ISNOTINF;
+        return attr;
+    }
+
+    if(!utf8ncmp2((char *)st,(char *)end,"∞",1)) {
+        // SKIP THE INFINITY MODIFIER
+        st=(BYTEPTR)utf8skipst((char *)st,(char *)end);
+    } else if(attr&(IDATTR_ISINFCPLX|IDATTR_ISINFREAL)) attr|=IDATTR_ISNOTINF;
+
+    if(st>=end) return attr;
+
+    // IF THERE'S ANYTHING ELSE, IT MUST END IN ZERO
+    if(end[-1]!='0') return -1;
+
+    if(!utf8ncmp2((char *)st,(char *)end,"≥",1)) { attr|=IDATTR_GTEZERO; st=(BYTEPTR)utf8skipst((char *)st,(char *)end); }
+    else if(!utf8ncmp2((char *)st,(char *)end,"≤",1)) { attr|=IDATTR_LTEZERO; st=(BYTEPTR)utf8skipst((char *)st,(char *)end); }
+    else if(!utf8ncmp2((char *)st,(char *)end,"≠",1)) { attr|=IDATTR_NOTZERO; st=(BYTEPTR)utf8skipst((char *)st,(char *)end); }
+    else if(*st=='>') { attr|=IDATTR_GTEZERO|IDATTR_NOTZERO; ++st; }
+    else if(*st=='<') { attr|=IDATTR_LTEZERO|IDATTR_NOTZERO; ++st; }
+
+    if(end-st!=1) return -1;
+
+    return attr;
+
+}
+
+
+
 BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend)
 {
     BYTEPTR ptr;
     BINT char1,char2;
     BINT argsep;
+    BYTEPTR attribend,attribst;
 
     if(tokend<=tok) return 0;
+
+    attribst=attribend=tokend;
 
     argsep=ARG_SEP(rplGetSystemLocale());
 
@@ -621,6 +729,19 @@ BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend)
 
     // IDENT CANNOT START WITH A NUMBER
     if( (((char)*tok)>='0') && (((char)*tok)<='9')) return 0;
+
+    // IDENT MAY HAVE VALID ATTRIBUTES/HINTS
+    if(((char)tokend[-1])==':') {
+        --tokend;
+        attribend=tokend;
+        while((tokend>tok)&&(tokend[-1]!=':')) --tokend;
+
+        if(tokend-tok<2) return 0;   // SINGLE COLON IS NOT A PROPER ATTRIBUTE
+        attribst=tokend;
+        --tokend;
+        if(rplDecodeAttrib(attribst,attribend)<0) return 0; // INVALID ATTRIBUTES?
+    }
+
 
     // OR CONTAIN ANY OF THE FORBIDDEN CHARACTERS
     while(tok!=tokend)

@@ -1239,12 +1239,50 @@ void LIB_HANDLER()
             if( (OPCODE(CurOpcode)==OPCODE_DECOMPEDIT) ) {
                 WORD attr=rplGetIdentAttr(DecompileObject);
                 if(attr) {
+                    BINT noinf=0;
                 // APPEND THE ATTRIBUTES TO THE VARIABLE NAME IN SUBSCRIPT
+                rplDecompAppendChar(':');
+                if(attr&IDATTR_ODD) rplDecompAppendChar('O');
+                else if(attr&IDATTR_EVEN) rplDecompAppendChar('E');
+                else if(attr&IDATTR_INTEGER) rplDecompAppendChar('Z');
+                else if(attr&IDATTR_ISINFREAL)  rplDecompAppendChar('R');
+                else if(attr&IDATTR_ISINFCPLX)  rplDecompAppendChar('C');
+                else if(attr&IDATTR_ISMATRIX)  { rplDecompAppendChar('M'); noinf=1; }
+                else if(attr&IDATTR_ISUNKNOWN) { rplDecompAppendChar('?'); noinf=1; }
+
+                if((!noinf) && !(attr&IDATTR_ISNOTINF))  rplDecompAppendString("∞");
+
+                if(attr&(IDATTR_ISINFCPLX|IDATTR_ISINFREAL)) {
+                    switch(attr&(IDATTR_mMASK))
+                    {
+                    case IDATTR_GTEZERO|IDATTR_NOTZERO:
+                        rplDecompAppendString(">0");
+                        break;
+                    case IDATTR_LTEZERO|IDATTR_NOTZERO:
+                        rplDecompAppendString("<0");
+                        break;
+                    case IDATTR_GTEZERO:
+                        rplDecompAppendString("≥0");
+                        break;
+                    case IDATTR_LTEZERO:
+                        rplDecompAppendString("≤0");
+                        break;
+                    case IDATTR_NOTZERO:
+                        rplDecompAppendString("≠0");
+                        break;
+                    }
+                }
+
+                rplDecompAppendChar(':');
+                // OBSOLETE NUMBER SYSTEM REMOVED
+                /*
                 BINT rot=0;
                 while((rot<32)&&((attr>>rot)!=0)) {
                     rplDecompAppendString2((BYTEPTR)subscriptChars+((attr>>rot)&0xf)*3,3);
                     rot+=4;
                 }
+                */
+
                 }
             }
 

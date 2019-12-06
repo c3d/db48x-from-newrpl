@@ -29,7 +29,7 @@
 // COMMAND NAME TEXT ARE GIVEN SEPARATEDLY
 
 #define COMMAND_LIST \
-    ECMD(RULESEPARATOR,":→",MKTOKENINFO(2,TITYPE_BINARYOP_LEFT,2,16)), \
+    ECMD(RULESEPARATOR,":→",MKTOKENINFO(2,TITYPE_CASBINARYOP_LEFT,2,16)), \
     ECMD(OPENBRACKET,"(",MKTOKENINFO(1,TITYPE_OPENBRACKET,0,31)), \
     ECMD(CLOSEBRACKET,")",MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31)), \
     ECMD(COMMA,"",MKTOKENINFO(1,TITYPE_COMMA,0,31)), \
@@ -51,12 +51,14 @@
     ECMD(LISTOPENBRACKET,"{",MKTOKENINFO(1,TITYPE_OPENBRACKET,0,31)), \
     ECMD(LISTCLOSEBRACKET,"}",MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31)), \
     CMD(RULEAPPLY1,MKTOKENINFO(10,TITYPE_NOTALLOWED,2,2)), \
-    ECMD(GIVENTHAT,"|",MKTOKENINFO(1,TITYPE_BINARYOP_LEFT,2,15)), \
+    ECMD(GIVENTHAT,"|",MKTOKENINFO(1,TITYPE_CASBINARYOP_LEFT,2,17)), \
     CMD(TRIGSIN,MKTOKENINFO(7,TITYPE_CASFUNCTION,1,2)), \
     CMD(ALLROOTS,MKTOKENINFO(8,TITYPE_CASFUNCTION,1,2)), \
     ECMD(CLISTOPENBRACKET,"c{",MKTOKENINFO(2,TITYPE_OPENBRACKET,0,31)), \
     ECMD(CLISTCLOSEBRACKET,"}",MKTOKENINFO(1,TITYPE_CLOSEBRACKET,0,31)), \
-    CMD(RANGE,MKTOKENINFO(5,TITYPE_FUNCTION,3,2))
+    CMD(RANGE,MKTOKENINFO(5,TITYPE_FUNCTION,3,2)), \
+    CMD(ASSUME,MKTOKENINFO(6,TITYPE_CASFUNCTION,2,2))
+
 
 
 //    CMD(TEST,MKTOKENINFO(4,TITYPE_NOTALLOWED,1,2))
@@ -470,6 +472,7 @@ void LIB_HANDLER()
             return;
         }
 
+
         // HERE WE HAVE program = PROGRAM TO EXECUTE
 
         // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
@@ -487,15 +490,74 @@ void LIB_HANDLER()
         object++;
         if(Opcode) {
             object++;
+
+            // TRACK FORCED_RAD FLAG THROUGH THE OPCODE'S ARGUMENTS
+            rplClrSystemFlag(FL_FORCED_RAD);
+
             if(OPCODE(Opcode)==OVR_FUNCEVAL) {
                 // DON'T MARK THE LAST OBJECT AS THE END OF OBJECT
                 WORDPTR lastobj=object;
                 while(rplSkipOb(lastobj)!=endobject) lastobj=rplSkipOb(lastobj);
                 endobject=lastobj;
             }
+            else {
+                BINT tokeninfo=rplSymbGetTokenInfo(Opcodeptr);
 
-            // TRACK FORCED_RAD FLAG THROUGH THE OPCODE'S ARGUMENTS
-            rplClrSystemFlag(FL_FORCED_RAD);
+                if((TI_TYPE(tokeninfo)==TITYPE_CASFUNCTION)||(TI_TYPE(tokeninfo)==TITYPE_CASBINARYOP_LEFT)||(TI_TYPE(tokeninfo)==TITYPE_CASBINARYOP_RIGHT)) {
+
+                    // HANDLE SPECIAL CASE OF CAS COMMANDS, NO NEED TO EVALUATE ARGUMENTS ON THOSE
+                    WORDPTR *argstart=DSTop;
+                    ScratchPointer1=object;
+                    ScratchPointer2=endobject;
+                    // PUSH ALL ARGUMENTS TO THE STACK UNEVALUATED
+                    while(ScratchPointer1<ScratchPointer2) {
+                        rplPushData(ScratchPointer1);
+                        if(Exceptions) { rplCleanupLAMs(0); return; }
+                        ScratchPointer1=rplSkipOb(ScratchPointer1);
+                    }
+                    // SIGNAL THAT WE ARE DONE PROCESSING THE LAST ARGUMENT
+                    object=endobject=ScratchPointer2;
+
+
+                    rplCreateLAM((WORDPTR)nulllam_ident,endobject);     // LAM 2 = END OF CURRENT OBJECT
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                    rplCreateLAM((WORDPTR)nulllam_ident,object);     // LAM 3 = NEXT OBJECT TO PROCESS
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                    rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);      // LAM 4 = ANY ARGUMENT CHANGED?
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                    // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
+
+                    // THIS NEEDS TO BE DONE IN 3 STEPS:
+                    // EVAL WILL PREPARE THE LAMS FOR OPEN EXECUTION
+                    // SYMBEVAL1PRE WILL PUSH THE NEXT OBJECT IN THE STACK AND EVAL IT
+                    // SYMBEVAL1POST WILL CHECK IF THE ARGUMENT WAS PROCESSED WITHOUT ERRORS,
+                    // AND CLOSE THE LOOP TO PROCESS MORE ARGUMENTS
+
+                    // THE INITIAL CODE FOR EVAL MUST TRANSFER FLOW CONTROL TO A
+                    // SECONDARY THAT CONTAINS :: SYMBEVALPRE EVAL SYMBEVALPOST ;
+                    // SYMBEVAL1POST WILL CHANGE IP AGAIN TO BEGINNING OF THE SECO
+                    // IN ORDER TO KEEP THE LOOP RUNNING
+
+                    rplPushRet(IPtr);
+                    if((rplPeekRet(1)<symbeval1_seco)||(rplPeekRet(1)>symbeval1_seco+6))
+                    {
+                        // THIS EVAL IS NOT INSIDE A RECURSIVE LOOP
+                        // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER EVAL
+                        rplPushRet((WORDPTR)symbeval1_seco+6);
+                    }
+                    IPtr=(WORDPTR) symbeval1_seco;
+                    CurOpcode=(CMD_OVR_EVAL);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+
+                    // DO NOT PROTECT THE DATA, WAS ALREADY PROTECTED BEFORE THE ARGUMENTS WERE PUSHED
+                    rplProtectData();   // PROTECT STACK ABOVE
+                    DStkProtect=argstart;   // MOVE STACK PROTECTION TO ALLOW ACCESS TO THE ARGUMENTS
+                    return;
+                }
+            }
+
 
         }
 
@@ -592,7 +654,7 @@ void LIB_HANDLER()
         else {
             BINT tokeninfo=rplSymbGetTokenInfo(Opcodeptr);
 
-            if(TI_TYPE(tokeninfo)==TITYPE_CASFUNCTION) {
+            if((TI_TYPE(tokeninfo)==TITYPE_CASFUNCTION)||(TI_TYPE(tokeninfo)==TITYPE_CASBINARYOP_LEFT)||(TI_TYPE(tokeninfo)==TITYPE_CASBINARYOP_RIGHT)) {
 
                 // HANDLE SPECIAL CASE OF CAS COMMANDS, NO NEED TO EVALUATE ARGUMENTS ON THOSE
                 WORDPTR *argstart=DSTop;
@@ -601,7 +663,7 @@ void LIB_HANDLER()
                 ScratchPointer3=mainobj;
                 // PUSH ALL ARGUMENTS TO THE STACK UNEVALUATED
                 while(ScratchPointer1<ScratchPointer2) {
-                    rplPushData(object);
+                    rplPushData(ScratchPointer1);
                     if(Exceptions) { rplCleanupLAMs(0); return; }
                     ScratchPointer1=rplSkipOb(ScratchPointer1);
                 }
@@ -758,15 +820,83 @@ void LIB_HANDLER()
     object++;
     if(Opcode) {
         object++;
+
+        // TRACK FORCED_RAD FLAG THROUGH THE OPCODE'S ARGUMENTS
+        rplClrSystemFlag(FL_FORCED_RAD);
+
+
         if(OPCODE(Opcode)==OVR_FUNCEVAL) {
             // DON'T MARK THE LAST OBJECT AS THE END OF OBJECT
             WORDPTR lastobj=object;
             while(rplSkipOb(lastobj)!=endobject) lastobj=rplSkipOb(lastobj);
             endobject=lastobj;
         }
+        else {
+            BINT tokeninfo=rplSymbGetTokenInfo(Opcodeptr);
 
-        // TRACK FORCED_RAD FLAG THROUGH THE OPCODE'S ARGUMENTS
-        rplClrSystemFlag(FL_FORCED_RAD);
+            if((TI_TYPE(tokeninfo)==TITYPE_CASFUNCTION)||(TI_TYPE(tokeninfo)==TITYPE_CASBINARYOP_LEFT)||(TI_TYPE(tokeninfo)==TITYPE_CASBINARYOP_RIGHT)) {
+
+                // HANDLE SPECIAL CASE OF CAS COMMANDS, NO NEED TO EVALUATE ARGUMENTS ON THOSE
+                WORDPTR *argstart=DSTop;
+                ScratchPointer1=object;
+                ScratchPointer2=endobject;
+                ScratchPointer3=mainobj;
+                // PUSH ALL ARGUMENTS TO THE STACK UNEVALUATED
+                while(ScratchPointer1<ScratchPointer2) {
+                    rplPushData(ScratchPointer1);
+                    if(Exceptions) { rplCleanupLAMs(0); return; }
+                    ScratchPointer1=rplSkipOb(ScratchPointer1);
+                }
+                // SIGNAL THAT WE ARE DONE PROCESSING THE LAST ARGUMENT
+                object=endobject=ScratchPointer2;
+                mainobj=ScratchPointer3;
+
+                rplCreateLAM((WORDPTR)nulllam_ident,endobject);     // LAM 2 = END OF CURRENT OBJECT
+                if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                rplCreateLAM((WORDPTR)nulllam_ident,object);     // LAM 3 = NEXT OBJECT TO PROCESS
+                if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                rplCreateLAM((WORDPTR)nulllam_ident,mainobj);     // LAM 4 = MAIN SYMBOLIC EXPRESSION, FOR CIRCULAR REFERENCE CHECK
+                if(Exceptions) { rplCleanupLAMs(0); return; }
+
+                rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);   // LAM 5 = TRACK FORCED_RAD FLAGS ACROSS ARGUMENTS
+                if(Exceptions) { rplCleanupLAMs(0); return; }
+
+
+                // HERE GETLAM1 = OPCODE, GETLAM 2 = END OF SYMBOLIC, GETLAM3 = OBJECT
+
+                // THIS NEEDS TO BE DONE IN 3 STEPS:
+                // EVAL WILL PREPARE THE LAMS FOR OPEN EXECUTION
+                // SYMBEVAL1PRE WILL PUSH THE NEXT OBJECT IN THE STACK AND EVAL IT
+                // SYMBEVAL1POST WILL CHECK IF THE ARGUMENT WAS PROCESSED WITHOUT ERRORS,
+                // AND CLOSE THE LOOP TO PROCESS MORE ARGUMENTS
+
+                // THE INITIAL CODE FOR EVAL MUST TRANSFER FLOW CONTROL TO A
+                // SECONDARY THAT CONTAINS :: SYMBEVALPRE EVAL SYMBEVALPOST ;
+                // SYMBEVAL1POST WILL CHANGE IP AGAIN TO BEGINNING OF THE SECO
+                // IN ORDER TO KEEP THE LOOP RUNNING
+
+                rplPushRet(IPtr);
+                /*
+                if((rplPeekRet(1)<symbnum_seco)||(rplPeekRet(1)>symbnum_seco+4))
+                {
+                    // THIS ->NUM IS NOT INSIDE A RECURSIVE LOOP
+                    // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER ->NUM
+                    rplPushRet((WORDPTR)symbnum_seco+6);
+                }
+                */
+                IPtr=(WORDPTR) symbnum_seco;
+                CurOpcode=(CMD_OVR_NUM);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+
+                // DO NOT PROTECT THE DATA, WAS ALREADY PROTECTED BEFORE THE ARGUMENTS WERE PUSHED
+                rplProtectData();   // PROTECT STACK ABOVE
+                DStkProtect=argstart;   // MOVE STACK PROTECTION TO ALLOW ACCESS TO THE ARGUMENTS
+                return;
+            }
+        }
+
+
 
     }
 
@@ -797,12 +927,14 @@ void LIB_HANDLER()
     // IN ORDER TO KEEP THE LOOP RUNNING
 
     rplPushRet(IPtr);
+    /*
     if((rplPeekRet(1)<symbnum_seco)||(rplPeekRet(1)>symbnum_seco+4))
     {
         // THIS ->NUM IS NOT INSIDE A RECURSIVE LOOP
         // PUSH AUTOSIMPLIFY TO BE EXECUTED AFTER ->NUM
         rplPushRet((WORDPTR)symbnum_seco+6);
     }
+    */
     IPtr=(WORDPTR) symbnum_seco;
     CurOpcode=(CMD_OVR_NUM);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
 
@@ -1611,7 +1743,15 @@ void LIB_HANDLER()
                         // CHECK FOR FLATTENED LIST, APPLY MORE THAN ONCE IF MORE THAN 2 ARGUMENTS
                         if(newdepth<=2) rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
                     }
-                    else  rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
+                    else  {
+                        BINT tinfo=rplSymbGetTokenInfo(Opcodeptr);
+                        if((TI_TYPE(tinfo)==TITYPE_CASFUNCTION)||(TI_TYPE(tinfo)==TITYPE_CASBINARYOP_LEFT)||(TI_TYPE(tinfo)==TITYPE_CASBINARYOP_RIGHT)) {
+                            // CAS OPERATORS NEED TO EVAL THE RESULT AFTERWARDS
+                            rplPutLAMn(1,symbeval_seco+2);  // SIGNAL OPCODE EVAL IS NEXT
+
+                        }
+                        else rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
+                    }
 
                     // PUSH THE NEXT OBJECT IN THE STACK
                     rplPushData(Opcodeptr);
@@ -1789,8 +1929,15 @@ void LIB_HANDLER()
                         // CHECK FOR FLATTENED LIST, APPLY MORE THAN ONCE IF MORE THAN 2 ARGUMENTS
                         if(newdepth<=2) rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
                     }
-                    else  rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
+                    else  {
+                        BINT tinfo=rplSymbGetTokenInfo(Opcodeptr);
+                        if((TI_TYPE(tinfo)==TITYPE_CASFUNCTION)||(TI_TYPE(tinfo)==TITYPE_CASBINARYOP_LEFT)||(TI_TYPE(tinfo)==TITYPE_CASBINARYOP_RIGHT)) {
+                            // CAS OPERATORS NEED TO ->NUM THE RESULT AFTERWARDS
+                            rplPutLAMn(1,symbnum_seco+2);  // SIGNAL OPCODE ->NUM IS NEXT
 
+                        }
+                        else rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
+                    }
                     // PUSH THE NEXT OBJECT IN THE STACK
                     rplPushData(Opcodeptr);
 
@@ -2310,7 +2457,121 @@ void LIB_HANDLER()
 
     case GIVENTHAT:
                 //@SHORT_DESC=@HIDE
+        // OPERATOR "GIVEN THAT" WILL DO 3 THINGS:
+
+        // A) WHEN GIVEN AN IDENT WITH ATTRIBUTES, IT WILL SUBSTITUTE ALL OCCURRENCES OF A VARIABLE WITH THE NEW ATTRIBUTES
+
+        // B) WHEN GIVEN A RULE, IT WILL APPLY THE RULE
+
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
+
+        WORDPTR firstexp=rplPeekData(1);
+        WORDPTR endexp=rplSkipOb(firstexp);
+        WORDPTR *stksave=DSTop;
+
+        if(ISLIST(*firstexp)) {
+            firstexp++;
+            endexp--;   // END BEFORE THE CMD_ENDLIST WORD
+        }
+
+        if(!ISSYMBOLIC(*rplPeekData(2)) && !ISIDENT(*rplPeekData(2))) {
+               rplError(ERR_SYMBOLICEXPECTED);
+               return;
+        }
+        rplPushDataNoGrow(rplPeekData(2));
+
+        // START APPLYING ALL ASSUMPTIONS
+        while(firstexp<endexp) {
+
+            if(ISSYMBOLIC(*firstexp)) {
+                // COULD BE A SYMBOLIC LIST OR A LIST OF ARGUMENTS IN BRACKETS
+                WORD opcode=rplSymbMainOperator(firstexp);
+                if(opcode==CMD_OPENBRACKET) {
+                    // USE ALL THE INDIVIDUAL ITEMS IN THE LIST
+                    firstexp=rplSymbMainOperatorPTR(firstexp)+1;
+                    continue;
+                }
+
+                firstexp=rplSymbUnwrap(firstexp);   // REMOVE ALL LAYERS OF SYMBOLICS
+                if(!opcode) ++firstexp;
+
+            }
+
+            if(ISIDENT(*firstexp)) {
+
+            // REPLACE ALL OCCURRENCES OF THE IDENT IN THE SYMBOLIC
+            ScratchPointer4=firstexp;
+            ScratchPointer5=endexp;
+            WORDPTR newobj=rplSymbReplaceVar(rplPeekData(1),firstexp,firstexp);
+            if(Exceptions || !newobj) {
+                DSTop=stksave;
+                return;
+            }
+            firstexp=ScratchPointer4;
+            endexp=ScratchPointer5;
+
+            rplOverwriteData(1,newobj);
+
+            }
+            else {
+            // EITHER AN IDENT OR A SYMBOLIC WITH A RULE
+            if(rplSymbIsRule(firstexp)) {
+                // SAVE POINTERS ON THE STACK
+                rplPushDataNoGrow(firstexp);
+                rplPushDataNoGrow(endexp);
+
+
+                // APPLY THE RULE
+                rplPushDataNoGrow(rplPeekData(3));
+                rplPushDataNoGrow(firstexp);
+
+                rplDoRuleApply();
+
+                if(!Exceptions) {
+                // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
+                WORDPTR newobj=rplSymbCanonicalForm(rplPeekData(2),1);
+                if(newobj) rplOverwriteData(2,newobj); // REPLACE ORIGINAL EXPRESSION WITH RESULT
+                }
+
+                if(Exceptions) {
+                    DSTop=stksave;
+                    return;
+                }
+
+                // RELOAD ALL POINTERS
+                rplOverwriteData(5,rplPeekData(2));
+
+                endexp=rplPeekData(3);
+                firstexp=rplPeekData(4);
+                rplDropData(4);
+
+            }
+            else {
+                rplError(ERR_NOTAVALIDRULE);
+                DSTop=stksave;
+                return;
+            }
+
+            firstexp=rplSkipOb(firstexp);
+
+            }
+
+
+        }   // END WHILE
+
+        // HERE WE HAVE ALL VARIABLES SUBSTITUTED
+
+        rplOverwriteData(3,rplPeekData(1));
+        rplDropData(2);
         return;
+
+    }
+
+
 
     case TRIGSIN:
         //@SHORT_DESC=Simplify replacing cos(x)^2+sin(x)^2=1
@@ -2469,7 +2730,77 @@ void LIB_HANDLER()
 
     }
 
+    case ASSUME:
+        //@SHORT_DESC=Apply certain assumptions about a variable to an expression.
+        //@INCOMPAT
+    {
+        if(rplDepthData()<2) {
+            rplError(ERR_BADARGCOUNT);
+            return;
+        }
 
+        WORDPTR firstexp=rplPeekData(1);
+        WORDPTR endexp=rplSkipOb(firstexp);
+        WORDPTR *stksave=DSTop;
+
+        if(ISLIST(*firstexp)) {
+            firstexp++;
+            endexp--;   // END BEFORE THE CMD_ENDLIST WORD
+        }
+
+        if(!ISSYMBOLIC(*rplPeekData(2)) && !ISIDENT(*rplPeekData(2))) {
+               rplError(ERR_SYMBOLICEXPECTED);
+               return;
+        }
+        rplPushDataNoGrow(rplPeekData(2));
+
+        // START APPLYING ALL ASSUMPTIONS
+        while(firstexp<endexp) {
+
+            if(ISSYMBOLIC(*firstexp)) {
+                // COULD BE A SYMBOLIC LIST OR A LIST OF ARGUMENTS IN BRACKETS
+                WORD opcode=rplSymbMainOperator(firstexp);
+                if(opcode==CMD_OPENBRACKET) {
+                    // USE ALL THE INDIVIDUAL ITEMS IN THE LIST
+                    firstexp=rplSymbMainOperatorPTR(firstexp)+1;
+                    continue;
+                }
+
+                firstexp=rplSymbUnwrap(firstexp);   // REMOVE ALL LAYERS OF SYMBOLICS
+                if(!opcode) ++firstexp;
+
+            }
+
+            if(!ISIDENT(*firstexp)) {
+                rplError(ERR_IDENTEXPECTED);
+                DSTop=stksave;
+                return;
+            }
+
+            // REPLACE ALL OCCURRENCES OF THE IDENT IN THE SYMBOLIC
+            ScratchPointer4=firstexp;
+            ScratchPointer5=endexp;
+            WORDPTR newobj=rplSymbReplaceVar(rplPeekData(1),firstexp,firstexp);
+            if(Exceptions || !newobj) {
+                DSTop=stksave;
+                return;
+            }
+            firstexp=ScratchPointer4;
+            endexp=ScratchPointer5;
+
+            rplOverwriteData(1,newobj);
+            firstexp=rplSkipOb(firstexp);
+
+
+        }   // END WHILE
+
+        // HERE WE HAVE ALL VARIABLES SUBSTITUTED
+
+        rplOverwriteData(3,rplPeekData(1));
+        rplDropData(2);
+        return;
+
+    }
 
 
     // STANDARIZED OPCODES:
@@ -2559,6 +2890,7 @@ void LIB_HANDLER()
         return;
         }
 */
+        /*
         if(*tok=='|') {
             if((TokenLen==1)&&(CurrentConstruct==MKPROLOG(DOSYMB,0))) {
                 // ISSUE A BUILDLIST OPERATOR
@@ -2568,6 +2900,7 @@ void LIB_HANDLER()
             else RetNum=ERR_NOTMINE;
             return;
         }
+        */
 
 
     }

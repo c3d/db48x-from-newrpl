@@ -420,6 +420,7 @@ BINT rplIsValidIdent(BYTEPTR tok,BYTEPTR tokend);
 WORD rplGetIdentAttr(WORDPTR name);
 WORDPTR rplSetIdentAttr(WORDPTR name,WORD attr,WORD attrmask);
 WORD rplGetIdentProp(WORDPTR ident);
+BINT rplDecodeAttrib(BYTEPTR st,BYTEPTR end);
 
 
 
@@ -698,8 +699,12 @@ void rplSymbNumericCompute();
 BINT rplCheckCircularReference(WORDPTR env_owner,WORDPTR object,BINT lamnum);
 BINT rplFractionSimplify();
 BINT rplFractionAdd();
+BINT rplSymbExplode(WORDPTR object);
+WORDPTR rplSymbImplode(WORDPTR *exprstart);
 WORDPTR rplSymbCanonicalForm(WORDPTR object,BINT fordisplay);
 BINT rplSymbExplodeOneLevel(WORDPTR object);
+WORDPTR rplSymbReplaceVar(WORDPTR symb,WORDPTR findvar,WORDPTR newvar);
+
 
 
 // STRINGS

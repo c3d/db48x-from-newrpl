@@ -88,6 +88,7 @@ R → A<fraction>"
 @#name lib56_autosimplify_group2
 {
 '0+.XX:→.XX'                                        @ REMOVE TERMS WITH ZERO
+'.XX-0:→.XX'                                        @ REMOVE TERMS WITH ZERO
 'INV(1):→1'                                         @ ELIMINATE OPERATION ON ONE
 'INV(-.xX):→-1*INV(.xX)'                            @ MAKE NEGATION A SCALAR MULTIPLICATION
 '1*.XX:→.XX'                                        @ REMOVE MULTIPLY BY ONE

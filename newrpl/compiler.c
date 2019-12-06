@@ -526,6 +526,8 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             case 0:
                             case TITYPE_BINARYOP_LEFT:
                             case TITYPE_BINARYOP_RIGHT:
+                            case TITYPE_CASBINARYOP_LEFT:
+                            case TITYPE_CASBINARYOP_RIGHT:
                             case TITYPE_OPENBRACKET:
                             case TITYPE_PREFIXOP:
                             case TITYPE_COMMA:
@@ -548,6 +550,9 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             case 0:
                             case TITYPE_BINARYOP_LEFT:
                             case TITYPE_BINARYOP_RIGHT:
+                            case TITYPE_CASBINARYOP_LEFT:
+                            case TITYPE_CASBINARYOP_RIGHT:
+
                             case TITYPE_OPENBRACKET:
                             case TITYPE_PREFIXOP:
                             case TITYPE_COMMA:
@@ -645,7 +650,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
 
 
                             // CHECK IF THE TOP OF STACK IS A FUNCTION
-                            if((InfixOpTop>(WORDPTR)ValidateTop)&&(TI_TYPE(*(InfixOpTop-1))==TITYPE_FUNCTION)) {
+                            if((InfixOpTop>(WORDPTR)ValidateTop)&&((TI_TYPE(*(InfixOpTop-1))==TITYPE_FUNCTION)||(TI_TYPE(*(InfixOpTop-1))==TITYPE_CASFUNCTION))) {
                                     BINT needargs=(BINT)TI_NARGS(*(InfixOpTop-1));
                                     if((needargs!=0xf) && (nargs!=needargs)) {
                                         rplError(ERR_BADARGCOUNT);
@@ -717,7 +722,7 @@ WORDPTR rplCompile(BYTEPTR string,BINT length, BINT addwrapper)
                             }
 
                             } else {
-                                if( (TI_TYPE(probe_tokeninfo)==TITYPE_BINARYOP_LEFT)&&((BINT)TI_PRECEDENCE(*(InfixOpTop-1))<=TI_PRECEDENCE(probe_tokeninfo)))
+                                if( ((TI_TYPE(probe_tokeninfo)==TITYPE_BINARYOP_LEFT)||(TI_TYPE(probe_tokeninfo)==TITYPE_CASBINARYOP_LEFT))&&((BINT)TI_PRECEDENCE(*(InfixOpTop-1))<=TI_PRECEDENCE(probe_tokeninfo)))
                                 {
                                     InfixOpTop-=2;
 
@@ -1346,7 +1351,7 @@ end_of_expression:
                                 else
                                 if(*(InfixOpTop-6)==(CMD_OVR_POW)) {
                                     // ALWAYS PARENTHESIZE THE ARGUMENTS OF POWER
-                                    if((TI_TYPE(*(InfixOpTop-1))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-1))!=TITYPE_CUSTOMFUNC)&&(TI_TYPE(RetNum)!=TITYPE_OPENBRACKET))
+                                    if((TI_TYPE(*(InfixOpTop-1))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-1))!=TITYPE_CASFUNCTION)&&(TI_TYPE(*(InfixOpTop-1))!=TITYPE_CUSTOMFUNC)&&(TI_TYPE(RetNum)!=TITYPE_OPENBRACKET))
                                         rplDecompAppendChar('(');
 
                                 }
@@ -1358,14 +1363,14 @@ end_of_expression:
                         if(TI_PRECEDENCE(*(InfixOpTop-5))==TI_PRECEDENCE(RetNum)) {
                             // ALWAYS ADD PARENTHESIS, EXCEPT FOR MUL AND ADD
                           if( (*DecompileObject!=(CMD_OVR_MUL)) && (*DecompileObject!=(CMD_OVR_ADD))) {
-                              if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC)&&(TI_TYPE(RetNum)!=TITYPE_OPENBRACKET))   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS! OR BRACKET-TYPE DELIMITERS
+                              if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CASFUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC)&&(TI_TYPE(RetNum)!=TITYPE_OPENBRACKET))   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS! OR BRACKET-TYPE DELIMITERS
                               rplDecompAppendChar('(');
 
                           }
                         }
                         else
                         if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(RetNum)) {
-                            if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC)&&(TI_TYPE(RetNum)!=TITYPE_OPENBRACKET))   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS! OR BRACKET-TYPE DELIMITERS
+                            if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CASFUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC)&&(TI_TYPE(RetNum)!=TITYPE_OPENBRACKET))   // DO NOT ADD PARENTHESIS TO FUNCTION ARGUMENTS! OR BRACKET-TYPE DELIMITERS
                                 rplDecompAppendChar('(');
                         }
                         }
@@ -1377,6 +1382,9 @@ end_of_expression:
                 {
                 case TITYPE_BINARYOP_LEFT:
                 case TITYPE_BINARYOP_RIGHT:
+                case TITYPE_CASBINARYOP_LEFT:
+                case TITYPE_CASBINARYOP_RIGHT:
+
                     ++DecompileObject;
                     infixmode=INFIX_BINARYLEFT;
                 break;
@@ -1504,6 +1512,7 @@ end_of_expression:
                 }
 
                 case TITYPE_FUNCTION:
+                case TITYPE_CASFUNCTION:
                 default:
                     {
                     // DECOMPILE THE OPERATOR NOW, THEN ADD PARENTHESIS FOR THE LIST
@@ -1776,7 +1785,7 @@ end_of_expression:
                             else
                             if(*(InfixOpTop-6)==(CMD_OVR_POW)) {
                                 // ALWAYS PARENTHESIZE THE ARGUMENTS OF POWER
-                                if((TI_TYPE(*(InfixOpTop-1))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-1))!=TITYPE_CUSTOMFUNC))
+                                if((TI_TYPE(*(InfixOpTop-1))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-1))!=TITYPE_CASFUNCTION)&&(TI_TYPE(*(InfixOpTop-1))!=TITYPE_CUSTOMFUNC))
                                     rplDecompAppendChar(')');
 
                             }
@@ -1792,7 +1801,7 @@ end_of_expression:
                           }
                         }
                     if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(*(InfixOpTop-1))) {
-                        if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC)) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS
+                        if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CASFUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC)) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS
                         rplDecompAppendChar(')');
                     }
                     }
@@ -1851,7 +1860,7 @@ end_of_expression:
                     }
 
                     if(TI_PRECEDENCE(*(InfixOpTop-5))<TI_PRECEDENCE(*(InfixOpTop-1))) {
-                        if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC)) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS
+                        if((TI_TYPE(*(InfixOpTop-5))!=TITYPE_FUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CASFUNCTION)&&(TI_TYPE(*(InfixOpTop-5))!=TITYPE_CUSTOMFUNC)) // DON'T ADD PARENTHESIS TO FUNCTION ARGUMENTS
                         rplDecompAppendChar(')');
                     }
                 }

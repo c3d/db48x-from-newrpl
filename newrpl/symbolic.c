@@ -600,7 +600,9 @@ WORDPTR rplSymbImplode(WORDPTR *exprstart)
              }
             // COPY THE OBJECT
             WORDPTR endobj=rplSkipOb(object);
+            WORDPTR prolog=newptr;
             while(object!=endobj) *newptr++=*object++;
+            if(ISQUOTEDIDENT(*prolog)) *prolog=MKPROLOG(LIBNUM(*prolog)|UNQUOTED_BIT,OBJSIZE(*prolog)); // FORCE UNQUOTED IDENTS WITHIN A SYMBOLIC
             }
         }
 
@@ -5822,15 +5824,40 @@ BINT rplSymbGetAttr(WORDPTR object)
 
     // SET DEFAULT ATTRIBUTES FOR VARIABLES THAT DON'T HAVE THEM (REAL IN REAL MODE, COMPLEX IN COMPLEX MODE)
     if(!attr) {
-        if(rplTestSystemFlag(FL_COMPLEXMODE)) attr=IDATTR_ISCPLX;
-        else attr=IDATTR_ISREAL;
+        if(rplTestSystemFlag(FL_COMPLEXMODE)) attr=IDATTR_ISINFCPLX;
+        else attr=IDATTR_ISINFREAL;
     }
 
     return attr;
 }
 
 
+// REPLACE ALL OCCURRENCES OF A VARIABLE NAME WITH ANOTHER VARIABLE NAME
+// Uses ScratchPointer1,2 and 3
 
+WORDPTR rplSymbReplaceVar(WORDPTR symb,WORDPTR findvar,WORDPTR newvar)
+{
+    WORDPTR *savestk=DSTop;
+    ScratchPointer2=findvar;
+    ScratchPointer3=newvar;
+
+    BINT n=rplSymbExplode(symb);
+    if(Exceptions) { DSTop=savestk; return 0; }
+
+    WORDPTR *stkptr=DSTop-1;
+    findvar=ScratchPointer2;
+    newvar=ScratchPointer3;
+
+    BINT k;
+    for(k=0;k<n;++k) {
+        if(rplCompareIDENT(*stkptr,findvar)) *stkptr=newvar;
+        --stkptr;
+    }
+
+    ScratchPointer1=rplSymbImplode(DSTop-1);
+    DSTop=savestk;
+    return ScratchPointer1;
+}
 
 
 
