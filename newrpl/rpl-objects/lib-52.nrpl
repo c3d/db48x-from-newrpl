@@ -33,9 +33,7 @@ ROW→
 →V2
 →V3
 V→
-AUGMENT
 AXL
-AXM
 BASIS
 CHOLESKY
 CNRM
@@ -62,6 +60,7 @@ LSQ
 LU
 MAD
 MKISOM
+MMAP
 PMINI
 QR
 RANK
@@ -180,20 +179,12 @@ V→
 
  → "
 
-AUGMENT
-"Help not available yet
-
- → "
 
 AXL
 "Help not available yet
 
  → "
 
-AXM
-"Help not available yet
-
- → "
 
 BASIS
 "Help not available yet
@@ -328,6 +319,12 @@ MKISOM
 "Help not available yet
 
  → "
+
+MMAP
+"Apply a program or expr.
+to a matrix
+M (P or A) → M"
+
 
 PMINI
 "Help not available yet

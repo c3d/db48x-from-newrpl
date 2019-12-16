@@ -263,7 +263,7 @@ BINT rplExpandRuleList()
 // IMPLEMENTS THE COMMAND RULEAPPLY, CAN BE CALLED FROM OTHER CAS COMMANDS
 // NEEDS 2 ARGUMENTS ON THE STACK: EXPRESSION AND RULE SET
 
-void rplDoRuleApply()
+void rplSymbRuleApply()
 {
         if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
@@ -319,7 +319,7 @@ void rplDoRuleApply()
 // IMPLEMENTS THE COMMAND RULEAPPLY1, CAN BE CALLED FROM OTHER CAS COMMANDS
 // NEEDS 2 ARGUMENTS ON THE STACK: EXPRESSION AND RULE SET
 
-void rplDoRuleApply1()
+void rplSymbRuleApply1()
 {
         if(rplDepthData()<2) {
                 rplError(ERR_BADARGCOUNT);
@@ -1528,6 +1528,7 @@ void LIB_HANDLER()
         }
         if(ISMATRIX(*rplPeekData(1))) {
            // TODO: AUTOSIMPLIFY WITHIN VECTORS AND MATRICES ELEMENT BY ELEMENT
+           rplMatrixUnary(CMD_AUTOSIMPLIFY);
             return;
         }
         if(!ISSYMBOLIC(*rplPeekData(1))) return;    // LEAVE IT ON THE STACK, NOT A SYMBOLIC
@@ -2114,7 +2115,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Match and apply a rule to an expression repeatedly
         //@NEW
-        rplDoRuleApply();
+        rplSymbRuleApply();
 
         if(!Exceptions) {
         // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
@@ -2129,7 +2130,7 @@ void LIB_HANDLER()
     {
         //@SHORT_DESC=Match and apply a rule to an expression only once
         //@NEW
-        rplDoRuleApply1();
+        rplSymbRuleApply1();
 
         if(!Exceptions) {
         // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
@@ -2529,7 +2530,7 @@ void LIB_HANDLER()
                 rplPushDataNoGrow(rplPeekData(3));
                 rplPushDataNoGrow(firstexp);
 
-                rplDoRuleApply();
+                rplSymbRuleApply();
 
                 if(!Exceptions) {
                 // REORGANIZE THE EXPRESSION IN A WAY THAT'S OPTIMIZED FOR DISPLAY
@@ -2582,7 +2583,7 @@ void LIB_HANDLER()
         }
         WORDPTR *stksave=DSTop;
         rplPushDataNoGrow((WORDPTR)trigsin_rules);
-        rplDoRuleApply();
+        rplSymbRuleApply();
         DSTop=stksave;
         if(!Exceptions) rplSymbAutoSimplify();
         return;
@@ -2597,7 +2598,7 @@ void LIB_HANDLER()
         }
         WORDPTR *stksave=DSTop;
         rplPushDataNoGrow((WORDPTR)allroots_rules);
-        rplDoRuleApply();
+        rplSymbRuleApply();
         DSTop=stksave;
         if(!Exceptions) rplSymbAutoSimplify();
         return;
@@ -2742,6 +2743,18 @@ void LIB_HANDLER()
         WORDPTR firstexp=rplPeekData(1);
         WORDPTR endexp=rplSkipOb(firstexp);
         WORDPTR *stksave=DSTop;
+
+
+        if(ISLIST(*rplPeekData(2))) {
+           rplListBinaryDoCmd();
+            return;
+        }
+
+        if(ISMATRIX(rplPeekData(2))) {
+            // TODO:
+            //rplMatrixDoMat(2);
+            return;
+        }
 
         if(ISLIST(*firstexp)) {
             firstexp++;

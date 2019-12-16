@@ -99,7 +99,12 @@
     CMD(TRAN,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
     CMD(TRN,MKTOKENINFO(3,TITYPE_FUNCTION,1,2)), \
     CMD(VANDERMONDE,MKTOKENINFO(11,TITYPE_FUNCTION,1,2)), \
-    CMD(LDUP,MKTOKENINFO(4,TITYPE_FUNCTION,1,2))
+    CMD(LDUP,MKTOKENINFO(4,TITYPE_FUNCTION,1,2)), \
+    CMD(MMAP,MKTOKENINFO(4,TITYPE_CASFUNCTION,2,2)), \
+    ECMD(DOMMAPPRE,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,0,2)), \
+    ECMD(DOMMAPPOST,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,0,2)), \
+    ECMD(DOMMAPERR,"",MKTOKENINFO(0,TITYPE_NOTALLOWED,0,2))
+
     
 
 
@@ -146,6 +151,16 @@ ROMOBJECT matrixeval_seco[]={
     CMD_SEMI
 };
 
+ROMOBJECT matrixmap_seco[]={
+    MKPROLOG(DOCOL,5),
+    MKOPCODE(LIBRARY_NUMBER,DOMMAPPRE),     // PREPARE EACH ELEMENT
+    (CMD_OVR_XEQ),    // DO THE EVAL
+    MKOPCODE(LIBRARY_NUMBER,DOMMAPPOST),    // POST-PROCESS RESULTS AND CLOSE THE LOOP
+    MKOPCODE(LIBRARY_NUMBER,DOMMAPERR),     // ERROR HANDLER
+    CMD_SEMI
+};
+
+
 ROMOBJECT matrixeval1_seco[]={
     MKPROLOG(DOCOL,5),
     MKOPCODE(LIBRARY_NUMBER,DOMATPRE),     // PREPARE EACH ELEMENT
@@ -173,6 +188,21 @@ ROMOBJECT matrixistrue_seco[]={
     CMD_SEMI
 };
 
+ROMOBJECT rowindex_ident[]={
+    MKPROLOG(DOIDENT|UNQUOTED_BIT,1),
+    TEXT2WORD('i',0,0,0)
+};
+ROMOBJECT colindex_ident[]={
+    MKPROLOG(DOIDENT|UNQUOTED_BIT,1),
+    TEXT2WORD('j',0,0,0)
+};
+
+ROMOBJECT elem_ident[]={
+    MKPROLOG(DOIDENT|UNQUOTED_BIT,1),
+    TEXT2WORD('A','i','j',0)
+};
+
+
 INCLUDE_ROMOBJECT(LIB_MSGTABLE);
 INCLUDE_ROMOBJECT(LIB_HELPTABLE);
 INCLUDE_ROMOBJECT(lib52_menu);
@@ -187,8 +217,10 @@ const WORDPTR const ROMPTR_TABLE[]={
    (WORDPTR)matrixeval1_seco,
    (WORDPTR)matrixtonum_seco,
     (WORDPTR)matrixistrue_seco,
-
-
+    (WORDPTR)matrixmap_seco,
+    (WORDPTR)rowindex_ident,
+    (WORDPTR)colindex_ident,
+    (WORDPTR)elem_ident,
     (WORDPTR)lib52_menu,
     // ADD MORE MENUS HERE
     0
@@ -5084,13 +5116,322 @@ void LIB_HANDLER()
 
 
 
+    case MMAP:
+        //@SHORT_DESC=Apply expression or program to the elements of a matrix
+        //@NEW
+        // Similar to MAP but enhanced specifically for vectors and matrices, it applies a program or expression to each element of the matrix:
+        // * Accepts a program to apply, programs will be executed with the current element being left on the stack + local variables i,j to dinicate current position.
+        // * Accepts a symbolic expression: expressions will NOT be evaluated, they will be incorporated as a symbolic element into the matrix.
+        // * There's 3 special identifiers the user may use in the program or expression:
+        //     * i (small caps letter i, not to be confused with complex 'i') has the current element's row number (1..n)
+        //     * j (small caps letter j, not to be confused with complex 'j') has the current element's column number (1..m)
+        //     * Aij contains the current value for the element (for expressions only, programs will receive the element on the stack, not on a variable)
+
+        // When using a program, 'i' and 'j' will be local variables and can be used as such. Any changes to 'i' or 'j' will NOT affect the MAP command, consider these as read-only.
+        // When using an expression, substitution rules will be used to replace i:→#, j:→# and Aij:→(# or expression of the existing element)
+        // For example, to create a matrix A (m by n) with elements A(i,j)=2*i+(j-1), use 'MMAP(A,2*i+(j-1))' with A being already a matrix object m*n.
+        // Notice the operation done by MMAP is symbolic: the variables i and j will be replaced by the numeric value for each component, and minimal
+        // simplification will be applied to the expression, but the user needs to call AUTOSIMPLIFY or →NUM manually afterwards.
+
+    {
+        WORDPTR object=rplPeekData(2),mainobj;
+
+        do {
+
+        if(ISSYMBOLIC(*object)) {
+            object=rplSymbUnwrap(object)+1;
+        }
+
+
+        if(ISIDENT(*object)) {
+            // SEE IF THE VARIABLE IS AN ACTUAL MATRIX
+            WORDPTR *var=rplFindLAM(object,1);
+            if(!var) var=rplFindGlobal(object,1);
+            if(!var) {
+                rplError(ERR_MATRIXEXPECTED);
+                return;
+            }
+            object=var[1];
+            continue;
+        }
+        if(!ISMATRIX(*object)) {
+            rplError(ERR_MATRIXEXPECTED);
+            return;
+        }
+        break;
+        } while(1);
+
+        // WE HAVE A MATRIX IN object, NOT NECESSARILY THE ARGUMENT WE RECEIVED
+
+        BINT isprog=0;
+        if(ISPROGRAM(*rplPeekData(1))) isprog=1;
+        else if(!(ISSYMBOLIC(*rplPeekData(1)) || ISIDENT(*rplPeekData(1)))) {
+            rplError(ERR_PROGRAMEXPECTED);
+            return;
+        }
+
+
+        // CREATE A NEW LAM ENVIRONMENT FOR TEMPORARY STORAGE OF INDEX
+        ScratchPointer1=object;
+        rplCreateLAMEnvironment(IPtr);
+
+        rplCreateLAM((WORDPTR)nulllam_ident,ScratchPointer1);     // LAM 1 = MATRIX OBJECT
+        if(Exceptions) { rplCleanupLAMs(0); return; }
+
+        rplCreateLAM((WORDPTR)nulllam_ident,rplPeekData(1));  // LAM 2 = PROGRAM OR EXPRESSION TO REPLACE
+        if(Exceptions) { rplCleanupLAMs(0); return; }
+
+        rplCreateLAM((WORDPTR)nulllam_ident,(WORDPTR)zero_bint);  // LAM 3 = FLAT INDEX OF OBJECT TO PROCESS NEXT (0 TO m*n-1)
+        if(Exceptions) { rplCleanupLAMs(0); return; }
+
+        // ONLY FOR PROGRAMS:
+        if(isprog) {
+        rplCreateLAM((WORDPTR)rowindex_ident,(WORDPTR)one_bint);     // LAM 4 = ROW INDEX
+        if(Exceptions) { rplCleanupLAMs(0); return; }
+
+        rplCreateLAM((WORDPTR)rowindex_ident,(WORDPTR)one_bint);     // LAM 5 = COLUMN INDEX
+        if(Exceptions) { rplCleanupLAMs(0); return; }
+        }
+
+        // GETLAM 1 = END OF MATRIX, GETLAM2 = OBJECT, GETLAM3 = ORIGINAL MATRIX
+
+        // THIS NEEDS TO BE DONE IN 3 STEPS:
+        // MMAPPRE WILL PUSH THE NEXT OBJECT IN THE STACK
+        // XEQ WILL RUN THE PROGRAM
+        // MATPOST WILL CHECK IF THE ARGUMENT WAS PROCESSED WITHOUT ERRORS,
+        // AND CLOSE THE LOOP TO PROCESS MORE ARGUMENTS
+
+        // THE INITIAL CODE FOR MMAP MUST TRANSFER FLOW CONTROL TO A
+        // SECONDARY THAT CONTAINS :: MMAPPRE EVAL MMAPPOST ;
+        // MMAPPOST WILL CHANGE IP AGAIN TO BEGINNING OF THE SECO
+        // IN ORDER TO KEEP THE LOOP RUNNING
+
+        rplPushRet(IPtr);
+        IPtr=(WORDPTR)  matrixmap_seco;
+        CurOpcode=(CMD_MMAP);   // SET TO AN ARBITRARY COMMAND, SO IT WILL SKIP THE PROLOG OF THE SECO
+
+        rplProtectData();  // PROTECT THE PREVIOUS ELEMENTS IN THE STACK FROM BEING REMOVED BY A BAD EVALUATION
+
+        return;
+
+
+    }
+
+    case DOMMAPPRE:
+    {
+
+
+        // GETLAM 1 = MATRIX, GETLAM2 = EXPRESSION/PROGRAM, GETLAM3=FLAT INDEX
+
+
+        rplSetExceptionHandler(IPtr+3); // SET THE EXCEPTION HANDLER TO THE MMAPERR WORD
+
+        // NOW RECALL THE MATRIX OBJECT TO THE STACK
+
+        //rplPushData(*rplGetLAMn(1));
+        //if(Exceptions) return;
 
 
 
+        if(ISPROGRAM(**rplGetLAMn(2))) {
+             // THIS IS A PROGRAM
+             // LAM 4 = i, LAM 5=j
+
+            // SET THE CORRECT VALUES FOR i,j
+            BINT row,cols,col;
+            cols=rplMatrixCols(*rplGetLAMn(1));
+            BINT index=rplReadBINT(*rplGetLAMn(3));
+            row=index/cols;
+            col=index-cols*row;
+
+            WORDPTR number=rplNewBINT(row+1,DECBINT);
+            if(!number) return;
+            rplPutLAMn(4,number);
+            number=rplNewBINT(col+1,DECBINT);
+            if(!number) return;
+            rplPutLAMn(5,number);
+
+            // LEAVE THE ELEMENT A(i,j) ON THE STACK
+            rplPushDataNoGrow(rplMatrixFastGetFlat(*rplGetLAMn(1),index));
+            // AND THE PROGRAM
+            rplPushData(*rplGetLAMn(2));
 
 
 
+        }
+        else {
+            // THIS IS A SYMBOLIC EXPRESSION, CREATE RULES AND APPLY THEM
 
+            // SET THE CORRECT VALUES FOR i,j
+            BINT row,cols,col;
+            cols=rplMatrixCols(*rplGetLAMn(1));
+            BINT index=rplReadBINT(*rplGetLAMn(3));
+            row=index/cols;
+            col=index-cols*row;
+
+            WORDPTR number=rplNewBINT(row+1,DECBINT);
+            if(!number) return;
+
+            // CREATE RULE TO SUBSTITUTE ROW
+            rplPushDataNoGrow((WORDPTR)rowindex_ident);
+            rplPushDataNoGrow(number);
+            rplSymbApplyOperator(CMD_RULESEPARATOR,2);
+            if(Exceptions) return;
+
+            number=rplNewBINT(col+1,DECBINT);
+            if(!number) return;
+            // CREATE RULE TO SUBSTITUTE COLUMN
+            rplPushDataNoGrow((WORDPTR)colindex_ident);
+            rplPushDataNoGrow(number);
+            rplSymbApplyOperator(CMD_RULESEPARATOR,2);
+            if(Exceptions) return;
+
+            // CREATE RULE TO SUBSTITUTE OLD ELEMENT
+            rplPushDataNoGrow((WORDPTR)elem_ident);
+            rplPushDataNoGrow(rplMatrixFastGetFlat(*rplGetLAMn(1),index));
+            rplSymbApplyOperator(CMD_RULESEPARATOR,2);
+            if(Exceptions) return;
+
+            WORDPTR rulelist=rplCreateListN(3,1,1);
+            if(!rulelist) return;
+
+            rplPushDataNoGrow(*rplGetLAMn(2));   // PUSH THE EXPRESSION
+            rplPushDataNoGrow(rulelist);        // PUSH THE LIST OF RULES
+            rplSymbRuleApply();
+            if(Exceptions) return;
+
+            rplDropData(1);                     // NO NEED FOR REPLACEMENT COUNT
+            // HERE WE HAVE THE NEW ELEMENT AS A SYMBOLIC EXPRESSION
+            // JUST LEAVE IT ON THE STACK, XEQ ON A SYMBOLIC WON'T CHANGE IT
+
+
+        }
+
+
+
+        // AND EXECUTION WILL CONTINUE AT XEQ
+
+        return;
+    }
+
+    case DOMMAPPOST:
+    {
+
+
+        // GETLAM 1 = MATRIX, GETLAM2 = EXPRESSION/PROGRAM, GETLAM3=FLAT INDEX
+
+        // TODO STARTS HERE...
+        WORDPTR matrix=*rplGetLAMn(1);
+        BINT index=rplReadBINT(*rplGetLAMn(3));
+        if(Exceptions) return;
+
+        BINT nelem=rplMatrixRows(matrix);
+        if(!nelem) nelem=1;
+        nelem*=rplMatrixCols(matrix);
+
+        rplRemoveExceptionHandler();    // THERE WAS NO ERROR DOING THE EVALUATION
+
+        if(index<nelem-1) {
+            // LEAVE THE CURRENT RESULT ON THE STACK
+            // INCREASE THE INDEX
+            WORDPTR number=rplNewBINT(index+1,DECBINT);
+            if(!number) return;
+            rplPutLAMn(3,number);
+            // NEED TO DO ONE MORE LOOP
+            IPtr-=3;   // CONTINUE THE LOOP, MAKE NEXT INSTRUCTION BE DOMATPRE ON ANY LOOP (2 INSTRUCTIONS BACK)
+            // CurOpcode IS RIGHT NOW A COMMAND, SO WE DON'T NEED TO CHANGE IT
+            return;
+        }
+
+        // ALL ELEMENTS WERE PROCESSED
+        // FORM A NEW MATRIX WITH ALL THE NEW ELEMENTS
+
+        WORDPTR *prevDStk = rplUnprotectData();
+
+        BINT newdepth=(BINT)(DSTop-prevDStk);
+
+        if(newdepth!=nelem) {
+            rplError(ERR_INCOMPATIBLEDIMENSION);
+            DSTop=prevDStk;
+            rplCleanupLAMs(0);      // CLEANUP LOCAL VARIABLES
+            CurOpcode=*(IPtr-1);    // BLAME THE OPERATOR IN QUESTION
+            IPtr=rplPopRet();       // AND RETURN
+            return;
+        }
+        // COMPUTE THE REQUIRED SIZE
+
+
+        BINT totalsize=rplMatrixGetFirstObj(matrix)-matrix;
+        BINT k;
+        for(k=1;k<=newdepth;++k) {
+            totalsize+=rplObjSize(rplPeekData(k));
+        }
+
+        // NOW ALLOCATE THE NEW MATRIX
+
+         WORDPTR newmat=rplAllocTempOb(totalsize-1);
+        if( (!newmat) || Exceptions) {
+            DSTop=prevDStk; // REMOVE ALL JUNK FROM THE STACK
+            rplCleanupLAMs(0);      // CLEANUP LOCAL VARIABLES
+            CurOpcode=*(IPtr-1);    // BLAME THE OPERATOR IN QUESTION
+            IPtr=rplPopRet();       // AND RETURN
+            return;
+        }
+
+        // RE-READ ALL POINTERS, SINCE THEY COULD'VE MOVED
+        matrix=*rplGetLAMn(1);
+
+        newmat[0]=MKPROLOG(DOMATRIX,totalsize-1);
+        newmat[1]=matrix[1];    // SAME SIZE AS ORIGINAL MATRIX
+
+        WORDPTR newobj;
+
+        // FILL THE MATRIX WITH ALL THE OBJECTS FROM THE STACK
+        newobj=rplMatrixGetFirstObj(newmat);        // STORE NEW OBJECTS HERE
+        for(k=1;k<=nelem;++k) {
+            // VERIFY THAT THE OBJECTS ARE VALID
+            WORDPTR checkobj=rplPeekData(nelem-(k-1));
+            if(!ISNUMBERCPLX(*checkobj) && !ISIDENT(*checkobj) && !ISCONSTANT(*checkobj) && !ISSYMBOLIC(*checkobj) ) {
+                rplError(ERR_NOTALLOWEDINMATRIX);
+                DSTop=prevDStk;
+                rplCleanupLAMs(0);
+                CurOpcode=*(IPtr-1);    // BLAME THE OPERATOR IN QUESTION
+                IPtr=rplPopRet();       // AND RETURN
+                return;
+            }
+            rplCopyObject(newobj,checkobj);
+            newmat[1+k]=newobj-newmat;
+            newobj=rplSkipOb(newobj);
+        }
+
+        // HERE THE STACK HAS: MATRIX ELEM1... ELEMN
+        rplOverwriteData(newdepth+2,newmat);
+        rplDropData(newdepth+1);
+
+        rplCleanupLAMs(0);
+        CurOpcode=*(IPtr-1);    // BLAME THE OPERATOR IN QUESTION
+        IPtr=rplPopRet();       // AND RETURN
+        return;
+    }
+
+    case DOMMAPERR:
+    {
+        // SAME PROCEDURE AS ENDERR
+        rplRemoveExceptionHandler();
+        rplPopRet();
+        rplUnprotectData();
+        rplRemoveExceptionHandler();
+
+        // JUST CLEANUP AND EXIT
+        DSTop=rplUnprotectData();
+        rplCleanupLAMs(0);
+        CurOpcode=*(IPtr-2);    // BLAME THE OPERATOR IN QUESTION
+        IPtr=rplPopRet();
+        Exceptions=TrappedExceptions;
+        ErrorCode=TrappedErrorCode;
+        ExceptionPointer=IPtr;
+        return;
+    }
 
 
 
@@ -5549,7 +5890,7 @@ void LIB_HANDLER()
             return;
         }
         // WARNING: MAKE SURE THE ORDER IS CORRECT IN ROMPTR_TABLE
-        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+6];
+        ObjectPTR=ROMPTR_TABLE[MENUNUMBER(MenuCodeArg)+10];
         RetNum=OK_CONTINUE;
         return;
     }

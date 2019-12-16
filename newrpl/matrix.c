@@ -76,6 +76,15 @@ WORDPTR rplMatrixFastGet(WORDPTR matrix,BINT row,BINT col)
     return matrix+matrix[(row-1)*cols+col+1];
 }
 
+// GET AN ELEMENT OF AN ARRAY - LOW-LEVEL, NO CHECKS OF ANY KIND DONE - FLAT INDEX 0..(n-1)
+
+WORDPTR rplMatrixFastGetFlat(WORDPTR matrix,BINT index)
+{
+    return GETELEMENT(matrix,index);
+}
+
+
+
 // FAST GET THE PTR TO AN ELEMENT IN A MATRIX EXPLODED IN THE STACK
 
 WORDPTR *rplMatrixFastGetEx(WORDPTR *first,BINT cols,BINT i,BINT j)

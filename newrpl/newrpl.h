@@ -742,6 +742,7 @@ BINT rplMatrixRows(WORDPTR matrix);
 WORDPTR rplMatrixGet(WORDPTR matrix,BINT row,BINT col);
 WORDPTR rplMatrixFastGet(WORDPTR matrix,BINT row,BINT col);
 WORDPTR *rplMatrixFastGetEx(WORDPTR *first,BINT cols,BINT i,BINT j);
+WORDPTR rplMatrixFastGetFlat(WORDPTR matrix,BINT index);
 WORDPTR *rplMatrixNewEx(BINT rows,BINT cols);
 void rplMatrixNorm();
 void rplMatrixNeg();
