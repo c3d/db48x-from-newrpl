@@ -2557,10 +2557,12 @@ void LIB_HANDLER()
                 return;
             }
 
-            firstexp=rplSkipOb(firstexp);
+
 
             }
 
+
+            firstexp=rplSkipOb(firstexp);
 
         }   // END WHILE
 
