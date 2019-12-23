@@ -1109,7 +1109,7 @@ void MainWindow::on_actionUSB_Remote_ARCHIVE_to_file_triggered()
             file.close();
             QMessageBox a(QMessageBox::Warning,"Error while saving","USB communication error",QMessageBox::Ok,this);
             a.exec();
-            delete buffer;
+            delete[] buffer;
             return;
         }
 
@@ -1117,7 +1117,7 @@ void MainWindow::on_actionUSB_Remote_ARCHIVE_to_file_triggered()
 
         file.close();
 
-        delete buffer;
+        delete[] buffer;
 
     }
 }
@@ -1420,7 +1420,7 @@ if(obj == ui->KeybImage)
     if( ev->type() == QEvent::MouseButtonPress)
 {
     QMouseEvent *me = static_cast<QMouseEvent *>(ev);
-    QPoint coordinates = me->pos();
+    //QPoint coordinates = me->pos();
     qreal relx,rely;
 
     /*if(coordinates.y()<30) {
@@ -1463,7 +1463,7 @@ if(obj == ui->KeybImage)
     if( ev->type() == QEvent::MouseButtonRelease)
 {
     QMouseEvent *me = static_cast<QMouseEvent *>(ev);
-    QPoint coordinates = me->pos();
+    //QPoint coordinates = me->pos();
     qreal relx,rely;
 
     relx=(qreal)me->x()/(qreal)ui->KeybImage->width();
@@ -1515,7 +1515,7 @@ if(obj == ui->EmuScreen) {
 {
     QMouseEvent *me = static_cast<QMouseEvent *>(ev);
     QPoint coordinates = me->pos();
-    qreal relx,rely;
+    //qreal relx,rely;
 
     if(coordinates.y()<30) {
         // TOUCHED THE TOP BAR, SHOW THE MENU
@@ -1550,6 +1550,7 @@ void MainWindow::contextMenuEvent(QContextMenuEvent *event)
     ui->menuFile->setStyleSheet(menufilestyle);
     ui->menuStack->setStyleSheet(menustkstyle);
     ui->menuHardware->setStyleSheet(menuhardstyle);
+    event->accept();
   }
 
 void MainWindow::on_actionPaste_and_compile_triggered()

@@ -34,5 +34,5 @@
 
 
 
-#endif // TARGET_39GS_H
+#endif // TARGET_40GS_H
 

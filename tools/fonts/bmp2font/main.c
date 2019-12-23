@@ -46,7 +46,7 @@ char txtbuff[256*1024]; // MAX. 256K FOR THE TEXT FILE
 unsigned short packedata[0x110000];
 unsigned int ranges[2000];
 int used_ranges;
-unsigned short offdata[20000];
+unsigned short offdata[20000+MAX_NCHARS];
 int used_data;
 
 

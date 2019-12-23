@@ -197,7 +197,7 @@ dump_sections(FILE *out, Elf_file *elf_file)
     
     int _copy_flag;
     int text_size = 0;
-    int file_offset=0;
+    unsigned file_offset=0;
     int cnt;
     
     //now scan the sections:
@@ -250,7 +250,7 @@ dump_sections(FILE *out, Elf_file *elf_file)
                     }
                     if(file_offset<entry.address) {
                         // NEEDS PADDING!
-                        int i;
+                        unsigned int i;
                         for(i=0; i < (entry.address-file_offset); i++)
                             fwrite("\0",1,1,out);
                         file_offset=entry.address;
@@ -299,7 +299,6 @@ get_romlib_version(Elf *elf)
       Elf32_Ehdr *ehdr;
 	  char *name;
       data = 0;
-      int count = 0;
 	  long dromlib_addr=-1;
 	  int romlib_version=-1;
 
@@ -367,7 +366,7 @@ get_romlib_version(Elf *elf)
 	  
       if ((data = elf_getdata(scn, NULL)) == 0 || data->d_size == 0)	return romlib_version;
  	   
-	  if(dromlib_addr!=-1 && (dromlib_addr-shdr->sh_addr)<data->d_size) romlib_version=*((unsigned int *) ((char *)data->d_buf+(dromlib_addr-shdr->sh_addr)));
+      if(dromlib_addr!=-1 && ((size_t)(dromlib_addr-shdr->sh_addr))<data->d_size) romlib_version=*((unsigned int *) ((char *)data->d_buf+(dromlib_addr-shdr->sh_addr)));
 
 
 	return romlib_version;
