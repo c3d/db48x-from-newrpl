@@ -501,7 +501,7 @@ void MainWindow::on_actionExit_triggered()
 
     // STOP THE USB DRIVER THREAD
     __usb_paused=2;
-    while(usbdriver.isRunning() || (__usb_paused>=0));
+    while(usbdriver.isRunning() && (__usb_paused>=0));
 
 
 
@@ -1611,7 +1611,12 @@ void USBThread::run()
         }
         if(!(__usb_drvstatus&USB_STATUS_NOWAIT)) msleep(1);
     }
-    if(__usb_paused==2) __usb_paused=-__usb_paused; // MAKE SURE WE END THE THREAD WITH A NEGATIVE NUMBER
+    if(__usb_paused==2) {
+        // EXIT WAS REQUESTED, RELEASE ALL HANDLES
+        usb_irqdisconnect();
+
+        __usb_paused=-__usb_paused; // MAKE SURE WE END THE THREAD WITH A NEGATIVE NUMBER
+    }
 }
 
 

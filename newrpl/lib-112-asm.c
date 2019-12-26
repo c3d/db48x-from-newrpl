@@ -123,6 +123,8 @@ const WORDPTR const numbers_table[]={
 #define ASM_OR    23
 #define ASM_XOR   24
 #define ASM_CLR   25
+#define ASM_SGET  26
+#define ASM_SPUT  27
 
 #define ASM_MATH_IP   0
 #define ASM_MATH_LN   1
@@ -194,6 +196,13 @@ const WORD const mathcmd_table[]={
     CMD_ATANH
 };
 
+const WORD const math2cmd_table[]={
+    CMD_FP,
+    CMD_OVR_ABS,
+    CMD_ARG,
+    CMD_RE,
+    CMD_IM
+};
 
 
 
@@ -365,6 +374,8 @@ const struct optables const shortopcodes[]={
 { (ASM_OR<<8)|32 , TEXT2WORD('O','R',0,0) },
 { (ASM_XOR<<8)|32 , TEXT2WORD('X','O','R',0) },
 { (ASM_CLR<<8)|32 , TEXT2WORD('C','L','R',0) },
+{ (ASM_SGET<<8)|32  , TEXT2WORD('S','G','E','T')},
+{ (ASM_SPUT<<8)|32  , TEXT2WORD('S','P','U','T')},
 
 // THESE ARE MATH FUNCTIONS
 { (ASM_MATH<<8)|(16+ASM_MATH_IP), TEXT2WORD('I','P',0,0)},
@@ -380,6 +391,13 @@ const struct optables const shortopcodes[]={
 { (ASM_MATH<<8)|(16+ASM_MATH_SINH), TEXT2WORD('S','I','N','H')},
 { (ASM_MATH<<8)|(16+ASM_MATH_COSH), TEXT2WORD('C','O','S','H')},
 { (ASM_MATH<<8)|(16+ASM_MATH_TANH), TEXT2WORD('T','A','N','H')},
+
+// ADDITIONAL MATH FUNCTIONS
+{ (ASM_MATH2<<8)|(16+ASM_MATH2_FP), TEXT2WORD('F','P',0,0)},
+{ (ASM_MATH2<<8)|(16+ASM_MATH2_ABS), TEXT2WORD('A','B','S',0)},
+{ (ASM_MATH2<<8)|(16+ASM_MATH2_ARG), TEXT2WORD('A','R','G',0)},
+{ (ASM_MATH2<<8)|(16+ASM_MATH2_RE), TEXT2WORD('R','E',0,0)},
+{ (ASM_MATH2<<8)|(16+ASM_MATH2_IM), TEXT2WORD('I','M',0,0)},
 
 {0,0}
 };
@@ -527,7 +545,7 @@ void LIB_HANDLER()
             y&=7;
             if(y==0) { argY=IPtr+1; skipnext=1; }
             else {
-                if(DSTop-y<DStkBottom) {
+                if(DSTop-y<DStkProtect) {
                 rplError(ERR_BADSTACKINDEX);
                 return;
             } else argY=DSTop[-y];
@@ -542,7 +560,7 @@ void LIB_HANDLER()
             d&=7;
             if(d==0) { rplPushDataNoGrow((WORDPTR)zero_bint); destD=DSTop-1; }
             else {
-                if(DSTop-d<DStkBottom) {
+                if(DSTop-d<DStkProtect) {
                 rplError(ERR_BADSTACKINDEX);
                 return;
             } else destD=DSTop-d;
@@ -619,7 +637,7 @@ void LIB_HANDLER()
             y&=7;
             if(y==0) { argY=IPtr+1; skipnext=1; }
             else {
-                if(DSTop-y<DStkBottom) {
+                if(DSTop-y<DStkProtect) {
                 rplError(ERR_BADSTACKINDEX);
                 return;
             } else argY=DSTop[-y];
@@ -636,7 +654,7 @@ void LIB_HANDLER()
             z&=7;
             if(z==0) { argZ=IPtr+1; skipnext=1; }
             else {
-                if(DSTop-z<DStkBottom) {
+                if(DSTop-z<DStkProtect) {
                 rplError(ERR_BADSTACKINDEX);
                 return;
             } else argZ=DSTop[-z];
@@ -651,7 +669,7 @@ void LIB_HANDLER()
             d&=7;
             if(d==0) { rplPushDataNoGrow((WORDPTR)zero_bint); destD=DSTop-1; }
             else {
-                if(DSTop-d<DStkBottom) {
+                if(DSTop-d<DStkProtect) {
                 rplError(ERR_BADSTACKINDEX);
                 return;
             } else destD=DSTop-d;
@@ -740,7 +758,7 @@ void LIB_HANDLER()
 
         // GET THE ARGUMENT Y
         BINT skipnext=0;
-        BINT ylevel,nitems;
+        BINT ylevel,nitems,nitemsdrop;
 
         if(ISLITERALY(CurOpcode)) ylevel=GETY(CurOpcode);
         else {
@@ -753,7 +771,7 @@ void LIB_HANDLER()
                 skipnext=1;
             }
             else {
-                if(DSTop-y<DStkBottom) {
+                if(DSTop-y<DStkProtect) {
                 rplError(ERR_BADSTACKINDEX);
                 return;
             } else ylevel=y;
@@ -793,6 +811,7 @@ void LIB_HANDLER()
             return;
         }
 
+        nitemsdrop=nitems;
         // GET ARGUMENT D
         BINT d=GETD(CurOpcode);
         WORDPTR *destD;
@@ -802,23 +821,24 @@ void LIB_HANDLER()
          } else destD=GC_UserRegisters+d;
 
         if(d+nitems>8) {
-            rplError(ERR_INVALIDASMCODE);
-            return;
+            nitems=8-d;
         }
 
-        if(ASMSTO(CurOpcode)!=ASMSTO_STO) {
+        if((ASMSTO(CurOpcode)!=ASMSTO_STO)&&(ASMSTO(CurOpcode)!=ASMSTO_NOOP)) {
             rplError(ERR_INVALIDASMCODE);
             return;
         }
 
         // POP THE VALUES FROM THE STACK
 
+        if(ASMSTO(CurOpcode)!=ASMSTO_NOOP) {
         BINT k;
         for(k=0;k<nitems;++k) {
             *destD=DSTop[-ylevel-k];
             ++destD;
         }
-        rplRemoveAtData(ylevel,nitems);
+        }
+        rplRemoveAtData(ylevel,nitemsdrop);
         if(skipnext)
         {
             ++IPtr;
@@ -837,7 +857,7 @@ void LIB_HANDLER()
 
         // GET THE ARGUMENT Y
         BINT skipnext=0;
-        BINT ylevel,nitems;
+        BINT ylevel,nitems,nitemsdrop;
 
         if(ISLITERALY(CurOpcode)) ylevel=GETY(CurOpcode);
         else {
@@ -850,7 +870,7 @@ void LIB_HANDLER()
                 skipnext=1;
             }
             else {
-                if(DSTop-y<DStkBottom) {
+                if(DSTop-y<DStkProtect) {
                 rplError(ERR_BADSTACKINDEX);
                 return;
             } else ylevel=y;
@@ -890,6 +910,7 @@ void LIB_HANDLER()
             return;
         }
 
+        nitemsdrop=nitems;
         // GET ARGUMENT D
         BINT d=GETD(CurOpcode);
         WORDPTR *destD;
@@ -899,23 +920,23 @@ void LIB_HANDLER()
          } else destD=GC_UserRegisters+d;
 
         if(d+nitems>8) {
-            rplError(ERR_INVALIDASMCODE);
-            return;
+            nitems=8-d;
         }
 
-        if(ASMSTO(CurOpcode)!=ASMSTO_STO) {
+        if((ASMSTO(CurOpcode)!=ASMSTO_STO)&&(ASMSTO(CurOpcode)!=ASMSTO_NOOP)) {
             rplError(ERR_INVALIDASMCODE);
             return;
         }
 
         // POP THE VALUES FROM THE STACK
-
+        if(ASMSTO(CurOpcode)!=ASMSTO_NOOP) {
         BINT k;
         for(k=nitems-1;k>=0;--k) {
             *destD=DSTop[-ylevel-k];
             ++destD;
         }
-        rplRemoveAtData(ylevel,nitems);
+        }
+        rplRemoveAtData(ylevel,nitemsdrop);
         if(skipnext)
         {
             ++IPtr;
@@ -1072,7 +1093,7 @@ void LIB_HANDLER()
                 y&=7;
                 if(y==0) { argY=IPtr+1; skipnext=1; }
                 else {
-                    if(DSTop-y<DStkBottom) {
+                    if(DSTop-y<DStkProtect) {
                     rplError(ERR_BADSTACKINDEX);
                     return;
                 } else argY=DSTop[-y];
@@ -1089,7 +1110,7 @@ void LIB_HANDLER()
                 z&=7;
                 if(z==0) { argZ=IPtr+1; skipnext=1; }
                 else {
-                    if(DSTop-z<DStkBottom) {
+                    if(DSTop-z<DStkProtect) {
                     rplError(ERR_BADSTACKINDEX);
                     return;
                 } else argZ=DSTop[-z];
@@ -1104,7 +1125,7 @@ void LIB_HANDLER()
                 d&=7;
                 if(d==0) { rplPushDataNoGrow((WORDPTR)zero_bint); destD=DSTop-1; }
                 else {
-                    if(DSTop-d<DStkBottom) {
+                    if(DSTop-d<DStkProtect) {
                     rplError(ERR_BADSTACKINDEX);
                     return;
                 } else destD=DSTop-d;
@@ -1187,7 +1208,7 @@ void LIB_HANDLER()
                 y&=7;
                 if(y==0) { argY=IPtr+1; skipnext=1; }
                 else {
-                    if(DSTop-y<DStkBottom) {
+                    if(DSTop-y<DStkProtect) {
                     rplError(ERR_BADSTACKINDEX);
                     return;
                 } else argY=DSTop[-y];
@@ -1204,7 +1225,7 @@ void LIB_HANDLER()
                 z&=7;
                 if(z==0) { argZ=IPtr+1; skipnext=1; }
                 else {
-                    if(DSTop-z<DStkBottom) {
+                    if(DSTop-z<DStkProtect) {
                     rplError(ERR_BADSTACKINDEX);
                     return;
                 } else argZ=DSTop[-z];
@@ -1219,7 +1240,7 @@ void LIB_HANDLER()
                 d&=7;
                 if(d==0) { rplError(ERR_INVALIDASMCODE); return; }
                 else {
-                    if(DSTop-d<DStkBottom) {
+                    if(DSTop-d<DStkProtect) {
                     rplError(ERR_BADSTACKINDEX);
                     return;
                 } else destD=DSTop-d;
@@ -1271,7 +1292,7 @@ void LIB_HANDLER()
             z&=7;
             if(z==0) { argZ=IPtr+1; skipnext=1; }
             else {
-                if(DSTop-z<DStkBottom) {
+                if(DSTop-z<DStkProtect) {
                 rplError(ERR_BADSTACKINDEX);
                 return;
             } else argZ=DSTop[-z];
@@ -1286,7 +1307,7 @@ void LIB_HANDLER()
             d&=7;
             if(d==0) { rplPushDataNoGrow((WORDPTR)zero_bint); destD=DSTop-1; }
             else {
-                if(DSTop-d<DStkBottom) {
+                if(DSTop-d<DStkProtect) {
                 rplError(ERR_BADSTACKINDEX);
                 return;
             } else destD=DSTop-d;
@@ -1349,6 +1370,110 @@ void LIB_HANDLER()
         }
         return;
     }
+
+    case ASM_MATH2 :
+    {
+        // IMPLEMENTS :R ?= CMD.Z
+        // CMD=Y= LITERAL REPRESENTING A MATH FUNCTION (SEE ASM_MATH_XXX CONSTANTS)
+
+        // GET THE ARGUMENT Y
+        BINT skipnext=0;
+        BINT ycmd;
+        if(ISLITERALY(CurOpcode)) ycmd=GETY(CurOpcode);
+        else {
+            rplError(ERR_INVALIDASMCODE);
+            return;
+        }
+
+        // GET ARGUMENT Z
+        WORDPTR argZ;
+        if(ISLITERALZ(CurOpcode)) argZ=numbers_table[GETZ(CurOpcode)];
+        else {
+        BINT z=GETZ(CurOpcode);
+        if(z&0x8) {
+            z&=7;
+            if(z==0) { argZ=IPtr+1; skipnext=1; }
+            else {
+                if(DSTop-z<DStkProtect) {
+                rplError(ERR_BADSTACKINDEX);
+                return;
+            } else argZ=DSTop[-z];
+            }
+        } else argZ=GC_UserRegisters[z];
+        }
+
+        // GET ARGUMENT D
+        BINT d=GETD(CurOpcode);
+        WORDPTR *destD;
+        if(d&0x8) {
+            d&=7;
+            if(d==0) { rplPushDataNoGrow((WORDPTR)zero_bint); destD=DSTop-1; }
+            else {
+                if(DSTop-d<DStkProtect) {
+                rplError(ERR_BADSTACKINDEX);
+                return;
+            } else destD=DSTop-d;
+            }
+        } else destD=GC_UserRegisters+d;
+
+        BINT opcode;
+        switch(ASMSTO(CurOpcode))
+        {
+        default:
+        case ASMSTO_NOOP:
+            opcode=-1;
+            break;
+        case ASMSTO_STO:
+            opcode=0;
+            break;
+        case ASMSTO_STOADD:
+            opcode=CMD_OVR_ADD;
+            break;
+        case ASMSTO_STOSUB:
+            opcode=CMD_OVR_SUB;
+            break;
+        case ASMSTO_STOMUL:
+            opcode=CMD_OVR_MUL;
+            break;
+        case ASMSTO_STODIV:
+            opcode=CMD_OVR_DIV;
+            break;
+        }
+        // CALL THE OPERATION
+        rplPushDataNoGrow(argZ);
+
+        if(ISNUMBERCPLX(*argZ)) rplCallOperator(math2cmd_table[ycmd]);
+        else rplRunAtomic(math2cmd_table[ycmd]);
+        if(Exceptions) return;
+        if(opcode==-1) {
+                    // ONLY UPDATE THE FLAGS WITH THE RESULT, IF THE RESULT IS NUMERIC
+                    if(rplIsFalse(DSTop[-1])) rplSetSystemFlag(FL_ASMZERO);
+                    else rplClrSystemFlag(FL_ASMZERO);
+                    if(rplIsNegative(DSTop[-1])) rplSetSystemFlag(FL_ASMNEG);
+                    else rplClrSystemFlag(FL_ASMNEG);
+                    rplDropData(1);
+                    if(skipnext) {
+                        ++IPtr;
+                        CurOpcode=*IPtr;
+                    }
+                    return;
+        }
+        if(opcode) {
+            rplPushDataNoGrow(DSTop[-1]);
+            DSTop[-2]=*destD;
+        if(ISNUMBERCPLX(*DSTop[-1]) && ISNUMBERCPLX(**destD)) rplCallOvrOperator(opcode);
+        else rplRunAtomic(opcode);
+        if(Exceptions) return;
+        }
+        *destD=rplPopData();
+        if(skipnext) {
+            ++IPtr;
+            CurOpcode=*IPtr;
+        }
+        return;
+    }
+
+
 
     case ASM_LOOP:
     {
@@ -1504,7 +1629,7 @@ void LIB_HANDLER()
             d&=7;
             if(d==0) { rplPushDataNoGrow((WORDPTR)zero_bint); destD=DSTop-1; }
             else {
-                if(DSTop-d<DStkBottom) {
+                if(DSTop-d<DStkProtect) {
                 rplError(ERR_BADSTACKINDEX);
                 return;
             } else destD=DSTop-d;
@@ -1651,7 +1776,255 @@ void LIB_HANDLER()
         return;
     }
 
+    case ASM_SGET  :
+    {
+        // IMPLEMENTS :R?=SGET.Y  where:
+        // R=register to receive a stack value
+        // Y=stack level (literal or register with valid stack index #)
 
+        // EXAMPLE: :A+=SGET.B --> A+=Lvl(B)
+
+
+        // GET THE ARGUMENT Y
+        BINT skipnext=0;
+        BINT ylevel;
+
+        if(ISLITERALY(CurOpcode)) ylevel=GETY(CurOpcode);
+        else {
+        BINT y=GETY(CurOpcode);
+        if(y&0x8) {
+            y&=7;
+            if(y==0) {
+                ylevel=rplReadNumberAsBINT(IPtr+1);
+                if(Exceptions) return;
+                skipnext=1;
+            }
+            else {
+                if(DSTop-y<DStkProtect) {
+                rplError(ERR_BADSTACKINDEX);
+                return;
+            } else {
+                    ylevel=rplReadNumberAsBINT(DSTop[-y]);
+                    if(Exceptions) return;
+                }
+            }
+        } else {
+            ylevel=rplReadNumberAsBINT(GC_UserRegisters[y]);
+            if(Exceptions) return;
+        }
+        }
+
+
+        // HERE ylevel IS THE STACK LEVEL TO COPY FROM
+        if((ylevel<1) || (DSTop-ylevel<DStkProtect)) {
+        rplError(ERR_BADSTACKINDEX);
+        return;
+        }
+
+
+        // GET ARGUMENT D
+        BINT d=GETD(CurOpcode);
+        WORDPTR *destD;
+        if(d&0x8) {
+            d&=7;
+            if(d==0) { rplPushDataNoGrow((WORDPTR)zero_bint); destD=DSTop-1; ++ylevel; }
+            else {
+                if(DSTop-d<DStkProtect) {
+                rplError(ERR_BADSTACKINDEX);
+                return;
+            } else destD=DSTop-d;
+            }
+        } else destD=GC_UserRegisters+d;
+
+        BINT opcode;
+        switch(ASMSTO(CurOpcode))
+        {
+        default:
+        case ASMSTO_NOOP:
+            opcode=-1;
+            break;
+        case ASMSTO_STO:
+            opcode=0;
+            break;
+        case ASMSTO_STOADD:
+            opcode=CMD_OVR_ADD;
+            break;
+        case ASMSTO_STOSUB:
+            opcode=CMD_OVR_SUB;
+            break;
+        case ASMSTO_STOMUL:
+            opcode=CMD_OVR_MUL;
+            break;
+        case ASMSTO_STODIV:
+            opcode=CMD_OVR_DIV;
+            break;
+        }
+
+        if(opcode==-1) {
+                    // ONLY UPDATE THE FLAGS WITH THE RESULT, IF THE RESULT IS NUMERIC
+                    if(rplIsFalse(DSTop[-ylevel])) rplSetSystemFlag(FL_ASMZERO);
+                    else rplClrSystemFlag(FL_ASMZERO);
+                    if(rplIsNegative(DSTop[-ylevel])) rplSetSystemFlag(FL_ASMNEG);
+                    else rplClrSystemFlag(FL_ASMNEG);
+                    if(skipnext) {
+                        ++IPtr;
+                        CurOpcode=*IPtr;
+                    }
+                    return;
+        }
+        if(opcode) {
+            rplPushDataNoGrow(*destD);
+            rplPushDataNoGrow(DSTop[-ylevel-1]);
+        if(ISNUMBERCPLX(*DSTop[-1]) && ISNUMBERCPLX(**destD)) rplCallOperator(opcode);
+        else rplRunAtomic(opcode);
+        if(Exceptions) return;
+        *destD=rplPopData();
+        }
+        else *destD=DSTop[-ylevel];
+        if(skipnext) {
+            ++IPtr;
+            CurOpcode=*IPtr;
+        }
+        return;
+
+    }
+
+
+    case ASM_SPUT  :
+    {
+        // IMPLEMENTS :R=SPUT.Y.Z  where:
+        // R=register to receive the old value from the stack
+        // Y=stack level (literal or register with valid stack index #)
+        // Z=register to store as new value for that stack position
+
+        // EXAMPLE: :A=SPUT.B.C --> A=Lvl(B), Lvl(B)=C
+
+        // GET THE ARGUMENT Y
+        BINT skipnext=0;
+        BINT ylevel;
+
+        if(ISLITERALY(CurOpcode)) ylevel=GETY(CurOpcode);
+        else {
+        BINT y=GETY(CurOpcode);
+        if(y&0x8) {
+            y&=7;
+            if(y==0) {
+                ylevel=rplReadNumberAsBINT(IPtr+1);
+                if(Exceptions) return;
+                skipnext=1;
+            }
+            else {
+                if(DSTop-y<DStkProtect) {
+                rplError(ERR_BADSTACKINDEX);
+                return;
+            } else {
+                    ylevel=rplReadNumberAsBINT(DSTop[-y]);
+                    if(Exceptions) return;
+                }
+            }
+        } else {
+            ylevel=rplReadNumberAsBINT(GC_UserRegisters[y]);
+            if(Exceptions) return;
+        }
+        }
+
+
+        // HERE ylevel IS THE OBJECT TO STORE IN THE STACK
+        if((ylevel<1) || (DSTop-ylevel<DStkProtect)) {
+        rplError(ERR_BADSTACKINDEX);
+        return;
+        }
+
+        // GET ARGUMENT Z
+        WORDPTR argZ;
+        if(ISLITERALZ(CurOpcode)) argZ=numbers_table[GETZ(CurOpcode)];
+        else {
+        BINT z=GETZ(CurOpcode);
+        if(z&0x8) {
+            z&=7;
+            if(z==0) { argZ=IPtr+1; skipnext=1; }
+            else {
+                if(DSTop-z<DStkProtect) {
+                rplError(ERR_BADSTACKINDEX);
+                return;
+            } else argZ=DSTop[-z];
+            }
+        } else argZ=GC_UserRegisters[z];
+        }
+
+
+
+        // GET ARGUMENT D
+        BINT d=GETD(CurOpcode);
+        WORDPTR *destD;
+        if(d&0x8) {
+            d&=7;
+            if(d==0) { rplPushDataNoGrow((WORDPTR)zero_bint); destD=DSTop-1; ++ylevel; }
+            else {
+                if(DSTop-d<DStkProtect) {
+                rplError(ERR_BADSTACKINDEX);
+                return;
+            } else destD=DSTop-d;
+            }
+        } else destD=GC_UserRegisters+d;
+
+        BINT opcode;
+        switch(ASMSTO(CurOpcode))
+        {
+        default:
+        case ASMSTO_NOOP:
+            opcode=-1;
+            break;
+        case ASMSTO_STO:
+            opcode=0;
+            break;
+        case ASMSTO_STOADD:
+            opcode=CMD_OVR_ADD;
+            break;
+        case ASMSTO_STOSUB:
+            opcode=CMD_OVR_SUB;
+            break;
+        case ASMSTO_STOMUL:
+            opcode=CMD_OVR_MUL;
+            break;
+        case ASMSTO_STODIV:
+            opcode=CMD_OVR_DIV;
+            break;
+        }
+
+        if(opcode==-1) {
+                    // ONLY UPDATE THE FLAGS WITH THE RESULT, IF THE RESULT IS NUMERIC
+                    if(rplIsFalse(DSTop[-ylevel])) rplSetSystemFlag(FL_ASMZERO);
+                    else rplClrSystemFlag(FL_ASMZERO);
+                    if(rplIsNegative(DSTop[-ylevel])) rplSetSystemFlag(FL_ASMNEG);
+                    else rplClrSystemFlag(FL_ASMNEG);
+                    DSTop[-ylevel]=argZ;
+                    if(skipnext) {
+                        ++IPtr;
+                        CurOpcode=*IPtr;
+                    }
+                    return;
+        }
+        if(opcode) {
+            rplPushDataNoGrow(*destD);
+            rplPushDataNoGrow(DSTop[-ylevel-1]);
+        if(ISNUMBERCPLX(*DSTop[-1]) && ISNUMBERCPLX(**destD)) rplCallOperator(opcode);
+        else rplRunAtomic(opcode);
+        if(Exceptions) return;
+        *destD=rplPopData();
+        }
+        else *destD=DSTop[-ylevel];
+
+
+        DSTop[-ylevel]=argZ;
+
+        if(skipnext)
+        {
+            ++IPtr;
+            CurOpcode=*IPtr;
+        }
+        return;
+    }
     default:
 
     switch(OPCODE(CurOpcode))
@@ -1990,69 +2363,101 @@ void LIB_HANDLER()
                  BINT y=(op>>4)&0xf;
                  switch(y)
                  {
+                 case  ASM_MATH_IP:
+                     rplDecompAppendString((BYTEPTR)"IP");
+                     break;
                  case  ASM_MATH_LN:
-                     rplDecompAppendString((BYTEPTR)"LN.");
+                     rplDecompAppendString((BYTEPTR)"LN");
                      break;
                  case  ASM_MATH_EXP:
-                     rplDecompAppendString((BYTEPTR)"EXP.");
+                     rplDecompAppendString((BYTEPTR)"EXP");
                      break;
 
                  case  ASM_MATH_SQRT:
-                     rplDecompAppendString((BYTEPTR)"SQRT.");
+                     rplDecompAppendString((BYTEPTR)"SQRT");
                      break;
 
                  case  ASM_MATH_SIN:
-                     rplDecompAppendString((BYTEPTR)"SIN.");
+                     rplDecompAppendString((BYTEPTR)"SIN");
                      break;
 
                  case  ASM_MATH_COS:
-                     rplDecompAppendString((BYTEPTR)"COS.");
+                     rplDecompAppendString((BYTEPTR)"COS");
                      break;
 
                  case  ASM_MATH_TAN:
-                     rplDecompAppendString((BYTEPTR)"TAN.");
+                     rplDecompAppendString((BYTEPTR)"TAN");
                      break;
 
                  case  ASM_MATH_ASIN:
-                     rplDecompAppendString((BYTEPTR)"ASIN.");
+                     rplDecompAppendString((BYTEPTR)"ASIN");
                      break;
 
                  case  ASM_MATH_ACOS:
-                     rplDecompAppendString((BYTEPTR)"ACOS.");
+                     rplDecompAppendString((BYTEPTR)"ACOS");
                      break;
 
                  case  ASM_MATH_ATAN:
-                     rplDecompAppendString((BYTEPTR)"ATAN.");
+                     rplDecompAppendString((BYTEPTR)"ATAN");
                      break;
 
                  case  ASM_MATH_SINH:
-                     rplDecompAppendString((BYTEPTR)"SINH.");
+                     rplDecompAppendString((BYTEPTR)"SINH");
                      break;
 
                  case  ASM_MATH_COSH:
-                     rplDecompAppendString((BYTEPTR)"COSH.");
+                     rplDecompAppendString((BYTEPTR)"COSH");
                      break;
 
                  case  ASM_MATH_TANH:
-                     rplDecompAppendString((BYTEPTR)"TANH.");
+                     rplDecompAppendString((BYTEPTR)"TANH");
                      break;
 
                  case  ASM_MATH_ASINH:
-                     rplDecompAppendString((BYTEPTR)"ASINH.");
+                     rplDecompAppendString((BYTEPTR)"ASINH");
                      break;
 
                  case  ASM_MATH_ACOSH:
-                     rplDecompAppendString((BYTEPTR)"ACOSH.");
+                     rplDecompAppendString((BYTEPTR)"ACOSH");
                      break;
 
                  case  ASM_MATH_ATANH:
-                     rplDecompAppendString((BYTEPTR)"ATANH.");
+                     rplDecompAppendString((BYTEPTR)"ATANH");
                      break;
 
 
                  }
                  break;
              }
+
+             case  ASM_MATH2:
+             {
+                 noy=1;
+
+                 BINT y=(op>>4)&0xf;
+                 switch(y)
+                 {
+                 case  ASM_MATH2_FP:
+                     rplDecompAppendString((BYTEPTR)"FP");
+                     break;
+                 case  ASM_MATH2_ABS:
+                     rplDecompAppendString((BYTEPTR)"ABS");
+                     break;
+                 case  ASM_MATH2_ARG:
+                     rplDecompAppendString((BYTEPTR)"ARG");
+                     break;
+                 case  ASM_MATH2_RE:
+                     rplDecompAppendString((BYTEPTR)"RE");
+                     break;
+                 case  ASM_MATH2_IM:
+                     rplDecompAppendString((BYTEPTR)"IM");
+                     break;
+
+                 }
+                 break;
+             }
+
+
              case  ASM_LOOP:
                  noz=1;
                  yflags=1;
@@ -2090,6 +2495,13 @@ void LIB_HANDLER()
                  break;
              case ASM_CLR:
                  rplDecompAppendString((BYTEPTR)"CLR.");
+                 break;
+             case  ASM_SGET:
+                 noz=1;
+                 rplDecompAppendString((BYTEPTR)"SGET.");
+                 break;
+             case  ASM_SPUT:
+                 rplDecompAppendString((BYTEPTR)"SPUT.");
                  break;
 
 
