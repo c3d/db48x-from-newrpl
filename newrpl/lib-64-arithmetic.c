@@ -3670,7 +3670,7 @@ case PROOT:
                     return;
                 }
 
-                if(iszeroReal(&re) || (intdigitsReal(&re)<-Context.precdigits)) {
+                if(iszeroReal(&re) || (intdigitsReal(&re)<-Context.precdigits+(Context.precdigits>>3))) {
                     // THE CURRENT ROOT HAS MULTIPLICITY
                     rplPushData(rplPeekData(1));
 
