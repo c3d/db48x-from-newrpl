@@ -303,8 +303,7 @@ FORMS    += mainwindow.ui \
     usbselector.ui
 
 RESOURCES += \
-    annunciators.qrc \
-    qml.qrc
+    annunciators.qrc
 
 
 
