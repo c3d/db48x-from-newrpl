@@ -1599,7 +1599,9 @@ void USBThread::run()
         if(__usb_paused==0) usb_irqservice();
         else if(__usb_paused>0) __usb_paused=-__usb_paused;     // SIGNAL THAT THE PAUSE WAS ACKNOWLEDGED BY MAKING IT NEGATIVE
 
+        qint64 oldsystmr=__pcsystmr;
         __pcsystmr=timer.elapsed()*100;
+        if(__pcsystmr<=oldsystmr) { qDebug() << QString("Tmr=")+QString::number(__pcsystmr,10); }
 
         if(__tmr_singleshot_running) {
             if(__tmr1_msec) __tmr1_msec--;

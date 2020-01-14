@@ -2146,3 +2146,233 @@ matrix[1]=MATMKSIZE(rows,rows);
 return matrix;
 
 }
+
+// COMPOSES A NEW ZERO MATRIX/VECTOR OBJECT
+
+WORDPTR rplMatrixZero(BINT rows,BINT cols)
+{
+BINT k;
+if((rows<0) || (rows>65535) || (cols<1) || (cols>65535) ) {
+    rplError(ERR_INVALIDDIMENSION);
+    return 0;
+}
+
+BINT isvector=(rows==0)? 1:0;
+
+if(isvector) rows=1;
+WORDPTR matrix=rplAllocTempOb(1+rows*cols+1);
+WORDPTR newobj=matrix+2+rows*cols;  // POINT TO THE NEXT OBJECT TO STORE
+if(!matrix) return 0;
+
+matrix[0]=MKPROLOG(DOMATRIX,1+rows*cols+1);
+matrix[1]=MATMKSIZE(rows-isvector,cols);
+newobj[0]=MAKESINT(0);
+
+// FILL MATRIX WITH ZEROS
+for(k=0;k<rows*cols;++k) matrix[2+k]=newobj-matrix;
+
+return matrix;
+
+}
+
+
+// QR IMPLICIT ALGORITHM BY HOUSEHOLDER REFLECTIONS
+// WORKS ON MATRIX a EXPLODED IN THE STACK
+// a POINTS TO THE MATRIX ON THE STACK, WITH ELEMENTS
+// IMMEDIATELY AFTER
+// RETURNS THE SAME MATRIX WITH ALTERED ELEMENTS
+// EXPLODED IN THE STACK
+// ADDS AN EXPLODED VECTOR TO THE STACK WITH THE EIGENVALUES (NROWS ELEMENTS + 1 PLACEHOLDER FOR THE VECTOR ITSELF)
+
+// RETURNS AMATRIX WITH:
+// [ qii rij ... ... rin ]
+// [ ... qii rij ... rin ]
+// [ ... ... qmm ... rmn ]
+// THE VECTOR ON THE STACK HAS [ rii ... rmm ]
+
+void rplMatrixQREx(WORDPTR *a,BINT rowsa,BINT colsa)
+{
+    BINT i,j,k;
+
+/* ALGORITHM:
+for j:= 1 to n do begin
+        s:= 0;
+        for i:=j to m do s:=s+aij^2;
+        s:= sqrt(s);
+        dj:= if ajj>0 then −s else s;
+        fak := sqrt(s∗(s+ abs(ajj)));
+        ajj:=ajj−dj;
+        for k:=j to m do akj:=akj/fak;
+        for i:=j+1 to n do begin
+                s:= 0;
+                for k:=j to m do s:=s+akj∗aki;
+                for k:=j to m do aki:=aki−akj∗s;
+        endfor i;
+endfor j;
+*/
+
+// CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
+// a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
+#define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
+#define VECTELEM(c) diagv[(c)]
+//   STORE THE EIGENVALUE VECTOR d ON THE STACK AS WELL
+     WORDPTR *diagv=DSTop;
+     WORDPTR vector=rplMatrixZero(0,rowsa);
+     if(!vector) return;
+     rplPushDataNoGrow(vector); // PLACEHOLDER FOR THE VECTOR OBJECT
+     rplExpandStack(rowsa);
+     if(Exceptions) return;
+     for(k=1;k<=rowsa;++k) rplPushDataNoGrow((WORDPTR)zero_bint);   // ALL ELEMENTS OF THE VECTOR
+
+
+//    for j:= 1 to n do begin
+    for(j=1;j<=colsa;++j)
+    {
+     //     s:= 0;
+        rplPushData((WORDPTR)zero_bint);
+     //     for i:=j to m do s:=s+a2ij;
+        for(k=j;k<=rowsa;++k) {
+            rplPushDataNoGrow(STACKELEM(k,j));
+            rplPushDataNoGrow(STACKELEM(k,j));
+            rplCallOvrOperator(CMD_OVR_MUL);
+            if(Exceptions) return;
+            rplCallOvrOperator(CMD_OVR_ADD);
+            if(Exceptions) return;
+        }
+        //   s:= sqrt(s);
+        rplCallOperator(CMD_SQRT);
+        if(Exceptions) return;
+
+        //    fak := sqrt(s∗(s+ abs(ajj)));
+        rplPushDataNoGrow(STACKELEM(j,j));
+        rplCallOvrOperator(CMD_OVR_ABS);
+        if(Exceptions) return;
+        rplPushDataNoGrow(rplPeekData(2));  // s
+        rplCallOvrOperator(CMD_OVR_ADD);
+        if(Exceptions) return;
+        rplPushDataNoGrow(rplPeekData(2));  // s
+        rplCallOvrOperator(CMD_OVR_MUL);
+        if(Exceptions) return;
+        rplCallOperator(CMD_SQRT);
+        if(Exceptions) return;
+
+        // Terminate if fak==0
+        if(rplIsFalse(rplPeekData(1)))
+            return;    // SHOULD WE CLEANUP SOME ELEMENTS BEFORE?
+
+        //  dj:= if ajj>0 then −s else s;
+        //  ajj:=ajj−dj;
+        rplPushDataNoGrow(STACKELEM(j,j));
+        rplPushDataNoGrow(rplPeekData(3));  // s
+        // FOR COMPLEX NUMBERS THIS WILL ALWAYS ADD s
+        if(!rplIsNegative(STACKELEM(j,j))) {
+            rplCallOvrOperator(CMD_OVR_NEG);
+            if(Exceptions) return;
+        }
+        VECTELEM(j)=rplPeekData(1);
+        rplCallOvrOperator(CMD_OVR_SUB);
+        if(Exceptions) return;
+        STACKELEM(j,j)=rplPopData();
+
+        // HERE THE STACK HAS L2-->s AND L1-->fak
+
+        // for k:=j to m do akj:=akj/fak;
+        for(k=j;k<=rowsa;++k) {
+         rplPushDataNoGrow(STACKELEM(k,j));
+         rplPushDataNoGrow(rplPeekData(2));
+         rplCallOvrOperator(CMD_OVR_DIV);
+         if(Exceptions) return;
+         STACKELEM(k,j)=rplPopData();
+        }
+
+        rplDropData(2);
+
+        // for i:=j+1 to n do begin
+        for(i=j+1;i<=colsa;++i) {
+
+        //            s:= 0;
+            rplPushDataNoGrow((WORDPTR)zero_bint);
+
+        //            for k:=j to m do s:=s+akj∗aki;
+            for(k=j;k<rowsa;++k) {
+                rplPushDataNoGrow(STACKELEM(k,j));
+                rplPushDataNoGrow(STACKELEM(k,i));
+                rplCallOvrOperator(CMD_OVR_MUL);
+                if(Exceptions) return;
+                rplCallOvrOperator(CMD_OVR_ADD);
+                if(Exceptions) return;
+            }
+        //           for k:=j to m do aki:=aki−akj∗s;
+            for(k=j;k<rowsa;++k) {
+                rplPushDataNoGrow(STACKELEM(k,i));
+                rplPushDataNoGrow(STACKELEM(k,j));
+                rplPushDataNoGrow(rplPeekData(3));
+                rplCallOvrOperator(CMD_OVR_MUL);
+                if(Exceptions) return;
+                rplCallOvrOperator(CMD_OVR_SUB);
+                if(Exceptions) return;
+                STACKELEM(k,i)=rplPopData();
+            }
+
+            rplDropData(1); // DROP s
+         //   endfor i;
+        }
+
+    // endfor j;
+    }
+
+
+
+#undef STACKELEM
+#undef VECTELEM
+
+
+}
+
+// EXTRACT EXPLICIT MATRIX Q FROM IMPLICIT QR DECOMPOSITION
+// EXPECTS IMPLICIT QR MATRIX IN a, AND DIAGONAL VECTOR IN diag
+// RETURNS Q AS A MATRIX OBJECT
+
+WORDPTR rplMatrixQRGetQ(WORDPTR *a,BINT rowsa,BINT colsa,WORDPTR *diagv)
+{
+    // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
+    // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
+#define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
+#define VECTELEM(c) diagv[(c)]
+
+WORDPTR *stksave=DSTop;
+BINT i,j,k;
+
+for(i=1;i<=rowsa;++i) {
+
+
+for(j=1;j<=colsa;++j)
+{
+    rplPushDataNoGrow((i==j)? (WORDPTR)one_bint:(WORDPTR)zero_bint);
+   for(k=j;k<=rowsa;++k)
+   {
+       rplPushDataNoGrow(STACKELEM(i,j));   // s=aij;
+       rplPushDataNoGrow(STACKELEM(k,j));
+       rplCallOvrOperator(CMD_OVR_MUL);
+       if(Exceptions) { DSTop=stksave; return 0; }
+       rplCallOvrOperator(CMD_OVR_ADD);     // ek=ek+akj*aij;
+       if(Exceptions) { DSTop=stksave; return 0; }
+    }
+}
+
+}
+
+#undef STACKELEM
+#undef VECTELEM
+
+WORDPTR newmat=rplMatrixCompose(rowsa,colsa);
+if(!newmat) { DSTop=stksave; return 0; }
+rplPushDataNoGrow(newmat);
+rplMatrixTranspose();
+newmat=rplPopData();
+ DSTop=stksave;
+if(Exceptions || (!newmat)) return 0;
+return newmat;
+
+}
+

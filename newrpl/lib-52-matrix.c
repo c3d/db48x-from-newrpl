@@ -4008,7 +4008,46 @@ void LIB_HANDLER()
 
         case QR:
     {
-        // TODO:
+        //@SHORT_DESC=QR Decomposition of a matrix
+
+            if(rplDepthData()<1) {
+                rplError(ERR_BADARGCOUNT);
+                return;
+            }
+            rplStripTagStack(1);
+
+            WORDPTR *a=DSTop-1,*savestk=DSTop;
+
+            if(!ISMATRIX(**a)) {
+                rplError(ERR_MATRIXEXPECTED);
+                return;
+            }
+
+            BINT rows,cols;
+            rows=rplMatrixRows(*a);
+            cols=rplMatrixCols(*a);
+
+            rplMatrixExplode();
+            if(Exceptions) return;
+
+            // HERE WE HAVE ALL ELEMENTS OF THE MATRIX ALREADY EXPLODED
+            rplMatrixQREx(a,rows,cols);
+
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+            WORDPTR q=rplMatrixQRGetQ(a,rows,cols,DSTop-rows);
+
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+
+            DSTop=savestk;
+            rplOverwriteData(1,q);
+
         return;
     }
 

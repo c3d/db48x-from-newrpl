@@ -90,7 +90,7 @@ if(__cpu_idle==1) __cpu_idle=0;
 int __attribute__ ((noinline)) cpu_getlock(int lockvar,volatile int *lock_ptr)
 {
 int tmp=*lock_ptr;
-if(tmp) *lock_ptr=lockvar;
+if(!tmp) *lock_ptr=lockvar;
 return tmp;
 // TODO: IMPLEMENT THIS ONE IN QT
 }
