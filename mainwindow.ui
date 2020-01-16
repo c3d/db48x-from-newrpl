@@ -177,7 +177,7 @@ border-width: 0px;</string>
     <addaction name="actionSave"/>
     <addaction name="actionSaveAs"/>
     <addaction name="separator"/>
-    <addaction name="actionExit"/>
+    <addaction name="actionExit2"/>
    </widget>
    <widget class="QMenu" name="menuHardware">
     <property name="title">
@@ -258,7 +258,7 @@ border-width: 0px;</string>
     <string>New</string>
    </property>
   </action>
-  <action name="actionExit">
+  <action name="actionExit2">
    <property name="text">
     <string>Exit</string>
    </property>
@@ -366,7 +366,7 @@ border-width: 0px;</string>
  <resources/>
  <connections>
   <connection>
-   <sender>actionExit</sender>
+   <sender>actionExit2</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>close()</slot>
@@ -376,8 +376,8 @@ border-width: 0px;</string>
      <y>-1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>199</x>
-     <y>149</y>
+     <x>291</x>
+     <y>449</y>
     </hint>
    </hints>
   </connection>

@@ -400,7 +400,7 @@ void __irq_mask(int service_number);
 void __irq_unmask(int service_number);
 
 
-#endif 
+
 
 
 
@@ -1119,6 +1119,7 @@ void usb_releasereport();
 int usb_isconnected();
 int usb_isconfigured();
 int usb_hasdata();
+int usb_waitfordata(int nbytes);
 
 int usb_txfileopen(int file_type);
 int usb_filewrite(int fileid, BYTEPTR data, int nbytes);
@@ -1312,3 +1313,4 @@ void uiDrawBitmap(WORDPTR bmp,DRAWSURFACE *scr);
 
 
 #include <fsystem.h>
+#endif

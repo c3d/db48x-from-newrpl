@@ -4,6 +4,9 @@
 * This file is released under the 3-clause BSD license.
 * See the file LICENSE.txt that shipped with this distribution.
 */
+#ifndef _SDDRIVER_H
+#define _SDDRIVER_H
+
 
 #ifndef TRUE
 #define TRUE    1
@@ -94,3 +97,4 @@ int SDDRead(uint64_t SDAddr, int NumBytes, unsigned char *buffer, SD_CARD *card)
 int SDCardInit(SD_CARD * card);
 int SDDWrite(uint64_t SDAddr,int NumBytes,unsigned char *buffer, SD_CARD *card);
 
+#endif

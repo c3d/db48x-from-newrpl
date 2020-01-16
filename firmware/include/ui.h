@@ -42,18 +42,10 @@ typedef uint32_t PTR2NUMBER;
 // ONLY THE MATCHING LANGUAGE WILL BE COMPILED AND INCLUDED
 #define UI_LANG_ENGLISH 1
 
-#ifndef _GGL_H
 #include <ggl.h>
-#endif
-#ifndef UTF8LIB_H
 #include <utf8lib.h>
-#endif
-#ifndef FIRMWARE_H
 #include <firmware.h>
-#endif
-#ifndef _HAL_API_H
 #include <hal_api.h>
-#endif
 
 
 // COMMAND LINE

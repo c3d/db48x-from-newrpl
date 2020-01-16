@@ -2,7 +2,7 @@ import QtQuick 2.9
 import QtQuick.Controls 2.3
 Drawer {
             Menu {
-            title: "File"
+            title: "Fiiiile"
             Action {
                 text: "Power On"
                 onTriggered: mymainWindow.on_actionPower_ON_triggered();

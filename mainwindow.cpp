@@ -840,6 +840,7 @@ void MainWindow::on_actionCut_Level_1_triggered()
     Stack2Clipboard(1,1);
 
     __cpu_idle=0;   // LET GO THE SIMULATOR
+    halScreenUpdated();
 }
 
 void MainWindow::on_actionSave_Level_1_As_triggered()
@@ -901,6 +902,7 @@ void MainWindow::on_actionOpen_file_to_Level_1_triggered()
     }
 
     __cpu_idle=0;   // LET GO THE SIMULATOR
+    halScreenUpdated();
 
 
 }
@@ -908,6 +910,7 @@ void MainWindow::on_actionOpen_file_to_Level_1_triggered()
 void MainWindow::on_actionConnect_to_calc_triggered()
 {
   ui->USBDockSelect->setVisible(true);
+  halScreenUpdated();
 }
 
 void MainWindow::usbupdate()
@@ -1026,6 +1029,7 @@ void MainWindow::on_usbconnectButton_clicked()
 
     __cpu_idle=0;
 
+    halScreenUpdated();
 
 
 }
@@ -1194,6 +1198,7 @@ void MainWindow::on_actionRemote_USBRESTORE_from_file_triggered()
 
         __cpu_idle=0;
 
+        halScreenUpdated();
 
 
         if(nwords==-1) {
@@ -1351,6 +1356,9 @@ void MainWindow::SaveFile(QString fname)
 void MainWindow::on_actionShow_LCD_grid_toggled(bool arg1)
 {
     ui->EmuScreen->BkgndPen.setStyle((arg1)? Qt::SolidLine : Qt::NoPen);
+
+    halScreenUpdated();
+
 
 }
 
@@ -1550,7 +1558,7 @@ void MainWindow::contextMenuEvent(QContextMenuEvent *event)
     ui->menuFile->setStyleSheet(menufilestyle);
     ui->menuStack->setStyleSheet(menustkstyle);
     ui->menuHardware->setStyleSheet(menuhardstyle);
-    event->accept();
+    if(event) event->accept();
   }
 
 void MainWindow::on_actionPaste_and_compile_triggered()
@@ -1565,6 +1573,9 @@ void MainWindow::on_actionPaste_and_compile_triggered()
     Clipboard2StackCompile();
 
     __cpu_idle=0;   // LET GO THE SIMULATOR
+
+    halScreenUpdated();
+
 
 }
 
@@ -1599,9 +1610,8 @@ void USBThread::run()
         if(__usb_paused==0) usb_irqservice();
         else if(__usb_paused>0) __usb_paused=-__usb_paused;     // SIGNAL THAT THE PAUSE WAS ACKNOWLEDGED BY MAKING IT NEGATIVE
 
-        qint64 oldsystmr=__pcsystmr;
+
         __pcsystmr=timer.elapsed()*100;
-        if(__pcsystmr<=oldsystmr) { qDebug() << QString("Tmr=")+QString::number(__pcsystmr,10); }
 
         if(__tmr_singleshot_running) {
             if(__tmr1_msec) __tmr1_msec--;
