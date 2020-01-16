@@ -161,7 +161,7 @@ void LIB_HANDLER()
         // CHECK IF THE TAG IS VALID: IT MAY CONTAIN NO SPACES AND NO COLONS
 
         BINT len=rplStrLen(rplPeekData(2));
-        BYTEPTR ptr=(BYTEPTR)(rplPeekData(2)+1);
+        //BYTEPTR ptr=(BYTEPTR)(rplPeekData(2)+1);
 
         if(len<1) {
             rplError(ERR_INVALIDTAG);
@@ -236,7 +236,7 @@ void LIB_HANDLER()
             return;
             }
             // IF WE'VE BEEN HERE BEFORE, THEN WE ARE INSIDE THE TAG ITSELF
-            if(CurrentConstruct==MKPROLOG(LIBRARY_NUMBER,0)) {
+            if(CurrentConstruct==(UBINT)MKPROLOG(LIBRARY_NUMBER,0)) {
                 // NEED TO MANUALLY COMPILE THE STRING
                 BINT nbytes=(BYTEPTR)BlankStart-(BYTEPTR)TokenStart-1;
                 BINT lastword=nbytes&3;

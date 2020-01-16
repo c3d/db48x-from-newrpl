@@ -353,7 +353,6 @@ void rplListBinaryNoResultDoCmd()
             rplError(ERR_INVALIDLISTSIZE);
             return;
         }
-        WORDPTR *savestk=DSTop;
         WORDPTR newobj=rplAllocTempOb(5);
         if(!newobj) return;
         // CREATE A PROGRAM AND RUN THE DOLIST COMMAND

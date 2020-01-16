@@ -17,6 +17,11 @@ public:
 
     FWThread(QObject *parent);
     ~FWThread();
+
+signals:
+    void FirmwareUpdateError(QString message);
+
+
 };
 
 #define MAX_DIALOG_DEVICES 50
@@ -54,11 +59,15 @@ private slots:
     void finishedupdate();
     void updateprogress();
 
+    void on_Error(QString message);
+
     virtual void reject();
+
 
 
 private:
     Ui::USBSelector *ui;
+
 };
 
 #endif // USBSELECTOR_H

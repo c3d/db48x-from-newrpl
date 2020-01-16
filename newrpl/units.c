@@ -1388,12 +1388,12 @@ if(!ISUNIT(*unitobj)) {
         {
         case ANGLEDEG:
             rplOverwriteData(1,unitobj+1);
-            rplPushData(&system_unit_names[DEG_IDENT]);
+            rplPushData((WORDPTR)&system_unit_names[DEG_IDENT]);
             break;
 
         case ANGLEGRAD:
             rplOverwriteData(1,unitobj+1);
-            rplPushData(&system_unit_names[GRAD_IDENT]);
+            rplPushData((WORDPTR)&system_unit_names[GRAD_IDENT]);
             break;
         case ANGLEDMS:
             rplConvertAngleObj(unitobj,ANGLEDEG);
@@ -1401,12 +1401,12 @@ if(!ISUNIT(*unitobj)) {
             WORDPTR newang=rplNewReal(&RReg[0]);
             if(!newang) { DSTop=savestk; return 0; }
             rplOverwriteData(1,newang);
-            rplPushData(&system_unit_names[DEG_IDENT]);
+            rplPushData((WORDPTR)&system_unit_names[DEG_IDENT]);
             break;
         case ANGLERAD:
         default:
             rplOverwriteData(1,unitobj+1);
-            rplPushData(&system_unit_names[RAD_IDENT]);
+            rplPushData((WORDPTR)&system_unit_names[RAD_IDENT]);
             break;
         }
             rplPushData((WORDPTR)one_bint);

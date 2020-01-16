@@ -424,7 +424,6 @@ void LIB_HANDLER()
     }
     rplStripTagStack(1);
     WORDPTR arg=rplPeekData(1);
-    WORDPTR *stksave=DSTop;
 
     if(ISLIST(*arg)) {
         rplListUnaryDoCmd();
@@ -1621,7 +1620,7 @@ case IPPOST:
         WORDPTR pct=rplPeekData(1);
         WORDPTR arg1=rplPeekData(2);
 
-        if(ISUNIT(arg1)) ++arg1;
+        if(ISUNIT(*arg1)) ++arg1;
 
         if(ISLIST(*arg1) || ISLIST(*pct)){
             rplListBinaryDoCmd();

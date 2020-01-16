@@ -342,12 +342,12 @@ BINT64 rplFindLibPtrIndex(BYTEPTR start,BYTEPTR end)
     if(!direntry) return -1;
 
     WORDPTR cmd,libend;
-    BINT idx,ncommands;
+    BINT idx;       //,ncommands;
 
     do {
 
         if(ISLIBRARY(*direntry[1])) {
-            ncommands=OPCODE(direntry[1][3]);
+            //ncommands=OPCODE(direntry[1][3]);
             idx=0;
             libend=rplSkipOb(direntry[1]);
 
@@ -394,7 +394,7 @@ BINT64 rplProbeLibPtrIndex(BYTEPTR start,BYTEPTR end,WORDPTR *cmdinfo)
     if(!direntry) return -1;
 
     WORDPTR cmd,libend;
-    BINT idx,ncommands;
+    BINT idx;       //,ncommands;
     BINT len,maxlen,chosenidx;
     WORD chosenlib;
     WORDPTR chosencmd;
@@ -404,7 +404,7 @@ BINT64 rplProbeLibPtrIndex(BYTEPTR start,BYTEPTR end,WORDPTR *cmdinfo)
     do {
 
         if(ISLIBRARY(*direntry[1])) {
-            ncommands=OPCODE(direntry[1][3]);
+            //ncommands=OPCODE(direntry[1][3]);
             idx=0;
             libend=rplSkipOb(direntry[1]);
 
@@ -1855,6 +1855,7 @@ void LIB_HANDLER()
                 BINT len;
 
                 if(ISIDENT(*cmdinfo)) len=utf8nlenst((char *)(cmdinfo+1),(char *)(cmdinfo+1)+rplGetIdentLength(cmdinfo));
+                else len=0;
 
                 nargs>>=8;
 

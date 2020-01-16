@@ -52,7 +52,7 @@ typedef unsigned int (*ggloperator)(unsigned int dest,unsigned int source,int pa
 // IN ARM, A<<B WITH B>=32 = ZERO
 // IN X86, A<<B WITH B>=32 = A<<(B&31)
 
-#define ROT_LEFT(a,b) ( ((b)>=32)? 0:((a)<<(b)))
+#define ROT_LEFT(a,b) ( ((b)>=32)? 0:(((unsigned)a)<<(b)))
 #define ROT_RIGHT(a,b) ( ((b)>=32)? 0:((a)>>(b)))
 
 

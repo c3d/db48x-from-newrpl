@@ -2335,6 +2335,7 @@ endfor j;
 
 WORDPTR rplMatrixQRGetQ(WORDPTR *a,BINT rowsa,BINT colsa,WORDPTR *diagv)
 {
+    UNUSED_ARGUMENT(diagv);
     // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
     // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
 #define STACKELEM(r,c) a[((r)-1)*colsa+(c)]

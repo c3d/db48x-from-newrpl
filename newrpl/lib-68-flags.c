@@ -540,8 +540,7 @@ BINT rplTestSystemFlagByName(BYTEPTR name,BYTEPTR nameend)
                     BINT flag=flags_names[idx].flags[count]&0x7f;
                     BINT value=flags_names[idx].flags[count]>>7;
 
-                    WORDPTR low64=SystemFlags+2;
-                    WORDPTR hi64=SystemFlags+5;
+                    WORDPTR low64=SystemFlags+1;
                     BINT res;
                     flag--;
 

@@ -242,9 +242,9 @@ void LIB_HANDLER()
 
 
         // READ THE DATA AND PUT IT ON THE STACK
-        WORDPTR newobj=0,newobjptr;
+        WORDPTR newobj=0,newobjptr=0;
         WORD fileid;
-        BINT bytesread, needwords,expectedsize,allocated,offset;
+        BINT bytesread,allocated,offset=0;
 
 
         fileid=usb_rxfileopen();
@@ -284,7 +284,7 @@ void LIB_HANDLER()
             offset=newobjptr-newobj;
             bytesread=usb_fileread(fileid,(BYTEPTR)newobjptr,(allocated-offset)*sizeof(WORD));
             newobjptr+=(bytesread+3)>>2;
-            if(bytesread<(allocated-offset)*sizeof(WORD)) {
+            if(bytesread<(allocated-offset)*(BINT)sizeof(WORD)) {
 
                 if(bytesread==0) {
                     if(!usb_eof(fileid)) rplError(ERR_USBTIMEOUT);
@@ -311,7 +311,7 @@ void LIB_HANDLER()
         switch(usb_filetype(fileid))
         {
         case 'O':   // THIS IS AN RPL OBJECT
-            if(offset<rplObjSize(newobj)) {     // CHECK IF WE RECEIVED A COMPLETE OBJECT
+            if(offset<(BINT)rplObjSize(newobj)) {     // CHECK IF WE RECEIVED A COMPLETE OBJECT
                 rplError(ERR_USBINVALIDDATA);
                 return;
             }
@@ -392,9 +392,9 @@ void LIB_HANDLER()
         }
 
         // READ THE DATA AND PUT IT ON THE STACK
-        WORDPTR newobj=0,newobjptr;
+        WORDPTR newobj=0,newobjptr=0;
         WORD fileid;
-        BINT bytesread, needwords,expectedsize,allocated,offset;
+        BINT bytesread, allocated,offset=0;
 
 
         fileid=usb_rxfileopen();
@@ -434,7 +434,7 @@ void LIB_HANDLER()
             offset=newobjptr-newobj;
             bytesread=usb_fileread(fileid,(BYTEPTR)newobjptr,(allocated-offset)*sizeof(WORD));
             newobjptr+=(bytesread+3)>>2;
-            if(bytesread<(allocated-offset)*sizeof(WORD)) {
+            if(bytesread<(allocated-offset)*(BINT)sizeof(WORD)) {
 
                 if(bytesread==0) {
                     if(!usb_eof(fileid)) rplError(ERR_USBTIMEOUT);
@@ -461,7 +461,7 @@ void LIB_HANDLER()
         switch(usb_filetype(fileid))
         {
         case 'O':   // THIS IS AN RPL OBJECT
-            if(offset<rplObjSize(newobj)) {     // CHECK IF WE RECEIVED A COMPLETE OBJECT
+            if(offset<(BINT)rplObjSize(newobj)) {     // CHECK IF WE RECEIVED A COMPLETE OBJECT
                 rplError(ERR_USBINVALIDDATA);
                 return;
             }

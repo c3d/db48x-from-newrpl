@@ -2053,7 +2053,7 @@ void trig_acos(REAL *x,BINT angmode)
 
 
 
-
+/*
 static const BINT64 const powof10[19]={
     1000000000000000000LL,
     100000000000000000LL,
@@ -2075,7 +2075,7 @@ static const BINT64 const powof10[19]={
     10LL,
     1LL
 };
-
+*/
 // COMPUTE EXPONENTIAL OF ANY NUMBER WITHOUT USING TABLES
 // USES RREG 0 THRU 5
 

@@ -19,39 +19,39 @@ BINT halWaitForKey()
     int keymsg,wokeup;
 
     if(!(halFlags&HAL_FASTMODE) && (halBusyEvent>=0)) {
-    tmr_eventkill(halBusyEvent);
-    halBusyEvent=-1;
+        tmr_eventkill(halBusyEvent);
+        halBusyEvent=-1;
     }
 
     wokeup=0;
     do {
 
 
-    keymsg=keyb_getmsg();
+        keymsg=keyb_getmsg();
 
-    if(!keymsg) {
-    // FIRST: ENTER LOW SPEED MODE
-    // UPDATE RESPONSIVENESS FLAG
-    if(rplTestSystemFlag(FL_QUICKRESPONSE)) halFlags|=HAL_QUICKRESPONSE;
-    else halFlags&=~HAL_QUICKRESPONSE;
+        if(!keymsg) {
+            // FIRST: ENTER LOW SPEED MODE
+            // UPDATE RESPONSIVENESS FLAG
+            if(rplTestSystemFlag(FL_QUICKRESPONSE)) halFlags|=HAL_QUICKRESPONSE;
+            else halFlags&=~HAL_QUICKRESPONSE;
 
-    if(halFlags&HAL_FASTMODE) {
-    halCPUSlowMode();
-    halFlags&=~HAL_FASTMODE;
-    }
-    if(halFlags&HAL_HOURGLASS) {
-    halSetNotification(N_HOURGLASS,0);
-    halFlags&=~HAL_HOURGLASS;
-    halScreenUpdated();
-    }
+            if(halFlags&HAL_FASTMODE) {
+                halCPUSlowMode();
+                halFlags&=~HAL_FASTMODE;
+            }
+            if(halFlags&HAL_HOURGLASS) {
+                halSetNotification(N_HOURGLASS,0);
+                halFlags&=~HAL_HOURGLASS;
+                halScreenUpdated();
+            }
 
-    if(!keyb_wasupdated() && wokeup) return 0;   // ALLOW SCREEN REFRESH REQUESTED BY OTHER IRQ'S
+            if(!keyb_wasupdated() && wokeup) return 0;   // ALLOW SCREEN REFRESH REQUESTED BY OTHER IRQ'S
 
 
-    // LAST: GO INTO "WAIT FOR INTERRUPT"
-    cpu_waitforinterrupt();
-    wokeup=1;
-    }
+            // LAST: GO INTO "WAIT FOR INTERRUPT"
+            cpu_waitforinterrupt();
+            wokeup=1;
+        }
     } while(!keymsg);
 
 
@@ -71,8 +71,8 @@ BINT halWaitForKeyTimeout(BINT timeoutms)
     int keymsg,wokeup;
 
     if(!(halFlags&HAL_FASTMODE) && (halBusyEvent>=0)) {
-    tmr_eventkill(halBusyEvent);
-    halBusyEvent=-1;
+        tmr_eventkill(halBusyEvent);
+        halBusyEvent=-1;
     }
 
     wokeup=0;
@@ -88,37 +88,37 @@ BINT halWaitForKeyTimeout(BINT timeoutms)
     do {
 
 
-    keymsg=keyb_getmsg();
+        keymsg=keyb_getmsg();
 
-    if(!keymsg) {
-    // FIRST: ENTER LOW SPEED MODE
-    if(rplTestSystemFlag(FL_QUICKRESPONSE)) halFlags|=HAL_QUICKRESPONSE;
-    else halFlags&=~HAL_QUICKRESPONSE;
+        if(!keymsg) {
+            // FIRST: ENTER LOW SPEED MODE
+            if(rplTestSystemFlag(FL_QUICKRESPONSE)) halFlags|=HAL_QUICKRESPONSE;
+            else halFlags&=~HAL_QUICKRESPONSE;
 
-    if(halFlags&HAL_FASTMODE) {
-    halCPUSlowMode();
-    halFlags&=~HAL_FASTMODE;
-    }
-    if(halFlags&HAL_HOURGLASS) {
-    halSetNotification(N_HOURGLASS,0);
-    halFlags&=~HAL_HOURGLASS;
-    halScreenUpdated();
+            if(halFlags&HAL_FASTMODE) {
+                halCPUSlowMode();
+                halFlags&=~HAL_FASTMODE;
+            }
+            if(halFlags&HAL_HOURGLASS) {
+                halSetNotification(N_HOURGLASS,0);
+                halFlags&=~HAL_HOURGLASS;
+                halScreenUpdated();
 
-    }
+            }
 
-    if(wokeup)
-    {
-        if(halFlags&HAL_TIMEOUT) {
-            halFlags&=~HAL_TIMEOUT;
-            return -1;
+            if(wokeup)
+            {
+                if(halFlags&HAL_TIMEOUT) {
+                    halFlags&=~HAL_TIMEOUT;
+                    return -1;
+                }
+                return 0;   // ALLOW SCREEN REFRESH REQUESTED BY OTHER IRQ'S
+            }
+
+            // LAST: GO INTO "WAIT FOR INTERRUPT"
+            cpu_waitforinterrupt();
+            wokeup=1;
         }
-        return 0;   // ALLOW SCREEN REFRESH REQUESTED BY OTHER IRQ'S
-    }
-
-    // LAST: GO INTO "WAIT FOR INTERRUPT"
-    cpu_waitforinterrupt();
-    wokeup=1;
-    }
     } while(!keymsg);
 
 
@@ -141,7 +141,7 @@ BINT halWaitForKeyTimeout(BINT timeoutms)
 // SET THE KEYBOARD CONTEXT
 void halSetContext(BINT KeyContext)
 {
-halScreen.KeyContext=KeyContext;
+    halScreen.KeyContext=KeyContext;
 }
 
 // AND RETRIEVE
@@ -415,14 +415,14 @@ BINT endCmdLineAndCompile()
 
 void endCmdLine()
 {
-            // END ALPHA MODE
-            halSwapCmdLineMode(0);
-            keyb_setshiftplane(0,0,0,0);
+    // END ALPHA MODE
+    halSwapCmdLineMode(0);
+    keyb_setshiftplane(0,0,0,0);
 
-            // CLOSE COMMAND LINE DISCARDING CONTENTS
-            uiCloseCmdLine();
-            halSetCmdLineHeight(0);
-            halSetContext(halGetContext()& (~CONTEXT_INEDITOR));
+    // CLOSE COMMAND LINE DISCARDING CONTENTS
+    uiCloseCmdLine();
+    halSetCmdLineHeight(0);
+    halSetContext(halGetContext()& (~CONTEXT_INEDITOR));
 }
 
 
@@ -444,7 +444,7 @@ void numberKeyHandler(BINT keymsg)
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
         else uiOpenCmdLine('D');
-        }
+    }
     BINT number;
     switch(KM_KEY(keymsg))
     {
@@ -479,117 +479,117 @@ void numberKeyHandler(BINT keymsg)
         number='0';
         break;
     }
-        uiInsertCharactersN((BYTEPTR) &number,((BYTEPTR) &number)+1);
-        uiAutocompleteUpdate();
+    uiInsertCharactersN((BYTEPTR) &number,((BYTEPTR) &number)+1);
+    uiAutocompleteUpdate();
 
 }
 
 void uiCmdRun(WORD Opcode)
 {
     WORDPTR obj=rplAllocTempObLowMem(2);
-if(obj) {
+    if(obj) {
 
 
-    // ENABLE UNDO
-    // PRESERVE obj IN CASE OF GC
-    ScratchPointer1=obj;
+        // ENABLE UNDO
+        // PRESERVE obj IN CASE OF GC
+        ScratchPointer1=obj;
 
-    rplRemoveSnapshot(halScreen.StkUndolevels+1);
-    rplRemoveSnapshot(halScreen.StkUndolevels);
-    if(halScreen.StkCurrentLevel!=1) rplTakeSnapshot();
-    halScreen.StkCurrentLevel=0;
-    obj=ScratchPointer1;
+        rplRemoveSnapshot(halScreen.StkUndolevels+1);
+        rplRemoveSnapshot(halScreen.StkUndolevels);
+        if(halScreen.StkCurrentLevel!=1) rplTakeSnapshot();
+        halScreen.StkCurrentLevel=0;
+        obj=ScratchPointer1;
 
-obj[0]=Opcode;
-obj[1]=CMD_ENDOFCODE;
-obj[2]=CMD_QSEMI;   // THIS IS FOR SAFETY REASONS
-rplSetEntryPoint(obj);
-BINT iseval=(Opcode==(CMD_OVR_XEQ)) || (Opcode==(CMD_OVR_EVAL)) || (Opcode==(CMD_OVR_EVAL1));
+        obj[0]=Opcode;
+        obj[1]=CMD_ENDOFCODE;
+        obj[2]=CMD_QSEMI;   // THIS IS FOR SAFETY REASONS
+        rplSetEntryPoint(obj);
+        BINT iseval=(Opcode==(CMD_OVR_XEQ)) || (Opcode==(CMD_OVR_EVAL)) || (Opcode==(CMD_OVR_EVAL1));
 
-if(iseval) {
-    // STORE THE OBJECT/OPCODE THAT MAY CAUSE AN EXCEPTION
-    if(rplDepthData()>0) BlameCmd=rplPeekData(1);
-    else BlameCmd=0;
-} else BlameCmd=0;
-    BINT rstksave=RSTop-RStk,lamsave=LAMTop-LAMs,nlambase=nLAMBase-LAMs;
-    BINT result=rplRun();
-    switch(result)
-    {
-
-    case CLEAN_RUN:
-    {
-        // SOMEBODY CALLED EXITRPL EXPLICITLY
-        // EVERYTHING WAS COMPLETELY CLEANED UP AND RESET
-        halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
-        break;
-    }
-    case NEEDS_CLEANUP:
-    {
-        // UNTRAPPED ERROR
-        // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
-        if(RSTop>=RStk+rstksave) {
-            RSTop=RStk+rstksave;
-            // BLAME THE ERROR ON THE COMMAND WE CALLED
-            if(!rplIsTempObPointer(ExceptionPointer)){
-                if(BlameCmd!=0) rplBlameError(BlameCmd);
-            }
-        }
-        else { rplCleanup(); halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME); }
-        if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
-        if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
-        break;
-    }
-
-
-    case CODE_HALTED:
-    {
-        // UNTRAPPED ERROR
-        // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
-        if(RSTop>RStk+rstksave)
+        if(iseval) {
+            // STORE THE OBJECT/OPCODE THAT MAY CAUSE AN EXCEPTION
+            if(rplDepthData()>0) BlameCmd=rplPeekData(1);
+            else BlameCmd=0;
+        } else BlameCmd=0;
+        BINT rstksave=RSTop-RStk,lamsave=LAMTop-LAMs,nlambase=nLAMBase-LAMs;
+        BINT result=rplRun();
+        switch(result)
         {
-            // THE CODE HALTED SOMEWHERE INSIDE!
-            halFlags|=HAL_HALTED;
-            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
-            if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
-            if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
 
-
-            if(Exceptions&EX_AUTORESUME) {
-                halFlags|=HAL_AUTORESUME;
-                Exceptions=0;
-            }
+        case CLEAN_RUN:
+        {
+            // SOMEBODY CALLED EXITRPL EXPLICITLY
+            // EVERYTHING WAS COMPLETELY CLEANED UP AND RESET
+            halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+            break;
         }
-        else {
-            if(RSTop<RStk+rstksave) {
-                // THIS CAN ONLY HAPPEN IF SOMEHOW
-                // THE CODE ESCAPED FROM THE SECONDARY
-                // WE CREATED, THIS CAN HAPPEN WHEN USING 'CONT'
-                // INSIDE A SECONDARY AND IT'S NOT NECESSARILY BAD
-                if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
-                if(HaltedIPtr) {
-                    halFlags|=HAL_HALTED;
-                    if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
-                    if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
-                    if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
-
-
-                    if(Exceptions&EX_AUTORESUME) {
-                        halFlags|=HAL_AUTORESUME;
-                        Exceptions=0;
-                    }
+        case NEEDS_CLEANUP:
+        {
+            // UNTRAPPED ERROR
+            // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
+            if(RSTop>=RStk+rstksave) {
+                RSTop=RStk+rstksave;
+                // BLAME THE ERROR ON THE COMMAND WE CALLED
+                if(!rplIsTempObPointer(ExceptionPointer)){
+                    if(BlameCmd!=0) rplBlameError(BlameCmd);
                 }
-                else {
-                    halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
-                    if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
-                    if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
-                    if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
-                }
+            }
+            else { rplCleanup(); halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME); }
+            if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
+            if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
+            break;
+        }
 
+
+        case CODE_HALTED:
+        {
+            // UNTRAPPED ERROR
+            // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
+            if(RSTop>RStk+rstksave)
+            {
+                // THE CODE HALTED SOMEWHERE INSIDE!
+                halFlags|=HAL_HALTED;
+                if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
+
+
+                if(Exceptions&EX_AUTORESUME) {
+                    halFlags|=HAL_AUTORESUME;
+                    Exceptions=0;
+                }
             }
             else {
-                // RETURN STACK WAS INTACT, IT HALTED AT OUR OWN SECONDARY
-                //if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
-                //if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
+                if(RSTop<RStk+rstksave) {
+                    // THIS CAN ONLY HAPPEN IF SOMEHOW
+                    // THE CODE ESCAPED FROM THE SECONDARY
+                    // WE CREATED, THIS CAN HAPPEN WHEN USING 'CONT'
+                    // INSIDE A SECONDARY AND IT'S NOT NECESSARILY BAD
+                    if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
+                    if(HaltedIPtr) {
+                        halFlags|=HAL_HALTED;
+                        if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                        if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                        if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
+
+
+                        if(Exceptions&EX_AUTORESUME) {
+                            halFlags|=HAL_AUTORESUME;
+                            Exceptions=0;
+                        }
+                    }
+                    else {
+                        halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                        if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                        if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                        if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
+                    }
+
+                }
+                else {
+                    // RETURN STACK WAS INTACT, IT HALTED AT OUR OWN SECONDARY
+                    //if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
+                    //if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
 
                     // DON'T ALTER THE INSTRUCTION POINTER OF THE HALTED PROGRAM
                     if(HaltedIPtr) {
@@ -613,122 +613,122 @@ if(iseval) {
                     rplClearErrors();
 
 
+                }
             }
+
+
+            break;
+        }
         }
 
-
-        break;
     }
-    }
-
-}
 
 }
 
 void uiCmdRunHide(WORD Opcode,BINT narguments)
 {
     WORDPTR obj=rplAllocTempObLowMem(2);
-if(obj) {
+    if(obj) {
 
-    ScratchPointer1=obj;
-    // ENABLE UNDO
-    rplRemoveSnapshot(halScreen.StkUndolevels+1);
-    rplRemoveSnapshot(halScreen.StkUndolevels);
-    if(halScreen.StkCurrentLevel!=1) rplTakeSnapshotHide(narguments);
-    halScreen.StkCurrentLevel=0;
-    obj=ScratchPointer1;
-
-
-obj[0]=Opcode;
-obj[1]=CMD_ENDOFCODE;
-obj[2]=CMD_QSEMI;   // THIS IS FOR SAFETY REASONS
-rplSetEntryPoint(obj);
-BINT iseval=(Opcode==(CMD_OVR_XEQ)) || (Opcode==(CMD_OVR_EVAL)) || (Opcode==(CMD_OVR_EVAL1));
-
-if(iseval) {
-    // STORE THE OBJECT/OPCODE THAT MAY CAUSE AN EXCEPTION
-    if(rplDepthData()>0) BlameCmd=rplPeekData(1);
-    else BlameCmd=0;
-} else BlameCmd=0;
-    BINT rstksave=RSTop-RStk,lamsave=LAMTop-LAMs,nlambase=nLAMBase-LAMs;
-    BINT result=rplRun();
-    switch(result)
-    {
-
-    case CLEAN_RUN:
-    {
-        // SOMEBODY CALLED EXITRPL EXPLICITLY
-        // EVERYTHING WAS COMPLETELY CLEANED UP AND RESET
-        halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
-        break;
-    }
-    case NEEDS_CLEANUP:
-    {
-        // UNTRAPPED ERROR
-        // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
-        if(RSTop>=RStk+rstksave) {
-            RSTop=RStk+rstksave;
-            // BLAME THE ERROR ON THE COMMAND WE CALLED
-            if(BlameCmd!=0) rplBlameError(BlameCmd);
-        }
-        else { rplCleanup(); halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME); }
-        if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
-        if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
-        break;
-    }
+        ScratchPointer1=obj;
+        // ENABLE UNDO
+        rplRemoveSnapshot(halScreen.StkUndolevels+1);
+        rplRemoveSnapshot(halScreen.StkUndolevels);
+        if(halScreen.StkCurrentLevel!=1) rplTakeSnapshotHide(narguments);
+        halScreen.StkCurrentLevel=0;
+        obj=ScratchPointer1;
 
 
-    case CODE_HALTED:
-    {
-        // UNTRAPPED ERROR
-        // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
-        if(RSTop>RStk+rstksave)
+        obj[0]=Opcode;
+        obj[1]=CMD_ENDOFCODE;
+        obj[2]=CMD_QSEMI;   // THIS IS FOR SAFETY REASONS
+        rplSetEntryPoint(obj);
+        BINT iseval=(Opcode==(CMD_OVR_XEQ)) || (Opcode==(CMD_OVR_EVAL)) || (Opcode==(CMD_OVR_EVAL1));
+
+        if(iseval) {
+            // STORE THE OBJECT/OPCODE THAT MAY CAUSE AN EXCEPTION
+            if(rplDepthData()>0) BlameCmd=rplPeekData(1);
+            else BlameCmd=0;
+        } else BlameCmd=0;
+        BINT rstksave=RSTop-RStk,lamsave=LAMTop-LAMs,nlambase=nLAMBase-LAMs;
+        BINT result=rplRun();
+        switch(result)
         {
-            // THE CODE HALTED SOMEWHERE INSIDE!
-            halFlags|=HAL_HALTED;
-            if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
-            if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
-            if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
 
-
-            if(Exceptions&EX_AUTORESUME) {
-                halFlags|=HAL_AUTORESUME;
-                Exceptions=0;
-            }
-
+        case CLEAN_RUN:
+        {
+            // SOMEBODY CALLED EXITRPL EXPLICITLY
+            // EVERYTHING WAS COMPLETELY CLEANED UP AND RESET
+            halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+            break;
         }
-        else {
-            if(RSTop<RStk+rstksave) {
-                // THIS CAN ONLY HAPPEN IF SOMEHOW
-                // THE CODE ESCAPED FROM THE SECONDARY
-                // WE CREATED, THIS CAN HAPPEN WHEN USING 'CONT'
-                // INSIDE A SECONDARY AND IT'S NOT NECESSARILY BAD
-                if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
-                if(HaltedIPtr) {
-                    halFlags|=HAL_HALTED;
-                    if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
-                    if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
-                    if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
+        case NEEDS_CLEANUP:
+        {
+            // UNTRAPPED ERROR
+            // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
+            if(RSTop>=RStk+rstksave) {
+                RSTop=RStk+rstksave;
+                // BLAME THE ERROR ON THE COMMAND WE CALLED
+                if(BlameCmd!=0) rplBlameError(BlameCmd);
+            }
+            else { rplCleanup(); halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME); }
+            if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
+            if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
+            break;
+        }
 
 
-                    if(Exceptions&EX_AUTORESUME) {
-                        halFlags|=HAL_AUTORESUME;
-                        Exceptions=0;
-                    }
+        case CODE_HALTED:
+        {
+            // UNTRAPPED ERROR
+            // CLEANUP ANY GARBAGE AFTER OUR SAVED POINTER
+            if(RSTop>RStk+rstksave)
+            {
+                // THE CODE HALTED SOMEWHERE INSIDE!
+                halFlags|=HAL_HALTED;
+                if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
+
+
+                if(Exceptions&EX_AUTORESUME) {
+                    halFlags|=HAL_AUTORESUME;
+                    Exceptions=0;
                 }
-                else {
-                    halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
-                    if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
-                    if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
-                    if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
-                }
-
 
             }
             else {
-                // RETURN STACK WAS INTACT, RESTORE THE REST
-                //if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
-                //if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
+                if(RSTop<RStk+rstksave) {
+                    // THIS CAN ONLY HAPPEN IF SOMEHOW
+                    // THE CODE ESCAPED FROM THE SECONDARY
+                    // WE CREATED, THIS CAN HAPPEN WHEN USING 'CONT'
+                    // INSIDE A SECONDARY AND IT'S NOT NECESSARILY BAD
+                    if(CurOpcode==CMD_ENDOFCODE) { rplClearErrors(); rplCleanup(); }
+                    if(HaltedIPtr) {
+                        halFlags|=HAL_HALTED;
+                        if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                        if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                        if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
+
+
+                        if(Exceptions&EX_AUTORESUME) {
+                            halFlags|=HAL_AUTORESUME;
+                            Exceptions=0;
+                        }
+                    }
+                    else {
+                        halFlags&=~(HAL_HALTED|HAL_AUTORESUME|HAL_FASTAUTORESUME);
+                        if(Exceptions&EX_POWEROFF) halFlags|=HAL_POWEROFF|HAL_FASTAUTORESUME;
+                        if(Exceptions&EX_HALRESET) halFlags|=HAL_RESET;
+                        if(Exceptions&EX_HWRESET) halFlags|=HAL_HWRESET;
+                    }
+
+
+                }
+                else {
+                    // RETURN STACK WAS INTACT, RESTORE THE REST
+                    //if(LAMTop>LAMs+lamsave) LAMTop=LAMs+lamsave;
+                    //if(nLAMBase>LAMs+nlambase) nLAMBase=LAMs+nlambase;
 
                     // DON'T ALTER THE INSTRUCTION POINTER OF THE HALTED PROGRAM
                     if(HaltedIPtr) {
@@ -750,15 +750,15 @@ if(iseval) {
                     }
                     rplClearErrors();
 
+                }
             }
+
+
+            break;
+        }
         }
 
-
-        break;
     }
-    }
-
-}
 
 }
 
@@ -771,86 +771,86 @@ if(iseval) {
 
 BINT uiCmdRunTransparent(WORD Opcode,BINT nargs,BINT nresults)
 {
-WORDPTR obj=rplAllocTempObLowMem(2);
-if(obj) {
-obj[0]=Opcode;
-obj[1]=CMD_ENDOFCODE;
-obj[2]=CMD_QSEMI;   // THIS IS FOR SAFETY REASONS
+    WORDPTR obj=rplAllocTempObLowMem(2);
+    if(obj) {
+        obj[0]=Opcode;
+        obj[1]=CMD_ENDOFCODE;
+        obj[2]=CMD_QSEMI;   // THIS IS FOR SAFETY REASONS
 
-BINT rsave,lamsave,nlambase,retvalue;
-WORD exceptsave,errcodesave;
-// PRESERVE VARIOUS STACK POINTERS
+        BINT rsave,lamsave,nlambase,retvalue;
+        WORD exceptsave,errcodesave;
+        // PRESERVE VARIOUS STACK POINTERS
 
-exceptsave=Exceptions;
-errcodesave=ErrorCode;
+        exceptsave=Exceptions;
+        errcodesave=ErrorCode;
 
-rplSetExceptionHandler(0);  // SAVE CURRENT EXCEPTION HANDLERS
-rplPushRet(IPtr);   // SAVE THE CURRENT INSTRUCTION POINTER
+        rplSetExceptionHandler(0);  // SAVE CURRENT EXCEPTION HANDLERS
+        rplPushRet(IPtr);   // SAVE THE CURRENT INSTRUCTION POINTER
 
-ScratchPointer1=obj;
-rplTakeSnapshotN(nargs);  // RUN THE COMMAND WITH A PROTECTED STACK WITH nargs ARGUMENTS ONLY
-obj=ScratchPointer1;
-rsave=RSTop-RStk;        // PROTECT THE RETURN STACK
-lamsave=LAMTop-LAMs;     // PROTECT LAM ENVIRONMENTS
-nlambase=nLAMBase-LAMs;
+        ScratchPointer1=obj;
+        rplTakeSnapshotN(nargs);  // RUN THE COMMAND WITH A PROTECTED STACK WITH nargs ARGUMENTS ONLY
+        obj=ScratchPointer1;
+        rsave=RSTop-RStk;        // PROTECT THE RETURN STACK
+        lamsave=LAMTop-LAMs;     // PROTECT LAM ENVIRONMENTS
+        nlambase=nLAMBase-LAMs;
 
-Exceptions=0;           // REMOVE ALL EXCEPTIONS
+        Exceptions=0;           // REMOVE ALL EXCEPTIONS
 
-rplSetEntryPoint(obj);
+        rplSetEntryPoint(obj);
 
-rplRun();
+        rplRun();
 
-// DISCARD ANY ERRORS DURING EXECUTION,  IDEALLY IT HIT THE BREAKPOINT
-if(Exceptions!=EX_HALT) {
-    // THERE WAS SOME OTHER ERROR DURING EXECUTION, DISCARD ALL OUTPUT FROM THE FAILED PROGRAM
-    rplClearData();
-}
+        // DISCARD ANY ERRORS DURING EXECUTION,  IDEALLY IT HIT THE BREAKPOINT
+        if(Exceptions!=EX_HALT) {
+            // THERE WAS SOME OTHER ERROR DURING EXECUTION, DISCARD ALL OUTPUT FROM THE FAILED PROGRAM
+            rplClearData();
+        }
 
-Exceptions=0;
+        Exceptions=0;
 
-// MANUAL RESTORE
+        // MANUAL RESTORE
 
-if(RSTop>=RStk+rsave) RSTop=RStk+rsave;  // IF RSTop<RStk+rsave THE RETURN STACK WAS COMPLETELY CORRUPTED, SHOULD NEVER HAPPEN BUT...
-else rplCleanup();
-if(LAMTop>=LAMs+lamsave) LAMTop=LAMs+lamsave;  // OTHERWISE THE LAM ENVIRONMENTS WERE DESTROYED, SHOULD NEVER HAPPEN BUT...
-else rplCleanup();
-if(nLAMBase>=LAMs+nlambase) nLAMBase=LAMs+nlambase;  // OTHERWISE THE LAM ENVIRONMENTS WERE DESTROYED, SHOULD NEVER HAPPEN BUT...
-else rplCleanup();
+        if(RSTop>=RStk+rsave) RSTop=RStk+rsave;  // IF RSTop<RStk+rsave THE RETURN STACK WAS COMPLETELY CORRUPTED, SHOULD NEVER HAPPEN BUT...
+        else rplCleanup();
+        if(LAMTop>=LAMs+lamsave) LAMTop=LAMs+lamsave;  // OTHERWISE THE LAM ENVIRONMENTS WERE DESTROYED, SHOULD NEVER HAPPEN BUT...
+        else rplCleanup();
+        if(nLAMBase>=LAMs+nlambase) nLAMBase=LAMs+nlambase;  // OTHERWISE THE LAM ENVIRONMENTS WERE DESTROYED, SHOULD NEVER HAPPEN BUT...
+        else rplCleanup();
 
-// CLEAN THE STACK
-if(rplDepthData()>nresults) {
-    BINT f;
-    BINT depth=rplDepthData(),offset=depth-nresults;
-    for(f=depth;f>depth-nresults;--f) {
-        rplOverwriteData(f,rplPeekData(f-offset));
+        // CLEAN THE STACK
+        if(rplDepthData()>nresults) {
+            BINT f;
+            BINT depth=rplDepthData(),offset=depth-nresults;
+            for(f=depth;f>depth-nresults;--f) {
+                rplOverwriteData(f,rplPeekData(f-offset));
+            }
+            rplDropData(offset);
+        }
+        // HERE THE STACK CONTAINS UP TO nresults ONLY
+
+        rplTakeSnapshotAndClear();  // HERE SNAPSHOT1 = RESULTS, SNAPSHOT2 = PREVIOUS STACK
+        rplRevertToSnapshot(2);     // RECOVER THE PREVIOUS STACK
+        rplDropData(nargs);         // REMOVE THE ORIGINAL ARGUMENTS
+        nresults=retvalue=rplDepthSnapshot(1);   // GET THE NUMBER OF RESULTS
+        while(nresults) { rplPushData(rplPeekSnapshot(1,nresults)); --nresults; }   // EXTRACT THE RESULTS INTO THE CURRENT STACK
+        rplRemoveSnapshot(1);       // AND CLEANUP
+
+        // RESTORE THE ERROR CODES FIRST, TO CAPTURE ANY ERRORS DURING POPPING THE RETURN STACK
+        Exceptions=exceptsave;
+        ErrorCode=errcodesave;
+
+        // RESTORE THE IP POINTER
+        IPtr=rplPopRet();
+
+        // AND THE ERROR HANDLERS
+        rplRemoveExceptionHandler();
+
+        // IF EVERYTHING WENT WELL, HERE WE HAVE THE SAME ENVIRONMENT AS BEFORE
+        // IF SOMETHING GOT CORRUPTED, WE SHOULD HAVE AN INTERNAL EMPTY RSTACK ERROR
+        return retvalue;
+
     }
-    rplDropData(offset);
-}
-// HERE THE STACK CONTAINS UP TO nresults ONLY
-
-rplTakeSnapshotAndClear();  // HERE SNAPSHOT1 = RESULTS, SNAPSHOT2 = PREVIOUS STACK
-rplRevertToSnapshot(2);     // RECOVER THE PREVIOUS STACK
-rplDropData(nargs);         // REMOVE THE ORIGINAL ARGUMENTS
-nresults=retvalue=rplDepthSnapshot(1);   // GET THE NUMBER OF RESULTS
-while(nresults) { rplPushData(rplPeekSnapshot(1,nresults)); --nresults; }   // EXTRACT THE RESULTS INTO THE CURRENT STACK
-rplRemoveSnapshot(1);       // AND CLEANUP
-
-// RESTORE THE ERROR CODES FIRST, TO CAPTURE ANY ERRORS DURING POPPING THE RETURN STACK
-Exceptions=exceptsave;
-ErrorCode=errcodesave;
-
-// RESTORE THE IP POINTER
-IPtr=rplPopRet();
-
-// AND THE ERROR HANDLERS
-rplRemoveExceptionHandler();
-
-// IF EVERYTHING WENT WELL, HERE WE HAVE THE SAME ENVIRONMENT AS BEFORE
-// IF SOMETHING GOT CORRUPTED, WE SHOULD HAVE AN INTERNAL EMPTY RSTACK ERROR
-return retvalue;
-
-}
-return 0;
+    return 0;
 }
 
 // RESTURE THE STACK TO WHAT IT WAS AT THE GIVEN LEVEL
@@ -858,23 +858,23 @@ return 0;
 // SPECIAL CASE: LEVEL 0 = USER'S CURRENT STACK
 BINT uiRestoreUndoLevel(BINT level)
 {
-BINT nlevels=rplCountSnapshots();
+    BINT nlevels=rplCountSnapshots();
 
-if(level<1) return halScreen.StkCurrentLevel;
-if(level>nlevels) level=nlevels;
+    if(level<1) return halScreen.StkCurrentLevel;
+    if(level>nlevels) level=nlevels;
 
-if(!halScreen.StkCurrentLevel) {
-    // WHEN CURRENT LEVEL IS ZERO, MEANS THE PREVIOUS ACTION WAS NOT A RESTORE
-    // WE NEED TO PRESERVE THE CURRENT STACK AS LEVEL 0
-    rplTakeSnapshot();
-    ++level;
-}
+    if(!halScreen.StkCurrentLevel) {
+        // WHEN CURRENT LEVEL IS ZERO, MEANS THE PREVIOUS ACTION WAS NOT A RESTORE
+        // WE NEED TO PRESERVE THE CURRENT STACK AS LEVEL 0
+        rplTakeSnapshot();
+        ++level;
+    }
 
 
-// HERE LEVEL 1 = USER STACK, 2..(N+1) = N UNDO LEVELS PRESERVED
+    // HERE LEVEL 1 = USER STACK, 2..(N+1) = N UNDO LEVELS PRESERVED
 
-rplRestoreSnapshot(level);
-return level;
+    rplRestoreSnapshot(level);
+    return level;
 
 }
 
@@ -904,12 +904,12 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-                uiCmdRun(Opcode);
-                if(Exceptions) {
-                    // TODO: SHOW ERROR MESSAGE
-                    halShowErrorMsg();
-                    Exceptions=0;
-                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
+            uiCmdRun(Opcode);
+            if(Exceptions) {
+                // TODO: SHOW ERROR MESSAGE
+                halShowErrorMsg();
+                Exceptions=0;
+            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
             halScreen.DirtyFlag|=STACK_DIRTY;
 
 
@@ -924,7 +924,7 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
         case 'D':   // DIRECT EXECUTION
         {
 
-                if(endCmdLineAndCompile()) {
+            if(endCmdLineAndCompile()) {
                 uiCmdRun(Opcode);
                 if(Exceptions) {
                     // TODO: SHOW ERROR MESSAGE
@@ -932,10 +932,10 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
                     Exceptions=0;
                 } else {
                     if(rplTestSystemFlag(FL_LASTMENU))
-                    halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
+                        halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
                 }
-            halScreen.DirtyFlag|=STACK_DIRTY;
-                }
+                halScreen.DirtyFlag|=STACK_DIRTY;
+            }
             break;
         }
         case 'P':   // PROGRAMMING MODE
@@ -963,18 +963,18 @@ void cmdKeyHandler(WORD Opcode,BYTEPTR Progmode,BINT IsFunc)
                     }
                     break;
                 }
-            if(IsFunc<2) {
-            uiInsertCharacters(Progmode);
-            if(IsFunc==1) {
-                uiInsertCharacters((BYTEPTR)"()");
-                uiCursorLeft(1);
-            }
-            uiAutocompleteUpdate();
-            }
+                if(IsFunc<2) {
+                    uiInsertCharacters(Progmode);
+                    if(IsFunc==1) {
+                        uiInsertCharacters((BYTEPTR)"()");
+                        uiCursorLeft(1);
+                    }
+                    uiAutocompleteUpdate();
+                }
             }
             break;
         default:
-         break;
+            break;
         }
     }
 }
@@ -985,24 +985,24 @@ void transpcmdKeyHandler(WORD Opcode)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-                uiCmdRun(Opcode);
-                if(Exceptions) {
-                    // TODO: SHOW ERROR MESSAGE
-                    halShowErrorMsg();
-                    Exceptions=0;
-                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
-            halScreen.DirtyFlag|=STACK_DIRTY;
-        }
-
-    }
-    else{
-        // ACTION INSIDE THE EDITOR
             uiCmdRun(Opcode);
             if(Exceptions) {
                 // TODO: SHOW ERROR MESSAGE
                 halShowErrorMsg();
                 Exceptions=0;
             } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
+            halScreen.DirtyFlag|=STACK_DIRTY;
+        }
+
+    }
+    else{
+        // ACTION INSIDE THE EDITOR
+        uiCmdRun(Opcode);
+        if(Exceptions) {
+            // TODO: SHOW ERROR MESSAGE
+            halShowErrorMsg();
+            Exceptions=0;
+        } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
         halScreen.DirtyFlag|=STACK_DIRTY;
     }
 
@@ -1020,7 +1020,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
     }
 
     if(KM_MESSAGE(keymsg)==KM_KEYUP) {
-       if(halScreen.HelpMode) {
+        if(halScreen.HelpMode) {
             halCancelPopup();
             halScreen.HelpMode=0;
             halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
@@ -1033,168 +1033,168 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(!(halGetContext()&(CONTEXT_INTSTACK|CONTEXT_PICT|CONTEXT_PLOT))) {
             // ACTION WHEN IN THE STACK
-                BINT64 mcode=rplGetMenuCode(menunum);
-                WORDPTR menu=uiGetLibMenu(mcode);
-                BINT nitems=uiCountMenuItems(mcode,menu);
-                BINT idx=MENUPAGE(mcode)+varnum,page=MENUPAGE(mcode);
+            BINT64 mcode=rplGetMenuCode(menunum);
+            WORDPTR menu=uiGetLibMenu(mcode);
+            BINT nitems=uiCountMenuItems(mcode,menu);
+            BINT idx=MENUPAGE(mcode)+varnum,page=MENUPAGE(mcode);
 
-                rplSetLastMenu(menunum);
+            rplSetLastMenu(menunum);
 
-                if((nitems>6)&&(varnum==5)) {
-                    // THIS IS THE NXT KEY
-                    if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) page-=5;
-                    else page+=5;
-                    if(page>=nitems) page=0;
-                    if(page<=-5) {
-                        page=nitems/5;
-                        page*=5;
-                        if(page==nitems) page-=5;
-                    }
-                    if(page<0) page=0;
-                    rplSetMenuCode(menunum,SETMENUPAGE(mcode,page));
-                    halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
-                    return;
+            if((nitems>6)&&(varnum==5)) {
+                // THIS IS THE NXT KEY
+                if( (KM_SHIFTPLANE(keymsg)==SHIFT_LS)||(KM_SHIFTPLANE(keymsg)==SHIFT_LSHOLD)) page-=5;
+                else page+=5;
+                if(page>=nitems) page=0;
+                if(page<=-5) {
+                    page=nitems/5;
+                    page*=5;
+                    if(page==nitems) page-=5;
                 }
-                // THIS IS A REGULAR VAR KEY
+                if(page<0) page=0;
+                rplSetMenuCode(menunum,SETMENUPAGE(mcode,page));
+                halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+                return;
+            }
+            // THIS IS A REGULAR VAR KEY
 
-                WORDPTR item=uiGetMenuItem(mcode,menu,idx);
+            WORDPTR item=uiGetMenuItem(mcode,menu,idx);
 
-                WORDPTR action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
-                WORD Opcode=0;
-                BINT hideargument=1;
+            WORDPTR action=uiGetMenuItemAction(item,KM_SHIFTPLANE(keymsg));
+            WORD Opcode=0;
+            BINT hideargument=1;
 
-                if(!action) return;
+            if(!action) return;
 
-                switch(KM_SHIFTPLANE(keymsg))
-                {
-                case SHIFT_LS:
-                case SHIFT_LSHOLD:
-                {
-                    // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
+            switch(KM_SHIFTPLANE(keymsg))
+            {
+            case SHIFT_LS:
+            case SHIFT_LSHOLD:
+            {
+                // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
 
-                    if(ISIDENT(*action)) {
-                        // USER IS TRYING TO 'STO' INTO THE VARIABLE
-                        rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=CMD_STO;
-                        break;
-                    }
-                    if(ISUNIT(*action)) {
-                        // FOR UNITS, TRY TO CONVERT
-                        rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=CMD_CONVERT;
-                        break;
-                    }
-
-                    if(ISLIBRARY(*action)) {
-                        // SHOW THE LIBRARY MENU
-                        BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
-                        WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
-
-                        if(!numobject || Exceptions) return;
-
-                        rplPushDataNoGrow(numobject);
-                        rplSaveMenuHistory(menunum);
-                        rplChangeMenu(menunum,rplPopData());
-
-                        if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
-                        else halScreen.DirtyFlag|=MENU2_DIRTY;
-
-                        break;
-                    }
-                    // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
-                    rplPushData(action);
-                    Opcode=(CMD_OVR_XEQ);
+                if(ISIDENT(*action)) {
+                    // USER IS TRYING TO 'STO' INTO THE VARIABLE
+                    rplPushData(action);    // PUSH THE NAME ON THE STACK
+                    Opcode=CMD_STO;
                     break;
-
                 }
-                case SHIFT_RS:
-                case SHIFT_RSHOLD:
-                {
-                    // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
-
-                    if(ISIDENT(*action)) {
-                        // USER IS TRYING TO 'RCL' THE VARIABLE
-                        rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=CMD_RCL;
-                        break;
-                    }
-                    if(ISUNIT(*action)) {
-                        // FOR UNITS, APPLY THE INVERSE
-                        rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=(CMD_OVR_DIV);
-                        break;
-                    }
-
-                    if(ISLIBRARY(*action)) {
-                        // SHOW THE LIBRARY MENU
-                        BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
-                        WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
-
-                        if(!numobject || Exceptions) return;
-
-                        rplPushDataNoGrow(numobject);
-                        rplSaveMenuHistory(menunum);
-                        rplChangeMenu(menunum,rplPopData());
-
-                        if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
-                        else halScreen.DirtyFlag|=MENU2_DIRTY;
-
-                        break;
-                    }
-                    // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
-                    rplPushData(action);
-                    Opcode=(CMD_OVR_XEQ);
+                if(ISUNIT(*action)) {
+                    // FOR UNITS, TRY TO CONVERT
+                    rplPushData(action);    // PUSH THE NAME ON THE STACK
+                    Opcode=CMD_CONVERT;
                     break;
-
                 }
-                default:
-                {
-                    // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
 
-                    if(ISIDENT(*action)) {
-                        // JUST EVAL THE VARIABLE
-                        rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=(CMD_OVR_EVAL1);
-                        break;
-                    }
-                    if(ISUNIT(*action)) {
-                        // FOR UNITS, APPLY THE INVERSE
-                        rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=(CMD_OVR_MUL);
-                        break;
-                    }
-                    if(ISLIBRARY(*action)) {
-                        // SHOW THE LIBRARY MENU
-                        BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
-                        WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
+                if(ISLIBRARY(*action)) {
+                    // SHOW THE LIBRARY MENU
+                    BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
+                    WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
 
-                        if(!numobject || Exceptions) return;
+                    if(!numobject || Exceptions) return;
 
-                        rplPushDataNoGrow(numobject);
-                        rplSaveMenuHistory(menunum);
-                        rplChangeMenu(menunum,rplPopData());
+                    rplPushDataNoGrow(numobject);
+                    rplSaveMenuHistory(menunum);
+                    rplChangeMenu(menunum,rplPopData());
 
-                        if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
-                        else halScreen.DirtyFlag|=MENU2_DIRTY;
+                    if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
+                    else halScreen.DirtyFlag|=MENU2_DIRTY;
 
-                        break;
-                    }
-
-                    // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
-                    rplPushData(action);
-                    Opcode=(CMD_OVR_XEQ);
                     break;
-
-
                 }
+                // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
+                rplPushData(action);
+                Opcode=(CMD_OVR_XEQ);
+                break;
+
+            }
+            case SHIFT_RS:
+            case SHIFT_RSHOLD:
+            {
+                // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
+
+                if(ISIDENT(*action)) {
+                    // USER IS TRYING TO 'RCL' THE VARIABLE
+                    rplPushData(action);    // PUSH THE NAME ON THE STACK
+                    Opcode=CMD_RCL;
+                    break;
+                }
+                if(ISUNIT(*action)) {
+                    // FOR UNITS, APPLY THE INVERSE
+                    rplPushData(action);    // PUSH THE NAME ON THE STACK
+                    Opcode=(CMD_OVR_DIV);
+                    break;
                 }
 
-                if(Opcode) uiCmdRunHide(Opcode,hideargument);
-                if(Exceptions) {
-                    // TODO: SHOW ERROR MESSAGE
-                    halShowErrorMsg();
-                    Exceptions=0;
-                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+                if(ISLIBRARY(*action)) {
+                    // SHOW THE LIBRARY MENU
+                    BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
+                    WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
+
+                    if(!numobject || Exceptions) return;
+
+                    rplPushDataNoGrow(numobject);
+                    rplSaveMenuHistory(menunum);
+                    rplChangeMenu(menunum,rplPopData());
+
+                    if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
+                    else halScreen.DirtyFlag|=MENU2_DIRTY;
+
+                    break;
+                }
+                // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
+                rplPushData(action);
+                Opcode=(CMD_OVR_XEQ);
+                break;
+
+            }
+            default:
+            {
+                // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
+
+                if(ISIDENT(*action)) {
+                    // JUST EVAL THE VARIABLE
+                    rplPushData(action);    // PUSH THE NAME ON THE STACK
+                    Opcode=(CMD_OVR_EVAL1);
+                    break;
+                }
+                if(ISUNIT(*action)) {
+                    // FOR UNITS, APPLY THE INVERSE
+                    rplPushData(action);    // PUSH THE NAME ON THE STACK
+                    Opcode=(CMD_OVR_MUL);
+                    break;
+                }
+                if(ISLIBRARY(*action)) {
+                    // SHOW THE LIBRARY MENU
+                    BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
+                    WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
+
+                    if(!numobject || Exceptions) return;
+
+                    rplPushDataNoGrow(numobject);
+                    rplSaveMenuHistory(menunum);
+                    rplChangeMenu(menunum,rplPopData());
+
+                    if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
+                    else halScreen.DirtyFlag|=MENU2_DIRTY;
+
+                    break;
+                }
+
+                // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
+                rplPushData(action);
+                Opcode=(CMD_OVR_XEQ);
+                break;
+
+
+            }
+            }
+
+            if(Opcode) uiCmdRunHide(Opcode,hideargument);
+            if(Exceptions) {
+                // TODO: SHOW ERROR MESSAGE
+                halShowErrorMsg();
+                Exceptions=0;
+            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
             halScreen.DirtyFlag|=STACK_DIRTY|STAREA_DIRTY;
         }
 
@@ -1322,20 +1322,20 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
             if(ISLIBRARY(*action)) {
 
-                    // SHOW THE LIBRARY MENU
-                    BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
-                    WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
+                // SHOW THE LIBRARY MENU
+                BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
+                WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
 
-                    if(!numobject || Exceptions) return;
+                if(!numobject || Exceptions) return;
 
-                    rplPushDataNoGrow(numobject);
-                    rplSaveMenuHistory(menunum);
-                    rplChangeMenu(menunum,rplPopData());
+                rplPushDataNoGrow(numobject);
+                rplSaveMenuHistory(menunum);
+                rplChangeMenu(menunum,rplPopData());
 
-                    if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
-                    else halScreen.DirtyFlag|=MENU2_DIRTY;
+                if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
+                else halScreen.DirtyFlag|=MENU2_DIRTY;
 
-                    break;
+                break;
             }
 
 
@@ -1375,46 +1375,46 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                 case 'D':
 
                     if(KM_SHIFTPLANE(keymsg)&SHIFT_HOLD) {
-                    //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
+                        //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
 
                         WORDPTR *var=rplFindGlobal(action,1);
                         BYTEPTR string=0,endstring;
 
                         if(var) {
 
-                        if(ISDIR(*var[1])) {
-                            // VARIABLE IS A DIRECTORY, DON'T RCL
-                            // BUT PUT THE NAME
-                            string=(BYTEPTR)(action+1);
-                            endstring=string+rplGetIdentLength(action);
-                        }
-                        else {
+                            if(ISDIR(*var[1])) {
+                                // VARIABLE IS A DIRECTORY, DON'T RCL
+                                // BUT PUT THE NAME
+                                string=(BYTEPTR)(action+1);
+                                endstring=string+rplGetIdentLength(action);
+                            }
+                            else {
 
-                        // VARIABLE EXISTS, GET THE CONTENTS
-                        BINT SavedException=Exceptions;
-                        BINT SavedErrorCode=ErrorCode;
+                                // VARIABLE EXISTS, GET THE CONTENTS
+                                BINT SavedException=Exceptions;
+                                BINT SavedErrorCode=ErrorCode;
 
-                        Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                        // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                        WORDPTR opname=rplDecompile(var[1],DECOMP_EDIT);
-                        Exceptions=SavedException;
-                        ErrorCode=SavedErrorCode;
+                                Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                                WORDPTR opname=rplDecompile(var[1],DECOMP_EDIT);
+                                Exceptions=SavedException;
+                                ErrorCode=SavedErrorCode;
 
-                        if(opname) {
-                        BINT totaln=rplStrLenCp(opname);
-                        string=(BYTEPTR) (opname+1);
-                        endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
-                        }
-                        }
+                                if(opname) {
+                                    BINT totaln=rplStrLenCp(opname);
+                                    string=(BYTEPTR) (opname+1);
+                                    endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+                                }
+                            }
 
-                        if(string) {
+                            if(string) {
 
-                        uiSeparateToken();
-                        BINT nlines=uiInsertCharactersN(string,endstring);
-                        if(nlines) uiStretchCmdLine(nlines);
-                        uiSeparateToken();
-                        uiAutocompleteUpdate();
-                        }
+                                uiSeparateToken();
+                                BINT nlines=uiInsertCharactersN(string,endstring);
+                                if(nlines) uiStretchCmdLine(nlines);
+                                uiSeparateToken();
+                                uiAutocompleteUpdate();
+                            }
                         }
                         break;
 
@@ -1439,52 +1439,52 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     // USER IS TRYING TO 'RCL' THE VARIABLE
 
                     if(KM_SHIFTPLANE(keymsg)&SHIFT_HOLD) {
-                    //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
+                        //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
 
                         WORDPTR *var=rplFindGlobal(action,1);
                         BYTEPTR string=0,endstring;
 
                         if(var) {
 
-                        if(ISDIR(*var[1])) {
-                            // VARIABLE IS A DIRECTORY, DON'T RCL
-                            // BUT PUT THE NAME
-                            string=(BYTEPTR)(action+1);
-                            endstring=string+rplGetIdentLength(action);
-                        }
-                        else {
+                            if(ISDIR(*var[1])) {
+                                // VARIABLE IS A DIRECTORY, DON'T RCL
+                                // BUT PUT THE NAME
+                                string=(BYTEPTR)(action+1);
+                                endstring=string+rplGetIdentLength(action);
+                            }
+                            else {
 
 
-                        // VARIABLE EXISTS, GET THE CONTENTS
-                        BINT SavedException=Exceptions;
-                        BINT SavedErrorCode=ErrorCode;
+                                // VARIABLE EXISTS, GET THE CONTENTS
+                                BINT SavedException=Exceptions;
+                                BINT SavedErrorCode=ErrorCode;
 
-                        Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                        // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                        WORDPTR opname=rplDecompile(var[1],DECOMP_EDIT|DECOMP_NOHINTS);
-                        Exceptions=SavedException;
-                        ErrorCode=SavedErrorCode;
+                                Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                                WORDPTR opname=rplDecompile(var[1],DECOMP_EDIT|DECOMP_NOHINTS);
+                                Exceptions=SavedException;
+                                ErrorCode=SavedErrorCode;
 
-                        if(opname) {
-                        string=(BYTEPTR) (opname+1);
-                        BINT totaln=rplStrLenCp(opname);
-                        endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+                                if(opname) {
+                                    string=(BYTEPTR) (opname+1);
+                                    BINT totaln=rplStrLenCp(opname);
+                                    endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
-                        // IN ALGEBRAIC MODE, REMOVE THE TICK MARKS AND INSERT WITHOUT SEPARATION
-                        // TO ALLOW PASTING EQUATIONS INTO OTHER EXPRESSIONS
-                        if( (totaln>2) && (string[0]=='\'')) {
-                            string++;
-                            endstring--;
-                        }
-                        }
-                        }
+                                    // IN ALGEBRAIC MODE, REMOVE THE TICK MARKS AND INSERT WITHOUT SEPARATION
+                                    // TO ALLOW PASTING EQUATIONS INTO OTHER EXPRESSIONS
+                                    if( (totaln>2) && (string[0]=='\'')) {
+                                        string++;
+                                        endstring--;
+                                    }
+                                }
+                            }
 
-                        if(string) {
-                        BINT nlines=uiInsertCharactersN(string,endstring);
-                        if(nlines) uiStretchCmdLine(nlines);
+                            if(string) {
+                                BINT nlines=uiInsertCharactersN(string,endstring);
+                                if(nlines) uiStretchCmdLine(nlines);
 
-                        uiAutocompleteUpdate();
-                        }
+                                uiAutocompleteUpdate();
+                            }
                         }
                         break;
 
@@ -1500,7 +1500,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     // USER IS TRYING TO 'RCL' THE VARIABLE
 
                     if(KM_SHIFTPLANE(keymsg)&SHIFT_HOLD) {
-                    //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
+                        //  DECOMPILE THE CONTENTS AND INSERT DIRECTLY INTO THE COMMAND LINE
 
 
                         WORDPTR *var=rplFindGlobal(action,1);
@@ -1509,39 +1509,39 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                         if(var) {
 
-                        if(ISDIR(*var[1])) {
-                            // VARIABLE IS A DIRECTORY, DON'T RCL
-                            // BUT PUT THE NAME
-                            string=(BYTEPTR)(action+1);
-                            endstring=string+rplGetIdentLength(action);
-                        }
-                        else {
-                        // VARIABLE EXISTS, GET THE CONTENTS
-                        BINT SavedException=Exceptions;
-                        BINT SavedErrorCode=ErrorCode;
+                            if(ISDIR(*var[1])) {
+                                // VARIABLE IS A DIRECTORY, DON'T RCL
+                                // BUT PUT THE NAME
+                                string=(BYTEPTR)(action+1);
+                                endstring=string+rplGetIdentLength(action);
+                            }
+                            else {
+                                // VARIABLE EXISTS, GET THE CONTENTS
+                                BINT SavedException=Exceptions;
+                                BINT SavedErrorCode=ErrorCode;
 
-                        Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                        // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                        WORDPTR opname=rplDecompile(var[1],DECOMP_EDIT);
-                        Exceptions=SavedException;
-                        ErrorCode=SavedErrorCode;
+                                Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                                WORDPTR opname=rplDecompile(var[1],DECOMP_EDIT);
+                                Exceptions=SavedException;
+                                ErrorCode=SavedErrorCode;
 
-                        if(opname) {
-                        string=(BYTEPTR) (opname+1);
-                        BINT totaln=rplStrLenCp(opname);
-                        endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+                                if(opname) {
+                                    string=(BYTEPTR) (opname+1);
+                                    BINT totaln=rplStrLenCp(opname);
+                                    endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
-                        }
+                                }
 
-                        }
-                        if(string) {
-                        uiSeparateToken();
-                        BINT nlines=uiInsertCharactersN(string,endstring);
-                        if(nlines) uiStretchCmdLine(nlines);
+                            }
+                            if(string) {
+                                uiSeparateToken();
+                                BINT nlines=uiInsertCharactersN(string,endstring);
+                                if(nlines) uiStretchCmdLine(nlines);
 
-                        uiSeparateToken();
-                        uiAutocompleteUpdate();
-                        }
+                                uiSeparateToken();
+                                uiAutocompleteUpdate();
+                            }
                         }
                         break;
 
@@ -1808,12 +1808,12 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                     BINT removevalue;
 
 
-                        if(ISNUMBER(action[1])) {
-                            REAL r;
-                            rplReadNumberAsReal(action+1,&r);
-                            rplOneToRReg(0);
-                            removevalue=eqReal(&r,&RReg[0]);
-                        } else removevalue=0;
+                    if(ISNUMBER(action[1])) {
+                        REAL r;
+                        rplReadNumberAsReal(action+1,&r);
+                        rplOneToRReg(0);
+                        removevalue=eqReal(&r,&RReg[0]);
+                    } else removevalue=0;
 
                     Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
                     // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
@@ -1945,22 +1945,22 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
                     if(!rplTestSystemFlag(FL_AUTOINDENT)) {
 
-                    LIBHANDLER han=rplGetLibHandler(LIBNUM(*action));
+                        LIBHANDLER han=rplGetLibHandler(LIBNUM(*action));
 
 
-                    // GET THE SYMBOLIC TOKEN INFORMATION
-                    if(han) {
-                        WORD savecurOpcode=CurOpcode;
-                        DecompileObject=action;
-                        CurOpcode=MKOPCODE(LIBNUM(*action),OPCODE_GETINFO);
-                        (*han)();
+                        // GET THE SYMBOLIC TOKEN INFORMATION
+                        if(han) {
+                            WORD savecurOpcode=CurOpcode;
+                            DecompileObject=action;
+                            CurOpcode=MKOPCODE(LIBNUM(*action),OPCODE_GETINFO);
+                            (*han)();
 
-                        if(RetNum>OK_TOKENINFO) {
-                            dhints=DecompHints;
+                            if(RetNum>OK_TOKENINFO) {
+                                dhints=DecompHints;
+                            }
+
+                            CurOpcode=savecurOpcode;
                         }
-
-                        CurOpcode=savecurOpcode;
-                    }
 
                     }
 
@@ -1996,20 +1996,20 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
                             if(isempty) {
                                 if(dhints&HINT_ADDINDENTBEFORE) uiInsertCharacters((BYTEPTR)"  ");
                                 if(dhints&HINT_SUBINDENTBEFORE) {
-                                if(nlvl>2) nlvl=2;
-                                uiCursorLeft(nlvl);
-                                uiRemoveCharacters(nlvl);
+                                    if(nlvl>2) nlvl=2;
+                                    uiCursorLeft(nlvl);
+                                    uiRemoveCharacters(nlvl);
                                 }
-                           }
-                            else {
-                            uiInsertCharacters((BYTEPTR)"\n");
-
-                            ++nlines;
-                            int k;
-                            for(k=0;k<nlvl+halScreen.CmdLineIndent;++k) uiInsertCharacters((BYTEPTR)" "); // APPLY INDENT
-                            halScreen.CmdLineIndent=0;
                             }
-                    }
+                            else {
+                                uiInsertCharacters((BYTEPTR)"\n");
+
+                                ++nlines;
+                                int k;
+                                for(k=0;k<nlvl+halScreen.CmdLineIndent;++k) uiInsertCharacters((BYTEPTR)" "); // APPLY INDENT
+                                halScreen.CmdLineIndent=0;
+                            }
+                        }
                     }
 
 
@@ -2049,20 +2049,20 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
             }
 
             if(ISLIBRARY(*action)) {
-                    // SHOW THE LIBRARY MENU
-                    BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
-                    WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
+                // SHOW THE LIBRARY MENU
+                BINT64 libmcode=(((BINT64)action[2])<<32)|MKMENUCODE(0,DOLIBPTR,0,0);
+                WORDPTR numobject=rplNewBINT(libmcode,HEXBINT);
 
-                    if(!numobject || Exceptions) return;
+                if(!numobject || Exceptions) return;
 
-                    rplPushDataNoGrow(numobject);
-                    rplSaveMenuHistory(menunum);
-                    rplChangeMenu(menunum,rplPopData());
+                rplPushDataNoGrow(numobject);
+                rplSaveMenuHistory(menunum);
+                rplChangeMenu(menunum,rplPopData());
 
-                    if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
-                    else halScreen.DirtyFlag|=MENU2_DIRTY;
+                if(menunum==1) halScreen.DirtyFlag|=MENU1_DIRTY;
+                else halScreen.DirtyFlag|=MENU2_DIRTY;
 
-                    break;
+                break;
             }
 
             if(ISPROGRAM(*action)) {
@@ -2193,7 +2193,7 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
             Exceptions=0;
         } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
         halScreen.DirtyFlag|=STACK_DIRTY|STAREA_DIRTY;
-}
+    }
 
 }
 
@@ -2205,13 +2205,13 @@ void varsKeyHandler(BINT keymsg,BINT menunum,BINT varnum)
 
 void symbolKeyHandler(BINT keymsg,BYTEPTR symbol,BINT separate)
 {
-if(!(halGetContext()&CONTEXT_INEDITOR)) {
-    if(halGetContext()>>5) return;  // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
-    if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
-    halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
-    halSetContext(halGetContext()|CONTEXT_INEDITOR);
-    if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
-    else uiOpenCmdLine('D');
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()>>5) return;  // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
+        if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
+        halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
+        halSetContext(halGetContext()|CONTEXT_INEDITOR);
+        if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
+        else uiOpenCmdLine('D');
     }
 
     if(separate && ((halScreen.CursorState&0xff)=='P')) uiSeparateToken();
@@ -2225,15 +2225,15 @@ if(!(halGetContext()&CONTEXT_INEDITOR)) {
 
 void alphasymbolKeyHandler(BINT keymsg,BYTEPTR Lsymbol,BYTEPTR Csymbol)
 {
-if(!(halGetContext()&CONTEXT_INEDITOR)) {
-    if(halGetContext()>>5) return;  // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
+    if(!(halGetContext()&CONTEXT_INEDITOR)) {
+        if(halGetContext()>>5) return;  // DO NOTHING INSIDE A FORM, UNLESS THE EDITOR IS OPEN
 
-    if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
+        if(halGetContext()&CONTEXT_INTSTACK) return;    // DO NOTHING
 
-    halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
-    halSetContext(halGetContext()|CONTEXT_INEDITOR);
-    if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
-    else uiOpenCmdLine('D');
+        halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
+        halSetContext(halGetContext()|CONTEXT_INEDITOR);
+        if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
+        else uiOpenCmdLine('D');
     }
 
     if(halGetCmdLineMode()=='L') uiInsertCharacters(Lsymbol);
@@ -2266,7 +2266,7 @@ void newlineKeyHandler(BINT keymsg)
         if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
         else uiOpenCmdLine('D');
 
-        }
+    }
 
     // INCREASE THE HEIGHT ON-SCREEN UP TO THE MAXIMUM
     uiStretchCmdLine(1);
@@ -2295,15 +2295,15 @@ void decimaldotKeyHandler(BINT keymsg)
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
         else uiOpenCmdLine('D');
-        }
+    }
 
-        UBINT64 Locale=rplGetSystemLocale();
+    UBINT64 Locale=rplGetSystemLocale();
 
-        WORD ucode=cp2utf8(DECIMAL_DOT(Locale));
-        if(ucode&0xff000000) uiInsertCharactersN((BYTEPTR)&ucode,((BYTEPTR)&ucode)+4);
-        else uiInsertCharacters((BYTEPTR)&ucode);
+    WORD ucode=cp2utf8(DECIMAL_DOT(Locale));
+    if(ucode&0xff000000) uiInsertCharactersN((BYTEPTR)&ucode,((BYTEPTR)&ucode)+4);
+    else uiInsertCharacters((BYTEPTR)&ucode);
 
-        uiAutocompleteUpdate();
+    uiAutocompleteUpdate();
 
 
 }
@@ -2324,36 +2324,36 @@ void  enterKeyHandler(BINT keymsg)
         if(halGetContext()&CONTEXT_INTSTACK) {
             // COPY THE ELEMENT TO LEVEL ONE (PICK)
             if((halScreen.StkPointer>0) && (halScreen.StkPointer<=rplDepthData())) {
-            rplPushData(rplPeekData(halScreen.StkPointer));
-            ++halScreen.StkPointer;
-            halScreen.StkVisibleLvl=-1;
-            halScreen.DirtyFlag|=STACK_DIRTY;
+                rplPushData(rplPeekData(halScreen.StkPointer));
+                ++halScreen.StkPointer;
+                halScreen.StkVisibleLvl=-1;
+                halScreen.DirtyFlag|=STACK_DIRTY;
             }
         }
 
 
-        }
+    }
     else{
         // ENABLE UNDO
         if(halScreen.StkCurrentLevel!=1) rplTakeSnapshot();
         halScreen.StkCurrentLevel=0;
 
 
-     if(endCmdLineAndCompile()) {
-         halScreen.DirtyFlag|=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
-         if(!(halFlags&(HAL_HWRESET|HAL_RESET))) {
-         rplRemoveSnapshot(halScreen.StkUndolevels+2);
-         rplRemoveSnapshot(halScreen.StkUndolevels+1);
-         }
+        if(endCmdLineAndCompile()) {
+            halScreen.DirtyFlag|=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
+            if(!(halFlags&(HAL_HWRESET|HAL_RESET))) {
+                rplRemoveSnapshot(halScreen.StkUndolevels+2);
+                rplRemoveSnapshot(halScreen.StkUndolevels+1);
+            }
 
-     }
-     else  {
-         // SOMETHING WENT WRONG DURING COMPILE, STACK DIDN'T CHANGE
-         rplRemoveSnapshot(1);
+        }
+        else  {
+            // SOMETHING WENT WRONG DURING COMPILE, STACK DIDN'T CHANGE
+            rplRemoveSnapshot(1);
 
-     }
+        }
 
-   }
+    }
 }
 
 
@@ -2368,12 +2368,12 @@ void cutclipKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-                uiCmdRunTransparent(CMD_CUTCLIP,1,1);
-                if(Exceptions) {
-                    // TODO: SHOW ERROR MESSAGE
-                    halShowErrorMsg();
-                    Exceptions=0;
-                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+            uiCmdRunTransparent(CMD_CUTCLIP,1,1);
+            if(Exceptions) {
+                // TODO: SHOW ERROR MESSAGE
+                halShowErrorMsg();
+                Exceptions=0;
+            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
             halScreen.DirtyFlag|=STACK_DIRTY;
             return;
         }
@@ -2427,14 +2427,14 @@ void cutclipKeyHandler(BINT keymsg)
                 }
                 else {
 
-                halScreen.StkVisibleLvl=-1;
-                halScreen.StkSelStatus=0;
-                if(halScreen.StkPointer>selend) halScreen.StkPointer--;
-                else if(halScreen.StkPointer>=selst) halScreen.StkPointer=(selst>1)? (selst-1):1;
+                    halScreen.StkVisibleLvl=-1;
+                    halScreen.StkSelStatus=0;
+                    if(halScreen.StkPointer>selend) halScreen.StkPointer--;
+                    else if(halScreen.StkPointer>=selst) halScreen.StkPointer=(selst>1)? (selst-1):1;
 
                 }
 
-                 return;
+                return;
 
             }
 
@@ -2449,28 +2449,28 @@ void cutclipKeyHandler(BINT keymsg)
                 halShowErrorMsg();
                 Exceptions=0;
             } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
-        halScreen.DirtyFlag|=STACK_DIRTY;
+            halScreen.DirtyFlag|=STACK_DIRTY;
 
-        rplRemoveAtData(selst,selend-selst+1);
+            rplRemoveAtData(selst,selend-selst+1);
 
-        if(rplDepthData()<1) {
-            // END INTERACTIVE STACK
-            halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
-            halScreen.StkVisibleLvl=1;
-            halScreen.StkVisibleOffset=0;
-            halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
+            if(rplDepthData()<1) {
+                // END INTERACTIVE STACK
+                halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
+                halScreen.StkVisibleLvl=1;
+                halScreen.StkVisibleOffset=0;
+                halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
 
-        }
-        else {
+            }
+            else {
 
 
-        // DISABLE SELECTION STATUS
-        halScreen.StkSelStatus=0;
-        if(halScreen.StkPointer>selend) halScreen.StkPointer-=selend-selst+1;
-        else if(halScreen.StkPointer>=selst) halScreen.StkPointer=(selst>1)? (selst-1):1;
+                // DISABLE SELECTION STATUS
+                halScreen.StkSelStatus=0;
+                if(halScreen.StkPointer>selend) halScreen.StkPointer-=selend-selst+1;
+                else if(halScreen.StkPointer>=selst) halScreen.StkPointer=(selst>1)? (selst-1):1;
 
-        }
-        return;
+            }
+            return;
 
 
         }
@@ -2478,11 +2478,11 @@ void cutclipKeyHandler(BINT keymsg)
     }
     else {
         // ACTION INSIDE THE EDITOR
-            WORDPTR string=uiExtractSelection();
+        WORDPTR string=uiExtractSelection();
 
-            if(string) {
-                rplPushData(string);
-                uiCmdRunTransparent(CMD_CUTCLIP,1,0);
+        if(string) {
+            rplPushData(string);
+            uiCmdRunTransparent(CMD_CUTCLIP,1,0);
             if(Exceptions) {
                 // TODO: SHOW ERROR MESSAGE
                 halShowErrorMsg();
@@ -2490,8 +2490,8 @@ void cutclipKeyHandler(BINT keymsg)
             } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
 
             uiDeleteSelection();
-        halScreen.DirtyFlag|=STACK_DIRTY;
-    }
+            halScreen.DirtyFlag|=STACK_DIRTY;
+        }
 
 
     }
@@ -2504,12 +2504,12 @@ void copyclipKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-                uiCmdRunTransparent(CMD_COPYCLIP,1,1);
-                if(Exceptions) {
-                    // TODO: SHOW ERROR MESSAGE
-                    halShowErrorMsg();
-                    Exceptions=0;
-                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+            uiCmdRunTransparent(CMD_COPYCLIP,1,1);
+            if(Exceptions) {
+                // TODO: SHOW ERROR MESSAGE
+                halShowErrorMsg();
+                Exceptions=0;
+            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
             halScreen.DirtyFlag|=STACK_DIRTY;
         }
         if(halGetContext()&CONTEXT_INTSTACK) {
@@ -2551,7 +2551,7 @@ void copyclipKeyHandler(BINT keymsg)
                     Exceptions=0;
                 } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
                 halScreen.DirtyFlag|=STACK_DIRTY;
-                 return;
+                return;
 
             }
 
@@ -2570,10 +2570,10 @@ void copyclipKeyHandler(BINT keymsg)
                 halShowErrorMsg();
                 Exceptions=0;
             } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
-        halScreen.DirtyFlag|=STACK_DIRTY;
+            halScreen.DirtyFlag|=STACK_DIRTY;
 
 
-        return;
+            return;
 
 
         }
@@ -2582,18 +2582,18 @@ void copyclipKeyHandler(BINT keymsg)
     }
     else {
         // ACTION INSIDE THE EDITOR
-            WORDPTR string=uiExtractSelection();
+        WORDPTR string=uiExtractSelection();
 
-            if(string) {
-                rplPushData(string);
-                uiCmdRunTransparent(CMD_CUTCLIP,1,0);
+        if(string) {
+            rplPushData(string);
+            uiCmdRunTransparent(CMD_CUTCLIP,1,0);
             if(Exceptions) {
                 // TODO: SHOW ERROR MESSAGE
                 halShowErrorMsg();
                 Exceptions=0;
             } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
-        halScreen.DirtyFlag|=STACK_DIRTY;
-    }
+            halScreen.DirtyFlag|=STACK_DIRTY;
+        }
 
 
     }
@@ -2606,11 +2606,11 @@ void pasteclipKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-                uiCmdRun(CMD_PASTECLIP);
-                if(Exceptions) {
-                    halShowErrorMsg();
-                    Exceptions=0;
-                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+            uiCmdRun(CMD_PASTECLIP);
+            if(Exceptions) {
+                halShowErrorMsg();
+                Exceptions=0;
+            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
             halScreen.DirtyFlag|=STACK_DIRTY;
         }
 
@@ -2625,30 +2625,30 @@ void pasteclipKeyHandler(BINT keymsg)
                 Exceptions=0;
                 return;
             } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
-           halScreen.DirtyFlag|=STACK_DIRTY;
+            halScreen.DirtyFlag|=STACK_DIRTY;
 
-           // NOW MOVE THE NEW OBJECT TO THE CURRENT LEVEL
+            // NOW MOVE THE NEW OBJECT TO THE CURRENT LEVEL
 
-           rplExpandStack(nitems);
+            rplExpandStack(nitems);
 
-           if(Exceptions) {
-               halShowErrorMsg();
-               Exceptions=0;
-               return;
-           }
+            if(Exceptions) {
+                halShowErrorMsg();
+                Exceptions=0;
+                return;
+            }
 
             // MAKE ROOM
-           memmovew(DSTop-clevel,DSTop-clevel-nitems, (clevel+nitems)*sizeof(WORDPTR)/sizeof(WORD));
+            memmovew(DSTop-clevel,DSTop-clevel-nitems, (clevel+nitems)*sizeof(WORDPTR)/sizeof(WORD));
             // MOVE THE OBJECTS
-           memmovew(DSTop-clevel-nitems,DSTop,nitems*sizeof(WORDPTR)/sizeof(WORD));
+            memmovew(DSTop-clevel-nitems,DSTop,nitems*sizeof(WORDPTR)/sizeof(WORD));
 
-           if(halScreen.StkSelStatus) {
-           if(halScreen.StkSelStart>clevel) halScreen.StkSelStart+=nitems;
-           if(halScreen.StkSelEnd>clevel) halScreen.StkSelEnd+=nitems;
-           }
-           halScreen.StkPointer++;
+            if(halScreen.StkSelStatus) {
+                if(halScreen.StkSelStart>clevel) halScreen.StkSelStart+=nitems;
+                if(halScreen.StkSelEnd>clevel) halScreen.StkSelEnd+=nitems;
+            }
+            halScreen.StkPointer++;
 
-           halScreen.StkVisibleLvl=-1;
+            halScreen.StkVisibleLvl=-1;
 
 
         }
@@ -2657,25 +2657,25 @@ void pasteclipKeyHandler(BINT keymsg)
     }
     else {
         // ACTION INSIDE THE EDITOR
-                BINT depth=rplDepthData();
-                uiCmdRun(CMD_PASTECLIP);
-                BINT nitems=rplDepthData()-depth;
-                while(nitems>=1) {
-                    WORDPTR object=rplPeekData(nitems);
-                    if(!ISSTRING(*object)) {
-                        object=rplDecompile(object,DECOMP_EDIT);
-                        if(!object || Exceptions) {
-                            halShowErrorMsg();
-                            Exceptions=0;
-                            return;
-                        }
-                        if(((halScreen.CursorState&0xff)=='P')||((halScreen.CursorState&0xff)=='D')) uiSeparateToken();
-                    }
-
-                    rplRemoveAtData(nitems,1);
-                    uiInsertCharactersN((BYTEPTR)(object+1),(BYTEPTR)(object+1)+rplStrSize(object));
-                    --nitems;
+        BINT depth=rplDepthData();
+        uiCmdRun(CMD_PASTECLIP);
+        BINT nitems=rplDepthData()-depth;
+        while(nitems>=1) {
+            WORDPTR object=rplPeekData(nitems);
+            if(!ISSTRING(*object)) {
+                object=rplDecompile(object,DECOMP_EDIT);
+                if(!object || Exceptions) {
+                    halShowErrorMsg();
+                    Exceptions=0;
+                    return;
                 }
+                if(((halScreen.CursorState&0xff)=='P')||((halScreen.CursorState&0xff)=='D')) uiSeparateToken();
+            }
+
+            rplRemoveAtData(nitems,1);
+            uiInsertCharactersN((BYTEPTR)(object+1),(BYTEPTR)(object+1)+rplStrSize(object));
+            --nitems;
+        }
 
 
     }
@@ -2699,126 +2699,126 @@ void backspKeyHandler(BINT keymsg)
         }
 
         if(halGetContext()&CONTEXT_INTSTACK) {
-        // SELECTION MODE
-        switch(halScreen.StkSelStatus)
-        {
-        case 0:
-            // NOTHING SELECTED YET, DROP CURRENT ELEMENT
-            if(halScreen.StkPointer>rplDepthData()) break;
-           if(rplDepthData()==1) {
-                // DROP THE OBJECT AND END THE INTERACTIVE STACK
-                rplDropData(1);
+            // SELECTION MODE
+            switch(halScreen.StkSelStatus)
+            {
+            case 0:
+                // NOTHING SELECTED YET, DROP CURRENT ELEMENT
+                if(halScreen.StkPointer>rplDepthData()) break;
+                if(rplDepthData()==1) {
+                    // DROP THE OBJECT AND END THE INTERACTIVE STACK
+                    rplDropData(1);
 
-                // END INTERACTIVE STACK
-                halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
-                halScreen.StkVisibleLvl=1;
-                halScreen.StkVisibleOffset=0;
-                halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
+                    // END INTERACTIVE STACK
+                    halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
+                    halScreen.StkVisibleLvl=1;
+                    halScreen.StkVisibleOffset=0;
+                    halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
+                    halScreen.DirtyFlag|=STACK_DIRTY;
+
+                    return;
+                }
+                if(halScreen.StkPointer<=0) return;
+                if(halScreen.StkPointer==1) rplDropData(1);
+                else {
+                    rplRemoveAtData(halScreen.StkPointer,1);
+                    if(halScreen.StkPointer>rplDepthData()) halScreen.StkPointer=rplDepthData();
+                }
+                halScreen.StkVisibleLvl=-1;
                 halScreen.DirtyFlag|=STACK_DIRTY;
 
-                return;
-            }
-            if(halScreen.StkPointer<=0) return;
-            if(halScreen.StkPointer==1) rplDropData(1);
-            else {
-                rplRemoveAtData(halScreen.StkPointer,1);
-                if(halScreen.StkPointer>rplDepthData()) halScreen.StkPointer=rplDepthData();
-            }
-            halScreen.StkVisibleLvl=-1;
-            halScreen.DirtyFlag|=STACK_DIRTY;
+                break;
+            case 1:
+                // START WAS SELECTED, DELETE EVERYTHING HIGHLIGHTED
 
-            break;
-        case 1:
-            // START WAS SELECTED, DELETE EVERYTHING HIGHLIGHTED
+                if(halScreen.StkPointer>halScreen.StkSelStart) {
+                    BINT count=((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer)-halScreen.StkSelStart+1;
+                    if(rplDepthData()<=count) {
+                        // COMPLETELY CLEAR THE STACK AND END INTERACTIVE MODE
+                        rplClearData();
 
-            if(halScreen.StkPointer>halScreen.StkSelStart) {
-                BINT count=((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer)-halScreen.StkSelStart+1;
-                if(rplDepthData()<=count) {
-                    // COMPLETELY CLEAR THE STACK AND END INTERACTIVE MODE
-                    rplClearData();
+                        // END INTERACTIVE STACK
+                        halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
+                        halScreen.StkVisibleLvl=1;
+                        halScreen.StkVisibleOffset=0;
+                        halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
+                        halScreen.DirtyFlag|=STACK_DIRTY;
 
-                    // END INTERACTIVE STACK
-                    halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
-                    halScreen.StkVisibleLvl=1;
-                    halScreen.StkVisibleOffset=0;
-                    halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
-                    halScreen.DirtyFlag|=STACK_DIRTY;
-
-                    return;
+                        return;
 
 
-                }
-                rplRemoveAtData(halScreen.StkSelStart,count);
-                halScreen.StkPointer-=count;
-                if(halScreen.StkPointer<1) halScreen.StkPointer=1;
-                halScreen.StkSelStatus=0;
-                halScreen.StkVisibleLvl=-1;
+                    }
+                    rplRemoveAtData(halScreen.StkSelStart,count);
+                    halScreen.StkPointer-=count;
+                    if(halScreen.StkPointer<1) halScreen.StkPointer=1;
+                    halScreen.StkSelStatus=0;
+                    halScreen.StkVisibleLvl=-1;
 
 
-            }
-            else {
-                if(rplDepthData()==(halScreen.StkPointer? halScreen.StkPointer:1)-halScreen.StkSelStart+1) {
-                    // COMPLETELY CLEAR THE STACK AND END INTERACTIVE MODE
-                    rplClearData();
-
-                    // END INTERACTIVE STACK
-                    halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
-                    halScreen.StkVisibleLvl=1;
-                    halScreen.StkVisibleOffset=0;
-                    halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
-                    halScreen.DirtyFlag|=STACK_DIRTY;
-
-                    return;
-
-
-                }
-
-                if(halScreen.StkPointer<=1) {
-                    // JUST DROP ALL ITEMS
-                    rplDropData(halScreen.StkSelStart);
                 }
                 else {
-                rplRemoveAtData(halScreen.StkPointer,halScreen.StkSelStart-halScreen.StkPointer+1);
+                    if(rplDepthData()==(halScreen.StkPointer? halScreen.StkPointer:1)-halScreen.StkSelStart+1) {
+                        // COMPLETELY CLEAR THE STACK AND END INTERACTIVE MODE
+                        rplClearData();
+
+                        // END INTERACTIVE STACK
+                        halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
+                        halScreen.StkVisibleLvl=1;
+                        halScreen.StkVisibleOffset=0;
+                        halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
+                        halScreen.DirtyFlag|=STACK_DIRTY;
+
+                        return;
+
+
+                    }
+
+                    if(halScreen.StkPointer<=1) {
+                        // JUST DROP ALL ITEMS
+                        rplDropData(halScreen.StkSelStart);
+                    }
+                    else {
+                        rplRemoveAtData(halScreen.StkPointer,halScreen.StkSelStart-halScreen.StkPointer+1);
+                    }
+                    if(halScreen.StkPointer>rplDepthData()) halScreen.StkPointer=rplDepthData();
+                    halScreen.StkSelStatus=0;
+                    halScreen.StkVisibleLvl=-1;
+
                 }
+
+                halScreen.DirtyFlag|=STACK_DIRTY;
+                break;
+            case 2:
+            {
+                // BOTH START AND END SELECTED, DELETE SELECTED ITEMS
+                if(rplDepthData()==halScreen.StkSelEnd-halScreen.StkSelStart+1) {
+                    // COMPLETELY CLEAR THE STACK AND END INTERACTIVE MODE
+                    rplClearData();
+
+                    // END INTERACTIVE STACK
+                    halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
+                    halScreen.StkVisibleLvl=1;
+                    halScreen.StkVisibleOffset=0;
+                    halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
+                    halScreen.DirtyFlag|=STACK_DIRTY;
+
+                    return;
+
+
+                }
+
+                BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
+                rplRemoveAtData(halScreen.StkSelStart,count);
+                if(halScreen.StkPointer>halScreen.StkSelEnd) halScreen.StkPointer-=count;
+                else if(halScreen.StkPointer>=halScreen.StkSelStart) halScreen.StkPointer=halScreen.StkSelStart;
                 if(halScreen.StkPointer>rplDepthData()) halScreen.StkPointer=rplDepthData();
                 halScreen.StkSelStatus=0;
                 halScreen.StkVisibleLvl=-1;
 
-            }
-
-            halScreen.DirtyFlag|=STACK_DIRTY;
-            break;
-        case 2:
-        {
-            // BOTH START AND END SELECTED, DELETE SELECTED ITEMS
-            if(rplDepthData()==halScreen.StkSelEnd-halScreen.StkSelStart+1) {
-                // COMPLETELY CLEAR THE STACK AND END INTERACTIVE MODE
-                rplClearData();
-
-                // END INTERACTIVE STACK
-                halSetContext((halGetContext()&~CONTEXT_INTSTACK)|CONTEXT_STACK);
-                halScreen.StkVisibleLvl=1;
-                halScreen.StkVisibleOffset=0;
-                halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
                 halScreen.DirtyFlag|=STACK_DIRTY;
-
-                return;
-
-
+                break;
             }
-
-            BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
-            rplRemoveAtData(halScreen.StkSelStart,count);
-            if(halScreen.StkPointer>halScreen.StkSelEnd) halScreen.StkPointer-=count;
-            else if(halScreen.StkPointer>=halScreen.StkSelStart) halScreen.StkPointer=halScreen.StkSelStart;
-            if(halScreen.StkPointer>rplDepthData()) halScreen.StkPointer=rplDepthData();
-            halScreen.StkSelStatus=0;
-            halScreen.StkVisibleLvl=-1;
-
-            halScreen.DirtyFlag|=STACK_DIRTY;
-            break;
-        }
-        }
+            }
 
 
         }
@@ -2859,13 +2859,13 @@ void leftKeyHandler(BINT keymsg)
 
         }
         if(halGetContext()&CONTEXT_INTSTACK) {
-        switch(halScreen.StkSelStatus)
-        {
-        case 0:
-            // NO ITEM SELECTED, ROT WITH LEVEL 1
-            if(rplDepthData()>=halScreen.StkPointer) {
-                WORDPTR *stptr,*endptr,*cptr;
-                WORDPTR item;
+            switch(halScreen.StkSelStatus)
+            {
+            case 0:
+                // NO ITEM SELECTED, ROT WITH LEVEL 1
+                if(rplDepthData()>=halScreen.StkPointer) {
+                    WORDPTR *stptr,*endptr,*cptr;
+                    WORDPTR item;
                     stptr=DSTop-halScreen.StkPointer;
                     endptr=DSTop-1;
 
@@ -2875,51 +2875,51 @@ void leftKeyHandler(BINT keymsg)
 
                     while(cptr<endptr) { cptr[0]=cptr[1]; ++cptr; }
                     *cptr=item;
-            }
-            break;
+                }
+                break;
 
-        case 1:
-        {
-            // ONE ITEM SELECTED, ROT THE WHOLE BLOCK BETWEEN POINTER AND SELSTART
-            WORDPTR *stptr,*endptr;
+            case 1:
+            {
+                // ONE ITEM SELECTED, ROT THE WHOLE BLOCK BETWEEN POINTER AND SELSTART
+                WORDPTR *stptr,*endptr;
 
-            if(halScreen.StkPointer>halScreen.StkSelStart) {
-                endptr=DSTop-halScreen.StkSelStart;
-                stptr=DSTop-((halScreen.StkPointer>=rplDepthData())? rplDepthData():halScreen.StkPointer);
-            }
-            else {
-                stptr=DSTop-halScreen.StkSelStart;
-                endptr=DSTop-halScreen.StkPointer;
-            }
+                if(halScreen.StkPointer>halScreen.StkSelStart) {
+                    endptr=DSTop-halScreen.StkSelStart;
+                    stptr=DSTop-((halScreen.StkPointer>=rplDepthData())? rplDepthData():halScreen.StkPointer);
+                }
+                else {
+                    stptr=DSTop-halScreen.StkSelStart;
+                    endptr=DSTop-halScreen.StkPointer;
+                }
 
                 // NOW ROT BETWEEN THEM
                 WORDPTR *cptr=stptr;
                 WORDPTR item=*stptr;
                 while(cptr<endptr) { cptr[0]=cptr[1]; ++cptr; }
                 *cptr=item;
-            break;
-        }
+                break;
+            }
 
-        case 2:
-            // START AND END SELECTED, MOVE THE BLOCK TO THE CURSOR
-        {
-            if(halScreen.StkPointer>halScreen.StkSelEnd) {
-                WORDPTR *stptr,*endptr,*cptr;
-                WORDPTR item;
+            case 2:
+                // START AND END SELECTED, MOVE THE BLOCK TO THE CURSOR
+            {
+                if(halScreen.StkPointer>halScreen.StkSelEnd) {
+                    WORDPTR *stptr,*endptr,*cptr;
+                    WORDPTR item;
                     stptr=DSTop-halScreen.StkSelStart;
                     endptr=DSTop-((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer);
 
                     // DO UNROT UNTIL THE ENTIRE BLOCK MOVED
-                BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
+                    BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
 
                     while(count--)
                     {
-                    cptr=stptr;
+                        cptr=stptr;
 
-                    item=*cptr;
+                        item=*cptr;
 
-                    while(cptr>endptr) { cptr[0]=cptr[-1]; --cptr; }
-                    *cptr=item;
+                        while(cptr>endptr) { cptr[0]=cptr[-1]; --cptr; }
+                        *cptr=item;
                     }
 
                     count=halScreen.StkSelEnd-halScreen.StkSelStart;
@@ -2928,11 +2928,11 @@ void leftKeyHandler(BINT keymsg)
 
                     break;
 
-            }
-            if(halScreen.StkPointer<halScreen.StkSelStart) {
+                }
+                if(halScreen.StkPointer<halScreen.StkSelStart) {
 
-                WORDPTR *stptr,*endptr,*cptr;
-                WORDPTR item;
+                    WORDPTR *stptr,*endptr,*cptr;
+                    WORDPTR item;
                     stptr=DSTop-halScreen.StkSelEnd;
                     endptr=DSTop-halScreen.StkPointer-1;
 
@@ -2940,12 +2940,12 @@ void leftKeyHandler(BINT keymsg)
                     BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
                     while(count--)
                     {
-                    cptr=stptr;
+                        cptr=stptr;
 
-                    item=*cptr;
+                        item=*cptr;
 
-                    while(cptr<endptr) { cptr[0]=cptr[1]; ++cptr; }
-                    *cptr=item;
+                        while(cptr<endptr) { cptr[0]=cptr[1]; ++cptr; }
+                        *cptr=item;
                     }
 
                     count=halScreen.StkSelEnd-halScreen.StkSelStart;
@@ -2955,12 +2955,12 @@ void leftKeyHandler(BINT keymsg)
                     halScreen.StkVisibleLvl=-1;
 
 
-                break;
-            }
+                    break;
+                }
 
-            // WHEN THE POINTER IS WITHIN THE BLOCK JUST UNROT THE BLOCK
-            WORDPTR *stptr,*endptr,*cptr;
-            WORDPTR item;
+                // WHEN THE POINTER IS WITHIN THE BLOCK JUST UNROT THE BLOCK
+                WORDPTR *stptr,*endptr,*cptr;
+                WORDPTR item;
                 stptr=DSTop-halScreen.StkSelStart;
                 endptr=DSTop-halScreen.StkSelEnd;
 
@@ -2973,14 +2973,14 @@ void leftKeyHandler(BINT keymsg)
 
                 break;
 
+            }
+
+
+            }
+            halScreen.DirtyFlag|=STACK_DIRTY;
+            return;
+
         }
-
-
-        }
-        halScreen.DirtyFlag|=STACK_DIRTY;
-        return;
-
-    }
 
 
     }
@@ -3065,57 +3065,57 @@ void rightKeyHandler(BINT keymsg)
 
             if(rplDepthData()>1) {
                 uiCmdRun(CMD_SWAP);
-            halScreen.DirtyFlag|=STACK_DIRTY;
+                halScreen.DirtyFlag|=STACK_DIRTY;
             }
 
         }
         if(halGetContext()&CONTEXT_INTSTACK) {
-        switch(halScreen.StkSelStatus)
-        {
-        case 0:
-        {
-            if(rplDepthData()>=halScreen.StkPointer) {
+            switch(halScreen.StkSelStatus)
+            {
+            case 0:
+            {
+                if(rplDepthData()>=halScreen.StkPointer) {
 
-            // NO ITEM SELECTED, UNROT THE WHOLE BLOCK BETWEEN POINTER AND LEVEL 1
-            WORDPTR *stptr,*endptr;
+                    // NO ITEM SELECTED, UNROT THE WHOLE BLOCK BETWEEN POINTER AND LEVEL 1
+                    WORDPTR *stptr,*endptr;
 
-                stptr=DSTop-1;
-                endptr=DSTop-(halScreen.StkPointer? halScreen.StkPointer:1);
+                    stptr=DSTop-1;
+                    endptr=DSTop-(halScreen.StkPointer? halScreen.StkPointer:1);
+
+                    // NOW UNROT BETWEEN THEM
+                    WORDPTR *cptr=stptr;
+                    WORDPTR item=*stptr;
+                    while(cptr>endptr) { cptr[0]=cptr[-1]; --cptr; }
+                    *cptr=item;
+                }
+                break;
+            }
+            case 1:
+            {
+                // ONE ITEM SELECTED, UNROT THE WHOLE BLOCK BETWEEN POINTER AND SELSTART
+                WORDPTR *stptr,*endptr;
+
+                if(halScreen.StkPointer>halScreen.StkSelStart) {
+                    stptr=DSTop-halScreen.StkSelStart;
+                    endptr=DSTop-((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer);
+                }
+                else {
+                    endptr=DSTop-halScreen.StkSelStart;
+                    stptr=DSTop-(halScreen.StkPointer? halScreen.StkPointer:1);
+                }
 
                 // NOW UNROT BETWEEN THEM
                 WORDPTR *cptr=stptr;
                 WORDPTR item=*stptr;
                 while(cptr>endptr) { cptr[0]=cptr[-1]; --cptr; }
                 *cptr=item;
-            }
-            break;
-        }
-        case 1:
-        {
-            // ONE ITEM SELECTED, UNROT THE WHOLE BLOCK BETWEEN POINTER AND SELSTART
-            WORDPTR *stptr,*endptr;
-
-            if(halScreen.StkPointer>halScreen.StkSelStart) {
-                stptr=DSTop-halScreen.StkSelStart;
-                endptr=DSTop-((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer);
-            }
-            else {
-                endptr=DSTop-halScreen.StkSelStart;
-                stptr=DSTop-(halScreen.StkPointer? halScreen.StkPointer:1);
+                break;
             }
 
-                // NOW UNROT BETWEEN THEM
-                WORDPTR *cptr=stptr;
-                WORDPTR item=*stptr;
-                while(cptr>endptr) { cptr[0]=cptr[-1]; --cptr; }
-                *cptr=item;
-            break;
-        }
-
-        case 2:
-            // START AND END SELECTED, COPY THE BLOCK TO THE CURSOR
-        {
-            if(halScreen.StkPointer>halScreen.StkSelEnd) {
+            case 2:
+                // START AND END SELECTED, COPY THE BLOCK TO THE CURSOR
+            {
+                if(halScreen.StkPointer>halScreen.StkSelEnd) {
                     // MAKE HOLE
                     BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
                     BINT stkptr=halScreen.StkPointer;
@@ -3135,32 +3135,32 @@ void rightKeyHandler(BINT keymsg)
 
                     break;
 
-            }
-            if(halScreen.StkPointer<halScreen.StkSelStart) {
+                }
+                if(halScreen.StkPointer<halScreen.StkSelStart) {
 
-                // MAKE HOLE
-                BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
+                    // MAKE HOLE
+                    BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
 
-                rplExpandStack(count);
-                if(Exceptions) return;
+                    rplExpandStack(count);
+                    if(Exceptions) return;
 
-                memmovew(DSTop-halScreen.StkPointer+count,DSTop-halScreen.StkPointer,halScreen.StkPointer*sizeof(WORDPTR)/sizeof(WORD));
+                    memmovew(DSTop-halScreen.StkPointer+count,DSTop-halScreen.StkPointer,halScreen.StkPointer*sizeof(WORDPTR)/sizeof(WORD));
 
-                // AND COPY THE SELECTION
-                memmovew(DSTop-halScreen.StkPointer,DSTop-halScreen.StkSelEnd,count*sizeof(WORDPTR)/sizeof(WORD));
+                    // AND COPY THE SELECTION
+                    memmovew(DSTop-halScreen.StkPointer,DSTop-halScreen.StkSelEnd,count*sizeof(WORDPTR)/sizeof(WORD));
 
-                DSTop+=count;
-                halScreen.StkPointer+=count;
-                halScreen.StkSelStart+=count;
-                halScreen.StkSelEnd+=count;
-                halScreen.StkVisibleLvl=-1;
+                    DSTop+=count;
+                    halScreen.StkPointer+=count;
+                    halScreen.StkSelStart+=count;
+                    halScreen.StkSelEnd+=count;
+                    halScreen.StkVisibleLvl=-1;
 
-                break;
-            }
+                    break;
+                }
 
-            // WHEN THE POINTER IS WITHIN THE BLOCK JUST ROT THE BLOCK
-            WORDPTR *stptr,*endptr,*cptr;
-            WORDPTR item;
+                // WHEN THE POINTER IS WITHIN THE BLOCK JUST ROT THE BLOCK
+                WORDPTR *stptr,*endptr,*cptr;
+                WORDPTR item;
                 endptr=DSTop-halScreen.StkSelStart;
                 stptr=DSTop-halScreen.StkSelEnd;
 
@@ -3173,16 +3173,16 @@ void rightKeyHandler(BINT keymsg)
 
                 break;
 
+            }
+
+
+
+
+            }
+            halScreen.DirtyFlag|=STACK_DIRTY;
+            return;
+
         }
-
-
-
-
-        }
-        halScreen.DirtyFlag|=STACK_DIRTY;
-        return;
-
-    }
     }
     else{
         BINT line=halScreen.LineCurrent;
@@ -3257,7 +3257,7 @@ void alphaholdrightKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // TODO: ??
-            }
+        }
         // TODO: ADD OTHER CONTEXTS HERE
     }
 
@@ -3313,9 +3313,9 @@ void downKeyHandler(BINT keymsg)
 
                 uiSetCmdLineState(uiGetCmdLineState()|CMDSTATE_OVERWRITE);
                 return;
-                }
-
             }
+
+        }
 
         if(halGetContext()&CONTEXT_INTSTACK) {
             if(halScreen.StkPointer>0) {
@@ -3345,7 +3345,7 @@ void rsholddownKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // TODO: ??
-            }
+        }
         if(halGetContext()&CONTEXT_INTSTACK) {
             if(halScreen.StkPointer>1) {
                 halScreen.StkPointer=halScreen.StkVisibleLvl-1;
@@ -3376,7 +3376,7 @@ void rsdownKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // TODO: ??
-            }
+        }
         if(halGetContext()&CONTEXT_INTSTACK) {
             if(halScreen.StkPointer>1) {
                 halScreen.StkPointer=1;
@@ -3406,7 +3406,7 @@ void alphaholddownKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // TODO: ??
-            }
+        }
         // TODO: ADD OTHER CONTEXTS HERE
     }
 
@@ -3435,17 +3435,17 @@ void upKeyHandler(BINT keymsg)
 
 
 
-            halSetContext((halGetContext()&~CONTEXT_STACK)|CONTEXT_INTSTACK);
+                halSetContext((halGetContext()&~CONTEXT_STACK)|CONTEXT_INTSTACK);
 
-            halScreen.StkPointer=1;
-            halScreen.StkSelStart=halScreen.StkSelEnd=-1;
-            halScreen.StkVisibleLvl=1;
-            halScreen.StkVisibleOffset=0;
-            halScreen.DirtyFlag|=STACK_DIRTY;
-            halScreen.StkSelStatus=0;
+                halScreen.StkPointer=1;
+                halScreen.StkSelStart=halScreen.StkSelEnd=-1;
+                halScreen.StkVisibleLvl=1;
+                halScreen.StkVisibleOffset=0;
+                halScreen.DirtyFlag|=STACK_DIRTY;
+                halScreen.StkSelStatus=0;
             }
             return;
-            }
+        }
         if(halGetContext()&CONTEXT_INTSTACK) {
             if(halScreen.StkPointer<=rplDepthData()) {
                 ++halScreen.StkPointer;
@@ -3474,7 +3474,7 @@ void rsholdupKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // TODO: START INTERACTIVE STACK MANIPULATION HERE
-            }
+        }
         if(halGetContext()&CONTEXT_INTSTACK) {
             if(halScreen.StkPointer<rplDepthData()) {
                 halScreen.StkPointer+=5;
@@ -3504,7 +3504,7 @@ void rsupKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // TODO: START INTERACTIVE STACK MANIPULATION HERE
-            }
+        }
         if(halGetContext()&CONTEXT_INTSTACK) {
             if(halScreen.StkPointer!=rplDepthData()) {
                 halScreen.StkPointer=rplDepthData();
@@ -3534,7 +3534,7 @@ void alphaholdupKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // TODO: ??
-            }
+        }
         // TODO: ADD OTHER CONTEXTS HERE
     }
 
@@ -3553,47 +3553,47 @@ void chsKeyHandler(BINT keymsg)
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK
-                uiCmdRun((CMD_OVR_NEG));
-                if(Exceptions) {
-                    // TODO: SHOW ERROR MESSAGE
-                    halShowErrorMsg();
-                    Exceptions=0;
-                }
+            uiCmdRun((CMD_OVR_NEG));
+            if(Exceptions) {
+                // TODO: SHOW ERROR MESSAGE
+                halShowErrorMsg();
+                Exceptions=0;
+            }
             halScreen.DirtyFlag|=STACK_DIRTY;
         }
         if(halGetContext()&CONTEXT_INTSTACK) {
-        // SELECTION MODE
-        switch(halScreen.StkSelStatus)
-        {
-        case 0:
-            // NOTHING SELECTED YET
-            halScreen.StkSelStart=(halScreen.StkPointer? halScreen.StkPointer:1);
-            if(halScreen.StkSelStart>rplDepthData()) halScreen.StkSelStart=rplDepthData();
-            halScreen.StkSelEnd=halScreen.StkSelStart;
-            halScreen.StkSelStatus+=2;
-            halScreen.DirtyFlag|=STACK_DIRTY;
-            break;
-        case 1:
-            // START WAS SELECTED
-            if(halScreen.StkSelStart>halScreen.StkPointer) {
-                halScreen.StkSelEnd=halScreen.StkSelStart;
+            // SELECTION MODE
+            switch(halScreen.StkSelStatus)
+            {
+            case 0:
+                // NOTHING SELECTED YET
                 halScreen.StkSelStart=(halScreen.StkPointer? halScreen.StkPointer:1);
+                if(halScreen.StkSelStart>rplDepthData()) halScreen.StkSelStart=rplDepthData();
+                halScreen.StkSelEnd=halScreen.StkSelStart;
+                halScreen.StkSelStatus+=2;
+                halScreen.DirtyFlag|=STACK_DIRTY;
+                break;
+            case 1:
+                // START WAS SELECTED
+                if(halScreen.StkSelStart>halScreen.StkPointer) {
+                    halScreen.StkSelEnd=halScreen.StkSelStart;
+                    halScreen.StkSelStart=(halScreen.StkPointer? halScreen.StkPointer:1);
+                }
+                else {
+                    halScreen.StkSelEnd=(halScreen.StkPointer? halScreen.StkPointer:1);
+                    if(halScreen.StkSelEnd>rplDepthData()) halScreen.StkSelEnd=rplDepthData();
+                }
+                ++halScreen.StkSelStatus;
+                halScreen.DirtyFlag|=STACK_DIRTY;
+                break;
+            case 2:
+                // BOTH START AND END SELECTED, REPLACE SELECTION WITH NEW ITEM
+                halScreen.StkSelStart=(halScreen.StkPointer? halScreen.StkPointer:1);
+                if(halScreen.StkSelStart>rplDepthData()) halScreen.StkSelStart=rplDepthData();
+                halScreen.StkSelEnd=halScreen.StkSelStart;
+                halScreen.DirtyFlag|=STACK_DIRTY;
+                break;
             }
-            else {
-            halScreen.StkSelEnd=(halScreen.StkPointer? halScreen.StkPointer:1);
-            if(halScreen.StkSelEnd>rplDepthData()) halScreen.StkSelEnd=rplDepthData();
-            }
-            ++halScreen.StkSelStatus;
-            halScreen.DirtyFlag|=STACK_DIRTY;
-            break;
-        case 2:
-            // BOTH START AND END SELECTED, REPLACE SELECTION WITH NEW ITEM
-            halScreen.StkSelStart=(halScreen.StkPointer? halScreen.StkPointer:1);
-            if(halScreen.StkSelStart>rplDepthData()) halScreen.StkSelStart=rplDepthData();
-            halScreen.StkSelEnd=halScreen.StkSelStart;
-            halScreen.DirtyFlag|=STACK_DIRTY;
-            break;
-        }
 
 
         }
@@ -3613,25 +3613,25 @@ void chsKeyHandler(BINT keymsg)
         if(!startnum) {
             startnum=line+halScreen.CursorPosition;
             if(startnum>line) {
-            if(startnum[-1]=='+') { uiCursorLeft(1); uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"-"); halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
-            if(startnum[-1]=='-') { uiCursorLeft(1); uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"+"); halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
-            if((startnum[-1]=='E')||(startnum[-1]=='e') ) {
-                if(startnum[0]=='+') {
-                    uiRemoveCharacters(1);
-                    uiInsertCharacters((BYTEPTR)"-");
-                    uiAutocompleteUpdate();
-                    return;
-                } else if(startnum[0]=='-') {
-                    uiRemoveCharacters(1);
-                    uiInsertCharacters((BYTEPTR)"+");
-                    uiAutocompleteUpdate();
-                    return;
-                } else {
-                    uiInsertCharacters((BYTEPTR)"+");
-                    uiAutocompleteUpdate();
-                    return;
+                if(startnum[-1]=='+') { uiCursorLeft(1); uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"-"); halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
+                if(startnum[-1]=='-') { uiCursorLeft(1); uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"+"); halScreen.DirtyFlag|=CMDLINE_LINEDIRTY|CMDLINE_CURSORDIRTY; return; }
+                if((startnum[-1]=='E')||(startnum[-1]=='e') ) {
+                    if(startnum[0]=='+') {
+                        uiRemoveCharacters(1);
+                        uiInsertCharacters((BYTEPTR)"-");
+                        uiAutocompleteUpdate();
+                        return;
+                    } else if(startnum[0]=='-') {
+                        uiRemoveCharacters(1);
+                        uiInsertCharacters((BYTEPTR)"+");
+                        uiAutocompleteUpdate();
+                        return;
+                    } else {
+                        uiInsertCharacters((BYTEPTR)"+");
+                        uiAutocompleteUpdate();
+                        return;
                     }
-              }
+                }
 
 
             }
@@ -3639,18 +3639,18 @@ void chsKeyHandler(BINT keymsg)
             // SECOND CASE: IF TOKEN UNDER CURSOR IS EMPTY, IN 'D' MODE COMPILE OBJECT AND THEN EXECUTE NEG
 
             if((halScreen.CursorState&0xff)=='D') {
-            // COMPILE AND EXECUTE NEG
-            if(endCmdLineAndCompile()) {
-            uiCmdRun((CMD_OVR_NEG));
-            if(Exceptions) {
-                // TODO: SHOW ERROR MESSAGE
-                halShowErrorMsg();
-                Exceptions=0;
-            }
-        halScreen.DirtyFlag|=STACK_DIRTY;
-            }
+                // COMPILE AND EXECUTE NEG
+                if(endCmdLineAndCompile()) {
+                    uiCmdRun((CMD_OVR_NEG));
+                    if(Exceptions) {
+                        // TODO: SHOW ERROR MESSAGE
+                        halShowErrorMsg();
+                        Exceptions=0;
+                    }
+                    halScreen.DirtyFlag|=STACK_DIRTY;
+                }
 
-            return;
+                return;
             }
 
             if((halScreen.CursorState&0xff)=='P') {
@@ -3658,7 +3658,7 @@ void chsKeyHandler(BINT keymsg)
                 uiInsertCharacters((BYTEPTR)"NEG");
                 uiSeparateToken();
                 uiAutocompleteUpdate();
-            return;
+                return;
             }
 
             if((halScreen.CursorState&0xff)=='A') {
@@ -3675,9 +3675,9 @@ void chsKeyHandler(BINT keymsg)
                     BYTEPTR ptr=(BYTEPTR )forbiddenChars;
                     char1=utf82cp((char *)startnum,(char *)prevstnum);
                     do {
-                    char2=utf82cp((char *)ptr,(char *)ptr+4);
-                    if(char1==char2) break;
-                    ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)ptr+4);
+                        char2=utf82cp((char *)ptr,(char *)ptr+4);
+                        if(char1==char2) break;
+                        ptr=(BYTEPTR)utf8skip((char *)ptr,(char *)ptr+4);
                     } while(*ptr);
                     if(*ptr) break;
                     if(*startnum=='\'') break;
@@ -3701,21 +3701,21 @@ void chsKeyHandler(BINT keymsg)
                         if(moveleft>0) uiCursorRight(moveleft-1);
                     }
                     else {
-                     // FOUND NOTHING!
+                        // FOUND NOTHING!
                         if(moveleft>0) uiCursorLeft(moveleft-1);
                         else uiCursorRight(1);
-                             startnum=(BYTEPTR)utf8skipst((char *)startnum,(char *)(startnum+4));
-                             if(*startnum=='+') { uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"-"); }
-                             else if(*startnum=='-') { uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"+"); }
-                             else uiInsertCharacters((BYTEPTR)"-");
+                        startnum=(BYTEPTR)utf8skipst((char *)startnum,(char *)(startnum+4));
+                        if(*startnum=='+') { uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"-"); }
+                        else if(*startnum=='-') { uiRemoveCharacters(1); uiInsertCharacters((BYTEPTR)"+"); }
+                        else uiInsertCharacters((BYTEPTR)"-");
 
-                             if(moveleft>0) uiCursorRight(moveleft-1);
+                        if(moveleft>0) uiCursorRight(moveleft-1);
 
                     }
                 }
 
                 uiAutocompleteUpdate();
-            return;
+                return;
             }
 
 
@@ -3726,19 +3726,19 @@ void chsKeyHandler(BINT keymsg)
             BINT oldposition=halScreen.CursorPosition;
             // IF THIS IS A NUMBER WITH AN EXPONENT, SEE IF WE NEED TO CHANGE THE SIGN OF THE NUMBER OR THE EXPONENT
             if((flags>>16)&4) {
-             // LOOK FOR THE 'e' OR 'E'
-            BINT epos=0;
-            while((epos<endnum-startnum)&&( (startnum[epos]!='E')&&(startnum[epos]!='e'))) ++epos;
+                // LOOK FOR THE 'e' OR 'E'
+                BINT epos=0;
+                while((epos<endnum-startnum)&&( (startnum[epos]!='E')&&(startnum[epos]!='e'))) ++epos;
 
-            if(oldposition>(startnum-line)+epos) startnum+=epos+1;  // MOVE START OF NUMBER TO AFTER THE EXPONENT LETTER
-            if((startnum[0]=='-')||(startnum[0]=='+')) ++startnum;
+                if(oldposition>(startnum-line)+epos) startnum+=epos+1;  // MOVE START OF NUMBER TO AFTER THE EXPONENT LETTER
+                if((startnum[0]=='-')||(startnum[0]=='+')) ++startnum;
             }
             uiMoveCursor(startnum-line);
             BYTEPTR plusminus=(BYTEPTR)"-";
 
             if(startnum>line) {
-            if(startnum[-1]=='+') { uiMoveCursor(startnum-line-1); uiRemoveCharacters(1); --oldposition; }
-            if(startnum[-1]=='-') { uiMoveCursor(startnum-line-1); uiRemoveCharacters(1); plusminus=(BYTEPTR)"+"; -- oldposition; }
+                if(startnum[-1]=='+') { uiMoveCursor(startnum-line-1); uiRemoveCharacters(1); --oldposition; }
+                if(startnum[-1]=='-') { uiMoveCursor(startnum-line-1); uiRemoveCharacters(1); plusminus=(BYTEPTR)"+"; -- oldposition; }
             }
 
             // NEED TO INSERT A CHARACTER HERE
@@ -3747,7 +3747,7 @@ void chsKeyHandler(BINT keymsg)
             uiEnsureCursorVisible();
             uiAutocompleteUpdate();
             return;
-      }
+        }
 
         // THIRD CASE: IF TOKEN UNDER CURSOR IS SOMETHING OTHER THAN A NUMBER, JUST INSERT A MINUS SIGN
 
@@ -3803,40 +3803,40 @@ void eexKeyHandler(BINT keymsg)
             // WE FOUND A NUMBER
             if((startnum>line)&&((startnum[-1]=='-')||(startnum[-1]=='+'))) --startnum;
 
-             if(halScreen.CursorPosition<=endnum+1-line) {
-             // THE CURSOR IS WITHIN THE NUMBER
-            if((flags>>16)&4) {
-                // THE NUMBER ALREADY HAS AN EXPONENT, LOOK FOR THE 'e' OR 'E'
-               BINT epos=0;
-               while((epos<endnum-startnum)&&( (startnum[epos]!='E')&&(startnum[epos]!='e'))) ++epos;
+            if(halScreen.CursorPosition<=endnum+1-line) {
+                // THE CURSOR IS WITHIN THE NUMBER
+                if((flags>>16)&4) {
+                    // THE NUMBER ALREADY HAS AN EXPONENT, LOOK FOR THE 'e' OR 'E'
+                    BINT epos=0;
+                    while((epos<endnum-startnum)&&( (startnum[epos]!='E')&&(startnum[epos]!='e'))) ++epos;
 
-               startnum+=epos+1;  // MOVE START OF NUMBER TO AFTER THE EXPONENT LETTER
-               uiMoveCursor(startnum-line);
-               uiRemoveCharacters(endnum-startnum+1);
-               uiEnsureCursorVisible();
-               uiAutocompleteUpdate();
-               return;
-               }
+                    startnum+=epos+1;  // MOVE START OF NUMBER TO AFTER THE EXPONENT LETTER
+                    uiMoveCursor(startnum-line);
+                    uiRemoveCharacters(endnum-startnum+1);
+                    uiEnsureCursorVisible();
+                    uiAutocompleteUpdate();
+                    return;
+                }
 
-            // NEED TO INSERT A CHARACTER HERE
-            BINT oldposition=halScreen.CursorPosition;
-            if((*endnum=='e')||(*endnum=='E')) uiMoveCursor(endnum-line+1);
-            else {
-            if((config.MiddleFmt|config.BigFmt|config.SmallFmt)&FMT_USECAPITALS) uiInsertCharacters((BYTEPTR)"E");
-            else uiInsertCharacters((BYTEPTR)"e");
-            uiMoveCursor(oldposition+1);
+                // NEED TO INSERT A CHARACTER HERE
+                BINT oldposition=halScreen.CursorPosition;
+                if((*endnum=='e')||(*endnum=='E')) uiMoveCursor(endnum-line+1);
+                else {
+                    if((config.MiddleFmt|config.BigFmt|config.SmallFmt)&FMT_USECAPITALS) uiInsertCharacters((BYTEPTR)"E");
+                    else uiInsertCharacters((BYTEPTR)"e");
+                    uiMoveCursor(oldposition+1);
+                }
+                uiEnsureCursorVisible();
+                uiAutocompleteUpdate();
+                return;
+
             }
-            uiEnsureCursorVisible();
+            // THE CURSOR WAS PAST THE END OF THE NUMBER
+            if((config.MiddleFmt|config.BigFmt|config.SmallFmt)&FMT_USECAPITALS)    uiInsertCharacters((BYTEPTR)"1E");
+            else uiInsertCharacters((BYTEPTR)"1e");
             uiAutocompleteUpdate();
             return;
-
-            }
-             // THE CURSOR WAS PAST THE END OF THE NUMBER
-              if((config.MiddleFmt|config.BigFmt|config.SmallFmt)&FMT_USECAPITALS)    uiInsertCharacters((BYTEPTR)"1E");
-              else uiInsertCharacters((BYTEPTR)"1e");
-              uiAutocompleteUpdate();
-              return;
-      }
+        }
 
     }
 }
@@ -3851,7 +3851,7 @@ void bracketKeyHandler(BINT keymsg,BYTEPTR string)
         halSetContext(halGetContext()|CONTEXT_INEDITOR);
         if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
         else uiOpenCmdLine('D');
-        }
+    }
     if(((halScreen.CursorState&0xff)=='D')||((halScreen.CursorState&0xff)=='P')) uiSeparateToken();
 
     BYTEPTR end=string+stringlen((char *)string);
@@ -3904,8 +3904,8 @@ void ticksKeyHandler(BINT keymsg)
 {
     if( (halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C'))
     {
-    bracketKeyHandler(keymsg,(BYTEPTR)"''");
-    halSetCmdLineMode('A');
+        bracketKeyHandler(keymsg,(BYTEPTR)"''");
+        halSetCmdLineMode('A');
     }
     else symbolKeyHandler(keymsg,(BYTEPTR)"'",0);
 }
@@ -3913,8 +3913,8 @@ void ticksKeyHandler(BINT keymsg)
 void tagKeyHandler(BINT keymsg)
 {
     if( (halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C')) {
-    bracketKeyHandler(keymsg,(BYTEPTR)"::");
-    //  LOCK ALPHA MODE
+        bracketKeyHandler(keymsg,(BYTEPTR)"::");
+        //  LOCK ALPHA MODE
         keyb_setshiftplane(0,0,1,1);
     }
     else symbolKeyHandler(keymsg,(BYTEPTR)":",0);
@@ -3929,29 +3929,29 @@ void onPlusKeyHandler(BINT keymsg)
     halStatusAreaPopup();
 
 
-// INCREASE CONTRAST
-DRAWSURFACE scr;
-ggl_initscr(&scr);
-int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
-// CLEAR STATUS AREA
-ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+    // INCREASE CONTRAST
+    DRAWSURFACE scr;
+    ggl_initscr(&scr);
+    int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+    // CLEAR STATUS AREA
+    ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
-int j;
-for(j=0;j<15;++j) {
-    ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop+7,STATUSAREA_X+1+3*j+2,ytop+12,ggl_mkcolor(j));
-    ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop,STATUSAREA_X+1+3*j+2,ytop+5,ggl_mkcolor(15-j));
-}
+    int j;
+    for(j=0;j<15;++j) {
+        ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop+7,STATUSAREA_X+1+3*j+2,ytop+12,ggl_mkcolor(j));
+        ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop,STATUSAREA_X+1+3*j+2,ytop+5,ggl_mkcolor(15-j));
+    }
 
 
-__lcd_contrast++;
-if(__lcd_contrast>0xf) __lcd_contrast=0xf;
+    __lcd_contrast++;
+    if(__lcd_contrast>0xf) __lcd_contrast=0xf;
 
-lcd_setcontrast(__lcd_contrast);
-WORD savedex=Exceptions;
-Exceptions=0;
-WORDPTR contrast=rplNewSINT(__lcd_contrast,DECBINT);
-if(contrast) rplStoreSettings((WORDPTR)screenconfig_ident,contrast);
-Exceptions=savedex;
+    lcd_setcontrast(__lcd_contrast);
+    WORD savedex=Exceptions;
+    Exceptions=0;
+    WORDPTR contrast=rplNewSINT(__lcd_contrast,DECBINT);
+    if(contrast) rplStoreSettings((WORDPTR)screenconfig_ident,contrast);
+    Exceptions=savedex;
 }
 
 void onMinusKeyHandler(BINT keymsg)
@@ -3960,28 +3960,28 @@ void onMinusKeyHandler(BINT keymsg)
 
     halStatusAreaPopup();
 
-// DECREASE CONTRAST
-DRAWSURFACE scr;
-ggl_initscr(&scr);
-int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
-// CLEAR STATUS AREA
-ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+    // DECREASE CONTRAST
+    DRAWSURFACE scr;
+    ggl_initscr(&scr);
+    int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+    // CLEAR STATUS AREA
+    ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
-int j;
-for(j=0;j<15;++j) {
-    ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop+7,STATUSAREA_X+1+3*j+2,ytop+12,ggl_mkcolor(j));
-    ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop,STATUSAREA_X+1+3*j+2,ytop+5,ggl_mkcolor(15-j));
-}
+    int j;
+    for(j=0;j<15;++j) {
+        ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop+7,STATUSAREA_X+1+3*j+2,ytop+12,ggl_mkcolor(j));
+        ggl_rect(&scr,STATUSAREA_X+1+3*j,ytop,STATUSAREA_X+1+3*j+2,ytop+5,ggl_mkcolor(15-j));
+    }
 
 
-__lcd_contrast--;
-if(__lcd_contrast<0) __lcd_contrast=0;
-lcd_setcontrast(__lcd_contrast);
-WORD savedex=Exceptions;
-Exceptions=0;
-WORDPTR contrast=rplNewSINT(__lcd_contrast,DECBINT);
-if(contrast) rplStoreSettings((WORDPTR)screenconfig_ident,contrast);
-Exceptions=savedex;
+    __lcd_contrast--;
+    if(__lcd_contrast<0) __lcd_contrast=0;
+    lcd_setcontrast(__lcd_contrast);
+    WORD savedex=Exceptions;
+    Exceptions=0;
+    WORDPTR contrast=rplNewSINT(__lcd_contrast,DECBINT);
+    if(contrast) rplStoreSettings((WORDPTR)screenconfig_ident,contrast);
+    Exceptions=savedex;
 }
 
 
@@ -3989,7 +3989,7 @@ void onDotKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-// CYCLE BETWEEN VARIOUS OPTIONS
+    // CYCLE BETWEEN VARIOUS OPTIONS
     const char * const options[]={
         "1000.000000","1,000.000000","1 000.000000","1000.000 000","1,000.000 000","1 000.000 000",
         "1000,000000","1.000,000000","1 000,000000","1000,000 000","1.000,000 000","1 000,000 000"
@@ -4013,118 +4013,118 @@ void onDotKeyHandler(BINT keymsg)
 
     halStatusAreaPopup();
 
-DRAWSURFACE scr;
-ggl_initscr(&scr);
-int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
-// CLEAR STATUS AREA
-ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+    DRAWSURFACE scr;
+    ggl_initscr(&scr);
+    int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+    // CLEAR STATUS AREA
+    ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
-DrawTextBk(STATUSAREA_X+1,ytop+1,"Format:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
-DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,(char *)options[option],*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
-
-
-// CHANGE THE FORMAT TO THE SELECTED OPTION
-switch(option)
-{
-default:
-case 0:
-    fmt.BigFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
-    fmt.SmallFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
-    fmt.MiddleFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
-    fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
-    break;
-case 1:
-    fmt.BigFmt&=~(FMT_FRACSEPARATOR);
-    fmt.BigFmt|=FMT_NUMSEPARATOR;
-    fmt.SmallFmt&=~(FMT_FRACSEPARATOR);
-    fmt.SmallFmt|=FMT_NUMSEPARATOR;
-    fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
-    fmt.MiddleFmt|=FMT_NUMSEPARATOR;
-    fmt.Locale=MAKELOCALE('.',',',THIN_SPACE,';');
-    break;
-case 2:
-    fmt.BigFmt&=~(FMT_FRACSEPARATOR);
-    fmt.BigFmt|=FMT_NUMSEPARATOR;
-    fmt.SmallFmt&=~(FMT_FRACSEPARATOR);
-    fmt.SmallFmt|=FMT_NUMSEPARATOR;
-
-    fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
-    fmt.MiddleFmt|=FMT_NUMSEPARATOR;
-    fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
-    break;
-case 3:
-    fmt.BigFmt&=~FMT_NUMSEPARATOR;
-    fmt.BigFmt|=FMT_FRACSEPARATOR;
-    fmt.SmallFmt&=~FMT_NUMSEPARATOR;
-    fmt.SmallFmt|=FMT_FRACSEPARATOR;
-    fmt.MiddleFmt&=~FMT_NUMSEPARATOR;
-    fmt.MiddleFmt|=FMT_FRACSEPARATOR;
-    fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
-    break;
-case 4:
-    fmt.BigFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
-    fmt.SmallFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
-    fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
-    fmt.Locale=MAKELOCALE('.',',',THIN_SPACE,';');
-    break;
-case 5:
-    fmt.BigFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
-    fmt.SmallFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
-    fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
-    fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
-    break;
-case 6:
-    fmt.BigFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
-    fmt.SmallFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
-    fmt.MiddleFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
-    fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
-    break;
-case 7:
-    fmt.BigFmt&=~(FMT_FRACSEPARATOR);
-    fmt.BigFmt|=FMT_NUMSEPARATOR;
-    fmt.SmallFmt&=~(FMT_FRACSEPARATOR);
-    fmt.SmallFmt|=FMT_NUMSEPARATOR;
-    fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
-    fmt.MiddleFmt|=FMT_NUMSEPARATOR;
-    fmt.Locale=MAKELOCALE(',','.',THIN_SPACE,';');
-    break;
-case 8:
-    fmt.BigFmt&=~(FMT_FRACSEPARATOR);
-    fmt.BigFmt|=FMT_NUMSEPARATOR;
-    fmt.SmallFmt&=~(FMT_FRACSEPARATOR);
-    fmt.SmallFmt|=FMT_NUMSEPARATOR;
-    fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
-    fmt.MiddleFmt|=FMT_NUMSEPARATOR;
-    fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
-    break;
-case 9:
-    fmt.BigFmt&=~FMT_NUMSEPARATOR;
-    fmt.BigFmt|=FMT_FRACSEPARATOR;
-    fmt.SmallFmt&=~FMT_NUMSEPARATOR;
-    fmt.SmallFmt|=FMT_FRACSEPARATOR;
-    fmt.MiddleFmt&=~FMT_NUMSEPARATOR;
-    fmt.MiddleFmt|=FMT_FRACSEPARATOR;
-    fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
-    break;
-case 10:
-    fmt.BigFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
-    fmt.SmallFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
-    fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
-    fmt.Locale=MAKELOCALE(',','.',THIN_SPACE,';');
-    break;
-case 11:
-    fmt.BigFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
-    fmt.SmallFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
-    fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
-    fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
-    break;
+    DrawTextBk(STATUSAREA_X+1,ytop+1,"Format:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
+    DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,(char *)options[option],*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
 
 
-}
+    // CHANGE THE FORMAT TO THE SELECTED OPTION
+    switch(option)
+    {
+    default:
+    case 0:
+        fmt.BigFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
+        fmt.SmallFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
+        fmt.MiddleFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
+        fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
+        break;
+    case 1:
+        fmt.BigFmt&=~(FMT_FRACSEPARATOR);
+        fmt.BigFmt|=FMT_NUMSEPARATOR;
+        fmt.SmallFmt&=~(FMT_FRACSEPARATOR);
+        fmt.SmallFmt|=FMT_NUMSEPARATOR;
+        fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
+        fmt.MiddleFmt|=FMT_NUMSEPARATOR;
+        fmt.Locale=MAKELOCALE('.',',',THIN_SPACE,';');
+        break;
+    case 2:
+        fmt.BigFmt&=~(FMT_FRACSEPARATOR);
+        fmt.BigFmt|=FMT_NUMSEPARATOR;
+        fmt.SmallFmt&=~(FMT_FRACSEPARATOR);
+        fmt.SmallFmt|=FMT_NUMSEPARATOR;
 
-rplSetSystemNumberFormat(&fmt);
-uiClearRenderCache();
-halScreen.DirtyFlag|=STACK_DIRTY;
+        fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
+        fmt.MiddleFmt|=FMT_NUMSEPARATOR;
+        fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
+        break;
+    case 3:
+        fmt.BigFmt&=~FMT_NUMSEPARATOR;
+        fmt.BigFmt|=FMT_FRACSEPARATOR;
+        fmt.SmallFmt&=~FMT_NUMSEPARATOR;
+        fmt.SmallFmt|=FMT_FRACSEPARATOR;
+        fmt.MiddleFmt&=~FMT_NUMSEPARATOR;
+        fmt.MiddleFmt|=FMT_FRACSEPARATOR;
+        fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
+        break;
+    case 4:
+        fmt.BigFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+        fmt.SmallFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+        fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+        fmt.Locale=MAKELOCALE('.',',',THIN_SPACE,';');
+        break;
+    case 5:
+        fmt.BigFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+        fmt.SmallFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+        fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+        fmt.Locale=MAKELOCALE('.',THIN_SPACE,THIN_SPACE,',');
+        break;
+    case 6:
+        fmt.BigFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
+        fmt.SmallFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
+        fmt.MiddleFmt&=~(FMT_NUMSEPARATOR|FMT_FRACSEPARATOR);
+        fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
+        break;
+    case 7:
+        fmt.BigFmt&=~(FMT_FRACSEPARATOR);
+        fmt.BigFmt|=FMT_NUMSEPARATOR;
+        fmt.SmallFmt&=~(FMT_FRACSEPARATOR);
+        fmt.SmallFmt|=FMT_NUMSEPARATOR;
+        fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
+        fmt.MiddleFmt|=FMT_NUMSEPARATOR;
+        fmt.Locale=MAKELOCALE(',','.',THIN_SPACE,';');
+        break;
+    case 8:
+        fmt.BigFmt&=~(FMT_FRACSEPARATOR);
+        fmt.BigFmt|=FMT_NUMSEPARATOR;
+        fmt.SmallFmt&=~(FMT_FRACSEPARATOR);
+        fmt.SmallFmt|=FMT_NUMSEPARATOR;
+        fmt.MiddleFmt&=~(FMT_FRACSEPARATOR);
+        fmt.MiddleFmt|=FMT_NUMSEPARATOR;
+        fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
+        break;
+    case 9:
+        fmt.BigFmt&=~FMT_NUMSEPARATOR;
+        fmt.BigFmt|=FMT_FRACSEPARATOR;
+        fmt.SmallFmt&=~FMT_NUMSEPARATOR;
+        fmt.SmallFmt|=FMT_FRACSEPARATOR;
+        fmt.MiddleFmt&=~FMT_NUMSEPARATOR;
+        fmt.MiddleFmt|=FMT_FRACSEPARATOR;
+        fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
+        break;
+    case 10:
+        fmt.BigFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+        fmt.SmallFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+        fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+        fmt.Locale=MAKELOCALE(',','.',THIN_SPACE,';');
+        break;
+    case 11:
+        fmt.BigFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+        fmt.SmallFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+        fmt.MiddleFmt|=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR;
+        fmt.Locale=MAKELOCALE(',',THIN_SPACE,THIN_SPACE,';');
+        break;
+
+
+    }
+
+    rplSetSystemNumberFormat(&fmt);
+    uiClearRenderCache();
+    halScreen.DirtyFlag|=STACK_DIRTY;
 
 }
 
@@ -4133,7 +4133,7 @@ void onSpcKeyHandler(BINT keymsg)
 {
     UNUSED_ARGUMENT(keymsg);
 
-// CYCLE BETWEEN VARIOUS OPTIONS
+    // CYCLE BETWEEN VARIOUS OPTIONS
     const char * const options[]={
         "STD","FIX","SCI","ENG"
     };
@@ -4153,42 +4153,42 @@ void onSpcKeyHandler(BINT keymsg)
 
     halStatusAreaPopup();
 
-DRAWSURFACE scr;
-ggl_initscr(&scr);
-int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
-// CLEAR STATUS AREA
-ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+    DRAWSURFACE scr;
+    ggl_initscr(&scr);
+    int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+    // CLEAR STATUS AREA
+    ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
-DrawTextBk(STATUSAREA_X+1,ytop+1,"Display Mode:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
-DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,(char *)options[option],*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
+    DrawTextBk(STATUSAREA_X+1,ytop+1,"Display Mode:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
+    DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,(char *)options[option],*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
 
 
-// CHANGE THE FORMAT TO THE SELECTED OPTION
-switch(option)
-{
-default:
-case 0:
-    fmt.MiddleFmt&=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITSMSK|FMT_USECAPITALS|FMT_NUMDIGITS|FMT_PREFEXPMSK;   // PRESERVE ALL THESE
-    break;
-case 1:
-    fmt.MiddleFmt&=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITSMSK|FMT_USECAPITALS|FMT_NUMDIGITS|FMT_PREFEXPMSK;   // PRESERVE ALL THESE
-    fmt.MiddleFmt|=FMT_TRAILINGZEROS;
-    break;
-case 2:
-    fmt.MiddleFmt&=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITSMSK|FMT_USECAPITALS|FMT_NUMDIGITS|FMT_PREFEXPMSK;   // PRESERVE ALL THESE
-    fmt.MiddleFmt|=FMT_SCI;
-    break;
-case 3:
-    fmt.MiddleFmt&=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITSMSK|FMT_USECAPITALS|FMT_NUMDIGITS|FMT_PREFEXPMSK;   // PRESERVE ALL THESE
-    fmt.MiddleFmt|=FMT_SCI|FMT_ENG;
-    if((PREFERRED_EXPRAW(fmt.MiddleFmt)==0) || (PREFERRED_EXPRAW(fmt.MiddleFmt)==8)) fmt.MiddleFmt|=FMT_SUPRESSEXP;    // SUPRESS ZERO EXPONENT ONLY WHEN FIXED EXPONENT IS ZERO
+    // CHANGE THE FORMAT TO THE SELECTED OPTION
+    switch(option)
+    {
+    default:
+    case 0:
+        fmt.MiddleFmt&=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITSMSK|FMT_USECAPITALS|FMT_NUMDIGITS|FMT_PREFEXPMSK;   // PRESERVE ALL THESE
+        break;
+    case 1:
+        fmt.MiddleFmt&=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITSMSK|FMT_USECAPITALS|FMT_NUMDIGITS|FMT_PREFEXPMSK;   // PRESERVE ALL THESE
+        fmt.MiddleFmt|=FMT_TRAILINGZEROS;
+        break;
+    case 2:
+        fmt.MiddleFmt&=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITSMSK|FMT_USECAPITALS|FMT_NUMDIGITS|FMT_PREFEXPMSK;   // PRESERVE ALL THESE
+        fmt.MiddleFmt|=FMT_SCI;
+        break;
+    case 3:
+        fmt.MiddleFmt&=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITSMSK|FMT_USECAPITALS|FMT_NUMDIGITS|FMT_PREFEXPMSK;   // PRESERVE ALL THESE
+        fmt.MiddleFmt|=FMT_SCI|FMT_ENG;
+        if((PREFERRED_EXPRAW(fmt.MiddleFmt)==0) || (PREFERRED_EXPRAW(fmt.MiddleFmt)==8)) fmt.MiddleFmt|=FMT_SUPRESSEXP;    // SUPRESS ZERO EXPONENT ONLY WHEN FIXED EXPONENT IS ZERO
 
-    break;
-}
+        break;
+    }
 
-rplSetSystemNumberFormat(&fmt);
-uiClearRenderCache();
-halScreen.DirtyFlag|=STACK_DIRTY;
+    rplSetSystemNumberFormat(&fmt);
+    uiClearRenderCache();
+    halScreen.DirtyFlag|=STACK_DIRTY;
 
 }
 
@@ -4213,7 +4213,7 @@ const char const * const onMulDivKeyHandler_options[]={
 void onMulDivKeyHandler(BINT keymsg)
 {
 
-// CYCLE BETWEEN VARIOUS OPTIONS
+    // CYCLE BETWEEN VARIOUS OPTIONS
 
 
     NUMFORMAT fmt;
@@ -4241,27 +4241,27 @@ void onMulDivKeyHandler(BINT keymsg)
 
     halStatusAreaPopup();
 
-DRAWSURFACE scr;
-ggl_initscr(&scr);
-int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
-// CLEAR STATUS AREA
-ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+    DRAWSURFACE scr;
+    ggl_initscr(&scr);
+    int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+    // CLEAR STATUS AREA
+    ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
-DrawTextBk(STATUSAREA_X+1,ytop+1,"ENG exponent:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
-DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,(char *)onMulDivKeyHandler_options[option],*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
+    DrawTextBk(STATUSAREA_X+1,ytop+1,"ENG exponent:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
+    DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,(char *)onMulDivKeyHandler_options[option],*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
 
 
-if(option) option+=7;
-if(option>15) option-=15;
+    if(option) option+=7;
+    if(option>15) option-=15;
 
     fmt.MiddleFmt&=FMT_NUMSEPARATOR|FMT_FRACSEPARATOR|FMT_GROUPDIGITSMSK|FMT_USECAPITALS|FMT_NUMDIGITS;   // PRESERVE ALL THESE
     fmt.MiddleFmt|=FMT_SCI|FMT_ENG|FMT_PREFEREXPRAW(option);
     if((option==0) || (option==8)) fmt.MiddleFmt|=FMT_SUPRESSEXP;    // SUPRESS ZERO EXPONENT ONLY WHEN FIXED EXPONENT IS ZERO
 
 
-rplSetSystemNumberFormat(&fmt);
-uiClearRenderCache();
-halScreen.DirtyFlag|=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
+    rplSetSystemNumberFormat(&fmt);
+    uiClearRenderCache();
+    halScreen.DirtyFlag|=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
 
 }
 
@@ -4319,19 +4319,19 @@ void onDigitKeyHandler(BINT keymsg)
 
     halStatusAreaPopup();
 
-DRAWSURFACE scr;
-ggl_initscr(&scr);
-int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
-// CLEAR STATUS AREA
-ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+    DRAWSURFACE scr;
+    ggl_initscr(&scr);
+    int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+    // CLEAR STATUS AREA
+    ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
-DrawTextBk(STATUSAREA_X+1,ytop+1,"Display Digits:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
-DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,(char *)&digits,*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
+    DrawTextBk(STATUSAREA_X+1,ytop+1,"Display Digits:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
+    DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,(char *)&digits,*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
 
 
-rplSetSystemNumberFormat(&fmt);
-uiClearRenderCache();
-halScreen.DirtyFlag|=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
+    rplSetSystemNumberFormat(&fmt);
+    uiClearRenderCache();
+    halScreen.DirtyFlag|=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
 
 }
 
@@ -4339,7 +4339,7 @@ halScreen.DirtyFlag|=STACK_DIRTY|MENU1_DIRTY|MENU2_DIRTY;
 
 void onUpDownKeyHandler(BINT keymsg)
 {
-BINT precision=Context.precdigits;
+    BINT precision=Context.precdigits;
 
     if(KM_KEY(keymsg)==KB_UP) precision+=8;
     else precision-=8;
@@ -4365,17 +4365,17 @@ BINT precision=Context.precdigits;
     halStatusAreaPopup();
 
 
-DRAWSURFACE scr;
-ggl_initscr(&scr);
-int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
-// CLEAR STATUS AREA
-ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
+    DRAWSURFACE scr;
+    ggl_initscr(&scr);
+    int ytop=halScreen.Form+halScreen.Stack+halScreen.CmdLine+halScreen.Menu1;
+    // CLEAR STATUS AREA
+    ggl_rect(&scr,STATUSAREA_X,ytop,SCREEN_WIDTH-1,ytop+halScreen.Menu2-1,0);
 
-DrawTextBk(STATUSAREA_X+1,ytop+1,"System precision:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
-DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,digits_string,*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
+    DrawTextBk(STATUSAREA_X+1,ytop+1,"System precision:",*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
+    DrawTextBk(STATUSAREA_X+1,ytop+1+(*halScreen.FontArray[FONT_STATUS])->BitmapHeight,digits_string,*halScreen.FontArray[FONT_STATUS],0xf,0,&scr);
 
 
-halScreen.DirtyFlag|=STACK_DIRTY;
+    halScreen.DirtyFlag|=STACK_DIRTY;
 
 }
 
@@ -4424,12 +4424,12 @@ void alphaKeyHandler(BINT keymsg)
 
 void shiftedalphaKeyHandler(BINT keymsg)
 {
-// CYCLE BETWEEN D, P AND A MODES WHEN ALPHA IS DISABLED
+    // CYCLE BETWEEN D, P AND A MODES WHEN ALPHA IS DISABLED
     UNUSED_ARGUMENT(keymsg);
 
     switch(halScreen.CursorState&0xff)
     {
-     case 'D':
+    case 'D':
         halSetCmdLineMode('P');
         halScreen.DirtyFlag|=CMDLINE_CURSORDIRTY;
         break;
@@ -4474,8 +4474,8 @@ void backmenuKeyHandler(BINT keymsg,WORD menu)
     if(oldmenu) {
         rplChangeMenu(menu,oldmenu);
 
-    if(menu==1) halScreen.DirtyFlag|=MENU1_DIRTY;
-    else halScreen.DirtyFlag|=MENU2_DIRTY;
+        if(menu==1) halScreen.DirtyFlag|=MENU1_DIRTY;
+        else halScreen.DirtyFlag|=MENU2_DIRTY;
     }
 
 }
@@ -4483,12 +4483,12 @@ void backmenuKeyHandler(BINT keymsg,WORD menu)
 
 void backmenu1KeyHandler(BINT keymsg)
 {
-backmenuKeyHandler(keymsg,1);
+    backmenuKeyHandler(keymsg,1);
 }
 
 void backmenu2KeyHandler(BINT keymsg)
 {
-backmenuKeyHandler(keymsg,2);
+    backmenuKeyHandler(keymsg,2);
 }
 
 
@@ -4508,51 +4508,51 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
 
     // DEFAULT MESSAGE
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
-            // ACTION WHEN IN THE STACK OR SUBCONTEXTS OTHER THAN THE EDITOR
-                WORD Opcode=0;
-                BINT hideargument=1;
+        // ACTION WHEN IN THE STACK OR SUBCONTEXTS OTHER THAN THE EDITOR
+        WORD Opcode=0;
+        BINT hideargument=1;
 
 
-                    // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
+        // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
 
-                    if(ISIDENT(*action)) {
-                        // JUST EVAL THE VARIABLE
-                        rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=(CMD_OVR_EVAL1);
-                    }
-                    else if( (!ISPROLOG(*action)) && (!ISBINT(*action))) {
-                         // THIS IS AN OPCODE, EXECUTE DIRECTLY
-                         Opcode=*action;
-                         hideargument=0;
-                        }
-                   else if(ISSTRING(*action) && inlist) {
-                            // A STRING TO INSERT INTO THE EDITOR
-                            // OPEN AN EDITOR AND INSERT THE STRING
-                            halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
-                            halSetContext(halGetContext()|CONTEXT_INEDITOR);
-                            if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
-                            else uiOpenCmdLine('D');
+        if(ISIDENT(*action)) {
+            // JUST EVAL THE VARIABLE
+            rplPushData(action);    // PUSH THE NAME ON THE STACK
+            Opcode=(CMD_OVR_EVAL1);
+        }
+        else if( (!ISPROLOG(*action)) && (!ISBINT(*action))) {
+            // THIS IS AN OPCODE, EXECUTE DIRECTLY
+            Opcode=*action;
+            hideargument=0;
+        }
+        else if(ISSTRING(*action) && inlist) {
+            // A STRING TO INSERT INTO THE EDITOR
+            // OPEN AN EDITOR AND INSERT THE STRING
+            halSetCmdLineHeight((*halScreen.FontArray[FONT_CMDLINE])->BitmapHeight+2);
+            halSetContext(halGetContext()|CONTEXT_INEDITOR);
+            if(KM_SHIFTPLANE(keymsg)&SHIFT_ALPHA) uiOpenCmdLine('X');
+            else uiOpenCmdLine('D');
 
-                            BINT nlines=uiInsertCharactersN((BYTEPTR) (action+1),(BYTEPTR) (action+1)+rplStrSize(action));
-                            if(nlines) uiStretchCmdLine(nlines);
+            BINT nlines=uiInsertCharactersN((BYTEPTR) (action+1),(BYTEPTR) (action+1)+rplStrSize(action));
+            if(nlines) uiStretchCmdLine(nlines);
 
-                            uiAutocompleteUpdate();
+            uiAutocompleteUpdate();
 
-                        }
-                    else {
-                    // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
-                    rplPushData(action);
-                    Opcode=(CMD_OVR_XEQ);
-                    }
+        }
+        else {
+            // ALL OTHER OBJECTS AND COMMANDS, DO XEQ
+            rplPushData(action);
+            Opcode=(CMD_OVR_XEQ);
+        }
 
 
-                if(Opcode) uiCmdRunHide(Opcode,hideargument);
-                if(Exceptions) {
-                    // TODO: SHOW ERROR MESSAGE
-                    halShowErrorMsg();
-                    Exceptions=0;
-                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
-            halScreen.DirtyFlag|=STACK_DIRTY|STAREA_DIRTY;
+        if(Opcode) uiCmdRunHide(Opcode,hideargument);
+        if(Exceptions) {
+            // TODO: SHOW ERROR MESSAGE
+            halShowErrorMsg();
+            Exceptions=0;
+        } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
+        halScreen.DirtyFlag|=STACK_DIRTY|STAREA_DIRTY;
 
     }
     else {
@@ -4562,325 +4562,325 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
 
         if(!action) return;
 
-            // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
+        // DO DIFFERENT ACTIONS BASED ON OBJECT TYPE
 
-            if(ISIDENT(*action)&& inlist) {
-                switch(halScreen.CursorState&0xff)
-                {
-                case 'D':
-                {
-                    // HANDLE DIRECTORIES IN A SPECIAL WAY: DON'T CLOSE THE COMMAND LINE
-                    WORDPTR *var=rplFindGlobal(action,1);
-                    if(var) {
-                        if(ISDIR(*(var[1]))) {
-                            // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
-                            rplPushData(action);    // PUSH THE NAME ON THE STACK
-                            Opcode=(CMD_OVR_EVAL);
-                            break;
-                        }
-                    }
-                    rplPushRet(action);
-                    BINT result=endCmdLineAndCompile();
-                    action=rplPopRet();
-                    if(result) {
-                        // USER IS TRYING TO EVAL THE VARIABLE
+        if(ISIDENT(*action)&& inlist) {
+            switch(halScreen.CursorState&0xff)
+            {
+            case 'D':
+            {
+                // HANDLE DIRECTORIES IN A SPECIAL WAY: DON'T CLOSE THE COMMAND LINE
+                WORDPTR *var=rplFindGlobal(action,1);
+                if(var) {
+                    if(ISDIR(*(var[1]))) {
+                        // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
                         rplPushData(action);    // PUSH THE NAME ON THE STACK
                         Opcode=(CMD_OVR_EVAL);
+                        break;
                     }
-                    break;
                 }
-                case 'A':
-                {
-                    WORDPTR *var=rplFindGlobal(action,1);
-                    if(var) {
-                        if(ISDIR(*(var[1]))) {
-                            // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
-                            rplPushData(action);    // PUSH THE NAME ON THE STACK
-                            Opcode=(CMD_OVR_EVAL);
-                            break;
-                        }
-                    }
-
-                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                    BINT SavedException=Exceptions;
-                    BINT SavedErrorCode=ErrorCode;
-
-                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
-                    Exceptions=SavedException;
-                    ErrorCode=SavedErrorCode;
-
-                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                    BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLenCp(opname);
-                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
-
-                    // REMOVE THE TICK MARKS IN ALG MODE
-                    if((totaln>2)&&(string[0]=='\'')) {
-                        ++string;
-                        --endstring;
-                    }
-
-                    uiInsertCharactersN(string,endstring);
-                    uiAutocompleteUpdate();
-
-                    break;
+                rplPushRet(action);
+                BINT result=endCmdLineAndCompile();
+                action=rplPopRet();
+                if(result) {
+                    // USER IS TRYING TO EVAL THE VARIABLE
+                    rplPushData(action);    // PUSH THE NAME ON THE STACK
+                    Opcode=(CMD_OVR_EVAL);
                 }
-
-                case 'P':
-                {
-                    WORDPTR *var=rplFindGlobal(action,1);
-                    if(var) {
-                        if(ISDIR(*(var[1]))) {
-                            // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
-                            rplPushData(action);    // PUSH THE NAME ON THE STACK
-                            Opcode=(CMD_OVR_EVAL);
-                            break;
-                        }
-                    }
-
-                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                    BINT SavedException=Exceptions;
-                    BINT SavedErrorCode=ErrorCode;
-
-                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
-                    Exceptions=SavedException;
-                    ErrorCode=SavedErrorCode;
-
-                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                    BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLenCp(opname);
-                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
-
-                    // REMOVE THE TICK MARKS IN ALG MODE
-                    if((totaln>2)&&(string[0]=='\'')) {
-                        ++string;
-                        --endstring;
-                    }
-
-                    uiSeparateToken();
-                    uiInsertCharactersN(string,endstring);
-
-
-                    uiSeparateToken();
-                    uiAutocompleteUpdate();
-
-                    break;
-                }
-                }
+                break;
             }
-            else if(ISUNIT(*action)) {
-                switch(halScreen.CursorState&0xff)
-                {
-                case 'D':
-                {
-                    rplPushRet(action);
-                    BINT result=endCmdLineAndCompile();
-                    action=rplPopRet();
-                    if(result) {
-                        // USER IS TRYING TO APPLY THE UNIT
+            case 'A':
+            {
+                WORDPTR *var=rplFindGlobal(action,1);
+                if(var) {
+                    if(ISDIR(*(var[1]))) {
+                        // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
                         rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=(CMD_OVR_MUL);
+                        Opcode=(CMD_OVR_EVAL);
+                        break;
                     }
-                    break;
-                }
-                case 'A':
-                {
-
-                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                    BINT SavedException=Exceptions;
-                    BINT SavedErrorCode=ErrorCode;
-
-                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
-                    Exceptions=SavedException;
-                    ErrorCode=SavedErrorCode;
-
-                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                    BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLenCp(opname);
-                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
-
-                    if( (totaln>2)&&(string[0]=='1')&&(string[1]=='_')) string+=2;
-
-                    uiInsertCharactersN(string,endstring);
-
-
-                    uiAutocompleteUpdate();
-
-                    break;
                 }
 
-                case 'P':
-                {
+                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                BINT SavedException=Exceptions;
+                BINT SavedErrorCode=ErrorCode;
 
-                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                    BINT SavedException=Exceptions;
-                    BINT SavedErrorCode=ErrorCode;
+                Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                Exceptions=SavedException;
+                ErrorCode=SavedErrorCode;
 
-                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
-                    Exceptions=SavedException;
-                    ErrorCode=SavedErrorCode;
+                if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
-                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+                BYTEPTR string=(BYTEPTR) (opname+1);
+                BINT totaln=rplStrLenCp(opname);
+                BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
-                    BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLenCp(opname);
-                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
-
-                    uiSeparateToken();
-                    uiInsertCharactersN(string,endstring);
-                    uiSeparateToken();
-                    uiInsertCharacters((BYTEPTR)"*");
-                    uiSeparateToken();
-                    uiAutocompleteUpdate();
-
-                    break;
+                // REMOVE THE TICK MARKS IN ALG MODE
+                if((totaln>2)&&(string[0]=='\'')) {
+                    ++string;
+                    --endstring;
                 }
 
-                }
+                uiInsertCharactersN(string,endstring);
+                uiAutocompleteUpdate();
+
+                break;
             }
-            else if(!ISPROLOG(*action)) {
-                // THIS IS A COMMAND, DECOMPILE AND INSERT NAME
-                switch(halScreen.CursorState&0xff)
-                {
-                case 'D':
-                {
-                    rplPushRet(action);
-                    BINT result=endCmdLineAndCompile();
-                    action=rplPopRet();
-                    if(result) {
-                        Opcode=*action;
-                        hideargument=0;
+
+            case 'P':
+            {
+                WORDPTR *var=rplFindGlobal(action,1);
+                if(var) {
+                    if(ISDIR(*(var[1]))) {
+                        // CHANGE THE DIR WITHOUT CLOSING THE COMMAND LINE
+                        rplPushData(action);    // PUSH THE NAME ON THE STACK
+                        Opcode=(CMD_OVR_EVAL);
+                        break;
                     }
-                    break;
-                }
-                case 'A':
-                {
-
-                    WORD tokeninfo=0;
-                    LIBHANDLER han=rplGetLibHandler(LIBNUM(*action));
-
-
-                    // GET THE SYMBOLIC TOKEN INFORMATION
-                    if(han) {
-                        WORD savecurOpcode=CurOpcode;
-                        DecompileObject=action;
-                        CurOpcode=MKOPCODE(LIBNUM(*action),OPCODE_GETINFO);
-                        (*han)();
-
-                        if(RetNum>OK_TOKENINFO) tokeninfo=RetNum;
-
-                        CurOpcode=savecurOpcode;
-                    }
-
-
-                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                    BINT SavedException=Exceptions;
-                    BINT SavedErrorCode=ErrorCode;
-
-                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT|DECOMP_NOHINTS);
-                    Exceptions=SavedException;
-                    ErrorCode=SavedErrorCode;
-
-                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
-
-                    BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLenCp(opname);
-                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
-
-                    uiInsertCharactersN(string,endstring);
-                    if(TI_TYPE(tokeninfo)==TITYPE_FUNCTION) {
-                        uiInsertCharacters((BYTEPTR)"()");
-                        uiCursorLeft(1);
-                    }
-                    uiAutocompleteUpdate();
-
-                    break;
                 }
 
-                case 'P':
-                {
+                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                BINT SavedException=Exceptions;
+                BINT SavedErrorCode=ErrorCode;
 
-                    // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
-                    BINT SavedException=Exceptions;
-                    BINT SavedErrorCode=ErrorCode;
+                Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                Exceptions=SavedException;
+                ErrorCode=SavedErrorCode;
 
-                    Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
-                    // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
-                    WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
-                    Exceptions=SavedException;
-                    ErrorCode=SavedErrorCode;
+                if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
 
-                    if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+                BYTEPTR string=(BYTEPTR) (opname+1);
+                BINT totaln=rplStrLenCp(opname);
+                BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
 
-                    BYTEPTR string=(BYTEPTR) (opname+1);
-                    BINT totaln=rplStrLenCp(opname);
-                    BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
-
-                    uiSeparateToken();
-                    BINT nlines=uiInsertCharactersN(string,endstring);
-                    if(nlines) uiStretchCmdLine(nlines);
-
-                    uiSeparateToken();
-                    uiAutocompleteUpdate();
-
-                    break;
+                // REMOVE THE TICK MARKS IN ALG MODE
+                if((totaln>2)&&(string[0]=='\'')) {
+                    ++string;
+                    --endstring;
                 }
 
+                uiSeparateToken();
+                uiInsertCharactersN(string,endstring);
+
+
+                uiSeparateToken();
+                uiAutocompleteUpdate();
+
+                break;
+            }
+            }
+        }
+        else if(ISUNIT(*action)) {
+            switch(halScreen.CursorState&0xff)
+            {
+            case 'D':
+            {
+                rplPushRet(action);
+                BINT result=endCmdLineAndCompile();
+                action=rplPopRet();
+                if(result) {
+                    // USER IS TRYING TO APPLY THE UNIT
+                    rplPushData(action);    // PUSH THE NAME ON THE STACK
+                    Opcode=(CMD_OVR_MUL);
                 }
+                break;
+            }
+            case 'A':
+            {
+
+                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                BINT SavedException=Exceptions;
+                BINT SavedErrorCode=ErrorCode;
+
+                Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                Exceptions=SavedException;
+                ErrorCode=SavedErrorCode;
+
+                if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                BYTEPTR string=(BYTEPTR) (opname+1);
+                BINT totaln=rplStrLenCp(opname);
+                BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+
+                if( (totaln>2)&&(string[0]=='1')&&(string[1]=='_')) string+=2;
+
+                uiInsertCharactersN(string,endstring);
 
 
+                uiAutocompleteUpdate();
 
+                break;
+            }
+
+            case 'P':
+            {
+
+                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                BINT SavedException=Exceptions;
+                BINT SavedErrorCode=ErrorCode;
+
+                Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                Exceptions=SavedException;
+                ErrorCode=SavedErrorCode;
+
+                if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                BYTEPTR string=(BYTEPTR) (opname+1);
+                BINT totaln=rplStrLenCp(opname);
+                BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+
+                uiSeparateToken();
+                uiInsertCharactersN(string,endstring);
+                uiSeparateToken();
+                uiInsertCharacters((BYTEPTR)"*");
+                uiSeparateToken();
+                uiAutocompleteUpdate();
+
+                break;
+            }
 
             }
-            else if(ISPROGRAM(*action)) {
-                if(!ISSECO(*action)) {
-                    // IT'S A DOCOL PROGRAM, EXECUTE TRANSPARENTLY
+        }
+        else if(!ISPROLOG(*action)) {
+            // THIS IS A COMMAND, DECOMPILE AND INSERT NAME
+            switch(halScreen.CursorState&0xff)
+            {
+            case 'D':
+            {
+                rplPushRet(action);
+                BINT result=endCmdLineAndCompile();
+                action=rplPopRet();
+                if(result) {
+                    Opcode=*action;
+                    hideargument=0;
+                }
+                break;
+            }
+            case 'A':
+            {
+
+                WORD tokeninfo=0;
+                LIBHANDLER han=rplGetLibHandler(LIBNUM(*action));
+
+
+                // GET THE SYMBOLIC TOKEN INFORMATION
+                if(han) {
+                    WORD savecurOpcode=CurOpcode;
+                    DecompileObject=action;
+                    CurOpcode=MKOPCODE(LIBNUM(*action),OPCODE_GETINFO);
+                    (*han)();
+
+                    if(RetNum>OK_TOKENINFO) tokeninfo=RetNum;
+
+                    CurOpcode=savecurOpcode;
+                }
+
+
+                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                BINT SavedException=Exceptions;
+                BINT SavedErrorCode=ErrorCode;
+
+                Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                WORDPTR opname=rplDecompile(action,DECOMP_EDIT|DECOMP_NOHINTS);
+                Exceptions=SavedException;
+                ErrorCode=SavedErrorCode;
+
+                if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                BYTEPTR string=(BYTEPTR) (opname+1);
+                BINT totaln=rplStrLenCp(opname);
+                BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+
+                uiInsertCharactersN(string,endstring);
+                if(TI_TYPE(tokeninfo)==TITYPE_FUNCTION) {
+                    uiInsertCharacters((BYTEPTR)"()");
+                    uiCursorLeft(1);
+                }
+                uiAutocompleteUpdate();
+
+                break;
+            }
+
+            case 'P':
+            {
+
+                // DECOMPILE THE OBJECT AND INCLUDE IN COMMAND LINE
+                BINT SavedException=Exceptions;
+                BINT SavedErrorCode=ErrorCode;
+
+                Exceptions=0;       // ERASE ANY PREVIOUS ERROR TO ALLOW THE DECOMPILER TO RUN
+                // DO NOT SAVE IPtr BECAUSE IT CAN MOVE
+                WORDPTR opname=rplDecompile(action,DECOMP_EDIT);
+                Exceptions=SavedException;
+                ErrorCode=SavedErrorCode;
+
+                if(!opname) break;  // ERROR WITHIN A MENU PROGRAM! JUST IGNORE FOR NOW
+
+                BYTEPTR string=(BYTEPTR) (opname+1);
+                BINT totaln=rplStrLenCp(opname);
+                BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(opname),totaln);
+
+                uiSeparateToken();
+                BINT nlines=uiInsertCharactersN(string,endstring);
+                if(nlines) uiStretchCmdLine(nlines);
+
+                uiSeparateToken();
+                uiAutocompleteUpdate();
+
+                break;
+            }
+
+            }
+
+
+
+
+        }
+        else if(ISPROGRAM(*action)) {
+            if(!ISSECO(*action)) {
+                // IT'S A DOCOL PROGRAM, EXECUTE TRANSPARENTLY
+                rplPushData(action);    // PUSH THE NAME ON THE STACK
+                Opcode=CMD_OVR_XEQ;
+            }
+            else {
+                rplPushRet(action);
+                BINT result=endCmdLineAndCompile();
+                action=rplPopRet();
+                if(result) {
                     rplPushData(action);    // PUSH THE NAME ON THE STACK
                     Opcode=CMD_OVR_XEQ;
                 }
-                else {
-                    rplPushRet(action);
-                    BINT result=endCmdLineAndCompile();
-                    action=rplPopRet();
-                    if(result) {
-                        rplPushData(action);    // PUSH THE NAME ON THE STACK
-                        Opcode=CMD_OVR_XEQ;
-                    }
+            }
+        }
+        else if(ISSTRING(*action)) {
+            BYTEPTR string=(BYTEPTR) (action+1);
+            BINT totaln=rplStrLenCp(action);
+            BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(action),totaln);
+
+            if(!inlist) {
+                // ADD THE QUOTES IN D OR P MODE
+                if(((halScreen.CursorState&0xff)=='P')||((halScreen.CursorState&0xff)=='D')) {
+                    uiSeparateToken();
+                    uiInsertCharacters((BYTEPTR)"\"");
                 }
             }
-            else if(ISSTRING(*action)) {
-                BYTEPTR string=(BYTEPTR) (action+1);
-                BINT totaln=rplStrLenCp(action);
-                BYTEPTR endstring=(BYTEPTR)utf8nskip((char *)string,(char *)rplSkipOb(action),totaln);
-
-                if(!inlist) {
-                    // ADD THE QUOTES IN D OR P MODE
-                    if(((halScreen.CursorState&0xff)=='P')||((halScreen.CursorState&0xff)=='D')) {
-                        uiSeparateToken();
-                        uiInsertCharacters((BYTEPTR)"\"");
-                    }
-                }
-                uiInsertCharactersN(string,endstring);
-                if(!inlist && (((halScreen.CursorState&0xff)=='P')||((halScreen.CursorState&0xff)=='D')))  {
-                    uiInsertCharacters((BYTEPTR)"\"");
-                    uiSeparateToken();
-                }
-                uiAutocompleteUpdate();
-                }
-            else {
+            uiInsertCharactersN(string,endstring);
+            if(!inlist && (((halScreen.CursorState&0xff)=='P')||((halScreen.CursorState&0xff)=='D')))  {
+                uiInsertCharacters((BYTEPTR)"\"");
+                uiSeparateToken();
+            }
+            uiAutocompleteUpdate();
+        }
+        else {
             // ALL OTHER OBJECTS AND COMMANDS
             switch(halScreen.CursorState&0xff)
             {
@@ -4986,7 +4986,7 @@ void customKeyHandler(BINT keymsg,WORDPTR action)
             Exceptions=0;
         } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY;
         halScreen.DirtyFlag|=STACK_DIRTY|STAREA_DIRTY;
-}
+    }
 
 }
 
@@ -5012,17 +5012,19 @@ void formswitcherKeyHandler(BINT keymsg)
 
 void basecycleKeyHandler(BINT keymsg)
 {
+    UNUSED_ARGUMENT(keymsg);
+
     if(!(halGetContext()&CONTEXT_INEDITOR)) {
         if(halGetContext()&CONTEXT_STACK) {
             // ACTION WHEN IN THE STACK, CYCLE THROUGH DIFFERENT BASES
 
             rplPushDataNoGrow((WORDPTR)lib70_basecycle);
-                uiCmdRunHide(CMD_OVR_XEQ,1);
-                if(Exceptions) {
-                    // TODO: SHOW ERROR MESSAGE
-                    halShowErrorMsg();
-                    Exceptions=0;
-                } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
+            uiCmdRunHide(CMD_OVR_XEQ,1);
+            if(Exceptions) {
+                // TODO: SHOW ERROR MESSAGE
+                halShowErrorMsg();
+                Exceptions=0;
+            } else halScreen.DirtyFlag|=MENU1_DIRTY|MENU2_DIRTY|STAREA_DIRTY;
             halScreen.DirtyFlag|=STACK_DIRTY;
 
 
@@ -5064,16 +5066,16 @@ void basecycleKeyHandler(BINT keymsg)
             // TODO: FIND THE END OF THE TOKEN, AND CYCLE THE LETTER
             switch(endchar)
             {
-                case 'b':
-                case 'B':
+            case 'b':
+            case 'B':
                 endchar='o';
                 break;
-                case 'o':
-                case 'O':
+            case 'o':
+            case 'O':
                 endchar='h';
                 break;
-                case 'h':
-                case 'H':
+            case 'h':
+            case 'H':
                 endchar=-1;
                 break;
             default:
@@ -5082,8 +5084,8 @@ void basecycleKeyHandler(BINT keymsg)
 
             if(endchar<0) {
                 if(minbase<=10) {
-                // REMOVE NUMERAL SIGN
-                if(startnum[0]=='#') { uiRemoveCharacters(1); if(oldposition>startnum-line) --oldposition; --endnum; }
+                    // REMOVE NUMERAL SIGN
+                    if(startnum[0]=='#') { uiRemoveCharacters(1); if(oldposition>startnum-line) --oldposition; --endnum; }
                 }
                 else if(minbase==2) endchar='b';
                 else if(minbase==8) endchar='o';
@@ -5117,12 +5119,12 @@ void basecycleKeyHandler(BINT keymsg)
             uiEnsureCursorVisible();
             uiAutocompleteUpdate();
             return;
-      }
+        }
 
         // THIRD CASE: IF TOKEN UNDER CURSOR IS SOMETHING OTHER THAN A NUMBER, JUST DO NOTHING
 
 
-   }
+    }
 }
 
 
@@ -5146,39 +5148,39 @@ void basecycleKeyHandler(BINT keymsg)
 
 
 #define DECLARE_TRANSPCMDKEYHANDLER(name,opcode) void name##KeyHandler(BINT keymsg) \
-                                                             { \
-                                                             UNUSED_ARGUMENT(keymsg); \
-                                                             transpcmdKeyHandler(opcode); \
-                                                             }
+{ \
+    UNUSED_ARGUMENT(keymsg); \
+    transpcmdKeyHandler(opcode); \
+    }
 
 #define DECLARE_CMDKEYHANDLER(name,opcode,string,issymbfunc) void name##KeyHandler(BINT keymsg) \
-                                                             { \
-                                                             UNUSED_ARGUMENT(keymsg); \
-                                                             cmdKeyHandler(opcode,(BYTEPTR)string,issymbfunc); \
-                                                             }
+{ \
+    UNUSED_ARGUMENT(keymsg); \
+    cmdKeyHandler(opcode,(BYTEPTR)string,issymbfunc); \
+    }
 
 
 
 #define DECLARE_VARKEYHANDLER(name,menu,idx) void name##KeyHandler(BINT keymsg) \
-                                                    { \
-                                                    varsKeyHandler(keymsg,(menu),(BINT)(idx)); \
-                                                    }
+{ \
+    varsKeyHandler(keymsg,(menu),(BINT)(idx)); \
+    }
 
 #define DECLARE_MENUKEYHANDLER(name,menucode) void name##KeyHandler(BINT keymsg) \
-                                                    { \
-                                                    changemenuKeyHandler(keymsg,(BINT64)(menucode)); \
-                                                    }
+{ \
+    changemenuKeyHandler(keymsg,(BINT64)(menucode)); \
+    }
 
 
 #define DECLARE_KEYHANDLER(name,lsymbol,csymbol) void name##KeyHandler(BINT keymsg) \
-                                                    { \
-                                                    alphasymbolKeyHandler(keymsg,(BYTEPTR)(lsymbol),(BYTEPTR)(csymbol)); \
-                                                    }
+{ \
+    alphasymbolKeyHandler(keymsg,(BYTEPTR)(lsymbol),(BYTEPTR)(csymbol)); \
+    }
 
 #define DECLARE_SYMBKEYHANDLER(name,symbol,sep) void name##KeyHandler(BINT keymsg) \
-                                                    { \
-                                                    symbolKeyHandler(keymsg,(BYTEPTR)(symbol),(sep)); \
-                                                    }
+{ \
+    symbolKeyHandler(keymsg,(BYTEPTR)(symbol),(sep)); \
+    }
 
 #define KEYHANDLER_NAME(name)  &(name##KeyHandler)
 
@@ -5297,9 +5299,9 @@ void underscoreKeyHandler(BINT keymsg)
     symbolKeyHandler(keymsg,(BYTEPTR)"_",0);
 
     if((halGetCmdLineMode()!='L')&&(halGetCmdLineMode()!='C')) {
-     uiInsertCharacters((BYTEPTR)"[]");
-     uiCursorLeft(1);
-     halSetCmdLineMode('A');
+        uiInsertCharacters((BYTEPTR)"[]");
+        uiCursorLeft(1);
+        halSetCmdLineMode('A');
     }
 }
 
@@ -5325,8 +5327,8 @@ void spcKeyHandler(BINT keymsg)
                 halScreen.StkSelStart=(halScreen.StkPointer? halScreen.StkPointer:1);
             }
             else {
-            halScreen.StkSelEnd=(halScreen.StkPointer? halScreen.StkPointer:1);
-            if(halScreen.StkSelEnd>rplDepthData()) halScreen.StkSelEnd=rplDepthData();
+                halScreen.StkSelEnd=(halScreen.StkPointer? halScreen.StkPointer:1);
+                if(halScreen.StkSelEnd>rplDepthData()) halScreen.StkSelEnd=rplDepthData();
 
             }
             ++halScreen.StkSelStatus;
@@ -5360,9 +5362,9 @@ void tolistKeyHandler(BINT keymsg)
         // NO ITEM SELECTED, MAKE A ONE-ELEMENT LIST
         if((rplDepthData()>=halScreen.StkPointer)&&(halScreen.StkPointer>0)) {
 
-                WORDPTR newlist=rplCreateListN(1,halScreen.StkPointer,0);
-                if(!newlist || Exceptions) { rplBlameError(0); return; }
-                rplOverwriteData(halScreen.StkPointer,newlist);
+            WORDPTR newlist=rplCreateListN(1,halScreen.StkPointer,0);
+            if(!newlist || Exceptions) { rplBlameError(0); return; }
+            rplOverwriteData(halScreen.StkPointer,newlist);
 
         }
         break;
@@ -5421,12 +5423,12 @@ void tolistKeyHandler(BINT keymsg)
             BINT lstlvl;
             if(halScreen.StkPointer>0) {
                 lstlvl=halScreen.StkPointer;
-            // MAKE ROOM, USE STACK SLACK TEMPORARILY
-            memmovew(DSTop,DSTop-1,lstlvl*sizeof(WORDPTR)/sizeof(WORD));
-            // INSERT THE LIST
-            rplOverwriteData(lstlvl,newlist);
+                // MAKE ROOM, USE STACK SLACK TEMPORARILY
+                memmovew(DSTop,DSTop-1,lstlvl*sizeof(WORDPTR)/sizeof(WORD));
+                // INSERT THE LIST
+                rplOverwriteData(lstlvl,newlist);
 
-            ++DSTop;
+                ++DSTop;
             }
             else rplPushData(newlist);
             // REMOVE THE ORIGINAL ITEMS
@@ -5434,7 +5436,7 @@ void tolistKeyHandler(BINT keymsg)
 
         }
         else {
-         // POINTER IS WITHIN THE BLOCK
+            // POINTER IS WITHIN THE BLOCK
             rplOverwriteData(endlvl,newlist);
             // REMOVE THE ORIGINAL ITEMS
             if(endlvl>stlvl) rplRemoveAtData(stlvl,endlvl-stlvl);
@@ -5448,7 +5450,7 @@ void tolistKeyHandler(BINT keymsg)
         halScreen.StkVisibleLvl=-1;
         halScreen.StkSelStatus=0;
 
-            break;
+        break;
 
     }
 
@@ -5468,9 +5470,9 @@ void tomatKeyHandler(BINT keymsg)
         // NO ITEM SELECTED, MAKE A ONE-ELEMENT MATRIX
         if((rplDepthData()>=halScreen.StkPointer)&&(halScreen.StkPointer>0)) {
 
-                WORDPTR newmat=rplMatrixFlexComposeN(halScreen.StkPointer,1);    // MAKE A SINGLE ELEMENT VECTOR
-                if(!newmat || Exceptions) { rplBlameError(0); return; }
-                rplOverwriteData(halScreen.StkPointer,newmat);
+            WORDPTR newmat=rplMatrixFlexComposeN(halScreen.StkPointer,1);    // MAKE A SINGLE ELEMENT VECTOR
+            if(!newmat || Exceptions) { rplBlameError(0); return; }
+            rplOverwriteData(halScreen.StkPointer,newmat);
 
 
         }
@@ -5530,12 +5532,12 @@ void tomatKeyHandler(BINT keymsg)
             BINT lstlvl;
             if(halScreen.StkPointer>0) {
                 lstlvl=halScreen.StkPointer;
-            // MAKE ROOM, USE STACK SLACK TEMPORARILY
-            memmovew(DSTop,DSTop-1,lstlvl*sizeof(WORDPTR)/sizeof(WORD));
-            // INSERT THE LIST
-            rplOverwriteData(lstlvl,newmat);
+                // MAKE ROOM, USE STACK SLACK TEMPORARILY
+                memmovew(DSTop,DSTop-1,lstlvl*sizeof(WORDPTR)/sizeof(WORD));
+                // INSERT THE LIST
+                rplOverwriteData(lstlvl,newmat);
 
-            ++DSTop;
+                ++DSTop;
             }
             else rplPushData(newmat);
             // REMOVE THE ORIGINAL ITEMS
@@ -5543,7 +5545,7 @@ void tomatKeyHandler(BINT keymsg)
 
         }
         else {
-         // POINTER IS WITHIN THE BLOCK
+            // POINTER IS WITHIN THE BLOCK
             rplOverwriteData(endlvl,newmat);
             // REMOVE THE ORIGINAL ITEMS
             if(endlvl>stlvl) rplRemoveAtData(stlvl,endlvl-stlvl);
@@ -5557,7 +5559,7 @@ void tomatKeyHandler(BINT keymsg)
         halScreen.StkVisibleLvl=-1;
         halScreen.StkSelStatus=0;
 
-            break;
+        break;
 
     }
 
@@ -5674,12 +5676,12 @@ void tocplxKeyHandler(BINT keymsg)
             BINT lstlvl;
             if(halScreen.StkPointer>0) {
                 lstlvl=halScreen.StkPointer;
-            // MAKE ROOM, USE STACK SLACK TEMPORARILY
-            memmovew(DSTop,DSTop-1,lstlvl*sizeof(WORDPTR)/sizeof(WORD));
-            // INSERT THE LIST
-            rplOverwriteData(lstlvl,newcplx);
+                // MAKE ROOM, USE STACK SLACK TEMPORARILY
+                memmovew(DSTop,DSTop-1,lstlvl*sizeof(WORDPTR)/sizeof(WORD));
+                // INSERT THE LIST
+                rplOverwriteData(lstlvl,newcplx);
 
-            ++DSTop;
+                ++DSTop;
             }
             else rplPushData(newcplx);
             // REMOVE THE ORIGINAL ITEMS
@@ -5687,7 +5689,7 @@ void tocplxKeyHandler(BINT keymsg)
 
         }
         else {
-         // POINTER IS WITHIN THE BLOCK
+            // POINTER IS WITHIN THE BLOCK
             rplOverwriteData(endlvl,newcplx);
             // REMOVE THE ORIGINAL ITEMS
             if(endlvl>stlvl) rplRemoveAtData(stlvl,endlvl-stlvl);
@@ -5701,7 +5703,7 @@ void tocplxKeyHandler(BINT keymsg)
         halScreen.StkVisibleLvl=-1;
         halScreen.StkSelStatus=0;
 
-            break;
+        break;
 
     }
 
@@ -5726,9 +5728,9 @@ void explodeKeyHandler(BINT keymsg)
         // NO ITEM SELECTED, EXPLODE ITEM AT CURSOR
         if((rplDepthData()>=halScreen.StkPointer)&&(halScreen.StkPointer>0)) {
 
-                WORDPTR obj=rplPeekData(halScreen.StkPointer);
+            WORDPTR obj=rplPeekData(halScreen.StkPointer);
 
-                if(ISMATRIX(*obj)||ISLIST(*obj)||ISCOMPLEX(*obj))  stlvl=endlvl=halScreen.StkPointer;
+            if(ISMATRIX(*obj)||ISLIST(*obj)||ISCOMPLEX(*obj))  stlvl=endlvl=halScreen.StkPointer;
         }
         break;
     case 1:
@@ -5743,17 +5745,17 @@ void explodeKeyHandler(BINT keymsg)
 
         break;
     case 2:
-            endlvl=halScreen.StkSelEnd;
-            stlvl=halScreen.StkSelStart;
+        endlvl=halScreen.StkSelEnd;
+        stlvl=halScreen.StkSelStart;
         break;
     }
 
     if(endlvl<0) return;    // NOTHING TO DO
 
 
-        BINT c,totalelem=0;
+    BINT c,totalelem=0;
 
-        for(c=endlvl;c>=stlvl;--c) {
+    for(c=endlvl;c>=stlvl;--c) {
 
         // EXPLODE ALL SELECTED ITEMS
         WORDPTR obj=rplPeekData(c);
@@ -5862,71 +5864,71 @@ void explodeKeyHandler(BINT keymsg)
         DSTop+=nelem-1;
         if(halScreen.StkPointer>c) halScreen.StkPointer+=nelem-1;
         endlvl+=nelem-1;
-        }
+    }
 
-        // DONE EXPLODING, ADJUST POINTERS TO SELECT EVERYTHING
-        halScreen.StkSelStart=stlvl;
-        halScreen.StkSelEnd=endlvl;
+    // DONE EXPLODING, ADJUST POINTERS TO SELECT EVERYTHING
+    halScreen.StkSelStart=stlvl;
+    halScreen.StkSelEnd=endlvl;
 
-        // SPECIAL CASE: WHEN BLOCK IS SELECTED AND POINTER IS OUTSIDE THE BLOCK, MOVE EXPLODED ITEMS TO THE NEW LOCATION
-        if(halScreen.StkSelStatus==2) {
+    // SPECIAL CASE: WHEN BLOCK IS SELECTED AND POINTER IS OUTSIDE THE BLOCK, MOVE EXPLODED ITEMS TO THE NEW LOCATION
+    if(halScreen.StkSelStatus==2) {
         if(halScreen.StkPointer>halScreen.StkSelEnd) {
             WORDPTR *stptr,*endptr,*cptr;
             WORDPTR item;
-                stptr=DSTop-halScreen.StkSelStart;
-                endptr=DSTop-((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer);
+            stptr=DSTop-halScreen.StkSelStart;
+            endptr=DSTop-((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer);
 
-                // DO UNROT UNTIL THE ENTIRE BLOCK MOVED
+            // DO UNROT UNTIL THE ENTIRE BLOCK MOVED
             BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
 
-                while(count--)
-                {
+            while(count--)
+            {
                 cptr=stptr;
 
                 item=*cptr;
 
                 while(cptr>endptr) { cptr[0]=cptr[-1]; --cptr; }
                 *cptr=item;
-                }
+            }
 
-                count=halScreen.StkSelEnd-halScreen.StkSelStart;
-                halScreen.StkSelEnd=((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer);
-                halScreen.StkSelStart=halScreen.StkSelEnd-count;
+            count=halScreen.StkSelEnd-halScreen.StkSelStart;
+            halScreen.StkSelEnd=((halScreen.StkPointer>rplDepthData())? rplDepthData():halScreen.StkPointer);
+            halScreen.StkSelStart=halScreen.StkSelEnd-count;
 
 
         } else if(halScreen.StkPointer<halScreen.StkSelStart) {
 
             WORDPTR *stptr,*endptr,*cptr;
             WORDPTR item;
-                stptr=DSTop-halScreen.StkSelEnd;
-                endptr=DSTop-halScreen.StkPointer-1;
+            stptr=DSTop-halScreen.StkSelEnd;
+            endptr=DSTop-halScreen.StkPointer-1;
 
-                // DO ROT UNTIL THE ENTIRE BLOCK MOVED
-                BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
-                while(count--)
-                {
+            // DO ROT UNTIL THE ENTIRE BLOCK MOVED
+            BINT count=halScreen.StkSelEnd-halScreen.StkSelStart+1;
+            while(count--)
+            {
                 cptr=stptr;
 
                 item=*cptr;
 
                 while(cptr<endptr) { cptr[0]=cptr[1]; ++cptr; }
                 *cptr=item;
-                }
+            }
 
-                count=halScreen.StkSelEnd-halScreen.StkSelStart;
-                halScreen.StkSelStart=halScreen.StkPointer+1;
-                halScreen.StkSelEnd=halScreen.StkPointer+1+count;
-                halScreen.StkPointer+=count+1;
-                halScreen.StkVisibleLvl=-1;
+            count=halScreen.StkSelEnd-halScreen.StkSelStart;
+            halScreen.StkSelStart=halScreen.StkPointer+1;
+            halScreen.StkSelEnd=halScreen.StkPointer+1+count;
+            halScreen.StkPointer+=count+1;
+            halScreen.StkVisibleLvl=-1;
 
 
         }
-        }
+    }
 
 
-        if(stlvl==endlvl) halScreen.StkSelStatus=0; else halScreen.StkSelStatus=2;
-        halScreen.StkPointer=halScreen.StkSelEnd;
-        halScreen.StkVisibleLvl=-1;
+    if(stlvl==endlvl) halScreen.StkSelStatus=0; else halScreen.StkSelStatus=2;
+    halScreen.StkPointer=halScreen.StkSelEnd;
+    halScreen.StkVisibleLvl=-1;
 
     halScreen.DirtyFlag|=STACK_DIRTY;
     return;
@@ -6041,15 +6043,15 @@ void cancelKeyHandler(BINT keymsg)
     UNUSED_ARGUMENT(keymsg);
 
     if(halGetNotification(N_RIGHTSHIFT)) {
-      // SHIFT-ON MEANS POWER OFF!
-       halPreparePowerOff();
-       halEnterPowerOff();
-       return;
+        // SHIFT-ON MEANS POWER OFF!
+        halPreparePowerOff();
+        halEnterPowerOff();
+        return;
 
     }
 
     if(halGetNotification(N_LEFTSHIFT)) {
-     // THIS IS CONTINUE
+        // THIS IS CONTINUE
         contKeyHandler(keymsg);
         keyb_setshiftplane(0,0,0,0);
         return;
@@ -6058,8 +6060,8 @@ void cancelKeyHandler(BINT keymsg)
 
     if((halGetContext()&CONTEXT_INEDITOR)) {
         // END THE COMMAND LINE
-     endCmdLine();
-   }
+        endCmdLine();
+    }
 
     if((halGetContext()&CONTEXT_INTSTACK)) {
         // END INTERACTIVE STACK
@@ -6068,7 +6070,7 @@ void cancelKeyHandler(BINT keymsg)
         halScreen.StkVisibleOffset=0;
         halScreen.StkSelStart=halScreen.StkSelEnd=halScreen.StkSelStatus=0;
         halScreen.DirtyFlag|=STACK_DIRTY;
-   }
+    }
 
 
 }
@@ -6114,193 +6116,193 @@ struct keyhandler_t {
 const struct keyhandler_t const __keydefaulthandlers[]= {
 
     // BASIC NUMBERS
-    { KM_PRESS|KB_1, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_2, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_3, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_4, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_5, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_6, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_7, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_8, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_9, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_0, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_DOT, CONTEXT_ANY,&decimaldotKeyHandler },
-    { KM_PRESS|KB_DOT|SHIFT_ALPHAHOLD, CONTEXT_ANY,&dotKeyHandler },
-    { KM_PRESS|KB_1|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_2|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_3|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_4|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_5|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_6|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_7|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_8|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_9|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_0|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
-    { KM_PRESS|KB_DOT|SHIFT_ALPHA, CONTEXT_ANY,&decimaldotKeyHandler },
+{ KM_PRESS|KB_1, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_2, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_3, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_4, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_5, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_6, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_7, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_8, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_9, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_0, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_DOT, CONTEXT_ANY,&decimaldotKeyHandler },
+{ KM_PRESS|KB_DOT|SHIFT_ALPHAHOLD, CONTEXT_ANY,&dotKeyHandler },
+{ KM_PRESS|KB_1|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_2|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_3|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_4|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_5|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_6|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_7|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_8|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_9|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_0|SHIFT_ALPHA, CONTEXT_ANY,&numberKeyHandler },
+{ KM_PRESS|KB_DOT|SHIFT_ALPHA, CONTEXT_ANY,&decimaldotKeyHandler },
 
-    // BASIC ON AND SHIFTS
-    { KM_KEYDN|KB_ON, CONTEXT_ANY,&cancelKeyHandler },
+// BASIC ON AND SHIFTS
+{ KM_KEYDN|KB_ON, CONTEXT_ANY,&cancelKeyHandler },
 
-    { KM_PRESS|KB_ALPHA|SHIFT_RS, CONTEXT_ANY,&shiftedalphaKeyHandler },
-    { KM_PRESS|KB_ALPHA|SHIFT_RSHOLD, CONTEXT_ANY,&shiftedalphaKeyHandler },
+{ KM_PRESS|KB_ALPHA|SHIFT_RS, CONTEXT_ANY,&shiftedalphaKeyHandler },
+{ KM_PRESS|KB_ALPHA|SHIFT_RSHOLD, CONTEXT_ANY,&shiftedalphaKeyHandler },
 
-    // TEXT EDITING KEYS
-    { KM_PRESS|KB_ENT, CONTEXT_ANY,&enterKeyHandler },
-    { KM_PRESS|KB_ENT|SHIFT_ALPHA, CONTEXT_ANY,&enterKeyHandler },
-    { KM_PRESS|KB_ENT|SHIFT_ALPHAHOLD, CONTEXT_ANY,&enterKeyHandler },
-    { KM_PRESS|KB_BKS, CONTEXT_ANY,&backspKeyHandler },
-    { KM_REPEAT|KB_BKS, CONTEXT_ANY,&backspKeyHandler },
-    { KM_PRESS|KB_BKS|SHIFT_ALPHA, CONTEXT_ANY,&backspKeyHandler },
-    { KM_REPEAT|KB_BKS|SHIFT_ALPHA, CONTEXT_ANY,&backspKeyHandler },
-    { KM_PRESS|KB_BKS|SHIFT_RS, CONTEXT_ANY,&clearKeyHandler },
-    { KM_PRESS|KB_BKS|SHIFT_RSHOLD, CONTEXT_ANY,&clearKeyHandler },
-    { KM_PRESS|KB_BKS|SHIFT_LS, CONTEXT_ANY,&deleteKeyHandler },
-    { KM_PRESS|KB_BKS|SHIFT_LSHOLD, CONTEXT_ANY,&deleteKeyHandler },
-    { KM_PRESS|KB_BKS|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&deleteKeyHandler },
-    { KM_PRESS|KB_BKS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&deleteKeyHandler },
-    { KM_PRESS|KB_LF|SHIFT_LS, CONTEXT_ANY,&lsleftKeyHandler },
-    { KM_PRESS|KB_RT|SHIFT_LS, CONTEXT_ANY,&lsrightKeyHandler },
-    { KM_PRESS|KB_LF|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&copyclipKeyHandler },
-    { KM_PRESS|KB_RT|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&pasteclipKeyHandler },
-    { KM_PRESS|KB_DN|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&cutclipKeyHandler },
-    { KM_PRESS|KB_LF|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&lsleftKeyHandler },
-    { KM_PRESS|KB_RT|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&lsrightKeyHandler },
-    { KM_PRESS|KB_LF|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&copyclipKeyHandler },
-    { KM_PRESS|KB_RT|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&pasteclipKeyHandler },
+// TEXT EDITING KEYS
+{ KM_PRESS|KB_ENT, CONTEXT_ANY,&enterKeyHandler },
+{ KM_PRESS|KB_ENT|SHIFT_ALPHA, CONTEXT_ANY,&enterKeyHandler },
+{ KM_PRESS|KB_ENT|SHIFT_ALPHAHOLD, CONTEXT_ANY,&enterKeyHandler },
+{ KM_PRESS|KB_BKS, CONTEXT_ANY,&backspKeyHandler },
+{ KM_REPEAT|KB_BKS, CONTEXT_ANY,&backspKeyHandler },
+{ KM_PRESS|KB_BKS|SHIFT_ALPHA, CONTEXT_ANY,&backspKeyHandler },
+{ KM_REPEAT|KB_BKS|SHIFT_ALPHA, CONTEXT_ANY,&backspKeyHandler },
+{ KM_PRESS|KB_BKS|SHIFT_RS, CONTEXT_ANY,&clearKeyHandler },
+{ KM_PRESS|KB_BKS|SHIFT_RSHOLD, CONTEXT_ANY,&clearKeyHandler },
+{ KM_PRESS|KB_BKS|SHIFT_LS, CONTEXT_ANY,&deleteKeyHandler },
+{ KM_PRESS|KB_BKS|SHIFT_LSHOLD, CONTEXT_ANY,&deleteKeyHandler },
+{ KM_PRESS|KB_BKS|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&deleteKeyHandler },
+{ KM_PRESS|KB_BKS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&deleteKeyHandler },
+{ KM_PRESS|KB_LF|SHIFT_LS, CONTEXT_ANY,&lsleftKeyHandler },
+{ KM_PRESS|KB_RT|SHIFT_LS, CONTEXT_ANY,&lsrightKeyHandler },
+{ KM_PRESS|KB_LF|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&copyclipKeyHandler },
+{ KM_PRESS|KB_RT|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&pasteclipKeyHandler },
+{ KM_PRESS|KB_DN|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&cutclipKeyHandler },
+{ KM_PRESS|KB_LF|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&lsleftKeyHandler },
+{ KM_PRESS|KB_RT|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&lsrightKeyHandler },
+{ KM_PRESS|KB_LF|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&copyclipKeyHandler },
+{ KM_PRESS|KB_RT|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&pasteclipKeyHandler },
 
-    // INTERACTIVE STACK OVERRIDES
-    { KM_PRESS|KB_ADD, CONTEXT_ANY|CONTEXT_INTSTACK,&tolistKeyHandler },
-    { KM_PRESS|KB_MUL, CONTEXT_ANY|CONTEXT_INTSTACK,&tomatKeyHandler },
-    { KM_PRESS|KB_SUB, CONTEXT_ANY|CONTEXT_INTSTACK,&tocplxKeyHandler },
-    { KM_PRESS|KB_DIV, CONTEXT_ANY|CONTEXT_INTSTACK,&explodeKeyHandler },
-
-
-
-
-    // CURSOR MOVEMENT KEYS
-    { KM_PRESS|KB_LF, CONTEXT_ANY,&leftKeyHandler },
-    { KM_REPEAT|KB_LF, CONTEXT_ANY,&leftKeyHandler },
-    { KM_PRESS|KB_RT, CONTEXT_ANY,&rightKeyHandler },
-    { KM_REPEAT|KB_RT, CONTEXT_ANY,&rightKeyHandler },
-    { KM_PRESS|KB_LF|SHIFT_ALPHA, CONTEXT_ANY,&leftKeyHandler },
-    { KM_REPEAT|KB_LF|SHIFT_ALPHA, CONTEXT_ANY,&leftKeyHandler },
-    { KM_PRESS|KB_RT|SHIFT_ALPHA, CONTEXT_ANY,&rightKeyHandler },
-    { KM_REPEAT|KB_RT|SHIFT_ALPHA, CONTEXT_ANY,&rightKeyHandler },
-    { KM_PRESS|KB_DN, CONTEXT_ANY,&downKeyHandler },
-    { KM_REPEAT|KB_DN, CONTEXT_ANY,&downKeyHandler },
-    { KM_PRESS|KB_DN|SHIFT_ALPHA, CONTEXT_ANY,&downKeyHandler },
-    { KM_REPEAT|KB_DN|SHIFT_ALPHA, CONTEXT_ANY,&downKeyHandler },
-    { KM_PRESS|KB_UP, CONTEXT_ANY,&upKeyHandler },
-    { KM_REPEAT|KB_UP, CONTEXT_ANY,&upKeyHandler },
-    { KM_PRESS|KB_UP|SHIFT_ALPHA, CONTEXT_ANY,&upKeyHandler },
-    { KM_REPEAT|KB_UP|SHIFT_ALPHA, CONTEXT_ANY,&upKeyHandler },
-
-    { KM_PRESS|KB_LF|SHIFT_RS, CONTEXT_ANY,&rsleftKeyHandler },
-    { KM_PRESS|KB_LF|SHIFT_RSHOLD, CONTEXT_ANY,&rsholdleftKeyHandler },
-    { KM_PRESS|KB_LF|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsleftKeyHandler },
-    { KM_PRESS|KB_LF|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholdleftKeyHandler },
-    { KM_PRESS|KB_RT|SHIFT_RS, CONTEXT_ANY,&rsrightKeyHandler },
-    { KM_PRESS|KB_RT|SHIFT_RSHOLD, CONTEXT_ANY,&rsholdrightKeyHandler },
-    { KM_PRESS|KB_RT|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsrightKeyHandler },
-    { KM_PRESS|KB_RT|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholdrightKeyHandler },
-    { KM_PRESS|KB_RT|SHIFT_ALPHAHOLD, CONTEXT_ANY,&alphaholdrightKeyHandler },
-
-    { KM_PRESS|KB_UP|SHIFT_RS, CONTEXT_ANY,&rsupKeyHandler },
-    { KM_PRESS|KB_UP|SHIFT_RSHOLD, CONTEXT_ANY,&rsholdupKeyHandler },
-    { KM_PRESS|KB_UP|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsupKeyHandler },
-    { KM_PRESS|KB_UP|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholdupKeyHandler },
-    { KM_PRESS|KB_UP|SHIFT_ALPHAHOLD|SHIFT_ALPHA, CONTEXT_ANY,&alphaholdupKeyHandler },
-
-    { KM_PRESS|KB_DN|SHIFT_RS, CONTEXT_ANY,&rsdownKeyHandler },
-    { KM_PRESS|KB_DN|SHIFT_RSHOLD, CONTEXT_ANY,&rsholddownKeyHandler },
-    { KM_PRESS|KB_DN|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsdownKeyHandler },
-    { KM_PRESS|KB_DN|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholddownKeyHandler },
-    { KM_PRESS|KB_DN|SHIFT_ALPHAHOLD|SHIFT_ALPHA, CONTEXT_ANY,&alphaholddownKeyHandler },
+// INTERACTIVE STACK OVERRIDES
+{ KM_PRESS|KB_ADD, CONTEXT_ANY|CONTEXT_INTSTACK,&tolistKeyHandler },
+{ KM_PRESS|KB_MUL, CONTEXT_ANY|CONTEXT_INTSTACK,&tomatKeyHandler },
+{ KM_PRESS|KB_SUB, CONTEXT_ANY|CONTEXT_INTSTACK,&tocplxKeyHandler },
+{ KM_PRESS|KB_DIV, CONTEXT_ANY|CONTEXT_INTSTACK,&explodeKeyHandler },
 
 
 
-    { KM_PRESS|KB_DOT|SHIFT_RS,CONTEXT_ANY,&newlineKeyHandler },
-    { KM_PRESS|KB_DOT|SHIFT_RSHOLD,CONTEXT_ANY,&newlineKeyHandler },
-    { KM_PRESS|KB_DOT|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY,&newlineKeyHandler },
-    { KM_PRESS|KB_DOT|SHIFT_RSHOLD|SHIFT_ALPHA,CONTEXT_ANY,&newlineKeyHandler },
+
+// CURSOR MOVEMENT KEYS
+{ KM_PRESS|KB_LF, CONTEXT_ANY,&leftKeyHandler },
+{ KM_REPEAT|KB_LF, CONTEXT_ANY,&leftKeyHandler },
+{ KM_PRESS|KB_RT, CONTEXT_ANY,&rightKeyHandler },
+{ KM_REPEAT|KB_RT, CONTEXT_ANY,&rightKeyHandler },
+{ KM_PRESS|KB_LF|SHIFT_ALPHA, CONTEXT_ANY,&leftKeyHandler },
+{ KM_REPEAT|KB_LF|SHIFT_ALPHA, CONTEXT_ANY,&leftKeyHandler },
+{ KM_PRESS|KB_RT|SHIFT_ALPHA, CONTEXT_ANY,&rightKeyHandler },
+{ KM_REPEAT|KB_RT|SHIFT_ALPHA, CONTEXT_ANY,&rightKeyHandler },
+{ KM_PRESS|KB_DN, CONTEXT_ANY,&downKeyHandler },
+{ KM_REPEAT|KB_DN, CONTEXT_ANY,&downKeyHandler },
+{ KM_PRESS|KB_DN|SHIFT_ALPHA, CONTEXT_ANY,&downKeyHandler },
+{ KM_REPEAT|KB_DN|SHIFT_ALPHA, CONTEXT_ANY,&downKeyHandler },
+{ KM_PRESS|KB_UP, CONTEXT_ANY,&upKeyHandler },
+{ KM_REPEAT|KB_UP, CONTEXT_ANY,&upKeyHandler },
+{ KM_PRESS|KB_UP|SHIFT_ALPHA, CONTEXT_ANY,&upKeyHandler },
+{ KM_REPEAT|KB_UP|SHIFT_ALPHA, CONTEXT_ANY,&upKeyHandler },
+
+{ KM_PRESS|KB_LF|SHIFT_RS, CONTEXT_ANY,&rsleftKeyHandler },
+{ KM_PRESS|KB_LF|SHIFT_RSHOLD, CONTEXT_ANY,&rsholdleftKeyHandler },
+{ KM_PRESS|KB_LF|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsleftKeyHandler },
+{ KM_PRESS|KB_LF|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholdleftKeyHandler },
+{ KM_PRESS|KB_RT|SHIFT_RS, CONTEXT_ANY,&rsrightKeyHandler },
+{ KM_PRESS|KB_RT|SHIFT_RSHOLD, CONTEXT_ANY,&rsholdrightKeyHandler },
+{ KM_PRESS|KB_RT|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsrightKeyHandler },
+{ KM_PRESS|KB_RT|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholdrightKeyHandler },
+{ KM_PRESS|KB_RT|SHIFT_ALPHAHOLD, CONTEXT_ANY,&alphaholdrightKeyHandler },
+
+{ KM_PRESS|KB_UP|SHIFT_RS, CONTEXT_ANY,&rsupKeyHandler },
+{ KM_PRESS|KB_UP|SHIFT_RSHOLD, CONTEXT_ANY,&rsholdupKeyHandler },
+{ KM_PRESS|KB_UP|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsupKeyHandler },
+{ KM_PRESS|KB_UP|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholdupKeyHandler },
+{ KM_PRESS|KB_UP|SHIFT_ALPHAHOLD|SHIFT_ALPHA, CONTEXT_ANY,&alphaholdupKeyHandler },
+
+{ KM_PRESS|KB_DN|SHIFT_RS, CONTEXT_ANY,&rsdownKeyHandler },
+{ KM_PRESS|KB_DN|SHIFT_RSHOLD, CONTEXT_ANY,&rsholddownKeyHandler },
+{ KM_PRESS|KB_DN|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&rsdownKeyHandler },
+{ KM_PRESS|KB_DN|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&rsholddownKeyHandler },
+{ KM_PRESS|KB_DN|SHIFT_ALPHAHOLD|SHIFT_ALPHA, CONTEXT_ANY,&alphaholddownKeyHandler },
 
 
 
-    // BASIC OPERATORS
-    { KM_PRESS|KB_ADD, CONTEXT_ANY,&addKeyHandler },
-    { KM_PRESS|KB_SUB, CONTEXT_ANY,&subKeyHandler },
-    { KM_PRESS|KB_DIV, CONTEXT_ANY,&divKeyHandler },
-    { KM_PRESS|KB_MUL, CONTEXT_ANY,&mulKeyHandler },
-    { KM_PRESS|KB_ADD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sadd) },
-    { KM_PRESS|KB_SUB|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(ssub) },
-    { KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(sdiv) },
-    { KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sdiv) },
-    { KM_PRESS|KB_MUL|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(smul) },
+{ KM_PRESS|KB_DOT|SHIFT_RS,CONTEXT_ANY,&newlineKeyHandler },
+{ KM_PRESS|KB_DOT|SHIFT_RSHOLD,CONTEXT_ANY,&newlineKeyHandler },
+{ KM_PRESS|KB_DOT|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY,&newlineKeyHandler },
+{ KM_PRESS|KB_DOT|SHIFT_RSHOLD|SHIFT_ALPHA,CONTEXT_ANY,&newlineKeyHandler },
 
-    // VARS MENU KEYS
-    { KM_PRESS|KB_G, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
-    { KM_PRESS|KB_G|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
-    { KM_PRESS|KB_G|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
-    { KM_PRESS|KB_G|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
-    { KM_PRESS|KB_G|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
-    { KM_LPRESS|KB_G, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
-    { KM_KEYUP|KB_G, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
 
-    { KM_PRESS|KB_H, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
-    { KM_PRESS|KB_H|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
-    { KM_PRESS|KB_H|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
-    { KM_PRESS|KB_H|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
-    { KM_PRESS|KB_H|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
-    { KM_LPRESS|KB_H, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
-    { KM_KEYUP|KB_H, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
 
-    { KM_PRESS|KB_I, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
-    { KM_PRESS|KB_I|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
-    { KM_PRESS|KB_I|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
-    { KM_PRESS|KB_I|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
-    { KM_PRESS|KB_I|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
-    { KM_LPRESS|KB_I, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
-    { KM_KEYUP|KB_I, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
+// BASIC OPERATORS
+{ KM_PRESS|KB_ADD, CONTEXT_ANY,&addKeyHandler },
+{ KM_PRESS|KB_SUB, CONTEXT_ANY,&subKeyHandler },
+{ KM_PRESS|KB_DIV, CONTEXT_ANY,&divKeyHandler },
+{ KM_PRESS|KB_MUL, CONTEXT_ANY,&mulKeyHandler },
+{ KM_PRESS|KB_ADD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(sadd) },
+{ KM_PRESS|KB_SUB|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(ssub) },
+{ KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(sdiv) },
+{ KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sdiv) },
+{ KM_PRESS|KB_MUL|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(smul) },
 
-    { KM_PRESS|KB_J, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
-    { KM_PRESS|KB_J|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
-    { KM_PRESS|KB_J|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
-    { KM_PRESS|KB_J|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
-    { KM_PRESS|KB_J|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
-    { KM_LPRESS|KB_J, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
-    { KM_KEYUP|KB_J, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
+// VARS MENU KEYS
+{ KM_PRESS|KB_G, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
+{ KM_PRESS|KB_G|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
+{ KM_PRESS|KB_G|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
+{ KM_PRESS|KB_G|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
+{ KM_PRESS|KB_G|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
+{ KM_LPRESS|KB_G, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
+{ KM_KEYUP|KB_G, CONTEXT_ANY,KEYHANDLER_NAME(var1)},
 
-    { KM_PRESS|KB_K, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
-    { KM_PRESS|KB_K|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
-    { KM_PRESS|KB_K|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
-    { KM_PRESS|KB_K|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
-    { KM_PRESS|KB_K|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
-    { KM_LPRESS|KB_K, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
-    { KM_KEYUP|KB_K, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
+{ KM_PRESS|KB_H, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
+{ KM_PRESS|KB_H|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
+{ KM_PRESS|KB_H|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
+{ KM_PRESS|KB_H|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
+{ KM_PRESS|KB_H|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
+{ KM_LPRESS|KB_H, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
+{ KM_KEYUP|KB_H, CONTEXT_ANY,KEYHANDLER_NAME(var2)},
 
-    { KM_PRESS|KB_L, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
-    { KM_PRESS|KB_L|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
-    { KM_PRESS|KB_L|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
-    { KM_PRESS|KB_L|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
-    { KM_PRESS|KB_L|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
-    { KM_LPRESS|KB_L, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
-    { KM_KEYUP|KB_L, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
+{ KM_PRESS|KB_I, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
+{ KM_PRESS|KB_I|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
+{ KM_PRESS|KB_I|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
+{ KM_PRESS|KB_I|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
+{ KM_PRESS|KB_I|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
+{ KM_LPRESS|KB_I, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
+{ KM_KEYUP|KB_I, CONTEXT_ANY,KEYHANDLER_NAME(var3)},
 
-    { KM_PRESS|KB_A, CONTEXT_ANY,KEYHANDLER_NAME(var1_1)},
-    { KM_PRESS|KB_A|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var1_1)},
-    { KM_PRESS|KB_A|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var1_1)},
-    { KM_PRESS|KB_A|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var1_1)},
-    { KM_PRESS|KB_A|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var1_1)},
-    { KM_LPRESS|KB_A, CONTEXT_ANY,KEYHANDLER_NAME(var1_1)},
-    { KM_KEYUP|KB_A, CONTEXT_ANY,KEYHANDLER_NAME(var1_1)},
+{ KM_PRESS|KB_J, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
+{ KM_PRESS|KB_J|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
+{ KM_PRESS|KB_J|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
+{ KM_PRESS|KB_J|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
+{ KM_PRESS|KB_J|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
+{ KM_LPRESS|KB_J, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
+{ KM_KEYUP|KB_J, CONTEXT_ANY,KEYHANDLER_NAME(var4)},
 
-    { KM_PRESS|KB_B, CONTEXT_ANY,KEYHANDLER_NAME(var2_1)},
-    { KM_PRESS|KB_B|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var2_1)},
-    { KM_PRESS|KB_B|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var2_1)},
-    { KM_PRESS|KB_B|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var2_1)},
-    { KM_PRESS|KB_B|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var2_1)},
-    { KM_LPRESS|KB_B, CONTEXT_ANY,KEYHANDLER_NAME(var2_1)},
-    { KM_KEYUP|KB_B, CONTEXT_ANY,KEYHANDLER_NAME(var2_1)},
+{ KM_PRESS|KB_K, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
+{ KM_PRESS|KB_K|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
+{ KM_PRESS|KB_K|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
+{ KM_PRESS|KB_K|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
+{ KM_PRESS|KB_K|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
+{ KM_LPRESS|KB_K, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
+{ KM_KEYUP|KB_K, CONTEXT_ANY,KEYHANDLER_NAME(var5)},
+
+{ KM_PRESS|KB_L, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
+{ KM_PRESS|KB_L|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
+{ KM_PRESS|KB_L|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
+{ KM_PRESS|KB_L|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
+{ KM_PRESS|KB_L|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
+{ KM_LPRESS|KB_L, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
+{ KM_KEYUP|KB_L, CONTEXT_ANY,KEYHANDLER_NAME(var6)},
+
+{ KM_PRESS|KB_A, CONTEXT_ANY,KEYHANDLER_NAME(var1_1)},
+{ KM_PRESS|KB_A|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var1_1)},
+{ KM_PRESS|KB_A|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var1_1)},
+{ KM_PRESS|KB_A|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var1_1)},
+{ KM_PRESS|KB_A|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var1_1)},
+{ KM_LPRESS|KB_A, CONTEXT_ANY,KEYHANDLER_NAME(var1_1)},
+{ KM_KEYUP|KB_A, CONTEXT_ANY,KEYHANDLER_NAME(var1_1)},
+
+{ KM_PRESS|KB_B, CONTEXT_ANY,KEYHANDLER_NAME(var2_1)},
+{ KM_PRESS|KB_B|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(var2_1)},
+{ KM_PRESS|KB_B|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var2_1)},
+{ KM_PRESS|KB_B|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(var2_1)},
+{ KM_PRESS|KB_B|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(var2_1)},
+{ KM_LPRESS|KB_B, CONTEXT_ANY,KEYHANDLER_NAME(var2_1)},
+{ KM_KEYUP|KB_B, CONTEXT_ANY,KEYHANDLER_NAME(var2_1)},
 
 
 
@@ -6337,323 +6339,323 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
 { KM_KEYUP|KB_F, CONTEXT_ANY,KEYHANDLER_NAME(var6_1)},
 
 
-    // NORMAL COMMANDS/FUNCTIONS
+// NORMAL COMMANDS/FUNCTIONS
 
-    { KM_PRESS|KB_Y, CONTEXT_ANY,&invKeyHandler },
-    { KM_PRESS|KB_SPC, CONTEXT_ANY,&spcKeyHandler },
-    { KM_REPEAT|KB_SPC, CONTEXT_ANY,&spcKeyHandler },
-    { KM_PRESS|KB_SPC|SHIFT_ALPHA, CONTEXT_ANY,&spcKeyHandler },
-    { KM_REPEAT|KB_SPC|SHIFT_ALPHA, CONTEXT_ANY,&spcKeyHandler },
-    { KM_PRESS|KB_SPC|SHIFT_ALPHAHOLD, CONTEXT_ANY,&thinspcKeyHandler },
-    { KM_REPEAT|KB_SPC|SHIFT_ALPHAHOLD, CONTEXT_ANY,&thinspcKeyHandler },
-    { KM_PRESS|KB_W, CONTEXT_ANY,&chsKeyHandler },
-    { KM_PRESS|KB_V, CONTEXT_ANY,&eexKeyHandler },
-    { KM_PRESS|KB_ADD|SHIFT_LS, CONTEXT_ANY,&curlyBracketKeyHandler },
-    { KM_PRESS|KB_ADD|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&curlyBracketKeyHandler },
-    { KM_PRESS|KB_ADD|SHIFT_RS, CONTEXT_ANY,&secoBracketKeyHandler },
-    { KM_PRESS|KB_ADD|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&secoBracketKeyHandler },
-    { KM_PRESS|KB_SUB|SHIFT_LS, CONTEXT_ANY,&parenBracketKeyHandler },
-    { KM_PRESS|KB_SUB|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&parenBracketKeyHandler },
-    { KM_PRESS|KB_MUL|SHIFT_LS, CONTEXT_ANY,&squareBracketKeyHandler },
-    { KM_PRESS|KB_MUL|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&squareBracketKeyHandler },
-    { KM_PRESS|KB_MUL|SHIFT_RS, CONTEXT_ANY,&textBracketKeyHandler },
-    { KM_PRESS|KB_MUL|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&textBracketKeyHandler },
-    { KM_PRESS|KB_O, CONTEXT_ANY,&ticksKeyHandler },
-    { KM_PRESS|KB_ADD|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,&curlyBracketKeyHandler },
-    { KM_PRESS|KB_ADD|SHIFT_ALPHA|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&curlyBracketKeyHandler },
-    { KM_PRESS|KB_ADD|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,&secoBracketKeyHandler },
-    { KM_PRESS|KB_ADD|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&secoBracketKeyHandler },
-    { KM_PRESS|KB_SUB|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,&parenBracketKeyHandler },
-    { KM_PRESS|KB_SUB|SHIFT_ALPHA|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&parenBracketKeyHandler },
-    { KM_PRESS|KB_MUL|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,&squareBracketKeyHandler },
-    { KM_PRESS|KB_MUL|SHIFT_ALPHA|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&squareBracketKeyHandler },
-    { KM_PRESS|KB_MUL|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,&textBracketKeyHandler },
-    { KM_PRESS|KB_MUL|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&textBracketKeyHandler },
-    { KM_PRESS|KB_O|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,&ticksKeyHandler },
-    { KM_PRESS|KB_O|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&ticksKeyHandler },
-    { KM_PRESS|KB_DOT|SHIFT_LS, CONTEXT_ANY,&tagKeyHandler },
-    { KM_PRESS|KB_DOT|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&tagKeyHandler },
-    { KM_PRESS|KB_DOT|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(colon) },
-    { KM_PRESS|KB_DOT|SHIFT_ALPHA|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(colon) },
-
-
-    { KM_PRESS|KB_ADD|SHIFT_ONHOLD, CONTEXT_ANY,&onPlusKeyHandler },
-    { KM_PRESS|KB_SUB|SHIFT_ONHOLD, CONTEXT_ANY,&onMinusKeyHandler },
-
-    { KM_PRESS|KB_DOT|SHIFT_ONHOLD, CONTEXT_ANY,&onDotKeyHandler },
-    { KM_PRESS|KB_SPC|SHIFT_ONHOLD, CONTEXT_ANY,&onSpcKeyHandler },
-    { KM_PRESS|KB_MUL|SHIFT_ONHOLD, CONTEXT_ANY,&onMulDivKeyHandler },
-    { KM_PRESS|KB_Z|SHIFT_ONHOLD, CONTEXT_ANY,&onMulDivKeyHandler },
-
-    { KM_PRESS|KB_UP|SHIFT_ONHOLD, CONTEXT_ANY,&onUpDownKeyHandler },
-    { KM_REPEAT|KB_UP|SHIFT_ONHOLD, CONTEXT_ANY,&onUpDownKeyHandler },
-    { KM_PRESS|KB_DN|SHIFT_ONHOLD, CONTEXT_ANY,&onUpDownKeyHandler },
-    { KM_REPEAT|KB_DN|SHIFT_ONHOLD, CONTEXT_ANY,&onUpDownKeyHandler },
+{ KM_PRESS|KB_Y, CONTEXT_ANY,&invKeyHandler },
+{ KM_PRESS|KB_SPC, CONTEXT_ANY,&spcKeyHandler },
+{ KM_REPEAT|KB_SPC, CONTEXT_ANY,&spcKeyHandler },
+{ KM_PRESS|KB_SPC|SHIFT_ALPHA, CONTEXT_ANY,&spcKeyHandler },
+{ KM_REPEAT|KB_SPC|SHIFT_ALPHA, CONTEXT_ANY,&spcKeyHandler },
+{ KM_PRESS|KB_SPC|SHIFT_ALPHAHOLD, CONTEXT_ANY,&thinspcKeyHandler },
+{ KM_REPEAT|KB_SPC|SHIFT_ALPHAHOLD, CONTEXT_ANY,&thinspcKeyHandler },
+{ KM_PRESS|KB_W, CONTEXT_ANY,&chsKeyHandler },
+{ KM_PRESS|KB_V, CONTEXT_ANY,&eexKeyHandler },
+{ KM_PRESS|KB_ADD|SHIFT_LS, CONTEXT_ANY,&curlyBracketKeyHandler },
+{ KM_PRESS|KB_ADD|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&curlyBracketKeyHandler },
+{ KM_PRESS|KB_ADD|SHIFT_RS, CONTEXT_ANY,&secoBracketKeyHandler },
+{ KM_PRESS|KB_ADD|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&secoBracketKeyHandler },
+{ KM_PRESS|KB_SUB|SHIFT_LS, CONTEXT_ANY,&parenBracketKeyHandler },
+{ KM_PRESS|KB_SUB|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&parenBracketKeyHandler },
+{ KM_PRESS|KB_MUL|SHIFT_LS, CONTEXT_ANY,&squareBracketKeyHandler },
+{ KM_PRESS|KB_MUL|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&squareBracketKeyHandler },
+{ KM_PRESS|KB_MUL|SHIFT_RS, CONTEXT_ANY,&textBracketKeyHandler },
+{ KM_PRESS|KB_MUL|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&textBracketKeyHandler },
+{ KM_PRESS|KB_O, CONTEXT_ANY,&ticksKeyHandler },
+{ KM_PRESS|KB_ADD|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,&curlyBracketKeyHandler },
+{ KM_PRESS|KB_ADD|SHIFT_ALPHA|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&curlyBracketKeyHandler },
+{ KM_PRESS|KB_ADD|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,&secoBracketKeyHandler },
+{ KM_PRESS|KB_ADD|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&secoBracketKeyHandler },
+{ KM_PRESS|KB_SUB|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,&parenBracketKeyHandler },
+{ KM_PRESS|KB_SUB|SHIFT_ALPHA|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&parenBracketKeyHandler },
+{ KM_PRESS|KB_MUL|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,&squareBracketKeyHandler },
+{ KM_PRESS|KB_MUL|SHIFT_ALPHA|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&squareBracketKeyHandler },
+{ KM_PRESS|KB_MUL|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,&textBracketKeyHandler },
+{ KM_PRESS|KB_MUL|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&textBracketKeyHandler },
+{ KM_PRESS|KB_O|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,&ticksKeyHandler },
+{ KM_PRESS|KB_O|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&ticksKeyHandler },
+{ KM_PRESS|KB_DOT|SHIFT_LS, CONTEXT_ANY,&tagKeyHandler },
+{ KM_PRESS|KB_DOT|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&tagKeyHandler },
+{ KM_PRESS|KB_DOT|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(colon) },
+{ KM_PRESS|KB_DOT|SHIFT_ALPHA|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(colon) },
 
 
-    { KM_PRESS|KB_0|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
-    { KM_PRESS|KB_1|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
-    { KM_PRESS|KB_2|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
-    { KM_PRESS|KB_3|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
-    { KM_PRESS|KB_4|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
-    { KM_PRESS|KB_5|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
-    { KM_PRESS|KB_6|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
-    { KM_PRESS|KB_7|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
-    { KM_PRESS|KB_8|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
-    { KM_PRESS|KB_9|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+{ KM_PRESS|KB_ADD|SHIFT_ONHOLD, CONTEXT_ANY,&onPlusKeyHandler },
+{ KM_PRESS|KB_SUB|SHIFT_ONHOLD, CONTEXT_ANY,&onMinusKeyHandler },
 
-    { KM_LPRESS|KB_J|SHIFT_ONHOLD, CONTEXT_ANY,&onVarKeyHandler },
-    { KM_PRESS|KB_J|SHIFT_ONHOLD, CONTEXT_ANY,KEYHANDLER_NAME(menuswap) },
-    { KM_PRESS|KB_B|SHIFT_ONHOLD, CONTEXT_ANY,&onBKeyHandler },
+{ KM_PRESS|KB_DOT|SHIFT_ONHOLD, CONTEXT_ANY,&onDotKeyHandler },
+{ KM_PRESS|KB_SPC|SHIFT_ONHOLD, CONTEXT_ANY,&onSpcKeyHandler },
+{ KM_PRESS|KB_MUL|SHIFT_ONHOLD, CONTEXT_ANY,&onMulDivKeyHandler },
+{ KM_PRESS|KB_Z|SHIFT_ONHOLD, CONTEXT_ANY,&onMulDivKeyHandler },
+
+{ KM_PRESS|KB_UP|SHIFT_ONHOLD, CONTEXT_ANY,&onUpDownKeyHandler },
+{ KM_REPEAT|KB_UP|SHIFT_ONHOLD, CONTEXT_ANY,&onUpDownKeyHandler },
+{ KM_PRESS|KB_DN|SHIFT_ONHOLD, CONTEXT_ANY,&onUpDownKeyHandler },
+{ KM_REPEAT|KB_DN|SHIFT_ONHOLD, CONTEXT_ANY,&onUpDownKeyHandler },
 
 
+{ KM_PRESS|KB_0|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+{ KM_PRESS|KB_1|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+{ KM_PRESS|KB_2|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+{ KM_PRESS|KB_3|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+{ KM_PRESS|KB_4|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+{ KM_PRESS|KB_5|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+{ KM_PRESS|KB_6|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+{ KM_PRESS|KB_7|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+{ KM_PRESS|KB_8|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
+{ KM_PRESS|KB_9|SHIFT_ONHOLD, CONTEXT_ANY,&onDigitKeyHandler },
 
-    { KM_PRESS|KB_0|SHIFT_LS, CONTEXT_ANY,&infinityKeyHandler },
-    { KM_PRESS|KB_0|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&undinfinityKeyHandler },
-    { KM_PRESS|KB_0|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&infinityKeyHandler },
-    { KM_PRESS|KB_0|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&undinfinityKeyHandler },
-    { KM_PRESS|KB_0|SHIFT_RS, CONTEXT_ANY,&arrowKeyHandler },
-    { KM_PRESS|KB_0|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&arrowKeyHandler },
-    { KM_PRESS|KB_SPC|SHIFT_RS, CONTEXT_ANY,&commaKeyHandler },
-    { KM_PRESS|KB_SPC|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&commaKeyHandler },
-    { KM_PRESS|KB_SPC|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&semiKeyHandler },
-    { KM_PRESS|KB_SPC|SHIFT_RS|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&semiKeyHandler },
-    { KM_PRESS|KB_SUB|SHIFT_RS, CONTEXT_ANY,&underscoreKeyHandler },
-    { KM_PRESS|KB_SUB|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&underscoreKeyHandler },
-    { KM_PRESS|KB_SUB|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&underscoreKeyHandler },
-    { KM_PRESS|KB_S, CONTEXT_ANY,&sinKeyHandler },
-    { KM_PRESS|KB_T, CONTEXT_ANY,&cosKeyHandler },
-    { KM_PRESS|KB_U, CONTEXT_ANY,&tanKeyHandler },
-    { KM_PRESS|KB_S|SHIFT_LS, CONTEXT_ANY,&asinKeyHandler },
-    { KM_PRESS|KB_T|SHIFT_LS, CONTEXT_ANY,&acosKeyHandler },
-    { KM_PRESS|KB_U|SHIFT_LS, CONTEXT_ANY,&atanKeyHandler },
-    { KM_PRESS|KB_S|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&asinKeyHandler },
-    { KM_PRESS|KB_T|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&acosKeyHandler },
-    { KM_PRESS|KB_U|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&atanKeyHandler },
-    { KM_LPRESS|KB_S, CONTEXT_ANY,&sinhKeyHandler },
-    { KM_LPRESS|KB_T, CONTEXT_ANY,&coshKeyHandler },
-    { KM_LPRESS|KB_U, CONTEXT_ANY,&tanhKeyHandler },
-    { KM_LPRESS|KB_S|SHIFT_LS, CONTEXT_ANY,&asinhKeyHandler },
-    { KM_LPRESS|KB_T|SHIFT_LS, CONTEXT_ANY,&acoshKeyHandler },
-    { KM_LPRESS|KB_U|SHIFT_LS, CONTEXT_ANY,&atanhKeyHandler },
-    { KM_LPRESS|KB_S|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&asinhKeyHandler },
-    { KM_LPRESS|KB_T|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&acoshKeyHandler },
-    { KM_LPRESS|KB_U|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&atanhKeyHandler },
-
-
-    { KM_PRESS|KB_N, CONTEXT_ANY,&evalKeyHandler },
-    { KM_LPRESS|KB_N, CONTEXT_ANY,&eval1KeyHandler },
-    { KM_PRESS|KB_ENT|SHIFT_RS, CONTEXT_ANY,&tonumKeyHandler },
-    { KM_PRESS|KB_ENT|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&tonumKeyHandler },
-    { KM_PRESS|KB_ENT|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(tofrac)  },
-    { KM_PRESS|KB_ENT|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(tofrac) },
-
-    { KM_PRESS|KB_R, CONTEXT_ANY,&sqrtKeyHandler },
-    { KM_PRESS|KB_Q, CONTEXT_ANY,&powKeyHandler },
-    { KM_PRESS|KB_Q|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,&powKeyHandler },
-    { KM_PRESS|KB_Q|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(econst) },
-    { KM_PRESS|KB_Q|SHIFT_ALPHA|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(econst) },
-    { KM_PRESS|KB_Q|SHIFT_LS,CONTEXT_ANY,KEYHANDLER_NAME(exp) },
-    { KM_PRESS|KB_Q|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(exp) },
-    { KM_PRESS|KB_Q|SHIFT_RS,CONTEXT_ANY,KEYHANDLER_NAME(ln) },
-    { KM_PRESS|KB_Q|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(ln) },
-
-    { KM_PRESS|KB_M, CONTEXT_ANY,KEYHANDLER_NAME(sto) },
-    { KM_LPRESS|KB_M, CONTEXT_ANY,KEYHANDLER_NAME(purge) },
-    { KM_PRESS|KB_M|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(rcl) },
-    { KM_PRESS|KB_M|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(rcl) },
-
-
-    { KM_PRESS|KB_V|SHIFT_LS,CONTEXT_ANY,KEYHANDLER_NAME(alog) },
-    { KM_PRESS|KB_V|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(alog) },
-    { KM_PRESS|KB_V|SHIFT_RS,CONTEXT_ANY,KEYHANDLER_NAME(log) },
-    { KM_PRESS|KB_V|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(log) },
-
-    { KM_PRESS|KB_R|SHIFT_LS,CONTEXT_ANY,KEYHANDLER_NAME(sq) },
-    { KM_PRESS|KB_R|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(sq) },
-    { KM_PRESS|KB_R|SHIFT_RS,CONTEXT_ANY,KEYHANDLER_NAME(xroot) },
-    { KM_PRESS|KB_R|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(xroot) },
-
-    { KM_PRESS|KB_Z|SHIFT_LS,CONTEXT_ANY,KEYHANDLER_NAME(abs) },
-    { KM_PRESS|KB_Z|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(abs) },
-    { KM_PRESS|KB_Z|SHIFT_RS,CONTEXT_ANY,KEYHANDLER_NAME(arg) },
-    { KM_PRESS|KB_Z|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(arg) },
-
-
-    { KM_PRESS|KB_UP|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(updir) },
-    { KM_PRESS|KB_UP|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(updir) },
-    { KM_PRESS|KB_UP|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(home) },
-    { KM_PRESS|KB_UP|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(home) },
-
-
-    { KM_PRESS|KB_X, CONTEXT_ANY,KEYHANDLER_NAME(keyx) },
-
-    { KM_PRESS|KB_6|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(convert) },
-    { KM_PRESS|KB_6|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(convert) },
-
-    { KM_PRESS|KB_3|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(basecycle) },
-    { KM_PRESS|KB_3|SHIFT_RS|SHIFT_RSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(basecycle) },
-
-    // LETTERS
-
-
-    { KM_PRESS|KB_A|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(a) },
-    { KM_PRESS|KB_B|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(b) },
-    { KM_PRESS|KB_C|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(c) },
-    { KM_PRESS|KB_D|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(d) },
-    { KM_PRESS|KB_E|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(e) },
-    { KM_PRESS|KB_F|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(f) },
-    { KM_PRESS|KB_G|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(g) },
-    { KM_PRESS|KB_H|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(h) },
-    { KM_PRESS|KB_I|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(i) },
-    { KM_PRESS|KB_J|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(j) },
-    { KM_PRESS|KB_K|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(k) },
-    { KM_PRESS|KB_L|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(l) },
-    { KM_PRESS|KB_M|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(m) },
-    { KM_PRESS|KB_N|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(n) },
-    { KM_PRESS|KB_O|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(o) },
-    { KM_PRESS|KB_P|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(p) },
-    { KM_PRESS|KB_Q|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(q) },
-    { KM_PRESS|KB_R|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(r) },
-    { KM_PRESS|KB_S|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(s) },
-    { KM_PRESS|KB_T|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(t) },
-    { KM_PRESS|KB_U|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(u) },
-    { KM_PRESS|KB_V|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(v) },
-    { KM_PRESS|KB_W|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(w) },
-    { KM_PRESS|KB_X|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(x) },
-    { KM_PRESS|KB_Y|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(y) },
-    { KM_PRESS|KB_DIV|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(z) },
-    { KM_PRESS|KB_A|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(a) },
-    { KM_PRESS|KB_B|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(b) },
-    { KM_PRESS|KB_C|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(c) },
-    { KM_PRESS|KB_D|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(d) },
-    { KM_PRESS|KB_E|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(e) },
-    { KM_PRESS|KB_F|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(f) },
-    { KM_PRESS|KB_G|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(g) },
-    { KM_PRESS|KB_H|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(h) },
-    { KM_PRESS|KB_I|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(i) },
-    { KM_PRESS|KB_J|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(j) },
-    { KM_PRESS|KB_K|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(k) },
-    { KM_PRESS|KB_L|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(l) },
-    { KM_PRESS|KB_M|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(m) },
-    { KM_PRESS|KB_N|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(n) },
-    { KM_PRESS|KB_O|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(o) },
-    { KM_PRESS|KB_P|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(p) },
-    { KM_PRESS|KB_Q|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(q) },
-    { KM_PRESS|KB_R|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(r) },
-    { KM_PRESS|KB_S|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(s) },
-    { KM_PRESS|KB_T|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(t) },
-    { KM_PRESS|KB_U|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(u) },
-    { KM_PRESS|KB_V|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(v) },
-    { KM_PRESS|KB_W|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(w) },
-    { KM_PRESS|KB_X|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(x) },
-    { KM_PRESS|KB_Y|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(y) },
-    { KM_PRESS|KB_DIV|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(z) },
-
-    { KM_PRESS|KB_ALPHA|SHIFT_ALPHAHOLD,CONTEXT_ANY, &alphaKeyHandler },
-
-    // SYMBOLS
-    { KM_PRESS|KB_9|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(openquestion) },
-    { KM_PRESS|KB_9|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(delta) },
-    { KM_PRESS|KB_9|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(delta) },
-
-    { KM_PRESS|KB_8|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(openexclamation) },
-    { KM_PRESS|KB_1|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(approx) },
-    { KM_PRESS|KB_1|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(percent) },
-    { KM_PRESS|KB_2|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(exclamation) },
-    { KM_PRESS|KB_2|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(exclamation) },
-    { KM_PRESS|KB_2|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(fact) },
-    { KM_PRESS|KB_2|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(fact) },
-    { KM_PRESS|KB_3|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
-    { KM_PRESS|KB_3|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
-    { KM_PRESS|KB_3|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
-    { KM_PRESS|KB_3|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
-
-    { KM_PRESS|KB_3|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(question) },
-    { KM_PRESS|KB_4|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(euro) },
-    { KM_PRESS|KB_4|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(dollar) },
-    { KM_PRESS|KB_5|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(pound) },
-    { KM_PRESS|KB_6|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(angle) },
-    { KM_PRESS|KB_6|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(degree) },
-    { KM_PRESS|KB_6|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(degree) },
-
-    { KM_PRESS|KB_7|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(iconst) },
-    { KM_PRESS|KB_7|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(jconst) },
-
-
-    { KM_PRESS|KB_SPC|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(pi) },
-    { KM_PRESS|KB_SPC|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(pi) },
-    { KM_PRESS|KB_SPC|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(pi) },
-    { KM_PRESS|KB_SPC|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(pi) },
-
-    { KM_PRESS|KB_ENT|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(and) },
-    { KM_PRESS|KB_ENT|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(at) },
-    { KM_PRESS|KB_ENT|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(and) },
-    { KM_PRESS|KB_ENT|SHIFT_RS|SHIFT_RSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(at) },
+{ KM_LPRESS|KB_J|SHIFT_ONHOLD, CONTEXT_ANY,&onVarKeyHandler },
+{ KM_PRESS|KB_J|SHIFT_ONHOLD, CONTEXT_ANY,KEYHANDLER_NAME(menuswap) },
+{ KM_PRESS|KB_B|SHIFT_ONHOLD, CONTEXT_ANY,&onBKeyHandler },
 
 
 
-    { KM_PRESS|KB_W|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(equal) },
-    { KM_PRESS|KB_W|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(equal) },
-    { KM_PRESS|KB_W|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(notequal) },
-    { KM_PRESS|KB_W|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(notequal) },
-    { KM_PRESS|KB_X|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(ls) },
-    { KM_PRESS|KB_X|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(ls) },
-    { KM_PRESS|KB_Y|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(gt) },
-    { KM_PRESS|KB_Y|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(gt) },
-    { KM_PRESS|KB_X|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(le) },
-    { KM_PRESS|KB_X|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(le) },
-    { KM_PRESS|KB_Y|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(ge) },
-    { KM_PRESS|KB_Y|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(ge) },
-
-    { KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(sdiv) },
-    { KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_RSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(sdiv) },
-    { KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(backslash) },
-    { KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_LSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(backslash) },
-
-    { KM_PRESS|KB_0|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(rulesep) },
-    { KM_PRESS|KB_0|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(rulesep) },
-    { KM_PRESS|KB_2|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(giventhat) },
-    { KM_PRESS|KB_2|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(giventhat) },
-
-
-
-    // NUMBERS
-
-    { KM_PRESS|KB_0|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub0) },
-    { KM_PRESS|KB_1|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub1) },
-    { KM_PRESS|KB_2|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub2) },
-    { KM_PRESS|KB_3|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub3) },
-    { KM_PRESS|KB_4|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub4) },
-    { KM_PRESS|KB_5|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub5) },
-    { KM_PRESS|KB_6|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub6) },
-    { KM_PRESS|KB_7|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub7) },
-    { KM_PRESS|KB_8|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub8) },
-    { KM_PRESS|KB_9|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub9) },
+{ KM_PRESS|KB_0|SHIFT_LS, CONTEXT_ANY,&infinityKeyHandler },
+{ KM_PRESS|KB_0|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&undinfinityKeyHandler },
+{ KM_PRESS|KB_0|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,&infinityKeyHandler },
+{ KM_PRESS|KB_0|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&undinfinityKeyHandler },
+{ KM_PRESS|KB_0|SHIFT_RS, CONTEXT_ANY,&arrowKeyHandler },
+{ KM_PRESS|KB_0|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&arrowKeyHandler },
+{ KM_PRESS|KB_SPC|SHIFT_RS, CONTEXT_ANY,&commaKeyHandler },
+{ KM_PRESS|KB_SPC|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&commaKeyHandler },
+{ KM_PRESS|KB_SPC|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&semiKeyHandler },
+{ KM_PRESS|KB_SPC|SHIFT_RS|SHIFT_RSHOLD|SHIFT_ALPHA, CONTEXT_ANY,&semiKeyHandler },
+{ KM_PRESS|KB_SUB|SHIFT_RS, CONTEXT_ANY,&underscoreKeyHandler },
+{ KM_PRESS|KB_SUB|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&underscoreKeyHandler },
+{ KM_PRESS|KB_SUB|SHIFT_RS|SHIFT_ALPHA, CONTEXT_ANY,&underscoreKeyHandler },
+{ KM_PRESS|KB_S, CONTEXT_ANY,&sinKeyHandler },
+{ KM_PRESS|KB_T, CONTEXT_ANY,&cosKeyHandler },
+{ KM_PRESS|KB_U, CONTEXT_ANY,&tanKeyHandler },
+{ KM_PRESS|KB_S|SHIFT_LS, CONTEXT_ANY,&asinKeyHandler },
+{ KM_PRESS|KB_T|SHIFT_LS, CONTEXT_ANY,&acosKeyHandler },
+{ KM_PRESS|KB_U|SHIFT_LS, CONTEXT_ANY,&atanKeyHandler },
+{ KM_PRESS|KB_S|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&asinKeyHandler },
+{ KM_PRESS|KB_T|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&acosKeyHandler },
+{ KM_PRESS|KB_U|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&atanKeyHandler },
+{ KM_LPRESS|KB_S, CONTEXT_ANY,&sinhKeyHandler },
+{ KM_LPRESS|KB_T, CONTEXT_ANY,&coshKeyHandler },
+{ KM_LPRESS|KB_U, CONTEXT_ANY,&tanhKeyHandler },
+{ KM_LPRESS|KB_S|SHIFT_LS, CONTEXT_ANY,&asinhKeyHandler },
+{ KM_LPRESS|KB_T|SHIFT_LS, CONTEXT_ANY,&acoshKeyHandler },
+{ KM_LPRESS|KB_U|SHIFT_LS, CONTEXT_ANY,&atanhKeyHandler },
+{ KM_LPRESS|KB_S|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&asinhKeyHandler },
+{ KM_LPRESS|KB_T|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&acoshKeyHandler },
+{ KM_LPRESS|KB_U|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,&atanhKeyHandler },
 
 
-    // MENUS
-    { KM_PRESS|KB_6|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(unitmenu) },
-    { KM_PRESS|KB_N|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(prgmenu) },
-    { KM_PRESS|KB_P,CONTEXT_ANY, KEYHANDLER_NAME(mainmenu) },
-    { KM_PRESS|KB_1|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(arithmenu) },
-    { KM_PRESS|KB_1|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(cplxmenu) },
-    { KM_PRESS|KB_2|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(libsmenu) },
-    { KM_PRESS|KB_9|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(timemenu) },
-    { KM_PRESS|KB_9|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(financemenu) },
-    { KM_PRESS|KB_3|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(basemenu) },
-    { KM_PRESS|KB_7|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(numsolvermenu) },
-    { KM_PRESS|KB_M|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(backmenu1) },
-    { KM_PRESS|KB_M|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(backmenu1) },
-    { KM_PRESS|KB_M|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(backmenu2) },
-    { KM_PRESS|KB_M|SHIFT_RS|SHIFT_RSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(backmenu2) },
+{ KM_PRESS|KB_N, CONTEXT_ANY,&evalKeyHandler },
+{ KM_LPRESS|KB_N, CONTEXT_ANY,&eval1KeyHandler },
+{ KM_PRESS|KB_ENT|SHIFT_RS, CONTEXT_ANY,&tonumKeyHandler },
+{ KM_PRESS|KB_ENT|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,&tonumKeyHandler },
+{ KM_PRESS|KB_ENT|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(tofrac)  },
+{ KM_PRESS|KB_ENT|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(tofrac) },
 
-    // FORM SWITCHER
-    { KM_LPRESS|KB_P,CONTEXT_ANY, KEYHANDLER_NAME(formswitcher) },
+{ KM_PRESS|KB_R, CONTEXT_ANY,&sqrtKeyHandler },
+{ KM_PRESS|KB_Q, CONTEXT_ANY,&powKeyHandler },
+{ KM_PRESS|KB_Q|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,&powKeyHandler },
+{ KM_PRESS|KB_Q|SHIFT_ALPHA|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(econst) },
+{ KM_PRESS|KB_Q|SHIFT_ALPHA|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(econst) },
+{ KM_PRESS|KB_Q|SHIFT_LS,CONTEXT_ANY,KEYHANDLER_NAME(exp) },
+{ KM_PRESS|KB_Q|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(exp) },
+{ KM_PRESS|KB_Q|SHIFT_RS,CONTEXT_ANY,KEYHANDLER_NAME(ln) },
+{ KM_PRESS|KB_Q|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(ln) },
+
+{ KM_PRESS|KB_M, CONTEXT_ANY,KEYHANDLER_NAME(sto) },
+{ KM_LPRESS|KB_M, CONTEXT_ANY,KEYHANDLER_NAME(purge) },
+{ KM_PRESS|KB_M|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(rcl) },
+{ KM_PRESS|KB_M|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(rcl) },
+
+
+{ KM_PRESS|KB_V|SHIFT_LS,CONTEXT_ANY,KEYHANDLER_NAME(alog) },
+{ KM_PRESS|KB_V|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(alog) },
+{ KM_PRESS|KB_V|SHIFT_RS,CONTEXT_ANY,KEYHANDLER_NAME(log) },
+{ KM_PRESS|KB_V|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(log) },
+
+{ KM_PRESS|KB_R|SHIFT_LS,CONTEXT_ANY,KEYHANDLER_NAME(sq) },
+{ KM_PRESS|KB_R|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(sq) },
+{ KM_PRESS|KB_R|SHIFT_RS,CONTEXT_ANY,KEYHANDLER_NAME(xroot) },
+{ KM_PRESS|KB_R|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(xroot) },
+
+{ KM_PRESS|KB_Z|SHIFT_LS,CONTEXT_ANY,KEYHANDLER_NAME(abs) },
+{ KM_PRESS|KB_Z|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(abs) },
+{ KM_PRESS|KB_Z|SHIFT_RS,CONTEXT_ANY,KEYHANDLER_NAME(arg) },
+{ KM_PRESS|KB_Z|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY,KEYHANDLER_NAME(arg) },
+
+
+{ KM_PRESS|KB_UP|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(updir) },
+{ KM_PRESS|KB_UP|SHIFT_LS|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(updir) },
+{ KM_PRESS|KB_UP|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(home) },
+{ KM_PRESS|KB_UP|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA, CONTEXT_ANY,KEYHANDLER_NAME(home) },
+
+
+{ KM_PRESS|KB_X, CONTEXT_ANY,KEYHANDLER_NAME(keyx) },
+
+{ KM_PRESS|KB_6|SHIFT_LS, CONTEXT_ANY,KEYHANDLER_NAME(convert) },
+{ KM_PRESS|KB_6|SHIFT_LS|SHIFT_LSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(convert) },
+
+{ KM_PRESS|KB_3|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(basecycle) },
+{ KM_PRESS|KB_3|SHIFT_RS|SHIFT_RSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(basecycle) },
+
+// LETTERS
+
+
+{ KM_PRESS|KB_A|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(a) },
+{ KM_PRESS|KB_B|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(b) },
+{ KM_PRESS|KB_C|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(c) },
+{ KM_PRESS|KB_D|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(d) },
+{ KM_PRESS|KB_E|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(e) },
+{ KM_PRESS|KB_F|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(f) },
+{ KM_PRESS|KB_G|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(g) },
+{ KM_PRESS|KB_H|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(h) },
+{ KM_PRESS|KB_I|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(i) },
+{ KM_PRESS|KB_J|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(j) },
+{ KM_PRESS|KB_K|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(k) },
+{ KM_PRESS|KB_L|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(l) },
+{ KM_PRESS|KB_M|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(m) },
+{ KM_PRESS|KB_N|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(n) },
+{ KM_PRESS|KB_O|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(o) },
+{ KM_PRESS|KB_P|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(p) },
+{ KM_PRESS|KB_Q|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(q) },
+{ KM_PRESS|KB_R|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(r) },
+{ KM_PRESS|KB_S|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(s) },
+{ KM_PRESS|KB_T|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(t) },
+{ KM_PRESS|KB_U|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(u) },
+{ KM_PRESS|KB_V|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(v) },
+{ KM_PRESS|KB_W|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(w) },
+{ KM_PRESS|KB_X|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(x) },
+{ KM_PRESS|KB_Y|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(y) },
+{ KM_PRESS|KB_DIV|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(z) },
+{ KM_PRESS|KB_A|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(a) },
+{ KM_PRESS|KB_B|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(b) },
+{ KM_PRESS|KB_C|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(c) },
+{ KM_PRESS|KB_D|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(d) },
+{ KM_PRESS|KB_E|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(e) },
+{ KM_PRESS|KB_F|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(f) },
+{ KM_PRESS|KB_G|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(g) },
+{ KM_PRESS|KB_H|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(h) },
+{ KM_PRESS|KB_I|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(i) },
+{ KM_PRESS|KB_J|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(j) },
+{ KM_PRESS|KB_K|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(k) },
+{ KM_PRESS|KB_L|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(l) },
+{ KM_PRESS|KB_M|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(m) },
+{ KM_PRESS|KB_N|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(n) },
+{ KM_PRESS|KB_O|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(o) },
+{ KM_PRESS|KB_P|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(p) },
+{ KM_PRESS|KB_Q|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(q) },
+{ KM_PRESS|KB_R|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(r) },
+{ KM_PRESS|KB_S|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(s) },
+{ KM_PRESS|KB_T|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(t) },
+{ KM_PRESS|KB_U|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(u) },
+{ KM_PRESS|KB_V|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(v) },
+{ KM_PRESS|KB_W|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(w) },
+{ KM_PRESS|KB_X|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(x) },
+{ KM_PRESS|KB_Y|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(y) },
+{ KM_PRESS|KB_DIV|SHIFT_ALPHAHOLD,CONTEXT_ANY, KEYHANDLER_NAME(z) },
+
+{ KM_PRESS|KB_ALPHA|SHIFT_ALPHAHOLD,CONTEXT_ANY, &alphaKeyHandler },
+
+// SYMBOLS
+{ KM_PRESS|KB_9|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(openquestion) },
+{ KM_PRESS|KB_9|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(delta) },
+{ KM_PRESS|KB_9|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(delta) },
+
+{ KM_PRESS|KB_8|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(openexclamation) },
+{ KM_PRESS|KB_1|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(approx) },
+{ KM_PRESS|KB_1|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(percent) },
+{ KM_PRESS|KB_2|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(exclamation) },
+{ KM_PRESS|KB_2|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(exclamation) },
+{ KM_PRESS|KB_2|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(fact) },
+{ KM_PRESS|KB_2|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(fact) },
+{ KM_PRESS|KB_3|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
+{ KM_PRESS|KB_3|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
+{ KM_PRESS|KB_3|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
+{ KM_PRESS|KB_3|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(hash) },
+
+{ KM_PRESS|KB_3|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(question) },
+{ KM_PRESS|KB_4|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(euro) },
+{ KM_PRESS|KB_4|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(dollar) },
+{ KM_PRESS|KB_5|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(pound) },
+{ KM_PRESS|KB_6|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(angle) },
+{ KM_PRESS|KB_6|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(degree) },
+{ KM_PRESS|KB_6|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(degree) },
+
+{ KM_PRESS|KB_7|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(iconst) },
+{ KM_PRESS|KB_7|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(jconst) },
+
+
+{ KM_PRESS|KB_SPC|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(pi) },
+{ KM_PRESS|KB_SPC|SHIFT_LS|SHIFT_LSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(pi) },
+{ KM_PRESS|KB_SPC|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(pi) },
+{ KM_PRESS|KB_SPC|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(pi) },
+
+{ KM_PRESS|KB_ENT|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(and) },
+{ KM_PRESS|KB_ENT|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(at) },
+{ KM_PRESS|KB_ENT|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(and) },
+{ KM_PRESS|KB_ENT|SHIFT_RS|SHIFT_RSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(at) },
 
 
 
-    // GREEK LETTERS
+{ KM_PRESS|KB_W|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(equal) },
+{ KM_PRESS|KB_W|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(equal) },
+{ KM_PRESS|KB_W|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(notequal) },
+{ KM_PRESS|KB_W|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(notequal) },
+{ KM_PRESS|KB_X|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(ls) },
+{ KM_PRESS|KB_X|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(ls) },
+{ KM_PRESS|KB_Y|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(gt) },
+{ KM_PRESS|KB_Y|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(gt) },
+{ KM_PRESS|KB_X|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(le) },
+{ KM_PRESS|KB_X|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(le) },
+{ KM_PRESS|KB_Y|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(ge) },
+{ KM_PRESS|KB_Y|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(ge) },
+
+{ KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(sdiv) },
+{ KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_RSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(sdiv) },
+{ KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(backslash) },
+{ KM_PRESS|KB_DIV|SHIFT_ALPHA|SHIFT_LSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(backslash) },
+
+{ KM_PRESS|KB_0|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(rulesep) },
+{ KM_PRESS|KB_0|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(rulesep) },
+{ KM_PRESS|KB_2|SHIFT_ALPHA|SHIFT_RS|SHIFT_RSHOLD, CONTEXT_ANY,KEYHANDLER_NAME(giventhat) },
+{ KM_PRESS|KB_2|SHIFT_ALPHA|SHIFT_RS, CONTEXT_ANY,KEYHANDLER_NAME(giventhat) },
+
+
+
+// NUMBERS
+
+{ KM_PRESS|KB_0|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub0) },
+{ KM_PRESS|KB_1|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub1) },
+{ KM_PRESS|KB_2|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub2) },
+{ KM_PRESS|KB_3|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub3) },
+{ KM_PRESS|KB_4|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub4) },
+{ KM_PRESS|KB_5|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub5) },
+{ KM_PRESS|KB_6|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub6) },
+{ KM_PRESS|KB_7|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub7) },
+{ KM_PRESS|KB_8|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub8) },
+{ KM_PRESS|KB_9|SHIFT_ALPHAHOLD, CONTEXT_ANY,KEYHANDLER_NAME(sub9) },
+
+
+// MENUS
+{ KM_PRESS|KB_6|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(unitmenu) },
+{ KM_PRESS|KB_N|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(prgmenu) },
+{ KM_PRESS|KB_P,CONTEXT_ANY, KEYHANDLER_NAME(mainmenu) },
+{ KM_PRESS|KB_1|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(arithmenu) },
+{ KM_PRESS|KB_1|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(cplxmenu) },
+{ KM_PRESS|KB_2|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(libsmenu) },
+{ KM_PRESS|KB_9|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(timemenu) },
+{ KM_PRESS|KB_9|SHIFT_LS,CONTEXT_ANY, KEYHANDLER_NAME(financemenu) },
+{ KM_PRESS|KB_3|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(basemenu) },
+{ KM_PRESS|KB_7|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(numsolvermenu) },
+{ KM_PRESS|KB_M|SHIFT_RS,CONTEXT_ANY, KEYHANDLER_NAME(backmenu1) },
+{ KM_PRESS|KB_M|SHIFT_RS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(backmenu1) },
+{ KM_PRESS|KB_M|SHIFT_RS|SHIFT_RSHOLD,CONTEXT_ANY, KEYHANDLER_NAME(backmenu2) },
+{ KM_PRESS|KB_M|SHIFT_RS|SHIFT_RSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(backmenu2) },
+
+// FORM SWITCHER
+{ KM_LPRESS|KB_P,CONTEXT_ANY, KEYHANDLER_NAME(formswitcher) },
+
+
+
+// GREEK LETTERS
 
 { KM_PRESS|KB_A|SHIFT_LS|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(greekalpha) },
 { KM_PRESS|KB_A|SHIFT_LS|SHIFT_LSHOLD|SHIFT_ALPHA,CONTEXT_ANY, KEYHANDLER_NAME(greekalpha) },   // CAPITAL GREEK LETTERS ON SHIFT-HOLD PLANE
@@ -6714,7 +6716,7 @@ const struct keyhandler_t const __keydefaulthandlers[]= {
 
 
 
-    { 0 , 0 , 0 }
+{ 0 , 0 , 0 }
 };
 
 // DO CUSTOM KEYBOARD ACTIONS. RETURN 0 IF NO ACTION WAS DEFINED, NONZERO IF SOMETHING WAS EXECUTED
@@ -6760,42 +6762,42 @@ int halDoCustomKey(BINT keymsg)
     rplClrSystemFlag(FL_DODEFAULTKEY);
 
     do {
-    keepgoing=0;
-    while(ptr<endoftable)
-    {
-    msg=rplReadNumberAsBINT(ptr);
-    if(Exceptions) {
-       // CLEAR ALL ERRORS AND KEEP GOING
-       rplClearErrors();
-       return 0;
-    }
-    ptr=rplSkipOb(ptr);
-    if(ptr>=endoftable) return 0;
-    ctx=rplReadNumberAsBINT(ptr);
-    if(Exceptions) {
-       // CLEAR ALL ERRORS AND KEEP GOING
-       rplClearErrors();
-       return 0;
-    }
-    ptr=rplSkipOb(ptr);
-    if(ptr>=endoftable) return 0;
+        keepgoing=0;
+        while(ptr<endoftable)
+        {
+            msg=rplReadNumberAsBINT(ptr);
+            if(Exceptions) {
+                // CLEAR ALL ERRORS AND KEEP GOING
+                rplClearErrors();
+                return 0;
+            }
+            ptr=rplSkipOb(ptr);
+            if(ptr>=endoftable) return 0;
+            ctx=rplReadNumberAsBINT(ptr);
+            if(Exceptions) {
+                // CLEAR ALL ERRORS AND KEEP GOING
+                rplClearErrors();
+                return 0;
+            }
+            ptr=rplSkipOb(ptr);
+            if(ptr>=endoftable) return 0;
 
-    if(msg==keymsg) {
-        if(ctx==0) { action=ptr; break; }
-        if(!(ctx&0x1f)) {
-            if( ctx==(halScreen.KeyContext&~0x1f)) { action=ptr; break; }
+            if(msg==keymsg) {
+                if(ctx==0) { action=ptr; break; }
+                if(!(ctx&0x1f)) {
+                    if( ctx==(halScreen.KeyContext&~0x1f)) { action=ptr; break; }
+                }
+                else {
+                    if(ctx==halScreen.KeyContext) { action=ptr; break; }
+                }
+            }
+            ptr=rplSkipOb(ptr);
+
         }
-        else {
-            if(ctx==halScreen.KeyContext) { action=ptr; break; }
-        }
-    }
-    ptr=rplSkipOb(ptr);
 
-    }
-
-    if(action) {
-        // EXECUTE THE REQUESTED ACTION
-        // CLEAR THE NEXT HANDLER FLAGS, THE KEY HANDLER CAN SET THE FLAG TO CHAIN THE PREVIOUS HANDLER
+        if(action) {
+            // EXECUTE THE REQUESTED ACTION
+            // CLEAR THE NEXT HANDLER FLAGS, THE KEY HANDLER CAN SET THE FLAG TO CHAIN THE PREVIOUS HANDLER
 
 
             // REMEMBER WHICH HANDLER WAS EXECUTED
@@ -6803,43 +6805,43 @@ int halDoCustomKey(BINT keymsg)
             hanoffset=action-keytable;
 
 
-        rplClrSystemFlag(FL_DONEXTCUSTKEY);
-        customKeyHandler(keymsg,action);
+            rplClrSystemFlag(FL_DONEXTCUSTKEY);
+            customKeyHandler(keymsg,action);
 
-        if(rplTestSystemFlag(FL_DONEXTCUSTKEY)>0) {
+            if(rplTestSystemFlag(FL_DONEXTCUSTKEY)>0) {
 
-            // RESTORE ALL POINTERS, SINCE EXECUTION COULD'VE CHANGED EVERYTHING
+                // RESTORE ALL POINTERS, SINCE EXECUTION COULD'VE CHANGED EVERYTHING
 
 
-            keytable=rplGetSettings((WORDPTR)customkey_ident);
+                keytable=rplGetSettings((WORDPTR)customkey_ident);
 
-            if(!keytable) return 1; // NO MORE KEYS, KEYTABLE VANISHED?
+                if(!keytable) return 1; // NO MORE KEYS, KEYTABLE VANISHED?
 
-            if(!ISLIST(*keytable)) return 1;    // INVALID KEY DEFINITION
+                if(!ISLIST(*keytable)) return 1;    // INVALID KEY DEFINITION
 
-            endoftable=rplSkipOb(keytable);
-            action=0;
-            ptr=keytable+1;
-            while(ptr-keytable<=hanoffset) {
-                ptr=rplSkipOb(ptr);
-                if(ptr>=endoftable) break;
-                ptr=rplSkipOb(ptr);
-                if(ptr>=endoftable) break;
-                ptr=rplSkipOb(ptr);
-                if(ptr>=endoftable) break;
+                endoftable=rplSkipOb(keytable);
+                action=0;
+                ptr=keytable+1;
+                while(ptr-keytable<=hanoffset) {
+                    ptr=rplSkipOb(ptr);
+                    if(ptr>=endoftable) break;
+                    ptr=rplSkipOb(ptr);
+                    if(ptr>=endoftable) break;
+                    ptr=rplSkipOb(ptr);
+                    if(ptr>=endoftable) break;
+                }
+
+                // FOUND THE NEXT HANDLER TO SCAN OR THE END OF LIST
+
+                keepgoing=1;
+
+            }
+            else {
+                if(rplTestSystemFlag(FL_DODEFAULTKEY)>0) halDoDefaultKey(keymsg);
+                return 1;
             }
 
-            // FOUND THE NEXT HANDLER TO SCAN OR THE END OF LIST
-
-            keepgoing=1;
-
         }
-        else {
-            if(rplTestSystemFlag(FL_DODEFAULTKEY)>0) halDoDefaultKey(keymsg);
-            return 1;
-        }
-
-    }
 
 
     } while(keepgoing);
@@ -6863,32 +6865,32 @@ int halCustomKeyExists(BINT keymsg)
 
     while(ptr<endoftable)
     {
-    msg=rplReadNumberAsBINT(ptr);
-    if(Exceptions) {
-       // CLEAR ALL ERRORS AND KEEP GOING
-       rplClearErrors();
-       return 0;
-    }
-    ptr=rplSkipOb(ptr);
-    if(ptr>=endoftable) return 0;
-    ctx=rplReadNumberAsBINT(ptr);
-    if(Exceptions) {
-       // CLEAR ALL ERRORS AND KEEP GOING
-       rplClearErrors();
-       return 0;
-    }
-    if(msg==keymsg) {
-        if(ctx==0) return 1;
-        if(!(ctx&0x1f)) {
-            if( ctx==(halScreen.KeyContext&~0x1f)) return 1;
+        msg=rplReadNumberAsBINT(ptr);
+        if(Exceptions) {
+            // CLEAR ALL ERRORS AND KEEP GOING
+            rplClearErrors();
+            return 0;
         }
-        else {
-            if(ctx==halScreen.KeyContext) return 1;
+        ptr=rplSkipOb(ptr);
+        if(ptr>=endoftable) return 0;
+        ctx=rplReadNumberAsBINT(ptr);
+        if(Exceptions) {
+            // CLEAR ALL ERRORS AND KEEP GOING
+            rplClearErrors();
+            return 0;
         }
-    }
-    ptr=rplSkipOb(ptr);
-    if(ptr>=endoftable) return 0;
-    ptr=rplSkipOb(ptr);
+        if(msg==keymsg) {
+            if(ctx==0) return 1;
+            if(!(ctx&0x1f)) {
+                if( ctx==(halScreen.KeyContext&~0x1f)) return 1;
+            }
+            else {
+                if(ctx==halScreen.KeyContext) return 1;
+            }
+        }
+        ptr=rplSkipOb(ptr);
+        if(ptr>=endoftable) return 0;
+        ptr=rplSkipOb(ptr);
     }
 
     //   SCANNED ENTIRE TABLE, NO LUCK
@@ -6906,21 +6908,21 @@ int halCustomKeyExists(BINT keymsg)
 
 int halDoDefaultKey(BINT keymsg)
 {
-struct keyhandler_t *ptr=(struct keyhandler_t *)__keydefaulthandlers;
+    struct keyhandler_t *ptr=(struct keyhandler_t *)__keydefaulthandlers;
 
-while(ptr->action) {
-    if(ptr->message==keymsg) {
-        // CHECK IF CONTEXT MATCHES
-        if((!ptr->context) || (ptr->context==halScreen.KeyContext) ||
-                ( !(ptr->context&0x1f)&&(ptr->context==(halScreen.KeyContext&~0x1f)))) {
-            //  IT'S A MATCH, EXECUTE THE ACTION;
-            (ptr->action)(keymsg);
-            return 1;
+    while(ptr->action) {
+        if(ptr->message==keymsg) {
+            // CHECK IF CONTEXT MATCHES
+            if((!ptr->context) || (ptr->context==halScreen.KeyContext) ||
+                    ( !(ptr->context&0x1f)&&(ptr->context==(halScreen.KeyContext&~0x1f)))) {
+                //  IT'S A MATCH, EXECUTE THE ACTION;
+                (ptr->action)(keymsg);
+                return 1;
+            }
         }
-        }
-    ++ptr;
-}
-return 0;
+        ++ptr;
+    }
+    return 0;
 }
 
 // RETURN TRUE/FALSE IF A DEFAULT HANDLER EXISTS
@@ -6932,12 +6934,12 @@ int halDefaultKeyExists(BINT keymsg)
         if(ptr->message==keymsg) {
             // CHECK IF CONTEXT MATCHES
             if((!ptr->context) || (ptr->context==halScreen.KeyContext) ||
-                ( !(ptr->context&0x1f)&&(ptr->context==(halScreen.KeyContext&~0x1f))))
+                    ( !(ptr->context&0x1f)&&(ptr->context==(halScreen.KeyContext&~0x1f))))
             {
                 //  IT'S A MATCH;
                 return 1;
             }
-            }
+        }
         ++ptr;
     }
     return 0;
@@ -6985,11 +6987,11 @@ int halProcessKey(BINT keymsg, int (*dokey)(BINT),BINT flags)
         else {
             // NO CHANGE IN ALPHA STATE
             if(KM_SHIFTPLANE(oldplane)&SHIFT_ALPHALOCK) {
-            if((KM_SHIFTPLANE(keymsg^oldplane)&SHIFT_ALPHAHOLD)==SHIFT_ALHOLD) {
-                // CHECK GOING FROM ALPHA TO ALPHA-HOLD OR VICEVERSA
-                // TEMPORARILY CHANGE SHIFT STATE
-                alphaKeyHandler(0);
-            }
+                if((KM_SHIFTPLANE(keymsg^oldplane)&SHIFT_ALPHAHOLD)==SHIFT_ALHOLD) {
+                    // CHECK GOING FROM ALPHA TO ALPHA-HOLD OR VICEVERSA
+                    // TEMPORARILY CHANGE SHIFT STATE
+                    alphaKeyHandler(0);
+                }
             }
         }
 
@@ -7003,7 +7005,7 @@ int halProcessKey(BINT keymsg, int (*dokey)(BINT),BINT flags)
         // THERE WAS A KEY PENDING EXECUTION
         if( (KM_MESSAGE(keymsg)==KM_LPRESS) && (KM_KEY(keymsg)==KM_KEY(halLongKeyPending))) {
             // WE RECEIVED A LONG PRESS ON THAT KEY, DISCARD THE OLD EVENT AND DO A LONG PRESS ONLY
-           halLongKeyPending=0;
+            halLongKeyPending=0;
         }
         else {
             // ANY OTHER MESSAGE SHOULD CAUSE THE EXECUTION OF THE OLD KEY FIRST, THEN THE NEW ONE
@@ -7033,10 +7035,10 @@ int halProcessKey(BINT keymsg, int (*dokey)(BINT),BINT flags)
             return 0;
         } else {
             // ONLY KEYS THAT HAVE LONG PRESS DEFINITION WILL WAIT, OTHERWISE EXECUTE IMMEDIATELY
-        BINT longmsg=KM_LPRESS | KM_SHIFTEDKEY(keymsg);
+            BINT longmsg=KM_LPRESS | KM_SHIFTEDKEY(keymsg);
 
-        if(halCustomKeyExists(longmsg)) { halLongKeyPending=keymsg; return 0; }
-        if(halDefaultKeyExists(longmsg)) { halLongKeyPending=keymsg; return 0; }
+            if(halCustomKeyExists(longmsg)) { halLongKeyPending=keymsg; return 0; }
+            if(halDefaultKeyExists(longmsg)) { halLongKeyPending=keymsg; return 0; }
         }
     }
 
@@ -7047,7 +7049,7 @@ int halProcessKey(BINT keymsg, int (*dokey)(BINT),BINT flags)
     if(!(flags&OL_NODEFAULTKEYS)) if(!wasProcessed) wasProcessed=halDoDefaultKey(keymsg);
 
     // *************** DEBUG ONLY ************
-/*
+    /*
     if(!wasProcessed && ((KM_MESSAGE(keymsg)==KM_PRESS)||(KM_MESSAGE(keymsg)==KM_LPRESS)||(KM_MESSAGE(keymsg)==KM_REPEAT))) {
 
     // ALL OTHER KEYS, JUST DISPLAY THE KEY NAME ON SCREEN
@@ -7145,7 +7147,7 @@ void halDoDeferredProcess()
 void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT flags)
 {
     int keymsg=0,isidle,jobdone;
-    BINT64 offcounter;
+    BINT64 offcounter=0;
 
     DRAWSURFACE scr;
     ggl_initscr(&scr);
@@ -7176,7 +7178,7 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
                 } else halReset();  // THIS FUNCTION DOES NOT RETURN
 
             }
-           return;
+            return;
         }
 
         if(halFlags&HAL_FASTAUTORESUME) {
@@ -7216,17 +7218,17 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
             if(usb_isconfigured()) {
                 halSetNotification(N_CONNECTION,0xf);
                 if(usb_hasdata()) halSetNotification(N_DATARECVD,0xf);
-                        else halSetNotification(N_DATARECVD,0);
+                else halSetNotification(N_DATARECVD,0);
             }
             else halSetNotification(N_CONNECTION,0);
 
             if(!(flags&OL_NOCOMMS)) {
                 if(usb_hasdata()) {
-                if(!rplTestSystemFlag(FL_NOAUTORECV)) {
-                uiCmdRun(CMD_USBAUTORCV);
-                halScreen.DirtyFlag|=CMDLINE_ALLDIRTY|STACK_DIRTY|STAREA_DIRTY|MENU1_DIRTY|MENU2_DIRTY|FORM_DIRTY;
-                continue;
-                }
+                    if(!rplTestSystemFlag(FL_NOAUTORECV)) {
+                        uiCmdRun(CMD_USBAUTORCV);
+                        halScreen.DirtyFlag|=CMDLINE_ALLDIRTY|STACK_DIRTY|STAREA_DIRTY|MENU1_DIRTY|MENU2_DIRTY|FORM_DIRTY;
+                        continue;
+                    }
                 }
             }
 
@@ -7237,33 +7239,33 @@ void halOuterLoop(BINT timeoutms, int (*dokey)(BINT), int (*doidle)(BINT), BINT 
             // FLUSH FILE SYSTEM CACHES WHEN IDLING FOR MORE THAN 3 SECONDS
             if(!(flags&OL_NOSDFLUSH) && !(jobdone&1) && FSIsInit()) {
 
-            if(halTicks()-offcounter >=3000000) {
-                if(FSIsDirty()) {
-                    FSFlushAll();
-                    halUpdateStatus();
+                if(halTicks()-offcounter >=3000000) {
+                    if(FSIsDirty()) {
+                        FSFlushAll();
+                        halUpdateStatus();
+                    }
+                    jobdone|=1;
+                    isidle=0;
                 }
-                jobdone|=1;
-                isidle=0;
-            }
 
             }
 #endif
 
             // AUTO-OFF WHEN IDLING
             if(!(flags&OL_NOAUTOOFF) && (halFlags&HAL_AUTOOFFTIME) && (!usb_isconnected())) {
-            BINT64 autoofftime=15000000 << (GET_AUTOOFFTIME(halFlags));
-            if(halTicks()-offcounter >=autoofftime) {
-                halPreparePowerOff();
-                halEnterPowerOff();
-            }
+                BINT64 autoofftime=15000000 << (GET_AUTOOFFTIME(halFlags));
+                if(halTicks()-offcounter >=autoofftime) {
+                    halPreparePowerOff();
+                    halEnterPowerOff();
+                }
             }
 
 
             if(!(flags&OL_NOALARM)) {
-            if(halCheckSystemAlarm()) {
-                jobdone=isidle=0;
-                halTriggerAlarm();
-            }
+                if(halCheckSystemAlarm()) {
+                    jobdone=isidle=0;
+                    halTriggerAlarm();
+                }
             }
 
             // DO OTHER IDLE PROCESSING HERE

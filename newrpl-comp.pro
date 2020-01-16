@@ -262,7 +262,8 @@ LIBS += -L/usr/local/lib
 DISTFILES +=
 
 # Clang doesn't like double const specifiers, but are needed for firmware: disable the warning
-QMAKE_CFLAGS += -Wno-duplicate-decl-specifier
+QMAKE_CFLAGS += -Wno-duplicate-decl-specifier -Wno-implicit-fallthrough
+
 
 
 

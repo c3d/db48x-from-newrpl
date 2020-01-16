@@ -420,7 +420,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
 
     BINT SavedException=Exceptions;
     BINT SavedErrorCode=ErrorCode;
-    BINT removevalue;
+    BINT removevalue=0;
 
     if(ISUNIT(ptrprolog)) {
         REAL r;
@@ -428,7 +428,7 @@ void uiDrawMenuItem(WORDPTR item,BINT color,DRAWSURFACE *scr)
             rplReadNumberAsReal(ptr+1,&r);
             rplOneToRReg(0);
             removevalue=eqReal(&r,&RReg[0]);
-        } else removevalue=0;
+        }
     }
 
 

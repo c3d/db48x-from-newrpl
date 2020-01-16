@@ -515,7 +515,7 @@ void nextprimeReal(BINT regnum,REAL *n)
 
     newRealFromBINT(&RReg[2],30,0);
 
-    BINT64 i;
+    BINT64 i=0;
 
     do {
 

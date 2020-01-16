@@ -1006,7 +1006,7 @@ WORDPTR rplDecompile(WORDPTR object,BINT flags)
 {
     LIBHANDLER han;
     BINT infixmode=0,indent=0,lastnewline=0,lastnloffset=0,maxwidth;
-    UBINT savecstruct=0,savedecompmode=0,dhints,savedhints;
+    UBINT savecstruct=0,savedecompmode=0,dhints,savedhints=0;
     BINT validtop=0,validbottom=0;
     WORDPTR *SavedRSTop=0;
     if(flags&DECOMP_EMBEDDED) {

@@ -589,7 +589,7 @@ WORDPTR rplSymbImplode(WORDPTR *exprstart)
                         object++;
                         continue;
                     }
-                    for(k=0;k<rplObjSize(object);++k) *newptr++=*object++;
+                    for(k=0;k<(BINT)rplObjSize(object);++k) *newptr++=*object++;
                 }
 
             }
@@ -731,8 +731,8 @@ WORDPTR *rplSymbExplodeCanonicalForm(WORDPTR object,BINT for_display)
             rplExpandStack(numnew);
             if(Exceptions) { DSTop=endofstk+1; return 0; }
             // INSERT THE NEW EXPLODED COMPLEX INTO THE SYMBOLIC
-            memmovew(stkptr+numnew,stkptr+1,(endofstk+numitems-stkptr)*(sizeof(WORDPTR)/sizeof(WORD)));
-            memmovew(stkptr,DSTop-numnew,numnew*(sizeof(WORDPTR)/sizeof(WORD)));
+            memmovew(stkptr+numnew,stkptr+1,((endofstk+numitems-stkptr)*sizeof(WORDPTR))/sizeof(WORD));
+            memmovew(stkptr,DSTop-numnew,(numnew*sizeof(WORDPTR))/sizeof(WORD));
             DSTop--;
             stkptr+=numnew;
             numitems+=numnew-1;
@@ -4137,11 +4137,9 @@ do {
                             TRACK_STATE p;
                             reloadPointers(s.left-( (s.leftnargs)? (1+s.leftnargs):0),&p);
 
-                        BINT k,count;
 
-
-                        BINT otherright=p.rightnargs-p.rightidx;  // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
-                        BINT available=p.leftnargs-otherright; // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
+                        //BINT otherright=p.rightnargs-p.rightidx;  // OTHER ARGUMENTS ON THE RIGHT OPERATOR AFTER THIS ONE
+                        //BINT available=p.leftnargs-otherright; // NUMBER OF ARGUMENTS AVAILABLE FOR THIS EXPRESSION
 
                         if((**p.left==CMD_OVR_ADD)||(**p.left==CMD_OVR_MUL)) {
                             // IT'S NON-COMMUTATIVE BUT ASSOCIATIVE OPERATOR, TAKE ALL ARGUMENTS LESS WHAT'S LEFT ON THE RIGHT SIDE

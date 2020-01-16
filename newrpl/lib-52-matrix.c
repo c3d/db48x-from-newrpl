@@ -5173,7 +5173,7 @@ void LIB_HANDLER()
         // simplification will be applied to the expression, but the user needs to call AUTOSIMPLIFY or →NUM manually afterwards.
 
     {
-        WORDPTR object=rplPeekData(2),mainobj;
+        WORDPTR object=rplPeekData(2);
 
         do {
 

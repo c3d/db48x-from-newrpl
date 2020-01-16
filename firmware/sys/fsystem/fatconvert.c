@@ -25,6 +25,7 @@ case 1:	// FAT12
 return cluster+(cluster>>1);
 case 3:	// FAT 32
 cluster<<=1;
+// DELIBERATE FALL THRU
 case 2:
 return (cluster<<1);
 }

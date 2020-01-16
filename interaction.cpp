@@ -121,7 +121,7 @@ int SaveRPLObject(QString& filename,int level)
 
 int LoadRPLObject(QString& filename)
 {
-    uint32_t *obj;
+
     int size;
 
     QFile f(filename);

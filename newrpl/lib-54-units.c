@@ -1277,7 +1277,7 @@ void LIB_HANDLER()
 
                 }
                 // SPECIAL CASE: OTHER OBJECTS ARE NOT THE SAME EVEN IF THEY ARE EQUAL
-                if( (!ISUNIT(rplPeekData(1))) || (!ISUNIT(*rplPeekData(2))) ) {
+                if( (!ISUNIT(*rplPeekData(1))) || (!ISUNIT(*rplPeekData(2))) ) {
                     rplDropData(2);
                     rplPushFalse();
                     return;

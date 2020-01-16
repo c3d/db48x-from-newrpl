@@ -60,8 +60,16 @@ USBSelector::USBSelector(QWidget *parent) :
 
     norefresh=false;
 
+    connect(&update_thread, SIGNAL(FirmwareUpdateError(QString)), this, SLOT(on_Error(QString)));
+
     QTimer::singleShot(200,this,SLOT(refresh()));
 
+}
+
+void USBSelector::on_Error(QString message) {
+    QString info = "\nIf the device doesn't react anymore, please use the standard HP firmware update procedure to flash the newRPL firmware again.";
+    QMessageBox warn(QMessageBox::Warning, "Communication error while sending firmware", message + info, QMessageBox::Ok, this);
+    warn.exec();
 }
 
 USBSelector::~USBSelector()
@@ -622,14 +630,6 @@ void USBSelector::finishedupdate()
 
     usb_shutdown();
 
-   int result=__fwupdate_address;
-
-    if(!result) {
-        QMessageBox a(QMessageBox::Warning,"Communication error while sending firmware","USB communication error",QMessageBox::Ok,this);
-        a.exec();
-    }
-
-
     //ui->USBtreeWidget->clear();
     ui->USBtreeWidget->setEnabled(true);
 
@@ -672,9 +672,18 @@ FWThread::~FWThread()
 {
 }
 
+static void busywait(int ms) {
+    tmr_t start,end;
+    start=tmr_ticks();
+    do {
+        end=tmr_ticks();
+    } while(tmr_ticks2ms(start,end) < ms);
+}
+
 
 void FWThread::run()
 {
+    QString message;
 
     int nwords=__fwupdate_nwords;
     __fwupdate_progress=0;
@@ -684,25 +693,18 @@ void FWThread::run()
     // START USB DRIVER
     __usb_paused=0;
 
-    {
-    // WAIT 200ms BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
-    tmr_t start,end;
-    start=tmr_ticks();
-    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<200);
-    }
 
+    // WAIT 200ms BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
+    busywait(200);
     // SEND CMD_USBFWUPDATE TO THE CALC
     if(!usbremotefwupdatestart()) {
         __fwupdate_address=0;
         return;
     }
 
-    {
+
     // WAIT 500ms BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
-    tmr_t start,end;
-    start=tmr_ticks();
-    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<500);
-    }
+    busywait(500);
 
 
     WORD header[3];
@@ -714,7 +716,7 @@ void FWThread::run()
 
     if(result) result=fileid=usb_txfileopen('W');
     if(!result) {
-        // TODO: SOME KIND OF ERROR
+        message = "Could not initiate package transmission";
         break;
     }
 
@@ -727,6 +729,8 @@ void FWThread::run()
     if(result && (!usb_filewrite(fileid,(BYTEPTR)header,3*sizeof(WORD)))) {
         // TODO: SOME KIND OF ERROR
         result=0;
+        message = "Could not send data to usb device";
+
         break;
     }
 
@@ -734,6 +738,7 @@ void FWThread::run()
     BYTEPTR buffer=__fwupdate_buffer+offset*sizeof(WORD);
     if(!usb_filewrite(fileid,buffer,1024*sizeof(WORD))) {
         result=0;
+        message = "Could not send data to usb device";
         break;
     }
     offset+=1024;
@@ -742,8 +747,9 @@ void FWThread::run()
 
 
     if(result && (!usb_txfileclose(fileid))) {
-        // TODO: SOME KIND OF ERROR
        result=0;
+       message = "Could not finalize package transmission";
+
        break;
     }
 
@@ -757,6 +763,8 @@ void FWThread::run()
         result=fileid=usb_txfileopen('W');
 
         // SEND FIRMWARE BLOCK MARKER
+        if(!result) message = "Could not initiate package transmission";
+
 
         header[0]=TEXT2WORD('F','W','U','P');
         header[1]=__fwupdate_address+(offset<<2);
@@ -765,12 +773,15 @@ void FWThread::run()
         if(result && (!usb_filewrite(fileid,(BYTEPTR)header,3*sizeof(WORD)))) {
             // TODO: SOME KIND OF ERROR
             result=0;
+            message = "Could not send data to usb device";
         }
 
         if(result) {
         BYTEPTR buffer=__fwupdate_buffer+offset*sizeof(WORD);
         if(!usb_filewrite(fileid,buffer,nwords*sizeof(WORD))) {
             result=0;
+            message = "Could not send data to usb device";
+
         }
         offset+=nwords;
         }
@@ -778,37 +789,44 @@ void FWThread::run()
         if(result && (!usb_txfileclose(fileid))) {
             // TODO: SOME KIND OF ERROR
            result=0;
+           message = "Could not finalize package transmission";
+
         }
         __fwupdate_progress=offset;
 
         }
 
     // DONE SENDING THE LAST BLOCK
-    {
+
     // WAIT TWO FULL SECONDS BEFORE STARTING ANOTHER CONVERSATION WITH THE DEVICE
-    tmr_t start,end;
-    start=tmr_ticks();
-    do end=tmr_ticks(); while(tmr_ticks2ms(start,end)<2000);
-    }
+    busywait(2000);
 
 
     // NOW FINISH THE TEST BY RESETTING
     result=fileid=usb_txfileopen('W');
+
+    if(!result) {
+       message = "Could not initiate reset";
+    }
 
     header[0]=TEXT2WORD('F','W','U','P');
     header[1]=0xffffffff;
     header[2]=0;
 
     if(result && (!usb_filewrite(fileid,(BYTEPTR)header,3*sizeof(WORD)))) {
-        // TODO: SOME KIND OF ERROR
+       message = "Could not initiate reset";
        result=0;
     }
 
     if(result && (!usb_txfileclose(fileid))) {
-        // TODO: SOME KIND OF ERROR
+       message = "Could not initiate reset";
        result=0;
     }
 
+
+    if (!result) {
+            emit FirmwareUpdateError(message);
+    }
     __fwupdate_address=result;
 
 }

@@ -169,7 +169,6 @@ void libGetPTRFromID(WORDPTR *table,WORD id,WORD hash)
         // SCAN THE OBJECT TO FIND A MATCHING HASH
         WORDPTR scan=table[ROMPTRID_IDX(id)],ptr;
         WORDPTR end=rplSkipOb(scan);
-        BINT len;
         WORD exhash;
         scan+=31;   // MINIMUM OFFSET FOR A SEARCH
         while(scan<end) {

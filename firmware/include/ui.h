@@ -74,6 +74,7 @@ WORDPTR uiGetCmdLineText();
 BINT uiSetCmdLineText(WORDPTR text);
 void uiOpenCmdLine(BINT mode);
 void uiCloseCmdLine();
+void uiSetCurrentLine(BINT line);
 BINT uiInsertCharacters(BYTEPTR string);
 BINT uiInsertCharactersN(BYTEPTR string,BYTEPTR end);
 void uiRemoveCharacters(BINT length);

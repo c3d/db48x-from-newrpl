@@ -215,7 +215,7 @@ WORDPTR *rplCreateNGlobalsInDir(BINT n,WORDPTR *parentdir)
 {
     WORDPTR *direntry=parentdir+4; // POINT TO THE FIRST ENTRY IN THE DIRECTORY
 
-    if(DirSize<=DirsTop-Directories+DIRSLACK+(2*n*(sizeof(WORDPTR)/sizeof(WORD)))) growDirs((WORD)(DirsTop-Directories+DIRSLACK+2*n*(sizeof(WORDPTR)/sizeof(WORD))));
+    if(DirSize<=(BINT)(DirsTop-Directories+DIRSLACK+((2*n*sizeof(WORDPTR))/sizeof(WORD)))) growDirs((WORD)(DirsTop-Directories+DIRSLACK+((2*n*sizeof(WORDPTR))/sizeof(WORD))));
     if(Exceptions) return 0;
 
     // OPEN A HOLE FOR A NEW VARIABLE AT BEGINNING OF CURRENT DIR

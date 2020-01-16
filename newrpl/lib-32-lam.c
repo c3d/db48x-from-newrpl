@@ -78,7 +78,7 @@ ERR(CIRCULARREFERENCE,2)
 
 
 
-const char const subscriptChars[];
+extern const char const subscriptChars[];
 
 extern const WORD const symbeval_seco[];
 extern const WORD const symbnum_seco[];
@@ -1250,25 +1250,25 @@ void LIB_HANDLER()
                 else if(attr&IDATTR_ISMATRIX)  { rplDecompAppendChar('M'); noinf=1; }
                 else if(attr&IDATTR_ISUNKNOWN) { rplDecompAppendChar('?'); noinf=1; }
 
-                if((!noinf) && !(attr&IDATTR_ISNOTINF))  rplDecompAppendString("∞");
+                if((!noinf) && !(attr&IDATTR_ISNOTINF))  rplDecompAppendString((BYTEPTR)"∞");
 
                 if(attr&(IDATTR_ISINFCPLX|IDATTR_ISINFREAL)) {
                     switch(attr&(IDATTR_mMASK))
                     {
                     case IDATTR_GTEZERO|IDATTR_NOTZERO:
-                        rplDecompAppendString(">0");
+                        rplDecompAppendString((BYTEPTR)">0");
                         break;
                     case IDATTR_LTEZERO|IDATTR_NOTZERO:
-                        rplDecompAppendString("<0");
+                        rplDecompAppendString((BYTEPTR)"<0");
                         break;
                     case IDATTR_GTEZERO:
-                        rplDecompAppendString("≥0");
+                        rplDecompAppendString((BYTEPTR)"≥0");
                         break;
                     case IDATTR_LTEZERO:
-                        rplDecompAppendString("≤0");
+                        rplDecompAppendString((BYTEPTR)"≤0");
                         break;
                     case IDATTR_NOTZERO:
-                        rplDecompAppendString("≠0");
+                        rplDecompAppendString((BYTEPTR)"≠0");
                         break;
                     }
                 }

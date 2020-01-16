@@ -162,10 +162,6 @@ const WORDPTR const ROMPTR_TABLE[]={
 };
 
 
-BINT rplIsTopLevelEnv(WORDPTR obj)
-{
-
-}
 
 // LOOKS INTO UPPER ENVIRONMENTS THAT MATCH env_owner,
 // SEARCHING IN lamnum INDEX FOR object. IF FOUND, MEANS
@@ -1748,7 +1744,7 @@ void LIB_HANDLER()
                         BINT tinfo=rplSymbGetTokenInfo(Opcodeptr);
                         if((TI_TYPE(tinfo)==TITYPE_CASFUNCTION)||(TI_TYPE(tinfo)==TITYPE_CASBINARYOP_LEFT)||(TI_TYPE(tinfo)==TITYPE_CASBINARYOP_RIGHT)) {
                             // CAS OPERATORS NEED TO EVAL THE RESULT AFTERWARDS
-                            rplPutLAMn(1,symbeval_seco+2);  // SIGNAL OPCODE EVAL IS NEXT
+                            rplPutLAMn(1,(WORDPTR)symbeval_seco+2);  // SIGNAL OPCODE EVAL IS NEXT
 
                         }
                         else rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
@@ -1934,7 +1930,7 @@ void LIB_HANDLER()
                         BINT tinfo=rplSymbGetTokenInfo(Opcodeptr);
                         if((TI_TYPE(tinfo)==TITYPE_CASFUNCTION)||(TI_TYPE(tinfo)==TITYPE_CASBINARYOP_LEFT)||(TI_TYPE(tinfo)==TITYPE_CASBINARYOP_RIGHT)) {
                             // CAS OPERATORS NEED TO ->NUM THE RESULT AFTERWARDS
-                            rplPutLAMn(1,symbnum_seco+2);  // SIGNAL OPCODE ->NUM IS NEXT
+                            rplPutLAMn(1,(WORDPTR)symbnum_seco+2);  // SIGNAL OPCODE ->NUM IS NEXT
 
                         }
                         else rplPutLAMn(1,(WORDPTR)zero_bint);  // SIGNAL OPCODE IS DONE
@@ -2752,7 +2748,7 @@ void LIB_HANDLER()
             return;
         }
 
-        if(ISMATRIX(rplPeekData(2))) {
+        if(ISMATRIX(*rplPeekData(2))) {
             // TODO:
             //rplMatrixDoMat(2);
             return;
