@@ -2231,15 +2231,17 @@ endfor j;
      //     s:= 0;
         rplPushData((WORDPTR)zero_bint);
      //     for i:=j to m do s:=s+a2ij;
-        for(k=j;k<=rowsa;++k) {
-            rplPushDataNoGrow(STACKELEM(k,j));
-            rplPushDataNoGrow(STACKELEM(k,j));
+        for(i=j;i<=rowsa;++i) {
+            rplPushDataNoGrow(STACKELEM(i,j));
+            rplPushDataNoGrow(STACKELEM(i,j));
             rplCallOvrOperator(CMD_OVR_MUL);
             if(Exceptions) return;
             rplCallOvrOperator(CMD_OVR_ADD);
             if(Exceptions) return;
+
         }
         //   s:= sqrt(s);
+        if(ISSYMBOLIC(*rplPeekData(1))) rplSymbAutoSimplify();
         rplCallOperator(CMD_SQRT);
         if(Exceptions) return;
 
@@ -2255,7 +2257,8 @@ endfor j;
         if(Exceptions) return;
         rplCallOperator(CMD_SQRT);
         if(Exceptions) return;
-
+        if(ISSYMBOLIC(*rplPeekData(1))) rplSymbAutoSimplify();
+        if(Exceptions) return;
         // Terminate if fak==0
         if(rplIsFalse(rplPeekData(1)))
             return;    // SHOULD WE CLEANUP SOME ELEMENTS BEFORE?
@@ -2294,7 +2297,7 @@ endfor j;
             rplPushDataNoGrow((WORDPTR)zero_bint);
 
         //            for k:=j to m do s:=s+akj∗aki;
-            for(k=j;k<rowsa;++k) {
+            for(k=j;k<=rowsa;++k) {
                 rplPushDataNoGrow(STACKELEM(k,j));
                 rplPushDataNoGrow(STACKELEM(k,i));
                 rplCallOvrOperator(CMD_OVR_MUL);
@@ -2302,14 +2305,19 @@ endfor j;
                 rplCallOvrOperator(CMD_OVR_ADD);
                 if(Exceptions) return;
             }
-        //           for k:=j to m do aki:=aki−akj∗s;
-            for(k=j;k<rowsa;++k) {
+
+            if(ISSYMBOLIC(*rplPeekData(1))) rplSymbAutoSimplify();
+            if(Exceptions) return;
+            //           for k:=j to m do aki:=aki−akj∗s;
+            for(k=j;k<=rowsa;++k) {
                 rplPushDataNoGrow(STACKELEM(k,i));
                 rplPushDataNoGrow(STACKELEM(k,j));
                 rplPushDataNoGrow(rplPeekData(3));
                 rplCallOvrOperator(CMD_OVR_MUL);
                 if(Exceptions) return;
                 rplCallOvrOperator(CMD_OVR_SUB);
+                if(Exceptions) return;
+                if(ISSYMBOLIC(*rplPeekData(1))) rplSymbAutoSimplify();
                 if(Exceptions) return;
                 STACKELEM(k,i)=rplPopData();
             }
@@ -2340,25 +2348,88 @@ WORDPTR rplMatrixQRGetQ(WORDPTR *a,BINT rowsa,BINT colsa,WORDPTR *diagv)
     // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
 #define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
 #define VECTELEM(c) diagv[(c)]
-
-WORDPTR *stksave=DSTop;
+#define ZELEM(r) z[(r)-1]
+WORDPTR *stksave=DSTop,*z;
 BINT i,j,k;
 
 for(i=1;i<=rowsa;++i) {
 
+   z=DSTop;
+   for(k=1;k<=rowsa;++k) {
+       rplPushData((i==k)? (WORDPTR)one_bint:(WORDPTR)zero_bint);
+       if(Exceptions) { DSTop=stksave; return 0; }
+   }
+
+for(j=colsa;j>=1;--j)
+{
+    rplPushDataNoGrow((WORDPTR)zero_bint);
+    for(k=j;k<=rowsa;++k) {
+        rplPushDataNoGrow(STACKELEM(k,j));
+        rplPushDataNoGrow(ZELEM(k));
+        rplCallOvrOperator(CMD_OVR_MUL);
+        if(Exceptions) { DSTop=stksave; return 0; }
+        rplCallOvrOperator(CMD_OVR_ADD);
+        if(Exceptions) { DSTop=stksave; return 0; }
+
+    }
+    if(ISSYMBOLIC(*rplPeekData(1))) rplSymbAutoSimplify();
+    if(Exceptions) { DSTop=stksave; return 0; }
+
+   for(k=j;k<=rowsa;++k)
+   {
+           rplPushDataNoGrow(ZELEM(k));
+           rplPushDataNoGrow(STACKELEM(k,j));
+           rplPushDataNoGrow(rplPeekData(3));   // s
+           rplCallOvrOperator(CMD_OVR_MUL);
+           if(Exceptions) { DSTop=stksave; return 0; }
+           rplCallOvrOperator(CMD_OVR_SUB);     // zk=zk-akj*s;
+           if(Exceptions) { DSTop=stksave; return 0; }
+           if(ISSYMBOLIC(*rplPeekData(1))) rplSymbAutoSimplify();
+           if(Exceptions) { DSTop=stksave; return 0; }
+           ZELEM(k)=rplPopData();
+    }
+   rplDropData(1);
+}
+
+}
+
+#undef STACKELEM
+#undef VECTELEM
+#undef ZELEM
+
+WORDPTR newmat=rplMatrixCompose(rowsa,rowsa);
+if(!newmat) { DSTop=stksave; return 0; }
+rplPushDataNoGrow(newmat);
+rplMatrixTranspose();
+newmat=rplPopData();
+ DSTop=stksave;
+if(Exceptions || (!newmat)) return 0;
+return newmat;
+
+}
+
+// EXTRACT EXPLICIT MATRIX Q FROM IMPLICIT QR DECOMPOSITION
+// EXPECTS IMPLICIT QR MATRIX IN a, AND DIAGONAL VECTOR IN diag
+// RETURNS Q AS A MATRIX OBJECT
+
+WORDPTR rplMatrixQRGetR(WORDPTR *a,BINT rowsa,BINT colsa,WORDPTR *diagv)
+{
+    // CONVENIENCE MACRO TO ACCESS ELEMENTS DIRECTLY ON THE STACK
+    // a IS POINTING TO THE MATRIX, THE FIRST ELEMENT IS a[1]
+#define STACKELEM(r,c) a[((r)-1)*colsa+(c)]
+#define VECTELEM(c) diagv[(c)]
+
+WORDPTR *stksave=DSTop;
+BINT i,j;
+
+for(i=1;i<=rowsa;++i) {
 
 for(j=1;j<=colsa;++j)
 {
-    rplPushDataNoGrow((i==j)? (WORDPTR)one_bint:(WORDPTR)zero_bint);
-   for(k=j;k<=rowsa;++k)
-   {
-       rplPushDataNoGrow(STACKELEM(i,j));   // s=aij;
-       rplPushDataNoGrow(STACKELEM(k,j));
-       rplCallOvrOperator(CMD_OVR_MUL);
-       if(Exceptions) { DSTop=stksave; return 0; }
-       rplCallOvrOperator(CMD_OVR_ADD);     // ek=ek+akj*aij;
-       if(Exceptions) { DSTop=stksave; return 0; }
-    }
+    if(j<i) rplPushData((WORDPTR)zero_bint);
+    else if(j==i) rplPushData(VECTELEM(j));
+    else rplPushData(STACKELEM(i,j));
+    if(Exceptions) { stksave=DSTop; return 0; }
 }
 
 }
@@ -2368,9 +2439,6 @@ for(j=1;j<=colsa;++j)
 
 WORDPTR newmat=rplMatrixCompose(rowsa,colsa);
 if(!newmat) { DSTop=stksave; return 0; }
-rplPushDataNoGrow(newmat);
-rplMatrixTranspose();
-newmat=rplPopData();
  DSTop=stksave;
 if(Exceptions || (!newmat)) return 0;
 return newmat;

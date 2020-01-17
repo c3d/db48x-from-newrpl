@@ -4038,15 +4038,24 @@ void LIB_HANDLER()
                 return;
             }
 
-            WORDPTR q=rplMatrixQRGetQ(a,rows,cols,DSTop-rows);
+            WORDPTR *diag=DSTop-rows-1;
+            WORDPTR q=rplMatrixQRGetQ(a,rows,cols,diag);
 
             if(Exceptions) {
                 DSTop=savestk;
                 return;
             }
+            rplPushDataNoGrow(q);   // PROTECT FROM GC
 
+            WORDPTR r=rplMatrixQRGetR(a,rows,cols,diag);
+            if(Exceptions) {
+                DSTop=savestk;
+                return;
+            }
+            q=rplPopData();
             DSTop=savestk;
             rplOverwriteData(1,q);
+            rplPushData(r);
 
         return;
     }

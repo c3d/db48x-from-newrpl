@@ -773,6 +773,7 @@ void rplMatrixPolarToRectEx(WORDPTR *a,BINT rowsa,BINT colsa);
 void rplMatrixRectToPolarEx(WORDPTR *a,BINT rowsa,BINT colsa,WORD angtemplate,BINT angmode);
 void rplMatrixQREx(WORDPTR *a,BINT rowsa,BINT colsa);
 WORDPTR rplMatrixQRGetQ(WORDPTR *a,BINT rowsa,BINT colsa,WORDPTR *diagv);
+WORDPTR rplMatrixQRGetR(WORDPTR *a,BINT rowsa,BINT colsa,WORDPTR *diagv);
 void rplMatrixUnary(WORD Opcode);
 
 // USER LIBRARIES
