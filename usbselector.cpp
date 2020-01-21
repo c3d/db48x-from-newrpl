@@ -1,4 +1,4 @@
-﻿#include <QMessageBox>
+#include <QMessageBox>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QTreeWidgetItemIterator>
